@@ -280,21 +280,22 @@ open_locale pointwise
 section instances
 variables [decidable_eq α]
 
-/-- Repeated pointwise addition (not the same as pointwise repeated addition!) of a `finset`. -/
+/-- Repeated pointwise addition (not the same as pointwise repeated addition!) of a `finset`. See
+note [pointwise nat action]. -/
 protected def has_nsmul [has_zero α] [has_add α] : has_scalar ℕ (finset α) := ⟨nsmul_rec⟩
 
 /-- Repeated pointwise multiplication (not the same as pointwise repeated multiplication!) of a
-`finset`. -/
+`finset`. See note [pointwise nat action]. -/
 @[to_additive]
 protected def has_npow [has_one α] [has_mul α] : has_pow (finset α) ℕ := ⟨λ s n, npow_rec n s⟩
 
 /-- Repeated pointwise addition/subtraction (not the same as pointwise repeated
-addition/subtraction!) of a `finset`. -/
+addition/subtraction!) of a `finset`. See note [pointwise nat action]. -/
 protected def has_zsmul [has_zero α] [has_add α] [has_neg α] : has_scalar ℤ (finset α) :=
 ⟨zsmul_rec⟩
 
 /-- Repeated pointwise multiplication/division (not the same as pointwise repeated
-multiplication/division!) of a `finset`. -/
+multiplication/division!) of a `finset`. See note [pointwise nat action]. -/
 @[to_additive] protected def has_zpow [has_one α] [has_mul α] [has_inv α] : has_pow (finset α) ℤ :=
 ⟨λ s n, zpow_rec n s⟩
 

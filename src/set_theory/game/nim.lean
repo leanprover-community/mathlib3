@@ -177,7 +177,7 @@ begin
     intro h,
     rw [impartial.not_first_loses],
     wlog h' : O₁ ≤ O₂ using [O₁ O₂, O₂ O₁],
-    { exact ordinal.le_total O₁ O₂ },
+    { exact le_total O₁ O₂ },
     { have h : O₁ < O₂ := lt_of_le_of_ne h' h,
       rw [impartial.first_wins_symm', lf_def_le, nim_def O₂],
       refine or.inl ⟨(left_moves_add (nim O₁) _).symm (sum.inr _), _⟩,

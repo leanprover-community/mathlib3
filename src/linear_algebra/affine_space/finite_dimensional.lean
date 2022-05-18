@@ -356,7 +356,7 @@ begin
 end
 
 /-- Two points are collinear. -/
-lemma collinear_insert_singleton (p₁ p₂ : P) : collinear k ({p₁, p₂} : set P) :=
+lemma collinear_pair (p₁ p₂ : P) : collinear k ({p₁, p₂} : set P) :=
 begin
   rw collinear_iff_exists_forall_eq_smul_vadd,
   use [p₁, p₂ -ᵥ p₁],

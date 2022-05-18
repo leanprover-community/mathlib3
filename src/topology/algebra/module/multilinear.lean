@@ -455,9 +455,8 @@ end algebra
 
 section smul_right
 
-variables [comm_semiring R]
-  [Π i, add_comm_monoid (M₁ i)] [add_comm_monoid M₂] [Π i, module R (M₁ i)]
-  [module R M₂] [topological_space R] [Π i, topological_space (M₁ i)]
+variables [comm_semiring R] [Π i, add_comm_monoid (M₁ i)] [add_comm_monoid M₂]
+  [Π i, module R (M₁ i)] [module R M₂] [topological_space R] [Π i, topological_space (M₁ i)]
   [topological_space M₂] [has_continuous_smul R M₂]
 
 /-- Given a continuous `R`-multilinear map `f` taking values in `R`, `f.smul_right z` is the

@@ -535,7 +535,8 @@ by simp
 lemma image_mul_right' : image (* b⁻¹) t = preimage t (* b) ((mul_left_injective _).inj_on _) :=
 by simp
 
-lemma image_div : (s / t).image (m : α → β) = s.image m / t.image m := image_image₂_distrib $ map_div m
+lemma image_div : (s / t).image (m : α → β) = s.image m / t.image m :=
+image_image₂_distrib $ map_div m
 
 end group
 

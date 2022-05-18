@@ -6,7 +6,6 @@ Authors: Eric Wieser, Utensil Song
 
 import algebra.ring_quot
 import linear_algebra.tensor_algebra.basic
-import linear_algebra.exterior_algebra.basic
 import linear_algebra.quadratic_form.basic
 
 /-!
@@ -33,7 +32,6 @@ of the Clifford algebra.
 1. `ι_comp_lift` is the fact that the composition of `ι Q` with `lift Q f cond` agrees with `f`.
 2. `lift_unique` ensures the uniqueness of `lift Q f cond` with respect to 1.
 
-Additionally, when `Q = 0` an `alg_equiv` to the `exterior_algebra` is provided as `as_exterior`.
 
 ## Implementation details
 
@@ -45,8 +43,6 @@ The Clifford algebra of `M` is constructed as a quotient of the tensor algebra, 
 Note that while conventionally the clifford algebra is defined over `Q` a quadratic form, for parts
 of this file we permit `Q` to be any function, as that allows us to use the same definition for
 the exterior algebra over a semiring.
-
-This file is almost identical to `linear_algebra/exterior_algebra.lean`.
 -/
 
 variables {R M M₁ M₂ M₃ A : Type*}
@@ -204,25 +200,6 @@ begin
   convert subtype.prop (lift Q of a),
   exact alg_hom.congr_fun of_id a,
 end
-
-/-- A Clifford algebra with a zero quadratic form is isomorphic to an `exterior_algebra` -/
-def as_exterior : clifford_algebra 0 ≃ₐ[R] exterior_algebra R M :=
-alg_equiv.of_alg_hom
-  (clifford_algebra.lift 0 ⟨(exterior_algebra.ι R),
-    by simp only [forall_const, ring_hom.map_zero,
-                  exterior_algebra.ι_sq_zero, pi.zero_apply]⟩)
-  (exterior_algebra.lift R ⟨(ι 0),
-    by simp only [forall_const, ring_hom.map_zero, pi.zero_apply, ι_sq_scalar]⟩)
-  (exterior_algebra.hom_ext $ linear_map.ext $
-    by simp only [alg_hom.comp_to_linear_map, linear_map.coe_comp,
-                  function.comp_app, alg_hom.to_linear_map_apply,
-                  exterior_algebra.lift_ι_apply, clifford_algebra.lift_ι_apply,
-                  alg_hom.to_linear_map_id, linear_map.id_comp, eq_self_iff_true, forall_const])
-  (clifford_algebra.hom_ext $ linear_map.ext $
-    by simp only [alg_hom.comp_to_linear_map, linear_map.coe_comp,
-                  function.comp_app, alg_hom.to_linear_map_apply,
-                  clifford_algebra.lift_ι_apply, exterior_algebra.lift_ι_apply,
-                  alg_hom.to_linear_map_id, linear_map.id_comp, eq_self_iff_true, forall_const])
 
 @[simp]
 lemma ι_range_map_lift (f : M →ₗ[R] A) (cond : ∀ m, f m * f m = algebra_map _ _ (Q m)) :

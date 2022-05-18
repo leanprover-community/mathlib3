@@ -41,12 +41,12 @@ support_add.trans (union_subset (support_add.trans (union_subset (support_C_mul_
   (mem_insert_of_mem (mem_insert_of_mem (mem_singleton_self n))))))
 
 -- todo: PR to `data/polynomial/basic` with other support lemmas
-lemma support_binomial_eq {k m : ℕ} (hkm : k < m) {x y : R} (hx : x ≠ 0) (hy : y ≠ 0) :
+lemma support_binomial_eq {k m : ℕ} (hkm : k ≠ m) {x y : R} (hx : x ≠ 0) (hy : y ≠ 0) :
   (C x * X ^ k + C y * X ^ m).support = {k, m} :=
 begin
   refine subset_antisymm support_binomial_le _,
   simp_rw [insert_subset, singleton_subset_iff, mem_support_iff, coeff_add, coeff_C_mul,
-    coeff_X_pow_self, mul_one, coeff_X_pow, if_neg hkm.ne, if_neg hkm.ne',
+    coeff_X_pow_self, mul_one, coeff_X_pow, if_neg hkm, if_neg hkm.symm,
     mul_zero, zero_add, add_zero, ne.def, hx, hy, and_self, not_false_iff],
 end
 
@@ -62,12 +62,11 @@ begin
 end
 
 -- todo: PR to `data/polynomial/basic` with other support lemmas
-lemma card_support_binomial_eq {k m : ℕ} (hkm : k < m) {x y : R} (hx : x ≠ 0) (hy : y ≠ 0) :
+lemma card_support_binomial_eq {k m : ℕ} (hkm : k ≠ m) {x y : R} (hx : x ≠ 0) (hy : y ≠ 0) :
   (C x * X ^ k + C y * X ^ m).support.card = 2 :=
 begin
   rw [support_binomial_eq hkm hx hy, card_insert_of_not_mem, card_singleton],
-  rw [mem_singleton],
-  exact hkm.ne,
+  rwa [mem_singleton],
 end
 
 -- todo: PR to `data/polynomial/basic` with other support lemmas
@@ -108,7 +107,7 @@ begin
       exact two_ne_zero },
     { rw [←hp, erase_lead_add_C_mul_X_pow] } },
   { rintros ⟨k, m, hkm, x, y, hx, hy, rfl⟩,
-    exact card_support_binomial_eq hkm hx hy },
+    exact card_support_binomial_eq hkm.ne hx hy },
 end
 
 -- todo: PR to `data/polynomial/basic` with other support lemmas
@@ -391,7 +390,44 @@ lemma sublemma3 {R : Type*} [semiring R] {k l m n : ℕ} {u v : R} (hu : u ≠ 0
 begin
   split,
   { intro h,
-    sorry },
+    have hk := congr_arg (λ p, coeff p k) h,
+    have hl := congr_arg (λ p, coeff p l) h,
+    have hm := congr_arg (λ p, coeff p m) h,
+    have hn := congr_arg (λ p, coeff p n) h,
+    simp only [coeff_add, coeff_C_mul_X_pow, if_pos rfl] at hk hl hm hn,
+    by_cases hkm : k = m,
+    { subst hkm,
+      by_cases hln : l = n,
+      { subst hln,
+        exact or.inl ⟨rfl, rfl⟩ },
+      { by_cases hkl : k = l,
+        { subst hkl,
+          rw [if_neg (ne.symm hln), if_neg (ne.symm hln), zero_add, zero_add, eq_comm] at hn,
+          exact (hv hn).elim },
+        { rw [if_neg (ne.symm hkl), if_neg hln, zero_add, zero_add] at hl,
+          exact (hv hl).elim } } },
+    { by_cases hkn : k = n,
+      { subst hkn,
+        by_cases hlm : l = m,
+        { subst hlm,
+          rw [if_pos rfl, if_neg hkm, if_neg hkm, zero_add, add_zero] at hk,
+          exact or.inr (or.inl ⟨hk, rfl, rfl⟩) },
+        { by_cases hkl : k = l,
+          { subst hkl,
+            rw [if_neg (ne.symm hlm), if_neg (ne.symm hlm), add_zero, add_zero, eq_comm] at hm,
+            exact (hu hm).elim },
+          { rw [if_neg (ne.symm hkl), if_neg (ne.symm hkl), if_neg hlm, zero_add, zero_add] at hl,
+            exact (hv hl).elim } } },
+      { by_cases hkl : k = l,
+        { subst hkl,
+          by_cases hmn : m = n,
+          { subst hmn,
+            rw [if_pos rfl, if_neg hkm, if_neg hkm, zero_add] at hk,
+            exact or.inr (or.inr (⟨hk, rfl, rfl⟩)) },
+          { rw [if_neg (ne.symm hkm), if_neg (ne.symm hkm), if_neg hmn, add_zero, add_zero] at hm,
+            exact (hu hm.symm).elim } },
+        { rw [if_neg hkl, if_neg hkm, if_neg hkn, add_zero, add_zero] at hk,
+          exact (hu hk).elim } } } },
   { rintros (⟨rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩ | ⟨h, rfl, rfl⟩),
     { refl },
     { apply add_comm },
@@ -417,10 +453,16 @@ begin
   rcases h with ⟨rfl, -⟩ | ⟨rfl, rfl, h⟩ | ⟨-, hm, hm'⟩,
   { exact or.inl (hq.trans hp.symm) },
   { refine or.inr _,
-    sorry },
-  { have : m = m' := sorry,
-    rw this at hp,
-    exact or.inl (hq.trans hp.symm) },
+    rw [←trinomial_mirror hkm' hmn' hu.ne_zero hw.ne_zero, eq_comm, mirror_eq_iff] at hp,
+    exact hq.trans hp },
+  { suffices : m = m',
+    { rw this at hp,
+      exact or.inl (hq.trans hp.symm) },
+    rw [tsub_add_eq_add_tsub hmn.le, eq_tsub_iff_add_eq_of_le, ←two_mul] at hm,
+    rw [tsub_add_eq_add_tsub hmn'.le, eq_tsub_iff_add_eq_of_le, ←two_mul] at hm',
+    exact mul_left_cancel₀ two_ne_zero (hm.trans hm'.symm),
+    exact hmn'.le.trans (nat.le_add_right n k),
+    exact hmn.le.trans (nat.le_add_right n k) },
 end
 
 lemma sublemma {a b c d : ℤ} (ha : is_unit a) (hb : is_unit b) (hc : is_unit c) (hd : is_unit d)

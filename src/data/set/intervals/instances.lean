@@ -16,12 +16,7 @@ instance {α : Type*} [ordered_semiring α] : monoid (Icc (0:α) 1) := {
   mul_one := λ p, (by simp only [subtype.coe_mk, mul_one, subtype.coe_eta]),
   npow := λ n p, ⟨p.1 ^ n, ⟨pow_nonneg p.2.1 n, pow_le_one n p.2.1 p.2.2⟩⟩,
   npow_zero' := λ p, (by simp [has_one.one]),
-  npow_succ' :=
-  begin
-    refine λ n p, _,
-    simp only [pow_succ p.val n],
-    refl,
-  end,
+  npow_succ' := λ n p, (by {simp only [pow_succ p.val n], refl}),
 }
 
 

@@ -18,13 +18,13 @@ The rearrangement inequality tells you that for two functions `f g : ι → α`,
 `∑ i, f i * g (σ i)` is maximized over all `σ : perm ι` when `g ∘ σ` monovaries with `f` and
 minimized when `g ∘ σ` antivaries with `f`.
 
-The inequality also tels you that if `∑ i, f i * g (σ i) = ∑ i, f i * g i` if and only `g ∘ σ`
-monovaries with `g` when `f` monovaries with `f`. The above equality also holds if and only if
+The inequality also tells you that `∑ i, f i * g (σ i) = ∑ i, f i * g i` if and only if `g ∘ σ`
+monovaries with `f` when `g` monovaries with `f`. The above equality also holds if and only if
 `g ∘ σ` antivaries with `f` when `g` antivaries with `f`.
 
 From the above two statements, we deduce that the inequality is strict if an only if `g ∘ σ` does
-not monovary with `f`, when `g` monovaries with `f` and if and only if `g ∘ σ` does not antivary
-with `f` when `g` antivaries with `f`.
+not monovary with `f` when `g` monovaries with `f`. Analogously, the inequality is strict if and
+only if `g ∘ σ` does not antivary with `f` when `g` antivaries with `f`.
 
 ## Implementation notes
 
@@ -50,7 +50,7 @@ variables [linear_ordered_ring α] [linear_ordered_add_comm_group β] [module α
   [ordered_smul α β] {s : finset ι} {σ : perm ι} {f : ι → α} {g : ι → β}
 
 /-- **Rearrangement Inequality**: Pointwise scalar multiplication of `f` and `g` is maximized when
-`f` and `g` vary together. Stated by permuting the entries of `g`.  -/
+`f` and `g` monovary together. Stated by permuting the entries of `g`.  -/
 lemma monovary_on.sum_smul_comp_perm_le_sum_smul (hfg : monovary_on f g s)
   (hσ : {x | σ x ≠ x} ⊆ s) :
   ∑ i in s, f i • g (σ i) ≤ ∑ i in s, f i • g i :=
@@ -109,8 +109,8 @@ begin
 end
 
 /-- **Equality case of Rearrangement Inequality**: Pointwise scalar multiplication of `f` and `g`,
-which vary together, is unchanged by a permutation if and only if `f` and `g ∘ σ` vary together.
-Stated by permuting the entries of `g`.  -/
+which monovary together, is unchanged by a permutation if and only if `f` and `g ∘ σ` monovary
+together. Stated by permuting the entries of `g`.  -/
 lemma monovary_on.sum_smul_comp_perm_eq_sum_smul_iff (hfg : monovary_on f g s)
   (hσ : {x | σ x ≠ x} ⊆ s) :
   ∑ i in s, f i • g (σ i) = ∑ i in s, f i • g i ↔ monovary_on f (g ∘ σ) s :=
@@ -159,8 +159,8 @@ begin
 end
 
 /-- **Strict inequality case of Rearrangement Inequality**: Pointwise scalar multiplication of
-`f` and `g`, which vary together, is strictly decreased by a permutation if and only if
-`f` and `g ∘ σ` do not vary together. Stated by permuting the entries of `g`.  -/
+`f` and `g`, which monovary together, is strictly decreased by a permutation if and only if
+`f` and `g ∘ σ` do not monovary together. Stated by permuting the entries of `g`.  -/
 lemma monovary_on.sum_smul_comp_perm_lt_sum_smul_iff (hfg : monovary_on f g s)
   (hσ : {x | σ x ≠ x} ⊆ s) :
   ∑ i in s, f i • g (σ i) < ∑ i in s, f i • g i ↔ ¬ monovary_on f (g ∘ σ) s :=
@@ -168,7 +168,7 @@ by simp [← hfg.sum_smul_comp_perm_eq_sum_smul_iff hσ,
   lt_iff_le_and_ne, hfg.sum_smul_comp_perm_le_sum_smul hσ]
 
 /-- **Rearrangement Inequality**: Pointwise scalar multiplication of `f` and `g` is maximized when
-`f` and `g` vary together. Stated by permuting the entries of `f`.  -/
+`f` and `g` monovary together. Stated by permuting the entries of `f`.  -/
 lemma monovary_on.sum_comp_perm_smul_le_sum_smul (hfg : monovary_on f g s)
   (hσ : {x | σ x ≠ x} ⊆ s) :
   ∑ i in s, f (σ i) • g i ≤ ∑ i in s, f i • g i :=
@@ -179,8 +179,8 @@ begin
 end
 
 /-- **Equality case of Rearrangement Inequality**: Pointwise scalar multiplication of `f` and `g`,
-which vary together, is unchanged by a permutation if and only if `f ∘ σ` and `g` vary together.
-Stated by permuting the entries of `f`.  -/
+which monovary together, is unchanged by a permutation if and only if `f ∘ σ` and `g` monovary
+together. Stated by permuting the entries of `f`.  -/
 lemma monovary_on.sum_comp_perm_smul_eq_sum_smul_iff (hfg : monovary_on f g s)
   (hσ : {x | σ x ≠ x} ⊆ s) :
   ∑ i in s, f (σ i) • g i = ∑ i in s, f i • g i ↔ monovary_on (f ∘ σ) g s :=
@@ -200,8 +200,8 @@ begin
 end
 
 /-- **Strict inequality case of Rearrangement Inequality**: Pointwise scalar multiplication of
-`f` and `g`, which vary together, is strictly decreased by a permutation if and only if
-`f ∘ σ` and `g` do not vary together. Stated by permuting the entries of `f`.  -/
+`f` and `g`, which monovary together, is strictly decreased by a permutation if and only if
+`f ∘ σ` and `g` do not monovary together. Stated by permuting the entries of `f`.  -/
 lemma monovary_on.sum_comp_perm_smul_lt_sum_smul_iff (hfg : monovary_on f g s)
   (hσ : {x | σ x ≠ x} ⊆ s) :
   ∑ i in s, f (σ i) • g i < ∑ i in s, f i • g i ↔ ¬ monovary_on (f ∘ σ) g s :=
@@ -277,41 +277,41 @@ by simp [← hfg.sum_smul_eq_sum_comp_perm_smul_iff hσ,
 variables [fintype ι]
 
 /-- **Rearrangement Inequality**: Pointwise scalar multiplication of `f` and `g` is maximized when
-`f` and `g` vary together. Stated by permuting the entries of `g`.  -/
+`f` and `g` monovary together. Stated by permuting the entries of `g`.  -/
 lemma monovary.sum_smul_comp_perm_le_sum_smul (hfg : monovary f g) :
   ∑ i, f i • g (σ i) ≤ ∑ i, f i • g i :=
 (hfg.monovary_on _).sum_smul_comp_perm_le_sum_smul $ λ i _, mem_univ _
 
 /-- **Equality case of Rearrangement Inequality**: Pointwise scalar multiplication of `f` and `g`,
-which vary together, is unchanged by a permutation if and only if `f` and `g ∘ σ` vary together.
-Stated by permuting the entries of `g`.  -/
+which monovary together, is unchanged by a permutation if and only if `f` and `g ∘ σ` monovary
+together. Stated by permuting the entries of `g`.  -/
 lemma monovary.sum_smul_comp_perm_eq_sum_smul_iff (hfg : monovary f g) :
   ∑ i, f i • g (σ i) = ∑ i, f i • g i ↔ monovary f (g ∘ σ) :=
 by simp [(hfg.monovary_on _).sum_smul_comp_perm_eq_sum_smul_iff (λ i _, mem_univ _)]
 
 /-- **Strict inequality case of Rearrangement Inequality**: Pointwise scalar multiplication of
-`f` and `g`, which vary together, is strictly decreased by a permutation if and only if
-`f` and `g ∘ σ` do not vary together. Stated by permuting the entries of `g`.  -/
+`f` and `g`, which monovary together, is strictly decreased by a permutation if and only if
+`f` and `g ∘ σ` do not monovary together. Stated by permuting the entries of `g`.  -/
 lemma monovary.sum_smul_comp_perm_lt_sum_smul_iff (hfg : monovary f g) :
   ∑ i, f i • g (σ i) < ∑ i, f i • g i ↔ ¬ monovary f (g ∘ σ) :=
 by simp [(hfg.monovary_on _).sum_smul_comp_perm_lt_sum_smul_iff (λ i _, mem_univ _)]
 
 /-- **Rearrangement Inequality**: Pointwise scalar multiplication of `f` and `g` is maximized when
-`f` and `g` vary together. Stated by permuting the entries of `f`.  -/
+`f` and `g` monovary together. Stated by permuting the entries of `f`.  -/
 lemma monovary.sum_comp_perm_smul_le_sum_smul (hfg : monovary f g) :
   ∑ i, f (σ i) • g i ≤ ∑ i, f i • g i :=
 (hfg.monovary_on _).sum_comp_perm_smul_le_sum_smul $ λ i _, mem_univ _
 
 /-- **Equality case of Rearrangement Inequality**: Pointwise scalar multiplication of `f` and `g`,
-which vary together, is unchanged by a permutation if and only if `f ∘ σ` and `g` vary together.
-Stated by permuting the entries of `g`.  -/
+which monovary together, is unchanged by a permutation if and only if `f ∘ σ` and `g` monovary
+together. Stated by permuting the entries of `g`.  -/
 lemma monovary.sum_comp_perm_smul_eq_sum_smul_iff (hfg : monovary f g) :
   ∑ i, f (σ i) • g i = ∑ i, f i • g i ↔ monovary (f ∘ σ) g :=
 by simp [(hfg.monovary_on _).sum_comp_perm_smul_eq_sum_smul_iff (λ i _, mem_univ _)]
 
 /-- **Strict inequality case of Rearrangement Inequality**: Pointwise scalar multiplication of
-`f` and `g`, which vary together, is strictly decreased by a permutation if and only if
-`f` and `g ∘ σ` do not vary together. Stated by permuting the entries of `g`.  -/
+`f` and `g`, which monovary together, is strictly decreased by a permutation if and only if
+`f` and `g ∘ σ` do not monovary together. Stated by permuting the entries of `g`.  -/
 lemma monovary.sum_comp_perm_smul_lt_sum_smul_iff (hfg : monovary f g) :
    ∑ i, f (σ i) • g i < ∑ i, f i • g i ↔ ¬ monovary (f ∘ σ) g :=
 by simp [(hfg.monovary_on _).sum_comp_perm_smul_lt_sum_smul_iff (λ i _, mem_univ _)]
@@ -368,44 +368,44 @@ section mul
 variables [linear_ordered_ring α] {s : finset ι} {σ : perm ι} {f g : ι → α}
 
 /-- **Rearrangement Inequality**: Pointwise multiplication of `f` and `g` is maximized when `f` and
-`g` vary together. Stated by permuting the entries of `g`.  -/
+`g` monovary together. Stated by permuting the entries of `g`.  -/
 lemma monovary_on.sum_mul_comp_perm_le_sum_mul (hfg : monovary_on f g s) (hσ : {x | σ x ≠ x} ⊆ s) :
   ∑ i in s, f i * g (σ i) ≤ ∑ i in s, f i * g i :=
 hfg.sum_smul_comp_perm_le_sum_smul hσ
 
 /-- **Equality case of Rearrangement Inequality**: Pointwise multiplication of `f` and `g`,
-which vary together, is unchanged by a permutation if and only if `f` and `g ∘ σ` vary together.
-Stated by permuting the entries of `g`.  -/
+which monovary together, is unchanged by a permutation if and only if `f` and `g ∘ σ` monovary
+together. Stated by permuting the entries of `g`.  -/
 lemma monovary_on.sum_mul_comp_perm_eq_sum_mul_iff (hfg : monovary_on f g s)
   (hσ : {x | σ x ≠ x} ⊆ s) :
   ∑ i in s, f i * g (σ i) = ∑ i in s, f i * g i ↔ monovary_on f (g ∘ σ) s :=
 hfg.sum_smul_comp_perm_eq_sum_smul_iff hσ
 
 /-- **Strict inequality case of Rearrangement Inequality**: Pointwise scalar multiplication of
-`f` and `g`, which vary together, is strictly decreased by a permutation if and only if
-`f` and `g ∘ σ` do not vary together. Stated by permuting the entries of `g`.  -/
+`f` and `g`, which monovary together, is strictly decreased by a permutation if and only if
+`f` and `g ∘ σ` do not monovary together. Stated by permuting the entries of `g`.  -/
 lemma monovary_on.sum_mul_comp_perm_lt_sum_mul_iff (hfg : monovary_on f g s)
   (hσ : {x | σ x ≠ x} ⊆ s) :
   ∑ i in s, f i • g (σ i) < ∑ i in s, f i • g i ↔ ¬ monovary_on f (g ∘ σ) s :=
 hfg.sum_smul_comp_perm_lt_sum_smul_iff hσ
 
 /-- **Rearrangement Inequality**: Pointwise multiplication of `f` and `g` is maximized when `f` and
-`g` vary together. Stated by permuting the entries of `f`.  -/
+`g` monovary together. Stated by permuting the entries of `f`.  -/
 lemma monovary_on.sum_comp_perm_mul_le_sum_mul (hfg : monovary_on f g s) (hσ : {x | σ x ≠ x} ⊆ s) :
   ∑ i in s, f (σ i) * g i ≤ ∑ i in s, f i * g i :=
 hfg.sum_comp_perm_smul_le_sum_smul hσ
 
 /-- **Equality case of Rearrangement Inequality**: Pointwise multiplication of `f` and `g`,
-which vary together, is unchanged by a permutation if and only if `f ∘ σ` and `g` vary together.
-Stated by permuting the entries of `f`.  -/
+which monovary together, is unchanged by a permutation if and only if `f ∘ σ` and `g` monovary
+together. Stated by permuting the entries of `f`.  -/
 lemma monovary_on.sum_comp_perm_mul_eq_sum_mul_iff (hfg : monovary_on f g s)
   (hσ : {x | σ x ≠ x} ⊆ s) :
   ∑ i in s, f (σ i) * g i = ∑ i in s, f i * g i ↔ monovary_on (f ∘ σ) g s :=
 hfg.sum_comp_perm_smul_eq_sum_smul_iff hσ
 
 /-- **Strict inequality case of Rearrangement Inequality**: Pointwise multiplication of
-`f` and `g`, which vary together, is strictly decreased by a permutation if and only if
-`f ∘ σ` and `g` do not vary together. Stated by permuting the entries of `f`.  -/
+`f` and `g`, which monovary together, is strictly decreased by a permutation if and only if
+`f ∘ σ` and `g` do not monovary together. Stated by permuting the entries of `f`.  -/
 lemma monovary_on.sum_comp_perm_mul_lt_sum_mul_iff (hfg : monovary_on f g s)
   (hσ : {x | σ x ≠ x} ⊆ s) :
   ∑ i in s, f (σ i) * g i < ∑ i in s, f i * g i ↔ ¬ monovary_on (f ∘ σ) g s :=
@@ -458,41 +458,41 @@ hfg.sum_smul_lt_sum_comp_perm_smul_iff hσ
 variables [fintype ι]
 
 /-- **Rearrangement Inequality**: Pointwise multiplication of `f` and `g` is maximized when `f` and
-`g` vary together. Stated by permuting the entries of `g`.  -/
+`g` monovary together. Stated by permuting the entries of `g`.  -/
 lemma monovary.sum_mul_comp_perm_le_sum_mul (hfg : monovary f g) :
   ∑ i, f i * g (σ i) ≤ ∑ i, f i * g i :=
 hfg.sum_smul_comp_perm_le_sum_smul
 
 /-- **Equality case of Rearrangement Inequality**: Pointwise multiplication of `f` and `g`,
-which vary together, is unchanged by a permutation if and only if `f` and `g ∘ σ` vary together.
-Stated by permuting the entries of `g`.  -/
+which monovary together, is unchanged by a permutation if and only if `f` and `g ∘ σ` monovary
+together. Stated by permuting the entries of `g`.  -/
 lemma monovary.sum_mul_comp_perm_eq_sum_mul_iff (hfg : monovary f g) :
   ∑ i, f i * g (σ i) = ∑ i, f i * g i ↔ monovary f (g ∘ σ) :=
 hfg.sum_smul_comp_perm_eq_sum_smul_iff
 
 /-- **Strict inequality case of Rearrangement Inequality**: Pointwise multiplication of
-`f` and `g`, which vary together, is strictly decreased by a permutation if and only if
-`f` and `g ∘ σ` do not vary together. Stated by permuting the entries of `g`.  -/
+`f` and `g`, which monovary together, is strictly decreased by a permutation if and only if
+`f` and `g ∘ σ` do not monovary together. Stated by permuting the entries of `g`.  -/
 lemma monovary.sum_mul_comp_perm_lt_sum_mul_iff (hfg : monovary f g) :
   ∑ i, f i * g (σ i) < ∑ i, f i * g i ↔ ¬ monovary f (g ∘ σ) :=
 hfg.sum_smul_comp_perm_lt_sum_smul_iff
 
 /-- **Rearrangement Inequality**: Pointwise multiplication of `f` and `g` is maximized when `f` and
-`g` vary together. Stated by permuting the entries of `f`.  -/
+`g` monovary together. Stated by permuting the entries of `f`.  -/
 lemma monovary.sum_comp_perm_mul_le_sum_mul (hfg : monovary f g) :
   ∑ i, f (σ i) * g i ≤ ∑ i, f i * g i :=
 hfg.sum_comp_perm_smul_le_sum_smul
 
 /-- **Equality case of Rearrangement Inequality**: Pointwise multiplication of `f` and `g`,
-which vary together, is unchanged by a permutation if and only if `f ∘ σ` and `g` vary together.
-Stated by permuting the entries of `g`.  -/
+which monovary together, is unchanged by a permutation if and only if `f ∘ σ` and `g` monovary
+together. Stated by permuting the entries of `g`.  -/
 lemma monovary.sum_comp_perm_mul_eq_sum_mul_iff (hfg : monovary f g) :
   ∑ i, f (σ i) * g i = ∑ i, f i * g i ↔ monovary (f ∘ σ) g :=
 hfg.sum_comp_perm_smul_eq_sum_smul_iff
 
 /-- **Strict inequality case of Rearrangement Inequality**: Pointwise multiplication of
-`f` and `g`, which vary together, is strictly decreased by a permutation if and only if
-`f` and `g ∘ σ` do not vary together. Stated by permuting the entries of `g`.  -/
+`f` and `g`, which monovary together, is strictly decreased by a permutation if and only if
+`f` and `g ∘ σ` do not monovary together. Stated by permuting the entries of `g`.  -/
 lemma monovary.sum_comp_perm_mul_lt_sum_mul_iff (hfg : monovary f g) :
    ∑ i, f (σ i) * g i < ∑ i, f i * g i ↔ ¬ monovary (f ∘ σ) g :=
 hfg.sum_comp_perm_smul_lt_sum_smul_iff

@@ -11,10 +11,12 @@ import algebra.hom.units
 /-!
 # Unbundled monoid and group homomorphisms
 
-This file defines predicates for unbundled monoid and group homomorphisms. Though
-bundled morphisms are preferred in mathlib, these unbundled predicates are still occasionally used
-in mathlib, and probably will not go away before Lean 4
-because Lean 3 often fails to coerce a bundled homomorphism to a function.
+This file is deprecated, and is no longer imported by anything in mathlib other than other
+deprecated files, and test files. You should not need to import it.
+
+This file defines predicates for unbundled monoid and group homomorphisms. Instead of using
+this file, please use `monoid_hom`, defined in `algebra.hom.group`, with notation `→*`, for
+morphisms between monoids or groups. For example use `φ : G →* H` to represent a group homomorphism.
 
 ## Main Definitions
 

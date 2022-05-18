@@ -9,8 +9,9 @@ import data.ulift
 /-!
 # Discrete categories
 
-We define `discrete α := α` for any type `α`, and use this type alias
-to provide a `small_category` instance whose only morphisms are the identities.
+We define `discrete α` as a structure containing a term `a : α` for any type `α`,
+and use this type alias to provide a `small_category` instance
+whose only morphisms are the identities.
 
 There is an annoying technical difficulty that it has turned out to be inconvenient
 to allow categories with morphisms living in `Prop`,
@@ -36,9 +37,12 @@ namespace category_theory
 universes v₁ v₂ v₃ u₁ u₂ u₃
 
 /--
-A type synonym for promoting any type to a category,
+A wrapper for promoting any type to a category,
 with the only morphisms being equalities.
 -/
+-- This is intentionally a structure rather than a type synonym
+-- to enforce using `discrete_equiv` (or `discrete.mk` and `discrete.as`) to move between
+-- `discrete α` and `α`. Otherwise there is too much API leakage.
 @[ext] structure discrete (α : Type u₁) :=
 (as : α)
 

@@ -974,9 +974,9 @@ by simpa only [degree_C_mul_X_pow 3 ha] using degree_quadratic_lt
 
 @[simp] lemma degree_cubic (ha : a ≠ 0) : degree (C a * X ^ 3 + C b * X ^ 2 + C c * X + C d) = 3 :=
 begin
-  rw [add_assoc, add_assoc, ← add_assoc (C b * X ^ 2), degree_add_eq_left_of_degree_lt $
-        degree_quadratic_lt_degree_C_mul_X_cb ha, degree_C_mul_X_pow 3 ha],
-  refl
+  move_add _ * _,
+  rw [degree_add_eq_right_of_degree_lt $ degree_quadratic_lt_degree_C_mul_X_cb ha],
+  exact degree_C_mul_X_pow 3 ha,
 end
 
 lemma nat_degree_cubic_le : nat_degree (C a * X ^ 3 + C b * X ^ 2 + C c * X + C d) ≤ 3 :=
@@ -988,11 +988,10 @@ nat_degree_eq_of_degree_eq_some $ degree_cubic ha
 
 @[simp] lemma leading_coeff_cubic (ha : a ≠ 0):
   leading_coeff (C a * X ^ 3 + C b * X ^ 2 + C c * X + C d) = a :=
-by rw [add_assoc, add_assoc, ← add_assoc (C b * X ^ 2), add_comm, leading_coeff_add_of_degree_lt $
-         degree_quadratic_lt_degree_C_mul_X_cb ha, leading_coeff_C_mul_X_pow]
+by { move_add _ * _, rw [leading_coeff_add_of_degree_lt $ degree_quadratic_lt_degree_C_mul_X_cb ha,
+       leading_coeff_C_mul_X_pow] }
 
 end semiring
-
 
 section nontrivial_semiring
 variables [semiring R] [nontrivial R] {p q : R[X]}

@@ -234,8 +234,7 @@ by simp [language.sum]
 begin
   simp only [card_eq_card_functions_add_card_relations, card_functions_sum, card_relations_sum,
     sum_add_distrib', lift_add, lift_sum, lift_lift],
-  rw [add_assoc, ←add_assoc (cardinal.sum (λ i, (# (L'.functions i)).lift)),
-    add_comm (cardinal.sum (λ i, (# (L'.functions i)).lift)), add_assoc, add_assoc]
+  move_add (cardinal.sum (λ i, (# (L'.functions i)).lift)),
 end
 
 @[simp] lemma card_mk₂ (c f₁ f₂ : Type u) (r₁ r₂ : Type v) :

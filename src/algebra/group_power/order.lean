@@ -5,7 +5,7 @@ Authors: Jeremy Avigad, Robert Y. Lewis
 -/
 import algebra.order.ring
 import algebra.group_power.basic
-
+import tactic.move_add
 /-!
 # Lemmas about the interaction of power operations with order
 
@@ -149,8 +149,7 @@ begin
     ≤ x*x^n + y*y^n + (x*y^n + y*x^n) :
       by { rw [pow_succ _ n, pow_succ _ n], exact le_add_of_nonneg_right h1 }
     ... = (x+y) * (x^n + y^n) :
-      by rw [add_mul, mul_add, mul_add, add_comm (y*x^n), ← add_assoc,
-        ← add_assoc, add_assoc (x*x^n) (x*y^n), add_comm (x*y^n) (y*y^n), ← add_assoc]
+      by { rw [add_mul, mul_add, mul_add], move_add [x * y ^ _, y * y ^ _] }
     ... ≤ (x+y)^n.succ :
       by { rw [pow_succ _ n], exact mul_le_mul_of_nonneg_left (ih (nat.succ_ne_zero k)) h2 }
 end

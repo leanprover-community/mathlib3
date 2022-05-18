@@ -133,8 +133,7 @@ begin
       obtain ⟨n', hn1, hn2⟩ := h,
       obtain ⟨x, hpos, rfl⟩ := exists_pos_add_of_lt hn1,
       refine ⟨n + x, add_lt_add_left hpos n, _⟩,
-      rw [add_assoc, add_comm x m, ← add_assoc],
-      exact hn2 },
+      move_add x },
     let g' : ℕ → ℕ := @nat.rec (λ _, ℕ) m (λ n gn, nat.find (h gn)),
     exact ⟨(rel_embedding.nat_lt (λ n, g' n + m)
       (λ n, nat.add_lt_add_right (nat.find_spec (h (g' n))).1 m)).order_embedding_of_lt_embedding,

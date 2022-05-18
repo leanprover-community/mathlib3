@@ -137,8 +137,8 @@ let ⟨a, b, h⟩ := H in ⟨f a, f b, by rw [← f.map_mul, ← f.map_mul, ← 
 variables {x y z}
 
 lemma is_coprime.of_add_mul_left_left (h : is_coprime (x + y * z) y) : is_coprime x y :=
-let ⟨a, b, H⟩ := h in ⟨a, a * z + b, by simpa only [add_mul, mul_add,
-    add_assoc, add_comm, add_left_comm, mul_assoc, mul_comm, mul_left_comm] using H⟩
+let ⟨a, b, H⟩ := h in ⟨a, a * z + b,
+  by rw [← H, add_mul, mul_add, mul_assoc, mul_comm y, add_assoc]⟩
 
 lemma is_coprime.of_add_mul_right_left (h : is_coprime (x + z * y) y) : is_coprime x y :=
 by { rw mul_comm at h, exact h.of_add_mul_left_left }

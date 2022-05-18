@@ -289,7 +289,7 @@ begin
   cases y with n y,
   cases H with z H, dsimp only at H,
   rw [r.sound K p (n+z) m x _ rfl, r.sound K p (m+z) n y _ rfl, H],
-  rw [add_assoc, add_comm, add_comm z]
+  move_add [← m, n]
 end
 
 theorem nat_cast (n x : ℕ) : (x : perfect_closure K p) = mk K p (n, x) :=

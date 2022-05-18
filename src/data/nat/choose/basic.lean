@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Bhavik Mehta
 -/
 import data.nat.factorial.basic
+import tactic.move_add
 
 /-!
 # Binomial coefficients
@@ -168,7 +169,7 @@ choose_symm_of_eq_add rfl
 
 lemma choose_symm_half (m : ℕ) : choose (2 * m + 1) (m + 1) = choose (2 * m + 1) m :=
 by { apply choose_symm_of_eq_add,
-  rw [add_comm m 1, add_assoc 1 m m, add_comm (2 * m) 1, two_mul m] }
+  move_add 1, rw two_mul }
 
 lemma choose_succ_right_eq (n k : ℕ) : choose n (k + 1) * (k + 1) = choose n k * (n - k) :=
 begin

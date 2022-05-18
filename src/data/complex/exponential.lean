@@ -1541,14 +1541,12 @@ lemma exp_bound_div_one_sub_of_interval_approx  {x : ℝ} (h1 : 0 ≤ x) (h2 : x
   ≤ ∑ j in (finset.range 3), x ^ j :=
 begin
   norm_num [finset.sum],
-  rw [add_assoc, add_comm (x + 1) (x ^ 3 * 4 / 18), ← add_assoc, add_le_add_iff_right,
-      ← add_le_add_iff_left (-(x ^ 2 / 2)), ← add_assoc, comm_ring.add_left_neg (x ^ 2 / 2),
-      zero_add, neg_add_eq_sub, sub_half, sq, pow_succ, sq],
+  move_add [x, (1 : ℝ)],
+  refine add_le_add_right (add_le_add_right ((add_le_add_iff_left (-(x ^ 2 / 2))).mp _) x) 1,
+  rw [neg_add_cancel_left, neg_add_eq_sub, sub_half, sq, pow_succ, sq],
   have i1 : x * 4 / 18 ≤ 1 / 2 := by linarith,
   have i2 : 0 ≤ x * 4 / 18 := by linarith,
-  have i3 := mul_le_mul h1 h1 le_rfl h1,
-  rw zero_mul at i3,
-  have t := mul_le_mul le_rfl i1 i2 i3,
+  have t := mul_le_mul le_rfl i1 i2 (mul_self_nonneg x),
   rw ← mul_assoc,
   rwa [mul_one_div, ← mul_div_assoc, ← mul_assoc] at t,
 end

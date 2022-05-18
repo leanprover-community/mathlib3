@@ -85,8 +85,8 @@ begin
   repeat { rintro ⟨_⟩, };
   try { refl };
   simp [← of_cauchy_zero, ← of_cauchy_one, ←of_cauchy_add, ←of_cauchy_neg, ←of_cauchy_mul];
-  apply add_assoc <|> apply add_comm <|> apply mul_assoc <|> apply mul_comm <|>
-    apply left_distrib <|> apply right_distrib <|> apply sub_eq_add_neg <|> skip
+  apply mul_assoc <|> apply mul_comm <|> apply left_distrib <|> apply right_distrib <|>
+  apply sub_eq_add_neg <|> move_add a
 end
 
 /-! Extra instances to short-circuit type class resolution.

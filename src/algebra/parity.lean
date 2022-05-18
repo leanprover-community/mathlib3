@@ -202,9 +202,8 @@ begin
   rcases hm with ⟨m, rfl⟩,
   rcases hn with ⟨n, rfl⟩,
   refine ⟨n + m + 1, _⟩,
-  rw [← two_mul, ←add_assoc, add_comm _ (2 * n), ←add_assoc, ←mul_add, add_assoc, mul_add _ (n + m),
-    mul_one],
-  refl
+  rw [two_mul, two_mul],
+  move_add [← n, ← n, (1 : α)],
 end
 
 @[simp] lemma odd_one : odd (1 : α) :=

@@ -388,8 +388,8 @@ instance : ring (free_abelian_group α) :=
     refine free_abelian_group.induction_on z rfl _ _ _,
     { intros L, iterate 3 { rw lift.of }, rw (lift _).map_add, refl },
     { intros L ih, iterate 3 { rw (lift _).map_neg }, rw [ih, neg_add], refl },
-    { intros z1 z2 ih1 ih2, iterate 3 { rw (lift _).map_add }, rw [ih1, ih2],
-      rw [add_assoc, add_assoc], congr' 1, apply add_left_comm }
+    { intros z1 z2 ih1 ih2, iterate 3 { rw (lift _).map_add }, rw [ih1, ih2, add_add_add_comm],
+      refl }
   end,
   .. free_abelian_group.add_comm_group α,
   .. free_abelian_group.semigroup α }

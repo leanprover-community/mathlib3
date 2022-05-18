@@ -234,7 +234,7 @@ lemma mul_T :
   -- clean up the `T` nat indices in the goal
   suffices : 2 * T R (m + 2) * T R (m + k + 2) = T R (2 * m + k + 4) + T R k,
   { have h_nat₁ : 2 * (m + 2) + k = 2 * m + k + 4 := by ring,
-    have h_nat₂ : m + 2 + k = m + k + 2 := by simp [add_comm, add_assoc],
+    have h_nat₂ : m + 2 + k = m + k + 2 := by move_add 2,
     simpa [h_nat₁, h_nat₂] using this },
   -- clean up the `T` nat indices in the inductive hypothesis applied to `m + 1` and
   -- `k + 1`
@@ -244,8 +244,8 @@ lemma mul_T :
     simpa [h_nat₁, h_nat₂] using mul_T (m + 1) (k + 1) },
   -- clean up the `T` nat indices in the inductive hypothesis applied to `m` and `k + 2`
   have H₂ : 2 * T R m * T R (m + k + 2) = T R (2 * m + k + 2) + T R (k + 2),
-  { have h_nat₁ : 2 * m + (k + 2) = 2 * m + k + 2 := by simp [add_assoc],
-    have h_nat₂ : m + (k + 2) = m + k + 2 := by simp [add_assoc],
+  { have h_nat₁ : 2 * m + (k + 2) = 2 * m + k + 2 := (add_assoc _ _ _).symm,
+    have h_nat₂ : m + (k + 2) = m + k + 2 := (add_assoc _ _ _).symm,
     simpa [h_nat₁, h_nat₂] using mul_T m (k + 2) },
   -- state the `T` recurrence relation for a few useful indices
   have h₁ := T_add_two R m,

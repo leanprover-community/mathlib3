@@ -307,9 +307,8 @@ lemma add_equiv_add {f1 f2 g1 g2 : cau_seq β abv} (hf : f1 ≈ f2) (hg : g1 ≈
 begin
   change lim_zero ((f1 + g1) - _),
   convert add_lim_zero hf hg using 1,
-  simp only [sub_eq_add_neg, add_assoc],
-  rw add_comm (-f2), simp only [add_assoc],
-  congr' 2, simp
+  rw [sub_eq_add_neg, neg_add, sub_eq_add_neg, sub_eq_add_neg],
+  move_add [f1, g1],
 end
 
 lemma neg_equiv_neg {f g : cau_seq β abv} (hf : f ≈ g) : -f ≈ -g :=

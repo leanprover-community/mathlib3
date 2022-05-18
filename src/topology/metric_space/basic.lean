@@ -1145,14 +1145,16 @@ by ext y; rw [mem_closed_ball, dist_comm, real.dist_eq,
   abs_sub_le_iff, mem_Icc, ← sub_le_iff_le_add', sub_le]
 
 theorem real.Ioo_eq_ball (x y : ℝ) : Ioo x y = ball ((x + y) / 2) ((y - x) / 2) :=
-by rw [real.ball_eq_Ioo, ← sub_div, add_comm, ← sub_add,
-  add_sub_cancel', add_self_div_two, ← add_div,
-  add_assoc, add_sub_cancel'_right, add_self_div_two]
+by { rw [real.ball_eq_Ioo, sub_div, add_div, sub_eq_add_neg, neg_sub, sub_eq_add_neg,
+         sub_eq_add_neg],
+     move_add [y / 2],
+     simp }
 
 theorem real.Icc_eq_closed_ball (x y : ℝ) : Icc x y = closed_ball ((x + y) / 2) ((y - x) / 2) :=
-by rw [real.closed_ball_eq_Icc, ← sub_div, add_comm, ← sub_add,
-  add_sub_cancel', add_self_div_two, ← add_div,
-  add_assoc, add_sub_cancel'_right, add_self_div_two]
+by { rw [real.closed_ball_eq_Icc, sub_div, add_div, sub_eq_add_neg, neg_sub, sub_eq_add_neg,
+         sub_eq_add_neg],
+     move_add [y / 2],
+     simp }
 
 section metric_ordered
 

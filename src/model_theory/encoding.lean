@@ -215,8 +215,8 @@ def sigma_imp :
   have (↑((list_decode l).2) : list ((Σ k, L.term (α ⊕ fin k)) ⊕ (Σ n, L.relations n) ⊕ ℕ)).sizeof
     < 1 + (1 + 1) + l.sizeof, from begin
       refine lt_of_le_of_lt (list_decode l).2.2 (max_lt _ (nat.lt_add_of_pos_left dec_trivial)),
-      rw [add_assoc, add_comm, nat.lt_succ_iff, add_assoc],
-      exact le_self_add,
+      move_add ← l.sizeof,
+      exact nat.one_lt_succ_succ _,
     end,
   ⟨sigma_imp (list_decode l).1 (list_decode (list_decode l).2).1,
     (list_decode (list_decode l).2).2, le_max_of_le_right (trans (list_decode _).2.2 (max_le
@@ -305,8 +305,9 @@ begin
   refine ⟨_, le_max_left _ _⟩,
   rw [mk_sum, term.card_sigma, mk_sum, ← add_eq_max le_rfl, mk_sum, mk_nat],
   simp only [lift_add, lift_lift, lift_omega],
-  rw [← add_assoc, add_comm, ← add_assoc, ← add_assoc, omega_add_omega, add_assoc,
-    add_eq_max le_rfl, add_assoc, card, symbols, mk_sum, lift_add, lift_lift, lift_lift],
+  move_add [← ω, ← ω],
+  rw [omega_add_omega, add_assoc, add_assoc, add_eq_max le_rfl, card, symbols, mk_sum, lift_add,
+    lift_lift, lift_lift],
 end
 
 end bounded_formula

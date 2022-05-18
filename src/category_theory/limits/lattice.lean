@@ -72,12 +72,6 @@ lemma finite_colimit_eq_finset_univ_sup [semilattice_sup α] [order_bot α] (F :
 (is_colimit.cocone_point_unique_up_to_iso (colimit.is_colimit F)
   (finite_colimit_cocone F).is_colimit).to_eq
 
--- FIXME move
-@[simp]
-lemma foo {α β : Type*} (e : α ≃ β) [fintype α] [fintype β] :
-  finset.map e.to_embedding finset.univ = finset.univ :=
-by { ext, split; simp, }
-
 /--
 A finite product in the category of a `semilattice_inf` with `order_top` is the same as the infimum.
 -/
@@ -88,7 +82,7 @@ begin
   exact (is_limit.cone_point_unique_up_to_iso (limit.is_limit _)
     (finite_limit_cone (discrete.functor f)).is_limit).to_eq,
   change finset.univ.inf (f ∘ discrete_equiv.to_embedding) = (fintype.elems ι).inf f,
-  simp only [←finset.inf_map, category_theory.limits.complete_lattice.foo],
+  simp only [←finset.inf_map, finset.univ_map_equiv_to_embedding],
   refl,
 end
 

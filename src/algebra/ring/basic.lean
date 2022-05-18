@@ -49,9 +49,8 @@ ring_hom, nonzero, domain, is_domain
 universes u v w x
 variables {α : Type u} {β : Type v} {γ : Type w} {R : Type x}
 
-open function
-
 set_option old_structure_cmd true
+open function
 
 /-!
 ### `distrib` class
@@ -59,7 +58,7 @@ set_option old_structure_cmd true
 
 /-- A typeclass stating that multiplication is left and right distributive
 over addition. -/
-@[protect_proj, ancestor has_mul has_add left_distrib right_distrib]
+@[protect_proj, ancestor has_mul has_add]
 class distrib (R : Type*) extends has_mul R, has_add R :=
 (left_distrib : ∀ a b c : R, a * (b + c) = a * b + a * c)
 (right_distrib : ∀ a b c : R, (a + b) * c = a * c + b * c)

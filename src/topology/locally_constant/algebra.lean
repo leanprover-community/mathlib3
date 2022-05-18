@@ -83,20 +83,15 @@ noncomputable def char_fn (hU : is_clopen U) : locally_constant X Y := indicator
 lemma coe_char_fn (hU : is_clopen U) : (char_fn Y hU : X → Y) = set.indicator U 1 :=
 rfl
 
-lemma char_fn_one [nontrivial Y] (x : X) (hU : is_clopen U) :
+lemma char_fn_eq_one [nontrivial Y] (x : X) (hU : is_clopen U) :
   char_fn Y hU x = (1 : Y) ↔ x ∈ U := set.indicator_eq_one_iff_mem _
 
-lemma char_fn_zero [nontrivial Y] (x : X) (hU : is_clopen U) :
+lemma char_fn_eq_zero [nontrivial Y] (x : X) (hU : is_clopen U) :
   char_fn Y hU x = (0 : Y) ↔ x ∉ U := set.indicator_eq_zero_iff_not_mem _
 
-lemma char_fn_inj (hU : is_clopen U) (hV : is_clopen V)
-  (h : char_fn Y hU = char_fn Y hV) :
-  (set.indicator U 1 : X → Y) = set.indicator V 1 :=
-by { rw [←coe_inj, coe_char_fn, coe_char_fn] at h, simp [h], }
-
-lemma char_fn_ext [nontrivial Y] (hU : is_clopen U) (hV : is_clopen V)
+lemma char_fn_inj [nontrivial Y] (hU : is_clopen U) (hV : is_clopen V)
   (h : char_fn Y hU = char_fn Y hV) : U = V :=
-set.indicator_one_inj Y (char_fn_inj _ _ _ h)
+set.indicator_one_inj Y $ coe_inj.mpr h
 
 end char_fn
 

@@ -274,6 +274,7 @@ def join (f : filter (filter α)) : filter α :=
 end join
 
 section lattice
+variables {f g : filter α}
 
 instance : partial_order (filter α) :=
 { le            := λ f g, ∀ ⦃U : set α⦄, U ∈ g → U ∈ f,
@@ -281,7 +282,9 @@ instance : partial_order (filter α) :=
   le_refl       := λ a, subset.rfl,
   le_trans      := λ a b c h₁ h₂, subset.trans h₂ h₁ }
 
-theorem le_def {f g : filter α} : f ≤ g ↔ ∀ x ∈ g, x ∈ f := iff.rfl
+theorem le_def : f ≤ g ↔ ∀ x ∈ g, x ∈ f := iff.rfl
+
+protected lemma not_le : ¬ f ≤ g ↔ ∃ s ∈ g, s ∉ f := by simp_rw [le_def, not_forall]
 
 /-- `generate_sets g s`: `s` is in the filter closure of `g`. -/
 inductive generate_sets (g : set (set α)) : set α → Prop
@@ -1902,6 +1905,8 @@ by simp only [ne_bot_iff, ne, map_eq_bot_iff]
 
 lemma ne_bot.map (hf : ne_bot f) (m : α → β) : ne_bot (map m f) :=
 (map_ne_bot_iff m).2 hf
+
+lemma ne_bot.of_map : ne_bot (f.map m) → ne_bot f := (map_ne_bot_iff m).1
 
 instance map_ne_bot [hf : ne_bot f] : ne_bot (f.map m) := hf.map m
 

@@ -16,7 +16,9 @@ deprecated files, and test files. You should not need to import it.
 
 This file defines predicates for unbundled monoid and group homomorphisms. Instead of using
 this file, please use `monoid_hom`, defined in `algebra.hom.group`, with notation `→*`, for
-morphisms between monoids or groups. For example use `φ : G →* H` to represent a group homomorphism.
+morphisms between monoids or groups. For example use `φ : G →* H` to represent a group
+homomorphism between multiplicative groups, and `ψ : A →+ B` to represent a group homomorphism
+between additive groups.
 
 ## Main Definitions
 

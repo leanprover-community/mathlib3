@@ -37,6 +37,32 @@ instance {α : Type*} [ordered_comm_semiring α] : comm_monoid_with_zero (Icc (0
   ..(show monoid (Icc (0:α) 1), by apply_instance) }
 
 
+instance {α : Type*} [ordered_comm_semiring α] : comm_semigroup (Ico (0:α) 1) := {
+  mul :=
+  begin
+    refine λ p q, ⟨p*q, ⟨mul_nonneg p.2.1 q.2.1, _⟩⟩,
+    rcases p with ⟨p1, ⟨_,_⟩⟩,
+    rcases q with ⟨q1, ⟨_,_⟩⟩,
+    apply mul_lt_one_of_nonneg_of_lt_one_right,
+    exact le_of_lt p_property_right,
+    repeat {assumption},
+  end,
+
+  mul_assoc := λ p q r, (by exact subtype.mk_eq_mk.2 (mul_assoc p q r)),
+
+  mul_comm :=
+  begin
+    refine λ p q, _,
+    rcases p with ⟨p1, ⟨_,_⟩⟩,
+    rcases q with ⟨q1, ⟨_,_⟩⟩,
+    apply subtype.mk_eq_mk.2,
+    simp only [subtype.coe_mk],
+    exact mul_comm p1 q1,
+  end
+}
+
+
+
 
 -- Yaël Dillies: What you really should do is provide `comm_monoid_with_zero (Icc 0 1)`. Then you'll get powers for free.  You can also do
 -- `comm_semigroup_with_zero (Ico 0 1)`,

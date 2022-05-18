@@ -341,11 +341,14 @@ lemma is_unit_trinomial_iff'' (h : p * p.mirror = q * q.mirror) :
   p.is_unit_trinomial ↔ q.is_unit_trinomial :=
 by rw [is_unit_trinomial_iff', is_unit_trinomial_iff', h]
 
+namespace is_unit_trinomial
+
 lemma sublemma2 {k m n : ℕ} {u v w : ℤ} (hkm : k < m) (hmn : m < n) (hu : is_unit u)
   (hv : is_unit v) (hw : is_unit w) (hp : p = C u * X ^ k + C v * X ^ m + C w * X ^ n) :
   C v * (C u * X ^ (m + n) + C w * X ^ (n - m + k + n)) =
     ⟨finsupp.filter (set.Ioo (k + n) (n + n)) (p * p.mirror).to_finsupp⟩ :=
 begin
+  have key : n - m + k < n := by rwa [←lt_tsub_iff_right, tsub_lt_tsub_iff_left_of_le hmn.le],
   rw [hp, trinomial_mirror hkm hmn hu.ne_zero hw.ne_zero],
   simp_rw [←monomial_eq_C_mul_X, add_mul, mul_add, monomial_mul_monomial,
     to_finsupp_add, to_finsupp_monomial, finsupp.filter_add],
@@ -355,15 +358,25 @@ begin
   { simp only [add_zero, zero_add, of_finsupp_add, of_finsupp_single],
     rw [C_mul_monomial, C_mul_monomial, mul_comm v w, add_comm (n - m + k) n] },
   { exact λ h, h.2.ne rfl },
-  { sorry },
+  { refine ⟨_, add_lt_add_left key n⟩,
+    rwa [add_comm, add_lt_add_iff_left, lt_add_iff_pos_left, tsub_pos_iff_lt] },
   { exact λ h, h.1.ne (add_comm k n) },
   { exact ⟨add_lt_add_right hkm n, add_lt_add_right hmn n⟩ },
-  { sorry },
-  { refine λ h, _,
-    sorry },
+  { rw [←add_assoc, add_tsub_cancel_of_le hmn.le, add_comm],
+    exact λ h, h.1.ne rfl },
+  { intro h,
+    have := h.1,
+    rw [add_comm, add_lt_add_iff_right] at this,
+    exact asymm this hmn },
   { exact λ h, h.1.ne rfl },
-  { sorry },
-  { sorry },
+  { intro h,
+    have := h.1,
+    rw [add_lt_add_iff_left] at this,
+    exact asymm this key },
+  { intro h,
+    have := h.1,
+    rw [add_lt_add_iff_left] at this,
+    exact asymm this (hkm.trans hmn) },
 end
 
 lemma sublemma3 {k l m n : ℕ} {u v : ℤ} (hu : u ≠ 0) (hv : v ≠ 0) :

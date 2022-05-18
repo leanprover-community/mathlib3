@@ -62,14 +62,14 @@ open clifford_algebra
 namespace clifford_algebra_ring
 open_locale complex_conjugate
 
-variables {R : Type*} [comm_ring R]
+variables {R R' : Type*} [comm_semiring R] [comm_ring R']
 
 @[simp]
-lemma ι_eq_zero : ι (0 : quadratic_form R unit) = 0 :=
+lemma ι_eq_zero : ι (0 : unit → R) = 0 :=
 subsingleton.elim _ _
 
 /-- Since the vector space is empty the ring is commutative. -/
-instance : comm_ring (clifford_algebra (0 : quadratic_form R unit)) :=
+instance : comm_semiring (clifford_algebra (0 : unit → R)) :=
 { mul_comm := λ x y, begin
     induction x using clifford_algebra.induction,
     case h_grade0 : r { apply algebra.commutes, },
@@ -77,9 +77,13 @@ instance : comm_ring (clifford_algebra (0 : quadratic_form R unit)) :=
     case h_add : x₁ x₂ hx₁ hx₂ { rw [mul_add, add_mul, hx₁, hx₂], },
     case h_mul : x₁ x₂ hx₁ hx₂ { rw [mul_assoc, hx₂, ←mul_assoc, hx₁, ←mul_assoc], },
   end,
-  ..clifford_algebra.ring _ }
+  ..clifford_algebra.semiring _ }
 
-lemma reverse_apply (x : clifford_algebra (0 : quadratic_form R unit)) : x.reverse = x :=
+instance : comm_ring (clifford_algebra (0 : unit → R')) :=
+{ ..clifford_algebra.ring _,
+  ..clifford_algebra_ring.clifford_algebra.comm_semiring }
+
+lemma reverse_apply (x : clifford_algebra (0 : unit → R)) : x.reverse = x :=
 begin
   induction x using clifford_algebra.induction,
   case h_grade0 : r { exact reverse.commutes _},
@@ -89,17 +93,17 @@ begin
 end
 
 @[simp] lemma reverse_eq_id :
-  (reverse : clifford_algebra (0 : quadratic_form R unit) →ₗ[R] _) = linear_map.id :=
+  (reverse : clifford_algebra (0 : unit → R) →ₗ[R] _) = linear_map.id :=
 linear_map.ext reverse_apply
 
 @[simp] lemma involute_eq_id :
-  (involute : clifford_algebra (0 : quadratic_form R unit) →ₐ[R] _) = alg_hom.id R _ :=
+  (involute : clifford_algebra (0 : unit → R') →ₐ[R'] _) = alg_hom.id R' _ :=
 by { ext, simp }
 
 /-- The clifford algebra over a 0-dimensional vector space is isomorphic to its scalars. -/
-protected def equiv : clifford_algebra (0 : quadratic_form R unit) ≃ₐ[R] R :=
+protected def equiv : clifford_algebra (0 : unit → R) ≃ₐ[R] R :=
 alg_equiv.of_alg_hom
-  (clifford_algebra.lift (0 : quadratic_form R unit) $
+  (clifford_algebra.lift (0 : unit → R) $
     ⟨0, λ m : unit, (zero_mul (0 : R)).trans (algebra_map R _).map_zero.symm⟩)
   (algebra.of_id R _)
   (by { ext x, exact (alg_hom.commutes _ x), })
@@ -145,9 +149,11 @@ end
 /-- Intermediate result for `clifford_algebra_complex.equiv`: `ℂ` can be converted to
 `clifford_algebra_complex.Q` above can be converted to. -/
 def of_complex : ℂ →ₐ[ℝ] clifford_algebra Q :=
-complex.lift ⟨
-  clifford_algebra.ι Q 1,
-  by rw [clifford_algebra.ι_sq_scalar, Q_apply, one_mul, ring_hom.map_neg, ring_hom.map_one]⟩
+begin
+  -- this times out if done in a single line
+  refine complex.lift ⟨clifford_algebra.ι Q 1, _⟩,
+  rw [clifford_algebra.ι_sq_scalar Q, Q_apply, one_mul, ring_hom.map_neg, ring_hom.map_one]
+end
 
 @[simp]
 lemma of_complex_I : of_complex complex.I = ι Q 1 :=
@@ -200,7 +206,7 @@ begin
 end
 
 @[simp]
-lemma reverse_eq_id : (reverse : clifford_algebra Q →ₗ[ℝ] _) = linear_map.id :=
+lemma reverse_eq_id : @reverse ℝ ℝ _ _ _ Q = linear_map.id :=
 linear_map.ext reverse_apply
 
 /-- `complex.conj` is analogous to `clifford_algebra.involute`. -/
@@ -230,25 +236,30 @@ def Q : quadratic_form R (R × R) :=
 @[simp]
 lemma Q_apply (v : R × R) : Q c₁ c₂ v = c₁ * (v.1 * v.1) + c₂ * (v.2 * v.2) := rfl
 
+#check quaternion_algebra.basis
+
 /-- The quaternion basis vectors within the algebra. -/
-@[simps i j k]
-def quaternion_basis : quaternion_algebra.basis (clifford_algebra (Q c₁ c₂)) c₁ c₂ :=
-{ i := ι (Q c₁ c₂) (1, 0),
-  j := ι (Q c₁ c₂) (0, 1),
-  k := ι (Q c₁ c₂) (1, 0) * ι (Q c₁ c₂) (0, 1),
-  i_mul_i := begin
-    rw [ι_sq_scalar, Q_apply, ←algebra.algebra_map_eq_smul_one],
-    simp,
-  end,
-  j_mul_j := begin
-    rw [ι_sq_scalar, Q_apply, ←algebra.algebra_map_eq_smul_one],
-    simp,
-  end,
-  i_mul_j := rfl,
-  j_mul_i := begin
-    rw [eq_neg_iff_add_eq_zero, ι_mul_ι_add_swap, quadratic_form.polar],
-    simp,
-  end }
+-- @[simps i j k]
+def quaternion_basis :
+  @quaternion_algebra.basis R (clifford_algebra (Q c₁ c₂)) _
+    (clifford_algebra.ring _) sorry c₁ c₂ :=
+sorry
+-- { i := ι (Q c₁ c₂) (1, 0),
+--   j := ι (Q c₁ c₂) (0, 1),
+--   k := ι (Q c₁ c₂) (1, 0) * ι (Q c₁ c₂) (0, 1),
+--   i_mul_i := begin
+--     -- rw [ι_sq_scalar Q, Q_apply, ←algebra.algebra_map_eq_smul_one],
+--     -- simp,
+--   end,
+--   j_mul_j := begin
+--     -- rw [ι_sq_scalar Q, Q_apply, ←algebra.algebra_map_eq_smul_one],
+--     -- simp,
+--   end,
+--   i_mul_j := rfl,
+--   j_mul_i := begin
+--     -- rw [eq_neg_iff_add_eq_zero, ι_mul_ι_add_swap Q, quadratic_form.polar],
+--     -- simp,
+--   end }
 
 variables {c₁ c₂}
 

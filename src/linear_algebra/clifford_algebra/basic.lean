@@ -42,17 +42,18 @@ The Clifford algebra of `M` is constructed as a quotient of the tensor algebra, 
    This is the smallest relation which identifies squares of elements of `M` with `Q m`.
 2. The Clifford algebra is the quotient of the tensor algebra by this relation.
 
+Note that while conventionally the clifford algebra is defined over `Q` a quadratic form, for parts
+of this file we permit `Q` to be any function, as that allows us to use the same definition for
+the exterior algebra over a semiring.
+
 This file is almost identical to `linear_algebra/exterior_algebra.lean`.
 -/
 
-variables {R : Type*} [comm_ring R]
-variables {M : Type*} [add_comm_group M] [module R M]
-variables (Q : quadratic_form R M)
-
-variable {n : ℕ}
+variables {R M M₁ M₂ M₃ A : Type*}
 
 namespace clifford_algebra
 open tensor_algebra
+variables [comm_semiring R] [add_comm_monoid M] [module R M] (Q : M → R)
 
 /-- `rel` relates each `ι m * ι m`, for `m : M`, with `Q m`.
 
@@ -66,10 +67,30 @@ end clifford_algebra
 /--
 The Clifford algebra of an `R`-module `M` equipped with a quadratic_form `Q`.
 -/
-@[derive [inhabited, ring, algebra R]]
-def clifford_algebra := ring_quot (clifford_algebra.rel Q)
+@[derive [inhabited, semiring, algebra R]]
+def clifford_algebra [comm_semiring R] [add_comm_monoid M] [module R M] (Q : M → R) : Type* :=
+ring_quot (clifford_algebra.rel Q)
+
+instance [comm_ring R] [add_comm_group M] [module R M] (Q : M → R) : ring (clifford_algebra Q) :=
+{ zero := 0, add := (+), one := 1, mul := (*), ..ring_quot.ring _}
+
+section
+local attribute [-instance] clifford_algebra.semiring
+
+/-- A copy of `clifford_algebra.algebra` that refers to `clifford_algebra.ring`. -/
+instance algebra' [comm_ring R] [add_comm_group M] [module R M] (Q : M → R) :
+  algebra R (clifford_algebra Q) :=
+clifford_algebra.algebra Q
+
+end
 
 namespace clifford_algebra
+
+section semiring
+variables [comm_semiring R]
+variables [add_comm_monoid M] [add_comm_monoid M₁] [add_comm_monoid M₂] [add_comm_monoid M₃]
+variables [module R M] [module R M₁] [module R M₂] [module R M₃]
+variables (Q : M → R)
 
 /--
 The canonical linear map `M →ₗ[R] clifford_algebra Q`.
@@ -85,7 +106,7 @@ begin
   refl,
 end
 
-variables {Q} {A : Type*} [semiring A] [algebra R A]
+variables {Q} [semiring A] [algebra R A]
 
 @[simp]
 theorem comp_ι_sq_scalar (g : clifford_algebra Q →ₐ[R] A) (m : M) :
@@ -107,7 +128,7 @@ def lift :
     (λ x y (h : rel Q x y), by
     { induction h,
       rw [alg_hom.commutes, alg_hom.map_mul, tensor_algebra.lift_ι_apply, f.prop], })⟩,
-  inv_fun := λ F, ⟨F.to_linear_map.comp (ι Q), λ m, by rw [
+  inv_fun := λ F, ⟨F.to_linear_map ∘ₗ ι Q, λ m, by rw [
     linear_map.comp_apply, alg_hom.to_linear_map_apply, comp_ι_sq_scalar]⟩,
   left_inv := λ f, by { ext,
     simp only [ι, alg_hom.to_linear_map_apply, function.comp_app, linear_map.coe_comp,
@@ -140,7 +161,7 @@ begin
   simp only,
 end
 
-attribute [irreducible] clifford_algebra ι lift
+attribute [irreducible] ι lift
 
 @[simp]
 theorem lift_comp_ι (g : clifford_algebra Q →ₐ[R] A) :
@@ -194,14 +215,13 @@ begin
 end
 
 /-- A Clifford algebra with a zero quadratic form is isomorphic to an `exterior_algebra` -/
-def as_exterior : clifford_algebra (0 : quadratic_form R M) ≃ₐ[R] exterior_algebra R M :=
+def as_exterior : clifford_algebra 0 ≃ₐ[R] exterior_algebra R M :=
 alg_equiv.of_alg_hom
   (clifford_algebra.lift 0 ⟨(exterior_algebra.ι R),
     by simp only [forall_const, ring_hom.map_zero,
-                  exterior_algebra.ι_sq_zero, quadratic_form.zero_apply]⟩)
-  (exterior_algebra.lift R ⟨(ι (0 : quadratic_form R M)),
-    by simp only [forall_const, ring_hom.map_zero,
-                  quadratic_form.zero_apply, ι_sq_scalar]⟩)
+                  exterior_algebra.ι_sq_zero, pi.zero_apply]⟩)
+  (exterior_algebra.lift R ⟨(ι 0),
+    by simp only [forall_const, ring_hom.map_zero, pi.zero_apply, ι_sq_scalar]⟩)
   (exterior_algebra.hom_ext $ linear_map.ext $
     by simp only [alg_hom.comp_to_linear_map, linear_map.coe_comp,
                   function.comp_app, alg_hom.to_linear_map_apply,
@@ -213,18 +233,6 @@ alg_equiv.of_alg_hom
                   clifford_algebra.lift_ι_apply, exterior_algebra.lift_ι_apply,
                   alg_hom.to_linear_map_id, linear_map.id_comp, eq_self_iff_true, forall_const])
 
-/-- The symmetric product of vectors is a scalar -/
-lemma ι_mul_ι_add_swap (a b : M) :
-  ι Q a * ι Q b + ι Q b * ι Q a = algebra_map R _ (quadratic_form.polar Q a b) :=
-calc  ι Q a * ι Q b + ι Q b * ι Q a
-    = ι Q (a + b) * ι Q (a + b) - ι Q a * ι Q a - ι Q b * ι Q b :
-        by { rw [(ι Q).map_add, mul_add, add_mul, add_mul], abel, }
-... = algebra_map R _ (Q (a + b)) - algebra_map R _ (Q a) - algebra_map R _ (Q b) :
-        by rw [ι_sq_scalar, ι_sq_scalar, ι_sq_scalar]
-... = algebra_map R _ (Q (a + b) - Q a - Q b) :
-        by rw [←ring_hom.map_sub, ←ring_hom.map_sub]
-... = algebra_map R _ (quadratic_form.polar Q a b) : rfl
-
 @[simp]
 lemma ι_range_map_lift (f : M →ₗ[R] A) (cond : ∀ m, f m * f m = algebra_map _ _ (Q m)) :
   (ι Q).range.map (lift Q ⟨f, cond⟩).to_linear_map = f.range :=
@@ -232,10 +240,7 @@ by rw [←linear_map.range_comp, ι_comp_lift]
 
 section map
 
-variables {M₁ M₂ M₃ : Type*}
-variables [add_comm_group M₁] [add_comm_group M₂] [add_comm_group M₃]
-variables [module R M₁] [module R M₂] [module R M₃]
-variables (Q₁ : quadratic_form R M₁) (Q₂ : quadratic_form R M₂) (Q₃ : quadratic_form R M₃)
+variables (Q₁ : M₁ → R) (Q₂ : M₂ → R) (Q₃ : M₃ → R)
 
 /-- Any linear map that preserves the quadratic form lifts to an `alg_hom` between algebras.
 
@@ -277,6 +282,32 @@ lemma ι_range_map_map (f : M₁ →ₗ[R] M₂) (hf : ∀ m, Q₂ (f m) = Q₁ 
 
 variables {Q₁ Q₂ Q₃}
 
+end map
+
+end semiring
+
+section ring_quadratic_form
+
+variables [comm_ring R]
+variables [add_comm_group M] [add_comm_group M₁] [add_comm_group M₂] [add_comm_group M₃]
+variables [module R M] [module R M₁] [module R M₂] [module R M₃]
+variables (Q : quadratic_form R M)
+variables [ring A]
+
+/-- The symmetric product of vectors is a scalar -/
+lemma ι_mul_ι_add_swap (a b : M) :
+  ι Q a * ι Q b + ι Q b * ι Q a = algebra_map R _ (quadratic_form.polar Q a b) :=
+calc  ι Q a * ι Q b + ι Q b * ι Q a
+    = ι Q (a + b) * ι Q (a + b) - ι Q a * ι Q a - ι Q b * ι Q b :
+        by { rw [(ι Q).map_add, mul_add, add_mul, add_mul], abel, }
+... = algebra_map R _ (Q (a + b)) - algebra_map R _ (Q a) - algebra_map R _ (Q b) :
+        by rw [ι_sq_scalar Q, ι_sq_scalar Q, ι_sq_scalar Q]
+... = algebra_map R _ (Q (a + b) - Q a - Q b) :
+        by rw [←ring_hom.map_sub, ←ring_hom.map_sub]
+... = algebra_map R _ (quadratic_form.polar Q a b) : rfl
+
+variables {Q₁ : quadratic_form R M₁} {Q₂ : quadratic_form R M₂} {Q₃ : quadratic_form R M₃}
+
 /-- Two `clifford_algebra`s are equivalent as algebras if their quadratic forms are
 equivalent. -/
 @[simps apply]
@@ -310,11 +341,12 @@ lemma equiv_of_isometry_refl :
   (equiv_of_isometry $ quadratic_form.isometry.refl Q₁) = alg_equiv.refl :=
 by { ext x, exact alg_hom.congr_fun (map_id Q₁) x }
 
-end map
+end ring_quadratic_form
 
 end clifford_algebra
 
 namespace tensor_algebra
+variables [comm_semiring R] [add_comm_monoid M] [module R M] {Q : M → R}
 
 variables {Q}
 

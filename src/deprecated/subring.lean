@@ -85,6 +85,8 @@ lemma is_subring_Union_of_directed {ι : Type*} [hι : nonempty ι]
 
 namespace ring
 
+/-- The smallest subring containing a given subset of a ring, considered as a set. This function
+is deprecated; use `subring.closure`. -/
 def closure (s : set R) := add_group.closure (monoid.closure s)
 
 variable {s : set R}

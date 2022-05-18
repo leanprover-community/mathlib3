@@ -1067,10 +1067,6 @@ end
 
 end smul_with_zero
 
-lemma smul_add_set [monoid α] [add_monoid β] [distrib_mul_action α β] (c : α) (s t : set β) :
-  c • (s + t) = c • s + c • t :=
-image_add (distrib_mul_action.to_add_monoid_hom β c).to_add_hom
-
 section group
 variables [group α] [mul_action α β] {A B : set β} {a : α} {x : β}
 

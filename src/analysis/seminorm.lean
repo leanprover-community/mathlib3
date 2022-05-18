@@ -361,7 +361,8 @@ noncomputable instance : has_inf (seminorm 𝕜 E) :=
           (λ i, add_nonneg (p.nonneg _) (q.nonneg _))
           (λ x hx, ⟨0, by rwa [p.zero, q.zero, add_zero]⟩) },
       simp_rw [real.mul_infi_of_nonneg (norm_nonneg a), mul_add, ←p.smul, ←q.smul, smul_sub],
-      refine infi_congr ((•) a⁻¹ : E → E) (λ u, ⟨a • u, inv_smul_smul₀ ha u⟩) (λ u, _),
+      refine function.surjective.infi_congr ((•) a⁻¹ : E → E) (λ u, ⟨a • u, inv_smul_smul₀ ha u⟩)
+        (λ u, _),
       rw smul_inv_smul₀ ha,
     end } }
 
@@ -448,7 +449,7 @@ lemma ball_add_ball_subset (p : seminorm 𝕜 E) (r₁ r₂ : ℝ) (x₁ x₂ : 
   p.ball (x₁ : E) r₁ + p.ball (x₂ : E) r₂ ⊆ p.ball (x₁ + x₂) (r₁ + r₂) :=
 begin
   rintros x ⟨y₁, y₂, hy₁, hy₂, rfl⟩,
-  rw [mem_ball, add_sub_comm],
+  rw [mem_ball, add_sub_add_comm],
   exact (p.triangle _ _).trans_lt (add_lt_add hy₁ hy₂),
 end
 
@@ -468,6 +469,13 @@ end
 
 section norm_one_class
 variables [norm_one_class 𝕜] (p : seminorm 𝕜 E)
+
+lemma ball_zero_eq_preimage_ball {r : ℝ} :
+  p.ball 0 r = p ⁻¹' (metric.ball 0 r) :=
+begin
+  ext x,
+  simp only [mem_ball, sub_zero, mem_preimage, mem_ball_zero_iff, real.norm_of_nonneg (p.nonneg x)],
+end
 
 @[simp] lemma ball_bot {r : ℝ} (x : E) (hr : 0 < r) : ball (⊥ : seminorm 𝕜 E) x r = set.univ :=
 ball_zero' x hr

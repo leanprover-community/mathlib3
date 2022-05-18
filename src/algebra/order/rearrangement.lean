@@ -5,6 +5,7 @@ Authors: Mantas Bakšys
 -/
 import algebra.big_operators.order
 import algebra.order.module
+import data.prod.lex
 import group_theory.perm.concrete_cycle
 import order.monovary
 import tactic.interval_cases

@@ -190,7 +190,7 @@ begin
   { have : (n:ℂ) ≠ 0 := by exact_mod_cast hn,
     field_simp,
     ring },
-  simp [mul_zpow₀, ← complex.exp_int_mul, complex.exp_pi_mul_I, this]
+  simp [mul_zpow, ← complex.exp_int_mul, complex.exp_pi_mul_I, this]
 end
 
 /-- The monomials `z ^ n` are an orthonormal set with respect to Haar measure on the circle. -/
@@ -248,7 +248,7 @@ begin
   { exact_mod_cast lp.norm_rpow_eq_tsum _ (fourier_series.repr f),
     norm_num },
   have H₂ : ∥fourier_series.repr f∥ ^ 2 = ∥f∥ ^2 := by simp,
-  have H₃ := congr_arg is_R_or_C.re (@L2.inner_def circle ℂ ℂ _ _ _ _ _ _ _ f f),
+  have H₃ := congr_arg is_R_or_C.re (@L2.inner_def circle ℂ ℂ _ _ _ _ f f),
   rw ← integral_re at H₃,
   { simp only [← norm_sq_eq_inner] at H₃,
     rw [← H₁, H₂],

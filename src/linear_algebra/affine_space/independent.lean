@@ -464,6 +464,13 @@ begin
   { simp only [finset.sum_dite_of_true (λx h, h), subtype.val_eq_coe, finset.mk_coe, f, hwt, hw], },
 end
 
+/-- Viewing a module as an affine space modelled on itself, we can characterise affine independence
+in terms of linear combinations. -/
+lemma affine_independent_iff {ι} {p : ι → V} :
+  affine_independent k p ↔
+  ∀ (s : finset ι) (w : ι → k), s.sum w = 0 → ∑ e in s, w e • p e = 0 → ∀ (e ∈ s), w e = 0 :=
+forall₃_congr (λ s w hw, by simp [s.weighted_vsub_eq_linear_combination hw])
+
 end affine_independent
 
 section division_ring
@@ -658,30 +665,22 @@ faces are given by the same subset of points. -/
   {fs₁ fs₂ : finset (fin (n + 1))} {m₁ m₂ : ℕ} (h₁ : fs₁.card = m₁ + 1) (h₂ : fs₂.card = m₂ + 1) :
   fs₁.centroid k s.points = fs₂.centroid k s.points ↔ fs₁ = fs₂ :=
 begin
-  split,
-  { intro h,
-    rw [finset.centroid_eq_affine_combination_fintype,
-        finset.centroid_eq_affine_combination_fintype] at h,
-    have ha := (affine_independent_iff_indicator_eq_of_affine_combination_eq k s.points).1
-      s.independent _ _ _ _ (fs₁.sum_centroid_weights_indicator_eq_one_of_card_eq_add_one k h₁)
-      (fs₂.sum_centroid_weights_indicator_eq_one_of_card_eq_add_one k h₂) h,
-    simp_rw [finset.coe_univ, set.indicator_univ, function.funext_iff,
-             finset.centroid_weights_indicator_def, finset.centroid_weights, h₁, h₂] at ha,
-    ext i,
-    replace ha := ha i,
-    split,
-    all_goals
-    { intro hi,
-      by_contradiction hni,
-      simp [hi, hni] at ha,
-      norm_cast at ha } },
-  { intro h,
-    have hm : m₁ = m₂,
-    { subst h,
-      simpa [h₁] using h₂ },
-    subst hm,
-    congr,
-    exact h }
+  refine ⟨λ h, _, congr_arg _⟩,
+  rw [finset.centroid_eq_affine_combination_fintype,
+      finset.centroid_eq_affine_combination_fintype] at h,
+  have ha := (affine_independent_iff_indicator_eq_of_affine_combination_eq k s.points).1
+    s.independent _ _ _ _ (fs₁.sum_centroid_weights_indicator_eq_one_of_card_eq_add_one k h₁)
+    (fs₂.sum_centroid_weights_indicator_eq_one_of_card_eq_add_one k h₂) h,
+  simp_rw [finset.coe_univ, set.indicator_univ, function.funext_iff,
+           finset.centroid_weights_indicator_def, finset.centroid_weights, h₁, h₂] at ha,
+  ext i,
+  specialize ha i,
+  have key : ∀ n : ℕ, (n : k) + 1 ≠ 0 := λ n h, by norm_cast at h,
+  -- we should be able to golf this to `refine ⟨λ hi, decidable.by_contradiction (λ hni, _), ...⟩`,
+  -- but for some unknown reason it doesn't work.
+  split; intro hi; by_contra hni,
+  { simpa [hni, hi, key] using ha },
+  { simpa [hni, hi, key] using ha.symm }
 end
 
 /-- Over a characteristic-zero division ring, the centroids of two

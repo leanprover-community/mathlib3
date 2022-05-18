@@ -52,7 +52,7 @@ lemma tendsto_norm_zpow_nhds_within_0_at_top {𝕜 : Type*} [normed_field 𝕜] 
 begin
   rcases neg_surjective m with ⟨m, rfl⟩,
   rw neg_lt_zero at hm, lift m to ℕ using hm.le, rw int.coe_nat_pos at hm,
-  simp only [norm_pow, zpow_neg₀, zpow_coe_nat, ← inv_pow₀],
+  simp only [norm_pow, zpow_neg, zpow_coe_nat, ← inv_pow],
   exact (tendsto_pow_at_top hm).comp normed_field.tendsto_norm_inverse_nhds_within_0_at_top
 end
 
@@ -262,8 +262,7 @@ begin
   have xi_ne_one : ξ ≠ 1, by { contrapose! h, simp [h] },
   have A : tendsto (λn, (ξ ^ n - 1) * (ξ - 1)⁻¹) at_top (𝓝 ((0 - 1) * (ξ - 1)⁻¹)),
     from ((tendsto_pow_at_top_nhds_0_of_norm_lt_1 h).sub tendsto_const_nhds).mul tendsto_const_nhds,
-  have B : (λ n, (∑ i in range n, ξ ^ i)) = (λ n, geom_sum ξ n) := rfl,
-  rw [has_sum_iff_tendsto_nat_of_summable_norm, B],
+  rw [has_sum_iff_tendsto_nat_of_summable_norm],
   { simpa [geom_sum_eq, xi_ne_one, neg_inv, div_eq_mul_inv] using A },
   { simp [norm_pow, summable_geometric_of_lt_1 (norm_nonneg _) h] }
 end
@@ -329,7 +328,7 @@ begin
     by simp [pow_succ, mul_left_comm _ r, tsum_mul_left]
   ... = r / (1 - r) ^ 2 :
     by simp [add_mul, tsum_add A B.summable, mul_add, B.tsum_eq, ← div_eq_mul_inv, sq,
-      div_div_eq_div_mul]
+      div_div]
 end
 
 /-- If `∥r∥ < 1`, then `∑' n : ℕ, n * r ^ n = r / (1 - r) ^ 2`. -/
@@ -453,7 +452,7 @@ begin
   { simpa using tendsto_const_nhds.sub (tendsto_pow_at_top_nhds_0_of_norm_lt_1 h) },
   convert ← this,
   ext n,
-  rw [←geom_sum_mul_neg, geom_sum_def, finset.sum_mul],
+  rw [←geom_sum_mul_neg, finset.sum_mul],
 end
 
 lemma mul_neg_geom_series (x : R) (h : ∥x∥ < 1) :
@@ -466,7 +465,7 @@ begin
       (tendsto_pow_at_top_nhds_0_of_norm_lt_1 h) },
   convert ← this,
   ext n,
-  rw [←mul_neg_geom_sum, geom_sum_def, finset.mul_sum]
+  rw [←mul_neg_geom_sum, finset.mul_sum]
 end
 
 end normed_ring_geometric
@@ -551,9 +550,9 @@ variables {b : ℝ} {f : ℕ → ℝ} {z : ℕ → E}
 /-- **Dirichlet's Test** for monotone sequences. -/
 theorem monotone.cauchy_seq_series_mul_of_tendsto_zero_of_bounded
   (hfa : monotone f) (hf0 : tendsto f at_top (𝓝 0)) (hgb : ∀ n, ∥∑ i in range n, z i∥ ≤ b) :
-  cauchy_seq (λ n, ∑ i in range (n+1), (f i) • z i) :=
+  cauchy_seq (λ n, ∑ i in range (n + 1), (f i) • z i) :=
 begin
-  simp_rw [finset.sum_range_by_parts _ _ (nat.succ_pos _), sub_eq_add_neg,
+  simp_rw [finset.sum_range_by_parts _ _ (nat.succ _), sub_eq_add_neg,
            nat.succ_sub_succ_eq_sub, tsub_zero],
   apply (normed_field.tendsto_zero_smul_of_tendsto_zero_of_bounded hf0
     ⟨b, eventually_map.mpr $ eventually_of_forall $ λ n, hgb $ n+1⟩).cauchy_seq.add,
@@ -581,7 +580,7 @@ begin
 end
 
 lemma norm_sum_neg_one_pow_le (n : ℕ) : ∥∑ i in range n, (-1 : ℝ) ^ i∥ ≤ 1 :=
-by { rw [←geom_sum_def, neg_one_geom_sum], split_ifs; norm_num }
+by { rw [neg_one_geom_sum], split_ifs; norm_num }
 
 /-- The **alternating series test** for monotone sequences.
 See also `tendsto_alternating_series_of_monotone_tendsto_zero`. -/
@@ -622,7 +621,7 @@ end
 ### Factorial
 -/
 
-/-- The series `∑' n, x ^ n / n!` is summable of any `x : ℝ`. See also `exp_series_field_summable`
+/-- The series `∑' n, x ^ n / n!` is summable of any `x : ℝ`. See also `exp_series_div_summable`
 for a version that also works in `ℂ`, and `exp_series_summable'` for a version that works in
 any normed algebra over `ℝ` or `ℂ`. -/
 lemma real.summable_pow_div_factorial (x : ℝ) :
@@ -637,7 +636,7 @@ begin
   -- Finally, we prove the upper estimate
   intros n hn,
   calc ∥x ^ (n + 1) / (n + 1)!∥ = (∥x∥ / (n + 1)) * ∥x ^ n / n!∥ :
-    by rw [pow_succ, nat.factorial_succ, nat.cast_mul, ← div_mul_div_comm₀,
+    by rw [pow_succ, nat.factorial_succ, nat.cast_mul, ← div_mul_div_comm,
       norm_mul, norm_div, real.norm_coe_nat, nat.cast_succ]
   ... ≤ (∥x∥ / (⌊∥x∥⌋₊ + 1)) * ∥x ^ n / n!∥ :
     by mono* with [0 ≤ ∥x ^ n / n!∥, 0 ≤ ∥x∥]; apply norm_nonneg

@@ -9,7 +9,7 @@ import category_theory.limits.preserves.shapes.pullbacks
 import topology.sheaves.functors
 import algebraic_geometry.Scheme
 import category_theory.limits.shapes.strict_initial
-import algebra.category.CommRing.instances
+import algebra.category.Ring.instances
 
 /-!
 # Open immersions of structured spaces
@@ -781,7 +781,7 @@ begin
     has_colimit.iso_of_nat_iso_ι_hom discrete.nat_iso_functor i,
   rw ← iso.eq_comp_inv at this,
   rw this,
-  have : colimit.ι _ _ ≫ _ = _ := Top.sigma_iso_sigma_hom_ι (F ⋙ SheafedSpace.forget C).obj i,
+  have : colimit.ι _ _ ≫ _ = _ := Top.sigma_iso_sigma_hom_ι.{v} (F ⋙ SheafedSpace.forget C).obj i,
   rw ← iso.eq_comp_inv at this,
   rw this,
   simp_rw [← category.assoc, Top.open_embedding_iff_comp_is_iso,
@@ -799,14 +799,14 @@ begin
   rintro ⟨y, hy, eq⟩,
   replace eq := concrete_category.congr_arg
     (preserves_colimit_iso (SheafedSpace.forget C) F ≪≫
-      has_colimit.iso_of_nat_iso discrete.nat_iso_functor ≪≫ Top.sigma_iso_sigma _).hom eq,
+      has_colimit.iso_of_nat_iso discrete.nat_iso_functor ≪≫ Top.sigma_iso_sigma.{v} _).hom eq,
   simp_rw [category_theory.iso.trans_hom, ← Top.comp_app, ← PresheafedSpace.comp_base] at eq,
   rw ι_preserves_colimits_iso_inv at eq,
   change ((SheafedSpace.forget C).map (colimit.ι F i) ≫ _) y =
     ((SheafedSpace.forget C).map (colimit.ι F j) ≫ _) x at eq,
   rw [ι_preserves_colimits_iso_hom_assoc, ι_preserves_colimits_iso_hom_assoc,
     has_colimit.iso_of_nat_iso_ι_hom_assoc, has_colimit.iso_of_nat_iso_ι_hom_assoc,
-    Top.sigma_iso_sigma_hom_ι, Top.sigma_iso_sigma_hom_ι] at eq,
+    Top.sigma_iso_sigma_hom_ι.{v}, Top.sigma_iso_sigma_hom_ι.{v}] at eq,
   exact h (congr_arg sigma.fst eq)
 end
 
@@ -1066,12 +1066,12 @@ def iso_restrict {X Y : LocallyRingedSpace} {f : X ⟶ Y}
   (H : LocallyRingedSpace.is_open_immersion f) : X ≅ Y.restrict H.base_open :=
 begin
   apply LocallyRingedSpace.iso_of_SheafedSpace_iso,
-  apply @preimage_iso _ _ _ _ SheafedSpace.forget_to_PresheafedSpace,
+  refine SheafedSpace.forget_to_PresheafedSpace.preimage_iso _,
   exact H.iso_restrict
 end
 
 /-- To show that a locally ringed space is a scheme, it suffices to show that it has a jointly
-sujective family of open immersions from affine schemes. -/
+surjective family of open immersions from affine schemes. -/
 protected def Scheme (X : LocallyRingedSpace)
   (h : ∀ (x : X), ∃ (R : CommRing) (f : Spec.to_LocallyRingedSpace.obj (op R) ⟶ X),
     (x ∈ set.range f.1.base : _) ∧ LocallyRingedSpace.is_open_immersion f) : Scheme :=
@@ -1082,7 +1082,7 @@ protected def Scheme (X : LocallyRingedSpace)
     obtain ⟨R, f, h₁, h₂⟩ := h x,
     refine ⟨⟨⟨_, h₂.base_open.open_range⟩, h₁⟩, R, ⟨_⟩⟩,
     apply LocallyRingedSpace.iso_of_SheafedSpace_iso,
-    apply @preimage_iso _ _ _ _ SheafedSpace.forget_to_PresheafedSpace,
+    refine SheafedSpace.forget_to_PresheafedSpace.preimage_iso _,
     resetI,
     apply PresheafedSpace.is_open_immersion.iso_of_range_eq (PresheafedSpace.of_restrict _ _) f.1,
     { exact subtype.range_coe_subtype },

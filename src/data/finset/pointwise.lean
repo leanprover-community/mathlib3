@@ -383,6 +383,12 @@ end
 @[simp, to_additive] lemma empty_pow (hn : n ≠ 0) : (∅ : finset α) ^ n = ∅ :=
 by rw [←tsub_add_cancel_of_le (nat.succ_le_of_lt $ nat.pos_of_ne_zero hn), pow_succ, empty_mul]
 
+@[to_additive] lemma mul_univ_of_one_mem [fintype α] (hs : (1 : α) ∈ s) : s * univ = univ :=
+eq_univ_iff_forall.2 $ λ a, mem_mul.2 ⟨_, _, hs, mem_univ _, one_mul _⟩
+
+@[to_additive] lemma univ_mul_of_one_mem [fintype α] (ht : (1 : α) ∈ t) : univ * t = univ :=
+mul_univ_of_one_mem $ mem_univ _
+
 @[simp, to_additive] lemma univ_mul_univ [fintype α] : (univ : finset α) * univ = univ :=
 by { simp only [mem_mul, eq_univ_iff_forall, mem_univ, true_and], exact λ x, ⟨x, 1, mul_one x⟩ }
 

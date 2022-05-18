@@ -142,7 +142,7 @@ way to `set.image2 (*) t₁ t₂ ⊆ s`. -/
 localized "attribute [instance] filter.has_mul filter.has_add" in pointwise
 
 @[simp, to_additive] lemma map₂_mul : map₂ (*) f g = f * g := rfl
-@[to_additive] lemma mem_mul_iff : s ∈ f * g ↔ ∃ t₁ t₂, t₁ ∈ f ∧ t₂ ∈ g ∧ t₁ * t₂ ⊆ s := iff.rfl
+@[to_additive] lemma mem_mul : s ∈ f * g ↔ ∃ t₁ t₂, t₁ ∈ f ∧ t₂ ∈ g ∧ t₁ * t₂ ⊆ s := iff.rfl
 @[to_additive] lemma mul_mem_mul : s ∈ f → t ∈ g → s * t ∈ f * g := image2_mem_map₂
 @[simp, to_additive] lemma bot_mul : ⊥ * g = ⊥ := map₂_bot_left
 @[simp, to_additive] lemma mul_bot : f * ⊥ = ⊥ := map₂_bot_right
@@ -316,14 +316,23 @@ localized "attribute [instance] filter.monoid filter.add_monoid" in pointwise
 @[simp, to_additive nsmul_bot] lemma bot_pow {n : ℕ} (hn : n ≠ 0) : (⊥  : filter α) ^ n = ⊥ :=
 by rw [←tsub_add_cancel_of_le (nat.succ_le_of_lt $ nat.pos_of_ne_zero hn), pow_succ, bot_mul]
 
-@[simp, to_additive] lemma top_mul_top : (⊤ : filter α) * ⊤ = ⊤ :=
+@[to_additive] lemma mul_top_of_one_le (hf : 1 ≤ f) : f * ⊤ = ⊤ :=
 begin
-  refine top_le_iff.1 _,
-  rintro s ⟨t₁, t₂, h₁, h₂, hs⟩,
-  rw mem_top at *,
-  rw [h₁, h₂, univ_mul_univ] at hs,
-  exact univ_subset_iff.1 hs,
+  refine top_le_iff.1 (λ s, _),
+  simp only [mem_mul, mem_top, exists_and_distrib_left, exists_eq_left],
+  rintro ⟨t, ht, hs⟩,
+  rwa [mul_univ_of_one_mem (mem_one.1 $ hf ht), univ_subset_iff] at hs,
 end
+
+@[to_additive] lemma top_mul_of_one_le (hf : 1 ≤ f) : ⊤ * f = ⊤ :=
+begin
+  refine top_le_iff.1 (λ s, _),
+  simp only [mem_mul, mem_top, exists_and_distrib_left, exists_eq_left],
+  rintro ⟨t, ht, hs⟩,
+  rwa [univ_mul_of_one_mem (mem_one.1 $ hf ht), univ_subset_iff] at hs,
+end
+
+@[simp, to_additive] lemma top_mul_top : (⊤ : filter α) * ⊤ = ⊤ := mul_top_of_one_le le_top
 
 --TODO: `to_additive` trips up on the `1 : ℕ` used in the pattern-matching.
 lemma nsmul_top {α : Type*} [add_monoid α] : ∀ {n : ℕ}, n ≠ 0 → n • (⊤ : filter α) = ⊤

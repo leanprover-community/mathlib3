@@ -48,7 +48,7 @@ card_image_le.trans_eq $ card_product _ _
 
 lemma card_image₂_iff :
   (image₂ f s t).card = s.card * t.card ↔
-    ((s : set α) ×ˢ (t : set β) : set (α × β)).inj_on (uncurry f) :=
+    ((s : set α) ×ˢ (t : set β) : set (α × β)).inj_on (λ x, f x.1 x.2) :=
 by { rw [←card_product, ←coe_product], exact card_image_eq_iff_inj_on }
 
 lemma card_image₂ (hf : injective2 f) (s : finset α) (t : finset β) :
@@ -100,6 +100,7 @@ by simp_rw [←not_nonempty_iff_eq_empty, image₂_nonempty_iff, not_and_distrib
 
 @[simp] lemma image₂_singleton_left : image₂ f {a} t = t.image (λ b, f a b) := ext $ λ x, by simp
 @[simp] lemma image₂_singleton_right : image₂ f s {b} = s.image (λ a, f a b) := ext $ λ x, by simp
+lemma image₂_singleton_left' : image₂ f {a} t = t.image (f a) := image₂_singleton_left
 
 lemma image₂_singleton : image₂ f {a} {b} = {f a b} := by simp
 

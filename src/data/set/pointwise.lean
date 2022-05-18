@@ -470,11 +470,14 @@ end
 @[simp, to_additive] lemma empty_pow {n : ℕ} (hn : n ≠ 0) : (∅ : set α) ^ n = ∅ :=
 by rw [← tsub_add_cancel_of_le (nat.succ_le_of_lt $ nat.pos_of_ne_zero hn), pow_succ, empty_mul]
 
+@[to_additive] lemma mul_univ_of_one_mem (hs : (1 : α) ∈ s) : s * univ = univ :=
+eq_univ_iff_forall.2 $ λ a, mem_mul.2 ⟨_, _, hs, mem_univ _, one_mul _⟩
+
+@[to_additive] lemma univ_mul_of_one_mem (ht : (1 : α) ∈ t) : univ * t = univ :=
+eq_univ_iff_forall.2 $ λ a, mem_mul.2 ⟨_, _, mem_univ _, ht, mul_one _⟩
+
 @[simp, to_additive] lemma univ_mul_univ : (univ : set α) * univ = univ :=
-begin
-  have : ∀ x, ∃ a b : α, a * b = x := λ x, ⟨x, 1, mul_one x⟩,
-  simpa only [mem_mul, eq_univ_iff_forall, mem_univ, true_and]
-end
+mul_univ_of_one_mem $ mem_univ _
 
 --TODO: `to_additive` trips up on the `1 : ℕ` used in the pattern-matching.
 @[simp] lemma nsmul_univ {α : Type*} [add_monoid α] : ∀ {n : ℕ}, n ≠ 0 → n • (univ : set α) = univ

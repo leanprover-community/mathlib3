@@ -1,4 +1,20 @@
+/-
+Copyright (c) 2022 Alexander Bentkamp. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Alexander Bentkamp
+-/
 import analysis.inner_product_space.spectrum
+/-! # Spectral theory of hermitian matrices
+
+This file defines hermitian matrices (`matrix.is_hermitian`) and proves the spectral theorem for
+matrices. The proof of the spectral theorem is based on the spectral theorem for linear maps
+(`diagonalization_basis_apply_self_apply`).
+
+## Tags
+
+self-adjoint matrix, hermitian matrix, spectral theorem, diagonalization theorem
+
+-/
 
 namespace matrix
 
@@ -65,9 +81,7 @@ by apply basis.to_matrix_mul_to_matrix_flip
 /-- *Diagonalization theorem*, *spectral theorem* for matrices; A hermitian matrix can be
 diagonalized by a change of basis.
 
-For the spectral theorem on linear maps, see
-`inner_product_space.is_self_adjoint.diagonalization_apply_self_apply` and
-`inner_product_space.is_self_adjoint.diagonalization_basis_apply_self_apply`. -/
+For the spectral theorem on linear maps, see `diagonalization_basis_apply_self_apply`. -/
 theorem spectral_theorem :
   hA.eigenvector_matrix_inv ⬝ A
     = diagonal (coe ∘ hA.eigenvalues) ⬝ hA.eigenvector_matrix_inv :=

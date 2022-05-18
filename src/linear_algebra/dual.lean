@@ -52,8 +52,8 @@ variables [comm_semiring R] [add_comm_monoid M] [module R M]
 instance {S : Type*} [comm_ring S] {N : Type*} [add_comm_group N] [module S N] :
   add_comm_group (dual S N) := linear_map.add_comm_group
 
-instance : add_monoid_hom_class (dual R M) M R :=
-linear_map.add_monoid_hom_class
+instance : linear_map_class (dual R M) R M R :=
+linear_map.semilinear_map_class
 
 /-- The canonical pairing of a vector space and its algebraic dual. -/
 def dual_pairing (R M) [comm_semiring R] [add_comm_monoid M] [module R M] :

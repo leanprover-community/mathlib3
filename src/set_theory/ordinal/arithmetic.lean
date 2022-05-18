@@ -87,7 +87,7 @@ instance has_le.le.add_contravariant_class : contravariant_class ordinal.{u} ord
   ⟨⟨⟨g, λ x y h, by injection f.inj'
     (by rw [fr, fr, h] : f (sum.inr x) = f (sum.inr y))⟩,
     λ a b, by simpa only [sum.lex_inr_inr, fr, rel_embedding.coe_fn_to_embedding,
-        initial_seg.coe_fn_to_rel_embedding, function.embedding.coe_fn_mk]
+        initial_seg.coe_fn_to_rel_embedding, embedding.coe_fn_mk]
       using @rel_embedding.map_rel_iff _ _ _ _ f.to_rel_embedding (sum.inr a) (sum.inr b)⟩,
     λ a b H, begin
       rcases f.init' (by rw fr; exact sum.lex_inr_inr.2 H) with ⟨a'|a', h⟩,
@@ -495,15 +495,12 @@ theorem add_is_limit (a) {b} : is_limit b → is_limit (a + b) :=
 
 /-! ### Subtraction on ordinals-/
 
-/-- `a - b` is the unique ordinal satisfying `b + (a - b) = a` when `b ≤ a`. -/
-def sub (a b : ordinal.{u}) : ordinal.{u} :=
-Inf {o | a ≤ b + o}
-
 /-- The set in the definition of subtraction is nonempty. -/
 theorem sub_nonempty {a b : ordinal.{u}} : {o | a ≤ b + o}.nonempty :=
 ⟨a, le_add_left _ _⟩
 
-instance : has_sub ordinal := ⟨sub⟩
+/-- `a - b` is the unique ordinal satisfying `b + (a - b) = a` when `b ≤ a`. -/
+instance : has_sub ordinal := ⟨λ a b, Inf {o | a ≤ b + o}⟩
 
 theorem le_add_sub (a b : ordinal) : a ≤ b + (a - b) :=
 Inf_mem sub_nonempty
@@ -653,7 +650,7 @@ instance has_le.le.mul_covariant_class : covariant_class ordinal.{u} ordinal.{u}
 end⟩
 
 instance has_le.le.mul_swap_covariant_class :
-  covariant_class ordinal.{u} ordinal.{u} (function.swap (*)) (≤) :=
+  covariant_class ordinal.{u} ordinal.{u} (swap (*)) (≤) :=
 ⟨λ c a b, quotient.induction_on₃ a b c $ λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨γ, t, _⟩ ⟨f⟩, begin
   resetI,
   refine type_le'.2 ⟨rel_embedding.of_monotone
@@ -766,21 +763,14 @@ theorem smul_eq_mul : ∀ (n : ℕ) (a : ordinal), n • a = a * n
 
 /-! ### Division on ordinals -/
 
-protected lemma div_aux (a b : ordinal.{u}) (h : b ≠ 0) : set.nonempty {o | a < b * succ o} :=
+/-- The set in the definition of division is nonempty. -/
+theorem div_nonempty {a b : ordinal.{u}} (h : b ≠ 0) : {o | a < b * succ o}.nonempty :=
 ⟨a, succ_le.1 $
   by simpa only [succ_zero, one_mul]
     using mul_le_mul_right' (succ_le.2 (ordinal.pos_iff_ne_zero.2 h)) (succ a)⟩
 
-/-- `a / b` is the unique ordinal `o` satisfying
-  `a = b * o + o'` with `o' < b`. -/
-protected def div (a b : ordinal.{u}) : ordinal.{u} :=
-if h : b = 0 then 0 else Inf {o | a < b * succ o}
-
-/-- The set in the definition of division is nonempty. -/
-theorem div_nonempty {a b : ordinal.{u}} (h : b ≠ 0) : {o | a < b * succ o}.nonempty :=
-ordinal.div_aux a b h
-
-instance : has_div ordinal := ⟨ordinal.div⟩
+/-- `a / b` is the unique ordinal `o` satisfying `a = b * o + o'` with `o' < b`. -/
+instance : has_div ordinal := ⟨λ a b, if h : b = 0 then 0 else Inf {o | a < b * succ o}⟩
 
 @[simp] theorem div_zero (a : ordinal) : a / 0 = 0 :=
 dif_pos rfl
@@ -1597,7 +1587,7 @@ begin
   apply not_le_of_lt (cardinal.lt_succ_self (#ι)),
   have H := λ a, exists_of_lt_mex ((typein_lt_self a).trans_le h),
   let g : (#ι).succ.ord.out.α → ι := λ a, classical.some (H a),
-  have hg : function.injective g := λ a b h', begin
+  have hg : injective g := λ a b h', begin
     have Hf : ∀ x, f (g x) = typein (<) x := λ a, classical.some_spec (H a),
     apply_fun f at h',
     rwa [Hf, Hf, typein_inj] at h'
@@ -1648,18 +1638,18 @@ end ordinal
 
 /-! ### Results about injectivity and surjectivity -/
 
-lemma not_surjective_of_ordinal {α : Type u} (f : α → ordinal.{u}) : ¬ function.surjective f :=
+lemma not_surjective_of_ordinal {α : Type u} (f : α → ordinal.{u}) : ¬ surjective f :=
 λ h, ordinal.lsub_not_mem_range.{u u} f (h _)
 
-lemma not_injective_of_ordinal {α : Type u} (f : ordinal.{u} → α) : ¬ function.injective f :=
+lemma not_injective_of_ordinal {α : Type u} (f : ordinal.{u} → α) : ¬ injective f :=
 λ h, not_surjective_of_ordinal _ (inv_fun_surjective h)
 
 lemma not_surjective_of_ordinal_of_small {α : Type v} [small.{u} α] (f : α → ordinal.{u}) :
-  ¬ function.surjective f :=
+  ¬ surjective f :=
 λ h, not_surjective_of_ordinal _ (h.comp (equiv_shrink _).symm.surjective)
 
 lemma not_injective_of_ordinal_of_small {α : Type v} [small.{u} α] (f : ordinal.{u} → α) :
-  ¬ function.injective f :=
+  ¬ injective f :=
 λ h, not_injective_of_ordinal _ ((equiv_shrink _).injective.comp h)
 
 /-- The type of ordinals in universe `u` is not `small.{u}`. This is the type-theoretic analog of
@@ -1791,30 +1781,32 @@ end
 /-! ### Ordinal exponential -/
 
 /-- The ordinal exponential, defined by transfinite recursion. -/
-def opow (a b : ordinal) : ordinal :=
-if a = 0 then 1 - b else
-limit_rec_on b 1 (λ _ IH, IH * a) (λ b _, bsup.{u u} b)
+instance : has_pow ordinal ordinal :=
+⟨λ a b, if a = 0 then 1 - b else limit_rec_on b 1 (λ _ IH, IH * a) (λ b _, bsup.{u u} b)⟩
 
-instance : has_pow ordinal ordinal := ⟨opow⟩
 local infixr ^ := @pow ordinal ordinal ordinal.has_pow
 
+theorem opow_def (a b : ordinal) :
+  a ^ b = if a = 0 then 1 - b else limit_rec_on b 1 (λ _ IH, IH * a) (λ b _, bsup.{u u} b) :=
+rfl
+
 theorem zero_opow' (a : ordinal) : 0 ^ a = 1 - a :=
-by simp only [pow, opow, if_pos rfl]
+by simp only [opow_def, if_pos rfl]
 
 @[simp] theorem zero_opow {a : ordinal} (a0 : a ≠ 0) : 0 ^ a = 0 :=
 by rwa [zero_opow', ordinal.sub_eq_zero_iff_le, one_le_iff_ne_zero]
 
 @[simp] theorem opow_zero (a : ordinal) : a ^ 0 = 1 :=
-by by_cases a = 0; [simp only [pow, opow, if_pos h, sub_zero],
-simp only [pow, opow, if_neg h, limit_rec_on_zero]]
+by by_cases a = 0; [simp only [opow_def, if_pos h, sub_zero],
+simp only [opow_def, if_neg h, limit_rec_on_zero]]
 
 @[simp] theorem opow_succ (a b : ordinal) : a ^ succ b = a ^ b * a :=
 if h : a = 0 then by subst a; simp only [zero_opow (succ_ne_zero _), mul_zero]
-else by simp only [pow, opow, limit_rec_on_succ, if_neg h]
+else by simp only [opow_def, limit_rec_on_succ, if_neg h]
 
 theorem opow_limit {a b : ordinal} (a0 : a ≠ 0) (h : is_limit b) :
   a ^ b = bsup.{u u} b (λ c _, a ^ c) :=
-by simp only [pow, opow, if_neg a0]; rw limit_rec_on_limit _ _ _ _ h; refl
+by simp only [opow_def, if_neg a0]; rw limit_rec_on_limit _ _ _ _ h; refl
 
 theorem opow_le_of_limit {a b c : ordinal} (a0 : a ≠ 0) (h : is_limit b) :
   a ^ b ≤ c ↔ ∀ b' < b, a ^ b' ≤ c :=

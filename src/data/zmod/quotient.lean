@@ -109,4 +109,27 @@ lemma zpowers_quotient_stabilizer_equiv_symm_apply (n : zmod (minimal_period ((�
     (⟨a, mem_zpowers a⟩ : zpowers a) ^ (n : ℤ) :=
 rfl
 
+/-- The orbit `(a ^ ℤ) • b` is a cycle of order `minimal_period ((•) a) b`. -/
+noncomputable def orbit_zpowers_equiv : orbit (zpowers a) b ≃ zmod (minimal_period ((•) a) b) :=
+(orbit_equiv_quotient_stabilizer _ b).trans (zpowers_quotient_stabilizer_equiv a b).to_equiv
+
+/-- The orbit `(ℤ • a) +ᵥ b` is a cycle of order `minimal_period ((+ᵥ) a) b`. -/
+noncomputable def _root_.add_action.orbit_zmultiples_equiv
+  {α β : Type*} [add_group α] (a : α) [add_action α β] (b : β) :
+  add_action.orbit (add_subgroup.zmultiples a) b ≃ zmod (minimal_period ((+ᵥ) a) b) :=
+(add_action.orbit_equiv_quotient_stabilizer (add_subgroup.zmultiples a) b).trans
+  (add_action.zmultiples_quotient_stabilizer_equiv a b).to_equiv
+
+attribute [to_additive orbit_zmultiples_equiv] orbit_zpowers_equiv
+
+@[to_additive orbit_zmultiples_equiv_symm_apply]
+lemma orbit_zpowers_equiv_symm_apply
+  (k : zmod (minimal_period ((•) a) b)) : (orbit_zpowers_equiv a b).symm k =
+  (⟨a, mem_zpowers a⟩ : zpowers a) ^ (k : ℤ) • ⟨b, mem_orbit_self b⟩ :=
+rfl
+
+@[to_additive] lemma minimal_period_eq_card [fintype (orbit (zpowers a) b)] :
+  minimal_period ((•) a) b = fintype.card (orbit (zpowers a) b) :=
+by rw [←fintype.of_equiv_card (orbit_zpowers_equiv a b), zmod.card]
+
 end mul_action

@@ -375,35 +375,48 @@ variables [has_zero_morphisms C]
 variables (X Y) [has_binary_biproduct X Y]
 
 /-- `X` as a subobject of `X ⊞ Y`. -/
-abbreviation binary_biproduct_left_subobject : subobject (X ⊞ Y) :=
+abbreviation subobject_inl : subobject (X ⊞ Y) :=
 subobject.mk biprod.inl
 
 /-- `Y` as a subobject of `X ⊞ Y`. -/
-abbreviation binary_biproduct_right_subobject : subobject (X ⊞ Y) :=
+abbreviation subobject_inr : subobject (X ⊞ Y) :=
 subobject.mk biprod.inr
+
+lemma inl_inf_inr [has_pullbacks C] [has_initial C] [initial_mono_class C] :
+  subobject_inl X Y ⊓ subobject_inr X Y = ⊥ :=
+sorry
+
+lemma inl_sup_inr [has_images C] [has_binary_coproducts C] :
+  subobject_inl X Y ⊔ subobject_inr X Y = ⊤ :=
+sorry
+
+def is_compl_subobject_inl_subobject_inr [has_pullbacks C] [has_initial C]
+  [initial_mono_class C] [has_images C] [has_binary_coproducts C] :
+  is_compl (subobject_inl X Y) (subobject_inr X Y) :=
+sorry
 
 @[simp]
 lemma kernel_subobject_biprod_snd :
-  kernel_subobject biprod.snd = binary_biproduct_left_subobject X Y :=
+  kernel_subobject biprod.snd = subobject_inl X Y :=
 (eq_of_comm
   (((underlying_iso _).trans (kernel_biprod_snd_iso X Y).symm).trans (kernel_subobject_iso _).symm)
   (by simp)).symm
 
 @[simp]
 lemma kernel_subobject_biprod_fst :
-  kernel_subobject biprod.fst = binary_biproduct_right_subobject X Y :=
+  kernel_subobject biprod.fst = subobject_inr X Y :=
 (eq_of_comm
   (((underlying_iso _).trans (kernel_biprod_fst_iso X Y).symm).trans (kernel_subobject_iso _).symm)
   (by simp)).symm
 
 @[simp]
 lemma image_subobject_biprod_inl :
-  image_subobject biprod.inl = binary_biproduct_left_subobject X Y :=
+  image_subobject biprod.inl = subobject_inl X Y :=
 eq_of_comm (iso_of_eq _ _ (image_subobject_mono _)) (by simp)
 
 @[simp]
 lemma image_subobject_biprod_inr :
-  image_subobject biprod.inr = binary_biproduct_right_subobject X Y :=
+  image_subobject biprod.inr = subobject_inr X Y :=
 eq_of_comm (iso_of_eq _ _ (image_subobject_mono _)) (by simp)
 
 end binary_biproduct

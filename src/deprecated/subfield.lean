@@ -6,8 +6,7 @@ Authors: Andreas Swerdlow
 import deprecated.subring
 import algebra.group_with_zero.power
 
-/-
-
+/-!
 # Unbundled subfields (deprecated)
 
 This file is deprecated, and is no longer imported by anything in mathlib other than other

@@ -7,8 +7,7 @@ import deprecated.subgroup
 import deprecated.group
 import ring_theory.subring.basic
 
-/-
-
+/-!
 # Unbundled subrings (deprecated)
 
 This file is deprecated, and is no longer imported by anything in mathlib other than other

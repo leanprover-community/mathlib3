@@ -16,18 +16,22 @@ section semiring
 
 variables {R : Type*} [semiring R] {p q : R[X]}
 
+-- todo: PR to `data/polynomial/mirror.lean`
 lemma mirror_eq_iff : p.mirror = q ↔ p = q.mirror :=
 ⟨λ h, h ▸ p.mirror_mirror.symm, λ h, h.symm ▸ q.mirror_mirror⟩
 
+-- todo: PR to `data/polynomial/mirror.lean`
 lemma mirror_inj : p.mirror = q.mirror ↔ p = q :=
 by rw [mirror_eq_iff, mirror_mirror]
 
+-- todo: PR to `data/polynomial/basic` with other support lemmas
 lemma support_binomial_le {k m : ℕ} {x y : R} :
   (C x * X ^ k + C y * X ^ m).support ⊆ {k, m} :=
 support_add.trans (union_subset ((support_C_mul_X_pow x k).trans
   (singleton_subset_iff.mpr (mem_insert_self k {m}))) ((support_C_mul_X_pow y m).trans
   (singleton_subset_iff.mpr (mem_insert_of_mem (mem_singleton_self m)))))
 
+-- todo: PR to `data/polynomial/basic` with other support lemmas
 lemma support_trinomial_le {k m n : ℕ} {x y z : R} :
   (C x * X ^ k + C y * X ^ m + C z * X ^ n).support ⊆ {k, m, n} :=
 support_add.trans (union_subset (support_add.trans (union_subset (support_C_mul_X_pow'.trans
@@ -36,6 +40,7 @@ support_add.trans (union_subset (support_add.trans (union_subset (support_C_mul_
   (support_C_mul_X_pow'.trans (singleton_subset_iff.mpr
   (mem_insert_of_mem (mem_insert_of_mem (mem_singleton_self n))))))
 
+-- todo: PR to `data/polynomial/basic` with other support lemmas
 lemma support_binomial_eq {k m : ℕ} (hkm : k < m) {x y : R} (hx : x ≠ 0) (hy : y ≠ 0) :
   (C x * X ^ k + C y * X ^ m).support = {k, m} :=
 begin
@@ -45,6 +50,7 @@ begin
     mul_zero, zero_add, add_zero, ne.def, hx, hy, and_self, not_false_iff],
 end
 
+-- todo: PR to `data/polynomial/basic` with other support lemmas
 lemma support_trinomial_eq {k m n : ℕ} (hkm : k < m) (hmn : m < n) {x y z : R} (hx : x ≠ 0)
   (hy : y ≠ 0) (hz : z ≠ 0) : (C x * X ^ k + C y * X ^ m + C z * X ^ n).support = {k, m, n} :=
 begin
@@ -55,6 +61,7 @@ begin
     zero_add, ne.def, hx, hy, hz, and_self, not_false_iff],
 end
 
+-- todo: PR to `data/polynomial/basic` with other support lemmas
 lemma card_support_binomial_eq {k m : ℕ} (hkm : k < m) {x y : R} (hx : x ≠ 0) (hy : y ≠ 0) :
   (C x * X ^ k + C y * X ^ m).support.card = 2 :=
 begin
@@ -63,6 +70,7 @@ begin
   exact hkm.ne,
 end
 
+-- todo: PR to `data/polynomial/basic` with other support lemmas
 lemma card_support_trinomial_eq {k m n : ℕ} (hkm : k < m) (hmn : m < n) {x y z : R} (hx : x ≠ 0)
   (hy : y ≠ 0) (hz : z ≠ 0) : (C x * X ^ k + C y * X ^ m + C z * X ^ n).support.card = 3 :=
 begin
@@ -74,6 +82,7 @@ begin
     exact ⟨hkm.ne, (hkm.trans hmn).ne⟩ },
 end
 
+-- todo: PR to `data/polynomial/basic` with other support lemmas
 lemma card_support_eq_one : p.support.card = 1 ↔ ∃ (k : ℕ) (x : R) (hx : x ≠ 0), p = C x * X ^ k :=
 begin
   refine ⟨λ h, _, _⟩,
@@ -86,6 +95,7 @@ begin
     rw [support_mul_X_pow x k hx, card_singleton] },
 end
 
+-- todo: PR to `data/polynomial/basic` with other support lemmas
 lemma card_support_eq_two : p.support.card = 2 ↔ ∃ (k m : ℕ) (hkm : k < m)
   (x y : R) (hx : x ≠ 0) (hy : y ≠ 0), p = C x * X ^ k + C y * X ^ m :=
 begin
@@ -101,6 +111,7 @@ begin
     exact card_support_binomial_eq hkm hx hy },
 end
 
+-- todo: PR to `data/polynomial/basic` with other support lemmas
 lemma card_support_eq_three : p.support.card = 3 ↔ ∃ (k m n : ℕ) (hkm : k < m) (hmn : m < n)
   (x y z : R) (hx : x ≠ 0) (hy : y ≠ 0) (hz : z ≠ 0), p = C x * X ^ k + C y * X ^ m + C z * X ^ n :=
 begin
@@ -136,13 +147,6 @@ OLD STUFF
 
 OLD STUFF
 -/
-
-
-
-
-
-
-
 
 section semiring
 
@@ -272,6 +276,7 @@ section domain
 
 variables {R : Type*} [comm_ring R] [is_domain R] (p : R[X])
 
+-- todo: PR to `data/polynomial/mirror.lean`
 lemma nat_degree_mul_mirror : (p * p.mirror).nat_degree = 2 * p.nat_degree :=
 begin
   by_cases hp : p = 0,
@@ -279,6 +284,7 @@ begin
   rw [nat_degree_mul hp (mt p.mirror_eq_zero.mp hp), mirror_nat_degree, two_mul],
 end
 
+-- todo: PR to `data/polynomial/mirror.lean`
 lemma nat_trailing_degree_mul_mirror :
   (p * p.mirror).nat_trailing_degree = 2 * p.nat_trailing_degree :=
 begin
@@ -379,11 +385,17 @@ begin
     exact asymm this (hkm.trans hmn) },
 end
 
-lemma sublemma3 {k l m n : ℕ} {u v : ℤ} (hu : u ≠ 0) (hv : v ≠ 0) :
+lemma sublemma3 {R : Type*} [semiring R] {k l m n : ℕ} {u v : R} (hu : u ≠ 0) (hv : v ≠ 0) :
   C u * X ^ k + C v * X ^ l = C u * X ^ m + C v * X ^ n ↔
   (k = m ∧ l = n) ∨ (u = v ∧ k = n ∧ l = m) ∨ (u + v = 0 ∧ k = l ∧ m = n) :=
 begin
-  sorry
+  split,
+  { intro h,
+    sorry },
+  { rintros (⟨rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩ | ⟨h, rfl, rfl⟩),
+    { refl },
+    { apply add_comm },
+    { rw [←add_mul, ←add_mul, ←C_add, h, C_0, zero_mul, zero_mul] } },
 end
 
 lemma irreducible1_aux3 {k m m' n : ℕ} {u v w : ℤ}
@@ -402,13 +414,13 @@ begin
   rw (is_unit_C.mpr hv).mul_right_inj at h,
   rw sublemma3 hu.ne_zero hw.ne_zero at h,
   simp only [add_left_inj] at h,
-  rcases h with h | h | h,
-  { rw h.1 at hp,
-    exact or.inl (hq.trans hp.symm) },
+  rcases h with ⟨rfl, -⟩ | ⟨rfl, rfl, h⟩ | ⟨-, hm, hm'⟩,
+  { exact or.inl (hq.trans hp.symm) },
   { refine or.inr _,
     sorry },
-  { refine or.inl _,
-    sorry },
+  { have : m = m' := sorry,
+    rw this at hp,
+    exact or.inl (hq.trans hp.symm) },
 end
 
 lemma sublemma {a b c d : ℤ} (ha : is_unit a) (hb : is_unit b) (hc : is_unit c) (hd : is_unit d)

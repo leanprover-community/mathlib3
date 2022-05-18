@@ -30,7 +30,7 @@ bounded below.
 
 set_option old_structure_cmd true
 
-open set
+open function set
 
 variables {α β : Type*} {ι : Sort*}
 
@@ -75,10 +75,10 @@ complete lattices, we prefix Inf and Sup by a c everywhere. The same statements 
 hold in both worlds, sometimes with additional assumptions of nonemptiness or
 boundedness.-/
 class conditionally_complete_lattice (α : Type*) extends lattice α, has_Sup α, has_Inf α :=
-(le_cSup : ∀ s a, bdd_above s → a ∈ s → a ≤ Sup s)
-(cSup_le : ∀ s a, set.nonempty s → a ∈ upper_bounds s → Sup s ≤ a)
-(cInf_le : ∀ s a, bdd_below s → a ∈ s → Inf s ≤ a)
-(le_cInf : ∀ s a, set.nonempty s → a ∈ lower_bounds s → a ≤ Inf s)
+(is_lub_cSup : ∀ ⦃s : set α⦄, s.nonempty → bdd_above s → is_lub s (Sup s))
+(is_glb_cInf : ∀ ⦃s : set α⦄, s.nonempty → bdd_below s → is_glb s (Inf s))
+
+export conditionally_complete_lattice (is_lub_cSup is_glb_cInf)
 
 /-- A conditionally complete linear order is a linear order in which
 every nonempty subset which is bounded above has a supremum, and
@@ -116,10 +116,8 @@ on the properties of Inf and Sup in a complete lattice.-/
 @[priority 100] -- see Note [lower instance priority]
 instance complete_lattice.to_conditionally_complete_lattice [complete_lattice α] :
   conditionally_complete_lattice α :=
-{ le_cSup := by intros; apply le_Sup; assumption,
-  cSup_le := by intros; apply Sup_le; assumption,
-  cInf_le := by intros; apply Inf_le; assumption,
-  le_cInf := by intros; apply le_Inf; assumption,
+{ is_lub_cSup := λ s _ _, is_lub_Sup s,
+  is_glb_cInf := λ s _ _, is_glb_Inf s,
   ..‹complete_lattice α› }
 
 @[priority 100] -- see Note [lower instance priority]
@@ -129,60 +127,46 @@ instance complete_linear_order.to_conditionally_complete_linear_order_bot {α : 
 { cSup_empty := Sup_empty,
   ..complete_lattice.to_conditionally_complete_lattice, .. ‹complete_linear_order α› }
 
+/-- -/
+@[reducible] def conditionally_complete_lattice_of_lattice_of_Inf_eq_Sup
+  {α : Type*} [lattice α] (Inf Sup : set α → α)
+  (hInf : ∀ s : set α, s.nonempty → bdd_below s → is_glb s (Inf s))
+  (hSup : ∀ s : set α, s.nonempty → bdd_above s → Sup s = Inf (upper_bounds s)) :
+  conditionally_complete_lattice α :=
+{ Inf := Inf, Sup := Sup,
+  is_glb_cInf := hInf,
+  is_lub_cSup := λ s hne hbdd, is_glb_upper_bounds.1 $
+    (hSup s hne hbdd).symm ▸ hInf _ hbdd (hne.mono $ subset_lower_bounds_upper_bounds s),
+  .. ‹lattice α› }
+
+@[reducible] def conditionally_complete_lattice_of_lattice_of_Inf
+  {α : Type*} [lattice α] (Inf : set α → α)
+  (hInf : ∀ s : set α, s.nonempty → bdd_below s → is_glb s (Inf s)) :
+  conditionally_complete_lattice α :=
+conditionally_complete_lattice_of_lattice_of_Inf_eq_Sup
+  Inf (λ s, Inf (upper_bounds s)) hInf (λ _ _ _, rfl)
+
 section
 open_locale classical
 
 /-- A well founded linear order is conditionally complete, with a bottom element. -/
 @[reducible] noncomputable def well_founded.conditionally_complete_linear_order_with_bot
-  {α : Type*} [i : linear_order α] (h : well_founded ((<) : α → α → Prop))
-  (c : α) (hc : c = h.min set.univ ⟨c, mem_univ c⟩) :
+  {α : Type*} [linear_order α] [order_bot α] (h : well_founded ((<) : α → α → Prop)) :
   conditionally_complete_linear_order_bot α :=
-{ sup := max,
-  le_sup_left := le_max_left,
-  le_sup_right := le_max_right,
-  sup_le := λ a b c, max_le,
-  inf := min,
-  inf_le_left := min_le_left,
-  inf_le_right := min_le_right,
-  le_inf := λ a b c, le_min,
-  Inf := λ s, if hs : s.nonempty then h.min s hs else c,
-  cInf_le := λ s a hs has, begin
-    have s_ne : s.nonempty := ⟨a, has⟩,
-    simpa [s_ne] using not_lt.1 (h.not_lt_min s s_ne has),
-  end,
-  le_cInf := λ s a hs has, begin
-    simp only [hs, dif_pos],
-    exact has (h.min_mem s hs),
-  end,
-  Sup := λ s, if hs : (upper_bounds s).nonempty then h.min _ hs else c,
-  le_cSup := λ s a hs has, begin
-    have h's : (upper_bounds s).nonempty := hs,
-    simp only [h's, dif_pos],
-    exact h.min_mem _ h's has,
-  end,
-  cSup_le := λ s a hs has, begin
-    have h's : (upper_bounds s).nonempty := ⟨a, has⟩,
-    simp only [h's, dif_pos],
-    simpa using h.not_lt_min _ h's has,
-  end,
-  bot := c,
-  bot_le := λ x, by convert not_lt.1 (h.not_lt_min set.univ ⟨c, mem_univ c⟩ (mem_univ x)),
-  cSup_empty := begin
-    have : (set.univ : set α).nonempty := ⟨c, mem_univ c⟩,
-    simp only [this, dif_pos, upper_bounds_empty],
-    exact hc.symm
-  end,
-  .. i }
+{ cSup_empty := (dif_pos $ by simp).trans $ bot_unique $ h.min_le (λ x, false.elim),
+  .. ‹linear_order α›, .. ‹order_bot α›,
+  .. conditionally_complete_lattice_of_lattice_of_Inf
+    (λ s, if hs : s.nonempty then h.min s hs else ⊥)
+    (λ s hne hbdd, by { simp only [dif_pos hne],
+      exact is_least.is_glb ⟨h.min_mem _ _, λ x, h.min_le⟩ }) }
 
 end
 
 section order_dual
 
 instance (α : Type*) [conditionally_complete_lattice α] : conditionally_complete_lattice αᵒᵈ :=
-{ le_cSup := @conditionally_complete_lattice.cInf_le α _,
-  cSup_le := @conditionally_complete_lattice.le_cInf α _,
-  le_cInf := @conditionally_complete_lattice.cSup_le α _,
-  cInf_le := @conditionally_complete_lattice.le_cSup α _,
+{ is_lub_cSup := @is_glb_cInf α _,
+  is_glb_cInf := @is_lub_cSup α _,
   ..order_dual.has_Inf α,
   ..order_dual.has_Sup α,
   ..order_dual.lattice α }
@@ -198,16 +182,16 @@ section conditionally_complete_lattice
 variables [conditionally_complete_lattice α] {s t : set α} {a b : α}
 
 theorem le_cSup (h₁ : bdd_above s) (h₂ : a ∈ s) : a ≤ Sup s :=
-conditionally_complete_lattice.le_cSup s a h₁ h₂
+(is_lub_cSup ⟨a, h₂⟩ h₁).1 h₂
 
-theorem cSup_le (h₁ : s.nonempty) (h₂ : ∀ b ∈ s, b ≤ a) : Sup s ≤ a :=
-conditionally_complete_lattice.cSup_le s a h₁ h₂
+theorem cSup_le (h₁ : s.nonempty) (h₂ : a ∈ upper_bounds s) : Sup s ≤ a :=
+(is_lub_cSup h₁ ⟨a, h₂⟩).2 h₂
 
 theorem cInf_le (h₁ : bdd_below s) (h₂ : a ∈ s) : Inf s ≤ a :=
-conditionally_complete_lattice.cInf_le s a h₁ h₂
+(is_glb_cInf ⟨a, h₂⟩ h₁).1 h₂
 
-theorem le_cInf (h₁ : s.nonempty) (h₂ : ∀ b ∈ s, a ≤ b) : a ≤ Inf s :=
-conditionally_complete_lattice.le_cInf s a h₁ h₂
+theorem le_cInf (h₁ : s.nonempty) (h₂ : a ∈ lower_bounds s) : a ≤ Inf s :=
+(is_glb_cInf h₁ ⟨a, h₂⟩).2 h₂
 
 theorem le_cSup_of_le (hs : bdd_above s) (hb : b ∈ s) (h : a ≤ b) : a ≤ Sup s :=
 le_trans h (le_cSup hs hb)
@@ -229,9 +213,6 @@ theorem cInf_le_iff (h : bdd_below s) (hs : s.nonempty) :
   Inf s ≤ a ↔ ∀ b ∈ lower_bounds s, b ≤ a :=
 ⟨λ h b hb, le_trans (le_cInf hs hb) h, λ hb, hb _ (λ x, cInf_le h)⟩
 
-lemma is_lub_cSup (ne : s.nonempty) (H : bdd_above s) : is_lub s (Sup s) :=
-⟨λ x, le_cSup H, λ x, cSup_le ne⟩
-
 lemma is_lub_csupr [nonempty ι] {f : ι → α} (H : bdd_above (range f)) :
   is_lub (range f) (⨆ i, f i) :=
 is_lub_cSup (range_nonempty f) H
@@ -239,9 +220,6 @@ is_lub_cSup (range_nonempty f) H
 lemma is_lub_csupr_set {f : β → α} {s : set β} (H : bdd_above (f '' s)) (Hne : s.nonempty) :
   is_lub (f '' s) (⨆ i : s, f i) :=
 by { rw ← Sup_image', exact is_lub_cSup (Hne.image _) H }
-
-lemma is_glb_cInf (ne : s.nonempty) (H : bdd_below s) : is_glb s (Inf s) :=
-⟨λ x, cInf_le H, λ x, le_cInf ne⟩
 
 lemma is_glb_cinfi [nonempty ι] {f : ι → α} (H : bdd_below (range f)) :
   is_glb (range f) (⨅ i, f i) :=
@@ -437,7 +415,7 @@ cSup_eq_of_forall_le_of_forall_lt_exists_gt nonempty_Iio (λ _, le_of_lt)
 
 /--The indexed supremum of a function is bounded above by a uniform bound-/
 lemma csupr_le [nonempty ι] {f : ι → α} {c : α} (H : ∀ x, f x ≤ c) : supr f ≤ c :=
-cSup_le (range_nonempty f) (by rwa forall_range_iff)
+cSup_le (range_nonempty f) (forall_range_iff.2 H)
 
 /--The indexed supremum of a function is bounded below by the value taken at one point-/
 lemma le_csupr {f : ι → α} (H : bdd_above (range f)) (c : ι) : f c ≤ supr f :=
@@ -564,14 +542,10 @@ end conditionally_complete_lattice
 instance pi.conditionally_complete_lattice {ι : Type*} {α : Π i : ι, Type*}
   [Π i, conditionally_complete_lattice (α i)] :
   conditionally_complete_lattice (Π i, α i) :=
-{ le_cSup := λ s f ⟨g, hg⟩ hf i, le_cSup ⟨g i, set.forall_range_iff.2 $ λ ⟨f', hf'⟩, hg hf' i⟩
-    ⟨⟨f, hf⟩, rfl⟩,
-  cSup_le := λ s f hs hf i, cSup_le (by haveI := hs.to_subtype; apply range_nonempty) $
-    λ b ⟨⟨g, hg⟩, hb⟩, hb ▸ hf hg i,
-  cInf_le := λ s f ⟨g, hg⟩ hf i, cInf_le ⟨g i, set.forall_range_iff.2 $ λ ⟨f', hf'⟩, hg hf' i⟩
-    ⟨⟨f, hf⟩, rfl⟩,
-  le_cInf := λ s f hs hf i, le_cInf (by haveI := hs.to_subtype; apply range_nonempty) $
-    λ b ⟨⟨g, hg⟩, hb⟩, hb ▸ hf hg i,
+{ is_lub_cSup := λ s hne hbdd, is_lub_pi.2 $ λ i,
+    by { rw [Sup_apply], exact is_lub_csupr_set ((monotone_eval _).map_bdd_above hbdd) hne },
+  is_glb_cInf := λ s hne hbdd, is_glb_pi.2 $ λ i,
+    by { rw [Inf_apply], exact is_glb_cinfi_set ((monotone_eval _).map_bdd_below hbdd) hne },
   .. pi.lattice, .. pi.has_Sup, .. pi.has_Inf }
 
 section conditionally_complete_linear_order
@@ -988,10 +962,8 @@ gives a conditionally complete lattice -/
 noncomputable instance with_top.conditionally_complete_lattice
   {α : Type*} [conditionally_complete_lattice α] :
   conditionally_complete_lattice (with_top α) :=
-{ le_cSup := λ S a hS haS, (with_top.is_lub_Sup' ⟨a, haS⟩).1 haS,
-  cSup_le := λ S a hS haS, (with_top.is_lub_Sup' hS).2 haS,
-  cInf_le := λ S a hS haS, (with_top.is_glb_Inf' hS).1 haS,
-  le_cInf := λ S a hS haS, (with_top.is_glb_Inf' ⟨a, haS⟩).2 haS,
+{ is_lub_cSup := λ s h₁ h₂, with_top.is_lub_Sup' h₁,
+  is_glb_cInf := λ s h₁ h₂, with_top.is_glb_Inf' h₂,
   ..with_top.lattice,
   ..with_top.has_Sup,
   ..with_top.has_Inf }
@@ -1001,13 +973,10 @@ gives a conditionally complete lattice -/
 noncomputable instance with_bot.conditionally_complete_lattice
   {α : Type*} [conditionally_complete_lattice α] :
   conditionally_complete_lattice (with_bot α) :=
-{ le_cSup := (@with_top.conditionally_complete_lattice αᵒᵈ _).cInf_le,
-  cSup_le := (@with_top.conditionally_complete_lattice αᵒᵈ _).le_cInf,
-  cInf_le := (@with_top.conditionally_complete_lattice αᵒᵈ _).le_cSup,
-  le_cInf := (@with_top.conditionally_complete_lattice αᵒᵈ _).cSup_le,
-  ..with_bot.lattice,
-  ..with_bot.has_Sup,
-  ..with_bot.has_Inf }
+{ .. with_bot.lattice,
+  .. with_bot.has_Sup,
+  .. with_bot.has_Inf,
+  .. order_dual.conditionally_complete_lattice (with_top αᵒᵈ) }
 
 noncomputable instance with_top.with_bot.complete_lattice {α : Type*}
   [conditionally_complete_lattice α] : complete_lattice (with_top (with_bot α)) :=

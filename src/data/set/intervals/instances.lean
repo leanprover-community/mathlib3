@@ -37,7 +37,7 @@ instance {α : Type*} [ordered_comm_semiring α] : comm_monoid_with_zero (Icc (0
   ..(show monoid (Icc (0:α) 1), by apply_instance) }
 
 
-instance {α : Type*} [ordered_comm_semiring α] : comm_semigroup (Ico (0:α) 1) := {
+instance {α : Type*} [ordered_semiring α] : semigroup (Ico (0:α) 1) := {
   mul :=
   begin
     refine λ p q, ⟨p*q, ⟨mul_nonneg p.2.1 q.2.1, _⟩⟩,
@@ -49,7 +49,9 @@ instance {α : Type*} [ordered_comm_semiring α] : comm_semigroup (Ico (0:α) 1)
   end,
 
   mul_assoc := λ p q r, (by exact subtype.mk_eq_mk.2 (mul_assoc p q r)),
+}
 
+instance {α : Type*} [ordered_comm_semiring α] : comm_semigroup (Ico (0:α) 1) := {
   mul_comm :=
   begin
     refine λ p q, _,
@@ -58,7 +60,8 @@ instance {α : Type*} [ordered_comm_semiring α] : comm_semigroup (Ico (0:α) 1)
     apply subtype.mk_eq_mk.2,
     simp only [subtype.coe_mk],
     exact mul_comm p1 q1,
-  end
+  end,
+  ..(show semigroup (Ico (0:α) 1), by apply_instance)
 }
 
 

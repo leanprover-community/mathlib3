@@ -236,30 +236,27 @@ def Q : quadratic_form R (R × R) :=
 @[simp]
 lemma Q_apply (v : R × R) : Q c₁ c₂ v = c₁ * (v.1 * v.1) + c₂ * (v.2 * v.2) := rfl
 
-#check quaternion_algebra.basis
-
 /-- The quaternion basis vectors within the algebra. -/
 -- @[simps i j k]
 def quaternion_basis :
-  @quaternion_algebra.basis R (clifford_algebra (Q c₁ c₂)) _
-    (clifford_algebra.ring _) sorry c₁ c₂ :=
-sorry
--- { i := ι (Q c₁ c₂) (1, 0),
---   j := ι (Q c₁ c₂) (0, 1),
---   k := ι (Q c₁ c₂) (1, 0) * ι (Q c₁ c₂) (0, 1),
---   i_mul_i := begin
---     -- rw [ι_sq_scalar Q, Q_apply, ←algebra.algebra_map_eq_smul_one],
---     -- simp,
---   end,
---   j_mul_j := begin
---     -- rw [ι_sq_scalar Q, Q_apply, ←algebra.algebra_map_eq_smul_one],
---     -- simp,
---   end,
---   i_mul_j := rfl,
---   j_mul_i := begin
---     -- rw [eq_neg_iff_add_eq_zero, ι_mul_ι_add_swap Q, quadratic_form.polar],
---     -- simp,
---   end }
+  @quaternion_algebra.basis _ (clifford_algebra (Q c₁ c₂)) _ _
+  (by have := clifford_algebra.algebra (Q c₁ c₂); exact this) c₁ c₂ :=
+{ i := ι (Q c₁ c₂) (1, 0),
+  j := ι (Q c₁ c₂) (0, 1),
+  k := ι (Q c₁ c₂) (1, 0) * ι (Q c₁ c₂) (0, 1),
+  i_mul_i := begin
+    rw [ι_sq_scalar (Q c₁ c₂), Q_apply, ←algebra.algebra_map_eq_smul_one],
+    simp,
+  end,
+  j_mul_j := begin
+    rw [ι_sq_scalar (Q c₁ c₂), Q_apply, ←algebra.algebra_map_eq_smul_one],
+    simp,
+  end,
+  i_mul_j := rfl,
+  j_mul_i := begin
+    rw [eq_neg_iff_add_eq_zero, ι_mul_ι_add_swap (Q c₁ c₂), quadratic_form.polar],
+    simp,
+  end }
 
 variables {c₁ c₂}
 
@@ -291,7 +288,7 @@ begin
   { simp only [reverse.commutes, alg_hom.commutes, quaternion_algebra.coe_algebra_map,
       quaternion_algebra.conj_coe], },
   case h_grade1 : x
-  { rw [reverse_ι, involute_ι, to_quaternion_ι, alg_hom.map_neg, to_quaternion_ι,
+  { rw [reverse_ι, involute_ι, to_quaternion_ι, map_neg, to_quaternion_ι,
       quaternion_algebra.neg_mk, conj_mk, neg_zero], },
   case h_mul : x₁ x₂ hx₁ hx₂
   { simp only [reverse.map_mul, alg_hom.map_mul, hx₁, hx₂, quaternion_algebra.conj_mul] },
@@ -301,11 +298,11 @@ end
 
 /-- Map a quaternion into the clifford algebra. -/
 def of_quaternion : ℍ[R,c₁,c₂] →ₐ[R] clifford_algebra (Q c₁ c₂) :=
-(quaternion_basis c₁ c₂).lift_hom
+by exact (quaternion_basis c₁ c₂).lift_hom
 
 @[simp] lemma of_quaternion_mk (a₁ a₂ a₃ a₄ : R) :
   of_quaternion (⟨a₁, a₂, a₃, a₄⟩ : ℍ[R,c₁,c₂])
-    = algebra_map R _ a₁
+    = algebra_map R (clifford_algebra (Q c₁ c₂)) a₁
     + a₂ • ι (Q c₁ c₂) (1, 0)
     + a₃ • ι (Q c₁ c₂) (0, 1)
     + a₄ • (ι (Q c₁ c₂) (1, 0) * ι (Q c₁ c₂) (0, 1)) := rfl
@@ -367,27 +364,31 @@ namespace clifford_algebra_dual_number
 open_locale dual_number
 open dual_number triv_sq_zero_ext
 
-variables {R M : Type*} [comm_ring R] [add_comm_group M] [module R M]
+variables {R M : Type*} [comm_semiring R] [add_comm_monoid M] [module R M]
 
-lemma ι_mul_ι (r₁ r₂) : ι (0 : quadratic_form R R) r₁ * ι (0 : quadratic_form R R) r₂ = 0 :=
+-- why?
+instance : is_scalar_tower R (clifford_algebra (0 : R → R)) (clifford_algebra (0 : R → R)) :=
+is_scalar_tower.right
+
+lemma ι_mul_ι (r₁ r₂) : ι (0 : R → R) r₁ * ι (0 : R → R) r₂ = 0 :=
 by rw [←mul_one r₁, ←mul_one r₂, ←smul_eq_mul R, ←smul_eq_mul R, linear_map.map_smul,
-       linear_map.map_smul, smul_mul_smul, ι_sq_scalar, quadratic_form.zero_apply,
+       linear_map.map_smul, smul_mul_smul, ι_sq_scalar, pi.zero_apply,
        ring_hom.map_zero, smul_zero]
 
 /-- The clifford algebra over a 1-dimensional vector space with 0 quadratic form is isomorphic to
 the dual numbers. -/
-protected def equiv : clifford_algebra (0 : quadratic_form R R) ≃ₐ[R] R[ε] :=
+protected def equiv : clifford_algebra (0 : R → R) ≃ₐ[R] R[ε] :=
 alg_equiv.of_alg_hom
-  (clifford_algebra.lift (0 : quadratic_form R R) ⟨inr_hom R _, λ m, inr_mul_inr _ m m⟩)
-  (dual_number.lift ⟨ι _ (1 : R), ι_mul_ι (1 : R) 1⟩)
+  (clifford_algebra.lift (0 : R → R) ⟨inr_hom R _, λ m, inr_mul_inr _ m m⟩)
+  (dual_number.lift ⟨ι (0 : R → R) (1 : R), ι_mul_ι (1 : R) 1⟩)
   (by { ext x : 1, dsimp, rw [lift_apply_eps, subtype.coe_mk, lift_ι_apply, inr_hom_apply, eps] })
   (by { ext : 2, dsimp, rw [lift_ι_apply, inr_hom_apply, ←eps, lift_apply_eps, subtype.coe_mk] })
 
-@[simp] lemma equiv_ι (r : R) : clifford_algebra_dual_number.equiv (ι _ r) = r • ε :=
+@[simp] lemma equiv_ι (r : R) : clifford_algebra_dual_number.equiv (ι (0 : R → R) r) = r • ε :=
 (lift_ι_apply _ _ r).trans (inr_eq_smul_eps _)
 
 @[simp] lemma equiv_symm_eps :
-  clifford_algebra_dual_number.equiv.symm (eps : R[ε]) = ι (0 : quadratic_form R R) 1 :=
+  clifford_algebra_dual_number.equiv.symm (eps : R[ε]) = ι (0 : R → R) 1 :=
 dual_number.lift_apply_eps _
 
 end clifford_algebra_dual_number

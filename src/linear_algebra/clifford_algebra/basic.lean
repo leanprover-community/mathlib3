@@ -74,16 +74,6 @@ ring_quot (clifford_algebra.rel Q)
 instance [comm_ring R] [add_comm_group M] [module R M] (Q : M → R) : ring (clifford_algebra Q) :=
 { zero := 0, add := (+), one := 1, mul := (*), ..ring_quot.ring _}
 
-section
-local attribute [-instance] clifford_algebra.semiring
-
-/-- A copy of `clifford_algebra.algebra` that refers to `clifford_algebra.ring`. -/
-instance algebra' [comm_ring R] [add_comm_group M] [module R M] (Q : M → R) :
-  algebra R (clifford_algebra Q) :=
-clifford_algebra.algebra Q
-
-end
-
 namespace clifford_algebra
 
 section semiring
@@ -96,7 +86,8 @@ variables (Q : M → R)
 The canonical linear map `M →ₗ[R] clifford_algebra Q`.
 -/
 def ι : M →ₗ[R] clifford_algebra Q :=
-(ring_quot.mk_alg_hom R _).to_linear_map.comp (tensor_algebra.ι R)
+by exact (ring_quot.mk_alg_hom R _).to_linear_map.comp (tensor_algebra.ι R)
+-- note the implicit arguments in the type are much worse without the `by exact`
 
 /-- As well as being linear, `ι Q` squares to the quadratic form -/
 @[simp]

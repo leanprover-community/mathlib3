@@ -7,6 +7,25 @@ import deprecated.subgroup
 import deprecated.group
 import ring_theory.subring.basic
 
+/-
+
+# Unbundled subrings (deprecated)
+
+This file is deprecated, and is no longer imported by anything in mathlib other than other
+deprecated files, and test files. You should not need to import it.
+
+This file defines predicates for unbundled subrings. Instead of using this file, please use
+`subring`, defined in `ring_theory.subring.basic`, for subrings of rings.
+
+## Main definitions
+
+`is_subring (S : set R) : Prop` : the predicate that `S` is the underlying set of a subring
+of the ring `R`. The bundled variant `subring R` should be used in preference to this.
+
+## Tags
+
+is_subring
+-/
 universes u v
 
 open group

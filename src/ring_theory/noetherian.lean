@@ -679,7 +679,7 @@ instance is_noetherian_of_fintype (R M) [fintype M] [semiring R] [add_comm_monoi
 by letI := classical.dec; exact
 ⟨assume s, ⟨to_finset s, by rw [set.coe_to_finset, submodule.span_eq]⟩⟩
 
-/-- Modules over the trivial ring are no-etherian. -/
+/-- Modules over the trivial ring are Noetherian. -/
 @[priority 100] -- see Note [lower instance priority]
 instance is_noetherian_of_subsingleton (R M) [subsingleton R] [semiring R] [add_comm_monoid M]
   [module R M] : is_noetherian R M :=

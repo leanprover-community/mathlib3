@@ -8,8 +8,8 @@ import linear_algebra.free_module.finite.basic
 
 /-! # Multilinear maps over finite dimensional spaces
 
-The main results are that multilinear maps over modules that are both free and finite are
-themselves both free and finite as modules.
+The main results are that multilinear maps over finitely-generated, free modules are
+finitely-generated and free.
 
 * `module.finite.multilinear_map`
 * `module.free.multilinear_map`

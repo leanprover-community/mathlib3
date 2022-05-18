@@ -44,8 +44,10 @@ namespace category_theory
 
 variables {C : Type u} [category.{v} C]
 
-/-- A family of objects in a category with zero morphisms is "hom orthogonal" if
-the only morphism between distinct objects is the zero morphism. -/
+/-- A family of objects is "hom orthogonal" if
+there is at most one morphism between distinct objects.
+
+(In a category with zero morphisms, that must be the zero morphism.) -/
 def hom_orthogonal {ι : Type*} (s : ι → C) : Prop :=
 ∀ i j, i ≠ j → subsingleton (s i ⟶ s j)
 

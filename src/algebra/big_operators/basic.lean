@@ -41,6 +41,8 @@ See the documentation of `to_additive.attr` for more information.
 universes u v w
 variables {β : Type u} {α : Type v} {γ : Type w}
 
+open fin
+
 namespace finset
 
 /--
@@ -190,8 +192,8 @@ namespace finset
 section comm_monoid
 variables [comm_monoid β]
 
-@[simp, to_additive]
-lemma prod_empty {f : α → β} : (∏ x in (∅:finset α), f x) = 1 := rfl
+@[simp, to_additive] lemma prod_empty : ∏ x in ∅, f x = 1 := rfl
+@[to_additive] lemma prod_of_empty [is_empty α] : ∏ i, f i = 1 := by rw [univ_eq_empty, prod_empty]
 
 @[simp, to_additive]
 lemma prod_cons (h : a ∉ s) : (∏ x in (cons a s h), f x) = f a * ∏ x in s, f x :=

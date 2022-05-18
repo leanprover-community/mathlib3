@@ -23,6 +23,7 @@ This file defines the lexicographic relation for pairs of orders, partial orders
 Related files are:
 * `data.finset.colex`: Colexicographic order on finite sets.
 * `data.list.lex`: Lexicographic order on lists.
+* `data.pi.lex`: Lexicographic order on `Πₗ i, α i`.
 * `data.psigma.order`: Lexicographic order on `Σ' i, α i`.
 * `data.sigma.order`: Lexicographic order on `Σ i, α i`.
 -/

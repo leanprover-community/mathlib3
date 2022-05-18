@@ -88,13 +88,6 @@ def singleton_one_hom : one_hom α (finset α) := ⟨singleton, singleton_one⟩
 rfl
 @[simp, to_additive] lemma singleton_one_hom_apply (a : α) : singleton_one_hom a = {a} := rfl
 
-/-- The coe operation as a `one_hom`. -/
-@[to_additive "The coe operation as a `zero_hom`."]
-def coe_one_hom : one_hom (finset α) (set α) := ⟨coe, coe_one⟩
-
-@[simp, to_additive] lemma coe_coe_one_hom : (coe_one_hom : finset α → set α) = coe := rfl
-@[simp, to_additive] lemma coe_one_hom_apply (s : finset α) : coe_one_hom s = s := rfl
-
 end has_one
 
 /-! ### Finset negation/inversion -/
@@ -218,13 +211,6 @@ def singleton_mul_hom : α →ₙ* finset α := ⟨singleton, λ a b, (singleton
 @[simp, to_additive] lemma coe_singleton_mul_hom : (singleton_mul_hom : α → finset α) = singleton :=
 rfl
 @[simp, to_additive] lemma singleton_mul_hom_apply (a : α) : singleton_mul_hom a = {a} := rfl
-
-/-- The coe operation as a `mul_hom`. -/
-@[to_additive "The coe operation as an `add_hom`."]
-def coe_mul_hom : finset α →ₙ* set α := ⟨coe, coe_mul⟩
-
-@[simp, to_additive] lemma coe_coe_mul_hom : (coe_mul_hom : finset α → set α) = coe := rfl
-@[simp, to_additive] lemma coe_mul_hom_apply (s : finset α) : coe_mul_hom s = s := rfl
 
 end has_mul
 
@@ -357,13 +343,6 @@ def singleton_monoid_hom : α →* finset α := { ..singleton_mul_hom, ..singlet
 @[simp, to_additive] lemma coe_singleton_monoid_hom :
   (singleton_monoid_hom : α → finset α) = singleton := rfl
 @[simp, to_additive] lemma singleton_monoid_hom_apply (a : α) : singleton_monoid_hom a = {a} := rfl
-
-/-- The singleton operation as a `monoid_hom`. -/
-@[to_additive "The singleton operation as an `add_monoid_hom`."]
-def coe_monoid_hom : finset α →* set α := { ..coe_mul_hom, ..coe_one_hom }
-
-@[simp, to_additive] lemma coe_coe_monoid_hom : (coe_monoid_hom : finset α → set α) = coe := rfl
-@[simp, to_additive] lemma coe_monoid_hom_apply (s : finset α) : coe_monoid_hom s = s := rfl
 
 end mul_one_class
 

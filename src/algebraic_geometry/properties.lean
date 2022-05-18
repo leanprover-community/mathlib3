@@ -7,7 +7,7 @@ import algebraic_geometry.AffineScheme
 import ring_theory.nilpotent
 import topology.sheaves.sheaf_condition.sites
 import category_theory.limits.constructions.binary_products
-import algebra.category.CommRing.constructions
+import algebra.category.Ring.constructions
 import ring_theory.integral_domain
 import ring_theory.local_properties
 
@@ -204,7 +204,7 @@ begin
     replace hs := (hs.map (Spec_Γ_identity.app R).inv),
     -- what the hell?!
     replace hs := @is_nilpotent.eq_zero _ _ _ _ (show _, from _) hs,
-    rw coe_hom_inv_id at hs,
+    rw iso.hom_inv_id_apply at hs,
     rw [hs, map_zero],
     exact @@is_reduced.component_reduced hX ⊤ }
 end

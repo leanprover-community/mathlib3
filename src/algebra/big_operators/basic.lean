@@ -193,7 +193,7 @@ section comm_monoid
 variables [comm_monoid β]
 
 @[simp, to_additive] lemma prod_empty : (∏ x in (∅:finset α), f x) = 1 := rfl
-@[ to_additive] lemma prod_of_empty [is_empty α] : ∏ i, f i = 1 := by rw [univ_eq_empty, prod_empty]
+@[to_additive] lemma prod_of_empty [is_empty α] : ∏ i, f i = 1 := by rw [univ_eq_empty, prod_empty]
 
 @[simp, to_additive]
 lemma prod_cons (h : a ∉ s) : (∏ x in (cons a s h), f x) = f a * ∏ x in s, f x :=

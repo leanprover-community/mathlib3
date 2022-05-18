@@ -444,10 +444,30 @@ le_mul_iff.2 $ λ t₁ h₁ t₂ h₂, let ⟨b, hb⟩ := hg.nonempty_of_mem h�
 end mul_zero_class
 
 section group
-variables [group α] [group β] [monoid_hom_class F α β] (m : F) {f g f₁ g₁ : filter α}
+variables [group α] [division_monoid β] [monoid_hom_class F α β] (m : F) {f g f₁ g₁ : filter α}
   {f₂ g₂ : filter β}
 
 /-! Note that `filter α` is not a group because `f / f ≠ 1` in general -/
+
+@[simp, to_additive] protected lemma one_le_div_iff : 1 ≤ f / g ↔ ¬ disjoint f g :=
+begin
+  refine ⟨λ h hfg, _, _⟩,
+  { obtain ⟨s, hs, t, ht, hst⟩ := hfg (mem_bot : ∅ ∈ ⊥),
+    exact set.one_mem_div_iff.1 (h $ div_mem_div hs ht) (disjoint_iff.2 hst.symm) },
+  { rintro h s ⟨t₁, t₂, h₁, h₂, hs⟩,
+    exact hs (set.one_mem_div_iff.2 $ λ ht, h $ disjoint_of_disjoint_of_mem ht h₁ h₂) }
+end
+
+@[to_additive] lemma not_one_le_div_iff : ¬ 1 ≤ f / g ↔ disjoint f g :=
+filter.one_le_div_iff.not_left
+
+@[to_additive] lemma ne_bot.one_le_div (h : f.ne_bot) : 1 ≤ f / f :=
+begin
+  rintro s ⟨t₁, t₂, h₁, h₂, hs⟩,
+  obtain ⟨a, ha₁, ha₂⟩ := set.not_disjoint_iff.1 (h.not_disjoint h₁ h₂),
+  rw [mem_one, ←div_self' a],
+  exact hs (set.div_mem_div ha₁ ha₂),
+end
 
 @[to_additive] lemma is_unit_pure (a : α) : is_unit (pure a : filter α) := (group.is_unit a).filter
 
@@ -469,6 +489,21 @@ lemma tendsto.div_div : tendsto m f₁ f₂ → tendsto m g₁ g₂ → tendsto 
 λ hf hg, (filter.map_div m).trans_le $ filter.div_le_div hf hg
 
 end group
+
+open_locale pointwise
+
+section group_with_zero
+variables [group_with_zero α] {f g : filter α}
+
+lemma ne_bot.div_zero_nonneg (hf : f.ne_bot) : 0 ≤ f / 0 :=
+filter.le_div_iff.2 $ λ t₁ h₁ t₂ h₂, let ⟨a, ha⟩ := hf.nonempty_of_mem h₁ in
+  ⟨_, _, ha, h₂, div_zero _⟩
+
+lemma ne_bot.zero_div_nonneg (hg : g.ne_bot) : 0 ≤ 0 / g :=
+filter.le_div_iff.2 $ λ t₁ h₁ t₂ h₂, let ⟨b, hb⟩ := hg.nonempty_of_mem h₂ in
+  ⟨_, _, h₁, hb, zero_div _⟩
+
+end group_with_zero
 
 /-! ### Scalar addition/multiplication of filters -/
 
@@ -616,4 +651,34 @@ instance [monoid α] [mul_action α β] : mul_action (filter α) (filter β) :=
 { one_smul := λ f, by simp only [←pure_one, ←map₂_smul, map₂_pure_left, one_smul, map_id'],
   mul_smul := λ f g h, map₂_assoc mul_smul }
 
+section smul_with_zero
+variables [has_zero α] [has_zero β] [smul_with_zero α β] {f : filter α} {g : filter β}
+
+/-!
+Note that we have neither `smul_with_zero α (filter β)` nor `smul_with_zero (filter α) (filter β)`
+because `0 * ⊥ ≠ 0`.
+-/
+
+lemma ne_bot.smul_zero_nonneg (hf : f.ne_bot) : 0 ≤ f • (0 : filter β) :=
+le_smul_iff.2 $ λ t₁ h₁ t₂ h₂, let ⟨a, ha⟩ := hf.nonempty_of_mem h₁ in
+  ⟨_, _, ha, h₂, smul_zero' _ _⟩
+
+lemma ne_bot.zero_smul_nonneg (hg : g.ne_bot) : 0 ≤ (0 : filter α) • g :=
+le_smul_iff.2 $ λ t₁ h₁ t₂ h₂, let ⟨b, hb⟩ := hg.nonempty_of_mem h₂ in ⟨_, _, h₁, hb, zero_smul _ _⟩
+
+lemma zero_smul_filter_nonpos : (0 : α) • g ≤ 0 :=
+begin
+  refine λ s hs, mem_smul_filter.2 _,
+  convert univ_mem,
+  refine eq_univ_iff_forall.2 (λ a, _),
+  rwa [mem_preimage, zero_smul],
+end
+
+lemma zero_smul_filter (hg : g.ne_bot) : (0 : α) • g = 0 :=
+zero_smul_filter_nonpos.antisymm $ le_map_iff.2 $ λ s hs, begin
+  simp_rw [set.image_eta, zero_smul, (hg.nonempty_of_mem hs).image_const],
+  exact zero_mem_zero,
+end
+
+end smul_with_zero
 end filter

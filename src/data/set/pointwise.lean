@@ -644,6 +644,44 @@ let ⟨a, ha⟩ := ht in eq_univ_of_forall $ λ b, ⟨b * a⁻¹, a, trivial, ha
 
 end group
 
+section group_with_zero
+variables [group_with_zero α] {s t : set α}
+
+lemma div_zero_subset (s : set α) : s / 0 ⊆ 0 := by simp [subset_def, mem_div]
+lemma zero_div_subset (s : set α) : 0 / s ⊆ 0 := by simp [subset_def, mem_div]
+
+lemma nonempty.div_zero (hs : s.nonempty) : s / 0 = 0 :=
+s.div_zero_subset.antisymm $ by simpa [mem_div] using hs
+
+lemma nonempty.zero_div (hs : s.nonempty) : 0 / s = 0 :=
+s.zero_div_subset.antisymm $ by simpa [mem_div] using hs
+
+end group_with_zero
+
+section has_mul
+variables [has_mul α] [has_mul β] [mul_hom_class F α β] (m : F) {s t : set α}
+include α β
+
+@[to_additive] lemma image_mul : m '' (s * t) = m '' s * m '' t := image_image2_distrib $ map_mul m
+
+@[to_additive]
+lemma preimage_mul_preimage_subset {s t : set β} : m ⁻¹' s * m ⁻¹' t ⊆ m ⁻¹' (s * t) :=
+by { rintro _ ⟨_, _, _, _, rfl⟩, exact ⟨_, _, ‹_›, ‹_›, (map_mul m _ _).symm ⟩ }
+
+end has_mul
+
+section group
+variables [group α] [division_monoid β] [monoid_hom_class F α β] (m : F) {s t : set α}
+include α β
+
+@[to_additive] lemma image_div : m '' (s / t) = m '' s / m '' t := image_image2_distrib $ map_div m
+
+@[to_additive]
+lemma preimage_div_preimage_subset {s t : set β} : m ⁻¹' s / m ⁻¹' t ⊆ m ⁻¹' (s / t) :=
+by { rintro _ ⟨_, _, _, _, rfl⟩, exact ⟨_, _, ‹_›, ‹_›, (map_div m _ _).symm ⟩ }
+
+end group
+
 @[to_additive]
 lemma bdd_above_mul [ordered_comm_monoid α] {A B : set α} :
   bdd_above A → bdd_above B → bdd_above (A * B) :=
@@ -1048,19 +1086,6 @@ by { simp_rw ←image_neg, exact image2_image_left_comm neg_smul }
 by { simp_rw ←image_neg, exact image_image2_right_comm smul_neg }
 
 end ring
-
-section mul_hom
-
-variables [has_mul α] [has_mul β] [mul_hom_class F α β] (m : F) {s t : set α}
-
-@[to_additive]
-lemma image_mul : (m : α → β) '' (s * t) = m '' s * m '' t := image_image2_distrib $ map_mul m
-
-@[to_additive]
-lemma preimage_mul_preimage_subset {s t : set β} : (m : α → β) ⁻¹' s * m ⁻¹' t ⊆ m ⁻¹' (s * t) :=
-by { rintro _ ⟨_, _, _, _, rfl⟩, exact ⟨_, _, ‹_›, ‹_›, (map_mul m _ _).symm ⟩ }
-
-end mul_hom
 
 end set
 

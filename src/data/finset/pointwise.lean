@@ -139,7 +139,8 @@ end has_involutive_inv
 /-! ### Finset addition/multiplication -/
 
 section has_mul
-variables [decidable_eq α] [has_mul α] {s s₁ s₂ t t₁ t₂ u : finset α} {a b : α}
+variables [decidable_eq α] [decidable_eq β] [has_mul α] [has_mul β] [mul_hom_class F α β] (m : F)
+  {s s₁ s₂ t t₁ t₂ u : finset α} {a b : α}
 
 /-- The pointwise multiplication of finsets `s * t` and `t` is defined as `{x * y | x ∈ s, y ∈ t}`
 in locale `pointwise`. -/
@@ -203,6 +204,9 @@ image₂_inter_subset_right
 `s'`, `t'` such that `s' ⊆ s`, `t' ⊆ t` and `u ⊆ s' + t'`."]
 lemma subset_mul {s t : set α} : ↑u ⊆ s * t → ∃ s' t' : finset α, ↑s' ⊆ s ∧ ↑t' ⊆ t ∧ u ⊆ s' * t' :=
 subset_image₂
+
+@[to_additive] lemma image_mul : (s * t).image (m : α → β) = s.image m * t.image m :=
+image_image₂_distrib $ map_mul m
 
 /-- The singleton operation as a `mul_hom`. -/
 @[to_additive "The singleton operation as an `add_hom`."]
@@ -284,7 +288,7 @@ end has_div
 open_locale pointwise
 
 section instances
-variables [decidable_eq α]
+variables [decidable_eq α] [decidable_eq β]
 
 /-- Repeated pointwise addition (not the same as pointwise repeated addition!) of a `finset`. See
 note [pointwise nat action]. -/
@@ -494,7 +498,7 @@ s.zero_mul_subset.antisymm $ by simpa [mem_mul] using hs
 end mul_zero_class
 
 section group
-variables [group α] {s t : finset α}
+variables [group α] [division_monoid β] [monoid_hom_class F α β] (m : F) {s t : finset α} {a b : α}
 
 /-! Note that `finset` is not a `group` because `s / s ≠ 1` in general. -/
 
@@ -512,18 +516,6 @@ let ⟨a, ha⟩ := h in mem_div.2 ⟨a, a, ha, ha, div_self' _⟩
 
 @[simp] lemma is_unit_iff_singleton : is_unit s ↔ ∃ a, s = {a} :=
 by simp only [is_unit_iff, group.is_unit, and_true]
-
-end group
-
-end instances
-
-section group
-variables [group α] {s t : finset α} {a b : α}
-
-/-! Note that `finset` is not a `group` because `s / s ≠ 1` in general. -/
-
-section decidable_eq
-variables [decidable_eq α]
 
 @[simp, to_additive]
 lemma image_mul_left :
@@ -543,7 +535,27 @@ by simp
 lemma image_mul_right' : image (* b⁻¹) t = preimage t (* b) ((mul_left_injective _).inj_on _) :=
 by simp
 
-end decidable_eq
+lemma image_div : (s / t).image (m : α → β) = s.image m / t.image m := image_image₂_distrib $ map_div m
+
+end group
+
+section group_with_zero
+variables [group_with_zero α] {s t : finset α}
+
+lemma div_zero_subset (s : finset α) : s / 0 ⊆ 0 := by simp [subset_iff, mem_div]
+lemma zero_div_subset (s : finset α) : 0 / s ⊆ 0 := by simp [subset_iff, mem_div]
+
+lemma nonempty.div_zero (hs : s.nonempty) : s / 0 = 0 :=
+s.div_zero_subset.antisymm $ by simpa [mem_div] using hs
+
+lemma nonempty.zero_div (hs : s.nonempty) : 0 / s = 0 :=
+s.zero_div_subset.antisymm $ by simpa [mem_div] using hs
+
+end group_with_zero
+end instances
+
+section group
+variables [group α] {s t : finset α} {a b : α}
 
 @[simp, to_additive]
 lemma preimage_mul_left_singleton :
@@ -572,20 +584,6 @@ lemma preimage_mul_right_one' : preimage 1 (* b⁻¹) ((mul_left_injective _).in
 by rw [preimage_mul_right_one, inv_inv]
 
 end group
-
-section group_with_zero
-variables [decidable_eq α] [group_with_zero α] {s t : finset α}
-
-lemma div_zero_subset (s : finset α) : s / 0 ⊆ 0 := by simp [subset_iff, mem_div]
-lemma zero_div_subset (s : finset α) : 0 / s ⊆ 0 := by simp [subset_iff, mem_div]
-
-lemma nonempty.div_zero (hs : s.nonempty) : s / 0 = 0 :=
-s.div_zero_subset.antisymm $ by simpa [mem_div] using hs
-
-lemma nonempty.zero_div (hs : s.nonempty) : 0 / s = 0 :=
-s.zero_div_subset.antisymm $ by simpa [mem_div] using hs
-
-end group_with_zero
 
 /-! ### Scalar addition/multiplication of finsets -/
 

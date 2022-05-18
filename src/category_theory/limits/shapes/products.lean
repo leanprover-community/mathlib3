@@ -214,12 +214,7 @@ end
 
 @[simp, reassoc]
 lemma pi.reindex_inv_π (b : β) : (pi.reindex ε f).inv ≫ pi.π (f ∘ ε) b = pi.π f (ε b) :=
-begin
-  dsimp [pi.reindex],
-  simp only [has_limit.iso_of_equivalence_inv_π, discrete.nat_iso_hom_app],
-  dsimp,
-  simp,
-end
+by simp [iso.inv_comp_eq]
 
 end
 
@@ -231,17 +226,6 @@ def sigma.reindex : sigma_obj (f ∘ ε) ≅ sigma_obj f :=
 has_colimit.iso_of_equivalence (discrete.equivalence ε) (discrete.nat_iso (λ i, iso.refl _))
 
 @[simp, reassoc]
-lemma sigma.ι_reindex_inv (b : β) : sigma.ι f (ε b) ≫ (sigma.reindex ε f).inv = sigma.ι (f ∘ ε) b :=
-begin
-  dsimp [sigma.reindex],
-  simp only [has_colimit.iso_of_equivalence_inv_π, equivalence.equivalence_mk'_counit_inv,
-    discrete.equivalence_counit_iso, discrete.nat_iso_inv_app, eq_to_iso.inv, eq_to_hom_map,
-    discrete.nat_iso_hom_app],
-  dsimp,
-  simp [←colimit.w (discrete.functor (f ∘ ε)) (eq_to_hom (ε.symm_apply_apply b))],
-end
-
-@[simp, reassoc]
 lemma sigma.ι_reindex_hom (b : β) : sigma.ι (f ∘ ε) b ≫ (sigma.reindex ε f).hom = sigma.ι f (ε b) :=
 begin
   dsimp [sigma.reindex],
@@ -251,6 +235,10 @@ begin
   dsimp,
   simp [←colimit.w (discrete.functor f) (eq_to_hom (ε.apply_symm_apply (ε b)))],
 end
+
+@[simp, reassoc]
+lemma sigma.ι_reindex_inv (b : β) : sigma.ι f (ε b) ≫ (sigma.reindex ε f).inv = sigma.ι (f ∘ ε) b :=
+by simp [iso.comp_inv_eq]
 
 end
 

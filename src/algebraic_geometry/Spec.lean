@@ -194,10 +194,10 @@ begin
   -- *locally* ringed spaces, i.e. that the induced map on the stalks is a local ring homomorphism.
   rw ← local_ring_hom_comp_stalk_iso_apply at ha,
   replace ha := (stalk_iso S p).hom.is_unit_map ha,
-  rw coe_inv_hom_id at ha,
+  rw iso.inv_hom_id_apply at ha,
   replace ha := is_local_ring_hom.map_nonunit _ ha,
   convert ring_hom.is_unit_map (stalk_iso R (prime_spectrum.comap f p)).inv ha,
-  rw coe_hom_inv_id,
+  rw iso.hom_inv_id_apply,
 end
 
 @[simp] lemma Spec.LocallyRingedSpace_map_id (R : CommRing) :

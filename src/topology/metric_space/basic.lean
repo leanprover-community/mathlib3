@@ -1044,6 +1044,20 @@ lemma pseudo_metric_space.replace_uniformity_eq {α} [U : uniform_space α]
   m.replace_uniformity H = m :=
 by { ext, refl }
 
+/-- Build a new pseudo metric space from an old one where the bundled topological structure is
+provably (but typically non-definitionaly) equal to some given topological structure.
+See Note [forgetful inheritance].
+-/
+@[reducible] def pseudo_metric_space.replace_topology {γ} [U : topological_space γ]
+  (m : pseudo_metric_space γ) (H : U = m.to_uniform_space.to_topological_space) :
+  pseudo_metric_space γ :=
+@pseudo_metric_space.replace_uniformity γ (m.to_uniform_space.replace_topology H) m rfl
+
+lemma pseudo_metric_space.replace_topology_eq {γ} [U : topological_space γ]
+  (m : pseudo_metric_space γ) (H : U = m.to_uniform_space.to_topological_space) :
+  m.replace_topology H = m :=
+by { ext, refl }
+
 /-- One gets a pseudometric space from an emetric space if the edistance
 is everywhere finite, by pushing the edistance to reals. We set it up so that the edist and the
 uniformity are defeq in the pseudometric space and the pseudoemetric space. In this definition, the
@@ -1329,6 +1343,13 @@ def pseudo_metric_space.induced {α β} (f : α → β)
     { rcases H with ⟨ε, ε0, hε⟩,
       exact ⟨_, dist_mem_uniformity ε0, λ ⟨a, b⟩, hε⟩ }
   end }
+
+/-- Pull back a pseudometric space structure by an inducing map. This is a version of
+`pseudo_metric_space.induced` useful in case if the domain already has a `topological_space`
+structure. -/
+def inducing.comap_pseudo_metric_space {α β} [topological_space α] [pseudo_metric_space β]
+  {f : α → β} (hf : inducing f) : pseudo_metric_space α :=
+(pseudo_metric_space.induced f ‹_›).replace_topology hf.induced
 
 /-- Pull back a pseudometric space structure by a uniform inducing map. This is a version of
 `pseudo_metric_space.induced` useful in case if the domain already has a `uniform_space`
@@ -2500,12 +2521,7 @@ See Note [forgetful inheritance].
 @[reducible] def metric_space.replace_topology {γ} [U : topological_space γ] (m : metric_space γ)
   (H : U = m.to_pseudo_metric_space.to_uniform_space.to_topological_space) :
   metric_space γ :=
-begin
-  let t := m.to_pseudo_metric_space.to_uniform_space.replace_topology H,
-  letI : uniform_space γ := t,
-  have : @uniformity _ t = @uniformity _ m.to_pseudo_metric_space.to_uniform_space := rfl,
-  exact m.replace_uniformity this
-end
+@metric_space.replace_uniformity γ (m.to_uniform_space.replace_topology H) m rfl
 
 lemma metric_space.replace_topology_eq {γ} [U : topological_space γ] (m : metric_space γ)
   (H : U = m.to_pseudo_metric_space.to_uniform_space.to_topological_space) :

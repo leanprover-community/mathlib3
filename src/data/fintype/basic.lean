@@ -1940,13 +1940,7 @@ instance function.embedding.is_empty {α β} [infinite α] [fintype β] : is_emp
 
 @[priority 100]
 noncomputable instance function.embedding.fintype' {α β : Type*} [fintype β] : fintype (α ↪ β) :=
-begin
-  by_cases h : infinite α,
-  { resetI, apply_instance },
-  { have := fintype_of_not_infinite h, classical, apply_instance }
-  -- the `classical` generates `decidable_eq α/β` instances, and resets instance cache
-end
-
+by casesI fintype_or_infinite α; apply_instance
 /--
 The strong pigeonhole principle for infinitely many pigeons in
 finitely many pigeonholes.  If there are infinitely many pigeons in

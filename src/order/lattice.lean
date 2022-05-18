@@ -197,13 +197,7 @@ by apply le_antisymm; simp
 instance sup_is_commutative : is_commutative α (⊔) := ⟨@sup_comm _ _⟩
 
 theorem sup_assoc : a ⊔ b ⊔ c = a ⊔ (b ⊔ c) :=
-le_antisymm
-  (sup_le
-    (sup_le le_sup_left (le_sup_of_le_right le_sup_left))
-    (le_sup_of_le_right le_sup_right))
-  (sup_le
-    (le_sup_of_le_left le_sup_left)
-    (sup_le (le_sup_of_le_left le_sup_right) le_sup_right))
+eq_of_forall_ge_iff $ λ x, by simp only [sup_le_iff, and_assoc]
 
 instance sup_is_associative : is_associative α (⊔) := ⟨@sup_assoc _ _⟩
 
@@ -351,16 +345,13 @@ inf_eq_right.2 h
 eq_comm.trans inf_eq_right
 
 theorem inf_le_inf (h₁ : a ≤ b) (h₂ : c ≤ d) : a ⊓ c ≤ b ⊓ d :=
-le_inf (inf_le_of_left_le h₁) (inf_le_of_right_le h₂)
+@sup_le_sup αᵒᵈ _ _ _ _ _ h₁ h₂
 
-lemma inf_le_inf_right (a : α) {b c : α} (h : b ≤ c) : b ⊓ a ≤ c ⊓ a :=
-inf_le_inf h le_rfl
+lemma inf_le_inf_right (a : α) {b c : α} (h : b ≤ c) : b ⊓ a ≤ c ⊓ a := inf_le_inf h le_rfl
 
-lemma inf_le_inf_left (a : α) {b c : α} (h : b ≤ c) : a ⊓ b ≤ a ⊓ c :=
-inf_le_inf le_rfl h
+lemma inf_le_inf_left (a : α) {b c : α} (h : b ≤ c) : a ⊓ b ≤ a ⊓ c := inf_le_inf le_rfl h
 
-theorem le_of_inf_eq (h : a ⊓ b = a) : a ≤ b :=
-by { rw ← h, simp }
+theorem le_of_inf_eq (h : a ⊓ b = a) : a ≤ b := inf_eq_left.1 h
 
 @[simp] lemma inf_idem : a ⊓ a = a := @sup_idem αᵒᵈ _ _
 
@@ -374,20 +365,15 @@ lemma inf_assoc : a ⊓ b ⊓ c = a ⊓ (b ⊓ c) := @sup_assoc αᵒᵈ _ a b c
 
 instance inf_is_associative : is_associative α (⊓) := ⟨@inf_assoc _ _⟩
 
-lemma inf_left_right_swap (a b c : α) : a ⊓ b ⊓ c = c ⊓ b ⊓ a :=
-by rw [inf_comm, @inf_comm _ _ a, inf_assoc]
+lemma inf_left_right_swap (a b c : α) : a ⊓ b ⊓ c = c ⊓ b ⊓ a := @sup_left_right_swap αᵒᵈ _ _ _ _
 
-@[simp] lemma inf_left_idem : a ⊓ (a ⊓ b) = a ⊓ b :=
-@sup_left_idem αᵒᵈ _ a b
+@[simp] lemma inf_left_idem : a ⊓ (a ⊓ b) = a ⊓ b := @sup_left_idem αᵒᵈ _ a b
 
-@[simp] lemma inf_right_idem : (a ⊓ b) ⊓ b = a ⊓ b :=
-@sup_right_idem αᵒᵈ _ a b
+@[simp] lemma inf_right_idem : (a ⊓ b) ⊓ b = a ⊓ b := @sup_right_idem αᵒᵈ _ a b
 
-lemma inf_left_comm (a b c : α) : a ⊓ (b ⊓ c) = b ⊓ (a ⊓ c) :=
-@sup_left_comm αᵒᵈ _ a b c
+lemma inf_left_comm (a b c : α) : a ⊓ (b ⊓ c) = b ⊓ (a ⊓ c) := @sup_left_comm αᵒᵈ _ a b c
 
-lemma inf_right_comm (a b c : α) : a ⊓ b ⊓ c = a ⊓ c ⊓ b :=
-@sup_right_comm αᵒᵈ _ a b c
+lemma inf_right_comm (a b c : α) : a ⊓ b ⊓ c = a ⊓ c ⊓ b := @sup_right_comm αᵒᵈ _ a b c
 
 lemma inf_inf_inf_comm (a b c d : α) : a ⊓ b ⊓ (c ⊓ d) = a ⊓ c ⊓ (b ⊓ d) :=
 @sup_sup_sup_comm αᵒᵈ _ _ _ _ _
@@ -425,7 +411,7 @@ theorem exists_lt_of_inf (α : Type*) [semilattice_inf α] [nontrivial α] :
 let ⟨a, b, h⟩ := exists_lt_of_sup αᵒᵈ in ⟨b, a, h⟩
 
 lemma inf_le_ite (s s' : α) (P : Prop) [decidable P] : s ⊓ s' ≤ ite P s s' :=
-if h : P then inf_le_left.trans_eq (if_pos h).symm else inf_le_right.trans_eq (if_neg h).symm
+@ite_le_sup αᵒᵈ _ _ _ _ _
 
 end semilattice_inf
 

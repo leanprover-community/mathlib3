@@ -177,7 +177,37 @@ instance [fintype α] [decidable_rel (is_conj : α → α → Prop)] :
   fintype (conj_classes α) :=
 quotient.fintype (is_conj.setoid α)
 
-@[priority 900]
+/--
+Certain instances trigger further searches when they are considered as candidate instances;
+these instances should be assigned a priority lower than the default of 1000 (for example, 900).
+
+The conditions for this rule are as follows:
+ * a class `C` has instances `instT : C T` and `instT' : C T'`
+ * types `T` and `T'` are both specializations of another type `S`
+ * the parameters supplied to `S` to produce `T` are not (fully) determined by `instT`,
+   instead they have to be found by instance search
+If those conditions hold, the instance `instT` should be assigned lower priority.
+
+For example, suppose the search for an instance of `decidable_eq (multiset α)` tries the
+candidate instance `con.quotient.decidable_eq (c : con M) : decidable_eq c.quotient`.
+Since `multiset` and `con.quotient` are both quotient types, unification will check
+that the relations `list.perm` and `c.to_setoid.r` unify. However, `c.to_setoid` depends on 
+a `has_mul M` instance, so this unification triggers a search for `has_mul (list α)`;
+this will traverse all subclasses of `has_mul` before failing.
+On the other hand, the search for an instance of `decidable_eq (con.quotient c)` for `c : con M`
+can quickly reject the candidate instance `multiset.has_decidable_eq` because the type of
+`list.perm : list ?m_1 → list ?m_1 → Prop` does not unify with `M → M → Prop`.
+Therefore, we should assign `con.quotient.decidable_eq` a lower priority because it fails slowly.
+(In terms of the rules above, `C := decidable_eq`, `T := con.quotient`,
+`instT := con.quotient.decidable_eq`, `T' := multiset`, `instT' := multiset.has_decidable_eq`,
+and `S := quot`.)
+
+If the type involved is a free variable (rather than an instantiation of some type `S`),
+the instance priority should be even lower, see Note [lower instance priority].
+-/
+library_note "slow-failing instance priority"
+
+@[priority 900] -- see Note [slow-failing instance priority]
 instance [decidable_rel (is_conj : α → α → Prop)] : decidable_eq (conj_classes α) :=
 quotient.decidable_eq
 

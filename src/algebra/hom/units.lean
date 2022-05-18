@@ -9,6 +9,8 @@ import algebra.hom.group
 # Lift monoid homomorphisms to group homomorphisms of their units subgroups.
 -/
 
+open function
+
 universes u v w
 
 namespace units
@@ -56,6 +58,9 @@ variables [division_monoid α]
 
 @[simp, norm_cast, to_additive] lemma coe_zpow : ∀ (u : αˣ) (n : ℤ), ((u ^ n : αˣ) : α) = u ^ n :=
 (units.coe_hom α).map_zpow
+
+lemma _root_.divp_eq_div (a : α) (u : αˣ) : a /ₚ u = a / u :=
+by rw [div_eq_mul_inv, divp, u.coe_inv]
 
 end division_monoid
 
@@ -156,8 +161,12 @@ h.unit'.inv_mul_cancel_left
   a * b * b⁻¹ = a :=
 h.unit'.mul_inv_cancel_right _
 
-@[simp, to_additive] protected lemma inv_mul_cancel_right (h : is_unit b) (a : α) : a * b⁻¹ * b = a :=
+@[simp, to_additive] protected lemma inv_mul_cancel_right (h : is_unit b) (a : α) :
+  a * b⁻¹ * b = a :=
 h.unit'.inv_mul_cancel_right _
+
+@[to_additive] protected lemma div_self (h : is_unit a) : a / a = 1 :=
+by rw [div_eq_mul_inv, h.mul_inv_cancel]
 
 @[to_additive] protected lemma eq_mul_inv_iff_mul_eq (h : is_unit c) : a = b * c⁻¹ ↔ a * c = b :=
 h.unit'.eq_mul_inv_iff_mul_eq
@@ -186,7 +195,7 @@ h.unit'.mul_inv_eq_iff_eq_mul
 @[simp, to_additive] protected lemma div_mul_cancel (h : is_unit b) (a : α) : a / b * b = a :=
 by rw [div_eq_mul_inv, h.inv_mul_cancel_right]
 
-@[simp, to_additive] protected lemma mul_div_cancel (a : α) (h : is_unit b) : a * b / b = a :=
+@[simp, to_additive] protected lemma mul_div_cancel (h : is_unit b) (a : α) : a * b / b = a :=
 by rw [div_eq_mul_inv, h.mul_inv_cancel_right]
 
 @[to_additive] protected lemma mul_one_div_cancel (h : is_unit a) : a * (1 / a) = 1 := by simp [h]
@@ -201,12 +210,60 @@ by { rw div_eq_mul_inv, exact ha.mul hb.inv }
 @[to_additive] protected lemma div_left_inj (h : is_unit c) : a / c = b / c ↔ a = b :=
 by { simp_rw div_eq_mul_inv, exact units.mul_left_inj h.inv.unit' }
 
-lemma div_eq_iff_eq_mul (h : is_unit b) : a / b = c ↔ a = c * b :=
+@[to_additive] protected lemma div_eq_iff (h : is_unit b) : a / b = c ↔ a = c * b :=
 by rw [div_eq_mul_inv, h.mul_inv_eq_iff_eq_mul]
 
-lemma eq_div_iff_mul_eq (h : is_unit c) : a = b / c ↔ a * c = b :=
+@[to_additive] protected lemma eq_div_iff (h : is_unit c) : a = b / c ↔ a * c = b :=
 by rw [div_eq_mul_inv, h.eq_mul_inv_iff_mul_eq]
+
+@[to_additive] protected lemma div_eq_of_eq_mul (h : is_unit b) : a = c * b → a / b = c :=
+h.div_eq_iff.2
+
+@[to_additive] protected lemma eq_div_of_mul_eq (h : is_unit c) : a * c = b → a = b / c :=
+h.eq_div_iff.2
+
+@[to_additive] protected lemma div_eq_one_iff_eq (h : is_unit b) : a / b = 1 ↔ a = b :=
+⟨eq_of_div_eq_one, λ hab, hab.symm ▸ h.div_self⟩
+
+@[to_additive] protected lemma div_mul_left (h : is_unit b) : b / (a * b) = 1 / a :=
+by rw [div_eq_mul_inv, mul_inv_rev, h.mul_inv_cancel_left, one_div]
+
+@[to_additive] protected lemma mul_div_mul_right (h : is_unit c) (a b : α) :
+  (a * c) / (b * c) = a / b :=
+by simp only [div_eq_mul_inv, mul_inv_rev, mul_assoc, h.mul_inv_cancel_left]
+
+@[to_additive] protected lemma mul_mul_div (a : α) (h : is_unit b) : a * b * (1 / b) = a :=
+by simp [h]
 
 end division_monoid
 
+section division_comm_monoid
+variables [division_comm_monoid α] {a b c d : α}
+
+@[to_additive] protected lemma div_mul_right (h : is_unit a) (b : α) : a / (a * b) = 1 / b :=
+by rw [mul_comm, h.div_mul_left]
+
+@[to_additive] protected lemma mul_div_cancel_left (h : is_unit a) (b : α) : a * b / a = b :=
+by rw [mul_comm, h.mul_div_cancel]
+
+@[to_additive] protected lemma mul_div_cancel' (h : is_unit a) (b : α) : a * (b / a) = b :=
+by rw [mul_comm, h.div_mul_cancel]
+
+@[to_additive] protected lemma mul_div_mul_left (h : is_unit c) (a b : α) :
+  (c * a) / (c * b) = a / b :=
+by rw [mul_comm c, mul_comm c, h.mul_div_mul_right]
+
+@[to_additive] protected lemma mul_eq_mul_of_div_eq_div (hb : is_unit b) (hd : is_unit d) (a c : α)
+  (h : a / b = c / d) : a * d = c * b :=
+by rw [←mul_one a, ←hb.div_self, ←mul_comm_div, h, div_mul_eq_mul_div, hd.div_mul_cancel]
+
+@[to_additive] protected lemma div_eq_div_iff (hb : is_unit b) (hd : is_unit d) :
+  a / b = c / d ↔ a * d = c * b :=
+by rw [←(hb.mul hd).mul_left_inj, ←mul_assoc, hb.div_mul_cancel, ←mul_assoc, mul_right_comm,
+  hd.div_mul_cancel]
+
+@[to_additive] protected lemma div_div_cancel (h : is_unit a) : a / (a / b) = b :=
+by rw [div_div_eq_mul_div, h.mul_div_cancel_left]
+
+end division_comm_monoid
 end is_unit

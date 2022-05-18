@@ -25,6 +25,8 @@ resembling the notation $R^{\times}$ for the units of a ring, which is common in
 
 -/
 
+open function
+
 universe u
 variable {α : Type u}
 
@@ -384,14 +386,6 @@ lemma is_unit.mul_iff [comm_monoid M] {x y : M} : is_unit (x * y) ↔ is_unit x 
 ⟨λ h, ⟨is_unit_of_mul_is_unit_left h, is_unit_of_mul_is_unit_right h⟩,
   λ h, is_unit.mul h.1 h.2⟩
 
-@[to_additive] theorem is_unit.mul_right_inj [monoid M] {a b c : M} (ha : is_unit a) :
-  a * b = a * c ↔ b = c :=
-by cases ha with a ha; rw [←ha, units.mul_right_inj]
-
-@[to_additive] theorem is_unit.mul_left_inj [monoid M] {a b c : M} (ha : is_unit a) :
-  b * a = c * a ↔ b = c :=
-by cases ha with a ha; rw [←ha, units.mul_left_inj]
-
 /-- The element of the group of units, corresponding to an element of a monoid which is a unit. -/
 @[to_additive "The element of the additive group of additive units, corresponding to an element of
 an additive monoid which is an additive unit."]
@@ -419,6 +413,28 @@ begin
   simp [h.unit_spec]
 end
 
+section monoid
+variables [monoid M] {a b c : M}
+
+@[to_additive] lemma is_unit.mul_left_inj (h : is_unit a) : b * a = c * a ↔ b = c :=
+h.unit.mul_left_inj
+
+@[to_additive] lemma is_unit.mul_right_inj (h : is_unit a) : a * b = a * c ↔ b = c :=
+h.unit.mul_right_inj
+
+@[to_additive] protected lemma is_unit.mul_left_cancel (h : is_unit a) : a * b = a * c → b = c :=
+h.mul_right_inj.1
+
+@[to_additive] protected lemma is_unit.mul_right_cancel (h : is_unit b) : a * b = c * b → a = c :=
+h.mul_left_inj.1
+
+@[to_additive] protected lemma is_unit.mul_right_injective (h : is_unit a) : injective ((*) a) :=
+λ _ _, h.mul_left_cancel
+
+@[to_additive] protected lemma is_unit.mul_left_injective (h : is_unit b) : injective (* b) :=
+λ _ _, h.mul_right_cancel
+
+end monoid
 end is_unit
 
 section noncomputable_defs

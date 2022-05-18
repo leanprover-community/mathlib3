@@ -16,10 +16,6 @@ section semiring
 
 variables {R : Type*} [semiring R] {p : R[X]}
 
-#print support_C_mul_X_pow
-#print support_C_mul_X_pow'
-#print support_C_mul_X_pow_nonzero
-
 lemma support_binomial_le {k m : ℕ} {x y : R} :
   (C x * X ^ k + C y * X ^ m).support ⊆ {k, m} :=
 support_add.trans (union_subset ((support_C_mul_X_pow x k).trans

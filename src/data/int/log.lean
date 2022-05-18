@@ -86,6 +86,12 @@ begin
     exact (nat.pow_pred_clog_lt_self hn $ nat.one_lt_cast.1 $ hcri.trans_le $ nat.le_ceil _), }
 end
 
+@[simp] lemma log_zero_right (b : ℕ) : log b (0 : R) = 0 :=
+log_of_right_le_zero le_rfl _
+
+@[simp] lemma log_one_right (b : ℕ) : log b (1 : R) = 0 :=
+by rw [log, if_pos le_rfl, nat.floor_one, nat.log_one_right, int.coe_nat_zero]
+
 /-- The least power of `b` such that `r ≤ b ^ log b r`. -/
 def clog (b : ℕ) (r : R) : ℤ :=
 if 1 ≤ r then

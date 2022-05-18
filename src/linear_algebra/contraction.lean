@@ -167,8 +167,9 @@ congr (dual_tensor_hom_equiv R M P).symm (linear_equiv.refl R Q) ≪≫ₗ
 @[simp] lemma ltensor_hom_equiv_hom_ltensor_to_linear_map :
   (ltensor_hom_equiv_hom_ltensor R M P Q).to_linear_map = ltensor_hom_to_hom_ltensor R M P Q :=
 begin
-  refine
-    (cancel_right (congr (linear_equiv.refl R P) (dual_tensor_hom_equiv R M Q)).surjective).1 _,
+  let e := congr (linear_equiv.refl R P) (dual_tensor_hom_equiv R M Q),
+  have h : function.surjective e.to_linear_map := e.surjective,
+  refine (cancel_right h).1 _,
   ext p f q m,
   simp only [ltensor_hom_equiv_hom_ltensor, dual_tensor_hom_equiv, compr₂_apply, mk_apply, coe_comp,
   linear_equiv.coe_to_linear_map, function.comp_app, map_tmul, linear_equiv.coe_coe,
@@ -180,8 +181,9 @@ end
 @[simp] lemma rtensor_hom_equiv_hom_rtensor_to_linear_map :
   (rtensor_hom_equiv_hom_rtensor R M P Q).to_linear_map = rtensor_hom_to_hom_rtensor R M P Q :=
 begin
-  refine
-    (cancel_right (congr (dual_tensor_hom_equiv R M P) (linear_equiv.refl R Q)).surjective).1 _,
+  let e := congr (dual_tensor_hom_equiv R M P) (linear_equiv.refl R Q),
+  have h : function.surjective e.to_linear_map := e.surjective,
+  refine (cancel_right h).1 _,
   ext f p q m,
   simp only [rtensor_hom_equiv_hom_rtensor, dual_tensor_hom_equiv, compr₂_apply, mk_apply, coe_comp,
   linear_equiv.coe_to_linear_map, function.comp_app, map_tmul, linear_equiv.coe_coe,

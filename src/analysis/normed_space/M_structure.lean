@@ -10,17 +10,14 @@ import tactic.noncomm_ring
 /-!
 # M-structure
 
-A projection P on a normed space X is said to be an L-projection if, for all `x` in `X`,
-$$
-∥x∥ = ∥P x∥ + ∥(1 - P) x∥.
-$$
+A projection P on a normed space X is said to be an L-projection (`is_Lprojection`) if, for all `x`
+in `X`,
+$$\|x\| = \|P x\| + \|(1 - P) x\|$$.
 
 A projection P on a normed space X is said to be an M-projection if, for all `x` in `X`,
-$$
-∥x∥ = max(∥P x∥,∥(1 - P) x∥).
-$$
+$$\|x\| = max(\|P x\|,\|(1 - P) x\|).$$
 
-The L-projections on `X` form a Boolean algebra.
+The L-projections on `X` form a Boolean algebra (`is_Lprojection.subtype.boolean_algebra`).
 
 ## TODO (Motivational background)
 
@@ -60,6 +57,8 @@ special case.
 M-summand, M-projection, L-summand, L-projection, M-ideal, M-structure
 
 -/
+
+end continuous_linear_map
 
 variables (X : Type*) [normed_group X]
 variables {M : Type} [ring M] [module M X]

@@ -52,7 +52,7 @@ Those depending on analysis or topology are defined elsewhere; see
 -/
 
 noncomputable theory
-open_locale big_operators classical affine
+open_locale big_operators classical affine pointwise
 
 open set
 
@@ -188,6 +188,51 @@ it is in that affine subspace. -/
 iff.rfl
 
 variables {k P}
+
+/-- Two affine subspaces are equal if they have the same points. -/
+@[ext] lemma coe_injective  : function.injective (coe : affine_subspace k P → set P) :=
+λ s1 s2 h, begin
+  cases s1,
+  cases s2,
+  congr,
+  exact h
+end
+
+@[simp] lemma ext_iff (s₁ s₂ : affine_subspace k P) :
+  (s₁ : set P) = s₂ ↔ s₁ = s₂ :=
+⟨λ h, coe_injective h, by tidy⟩
+
+instance : has_vadd V (affine_subspace k P) :=
+{ vadd := λ x S,
+{ carrier := x +ᵥ S,
+  smul_vsub_vadd_mem := λ v _ _ _ ha hb hc,
+  begin
+    rcases ha with ⟨a, haS, rfl⟩,
+    rcases hb with ⟨b, hbS, rfl⟩,
+    rcases hc with ⟨c, hcS, rfl⟩,
+    simp only [affine_subspace.mem_coe, vadd_vsub_vadd_cancel_left] at *,
+    refine ⟨v • (a -ᵥ b) +ᵥ c, S.smul_vsub_vadd_mem v haS hbS hcS, _⟩,
+    rw [vadd_vadd, vadd_vadd, add_comm],
+  end } }
+
+instance : add_action V (affine_subspace k P) :=
+{ vadd := (+ᵥ),
+  zero_vadd := λ p, by { unfold has_vadd.vadd, simp only [zero_vadd, set.image_id'], ext, refl, },
+  add_vadd := λ x y p,
+  begin
+    unfold has_vadd.vadd,
+    simp only [set.image_vadd],
+    ext z,
+    rw [set.mem_vadd_set, set.mem_vadd_set],
+    refine ⟨λ h, _, λ h, _⟩,
+    { rcases h with ⟨a, ha, rfl⟩,
+      refine ⟨y +ᵥ a, ⟨a, ha, rfl⟩, vadd_vadd x y a⟩, },
+    rcases h with ⟨a, ha, rfl⟩,
+    refine ⟨-y +ᵥ a, _, _⟩,
+    { rcases ha with ⟨b, hb, rfl⟩,
+      rwa [vadd_vadd, add_left_neg, zero_vadd], },
+    rw [vadd_vadd, add_neg_cancel_right],
+  end }
 
 /-- The direction of an affine subspace is the submodule spanned by
 the pairwise differences of points.  (Except in the case of an empty
@@ -341,19 +386,6 @@ begin
   rw mem_direction_iff_eq_vsub_left hp,
   simp
 end
-
-/-- Two affine subspaces are equal if they have the same points. -/
-@[ext] lemma coe_injective : function.injective (coe : affine_subspace k P → set P) :=
-λ s1 s2 h, begin
-  cases s1,
-  cases s2,
-  congr,
-  exact h
-end
-
-@[simp] lemma ext_iff (s₁ s₂ : affine_subspace k P) :
-  (s₁ : set P) = s₂ ↔ s₁ = s₂ :=
-⟨λ h, coe_injective h, by tidy⟩
 
 /-- Two affine subspaces with the same direction and nonempty
 intersection are equal. -/

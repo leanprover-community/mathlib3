@@ -149,6 +149,8 @@ variables {P X Y Z : C} {fst : P ⟶ X} {snd : P ⟶ Y} {f : X ⟶ Z} {g : Y ⟶
 lemma flip (h : pullback_square fst snd f g) : pullback_square snd fst g f :=
 of_is_limit (@pullback_cone.flip_is_limit _ _ _ _ _ _ _ _ _ _ h.w.symm h.is_limit)
 
+section
+
 variables [has_zero_object C] [has_zero_morphisms C]
 open_locale zero_object
 
@@ -163,6 +165,8 @@ lemma zero_left (X : C) : pullback_square (0 : 0 ⟶ X) (0 : 0 ⟶ 0) (𝟙 X) (
 /-- The square with `0 : 0 ⟶ 0` on the top and `𝟙 X` on the bottom is a pullback square. -/
 lemma zero_top (X : C) : pullback_square (0 : 0 ⟶ 0) (0 : 0 ⟶ X) (0 : 0 ⟶ X) (𝟙 X) :=
 (zero_left X).flip
+
+end
 
 /-- Paste two pullback squares "vertically" to obtain another pullback square. -/
 -- Objects here are arranged in a 3x2 grid, and indexed by their xy coordinates.
@@ -213,6 +217,7 @@ variables {Z X Y P : C} {f : Z ⟶ X} {g : Z ⟶ Y} {inl : X ⟶ P} {inr : Y ⟶
 lemma flip (h : pushout_square f g inl inr) : pushout_square g f inr inl :=
 of_is_colimit (@pushout_cocone.flip_is_colimit _ _ _ _ _ _ _ _ _ _ h.w.symm h.is_colimit)
 
+section
 
 variables [has_zero_object C] [has_zero_morphisms C]
 open_locale zero_object
@@ -233,6 +238,7 @@ lemma zero_right (X : C) : pushout_square (0 : X ⟶ 0) (𝟙 X) (0 : 0 ⟶ 0) (
 lemma zero_bot (X : C) : pushout_square (𝟙 X) (0 : X ⟶ 0) (0 : X ⟶ 0) (0 : 0 ⟶ 0) :=
 (zero_right X).flip
 
+end
 
 /-- Paste two pushout squares "vertically" to obtain another pushout square. -/
 -- Objects here are arranged in a 3x2 grid, and indexed by their xy coordinates.

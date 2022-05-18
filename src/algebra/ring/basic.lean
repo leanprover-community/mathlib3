@@ -51,9 +51,18 @@ variables {α : Type u} {β : Type v} {γ : Type w} {R : Type x}
 
 open function
 
+set_option old_structure_cmd true
+
 /-!
 ### `distrib` class
 -/
+
+/-- A typeclass stating that multiplication is left and right distributive
+over addition. -/
+@[protect_proj, ancestor has_mul has_add left_distrib right_distrib]
+class distrib (R : Type*) extends has_mul R, has_add R :=
+(left_distrib : ∀ a b c : R, a * (b + c) = a * b + a * c)
+(right_distrib : ∀ a b c : R, (a + b) * c = a * c + b * c)
 
 /-- A typeclass stating that multiplication is left distributive over addition. -/
 @[protect_proj]
@@ -65,12 +74,11 @@ class left_distrib_class (R : Type*) [has_mul R] [has_add R] :=
 class right_distrib_class (R : Type*) [has_mul R] [has_add R] :=
 (right_distrib : ∀ a b c : R, (a + b) * c = a * c + b * c)
 
-/-- A typeclass stating that multiplication is left and right distributive
-over addition. -/
-@[protect_proj, ancestor has_mul has_add left_distrib right_distrib]
-class distrib (R : Type*) extends has_mul R, has_add R, left_distrib_class R, right_distrib_class R
+instance distrib.left_distrib_class (R : Type*) [distrib R] : left_distrib_class R :=
+⟨distrib.left_distrib⟩
 
-set_option old_structure_cmd true
+instance distrib.right_distrib_class (R : Type*) [distrib R] : right_distrib_class R :=
+⟨distrib.right_distrib⟩
 
 lemma left_distrib [has_mul R] [has_add R] [left_distrib_class R] (a b c : R) :
   a * (b + c) = a * b + a * c :=

@@ -346,6 +346,29 @@ lemma sublemma2 {k m n : ℕ} {u v w : ℤ} (hkm : k < m) (hmn : m < n) (hu : is
   C v * (C u * X ^ (m + n) + C w * X ^ (n - m + k + n)) =
     ⟨finsupp.filter (set.Ioo (k + n) (n + n)) (p * p.mirror).to_finsupp⟩ :=
 begin
+  rw [hp, trinomial_mirror hkm hmn hu.ne_zero hw.ne_zero],
+  simp_rw [←monomial_eq_C_mul_X, add_mul, mul_add, monomial_mul_monomial,
+    to_finsupp_add, to_finsupp_monomial, finsupp.filter_add],
+  rw [finsupp.filter_single_of_neg, finsupp.filter_single_of_neg, finsupp.filter_single_of_neg,
+      finsupp.filter_single_of_neg, finsupp.filter_single_of_neg, finsupp.filter_single_of_pos,
+      finsupp.filter_single_of_neg, finsupp.filter_single_of_pos, finsupp.filter_single_of_neg],
+  { simp only [add_zero, zero_add, of_finsupp_add, of_finsupp_single],
+    rw [C_mul_monomial, C_mul_monomial, mul_comm v w, add_comm (n - m + k) n] },
+  { sorry },
+  { sorry },
+  { sorry },
+  { sorry },
+  { sorry },
+  { sorry },
+  { sorry },
+  { sorry },
+  { sorry },
+end
+
+lemma sublemma3 {k l m n : ℕ} {u v : ℤ} (hu : u ≠ 0) (hv : v ≠ 0) :
+  C u * X ^ k + C v * X ^ l = C u * X ^ m + C v * X ^ n ↔
+  (k = m ∧ l = n) ∨ (u = v ∧ k = n ∧ l = m) ∨ (u + v = 0 ∧ k = l ∧ m = n) :=
+begin
   sorry
 end
 
@@ -363,9 +386,15 @@ begin
   replace h := (sublemma2 hkm hmn hu hv hw hp).trans h,
   replace h := h.trans (sublemma2 hkm' hmn' hu hv hw hq).symm,
   rw (is_unit_C.mpr hv).mul_right_inj at h,
-
-  -- now use `binomial_eq_binomial` to finish off!
-  sorry,
+  rw sublemma3 hu.ne_zero hw.ne_zero at h,
+  simp only [add_left_inj] at h,
+  rcases h with h | h | h,
+  { rw h.1 at hp,
+    exact or.inl (hq.trans hp.symm) },
+  { refine or.inr _,
+    sorry },
+  { refine or.inl _,
+    sorry },
 end
 
 lemma sublemma {a b c d : ℤ} (ha : is_unit a) (hb : is_unit b) (hc : is_unit c) (hd : is_unit d)

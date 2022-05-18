@@ -82,15 +82,19 @@ include iic ifr
 
 instance : is_integral_closure R R K := (is_integrally_closed_iff_is_integral_closure K).mp iic
 
-lemma is_integral_iff {x : K} : is_integral R x ↔ ∃ y, algebra_map R K y = x :=
+lemma is_integral_iff {x : K} : is_integral R x ↔ ∃ y : R, algebra_map R K y = x :=
 is_integral_closure.is_integral_iff
+
+lemma exists_algebra_map_eq_of_is_integral_pow {x : K} {n : ℕ} (hn : 0 < n)
+  (hx : is_integral R $ x ^ n) : ∃ y : R, algebra_map R K y = x :=
+is_integral_iff.mp $ is_integral_of_pow hn hx
 
 omit iic ifr
 
-lemma exists_algebra_map_eq_of_pow_mem {S : subalgebra R K} [is_domain S] [is_integrally_closed S]
-  [is_fraction_ring S K] {x : K} {n : ℕ} (hn : 0 < n) (hx : x ^ n ∈ S) :
-  ∃ y : S, algebra_map S K y = x :=
-is_integral_iff.mp $ is_integral_of_pow hn $ is_integral_iff.mpr ⟨⟨x ^ n, hx⟩, rfl⟩
+lemma exists_algebra_map_eq_of_pow_mem_subalgebra {K : Type*} [field K] [algebra R K]
+  {S : subalgebra R K} [is_integrally_closed S] [is_fraction_ring S K] {x : K} {n : ℕ} (hn : 0 < n)
+  (hx : x ^ n ∈ S) : ∃ y : S, algebra_map S K y = x :=
+exists_algebra_map_eq_of_is_integral_pow hn $ is_integral_iff.mpr ⟨⟨x ^ n, hx⟩, rfl⟩
 
 include id ifr
 

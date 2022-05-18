@@ -16,11 +16,19 @@ It is on a separate file due to import requirements.
 namespace ideal
 variables {ι R : Type*} [comm_semiring R]
 
+/--A finite family of ideals is pairwise coprime (that is, any two of them generate the whole ring)
+iff when taking all the possible intersections of all but one of these ideals, the resulting family
+of ideals still generate the whole ring.
+
+For example with three ideals : `I ⊔ J = I ⊔ K = J ⊔ K = ⊤ ↔ (I ⊓ J) ⊔ (I ⊓ K) ⊔ (J ⊓ K) = ⊤`.
+
+When ideals are all of the form `I i = R ∙ s i`, this is equivalent to the
+`exists_sum_eq_one_iff_pairwise_coprime` lemma.-/
 lemma supr_infi_eq_top_iff_pairwise {t : finset ι} (h : t.nonempty) (I : ι → ideal R) :
   (⨆ i ∈ t, ⨅ j (hj : j ∈ t) (ij : j ≠ i), I j) = ⊤ ↔
     (t : set ι).pairwise (λ i j, I i ⊔ I j = ⊤) :=
 begin
-  haveI : decidable_eq ι := by { classical, apply_instance },
+  haveI : decidable_eq ι := classical.dec_eq ι,
   rw [eq_top_iff_one, submodule.mem_supr_finset_iff_exists_sum],
   refine h.cons_induction _ _; clear' t h,
   { simp only [finset.sum_singleton, finset.coe_singleton, set.pairwise_singleton, iff_true],

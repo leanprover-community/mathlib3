@@ -75,7 +75,7 @@ lemma epi_app_of_epi (α : F ⟶ G) [∀ (X : C), epi (α.app X)] : epi α :=
 ⟨λ H g h eq, by { ext X, rw [←cancel_epi (α.app X), ←comp_app, eq, comp_app] }⟩
 
 /-- `hcomp α β` is the horizontal composition of natural transformations. -/
-def hcomp {H I : D ⥤ E} (α : F ⟶ G) (β : H ⟶ I) : (F ⋙ H) ⟶ (G ⋙ I) :=
+@[simps] def hcomp {H I : D ⥤ E} (α : F ⟶ G) (β : H ⟶ I) : (F ⋙ H) ⟶ (G ⋙ I) :=
 { app         := λ X : C, (β.app (F.obj X)) ≫ (I.map (α.app X)),
   naturality' := λ X Y f,
   begin
@@ -84,9 +84,6 @@ def hcomp {H I : D ⥤ E} (α : F ⟶ G) (β : H ⟶ I) : (F ⋙ H) ⟶ (G ⋙ I
   end }
 
 infix ` ◫ `:80 := hcomp
-
-@[simp] lemma hcomp_app {H I : D ⥤ E} (α : F ⟶ G) (β : H ⟶ I) (X : C) :
-  (α ◫ β).app X = (β.app (F.obj X)) ≫ (I.map (α.app X)) := rfl
 
 @[simp] lemma hcomp_id_app {H : D ⥤ E} (α : F ⟶ G) (X : C) : (α ◫ 𝟙 H).app X = H.map (α.app X) :=
   by {dsimp, simp} -- See note [dsimp, simp].
@@ -107,7 +104,7 @@ open nat_trans
 namespace functor
 
 /-- Flip the arguments of a bifunctor. See also `currying.lean`. -/
-protected def flip (F : C ⥤ (D ⥤ E)) : D ⥤ (C ⥤ E) :=
+@[simps] protected def flip (F : C ⥤ (D ⥤ E)) : D ⥤ (C ⥤ E) :=
 { obj := λ k,
   { obj := λ j, (F.obj j).obj k,
     map := λ j j' f, (F.map f).app k,
@@ -115,12 +112,6 @@ protected def flip (F : C ⥤ (D ⥤ E)) : D ⥤ (C ⥤ E) :=
     map_comp' := λ X Y Z f g, by rw [map_comp, ←comp_app] },
   map := λ c c' f,
   { app := λ j, (F.obj j).map f } }.
-
-@[simp] lemma flip_obj_obj (F : C ⥤ (D ⥤ E)) (c) (d) : (F.flip.obj d).obj c = (F.obj c).obj d := rfl
-@[simp] lemma flip_obj_map (F : C ⥤ (D ⥤ E)) {c c' : C} (f : c ⟶ c') (d : D) :
-  (F.flip.obj d).map f = (F.map f).app d := rfl
-@[simp] lemma flip_map_app (F : C ⥤ (D ⥤ E)) {d d' : D} (f : d ⟶ d') (c : C) :
-  (F.flip.map f).app c = (F.obj c).map f := rfl
 
 end functor
 

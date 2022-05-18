@@ -24,7 +24,7 @@ variables {C : Type u₁} [category.{v₁} C]
 /--
 The uncurrying functor, taking a functor `C ⥤ (D ⥤ E)` and producing a functor `(C × D) ⥤ E`.
 -/
-def uncurry : (C ⥤ (D ⥤ E)) ⥤ ((C × D) ⥤ E) :=
+@[simps] def uncurry : (C ⥤ (D ⥤ E)) ⥤ ((C × D) ⥤ E) :=
 { obj := λ F,
   { obj := λ X, (F.obj X.1).obj X.2,
     map := λ X Y f, (F.map f.1).app X.2 ≫ (F.obj Y.1).map f.2,
@@ -49,7 +49,7 @@ def uncurry : (C ⥤ (D ⥤ E)) ⥤ ((C × D) ⥤ E) :=
 /--
 The object level part of the currying functor. (See `curry` for the functorial version.)
 -/
-def curry_obj (F : (C × D) ⥤ E) : C ⥤ (D ⥤ E) :=
+@[simps] def curry_obj (F : (C × D) ⥤ E) : C ⥤ (D ⥤ E) :=
 { obj := λ X,
     { obj := λ Y, F.obj (X, Y),
       map := λ Y Y' g, F.map (𝟙 X, g) },
@@ -58,7 +58,7 @@ def curry_obj (F : (C × D) ⥤ E) : C ⥤ (D ⥤ E) :=
 /--
 The currying functor, taking a functor `(C × D) ⥤ E` and producing a functor `C ⥤ (D ⥤ E)`.
 -/
-def curry : ((C × D) ⥤ E) ⥤ (C ⥤ (D ⥤ E)) :=
+@[simps] def curry : ((C × D) ⥤ E) ⥤ (C ⥤ (D ⥤ E)) :=
 { obj := λ F, curry_obj F,
   map := λ F G T,
   { app := λ X,
@@ -73,23 +73,6 @@ def curry : ((C × D) ⥤ E) ⥤ (C ⥤ (D ⥤ E)) :=
       ext, dsimp [curry_obj],
       rw nat_trans.naturality,
     end } }.
-
-@[simp] lemma uncurry.obj_obj {F : C ⥤ (D ⥤ E)} {X : C × D} :
-  (uncurry.obj F).obj X = (F.obj X.1).obj X.2 := rfl
-@[simp] lemma uncurry.obj_map {F : C ⥤ (D ⥤ E)} {X Y : C × D} {f : X ⟶ Y} :
-  (uncurry.obj F).map f = ((F.map f.1).app X.2) ≫ ((F.obj Y.1).map f.2) := rfl
-@[simp] lemma uncurry.map_app {F G : C ⥤ (D ⥤ E)} {α : F ⟶ G} {X : C × D} :
-  (uncurry.map α).app X = (α.app X.1).app X.2 := rfl
-@[simp] lemma curry.obj_obj_obj
-  {F : (C × D) ⥤ E} {X : C} {Y : D} :
-  ((curry.obj F).obj X).obj Y = F.obj (X, Y) := rfl
-@[simp] lemma curry.obj_obj_map
-  {F : (C × D) ⥤ E} {X : C} {Y Y' : D} {g : Y ⟶ Y'} :
-  ((curry.obj F).obj X).map g = F.map (𝟙 X, g) := rfl
-@[simp] lemma curry.obj_map_app {F : (C × D) ⥤ E} {X X' : C} {f : X ⟶ X'} {Y} :
-  ((curry.obj F).map f).app Y = F.map (f, 𝟙 Y) := rfl
-@[simp] lemma curry.map_app_app {F G : (C × D) ⥤ E} {α : F ⟶ G} {X} {Y} :
-  ((curry.map α).app X).app Y = α.app (X, Y) := rfl
 
 /--
 The equivalence of functor categories given by currying/uncurrying.

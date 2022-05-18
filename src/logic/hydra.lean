@@ -45,6 +45,7 @@ variables (rα : α → α → Prop) (rβ : β → β → Prop) (f : α → β)
 def fibration := ∀ ⦃a b⦄, rβ b (f a) → ∃ a', rα a' a ∧ f a' = b
 
 variables {rα rβ}
+
 /-- If `f : α → β` is a fibration between relations `rα` and `rβ`, and `a : α` is
   accessible under `rα`, then `f a` is accessible under `rβ`. -/
 lemma _root_.acc.of_fibration (fib : fibration rα rβ f) {a} (ha : acc rα a) : acc rβ (f a) :=
@@ -60,6 +61,7 @@ lemma _root_.acc.of_downward_closed (dc : ∀ {a b}, rβ b (f a) → b ∈ set.r
 ha.of_fibration f (λ a b h, let ⟨a', he⟩ := dc h in ⟨a', he.substr h, he⟩)
 
 variables (rα rβ)
+
 /-- The "addition of games" relation in combinatorial game theory, on the product type: if
   `rα a' a` means that `a ⟶ a'` is a valid move in game `α`, and `rβ b' b` means that `b ⟶ b'`
   is a valid move in game `β`, then `game_add rα rβ` specifies the valid moves in the juxtaposition
@@ -81,6 +83,7 @@ lemma rprod_le_trans_gen_game_add : prod.rprod rα rβ ≤ trans_gen (game_add r
 end
 
 variables {rα rβ}
+
 /-- If `a` is accessible under `rα` and `b` is accessible under `rβ`, then `(a, b)` is
   accessible under `(a, b)`. Notice that `prod.lex_accessible` requires the stronger
   condition `∀ b, acc rb b`. -/
@@ -115,7 +118,7 @@ variable (r : α → α → Prop)
 def cut_expand (s' s : multiset α) : Prop :=
 ∃ (t : multiset α) (a : α), (∀ a' ∈ t, r a' a) ∧ s' + {a} = s + t
 
-lemma cut_expand_iff [decidable_eq α] (hr : irreflexive r) (s' s : multiset α) :
+lemma cut_expand_iff [decidable_eq α] {r} (hr : irreflexive r) {s' s : multiset α} :
   cut_expand r s' s ↔ ∃ (t : multiset α) a, (∀ a' ∈ t, r a' a) ∧ a ∈ s ∧ s' = s.erase a + t :=
 begin
   simp_rw [cut_expand, add_singleton_eq_iff],
@@ -143,15 +146,15 @@ begin
     { rw [add_assoc, erase_add_right_pos _ h] } },
 end
 
+variable {r}
+
 /-- A multiset is accessible under `cut_expand` if all its singleton subsets are,
   assuming `r` is irreflexive. -/
-lemma acc_of_singleton (h : irreflexive r) (s : multiset α) :
+lemma acc_of_singleton (hi : irreflexive r) {s : multiset α} :
   (∀ a ∈ s, acc (cut_expand r) {a}) → acc (cut_expand r) s :=
 begin
-  refine multiset.induction _ _ s,
-  { refine λ _, acc.intro 0 (λ s, _),
-    rintro ⟨t, a, hr, he⟩, rw zero_add at he,
-    classical, exact (h _ $ hr _ (add_singleton_eq_iff.1 he).1).elim },
+  refine multiset.induction _ _ s, classical,
+  { exact λ _, acc.intro 0 $ λ s, by { rw cut_expand_iff hi, rintro ⟨_, _, _, ⟨⟩, _⟩ } },
   { intros a s ih hacc, rw ← s.singleton_add a,
     exact ((hacc a $ s.mem_cons_self a).game_add $ ih $ λ a ha,
       hacc a $ mem_cons_of_mem ha).of_fibration _ (cut_expand_fibration r) },
@@ -160,21 +163,21 @@ end
 /-- A singleton `{a}` is accessible under `cut_expand r` if `a` is accessible under `r`,
   assuming `r` is irreflexive. -/
 lemma _root_.acc.cut_expand (hi : irreflexive r)
-  (a : α) (hacc : acc r a) : acc (cut_expand r) {a} :=
+  {a : α} (hacc : acc r a) : acc (cut_expand r) {a} :=
 begin
   induction hacc with a h ih,
   refine acc.intro _ (λ s, _),
-  classical, rw cut_expand_iff r hi,
+  classical, rw cut_expand_iff hi,
   rintro ⟨t, a, hr, ha, rfl⟩,
   cases mem_singleton.1 ha,
-  refine acc_of_singleton r hi _ (λ a', _),
+  refine acc_of_singleton hi (λ a', _),
   rw [erase_singleton, zero_add],
   exact ih a' ∘ hr a',
 end
 
 /-- `cut_expand r` is well-founded when `r` is. -/
 theorem _root_.well_founded.cut_expand (hr : well_founded r) : well_founded (cut_expand r) :=
-⟨λ s, acc_of_singleton r hr.is_irrefl.1 s $ λ a _, (hr.apply a).cut_expand r hr.is_irrefl.1 a⟩
+⟨λ s, acc_of_singleton hr.is_irrefl.1 $ λ a _, (hr.apply a).cut_expand hr.is_irrefl.1⟩
 
 end hydra
 

@@ -31,12 +31,12 @@ around a sum.
 
 ##  Future work
 
-* Add support for `neg` and additive groups?
-* Add optional different operations than `+`, most notably `*`?
+* Add support for `neg` in additive groups?
+* Add different operations other than `+`, most notably `*`?
 * Add functionality for moving terms across the two sides of an in/dis/equality.
-  E.g. it might be desirable to have `to_lhs [a]` that converts `b + c = a + d` to `a + b + c = d`.
+  E.g. it might be desirable to have `to_lhs [a]` converting `b + c = a + d` to `- a + b + c = d`.
 * Add a non-recursive version for use in `conv` mode.
-* Add more tests.
+* Revise tests?
 -/
 
 /--  Takes an `expr` and returns a list of its summands. -/
@@ -86,9 +86,9 @@ meta def move_left_or_right : list (bool × expr) → list expr → list bool �
   (l1, l2, l3, is_unused) ← move_left_or_right l (sl.erase ex) (is_unused.append [ff]),
   if be.1 then return (ex::l1, l2, l3, is_unused) else return (l1, ex::l2, l3, is_unused)
 
-/--  Given a list of pairs `bool × pexpr`, we convert it to a list of `bool × expr`. -/
-meta def snd_to_expr (lp : list (bool × pexpr)) : tactic (list (bool × expr)) :=
-lp.mmap $ λ x : bool × pexpr, do
+/--  Given a list of pairs `α × pexpr`, we convert it to a list of `α × expr`. -/
+meta def snd_to_expr {α : Type*} (lp : list (α × pexpr)) : tactic (list (α × expr)) :=
+lp.mmap $ λ x : α × pexpr, do
   e ← to_expr x.2 tt ff,
   return (x.1, e)
 
@@ -121,24 +121,17 @@ do
   | (eₕ::es) := do
     e' ← es.mfoldl (λ eₗ eᵣ, mk_app `has_add.add [eₗ, eᵣ]) eₕ,
     e_eq ← mk_app `eq [e, e'],
-    n ← get_unused_name,
-    assert n e_eq,
     e_eq_fmt ← pp e_eq,
-    reflexivity <|>
-      `[{ simp only [add_comm, add_assoc, add_left_comm], done, }] <|>
-      -- `[{ abel, done, }] <|> -- this works too. it's more robust but also a bit slower
-        fail format!"failed to prove:\n\n{e_eq_fmt}",
-    h ← get_local n,
+    h ← solve_aux e_eq $
+      reflexivity <|>
+      `[{ simp only [add_comm, add_assoc, add_left_comm], done, }] |
+      fail format!"failed to prove:\n\n{e_eq_fmt}",
     match hyp with
     | some loc := do
-      ln ← get_local loc,
-      ltyp ← infer_type ln,
-      rewrite_hyp h ln,
-      tactic.clear h,
+      try $ get_local loc >>= rewrite_hyp h.2,
       pure is_unused
     | none     := do
-      rewrite_target h,
-      tactic.clear h,
+      try $ rewrite_target h.2,
       pure is_unused
     end
   end
@@ -151,8 +144,7 @@ meta def recurse_on_expr (hyp : option name) (ll : list (bool × pexpr)) : expr 
 | (expr.pi  _ _ _ e) := recurse_on_expr e
 | e                  := do
   li_unused ← e.get_app_args.mmap recurse_on_expr,
-  let unused_summed := li_unused.transpose.map list.band,
-  return unused_summed
+  return $ li_unused.transpose.map list.band
 
 /-- Passes the user input `ll` to `recurse_on_expr` at a single location, that could either be
 `none` (referring to the goal) or `some name` (referring to hypothesis `name`).  Returns a pair
@@ -238,7 +230,9 @@ As usual, passing `⊢` refers to acting on the goal as well.
 
 ##  Reporting sub-optimal usage
 
-The tactic never fails (really? TODO), but flags three kinds of unwanted use.
+The tactic could fail to prove the reordering, though I would not know what the cause of this could
+be.  Still, there are three kinds of unwanted use for `move_add`: the tactic does not fail in these
+cases, but flags the unwanted use.
 1. `move_add [vars]? at *` reports gloally unused variables and whether *all* goals
    are unchanged, not *each unchanged goal*.
 2. If a target of `move_add` is left unchanged by the tactic, then this will be flagged (unless

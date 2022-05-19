@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Yury Kudryashov
 -/
 import analysis.complex.basic
 import analysis.normed_space.finite_dimension
+import order.boolean_algebra
 import measure_theory.function.ae_measurable_sequence
 import measure_theory.group.arithmetic
 import measure_theory.lattice
@@ -1749,7 +1750,7 @@ lemma ae_measurable.coe_real_ereal {f : α → ℝ} {μ : measure α} (hf : ae_m
 measurable_coe_real_ereal.comp_ae_measurable hf
 
 /-- The set of finite `ereal` numbers is `measurable_equiv` to `ℝ`. -/
-def measurable_equiv.ereal_equiv_real : ({⊥, ⊤} : set ereal).compl ≃ᵐ ℝ :=
+def measurable_equiv.ereal_equiv_real : ↥({⊥, ⊤} : set ereal)ᶜ ≃ᵐ ℝ :=
 ereal.ne_bot_top_homeomorph_real.to_measurable_equiv
 
 lemma ereal.measurable_of_measurable_real {f : ereal → α}

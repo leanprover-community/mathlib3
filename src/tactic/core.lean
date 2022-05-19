@@ -1730,10 +1730,7 @@ if aggressive then do
   reset_instance_cache
 else do
   -- Turn on the `prop_decidable` instance. `9` is what we use in the `classical` locale
-  tactic.set_basic_attribute `instance `classical.prop_decidable ff (some 9),
-  -- Lower the priority of `decidable_eq_of_decidable_le`. `8` is what we use in the `classical`
-  -- locale. We should remove this when we update lean, as it will cease to be a global instance.
-  tactic.set_basic_attribute `instance `decidable_eq_of_decidable_le ff (some 8)
+  tactic.set_basic_attribute `instance `classical.prop_decidable ff (some 9)
 
 open expr
 

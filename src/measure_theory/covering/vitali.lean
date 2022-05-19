@@ -74,7 +74,7 @@ begin
   obtain ⟨u, uT, hu⟩ : ∃ u ∈ T, ∀ v ∈ T, u ⊆ v → v = u,
   { refine zorn_subset _ (λ U UT hU, _),
     refine ⟨⋃₀ U, _, λ s hs, subset_sUnion_of_mem hs⟩,
-    simp only [set.sUnion_subset_iff, and_imp, exists_prop, forall_exists_index,
+    simp only [set.sUnion_subset_iff, and_imp, exists_prop, forall_exists_index, mem_sUnion,
                 set.mem_set_of_eq],
     refine ⟨λ u hu, (UT hu).1, (pairwise_disjoint_sUnion hU.directed_on).2 (λ u hu, (UT hu).2.1),
       λ a hat b u uU hbu hab, _⟩,

@@ -265,7 +265,7 @@ lemma quotient_nhd_basis (S : add_subgroup M) :
     linarith },
   { rintros ⟨ε, ε_pos, h⟩,
     have : (mk' S) '' (ball (0 : M) ε) ⊆ {x | ∥x∥ < ε},
-    { rintros - ⟨x, x_in, rfl⟩,
+    { rintros _ ⟨x, x_in, rfl⟩,
       rw mem_ball_zero_iff at x_in,
       exact lt_of_le_of_lt (quotient_norm_mk_le S x) x_in },
     apply filter.mem_of_superset _ (set.subset.trans this h),

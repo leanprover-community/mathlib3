@@ -905,7 +905,7 @@ begin
   { intros b hb hb',
     rw deriv_family_succ,
     exact nfp_family_lt_ord_lift hω (by rwa hc.2) hf
-      ((ord_is_limit hc.1).2 _ (hb ((ordinal.lt_succ_self b).trans hb'))) },
+      ((ord_is_limit hc.1).2 _ (hb ((ordinal.lt_succ b).trans hb'))) },
   { intros b hb H hb',
     rw deriv_family_limit f hb,
     exact bsup_lt_ord_of_is_regular hc (ord_lt_ord.1 ((ord_card_le b).trans_lt hb'))

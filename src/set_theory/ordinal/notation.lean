@@ -659,7 +659,7 @@ begin
       { simp [pow, opow, *, - npow_eq_pow], apply_instance } } },
   { simp [pow, opow, e₁, e₂, split_eq_scale_split' e₂],
     have := na.fst,
-    cases k with k; simp [succ_eq_add_one, opow]; resetI; apply_instance }
+    cases k with k; simp [opow]; resetI; apply_instance }
 end
 
 theorem scale_opow_aux (e a0 a : onote) [NF e] [NF a0] [NF a] :
@@ -678,14 +678,14 @@ begin
   refine le_antisymm _ (opow_le_opow_left _ this),
   apply (opow_le_of_limit ((opow_pos _ omega_pos).trans_le this).ne' omega_is_limit).2,
   intros b l,
-  have := (No.below_of_lt (lt_succ_self _)).repr_lt, unfold repr at this,
+  have := (No.below_of_lt (lt_succ _)).repr_lt, unfold repr at this,
   apply (opow_le_opow_left b $ this.le).trans,
   rw [← opow_mul, ← opow_mul],
   apply opow_le_opow_right omega_pos,
   cases le_or_lt ω (repr e) with h h,
-  { apply (mul_le_mul_left' (lt_succ_self _).le _).trans,
+  { apply (mul_le_mul_left' (lt_succ _).le _).trans,
     rw [succ, add_mul_succ _ (one_add_of_omega_le h), ← succ,
-        succ_le, mul_lt_mul_iff_left (ordinal.pos_iff_ne_zero.2 e0)],
+        succ_le_iff, mul_lt_mul_iff_left (ordinal.pos_iff_ne_zero.2 e0)],
     exact omega_is_limit.2 _ l },
   { apply (principal_mul_omega (omega_is_limit.2 _ h) l).le.trans,
     simpa using mul_le_mul_right' (one_le_iff_ne_zero.2 e0) ω }
@@ -719,7 +719,7 @@ begin
     { simp [k0],
       refine lt_of_lt_of_le _ (opow_le_opow_right omega_pos (one_le_iff_ne_zero.2 e0)),
       cases m with m; simp [k0, R, opow_aux, omega_pos],
-      rw [← nat.cast_succ], apply nat_lt_omega },
+      rw [←add_one_eq_succ, ←nat.cast_succ], apply nat_lt_omega },
     { rw opow_mul, exact IH.1 k0 } },
   refine ⟨λ_, _, _⟩,
   { rw [RR, ← opow_mul _ _ (succ k.succ)],
@@ -783,7 +783,7 @@ begin
     simp [opow_def, opow, e₁, r₁, split_eq_scale_split' e₂],
     cases k with k; resetI,
     { simp [opow, r₂, opow_mul, repr_opow_aux₁ a00 al aa, add_assoc] },
-    { simp [succ_eq_add_one, opow, r₂, opow_add, opow_mul, mul_assoc, add_assoc],
+    { simp [opow, r₂, opow_add, opow_mul, mul_assoc, add_assoc],
       rw [repr_opow_aux₁ a00 al aa, scale_opow_aux], simp [opow_mul],
       rw [← ordinal.mul_add, ← add_assoc (ω ^ repr a0 * (n:ℕ))], congr' 1,
       rw [← opow_succ],

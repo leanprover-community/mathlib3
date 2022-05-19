@@ -1020,7 +1020,7 @@ sum.inr punit.star, λ b, sum.rec_on b
   (λ x, sum.lex_inr_inr.trans ⟨false.elim, λ ⟨x, H⟩, sum.inl_ne_inr H⟩)⟩⟩
 
 theorem succ_le_iff {a b : ordinal} : succ a ≤ b ↔ a < b :=
-⟨(lt_succ _).trans_le,
+⟨(lt_succ a).trans_le,
 induction_on a $ λ α r hr, induction_on b $ λ β s hs ⟨⟨f, t, hf⟩⟩, begin
   refine ⟨⟨@rel_embedding.of_monotone (α ⊕ punit) β _ _
     (@sum.lex.is_well_order _ _ _ _ hr _).1.1
@@ -1055,7 +1055,7 @@ instance : linear_order ordinal :=
   decidable_le := classical.dec_rel _,
   ..ordinal.partial_order }
 
-instance : succ_order ordinal.{u} := succ_order.of_succ_le_iff (λ o, o + 1) (λ a b, succ_le_iff)
+instance : succ_order ordinal.{u} := succ_order.of_succ_le_iff succ (λ a b, succ_le_iff)
 
 instance : is_well_order ordinal (<) := ⟨wf⟩
 

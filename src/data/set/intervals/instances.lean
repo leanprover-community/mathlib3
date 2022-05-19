@@ -72,11 +72,9 @@ instance {α : Type*} [ordered_comm_semiring α] [nontrivial α] : comm_monoid (
   ..(show monoid (Ioc (0:α) 1), by apply_instance)
 }
 
-#exit
-
 /-- Instances for `(Ioo 0 1)` : `comm_semigroup (Ioo 0 1)` -/
 
-instance {α : Type*} [ordered_comm_semiring α] : comm_semigroup (Ioo (0:α) 1) := {
+instance {α : Type*} [ordered_semiring α] : semigroup (Ioo (0:α) 1) := {
   mul :=
 begin
   refine λ p q, _,
@@ -93,6 +91,9 @@ begin
 
   sorry,
 end ,
+ }
+
+instance {α : Type*} [ordered_comm_semiring α] : comm_semigroup (Ioo (0:α) 1) := {
   mul_comm :=
 begin
   refine λ p q, _,
@@ -101,10 +102,11 @@ begin
 
   sorry,
 end ,
+..(show semigroup (Ioo (0:α) 1), by apply_instance)
  }
 
 
-
+#exit
 
 /-- Instances for `(Ioc (-1) 1`: `comm_monoid_with_zero (Ioc (-1) 1` -/
 

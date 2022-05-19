@@ -75,34 +75,17 @@ instance {α : Type*} [ordered_comm_semiring α] [nontrivial α] : comm_monoid (
 /-- Instances for `(Ioo 0 1)` : `comm_semigroup (Ioo 0 1)` -/
 
 instance {α : Type*} [ordered_semiring α] : semigroup (Ioo (0:α) 1) := {
-  mul :=
-begin
-  refine λ p q, _,
-  rcases p with ⟨p1, ⟨p21,p22⟩⟩,
-  rcases q with ⟨q1, ⟨q21,q22⟩⟩,
+  mul := λ p q, ⟨p.1 * q.1, ⟨mul_pos p.2.1 q.2.1,
+    mul_lt_one_of_nonneg_of_lt_one_right (le_of_lt p.2.2) (le_of_lt q.2.1) q.2.2⟩⟩,
+  -- TODO: golf this when `mul_lt_one` is merged
 
-  sorry,
-end ,
-  mul_assoc :=
-begin
-  refine λ p q, _,
-  rcases p with ⟨p1, ⟨p21,p22⟩⟩,
-  rcases q with ⟨q1, ⟨q21,q22⟩⟩,
-
-  sorry,
-end ,
+  mul_assoc := λ p q r, (by simp only [subtype.mk_eq_mk, mul_assoc]),
  }
 
 instance {α : Type*} [ordered_comm_semiring α] : comm_semigroup (Ioo (0:α) 1) := {
-  mul_comm :=
-begin
-  refine λ p q, _,
-  rcases p with ⟨p1, ⟨p21,p22⟩⟩,
-  rcases q with ⟨q1, ⟨q21,q22⟩⟩,
-
-  sorry,
-end ,
-..(show semigroup (Ioo (0:α) 1), by apply_instance)
+  mul_comm := λ ⟨p1, _⟩ ⟨q1, _⟩,
+    (by {apply subtype.mk_eq_mk.2, simp [subtype.coe_mk, mul_comm p1 q1]}),
+  ..(show semigroup (Ioo (0:α) 1), by apply_instance)
  }
 
 

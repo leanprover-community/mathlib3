@@ -88,16 +88,17 @@ theorem spectral_theorem :
 begin
   rw [eigenvector_matrix_inv, basis_to_matrix_basis_fun_mul],
   ext i j,
-  convert @inner_product_space.is_self_adjoint.eigenvector_basis_apply_self_apply 𝕜 _ _
+  convert @inner_product_space.is_self_adjoint.diagonalization_basis_apply_self_apply 𝕜 _ _
     (pi_Lp 2 (λ (_ : n), 𝕜)) _ A.to_lin' (is_hermitian_iff_is_self_adjoint.1 hA) _ (fintype.card n)
     finrank_euclidean_space (euclidean_space.single j 1)
     ((fintype.equiv_of_card_eq (fintype.card_fin _)).symm i),
-  { simp only [inner_product_space.is_self_adjoint.eigenvector_basis, eigenvector_basis,
-      basis.coe_to_orthonormal_basis_repr, basis.equiv_fun_apply, to_lin'_apply, basis.to_matrix],
+  { rw [eigenvector_basis, inner_product_space.is_self_adjoint.diagonalization_basis,
+      to_lin'_apply],
+    simp only [basis.to_matrix, basis.coe_to_orthonormal_basis_repr, basis.equiv_fun_apply],
     rw [basis.reindex_repr, euclidean_space.mul_vec_single],
-    congr' },
+    refl },
   { simp only [diagonal_mul, (∘), eigenvalues, eigenvector_basis,
-      inner_product_space.is_self_adjoint.eigenvector_basis],
+      inner_product_space.is_self_adjoint.diagonalization_basis],
     rw [basis.to_matrix_apply, basis.coe_to_orthonormal_basis_repr, basis.reindex_repr,
       basis.equiv_fun_apply, pi.basis_fun_apply],
     refl }

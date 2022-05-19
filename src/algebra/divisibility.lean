@@ -91,8 +91,8 @@ section monoid
 
 variables [monoid α]
 
-@[refl, simp] theorem dvd_rfl {a : α} : a ∣ a := dvd.intro 1 (mul_one a)
-theorem dvd_refl (a : α) : a ∣ a := dvd_rfl
+@[refl, simp] theorem dvd_refl (a : α) : a ∣ a := dvd.intro 1 (mul_one a)
+theorem dvd_rfl : ∀ {a : α}, a ∣ a := dvd_refl
 instance : is_refl α (∣) := ⟨dvd_refl⟩
 
 theorem one_dvd (a : α) : 1 ∣ a := dvd.intro a (one_mul a)

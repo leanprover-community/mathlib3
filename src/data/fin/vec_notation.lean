@@ -160,7 +160,7 @@ by { ext, simp [fin.append] }
 
 @[simp] lemma cons_append (ho : o + 1 = m + 1 + n) (x : α) (u : fin m → α) (v : fin n → α) :
   fin.append ho (vec_cons x u) v =
-    vec_cons x (fin.append (by { move_add 1 at ho, exact nat.succ.inj ho }) u v) :=
+    vec_cons x (fin.append (nat.succ.inj (by move_add 1 at ho)) u v) :=
 begin
   ext i,
   simp_rw [fin.append],
@@ -237,7 +237,7 @@ by rw vec_alt1_append
 
 @[simp] lemma cons_vec_alt0 (h : m + 1 + 1 = (n + 1) + (n + 1)) (x y : α) (u : fin m → α) :
   vec_alt0 h (vec_cons x (vec_cons y u)) = vec_cons x (vec_alt0
-    (by { move_add [1, 1] at h, exact nat.succ.inj (nat.succ.inj h) }) u) :=
+    (nat.succ.inj $ nat.succ.inj $ by move_add [1, 1] at h) u) :=
 begin
   ext i,
   simp_rw [vec_alt0],
@@ -252,8 +252,8 @@ end
 by simp
 
 @[simp] lemma cons_vec_alt1 (h : m + 1 + 1 = (n + 1) + (n + 1)) (x y : α) (u : fin m → α) :
-  vec_alt1 h (vec_cons x (vec_cons y u)) = vec_cons y (vec_alt1
-    (by { move_add [1, 1] at h, exact nat.succ.inj (nat.succ.inj h) }) u) :=
+  vec_alt1 h (vec_cons x (vec_cons y u)) =
+    vec_cons y (vec_alt1 (nat.succ.inj $ nat.succ.inj $ by move_add [1, 1] at h) u) :=
 begin
   ext i,
   simp_rw [vec_alt1],

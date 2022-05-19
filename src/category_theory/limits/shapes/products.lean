@@ -258,7 +258,7 @@ is_limit.cone_point_unique_up_to_iso (limit.is_limit _) (limit_cone_of_unique f)
 def colimit_cocone_of_unique : colimit_cocone (discrete.functor f) :=
 { cocone :=
   { X := f default,
-    ι := { app := λ j, eq_to_hom (by { dsimp, congr, }), }, },
+    ι := { app := λ j, eq_to_hom (by { tactic.discrete_cases, dsimp, congr, }), }, },
   is_colimit :=
   { desc := λ s, s.ι.app default,
     fac' := λ s j, begin

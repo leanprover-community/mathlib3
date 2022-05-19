@@ -480,17 +480,17 @@ lemma inner_matrix_row_row (A B : matrix (fin n) (fin m) 𝕜) (i j : (fin n)) :
 lemma inner_matrix_col_col (A B : matrix (fin n) (fin m) 𝕜) (i j : (fin m)) :
   ⟪Aᵀ i, Bᵀ j⟫ₙ = (Aᴴ ⬝ B) i j := rfl
 
-variables [fintype ι] [fintype ι'] [decidable_eq ι] [decidable_eq ι'] (i : ι) (j : ι')
+variables (i : ι) (j : ι')
 
-@[simp] lemma euclidean_space.mul_vec_single_apply (A : matrix ι ι' 𝕜) :
+lemma euclidean_space.mul_vec_single_apply [fintype ι'] [decidable_eq ι'] (A : matrix ι ι' 𝕜) :
   A.mul_vec (euclidean_space.single j 1) i = A i j :=
 matrix.mul_vec_std_basis A i j
 
-@[simp] lemma euclidean_space.mul_vec_single (A : matrix ι ι' 𝕜) :
+@[simp] lemma euclidean_space.mul_vec_single [fintype ι'] [decidable_eq ι'] (A : matrix ι ι' 𝕜) :
   A.mul_vec (euclidean_space.single j 1) = λ i, A i j :=
 by ext; apply euclidean_space.mul_vec_single_apply
 
-@[simp] lemma euclidean_space.vec_mul_single (A : matrix ι ι' 𝕜) :
+@[simp] lemma euclidean_space.vec_mul_single [decidable_eq ι] (A : matrix ι ι' 𝕜) :
   A.vec_mul (euclidean_space.single i 1) j = A i j :=
 matrix.vec_mul_std_basis A i j
 

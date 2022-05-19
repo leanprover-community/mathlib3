@@ -21,8 +21,7 @@ self-adjoint matrix, hermitian matrix
 
 namespace matrix
 
-variables {𝕜 : Type*} [is_R_or_C 𝕜] [decidable_eq 𝕜] {n : Type*} [fintype n] [decidable_eq n]
-variables {A : matrix n n 𝕜}
+variables {𝕜 : Type*} [is_R_or_C 𝕜] {n : Type*} {A : matrix n n 𝕜}
 
 open_locale matrix
 
@@ -31,6 +30,8 @@ local notation `⟪`x`, `y`⟫` := @inner 𝕜 (pi_Lp 2 (λ (_ : n), 𝕜)) _ x 
 /-- A matrix is hermitian if it is equal to its conjugate transpose. On the reals, this definition
 captures symmetric matrices. -/
 def is_hermitian (A : matrix n n 𝕜) : Prop := Aᴴ = A
+
+variables [decidable_eq 𝕜] [fintype n] [decidable_eq n]
 
 /-- A matrix is hermitian iff the corresponding linear map is self adjoint. -/
 lemma is_hermitian_iff_is_self_adjoint {A : matrix n n 𝕜} :

@@ -175,7 +175,7 @@ lemma basis_to_matrix_mul_linear_map_to_matrix_mul_basis_to_matrix
   c.to_matrix c' ⬝ linear_map.to_matrix b' c' f ⬝ b'.to_matrix b = linear_map.to_matrix b c f :=
 by rw [basis_to_matrix_mul_linear_map_to_matrix, linear_map_to_matrix_mul_basis_to_matrix]
 
-lemma basis_to_matrix_mul [decidable_eq ι] [decidable_eq ι'] [decidable_eq κ]
+lemma basis_to_matrix_mul [decidable_eq κ]
     (b₁ : basis ι R M) (b₂ : basis ι' R M) (b₃ : basis κ R N) (A : matrix ι' κ R) :
   b₁.to_matrix b₂ ⬝ A = linear_map.to_matrix b₃ b₁ (to_lin b₃ b₂ A) :=
 begin
@@ -183,7 +183,7 @@ begin
   rwa [linear_map.to_matrix_to_lin] at this
 end
 
-lemma mul_basis_to_matrix [decidable_eq ι] [decidable_eq ι'] [decidable_eq κ]
+lemma mul_basis_to_matrix [decidable_eq ι] [decidable_eq ι']
     (b₁ : basis ι R M) (b₂ : basis ι' R M) (b₃ : basis κ R N) (A : matrix κ ι R) :
   A ⬝ b₁.to_matrix b₂ = linear_map.to_matrix b₂ b₃ (to_lin b₁ b₃ A) :=
 begin
@@ -191,9 +191,10 @@ begin
   rwa [linear_map.to_matrix_to_lin] at this
 end
 
-lemma basis_to_matrix_basis_fun_mul [decidable_eq ι] (b : basis ι R (ι → R)) (A : matrix ι ι R) :
+lemma basis_to_matrix_basis_fun_mul (b : basis ι R (ι → R)) (A : matrix ι ι R) :
   b.to_matrix (pi.basis_fun R ι) ⬝ A = (λ i j, b.repr (Aᵀ j) i) :=
 begin
+  classical,
   simp only [basis_to_matrix_mul _ _ (pi.basis_fun R ι), matrix.to_lin_eq_to_lin'],
   ext i j,
   have : A.mul_vec ((linear_map.std_basis R (λ (i : ι), R) j) 1) = Aᵀ j :=

@@ -1480,11 +1480,13 @@ instance [fintype n] [semiring α] [star_ring α] : star_ring (matrix n n α) :=
 lemma star_mul [fintype n] [non_unital_semiring α] [star_ring α] (M N : matrix n n α) :
   star (M ⬝ N) = star N ⬝ star M := conj_transpose_mul _ _
   
-lemma star_mul_vec [fintype n] [non_unital_semiring α] [star_ring α] (M : matrix n n α) (v : n → α) :
+lemma star_mul_vec [fintype n] [non_unital_semiring α] [star_ring α] (M : matrix n n α)
+  (v : n → α) :
   star (M.mul_vec v) = (star M).vec_mul (star v) :=
 funext $ λ i, (star_dot_product_star _ _).symm
 
-lemma star_vec_mul [fintype n] [non_unital_semiring α] [star_ring α] (M : matrix n n α) (v : n → α) :
+lemma star_vec_mul [fintype n] [non_unital_semiring α] [star_ring α] (M : matrix n n α)
+  (v : n → α) :
   star (M.vec_mul v) = (star M).mul_vec (star v) :=
 funext $ λ i, (star_dot_product_star _ _).symm
 

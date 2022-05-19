@@ -280,21 +280,22 @@ open_locale pointwise
 section instances
 variables [decidable_eq α]
 
-/-- Repeated pointwise addition (not the same as pointwise repeated addition!) of a `finset`. -/
+/-- Repeated pointwise addition (not the same as pointwise repeated addition!) of a `finset`. See
+note [pointwise nat action]. -/
 protected def has_nsmul [has_zero α] [has_add α] : has_scalar ℕ (finset α) := ⟨nsmul_rec⟩
 
 /-- Repeated pointwise multiplication (not the same as pointwise repeated multiplication!) of a
-`finset`. -/
+`finset`. See note [pointwise nat action]. -/
 @[to_additive]
 protected def has_npow [has_one α] [has_mul α] : has_pow (finset α) ℕ := ⟨λ s n, npow_rec n s⟩
 
 /-- Repeated pointwise addition/subtraction (not the same as pointwise repeated
-addition/subtraction!) of a `finset`. -/
+addition/subtraction!) of a `finset`. See note [pointwise nat action]. -/
 protected def has_zsmul [has_zero α] [has_add α] [has_neg α] : has_scalar ℤ (finset α) :=
 ⟨zsmul_rec⟩
 
 /-- Repeated pointwise multiplication/division (not the same as pointwise repeated
-multiplication/division!) of a `finset`. -/
+multiplication/division!) of a `finset`. See note [pointwise nat action]. -/
 @[to_additive] protected def has_zpow [has_one α] [has_mul α] [has_inv α] : has_pow (finset α) ℤ :=
 ⟨λ s n, zpow_rec n s⟩
 
@@ -402,8 +403,34 @@ pointwise operations if `α` is."]
 protected def division_comm_monoid [division_comm_monoid α] : division_comm_monoid (finset α) :=
 coe_injective.division_comm_monoid _ coe_one coe_mul coe_inv coe_div coe_pow coe_zpow
 
+/-- `finset α` has distributive negation if `α` has. -/
+protected def has_distrib_neg [has_mul α] [has_distrib_neg α] : has_distrib_neg (finset α) :=
+coe_injective.has_distrib_neg _ coe_neg coe_mul
+
 localized "attribute [instance] finset.comm_monoid finset.add_comm_monoid finset.division_monoid
-  finset.subtraction_monoid finset.division_comm_monoid finset.subtraction_comm_monoid" in pointwise
+  finset.subtraction_monoid finset.division_comm_monoid finset.subtraction_comm_monoid
+  finset.has_distrib_neg" in pointwise
+
+section distrib
+variables [distrib α] (s t u : finset α)
+
+/-!
+Note that `finset α` is not a `distrib` because `s * t + s * u` has cross terms that `s * (t + u)`
+lacks.
+
+```lean
+-- {10, 16, 18, 20, 8, 9}
+#eval {1, 2} * ({3, 4} + {5, 6} : finset ℕ)
+
+-- {10, 11, 12, 13, 14, 15, 16, 18, 20, 8, 9}
+#eval ({1, 2} : finset ℕ) * {3, 4} + {1, 2} * {5, 6}
+```
+-/
+
+lemma mul_add_subset : s * (t + u) ⊆ s * t + s * u := image₂_distrib_subset_left mul_add
+lemma add_mul_subset : (s + t) * u ⊆ s * u + t * u := image₂_distrib_subset_right add_mul
+
+end distrib
 
 section group
 variables [group α] {s t : finset α}

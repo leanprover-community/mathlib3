@@ -149,7 +149,7 @@ did *not* change the goal on which it was acting.  The list of booleans records 
 unified.
 
 This definition is useful to streamline error catching. -/
-meta def move_add_with_errors (ll : list (bool × pexpr)) : option name → tactic (bool × list bool)
+meta def with_errors (ll : list (bool × pexpr)) : option name → tactic (bool × list bool)
 | (some hyp) := do
   thyp ← get_local hyp >>= infer_type,
   is_unused ← recurse_on_expr hyp ll thyp,
@@ -267,8 +267,8 @@ meta def move_add (args : parse move_pexpr_list_or_texpr) (locat : parse locatio
 match locat with
 | loc.wildcard := do
   ctx ← local_context,
-  err_rep ← ctx.mmap (λ e, move_add_with_errors args e.local_pp_name),
-  er_t ← move_add_with_errors args none,
+  err_rep ← ctx.mmap (λ e, with_errors args e.local_pp_name),
+  er_t ← with_errors args none,
   if ff ∉ er_t.1::err_rep.map (λ e, e.1) then
     trace "'move_add at *' changed nothing" else skip,
   let li_unused := er_t.2::err_rep.map (λ e, e.2),
@@ -281,7 +281,7 @@ match locat with
   end,
   assumption <|> try (tactic.reflexivity reducible)
 | loc.ns names := do
-  err_rep ← names.mmap $ move_add_with_errors args,
+  err_rep ← names.mmap $ with_errors args,
   let conds := err_rep.map (λ e, e.1),
   linames ← (return_unused names conds).reduce_option.mmap get_local,
   if linames ≠ [] then trace

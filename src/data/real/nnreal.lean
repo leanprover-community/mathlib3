@@ -50,39 +50,6 @@ This file defines `ℝ≥0` as a localized notation for `nnreal`.
 
 open_locale classical big_operators
 
-namespace real
-variables {ι : Sort*} {f : ι → ℝ}
-
-open set
-
-lemma supr_of_not_bdd_above (hf : ¬ bdd_above (range f)) : (⨆ i, f i) = 0 := Sup_of_not_bdd_above hf
-lemma infi_of_not_bdd_below (hf : ¬ bdd_below (range f)) : (⨅ i, f i) = 0 := Inf_of_not_bdd_below hf
-
-end real
-
-section
-variables {ι : Sort*} {α β : Type*}
-
-open set
-open_locale pointwise
-
-section
-variables [has_scalar α β] {a : α} {f : ι → β}
-
-@[to_additive] lemma smul_set_range : a • range f = range (λ i, a • f i) := (range_comp _ _).symm
-
-end
-
-section
-variables [has_involutive_inv α] {f : ι → α}
-
-@[to_additive] lemma inv_range : (range f)⁻¹ = range (λ i, (f i)⁻¹) :=
-by { rw ←image_inv, exact (range_comp _ _).symm }
-
-end
-
-end
-
 /-- Nonnegative real numbers. -/
 @[derive [
   ordered_semiring, comm_monoid_with_zero, -- to ensure these instance are computable

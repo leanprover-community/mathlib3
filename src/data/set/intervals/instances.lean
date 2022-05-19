@@ -21,22 +21,29 @@ instance {α : Type*} [ordered_comm_semiring α] : comm_monoid_with_zero (Icc (0
   zero := ⟨0, left_mem_Icc.2 zero_le_one⟩,
   zero_mul :=
   begin
-    rintros ⟨p1, ⟨_,_⟩⟩,
-    -- have := zero_mul p1,
-    have : (⟨0 * p1, _⟩ : (Icc (0:α) 1)) = ⟨0, _⟩ * ⟨p1, _⟩, { refl },
+    rintros ⟨p1, ⟨p21,p22⟩⟩,
+    simp,
+    have := @zero_mul α _ p1,
+
+    have : (⟨0 * p1, _⟩ : (Icc (0:α) 1)) = ⟨0, _⟩ * ⟨p1, _⟩, {
+      -- simp only [zero_mul],
+      -- tidy?,
+      -- library_search,
+
+      refl },
     rw ←this,
     simp only [zero_mul],
   end,
   mul_zero :=
   begin
-    rintros ⟨p1, ⟨_,_⟩⟩,
+    rintros ⟨p1, ⟨p21,p22⟩⟩,
     have : (⟨p1 * 0, _⟩ : (Icc (0:α) 1)) = ⟨p1, _⟩ * ⟨0, _⟩, { refl },
     rw ←this,
     simp only [mul_zero],
   end,
   ..(show monoid (Icc (0:α) 1), by apply_instance) }
 
-
+#exit
 /-- Instances for `(Ico 0 1)` -/
 
 instance {α : Type*} [ordered_semiring α] : semigroup (Ico (0:α) 1) := {
@@ -79,48 +86,13 @@ instance {α : Type*} [ordered_semiring α] : semigroup (Ioo (0:α) 1) := {
     mul_lt_one_of_nonneg_of_lt_one_right (le_of_lt p.2.2) (le_of_lt q.2.1) q.2.2⟩⟩,
   -- TODO: golf this when `mul_lt_one` is merged
 
-  mul_assoc := λ p q r, (by simp only [subtype.mk_eq_mk, mul_assoc]),
- }
+  mul_assoc := λ p q r, (by simp only [subtype.mk_eq_mk, mul_assoc]) }
 
 instance {α : Type*} [ordered_comm_semiring α] : comm_semigroup (Ioo (0:α) 1) := {
   mul_comm := λ ⟨p1, _⟩ ⟨q1, _⟩,
     (by {apply subtype.mk_eq_mk.2, simp [subtype.coe_mk, mul_comm p1 q1]}),
-  ..(show semigroup (Ioo (0:α) 1), by apply_instance)
- }
+  ..(show semigroup (Ioo (0:α) 1), by apply_instance) }
 
-
-#exit
-
-/-- Instances for `(Ioc (-1) 1`: `comm_monoid_with_zero (Ioc (-1) 1` -/
-
-instance {α : Type*} [ordered_comm_semiring α] [has_neg α] :
-  comm_monoid_with_zero (Ioc (-1:α) 1) := {
-  mul :=
-begin
-  refine λ p q, _,
-  rcases p with ⟨p1, ⟨p21,p22⟩⟩,
-  rcases q with ⟨q1, ⟨q21,q22⟩⟩,
-
-  sorry,
-end ,
-  mul_assoc :=
-begin
-  refine λ p q, _,
-  rcases p with ⟨p1, ⟨p21,p22⟩⟩,
-  rcases q with ⟨q1, ⟨q21,q22⟩⟩,
-
-  sorry,
-end ,
-  one := sorry,
-  one_mul := sorry,
-  mul_one := sorry,
-  npow := sorry,
-  npow_zero' := sorry,
-  npow_succ' := sorry,
-  mul_comm := sorry,
-  zero := sorry,
-  zero_mul := sorry,
-  mul_zero := sorry }
 
 
 

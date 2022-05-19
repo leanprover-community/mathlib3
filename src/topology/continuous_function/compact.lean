@@ -201,35 +201,6 @@ instance : normed_ring C(α,R) :=
 { norm_mul := λ f g, norm_mul_le (mk_of_compact f) (mk_of_compact g),
   ..(infer_instance : normed_group C(α,R)) }
 
-lemma continuous_constant : continuous (continuous_map.const : R → C(α, R)) :=
-begin
-  rw metric.continuous_iff,
-  intros a ε hε,
-  refine ⟨ε/2, (show 0<ε/2, by linarith), λ b hb, _⟩,
-  rw dist_eq_norm at hb ⊢,
-  refine lt_of_le_of_lt _ (show ε/2 < ε, by linarith),
-  rw continuous_map.norm_eq_supr_norm,
-  cases is_empty_or_nonempty α with hempty hnonempty,
-  { change _ ≥ dite _ _ _,
-    split_ifs with h,
-    { rcases h with ⟨⟨_, x, _⟩, _⟩,
-      exact (@is_empty.false _ hempty x).elim },
-          exact le_of_lt (half_pos hε) },
-  haveI := hnonempty,
-  apply csupr_le,
-  intro x,
-  apply le_of_lt,
-  simp [hb],
-end
-
-instance : has_continuous_smul R C(α, R) :=
-⟨begin
-  change continuous ((λ p, p.1 * p.2 : C(α, R) × C(α, R) → C(α, R)) ∘
-    (λ p, ((continuous_map.const p.fst), p.2) : R × C(α, R) → C(α, R) × C(α, R))),
-  have h := @continuous_constant α _ _ R _,
-  continuity,
-end⟩
-
 end
 
 section
@@ -289,17 +260,6 @@ variables {𝕜 : Type*} {γ : Type*} [normed_field 𝕜] [normed_ring γ] [norm
 
 instance : normed_algebra 𝕜 C(α, γ) :=
 { ..continuous_map.normed_space }
-
-instance has_continuous_smul' [nonempty α] : has_continuous_smul 𝕜 C(α, γ) :=
-begin
-  constructor,
-  convert_to continuous ((λ p, p.1 * p.2 : C(α, γ) × C(α, γ) → C(α, γ)) ∘
-    (λ p, ((continuous_map.const (p.fst • 1)), p.2) : 𝕜 × C(α, γ) → C(α, γ) × C(α, γ))),
-  { ext y, simp only [continuous_map.const_coe, continuous_map.coe_smul, one_mul, pi.mul_apply,
-      continuous_map.coe_mul, pi.smul_apply, algebra.smul_mul_assoc], },
-  continuity,
-  convert @continuous_map.continuous_constant α _ _ γ _,
-end
 
 end
 

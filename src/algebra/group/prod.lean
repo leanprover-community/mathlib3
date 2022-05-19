@@ -484,7 +484,7 @@ def embed_product (α : Type*) [monoid α] : αˣ →* α × αᵐᵒᵖ :=
 
 lemma embed_product_injective (α : Type*) [monoid α] : function.injective (embed_product α) :=
 λ a₁ a₂ h, by { rw embed_product at h,
-simp only [prod.mk.inj_iff, opposite.op_inj_iff, monoid_hom.coe_mk] at h, rw [units.ext_iff, h.1], }
+simp only [prod.mk.inj_iff, monoid_hom.coe_mk] at h, rw [units.ext_iff, h.1], }
 
 end units
 

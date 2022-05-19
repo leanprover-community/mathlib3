@@ -97,7 +97,7 @@ begin
   exact (is_colimit.cocone_point_unique_up_to_iso (colimit.is_colimit _)
     (finite_colimit_cocone (discrete.functor f)).is_colimit).to_eq,
   change finset.univ.sup (f ∘ discrete_equiv.to_embedding) = (fintype.elems ι).sup f,
-  simp only [←finset.sup_map, category_theory.limits.complete_lattice.foo],
+  simp only [←finset.sup_map, finset.univ_map_equiv_to_embedding],
   refl,
 end
 

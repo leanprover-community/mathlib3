@@ -30,7 +30,7 @@ The freeness of these modules means we can use them to build a projective resolu
 
 We bundle the type `k[Gⁿ]` - or more generally `k[H]` when `H` has `G`-action - and the
 `k[G]`-module structure together as a term of type `Rep k G`, and we call it
-`mul_action_to_Rep k G H.` The representation `ρ: G →* End(k[H])` is the induced by the `G`-action
+`mul_action_to_Rep k G H.` The representation `ρ: G →* End(k[H])` is then induced by the `G`-action
 on `H`. This is so we only define a `k[G]`-module instance on `mul_action_to_Rep k G H` and not
 directly on `monoid_algebra k H`, which could cause diamonds.
 
@@ -50,12 +50,12 @@ variables [monoid G]
 --will move to representation_theory.Rep
 /-- A term of type `Rep k G` has the natural structure of a `k[G]`-module, with an element
 `g : G` acting by `g • x = (ρ g) x` -/
-instance module' [monoid G] (V : Rep k G) : module (monoid_algebra k G) V :=
+instance module' (V : Rep k G) : module (monoid_algebra k G) V :=
 representation.as_module V.ρ
 
-lemma smul_def [monoid G] {V : Type u} [add_comm_group V]
-  [module k V] {ρ : representation k G V} (g : monoid_algebra k G) (x : Rep.of ρ) :
-  g • x = lift k G _ ρ g x := rfl
+lemma smul_def {V : Type u} [add_comm_group V] [module k V] {ρ : representation k G V}
+  (g : monoid_algebra k G) (x : Rep.of ρ) :
+   g • x = lift k G _ ρ g x := rfl
 
 instance Rep.smul_comm_class {V : Type u} [add_comm_group V] [module k V]
   (ρ : representation k G V) :
@@ -70,9 +70,8 @@ instance Rep.is_scalar_tower {V : Type u} [add_comm_group V] [module k V]
 
 variables (k G) (n : ℕ)
 
-/-- Given monoids `G, H`, a `G`-action on `H` induces a representation `G →* End(k[H])` in the
-natural way. -/
-@[simps] def mul_action_to_ρ (H : Type*) [monoid H] [mul_action G H] :
+/-- A `G`-action on `H` induces a representation `G →* End(k[H])` in the natural way. -/
+@[simps] def mul_action_to_ρ (H : Type*) [mul_action G H] :
   representation k G (monoid_algebra k H) :=
 { to_fun := λ g, finsupp.lmap_domain k k ((•) g),
   map_one' := by { ext x y, dsimp, simp },
@@ -80,12 +79,12 @@ natural way. -/
 
 /-- Given a `G`-action on `H`, this is `k[H]` bundled with the natural representation
 `G →* End(k[H])` as a term of type `Rep k G.` -/
-abbreviation mul_action_to_Rep (H : Type u) [monoid H] [mul_action G H] :
+abbreviation mul_action_to_Rep (H : Type u) [mul_action G H] :
   Rep k G := Rep.of (mul_action_to_ρ k G H)
 
 variables {k G}
 
-lemma single_smul_single {H : Type u} [monoid H] [mul_action G H]
+lemma single_smul_single {H : Type u} [mul_action G H]
   (g : G) (x : H) (r s : k) :
   ((•) : monoid_algebra k G → mul_action_to_Rep k G H → mul_action_to_Rep k G H)
   (finsupp.single g r) (finsupp.single x s) =
@@ -96,7 +95,7 @@ begin
   rw [finsupp.map_domain_single, finsupp.smul_single'],
 end
 
-lemma of_smul_of {H : Type u} [monoid H] [mul_action G H] (g : G) (x : H) :
+lemma of_smul_of {H : Type u} [mul_one_class H] [mul_action G H] (g : G) (x : H) :
   (monoid_algebra.of k G g • monoid_algebra.of k H x : mul_action_to_Rep k G H)
     = monoid_algebra.of k H (g • x) :=
 by simp only [monoid_algebra.of_apply, single_smul_single, one_mul]
@@ -239,7 +238,7 @@ def basis : basis (orbit_quot G n)
     left_inv := basis_left_inv,
     right_inv := basis_right_inv, ..to_basis _ G n } }
 
-instance  : module.free (monoid_algebra k G) (mul_action_to_Rep k G (fin (n + 1) → G)) :=
+instance : module.free (monoid_algebra k G) (mul_action_to_Rep k G (fin (n + 1) → G)) :=
 module.free.of_basis (basis k G n)
 
 end Rep

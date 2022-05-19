@@ -1408,6 +1408,20 @@ end
 
 end nnreal
 
+section ulift
+variables [pseudo_metric_space β]
+
+instance : pseudo_metric_space (ulift β) :=
+pseudo_metric_space.induced ulift.down ‹_›
+
+lemma ulift.dist_eq (x y : ulift β) : dist x y = dist x.down y.down := rfl
+lemma ulift.nndist_eq (x y : ulift β) : nndist x y = nndist x.down y.down := rfl
+
+@[simp] lemma ulift.dist_up_up (x y : β) : dist (ulift.up x) (ulift.up y) = dist x y := rfl
+@[simp] lemma ulift.nndist_up_up (x y : β) : nndist (ulift.up x) (ulift.up y) = nndist x y := rfl
+
+end ulift
+
 section prod
 variables [pseudo_metric_space β]
 
@@ -2622,6 +2636,9 @@ section nnreal
 noncomputable instance : metric_space ℝ≥0 := subtype.metric_space
 
 end nnreal
+
+instance [metric_space β] : metric_space (ulift β) :=
+metric_space.induced ulift.down ulift.down_injective ‹_›
 
 section prod
 

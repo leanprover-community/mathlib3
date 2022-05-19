@@ -229,7 +229,7 @@ do t ← target,
         trace sformat!"should the nat_degree be '{m'}'?\n\n",
         trace sformat!"Try this: {pptl}.nat_degree = {ppm'}", failed
     else
-      move_add_with_errors [(ff, pexpr.of_expr lead)] none,
+      move_add.with_errors [(ff, pexpr.of_expr lead)] none,
       refine ``(polynomial.nat_degree_add_left_succ _ %%lead _ _ _),
       single_term_resolve lead,
       compute_degree_le
@@ -245,7 +245,7 @@ do t ← target,
         trace sformat!"should the degree be '{m'}'?\n\n",
         trace sformat!"Try this: {pptl}.degree = {ppm'}", failed
     else
-      move_add_with_errors [(ff, pexpr.of_expr lead)] none,
+      move_add.with_errors [(ff, pexpr.of_expr lead)] none,
       refine ``(polynomial.nat_degree_add_left_succ _ %%lead _ _ _),
       single_term_resolve lead,
       compute_degree_le

@@ -233,7 +233,9 @@ local attribute [reducible] discrete.add_monoidal shift_comm
 begin
   refine nat_iso.of_components (λ X, mk_iso (shift_add X.X _ _) _) _,
   { dsimp,
-    simp_rw [category.assoc, obj_μ_inv_app, μ_inv_hom_app_assoc, functor.map_comp, obj_μ_app,
+    simp_rw [category.assoc],
+    simp_rw [obj_μ_app],
+    simp_rw [μ_inv_hom_app_assoc, functor.map_comp, obj_μ_app,
       category.assoc, μ_naturality_assoc, μ_inv_hom_app_assoc, obj_μ_inv_app, category.assoc,
       μ_naturalityₗ_assoc, μ_inv_hom_app_assoc, μ_inv_naturalityᵣ_assoc],
     simp [opaque_eq_to_iso] },

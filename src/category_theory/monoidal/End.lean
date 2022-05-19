@@ -158,6 +158,7 @@ begin
   { ext, simpa }
 end
 
+-- FIXME rename
 @[reassoc]
 lemma obj_ε_inv_app (n : M) (X : C) :
   inv ((F.obj n).map (F.ε.app X)) =

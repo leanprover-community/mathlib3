@@ -39,7 +39,7 @@ open_locale big_operators uniformity topological_space nnreal ennreal complex_co
 
 noncomputable theory
 
-variables {ι : Type*} {ι' : Type}
+variables {ι : Type*} {ι' : Type*}
 variables {𝕜 : Type*} [is_R_or_C 𝕜] {E : Type*} [inner_product_space 𝕜 E]
 variables {E' : Type*} [inner_product_space 𝕜 E']
 variables {F : Type*} [inner_product_space ℝ F]

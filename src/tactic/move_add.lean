@@ -40,17 +40,25 @@ around a sum.
 -/
 
 open tactic
+namespace tactic
+
+/--  Takes an `expr` and returns a list of its summands. -/
+meta def get_summands : expr → list expr
+| `(%%a + %%b) := get_summands a ++ get_summands b
+| a            := [a]
+
+namespace move_add
 
 /--  Given a list `un` of `α`s and a list `bo` of `bool`s, return the sublist of `un`
 consisting of the entries of `un` whose corresponding entry in `bo` is `tt`.
 
 Used for error management: `un` is the list of user inputs, `bo` is the list encoding which input
 is unused (`tt`) and which input is used (`ff`).
-`list.return_unused` returns the unused user inputs. -/
-def list.return_unused {α : Type*} : list α → list bool → list α
+`return_unused` returns the unused user inputs. -/
+def return_unused {α : Type*} : list α → list bool → list α
 | un [] := un
 | [] bo := []
-| (u::us) (b::bs) := if b then ([u] ++ (us.return_unused bs)) else (us.return_unused bs)
+| (u::us) (b::bs) := if b then u::return_unused us bs else return_unused us bs
 
 /--  Given a list `lp` of `bool × pexpr` and a list `sl` of `expr`, scan the elements of `lp` one
 at a time and produce 3 sublists of `sl`.
@@ -69,17 +77,17 @@ Once we exhaust the elements of `lp`, we return the three lists:
 
 The ununified elements of `sl` get used for error management: they keep track of which user inputs
 are superfluous. -/
-meta def list.unify_list : list (bool × expr) → list expr → list bool →
+meta def unify_list : list (bool × expr) → list expr → list bool →
   tactic (list expr × list expr × list expr × list bool)
 | [] sl is_unused      := return ([], [], sl, is_unused)
 | (be::l) sl is_unused :=
   do (ex :: hs) ← sl.mfilter $ λ e', succeeds $ unify be.2 e' |
-    l.unify_list sl (is_unused.append [tt]),
-  (l1, l2, l3, is_unused) ← l.unify_list (sl.erase ex) (is_unused.append [ff]),
+    unify_list l sl (is_unused.append [tt]),
+  (l1, l2, l3, is_unused) ← unify_list l (sl.erase ex) (is_unused.append [ff]),
   if be.1 then return (ex::l1, l2, l3, is_unused) else return (l1, ex::l2, l3, is_unused)
 
 /--  Given a list of pairs `bool × pexpr`, we convert it to a list of `bool × expr`. -/
-meta def list.convert_to_expr (lp : list (bool × pexpr)) : tactic (list (bool × expr)) :=
+meta def convert_to_expr (lp : list (bool × pexpr)) : tactic (list (bool × expr)) :=
 lp.mmap $ λ x : bool × pexpr, do
   e ← to_expr x.2 tt ff,
   return (x.1, e)
@@ -87,35 +95,27 @@ lp.mmap $ λ x : bool × pexpr, do
 /--  We combine the previous steps.
 1. we convert a list pairs `bool × pexpr` to a list of pairs `bool × expr`,
 2. we use the extra input `sl : list expr` to perform the unification and sorting step
-   `list.unify_list`,
+   `unify_list`,
 3. we jam the third factor inside the first two.
 -/
-meta def list.combined (lp : list (bool × pexpr)) (sl : list expr) :
+meta def combined (lp : list (bool × pexpr)) (sl : list expr) :
   tactic (list expr × list bool) :=
 do
-  to_exp : list (bool × expr) ← list.convert_to_expr lp,
-  (l1, l2, l3, is_unused) ← to_exp.unify_list sl [],
+  lp_exp : list (bool × expr) ← convert_to_expr lp,
+  (l1, l2, l3, is_unused) ← unify_list lp_exp sl [],
   return (l1 ++ l3 ++ l2, is_unused)
-
-namespace tactic.interactive
-setup_tactic_parser
-
-/--  Takes an `expr` and returns a list of its summands. -/
-meta def get_summands : expr → list expr
-| `(%%a + %%b) := get_summands a ++ get_summands b
-| a            := [a]
 
 /-- `sorted_sum` takes an optional location name `hyp` for where it will be applied, a list `ll` of
 `bool × pexpr` (arising as the user-provided input to `move_add`) and an expression `e`.
 
 `sorted_sum hyp ll e` returns an ordered sum of the terms of `e`, where the order is
-determined using the `list.combined` applied to `ll` and `e`.
+determined using the `combined` applied to `ll` and `e`.
 
 We use this function for expressions in an additive commutative semigroup. -/
 meta def sorted_sum (hyp : option name) (ll : list (bool × pexpr)) (e : expr) :
   tactic (list bool) :=
 do
-  (sli, is_unused) ← ll.combined (get_summands e),
+  (sli, is_unused) ← combined ll (get_summands e),
   match sli with
   | []       := return is_unused
   | (eₕ::es) := do
@@ -174,6 +174,9 @@ meta def move_add_with_errors (ll : list (bool × pexpr)) : option name → tact
   tn ← target,
   if (t = tn) then return (tt, is_unused) else return (ff, is_unused)
 
+section parsing_arguments_for_move_add
+
+setup_tactic_parser
 /-- `move_add_arg` is a single elementary argument that `move_add` takes for the
 variables to be moved.  It is either a `pexpr`, or a `pexpr` preceded by a `←`. -/
 meta def move_add_arg (prec : nat) : parser (bool × pexpr) :=
@@ -184,12 +187,15 @@ prod.mk <$> (option.is_some <$> (tk "<-")?) <*> parser.pexpr prec
 meta def move_pexpr_list_or_texpr : parser (list (bool × pexpr)) :=
 list_of (move_add_arg 0) <|> list.ret <$> (move_add_arg tac_rbp) <|> return []
 
-/--  Out of a list of `option name`, returns a list of `name`s of target, discarding, if present
-`none`, which corresponds to the goal. -/
-meta def to_hyps : list (option name) → tactic (list expr)
-| []           := pure []
-| (some n::ns) := do ln ← get_local n, fina ← to_hyps ns, return (ln::fina)
-| (none::ns)   := to_hyps ns
+end parsing_arguments_for_move_add
+
+end move_add
+end tactic
+
+namespace tactic.interactive
+open tactic
+open tactic.move_add
+setup_tactic_parser
 
 /--
 Calling `move_add [a, ← b, c]`, recursively looks inside the goal for expressions involving a sum.
@@ -280,7 +286,7 @@ match locat with
   let li_unused := ([er_t.2] ++ err_rep.map (λ e, e.2)),
   let li_unused_clear := li_unused.filter (≠ []),
   let li_tf_vars := li_unused_clear.transpose.map list.band,
-  match ((args.return_unused li_tf_vars).map (λ e : bool × pexpr, e.2)) with
+  match ((return_unused args li_tf_vars).map (λ e : bool × pexpr, e.2)) with
   | []   := skip
   | [pe] := trace format!"'{pe}' is an unused variable"
   | pes  := trace format!"'{pes}' are unused variables"
@@ -289,15 +295,15 @@ match locat with
 | loc.ns names := do
   err_rep ← names.mmap $ move_add_with_errors args,
   let conds := err_rep.map (λ e, e.1),
-  linames ← to_hyps (names.return_unused conds),
+  linames ← (return_unused names conds).reduce_option.mmap get_local,
   if linames ≠ [] then trace
     format!"'{linames}' did not change" else skip,
-  if none ∈ names.return_unused conds then trace
+  if none ∈ return_unused names conds then trace
     "Goal did not change" else skip,
   let li_unused := (err_rep.map (λ e, e.2)),
   let li_unused_clear := li_unused.filter (≠ []),
   let li_tf_vars := li_unused_clear.transpose.map list.band,
-  match ((args.return_unused li_tf_vars).map (λ e : bool × pexpr, e.2)) with
+  match ((return_unused args li_tf_vars).map (λ e : bool × pexpr, e.2)) with
   | []   := skip
   | [pe] := trace format!"'{pe}' is an unused variable"
   | pes  := trace format!"'{pes}' are unused variables"

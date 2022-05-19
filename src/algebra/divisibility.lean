@@ -60,7 +60,7 @@ local attribute [simp] mul_assoc mul_comm mul_left_comm
 
 alias dvd_trans ← has_dvd.dvd.trans
 
-instance : is_trans α (∣) := ⟨dvd_trans⟩
+instance : is_trans α (∣) := ⟨λ a b c, dvd_trans⟩
 
 @[simp] theorem dvd_mul_right (a b : α) : a ∣ a * b := dvd.intro b rfl
 

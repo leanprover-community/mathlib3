@@ -4,54 +4,91 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
 import topology.fiber_bundle
-import geometry.manifold.cont_mdiff
+import geometry.manifold.diffeomorph
 
 /-!
 # Smooth Fiber bundles
 
 A smooth fiber bundle with fiber `F` over a base `B` is a space projecting on `B` for which the
 fibers are all diffeomorphic to `F`, such that the local situation around each point is a direct
-product. We define a predicate `is_smooth_fiber_bundle F p` saying that `p : Z → B` is a
+product. We define a predicate `is_smooth_fiber_bundle I I₂ I₃ F p` saying that `p : Z → B` is a
 smooth fiber bundle with fiber `F`.
 -/
 
 
-variables {ι : Type*} {B : Type*} {F : Type*}
-
-open topological_space filter set
-open_locale topological_space classical
+open filter set
+open_locale topological_space manifold classical
+noncomputable theory
 
 /-! ### General definition of topological fiber bundles -/
 
 section smooth_fiber_bundle
 
-variables (F) {Z : Type*} [normed_group B] [normed_group F] {proj : Z → B}
-  [topological_space Z]
+variables {𝕜 B E E₂ E₃ E₄ E₅ H H₂ H₃ H₄ H₅ : Type*}
+
+section normed_space
+variables [nondiscrete_normed_field 𝕜]
+variables [normed_group E] [normed_space 𝕜 E] [normed_group E₂] [normed_space 𝕜 E₂]
+variables [normed_group E₃] [normed_space 𝕜 E₃] [normed_group E₄] [normed_space 𝕜 E₄]
+variables [normed_group E₅] [normed_space 𝕜 E₅]
+variables [topological_space H] [topological_space H₂] [topological_space H₃] [topological_space H₄]
+variables [topological_space H₅]
+variables (I : model_with_corners 𝕜 E H) (I₂ : model_with_corners 𝕜 E₂ H₂)
+variables (I₃ : model_with_corners 𝕜 E₃ H₃)
+variables {I₄ : model_with_corners 𝕜 E₄ H₄} {I₅ : model_with_corners 𝕜 E₅ H₅}
+variables (F : Type*) {F' Z Z' : Type*}
+variables [topological_space B] [charted_space H B] [smooth_manifold_with_corners I B]
+variables [topological_space F] [charted_space H₂ F] [smooth_manifold_with_corners I₂ F]
+variables [topological_space Z] [charted_space H₃ Z] [smooth_manifold_with_corners I₃ Z]
+variables [topological_space Z'] [charted_space H₄ Z'] [smooth_manifold_with_corners I₄ Z']
+variables [topological_space F'] [charted_space H₅ F'] [smooth_manifold_with_corners I₅ F']
+variables {proj : Z → B}
 
 /--
-A structure extending local homeomorphisms, defining a local trivialization of a projection
-`proj : Z → B` with fiber `F`, as a local homeomorphism between `Z` and `B × F` defined between two
+A structure extending local homeomorphisms, defining a local smooth trivialization of a projection
+`proj : Z → B` with fiber `F`, as a local diffeomorphism between `Z` and `B × F` defined between two
 sets of the form `proj ⁻¹' base_set` and `base_set × F`, acting trivially on the first coordinate.
 -/
 @[nolint has_inhabited_instance]
 structure smooth_fiber_bundle.trivialization (proj : Z → B) extends
-  to_topological : topological_fiber_bundle.trivialization F proj :=
-(cont_diff_to_fun  : cont_diff_on _ _ to_fun _)
+  to_topological_pretrivialization : topological_fiber_bundle.pretrivialization F proj :=
+(open_source : is_open source)
+(cont_mdiff_on_to_fun  : cont_mdiff_on I₃ (I.prod I₂) ⊤ to_fun source)
+(cont_mdiff_on_inv_fun  : cont_mdiff_on (I.prod I₂) I₃ ⊤ inv_fun target)
 
 open smooth_fiber_bundle
 
 namespace smooth_fiber_bundle.trivialization
 
-variables {F} (e : trivialization F proj) {x : Z}
+variables {I I₂ I₃ F} (e : trivialization I I₂ I₃ F proj) {x : Z}
 
-/-- Natural identification as a `pretrivialization`. -/
-def to_pretrivialization : smooth_fiber_bundle.pretrivialization F proj := { ..e }
+/-- Natural identification as a `trivialization` of a topological vector bundle. -/
+def to_topological : topological_fiber_bundle.trivialization F proj :=
+{ continuous_to_fun := e.cont_mdiff_on_to_fun.continuous_on,
+  continuous_inv_fun := e.cont_mdiff_on_inv_fun.continuous_on,
+  ..e }
 
-instance : has_coe_to_fun (trivialization F proj) (λ _, Z → B × F) := ⟨λ e, e.to_fun⟩
-instance : has_coe (trivialization F proj) (pretrivialization F proj) :=
-⟨to_pretrivialization⟩
+/-- The local homeomorph defined by the trivialization. -/
+def to_local_homeomorph : local_homeomorph Z (B × F) :=
+e.to_topological.to_local_homeomorph
 
-@[simp, mfld_simps] lemma coe_coe : ⇑e.to_local_homeomorph = e := rfl
+instance : has_coe_to_fun (trivialization I I₂ I₃ F proj) (λ _, Z → B × F) := ⟨λ e, e.to_fun⟩
+instance : has_coe (trivialization I I₂ I₃ F proj)
+  (topological_fiber_bundle.trivialization F proj) :=
+⟨to_topological⟩
+
+protected lemma cont_mdiff_on : cont_mdiff_on I₃ (I.prod I₂) ⊤ e e.source :=
+e.cont_mdiff_on_to_fun
+
+protected lemma cont_mdiff_on_symm :
+  cont_mdiff_on (I.prod I₂) I₃ ⊤ e.to_local_homeomorph.symm e.target :=
+e.cont_mdiff_on_inv_fun
+
+@[simp, mfld_simps] lemma coe_coe : ⇑e.to_topological_pretrivialization = e := rfl
+@[simp, mfld_simps] lemma coe_coe2 : e.to_topological.to_local_homeomorph = e.to_local_homeomorph :=
+rfl
+@[simp, mfld_simps] lemma coe_coe3 : e.to_local_homeomorph.to_local_equiv = e.to_local_equiv :=
+rfl
 @[simp, mfld_simps] lemma coe_fst (ex : x ∈ e.source) : (e x).1 = proj x := e.proj_to_fun x ex
 protected lemma eq_on : eq_on (prod.fst ∘ e) proj e.source := λ x hx, e.coe_fst hx
 lemma mem_source : x ∈ e.source ↔ proj x ∈ e.base_set := by rw [e.source_eq, mem_preimage]
@@ -62,202 +99,210 @@ prod.ext (e.coe_fst' ex).symm rfl
 
 lemma source_inter_preimage_target_inter (s : set (B × F)) :
   e.source ∩ (e ⁻¹' (e.target ∩ s)) = e.source ∩ (e ⁻¹' s) :=
-e.to_local_homeomorph.source_inter_preimage_target_inter s
+e.to_topological.source_inter_preimage_target_inter s
 
-@[simp, mfld_simps] lemma coe_mk (e : local_homeomorph Z (B × F)) (i j k l m) (x : Z) :
-  (trivialization.mk e i j k l m : trivialization F proj) x = e x := rfl
+-- @[simp, mfld_simps] lemma coe_mk (e : local_homeomorph Z (B × F)) (i j k l m) (x : Z) :
+  -- (trivialization.mk e i j k l m : trivialization I I₂ I₃ F proj) x = e x := rfl
 
 lemma mem_target {x : B × F} : x ∈ e.target ↔ x.1 ∈ e.base_set :=
-e.to_pretrivialization.mem_target
+e.to_topological.mem_target
 
 lemma map_target {x : B × F} (hx : x ∈ e.target) : e.to_local_homeomorph.symm x ∈ e.source :=
-e.to_local_homeomorph.map_target hx
+e.to_topological.map_target hx
 
 lemma proj_symm_apply {x : B × F} (hx : x ∈ e.target) : proj (e.to_local_homeomorph.symm x) = x.1 :=
-e.to_pretrivialization.proj_symm_apply hx
+e.to_topological.proj_symm_apply hx
 
 lemma proj_symm_apply' {b : B} {x : F}
   (hx : b ∈ e.base_set) : proj (e.to_local_homeomorph.symm (b, x)) = b :=
-e.to_pretrivialization.proj_symm_apply' hx
+e.to_topological.proj_symm_apply' hx
 
 lemma proj_surj_on_base_set [nonempty F] : set.surj_on proj e.source e.base_set :=
-e.to_pretrivialization.proj_surj_on_base_set
+e.to_topological.proj_surj_on_base_set
 
 lemma apply_symm_apply {x : B × F} (hx : x ∈ e.target) : e (e.to_local_homeomorph.symm x) = x :=
 e.to_local_homeomorph.right_inv hx
 
 lemma apply_symm_apply'
   {b : B} {x : F} (hx : b ∈ e.base_set) : e (e.to_local_homeomorph.symm (b, x)) = (b, x) :=
-e.to_pretrivialization.apply_symm_apply' hx
+e.to_topological.apply_symm_apply' hx
 
 @[simp, mfld_simps] lemma symm_apply_mk_proj (ex : x ∈ e.source) :
   e.to_local_homeomorph.symm (proj x, (e x).2) = x :=
-e.to_pretrivialization.symm_apply_mk_proj ex
+e.to_topological.symm_apply_mk_proj ex
 
-lemma symm_trans_source_eq (e e' : trivialization F proj) :
+lemma symm_trans_source_eq (e e' : trivialization I I₂ I₃ F proj) :
   (e.to_local_equiv.symm.trans e'.to_local_equiv).source
   = (e.base_set ∩ e'.base_set) ×ˢ (univ : set F) :=
-pretrivialization.symm_trans_source_eq e.to_pretrivialization e'
+topological_fiber_bundle.trivialization.symm_trans_source_eq e.to_topological e'
 
-lemma symm_trans_target_eq (e e' : trivialization F proj) :
+lemma symm_trans_target_eq (e e' : trivialization I I₂ I₃ F proj) :
   (e.to_local_equiv.symm.trans e'.to_local_equiv).target
   = (e.base_set ∩ e'.base_set) ×ˢ (univ : set F) :=
-pretrivialization.symm_trans_target_eq e.to_pretrivialization e'
+topological_fiber_bundle.trivialization.symm_trans_target_eq e.to_topological e'
 
-lemma coe_fst_eventually_eq_proj (ex : x ∈ e.source) : prod.fst ∘ e =ᶠ[𝓝 x] proj  :=
-mem_nhds_iff.2 ⟨e.source, λ y hy, e.coe_fst hy, e.open_source, ex⟩
+lemma coe_fst_eventually_eq_proj (ex : x ∈ e.source) : prod.fst ∘ e =ᶠ[𝓝 x] proj :=
+e.to_topological.coe_fst_eventually_eq_proj ex
 
 lemma coe_fst_eventually_eq_proj' (ex : proj x ∈ e.base_set) : prod.fst ∘ e =ᶠ[𝓝 x] proj :=
-e.coe_fst_eventually_eq_proj (e.mem_source.2 ex)
+e.to_topological.coe_fst_eventually_eq_proj' ex
 
 lemma map_proj_nhds (ex : x ∈ e.source) : map proj (𝓝 x) = 𝓝 (proj x) :=
-by rw [← e.coe_fst ex, ← map_congr (e.coe_fst_eventually_eq_proj ex), ← map_map, ← e.coe_coe,
-  e.to_local_homeomorph.map_nhds_eq ex, map_fst_nhds]
+e.to_topological.map_proj_nhds ex
 
 /-- In the domain of a bundle trivialization, the projection is continuous-/
 lemma continuous_at_proj (ex : x ∈ e.source) : continuous_at proj x :=
 (e.map_proj_nhds ex).le
 
 /-- Composition of a `trivialization` and a `homeomorph`. -/
-def comp_homeomorph {Z' : Type*} [topological_space Z'] (h : Z' ≃ₜ Z) :
-  trivialization F (proj ∘ h) :=
-{ to_local_homeomorph := h.to_local_homeomorph.trans e.to_local_homeomorph,
-  base_set := e.base_set,
-  open_base_set := e.open_base_set,
-  source_eq := by simp [e.source_eq, preimage_preimage],
-  target_eq := by simp [e.target_eq],
-  proj_to_fun := λ p hp,
-    have hp : h p ∈ e.source, by simpa using hp,
-    by simp [hp] }
+def comp_diffeomorph (h : Z' ≃ₘ⟮I₄, I₃⟯ Z) : trivialization I I₂ I₄ F (proj ∘ h) :=
+{ cont_mdiff_on_to_fun := e.cont_mdiff_on.comp h.cont_mdiff.cont_mdiff_on
+  (by simp [topological_fiber_bundle.trivialization.comp_homeomorph]),
+  cont_mdiff_on_inv_fun := h.symm.cont_mdiff.comp_cont_mdiff_on
+    (by { convert e.cont_mdiff_on_symm, dsimp [topological_fiber_bundle.trivialization.comp_homeomorph], refine inter_univ _ }), -- comp_homeomorph has very poor definitional behavior
+  .. e.to_topological.comp_homeomorph h.to_homeomorph }
 
 end smooth_fiber_bundle.trivialization
 
-/-- A topological fiber bundle with fiber `F` over a base `B` is a space projecting on `B`
-for which the fibers are all homeomorphic to `F`, such that the local situation around each point
+/-- A smooth fiber bundle with fiber `F` over a base `B` is a space projecting on `B`
+for which the fibers are all diffeomorphic to `F`, such that the local situation around each point
 is a direct product. -/
 def is_smooth_fiber_bundle (proj : Z → B) : Prop :=
-∀ x : B, ∃e : trivialization F proj, x ∈ e.base_set
+∀ x : B, ∃ e : trivialization I I₂ I₃ F proj, x ∈ e.base_set
 
-/-- A trivial topological fiber bundle with fiber `F` over a base `B` is a space `Z`
-projecting on `B` for which there exists a homeomorphism to `B × F` that sends `proj`
+/-- A trivial smooth fiber bundle with fiber `F` over a base `B` is a space `Z`
+projecting on `B` for which there exists a diffeomorphism to `B × F` that sends `proj`
 to `prod.fst`. -/
 def is_trivial_smooth_fiber_bundle (proj : Z → B) : Prop :=
-∃ e : Z ≃ₜ (B × F), ∀ x, (e x).1 = proj x
+∃ e : Z ≃ₘ⟮I₃, I.prod I₂⟯ B × F, ∀ x, (e x).1 = proj x
 
-variables {F}
+variables {I I₂ I₃ F}
+
+lemma is_trivial_smooth_fiber_bundle.is_trivial_topological_fiber_bundle
+  (h : is_trivial_smooth_fiber_bundle I I₂ I₃ F proj) :
+  is_trivial_topological_fiber_bundle F proj :=
+let ⟨e, he⟩ := h in ⟨e.to_homeomorph, he⟩
+
+lemma is_smooth_fiber_bundle.is_topological_fiber_bundle
+  (h : is_smooth_fiber_bundle I I₂ I₃ F proj) :
+  is_topological_fiber_bundle F proj :=
+λ x, let ⟨e, he⟩ := h x in ⟨e.to_topological, he⟩
 
 lemma is_trivial_smooth_fiber_bundle.is_smooth_fiber_bundle
-  (h : is_trivial_smooth_fiber_bundle F proj) :
-  is_smooth_fiber_bundle F proj :=
+  (h : is_trivial_smooth_fiber_bundle I I₂ I₃ F proj) :
+  is_smooth_fiber_bundle I I₂ I₃ F proj :=
+-- we cannot reuse `is_trivial_topological_fiber_bundle.is_topological_fiber_bundle` since all the work is hidden inside an existential
 let ⟨e, he⟩ := h in λ x,
-⟨⟨e.to_local_homeomorph, univ, is_open_univ, rfl, univ_prod_univ.symm, λ x _, he x⟩, mem_univ x⟩
+⟨⟨⟨e.to_equiv.to_local_equiv, is_open_univ, univ, is_open_univ, rfl, univ_prod_univ.symm, λ x _, he x⟩,
+  is_open_univ, e.cont_mdiff.cont_mdiff_on, e.symm.cont_mdiff.cont_mdiff_on⟩, mem_univ x⟩
 
-lemma is_smooth_fiber_bundle.map_proj_nhds (h : is_smooth_fiber_bundle F proj) (x : Z) :
+lemma is_smooth_fiber_bundle.map_proj_nhds (h : is_smooth_fiber_bundle I I₂ I₃ F proj) (x : Z) :
   map proj (𝓝 x) = 𝓝 (proj x) :=
 let ⟨e, ex⟩ := h (proj x) in e.map_proj_nhds $ e.mem_source.2 ex
 
 /-- The projection from a topological fiber bundle to its base is continuous. -/
-lemma is_smooth_fiber_bundle.continuous_proj (h : is_smooth_fiber_bundle F proj) :
+lemma is_smooth_fiber_bundle.continuous_proj (h : is_smooth_fiber_bundle I I₂ I₃ F proj) :
   continuous proj :=
-continuous_iff_continuous_at.2 $ λ x, (h.map_proj_nhds _).le
+h.is_topological_fiber_bundle.continuous_proj
 
 /-- The projection from a topological fiber bundle to its base is an open map. -/
-lemma is_smooth_fiber_bundle.is_open_map_proj (h : is_smooth_fiber_bundle F proj) :
+lemma is_smooth_fiber_bundle.is_open_map_proj (h : is_smooth_fiber_bundle I I₂ I₃ F proj) :
   is_open_map proj :=
-is_open_map.of_nhds_le $ λ x, (h.map_proj_nhds x).ge
+h.is_topological_fiber_bundle.is_open_map_proj
 
 /-- The projection from a topological fiber bundle with a nonempty fiber to its base is a surjective
 map. -/
 lemma is_smooth_fiber_bundle.surjective_proj [nonempty F]
-  (h : is_smooth_fiber_bundle F proj) :
+  (h : is_smooth_fiber_bundle I I₂ I₃ F proj) :
   function.surjective proj :=
-λ b, let ⟨e, eb⟩ := h b, ⟨x, _, hx⟩ := e.proj_surj_on_base_set eb in ⟨x, hx⟩
+h.is_topological_fiber_bundle.surjective_proj
 
 /-- The projection from a topological fiber bundle with a nonempty fiber to its base is a quotient
 map. -/
 lemma is_smooth_fiber_bundle.quotient_map_proj [nonempty F]
-  (h : is_smooth_fiber_bundle F proj) :
-  quotient_map proj :=
-h.is_open_map_proj.to_quotient_map h.continuous_proj h.surjective_proj
+  (h : is_smooth_fiber_bundle I I₂ I₃ F proj) : quotient_map proj :=
+h.is_topological_fiber_bundle.quotient_map_proj
 
 /-- The first projection in a product is a trivial topological fiber bundle. -/
 lemma is_trivial_smooth_fiber_bundle_fst :
-  is_trivial_smooth_fiber_bundle F (prod.fst : B × F → B) :=
-⟨homeomorph.refl _, λ x, rfl⟩
+  is_trivial_smooth_fiber_bundle I I₂ (I.prod I₂) F (prod.fst : B × F → B) :=
+⟨diffeomorph.refl _ _ _, λ x, rfl⟩
 
 /-- The first projection in a product is a topological fiber bundle. -/
-lemma is_smooth_fiber_bundle_fst : is_smooth_fiber_bundle F (prod.fst : B × F → B) :=
+lemma is_smooth_fiber_bundle_fst :
+  is_smooth_fiber_bundle I I₂ (I.prod I₂) F (prod.fst : B × F → B) :=
 is_trivial_smooth_fiber_bundle_fst.is_smooth_fiber_bundle
 
 /-- The second projection in a product is a trivial topological fiber bundle. -/
 lemma is_trivial_smooth_fiber_bundle_snd :
-  is_trivial_smooth_fiber_bundle F (prod.snd : F × B → B) :=
-⟨homeomorph.prod_comm _ _, λ x, rfl⟩
+  is_trivial_smooth_fiber_bundle I I₂ (I₂.prod I) F (prod.snd : F × B → B) :=
+sorry --⟨diffeomorph.prod_comm _ _, λ x, rfl⟩
 
 /-- The second projection in a product is a topological fiber bundle. -/
-lemma is_smooth_fiber_bundle_snd : is_smooth_fiber_bundle F (prod.snd : F × B → B) :=
+lemma is_smooth_fiber_bundle_snd :
+  is_smooth_fiber_bundle I I₂ (I₂.prod I) F (prod.snd : F × B → B) :=
 is_trivial_smooth_fiber_bundle_snd.is_smooth_fiber_bundle
 
-lemma is_smooth_fiber_bundle.comp_homeomorph {Z' : Type*} [topological_space Z']
-  (e : is_smooth_fiber_bundle F proj) (h : Z' ≃ₜ Z) :
-  is_smooth_fiber_bundle F (proj ∘ h) :=
+lemma is_smooth_fiber_bundle.comp_diffeomorph
+  (e : is_smooth_fiber_bundle I I₂ I₃ F proj) (h : Z' ≃ₘ⟮I₄, I₃⟯ Z) :
+  is_smooth_fiber_bundle I I₂ I₄ F (proj ∘ h) :=
 λ x, let ⟨e, he⟩ := e x in
-⟨e.comp_homeomorph h, by simpa [smooth_fiber_bundle.trivialization.comp_homeomorph] using he⟩
+⟨e.comp_diffeomorph h, by simpa [smooth_fiber_bundle.trivialization.comp_diffeomorph] using he⟩
 
 namespace smooth_fiber_bundle.trivialization
 
-/-- If `e` is a `trivialization` of `proj : Z → B` with fiber `F` and `h` is a homeomorphism
-`F ≃ₜ F'`, then `e.trans_fiber_homeomorph h` is the trivialization of `proj` with the fiber `F'`
+/-- If `e` is a `trivialization` of `proj : Z → B` with fiber `F` and `h` is a diffeomorphism
+`F ≃ F'`, then `e.trans_fiber_diffeomorph h` is the trivialization of `proj` with the fiber `F'`
 that sends `p : Z` to `((e p).1, h (e p).2)`. -/
-def trans_fiber_homeomorph {F' : Type*} [topological_space F']
-  (e : trivialization F proj) (h : F ≃ₜ F') : trivialization F' proj :=
-{ to_local_homeomorph := e.to_local_homeomorph.trans
-    ((homeomorph.refl _).prod_congr h).to_local_homeomorph,
-  base_set := e.base_set,
-  open_base_set := e.open_base_set,
-  source_eq := by simp [e.source_eq],
-  target_eq := by { ext, simp [e.target_eq] },
-  proj_to_fun := λ p hp, have p ∈ e.source, by simpa using hp, by simp [this] }
+def trans_fiber_diffeomorph (e : trivialization I I₂ I₃ F proj) (h : F ≃ₘ⟮I₂, I₅⟯ F') :
+  trivialization I I₅ I₃ F' proj :=
+{ cont_mdiff_on_to_fun := by { convert (cont_mdiff_id.prod_map h.cont_mdiff).comp_cont_mdiff_on
+  e.cont_mdiff_on, dsimp [topological_fiber_bundle.trivialization.trans_fiber_homeomorph],
+  refine inter_univ _ },
+  cont_mdiff_on_inv_fun :=
+    e.cont_mdiff_on_symm.comp (cont_mdiff_id.prod_map h.symm.cont_mdiff).cont_mdiff_on
+  (by { dsimp [topological_fiber_bundle.trivialization.trans_fiber_homeomorph],
+    refine (univ_inter _).subset }),
+  ..e.to_topological.trans_fiber_homeomorph h.to_homeomorph }
 
-@[simp] lemma trans_fiber_homeomorph_apply {F' : Type*} [topological_space F']
-  (e : trivialization F proj) (h : F ≃ₜ F') (x : Z) :
-  e.trans_fiber_homeomorph h x = ((e x).1, h (e x).2) :=
+@[simp] lemma trans_fiber_diffeomorph_apply
+  (e : trivialization I I₂ I₃ F proj) (h : F ≃ₘ⟮I₂, I₅⟯ F') (x : Z) :
+  e.trans_fiber_diffeomorph h x = ((e x).1, h (e x).2) :=
 rfl
 
-/-- Coordinate transformation in the fiber induced by a pair of bundle trivializations. See also
-`trivialization.coord_change_homeomorph` for a version bundled as `F ≃ₜ F`. -/
-def coord_change (e₁ e₂ : trivialization F proj) (b : B) (x : F) : F :=
+/-- Coordinate transformation in the fiber induced by a pair of smooth bundle trivializations.
+  See also `trivialization.coord_change_diffeomorph` for a version bundled as `F ≃ₜ F`. -/
+def coord_change (e₁ e₂ : trivialization I I₂ I₃ F proj) (b : B) (x : F) : F :=
 (e₂ $ e₁.to_local_homeomorph.symm (b, x)).2
 
-lemma mk_coord_change
-  (e₁ e₂ : trivialization F proj) {b : B}
+lemma mk_coord_change (e₁ e₂ : trivialization I I₂ I₃ F proj) {b : B}
   (h₁ : b ∈ e₁.base_set) (h₂ : b ∈ e₂.base_set) (x : F) :
   (b, e₁.coord_change e₂ b x) = e₂ (e₁.to_local_homeomorph.symm (b, x)) :=
 begin
   refine prod.ext _ rfl,
-  rw [e₂.coe_fst', ← e₁.coe_fst', e₁.apply_symm_apply' h₁],
+  rw [e₂.coe_fst, ← e₁.coe_fst', e₁.apply_symm_apply' h₁],
   { rwa [e₁.proj_symm_apply' h₁] },
   { rwa [e₁.proj_symm_apply' h₁] }
 end
 
 lemma coord_change_apply_snd
-  (e₁ e₂ : trivialization F proj) {p : Z}
+  (e₁ e₂ : trivialization I I₂ I₃ F proj) {p : Z}
   (h : proj p ∈ e₁.base_set) :
   e₁.coord_change e₂ (proj p) (e₁ p).snd = (e₂ p).snd :=
 by rw [coord_change, e₁.symm_apply_mk_proj (e₁.mem_source.2 h)]
 
 lemma coord_change_same_apply
-  (e : trivialization F proj) {b : B} (h : b ∈ e.base_set) (x : F) :
+  (e : trivialization I I₂ I₃ F proj) {b : B} (h : b ∈ e.base_set) (x : F) :
   e.coord_change e b x = x :=
 by rw [coord_change, e.apply_symm_apply' h]
 
 lemma coord_change_same
-  (e : trivialization F proj) {b : B} (h : b ∈ e.base_set) :
+  (e : trivialization I I₂ I₃ F proj) {b : B} (h : b ∈ e.base_set) :
   e.coord_change e b = id :=
 funext $ e.coord_change_same_apply h
 
 lemma coord_change_coord_change
-  (e₁ e₂ e₃ : trivialization F proj) {b : B}
+  (e₁ e₂ e₃ : trivialization I I₂ I₃ F proj) {b : B}
   (h₁ : b ∈ e₁.base_set) (h₂ : b ∈ e₂.base_set) (x : F) :
   e₂.coord_change e₃ b (e₁.coord_change e₂ b x) = e₁.coord_change e₃ b x :=
 begin
@@ -266,7 +311,7 @@ begin
   rwa [e₂.mem_source, e₁.proj_symm_apply' h₁]
 end
 
-lemma continuous_coord_change (e₁ e₂ : trivialization F proj) {b : B}
+lemma continuous_coord_change (e₁ e₂ : trivialization I I₂ I₃ F proj) {b : B}
   (h₁ : b ∈ e₁.base_set) (h₂ : b ∈ e₂.base_set) :
   continuous (e₁.coord_change e₂ b) :=
 begin
@@ -281,7 +326,7 @@ end
 /-- Coordinate transformation in the fiber induced by a pair of bundle trivializations,
 as a homeomorphism. -/
 def coord_change_homeomorph
-  (e₁ e₂ : trivialization F proj) {b : B} (h₁ : b ∈ e₁.base_set) (h₂ : b ∈ e₂.base_set) :
+  (e₁ e₂ : trivialization I I₂ I₃ F proj) {b : B} (h₁ : b ∈ e₁.base_set) (h₂ : b ∈ e₂.base_set) :
   F ≃ₜ F :=
 { to_fun := e₁.coord_change e₂ b,
   inv_fun := e₂.coord_change e₁ b,
@@ -291,7 +336,7 @@ def coord_change_homeomorph
   continuous_inv_fun := e₂.continuous_coord_change e₁ h₂ h₁ }
 
 @[simp] lemma coord_change_homeomorph_coe
-  (e₁ e₂ : trivialization F proj) {b : B} (h₁ : b ∈ e₁.base_set) (h₂ : b ∈ e₂.base_set) :
+  (e₁ e₂ : trivialization I I₂ I₃ F proj) {b : B} (h₁ : b ∈ e₁.base_set) (h₂ : b ∈ e₂.base_set) :
   ⇑(e₁.coord_change_homeomorph e₂ h₁ h₂) = e₁.coord_change e₂ b :=
 rfl
 
@@ -307,9 +352,9 @@ variables {B' : Type*} [topological_space B']
 construct a bundle trivialization of `φ : {p : B' × Z | f p.1 = proj p.2} → B'`
 given by `φ x = (x : B' × Z).1`. -/
 noncomputable def smooth_fiber_bundle.trivialization.comap
-  (e : trivialization F proj) (f : B' → B) (hf : continuous f)
+  (e : trivialization I I₂ I₃ F proj) (f : B' → B) (hf : continuous f)
   (b' : B') (hb' : f b' ∈ e.base_set) :
-  trivialization F (λ x : {p : B' × Z | f p.1 = proj p.2}, (x : B' × Z).1) :=
+  trivialization I I₂ I₃ F (λ x : {p : B' × Z | f p.1 = proj p.2}, (x : B' × Z).1) :=
 { to_fun := λ p, ((p : B' × Z).1, (e (p : B' × Z).2).2),
   inv_fun := λ p, if h : f p.1 ∈ e.base_set
     then ⟨⟨p.1, e.to_local_homeomorph.symm (f p.1, p.2)⟩, by simp [e.proj_symm_apply' h]⟩
@@ -354,22 +399,22 @@ noncomputable def smooth_fiber_bundle.trivialization.comap
 /-- If `proj : Z → B` is a topological fiber bundle with fiber `F` and `f : B' → B` is a continuous
 map, then the pullback bundle (a.k.a. induced bundle) is the topological bundle with the total space
 `{(x, y) : B' × Z | f x = proj y}` given by `λ ⟨(x, y), h⟩, x`. -/
-lemma is_smooth_fiber_bundle.comap (h : is_smooth_fiber_bundle F proj)
+lemma is_smooth_fiber_bundle.comap (h : is_smooth_fiber_bundle I I₂ I₃ F proj)
   {f : B' → B} (hf : continuous f) :
-  is_smooth_fiber_bundle F (λ x : {p : B' × Z | f p.1 = proj p.2}, (x : B' × Z).1) :=
+  is_smooth_fiber_bundle I I₂ I₃ F (λ x : {p : B' × Z | f p.1 = proj p.2}, (x : B' × Z).1) :=
 λ x, let ⟨e, he⟩ := h (f x) in ⟨e.comap f hf x he, he⟩
 
 end comap
 
 namespace smooth_fiber_bundle.trivialization
 
-lemma is_image_preimage_prod (e : trivialization F proj) (s : set B) :
+lemma is_image_preimage_prod (e : trivialization I I₂ I₃ F proj) (s : set B) :
   e.to_local_homeomorph.is_image (proj ⁻¹' s) (s ×ˢ (univ : set F)) :=
 λ x hx, by simp [e.coe_fst', hx]
 
 /-- Restrict a `trivialization` to an open set in the base. `-/
-def restr_open (e : trivialization F proj) (s : set B)
-  (hs : is_open s) : trivialization F proj :=
+def restr_open (e : trivialization I I₂ I₃ F proj) (s : set B)
+  (hs : is_open s) : trivialization I I₂ I₃ F proj :=
 { to_local_homeomorph := ((e.is_image_preimage_prod s).symm.restr
     (is_open.inter e.open_target (hs.prod is_open_univ))).symm,
   base_set := e.base_set ∩ s,
@@ -380,7 +425,7 @@ def restr_open (e : trivialization F proj) (s : set B)
 
 section piecewise
 
-lemma frontier_preimage (e : trivialization F proj) (s : set B) :
+lemma frontier_preimage (e : trivialization I I₂ I₃ F proj) (s : set B) :
   e.source ∩ frontier (proj ⁻¹' s) = proj ⁻¹' (e.base_set ∩ frontier s) :=
 by rw [← (e.is_image_preimage_prod s).frontier.preimage_eq, frontier_prod_univ_eq,
   (e.is_image_preimage_prod _).preimage_eq, e.source_eq, preimage_inter]
@@ -390,10 +435,10 @@ the base sets of `e` and `e'` intersect `frontier s` on the same set and `e p = 
 `proj p ∈ e.base_set ∩ frontier s`, `e.piecewise e' s Hs Heq` is the bundle trivialization over
 `set.ite s e.base_set e'.base_set` that is equal to `e` on `proj ⁻¹ s` and is equal to `e'`
 otherwise. -/
-noncomputable def piecewise (e e' : trivialization F proj) (s : set B)
+noncomputable def piecewise (e e' : trivialization I I₂ I₃ F proj) (s : set B)
   (Hs : e.base_set ∩ frontier s = e'.base_set ∩ frontier s)
   (Heq : eq_on e e' $ proj ⁻¹' (e.base_set ∩ frontier s)) :
-  trivialization F proj :=
+  trivialization I I₂ I₃ F proj :=
 { to_local_homeomorph := e.to_local_homeomorph.piecewise e'.to_local_homeomorph
     (proj ⁻¹' s) (s ×ˢ (univ : set F)) (e.is_image_preimage_prod s) (e'.is_image_preimage_prod s)
     (by rw [e.frontier_preimage, e'.frontier_preimage, Hs])
@@ -410,9 +455,9 @@ over a linearly ordered base `B` and a point `a ∈ e.base_set ∩ e'.base_set` 
 trivialization over `set.ite (Iic a) e.base_set e'.base_set` that is equal to `e` on points `p`
 such that `proj p ≤ a` and is equal to `e'` otherwise. -/
 noncomputable def piecewise_le_of_eq [linear_order B] [order_topology B]
-  (e e' : trivialization F proj) (a : B) (He : a ∈ e.base_set) (He' : a ∈ e'.base_set)
+  (e e' : trivialization I I₂ I₃ F proj) (a : B) (He : a ∈ e.base_set) (He' : a ∈ e'.base_set)
   (Heq : ∀ p, proj p = a → e p = e' p) :
-  trivialization F proj :=
+  trivialization I I₂ I₃ F proj :=
 e.piecewise e' (Iic a)
   (set.ext $ λ x, and.congr_left_iff.2 $ λ hx,
     by simp [He, He', mem_singleton_iff.1 (frontier_Iic_subset _ hx)])
@@ -425,8 +470,8 @@ points `p` such that `proj p ≤ a` and is equal to `((e' p).1, h (e' p).2)` oth
 `h = `e'.coord_change_homeomorph e _ _` is the homeomorphism of the fiber such that
 `h (e' p).2 = (e p).2` whenever `e p = a`. -/
 noncomputable def piecewise_le [linear_order B] [order_topology B]
-  (e e' : trivialization F proj) (a : B) (He : a ∈ e.base_set) (He' : a ∈ e'.base_set) :
-  trivialization F proj :=
+  (e e' : trivialization I I₂ I₃ F proj) (a : B) (He : a ∈ e.base_set) (He' : a ∈ e'.base_set) :
+  trivialization I I₂ I₃ F proj :=
 e.piecewise_le_of_eq (e'.trans_fiber_homeomorph (e'.coord_change_homeomorph e He' He))
   a He He' $ by { unfreezingI {rintro p rfl },
     ext1,
@@ -436,9 +481,9 @@ e.piecewise_le_of_eq (e'.trans_fiber_homeomorph (e'.coord_change_homeomorph e He
 /-- Given two bundle trivializations `e`, `e'` over disjoint sets, `e.disjoint_union e' H` is the
 bundle trivialization over the union of the base sets that agrees with `e` and `e'` over their
 base sets. -/
-noncomputable def disjoint_union (e e' : trivialization F proj)
+noncomputable def disjoint_union (e e' : trivialization I I₂ I₃ F proj)
   (H : disjoint e.base_set e'.base_set) :
-  trivialization F proj :=
+  trivialization I I₂ I₃ F proj :=
 { to_local_homeomorph := e.to_local_homeomorph.disjoint_union e'.to_local_homeomorph
     (λ x hx, by { rw [e.source_eq, e'.source_eq] at hx, exact H hx })
     (λ x hx, by { rw [e.target_eq, e'.target_eq] at hx, exact H ⟨hx.1.1, hx.2.1⟩ }),
@@ -461,16 +506,16 @@ noncomputable def disjoint_union (e e' : trivialization F proj)
 then it is trivial over any closed interval. -/
 lemma _root_.is_smooth_fiber_bundle.exists_trivialization_Icc_subset
   [conditionally_complete_linear_order B] [order_topology B]
-  (h : is_smooth_fiber_bundle F proj) (a b : B) :
-  ∃ e : trivialization F proj, Icc a b ⊆ e.base_set :=
+  (h : is_smooth_fiber_bundle I I₂ I₃ F proj) (a b : B) :
+  ∃ e : trivialization I I₂ I₃ F proj, Icc a b ⊆ e.base_set :=
 begin
   classical,
-  obtain ⟨ea, hea⟩ : ∃ ea : trivialization F proj, a ∈ ea.base_set := h a,
+  obtain ⟨ea, hea⟩ : ∃ ea : trivialization I I₂ I₃ F proj, a ∈ ea.base_set := h a,
   -- If `a < b`, then `[a, b] = ∅`, and the statement is trivial
   cases le_or_lt a b with hab hab; [skip, exact ⟨ea, by simp *⟩],
   /- Let `s` be the set of points `x ∈ [a, b]` such that `proj` is trivializable over `[a, x]`.
   We need to show that `b ∈ s`. Let `c = Sup s`. We will show that `c ∈ s` and `c = b`. -/
-  set s : set B := {x ∈ Icc a b | ∃ e : trivialization F proj, Icc a x ⊆ e.base_set},
+  set s : set B := {x ∈ Icc a b | ∃ e : trivialization I I₂ I₃ F proj, Icc a x ⊆ e.base_set},
   have ha : a ∈ s, from ⟨left_mem_Icc.2 hab, ea, by simp [hea]⟩,
   have sne : s.nonempty := ⟨a, ha⟩,
   have hsb : b ∈ upper_bounds s, from λ x hx, hx.1.2,
@@ -478,7 +523,7 @@ begin
   set c := Sup s,
   have hsc : is_lub s c, from is_lub_cSup sne sbd,
   have hc : c ∈ Icc a b, from ⟨hsc.1 ha, hsc.2 hsb⟩,
-  obtain ⟨-, ec : trivialization F proj, hec : Icc a c ⊆ ec.base_set⟩ : c ∈ s,
+  obtain ⟨-, ec : trivialization I I₂ I₃ F proj, hec : Icc a c ⊆ ec.base_set⟩ : c ∈ s,
   { cases hc.1.eq_or_lt with heq hlt, { rwa ← heq },
     refine ⟨hc, _⟩,
     /- In order to show that `c ∈ s`, consider a trivialization `ec` of `proj` over a neighborhood
@@ -496,7 +541,7 @@ begin
   done. Otherwise we show that `proj` can be trivialized over a larger interval `[a, d]`,
   `d ∈ (c, b]`, hence `c` is not an upper bound of `s`. -/
   cases hc.2.eq_or_lt with heq hlt, { exact ⟨ec, heq ▸ hec⟩ },
-  suffices : ∃ (d ∈ Ioc c b) (e : trivialization F proj), Icc a d ⊆ e.base_set,
+  suffices : ∃ (d ∈ Ioc c b) (e : trivialization I I₂ I₃ F proj), Icc a d ⊆ e.base_set,
   { rcases this with ⟨d, hdcb, hd⟩,
     exact ((hsc.1 ⟨⟨hc.1.trans hdcb.1.le, hdcb.2⟩, hd⟩).not_lt hdcb.1).elim },
   /- Since the base set of `ec` is open, it includes `[c, d)` (hence, `[a, d)`) for some
@@ -526,13 +571,13 @@ end piecewise
 
 end smooth_fiber_bundle.trivialization
 
-end smooth_fiber_bundle
+end normed_space
 
-/-! ### Constructing topological fiber bundles -/
+/-! ### Constructing smooth fiber bundles -/
 
 namespace bundle
 
-variable (E : B → Type*)
+variable (E' : B → Type*)
 
 attribute [mfld_simps] proj total_space_mk coe_fst coe_snd coe_snd_map_apply coe_snd_map_smul
   total_space.mk_cast
@@ -722,7 +767,7 @@ open smooth_fiber_bundle
 
 /-- Extended version of the local trivialization of a fiber bundle constructed from core,
 registering additionally in its type that it is a local bundle trivialization. -/
-def local_triv (i : ι) : trivialization F Z.proj :=
+def local_triv (i : ι) : trivialization I I₂ I₃ F Z.proj :=
 { base_set      := Z.base_set i,
   open_base_set := Z.is_open_base_set i,
   source_eq     := rfl,
@@ -760,7 +805,7 @@ def local_triv (i : ι) : trivialization F Z.proj :=
   to_local_equiv := Z.local_triv_as_local_equiv i }
 
 /-- A topological fiber bundle constructed from core is indeed a topological fiber bundle. -/
-protected theorem is_smooth_fiber_bundle : is_smooth_fiber_bundle F Z.proj :=
+protected theorem is_smooth_fiber_bundle : is_smooth_fiber_bundle I I₂ I₃ F Z.proj :=
 λx, ⟨Z.local_triv (Z.index_at x), Z.mem_base_set_at x⟩
 
 /-- The projection on the base of a topological bundle created from core is continuous -/
@@ -773,7 +818,7 @@ Z.is_smooth_fiber_bundle.is_open_map_proj
 
 /-- Preferred local trivialization of a fiber bundle constructed from core, at a given point, as
 a bundle trivialization -/
-def local_triv_at (b : B) : trivialization F Z.proj :=
+def local_triv_at (b : B) : trivialization I I₂ I₃ F Z.proj :=
 Z.local_triv (Z.index_at b)
 
 @[simp, mfld_simps] lemma local_triv_at_def (b : B) :

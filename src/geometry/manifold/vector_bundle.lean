@@ -18,7 +18,7 @@ noncomputable theory
 open bundle set
 open_locale classical manifold
 
-variables (𝕜 : Type*) {B V V' H H' : Type*}
+variables {𝕜 : Type*} {B V V' H H' : Type*}
 
 section normed_space
 variables [nondiscrete_normed_field 𝕜]
@@ -33,12 +33,12 @@ variables [topological_space B] [charted_space H B] [smooth_manifold_with_corner
 variables [topological_space (total_space E)] [charted_space H' (total_space E)]
 variables [smooth_manifold_with_corners I' (total_space E)]
 
-/-- Local trivialization for vector bundles. -/
+/-- Local trivialization for smooth vector bundles. -/
 @[nolint has_inhabited_instance]
 structure smooth_vector_bundle.trivialization extends to_topological_trivialization :
   topological_vector_bundle.trivialization 𝕜 F E :=
-(cont_mdiff_to_fun  : cont_mdiff_on I' (I.prod 𝓘(𝕜, F)) ⊤ to_fun source)
-(cont_mdiff_inv_fun  : cont_mdiff_on (I.prod 𝓘(𝕜, F)) I' ⊤ inv_fun target)
+(cont_mdiff_on_to_fun  : cont_mdiff_on I' (I.prod 𝓘(𝕜, F)) ⊤ to_fun source)
+(cont_mdiff_on_inv_fun  : cont_mdiff_on (I.prod 𝓘(𝕜, F)) I' ⊤ inv_fun target)
 
 open smooth_vector_bundle
 

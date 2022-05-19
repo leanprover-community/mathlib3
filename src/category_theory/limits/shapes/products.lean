@@ -191,4 +191,120 @@ abbreviation has_products := Π (J : Type v), has_limits_of_shape (discrete J) C
 /-- An abbreviation for `Π J, has_colimits_of_shape (discrete J) C` -/
 abbreviation has_coproducts := Π (J : Type v), has_colimits_of_shape (discrete J) C
 
+/-!
+(Co)products over a type with a unique term.
+-/
+section unique
+variables {C} [unique β] (f : β → C)
+
+/-- The limit cone for the product over an index type with exactly one term. -/
+@[simps]
+def limit_cone_of_unique : limit_cone (discrete.functor f) :=
+{ cone :=
+  { X := f default,
+    π := { app := λ j, eq_to_hom (by { dsimp, congr, }), }, },
+  is_limit :=
+  { lift := λ s, s.π.app default,
+    fac' := λ s j, begin
+      have w := (s.π.naturality (eq_to_hom (unique.default_eq _))).symm,
+      dsimp at w,
+      simpa using w,
+    end,
+    uniq' := λ s m w, begin
+      specialize w default,
+      dsimp at w,
+      simpa using w,
+    end, }, }
+
+@[priority 100] instance has_product_unique : has_product f :=
+has_limit.mk (limit_cone_of_unique f)
+
+/-- A product over a index type with exactly one term is just the object over that term. -/
+@[simps]
+def product_unique_iso : ∏ f ≅ f default :=
+is_limit.cone_point_unique_up_to_iso (limit.is_limit _) (limit_cone_of_unique f).is_limit
+
+/-- The colimit cocone for the coproduct over an index type with exactly one term. -/
+@[simps]
+def colimit_cocone_of_unique : colimit_cocone (discrete.functor f) :=
+{ cocone :=
+  { X := f default,
+    ι := { app := λ j, eq_to_hom (by { dsimp, congr, }), }, },
+  is_colimit :=
+  { desc := λ s, s.ι.app default,
+    fac' := λ s j, begin
+      have w := (s.ι.naturality (eq_to_hom (unique.eq_default _))),
+      dsimp at w,
+      simpa using w,
+    end,
+    uniq' := λ s m w, begin
+      specialize w default,
+      dsimp at w,
+      simpa using w,
+    end, }, }
+
+@[priority 100] instance has_coproduct_unique : has_coproduct f :=
+has_colimit.mk (colimit_cocone_of_unique f)
+
+/-- A coproduct over a index type with exactly one term is just the object over that term. -/
+@[simps]
+def coproduct_unique_iso : ∐ f ≅ f default :=
+is_colimit.cocone_point_unique_up_to_iso (colimit.is_colimit _)
+  (colimit_cocone_of_unique f).is_colimit
+
+end unique
+
+section reindex
+variables {C} {γ : Type v} (ε : β ≃ γ) (f : γ → C)
+
+section
+variables [has_product f] [has_product (f ∘ ε)]
+
+/-- Reindex a categorical product via an equivalence of the index types. -/
+def pi.reindex : pi_obj (f ∘ ε) ≅ pi_obj f :=
+has_limit.iso_of_equivalence (discrete.equivalence ε) (discrete.nat_iso (λ i, iso.refl _))
+
+@[simp, reassoc]
+lemma pi.reindex_hom_π (b : β) : (pi.reindex ε f).hom ≫ pi.π f (ε b) = pi.π (f ∘ ε) b :=
+begin
+  dsimp [pi.reindex],
+  simp only [has_limit.iso_of_equivalence_hom_π, discrete.nat_iso_inv_app,
+    equivalence.equivalence_mk'_counit, discrete.equivalence_counit_iso, discrete.nat_iso_hom_app,
+    eq_to_iso.hom, eq_to_hom_map],
+  dsimp,
+  simpa using limit.w (discrete.functor (f ∘ ε)) (eq_to_hom (ε.symm_apply_apply b)),
+end
+
+@[simp, reassoc]
+lemma pi.reindex_inv_π (b : β) : (pi.reindex ε f).inv ≫ pi.π (f ∘ ε) b = pi.π f (ε b) :=
+by simp [iso.inv_comp_eq]
+
+end
+
+section
+variables [has_coproduct f] [has_coproduct (f ∘ ε)]
+
+/-- Reindex a categorical coproduct via an equivalence of the index types. -/
+def sigma.reindex : sigma_obj (f ∘ ε) ≅ sigma_obj f :=
+has_colimit.iso_of_equivalence (discrete.equivalence ε) (discrete.nat_iso (λ i, iso.refl _))
+
+@[simp, reassoc]
+lemma sigma.ι_reindex_hom (b : β) : sigma.ι (f ∘ ε) b ≫ (sigma.reindex ε f).hom = sigma.ι f (ε b) :=
+begin
+  dsimp [sigma.reindex],
+  simp only [has_colimit.iso_of_equivalence_hom_π, equivalence.equivalence_mk'_unit,
+    discrete.equivalence_unit_iso, discrete.nat_iso_hom_app, eq_to_iso.hom, eq_to_hom_map,
+    discrete.nat_iso_inv_app],
+  dsimp,
+  simp [←colimit.w (discrete.functor f) (eq_to_hom (ε.apply_symm_apply (ε b)))],
+end
+
+@[simp, reassoc]
+lemma sigma.ι_reindex_inv (b : β) : sigma.ι f (ε b) ≫ (sigma.reindex ε f).inv = sigma.ι (f ∘ ε) b :=
+by simp [iso.comp_inv_eq]
+
+end
+
+end reindex
+
 end category_theory.limits

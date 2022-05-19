@@ -219,6 +219,28 @@ end div
 
 open_locale pointwise
 
+/-- Repeated pointwise addition (not the same as pointwise repeated addition!) of a `filter`. See
+Note [pointwise nat action].-/
+protected def has_nsmul [has_zero α] [has_add α] : has_scalar ℕ (filter α) := ⟨nsmul_rec⟩
+
+/-- Repeated pointwise multiplication (not the same as pointwise repeated multiplication!) of a
+`filter`. See Note [pointwise nat action]. -/
+@[to_additive]
+protected def has_npow [has_one α] [has_mul α] : has_pow (filter α) ℕ := ⟨λ s n, npow_rec n s⟩
+
+/-- Repeated pointwise addition/subtraction (not the same as pointwise repeated
+addition/subtraction!) of a `filter`. See Note [pointwise nat action]. -/
+protected def has_zsmul [has_zero α] [has_add α] [has_neg α] : has_scalar ℤ (filter α) :=
+⟨zsmul_rec⟩
+
+/-- Repeated pointwise multiplication/division (not the same as pointwise repeated
+multiplication/division!) of a `filter`. See Note [pointwise nat action]. -/
+@[to_additive] protected def has_zpow [has_one α] [has_mul α] [has_inv α] : has_pow (filter α) ℤ :=
+⟨λ s n, zpow_rec n s⟩
+
+localized "attribute [instance] filter.has_nsmul filter.has_npow filter.has_zsmul filter.has_zpow"
+  in pointwise
+
 /-- `filter α` is a `semigroup` under pointwise operations if `α` is.-/
 @[to_additive "`filter α` is an `add_semigroup` under pointwise operations if `α` is."]
 protected def semigroup [semigroup α] : semigroup (filter α) :=
@@ -282,7 +304,7 @@ variables [monoid α] {f g : filter α} {s : set α} {a : α}
 /-- `filter α` is a `monoid` under pointwise operations if `α` is. -/
 @[to_additive "`filter α` is an `add_monoid` under pointwise operations if `α` is."]
 protected def monoid : monoid (filter α) :=
-{ ..filter.mul_one_class, ..filter.semigroup }
+{ ..filter.mul_one_class, ..filter.semigroup, ..filter.has_npow }
 
 localized "attribute [instance] filter.monoid filter.add_monoid" in pointwise
 
@@ -330,7 +352,7 @@ protected def division_monoid : division_monoid (filter α) :=
     rw [inv_pure, inv_eq_of_mul_eq_one_right hab],
   end,
   div_eq_mul_inv := λ f g, map_map₂_distrib_right div_eq_mul_inv,
-  ..filter.monoid, ..filter.has_involutive_inv, ..filter.has_div }
+  ..filter.monoid, ..filter.has_involutive_inv, ..filter.has_div, ..filter.has_zpow }
 
 @[to_additive] lemma is_unit_iff : is_unit f ↔ ∃ a, f = pure a ∧ is_unit a :=
 begin
@@ -352,8 +374,28 @@ pointwise operations if `α` is."]
 protected def division_comm_monoid [division_comm_monoid α] : division_comm_monoid (filter α) :=
 { ..filter.division_monoid, ..filter.comm_semigroup }
 
+/-- `filter α` has distributive negation if `α` has. -/
+protected def has_distrib_neg [has_mul α] [has_distrib_neg α] : has_distrib_neg (filter α) :=
+{ neg_mul := λ _ _, map₂_map_left_comm neg_mul,
+  mul_neg := λ _ _, map_map₂_right_comm mul_neg,
+  ..filter.has_involutive_neg }
+
 localized "attribute [instance] filter.comm_monoid filter.add_comm_monoid filter.division_monoid
-  filter.subtraction_monoid filter.division_comm_monoid filter.subtraction_comm_monoid" in pointwise
+  filter.subtraction_monoid filter.division_comm_monoid filter.subtraction_comm_monoid
+  filter.has_distrib_neg" in pointwise
+
+section distrib
+variables [distrib α] {f g h : filter α}
+
+/-!
+Note that `filter α` is not a `distrib` because `f * g + f * h` has cross terms that `f * (g + h)`
+lacks.
+-/
+
+lemma mul_add_subset : f * (g + h) ≤ f * g + f * h := map₂_distrib_le_left mul_add
+lemma add_mul_subset : (f + g) * h ≤ f * h + g * h := map₂_distrib_le_right add_mul
+
+end distrib
 
 section group
 variables [group α] [group β] [monoid_hom_class F α β] (m : F) {f g f₁ g₁ : filter α}

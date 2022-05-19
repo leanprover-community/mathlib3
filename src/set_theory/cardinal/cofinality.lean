@@ -3,7 +3,9 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Floris van Doorn
 -/
+
 import set_theory.cardinal.ordinal
+import set_theory.ordinal.fixed_point
 
 /-!
 # Cofinality
@@ -40,9 +42,8 @@ This file contains the definition of cofinality of an ordinal number and regular
 
 cofinality, regular cardinals, limits cardinals, inaccessible cardinals,
 infinite pigeonhole principle
-
-
 -/
+
 noncomputable theory
 
 open function cardinal set
@@ -283,6 +284,37 @@ by { rw [←ord_lt_ord, ←sup_ord], refine sup_lt_ord_lift hι (λ i, _), rw or
 theorem sup_lt {ι} {f : ι → cardinal} {c : cardinal} (hι : #ι < c.ord.cof) :
   (∀ i, f i < c) → cardinal.sup.{u u} f < c :=
 sup_lt_lift (by rwa (#ι).lift_id)
+
+theorem nfp_family_lt_ord_lift {ι} {f : ι → ordinal → ordinal} {c} (hc : ω < cof c)
+  (hc' : (#ι).lift < cof c) (hf : ∀ i (b < c), f i b < c) {a} (ha : a < c) :
+  nfp_family.{u v} f a < c :=
+begin
+  refine sup_lt_ord_lift ((cardinal.lift_le.2 (mk_list_le_max ι)).trans_lt _) (λ l, _),
+  { rw lift_max',
+    apply max_lt _ hc',
+    rwa cardinal.lift_omega },
+  { induction l with i l H,
+    { exact ha },
+    { exact hf _ _ H } }
+end
+
+theorem nfp_family_lt_ord {ι} {f : ι → ordinal → ordinal} {c} (hc : ω < cof c)
+  (hc' : #ι < cof c) (hf : ∀ i (b < c), f i b < c) {a} : a < c → nfp_family.{u u} f a < c :=
+nfp_family_lt_ord_lift hc (by rwa (#ι).lift_id) hf
+
+theorem nfp_bfamily_lt_ord_lift {o : ordinal} {f : Π a < o, ordinal → ordinal} {c} (hc : ω < cof c)
+  (hc' : o.card.lift < cof c) (hf : ∀ i hi (b < c), f i hi b < c) {a} :
+  a < c → nfp_bfamily.{u v} o f a < c :=
+nfp_family_lt_ord_lift hc (by rwa mk_ordinal_out) (λ i, hf _ _)
+
+theorem nfp_bfamily_lt_ord {o : ordinal} {f : Π a < o, ordinal → ordinal} {c} (hc : ω < cof c)
+  (hc' : o.card < cof c) (hf : ∀ i hi (b < c), f i hi b < c) {a} :
+  a < c → nfp_bfamily.{u u} o f a < c :=
+nfp_bfamily_lt_ord_lift hc (by rwa o.card.lift_id) hf
+
+theorem nfp_lt_ord {f : ordinal → ordinal} {c} (hc : ω < cof c) (hf : ∀ i < c, f i < c) {a} :
+  a < c → nfp f a < c :=
+nfp_family_lt_ord_lift hc (by simpa using cardinal.one_lt_omega.trans hc) (λ _, hf)
 
 theorem exists_blsub_cof (o : ordinal) : ∃ (f : Π a < (cof o).ord, ordinal), blsub.{u u} _ f = o :=
 begin
@@ -836,6 +868,71 @@ theorem sum_lt_lift_of_is_regular {ι : Type u} {f : ι → cardinal} {c : cardi
 theorem sum_lt_of_is_regular {ι : Type u} {f : ι → cardinal} {c : cardinal} (hc : is_regular c)
   (hι : #ι < c) : (∀ i, f i < c) → sum f < c :=
 sum_lt_lift_of_is_regular.{u u} hc (by rwa lift_id)
+
+theorem nfp_family_lt_ord_lift_of_is_regular {ι} {f : ι → ordinal → ordinal} {c} (hc : is_regular c)
+  (hι : (#ι).lift < c) (hc' : c ≠ ω) (hf : ∀ i (b < c.ord), f i b < c.ord) {a} (ha : a < c.ord) :
+  nfp_family.{u v} f a < c.ord :=
+by { apply nfp_family_lt_ord_lift _ _ hf ha; rwa hc.2, exact lt_of_le_of_ne hc.1 hc'.symm }
+
+theorem nfp_family_lt_ord_of_is_regular {ι} {f : ι → ordinal → ordinal} {c} (hc : is_regular c)
+  (hι : #ι < c) (hc' : c ≠ ω) {a} (hf : ∀ i (b < c.ord), f i b < c.ord) :
+  a < c.ord → nfp_family.{u u} f a < c.ord :=
+nfp_family_lt_ord_lift_of_is_regular hc (by rwa lift_id) hc' hf
+
+theorem nfp_bfamily_lt_ord_lift_of_is_regular {o : ordinal} {f : Π a < o, ordinal → ordinal} {c}
+  (hc : is_regular c) (ho : o.card.lift < c) (hc' : c ≠ ω)
+  (hf : ∀ i hi (b < c.ord), f i hi b < c.ord) {a} : a < c.ord → nfp_bfamily.{u v} o f a < c.ord :=
+nfp_family_lt_ord_lift_of_is_regular hc (by rwa mk_ordinal_out) hc' (λ i, hf _ _)
+
+theorem nfp_bfamily_lt_ord_of_is_regular {o : ordinal} {f : Π a < o, ordinal → ordinal} {c}
+  (hc : is_regular c) (ho : o.card < c) (hc' : c ≠ ω) (hf : ∀ i hi (b < c.ord), f i hi b < c.ord)
+  {a} : a < c.ord → nfp_bfamily.{u u} o f a < c.ord :=
+nfp_bfamily_lt_ord_lift_of_is_regular hc (by rwa lift_id) hc' hf
+
+theorem nfp_lt_ord_of_is_regular {f : ordinal → ordinal} {c} (hc : is_regular c) (hc' : c ≠ ω)
+  (hf : ∀ i < c.ord, f i < c.ord) {a} : (a < c.ord) → nfp f a < c.ord :=
+nfp_lt_ord (by { rw hc.2, exact lt_of_le_of_ne hc.1 hc'.symm }) hf
+
+theorem deriv_family_lt_ord_lift {ι} {f : ι → ordinal → ordinal} {c} (hc : is_regular c)
+  (hι : (#ι).lift < c) (hc' : c ≠ ω) (hf : ∀ i (b < c.ord), f i b < c.ord) {a} :
+  a < c.ord → deriv_family.{u v} f a < c.ord :=
+begin
+  have hω : ω < c.ord.cof,
+  { rw hc.2, exact lt_of_le_of_ne hc.1 hc'.symm },
+  apply a.limit_rec_on,
+  { rw deriv_family_zero,
+    exact nfp_family_lt_ord_lift hω (by rwa hc.2) hf },
+  { intros b hb hb',
+    rw deriv_family_succ,
+    exact nfp_family_lt_ord_lift hω (by rwa hc.2) hf
+      ((ord_is_limit hc.1).2 _ (hb ((ordinal.lt_succ_self b).trans hb'))) },
+  { intros b hb H hb',
+    rw deriv_family_limit f hb,
+    exact bsup_lt_ord_of_is_regular hc (ord_lt_ord.1 ((ord_card_le b).trans_lt hb'))
+      (λ o' ho', H o' ho' (ho'.trans hb')) }
+end
+
+theorem deriv_family_lt_ord {ι} {f : ι → ordinal → ordinal} {c} (hc : is_regular c)
+  (hι : #ι < c) (hc' : c ≠ ω) (hf : ∀ i (b < c.ord), f i b < c.ord) {a} :
+  a < c.ord → deriv_family.{u u} f a < c.ord :=
+deriv_family_lt_ord_lift hc (by rwa lift_id) hc' hf
+
+theorem deriv_bfamily_lt_ord_lift {o : ordinal} {f : Π a < o, ordinal → ordinal} {c}
+  (hc : is_regular c) (hι : o.card.lift < c) (hc' : c ≠ ω)
+  (hf : ∀ i hi (b < c.ord), f i hi b < c.ord) {a} :
+  a < c.ord → deriv_bfamily.{u v} o f a < c.ord :=
+deriv_family_lt_ord_lift hc (by rwa mk_ordinal_out) hc' (λ i, hf _ _)
+
+theorem deriv_bfamily_lt_ord {o : ordinal} {f : Π a < o, ordinal → ordinal} {c} (hc : is_regular c)
+  (hι : o.card < c) (hc' : c ≠ ω) (hf : ∀ i hi (b < c.ord), f i hi b < c.ord)
+  {a} : a < c.ord → deriv_bfamily.{u u} o f a < c.ord :=
+deriv_bfamily_lt_ord_lift hc (by rwa lift_id) hc' hf
+
+theorem deriv_lt_ord {f : ordinal.{u} → ordinal} {c} (hc : is_regular c) (hc' : c ≠ ω)
+  (hf : ∀ i < c.ord, f i < c.ord) {a} : a < c.ord → deriv f a < c.ord :=
+deriv_family_lt_ord_lift hc
+  (by simpa using cardinal.one_lt_omega.trans (lt_of_le_of_ne hc.1 hc'.symm))
+  hc' (λ _, hf)
 
 /-- A cardinal is inaccessible if it is an uncountable regular strong limit cardinal. -/
 def is_inaccessible (c : cardinal) :=

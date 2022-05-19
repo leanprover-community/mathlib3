@@ -109,7 +109,7 @@ begin
 end
 
 lemma dimH_le {s : set X} {d : ℝ≥0∞} (H : ∀ d' : ℝ≥0, μH[d'] s = ∞ → ↑d' ≤ d) : dimH s ≤ d :=
-(dimH_def s).trans_le $ bsupr_le H
+(dimH_def s).trans_le $ supr₂_le H
 
 lemma dimH_le_of_hausdorff_measure_ne_top {s : set X} {d : ℝ≥0} (h : μH[d] s ≠ ∞) :
   dimH s ≤ d :=
@@ -117,7 +117,7 @@ le_of_not_lt $ mt hausdorff_measure_of_lt_dimH h
 
 lemma le_dimH_of_hausdorff_measure_eq_top {s : set X} {d : ℝ≥0} (h : μH[d] s = ∞) :
   ↑d ≤ dimH s :=
-by { rw dimH_def, exact le_bsupr d h }
+by { rw dimH_def, exact le_supr₂ d h }
 
 lemma hausdorff_measure_of_dimH_lt {s : set X} {d : ℝ≥0}
   (h : dimH s < d) : μH[d] s = 0 :=
@@ -125,8 +125,7 @@ begin
   rw dimH_def at h,
   rcases ennreal.lt_iff_exists_nnreal_btwn.1 h with ⟨d', hsd', hd'd⟩,
   rw [ennreal.coe_lt_coe, ← nnreal.coe_lt_coe] at hd'd,
-  exact (hausdorff_measure_zero_or_top hd'd s).resolve_right
-    (λ h, hsd'.not_le (le_bsupr d' h))
+  exact (hausdorff_measure_zero_or_top hd'd s).resolve_right (λ h, hsd'.not_le $ le_supr₂ d' h)
 end
 
 lemma measure_zero_of_dimH_lt {μ : measure X} {d : ℝ≥0}
@@ -221,33 +220,33 @@ begin
   rcases countable_cover_nhds_within htx with ⟨S, hSs, hSc, hSU⟩,
   calc dimH s ≤ dimH (⋃ x ∈ S, t x) : dimH_mono hSU
   ... = ⨆ x ∈ S, dimH (t x) : dimH_bUnion hSc _
-  ... ≤ r : bsupr_le (λ x hx, htr x (hSs hx))
+  ... ≤ r : supr₂_le (λ x hx, htr x $ hSs hx)
 end
 
 /-- In an (extended) metric space with second countable topology, the Hausdorff dimension
 of a set `s` is the supremum over `x ∈ s` of the limit superiors of `dimH t` along
-`(𝓝[s] x).lift' powerset`. -/
-lemma bsupr_limsup_dimH (s : set X) : (⨆ x ∈ s, limsup ((𝓝[s] x).lift' powerset) dimH) = dimH s :=
+`(𝓝[s] x).small_sets`. -/
+lemma bsupr_limsup_dimH (s : set X) : (⨆ x ∈ s, limsup (𝓝[s] x).small_sets dimH) = dimH s :=
 begin
-  refine le_antisymm (bsupr_le $ λ x hx, _) _,
+  refine le_antisymm (supr₂_le $ λ x hx, _) _,
   { refine Limsup_le_of_le (by apply_auto_param) (eventually_map.2 _),
-    exact eventually_lift'_powerset.2 ⟨s, self_mem_nhds_within, λ t, dimH_mono⟩ },
+    exact eventually_small_sets.2 ⟨s, self_mem_nhds_within, λ t, dimH_mono⟩ },
   { refine le_of_forall_ge_of_dense (λ r hr, _),
     rcases exists_mem_nhds_within_lt_dimH_of_lt_dimH hr with ⟨x, hxs, hxr⟩,
-    refine le_bsupr_of_le x hxs _, rw limsup_eq, refine le_Inf (λ b hb, _),
-    rcases eventually_lift'_powerset.1 hb with ⟨t, htx, ht⟩,
+    refine le_supr₂_of_le x hxs _, rw limsup_eq, refine le_Inf (λ b hb, _),
+    rcases eventually_small_sets.1 hb with ⟨t, htx, ht⟩,
     exact (hxr t htx).le.trans (ht t subset.rfl) }
 end
 
 /-- In an (extended) metric space with second countable topology, the Hausdorff dimension
 of a set `s` is the supremum over all `x` of the limit superiors of `dimH t` along
-`(𝓝[s] x).lift' powerset`. -/
-lemma supr_limsup_dimH (s : set X) : (⨆ x, limsup ((𝓝[s] x).lift' powerset) dimH) = dimH s :=
+`(𝓝[s] x).small_sets`. -/
+lemma supr_limsup_dimH (s : set X) : (⨆ x, limsup (𝓝[s] x).small_sets dimH) = dimH s :=
 begin
   refine le_antisymm (supr_le $ λ x, _) _,
   { refine Limsup_le_of_le (by apply_auto_param) (eventually_map.2 _),
-    exact eventually_lift'_powerset.2 ⟨s, self_mem_nhds_within, λ t, dimH_mono⟩ },
-  { rw ← bsupr_limsup_dimH, exact bsupr_le_supr _ _ }
+    exact eventually_small_sets.2 ⟨s, self_mem_nhds_within, λ t, dimH_mono⟩ },
+  { rw ← bsupr_limsup_dimH, exact supr₂_le_supr _ _ }
 end
 
 end
@@ -301,7 +300,7 @@ begin
   rcases countable_cover_nhds_within htn with ⟨u, hus, huc, huU⟩,
   replace huU := inter_eq_self_of_subset_left huU, rw inter_Union₂ at huU,
   rw [← huU, image_Union₂, dimH_bUnion huc, dimH_bUnion huc], simp only [ennreal.supr_div],
-  exact bsupr_le_bsupr (λ x hx, ((hC x (hus hx)).mono (inter_subset_right _ _)).dimH_image_le hr)
+  exact supr₂_mono (λ x hx, ((hC x (hus hx)).mono (inter_subset_right _ _)).dimH_image_le hr)
 end
 
 /-- If `f : X → Y` is Hölder continuous in a neighborhood of every point `x : X` with the same

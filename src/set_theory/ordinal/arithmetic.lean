@@ -880,7 +880,7 @@ instance : is_antisymm ordinal (∣) :=
 ⟨λ a b h₁ h₂,
   if a0 : a = 0 then by subst a; exact (zero_dvd_iff.1 h₁).symm else
   if b0 : b = 0 then by subst b; exact zero_dvd_iff.1 h₂ else
-  le_antisymm (le_of_dvd b0 h₁) (le_of_dvd a0 h₂)⟩
+  (le_of_dvd b0 h₁).antisymm (le_of_dvd a0 h₂)⟩
 
 /-- `a % b` is the unique ordinal `o'` satisfying
   `a = b * o + o'` with `o' < b`. -/

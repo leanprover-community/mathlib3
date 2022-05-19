@@ -450,8 +450,8 @@ by { simp only [add_assoc, add_sub_cancel', add_right, polar, add_left_inj, add_
 def to_quadratic_form (B : bilin_form R M) : quadratic_form R M :=
 { to_fun := λ x, B x x,
   to_fun_smul := λ a x, by simp only [mul_assoc, smul_right, smul_left],
-  polar_add_left' := λ x x' y, by simp only [add_assoc, add_right, add_left_inj, polar_to_quadratic_form, add_left,
-    add_left_comm],
+  polar_add_left' := λ x x' y, by simp only [add_assoc, add_right, add_left_inj,
+    polar_to_quadratic_form, add_left, add_left_comm],
   polar_smul_left' := λ a x y, by simp only [smul_add, add_left_inj, polar_to_quadratic_form,
     smul_right, smul_eq_mul, smul_left, smul_right, mul_add] }
 

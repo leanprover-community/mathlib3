@@ -71,60 +71,108 @@ instance {α : Type*} [ordered_comm_semiring α] : comm_semigroup (Ico (0:α) 1)
 
 /-- Instances for `(Ioc 0 1)` -/
 
-instance {α : Type*} [ordered_comm_semiring α] : comm_monoid (Ioc (0:α) 1) := {
+instance {α : Type*} [ordered_comm_semiring α] [nontrivial α] : comm_monoid (Ioc (0:α) 1) := {
+  mul := λ p q, ⟨p.1 * q.1, ⟨mul_pos p.2.1 q.2.1, mul_le_one p.2.2 (le_of_lt q.2.1) q.2.2⟩⟩,
+  mul_assoc :=
+begin
+  refine λ p q r, _,
+  rcases p with ⟨p1, ⟨p21,p22⟩⟩,
+  rcases q with ⟨q1, ⟨q21,q22⟩⟩,
+  rcases r with ⟨r1, ⟨r21,r22⟩⟩,
+  simp,
+  refine mul_assoc p1 q1 r1,
+end ,
+  one := ⟨1, ⟨zero_lt_one, le_refl 1⟩⟩,
+  one_mul :=
+begin
+  refine λ p, _,
+  rcases p with ⟨p1, ⟨p21,p22⟩⟩,
+  simp only [one_mul, subtype.mk_eq_mk],
+end ,
+  mul_one :=
+begin
+  refine λ p, _,
+  rcases p with ⟨p1, ⟨p21,p22⟩⟩,
+  simp only [mul_one, subtype.mk_eq_mk],
+end ,
+  npow :=
+begin
+  refine λ n p, _,
+  rcases p with ⟨p1, ⟨p21,p22⟩⟩,
+  exact ⟨p1 ^ n, ⟨pow_pos p21 n, pow_le_one n (le_of_lt p21) p22⟩⟩,
+end ,
+  npow_zero' :=
+begin
+  refine λ p, _,
+  rcases p with ⟨p1, ⟨p21,p22⟩⟩,
+  simp only [pow_zero],
+  refl,
+end ,
+  npow_succ' := λ n ⟨p1, ⟨_,_⟩⟩, (by {simp only [pow_succ p1 n], refl }),
+  mul_comm :=
+begin
+  refine λ p q, _,
+  rcases p with ⟨p1, ⟨_,_⟩⟩,
+  rcases q with ⟨q1, ⟨_,_⟩⟩,
+  ext1,
+  exact mul_comm p1 q1,
+end
+}
+
+#exit
+
+/-- Instances for `(Ioo 0 1)` : `comm_semigroup (Ioo 0 1)` -/
+
+instance {α : Type*} [ordered_comm_semiring α] : comm_semigroup (Ioo (0:α) 1) := {
   mul :=
 begin
   refine λ p q, _,
   rcases p with ⟨p1, ⟨p21,p22⟩⟩,
   rcases q with ⟨q1, ⟨q21,q22⟩⟩,
-  use p1*q1,
-  simp only [mem_Ioc, canonically_ordered_comm_semiring.mul_pos],
-
 
   sorry,
 end ,
-  mul_assoc := sorry,
-  one := sorry,
-  one_mul := sorry,
-  mul_one := sorry,
-  npow := sorry,
-  npow_zero' := sorry,
-  npow_succ' := sorry,
-  mul_comm := sorry }
+  mul_assoc :=
+begin
+  refine λ p q, _,
+  rcases p with ⟨p1, ⟨p21,p22⟩⟩,
+  rcases q with ⟨q1, ⟨q21,q22⟩⟩,
+
+  sorry,
+end ,
+  mul_comm :=
+begin
+  refine λ p q, _,
+  rcases p with ⟨p1, ⟨p21,p22⟩⟩,
+  rcases q with ⟨q1, ⟨q21,q22⟩⟩,
+
+  sorry,
+end ,
+ }
 
 
-
-/-- Instances for `(Ioo 0 1)` : `comm_semigroup (Ioo 0 1)` -/
-
-instance {α : Type*} [ordered_comm_semiring α] : comm_semigroup (Ioo (0:α) 1) := {
-  mul := sorry,
-  mul_assoc := sorry,
-  mul_comm := sorry }
-
-
-
-/-- Instances for `(Icc (-1) 1)`: `comm_monoid_with_zero (Icc (-1) 1)` -/
-instance {α : Type*} [ordered_comm_semiring α] :
-  comm_monoid_with_zero (Icc (-1:α) 1) := {
-  mul := sorry,
-  mul_assoc := sorry,
-  one := sorry,
-  one_mul := sorry,
-  mul_one := sorry,
-  npow := sorry,
-  npow_zero' := sorry,
-  npow_succ' := sorry,
-  mul_comm := sorry,
-  zero := sorry,
-  zero_mul := sorry,
-  mul_zero := sorry }
 
 
 /-- Instances for `(Ioc (-1) 1`: `comm_monoid_with_zero (Ioc (-1) 1` -/
+
 instance {α : Type*} [ordered_comm_semiring α] [has_neg α] :
   comm_monoid_with_zero (Ioc (-1:α) 1) := {
-  mul := sorry,
-  mul_assoc := sorry,
+  mul :=
+begin
+  refine λ p q, _,
+  rcases p with ⟨p1, ⟨p21,p22⟩⟩,
+  rcases q with ⟨q1, ⟨q21,q22⟩⟩,
+
+  sorry,
+end ,
+  mul_assoc :=
+begin
+  refine λ p q, _,
+  rcases p with ⟨p1, ⟨p21,p22⟩⟩,
+  rcases q with ⟨q1, ⟨q21,q22⟩⟩,
+
+  sorry,
+end ,
   one := sorry,
   one_mul := sorry,
   mul_one := sorry,
@@ -135,14 +183,6 @@ instance {α : Type*} [ordered_comm_semiring α] [has_neg α] :
   zero := sorry,
   zero_mul := sorry,
   mul_zero := sorry }
-
-
-/-- Instances for `(Ioo (-1) 1)`: `comm_semigroup_with_zero (Ioo (-1) 1)` -/
-instance {α : Type*} [ordered_comm_semiring α] [has_neg α] :
-  comm_semigroup (Ioo (-1:α) 1) := {
-  mul := sorry,
-  mul_assoc := sorry,
-  mul_comm := sorry }
 
 
 
@@ -150,7 +190,7 @@ instance {α : Type*} [ordered_comm_semiring α] [has_neg α] :
 -- `comm_semigroup_with_zero (Ico 0 1)`,
 -- `comm_monoid (Ioc 0 1)`,
 -- `comm_semigroup (Ioo 0 1)`,
--- `comm_monoid_with_zero (Icc (-1) 1)`,
+-- `comm_monoid_with_zero (Icc (-1) 1)`,      -- already exists
 -- `comm_monoid_with_zero (Ioc (-1) 1`,
--- `comm_semigroup_with_zero (Ioo (-1) 1)`,
+-- `comm_semigroup_with_zero (Ioo (-1) 1)`,      -- already exists
 -- and also provide `has_distrib_neg` instances where applicable.

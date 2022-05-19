@@ -8,6 +8,29 @@ import category_theory.discrete_category
 import category_theory.yoneda
 import category_theory.functor.reflects_isomorphisms
 
+/-!
+# Cones and cocones
+
+We define `cone F`, a cone over a functor `F`,
+and `F.cones : Cᵒᵖ ⥤ Type`, the functor associating to `X` the cones over `F` with cone point `X`.
+
+A cone `c` is defined by specifying its cone point `c.X` and a natural transformation `c.π`
+from the constant `c.X` valued functor to `F`.
+
+We provide `c.w f : c.π.app j ≫ F.map f = c.π.app j'` for any `f : j ⟶ j'`
+as a wrapper for `c.π.naturality f` avoiding unneeded identity morphisms.
+
+We define `c.extend f`, where `c : cone F` and `f : Y ⟶ c.X` for some other `Y`,
+which replaces the cone point by `Y` and inserts `f` into each of the components of the cone.
+Similarly we have `c.whisker F` producing a `cone (E ⋙ F)`
+
+We define morphisms of cones, and the category of cones.
+
+We define `cone.postcompose α : cone F ⥤ cone G` for `α` a natural transformation `F ⟶ G`.
+
+And, of course, we dualise all this to cocones as well.
+-/
+
 -- morphism levels before object levels. See note [category_theory universes].
 universes v₁ v₂ v₃ v₄ u₁ u₂ u₃ u₄
 open category_theory

@@ -866,11 +866,12 @@ theorem le_of_dvd : ∀ {a b : ordinal}, b ≠ 0 → a ∣ b → a ≤ b
 | a _ b0 ⟨b, rfl⟩ := by simpa only [mul_one] using mul_le_mul_left'
   (one_le_iff_ne_zero.2 (λ h : b = 0, by simpa only [h, mul_zero] using b0)) a
 
-instance : is_antisymm ordinal (∣) :=
-⟨λ a b h₁ h₂,
-  if a0 : a = 0 then by subst a; exact (zero_dvd_iff.1 h₁).symm else
-  if b0 : b = 0 then by subst b; exact zero_dvd_iff.1 h₂ else
-  (le_of_dvd b0 h₁).antisymm (le_of_dvd a0 h₂)⟩
+theorem dvd_antisymm {a b : ordinal} (h₁ : a ∣ b) (h₂ : b ∣ a) : a = b :=
+if a0 : a = 0 then by subst a; exact (zero_dvd_iff.1 h₁).symm else
+if b0 : b = 0 then by subst b; exact zero_dvd_iff.1 h₂ else
+(le_of_dvd b0 h₁).antisymm (le_of_dvd a0 h₂)
+
+instance : is_antisymm ordinal (∣) := ⟨@dvd_antisymm⟩
 
 /-- `a % b` is the unique ordinal `o'` satisfying
   `a = b * o + o'` with `o' < b`. -/

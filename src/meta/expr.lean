@@ -541,7 +541,7 @@ meta def to_implicit_binder : expr → expr
 /--  Takes an `expr` and returns a list of its summands. -/
 meta def list_summands : expr → list expr
 | `(has_add.add %%a %%b) := a.list_summands ++ b.list_summands
-| a            := [a]
+| a                      := [a]
 
 /-- Returns a list of all local constants in an expression (without duplicates). -/
 meta def list_local_consts (e : expr) : list expr :=

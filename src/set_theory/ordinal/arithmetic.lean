@@ -867,8 +867,8 @@ theorem le_of_dvd : ∀ {a b : ordinal}, b ≠ 0 → a ∣ b → a ≤ b
   (one_le_iff_ne_zero.2 (λ h : b = 0, by simpa only [h, mul_zero] using b0)) a
 
 theorem dvd_antisymm {a b : ordinal} (h₁ : a ∣ b) (h₂ : b ∣ a) : a = b :=
-if a0 : a = 0 then by subst a; exact (zero_dvd_iff.1 h₁).symm else
-if b0 : b = 0 then by subst b; exact zero_dvd_iff.1 h₂ else
+if a0 : a = 0 then by subst a; exact (eq_zero_of_zero_dvd h₁).symm else
+if b0 : b = 0 then by subst b; exact eq_zero_of_zero_dvd h₂ else
 (le_of_dvd b0 h₁).antisymm (le_of_dvd a0 h₂)
 
 instance : is_antisymm ordinal (∣) := ⟨@dvd_antisymm⟩

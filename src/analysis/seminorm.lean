@@ -39,12 +39,21 @@ open_locale big_operators nnreal pointwise topological_space
 
 variables {R R' 𝕜 E F G ι : Type*}
 
+structure add_monoid_seminorm (G : Type*) [add_monoid G]
+  extends zero_hom G ℝ :=
+(nonneg : ∀ r, 0 ≤ to_fun r)
+(add : ∀ r s, to_fun (r + s) ≤ to_fun r + to_fun s)
+
 /-- A seminorm on a module over a normed ring is a function to the reals that is positive
 semidefinite, positive homogeneous, and subadditive. -/
-structure seminorm (𝕜 : Type*) (E : Type*) [semi_normed_ring 𝕜] [add_monoid E] [has_scalar 𝕜 E] :=
-(to_fun    : E → ℝ)
-(smul'     : ∀ (a : 𝕜) (x : E), to_fun (a • x) = ∥a∥ * to_fun x)
-(triangle' : ∀ x y : E, to_fun (x + y) ≤ to_fun x + to_fun y)
+structure seminorm (𝕜 : Type*) (E : Type*) [semi_normed_ring 𝕜] [add_monoid E] [has_scalar 𝕜 E]
+  extends add_monoid_seminorm E :=
+(smul' : ∀ (a : 𝕜) (x : E), to_fun (a • x) = ∥a∥ * to_fun x)
+
+
+def seminorm.to_fun {𝕜 : Type*} {E : Type*} [semi_normed_ring 𝕜] [add_monoid E] [has_scalar 𝕜 E]
+  (f : seminorm 𝕜 E) : E → ℝ :=
+f.to_add_monoid_seminorm.to_zero_hom.to_fun
 
 namespace seminorm
 
@@ -58,7 +67,13 @@ section has_scalar
 variables [has_scalar 𝕜 E]
 
 instance fun_like : fun_like (seminorm 𝕜 E) E (λ _, ℝ) :=
-{ coe := seminorm.to_fun, coe_injective' := λ f g h, by cases f; cases g; congr' }
+{ coe := λ f, f.to_fun,
+  coe_injective' := λ f g h,
+  begin
+   rcases f with ⟨⟨⟨f, _⟩, _⟩, _⟩,
+   rcases g with ⟨⟨⟨g, _⟩, _⟩, _⟩,
+   simpa using h,
+  end }
 
 /-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`. -/
 instance : has_coe_to_fun (seminorm 𝕜 E) (λ _, E → ℝ) := ⟨λ p, p.to_fun⟩
@@ -66,9 +81,11 @@ instance : has_coe_to_fun (seminorm 𝕜 E) (λ _, E → ℝ) := ⟨λ p, p.to_f
 @[ext] lemma ext {p q : seminorm 𝕜 E} (h : ∀ x, (p : E → ℝ) x = q x) : p = q := fun_like.ext p q h
 
 instance : has_zero (seminorm 𝕜 E) :=
-⟨{ to_fun    := 0,
+⟨{ to_fun   := 0,
+  nonneg    := sorry,
+  map_zero' := pi.zero_apply _,
   smul'     := λ _ _, (mul_zero _).symm,
-  triangle' := λ _ _, eq.ge (zero_add _) }⟩
+  add       := λ _ _, eq.ge (zero_add _) }⟩
 
 @[simp] lemma coe_zero : ⇑(0 : seminorm 𝕜 E) = 0 := rfl
 
@@ -79,18 +96,20 @@ instance : inhabited (seminorm 𝕜 E) := ⟨0⟩
 variables (p : seminorm 𝕜 E) (c : 𝕜) (x y : E) (r : ℝ)
 
 protected lemma smul : p (c • x) = ∥c∥ * p x := p.smul' _ _
-protected lemma triangle : p (x + y) ≤ p x + p y := p.triangle' _ _
+protected lemma triangle : p (x + y) ≤ p x + p y := p.add _ _
 
 /-- Any action on `ℝ` which factors through `ℝ≥0` applies to a seminorm. -/
 instance [has_scalar R ℝ] [has_scalar R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ] :
   has_scalar R (seminorm 𝕜 E) :=
 { smul := λ r p,
   { to_fun := λ x, r • p x,
+    nonneg    := sorry,
+    map_zero' := sorry,
     smul' := λ _ _, begin
       simp only [←smul_one_smul ℝ≥0 r (_ : ℝ), nnreal.smul_def, smul_eq_mul],
       rw [p.smul, mul_left_comm],
     end,
-    triangle' := λ _ _, begin
+    add := λ _ _, begin
       simp only [←smul_one_smul ℝ≥0 r (_ : ℝ), nnreal.smul_def, smul_eq_mul],
       exact (mul_le_mul_of_nonneg_left (p.triangle _ _) (nnreal.coe_nonneg _)).trans_eq
         (mul_add _ _ _),
@@ -111,8 +130,10 @@ lemma coe_smul [has_scalar R ℝ] [has_scalar R ℝ≥0] [is_scalar_tower R ℝ�
 instance : has_add (seminorm 𝕜 E) :=
 { add := λ p q,
   { to_fun := λ x, p x + q x,
-    smul' := λ a x, by rw [p.smul, q.smul, mul_add],
-    triangle' := λ _ _, has_le.le.trans_eq (add_le_add (p.triangle _ _) (q.triangle _ _))
+    nonneg    := sorry,
+    map_zero' := sorry,
+    smul' := λ a x, by sorry, --rw [p.smul, q.smul, mul_add],
+    add := λ _ _, has_le.le.trans_eq (add_le_add (p.triangle _ _) (q.triangle _ _))
       (add_add_add_comm _ _ _ _) } }
 
 lemma coe_add (p q : seminorm 𝕜 E) : ⇑(p + q) = p + q := rfl
@@ -154,7 +175,9 @@ instance [semiring R] [module R ℝ] [has_scalar R ℝ≥0] [is_scalar_tower R �
 noncomputable instance : has_sup (seminorm 𝕜 E) :=
 { sup := λ p q,
   { to_fun := p ⊔ q,
-    triangle' := λ x y, sup_le
+    nonneg    := sorry,
+    map_zero' := sorry,
+    add := λ x y, sup_le
       ((p.triangle x y).trans $ add_le_add le_sup_left le_sup_left)
       ((q.triangle x y).trans $ add_le_add le_sup_right le_sup_right),
     smul' := λ x v, (congr_arg2 max (p.smul x v) (q.smul x v)).trans $
@@ -188,7 +211,7 @@ variables [smul_with_zero 𝕜 E] (p : seminorm 𝕜 E)
 @[simp]
 protected lemma zero : p 0 = 0 :=
 calc p 0 = p ((0 : 𝕜) • 0) : by rw zero_smul
-...      = 0 : by rw [p.smul, norm_zero, zero_mul]
+...      = 0 : by sorry --rw [p.smul, norm_zero, zero_mul]
 
 end smul_with_zero
 end add_monoid
@@ -201,8 +224,10 @@ variables [has_scalar R ℝ] [has_scalar R ℝ≥0] [is_scalar_tower R ℝ≥0 �
 /-- Composition of a seminorm with a linear map is a seminorm. -/
 def comp (p : seminorm 𝕜 F) (f : E →ₗ[𝕜] F) : seminorm 𝕜 E :=
 { to_fun := λ x, p(f x),
+  nonneg    := sorry,
+  map_zero' := sorry,
   smul' := λ _ _, (congr_arg p (f.map_smul _ _)).trans (p.smul _ _),
-  triangle' := λ _ _, eq.trans_le (congr_arg p (f.map_add _ _)) (p.triangle _ _) }
+  add := λ _ _, sorry/- by exact eq.trans_le (congr_arg p (f.map_add _ _)) (p.triangle _ _) -/ }
 
 lemma coe_comp (p : seminorm 𝕜 F) (f : E →ₗ[𝕜] F) : ⇑(p.comp f) = p ∘ f := rfl
 
@@ -243,7 +268,7 @@ variables [norm_one_class 𝕜] (p : seminorm 𝕜 E) (x y : E) (r : ℝ)
 @[simp]
 protected lemma neg : p (-x) = p x :=
 calc p (-x) = p ((-1 : 𝕜) • x) : by rw neg_one_smul
-...         = p x : by rw [p.smul, norm_neg, norm_one, one_mul]
+...         = p x : by sorry -- rw [p.smul, norm_neg, norm_one, one_mul]
 
 protected lemma sub_le : p (x - y) ≤ p x + p y :=
 calc
@@ -347,7 +372,9 @@ by { use 0, rintro _ ⟨x, rfl⟩, exact add_nonneg (p.nonneg _) (q.nonneg _) }
 noncomputable instance : has_inf (seminorm 𝕜 E) :=
 { inf := λ p q,
   { to_fun := λ x, ⨅ u : E, p u + q (x-u),
-    triangle' := λ x y, begin
+    nonneg    := sorry,
+    map_zero' := sorry,
+    add := λ x y, begin
       refine le_cinfi_add_cinfi (λ u v, _),
       apply cinfi_le_of_le (bdd_below_range_add _ _ _) (v+u), dsimp only,
       convert add_le_add (p.triangle v u) (q.triangle (y-v) (x-u)) using 1,
@@ -475,6 +502,7 @@ lemma ball_zero_eq_preimage_ball {r : ℝ} :
 begin
   ext x,
   simp only [mem_ball, sub_zero, mem_preimage, mem_ball_zero_iff, real.norm_of_nonneg (p.nonneg x)],
+  sorry,
 end
 
 @[simp] lemma ball_bot {r : ℝ} (x : E) (hr : 0 < r) : ball (⊥ : seminorm 𝕜 E) x r = set.univ :=
@@ -642,10 +670,13 @@ end seminorm
 section norm_seminorm
 variables (𝕜 E) [normed_field 𝕜] [semi_normed_group E] [normed_space 𝕜 E] {r : ℝ}
 
-/-- The norm of a seminormed group as a seminorm. -/
-def norm_seminorm : seminorm 𝕜 E := ⟨norm, norm_smul, norm_add_le⟩
 
-@[simp] lemma coe_norm_seminorm : ⇑(norm_seminorm 𝕜 E) = norm := rfl
+def norm_add_monoid_seminorm : add_monoid_seminorm E := sorry
+
+/-- The norm of a seminormed group as a seminorm. -/
+def norm_seminorm : seminorm 𝕜 E := ⟨norm_add_monoid_seminorm E, by sorry⟩/-  norm_smul, norm_add_le⟩ -/
+
+@[simp] lemma coe_norm_seminorm : ⇑(norm_seminorm 𝕜 E) = norm := sorry-- rfl
 
 @[simp] lemma ball_norm_seminorm : (norm_seminorm 𝕜 E).ball = metric.ball :=
 by { ext x r y, simp only [seminorm.mem_ball, metric.mem_ball, coe_norm_seminorm, dist_eq_norm] }
@@ -657,8 +688,8 @@ lemma absorbent_ball_zero (hr : 0 < r) : absorbent 𝕜 (metric.ball (0 : E) r) 
 by { rw ←ball_norm_seminorm 𝕜, exact (norm_seminorm _ _).absorbent_ball_zero hr }
 
 /-- Balls containing the origin are absorbent. -/
-lemma absorbent_ball (hx : ∥x∥ < r) : absorbent 𝕜 (metric.ball x r) :=
-by { rw ←ball_norm_seminorm 𝕜, exact (norm_seminorm _ _).absorbent_ball hx }
+lemma absorbent_ball (hx : ∥x∥ < r) : absorbent 𝕜 (metric.ball x r) := sorry
+--by { rw ←ball_norm_seminorm 𝕜, exact (norm_seminorm _ _).absorbent_ball hx }
 
 /-- Balls at the origin are balanced. -/
 lemma balanced_ball_zero [norm_one_class 𝕜] : balanced 𝕜 (metric.ball (0 : E) r) :=

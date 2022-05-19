@@ -3,7 +3,7 @@ import tactic.move_add
 open tactic interactive
 variables {R : Type*} [add_comm_semigroup R] {a b c d e f g h : R}
 
-example (h : a + b + c = d) : b + (a + c) = d :=
+example (e f g : R) (h : a + b + c = d) : b + (a + c) = d :=
 begin
 --  move_add [d] at *, -- d is an unused variable
   move_add at *,
@@ -13,6 +13,11 @@ begin
 --  move_add at ⊢ h,  -- '[h]' did not change
                       -- Goal did not change
   move_add ← a at *,  -- `move_add` closes the goal, since it tries assumption
+end
+
+example (r : R → R → Prop) (h : r (a + b) (c + b + a)) : r (a + b) (a + b + c) :=
+begin
+  move_add [a, b, c] at *,
 end
 
 example (h : a + c + b = a + d + b) : c + b + a = b + a + d :=

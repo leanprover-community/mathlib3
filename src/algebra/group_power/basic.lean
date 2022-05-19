@@ -5,6 +5,7 @@ Authors: Jeremy Avigad, Robert Y. Lewis
 -/
 import algebra.hom.ring
 import data.nat.basic
+import tactic.move_add
 
 /-!
 # Power operations on monoids and groups
@@ -364,7 +365,7 @@ lemma add_sq (a b : R) : (a + b) ^ 2 = a ^ 2 + 2 * a * b + b ^ 2 :=
 by simp only [sq, add_mul_self_eq]
 
 lemma add_sq' (a b : R) : (a + b) ^ 2 = a ^ 2 + b ^ 2 + 2 * a * b :=
-by rw [add_sq, add_assoc, add_comm _ (b ^ 2), add_assoc]
+(add_sq _ _).trans (by move_add b ^  2)
 
 alias add_sq ← add_pow_two
 

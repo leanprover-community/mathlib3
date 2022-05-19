@@ -869,16 +869,6 @@ theorem dvd_add_iff : ∀ {a b c : ordinal}, a ∣ b → (a ∣ b + c ↔ a ∣ 
  ⟨λ ⟨d, e⟩, ⟨d - b, by rw [mul_sub, ← e, add_sub_cancel]⟩,
   λ ⟨d, e⟩, by { rw [e, ← mul_add], apply dvd_mul_right }⟩
 
-theorem dvd_add {a b c : ordinal} (h₁ : a ∣ b) : a ∣ c → a ∣ b + c :=
-(dvd_add_iff h₁).2
-
-theorem dvd_zero (a : ordinal) : a ∣ 0 := ⟨_, (mul_zero _).symm⟩
-
-theorem zero_dvd {a : ordinal} : 0 ∣ a ↔ a = 0 :=
-⟨λ ⟨h, e⟩, by simp only [e, zero_mul], λ e, e.symm ▸ dvd_zero _⟩
-
-theorem one_dvd (a : ordinal) : 1 ∣ a := ⟨a, (one_mul _).symm⟩
-
 theorem div_mul_cancel : ∀ {a b : ordinal}, a ≠ 0 → a ∣ b → a * (b / a) = b
 | a _ a0 ⟨b, rfl⟩ := by rw [mul_div_cancel _ a0]
 
@@ -886,10 +876,11 @@ theorem le_of_dvd : ∀ {a b : ordinal}, b ≠ 0 → a ∣ b → a ≤ b
 | a _ b0 ⟨b, rfl⟩ := by simpa only [mul_one] using mul_le_mul_left'
   (one_le_iff_ne_zero.2 (λ h : b = 0, by simpa only [h, mul_zero] using b0)) a
 
-theorem dvd_antisymm {a b : ordinal} (h₁ : a ∣ b) (h₂ : b ∣ a) : a = b :=
-if a0 : a = 0 then by subst a; exact (zero_dvd.1 h₁).symm else
-if b0 : b = 0 then by subst b; exact zero_dvd.1 h₂ else
-le_antisymm (le_of_dvd b0 h₁) (le_of_dvd a0 h₂)
+instance : is_antisymm ordinal (∣) :=
+⟨λ a b h₁ h₂,
+  if a0 : a = 0 then by subst a; exact (zero_dvd_iff.1 h₁).symm else
+  if b0 : b = 0 then by subst b; exact zero_dvd_iff.1 h₂ else
+  le_antisymm (le_of_dvd b0 h₁) (le_of_dvd a0 h₂)⟩
 
 /-- `a % b` is the unique ordinal `o'` satisfying
   `a = b * o + o'` with `o' < b`. -/

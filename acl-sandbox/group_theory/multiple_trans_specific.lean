@@ -460,6 +460,37 @@ begin
 end
 
 
+
+lemma nat.eq_minus_one_of_lt_of_ge {i n : ℕ} (hi : i < n) (hi' : n - 1 ≤ i) : i = n - 1 :=
+begin
+  refine nat.eq_of_le_of_lt_succ hi' _,
+  rw nat.sub_add_cancel (nat.succ_le_of_lt (lt_of_le_of_lt (zero_le i) hi)),
+  exact hi,
+end
+
+
+lemma nat.le_pred_succ_self (n : ℕ) : n ≤ n.pred.succ :=
+begin
+  cases nat.eq_zero_or_eq_succ_pred n,
+  rw h, apply zero_le,
+  exact le_of_eq h,
+end
+
+lemma nat.iff_eq_minus_one {n i : ℕ} (hni : n - 2 < i) (hin : i < n) :
+  i = n - 1 :=
+begin
+    apply le_antisymm,
+    rw ← nat.lt_succ_iff , rw nat.succ_eq_add_one,
+    refine lt_of_lt_of_le hin _,
+    swap,
+    rw [← one_add_one_eq_two, ← nat.sub_sub, nat.lt_iff_add_one_le] at hni,
+    refine le_trans _ hni,
+    all_goals
+    { simp only [← nat.succ_eq_add_one, ← nat.pred_eq_sub_one],
+      apply nat.le_pred_succ_self },
+end
+
+
 lemma contains_alternating_of_index_le_2' {G : Type*} [G : subgroup (equiv.perm α)]
   (hG : G.index ≤ 2) : alternating_group α ≤ G :=
 begin
@@ -469,7 +500,12 @@ begin
   apply nat.mul_le_mul_right _ hG,
 end
 
-lemma unnamed'_iff {G : Type*} [G : subgroup (equiv.perm α)]
+-- Preuve très maladroite
+-- Il vaudrait mieux prouver la divisibilité de Wielandt, 9.3
+-- On verrait tout de suite que #G est multiple de n!/2,
+-- donc l'indice de G est au plus 2.
+lemma contains_alternating_iff_is_all_minus_two_pretransitive
+  {G : Type*} [G : subgroup (equiv.perm α)]
   (hmt : is_multiply_pretransitive ↥G α (fintype.card α - 2)) :
   alternating_group α ≤ G :=
 begin
@@ -510,7 +546,20 @@ begin
   suffices : ∀ (k : equiv.perm α), k ∈ G ∨ k * s ∈ G,
   { let f : (({1, s} : finset (equiv.perm α)) × G) → (equiv.perm α) :=
       λ ⟨u, g⟩, ↑g * ↑u,
-    have hf : function.surjective f, sorry,
+    have hf : function.surjective f,
+    { intro k,
+      cases this k,
+      { let u : ({1, s} : finset (equiv.perm α)) := ⟨1, finset.mem_insert_self 1 _⟩,
+        let g : ↥G := ⟨k, h⟩,
+        use ⟨u, g⟩,
+        change ↑g * ↑u = k,
+        simp only [set_like.coe_mk, subtype.coe_mk, mul_one]},
+      { let u : ({1, s} : finset (equiv.perm α)) := ⟨s, _⟩,
+        let g : ↥G := ⟨k * s, h⟩,
+        use ⟨u, g⟩,
+        change ↑g * ↑u = k,
+        simp only [subtype.coe_mk, equiv.mul_swap_mul_self],
+        simp only [finset.mem_insert, finset.mem_singleton, eq_self_iff_true, or_true] } },
     apply le_trans (fintype.card_le_of_surjective f hf),
     rw fintype.card_prod,
     apply nat.mul_le_mul_right,
@@ -523,10 +572,33 @@ begin
   let x' := j.trans x,
   obtain ⟨g, hg'⟩ := hmt_eq x' (k • x'),
 
-  let s1 := ite (g • x1 = k • x1) 1 s,
+  have hgk' : ∀ (i : fin (fintype.card α)) (hi : i.val < fintype.card α - 2),
+    g • (x i) = k • (x i),
+  { intros i hi,
+    simpa using congr_fun (congr_arg coe_fn hg') ⟨i.val, hi⟩ },
+
+  have hgxkx : g • x2 = k • x2 ∨ g • x1 = k • x2,
+  { obtain ⟨⟨i, hi⟩, hi'⟩ := hx (g⁻¹ • k • x2),
+    rw eq_inv_smul_iff at hi',
+    rw function.embedding.to_fun_eq_coe at hi',
+    cases lt_or_ge i (fintype.card α - 2),
+    { exfalso,
+      rw hgk' ⟨i, hi⟩ h at hi',
+      simp only [smul_left_cancel_iff, embedding_like.apply_eq_iff_eq] at hi',
+      rw lt_iff_not_ge at h, apply h,
+      rw hi',
+      apply ge_of_eq, refl },
+    rw ← hi',
+    simp only [smul_left_cancel_iff, embedding_like.apply_eq_iff_eq],
+    cases eq_or_gt_of_le h with h h',
+    { apply or.intro_left, rw h },
+    { apply or.intro_right,
+      rw nat.iff_eq_minus_one h' hi } },
+
+  let s1 := ite (g • x2 = k • x2) 1 s,
   suffices : k = g * s1⁻¹,
   { rw this,
-    cases (ite_eq_or_eq (g • x1 = k • x1) 1 s : s1 = 1 ∨ s1 = s) with hs1 hs1,
+    cases (ite_eq_or_eq (g • x2 = k • x2) 1 s : s1 = 1 ∨ s1 = s) with hs1 hs1,
     { change s1 = 1 at hs1,
       apply or.intro_left,
       rw hs1,
@@ -536,13 +608,8 @@ begin
       rw hs1,
       simp only [equiv.swap_inv, equiv.mul_swap_mul_self, set_like.coe_mem] } },
 
-  have hgk' : ∀ (i : fin (fintype.card α)) (hi : i.val < fintype.card α - 2), (g • x) i = (k • x) i,
-  { intros i hi,
-    simpa using congr_fun (congr_arg coe_fn hg') ⟨i.val, hi⟩ },
-
--- à partir d'ici, ça ne marche plus…
   suffices : ∀ (i : fin (fintype.card α)), i.val < fintype.card α - 1 →
-    (k • x) i = (g • s1⁻¹ • x) i,
+    k • (x i) = g • s1⁻¹ • (x i),
 
   { ext a, obtain ⟨⟨i, hi⟩, rfl⟩ := hx a,
     cases nat.lt_or_ge i (fintype.card α - 1) with hi' hi',
@@ -552,34 +619,89 @@ begin
       rw hzi,
       refl },
     -- i = fintype.card α - 1
-    have : function.surjective k • x,
-    sorry,
-    sorry },
+    obtain ⟨⟨j, hj⟩, hij⟩ := hx (k⁻¹ • g • s1⁻¹ • (x ⟨i, hi⟩)),
+    rw eq_inv_smul_iff at hij,
+    cases nat.lt_or_ge j (fintype.card α - 1) with hj' hj',
+    { let hzj := this ⟨j, hj⟩ hj',
+      simp only [function.embedding.smul_apply, equiv.perm.smul_def, function.embedding.to_fun_eq_coe] at hij hzj,
+      rw hij at hzj,
+      simp only [smul_left_cancel_iff, embedding_like.apply_eq_iff_eq] at hzj,
+      exfalso,
+      apply lt_irrefl j,
+      rw hzj at hi',
+      exact lt_of_lt_of_le hj' hi' },
+    { change _ = ↑g • _ at hij,
+      simp only [function.embedding.to_fun_eq_coe, equiv.perm.smul_def,
+        function.embedding.smul_apply] at hij,
+      simp only [function.embedding.to_fun_eq_coe, equiv.perm.coe_mul, function.comp_app],
+      rw ← hij,
+      simp only [embedding_like.apply_eq_iff_eq],
+      rw nat.eq_minus_one_of_lt_of_ge hi hi',
+      rw nat.eq_minus_one_of_lt_of_ge hj hj' } },
 
-    cases lt_or_ge i (fintype.card α - 2) with hi' hi',
+    rintro ⟨i, hi⟩ hi',
+
+    cases lt_or_ge i (fintype.card α - 2) with hi' hi'',
     { -- i < fintype.card α - 2
       let z := (hgk' ⟨i, hi⟩ hi').symm,
-      simp only [function.embedding.smul_apply, equiv.perm.smul_def] at z,
-      rw [function.embedding.to_fun_eq_coe, z, ← equiv.perm.smul_def, ← smul_smul],
-      suffices : s1 • x ⟨i, hi⟩ = x ⟨i, hi⟩,
-      rw this, refl,
-      cases hs1 with hs1 hs1,
-      { rw hs1, refl, },
-      { rw hs1, change (equiv.swap x1 x2) • _ = _,
-        rw equiv.perm.smul_def,
+      /- simp only [function.embedding.smul_apply, equiv.perm.smul_def] at z,
+      simp only [function.embedding.smul_apply, equiv.perm.smul_def],
+       -/
+      rw z,
+      simp only [smul_left_cancel_iff],
+      cases (ite_eq_or_eq (g • x2 = k • x2) 1 s : s1 = 1 ∨ s1 = s) with hs1 hs1,
+      { change s1 = 1 at hs1, rw hs1,
+        refl, },
+      { change s1 = s at hs1, rw hs1,
+        simp only [equiv.swap_inv, equiv.perm.smul_def],
         rw equiv.swap_apply_of_ne_of_ne _ _,
         all_goals
         { refine function.injective.ne x.inj' _,
           simp only [ne.def],
           intro hyp,  apply not_le.mpr hi', rw hyp },
         apply nat.sub_le_sub_left, norm_num } },
+
     { -- i ≥ fintype.card α - 2
+      have hx : x ⟨i, hi⟩ = x2,
+      { apply congr_arg,
+        simp only,
+        apply nat.eq_minus_one_of_lt_of_ge _ hi'',
+        apply lt_of_lt_of_le hi',
+        apply le_of_eq, refl },
+      simp only [function.embedding.smul_apply, equiv.perm.smul_def],
 
-
-      sorry }
-
-
+      simp only [equiv.perm.smul_def] at hgxkx,
+      cases hgxkx with gx2_eq_kx2 gx1_eq_kx2,
+      { have hs' : s1 = 1,
+        { rw ite_eq_left_iff, intro h, exfalso,
+          apply h, rw gx2_eq_kx2,
+          simp only [equiv.perm.smul_def] },
+        simp only [hx, ← gx2_eq_kx2, smul_left_cancel_iff,
+          hs', one_inv, equiv.perm.coe_one, id.def] },
+      { have hs' : s1 = s,
+        { rw ite_eq_right_iff, intro h, exfalso,
+          simp only [equiv.perm.smul_def] at h,
+          rw ← gx1_eq_kx2 at h,
+          simp only [smul_left_cancel_iff, embedding_like.apply_eq_iff_eq] at h,
+          rw [nat.sub_succ', ← nat.pred_eq_sub_one] at h,
+          refine ne_of_lt (nat.pred_lt _) h,
+          intro h', simp only [tsub_eq_zero_iff_le] at h',
+          apply (lt_iff_not_ge _ _).mp (nat.lt_succ_self 1),
+          exact le_trans hα h' },
+        rw [hx, ← gx1_eq_kx2, hs', equiv.swap_inv, smul_left_cancel_iff, equiv.swap_apply_right] } }
 end
+
+
+example (n : ℕ) (hn : n ≥ 2) : n - 2 ≠ n - 1 :=
+begin
+  intro h,
+  rw [nat.sub_succ', ← nat.pred_eq_sub_one] at h,
+  refine ne_of_lt (nat.pred_lt _) h,
+  intro h', simp at h',
+  apply (lt_iff_not_ge _ _).mp (nat.lt_succ_self 1),
+  apply le_trans hn h',
+end
+
 
 example (n i : ℕ) (hin : i < n - 2) : i ≠ n - 1 :=
 begin

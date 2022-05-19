@@ -636,7 +636,7 @@ theorem sum_le_sum {ι} (f g : ι → cardinal) (H : ∀ i, f i ≤ g i) : sum f
 
 lemma mk_le_mk_mul_of_mk_preimage_le {c : cardinal} (f : α → β) (hf : ∀ b : β, #(f ⁻¹' {b}) ≤ c) :
   #α ≤ #β * c :=
-by simpa only [←mk_congr (@equiv.sigma_preimage_equiv α β f), mk_sigma, ←sum_const']
+by simpa only [←mk_congr (@equiv.sigma_fiber_equiv α β f), mk_sigma, ←sum_const']
   using sum_le_sum _ _ hf
 
 /-- The range of an indexed cardinal function, whose outputs live in a higher universe than the
@@ -694,6 +694,13 @@ theorem sum_le_sup_lift {ι : Type u} (f : ι → cardinal.{max u v}) :
 begin
   rw [←(sup f).lift_id, ←lift_umax, lift_umax.{(max u v) u}, ←sum_const],
   exact sum_le_sum _ _ (le_sup _)
+end
+
+theorem sum_nat_eq_add_sum_succ (f : ℕ → cardinal.{u}) :
+  cardinal.sum f = f 0 + cardinal.sum (λ i, f (i + 1)) :=
+begin
+  refine (equiv.sigma_nat_succ (λ i, quotient.out (f i))).cardinal_eq.trans _,
+  simp only [mk_sum, mk_out, lift_id, mk_sigma],
 end
 
 theorem sup_eq_zero {ι} {f : ι → cardinal} [is_empty ι] : sup f = 0 :=
@@ -1282,7 +1289,7 @@ mk_eq_one _
 (mk_congr (equiv.vector_equiv_fin α n)).trans $ by simp
 
 theorem mk_list_eq_sum_pow (α : Type u) : #(list α) = sum (λ n : ℕ, (#α) ^ℕ n) :=
-calc #(list α) = #(Σ n, vector α n) : mk_congr (equiv.sigma_preimage_equiv list.length).symm
+calc #(list α) = #(Σ n, vector α n) : mk_congr (equiv.sigma_fiber_equiv list.length).symm
 ... = sum (λ n : ℕ, (#α) ^ℕ n) : by simp
 
 theorem mk_quot_le {α : Type u} {r : α → α → Prop} : #(quot r) ≤ #α :=

@@ -39,9 +39,9 @@ theorem is_open_singleton_iff {o : ordinal} : is_open ({o} : set ordinal) ↔ ¬
 begin
   refine ⟨λ h ho, _, λ ho, _⟩,
   { obtain ⟨a, b, hab, hab'⟩ := (mem_nhds_iff_exists_Ioo_subset'
-      ⟨0, ordinal.pos_iff_ne_zero.2 ho.1⟩ ⟨_, lt_succ_self o⟩).1 (h.mem_nhds rfl),
+      ⟨0, ordinal.pos_iff_ne_zero.2 ho.1⟩ ⟨_, lt_succ o⟩).1 (h.mem_nhds rfl),
     have hao := ho.2 a hab.1,
-    exact hao.ne (hab' ⟨lt_succ_self a, hao.trans hab.2⟩) },
+    exact hao.ne (hab' ⟨lt_succ a, hao.trans hab.2⟩) },
   { rcases zero_or_succ_or_limit o with rfl | ⟨a, ha⟩ | ho',
     { convert is_open_gt' (1 : ordinal),
       ext,
@@ -50,13 +50,13 @@ begin
       ext b,
       refine ⟨λ hb, _, _⟩,
       { rw set.mem_singleton_iff.1 hb,
-        refine ⟨_, lt_succ_self o⟩,
+        refine ⟨_, lt_succ o⟩,
         rw ha,
-        exact lt_succ_self a },
+        exact lt_succ a },
       { rintro ⟨hb, hb'⟩,
-        apply le_antisymm (lt_succ.1 hb'),
+        apply (le_of_lt_succ hb').antisymm,
         rw ha,
-        exact ordinal.succ_le.2 hb } },
+        exact succ_le_of_lt hb } },
     { exact (ho ho').elim } }
 end
 
@@ -95,7 +95,7 @@ begin
     ext o,
     refine ⟨λ ho, set.mem_Union.2 ⟨⟨o, ho⟩, _⟩, _⟩,
     { split_ifs with ho',
-      { refine ⟨_, lt_succ_self o⟩,
+      { refine ⟨_, lt_succ o⟩,
         cases classical.some_spec (h o ho ho') with H,
         exact H },
       { exact set.mem_singleton o } },
@@ -104,7 +104,7 @@ begin
       split_ifs at ht with ha;
       subst ht,
       { cases classical.some_spec (h a.val a.prop ha) with H has,
-        rcases lt_or_eq_of_le (lt_succ.1 hoa.2) with hoa' | rfl,
+        rcases lt_or_eq_of_le (le_of_lt_succ hoa.2) with hoa' | rfl,
         { exact has ⟨hoa.1, hoa'⟩ },
         { exact a.prop } },
       { convert a.prop } } }
@@ -117,7 +117,7 @@ begin
   refine mem_closure_iff.trans ⟨λ h, _, _⟩,
   { by_cases has : a ∈ s,
     { exact ⟨punit, by apply_instance, λ _, a, λ _, has, sup_const a⟩ },
-    { have H := λ b (hba : b < a), h _ (@is_open_Ioo _ _ _ _ b (a + 1)) ⟨hba, lt_succ_self a⟩,
+    { have H := λ b (hba : b < a), h _ (@is_open_Ioo _ _ _ _ b (a + 1)) ⟨hba, lt_succ a⟩,
       let f : a.out.α → ordinal := λ i, classical.some (H (typein (<) i) (typein_lt_self i)),
       have hf : ∀ i, f i ∈ set.Ioo (typein (<) i) (a + 1) ∩ s :=
         λ i, classical.some_spec (H _ _),
@@ -126,10 +126,10 @@ begin
         rw set.mem_singleton_iff.1 hb at *,
         exact (has hb').elim },
       refine ⟨_, out_nonempty_iff_ne_zero.2 (ordinal.pos_iff_ne_zero.1 ha₀), f,
-        λ i, (hf i).2, le_antisymm (sup_le (λ i, lt_succ.1 (hf i).1.2)) _⟩,
+        λ i, (hf i).2, le_antisymm (sup_le (λ i, le_of_lt_succ (hf i).1.2)) _⟩,
       by_contra' h,
       cases H _ h with b hb,
-      rcases eq_or_lt_of_le (lt_succ.1 hb.1.2) with rfl | hba,
+      rcases eq_or_lt_of_le (le_of_lt_succ hb.1.2) with rfl | hba,
       { exact has hb.2 },
       { have : b < f (enum (<) b (by rwa type_lt)) := begin
           have := (hf (enum (<) b (by rwa type_lt))).1.1,
@@ -143,7 +143,7 @@ begin
       use [0, hat],
       convert hf i,
       exact (sup_eq_zero_iff.1 ha₀ i).symm },
-    rcases (mem_nhds_iff_exists_Ioo_subset' ⟨0, ha₀⟩ ⟨_, lt_succ_self _⟩).1 (ht.mem_nhds hat) with
+    rcases (mem_nhds_iff_exists_Ioo_subset' ⟨0, ha₀⟩ ⟨_, lt_succ _⟩).1 (ht.mem_nhds hat) with
       ⟨b, c, ⟨hab, hac⟩, hbct⟩,
     cases lt_sup.1 hab with i hi,
     exact ⟨_, hbct ⟨hi, (le_sup.{u u} f i).trans_lt hac⟩, hf i⟩ }
@@ -246,7 +246,7 @@ begin
     rw ←hb,
     apply HS.monotone,
     by_contra' hba,
-    apply (HS (lt_succ_self b)).not_le,
+    apply (HS (lt_succ b)).not_le,
     rw hb,
     exact le_bsup.{u u} _ _ (ha.2 _ hba) }
 end

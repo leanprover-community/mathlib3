@@ -176,7 +176,7 @@ theorem NF.snd {e n a} (h : NF (oadd e n a)) : NF a :=
 
 theorem NF.oadd {e a} (h₁ : NF e) (n)
   (h₂ : NF_below a (repr e)) : NF (oadd e n a) :=
-⟨⟨_, NF_below.oadd h₁ h₂ (ordinal.lt_succ_self _)⟩⟩
+⟨⟨_, NF_below.oadd h₁ h₂ (lt_succ _)⟩⟩
 
 instance NF.oadd_zero (e n) [h : NF e] : NF (oadd e n 0) :=
 h.oadd _ NF_below.zero
@@ -199,9 +199,9 @@ begin
   { rw repr,
     apply ((add_lt_add_iff_left _).2 IH).trans_le,
     rw ← mul_succ,
-    apply (mul_le_mul_left' (ordinal.succ_le.2 (nat_lt_omega _)) _).trans,
+    apply (mul_le_mul_left' (succ_le_of_lt (nat_lt_omega _)) _).trans,
     rw ← opow_succ,
-    exact opow_le_opow_right omega_pos (ordinal.succ_le.2 h₃) }
+    exact opow_le_opow_right omega_pos (succ_le_of_lt h₃) }
 end
 
 theorem NF_below.mono {o b₁ b₂} (bb : b₁ ≤ b₂) (h : NF_below o b₁) : NF_below o b₂ :=
@@ -237,8 +237,7 @@ begin
   simp [lt_def],
   refine lt_of_lt_of_le ((add_lt_add_iff_left _).2 h₁.snd'.repr_lt)
     (le_trans _ (le_add_right _ _)),
-  rwa [← mul_succ, mul_le_mul_iff_left (opow_pos _ omega_pos),
-       ordinal.succ_le, nat_cast_lt]
+  rwa [← mul_succ, mul_le_mul_iff_left (opow_pos _ omega_pos), succ_le_iff, nat_cast_lt]
 end
 
 theorem oadd_lt_oadd_3 {e n a₁ a₂} (h : a₁ < a₂) :

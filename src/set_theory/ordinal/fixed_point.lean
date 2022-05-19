@@ -143,7 +143,7 @@ theorem deriv_family_limit (f : ι → ordinal → ordinal) {o} : is_limit o →
 limit_rec_on_limit _ _ _ _
 
 theorem deriv_family_is_normal (f : ι → ordinal → ordinal) : is_normal (deriv_family f) :=
-⟨λ o, by rw [deriv_family_succ, ← succ_le]; apply le_nfp_family,
+⟨λ o, by rw [deriv_family_succ, ← succ_le_iff]; apply le_nfp_family,
  λ o l a, by rw [deriv_family_limit _ l, bsup_le_iff]⟩
 
 theorem deriv_family_fp {i} (H : is_normal (f i)) (o : ordinal.{max u v}) :
@@ -170,7 +170,7 @@ theorem le_iff_deriv_family (H : ∀ i, is_normal (f i)) {a} :
   { cases le_or_lt a (deriv_family f o), {exact IH h},
     refine ⟨succ o, le_antisymm _ h₁⟩,
     rw deriv_family_succ,
-    exact nfp_family_le_fp (λ i, (H i).monotone) (succ_le.2 h) ha },
+    exact nfp_family_le_fp (λ i, (H i).monotone) (succ_le_of_lt h) ha },
   { cases eq_or_lt_of_le h₁, {exact ⟨_, h.symm⟩},
     rw [deriv_family_limit _ l, ← not_le, bsup_le_iff, not_ball] at h,
     exact let ⟨o', h, hl⟩ := h in IH o' h (le_of_not_le hl) }
@@ -490,8 +490,7 @@ begin
   { rw [deriv_zero, add_zero],
     exact nfp_add_zero a },
   { rw [deriv_succ, h, add_succ],
-    exact nfp_eq_self (add_eq_right_iff_mul_omega_le.2 ((le_add_right _ _).trans
-      (lt_succ_self _).le)) }
+    exact nfp_eq_self (add_eq_right_iff_mul_omega_le.2 ((le_add_right _ _).trans (lt_succ _).le)) }
 end
 
 /-! ### Fixed points of multiplication -/
@@ -594,7 +593,7 @@ begin
     rw hd at this,
     have := (add_lt_add_left hc (a ^ omega * b)).trans_le this,
     rw [add_zero, mul_lt_mul_iff_left (opow_pos omega ha)] at this,
-    rwa succ_le }
+    rwa succ_le_iff }
 end
 
 theorem deriv_mul_eq_opow_omega_mul {a : ordinal.{u}} (ha : 0 < a) (b) :

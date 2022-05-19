@@ -167,7 +167,7 @@ meta def move_add_with_errors (ll : list (bool × pexpr)) : option name → tact
   thyp ← get_local hyp >>= infer_type,
   is_unused ← recurse_on_expr hyp ll thyp,
   nthyp ← get_local hyp >>= infer_type,
-  if (thyp = nthyp) then return (tt, is_unused) else return (ff, is_unused)
+  if thyp = nthyp then return (tt, is_unused) else return (ff, is_unused)
 | none       := do
   t ← target,
   is_unused ← recurse_on_expr none ll t,

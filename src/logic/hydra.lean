@@ -109,12 +109,15 @@ variable (r : α → α → Prop)
 
 /-- The relation that specifies valid moves in our hydra game. `cut_expand r s' s`
   means that `s'` is obtained by removing one head `a ∈ s` and adding back an arbitrary
-  multiset `t` of heads such that all `a' ∈ t` satisfy `r a' a`. This could be written
-  as `s' = s.erase a + t` but that requires `decidable_eq α`, so we opt for the current
-  definition, which is also easier to do computation with. We also don't include the
-  condition `a ∈ s` because `s' + {a} = s + t` already guarantees `a ∈ s + t`, and if
-  `r` is irreflexive then `a ∉ t`, which is the case when `r` is well-founded, the case
-  we are primarily interested in. -/
+  multiset `t` of heads such that all `a' ∈ t` satisfy `r a' a`.
+
+  This could alternatively be written as `s' = s.erase a + t` but that requires
+  `decidable_eq α`, so we opt for the current definition, which is also easier to do
+  computation with.
+
+  We also don't include the condition `a ∈ s` because `s' + {a} = s + t` already
+  guarantees `a ∈ s + t`, and if `r` is irreflexive then `a ∉ t`, which is the
+  case when `r` is well-founded, the case we are primarily interested in. -/
 def cut_expand (s' s : multiset α) : Prop :=
 ∃ (t : multiset α) (a : α), (∀ a' ∈ t, r a' a) ∧ s' + {a} = s + t
 
@@ -122,7 +125,7 @@ lemma cut_expand_iff [decidable_eq α] {r} (hr : irreflexive r) {s' s : multiset
   cut_expand r s' s ↔ ∃ (t : multiset α) a, (∀ a' ∈ t, r a' a) ∧ a ∈ s ∧ s' = s.erase a + t :=
 begin
   simp_rw [cut_expand, add_singleton_eq_iff],
-  refine exists₂_congr (λ t a, _), split,
+  refine exists₂_congr (λ t a, ⟨_, _⟩),
   { rintro ⟨ht, ha, rfl⟩,
     obtain (h|h) := mem_add.1 ha,
     exacts [⟨ht, h, t.erase_add_left_pos h⟩, (hr a $ ht a h).elim] },

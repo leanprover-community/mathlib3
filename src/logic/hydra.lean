@@ -111,13 +111,16 @@ variable (r : α → α → Prop)
   means that `s'` is obtained by removing one head `a ∈ s` and adding back an arbitrary
   multiset `t` of heads such that all `a' ∈ t` satisfy `r a' a`.
 
-  This could alternatively be written as `s' = s.erase a + t` but that requires
-  `decidable_eq α`, so we opt for the current definition, which is also easier to do
-  computation with.
+  This is most directly translated into `s' = s.erase a + t`, but `multiset.erase` requires
+  `decidable_eq α`, so we use the equivalent condition `s' + {a} = s + t` instead, which
+  is also easier to verify for explicit multisets `s'`, `s` and `t`.
 
   We also don't include the condition `a ∈ s` because `s' + {a} = s + t` already
   guarantees `a ∈ s + t`, and if `r` is irreflexive then `a ∉ t`, which is the
-  case when `r` is well-founded, the case we are primarily interested in. -/
+  case when `r` is well-founded, the case we are primarily interested in.
+
+  The lemma `relation.cut_expand_iff` below converts between this convenient definition
+  and the direct translation when `r` is irreflexive. -/
 def cut_expand (s' s : multiset α) : Prop :=
 ∃ (t : multiset α) (a : α), (∀ a' ∈ t, r a' a) ∧ s' + {a} = s + t
 

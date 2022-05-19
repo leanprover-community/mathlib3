@@ -159,7 +159,7 @@ meta def move_add_with_errors (ll : list (bool × pexpr)) : option name → tact
   t ← target,
   is_unused ← recurse_on_expr none ll t,
   tn ← target,
-  if (t = tn) then return (tt, is_unused) else return (ff, is_unused)
+  if t = tn then return (tt, is_unused) else return (ff, is_unused)
 
 section parsing_arguments_for_move_add
 
@@ -291,7 +291,7 @@ match locat with
   let li_unused := (err_rep.map (λ e, e.2)),
   let li_unused_clear := li_unused.filter (≠ []),
   let li_tf_vars := li_unused_clear.transpose.map list.band,
-  match ((return_unused args li_tf_vars).map (λ e : bool × pexpr, e.2)) with
+  match (return_unused args li_tf_vars).map (λ e : bool × pexpr, e.2) with
   | []   := skip
   | [pe] := trace format!"'{pe}' is an unused variable"
   | pes  := trace format!"'{pes}' are unused variables"

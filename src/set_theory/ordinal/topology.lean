@@ -25,7 +25,7 @@ noncomputable theory
 
 universes u v
 
-open cardinal
+open cardinal order
 
 namespace ordinal
 

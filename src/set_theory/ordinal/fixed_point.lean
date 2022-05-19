@@ -29,7 +29,7 @@ noncomputable theory
 
 universes u v
 
-open function
+open function order
 
 namespace ordinal
 
@@ -423,7 +423,7 @@ theorem deriv_is_normal (f) : is_normal (deriv f) :=
 deriv_family_is_normal _
 
 theorem deriv_id_of_nfp_id {f : ordinal → ordinal} (h : nfp f = id) : deriv f = id :=
-((deriv_is_normal _).eq_iff_zero_and_succ is_normal.refl).2 (by simp [h, succ_inj])
+((deriv_is_normal _).eq_iff_zero_and_succ is_normal.refl).2 (by simp [h])
 
 theorem is_normal.deriv_fp {f} (H : is_normal f) : ∀ o, f (deriv f o) = deriv f o :=
 @deriv_family_fp unit (λ _, f) unit.star H
@@ -442,7 +442,7 @@ theorem deriv_eq_enum_ord (H : is_normal f) : deriv f = enum_ord (function.fixed
 by { convert deriv_family_eq_enum_ord (λ _ : unit, H), exact (set.Inter_const _).symm }
 
 theorem deriv_eq_id_of_nfp_eq_id {f : ordinal → ordinal} (h : nfp f = id) : deriv f = id :=
-(is_normal.eq_iff_zero_and_succ (deriv_is_normal _) is_normal.refl).2 (by simp [h, succ_inj])
+(is_normal.eq_iff_zero_and_succ (deriv_is_normal _) is_normal.refl).2 (by simp [h])
 
 end
 
@@ -490,7 +490,7 @@ begin
   { rw [deriv_zero, add_zero],
     exact nfp_add_zero a },
   { rw [deriv_succ, h, add_succ],
-    exact nfp_eq_self (add_eq_right_iff_mul_omega_le.2 ((le_add_right _ _).trans (lt_succ _).le)) }
+    exact nfp_eq_self (add_eq_right_iff_mul_omega_le.2 ((le_add_right _ _).trans (le_succ _))) }
 end
 
 /-! ### Fixed points of multiplication -/
@@ -578,7 +578,7 @@ theorem mul_le_right_iff_opow_omega_dvd {a b : ordinal} (ha : 0 < a) : a * b ≤
 by { rw ←mul_eq_right_iff_opow_omega_dvd, exact (mul_is_normal ha).le_iff_eq }
 
 theorem nfp_mul_opow_omega_add {a c : ordinal} (b) (ha : 0 < a) (hc : 0 < c) (hca : c ≤ a ^ omega) :
-  nfp ((*) a) (a ^ omega * b + c) = a ^ omega.{u} * b.succ :=
+  nfp ((*) a) (a ^ omega * b + c) = a ^ omega.{u} * (succ b) :=
 begin
   apply le_antisymm,
   { apply nfp_le_fp (mul_is_normal ha).monotone,

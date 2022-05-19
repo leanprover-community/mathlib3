@@ -21,7 +21,7 @@ Various operations (addition, subtraction, multiplication, power function)
 are defined on `onote` and `nonote`.
 -/
 
-open ordinal
+open ordinal order
 open_locale ordinal -- get notation for `ω`
 
 /-- Recursive definition of an ordinal notation. `zero` denotes the
@@ -683,8 +683,8 @@ begin
   rw [← opow_mul, ← opow_mul],
   apply opow_le_opow_right omega_pos,
   cases le_or_lt ω (repr e) with h h,
-  { apply (mul_le_mul_left' (lt_succ _).le _).trans,
-    rw [succ, add_mul_succ _ (one_add_of_omega_le h), ← succ,
+  { apply (mul_le_mul_left' (le_succ b) _).trans,
+    rw [←add_one_eq_succ, add_mul_succ _ (one_add_of_omega_le h), add_one_eq_succ,
         succ_le_iff, mul_lt_mul_iff_left (ordinal.pos_iff_ne_zero.2 e0)],
     exact omega_is_limit.2 _ l },
   { apply (principal_mul_omega (omega_is_limit.2 _ h) l).le.trans,
@@ -732,7 +732,7 @@ begin
       refine mul_lt_omega_opow rr0 this (nat_lt_omega _),
       simpa using (add_lt_add_iff_left (repr a0)).2 e0 },
     { refine lt_of_lt_of_le Rl (opow_le_opow_right omega_pos $
-        mul_le_mul_left' (succ_le_succ.2 (nat_cast_le.2 (le_of_lt k.lt_succ_self))) _) } },
+        mul_le_mul_left' (succ_le_succ_iff.2 (nat_cast_le.2 (le_of_lt k.lt_succ_self))) _) } },
   calc
         ω0 ^ k.succ * α' + R'
       = ω0 ^ succ k * α' + (ω0 ^ k * α' * m + R) : by rw [nat_cast_succ, RR, ← mul_assoc]

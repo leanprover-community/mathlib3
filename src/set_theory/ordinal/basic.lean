@@ -60,7 +60,7 @@ for the empty set by convention.
 
 noncomputable theory
 
-open function cardinal set equiv
+open function cardinal set equiv order
 open_locale classical cardinal
 
 universes u v w
@@ -965,12 +965,6 @@ by induction n; [refl, simp only [card_add, card_one, nat.cast_succ, *]]
 @[simp] theorem type_add {α β : Type u} (r : α → α → Prop) (s : β → β → Prop)
   [is_well_order α r] [is_well_order β s] : type r + type s = type (sum.lex r s) := rfl
 
-/-- The ordinal successor is the smallest ordinal larger than `o`.
-  It is defined as `o + 1`. -/
-def succ (o : ordinal) : ordinal := o + 1
-
-@[simp] theorem add_one_eq_succ (o) : o + 1 = succ o := rfl
-
 instance has_le.le.add_covariant_class : covariant_class ordinal.{u} ordinal.{u} (+) (≤) :=
 ⟨λ c a b h, begin
   revert h c, exact (
@@ -1012,32 +1006,6 @@ by simpa only [add_zero] using add_le_add_left (ordinal.zero_le b) a
 theorem le_add_left (a b : ordinal) : a ≤ b + a :=
 by simpa only [zero_add] using add_le_add_right (ordinal.zero_le b) a
 
-theorem lt_succ (o : ordinal.{u}) : o < succ o :=
-induction_on o $ λ α r _, ⟨⟨⟨⟨λ x, sum.inl x, λ _ _, sum.inl.inj⟩,
-  λ _ _, sum.lex_inl_inl⟩,
-sum.inr punit.star, λ b, sum.rec_on b
-  (λ x, ⟨λ _, ⟨x, rfl⟩, λ _, sum.lex.sep _ _⟩)
-  (λ x, sum.lex_inr_inr.trans ⟨false.elim, λ ⟨x, H⟩, sum.inl_ne_inr H⟩)⟩⟩
-
-theorem succ_le_iff {a b : ordinal} : succ a ≤ b ↔ a < b :=
-⟨(lt_succ a).trans_le,
-induction_on a $ λ α r hr, induction_on b $ λ β s hs ⟨⟨f, t, hf⟩⟩, begin
-  refine ⟨⟨@rel_embedding.of_monotone (α ⊕ punit) β _ _
-    (@sum.lex.is_well_order _ _ _ _ hr _).1.1
-    (@is_asymm_of_is_trans_of_is_irrefl _ _ hs.1.2.2 hs.1.2.1)
-    (sum.rec _ _) (λ a b, _), λ a b, _⟩⟩,
-  { exact f }, { exact λ _, t },
-  { rcases a with a|_; rcases b with b|_,
-    { simpa only [sum.lex_inl_inl] using f.map_rel_iff.2 },
-    { intro _, rw hf, exact ⟨_, rfl⟩ },
-    { exact false.elim ∘ sum.lex_inr_inl },
-    { exact false.elim ∘ sum.lex_inr_inr.1 } },
-  { rcases a with a|_,
-    { intro h, have := @principal_seg.init _ _ _ _ hs.1.2.2 ⟨f, t, hf⟩ _ _ h,
-      cases this with w h, exact ⟨sum.inl w, h⟩ },
-    { intro h, cases (hf b).1 h with w h, exact ⟨sum.inl w, h⟩ } }
-end⟩
-
 instance : linear_order ordinal :=
 { le_total     := λ a b,
     match lt_or_eq_of_le (le_add_left b a), lt_or_eq_of_le (le_add_right a b) with
@@ -1055,16 +1023,36 @@ instance : linear_order ordinal :=
   decidable_le := classical.dec_rel _,
   ..ordinal.partial_order }
 
-instance : succ_order ordinal.{u} := succ_order.of_succ_le_iff succ (λ a b, succ_le_iff)
+private theorem succ_le_iff' {a b : ordinal} : a + 1 ≤ b ↔ a < b :=
+⟨lt_of_lt_of_le (induction_on a $ λ α r _, ⟨⟨⟨⟨λ x, sum.inl x, λ _ _, sum.inl.inj⟩,
+  λ _ _, sum.lex_inl_inl⟩,
+  sum.inr punit.star, λ b, sum.rec_on b
+    (λ x, ⟨λ _, ⟨x, rfl⟩, λ _, sum.lex.sep _ _⟩)
+    (λ x, sum.lex_inr_inr.trans ⟨false.elim, λ ⟨x, H⟩, sum.inl_ne_inr H⟩)⟩⟩),
+induction_on a $ λ α r hr, induction_on b $ λ β s hs ⟨⟨f, t, hf⟩⟩, begin
+  refine ⟨⟨@rel_embedding.of_monotone (α ⊕ punit) β _ _
+    (@sum.lex.is_well_order _ _ _ _ hr _).1.1
+    (@is_asymm_of_is_trans_of_is_irrefl _ _ hs.1.2.2 hs.1.2.1)
+    (sum.rec _ _) (λ a b, _), λ a b, _⟩⟩,
+  { exact f }, { exact λ _, t },
+  { rcases a with a|_; rcases b with b|_,
+    { simpa only [sum.lex_inl_inl] using f.map_rel_iff.2 },
+    { intro _, rw hf, exact ⟨_, rfl⟩ },
+    { exact false.elim ∘ sum.lex_inr_inl },
+    { exact false.elim ∘ sum.lex_inr_inr.1 } },
+  { rcases a with a|_,
+    { intro h, have := @principal_seg.init _ _ _ _ hs.1.2.2 ⟨f, t, hf⟩ _ _ h,
+      cases this with w h, exact ⟨sum.inl w, h⟩ },
+    { intro h, cases (hf b).1 h with w h, exact ⟨sum.inl w, h⟩ } }
+end⟩
+
+instance : no_max_order ordinal := ⟨λ a, ⟨_, succ_le_iff'.1 le_rfl⟩⟩
+
+instance : succ_order ordinal.{u} := succ_order.of_succ_le_iff (λ o, o + 1) (λ a b, succ_le_iff')
+
+@[simp] theorem add_one_eq_succ (o : ordinal) : o + 1 = succ o := rfl
 
 instance : is_well_order ordinal (<) := ⟨wf⟩
-
-instance : no_max_order ordinal := ⟨λ a, ⟨_, lt_succ a⟩⟩
-
-theorem le_succ : ∀ a, a ≤ succ a := order.le_succ
-theorem lt_succ_iff {a b : ordinal} : a < succ b ↔ a ≤ b := order.lt_succ_iff
-theorem succ_le_of_lt {a b : ordinal} : a < b → succ a ≤ b := order.succ_le_of_lt
-theorem le_of_lt_succ {a b : ordinal} : a < succ b → a ≤ b := order.le_of_lt_succ
 
 @[simp] lemma typein_le_typein (r : α → α → Prop) [is_well_order α r] {x x' : α} :
   typein r x ≤ typein r x' ↔ ¬r x' x :=
@@ -1090,11 +1078,11 @@ theorem enum_zero_le' {o : ordinal} (h0 : 0 < o) (a : o.out.α) :
   @enum o.out.α (<) _ 0 (by rwa type_lt) ≤ a :=
 by { rw ←not_lt, apply enum_zero_le }
 
-theorem le_enum_succ {o : ordinal} (a : o.succ.out.α) :
-  a ≤ @enum o.succ.out.α (<) _ o (by { rw type_lt, exact lt_succ o }) :=
+theorem le_enum_succ {o : ordinal} (a : (succ o).out.α) :
+  a ≤ @enum (succ o).out.α (<) _ o (by { rw type_lt, exact lt_succ o }) :=
 begin
   rw ←enum_typein (<) a,
-  apply (enum_le_enum' o.succ _ _).2,
+  apply (enum_le_enum' (succ o) _ _).2,
   rw ←lt_succ_iff,
   all_goals { apply typein_lt_self }
 end
@@ -1302,7 +1290,7 @@ le_antisymm (ord_le.2 $ zero_le _) (ordinal.zero_le _)
 le_antisymm (ord_le.2 $ by simp only [card_nat]) $ begin
   induction n with n IH,
   { apply ordinal.zero_le },
-  { exact ordinal.succ_le_of_lt (IH.trans_lt $ ord_lt_ord.2 $ nat_cast_lt.2 (nat.lt_succ_self n)) }
+  { exact succ_le_of_lt (IH.trans_lt $ ord_lt_ord.2 $ nat_cast_lt.2 (nat.lt_succ_self n)) }
 end
 
 @[simp] theorem ord_one : ord 1 = 1 :=

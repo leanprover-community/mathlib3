@@ -29,6 +29,8 @@ universe u
 
 noncomputable theory
 
+open order
+
 namespace ordinal
 local infixr ^ := @pow ordinal ordinal ordinal.has_pow
 
@@ -263,7 +265,7 @@ by { rw principal_one_iff, exact zero_mul _ }
 
 theorem principal_mul_two : principal (*) 2 :=
 λ a b ha hb, begin
-  have h₂ : (1 : ordinal).succ = 2 := rfl,
+  have h₂ : succ (1 : ordinal) = 2 := rfl,
   rw [←h₂, lt_succ_iff] at *,
   convert mul_le_mul' ha hb,
   exact (mul_one 1).symm
@@ -272,7 +274,7 @@ end
 theorem principal_mul_of_le_two {o : ordinal} (ho : o ≤ 2) : principal (*) o :=
 begin
   rcases lt_or_eq_of_le ho with ho | rfl,
-  { have h₂ : (1 : ordinal).succ = 2 := rfl,
+  { have h₂ : succ (1 : ordinal) = 2 := rfl,
     rw [←h₂, lt_succ_iff] at ho,
     rcases lt_or_eq_of_le ho with ho | rfl,
     { rw lt_one_iff_zero.1 ho,
@@ -388,7 +390,7 @@ theorem mul_omega_dvd {a : ordinal}
 | _ ⟨b, rfl⟩ := by rw [← mul_assoc, mul_omega a0 ha]
 
 theorem mul_eq_opow_log_succ {a b : ordinal.{u}} (ha : 0 < a) (hb : principal (*) b) (hb₂ : 2 < b) :
-  a * b = b ^ (log b a).succ :=
+  a * b = b ^ succ (log b a) :=
 begin
   apply le_antisymm,
   { have hbl := principal_mul_is_limit hb₂ hb,

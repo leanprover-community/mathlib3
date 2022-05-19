@@ -6,6 +6,8 @@ Authors: Simon Hudon
 
 import tactic.rcases
 
+instance {α} : has_inter (set α) := ⟨λ s t, {a | a ∈ s ∧ a ∈ t}⟩
+
 universe u
 variables {α β γ : Type u}
 

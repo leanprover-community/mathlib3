@@ -3,6 +3,7 @@ Copyright (c) 2018 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Johannes Hölzl
 -/
+import algebra.module.ulift
 import order.liminf_limsup
 import topology.algebra.uniform_group
 import topology.metric_space.algebra
@@ -770,6 +771,15 @@ See note [implicit instance arguments]. -/
   ∥(x : E)∥ = ∥(x : s)∥ :=
 rfl
 
+instance ulift.semi_normed_group : semi_normed_group (ulift E) :=
+semi_normed_group.induced ⟨ulift.down, rfl, λ _ _, rfl⟩
+
+lemma ulift.norm_def (x : ulift E) : ∥x∥ = ∥x.down∥ := rfl
+lemma ulift.nnnorm_def (x : ulift E) : ∥x∥₊ = ∥x.down∥₊ := rfl
+
+@[simp] lemma ulift.norm_up (x : E) : ∥ulift.up x∥ = ∥x∥ := rfl
+@[simp] lemma ulift.nnnorm_up (x : E) : ∥ulift.up x∥₊ = ∥x∥₊ := rfl
+
 /-- seminormed group instance on the product of two seminormed groups, using the sup norm. -/
 noncomputable instance prod.semi_normed_group : semi_normed_group (E × F) :=
 { norm := λx, max ∥x.1∥ ∥x.2∥,
@@ -1127,6 +1137,8 @@ See note [implicit instance arguments]. -/
 instance submodule.normed_group {𝕜 : Type*} {_ : ring 𝕜}
   {E : Type*} [normed_group E] {_ : module 𝕜 E} (s : submodule 𝕜 E) : normed_group s :=
 { ..submodule.semi_normed_group s }
+
+instance ulift.normed_group : normed_group (ulift E) := { ..ulift.semi_normed_group }
 
 /-- normed group instance on the product of two normed groups, using the sup norm. -/
 noncomputable instance prod.normed_group : normed_group (E × F) := { ..prod.semi_normed_group }

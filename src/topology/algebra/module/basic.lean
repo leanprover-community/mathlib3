@@ -668,6 +668,9 @@ instance apply_smul_comm_class : smul_comm_class R₁ (M₁ →L[R₁] M₁) M�
 instance apply_smul_comm_class' : smul_comm_class (M₁ →L[R₁] M₁) R₁ M₁ :=
 { smul_comm := continuous_linear_map.map_smul }
 
+instance : has_continuous_const_smul (M₁ →L[R₁] M₁) M₁ :=
+⟨continuous_linear_map.continuous⟩
+
 end apply_action
 
 /-- The cartesian product of two bounded linear maps, as a bounded linear map. -/

@@ -333,3 +333,43 @@ instance adic_completion.has_lift_t : has_lift_t K (v.adic_completion K) :=
 def adic_completion_integers : valuation_subring (v.adic_completion K) := valued.v.valuation_subring
 
 end is_dedekind_domain.height_one_spectrum
+
+variables (R K)
+
+lemma adic_completion.is_integer (x : v.adic_completion K) :
+  x ∈ v.adic_completion_integers K ↔ (valued.v x : with_zero (multiplicative ℤ)) ≤ 1 := by refl
+
+/-- The natural inclusion of `R` in `adic_completion`. -/
+def inj_adic_completion_integers' : R → (v.adic_completion K) :=
+λ r, (coe : K → (v.adic_completion K)) (algebra_map R K r)
+
+/-- The natural inclusion of `R` in `adic_completion_integers`. -/
+def inj_adic_completion_integers : R → (v.adic_completion_integers K) :=
+λ r, ⟨(coe : K → (v.adic_completion K)) (algebra_map R K r), begin
+  change @valued.extension K _ _ _ v.adic_valued (algebra_map R K r) ≤ 1,
+  rw @valued.extension_extends K _ _ _ v.adic_valued (algebra_map R K r),
+  exact v.valuation_le_one _,
+end⟩
+
+lemma inj_adic_completion_integers.injective :
+  function.injective (inj_adic_completion_integers R K v) :=
+begin
+  intros x y hxy,
+  have h_inj : function.injective (coe : K → v.adic_completion K) :=
+    @uniform_space.completion.coe_injective K v.adic_valued.to_uniform_space _,
+  rw [inj_adic_completion_integers, subtype.mk_eq_mk] at hxy,
+  exact (is_fraction_ring.injective R K) ((h_inj) hxy)
+end
+
+lemma inj_adic_completion_integers.map_one : inj_adic_completion_integers R K v 1 = 1 :=
+by { rw inj_adic_completion_integers, simp_rw ring_hom.map_one, refl }
+
+lemma inj_adic_completion_integers.map_mul (x y : R) : inj_adic_completion_integers R K v (x*y) =
+  (inj_adic_completion_integers R K v x) * (inj_adic_completion_integers R K v y) :=
+begin
+  rw inj_adic_completion_integers,
+  simp_rw ring_hom.map_mul,
+  ext,
+  rw [subtype.coe_mk, subring.coe_mul, subtype.coe_mk, subtype.coe_mk,
+    uniform_space.completion.coe_mul],
+end

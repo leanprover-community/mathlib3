@@ -43,21 +43,45 @@ begin
     all_goals { exact or.inr x.pos } }
 end
 
-lemma exists_constant_height_add_le_two_mul_height_add_constant (P₀ : E⟮ℚ⟯) :
-  ∃ C₁ : ℝ, ∀ P : E⟮ℚ⟯, height (P + P₀) ≤ 2 * height P + C₁ :=
+lemma exists_constant_height_add_le_two_mul_height_add_constant (Q : E⟮ℚ⟯) :
+  ∃ C : ℝ, ∀ P : E⟮ℚ⟯, height (P + Q) ≤ 2 * height P + C :=
 begin
-  sorry
+  cases Q with x' y' w',
+  { exact ⟨0, λ P, by simpa only [EllipticCurve.zero_def, add_zero, two_mul]
+                      using le_add_of_nonneg_left (height_nonneg P)⟩ },
+  { existsi [sorry],
+    rintro (_ | ⟨x, y, w⟩),
+    { sorry },
+    { sorry } }
 end
 
 lemma exists_constant_four_mul_height_le_height_two_smul_add_constant :
-  ∃ C₂ : ℝ, ∀ P : E⟮ℚ⟯, 4 * height P ≤ height (2 • P) + C₂ :=
+  ∃ C : ℝ, ∀ P : E⟮ℚ⟯, 4 * height P ≤ height (2 • P) + C :=
+begin
+  existsi [sorry],
+  rintro (_ | ⟨x, y, w⟩),
+  { sorry },
+  { sorry }
+end
+
+def height_le_constant.function (C : ℝ) (hC : 0 ≤ C) : {P : E⟮ℚ⟯ // height P ≤ C}
+  → option (fin (2 * ⌊real.exp C⌋₊ + 1) × fin (⌊real.exp C⌋₊ + 1) × fin 2)
+| ⟨0         , _⟩ := none
+| ⟨some x y w, h⟩ := some ⟨(x.num + ⌊real.exp C⌋).to_nat, x.denom, if y ≤ 0 then 0 else 1⟩
+
+lemma height_le_constant.surjective (C : ℝ) (hC : 0 ≤ C) :
+  function.injective $ @height_le_constant.function E C hC :=
 begin
   sorry
 end
 
-lemma height_le_constant_finite (C₃ : ℝ) : {P : E⟮ℚ⟯ | height P ≤ C₃}.finite :=
+lemma height_le_constant.fintype (C : ℝ) : fintype {P : E⟮ℚ⟯ // height P ≤ C} :=
 begin
-  sorry
+  by_cases hC : C < 0,
+  { exact @fintype.of_is_empty {P : E⟮ℚ⟯ // height P ≤ C}
+      ⟨λ ⟨P, hP⟩, not_le_of_lt hC $ le_trans (height_nonneg P) hP⟩ },
+  { exact fintype.of_injective (height_le_constant.function C $ le_of_not_lt hC)
+      (height_le_constant.surjective C $ le_of_not_lt hC) }
 end
 
 end EllipticCurve

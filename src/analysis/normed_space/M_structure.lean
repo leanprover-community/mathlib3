@@ -100,8 +100,8 @@ begin
     refine @eq_of_smul_eq_smul _ X _ _ _ _ (λ x, _),
     rw ← norm_sub_eq_zero_iff,
     have e1 : ∥R • x∥ ≥ ∥R • x∥ + 2 • ∥ (P * R) • x - (R * P * R) • x∥ :=
-    calc ∥R • x∥ = ∥R • (P • (R • x))∥ + ∥(1 - R) • (P • (R • x))∥ + (∥(R * R) • x - R • (P • (R • x))∥
-      + ∥(1 - R) • ((1 - P) • (R • x))∥) :
+    calc ∥R • x∥ = ∥R • (P • (R • x))∥ + ∥(1 - R) • (P • (R • x))∥ +
+                   (∥(R * R) • x - R • (P • (R • x))∥ + ∥(1 - R) • ((1 - P) • (R • x))∥) :
       by rw [h₁.Lnorm, h₃.Lnorm, h₃.Lnorm ((1 - P) • (R • x)), sub_smul 1 P,
         one_smul, smul_sub, mul_smul]
     ... = ∥R • (P • (R • x))∥ + ∥(1 - R) • (P • (R • x))∥ + (∥R • x - R • (P • (R • x))∥
@@ -115,7 +115,8 @@ begin
     ... ≥ ∥R • x∥ + 2 • ∥ (P * R) • x - (R * P * R) • x∥ :
       by {
         rw ge,
-        have := add_le_add_right (norm_le_insert' (R • x) (R • (P • (R • x)))) (2•∥(1 - R) • (P • (R • x))∥),
+        have := add_le_add_right
+          (norm_le_insert' (R • x) (R • (P • (R • x)))) (2•∥(1 - R) • (P • (R • x))∥),
         simpa only [mul_smul, sub_smul, one_smul] using this,
       },
     rw ge at e1,
@@ -215,11 +216,11 @@ instance [has_faithful_scalar M X] : bounded_order {P : M // is_Lprojection X P}
   bot := 0,
   bot_le := λ P, (zero_mul (P : M)).symm, }
 
-@[simp] lemma coe_bot [has_faithful_scalar M X] : ↑(bounded_order.bot : {P : M // is_Lprojection X P}) = (0 : M)
-  := rfl
+@[simp] lemma coe_bot [has_faithful_scalar M X] :
+  ↑(bounded_order.bot : {P : M // is_Lprojection X P}) = (0 : M) := rfl
 
-@[simp] lemma coe_top [has_faithful_scalar M X] : ↑(bounded_order.top : {P : M // is_Lprojection X P}) = (1 : M)
-  := rfl
+@[simp] lemma coe_top [has_faithful_scalar M X] :
+  ↑(bounded_order.top : {P : M // is_Lprojection X P}) = (1 : M) := rfl
 
 lemma compl_mul_left {P : {P : M // is_Lprojection X P}} {Q : M} :
   Q - ↑P * Q = ↑Pᶜ * Q := by rw [coe_compl, sub_mul, one_mul]

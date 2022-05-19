@@ -39,11 +39,6 @@ around a sum.
 * Revise tests?
 -/
 
-/--  Takes an `expr` and returns a list of its summands. -/
-meta def expr.get_summands : expr → list expr
-| `(%%a + %%b) := a.get_summands ++ b.get_summands
-| a            := [a]
-
 open tactic
 namespace tactic
 
@@ -115,7 +110,7 @@ We use this function for expressions in an additive commutative semigroup. -/
 meta def sorted_sum (hyp : option name) (ll : list (bool × pexpr)) (e : expr) :
   tactic (list bool) :=
 do
-  (sli, is_unused) ← final_sorting ll e.get_summands,
+  (sli, is_unused) ← final_sorting ll e.list_summands,
   match sli with
   | []       := return is_unused
   | (eₕ::es) := do

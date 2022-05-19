@@ -389,32 +389,6 @@ apply_nolint stream.unfolds doc_blame
 -- data/stream/init.lean
 apply_nolint stream.is_bisimulation doc_blame
 
--- deprecated/group.lean
-apply_nolint is_group_hom.comp to_additive_doc
-apply_nolint is_group_hom.id to_additive_doc
-apply_nolint is_group_hom.injective_iff to_additive_doc
-apply_nolint is_group_hom.inv to_additive_doc
-apply_nolint is_group_hom.map_inv to_additive_doc
-apply_nolint is_group_hom.map_one to_additive_doc
-apply_nolint is_group_hom.mk' to_additive_doc
-apply_nolint is_group_hom.mul to_additive_doc
-apply_nolint is_group_hom.to_is_monoid_hom to_additive_doc
-apply_nolint is_monoid_hom.comp to_additive_doc
-apply_nolint is_monoid_hom.id to_additive_doc
-apply_nolint is_monoid_hom.inv to_additive_doc
-apply_nolint is_monoid_hom.map_mul to_additive_doc
-apply_nolint is_mul_hom.inv to_additive_doc
-apply_nolint is_mul_hom.mul to_additive_doc
-apply_nolint is_mul_hom.to_is_monoid_hom to_additive_doc
-apply_nolint mul_equiv.is_monoid_hom to_additive_doc
-apply_nolint mul_equiv.is_mul_hom to_additive_doc
-
--- deprecated/subfield.lean
-apply_nolint is_subfield doc_blame
-
--- deprecated/subring.lean
-apply_nolint ring.closure doc_blame
-
 -- group_theory/coset.lean
 apply_nolint subgroup.card_subgroup_dvd_card to_additive_doc
 

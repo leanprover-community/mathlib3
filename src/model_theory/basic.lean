@@ -231,11 +231,8 @@ by simp [language.sum]
 
 @[simp] lemma card_sum :
   (L.sum L').card = cardinal.lift.{max u' v'} L.card + cardinal.lift.{max u v} L'.card :=
-begin
-  simp only [card_eq_card_functions_add_card_relations, card_functions_sum, card_relations_sum,
-    sum_add_distrib', lift_add, lift_sum, lift_lift],
-  move_add (cardinal.sum (λ i, (# (L'.functions i)).lift)),
-end
+by simpa only [card_eq_card_functions_add_card_relations, card_functions_sum, card_relations_sum,
+    sum_add_distrib', lift_add, lift_sum, lift_lift] using add_add_add_comm _ _ _ _
 
 @[simp] lemma card_mk₂ (c f₁ f₂ : Type u) (r₁ r₂ : Type v) :
   (language.mk₂ c f₁ f₂ r₁ r₂).card =

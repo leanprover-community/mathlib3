@@ -129,7 +129,7 @@ theorem add_lf_add
   {w x y z : pgame.{u}} (oy : numeric y) (oz : numeric z)
   (hwx : w ⧏ x) (hyz : y ⧏ z) : w + y ⧏ x + z :=
 begin
-  rw lf_def_le at *,
+  rw lf_iff_forall_le at *,
   rcases hwx with ⟨ix, hix⟩|⟨jw, hjw⟩;
   rcases hyz with ⟨iz, hiz⟩|⟨jy, hjy⟩,
   { left,

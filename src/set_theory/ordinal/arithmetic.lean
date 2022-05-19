@@ -625,8 +625,8 @@ quotient.sound ⟨(rel_iso.preimage equiv.ulift _).trans
 quotient.induction_on₂ a b $ λ ⟨α, r, _⟩ ⟨β, s, _⟩,
 mul_comm (mk β) (mk α)
 
-instance : left_distrib_class ordinal :=
-⟨quotient.induction_on₃ a b c $ λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨γ, t, _⟩,
+instance : left_distrib_class ordinal.{u} :=
+⟨λ a b c, quotient.induction_on₃ a b c $ λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨γ, t, _⟩,
 quotient.sound ⟨⟨sum_prod_distrib _ _ _, begin
   rintro ⟨a₁|a₁, a₂⟩ ⟨b₁|b₁, b₂⟩;
   simp only [prod.lex_def,
@@ -635,7 +635,7 @@ quotient.sound ⟨⟨sum_prod_distrib _ _ _, begin
   simp only [sum.inl.inj_iff, true_or, false_and, false_or]
 end⟩⟩⟩
 
-@[simp] theorem mul_succ (a b : ordinal) : a * succ b = a * b + a := mul_add_one a b
+theorem mul_succ (a b : ordinal) : a * succ b = a * b + a := mul_add_one a b
 
 instance mul_covariant_class_le : covariant_class ordinal.{u} ordinal.{u} (*) (≤) :=
 ⟨λ c a b, quotient.induction_on₃ a b c $ λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨γ, t, _⟩ ⟨f⟩, begin

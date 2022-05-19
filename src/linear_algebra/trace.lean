@@ -200,7 +200,21 @@ end
 
 variables (R M N)
 
-open function
+open tensor_product function
+
+theorem trace_tensor_product :
+  compr₂ (map_bilinear R M N M N) (trace R (M ⊗ N)) =
+  compl₁₂ (lsmul R R : R →ₗ[R] R →ₗ[R] R) (trace R M) (trace R N) :=
+begin
+  apply (compl₁₂_inj
+    (show surjective (dual_tensor_hom R M M), from (dual_tensor_hom_equiv R M M).surjective)
+    (show surjective (dual_tensor_hom R N N), from (dual_tensor_hom_equiv R N N).surjective)).1,
+  ext f m g n,
+  simp only [algebra_tensor_module.curry_apply, to_fun_eq_coe, tensor_product.curry_apply,
+  coe_restrict_scalars_eq_coe, compl₁₂_apply, compr₂_apply, map_bilinear_apply,
+  trace_eq_contract_apply, contract_left_apply, lsmul_apply, algebra.id.smul_eq_mul,
+  map_dual_tensor_hom, dual_distrib_apply],
+end
 
 theorem trace_comp_comm :
   compr₂ (llcomp R M N M) (trace R M) = compr₂ (llcomp R N M N).flip (trace R N) :=
@@ -216,6 +230,14 @@ begin
 end
 
 variables {R M N}
+
+theorem trace_tensor_product' (f : M →ₗ[R] M) (g : N →ₗ[R] N) :
+  trace R (M ⊗ N) (map f g) = trace R M f * trace R N g :=
+begin
+  have h := ext_iff.1 (ext_iff.1 (trace_tensor_product R M N) f) g,
+  simp only [compr₂_apply, map_bilinear_apply, compl₁₂_apply, lsmul_apply,
+    algebra.id.smul_eq_mul] at h, exact h,
+end
 
 theorem trace_comp_comm' (f : M →ₗ[R] N) (g : N →ₗ[R] M) :
   trace R M (g ∘ₗ f) = trace R N (f ∘ₗ g) :=

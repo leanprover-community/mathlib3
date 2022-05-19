@@ -72,7 +72,7 @@ structure bicone (F : J → C) :=
 (X : C)
 (π : Π j, X ⟶ F j)
 (ι : Π j, F j ⟶ X)
-(ι_π : ∀ j j', ι j ≫ π j' = if h : j = j' then eq_to_hom (congr_arg F h) else 0)
+(ι_π : ∀ j j', ι j ≫ π j' = if h : j = j' then eq_to_hom (congr_arg F h) else 0 . obviously)
 
 @[simp, reassoc] lemma bicone_ι_π_self {F : J → C} (B : bicone F) (j : J) :
   B.ι j ≫ B.π j = 𝟙 (F j) :=
@@ -597,6 +597,30 @@ variables (C)
 @[priority 100] -- see Note [lower instance priority]
 instance has_zero_object_of_has_finite_biproducts [has_finite_biproducts C] : has_zero_object C :=
 by { refine ⟨⟨biproduct pempty.elim, λ X, ⟨⟨⟨0⟩, _⟩⟩, λ X, ⟨⟨⟨0⟩, _⟩⟩⟩⟩, tidy, }
+
+end
+
+section
+variables [unique J] (f : J → C)
+
+/-- The limit bicone for the biproduct over an index type with exactly one term. -/
+@[simps]
+def limit_bicone_of_unique : limit_bicone f :=
+{ bicone :=
+  { X := f default,
+    π := λ j, eq_to_hom (by congr),
+    ι := λ j, eq_to_hom (by congr), },
+  is_bilimit :=
+  { is_limit := (limit_cone_of_unique f).is_limit,
+    is_colimit := (colimit_cocone_of_unique f).is_colimit, }, }
+
+@[priority 100] instance has_biproduct_unique : has_biproduct f :=
+has_biproduct.mk (limit_bicone_of_unique f)
+
+/-- A biproduct over a index type with exactly one term is just the object over that term. -/
+@[simps]
+def biproduct_unique_iso : ⨁ f ≅ f default :=
+(biproduct.unique_up_to_iso _ (limit_bicone_of_unique f).is_bilimit).symm
 
 end
 

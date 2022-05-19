@@ -22,15 +22,7 @@ instance {α : Type*} [ordered_comm_semiring α] : comm_monoid_with_zero (Icc (0
   zero_mul :=
   begin
     rintros ⟨p1, ⟨p21,p22⟩⟩,
-    simp,
-    have := @zero_mul α _ p1,
-
-    have : (⟨0 * p1, _⟩ : (Icc (0:α) 1)) = ⟨0, _⟩ * ⟨p1, _⟩, {
-      -- simp only [zero_mul],
-      -- tidy?,
-      -- library_search,
-
-      refl },
+    have : (⟨0 * p1, _⟩ : (Icc (0:α) 1)) = ⟨0, _⟩ * ⟨p1, _⟩, { refl },
     rw ←this,
     simp only [zero_mul],
   end,
@@ -43,14 +35,12 @@ instance {α : Type*} [ordered_comm_semiring α] : comm_monoid_with_zero (Icc (0
   end,
   ..(show monoid (Icc (0:α) 1), by apply_instance) }
 
-#exit
+
 /-- Instances for `(Ico 0 1)` -/
 
 instance {α : Type*} [ordered_semiring α] : semigroup (Ico (0:α) 1) := {
   mul := λ p q, ⟨p*q, ⟨mul_nonneg p.2.1 q.2.1,
-      mul_lt_one_of_nonneg_of_lt_one_right (le_of_lt p.2.2) q.2.1 q.2.2⟩⟩,
-  -- TODO: golf this when `mul_lt_one` is merged
-
+    mul_lt_one_of_nonneg_of_lt_one_right p.2.2.le q.2.1 q.2.2⟩⟩,
   mul_assoc := λ p q r, (by exact subtype.mk_eq_mk.2 (mul_assoc p q r)),
 }
 
@@ -83,8 +73,7 @@ instance {α : Type*} [ordered_comm_semiring α] [nontrivial α] : comm_monoid (
 
 instance {α : Type*} [ordered_semiring α] : semigroup (Ioo (0:α) 1) := {
   mul := λ p q, ⟨p.1 * q.1, ⟨mul_pos p.2.1 q.2.1,
-    mul_lt_one_of_nonneg_of_lt_one_right (le_of_lt p.2.2) (le_of_lt q.2.1) q.2.2⟩⟩,
-  -- TODO: golf this when `mul_lt_one` is merged
+    mul_lt_one_of_nonneg_of_lt_one_right p.2.2.le q.2.1.le q.2.2⟩⟩,
 
   mul_assoc := λ p q r, (by simp only [subtype.mk_eq_mk, mul_assoc]) }
 

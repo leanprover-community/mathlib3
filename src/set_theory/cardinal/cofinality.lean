@@ -46,7 +46,7 @@ infinite pigeonhole principle
 
 noncomputable theory
 
-open function cardinal set
+open function cardinal set order
 open_locale classical cardinal
 
 universes u v w
@@ -445,7 +445,7 @@ protected theorem zero {f : Π b < (0 : ordinal), ordinal} :
   is_fundamental_sequence 0 0 f :=
 ⟨by rw [cof_zero, ord_zero], λ i j hi, (ordinal.not_lt_zero i hi).elim, blsub_zero f⟩
 
-protected theorem succ : is_fundamental_sequence o.succ 1 (λ _ _, o) :=
+protected theorem succ : is_fundamental_sequence (succ o) 1 (λ _ _, o) :=
 begin
   refine ⟨_, λ i j hi hj h, _, blsub_const ordinal.one_ne_zero o⟩,
   { rw [cof_succ, ord_one] },
@@ -602,7 +602,7 @@ let ⟨S, H, e⟩ := cof_eq r in
   let a' := enum r _ (h.2 _ (typein_lt_type r a)) in
   let ⟨b, h, ab⟩ := H a' in
   ⟨b, h, (is_order_connected.conn a b a' $ (typein_lt_typein r).1
-    (by rw typein_enum; apply ordinal.lt_succ)).resolve_right ab⟩,
+    (by { rw typein_enum, exact lt_succ (typein _ _) })).resolve_right ab⟩,
 e⟩
 
 @[simp] theorem cof_univ : cof univ.{u v} = cardinal.univ :=
@@ -761,10 +761,11 @@ end⟩
 theorem is_regular_aleph_one : is_regular (aleph 1) :=
 by { rw ← succ_omega, exact is_regular_succ le_rfl }
 
-theorem is_regular_aleph'_succ {o : ordinal} (h : ordinal.omega ≤ o) : is_regular (aleph' o.succ) :=
+theorem is_regular_aleph'_succ {o : ordinal} (h : ordinal.omega ≤ o) :
+  is_regular (aleph' (order.succ o)) :=
 by { rw aleph'_succ, exact is_regular_succ (omega_le_aleph'.2 h) }
 
-theorem is_regular_aleph_succ (o : ordinal) : is_regular (aleph o.succ) :=
+theorem is_regular_aleph_succ (o : ordinal) : is_regular (aleph (order.succ o)) :=
 by { rw aleph_succ, exact is_regular_succ (omega_le_aleph o) }
 
 /--
@@ -905,7 +906,7 @@ begin
   { intros b hb hb',
     rw deriv_family_succ,
     exact nfp_family_lt_ord_lift hω (by rwa hc.2) hf
-      ((ord_is_limit hc.1).2 _ (hb ((ordinal.lt_succ b).trans hb'))) },
+      ((ord_is_limit hc.1).2 _ (hb ((order.lt_succ b).trans hb'))) },
   { intros b hb H hb',
     rw deriv_family_limit f hb,
     exact bsup_lt_ord_of_is_regular hc (ord_lt_ord.1 ((ord_card_le b).trans_lt hb'))

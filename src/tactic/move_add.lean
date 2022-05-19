@@ -39,13 +39,13 @@ around a sum.
 * Add more tests.
 -/
 
+/--  Takes an `expr` and returns a list of its summands. -/
+meta def expr.get_summands : expr → list expr
+| `(%%a + %%b) := a.get_summands ++ b.get_summands
+| a            := [a]
+
 open tactic
 namespace tactic
-
-/--  Takes an `expr` and returns a list of its summands. -/
-meta def get_summands : expr → list expr
-| `(%%a + %%b) := get_summands a ++ get_summands b
-| a            := [a]
 
 namespace move_add
 
@@ -77,17 +77,17 @@ Once we exhaust the elements of `lp`, we return the three lists:
 
 The ununified elements of `sl` get used for error management: they keep track of which user inputs
 are superfluous. -/
-meta def unify_list : list (bool × expr) → list expr → list bool →
+meta def move_left_or_right : list (bool × expr) → list expr → list bool →
   tactic (list expr × list expr × list expr × list bool)
 | [] sl is_unused      := return ([], [], sl, is_unused)
 | (be::l) sl is_unused :=
   do (ex :: hs) ← sl.mfilter $ λ e', succeeds $ unify be.2 e' |
-    unify_list l sl (is_unused.append [tt]),
-  (l1, l2, l3, is_unused) ← unify_list l (sl.erase ex) (is_unused.append [ff]),
+    move_left_or_right l sl (is_unused.append [tt]),
+  (l1, l2, l3, is_unused) ← move_left_or_right l (sl.erase ex) (is_unused.append [ff]),
   if be.1 then return (ex::l1, l2, l3, is_unused) else return (l1, ex::l2, l3, is_unused)
 
 /--  Given a list of pairs `bool × pexpr`, we convert it to a list of `bool × expr`. -/
-meta def convert_to_expr (lp : list (bool × pexpr)) : tactic (list (bool × expr)) :=
+meta def snd_to_expr (lp : list (bool × pexpr)) : tactic (list (bool × expr)) :=
 lp.mmap $ λ x : bool × pexpr, do
   e ← to_expr x.2 tt ff,
   return (x.1, e)
@@ -95,27 +95,27 @@ lp.mmap $ λ x : bool × pexpr, do
 /--  We combine the previous steps.
 1. we convert a list pairs `bool × pexpr` to a list of pairs `bool × expr`,
 2. we use the extra input `sl : list expr` to perform the unification and sorting step
-   `unify_list`,
+   `move_left_or_right`,
 3. we jam the third factor inside the first two.
 -/
-meta def combined (lp : list (bool × pexpr)) (sl : list expr) :
+meta def final_sorting (lp : list (bool × pexpr)) (sl : list expr) :
   tactic (list expr × list bool) :=
 do
-  lp_exp : list (bool × expr) ← convert_to_expr lp,
-  (l1, l2, l3, is_unused) ← unify_list lp_exp sl [],
+  lp_exp : list (bool × expr) ← snd_to_expr lp,
+  (l1, l2, l3, is_unused) ← move_left_or_right lp_exp sl [],
   return (l1 ++ l3 ++ l2, is_unused)
 
 /-- `sorted_sum` takes an optional location name `hyp` for where it will be applied, a list `ll` of
 `bool × pexpr` (arising as the user-provided input to `move_add`) and an expression `e`.
 
 `sorted_sum hyp ll e` returns an ordered sum of the terms of `e`, where the order is
-determined using the `combined` applied to `ll` and `e`.
+determined using the `final_sorting` applied to `ll` and `e`.
 
 We use this function for expressions in an additive commutative semigroup. -/
 meta def sorted_sum (hyp : option name) (ll : list (bool × pexpr)) (e : expr) :
   tactic (list bool) :=
 do
-  (sli, is_unused) ← combined ll (get_summands e),
+  (sli, is_unused) ← final_sorting ll e.get_summands,
   match sli with
   | []       := return is_unused
   | (eₕ::es) := do
@@ -185,16 +185,15 @@ prod.mk <$> (option.is_some <$> (tk "<-")?) <*> parser.pexpr prec
 /-- `move_pexpr_list_or_texpr` is either a list of `move_add_arg`, possibly empty, or a single
 `move_add_arg`. -/
 meta def move_pexpr_list_or_texpr : parser (list (bool × pexpr)) :=
-list_of (move_add_arg 0) <|> list.ret <$> (move_add_arg tac_rbp) <|> return []
+list_of (move_add_arg 0) <|> list.ret <$> move_add_arg tac_rbp <|> return []
 
 end parsing_arguments_for_move_add
 
 end move_add
-end tactic
 
-namespace tactic.interactive
-open tactic
-open tactic.move_add
+namespace interactive
+
+open move_add
 setup_tactic_parser
 
 /--
@@ -281,12 +280,12 @@ match locat with
   ctx ← local_context,
   err_rep ← ctx.mmap (λ e, move_add_with_errors args e.local_pp_name),
   er_t ← move_add_with_errors args none,
-  if ff ∉ ([er_t.1] ++ err_rep.map (λ e, e.1)) then
+  if ff ∉ er_t.1::err_rep.map (λ e, e.1) then
     trace "'move_add at *' changed nothing" else skip,
-  let li_unused := ([er_t.2] ++ err_rep.map (λ e, e.2)),
+  let li_unused := er_t.2::err_rep.map (λ e, e.2),
   let li_unused_clear := li_unused.filter (≠ []),
   let li_tf_vars := li_unused_clear.transpose.map list.band,
-  match ((return_unused args li_tf_vars).map (λ e : bool × pexpr, e.2)) with
+  match (return_unused args li_tf_vars).map (λ e : bool × pexpr, e.2) with
   | []   := skip
   | [pe] := trace format!"'{pe}' is an unused variable"
   | pes  := trace format!"'{pes}' are unused variables"
@@ -317,4 +316,5 @@ add_tactic_doc
   decl_names := [`tactic.interactive.move_add],
   tags := ["arithmetic"] }
 
-end tactic.interactive
+end interactive
+end tactic

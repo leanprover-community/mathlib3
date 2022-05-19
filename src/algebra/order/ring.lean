@@ -447,7 +447,7 @@ by classical; exact decidable.one_lt_mul
 -- See Note [decidable namespace]
 protected lemma decidable.mul_le_one [@decidable_rel α (≤)]
   (ha : a ≤ 1) (hb' : 0 ≤ b) (hb : b ≤ 1) : a * b ≤ 1 :=
-begin rw ← one_mul (1 : α), apply decidable.mul_le_mul; {assumption <|> apply zero_le_one} end
+begin rw ← one_mul (1 : α), apply decidable.mul_le_mul ha hb hb' zero_le_one end
 
 lemma mul_le_one : a ≤ 1 → 0 ≤ b → b ≤ 1 → a * b ≤ 1 :=
 by classical; exact decidable.mul_le_one
@@ -511,6 +511,14 @@ calc a * b ≤ b : decidable.mul_le_of_le_one_left hb0 ha
 
 lemma mul_lt_one_of_nonneg_of_lt_one_right : a ≤ 1 → 0 ≤ b → b < 1 → a * b < 1 :=
 by classical; exact decidable.mul_lt_one_of_nonneg_of_lt_one_right
+
+-- See Note [decidable namespace]
+protected lemma decidable.mul_lt_one [@decidable_rel α (≤)]
+  (ha : a < 1) (hb' : 0 ≤ b) (hb : b < 1) : a * b < 1 :=
+mul_lt_one_of_nonneg_of_lt_one_right (le_of_lt ha) hb' hb
+
+lemma mul_lt_one : a < 1 → 0 ≤ b → b < 1 → a * b < 1 :=
+by classical; exact decidable.mul_lt_one
 
 end ordered_semiring
 

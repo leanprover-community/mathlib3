@@ -88,10 +88,8 @@ meta def _root_.tactic.discrete_cases : tactic unit :=
 
 run_cmd add_interactive [``tactic.discrete_cases]
 
-local attribute [tidy] tactic.discrete_cases
-
 instance [unique α] : unique (discrete α) :=
-by { dsimp [discrete], apply_instance }
+unique.mk' (discrete α)
 
 /-- Extract the equation from a morphism in a discrete category. -/
 lemma eq_of_hom {X Y : discrete α} (i : X ⟶ Y) : X.as = Y.as := i.down.down
@@ -120,6 +118,8 @@ variables {C : Type u₂} [category.{v₂} C]
 
 instance {I : Type u₁} {i j : discrete I} (f : i ⟶ j) : is_iso f :=
 ⟨⟨eq_to_hom (eq_of_hom f).symm, by tidy⟩⟩
+
+local attribute [tidy] tactic.discrete_cases
 
 /--
 Any function `I → C` gives a functor `discrete I ⥤ C`.

@@ -24,9 +24,9 @@ valid "moves" of the game are modelled by the relation `cut_expand r` on `multis
 adding back an arbitrary multiset `t` of heads such that all `a' ∈ t` satisfy `r a' a`.
 
 To prove this theorem, we follow the proof by Peter LeFanu Lumsdaine at
-https://mathoverflow.net/a/229084/3332, and introduce the notion of `fibration` of relations, and
-a special addition of relations `game_add` that is used to define addition of games in
-combinatorial game theory.
+https://mathoverflow.net/a/229084/3332, and along the way we introduce the notion of `fibration`
+of relations, and a new operation `game_add` that combines to relations to form a relation on the
+product type, which is used to define addition of games in combinatorial game theory.
 
 TODO: formalize the relations corresponding to more powerful (e.g. Kirby–Paris and Buchholz)
 hydras, and prove their well-foundedness.

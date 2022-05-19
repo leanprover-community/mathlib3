@@ -54,9 +54,11 @@ class left_distrib_class (R : Type*) [has_mul R] [has_add R] :=
 class right_distrib_class (R : Type*) [has_mul R] [has_add R] :=
 (right_distrib : ∀ a b c : R, (a + b) * c = a * c + b * c)
 
+@[priority 100] -- see Note [lower instance priority]
 instance distrib.left_distrib_class (R : Type*) [distrib R] : left_distrib_class R :=
 ⟨distrib.left_distrib⟩
 
+@[priority 100] -- see Note [lower instance priority]
 instance distrib.right_distrib_class (R : Type*) [distrib R] : right_distrib_class R :=
 ⟨distrib.right_distrib⟩
 

@@ -90,6 +90,9 @@ run_cmd add_interactive [``tactic.discrete_cases]
 
 local attribute [tidy] tactic.discrete_cases
 
+instance [unique α] : unique (discrete α) :=
+by { dsimp [discrete], apply_instance }
+
 /-- Extract the equation from a morphism in a discrete category. -/
 lemma eq_of_hom {X Y : discrete α} (i : X ⟶ Y) : X.as = Y.as := i.down.down
 

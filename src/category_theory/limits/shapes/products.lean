@@ -238,7 +238,7 @@ begin
     equivalence.equivalence_mk'_counit, discrete.equivalence_counit_iso, discrete.nat_iso_hom_app,
     eq_to_iso.hom, eq_to_hom_map],
   dsimp,
-  simpa using limit.w (discrete.functor (f ∘ ε)) (eq_to_hom (ε.symm_apply_apply b)),
+  simpa using limit.w (discrete.functor (f ∘ ε)) (discrete.eq_to_hom' (ε.symm_apply_apply b)),
 end
 
 @[simp, reassoc]
@@ -262,7 +262,7 @@ begin
     discrete.equivalence_unit_iso, discrete.nat_iso_hom_app, eq_to_iso.hom, eq_to_hom_map,
     discrete.nat_iso_inv_app],
   dsimp,
-  simp [←colimit.w (discrete.functor f) (eq_to_hom (ε.apply_symm_apply (ε b)))],
+  simp [←colimit.w (discrete.functor f) (discrete.eq_to_hom' (ε.apply_symm_apply (ε b)))],
 end
 
 @[simp, reassoc]

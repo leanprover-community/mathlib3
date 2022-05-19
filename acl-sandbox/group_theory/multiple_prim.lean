@@ -19,6 +19,18 @@ import .multiply_trans
 open_locale big_operators pointwise cardinal
 
 open_locale classical
+example (n m : ℕ) (hnm : n ≤ m) : 2 * n ≤ 2 * m :=
+begin
+exact mul_le_mul_left' hnm 2,
+end
+
+example (n m : ℕ) (hnm : n ≤ m) : 2 * n ≤ 3 * m :=
+begin
+  apply mul_le_mul',
+  norm_num,
+  assumption,
+
+end
 
 namespace cardinal
 

@@ -24,7 +24,8 @@ variables {C : Type u₁} [category.{v₁} C]
 /--
 The uncurrying functor, taking a functor `C ⥤ (D ⥤ E)` and producing a functor `(C × D) ⥤ E`.
 -/
-@[simps] def uncurry : (C ⥤ (D ⥤ E)) ⥤ ((C × D) ⥤ E) :=
+@[simps]
+def uncurry : (C ⥤ (D ⥤ E)) ⥤ ((C × D) ⥤ E) :=
 { obj := λ F,
   { obj := λ X, (F.obj X.1).obj X.2,
     map := λ X Y f, (F.map f.1).app X.2 ≫ (F.obj Y.1).map f.2,
@@ -49,7 +50,7 @@ The uncurrying functor, taking a functor `C ⥤ (D ⥤ E)` and producing a funct
 /--
 The object level part of the currying functor. (See `curry` for the functorial version.)
 -/
-@[simps] def curry_obj (F : (C × D) ⥤ E) : C ⥤ (D ⥤ E) :=
+def curry_obj (F : (C × D) ⥤ E) : C ⥤ (D ⥤ E) :=
 { obj := λ X,
     { obj := λ Y, F.obj (X, Y),
       map := λ Y Y' g, F.map (𝟙 X, g) },
@@ -58,7 +59,8 @@ The object level part of the currying functor. (See `curry` for the functorial v
 /--
 The currying functor, taking a functor `(C × D) ⥤ E` and producing a functor `C ⥤ (D ⥤ E)`.
 -/
-@[simps] def curry : ((C × D) ⥤ E) ⥤ (C ⥤ (D ⥤ E)) :=
+@[simps obj_obj_obj obj_obj_map obj_map_app map_app_app]
+def curry : ((C × D) ⥤ E) ⥤ (C ⥤ (D ⥤ E)) :=
 { obj := λ F, curry_obj F,
   map := λ F G T,
   { app := λ X,

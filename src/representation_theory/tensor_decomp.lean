@@ -1,10 +1,25 @@
+/-
+Copyright (c) 2022 Amelia Livingston. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Amelia Livingston
+-/
+
 import linear_algebra.tensor_product
 import ring_theory.tensor_product
 import representation_theory.monoid_algebra_basis
+
+/-!
+# The `k[G]`-linear isomorphism `k[Gⁿ⁺¹] ≅ k[G] ⊗[k] k[Gⁿ]`
+
+## Main definitions
+
+  *
+## Implementation notes
+
+-/
+
 universes v u
 noncomputable theory
-
-/-! The `k[G]`-linear isomorphism `k[Gⁿ⁺¹] ≅ k[G] ⊗[k] k[Gⁿ]` -/
 
 variables (k : Type u) [comm_ring k] (G : Type u) [group G]
 open_locale tensor_product
@@ -45,6 +60,8 @@ end
 
 variables (G n)
 
+namespace Rep
+
 @[simps] def to_tensor_aux : mul_action_to_Rep k G (fin (n + 1) → G) →ₗ[k] monoid_algebra k G
   ⊗[k] mul_action_to_Rep k G (fin n → G) :=
 finsupp.lift (monoid_algebra k G ⊗[k] mul_action_to_Rep k G (fin n → G)) k (fin (n + 1) → G)
@@ -63,7 +80,7 @@ def to_tensor : mul_action_to_Rep k G (fin (n + 1) → G) →ₗ[monoid_algebra 
   ⊗[k] mul_action_to_Rep k G (fin n → G) :=
 monoid_algebra.equivariant_of_linear_of_comm (to_tensor_aux k G n) $ λ g x,
 begin
-  refine map_smul_of_map_smul_of _ _ _ _ _ _ _,
+  refine map_smul_of_map_smul_of _ _ _ _ _,
   intros h x,
   rw of_smul_of,
   simp only [monoid_algebra.of_apply, single_smul_single, one_smul, one_mul, to_tensor_single],
@@ -222,11 +239,14 @@ def equiv_tensor : mul_action_to_Rep k G (fin (n + 1) → G) ≃ₗ[monoid_algeb
   ..to_tensor k G n }
 
 @[simp] lemma equiv_tensor_apply (x : fin (n + 1) → G) (m : k) :
-  equiv_tensor k G n (finsupp.single x m) = (finsupp.single (x 0) m) ⊗ₜ (finsupp.single (λ i, (x i)⁻¹ * x i.succ) 1) :=
+  equiv_tensor k G n (finsupp.single x m) = (finsupp.single (x 0) m) ⊗ₜ
+    (finsupp.single (λ i, (x i)⁻¹ * x i.succ) 1) :=
 to_tensor_single _ _ _ _ _
 
 @[simp] lemma equiv_tensor_symm_apply (g : G) (m : k) (x : mul_action_to_Rep k G (fin n → G)) :
   (equiv_tensor _ G n).symm ((finsupp.single g m) ⊗ₜ x) =
   m • finsupp.lift (mul_action_to_Rep k G (fin (n + 1) → G)) k (fin n → G)
-    (λ f, of _ _ (g • to_prod f)) x :=
+    (λ f, monoid_algebra.of _ _ (g • to_prod f)) x :=
 of_tensor_single _ _ _ _ _ _
+
+end Rep

@@ -84,11 +84,6 @@ instance pi_Lp.inner_product_space {ι : Type*} [fintype ι] (f : ι → Type*)
   ⟪x, y⟫ = ∑ i, ⟪x i, y i⟫ :=
 rfl
 
-lemma pi_Lp.norm_eq_of_L2 {ι : Type*} [fintype ι] {f : ι → Type*}
-  [Π i, inner_product_space 𝕜 (f i)] (x : pi_Lp 2 f) :
-  ∥x∥ = sqrt (∑ (i : ι), ∥x i∥ ^ 2) :=
-by { rw [pi_Lp.norm_eq_of_nat 2]; simp [sqrt_eq_rpow] }
-
 /-- The standard real/complex Euclidean space, functions on a finite type. For an `n`-dimensional
 space use `euclidean_space 𝕜 (fin n)`. -/
 @[reducible, nolint unused_arguments]
@@ -96,8 +91,12 @@ def euclidean_space (𝕜 : Type*) [is_R_or_C 𝕜]
   (n : Type*) [fintype n] : Type* := pi_Lp 2 (λ (i : n), 𝕜)
 
 lemma euclidean_space.norm_eq {𝕜 : Type*} [is_R_or_C 𝕜] {n : Type*} [fintype n]
-  (x : euclidean_space 𝕜 n) : ∥x∥ = real.sqrt (∑ (i : n), ∥x i∥ ^ 2) :=
+  (x : euclidean_space 𝕜 n) : ∥x∥ = real.sqrt (∑ i, ∥x i∥ ^ 2) :=
 pi_Lp.norm_eq_of_L2 x
+
+lemma euclidean_space.nnnorm_eq {𝕜 : Type*} [is_R_or_C 𝕜] {n : Type*} [fintype n]
+  (x : euclidean_space 𝕜 n) : ∥x∥₊ = nnreal.sqrt (∑ i, ∥x i∥₊ ^ 2) :=
+pi_Lp.nnnorm_eq_of_L2 x
 
 variables [fintype ι]
 
@@ -192,12 +191,7 @@ by { classical, congr, simp, }
 
 @[simp] protected lemma repr_self [decidable_eq ι] (b : orthonormal_basis ι 𝕜 E) (i : ι) :
   b.repr (b i) = euclidean_space.single i (1:𝕜) :=
-begin
-  classical,
-  rw [← b.repr_symm_single i, linear_isometry_equiv.apply_symm_apply],
-  congr,
-  simp,
-end
+by rw [← b.repr_symm_single i, linear_isometry_equiv.apply_symm_apply]
 
 protected lemma repr_apply_apply (b : orthonormal_basis ι 𝕜 E) (v : E) (i : ι) :
   b.repr v i = ⟪b i, v⟫ :=

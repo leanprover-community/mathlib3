@@ -72,7 +72,7 @@ structure bicone (F : J → C) :=
 (X : C)
 (π : Π j, X ⟶ F j)
 (ι : Π j, F j ⟶ X)
-(ι_π : ∀ j j', ι j ≫ π j' = if h : j = j' then eq_to_hom (congr_arg F h) else 0)
+(ι_π : ∀ j j', ι j ≫ π j' = if h : j = j' then eq_to_hom (congr_arg F h) else 0 . obviously)
 
 @[simp, reassoc] lemma bicone_ι_π_self {F : J → C} (B : bicone F) (j : J) :
   B.ι j ≫ B.π j = 𝟙 (F j) :=
@@ -600,6 +600,30 @@ by { refine ⟨⟨biproduct pempty.elim, λ X, ⟨⟨⟨0⟩, _⟩⟩, λ X, ⟨
 
 end
 
+section
+variables [unique J] (f : J → C)
+
+/-- The limit bicone for the biproduct over an index type with exactly one term. -/
+@[simps]
+def limit_bicone_of_unique : limit_bicone f :=
+{ bicone :=
+  { X := f default,
+    π := λ j, eq_to_hom (by congr),
+    ι := λ j, eq_to_hom (by congr), },
+  is_bilimit :=
+  { is_limit := (limit_cone_of_unique f).is_limit,
+    is_colimit := (colimit_cocone_of_unique f).is_colimit, }, }
+
+@[priority 100] instance has_biproduct_unique : has_biproduct f :=
+has_biproduct.mk (limit_bicone_of_unique f)
+
+/-- A biproduct over a index type with exactly one term is just the object over that term. -/
+@[simps]
+def biproduct_unique_iso : ⨁ f ≅ f default :=
+(biproduct.unique_up_to_iso _ (limit_bicone_of_unique f).is_bilimit).symm
+
+end
+
 /--
 A binary bicone for a pair of objects `P Q : C` consists of the cone point `X`,
 maps from `X` to both `P` and `Q`, and maps from both `P` and `Q` to `X`,
@@ -950,7 +974,6 @@ is_colimit.map (binary_biproduct.is_colimit W X) (binary_biproduct.bicone Y Z).t
   (h₀ : f ≫ biprod.fst = g ≫ biprod.fst) (h₁ : f ≫ biprod.snd = g ≫ biprod.snd) : f = g :=
 binary_fan.is_limit.hom_ext (binary_biproduct.is_limit X Y) h₀ h₁
 
-
 @[ext] lemma biprod.hom_ext' {X Y Z : C} [has_binary_biproduct X Y] (f g : X ⊞ Y ⟶ Z)
   (h₀ : biprod.inl ≫ f = biprod.inl ≫ g) (h₁ : biprod.inr ≫ f = biprod.inr ≫ g) : f = g :=
 binary_cofan.is_colimit.hom_ext (binary_biproduct.is_colimit X Y) h₀ h₁
@@ -1145,6 +1168,34 @@ def biprod.is_cokernel_inr_cokernel_fork : is_colimit (biprod.inr_cokernel_fork 
 cofork.is_colimit.mk' _ $ λ s, ⟨biprod.inl ≫ s.π, by ext; simp, λ m hm, by simp [← hm]⟩
 
 end biprod_kernel
+
+section is_zero
+
+/-- If `Y` is a zero object, `X ≅ X ⊞ Y` for any `X`. -/
+@[simps]
+def iso_biprod_zero {X Y : C} [has_binary_biproduct X Y] (hY : is_zero Y) : X ≅ X ⊞ Y :=
+{ hom := biprod.inl,
+  inv := biprod.fst,
+  inv_hom_id' := begin
+    apply category_theory.limits.biprod.hom_ext;
+    simp only [category.assoc, biprod.inl_fst, category.comp_id, category.id_comp,
+      biprod.inl_snd, comp_zero],
+    apply hY.eq_of_tgt
+  end }
+
+/-- If `X` is a zero object, `Y ≅ X ⊞ Y` for any `Y`. -/
+@[simps]
+def iso_zero_biprod {X Y : C} [has_binary_biproduct X Y] (hY : is_zero X) : Y ≅ X ⊞ Y :=
+{ hom := biprod.inr,
+  inv := biprod.snd,
+  inv_hom_id' := begin
+    apply category_theory.limits.biprod.hom_ext;
+    simp only [category.assoc, biprod.inr_snd, category.comp_id, category.id_comp,
+      biprod.inr_fst, comp_zero],
+    apply hY.eq_of_tgt
+  end }
+
+end is_zero
 
 section
 variables [has_binary_biproducts C]
@@ -1367,6 +1418,20 @@ lemma biproduct.map_matrix
 by { ext, simp, }
 
 end
+
+/-- Reindex a categorical biproduct via an equivalence of the index types. -/
+@[simps]
+def biproduct.reindex {β γ : Type v} [fintype β] [decidable_eq β] [decidable_eq γ]
+  (ε : β ≃ γ) (f : γ → C) [has_biproduct f] [has_biproduct (f ∘ ε)] : (⨁ (f ∘ ε)) ≅ (⨁ f) :=
+{ hom := biproduct.desc (λ b, biproduct.ι f (ε b)),
+  inv := biproduct.lift (λ b, biproduct.π f (ε b)),
+  hom_inv_id' := by { ext b b', by_cases h : b = b', { subst h, simp, }, { simp [h], }, },
+  inv_hom_id' := begin
+    ext g g',
+    by_cases h : g = g';
+    simp [preadditive.sum_comp, preadditive.comp_sum, biproduct.ι_π, biproduct.ι_π_assoc, comp_dite,
+      equiv.apply_eq_iff_eq_symm_apply, finset.sum_dite_eq' finset.univ (ε.symm g') _, h],
+  end, }
 
 /--
 In a preadditive category, we can construct a binary biproduct for `X Y : C` from

@@ -132,6 +132,6 @@ le_def.2 ⟨λ i, or.inl ⟨to_left_moves_to_pgame ⟨_, birthday_move_left_lt i
   by simp [le_birthday (xL i)]⟩, is_empty_elim⟩
 
 theorem neg_birthday_le (x : pgame) : -x.birthday.to_pgame ≤ x :=
-let h := le_birthday (-x) in by rwa [neg_birthday, le_iff_neg_ge, neg_neg] at h
+let h := le_birthday (-x) in by rwa [neg_birthday, ←neg_le_iff, neg_neg] at h
 
 end pgame

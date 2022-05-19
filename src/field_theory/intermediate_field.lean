@@ -280,9 +280,13 @@ set_like.coe_injective $ set.image_image _ _ _
 /-- Given an equivalence `e : L ≃ₐ[K] L'` of `K`-field extensions and an intermediate
 field `E` of `L/K`, `intermediate_field_equiv_map e E` is the induced equivalence
 between `E` and `E.map e` -/
-@[simps] def intermediate_field_map (e : L ≃ₐ[K] L') (E : intermediate_field K L) :
+def intermediate_field_map (e : L ≃ₐ[K] L') (E : intermediate_field K L) :
   E ≃ₐ[K] (E.map e.to_alg_hom) :=
 e.subalgebra_map E.to_subalgebra
+
+@[simp] lemma intermediate_field_map_apply_coe (e : L ≃ₐ[K] L') (E : intermediate_field K L)
+  (x : E.to_subalgebra.to_subsemiring) : ↑(intermediate_field_map e E x) = e x :=
+rfl
 
 /-- The embedding from an intermediate field of `L / K` to `L`. -/
 def val : S →ₐ[K] L :=

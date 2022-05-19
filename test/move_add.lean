@@ -17,7 +17,7 @@ end
 
 example (r : R → R → Prop) (h : r (a + b) (c + b + a)) : r (a + b) (a + b + c) :=
 begin
-  move_add [a, b, c] at *,
+  move_add [a, b, c] at h,
 end
 
 example (h : a + c + b = a + d + b) : c + b + a = b + a + d :=

@@ -26,15 +26,6 @@ gives a simple criterion for an embedding to be elementary.
 gives a simple criterion for a substructure to be elementary.
  -/
 
-namespace set
-variables {α : Type*} {s : set α}
-
-lemma inclusion_eq_id (h : s ⊆ s) :
-  (inclusion h) = id :=
-funext inclusion_self
-
-end set
-
 open_locale first_order
 namespace first_order
 namespace language

@@ -617,13 +617,13 @@ quotient.sound ⟨⟨sum_prod_distrib _ _ _, begin
   simp only [sum.inl.inj_iff, true_or, false_and, false_or]
 end⟩⟩
 
-@[simp] theorem mul_add_one (a b : ordinal) : a * (b + 1) = a * b + a :=
+theorem mul_add_one (a b : ordinal) : a * (b + 1) = a * b + a :=
 by rw [mul_add, mul_one]
 
-@[simp] theorem mul_one_add (a b : ordinal) : a * (1 + b) = a + a * b :=
+theorem mul_one_add (a b : ordinal) : a * (1 + b) = a + a * b :=
 by rw [mul_add, mul_one]
 
-@[simp] theorem mul_succ (a b : ordinal) : a * succ b = a * b + a := mul_add_one _ _
+theorem mul_succ (a b : ordinal) : a * succ b = a * b + a := mul_add_one _ _
 
 theorem mul_two (a : ordinal) : a * 2 = a + a :=
 by { change a * (succ 1) = a + a, rw [mul_succ, mul_one] }

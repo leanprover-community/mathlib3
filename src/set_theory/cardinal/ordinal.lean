@@ -155,9 +155,9 @@ by rw [← nonpos_iff_eq_zero, ← aleph'_aleph_idx 0, aleph'_le];
 @[simp] theorem aleph'_succ {o : ordinal.{u}} : aleph' o.succ = (aleph' o).succ :=
 le_antisymm
  (cardinal.aleph_idx_le.1 $
-  by rw [aleph_idx_aleph', ordinal.succ_le, ← aleph'_lt, aleph'_aleph_idx];
+  by rw [aleph_idx_aleph', ordinal.succ_le_iff, ← aleph'_lt, aleph'_aleph_idx];
      apply cardinal.lt_succ_self)
- (cardinal.succ_le.2 $ aleph'_lt.2 $ ordinal.lt_succ_self _)
+ (cardinal.succ_le.2 $ aleph'_lt.2 $ ordinal.lt_succ o)
 
 @[simp] theorem aleph'_nat : ∀ n : ℕ, aleph' n = n
 | 0     := aleph'_zero
@@ -239,7 +239,7 @@ theorem exists_aleph {c : cardinal} : ω ≤ c ↔ ∃ o, c = aleph o :=
  λ ⟨o, e⟩, e.symm ▸ omega_le_aleph _⟩
 
 theorem aleph'_is_normal : is_normal (ord ∘ aleph') :=
-⟨λ o, ord_lt_ord.2 $ aleph'_lt.2 $ ordinal.lt_succ_self _,
+⟨λ o, ord_lt_ord.2 $ aleph'_lt.2 $ ordinal.lt_succ o,
  λ o l a, by simp only [ord_le, aleph'_le_of_limit l]⟩
 
 theorem aleph_is_normal : is_normal (ord ∘ aleph) :=

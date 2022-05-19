@@ -602,7 +602,7 @@ let ⟨S, H, e⟩ := cof_eq r in
   let a' := enum r _ (h.2 _ (typein_lt_type r a)) in
   let ⟨b, h, ab⟩ := H a' in
   ⟨b, h, (is_order_connected.conn a b a' $ (typein_lt_typein r).1
-    (by rw typein_enum; apply ordinal.lt_succ_self)).resolve_right ab⟩,
+    (by rw typein_enum; apply ordinal.lt_succ)).resolve_right ab⟩,
 e⟩
 
 @[simp] theorem cof_univ : cof univ.{u v} = cardinal.univ :=
@@ -619,7 +619,7 @@ le_antisymm (cof_le_card _) begin
   let g := λ a, (f a).1,
   let o := succ (sup.{u u} g),
   rcases H o with ⟨b, h, l⟩,
-  refine l (lt_succ.2 _),
+  refine l (lt_succ_iff.2 _),
   rw ← show g (f.symm ⟨b, h⟩) = b, by dsimp [g]; simp,
   apply le_sup
 end

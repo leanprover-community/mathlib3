@@ -161,16 +161,6 @@ instance : is_domain R[X] :=
 { ..polynomial.no_zero_divisors,
   ..polynomial.nontrivial, }
 
-lemma nat_trailing_degree_mul (hp : p ≠ 0) (hq : q ≠ 0) :
-  (p * q).nat_trailing_degree = p.nat_trailing_degree + q.nat_trailing_degree :=
-begin
-  simp only [←tsub_eq_of_eq_add_rev (nat_degree_eq_reverse_nat_degree_add_nat_trailing_degree _)],
-  rw [reverse_mul_of_domain, nat_degree_mul hp hq, nat_degree_mul (mt reverse_eq_zero.mp hp)
-    (mt reverse_eq_zero.mp hq), reverse_nat_degree, reverse_nat_degree, tsub_add_eq_tsub_tsub,
-    nat.add_comm, add_tsub_assoc_of_le (nat.sub_le _ _), add_comm,
-    add_tsub_assoc_of_le (nat.sub_le _ _)],
-end
-
 end ring
 
 section comm_ring

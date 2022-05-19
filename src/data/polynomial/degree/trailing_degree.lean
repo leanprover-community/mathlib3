@@ -265,6 +265,106 @@ begin
     exact (le_tsub_iff_right key).mp (nat_trailing_degree_le_of_ne_zero hy) },
 end
 
+lemma coe_nat_trailing_degree (hp : p ≠ 0) : ↑p.nat_trailing_degree = p.trailing_degree :=
+begin
+  have := p.trailing_degree.coe_untop (mt trailing_degree_eq_top.mp hp),
+  rw [←this, with_top.coe_eq_coe],
+  apply nat_trailing_degree_eq_of_trailing_degree_eq_some,
+  rw this,
+end
+
+lemma trailing_degree_le_of_ne_zero (h : p.coeff n ≠ 0) : p.trailing_degree ≤ n :=
+begin
+  rw [←coe_nat_trailing_degree, with_top.coe_le_coe],
+  { exact nat_trailing_degree_le_of_ne_zero h },
+  { exact λ hp, h (by rw [hp, coeff_zero]) },
+end
+
+-- could swap with nat version
+lemma trailing_degree_mul_le : p.trailing_degree + q.trailing_degree ≤ (p * q).trailing_degree :=
+begin
+  sorry
+end
+
+-- could swap with non-nat version
+lemma nat_trailing_degree_mul_le (h : p * q ≠ 0) :
+  p.nat_trailing_degree + q.nat_trailing_degree ≤ (p * q).nat_trailing_degree :=
+begin
+  sorry
+end
+
+lemma coeff_mul_nat_trailing_degree_add_nat_trailing_degree :
+  (p * q).coeff (p.nat_trailing_degree + q.nat_trailing_degree) =
+    p.trailing_coeff * q.trailing_coeff :=
+begin
+  rw coeff_mul,
+  refine finset.sum_eq_single (nat_trailing_degree p, nat_trailing_degree q) _
+    (λ H, (H (nat.mem_antidiagonal.mpr rfl)).elim),
+  rintro ⟨i, j⟩ h₁ h₂,
+  rw nat.mem_antidiagonal at h₁,
+  sorry
+end
+
+/-@[simp] lemma coeff_mul_degree_add_degree (p q : R[X]) :
+  coeff (p * q) (nat_degree p + nat_degree q) = leading_coeff p * leading_coeff q :=
+calc coeff (p * q) (nat_degree p + nat_degree q) =
+    ∑ x in nat.antidiagonal (nat_degree p + nat_degree q),
+    coeff p x.1 * coeff q x.2 : coeff_mul _ _ _
+... = coeff p (nat_degree p) * coeff q (nat_degree q) :
+  begin
+    refine finset.sum_eq_single (nat_degree p, nat_degree q) _ _,
+    { rintro ⟨i,j⟩ h₁ h₂, rw nat.mem_antidiagonal at h₁,
+      by_cases H : nat_degree p < i,
+      { rw [coeff_eq_zero_of_degree_lt
+          (lt_of_le_of_lt degree_le_nat_degree (with_bot.coe_lt_coe.2 H)), zero_mul] },
+      { rw not_lt_iff_eq_or_lt at H, cases H,
+        { subst H, rw add_left_cancel_iff at h₁, dsimp at h₁, subst h₁, exfalso, exact h₂ rfl },
+        { suffices : nat_degree q < j,
+          { rw [coeff_eq_zero_of_degree_lt
+              (lt_of_le_of_lt degree_le_nat_degree (with_bot.coe_lt_coe.2 this)), mul_zero] },
+          { by_contra H', rw not_lt at H',
+            exact ne_of_lt (nat.lt_of_lt_of_le
+              (nat.add_lt_add_right H j) (nat.add_le_add_left H' _)) h₁ } } } },
+    { intro H, exfalso, apply H, rw nat.mem_antidiagonal }
+  end-/
+
+lemma trailing_degree_mul' (h : p.trailing_coeff * q.trailing_coeff ≠ 0) :
+  (p * q).trailing_degree = p.trailing_degree + q.trailing_degree :=
+begin
+  have hp : p ≠ 0 := λ hp, h (by rw [hp, trailing_coeff_zero, zero_mul]),
+  have hq : q ≠ 0 := λ hq, h (by rw [hq, trailing_coeff_zero, mul_zero]),
+  refine le_antisymm _ trailing_degree_mul_le,
+  rw [←coe_nat_trailing_degree hp, ←coe_nat_trailing_degree hq],
+  apply trailing_degree_le_of_ne_zero,
+  rwa coeff_mul_nat_trailing_degree_add_nat_trailing_degree,
+end
+
+lemma nat_trailing_degree_mul' (h : p.trailing_coeff * q.trailing_coeff ≠ 0) :
+  (p * q).nat_trailing_degree = p.nat_trailing_degree + q.nat_trailing_degree :=
+begin
+  have hp : p ≠ 0 := λ hp, h (by rw [hp, trailing_coeff_zero, zero_mul]),
+  have hq : q ≠ 0 := λ hq, h (by rw [hq, trailing_coeff_zero, mul_zero]),
+  apply nat_trailing_degree_eq_of_trailing_degree_eq_some,
+  rw [trailing_degree_mul' h, with_top.coe_add,
+      coe_nat_trailing_degree hp, coe_nat_trailing_degree hq],
+end
+
+lemma nat_trailing_degree_mul [no_zero_divisors R] (hp : p ≠ 0) (hq : q ≠ 0) :
+  (p * q).nat_trailing_degree = p.nat_trailing_degree + q.nat_trailing_degree :=
+nat_trailing_degree_mul' (mul_ne_zero (mt trailing_coeff_eq_zero.mp hp)
+  (mt trailing_coeff_eq_zero.mp hq))
+
+lemma trailing_degree_mul [no_zero_divisors R] [no_zero_divisors R[X]] :
+  (p * q).trailing_degree = p.trailing_degree + q.trailing_degree :=
+begin
+  by_cases hp : p = 0,
+  { rw [hp, zero_mul, trailing_degree_zero, top_add] },
+  by_cases hq : q = 0,
+  { rw [hq, mul_zero, trailing_degree_zero, add_top] },
+  rw [←coe_nat_trailing_degree hp, ←coe_nat_trailing_degree hq, ←coe_nat_trailing_degree
+      (mul_ne_zero hp hq), nat_trailing_degree_mul hp hq, with_top.coe_add],
+end
+
 end semiring
 
 section nonzero_semiring

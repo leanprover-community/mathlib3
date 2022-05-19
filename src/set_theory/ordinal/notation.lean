@@ -451,11 +451,8 @@ def mul : onote → onote → onote
   if e₂ = 0 then oadd e₁ (n₁ * n₂) a₁ else
   oadd (e₁ + e₂) n₂ (mul o₁ a₂)
 
--- Better unfolding.
-instance : has_mul onote := ⟨mul⟩
-
 instance : mul_zero_class onote :=
-{ mul := (*),
+{ mul := mul,
   zero := 0,
   zero_mul := λ o, by cases o; refl,
   mul_zero := λ o, by cases o; refl }
@@ -489,7 +486,7 @@ instance mul_NF : ∀ o₁ o₂ [NF o₁] [NF o₂], NF (o₁ * o₂)
 | (oadd e₁ n₁ a₁) 0               h₁ h₂ := (mul_zero _).symm
 | (oadd e₁ n₁ a₁) (oadd e₂ n₂ a₂) h₁ h₂ := begin
   have IH : repr (mul _ _) = _ := @repr_mul _ _ h₁ h₂.snd,
-  conv {to_lhs, simp [(*)]},
+  conv {to_lhs, simp [(*), mul_zero_class.mul]},
   have ao : repr a₁ + ω ^ repr e₁ * (n₁:ℕ) = ω ^ repr e₁ * (n₁:ℕ),
   { apply add_absorp h₁.snd'.repr_lt,
     simpa using (mul_le_mul_iff_left $ opow_pos _ omega_pos).2
@@ -598,11 +595,11 @@ end
 theorem scale_eq_mul (x) [NF x] : ∀ o [NF o], scale x o = oadd x 1 0 * o
 | 0            h := rfl
 | (oadd e n a) h := begin
-  simp [(*)], simp [mul, scale],
+  simp [(*)], simp [mul_zero_class.mul, mul, scale],
   haveI := h.snd,
   by_cases e0 : e = 0,
   { rw scale_eq_mul, simp [e0, h.zero_of_zero, show x + 0 = x, from repr_inj.1 (by simp)] },
-  { simp [e0, scale_eq_mul, (*)] }
+  { simp [e0, mul_zero_class.mul, scale_eq_mul, (*)] }
 end
 
 instance NF_scale (x) [NF x] (o) [NF o] : NF (scale x o) :=

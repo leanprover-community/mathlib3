@@ -483,8 +483,7 @@ def embed_product (α : Type*) [monoid α] : αˣ →* α × αᵐᵒᵖ :=
   map_mul' := λ x y, by simp only [mul_inv_rev, op_mul, units.coe_mul, prod.mk_mul_mk] }
 
 lemma embed_product_injective (α : Type*) [monoid α] : function.injective (embed_product α) :=
-λ a₁ a₂ h, by { rw [embed_product, monoid_hom.coe_mk, prod.mk.inj_iff, op_inj] at h,
-  rw [units.ext_iff, h.1], }
+λ a₁ a₂ h, units.ext $ (congr_arg prod.fst h : _)
 
 end units
 

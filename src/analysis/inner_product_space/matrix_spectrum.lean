@@ -37,7 +37,7 @@ begin
   show A.is_hermitian → ∀ x y, ⟪A.mul_vec x, y⟫ = ⟪x, A.mul_vec y⟫,
   { intros h x y,
     unfold is_hermitian at h,
-    simp only [pi_Lp.inner_eq_star_dot_product, star_mul_vec, matrix.dot_product_mul_vec,
+    simp only [euclidean_space.inner_eq_star_dot_product, star_mul_vec, matrix.dot_product_mul_vec,
       h, star_eq_conj_transpose] },
   show (∀ x y, ⟪A.mul_vec x, y⟫ = ⟪x, A.mul_vec y⟫) → A.is_hermitian,
   { intro h,

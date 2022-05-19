@@ -84,10 +84,6 @@ instance pi_Lp.inner_product_space {ι : Type*} [fintype ι] (f : ι → Type*)
   ⟪x, y⟫ = ∑ i, ⟪x i, y i⟫ :=
 rfl
 
-lemma pi_Lp.inner_eq_star_dot_product (x y : ι → 𝕜) [fintype ι] :
-  ⟪x, y⟫ = matrix.dot_product (star x) y :=
-rfl
-
 lemma pi_Lp.norm_eq_of_L2 {ι : Type*} [fintype ι] {f : ι → Type*}
   [Π i, inner_product_space 𝕜 (f i)] (x : pi_Lp 2 f) :
   ∥x∥ = sqrt (∑ (i : ι), ∥x i∥ ^ 2) :=
@@ -116,6 +112,10 @@ instance : inner_product_space 𝕜 (euclidean_space 𝕜 ι) := by apply_instan
 
 lemma finrank_euclidean_space_fin {n : ℕ} :
   finite_dimensional.finrank 𝕜 (euclidean_space 𝕜 (fin n)) = n := by simp
+
+lemma euclidean_space.inner_eq_star_dot_product (x y : euclidean_space 𝕜 ι) :
+  ⟪x, y⟫ = matrix.dot_product (star x) y :=
+rfl
 
 /-- A finite, mutually orthogonal family of subspaces of `E`, which span `E`, induce an isometry
 from `E` to `pi_Lp 2` of the subspaces equipped with the `L2` inner product. -/

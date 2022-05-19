@@ -3,6 +3,7 @@ Copyright (c) 2021 Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
 -/
+import algebra.ne_zero
 import data.zmod.basic
 import group_theory.quotient_group
 import ring_theory.int.basic
@@ -133,7 +134,11 @@ rfl
 by rw [←fintype.of_equiv_card (orbit_zpowers_equiv a b), zmod.card]
 
 @[to_additive] instance minimal_period_pos [fintype (orbit (zpowers a) b)] :
-  fact (0 < minimal_period ((•) a) b) :=
-⟨by rw [minimal_period_eq_card, fintype.card_pos_iff]; exact (orbit_nonempty b).to_subtype⟩
+  ne_zero (minimal_period ((•) a) b) :=
+⟨begin
+  haveI : nonempty (orbit (zpowers a) b) := (orbit_nonempty b).to_subtype,
+  rw minimal_period_eq_card,
+  exact fintype.card_ne_zero,
+end⟩
 
 end mul_action

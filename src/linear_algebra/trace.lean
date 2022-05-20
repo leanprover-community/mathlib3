@@ -256,16 +256,11 @@ end
 by rw [e.conj_apply, trace_comp_comm', ←comp_assoc, linear_equiv.comp_coe,
   linear_equiv.self_trans_symm, linear_equiv.refl_to_linear_map, id_comp]
 
-end
-
-section field
-
-variables {k E : Type*} [field k] [add_comm_group E] [module k E] [finite_dimensional k E]
-
-theorem is_proj.trace {p : submodule k E} {f : E →ₗ[k] E} (h : is_proj p f) :
-  trace k E f = (finrank k p : k) :=
+theorem is_proj.trace {p : submodule R M} {f : M →ₗ[R] M} (h : is_proj p f)
+  [module.free R p] [module.finite R p] [module.free R f.ker] [module.finite R f.ker] :
+  trace R M f = (finrank R p : R) :=
 by rw [h.eq_conj_prod_map, trace_conj', trace_prod_map', trace_id, map_zero, add_zero]
 
-end field
+end
 
 end linear_map

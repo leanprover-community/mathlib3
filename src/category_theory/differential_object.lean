@@ -225,6 +225,7 @@ def shift_functor (n : ℤ) : differential_object C ⥤ differential_object C :=
   map_id' := by { intros X, ext1, dsimp, rw functor.map_id },
   map_comp' := by { intros X Y Z f g, ext1, dsimp, rw functor.map_comp } }
 
+-- TODO This is a nasty code smell. Are there missing simp lemmas?
 local attribute [reducible] discrete.add_monoidal shift_comm
 
 /-- The shift functor on `differential_object C` is additive. -/
@@ -233,18 +234,14 @@ local attribute [reducible] discrete.add_monoidal shift_comm
 begin
   refine nat_iso.of_components (λ X, mk_iso (shift_add X.X _ _) _) _,
   { dsimp,
-    squeeze_simp,
-    -- simp_rw [category.assoc],
-    -- simp_rw [obj_μ_app],
-    -- simp_rw [μ_inv_hom_app_assoc, functor.map_comp, obj_μ_app,
-    --   category.assoc, μ_naturality_assoc, μ_inv_hom_app_assoc, obj_μ_inv_app, category.assoc,
-    --   μ_naturalityₗ_assoc, μ_inv_hom_app_assoc, μ_inv_naturalityᵣ_assoc],
-    -- simp [opaque_eq_to_iso]
-    },
+    simp only [nat_iso.is_iso_inv_app, obj_μ_app, eq_to_iso.inv, eq_to_hom_map, eq_to_hom_app,
+      functor.map_inv, is_iso.inv_comp, is_iso.inv_inv, inv_eq_to_hom, category.assoc,
+      is_iso.inv_hom_id_assoc, functor.map_comp, μ_naturalityₗ_assoc, eq_to_hom_trans_assoc,
+      μ_naturality_assoc, μ_inv_naturalityᵣ_assoc],
+    simp only [opaque_eq_to_iso, eq_to_iso.hom, eq_to_hom_map, eq_to_hom_app,
+      eq_to_hom_trans_assoc], },
   { intros X Y f, ext, dsimp, exact nat_trans.naturality _ _ }
 end
-
-local attribute [reducible] endofunctor_monoidal_category
 
 section
 local attribute [instance] endofunctor_monoidal_category

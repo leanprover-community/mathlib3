@@ -185,21 +185,14 @@ variables [∀ n : ℤ, functor.additive (shift_functor C n)]
 @[simps]
 def to_inv_rotate_rotate (T : triangle C) : T ⟶ (inv_rotate C).obj ((rotate C).obj T) :=
 { hom₁ := (shift_shift_neg _ _).inv,
-    hom₂ := 𝟙 T.obj₂,
-    hom₃ := 𝟙 T.obj₃,
-    comm₃' := begin
-      dsimp,
-      simp,
-      dsimp,
-      simp,
-      congr' 2,
-      erw is_iso.hom_inv_id_assoc,
-      simp only [ε_app_obj, eq_to_iso.hom, discrete.functor_map_id, id_comp, eq_to_iso.inv,
-        opaque_eq_to_iso_inv, category.assoc, obj_μ_inv_app, functor.map_comp, nat_trans.id_app,
-        obj_ε_app, unit_of_tensor_iso_unit_inv_app],
-      erw μ_inv_hom_app_assoc,
-      refl
-    end }
+  hom₂ := 𝟙 T.obj₂,
+  hom₃ := 𝟙 T.obj₃,
+  comm₃' := begin
+    dsimp,
+    simp only [category.id_comp],
+    congr,
+    sorry,
+  end }
 
 /--
 There is a natural transformation between the identity functor on triangles in `C`,
@@ -210,11 +203,7 @@ def rot_comp_inv_rot_hom : 𝟭 (triangle C) ⟶ rotate C ⋙ inv_rotate C :=
 { app := to_inv_rotate_rotate,
   naturality' := begin
     introv, ext,
-    { dsimp,
-      simp only [nat_iso.cancel_nat_iso_inv_right_assoc, discrete.functor_map_id, id_comp,
-        opaque_eq_to_iso_inv, μ_inv_naturality, assoc, nat_trans.id_app,
-        unit_of_tensor_iso_unit_inv_app],
-      erw ε_naturality },
+    { exact (shift_functor_comp_shift_functor_neg C (1 : ℤ)).inv.naturality f.hom₁, },
     { dsimp, rw [comp_id, id_comp] },
     { dsimp, rw [comp_id, id_comp] },
   end }
@@ -227,10 +216,9 @@ def from_inv_rotate_rotate (T : triangle C) : (inv_rotate C).obj ((rotate C).obj
     hom₃ := 𝟙 T.obj₃,
     comm₃' := begin
       dsimp,
-      rw [unit_of_tensor_iso_unit_inv_app, ε_app_obj],
-      simp only [discrete.functor_map_id, nat_trans.id_app, id_comp, assoc, functor.map_comp,
-        obj_μ_app, obj_ε_inv_app, comp_id, μ_inv_hom_app_assoc],
-      erw [μ_inv_hom_app, μ_inv_hom_app_assoc, category.comp_id]
+      simp only [category.id_comp, category.assoc],
+      convert category.comp_id _,
+      sorry,
     end }
 
 /--

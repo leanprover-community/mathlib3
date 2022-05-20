@@ -243,29 +243,31 @@ begin
   exact transfer (monoid_hom.id P.1),
 end
 
+lemma burnside_transfer_ker_inf {p : ℕ} {G : Type*} [group G] (P : sylow p G)
+  [fintype (G ⧸ P.1)] [fintype G]
+  (hP : P.1.normalizer ≤ P.1.centralizer) : (burnside_transfer P hP).ker ⊓ P.1 = ⊥ :=
+begin
+  classical,
+  haveI P_comm : P.1.is_commutative := ⟨⟨λ a b, subtype.ext (hP (le_normalizer b.2) a a.2)⟩⟩,
+  refine le_bot_iff.mp (λ g hg, _),
+  have key := transfer_eq_pow' P.1 (monoid_hom.id P.1) g (λ k g₀ hk, begin
+    obtain ⟨n, hn, key⟩ := key_sylow_lemma' g₀ P P_comm (P.1.pow_mem hg.2 k) hk,
+    rw [key, mul_assoc, hP hn (g ^ k) (P.1.pow_mem hg.2 k), inv_mul_cancel_left],
+  end),
+  have key' : (fintype.card P.1).coprime P.1.index,
+  { -- todo: make this a lemma
+    sorry },
+  have : pow_coprime key' ⟨g, hg.2⟩ = 1 := key.symm.trans hg.1,
+  rwa [←pow_coprime_one, equiv.apply_eq_iff_eq, subtype.ext_iff] at this,
+end
+
 lemma burnside_transfer_surjective {p : ℕ} {G : Type*} [group G] (P : sylow p G)
   [fintype (G ⧸ P.1)] [fintype G]
   (hP : P.1.normalizer ≤ P.1.centralizer) : function.surjective (burnside_transfer P hP) :=
 begin
   classical,
   haveI P_comm : P.1.is_commutative := ⟨⟨λ a b, subtype.ext (hP (le_normalizer b.2) a a.2)⟩⟩,
-  suffices : P.1 ⊓ (burnside_transfer P hP).ker = ⊥,
-  { -- todo: make this a separate lemma
-    sorry },
-  refine le_bot_iff.mp (λ g hg, _),
-  rw [mem_inf, mem_ker] at hg,
-  have key := transfer_eq_pow' P.1 (monoid_hom.id P.1) g (λ k g₀ hk, begin
-    obtain ⟨n, hn, key⟩ := key_sylow_lemma' g₀ P P_comm (P.1.pow_mem hg.1 k) hk,
-    rw [key, mul_assoc, hP hn (g ^ k) (P.1.pow_mem hg.1 k), inv_mul_cancel_left],
-  end),
-  have key' : (fintype.card P.1).coprime P.1.index,
-  { -- todo: make this a lemma
-    sorry },
-  let ϕ := pow_coprime key',
-  have : ϕ ⟨g, hg.1⟩ = 1 := key.symm.trans hg.2,
-  replace this := this.trans (pow_coprime_one key').symm,
-  replace this := ϕ.injective this,
-  exact subtype.ext_iff.mp this,
+  sorry,
 end
 
 end burnside_transfer

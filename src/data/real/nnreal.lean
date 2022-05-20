@@ -774,39 +774,16 @@ by simp only [div_eq_mul_inv, supr_mul]
 variable [nonempty ι]
 
 lemma le_mul_infi {a : ℝ≥0} {g : ℝ≥0} {h : ι → ℝ≥0} (H : ∀ j, a ≤ g * h j) : a ≤ g * infi h :=
-begin
-  rw [mul_infi],
-  exact le_cinfi H,
-end
+by { rw [mul_infi], exact le_cinfi H }
 
 lemma mul_supr_le {a : ℝ≥0} {g : ℝ≥0} {h : ι → ℝ≥0} (H : ∀ j, g * h j ≤ a) : g * supr h ≤ a :=
-begin
-  by_cases hg : g = 0,
-  { simp_rw [hg, zero_mul] at H ⊢,
-    exact H (nonempty.some _inst_1) },
-  { rw [mul_comm, ← le_div_iff₀ hg],
-    apply csupr_le,
-    simp_rw [le_div_iff₀ hg, mul_comm],
-    exact H }
-end
+by { rw [mul_supr], exact csupr_le H }
 
 lemma le_infi_mul {a : ℝ≥0} {g : ι → ℝ≥0} {h : ℝ≥0} (H : ∀ i, a ≤ g i * h) : a ≤ infi g * h :=
-begin
-  by_cases hh : h = 0,
-  { simp_rw [hh, mul_zero] at H ⊢,
-    exact H (nonempty.some _inst_1) },
-  { simp_rw ← mul_inv_le_iff₀ hh at H ⊢,
-    exact le_cinfi H }
-end
+by { rw infi_mul, exact le_cinfi H }
 
 lemma supr_mul_le {a : ℝ≥0} {g : ι → ℝ≥0} {h : ℝ≥0} (H : ∀ i, g i * h ≤ a) : supr g * h ≤ a :=
-begin
-  by_cases hh : h = 0,
-  { simp_rw [hh, mul_zero] at H ⊢,
-    exact H (nonempty.some _inst_1) },
-  { simp_rw ← le_div_iff₀ hh at H ⊢,
-    exact csupr_le H }
-end
+by { rw supr_mul, exact csupr_le H }
 
 lemma le_infi_mul_infi {a : ℝ≥0} {g h : ι → ℝ≥0} (H : ∀ i j, a ≤ g i * h j) :
   a ≤ infi g * infi h :=

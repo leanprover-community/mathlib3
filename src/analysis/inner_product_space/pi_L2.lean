@@ -114,8 +114,7 @@ lemma finrank_euclidean_space_fin {n : ℕ} :
   finite_dimensional.finrank 𝕜 (euclidean_space 𝕜 (fin n)) = n := by simp
 
 lemma euclidean_space.inner_eq_star_dot_product (x y : euclidean_space 𝕜 ι) :
-  ⟪x, y⟫ = matrix.dot_product (star x) y :=
-rfl
+  ⟪x, y⟫ = matrix.dot_product (star $ pi_Lp.equiv _ _ x) (pi_Lp.equiv _ _ y) := rfl
 
 /-- A finite, mutually orthogonal family of subspaces of `E`, which span `E`, induce an isometry
 from `E` to `pi_Lp 2` of the subspaces equipped with the `L2` inner product. -/

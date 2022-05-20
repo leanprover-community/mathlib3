@@ -175,21 +175,21 @@ end heq
 
 end functor
 
-@[simp] lemma eq_to_hom_map (F : C ⥤ D) {X Y : C} (p : X = Y) :
+lemma eq_to_hom_map (F : C ⥤ D) {X Y : C} (p : X = Y) :
   F.map (eq_to_hom p) = eq_to_hom (congr_arg F.obj p) :=
 by cases p; simp
 
-@[simp] lemma eq_to_iso_map (F : C ⥤ D) {X Y : C} (p : X = Y) :
+lemma eq_to_iso_map (F : C ⥤ D) {X Y : C} (p : X = Y) :
   F.map_iso (eq_to_iso p) = eq_to_iso (congr_arg F.obj p) :=
 by ext; cases p; simp
 
-@[simp] lemma eq_to_hom_app {F G : C ⥤ D} (h : F = G) (X : C) :
+lemma eq_to_hom_app {F G : C ⥤ D} (h : F = G) (X : C) :
   (eq_to_hom h : F ⟶ G).app X = eq_to_hom (functor.congr_obj h X) :=
 by subst h; refl
 
 lemma nat_trans.congr {F G : C ⥤ D} (α : F ⟶ G) {X Y : C} (h : X = Y) :
   α.app X = F.map (eq_to_hom h) ≫ α.app Y ≫ G.map (eq_to_hom h.symm) :=
-by { rw [α.naturality_assoc], simp }
+by { rw [α.naturality_assoc], simp [eq_to_hom_map], }
 
 lemma eq_conj_eq_to_hom {X Y : C} (f : X ⟶ Y) :
   f = eq_to_hom rfl ≫ f ≫ eq_to_hom rfl :=

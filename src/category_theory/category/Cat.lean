@@ -54,11 +54,16 @@ instance bicategory : bicategory.{(max v u) (max v u)} Cat.{v u} :=
   pentagon' := λ A B C D E, functor.pentagon,
   triangle' := λ A B C, functor.triangle }
 
+section
+local attribute [simp] eq_to_hom_app
+
 /-- `Cat` is a strict bicategory. -/
 instance bicategory.strict : bicategory.strict Cat.{v u} :=
 { id_comp' := λ C D F, by cases F; refl,
   comp_id' := λ C D F, by cases F; refl,
   assoc' := by intros; refl }
+
+end
 
 /-- Category structure on `Cat` -/
 instance category : large_category.{max v u} Cat.{v u} := strict_bicategory.category Cat.{v u}
@@ -83,12 +88,17 @@ def objects : Cat.{v u} ⥤ Type u :=
 { obj := λ C, C,
   map := λ C D F, F.obj }
 
+section
+local attribute [simp] eq_to_hom_map eq_to_hom_app
+
 /-- Any isomorphism in `Cat` induces an equivalence of the underlying categories. -/
 def equiv_of_iso {C D : Cat} (γ : C ≅ D) : C ≌ D :=
 { functor := γ.hom,
   inverse := γ.inv,
   unit_iso := eq_to_iso $ eq.symm γ.hom_inv_id,
   counit_iso := eq_to_iso γ.inv_hom_id }
+
+end
 
 end Cat
 

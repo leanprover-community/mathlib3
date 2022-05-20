@@ -15,6 +15,24 @@ This file defines two `ℤ`-valued analogs of the logarithm of `n : R` with base
 * `int.log b n`: Lower logarithm, or floor **log**. Greatest `k` such that `↑b^k ≤ n`.
 * `int.clog b n`: Upper logarithm, or **c**eil **log**. Least `k` such that `n ≤ ↑b^k`.
 
+Note that `int.log` gives the position of the left-most non-zero digit:
+```lean
+#eval (int.log 10 (0.09 : ℚ), int.log 10 (0.10 : ℚ), int.log 10 (0.11 : ℚ))
+--    (-2,                    -1,                     -1)
+#eval (int.log 10 (9 : ℚ),    int.log 10 (10 : ℚ),   int.log 10 (11 : ℚ))
+--    (0,                      1,                     1)
+```
+which means it can be used for computing digit expansions
+```lean
+import data.fin.vec_notation
+
+def digits (b : ℕ) (q : ℚ) (n : ℕ) : ℕ :=
+⌊q*b^(↑n - int.log b q)⌋₊ % b
+
+#eval digits 10 (1/7) ∘ (coe : fin 8 → ℕ)
+-- ![1, 4, 2, 8, 5, 7, 1, 4]
+```
+
 ## Main results
 
 * For `int.log`:

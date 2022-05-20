@@ -192,8 +192,8 @@ norm are equivalent in finite dimension.
 
 This version imposes `ι` and `E` to live in the same universe, so you should instead use
 `continuous_equiv_fun_basis` which gives the same result without universe restrictions. -/
-private lemma continuous_equiv_fun_basis_aux [ht2 : t2_space E] {ι : Type v} [fintype ι] (ξ : basis ι 𝕜 E) :
-  continuous ξ.equiv_fun :=
+private lemma continuous_equiv_fun_basis_aux [ht2 : t2_space E] {ι : Type v} [fintype ι]
+  (ξ : basis ι 𝕜 E) : continuous ξ.equiv_fun :=
 begin
   letI : uniform_space E := topological_add_group.to_uniform_space E,
   letI : uniform_add_group E := topological_add_group_is_uniform,

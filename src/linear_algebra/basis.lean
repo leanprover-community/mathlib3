@@ -851,7 +851,7 @@ section module
 open linear_map
 
 variables {v : ι → M}
-variables [semiring R] [add_comm_group M] [add_comm_group M'] [add_comm_group M'']
+variables [ring R] [add_comm_group M] [add_comm_group M'] [add_comm_group M'']
 variables [module R M] [module R M'] [module R M'']
 variables {c d : R} {x y : M}
 variables (b : basis ι R M)

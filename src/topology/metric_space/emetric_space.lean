@@ -409,6 +409,16 @@ pseudo_emetric_space.induced unop ‹_›
 
 end mul_opposite
 
+section ulift
+
+instance : pseudo_emetric_space (ulift α) :=
+pseudo_emetric_space.induced ulift.down ‹_›
+
+lemma ulift.edist_eq (x y : ulift α) : edist x y = edist x.down y.down := rfl
+@[simp] lemma ulift.edist_up_up (x y : α) : edist (ulift.up x) (ulift.up y) = edist x y := rfl
+
+end ulift
+
 /-- The product of two pseudoemetric spaces, with the max distance, is an extended
 pseudometric spaces. We make sure that the uniform structure thus constructed is the one
 corresponding to the product of uniform spaces, to avoid diamond problems. -/
@@ -929,6 +939,9 @@ emetric_space.induced coe subtype.coe_injective ‹_›
 @[to_additive "Emetric space instance on the additive opposite of an emetric space."]
 instance {α : Type*} [emetric_space α] : emetric_space αᵐᵒᵖ :=
 emetric_space.induced mul_opposite.unop mul_opposite.unop_injective ‹_›
+
+instance {α : Type*} [emetric_space α] : emetric_space (ulift α) :=
+emetric_space.induced ulift.down ulift.down_injective ‹_›
 
 /-- The product of two emetric spaces, with the max distance, is an extended
 metric spaces. We make sure that the uniform structure thus constructed is the one

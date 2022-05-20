@@ -1183,6 +1183,9 @@ theorem zero_le_add_right_neg (x : pgame) : 0 ≤ x + -x :=
 theorem add_right_neg_equiv (x : pgame) : x + -x ≈ 0 :=
 ⟨add_right_neg_le_zero x, zero_le_add_right_neg x⟩
 
+theorem sub_self_equiv : ∀ x, x - x ≈ 0 :=
+add_right_neg_equiv
+
 private lemma add_le_add_right' : ∀ {x y z : pgame} (h : x ≤ y), x + z ≤ y + z
 | (mk xl xr xL xR) (mk yl yr yL yR) (mk zl zr zL zR) :=
 λ h, begin
@@ -1247,6 +1250,26 @@ add_congr h equiv_rfl
 
 theorem add_congr_right {x y z : pgame} : y ≈ z → x + y ≈ x + z :=
 add_congr equiv_rfl
+
+theorem add_congr_iff_left {x y z : pgame} : x ≈ y ↔ x + z ≈ y + z :=
+⟨add_congr_left, λ h,
+  calc x ≈ x + 0 : (add_zero_equiv x).symm
+      ... ≈ x + (z - z) : add_congr_right (sub_self_equiv z).symm
+      ... ≈ x + z - z : add_assoc_equiv.symm
+      ... ≈ y + z - z : add_congr_left h
+      ... ≈ y + (z - z) : add_assoc_equiv
+      ... ≈ y + 0 : add_congr_right (sub_self_equiv z)
+      ... ≈ y : add_zero_equiv y⟩
+
+theorem add_congr_iff_right {x y z : pgame} : y ≈ z ↔ x + y ≈ x + z :=
+⟨add_congr_right, λ h,
+  calc y ≈ 0 + y : (zero_add_equiv y).symm
+      ... ≈ -x + x + y : add_congr_left (add_left_neg_equiv x).symm
+      ... ≈ -x + (x + y) : add_assoc_equiv
+      ... ≈ -x + (x + z) : add_congr_right h
+      ... ≈ -x + x + z : add_assoc_equiv.symm
+      ... ≈ 0 + z : add_congr_left (add_left_neg_equiv x)
+      ... ≈ z : zero_add_equiv z⟩
 
 theorem sub_congr {w x y z : pgame} (h₁ : w ≈ x) (h₂ : y ≈ z) : w - y ≈ x - z :=
 add_congr h₁ (neg_congr h₂)

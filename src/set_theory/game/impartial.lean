@@ -21,8 +21,9 @@ namespace pgame
 
 local infix ` ≈ ` := equiv
 local infix ` ⧏ `:50 := lf
+local infix ` ∥ `:50 := fuzzy
 
-/-- The definition for a impartial game, defined using Conway induction -/
+/-- The definition for a impartial game, defined using Conway induction. -/
 def impartial_aux : pgame → Prop
 | G := G ≈ -G ∧ (∀ i, impartial_aux (G.move_left i)) ∧ ∀ j, impartial_aux (G.move_right j)
 using_well_founded { dec_tac := pgame_wf_tac }
@@ -119,41 +120,28 @@ lemma nonneg (G : pgame) [G.impartial] : ¬ G < 0 :=
   exact (h.trans h').false
 end
 
-lemma winner_cases (G : pgame) [G.impartial] : G.first_loses ∨ G.first_wins :=
+lemma equiv_or_fuzzy_zero (G : pgame) [G.impartial] : G ≈ 0 ∨ G ∥ 0 :=
 begin
-  rcases G.winner_cases with h | h | h | h,
+  rcases lt_or_equiv_or_gt_or_fuzzy G 0 with h | h | h | h,
   { exact ((nonneg G) h).elim },
   { exact or.inl h },
   { exact ((nonpos G) h).elim },
   { exact or.inr h }
 end
 
-lemma not_first_wins (G : pgame) [G.impartial] : ¬G.first_wins ↔ G.first_loses :=
+@[simp] lemma not_equiv_zero_iff (G : pgame) [G.impartial] : ¬ G ≈ 0 ↔ G ∥ 0 :=
+⟨(equiv_or_fuzzy_zero G).resolve_left, fuzzy.not_equiv⟩
+
+@[simp] lemma not_fuzzy_zero_iff (G : pgame) [G.impartial] : ¬ G ∥ 0 ↔ G ≈ 0 :=
+⟨(equiv_or_fuzzy_zero G).resolve_right, equiv.not_fuzzy⟩
+
+lemma add_self (G : pgame) [G.impartial] : G + G ≈ 0 :=
+equiv_trans (add_congr_left (neg_equiv_self G)) (add_left_neg_equiv G)
+
+lemma equiv_iff_sum_equiv_zero (G H : pgame) [G.impartial] [H.impartial] :
+  G ≈ H ↔ G + H ≈ 0 :=
 begin
-  cases winner_cases G; -- `finish using [not_first_loses_of_first_wins]` can close these goals
-  simp [not_first_loses_of_first_wins, not_first_wins_of_first_loses, h]
-end
-
-lemma not_first_loses (G : pgame) [G.impartial] : ¬G.first_loses ↔ G.first_wins :=
-iff.symm $ iff_not_comm.1 $ iff.symm $ not_first_wins G
-
-lemma add_self (G : pgame) [G.impartial] : (G + G).first_loses :=
-first_loses_is_zero.2 $ equiv_trans (add_congr_left (neg_equiv_self G)) (add_left_neg_equiv G)
-
-lemma equiv_iff_sum_first_loses (G H : pgame) [G.impartial] [H.impartial] :
-  G ≈ H ↔ (G + H).first_loses :=
-begin
-  split,
-  { intro heq,
-    exact first_loses_of_equiv (add_congr_right heq) (add_self G) },
-  { intro hGHp,
-    split,
-    { rw le_iff_sub_nonneg,
-      exact hGHp.2.trans
-        (add_comm_le.trans $ le_of_le_of_equiv le_rfl $ add_congr_right (neg_equiv_self G)) },
-    { rw le_iff_sub_nonneg,
-      exact hGHp.2.trans
-        (le_of_le_of_equiv le_rfl $ add_congr_right (neg_equiv_self H)) } }
+  rw @add_congr_iff_left G H (-H),
 end
 
 lemma le_zero_iff {G : pgame} [G.impartial] : G ≤ 0 ↔ 0 ≤ G :=

@@ -101,23 +101,7 @@ section explicit_computation
 
 variables (H)
 
--- PRed
-@[to_additive] lemma lem0 {α β : Type*} [group α] [mul_action α β] (a : α) (b : β)
-  [fintype (mul_action.orbit (zpowers a) b)] :
-  function.minimal_period ((•) a) b = fintype.card (mul_action.orbit (zpowers a) b) :=
-by rw [←fintype.of_equiv_card (mul_action.orbit_zpowers_equiv a b), zmod.card]
-
--- PRed
-@[to_additive] instance {α β : Type*} [group α] [mul_action α β] (a : α) (b : β)
-  [fintype (mul_action.orbit (zpowers a) b)] :
-  fact (0 < function.minimal_period ((•) a) b) :=
-⟨begin
-  rw lem0,
-  exact fintype.card_pos_iff.mpr ⟨⟨b, mul_action.mem_orbit_self b⟩⟩,
-end⟩
-
 open_locale classical
-
 
 lemma transfer_computation (g : G) : transfer ϕ g =
   ∏ (q : quotient (mul_action.orbit_rel (zpowers g) (G ⧸ H))),
@@ -145,7 +129,7 @@ lemma silly_lemma {G α : Type*} [group G] [mul_action G α] (g : G) [fintype α
 begin
   rw [finset.prod_pow_eq_pow_sum],
   congr,
-  simp only [lem0, ←fintype.card_sigma],
+  simp only [mul_action.minimal_period_eq_card, ←fintype.card_sigma],
   convert fintype.card_congr (mul_action.self_equiv_sigma_orbits (zpowers g) α).symm,
 end
 

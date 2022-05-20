@@ -266,12 +266,8 @@ begin
 end
 
 lemma coe_nat_trailing_degree (hp : p ≠ 0) : ↑p.nat_trailing_degree = p.trailing_degree :=
-begin
-  have := p.trailing_degree.coe_untop (mt trailing_degree_eq_top.mp hp),
-  rw [←this, with_top.coe_eq_coe],
-  apply nat_trailing_degree_eq_of_trailing_degree_eq_some,
-  rw this,
-end
+by rw [nat_trailing_degree_eq_of_trailing_degree_eq_some
+  (p.trailing_degree.coe_untop (mt trailing_degree_eq_top.mp hp)).symm, with_top.coe_untop]
 
 lemma trailing_degree_le_of_ne_zero (h : p.coeff n ≠ 0) : p.trailing_degree ≤ n :=
 begin
@@ -280,17 +276,28 @@ begin
   { exact λ hp, h (by rw [hp, coeff_zero]) },
 end
 
--- could swap with nat version
 lemma trailing_degree_mul_le : p.trailing_degree + q.trailing_degree ≤ (p * q).trailing_degree :=
 begin
-  sorry
+  rw [trailing_degree, trailing_degree, trailing_degree],
+  refine le_inf (λ n hn, _),
+  rw [mem_support_iff, coeff_mul] at hn,
+  obtain ⟨⟨i, j⟩, hij, hpq⟩ := exists_ne_zero_of_sum_ne_zero hn,
+  have hp := inf_le (mem_support_iff.mpr (left_ne_zero_of_mul hpq)),
+  have hq := inf_le (mem_support_iff.mpr (right_ne_zero_of_mul hpq)),
+  refine (add_le_add hp hq).trans (le_of_eq _),
+  rw [with_top.some_eq_coe, with_top.some_eq_coe, with_top.some_eq_coe],
+  rw [←with_top.coe_add, with_top.coe_eq_coe],
+  exact nat.mem_antidiagonal.mp hij,
 end
 
--- could swap with non-nat version
 lemma nat_trailing_degree_mul_le (h : p * q ≠ 0) :
   p.nat_trailing_degree + q.nat_trailing_degree ≤ (p * q).nat_trailing_degree :=
 begin
-  sorry
+  have hp : p ≠ 0 := λ hp, h (by rw [hp, zero_mul]),
+  have hq : q ≠ 0 := λ hq, h (by rw [hq, mul_zero]),
+  rw [←with_top.coe_le_coe, with_top.coe_add, coe_nat_trailing_degree hp,
+      coe_nat_trailing_degree hq, coe_nat_trailing_degree h],
+  exact trailing_degree_mul_le,
 end
 
 lemma coeff_mul_nat_trailing_degree_add_nat_trailing_degree :
@@ -298,35 +305,18 @@ lemma coeff_mul_nat_trailing_degree_add_nat_trailing_degree :
     p.trailing_coeff * q.trailing_coeff :=
 begin
   rw coeff_mul,
-  refine finset.sum_eq_single (nat_trailing_degree p, nat_trailing_degree q) _
-    (λ H, (H (nat.mem_antidiagonal.mpr rfl)).elim),
+  refine finset.sum_eq_single (p.nat_trailing_degree, q.nat_trailing_degree) _
+    (λ h, (h (nat.mem_antidiagonal.mpr rfl)).elim),
   rintro ⟨i, j⟩ h₁ h₂,
   rw nat.mem_antidiagonal at h₁,
-  sorry
+  by_cases hi : i < p.nat_trailing_degree,
+  { rw [coeff_eq_zero_of_lt_nat_trailing_degree hi, zero_mul] },
+  by_cases hj : j < q.nat_trailing_degree,
+  { rw [coeff_eq_zero_of_lt_nat_trailing_degree hj, mul_zero] },
+  rw not_lt at hi hj,
+  refine (h₂ (prod.ext_iff.mpr _).symm).elim,
+  exact (add_eq_add_iff_eq_and_eq hi hj).mp h₁.symm,
 end
-
-/-@[simp] lemma coeff_mul_degree_add_degree (p q : R[X]) :
-  coeff (p * q) (nat_degree p + nat_degree q) = leading_coeff p * leading_coeff q :=
-calc coeff (p * q) (nat_degree p + nat_degree q) =
-    ∑ x in nat.antidiagonal (nat_degree p + nat_degree q),
-    coeff p x.1 * coeff q x.2 : coeff_mul _ _ _
-... = coeff p (nat_degree p) * coeff q (nat_degree q) :
-  begin
-    refine finset.sum_eq_single (nat_degree p, nat_degree q) _ _,
-    { rintro ⟨i,j⟩ h₁ h₂, rw nat.mem_antidiagonal at h₁,
-      by_cases H : nat_degree p < i,
-      { rw [coeff_eq_zero_of_degree_lt
-          (lt_of_le_of_lt degree_le_nat_degree (with_bot.coe_lt_coe.2 H)), zero_mul] },
-      { rw not_lt_iff_eq_or_lt at H, cases H,
-        { subst H, rw add_left_cancel_iff at h₁, dsimp at h₁, subst h₁, exfalso, exact h₂ rfl },
-        { suffices : nat_degree q < j,
-          { rw [coeff_eq_zero_of_degree_lt
-              (lt_of_le_of_lt degree_le_nat_degree (with_bot.coe_lt_coe.2 this)), mul_zero] },
-          { by_contra H', rw not_lt at H',
-            exact ne_of_lt (nat.lt_of_lt_of_le
-              (nat.add_lt_add_right H j) (nat.add_le_add_left H' _)) h₁ } } } },
-    { intro H, exfalso, apply H, rw nat.mem_antidiagonal }
-  end-/
 
 lemma trailing_degree_mul' (h : p.trailing_coeff * q.trailing_coeff ≠ 0) :
   (p * q).trailing_degree = p.trailing_degree + q.trailing_degree :=

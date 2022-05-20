@@ -421,6 +421,13 @@ by { change is_equivalence (Action.functor_category_equivalence _ _).functor, ap
 
 variables (H : Group.{u})
 
+instance [right_rigid_category V] : right_rigid_category (single_obj (H : Mon.{u}) ⥤ V) :=
+by { change right_rigid_category (single_obj H ⥤ V), apply_instance }
+
+/-- If `V` is right rigid, so is `Action V G`. -/
+instance [right_rigid_category V] : right_rigid_category (Action V H) :=
+right_rigid_category_of_equivalence (functor_category_monoidal_equivalence V _)
+
 instance [rigid_category V] : rigid_category (single_obj (H : Mon.{u}) ⥤ V) :=
 by { change rigid_category (single_obj H ⥤ V), apply_instance }
 

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Browning
 -/
 
+import algebra.big_operators.nat_antidiagonal
 import data.polynomial.ring_division
 
 /-!
@@ -27,9 +28,9 @@ divisible by `X`.
 namespace polynomial
 open_locale polynomial
 
-variables {R : Type*} [semiring R] (p : R[X])
+section semiring
 
-section mirror
+variables {R : Type*} [semiring R] (p : R[X])
 
 /-- mirror of a polynomial: reverses the coefficients while preserving `polynomial.nat_degree` -/
 noncomputable def mirror := p.reverse * X ^ p.nat_trailing_degree
@@ -127,8 +128,28 @@ by rw [leading_coeff, trailing_coeff, mirror_nat_trailing_degree, coeff_mirror,
 lemma mirror_leading_coeff : p.mirror.leading_coeff = p.trailing_coeff :=
 by rw [←p.mirror_mirror, mirror_trailing_coeff, p.mirror_mirror]
 
-lemma mirror_mul_of_domain {R : Type*} [ring R] [is_domain R] (p q : R[X]) :
-  (p * q).mirror = p.mirror * q.mirror :=
+lemma coeff_mul_mirror :
+  (p * p.mirror).coeff (p.nat_degree + p.nat_trailing_degree) = p.sum (λ n, (^ 2)) :=
+begin
+  rw [coeff_mul, finset.nat.sum_antidiagonal_eq_sum_range_succ_mk],
+  refine (finset.sum_congr rfl (λ n hn, _)).trans (p.sum_eq_of_subset (λ n, (^ 2))
+    (λ n, zero_pow zero_lt_two) _ (λ n hn, finset.mem_range_succ_iff.mpr
+    ((le_nat_degree_of_mem_supp n hn).trans (nat.le_add_right _ _)))).symm,
+  rw [coeff_mirror, ←rev_at_le (finset.mem_range_succ_iff.mp hn), rev_at_invol, ←sq],
+end
+
+end semiring
+
+section ring
+
+variables {R : Type*} [ring R] (p q : R[X])
+
+lemma mirror_neg : (-p).mirror = -(p.mirror) :=
+by rw [mirror, mirror, reverse_neg, nat_trailing_degree_neg, neg_mul_eq_neg_mul]
+
+variables [is_domain R]
+
+lemma mirror_mul_of_domain : (p * q).mirror = p.mirror * q.mirror :=
 begin
   by_cases hp : p = 0,
   { rw [hp, zero_mul, mirror_zero, zero_mul] },
@@ -140,15 +161,16 @@ begin
   repeat { rw [mul_assoc], },
 end
 
-lemma mirror_smul {R : Type*} [ring R] [is_domain R] (p : R[X]) (a : R) :
-  (a • p).mirror = a • p.mirror :=
+lemma mirror_smul (a : R) : (a • p).mirror = a • p.mirror :=
 by rw [←C_mul', ←C_mul', mirror_mul_of_domain, mirror_C]
 
-lemma mirror_neg {R : Type*} [ring R] (p : R[X]) : (-p).mirror = -(p.mirror) :=
-by rw [mirror, mirror, reverse_neg, nat_trailing_degree_neg, neg_mul_eq_neg_mul]
+end ring
 
-lemma irreducible_of_mirror {R : Type*} [comm_ring R] [is_domain R] {f : R[X]}
-  (h1 : ¬ is_unit f)
+section comm_ring
+
+variables {R : Type*} [comm_ring R] [is_domain R] {f : R[X]}
+
+lemma irreducible_of_mirror (h1 : ¬ is_unit f)
   (h2 : ∀ k, f * f.mirror = k * k.mirror → k = f ∨ k = -f ∨ k = f.mirror ∨ k = -f.mirror)
   (h3 : ∀ g, g ∣ f → g ∣ f.mirror → is_unit g) : irreducible f :=
 begin
@@ -178,6 +200,6 @@ begin
     { exact or.inl (h3 g g_dvd_f (by rwa [eq_neg_iff_eq_neg.mp hk, dvd_neg])) } },
 end
 
-end mirror
+end comm_ring
 
 end polynomial

@@ -253,6 +253,26 @@ funext (λ a, begin
     exact H c hc }
 end)
 
+theorem deriv_family_le_of_fp_subset {f : ι → ordinal → ordinal}
+  {g : ι' → ordinal → ordinal} (hf : ∀ i, is_normal (f i)) (hg : ∀ i', is_normal (g i'))
+  (H : ∀ o, (∀ i, f i o = o) → (∀ i', g i' o = o)) (a) :
+  deriv_family.{w max u v w} g a ≤ deriv_family.{u max u v w} f a :=
+begin
+  rw [deriv_family_eq_enum_ord.{u max u v w} hf, deriv_family_eq_enum_ord hg],
+  apply enum_ord_le_of_subset (fp_family_unbounded.{u max u v w} hf),
+  intros a ha,
+  rw set.mem_Inter at *,
+  exact H a ha
+end
+
+theorem deriv_family_eq_of_fp_eq {f : ι → ordinal → ordinal}
+  {g : ι' → ordinal → ordinal} (hf : ∀ i, is_normal (f i)) (hg : ∀ i', is_normal (g i'))
+  (H : ∀ o, (∀ i, f i o = o) ↔ (∀ i', g i' o = o)) :
+  deriv_family.{u max u v w} f = deriv_family.{w max u v w} g :=
+funext (λ a, le_antisymm
+  (deriv_family_le_of_fp_subset.{w v u} hg hf (λ o, (H o).2) a)
+  (deriv_family_le_of_fp_subset.{u v w} hf hg (λ o, (H o).1) a))
+
 end
 
 /-! ### Fixed points of ordinal-indexed families of ordinals -/
@@ -405,6 +425,28 @@ funext (λ a, begin
   simpa [range_family_of_bfamily] using hfg
 end)
 
+theorem deriv_bfamily_le_of_fp_subset {f : Π a < o, ordinal → ordinal}
+  {g : Π a < o', ordinal → ordinal} (hf : ∀ i hi, is_normal (f i hi))
+  (hg : ∀ i' hi', is_normal (g i' hi'))
+  (H : ∀ o, (∀ i hi, f i hi o = o) → (∀ i' hi', g i' hi' o = o)) (a) :
+  deriv_bfamily.{w max u v w} o' g a ≤ deriv_bfamily.{u max u v w} o f a :=
+begin
+  refine deriv_family_le_of_fp_subset (λ i, hf _ _) (λ i, hg _ _) (λ a h i', H _ (λ i hi, _) _ _) a,
+  rw ←type_lt o at hi,
+  have := h (enum (<) i hi),
+  rwa family_of_bfamily_enum at this
+end
+
+-- another PR
+theorem deriv_bfamily_eq_of_fp_eq {f : Π a < o, ordinal → ordinal}
+  {g : Π a < o', ordinal → ordinal} (hf : ∀ i hi, is_normal (f i hi))
+  (hg : ∀ i' hi', is_normal (g i' hi'))
+  (H : ∀ o, (∀ i hi, f i hi o = o) ↔ (∀ i' hi', g i' hi' o = o)) :
+  deriv_bfamily.{u max u v w} o f = deriv_bfamily.{w max u v w} o' g :=
+funext (λ a, le_antisymm
+  (deriv_bfamily_le_of_fp_subset.{w v u} hg hf (λ o, (H o).2) a)
+  (deriv_bfamily_le_of_fp_subset.{u v w} hf hg (λ o, (H o).1) a))
+
 end
 
 /-! ### Fixed points of a single function -/
@@ -532,6 +574,17 @@ by { convert deriv_family_eq_enum_ord (λ _ : unit, H), exact (set.Inter_const _
 
 theorem deriv_eq_id_of_nfp_eq_id {f : ordinal → ordinal} (h : nfp f = id) : deriv f = id :=
 (is_normal.eq_iff_zero_and_succ (deriv_is_normal _) is_normal.refl).2 (by simp [h, succ_inj])
+
+theorem deriv_le_of_fp_subset {f g : ordinal → ordinal} (hf : is_normal f) (hg : is_normal g)
+  (H : ∀ o, f o = o → g o = o) (a) : deriv g a ≤ deriv f a :=
+deriv_family_le_of_fp_subset (λ _, hf) (λ _, hg) (λ o hf' _, H o (hf' unit.star)) a
+
+-- another PR
+theorem deriv_eq_of_fp_eq {f g : ordinal → ordinal} (hf : is_normal f) (hg : is_normal g)
+  (H : ∀ o, f o = o ↔ g o = o) : deriv f = deriv g :=
+funext (λ a, le_antisymm
+  (deriv_le_of_fp_subset hg hf (λ o, (H o).2) a)
+  (deriv_le_of_fp_subset hf hg (λ o, (H o).1) a))
 
 end
 
@@ -778,7 +831,7 @@ begin
     (λ i, veblen_is_normal hf _)
     (λ _, veblen_is_normal hf o)
     (λ a, ⟨λ H _, _, λ H i, veblen_fp_lt_of_fp hf (H unit.star) (lt_succ.1 (typein_lt_self i))⟩),
-  have := H (enum o.succ.out.r o (by { rw type_out, exact lt_succ_self o })),
+  have := H (enum (<) o (by { rw type_lt, exact lt_succ_self o })),
   rwa family_of_bfamily_enum at this
 end
 

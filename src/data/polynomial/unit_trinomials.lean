@@ -6,6 +6,7 @@ Authors: Thomas Browning
 
 import analysis.complex.polynomial
 import data.polynomial.mirror
+import ring_theory.roots_of_unity
 
 namespace polynomial
 open_locale polynomial
@@ -576,6 +577,23 @@ begin
     rw [hg', aeval_mul, hz, zero_mul] },
   { cases hq' with g' hg',
     rw [hg', aeval_mul, hz, zero_mul] },
+end
+
+lemma irreducible21 (hp : is_unit_trinomial p)
+  (μ₃ : ℂ) (μ₆ : ℂ) (hμ₃ : is_primitive_root μ₃ 3)
+  (hμ₆ : is_primitive_root μ₆ 6)
+  (hp1 : ¬ aeval (0 : ℂ) p = 0)
+  (hp2 : ¬ aeval μ₃ p = 0) (hp3 : ¬ aeval μ₆ p = 0) : irreducible p :=
+begin
+  apply hp.irreducible2,
+  rintros z ⟨hz1, hz2⟩,
+  -- The key is that either p + p.mirror or p - p.mirror will be a unit binomial, so z must be 0
+  -- or a root of unity. Then a sum of three roots of unity vanishes, so they must be rotations of
+  -- each other.
+
+  -- this lemma is not necessarily true: (X^12 + X^6 + 1) is divisible by 18th cyclotomic polynomial?
+  -- but it is true that you only have to check primitive roots of unity,
+  -- and you don't have to check 1 or -1
 end
 
 -- figure out what the most "user-friendly" statement is (it's probably not the one below)

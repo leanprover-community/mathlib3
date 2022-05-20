@@ -1042,7 +1042,7 @@ sum.inr punit.star, λ b, sum.rec_on b
 
 theorem succ_ne_self (o : ordinal.{u}) : succ o ≠ o := (lt_succ_self o).ne'
 
-@[simp] theorem succ_le {a b : ordinal} : succ a ≤ b ↔ a < b :=
+theorem succ_le {a b : ordinal} : succ a ≤ b ↔ a < b :=
 ⟨lt_of_lt_of_le (lt_succ_self _),
 induction_on a $ λ α r hr, induction_on b $ λ β s hs ⟨⟨f, t, hf⟩⟩, begin
   refine ⟨⟨@rel_embedding.of_monotone (α ⊕ punit) β _ _
@@ -1084,7 +1084,7 @@ instance : is_well_order ordinal (<) := ⟨wf⟩
 
 instance : succ_order ordinal := succ_order.of_succ_le_iff succ (λ _ _, succ_le)
 
-@[simp] theorem lt_succ {a b : ordinal} : a < succ b ↔ a ≤ b :=
+theorem lt_succ {a b : ordinal} : a < succ b ↔ a ≤ b :=
 by rw [← not_le, succ_le, not_lt]
 
 @[simp] lemma typein_le_typein (r : α → α → Prop) [is_well_order α r] {x x' : α} :

@@ -71,7 +71,7 @@ Linear algebra:
     examples: ''
   Exponential:
     endomorphism exponential: ''
-    matrix exponential: 'https://en.wikipedia.org/wiki/Matrix_exponential'
+    matrix exponential: 'exp'
 
 # 2.
 Group Theory:

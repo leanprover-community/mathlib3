@@ -101,6 +101,14 @@ def ulift (M : Model.{u v w} T) : Model.{u v (max w w')} T :=
   nonempty' := M.nonempty',
   is_model := (@Lhom.on_Theory_model L L' M (φ.reduct M) _ φ _ T).1 M.is_model, }
 
+instance left_Structure {L' : language} {T : (L.sum L').Theory} (M : T.Model) :
+  L.Structure M :=
+(Lhom.sum_inl : L →ᴸ L.sum L').reduct M
+
+instance right_Structure {L' : language} {T : (L.sum L').Theory} (M : T.Model) :
+  L'.Structure M :=
+(Lhom.sum_inr : L' →ᴸ L.sum L').reduct M
+
 end Model
 
 variables {T}

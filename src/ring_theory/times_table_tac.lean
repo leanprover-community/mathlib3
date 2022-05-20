@@ -666,12 +666,9 @@ by rw [← hs, finset.prod_mk, multiset.coe_map, multiset.coe_prod, hx]
 meta def eval_finset_sum (eval_f : converter) (β ef es : expr) :
   state_t context tactic (expr × expr) := do
   (xs, list_eq, nodup) ← lift $ eval_finset decide_eq es,
-  lift $ trace pformat!"eval_finset_sum: xs = {xs}, f = {ef}",
   (result, sum_eq) ← list.prove_sum_map β ef eval_f xs,
-  lift $ trace pformat!"eval_finset_sum: result = {result}",
   pf ← lift $ i_to_expr ``(finset.eval_sum_of_list %%es %%ef %%nodup %%list_eq %%sum_eq),
   pf_ty ← lift $ infer_type pf,
-  lift $ trace pformat!"eval_finset_sum: pf : {pf_ty}",
   pure (result, pf)
 
 meta def match_eval_finset_sum (eval_f : converter) : converter
@@ -736,12 +733,9 @@ by rw [cons_val_succ, h]
 /-- `eval_vec_cons n x xs` returns `(y, ⊢ vec_cons x xs n = y)` -/
 meta def eval_vec_cons : ℕ → expr → expr → tactic (expr × expr)
 | 0 x xs := do
-  trace pformat!"eval_vec_cons 0 => {x}",
   eq ← mk_app ``eval_vec_cons_pf_zero [x, xs],
-  infer_type eq >>= λ eq_ty, trace pformat!"eval_vec_cons pf = {eq_ty}",
   pure (x, eq)
 | (n + 1) x' xxs@`(vec_cons %%x %%xs) := do
-  trace pformat!"eval_vec_cons {n + 1} => eval_vec_cons {n} {xxs}",
   (result, eq') ← eval_vec_cons n x xs,
   eq ← i_to_expr ``(eval_vec_cons_pf_succ _ %%x' %%result %%xxs %%eq'),
   pure (result, eq)
@@ -753,9 +747,7 @@ open tactic.norm_fin
 meta def norm_vec_cons : expr → tactic (expr × expr)
 | `(vec_cons %%x %%xs %%i) := tactic.trace_error "Internal error in `norm_vec_cons`" $ do
   n ← i.to_nat,
-  trace pformat! "norm_vec_cons: vec_cons {x} {xs} {i}",
   (y, pf) ← eval_vec_cons n x xs,
-  infer_type pf >>= tactic.trace,
   pure (y, pf)
 | e := pformat!"norm_vec_cons: expected `vec_cons x xs i`, got {e}" >>= fail
 
@@ -814,12 +806,10 @@ protected meta def eval (ι R S t k : expr) : converter
     -- then use `norm_num.derive` to expand the sum.
     -- TODO: expand the sum here so we don't switch so much between tactics.
     e ← lift $ i_to_expr ``(∑ (i j : %%ι), (%%t).basis.repr %%e₁ i * (%%t).basis.repr %%e₂ j * (%%t).table i j %%k),
-    lift $ trace "multiplication becomes " >> trace e,
     (e', e_eq) ← tactic.norm_num.match_eval_finset_sum -- evaluates the sum over i
       (lift ∘ head_beta >=> tactic.norm_num.match_eval_finset_sum -- evaluates the sum over j
         (lift ∘ head_beta >=> λ term, match term with
           | `(%%e₁i * %%e₂j * %%tableij) := do
-              lift $ trace pformat!"eval_repr_repr_table: (0)    {e₁i} * {e₂j} * {tableij}",
               (e₁i', e₁i_pf) ← simp_times_table.trans (converter.lift norm_vec_cons) e₁i,
               (e₂j', e₂j_pf) ← simp_times_table.trans (converter.lift norm_vec_cons) e₂j,
               (tableij', tableij_pf) ← simp_times_table.trans (λ e, match e with
@@ -830,22 +820,13 @@ protected meta def eval (ι R S t k : expr) : converter
                 pure (expr.app tij' k, pf)
               | e := lift $ pformat!"expected `t.table i j k`, got {e}" >>= fail
               end) tableij,
-              lift $ trace pformat!"eval_repr_repr_table: (1) => {e₁i'} * {e₂j'} * {tableij'}",
               (e', e_pf) ← lift $ i_to_expr ``(%%e₁i' * %%e₂j' * %%tableij') >>= or_refl_conv norm_num.derive,
-              lift $ trace pformat!"eval_repr_repr_table: (2) => {e'}",
-              lift $ infer_type e₁i_pf >>= trace,
-              lift $ infer_type e₂j_pf >>= trace,
-              lift $ infer_type tableij_pf >>= trace,
-              lift $ infer_type e_pf >>= trace,
               pf ← lift $ i_to_expr ``(tactic.times_table.eval_repr_repr_table %%e₁i_pf %%e₂j_pf %%tableij_pf %%e_pf),
-              lift $ infer_type pf >>= trace,
               pure (e', pf)
           | e := lift $ pformat!"expected `t.basis.repr e₁ i * t.basis.repr e₂ j * t.table i j k`, got {e}" >>= fail
           end))
       e,
-    lift $ trace "derives to " >> infer_type e_eq >>= trace,
-    eq ← trace_error "eval_repr_mul" $ lift $ mk_app `tactic.times_table.eval_repr_mul [t, k, e₁, e₂, e', e_eq],
-    lift $ trace "proved " >> infer_type eq >>= trace,
+    eq ← lift $ mk_app `tactic.times_table.eval_repr_mul [t, k, e₁, e₂, e', e_eq],
     pure (e', eq)
 | `(%%e₁ ^ %%n) := trace_error "pow" $ do
   match norm_num.match_numeral n with
@@ -872,11 +853,8 @@ protected meta def eval (ι R S t k : expr) : converter
   | _ := lift $ failed
   end
 | e := do
-  state_t.lift $ trace "fallback: simping",
   full_e ← state_t.lift $ i_to_expr ``(basis.repr (times_table.basis %%t) %%e %%k),
   (e', pr) ← simp_times_table full_e,
-  state_t.lift $ trace "managed to simp to ",
-  state_t.lift $ infer_type pr >>= trace,
   pure (e', pr)
 
 meta def run_converter : converter → expr → tactic (expr × expr)
@@ -897,7 +875,6 @@ protected meta def norm : expr → tactic (expr × expr)
   R ← infer_type ek,
   (e', pf) ← tactic.trace_error "Internal error in `tactic.times_table.eval`:" $ run_converter (tactic.times_table.eval ι R S t k) e,
   pf_ty ← infer_type pf,
-  trace pf_ty,
   match pf_ty with
   | `(%%lhs = %%rhs) := do
     is_def_eq ek lhs <|> (trace "lhs does not match:" >> trace ek >> trace " ≠ " >> trace lhs),
@@ -912,11 +889,10 @@ do e ← instantiate_mvars e,
    (_, e', pr) ←
     ext_simplify_core () {} simp_lemmas.mk (λ _, trace "no discharger" >> failed) (λ _ _ _ _ _, failed)
       (λ _ _ _ _ e,
-        do trace e, (new_e, pr) ← step e,
+        do (new_e, pr) ← step e,
            guard (¬ new_e =ₐ e) <|> (trace "rewriting was idempotent: " >> trace e >> trace " → " >> trace new_e >> failure),
            return ((), new_e, some pr, tt))
       `eq e,
-    trace "rewrite: " >> trace e >> trace " → " >> trace e',
     return (e', pr)
 
 end tactic.times_table
@@ -932,15 +908,14 @@ begin
   cases x, cases y,
   apply sqrt_2_sqrt_3.times_table.basis.ext_elem (λ k, _),
   /-
+  -- 2.2s
   do { (new_t, pr) ← tactic.target >>= (tactic.times_table.conv_subexpressions tactic.times_table.norm),
         tactic.infer_type pr >>= tactic.trace,
         tactic.replace_target new_t pr },
   -/
-  norm_num,
+  norm_num1, -- 2.4s
+  -- norm_num, -- 3.5s
   fin_cases k; ring
-  /-
-  fin_cases k; ring
-  -/
 end
 
 #exit

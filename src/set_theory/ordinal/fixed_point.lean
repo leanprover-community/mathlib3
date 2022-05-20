@@ -532,9 +532,17 @@ by { convert fp_family_unbounded (λ _ : unit, H), exact (set.Inter_const _).sym
 def deriv (f : ordinal → ordinal) : ordinal → ordinal :=
 deriv_family (λ _ : unit, f)
 
-@[simp] theorem deriv_family_eq_deriv (ι : Type u) [nonempty ι]
-  (f : ordinal.{max u v} → ordinal.{max u v}) : deriv_family (λ _ : ι, f) = deriv f :=
+@[simp] theorem deriv_family_eq_deriv (ι : Type u) [nonempty ι] (f : ordinal → ordinal) :
+  deriv_family.{u max u v} (λ _ : ι, f) = deriv f :=
 deriv_family_eq_of_range_eq.{u v 0} (by simp)
+
+theorem deriv_bfamily_eq_deriv (f : ordinal → ordinal) : deriv_bfamily 1 (λ a _, f) = deriv f :=
+@deriv_family_eq_deriv _ (out_nonempty_iff_ne_zero.2 ordinal.one_ne_zero) f
+
+theorem deriv_bfamily_eq_deriv' {o : ordinal} (ho : o ≠ 0) (f : ordinal → ordinal) :
+  deriv_bfamily.{u (max u v)} o (λ a _, f) = deriv f :=
+deriv_family_eq_of_range_eq.{u v 0} $
+  by rwa [set.range_const, range_family_of_bfamily, brange_const]
 
 @[simp] theorem deriv_zero (f) : deriv f 0 = nfp f 0 :=
 deriv_family_zero _
@@ -579,7 +587,6 @@ theorem deriv_le_of_fp_subset {f g : ordinal → ordinal} (hf : is_normal f) (hg
   (H : ∀ o, f o = o → g o = o) (a) : deriv g a ≤ deriv f a :=
 deriv_family_le_of_fp_subset (λ _, hf) (λ _, hg) (λ o hf' _, H o (hf' unit.star)) a
 
--- another PR
 theorem deriv_eq_of_fp_eq {f g : ordinal → ordinal} (hf : is_normal f) (hg : is_normal g)
   (H : ∀ o, f o = o ↔ g o = o) : deriv f = deriv g :=
 funext (λ a, le_antisymm
@@ -792,7 +799,7 @@ begin
   { change deriv_family (λ (i : a.out.α), _) = _,
     simp_rw this,
     haveI : nonempty a.out.α, rwa out_nonempty_iff_ne_zero,
-    rw [deriv_family_eq_deriv a.out.α, deriv_id] },
+    rw [deriv_family_eq_deriv.{u u} a.out.α, deriv_id] },
   funext,
   rw H _ (typein_lt_self i) }
 end
@@ -834,17 +841,18 @@ begin
   have := H (enum (<) o (by { rw type_lt, exact lt_succ_self o })),
   rwa family_of_bfamily_enum at this
 end
-
+set_option pp.universes true
 theorem veblen_monotone (o) : monotone (λ a, veblen.{u} f a o) :=
 λ b c hbc, begin
   dsimp,
   rcases eq_zero_or_pos b with rfl | hb,
   { rcases lt_or_eq_of_le hbc with hc | rfl,
     { rw [veblen_zero, veblen_pos f hc.ne'],
-      apply (self_le_deriv _ _).trans,
-      rw deriv_eq_deriv_bfamily.{0 u} f,
-      refine deriv_bfamily_le_of_fp_subset.{u 0 0} (λ a _, veblen_is_normal hf a) (λ _ _, hf)
-        (λ a H _ _, _) o,
+      apply (self_le_deriv f _).trans,
+      rw ←deriv_bfamily_eq_deriv.{0 u} f,
+      apply @deriv_bfamily_le_of_fp_subset.{u 0 0} c 1 (λ a _, veblen.{u} f a) (λ _ _, f) sorry sorry,
+      --refine deriv_bfamily_le_of_fp_subset.{u 0 0} (λ a _, veblen_is_normal hf _) (λ _ _, hf)
+        --(λ a H _ _, _) o,
       rw ←veblen_zero f,
       exact H 0 hc },
     { refl } },

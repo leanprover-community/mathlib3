@@ -265,7 +265,7 @@ begin
     exact (le_tsub_iff_right key).mp (nat_trailing_degree_le_of_ne_zero hy) },
 end
 
-lemma trailing_degree_mul_le : p.trailing_degree + q.trailing_degree ≤ (p * q).trailing_degree :=
+lemma le_trailing_degree_mul : p.trailing_degree + q.trailing_degree ≤ (p * q).trailing_degree :=
 begin
   refine le_inf (λ n hn, _),
   rw [mem_support_iff, coeff_mul] at hn,
@@ -276,14 +276,14 @@ begin
       ←with_top.coe_add, with_top.coe_eq_coe, ←nat.mem_antidiagonal],
 end
 
-lemma nat_trailing_degree_mul_le (h : p * q ≠ 0) :
+lemma le_nat_trailing_degree_mul (h : p * q ≠ 0) :
   p.nat_trailing_degree + q.nat_trailing_degree ≤ (p * q).nat_trailing_degree :=
 begin
   have hp : p ≠ 0 := λ hp, h (by rw [hp, zero_mul]),
   have hq : q ≠ 0 := λ hq, h (by rw [hq, mul_zero]),
   rw [←with_top.coe_le_coe, with_top.coe_add, ←trailing_degree_eq_nat_trailing_degree hp,
       ←trailing_degree_eq_nat_trailing_degree hq, ←trailing_degree_eq_nat_trailing_degree h],
-  exact trailing_degree_mul_le,
+  exact le_trailing_degree_mul,
 end
 
 end semiring

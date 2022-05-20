@@ -768,6 +768,7 @@ variables [semiring R] [add_comm_monoid M] [add_comm_monoid M₂]
   [add_comm_group M₃] [add_comm_group M₄] [module R M] [module R M₂]
   [module R M₃] [module R M₄] (f : M →ₗ[R] M₂) (g : M₃ →ₗ[R] M₄)
 
+/-- Graph of a linear map. -/
 def graph : submodule R (M × M₂) :=
 { carrier := {p | p.2 = f p.1},
   add_mem' := λ a b (ha : _ = _) (hb : _ = _),

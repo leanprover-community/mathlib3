@@ -1441,6 +1441,7 @@ omit σ₂₁
 
 include module_M
 
+/-- Makes the identity linear isomorphism from a proof two submodules are equal.-/
 def submodule_congr {p q : submodule R M} (h : p = q) : p ≃ₗ[R] q :=
 { map_add' := λ x y, rfl,
   map_smul' := λ c x, rfl,

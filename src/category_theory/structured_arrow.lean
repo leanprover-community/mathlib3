@@ -262,7 +262,7 @@ def to_costructured_arrow (F : C ⥤ D) (d : D) :
   map := λ X Y f, costructured_arrow.hom_mk (f.unop.right.op)
   begin
     dsimp,
-    rw [← op_comp, ← f.unop.w, functor.const.obj_map],
+    rw [← op_comp, ← f.unop.w, functor.const_obj_map],
     erw category.id_comp,
   end }
 
@@ -279,7 +279,7 @@ def to_costructured_arrow' (F : C ⥤ D) (d : D) :
   begin
     dsimp,
     rw [← quiver.hom.unop_op (F.map (quiver.hom.unop f.unop.right)), ← unop_comp, ← F.op_map,
-      ← f.unop.w, functor.const.obj_map],
+      ← f.unop.w, functor.const_obj_map],
     erw category.id_comp,
   end }
 
@@ -299,7 +299,7 @@ def to_structured_arrow (F : C ⥤ D) (d : D) :
   map := λ X Y f, structured_arrow.hom_mk f.unop.left.op
   begin
     dsimp,
-    rw [← op_comp, f.unop.w, functor.const.obj_map],
+    rw [← op_comp, f.unop.w, functor.const_obj_map],
     erw category.comp_id,
   end }
 
@@ -316,7 +316,7 @@ def to_structured_arrow' (F : C ⥤ D) (d : D) :
   begin
     dsimp,
     rw [← quiver.hom.unop_op (F.map f.unop.left.unop), ← unop_comp, ← F.op_map,
-      f.unop.w, functor.const.obj_map],
+      f.unop.w, functor.const_obj_map],
     erw category.comp_id,
   end }
 

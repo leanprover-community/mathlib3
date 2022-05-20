@@ -525,9 +525,12 @@ lemma prod_product_right' {s : finset γ} {t : finset α} {f : γ → α → β}
   (∏ x in s.product t, f x.1 x.2) = ∏ y in t, ∏ x in s, f x y :=
 prod_product_right
 
-@[to_additive]
+/-- Generalization of `finset.prod_comm` to the case when the inner `finset`s depend on the outer
+variable. -/
+@[to_additive "Generalization of `finset.sum_comm` to the case when the inner `finset`s depend on
+the outer variable."]
 lemma prod_comm' {s : finset γ} {t : γ → finset α} {t' : finset α} {s' : α → finset γ}
-  (h : ∀ p : γ × α, p.1 ∈ s ∧ p.2 ∈ t p.1 ↔ p.1 ∈ s' p.2 ∧ p.2 ∈ t') {f : γ → α → β} :
+  (h : ∀ x y, x ∈ s ∧ y ∈ t x ↔ x ∈ s' y ∧ y ∈ t') {f : γ → α → β} :
   (∏ x in s, ∏ y in t x, f x y) = (∏ y in t', ∏ x in s' y, f x y) :=
 begin
   classical,
@@ -535,13 +538,13 @@ begin
     z ∈ s.bUnion (λ x, (t x).map $ function.embedding.sectr x _) ↔ z.1 ∈ s ∧ z.2 ∈ t z.1,
   { rintro ⟨x, y⟩, simp },
   exact (prod_finset_product' _ _ _ this).symm.trans
-    (prod_finset_product_right' _ _ _ $ λ p, (this p).trans ((h p).trans and.comm))
+    (prod_finset_product_right' _ _ _ $ λ ⟨x, y⟩, (this _).trans ((h x y).trans and.comm))
 end
 
 @[to_additive]
 lemma prod_comm {s : finset γ} {t : finset α} {f : γ → α → β} :
   (∏ x in s, ∏ y in t, f x y) = (∏ y in t, ∏ x in s, f x y) :=
-prod_comm' $ λ _, iff.rfl
+prod_comm' $ λ _ _, iff.rfl
 
 @[to_additive]
 lemma prod_hom_rel [comm_monoid γ] {r : β → γ → Prop} {f : α → β} {g : α → γ} {s : finset α}

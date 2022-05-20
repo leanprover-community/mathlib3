@@ -671,9 +671,6 @@ by rw [apply_ite f, h, ite_not]
 protected lemma eq_iff {x y : α} : f x = y ↔ x = f y :=
 h.injective.eq_iff' (h y)
 
-protected lemma inj {x y : α} : f x = f y ↔ x = y :=
-h.injective.eq_iff
-
 end involutive
 
 /-- The property of a binary function `f : α → β → γ` being injective.

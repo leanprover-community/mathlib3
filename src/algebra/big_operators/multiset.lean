@@ -237,7 +237,7 @@ lemma prod_map_div₀ : (m.map $ λ i, f i / g i).prod = (m.map f).prod / (m.map
 m.prod_hom₂ (/) (λ _ _ _ _, (div_mul_div_comm _ _ _ _).symm) (div_one _) _ _
 
 lemma prod_map_zpow₀ {n : ℤ} : prod (m.map $ λ i, f i ^ n) = (m.map f).prod ^ n :=
-by { convert (m.map f).prod_hom (zpow_group_hom₀ _ : α →* α), rw map_map, refl }
+by { convert (m.map f).prod_hom (zpow_group_hom _ : α →* α), rw map_map, refl }
 
 end comm_group_with_zero
 

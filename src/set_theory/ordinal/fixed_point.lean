@@ -580,6 +580,13 @@ by rw [←H.le_iff_eq, H.le_iff_deriv]
 theorem deriv_eq_enum_ord (H : is_normal f) : deriv f = enum_ord (function.fixed_points f) :=
 by { convert deriv_family_eq_enum_ord (λ _ : unit, H), exact (set.Inter_const _).symm }
 
+theorem apply_le_deriv {f : ordinal → ordinal} (hf : is_normal f) (o) : f o ≤ deriv f o :=
+begin
+  rw deriv_eq_enum_ord hf,
+  nth_rewrite 0 ←enum_ord_range hf.strict_mono,
+  exact enum_ord_le_of_subset (fp_unbounded hf) fixed_points_subset_range _
+end
+
 theorem deriv_eq_id_of_nfp_eq_id {f : ordinal → ordinal} (h : nfp f = id) : deriv f = id :=
 (is_normal.eq_iff_zero_and_succ (deriv_is_normal _) is_normal.refl).2 (by simp [h, succ_inj])
 
@@ -841,18 +848,17 @@ begin
   have := H (enum (<) o (by { rw type_lt, exact lt_succ_self o })),
   rwa family_of_bfamily_enum at this
 end
-set_option pp.universes true
+
 theorem veblen_monotone (o) : monotone (λ a, veblen.{u} f a o) :=
 λ b c hbc, begin
   dsimp,
   rcases eq_zero_or_pos b with rfl | hb,
   { rcases lt_or_eq_of_le hbc with hc | rfl,
     { rw [veblen_zero, veblen_pos f hc.ne'],
-      apply (self_le_deriv f _).trans,
+      apply (apply_le_deriv hf _).trans,
       rw ←deriv_bfamily_eq_deriv.{0 u} f,
-      apply @deriv_bfamily_le_of_fp_subset.{u 0 0} c 1 (λ a _, veblen.{u} f a) (λ _ _, f) sorry sorry,
-      --refine deriv_bfamily_le_of_fp_subset.{u 0 0} (λ a _, veblen_is_normal hf _) (λ _ _, hf)
-        --(λ a H _ _, _) o,
+      refine deriv_bfamily_le_of_fp_subset.{u 0 0} (λ a _, veblen_is_normal hf _) (λ _ _, hf)
+        (λ a H _ _, _) o,
       rw ←veblen_zero f,
       exact H 0 hc },
     { refl } },
@@ -864,7 +870,7 @@ end
 theorem veblen_zero_is_normal (hf₀ : f 0 ≠ 0) : is_normal (λ a, veblen.{u} f a 0) :=
 begin
   refine is_normal_iff_lt_succ_and_bsup_eq.{u u}.2 ⟨λ o₁, _, λ o ho, le_antisymm
-    (bsup_le.2 (λ i hi, veblen_monotone hf 0 hi.le))
+    (bsup_le (λ i hi, veblen_monotone hf 0 hi.le))
     (veblen_zero_le_of_fp hf ho.1 (λ o₁ ho₁, _))⟩;
   have H := veblen_is_normal hf o₁,
   { rw [veblen_succ hf, deriv_zero, ←H.nfp_fp],
@@ -872,9 +878,9 @@ begin
     rw ←veblen_zero f,
     exact veblen_fp_lt_of_fp hf h (ordinal.zero_le _) },
   { rw is_normal.bsup.{u u u} H _ ho.1,
-    refine le_antisymm (bsup_le.2 (λ o₂ ho₂, (H.strict_mono.monotone
+    refine le_antisymm (bsup_le (λ o₂ ho₂, (H.strict_mono.monotone
       (veblen_monotone hf _ ((le_max_right o₁ o₂).trans (lt_succ_self _).le))).trans _))
-      (bsup_le.2 (λ o₂ ho₂, (H.self_le _).trans (le_bsup.{u u} _ _ ho₂))),
+      (bsup_le (λ o₂ ho₂, (H.self_le _).trans (le_bsup.{u u} _ _ ho₂))),
     rw veblen_veblen hf,
     { exact le_bsup.{u u} _ _ (ho.2 _ (max_lt ho₁ ho₂)) },
     { exact lt_succ.2 (le_max_left _ _) } }

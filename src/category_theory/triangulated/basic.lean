@@ -3,7 +3,6 @@ Copyright (c) 2021 Luke Kershaw. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Luke Kershaw
 -/
-import data.int.basic
 import category_theory.shift
 
 /-!
@@ -28,12 +27,12 @@ open category_theory.category
 /-
 We work in a category `C` equipped with a shift.
 -/
-variables (C : Type u) [category.{v} C] [has_shift C ℤ]
+variables (C : Type u) [category.{v} C] [has_shift C]
 
 /--
 A triangle in `C` is a sextuple `(X,Y,Z,f,g,h)` where `X,Y,Z` are objects of `C`,
 and `f : X ⟶ Y`, `g : Y ⟶ Z`, `h : Z ⟶ X⟦1⟧` are morphisms in `C`.
-See <https://stacks.math.columbia.edu/tag/0144>.
+See https://stacks.math.columbia.edu/tag/0144.
 -/
 structure triangle := mk' ::
 (obj₁ : C)
@@ -87,7 +86,7 @@ In other words, we have a commutative diagram:
   X' ───> Y' ───> Z' ───> X'⟦1⟧
      f'     g'     h'
 ```
-See <https://stacks.math.columbia.edu/tag/0144>.
+See https://stacks.math.columbia.edu/tag/0144.
 -/
 @[ext]
 structure triangle_morphism (T₁ : triangle C) (T₂ : triangle C) :=

@@ -48,19 +48,6 @@ open_locale big_operators
 
 variables {α β : Type*} {σ : perm α} {s : set α} {t : set β} {a : α}
 
-lemma equiv.perm.is_cycle_on.range_zpow (h : σ.is_cycle_on s) (ha : a ∈ s) :
-  range (λ n, (σ ^ n) a : ℤ → α) = s := sorry
-
-lemma equiv.perm.is_cycle_on.range_pow (hs : s.finite) (h : σ.is_cycle_on s) (ha : a ∈ s) :
-  range (λ n, (σ ^ n) a : ℕ → α) = s := sorry
-
-lemma equiv.perm.is_cycle_on.map_range_card {s : finset α} (h : σ.is_cycle_on s) (ha : a ∈ s) :
-  (finset.range s.card).map ⟨λ n, (σ ^ n) a, sorry⟩ = s :=
-begin
-  ext,
-  sorry
-end
-
 lemma list.nodup.is_cycle_on_form_perm [decidable_eq α] {l : list α} (h : l.nodup) :
   l.form_perm.is_cycle_on {a | a ∈ l} :=
 begin

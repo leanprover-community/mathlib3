@@ -170,8 +170,12 @@ variables (R M)
 
 @[simp] theorem trace_transpose : trace R (module.dual R M) ∘ₗ module.dual.transpose = trace R M :=
 begin
-  refine (cancel_right (dual_tensor_hom_equiv R M M).surjective).1 _,
-  ext f m, simp,
+  let e := dual_tensor_hom_equiv R M M,
+  have h : function.surjective e.to_linear_map := e.surjective,
+  refine (cancel_right h).1 _,
+  ext f m, simp [e],
+end
+
 theorem trace_prod_map :
   trace R (M × N) ∘ₗ prod_map_linear R M N M N R =
   (coprod id id : R × R →ₗ[R] R) ∘ₗ prod_map (trace R M) (trace R N) :=

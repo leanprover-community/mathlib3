@@ -8,7 +8,7 @@ import ring_theory.witt_vector.teichmuller
 import ring_theory.witt_vector.compare
 import data.nat.modeq
 import topology.discrete_quotient
-import algebra.pointwise
+--import algebra.pointwise
 import data.real.basic
 
 /-!

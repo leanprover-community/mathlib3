@@ -400,3 +400,34 @@ begin
 end
 
 end continuous_linear_map
+
+section WIP
+
+#where
+
+variables [complete_space E] {g : E →ₗ[𝕜] F}
+
+theorem continuous_of_is_closed_graph (hg : is_closed (g.graph : set $ E × F)) :
+  continuous g :=
+begin
+  rw g.graph_eq_range_prod at *,
+  letI : complete_space (linear_map.id.prod g).range := sorry,
+  let φ₀ : E →ₗ[𝕜] E × F := linear_map.id.prod g,
+  have : function.left_inverse prod.fst φ₀ := λ x, rfl,
+  let φ : E ≃ₗ[𝕜] (linear_map.id.prod g).range := linear_equiv.of_left_inverse this ,
+  let ψ : (linear_map.id.prod g).range ≃L[𝕜] E := φ.symm.to_continuous_linear_equiv_of_continuous
+    continuous_subtype_coe.fst,
+  exact (continuous_subtype_coe.comp ψ.symm.continuous).snd
+end
+
+theorem foo
+  (hg : ∀ (u : ℕ → E) x y, tendsto u at_top (𝓝 x) → tendsto (g ∘ u) at_top (𝓝 y) → y = g x) :
+  continuous g :=
+begin
+  refine continuous_of_is_closed_graph (is_seq_closed_iff_is_closed.mp $ is_seq_closed_of_def _),
+  rintros φ ⟨x, y⟩ hφΓ hφ,
+  rw [set_like.mem_coe, move_me],
+  refine hg _ x y _ _,
+end
+
+end WIP

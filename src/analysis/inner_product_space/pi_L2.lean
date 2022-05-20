@@ -485,8 +485,8 @@ lemma euclidean_space.mul_vec_single_apply [decidable_eq ι] (A : matrix ι' ι 
   A.mul_vec (euclidean_space.single i 1) j = A j i :=
 matrix.mul_vec_std_basis A j i
 
-@[simp] lemma euclidean_space.mul_vec_single [fintype ι'] [decidable_eq ι'] (A : matrix ι ι' 𝕜) :
-  A.mul_vec (euclidean_space.single j 1) = λ i, A i j :=
+@[simp] lemma euclidean_space.mul_vec_single [decidable_eq ι] (A : matrix ι' ι 𝕜) :
+  A.mul_vec (euclidean_space.single i 1) = λ j, A j i :=
 by ext; apply euclidean_space.mul_vec_single_apply
 
 @[simp] lemma euclidean_space.vec_mul_single [decidable_eq ι] (A : matrix ι ι' 𝕜) :

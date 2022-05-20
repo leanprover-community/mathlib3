@@ -126,6 +126,9 @@ mirror_mirror
 lemma mirror_eq_iff : p.mirror = q ↔ p = q.mirror :=
 mirror_involutive.eq_iff
 
+@[simp] lemma mirror_inj : p.mirror = q.mirror ↔ p = q :=
+mirror_involutive.inj
+
 @[simp] lemma mirror_eq_zero : p.mirror = 0 ↔ p = 0 :=
 ⟨λ h, by rw [←p.mirror_mirror, h, mirror_zero], λ h, by rw [h, mirror_zero]⟩
 

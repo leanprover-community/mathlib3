@@ -8,8 +8,12 @@ import analysis.locally_convex.balanced_core_hull
 /-!
 # Finite dimensional topological vector spaces over complete fields
 
-Over a complete nondiscrete field, in finite dimension, all norms are equivalent and all linear maps
-are continuous.
+Let `𝕜` be a nondiscrete and complete normed field, and `E` a topological vector space (TVS) over
+`𝕜` (i.e we have `[topological_add_group E] [has_continuous_smul 𝕜 E]`).
+
+If `E` is finite dimensional, then all linear maps from `E` to any other TVS are continuous.
+
+When `E` is a normed space, this gets us the equivalence of norms in finite dimension.
 
 ## Main results :
 
@@ -37,11 +41,11 @@ universes u v w x
 noncomputable theory
 
 open set finite_dimensional topological_space filter
-open_locale classical big_operators filter topological_space nnreal uniformity
+open_locale big_operators
 
-section any_field
+section semiring
 
-variables {ι 𝕜 E F : Type*} [fintype ι] [field 𝕜] [topological_space 𝕜]
+variables {ι 𝕜 E F : Type*} [fintype ι] [semiring 𝕜] [topological_space 𝕜]
   [add_comm_group E] [module 𝕜 E] [topological_space E]
   [add_comm_group F] [module 𝕜 F] [topological_space F]
   [topological_add_group F] [has_continuous_smul 𝕜 F]
@@ -49,6 +53,7 @@ variables {ι 𝕜 E F : Type*} [fintype ι] [field 𝕜] [topological_space �
 /-- A linear map on `ι → 𝕜` (where `ι` is a fintype) is continuous -/
 lemma linear_map.continuous_on_pi (f : (ι → 𝕜) →ₗ[𝕜] F) : continuous f :=
 begin
+  classical,
   -- for the proof, write `f` in the standard basis, and use that each coordinate is a continuous
   -- function.
   have : (f : (ι → 𝕜) → F) =
@@ -59,6 +64,15 @@ begin
   exact (continuous_apply i).smul continuous_const
 end
 
+end semiring
+
+section field
+
+variables {ι 𝕜 E F : Type*} [fintype ι] [field 𝕜] [topological_space 𝕜]
+  [add_comm_group E] [module 𝕜 E] [topological_space E]
+  [add_comm_group F] [module 𝕜 F] [topological_space F]
+  [topological_add_group F] [has_continuous_smul 𝕜 F]
+
 /-- The space of continuous linear maps between finite-dimensional spaces is finite-dimensional. -/
 instance [finite_dimensional 𝕜 E] [finite_dimensional 𝕜 F] :
   finite_dimensional 𝕜 (E →L[𝕜] F) :=
@@ -66,7 +80,7 @@ finite_dimensional.of_injective
   (continuous_linear_map.coe_lm 𝕜 : (E →L[𝕜] F) →ₗ[𝕜] (E →ₗ[𝕜] F))
   continuous_linear_map.coe_injective
 
-end any_field
+end field
 
 section normed_field
 

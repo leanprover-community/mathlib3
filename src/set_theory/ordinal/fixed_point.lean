@@ -502,6 +502,8 @@ deriv_family_is_normal _
 theorem deriv_id_of_nfp_id {f : ordinal → ordinal} (h : nfp f = id) : deriv f = id :=
 ((deriv_is_normal _).eq_iff_zero_and_succ is_normal.refl).2 (by simp [h, succ_inj])
 
+@[simp] theorem deriv_id : deriv id = id := deriv_id_of_nfp_id nfp_id
+
 theorem is_normal.deriv_fp {f} (H : is_normal f) : ∀ o, f (deriv f o) = deriv f o :=
 @deriv_family_fp unit (λ _, f) unit.star H
 
@@ -723,10 +725,11 @@ begin
   rcases eq_or_ne a 0 with rfl | ho,
   { rw veblen_zero },
   { rw veblen_pos id ho,
-  suffices : (λ (i : a.out.α), veblen id (typein a.out.r i)) = λ i, id,
+  suffices : (λ (i : a.out.α), veblen id (typein (<) i)) = λ i, id,
   { change deriv_family (λ (i : a.out.α), _) = _,
     simp_rw this,
-    rw [←@deriv_eq_deriv_family.{u} a.out.α (by rwa out_nonempty_iff_ne_zero), deriv_id] },
+    haveI : nonempty a.out.α, rwa out_nonempty_iff_ne_zero,
+    rw [deriv_family_eq_deriv a.out.α, deriv_id] },
   funext,
   rw H _ (typein_lt_self i) }
 end
@@ -734,11 +737,11 @@ end
 variables {f : ordinal.{u} → ordinal.{u}} (hf : is_normal f)
 include hf
 
-theorem veblen_veblen {o o' : ordinal} (ho : o < o') (a) :
+theorem veblen_veblen {o o' : ordinal.{u}} (ho : o < o') (a) :
   veblen f o (veblen f o' a) = veblen f o' a :=
 begin
   rw veblen_pos f ((ordinal.zero_le o).trans_lt ho).ne',
-  exact deriv_bfamily_fp.{u u} (λ i _, @veblen_is_normal f hf i) a _ ho
+  apply @deriv_bfamily_fp.{u u} _ _ _ ho (veblen_is_normal hf o)
 end
 
 theorem veblen_fp_lt_of_fp {o o' a : ordinal.{u}} (ho : veblen f o a = a) (ho' : o' ≤ o) :
@@ -805,8 +808,5 @@ begin
     { exact le_bsup.{u u} _ _ (ho.2 _ (max_lt ho₁ ho₂)) },
     { exact lt_succ.2 (le_max_left _ _) } }
 end
-
-end ordinal
-
 
 end ordinal

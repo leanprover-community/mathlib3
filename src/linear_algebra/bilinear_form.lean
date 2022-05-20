@@ -781,8 +781,6 @@ def is_pair_self_adjoint_submodule : submodule R₂ (module.End R₂ M₂) :=
   f ∈ is_pair_self_adjoint_submodule B₂ F₂ ↔ is_pair_self_adjoint B₂ F₂ f :=
 by refl
 
--- variables [add_comm_group M₂'] [module R₂ M₂']
-
 lemma is_pair_self_adjoint_equiv (e : M₂' ≃ₗ[R₂] M₂) (f : module.End R₂ M₂) :
   is_pair_self_adjoint B₂ F₂ f ↔
     is_pair_self_adjoint (B₂.comp ↑e ↑e) (F₂.comp ↑e ↑e) (e.symm.conj f) :=

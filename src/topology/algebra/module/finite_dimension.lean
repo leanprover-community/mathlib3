@@ -21,6 +21,15 @@ are continuous.
 ## TODO
 
 Generalize more of `analysis/normed_space/finite_dimension` to general TVSs.
+
+## Implementation detail
+
+The main result from which everything follows is the fact that, if `ξ : ι → E` is a finite basis,
+then `ξ.equiv_fun : E →ₗ (ι → 𝕜)` is continuous. However, for technical reasons, it is easier to
+prove this when `ι` and `E` live ine the same universe. So we start by doing that as a private
+lemma, then we deduce `linear_map.continuous_of_finite_dimensional` from it, and then the general
+result follows as `continuous_equiv_fun_basis`.
+
 -/
 
 universes u v w x
@@ -179,8 +188,11 @@ variables [complete_space 𝕜]
 (in terms of a basis) with `𝕜^n` (endowed with the product topology) is continuous.
 This is the key fact wich makes all linear maps from a T2 finite dimensional TVS over such a field
 continuous (see `linear_map.continuous_of_finite_dimensional`), which in turn implies that all
-norm are equivalent in finite dimension. -/
-lemma continuous_equiv_fun_basis [ht2 : t2_space E] {ι : Type v} [fintype ι] (ξ : basis ι 𝕜 E) :
+norm are equivalent in finite dimension.
+
+This version imposes `ι` and `E` to live in the same universe, so you should instead use
+`continuous_equiv_fun_basis` which gives the same result without universe restrictions. -/
+private lemma continuous_equiv_fun_basis_aux [ht2 : t2_space E] {ι : Type v} [fintype ι] (ξ : basis ι 𝕜 E) :
   continuous ξ.equiv_fun :=
 begin
   letI : uniform_space E := topological_add_group.to_uniform_space E,
@@ -237,7 +249,7 @@ begin
   -- argue that all linear maps there are continuous.
   let b := basis.of_vector_space 𝕜 E,
   have A : continuous b.equiv_fun :=
-    continuous_equiv_fun_basis b,
+    continuous_equiv_fun_basis_aux b,
   have B : continuous (f.comp (b.equiv_fun.symm : (basis.of_vector_space_index 𝕜 E → 𝕜) →ₗ[𝕜] E)) :=
     linear_map.continuous_on_pi _,
   have : continuous ((f.comp (b.equiv_fun.symm : (basis.of_vector_space_index 𝕜 E → 𝕜) →ₗ[𝕜] E))
@@ -246,6 +258,18 @@ begin
   ext x,
   dsimp,
   rw [basis.equiv_fun_symm_apply, basis.sum_repr]
+end
+
+/-- In finite dimension over a nondiscrete complete normed field, the canonical identification
+(in terms of a basis) with `𝕜^n` (endowed with the product topology) is continuous.
+This is the key fact wich makes all linear maps from a T2 finite dimensional TVS over such a field
+continuous (see `linear_map.continuous_of_finite_dimensional`), which in turn implies that all
+norm are equivalent in finite dimension. -/
+theorem continuous_equiv_fun_basis [ht2 : t2_space E] {ι : Type*} [fintype ι] (ξ : basis ι 𝕜 E) :
+  continuous ξ.equiv_fun :=
+begin
+  haveI : finite_dimensional 𝕜 E := of_fintype_basis ξ,
+  exact ξ.equiv_fun.to_linear_map.continuous_of_finite_dimensional
 end
 
 namespace linear_map

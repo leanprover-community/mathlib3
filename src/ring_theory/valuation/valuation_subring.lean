@@ -438,68 +438,15 @@ def maximal_ideal : subsemigroup K :=
          mul_one] at this,
   end }
 
-lemma mem_maximal_ideal_iff (x : K) : x ∈ A.maximal_ideal ↔ A.valuation x := iff.refl _
+lemma mem_maximal_ideal_iff (x : K) : x ∈ A.maximal_ideal ↔ A.valuation x < 1 := iff.refl _
 
 lemma eq_iff_maximal_ideal (A B : valuation_subring K) :
   A = B ↔ A.maximal_ideal = B.maximal_ideal :=
 begin
-  rw [← A.valuation_subring_valuation, ← B.valuation_subring_valuation,
-      ← valuation.is_equiv_iff_valuation_subring,
-      A.valuation_subring_valuation, B.valuation_subring_valuation, set_like.ext_iff],
-  repeat {rw maximal_ideal}, -- use mem_maximal_ideal_iff
-  -- use `simp_rw` instead of `repeat { rw ... }`.
-  simp, -- non terminal simp
-  split,
-      { intros h x,
-        have k := h,
-        rw valuation.is_equiv_iff_val_le_one A.valuation B.valuation at h,
-        rw valuation.is_equiv_iff_val_eq_one A.valuation B.valuation at k,
-        specialize h, exact x, specialize k, exact x,
-        simp [lt_iff_le_and_ne, h, k],
-      },
-      { intro hx,
-        rw valuation.is_equiv_iff_val_eq_one A.valuation B.valuation,
-        intro x,
-        split,
-          { intro h,
-            cases B.mem_or_inv_mem x,
-              { rw [← valuation_le_one_iff, le_iff_lt_or_eq] at h_1,
-                cases h_1,
-                  { exfalso,
-                    have := (hx _).2 h_1,
-                    rwa [h, lt_self_iff_false] at this},
-                  { exact h_1},
-              },
-              { rw [← valuation_le_one_iff, le_iff_lt_or_eq] at h_1,
-                cases h_1,
-                  { exfalso,
-                    have := (hx _).2 h_1,
-                    rw [← inv_one, eq_inv_iff_eq_inv, ← valuation.map_inv] at h,
-                    rwa [h, lt_self_iff_false] at this},
-                  { rw [← inv_one, valuation.map_inv, ← eq_inv_iff_eq_inv, inv_inv] at h_1,
-                    exact h_1.symm},
-              },
-          },
-          { intro h,
-            cases A.mem_or_inv_mem x,
-              { rw [← valuation_le_one_iff, le_iff_lt_or_eq] at h_1,
-                cases h_1,
-                  { exfalso,
-                    have := (hx _).1 h_1,
-                    rwa [h, lt_self_iff_false] at this},
-                  { exact h_1},
-              },
-              { rw [← valuation_le_one_iff, le_iff_lt_or_eq] at h_1,
-                cases h_1,
-                  { exfalso,
-                    have := (hx _).1 h_1,
-                    rw [← inv_one, eq_inv_iff_eq_inv, ← valuation.map_inv] at h,
-                    rwa [h, lt_self_iff_false] at this},
-                  { rwa [← inv_one, valuation.map_inv, ← eq_inv_iff_eq_inv, inv_inv] at h_1,
-                    exact h_1.symm},
-              },
-          },
-      },
+  simp_rw [← A.valuation_subring_valuation, ← B.valuation_subring_valuation,
+    ← valuation.is_equiv_iff_valuation_subring,
+    A.valuation_subring_valuation, B.valuation_subring_valuation,
+    valuation.is_equiv_iff_val_lt_one, set_like.ext_iff, mem_maximal_ideal_iff],
 end
 
 /-- `A.maximal_ideal` agrees with the maximal ideal of `A`. -/
@@ -526,15 +473,16 @@ lemma maximal_ideal_equiv_symm_map_smul (a b : local_ring.maximal_ideal A) :
   A.maximal_ideal_equiv.symm ((a : A) • b) =
   A.maximal_ideal_equiv.symm a * A.maximal_ideal_equiv.symm b := rfl
 
+/-- The principal unit group of a valuation subring, as a subgroup of `Kˣ`. -/
 def principal_unit_group : subgroup Kˣ :=
 { carrier := { x | A.valuation (x - 1) < 1 },
   mul_mem' := begin
     intros a b ha hb,
     refine lt_of_le_of_lt _ (max_lt hb ha),
     have := A.valuation.map_add (a * b - a) (a - 1),
-    rw [ sub_add_sub_cancel ((a : K) * b) a, sub_eq_add_neg _ (a : K), neg_eq_neg_one_mul,
-          mul_comm _ (a : K), ← left_distrib, ← sub_eq_add_neg, A.valuation.map_mul,
-          ← add_sub_cancel'_right 1 (a : K), A.valuation.map_one_add_of_lt ha, one_mul] at this,
+    rw [sub_add_sub_cancel ((a : K) * b) a, sub_eq_add_neg _ (a : K), neg_eq_neg_one_mul,
+        mul_comm _ (a : K), ← left_distrib, ← sub_eq_add_neg, A.valuation.map_mul,
+        ← add_sub_cancel'_right 1 (a : K), A.valuation.map_one_add_of_lt ha, one_mul] at this,
     simpa,
   end,
   one_mem' := begin
@@ -545,7 +493,7 @@ def principal_unit_group : subgroup Kˣ :=
   inv_mem' := begin
     intros a ha,
     have : A.valuation ( ↑a⁻¹ - 1) = A.valuation (↑a⁻¹ - 1) * A.valuation a,
-    rw [← add_sub_cancel'_right 1 (a : K), A.valuation.map_one_add_of_lt ha, mul_one],
+    { rw [← add_sub_cancel'_right 1 (a : K), A.valuation.map_one_add_of_lt ha, mul_one] },
     rw [← valuation.map_mul, sub_eq_add_neg, right_distrib, neg_mul, one_mul,
         ← sub_eq_add_neg, ← sub_eq_add_neg, ← neg_sub (a : K) _, A.valuation.map_neg,
         units.coe_inv', units.inv_mul'] at this,
@@ -553,26 +501,22 @@ def principal_unit_group : subgroup Kˣ :=
     simpa,
   end }
 
+lemma mem_principal_unit_group_iff (x : Kˣ) :
+  x ∈ A.principal_unit_group ↔ A.valuation ((x : K) - 1) < 1 := iff.refl _
+
 lemma eq_iff_principal_unit_group (A B : valuation_subring K) :
   A = B ↔ A.principal_unit_group = B.principal_unit_group :=
 begin
-  rw eq_iff_maximal_ideal,
-  repeat {rw [maximal_ideal, principal_unit_group, set_like.ext_iff]},
-  simp only [subsemigroup.mem_mk, set.mem_set_of_eq, subgroup.mem_mk],
+  simp_rw [← A.valuation_subring_valuation, ← B.valuation_subring_valuation,
+    ← valuation.is_equiv_iff_valuation_subring,
+    A.valuation_subring_valuation, B.valuation_subring_valuation,
+    valuation.is_equiv_iff_val_sub_one_lt_one, set_like.ext_iff],
   split,
-    { intros h x,
-      exact h ((x : K) - 1)
-    },
-    { intros h x,
-      by_cases k : ¬1 + x = 0,
-      { have := (h (units.mk0 _ k)),
-        rwa [units.coe_mk0, add_sub_cancel'] at this,
-      },
-      { rw [not_not, add_eq_zero_iff_neg_eq] at k,
-        rw ← k,
-        repeat {rw [valuation.map_neg, valuation.map_one, lt_self_iff_false]},
-      },
-    },
+  { intros h x, apply h },
+  { intros h x,
+    by_cases hx : x = 0,
+    { simp only [hx, zero_sub, valuation.map_neg, valuation.map_one, lt_self_iff_false], },
+    { exact h (units.mk0 x hx) } }
 end
 
 lemma principal_units_le_units : A.principal_unit_group ≤ A.unit_group :=
@@ -581,13 +525,19 @@ begin
   simpa using A.valuation.map_one_add_of_lt h,
 end
 
-/-
-TODO:
 def units_residue_field_equiv :
   (local_ring.residue_field A)ˣ ≃*
   (A.unit_group ⧸ (A.principal_unit_group.comap A.unit_group.subtype)) :=
-sorry
--/
+{ to_fun :=
+  begin
+    sorry,
+  end,
+  inv_fun := sorry,
+  left_inv := sorry,
+  right_inv := sorry,
+  map_mul' := sorry,
+
+  }
 
 end unit_group
 

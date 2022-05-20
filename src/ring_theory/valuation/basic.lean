@@ -412,21 +412,60 @@ begin
       { rw ← h at hx', exact le_of_eq hx' } } }
 end
 
-lemma is_equiv_iff_lt_one
+lemma is_equiv_iff_val_lt_one
   [linear_ordered_comm_group_with_zero Γ₀]
   [linear_ordered_comm_group_with_zero Γ'₀]
   {K : Type*} [division_ring K]
   (v : valuation K Γ₀) (v' : valuation K Γ'₀) :
   v.is_equiv v' ↔ ∀ {x : K}, v x < 1 ↔ v' x < 1 :=
-sorry
+begin
+  split,
+  { intros h x,
+    simp_rw [lt_iff_le_and_ne, and_congr ((is_equiv_iff_val_le_one v v').1 h)
+      ((is_equiv_iff_val_eq_one v v').1 h).not],
+  },
+  { rw is_equiv_iff_val_eq_one,
+    intros h x,
+    by_cases hhx : x = 0,
+    { simp_rw [(zero_iff _).2 hhx, zero_ne_one] },
+    { split,
+      { intro hh,
+        by_contra,
+        rw [← ne.def, ne_iff_lt_or_gt] at h,
+        cases h,
+        { exfalso,
+          simpa [hh, lt_self_iff_false] using h.2 h_1 },
+        { have := (inv_lt_inv₀ ((zero_iff v').not.2 hhx) one_ne_zero).2 h_1,
+          rw [inv_one, ← map_inv] at this,
+          rw [← inv_one, eq_inv_iff_eq_inv, ← map_inv] at hh,
+          simpa [hh, lt_self_iff_false] using h.2 this } },
+      { intro hh,
+        by_contra,
+        rw [← ne.def, ne_iff_lt_or_gt] at h,
+        cases h,
+        { exfalso,
+          simpa [hh, lt_self_iff_false] using h.1 h_1 },
+        { have := (inv_lt_inv₀ ((zero_iff v).not.2 hhx) one_ne_zero).2 h_1,
+          rw [inv_one, ← map_inv] at this,
+          rw [← inv_one, eq_inv_iff_eq_inv, ← map_inv] at hh,
+          simpa [hh, lt_self_iff_false] using h.1 this } } }
+  }
+end
 
-lemma is_equiv_iff_sub_one_lt_one
+lemma is_equiv_iff_val_sub_one_lt_one
   [linear_ordered_comm_group_with_zero Γ₀]
   [linear_ordered_comm_group_with_zero Γ'₀]
   {K : Type*} [division_ring K]
   (v : valuation K Γ₀) (v' : valuation K Γ'₀) :
   v.is_equiv v' ↔ ∀ {x : K}, v (x - 1) < 1 ↔ v' (x - 1) < 1 :=
-sorry
+begin
+  rw is_equiv_iff_val_lt_one,
+  split,
+  { intros h x,
+    exact @h (x - 1) },
+  { intros h x,
+    simpa using @h (x + 1) }
+end
 
 end
 

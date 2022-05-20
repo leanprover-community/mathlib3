@@ -295,8 +295,7 @@ begin
     whiskering_left_obj_map, category.comp_id, Lan_map_app, category.assoc],
   erw [colimit.ι_pre_assoc (Lan.diagram F H X) (costructured_arrow.map j.hom),
     category.id_comp, category.comp_id, colimit.ι_map],
-  cases j,
-  cases j_right,
+  rcases j with ⟨j_left, ⟨⟨⟩⟩, j_hom⟩,
   congr,
   rw [costructured_arrow.map_mk, category.id_comp, costructured_arrow.mk]
 end

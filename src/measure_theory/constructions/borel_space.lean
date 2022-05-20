@@ -147,7 +147,7 @@ begin
 end
 
 lemma borel_eq_generate_from_Ioi : borel α = generate_from (range Ioi) :=
-@borel_eq_generate_from_Iio (order_dual α) _ (by apply_instance : second_countable_topology α) _ _
+@borel_eq_generate_from_Iio αᵒᵈ _ (by apply_instance : second_countable_topology α) _ _
 
 end order_topology
 
@@ -232,13 +232,13 @@ end tactic
 @[priority 100]
 instance order_dual.opens_measurable_space {α : Type*} [topological_space α] [measurable_space α]
   [h : opens_measurable_space α] :
-  opens_measurable_space (order_dual α) :=
+  opens_measurable_space αᵒᵈ :=
 { borel_le := h.borel_le }
 
 @[priority 100]
 instance order_dual.borel_space {α : Type*} [topological_space α] [measurable_space α]
   [h : borel_space α] :
-  borel_space (order_dual α) :=
+  borel_space αᵒᵈ :=
 { measurable_eq := h.measurable_eq }
 
 /-- In a `borel_space` all open sets are measurable. -/
@@ -363,7 +363,7 @@ instance pi.opens_measurable_space_fintype {ι : Type*} {π : ι → Type*} [fin
   [Π i, measurable_space (π i)] [∀ i, second_countable_topology (π i)]
   [∀ i, opens_measurable_space (π i)] :
   opens_measurable_space (Π i, π i) :=
-by { letI := fintype.encodable ι, apply_instance }
+by { letI := fintype.to_encodable ι, apply_instance }
 
 instance prod.opens_measurable_space [second_countable_topology α] [second_countable_topology β] :
   opens_measurable_space (α × β) :=
@@ -378,15 +378,26 @@ end
 
 variables {α' : Type*} [topological_space α'] [measurable_space α']
 
-lemma measure_interior_of_null_bdry {μ : measure α'} {s : set α'}
-  (h_nullbdry : μ (frontier s) = 0) : μ (interior s) = μ s :=
-measure_eq_measure_smaller_of_between_null_diff
-  interior_subset subset_closure h_nullbdry
+lemma interior_ae_eq_of_null_frontier {μ : measure α'} {s : set α'}
+  (h : μ (frontier s) = 0) : interior s =ᵐ[μ] s :=
+interior_subset.eventually_le.antisymm $
+  subset_closure.eventually_le.trans (ae_le_set.2 h)
 
-lemma measure_closure_of_null_bdry {μ : measure α'} {s : set α'}
-  (h_nullbdry : μ (frontier s) = 0) : μ (closure s) = μ s :=
-(measure_eq_measure_larger_of_between_null_diff
-  interior_subset subset_closure h_nullbdry).symm
+lemma measure_interior_of_null_frontier {μ : measure α'} {s : set α'}
+  (h : μ (frontier s) = 0) : μ (interior s) = μ s :=
+measure_congr (interior_ae_eq_of_null_frontier h)
+
+lemma null_measurable_set_of_null_frontier {s : set α} {μ : measure α}
+  (h : μ (frontier s) = 0) : null_measurable_set s μ :=
+⟨interior s, is_open_interior.measurable_set, (interior_ae_eq_of_null_frontier h).symm⟩
+
+lemma closure_ae_eq_of_null_frontier {μ : measure α'} {s : set α'}
+  (h : μ (frontier s) = 0) : closure s =ᵐ[μ] s :=
+((ae_le_set.2 h).trans interior_subset.eventually_le).antisymm $ subset_closure.eventually_le
+
+lemma measure_closure_of_null_frontier {μ : measure α'} {s : set α'}
+  (h : μ (frontier s) = 0) : μ (closure s) = μ s :=
+measure_congr (closure_ae_eq_of_null_frontier h)
 
 section preorder
 variables [preorder α] [order_closed_topology α] {a b x : α}
@@ -608,7 +619,7 @@ lemma ext_of_Ioc_finite {α : Type*} [topological_space α] {m : measurable_spac
   [borel_space α] (μ ν : measure α) [is_finite_measure μ] (hμν : μ univ = ν univ)
   (h : ∀ ⦃a b⦄, a < b → μ (Ioc a b) = ν (Ioc a b)) : μ = ν :=
 begin
-  refine @ext_of_Ico_finite (order_dual α) _ _ _ _ _ ‹_› μ ν _ hμν (λ a b hab, _),
+  refine @ext_of_Ico_finite αᵒᵈ _ _ _ _ _ ‹_› μ ν _ hμν (λ a b hab, _),
   erw dual_Ico,
   exact h hab
 end
@@ -644,7 +655,7 @@ lemma ext_of_Ioc' {α : Type*} [topological_space α] {m : measurable_space α}
   [no_min_order α] (μ ν : measure α) (hμ : ∀ ⦃a b⦄, a < b → μ (Ioc a b) ≠ ∞)
   (h : ∀ ⦃a b⦄, a < b → μ (Ioc a b) = ν (Ioc a b)) : μ = ν :=
 begin
-  refine @ext_of_Ico' (order_dual α) _ _ _ _ _ ‹_› _ μ ν _ _;
+  refine @ext_of_Ico' αᵒᵈ _ _ _ _ _ ‹_› _ μ ν _ _;
     intros a b hab; erw dual_Ico,
   exacts [hμ hab, h hab]
 end
@@ -686,7 +697,7 @@ intervals. -/
 lemma ext_of_Ici {α : Type*} [topological_space α] {m : measurable_space α}
   [second_countable_topology α] [linear_order α] [order_topology α] [borel_space α]
   (μ ν : measure α) [is_finite_measure μ] (h : ∀ a, μ (Ici a) = ν (Ici a)) : μ = ν :=
-@ext_of_Iic (order_dual α) _ _ _ _ _ ‹_› _ _ _ h
+@ext_of_Iic αᵒᵈ _ _ _ _ _ ‹_› _ _ _ h
 
 end measure_theory.measure
 
@@ -1118,12 +1129,12 @@ ae_measurable_restrict_of_measurable_subtype hs this.measurable
 protected lemma antitone.measurable [linear_order β] [order_closed_topology β] {f : β → α}
   (hf : antitone f) :
   measurable f :=
-@monotone.measurable (order_dual α) β _ _ ‹_› _ _ _ _ _ ‹_› _ _ _ hf
+@monotone.measurable αᵒᵈ β _ _ ‹_› _ _ _ _ _ ‹_› _ _ _ hf
 
 lemma ae_measurable_restrict_of_antitone_on [linear_order β] [order_closed_topology β]
   {μ : measure β} {s : set β} (hs : measurable_set s) {f : β → α} (hf : antitone_on f s) :
   ae_measurable f (μ.restrict s) :=
-@ae_measurable_restrict_of_monotone_on (order_dual α) β _ _ ‹_› _ _ _ _ _ ‹_› _ _ _ _ hs _ hf
+@ae_measurable_restrict_of_monotone_on αᵒᵈ β _ _ ‹_› _ _ _ _ _ ‹_› _ _ _ _ hs _ hf
 
 end linear_order
 
@@ -1796,26 +1807,26 @@ lemma measurable_nnnorm : measurable (nnnorm : α → ℝ≥0) :=
 continuous_nnnorm.measurable
 
 @[measurability]
-lemma measurable.nnnorm {f : β → α} (hf : measurable f) : measurable (λ a, nnnorm (f a)) :=
+lemma measurable.nnnorm {f : β → α} (hf : measurable f) : measurable (λ a, ∥f a∥₊) :=
 measurable_nnnorm.comp hf
 
 @[measurability]
 lemma ae_measurable.nnnorm {f : β → α} {μ : measure β} (hf : ae_measurable f μ) :
-  ae_measurable (λ a, nnnorm (f a)) μ :=
+  ae_measurable (λ a, ∥f a∥₊) μ :=
 measurable_nnnorm.comp_ae_measurable hf
 
 @[measurability]
-lemma measurable_ennnorm : measurable (λ x : α, (nnnorm x : ℝ≥0∞)) :=
+lemma measurable_ennnorm : measurable (λ x : α, (∥x∥₊ : ℝ≥0∞)) :=
 measurable_nnnorm.coe_nnreal_ennreal
 
 @[measurability]
 lemma measurable.ennnorm {f : β → α} (hf : measurable f) :
-  measurable (λ a, (nnnorm (f a) : ℝ≥0∞)) :=
+  measurable (λ a, (∥f a∥₊ : ℝ≥0∞)) :=
 hf.nnnorm.coe_nnreal_ennreal
 
 @[measurability]
 lemma ae_measurable.ennnorm {f : β → α} {μ : measure β} (hf : ae_measurable f μ) :
-  ae_measurable (λ a, (nnnorm (f a) : ℝ≥0∞)) μ :=
+  ae_measurable (λ a, (∥f a∥₊ : ℝ≥0∞)) μ :=
 measurable_ennnorm.comp_ae_measurable hf
 
 end normed_group

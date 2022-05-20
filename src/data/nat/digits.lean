@@ -432,7 +432,7 @@ begin
     { simp [digits_zero_succ', hn] },
     { simp, },
     { simpa [succ_lt_succ_iff] using hb } },
-  simpa [digits_len, hb, hn] using log_le_log_of_le (le_succ _)
+  simpa [digits_len, hb, hn] using log_mono_right (le_succ _)
 end
 
 lemma le_digits_len_le (b n m : ℕ) (h : n ≤ m) : (digits b n).length ≤ (digits b m).length :=
@@ -602,7 +602,7 @@ begin
   replace h : even dig.length := by rwa list.length_map,
   refine eleven_dvd_iff.2 ⟨0, (_ : dig.alternating_sum = 0)⟩,
   have := dig.alternating_sum_reverse,
-  rw [(p.map _).reverse_eq, pow_succ, neg_one_pow_of_even h, mul_one, neg_one_zsmul] at this,
+  rw [(p.map _).reverse_eq, pow_succ, h.neg_one_pow, mul_one, neg_one_zsmul] at this,
   exact eq_zero_of_neg_eq this.symm,
 end
 

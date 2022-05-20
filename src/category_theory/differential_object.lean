@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import category_theory.shift
+import category_theory.concrete_category.basic
 
 /-!
 # Differential objects in a category.
@@ -180,11 +181,7 @@ variables [has_zero_object C] [has_zero_morphisms C] [has_shift C]
 open_locale zero_object
 
 instance has_zero_object : has_zero_object (differential_object C) :=
-{ zero :=
-  { X := (0 : C),
-    d := 0, },
-  unique_to := λ X, ⟨⟨{ f := 0 }⟩, λ f, (by ext)⟩,
-  unique_from := λ X, ⟨⟨{ f := 0 }⟩, λ f, (by ext)⟩, }
+by { refine ⟨⟨⟨0, 0⟩, λ X, ⟨⟨⟨⟨0⟩⟩, λ f, _⟩⟩, λ X, ⟨⟨⟨⟨0⟩⟩, λ f, _⟩⟩⟩⟩; ext, }
 
 end differential_object
 
@@ -216,7 +213,7 @@ def shift_functor : differential_object C ⥤ differential_object C :=
     d := X.d⟦1⟧',
     d_squared' := begin
       dsimp,
-      rw [←functor.map_comp, X.d_squared, is_equivalence_preserves_zero_morphisms],
+      rw [←functor.map_comp, X.d_squared, functor.map_zero],
     end },
   map := λ X Y f,
   { f := f.f⟦1⟧',

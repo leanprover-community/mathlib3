@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import category_theory.limits.shapes.zero_morphisms
+import category_theory.limits.preserves.shapes.zero
 
 /-!
 # Shift
@@ -35,12 +36,5 @@ notation f`⟦`n`⟧'`:80 := ((shift _)^(n : ℤ)).functor.map f
 
 example {X Y : C} (f : X ⟶ Y) : X⟦1⟧ ⟶ Y⟦1⟧ := f⟦1⟧'
 example {X Y : C} (f : X ⟶ Y) : X⟦-2⟧ ⟶ Y⟦-2⟧ := f⟦-2⟧'
-
-open category_theory.limits
-variables [has_zero_morphisms C]
-
-@[simp]
-lemma shift_zero_eq_zero (X Y : C) (n : ℤ) : (0 : X ⟶ Y)⟦n⟧' = (0 : X⟦n⟧ ⟶ Y⟦n⟧) :=
-by apply equivalence_preserves_zero_morphisms
 
 end category_theory

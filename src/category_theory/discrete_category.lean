@@ -88,6 +88,8 @@ meta def _root_.tactic.discrete_cases : tactic unit :=
 
 run_cmd add_interactive [``tactic.discrete_cases]
 
+local attribute [tidy] tactic.discrete_cases
+
 instance [unique α] : unique (discrete α) :=
 unique.mk' (discrete α)
 

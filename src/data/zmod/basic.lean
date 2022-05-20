@@ -5,6 +5,7 @@ Authors: Chris Hughes
 -/
 
 import algebra.char_p.basic
+import algebra.ne_zero
 import ring_theory.ideal.operations
 import tactic.fin_cases
 
@@ -80,6 +81,12 @@ namespace zmod
 instance fintype : Π (n : ℕ) [fact (0 < n)], fintype (zmod n)
 | 0     h := false.elim $ nat.not_lt_zero 0 h.1
 | (n+1) _ := fin.fintype (n+1)
+
+instance fintype' (n : ℕ) [hn : ne_zero n] : fintype (zmod n) :=
+begin
+  haveI : fact (0 < n) := ⟨nat.pos_of_ne_zero hn.1⟩,
+  exact zmod.fintype n,
+end
 
 instance infinite : infinite (zmod 0) :=
 int.infinite

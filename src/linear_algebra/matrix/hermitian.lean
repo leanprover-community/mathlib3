@@ -31,7 +31,7 @@ local notation `⟪`x`, `y`⟫` := @inner 𝕜 (pi_Lp 2 (λ (_ : n), 𝕜)) _ x 
 captures symmetric matrices. -/
 def is_hermitian (A : matrix n n 𝕜) : Prop := Aᴴ = A
 
-variables [decidable_eq 𝕜] [fintype n] [decidable_eq n]
+variables [fintype n] [decidable_eq n]
 
 /-- A matrix is hermitian iff the corresponding linear map is self adjoint. -/
 lemma is_hermitian_iff_is_self_adjoint {A : matrix n n 𝕜} :

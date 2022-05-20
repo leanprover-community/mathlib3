@@ -482,7 +482,7 @@ lemma inner_matrix_col_col (A B : matrix (fin n) (fin m) 𝕜) (i j : (fin m)) :
 
 variables (i : ι) (j : ι')
 
-lemma euclidean_space.mul_vec_single_apply [fintype ι'] [decidable_eq ι'] (A : matrix ι ι' 𝕜) :
+lemma euclidean_space.mul_vec_single_apply [decidable_eq ι] (A : matrix ι' ι 𝕜) :
   A.mul_vec (euclidean_space.single j 1) i = A i j :=
 matrix.mul_vec_std_basis A i j
 

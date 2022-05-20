@@ -290,6 +290,8 @@ end equiv_lax_monoidal_functor_punit
 
 open equiv_lax_monoidal_functor_punit
 
+local attribute [simp] eq_to_iso_map
+
 /--
 Monoid objects in `C` are "just" lax monoidal functors from the trivial monoidal category to `C`.
 -/

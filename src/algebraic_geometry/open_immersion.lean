@@ -388,7 +388,7 @@ begin
     rw ← is_iso.comp_inv_eq at this,
     reassoc! this,
     erw [← this, hf.inv_app_app_assoc, s.fst.c.naturality_assoc],
-    simpa },
+    simpa [eq_to_hom_map], },
   { change pullback.lift _ _ _ ≫ pullback.fst = _,
     simp }
 end
@@ -1515,7 +1515,7 @@ lemma lift_uniq (H' : set.range g.1.base ⊆ set.range f.1.base) (l : Y ⟶ X)
   (hl : l ≫ f = g) : l = lift f g H' :=
 LocallyRingedSpace.is_open_immersion.lift_uniq f g H' l hl
 
-/-- Two open immersions with equal range is isomorphic. -/
+/-- Two open immersions with equal range are isomorphic. -/
 @[simps] def iso_of_range_eq [is_open_immersion g] (e : set.range f.1.base = set.range g.1.base) :
   X ≅ Y :=
 { hom := lift g f (le_of_eq e),

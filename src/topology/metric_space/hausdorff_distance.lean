@@ -174,6 +174,17 @@ begin
   exact ⟨y, ys, le_antisymm (inf_edist_le_edist_of_mem ys) (by rwa le_inf_edist)⟩
 end
 
+lemma exists_pos_forall_le_edist (hs : is_compact s) (hs' : s.nonempty) (ht : is_closed t)
+  (hst : disjoint s t) :
+  ∃ r, 0 < r ∧ ∀ (x ∈ s) (y ∈ t), r ≤ edist x y :=
+begin
+  obtain ⟨x, hx, h⟩ : ∃ x ∈ s, ∀ y ∈ s, inf_edist x t ≤ inf_edist y t :=
+    hs.exists_forall_le hs' continuous_inf_edist.continuous_on,
+  refine ⟨inf_edist x t, pos_iff_ne_zero.2 $ λ H, hst ⟨hx, _⟩, λ y hy, le_inf_edist.1 $ h y hy⟩,
+  rw ←ht.closure_eq,
+  exact mem_closure_iff_inf_edist_zero.2 H,
+end
+
 end inf_edist --section
 
 /-! ### The Hausdorff distance as a function into `ℝ≥0∞`. -/
@@ -877,7 +888,7 @@ end thickening --section
 
 section cthickening
 
-variables [pseudo_emetric_space α] {δ ε : ℝ} {s : set α} {x : α}
+variables [pseudo_emetric_space α] {δ ε : ℝ} {s t : set α} {x : α}
 
 open emetric
 
@@ -1022,6 +1033,37 @@ by simp_rw [thickening, inf_edist_closure]
 
 @[simp] lemma cthickening_closure : cthickening δ (closure s) = cthickening δ s :=
 by simp_rw [cthickening, inf_edist_closure]
+
+open ennreal
+
+lemma _root_.disjoint.exists_thickenings (hst : disjoint s t) (hs : is_compact s)
+  (ht : is_closed t) :
+  ∃ δ, 0 < δ ∧ disjoint (thickening δ s) (thickening δ t) :=
+begin
+  obtain rfl | hs' := s.eq_empty_or_nonempty,
+  { simp_rw thickening_empty,
+    exact ⟨1, zero_lt_one, empty_disjoint _⟩ },
+  obtain ⟨r, hr, h⟩ := exists_pos_forall_le_edist hs hs' ht hst,
+  refine ⟨(min 1 (r/2)).to_real, to_real_pos (lt_min ennreal.zero_lt_one $ half_pos hr.ne').ne'
+    (min_lt_of_left_lt one_lt_top).ne, _⟩,
+  rintro z ⟨hzs, hzt⟩,
+  rw mem_thickening_iff_exists_edist_lt at hzs hzt,
+  obtain ⟨x, hx, hzx⟩ := hzs,
+  obtain ⟨y, hy, hzy⟩ := hzt,
+  refine (((h _ hx _ hy).trans $ edist_triangle_left _ _ _).trans_lt $
+    ennreal.add_lt_add hzx hzy).not_le _,
+  rw ←two_mul,
+  exact ennreal.mul_le_of_le_div' (of_real_to_real_le.trans $ min_le_right _ _),
+end
+
+lemma _root_.disjoint.exists_cthickenings (hst : disjoint s t) (hs : is_compact s)
+  (ht : is_closed t) :
+  ∃ δ, 0 < δ ∧ disjoint (cthickening δ s) (cthickening δ t) :=
+begin
+  obtain ⟨δ, hδ, h⟩ := hst.exists_thickenings hs ht,
+  refine ⟨δ / 2, half_pos hδ, h.mono _ _⟩;
+    exact (cthickening_subset_thickening' hδ (half_lt_self hδ) _),
+end
 
 lemma cthickening_eq_Inter_cthickening' {δ : ℝ}
   (s : set ℝ) (hsδ : s ⊆ Ioi δ) (hs : ∀ ε, δ < ε → (s ∩ (Ioc δ ε)).nonempty) (E : set α) :

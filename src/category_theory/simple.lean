@@ -6,6 +6,8 @@ Authors: Markus Himmel, Scott Morrison
 import category_theory.limits.shapes.zero_morphisms
 import category_theory.limits.shapes.kernels
 import category_theory.abelian.basic
+import category_theory.subobject.lattice
+import order.atoms
 
 /-!
 # Simple objects
@@ -114,6 +116,8 @@ by simpa [limits.is_zero.iff_id_eq_zero] using id_nonzero X
 variable [has_zero_object C]
 open_locale zero_object
 
+variables (C)
+
 /-- We don't want the definition of 'simple' to include the zero object, so we check that here. -/
 lemma zero_not_simple [simple (0 : C)] : false :=
 (simple.mono_is_iso_iff_nonzero (0 : (0 : C) ⟶ (0 : C))).mp ⟨⟨0, by tidy⟩⟩ rfl
@@ -176,7 +180,7 @@ end
 
 end abelian
 
-section
+section indecomposable
 variables [preadditive C] [has_binary_biproducts C]
 
 -- There are another three potential variations of this lemma,
@@ -203,6 +207,53 @@ lemma indecomposable_of_simple (X : C) [simple X] : indecomposable X :=
   { apply_instance, },
 end⟩
 
+end indecomposable
+
+section subobject
+variables [has_zero_morphisms C] [has_zero_object C]
+
+open_locale zero_object
+open subobject
+
+instance {X : C} [simple X] : nontrivial (subobject X) :=
+nontrivial_of_not_is_zero (simple.not_is_zero X)
+
+instance {X : C} [simple X] : is_simple_order (subobject X) :=
+{ eq_bot_or_eq_top := begin
+  rintro ⟨⟨⟨(Y : C), ⟨⟨⟩⟩, (f : Y ⟶ X)⟩, (m : mono f)⟩⟩, resetI,
+  change mk f = ⊥ ∨ mk f = ⊤,
+  by_cases h : f = 0,
+  { exact or.inl (mk_eq_bot_iff_zero.mpr h), },
+  { refine or.inr ((is_iso_iff_mk_eq_top _).mp ((simple.mono_is_iso_iff_nonzero f).mpr h)), }
+end, }
+
+/-- If `X` has subobject lattice `{⊥, ⊤}`, then `X` is simple. -/
+lemma simple_of_is_simple_order_subobject (X : C) [is_simple_order (subobject X)] : simple X :=
+begin
+  split, introsI, split,
+  { introI i,
+    rw subobject.is_iso_iff_mk_eq_top at i,
+    intro w,
+    rw ←subobject.mk_eq_bot_iff_zero at w,
+    exact is_simple_order.bot_ne_top (w.symm.trans i), },
+  { intro i,
+    rcases is_simple_order.eq_bot_or_eq_top (subobject.mk f) with h|h,
+    { rw subobject.mk_eq_bot_iff_zero at h,
+      exact false.elim (i h), },
+    { exact (subobject.is_iso_iff_mk_eq_top _).mpr h, }, }
 end
+
+/-- `X` is simple iff it has subobject lattice `{⊥, ⊤}`. -/
+lemma simple_iff_subobject_is_simple_order (X : C) : simple X ↔ is_simple_order (subobject X) :=
+⟨by { introI h, apply_instance, },
+ by { introI h, exact simple_of_is_simple_order_subobject X, }⟩
+
+/-- A subobject is simple iff it is an atom in the subobject lattice. -/
+lemma subobject_simple_iff_is_atom {X : C} (Y : subobject X) : simple (Y : C) ↔ is_atom Y :=
+(simple_iff_subobject_is_simple_order _).trans
+  ((order_iso.is_simple_order_iff (subobject_order_iso Y)).trans
+    set.is_simple_order_Iic_iff_is_atom)
+
+end subobject
 
 end category_theory

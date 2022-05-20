@@ -437,7 +437,8 @@ by rw [periodic_orbit, cycle.length_coe, list.length_map, list.length_range]
   periodic_orbit f x = cycle.nil ↔ x ∉ periodic_pts f :=
 by { simp [periodic_orbit], exact minimal_period_eq_zero_iff_nmem_periodic_pts }
 
-lemma periodic_orbit_eq_nil_of_not_periodic_pt (h : x ∉ periodic_pts f) : periodic_orbit f x = cycle.nil :=
+lemma periodic_orbit_eq_nil_of_not_periodic_pt (h : x ∉ periodic_pts f) :
+  periodic_orbit f x = cycle.nil :=
 periodic_orbit_eq_nil_iff_not_periodic_pt.2 h
 
 @[simp] lemma mem_periodic_orbit_iff (hx : x ∈ periodic_pts f) :

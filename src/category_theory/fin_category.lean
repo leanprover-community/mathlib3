@@ -23,7 +23,7 @@ universes v u
 namespace category_theory
 
 instance discrete_fintype {α : Type*} [fintype α] : fintype (discrete α) :=
-by { dsimp [discrete], apply_instance }
+fintype.of_equiv α (discrete_equiv.symm)
 
 instance discrete_hom_fintype {α : Type*} [decidable_eq α] (X Y : discrete α) : fintype (X ⟶ Y) :=
 by { apply ulift.fintype }

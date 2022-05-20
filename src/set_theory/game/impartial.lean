@@ -20,8 +20,8 @@ universe u
 
 namespace pgame
 
-local infix ` ≈ ` := equiv
 local infix ` ⧏ `:50 := lf
+local infix ` ≈ ` := equiv
 local infix ` ∥ `:50 := fuzzy
 
 /-- The definition for a impartial game, defined using Conway induction. -/

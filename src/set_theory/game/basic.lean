@@ -66,6 +66,8 @@ instance : partial_order game :=
   le_trans := by { rintro ⟨x⟩ ⟨y⟩ ⟨z⟩, exact @le_trans _ _ x y z },
   le_antisymm := by { rintro ⟨x⟩ ⟨y⟩ h₁ h₂, apply quot.sound, exact ⟨h₁, h₂⟩ } }
 
+theorem mk_eq {x y : pgame} : ⟦x⟧ = ⟦y⟧ ↔ x ≈ y := quotient.eq
+
 /-- The less or fuzzy relation on games.
 
 If `0 ⧏ x` (less or fuzzy with), then Left can win `x` as the first player. -/

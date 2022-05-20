@@ -78,7 +78,7 @@ Note that we write `P • x` instead of `P x` for reasons described in the modul
 -/
 structure is_Mprojection (P : M) : Prop :=
 (proj : is_idempotent_elem P)
-(Mnorm : ∀ (x : X), ∥x∥ = (max ∥P • x∥  ∥(1 - P) • x∥))
+(Mnorm : ∀ (x : X), ∥x∥ = (max ∥P • x∥ ∥(1 - P) • x∥))
 
 variables {X}
 
@@ -93,7 +93,7 @@ lemma Lcomplement_iff (P : M) : is_Lprojection X P ↔ is_Lprojection X (1 - P) 
 lemma commute [has_faithful_scalar M X] {P Q : M} (h₁ : is_Lprojection X P)
   (h₂ : is_Lprojection X Q) : commute P Q :=
 begin
-  have PR_eq_RPR : ∀ R : (M), is_Lprojection X R →  (P * R = R * P * R) :=λ R h₃,
+  have PR_eq_RPR : ∀ R : M, is_Lprojection X R → P * R = R * P * R := λ R h₃,
   begin
     refine @eq_of_smul_eq_smul _ X _ _ _ _ (λ x, _),
     rw ← norm_sub_eq_zero_iff,
@@ -109,17 +109,15 @@ begin
           (∥R • x - R • (P • (R • x))∥ + ∥(1 - R) • (P • (R • x))∥) :
       by rw [sub_mul, h₃.proj.eq, one_mul, sub_self, zero_smul, zero_sub,
         norm_neg]
-    ... = ∥R • (P • (R • x))∥ + ∥R • x - R • (P • (R • x))∥ + 2•∥(1 - R) • (P • (R • x))∥  : by abel
-    ... ≥ ∥R • x∥ + 2 • ∥ (P * R) • x - (R * P * R) • x∥ :
-      by {
-        rw ge,
+    ... = ∥R • (P • (R • x))∥ + ∥R • x - R • (P • (R • x))∥ + 2•∥(1 - R) • (P • (R • x))∥ : by abel
+    ... ≥ ∥R • x∥ + 2 • ∥ (P * R) • x - (R * P * R) • x∥ : by
+      { rw ge,
         have := add_le_add_right
           (norm_le_insert' (R • x) (R • (P • (R • x)))) (2•∥(1 - R) • (P • (R • x))∥),
-        simpa only [mul_smul, sub_smul, one_smul] using this,
-      },
+        simpa only [mul_smul, sub_smul, one_smul] using this },
     rw ge at e1,
     nth_rewrite_rhs 0 ← add_zero (∥R • x∥) at e1,
-    rw [add_le_add_iff_left, two_smul,  ← two_mul]  at e1,
+    rw [add_le_add_iff_left, two_smul, ← two_mul] at e1,
     rw le_antisymm_iff,
     refine ⟨_, norm_nonneg _⟩,
     rwa [←mul_zero (2 : ℝ), mul_le_mul_left (show (0 : ℝ) < 2, by norm_num)] at e1
@@ -194,7 +192,7 @@ lemma le_def [has_faithful_scalar M X] (P Q : {P : M // is_Lprojection X P}) :
   P ≤ Q ↔ (P : M) = ↑(P ⊓ Q) :=
 iff.rfl
 
-instance : has_zero {P : M // is_Lprojection X P}  :=
+instance : has_zero {P : M // is_Lprojection X P} :=
 ⟨⟨0, ⟨by rw [is_idempotent_elem, zero_mul],
      λ x, by simp only [zero_smul, norm_zero, sub_zero,
                         one_smul, zero_add]⟩⟩⟩
@@ -202,7 +200,7 @@ instance : has_zero {P : M // is_Lprojection X P}  :=
 @[simp] lemma coe_zero : ↑(0 : {P : M // is_Lprojection X P}) = (0 : M) :=
 rfl
 
-instance : has_one {P : M // is_Lprojection X P}  :=
+instance : has_one {P : M // is_Lprojection X P} :=
 ⟨⟨1, sub_zero (1 : M) ▸ (0 : {P : M // is_Lprojection X P}).prop.Lcomplement⟩⟩
 
 @[simp] lemma coe_one : ↑(1 : {P : M // is_Lprojection X P}) = (1 : M) :=
@@ -229,7 +227,7 @@ by rw [coe_compl, mul_sub, mul_one, P.prop.proj.eq, sub_self]
 
 lemma distrib_lattice_lemma [has_faithful_scalar M X] {P Q R : {P : M // is_Lprojection X P}} :
   ((↑P : M) + ↑Pᶜ * R) * (↑P + ↑Q * ↑R * ↑Pᶜ) = (↑P + ↑Q * ↑R * ↑Pᶜ) :=
-by rw [add_mul, mul_add, mul_add, mul_assoc ↑Pᶜ ↑R (↑Q * ↑R * ↑Pᶜ), ← mul_assoc ↑R (↑Q * ↑R)  ↑Pᶜ,
+by rw [add_mul, mul_add, mul_add, mul_assoc ↑Pᶜ ↑R (↑Q * ↑R * ↑Pᶜ), ← mul_assoc ↑R (↑Q * ↑R) ↑Pᶜ,
     ← coe_inf Q, (Pᶜ.prop.commute R.prop).eq, ((Q ⊓ R).prop.commute Pᶜ.prop).eq,
     (R.prop.commute (Q ⊓ R).prop).eq, coe_inf Q, mul_assoc ↑Q, ← mul_assoc, mul_assoc ↑R,
     (Pᶜ.prop.commute P.prop).eq, mul_compl_self, zero_mul, mul_zero, zero_add, add_zero,

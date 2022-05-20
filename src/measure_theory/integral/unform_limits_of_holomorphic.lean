@@ -56,7 +56,7 @@ begin
    ←mul_assoc],
   ring_nf,
   congr',
-  rw [pow_two, mul_inv₀],
+  rw [pow_two, mul_inv],
 end
 
 lemma circle_integral_transform_circle_int [complete_space E] (R : ℝ) (z w : ℂ) (f : ℂ → E) :
@@ -144,7 +144,7 @@ begin
   have c1 := (continuous_circle_map 0 R).continuous_on ,
   apply_rules [continuous_on.mul, continuous_on.comp c1 continuous_on_snd (λ _, and.right),
   continuous_const.continuous_on],
-  simp_rw ←inv_pow₀,
+  simp_rw ←inv_pow,
   apply (circle_int_funct_cont_on_prod R r hR hr z),
   all_goals{apply_instance}},
   have C: maps_to (circle_integral_bounding_function R z) (closed_ball z r ×ˢ [0, 2 * π])
@@ -311,9 +311,11 @@ lemma circle_integral_transform_sub (R : ℝ) (f g : ℂ → ℂ) (z w : ℂ) : 
    complex.abs (circle_integral_transform R z w (f - g) θ) :=
 begin
   intro θ,
-  simp [circle_integral_transform],
+  simp only [circle_integral_transform, mul_inv_rev, inv_I, neg_mul, deriv_circle_map,
+    algebra.id.smul_eq_mul, neg_sub_neg, pi.sub_apply, abs_neg, abs_mul, abs_I, abs_inv,
+    abs_of_real, abs_two, one_mul, abs_circle_map_zero, mul_one],
   ring_nf,
-  simp only [abs_mul, abs_inv, abs_I, mul_one, abs_circle_map_zero, abs_two, abs_of_real],
+  simp [abs_sub_comm, abs_inv, abs_two,← mul_sub],
 end
 
 lemma circle_integral_transform_sub_bound (R : ℝ) (hR: 0 < R) (f : ℂ → ℂ) (z w : ℂ) (r : ℝ)

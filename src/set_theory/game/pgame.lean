@@ -1183,6 +1183,9 @@ theorem zero_le_add_right_neg (x : pgame) : 0 ≤ x + -x :=
 theorem add_right_neg_equiv (x : pgame) : x + -x ≈ 0 :=
 ⟨add_right_neg_le_zero x, zero_le_add_right_neg x⟩
 
+theorem sub_self_equiv : ∀ x, x - x ≈ 0 :=
+add_right_neg_equiv
+
 private lemma add_le_add_right' : ∀ {x y z : pgame} (h : x ≤ y), x + z ≤ y + z
 | (mk xl xr xL xR) (mk yl yr yL yR) (mk zl zr zL zR) :=
 λ h, begin

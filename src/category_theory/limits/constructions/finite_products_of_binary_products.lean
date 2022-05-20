@@ -51,7 +51,7 @@ begin
   refine fin.cases _ _,
   { apply c₂.fst },
   { intro i,
-    apply c₂.snd ≫ c₁.π.app (ulift.up i) },
+    apply c₂.snd ≫ c₁.π.app ⟨ulift.up i⟩ },
 end
 
 /--
@@ -64,12 +64,12 @@ def extend_fan_is_limit {n : ℕ} (f : ulift (fin (n+1)) → C)
   is_limit (extend_fan c₁ c₂) :=
 { lift := λ s,
   begin
-    apply (binary_fan.is_limit.lift' t₂ (s.π.app ⟨0⟩) _).1,
-    apply t₁.lift ⟨_, discrete.nat_trans (λ i, s.π.app ⟨i.down.succ⟩)⟩
+    apply (binary_fan.is_limit.lift' t₂ (s.π.app ⟨⟨0⟩⟩) _).1,
+    apply t₁.lift ⟨_, discrete.nat_trans (λ i, s.π.app ⟨⟨i.as.down.succ⟩⟩)⟩
   end,
   fac' := λ s,
   begin
-    rintro ⟨j⟩,
+    rintro ⟨⟨j⟩⟩,
     apply fin.induction_on j,
     { apply (binary_fan.is_limit.lift' t₂ _ _).2.1 },
     { rintro i -,
@@ -81,13 +81,13 @@ def extend_fan_is_limit {n : ℕ} (f : ulift (fin (n+1)) → C)
   begin
     apply binary_fan.is_limit.hom_ext t₂,
     { rw (binary_fan.is_limit.lift' t₂ _ _).2.1,
-      apply w ⟨0⟩ },
+      apply w ⟨⟨0⟩⟩ },
     { rw (binary_fan.is_limit.lift' t₂ _ _).2.2,
       apply t₁.uniq ⟨_, _⟩,
-      rintro ⟨j⟩,
+      rintro ⟨⟨j⟩⟩,
       rw assoc,
       dsimp only [discrete.nat_trans_app],
-      rw ← w ⟨j.succ⟩,
+      rw ← w ⟨⟨j.succ⟩⟩,
       dsimp only [extend_fan_π_app],
       rw fin.cases_succ }
   end }
@@ -126,8 +126,8 @@ private lemma has_limits_of_shape_ulift_fin (n : ℕ) :
   has_limits_of_shape (discrete (ulift.{v} (fin n))) C :=
 { has_limit := λ K,
 begin
-  letI := has_product_ulift_fin n K.obj,
-  let : discrete.functor K.obj ≅ K := discrete.nat_iso (λ i, iso.refl _),
+  letI := has_product_ulift_fin n (λ n, K.obj ⟨n⟩),
+  let : discrete.functor (λ n, K.obj ⟨n⟩) ≅ K := discrete.nat_iso (λ ⟨i⟩, iso.refl _),
   apply has_limit_of_iso this,
 end }
 
@@ -174,7 +174,7 @@ noncomputable def preserves_fin_of_preserves_binary_and_terminal  :
     refine is_limit.of_iso_limit this _,
     apply cones.ext _ _,
     apply iso.refl _,
-    rintro ⟨j⟩,
+    rintro ⟨⟨j⟩⟩,
     apply fin.induction_on j,
     { apply (category.id_comp _).symm },
     { rintro i -,
@@ -193,8 +193,8 @@ def preserves_ulift_fin_of_preserves_binary_and_terminal (n : ℕ) :
   preserves_limits_of_shape (discrete (ulift (fin n))) F :=
 { preserves_limit := λ K,
   begin
-    let : discrete.functor K.obj ≅ K := discrete.nat_iso (λ i, iso.refl _),
-    haveI := preserves_fin_of_preserves_binary_and_terminal F n K.obj,
+    let : discrete.functor (λ n, K.obj ⟨n⟩) ≅ K := discrete.nat_iso (λ ⟨i⟩, iso.refl _),
+    haveI := preserves_fin_of_preserves_binary_and_terminal F n (λ n, K.obj ⟨n⟩),
     apply preserves_limit_of_iso_diagram F this,
   end }
 
@@ -231,7 +231,7 @@ begin
   refine fin.cases _ _,
   { apply c₂.inl },
   { intro i,
-    apply c₁.ι.app (ulift.up i) ≫ c₂.inr },
+    apply c₁.ι.app ⟨ulift.up i⟩ ≫ c₂.inr },
 end
 
 /--
@@ -244,12 +244,12 @@ def extend_cofan_is_colimit {n : ℕ} (f : ulift (fin (n+1)) → C)
   is_colimit (extend_cofan c₁ c₂) :=
 { desc := λ s,
   begin
-    apply (binary_cofan.is_colimit.desc' t₂ (s.ι.app ⟨0⟩) _).1,
-    apply t₁.desc ⟨_, discrete.nat_trans (λ i, s.ι.app ⟨i.down.succ⟩)⟩
+    apply (binary_cofan.is_colimit.desc' t₂ (s.ι.app ⟨⟨0⟩⟩) _).1,
+    apply t₁.desc ⟨_, discrete.nat_trans (λ i, s.ι.app ⟨⟨i.as.down.succ⟩⟩)⟩
   end,
   fac' := λ s,
   begin
-    rintro ⟨j⟩,
+    rintro ⟨⟨j⟩⟩,
     apply fin.induction_on j,
     { apply (binary_cofan.is_colimit.desc' t₂ _ _).2.1 },
     { rintro i -,
@@ -261,12 +261,12 @@ def extend_cofan_is_colimit {n : ℕ} (f : ulift (fin (n+1)) → C)
   begin
     apply binary_cofan.is_colimit.hom_ext t₂,
     { rw (binary_cofan.is_colimit.desc' t₂ _ _).2.1,
-      apply w ⟨0⟩ },
+      apply w ⟨⟨0⟩⟩ },
     { rw (binary_cofan.is_colimit.desc' t₂ _ _).2.2,
       apply t₁.uniq ⟨_, _⟩,
-      rintro ⟨j⟩,
+      rintro ⟨⟨j⟩⟩,
       dsimp only [discrete.nat_trans_app],
-      rw ← w ⟨j.succ⟩,
+      rw ← w ⟨⟨j.succ⟩⟩,
       dsimp only [extend_cofan_ι_app],
       rw [fin.cases_succ, assoc], }
   end }
@@ -306,8 +306,8 @@ private lemma has_colimits_of_shape_ulift_fin (n : ℕ) :
   has_colimits_of_shape (discrete (ulift.{v} (fin n))) C :=
 { has_colimit := λ K,
 begin
-  letI := has_coproduct_ulift_fin n K.obj,
-  let : K ≅ discrete.functor K.obj := discrete.nat_iso (λ i, iso.refl _),
+  letI := has_coproduct_ulift_fin n (λ n, K.obj ⟨n⟩),
+  let : K ≅ discrete.functor (λ n, K.obj ⟨n⟩) := discrete.nat_iso (λ ⟨i⟩, iso.refl _),
   apply has_colimit_of_iso this,
 end }
 
@@ -354,7 +354,7 @@ noncomputable def preserves_fin_of_preserves_binary_and_initial  :
     refine is_colimit.of_iso_colimit this _,
     apply cocones.ext _ _,
     apply iso.refl _,
-    rintro ⟨j⟩,
+    rintro ⟨⟨j⟩⟩,
     apply fin.induction_on j,
     { apply category.comp_id },
     { rintro i -,
@@ -372,8 +372,8 @@ def preserves_ulift_fin_of_preserves_binary_and_initial (n : ℕ) :
   preserves_colimits_of_shape (discrete (ulift (fin n))) F :=
 { preserves_colimit := λ K,
   begin
-    let : discrete.functor K.obj ≅ K := discrete.nat_iso (λ i, iso.refl _),
-    haveI := preserves_fin_of_preserves_binary_and_initial F n K.obj,
+    let : discrete.functor (λ n, K.obj ⟨n⟩) ≅ K := discrete.nat_iso (λ ⟨i⟩, iso.refl _),
+    haveI := preserves_fin_of_preserves_binary_and_initial F n (λ n, K.obj ⟨n⟩),
     apply preserves_colimit_of_iso_diagram F this,
   end }
 

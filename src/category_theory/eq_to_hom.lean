@@ -175,15 +175,25 @@ end heq
 
 end functor
 
+/--
+This is not always a good idea as a `@[simp]` lemma,
+as we lose the ability to use results that interact with `F`,
+e.g. the naturality of a natural transformation.
+
+In some files it may be appropriate to use `local attribute [simp] eq_to_hom_map`, however.
+-/
 lemma eq_to_hom_map (F : C ⥤ D) {X Y : C} (p : X = Y) :
   F.map (eq_to_hom p) = eq_to_hom (congr_arg F.obj p) :=
 by cases p; simp
 
+/--
+See the note on `eq_to_hom_map` regarding using this as a `simp` lemma.
+-/
 lemma eq_to_iso_map (F : C ⥤ D) {X Y : C} (p : X = Y) :
   F.map_iso (eq_to_iso p) = eq_to_iso (congr_arg F.obj p) :=
 by ext; cases p; simp
 
-lemma eq_to_hom_app {F G : C ⥤ D} (h : F = G) (X : C) :
+@[simp] lemma eq_to_hom_app {F G : C ⥤ D} (h : F = G) (X : C) :
   (eq_to_hom h : F ⟶ G).app X = eq_to_hom (functor.congr_obj h X) :=
 by subst h; refl
 

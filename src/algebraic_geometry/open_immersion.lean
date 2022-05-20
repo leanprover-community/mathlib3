@@ -109,12 +109,6 @@ variables {X Y : PresheafedSpace C} {f : X ⟶ Y} (H : is_open_immersion f)
 /-- The functor `opens X ⥤ opens Y` associated with an open immersion `f : X ⟶ Y`. -/
 abbreviation open_functor := H.base_open.is_open_map.functor
 
-/-
-We want to keep `eq_to_hom`s in the form of `F.map (eq_to_hom _)` so that the lemmas about
-naturality can be applied.
--/
-local attribute [-simp] eq_to_hom_map eq_to_iso_map
-
 /-- An open immersion `f : X ⟶ Y` induces an isomorphism `X ≅ Y|_{f(X)}`. -/
 @[simps] noncomputable
 def iso_restrict : X ≅ Y.restrict H.base_open :=

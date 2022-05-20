@@ -265,13 +265,9 @@ begin
     exact (le_tsub_iff_right key).mp (nat_trailing_degree_le_of_ne_zero hy) },
 end
 
-lemma coe_nat_trailing_degree (hp : p ≠ 0) : ↑p.nat_trailing_degree = p.trailing_degree :=
-by rw [nat_trailing_degree_eq_of_trailing_degree_eq_some
-  (p.trailing_degree.coe_untop (mt trailing_degree_eq_top.mp hp)).symm, with_top.coe_untop]
-
 lemma trailing_degree_le_of_ne_zero (h : p.coeff n ≠ 0) : p.trailing_degree ≤ n :=
 begin
-  rw [←coe_nat_trailing_degree, with_top.coe_le_coe],
+  rw [trailing_degree_eq_nat_trailing_degree, with_top.coe_le_coe],
   { exact nat_trailing_degree_le_of_ne_zero h },
   { exact λ hp, h (by rw [hp, coeff_zero]) },
 end
@@ -295,8 +291,8 @@ lemma nat_trailing_degree_mul_le (h : p * q ≠ 0) :
 begin
   have hp : p ≠ 0 := λ hp, h (by rw [hp, zero_mul]),
   have hq : q ≠ 0 := λ hq, h (by rw [hq, mul_zero]),
-  rw [←with_top.coe_le_coe, with_top.coe_add, coe_nat_trailing_degree hp,
-      coe_nat_trailing_degree hq, coe_nat_trailing_degree h],
+  rw [←with_top.coe_le_coe, with_top.coe_add, ←trailing_degree_eq_nat_trailing_degree hp,
+      ←trailing_degree_eq_nat_trailing_degree hq, ←trailing_degree_eq_nat_trailing_degree h],
   exact trailing_degree_mul_le,
 end
 
@@ -324,7 +320,7 @@ begin
   have hp : p ≠ 0 := λ hp, h (by rw [hp, trailing_coeff_zero, zero_mul]),
   have hq : q ≠ 0 := λ hq, h (by rw [hq, trailing_coeff_zero, mul_zero]),
   refine le_antisymm _ trailing_degree_mul_le,
-  rw [←coe_nat_trailing_degree hp, ←coe_nat_trailing_degree hq],
+  rw [trailing_degree_eq_nat_trailing_degree hp, trailing_degree_eq_nat_trailing_degree hq],
   apply trailing_degree_le_of_ne_zero,
   rwa coeff_mul_nat_trailing_degree_add_nat_trailing_degree,
 end
@@ -336,7 +332,7 @@ begin
   have hq : q ≠ 0 := λ hq, h (by rw [hq, trailing_coeff_zero, mul_zero]),
   apply nat_trailing_degree_eq_of_trailing_degree_eq_some,
   rw [trailing_degree_mul' h, with_top.coe_add,
-      coe_nat_trailing_degree hp, coe_nat_trailing_degree hq],
+      ←trailing_degree_eq_nat_trailing_degree hp, ←trailing_degree_eq_nat_trailing_degree hq],
 end
 
 lemma nat_trailing_degree_mul [no_zero_divisors R] (hp : p ≠ 0) (hq : q ≠ 0) :
@@ -351,8 +347,9 @@ begin
   { rw [hp, zero_mul, trailing_degree_zero, top_add] },
   by_cases hq : q = 0,
   { rw [hq, mul_zero, trailing_degree_zero, add_top] },
-  rw [←coe_nat_trailing_degree hp, ←coe_nat_trailing_degree hq, ←coe_nat_trailing_degree
-      (mul_ne_zero hp hq), nat_trailing_degree_mul hp hq, with_top.coe_add],
+  rw [trailing_degree_eq_nat_trailing_degree hp, trailing_degree_eq_nat_trailing_degree hq,
+      trailing_degree_eq_nat_trailing_degree (mul_ne_zero hp hq),
+      nat_trailing_degree_mul hp hq, with_top.coe_add],
 end
 
 end semiring

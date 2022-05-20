@@ -39,7 +39,7 @@ cardinal arithmetic (for infinite cardinals)
 
 noncomputable theory
 
-open function cardinal set equiv
+open function cardinal set equiv order
 open_locale classical cardinal
 
 universes u v w
@@ -152,12 +152,12 @@ cardinal.aleph_idx.rel_iso.to_equiv.apply_symm_apply o
 by rw [← nonpos_iff_eq_zero, ← aleph'_aleph_idx 0, aleph'_le];
    apply ordinal.zero_le
 
-@[simp] theorem aleph'_succ {o : ordinal.{u}} : aleph' o.succ = (aleph' o).succ :=
+@[simp] theorem aleph'_succ {o : ordinal.{u}} : aleph' o.succ = succ (aleph' o) :=
 le_antisymm
  (cardinal.aleph_idx_le.1 $
   by rw [aleph_idx_aleph', ordinal.succ_le, ← aleph'_lt, aleph'_aleph_idx];
-     apply cardinal.lt_succ)
- (cardinal.succ_le_of_lt $ aleph'_lt.2 $ ordinal.lt_succ_self _)
+     apply order.lt_succ)
+ (succ_le_of_lt $ aleph'_lt.2 $ ordinal.lt_succ_self _)
 
 @[simp] theorem aleph'_nat : ∀ n : ℕ, aleph' n = n
 | 0     := aleph'_zero
@@ -202,7 +202,7 @@ begin
   { rw [max_eq_left h, max_eq_left (aleph_le.1 h)] }
 end
 
-@[simp] theorem aleph_succ {o : ordinal.{u}} : aleph o.succ = (aleph o).succ :=
+@[simp] theorem aleph_succ {o : ordinal.{u}} : aleph o.succ = succ (aleph o) :=
 by rw [aleph, ordinal.add_succ, aleph'_succ]; refl
 
 @[simp] theorem aleph_zero : aleph 0 = ω :=
@@ -249,7 +249,7 @@ theorem succ_omega : succ ω = aleph 1 :=
 by rw [← aleph_zero, ← aleph_succ, ordinal.succ_zero]
 
 lemma omega_lt_aleph_one : ω < aleph 1 :=
-by { rw ← succ_omega, apply lt_succ }
+by { rw ← succ_omega, apply order.lt_succ }
 
 lemma countable_iff_lt_aleph_one {α : Type*} (s : set α) : countable s ↔ #s < aleph 1 :=
 by rw [← succ_omega, lt_succ_iff, mk_set_le_omega]

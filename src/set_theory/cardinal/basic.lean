@@ -65,7 +65,7 @@ cardinal number, cardinal arithmetic, cardinal exponentiation, omega,
 Cantor's theorem, König's theorem, Konig's theorem
 -/
 
-open function set
+open function set order
 open_locale classical
 
 noncomputable theory
@@ -565,27 +565,13 @@ cardinal.wf.conditionally_complete_linear_order_with_bot 0 $ le_antisymm (cardin
 
 instance wo : @is_well_order cardinal.{u} (<) := ⟨cardinal.wf⟩
 
-/-- The set in the definition of `cardinal.succ` is nonempty. -/
+/-- The set in the definition of `order.succ` for cardinals is nonempty. -/
 theorem succ_nonempty (c : cardinal) : {c' : cardinal | c < c'}.nonempty := ⟨_, cantor c⟩
 
-/-- The successor cardinal - the smallest cardinal greater than
-  `c`. This is not the same as `c + 1` except in the case of finite `c`. -/
-def succ (c : cardinal) : cardinal :=
-Inf {c' | c < c'}
-
-theorem lt_succ (c : cardinal) : c < succ c :=
-Inf_mem (succ_nonempty c)
-
-theorem succ_le_iff {a b : cardinal} : succ a ≤ b ↔ a < b :=
-⟨(lt_succ a).trans_le, λ h, cInf_le' h⟩
-
+/-- Note that the successor of `c` is not the same as `c + 1` except in the case of finite `c`. -/
 instance : succ_order cardinal :=
-succ_order.of_succ_le_iff succ (λ a b, succ_le_iff)
-
-theorem le_succ : ∀ a, a ≤ succ a := order.le_succ
-theorem lt_succ_iff {a b : cardinal} : a < succ b ↔ a ≤ b := order.lt_succ_iff
-theorem succ_le_of_lt {a b : cardinal} : a < b → succ a ≤ b := order.succ_le_of_lt
-theorem le_of_lt_succ {a b : cardinal} : a < succ b → a ≤ b := order.le_of_lt_succ
+succ_order.of_succ_le_iff (λ c, Inf {c' | c < c'})
+  (λ a b, ⟨lt_of_lt_of_le $ Inf_mem $ succ_nonempty a, cInf_le'⟩)
 
 theorem add_one_le_succ (c : cardinal.{u}) : c + 1 ≤ succ c :=
 begin
@@ -923,8 +909,7 @@ nat.cast_injective
 @[simp, norm_cast, priority 900] theorem nat_succ (n : ℕ) : (n.succ : cardinal) = succ n :=
 (add_one_le_succ _).antisymm (succ_le_of_lt $ nat_cast_lt.2 $ nat.lt_succ_self _)
 
-@[simp] theorem succ_zero : succ 0 = 1 :=
-by norm_cast
+@[simp] theorem succ_zero : succ (0 : cardinal) = 1 := by norm_cast
 
 theorem card_le_of {α : Type u} {n : ℕ} (H : ∀ s : finset α, s.card ≤ n) :
   # α ≤ n :=
@@ -938,7 +923,7 @@ begin
 end
 
 theorem cantor' (a) {b : cardinal} (hb : 1 < b) : a < b ^ a :=
-by rw [← succ_le_iff, (by norm_cast : succ 1 = 2)] at hb;
+by rw [← succ_le_iff, (by norm_cast : succ (1 : cardinal) = 2)] at hb;
    exact (cantor a).trans_le (power_le_power_right hb)
 
 theorem one_le_iff_pos {c : cardinal} : 1 ≤ c ↔ 0 < c :=
@@ -1518,8 +1503,8 @@ end
 lemma three_le {α : Type*} (h : 3 ≤ # α) (x : α) (y : α) :
   ∃ (z : α), z ≠ x ∧ z ≠ y :=
 begin
-  have : ((3:nat) : cardinal) ≤ # α, simpa using h,
-  have : ((2:nat) : cardinal) < # α, rwa [← cardinal.succ_le_iff, ← cardinal.nat_succ],
+  have : ↑(3 : ℕ) ≤ # α, simpa using h,
+  have : ↑(2 : ℕ) < # α, rwa [← succ_le_iff, ← cardinal.nat_succ],
   have := exists_not_mem_of_length_le [x, y] this,
   simpa [not_or_distrib] using this,
 end
@@ -1554,7 +1539,7 @@ end
 lemma powerlt_le_powerlt_left {a b c : cardinal} (h : b ≤ c) : a ^< b ≤ a ^< c :=
 by { rw [powerlt, sup_le_iff], exact λ ⟨s, hs⟩, le_powerlt (lt_of_lt_of_le hs h) }
 
-lemma powerlt_succ {c₁ c₂ : cardinal} (h : c₁ ≠ 0) : c₁ ^< c₂.succ = c₁ ^ c₂ :=
+lemma powerlt_succ {c₁ c₂ : cardinal} (h : c₁ ≠ 0) : c₁ ^< (succ c₂) = c₁ ^ c₂ :=
 begin
   apply le_antisymm,
   { rw powerlt_le, intros c₃ h2, apply power_le_power_left h, rwa [←lt_succ_iff] },

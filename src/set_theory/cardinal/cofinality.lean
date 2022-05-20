@@ -46,7 +46,7 @@ infinite pigeonhole principle
 
 noncomputable theory
 
-open function cardinal set
+open function cardinal set order
 open_locale classical cardinal
 
 universes u v w
@@ -388,7 +388,7 @@ begin
     { refine λ a, ⟨sum.inr punit.star, set.mem_singleton _, _⟩,
       rcases a with a|⟨⟨⟨⟩⟩⟩; simp [empty_relation] },
     { rw [cardinal.mk_fintype, set.card_singleton], simp } },
-  { rw [← cardinal.succ_zero, cardinal.succ_le_iff],
+  { rw [← cardinal.succ_zero, succ_le_iff],
     simpa [lt_iff_le_and_ne, cardinal.zero_le] using
       λ h, succ_ne_zero o (cof_eq_zero.1 (eq.symm h)) }
 end
@@ -776,7 +776,7 @@ theorem infinite_pigeonhole_card_lt {β α : Type u} (f : β → α)
   ∃ a : α, #α < #(f ⁻¹' {a}) :=
 begin
   simp_rw [← succ_le_iff],
-  exact ordinal.infinite_pigeonhole_card f (#α).succ (succ_le_of_lt w)
+  exact ordinal.infinite_pigeonhole_card f (succ (#α)) (succ_le_of_lt w)
     (w'.trans (lt_succ _).le)
     ((lt_succ _).trans_le (is_regular_succ w').2.ge),
 end

@@ -51,7 +51,7 @@ Various other basic arithmetic results are given in `principal.lean` instead.
 
 noncomputable theory
 
-open function cardinal set equiv
+open function cardinal set equiv order
 open_locale classical cardinal
 
 universes u v w
@@ -1049,9 +1049,9 @@ rfl
 
 /-- The range of any family of ordinals is bounded above. See also `lsub_not_mem_range`. -/
 theorem bdd_above_range {ι : Type u} (f : ι → ordinal.{max u v}) : bdd_above (set.range f) :=
-⟨(cardinal.sup.{u v} (cardinal.succ ∘ card ∘ f)).ord, begin
+⟨(cardinal.sup.{u v} (order.succ ∘ card ∘ f)).ord, begin
   rintros a ⟨i, rfl⟩,
-  exact le_of_lt (cardinal.lt_ord.2 ((cardinal.lt_succ _).trans_le (le_sup _ _)))
+  exact le_of_lt (cardinal.lt_ord.2 ((order.lt_succ _).trans_le (le_sup _ _)))
 end⟩
 
 theorem le_sup {ι} (f : ι → ordinal) : ∀ i, f i ≤ sup f :=
@@ -1581,12 +1581,12 @@ begin
   exact ne_mex g j hi
 end
 
-theorem mex_lt_ord_succ_mk {ι} (f : ι → ordinal) : mex f < (#ι).succ.ord :=
+theorem mex_lt_ord_succ_mk {ι} (f : ι → ordinal) : mex f < (order.succ (#ι)).ord :=
 begin
   by_contra' h,
-  apply (cardinal.lt_succ (#ι)).not_le,
+  apply (order.lt_succ (#ι)).not_le,
   have H := λ a, exists_of_lt_mex ((typein_lt_self a).trans_le h),
-  let g : (#ι).succ.ord.out.α → ι := λ a, classical.some (H a),
+  let g : (order.succ (#ι)).ord.out.α → ι := λ a, classical.some (H a),
   have hg : injective g := λ a b h', begin
     have Hf : ∀ x, f (g x) = typein (<) x := λ a, classical.some_spec (H a),
     apply_fun f at h',
@@ -1631,7 +1631,8 @@ theorem bmex_monotone {o o' : ordinal} {f : Π a < o, ordinal} {g : Π a < o', o
   (h : brange o f ⊆ brange o' g) : bmex o f ≤ bmex o' g :=
 mex_monotone (by rwa [range_family_of_bfamily, range_family_of_bfamily])
 
-theorem bmex_lt_ord_succ_card {o : ordinal} (f : Π a < o, ordinal) : bmex o f < o.card.succ.ord :=
+theorem bmex_lt_ord_succ_card {o : ordinal} (f : Π a < o, ordinal) :
+  bmex o f < (order.succ o.card).ord :=
 by { rw ←mk_ordinal_out, exact (mex_lt_ord_succ_mk (family_of_bfamily o f)) }
 
 end ordinal
@@ -2279,7 +2280,7 @@ by rw [← add_left_cancel (n*(m/n)), div_add_mod, ← nat_cast_div, ← nat_cas
  λ h, card_nat n ▸ card_le_card h⟩
 
 @[simp] theorem nat_lt_card {o} {n : ℕ} : (n : cardinal) < card o ↔ (n : ordinal) < o :=
-by rw [← succ_le, ← cardinal.succ_le_iff, ← cardinal.nat_succ, nat_le_card]; refl
+by rw [← succ_le, ← succ_le_iff, ← cardinal.nat_succ, nat_le_card]; refl
 
 @[simp] theorem card_lt_nat {o} {n : ℕ} : card o < n ↔ o < n :=
 lt_iff_lt_of_le_iff_le nat_le_card

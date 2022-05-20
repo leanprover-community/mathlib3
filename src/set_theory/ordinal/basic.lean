@@ -59,7 +59,7 @@ for the empty set by convention.
 
 noncomputable theory
 
-open function cardinal set equiv
+open function cardinal set equiv order
 open_locale classical cardinal
 
 universes u v w
@@ -1286,8 +1286,8 @@ let ⟨r, _, e⟩ := ord_eq α in by simp only [mk_def, e, card_type]
 theorem ord_card_le (o : ordinal) : o.card.ord ≤ o :=
 ord_le.2 le_rfl
 
-lemma lt_ord_succ_card (o : ordinal) : o < o.card.succ.ord :=
-by { rw [lt_ord], apply cardinal.lt_succ }
+lemma lt_ord_succ_card (o : ordinal) : o < (succ o.card).ord :=
+by { rw lt_ord, apply order.lt_succ }
 
 @[simp] theorem ord_le_ord {c₁ c₂} : ord c₁ ≤ ord c₂ ↔ c₁ ≤ c₂ :=
 by simp only [ord_le, card_ord]

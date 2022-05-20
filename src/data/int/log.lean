@@ -15,6 +15,20 @@ This file defines two `ℤ`-valued analogs of the logarithm of `n : R` with base
 * `int.log b n`: Lower logarithm, or floor **log**. Greatest `k` such that `↑b^k ≤ n`.
 * `int.clog b n`: Upper logarithm, or **c**eil **log**. Least `k` such that `n ≤ ↑b^k`.
 
+## Main results
+
+* For `int.log`:
+  * `int.zpow_log_le_self`, `int.lt_zpow_succ_log_self`: the bounds formed by `int.log`,
+    `(b : R) ^ log b r ≤ r < (b : R) ^ (log b r + 1)`.
+  * `int.zpow_log_le_self`, `int.lt_zpow_succ_log_self`: the bounds formed by `int.log`
+  * `int.zpow_le_iff_le_log`: the galois almost-connection
+* For `int.clog`:
+  * `int.zpow_pred_clog_lt_self`, `int.self_le_zpow_clog`: the bounds formed by `int.log`,
+    `(b : R) ^ (clog b r - 1) < r ≤ (b : R) ^ clog b r`.
+  * `int.zpow_log_le_self`, `int.lt_zpow_succ_log_self`: the bounds formed by `int.log`
+  * `int.le_zpow_iff_clog_le`: the galois almost-connection
+* `int.clog_eq_neg_log_inv`: the link between the two definitions
+
 -/
 variables {R : Type*} [linear_ordered_field R] [floor_ring R]
 
@@ -92,6 +106,34 @@ log_of_right_le_zero le_rfl _
 @[simp] lemma log_one_right (b : ℕ) : log b (1 : R) = 0 :=
 by rw [log, if_pos le_rfl, nat.floor_one, nat.log_one_right, int.coe_nat_zero]
 
+/-- `zpow b` and `int.log b` (almost) form a Galois connection. -/
+lemma zpow_le_iff_le_log {b : ℕ} (hb : 1 < b) {x : ℤ} {y : R} (hy : 0 < y) :
+  (b : R) ^ x ≤ y ↔ x ≤ log b y :=
+begin
+  have h1b' : 1 ≤ (b : R) := by exact_mod_cast hb.le,
+  rw log,
+  split_ifs,
+  { obtain ⟨a, rfl | rfl⟩ := x.eq_coe_or_neg,
+    { simp only [zpow_coe_nat, ←nat.cast_pow, ← nat.le_floor_iff hy.le, int.coe_nat_le],
+      exact nat.pow_le_iff_le_log hb (nat.floor_pos.mpr h) },
+    { have hna : -(a : ℤ) ≤ 0 := neg_nonpos.mpr (int.coe_nat_nonneg _),
+      refine iff_of_true _ _,
+      { exact (zpow_le_one_of_nonpos h1b' hna).trans h },
+      { exact hna.trans (int.coe_nat_nonneg _) } } },
+  { obtain ⟨a, rfl | rfl⟩ := x.eq_coe_or_neg,
+    { refine iff_of_false (mt (le_trans _) h) (λ ha, _),
+      { exact one_le_zpow_of_nonneg h1b' (int.coe_nat_nonneg _)},
+      { have := (int.coe_nat_nonneg _).trans ha,
+        rw [neg_nonneg, coe_nat_nonpos_iff] at this,
+        refine (nat.clog_pos hb _).ne' this,
+        have := (one_lt_inv hy (not_le.mp h)).trans_le (nat.le_ceil _),
+        rw nat.one_lt_cast at this,
+        exact this } },
+    { rw [zpow_neg₀, zpow_coe_nat, neg_le_neg_iff, int.coe_nat_le,
+        inv_le (pow_pos (zero_lt_one.trans_le h1b') _) hy, ←nat.le_pow_iff_clog_le hb,
+        ←nat.cast_pow, nat.ceil_le] }, },
+end
+
 /-- The least power of `b` such that `r ≤ b ^ log b r`. -/
 def clog (b : ℕ) (r : R) : ℤ :=
 if 1 ≤ r then
@@ -158,6 +200,21 @@ begin
   rw [clog_eq_neg_log_inv, ←neg_add', zpow_neg₀, inv_lt (zpow_pos_of_pos _ _) hr],
   { exact lt_zpow_succ_log_self _ _ hn (inv_pos.mpr hr), },
   { exact nat.cast_pos.mpr (zero_le_one.trans_lt hn), },
+end
+
+@[simp] lemma clog_zero_right (b : ℕ) : clog b (0 : R) = 0 :=
+clog_of_right_le_zero le_rfl _
+
+@[simp] lemma clog_one_right (b : ℕ) : clog b (1 : R) = 0 :=
+by rw [clog, if_pos le_rfl, nat.ceil_one, nat.clog_one_right, int.coe_nat_zero]
+
+/--`clog b` and `zpow b` form a Galois connection. -/
+lemma le_zpow_iff_clog_le {b : ℕ} (hb : 1 < b) {x : ℤ} {y : R} (hy : 0 < y) :
+  y ≤ (b : R) ^ x ↔ clog b y ≤ x :=
+begin
+  rw [clog_eq_neg_log_inv, neg_le, ←zpow_le_iff_le_log hb (inv_pos.mpr hy), zpow_neg₀,
+    inv_le_inv (zpow_pos_of_pos _ _) hy],
+  { exact nat.cast_pos.mpr (zero_le_one.trans_lt hb), },
 end
 
 end int

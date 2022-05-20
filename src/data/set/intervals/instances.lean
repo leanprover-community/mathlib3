@@ -35,21 +35,17 @@ instance {α : Type*} [ordered_comm_semiring α] : comm_monoid_with_zero (Icc (0
   end,
   ..(show monoid (Icc (0:α) 1), by apply_instance) }
 
-
 /-- Instances for `(Ico 0 1)` -/
 
 instance {α : Type*} [ordered_semiring α] : semigroup (Ico (0:α) 1) := {
   mul := λ p q, ⟨p*q, ⟨mul_nonneg p.2.1 q.2.1,
     mul_lt_one_of_nonneg_of_lt_one_right p.2.2.le q.2.1 q.2.2⟩⟩,
-  mul_assoc := λ p q r, (by exact subtype.mk_eq_mk.2 (mul_assoc p q r)),
-}
+  mul_assoc := λ p q r, (by exact subtype.mk_eq_mk.2 (mul_assoc p q r)) }
 
 instance {α : Type*} [ordered_comm_semiring α] : comm_semigroup (Ico (0:α) 1) := {
   mul_comm := λ ⟨p1, _⟩ ⟨q1, _⟩,
     (by {apply subtype.mk_eq_mk.2, simp [subtype.coe_mk, mul_comm p1 q1]}),
-  ..(show semigroup (Ico (0:α) 1), by apply_instance)
-}
-
+  ..(show semigroup (Ico (0:α) 1), by apply_instance) }
 
 /-- Instances for `(Ioc 0 1)` -/
 
@@ -61,35 +57,20 @@ instance {α : Type*} [ordered_semiring α] [nontrivial α] : monoid (Ioc (0:α)
   mul_one := (by simp),
   npow := λ n p, ⟨p.1 ^ n, ⟨pow_pos p.2.1 n, pow_le_one n (le_of_lt p.2.1) p.2.2⟩⟩,
   npow_zero' := λ p, (by {simp only [pow_zero], refl}),
-  npow_succ' := λ n ⟨p1, _⟩, (by {simp only [pow_succ p1 n], refl }),
-}
+  npow_succ' := λ n ⟨p1, _⟩, (by {simp only [pow_succ p1 n], refl }) }
 
 instance {α : Type*} [ordered_comm_semiring α] [nontrivial α] : comm_monoid (Ioc (0:α) 1) := {
   mul_comm := λ p q, (by {ext1, exact mul_comm p.1 q.1}),
-  ..(show monoid (Ioc (0:α) 1), by apply_instance)
-}
+  ..(show monoid (Ioc (0:α) 1), by apply_instance) }
 
-/-- Instances for `(Ioo 0 1)` : `comm_semigroup (Ioo 0 1)` -/
+/-- Instances for `(Ioo 0 1)` -/
 
 instance {α : Type*} [ordered_semiring α] : semigroup (Ioo (0:α) 1) := {
   mul := λ p q, ⟨p.1 * q.1, ⟨mul_pos p.2.1 q.2.1,
     mul_lt_one_of_nonneg_of_lt_one_right p.2.2.le q.2.1.le q.2.2⟩⟩,
-
   mul_assoc := λ p q r, (by simp only [subtype.mk_eq_mk, mul_assoc]) }
 
 instance {α : Type*} [ordered_comm_semiring α] : comm_semigroup (Ioo (0:α) 1) := {
   mul_comm := λ ⟨p1, _⟩ ⟨q1, _⟩,
     (by {apply subtype.mk_eq_mk.2, simp [subtype.coe_mk, mul_comm p1 q1]}),
   ..(show semigroup (Ioo (0:α) 1), by apply_instance) }
-
-
-
-
--- Yaël Dillies: What you really should do is provide `comm_monoid_with_zero (Icc 0 1)`. Then you'll get powers for free.  You can also do
--- `comm_semigroup_with_zero (Ico 0 1)`,
--- `comm_monoid (Ioc 0 1)`,
--- `comm_semigroup (Ioo 0 1)`,
--- `comm_monoid_with_zero (Icc (-1) 1)`,      -- already exists
--- `comm_monoid_with_zero (Ioc (-1) 1`,
--- `comm_semigroup_with_zero (Ioo (-1) 1)`,      -- already exists
--- and also provide `has_distrib_neg` instances where applicable.

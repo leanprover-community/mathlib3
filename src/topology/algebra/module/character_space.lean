@@ -6,6 +6,8 @@ Authors: Frédéric Dupuis
 
 import topology.algebra.module.weak_dual
 import algebra.algebra.spectrum
+import topology.continuous_function.bounded
+import topology.algebra.algebra
 
 /-!
 # Character space of a topological algebra
@@ -31,6 +33,9 @@ character space, Gelfand transform, functional calculus
 
 -/
 
+variables {𝕜 : Type*} {A : Type*}
+open_locale bounded_continuous_function
+
 namespace weak_dual
 
 /-- The character space of a topological algebra is the subset of elements of the weak dual that
@@ -39,8 +44,6 @@ def character_space (𝕜 : Type*) (A : Type*) [comm_semiring 𝕜] [topological
   [has_continuous_add 𝕜] [has_continuous_const_smul 𝕜 𝕜]
   [non_unital_non_assoc_semiring A] [topological_space A] [module 𝕜 A] :=
   {φ : weak_dual 𝕜 A | (φ ≠ 0) ∧ (∀ (x y : A), φ (x * y) = (φ x) * (φ y))}
-
-variables {𝕜 : Type*} {A : Type*}
 
 namespace character_space
 
@@ -93,6 +96,9 @@ begin
     exact h₂.symm },
 end
 
+@[simp] lemma map_algebra_map (φ : character_space 𝕜 A) (r : 𝕜) : φ (algebra_map 𝕜 A r) = r :=
+by rw [algebra.algebra_map_eq_smul_one, map_smul, map_one, smul_eq_mul, mul_one]
+
 /-- An element of the character space, as an algebra homomorphism. -/
 @[simps] def to_alg_hom (φ : character_space 𝕜 A) : A →ₐ[𝕜] 𝕜 :=
 { map_one' := map_one φ,
@@ -141,3 +147,52 @@ end ring
 end character_space
 
 end weak_dual
+
+section gelfand_transform
+
+open weak_dual
+
+variables [normed_field 𝕜] [topological_space A] [semiring A] [algebra 𝕜 A]
+  [compact_space (character_space 𝕜 A)]
+
+variables (𝕜) (A)
+
+/-- The Gelfand transform of a element `a` of an algebra is the function that takes a character `φ`
+and evaluates it at `a`. -/
+def gelfand_transform : A →ₐ[𝕜] (character_space 𝕜 A →ᵇ 𝕜) :=
+{ to_fun := λ a, bounded_continuous_function.mk_of_compact
+  { to_fun := λ φ, φ a,
+    continuous_to_fun := (weak_dual.eval_continuous a).comp (continuous_subtype_coe) },
+  map_one' := by { ext, exact character_space.map_one _ },
+  map_mul' := λ _ _, by { ext, exact character_space.map_mul _ _ _ },
+  map_zero' := by { ext, exact character_space.map_zero _ },
+  map_add' := λ _ _, by { ext, exact character_space.map_add _ _ _},
+  commutes' := λ r, by { ext φ, exact character_space.map_algebra_map _ _ } }
+
+/-- A type class that states that the Gelfand transform is bijective. -/
+class bijective_gelfand_transform : Prop :=
+(bijective : function.bijective (gelfand_transform 𝕜 A))
+
+/-- The Gelfand transform packaged as an algebra equiv in the case when the Gelfand transform
+is bijective. -/
+noncomputable def gelfand_transform_equiv [bijective_gelfand_transform 𝕜 A] :
+  A ≃ₐ[𝕜] (character_space 𝕜 A →ᵇ 𝕜) :=
+alg_equiv.of_bijective (gelfand_transform 𝕜 A) bijective_gelfand_transform.bijective
+
+end gelfand_transform
+
+section continuous_functional_calculus
+open weak_dual
+
+variables [normed_field 𝕜] [topological_space A] [ring A] [topological_ring A] [algebra 𝕜 A]
+
+/-- Apply a continuous function `f : 𝕜 → 𝕜` to an element of a `𝕜`-algebra via
+the Gelfand transform. -/
+noncomputable def continuous_functional_calculus (f : C(𝕜, 𝕜)) (a : A)
+  [compact_space (character_space 𝕜 (algebra.elemental_algebra 𝕜 a))]
+  [bijective_gelfand_transform 𝕜 (algebra.elemental_algebra 𝕜 a)] : A :=
+(gelfand_transform_equiv 𝕜 _).symm $ bounded_continuous_function.mk_of_compact $ f.comp $
+  ((gelfand_transform_equiv 𝕜 _)
+    (⟨a, algebra.self_mem_elemental_algebra 𝕜 a⟩ : algebra.elemental_algebra 𝕜 a)).to_continuous_map
+
+end continuous_functional_calculus

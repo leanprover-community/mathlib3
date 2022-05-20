@@ -265,13 +265,6 @@ begin
     exact (le_tsub_iff_right key).mp (nat_trailing_degree_le_of_ne_zero hy) },
 end
 
-lemma trailing_degree_le_of_ne_zero (h : p.coeff n ≠ 0) : p.trailing_degree ≤ n :=
-begin
-  rw [trailing_degree_eq_nat_trailing_degree, with_top.coe_le_coe],
-  { exact nat_trailing_degree_le_of_ne_zero h },
-  { exact λ hp, h (by rw [hp, coeff_zero]) },
-end
-
 lemma trailing_degree_mul_le : p.trailing_degree + q.trailing_degree ≤ (p * q).trailing_degree :=
 begin
   rw [trailing_degree, trailing_degree, trailing_degree],
@@ -321,7 +314,7 @@ begin
   have hq : q ≠ 0 := λ hq, h (by rw [hq, trailing_coeff_zero, mul_zero]),
   refine le_antisymm _ trailing_degree_mul_le,
   rw [trailing_degree_eq_nat_trailing_degree hp, trailing_degree_eq_nat_trailing_degree hq],
-  apply trailing_degree_le_of_ne_zero,
+  apply le_trailing_degree_of_ne_zero,
   rwa coeff_mul_nat_trailing_degree_add_nat_trailing_degree,
 end
 

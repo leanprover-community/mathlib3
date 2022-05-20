@@ -417,52 +417,56 @@ minimal_period_iterate_eq_div_gcd_aux $
 
 /-- The orbit of a periodic point `x` of `f` is the cycle `[x, f x, f (f x), ...]`. Its length is
 the minimal period of `x`. -/
-def orbit (f : α → α) (x : α) : cycle α :=
+def periodic_orbit (f : α → α) (x : α) : cycle α :=
 (list.range (minimal_period f x)).map (λ n, f^[n] x)
 
-/-- The definition of an orbit, in terms of `list.map`. -/
-lemma orbit_def (f : α → α) (x : α) :
-  orbit f x = (list.range (minimal_period f x)).map (λ n, f^[n] x) :=
+/-- The definition of a periodic orbit, in terms of `list.map`. -/
+lemma periodic_orbit_def (f : α → α) (x : α) :
+  periodic_orbit f x = (list.range (minimal_period f x)).map (λ n, f^[n] x) :=
 rfl
 
-/-- The definition of an orbit, in terms of `cycle.map`. -/
+/-- The definition of a periodic orbit, in terms of `cycle.map`. -/
 lemma orbit_def' (f : α → α) (x : α) :
-  orbit f x = (list.range (minimal_period f x) : cycle ℕ).map (λ n, f^[n] x) :=
+  periodic_orbit f x = (list.range (minimal_period f x) : cycle ℕ).map (λ n, f^[n] x) :=
 rfl
 
-@[simp] lemma orbit_length : (orbit f x).length = minimal_period f x :=
-by rw [orbit, cycle.length_coe, list.length_map, list.length_range]
+@[simp] lemma periodic_orbit_length : (periodic_orbit f x).length = minimal_period f x :=
+by rw [periodic_orbit, cycle.length_coe, list.length_map, list.length_range]
 
-@[simp] lemma orbit_eq_nil_iff_not_periodic_pt : orbit f x = cycle.nil ↔ x ∉ periodic_pts f :=
-by { simp [orbit], exact minimal_period_eq_zero_iff_nmem_periodic_pts }
+@[simp] lemma periodic_orbit_eq_nil_iff_not_periodic_pt :
+  periodic_orbit f x = cycle.nil ↔ x ∉ periodic_pts f :=
+by { simp [periodic_orbit], exact minimal_period_eq_zero_iff_nmem_periodic_pts }
 
-lemma orbit_eq_nil_of_not_periodic_pt (h : x ∉ periodic_pts f) : orbit f x = cycle.nil :=
-orbit_eq_nil_iff_not_periodic_pt.2 h
+lemma periodic_orbit_eq_nil_of_not_periodic_pt (h : x ∉ periodic_pts f) : periodic_orbit f x = cycle.nil :=
+periodic_orbit_eq_nil_iff_not_periodic_pt.2 h
 
-@[simp] lemma mem_orbit_iff (hx : x ∈ periodic_pts f) : y ∈ orbit f x ↔ ∃ n, f^[n] x = y :=
+@[simp] lemma mem_periodic_orbit_iff (hx : x ∈ periodic_pts f) :
+  y ∈ periodic_orbit f x ↔ ∃ n, f^[n] x = y :=
 begin
-  simp only [orbit, cycle.mem_coe_iff, list.mem_map, list.mem_range],
+  simp only [periodic_orbit, cycle.mem_coe_iff, list.mem_map, list.mem_range],
   use λ ⟨a, ha, ha'⟩, ⟨a, ha'⟩,
   rintro ⟨n, rfl⟩,
   use [n % minimal_period f x, mod_lt _ (minimal_period_pos_of_mem_periodic_pts hx)],
   rw iterate_mod_minimal_period_eq
 end
 
-@[simp] lemma iterate_mem_orbit (hx : x ∈ periodic_pts f) (n : ℕ) : f^[n] x ∈ orbit f x :=
-(mem_orbit_iff hx).2 ⟨n, rfl⟩
+@[simp] lemma iterate_mem_periodic_orbit (hx : x ∈ periodic_pts f) (n : ℕ) :
+  f^[n] x ∈ periodic_orbit f x :=
+(mem_periodic_orbit_iff hx).2 ⟨n, rfl⟩
 
-@[simp] lemma self_mem_orbit (hx : x ∈ periodic_pts f) : x ∈ orbit f x :=
-iterate_mem_orbit hx 0
+@[simp] lemma self_mem_periodic_orbit (hx : x ∈ periodic_pts f) : x ∈ periodic_orbit f x :=
+iterate_mem_periodic_orbit hx 0
 
-lemma nodup_orbit : (orbit f x).nodup :=
+lemma nodup_periodic_orbit : (periodic_orbit f x).nodup :=
 begin
-  rw [orbit, cycle.nodup_coe_iff, list.nodup_map_iff_inj_on (list.nodup_range _)],
+  rw [periodic_orbit, cycle.nodup_coe_iff, list.nodup_map_iff_inj_on (list.nodup_range _)],
   intros m hm n hn hmn,
   rw list.mem_range at hm hn,
   rwa eq_iff_lt_minimal_period_of_iterate_eq hm hn at hmn
 end
 
-lemma orbit_apply_iterate_eq (hx : x ∈ periodic_pts f) (n : ℕ) : orbit f (f^[n] x) = orbit f x :=
+lemma periodic_orbit_apply_iterate_eq (hx : x ∈ periodic_pts f) (n : ℕ) :
+  periodic_orbit f (f^[n] x) = periodic_orbit f x :=
 eq.symm $ cycle.coe_eq_coe.2 $ ⟨n, begin
   apply list.ext_le _ (λ m _ _, _),
   { simp [minimal_period_apply_iterate hx] },
@@ -470,8 +474,9 @@ eq.symm $ cycle.coe_eq_coe.2 $ ⟨n, begin
     simp [iterate_add_apply] }
 end⟩
 
-lemma orbit_apply_eq (hx : x ∈ periodic_pts f) : orbit f (f x) = orbit f x :=
-orbit_apply_iterate_eq hx 1
+lemma periodic_orbit_apply_eq (hx : x ∈ periodic_pts f) :
+  periodic_orbit f (f x) = periodic_orbit f x :=
+periodic_orbit_apply_iterate_eq hx 1
 
 end function
 

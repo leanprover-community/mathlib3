@@ -38,7 +38,7 @@ open_locale matrix
 section basis_to_matrix
 
 variables {ι ι' κ κ' : Type*}
-variables {R M : Type*} [comm_ring R] [add_comm_group M] [module R M]
+variables {R M : Type*} [comm_semiring R] [add_comm_monoid M] [module R M]
 
 open function matrix
 

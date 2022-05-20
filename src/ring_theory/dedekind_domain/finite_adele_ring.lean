@@ -39,7 +39,10 @@ def prod_completions_integers := (Π (v : height_one_spectrum R), v.adic_complet
 local notation `R_hat` := prod_completions_integers
 
 instance : comm_ring (R_hat R K) := pi.comm_ring
+
 instance : topological_space (R_hat R K) := Pi.topological_space
+
+instance prod_completions_integers.inhabited : inhabited (prod_completions_integers R K) := ⟨0⟩
 
 /-- The product of all `adic_completion`, where `v` runs over the maximal ideals of `R`. -/
 def prod_completions := (Π (v : height_one_spectrum R), v.adic_completion K)
@@ -51,6 +54,8 @@ instance : ring (K_hat R K) := infer_instance
 instance : topological_space (K_hat R K) := Pi.topological_space
 instance : topological_ring (K_hat R K) :=
 (infer_instance : topological_ring (Π (v : height_one_spectrum R), v.adic_completion K))
+
+instance prod_completions.inhabited : inhabited (prod_completions R K) := ⟨0⟩
 
 /-- The diagonal inclusion `r ↦ (r)_v` of `R` in `R_hat`. -/
 def diag_inj : R → (R_hat R K) := λ r v, inj_adic_completion_integers R K v r
@@ -256,5 +261,4 @@ rfl
 @[norm_cast] lemma finite_adele_ring.coe_one : (↑(1 : finite_adele_ring R K) : K_hat R K) = 1 :=
 rfl
 
-instance finite_adele_ring.inhabited : inhabited (finite_adele_ring R K) :=
-{ default := ⟨0, restr_zero R K⟩ }
+instance finite_adele_ring.inhabited : inhabited (finite_adele_ring R K) := ⟨⟨0, restr_zero R K⟩⟩

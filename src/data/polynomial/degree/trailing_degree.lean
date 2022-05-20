@@ -267,16 +267,13 @@ end
 
 lemma trailing_degree_mul_le : p.trailing_degree + q.trailing_degree ≤ (p * q).trailing_degree :=
 begin
-  rw [trailing_degree, trailing_degree, trailing_degree],
   refine le_inf (λ n hn, _),
   rw [mem_support_iff, coeff_mul] at hn,
   obtain ⟨⟨i, j⟩, hij, hpq⟩ := exists_ne_zero_of_sum_ne_zero hn,
-  have hp := inf_le (mem_support_iff.mpr (left_ne_zero_of_mul hpq)),
-  have hq := inf_le (mem_support_iff.mpr (right_ne_zero_of_mul hpq)),
-  refine (add_le_add hp hq).trans (le_of_eq _),
-  rw [with_top.some_eq_coe, with_top.some_eq_coe, with_top.some_eq_coe],
-  rw [←with_top.coe_add, with_top.coe_eq_coe],
-  exact nat.mem_antidiagonal.mp hij,
+  refine (add_le_add (inf_le (mem_support_iff.mpr (left_ne_zero_of_mul hpq)))
+    (inf_le (mem_support_iff.mpr (right_ne_zero_of_mul hpq)))).trans (le_of_eq _),
+  rwa [with_top.some_eq_coe, with_top.some_eq_coe, with_top.some_eq_coe,
+      ←with_top.coe_add, with_top.coe_eq_coe, ←nat.mem_antidiagonal],
 end
 
 lemma nat_trailing_degree_mul_le (h : p * q ≠ 0) :

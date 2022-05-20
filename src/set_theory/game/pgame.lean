@@ -930,19 +930,16 @@ by { convert neg_lt_iff, rw pgame.neg_zero }
 by { convert neg_lt_iff, rw pgame.neg_zero }
 
 /-- The sum of `x = {xL | xR}` and `y = {yL | yR}` is `{xL + y, x + yL | xR + y, x + yR}`. -/
-def add (x y : pgame) : pgame :=
-begin
+instance : has_add pgame.{u} := ⟨λ x y, begin
   induction x with xl xr xL xR IHxl IHxr generalizing y,
   induction y with yl yr yL yR IHyl IHyr,
   have y := mk yl yr yL yR,
   refine ⟨xl ⊕ yl, xr ⊕ yr, sum.rec _ _, sum.rec _ _⟩,
   { exact λ i, IHxl i y },
-  { exact λ i, IHyl i },
+  { exact IHyl },
   { exact λ i, IHxr i y },
-  { exact λ i, IHyr i }
-end
-
-instance : has_add pgame := ⟨add⟩
+  { exact IHyr }
+end⟩
 
 @[simp] theorem nat_one : ((1 : ℕ) : pgame) = 0 + 1 := rfl
 
@@ -976,54 +973,86 @@ end
 lemma zero_add_equiv (x : pgame.{u}) : 0 + x ≈ x :=
 (zero_add_relabelling x).equiv
 
-/-- An explicit equivalence between the moves for Left in `x + y` and the type-theory sum
-    of the moves for Left in `x` and in `y`. -/
-def left_moves_add (x y : pgame) : (x + y).left_moves ≃ x.left_moves ⊕ y.left_moves :=
-by { cases x, cases y, refl, }
+theorem left_moves_add : ∀ (x y : pgame.{u}),
+  (x + y).left_moves = (x.left_moves ⊕ y.left_moves)
+| ⟨_, _, _, _⟩ ⟨_, _, _, _⟩ := rfl
 
-/-- An explicit equivalence between the moves for Right in `x + y` and the type-theory sum
-    of the moves for Right in `x` and in `y`. -/
-def right_moves_add (x y : pgame) : (x + y).right_moves ≃ x.right_moves ⊕ y.right_moves :=
-by { cases x, cases y, refl, }
+theorem right_moves_add : ∀ (x y : pgame.{u}),
+  (x + y).right_moves = (x.right_moves ⊕ y.right_moves)
+| ⟨_, _, _, _⟩ ⟨_, _, _, _⟩ := rfl
+
+/-- Converts a left move for `x` or `y` into a left move for `x + y` and vice versa.
+
+Even though these types are the same (not definitionally so), this is the preferred way to convert
+between them. -/
+def to_left_moves_add {x y : pgame} :
+  x.left_moves ⊕ y.left_moves ≃ (x + y).left_moves :=
+equiv.cast (left_moves_add x y).symm
+
+/-- Converts a right move for `x` or `y` into a right move for `x + y` and vice versa.
+
+Even though these types are the same (not definitionally so), this is the preferred way to convert
+between them. -/
+def to_right_moves_add {x y : pgame} :
+  x.right_moves ⊕ y.right_moves ≃ (x + y).right_moves :=
+equiv.cast (right_moves_add x y).symm
 
 @[simp] lemma mk_add_move_left_inl {xl xr yl yr} {xL xR yL yR} {i} :
   (mk xl xr xL xR + mk yl yr yL yR).move_left (sum.inl i) =
     (mk xl xr xL xR).move_left i + (mk yl yr yL yR) :=
 rfl
-@[simp] lemma add_move_left_inl {x y : pgame} {i} :
-  (x + y).move_left ((@left_moves_add x y).symm (sum.inl i)) = x.move_left i + y :=
-by { cases x, cases y, refl, }
+@[simp] lemma add_move_left_inl {x : pgame} (y : pgame) (i) :
+  (x + y).move_left (to_left_moves_add (sum.inl i)) = x.move_left i + y :=
+by { cases x, cases y, refl }
 
 @[simp] lemma mk_add_move_right_inl {xl xr yl yr} {xL xR yL yR} {i} :
   (mk xl xr xL xR + mk yl yr yL yR).move_right (sum.inl i) =
     (mk xl xr xL xR).move_right i + (mk yl yr yL yR) :=
 rfl
-@[simp] lemma add_move_right_inl {x y : pgame} {i} :
-  (x + y).move_right ((@right_moves_add x y).symm (sum.inl i)) = x.move_right i + y :=
-by { cases x, cases y, refl, }
+@[simp] lemma add_move_right_inl {x : pgame} (y : pgame) (i) :
+  (x + y).move_right (to_right_moves_add (sum.inl i)) = x.move_right i + y :=
+by { cases x, cases y, refl }
 
 @[simp] lemma mk_add_move_left_inr {xl xr yl yr} {xL xR yL yR} {i} :
   (mk xl xr xL xR + mk yl yr yL yR).move_left (sum.inr i) =
     (mk xl xr xL xR) + (mk yl yr yL yR).move_left i :=
 rfl
-@[simp] lemma add_move_left_inr {x y : pgame} {i : y.left_moves} :
-  (x + y).move_left ((@left_moves_add x y).symm (sum.inr i)) = x + y.move_left i :=
-by { cases x, cases y, refl, }
+@[simp] lemma add_move_left_inr (x : pgame) {y : pgame} (i) :
+  (x + y).move_left (to_left_moves_add (sum.inr i)) = x + y.move_left i :=
+by { cases x, cases y, refl }
 
 @[simp] lemma mk_add_move_right_inr {xl xr yl yr} {xL xR yL yR} {i} :
   (mk xl xr xL xR + mk yl yr yL yR).move_right (sum.inr i) =
     (mk xl xr xL xR) + (mk yl yr yL yR).move_right i :=
 rfl
-@[simp] lemma add_move_right_inr {x y : pgame} {i} :
-  (x + y).move_right ((@right_moves_add x y).symm (sum.inr i)) = x + y.move_right i :=
-by { cases x, cases y, refl, }
+@[simp] lemma add_move_right_inr (x : pgame) {y : pgame} (i) :
+  (x + y).move_right (to_right_moves_add (sum.inr i)) = x + y.move_right i :=
+by { cases x, cases y, refl }
+
+lemma left_moves_add_cases {x y : pgame} (i : (x + y).left_moves) :
+  (∃ j, i = to_left_moves_add (sum.inl j)) ∨ ∃ j, i = to_left_moves_add (sum.inr j) :=
+begin
+  rw ←to_left_moves_add.apply_symm_apply i,
+  cases to_left_moves_add.symm i with j j,
+  { exact or.inl ⟨j, rfl⟩ },
+  { exact or.inr ⟨j, rfl⟩ }
+end
+
+lemma right_moves_add_cases {x y : pgame} (i : (x + y).right_moves) :
+  (∃ j, i = to_right_moves_add (sum.inl j)) ∨ ∃ j, i = to_right_moves_add (sum.inr j) :=
+begin
+  rw ←to_right_moves_add.apply_symm_apply i,
+  cases to_right_moves_add.symm i with j j,
+  { exact or.inl ⟨j, rfl⟩ },
+  { exact or.inr ⟨j, rfl⟩ }
+end
 
 instance is_empty_nat_right_moves : ∀ n : ℕ, is_empty (right_moves n)
 | 0 := pempty.is_empty
 | (n + 1) := begin
   haveI := is_empty_nat_right_moves n,
-  rw nat.cast_succ,
-  exact (right_moves_add _ _).is_empty
+  rw [nat.cast_succ, right_moves_add],
+  apply_instance
 end
 
 /-- If `w` has the same moves as `x` and `y` has the same moves as `z`,
@@ -1123,26 +1152,18 @@ theorem add_assoc_equiv {x y z : pgame} : (x + y) + z ≈ x + (y + z) :=
 
 theorem add_left_neg_le_zero : ∀ (x : pgame), -x + x ≤ 0
 | ⟨xl, xr, xL, xR⟩ :=
-begin
-  rw [le_def],
-  split,
-  { intro i,
-    change xr ⊕ xl at i,
-    cases i,
-    { -- If Left played in -x, Right responds with the same move in x.
-      right,
-      refine ⟨(right_moves_add _ _).inv_fun (sum.inr i), _⟩,
-      convert @add_left_neg_le_zero (xR i),
-      exact add_move_right_inr },
-    { -- If Left in x, Right responds with the same move in -x.
-      right,
-      dsimp,
-      refine ⟨(right_moves_add _ _).inv_fun (sum.inl i), _⟩,
-      convert @add_left_neg_le_zero (xL i),
-      exact add_move_right_inl }, },
-  { rintro ⟨⟩, }
+le_zero.2 $ λ i, begin
+  cases i,
+  { -- If Left played in -x, Right responds with the same move in x.
+    refine ⟨@to_right_moves_add _ ⟨_, _, _, _⟩ (sum.inr i), _⟩,
+    convert @add_left_neg_le_zero (xR i),
+    apply add_move_right_inr },
+  { -- If Left in x, Right responds with the same move in -x.
+    dsimp,
+    refine ⟨@to_right_moves_add ⟨_, _, _, _⟩ _ (sum.inl i), _⟩,
+    convert @add_left_neg_le_zero (xL i),
+    apply add_move_right_inl }
 end
-using_well_founded { dec_tac := pgame_wf_tac }
 
 theorem zero_le_add_left_neg (x : pgame) : 0 ≤ -x + x :=
 begin
@@ -1162,57 +1183,32 @@ theorem zero_le_add_right_neg (x : pgame) : 0 ≤ x + -x :=
 theorem add_right_neg_equiv (x : pgame) : x + -x ≈ 0 :=
 ⟨add_right_neg_le_zero x, zero_le_add_right_neg x⟩
 
-private lemma add_le_add_right_aux : ∀ {x y z : pgame} (h : x ≤ y), x + z ≤ y + z
+private lemma add_le_add_right' : ∀ {x y z : pgame} (h : x ≤ y), x + z ≤ y + z
 | (mk xl xr xL xR) (mk yl yr yL yR) (mk zl zr zL zR) :=
-begin
-  intros h,
-  rw le_def,
-  split,
-  { -- if Left plays first
-    intros i,
-    change xl ⊕ zl at i,
-    cases i,
-    { -- either they play in x
-      rw le_def at h,
-      cases h,
-      have t := h_left i,
-      rcases t with ⟨i', ih⟩ | ⟨j, jh⟩,
-      { left,
-        refine ⟨(left_moves_add _ _).inv_fun (sum.inl i'), _⟩,
-        exact add_le_add_right_aux ih, },
-      { right,
-        refine ⟨(right_moves_add _ _).inv_fun (sum.inl j), _⟩,
-        convert add_le_add_right_aux jh,
-        apply add_move_right_inl } },
-    { -- or play in z
-      left,
-      refine ⟨(left_moves_add _ _).inv_fun (sum.inr i), _⟩,
-      exact add_le_add_right_aux h, }, },
-  { -- if Right plays first
-    intros j,
-    change yr ⊕ zr at j,
-    cases j,
-    { -- either they play in y
-      rw le_def at h,
-      cases h,
-      have t := h_right j,
-      rcases t with ⟨i, ih⟩ | ⟨j', jh⟩,
-      { left,
-        refine ⟨(left_moves_add _ _).inv_fun (sum.inl i), _⟩,
-        convert add_le_add_right_aux ih,
-        apply add_move_left_inl },
-      { right,
-        refine ⟨(right_moves_add _ _).inv_fun (sum.inl j'), _⟩,
-        exact add_le_add_right_aux jh } },
-    { -- or play in z
-      right,
-      refine ⟨(right_moves_add _ _).inv_fun (sum.inr j), _⟩,
-      exact add_le_add_right_aux h } }
+λ h, begin
+  refine le_def.2 ⟨λ i, _, λ i, _⟩;
+  cases i,
+  { rw le_def at h,
+    cases h,
+    rcases h_left i with ⟨i', ih⟩ | ⟨j, jh⟩,
+    { exact or.inl ⟨to_left_moves_add (sum.inl i'), add_le_add_right' ih⟩ },
+    { refine or.inr ⟨to_right_moves_add (sum.inl j), _⟩,
+      convert add_le_add_right' jh,
+      apply add_move_right_inl } },
+  { exact or.inl ⟨@to_left_moves_add _ ⟨_, _, _, _⟩ (sum.inr i), add_le_add_right' h⟩ },
+  { rw le_def at h,
+    cases h,
+    rcases h_right i with ⟨i, ih⟩ | ⟨j', jh⟩,
+    { refine or.inl ⟨to_left_moves_add (sum.inl i), _⟩,
+      convert add_le_add_right' ih,
+      apply add_move_left_inl },
+    { exact or.inr ⟨to_right_moves_add (sum.inl j'), add_le_add_right' jh⟩ } },
+  { exact or.inr ⟨@to_right_moves_add _ ⟨_, _, _, _⟩ (sum.inr i), add_le_add_right' h⟩ }
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 
 instance covariant_class_swap_add_le : covariant_class pgame pgame (swap (+)) (≤) :=
-⟨λ x y z, add_le_add_right_aux⟩
+⟨λ x y z, add_le_add_right'⟩
 
 instance covariant_class_add_le : covariant_class pgame pgame (+) (≤) :=
 ⟨λ x y z h, (add_comm_le.trans (add_le_add_right h x)).trans add_comm_le⟩
@@ -1235,6 +1231,7 @@ instance covariant_class_swap_add_lt : covariant_class pgame pgame (swap (+)) (<
   rw lt_iff_le_and_lf at h ⊢,
   exact ⟨add_le_add_right h.1 x, add_lf_add_right h.2 x⟩
 end⟩
+
 instance covariant_class_add_lt : covariant_class pgame pgame (+) (<) :=
 ⟨λ x y z h, begin
   rw lt_iff_le_and_lf at h ⊢,

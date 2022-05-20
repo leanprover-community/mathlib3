@@ -167,6 +167,9 @@ theorem deriv_family_is_normal (f : ι → ordinal → ordinal) : is_normal (der
 ⟨λ o, by rw [deriv_family_succ, ← succ_le]; apply le_nfp_family,
  λ o l a, by rw [deriv_family_limit _ l, bsup_le_iff]⟩
 
+theorem self_le_deriv_family (f : ι → ordinal → ordinal) : ∀ o, o ≤ deriv_family f o :=
+(deriv_family_is_normal f).self_le
+
 theorem deriv_family_fp {i} (H : is_normal (f i)) (o : ordinal.{max u v}) :
   f i (deriv_family f o) = deriv_family f o :=
 begin
@@ -344,6 +347,10 @@ theorem deriv_bfamily_is_normal {o : ordinal} (f : Π b < o, ordinal → ordinal
   is_normal (deriv_bfamily o f) :=
 deriv_family_is_normal _
 
+theorem self_le_deriv_bfamily {o : ordinal} (f : Π b < o, ordinal → ordinal) :
+  ∀ a, a ≤ deriv_bfamily o f a :=
+(deriv_bfamily_is_normal f).self_le
+
 theorem deriv_bfamily_fp {i hi} (H : is_normal (f i hi)) (a : ordinal) :
   f i hi (deriv_bfamily o f a) = deriv_bfamily o f a :=
 by { rw ←family_of_bfamily_enum o f, apply deriv_family_fp, rw family_of_bfamily_enum, exact H }
@@ -498,6 +505,9 @@ deriv_family_limit _
 
 theorem deriv_is_normal (f) : is_normal (deriv f) :=
 deriv_family_is_normal _
+
+theorem self_le_deriv (f) : ∀ o, o ≤ deriv f o :=
+(deriv_is_normal f).self_le
 
 theorem deriv_id_of_nfp_id {f : ordinal → ordinal} (h : nfp f = id) : deriv f = id :=
 ((deriv_is_normal _).eq_iff_zero_and_succ is_normal.refl).2 (by simp [h, succ_inj])
@@ -778,7 +788,7 @@ theorem veblen_monotone (o) : monotone (λ a, veblen.{u} f a o) :=
   rcases eq_zero_or_pos b with rfl | hb,
   { rcases lt_or_eq_of_le hbc with hc | rfl,
     { rw [veblen_zero, veblen_pos f hc.ne'],
-      apply (self_le_deriv hf o).trans,
+      apply (self_le_deriv _ _).trans,
       rw deriv_eq_deriv_bfamily.{0 u} f,
       refine deriv_bfamily_le_of_fp_subset.{u 0 0} (λ a _, veblen_is_normal hf a) (λ _ _, hf)
         (λ a H _ _, _) o,

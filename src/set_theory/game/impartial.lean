@@ -110,7 +110,7 @@ begin
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 
-variables (G H : pgame.{u}) [impartial G] [impartial H]
+variables (G : pgame) [impartial G]
 
 lemma nonpos : ¬ 0 < G :=
 λ h, begin
@@ -146,9 +146,18 @@ equiv_trans (add_congr_left (neg_equiv_self G)) (add_left_neg_equiv G)
 
 @[simp] lemma mk_add_self : ⟦G⟧ + ⟦G⟧ = 0 := quot.sound (add_self G)
 
-lemma equiv_iff_add_equiv_zero : G ≈ H ↔ G + H ≈ 0 :=
+/-- This lemma doesn't require `H` to be impartial. -/
+lemma equiv_iff_add_equiv_zero (H : pgame) : H ≈ G ↔ H + G ≈ 0 :=
 begin
-  rw [←game.mk_eq, ←game.mk_eq, ←@add_right_cancel_iff _ _ (-⟦H⟧)],
+  rw [←game.mk_eq, ←game.mk_eq, ←@add_right_cancel_iff _ _ (-⟦G⟧)],
+  simp,
+  exact iff.rfl
+end
+
+/-- This lemma doesn't require `H` to be impartial. -/
+lemma equiv_iff_add_equiv_zero' (H : pgame) : G ≈ H ↔ G + H ≈ 0 :=
+begin
+  rw [←game.mk_eq, ←game.mk_eq, ←@add_left_cancel_iff _ _ (-⟦G⟧), eq_comm],
   simp,
   exact iff.rfl
 end

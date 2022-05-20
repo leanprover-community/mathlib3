@@ -168,8 +168,7 @@ lemma choose_symm_add {a b : ℕ} : choose (a+b) a = choose (a+b) b :=
 choose_symm_of_eq_add rfl
 
 lemma choose_symm_half (m : ℕ) : choose (2 * m + 1) (m + 1) = choose (2 * m + 1) m :=
-by { apply choose_symm_of_eq_add,
-  move_add 1, rw two_mul }
+choose_symm_of_eq_add $ (congr_arg (+ 1) (two_mul _)).trans (add_rotate m m 1)
 
 lemma choose_succ_right_eq (n k : ℕ) : choose n (k + 1) * (k + 1) = choose n k * (n - k) :=
 begin

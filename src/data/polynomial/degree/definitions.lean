@@ -336,18 +336,6 @@ degree_monomial_le _ _
 lemma nat_degree_X_le : (X : R[X]).nat_degree ≤ 1 :=
 nat_degree_le_of_degree_le degree_X_le
 
-lemma support_C_mul_X_pow' (n : ℕ) (c : R) : (C c * X ^ n).support ⊆ singleton n :=
-begin
-  rw [C_mul_X_pow_eq_monomial],
-  exact support_monomial' n c,
-end
-
-lemma support_C_mul_X_pow (n : ℕ) {c : R} (h : c ≠ 0) : (C c * X ^ n).support = singleton n :=
-begin
-  rw [C_mul_X_pow_eq_monomial],
-  exact support_monomial n h,
-end
-
 lemma mem_support_C_mul_X_pow {n a : ℕ} {c : R} (h : a ∈ (C c * X ^ n).support) : a = n :=
 mem_singleton.1 $ support_C_mul_X_pow' n c h
 

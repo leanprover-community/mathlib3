@@ -541,6 +541,15 @@ by rw [←of_finsupp_single, support, finsupp.support_single_ne_zero H]
 lemma support_monomial' (n) (a : R) : (monomial n a).support ⊆ singleton n :=
 by { rw [←of_finsupp_single, support], exact finsupp.support_single_subset }
 
+lemma support_C_mul_X_pow (n : ℕ) {c : R} (h : c ≠ 0) : (C c * X ^ n).support = singleton n :=
+by rw [←monomial_eq_C_mul_X, support_monomial n h]
+
+lemma support_C_mul_X_pow' (n : ℕ) (c : R) : (C c * X ^ n).support ⊆ singleton n :=
+begin
+  rw ← monomial_eq_C_mul_X,
+  exact support_monomial' n c,
+end
+
 lemma X_pow_eq_monomial (n) : X ^ n = monomial n (1:R) :=
 begin
   induction n with n hn,

@@ -76,10 +76,7 @@ lemma abs_truncation_le_bound (f : α → ℝ) (A : ℝ) (x : α) :
 begin
   simp only [truncation, set.indicator, set.mem_Icc, id.def, function.comp_app],
   split_ifs,
-  { simp only [real.norm_eq_abs, abs_le],
-    split,
-    { linarith [neg_abs_le_neg A, h.1] },
-    { linarith [le_abs_self A, h.2] } },
+  { exact abs_le_abs h.2 (neg_le.2 h.1.le) },
   { simp [abs_nonneg] }
 end
 
@@ -99,35 +96,29 @@ end
 lemma truncation_eq_self {f : α → ℝ} {A : ℝ} {x : α} (h : |f x| < A) :
   truncation f A x = f x :=
 begin
-  simp only [truncation, indicator, set.mem_Icc, id.def, function.comp_app, ite_eq_left_iff,
-    not_le],
+  simp only [truncation, indicator, set.mem_Icc, id.def, function.comp_app, ite_eq_left_iff],
   assume H,
   apply H.elim,
   simp [(abs_lt.1 h).1, (abs_lt.1 h).2.le],
 end
 
-lemma truncation_eq_of_nonneg {f : α → ℝ} {A : ℝ}  (h : ∀ x, 0 ≤ f x) :
+lemma truncation_eq_of_nonneg {f : α → ℝ} {A : ℝ} (h : ∀ x, 0 ≤ f x) :
   truncation f A = (indicator (set.Ioc 0 A) id) ∘ f :=
 begin
   ext x,
-  rcases lt_trichotomy 0 (f x) with hx|hx|hx,
+  rcases (h x).lt_or_eq with hx|hx,
   { simp only [truncation, indicator, hx, set.mem_Ioc, id.def, function.comp_app, true_and],
     by_cases h'x : f x ≤ A,
     { have : - A < f x, by linarith [h x],
-      simp only [this, true_and]},
-    { simp only [h'x, and_false]} },
+      simp only [this, true_and] },
+    { simp only [h'x, and_false] } },
   { simp only [truncation, indicator, hx, id.def, function.comp_app, if_t_t]},
-  { linarith [h x] },
 end
 
 lemma _root_.measure_theory.ae_strongly_measurable.mem_ℒp_truncation [is_finite_measure μ]
   (hf : ae_strongly_measurable f μ) {A : ℝ} {p : ℝ≥0∞} :
   mem_ℒp (truncation f A) p μ :=
-begin
-  refine mem_ℒp.mem_ℒp_of_exponent_le _ le_top,
-  apply mem_ℒp_top_of_bound hf.truncation _
-    (eventually_of_forall (λ x, abs_truncation_le_bound _ _ _)),
-end
+mem_ℒp.of_bound hf.truncation (|A|) (eventually_of_forall (λ x, abs_truncation_le_bound _ _ _))
 
 lemma _root_.measure_theory.ae_strongly_measurable.integrable_truncation [is_finite_measure μ]
   (hf : ae_strongly_measurable f μ) {A : ℝ} :
@@ -143,10 +134,7 @@ begin
   rw [← integral_map hf.ae_measurable, interval_integral.integral_of_le, ← integral_indicator M],
   { simp only [indicator, zero_pow' _ hn, id.def, ite_pow] },
   { linarith },
-  { apply measurable.ae_strongly_measurable,
-    convert (measurable_id.pow_const n).indicator M,
-    ext z,
-    simp only [indicator, zero_pow' _ hn, ite_pow], }
+  { exact ((measurable_id.indicator M).pow_const n).ae_strongly_measurable }
 end
 
 lemma moment_truncation_eq_interval_integral_of_nonneg (hf : ae_strongly_measurable f μ) {A : ℝ}
@@ -161,14 +149,11 @@ begin
   { rw [← integral_map hf.ae_measurable, interval_integral.integral_of_le hA,
         ← integral_indicator M],
     { simp only [indicator, zero_pow' _ hn, id.def, ite_pow] },
-    { apply measurable.ae_strongly_measurable,
-      convert (measurable_id.pow_const n).indicator M,
-      ext z,
-      simp only [indicator, zero_pow' _ hn, ite_pow] } },
+    { exact ((measurable_id.indicator M).pow_const n).ae_strongly_measurable } },
   { rw [← integral_map hf.ae_measurable, interval_integral.integral_of_ge hA.le,
         ← integral_indicator M'],
-    { simp only [set.Ioc_eq_empty (not_lt.2 hA.le), zero_pow' _ hn, set.indicator_empty,
-        integral_const, algebra.id.smul_eq_mul, mul_zero, zero_eq_neg],
+    { simp only [set.Ioc_eq_empty_of_le hA.le, zero_pow' _ hn, set.indicator_empty, integral_zero,
+        zero_eq_neg],
       apply integral_eq_zero_of_ae,
       have : ∀ᵐ x ∂(measure.map f μ), (0 : ℝ) ≤ x :=
         (ae_map_iff hf.ae_measurable measurable_set_Ici).2 (eventually_of_forall h'f),
@@ -177,10 +162,7 @@ begin
       assume h'x h''x,
       have : x = 0, by linarith,
       simp [this, zero_pow' _ hn] },
-    { apply measurable.ae_strongly_measurable,
-      convert (measurable_id.pow_const n).indicator M,
-      ext z,
-      simp only [indicator, zero_pow' _ hn, ite_pow] } }
+    { exact ((measurable_id.indicator M).pow_const n).ae_strongly_measurable } }
 end
 
 lemma integral_truncation_eq_interval_integral (hf : ae_strongly_measurable f μ) {A : ℝ}
@@ -198,14 +180,10 @@ lemma integral_truncation_le_integral_of_nonneg
   ∫ x, truncation f A x ∂μ ≤ ∫ x, f x ∂μ :=
 begin
   apply integral_mono_of_nonneg (eventually_of_forall (λ x, _)) hf (eventually_of_forall (λ x, _)),
-  { simp only [truncation, indicator, pi.zero_apply, set.mem_Ioc, id.def, function.comp_app],
-    split_ifs,
-    { exact h'f x },
-    { exact le_rfl } },
-  { simp only [truncation, indicator, set.mem_Ioc, id.def, function.comp_app],
-    split_ifs,
-    { exact le_rfl },
-    { exact h'f x } }
+  { exact truncation_nonneg (h'f x) },
+  { calc truncation f A x ≤ |truncation f A x| : le_abs_self _
+                      ... ≤ |f x|              : abs_truncation_le_abs_self _ _ _
+                      ... = f x                : abs_of_nonneg (h'f x) }
 end
 
 /-- If a function is integrable, then the integral of its truncated versions converges to the
@@ -229,7 +207,7 @@ end
 lemma ident_distrib.truncation {β : Type*} [measurable_space β] {ν : measure β}
   {f : α → ℝ} {g : β → ℝ} (h : ident_distrib f g μ ν) {A : ℝ} :
   ident_distrib (truncation f A) (truncation g A) μ ν :=
-h.comp (strongly_measurable_id.indicator measurable_set_Ioc).measurable
+h.comp (measurable_id.indicator measurable_set_Ioc)
 
 end truncation
 

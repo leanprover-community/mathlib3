@@ -770,8 +770,6 @@ end field
 
 end linear_map
 
-#where
-
 namespace tensor_product
 
 variables (R : Type*) (M : Type*) (N : Type*)

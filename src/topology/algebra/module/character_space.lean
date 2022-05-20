@@ -190,45 +190,25 @@ variables [normed_field 𝕜] [topological_space A] [ring A] [topological_ring A
 variables (A)
 /-- Lift a continuous function `f : 𝕜 → 𝕜` to a `𝕜`-algebra `A`. -/
 noncomputable def continuous_functional_calculus : C(𝕜, 𝕜) →ₐ[𝕜] (A → A) :=
-{ to_fun := λ f a, (gelfand_transform_equiv 𝕜 _).symm $ bounded_continuous_function.mk_of_compact $ f.comp $
-  ((gelfand_transform_equiv 𝕜 _) a).to_continuous_map,
+{ to_fun := λ f a, (gelfand_transform_equiv 𝕜 _).symm $ bounded_continuous_function.mk_of_compact
+                        $ f.comp $ ((gelfand_transform_equiv 𝕜 _) a).to_continuous_map,
   map_add' := λ f g, by { ext, simp only [continuous_map.add_comp,
               bounded_continuous_function.mk_of_compact_add, map_add, pi.add_apply] },
   map_one' := by { ext, simp only [continuous_map.one_comp,
                      bounded_continuous_function.mk_of_compact_one, map_one, pi.one_apply] },
-  map_zero' :=  by { ext, simp only [continuous_map.zero_comp,
+  map_zero' := by { ext, simp only [continuous_map.zero_comp,
              bounded_continuous_function.mk_of_compact_zero, map_zero, pi.zero_apply] },
-  map_mul' := sorry,
-  commutes' := sorry }
+  map_mul' := λ f g, by { ext, simp only [continuous_map.mul_comp,
+                          bounded_continuous_function.mk_of_compact_mul, map_mul, pi.mul_apply], },
+  commutes' := λ r, by { ext,
+    simp only [algebra.algebra_map_eq_smul_one, continuous_map.smul_comp, continuous_map.one_comp,
+               bounded_continuous_function.mk_of_compact_smul,
+               bounded_continuous_function.mk_of_compact_one, alg_equiv.map_smul, map_one,
+               pi.smul_apply, pi.one_apply] } }
 
 variables {A}
 
-local notation `⇈[`:max R:max `]`:0 := continuous_functional_calculus R
-
---namespace continuous_functional_calculus
---
---@[simp] lemma map_add (f g : C(𝕜, 𝕜)) : ⇈[A](f + g) = ⇈[A]f + ⇈[A]g :=
---by { ext, simp only [continuous_functional_calculus, continuous_map.add_comp,
---              bounded_continuous_function.mk_of_compact_add, map_add, pi.add_apply] }
---
---@[simp] lemma map_zero : ⇈[A](0 : C(𝕜, 𝕜)) = 0 :=
---by { ext, simp only [continuous_functional_calculus, continuous_map.zero_comp,
---             bounded_continuous_function.mk_of_compact_zero, map_zero, pi.zero_apply] }
---
---@[simp] lemma map_one : ⇈[A](1 : C(𝕜, 𝕜)) = 1 :=
---by { ext, simp only [continuous_functional_calculus, continuous_map.one_comp,
---                     bounded_continuous_function.mk_of_compact_one, map_one, pi.one_apply] }
---
---@[simp] lemma map_neg (f : C(𝕜, 𝕜)) : ⇈[A](-f) = -⇈[A]f :=
---by { ext, simp only [continuous_functional_calculus, continuous_map.neg_comp,
---                     bounded_continuous_function.mk_of_compact_neg, map_neg, pi.neg_apply] }
---
---@[simp] lemma map_sub (f g : C(𝕜, 𝕜)) : ⇈[A](f - g) = ⇈[A]f - ⇈[A]g :=
---by { ext, simp only [continuous_functional_calculus, continuous_map.sub_comp,
---                     bounded_continuous_function.mk_of_compact_sub, map_sub, pi.sub_apply] }
---
---lemma map_mul (f g : C(𝕜, 𝕜)) : ⇈[A](f * g) = ⇈[A]f * ⇈[A]g := sorry
---
---end continuous_functional_calculus
+localized "notation `⇈[`:max R:max `]`:0 := continuous_functional_calculus R" in
+  continuous_functional_calculus
 
 end continuous_functional_calculus

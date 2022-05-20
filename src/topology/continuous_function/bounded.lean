@@ -902,6 +902,9 @@ instance : has_scalar 𝕜 (α →ᵇ β) :=
 @[simp] lemma coe_smul (c : 𝕜) (f : α →ᵇ β) : ⇑(c • f) = λ x, c • (f x) := rfl
 lemma smul_apply (c : 𝕜) (f : α →ᵇ β) (x : α) : (c • f) x = c • f x := rfl
 
+@[simp] lemma mk_of_compact_smul [compact_space α] (c : 𝕜) (f : C(α, β)) :
+  mk_of_compact (c • f) = c • mk_of_compact f := rfl
+
 instance [has_scalar 𝕜ᵐᵒᵖ β] [is_central_scalar 𝕜 β] : is_central_scalar 𝕜 (α →ᵇ β) :=
 { op_smul_eq_smul := λ _ _, ext $ λ _, op_smul_eq_smul _ _ }
 
@@ -1039,6 +1042,9 @@ instance : has_mul (α →ᵇ R) :=
 
 @[simp] lemma coe_mul (f g : α →ᵇ R) : ⇑(f * g) = f * g := rfl
 lemma mul_apply (f g : α →ᵇ R) (x : α) : (f * g) x = f x * g x := rfl
+
+@[simp] lemma mk_of_compact_mul [compact_space α] (f g : C(α, R)) :
+  mk_of_compact (f * g) = mk_of_compact f * mk_of_compact g := rfl
 
 instance : non_unital_ring (α →ᵇ R) :=
 fun_like.coe_injective.non_unital_ring _ coe_zero coe_add coe_mul coe_neg coe_sub

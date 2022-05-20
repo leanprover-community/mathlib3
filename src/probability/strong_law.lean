@@ -21,7 +21,9 @@ We give here the strong version, due to Etemadi, that only requires pairwise ind
 
 ## Implementation
 
-We follow the proof by Etemadi, which goes as follows.
+We follow the proof by Etemadi
+[Etemadi, *An elementary proof of the strong law of large numbers*][etemadi_strong_law],
+which goes as follows.
 
 It suffices to prove the result for nonnegative `X`, as one can prove the general result by
 splitting a general `X` into its positive part and negative part.
@@ -115,6 +117,9 @@ begin
   { simp only [truncation, indicator, hx, id.def, function.comp_app, if_t_t]},
 end
 
+lemma truncation_nonneg {f : α → ℝ} (A : ℝ) {x : α} (h : 0 ≤ f x) : 0 ≤ truncation f A x :=
+set.indicator_apply_nonneg $ λ _, h
+
 lemma _root_.measure_theory.ae_strongly_measurable.mem_ℒp_truncation [is_finite_measure μ]
   (hf : ae_strongly_measurable f μ) {A : ℝ} {p : ℝ≥0∞} :
   mem_ℒp (truncation f A) p μ :=
@@ -180,7 +185,7 @@ lemma integral_truncation_le_integral_of_nonneg
   ∫ x, truncation f A x ∂μ ≤ ∫ x, f x ∂μ :=
 begin
   apply integral_mono_of_nonneg (eventually_of_forall (λ x, _)) hf (eventually_of_forall (λ x, _)),
-  { exact truncation_nonneg (h'f x) },
+  { exact truncation_nonneg _ (h'f x) },
   { calc truncation f A x ≤ |truncation f A x| : le_abs_self _
                       ... ≤ |f x|              : abs_truncation_le_abs_self _ _ _
                       ... = f x                : abs_of_nonneg (h'f x) }

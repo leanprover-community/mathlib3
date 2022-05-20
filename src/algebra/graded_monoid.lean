@@ -122,6 +122,9 @@ lemma mk_mul_mk [has_add ι] [ghas_mul A] {i j} (a : A i) (b : A j) :
   mk i a * mk j b = mk (i + j) (ghas_mul.mul a b) :=
 rfl
 
+local notation `ᵍ1` := ghas_one.one
+local infix ` ᵍ* `:70 := ghas_mul.mul
+
 namespace gmonoid
 
 variables {A} [add_monoid ι] [ghas_mul A] [ghas_one A]
@@ -154,9 +157,9 @@ end gmonoid
 Like `monoid.npow`, this has an optional `gmonoid.gnpow` field to allow definitional control of
 natural powers of a graded monoid. -/
 class gmonoid [add_monoid ι]  extends ghas_mul A, ghas_one A :=
-(one_mul (a : graded_monoid A) : 1 * a = a)
-(mul_one (a : graded_monoid A) : a * 1 = a)
-(mul_assoc (a b c : graded_monoid A) : a * b * c = a * (b * c))
+(one_mul {i} (a : A i) : ᵍ1 ᵍ* a == a)
+(mul_one {i} (a : A i) : a ᵍ* ᵍ1 == a)
+(mul_assoc {i j k} (a : A i) (b : A j) (c : A k) : a ᵍ* b ᵍ* c == a ᵍ* (b ᵍ* c))
 (gnpow : Π (n : ℕ) {i}, A i → A (n • i) := gmonoid.gnpow_rec)
 (gnpow_zero' : Π (a : graded_monoid A), graded_monoid.mk _ (gnpow 0 a.snd) = 1
   . gmonoid.apply_gnpow_rec_zero_tac)
@@ -171,7 +174,9 @@ instance gmonoid.to_monoid [add_monoid ι] [gmonoid A] :
   npow := λ n a, graded_monoid.mk _ (gmonoid.gnpow n a.snd),
   npow_zero' := λ a, gmonoid.gnpow_zero' a,
   npow_succ' := λ n a, gmonoid.gnpow_succ' n a,
-  one_mul := gmonoid.one_mul, mul_one := gmonoid.mul_one, mul_assoc := gmonoid.mul_assoc }
+  one_mul := λ a, sigma.ext (zero_add _) (gmonoid.one_mul _),
+  mul_one := λ a, sigma.ext (add_zero _) (gmonoid.mul_one _),
+  mul_assoc := λ a b c, sigma.ext (add_assoc _ _ _) (gmonoid.mul_assoc _ _ _) }
 
 lemma mk_pow [add_monoid ι] [gmonoid A] {i} (a : A i) (n : ℕ) :
   mk i a ^ n = mk (n • i) (gmonoid.gnpow _ a) :=
@@ -372,9 +377,9 @@ instance has_mul.ghas_mul [has_add ι] [has_mul R] : graded_monoid.ghas_mul (λ 
 structure. -/
 @[simps gnpow]
 instance monoid.gmonoid [add_monoid ι] [monoid R] : graded_monoid.gmonoid (λ i : ι, R) :=
-{ one_mul := λ a, sigma.ext (zero_add _) (heq_of_eq (one_mul _)),
-  mul_one := λ a, sigma.ext (add_zero _) (heq_of_eq (mul_one _)),
-  mul_assoc := λ a b c, sigma.ext (add_assoc _ _ _) (heq_of_eq (mul_assoc _ _ _)),
+{ one_mul := λ i a, heq_of_eq $ one_mul a,
+  mul_one := λ i a, heq_of_eq $ mul_one _,
+  mul_assoc := λ i j k a b c, heq_of_eq (mul_assoc _ _ _),
   gnpow := λ n i a, a ^ n,
   gnpow_zero' := λ a, sigma.ext (zero_nsmul _) (heq_of_eq (monoid.npow_zero' _)),
   gnpow_succ' := λ n ⟨i, a⟩, sigma.ext (succ_nsmul _ _) (heq_of_eq (monoid.npow_succ' _ _)),
@@ -470,10 +475,9 @@ end set_like.graded_monoid
 instance set_like.gmonoid {S : Type*} [set_like S R] [monoid R] [add_monoid ι] (A : ι → S)
   [set_like.graded_monoid A] :
   graded_monoid.gmonoid (λ i, A i) :=
-{ one_mul := λ ⟨i, a, h⟩, sigma.subtype_ext (zero_add _) (one_mul _),
-  mul_one := λ ⟨i, a, h⟩, sigma.subtype_ext (add_zero _) (mul_one _),
-  mul_assoc := λ ⟨i, a, ha⟩ ⟨j, b, hb⟩ ⟨k, c, hc⟩,
-    sigma.subtype_ext (add_assoc _ _ _) (mul_assoc _ _ _),
+{ one_mul := λ i a, (subtype.heq_iff_coe_eq $ by simp [zero_add]).mpr (one_mul _),
+  mul_one := λ i a, (subtype.heq_iff_coe_eq $ by simp [zero_add]).mpr (mul_one _),
+  mul_assoc := λ i j k a b c,(subtype.heq_iff_coe_eq $ by simp [add_assoc]).mpr (mul_assoc _ _ _),
   gnpow := λ n i a, ⟨a ^ n, set_like.graded_monoid.pow_mem n a.prop⟩,
   gnpow_zero' := λ n, sigma.subtype_ext (zero_nsmul _) (pow_zero _),
   gnpow_succ' := λ n a, sigma.subtype_ext (succ_nsmul _ _) (pow_succ _ _),

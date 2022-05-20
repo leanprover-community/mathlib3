@@ -35,7 +35,7 @@ def cochain_complex.zeroth {V : Type u} [category.{v} V] [has_zero_object V]
   C.homology 0 ≅ homology (0 : 0 ⟶ C.X 0) (C.d 0 1) zero_comp :=
 homology.map_iso _ zero_comp
  (arrow.iso_mk (C.X_prev_iso_zero cochain_complex.prev_nat_zero) (iso.refl _)
-   (by { simp only [cochain_complex.prev_nat_zero, homological_complex.d_to_eq_zero, zero_comp, exact.w, arrow.mk_hom], }))
+   (by { simp only [cochain_complex.prev_nat_zero, homological_complex.d_to_eq_zero, zero_comp, exact.w, arrow.mk_hom], sorry}))
  (arrow.iso_mk (iso.refl _) (C.X_next_iso rfl) (by {simp only [iso.refl_hom, arrow.mk_hom,
    category.id_comp, homological_complex.d_from_comp_X_next_iso] }))
   (by { simp only [iso.refl_hom, arrow.iso_mk_hom_left, arrow.iso_mk_hom_right], refl })
@@ -58,7 +58,7 @@ def add_equiv.fun_unique (α : Type*) (β : Type*) [unique α] [has_add β] :
 
 @[simp] lemma add_equiv.fun_unique_apply {α : Type*} {β : Type*}
   [unique α] [has_add β] (x : α → β) :
-  add_equiv.fun_unique α β x = x (default _) := rfl
+  add_equiv.fun_unique α β x = x default := rfl
 
 @[simp] lemma add_equiv.fun_unique_symm_apply {α : Type*} {β : Type*}
   [unique α] [has_add β] {y : α} (x : β) :
@@ -164,7 +164,7 @@ lemma mem_one_cocycles_of_mem_one_coboundaries (f : one_coboundaries G M) :
 
 lemma mem_range_iff_mem_one_coboundaries (f : (fin 1 → G) → M) :
   f ∈ (cochain.d G M 0).range ↔ (λ g : G, f (λ i, g)) ∈ one_coboundaries G M :=
-⟨λ ⟨x, hx⟩, ⟨x (default _), λ g, by convert (cochain.d_zero_apply x (λ i, g)); rw ←hx⟩,
+⟨λ ⟨x, hx⟩, ⟨x default, λ g, by convert (cochain.d_zero_apply x (λ i, g)); rw ←hx⟩,
 λ ⟨m, hm⟩, ⟨λ i, m,
 begin
   ext,
@@ -235,8 +235,12 @@ example : 1 + 1 = 2 := rfl
   ..(quotient_group.map A B e.to_monoid_hom
   $ λ x hx, h ▸ subgroup.apply_coe_mem_map e.to_monoid_hom _ ⟨x, hx⟩) }
 
-def first : (cochain_cx G M).homology 1 ≃+ one_cocycles G M ⧸ (add_subgroup.inclusion
-  (λ f hf, mem_one_cocycles_of_mem_one_coboundaries (⟨f, hf⟩ : one_coboundaries G M))).range :=
+abbreviation firstcoh := one_cocycles G M ⧸ (add_subgroup.inclusion
+  (λ f hf, mem_one_cocycles_of_mem_one_coboundaries (⟨f, hf⟩ : one_coboundaries G M))).range
+
+instance jhnkj : (add_subgroup.inclusion
+  (λ f hf, mem_one_cocycles_of_mem_one_coboundaries (⟨f, hf⟩ : one_coboundaries G M))).range.normal := by apply_instance
+def first_iso : (cochain_cx G M).homology 1 ≃+ firstcoh G M :=
 ((homology_of_rel (cochain_cx G M) (show 0 + 1 = 1, from rfl)
   (show 1 + 1 = 2, from rfl)).trans
   (AddCommGroup.cokernel_iso_quotient _)).AddCommGroup_iso_to_add_equiv.trans $
@@ -246,5 +250,69 @@ def first : (cochain_cx G M).homology 1 ≃+ one_cocycles G M ⧸ (add_subgroup.
   ker_equiv_one_cocycles G M) _ _ $
 sorry -- the category library stumps me once again
 
+@[simps] def hm2 (G H : Type u) [group G] [group H]
+   [distrib_mul_action G M] [distrib_mul_action H M]
+  (f : G →* H) (h : ∀ (g : G) (m : M), (f(g) • m) = g • m) (n : ℕ) :
+  ((fin n → H) → M) →+ ((fin n → G) → M) :=
+{ to_fun := λ φ x, φ (f ∘ x),
+  map_zero' := by ext; refl,
+  map_add' := λ x y, by ext; refl }
+
+def fucksake (H : subgroup G) [H.normal] (g : G) (m : invariants H M) :
+  invariants H M := ⟨g • m, sorry⟩
+
+instance (H : subgroup G) [H.normal] :
+  distrib_mul_action (G ⧸ H) (invariants H M) :=
+{ smul := λ g, quotient.lift_on' g (λ (g : G), fucksake G M H g) sorry,
+  one_smul := sorry,
+  mul_smul := sorry,
+  smul_add := sorry,
+  smul_zero := sorry }
+
+@[simps] def inf_aux (H : subgroup G)
+  [H.normal] (n : ℕ) :
+  ((fin n → G) → M) →+ ((fin n → G ⧸ H) → invariants H M) :=
+{ to_fun := λ φ x, sorry,
+  map_zero' := sorry,
+  map_add' := sorry }
+
+lemma hm2_comm (G H : Type u) [group G] [group H]
+   [distrib_mul_action G M] [distrib_mul_action H M]
+  (f : G →* H) (h : ∀ (g : G) (m : M), (f(g) • m) = g • m) (n : ℕ) :
+  (cochain.d G M n).comp (hm2 M G H f h n) = (hm2 M G H f h (n + 1)).comp (cochain.d H M n) :=
+begin
+  ext x g,
+  dsimp [d_to_fun, hm2],
+  rw h,
+  congr,
+  ext i,
+  congr,
+  ext j,
+  dsimp,
+  by_cases h : ((j : ℕ) < i),
+  { simp only [F_lt_apply _ _ _ h] },
+  { by_cases heq : ((j : ℕ) = i),
+    { simp only [F_eq_apply _ _ _ heq, f.map_mul] },
+    { simp only [F_neg_apply _ _ _ h heq] }}
+end
+
+def hmm2 (G H : Type u) [group G] [group H]
+   [distrib_mul_action G M] [distrib_mul_action H M]
+  (f : G →* H)
+  (h : ∀ (g : G) (n : M), (f(g) • n) = g • n) :
+  cochain_cx H M ⟶ cochain_cx G M :=
+{ f := λ i, hm2 M G H f h i,
+  comm' := λ i j hij, by
+  { cases hij,
+    dsimp,
+    erw [cochain_complex.of_d, cochain_complex.of_d],
+    exact hm2_comm M G H f h i }}
+
+def Res (G H : Type u) [group G] [group H]
+   [distrib_mul_action G M] [distrib_mul_action H M]
+  (f : G →* H)
+  (h : ∀ (g : G) (n : M), (f(g) • n) = g • n) (n : ℕ) :
+  (cochain_cx H M).homology n →+ (cochain_cx G M).homology n :=
+(homology_functor _ _ n).map (hmm2 M G H f h)
 
 end first_cohomology

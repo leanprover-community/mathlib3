@@ -3,7 +3,7 @@ Copyright (c) 2021 Kevin Buzzard. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Buzzard
 -/
-import algebra.group_action_hom
+import group_theory.group_action.basic
 import data.fin_simplicial_complex
 import group_theory.free_abelian_group
 import algebra.big_operators.finsupp

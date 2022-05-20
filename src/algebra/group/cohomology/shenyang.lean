@@ -259,7 +259,7 @@ end-/
 
 variables (G M n)
 
-def cochain.d : ((fin n → G) → M) →+ ((fin (n + 1) → G) → M) :=
+@[simps] def cochain.d : ((fin n → G) → M) →+ ((fin (n + 1) → G) → M) :=
 { to_fun := d_to_fun,
   map_zero' := funext $ λ x, by simp only [d_to_fun, add_zero, pi.zero_apply,
     sum_const_zero, smul_zero],

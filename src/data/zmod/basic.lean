@@ -83,10 +83,7 @@ instance fintype : Π (n : ℕ) [fact (0 < n)], fintype (zmod n)
 | (n+1) _ := fin.fintype (n+1)
 
 instance fintype' (n : ℕ) [hn : ne_zero n] : fintype (zmod n) :=
-begin
-  haveI : fact (0 < n) := ⟨nat.pos_of_ne_zero hn.1⟩,
-  exact zmod.fintype n,
-end
+@zmod.fintype n ⟨nat.pos_of_ne_zero hn.1⟩
 
 instance infinite : infinite (zmod 0) :=
 int.infinite

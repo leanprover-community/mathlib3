@@ -25,7 +25,6 @@ begin
   let i := interval (-1 : ℝ) 1,
   rw I,
   let f : ℝ → ℝ := λ x, 1 - x ^ 2,
-  let f' : ℝ → ℝ := λ x, - (2 * x),
   let u₁ : ℝ → ℝ := λ x, f x ^ (n + 1),
   let u₁' : ℝ → ℝ := λ x, - (2 * (n + 1) * x * f x ^ n),
   let v₁ : ℝ → ℝ := λ x, sin (x * θ),
@@ -37,33 +36,29 @@ begin
   have hfd : continuous f := continuous_const.sub (continuous_pow 2),
   have hu₁d : continuous u₁' := ((continuous_mul_left _).mul (hfd.pow _)).neg,
   have hv₁d : continuous v₁' := (continuous_cos.comp (continuous_mul_right _)).mul continuous_const,
-  have hu₂d : interval_integrable u₂' volume (-1) 1 :=
-    ((hfd.pow _).sub ((continuous_const.mul (continuous_pow 2)).mul
-      (hfd.pow _))).interval_integrable _ _,
-  have hv₂d : interval_integrable v₂' volume (-1) 1 :=
-    ((continuous_sin.comp (continuous_mul_right _)).neg.mul
-      continuous_const).interval_integrable _ _,
-  have hf_eval_one : f 1 = 0 := by { simp only [f], simp },
-  have hf_eval_neg_one : f (-1) = 0, by { simp only [f], simp },
-  have hu₁_eval_one : u₁ 1 = 0 := by { simp only [u₁], simp [hf_eval_one] },
-  have hu₁_eval_neg_one : u₁ (-1) = 0 := by { simp only [u₁], simp [hf_eval_neg_one] },
+  have hu₂d : continuous u₂' :=
+    (hfd.pow _).sub ((continuous_const.mul (continuous_pow 2)).mul (hfd.pow _)),
+  have hv₂d : continuous v₂' :=
+    (continuous_sin.comp (continuous_mul_right _)).neg.mul continuous_const,
+  have hu₁_eval_one : u₁ 1 = 0 := by { simp only [u₁, f], simp },
+  have hu₁_eval_neg_one : u₁ (-1) = 0 := by { simp only [u₁, f], simp },
   have t : u₂ 1 * v₂ 1 - u₂ (-1) * v₂ (-1) = 2 * (0 ^ n * cos θ),
   { simp only [u₂, v₂, f, one_pow, sub_self, one_mul, neg_one_sq, neg_mul, cos_neg, sub_neg_eq_add],
     simp only [←two_mul] },
-  have hf : ∀ x ∈ i, has_deriv_at f (f' x) x,
+  have hf : ∀ x ∈ i, has_deriv_at f (- 2 * x) x,
   { intros x hx,
     convert (has_deriv_at_pow 2 x).const_sub 1,
-    simp only [f', nat.cast_two, pow_one] },
+    simp only [nat.cast_two, pow_one, neg_mul] },
   have hu₁ : ∀ x ∈ i, has_deriv_at u₁ (u₁' x) x,
   { intros x hx,
     convert (hf x hx).pow,
-    simp only [nat.add_succ_sub_one, u₁', nat.cast_add_one, f'],
+    simp only [nat.add_succ_sub_one, u₁', nat.cast_add_one],
     ring },
   have hv₁ : ∀ x ∈ i, has_deriv_at v₁ (v₁' x) x := λ x hx, (has_deriv_at_mul_const θ).sin,
   have hu₂ : ∀ x ∈ i, has_deriv_at u₂ (u₂' x) x,
   { intros x hx,
     convert has_deriv_at.mul (has_deriv_at_id' x) (hf x hx).pow,
-    simp only [u₂', f'],
+    simp only [u₂'],
     ring },
   have hv₂ : ∀ x ∈ i, has_deriv_at v₂ (v₂' x) x := λ x hx, (has_deriv_at_mul_const θ).cos,
   convert_to (∫ (x : ℝ) in -1..1, u₁ x * v₁' x) * θ = _ using 1,
@@ -76,43 +71,34 @@ begin
     congr' with x,
     dsimp [u₁', v₁, u₂, v₂'],
     ring },
-  rw [integral_mul_deriv_eq_deriv_mul hu₂ hv₂ hu₂d hv₂d, mul_sub, t, neg_mul, neg_mul, neg_mul,
-    sub_neg_eq_add],
+  rw [integral_mul_deriv_eq_deriv_mul hu₂ hv₂ (hu₂d.interval_integrable _ _)
+    (hv₂d.interval_integrable _ _), mul_sub, t, neg_mul, neg_mul, neg_mul, sub_neg_eq_add],
   have : ∀ x, u₂' x = (2 * n + 1) * f x ^ n - 2 * n * f x ^ (n - 1),
   { intro x,
-    simp only [u₂'],
     cases n,
-    { simp },
+    { simp [u₂'] },
     simp only [u₂', pow_succ _ n, f, nat.succ_sub_one, cast_succ],
     ring },
   simp_rw [this, mul_sub],
   rw [mul_mul_mul_comm, integral_sub],
-  { simp_rw [mul_left_comm (v₂ _)],
-    rw [integral_const_mul, integral_const_mul],
-    simp_rw [mul_comm (v₂ _)],
+  { simp_rw [mul_left_comm (v₂ _), integral_const_mul, mul_comm (v₂ _)],
     rw [mul_sub, ←mul_assoc, ←mul_assoc, ←mul_assoc, ←mul_assoc, mul_mul_mul_comm, add_sub_assoc],
     congr' 3,
     rw ←mul_assoc,
     norm_num },
   all_goals {
-    refine continuous.interval_integrable _ _ _,
-    refine (continuous_cos.comp (continuous_mul_right _)).mul _,
+    refine ((continuous_cos.comp (continuous_mul_right _)).mul _).interval_integrable _ _,
     exact continuous_const.mul (hfd.pow _) },
 end
 
 lemma recursion (n : ℕ) :
   I (n + 2) θ * θ ^ 2 = 2 * (n + 2) * (2 * n + 3) * I (n + 1) θ - 4 * (n + 2) * (n + 1) * I n θ :=
-begin
-  rw recursion' (n + 1),
-  simp only [nat.cast_add_one, zero_pow (nat.succ_pos _)],
-  ring,
-end
+by { rw [recursion' (n + 1), nat.cast_add_one, zero_pow (nat.succ_pos _)], ring }
 
 lemma I_one : I 1 θ * θ ^ 3 = 4 * sin θ - 4 * θ * cos θ :=
 begin
-  rw [pow_succ', ←mul_assoc, recursion' 0],
-  simp only [cast_zero, pow_zero, one_mul, zero_add, mul_zero, zero_mul, mul_one, sub_zero,
-    add_mul, mul_assoc, I_zero],
+  rw [pow_succ', ←mul_assoc, recursion' 0, nat.cast_zero, mul_zero, mul_zero, zero_mul,
+    sub_zero, zero_add, mul_one, mul_one, add_mul, mul_assoc, mul_assoc, I_zero],
   ring
 end
 
@@ -208,13 +194,11 @@ lemma integral_pos {f : ℝ → ℝ} {a b : ℝ} (hab : a < b) (hfc : continuous
 lemma I_pos : 0 < I n (π / 2) :=
 begin
   refine integral_pos (by norm_num) (continuous.continuous_on (by continuity)) _ ⟨0, by simp⟩,
-  intros x hx,
-  apply mul_nonneg (pow_nonneg _ _) _,
+  refine λ x hx, mul_nonneg (pow_nonneg _ _) _,
   { rw [sub_nonneg, sq_le_one_iff_abs_le_one, abs_le],
     exact ⟨hx.1.le, hx.2⟩, },
-  refine cos_nonneg_of_neg_pi_div_two_le_of_le _ _,
-  { nlinarith [hx.1, pi_pos] },
-  { nlinarith [hx.2, pi_pos] },
+  refine cos_nonneg_of_neg_pi_div_two_le_of_le _ _;
+  nlinarith [hx.1, hx.2, pi_pos],
 end
 
 lemma I_le (n : ℕ) : I n (π / 2) ≤ 2 :=
@@ -236,10 +220,9 @@ by simpa only [int.cast_one] using @int.cast_lt R _ _ z 1
 lemma my_tendsto_pow_div_factorial_at_top (a : ℝ) :
   tendsto (λ n, (a : ℝ) ^ (2 * n + 1) / n!) at_top (nhds 0) :=
 begin
-  convert (tendsto_pow_div_factorial_at_top (a ^ 2)).const_mul a,
-  { ext n,
-    rw [←pow_mul, mul_div_assoc', pow_succ] },
-  rw mul_zero
+  rw ←mul_zero a,
+  refine ((tendsto_pow_div_factorial_at_top (a ^ 2)).const_mul a).congr (λ x, _),
+  rw [←pow_mul, mul_div_assoc', pow_succ],
 end
 
 lemma not_irrational.exists_rep {x : ℝ} :
@@ -247,9 +230,7 @@ lemma not_irrational.exists_rep {x : ℝ} :
 begin
   rw [irrational, not_not, mem_range],
   rintro ⟨q, rfl⟩,
-  refine ⟨q.num, q.denom, q.pos, _⟩,
-  norm_cast,
-  rw rat.num_denom,
+  exact ⟨q.num, q.denom, q.pos, by exact_mod_cast rat.num_denom.symm⟩,
 end
 
 lemma irrational_pi : irrational π :=
@@ -260,22 +241,19 @@ begin
   obtain ⟨a, b, hb, h⟩ := not_irrational.exists_rep h',
   have ha : (0 : ℝ) < a,
   { have : 0 < (a : ℝ) / b := h ▸ pi_div_two_pos,
-    rwa [lt_div_iff, zero_mul] at this,
-    rwa nat.cast_pos },
+    rwa [lt_div_iff ((@nat.cast_pos ℝ _ _ _).2 hb), zero_mul] at this },
   have k : ∀ n, 0 < (a : ℝ) ^ (2 * n + 1) / n! :=
     λ n, div_pos (pow_pos ha _) (cast_pos.2 n.factorial_pos),
   have j : ∀ᶠ n : ℕ in at_top, (a : ℝ) ^ (2 * n + 1) / n! * I n (π / 2) < 1,
   { have := eventually_lt_of_tendsto_lt (show (0 : ℝ) < 1 / 2, by norm_num)
-              ((my_tendsto_pow_div_factorial_at_top a)),
+              (my_tendsto_pow_div_factorial_at_top a),
     filter_upwards [this] with n hn,
     rw lt_div_iff (zero_lt_two : (0 : ℝ) < 2) at hn,
-    refine hn.trans_le' (mul_le_mul_of_nonneg_left (I_le _) (k n).le) },
+    exact hn.trans_le' (mul_le_mul_of_nonneg_left (I_le _) (k n).le) },
   obtain ⟨n, hn⟩ := j.exists,
   have hn' : 0 < (a : ℝ) ^ (2 * n + 1) / n! * I n (π / 2) := mul_pos (k _) I_pos,
-  have i : ∃ z : ℤ, (sin_poly n).eval₂ (int.cast_ring_hom ℝ) (π / 2) * b ^ (2 * n + 1) = z,
-  { rw h,
-    convert is_integer a b ((sin_poly_nat_degree_le _).trans _),
-    linarith },
+  have i : ∃ z : ℤ, (sin_poly n).eval₂ (int.cast_ring_hom ℝ) (a / b) * b ^ (2 * n + 1) = z,
+  { exact is_integer a b ((sin_poly_nat_degree_le _).trans (by linarith)) },
   obtain ⟨z, hz⟩ := i,
   have e := sin_poly_add_cos_poly_eval (π / 2) n,
   rw [cos_pi_div_two, sin_pi_div_two, mul_zero, mul_one, add_zero] at e,
@@ -286,7 +264,7 @@ begin
     rw [mul_rotate, mul_assoc, ←e, h, mul_comm (I _ _), ←mul_assoc, div_pow, mul_div_cancel'],
     exact pow_ne_zero _ (nat.cast_ne_zero.2 hb.ne') },
   have : (0 : ℝ) < z ∧ (z : ℝ) < 1,
-  { rw [←hz, ←this],
+  { rw [←hz, ←h, ←this],
     exact ⟨hn', hn⟩ },
   rw [int.cast_pos, int.cast_lt_one, ←int.add_one_le_iff, zero_add] at this,
   exact this.1.not_lt this.2,

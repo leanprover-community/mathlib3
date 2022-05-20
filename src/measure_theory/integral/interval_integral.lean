@@ -1115,13 +1115,13 @@ lemma integral_eq_zero_iff_of_le_of_nonneg_ae (hab : a ≤ b)
 by rw [integral_of_le hab, integral_eq_zero_iff_of_nonneg_ae hf hfi.1]
 
 lemma integral_eq_zero_iff_of_nonneg_ae
-  (hf : 0 ≤ᵐ[μ.restrict (Ioc a b ∪ Ioc b a)] f) (hfi : interval_integrable f μ a b) :
-  ∫ x in a..b, f x ∂μ = 0 ↔ f =ᵐ[μ.restrict (Ioc a b ∪ Ioc b a)] 0 :=
+  (hf : 0 ≤ᵐ[μ.restrict (interval_oc a b)] f) (hfi : interval_integrable f μ a b) :
+  ∫ x in a..b, f x ∂μ = 0 ↔ f =ᵐ[μ.restrict (interval_oc a b)] 0 :=
 begin
-  cases le_total a b with hab hab;
-    simp only [Ioc_eq_empty hab.not_lt, empty_union, union_empty] at hf ⊢,
+  cases le_or_lt a b with hab hab;
+    simp only [hab, interval_oc_of_lt, interval_oc_of_le] at hf ⊢,
   { exact integral_eq_zero_iff_of_le_of_nonneg_ae hab hf hfi },
-  { rw [integral_symm, neg_eq_zero, integral_eq_zero_iff_of_le_of_nonneg_ae hab hf hfi.symm] }
+  { rw [integral_symm, neg_eq_zero, integral_eq_zero_iff_of_le_of_nonneg_ae hab.le hf hfi.symm] },
 end
 
 /-- If `f` is nonnegative and integrable on the unordered interval `set.interval_oc a b`, then its
@@ -1194,18 +1194,32 @@ begin
   exact λ c hc, (measure.eq_on_Icc_of_ae_eq volume hab.ne h_eq hfc hgc hc).ge
 end
 
+lemma integral_pos_of_continuous_on_of_nonneg_of_exists_pos (hab : a < b)
+  (hfc : continuous_on f (Icc a b)) (hnonneg : ∀ x ∈ Ioc a b, 0 ≤ f x)
+  (hpos : ∃ c ∈ Icc a b, 0 < f c) :
+  0 < ∫ x in a..b, f x :=
+integral_zero.symm.trans_lt $
+  integral_lt_integral_of_continuous_on_of_le_of_exists_lt hab continuous_on_const hfc hnonneg hpos
+
+lemma integral_nonneg_of_ae_restrict_Ioc (hab : a ≤ b) (hf : 0 ≤ᵐ[μ.restrict (Ioc a b)] f) :
+  0 ≤ ∫ u in a..b, f u ∂μ :=
+by simpa only [integral_of_le hab] using set_integral_nonneg_of_ae_restrict hf
+
 lemma integral_nonneg_of_ae_restrict (hab : a ≤ b) (hf : 0 ≤ᵐ[μ.restrict (Icc a b)] f) :
-  0 ≤ (∫ u in a..b, f u ∂μ) :=
-let H := ae_restrict_of_ae_restrict_of_subset Ioc_subset_Icc_self hf in
-by simpa only [integral_of_le hab] using set_integral_nonneg_of_ae_restrict H
+  0 ≤ ∫ u in a..b, f u ∂μ :=
+integral_nonneg_of_ae_restrict_Ioc hab (ae_restrict_of_ae_restrict_of_subset Ioc_subset_Icc_self hf)
 
 lemma integral_nonneg_of_ae (hab : a ≤ b) (hf : 0 ≤ᵐ[μ] f) :
-  0 ≤ (∫ u in a..b, f u ∂μ) :=
+  0 ≤ ∫ u in a..b, f u ∂μ :=
 integral_nonneg_of_ae_restrict hab $ ae_restrict_of_ae hf
 
 lemma integral_nonneg_of_forall (hab : a ≤ b) (hf : ∀ u, 0 ≤ f u) :
-  0 ≤ (∫ u in a..b, f u ∂μ) :=
+  0 ≤ ∫ u in a..b, f u ∂μ :=
 integral_nonneg_of_ae hab $ eventually_of_forall hf
+
+lemma integral_nonneg_of_Ioc (hab : a ≤ b) (hf : ∀ u, u ∈ Ioc a b → 0 ≤ f u) :
+  0 ≤ ∫ u in a..b, f u ∂μ :=
+integral_nonneg_of_ae_restrict_Ioc hab $ (ae_restrict_iff' measurable_set_Ioc).2 $ ae_of_all _ hf
 
 lemma integral_nonneg (hab : a ≤ b) (hf : ∀ u, u ∈ Icc a b → 0 ≤ f u) :
   0 ≤ (∫ u in a..b, f u ∂μ) :=

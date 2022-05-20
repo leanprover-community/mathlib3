@@ -163,10 +163,12 @@ induction_on a $ λ α,
 
 /-- We define the order on cardinal numbers by `#α ≤ #β` if and only if
   there exists an embedding (injective function) from α to β. -/
+instance : has_le cardinal.{u} :=
+⟨λ q₁ q₂, quotient.lift_on₂ q₁ q₂ (λ α β, nonempty $ α ↪ β) $
+  λ α β γ δ ⟨e₁⟩ ⟨e₂⟩, propext ⟨λ ⟨e⟩, ⟨e.congr e₁ e₂⟩, λ ⟨e⟩, ⟨e.congr e₁.symm e₂.symm⟩⟩⟩
+
 instance : partial_order cardinal.{u} :=
-{ le          := λ q₁ q₂, quotient.lift_on₂ q₁ q₂ (λ α β, nonempty $ α ↪ β) $
-                 λ α β γ δ ⟨e₁⟩ ⟨e₂⟩,
-                   propext ⟨λ ⟨e⟩, ⟨e.congr e₁ e₂⟩, λ ⟨e⟩, ⟨e.congr e₁.symm e₂.symm⟩⟩,
+{ le          := (≤),
   le_refl     := by rintros ⟨α⟩; exact ⟨embedding.refl _⟩,
   le_trans    := by rintros ⟨α⟩ ⟨β⟩ ⟨γ⟩ ⟨e₁⟩ ⟨e₂⟩; exact ⟨e₁.trans e₂⟩,
   le_antisymm := by { rintros ⟨α⟩ ⟨β⟩ ⟨e₁⟩ ⟨e₂⟩, exact quotient.sound (e₁.antisymm e₂) } }
@@ -304,11 +306,9 @@ mk_congr (equiv.ulift.symm.prod_congr (equiv.ulift).symm)
 private theorem mul_comm' (a b : cardinal.{u}) : a * b = b * a :=
 induction_on₂ a b $ λ α β, mk_congr $ equiv.prod_comm α β
 
-instance : has_pow cardinal cardinal :=
-⟨map₂ (λ α β : Type u, β → α) (λ α β γ δ e₁ e₂, e₂.arrow_congr e₁)⟩
-
 /-- The cardinal exponential. `#α ^ #β` is the cardinal of `β → α`. -/
-add_decl_doc cardinal.has_pow.pow
+instance : has_pow cardinal.{u} cardinal.{u} :=
+⟨map₂ (λ α β, β → α) (λ α β γ δ e₁ e₂, e₂.arrow_congr e₁)⟩
 
 local infixr ^ := @has_pow.pow cardinal cardinal cardinal.has_pow
 local infixr ` ^ℕ `:80 := @has_pow.pow cardinal ℕ monoid.has_pow

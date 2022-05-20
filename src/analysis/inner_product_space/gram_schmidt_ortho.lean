@@ -133,13 +133,13 @@ end
 then the output of the first `n + 1` vectors are non-zero. -/
 lemma gram_schmidt_ne_zero (f : ℕ → E) (n : ℕ)
   (h₀ : linear_independent 𝕜 (f ∘ (coe : fin n.succ → ℕ))) :
-    gram_schmidt 𝕜 f n ≠ 0 :=
+    ∀ i (h : i ≤ n), gram_schmidt 𝕜 f n ≠ 0 :=
 begin
   induction n with n hn,
-  { intro h,
+  { intros i hi h,
     simp only [gram_schmidt_zero, ne.def] at h,
     exact linear_independent.ne_zero 0 h₀ (by simp only [function.comp_app, fin.coe_zero, h]), },
-  { by_contra h₁,
+  { intros i hi h₁,
     rw nat.succ_eq_add_one at hn h₀ h₁,
     have h₂ := gram_schmidt_def' 𝕜 f n.succ,
     simp only [nat.succ_eq_add_one, h₁, orthogonal_projection_singleton, zero_add] at h₂,
@@ -170,7 +170,7 @@ end
 /-- If the input of `gram_schmidt` is linearly independent, then the output is non-zero. -/
 lemma gram_schmidt_ne_zero' (f : ℕ → E) (h₀ : linear_independent 𝕜 f) (n : ℕ) :
   gram_schmidt 𝕜 f n ≠ 0 :=
-gram_schmidt_ne_zero 𝕜 f n (linear_independent.comp h₀ _ (fin.coe_injective))
+gram_schmidt_ne_zero 𝕜 f n (linear_independent.comp h₀ _ (fin.coe_injective)) n (le_refl n)
 
 /-- the normalized `gram_schmidt`
 (i.e each vector in `gram_schmidt_normed` has unit length.) -/
@@ -180,7 +180,7 @@ noncomputable def gram_schmidt_normed (f : ℕ → E) (n : ℕ) : E :=
 lemma gram_schmidt_normed_unit_length (f : ℕ → E) (n : ℕ)
   (h₀ : linear_independent 𝕜 (f ∘ (coe : fin n.succ → ℕ))) :
     ∥gram_schmidt_normed 𝕜 f n∥ = 1 :=
-by simp only [gram_schmidt_ne_zero 𝕜 f n h₀,
+by simp only [gram_schmidt_ne_zero 𝕜 f n h₀ n (le_refl n),
   gram_schmidt_normed, norm_smul_inv_norm, ne.def, not_false_iff]
 
 lemma gram_schmidt_normed_unit_length' (f : ℕ → E) (n : ℕ)

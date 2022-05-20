@@ -218,6 +218,15 @@ begin
   rwa ←fp_iff_deriv_family H
 end
 
+theorem apply_le_deriv_family (H : ∀ i, is_normal (f i)) (i o) : f i o ≤ deriv_family f o :=
+begin
+  rw deriv_family_eq_enum_ord H,
+  nth_rewrite 0 ←enum_ord_range (H i).strict_mono,
+  apply enum_ord_le_of_subset (fp_family_unbounded H) (λ a ha, fixed_points_subset_range _),
+  have := set.mem_Inter.1 ha i,
+  exact this -- Weird, how can I avoid this?
+end
+
 theorem deriv_family_le_of_range_subset {f : ι → ordinal → ordinal}
   {g : ι' → ordinal → ordinal.{max u v w}} (hf : ∀ i, monotone (f i))
   (hfg : set.range f ⊆ set.range g) (a) : deriv_family f a ≤ deriv_family.{w (max u v w)} g a :=
@@ -406,6 +415,15 @@ begin
   rwa ←fp_iff_deriv_bfamily H
 end
 
+theorem apply_le_deriv_bfamily (H : ∀ i hi, is_normal (f i hi)) {i} (hi a) :
+  f i hi a ≤ deriv_bfamily o f a :=
+begin
+  rw deriv_bfamily_eq_enum_ord H,
+  nth_rewrite 0 ←enum_ord_range (H i hi).strict_mono,
+  apply enum_ord_le_of_subset (fp_bfamily_unbounded H) (λ a ha, fixed_points_subset_range _),
+  exact set.mem_Inter₂.1 ha i hi
+end
+
 theorem deriv_bfamily_le_of_range_subset {f : Π b < o, ordinal → ordinal}
   {g : Π b < o', ordinal → ordinal.{max u v w}} (hf : ∀ i hi, monotone (f i hi))
   (hfg : brange o f ⊆ brange o' g) (a) :
@@ -437,7 +455,6 @@ begin
   rwa family_of_bfamily_enum at this
 end
 
--- another PR
 theorem deriv_bfamily_eq_of_fp_eq {f : Π a < o, ordinal → ordinal}
   {g : Π a < o', ordinal → ordinal} (hf : ∀ i hi, is_normal (f i hi))
   (hg : ∀ i' hi', is_normal (g i' hi'))

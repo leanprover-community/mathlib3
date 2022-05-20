@@ -406,8 +406,8 @@ variable {f : ordinal.{u} → ordinal.{u}}
 def nfp (f : ordinal → ordinal) : ordinal → ordinal :=
 nfp_family (λ _ : unit, f)
 
-theorem nfp_family_eq_nfp (ι : Type u) [nonempty ι] (f : ordinal.{max u v} → ordinal.{max u v}) :
-  nfp_family.{u v} (λ _ : ι, f) = nfp f :=
+@[simp] theorem nfp_family_eq_nfp (ι : Type u) [nonempty ι]
+  (f : ordinal.{max u v} → ordinal.{max u v}) : nfp_family.{u v} (λ _ : ι, f) = nfp f :=
 nfp_family_eq_of_range_eq.{u 0} (by simp)
 
 @[simp] theorem sup_iterate_eq_nfp (f : ordinal.{u} → ordinal.{u}) :

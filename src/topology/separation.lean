@@ -166,6 +166,12 @@ by { split, apply @t0_space.t0, apply t0_space.mk }
 def indistinguishable {α : Type u} [topological_space α] (x y : α) : Prop :=
 ∀ (U : set α) (hU : is_open U), x ∈ U ↔ y ∈ U
 
+lemma indistinguishable_iff_nhds_eq {x y : α} : indistinguishable x y ↔ 𝓝 x = 𝓝 y :=
+⟨λ h, by simp only [nhds_def', h _] { contextual := tt },
+  λ h U hU, by simp only [← hU.mem_nhds_iff, h]⟩
+
+alias indistinguishable_iff_nhds_eq ↔ indistinguishable.nhds_eq _
+
 lemma t0_space_iff_distinguishable (α : Type u) [topological_space α] :
   t0_space α ↔ ∀ (x y : α), x ≠ y → ¬ indistinguishable x y :=
 begin
@@ -175,11 +181,18 @@ begin
   simp_rw xor_iff_not_iff,
 end
 
-lemma indistinguishable_iff_closed {α : Type u} [topological_space α] (x y : α) :
+@[simp] lemma nhds_eq_nhds_iff [t0_space α] {a b : α} : 𝓝 a = 𝓝 b ↔ a = b :=
+function.injective.eq_iff $ λ x y h, of_not_not $
+  λ hne, (t0_space_iff_distinguishable α).mp ‹_› x y hne (indistinguishable_iff_nhds_eq.mpr h)
+
+lemma indistinguishable.eq [t0_space α] {x y : α} (h : indistinguishable x y) : x = y :=
+nhds_eq_nhds_iff.mp h.nhds_eq
+
+lemma indistinguishable_iff_closed {x y : α} :
   indistinguishable x y ↔ ∀ (U : set α) (hU : is_closed U), x ∈ U ↔ y ∈ U :=
 ⟨λ h U hU, not_iff_not.mp (h _ hU.1), λ h U hU, not_iff_not.mp (h _ (is_closed_compl_iff.mpr hU))⟩
 
-lemma indistinguishable_iff_closure {α : Type u} [topological_space α] (x y : α) :
+lemma indistinguishable_iff_closure (x y : α) :
   indistinguishable x y ↔ x ∈ closure ({y} : set α) ∧ y ∈ closure ({x} : set α) :=
 begin
   rw indistinguishable_iff_closed,
@@ -192,9 +205,6 @@ end
 lemma subtype_indistinguishable_iff {α : Type u} [topological_space α] {U : set α} (x y : U) :
   indistinguishable x y ↔ indistinguishable (x : α) y :=
 by { simp_rw [indistinguishable_iff_closure, closure_subtype, image_singleton] }
-
-lemma indistinguishable.eq [hα : t0_space α] {x y : α} (h : indistinguishable x y) : x = y :=
-not_imp_not.mp ((t0_space_iff_distinguishable _).mp hα x y) h
 
 /-- Given a closed set `S` in a compact T₀ space,
 there is some `x ∈ S` such that `{x}` is closed. -/
@@ -512,9 +522,6 @@ end
 
 @[simp] lemma nhds_le_nhds_iff [t1_space α] {a b : α} : 𝓝 a ≤ 𝓝 b ↔ a = b :=
 ⟨λ h, pure_le_nhds_iff.mp $ (pure_le_nhds a).trans h, λ h, h ▸ le_rfl⟩
-
-@[simp] lemma nhds_eq_nhds_iff [t1_space α] {a b : α} : 𝓝 a = 𝓝 b ↔ a = b :=
-⟨λ h, nhds_le_nhds_iff.mp h.le, λ h, h ▸ rfl⟩
 
 @[simp] lemma compl_singleton_mem_nhds_set_iff [t1_space α] {x : α} {s : set α} :
   {x}ᶜ ∈ 𝓝ˢ s ↔ x ∉ s :=

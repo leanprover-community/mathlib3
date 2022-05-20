@@ -225,4 +225,8 @@ by cases b; simp only [of_nat,to_nat]; exact dec_trivial
 ⟨λ Hinj Heq, ff_ne_tt (Hinj Heq),
   λ H x y hxy, by { cases x; cases y, exacts [rfl, (H hxy).elim, (H hxy.symm).elim, rfl] }⟩
 
+/-- **Kaminski's Equation** -/
+theorem apply_apply_apply (f : bool → bool) (x : bool) : f (f (f x)) = f x :=
+by cases x; cases h₁ : f tt; cases h₂ : f ff; simp only [h₁, h₂]
+
 end bool

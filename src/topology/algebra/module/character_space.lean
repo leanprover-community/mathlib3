@@ -184,7 +184,7 @@ end gelfand_transform
 section continuous_functional_calculus
 open weak_dual
 
-variables [normed_field 𝕜] [topological_space A] [ring A] [topological_ring A] [algebra 𝕜 A]
+variables [normed_field 𝕜] [topological_space A] [semiring A] [algebra 𝕜 A]
   [compact_space (character_space 𝕜 A)] [bijective_gelfand_transform 𝕜 A]
 
 variables (A)

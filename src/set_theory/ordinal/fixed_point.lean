@@ -479,8 +479,9 @@ by { convert fp_family_unbounded (λ _ : unit, H), exact (set.Inter_const _).sym
 def deriv (f : ordinal → ordinal) : ordinal → ordinal :=
 deriv_family (λ _ : unit, f)
 
-theorem deriv_eq_deriv_family (f : ordinal → ordinal) : deriv f = deriv_family (λ _ : unit, f) :=
-rfl
+@[simp] theorem deriv_eq_deriv_family (ι : Type u) [nonempty ι]
+  (f : ordinal.{max u v} → ordinal.{max u v}) : deriv_family (λ _ : ι, f) = deriv f :=
+deriv_family_eq_of_range_eq.{u v 0} (by simp)
 
 @[simp] theorem deriv_zero (f) : deriv f 0 = nfp f 0 :=
 deriv_family_zero _

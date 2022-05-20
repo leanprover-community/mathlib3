@@ -296,7 +296,7 @@ by { ext B, rw [bilin_form.to_matrix_apply, bilin_form.to_matrix'_apply,
   bilin_form.to_matrix b (matrix.to_bilin b M) = M :=
 (bilin_form.to_matrix b).apply_symm_apply M
 
-variables {M₂' : Type*} [add_comm_group M₂'] [module R₂ M₂']
+variables {M₂' : Type*} [add_comm_monoid M₂'] [module R₂ M₂']
 variables (c : basis o R₂ M₂')
 variables [decidable_eq o]
 
@@ -338,23 +338,23 @@ lemma bilin_form.to_matrix_mul_basis_to_matrix (c : basis o R₂ M₂) (B : bili
 by rw [← linear_map.to_matrix_id_eq_basis_to_matrix, ← bilin_form.to_matrix_comp,
        bilin_form.comp_id_id]
 
-lemma bilin_form.mul_to_matrix_mul (B : bilin_form R₃ M₃)
-  (M : matrix o n R₃) (N : matrix n o R₃) :
+lemma bilin_form.mul_to_matrix_mul (B : bilin_form R₂ M₂)
+  (M : matrix o n R₂) (N : matrix n o R₂) :
   M ⬝ bilin_form.to_matrix b B ⬝ N =
     bilin_form.to_matrix c (B.comp (to_lin c b Mᵀ) (to_lin c b N)) :=
 by simp only [B.to_matrix_comp b c, to_matrix_to_lin, transpose_transpose]
 
-lemma bilin_form.mul_to_matrix (B : bilin_form R₃ M₃) (M : matrix n n R₃) :
+lemma bilin_form.mul_to_matrix (B : bilin_form R₂ M₂) (M : matrix n n R₂) :
   M ⬝ bilin_form.to_matrix b B =
     bilin_form.to_matrix b (B.comp_left (to_lin b b Mᵀ)) :=
 by rw [B.to_matrix_comp_left b, to_matrix_to_lin, transpose_transpose]
 
-lemma bilin_form.to_matrix_mul (B : bilin_form R₃ M₃) (M : matrix n n R₃) :
+lemma bilin_form.to_matrix_mul (B : bilin_form R₂ M₂) (M : matrix n n R₂) :
   bilin_form.to_matrix b B ⬝ M =
     bilin_form.to_matrix b (B.comp_right (to_lin b b M)) :=
 by rw [B.to_matrix_comp_right b, to_matrix_to_lin]
 
-lemma matrix.to_bilin_comp (M : matrix n n R₃) (P Q : matrix n o R₃) :
+lemma matrix.to_bilin_comp (M : matrix n n R₂) (P Q : matrix n o R₂) :
   (matrix.to_bilin b M).comp (to_lin c b P) (to_lin c b Q) = matrix.to_bilin c (Pᵀ ⬝ M ⬝ Q) :=
 (bilin_form.to_matrix c).injective
   (by simp only [bilin_form.to_matrix_comp b c, bilin_form.to_matrix_to_bilin, to_matrix_to_lin])
@@ -492,8 +492,8 @@ open matrix
 variables {A : Type*} [comm_ring A] [is_domain A] [module A M₃] (B₃ : bilin_form A M₃)
 variables {ι : Type*} [decidable_eq ι] [fintype ι]
 
-lemma _root_.matrix.nondegenerate_to_bilin'_iff_nondegenerate_to_bilin {M : matrix ι ι R₃}
-  (b : basis ι R₃ M₃) : M.to_bilin'.nondegenerate ↔ (matrix.to_bilin b M).nondegenerate :=
+lemma _root_.matrix.nondegenerate_to_bilin'_iff_nondegenerate_to_bilin {M : matrix ι ι R₂}
+  (b : basis ι R₂ M₂) : M.to_bilin'.nondegenerate ↔ (matrix.to_bilin b M).nondegenerate :=
 (nondegenerate_congr_iff b.equiv_fun.symm).symm
 
 -- Lemmas transferring nondegeneracy between a matrix and its associated bilinear form

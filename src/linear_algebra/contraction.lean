@@ -20,8 +20,7 @@ some basic properties of these maps.
 contraction, dual module, tensor product
 -/
 
-variables (R M N P Q : Type*) [add_comm_monoid M]
-variables [add_comm_monoid N] [add_comm_monoid P] [add_comm_monoid Q]
+variables {ι : Type*} (R M N P Q : Type*)
 
 local attribute [ext] tensor_product.ext
 
@@ -31,9 +30,10 @@ open tensor_product linear_map matrix
 open_locale tensor_product big_operators
 
 section comm_semiring
-
-variables [comm_semiring R] [module R M] [module R N] [module R P] [module R Q]
-variables {ι : Type*} [decidable_eq ι] [fintype ι] (b : basis ι R M)
+variables [comm_semiring R]
+variables [add_comm_monoid M] [add_comm_monoid N] [add_comm_monoid P] [add_comm_monoid Q]
+variables [module R M] [module R N] [module R P] [module R Q]
+variables [decidable_eq ι] [fintype ι] (b : basis ι R M)
 
 /-- The natural left-handed pairing between a module and its dual. -/
 def contract_left : (module.dual R M) ⊗ M →ₗ[R] R := (uncurry _ _ _ _).to_fun linear_map.id
@@ -100,6 +100,16 @@ begin
   rw [and_iff_not_or_not, not_not] at hij, cases hij; simp [hij],
 end
 
+end comm_semiring
+
+section comm_ring
+variables [comm_ring R]
+variables [add_comm_group M] [add_comm_group N] [add_comm_group P] [add_comm_group Q]
+variables [module R M] [module R N] [module R P] [module R Q]
+variables [decidable_eq ι] [fintype ι] (b : basis ι R M)
+
+variables {R M N P Q}
+
 /-- If `M` is free, the natural linear map $M^* ⊗ N → Hom(M, N)$ is an equivalence. This function
 provides this equivalence in return for a basis of `M`. -/
 @[simps apply]
@@ -145,7 +155,7 @@ equivalence. -/
 @[simp] noncomputable def dual_tensor_hom_equiv : (module.dual R M) ⊗[R] N ≃ₗ[R] M →ₗ[R] N :=
 dual_tensor_hom_equiv_of_basis (module.free.choose_basis R M)
 
-end comm_semiring
+end comm_ring
 
 end contraction
 
@@ -157,7 +167,9 @@ open module tensor_product linear_map
 
 section comm_ring
 
-variables [comm_ring R] [module R M] [module R N] [module R P] [module R Q]
+variables [comm_ring R]
+variables [add_comm_group M] [add_comm_group N] [add_comm_group P] [add_comm_group Q]
+variables [module R M] [module R N] [module R P] [module R Q]
 variables [free R M] [finite R M] [free R N] [finite R N] [nontrivial R]
 
 /-- When `M` is a finite free module, the map `ltensor_hom_to_hom_ltensor` is an equivalence. Note

@@ -670,10 +670,6 @@ by simp [finset.subset_iff, set.subset_def]
   s.to_finset ⊂ t.to_finset ↔ s ⊂ t :=
 by simp only [finset.ssubset_def, to_finset_mono, ssubset_def]
 
-lemma subset_iff_to_finset_subset (s t : set α) [fintype s] [fintype t] :
-  s ⊆ t ↔ s.to_finset ⊆ t.to_finset :=
-by simp only [to_finset_mono]
-
 @[simp] theorem to_finset_disjoint_iff [decidable_eq α] {s t : set α} [fintype s] [fintype t] :
   disjoint s.to_finset t.to_finset ↔ disjoint s t :=
 by simp only [disjoint_iff_disjoint_coe, coe_to_finset]
@@ -709,9 +705,11 @@ by { ext, simp }
   (set.range f).to_finset = finset.univ.image f :=
 by { ext, simp }
 
+/- TODO The `↥` circumvents an elaboration bug. See comment on `set.to_finset_univ`. -/
 lemma to_finset_singleton (a : α) [fintype ↥({a} : set α)] : ({a} : set α).to_finset = {a} :=
 by { ext, simp }
 
+/- TODO The `↥` circumvents an elaboration bug. See comment on `set.to_finset_univ`. -/
 @[simp] lemma to_finset_insert [decidable_eq α] {a : α} {s : set α}
   [fintype ↥(insert a s : set α)] [fintype s] :
   (insert a s).to_finset = insert a s.to_finset :=

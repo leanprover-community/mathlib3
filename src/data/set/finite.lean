@@ -107,7 +107,7 @@ section finite_to_finset
 
 @[simp] theorem finite.nonempty_to_finset {s : set α} (h : s.finite) :
   h.to_finset.nonempty ↔ s.nonempty :=
-nonempty_congr (λ _, h.mem_to_finset)
+by rw [← finset.coe_nonempty, finite.coe_to_finset]
 
 @[simp] lemma finite.coe_sort_to_finset {s : set α} (h : s.finite) :
   (h.to_finset : Type*) = s :=

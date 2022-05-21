@@ -33,11 +33,13 @@ random variables. Let `Yₙ` be the truncation of `Xₙ` up to `n`. We claim tha
   `1 + 𝔼[X]` (see `sum_prob_mem_Ioc_le` and `tsum_prob_mem_Ioi_lt_top`).
 * Let `c > 1`. Along the sequence `n = c ^ k`, then `(∑_{i=0}^{n-1} Yᵢ - 𝔼[Yᵢ])/n` converges almost
   surely to `0`. This follows from a variance control, as
+```
   ∑_k ℙ (|∑_{i=0}^{c^k - 1} Yᵢ - 𝔼[Yᵢ]| > c^k ε)
     ≤ ∑_k (c^k ε)^{-2} ∑_{i=0}^{c^k - 1} Var[Yᵢ]    (by Markov inequality)
     ≤ ∑_i (C/i^2) Var[Yᵢ]                           (as ∑_{c^k > i} 1/(c^k)^2 ≤ C/i^2)
     ≤ ∑_i (C/i^2) 𝔼[Yᵢ^2]
     ≤ 2C 𝔼[X^2]                                     (see `sum_variance_truncation_le`)
+```
 * As `𝔼[Yᵢ]` converges to `𝔼[X]`, it follows from the two previous items and Cesaro that, along
   the sequence `n = c^k`, one has `(∑_{i=0}^{n-1} Xᵢ) / n → 𝔼[X]` almost surely.
 * To generalize it to all indices, we use the fact that `∑_{i=0}^{n-1} Xᵢ` is nondecreasing and

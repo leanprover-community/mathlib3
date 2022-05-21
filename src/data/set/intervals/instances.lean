@@ -31,14 +31,7 @@ instance {α : Type*} [ordered_semiring α] : has_pow (Icc (0:α) 1) ℕ :=
   { pow := λ p n, ⟨p.1 ^ n, ⟨pow_nonneg p.2.1 n, pow_le_one n p.2.1 p.2.2⟩⟩ }
 
 instance {α : Type*} [ordered_semiring α] : monoid (Icc (0:α) 1) :=
-{ mul := λ p q, ⟨p*q, ⟨mul_nonneg p.2.1 q.2.1, mul_le_one p.2.2 q.2.1 q.2.2⟩⟩,
-  mul_assoc := λ p q r, subtype.mk_eq_mk.2 (mul_assoc p q r),
-  one := ⟨1, right_mem_Icc.2 zero_le_one⟩,
-  one_mul := (by simp),
-  mul_one := (by simp),
-  npow := λ n p, ⟨p.1 ^ n, ⟨pow_nonneg p.2.1 n, pow_le_one n p.2.1 p.2.2⟩⟩,
-  npow_zero' := (by simp [has_one.one]),
-  npow_succ' := λ n p, (by {simp only [pow_succ p.val n], refl}) }
+by { apply function.injective.monoid _ subtype.coe_injective; { intros, refl } }
 
 instance {α : Type*} [ordered_comm_semiring α] : comm_monoid_with_zero (Icc (0:α) 1) :=
 begin

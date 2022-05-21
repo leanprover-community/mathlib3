@@ -252,7 +252,7 @@ X_pow_card_sub_X_ne_zero K' $ nat.one_lt_pow _ _ (nat.pos_of_ne_zero hn) hp
 
 end
 
-variables (p : ℕ) [fact p.prime] [char_p K p]
+variables (p : ℕ) [fact p.prime] [algebra (zmod p) K]
 lemma roots_X_pow_card_sub_X : roots (X^q - X : K[X]) = finset.univ.val :=
 begin
   classical,

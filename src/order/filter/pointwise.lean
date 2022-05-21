@@ -36,6 +36,10 @@ distribute over pointwise operations. For example,
 * `a +ᵥ f` (`filter.has_vadd_filter`): Translation, filter of all `a +ᵥ s` where `s ∈ f`.
 * `a • f` (`filter.has_scalar_filter`): Scaling, filter of all `a • s` where `s ∈ f`.
 
+For `α` a semigroup/monoid, `filter α` is a semigroup/monoid.
+As an unfortunate side effect, this means that `n • f`, where `n : ℕ`, is ambiguous between
+pointwise scaling and repeated pointwise addition. See note [pointwise nat action].
+
 ## Implementation notes
 
 We put all instances in the locale `pointwise`, so that these instances are not available by

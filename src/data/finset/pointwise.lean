@@ -34,7 +34,7 @@ For finsets `s` and `t`:
 For `α` a semigroup/monoid, `finset α` is a semigroup/monoid.
 As an unfortunate side effect, this means that `n • s`, where `n : ℕ`, is ambiguous between
 pointwise scaling and repeated pointwise addition; the former has `(2 : ℕ) • {1, 2} = {2, 4}`, while
-the latter has `(2 : ℕ) • {1, 2} = {2, 3, 4}`.
+the latter has `(2 : ℕ) • {1, 2} = {2, 3, 4}`. See note [pointwise nat action].
 
 ## Implementation notes
 
@@ -134,7 +134,7 @@ coe_injective $ by rw [coe_preimage, set.inv_preimage, coe_inv]
 
 end has_involutive_inv
 
-/-! ### Scalar subtraction of finsets -/
+/-! ### Finset addition/multiplication -/
 
 section has_mul
 variables [decidable_eq α] [has_mul α] {s s₁ s₂ t t₁ t₂ u : finset α} {a b : α}
@@ -603,7 +603,7 @@ subset_image₂
 
 end has_scalar
 
-/-! ### Finset addition/multiplication -/
+/-! ### Scalar subtraction of finsets -/
 
 section has_vsub
 variables [decidable_eq α] [has_vsub α β] {s s₁ s₂ t t₁ t₂ : finset β} {u : finset α} {a : α}

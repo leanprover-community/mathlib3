@@ -110,7 +110,11 @@ by { rw birthday_def, simp }
 by { rw birthday_def, simp }
 
 @[simp] theorem birthday_half : birthday half = 2 :=
-by { rw birthday_def, simp, exact max_eq_right (lt_succ_self 1).le }
+begin
+  rw birthday_def,
+  simp only [half_move_left, birthday_zero, lsub_unique, succ_zero, half_move_right, birthday_one],
+  exact max_eq_right (lt_succ_self 1).le
+end
 
 @[simp] theorem neg_birthday : ∀ x : pgame, (-x).birthday = x.birthday
 | ⟨xl, xr, xL, xR⟩ := begin

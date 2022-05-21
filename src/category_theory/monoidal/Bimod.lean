@@ -25,18 +25,22 @@ structure Bimod (A B : Mon_ C) :=
 (X : C)
 (act_left : A.X ⊗ X ⟶ X)
 (one_act_left' : (A.one ⊗ 𝟙 X) ≫ act_left = (λ_ X).hom . obviously)
-(left_assoc' : (A.mul ⊗ 𝟙 X) ≫ act_left = (α_ A.X A.X X).hom ≫ (𝟙 A.X ⊗ act_left) ≫ act_left . obviously)
+(left_assoc' :
+  (A.mul ⊗ 𝟙 X) ≫ act_left = (α_ A.X A.X X).hom ≫ (𝟙 A.X ⊗ act_left) ≫ act_left . obviously)
 (act_right : X ⊗ B.X ⟶ X)
 (act_right_one' : (𝟙 X ⊗ B.one) ≫ act_right = (ρ_ X).hom . obviously)
-(right_assoc' : (𝟙 X ⊗ B.mul) ≫ act_right = (α_ X B.X B.X).inv ≫ (act_right ⊗ 𝟙 B.X) ≫ act_right . obviously)
-(middle_assoc' : (act_left ⊗ 𝟙 B.X) ≫ act_right = (α_ A.X X B.X).hom ≫ (𝟙 A.X ⊗ act_right) ≫ act_left . obviously)
+(right_assoc' :
+  (𝟙 X ⊗ B.mul) ≫ act_right = (α_ X B.X B.X).inv ≫ (act_right ⊗ 𝟙 B.X) ≫ act_right . obviously)
+(middle_assoc' :
+  (act_left ⊗ 𝟙 B.X) ≫ act_right = (α_ A.X X B.X).hom ≫ (𝟙 A.X ⊗ act_right) ≫ act_left . obviously)
 
 restate_axiom Bimod.one_act_left'
 restate_axiom Bimod.act_right_one'
 restate_axiom Bimod.left_assoc'
 restate_axiom Bimod.right_assoc'
 restate_axiom Bimod.middle_assoc'
-attribute [simp, reassoc] Bimod.one_act_left Bimod.act_right_one Bimod.left_assoc Bimod.right_assoc Bimod.middle_assoc
+attribute [simp, reassoc]
+Bimod.one_act_left Bimod.act_right_one Bimod.left_assoc Bimod.right_assoc Bimod.middle_assoc
 
 namespace Bimod
 
@@ -403,6 +407,7 @@ begin
   slice_lhs 2 3 { rw coequalizer.π_desc },
 end
 
+@[simps]
 def iso_of_iso {X Y : Mon_ C} {P Q : Bimod X Y}
   (f : P.X ≅ Q.X)
   (f_left_act_hom : P.act_left ≫ f.hom = (𝟙 X.X ⊗ f.hom) ≫ Q.act_left)
@@ -825,7 +830,7 @@ def Mon_bicategory : bicategory (Mon_ C) :=
   hom_category := λ X Y, infer_instance,
   whisker_left := λ X Y Z L M N f, tensor_hom (𝟙 L) f,
   whisker_right := λ X Y Z L M f N, tensor_hom f (𝟙 N),
-  associator := sorry,
+  associator := λ W X Y Z L M N, associator_Bimod L M N,
   left_unitor := λ X Y M, left_unitor_Bimod M,
   right_unitor := λ X Y M, right_unitor_Bimod M,
   whisker_left_id' := sorry,
@@ -838,7 +843,42 @@ def Mon_bicategory : bicategory (Mon_ C) :=
   whisker_right_comp' := sorry,
   whisker_assoc' := sorry,
   whisker_exchange' := sorry,
-  pentagon' := sorry,
+  pentagon' := begin
+    intros V W X Y Z M N P Q,
+    dunfold tensor_hom associator_Bimod, dsimp, ext, dsimp,
+    dunfold associator_Bimod.hom_hom,
+    slice_lhs 1 2 { rw [ι_colim_map, parallel_pair_hom_app_one] },
+    slice_lhs 2 3 { rw coequalizer.π_desc },
+    slice_rhs 1 2 { rw coequalizer.π_desc },
+    dunfold associator_Bimod.hom_hom_aux, dsimp,
+    refine
+    (@cancel_epi _ _ _ _ _ (coequalizer.π _ _ ⊗ 𝟙 _)
+      (map_π_epi (tensor_right _) _ _) _ _).1 _,
+    dsimp,
+    slice_lhs 1 2 { rw [←comp_tensor_id, coequalizer.π_desc] },
+    slice_rhs 1 3 { rw π_tensor_id_preserves_coequalizer_inv_desc },
+    slice_rhs 3 4 { rw coequalizer.π_desc },
+    refine
+    (@cancel_epi _ _ _ _ _ ((coequalizer.π _ _ ⊗ 𝟙 _) ⊗ 𝟙 _)
+      (map_π_epi (tensor_right _ ⋙ tensor_right _) _ _) _ _).1 _,
+    slice_lhs 1 2 { rw [←comp_tensor_id,
+                        π_tensor_id_preserves_coequalizer_inv_desc,
+                        comp_tensor_id, comp_tensor_id ]},
+    slice_lhs 3 5 { rw π_tensor_id_preserves_coequalizer_inv_desc },
+    dunfold tensor_Bimod.X,
+    slice_lhs 2 3 { rw associator_naturality },
+    slice_lhs 5 6 { rw [ι_colim_map, parallel_pair_hom_app_one] },
+    slice_lhs 4 5 { rw [←id_tensor_comp, coequalizer.π_desc] },
+    slice_lhs 3 4 { rw [←id_tensor_comp,
+                        π_tensor_id_preserves_coequalizer_inv_desc,
+                        id_tensor_comp, id_tensor_comp] },
+    slice_rhs 1 2 { rw associator_naturality },
+    slice_rhs 2 3 { rw [monoidal_category.tensor_id,
+                        tensor_id_comp_id_tensor, ←id_tensor_comp_tensor_id] },
+    slice_rhs 3 5 { rw π_tensor_id_preserves_coequalizer_inv_desc },
+    slice_rhs 2 3 { rw [←monoidal_category.tensor_id, associator_naturality] },
+    coherence,
+  end,
   triangle' := sorry }
 
 end Bimod

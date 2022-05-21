@@ -129,30 +129,26 @@ theorem add_lf_add
   {w x y z : pgame.{u}} (oy : numeric y) (oz : numeric z)
   (hwx : w ⧏ x) (hyz : y ⧏ z) : w + y ⧏ x + z :=
 begin
-  rw lf_def_le at *,
+  rw lf_iff_forall_le at *,
   rcases hwx with ⟨ix, hix⟩|⟨jw, hjw⟩;
   rcases hyz with ⟨iz, hiz⟩|⟨jy, hjy⟩,
-  { left,
-    use (left_moves_add x z).symm (sum.inl ix),
-    simp only [add_move_left_inl],
+  { refine or.inl ⟨to_left_moves_add (sum.inl ix), _⟩,
+    rw add_move_left_inl,
     calc w + y ≤ move_left x ix + y : add_le_add_right hix _
             ... ≤ move_left x ix + move_left z iz : add_le_add_left hiz _
             ... ≤ move_left x ix + z : add_le_add_left (oz.move_left_le iz) _ },
-  { left,
-    use (left_moves_add x z).symm (sum.inl ix),
-    simp only [add_move_left_inl],
+  { refine or.inl ⟨to_left_moves_add (sum.inl ix), _⟩,
+    rw add_move_left_inl,
     calc w + y ≤ move_left x ix + y : add_le_add_right hix _
             ... ≤ move_left x ix + move_right y jy : add_le_add_left (oy.le_move_right jy) _
             ... ≤ move_left x ix + z : add_le_add_left hjy _ },
-  { right,
-    use (right_moves_add w y).symm (sum.inl jw),
-    simp only [add_move_right_inl],
+  { refine or.inr ⟨to_right_moves_add (sum.inl jw), _⟩,
+    rw add_move_right_inl,
     calc move_right w jw + y ≤ x + y : add_le_add_right hjw _
             ... ≤ x + move_left z iz : add_le_add_left hiz _
             ... ≤ x + z : add_le_add_left (oz.move_left_le iz) _ },
-  { right,
-    use (right_moves_add w y).symm (sum.inl jw),
-    simp only [add_move_right_inl],
+  { refine or.inr ⟨to_right_moves_add (sum.inl jw), _⟩,
+    rw add_move_right_inl,
     calc move_right w jw + y ≤ x + y : add_le_add_right hjw _
             ... ≤ x + move_right y jy : add_le_add_left (oy.le_move_right jy) _
             ... ≤ x + z : add_le_add_left hjy _ },

@@ -151,12 +151,12 @@ section semigroup_with_zero
 variables [semigroup_with_zero α] {a : α}
 
 theorem eq_zero_of_zero_dvd (h : 0 ∣ a) : a = 0 :=
-dvd.elim h (assume c, assume H' : a = 0 * c, eq.trans H' (zero_mul c))
+dvd.elim h (λ c H', H'.trans (zero_mul c))
 
 /-- Given an element `a` of a commutative semigroup with zero, there exists another element whose
     product with zero equals `a` iff `a` equals zero. -/
 @[simp] lemma zero_dvd_iff : 0 ∣ a ↔ a = 0 :=
-⟨eq_zero_of_zero_dvd, λ h, by { rw h, use 0, simp, }⟩
+⟨eq_zero_of_zero_dvd, λ h, by { rw h, use 0, simp }⟩
 
 @[simp] theorem dvd_zero (a : α) : a ∣ 0 := dvd.intro 0 (by simp)
 

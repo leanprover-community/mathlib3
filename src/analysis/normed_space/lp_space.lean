@@ -668,7 +668,7 @@ end non_unital_normed_ring
 
 section normed_ring
 
-variables  {I : Type*} {B : I → Type*} [Π i, normed_ring (B i)] [Π i, norm_one_class (B i)]
+variables {I : Type*} {B : I → Type*} [Π i, normed_ring (B i)] [Π i, norm_one_class (B i)]
 
 lemma _root_.mem_ℓp.infty_one : mem_ℓp (1 : Π i, B i) ∞ :=
 ⟨1, by { rintros i ⟨i, rfl⟩, exact norm_one.le,}⟩
@@ -705,7 +705,7 @@ end normed_ring
 
 section normed_comm_ring
 
-variables  {I : Type*} {B : I → Type*} [Π i, normed_comm_ring (B i)] [Π i, norm_one_class (B i)]
+variables {I : Type*} {B : I → Type*} [Π i, normed_comm_ring (B i)] [∀ i, norm_one_class (B i)]
 
 instance : comm_ring (lp B ∞) :=
 { mul_comm := λ f g, by { ext, simp only [lp.infty_coe_fn_mul, pi.mul_apply, mul_comm] },

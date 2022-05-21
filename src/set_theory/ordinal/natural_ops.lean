@@ -224,7 +224,7 @@ instance : add_comm_monoid nat_ordinal :=
   zero_add := λ a, by rw [add_comm, add_zero'],
   ..nat_ordinal.add_comm_semigroup }
 
-@[simp] theorem add_one : ∀ a : nat_ordinal.{u}, a + 1 = to_nat_ordinal (succ (of_nat_ordinal a))
+theorem add_one : ∀ a : nat_ordinal.{u}, a + 1 = to_nat_ordinal (succ (of_nat_ordinal a))
 | a := begin
   rw add_def,
   simp only [blsub, of_nat_ordinal_one, blsub_one, to_nat_ordinal_zero, add_zero, max_eq_right_iff,
@@ -235,7 +235,7 @@ instance : add_comm_monoid nat_ordinal :=
 end
 using_well_founded { dec_tac := `[assumption] }
 
-@[simp] theorem add_nat (a : nat_ordinal) (n : ℕ) :
+theorem add_nat (a : nat_ordinal) (n : ℕ) :
   a + n = to_nat_ordinal ((of_nat_ordinal a) + (n : ordinal)) :=
 begin
   induction n with n hn,
@@ -248,7 +248,7 @@ end
 begin
   induction n with n hn,
   { refl },
-  { simpa [hn] }
+  { simpa [add_one, hn] }
 end
 
 @[simp] theorem to_nat_ordinal_cast (n : ℕ) : to_nat_ordinal (↑n) = ↑n :=

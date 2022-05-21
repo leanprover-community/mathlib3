@@ -45,6 +45,10 @@ noncomputable def gram_schmidt (f : ℕ → E) : ℕ → E
 | n := f n - ∑ i : fin n, orthogonal_projection (𝕜 ∙ gram_schmidt i) (f n)
 using_well_founded {dec_tac := `[exact i.prop]}
 
+noncomputable def gram_schmidt_fin {m : ℕ} (f : fin m → E) : fin m → E :=
+  λ i, have hm : fact (0 < m), from ⟨lt_of_le_of_lt (nat.zero_le _) i.2⟩,
+    gram_schmidt 𝕜 (λ j, f (@fin.of_nat' _ hm j)) i
+
 /-- `gram_schmidt_def` turns the sum over `fin n` into a sum over `ℕ`. -/
 lemma gram_schmidt_def (f : ℕ → E) (n : ℕ) :
   gram_schmidt 𝕜 f n = f n - ∑ i in finset.range n,
@@ -54,6 +58,43 @@ begin
   congr' 1,
   exact fin.sum_univ_eq_sum_range (λ i,
     (orthogonal_projection (𝕜 ∙ gram_schmidt 𝕜 f i) (f n) : E)) n,
+end
+
+-- TODO: move
+lemma fin.of_nat'_coe {m : ℕ} (n : fin m) :
+  @fin.of_nat' _ ⟨lt_of_le_of_lt (nat.zero_le _) n.2⟩ n = n :=
+begin
+  haveI hm : fact (0 < m), from ⟨lt_of_le_of_lt (nat.zero_le _) n.2⟩,
+  ext,
+  rw [fin.coe_of_nat_eq_mod', nat.mod_eq_of_lt],
+  exact n.2,
+end
+
+-- TODO: move
+lemma fin.cast_lt_cast_lt {m n : ℕ} (i : fin n) (hm : i.val < m) (hn : i.val < n) :
+  (i.cast_lt hm).cast_lt hn = i :=
+by simp [fin.cast_lt]
+
+-- TODO: move
+lemma sum_fin_range_eq_sum_range {M : Type*} [add_comm_monoid M] (n : ℕ) (f : ℕ → M) :
+∑ i in finset.fin_range n, f i = ∑ i in finset.range n, f i :=
+begin
+  apply finset.sum_bij (λ (i : fin n) ih, i.val),
+  exact λ i ih, finset.mem_range.2 i.2,
+  { intros, rw fin.coe_eq_val },
+  exact λ _ _ _ _, (fin.eq_iff_veq _ _).2,
+  exact λ i hi, ⟨⟨i, finset.mem_range.1 hi⟩, finset.mem_fin_range _, rfl⟩
+end
+
+lemma gram_schmidt_fin_def {m : ℕ} (f : fin m → E) (n : fin m) :
+  gram_schmidt_fin 𝕜 f n = f n - ∑ i in finset.fin_range n,
+    orthogonal_projection (𝕜 ∙ gram_schmidt_fin 𝕜 f (i.cast_lt (lt_trans i.2 n.2))) (f n) :=
+begin
+  simp only [gram_schmidt_fin],
+  haveI hm : fact (0 < m), from ⟨lt_of_le_of_lt (nat.zero_le _) n.2⟩,
+  convert gram_schmidt_def 𝕜 (λ (j : ℕ), f (fin.of_nat' j)) n using 2,
+  { rw [fin.of_nat'_coe] },
+  { rw [←sum_fin_range_eq_sum_range, fin.of_nat'_coe], refl }
 end
 
 lemma gram_schmidt_def' (f : ℕ → E) (n : ℕ):
@@ -215,3 +256,35 @@ begin
     repeat { right },
     refine gram_schmidt_orthogonal 𝕜 f (λ h, hij ((fin.ext_iff i j).2 h)) },
 end
+
+section fintype
+
+variables {ι : Type*} [fintype ι]
+
+noncomputable def gram_schmidt_normed_fin (f : ι → E) : ι → E :=
+  λ i, gram_schmidt_normed 𝕜
+        (λ i,
+            if hi : i < fintype.card ι
+            then f ((fintype.equiv_fin ι).symm (fin.mk i hi))
+            else 0)
+        (fintype.equiv_fin ι i)
+
+theorem gram_schmidt_fin_orthonormal (f : ι → E)
+    (h₀ : linear_independent 𝕜 f) :
+  orthonormal 𝕜 (gram_schmidt_normed_fin 𝕜 f) :=
+begin
+  unfold gram_schmidt_normed_fin,
+
+  change orthonormal 𝕜 ((λ (j : fin _),
+  gram_schmidt_normed 𝕜
+         (λ i,
+            if hi : i < fintype.card ι
+            then f ((fintype.equiv_fin ι).symm (fin.mk i hi))
+            else 0) j) ∘ (λ j,
+  fintype.equiv_fin ι j )),
+
+  apply orthonormal.comp,
+  apply gram_schmidt_orthonormal',
+  apply linear_independent.comp,
+end
+end fintype

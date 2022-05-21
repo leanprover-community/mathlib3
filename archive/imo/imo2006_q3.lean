@@ -92,14 +92,10 @@ begin
   wlog h' := mul_nonneg_of_three x y z using [x y z, y z x, z x y] tactic.skip,
   { rw [div_mul_eq_mul_div, le_div_iff' zero_lt_32],
     exact subst_wlog h' hxyz },
-  { intro h,
-    rw [add_assoc, add_comm] at h,
-    rw [mul_assoc x, mul_comm x, add_assoc (x^2), add_comm (x^2)],
-    exact this h },
-  { intro h,
-    rw [add_comm, ← add_assoc] at h,
-    rw [mul_comm _ z, ← mul_assoc, add_comm _ (z^2), ← add_assoc],
-    exact this h }
+  work_on_goal 1 { rw [mul_assoc x, mul_comm x] },
+  work_on_goal 2 { rw [mul_comm _ z, ← mul_assoc] },
+  repeat { move_add [y ^ 2, z ^ 2, s ^ 2] at this,
+    exact λ h, rfl.le.trans (this $ by move_add [x, y, z]) }
 end
 
 lemma lhs_identity (a b c : ℝ) :

@@ -30,7 +30,7 @@ For sets `s` and `t` and scalar `a`:
 For `α` a semigroup/monoid, `set α` is a semigroup/monoid.
 As an unfortunate side effect, this means that `n • s`, where `n : ℕ`, is ambiguous between
 pointwise scaling and repeated pointwise addition; the former has `(2 : ℕ) • {1, 2} = {2, 4}`, while
-the latter has `(2 : ℕ) • {1, 2} = {2, 3, 4}`.
+the latter has `(2 : ℕ) • {1, 2} = {2, 3, 4}`. See note [pointwise nat action].
 
 Appropriate definitions and results are also transported to the additive theory via `to_additive`.
 
@@ -1066,10 +1066,6 @@ begin
 end
 
 end smul_with_zero
-
-lemma smul_add_set [monoid α] [add_monoid β] [distrib_mul_action α β] (c : α) (s t : set β) :
-  c • (s + t) = c • s + c • t :=
-image_add (distrib_mul_action.to_add_monoid_hom β c).to_add_hom
 
 section group
 variables [group α] [mul_action α β] {A B : set β} {a : α} {x : β}

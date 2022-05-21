@@ -165,7 +165,7 @@ equiv.is_empty _
 
 lemma non_zero_first_wins {O : ordinal} (hO : O ≠ 0) : (nim O).first_wins :=
 begin
-  rw [impartial.first_wins_symm, nim_def, lf_def_le],
+  rw [impartial.first_wins_symm, nim_def, lf_iff_forall_le],
   rw ←ordinal.pos_iff_ne_zero at hO,
   exact or.inr ⟨(ordinal.principal_seg_out hO).top, by simp⟩
 end
@@ -179,8 +179,8 @@ begin
     wlog h' : O₁ ≤ O₂ using [O₁ O₂, O₂ O₁],
     { exact le_total O₁ O₂ },
     { have h : O₁ < O₂ := lt_of_le_of_ne h' h,
-      rw [impartial.first_wins_symm', lf_def_le, nim_def O₂],
-      refine or.inl ⟨(left_moves_add (nim O₁) _).symm (sum.inr _), _⟩,
+      rw [impartial.first_wins_symm', lf_iff_forall_le, nim_def O₂],
+      refine or.inl ⟨to_left_moves_add (sum.inr _), _⟩,
       { exact (ordinal.principal_seg_out h).top },
       { simpa using (impartial.add_self (nim O₁)).2 } },
     { exact first_wins_of_equiv add_comm_equiv (this (ne.symm h)) } },
@@ -216,8 +216,7 @@ begin
   introI hG,
   rw [impartial.equiv_iff_sum_first_loses, ←impartial.no_good_left_moves_iff_first_loses],
   intro i,
-  equiv_rw left_moves_add G (nim (grundy_value G)) at i,
-  cases i with i₁ i₂,
+  rcases left_moves_add_cases i with ⟨i₁, rfl⟩ | ⟨i₂, rfl⟩,
   { rw add_move_left_inl,
     apply first_wins_of_equiv (add_congr_left (equiv_nim_grundy_value (G.move_left i₁)).symm),
     rw nim.sum_first_wins_iff_neq,
@@ -240,7 +239,7 @@ begin
       simpa using hnotin},
 
     cases h' with i hi,
-    use (left_moves_add _ _).symm (sum.inl i),
+    use to_left_moves_add (sum.inl i),
     rw [add_move_left_inl, move_left_mk],
     apply first_loses_of_equiv
       (add_congr_left (equiv_nim_grundy_value (G.move_left i)).symm),
@@ -284,10 +283,10 @@ begin
   have h₀ : ∀ i, grundy_value ((nim n + nim m).move_left i) ≠ (nat.lxor n m : ordinal),
   { -- To show that `n xor m` is unreachable, we show that every move produces a Grundy number
     -- different from `n xor m`.
-    equiv_rw left_moves_add _ _,
+    intro i,
 
     -- The move operates either on the left pile or on the right pile.
-    rintro (a|a),
+    rcases left_moves_add_cases i with ⟨a, rfl⟩ | ⟨a, rfl⟩,
 
     all_goals
     { -- One of the piles is reduced to `k` stones, with `k < n` or `k < m`.
@@ -326,11 +325,11 @@ begin
     -- Therefore, we can play the corresponding move, and by the inductive hypothesis the new state
     -- is `(u xor m) xor m = u` or `n xor (u xor n) = u` as required.
     { obtain ⟨i, hi⟩ := nim.exists_move_left_eq (ordinal.nat_cast_lt.2 h),
-      refine ⟨(left_moves_add _ _).symm (sum.inl i), _⟩,
+      refine ⟨to_left_moves_add (sum.inl i), _⟩,
       simp only [hi, add_move_left_inl],
       rw [hn _ h, nat.lxor_assoc, nat.lxor_self, nat.lxor_zero] },
     { obtain ⟨i, hi⟩ := nim.exists_move_left_eq (ordinal.nat_cast_lt.2 h),
-      refine ⟨(left_moves_add _ _).symm (sum.inr i), _⟩,
+      refine ⟨to_left_moves_add (sum.inr i), _⟩,
       simp only [hi, add_move_left_inr],
       rw [hm _ h, nat.lxor_comm, nat.lxor_assoc, nat.lxor_self, nat.lxor_zero] } },
 

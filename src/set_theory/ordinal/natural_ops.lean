@@ -265,7 +265,7 @@ begin
     rw hb,
     simp [blsub] },
   { apply le_max_of_le_right,
-    rw [blsub, of_nat_ordinal_to_nat_ordinal, hb, blsub_succ, add_succ, succ_le_succ],
+    rw [blsub, of_nat_ordinal_to_nat_ordinal, hb, blsub_succ_of_mono, add_succ, succ_le_succ],
     { apply IH (to_nat_ordinal c),
       rw [←lt_of_nat_ordinal_iff, hb],
       exact lt_succ_self c },

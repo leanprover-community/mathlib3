@@ -133,10 +133,26 @@ do
 /-- Partially traverses an expression in search for a sum of terms.
 When `recurse_on_expr` finds a sum, it sorts it using `sorted_sum`. -/
 meta def recurse_on_expr (hyp : option name) (ll : list (bool × pexpr)) : expr → tactic (list bool)
-| e@`(%%_ + %%_)     := sorted_sum hyp ll e
-| (expr.lam _ _ _ e) := recurse_on_expr e
-| (expr.pi  _ _ _ e) := recurse_on_expr e
-| e                  := do
+| e@`(%%_ + %%_)              := sorted_sum hyp ll e
+| (expr.lam _ _ e f)          := do --helper [e,f] recurse_on_expr
+  li_unused ← (e::f::[]).mmap recurse_on_expr,
+  return $ li_unused.transpose.map list.band
+| (expr.pi  _ _ e f)          := do --helper [e,f] recurse_on_expr
+  li_unused ← (e::f::[]).mmap recurse_on_expr,
+  return $ li_unused.transpose.map list.band
+| (expr.mvar  _ _ e)          := do --helper (e::[]) recurse_on_expr
+  li_unused ← (e::[]).mmap recurse_on_expr,
+  return $ li_unused.transpose.map list.band
+| (expr.local_const  _ _ _ e) := do --helper (e::[]) recurse_on_expr
+  li_unused ← (e::[]).mmap recurse_on_expr,
+  return $ li_unused.transpose.map list.band
+| (expr.app e f)              := do --helper [e,f] recurse_on_expr
+  li_unused ← (e::f::[]).mmap recurse_on_expr,
+  return $ li_unused.transpose.map list.band
+| (expr.elet _ e f g)         := do --helper [e,f,g] recurse_on_expr
+  li_unused ← (e::f::g::[]).mmap recurse_on_expr,
+  return $ li_unused.transpose.map list.band
+| e                           := do --helper [e] recurse_on_expr
   li_unused ← e.get_app_args.mmap recurse_on_expr,
   return $ li_unused.transpose.map list.band
 

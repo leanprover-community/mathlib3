@@ -3,7 +3,7 @@ Copyright (c) 2021 Tian Chen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Tian Chen
 -/
-
+import tactic.mwe_move_add
 import analysis.special_functions.pow
 
 /-!
@@ -58,9 +58,9 @@ theorem imo2001_q2' (ha : 0 < a) (hb : 0 < b) (hc : 0 < c) :
       b ^ 3 / sqrt ((b ^ 3) ^ 2 + 8 * c ^ 3 * a ^ 3) +
       c ^ 3 / sqrt ((c ^ 3) ^ 2 + 8 * a ^ 3 * b ^ 3) :=
 have h₁ : b ^ 4 + c ^ 4 + a ^ 4 = a ^ 4 + b ^ 4 + c ^ 4,
-  by rw [add_comm, ← add_assoc],
+  by move_add ← a ^ 4,
 have h₂ : c ^ 4 + a ^ 4 + b ^ 4 = a ^ 4 + b ^ 4 + c ^ 4,
-  by rw [add_assoc, add_comm],
+  by move_add c ^ 4,
 calc _ ≥ _ : add_le_add (add_le_add (bound ha hb hc) (bound hb hc ha)) (bound hc ha hb)
    ... = 1 : by rw [h₁, h₂, ← add_div, ← add_div, div_self $ ne_of_gt $ denom_pos ha hb hc]
 

@@ -3,6 +3,7 @@ Copyright (c) 2021 Tian Chen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Tian Chen
 -/
+import tactic.mwe_move_add
 
 import analysis.special_functions.sqrt
 
@@ -92,6 +93,7 @@ begin
   wlog h' := mul_nonneg_of_three x y z using [x y z, y z x, z x y] tactic.skip,
   { rw [div_mul_eq_mul_div, le_div_iff' zero_lt_32],
     exact subst_wlog h' hxyz },
+  any_goals { move_add [x, z, y] at this ⊢ },
   work_on_goal 1 { rw [mul_assoc x, mul_comm x] },
   work_on_goal 2 { rw [mul_comm _ z, ← mul_assoc] },
   repeat { move_add [y ^ 2, z ^ 2, s ^ 2] at this,

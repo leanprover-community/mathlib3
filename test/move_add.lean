@@ -1,4 +1,5 @@
 import tactic.move_add
+--import tactic.mwe_move_add
 
 open tactic interactive
 variables {R : Type*} [add_comm_semigroup R] {a b c d e f g h : R}

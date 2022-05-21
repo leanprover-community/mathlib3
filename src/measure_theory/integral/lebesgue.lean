@@ -1549,7 +1549,7 @@ begin
   rw [lintegral, ennreal.mul_supr],
   refine supr_le (λs, _),
   rw [ennreal.mul_supr],
-  simp only [supr_le_iff, ge_iff_le],
+  simp only [supr_le_iff],
   assume hs,
   rw [← simple_func.const_mul_lintegral, lintegral],
   refine le_supr_of_le (const α r * s) (le_supr_of_le (λx, _) le_rfl),
@@ -1643,7 +1643,8 @@ begin
   calc ∫⁻ x, f x ∂μ + ε * μ {x | f x + ε ≤ g x} = ∫⁻ x, φ x ∂μ + ε * μ {x | f x + ε ≤ g x} :
     by rw [hφ_eq]
   ... ≤ ∫⁻ x, φ x ∂μ + ε * μ {x | φ x + ε ≤ g x} :
-    add_le_add_left (mul_le_mul_left' (measure_mono $ λ x, (add_le_add_right (hφ_le _) _).trans) _) _
+    add_le_add_left (mul_le_mul_left'
+      (measure_mono $ λ x, (add_le_add_right (hφ_le _) _).trans) _) _
   ... = ∫⁻ x, φ x + indicator {x | φ x + ε ≤ g x} (λ _, ε) x ∂μ :
     begin
       rw [lintegral_add_left hφm, lintegral_indicator', set_lintegral_const],

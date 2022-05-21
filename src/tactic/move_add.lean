@@ -39,7 +39,6 @@ around a sum.
 * Revise tests?
 -/
 
-open tactic
 namespace tactic
 
 namespace move_add

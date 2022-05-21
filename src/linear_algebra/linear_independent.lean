@@ -3,9 +3,9 @@ Copyright (c) 2020 Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Alexander Bentkamp, Anne Baanen
 -/
+import algebra.big_operators.fin
 import linear_algebra.finsupp
 import linear_algebra.prod
-import logic.equiv.fin
 import set_theory.cardinal.basic
 
 /-!
@@ -253,19 +253,12 @@ lemma linear_independent.fin_cons' {m : ℕ} (x : M) (v : fin m → M)
 begin
   rw fintype.linear_independent_iff at hli ⊢,
   rintros g total_eq j,
-  have zero_not_mem : (0 : fin m.succ) ∉ finset.univ.image (fin.succ : fin m → fin m.succ),
-  { rw finset.mem_image,
-    rintro ⟨x, hx, succ_eq⟩,
-    exact fin.succ_ne_zero _ succ_eq },
-  simp only [submodule.coe_mk, fin.univ_succ, finset.sum_insert zero_not_mem,
-  fin.cons_zero, fin.cons_succ,
-  forall_true_iff, imp_self, fin.succ_inj, finset.sum_image] at total_eq,
+  simp_rw [fin.sum_univ_succ, fin.cons_zero, fin.cons_succ] at total_eq,
   have : g 0 = 0,
   { refine x_ortho (g 0) ⟨∑ (i : fin m), g i.succ • v i, _⟩ total_eq,
     exact sum_mem (λ i _, smul_mem _ _ (subset_span ⟨i, rfl⟩)) },
-  refine fin.cases this (λ j, _) j,
-  apply hli (λ i, g i.succ),
-  simpa only [this, zero_smul, zero_add] using total_eq
+  rw [this, zero_smul, zero_add] at total_eq,
+  exact fin.cases this (hli _ total_eq) j,
 end
 
 /-- A set of linearly independent vectors in a module `M` over a semiring `K` is also linearly

@@ -1051,7 +1051,7 @@ rfl
 theorem bdd_above_range {ι : Type u} (f : ι → ordinal.{max u v}) : bdd_above (set.range f) :=
 ⟨(cardinal.sup.{u v} (cardinal.succ ∘ card ∘ f)).ord, begin
   rintros a ⟨i, rfl⟩,
-  exact le_of_lt (cardinal.lt_ord.2 ((cardinal.lt_succ_self _).trans_le (le_sup _ _)))
+  exact le_of_lt (cardinal.lt_ord.2 ((cardinal.lt_succ _).trans_le (le_sup _ _)))
 end⟩
 
 theorem le_sup {ι} (f : ι → ordinal) : ∀ i, f i ≤ sup f :=
@@ -1584,7 +1584,7 @@ end
 theorem mex_lt_ord_succ_mk {ι} (f : ι → ordinal) : mex f < (#ι).succ.ord :=
 begin
   by_contra' h,
-  apply not_le_of_lt (cardinal.lt_succ_self (#ι)),
+  apply (cardinal.lt_succ (#ι)).not_le,
   have H := λ a, exists_of_lt_mex ((typein_lt_self a).trans_le h),
   let g : (#ι).succ.ord.out.α → ι := λ a, classical.some (H a),
   have hg : injective g := λ a b h', begin
@@ -2279,7 +2279,7 @@ by rw [← add_left_cancel (n*(m/n)), div_add_mod, ← nat_cast_div, ← nat_cas
  λ h, card_nat n ▸ card_le_card h⟩
 
 @[simp] theorem nat_lt_card {o} {n : ℕ} : (n : cardinal) < card o ↔ (n : ordinal) < o :=
-by rw [← succ_le, ← cardinal.succ_le, ← cardinal.nat_succ, nat_le_card]; refl
+by rw [← succ_le, ← cardinal.succ_le_iff, ← cardinal.nat_succ, nat_le_card]; refl
 
 @[simp] theorem card_lt_nat {o} {n : ℕ} : card o < n ↔ o < n :=
 lt_iff_lt_of_le_iff_le nat_le_card

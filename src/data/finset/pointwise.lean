@@ -34,7 +34,7 @@ For finsets `s` and `t`:
 For `α` a semigroup/monoid, `finset α` is a semigroup/monoid.
 As an unfortunate side effect, this means that `n • s`, where `n : ℕ`, is ambiguous between
 pointwise scaling and repeated pointwise addition; the former has `(2 : ℕ) • {1, 2} = {2, 4}`, while
-the latter has `(2 : ℕ) • {1, 2} = {2, 3, 4}`.
+the latter has `(2 : ℕ) • {1, 2} = {2, 3, 4}`. See note [pointwise nat action].
 
 ## Implementation notes
 
@@ -802,6 +802,39 @@ instance is_scalar_tower'' [has_scalar α β] [has_scalar α γ] [has_scalar β 
 instance is_central_scalar [has_scalar α β] [has_scalar αᵐᵒᵖ β] [is_central_scalar α β] :
   is_central_scalar α (finset β) :=
 ⟨λ a s, coe_injective $ by simp only [coe_smul_finset, coe_smul, op_smul_eq_smul]⟩
+
+/-- A multiplicative action of a monoid `α` on a type `β` gives a multiplicative action of
+`finset α` on `finset β`. -/
+@[to_additive "An additive action of an additive monoid `α` on a type `β` gives an additive action
+of `finset α` on `finset β`"]
+protected def mul_action [decidable_eq α] [monoid α] [mul_action α β] :
+  mul_action (finset α) (finset β) :=
+{ mul_smul := λ _ _ _, image₂_assoc mul_smul,
+  one_smul := λ s, image₂_singleton_left.trans $ by simp_rw [one_smul, image_id'] }
+
+/-- A multiplicative action of a monoid on a type `β` gives a multiplicative action on `finset β`.
+-/
+@[to_additive "An additive action of an additive monoid on a type `β` gives an additive action
+on `finset β`."]
+protected def mul_action_finset [monoid α] [mul_action α β] : mul_action α (finset β) :=
+coe_injective.mul_action _ coe_smul_finset
+
+localized "attribute [instance] finset.mul_action_finset finset.add_action_finset
+  finset.mul_action finset.add_action" in pointwise
+
+/-- A distributive multiplicative action of a monoid on an additive monoid `β` gives a distributive
+multiplicative action on `finset β`. -/
+protected def distrib_mul_action_finset [monoid α] [add_monoid β] [distrib_mul_action α β] :
+  distrib_mul_action α (finset β) :=
+function.injective.distrib_mul_action ⟨coe, coe_zero, coe_add⟩ coe_injective coe_smul_finset
+
+/-- A multiplicative action of a monoid on a monoid `β` gives a multiplicative action on `set β`. -/
+protected def mul_distrib_mul_action_finset [monoid α] [monoid β] [mul_distrib_mul_action α β] :
+  mul_distrib_mul_action α (finset β) :=
+function.injective.mul_distrib_mul_action ⟨coe, coe_one, coe_mul⟩ coe_injective coe_smul_finset
+
+localized "attribute [instance] finset.distrib_mul_action_finset
+  finset.mul_distrib_mul_action_finset" in pointwise
 
 end instances
 end finset

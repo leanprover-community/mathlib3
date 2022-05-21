@@ -197,27 +197,45 @@ end center_transfer
 
 section burnside_transfer
 
-lemma key_sylow_lemma {p : ℕ} {G : Type*} [group G] (g : G) [fintype (sylow p G)] (P : sylow p G)
-  {x : G} (hx : x ∈ (P.1.subtype.comp P.1.center.subtype).range) (hy : g⁻¹ * x * g ∈
-    (P.1.subtype.comp P.1.center.subtype).range) : ∃ n ∈ P.1.normalizer, g⁻¹ * x * g = n⁻¹ * x * n :=
+lemma key_sylow_lemma {p : ℕ} [fact p.prime] {G : Type*} [group G] (g : G) [fintype (sylow p G)] (P : sylow p G)
+  {x : G} (hx : x ∈ P.1.centralizer) (hy : g⁻¹ * x * g ∈ (P : subgroup G).centralizer) :
+  ∃ n ∈ (P : subgroup G).normalizer, g⁻¹ * x * g = n⁻¹ * x * n :=
 begin
-  /-
-  We know that `P ≤ C(x)` and `P ≤ C(g⁻¹ * x * g)`.
-  Then `g • P ≤ C(g⁻¹ * x * g)` and `P ≤ C(g⁻¹ * x * g)`.
-  Then `h • g • P
-  -/
-  sorry
+  let H := (zpowers x).centralizer,
+  have key : ∀ K : subgroup G, K ≤ H ↔ x ∈ K.centralizer,
+  { refine λ K, ⟨λ h k hk, (h hk x (mem_zpowers x)).symm, λ h k hk, _⟩,
+    rintro _ ⟨m, rfl⟩,
+    exact (commute.zpow_right (h k hk) m).symm },
+  obtain ⟨h, hh⟩ := mul_action.exists_smul_eq H ((g • P).subtype H _) (P.subtype H _),
+  { refine ⟨h * g, _, _⟩,
+    { rw ← sylow.smul_eq_iff_mem_normalizer,
+      rw mul_smul,
+      simp only [sylow.ext_iff, sylow.coe_subgroup_smul, sylow.coe_subtype] at hh ⊢,
+      sorry },
+    { rw [←mul_assoc, mul_assoc, mul_assoc _ x, h.prop x (mem_zpowers x)],
+      group } },
+  { rw key,
+    rintros - ⟨z, hz, rfl⟩,
+    simp only [mul_distrib_mul_action.to_monoid_End_apply,
+      mul_distrib_mul_action.to_monoid_hom_apply, mul_aut.smul_def,
+      mul_aut.conj_apply],
+    have key := hy z hz,
+    rw [←mul_assoc, eq_mul_inv_iff_mul_eq, mul_assoc, mul_assoc, mul_assoc, ←mul_assoc g⁻¹, key,
+        mul_assoc, mul_assoc, mul_inv_cancel_left] },
+  { rwa [key] },
 end
 
-lemma key_sylow_lemma' {p : ℕ} {G : Type*} [group G] (g : G) [fintype (sylow p G)] (P : sylow p G)
+lemma key_sylow_lemma' {p : ℕ} [fact p.prime] {G : Type*} [group G] (g : G) [fintype (sylow p G)] (P : sylow p G)
   (hP : P.1.is_commutative)
   {x : G} (hx : x ∈ P.1) (hy : g⁻¹ * x * g ∈ P.1) : ∃ n ∈ P.1.normalizer, g⁻¹ * x * g = n⁻¹ * x * n :=
 begin
-  suffices : (P.1.subtype.comp P.1.center.subtype).range = P.1,
-  { rw ← this at hx hy,
+  suffices : P.1 ≤ P.1.centralizer,
+  { replace hx := this hx,
+    replace hy := this hy,
     exact key_sylow_lemma g P hx hy },
-  rw [comm_group.center_eq_top, range_eq_map, ←map_map, ←range_eq_map, subtype_range,
-      ←range_eq_map, subtype_range],
+  refine λ z hz w hw, _,
+  have this := hP.1.1,
+  exact subtype.ext_iff.mp (this (⟨w, hw⟩ : P.1) (⟨z, hz⟩ : P.1)),
 end
 
 noncomputable def burnside_transfer {p : ℕ} {G : Type*} [group G] (P : sylow p G)
@@ -227,7 +245,7 @@ begin
   exact transfer (monoid_hom.id P.1),
 end
 
-lemma burnside_transfer_ker_inf {p : ℕ} {G : Type*} [group G] (P : sylow p G)
+lemma burnside_transfer_ker_inf {p : ℕ} [fact p.prime] {G : Type*} [group G] (P : sylow p G)
   [fintype (G ⧸ P.1)] [fintype G]
   (hP : P.1.normalizer ≤ P.1.centralizer) : (burnside_transfer P hP).ker ⊓ P.1 = ⊥ :=
 begin

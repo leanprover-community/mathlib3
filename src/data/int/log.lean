@@ -239,7 +239,7 @@ clog_of_right_le_zero le_rfl _
 @[simp] lemma clog_one_right (b : ℕ) : clog b (1 : R) = 0 :=
 by rw [clog, if_pos le_rfl, nat.ceil_one, nat.clog_one_right, int.coe_nat_zero]
 
-/--`clog b` and `zpow b` form a Galois connection. -/
+/-- `clog b` and `zpow b` (almost) form a Galois connection. -/
 lemma le_zpow_iff_clog_le {b : ℕ} (hb : 1 < b) {x : ℤ} {y : R} (hy : 0 < y) :
   y ≤ (b : R) ^ x ↔ clog b y ≤ x :=
 begin

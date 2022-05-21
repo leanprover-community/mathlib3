@@ -174,9 +174,9 @@ noncomputable def gram_schmidt_normed (f : ℕ → E) (n : ℕ) : E :=
 (∥gram_schmidt 𝕜 f n∥ : 𝕜)⁻¹ • (gram_schmidt 𝕜 f n)
 
 lemma gram_schmidt_normed_unit_length (f : ℕ → E) (n : ℕ)
-  (h₀ : linear_independent 𝕜 (f ∘ (coe : fin n.succ → ℕ))) :
-    ∥gram_schmidt_normed 𝕜 f n∥ = 1 :=
-by simp only [gram_schmidt_ne_zero 𝕜 f (n + 1) h₀ n (lt_succ n),
+  (h₀ : linear_independent 𝕜 (f ∘ (coe : fin n → ℕ))) (i : ℕ) (hi : i < n) :
+    ∥gram_schmidt_normed 𝕜 f i∥ = 1 :=
+by simp only [gram_schmidt_ne_zero 𝕜 f n h₀ i hi,
   gram_schmidt_normed, norm_smul_inv_norm, ne.def, not_false_iff]
 
 lemma gram_schmidt_normed_unit_length' (f : ℕ → E) (n : ℕ)
@@ -198,4 +198,20 @@ begin
       is_R_or_C.conj_of_real, mul_eq_zero, inv_eq_zero, is_R_or_C.of_real_eq_zero, norm_eq_zero],
     repeat { right },
     exact gram_schmidt_orthogonal 𝕜 f hij, },
+end
+
+theorem gram_schmidt_orthonormal' (f : ℕ → E) (n : ℕ)
+    (h₀ : linear_independent 𝕜 (f ∘ (coe : fin n → ℕ))) :
+  orthonormal 𝕜 (gram_schmidt_normed 𝕜 f ∘ (coe : fin n → ℕ)) :=
+begin
+  unfold orthonormal,
+  split,
+  { rintro ⟨i, hi⟩,
+    apply gram_schmidt_normed_unit_length _ f n h₀ i hi },
+  { intros i j hij,
+    simp only [(∘)],
+    simp only [gram_schmidt_normed, inner_smul_left, inner_smul_right, is_R_or_C.conj_inv,
+      is_R_or_C.conj_of_real, mul_eq_zero, inv_eq_zero, is_R_or_C.of_real_eq_zero, norm_eq_zero],
+    repeat { right },
+    refine gram_schmidt_orthogonal 𝕜 f (λ h, hij ((fin.ext_iff i j).2 h)) },
 end

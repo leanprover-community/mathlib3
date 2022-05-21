@@ -18,10 +18,10 @@ def nat_ordinal : Type* := ordinal
 namespace nat_ordinal
 
 /-- The identity function between `ordinal` and `nat_ordinal`. -/
-def to_nat_ordinal : ordinal ≃ nat_ordinal := equiv.refl _
+@[pattern] def to_nat_ordinal : ordinal ≃ nat_ordinal := equiv.refl _
 
 /-- The identity function between `nat_ordinal` and `ordinal`. -/
-def of_nat_ordinal : nat_ordinal ≃ ordinal := equiv.refl _
+@[pattern] def of_nat_ordinal : nat_ordinal ≃ ordinal := equiv.refl _
 
 @[simp] theorem to_nat_ordinal_symm_eq : to_nat_ordinal.symm = of_nat_ordinal := rfl
 @[simp] theorem of_nat_ordinal_symm_eq : of_nat_ordinal.symm = to_nat_ordinal := rfl
@@ -45,12 +45,16 @@ instance : linear_order nat_ordinal := ordinal.linear_order
 @[simp] theorem of_nat_ordinal_lt_iff {a b} : of_nat_ordinal a < of_nat_ordinal b ↔ a < b := iff.rfl
 @[simp] theorem of_nat_ordinal_le_iff {a b} : of_nat_ordinal a ≤ of_nat_ordinal b ↔ a ≤ b := iff.rfl
 
+/-- A recursor for `nat_ordinal`. Use as `induction x using nat_ordinal.rec`. -/
+protected def rec {β : nat_ordinal → Sort*} (h : Π a, β (to_nat_ordinal a)) : Π a, β a :=
+λ a, h (of_nat_ordinal a)
+
 /-- Natural addition on ordinals `a + b` is recursively defined as the least ordinal greater than
 `a' + b` and `a + b'` for all `a' < a` and `b < b'`. In contrast to normal ordinal addition, it is
 commutative.
 
-Natural addition can equivalently be defined as the ordinal resulting from adding up corresponding
-coefficients in the Cantor normal forms of `a` and `b`. -/
+Natural addition can equivalently be characterized as the ordinal resulting from adding up
+corresponding coefficients in the Cantor normal forms of `a` and `b`. -/
 noncomputable def add : nat_ordinal → nat_ordinal → nat_ordinal
 | a b := max
   (blsub.{u u} (of_nat_ordinal a) (λ a' h, of_nat_ordinal (add (to_nat_ordinal a') b)))

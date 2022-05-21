@@ -194,11 +194,11 @@ def punit {β : Sort*} (b : β) : punit ↪ β :=
 ⟨λ _, b, by { rintros ⟨⟩ ⟨⟩ _, refl, }⟩
 
 /-- Fixing an element `b : β` gives an embedding `α ↪ α × β`. -/
-def sectl (α : Sort*) {β : Sort*} (b : β) : α ↪ α × β :=
+@[simps] def sectl (α : Sort*) {β : Sort*} (b : β) : α ↪ α × β :=
 ⟨λ a, (a, b), λ a a' h, congr_arg prod.fst h⟩
 
 /-- Fixing an element `a : α` gives an embedding `β ↪ α × β`. -/
-def sectr {α : Sort*} (a : α) (β : Sort*): β ↪ α × β :=
+@[simps] def sectr {α : Sort*} (a : α) (β : Sort*): β ↪ α × β :=
 ⟨λ b, (a, b), λ b b' h, congr_arg prod.snd h⟩
 
 /-- Restrict the codomain of an embedding. -/

@@ -247,7 +247,7 @@ theorem bernoulli_generating_function' (t : ℚ) :
     power_series.X * rescale t (exp ℚ) :=
 begin
   convert bernoulli_generating_function t,
-  simp_rw [polynomial.aeval_def, polynomial.eval₂_eq_eval_map],
+  simp_rw [aeval_def, eval₂_eq_eval_map],
   simp,
 end
 
@@ -269,8 +269,6 @@ lemma power_series.mk_smul {R : Type*} [semiring R] (f : ℕ → R) (a : R) : mk
 by { ext, rw [coeff_mk, power_series.coeff_smul, coeff_mk],
   simp only [smul_eq_mul, pi.smul_apply], }
 
---instance : is_scalar_tower ℚ (power_series ℚ) (power_series ℚ) := is_scalar_tower.rat
-
 lemma rescale_mk {R : Type*} [comm_semiring R] (f : ℕ → R) (a : R) :
   rescale a (mk f) = mk (λ n : ℕ, a^n * (f n)) :=
 by { ext, rw [coeff_rescale, coeff_mk, coeff_mk], }
@@ -285,7 +283,7 @@ end
 
 /-- Bernoulli polynomials multiplication theorem :
   For k ≥ 1, B_m(k*x) = ∑ i in range k, B_m (x + i / k).  -/
-theorem eval_mul' (m : ℕ) {k : ℕ} (hk : k ≠ 0) (x : ℚ) :
+theorem bernoulli_eval_mul' (m : ℕ) {k : ℕ} (hk : k ≠ 0) (x : ℚ) :
   (bernoulli m).eval ((k : ℚ) * x) =
   k^(m - 1 : ℤ) * ∑ i in range k, (bernoulli m).eval (x + i / k) :=
 begin

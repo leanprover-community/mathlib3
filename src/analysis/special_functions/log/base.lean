@@ -302,7 +302,7 @@ begin
     refine le_of_le_of_eq _ (rpow_logb (zero_lt_one.trans hb1') hb1'.ne' hr),
     exact rpow_le_rpow_of_exponent_le hb1'.le (int.floor_le _) },
   { rw [int.le_floor, le_logb_iff_rpow_le hb1' hr, rpow_int_cast],
-    refine int.zpow_log_le_self _ _ hb hr }
+    refine int.zpow_log_le_self hb hr }
 end
 
 lemma ceil_logb_nat_cast (b : ℕ) (r : ℝ) (hb : 1 < b) (hr : 0 ≤ r) : ⌈logb b r⌉ = int.clog b r :=
@@ -312,9 +312,9 @@ begin
   have hb1' : 1 < (b : ℝ) := nat.one_lt_cast.mpr hb,
   apply le_antisymm,
   { rw [int.ceil_le, logb_le_iff_le_rpow hb1' hr, rpow_int_cast],
-    refine int.self_le_zpow_clog _ _ hb hr },
+    refine int.self_le_zpow_clog hb hr },
   { rw [←int.le_zpow_iff_clog_le hb hr, ←rpow_int_cast b],
-    refine le_of_eq_of_le (rpow_logb (zero_lt_one.trans hb1') hb1'.ne' hr).symm _,
+    refine (rpow_logb (zero_lt_one.trans hb1') hb1'.ne' hr).symm.trans_le _,
     exact rpow_le_rpow_of_exponent_le hb1'.le (int.le_ceil _) },
 end
 

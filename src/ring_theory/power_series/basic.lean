@@ -1284,6 +1284,18 @@ by simp
 by { ext, simp only [ring_hom.id_apply, rescale, one_pow, coeff_mk, one_mul,
   ring_hom.coe_mk], }
 
+lemma rescale_mk (f : ℕ → R) (a : R) :
+  rescale a (mk f) = mk (λ n : ℕ, a^n * (f n)) :=
+by { ext, rw [coeff_rescale, coeff_mk, coeff_mk], }
+
+lemma rescale_comp_eq_mul (f : power_series R) (a b : R) :
+  rescale b (rescale a f) = rescale (a * b) f :=
+begin
+  ext,
+  repeat { rw coeff_rescale, },
+  rw [mul_pow, mul_comm _ (b^n), mul_assoc],
+end
+
 section trunc
 
 /-- The `n`th truncation of a formal power series to a polynomial -/

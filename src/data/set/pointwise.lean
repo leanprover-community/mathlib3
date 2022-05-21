@@ -1022,13 +1022,6 @@ by { rintro _ ⟨_, _, _, _, rfl⟩, exact ⟨_, _, ‹_›, ‹_›, (map_mul m
 
 end mul_hom
 
-end set
-
-open set
-open_locale pointwise
-
-section
-
 section smul_with_zero
 variables [has_zero α] [has_zero β] [smul_with_zero α β]
 
@@ -1149,7 +1142,12 @@ eq_univ_of_forall $ λ b, ⟨a⁻¹ • b, trivial, smul_inv_smul₀ ha _⟩
 
 end group_with_zero
 
-end
+end set
+
+/-! ### Miscellaneous -/
+
+open set
+open_locale pointwise
 
 /-! Some lemmas about pointwise multiplication and submonoids. Ideally we put these in
   `group_theory.submonoid.basic`, but currently we cannot because that file is imported by this. -/

@@ -163,7 +163,7 @@ theorem lt_add_iff {a b c : nat_ordinal} :
   a < b + c ↔ (∃ b' < b, a ≤ b' + c) ∨ ∃ c' < c, a ≤ b + c' :=
 by { rw add_def, unfold blsub, simpa [lt_blsub_iff, lt_to_nat_ordinal_iff] }
 
-theorem blsub_add {a b : nat_ordinal.{u}} {f : Π c < (a + b), nat_ordinal.{max u v}}
+theorem blsub_add_of_mono {a b : nat_ordinal.{u}} {f : Π c < (a + b), nat_ordinal.{max u v}}
   (hf : ∀ {i j} hi hj, i ≤ j → f i hi ≤ f j hj) : blsub _ f = max
   (blsub.{u v} a (λ a' ha', f (a' + b) $ add_lt_add_right ha' b))
   (blsub.{u v} b (λ b' hb', f (a + b') $ add_lt_add_left hb' a)) :=
@@ -181,7 +181,7 @@ end
 private theorem add_assoc' : ∀ a b c : nat_ordinal, a + b + c = a + (b + c)
 | a b c := begin
   nth_rewrite 2 add_def,
-  rw [add_def, blsub_add, blsub_add, max_assoc],
+  rw [add_def, blsub_add_of_mono, blsub_add_of_mono, max_assoc],
   { congr;
     ext d hd;
     apply add_assoc' },

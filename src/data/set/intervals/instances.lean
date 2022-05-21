@@ -14,23 +14,23 @@ For suitably structured underlying type `α`, we exhibit the structure of
 the unit intervals from `0` to `1`.
 -/
 
+variables {α : Type*} [ordered_semiring α]
+
 open set
 
 /-- Instances for `(Icc 0 1)` -/
 
-instance {α : Type*} [ordered_semiring α] : has_zero (Icc (0:α) 1) :=
-  { zero := ⟨0, left_mem_Icc.2 zero_le_one⟩ }
+instance : has_zero (Icc (0:α) 1) := { zero := ⟨0, left_mem_Icc.2 zero_le_one⟩ }
 
-instance {α : Type*} [ordered_semiring α] : has_one (Icc (0:α) 1) :=
-  { one := ⟨1, right_mem_Icc.2 zero_le_one⟩ }
+instance : has_one (Icc (0:α) 1) := { one := ⟨1, right_mem_Icc.2 zero_le_one⟩ }
 
-instance {α : Type*} [ordered_semiring α] : has_mul (Icc (0:α) 1) :=
+instance : has_mul (Icc (0:α) 1) :=
   { mul := λ p q, ⟨p*q, ⟨mul_nonneg p.2.1 q.2.1, mul_le_one p.2.2 q.2.1 q.2.2⟩⟩ }
 
-instance {α : Type*} [ordered_semiring α] : has_pow (Icc (0:α) 1) ℕ :=
+instance : has_pow (Icc (0:α) 1) ℕ :=
   { pow := λ p n, ⟨p.1 ^ n, ⟨pow_nonneg p.2.1 n, pow_le_one n p.2.1 p.2.2⟩⟩ }
 
-instance {α : Type*} [ordered_semiring α] : monoid (Icc (0:α) 1) :=
+instance : monoid (Icc (0:α) 1) :=
 by { apply function.injective.monoid _ subtype.coe_injective; { intros, refl } }
 
 instance {α : Type*} [ordered_comm_semiring α] : comm_monoid_with_zero (Icc (0:α) 1) :=
@@ -42,7 +42,7 @@ end
 
 /-- Instances for `(Ico 0 1)` -/
 
-instance {α : Type*} [ordered_semiring α] : semigroup (Ico (0:α) 1) :=
+instance : semigroup (Ico (0:α) 1) :=
 { mul := λ p q, ⟨p*q, ⟨mul_nonneg p.2.1 q.2.1,
     mul_lt_one_of_nonneg_of_lt_one_right p.2.2.le q.2.1 q.2.2⟩⟩,
   mul_assoc := λ p q r, (by exact subtype.mk_eq_mk.2 (mul_assoc p q r)) }
@@ -54,7 +54,7 @@ instance {α : Type*} [ordered_comm_semiring α] : comm_semigroup (Ico (0:α) 1)
 
 /-- Instances for `(Ioc 0 1)` -/
 
-instance {α : Type*} [ordered_semiring α] [nontrivial α] : monoid (Ioc (0:α) 1) :=
+instance [nontrivial α] : monoid (Ioc (0:α) 1) :=
 { mul := λ p q, ⟨p.1 * q.1, ⟨mul_pos p.2.1 q.2.1, mul_le_one p.2.2 (le_of_lt q.2.1) q.2.2⟩⟩,
   mul_assoc := λ p q r, (by simp only [subtype.mk_eq_mk, mul_assoc]),
   one := ⟨1, ⟨zero_lt_one, le_refl 1⟩⟩,
@@ -70,7 +70,7 @@ instance {α : Type*} [ordered_comm_semiring α] [nontrivial α] : comm_monoid (
 
 /-- Instances for `(Ioo 0 1)` -/
 
-instance {α : Type*} [ordered_semiring α] : semigroup (Ioo (0:α) 1) :=
+instance : semigroup (Ioo (0:α) 1) :=
 { mul := λ p q, ⟨p.1 * q.1, ⟨mul_pos p.2.1 q.2.1,
     mul_lt_one_of_nonneg_of_lt_one_right p.2.2.le q.2.1.le q.2.2⟩⟩,
   mul_assoc := λ p q r, (by simp only [subtype.mk_eq_mk, mul_assoc]) }

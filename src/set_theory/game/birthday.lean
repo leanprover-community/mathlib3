@@ -122,7 +122,7 @@ end
 begin
   induction o using ordinal.induction with o IH,
   rw [to_pgame_def, pgame.birthday],
-  convert max_eq_left_iff.2 (ordinal.zero_le _),
+  convert max_eq_left (ordinal.zero_le _),
   { apply lsub_empty },
   { nth_rewrite 0 ←lsub_typein o,
     congr,

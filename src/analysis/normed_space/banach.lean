@@ -415,7 +415,7 @@ begin
   have : function.left_inverse prod.fst φ₀ := λ x, rfl,
   let φ : E ≃ₗ[𝕜] g.graph :=
     (linear_equiv.of_left_inverse this).trans
-    (linear_equiv.submodule_congr g.graph_eq_range_prod.symm),
+    (linear_equiv.of_eq _ _ g.graph_eq_range_prod.symm),
   let ψ : g.graph ≃L[𝕜] E := φ.symm.to_continuous_linear_equiv_of_continuous
     continuous_subtype_coe.fst,
   exact (continuous_subtype_coe.comp ψ.symm.continuous).snd

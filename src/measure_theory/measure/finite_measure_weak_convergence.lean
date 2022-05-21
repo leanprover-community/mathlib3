@@ -332,8 +332,8 @@ end
 
 lemma tendsto_lintegral_nn_of_le_const (μ : finite_measure α)
   {fs : ℕ → (α →ᵇ ℝ≥0)} {c : ℝ≥0} (fs_le_const : ∀ n a, fs n a ≤ c) {f : α → ℝ≥0}
-  (fs_lim : ∀ a, tendsto (λ (n : ℕ), (fs n a)) at_top (𝓝 (f a))) :
-  tendsto (λ (n : ℕ), (∫⁻ a, (fs n a) ∂(μ : measure α))) at_top
+  (fs_lim : ∀ a, tendsto (λ n, fs n a) at_top (𝓝 (f a))) :
+  tendsto (λ n, (∫⁻ a, fs n a ∂(μ : measure α))) at_top
           (𝓝 (∫⁻ a, (f a) ∂(μ : measure α))) :=
 begin
   simpa only using tendsto_lintegral_of_dominated_convergence (λ _, c)
@@ -345,8 +345,8 @@ end
 
 lemma tendsto_test_against_nn_of_le_const {μ : finite_measure α}
   {fs : ℕ → (α →ᵇ ℝ≥0)} {c : ℝ≥0} (fs_le_const : ∀ n a, fs n a ≤ c) {f : α →ᵇ ℝ≥0}
-  (fs_lim : ∀ a, tendsto (λ (n : ℕ), (fs n a)) at_top (𝓝 (f a))) :
-  tendsto (λ (n : ℕ), μ.test_against_nn (fs n)) at_top (𝓝 (μ.test_against_nn f)) :=
+  (fs_lim : ∀ a, tendsto (λ n, fs n a) at_top (𝓝 (f a))) :
+  tendsto (λ n, μ.test_against_nn (fs n)) at_top (𝓝 (μ.test_against_nn f)) :=
 begin
   apply (ennreal.tendsto_to_nnreal
          (μ.lintegral_lt_top_of_bounded_continuous_to_nnreal f).ne).comp,
@@ -474,8 +474,6 @@ end probability_measure
 
 section convergence_implies_limsup_closed_le
 
-open measure_theory set filter bounded_continuous_function
-open_locale topological_space ennreal nnreal bounded_continuous_function
 
 variables [topological_space α] [opens_measurable_space α]
 

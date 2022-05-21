@@ -3,7 +3,6 @@ Copyright (c) 2021 Tian Chen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Tian Chen
 -/
-import tactic.mwe_move_add
 import analysis.special_functions.pow
 
 /-!

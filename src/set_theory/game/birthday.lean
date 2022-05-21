@@ -101,7 +101,7 @@ using_well_founded { dec_tac := pgame_wf_tac }
 by rw [birthday_def, max_eq_zero, lsub_eq_zero_iff, lsub_eq_zero_iff]
 
 @[simp] theorem birthday_zero : birthday 0 = 0 :=
-by { rw birthday_def, simp }
+by simp [pempty.is_empty]
 
 @[simp] theorem birthday_one : birthday 1 = 1 :=
 by { rw birthday_def, simp }

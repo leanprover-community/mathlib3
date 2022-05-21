@@ -192,29 +192,9 @@ set.support_indicator
 lemma range_indicator {s : set α} (hs : measurable_set s)
   (hs_nonempty : s.nonempty) (hs_ne_univ : s ≠ univ) (x y : β) :
   (piecewise s hs (const α x) (const α y)).range = {x, y} :=
-begin
-  ext1 z,
-  rw [mem_range, set.mem_range, finset.mem_insert, finset.mem_singleton],
-  simp_rw piecewise_apply,
-  split; intro h,
-  { obtain ⟨a, haz⟩ := h,
-    by_cases has : a ∈ s,
-    { left,
-      simp only [has, function.const_apply, if_true, coe_const] at haz,
-      exact haz.symm, },
-    { right,
-      simp only [has, function.const_apply, if_false, coe_const] at haz,
-      exact haz.symm, }, },
-  { cases h,
-    { obtain ⟨a, has⟩ : ∃ a, a ∈ s, from hs_nonempty,
-      exact ⟨a, by simpa [has] using h.symm⟩, },
-    { obtain ⟨a, has⟩ : ∃ a, a ∉ s,
-      { by_contra' h,
-        refine hs_ne_univ _,
-        ext1 a,
-        simp [h a], },
-      exact ⟨a, by simpa [has] using h.symm⟩, }, },
-end
+by simp only [← finset.coe_inj, coe_range, coe_piecewise, range_piecewise, coe_const,
+  finset.coe_insert, finset.coe_singleton, hs_nonempty.image_const,
+  (nonempty_compl.2 hs_ne_univ).image_const, singleton_union]
 
 lemma measurable_bind [measurable_space γ] (f : α →ₛ β) (g : β → α → γ)
   (hg : ∀ b, measurable (g b)) : measurable (λ a, g (f a) a) :=
@@ -1032,12 +1012,7 @@ lintegral_mono' (le_refl μ) hfg
 
 lemma lintegral_mono_nnreal {f g : α → ℝ≥0} (h : f ≤ g) :
   ∫⁻ a, f a ∂μ ≤ ∫⁻ a, g a ∂μ :=
-begin
-  refine lintegral_mono _,
-  intro a,
-  rw ennreal.coe_le_coe,
-  exact h a,
-end
+lintegral_mono $ λ a, ennreal.coe_le_coe.2 (h a)
 
 lemma supr_lintegral_measurable_le_eq_lintegral (f : α → ℝ≥0∞) :
   (⨆ (g : α → ℝ≥0∞) (g_meas : measurable g) (hg : g ≤ f), ∫⁻ a, g a ∂μ) = ∫⁻ a, f a ∂μ :=
@@ -1111,7 +1086,7 @@ lemma exists_simple_func_forall_lintegral_sub_lt_of_pos {f : α → ℝ≥0∞} 
 begin
   rw lintegral_eq_nnreal at h,
   have := ennreal.lt_add_right h hε,
-  erw ennreal.bsupr_add at this; [skip, exact ⟨0, λ x, by simp⟩],
+  erw ennreal.bsupr_add at this; [skip, exact ⟨0, λ x, zero_le _⟩],
   simp_rw [lt_supr_iff, supr_lt_iff, supr_le_iff] at this,
   rcases this with ⟨φ, hle : ∀ x, ↑(φ x) ≤ f x, b, hbφ, hb⟩,
   refine ⟨φ, hle, λ ψ hψ, _⟩,

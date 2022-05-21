@@ -642,13 +642,10 @@ theorem have_lebesgue_decomposition_of_finite_measure [is_finite_measure μ] [is
     { refine ⟨measurable.add hξm (measurable.indicator measurable_const hE₁), λ A hA, _⟩,
       have : ∫⁻ a in A, (ξ + E.indicator (λ _, ε)) a ∂ν =
             ∫⁻ a in A ∩ E, ε + ξ a ∂ν + ∫⁻ a in A \ E, ξ a ∂ν,
-      { rw [lintegral_add measurable_const hξm, add_assoc,
-            ← lintegral_inter_add_diff _ _ hE₁],
-        simp_rw [pi.add_apply],
-        rw [lintegral_add hξm (measurable.indicator measurable_const hE₁), add_comm],
-        refine congr_fun (congr_arg has_add.add _) _,
-        rw [set_lintegral_const, lintegral_indicator _ hE₁, set_lintegral_const,
-            measure.restrict_apply hE₁, inter_comm] },
+      { simp only [lintegral_add measurable_const hξm, add_assoc, pi.add_apply, inter_comm E,
+          lintegral_inter_add_diff _ _ hE₁, lintegral_add hξm (measurable_const.indicator hE₁),
+          lintegral_indicator _ hE₁, set_lintegral_const, measure.restrict_apply hE₁],
+        exact add_comm _ _ },
       rw [this, ← measure_inter_add_diff A hE₁],
       exact add_le_add (hε₂ A hA) (hξle (A \ E) (hA.diff hE₁)) },
       have : ∫⁻ a, ξ a + E.indicator (λ _, ε) a ∂ν ≤ Sup (measurable_le_eval ν μ) :=

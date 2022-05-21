@@ -103,6 +103,10 @@ theorem eq_of_nat_ordinal_iff {a b} : a = of_nat_ordinal b ↔ to_nat_ordinal a 
 protected def rec {β : nat_ordinal → Sort*} (h : Π a, β (to_nat_ordinal a)) : Π a, β a :=
 λ a, h (of_nat_ordinal a)
 
+/-- `ordinal.induction` but for `nat_ordinal`. -/
+theorem induction {p : nat_ordinal → Prop} :
+  ∀ i (h : ∀ j, (∀ k, k < j → p k) → p j), p i := ordinal.induction
+
 /-- `ordinal.blsub` but for `nat_ordinal`. -/
 def blsub (o : nat_ordinal.{u}) (f : Π a < o, nat_ordinal.{max u v}) : nat_ordinal :=
 to_nat_ordinal (blsub.{u v} (of_nat_ordinal o) (λ a ha, of_nat_ordinal (f (to_nat_ordinal a) ha)))
@@ -157,7 +161,21 @@ instance swap_add_covariant_class_le :
   { exact le_rfl }
 end⟩
 
--- TODO: prove contravariant classes.
+instance add_contravariant_class_lt :
+  contravariant_class nat_ordinal.{u} nat_ordinal.{u} (+) (<) :=
+⟨λ a b c h, by { by_contra' h', exact h.not_le (add_le_add_left h' a) }⟩
+
+instance swap_add_contravariant_class_lt :
+  contravariant_class nat_ordinal.{u} nat_ordinal.{u} (swap (+)) (<) :=
+⟨λ a b c h, by { by_contra' h', exact h.not_le (add_le_add_right h' a) }⟩
+
+instance add_contravariant_class_le :
+  contravariant_class nat_ordinal.{u} nat_ordinal.{u} (+) (≤) :=
+⟨λ a b c h, by { by_contra' h', exact h.not_lt (add_lt_add_left h' a) }⟩
+
+instance swap_add_contravariant_class_le :
+  contravariant_class nat_ordinal.{u} nat_ordinal.{u} (swap (+)) (≤) :=
+⟨λ a b c h, by { by_contra' h', exact h.not_lt (add_lt_add_right h' a) }⟩
 
 theorem lt_add_iff {a b c : nat_ordinal} :
   a < b + c ↔ (∃ b' < b, a ≤ b' + c) ∨ ∃ c' < c, a ≤ b + c' :=
@@ -218,10 +236,11 @@ private theorem add_zero' : ∀ a : nat_ordinal, a + 0 = a
 end
 using_well_founded { dec_tac := `[assumption] }
 
-instance : add_comm_monoid nat_ordinal :=
+instance : add_cancel_comm_monoid nat_ordinal :=
 { zero := 0,
   add_zero := add_zero',
   zero_add := λ a, by rw [add_comm, add_zero'],
+  add_left_cancel := λ a b c, add_left_cancel'',
   ..nat_ordinal.add_comm_semigroup }
 
 theorem add_one : ∀ a : nat_ordinal.{u}, a + 1 = to_nat_ordinal (succ (of_nat_ordinal a))

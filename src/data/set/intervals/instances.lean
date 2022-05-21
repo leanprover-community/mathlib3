@@ -7,6 +7,13 @@ import data.set.intervals.basic
 import algebra.order.ring
 import algebra.group_power.order
 
+/-!
+# Structure instances for unit intervals
+
+For suitably structured underlying type `α`, we exhibit the structure of
+the unit intervals from `0` to `1`.
+-/
+
 open set
 
 /-- Instances for `(Icc 0 1)` -/

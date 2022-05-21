@@ -94,8 +94,9 @@ begin
   any_goals { move_add [x, z, y] at this ⊢ },
   work_on_goal 1 { rw [mul_assoc x, mul_comm x] },
   work_on_goal 2 { rw [mul_comm _ z, ← mul_assoc] },
-  repeat { move_add [y ^ 2, z ^ 2, s ^ 2] at this,
-    exact λ h, rfl.le.trans (this $ by move_add [x, y, z]) }
+  repeat { intro h,
+    move_add [y ^ 2, z ^ 2, s ^ 2] at this,
+    exact rfl.le.trans (this $ by move_add [x, y, z]) }
 end
 
 lemma lhs_identity (a b c : ℝ) :

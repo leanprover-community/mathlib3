@@ -688,13 +688,11 @@ theorem lift_injective_of_ping_pong:
 begin
   classical,
   apply (injective_iff_map_eq_one (lift f)).mpr,
-  rw free_product.word.equiv.forall_congr_left',
+  rw (free_product.word.equiv : _ ≃ word H).forall_congr_left',
   { intros w Heq,
     dsimp [word.equiv] at *,
     { rw empty_of_word_prod_eq_one f hcard X hXnonempty hXdisj hpp Heq,
       reflexivity, }, },
-  apply_instance,
-  apply_instance,
 end
 
 end ping_pong_lemma
@@ -744,8 +742,8 @@ variables (hXnonempty : ∀ i, (X i).nonempty)
 variables (hXdisj : pairwise (λ i j, disjoint (X i) (X j)))
 variables (hYdisj : pairwise (λ i j, disjoint (Y i) (Y j)))
 variables (hXYdisj : ∀ i j, disjoint (X i) (Y j))
-variables (hX : ∀ i, a i • set.compl (Y i) ⊆ X i)
-variables (hY : ∀ i, a⁻¹ i • set.compl (X i) ⊆ Y i)
+variables (hX : ∀ i, a i • (Y i)ᶜ ⊆ X i)
+variables (hY : ∀ i, a⁻¹ i • (X i)ᶜ ⊆ Y i)
 
 include hXnonempty hXdisj hYdisj hXYdisj hX hY
 
@@ -815,7 +813,7 @@ begin
     -- Positive and negative powers separately
     cases (lt_or_gt_of_ne hnne0).swap with hlt hgt,
     { have h1n : 1 ≤ n := hlt,
-      calc a i ^ n • X' j ⊆ a i ^ n • (Y i).compl : set_smul_subset_set_smul_iff.mpr $
+      calc a i ^ n • X' j ⊆ a i ^ n • (Y i)ᶜ : set_smul_subset_set_smul_iff.mpr $
         set.disjoint_iff_subset_compl_right.mp $
           disjoint.union_left (hXYdisj j i) (hYdisj j i hij.symm)
       ... ⊆ X i :
@@ -823,17 +821,17 @@ begin
         refine int.le_induction _ _ _ h1n,
         { rw zpow_one, exact hX i, },
         { intros n hle hi,
-          calc (a i ^ (n + 1)) • (Y i).compl
-                = (a i ^ n * a i) • (Y i).compl : by rw [zpow_add, zpow_one]
-            ... = a i ^ n • (a i • (Y i).compl) : mul_action.mul_smul _ _ _
+          calc (a i ^ (n + 1)) • (Y i)ᶜ
+                = (a i ^ n * a i) • (Y i)ᶜ : by rw [zpow_add, zpow_one]
+            ... = a i ^ n • (a i • (Y i)ᶜ) : mul_action.mul_smul _ _ _
             ... ⊆ a i ^ n • X i : set_smul_subset_set_smul_iff.mpr $ hX i
-            ... ⊆ a i ^ n • (Y i).compl : set_smul_subset_set_smul_iff.mpr $
+            ... ⊆ a i ^ n • (Y i)ᶜ : set_smul_subset_set_smul_iff.mpr $
               set.disjoint_iff_subset_compl_right.mp (hXYdisj i i)
             ... ⊆ X i : hi, },
       end
       ... ⊆ X' i : set.subset_union_left _ _, },
     { have h1n : n ≤ -1, { apply int.le_of_lt_add_one, simpa using hgt, },
-      calc a i ^ n • X' j ⊆ a i ^ n • (X i).compl : set_smul_subset_set_smul_iff.mpr $
+      calc a i ^ n • X' j ⊆ a i ^ n • (X i)ᶜ : set_smul_subset_set_smul_iff.mpr $
         set.disjoint_iff_subset_compl_right.mp $
           disjoint.union_left (hXdisj j i hij.symm) (hXYdisj i j).symm
       ... ⊆ Y i :
@@ -841,11 +839,11 @@ begin
         refine int.le_induction_down _ _ _ h1n,
         { rw [zpow_neg, zpow_one], exact hY i, },
         { intros n hle hi,
-          calc (a i ^ (n - 1)) • (X i).compl
-                = (a i ^ n * (a i)⁻¹) • (X i).compl : by rw [zpow_sub, zpow_one]
-            ... = a i ^ n • ((a i)⁻¹ • (X i).compl) : mul_action.mul_smul _ _ _
+          calc (a i ^ (n - 1)) • (X i)ᶜ
+                = (a i ^ n * (a i)⁻¹) • (X i)ᶜ : by rw [zpow_sub, zpow_one]
+            ... = a i ^ n • ((a i)⁻¹ • (X i)ᶜ) : mul_action.mul_smul _ _ _
             ... ⊆ a i ^ n • Y i : set_smul_subset_set_smul_iff.mpr $ hY i
-            ... ⊆ a i ^ n • (X i).compl : set_smul_subset_set_smul_iff.mpr $
+            ... ⊆ a i ^ n • (X i)ᶜ : set_smul_subset_set_smul_iff.mpr $
               set.disjoint_iff_subset_compl_right.mp (hXYdisj i i).symm
             ... ⊆ Y i : hi, },
       end

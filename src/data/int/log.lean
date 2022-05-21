@@ -96,7 +96,7 @@ begin
     refine le_trans _ (nat.floor_le hr.le),
     rw [zpow_coe_nat, ←nat.cast_pow, nat.cast_le],
     exact nat.pow_log_le_self hn (nat.floor_pos.mpr hr1) },
-  { rw [log_of_right_le_one _ hr1, zpow_neg₀, zpow_coe_nat, ← nat.cast_pow],
+  { rw [log_of_right_le_one _ hr1, zpow_neg, zpow_coe_nat, ← nat.cast_pow],
     apply inv_le_of_inv_le hr,
     refine (nat.le_ceil _).trans (nat.cast_le.2 _),
     exact nat.le_pow_clog hn _ },
@@ -115,7 +115,7 @@ begin
     have : 1 ≤ nat.clog b ⌈r⁻¹⌉₊ :=
       nat.succ_le_of_lt (nat.clog_pos hn $ nat.one_lt_cast.1 $ hcri.trans_le (nat.le_ceil _)),
     rw [neg_add_eq_sub, ←neg_sub, ←int.coe_nat_one, ← int.coe_nat_sub this,
-      zpow_neg₀, zpow_coe_nat, lt_inv hr (pow_pos (nat.cast_pos.mpr $ zero_lt_one.trans hn) _),
+      zpow_neg, zpow_coe_nat, lt_inv hr (pow_pos (nat.cast_pos.mpr $ zero_lt_one.trans hn) _),
       ←nat.cast_pow],
     refine nat.lt_ceil.1 _,
     exact (nat.pow_pred_clog_lt_self hn $ nat.one_lt_cast.1 $ hcri.trans_le $ nat.le_ceil _), }
@@ -151,7 +151,7 @@ begin
         refine (nat.clog_pos hb $ nat.succ_le_of_lt $ nat.cast_one.symm.trans_lt $
           nat.lt_ceil.mpr _),
         exact_mod_cast one_lt_inv hy h } },
-    { rw [zpow_neg₀, zpow_coe_nat, neg_le_neg_iff, int.coe_nat_le,
+    { rw [zpow_neg, zpow_coe_nat, neg_le_neg_iff, int.coe_nat_le,
         inv_le (pow_pos (zero_lt_one.trans_le h1b') _) hy, ←nat.le_pow_iff_clog_le hb,
         ←nat.cast_pow, nat.ceil_le] }, },
 end
@@ -220,7 +220,7 @@ by rw [log_inv, neg_neg]
 lemma self_le_zpow_clog (b : ℕ) (r : R) (hn : 1 < b) (hr : 0 < r) :
   r ≤ (b : R) ^ clog b r :=
 begin
-  rw [clog_eq_neg_log_inv, zpow_neg₀, le_inv hr (zpow_pos_of_pos _ _)],
+  rw [clog_eq_neg_log_inv, zpow_neg, le_inv hr (zpow_pos_of_pos _ _)],
   { exact zpow_log_le_self _ _ hn (inv_pos.mpr hr), },
   { exact nat.cast_pos.mpr (zero_le_one.trans_lt hn), },
 end
@@ -228,7 +228,7 @@ end
 lemma zpow_pred_clog_lt_self (b : ℕ) (r : R) (hn : 1 < b) (hr : 0 < r) :
   (b : R) ^ (clog b r - 1) < r :=
 begin
-  rw [clog_eq_neg_log_inv, ←neg_add', zpow_neg₀, inv_lt (zpow_pos_of_pos _ _) hr],
+  rw [clog_eq_neg_log_inv, ←neg_add', zpow_neg, inv_lt (zpow_pos_of_pos _ _) hr],
   { exact lt_zpow_succ_log_self _ _ hn (inv_pos.mpr hr), },
   { exact nat.cast_pos.mpr (zero_le_one.trans_lt hn), },
 end
@@ -243,7 +243,7 @@ by rw [clog, if_pos le_rfl, nat.ceil_one, nat.clog_one_right, int.coe_nat_zero]
 lemma le_zpow_iff_clog_le {b : ℕ} (hb : 1 < b) {x : ℤ} {y : R} (hy : 0 < y) :
   y ≤ (b : R) ^ x ↔ clog b y ≤ x :=
 begin
-  rw [clog_eq_neg_log_inv, neg_le, ←zpow_le_iff_le_log hb (inv_pos.mpr hy), zpow_neg₀,
+  rw [clog_eq_neg_log_inv, neg_le, ←zpow_le_iff_le_log hb (inv_pos.mpr hy), zpow_neg,
     inv_le_inv (zpow_pos_of_pos _ _) hy],
   { exact nat.cast_pos.mpr (zero_le_one.trans_lt hb), },
 end

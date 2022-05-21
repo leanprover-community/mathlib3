@@ -537,7 +537,7 @@ by { rw ← rpow_nat_cast, simp only [nat.cast_bit0, nat.cast_one] }
 lemma rpow_neg_one (x : ℝ) : x ^ (-1 : ℝ) = x⁻¹ :=
 begin
   suffices H : x ^ ((-1 : ℤ) : ℝ) = x⁻¹, by exact_mod_cast H,
-  simp only [rpow_int_cast, zpow_one, zpow_neg₀],
+  simp only [rpow_int_cast, zpow_one, zpow_neg],
 end
 
 lemma mul_rpow {x y z : ℝ} (h : 0 ≤ x) (h₁ : 0 ≤ y) : (x*y)^z = x^z * y^z :=
@@ -1864,11 +1864,11 @@ lemma filter.tendsto.ennrpow_const {α : Type*} {f : filter α} {m : α → ℝ�
 namespace norm_num
 open tactic
 
-theorem rpow_pos (a b : ℝ) (b' : ℕ) (c : ℝ) (hb : b = b') (h : a ^ b' = c) : a ^ b = c :=
-by rw [← h, hb, real.rpow_nat_cast]
+theorem rpow_pos (a b : ℝ) (b' : ℕ) (c : ℝ) (hb : (b':ℝ) = b) (h : a ^ b' = c) : a ^ b = c :=
+by rw [← h, ← hb, real.rpow_nat_cast]
 theorem rpow_neg (a b : ℝ) (b' : ℕ) (c c' : ℝ)
-  (a0 : 0 ≤ a) (hb : b = b') (h : a ^ b' = c) (hc : c⁻¹ = c') : a ^ -b = c' :=
-by rw [← hc, ← h, hb, real.rpow_neg a0, real.rpow_nat_cast]
+  (a0 : 0 ≤ a) (hb : (b':ℝ) = b) (h : a ^ b' = c) (hc : c⁻¹ = c') : a ^ -b = c' :=
+by rw [← hc, ← h, ← hb, real.rpow_neg a0, real.rpow_nat_cast]
 
 /-- Evaluate `real.rpow a b` where `a` is a rational numeral and `b` is an integer.
 (This cannot go via the generalized version `prove_rpow'` because `rpow_pos` has a side condition;

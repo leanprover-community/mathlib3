@@ -565,17 +565,16 @@ cardinal.wf.conditionally_complete_linear_order_with_bot 0 $ le_antisymm (cardin
 
 instance wo : @is_well_order cardinal.{u} (<) := ⟨cardinal.wf⟩
 
-/-- The set in the definition of `order.succ` for cardinals is nonempty. -/
-theorem succ_nonempty (c : cardinal) : {c' : cardinal | c < c'}.nonempty := ⟨_, cantor c⟩
-
 /-- Note that the successor of `c` is not the same as `c + 1` except in the case of finite `c`. -/
 instance : succ_order cardinal :=
 succ_order.of_succ_le_iff (λ c, Inf {c' | c < c'})
-  (λ a b, ⟨lt_of_lt_of_le $ Inf_mem $ succ_nonempty a, cInf_le'⟩)
+  (λ a b, ⟨lt_of_lt_of_le $ Inf_mem $ exists_gt a, cInf_le'⟩)
+
+theorem succ_def (c : cardinal) : succ c = Inf {c' | c < c'} := rfl
 
 theorem add_one_le_succ (c : cardinal.{u}) : c + 1 ≤ succ c :=
 begin
-  refine (le_cInf_iff'' (succ_nonempty c)).2 (λ b hlt, _),
+  refine (le_cInf_iff'' (exists_gt c)).2 (λ b hlt, _),
   rcases ⟨b, c⟩ with ⟨⟨β⟩, ⟨γ⟩⟩,
   cases le_of_lt hlt with f,
   have : ¬ surjective f := λ hn, (not_le_of_lt hlt) (mk_le_of_surjective hn),

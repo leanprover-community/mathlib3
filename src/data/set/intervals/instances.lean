@@ -54,15 +54,16 @@ instance {α : Type*} [ordered_comm_semiring α] : comm_semigroup (Ico (0:α) 1)
 
 /-- Instances for `(Ioc 0 1)` -/
 
+instance [nontrivial α] : has_one (Ioc (0:α) 1) := { one := ⟨1, ⟨zero_lt_one, le_refl 1⟩⟩ }
+
+instance : has_mul (Ioc (0:α) 1) :=
+  { mul := λ p q, ⟨p.1 * q.1, ⟨mul_pos p.2.1 q.2.1, mul_le_one p.2.2 (le_of_lt q.2.1) q.2.2⟩⟩ }
+
+instance Ioc_pow : has_pow (Ioc (0:α) 1) ℕ :=
+  { pow := λ p n, ⟨p.1 ^ n, ⟨pow_pos p.2.1 n, pow_le_one n (le_of_lt p.2.1) p.2.2⟩⟩ }
+
 instance [nontrivial α] : monoid (Ioc (0:α) 1) :=
-{ mul := λ p q, ⟨p.1 * q.1, ⟨mul_pos p.2.1 q.2.1, mul_le_one p.2.2 (le_of_lt q.2.1) q.2.2⟩⟩,
-  mul_assoc := λ p q r, (by simp only [subtype.mk_eq_mk, mul_assoc]),
-  one := ⟨1, ⟨zero_lt_one, le_refl 1⟩⟩,
-  one_mul := (by simp),
-  mul_one := (by simp),
-  npow := λ n p, ⟨p.1 ^ n, ⟨pow_pos p.2.1 n, pow_le_one n (le_of_lt p.2.1) p.2.2⟩⟩,
-  npow_zero' := λ p, (by {simp only [pow_zero], refl}),
-  npow_succ' := λ n ⟨p1, _⟩, (by {simp only [pow_succ p1 n], refl }) }
+by { apply function.injective.monoid _ subtype.coe_injective; { intros, refl } }
 
 instance {α : Type*} [ordered_comm_semiring α] [nontrivial α] : comm_monoid (Ioc (0:α) 1) :=
 { mul_comm := λ p q, (by {ext1, exact mul_comm p.1 q.1}),

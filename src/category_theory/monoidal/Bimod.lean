@@ -879,6 +879,26 @@ def Mon_bicategory : bicategory (Mon_ C) :=
     slice_rhs 2 3 { rw [←monoidal_category.tensor_id, associator_naturality] },
     coherence,
   end,
-  triangle' := sorry }
+  triangle' := begin
+    intros X Y Z M N,
+    dunfold tensor_hom associator_Bimod left_unitor_Bimod right_unitor_Bimod, dsimp,
+    ext, dsimp,
+    dunfold associator_Bimod.hom_hom, dsimp,
+    slice_lhs 1 2 { rw coequalizer.π_desc },
+    dunfold associator_Bimod.hom_hom_aux, dsimp,
+    slice_rhs 1 2 { rw [ι_colim_map, parallel_pair_hom_app_one] },
+    dunfold right_unitor_Bimod.hom_hom, dsimp,
+    refine
+    (@cancel_epi _ _ _ _ _ (coequalizer.π _ _ ⊗ 𝟙 _)
+      (map_π_epi (tensor_right _) _ _) _ _).1 _,
+    dunfold regular, dsimp,
+    slice_lhs 1 3 { rw π_tensor_id_preserves_coequalizer_inv_desc },
+    slice_lhs 3 4 { rw [ι_colim_map, parallel_pair_hom_app_one] },
+    dunfold left_unitor_Bimod.hom_hom, dsimp,
+    slice_lhs 2 3 { rw [←id_tensor_comp, coequalizer.π_desc] },
+    slice_rhs 1 2 { rw [←comp_tensor_id, coequalizer.π_desc] },
+    slice_rhs 1 2 { rw coequalizer.condition },
+    simp only [category.assoc],
+  end }
 
 end Bimod

@@ -148,19 +148,11 @@ equiv_trans (add_congr_left (neg_equiv_self G)) (add_left_neg_equiv G)
 
 /-- This lemma doesn't require `H` to be impartial. -/
 lemma equiv_iff_add_equiv_zero (H : pgame) : H ≈ G ↔ H + G ≈ 0 :=
-begin
-  rw [←game.mk_eq, ←game.mk_eq, ←@add_right_cancel_iff _ _ (-⟦G⟧)],
-  simp,
-  exact iff.rfl
-end
+by { rw [←game.mk_eq, ←game.mk_eq, ←@add_right_cancel_iff _ _ (-⟦G⟧)], simpa }
 
 /-- This lemma doesn't require `H` to be impartial. -/
 lemma equiv_iff_add_equiv_zero' (H : pgame) : G ≈ H ↔ G + H ≈ 0 :=
-begin
-  rw [←game.mk_eq, ←game.mk_eq, ←@add_left_cancel_iff _ _ (-⟦G⟧), eq_comm],
-  simp,
-  exact iff.rfl
-end
+by { rw [←game.mk_eq, ←game.mk_eq, ←@add_left_cancel_iff _ _ (-⟦G⟧), eq_comm], simpa }
 
 lemma le_zero_iff {G : pgame} [G.impartial] : G ≤ 0 ↔ 0 ≤ G :=
 by rw [←zero_le_neg_iff, le_congr_right (neg_equiv_self G)]

@@ -17,14 +17,6 @@ section semiring
 
 variables {R : Type*} [semiring R] {p q : R[X]}
 
--- todo: PR to `data/polynomial/mirror.lean`
-lemma mirror_eq_iff : p.mirror = q ↔ p = q.mirror :=
-⟨λ h, h ▸ p.mirror_mirror.symm, λ h, h.symm ▸ q.mirror_mirror⟩
-
--- todo: PR to `data/polynomial/mirror.lean`
-lemma mirror_inj : p.mirror = q.mirror ↔ p = q :=
-by rw [mirror_eq_iff, mirror_mirror]
-
 -- todo: PR to `data/polynomial/basic` with other support lemmas
 lemma support_binomial_le {k m : ℕ} {x y : R} :
   (C x * X ^ k + C y * X ^ m).support ⊆ {k, m} :=

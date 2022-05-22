@@ -220,6 +220,19 @@ section add_group
 variables (C) {A} [add_group A] [has_shift C A]
 variables (X Y : C) (f : X ⟶ Y)
 
+instance (i : A) : is_equivalence (shift_functor C i) :=
+begin
+  change is_equivalence (add_neg_equiv (shift_monoidal_functor C A) i).functor,
+  apply_instance,
+end
+
+@[simp] lemma shift_functor_inv_obj (i : A) (X) :
+  (shift_functor C i).inv.obj X = (shift_functor C (-i)).obj X :=
+rfl
+
+@[simp] lemma shift_functor_inv_map (i : A) {X Y} (f : X ⟶ Y) :
+  (shift_functor C i).inv.map f = (shift_functor C (-i)).map f :=
+rfl
 
 /-- Shifting by `i` and then shifting by `-i` is the identity. -/
 abbreviation shift_functor_comp_shift_functor_neg (i : A) :
@@ -252,10 +265,6 @@ end
 /-- Shifting by `n` is an essentially surjective functor. -/
 instance shift_functor_ess_surj (i : A) : ess_surj (shift_functor C i) :=
 { mem_ess_image := λ Y, ⟨Y⟦-i⟧, ⟨(shift_functor_neg_comp_shift_functor C i).app Y⟩⟩ }
-
-/-- Shifting by `n` is an equivalence. -/
-noncomputable instance shift_functor_is_equivalence (n : A) : is_equivalence (shift_functor C n) :=
-equivalence.of_fully_faithfully_ess_surj _
 
 end
 

@@ -134,6 +134,7 @@ def CommMon_to_lax_braided : CommMon_ C ⥤ lax_braided_functor (discrete punit.
     tensor' := λ _ _, f.mul_hom, }, }
 
 local attribute [tidy] tactic.discrete_cases
+local attribute [simp] eq_to_iso_map
 
 /-- Implementation of `CommMon_.equiv_lax_braided_functor_punit`. -/
 @[simps]

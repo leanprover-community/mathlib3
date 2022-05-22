@@ -46,7 +46,7 @@ open function
 noncomputable theory
 
 /-- A type synonym for ordinals with natural addition and multiplication. -/
-def nat_ordinal : Type u := ordinal
+def nat_ordinal : Type* := ordinal
 
 /-- The identity function between `ordinal` and `nat_ordinal`. -/
 @[pattern] def ordinal.to_nat_ordinal : ordinal ≃ nat_ordinal := equiv.refl _
@@ -216,7 +216,7 @@ end
 @[simp] theorem one_nadd : 1 ♯ a = succ a :=
 by rw [nadd_comm, nadd_one]
 
-@[simp] theorem nadd_succ : a ♯ (succ b) = succ (a ♯ b) :=
+theorem nadd_succ : a ♯ (succ b) = succ (a ♯ b) :=
 by rw [←nadd_one (a ♯ b), nadd_assoc, nadd_one]
 
 @[simp] theorem nadd_nat (n : ℕ) : a ♯ n = a + n :=
@@ -290,7 +290,7 @@ open nat_ordinal
 
 namespace ordinal
 
-local infix ` ♯ `:60 := nadd
+local infix ` ♯ `:65 := nadd
 
 @[simp] theorem to_nat_ordinal_cast_nat (n : ℕ) : to_nat_ordinal n = n :=
 by { rw ←to_ordinal_cast_nat n, refl }

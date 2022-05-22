@@ -13,6 +13,8 @@ import algebra.group_power.order
 For suitably structured underlying type `α`, we exhibit the structure of
 the unit intervals from `0` to `1`.
 
+Note: Instances for the interval `Ici 0` are dealt with in `algebra/order/nonneg.lean`.
+
 ## TODO
 * structure instances for intervals -1 to 1
 * structure instances for `Ici 1`

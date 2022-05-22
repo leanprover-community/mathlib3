@@ -1363,10 +1363,9 @@ lemma _root_.ae_strongly_measurable_of_tendsto_ae {ι : Type*}
   (lim : ∀ᵐ x ∂μ, tendsto (λ n, f n x) u (𝓝 (g x))) :
   ae_strongly_measurable g μ :=
 begin
-  letI := metrizable_space_metric β,
   borelize β,
   refine ae_strongly_measurable_iff_ae_measurable_separable.2 ⟨_, _⟩,
-  { exact ae_measurable_of_tendsto_metric_ae _ (λ n, (hf n).ae_measurable) lim },
+  { exact ae_measurable_of_tendsto_metrizable_ae _ (λ n, (hf n).ae_measurable) lim },
   { rcases u.exists_seq_tendsto with ⟨v, hv⟩,
     have : ∀ (n : ℕ), ∃ (t : set β), is_separable t ∧ f (v n) ⁻¹' t ∈ μ.ae :=
       λ n, (ae_strongly_measurable_iff_ae_measurable_separable.1 (hf (v n))).2,
@@ -1388,10 +1387,9 @@ lemma _root_.exists_strongly_measurable_limit_of_tendsto_ae [metrizable_space β
     ∀ᵐ x ∂μ, tendsto (λ n, f n x) at_top (𝓝 (f_lim x)) :=
 begin
   borelize β,
-  letI := metrizable_space_metric β,
   obtain ⟨g, g_meas, hg⟩ : ∃ (g : α → β) (g_meas : measurable g),
       ∀ᵐ x ∂μ, tendsto (λ n, f n x) at_top (𝓝 (g x)) :=
-    measurable_limit_of_tendsto_metric_ae (λ n, (hf n).ae_measurable) h_ae_tendsto,
+    measurable_limit_of_tendsto_metrizable_ae (λ n, (hf n).ae_measurable) h_ae_tendsto,
   have Hg : ae_strongly_measurable g μ := ae_strongly_measurable_of_tendsto_ae _ hf hg,
   refine ⟨Hg.mk g, Hg.strongly_measurable_mk, _⟩,
   filter_upwards [hg, Hg.ae_eq_mk] with x hx h'x,
@@ -1674,7 +1672,6 @@ lemma measurable_uncurry_of_continuous_of_measurable {α β ι : Type*} [topolog
   (hu_cont : ∀ x, continuous (λ i, u i x)) (h : ∀ i, measurable (u i)) :
   measurable (function.uncurry u) :=
 begin
-  letI := metrizable_space_metric β,
   obtain ⟨t_sf, ht_sf⟩ : ∃ t : ℕ → simple_func ι ι, ∀ j x,
     tendsto (λ n, u (t n j) x) at_top (𝓝 $ u j x),
   { have h_str_meas : strongly_measurable (id : ι → ι), from strongly_measurable_id,
@@ -1684,7 +1681,7 @@ begin
   have h_tendsto : tendsto U at_top (𝓝 (λ p, u p.fst p.snd)),
   { rw tendsto_pi_nhds,
     exact λ p, ht_sf p.fst p.snd, },
-  refine measurable_of_tendsto_metric (λ n, _) h_tendsto,
+  refine measurable_of_tendsto_metrizable (λ n, _) h_tendsto,
   haveI : encodable (t_sf n).range, from fintype.to_encodable ↥(t_sf n).range,
   have h_meas : measurable (λ (p : (t_sf n).range × α), u ↑p.fst p.snd),
   { have : (λ (p : ↥((t_sf n).range) × α), u ↑(p.fst) p.snd)

@@ -1173,14 +1173,12 @@ top_unique $ assume s hs, s.eq_empty_or_nonempty.elim
 lemma to_topological_space_infi {ι : Sort*} {u : ι → uniform_space α} :
   (infi u).to_topological_space = ⨅i, (u i).to_topological_space :=
 begin
-  casesI is_empty_or_nonempty ι,
-  { rw [infi_of_empty, infi_of_empty, to_topological_space_top] },
-  { refine (eq_of_nhds_eq_nhds $ assume a, _),
-    rw [nhds_infi, nhds_eq_uniformity],
-    change (infi u).uniformity.lift' (preimage $ prod.mk a) = _,
-    rw [infi_uniformity, lift'_infi],
-    { simp only [nhds_eq_uniformity], refl },
-    { exact assume a b, rfl } },
+  refine (eq_of_nhds_eq_nhds $ assume a, _),
+  rw [nhds_infi, nhds_eq_uniformity],
+  change (infi u).uniformity.lift' (preimage $ prod.mk a) = _,
+  rw [infi_uniformity, lift'_infi_of_map_univ _ preimage_univ],
+  { simp only [nhds_eq_uniformity], refl },
+  { exact λ a b, preimage_inter }
 end
 
 lemma to_topological_space_Inf {s : set (uniform_space α)} :

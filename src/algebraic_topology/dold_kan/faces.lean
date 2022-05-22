@@ -122,7 +122,7 @@ begin
     rw ← finset.sum_add_distrib,
     apply finset.sum_eq_zero,
     rintros ⟨i, hi⟩ h₀,
-    have hia : (⟨i, by linarith⟩ : fin(n+2)) ≤ fin.cast_succ (⟨a, by linarith⟩ : fin (n+1)) :=
+    have hia : (⟨i, by linarith⟩ : fin (n+2)) ≤ fin.cast_succ (⟨a, by linarith⟩ : fin (n+1)) :=
       by simpa only [fin.le_iff_coe_le_coe, fin.coe_mk, fin.cast_succ_mk, ← lt_succ_iff] using hi,
     simp only [fin.coe_mk, fin.cast_le_mk, fin.cast_succ_mk, fin.succ_mk, assoc, fin.cast_mk,
       ← δ_comp_σ_of_le X hia, add_eq_zero_iff_eq_neg, ← neg_zsmul],
@@ -174,7 +174,7 @@ begin
   -- the boundary case n=0
   { simp only [nat.eq_zero_of_add_eq_zero_left ha, fin.eq_zero j,
       fin.mk_zero, fin.mk_one],
-    erw [δ_comp_σ_succ],
+    rw [δ_comp_σ_succ],
     simp only [fin.succ_zero_eq_one, comp_id], },
   -- in the other case, we need to write n as m+1
   -- then, we first consider the particular case j = a
@@ -190,12 +190,12 @@ begin
   { by_contradiction,
     rw [not_le, ← nat.succ_le_iff] at h,
     linarith, },
-  have ineq₁ : (fin.cast_succ (⟨a, nat.lt_succ_iff.mpr ham⟩ : fin(m+1)) < j),
+  have ineq₁ : (fin.cast_succ (⟨a, nat.lt_succ_iff.mpr ham⟩ : fin (m+1)) < j),
   { rw fin.lt_iff_coe_lt_coe, exact haj, },
   erw δ_comp_σ_of_gt X ineq₁,
   by_cases ham' : a<m,
   { -- case where `a<m`
-    have ineq₂ : (fin.cast_succ (⟨a+1, nat.succ_lt_succ ham'⟩ : fin(m+1)) ≤ j),
+    have ineq₂ : (fin.cast_succ (⟨a+1, nat.succ_lt_succ ham'⟩ : fin (m+1)) ≤ j),
     { simpa only [fin.le_iff_coe_le_coe] using nat.succ_le_iff.mpr haj, },
     have δδ_rel := δ_comp_δ X ineq₂,
     simp only [fin.cast_succ_mk] at δδ_rel,

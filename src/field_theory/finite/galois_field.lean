@@ -144,27 +144,20 @@ by exactI (is_splitting_field.alg_equiv (zmod p) (X ^ (p ^ 1) - X : (zmod p)[X])
 variables {K : Type*} [field K] [fintype K] [algebra (zmod p) K]
 
 theorem splits_X_pow_card_sub_X : splits (algebra_map (zmod p) K) (X ^ fintype.card K - X) :=
-by rw [←splits_id_iff_splits, polynomial.map_sub, polynomial.map_pow, map_X, splits_iff_card_roots,
-  finite_field.roots_X_pow_card_sub_X, ←finset.card_def, finset.card_univ,
-  finite_field.X_pow_card_sub_X_nat_degree_eq]; exact fintype.one_lt_card
+(finite_field.has_sub.sub.polynomial.is_splitting_field K (zmod p)).splits
 
 lemma is_splitting_field_of_card_eq (h : fintype.card K = p ^ n) :
   is_splitting_field (zmod p) K (X ^ (p ^ n) - X) :=
-h ▸ finite_field.has_sub.sub.polynomial.is_splitting_field K p
+h ▸ finite_field.has_sub.sub.polynomial.is_splitting_field K (zmod p)
 
 instance {K K' : Type*} [field K] [field K'] [fintype K'] [algebra K K'] : is_galois K K' :=
 begin
   haveI : fintype K := fintype.of_injective (algebra_map K K') (algebra_map K K').injective,
   obtain ⟨p, hp⟩ := char_p.exists K,
   haveI : char_p K p := hp,
-  letI : algebra (zmod p) K' := ((algebra_map K K').comp (algebra_map (zmod p) K)).to_algebra,
-  haveI : is_scalar_tower (zmod p) K K' := is_scalar_tower.of_algebra_map_eq' rfl,
-  haveI : fact p.prime := ⟨char_p.char_is_prime K p⟩,
-  haveI : char_p K' p := char_p_of_injective_algebra_map (algebra_map (zmod p) K').injective p,
-  haveI : is_galois (zmod p) K' :=
-  is_galois.of_separable_splitting_field (galois_poly_separable p (fintype.card K')
+  haveI : char_p K' p := char_p_of_injective_algebra_map (algebra_map K K').injective p,
+  exact is_galois.of_separable_splitting_field (galois_poly_separable p (fintype.card K')
     (let ⟨n, hp, hn⟩ := finite_field.card K' p in hn.symm ▸ dvd_pow_self p n.ne_zero)),
-  exact is_galois.tower_top_of_is_galois (zmod p) K K',
 end
 
 /-- Any finite field is (possibly non canonically) isomorphic to some Galois field. -/

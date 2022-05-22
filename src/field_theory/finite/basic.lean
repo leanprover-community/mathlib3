@@ -270,7 +270,7 @@ begin
     C_eq_zero.mpr (char_p.cast_card_eq_zero K), zero_mul, zero_sub], },
   end
 
-instance : is_splitting_field (zmod p) K (X^q - X) :=
+instance (F : Type*) [field F] [algebra F K] : is_splitting_field F K (X^q - X) :=
 { splits :=
   begin
     have h : (X^q - X : K[X]).nat_degree = q :=
@@ -281,7 +281,7 @@ instance : is_splitting_field (zmod p) K (X^q - X) :=
   adjoin_roots :=
   begin
     classical,
-    transitivity algebra.adjoin (zmod p) ((roots (X^q - X : K[X])).to_finset : set K),
+    transitivity algebra.adjoin F ((roots (X^q - X : K[X])).to_finset : set K),
     { simp only [polynomial.map_pow, map_X, polynomial.map_sub], },
     { rw [roots_X_pow_card_sub_X, val_to_finset, coe_univ, algebra.adjoin_univ], }
   end }

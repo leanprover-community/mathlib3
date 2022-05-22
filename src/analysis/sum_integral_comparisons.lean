@@ -3,7 +3,6 @@ Copyright (c) 2022 Kevin H. Wilson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin H. Wilson
 -/
-import measure_theory.measure.measure_space_def
 import measure_theory.integral.interval_integral
 import algebra.order.floor
 import data.set.function
@@ -43,8 +42,9 @@ analysis, comparison, asymptotics
 open set measure_theory.measure_space
 open_locale big_operators
 
-lemma antitone_on.integral_le_sum {x₀ : ℝ} {a : ℕ} {f : ℝ → ℝ}
-  (hf : antitone_on f (Icc x₀ (x₀ + a))) :
+variables {x₀ : ℝ} {a b : ℕ} {f : ℝ → ℝ}
+
+lemma antitone_on.integral_le_sum (hf : antitone_on f (Icc x₀ (x₀ + a))) :
   ∫ x in x₀..(x₀ + a), f x ≤ ∑ i in finset.range a, f (x₀ + i) :=
 begin
   have hint : ∀ (k : ℕ), k < a → interval_integrable f volume (x₀+k) (x₀ + (k + 1 : ℕ)),
@@ -75,22 +75,21 @@ begin
   ... = ∑ i in finset.range a, f (x₀ + i) : by simp
 end
 
-lemma antitone_on.integral_le_sum_Ico {a b : ℕ} {f : ℝ → ℝ} (hab : a ≤ b)
-  (hf : antitone_on f (set.Icc a b)) : ∫ x in a..b, f x ≤ ∑ x in finset.Ico a b, f x :=
+lemma antitone_on.integral_le_sum_Ico (hab : a ≤ b) (hf : antitone_on f (set.Icc a b)) :
+  ∫ x in a..b, f x ≤ ∑ x in finset.Ico a b, f x :=
 begin
   have bb : b = (b - a) + a, { zify, ring, },
   conv { to_rhs, rw [←zero_add a, bb], },
   have bb' : (b : ℝ) = (a : ℝ) + ↑(b - a), { simp [hab], },
   conv { to_lhs, rw bb', },
-  rw [←finset.sum_Ico_add, nat.Ico_zero_eq_range],
+  rw [← finset.sum_Ico_add, nat.Ico_zero_eq_range],
   conv
   { to_rhs, congr, skip, funext, rw nat.cast_add a x, },
   apply antitone_on.integral_le_sum,
   rwa ←bb',
 end
 
-lemma antitone_on.sum_le_integral {x₀ : ℝ} {a : ℕ} {f : ℝ → ℝ}
-  (hf : antitone_on f (Icc x₀ (x₀ + a))) :
+lemma antitone_on.sum_le_integral (hf : antitone_on f (Icc x₀ (x₀ + a))) :
   ∑ i in finset.range a, f (x₀ + (i + 1 : ℕ)) ≤ ∫ x in x₀..(x₀ + a), f x :=
 begin
   have hint : ∀ (k : ℕ), k < a → interval_integrable f volume (x₀+k) (x₀ + (k + 1 : ℕ)),
@@ -122,8 +121,7 @@ begin
     end
 end
 
-lemma antitone_on.sum_le_integral_Ico {a b : ℕ} {f : ℝ → ℝ} (hab : a ≤ b)
-  (hf : antitone_on f (set.Icc a b)) :
+lemma antitone_on.sum_le_integral_Ico (hab : a ≤ b) (hf : antitone_on f (set.Icc a b)) :
   ∑ i in finset.Ico a b, f (i + 1 : ℕ) ≤ ∫ x in a..b, f x :=
 begin
   have bb : b = (b - a) + a, { zify, ring, },
@@ -137,31 +135,28 @@ begin
   rwa ←bb',
 end
 
-lemma monotone_on.sum_le_integral {x₀ : ℝ} {a : ℕ} {f : ℝ → ℝ}
-  (hf : monotone_on f (Icc x₀ (x₀ + a))) :
+lemma monotone_on.sum_le_integral (hf : monotone_on f (Icc x₀ (x₀ + a))) :
   ∑ i in finset.range a, f (x₀ + i) ≤ ∫ x in x₀..(x₀ + a), f x :=
 begin
   rw [← neg_le_neg_iff, ← finset.sum_neg_distrib, ← interval_integral.integral_neg],
   exact hf.neg.integral_le_sum,
 end
 
-lemma monotone_on.sum_le_integral_Ico {a b : ℕ} {f : ℝ → ℝ} (hab : a ≤ b)
-  (hf : monotone_on f (set.Icc a b)) : ∑ x in finset.Ico a b, f x ≤ ∫ x in a..b, f x :=
+lemma monotone_on.sum_le_integral_Ico (hab : a ≤ b) (hf : monotone_on f (set.Icc a b)) :
+  ∑ x in finset.Ico a b, f x ≤ ∫ x in a..b, f x :=
 begin
   rw [← neg_le_neg_iff, ← finset.sum_neg_distrib, ← interval_integral.integral_neg],
   exact hf.neg.integral_le_sum_Ico hab,
 end
 
-lemma monotone_on.integral_le_sum {x₀ : ℝ} {a : ℕ} {f : ℝ → ℝ}
-  (hf : monotone_on f (Icc x₀ (x₀ + a))) :
+lemma monotone_on.integral_le_sum (hf : monotone_on f (Icc x₀ (x₀ + a))) :
   ∫ x in x₀..(x₀ + a), f x ≤ ∑ i in finset.range a, f (x₀ + (i + 1 : ℕ)) :=
 begin
   rw [← neg_le_neg_iff, ← finset.sum_neg_distrib, ← interval_integral.integral_neg],
   exact hf.neg.sum_le_integral,
 end
 
-lemma monotone_on.integral_le_sum_Ico {a b : ℕ} {f : ℝ → ℝ} (hab : a ≤ b)
-  (hf : monotone_on f (set.Icc a b)) :
+lemma monotone_on.integral_le_sum_Ico (hab : a ≤ b) (hf : monotone_on f (set.Icc a b)) :
   ∫ x in a..b, f x ≤ ∑ i in finset.Ico a b, f (i + 1 : ℕ) :=
 begin
   rw [← neg_le_neg_iff, ← finset.sum_neg_distrib, ← interval_integral.integral_neg],

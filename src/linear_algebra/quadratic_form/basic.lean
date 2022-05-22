@@ -159,11 +159,31 @@ by { simp only [polar, pi.smul_apply, smul_sub] }
 lemma polar_comm (f : M → R) (x y : M) : polar f x y = polar f y x :=
 by rw [polar, polar, add_comm, sub_sub, sub_sub, add_comm (f x) (f y)]
 
+/-- auxiliary lemma to prove `polar_add_left` -/
+private lemma polar_add_left_iff {f : M → R} {x x' y : M} :
+  polar f (x + x') y = polar f x y + polar f x' y ↔
+    f (x + x' + y) + (f x + f x' + f y) = f (x + x') + f (x' + y) + f (y + x) :=
+begin
+  simp only [←add_assoc],
+  simp only [polar, sub_eq_iff_eq_add, eq_sub_iff_add_eq, sub_add_eq_add_sub, add_sub],
+  simp only [add_right_comm _ (f y) _, add_right_comm _ (f x') (f x)],
+  rw [add_comm y x, add_right_comm _ _ (f (x + y)), add_comm _ (f (x + y)),
+    add_right_comm (f (x + y)), add_left_inj],
+end
+
 lemma polar_comp {F : Type*} [ring S] [add_monoid_hom_class F R S] (f : M → R) (g : F) (x y : M) :
   polar (g ∘ f) x y = g (polar f x y) :=
 by simp only [polar, pi.smul_apply, function.comp_apply, map_sub]
 
 variables [module R M] (Q : quadratic_form R M)
+
+private lemma polar_smul_left_iff {f : M → R} {a : R} {x y : M} :
+  polar f (a • x) y = a * polar f x y ↔
+    f (a • x + y) + a * (f x + f y) = a * f (x + y) + (f (a • x) + f y) :=
+begin
+  simp only [polar, sub_eq_iff_eq_add, eq_sub_iff_add_eq, sub_add, add_sub, mul_sub, add_assoc,
+    ←mul_add, add_comm (f y)],
+end
 
 @[simp] lemma map_neg (x : M) : Q (-x) = Q x :=
 by rw [←@neg_one_smul R _ _ _ _ x, map_smul, neg_one_mul, neg_neg, one_mul]
@@ -178,22 +198,12 @@ by simp only [polar, zero_add, quadratic_form.map_zero, sub_zero, sub_self]
 @[simp]
 lemma polar_add_left (x x' y : M) :
   polar Q (x + x') y = polar Q x y + polar Q x' y :=
-begin
-  have := Q.map_add_add_add_map x x' y,
-  simp only [←add_assoc] at this,
-  simp only [polar, sub_eq_iff_eq_add, eq_sub_iff_add_eq, sub_add_eq_add_sub, add_sub],
-  simp only [add_right_comm _ (Q y) _, add_right_comm _ (Q x') (Q x)],
-  rw [this, add_comm y x, add_right_comm _ _ (Q (x + y)), add_comm _ (Q (x + y)),
-    add_right_comm (Q (x + y))],
-end
+polar_add_left_iff.mpr $ Q.map_add_add_add_map x x' y
 
 @[simp]
 lemma polar_smul_left (a : R) (x y : M) :
   polar Q (a • x) y = a * polar Q x y :=
-begin
-  simp only [polar, sub_eq_iff_eq_add, eq_sub_iff_add_eq, sub_add, add_sub, mul_sub, add_assoc,
-    ←mul_add, add_comm (Q y), map_smul_add_add_mul],
-end
+polar_smul_left_iff.mpr $ Q.map_smul_add_add_mul _ _ _
 
 @[simp]
 lemma polar_neg_left (x y : M) :
@@ -247,6 +257,19 @@ by rw [←is_scalar_tower.algebra_map_smul R a x, polar_smul_left, algebra.smul_
 lemma polar_smul_right_of_tower (a : S) (x y : M) :
   polar Q x (a • y) = a • polar Q x y :=
 by rw [←is_scalar_tower.algebra_map_smul R a y, polar_smul_right, algebra.smul_def]
+
+/-- An alternative constructor to `quadratic_form.mk`, for rings where `polar` can be used. -/
+@[simps]
+def of_polar
+  (to_fun : M → R)
+  (to_fun_smul : ∀ (a : R) (x : M), to_fun (a • x) = a * a * to_fun x)
+  (polar_add_left : ∀ (x x' y : M), polar to_fun (x + x') y = polar to_fun x y + polar to_fun x' y)
+  (polar_smul_left : ∀ (a : R) (x y : M), polar to_fun (a • x) y = a • polar to_fun x y) :
+  quadratic_form R M :=
+{ to_fun := to_fun,
+  to_fun_smul := to_fun_smul,
+  to_fun_add_add_add_to_fun := λ x y z, polar_add_left_iff.mp $ polar_add_left _ _ _,
+  to_fun_smul_add_add_mul := λ a x y, polar_smul_left_iff.mp $ polar_smul_left _ _ _ }
 
 end ring
 
@@ -513,10 +536,10 @@ end bilin_form
 
 namespace quadratic_form
 open bilin_form
-variables [ring R] [comm_ring R₁] [add_comm_group M] [module R M] [module R₁ M]
-variables (S) [comm_semiring S] [algebra S R]
 
 section associated_hom
+variables [ring R] [comm_ring R₁] [add_comm_group M] [module R M] [module R₁ M]
+variables (S) [comm_semiring S] [algebra S R]
 variables [invertible (2 : R)] {B₁ : bilin_form R M}
 
 /-- `associated_hom` is the map that sends a quadratic form on a module `M` over `R` to its
@@ -616,6 +639,7 @@ end
 end associated_hom
 
 section associated
+variables [comm_ring R₁] [add_comm_group M] [module R₁ M]
 variables [invertible (2 : R₁)]
 
 -- Note:  When possible, rather than writing lemmas about `associated`, write a lemma applying to
@@ -636,6 +660,8 @@ by { ext, simp only [smul_add, algebra.id.smul_eq_mul, bilin_form.lin_mul_lin_ap
 end associated
 
 section anisotropic
+section semiring
+variables [semiring R] [add_comm_monoid M] [module R M]
 
 /-- An anisotropic quadratic form is zero only on zero vectors. -/
 def anisotropic (Q : quadratic_form R M) : Prop := ∀ x, Q x = 0 → x = 0
@@ -648,6 +674,10 @@ lemma anisotropic.eq_zero_iff {Q : quadratic_form R M} (h : anisotropic Q) {x : 
   Q x = 0 ↔ x = 0 :=
 ⟨h x, λ h, h.symm ▸ map_zero Q⟩
 
+end semiring
+section ring
+variables [ring R] [add_comm_group M] [module R M]
+
 /-- The associated bilinear form of an anisotropic quadratic form is nondegenerate. -/
 lemma nondegenerate_of_anisotropic [invertible (2 : R)] (Q : quadratic_form R M)
   (hB : Q.anisotropic) : Q.associated'.nondegenerate :=
@@ -658,11 +688,13 @@ begin
   exact (associated_eq_self_apply _ _ x).symm,
 end
 
+end ring
+
 end anisotropic
 
 section pos_def
 
-variables {R₂ : Type u} [ordered_ring R₂] [module R₂ M] {Q₂ : quadratic_form R₂ M}
+variables {R₂ : Type u} [ordered_ring R₂] [add_comm_monoid M] [module R₂ M] {Q₂ : quadratic_form R₂ M}
 
 /-- A positive definite quadratic form is positive on nonzero vectors. -/
 def pos_def (Q₂ : quadratic_form R₂ M) : Prop := ∀ x ≠ 0, 0 < Q₂ x
@@ -699,7 +731,7 @@ lemma pos_def.add (Q Q' : quadratic_form R₂ M) (hQ : pos_def Q) (hQ' : pos_def
 lemma lin_mul_lin_self_pos_def {R} [linear_ordered_comm_ring R] [module R M]
   (f : M →ₗ[R] R) (hf : linear_map.ker f = ⊥) :
   pos_def (lin_mul_lin f f) :=
-λ x hx, mul_self_pos.2 (λ h, hx (linear_map.ker_eq_bot.mp hf (by rw [h, linear_map.map_zero])))
+λ x hx, mul_self_pos.2 (λ h, hx $ linear_map.ker_eq_bot'.mp hf _ h)
 
 end pos_def
 end quadratic_form
@@ -740,7 +772,7 @@ end
 namespace quadratic_form
 
 variables {n : Type w} [fintype n]
-variables [decidable_eq n] [invertible (2 : R₁)]
+variables [comm_ring R₁] [decidable_eq n] [invertible (2 : R₁)]
 variables {m : Type w} [decidable_eq m] [fintype m]
 open_locale matrix
 
@@ -770,8 +802,9 @@ end quadratic_form
 namespace quadratic_form
 
 variables {M₁ : Type*} {M₂ : Type*} {M₃ : Type*}
-variables [add_comm_group M₁] [add_comm_group M₂] [add_comm_group M₃]
-variables [module R M₁] [module R M₂] [module R M₃]
+variables [semiring R]
+variables [add_comm_monoid M] [add_comm_monoid M₁] [add_comm_monoid M₂] [add_comm_monoid M₃]
+variables [module R M] [module R M₁] [module R M₂] [module R M₃]
 
 /-- An isometry between two quadratic spaces `M₁, Q₁` and `M₂, Q₂` over a ring `R`,
 is a linear equivalence between `M₁` and `M₂` that commutes with the quadratic forms. -/
@@ -837,11 +870,16 @@ end equivalent
 end quadratic_form
 
 namespace bilin_form
+section semiring
+variables [semiring R] [add_comm_monoid M] [module R M]
 
 /-- A bilinear form is nondegenerate if the quadratic form it is associated with is anisotropic. -/
 lemma nondegenerate_of_anisotropic
   {B : bilin_form R M} (hB : B.to_quadratic_form.anisotropic) : B.nondegenerate :=
 λ x hx, hB _ (hx x)
+end semiring
+
+variables [ring R] [add_comm_group M] [module R M]
 
 /-- There exists a non-null vector with respect to any symmetric, nonzero bilinear form `B`
 on a module `M` over a ring `R` with invertible `2`, i.e. there exists some
@@ -916,7 +954,8 @@ open_locale big_operators
 
 open finset bilin_form
 
-variables {M₁ : Type*} [add_comm_group M₁] [module R M₁]
+variables {M₁ : Type*} [semiring R] [comm_semiring R₁] [add_comm_monoid M] [add_comm_monoid M₁]
+variables [module R M] [module R M₁]
 variables {ι : Type*} [fintype ι] {v : basis ι R M}
 
 /-- A quadratic form composed with a `linear_equiv` is isometric to itself. -/
@@ -947,13 +986,14 @@ isometry_of_comp_linear_equiv Q v.equiv_fun.symm
 
 section
 
-variable (R₁)
+variables (R₁)
 
 /-- The weighted sum of squares with respect to some weight as a quadratic form.
 
 The weights are applied using `•`; typically this definition is used either with `S = R₁` or
 `[algebra S R₁]`, although this is stated more generally. -/
-def weighted_sum_squares [monoid S] [distrib_mul_action S R₁] [smul_comm_class S R₁ R₁]
+def weighted_sum_squares [monoid S] [distrib_mul_action S R₁]
+  [smul_comm_class S R₁ R₁]
   (w : ι → S) : quadratic_form R₁ (ι → R₁) :=
 ∑ i : ι, w i • proj i i
 
@@ -966,7 +1006,8 @@ lemma weighted_sum_squares_apply [monoid S] [distrib_mul_action S R₁] [smul_co
 quadratic_form.sum_apply _ _ _
 
 /-- On an orthogonal basis, the basis representation of `Q` is just a sum of squares. -/
-lemma basis_repr_eq_of_is_Ortho [invertible (2 : R₁)]
+lemma basis_repr_eq_of_is_Ortho
+  {R₁ M} [comm_ring R₁] [add_comm_group M] [module R₁ M] [invertible (2 : R₁)]
   (Q : quadratic_form R₁ M) (v : basis ι R₁ M) (hv₂ : (associated Q).is_Ortho v) :
   Q.basis_repr v = weighted_sum_squares _ (λ i, Q (v i)) :=
 begin

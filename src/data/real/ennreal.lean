@@ -1232,6 +1232,7 @@ begin
   rw mul_div_cancel' h0 hI, exact le_refl b
 end
 
+-- TODO: add this lemma for an `is_unit` in any `division_monoid`
 lemma eq_div_iff (ha : a ≠ 0) (ha' : a ≠ ∞) :
   b = c / a ↔ a * b = c :=
 ⟨λ h, by rw [h, mul_div_cancel' ha ha'],

@@ -84,7 +84,6 @@ instance : semigroup (Ioo (0:α) 1) :=
   mul_assoc := λ p q r, (by simp only [subtype.mk_eq_mk, mul_assoc]) }
 
 instance {α : Type*} [ordered_comm_semiring α] : comm_semigroup (Ioo (0:α) 1) :=
-by { apply function.injective.comm_semigroup (λ (p:(Ioo (0:α) 1)), p.1) subtype.coe_injective,
-  { intros, refl } }
+by { apply function.injective.comm_semigroup _ subtype.coe_injective, { intros, refl } }
 
 @[simp, norm_cast] lemma coe_Ioo_mul (x y : Ioo (0:α) 1) : ↑(x * y) = (x * y : α) := rfl

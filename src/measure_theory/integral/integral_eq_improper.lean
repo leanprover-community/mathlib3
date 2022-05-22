@@ -651,73 +651,78 @@ end measure_theory
 
 section FTC_nonneg
 
-/-- Integrability result for FTC-2 under nonnegativity assumptions. -/
-lemma interval_integral.integrable_of_has_deriv_at_of_nonneg {a b : ℝ} {f f' : ℝ → ℝ}
-  (hderiv : ∀ x ∈ Ioo a b, has_deriv_at f (f' x) x) (hpos : ∀ x ∈ Ioo a b, 0 ≤ f' x)
-  (hcontf : continuous_on f $ Icc a b) (hcontf' : continuous_on f' $ Ioo a b) :
-  integrable_on f' (Ioc a b) :=
+/-- Fundamental theorem of calculus-2: If `f : ℝ → ℝ` has a derivative `f' x` for all `x` in
+  `(a, b)` and is continuous on `[a, b]`, and `f'` is continuous and non-negative on `(a, b)`, then
+  `f'` is integrable on `[a, b]` and `∫ y in a..b, f' y = f(b) - f(a)`.
+
+  Since integrability is not part of the hypotheses (unlike other versions of FTC-2 in the library),
+  we return a proof of integrability togther with the evaluation of the integral.
+  -/
+lemma interval_integral.integral_eq_sub_of_has_deriv_at_of_nonneg_of_le {a b : ℝ} {f f' : ℝ → ℝ}
+  (hderiv : ∀ x ∈ Ioo a b, has_deriv_at f (f' x) x) (hnonneg : ∀ x ∈ Ioo a b, 0 ≤ f' x)
+  (hcontf : continuous_on f $ Icc a b) (hcontf' : continuous_on f' $ Ioo a b) (hab : a ≤ b) :
+  (integrable_on f' $ Ioc a b) ∧ (∫ y in a..b, f' y = f b - f a) :=
 begin
-  by_cases h_lt : a < b, swap, -- first deal with trivial case of empty interval
-  { convert integrable_on_empty, exact Ioc_eq_empty h_lt },
+  suffices : integrable_on f' (Ioc a b),
+  { exact ⟨this, interval_integral.integral_eq_sub_of_has_deriv_at_of_le hab hcontf hderiv
+    ((interval_integrable_iff_integrable_Ioc_of_le hab).mpr this)⟩ },
   have f_incr : monotone_on f (Icc a b),
   { refine convex.monotone_on_of_deriv_nonneg (convex_Icc a b) hcontf _ _,
     { rw interior_Icc, intros x hx, apply differentiable_at.differentiable_within_at,
       apply has_deriv_at.differentiable_at, exact hderiv x hx, },
     { rw interior_Icc, intros x hx,
-      rw has_deriv_at.deriv (hderiv x hx), exact hpos x hx,} },
-  let A := λ n:ℕ, a + 1 / (n + 1),
-  let B := λ n:ℕ, b - 1 / (n + 1),
+      rw has_deriv_at.deriv (hderiv x hx), exact hnonneg x hx,} },
+  let A := λ (n : ℕ), a + 1 / (n + 1),
+  let B := λ (n : ℕ), b - 1 / (n + 1),
   have t0 : ∀ (n : ℕ), 0 < (1 / (n + 1) : ℝ),
-  { intro n, rw one_div_pos, refine add_pos_of_nonneg_of_pos _ zero_lt_one, simp },
+  { intro n, rw one_div_pos, exact add_pos_of_nonneg_of_pos (nat.cast_nonneg _) zero_lt_one, },
   have Icc_sub : ∀ (n : ℕ), Icc (A n) (B n) ⊆ Ioo a b,
   { intro n, apply Icc_subset_Ioo ((lt_add_iff_pos_right _).mpr $ t0 n) (sub_lt_self _ $ t0 n) },
   have t1 : tendsto A at_top (𝓝 a),
-  { rw (by simp : 𝓝 a = 𝓝 (a + 0)),
-    exact tendsto.const_add _ tendsto_one_div_add_at_top_nhds_0_nat },
+  { convert tendsto_one_div_add_at_top_nhds_0_nat.const_add a, simp },
   have t2 : tendsto B at_top (𝓝 b),
-  { rw (by simp : 𝓝 b = 𝓝 (b - 0)),
-    exact tendsto.const_sub _ tendsto_one_div_add_at_top_nhds_0_nat, },
+  { convert tendsto_one_div_add_at_top_nhds_0_nat.const_sub b, simp },
   refine measure_theory.integrable_on_Ioc_of_interval_integral_norm_bounded _ t1 t2
-    (eventually_of_forall _), exact (f b - f a),
+    (eventually_of_forall _), { exact (f b - f a) },
   { intro n, exact ((hcontf'.mono $ Icc_sub n).integrable_on_Icc).mono_set Ioc_subset_Icc_self, },
   { intro n,
     -- clean up silly case when interval is empty
-    by_cases u : A n ≤ B n, swap,
-    { push_neg at u,
-      rw [Ioc_eq_empty_of_le u.le, integral_empty, le_sub, sub_zero],
-      apply f_incr,
-      { rw mem_Icc, split, tauto, exact h_lt.le, },
-      { rw mem_Icc, split, exact h_lt.le, tauto, },
-      exact h_lt.le, },
+    rcases lt_or_le (B n) (A n) with u|u,
+    { rw [Ioc_eq_empty_of_le u.le, integral_empty, sub_nonneg],
+      exact f_incr ⟨le_refl _, hab⟩ ⟨hab, le_refl _⟩ hab },
     -- now main case
     have : ∫ (x : ℝ) in Ioc (A n) (B n), ∥f' x∥ = ∫ (x : ℝ) in Ioc (A n) (B n), f' x,
-    { apply set_integral_congr, { exact measurable_set_Ioc },
-      intros x hx, dsimp only,
-      exact real.norm_of_nonneg (hpos _ $ subset_trans Ioc_subset_Icc_self (Icc_sub n) hx),},
+    { refine set_integral_congr measurable_set_Ioc (λ x hx, _),
+      exact real.norm_of_nonneg (hnonneg _ $ subset_trans Ioc_subset_Icc_self (Icc_sub n) hx),},
     rw this,
     rw [←interval_integral.integral_of_le u, interval_integral.integral_eq_sub_of_has_deriv_at],
-    swap,
-    { intros x hx, rw interval_of_le u at hx, apply hderiv x, apply Icc_sub n, exact hx, },
     { have t1a : a ≤ A n, { simp only [le_add_iff_nonneg_right], exact (t0 n).le, },
       have t1b : B n ≤ b, { apply sub_le_self, exact (t0 n).le, },
-      have t3 : f (B n) ≤ f b,
-      { apply f_incr, exact ⟨le_trans t1a u, t1b⟩, rw mem_Icc, simpa using h_lt.le, exact t1b },
-      have t4 : f a ≤ f (A n),
-      { apply f_incr, rw mem_Icc, simpa using h_lt.le, exact ⟨t1a, le_trans u t1b⟩, exact t1a, },
-      exact sub_le_sub t3 t4, },
+      exact sub_le_sub (f_incr ⟨le_trans t1a u, t1b⟩ ⟨hab, le_refl _⟩ t1b)
+         (f_incr ⟨le_refl _, hab⟩ ⟨t1a, le_trans u t1b⟩ t1a), },
+    { intros x hx, rw interval_of_le u at hx, apply hderiv x, apply Icc_sub n, exact hx, },
     { refine (continuous_on.mono hcontf' _).interval_integrable,
       rw interval_of_le u, exact Icc_sub n, }, }
   end
 
-/-- Fundamental theorem of calculus-2: If `f : ℝ → ℝ` has a derivative `f' x` for all `x` in
-  `(a, b)` and is continuous on `[a, b]`, and `f'` is continuous and non-negative on `(a, b)`, then
-  `∫ y in a..b, f' y = f(b) - f(a)`. -/
 theorem interval_integral.integral_eq_sub_of_has_deriv_at_of_nonneg {a b : ℝ} {f f' : ℝ → ℝ}
-  (hderiv : ∀ x ∈ Ioo a b, has_deriv_at f (f' x) x) (hpos : ∀ x ∈ Ioo a b, 0 ≤ f' x)
-  (hcontf : continuous_on f $ Icc a b) (hcontf' : continuous_on f' $ Ioo a b) (hab : a ≤ b) :
-  ∫ y in a..b, f' y = f b - f a :=
-interval_integral.integral_eq_sub_of_has_deriv_at_of_le hab hcontf hderiv (
-  (interval_integrable_iff_integrable_Ioc_of_le hab).mpr
-  (interval_integral.integrable_of_has_deriv_at_of_nonneg hderiv hpos hcontf hcontf'))
+  (hderiv : ∀ x ∈ interior (interval a b), has_deriv_at f (f' x) x)
+  (hnonneg : ∀ x ∈ interior (interval a b), 0 ≤ f' x)
+  (hcontf : continuous_on f $ interval a b)
+  (hcontf' : continuous_on f' $ interior (interval a b)) :
+  (interval_integrable f' volume a b) ∧ (∫ y in a..b, f' y = f b - f a) :=
+begin
+  wlog hab : a ≤ b := le_total a b using [a b, b a] tactic.skip,
+  { rw [interval_of_le hab, interior_Icc] at *,
+    rw interval_integrable_iff_integrable_Ioc_of_le hab,
+    exact interval_integral.integral_eq_sub_of_has_deriv_at_of_nonneg_of_le hderiv hnonneg hcontf
+      hcontf' hab },
+  { intros, rw [interval_of_ge hab, interior_Icc] at *,
+    have u := interval_integral.integral_eq_sub_of_has_deriv_at_of_nonneg_of_le hderiv hnonneg
+      hcontf hcontf' hab,
+    refine ⟨((interval_integrable_iff_integrable_Ioc_of_le hab).mpr u.1).symm, _⟩,
+    rw interval_integral.integral_symm, have v := u.2,
+    apply_fun has_neg.neg at v, rw v, ring }
+end
 
 end FTC_nonneg

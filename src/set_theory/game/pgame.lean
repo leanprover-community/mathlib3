@@ -943,7 +943,7 @@ end⟩
 
 @[simp] theorem nat_one : ((1 : ℕ) : pgame) = 0 + 1 := rfl
 
-instance is_empty_add_left_moves (x y : pgame.{u})
+instance is_empty_left_moves_add (x y : pgame.{u})
   [is_empty x.left_moves] [is_empty y.left_moves] : is_empty (x + y).left_moves :=
 begin
   unfreezingI { cases x, cases y },

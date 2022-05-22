@@ -1194,6 +1194,8 @@ variables {c}
 
 @[simp] lemma disjoint_self : disjoint a a ↔ a = ⊥ := by simp [disjoint]
 
+alias disjoint_self ↔ disjoint.eq_bot_of_self _
+
 lemma disjoint.ne (ha : a ≠ ⊥) (hab : disjoint a b) : a ≠ b :=
 λ h, ha $ disjoint_self.1 $ by rwa ←h at hab
 

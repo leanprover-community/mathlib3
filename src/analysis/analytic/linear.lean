@@ -83,7 +83,7 @@ protected theorem has_fpower_series_on_ball_bilinear (f : E →L[𝕜] F →L[�
   has_sum := λ y _, (has_sum_nat_add_iff' 3).1 $
     begin
       simp only [finset.sum_range_succ, finset.sum_range_one, prod.fst_add, prod.snd_add,
-        f.map_add₂],
+        f.map_add_add],
       dsimp, simp only [add_comm, sub_self, has_sum_zero]
     end }
 

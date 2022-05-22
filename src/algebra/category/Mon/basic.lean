@@ -3,7 +3,6 @@ Copyright (c) 2018 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import tactic.elementwise
 import category_theory.concrete_category.bundled_hom
 import algebra.punit_instances
 import category_theory.functor.reflects_isomorphisms
@@ -117,6 +116,9 @@ instance (M : CommMon) : comm_monoid M := M.str
 
 @[to_additive has_forget_to_AddMon]
 instance has_forget_to_Mon : has_forget₂ CommMon Mon := bundled_hom.forget₂ _ _
+
+@[to_additive] instance : has_coe CommMon.{u} Mon.{u} :=
+{ coe := (forget₂ CommMon Mon).obj, }
 
 end CommMon
 

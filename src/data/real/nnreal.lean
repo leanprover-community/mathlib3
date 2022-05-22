@@ -80,6 +80,12 @@ iff.intro nnreal.eq (congr_arg coe)
 lemma ne_iff {x y : ℝ≥0} : (x : ℝ) ≠ (y : ℝ) ↔ x ≠ y :=
 not_iff_not_of_iff $ nnreal.eq_iff
 
+protected lemma «forall» {p : ℝ≥0 → Prop} : (∀ x : ℝ≥0, p x) ↔ ∀ (x : ℝ) (hx : 0 ≤ x), p ⟨x, hx⟩ :=
+subtype.forall
+
+protected lemma «exists» {p : ℝ≥0 → Prop} : (∃ x : ℝ≥0, p x) ↔ ∃ (x : ℝ) (hx : 0 ≤ x), p ⟨x, hx⟩ :=
+subtype.exists
+
 /-- Reinterpret a real number `r` as a non-negative real number. Returns `0` if `r < 0`. -/
 noncomputable def _root_.real.to_nnreal (r : ℝ) : ℝ≥0 := ⟨max r 0, le_max_right _ _⟩
 
@@ -116,6 +122,7 @@ protected lemma coe_inv (r : ℝ≥0) : ((r⁻¹ : ℝ≥0) : ℝ) = r⁻¹ := r
 protected lemma coe_div (r₁ r₂ : ℝ≥0) : ((r₁ / r₂ : ℝ≥0) : ℝ) = r₁ / r₂ := rfl
 @[simp, norm_cast] protected lemma coe_bit0 (r : ℝ≥0) : ((bit0 r : ℝ≥0) : ℝ) = bit0 r := rfl
 @[simp, norm_cast] protected lemma coe_bit1 (r : ℝ≥0) : ((bit1 r : ℝ≥0) : ℝ) = bit1 r := rfl
+protected lemma coe_two : ((2 : ℝ≥0) : ℝ) = 2 := rfl
 
 @[simp, norm_cast] protected lemma coe_sub {r₁ r₂ : ℝ≥0} (h : r₂ ≤ r₁) :
   ((r₁ - r₂ : ℝ≥0) : ℝ) = r₁ - r₂ :=
@@ -313,6 +320,13 @@ eq.symm $ @subset_Inf_of_within ℝ (set.Ici 0) _ ⟨(0 : ℝ≥0)⟩ s $
 @[norm_cast] lemma coe_infi {ι : Sort*} (s : ι → ℝ≥0) : (↑(⨅ i, s i) : ℝ) = ⨅ i, (s i) :=
 by rw [infi, infi, coe_Inf, set.range_comp]
 
+lemma le_infi_add_infi {ι ι' : Sort*} [nonempty ι] [nonempty ι'] {f : ι → ℝ≥0} {g : ι' → ℝ≥0}
+  {a : ℝ≥0} (h : ∀ i j, a ≤ f i + g j) : a ≤ (⨅ i, f i) + ⨅ j, g j :=
+begin
+  rw [← nnreal.coe_le_coe, nnreal.coe_add, coe_infi, coe_infi],
+  exact le_cinfi_add_cinfi h
+end
+
 example : archimedean ℝ≥0 := by apply_instance
 
 -- TODO: why are these three instances necessary? why aren't they inferred?
@@ -408,7 +422,7 @@ by simp [nnreal.coe_le_coe.symm, real.to_nnreal, hp]
 
 @[simp] lemma to_nnreal_lt_to_nnreal_iff' {r p : ℝ} :
   real.to_nnreal r < real.to_nnreal p ↔ r < p ∧ 0 < p :=
-by simp [nnreal.coe_lt_coe.symm, real.to_nnreal, lt_irrefl]
+nnreal.coe_lt_coe.symm.trans max_lt_max_left_iff
 
 lemma to_nnreal_lt_to_nnreal_iff {r p : ℝ} (h : 0 < p) :
   real.to_nnreal r < real.to_nnreal p ↔ r < p :=
@@ -557,7 +571,7 @@ by simp [pos_iff_ne_zero]
 lemma div_pos {r p : ℝ≥0} (hr : 0 < r) (hp : 0 < p) : 0 < r / p :=
 by simpa only [div_eq_mul_inv] using mul_pos hr (inv_pos.2 hp)
 
-protected lemma mul_inv {r p : ℝ≥0} : (r * p)⁻¹ = p⁻¹ * r⁻¹ := nnreal.eq $ mul_inv_rev₀ _ _
+protected lemma mul_inv {r p : ℝ≥0} : (r * p)⁻¹ = p⁻¹ * r⁻¹ := nnreal.eq $ mul_inv_rev _ _
 
 lemma div_self_le (r : ℝ≥0) : r / r ≤ 1 := div_self_le_one (r : ℝ)
 
@@ -646,6 +660,8 @@ eq.symm $ right_distrib a b (c⁻¹)
 lemma half_pos {a : ℝ≥0} (h : 0 < a) : 0 < a / 2 := div_pos h zero_lt_two
 
 lemma add_halves (a : ℝ≥0) : a / 2 + a / 2 = a := nnreal.eq (add_halves a)
+
+lemma half_le_self (a : ℝ≥0) : a / 2 ≤ a := nnreal.coe_le_coe.mp $ half_le_self a.coe_nonneg
 
 lemma half_lt_self {a : ℝ≥0} (h : a ≠ 0) : a / 2 < a :=
 by rw [← nnreal.coe_lt_coe, nnreal.coe_div]; exact

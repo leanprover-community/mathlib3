@@ -8,7 +8,7 @@ import algebra.order.ring
 import algebra.group_power.order
 
 /-!
-# Structure instances for unit intervals
+# Algebraic instances for unit intervals
 
 For suitably structured underlying type `α`, we exhibit the structure of
 the unit intervals (`set.Icc`, `set.Ioc`, `set.Ioc`, and `set.Ioo`) from `0` to `1`.
@@ -16,9 +16,9 @@ the unit intervals (`set.Icc`, `set.Ioc`, `set.Ioc`, and `set.Ioo`) from `0` to 
 Note: Instances for the interval `Ici 0` are dealt with in `algebra/order/nonneg.lean`.
 
 ## TODO
-* structure instances for intervals -1 to 1
-* structure instances for `Ici 1`
-* structure instances for `(Ioo (-1) 1)ᶜ`
+* algebraic instances for intervals -1 to 1
+* algebraic instances for `Ici 1`
+* algebraic instances for `(Ioo (-1) 1)ᶜ`
 * provide `has_distrib_neg` instances where applicable
 -/
 

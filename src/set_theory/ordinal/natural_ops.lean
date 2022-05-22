@@ -126,7 +126,7 @@ noncomputable def nadd : ordinal → ordinal → ordinal
   (blsub.{u u} b $ λ b' h, nadd a b')
 using_well_founded { dec_tac := `[solve_by_elim [psigma.lex.left, psigma.lex.right]] }
 
-local infix ` ♯ `:60 := nadd
+local infix ` ♯ `:65 := nadd
 
 theorem nadd_def (a b : ordinal) : a ♯ b = max
   (blsub.{u u} a $ λ a' h, a' ♯ b)
@@ -299,9 +299,9 @@ theorem lt_of_nadd_lt_nadd_left : ∀ {a b c}, a ♯ b < a ♯ c → b < c :=
 @lt_of_add_lt_add_left nat_ordinal _ _ _
 theorem lt_of_nadd_lt_nadd_right : ∀ {a b c}, b ♯ a < c ♯ a → b < c :=
 @_root_.lt_of_add_lt_add_right nat_ordinal _ _ _
-theorem lt_of_nadd_le_nadd_left : ∀ {a b c}, a ♯ b ≤ a ♯ c → b ≤ c :=
+theorem le_of_nadd_le_nadd_left : ∀ {a b c}, a ♯ b ≤ a ♯ c → b ≤ c :=
 @le_of_add_le_add_left nat_ordinal _ _ _
-theorem lt_of_nadd_le_nadd_right : ∀ {a b c}, b ♯ a ≤ c ♯ a → b ≤ c :=
+theorem le_of_nadd_le_nadd_right : ∀ {a b c}, b ♯ a ≤ c ♯ a → b ≤ c :=
 @le_of_add_le_add_right nat_ordinal _ _ _
 
 theorem nadd_lt_nadd_iff_left : ∀ a {b c}, a ♯ b < a ♯ c ↔ b < c :=

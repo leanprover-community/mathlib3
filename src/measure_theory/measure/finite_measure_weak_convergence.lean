@@ -330,28 +330,43 @@ begin
            ennreal.tendsto_coe, ennreal.to_nnreal_coe],
 end
 
-lemma tendsto_lintegral_nn_of_le_const (μ : finite_measure α)
-  {fs : ℕ → (α →ᵇ ℝ≥0)} {c : ℝ≥0} (fs_le_const : ∀ n a, fs n a ≤ c) {f : α → ℝ≥0}
-  (fs_lim : ∀ a, tendsto (λ n, fs n a) at_top (𝓝 (f a))) :
-  tendsto (λ n, (∫⁻ a, fs n a ∂(μ : measure α))) at_top
-          (𝓝 (∫⁻ a, (f a) ∂(μ : measure α))) :=
+lemma tendsto_lintegral_nn_filter_of_le_const {ι : Type*} {L : filter ι} [L.is_countably_generated]
+  (μ : finite_measure α) {fs : ι → (α →ᵇ ℝ≥0)} {c : ℝ≥0}
+  (fs_le_const : ∀ᶠ i in L, ∀ᵐ (a : α) ∂(μ : measure α), fs i a ≤ c) {f : α → ℝ≥0}
+  (fs_lim : ∀ᵐ (a : α) ∂(μ : measure α), tendsto (λ i, fs i a) L (𝓝 (f a))) :
+  tendsto (λ i, (∫⁻ a, fs i a ∂(μ : measure α))) L (𝓝 (∫⁻ a, (f a) ∂(μ : measure α))) :=
 begin
-  simpa only using tendsto_lintegral_of_dominated_convergence (λ _, c)
-            (λ n, (ennreal.continuous_coe.comp (fs n).continuous).measurable)
-            (λ n, eventually_of_forall (λ x, by simp only [fs_le_const n x, ennreal.coe_le_coe]))
-            ((@lintegral_const_lt_top _ _ (μ : measure α) _ _ (@ennreal.coe_lt_top c)).ne) _,
-  exact eventually_of_forall (by simpa only [ennreal.tendsto_coe] using fs_lim),
+  simpa only using tendsto_lintegral_filter_of_dominated_convergence (λ _, c)
+    (eventually_of_forall ((λ i, (ennreal.continuous_coe.comp (fs i).continuous).measurable)))
+    _ ((@lintegral_const_lt_top _ _ (μ : measure α) _ _ (@ennreal.coe_lt_top c)).ne) _,
+  { simpa only [ennreal.coe_le_coe] using fs_le_const, },
+  { simpa only [ennreal.tendsto_coe] using fs_lim, },
+end
+
+lemma tendsto_lintegral_nn_of_le_const (μ : finite_measure α) {fs : ℕ → (α →ᵇ ℝ≥0)} {c : ℝ≥0}
+  (fs_le_const : ∀ n a, fs n a ≤ c) {f : α → ℝ≥0}
+  (fs_lim : ∀ a, tendsto (λ n, fs n a) at_top (𝓝 (f a))) :
+  tendsto (λ n, (∫⁻ a, fs n a ∂(μ : measure α))) at_top (𝓝 (∫⁻ a, (f a) ∂(μ : measure α))) :=
+tendsto_lintegral_nn_filter_of_le_const μ
+  (eventually_of_forall (λ n, eventually_of_forall (fs_le_const n))) (eventually_of_forall fs_lim)
+
+lemma tendsto_test_against_nn_filter_of_le_const {ι : Type*} {L : filter ι}
+  [L.is_countably_generated] {μ : finite_measure α} {fs : ι → (α →ᵇ ℝ≥0)} {c : ℝ≥0}
+  (fs_le_const : ∀ᶠ i in L, ∀ᵐ (a : α) ∂(μ : measure α), fs i a ≤ c) {f : α →ᵇ ℝ≥0}
+  (fs_lim : ∀ᵐ (a : α) ∂(μ : measure α), tendsto (λ i, fs i a) L (𝓝 (f a))) :
+  tendsto (λ i, μ.test_against_nn (fs i)) L (𝓝 (μ.test_against_nn f)) :=
+begin
+  apply (ennreal.tendsto_to_nnreal
+         (μ.lintegral_lt_top_of_bounded_continuous_to_nnreal f).ne).comp,
+  exact finite_measure.tendsto_lintegral_nn_filter_of_le_const μ fs_le_const fs_lim,
 end
 
 lemma tendsto_test_against_nn_of_le_const {μ : finite_measure α}
   {fs : ℕ → (α →ᵇ ℝ≥0)} {c : ℝ≥0} (fs_le_const : ∀ n a, fs n a ≤ c) {f : α →ᵇ ℝ≥0}
   (fs_lim : ∀ a, tendsto (λ n, fs n a) at_top (𝓝 (f a))) :
   tendsto (λ n, μ.test_against_nn (fs n)) at_top (𝓝 (μ.test_against_nn f)) :=
-begin
-  apply (ennreal.tendsto_to_nnreal
-         (μ.lintegral_lt_top_of_bounded_continuous_to_nnreal f).ne).comp,
-  exact finite_measure.tendsto_lintegral_nn_of_le_const μ fs_le_const fs_lim,
-end
+tendsto_test_against_nn_filter_of_le_const
+  (eventually_of_forall (λ n, eventually_of_forall (fs_le_const n))) (eventually_of_forall fs_lim)
 
 end finite_measure
 
@@ -474,10 +489,8 @@ end probability_measure
 
 section convergence_implies_limsup_closed_le
 
-
-variables [topological_space α] [opens_measurable_space α]
-
 lemma measure_of_cont_bdd_of_tendsto_indicator
+  [topological_space α] [opens_measurable_space α]
   (μ : finite_measure α) {c : ℝ≥0} {E : set α} (E_mble : measurable_set E)
   (fs : ℕ → (α →ᵇ ℝ≥0)) (fs_bdd : ∀ n a, fs n a ≤ c)
   (fs_lim : tendsto (λ (n : ℕ), (coe_fn : (α →ᵇ ℝ≥0) → (α → ℝ≥0)) (fs n))
@@ -509,7 +522,7 @@ begin
   rwa F_closed.closure_eq at key,
 end
 
-lemma finite_measure.limsup_measure_closed_le
+lemma finite_measure.limsup_measure_closed_le_of_tendsto
   {α ι : Type*} {L : filter ι} [ne_bot L]
   [measurable_space α] [pseudo_emetric_space α] [opens_measurable_space α]
   {μ : finite_measure α} {μs : ι → finite_measure α}

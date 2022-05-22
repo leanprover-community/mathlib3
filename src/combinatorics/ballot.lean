@@ -31,6 +31,8 @@ throughout the count. The probability of this is `(p - q) / (p + q)`.
 
 open set probability_theory measure_theory
 
+namespace ballot
+
 /-- The set of nonempty lists of integers which suffix has positive sum. -/
 def stays_positive : set (list ℤ) := {l | ∀ l₂, l₂ ≠ [] → l₂ <:+ l → 0 < l₂.sum}
 
@@ -451,3 +453,5 @@ begin
     exact ⟨λ _ _, by linarith, (lt_of_le_of_lt tsub_le_self (ennreal.nat_ne_top p).lt_top).ne⟩ },
   apply_instance,
 end
+
+end ballot

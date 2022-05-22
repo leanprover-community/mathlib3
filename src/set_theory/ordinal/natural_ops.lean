@@ -15,14 +15,14 @@ greater than `a' ♯ b` and `a ♯ b'` for `a' < a` and `b' < b`. The natural mu
 likewise recursively defined as the least ordinal such that `a ⨳ b ♯ a' ⨳ b'` is greater than
 `a' ⨳ b ♯ a ⨳ b'` for any `a' < a` and `b' < b`.
 
-These operations form a rich algebraic structure: they're commutative, associative, have the usual
-`0` and `1` from ordinals, and distribute over one another.
+These operations form a rich algebraic structure: they're commutative, associative, preserve order,
+have the usual `0` and `1` from ordinals, and distribute over one another.
 
-Moreover, these operations are the addition and multiplication of ordinals when viewed as `surreal`
-numbers. This makes them particularly useful for game theory.
+Moreover, these operations are the addition and multiplication of ordinals when viewed as
+combinatorial `game`s. This makes them particularly useful for game theory.
 
 Finally, both operations admit simple, intuitive descriptions in terms of the Cantor normal form.
-The natural addition of two ordinals corresponds to adding the Cantor normal forms as if they were
+The natural addition of two ordinals corresponds to adding their Cantor normal forms as if they were
 polynomials in `ω`. Likewise, their natural multiplication corresponds to multiplying the Cantor
 normal forms as polynomials.
 

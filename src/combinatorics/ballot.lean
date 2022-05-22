@@ -485,7 +485,7 @@ begin
   exact list.cons_injective
 end
 
-theorem ballot' :
+theorem ballot_problem' :
   ∀ q p, q < p → (cond_count (counted_sequence p q) stays_positive).to_real = (p - q) / (p + q) :=
 begin
   classical,
@@ -527,7 +527,7 @@ begin
 end
 
 /-- The ballot problem. -/
-theorem ballot :
+theorem ballot_problem :
   ∀ q p, q < p → cond_count (counted_sequence p q) stays_positive = (p - q) / (p + q) :=
 begin
   intros q p qp,
@@ -535,7 +535,7 @@ begin
     (counted_sequence_finite p q) (counted_sequence_nonempty _ _),
   have : (cond_count (counted_sequence p q) stays_positive).to_real =
     ((p - q) / (p + q) : ennreal).to_real,
-  { rw ballot' q p qp,
+  { rw ballot_problem' q p qp,
     rw [ennreal.to_real_div, ← nat.cast_add, ← nat.cast_add, ennreal.to_real_nat,
       ennreal.to_real_sub_of_le, ennreal.to_real_nat, ennreal.to_real_nat],
     exacts [ennreal.coe_nat_le_coe_nat.2 qp.le, ennreal.nat_ne_top _] },

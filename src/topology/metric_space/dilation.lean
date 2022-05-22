@@ -1,5 +1,31 @@
+/-
+Copyright (c) 2022 Hanting Zhang. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Dilations of emetric and metric spaces
+Authors: Hanting Zhang
+-/
 import topology.metric_space.antilipschitz
 import data.fun_like.basic
+
+/-!
+# Isometries
+
+We define dilations, i.e., maps between emetric spaces that
+satisfy `edist (f x) (f y) = r * edist x y`. The constant `r` is the ratio of the dilation,
+and it is not bundled within the structure.
+
+Here `r : ℝ≥0`, so we do not exclude the degenerate case of dilations
+which collapse into constant maps. Since there is no `ℝ>0` API defined in mathlib,
+no matter where you choose to exclude r = 0, you will end up having to carry
+it around with you anyways. So statements that do need strict dilations should
+just say `f : dilation α β r` and `hr : r ≠ 0`.
+
+TODO: Introduce dilation equivs. Refactor the isometry API
+to match the `*_hom_class` API below.
+
+Since a lot of elementary properties don't require `eq_of_dist_eq_zero` we start setting up the
+theory for `pseudo_metric_space` and we specialize to `metric_space` when needed.
+-/
 
 noncomputable theory
 
@@ -34,15 +60,18 @@ instance dilation.to_dilation_class (r : ℝ≥0) :
   coe_injective' := λ f g h, by { cases f, cases g, congr' },
   edist_eq' := λ f, dilation.edist_eq' f }
 
-instance (r : out_param ℝ≥0) : has_coe_to_fun (dilation α β r) (λ _, α → β) := fun_like.has_coe_to_fun
+instance (r : out_param ℝ≥0) : has_coe_to_fun (dilation α β r) (λ _, α → β) :=
+fun_like.has_coe_to_fun
 
 @[simp] lemma dilation.to_fun_eq_coe (r : ℝ≥0) {f : dilation α β r} : f.to_fun = (f : α → β) := rfl
 
-@[ext] theorem dilation.ext (r : ℝ≥0) {f g : dilation α β r} (h : ∀ x, f x = g x) : f = g := fun_like.ext f g h
+@[ext] theorem dilation.ext (r : ℝ≥0) {f g : dilation α β r} (h : ∀ x, f x = g x) : f = g :=
+fun_like.ext f g h
 
 /-- Copy of a `dilation` with a new `to_fun` equal to the old one. Useful to fix definitional
 equalities. -/
-protected def dilation.copy (r : ℝ≥0) (f : dilation α β r) (f' : α → β) (h : f' = ⇑f) : dilation α β r :=
+protected def dilation.copy
+  (r : ℝ≥0) (f : dilation α β r) (f' : α → β) (h : f' = ⇑f) : dilation α β r :=
 { to_fun := f',
   edist_eq' := h.symm ▸ f.edist_eq' }
 
@@ -54,8 +83,8 @@ variables {α : Type*} {β : Type*} {γ : Type*} {F : Type*} {G : Type*} (r r₂
 lemma emetric_iff_metric [pseudo_metric_space α] [pseudo_metric_space β] {f : α → β} :
   (∀x y, edist (f x) (f y) = r * edist x y) ↔ (∀x y, dist (f x) (f y) = r * dist x y) :=
 ⟨assume H x y, by rw [dist_edist, dist_edist, H x y, ennreal.to_real_mul, ennreal.coe_to_real],
-assume H x y,
-  by rw [edist_dist, edist_dist, H x y, ennreal.of_real_mul nnreal.zero_le_coe, ennreal.of_real_coe_nnreal]⟩
+assume H x y, by rw [edist_dist, edist_dist, H x y,
+  ennreal.of_real_mul nnreal.zero_le_coe, ennreal.of_real_coe_nnreal]⟩
 
 @[simp] lemma edist_eq
   [pseudo_emetric_space α] [pseudo_emetric_space β] [dilation_class F α β r]
@@ -245,4 +274,3 @@ end
 end pseudo_metric_dilation -- section
 
 end dilation
-#lint

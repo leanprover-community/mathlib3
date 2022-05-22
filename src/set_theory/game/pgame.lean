@@ -951,7 +951,7 @@ begin
   assumption'
 end
 
-instance is_empty_add_right_moves (x y : pgame.{u})
+instance is_empty_right_moves_add (x y : pgame.{u})
   [is_empty x.right_moves] [is_empty y.right_moves] : is_empty (x + y).right_moves :=
 begin
   unfreezingI { cases x, cases y },

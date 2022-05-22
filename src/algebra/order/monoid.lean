@@ -1045,23 +1045,6 @@ instance [add_zero_class α] : add_zero_class (with_bot α) := with_top.add_zero
 instance [add_monoid α] : add_monoid (with_bot α) := with_top.add_monoid
 instance [add_comm_monoid α] : add_comm_monoid (with_bot α) :=  with_top.add_comm_monoid
 
-instance [ordered_add_comm_monoid α] : ordered_add_comm_monoid (with_bot α) :=
-begin
-  suffices, refine
-  { add_le_add_left := this,
-    ..with_bot.partial_order,
-    ..with_bot.add_comm_monoid, ..},
-  { intros a b h c ca h₂,
-    cases c with c, {cases h₂},
-    cases a with a; cases h₂,
-    cases b with b, {cases le_antisymm h bot_le},
-    simp at h,
-    exact ⟨_, rfl, add_le_add_left h _⟩, }
-end
-
-instance [linear_ordered_add_comm_monoid α] : linear_ordered_add_comm_monoid (with_bot α) :=
-{ ..with_bot.linear_order, ..with_bot.ordered_add_comm_monoid }
-
 -- `by norm_cast` proves this lemma, so I did not tag it with `norm_cast`
 @[to_additive]
 lemma coe_one [has_one α] : ((1 : α) : with_bot α) = 1 := rfl
@@ -1155,6 +1138,15 @@ protected lemma add_lt_add_of_lt_of_le [covariant_class α α (+) (≤)]
 @with_top.add_lt_add_of_lt_of_le αᵒᵈ _ _ _ _ _ _ _ _ hd hab hcd
 
 end has_add
+
+instance [ordered_add_comm_monoid α] : ordered_add_comm_monoid (with_bot α) :=
+{ add_le_add_left := λ a b h c, add_le_add_left h c,
+  ..with_bot.partial_order,
+  ..with_bot.add_comm_monoid }
+
+instance [linear_ordered_add_comm_monoid α] : linear_ordered_add_comm_monoid (with_bot α) :=
+{ ..with_bot.linear_order, ..with_bot.ordered_add_comm_monoid }
+
 end with_bot
 
 /-! ### `additive`/`multiplicative` -/

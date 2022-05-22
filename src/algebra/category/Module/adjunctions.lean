@@ -144,6 +144,9 @@ def Free (R : Type*) (C : Type u) := C
 
 /--
 Consider an object of `C` as an object of the `R`-linear completion.
+
+It may be preferable to use `(Free.embedding R C).obj X` instead;
+this functor can also be used to lift morphisms.
 -/
 def Free.of (R : Type*) {C : Type u} (X : C) : Free R C := X
 
@@ -170,12 +173,7 @@ instance category_Free : category (Free R C) :=
 namespace Free
 
 section
-local attribute [simp] category_theory.category_Free
-
-@[simp]
-lemma single_comp_single {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) (r s : R) :
-  (single f r ≫ single g s : (Free.of R X) ⟶ (Free.of R Z)) = single (f ≫ g) (r * s) :=
-by { dsimp, simp, }
+local attribute [reducible] category_theory.category_Free
 
 instance : preadditive (Free R C) :=
 { hom_group := λ X Y, finsupp.add_comm_group,
@@ -207,7 +205,13 @@ instance : linear R (Free R C) :=
     simp [finsupp.smul_sum, mul_left_comm],
   end, }
 
+lemma single_comp_single {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) (r s : R) :
+  (single f r ≫ single g s : (Free.of R X) ⟶ (Free.of R Z)) = single (f ≫ g) (r * s) :=
+by { dsimp, simp, }
+
 end
+
+local attribute [simp] single_comp_single
 
 /--
 A category embeds into its `R`-linear completion.
@@ -224,7 +228,7 @@ variables (R) {C} {D : Type u} [category.{v} D] [preadditive D] [linear R D]
 open preadditive linear
 
 /--
-A functor to a preadditive category lifts to a functor from its `R`-linear completion.
+A functor to an `R`-linear category lifts to a functor from its `R`-linear completion.
 -/
 @[simps]
 def lift (F : C ⥤ D) : Free R C ⥤ D :=

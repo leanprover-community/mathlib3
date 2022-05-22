@@ -315,13 +315,20 @@ end uniform_space_seq_compact
 
 section metric_seq_compact
 
-variables [pseudo_metric_space β] {s : set β}
+variables [pseudo_metric_space β]
 open metric
+
+lemma seq_compact.lebesgue_number_lemma_of_metric {ι : Sort*} {c : ι → set β}
+  {s : set β}(hs : is_seq_compact s) (hc₁ : ∀ i, is_open (c i)) (hc₂ : s ⊆ ⋃ i, c i) :
+  ∃ δ > 0, ∀ x ∈ s, ∃ i, ball x δ ⊆ c i :=
+lebesgue_number_lemma_of_metric hs.is_compact hc₁ hc₂
+
+variables [proper_space β] {s : set β}
 
 /-- A version of **Bolzano-Weistrass**: in a proper metric space (eg. $ℝ^n$),
 every bounded sequence has a converging subsequence. This version assumes only
 that the sequence is frequently in some bounded set. -/
-lemma tendsto_subseq_of_frequently_bounded [proper_space β] (hs : bounded s)
+lemma tendsto_subseq_of_frequently_bounded (hs : bounded s)
   {u : ℕ → β} (hu : ∃ᶠ n in at_top, u n ∈ s) :
   ∃ b ∈ closure s, ∃ φ : ℕ → ℕ, strict_mono φ ∧ tendsto (u ∘ φ) at_top (𝓝 b) :=
 have hcs : is_seq_compact (closure s), from hs.is_compact_closure.is_seq_compact,
@@ -330,7 +337,7 @@ hcs.subseq_of_frequently_in hu'
 
 /-- A version of Bolzano-Weistrass: in a proper metric space (eg. $ℝ^n$),
 every bounded sequence has a converging subsequence. -/
-lemma tendsto_subseq_of_bounded [proper_space β] (hs : bounded s)
+lemma tendsto_subseq_of_bounded (hs : bounded s)
   {u : ℕ → β} (hu : ∀ n, u n ∈ s) :
   ∃ b ∈ closure s, ∃ φ : ℕ → ℕ, strict_mono φ ∧ tendsto (u ∘ φ) at_top (𝓝 b) :=
 tendsto_subseq_of_frequently_bounded hs $ frequently_of_forall hu

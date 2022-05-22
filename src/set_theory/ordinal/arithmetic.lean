@@ -1223,6 +1223,10 @@ theorem lt_bsup_of_limit {o : ordinal} {f : Π a < o, ordinal}
   (ho : ∀ a < o, succ a < o) (i h) : f i h < bsup o f :=
 (hf _ _ $ lt_succ_self i).trans_le (le_bsup f i.succ $ ho _ h)
 
+theorem bsup_succ_of_mono {o : ordinal} {f : Π a < succ o, ordinal}
+  (hf : ∀ {i j} hi hj, i ≤ j → f i hi ≤ f j hj) : bsup _ f = f o (lt_succ_self o) :=
+le_antisymm (bsup_le (λ i hi, hf _ _ (lt_succ.1 hi))) (le_bsup _ _ _)
+
 @[simp] theorem bsup_zero (f : Π a < (0 : ordinal), ordinal) : bsup 0 f = 0 :=
 bsup_eq_zero_iff.2 (λ i hi, (ordinal.not_lt_zero i hi).elim)
 
@@ -1455,6 +1459,10 @@ begin
   rw bsup_eq_blsub_iff_lt_bsup,
   exact λ i hi, (hf i hi).trans_le (le_bsup f _ _)
 end
+
+theorem blsub_succ_of_mono {o : ordinal} {f : Π a < succ o, ordinal}
+  (hf : ∀ {i j} hi hj, i ≤ j → f i hi ≤ f j hj) : blsub _ f = succ (f o (lt_succ_self o)) :=
+bsup_succ_of_mono $ λ i j hi hj h, succ_le_succ.2 (hf hi hj h)
 
 @[simp] theorem blsub_eq_zero_iff {o} {f : Π a < o, ordinal} : blsub o f = 0 ↔ o = 0 :=
 by { rw [←lsub_eq_blsub, lsub_eq_zero_iff], exact out_empty_iff_eq_zero }

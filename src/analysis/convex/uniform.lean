@@ -50,23 +50,7 @@ uniform_convex_space.uniform_convex hε
 
 variables [normed_space ℝ E]
 
-lemma exists_forall_sphere_dist_add_le_two_mul_sub (hε : 0 < ε) (r : ℝ) :
-  ∃ δ, 0 < δ ∧ ∀ ⦃x : E⦄, ∥x∥ = r → ∀ ⦃y⦄, ∥y∥ = r → ε ≤ ∥x - y∥ → ∥x + y∥ ≤ 2 * r - δ :=
-begin
-  obtain hr | hr := le_or_lt r 0,
-  { exact ⟨1, one_pos, λ x hx y hy h, (hε.not_le $ h.trans $ (norm_sub_le _ _).trans $
-     add_nonpos (hx.trans_le hr) (hy.trans_le hr)).elim⟩ },
-  obtain ⟨δ, hδ, h⟩ := exists_forall_sphere_dist_add_le_two_sub E (div_pos hε hr),
-  refine ⟨δ * r, mul_pos hδ hr, λ x hx y hy hxy, _⟩,
-  rw [eq_comm, ←inv_mul_eq_one₀ hr.ne', ←norm_smul_of_nonneg (inv_nonneg.2 hr.le)] at hx hy;
-    try { apply_instance },
-  have := h hx hy,
-  simp_rw [←smul_add, ←smul_sub, norm_smul_of_nonneg (inv_nonneg.2 hr.le), ←div_eq_inv_mul,
-    div_le_div_right hr, div_le_iff hr, sub_mul] at this,
-  exact this hxy,
-end
-
-lemma exists_forall_ball_dist_add_le_two_sub (hε : 0 < ε) :
+lemma exists_forall_closed_ball_dist_add_le_two_sub (hε : 0 < ε) :
   ∃ δ, 0 < δ ∧ ∀ ⦃x : E⦄, ∥x∥ ≤ 1 → ∀ ⦃y⦄, ∥y∥ ≤ 1 → ε ≤ ∥x - y∥ → ∥x + y∥ ≤ 2 - δ :=
 begin
   have hε' : 0 < ε / 3 := div_pos hε zero_lt_three,
@@ -114,13 +98,13 @@ begin
       end,
 end
 
-lemma exists_forall_ball_dist_add_le_two_mul_sub (hε : 0 < ε) (r : ℝ) :
+lemma exists_forall_closed_ball_dist_add_le_two_mul_sub (hε : 0 < ε) (r : ℝ) :
   ∃ δ, 0 < δ ∧ ∀ ⦃x : E⦄, ∥x∥ ≤ r → ∀ ⦃y⦄, ∥y∥ ≤ r → ε ≤ ∥x - y∥ → ∥x + y∥ ≤ 2 * r - δ :=
 begin
   obtain hr | hr := le_or_lt r 0,
   { exact ⟨1, one_pos, λ x hx y hy h, (hε.not_le $ h.trans $ (norm_sub_le _ _).trans $
      add_nonpos (hx.trans hr) (hy.trans hr)).elim⟩ },
-  obtain ⟨δ, hδ, h⟩ := exists_forall_ball_dist_add_le_two_sub E (div_pos hε hr),
+  obtain ⟨δ, hδ, h⟩ := exists_forall_closed_ball_dist_add_le_two_sub E (div_pos hε hr),
   refine ⟨δ * r, mul_pos hδ hr, λ x hx y hy hxy, _⟩,
   rw [←div_le_one hr, div_eq_inv_mul, ←norm_smul_of_nonneg (inv_nonneg.2 hr.le)] at hx hy;
     try { apply_instance },
@@ -137,7 +121,7 @@ variables [normed_group E] [normed_space ℝ E] [uniform_convex_space E]
 @[priority 100] -- See note [lower instance priority]
 instance uniform_convex_space.to_strict_convex_space : strict_convex_space ℝ E :=
 strict_convex_space.of_norm_add_lt one_half_pos one_half_pos (add_halves _) $ λ x y hx hy hxy, begin
-  obtain ⟨δ, hδ, h⟩ := exists_forall_ball_dist_add_le_two_sub E (norm_sub_pos_iff.2 hxy),
+  obtain ⟨δ, hδ, h⟩ := exists_forall_closed_ball_dist_add_le_two_sub E (norm_sub_pos_iff.2 hxy),
   rw [←smul_add, norm_smul_of_nonneg one_half_pos.le, ←lt_div_iff' one_half_pos, one_div_one_div],
   exact (h hx hy le_rfl).trans_lt (sub_lt_self _ hδ),
 end

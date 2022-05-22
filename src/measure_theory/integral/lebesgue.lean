@@ -1890,10 +1890,40 @@ end
 
 open measure
 
+lemma lintegral_Union₀ [encodable β] {s : β → set α} (hm : ∀ i, null_measurable_set (s i) μ)
+  (hd : pairwise (ae_disjoint μ on s)) (f : α → ℝ≥0∞) :
+  ∫⁻ a in ⋃ i, s i, f a ∂μ = ∑' i, ∫⁻ a in s i, f a ∂μ :=
+by simp only [measure.restrict_Union_ae hd hm, lintegral_sum_measure]
+
 lemma lintegral_Union [encodable β] {s : β → set α} (hm : ∀ i, measurable_set (s i))
   (hd : pairwise (disjoint on s)) (f : α → ℝ≥0∞) :
   ∫⁻ a in ⋃ i, s i, f a ∂μ = ∑' i, ∫⁻ a in s i, f a ∂μ :=
-by simp only [measure.restrict_Union hd hm, lintegral_sum_measure]
+lintegral_Union₀ (λ i, (hm i).null_measurable_set) hd.ae_disjoint f
+
+lemma lintegral_bUnion₀ {t : set β} {s : β → set α} (ht : countable t)
+  (hm : ∀ i ∈ t, null_measurable_set (s i) μ)
+  (hd : t.pairwise (ae_disjoint μ on s)) (f : α → ℝ≥0∞) :
+  ∫⁻ a in ⋃ i ∈ t, s i, f a ∂μ = ∑' i : t, ∫⁻ a in s i, f a ∂μ :=
+begin
+  haveI := ht.to_encodable,
+  rw [bUnion_eq_Union, lintegral_Union₀ (set_coe.forall'.1 hm) (hd.subtype _ _)]
+end
+
+lemma lintegral_bUnion {t : set β} {s : β → set α} (ht : countable t)
+  (hm : ∀ i ∈ t, measurable_set (s i)) (hd : t.pairwise_disjoint s) (f : α → ℝ≥0∞) :
+  ∫⁻ a in ⋃ i ∈ t, s i, f a ∂μ = ∑' i : t, ∫⁻ a in s i, f a ∂μ :=
+lintegral_bUnion₀ ht (λ i hi, (hm i hi).null_measurable_set) hd.ae_disjoint f
+
+lemma lintegral_bUnion_finset₀ {s : finset β} {t : β → set α}
+  (hd : set.pairwise ↑s (ae_disjoint μ on t)) (hm : ∀ b ∈ s, null_measurable_set (t b) μ)
+  (f : α → ℝ≥0∞) :
+  ∫⁻ a in ⋃ b ∈ s, t b, f a ∂μ = ∑ b in s, ∫⁻ a in t b, f a ∂μ :=
+by simp only [← finset.mem_coe, lintegral_bUnion₀ s.countable_to_set hm hd, ← s.tsum_subtype']
+
+lemma lintegral_bUnion_finset {s : finset β} {t : β → set α}
+  (hd : set.pairwise_disjoint ↑s t) (hm : ∀ b ∈ s, measurable_set (t b)) (f : α → ℝ≥0∞) :
+  ∫⁻ a in ⋃ b ∈ s, t b, f a ∂μ = ∑ b in s, ∫⁻ a in t b, f a ∂μ :=
+lintegral_bUnion_finset₀ hd.ae_disjoint (λ b hb, (hm b hb).null_measurable_set) f
 
 lemma lintegral_Union_le [encodable β] (s : β → set α) (f : α → ℝ≥0∞) :
   ∫⁻ a in ⋃ i, s i, f a ∂μ ≤ ∑' i, ∫⁻ a in s i, f a ∂μ :=
@@ -1902,19 +1932,35 @@ begin
   exact lintegral_mono' restrict_Union_le le_rfl
 end
 
-lemma lintegral_union {f : α → ℝ≥0∞} {A B : set α}
-  (hA : measurable_set A) (hB : measurable_set B) (hAB : disjoint A B) :
+lemma lintegral_union {f : α → ℝ≥0∞} {A B : set α} (hB : measurable_set B) (hAB : disjoint A B) :
   ∫⁻ a in A ∪ B, f a ∂μ = ∫⁻ a in A, f a ∂μ + ∫⁻ a in B, f a ∂μ :=
-begin
-  rw [set.union_eq_Union, lintegral_Union, tsum_bool, add_comm],
-  { simp only [to_bool_false_eq_ff, to_bool_true_eq_tt, cond] },
-  { intros i, exact measurable_set.cond hA hB },
-  { rwa pairwise_disjoint_on_bool }
-end
+by rw [restrict_union hAB hB, lintegral_add_measure]
+
+lemma lintegral_inter_add_diff {B : set α} (f : α → ℝ≥0∞) (A : set α) (hB : measurable_set B) :
+  ∫⁻ x in A ∩ B, f x ∂μ + ∫⁻ x in A \ B, f x ∂μ = ∫⁻ x in A, f x ∂μ :=
+by rw [← lintegral_add_measure, restrict_inter_add_diff _ hB]
 
 lemma lintegral_add_compl (f : α → ℝ≥0∞) {A : set α} (hA : measurable_set A) :
   ∫⁻ x in A, f x ∂μ + ∫⁻ x in Aᶜ, f x ∂μ = ∫⁻ x, f x ∂μ :=
 by rw [← lintegral_add_measure, measure.restrict_add_restrict_compl hA]
+
+lemma lintegral_max {f g : α → ℝ≥0∞} (hf : measurable f) (hg : measurable g) :
+  ∫⁻ x, max (f x) (g x) ∂μ = ∫⁻ x in {x | f x ≤ g x}, g x ∂μ + ∫⁻ x in {x | g x < f x}, f x ∂μ :=
+begin
+  have hm : measurable_set {x | f x ≤ g x}, from measurable_set_le hf hg,
+  rw [← lintegral_add_compl (λ x, max (f x) (g x)) hm],
+  simp only [← compl_set_of, ← not_le],
+  refine congr_arg2 (+) (set_lintegral_congr_fun hm _) (set_lintegral_congr_fun hm.compl _),
+  exacts [ae_of_all _ (λ x, max_eq_right), ae_of_all _ (λ x hx, max_eq_left (not_le.1 hx).le)]
+end
+
+lemma set_lintegral_max {f g : α → ℝ≥0∞} (hf : measurable f) (hg : measurable g) (s : set α) :
+  ∫⁻ x in s, max (f x) (g x) ∂μ =
+    ∫⁻ x in s ∩ {x | f x ≤ g x}, g x ∂μ + ∫⁻ x in s ∩ {x | g x < f x}, f x ∂μ :=
+begin
+  rw [lintegral_max hf hg, restrict_restrict, restrict_restrict, inter_comm s, inter_comm s],
+  exacts [measurable_set_lt hg hf, measurable_set_le hf hg]
+end
 
 lemma lintegral_map {mβ : measurable_space β} {f : β → ℝ≥0∞} {g : α → β}
   (hf : measurable f) (hg : measurable g) : ∫⁻ a, f a ∂(map g μ) = ∫⁻ a, f (g a) ∂μ :=

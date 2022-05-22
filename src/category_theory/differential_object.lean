@@ -184,11 +184,7 @@ variables [has_zero_object C] [has_zero_morphisms C] [has_shift C ℤ]
 open_locale zero_object
 
 instance has_zero_object : has_zero_object (differential_object C) :=
-{ zero :=
-  { X := (0 : C),
-    d := 0, },
-  unique_to := λ X, ⟨⟨{ f := 0 }⟩, λ f, (by ext)⟩,
-  unique_from := λ X, ⟨⟨{ f := 0 }⟩, λ f, (by ext)⟩, }
+by { refine ⟨⟨⟨0, 0⟩, λ X, ⟨⟨⟨⟨0⟩⟩, λ f, _⟩⟩, λ X, ⟨⟨⟨⟨0⟩⟩, λ f, _⟩⟩⟩⟩; ext, }
 
 end differential_object
 
@@ -229,6 +225,7 @@ def shift_functor (n : ℤ) : differential_object C ⥤ differential_object C :=
   map_id' := by { intros X, ext1, dsimp, rw functor.map_id },
   map_comp' := by { intros X Y Z f g, ext1, dsimp, rw functor.map_comp } }
 
+local attribute [simp] eq_to_hom_map
 local attribute [reducible] discrete.add_monoidal shift_comm
 
 /-- The shift functor on `differential_object C` is additive. -/

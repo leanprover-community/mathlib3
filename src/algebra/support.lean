@@ -71,6 +71,16 @@ by { simp_rw [← subset_empty_iff, mul_support_subset_iff', funext_iff], simp }
   (mul_support f).nonempty ↔ f ≠ 1 :=
 by rw [← ne_empty_iff_nonempty, ne.def, mul_support_eq_empty_iff]
 
+@[to_additive]
+lemma range_subset_insert_image_mul_support (f : α → M) :
+  range f ⊆ insert 1 (f '' mul_support f) :=
+begin
+  intros y hy,
+  rcases eq_or_ne y 1 with rfl|h2y,
+  { exact mem_insert _ _ },
+  { obtain ⟨x, rfl⟩ := hy, refine mem_insert_of_mem _ ⟨x, h2y, rfl⟩ }
+end
+
 @[simp, to_additive] lemma mul_support_one' : mul_support (1 : α → M) = ∅ :=
 mul_support_eq_empty_iff.2 rfl
 
@@ -117,7 +127,7 @@ end
 @[to_additive] lemma mul_support_infi [conditionally_complete_lattice M] [nonempty ι]
   (f : ι → α → M) :
   mul_support (λ x, ⨅ i, f i x) ⊆ ⋃ i, mul_support (f i) :=
-@mul_support_supr _ (order_dual M) ι ⟨(1:M)⟩ _ _ f
+@mul_support_supr _ Mᵒᵈ ι ⟨(1:M)⟩ _ _ f
 
 @[to_additive] lemma mul_support_comp_subset {g : M → N} (hg : g 1 = 1) (f : α → M) :
   mul_support (g ∘ f) ⊆ mul_support f :=
@@ -180,7 +190,7 @@ mul_support_inv f
 
 @[simp] lemma mul_support_inv₀ [group_with_zero G₀] (f : α → G₀) :
   mul_support (λ x, (f x)⁻¹) = mul_support f :=
-set.ext $ λ x, not_congr inv_eq_one₀
+set.ext $ λ x, inv_ne_one
 
 @[to_additive] lemma mul_support_mul_inv [group G] (f g : α → G) :
   mul_support (λ x, f x * (g x)⁻¹) ⊆ mul_support f ∪ mul_support g :=
@@ -188,7 +198,7 @@ mul_support_binop_subset (λ a b, a * b⁻¹) (by simp) f g
 
 @[to_additive support_sub] lemma mul_support_group_div [group G] (f g : α → G) :
   mul_support (λ x, f x / g x) ⊆ mul_support f ∪ mul_support g :=
-mul_support_binop_subset (/) (by simp only [one_div, one_inv]) f g
+mul_support_binop_subset (/) (by simp only [one_div, inv_one]) f g
 
 lemma mul_support_div [group_with_zero G₀] (f g : α → G₀) :
   mul_support (λ x, f x / g x) ⊆ mul_support f ∪ mul_support g :=

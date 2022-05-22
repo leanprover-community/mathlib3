@@ -83,7 +83,8 @@ begin
     ← ring_hom.map_mul, is_unit_iff],
   refine ⟨algebra_map R K ((integer_normalization R⁰ p).content * ↑u),
     is_unit_iff_ne_zero.2 (λ con, _), by simp⟩,
-  replace con := (algebra_map R K).injective_iff.1 (is_fraction_ring.injective _ _) _ con,
+  replace con := (injective_iff_map_eq_zero (algebra_map R K)).1
+    (is_fraction_ring.injective _ _) _ con,
   rw [mul_eq_zero, content_eq_zero_iff, is_fraction_ring.integer_normalization_eq_zero_iff] at con,
   rcases con with con | con,
   { apply h0 con },

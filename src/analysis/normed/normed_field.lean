@@ -111,6 +111,10 @@ attribute [simp] norm_one
 @[simp] lemma nnnorm_one [semi_normed_group α] [has_one α] [norm_one_class α] : ∥(1 : α)∥₊ = 1 :=
 nnreal.eq norm_one
 
+lemma norm_one_class.nontrivial (α : Type*) [semi_normed_group α] [has_one α] [norm_one_class α] :
+  nontrivial α :=
+nontrivial_of_ne 0 1 $ ne_of_apply_ne norm $ by simp
+
 @[priority 100] -- see Note [lower instance priority]
 instance semi_normed_comm_ring.to_comm_ring [β : semi_normed_comm_ring α] : comm_ring α := { ..β }
 
@@ -122,10 +126,18 @@ instance non_unital_normed_ring.to_normed_group [β : non_unital_normed_ring α]
 instance non_unital_semi_normed_ring.to_semi_normed_group [β : non_unital_semi_normed_ring α] :
   semi_normed_group α := { ..β }
 
+instance [semi_normed_group α] [has_one α] [norm_one_class α] : norm_one_class (ulift α) :=
+⟨by simp [ulift.norm_def]⟩
+
 instance prod.norm_one_class [semi_normed_group α] [has_one α] [norm_one_class α]
   [semi_normed_group β] [has_one β] [norm_one_class β] :
   norm_one_class (α × β) :=
 ⟨by simp [prod.norm_def]⟩
+
+instance pi.norm_one_class {ι : Type*} {α : ι → Type*} [nonempty ι] [fintype ι]
+  [Π i, semi_normed_group (α i)] [Π i, has_one (α i)] [∀ i, norm_one_class (α i)] :
+  norm_one_class (Π i, α i) :=
+⟨by simp [pi.norm_def, finset.sup_const finset.univ_nonempty]⟩
 
 section non_unital_semi_normed_ring
 variables [non_unital_semi_normed_ring α]
@@ -136,6 +148,13 @@ non_unital_semi_normed_ring.norm_mul _ _
 lemma nnnorm_mul_le (a b : α) : ∥a * b∥₊ ≤ ∥a∥₊ * ∥b∥₊ :=
 by simpa only [←norm_to_nnreal, ←real.to_nnreal_mul (norm_nonneg _)]
   using real.to_nnreal_mono (norm_mul_le _ _)
+
+lemma one_le_norm_one (β) [normed_ring β] [nontrivial β] : 1 ≤ ∥(1 : β)∥ :=
+(le_mul_iff_one_le_left $ norm_pos_iff.mpr (one_ne_zero : (1 : β) ≠ 0)).mp
+  (by simpa only [mul_one] using norm_mul_le (1 : β) 1)
+
+lemma one_le_nnnorm_one (β) [normed_ring β] [nontrivial β] : 1 ≤ ∥(1 : β)∥₊ :=
+one_le_norm_one β
 
 lemma filter.tendsto.zero_mul_is_bounded_under_le {f g : ι → α} {l : filter ι}
   (hf : tendsto f l (𝓝 0)) (hg : is_bounded_under (≤) l (norm ∘ g)) :
@@ -156,6 +175,10 @@ norm_mul_le x
 lemma mul_right_bound (x : α) :
   ∀ (y:α), ∥add_monoid_hom.mul_right x y∥ ≤ ∥x∥ * ∥y∥ :=
 λ y, by {rw mul_comm, convert norm_mul_le y x}
+
+instance : non_unital_semi_normed_ring (ulift α) :=
+{ norm_mul := λ x y, (norm_mul_le x.down y.down : _),
+  .. ulift.semi_normed_group }
 
 /-- Non-unital seminormed ring structure on the product of two non-unital seminormed rings,
   using the sup norm. -/
@@ -218,9 +241,15 @@ lemma list.norm_prod_le' : ∀ {l : list α}, l ≠ [] → ∥l.prod∥ ≤ (l.m
     exact list.norm_prod_le' (list.cons_ne_nil b l)
   end
 
+lemma list.nnnorm_prod_le' {l : list α} (hl : l ≠ []) : ∥l.prod∥₊ ≤ (l.map nnnorm).prod :=
+(list.norm_prod_le' hl).trans_eq $ by simp [nnreal.coe_list_prod, list.map_map]
+
 lemma list.norm_prod_le [norm_one_class α] : ∀ l : list α, ∥l.prod∥ ≤ (l.map norm).prod
 | [] := by simp
 | (a::l) := list.norm_prod_le' (list.cons_ne_nil a l)
+
+lemma list.nnnorm_prod_le [norm_one_class α] (l : list α) : ∥l.prod∥₊ ≤ (l.map nnnorm).prod :=
+l.norm_prod_le.trans_eq $ by simp [nnreal.coe_list_prod, list.map_map]
 
 lemma finset.norm_prod_le' {α : Type*} [normed_comm_ring α] (s : finset ι) (hs : s.nonempty)
   (f : ι → α) :
@@ -231,6 +260,11 @@ begin
   simpa using list.norm_prod_le' this
 end
 
+lemma finset.nnnorm_prod_le' {α : Type*} [normed_comm_ring α] (s : finset ι) (hs : s.nonempty)
+  (f : ι → α) :
+  ∥∏ i in s, f i∥₊ ≤ ∏ i in s, ∥f i∥₊ :=
+(s.norm_prod_le' hs f).trans_eq $ by simp [nnreal.coe_prod]
+
 lemma finset.norm_prod_le {α : Type*} [normed_comm_ring α] [norm_one_class α] (s : finset ι)
   (f : ι → α) :
   ∥∏ i in s, f i∥ ≤ ∏ i in s, ∥f i∥ :=
@@ -238,6 +272,11 @@ begin
   rcases s with ⟨⟨l⟩, hl⟩,
   simpa using (l.map f).norm_prod_le
 end
+
+lemma finset.nnnorm_prod_le {α : Type*} [normed_comm_ring α] [norm_one_class α] (s : finset ι)
+  (f : ι → α) :
+  ∥∏ i in s, f i∥₊ ≤ ∏ i in s, ∥f i∥₊ :=
+(s.norm_prod_le f).trans_eq $ by simp [nnreal.coe_prod]
 
 /-- If `α` is a seminormed ring, then `∥a ^ n∥₊ ≤ ∥a∥₊ ^ n` for `n > 0`.
 See also `nnnorm_pow_le`. -/
@@ -262,6 +301,10 @@ nat.rec_on n (by simp only [pow_zero, norm_one]) (λ n hn, norm_pow_le' a n.succ
 lemma eventually_norm_pow_le (a : α) : ∀ᶠ (n:ℕ) in at_top, ∥a ^ n∥ ≤ ∥a∥ ^ n :=
 eventually_at_top.mpr ⟨1, λ b h, norm_pow_le' a (nat.succ_le_iff.mp h)⟩
 
+instance : semi_normed_ring (ulift α) :=
+{ .. ulift.non_unital_semi_normed_ring,
+  .. ulift.semi_normed_group }
+
 /-- Seminormed ring structure on the product of two seminormed rings,
   using the sup norm. -/
 instance prod.semi_normed_ring [semi_normed_ring β] :
@@ -280,6 +323,10 @@ end semi_normed_ring
 
 section non_unital_normed_ring
 variables [non_unital_normed_ring α]
+
+instance : non_unital_normed_ring (ulift α) :=
+{ .. ulift.non_unital_semi_normed_ring,
+  .. ulift.semi_normed_group }
 
 /-- Non-unital normed ring structure on the product of two non-unital normed rings,
 using the sup norm. -/
@@ -303,16 +350,23 @@ variables [normed_ring α]
 lemma units.norm_pos [nontrivial α] (x : αˣ) : 0 < ∥(x:α)∥ :=
 norm_pos_iff.mpr (units.ne_zero x)
 
+lemma units.nnnorm_pos [nontrivial α] (x : αˣ) : 0 < ∥(x:α)∥₊ :=
+x.norm_pos
+
+instance : normed_ring (ulift α) :=
+{ .. ulift.semi_normed_ring,
+  .. ulift.normed_group }
+
 /-- Normed ring structure on the product of two normed rings, using the sup norm. -/
 instance prod.normed_ring [normed_ring β] : normed_ring (α × β) :=
 { norm_mul := norm_mul_le,
-  ..prod.semi_normed_group }
+  ..prod.normed_group }
 
 /-- Normed ring structure on the product of finitely many normed rings, using the sup norm. -/
 instance pi.normed_ring {π : ι → Type*} [fintype ι] [Π i, normed_ring (π i)] :
   normed_ring (Π i, π i) :=
 { norm_mul := norm_mul_le,
-  ..pi.semi_normed_group }
+  ..pi.normed_group }
 
 end normed_ring
 
@@ -350,8 +404,6 @@ instance normed_division_ring.to_norm_one_class : norm_one_class α :=
 ⟨mul_left_cancel₀ (mt norm_eq_zero.1 (@one_ne_zero α _ _)) $
   by rw [← norm_mul, mul_one, mul_one]⟩
 
-export norm_one_class (norm_one)
-
 @[simp] lemma nnnorm_mul (a b : α) : ∥a * b∥₊ = ∥a∥₊ * ∥b∥₊ :=
 nnreal.eq $ norm_mul a b
 
@@ -386,6 +438,20 @@ nnreal.eq $ by simp
 
 @[simp] lemma nnnorm_zpow : ∀ (a : α) (n : ℤ), ∥a ^ n∥₊ = ∥a∥₊ ^ n :=
 (nnnorm_hom : α →*₀ ℝ≥0).map_zpow
+
+/-- Multiplication on the left by a nonzero element of a normed division ring tends to infinity at
+infinity. TODO: use `bornology.cobounded` instead of `filter.comap has_norm.norm filter.at_top`. -/
+lemma filter.tendsto_mul_left_cobounded {a : α} (ha : a ≠ 0) :
+  tendsto ((*) a) (comap norm at_top) (comap norm at_top) :=
+by simpa only [tendsto_comap_iff, (∘), norm_mul]
+  using tendsto_const_nhds.mul_at_top (norm_pos_iff.2 ha) tendsto_comap
+
+/-- Multiplication on the right by a nonzero element of a normed division ring tends to infinity at
+infinity. TODO: use `bornology.cobounded` instead of `filter.comap has_norm.norm filter.at_top`. -/
+lemma filter.tendsto_mul_right_cobounded {a : α} (ha : a ≠ 0) :
+  tendsto (λ x, x * a) (comap norm at_top) (comap norm at_top) :=
+by simpa only [tendsto_comap_iff, (∘), norm_mul]
+  using tendsto_comap.at_top_mul (norm_pos_iff.2 ha) tendsto_const_nhds
 
 @[priority 100] -- see Note [lower instance priority]
 instance normed_division_ring.to_has_continuous_inv₀ : has_continuous_inv₀ α :=

@@ -166,6 +166,12 @@ by { split, apply @t0_space.t0, apply t0_space.mk }
 def indistinguishable {α : Type u} [topological_space α] (x y : α) : Prop :=
 ∀ (U : set α) (hU : is_open U), x ∈ U ↔ y ∈ U
 
+lemma indistinguishable_iff_nhds_eq {x y : α} : indistinguishable x y ↔ 𝓝 x = 𝓝 y :=
+⟨λ h, by simp only [nhds_def', h _] { contextual := tt },
+  λ h U hU, by simp only [← hU.mem_nhds_iff, h]⟩
+
+alias indistinguishable_iff_nhds_eq ↔ indistinguishable.nhds_eq _
+
 lemma t0_space_iff_distinguishable (α : Type u) [topological_space α] :
   t0_space α ↔ ∀ (x y : α), x ≠ y → ¬ indistinguishable x y :=
 begin
@@ -175,11 +181,18 @@ begin
   simp_rw xor_iff_not_iff,
 end
 
-lemma indistinguishable_iff_closed {α : Type u} [topological_space α] (x y : α) :
+@[simp] lemma nhds_eq_nhds_iff [t0_space α] {a b : α} : 𝓝 a = 𝓝 b ↔ a = b :=
+function.injective.eq_iff $ λ x y h, of_not_not $
+  λ hne, (t0_space_iff_distinguishable α).mp ‹_› x y hne (indistinguishable_iff_nhds_eq.mpr h)
+
+lemma indistinguishable.eq [t0_space α] {x y : α} (h : indistinguishable x y) : x = y :=
+nhds_eq_nhds_iff.mp h.nhds_eq
+
+lemma indistinguishable_iff_closed {x y : α} :
   indistinguishable x y ↔ ∀ (U : set α) (hU : is_closed U), x ∈ U ↔ y ∈ U :=
 ⟨λ h U hU, not_iff_not.mp (h _ hU.1), λ h U hU, not_iff_not.mp (h _ (is_closed_compl_iff.mpr hU))⟩
 
-lemma indistinguishable_iff_closure {α : Type u} [topological_space α] (x y : α) :
+lemma indistinguishable_iff_closure (x y : α) :
   indistinguishable x y ↔ x ∈ closure ({y} : set α) ∧ y ∈ closure ({x} : set α) :=
 begin
   rw indistinguishable_iff_closed,
@@ -192,9 +205,6 @@ end
 lemma subtype_indistinguishable_iff {α : Type u} [topological_space α] {U : set α} (x y : U) :
   indistinguishable x y ↔ indistinguishable (x : α) y :=
 by { simp_rw [indistinguishable_iff_closure, closure_subtype, image_singleton] }
-
-lemma indistinguishable.eq [hα : t0_space α] {x y : α} (h : indistinguishable x y) : x = y :=
-not_imp_not.mp ((t0_space_iff_distinguishable _).mp hα x y) h
 
 /-- Given a closed set `S` in a compact T₀ space,
 there is some `x ∈ S` such that `{x}` is closed. -/
@@ -513,9 +523,6 @@ end
 @[simp] lemma nhds_le_nhds_iff [t1_space α] {a b : α} : 𝓝 a ≤ 𝓝 b ↔ a = b :=
 ⟨λ h, pure_le_nhds_iff.mp $ (pure_le_nhds a).trans h, λ h, h ▸ le_rfl⟩
 
-@[simp] lemma nhds_eq_nhds_iff [t1_space α] {a b : α} : 𝓝 a = 𝓝 b ↔ a = b :=
-⟨λ h, nhds_le_nhds_iff.mp h.le, λ h, h ▸ rfl⟩
-
 @[simp] lemma compl_singleton_mem_nhds_set_iff [t1_space α] {x : α} {s : set α} :
   {x}ᶜ ∈ 𝓝ˢ s ↔ x ∉ s :=
 by rwa [is_open_compl_singleton.mem_nhds_set, subset_compl_singleton_iff]
@@ -713,11 +720,45 @@ end
   `x ≠ y` there exists disjoint open sets around `x` and `y`. This is
   the most widely used of the separation axioms. -/
 @[mk_iff] class t2_space (α : Type u) [topological_space α] : Prop :=
-(t2 : ∀x y, x ≠ y → ∃u v : set α, is_open u ∧ is_open v ∧ x ∈ u ∧ y ∈ v ∧ u ∩ v = ∅)
+(t2 : ∀ x y, x ≠ y → ∃ u v : set α, is_open u ∧ is_open v ∧ x ∈ u ∧ y ∈ v ∧ u ∩ v = ∅)
 
+/-- Two different points can be separated by open sets. -/
 lemma t2_separation [t2_space α] {x y : α} (h : x ≠ y) :
-  ∃u v : set α, is_open u ∧ is_open v ∧ x ∈ u ∧ y ∈ v ∧ u ∩ v = ∅ :=
+  ∃ u v : set α, is_open u ∧ is_open v ∧ x ∈ u ∧ y ∈ v ∧ u ∩ v = ∅ :=
 t2_space.t2 x y h
+
+/-- A finite set can be separated by open sets. -/
+lemma t2_separation_finset [t2_space α] (s : finset α) :
+  ∃ f : α → set α, set.pairwise_disjoint ↑s f ∧ ∀ x ∈ s, x ∈ f x ∧ is_open (f x) :=
+finset.induction_on s (by simp) begin
+  rintros t s ht ⟨f, hf, hf'⟩,
+  have hty : ∀ y : s, t ≠ y := by { rintros y rfl, exact ht y.2 },
+  choose u v hu hv htu hxv huv using λ {x} (h : t ≠ x), t2_separation h,
+  refine ⟨λ x, if ht : t = x then ⋂ y : s, u (hty y) else f x ∩ v ht, _, _⟩,
+  { rintros x hx₁ y hy₁ hxy a ⟨hx, hy⟩,
+    rw [finset.mem_coe, finset.mem_insert, eq_comm] at hx₁ hy₁,
+    rcases eq_or_ne t x with rfl | hx₂;
+    rcases eq_or_ne t y with rfl | hy₂,
+    { exact hxy rfl },
+    { simp_rw [dif_pos rfl, mem_Inter] at hx,
+      simp_rw [dif_neg hy₂] at hy,
+      rw [bot_eq_empty, ←huv hy₂],
+      exact ⟨hx ⟨y, hy₁.resolve_left hy₂⟩, hy.2⟩ },
+    { simp_rw [dif_neg hx₂] at hx,
+      simp_rw [dif_pos rfl, mem_Inter] at hy,
+      rw [bot_eq_empty, ←huv hx₂],
+      exact ⟨hy ⟨x, hx₁.resolve_left hx₂⟩, hx.2⟩ },
+    { simp_rw [dif_neg hx₂] at hx,
+      simp_rw [dif_neg hy₂] at hy,
+      exact hf (hx₁.resolve_left hx₂) (hy₁.resolve_left hy₂) hxy ⟨hx.1, hy.1⟩ } },
+  { intros x hx,
+    split_ifs with ht,
+    { refine ⟨mem_Inter.2 (λ y, _), is_open_Inter (λ y, hu (hty y))⟩,
+      rw ←ht,
+      exact htu (hty y) },
+    { have hx := hf' x ((finset.mem_insert.1 hx).resolve_left (ne.symm ht)),
+      exact ⟨⟨hx.1, hxv ht⟩, is_open.inter hx.2 (hv ht)⟩ } }
+end
 
 @[priority 100] -- see Note [lower instance priority]
 instance t2_space.t1_space [t2_space α] : t1_space α :=

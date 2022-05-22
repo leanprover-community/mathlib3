@@ -45,7 +45,8 @@ theorem well_founded_iff_no_descending_seq :
 ⟨λ ⟨h⟩, ⟨λ ⟨f, o⟩,
   suffices ∀ a, acc r a → ∀ n, a ≠ f n, from this (f 0) (h _) 0 rfl,
   λ a ac, begin
-    induction ac with a _ IH, intros n h, subst a,
+    induction ac with a _ IH,
+    rintro n rfl,
     exact IH (f (n+1)) (o.2 (nat.lt_succ_self _)) _ rfl
   end⟩,
 λ E, ⟨λ a, classical.by_contradiction $ λ na,

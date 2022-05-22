@@ -69,19 +69,7 @@ class zero_mem_class (S : Type*) (M : out_param $ Type*) [has_zero M] [set_like 
 
 export zero_mem_class (zero_mem)
 
-/-- `mul_mem_class S M` says `S` is a type of subsets `s ≤ M` that are closed under `(*)` -/
-class mul_mem_class (S : Type*) (M : out_param $ Type*) [has_mul M] [set_like S M] :=
-(mul_mem : ∀ {s : S} {a b : M}, a ∈ s → b ∈ s → a * b ∈ s)
-
-export mul_mem_class (mul_mem)
-
-/-- `add_mem_class S M` says `S` is a type of subsets `s ≤ M` that are closed under `(+)` -/
-class add_mem_class (S : Type*) (M : out_param $ Type*) [has_add M] [set_like S M] :=
-(add_mem : ∀ {s : S} {a b : M}, a ∈ s → b ∈ s → a + b ∈ s)
-
-export add_mem_class (add_mem)
-
-attribute [to_additive] one_mem_class mul_mem_class
+attribute [to_additive] one_mem_class
 
 section
 

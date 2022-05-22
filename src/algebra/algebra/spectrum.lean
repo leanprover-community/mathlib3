@@ -37,6 +37,8 @@ This theory will serve as the foundation for spectral theory in Banach algebras.
 * `σ a` : `spectrum R a` of `a : A`
 -/
 
+open set
+
 universes u v
 
 section defs
@@ -108,6 +110,15 @@ units.is_unit ⟨↑ₐr - a, b, h₁, by rwa ←left_inv_eq_right_inv h₂ h₁
 lemma mem_resolvent_set_iff {r : R} {a : A} :
   r ∈ resolvent_set R a ↔ is_unit (↑ₐr - a) :=
 iff.rfl
+
+@[simp] lemma resolvent_set_of_subsingleton [subsingleton A] (a : A) :
+  resolvent_set R a = set.univ :=
+by simp_rw [resolvent_set, subsingleton.elim (algebra_map R A _ - a) 1, is_unit_one,
+  set.set_of_true]
+
+@[simp] lemma of_subsingleton [subsingleton A] (a : A) :
+  spectrum R a = ∅ :=
+by rw [spectrum, resolvent_set_of_subsingleton, set.compl_univ]
 
 lemma resolvent_eq {a : A} {r : R} (h : r ∈ resolvent_set R a) :
   resolvent a r = ↑h.unit⁻¹ :=

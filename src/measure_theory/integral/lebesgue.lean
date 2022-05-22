@@ -8,6 +8,7 @@ import measure_theory.constructions.borel_space
 import algebra.indicator_function
 import algebra.support
 import dynamics.ergodic.measure_preserving
+import order.succ_pred.Union_adjacent
 
 /-!
 # Lebesgue integral for `ℝ≥0∞`-valued functions
@@ -1034,6 +1035,9 @@ lemma lintegral_mono_set' {m : measurable_space α} ⦃μ : measure α⦄
   ∫⁻ x in s, f x ∂μ ≤ ∫⁻ x in t, f x ∂μ :=
 lintegral_mono' (measure.restrict_mono' hst (le_refl μ)) (le_refl f)
 
+lemma set_lintegral_le_lintegral (s : set α) (f  : α → ℝ≥0∞) : ∫⁻ a in s, f a ∂μ ≤ ∫⁻ a, f a ∂μ :=
+lintegral_mono' measure.restrict_le_self le_rfl
+
 lemma monotone_lintegral {m : measurable_space α} (μ : measure α) : monotone (lintegral μ) :=
 lintegral_mono
 
@@ -1895,6 +1899,15 @@ lemma lintegral_Union [encodable β] {s : β → set α} (hm : ∀ i, measurable
   ∫⁻ a in ⋃ i, s i, f a ∂μ = ∑' i, ∫⁻ a in s i, f a ∂μ :=
 by simp only [measure.restrict_Union hd hm, lintegral_sum_measure]
 
+lemma lintegral_bUnion_finset_ae {s : finset β} {t : β → set α}
+  (hd : set.pairwise ↑s (ae_disjoint μ on t)) (hm : ∀ b ∈ s, null_measurable_set (t b) μ)
+  (f : α → ℝ≥0∞) :
+  ∫⁻ a in ⋃ b ∈ s, t b, f a ∂μ = ∑ b in s, ∫⁻ a in t b, f a ∂μ :=
+begin
+  simp only [← finset.mem_coe, bUnion_eq_Union, ← finset.tsum_subtype', ← lintegral_sum_measure],
+  sorry
+end
+
 lemma lintegral_Union_le [encodable β] (s : β → set α) (f : α → ℝ≥0∞) :
   ∫⁻ a in ⋃ i, s i, f a ∂μ ≤ ∑' i, ∫⁻ a in s i, f a ∂μ :=
 begin
@@ -2006,6 +2019,48 @@ lemma measure_preserving.set_lintegral_comp_emb {mb : measurable_space β} {ν :
   (s : set α) :
   ∫⁻ a in s, f (g a) ∂μ = ∫⁻ b in g '' s, f b ∂ν :=
 by rw [← hg.set_lintegral_comp_preimage_emb hge, preimage_image_eq _ hge.injective]
+
+section
+
+open finset
+
+lemma sum_measure_mem_Ioc_le {f : α → ℝ≥0∞} (hf : ae_measurable f μ) (K N : ℕ) :
+  ∑ j in range K, μ (f ⁻¹' Ioc j N) ≤ ∫⁻ x, f x ∂μ + μ univ :=
+have hm : ∀ i : ℕ, null_measurable_set (f ⁻¹' Ioc i (i + 1)) μ,
+  from λ i, hf.null_measurable measurable_set_Ioc,
+have hmono : monotone (coe : ℕ → ℝ≥0∞), from ennreal.coe_nat_mono.monotone,
+calc ∑ j in range K, μ (f ⁻¹' Ioc j N)
+    ≤ ∑ j in range K, ∑ i in Ico j N, μ (f ⁻¹' Ioc i (i + 1)) :
+  -- Actually, we have an equality but it's easier to prove the inequality
+  begin
+    refine sum_le_sum (λ j hj, _),
+    simp only [← hmono.bUnion_Ico_Ioc_map_succ j N, preimage_Union₂, ← coe_Ico, mem_coe,
+      nat.succ_eq_succ, nat.cast_succ],
+    exact measure_bUnion_finset_le _ _
+  end
+... = ∑ i in range N, ∑ j in range (min (i + 1) K), μ (f ⁻¹' Ioc i (i + 1)) :
+  sum_comm' $ λ _ _, by simp [and.assoc, and.comm, and.left_comm, nat.lt_succ_iff]
+... = ∑ i in range N, ∫⁻ x in f ⁻¹' set.Ioc (i : ℝ≥0∞) (i + 1), min (i + 1) K ∂μ :
+  sum_congr rfl $ λ i hi, by rw [sum_const, card_range, set_lintegral_const, nsmul_eq_mul,
+    hmono.map_min, nat.cast_succ]
+... ≤ ∑ i in range N, ∫⁻ x in f ⁻¹' set.Ioc (i : ℝ≥0∞) (i + 1), f x + 1 ∂μ :
+  sum_le_sum $ λ i hi, lintegral_mono_ae $ (ae_restrict_mem₀ $ hm i).mono $ λ x hx,
+    (min_le_left _ _).trans $ add_le_add_right hx.1.le _
+... = ∫⁻ x in ⋃ i ∈ range N, f ⁻¹' set.Ioc i (i + 1), f x + 1 ∂μ :
+  begin
+    rw [lintegral_bUnion_finset_ae],
+    { simp only [← nat.cast_succ],
+      exact (hmono.pairwise_disjoint_on_Ioc_succ.mono
+        (λ _ _ h, (h.preimage _).ae_disjoint)).set_pairwise _ },
+    { exact λ _ _, hm _ }
+  end
+... ≤ ∫⁻ x, f x ∂μ + μ univ :
+  begin
+    rw [lintegral_add' hf.restrict ae_measurable_const, ← lintegral_one],
+    exact add_le_add (set_lintegral_le_lintegral _ _) (set_lintegral_le_lintegral _ _)
+  end
+
+end
 
 section dirac_and_count
 variable [measurable_space α]

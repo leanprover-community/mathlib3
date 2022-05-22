@@ -137,27 +137,42 @@ lemma measure_add_measure_compl (h : measurable_set s) :
   μ s + μ sᶜ = μ univ :=
 by { rw [← measure_union' _ h, union_compl_self], exact disjoint_compl_right }
 
-lemma measure_bUnion {s : set β} {f : β → set α} (hs : countable s)
-  (hd : s.pairwise (disjoint on f)) (h : ∀ b ∈ s, measurable_set (f b)) :
+lemma measure_bUnion₀ {s : set β} {f : β → set α} (hs : countable s)
+  (hd : s.pairwise (ae_disjoint μ on f)) (h : ∀ b ∈ s, null_measurable_set (f b) μ) :
   μ (⋃ b ∈ s, f b) = ∑' p : s, μ (f p) :=
 begin
   haveI := hs.to_encodable,
   rw bUnion_eq_Union,
-  exact measure_Union (hd.on_injective subtype.coe_injective $ λ x, x.2) (λ x, h x x.2)
+  exact measure_Union₀ (hd.on_injective subtype.coe_injective $ λ x, x.2) (λ x, h x x.2)
 end
+
+lemma measure_bUnion {s : set β} {f : β → set α} (hs : countable s)
+  (hd : s.pairwise (disjoint on f)) (h : ∀ b ∈ s, measurable_set (f b)) :
+  μ (⋃ b ∈ s, f b) = ∑' p : s, μ (f p) :=
+measure_bUnion₀ hs (hd.mono' $ λ s t h, h.ae_disjoint) (λ b hb, (h b hb).null_measurable_set)
+
+lemma measure_sUnion₀ {S : set (set α)} (hs : countable S)
+  (hd : S.pairwise (ae_disjoint μ)) (h : ∀ s ∈ S, null_measurable_set s μ) :
+  μ (⋃₀ S) = ∑' s : S, μ s :=
+by rw [sUnion_eq_bUnion, measure_bUnion₀ hs hd h]
 
 lemma measure_sUnion {S : set (set α)} (hs : countable S)
   (hd : S.pairwise disjoint) (h : ∀ s ∈ S, measurable_set s) :
   μ (⋃₀ S) = ∑' s : S, μ s :=
 by rw [sUnion_eq_bUnion, measure_bUnion hs hd h]
 
-lemma measure_bUnion_finset {s : finset ι} {f : ι → set α} (hd : set.pairwise ↑s (disjoint on f))
-  (hm : ∀ b ∈ s, measurable_set (f b)) :
+lemma measure_bUnion_finset₀ {s : finset ι} {f : ι → set α}
+  (hd : set.pairwise ↑s (ae_disjoint μ on f)) (hm : ∀ b ∈ s, null_measurable_set (f b) μ) :
   μ (⋃ b ∈ s, f b) = ∑ p in s, μ (f p) :=
 begin
   rw [← finset.sum_attach, finset.attach_eq_univ, ← tsum_fintype],
-  exact measure_bUnion s.countable_to_set hd hm
+  exact measure_bUnion₀ s.countable_to_set hd hm
 end
+
+lemma measure_bUnion_finset {s : finset ι} {f : ι → set α} (hd : set.pairwise ↑s (disjoint on f))
+  (hm : ∀ b ∈ s, measurable_set (f b)) :
+  μ (⋃ b ∈ s, f b) = ∑ p in s, μ (f p) :=
+measure_bUnion_finset₀ (hd.mono' $ λ s t h, h.ae_disjoint) (λ b hb, (hm b hb).null_measurable_set)
 
 /-- If `s` is a countable set, then the measure of its preimage can be found as the sum of measures
 of the fibers `f ⁻¹' {y}`. -/

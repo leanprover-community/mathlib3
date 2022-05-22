@@ -140,6 +140,9 @@ by rw nadd
 theorem lt_nadd_iff : a < b ♯ c ↔ (∃ b' < b, a ≤ b' ♯ c) ∨ ∃ c' < c, a ≤ b ♯ c' :=
 by { rw nadd_def, simp [lt_blsub_iff] }
 
+theorem nadd_le_iff : b ♯ c ≤ a ↔ (∀ b' < b, b' ♯ c < a) ∧ ∀ c' < c, b ♯ c' < a :=
+by { rw nadd_def, simp [blsub_le_iff] }
+
 theorem nadd_lt_nadd_left (h : b < c) (a) : a ♯ b < a ♯ c :=
 by { rw nadd_def a c, exact lt_max_of_lt_right (lt_blsub.{u u} _ b h) }
 

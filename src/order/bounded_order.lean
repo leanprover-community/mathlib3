@@ -1136,17 +1136,17 @@ section linear_order
 variables [linear_order α]
 
 -- `simp` can prove these, so they shouldn't be simp-lemmas.
-lemma min_bot_left [order_bot α] (a : α) : min ⊥ a = ⊥ := min_eq_left bot_le
-lemma max_top_left [order_top α] (a : α) : max ⊤ a = ⊤ := max_eq_left le_top
-lemma min_top_left [order_top α] (a : α) : min ⊤ a = a := min_eq_right le_top
-lemma max_bot_left [order_bot α] (a : α) : max ⊥ a = a := max_eq_right bot_le
-lemma min_top_right [order_top α] (a : α) : min a ⊤ = a := min_eq_left le_top
-lemma max_bot_right [order_bot α] (a : α) : max a ⊥ = a := max_eq_left bot_le
-lemma min_bot_right [order_bot α] (a : α) : min a ⊥ = ⊥ := min_eq_right bot_le
-lemma max_top_right [order_top α] (a : α) : max a ⊤ = ⊤ := max_eq_right le_top
+lemma min_bot_left [order_bot α] (a : α) : min ⊥ a = ⊥ := bot_inf_eq
+lemma max_top_left [order_top α] (a : α) : max ⊤ a = ⊤ := top_sup_eq
+lemma min_top_left [order_top α] (a : α) : min ⊤ a = a := top_inf_eq
+lemma max_bot_left [order_bot α] (a : α) : max ⊥ a = a := bot_sup_eq
+lemma min_top_right [order_top α] (a : α) : min a ⊤ = a := inf_top_eq
+lemma max_bot_right [order_bot α] (a : α) : max a ⊥ = a := sup_bot_eq
+lemma min_bot_right [order_bot α] (a : α) : min a ⊥ = ⊥ := inf_bot_eq
+lemma max_top_right [order_top α] (a : α) : max a ⊤ = ⊤ := sup_top_eq
 
 @[simp] lemma min_eq_bot [order_bot α] {a b : α} : min a b = ⊥ ↔ a = ⊥ ∨ b = ⊥ :=
-by { symmetry, cases le_total a b; simpa [*, min_eq_left, min_eq_right] using eq_bot_mono h }
+by simp only [←inf_eq_min, ←le_bot_iff, inf_le_iff]
 
 @[simp] lemma max_eq_top [order_top α] {a b : α} : max a b = ⊤ ↔ a = ⊤ ∨ b = ⊤ :=
 @min_eq_bot αᵒᵈ _ _ a b
@@ -1262,7 +1262,7 @@ protected lemma disjoint (h : is_compl x y) : disjoint x y := h.1
 @[symm] protected lemma symm (h : is_compl x y) : is_compl y x :=
 ⟨by { rw inf_comm, exact h.1 }, by { rw sup_comm, exact h.2 }⟩
 
-lemma of_eq (h₁ : x ⊓ y = ⊥) (h₂ : x ⊔ y = ⊤) : is_compl x y := ⟨le_of_eq h₁, ge_of_eq h₂⟩
+lemma of_eq (h₁ : x ⊓ y = ⊥) (h₂ : x ⊔ y = ⊤) : is_compl x y := ⟨h₁.le, h₂.ge⟩
 
 lemma inf_eq_bot (h : is_compl x y) : x ⊓ y = ⊥ := h.disjoint.eq_bot
 

@@ -606,7 +606,7 @@ end pointwise
 lemma normal_of_normalizer_normal {p : ℕ} [fact p.prime] [fintype (sylow p G)]
   (P : sylow p G) (hn : (↑P : subgroup G).normalizer.normal) :
   (↑P : subgroup G).normal :=
-by rw [←normalizer_eq_top, ←normalizer_sup_eq_top (P.subtype _ le_normalizer), coe_subtype,
+by rw [←normalizer_eq_top, ←normalizer_sup_eq_top (P.subtype le_normalizer), coe_subtype,
   map_comap_eq_self (le_normalizer.trans (ge_of_eq (subtype_range _))), sup_idem]
 
 @[simp] lemma normalizer_normalizer {p : ℕ} [fact p.prime] [fintype (sylow p G)]

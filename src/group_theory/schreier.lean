@@ -143,20 +143,57 @@ begin
   ... = H.index * group.rank G : congr_arg ((*) H.index) hS₀,
 end
 
-noncomputable lemma key_lemma [fintype {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g}]
-  (h : (center G).index ≠ 0) : fintype (commutator G) :=
+lemma relindex_dvd_index_of_normal {G : Type*} [group G] (H K : subgroup G) [H.normal] :
+  H.relindex K ∣ H.index :=
 begin
-  let H := (center G).subgroup_of (commutator G),
-  replace h : H.index ≠ 0,
-  { rw [←relindex],
-    sorry },
-  haveI : group.fg (commutator G),
-  { rw [commutator_eq_closure],
-    -- add closure.fg instance?
-    sorry },
-  have key := fg_of_index_ne_zero h,
-  -- remains to show abelian of bounded exponent
-  sorry,
+  rw relindex_eq_relindex_sup,
+  exact ⟨(K ⊔ H).index, (relindex_mul_index (show H ≤ K ⊔ H, from le_sup_right)).symm⟩,
 end
+
+lemma key_lemma0 {G : Type*} [comm_group G] [group.fg G] {n : ℕ} (hG : ∀ g : G, g ^ n = 1)
+  [decidable_pred (λ n, ∃ (S : finset G), S.card = n ∧ subgroup.closure (S : set G) = ⊤)] :
+  nat.card G ∣ n ^ group.rank G :=
+begin
+  sorry
+end
+
+instance tadalem {G : Type*} [group G] {H K : subgroup G} [H.is_commutative] :
+  (H.subgroup_of K).is_commutative := sorry
+
+lemma key_lemma [fintype {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g}] :
+  nat.card (commutator G) ∣ (center G).index ^
+    ((center G).index * fintype.card {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g} + 1) :=
+begin
+  by_cases hG : (center G).index = 0,
+  { rw [hG, zero_mul, zero_add, pow_one],
+    apply dvd_zero },
+  let H := (center G).subgroup_of (commutator G),
+  rw ← H.card_mul_index,
+  rw pow_succ',
+  have h0 : H.index ∣ (center G).index := relindex_dvd_index_of_normal (center G) (commutator G),
+  refine mul_dvd_mul _ h0,
+
+  have h2 : H.index ≠ 0 := ne_zero_of_dvd_ne_zero hG h0,
+
+  haveI : group.fg (commutator G) := sorry,
+
+  classical,
+  have h8 := rank_le_index_mul_rank h2,
+  have h9 : H.index ≤ (center G).index := nat.le_of_dvd (nat.pos_of_ne_zero hG) h0,
+  have h10 : group.rank (commutator G) ≤ fintype.card {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g},
+  { sorry },
+  have h11 := h8.trans (nat.mul_le_mul h9 h10),
+  have h12 := pow_dvd_pow (center G).index h11,
+  refine dvd_trans _ h12,
+  apply key_lemma0,
+  intro g,
+  have key := subtype.ext_iff.mp (abelianization.commutator_subset_ker
+    (monoid_hom.transfer_pow' hG) g.1.2),
+  exact subtype.ext (subtype.ext key),
+end
+
+-- bounded commutators and bounded index of center implies bounded commutator subgroup
+-- bounded commutators implies bounded index of center
+-- bounded index of center implies bounded commutators
 
 end subgroup

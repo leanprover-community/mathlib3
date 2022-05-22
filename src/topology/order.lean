@@ -330,8 +330,7 @@ lemma is_closed_induced_iff [t : topological_space β] {s : set α} {f : α → 
   @is_closed α (t.induced f) s ↔ (∃t, is_closed t ∧ f ⁻¹' t = s) :=
 begin
   simp only [← is_open_compl_iff, is_open_induced_iff],
-  exact ⟨λ ⟨t, ht, heq⟩, ⟨tᶜ, by rwa compl_compl, by simp [preimage_compl, heq, compl_compl]⟩,
-         λ ⟨t, ht, heq⟩, ⟨tᶜ, ht, by simp only [preimage_compl, heq.symm]⟩⟩
+  exact compl_surjective.exists.trans (by simp only [preimage_compl, compl_inj_iff])
 end
 
 /-- Given `f : α → β` and a topology on `α`, the coinduced topology on `β` is defined
@@ -780,22 +779,32 @@ lemma closure_induced [t : topological_space β] {f : α → β} {a : α} {s : s
   a ∈ @closure α (topological_space.induced f t) s ↔ f a ∈ closure (f '' s) :=
 by simp only [mem_closure_iff_frequently, nhds_induced, frequently_comap, mem_image, and_comm]
 
+lemma is_closed_induced_iff' [t : topological_space β] {f : α → β} {s : set α} :
+  @is_closed α (t.induced f) s ↔ ∀ a, f a ∈ closure (f '' s) → a ∈ s :=
+by simp only [← closure_subset_iff_is_closed, subset_def, closure_induced]
+
 end induced
 
 section sierpinski
 variables {α : Type*} [topological_space α]
 
 @[simp] lemma is_open_singleton_true : is_open ({true} : set Prop) :=
-topological_space.generate_open.basic _ (by simp)
+topological_space.generate_open.basic _ (mem_singleton _)
+
+@[simp] lemma nhds_true : 𝓝 true = pure true :=
+le_antisymm (le_pure_iff.2 $ is_open_singleton_true.mem_nhds $ mem_singleton _) (pure_le_nhds _)
+
+@[simp] lemma nhds_false : 𝓝 false = ⊤ :=
+topological_space.nhds_generate_from.trans $ by simp [@and.comm (_ ∈ _)]
 
 lemma continuous_Prop {p : α → Prop} : continuous p ↔ is_open {x | p x} :=
 ⟨assume h : continuous p,
   have is_open (p ⁻¹' {true}),
     from is_open_singleton_true.preimage h,
-  by simp [preimage, eq_true] at this; assumption,
+  by simpa [preimage, eq_true] using this,
   assume h : is_open {x | p x},
-  continuous_generated_from $ assume s (hs : s ∈ {{true}}),
-    by simp at hs; simp [hs, preimage, eq_true, h]⟩
+  continuous_generated_from $ assume s (hs : s = {true}),
+    by simp [hs, preimage, eq_true, h]⟩
 
 lemma is_open_iff_continuous_mem {s : set α} : is_open s ↔ continuous (λ x, x ∈ s) :=
 continuous_Prop.symm

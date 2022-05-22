@@ -582,17 +582,14 @@ instance : is_lawful_singleton α (finset α) := ⟨λ a, by { ext, simp }⟩
 
 @[simp] lemma insert_eq_of_mem (h : a ∈ s) : insert a s = s := eq_of_veq $ ndinsert_of_mem h
 
-@[simp] theorem insert_singleton_self_eq (a : α) : ({a, a} : finset α) = {a} :=
+@[simp] theorem pair_self_eq (a : α) : ({a, a} : finset α) = {a} :=
 insert_eq_of_mem $ mem_singleton_self _
 
 theorem insert.comm (a b : α) (s : finset α) : insert a (insert b s) = insert b (insert a s) :=
 ext $ λ x, by simp only [mem_insert, or.left_comm]
 
-theorem insert_singleton_comm (a b : α) : ({a, b} : finset α) = {b, a} :=
-begin
-  ext,
-  simp [or.comm]
-end
+theorem pair_comm (a b : α) : ({a, b} : finset α) = {b, a} :=
+insert.comm a b ∅
 
 @[simp] theorem insert_idem (a : α) (s : finset α) : insert a (insert a s) = insert a s :=
 ext $ λ x, by simp only [mem_insert, or.assoc.symm, or_self]
@@ -2056,6 +2053,11 @@ theorem image_union [decidable_eq α] {f : α → β} (s₁ s₂ : finset α) :
   (s₁ ∪ s₂).image f = s₁.image f ∪ s₂.image f :=
 ext $ λ _, by simp only [mem_image, mem_union, exists_prop, or_and_distrib_right,
   exists_or_distrib]
+
+lemma image_inter_subset [decidable_eq α] (f : α → β) (s t : finset α) :
+  (s ∩ t).image f ⊆ s.image f ∩ t.image f :=
+subset_inter (image_subset_image $ inter_subset_left _ _) $
+  image_subset_image $ inter_subset_right _ _
 
 lemma image_inter [decidable_eq α] (s₁ s₂ : finset α) (hf : ∀ x y, f x = f y → x = y) :
   (s₁ ∩ s₂).image f = s₁.image f ∩ s₂.image f :=

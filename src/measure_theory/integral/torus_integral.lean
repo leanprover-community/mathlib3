@@ -207,7 +207,7 @@ begin
     from (order_iso.fun_unique (fin 1) ℝ).symm.preimage_Icc _ _,
   simp only [torus_integral, circle_integral, interval_integral.integral_of_le real.two_pi_pos.le,
     measure.restrict_congr_set Ioc_ae_eq_Icc, deriv_circle_map, fin.prod_univ_one,
-    ← (volume_preserving_fun_unique (fin 1) ℝ).symm.set_integral_preimage_emb
+    ← ((volume_preserving_fun_unique (fin 1) ℝ).symm _).set_integral_preimage_emb
       (measurable_equiv.measurable_embedding _), this, measurable_equiv.fun_unique_symm_apply],
   simp only [torus_map, circle_map, zero_add],
   rcongr
@@ -221,7 +221,7 @@ lemma torus_integral_succ_above {f : ℂⁿ⁺¹ → E} {c : ℂⁿ⁺¹} {R : �
 begin
   set e : ℝ × ℝⁿ ≃ᵐ ℝⁿ⁺¹ := (measurable_equiv.pi_fin_succ_above_equiv (λ _, ℝ) i).symm,
   have hem : measure_preserving e,
-    from (volume_preserving_pi_fin_succ_above_equiv (λ j : fin (n + 1), ℝ) i).symm,
+    from (volume_preserving_pi_fin_succ_above_equiv (λ j : fin (n + 1), ℝ) i).symm _,
   have heπ : e ⁻¹' (Icc 0 (λ _, 2 * π)) = Icc 0 (2 * π) ×ˢ Icc (0 : ℝⁿ) (λ _, 2 * π),
     from ((order_iso.pi_fin_succ_above_iso (λ _, ℝ) i).symm.preimage_Icc _ _).trans
       (Icc_prod_eq _ _),

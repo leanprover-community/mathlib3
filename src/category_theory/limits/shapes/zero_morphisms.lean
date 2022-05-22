@@ -31,6 +31,7 @@ universes v' u'
 
 open category_theory
 open category_theory.category
+open_locale classical
 
 namespace category_theory.limits
 
@@ -351,6 +352,14 @@ def iso_zero_of_epi_zero {X Y : C} (h : epi (0 : X ⟶ Y)) : Y ≅ 0 :=
   inv := 0,
   hom_inv_id' := (cancel_epi (0 : X ⟶ Y)).mp (by simp) }
 
+/-- If a monomorphism out of `X` is zero, then `X ≅ 0`. -/
+def iso_zero_of_mono_eq_zero {X Y : C} {f : X ⟶ Y} [mono f] (h : f = 0) : X ≅ 0 :=
+by { unfreezingI { subst h, }, apply iso_zero_of_mono_zero ‹_›, }
+
+/-- If an epimorphism in to `Y` is zero, then `Y ≅ 0`. -/
+def iso_zero_of_epi_eq_zero {X Y : C} {f : X ⟶ Y} [epi f] (h : f = 0) : Y ≅ 0 :=
+by { unfreezingI { subst h, }, apply iso_zero_of_epi_zero ‹_›, }
+
 /-- If an object `X` is isomorphic to 0, there's no need to use choice to construct
 an explicit isomorphism: the zero morphism suffices. -/
 def iso_of_is_isomorphic_zero {X : C} (P : is_isomorphic X 0) : X ≅ 0 :=
@@ -511,15 +520,13 @@ end image
 
 /-- In the presence of zero morphisms, coprojections into a coproduct are (split) monomorphisms. -/
 instance split_mono_sigma_ι
-  {β : Type v} [decidable_eq β]
-  [has_zero_morphisms C]
+  {β : Type v} [has_zero_morphisms C]
   (f : β → C) [has_colimit (discrete.functor f)] (b : β) : split_mono (sigma.ι f b) :=
 { retraction := sigma.desc (λ b', if h : b' = b then eq_to_hom (congr_arg f h) else 0), }
 
 /-- In the presence of zero morphisms, projections into a product are (split) epimorphisms. -/
 instance split_epi_pi_π
-  {β : Type v} [decidable_eq β]
-  [has_zero_morphisms C]
+  {β : Type v} [has_zero_morphisms C]
   (f : β → C) [has_limit (discrete.functor f)] (b : β) : split_epi (pi.π f b) :=
 { section_ := pi.lift (λ b', if h : b = b' then eq_to_hom (congr_arg f h) else 0), }
 

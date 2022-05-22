@@ -662,19 +662,11 @@ theorem map_unique {f : Set.{u} → Set.{u}} [H : definable 1 f] {x z : Set.{u}}
 end Set
 
 /-- The collection of all classes. A class is defined as a `set` of ZFC sets. -/
+@[derive [has_subset, has_sep Set, has_emptyc, inhabited, has_insert Set, has_union, has_inter,
+  has_compl, has_sdiff]]
 def Class := set Set
 
 namespace Class
-
-instance : has_subset Class     := ⟨set.subset⟩
-instance : has_sep Set Class    := ⟨set.sep⟩
-instance : has_emptyc Class     := ⟨λ a, false⟩
-instance : inhabited Class      := ⟨∅⟩
-instance : has_insert Set Class := ⟨set.insert⟩
-instance : has_union Class      := ⟨set.union⟩
-instance : has_inter Class      := ⟨set.inter⟩
-instance : has_neg Class        := ⟨set.compl⟩
-instance : has_sdiff Class      := ⟨set.diff⟩
 
 /-- Coerce a ZFC set into a class -/
 def of_Set (x : Set.{u}) : Class.{u} := {y | y ∈ x}

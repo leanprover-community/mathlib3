@@ -262,7 +262,7 @@ theorem subset_zero {s : multiset α} : s ⊆ 0 ↔ s = 0 :=
 ⟨eq_zero_of_subset_zero, λ xeq, xeq.symm ▸ subset.refl 0⟩
 
 lemma induction_on' {p : multiset α → Prop} (S : multiset α)
-  (h₁ : p ∅) (h₂ : ∀ {a s}, a ∈ S → s ⊆ S → p s → p (insert a s)) : p S :=
+  (h₁ : p 0) (h₂ : ∀ {a s}, a ∈ S → s ⊆ S → p s → p (insert a s)) : p S :=
 @multiset.induction_on α (λ T, T ⊆ S → p T) S (λ _, h₁) (λ a s hps hs,
   let ⟨hS, sS⟩ := cons_subset.1 hs in h₂ hS sS (hps sS)) (subset.refl S)
 
@@ -377,6 +377,8 @@ ne_of_gt (lt_cons_self _ _)
 ⟨λ h, mem_of_le h (mem_singleton_self _),
  λ h, let ⟨t, e⟩ := exists_cons_of_mem h in e.symm ▸ cons_le_cons _ (zero_le _)⟩
 
+theorem pair_comm (x y : α) : ({x, y} : multiset α) = {y, x} := cons_swap x y 0
+
 /-! ### Additive monoid -/
 
 /-- The sum of two multisets is the lift of the list append operation.
@@ -390,32 +392,28 @@ instance : has_add (multiset α) := ⟨multiset.add⟩
 
 @[simp] theorem coe_add (s t : list α) : (s + t : multiset α) = (s ++ t : list α) := rfl
 
-protected theorem add_comm (s t : multiset α) : s + t = t + s :=
-quotient.induction_on₂ s t $ λ l₁ l₂, quot.sound perm_append_comm
-
-protected theorem zero_add (s : multiset α) : 0 + s = s :=
-quot.induction_on s $ λ l, rfl
-
 theorem singleton_add (a : α) (s : multiset α) : {a} + s = a ::ₘ s := rfl
 
-protected theorem add_le_add_left (s) {t u : multiset α} : s + t ≤ s + u ↔ t ≤ u :=
+private theorem add_le_add_iff_left' {s t u : multiset α} : s + t ≤ s + u ↔ t ≤ u :=
 quotient.induction_on₃ s t u $ λ l₁ l₂ l₃, subperm_append_left _
 
-protected theorem add_left_cancel (s) {t u : multiset α} (h : s + t = s + u) : t = u :=
-le_antisymm ((multiset.add_le_add_left _).1 (le_of_eq h))
-  ((multiset.add_le_add_left _).1 (le_of_eq h.symm))
+instance : covariant_class (multiset α) (multiset α) (+) (≤) :=
+⟨λ s t u, add_le_add_iff_left'.2⟩
+
+instance : contravariant_class (multiset α) (multiset α) (+) (≤) :=
+⟨λ s t u, add_le_add_iff_left'.1⟩
 
 instance : ordered_cancel_add_comm_monoid (multiset α) :=
 { zero                  := 0,
   add                   := (+),
-  add_comm              := multiset.add_comm,
+  add_comm              := λ s t, quotient.induction_on₂ s t $ λ l₁ l₂, quot.sound perm_append_comm,
   add_assoc             := λ s₁ s₂ s₃, quotient.induction_on₃ s₁ s₂ s₃ $ λ l₁ l₂ l₃,
     congr_arg coe $ append_assoc l₁ l₂ l₃,
-  zero_add              := multiset.zero_add,
-  add_zero              := λ s, by rw [multiset.add_comm, multiset.zero_add],
-  add_left_cancel       := multiset.add_left_cancel,
-  add_le_add_left       := λ s₁ s₂ h s₃, (multiset.add_le_add_left _).2 h,
-  le_of_add_le_add_left := λ s₁ s₂ s₃, (multiset.add_le_add_left _).1,
+  zero_add              := λ s, quot.induction_on s $ λ l, rfl,
+  add_zero              := λ s, quotient.induction_on s $ λ l, congr_arg coe $ append_nil l,
+  add_left_cancel       := λ a b c, add_left_cancel'',
+  add_le_add_left       := λ s₁ s₂, add_le_add_left,
+  le_of_add_le_add_left := λ s₁ s₂ s₃, le_of_add_le_add_left,
   ..@multiset.partial_order α }
 
 theorem le_add_right (s t : multiset α) : s ≤ s + t :=
@@ -668,6 +666,8 @@ quot.induction_on s $ λ l, congr_arg coe $ erase_cons_head a l
 theorem erase_cons_tail {a b : α} (s : multiset α) (h : b ≠ a) :
   (b ::ₘ s).erase a = b ::ₘ s.erase a :=
 quot.induction_on s $ λ l, congr_arg coe $ erase_cons_tail l h
+
+@[simp] theorem erase_singleton (a : α) : ({a} : multiset α).erase a = 0 := erase_cons_head a 0
 
 @[simp, priority 980]
 theorem erase_of_not_mem {a : α} {s : multiset α} : a ∉ s → s.erase a = s :=
@@ -1528,16 +1528,19 @@ quot.induction_on s $ countp_cons_of_neg p
 variable (p)
 
 theorem countp_cons (b : α) (s) : countp p (b ::ₘ s) = countp p s + (if p b then 1 else 0) :=
-begin
-  split_ifs with h;
-  simp only [h, multiset.countp_cons_of_pos, add_zero, multiset.countp_cons_of_neg, not_false_iff],
-end
+quot.induction_on s $ by simp [list.countp_cons]
 
 theorem countp_eq_card_filter (s) : countp p s = card (filter p s) :=
-quot.induction_on s $ λ l, countp_eq_length_filter _ _
+quot.induction_on s $ λ l, l.countp_eq_length_filter p
+
+theorem countp_le_card (s) : countp p s ≤ card s :=
+quot.induction_on s $ λ l, countp_le_length p
 
 @[simp] theorem countp_add (s t) : countp p (s + t) = countp p s + countp p t :=
 by simp [countp_eq_card_filter]
+
+theorem card_eq_countp_add_countp (s) : card s = countp p s + countp (λ x, ¬ p x) s :=
+quot.induction_on s $ λ l, by simp [l.length_eq_countp_add_countp p]
 
 /-- `countp p`, the number of elements of a multiset satisfying `p`, promoted to an
 `add_monoid_hom`. -/
@@ -1560,6 +1563,17 @@ by simpa [countp_eq_card_filter] using card_le_of_le (filter_le_filter p h)
   countp p (filter q s) = countp (λ a, p a ∧ q a) s :=
 by simp [countp_eq_card_filter]
 
+theorem countp_eq_countp_filter_add
+  (s) (p q : α → Prop) [decidable_pred p] [decidable_pred q] :
+  countp p s = (filter q s).countp p + (filter (λ a, ¬ q a) s).countp p :=
+quot.induction_on s $ λ l, l.countp_eq_countp_filter_add _ _
+
+@[simp] lemma countp_true {s : multiset α} : countp (λ _, true) s = card s :=
+quot.induction_on s $ λ l, list.countp_true
+
+@[simp] lemma countp_false {s : multiset α} : countp (λ _, false) s = 0 :=
+quot.induction_on s $ λ l, list.countp_false
+
 theorem countp_map (f : α → β) (s : multiset α) (p : β → Prop) [decidable_pred p] :
   countp p (map f s) = (s.filter (λ a, p (f a))).card :=
 begin
@@ -1572,10 +1586,24 @@ end
 variable {p}
 
 theorem countp_pos {s} : 0 < countp p s ↔ ∃ a ∈ s, p a :=
-by simp [countp_eq_card_filter, card_pos_iff_exists_mem]
+quot.induction_on s $ λ l, list.countp_pos p
+
+theorem countp_eq_zero {s} : countp p s = 0 ↔ ∀ a ∈ s, ¬ p a :=
+quot.induction_on s $ λ l, list.countp_eq_zero p
+
+theorem countp_eq_card {s} : countp p s = card s ↔ ∀ a ∈ s, p a :=
+quot.induction_on s $ λ l, list.countp_eq_length p
 
 theorem countp_pos_of_mem {s a} (h : a ∈ s) (pa : p a) : 0 < countp p s :=
 countp_pos.2 ⟨_, h, pa⟩
+
+theorem countp_congr {s s' : multiset α} (hs : s = s')
+  {p p' : α → Prop} [decidable_pred p] [decidable_pred p']
+  (hp : ∀ x ∈ s, p x = p' x) : s.countp p = s'.countp p' :=
+quot.induction_on₂ s s' (λ l l' hs hp, begin
+  simp only [quot_mk_to_coe'', coe_eq_coe] at hs,
+  exact hs.countp_congr hp,
+end) hs hp
 
 end
 
@@ -1598,6 +1626,9 @@ countp_cons_of_pos _ rfl
 theorem count_cons_of_ne {a b : α} (h : a ≠ b) (s : multiset α) : count a (b ::ₘ s) = count a s :=
 countp_cons_of_neg _ h
 
+theorem count_le_card (a : α) (s) : count a s ≤ card s :=
+countp_le_card _ _
+
 theorem count_le_of_le (a : α) {s t} : s ≤ t → count a s ≤ count a t :=
 countp_le_of_le _
 
@@ -1606,7 +1637,7 @@ count_le_of_le _ (le_cons_self _ _)
 
 theorem count_cons (a b : α) (s : multiset α) :
   count a (b ::ₘ s) = count a s + (if a = b then 1 else 0) :=
-by by_cases h : a = b; simp [h]
+countp_cons _ _ _
 
 @[simp] theorem count_singleton_self (a : α) : count a ({a} : multiset α) = 1 :=
 by simp only [count_cons_self, singleton_eq_cons, eq_self_iff_true, count_zero]
@@ -1641,6 +1672,9 @@ iff_not_comm.1 $ count_pos.symm.trans pos_iff_ne_zero
 
 theorem count_ne_zero {a : α} {s : multiset α} : count a s ≠ 0 ↔ a ∈ s :=
 by simp [ne.def, count_eq_zero]
+
+theorem count_eq_card {a : α} {s} : count a s = card s ↔ ∀ (x ∈ s), a = x :=
+countp_eq_card
 
 @[simp] theorem count_repeat_self (a : α) (n : ℕ) : count a (repeat a n) = n :=
 by simp [repeat]

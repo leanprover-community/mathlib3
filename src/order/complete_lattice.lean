@@ -338,6 +338,13 @@ le_trans (Sup_le_Sup h) (le_of_eq (trans Sup_insert bot_sup_eq))
 theorem Inf_le_Inf_of_subset_insert_top (h : s ⊆ insert ⊤ t) : Inf t ≤ Inf s :=
 le_trans (le_of_eq (trans top_inf_eq.symm Inf_insert.symm)) (Inf_le_Inf h)
 
+@[simp] theorem Sup_diff_singleton_bot (s : set α) : Sup (s \ {⊥}) = Sup s :=
+(Sup_le_Sup (diff_subset _ _)).antisymm $ Sup_le_Sup_of_subset_insert_bot $
+  subset_insert_diff_singleton _ _
+
+@[simp] theorem Inf_diff_singleton_top (s : set α) : Inf (s \ {⊤}) = Inf s :=
+@Sup_diff_singleton_bot αᵒᵈ _ s
+
 theorem Sup_pair {a b : α} : Sup {a, b} = a ⊔ b :=
 (@is_lub_pair α _ a b).Sup_eq
 
@@ -575,28 +582,13 @@ le_antisymm (Sup_le le_supr₂) (supr₂_le $ λ b, le_Sup)
 
 lemma Inf_eq_infi {s : set α} : Inf s = ⨅ a ∈ s, a := @Sup_eq_supr αᵒᵈ _ _
 
-lemma Sup_sUnion (s : set (set α)) :  Sup (⋃₀ s) = ⨆ t ∈ s, Sup t :=
-begin
-  apply le_antisymm,
-  { apply Sup_le (λ b hb, _),
-    rcases hb with ⟨t, ts, bt⟩,
-    apply le_trans _ (le_supr _ t),
-    exact le_trans (le_Sup bt) (le_supr _ ts), },
-  { apply supr_le (λ t, _),
-    exact supr_le (λ ts, Sup_le_Sup (λ x xt, ⟨t, ts, xt⟩)) }
-end
-
-lemma Inf_sUnion (s : set (set α)) : Inf (⋃₀ s) = ⨅ t ∈ s, Inf t := @Sup_sUnion αᵒᵈ _ _
-
 lemma monotone.le_map_supr [complete_lattice β] {f : α → β} (hf : monotone f) :
   (⨆ i, f (s i)) ≤ f (supr s) :=
 supr_le $ λ i, hf $ le_supr _ _
 
 lemma monotone.le_map_supr₂ [complete_lattice β] {f : α → β} (hf : monotone f) (s : Π i, κ i → α) :
   (⨆ i j, f (s i j)) ≤ f (⨆ i j, s i j) :=
-calc (⨆ i j, f (s i j)) ≤ (⨆ i, f (⨆ j, s i j)) :
-  supr_mono $ λ i, hf.le_map_supr
-... ≤ f (⨆ i j, s i j) : hf.le_map_supr
+supr₂_le $ λ i j, hf $ le_supr₂ _ _
 
 lemma monotone.le_map_Sup [complete_lattice β] {s : set α} {f : α → β} (hf : monotone f) :
   (⨆ a ∈ s, f a) ≤ f (Sup s) :=

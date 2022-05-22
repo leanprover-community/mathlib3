@@ -459,12 +459,13 @@ def Pi_subsingleton
 
 /-- A multiplicative equivalence of groups preserves inversion. -/
 @[to_additive "An additive equivalence of additive groups preserves negation."]
-protected lemma map_inv [group G] [group H] (h : G ≃* H) (x : G) : h x⁻¹ = (h x)⁻¹ :=
+protected lemma map_inv [group G] [division_monoid H] (h : G ≃* H) (x : G) : h x⁻¹ = (h x)⁻¹ :=
 map_inv h x
 
 /-- A multiplicative equivalence of groups preserves division. -/
 @[to_additive "An additive equivalence of additive groups preserves subtractions."]
-protected lemma map_div [group G] [group H] (h : G ≃* H) (x y : G) : h (x / y) = h x / h y :=
+protected lemma map_div [group G] [division_monoid H] (h : G ≃* H) (x y : G) :
+  h (x / y) = h x / h y :=
 map_div h x y
 
 end mul_equiv
@@ -501,10 +502,6 @@ def to_units [group G] : G ≃* Gˣ :=
 protected lemma group.is_unit {G} [group G] (x : G) : is_unit x := (to_units x).is_unit
 
 namespace units
-
-@[simp, to_additive] lemma coe_inv [group G] (u : Gˣ) :
-  ↑u⁻¹ = (u⁻¹ : G) :=
-to_units.symm.map_inv u
 
 variables [monoid M] [monoid N] [monoid P]
 

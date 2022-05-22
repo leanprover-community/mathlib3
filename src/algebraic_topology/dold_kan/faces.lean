@@ -40,7 +40,7 @@ variables {C : Type*} [category C] [preadditive C]
 variables {X : simplicial_object C}
 
 /-- We shall say that a morphism `φ : Y ⟶ X _[n+1]` satisfies `higher_faces_vanish q φ`
-when the compositions `φ ≫ X.δ j` are `0` for $j ≥ \max (1, n+2-q)$. When `q ≤ n+1`,
+when the compositions `φ ≫ X.δ j` are `0` for `j ≥ max 1 (n+2-q)`. When `q ≤ n+1`,
 it basically means that the composition `φ ≫ X.δ j` are `0` for the `q` highest
 possible values of a nonzero `j`. Otherwise, when `q ≥ n+2`, all the compositions
 `φ ≫ X.δ j` for nonzero `j` vanish. -/

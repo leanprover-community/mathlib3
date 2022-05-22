@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jakob von Raumer
 -/
 import category_theory.monoidal.rigid.basic
+import category_theory.monoidal.subcategory
 import linear_algebra.tensor_product_basis
 import linear_algebra.coevaluation
 import algebra.category.Module.monoidal
@@ -12,27 +13,29 @@ import algebra.category.Module.monoidal
 # The category of finite dimensional vector spaces
 
 This introduces `FinVect K`, the category of finite dimensional vector spaces over a field `K`.
-It is implemented as a full subcategory on a subtype of `Module K`.
-We first create the instance as a category, then as a monoidal category and then as a rigid monoidal
-category.
-
-## Future work
-
-* Show that `FinVect K` is a symmetric monoidal category.
-
+It is implemented as a full monoidal subcategory on a subtype of `Module K`.
+We create the instance as a symmetric monoidal category, and then provide a right rigid monoidal
+category instance.
 -/
 noncomputable theory
 
-open category_theory Module.monoidal_category
+open category_theory Module.monoidal_category category_theory.monoidal_category
 open_locale classical big_operators
 
 universes u
 
 variables (K : Type u) [field K]
 
+def FinVect_monoidal_predicate : monoidal_predicate (Module.{u} K) :=
+{ P := λ V, finite_dimensional K V,
+  h_id := finite_dimensional.finite_dimensional_self K,
+  h_tensor := λ X Y hX hY, by exactI module.finite.tensor_product K X Y }
+
 /-- Define `FinVect` as the subtype of `Module.{u} K` of finite dimensional vector spaces. -/
-@[derive [large_category, λ α, has_coe_to_sort α (Sort*), concrete_category]]
-def FinVect := { V : Module.{u} K // finite_dimensional K V }
+@[derive [large_category, concrete_category, monoidal_category, symmetric_category]]
+def FinVect := full_monoidal_subcategory (FinVect_monoidal_predicate K)
+
+instance : has_coe_to_sort (FinVect K) (Sort*) := ⟨λ V, V.1⟩
 
 namespace FinVect
 
@@ -54,12 +57,6 @@ by { dsimp [FinVect], apply_instance, }
 
 instance : full (forget₂ (FinVect K) (Module.{u} K)) :=
 { preimage := λ X Y f, f, }
-
-instance monoidal_category : monoidal_category (FinVect K) :=
-monoidal_category.full_monoidal_subcategory
-  (λ V, finite_dimensional K V)
-  (finite_dimensional.finite_dimensional_self K)
-  (λ X Y hX hY, by exactI module.finite.tensor_product K X Y)
 
 variables (V : FinVect K)
 

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Antoine Labelle
 -/
 import category_theory.monoidal.braided
+import category_theory.concrete_category.basic
 
 /-!
 # Full monoidal subcategories
@@ -43,6 +44,11 @@ subcategory `{X : C // p.P X}`, which provides a monoidal structure induced by t
 -/
 @[nolint has_inhabited_instance, derive category]
 def full_monoidal_subcategory := {X : C // p.P X}
+
+instance full_monoidal_subcategory.concrete_category [concrete_category C] :
+  concrete_category (full_monoidal_subcategory p) := full_subcategory.concrete_category p.P
+instance full_subcategory.has_forget₂ [concrete_category C] :
+  has_forget₂ (full_monoidal_subcategory p) C := full_subcategory.has_forget₂ p.P
 
 /--
 The monoidal structure on `full_monoidal_subcategory p`

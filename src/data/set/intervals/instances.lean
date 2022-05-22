@@ -43,22 +43,24 @@ instance : has_pow (Icc (0:α) 1) ℕ :=
 @[simp, norm_cast] lemma coe_Icc_pow (x : Icc (0:α) 1) (n : ℕ) : ↑(x ^ n) = (x ^ n : α) := rfl
 
 instance : monoid_with_zero (Icc (0:α) 1) :=
-by { apply function.injective.monoid_with_zero _ subtype.coe_injective; { intros, refl } }
+subtype.coe_injective.monoid_with_zero _ coe_Icc_zero coe_Icc_one coe_Icc_mul coe_Icc_pow
 
 instance {α : Type*} [ordered_comm_semiring α] : comm_monoid_with_zero (Icc (0:α) 1) :=
-by { apply function.injective.comm_monoid_with_zero _ subtype.coe_injective; { intros, refl } }
+subtype.coe_injective.comm_monoid_with_zero _ coe_Icc_zero coe_Icc_one coe_Icc_mul coe_Icc_pow
 
 /-! ### Instances for `(Ico 0 1)` -/
 
-instance : semigroup (Ico (0:α) 1) :=
+instance : has_mul (Ico (0:α) 1) :=
 { mul := λ p q, ⟨p*q, ⟨mul_nonneg p.2.1 q.2.1,
-    mul_lt_one_of_nonneg_of_lt_one_right p.2.2.le q.2.1 q.2.2⟩⟩,
-  mul_assoc := λ p q r, (by exact subtype.mk_eq_mk.2 (mul_assoc p q r)) }
-
-instance {α : Type*} [ordered_comm_semiring α] : comm_semigroup (Ico (0:α) 1) :=
-by { apply function.injective.comm_semigroup _ subtype.coe_injective, { intros, refl } }
+    mul_lt_one_of_nonneg_of_lt_one_right p.2.2.le q.2.1 q.2.2⟩⟩ }
 
 @[simp, norm_cast] lemma coe_Ico_mul (x y : Ico (0:α) 1) : ↑(x * y) = (x * y : α) := rfl
+
+instance : semigroup (Ico (0:α) 1) :=
+subtype.coe_injective.semigroup _ coe_Ico_mul
+
+instance {α : Type*} [ordered_comm_semiring α] : comm_semigroup (Ico (0:α) 1) :=
+subtype.coe_injective.comm_semigroup _ coe_Ico_mul
 
 /-! ### Instances for `(Ioc 0 1)` -/
 
@@ -75,13 +77,13 @@ instance Ioc_pow : has_pow (Ioc (0:α) 1) ℕ :=
 @[simp, norm_cast] lemma coe_Ioc_pow (x : Ioc (0:α) 1) (n : ℕ) : ↑(x ^ n) = (x ^ n : α) := rfl
 
 instance : semigroup (Ioc (0:α) 1) :=
-by { apply function.injective.semigroup _ subtype.coe_injective; { intros, refl } }
+subtype.coe_injective.semigroup _ coe_Ioc_mul
 
 instance [nontrivial α] : monoid (Ioc (0:α) 1) :=
-by { apply function.injective.monoid _ subtype.coe_injective; { intros, refl } }
+subtype.coe_injective.monoid _ coe_Ioc_one coe_Ioc_mul coe_Ioc_pow
 
 instance {α : Type*} [ordered_comm_semiring α] : comm_semigroup (Ioc (0:α) 1) :=
-by { apply function.injective.comm_semigroup _ subtype.coe_injective; { intros, refl } }
+subtype.coe_injective.comm_semigroup _ coe_Ioc_mul
 
 instance {α : Type*} [ordered_comm_semiring α] [nontrivial α] : comm_monoid (Ioc (0:α) 1) :=
 { mul_comm := λ p q, (by {ext1, exact mul_comm p.1 q.1}),
@@ -89,12 +91,13 @@ instance {α : Type*} [ordered_comm_semiring α] [nontrivial α] : comm_monoid (
 
 /-! ### Instances for `(Ioo 0 1)` -/
 
-instance : semigroup (Ioo (0:α) 1) :=
-{ mul := λ p q, ⟨p.1 * q.1, ⟨mul_pos p.2.1 q.2.1,
-    mul_lt_one_of_nonneg_of_lt_one_right p.2.2.le q.2.1.le q.2.2⟩⟩,
-  mul_assoc := λ p q r, (by simp only [subtype.mk_eq_mk, mul_assoc]) }
-
-instance {α : Type*} [ordered_comm_semiring α] : comm_semigroup (Ioo (0:α) 1) :=
-by { apply function.injective.comm_semigroup _ subtype.coe_injective, { intros, refl } }
+instance : has_mul (Ioo (0:α) 1) := { mul := λ p q, ⟨p.1 * q.1, ⟨mul_pos p.2.1 q.2.1,
+    mul_lt_one_of_nonneg_of_lt_one_right p.2.2.le q.2.1.le q.2.2⟩⟩ }
 
 @[simp, norm_cast] lemma coe_Ioo_mul (x y : Ioo (0:α) 1) : ↑(x * y) = (x * y : α) := rfl
+
+instance : semigroup (Ioo (0:α) 1) :=
+subtype.coe_injective.semigroup _ coe_Ioo_mul
+
+instance {α : Type*} [ordered_comm_semiring α] : comm_semigroup (Ioo (0:α) 1) :=
+subtype.coe_injective.comm_semigroup _ coe_Ioo_mul

@@ -152,6 +152,10 @@ assume ⟨h⟩, h.elim
 @[simp] theorem exists_pempty {P : pempty → Prop} : (∃ x : pempty, P x) ↔ false :=
 ⟨λ h, by { cases h with w, cases w }, false.elim⟩
 
+lemma congr_heq {α β γ : Sort*} {f : α → γ} {g : β → γ} {x : α} {y : β} (h₁ : f == g)
+  (h₂ : x == y) : f x = g y :=
+by { cases h₂, cases h₁, refl }
+
 lemma congr_arg_heq {α} {β : α → Sort*} (f : ∀ a, β a) : ∀ {a₁ a₂ : α}, a₁ = a₂ → f a₁ == f a₂
 | a _ rfl := heq.rfl
 
@@ -903,6 +907,21 @@ lemma congr_arg2 {α β γ : Sort*} (f : α → β → γ) {x x' : α} {y y' : �
   (hx : x = x') (hy : y = y') : f x y = f x' y' :=
 by { subst hx, subst hy }
 
+variables {β : α → Sort*} {γ : Π a, β a → Sort*} {δ : Π a b, γ a b → Sort*}
+
+lemma congr_fun₂ {f g : Π a b, γ a b} (h : f = g) (a : α) (b : β a) : f a b = g a b :=
+congr_fun (congr_fun h _) _
+
+lemma congr_fun₃ {f g : Π a b c, δ a b c} (h : f = g) (a : α) (b : β a) (c : γ a b) :
+  f a b c = g a b c :=
+congr_fun₂ (congr_fun h _) _ _
+
+lemma funext₂ {f g : Π a, β a → Prop} (h : ∀ a b, f a b = g a b) : f = g :=
+funext $ λ _, funext $ h _
+
+lemma funext₃ {f g : Π a b, γ a b → Prop} (h : ∀ a b c, f a b c = g a b c) : f = g :=
+funext $ λ _, funext₂ $ h _
+
 end equality
 
 /-! ### Declarations about quantifiers -/
@@ -1128,11 +1147,11 @@ by simp only [exists_unique, and_self, forall_eq', exists_eq']
 (exists_congr $ by exact λ a, and.comm).trans exists_eq_left
 
 @[simp] theorem exists_eq_right_right {a' : α} :
-  (∃ (a : α), p a ∧ b ∧ a = a') ↔ p a' ∧ b :=
+  (∃ (a : α), p a ∧ q a ∧ a = a') ↔ p a' ∧ q a' :=
 ⟨λ ⟨_, hp, hq, rfl⟩, ⟨hp, hq⟩, λ ⟨hp, hq⟩, ⟨a', hp, hq, rfl⟩⟩
 
 @[simp] theorem exists_eq_right_right' {a' : α} :
-  (∃ (a : α), p a ∧ b ∧ a' = a) ↔ p a' ∧ b :=
+  (∃ (a : α), p a ∧ q a ∧ a' = a) ↔ p a' ∧ q a' :=
 ⟨λ ⟨_, hp, hq, rfl⟩, ⟨hp, hq⟩, λ ⟨hp, hq⟩, ⟨a', hp, hq, rfl⟩⟩
 
 @[simp] theorem exists_apply_eq_apply (f : α → β) (a' : α) : ∃ a, f a = f a' := ⟨a', rfl⟩

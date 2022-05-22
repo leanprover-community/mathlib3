@@ -192,29 +192,9 @@ set.support_indicator
 lemma range_indicator {s : set α} (hs : measurable_set s)
   (hs_nonempty : s.nonempty) (hs_ne_univ : s ≠ univ) (x y : β) :
   (piecewise s hs (const α x) (const α y)).range = {x, y} :=
-begin
-  ext1 z,
-  rw [mem_range, set.mem_range, finset.mem_insert, finset.mem_singleton],
-  simp_rw piecewise_apply,
-  split; intro h,
-  { obtain ⟨a, haz⟩ := h,
-    by_cases has : a ∈ s,
-    { left,
-      simp only [has, function.const_apply, if_true, coe_const] at haz,
-      exact haz.symm, },
-    { right,
-      simp only [has, function.const_apply, if_false, coe_const] at haz,
-      exact haz.symm, }, },
-  { cases h,
-    { obtain ⟨a, has⟩ : ∃ a, a ∈ s, from hs_nonempty,
-      exact ⟨a, by simpa [has] using h.symm⟩, },
-    { obtain ⟨a, has⟩ : ∃ a, a ∉ s,
-      { by_contra' h,
-        refine hs_ne_univ _,
-        ext1 a,
-        simp [h a], },
-      exact ⟨a, by simpa [has] using h.symm⟩, }, },
-end
+by simp only [← finset.coe_inj, coe_range, coe_piecewise, range_piecewise, coe_const,
+  finset.coe_insert, finset.coe_singleton, hs_nonempty.image_const,
+  (nonempty_compl.2 hs_ne_univ).image_const, singleton_union]
 
 lemma measurable_bind [measurable_space γ] (f : α →ₛ β) (g : β → α → γ)
   (hg : ∀ b, measurable (g b)) : measurable (λ a, g (f a) a) :=
@@ -1032,12 +1012,7 @@ lintegral_mono' (le_refl μ) hfg
 
 lemma lintegral_mono_nnreal {f g : α → ℝ≥0} (h : f ≤ g) :
   ∫⁻ a, f a ∂μ ≤ ∫⁻ a, g a ∂μ :=
-begin
-  refine lintegral_mono _,
-  intro a,
-  rw ennreal.coe_le_coe,
-  exact h a,
-end
+lintegral_mono $ λ a, ennreal.coe_le_coe.2 (h a)
 
 lemma supr_lintegral_measurable_le_eq_lintegral (f : α → ℝ≥0∞) :
   (⨆ (g : α → ℝ≥0∞) (g_meas : measurable g) (hg : g ≤ f), ∫⁻ a, g a ∂μ) = ∫⁻ a, f a ∂μ :=
@@ -1111,7 +1086,7 @@ lemma exists_simple_func_forall_lintegral_sub_lt_of_pos {f : α → ℝ≥0∞} 
 begin
   rw lintegral_eq_nnreal at h,
   have := ennreal.lt_add_right h hε,
-  erw ennreal.bsupr_add at this; [skip, exact ⟨0, λ x, by simp⟩],
+  erw ennreal.bsupr_add at this; [skip, exact ⟨0, λ x, zero_le _⟩],
   simp_rw [lt_supr_iff, supr_lt_iff, supr_le_iff] at this,
   rcases this with ⟨φ, hle : ∀ x, ↑(φ x) ≤ f x, b, hbφ, hb⟩,
   refine ⟨φ, hle, λ ψ hψ, _⟩,
@@ -1329,7 +1304,8 @@ begin
     begin
       rw [← simple_func.add_lintegral, ← simple_func.map_add @ennreal.coe_add],
       refine simple_func.lintegral_mono (λ x, _) le_rfl,
-      simp [-ennreal.coe_add, add_tsub_eq_max, le_max_right]
+      simp only [add_tsub_eq_max, le_max_right, coe_map, function.comp_app, simple_func.coe_add,
+        simple_func.coe_sub, pi.add_apply, pi.sub_apply, with_top.coe_max]
     end
   ... ≤ (map coe φ).lintegral (μ.restrict s) + ε₁ :
     begin
@@ -1337,9 +1313,11 @@ begin
       exact simple_func.lintegral_mono le_rfl measure.restrict_le_self
     end
   ... ≤ (simple_func.const α (C : ℝ≥0∞)).lintegral (μ.restrict s) + ε₁ :
-    by { mono*, exacts [λ x, coe_le_coe.2 (hC x), le_rfl, le_rfl] }
-  ... = C * μ s + ε₁ : by simp [← simple_func.lintegral_eq_lintegral]
-  ... ≤ C * ((ε₂ - ε₁) / C) + ε₁ : by { mono*, exacts [le_rfl, hs.le, le_rfl] }
+    add_le_add (simple_func.lintegral_mono (λ x, coe_le_coe.2 (hC x)) le_rfl) le_rfl
+  ... = C * μ s + ε₁ : by simp only [←simple_func.lintegral_eq_lintegral, coe_const,
+    lintegral_const, measure.restrict_apply, measurable_set.univ, univ_inter]
+  ... ≤ C * ((ε₂ - ε₁) / C) + ε₁ :
+    add_le_add_right (ennreal.mul_le_mul le_rfl hs.le) _
   ... ≤ (ε₂ - ε₁) + ε₁ : add_le_add mul_div_le le_rfl
   ... = ε₂ : tsub_add_cancel_of_le hε₁₂.le,
 end

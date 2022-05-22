@@ -232,7 +232,7 @@ meta def tautology (cfg : tauto_cfg := {}) : tactic unit := focus1 $
              gs' ← get_goals,
              guard (gs ≠ gs') ) in
 
-    do when cfg.classical classical,
+    do when cfg.classical (classical tt),
        using_new_ref (expr_map.mk _) tauto_core;
        repeat (first basic_tauto_tacs); cfg.closer, done
 

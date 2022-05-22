@@ -5,6 +5,7 @@ Authors: Scott Morrison
 -/
 import category_theory.monoidal.braided
 import category_theory.monoidal.discrete
+import category_theory.monoidal.coherence_lemmas
 import category_theory.limits.shapes.terminal
 import algebra.punit_instances
 
@@ -57,9 +58,8 @@ def trivial : Mon_ C :=
 { X := 𝟙_ C,
   one := 𝟙 _,
   mul := (λ_ _).hom,
-  mul_assoc' :=
-    by simp_rw [triangle_assoc, iso.cancel_iso_hom_right, tensor_right_iff, unitors_equal],
-  mul_one' := by simp [unitors_equal] }
+  mul_assoc' := by coherence,
+  mul_one' := by coherence }
 
 instance : inhabited (Mon_ C) := ⟨trivial C⟩
 
@@ -265,6 +265,8 @@ def Mon_to_lax_monoidal : Mon_ C ⥤ lax_monoidal_functor (discrete punit.{u+1})
     naturality' := λ _ _ _, by { dsimp, rw [category.id_comp, category.comp_id], },
     unit' := f.one_hom,
     tensor' := λ _ _, f.mul_hom, }, }
+
+local attribute [tidy] tactic.discrete_cases
 
 /-- Implementation of `Mon_.equiv_lax_monoidal_functor_punit`. -/
 @[simps]

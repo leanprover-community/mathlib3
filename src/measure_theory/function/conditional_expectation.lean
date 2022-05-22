@@ -179,8 +179,8 @@ lemma strongly_measurable.ae_strongly_measurable'
   ae_strongly_measurable' m f μ :=
 ⟨f, hf, ae_eq_refl _⟩
 
-lemma ae_eq_trim_iff_of_ae_strongly_measurable' {α β} [topological_space β]
-  [pseudo_metrizable_space β] {m m0 : measurable_space α} {μ : measure α} {f g : α → β}
+lemma ae_eq_trim_iff_of_ae_strongly_measurable' {α β} [topological_space β] [metrizable_space β]
+  {m m0 : measurable_space α} {μ : measure α} {f g : α → β}
   (hm : m ≤ m0) (hfm : ae_strongly_measurable' m f μ) (hgm : ae_strongly_measurable' m g μ) :
   hfm.mk f =ᵐ[μ.trim hm] hgm.mk g ↔ f =ᵐ[μ] g :=
 (ae_eq_trim_iff hm hfm.strongly_measurable_mk hgm.strongly_measurable_mk).trans

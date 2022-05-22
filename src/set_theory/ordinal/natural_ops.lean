@@ -179,7 +179,7 @@ instance swap_add_contravariant_class_le :
 
 theorem lt_add_iff {a b c : nat_ordinal} :
   a < b + c ↔ (∃ b' < b, a ≤ b' + c) ∨ ∃ c' < c, a ≤ b + c' :=
-by { rw add_def, unfold blsub, simpa [lt_blsub_iff, lt_to_nat_ordinal_iff] }
+by { rw add_def, simpa [blsub, lt_blsub_iff, lt_to_nat_ordinal_iff] }
 
 theorem blsub_add_of_mono {a b : nat_ordinal.{u}} {f : Π c < (a + b), nat_ordinal.{max u v}}
   (hf : ∀ {i j} hi hj, i ≤ j → f i hi ≤ f j hj) : blsub _ f = max
@@ -203,8 +203,8 @@ private theorem add_assoc' : ∀ a b c : nat_ordinal, a + b + c = a + (b + c)
   { congr;
     ext d hd;
     apply add_assoc' },
-  { exact λ i j _ _ h, @add_le_add_left nat_ordinal _ _ _ _ _ h a },
-  { exact λ i j _ _ h, @add_le_add_right nat_ordinal _ _ _ _ _ h c }
+  { exact λ i j _ _ h, add_le_add_left h a },
+  { exact λ i j _ _ h, add_le_add_right h c }
 end
 using_well_founded { dec_tac := `[solve_by_elim [psigma.lex.left, psigma.lex.right]] }
 

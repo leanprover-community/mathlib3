@@ -30,6 +30,11 @@ instance : has_mul (Icc (0:α) 1) :=
 instance : has_pow (Icc (0:α) 1) ℕ :=
   { pow := λ p n, ⟨p.1 ^ n, ⟨pow_nonneg p.2.1 n, pow_le_one n p.2.1 p.2.2⟩⟩ }
 
+@[simp, norm_cast] lemma coe_Icc_zero : ↑(0 : Icc (0:α) 1) = (0 : α) := rfl
+@[simp, norm_cast] lemma coe_Icc_one : ↑(1 : Icc (0:α) 1) = (1 : α) := rfl
+@[simp, norm_cast] lemma coe_Icc_mul (x y : Icc (0:α) 1) : (↑(x * y) : α) = ↑x * ↑y := rfl
+@[simp, norm_cast] lemma coe_Icc_pow (x : Icc (0:α) 1) (n : ℕ) : (↑(x ^ n) : α) = ↑x ^ n := rfl
+
 instance : monoid (Icc (0:α) 1) :=
 by { apply function.injective.monoid _ subtype.coe_injective; { intros, refl } }
 
@@ -52,6 +57,8 @@ instance {α : Type*} [ordered_comm_semiring α] : comm_semigroup (Ico (0:α) 1)
     (by {apply subtype.mk_eq_mk.2, simp [subtype.coe_mk, mul_comm p1 q1]}),
   ..(show semigroup (Ico (0:α) 1), by apply_instance) }
 
+@[simp, norm_cast] lemma coe_Ico_mul (x y : Ico (0:α) 1) : (↑(x * y) : α) = ↑x * ↑y := rfl
+
 /-- Instances for `(Ioc 0 1)` -/
 
 instance [nontrivial α] : has_one (Ioc (0:α) 1) := { one := ⟨1, ⟨zero_lt_one, le_refl 1⟩⟩ }
@@ -61,6 +68,10 @@ instance : has_mul (Ioc (0:α) 1) :=
 
 instance Ioc_pow : has_pow (Ioc (0:α) 1) ℕ :=
   { pow := λ p n, ⟨p.1 ^ n, ⟨pow_pos p.2.1 n, pow_le_one n (le_of_lt p.2.1) p.2.2⟩⟩ }
+
+@[simp, norm_cast] lemma coe_Ioc_one [nontrivial α] : ↑(1 : Ioc (0:α) 1) = (1 : α) := rfl
+@[simp, norm_cast] lemma coe_Ioc_mul (x y : Ioc (0:α) 1) : (↑(x * y) : α) = ↑x * ↑y := rfl
+@[simp, norm_cast] lemma coe_Ioc_pow (x : Ioc (0:α) 1) (n : ℕ) : (↑(x ^ n) : α) = ↑x ^ n := rfl
 
 instance [nontrivial α] : monoid (Ioc (0:α) 1) :=
 by { apply function.injective.monoid _ subtype.coe_injective; { intros, refl } }
@@ -80,3 +91,5 @@ instance {α : Type*} [ordered_comm_semiring α] : comm_semigroup (Ioo (0:α) 1)
 { mul_comm := λ ⟨p1, _⟩ ⟨q1, _⟩,
     (by {apply subtype.mk_eq_mk.2, simp [subtype.coe_mk, mul_comm p1 q1]}),
   ..(show semigroup (Ioo (0:α) 1), by apply_instance) }
+
+@[simp, norm_cast] lemma coe_Ioo_mul (x y : Ioo (0:α) 1) : (↑(x * y) : α) = ↑x * ↑y := rfl

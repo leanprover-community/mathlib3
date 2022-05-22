@@ -91,3 +91,8 @@ end NonemptyFinLinOrd
 lemma NonemptyFinLinOrd_dual_comp_forget_to_LinearOrder :
   NonemptyFinLinOrd.dual ⋙ forget₂ NonemptyFinLinOrd LinearOrder =
     forget₂ NonemptyFinLinOrd LinearOrder ⋙ LinearOrder.dual := rfl
+
+/-- The obvious functor `NonemptyFinLinOrd ⥤ Preorder` -/
+def NonemptyFinLinOrd_forget_to_Preorder : NonemptyFinLinOrd ⥤ Preorder :=
+{ obj := λ X, ⟨X.α⟩,
+  map := λ X Y f, f, }

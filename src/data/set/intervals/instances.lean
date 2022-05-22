@@ -25,10 +25,10 @@ instance : has_zero (Icc (0:α) 1) := { zero := ⟨0, left_mem_Icc.2 zero_le_one
 instance : has_one (Icc (0:α) 1) := { one := ⟨1, right_mem_Icc.2 zero_le_one⟩ }
 
 instance : has_mul (Icc (0:α) 1) :=
-  { mul := λ p q, ⟨p*q, ⟨mul_nonneg p.2.1 q.2.1, mul_le_one p.2.2 q.2.1 q.2.2⟩⟩ }
+{ mul := λ p q, ⟨p*q, ⟨mul_nonneg p.2.1 q.2.1, mul_le_one p.2.2 q.2.1 q.2.2⟩⟩ }
 
 instance : has_pow (Icc (0:α) 1) ℕ :=
-  { pow := λ p n, ⟨p.1 ^ n, ⟨pow_nonneg p.2.1 n, pow_le_one n p.2.1 p.2.2⟩⟩ }
+{ pow := λ p n, ⟨p.1 ^ n, ⟨pow_nonneg p.2.1 n, pow_le_one n p.2.1 p.2.2⟩⟩ }
 
 @[simp, norm_cast] lemma coe_Icc_zero : ↑(0 : Icc (0:α) 1) = (0 : α) := rfl
 @[simp, norm_cast] lemma coe_Icc_one : ↑(1 : Icc (0:α) 1) = (1 : α) := rfl
@@ -63,10 +63,10 @@ instance {α : Type*} [ordered_comm_semiring α] : comm_semigroup (Ico (0:α) 1)
 instance [nontrivial α] : has_one (Ioc (0:α) 1) := { one := ⟨1, ⟨zero_lt_one, le_refl 1⟩⟩ }
 
 instance : has_mul (Ioc (0:α) 1) :=
-  { mul := λ p q, ⟨p.1 * q.1, ⟨mul_pos p.2.1 q.2.1, mul_le_one p.2.2 (le_of_lt q.2.1) q.2.2⟩⟩ }
+{ mul := λ p q, ⟨p.1 * q.1, ⟨mul_pos p.2.1 q.2.1, mul_le_one p.2.2 (le_of_lt q.2.1) q.2.2⟩⟩ }
 
 instance Ioc_pow : has_pow (Ioc (0:α) 1) ℕ :=
-  { pow := λ p n, ⟨p.1 ^ n, ⟨pow_pos p.2.1 n, pow_le_one n (le_of_lt p.2.1) p.2.2⟩⟩ }
+{ pow := λ p n, ⟨p.1 ^ n, ⟨pow_pos p.2.1 n, pow_le_one n (le_of_lt p.2.1) p.2.2⟩⟩ }
 
 @[simp, norm_cast] lemma coe_Ioc_one [nontrivial α] : ↑(1 : Ioc (0:α) 1) = (1 : α) := rfl
 @[simp, norm_cast] lemma coe_Ioc_mul (x y : Ioc (0:α) 1) : ↑(x * y) = (x * y : α) := rfl

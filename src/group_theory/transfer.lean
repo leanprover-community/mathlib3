@@ -206,7 +206,8 @@ begin
   { refine λ K, ⟨λ h k hk, (h hk x (mem_zpowers x)).symm, λ h k hk, _⟩,
     rintro _ ⟨m, rfl⟩,
     exact (commute.zpow_right (h k hk) m).symm },
-  obtain ⟨h, hh⟩ := mul_action.exists_smul_eq H ((g • P).subtype H _) (P.subtype H _),
+  obtain ⟨h, hh⟩ := mul_action.exists_smul_eq H ((g • P).subtype (show _ ≤ H, from _))
+    (P.subtype (show _ ≤ H, from _)),
   { refine ⟨h * g, _, _⟩,
     { rw ← sylow.smul_eq_iff_mem_normalizer,
       rw mul_smul,
@@ -256,9 +257,7 @@ begin
     obtain ⟨n, hn, key⟩ := key_sylow_lemma' g₀ P P_comm (P.1.pow_mem hg.2 k) hk,
     rw [key, mul_assoc, hP hn (g ^ k) (P.1.pow_mem hg.2 k), inv_mul_cancel_left],
   end),
-  have key' : (fintype.card P.1).coprime P.1.index,
-  { -- todo: make this a lemma
-    sorry },
+  have key' : (fintype.card P.1).coprime P.1.index := P.lema19,
   have : pow_coprime key' ⟨g, hg.2⟩ = 1 := key.symm.trans hg.1,
   rwa [←pow_coprime_one, equiv.apply_eq_iff_eq, subtype.ext_iff] at this,
 end

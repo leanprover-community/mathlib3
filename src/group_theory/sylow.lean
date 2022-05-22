@@ -533,23 +533,27 @@ theorem exists_subgroup_card_pow_prime [fintype G] (p : ℕ) {n : ℕ} [fact p.p
 let ⟨K, hK⟩ := exists_subgroup_card_pow_prime_le p hdvd ⊥ (by simp) n.zero_le in
 ⟨K, hK.1⟩
 
-lemma pow_dvd_card_of_pow_dvd_card [fintype G] {p n : ℕ} [fact p.prime] (P : sylow p G)
+lemma pow_dvd_card_of_pow_dvd_card [fintype G] {p n : ℕ} [hp : fact p.prime] (P : sylow p G)
   (hdvd : p ^ n ∣ card G) : p ^ n ∣ card P :=
-begin
-  obtain ⟨Q, hQ⟩ := exists_subgroup_card_pow_prime p hdvd,
-  obtain ⟨R, hR⟩ := (is_p_group.of_card hQ).exists_le_sylow,
-  obtain ⟨g, rfl⟩ := exists_smul_eq G R P,
-  calc p ^ n = card Q : hQ.symm
-  ... ∣ card R : card_dvd_of_le hR
-  ... = card (g • R) : card_congr (R.equiv_smul g).to_equiv
-end
+(hp.1.coprime_pow_of_not_dvd (lema17 P index_ne_zero_of_fintype)).symm.dvd_of_dvd_mul_left
+    ((index_mul_card P.1).symm ▸ hdvd)
 
-lemma dvd_card_of_dvd_card [fintype G] {p : ℕ} [fact p.prime] (P : sylow p G)
+lemma dvd_card_of_dvd_card [fintype G] {p : ℕ} [hp : fact p.prime] (P : sylow p G)
   (hdvd : p ∣ card G) : p ∣ card P :=
 begin
   rw ← pow_one p at hdvd,
   have key := P.pow_dvd_card_of_pow_dvd_card hdvd,
   rwa pow_one at key,
+end
+
+lemma lema19 [fintype G] {p : ℕ} [hp : fact p.prime] (P : sylow p G) :
+  nat.coprime (card P) (index (P : subgroup G)) :=
+begin
+  change nat.coprime (card P.1) (index P.1),
+  obtain ⟨n, hn⟩ := is_p_group.iff_card.mp P.2,
+  rw hn,
+  have key := hp.1.coprime_pow_of_not_dvd (lema17 P index_ne_zero_of_fintype),
+  exact key.symm,
 end
 
 lemma ne_bot_of_dvd_card [fintype G] {p : ℕ} [hp : fact p.prime] (P : sylow p G)
@@ -602,7 +606,7 @@ end pointwise
 lemma normal_of_normalizer_normal {p : ℕ} [fact p.prime] [fintype (sylow p G)]
   (P : sylow p G) (hn : (↑P : subgroup G).normalizer.normal) :
   (↑P : subgroup G).normal :=
-by rw [←normalizer_eq_top, ←normalizer_sup_eq_top (P.subtype le_normalizer), coe_subtype,
+by rw [←normalizer_eq_top, ←normalizer_sup_eq_top (P.subtype _ le_normalizer), coe_subtype,
   map_comap_eq_self (le_normalizer.trans (ge_of_eq (subtype_range _))), sup_idem]
 
 @[simp] lemma normalizer_normalizer {p : ℕ} [fact p.prime] [fintype (sylow p G)]
@@ -625,7 +629,7 @@ normalizer_eq_top.mp begin
   { exact heq },
   { haveI := hnc _ hK,
     have hPK := le_trans le_normalizer hNK,
-    let P' := P.subtype K hPK,
+    let P' := P.subtype hPK,
     exfalso,
     apply hK.1,
     calc K = (↑P : subgroup G).normalizer ⊔ K : by { rw sup_eq_right.mpr, exact hNK }

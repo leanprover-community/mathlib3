@@ -2030,7 +2030,7 @@ by simp [measure.restrict_congr_set hst]
 is almost everywhere true on the other -/
 lemma restrict_eq_iff_of_ae_eq {s t} (hst : s =ᵐ[μ] t) {p : α → Prop} :
   (∀ᵐ x ∂μ.restrict s, p x) ↔ (∀ᵐ x ∂μ.restrict t, p x) :=
-ae_restrict_of_ae_eq_of_ae_restrict hst, ae_restrict_of_ae_eq_of_ae_restrict hst.symm⟩
+⟨ae_restrict_of_ae_eq_of_ae_restrict hst, ae_restrict_of_ae_eq_of_ae_restrict hst.symm⟩
 
 
 /-- A version of the **Borel-Cantelli lemma**: if `pᵢ` is a sequence of predicates such that

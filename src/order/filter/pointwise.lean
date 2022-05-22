@@ -36,6 +36,10 @@ distribute over pointwise operations. For example,
 * `a +ᵥ f` (`filter.has_vadd_filter`): Translation, filter of all `a +ᵥ s` where `s ∈ f`.
 * `a • f` (`filter.has_scalar_filter`): Scaling, filter of all `a • s` where `s ∈ f`.
 
+For `α` a semigroup/monoid, `filter α` is a semigroup/monoid.
+As an unfortunate side effect, this means that `n • f`, where `n : ℕ`, is ambiguous between
+pointwise scaling and repeated pointwise addition. See note [pointwise nat action].
+
 ## Implementation notes
 
 We put all instances in the locale `pointwise`, so that these instances are not available by
@@ -219,6 +223,28 @@ end div
 
 open_locale pointwise
 
+/-- Repeated pointwise addition (not the same as pointwise repeated addition!) of a `filter`. See
+Note [pointwise nat action].-/
+protected def has_nsmul [has_zero α] [has_add α] : has_scalar ℕ (filter α) := ⟨nsmul_rec⟩
+
+/-- Repeated pointwise multiplication (not the same as pointwise repeated multiplication!) of a
+`filter`. See Note [pointwise nat action]. -/
+@[to_additive]
+protected def has_npow [has_one α] [has_mul α] : has_pow (filter α) ℕ := ⟨λ s n, npow_rec n s⟩
+
+/-- Repeated pointwise addition/subtraction (not the same as pointwise repeated
+addition/subtraction!) of a `filter`. See Note [pointwise nat action]. -/
+protected def has_zsmul [has_zero α] [has_add α] [has_neg α] : has_scalar ℤ (filter α) :=
+⟨zsmul_rec⟩
+
+/-- Repeated pointwise multiplication/division (not the same as pointwise repeated
+multiplication/division!) of a `filter`. See Note [pointwise nat action]. -/
+@[to_additive] protected def has_zpow [has_one α] [has_mul α] [has_inv α] : has_pow (filter α) ℤ :=
+⟨λ s n, zpow_rec n s⟩
+
+localized "attribute [instance] filter.has_nsmul filter.has_npow filter.has_zsmul filter.has_zpow"
+  in pointwise
+
 /-- `filter α` is a `semigroup` under pointwise operations if `α` is.-/
 @[to_additive "`filter α` is an `add_semigroup` under pointwise operations if `α` is."]
 protected def semigroup [semigroup α] : semigroup (filter α) :=
@@ -282,7 +308,7 @@ variables [monoid α] {f g : filter α} {s : set α} {a : α}
 /-- `filter α` is a `monoid` under pointwise operations if `α` is. -/
 @[to_additive "`filter α` is an `add_monoid` under pointwise operations if `α` is."]
 protected def monoid : monoid (filter α) :=
-{ ..filter.mul_one_class, ..filter.semigroup }
+{ ..filter.mul_one_class, ..filter.semigroup, ..filter.has_npow }
 
 localized "attribute [instance] filter.monoid filter.add_monoid" in pointwise
 
@@ -353,7 +379,7 @@ protected def division_monoid : division_monoid (filter α) :=
     rw [inv_pure, inv_eq_of_mul_eq_one_right hab],
   end,
   div_eq_mul_inv := λ f g, map_map₂_distrib_right div_eq_mul_inv,
-  ..filter.monoid, ..filter.has_involutive_inv, ..filter.has_div }
+  ..filter.monoid, ..filter.has_involutive_inv, ..filter.has_div, ..filter.has_zpow }
 
 @[to_additive] lemma is_unit_iff : is_unit f ↔ ∃ a, f = pure a ∧ is_unit a :=
 begin
@@ -565,9 +591,39 @@ instance is_central_scalar [has_scalar α β] [has_scalar αᵐᵒᵖ β] [is_ce
   is_central_scalar α (filter β) :=
 ⟨λ a f, congr_arg (λ m, map m f) $ by exact funext (λ _, op_smul_eq_smul _ _)⟩
 
-@[to_additive]
-instance [monoid α] [mul_action α β] : mul_action (filter α) (filter β) :=
-{ one_smul := λ f, by simp only [←pure_one, ←map₂_smul, map₂_pure_left, one_smul, map_id'],
+/-- A multiplicative action of a monoid `α` on a type `β` gives a multiplicative action of
+`filter α` on `filter β`. -/
+@[to_additive "An additive action of an additive monoid `α` on a type `β` gives an additive action
+of `filter α` on `filter β`"]
+protected def mul_action [monoid α] [mul_action α β] : mul_action (filter α) (filter β) :=
+{ one_smul := λ f, map₂_pure_left.trans $ by simp_rw [one_smul, map_id'],
   mul_smul := λ f g h, map₂_assoc mul_smul }
+
+/-- A multiplicative action of a monoid on a type `β` gives a multiplicative action on `filter β`.
+-/
+@[to_additive "An additive action of an additive monoid on a type `β` gives an additive action on
+`filter β`."]
+protected def mul_action_filter [monoid α] [mul_action α β] : mul_action α (filter β) :=
+{ mul_smul := λ a b f, by simp only [←map_smul, map_map, function.comp, ←mul_smul],
+  one_smul := λ f, by simp only [←map_smul, one_smul, map_id'] }
+
+localized "attribute [instance] filter.mul_action filter.add_action filter.mul_action_filter
+  filter.add_action_filter" in pointwise
+
+/-- A distributive multiplicative action of a monoid on an additive monoid `β` gives a distributive
+multiplicative action on `filter β`. -/
+protected def distrib_mul_action_filter [monoid α] [add_monoid β] [distrib_mul_action α β] :
+  distrib_mul_action α (filter β) :=
+{ smul_add := λ _ _ _, map_map₂_distrib $ smul_add _,
+  smul_zero := λ _, (map_pure _ _).trans $ by rw [smul_zero, pure_zero] }
+
+/-- A multiplicative action of a monoid on a monoid `β` gives a multiplicative action on `set β`. -/
+protected def mul_distrib_mul_action_filter [monoid α] [monoid β] [mul_distrib_mul_action α β] :
+  mul_distrib_mul_action α (set β) :=
+{ smul_mul := λ _ _ _, image_image2_distrib $ smul_mul' _,
+  smul_one := λ _, image_singleton.trans $ by rw [smul_one, singleton_one] }
+
+localized "attribute [instance] filter.distrib_mul_action_filter
+  filter.mul_distrib_mul_action_filter" in pointwise
 
 end filter

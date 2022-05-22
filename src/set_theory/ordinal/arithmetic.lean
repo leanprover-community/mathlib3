@@ -99,6 +99,7 @@ theorem add_succ (o₁ o₂ : ordinal) : o₁ + succ o₂ = succ (o₁ + o₂) :
 (add_assoc _ _ _).symm
 
 @[simp] theorem succ_zero : succ 0 = 1 := zero_add _
+@[simp] theorem succ_one : succ 1 = 2 := rfl
 
 theorem one_le_iff_pos {o : ordinal} : 1 ≤ o ↔ 0 < o :=
 by rw [← succ_zero, succ_le]
@@ -495,15 +496,12 @@ theorem add_is_limit (a) {b} : is_limit b → is_limit (a + b) :=
 
 /-! ### Subtraction on ordinals-/
 
-/-- `a - b` is the unique ordinal satisfying `b + (a - b) = a` when `b ≤ a`. -/
-def sub (a b : ordinal.{u}) : ordinal.{u} :=
-Inf {o | a ≤ b + o}
-
 /-- The set in the definition of subtraction is nonempty. -/
 theorem sub_nonempty {a b : ordinal.{u}} : {o | a ≤ b + o}.nonempty :=
 ⟨a, le_add_left _ _⟩
 
-instance : has_sub ordinal := ⟨sub⟩
+/-- `a - b` is the unique ordinal satisfying `b + (a - b) = a` when `b ≤ a`. -/
+instance : has_sub ordinal := ⟨λ a b, Inf {o | a ≤ b + o}⟩
 
 theorem le_add_sub (a b : ordinal) : a ≤ b + (a - b) :=
 Inf_mem sub_nonempty
@@ -766,21 +764,14 @@ theorem smul_eq_mul : ∀ (n : ℕ) (a : ordinal), n • a = a * n
 
 /-! ### Division on ordinals -/
 
-protected lemma div_aux (a b : ordinal.{u}) (h : b ≠ 0) : set.nonempty {o | a < b * succ o} :=
+/-- The set in the definition of division is nonempty. -/
+theorem div_nonempty {a b : ordinal.{u}} (h : b ≠ 0) : {o | a < b * succ o}.nonempty :=
 ⟨a, succ_le.1 $
   by simpa only [succ_zero, one_mul]
     using mul_le_mul_right' (succ_le.2 (ordinal.pos_iff_ne_zero.2 h)) (succ a)⟩
 
-/-- `a / b` is the unique ordinal `o` satisfying
-  `a = b * o + o'` with `o' < b`. -/
-protected def div (a b : ordinal.{u}) : ordinal.{u} :=
-if h : b = 0 then 0 else Inf {o | a < b * succ o}
-
-/-- The set in the definition of division is nonempty. -/
-theorem div_nonempty {a b : ordinal.{u}} (h : b ≠ 0) : {o | a < b * succ o}.nonempty :=
-ordinal.div_aux a b h
-
-instance : has_div ordinal := ⟨ordinal.div⟩
+/-- `a / b` is the unique ordinal `o` satisfying `a = b * o + o'` with `o' < b`. -/
+instance : has_div ordinal := ⟨λ a b, if h : b = 0 then 0 else Inf {o | a < b * succ o}⟩
 
 @[simp] theorem div_zero (a : ordinal) : a / 0 = 0 :=
 dif_pos rfl
@@ -1061,7 +1052,7 @@ rfl
 theorem bdd_above_range {ι : Type u} (f : ι → ordinal.{max u v}) : bdd_above (set.range f) :=
 ⟨(cardinal.sup.{u v} (cardinal.succ ∘ card ∘ f)).ord, begin
   rintros a ⟨i, rfl⟩,
-  exact le_of_lt (cardinal.lt_ord.2 ((cardinal.lt_succ_self _).trans_le (le_sup _ _)))
+  exact le_of_lt (cardinal.lt_ord.2 ((cardinal.lt_succ _).trans_le (le_sup _ _)))
 end⟩
 
 theorem le_sup {ι} (f : ι → ordinal) : ∀ i, f i ≤ sup f :=
@@ -1594,7 +1585,7 @@ end
 theorem mex_lt_ord_succ_mk {ι} (f : ι → ordinal) : mex f < (#ι).succ.ord :=
 begin
   by_contra' h,
-  apply not_le_of_lt (cardinal.lt_succ_self (#ι)),
+  apply (cardinal.lt_succ (#ι)).not_le,
   have H := λ a, exists_of_lt_mex ((typein_lt_self a).trans_le h),
   let g : (#ι).succ.ord.out.α → ι := λ a, classical.some (H a),
   have hg : injective g := λ a b h', begin
@@ -1791,30 +1782,32 @@ end
 /-! ### Ordinal exponential -/
 
 /-- The ordinal exponential, defined by transfinite recursion. -/
-def opow (a b : ordinal) : ordinal :=
-if a = 0 then 1 - b else
-limit_rec_on b 1 (λ _ IH, IH * a) (λ b _, bsup.{u u} b)
+instance : has_pow ordinal ordinal :=
+⟨λ a b, if a = 0 then 1 - b else limit_rec_on b 1 (λ _ IH, IH * a) (λ b _, bsup.{u u} b)⟩
 
-instance : has_pow ordinal ordinal := ⟨opow⟩
 local infixr ^ := @pow ordinal ordinal ordinal.has_pow
 
+theorem opow_def (a b : ordinal) :
+  a ^ b = if a = 0 then 1 - b else limit_rec_on b 1 (λ _ IH, IH * a) (λ b _, bsup.{u u} b) :=
+rfl
+
 theorem zero_opow' (a : ordinal) : 0 ^ a = 1 - a :=
-by simp only [pow, opow, if_pos rfl]
+by simp only [opow_def, if_pos rfl]
 
 @[simp] theorem zero_opow {a : ordinal} (a0 : a ≠ 0) : 0 ^ a = 0 :=
 by rwa [zero_opow', ordinal.sub_eq_zero_iff_le, one_le_iff_ne_zero]
 
 @[simp] theorem opow_zero (a : ordinal) : a ^ 0 = 1 :=
-by by_cases a = 0; [simp only [pow, opow, if_pos h, sub_zero],
-simp only [pow, opow, if_neg h, limit_rec_on_zero]]
+by by_cases a = 0; [simp only [opow_def, if_pos h, sub_zero],
+simp only [opow_def, if_neg h, limit_rec_on_zero]]
 
 @[simp] theorem opow_succ (a b : ordinal) : a ^ succ b = a ^ b * a :=
 if h : a = 0 then by subst a; simp only [zero_opow (succ_ne_zero _), mul_zero]
-else by simp only [pow, opow, limit_rec_on_succ, if_neg h]
+else by simp only [opow_def, limit_rec_on_succ, if_neg h]
 
 theorem opow_limit {a b : ordinal} (a0 : a ≠ 0) (h : is_limit b) :
   a ^ b = bsup.{u u} b (λ c _, a ^ c) :=
-by simp only [pow, opow, if_neg a0]; rw limit_rec_on_limit _ _ _ _ h; refl
+by simp only [opow_def, if_neg a0]; rw limit_rec_on_limit _ _ _ _ h; refl
 
 theorem opow_le_of_limit {a b c : ordinal} (a0 : a ≠ 0) (h : is_limit b) :
   a ^ b ≤ c ↔ ∀ b' < b, a ^ b' ≤ c :=
@@ -2287,7 +2280,7 @@ by rw [← add_left_cancel (n*(m/n)), div_add_mod, ← nat_cast_div, ← nat_cas
  λ h, card_nat n ▸ card_le_card h⟩
 
 @[simp] theorem nat_lt_card {o} {n : ℕ} : (n : cardinal) < card o ↔ (n : ordinal) < o :=
-by rw [← succ_le, ← cardinal.succ_le, ← cardinal.nat_succ, nat_le_card]; refl
+by rw [← succ_le, ← cardinal.succ_le_iff, ← cardinal.nat_succ, nat_le_card]; refl
 
 @[simp] theorem card_lt_nat {o} {n : ℕ} : card o < n ↔ o < n :=
 lt_iff_lt_of_le_iff_le nat_le_card

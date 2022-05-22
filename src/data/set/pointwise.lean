@@ -30,7 +30,7 @@ For sets `s` and `t` and scalar `a`:
 For `α` a semigroup/monoid, `set α` is a semigroup/monoid.
 As an unfortunate side effect, this means that `n • s`, where `n : ℕ`, is ambiguous between
 pointwise scaling and repeated pointwise addition; the former has `(2 : ℕ) • {1, 2} = {2, 4}`, while
-the latter has `(2 : ℕ) • {1, 2} = {2, 3, 4}`.
+the latter has `(2 : ℕ) • {1, 2} = {2, 3, 4}`. See note [pointwise nat action].
 
 Appropriate definitions and results are also transported to the additive theory via `to_additive`.
 
@@ -50,6 +50,19 @@ Appropriate definitions and results are also transported to the additive theory 
 set multiplication, set addition, pointwise addition, pointwise multiplication,
 pointwise subtraction
 -/
+
+/--
+Pointwise monoids (`set`, `finset`, `filter`) have derived pointwise actions of the form
+`has_scalar α β → has_scalar α (set β)`. When `α` is `ℕ` or `ℤ`, this action conflicts with the
+nat or int action coming from `set β` being a `monoid` or `div_inv_monoid`. For example,
+`2 • {a, b}` can both be `{2 • a, 2 • b}` (pointwise action, pointwise repeated addition,
+`set.has_scalar_set`) and `{a + a, a + b, b + a, b + b}` (nat or int action, repeated pointwise
+addition, `set.has_nsmul`).
+
+Because the pointwise action can easily be spelled out in such cases, we give higher priority to the
+nat and int actions.
+-/
+library_note "pointwise nat action"
 
 open function
 
@@ -351,6 +364,28 @@ image2_Inter₂_subset_right _ _ _
 
 end has_div
 
+open_locale pointwise
+
+/-- Repeated pointwise addition (not the same as pointwise repeated addition!) of a `finset`. See
+note [pointwise nat action].-/
+protected def has_nsmul [has_zero α] [has_add α] : has_scalar ℕ (set α) := ⟨nsmul_rec⟩
+
+/-- Repeated pointwise multiplication (not the same as pointwise repeated multiplication!) of a
+`set`. See note [pointwise nat action]. -/
+@[to_additive]
+protected def has_npow [has_one α] [has_mul α] : has_pow (set α) ℕ := ⟨λ s n, npow_rec n s⟩
+
+/-- Repeated pointwise addition/subtraction (not the same as pointwise repeated
+addition/subtraction!) of a `set`. See note [pointwise nat action]. -/
+protected def has_zsmul [has_zero α] [has_add α] [has_neg α] : has_scalar ℤ (set α) := ⟨zsmul_rec⟩
+
+/-- Repeated pointwise multiplication/division (not the same as pointwise repeated
+multiplication/division!) of a `set`. See note [pointwise nat action]. -/
+@[to_additive] protected def has_zpow [has_one α] [has_mul α] [has_inv α] : has_pow (set α) ℤ :=
+⟨λ s n, zpow_rec n s⟩
+
+localized "attribute [instance] set.has_nsmul set.has_npow set.has_zsmul set.has_zpow" in pointwise
+
 /-- `set α` is a `semigroup` under pointwise operations if `α` is. -/
 @[to_additive "`set α` is an `add_semigroup` under pointwise operations if `α` is."]
 protected def semigroup [semigroup α] : semigroup (set α) :=
@@ -397,7 +432,7 @@ variables [monoid α] {s t : set α} {a : α}
 
 /-- `set α` is a `monoid` under pointwise operations if `α` is. -/
 @[to_additive "`set α` is an `add_monoid` under pointwise operations if `α` is."]
-protected def monoid : monoid (set α) := { ..set.semigroup, ..set.mul_one_class }
+protected def monoid : monoid (set α) := { ..set.semigroup, ..set.mul_one_class, ..set.has_npow }
 
 localized "attribute [instance] set.monoid set.add_monoid" in pointwise
 
@@ -459,23 +494,6 @@ localized "attribute [instance] set.comm_monoid set.add_comm_monoid" in pointwis
 
 open_locale pointwise
 
-/-- Repeated pointwise addition (not the same as pointwise repeated addition!) of a `finset`. -/
-protected def has_nsmul [has_zero α] [has_add α] : has_scalar ℕ (set α) := ⟨nsmul_rec⟩
-
-/-- Repeated pointwise multiplication (not the same as pointwise repeated multiplication!) of a
-`set`. -/
-@[to_additive]
-protected def has_npow [has_one α] [has_mul α] : has_pow (set α) ℕ := ⟨λ s n, npow_rec n s⟩
-
-/-- Repeated pointwise addition/subtraction (not the same as pointwise repeated
-addition/subtraction!) of a `set`. -/
-protected def has_zsmul [has_zero α] [has_add α] [has_neg α] : has_scalar ℤ (set α) := ⟨zsmul_rec⟩
-
-/-- Repeated pointwise multiplication/division (not the same as pointwise repeated
-multiplication/division!) of a `set`. -/
-@[to_additive] protected def has_zpow [has_one α] [has_mul α] [has_inv α] : has_pow (set α) ℤ :=
-⟨λ s n, zpow_rec n s⟩
-
 section division_monoid
 variables [division_monoid α] {s t : set α}
 
@@ -505,7 +523,7 @@ protected def division_monoid : division_monoid (set α) :=
   end,
   div_eq_mul_inv := λ s t,
     by { rw [←image_id (s / t), ←image_inv], exact image_image2_distrib_right div_eq_mul_inv },
-  ..set.monoid, ..set.has_involutive_inv, ..set.has_div }
+  ..set.monoid, ..set.has_involutive_inv, ..set.has_div, ..set.has_zpow }
 
 @[simp, to_additive] lemma is_unit_iff : is_unit s ↔ ∃ a, s = {a} ∧ is_unit a :=
 begin
@@ -1016,13 +1034,6 @@ by { rintro _ ⟨_, _, _, _, rfl⟩, exact ⟨_, _, ‹_›, ‹_›, (map_mul m
 
 end mul_hom
 
-end set
-
-open set
-open_locale pointwise
-
-section
-
 section smul_with_zero
 variables [has_zero α] [has_zero β] [smul_with_zero α β]
 
@@ -1060,10 +1071,6 @@ begin
 end
 
 end smul_with_zero
-
-lemma smul_add_set [monoid α] [add_monoid β] [distrib_mul_action α β] (c : α) (s t : set β) :
-  c • (s + t) = c • s + c • t :=
-image_add (distrib_mul_action.to_add_monoid_hom β c).to_add_hom
 
 section group
 variables [group α] [mul_action α β] {A B : set β} {a : α} {x : β}
@@ -1147,7 +1154,12 @@ eq_univ_of_forall $ λ b, ⟨a⁻¹ • b, trivial, smul_inv_smul₀ ha _⟩
 
 end group_with_zero
 
-end
+end set
+
+/-! ### Miscellaneous -/
+
+open set
+open_locale pointwise
 
 /-! Some lemmas about pointwise multiplication and submonoids. Ideally we put these in
   `group_theory.submonoid.basic`, but currently we cannot because that file is imported by this. -/

@@ -144,39 +144,39 @@ of all opens contained in some `U i`.
 -- we have to explicitly construct a zigzag.
 instance : functor.final (pairwise_to_opens_le_cover U) :=
 ⟨λ V, is_connected_of_zigzag $ λ A B, begin
-  rcases A with ⟨⟨⟩, ⟨i⟩|⟨i,j⟩, a⟩;
-  rcases B with ⟨⟨⟩, ⟨i'⟩|⟨i',j'⟩, b⟩;
+  rcases A with ⟨⟨⟨⟩⟩, ⟨i⟩|⟨i,j⟩, a⟩;
+  rcases B with ⟨⟨⟨⟩⟩, ⟨i'⟩|⟨i',j'⟩, b⟩;
   dsimp at *,
   { refine ⟨[
-    { left := punit.star, right := pair i i',
+    { left := ⟨⟨⟩⟩, right := pair i i',
       hom := (le_inf a.le b.le).hom, }, _], _, rfl⟩,
     exact
       list.chain.cons (or.inr ⟨{ left := 𝟙 _, right := left i i', }⟩)
         (list.chain.cons (or.inl ⟨{ left := 𝟙 _, right := right i i', }⟩) list.chain.nil) },
   { refine ⟨[
-    { left := punit.star, right := pair i' i,
+    { left := ⟨⟨⟩⟩, right := pair i' i,
       hom := (le_inf (b.le.trans inf_le_left) a.le).hom, },
-    { left := punit.star, right := single i',
+    { left := ⟨⟨⟩⟩, right := single i',
       hom := (b.le.trans inf_le_left).hom, }, _], _, rfl⟩,
     exact
       list.chain.cons (or.inr ⟨{ left := 𝟙 _, right := right i' i, }⟩)
         (list.chain.cons (or.inl ⟨{ left := 𝟙 _, right := left i' i, }⟩)
           (list.chain.cons (or.inr ⟨{ left := 𝟙 _, right := left i' j', }⟩) list.chain.nil)) },
   { refine ⟨[
-    { left := punit.star, right := single i,
+    { left := ⟨⟨⟩⟩, right := single i,
       hom := (a.le.trans inf_le_left).hom, },
-    { left := punit.star, right := pair i i', hom :=
+    { left := ⟨⟨⟩⟩, right := pair i i', hom :=
       (le_inf (a.le.trans inf_le_left) b.le).hom, }, _], _, rfl⟩,
     exact
       list.chain.cons (or.inl ⟨{ left := 𝟙 _, right := left i j, }⟩)
         (list.chain.cons (or.inr ⟨{ left := 𝟙 _, right := left i i', }⟩)
           (list.chain.cons (or.inl ⟨{ left := 𝟙 _, right := right i i', }⟩) list.chain.nil)) },
   { refine ⟨[
-    { left := punit.star, right := single i,
+    { left := ⟨⟨⟩⟩, right := single i,
       hom := (a.le.trans inf_le_left).hom, },
-    { left := punit.star, right := pair i i',
+    { left := ⟨⟨⟩⟩, right := pair i i',
       hom := (le_inf (a.le.trans inf_le_left) (b.le.trans inf_le_left)).hom, },
-    { left := punit.star, right := single i',
+    { left := ⟨⟨⟩⟩, right := single i',
       hom := (b.le.trans inf_le_left).hom, }, _], _, rfl⟩,
     exact
       list.chain.cons (or.inl ⟨{ left := 𝟙 _, right := left i j, }⟩)

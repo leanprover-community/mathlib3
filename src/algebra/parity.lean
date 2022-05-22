@@ -133,8 +133,8 @@ lemma is_square.div [division_comm_monoid α] {a b : α} (ha : is_square a) (hb 
   is_square (a / b) :=
 by { rw div_eq_mul_inv, exact ha.mul hb.inv }
 
--- `odd.tsub_odd` requires `canonically_linear_ordered_semiring`, which we don't have
-lemma  even.tsub_even [canonically_linear_ordered_add_monoid α] [has_sub α] [has_ordered_sub α]
+-- `odd.tsub` requires `canonically_linear_ordered_semiring`, which we don't have
+lemma even.tsub [canonically_linear_ordered_add_monoid α] [has_sub α] [has_ordered_sub α]
   [contravariant_class α α (+) (≤)] {m n : α} (hm : even m) (hn : even n) : even (m - n) :=
 begin
   obtain ⟨a, rfl⟩ := hm,
@@ -214,13 +214,10 @@ end
 
 @[simp] lemma odd_two_mul_add_one (m : α) : odd (2 * m + 1) := ⟨m, rfl⟩
 
-lemma ring_hom.odd (f : α →+* β) (hm : odd m) : odd (f m) :=
-begin
-  rcases hm with ⟨m, rfl⟩,
-  exact ⟨f m, by simp [two_mul]⟩
-end
+lemma odd.map [ring_hom_class F α β] (f : F) : odd m → odd (f m) :=
+by { rintro ⟨m, rfl⟩, exact ⟨f m, by simp [two_mul]⟩ }
 
-@[simp] lemma odd.mul_odd : odd m → odd n → odd (m * n) :=
+@[simp] lemma odd.mul : odd m → odd n → odd (m * n) :=
 begin
   rintro ⟨m, rfl⟩ ⟨n, rfl⟩,
   refine ⟨2 * m * n + n + m, _⟩,
@@ -230,7 +227,7 @@ end
 
 lemma odd.pow (hm : odd m) : ∀ {a : ℕ}, odd (m ^ a)
 | 0       := by { rw pow_zero, exact odd_one }
-| (a + 1) := by { rw pow_succ, exact hm.mul_odd odd.pow }
+| (a + 1) := by { rw pow_succ, exact hm.mul odd.pow }
 
 end with_odd
 end semiring

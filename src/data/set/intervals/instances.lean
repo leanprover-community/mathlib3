@@ -18,7 +18,7 @@ variables {α : Type*} [ordered_semiring α]
 
 open set
 
-/-- Instances for `(Icc 0 1)` -/
+/-! ### Instances for `(Icc 0 1)` -/
 
 instance : has_zero (Icc (0:α) 1) := { zero := ⟨0, left_mem_Icc.2 zero_le_one⟩ }
 
@@ -41,7 +41,7 @@ by { apply function.injective.monoid _ subtype.coe_injective; { intros, refl } }
 instance {α : Type*} [ordered_comm_semiring α] : comm_monoid_with_zero (Icc (0:α) 1) :=
 by { apply function.injective.comm_monoid_with_zero _ subtype.coe_injective; { intros, refl } }
 
-/-- Instances for `(Ico 0 1)` -/
+/-! ### Instances for `(Ico 0 1)` -/
 
 instance : semigroup (Ico (0:α) 1) :=
 { mul := λ p q, ⟨p*q, ⟨mul_nonneg p.2.1 q.2.1,
@@ -53,7 +53,7 @@ by { apply function.injective.comm_semigroup _ subtype.coe_injective, { intros, 
 
 @[simp, norm_cast] lemma coe_Ico_mul (x y : Ico (0:α) 1) : ↑(x * y) = (x * y : α) := rfl
 
-/-- Instances for `(Ioc 0 1)` -/
+/-! ### Instances for `(Ioc 0 1)` -/
 
 instance [nontrivial α] : has_one (Ioc (0:α) 1) := { one := ⟨1, ⟨zero_lt_one, le_refl 1⟩⟩ }
 
@@ -74,7 +74,7 @@ instance {α : Type*} [ordered_comm_semiring α] [nontrivial α] : comm_monoid (
 { mul_comm := λ p q, (by {ext1, exact mul_comm p.1 q.1}),
   ..(show monoid (Ioc (0:α) 1), by apply_instance) }
 
-/-- Instances for `(Ioo 0 1)` -/
+/-! ### Instances for `(Ioo 0 1)` -/
 
 instance : semigroup (Ioo (0:α) 1) :=
 { mul := λ p q, ⟨p.1 * q.1, ⟨mul_pos p.2.1 q.2.1,

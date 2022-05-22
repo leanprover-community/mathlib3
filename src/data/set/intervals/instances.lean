@@ -67,6 +67,9 @@ instance Ioc_pow : has_pow (Ioc (0:α) 1) ℕ :=
 @[simp, norm_cast] lemma coe_Ioc_mul (x y : Ioc (0:α) 1) : ↑(x * y) = (x * y : α) := rfl
 @[simp, norm_cast] lemma coe_Ioc_pow (x : Ioc (0:α) 1) (n : ℕ) : ↑(x ^ n) = (x ^ n : α) := rfl
 
+instance : semigroup (Ioc (0:α) 1) :=
+by { apply function.injective.semigroup _ subtype.coe_injective; { intros, refl } }
+
 instance [nontrivial α] : monoid (Ioc (0:α) 1) :=
 by { apply function.injective.monoid _ subtype.coe_injective; { intros, refl } }
 

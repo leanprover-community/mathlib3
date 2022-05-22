@@ -36,8 +36,8 @@ We also define notions where the convergence is locally uniform, called
 `tendsto_locally_uniformly_on F f p s` and `tendsto_locally_uniformly F f p`. The previous theorems
 all have corresponding versions under locally uniform convergence.
 
-Finally, we introduce the notion of a uniform Cauchy sequence, which is to uniform convergence what a
-Cauchy sequence is to the usual notion of convergence.
+Finally, we introduce the notion of a uniform Cauchy sequence, which is to uniform
+convergence what a Cauchy sequence is to the usual notion of convergence.
 
 ## Implementation notes
 

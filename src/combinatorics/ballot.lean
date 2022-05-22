@@ -192,8 +192,6 @@ begin
         exacts [or.inr hx, ht₂ x hx] } } }
 end
 
--- #exit
-
 lemma counted_sequence_finite : ∀ (p q : ℕ), (counted_sequence p q).finite
 | 0 q := by simp
 | (p + 1) 0 := by simp

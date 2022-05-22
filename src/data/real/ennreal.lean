@@ -576,6 +576,35 @@ begin
   exact ⟨n, coe_lt_coe_nat.2 hn⟩,
 end
 
+@[simp] lemma Union_Iio_coe_nat : (⋃ n : ℕ, Iio (n : ℝ≥0∞)) = {∞}ᶜ :=
+begin
+  ext x,
+  rw [mem_Union],
+  exact ⟨λ ⟨n, hn⟩, ne_top_of_lt hn, ennreal.exists_nat_gt⟩
+end
+
+@[simp] lemma Union_Iic_coe_nat : (⋃ n : ℕ, Iic (n : ℝ≥0∞)) = {∞}ᶜ :=
+subset.antisymm (Union_subset $ λ n x hx, ne_top_of_le_ne_top coe_nat_ne_top hx) $
+  Union_Iio_coe_nat ▸ Union_mono (λ n, Iio_subset_Iic_self)
+
+@[simp] lemma Union_Ioc_coe_nat : (⋃ n : ℕ, Ioc a n) = Ioi a \ {∞} :=
+by simp only [← Ioi_inter_Iic, ← inter_Union, Union_Iic_coe_nat, diff_eq]
+
+@[simp] lemma Union_Ioo_coe_nat : (⋃ n : ℕ, Ioo a n) = Ioi a \ {∞} :=
+by simp only [← Ioi_inter_Iio, ← inter_Union, Union_Iio_coe_nat, diff_eq]
+
+@[simp] lemma Union_Icc_coe_nat : (⋃ n : ℕ, Icc a n) = Ici a \ {∞} :=
+by simp only [← Ici_inter_Iic, ← inter_Union, Union_Iic_coe_nat, diff_eq]
+
+@[simp] lemma Union_Ico_coe_nat : (⋃ n : ℕ, Ico a n) = Ici a \ {∞} :=
+by simp only [← Ici_inter_Iio, ← inter_Union, Union_Iio_coe_nat, diff_eq]
+
+@[simp] lemma Inter_Ici_coe_nat : (⋂ n : ℕ, Ici (n : ℝ≥0∞)) = {∞} :=
+by simp only [← compl_Iio, ← compl_Union, Union_Iio_coe_nat, compl_compl]
+
+@[simp] lemma Inter_Ioi_coe_nat : (⋂ n : ℕ, Ioi (n : ℝ≥0∞)) = {∞} :=
+by simp only [← compl_Iic, ← compl_Union, Union_Iic_coe_nat, compl_compl]
+
 lemma add_lt_add (ac : a < c) (bd : b < d) : a + b < c + d :=
 begin
   lift a to ℝ≥0 using ne_top_of_lt ac,
@@ -975,7 +1004,7 @@ protected lemma inv_pow {n : ℕ} : (a^n)⁻¹ = (a⁻¹)^n :=
 begin
   by_cases a = 0; cases a; cases n; simp [*, none_eq_top, some_eq_coe,
     zero_pow, top_pow, nat.zero_lt_succ] at *,
-  rw [← coe_inv h, ← coe_pow, ← coe_inv (pow_ne_zero _ h), ← inv_pow₀, coe_pow]
+  rw [← coe_inv h, ← coe_pow, ← coe_inv (pow_ne_zero _ h), ← inv_pow, coe_pow]
 end
 
 instance : has_involutive_inv ℝ≥0∞ :=

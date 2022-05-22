@@ -1684,10 +1684,8 @@ lemma count_injective_image [measurable_singleton_class β]
   count (f '' s) = count s :=
 begin
   by_cases hs : s.finite,
-  { rw [count_apply_finite _ hs, ← finset.card_image_eq_iff_inj_on.2 (hf.inj_on _),
-      count_apply_finite _ ((finite_image_iff $ hf.inj_on _).2 hs)],
-    congr,
-    ext, simp },
+  { lift s to finset β using hs,
+    rw [← finset.coe_image, count_apply_finset, count_apply_finset, s.card_image_of_injective hf] },
   rw count_apply_infinite hs,
   rw ← (finite_image_iff $ hf.inj_on _) at hs,
   rw count_apply_infinite hs,

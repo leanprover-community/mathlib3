@@ -501,10 +501,7 @@ hl.sublist.subset
 
 lemma mem_of_mem_suffix (hx : a ∈ l₁) (hl : l₁ <:+ l₂) :
   a ∈ l₂ :=
-begin
-  rcases hl with ⟨l₂, rfl⟩,
-  exact list.mem_append_right l₂ hx,
-end
+hl.subset hx
 
 end suffix
 

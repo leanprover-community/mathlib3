@@ -1612,6 +1612,15 @@ lemma measurable.ennreal_of_real {f : α → ℝ} (hf : measurable f) :
   measurable (λ x, ennreal.of_real (f x)) :=
 ennreal.continuous_of_real.measurable.comp hf
 
+@[simp, norm_cast]
+lemma measurable_coe_nnreal_real_iff {f : α → ℝ≥0} : measurable (λ x, f x : α → ℝ) ↔ measurable f :=
+⟨λ h, by simpa only [real.to_nnreal_coe] using h.real_to_nnreal, measurable.coe_nnreal_real⟩
+
+@[simp, norm_cast]
+lemma ae_measurable_coe_nnreal_real_iff {f : α → ℝ≥0} {μ : measure α} :
+  ae_measurable (λ x, f x : α → ℝ) μ ↔ ae_measurable f μ :=
+⟨λ h, by simpa only [real.to_nnreal_coe] using h.real_to_nnreal, ae_measurable.coe_nnreal_real⟩
+
 /-- The set of finite `ℝ≥0∞` numbers is `measurable_equiv` to `ℝ≥0`. -/
 def measurable_equiv.ennreal_equiv_nnreal : {r : ℝ≥0∞ | r ≠ ∞} ≃ᵐ ℝ≥0 :=
 ennreal.ne_top_homeomorph_nnreal.to_measurable_equiv
@@ -1689,8 +1698,12 @@ lemma ae_measurable.ennreal_to_nnreal {f : α → ℝ≥0∞} {μ : measure α} 
   ae_measurable (λ x, (f x).to_nnreal) μ :=
 ennreal.measurable_to_nnreal.comp_ae_measurable hf
 
-lemma measurable_coe_nnreal_ennreal_iff {f : α → ℝ≥0} :
+@[simp, norm_cast] lemma measurable_coe_nnreal_ennreal_iff {f : α → ℝ≥0} :
   measurable (λ x, (f x : ℝ≥0∞)) ↔ measurable f :=
+⟨λ h, h.ennreal_to_nnreal, λ h, h.coe_nnreal_ennreal⟩
+
+@[simp, norm_cast] lemma ae_measurable_coe_nnreal_ennreal_iff {f : α → ℝ≥0} {μ : measure α} :
+  ae_measurable (λ x, (f x : ℝ≥0∞)) μ ↔ ae_measurable f μ :=
 ⟨λ h, h.ennreal_to_nnreal, λ h, h.coe_nnreal_ennreal⟩
 
 @[measurability]

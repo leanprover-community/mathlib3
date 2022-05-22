@@ -70,7 +70,7 @@ fst_apply, prod.smul_mk, zero_apply, smul_zero]}
   dual_tensor_hom R (M × N) (P × Q) ((g ∘ₗ snd R M N) ⊗ₜ inr R P Q q) :=
 by {ext; simp only [coe_comp, coe_inr, function.comp_app, prod_map_apply, dual_tensor_hom_apply,
   snd_apply, prod.smul_mk, zero_apply, smul_zero]}
-  
+
 lemma map_dual_tensor_hom (f : module.dual R M) (p : P) (g : module.dual R N) (q : Q) :
   tensor_product.map (dual_tensor_hom R M P (f ⊗ₜ[R] p)) (dual_tensor_hom R N Q (g ⊗ₜ[R] q)) =
   dual_tensor_hom R (M ⊗[R] N) (P ⊗[R] Q) (dual_distrib R M N (f ⊗ₜ g) ⊗ₜ[R] (p ⊗ₜ[R] q)) :=

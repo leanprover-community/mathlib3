@@ -86,8 +86,7 @@ instance {α : Type*} [ordered_comm_semiring α] : comm_semigroup (Ioc (0:α) 1)
 subtype.coe_injective.comm_semigroup _ coe_Ioc_mul
 
 instance {α : Type*} [ordered_comm_semiring α] [nontrivial α] : comm_monoid (Ioc (0:α) 1) :=
-{ mul_comm := λ p q, (by {ext1, exact mul_comm p.1 q.1}),
-  ..(show monoid (Ioc (0:α) 1), by apply_instance) }
+subtype.coe_injective.comm_monoid _ coe_Ioc_one coe_Ioc_mul coe_Ioc_pow
 
 /-! ### Instances for `(Ioo 0 1)` -/
 

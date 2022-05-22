@@ -25,7 +25,7 @@ set consists of all previous ordinals.
 
 local infix ` ≈ ` := pgame.equiv
 local infix ` ⧏ `:50 := pgame.lf
-local infix ` ♯ `:60 := ordinal.nadd
+local infix ` ♯ `:65 := ordinal.nadd
 
 universe u
 

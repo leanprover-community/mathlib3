@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import linear_algebra.basic
-import linear_algebra.matrix.to_lin
 import algebra.algebra.basic
 import algebra.big_operators.order
 import algebra.big_operators.ring
@@ -119,7 +118,7 @@ by { ext, refl, }
   f (update m i (x + y)) = f (update m i x) + f (update m i y) :=
 f.map_add' m i x y
 
-@[simp] lemma map_smul (m : Πi, M₁ i) (i : ι) (c : R) (x : M₁ i) :
+@[simp] protected lemma map_smul (m : Πi, M₁ i) (i : ι) (c : R) (x : M₁ i) :
   f (update m i (c • x)) = c • f (update m i x) :=
 f.map_smul' m i c x
 
@@ -871,7 +870,7 @@ instance : has_sub (multilinear_map R M₁ M₂) :=
 ⟨λ f g,
   ⟨λ m, f m - g m,
    λ m i x y, by { simp only [multilinear_map.map_add, sub_eq_add_neg, neg_add], cc },
-   λ m i c x, by { simp only [map_smul, smul_sub] }⟩⟩
+   λ m i c x, by { simp only [multilinear_map.map_smul, smul_sub] }⟩⟩
 
 @[simp] lemma sub_apply (m : Πi, M₁ i) : (f - g) m = f m - g m := rfl
 
@@ -978,7 +977,7 @@ def linear_map.uncurry_left
       revert x,
       rw ← succ_pred i h,
       assume x,
-      rw [tail_update_succ, tail_update_succ, map_smul] }
+      rw [tail_update_succ, tail_update_succ, multilinear_map.map_smul] }
   end }
 
 @[simp] lemma linear_map.uncurry_left_apply
@@ -1066,12 +1065,12 @@ def multilinear_map.uncurry_right
       revert x,
       rw [(cast_succ_cast_lt i h).symm],
       assume x,
-      rw [init_update_cast_succ, init_update_cast_succ, map_smul, linear_map.smul_apply] },
+      rw [init_update_cast_succ, init_update_cast_succ, multilinear_map.map_smul,
+          linear_map.smul_apply] },
     { revert x,
       rw eq_last_of_not_lt h,
       assume x,
-      rw [update_same, update_same, init_update_last, init_update_last,
-          linear_map.map_smul] }
+      rw [update_same, update_same, init_update_last, init_update_last, map_smul] }
   end }
 
 @[simp] lemma multilinear_map.uncurry_right_apply
@@ -1166,8 +1165,8 @@ def uncurry_sum (f : multilinear_map R (λ x : ι, M') (multilinear_map R (λ x 
     simp only [multilinear_map.map_add, add_apply, sum.update_inl_comp_inl, sum.update_inl_comp_inr,
       sum.update_inr_comp_inl, sum.update_inr_comp_inr],
   map_smul' := λ u i c x, by cases i;
-    simp only [map_smul, smul_apply, sum.update_inl_comp_inl, sum.update_inl_comp_inr,
-      sum.update_inr_comp_inl, sum.update_inr_comp_inr] }
+    simp only [multilinear_map.map_smul, smul_apply, sum.update_inl_comp_inl,
+      sum.update_inl_comp_inr, sum.update_inr_comp_inl, sum.update_inr_comp_inr] }
 
 @[simp] lemma uncurry_sum_aux_apply
   (f : multilinear_map R (λ x : ι, M') (multilinear_map R (λ x : ι', M') M₂)) (u : ι ⊕ ι' → M') :
@@ -1286,29 +1285,5 @@ def range [nonempty ι] (f : multilinear_map R M₁ M₂) : sub_mul_action R M�
 f.map (λ i, ⊤)
 
 end submodule
-
-section finite_dimensional
-
-variables [fintype ι] [field R] [add_comm_group M₂] [module R M₂] [finite_dimensional R M₂]
-variables [∀ i, add_comm_group (M₁ i)] [∀ i, module R (M₁ i)] [∀ i, finite_dimensional R (M₁ i)]
-
-instance : finite_dimensional R (multilinear_map R M₁ M₂) :=
-begin
-  suffices : ∀ n (N : fin n → Type*) [∀ i, add_comm_group (N i)],
-    by exactI ∀ [∀ i, module R (N i)], by exactI ∀ [∀ i, finite_dimensional R (N i)],
-    finite_dimensional R (multilinear_map R N M₂),
-  { haveI := this _ (M₁ ∘ (fintype.equiv_fin ι).symm),
-    have e := dom_dom_congr_linear_equiv' R M₁ M₂ (fintype.equiv_fin ι),
-    exact e.symm.finite_dimensional, },
-  intros,
-  induction n with n ih,
-  { exactI (const_linear_equiv_of_is_empty R N M₂ : _).finite_dimensional, },
-  { resetI,
-    suffices : finite_dimensional R (N 0 →ₗ[R] multilinear_map R (λ (i : fin n), N i.succ) M₂),
-    { exact (multilinear_curry_left_equiv R N M₂).finite_dimensional, },
-    apply linear_map.finite_dimensional, },
-end
-
-end finite_dimensional
 
 end multilinear_map

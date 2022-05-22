@@ -11,7 +11,7 @@ import algebra.group_power.order
 # Structure instances for unit intervals
 
 For suitably structured underlying type `α`, we exhibit the structure of
-the unit intervals from `0` to `1`.
+the unit intervals (`set.Icc`, `set.Ioc`, `set.Ioc`, and `set.Ioo`) from `0` to `1`.
 
 Note: Instances for the interval `Ici 0` are dealt with in `algebra/order/nonneg.lean`.
 

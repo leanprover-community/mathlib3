@@ -41,8 +41,7 @@ by { apply function.injective.monoid _ subtype.coe_injective; { intros, refl } }
 instance {α : Type*} [ordered_comm_semiring α] : comm_monoid_with_zero (Icc (0:α) 1) :=
 begin
   apply function.injective.comm_monoid_with_zero (λ (p:(Icc (0:α) 1)), p.1) subtype.coe_injective;
-  simp only [has_zero.zero, has_one.one, has_mul.mul, subtype.val_eq_coe, eq_self_iff_true,
-    forall_const, has_pow.pow, subtype.coe_mk],
+  { intros, refl },
 end
 
 /-- Instances for `(Ico 0 1)` -/

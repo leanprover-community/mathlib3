@@ -19,7 +19,6 @@ Note: Instances for the interval `Ici 0` are dealt with in `algebra/order/nonneg
 * structure instances for intervals -1 to 1
 * structure instances for `Ici 1`
 * structure instances for `(Ioo (-1) 1)ᶜ`
-* `group_with_zero (Icc 0 1)` for `linear_ordered_field α`
 * provide `has_distrib_neg` instances where applicable
 -/
 

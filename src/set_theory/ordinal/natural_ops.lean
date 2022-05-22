@@ -162,21 +162,9 @@ instance swap_add_covariant_class_le :
   { exact le_rfl }
 end⟩
 
-instance add_contravariant_class_lt :
-  contravariant_class nat_ordinal.{u} nat_ordinal.{u} (+) (<) :=
-⟨λ a b c h, by { by_contra' h', exact h.not_le (add_le_add_left h' a) }⟩
-
-instance swap_add_contravariant_class_lt :
-  contravariant_class nat_ordinal.{u} nat_ordinal.{u} (swap (+)) (<) :=
-⟨λ a b c h, by { by_contra' h', exact h.not_le (add_le_add_right h' a) }⟩
-
 instance add_contravariant_class_le :
   contravariant_class nat_ordinal.{u} nat_ordinal.{u} (+) (≤) :=
 ⟨λ a b c h, by { by_contra' h', exact h.not_lt (add_lt_add_left h' a) }⟩
-
-instance swap_add_contravariant_class_le :
-  contravariant_class nat_ordinal.{u} nat_ordinal.{u} (swap (+)) (≤) :=
-⟨λ a b c h, by { by_contra' h', exact h.not_lt (add_lt_add_right h' a) }⟩
 
 theorem lt_add_iff {a b c : nat_ordinal} :
   a < b + c ↔ (∃ b' < b, a ≤ b' + c) ∨ ∃ c' < c, a ≤ b + c' :=

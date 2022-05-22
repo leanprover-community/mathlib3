@@ -46,7 +46,7 @@ open function
 noncomputable theory
 
 /-- A type synonym for ordinals with natural addition and multiplication. -/
-def nat_ordinal : Type* := ordinal
+def nat_ordinal : Type u := ordinal
 
 /-- The identity function between `ordinal` and `nat_ordinal`. -/
 @[pattern] def ordinal.to_nat_ordinal : ordinal ≃ nat_ordinal := equiv.refl _

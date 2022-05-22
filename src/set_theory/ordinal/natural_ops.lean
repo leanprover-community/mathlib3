@@ -243,19 +243,18 @@ instance : add_cancel_comm_monoid nat_ordinal :=
   add_left_cancel := λ a b c, add_left_cancel'',
   ..nat_ordinal.add_comm_semigroup }
 
-theorem add_one : ∀ a : nat_ordinal.{u}, a + 1 = to_nat_ordinal (succ (of_nat_ordinal a))
-| a := begin
+theorem add_one (a : nat_ordinal) : a + 1 = to_nat_ordinal (succ (of_nat_ordinal a)) :=
+begin
+  induction a using nat_ordinal.induction with a IH,
   rw add_def,
   simp only [blsub, of_nat_ordinal_one, blsub_one, to_nat_ordinal_zero, add_zero, max_eq_right_iff,
     to_nat_ordinal_le_iff, blsub_le_iff],
   intros i hi,
-  rw add_one (to_nat_ordinal i),
+  rw IH (to_nat_ordinal i) hi,
   exact succ_lt_succ.2 hi
 end
-using_well_founded { dec_tac := `[assumption] }
 
-theorem add_nat (a : nat_ordinal) (n : ℕ) :
-  a + n = to_nat_ordinal ((of_nat_ordinal a) + (n : ordinal)) :=
+theorem add_nat (a : nat_ordinal) (n : ℕ) : a + n = to_nat_ordinal (of_nat_ordinal a + n) :=
 begin
   induction n with n hn,
   { simp },

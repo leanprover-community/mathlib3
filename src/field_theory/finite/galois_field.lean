@@ -152,7 +152,6 @@ h ▸ finite_field.has_sub.sub.polynomial.is_splitting_field K (zmod p)
 
 instance {K K' : Type*} [field K] [field K'] [fintype K'] [algebra K K'] : is_galois K K' :=
 begin
-  haveI : fintype K := fintype.of_injective (algebra_map K K') (algebra_map K K').injective,
   obtain ⟨p, hp⟩ := char_p.exists K,
   haveI : char_p K p := hp,
   haveI : char_p K' p := char_p_of_injective_algebra_map (algebra_map K K').injective p,

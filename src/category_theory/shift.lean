@@ -94,6 +94,7 @@ structure shift_mk_core :=
     eq_to_hom (by { dsimp, rw add_zero }) . obviously)
 
 section
+local attribute [simp] eq_to_hom_map
 local attribute [reducible] endofunctor_monoidal_category discrete.add_monoidal
 
 /-- Constructs a `has_shift C A` instance from `shift_mk_core`. -/
@@ -208,6 +209,8 @@ lemma opaque_eq_to_iso_symm (h : i = j) :
 lemma opaque_eq_to_iso_inv (h : i = j) :
   (opaque_eq_to_iso h).inv = (opaque_eq_to_iso h.symm).hom := rfl
 
+local attribute [simp] eq_to_hom_map
+
 @[simp, reassoc]
 lemma map_opaque_eq_to_iso_comp_app (F : discrete ι ⥤ C ⥤ C) (h : i = j) (h' : j = k) (X : C) :
   (F.map (opaque_eq_to_iso h).hom).app X ≫ (F.map (opaque_eq_to_iso h').hom).app X =
@@ -284,6 +287,7 @@ lemma shift_equiv_triangle (n : A) (X : C) :
 (add_neg_equiv (shift_monoidal_functor C A) n).functor_unit_iso_comp X
 
 section
+local attribute [simp] eq_to_hom_map
 local attribute [reducible] discrete.add_monoidal
 
 lemma shift_shift_neg_hom_shift (n : A) (X : C) :

@@ -106,7 +106,7 @@ open category_theory.preadditive
 
 @[priority 100]
 instance preserves_finite_biproducts_of_additive [additive F] : preserves_finite_biproducts F :=
-{ preserves := λ J _ _,
+{ preserves := λ J _,
   { preserves := λ f,
     { preserves := λ b hb, by exactI is_bilimit_of_total _
       begin

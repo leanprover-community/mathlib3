@@ -1299,7 +1299,10 @@ tendsto_at_bot_of_monotone_of_filter h (tendsto_map' H)
 condition for comparison of the filter `at_top.map (λ s, ∏ b in s, f b)` with
 `at_top.map (λ s, ∏ b in s, g b)`. This is useful to compare the set of limit points of
 `Π b in s, f b` as `s → at_top` with the similar set for `g`. -/
-@[to_additive]
+@[to_additive "Let `f` and `g` be two maps to the same commutative additive monoid. This lemma gives
+a sufficient condition for comparison of the filter `at_top.map (λ s, ∑ b in s, f b)` with
+`at_top.map (λ s, ∑ b in s, g b)`. This is useful to compare the set of limit points of
+`∑ b in s, f b` as `s → at_top` with the similar set for `g`."]
 lemma map_at_top_finset_prod_le_of_prod_eq [comm_monoid α] {f : β → α} {g : γ → α}
   (h_eq : ∀u:finset γ, ∃v:finset β, ∀v', v ⊆ v' → ∃u', u ⊆ u' ∧ ∏ x in u', g x = ∏ b in v', f b) :
   at_top.map (λs:finset β, ∏ b in s, f b) ≤ at_top.map (λs:finset γ, ∏ x in s, g x) :=
@@ -1318,13 +1321,43 @@ protected lemma has_antitone_basis.tendsto [preorder ι] {l : filter α}
   (h : ∀ i : ι, φ i ∈ s i) : tendsto φ at_top l  :=
 λ t ht, mem_map.2 $ (hl.eventually_subset ht).mono $ λ i hi, hi (h i)
 
+lemma has_antitone_basis.comp_mono [semilattice_sup ι] [nonempty ι] [preorder ι'] {l : filter α}
+  {s : ι' → set α} (hs : l.has_antitone_basis s)
+  {φ : ι → ι'} (φ_mono : monotone φ) (hφ : tendsto φ at_top at_top) :
+  l.has_antitone_basis (s ∘ φ) :=
+⟨hs.to_has_basis.to_has_basis
+  (λ n hn, (hφ.eventually (eventually_ge_at_top n)).exists.imp $ λ m hm, ⟨trivial, hs.antitone hm⟩)
+  (λ n hn, ⟨φ n, trivial, subset.rfl⟩), hs.antitone.comp_monotone φ_mono⟩
+
+lemma has_antitone_basis.comp_strict_mono {l : filter α} {s : ℕ → set α}
+  (hs : l.has_antitone_basis s) {φ : ℕ → ℕ} (hφ : strict_mono φ) :
+  l.has_antitone_basis (s ∘ φ) :=
+hs.comp_mono hφ.monotone hφ.tendsto_at_top
+
+/-- Given an antitone basis `s : ℕ → set α` of a filter, extract an antitone subbasis `s ∘ φ`,
+`φ : ℕ → ℕ`, such that `m < n` implies `r (φ m) (φ n)`. This lemma can be used to extract an
+antitone basis with basis sets decreasing "sufficiently fast". -/
+lemma has_antitone_basis.subbasis_with_rel {f : filter α} {s : ℕ → set α}
+  (hs : f.has_antitone_basis s) {r : ℕ → ℕ → Prop} (hr : ∀ m, ∀ᶠ n in at_top, r m n) :
+  ∃ φ : ℕ → ℕ, strict_mono φ ∧ (∀ ⦃m n⦄, m < n → r (φ m) (φ n)) ∧ f.has_antitone_basis (s ∘ φ) :=
+begin
+  suffices : ∃ φ : ℕ → ℕ, strict_mono φ ∧ ∀ m n, m < n → r (φ m) (φ n),
+  { rcases this with ⟨φ, hφ, hrφ⟩,
+    exact ⟨φ, hφ, hrφ, hs.comp_strict_mono hφ⟩ },
+  have : ∀ t : set ℕ, t.finite → ∀ᶠ n in at_top, ∀ m ∈ t, m < n ∧ r m n,
+    from λ t ht, (eventually_all_finite ht).2 (λ m hm, (eventually_gt_at_top m).and (hr _)),
+  rcases seq_of_forall_finite_exists (λ t ht, (this t ht).exists) with ⟨φ, hφ⟩,
+  simp only [ball_image_iff, forall_and_distrib, mem_Iio] at hφ,
+  exact ⟨φ, forall_swap.2 hφ.1, forall_swap.2 hφ.2⟩
+end
+
 /-- If `f` is a nontrivial countably generated filter, then there exists a sequence that converges
 to `f`. -/
 lemma exists_seq_tendsto (f : filter α) [is_countably_generated f] [ne_bot f] :
   ∃ x : ℕ → α, tendsto x at_top f :=
 begin
   obtain ⟨B, h⟩ := f.exists_antitone_basis,
-  have := λ n, nonempty_of_mem (h.to_has_basis.mem_of_mem trivial : B n ∈ f), choose x hx,
+  choose x hx using λ n, filter.nonempty_of_mem (h.mem n),
   exact ⟨x, h.tendsto hx⟩
 end
 

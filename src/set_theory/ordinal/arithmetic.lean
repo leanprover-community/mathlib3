@@ -99,6 +99,7 @@ theorem add_succ (o₁ o₂ : ordinal) : o₁ + succ o₂ = succ (o₁ + o₂) :
 (add_assoc _ _ _).symm
 
 @[simp] theorem succ_zero : succ 0 = 1 := zero_add _
+@[simp] theorem succ_one : succ 1 = 2 := rfl
 
 theorem one_le_iff_pos {o : ordinal} : 1 ≤ o ↔ 0 < o :=
 by rw [← succ_zero, succ_le]

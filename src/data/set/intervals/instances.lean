@@ -80,6 +80,9 @@ by { apply function.injective.semigroup _ subtype.coe_injective; { intros, refl 
 instance [nontrivial α] : monoid (Ioc (0:α) 1) :=
 by { apply function.injective.monoid _ subtype.coe_injective; { intros, refl } }
 
+instance {α : Type*} [ordered_comm_semiring α] : comm_semigroup (Ioc (0:α) 1) :=
+by { apply function.injective.comm_semigroup _ subtype.coe_injective; { intros, refl } }
+
 instance {α : Type*} [ordered_comm_semiring α] [nontrivial α] : comm_monoid (Ioc (0:α) 1) :=
 { mul_comm := λ p q, (by {ext1, exact mul_comm p.1 q.1}),
   ..(show monoid (Ioc (0:α) 1), by apply_instance) }

@@ -306,7 +306,7 @@ def inv_rot_comp_rot_inv : 𝟭 (triangle C) ⟶ inv_rotate C ⋙ rotate C :=
     { dsimp, rw [comp_id, id_comp] },
     { dsimp, rw [comp_id, id_comp] },
     { dsimp,
-      rw [add_neg_equiv_counit_iso_inv, eq_to_hom_refl, id_comp],
+      rw [add_neg_equiv_counit_iso_inv, eq_to_hom_map, eq_to_hom_refl, id_comp],
       simp only [nat_trans.comp_app, assoc],
       erw [μ_inv_naturality, ε_naturality_assoc] },
   end }

@@ -29,6 +29,7 @@ variables (C : Type u) [category.{v} C] [monoidal_category C]
 /--
 A property of objects of a monoidal category `C` which is closed under `𝟙_` and `⊗`.
 -/
+@[nolint has_inhabited_instance]
 structure monoidal_predicate :=
   (P : C → Prop)
   (h_id : P (𝟙_ C))
@@ -40,7 +41,7 @@ variables {C} (p : monoidal_predicate C)
 `full_monoidal_subcategory p`, where `p : monoidal_predicate C`, is a typeclass synonym for the full
 subcategory `{X : C // p.P X}`, which provides a monoidal structure induced by that of `C`.
 -/
-@[derive category]
+@[nolint has_inhabited_instance, derive category]
 def full_monoidal_subcategory := {X : C // p.P X}
 
 /--

@@ -44,6 +44,9 @@ instance : has_coe_to_sort (Rep k G) (Type u) := concrete_category.has_coe_to_so
 instance (V : Rep k G) : add_comm_monoid V :=
 by { change add_comm_monoid ((forget₂ (Rep k G) (Module k)).obj V), apply_instance, }
 
+instance (V : Rep k G) : add_comm_group V :=
+by { change add_comm_group ((category_theory.forget₂ (Rep k G) (Module k)).obj V), apply_instance }
+
 instance (V : Rep k G) : module k V :=
 by { change module k ((forget₂ (Rep k G) (Module k)).obj V), apply_instance, }
 

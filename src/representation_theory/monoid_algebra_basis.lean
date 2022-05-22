@@ -6,14 +6,16 @@ Authors: Amelia Livingston
 
 import representation_theory.Rep
 import representation_theory.basic
+import representation_theory.tensor_product_of_free
 
 /-!
-# The `k[G]`-module `k[Gⁿ⁺¹]` is free
+# The structure of the `k[G]`-module `k[Gⁿ]`
 
-This file proves `k[Gⁿ⁺¹]` is a free `k[G]`-module, where `k` is a commutative ring, `G` is a
-group, and the module structure is induced by the diagonal action of `G` on `Gⁿ⁺¹.` We do this by
-defining a `k[G]`-linear isomorphism with the free `k[G]`-module on the set of orbits of the
-diagonal action of `G` on `Gⁿ⁺¹`.
+This file contains API for the `k[G]`-module `k[Gⁿ]`, where `k` is a commutative ring, `G` is a
+group, and the module structure is induced by the diagonal action of `G` on `Gⁿ.`
+
+In particular, we define `k[G]`-linear maps between `k[Gⁿ⁺¹]` and `k[G] ⊗ₖ k[Gⁿ]` which we will later show define
+an isomorphism. From this we can deduce that `k[Gⁿ⁺¹]` is free over `k[G]`.
 
 The freeness of these modules means we can use them to build a projective resolution of the
 (trivial) `k[G]`-module `k`, which is useful in group cohomology.
@@ -22,9 +24,8 @@ The freeness of these modules means we can use them to build a projective resolu
 
   * mul_action_to_ρ
   * mul_action_to_Rep
-  * to_basis
-  * of_basis
-  * basis (CHANGE WHEN I'VE CHANGED THESE NAMES....)
+  * to_tensor
+  * of_tensor
 
 ## Implementation notes
 
@@ -40,205 +41,274 @@ noncomputable theory
 universes v u
 variables {k G : Type u} [comm_ring k]
 
-open monoid_algebra (lift) (of)
-
+open monoid_algebra
 namespace Rep
-section
 
+section
 variables [monoid G]
 
---will move to representation_theory.Rep
+/- Not sure where to put the next several things; either `representation_theory.Rep` or
+`representation_theory.basic`, neither of which import the other. -/
+
 /-- A term of type `Rep k G` has the natural structure of a `k[G]`-module, with an element
 `g : G` acting by `g • x = (ρ g) x` -/
 instance module' (V : Rep k G) : module (monoid_algebra k G) V :=
 representation.as_module V.ρ
 
-lemma smul_def {V : Type u} [add_comm_group V] [module k V] {ρ : representation k G V}
-  (g : monoid_algebra k G) (x : Rep.of ρ) :
-   g • x = lift k G _ ρ g x := rfl
+variables {V : Type u} [add_comm_group V] [module k V] {ρ : representation k G V}
 
-instance Rep.smul_comm_class {V : Type u} [add_comm_group V] [module k V]
-  (ρ : representation k G V) :
-  smul_comm_class (monoid_algebra k G) k (Rep.of ρ) :=
-@has_scalar.comp.smul_comm_class _ (monoid_algebra k G) (Rep.of ρ) k _ _ _ _
+lemma smul_def (g : monoid_algebra k G) (x : Rep.of ρ) : g • x = lift k G _ ρ g x := rfl
 
-instance Rep.is_scalar_tower {V : Type u} [add_comm_group V] [module k V]
-  (ρ : representation k G V) :
-  is_scalar_tower k (monoid_algebra k G) (Rep.of ρ) :=
-{ smul_assoc := λ x y z, by
-    simp only [Rep.smul_def, alg_hom.map_smul, linear_map.smul_apply] }
+@[simp] lemma single_smul (g : G) (r : k) (x : Rep.of ρ) :
+  ((•) : monoid_algebra k G → Rep.of ρ → Rep.of ρ)
+    (finsupp.single g r : monoid_algebra k G) x = r • ρ g x :=
+by rw [smul_def, lift_single]; refl
 
-variables (k G) (n : ℕ)
+instance : smul_comm_class (monoid_algebra k G) k (Rep.of ρ) :=
+has_scalar.comp.smul_comm_class _
+
+instance : is_scalar_tower k (monoid_algebra k G) (Rep.of ρ) :=
+{ smul_assoc := λ x y z, by simp only [smul_def, alg_hom.map_smul, linear_map.smul_apply] }
+
+variables (k G) (H : Type u) [mul_action G H]
 
 /-- A `G`-action on `H` induces a representation `G →* End(k[H])` in the natural way. -/
-@[simps] def mul_action_to_ρ (H : Type*) [mul_action G H] :
-  representation k G (monoid_algebra k H) :=
+@[simps] def mul_action_to_ρ : representation k G (monoid_algebra k H) :=
 { to_fun := λ g, finsupp.lmap_domain k k ((•) g),
   map_one' := by { ext x y, dsimp, simp },
   map_mul' := λ x y, by { ext z w, simp [mul_smul] }}
 
 /-- Given a `G`-action on `H`, this is `k[H]` bundled with the natural representation
 `G →* End(k[H])` as a term of type `Rep k G.` -/
-abbreviation mul_action_to_Rep (H : Type u) [mul_action G H] :
-  Rep k G := Rep.of (mul_action_to_ρ k G H)
+abbreviation mul_action_to_Rep : Rep k G := Rep.of (mul_action_to_ρ k G H)
 
-variables {k G}
+variables {k G H}
 
-lemma single_smul_single {H : Type u} [mul_action G H]
-  (g : G) (x : H) (r s : k) :
+@[simp] lemma single_smul_single (g : G) (x : H) (r s : k) :
   ((•) : monoid_algebra k G → mul_action_to_Rep k G H → mul_action_to_Rep k G H)
-  (finsupp.single g r) (finsupp.single x s) =
-  finsupp.single (g • x) (r * s) :=
-begin
-  rw [Rep.smul_def, monoid_algebra.lift_single],
-  dsimp,
-  rw [finsupp.map_domain_single, finsupp.smul_single'],
-end
+  (finsupp.single g r) (finsupp.single x s) = finsupp.single (g • x) (r * s) :=
+by simp
 
-lemma of_smul_of {H : Type u} [mul_one_class H] [mul_action G H] (g : G) (x : H) :
+lemma of_smul_of [mul_one_class H] (g : G) (x : H) :
   (monoid_algebra.of k G g • monoid_algebra.of k H x : mul_action_to_Rep k G H)
-    = monoid_algebra.of k H (g • x) :=
-by simp only [monoid_algebra.of_apply, single_smul_single, one_mul]
+    = monoid_algebra.of k H (g • x) := by simp
 
 -- terrible name....
-lemma map_smul_of_map_smul_of {H : Type u} [monoid H]
-  (ρ : representation k G (monoid_algebra k H))
-  {P : Type u} [add_comm_monoid P] [module k P]
-  [module (monoid_algebra k G) P] [is_scalar_tower k (monoid_algebra k G) P]
-  (f : Rep.of ρ →ₗ[k] P)
+lemma map_smul_of_map_smul_of [monoid H] (ρ : representation k G (monoid_algebra k H))
+  {P : Type u} [add_comm_monoid P] [module k P] [module (monoid_algebra k G) P]
+  [is_scalar_tower k (monoid_algebra k G) P] (f : Rep.of ρ →ₗ[k] P)
   (h : ∀ (g : G) (x : H), f (monoid_algebra.of k G g • (monoid_algebra.of k H x))
     = monoid_algebra.of k G g • f (monoid_algebra.of k H x))
   (g : monoid_algebra k G) (x : Rep.of ρ) : f (g • x) = g • f x :=
+(equivariant_of_linear_of_comm f (by
+ { intros a b,
+   exact b.induction_on (by exact h a) (by intros; simp only [smul_add, map_add, *])
+   (λ r s hs, by rw [smul_comm (_ : monoid_algebra k G), f.map_smul, hs,
+      smul_comm _ (_ : monoid_algebra k G), f.map_smul]; { apply_instance })})).map_smul _ _
+
+variables {n : ℕ}
+
+-- No idea what to call these or where to put them; would move them, but then they can't be private.
+/-- Sends `(g₁, ..., gₙ) ↦ (1, g₁, g₁g₂, ..., g₁...gₙ)` -/
+private def to_prod (f : fin n → G) (i : fin (n + 1)) : G :=
+((list.of_fn f).take i).prod
+
+@[simp] private lemma to_prod_zero (f : fin n → G) :
+  to_prod f 0 = 1 :=
+by simp [to_prod]
+
+private lemma to_prod_succ (f : fin n → G) (j : fin n) :
+  to_prod f j.succ = to_prod f j.cast_succ * (f j) :=
+by simp [to_prod, list.take_succ, list.of_fn_nth_val, dif_pos j.is_lt, ←option.coe_def]
+
+private lemma to_prod_succ' (f : fin (n + 1) → G) (j : fin (n + 1)) :
+  to_prod f j.succ = f 0 * to_prod (fin.tail f) j :=
+by simpa [to_prod]
+
+end
+
+variables [group G] (n : ℕ) (k G)
+open_locale tensor_product
+
+/-- The `k`-linear map from `k[Gⁿ⁺¹]` to `k[G] ⊗ₖ k[Gⁿ]` sending `(g₀, ..., gₙ)`
+to `g₀ ⊗ (g₀⁻¹g₁, g₁⁻¹g₂, ..., gₙ₋₁⁻¹gₙ)` -/
+def to_tensor_aux : mul_action_to_Rep k G (fin (n + 1) → G) →ₗ[k] monoid_algebra k G
+  ⊗[k] mul_action_to_Rep k G (fin n → G) :=
+finsupp.lift (monoid_algebra k G ⊗[k] mul_action_to_Rep k G (fin n → G)) k (fin (n + 1) → G)
+  (λ x, finsupp.single (x 0) 1 ⊗ₜ[k] finsupp.single (λ i, (x i)⁻¹ * x i.succ) 1)
+
+variables {k G n}
+
+private lemma to_tensor_aux_single (f : fin (n + 1) → G) (m : k) :
+  to_tensor_aux k G n (finsupp.single f m) =
+    finsupp.single (f 0) m ⊗ₜ finsupp.single (λ i, (f i)⁻¹ * f i.succ) 1 :=
 begin
-  refine (monoid_algebra.equivariant_of_linear_of_comm f _).map_smul _ _,
-  intros a b,
-  refine b.induction_on (by exact h a) _ _,
-  { intros s t hs ht,
-    simp only [smul_add, f.map_add, hs, ht] },
-  { intros r s hs,
-    rw [smul_comm (_ : monoid_algebra k G), f.map_smul, hs,
-      smul_comm _ (_ : monoid_algebra k G), f.map_smul];
-    { apply_instance }}
+  erw [finsupp.lift_apply, finsupp.sum_single_index, tensor_product.smul_tmul'],
+  { simp },
+  { simp },
 end
-
-variables (k G)
-
--- not sure where to put this, or how much to generalise it
-/-- The hom `Gⁿ →* Gⁿ⁺¹` sending `(g₁, ..., gₙ) ↦ (1, g₁, ..., gₙ)` -/
-def cons_one_mul_hom : (fin n → G) →* (fin (n + 1) → G) :=
-{ to_fun := @fin.cons n (λ i, G) 1,
-  map_one' := funext $ λ x, fin.induction_on x rfl
-    (λ i ih, fin.cons_succ _ _ _),
-  map_mul' := λ x y, funext $ λ i, fin.induction_on i (one_mul _).symm
-    (λ x hx, by simp only [fin.cons_succ, pi.mul_apply]) }
-
-/-- The `k`-algebra hom sending `k[Gⁿ] → k[Gⁿ⁺¹]` sending `(g₁, ..., gₙ) ↦ (1, g₁, ..., gₙ)` -/
-def cons_one : monoid_algebra k (fin n → G) →ₐ[k] monoid_algebra k (fin (n + 1) → G) :=
-monoid_algebra.map_domain_alg_hom k k (cons_one_mul_hom G n)
-
-variables {k G n}
-
-lemma cons_one_of (g : fin n → G) :
-  cons_one k G n (monoid_algebra.of k _ g) = monoid_algebra.of k
-    (fin (n + 1) → G) (fin.cons 1 g) :=
-finsupp.map_domain_single
-
-end
-
-variables (k G) [group G] (n : ℕ)
-
-/-- The quotient of `Gⁿ⁺¹` by the diagonal action of `G` -/
-abbreviation orbit_quot := quotient (mul_action.orbit_rel G (fin (n + 1) → G))
-
-instance : is_scalar_tower k (monoid_algebra k G) (orbit_quot G n →₀ monoid_algebra k G) :=
-finsupp.is_scalar_tower _ _
-
--- not sure how to name; should probably be in the monoid_algebra namespace instead
-/-- The map sending `g = (g₀, ..., gₙ) : k[Gⁿ⁺¹]` to `g₀ • ⟦g⟧`, as an element of the free
-`k[G]`-module on the set `Gⁿ⁺¹` modulo the diagonal action of `G`. -/
-def to_basis_aux : monoid_algebra k (fin (n + 1) → G) →ₗ[k]
-  (orbit_quot G n →₀ monoid_algebra k G) :=
-(@finsupp.lmap_domain (fin (n + 1) → G) (monoid_algebra k G) k
- _ _ _ (orbit_quot G n) quotient.mk').comp
-(finsupp.lift (monoid_algebra (monoid_algebra k G) (fin (n + 1) → G))
-  k (fin (n + 1) → G) $ λ g, finsupp.single g (finsupp.single (g 0) 1))
-
-variables {k G n}
-
-lemma to_basis_single (g : fin (n + 1) → G) (r : k) :
-  to_basis_aux k G n (finsupp.single g r)
-    = finsupp.single (quotient.mk' g : orbit_quot G n) (finsupp.single (g 0) r) :=
-by simp [to_basis_aux]
 
 variables (k G n)
 
-/-- The `k[G]`-linear map on `k[Gⁿ⁺¹]` sending `g` to `g₀ • ⟦g⟧` as an element of the free
-`k[G]`-module on the set `Gⁿ⁺¹` modulo the diagonal action of `G`. -/
-def to_basis : mul_action_to_Rep k G (fin (n + 1) → G) →ₗ[monoid_algebra k G]
-  (orbit_quot G n →₀ monoid_algebra k G) :=
-monoid_algebra.equivariant_of_linear_of_comm (to_basis_aux k G n) $ λ h y,
-begin
-  refine map_smul_of_map_smul_of _ _ (λ g x, _) _ _,
-  rw of_smul_of,
-  simp [to_basis_single, @quotient.sound' _ (mul_action.orbit_rel G (fin (n + 1) → G))
-     _ _ (set.mem_range_self g)],
-end
+/-- The `k[G]`-linear map from `k[Gⁿ⁺¹]` to `k[G] ⊗ₖ k[Gⁿ]` sending `(g₀, ..., gₙ)`
+to `g₀ ⊗ (g₀⁻¹g₁, g₁⁻¹g₂, ..., gₙ₋₁⁻¹gₙ)` -/
+def to_tensor : mul_action_to_Rep k G (fin (n + 1) → G) →ₗ[monoid_algebra k G] monoid_algebra k G
+  ⊗[k] mul_action_to_Rep k G (fin n → G) :=
+equivariant_of_linear_of_comm (to_tensor_aux k G n) $ λ g x, map_smul_of_map_smul_of _ _
+  (λ h x, by simp [of_smul_of, single_smul_single, to_tensor_aux_single,
+    tensor_product.smul_tmul', mul_assoc]) _ _
 
-/-- Inverse of `to_basis` from the free `k[G]`-module on `Gⁿ⁺¹/G` to `k[Gⁿ⁺¹]`,
-sending `⟦g⟧ ∈ Gⁿ⁺¹/G` to `g₀⁻¹ • g ∈ k[Gⁿ⁺¹]` -/
-def of_basis : (orbit_quot G n →₀ monoid_algebra k G)
+variables {k G n}
+
+@[simp] lemma to_tensor_single (f : fin (n + 1) → G) (m : k) :
+  to_tensor k G n (finsupp.single f m) =
+    finsupp.single (f 0) m ⊗ₜ finsupp.single (λ i, (f i)⁻¹ * f i.succ) 1 :=
+to_tensor_aux_single _ _
+
+variables (k G n)
+
+/-- The `k`-linear map from `k[G] ⊗ₖ k[Gⁿ]` to `k[Gⁿ⁺¹]` sending `g ⊗ (g₁, ..., gₙ)` to
+`(g, gg₁, gg₁g₂, ..., gg₁...gₙ)` -/
+def of_tensor_aux : monoid_algebra k G ⊗[k] mul_action_to_Rep k G (fin n → G)
+    →ₗ[k] mul_action_to_Rep k G (fin (n + 1) → G) :=
+tensor_product.lift (finsupp.lift _ _ _ $ λ g, finsupp.lift _ _ _
+  (λ f, monoid_algebra.of _ (fin (n + 1) → G) (g • to_prod f)))
+
+variables {k G n}
+
+private lemma of_tensor_aux_single (g : G) (m : k) (x : mul_action_to_Rep k G (fin n → G)) :
+  of_tensor_aux k G n ((finsupp.single g m) ⊗ₜ x) = finsupp.lift (mul_action_to_Rep k G
+    (fin (n + 1) → G)) k (fin n → G) (λ f, finsupp.single (g • to_prod f) m) x :=
+by simp [of_tensor_aux, finsupp.sum_single_index, finsupp.smul_sum, mul_comm m]
+
+variables (k G n)
+
+/-- The `k[G]`-linear map from `k[G] ⊗ₖ k[Gⁿ]` to `k[Gⁿ⁺¹]` sending `g ⊗ (g₁, ..., gₙ)` to
+`(g, gg₁, gg₁g₂, ..., gg₁...gₙ)` -/
+def of_tensor : monoid_algebra k G ⊗[k] mul_action_to_Rep k G (fin n → G)
   →ₗ[monoid_algebra k G] mul_action_to_Rep k G (fin (n + 1) → G) :=
-finsupp.lift (mul_action_to_Rep k G (fin (n + 1) → G)) (monoid_algebra k G) (orbit_quot G n)
-  (λ y, quotient.lift_on' y (λ x, monoid_algebra.of _ _ ((x 0)⁻¹ • x)) $
-  begin
-    rintros a b ⟨c, rfl⟩,
-    dsimp,
-    congr' 1,
-    ext i,
-    simp [mul_assoc]
-  end)
+monoid_algebra.equivariant_of_linear_of_comm (of_tensor_aux k G n) $ λ g x,
+begin
+  refine tensor_product.induction_on x (by simp) (λ x y, _) (λ y z hz hy, by simp only
+    [smul_add, linear_map.map_add, hy, hz]),
+  { erw [←finsupp.sum_single x, tensor_product.sum_tmul],
+    simp only [finset.smul_sum, linear_map.map_sum],
+    refine finset.sum_congr rfl (λ f hf, _),
+    simp only [tensor_product.smul_tmul', smul_eq_mul, monoid_algebra.single_mul_single, one_mul,
+      of_tensor_aux_single, ←linear_map.map_smul, finsupp.lift_apply, finsupp.smul_sum],
+    exact finsupp.sum_congr (λ j hj, by rw [smul_comm (_ : monoid_algebra k G), single_smul_single,
+      one_mul, smul_smul]; apply_instance) },
+end
 
 variables {k G n}
 
-lemma basis_left_inv (x : mul_action_to_Rep k G (fin (n + 1) → G)) :
-  of_basis k G n (to_basis k G n x) = x :=
+@[simp] lemma of_tensor_single (g : G) (m : k) (x : mul_action_to_Rep k G (fin n → G)) :
+  of_tensor k G n ((finsupp.single g m) ⊗ₜ x) = finsupp.lift (mul_action_to_Rep k G
+    (fin (n + 1) → G)) k (fin n → G) (λ f, finsupp.single (g • to_prod f) m) x :=
+of_tensor_aux_single _ _ _
+
+lemma of_tensor_single' (g : monoid_algebra k G) (x : fin n → G) (r : k) :
+  of_tensor k G n (g ⊗ₜ finsupp.single x r) =
+    finsupp.lift _ k G (λ a, finsupp.single (a • to_prod x) r) g :=
+by simp [of_tensor, of_tensor_aux]
+
+lemma equiv_tensor_left_inv_aux (f : fin (n + 1) → G) :
+  f 0 • to_prod (λ i : fin n, (f i)⁻¹ * f i.succ) = f :=
+funext $ λ ⟨x, hn⟩,
 begin
-  refine add_monoid_hom.ext_iff.1 (@finsupp.add_hom_ext _ _ _ _ _
-    ((of_basis k G n).comp $ to_basis k G n).to_add_monoid_hom
-     (add_monoid_hom.id _) (λ g y, _)) x,
-  dsimp [of_basis],
-  erw to_basis_single,
-  simp [single_smul_single, smul_inv_smul],
+  revert hn,
+  induction x with x hx,
+  { simp },
+  { intro hn,
+    dsimp at hx ⊢,
+    rw [←fin.succ_mk _ _ (nat.succ_lt_succ_iff.1 hn), to_prod_succ],
+    erw [←mul_assoc, hx (lt_trans (nat.lt_succ_self x) hn)],
+    convert mul_inv_cancel_left _ _,
+    ext,
+    simp [nat.mod_eq_of_lt (lt_trans (nat.lt_succ_self _) hn)] }
 end
 
-lemma basis_right_inv (x : orbit_quot G n →₀ monoid_algebra k G) :
-  to_basis k G n (of_basis k G n x) = x :=
+lemma equiv_tensor_right_inv_aux (g : G) (f : fin n → G) (i : fin n) :
+  ((g • to_prod f) i)⁻¹ * (g • to_prod f) i.succ = f i :=
+begin
+  cases i with i hn,
+  revert hn,
+  induction i with i hi,
+  { intro hn,
+    simp [←fin.succ_mk, to_prod_succ] },
+  { intro hn,
+    specialize hi (lt_trans (nat.lt_succ_self i) hn),
+    simp only [mul_inv_rev, fin.coe_eq_cast_succ, fin.succ_mk, fin.cast_succ_mk,
+      smul_eq_mul, pi.smul_apply] at hi ⊢,
+    rw [←fin.succ_mk _ _ (lt_trans (nat.lt_succ_self _) hn), ←fin.succ_mk],
+    simp only [to_prod_succ, mul_inv_rev, fin.cast_succ_mk],
+    assoc_rw [hi, inv_mul_cancel_left] }
+end
+
+open monoid_algebra (lift) (of)
+
+lemma equiv_tensor_left_inv (x : mul_action_to_Rep k G (fin (n + 1) → G)) :
+  of_tensor _ _ _ (to_tensor _ _ _ x) = x :=
 begin
   refine add_monoid_hom.ext_iff.1 (@finsupp.add_hom_ext _ _ _ _ _
-    ((to_basis k G n).comp $ of_basis k G n).to_add_monoid_hom
-     (add_monoid_hom.id _) (λ a b, quotient.induction_on' a $ λ c, _)) x,
-  dsimp [of_basis],
-  simp only [quotient.lift_on'_mk', zero_smul, monoid_algebra.of_apply,
-    finsupp.sum_single_index, linear_map.map_smul, finsupp.lift_apply],
-  erw to_basis_single,
-  simp only [finsupp.smul_single', smul_eq_mul, pi.smul_apply, mul_left_inv],
-  erw mul_one,
-  congr' 1,
-  exact quotient.sound' (mul_action.mem_orbit _ _)
+    ((of_tensor k G n).comp (to_tensor k G n)).to_add_monoid_hom
+    (add_monoid_hom.id _) (λ x y, _)) x,
+  dsimp,
+  erw [to_tensor_single, of_tensor_single],
+  rw [finsupp.lift_apply, finsupp.sum_single_index, one_smul, equiv_tensor_left_inv_aux],
+  { rw zero_smul }
+end
+
+lemma equiv_tensor_right_inv (x : monoid_algebra k G ⊗[k] mul_action_to_Rep k G (fin n → G)) :
+  to_tensor _ _ _ (of_tensor _ _ _ x) = x :=
+begin
+  refine tensor_product.induction_on x (by simp) (λ y z, _) (λ z w hz hw, by simp [hz, hw]),
+  erw [←finsupp.sum_single y, tensor_product.sum_tmul],
+  simp only [finset.smul_sum, linear_map.map_sum],
+  refine finset.sum_congr rfl (λ f hf, _),
+  simp only [of_tensor_single, finsupp.lift_apply, finsupp.smul_single', linear_map.map_finsupp_sum,
+    equivariant_of_linear_of_comm_apply, to_tensor_single, equiv_tensor_right_inv_aux],
+  dsimp,
+  simp only [to_prod_zero, mul_one],
+  conv_rhs {rw ←finsupp.sum_single z},
+  erw tensor_product.tmul_sum,
+  exact finset.sum_congr rfl (λ g hg, show _ ⊗ₜ _ = _, by
+    rw [←finsupp.smul_single', tensor_product.smul_tmul, finsupp.smul_single_one])
 end
 
 variables (k G n)
 
-/-- An isomorphism of `k[Gⁿ⁺¹]` with the free `k[G]`-module on the set `Gⁿ⁺¹`
-  modulo the diagonal action of `G`, given by `to_basis`. -/
-def basis : basis (orbit_quot G n)
-  (monoid_algebra k G) (mul_action_to_Rep k G (fin (n + 1) → G)) :=
-{ repr :=
-  { inv_fun := of_basis k G n,
-    left_inv := basis_left_inv,
-    right_inv := basis_right_inv, ..to_basis _ G n } }
+/-- A `k[G]`-linear isomorphism `k[Gⁿ⁺¹] ≅ k[G] ⊗ₖ k[Gⁿ]` -/
+def equiv_tensor : mul_action_to_Rep k G (fin (n + 1) → G) ≃ₗ[monoid_algebra k G] monoid_algebra k G
+  ⊗[k] mul_action_to_Rep k G (fin n → G) :=
+{ inv_fun := of_tensor _ G n,
+  left_inv := equiv_tensor_left_inv,
+  right_inv := equiv_tensor_right_inv,
+  ..to_tensor k G n }
+
+variables {k G n}
+
+@[simp] lemma equiv_tensor_single (x : fin (n + 1) → G) (m : k) :
+  equiv_tensor k G n (finsupp.single x m) = (finsupp.single (x 0) m) ⊗ₜ
+    (finsupp.single (λ i, (x i)⁻¹ * x i.succ) 1) :=
+to_tensor_single _ _
+
+@[simp] lemma equiv_tensor_symm_apply (g : G) (m : k) (x : mul_action_to_Rep k G (fin n → G)) :
+  (equiv_tensor _ G n).symm ((finsupp.single g m) ⊗ₜ x) =
+  finsupp.lift (mul_action_to_Rep k G (fin (n + 1) → G)) k (fin n → G)
+    (λ f, finsupp.single (g • to_prod f) m) x :=
+of_tensor_single _ _ _
+
+variables (k G n)
+
+noncomputable def monoid_algebra_basis :
+  basis (fin n → G) (monoid_algebra k G) (mul_action_to_Rep k G (fin (n + 1) → G)) :=
+@basis.map (fin n → G) (monoid_algebra k G) _ _ _ _ tensor_product.left_module _ _
+  (tensor_product_basis (monoid_algebra k G) (mul_action_to_Rep k G (fin n → G))
+  (⟨linear_equiv.refl k _⟩))
+(equiv_tensor k G n).symm
 
 instance : module.free (monoid_algebra k G) (mul_action_to_Rep k G (fin (n + 1) → G)) :=
-module.free.of_basis (basis k G n)
+module.free.of_basis (monoid_algebra_basis _ _ _)
 
 end Rep

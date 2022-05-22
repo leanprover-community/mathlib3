@@ -1,4 +1,4 @@
-import representation_theory.tensor_decomp
+import ring_theory.tensor_product
 
 universes v u
 
@@ -30,7 +30,7 @@ end
 section
 
 variables {k : Type u} (R : Type u) [comm_ring k] [ring R] [algebra k R] {M : Type u} [add_comm_group M]
-  [module k M] [module R M] [is_scalar_tower k R M] {ι : Type*} (b : basis ι k M)
+  [module k M] {ι : Type*} (b : basis ι k M)
 
 noncomputable def to_basis : (R ⊗[k] M) →ₗ[R] (ι →₀ R) :=
 lift_nc (linear_map.to_span_singleton R _ ((finsupp.map_range.linear_map
@@ -62,13 +62,13 @@ begin
   rw [tensor_product.smul_tmul', smul_eq_mul, mul_one]
 end
 
-lemma auxd (i : ι) (r : R) :
+lemma basis_right_inv_aux (i : ι) (r : R) :
   to_basis R b (of_basis R b (finsupp.single i r)) = finsupp.single i r :=
 begin
   simp [of_basis_apply, to_basis_apply, b.repr.apply_symm_apply],
 end
 
-lemma djsk (r : R) (m : M) :
+lemma basis_left_inv_aux (r : R) (m : M) :
   of_basis R b (to_basis R b (r ⊗ₜ m)) = r ⊗ₜ m :=
 begin
   rw [to_basis_apply, linear_map.map_smul, ←finsupp.sum_single (b.repr m),
@@ -88,7 +88,7 @@ begin
   refine x.induction_on _ _ _,
   { simp only [linear_map.map_zero] },
   { intros r m,
-    exact djsk _ _ _ _ },
+    exact basis_left_inv_aux _ _ _ _ },
   { intros x y hx hy,
     simp only [map_add, hx, hy] }
 end
@@ -97,23 +97,15 @@ lemma basis_right_inv (x : ι →₀ R) :
   to_basis R b (of_basis R b x) = x :=
 begin
   rw ←x.sum_single,
-  simp only [linear_map.map_finsupp_sum, auxd],
+  simp only [linear_map.map_finsupp_sum, basis_right_inv_aux],
 end
 
 variables (M)
 
-noncomputable def huh : basis ι R (R ⊗[k] M) :=
+noncomputable def tensor_product_basis : basis ι R (R ⊗[k] M) :=
 { repr :=
   { inv_fun := of_basis R b,
     left_inv := basis_left_inv R b,
     right_inv := basis_right_inv R b, .. to_basis R b } }
-
-open Rep
-
-#exit
-def hmm (G : Type u) [group G] (n : ℕ) : basis (fin n → G) k
-  (mul_action_to_Rep k G (fin (n + 1) → G)) :=
-basis.map (huh k (mul_action_to_Rep k G (fin n → G)) (linear_equiv.refl _))
-(equiv_tensor k G n).symm
 
 end

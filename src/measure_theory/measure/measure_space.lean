@@ -2022,14 +2022,14 @@ by simp only [ae_restrict_eq hs, exists_prop, mem_principal, mem_inf_iff];
 
 /-- If two measurable sets are ae_eq then any proposition that is almost everywhere true on one
 is almost everywhere true on the other -/
-lemma restrict_eq_of_ae_eq_of_restrict_eq {s t} (hst : s =ᵐ[μ] t) {p : α → Prop} :
-  (∀ᵐ (x : α) ∂μ.restrict s, p x) → (∀ᵐ (x : α) ∂μ.restrict t, p x) :=
+lemma ae_restrict_of_ae_eq_of_ae_restrict {s t} (hst : s =ᵐ[μ] t) {p : α → Prop} :
+  (∀ᵐ x ∂μ.restrict s, p x) → (∀ᵐ x ∂μ.restrict t, p x) :=
 by simp [measure.restrict_congr_set hst]
 
 /-- If two measurable sets are ae_eq then any proposition that is almost everywhere true on one
 is almost everywhere true on the other -/
 lemma restrict_eq_iff_of_ae_eq {s t} (hst : s =ᵐ[μ] t) {p : α → Prop} :
-  (∀ᵐ (x : α) ∂μ.restrict s, p x) ↔ (∀ᵐ (x : α) ∂μ.restrict t, p x) :=
+  (∀ᵐ x ∂μ.restrict s, p x) ↔ (∀ᵐ x ∂μ.restrict t, p x) :=
 ⟨restrict_eq_of_ae_eq_of_restrict_eq hst, restrict_eq_of_ae_eq_of_restrict_eq hst.symm⟩
 
 

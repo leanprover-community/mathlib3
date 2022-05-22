@@ -225,16 +225,16 @@ instance : add_comm_semigroup nat_ordinal :=
 { add_comm := add_comm',
   ..nat_ordinal.add_semigroup }
 
-private theorem add_zero' : ∀ a : nat_ordinal, a + 0 = a
-| a := begin
+private theorem add_zero' (a : nat_ordinal) : a + 0 = a :=
+begin
+  induction a using nat_ordinal.induction with a IH,
   rw add_def,
   simp only [blsub, of_nat_ordinal_zero, blsub_zero, to_nat_ordinal_zero, max_zero_right],
   rw ←eq_of_nat_ordinal_iff,
   convert blsub_id (of_nat_ordinal a),
   ext b hb,
-  apply add_zero'
+  exact IH _ hb
 end
-using_well_founded { dec_tac := `[assumption] }
 
 instance : add_cancel_comm_monoid nat_ordinal :=
 { zero := 0,
@@ -243,6 +243,7 @@ instance : add_cancel_comm_monoid nat_ordinal :=
   add_left_cancel := λ a b c, add_left_cancel'',
   ..nat_ordinal.add_comm_semigroup }
 
+/-- The successor on `nat_ordinal` is still `a + 1`. -/
 theorem add_one (a : nat_ordinal) : a + 1 = to_nat_ordinal (succ (of_nat_ordinal a)) :=
 begin
   induction a using nat_ordinal.induction with a IH,

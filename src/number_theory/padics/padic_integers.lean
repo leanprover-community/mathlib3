@@ -313,7 +313,7 @@ begin
   obtain ⟨k, hk⟩ := exists_nat_gt ε⁻¹,
   use k,
   rw ← inv_lt_inv hε (_root_.zpow_pos_of_pos _ _),
-  { rw [zpow_neg₀, inv_inv, zpow_coe_nat],
+  { rw [zpow_neg, inv_inv, zpow_coe_nat],
     apply lt_of_lt_of_le hk,
     norm_cast,
     apply le_of_lt,
@@ -474,7 +474,7 @@ lemma norm_le_pow_iff_le_valuation (x : ℤ_[p]) (hx : x ≠ 0) (n : ℕ) :
 begin
   rw norm_eq_pow_val hx,
   lift x.valuation to ℕ using x.valuation_nonneg with k hk,
-  simp only [int.coe_nat_le, zpow_neg₀, zpow_coe_nat],
+  simp only [int.coe_nat_le, zpow_neg, zpow_coe_nat],
   have aux : ∀ n : ℕ, 0 < (p ^ n : ℝ),
   { apply pow_pos, exact_mod_cast hp_prime.1.pos },
   rw [inv_le_inv (aux _) (aux _)],
@@ -505,7 +505,7 @@ lemma norm_le_pow_iff_mem_span_pow (x : ℤ_[p]) (n : ℕ) :
 begin
   by_cases hx : x = 0,
   { subst hx,
-    simp only [norm_zero, zpow_neg₀, zpow_coe_nat, inv_nonneg, iff_true, submodule.zero_mem],
+    simp only [norm_zero, zpow_neg, zpow_coe_nat, inv_nonneg, iff_true, submodule.zero_mem],
     exact_mod_cast nat.zero_le _ },
   rw [norm_le_pow_iff_le_valuation x hx, mem_span_pow_iff_le_valuation x hx],
 end

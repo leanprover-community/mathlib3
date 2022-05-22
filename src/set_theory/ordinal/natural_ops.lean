@@ -62,6 +62,7 @@ namespace nat_ordinal
 @[simp] theorem of_nat_ordinal_to_nat_ordinal (a) : of_nat_ordinal (to_nat_ordinal a) = a := rfl
 
 instance : has_zero nat_ordinal := ⟨to_nat_ordinal 0⟩
+instance : inhabited nat_ordinal := ⟨0⟩
 instance : has_one nat_ordinal := ⟨to_nat_ordinal 1⟩
 instance : has_well_founded nat_ordinal := ordinal.has_well_founded
 instance : linear_order nat_ordinal := ordinal.linear_order

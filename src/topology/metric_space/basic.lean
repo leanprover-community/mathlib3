@@ -207,7 +207,7 @@ def pseudo_metric_space.of_metrizable {α : Type*} [topological_space α] (dist 
   (dist_comm : ∀ x y : α, dist x y = dist y x)
   (dist_triangle : ∀ x y z : α, dist x z ≤ dist x y + dist y z)
   (H : ∀ s : set α, is_open s ↔ ∀ x ∈ s, ∃ ε > 0, ∀ y, dist x y < ε → y ∈ s) :
-pseudo_metric_space α :=
+  pseudo_metric_space α :=
 { dist := dist,
   dist_self := dist_self,
   dist_comm := dist_comm,

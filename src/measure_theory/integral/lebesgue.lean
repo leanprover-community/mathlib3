@@ -1078,12 +1078,12 @@ lemma set_lintegral_const_lt_top [is_finite_measure μ] (s : set α) {c : ℝ≥
   ∫⁻ a in s, c ∂μ < ∞ :=
 begin
   rw lintegral_const,
-  exact ennreal.mul_lt_top hc.ne (measure_ne_top (μ.restrict s) univ),
+  exact ennreal.mul_lt_top hc (measure_ne_top (μ.restrict s) univ),
 end
 
 lemma lintegral_const_lt_top [is_finite_measure μ] {c : ℝ≥0∞} (hc : c < ∞) :
   ∫⁻ a, c ∂μ < ⊤ :=
-by simpa only [measure.restrict_univ] using set_lintegral_const_lt_top univ hc
+by simpa only [measure.restrict_univ] using set_lintegral_const_lt_top univ hc.ne
 
 /-- `∫⁻ a in s, f a ∂μ` is defined as the supremum of integrals of simple functions
 `φ : α →ₛ ℝ≥0∞` such that `φ ≤ f`. This lemma says that it suffices to take

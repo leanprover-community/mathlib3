@@ -1547,7 +1547,7 @@ instance linear_ordered_add_comm_group.topological_add_group : topological_add_g
         filter_upwards [prod_is_open.mem_nhds (eventually_abs_sub_lt a δ0)
           (eventually_abs_sub_lt b (sub_pos.2 δε))],
         rintros ⟨x, y⟩ ⟨hx : |x - a| < δ, hy : |y - b| < ε - δ⟩,
-        rw [add_sub_comm],
+        rw [add_sub_add_comm],
         calc |x - a + (y - b)| ≤ |x - a| + |y - b| : abs_add _ _
         ... < δ + (ε - δ) : add_lt_add hx hy
         ... = ε : add_sub_cancel'_right _ _ },
@@ -1893,7 +1893,7 @@ tendsto_inv_zero_at_top.comp h
 /-- The function `x^(-n)` tends to `0` at `+∞` for any positive natural `n`.
 A version for positive real powers exists as `tendsto_rpow_neg_at_top`. -/
 lemma tendsto_pow_neg_at_top {n : ℕ} (hn : 1 ≤ n) : tendsto (λ x : α, x ^ (-(n:ℤ))) at_top (𝓝 0) :=
-tendsto.congr (λ x, (zpow_neg₀ x n).symm)
+tendsto.congr (λ x, (zpow_neg x n).symm)
   (filter.tendsto.inv_tendsto_at_top (by simpa [zpow_coe_nat] using tendsto_pow_at_top hn))
 
 lemma tendsto_zpow_at_top_zero {n : ℤ} (hn : n < 0) :

@@ -179,8 +179,8 @@ lemma uniform_inducing.inducing {f : α → β} (h : uniform_inducing f) : induc
 begin
   refine ⟨eq_of_nhds_eq_nhds $ assume a, _ ⟩,
   rw [nhds_induced, nhds_eq_uniformity, nhds_eq_uniformity, ← h.comap_uniformity,
-    comap_lift'_eq, comap_lift'_eq2];
-    { refl <|> exact monotone_preimage }
+    comap_lift'_eq, comap_lift'_eq2],
+  exacts [rfl, monotone_preimage]
 end
 
 lemma uniform_inducing.prod {α' : Type*} {β' : Type*} [uniform_space α'] [uniform_space β']

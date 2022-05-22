@@ -274,24 +274,24 @@ end
 @[simp] theorem to_nat_ordinal_cast (n : ℕ) : to_nat_ordinal (↑n) = ↑n :=
 by { rw ←of_nat_ordinal_cast n, refl }
 
-theorem ordinal_add_le_add (a b : nat_ordinal.{u}) :
-  of_nat_ordinal a + of_nat_ordinal b ≤ of_nat_ordinal (a + b) :=
+theorem ordinal_add_le_add (a b : ordinal.{u}) :
+  a + b ≤ of_nat_ordinal (to_nat_ordinal a + to_nat_ordinal b) :=
 begin
   induction b using ordinal.induction with b IH,
   rw [add_def, of_nat_ordinal_max],
-  rcases zero_or_succ_or_limit (of_nat_ordinal b) with hb | ⟨c, hb⟩ | hb,
+  rcases zero_or_succ_or_limit b with hb | ⟨c, hb⟩ | hb,
   { apply le_max_of_le_left,
-    rw of_nat_ordinal_eq_zero at hb,
     rw hb,
     simp [blsub] },
   { apply le_max_of_le_right,
-    rw [blsub, of_nat_ordinal_to_nat_ordinal, hb, blsub_succ_of_mono, add_succ, succ_le_succ],
-    { apply IH (to_nat_ordinal c),
-      rw [←lt_of_nat_ordinal_iff, hb],
+    rw [blsub, of_nat_ordinal_to_nat_ordinal, of_nat_ordinal_to_nat_ordinal, hb, blsub_succ_of_mono,
+      add_succ, succ_le_succ],
+    { apply IH c,
+      rw hb,
       exact lt_succ_self c },
     { exact λ i j _ _ h, of_nat_ordinal_le_iff.2 (add_le_add_left h a) } },
   { apply le_max_of_le_right,
-    rw [←is_normal.blsub_eq.{u u} (add_is_normal (of_nat_ordinal a)) hb, blsub_le_iff],
+    rw [←is_normal.blsub_eq.{u u} (add_is_normal a) hb, blsub_le_iff],
     exact λ i hi, (IH (to_nat_ordinal i) hi).trans_lt (lt_blsub.{u u} _ i hi) }
 end
 

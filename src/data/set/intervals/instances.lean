@@ -35,8 +35,8 @@ instance : has_pow (Icc (0:α) 1) ℕ :=
 @[simp, norm_cast] lemma coe_Icc_mul (x y : Icc (0:α) 1) : ↑(x * y) = (x * y : α) := rfl
 @[simp, norm_cast] lemma coe_Icc_pow (x : Icc (0:α) 1) (n : ℕ) : ↑(x ^ n) = (x ^ n : α) := rfl
 
-instance : monoid (Icc (0:α) 1) :=
-by { apply function.injective.monoid _ subtype.coe_injective; { intros, refl } }
+instance : monoid_with_zero (Icc (0:α) 1) :=
+by { apply function.injective.monoid_with_zero _ subtype.coe_injective; { intros, refl } }
 
 instance {α : Type*} [ordered_comm_semiring α] : comm_monoid_with_zero (Icc (0:α) 1) :=
 by { apply function.injective.comm_monoid_with_zero _ subtype.coe_injective; { intros, refl } }

@@ -150,6 +150,7 @@ lemma is_splitting_field_of_card_eq (h : fintype.card K = p ^ n) :
   is_splitting_field (zmod p) K (X ^ (p ^ n) - X) :=
 h ▸ finite_field.has_sub.sub.polynomial.is_splitting_field K (zmod p)
 
+@[priority 100]
 instance {K K' : Type*} [field K] [field K'] [fintype K'] [algebra K K'] : is_galois K K' :=
 begin
   obtain ⟨p, hp⟩ := char_p.exists K,

@@ -45,6 +45,8 @@ open function
 
 noncomputable theory
 
+/-! ### Basic casts between `ordinal` and `nat_ordinal` -/
+
 /-- A type synonym for ordinals with natural addition and multiplication. -/
 def nat_ordinal : Type* := ordinal
 
@@ -113,6 +115,8 @@ variables {a b c : ordinal.{u}}
   to_nat_ordinal (max a b) = max a.to_nat_ordinal b.to_nat_ordinal := rfl
 @[simp] theorem to_nat_ordinal_min :
   (linear_order.min a b).to_nat_ordinal = linear_order.min a.to_nat_ordinal b.to_nat_ordinal := rfl
+
+/-! ### Natural addition -/
 
 /-- Natural addition on ordinals `a ♯ b` is recursively defined as the least ordinal greater than
 `a' ♯ b` and `a ♯ b'` for all `a' < a` and `b < b'`. In contrast to normal ordinal addition, it is
@@ -321,5 +325,17 @@ theorem nadd_left_cancel_iff : ∀ {a b c}, a ♯ b = a ♯ c ↔ b = c :=
 @add_left_cancel_iff nat_ordinal _
 theorem nadd_right_cancel_iff : ∀ {a b c}, b ♯ a = c ♯ a ↔ b = c :=
 @add_right_cancel_iff nat_ordinal _
+
+/-! ### Natural multiplication -/
+
+/-- Natural multiplication on ordinals `a ⨳ b` is recursively defined as the least ordinal such that
+`a ⨳ b + a' ⨳ b'` is greater than `a' ⨳ b + a ⨳ b'` for all `a' < a` and `b < b'`. In contrast to
+normal ordinal multiplication, it is commutative.
+
+Natural multiplication can equivalently be characterized as the ordinal resulting from multiplying
+the Cantor normal forms of `a` and `b` as if they were polynomials in `ω`. -/
+noncomputable def nmul : ordinal → ordinal → ordinal
+| a b := Inf {c | ∀ (a' < a) (b' < b), }
+using_well_founded { dec_tac := `[solve_by_elim [psigma.lex.left, psigma.lex.right]] }
 
 end ordinal

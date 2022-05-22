@@ -21,9 +21,12 @@ the unit intervals from `0` to `1`.
 * provide `has_distrib_neg` instances where applicable
 -/
 
+open set
+
+section ordered_semiring
+
 variables {α : Type*} [ordered_semiring α]
 
-open set
 
 /-! ### Instances for `(Icc 0 1)` -/
 
@@ -101,3 +104,5 @@ subtype.coe_injective.semigroup _ coe_Ioo_mul
 
 instance {α : Type*} [ordered_comm_semiring α] : comm_semigroup (Ioo (0:α) 1) :=
 subtype.coe_injective.comm_semigroup _ coe_Ioo_mul
+
+end ordered_semiring

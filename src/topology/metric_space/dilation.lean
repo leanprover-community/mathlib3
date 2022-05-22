@@ -15,11 +15,18 @@ structure dilation (r : ℝ≥0) :=
 (to_fun : α → β)
 (edist_eq' : ∀ x y : α, edist (to_fun x) (to_fun y) = r * edist x y)
 
+attribute [nolint has_inhabited_instance] dilation
+
+/--
+`dilation_class F α β r` states that `F` is a type of `r`-dilations.
+
+You should extend this typeclass when you extend `dilation`.
+-/
 class dilation_class (F : Type*) (α β : out_param $ Type*) (r : out_param ℝ≥0)
   [pseudo_emetric_space α] [pseudo_emetric_space β] extends fun_like F α (λ _, β) :=
 (edist_eq'  : ∀ (f : F) (x y : α), edist (f x) (f y) = r * edist x y)
 
--- attribute [nolint dangerous_instance] dilation_class.to_fun_like
+attribute [nolint dangerous_instance] dilation_class.to_fun_like
 
 instance dilation.to_dilation_class (r : ℝ≥0) :
   dilation_class (dilation α β r) α β r :=
@@ -42,9 +49,7 @@ protected def dilation.copy (r : ℝ≥0) (f : dilation α β r) (f' : α → β
 end setup
 
 namespace dilation
-
 variables {α : Type*} {β : Type*} {γ : Type*} {F : Type*} {G : Type*} (r r₂ : ℝ≥0)
-include r
 
 lemma emetric_iff_metric [pseudo_metric_space α] [pseudo_metric_space β] {f : α → β} :
   (∀x y, edist (f x) (f y) = r * edist x y) ↔ (∀x y, dist (f x) (f y) = r * dist x y) :=
@@ -104,11 +109,13 @@ def comp (f : dilation α β r) (g : dilation β γ r₂):
 { to_fun := g ∘ f,
   edist_eq' := λ x y, by { simp only [edist_eq, ennreal.coe_mul], ring, } }
 
+
 /-- The constant function of is a dilation -/
-def const (f : dilation α β r) (b : β) :
+def const {α β} [pseudo_emetric_space α] [pseudo_emetric_space β] (b : β) :
   dilation α β 0 :=
 { to_fun := λ _, b,
   edist_eq' := λ x y, by simp }
+
 
 /-- A dilation from a metric space is a uniform inducing map -/
 theorem uniform_inducing (hr : r ≠ 0) :
@@ -165,12 +172,12 @@ begin
   simp [hr, maps_to],
 end
 
-lemma dilation.comp_continuous_on_iff
+lemma comp_continuous_on_iff
   {γ} [topological_space γ] {g : γ → α} {s : set γ} (hr : r ≠ 0) :
   continuous_on ((f : α → β) ∘ g) s ↔ continuous_on g s :=
 (uniform_inducing r f hr).inducing.continuous_on_iff.symm
 
-lemma dilation.comp_continuous_iff
+lemma comp_continuous_iff
   {γ} [topological_space γ] {g : γ → α} (hr : r ≠ 0) :
   continuous ((f : α → β) ∘ g) ↔ continuous g :=
 (uniform_inducing r f hr).inducing.continuous_iff.symm
@@ -191,7 +198,7 @@ theorem embedding [pseudo_emetric_space β] [dilation_class F α β r]
 (uniform_embedding r f hr).embedding
 
 /-- A dilation from a complete emetric space is a closed embedding -/
-theorem dilation.closed_embedding
+theorem closed_embedding
   [complete_space α] [emetric_space β] [dilation_class F α β r]
   (f : F) (hr : r ≠ 0) : closed_embedding (f : α → β) :=
 (antilipschitz r f hr).closed_embedding (lipschitz r f).uniform_continuous
@@ -238,3 +245,4 @@ end
 end pseudo_metric_dilation -- section
 
 end dilation
+#lint

@@ -60,9 +60,8 @@ begin
   { intro d, rw [add_assoc, add_comm d, ← add_assoc, hnaq], },
   rw [Hσ, homotopy.null_homotopic_map'_f (c_mk (n+2) (n+1) rfl) (c_mk (n+1) n rfl),
     hσ'_eq hnaq (c_mk (n+1) n rfl), hσ'_eq (hnaq_shift 1) (c_mk (n+2) (n+1) rfl)],
-  repeat { erw chain_complex.of_d, },
-  simp only [alternating_face_map_complex.obj_d, eq_to_hom_refl, comp_id,
-    comp_sum, sum_comp, comp_add],
+  simp only [alternating_face_map_complex_obj_d, eq_to_hom_refl,
+    comp_id, comp_sum, sum_comp, comp_add],
   simp only [comp_zsmul, zsmul_comp, ← assoc, ← mul_zsmul],
   /- cleaning up the first sum -/
   rw [← fin.sum_congr' _ (hnaq_shift 2).symm, fin.sum_trunc], swap,

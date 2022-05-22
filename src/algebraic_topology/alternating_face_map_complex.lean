@@ -124,7 +124,6 @@ def obj : chain_complex C ℕ := chain_complex.of (λ n, X _[n]) (obj_d X) (d_sq
 variables {X} {Y}
 
 /-- The alternating face map complex, on morphisms -/
-@[simp]
 def map (f : X ⟶ Y) : obj X ⟶ obj Y :=
 chain_complex.of_hom _ _ _ _ _ _
   (λ n, f.app (op [n]))
@@ -144,12 +143,25 @@ end alternating_face_map_complex
 variables (C : Type*) [category C] [preadditive C]
 
 /-- The alternating face map complex, as a functor -/
-@[simps]
 def alternating_face_map_complex : simplicial_object C ⥤ chain_complex C ℕ :=
 { obj := alternating_face_map_complex.obj,
   map := λ X Y f, alternating_face_map_complex.map f }
 
-variables {C}
+variable {C}
+
+@[simp]
+lemma alternating_face_map_complex_obj_X (X : simplicial_object C) (n : ℕ) :
+  ((alternating_face_map_complex C).obj X).X n = X _[n] := rfl
+
+@[simp]
+lemma alternating_face_map_complex_obj_d (X : simplicial_object C) (n : ℕ) :
+  ((alternating_face_map_complex C).obj X).d (n+1) n =
+  ∑ (i : fin (n+2)), (-1 : ℤ)^(i : ℕ) • X.δ i :=
+by apply chain_complex.of_d
+
+@[simp]
+lemma alternating_face_map_complex_map_f {X Y : simplicial_object C} (f : X ⟶ Y) (n : ℕ) :
+  ((alternating_face_map_complex C).map f).f n = f.app (op [n]) := rfl
 
 lemma map_alternating_face_map_complex {D : Type*} [category D] [preadditive D]
   (F : C ⥤ D) [F.additive] :
@@ -159,19 +171,20 @@ begin
   apply category_theory.functor.ext,
   { intros X Y f,
     ext n,
-    simp only [functor.comp_map, alternating_face_map_complex.map,
-      alternating_face_map_complex_map, functor.map_homological_complex_map_f,
-      chain_complex.of_hom_f, simplicial_object.whiskering_obj_map_app,
-      homological_complex.comp_f, homological_complex.eq_to_hom_f,
-      eq_to_hom_refl, comp_id, id_comp], },
+    simp only [functor.comp_map, homological_complex.comp_f,
+      alternating_face_map_complex_map_f, functor.map_homological_complex_map_f,
+      homological_complex.eq_to_hom_f, eq_to_hom_refl, comp_id, id_comp,
+      simplicial_object.whiskering_obj_map_app], },
   { intro X,
-    erw chain_complex.map_chain_complex_of,
-    congr,
-    ext n,
-    simp only [alternating_face_map_complex.obj_d, functor.map_sum],
-    congr,
-    ext,
-    apply functor.map_zsmul, },
+    apply homological_complex.ext,
+    { intros i j hij,
+      have h : j+1 = i := hij,
+      subst h,
+      dsimp only [functor.comp_obj],
+      simpa only [functor.map_homological_complex_obj_d, alternating_face_map_complex_obj_d,
+        eq_to_hom_refl, id_comp, comp_id, functor.map_sum, functor.map_zsmul], },
+    { ext n,
+      refl, }, },
 end
 
 /-!

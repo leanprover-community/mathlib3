@@ -352,9 +352,9 @@ theorem nadd_left_cancel : ∀ {a b c}, a ♯ b = a ♯ c → b = c :=
 theorem nadd_right_cancel : ∀ {a b c}, a ♯ b = c ♯ b → a = c :=
 @_root_.add_right_cancel nat_ordinal _
 theorem nadd_left_cancel_iff : ∀ {a b c}, a ♯ b = a ♯ c ↔ b = c :=
-@_root_.add_left_cancel_iff nat_ordinal _
+@add_left_cancel_iff nat_ordinal _
 theorem nadd_right_cancel_iff : ∀ {a b c}, b ♯ a = c ♯ a ↔ b = c :=
-@_root_.add_right_cancel_iff nat_ordinal _
+@add_right_cancel_iff nat_ordinal _
 
 @[simp] theorem nadd_nat (a : ordinal) (n : ℕ) : a ♯ n = a + n :=
 by { rw nadd, simp [add_nat] }

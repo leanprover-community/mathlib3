@@ -64,7 +64,7 @@ class pretriangulated :=
 (isomorphic_distinguished : Π (T₁ ∈ distinguished_triangles) (T₂ ≅ T₁),
   T₂ ∈ distinguished_triangles)
 (contractible_distinguished : Π (X : C), (contractible_triangle C X) ∈ distinguished_triangles)
-(distinguished_cocone_triangle : Π (X Y : C) (f: X ⟶ Y), (∃ (Z : C) (g : Y ⟶ Z)
+(distinguished_cocone_triangle : Π (X Y : C) (f : X ⟶ Y), (∃ (Z : C) (g : Y ⟶ Z)
   (h : Z ⟶ X⟦(1:ℤ)⟧),
   triangle.mk _ f g h ∈ distinguished_triangles))
 (rotate_distinguished_triangle : Π (T : triangle C),

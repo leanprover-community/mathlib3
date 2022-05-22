@@ -52,6 +52,18 @@ instance comm_monoid_with_zero {α : Type*} [ordered_comm_semiring α] :
     comm_monoid_with_zero (Icc (0:α) 1) :=
 subtype.coe_injective.comm_monoid_with_zero _ coe_zero coe_one coe_mul coe_pow
 
+instance cancel_monoid_with_zero {α : Type*} [ordered_ring α] [no_zero_divisors α] :
+    cancel_monoid_with_zero (Icc (0:α) 1) :=
+@function.injective.cancel_monoid_with_zero α _ no_zero_divisors.to_cancel_monoid_with_zero
+  _ _ _ _ coe subtype.coe_injective coe_zero coe_one coe_mul coe_pow
+
+-- TODO: tidy up after #14302
+instance cancel_comm_monoid_with_zero {α : Type*} [ordered_comm_ring α] [no_zero_divisors α] :
+  cancel_comm_monoid_with_zero (Icc (0:α) 1) :=
+@function.injective.cancel_comm_monoid_with_zero α _
+  { mul_comm := mul_comm, ..no_zero_divisors.to_cancel_monoid_with_zero }
+  _ _ _ _ coe subtype.coe_injective coe_zero coe_one coe_mul coe_pow
+
 end set.Icc
 
 /-! ### Instances for `(Ico 0 1)` -/

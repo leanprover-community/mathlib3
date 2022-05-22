@@ -135,11 +135,39 @@ Ioi_mem_at_top a
 
 lemma eventually_ne_at_top [preorder α] [no_max_order α] (a : α) :
   ∀ᶠ x in at_top, x ≠ a :=
-(eventually_gt_at_top a).mono (λ x hx, hx.ne.symm)
+(eventually_gt_at_top a).mono $ λ x, ne_of_gt
+
+lemma tendsto.eventually_gt_at_top [preorder β] [no_max_order β] {f : α → β} {l : filter α}
+  (hf : tendsto f l at_top) (c : β) : ∀ᶠ x in l, c < f x :=
+hf.eventually (eventually_gt_at_top c)
+
+lemma tendsto.eventually_ge_at_top [preorder β] {f : α → β} {l : filter α}
+  (hf : tendsto f l at_top) (c : β) : ∀ᶠ x in l, c ≤ f x :=
+hf.eventually (eventually_ge_at_top c)
+
+lemma tendsto.eventually_ne_at_top [preorder β] [no_max_order β] {f : α → β} {l : filter α}
+  (hf : tendsto f l at_top) (c : β) : ∀ᶠ x in l, f x ≠ c :=
+hf.eventually (eventually_ne_at_top c)
 
 lemma eventually_lt_at_bot [preorder α] [no_min_order α] (a : α) :
   ∀ᶠ x in at_bot, x < a :=
 Iio_mem_at_bot a
+
+lemma eventually_ne_at_bot [preorder α] [no_min_order α] (a : α) :
+  ∀ᶠ x in at_bot, x ≠ a :=
+(eventually_lt_at_bot a).mono $ λ x, ne_of_lt
+
+lemma tendsto.eventually_lt_at_bot [preorder β] [no_min_order β] {f : α → β} {l : filter α}
+  (hf : tendsto f l at_bot) (c : β) : ∀ᶠ x in l, f x < c :=
+hf.eventually (eventually_lt_at_bot c)
+
+lemma tendsto.eventually_le_at_bot [preorder β] {f : α → β} {l : filter α}
+  (hf : tendsto f l at_bot) (c : β) : ∀ᶠ x in l, f x ≤ c :=
+hf.eventually (eventually_le_at_bot c)
+
+lemma tendsto.eventually_ne_at_bot [preorder β] [no_min_order β] {f : α → β} {l : filter α}
+  (hf : tendsto f l at_bot) (c : β) :  ∀ᶠ x in l, f x ≠ c :=
+hf.eventually (eventually_ne_at_bot c)
 
 lemma at_top_basis_Ioi [nonempty α] [semilattice_sup α] [no_max_order α] :
   (@at_top α _).has_basis (λ _, true) Ioi :=
@@ -628,10 +656,6 @@ begin
   simpa only [pow_one] using pow_le_pow hx hn
 end
 
-lemma eventually_ne_of_tendsto_at_top [nontrivial α] (hf : tendsto f l at_top)
-  (c : α) :  ∀ᶠ x in l, f x ≠ c :=
-(tendsto_at_top.1 hf $ (c + 1)).mono (λ x hx, ne_of_gt (lt_of_lt_of_le (lt_add_one c) hx))
-
 end ordered_semiring
 
 lemma zero_pow_eventually_eq [monoid_with_zero α] :
@@ -641,11 +665,6 @@ eventually_at_top.2 ⟨1, λ n hn, zero_pow (zero_lt_one.trans_le hn)⟩
 section ordered_ring
 
 variables [ordered_ring α] {l : filter β} {f g : β → α}
-
-lemma eventually_ne_of_tendsto_at_bot [nontrivial α] (hf : tendsto f l at_bot)
-  (c : α) : ∀ᶠ x in l, f x ≠ c :=
-(tendsto_at_bot.1 hf $ (c - 1)).mono
-  (λ x hx, ne_of_lt (lt_of_le_of_lt hx ((sub_lt_self_iff c).2 zero_lt_one)))
 
 lemma tendsto.at_top_mul_at_bot (hf : tendsto f l at_top) (hg : tendsto g l at_bot) :
   tendsto (λ x, f x * g x) l at_bot :=

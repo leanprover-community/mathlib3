@@ -289,7 +289,7 @@ begin
   rcases norm_le_div_pow_of_pos_of_lt_radius p rpos rlt with ⟨C, Cpos, hCp⟩,
   refine ⟨C, r ⁻¹, Cpos, by simp [rpos], λ n, _⟩,
   convert hCp n,
-  exact inv_pow₀ _ _,
+  exact inv_pow _ _,
 end
 
 /-- The radius of the sum of two formal series is at least the minimum of their two radii. -/

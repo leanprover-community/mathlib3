@@ -28,6 +28,8 @@ open set
 
 /-! ### Instances for `(Icc 0 1)` -/
 
+namespace set.Icc
+
 instance : has_zero (Icc (0:α) 1) := { zero := ⟨0, left_mem_Icc.2 zero_le_one⟩ }
 
 instance : has_one (Icc (0:α) 1) := { one := ⟨1, right_mem_Icc.2 zero_le_one⟩ }
@@ -49,7 +51,11 @@ subtype.coe_injective.monoid_with_zero _ coe_Icc_zero coe_Icc_one coe_Icc_mul co
 instance {α : Type*} [ordered_comm_semiring α] : comm_monoid_with_zero (Icc (0:α) 1) :=
 subtype.coe_injective.comm_monoid_with_zero _ coe_Icc_zero coe_Icc_one coe_Icc_mul coe_Icc_pow
 
+end set.Icc
+
 /-! ### Instances for `(Ico 0 1)` -/
+
+namespace set.Ico
 
 instance : has_mul (Ico (0:α) 1) :=
 { mul := λ p q, ⟨p*q, ⟨mul_nonneg p.2.1 q.2.1,
@@ -63,7 +69,11 @@ subtype.coe_injective.semigroup _ coe_Ico_mul
 instance {α : Type*} [ordered_comm_semiring α] : comm_semigroup (Ico (0:α) 1) :=
 subtype.coe_injective.comm_semigroup _ coe_Ico_mul
 
+end set.Ico
+
 /-! ### Instances for `(Ioc 0 1)` -/
+
+namespace set.Ioc
 
 instance [nontrivial α] : has_one (Ioc (0:α) 1) := { one := ⟨1, ⟨zero_lt_one, le_refl 1⟩⟩ }
 
@@ -89,7 +99,11 @@ subtype.coe_injective.comm_semigroup _ coe_Ioc_mul
 instance {α : Type*} [ordered_comm_semiring α] [nontrivial α] : comm_monoid (Ioc (0:α) 1) :=
 subtype.coe_injective.comm_monoid _ coe_Ioc_one coe_Ioc_mul coe_Ioc_pow
 
+end set.Ioc
+
 /-! ### Instances for `(Ioo 0 1)` -/
+
+namespace set.Ioo
 
 instance : has_mul (Ioo (0:α) 1) := { mul := λ p q, ⟨p.1 * q.1, ⟨mul_pos p.2.1 q.2.1,
     mul_lt_one_of_nonneg_of_lt_one_right p.2.2.le q.2.1.le q.2.2⟩⟩ }
@@ -101,3 +115,5 @@ subtype.coe_injective.semigroup _ coe_Ioo_mul
 
 instance {α : Type*} [ordered_comm_semiring α] : comm_semigroup (Ioo (0:α) 1) :=
 subtype.coe_injective.comm_semigroup _ coe_Ioo_mul
+
+end set.Ioo

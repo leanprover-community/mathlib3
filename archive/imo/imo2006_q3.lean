@@ -91,11 +91,9 @@ begin
   wlog h' := mul_nonneg_of_three x y z using [x y z, y z x, z x y] tactic.skip,
   { rw [div_mul_eq_mul_div, le_div_iff' zero_lt_32],
     exact subst_wlog h' hxyz },
-  any_goals { move_add [x, z, y] at this ⊢ },
   work_on_goal 1 { rw [mul_assoc x, mul_comm x] },
   work_on_goal 2 { rw [mul_comm _ z, ← mul_assoc] },
-  repeat {
-    move_add [y ^ 2, z ^ 2, s ^ 2] at this }
+  repeat { move_add [x, z, y, y ^ 2, z ^ 2, s ^ 2] at this ⊢ }
 end
 
 lemma lhs_identity (a b c : ℝ) :

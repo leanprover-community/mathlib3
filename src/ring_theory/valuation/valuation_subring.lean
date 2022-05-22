@@ -404,7 +404,7 @@ def unit_group_equiv : A.unit_group ≃* Aˣ :=
   begin
     rw ← A.valuation_le_one_iff,
     apply le_of_eq,
-    rw [A.valuation.map_inv, inv_eq_one₀],
+    rwa [A.valuation.map_inv, inv_eq_one₀],
     exact x.2,
   end⟩,
     by { ext, exact mul_inv_cancel x.1.ne_zero },
@@ -497,8 +497,7 @@ def principal_unit_group : subgroup Kˣ :=
     rw [← valuation.map_mul, sub_eq_add_neg, right_distrib, neg_mul, one_mul,
         ← sub_eq_add_neg, ← sub_eq_add_neg, ← neg_sub (a : K) _, A.valuation.map_neg,
         units.coe_inv', units.inv_mul'] at this,
-    rw [set.mem_set_of_eq, ← this] at ha,
-    simpa,
+    simpa [set.mem_set_of_eq, ← this] using ha,
   end }
 
 lemma mem_principal_unit_group_iff (x : Kˣ) :
@@ -525,17 +524,48 @@ begin
   simpa using A.valuation.map_one_add_of_lt h,
 end
 
+lemma mem_residue_field_has_unit_rep (x : (local_ring.residue_field A)ˣ) :
+  is_unit (quotient.out' (x : local_ring.residue_field A)) :=
+begin
+  by_contra,
+  rw valuation_eq_one_iff at h,
+  have p := valuation_lt_one_or_eq_one _ (quotient.out' (x : local_ring.residue_field A)),
+  rw or_iff_not_imp_right at p,
+  have := p h,
+  rw [← valuation_lt_one_iff, ← ideal.quotient.eq_zero_iff_mem, ← ideal.quotient.mk_eq_mk,
+      ← submodule.quotient.mk'_eq_mk, quotient.out_eq'] at this,
+  simpa only [units.ne_zero],
+end
+
 def units_residue_field_equiv :
   (local_ring.residue_field A)ˣ ≃*
   (A.unit_group ⧸ (A.principal_unit_group.comap A.unit_group.subtype)) :=
-{ to_fun :=
+{ to_fun := λ x,
+  begin
+    choose a ha using (mem_residue_field_has_unit_rep A x),
+    exact quotient_group.mk (A.unit_group_equiv.inv_fun a),
+  end,
+  inv_fun := λ x,
+  ⟨quotient.mk' (units.coe_hom A (A.unit_group_equiv.to_fun (quotient.out' x))),
+   quotient.mk' (units.coe_hom A (A.unit_group_equiv.to_fun (quotient.out' x⁻¹))),
+  begin
+    simp only [mul_equiv.to_fun_eq_coe, units.coe_hom_apply, submodule.quotient.mk'_eq_mk,
+    ideal.quotient.mk_eq_mk],
+    sorry,
+  end,
+  begin
+    sorry,
+  end⟩,
+  left_inv := λ x,
+  begin
+    ext,
+    sorry,
+  end,
+  right_inv := λ x, sorry,
+  map_mul' := λ x y,
   begin
     sorry,
   end,
-  inv_fun := sorry,
-  left_inv := sorry,
-  right_inv := sorry,
-  map_mul' := sorry,
 
   }
 

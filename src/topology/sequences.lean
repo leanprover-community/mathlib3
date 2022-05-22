@@ -60,23 +60,17 @@ assume p ⟨x, xM, xp⟩,
 mem_closure_of_tendsto xp (univ_mem' xM)
 
 /-- A set is sequentially closed if it is closed. -/
-lemma is_seq_closed_of_is_closed (M : set α) (_ : is_closed M) : is_seq_closed M :=
-suffices seq_closure M ⊆ M, from
-  set.eq_of_subset_of_subset (subset_seq_closure M) this,
+lemma is_closed.is_seq_closed {M : set α} (hM : is_closed M) : is_seq_closed M :=
+suffices seq_closure M ⊆ M, from (subset_seq_closure M).antisymm this,
 calc seq_closure M ⊆ closure M : seq_closure_subset_closure M
-               ... = M         : is_closed.closure_eq ‹is_closed M›
+               ... = M         : hM.closure_eq
 
 /-- The limit of a convergent sequence in a sequentially closed set is in that set.-/
-lemma mem_of_is_seq_closed {A : set α} (_ : is_seq_closed A) {x : ℕ → α}
+lemma is_seq_closed.mem_of_tendsto {A : set α} (_ : is_seq_closed A) {x : ℕ → α}
   (_ : ∀ n, x n ∈ A) {limit : α} (_ : (x ⟶ limit)) : limit ∈ A :=
 have limit ∈ seq_closure A, from
   show ∃ x : ℕ → α, (∀ n : ℕ, x n ∈ A) ∧ (x ⟶ limit), from ⟨x, ‹∀ n, x n ∈ A›, ‹(x ⟶ limit)›⟩,
 eq.subst (eq.symm ‹is_seq_closed A›) ‹limit ∈ seq_closure A›
-
-/-- The limit of a convergent sequence in a closed set is in that set.-/
-lemma mem_of_is_closed_sequential {A : set α} (_ : is_closed A) {x : ℕ → α}
-  (_ : ∀ n, x n ∈ A) {limit : α} (_ : x ⟶ limit) : limit ∈ A :=
-mem_of_is_seq_closed (is_seq_closed_of_is_closed A ‹is_closed A›) ‹∀ n, x n ∈ A› ‹(x ⟶ limit)›
 
 /-- A sequential space is a space in which 'sequences are enough to probe the topology'. This can be
  formalised by demanding that the sequential closure and the closure coincide. The following
@@ -91,8 +85,10 @@ lemma is_seq_closed_iff_is_closed [sequential_space α] {M : set α} :
 iff.intro
   (assume _, closure_eq_iff_is_closed.mp (eq.symm
     (calc M = seq_closure M : by assumption
-        ... = closure M    : sequential_space.seq_closure_eq_closure M)))
-  (is_seq_closed_of_is_closed M)
+        ... = closure M     : sequential_space.seq_closure_eq_closure M)))
+  is_closed.is_seq_closed
+
+alias is_seq_closed_iff_is_closed ↔ is_seq_closed.is_closed _
 
 /-- In a sequential space, a point belongs to the closure of a set iff it is a limit of a sequence
 taking values in this set. -/
@@ -102,30 +98,31 @@ by { rw ← sequential_space.seq_closure_eq_closure, exact iff.rfl }
 
 /-- A function between topological spaces is sequentially continuous if it commutes with limit of
  convergent sequences. -/
-def sequentially_continuous (f : α → β) : Prop :=
+def seq_continuous (f : α → β) : Prop :=
 ∀ (x : ℕ → α), ∀ {limit : α}, (x ⟶ limit) → (f∘x ⟶ f limit)
 
 /- A continuous function is sequentially continuous. -/
-lemma continuous.to_sequentially_continuous {f : α → β} (_ : continuous f) :
-  sequentially_continuous f :=
+protected lemma continuous.seq_continuous {f : α → β} (hf : continuous f) : seq_continuous f :=
 assume x limit (_ : x ⟶ limit),
 have tendsto f (𝓝 limit) (𝓝 (f limit)), from continuous.tendsto ‹continuous f› limit,
 show (f ∘ x) ⟶ (f limit), from tendsto.comp this ‹(x ⟶ limit)›
 
 /-- In a sequential space, continuity and sequential continuity coincide. -/
-lemma continuous_iff_sequentially_continuous {f : α → β} [sequential_space α] :
-  continuous f ↔ sequentially_continuous f :=
+lemma continuous_iff_seq_continuous {f : α → β} [sequential_space α] :
+  continuous f ↔ seq_continuous f :=
 iff.intro
-  (assume _, ‹continuous f›.to_sequentially_continuous)
-  (assume : sequentially_continuous f, show continuous f, from
+  continuous.seq_continuous
+  (assume : seq_continuous f, show continuous f, from
     suffices h : ∀ {A : set β}, is_closed A → is_seq_closed (f ⁻¹' A), from
       continuous_iff_is_closed.mpr (assume A _, is_seq_closed_iff_is_closed.mp $ h ‹is_closed A›),
     assume A (_ : is_closed A),
       is_seq_closed_of_def $
         assume (x : ℕ → α) p (_ : ∀ n, f (x n) ∈ A) (_ : x ⟶ p),
-        have (f ∘ x) ⟶ (f p), from ‹sequentially_continuous f› x ‹(x ⟶ p)›,
-        show f p ∈ A, from
-          mem_of_is_closed_sequential ‹is_closed A› ‹∀ n, f (x n) ∈ A› ‹(f∘x ⟶ f p)›)
+        have (f ∘ x) ⟶ (f p), from ‹seq_continuous f› x ‹(x ⟶ p)›,
+        show f p ∈ A,
+          from ‹is_closed A›.is_seq_closed.mem_of_tendsto ‹∀ n, f (x n) ∈ A› ‹(f∘x ⟶ f p)›)
+
+alias continuous_iff_seq_continuous ↔ _ seq_continuous.continuous
 
 end topological_space
 

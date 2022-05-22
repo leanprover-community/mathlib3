@@ -75,28 +75,124 @@ end
 using_well_founded { rel_tac := λ _ _, `[exact ⟨_, measure_wf (λ p, p.1 + p.2.1)⟩] }
 
 /--
-`counted_sequence p q` is the set of lists of `ℤ` for which every element is `+1` or `-1`,
+`counted_sequence p q` is the set of lists of integers for which every element is `+1` or `-1`,
 there are `p` lots of `+1` and `q` lots of `-1`.
+
 This represents vote sequences where candidate `+1` receives `p` votes and candidate `-1` receives
 `q` votes.
 -/
-def counted_sequence : ℕ → ℕ → set (list ℤ)
-| 0 q := {list.repeat (-1) q}
-| (p + 1) 0 := {list.repeat 1 (p + 1)}
-| (p + 1) (q + 1) :=
-    (counted_sequence p (q + 1)).image (list.cons 1) ∪
-    (counted_sequence (p + 1) q).image (list.cons (-1))
+def counted_sequence (p q : ℕ) : set (list ℤ) :=
+{l | l.count 1 = p ∧ l.count (-1) = q ∧ ∀ x ∈ l, x = (1 : ℤ) ∨ x = -1}
 
 @[simp] lemma counted_right_zero (p : ℕ) : counted_sequence p 0 = {list.repeat 1 p} :=
-by { cases p; rw [counted_sequence]; refl }
+begin
+  ext l,
+  rw [counted_sequence, mem_singleton_iff],
+  split,
+  { rintro ⟨hl₀, hl₁, hl₂⟩,
+    rw list.eq_repeat,
+    have : ∀ x ∈ l, (1 : ℤ) = x,
+    { intros x hx,
+      obtain rfl | rfl := hl₂ x hx,
+      { refl },
+      { exact false.elim (list.not_mem_of_count_eq_zero hl₁ hx) } },
+    split,
+    { rwa ← list.count_eq_length.2 this },
+    { exact λ x hx, (this x hx).symm } },
+  { rintro rfl,
+    simp only [mem_set_of_eq, list.count_repeat, eq_self_iff_true, true_and],
+    refine ⟨list.count_eq_zero_of_not_mem _, λ x, _⟩; rw list.mem_repeat,
+    { norm_num },
+    { rintro ⟨-, rfl⟩,
+      exact or.inl rfl } }
+end
 
 @[simp] lemma counted_left_zero (q : ℕ) : counted_sequence 0 q = {list.repeat (-1) q} :=
-by { cases q; rw [counted_sequence]; refl }
+begin
+  ext l,
+  rw [counted_sequence, mem_singleton_iff],
+  split,
+  { rintro ⟨hl₀, hl₁, hl₂⟩,
+    rw list.eq_repeat,
+    have : ∀ x ∈ l, (-1 : ℤ) = x,
+    { intros x hx,
+      obtain rfl | rfl := hl₂ x hx,
+      { exact false.elim (list.not_mem_of_count_eq_zero hl₀ hx) },
+      { refl } },
+    split,
+    { rwa ← list.count_eq_length.2 this },
+    { exact λ x hx, (this x hx).symm } },
+  { rintro rfl,
+    simp only [mem_set_of_eq, list.count_repeat, eq_self_iff_true, true_and],
+    refine ⟨list.count_eq_zero_of_not_mem _, λ x, _⟩; rw list.mem_repeat,
+    { norm_num },
+    { rintro ⟨-, rfl⟩,
+      exact or.inr rfl } }
+end
+
+lemma counted_ne_nil_left {p q : ℕ} (hp : p ≠ 0) {l : list ℤ} (hl : l ∈ counted_sequence p q) :
+  l ≠ list.nil :=
+begin
+  obtain ⟨hl₀, hl₁, hl₂⟩ := hl,
+  rintro rfl,
+  rw list.count_nil at hl₀,
+  exact hp hl₀.symm,
+end
+
+lemma counted_ne_nil_right {p q : ℕ} (hp : q ≠ 0) {l : list ℤ} (hl : l ∈ counted_sequence p q) :
+  l ≠ list.nil :=
+begin
+  obtain ⟨hl₀, hl₁, hl₂⟩ := hl,
+  rintro rfl,
+  rw list.count_nil at hl₁,
+  exact hp hl₁.symm,
+end
 
 lemma counted_succ_succ (p q : ℕ) : counted_sequence (p + 1) (q + 1) =
   (counted_sequence p (q + 1)).image (list.cons 1) ∪
   (counted_sequence (p + 1) q).image (list.cons (-1)) :=
-by { rw [counted_sequence] }
+begin
+  ext l,
+  rw [counted_sequence, counted_sequence, counted_sequence],
+  split,
+  { intro hl,
+    have hlnil := counted_ne_nil_left (nat.succ_ne_zero p) hl,
+    obtain ⟨hl₀, hl₁, hl₂⟩ := hl,
+    obtain hlast | hlast := hl₂ l.head (list.head_mem_self hlnil),
+    { refine or.inl ⟨l.tail, ⟨_, _, _⟩, _⟩,
+      { rw [list.count_tail l 1 (list.length_pos_of_ne_nil hlnil), hl₀, if_pos,
+          nat.add_succ_sub_one, add_zero],
+        rw [list.nth_le_zero, hlast] },
+      { rw [list.count_tail l (-1) (list.length_pos_of_ne_nil hlnil), hl₁, if_neg, nat.sub_zero],
+        rw [list.nth_le_zero, hlast],
+        norm_num },
+      { exact λ x hx, hl₂ x (list.mem_of_mem_tail hx) },
+      { rw [← hlast, list.cons_head_tail hlnil] } },
+    { refine or.inr ⟨l.tail, ⟨_, _, _⟩, _⟩,
+      { rw [list.count_tail l 1 (list.length_pos_of_ne_nil hlnil), hl₀, if_neg, nat.sub_zero],
+        rw [list.nth_le_zero, hlast],
+        norm_num },
+      { rw [list.count_tail l (-1) (list.length_pos_of_ne_nil hlnil), hl₁, if_pos,
+          nat.add_succ_sub_one, add_zero],
+        rw [list.nth_le_zero, hlast] },
+      { exact λ x hx, hl₂ x (list.mem_of_mem_tail hx) },
+      { rw [← hlast, list.cons_head_tail hlnil] } } },
+  { rintro (⟨t, ⟨ht₀, ht₁, ht₂⟩, rfl⟩ | ⟨t, ⟨ht₀, ht₁, ht₂⟩, rfl⟩),
+    { refine ⟨_, _, _⟩,
+      { rw [list.count_cons, if_pos rfl, ht₀] },
+      { rw [list.count_cons, if_neg, ht₁],
+        norm_num },
+      { rintro x (hx | hx),
+        exacts [or.inl hx, ht₂ x hx] } },
+    { refine ⟨_, _, _⟩,
+      { rw [list.count_cons, if_neg, ht₀],
+        norm_num },
+      { rw [list.count_cons, if_pos rfl, ht₁] },
+      { rintro x (hx | hx),
+        exacts [or.inr hx, ht₂ x hx] } } }
+end
+
+-- #exit
 
 lemma counted_sequence_finite : ∀ (p q : ℕ), (counted_sequence p q).finite
 | 0 q := by simp

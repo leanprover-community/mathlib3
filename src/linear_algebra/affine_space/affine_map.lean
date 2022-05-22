@@ -363,6 +363,25 @@ end
 
 omit V2
 
+section
+variables (k)
+
+/-- `x ↦ v +ᵥ x` as an `affine_map`. The name is chosen to match `module.to_linear_map`. -/
+@[simps]
+def _root_.affine_space.to_affine_map (v : V1) : P1 →ᵃ[k] P1 :=
+{ to_fun := (+ᵥ) v,
+  linear := linear_map.id,
+  map_vadd' := λ p v, vadd_comm _ _ _ }
+
+/-- A more bundled version of `affine_space.to_affine_map`. -/
+@[simps]
+def _root_.affine_space.to_affine_map_hom : multiplicative V1 →* P1 →ᵃ[k] P1 :=
+{ to_fun := λ v, affine_space.to_affine_map k v.to_add,
+  map_one' := affine_map.ext $ zero_vadd _,
+  map_mul' := λ x y, affine_map.ext $ add_vadd _ _ }
+
+end
+
 /-! ### Definition of `affine_map.line_map` and lemmas about it -/
 
 /-- The affine map from `k` to `P1` sending `0` to `p₀` and `1` to `p₁`. -/

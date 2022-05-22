@@ -12,6 +12,10 @@ import algebra.group_power.order
 
 For suitably structured underlying type `α`, we exhibit the structure of
 the unit intervals from `0` to `1`.
+
+## TODO
+* structure instances for intervals -1 to 1
+* provide `has_distrib_neg` instances where applicable
 -/
 
 variables {α : Type*} [ordered_semiring α]

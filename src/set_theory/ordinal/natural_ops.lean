@@ -256,6 +256,9 @@ begin
   exact succ_lt_succ.2 hi
 end
 
+theorem one_add (a : nat_ordinal) : 1 + a = to_nat_ordinal (succ (of_nat_ordinal a)) :=
+by rw [add_comm, add_one]
+
 theorem add_nat (a : nat_ordinal) (n : ℕ) : a + n = to_nat_ordinal (of_nat_ordinal a + n) :=
 begin
   induction n with n hn,
@@ -263,6 +266,9 @@ begin
   { rw [nat.cast_succ, nat.cast_succ, ←add_assoc, ←add_assoc, hn, add_one],
     refl }
 end
+
+theorem nat_add (n : ℕ) (a : nat_ordinal) : ↑n + a = to_nat_ordinal (of_nat_ordinal a + n) :=
+by rw [add_comm, add_nat]
 
 @[simp] theorem of_nat_ordinal_cast (n : ℕ) : of_nat_ordinal (↑n) = ↑n :=
 begin
@@ -296,3 +302,65 @@ begin
 end
 
 end nat_ordinal
+
+open nat_ordinal
+
+namespace ordinal
+
+/-- Natural addition on ordinals. See `nat_ordinal.add` for more information. -/
+def nadd (a b : ordinal) : ordinal := of_nat_ordinal (to_nat_ordinal a + to_nat_ordinal b)
+
+local infix ` ♯ `:70 := nadd
+
+theorem nadd_comm : ∀ a b, a ♯ b = b ♯ a := @add_comm nat_ordinal _
+theorem nadd_assoc : ∀ a b c, a ♯ b ♯ c = a ♯ (b ♯ c) := @add_assoc nat_ordinal _
+
+@[simp] theorem nadd_zero : ∀ a, a ♯ 0 = a := @add_zero nat_ordinal _
+@[simp] theorem zero_nadd : ∀ a, 0 ♯ a = a := @zero_add nat_ordinal _
+@[simp] theorem nadd_one : ∀ a, a ♯ 1 = a + 1 := add_one
+@[simp] theorem one_nadd : ∀ a, 1 ♯ a = a + 1 := one_add
+
+theorem nadd_lt_nadd_left : ∀ {b c} (h : b < c) a, a ♯ b < a ♯ c :=
+@add_lt_add_left nat_ordinal _ _ _
+theorem nadd_lt_nadd_right : ∀ {b c} (h : b < c) a, b ♯ a < c ♯ a :=
+@add_lt_add_right nat_ordinal _ _ _
+theorem nadd_le_nadd_left : ∀ {b c} (h : b ≤ c) a, a ♯ b ≤ a ♯ c :=
+@add_le_add_left nat_ordinal _ _ _
+theorem nadd_le_nadd_right : ∀ {b c} (h : b ≤ c) a, b ♯ a ≤ c ♯ a :=
+@add_le_add_right nat_ordinal _ _ _
+
+theorem lt_of_nadd_lt_nadd_left : ∀ {a b c}, a ♯ b < a ♯ c → b < c :=
+@lt_of_add_lt_add_left nat_ordinal _ _ _
+theorem lt_of_nadd_lt_nadd_right : ∀ {a b c}, b ♯ a < c ♯ a → b < c :=
+@_root_.lt_of_add_lt_add_right nat_ordinal _ _ _
+theorem lt_of_nadd_le_nadd_left : ∀ {a b c}, a ♯ b ≤ a ♯ c → b ≤ c :=
+@le_of_add_le_add_left nat_ordinal _ _ _
+theorem lt_of_nadd_le_nadd_right : ∀ {a b c}, b ♯ a ≤ c ♯ a → b ≤ c :=
+@le_of_add_le_add_right nat_ordinal _ _ _
+
+theorem nadd_lt_nadd_iff_left : ∀ a {b c}, a ♯ b < a ♯ c ↔ b < c :=
+@add_lt_add_iff_left nat_ordinal _ _ _ _
+theorem nadd_lt_nadd_iff_right : ∀ a {b c}, b ♯ a < c ♯ a ↔ b < c :=
+@add_lt_add_iff_right nat_ordinal _ _ _ _
+theorem nadd_le_nadd_iff_left : ∀ a {b c}, a ♯ b ≤ a ♯ c ↔ b ≤ c :=
+@add_le_add_iff_left nat_ordinal _ _ _ _
+theorem nadd_le_nadd_iff_right : ∀ a {b c}, b ♯ a ≤ c ♯ a ↔ b ≤ c :=
+@_root_.add_le_add_iff_right nat_ordinal _ _ _ _
+
+theorem nadd_left_cancel : ∀ {a b c}, a ♯ b = a ♯ c → b = c :=
+@_root_.add_left_cancel nat_ordinal _
+theorem nadd_right_cancel : ∀ {a b c}, a ♯ b = c ♯ b → a = c :=
+@_root_.add_right_cancel nat_ordinal _
+theorem nadd_left_cancel_iff : ∀ {a b c}, a ♯ b = a ♯ c ↔ b = c :=
+@_root_.add_left_cancel_iff nat_ordinal _
+theorem nadd_right_cancel_iff : ∀ {a b c}, b ♯ a = c ♯ a ↔ b = c :=
+@_root_.add_right_cancel_iff nat_ordinal _
+
+@[simp] theorem nadd_nat (a : ordinal) (n : ℕ) : a ♯ n = a + n :=
+by { rw nadd, simp [add_nat] }
+@[simp] theorem nat_nadd (a : ordinal) (n : ℕ) : n ♯ a = a + n :=
+by { rw nadd, simp [nat_add] }
+
+theorem add_le_nadd : ∀ a b : ordinal, a + b ≤ a ♯ b := ordinal_add_le_add
+
+end ordinal

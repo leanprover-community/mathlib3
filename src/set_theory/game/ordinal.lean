@@ -54,14 +54,6 @@ by { rw to_pgame_left_moves, apply_instance }
 instance (o : ordinal) : is_empty o.to_pgame.right_moves :=
 by { rw to_pgame_right_moves, apply_instance }
 
-instance is_empty_to_pgame_add_right_moves (a b : ordinal.{u}) :
-  is_empty (a.to_pgame + b.to_pgame).right_moves :=
-begin
-  rw [to_pgame_def, to_pgame_def],
-  apply is_empty_sum.2 ⟨_, _⟩;
-  apply_instance
-end
-
 /-- Converts an ordinal less than `o` into a move for the `pgame` corresponding to `o`, and vice
 versa. -/
 noncomputable def to_left_moves_to_pgame {o : ordinal} : set.Iio o ≃ o.to_pgame.left_moves :=

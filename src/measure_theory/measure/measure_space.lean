@@ -147,9 +147,9 @@ begin
 end
 
 lemma measure_bUnion {s : set β} {f : β → set α} (hs : countable s)
-  (hd : s.pairwise (disjoint on f)) (h : ∀ b ∈ s, measurable_set (f b)) :
+  (hd : s.pairwise_disjoint f) (h : ∀ b ∈ s, measurable_set (f b)) :
   μ (⋃ b ∈ s, f b) = ∑' p : s, μ (f p) :=
-measure_bUnion₀ hs (hd.mono' $ λ s t h, h.ae_disjoint) (λ b hb, (h b hb).null_measurable_set)
+measure_bUnion₀ hs hd.ae_disjoint (λ b hb, (h b hb).null_measurable_set)
 
 lemma measure_sUnion₀ {S : set (set α)} (hs : countable S)
   (hd : S.pairwise (ae_disjoint μ)) (h : ∀ s ∈ S, null_measurable_set s μ) :
@@ -169,10 +169,10 @@ begin
   exact measure_bUnion₀ s.countable_to_set hd hm
 end
 
-lemma measure_bUnion_finset {s : finset ι} {f : ι → set α} (hd : set.pairwise ↑s (disjoint on f))
+lemma measure_bUnion_finset {s : finset ι} {f : ι → set α} (hd : pairwise_disjoint ↑s f)
   (hm : ∀ b ∈ s, measurable_set (f b)) :
   μ (⋃ b ∈ s, f b) = ∑ p in s, μ (f p) :=
-measure_bUnion_finset₀ (hd.mono' $ λ s t h, h.ae_disjoint) (λ b hb, (hm b hb).null_measurable_set)
+measure_bUnion_finset₀ hd.ae_disjoint (λ b hb, (hm b hb).null_measurable_set)
 
 /-- If `s` is a countable set, then the measure of its preimage can be found as the sum of measures
 of the fibers `f ⁻¹' {y}`. -/
@@ -312,7 +312,7 @@ eq.symm $ measure_union_congr_of_subset subset.rfl le_rfl (subset_to_measurable 
   (measure_to_measurable _).le
 
 lemma sum_measure_le_measure_univ {s : finset ι} {t : ι → set α} (h : ∀ i ∈ s, measurable_set (t i))
-  (H : set.pairwise ↑s (disjoint on t)) :
+  (H : set.pairwise_disjoint ↑s t) :
   ∑ i in s, μ (t i) ≤ μ (univ : set α) :=
 by { rw ← measure_bUnion_finset H h, exact measure_mono (subset_univ _) }
 
@@ -1261,7 +1261,7 @@ end
 lemma restrict_Union_apply [encodable ι] {s : ι → set α} (hd : pairwise (disjoint on s))
   (hm : ∀ i, measurable_set (s i)) {t : set α} (ht : measurable_set t) :
   μ.restrict (⋃ i, s i) t = ∑' i, μ.restrict (s i) t :=
-restrict_Union_apply_ae (hd.mono $ λ i j h, h.ae_disjoint) (λ i, (hm i).null_measurable_set) ht
+restrict_Union_apply_ae hd.ae_disjoint (λ i, (hm i).null_measurable_set) ht
 
 lemma restrict_Union_apply_eq_supr [encodable ι] {s : ι → set α}
   (hd : directed (⊆) s) {t : set α} (ht : measurable_set t) :
@@ -1606,7 +1606,7 @@ ext $ λ t ht, by simp only [sum_apply _ ht, restrict_Union_apply_ae hd hm ht]
 lemma restrict_Union [encodable ι] {s : ι → set α} (hd : pairwise (disjoint on s))
   (hm : ∀ i, measurable_set (s i)) :
   μ.restrict (⋃ i, s i) = sum (λ i, μ.restrict (s i)) :=
-ext $ λ t ht, by simp only [sum_apply _ ht, restrict_Union_apply hd hm ht]
+restrict_Union_ae hd.ae_disjoint (λ i, (hm i).null_measurable_set)
 
 lemma restrict_Union_le [encodable ι] {s : ι → set α} :
   μ.restrict (⋃ i, s i) ≤ sum (λ i, μ.restrict (s i)) :=

@@ -1895,19 +1895,40 @@ end
 
 open measure
 
+lemma lintegral_Union₀ [encodable β] {s : β → set α} (hm : ∀ i, null_measurable_set (s i) μ)
+  (hd : pairwise (ae_disjoint μ on s)) (f : α → ℝ≥0∞) :
+  ∫⁻ a in ⋃ i, s i, f a ∂μ = ∑' i, ∫⁻ a in s i, f a ∂μ :=
+by simp only [measure.restrict_Union_ae hd hm, lintegral_sum_measure]
+
 lemma lintegral_Union [encodable β] {s : β → set α} (hm : ∀ i, measurable_set (s i))
   (hd : pairwise (disjoint on s)) (f : α → ℝ≥0∞) :
   ∫⁻ a in ⋃ i, s i, f a ∂μ = ∑' i, ∫⁻ a in s i, f a ∂μ :=
-by simp only [measure.restrict_Union hd hm, lintegral_sum_measure]
+lintegral_Union₀ (λ i, (hm i).null_measurable_set) hd.ae_disjoint f
 
-lemma lintegral_bUnion_finset_ae {s : finset β} {t : β → set α}
+lemma lintegral_bUnion₀ {t : set β} {s : β → set α} (ht : countable t)
+  (hm : ∀ i ∈ t, null_measurable_set (s i) μ)
+  (hd : t.pairwise (ae_disjoint μ on s)) (f : α → ℝ≥0∞) :
+  ∫⁻ a in ⋃ i ∈ t, s i, f a ∂μ = ∑' i : t, ∫⁻ a in s i, f a ∂μ :=
+begin
+  haveI := ht.to_encodable,
+  rw [bUnion_eq_Union, lintegral_Union₀ (set_coe.forall'.1 hm) (hd.subtype _ _)]
+end
+
+lemma lintegral_bUnion {t : set β} {s : β → set α} (ht : countable t)
+  (hm : ∀ i ∈ t, measurable_set (s i)) (hd : t.pairwise_disjoint s) (f : α → ℝ≥0∞) :
+  ∫⁻ a in ⋃ i ∈ t, s i, f a ∂μ = ∑' i : t, ∫⁻ a in s i, f a ∂μ :=
+lintegral_bUnion₀ ht (λ i hi, (hm i hi).null_measurable_set) hd.ae_disjoint f
+
+lemma lintegral_bUnion_finset₀ {s : finset β} {t : β → set α}
   (hd : set.pairwise ↑s (ae_disjoint μ on t)) (hm : ∀ b ∈ s, null_measurable_set (t b) μ)
   (f : α → ℝ≥0∞) :
   ∫⁻ a in ⋃ b ∈ s, t b, f a ∂μ = ∑ b in s, ∫⁻ a in t b, f a ∂μ :=
-begin
-  simp only [← finset.mem_coe, bUnion_eq_Union, ← finset.tsum_subtype', ← lintegral_sum_measure],
-  sorry
-end
+by simp only [← finset.mem_coe, lintegral_bUnion₀ s.countable_to_set hm hd, ← s.tsum_subtype']
+
+lemma lintegral_bUnion_finset {s : finset β} {t : β → set α}
+  (hd : set.pairwise_disjoint ↑s t) (hm : ∀ b ∈ s, measurable_set (t b)) (f : α → ℝ≥0∞) :
+  ∫⁻ a in ⋃ b ∈ s, t b, f a ∂μ = ∑ b in s, ∫⁻ a in t b, f a ∂μ :=
+lintegral_bUnion_finset₀ hd.ae_disjoint (λ b hb, (hm b hb).null_measurable_set) f
 
 lemma lintegral_Union_le [encodable β] (s : β → set α) (f : α → ℝ≥0∞) :
   ∫⁻ a in ⋃ i, s i, f a ∂μ ≤ ∑' i, ∫⁻ a in s i, f a ∂μ :=
@@ -2049,7 +2070,7 @@ calc ∑ j in range K, μ (f ⁻¹' Ioc j N)
     (min_le_left _ _).trans $ add_le_add_right hx.1.le _
 ... = ∫⁻ x in ⋃ i ∈ range N, f ⁻¹' Ioc i (i + 1), f x + 1 ∂μ :
   begin
-    rw [lintegral_bUnion_finset_ae],
+    rw [lintegral_bUnion_finset₀],
     { simp only [← nat.cast_succ],
       exact (hmono.pairwise_disjoint_on_Ioc_succ.mono
         (λ _ _ h, (h.preimage _).ae_disjoint)).set_pairwise _ },

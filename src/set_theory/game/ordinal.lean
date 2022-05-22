@@ -29,7 +29,7 @@ local infix ` ♯ `:65 := ordinal.nadd
 
 universe u
 
-open nat_ordinal pgame
+open pgame
 
 namespace ordinal
 

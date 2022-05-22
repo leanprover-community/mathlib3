@@ -117,13 +117,13 @@ We verify that the biproduct we've just defined is isomorphic to the `Module R` 
 on the dependent function type
 -/
 @[simps hom_apply] noncomputable
-def biproduct_iso_pi [decidable_eq J] [fintype J] (f : J → Module.{v} R) :
+def biproduct_iso_pi [fintype J] (f : J → Module.{v} R) :
   (⨁ f : Module.{v} R) ≅ Module.of R (Π j, f j) :=
 is_limit.cone_point_unique_up_to_iso
   (biproduct.is_limit f)
   (product_limit_cone f).is_limit
 
-@[simp, elementwise] lemma biproduct_iso_pi_inv_comp_π [decidable_eq J] [fintype J]
+@[simp, elementwise] lemma biproduct_iso_pi_inv_comp_π [fintype J]
   (f : J → Module.{v} R) (j : J) :
   (biproduct_iso_pi f).inv ≫ biproduct.π f j = (linear_map.proj j : (Π j, f j) →ₗ[R] f j) :=
 is_limit.cone_point_unique_up_to_iso_inv_comp _ _ (discrete.mk j)

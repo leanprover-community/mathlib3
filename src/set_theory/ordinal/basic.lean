@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Floris van Doorn
 -/
 import data.sum.order
-import order.succ_pred.basic
 import set_theory.cardinal.basic
 
 /-!
@@ -1288,7 +1287,7 @@ theorem ord_card_le (o : ordinal) : o.card.ord ≤ o :=
 ord_le.2 le_rfl
 
 lemma lt_ord_succ_card (o : ordinal) : o < o.card.succ.ord :=
-by { rw [lt_ord], apply cardinal.lt_succ_self }
+by { rw [lt_ord], apply cardinal.lt_succ }
 
 @[simp] theorem ord_le_ord {c₁ c₂} : ord c₁ ≤ ord c₂ ↔ c₁ ≤ c₂ :=
 by simp only [ord_le, card_ord]
@@ -1357,7 +1356,7 @@ theorem univ_id : univ.{u (u+1)} = #ordinal := lift_id _
 theorem univ_umax : univ.{u (max (u+1) v)} = univ.{u v} := congr_fun lift_umax _
 
 theorem lift_lt_univ (c : cardinal) : lift.{(u+1) u} c < univ.{u (u+1)} :=
-by simpa only [lift.principal_seg_coe, lift_ord, lift_succ, ord_le, succ_le] using le_of_lt
+by simpa only [lift.principal_seg_coe, lift_ord, lift_succ, ord_le, succ_le_iff] using le_of_lt
   (lift.principal_seg.{u (u+1)}.lt_top (succ c).ord)
 
 theorem lift_lt_univ' (c : cardinal) : lift.{(max (u+1) v) u} c < univ.{u v} :=

@@ -102,6 +102,42 @@ theorem lt_of_lf {x y : pgame} (ox : numeric x) (oy : numeric y) (h : x ⧏ y) :
 theorem lf_iff_lt {x y : pgame} (ox : numeric x) (oy : numeric y) : x ⧏ y ↔ x < y :=
 ⟨lt_of_lf ox oy, lf_of_lt⟩
 
+/-- Definition of `x ≤ y` on numeric pre-games, in terms of `<` -/
+theorem le_iff_forall_lt {x y : pgame} (ox : x.numeric) (oy : y.numeric) :
+  x ≤ y ↔ (∀ i, x.move_left i < y) ∧ ∀ j, x < y.move_right j :=
+begin
+  rw le_iff_forall_lf,
+  convert iff.rfl;
+  refine propext (forall_congr $ λ i, (lf_iff_lt _ _).symm);
+  apply_rules [numeric.move_left, numeric.move_right]
+end
+
+theorem le_of_forall_lt {x y : pgame} (ox : x.numeric) (oy : y.numeric) :
+  ((∀ i, x.move_left i < y) ∧ ∀ j, x < y.move_right j) → x ≤ y :=
+(le_iff_forall_lt ox oy).2
+
+/-- Definition of `x < y` on numeric pre-games, in terms of `≤` -/
+theorem lt_iff_forall_le {x y : pgame} (ox : x.numeric) (oy : y.numeric) :
+  x < y ↔ (∃ i, x ≤ y.move_left i) ∨ ∃ j, x.move_right j ≤ y :=
+by rw [←lf_iff_lt ox oy, lf_iff_forall_le]
+
+theorem lt_of_forall_le {x y : pgame} (ox : x.numeric) (oy : y.numeric) :
+  ((∃ i, x ≤ y.move_left i) ∨ ∃ j, x.move_right j ≤ y) → x < y :=
+(lt_iff_forall_le ox oy).2
+
+/-- The definition of `x < y` on numeric pre-games, in terms of `<` two moves later. -/
+theorem lt_def {x y : pgame} (ox : x.numeric) (oy : y.numeric) : x < y ↔
+  (∃ i, (∀ i', x.move_left i' < y.move_left i)  ∧ ∀ j, x < (y.move_left i).move_right j) ∨
+   ∃ j, (∀ i, (x.move_right j).move_left i < y) ∧ ∀ j', x.move_right j < y.move_right j' :=
+begin
+  rw [←lf_iff_lt ox oy, lf_def],
+  convert iff.rfl;
+  ext;
+  convert iff.rfl;
+  refine propext (forall_congr $ λ i, lf_iff_lt _ _);
+  apply_rules [numeric.move_left, numeric.move_right]
+end
+
 theorem not_fuzzy {x y : pgame} (ox : numeric x) (oy : numeric y) : ¬ fuzzy x y :=
 λ h, not_lf.2 (le_of_lf ox oy (lf_of_fuzzy h)) h.2
 
@@ -132,27 +168,23 @@ begin
   rw lf_iff_forall_le at *,
   rcases hwx with ⟨ix, hix⟩|⟨jw, hjw⟩;
   rcases hyz with ⟨iz, hiz⟩|⟨jy, hjy⟩,
-  { left,
-    use (left_moves_add x z).symm (sum.inl ix),
-    simp only [add_move_left_inl],
+  { refine or.inl ⟨to_left_moves_add (sum.inl ix), _⟩,
+    rw add_move_left_inl,
     calc w + y ≤ move_left x ix + y : add_le_add_right hix _
             ... ≤ move_left x ix + move_left z iz : add_le_add_left hiz _
             ... ≤ move_left x ix + z : add_le_add_left (oz.move_left_le iz) _ },
-  { left,
-    use (left_moves_add x z).symm (sum.inl ix),
-    simp only [add_move_left_inl],
+  { refine or.inl ⟨to_left_moves_add (sum.inl ix), _⟩,
+    rw add_move_left_inl,
     calc w + y ≤ move_left x ix + y : add_le_add_right hix _
             ... ≤ move_left x ix + move_right y jy : add_le_add_left (oy.le_move_right jy) _
             ... ≤ move_left x ix + z : add_le_add_left hjy _ },
-  { right,
-    use (right_moves_add w y).symm (sum.inl jw),
-    simp only [add_move_right_inl],
+  { refine or.inr ⟨to_right_moves_add (sum.inl jw), _⟩,
+    rw add_move_right_inl,
     calc move_right w jw + y ≤ x + y : add_le_add_right hjw _
             ... ≤ x + move_left z iz : add_le_add_left hiz _
             ... ≤ x + z : add_le_add_left (oz.move_left_le iz) _ },
-  { right,
-    use (right_moves_add w y).symm (sum.inl jw),
-    simp only [add_move_right_inl],
+  { refine or.inr ⟨to_right_moves_add (sum.inl jw), _⟩,
+    rw add_move_right_inl,
     calc move_right w jw + y ≤ x + y : add_le_add_right hjw _
             ... ≤ x + move_right y jy : add_le_add_left (oy.le_move_right jy) _
             ... ≤ x + z : add_le_add_left hjy _ },

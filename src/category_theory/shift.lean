@@ -262,7 +262,6 @@ lemma shift_equiv_triangle (n : A) (X : C) :
 (add_neg_equiv (shift_monoidal_functor C A) n).functor_unit_iso_comp X
 
 section
--- local attribute [simp] eq_to_hom_map
 local attribute [reducible] discrete.add_monoidal
 
 lemma shift_shift_neg_hom_shift (n : A) (X : C) :

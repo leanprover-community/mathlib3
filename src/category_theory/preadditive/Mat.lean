@@ -209,7 +209,7 @@ end Mat_
 namespace functor
 variables {C} {D : Type*} [category.{v₁} D] [preadditive D]
 
-local attribute [simp] Mat_.id_apply
+local attribute [simp] Mat_.id_apply eq_to_hom_map
 
 /--
 A functor induces a functor of matrix categories.

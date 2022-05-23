@@ -227,7 +227,7 @@ by rw [nadd_comm, nadd_nat]
 
 theorem add_le_nadd : a + b ≤ a ♯ b :=
 begin
-  apply ordinal.limit_rec_on b,
+  apply b.limit_rec_on,
   { simp },
   { intros c h,
     rwa [add_succ, nadd_succ, succ_le_succ] },

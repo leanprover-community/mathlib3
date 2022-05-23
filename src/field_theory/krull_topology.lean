@@ -537,42 +537,7 @@ end
 lemma top_group_map_nhds_eq {G : Type*} [group G] [topological_space G]
 [topological_group G] (g x : G) :
 filter.map (λ y, g * y) (nhds x) = nhds (g * x) :=
-begin
-  ext,
-  split,
-  { intro h,
-    rw [filter.mem_map, mem_nhds_iff] at h,
-    rcases h with ⟨U, h_subset, h_open, hxU⟩,
-    rw mem_nhds_iff,
-    use left_coset g U,
-    split,
-    { rw ← set.image_subset_iff at h_subset,
-      exact h_subset },
-    refine ⟨_, ⟨x, ⟨hxU, rfl⟩⟩⟩,
-    apply is_open_map_mul_left g,
-    exact h_open },
-  { intro h,
-    rw mem_nhds_iff at h,
-    rcases h with ⟨U, h_subset, h_open, hgxU⟩,
-    rw [filter.mem_map, mem_nhds_iff],
-    use left_coset g⁻¹ U,
-    split,
-    { rw ← set.image_subset_iff,
-      have h : (λ (y : G), g * y) '' left_coset g⁻¹ U = U,
-      { ext a,
-        refine ⟨_, λ ha, ⟨g⁻¹ * a, ⟨a, ha, rfl⟩, by simp⟩⟩,
-        rintro ⟨b, ⟨c, hcU, hcb⟩, hba⟩,
-        change g⁻¹ * c = b at hcb,
-        change g * b = a at hba,
-        rw [← hcb, ← mul_assoc, mul_right_inv, one_mul] at hba,
-        rw ← hba,
-        exact hcU },
-      rw h,
-      exact h_subset },
-    refine ⟨_, ⟨g * x, hgxU, by simp⟩⟩,
-    apply is_open_map_mul_left g⁻¹,
-    exact h_open },
-end
+map_mul_left_nhds g x
 
 
 lemma ultrafilter_converges_to_glued_equiv (h_int : algebra.is_integral K L)

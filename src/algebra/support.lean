@@ -184,7 +184,7 @@ section division_monoid
 variables [division_monoid G] (f g : α → G)
 
 @[simp, to_additive]
-lemma mul_support_inv : mul_support (λ x, (f x)⁻¹) = mul_support f := ext $ λ x, inv_ne_one
+lemma mul_support_inv : mul_support (λ x, (f x)⁻¹) = mul_support f := ext $ λ _, inv_ne_one
 
 @[simp, to_additive] lemma mul_support_inv' : mul_support f⁻¹ = mul_support f := mul_support_inv f
 
@@ -194,7 +194,7 @@ mul_support_binop_subset (λ a b, a * b⁻¹) (by simp) f g
 
 @[to_additive] lemma mul_support_div :
   mul_support (λ x, f x / g x) ⊆ mul_support f ∪ mul_support g :=
-mul_support_binop_subset (/) (by simp only [one_div, inv_one]) f g
+mul_support_binop_subset (/) one_div_one f g
 
 end division_monoid
 

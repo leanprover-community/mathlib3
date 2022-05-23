@@ -390,13 +390,15 @@ begin
     (p.prod_equiv_of_is_compl f.ker h.is_compl).surjective).1 _,
   ext,
   { simp only [coe_comp, linear_equiv.coe_to_linear_map, coe_inl, function.comp_app,
-  linear_equiv.of_top_apply, linear_equiv.of_injective_apply, coprod_apply, submodule.coe_subtype,
-  coe_zero, add_zero, prod_equiv_of_is_compl_symm_apply_left, prod_map_apply, id_coe, id.def,
-  zero_apply, coe_prod_equiv_of_is_compl', h.map_id x x.2], },
-  {simp only [coe_comp, linear_equiv.coe_to_linear_map, coe_inr, function.comp_app,
-  linear_equiv.of_top_apply, linear_equiv.of_injective_apply, coprod_apply, submodule.coe_subtype,
-  coe_zero, zero_add, map_coe_ker, prod_equiv_of_is_compl_symm_apply_right, prod_map_apply, id_coe,
-  id.def, zero_apply, coe_prod_equiv_of_is_compl'], }
+      linear_equiv.of_top_apply, linear_equiv.of_injective_apply, coprod_apply,
+      submodule.coe_subtype, add_submonoid_class.coe_zero, add_zero,
+      prod_equiv_of_is_compl_symm_apply_left, prod_map_apply, id_coe, id.def, zero_apply,
+      coe_prod_equiv_of_is_compl', h.map_id x x.2], },
+  { simp only [coe_comp, linear_equiv.coe_to_linear_map, coe_inr, function.comp_app,
+      linear_equiv.of_top_apply, linear_equiv.of_injective_apply, coprod_apply,
+      submodule.coe_subtype, add_submonoid_class.coe_zero, zero_add, map_coe_ker,
+      prod_equiv_of_is_compl_symm_apply_right, prod_map_apply, id_coe, id.def, zero_apply,
+      coe_prod_equiv_of_is_compl'], }
 end
 
 end is_proj

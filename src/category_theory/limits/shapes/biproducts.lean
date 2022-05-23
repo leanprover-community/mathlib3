@@ -1629,11 +1629,7 @@ lemma fst_of_is_colimit {X Y : C} {t : binary_bicone X Y} (ht : is_colimit t.to_
 begin
   refine ht.hom_ext (λ j, _),
   rw ht.fac,
-  rcases j with ⟨⟨⟩⟩,
-  all_goals { simp only [binary_bicone.to_cocone_ι_app_left, binary_bicone.inl_fst,
-      binary_cofan.mk_ι_app_left, binary_bicone.to_cocone_ι_app_right, binary_bicone.inr_fst,
-      binary_cofan.mk_ι_app_right] },
-  refl
+  rcases j with ⟨⟨⟩⟩; dsimp; simp
 end
 
 lemma snd_of_is_colimit {X Y : C} {t : binary_bicone X Y} (ht : is_colimit t.to_cocone) :
@@ -1641,11 +1637,7 @@ lemma snd_of_is_colimit {X Y : C} {t : binary_bicone X Y} (ht : is_colimit t.to_
 begin
   refine ht.hom_ext (λ j, _),
   rw ht.fac,
-  rcases j with ⟨⟨⟩⟩,
-  all_goals { simp only [binary_bicone.to_cocone_ι_app_left, binary_bicone.inl_snd,
-    binary_cofan.mk_ι_app_left, binary_bicone.to_cocone_ι_app_right, binary_bicone.inr_snd,
-    binary_cofan.mk_ι_app_right] },
-  refl
+  rcases j with ⟨⟨⟩⟩; dsimp; simp
 end
 
 /-- In a preadditive category, any binary bicone which is a colimit cocone is in fact a

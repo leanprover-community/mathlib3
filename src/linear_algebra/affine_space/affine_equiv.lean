@@ -325,6 +325,12 @@ def const_vadd_hom : multiplicative V₁ →* P₁ ≃ᵃ[k] P₁ :=
   map_one' := const_vadd_zero _ _,
   map_mul' := const_vadd_add _ _ }
 
+lemma const_vadd_nsmul (n : ℕ) (v : V₁) : const_vadd k P₁ (n • v) = (const_vadd k P₁ v)^n :=
+(const_vadd_hom k P₁).map_pow _ _
+
+lemma const_vadd_zsmul (z : ℤ) (v : V₁) : const_vadd k P₁ (z • v) = (const_vadd k P₁ v)^z :=
+(const_vadd_hom k P₁).map_zpow _ _
+
 section homothety
 
 omit V₁

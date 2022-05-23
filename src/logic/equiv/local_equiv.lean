@@ -203,7 +203,7 @@ instance inhabited_of_empty [is_empty α] [is_empty β] : inhabited (local_equiv
 ⟨((equiv.equiv_empty α).trans (equiv.equiv_empty β).symm).to_local_equiv⟩
 
 /-- Create a copy of a `local_equiv` providing better definitional equalities. -/
-@[simps (mfld_cfg)]
+@[simps {fully_applied := ff}]
 def copy (e : local_equiv α β) (f : α → β) (hf : ⇑e = f) (g : β → α) (hg : ⇑e.symm = g)
   (s : set α) (hs : e.source = s) (t : set β) (ht : e.target = t) :
   local_equiv α β :=
@@ -269,7 +269,7 @@ lemma symm_maps_to (h : e.is_image s t) : maps_to e.symm (e.target ∩ t) (e.sou
 h.symm.maps_to
 
 /-- Restrict a `local_equiv` to a pair of corresponding sets. -/
-@[simps (mfld_cfg)] def restr (h : e.is_image s t) : local_equiv α β :=
+@[simps {fully_applied := ff}] def restr (h : e.is_image s t) : local_equiv α β :=
 { to_fun := e,
   inv_fun := e.symm,
   source := e.source ∩ s,
@@ -689,7 +689,7 @@ end prod
 sends `e.source ∩ s` to `e.target ∩ t` using `e` and `e'.source \ s` to `e'.target \ t` using `e'`,
 and similarly for the inverse function. The definition assumes `e.is_image s t` and
 `e'.is_image s t`. -/
-@[simps (mfld_cfg)] def piecewise (e e' : local_equiv α β) (s : set α) (t : set β)
+@[simps {fully_applied := ff}] def piecewise (e e' : local_equiv α β) (s : set α) (t : set β)
   [∀ x, decidable (x ∈ s)] [∀ y, decidable (y ∈ t)] (H : e.is_image s t) (H' : e'.is_image s t) :
   local_equiv α β :=
 { to_fun := s.piecewise e e',
@@ -710,7 +710,8 @@ rfl
 /-- Combine two `local_equiv`s with disjoint sources and disjoint targets. We reuse
 `local_equiv.piecewise`, then override `source` and `target` to ensure better definitional
 equalities. -/
-@[simps (mfld_cfg)] def disjoint_union (e e' : local_equiv α β) (hs : disjoint e.source e'.source)
+@[simps {fully_applied := ff}]
+def disjoint_union (e e' : local_equiv α β) (hs : disjoint e.source e'.source)
   (ht : disjoint e.target e'.target) [∀ x, decidable (x ∈ e.source)]
   [∀ y, decidable (y ∈ e.target)] :
   local_equiv α β :=
@@ -730,7 +731,7 @@ section pi
 variables {ι : Type*} {αi βi : ι → Type*} (ei : Π i, local_equiv (αi i) (βi i))
 
 /-- The product of a family of local equivs, as a local equiv on the pi type. -/
-@[simps (mfld_cfg)] protected def pi : local_equiv (Π i, αi i) (Π i, βi i) :=
+@[simps {fully_applied := ff}] protected def pi : local_equiv (Π i, αi i) (Π i, βi i) :=
 { to_fun := λ f i, ei i (f i),
   inv_fun := λ f i, (ei i).symm (f i),
   source := pi univ (λ i, (ei i).source),
@@ -749,7 +750,7 @@ namespace set
 -- All arguments are explicit to avoid missing information in the pretty printer output
 /-- A bijection between two sets `s : set α` and `t : set β` provides a local equivalence
 between `α` and `β`. -/
-@[simps (mfld_cfg)] noncomputable def bij_on.to_local_equiv [nonempty α] (f : α → β)
+@[simps {fully_applied := ff}] noncomputable def bij_on.to_local_equiv [nonempty α] (f : α → β)
   (s : set α) (t : set β) (hf : bij_on f s t) :
   local_equiv α β :=
 { to_fun := f,

@@ -82,15 +82,11 @@ comap_lift'_eq
 
 lemma small_sets_infi {f : ι → filter α} :
   (infi f).small_sets = (⨅ i, (f i).small_sets) :=
-begin
-  casesI is_empty_or_nonempty ι,
-  { rw [infi_of_empty f, infi_of_empty, small_sets_top] },
-  { exact (lift'_infi $ λ _ _, (powerset_inter _ _).symm) },
-end
+lift'_infi_of_map_univ powerset_inter powerset_univ
 
 lemma small_sets_inf (l₁ l₂ : filter α) :
   (l₁ ⊓ l₂).small_sets = l₁.small_sets ⊓ l₂.small_sets :=
-lift'_inf _ _ $ λ _ _, (powerset_inter _ _).symm
+lift'_inf _ _ powerset_inter
 
 instance small_sets_ne_bot (l : filter α) : ne_bot l.small_sets :=
 (lift'_ne_bot_iff monotone_powerset).2 $ λ _ _, powerset_nonempty

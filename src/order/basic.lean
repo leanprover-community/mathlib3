@@ -3,7 +3,7 @@ Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Mario Carneiro
 -/
-import data.prod
+import data.prod.basic
 import data.subtype
 
 /-!
@@ -564,7 +564,7 @@ end subtype
 /-!
 ### Pointwise order on `α × β`
 
-The lexicographic order is defined in `order.lexicographic`, and the instances are available via the
+The lexicographic order is defined in `data.prod.lex`, and the instances are available via the
 type synonym `α ×ₗ β = α × β`.
 -/
 

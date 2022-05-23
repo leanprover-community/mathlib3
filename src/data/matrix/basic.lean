@@ -1145,15 +1145,33 @@ by { ext i, simp only [mul_vec, dot_product, finset.smul_sum, pi.smul_apply, mul
 end non_unital_non_assoc_semiring
 
 section non_unital_semiring
-variables [non_unital_semiring α] [fintype n]
+variables [non_unital_semiring α]
 
-@[simp] lemma vec_mul_vec_mul [fintype m] (v : m → α) (M : matrix m n α) (N : matrix n o α) :
+@[simp] lemma vec_mul_vec_mul [fintype n] [fintype m]
+  (v : m → α) (M : matrix m n α) (N : matrix n o α) :
   vec_mul (vec_mul v M) N = vec_mul v (M ⬝ N) :=
 by { ext, apply dot_product_assoc }
 
-@[simp] lemma mul_vec_mul_vec [fintype o] (v : o → α) (M : matrix m n α) (N : matrix n o α) :
+@[simp] lemma mul_vec_mul_vec [fintype n] [fintype o]
+  (v : o → α) (M : matrix m n α) (N : matrix n o α) :
   mul_vec M (mul_vec N v) = mul_vec (M ⬝ N) v :=
 by { ext, symmetry, apply dot_product_assoc }
+
+lemma star_mul_vec [fintype n] [star_ring α] (M : matrix m n α) (v : n → α) :
+  star (M.mul_vec v) = vec_mul (star v) (Mᴴ) :=
+funext $ λ i, (star_dot_product_star _ _).symm
+
+lemma star_vec_mul [fintype m] [star_ring α] (M : matrix m n α) (v : m → α) :
+  star (M.vec_mul v) = (Mᴴ).mul_vec (star v) :=
+funext $ λ i, (star_dot_product_star _ _).symm
+
+lemma mul_vec_conj_transpose [fintype m] [star_ring α] (A : matrix m n α) (x : m → α) :
+  mul_vec Aᴴ x = star (vec_mul (star x) A) :=
+funext $ λ i, star_dot_product _ _
+
+lemma vec_mul_conj_transpose [fintype n] [star_ring α] (A : matrix m n α) (x : n → α) :
+  vec_mul x Aᴴ = star (mul_vec A (star x)) :=
+funext $ λ i, dot_product_star _ _
 
 end non_unital_semiring
 
@@ -1185,13 +1203,9 @@ by { ext, apply dot_product_neg }
 
 end non_unital_non_assoc_ring
 
-section comm_semiring
+section non_unital_comm_semiring
 
-variables [comm_semiring α]
-
-lemma mul_vec_smul_assoc [fintype n] (A : matrix m n α) (b : n → α) (a : α) :
-  A.mul_vec (a • b) = a • (A.mul_vec b) :=
-by { ext, apply dot_product_smul }
+variables [non_unital_comm_semiring α]
 
 lemma mul_vec_transpose [fintype m] (A : matrix m n α) (x : m → α) :
   mul_vec Aᵀ x = vec_mul x A :=
@@ -1200,6 +1214,16 @@ by { ext, apply dot_product_comm }
 lemma vec_mul_transpose [fintype n] (A : matrix m n α) (x : n → α) :
   vec_mul x Aᵀ = mul_vec A x :=
 by { ext, apply dot_product_comm }
+
+end non_unital_comm_semiring
+
+section comm_semiring
+
+variables [comm_semiring α]
+
+lemma mul_vec_smul_assoc [fintype n] (A : matrix m n α) (b : n → α) (a : α) :
+  A.mul_vec (a • b) = a • (A.mul_vec b) :=
+by { ext, apply dot_product_smul }
 
 end comm_semiring
 
@@ -1479,20 +1503,6 @@ instance [fintype n] [semiring α] [star_ring α] : star_ring (matrix n n α) :=
 /-- A version of `star_mul` for `⬝` instead of `*`. -/
 lemma star_mul [fintype n] [non_unital_semiring α] [star_ring α] (M N : matrix n n α) :
   star (M ⬝ N) = star N ⬝ star M := conj_transpose_mul _ _
-
-lemma star_mul_vec [fintype n] [semiring α] [star_ring α] (M : matrix n n α) (v : n → α) :
-  star (M.mul_vec v) = (star M).vec_mul (star v) :=
-begin
-  ext i,
-  calc star (M.mul_vec v) i = star (M i ⬝ᵥ v) :
-    by simp only [mul_vec, pi.star_apply]
-  ... = star v ⬝ᵥ star (λ j, M i j) :
-    by rw [← star_dot_product_star]
-  ... = star v ⬝ᵥ λ (i_1 : n), Mᴴ i_1 i :
-    by simp only [conj_transpose_apply, star]
-  ... = (star M).vec_mul (star v) i :
-    by simp only [vec_mul, (star_apply _ _ _).symm, conj_transpose_apply]
-end
 
 end star
 

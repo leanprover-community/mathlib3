@@ -95,7 +95,7 @@ begin
   dsimp,
   erw [PresheafedSpace.id_c_app, comap_id], swap,
   { rw [Spec.Top_map_id, topological_space.opens.map_id_obj_unop] },
-  simpa,
+  simpa [eq_to_hom_map],
 end
 
 lemma Spec.SheafedSpace_map_comp {R S T : CommRing} (f : R ⟶ S) (g : S ⟶ T) :

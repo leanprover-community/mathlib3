@@ -405,6 +405,12 @@ abbreviation fst (t : pullback_cone f g) : t.X ⟶ X := t.π.app walking_cospan.
 /-- The second projection of a pullback cone. -/
 abbreviation snd (t : pullback_cone f g) : t.X ⟶ Y := t.π.app walking_cospan.right
 
+@[simp] lemma condition_one (t : pullback_cone f g) : t.π.app walking_cospan.one = t.fst ≫ f :=
+begin
+  have w := t.π.naturality walking_cospan.hom.inl,
+  dsimp at w, simpa using w,
+end
+
 /-- This is a slightly more convenient method to verify that a pullback cone is a limit cone. It
     only asks for a proof of facts that carry any mathematical content -/
 def is_limit_aux (t : pullback_cone f g) (lift : Π (s : pullback_cone f g), s.X ⟶ t.X)
@@ -475,6 +481,19 @@ lemma mono_snd_of_is_pullback_of_mono {t : pullback_cone f g} (ht : is_limit t) 
 lemma mono_fst_of_is_pullback_of_mono {t : pullback_cone f g} (ht : is_limit t) [mono g] :
   mono t.fst :=
 ⟨λ W h k i, is_limit.hom_ext ht i (by simp [←cancel_mono g, ←t.condition, reassoc_of i])⟩
+
+/-- To construct an isomorphism of pullback cones, it suffices to construct an isomorphism
+of the cone points and check it commutes with `fst` and `snd`. -/
+def ext {s t : pullback_cone f g} (i : s.X ≅ t.X)
+  (w₁ : s.fst = i.hom ≫ t.fst) (w₂ : s.snd = i.hom ≫ t.snd) :
+  s ≅ t :=
+begin
+  apply cones.ext i,
+  rintro (⟨⟩|⟨⟨⟩⟩),
+  { rw [condition_one, condition_one, w₁, category.assoc], },
+  { exact w₁, },
+  { exact w₂, },
+end
 
 /-- If `t` is a limit pullback cone over `f` and `g` and `h : W ⟶ X` and `k : W ⟶ Y` are such that
     `h ≫ f = k ≫ g`, then we have `l : W ⟶ t.X` satisfying `l ≫ fst t = h` and `l ≫ snd t = k`.
@@ -583,6 +602,12 @@ abbreviation inl (t : pushout_cocone f g) : Y ⟶ t.X := t.ι.app walking_span.l
 /-- The second inclusion of a pushout cocone. -/
 abbreviation inr (t : pushout_cocone f g) : Z ⟶ t.X := t.ι.app walking_span.right
 
+@[simp] lemma condition_zero (t : pushout_cocone f g) : t.ι.app walking_span.zero = f ≫ t.inl :=
+begin
+  have w := t.ι.naturality walking_span.hom.fst,
+  dsimp at w, simpa using w.symm,
+end
+
 /-- This is a slightly more convenient method to verify that a pushout cocone is a colimit cocone.
     It only asks for a proof of facts that carry any mathematical content -/
 def is_colimit_aux (t : pushout_cocone f g) (desc : Π (s : pushout_cocone f g), t.X ⟶ s.X)
@@ -659,6 +684,19 @@ lemma epi_inr_of_is_pushout_of_epi {t : pushout_cocone f g} (ht : is_colimit t) 
 lemma epi_inl_of_is_pushout_of_epi {t : pushout_cocone f g} (ht : is_colimit t) [epi g] :
   epi t.inl :=
 ⟨λ W h k i, is_colimit.hom_ext ht i (by simp [←cancel_epi g, ←t.condition_assoc, i])⟩
+
+/-- To construct an isomorphism of pushout cocones, it suffices to construct an isomorphism
+of the cocone points and check it commutes with `inl` and `inr`. -/
+def ext {s t : pushout_cocone f g} (i : s.X ≅ t.X)
+  (w₁ : s.inl ≫ i.hom = t.inl) (w₂ : s.inr ≫ i.hom = t.inr) :
+  s ≅ t :=
+begin
+  apply cocones.ext i,
+  rintro (⟨⟩|⟨⟨⟩⟩),
+  { rw [condition_zero, condition_zero, category.assoc, w₁], },
+  { exact w₁, },
+  { exact w₂, },
+end
 
 /--
 This is a more convenient formulation to show that a `pushout_cocone` constructed using

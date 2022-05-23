@@ -730,6 +730,7 @@ end epi_mono
 
 /-- This functor `simplex_category ⥤ Cat` sends `[n]` (for `n : ℕ`)
 to the category attached to the ordered set `{0, 1, ..., n}` -/
+@[simps obj map]
 def to_Cat : simplex_category ⥤ Cat.{0} :=
 simplex_category.skeletal_functor ⋙ forget₂ NonemptyFinLinOrd LinearOrder ⋙
   forget₂ LinearOrder Lattice ⋙ forget₂ Lattice PartialOrder ⋙

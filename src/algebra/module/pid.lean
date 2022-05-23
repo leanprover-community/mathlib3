@@ -67,8 +67,6 @@ end split_exact
 variables {R : Type u} [comm_ring R] [is_domain R] [is_principal_ideal_ring R]
 variables {M : Type v} [add_comm_group M] [module R M]
 variables {N : Type (max u v)} [add_comm_group N] [module R N]
---lemma coe_eq_to_linear_map {M' : Type*} [add_comm_monoid M'] [module R M']
-  --(f : M ≃ₗ[R] M') : (f : M →ₗ[R] M') = f.to_linear_map := rfl
 
 open_locale direct_sum
 open submodule

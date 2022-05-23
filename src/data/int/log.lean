@@ -266,15 +266,7 @@ clog_of_right_le_zero _ le_rfl
 by rw [clog_of_one_le_right _ le_rfl, nat.ceil_one, nat.clog_one_right, int.coe_nat_zero]
 
 lemma clog_zpow {b : ℕ} (hb : 1 < b) (z : ℤ) : clog b (b ^ z : R) = z :=
-begin
-  obtain ⟨n, rfl | rfl⟩ := z.eq_coe_or_neg,
-  { rw [clog_of_one_le_right _ (one_le_zpow_of_nonneg _ $ int.coe_nat_nonneg _),
-      zpow_coe_nat, ←nat.cast_pow, nat.ceil_coe, nat.clog_pow _ _ hb],
-    exact_mod_cast hb.le, },
-  { rw [clog_of_right_le_one _ (zpow_le_one_of_nonpos _ $ neg_nonpos.mpr (int.coe_nat_nonneg _)),
-      zpow_neg, inv_inv, zpow_coe_nat, ←nat.cast_pow, nat.floor_coe, nat.log_pow hb],
-    exact_mod_cast hb.le, },
-end
+by rw [←neg_log_inv_eq_clog, ←zpow_neg, log_zpow hb, neg_neg]
 
 /-- `int.clog b` and `zpow b` (almost) form a Galois connection. -/
 lemma zpow_lt_iff_lt_clog {b : ℕ} (hb : 1 < b) {x : ℤ} {r : R} (hr : 0 < r) :

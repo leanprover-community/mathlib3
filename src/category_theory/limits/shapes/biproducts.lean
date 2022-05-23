@@ -59,6 +59,7 @@ universes v u
 
 open category_theory
 open category_theory.functor
+open_locale classical
 
 namespace category_theory
 
@@ -95,7 +96,6 @@ namespace bicone
 local attribute [tidy] tactic.discrete_cases
 
 /-- Extract the cone from a bicone. -/
-@[simps]
 def to_cone (B : bicone F) : cone (discrete.functor F) :=
 { X := B.X,
   π := { app := λ j, B.π j.as }, }
@@ -105,7 +105,6 @@ def to_cone (B : bicone F) : cone (discrete.functor F) :=
 @[simp] lemma to_cone_π_app (B : bicone F) (j : J) : B.to_cone.π.app ⟨j⟩ = B.π j := rfl
 
 /-- Extract the cocone from a bicone. -/
-@[simps]
 def to_cocone (B : bicone F) : cocone (discrete.functor F) :=
 { X := B.X,
   ι := { app := λ j, B.ι j.as }, }

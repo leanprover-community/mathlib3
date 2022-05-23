@@ -271,9 +271,6 @@ instance : has_neg surreal  :=
   (λ x ox, ⟦⟨-x, ox.neg⟩⟧)
   (λ _ _ _ _ a, quotient.sound (pgame.neg_congr a))⟩
 
-noncomputable def _root_.ordinal.to_surreal (o : ordinal) : surreal :=
-mk _ (numeric_to_pgame o)
-
 instance : ordered_add_comm_group surreal :=
 { add               := (+),
   add_assoc         := by { rintros ⟨_⟩ ⟨_⟩ ⟨_⟩, exact quotient.sound add_assoc_equiv },
@@ -297,9 +294,28 @@ noncomputable instance : linear_ordered_add_comm_group surreal :=
   decidable_le := classical.dec_rel _,
   ..surreal.ordered_add_comm_group }
 
+end surreal
+
+open surreal
+
+namespace ordinal
+
+/-- Converts an ordinal into the corresponding surreal. -/
+noncomputable def to_surreal (o : ordinal) : surreal :=
+mk _ (numeric_to_pgame o)
+
+@[simp] theorem to_surreal_le_iff (a b : ordinal) : a.to_surreal ≤ b.to_surreal ↔ a ≤ b :=
+to_pgame_le_iff
+
+@[simp] theorem to_surreal_lt_iff (a b : ordinal) : a.to_surreal < b.to_surreal ↔ a < b :=
+to_pgame_lt_iff
+
+@[simp] theorem to_surreal_inj (a b : ordinal) : a.to_surreal = b.to_surreal ↔ a = b :=
+by { change ⟦_⟧ = ⟦_⟧ ↔ _, rw quotient.eq, exact to_pgame_equiv_iff }
+
+end ordinal
+
 -- We conclude with some ideas for further work on surreals; these would make fun projects.
 
 -- TODO define the inclusion of groups `surreal → game`
 -- TODO define the field structure on the surreals
-
-end surreal

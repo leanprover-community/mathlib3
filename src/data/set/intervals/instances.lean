@@ -27,6 +27,8 @@ The strongest typeclass provided on each interval is:
 * algebraic instances for `Ici 1`
 * algebraic instances for `(Ioo (-1) 1)ᶜ`
 * provide `has_distrib_neg` instances where applicable
+* Can we prove `set.Ioc.cancel_comm_monoid` for `is_domain α`?
+
 -/
 
 variables {α : Type*} [ordered_semiring α]

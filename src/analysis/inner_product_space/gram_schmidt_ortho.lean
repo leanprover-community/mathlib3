@@ -244,7 +244,7 @@ theorem gram_schmidt_fin_pairwise_orthogonal {m : ℕ} (f : fin m → E) :
 open submodule set order
 
 /-- `gram_schmidt_fin` preserves span of vectors. -/
-lemma span_gram_schmidt_fin {m : ℕ} (f : fin m → E) (c : ℕ) :
+lemma span_gram_schmidt_fin {m : ℕ} (f : fin m → E) :
   span 𝕜 (range (gram_schmidt_fin 𝕜 f)) = span 𝕜 (range f) :=
 begin
   cases m,

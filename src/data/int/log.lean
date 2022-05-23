@@ -38,11 +38,11 @@ def digits (b : ℕ) (q : ℚ) (n : ℕ) : ℕ :=
 * For `int.log`:
   * `int.zpow_log_le_self`, `int.lt_zpow_succ_log_self`: the bounds formed by `int.log`,
     `(b : R) ^ log b r ≤ r < (b : R) ^ (log b r + 1)`.
-  * `int.zpow_le_iff_le_log`: the galois almost-connection.
+  * `int.zpow_log_gci`: the galois coinsertion between `zpow` and `int.log`.
 * For `int.clog`:
   * `int.zpow_pred_clog_lt_self`, `int.self_le_zpow_clog`: the bounds formed by `int.clog`,
     `(b : R) ^ (clog b r - 1) < r ≤ (b : R) ^ clog b r`.
-  * `int.le_zpow_iff_clog_le`: the galois almost-connection.
+  * `int.clog_zpow_gi`:  the galois insertion between `int.clog` and `zpow`.
 * `int.neg_log_inv_eq_clog`, `int.neg_clog_inv_eq_log`: the link between the two definitions.
 
 -/
@@ -127,6 +127,17 @@ log_of_right_le_zero b le_rfl
 @[simp] lemma log_one_right (b : ℕ) : log b (1 : R) = 0 :=
 by rw [log_of_one_le_right _ le_rfl, nat.floor_one, nat.log_one_right, int.coe_nat_zero]
 
+lemma log_zpow {b : ℕ} (hb : 1 < b) (z : ℤ) : log b (b ^ z : R) = z :=
+begin
+  obtain ⟨n, rfl | rfl⟩ := z.eq_coe_or_neg,
+  { rw [log_of_one_le_right _ (one_le_zpow_of_nonneg _ $ int.coe_nat_nonneg _),
+      zpow_coe_nat, ←nat.cast_pow, nat.floor_coe, nat.log_pow hb],
+    exact_mod_cast hb.le, },
+  { rw [log_of_right_le_one _ (zpow_le_one_of_nonpos _ $ neg_nonpos.mpr (int.coe_nat_nonneg _)),
+      zpow_neg, inv_inv, zpow_coe_nat, ←nat.cast_pow, nat.ceil_coe, nat.clog_pow _ _ hb],
+    exact_mod_cast hb.le, },
+end
+
 /-- `zpow b` and `int.log b` (almost) form a Galois connection. -/
 lemma zpow_le_iff_le_log {b : ℕ} (hb : 1 < b) {x : ℤ} {r : R} (hr : 0 < r) :
   (b : R) ^ x ≤ r ↔ x ≤ log b r :=
@@ -157,18 +168,22 @@ begin
 end
 
 variables (R)
-/-- Over suitable subtypes, `zpow` and `int.log` form a galois connection -/
-lemma zpow_log_gc {b : ℕ} (hb : 1 < b) :
-  galois_connection
+
+/-- Over suitable subtypes, `zpow` and `int.log` form a galois coinsertion -/
+def zpow_log_gci {b : ℕ} (hb : 1 < b) :
+  galois_coinsertion
     (λ z : ℤ, subtype.mk ((b : R) ^ z) $ zpow_pos_of_pos (by exact_mod_cast zero_lt_one.trans hb) z)
-    (λ r : {r : R // 0 < r }, int.log b (r : R)) :=
-λ x r, zpow_le_iff_le_log hb r.prop
+    (λ r : set.Ioi (0 : R), int.log b (r : R)) :=
+{ choice := λ r hr, log b (r : R),
+  gc := λ x r, zpow_le_iff_le_log hb r.prop,
+  u_l_le := λ z, (log_zpow hb _).le,
+  choice_eq := λ _ _, rfl }
 variables {R}
 
 /-- `zpow b` and `int.log b` (almost) form a Galois connection. -/
 lemma lt_zpow_iff_log_lt {b : ℕ} (hb : 1 < b) {x : ℤ} {r : R} (hr : 0 < r) :
   r < (b : R) ^ x ↔ log b r < x :=
-@galois_connection.lt_iff_lt _ _ _ _ _ _ (zpow_log_gc R hb) x ⟨r, hr⟩
+@galois_connection.lt_iff_lt _ _ _ _ _ _ (zpow_log_gci R hb).gc x ⟨r, hr⟩
 
 /-- The least power of `b` such that `r ≤ b ^ log b r`. -/
 def clog (b : ℕ) (r : R) : ℤ :=
@@ -250,6 +265,17 @@ clog_of_right_le_zero _ le_rfl
 @[simp] lemma clog_one_right (b : ℕ) : clog b (1 : R) = 0 :=
 by rw [clog_of_one_le_right _ le_rfl, nat.ceil_one, nat.clog_one_right, int.coe_nat_zero]
 
+lemma clog_zpow {b : ℕ} (hb : 1 < b) (z : ℤ) : clog b (b ^ z : R) = z :=
+begin
+  obtain ⟨n, rfl | rfl⟩ := z.eq_coe_or_neg,
+  { rw [clog_of_one_le_right _ (one_le_zpow_of_nonneg _ $ int.coe_nat_nonneg _),
+      zpow_coe_nat, ←nat.cast_pow, nat.ceil_coe, nat.clog_pow _ _ hb],
+    exact_mod_cast hb.le, },
+  { rw [clog_of_right_le_one _ (zpow_le_one_of_nonpos _ $ neg_nonpos.mpr (int.coe_nat_nonneg _)),
+      zpow_neg, inv_inv, zpow_coe_nat, ←nat.cast_pow, nat.floor_coe, nat.log_pow hb],
+    exact_mod_cast hb.le, },
+end
+
 /-- `int.clog b` and `zpow b` (almost) form a Galois connection. -/
 lemma zpow_lt_iff_lt_clog {b : ℕ} (hb : 1 < b) {x : ℤ} {r : R} (hr : 0 < r) :
   (b : R) ^ x < r ↔ x < clog b r :=
@@ -269,12 +295,15 @@ begin
 end
 
 variables (R)
-/-- Over suitable subtypes, `int.clog` and `zpow` form a galois connection -/
-lemma clog_zpow_gc {b : ℕ} (hb : 1 < b) :
-  galois_connection
-    (λ r : {r : R // 0 < r }, int.clog b (r : R))
+/-- Over suitable subtypes, `int.clog` and `zpow` form a galois insertion -/
+def clog_zpow_gi {b : ℕ} (hb : 1 < b) :
+  galois_insertion
+    (λ r : set.Ioi (0 : R), int.clog b (r : R))
     (λ z : ℤ, ⟨(b : R) ^ z, zpow_pos_of_pos (by exact_mod_cast zero_lt_one.trans hb) z⟩) :=
-λ r x, (le_zpow_iff_clog_le hb r.prop).symm
+{ choice := _,
+  gc := λ r x, (le_zpow_iff_clog_le hb r.prop).symm,
+  le_l_u := λ x, (clog_zpow hb _).ge,
+  choice_eq := λ _ _, rfl }
 variables {R}
 
 end int

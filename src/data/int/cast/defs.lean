@@ -27,7 +27,7 @@ set_option old_structure_cmd true
 attribute [simp] int.of_nat_eq_coe
 
 /-- Default value for `add_group_with_one.int_cast`. -/
-protected def int.cast_def {R : Type u} [add_monoid_with_one R] [has_neg R] : ℤ → R
+protected def int.cast_def {R : Type u} [has_nat_cast R] [has_neg R] : ℤ → R
 | (n : ℕ) := n
 | -[1+ n] := -(n+1 : ℕ)
 

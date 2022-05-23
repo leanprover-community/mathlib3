@@ -182,17 +182,12 @@ by rw [←of_finsupp_one, of_finsupp_inj]
 
 instance : inhabited R[X] := ⟨0⟩
 
-instance : add_comm_monoid R[X] :=
-to_finsupp_injective.add_comm_monoid to_finsupp to_finsupp_zero to_finsupp_add
-  (λ _ _, to_finsupp_smul _ _)
-
-instance : add_monoid_with_one R[X] :=
-{ one := 1, .. polynomial.add_comm_monoid }
+instance : has_nat_cast R[X] := ⟨λ n, polynomial.of_finsupp n⟩
 
 instance : semiring R[X] :=
 function.injective.semiring to_finsupp to_finsupp_injective
   to_finsupp_zero to_finsupp_one to_finsupp_add to_finsupp_mul
-  (λ _ _, to_finsupp_smul _ _) to_finsupp_pow
+  (λ _ _, to_finsupp_smul _ _) to_finsupp_pow (λ _, rfl)
 
 instance {S} [monoid S] [distrib_mul_action S R] : distrib_mul_action S R[X] :=
 function.injective.distrib_mul_action
@@ -392,7 +387,6 @@ begin
   simp only [X, ←of_finsupp_single, ←of_finsupp_mul, linear_map.coe_mk],
   ext,
   simp [add_monoid_algebra.mul_apply, sum_single_index, add_comm],
-  congr; ext; congr,
 end
 
 lemma X_pow_mul {n : ℕ} : X^n * p = p * X^n :=
@@ -755,17 +749,19 @@ variables [comm_semiring R]
 instance : comm_semiring R[X] :=
 function.injective.comm_semiring to_finsupp to_finsupp_injective
   to_finsupp_zero to_finsupp_one to_finsupp_add to_finsupp_mul
-  (λ _ _, to_finsupp_smul _ _) to_finsupp_pow
+  (λ _ _, to_finsupp_smul _ _) to_finsupp_pow (λ _, rfl)
 
 end comm_semiring
 
 section ring
 variables [ring R]
 
+instance : has_int_cast R[X] := ⟨λ n, of_finsupp n⟩
+
 instance : ring R[X] :=
 function.injective.ring to_finsupp to_finsupp_injective
   to_finsupp_zero to_finsupp_one to_finsupp_add to_finsupp_mul to_finsupp_neg to_finsupp_sub
-  (λ _ _, to_finsupp_smul _ _) (λ _ _, to_finsupp_smul _ _) to_finsupp_pow
+  (λ _ _, to_finsupp_smul _ _) (λ _ _, to_finsupp_smul _ _) to_finsupp_pow (λ _, rfl) (λ _, rfl)
 
 @[simp] lemma coeff_neg (p : R[X]) (n : ℕ) : coeff (-p) n = -coeff p n :=
 by { rcases p, rw [←of_finsupp_neg, coeff, coeff, finsupp.neg_apply] }
@@ -789,7 +785,7 @@ end ring
 instance [comm_ring R] : comm_ring R[X] :=
 function.injective.comm_ring to_finsupp to_finsupp_injective
   to_finsupp_zero to_finsupp_one to_finsupp_add to_finsupp_mul to_finsupp_neg to_finsupp_sub
-  (λ _ _, to_finsupp_smul _ _) (λ _ _, to_finsupp_smul _ _) to_finsupp_pow
+  (λ _ _, to_finsupp_smul _ _) (λ _ _, to_finsupp_smul _ _) to_finsupp_pow (λ _, rfl) (λ _, rfl)
 
 section nonzero_semiring
 

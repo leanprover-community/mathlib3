@@ -95,6 +95,13 @@ instance [nontrivial R] : nontrivial (self_adjoint R) := ⟨⟨0, 1, subtype.ne_
 
 lemma one_mem : (1 : R) ∈ self_adjoint R := by simp only [mem_iff, star_one]
 
+instance : has_nat_cast (self_adjoint R) :=
+⟨λ n, ⟨n, by induction n; simp [zero_mem, add_mem, one_mem, *]⟩⟩
+
+instance : has_int_cast (self_adjoint R) :=
+⟨λ n, ⟨n, by cases n; simp [add_mem, one_mem,
+  show ↑n ∈ self_adjoint R, from (n : self_adjoint R).2]⟩⟩
+
 lemma bit1_mem {x : R} (hx : x ∈ self_adjoint R) : bit1 x ∈ self_adjoint R :=
 by simp only [mem_iff, star_bit1, mem_iff.mp hx]
 
@@ -126,9 +133,10 @@ instance : has_mul (self_adjoint R) :=
 @[simp, norm_cast] lemma coe_mul (x y : self_adjoint R) : ↑(x * y) = (x : R) * y := rfl
 
 instance : comm_ring (self_adjoint R) :=
-function.injective.comm_ring' _ subtype.coe_injective
+function.injective.comm_ring _ subtype.coe_injective
   (self_adjoint R).coe_zero coe_one (self_adjoint R).coe_add coe_mul (self_adjoint R).coe_neg
   (self_adjoint R).coe_sub (self_adjoint R).coe_nsmul (self_adjoint R).coe_zsmul coe_pow
+  (λ _, rfl) (λ _, rfl)
 
 end comm_ring
 
@@ -155,7 +163,7 @@ instance : field (self_adjoint R) :=
 function.injective.field _ subtype.coe_injective
   (self_adjoint R).coe_zero coe_one (self_adjoint R).coe_add coe_mul (self_adjoint R).coe_neg
   (self_adjoint R).coe_sub coe_inv coe_div (self_adjoint R).coe_nsmul (self_adjoint R).coe_zsmul
-  coe_pow coe_zpow
+  coe_pow coe_zpow (λ _, rfl) (λ _, rfl)
 
 end field
 

@@ -190,6 +190,9 @@ instance : has_neg (𝕎 R) :=
 instance has_nat_pow : has_pow (𝕎 R) ℕ :=
 ⟨λ x n, eval (witt_pow p n) ![x]⟩
 
+instance : has_nat_cast (𝕎 R) := ⟨nat.unary_cast⟩
+instance : has_int_cast (𝕎 R) := ⟨int.cast_def⟩
+
 end ring_operations
 
 section witt_structure_simplifications
@@ -221,7 +224,7 @@ begin
     bind₁_X_right, bind₁_C_right],
   rw [sub_mul, one_mul],
   rw [finset.sum_eq_single 0],
-  { simp only [inv_of_eq_inv, one_mul, inv_pow₀, tsub_zero, ring_hom.map_one, pow_zero],
+  { simp only [inv_of_eq_inv, one_mul, inv_pow, tsub_zero, ring_hom.map_one, pow_zero],
     simp only [one_pow, one_mul, X_in_terms_of_W_zero, sub_self, bind₁_X_right] },
   { intros i hin hi0,
     rw [finset.mem_range] at hin,

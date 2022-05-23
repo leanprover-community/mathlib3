@@ -5,7 +5,6 @@ Authors: Fox Thomson
 -/
 import set_theory.game.winner
 import tactic.nth_rewrite.default
-import tactic.equiv_rw
 
 /-!
 # Basic definitions about impartial (pre-)games
@@ -78,17 +77,16 @@ instance impartial_add : ∀ (G H : pgame) [G.impartial] [H.impartial], (G + H).
 begin
   introsI hG hH,
   rw impartial_def,
-  split,
-  { apply equiv_trans _ (neg_add_relabelling G H).equiv.symm,
-    exact add_congr (neg_equiv_self _) (neg_equiv_self _) },
-  split,
-  all_goals
-  { intro i,
-    equiv_rw pgame.left_moves_add G H at i <|> equiv_rw pgame.right_moves_add G H at i,
-    cases i },
-  all_goals
-  { simp only [add_move_left_inl, add_move_right_inl, add_move_left_inr, add_move_right_inr],
-    exact impartial_add _ _ }
+  refine ⟨equiv_trans (add_congr (neg_equiv_self _) (neg_equiv_self _))
+    (neg_add_relabelling _ _).equiv.symm, λ i, _, λ i, _⟩,
+  { rcases left_moves_add_cases i with ⟨j, rfl⟩ | ⟨j, rfl⟩,
+    all_goals
+    { simp only [add_move_left_inl, add_move_left_inr],
+      apply impartial_add } },
+  { rcases right_moves_add_cases i with ⟨j, rfl⟩ | ⟨j, rfl⟩,
+    all_goals
+    { simp only [add_move_right_inl, add_move_right_inr],
+      apply impartial_add } }
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 
@@ -180,10 +178,10 @@ lemma no_good_left_moves_iff_first_loses (G : pgame) [G.impartial] :
   (∀ (i : G.left_moves), (G.move_left i).first_wins) ↔ G.first_loses :=
 begin
   refine ⟨λ hb, _, λ hp i, _⟩,
-  { rw [first_loses_symm G, le_def_lf],
+  { rw [first_loses_symm G, le_iff_forall_lf],
     exact ⟨λ i, (hb i).1, is_empty_elim⟩ },
   { rw first_wins_symm,
-    exact (le_def_lf.1 $ (first_loses_symm G).1 hp).1 i }
+    exact (le_iff_forall_lf.1 $ (first_loses_symm G).1 hp).1 i }
 end
 
 lemma no_good_right_moves_iff_first_loses (G : pgame) [G.impartial] :
@@ -202,8 +200,8 @@ end
 lemma good_left_move_iff_first_wins (G : pgame) [G.impartial] :
   (∃ (i : G.left_moves), (G.move_left i).first_loses) ↔ G.first_wins :=
 begin
-  refine ⟨λ ⟨i, hi⟩, (first_wins_symm' G).2 (lf_def_le.2 $ or.inl ⟨i, hi.2⟩), λ hn, _⟩,
-  rw [first_wins_symm' G, lf_def_le] at hn,
+  refine ⟨λ ⟨i, hi⟩, (first_wins_symm' G).2 (lf_of_forall_le $ or.inl ⟨i, hi.2⟩), λ hn, _⟩,
+  rw [first_wins_symm' G, lf_iff_forall_le] at hn,
   rcases hn with ⟨i, hi⟩ | ⟨j, _⟩,
   { exact ⟨i, (first_loses_symm' _).2 hi⟩ },
   { exact pempty.elim j }
@@ -212,8 +210,8 @@ end
 lemma good_right_move_iff_first_wins (G : pgame) [G.impartial] :
   (∃ j : G.right_moves, (G.move_right j).first_loses) ↔ G.first_wins :=
 begin
-  refine ⟨λ ⟨j, hj⟩, (first_wins_symm G).2 (lf_def_le.2 $ or.inr ⟨j, hj.1⟩), λ hn, _⟩,
-  rw [first_wins_symm G, lf_def_le] at hn,
+  refine ⟨λ ⟨j, hj⟩, (first_wins_symm G).2 (lf_of_forall_le $ or.inr ⟨j, hj.1⟩), λ hn, _⟩,
+  rw [first_wins_symm G, lf_iff_forall_le] at hn,
   rcases hn with ⟨i, _⟩ | ⟨j, hj⟩,
   { exact pempty.elim i },
   { exact ⟨j, (first_loses_symm _).2 hj⟩ }

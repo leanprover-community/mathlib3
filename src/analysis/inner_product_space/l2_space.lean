@@ -252,6 +252,7 @@ linear_isometry_equiv.symm $
 linear_isometry_equiv.of_surjective
 hV.linear_isometry
 begin
+  rw [←linear_isometry.coe_to_linear_map],
   refine linear_map.range_eq_top.mp _,
   rw ← hV',
   rw hV.range_linear_isometry,

@@ -674,17 +674,22 @@ lemma is_noetherian_ring_iff_ideal_fg (R : Type*) [semiring R] :
 is_noetherian_ring_iff.trans is_noetherian_def
 
 @[priority 80] -- see Note [lower instance priority]
-instance ring.is_noetherian_of_fintype (R M) [fintype M] [semiring R] [add_comm_monoid M]
-  [module R M] :
+instance is_noetherian_of_fintype (R M) [fintype M] [semiring R] [add_comm_monoid M] [module R M] :
   is_noetherian R M :=
 by letI := classical.dec; exact
 ⟨assume s, ⟨to_finset s, by rw [set.coe_to_finset, submodule.span_eq]⟩⟩
 
-theorem ring.is_noetherian_of_zero_eq_one {R} [semiring R] (h01 : (0 : R) = 1) :
+/-- Modules over the trivial ring are Noetherian. -/
+@[priority 100] -- see Note [lower instance priority]
+instance is_noetherian_of_subsingleton (R M) [subsingleton R] [semiring R] [add_comm_monoid M]
+  [module R M] : is_noetherian R M :=
+by haveI := module.subsingleton R M;
+   exact is_noetherian_of_fintype R M
+
+@[priority 100] -- see Note [lower instance priority]
+instance ring.is_noetherian_of_subsingleton {R} [semiring R] [subsingleton R] :
   is_noetherian_ring R :=
-by haveI := subsingleton_of_zero_eq_one h01;
-   haveI := fintype.of_subsingleton (0:R);
-   exact is_noetherian_ring_iff.2 (ring.is_noetherian_of_fintype R R)
+⟨⟩
 
 theorem is_noetherian_of_submodule_of_noetherian (R M) [semiring R] [add_comm_monoid M] [module R M]
   (N : submodule R M) (h : is_noetherian R M) : is_noetherian R N :=

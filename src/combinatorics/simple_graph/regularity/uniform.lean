@@ -67,9 +67,11 @@ begin
   intros s' hs' t' ht' hs ht,
   rw [card_singleton, nat.cast_one, one_mul] at hs ht,
   obtain rfl | rfl := finset.subset_singleton_iff.1 hs',
-  { exact (hε.not_le hs).elim },
+  { replace hs : ε ≤ 0 := by simpa using hs,
+    exact (hε.not_le hs).elim },
   obtain rfl | rfl := finset.subset_singleton_iff.1 ht',
-  { exact (hε.not_le ht).elim },
+  { replace ht : ε ≤ 0 := by simpa using ht,
+    exact (hε.not_le ht).elim },
   { rwa [sub_self, abs_zero] }
 end
 

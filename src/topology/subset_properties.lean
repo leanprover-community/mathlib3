@@ -722,7 +722,7 @@ noncompact_space_of_ne_bot $ by simp only [filter.cocompact_eq_cofinite, filter.
 noncomputable
 def fintype_of_compact_of_discrete [compact_space α] [discrete_topology α] :
   fintype α :=
-fintype_of_univ_finite $ compact_univ.finite_of_discrete
+fintype_of_finite_univ $ compact_univ.finite_of_discrete
 
 lemma finite_cover_nhds_interior [compact_space α] {U : α → set α} (hU : ∀ x, U x ∈ 𝓝 x) :
   ∃ t : finset α, (⋃ x ∈ t, interior (U x)) = univ :=
@@ -754,7 +754,7 @@ finitely many elements, `fintype` version. -/
 noncomputable def locally_finite.fintype_of_compact {ι : Type*} [compact_space α] {f : ι → set α}
   (hf : locally_finite f) (hne : ∀ i, (f i).nonempty) :
   fintype ι :=
-fintype_of_univ_finite (hf.finite_of_compact hne)
+fintype_of_finite_univ (hf.finite_of_compact hne)
 
 /-- The comap of the cocompact filter on `β` by a continuous function `f : α → β` is less than or
 equal to the cocompact filter on `α`.

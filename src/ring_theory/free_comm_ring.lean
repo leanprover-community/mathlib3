@@ -196,7 +196,7 @@ assume hps : is_supported (of p) s, begin
     ∃ (n : ℤ), lift (λ a, if a ∈ s then (0 : ℤ[X]) else polynomial.X) x = n,
   { intros x hx, refine subring.in_closure.rec_on hx _ _ _ _,
     { use 1, rw [ring_hom.map_one], norm_cast },
-    { use -1, rw [ring_hom.map_neg, ring_hom.map_one], norm_cast },
+    { use -1, rw [ring_hom.map_neg, ring_hom.map_one, int.cast_neg, int.cast_one] },
     { rintros _ ⟨z, hzs, rfl⟩ _ _, use 0, rw [ring_hom.map_mul, lift_of, if_pos hzs, zero_mul],
       norm_cast },
     { rintros x y ⟨q, hq⟩ ⟨r, hr⟩, refine ⟨q+r, _⟩, rw [ring_hom.map_add, hq, hr], norm_cast } },

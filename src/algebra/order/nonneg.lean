@@ -189,11 +189,11 @@ rfl
 
 instance ordered_semiring [ordered_semiring α] : ordered_semiring {x : α // 0 ≤ x} :=
 subtype.coe_injective.ordered_semiring _
-  rfl rfl (λ x y, rfl) (λ x y, rfl) (λ _ _, rfl) (λ _ _, rfl)
+  rfl rfl (λ x y, rfl) (λ x y, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl)
 
 instance ordered_comm_semiring [ordered_comm_semiring α] : ordered_comm_semiring {x : α // 0 ≤ x} :=
 subtype.coe_injective.ordered_comm_semiring _
-  rfl rfl (λ x y, rfl) (λ x y, rfl) (λ _ _, rfl) (λ _ _, rfl)
+  rfl rfl (λ x y, rfl) (λ x y, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl)
 
 -- These prevent noncomputable instances being found, as it does not require `linear_order` which
 -- is frequently non-computable.
@@ -209,7 +209,7 @@ instance nontrivial [linear_ordered_semiring α] : nontrivial {x : α // 0 ≤ x
 instance linear_ordered_semiring [linear_ordered_semiring α] :
   linear_ordered_semiring {x : α // 0 ≤ x} :=
 subtype.coe_injective.linear_ordered_semiring _
-  rfl rfl (λ x y, rfl) (λ x y, rfl) (λ _ _, rfl) (λ _ _, rfl)
+  rfl rfl (λ x y, rfl) (λ x y, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl)
 
 instance linear_ordered_comm_monoid_with_zero [linear_ordered_comm_ring α] :
   linear_ordered_comm_monoid_with_zero {x : α // 0 ≤ x} :=

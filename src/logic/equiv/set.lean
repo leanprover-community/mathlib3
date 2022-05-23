@@ -217,13 +217,12 @@ protected def singleton {α} (a : α) : ({a} : set α) ≃ punit.{u} :=
  λ ⟨x, h⟩, by { simp at h, subst x },
  λ ⟨⟩, rfl⟩
 
-/-- Equal sets are equivalent. -/
+/-- Equal sets are equivalent.
+
+TODO: this is the same as `equiv.set_congr`! -/
 @[simps apply symm_apply]
 protected def of_eq {α : Type u} {s t : set α} (h : s = t) : s ≃ t :=
-{ to_fun := λ x, ⟨x, h ▸ x.2⟩,
-  inv_fun := λ x, ⟨x, h.symm ▸ x.2⟩,
-  left_inv := λ _, subtype.eq rfl,
-  right_inv := λ _, subtype.eq rfl }
+equiv.set_congr h
 
 /-- If `a ∉ s`, then `insert a s` is equivalent to `s ⊕ punit`. -/
 protected def insert {α} {s : set.{u} α} [decidable_pred (∈ s)] {a : α} (H : a ∉ s) :

@@ -1453,7 +1453,7 @@ begin
   classical,
   rw [fintype.card_of_subtype (set.to_finset pᶜ), set.to_finset_compl p, finset.card_compl,
       fintype.card_of_subtype (set.to_finset p)];
-  intros; simp; refl
+  intro; simp only [set.mem_to_finset, set.mem_compl_eq]; refl,
 end
 
 /-- If two subtypes of a fintype have equal cardinality, so do their complements. -/

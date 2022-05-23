@@ -212,8 +212,7 @@ instance closeds.compact_space [compact_space α] : compact_space (closeds α) :
   refine ⟨F, _, λ u _, _⟩,
   -- `F` is finite
   { apply @finite.of_finite_image _ _ F coe,
-    { refine fs.finite_subsets.subset (λb, _),
-      apply_instance,
+    { apply fs.finite_subsets.subset (λb, _),
       simp only [and_imp, set.mem_image, set.mem_set_of_eq, exists_imp_distrib],
       assume x hx hx',
       rwa hx' at hx },

@@ -1024,6 +1024,22 @@ begin
     simp }
 end
 
+instance biprod.inl_mono {X Y : C} [has_binary_biproduct X Y] :
+  split_mono (biprod.inl : X ⟶ X ⊞ Y) :=
+{ retraction := biprod.desc (𝟙 X) (biprod.inr ≫ biprod.fst) }
+
+instance biprod.inr_mono {X Y : C} [has_binary_biproduct X Y] :
+  split_mono (biprod.inr : Y ⟶ X ⊞ Y) :=
+{ retraction := biprod.desc (biprod.inl ≫ biprod.snd) (𝟙 Y)}
+
+instance biprod.fst_epi {X Y : C} [has_binary_biproduct X Y] :
+  split_epi (biprod.fst : X ⊞ Y ⟶ X) :=
+{ section_ := biprod.lift (𝟙 X) (biprod.inl ≫ biprod.snd) }
+
+instance biprod.snd_epi {X Y : C} [has_binary_biproduct X Y] :
+  split_epi (biprod.snd : X ⊞ Y ⟶ Y) :=
+{ section_ := biprod.lift (biprod.inr ≫ biprod.fst) (𝟙 Y) }
+
 @[simp,reassoc]
 lemma biprod.map_fst {W X Y Z : C} [has_binary_biproduct W X] [has_binary_biproduct Y Z]
   (f : W ⟶ Y) (g : X ⟶ Z) :

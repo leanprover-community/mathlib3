@@ -524,17 +524,15 @@ begin
   simpa using A.valuation.map_one_add_of_lt h,
 end
 
-lemma mem_residue_field_has_unit_rep (x : (local_ring.residue_field A)ˣ) :
+lemma mem_units_residue_field_has_unit_rep (x : (local_ring.residue_field A)ˣ) :
   is_unit (quotient.out' (x : local_ring.residue_field A)) :=
 begin
   by_contra,
   rw valuation_eq_one_iff at h,
-  have p := valuation_lt_one_or_eq_one _ (quotient.out' (x : local_ring.residue_field A)),
-  rw or_iff_not_imp_right at p,
-  have := p h,
-  rw [← valuation_lt_one_iff, ← ideal.quotient.eq_zero_iff_mem, ← ideal.quotient.mk_eq_mk,
-      ← submodule.quotient.mk'_eq_mk, quotient.out_eq'] at this,
-  simpa only [units.ne_zero],
+  have := valuation_lt_one_or_eq_one _ (quotient.out' (x : local_ring.residue_field A)),
+  rw or_iff_not_imp_right at this,
+  simpa only [units.ne_zero, ← valuation_lt_one_iff, ← ideal.quotient.eq_zero_iff_mem,
+    ← ideal.quotient.mk_eq_mk, ← submodule.quotient.mk'_eq_mk, quotient.out_eq'] using this h,
 end
 
 def units_residue_field_equiv :
@@ -542,28 +540,31 @@ def units_residue_field_equiv :
   (A.unit_group ⧸ (A.principal_unit_group.comap A.unit_group.subtype)) :=
 { to_fun := λ x,
   begin
-    choose a ha using (mem_residue_field_has_unit_rep A x),
-    exact quotient_group.mk (A.unit_group_equiv.inv_fun a),
+    choose a ha using (mem_units_residue_field_has_unit_rep A x),
+    exact quotient.mk' (A.unit_group_equiv.symm a),
   end,
   inv_fun := λ x,
   ⟨quotient.mk' (units.coe_hom A (A.unit_group_equiv.to_fun (quotient.out' x))),
-   quotient.mk' (units.coe_hom A (A.unit_group_equiv.to_fun (quotient.out' x⁻¹))),
+   quotient.mk' (units.coe_hom A (A.unit_group_equiv.to_fun (quotient.out' x)⁻¹)),
   begin
-    simp only [mul_equiv.to_fun_eq_coe, units.coe_hom_apply, submodule.quotient.mk'_eq_mk,
-    ideal.quotient.mk_eq_mk],
-    sorry,
+    simp_rw [mul_equiv.to_fun_eq_coe, units.coe_hom_apply, submodule.quotient.mk'_eq_mk,
+      ideal.quotient.mk_eq_mk, ← map_mul, map_inv, units.mul_inv, map_one],
   end,
   begin
-    sorry,
+    simp_rw [mul_equiv.to_fun_eq_coe, units.coe_hom_apply, submodule.quotient.mk'_eq_mk,
+      ideal.quotient.mk_eq_mk, ← map_mul, map_inv, units.inv_mul, map_one],
   end⟩,
   left_inv := λ x,
   begin
     ext,
+    simp_rw [mul_equiv.to_fun_eq_coe, units.coe_hom_apply, submodule.quotient.mk'_eq_mk,
+      ideal.quotient.mk_eq_mk, map_inv],
     sorry,
   end,
   right_inv := λ x, sorry,
   map_mul' := λ x y,
   begin
+    simp only [units.coe_mul, mul_equiv.inv_fun_eq_symm],
     sorry,
   end,
 

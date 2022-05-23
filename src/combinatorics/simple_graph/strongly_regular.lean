@@ -134,7 +134,7 @@ lemma is_SRG_with.card_common_neighbors_eq_of_adj_compl (h : G.is_SRG_with n k �
   fintype.card ↥(Gᶜ.common_neighbors v w) = n - (2 * k - μ) - 2 :=
 begin
   simp only [←set.to_finset_card, common_neighbors, set.to_finset_inter, neighbor_set_compl,
-    set.to_finset_sdiff, set.to_finset_singleton, set.to_finset_compl, ←neighbor_finset_def],
+    set.to_finset_diff, set.to_finset_singleton, set.to_finset_compl, ←neighbor_finset_def],
   simp_rw compl_neighbor_finset_sdiff_inter_eq,
   have hne : v ≠ w := ne_of_adj _ ha,
   rw compl_adj at ha,
@@ -153,7 +153,7 @@ lemma is_SRG_with.card_common_neighbors_eq_of_not_adj_compl (h : G.is_SRG_with n
   fintype.card ↥(Gᶜ.common_neighbors v w) = n - (2 * k - ℓ) :=
 begin
   simp only [←set.to_finset_card, common_neighbors, set.to_finset_inter, neighbor_set_compl,
-    set.to_finset_sdiff, set.to_finset_singleton, set.to_finset_compl, ←neighbor_finset_def],
+    set.to_finset_diff, set.to_finset_singleton, set.to_finset_compl, ←neighbor_finset_def],
   simp only [not_and, not_not, compl_adj] at hna,
   have h2' := hna hn,
   simp_rw [compl_neighbor_finset_sdiff_inter_eq, sdiff_compl_neighbor_finset_inter_eq h2'],

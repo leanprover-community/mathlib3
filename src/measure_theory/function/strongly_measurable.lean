@@ -240,15 +240,16 @@ hf.fin_strongly_measurable_of_set_sigma_finite measurable_set.univ (by simp)
   (by rwa measure.restrict_univ)
 
 /-- A strongly measurable function is measurable. -/
-protected lemma measurable {m : measurable_space α} [topological_space β] [metrizable_space β]
-  [measurable_space β] [borel_space β] (hf : strongly_measurable f) :
+protected lemma measurable {m : measurable_space α} [topological_space β]
+  [pseudo_metrizable_space β] [measurable_space β] [borel_space β] (hf : strongly_measurable f) :
   measurable f :=
 measurable_of_tendsto_metrizable (λ n, (hf.approx n).measurable)
   (tendsto_pi_nhds.mpr hf.tendsto_approx)
 
 /-- A strongly measurable function is almost everywhere measurable. -/
-protected lemma ae_measurable {m : measurable_space α} [topological_space β] [metrizable_space β]
-  [measurable_space β] [borel_space β] {μ : measure α} (hf : strongly_measurable f) :
+protected lemma ae_measurable {m : measurable_space α} [topological_space β]
+  [pseudo_metrizable_space β] [measurable_space β] [borel_space β] {μ : measure α}
+  (hf : strongly_measurable f) :
   ae_measurable f μ :=
 hf.measurable.ae_measurable
 
@@ -470,11 +471,11 @@ begin
 end
 
 lemma separable_space_range_union_singleton {m : measurable_space α} [topological_space β]
-  [metrizable_space β] (hf : strongly_measurable f) {b : β} :
+  [pseudo_metrizable_space β] (hf : strongly_measurable f) {b : β} :
   separable_space (range f ∪ {b} : set β) :=
 begin
-  letI := metrizable_space_metric β,
-  exact (is_separable.union hf.is_separable_range (finite_singleton _).is_separable).separable_space
+  letI := pseudo_metrizable_space_pseudo_metric β,
+  exact (hf.is_separable_range.union (finite_singleton _).is_separable).separable_space
 end
 
 section second_countable_strongly_measurable
@@ -483,11 +484,11 @@ variables {mα : measurable_space α} [measurable_space β]
 include mα
 
 /-- In a space with second countable topology, measurable implies strongly measurable. -/
-lemma _root_.measurable.strongly_measurable [topological_space β] [metrizable_space β]
+lemma _root_.measurable.strongly_measurable [topological_space β] [pseudo_metrizable_space β]
   [second_countable_topology β] [opens_measurable_space β] (hf : measurable f) :
   strongly_measurable f :=
 begin
-  letI := metrizable_space_metric β,
+  letI := pseudo_metrizable_space_pseudo_metric β,
   rcases is_empty_or_nonempty β; resetI,
   { exact subsingleton.strongly_measurable f, },
   { inhabit β,
@@ -501,7 +502,7 @@ lemma _root_.strongly_measurable_iff_measurable
   strongly_measurable f ↔ measurable f :=
 ⟨λ h, h.measurable, λ h, measurable.strongly_measurable h⟩
 
-lemma _root_.strongly_measurable_id [topological_space α] [metrizable_space α]
+lemma _root_.strongly_measurable_id [topological_space α] [pseudo_metrizable_space α]
   [opens_measurable_space α] [second_countable_topology α] :
   strongly_measurable (id : α → α) :=
 measurable_id.strongly_measurable
@@ -511,12 +512,12 @@ end second_countable_strongly_measurable
 /-- A function is strongly measurable if and only if it is measurable and has separable
 range. -/
 theorem _root_.strongly_measurable_iff_measurable_separable {m : measurable_space α}
-  [topological_space β] [metrizable_space β] [measurable_space β] [borel_space β] :
+  [topological_space β] [pseudo_metrizable_space β] [measurable_space β] [borel_space β] :
   strongly_measurable f ↔ (measurable f ∧ is_separable (range f)) :=
 begin
   refine ⟨λ H, ⟨H.measurable, H.is_separable_range⟩, _⟩,
   rintros ⟨H, H'⟩,
-  letI := metrizable_space_metric β,
+  letI := pseudo_metrizable_space_pseudo_metric β,
   let g := cod_restrict f (closure (range f)) (λ x, subset_closure (mem_range_self x)),
   have fg : f = (coe : closure (range f) → β) ∘ g, by { ext x, refl },
   have T : measurable_embedding (coe : closure (range f) → β),
@@ -537,7 +538,8 @@ end
 is second-countable. -/
 lemma _root_.continuous.strongly_measurable [measurable_space α]
   [topological_space α] [opens_measurable_space α]
-  {β : Type*} [topological_space β] [metrizable_space β] [h : second_countable_topology_either α β]
+  {β : Type*} [topological_space β] [pseudo_metrizable_space β]
+  [h : second_countable_topology_either α β]
   {f : α → β} (hf : continuous f) :
   strongly_measurable f :=
 begin
@@ -552,11 +554,12 @@ end
 
 /-- If `g` is a topological embedding, then `f` is strongly measurable iff `g ∘ f` is. -/
 lemma _root_.embedding.comp_strongly_measurable_iff {m : measurable_space α}
-  [topological_space β] [metrizable_space β] [topological_space γ] [metrizable_space γ]
+  [topological_space β] [pseudo_metrizable_space β] [topological_space γ]
+  [pseudo_metrizable_space γ]
   {g : β → γ} {f : α → β} (hg : embedding g) :
   strongly_measurable (λ x, g (f x)) ↔ strongly_measurable f :=
 begin
-  letI := metrizable_space_metric γ,
+  letI := pseudo_metrizable_space_pseudo_metric γ,
   borelize [β, γ],
   refine ⟨λ H, strongly_measurable_iff_measurable_separable.2 ⟨_, _⟩,
     λ H, hg.continuous.comp_strongly_measurable H⟩,
@@ -580,15 +583,14 @@ end
 
 /-- A sequential limit of strongly measurable functions is strongly measurable. -/
 lemma _root_.strongly_measurable_of_tendsto {ι : Type*} {m : measurable_space α}
-  [topological_space β] [metrizable_space β] (u : filter ι) [ne_bot u] [is_countably_generated u]
-  {f : ι → α → β} {g : α → β} (hf : ∀ i, strongly_measurable (f i)) (lim : tendsto f u (𝓝 g)) :
+  [topological_space β] [pseudo_metrizable_space β] (u : filter ι) [ne_bot u]
+  [is_countably_generated u] {f : ι → α → β} {g : α → β} (hf : ∀ i, strongly_measurable (f i))
+  (lim : tendsto f u (𝓝 g)) :
   strongly_measurable g :=
 begin
-  letI := metrizable_space_metric β,
   borelize β,
   refine strongly_measurable_iff_measurable_separable.2 ⟨_, _⟩,
-  { apply measurable_of_tendsto_metrizable' u (λ i, _) lim,
-    exact (hf i).measurable },
+  { exact measurable_of_tendsto_metrizable' u (λ i, (hf i).measurable) lim },
   { rcases u.exists_seq_tendsto with ⟨v, hv⟩,
     have : is_separable (closure (⋃ i, range (f (v i)))) :=
       (is_separable_Union (λ i, (hf (v i)).is_separable_range)).closure,
@@ -749,7 +751,7 @@ begin
 end
 
 lemma measurable_set_lt {m : measurable_space α} [topological_space β]
-  [linear_order β] [order_closed_topology β] [metrizable_space β]
+  [linear_order β] [order_closed_topology β] [pseudo_metrizable_space β]
   {f g : α → β} (hf : strongly_measurable f) (hg : strongly_measurable g) :
   measurable_set {a | f a < g a} :=
 begin
@@ -758,7 +760,7 @@ begin
 end
 
 lemma measurable_set_le {m : measurable_space α} [topological_space β]
-  [preorder β] [order_closed_topology β] [metrizable_space β]
+  [preorder β] [order_closed_topology β] [pseudo_metrizable_space β]
   {f g : α → β} (hf : strongly_measurable f) (hg : strongly_measurable g) :
   measurable_set {a | f a ≤ g a} :=
 begin
@@ -831,7 +833,7 @@ begin
 end
 
 /-- A finitely strongly measurable function is measurable. -/
-protected lemma measurable [has_zero β] [topological_space β] [metrizable_space β]
+protected lemma measurable [has_zero β] [topological_space β] [pseudo_metrizable_space β]
   [measurable_space β] [borel_space β] (hf : fin_strongly_measurable f μ) :
   measurable f :=
 hf.strongly_measurable.measurable
@@ -977,7 +979,7 @@ lemma strongly_measurable_mk (hf : ae_strongly_measurable f μ) :
   strongly_measurable (hf.mk f) :=
 hf.some_spec.1
 
-lemma measurable_mk [metrizable_space β] [measurable_space β] [borel_space β]
+lemma measurable_mk [pseudo_metrizable_space β] [measurable_space β] [borel_space β]
   (hf : ae_strongly_measurable f μ) :
   measurable (hf.mk f) :=
 hf.strongly_measurable_mk.measurable
@@ -985,8 +987,8 @@ hf.strongly_measurable_mk.measurable
 lemma ae_eq_mk (hf : ae_strongly_measurable f μ) : f =ᵐ[μ] hf.mk f :=
 hf.some_spec.2
 
-protected lemma ae_measurable {β} [measurable_space β] [topological_space β] [metrizable_space β]
-  [borel_space β] {f : α → β} (hf : ae_strongly_measurable f μ) :
+protected lemma ae_measurable {β} [measurable_space β] [topological_space β]
+  [pseudo_metrizable_space β] [borel_space β] {f : α → β} (hf : ae_strongly_measurable f μ) :
   ae_measurable f μ :=
 ⟨hf.mk f, hf.strongly_measurable_mk.measurable, hf.ae_eq_mk⟩
 
@@ -1029,7 +1031,7 @@ lemma _root_.continuous.comp_ae_strongly_measurable {g : β → γ} {f : α → 
 /-- A continuous function from `α` to `β` is ae strongly measurable when one of the two spaces is
 second countable. -/
 lemma _root_.continuous.ae_strongly_measurable [topological_space α] [opens_measurable_space α]
-  [metrizable_space β] [second_countable_topology_either α β] (hf : continuous f) :
+  [pseudo_metrizable_space β] [second_countable_topology_either α β] (hf : continuous f) :
   ae_strongly_measurable f μ :=
 hf.strongly_measurable.ae_strongly_measurable
 
@@ -1041,7 +1043,7 @@ protected lemma prod_mk {f : α → β} {g : α → γ}
 
 /-- In a space with second countable topology, measurable implies ae strongly measurable. -/
 lemma _root_.measurable.ae_strongly_measurable {m : measurable_space α}
-  {μ : measure α} [measurable_space β] [metrizable_space β]
+  {μ : measure α} [measurable_space β] [pseudo_metrizable_space β]
   [second_countable_topology β] [opens_measurable_space β] (hf : measurable f) :
   ae_strongly_measurable f μ :=
 hf.strongly_measurable.ae_strongly_measurable
@@ -1178,19 +1180,19 @@ section second_countable_ae_strongly_measurable
 variables [measurable_space β]
 
 /-- In a space with second countable topology, measurable implies strongly measurable. -/
-lemma _root_.ae_measurable.ae_strongly_measurable [metrizable_space β]
+lemma _root_.ae_measurable.ae_strongly_measurable [pseudo_metrizable_space β]
   [opens_measurable_space β] [second_countable_topology β] (hf : ae_measurable f μ) :
   ae_strongly_measurable f μ :=
 ⟨hf.mk f, hf.measurable_mk.strongly_measurable, hf.ae_eq_mk⟩
 
-lemma _root_.ae_strongly_measurable_id {α : Type*} [topological_space α] [metrizable_space α]
+lemma _root_.ae_strongly_measurable_id {α : Type*} [topological_space α] [pseudo_metrizable_space α]
   {m : measurable_space α} [opens_measurable_space α] [second_countable_topology α]
   {μ : measure α} :
   ae_strongly_measurable (id : α → α) μ :=
 ae_measurable_id.ae_strongly_measurable
 
 /-- In a space with second countable topology, strongly measurable and measurable are equivalent. -/
-lemma _root_.ae_strongly_measurable_iff_ae_measurable [metrizable_space β] [borel_space β]
+lemma _root_.ae_strongly_measurable_iff_ae_measurable [pseudo_metrizable_space β] [borel_space β]
   [second_countable_topology β] :
   ae_strongly_measurable f μ ↔ ae_measurable f μ :=
 ⟨λ h, h.ae_measurable, λ h, h.ae_strongly_measurable⟩
@@ -1295,12 +1297,10 @@ end
 /-- A function is almost everywhere strongly measurable if and only if it is almost everywhere
 measurable, and up to a zero measure set its range is contained in a separable set. -/
 theorem _root_.ae_strongly_measurable_iff_ae_measurable_separable
-  [metrizable_space β] [measurable_space β] [borel_space β] :
+  [pseudo_metrizable_space β] [measurable_space β] [borel_space β] :
   ae_strongly_measurable f μ ↔
     (ae_measurable f μ ∧ ∃ (t : set β), is_separable t ∧ ∀ᵐ x ∂μ, f x ∈ t) :=
 begin
-  letI : metric_space β := metrizable_space_metric β,
-  classical,
   refine ⟨λ H, ⟨H.ae_measurable, H.is_separable_ae_range⟩, _⟩,
   rintros ⟨H, ⟨t, t_sep, ht⟩⟩,
   rcases eq_empty_or_nonempty t with rfl|h₀,
@@ -1325,11 +1325,11 @@ begin
 end
 
 lemma _root_.embedding.ae_strongly_measurable_comp_iff
-  [metrizable_space β] [metrizable_space γ]
+  [pseudo_metrizable_space β] [pseudo_metrizable_space γ]
   {g : β → γ} {f : α → β} (hg : embedding g) :
   ae_strongly_measurable (λ x, g (f x)) μ ↔ ae_strongly_measurable f μ :=
 begin
-  letI := metrizable_space_metric γ,
+  letI := pseudo_metrizable_space_pseudo_metric γ,
   borelize [β, γ],
   refine ⟨λ H, ae_strongly_measurable_iff_ae_measurable_separable.2 ⟨_, _⟩,
     λ H, hg.continuous.comp_ae_strongly_measurable H⟩,
@@ -1358,7 +1358,7 @@ by rw [← hf.map_eq, h₂.ae_strongly_measurable_map_iff]
 /-- An almost everywhere sequential limit of almost everywhere strongly measurable functions is
 almost everywhere strongly measurable. -/
 lemma _root_.ae_strongly_measurable_of_tendsto_ae {ι : Type*}
-  [metrizable_space β] (u : filter ι) [ne_bot u] [is_countably_generated u]
+  [pseudo_metrizable_space β] (u : filter ι) [ne_bot u] [is_countably_generated u]
   {f : ι → α → β} {g : α → β} (hf : ∀ i, ae_strongly_measurable (f i) μ)
   (lim : ∀ᵐ x ∂μ, tendsto (λ n, f n x) u (𝓝 (g x))) :
   ae_strongly_measurable g μ :=
@@ -1380,8 +1380,8 @@ end
 
 /-- If a sequence of almost everywhere strongly measurable functions converges almost everywhere,
 one can select a strongly measurable function as the almost everywhere limit. -/
-lemma _root_.exists_strongly_measurable_limit_of_tendsto_ae [metrizable_space β] {f : ℕ → α → β}
-  (hf : ∀ n, ae_strongly_measurable (f n) μ)
+lemma _root_.exists_strongly_measurable_limit_of_tendsto_ae [pseudo_metrizable_space β]
+  {f : ℕ → α → β} (hf : ∀ n, ae_strongly_measurable (f n) μ)
   (h_ae_tendsto : ∀ᵐ x ∂μ, ∃ l : β, tendsto (λ n, f n x) at_top (𝓝 l)) :
   ∃ (f_lim : α → β) (hf_lim_meas : strongly_measurable f_lim),
     ∀ᵐ x ∂μ, tendsto (λ n, f n x) at_top (𝓝 (f_lim x)) :=
@@ -1396,7 +1396,7 @@ begin
   rwa h'x at hx,
 end
 
-lemma sum_measure [metrizable_space β]
+lemma sum_measure [pseudo_metrizable_space β]
   {m : measurable_space α} {μ : ι → measure α} (h : ∀ i, ae_strongly_measurable f (μ i)) :
   ae_strongly_measurable f (measure.sum μ) :=
 begin
@@ -1414,30 +1414,31 @@ begin
 end
 
 @[simp] lemma _root_.ae_strongly_measurable_sum_measure_iff
-  [metrizable_space β] {m : measurable_space α} {μ : ι → measure α} :
+  [pseudo_metrizable_space β] {m : measurable_space α} {μ : ι → measure α} :
   ae_strongly_measurable f (sum μ) ↔ ∀ i, ae_strongly_measurable f (μ i) :=
 ⟨λ h i, h.mono_measure (measure.le_sum _ _), sum_measure⟩
 
-@[simp] lemma _root_.ae_strongly_measurable_add_measure_iff [metrizable_space β] {ν : measure α} :
+@[simp] lemma _root_.ae_strongly_measurable_add_measure_iff [pseudo_metrizable_space β]
+  {ν : measure α} :
   ae_strongly_measurable f (μ + ν) ↔ ae_strongly_measurable f μ ∧ ae_strongly_measurable f ν :=
 by { rw [← sum_cond, ae_strongly_measurable_sum_measure_iff, bool.forall_bool, and.comm], refl }
 
-lemma add_measure [metrizable_space β] {ν : measure α} {f : α → β}
+lemma add_measure [pseudo_metrizable_space β] {ν : measure α} {f : α → β}
   (hμ : ae_strongly_measurable f μ) (hν : ae_strongly_measurable f ν) :
   ae_strongly_measurable f (μ + ν) :=
 ae_strongly_measurable_add_measure_iff.2 ⟨hμ, hν⟩
 
-protected lemma Union [metrizable_space β] {s : ι → set α}
+protected lemma Union [pseudo_metrizable_space β] {s : ι → set α}
   (h : ∀ i, ae_strongly_measurable f (μ.restrict (s i))) :
   ae_strongly_measurable f (μ.restrict (⋃ i, s i)) :=
 (sum_measure h).mono_measure $ restrict_Union_le
 
-@[simp] lemma _root_.ae_strongly_measurable_Union_iff [metrizable_space β] {s : ι → set α} :
+@[simp] lemma _root_.ae_strongly_measurable_Union_iff [pseudo_metrizable_space β] {s : ι → set α} :
   ae_strongly_measurable f (μ.restrict (⋃ i, s i)) ↔
     ∀ i, ae_strongly_measurable f (μ.restrict (s i)) :=
 ⟨λ h i, h.mono_measure $ restrict_mono (subset_Union _ _) le_rfl, ae_strongly_measurable.Union⟩
 
-@[simp] lemma _root_.ae_strongly_measurable_union_iff [metrizable_space β] {s t : set α} :
+@[simp] lemma _root_.ae_strongly_measurable_union_iff [pseudo_metrizable_space β] {s t : set α} :
   ae_strongly_measurable f (μ.restrict (s ∪ t)) ↔
     ae_strongly_measurable f (μ.restrict s) ∧ ae_strongly_measurable f (μ.restrict t) :=
 by simp only [union_eq_Union, ae_strongly_measurable_Union_iff, bool.forall_bool, cond, and.comm]
@@ -1556,7 +1557,7 @@ lemma ae_eq_mk (hf : ae_fin_strongly_measurable f μ) : f =ᵐ[μ] hf.mk f :=
 hf.some_spec.2
 
 protected lemma ae_measurable {β} [has_zero β] [measurable_space β] [topological_space β]
-  [metrizable_space β] [borel_space β]
+  [pseudo_metrizable_space β] [borel_space β]
   {f : α → β} (hf : ae_fin_strongly_measurable f μ) :
   ae_measurable f μ :=
 ⟨hf.mk f, hf.fin_strongly_measurable_mk.measurable, hf.ae_eq_mk⟩
@@ -1667,7 +1668,7 @@ end second_countable_topology
 
 lemma measurable_uncurry_of_continuous_of_measurable {α β ι : Type*} [topological_space ι]
   [metrizable_space ι] [measurable_space ι] [second_countable_topology ι] [opens_measurable_space ι]
-  {mβ : measurable_space β} [topological_space β] [metrizable_space β] [borel_space β]
+  {mβ : measurable_space β} [topological_space β] [pseudo_metrizable_space β] [borel_space β]
   {m : measurable_space α} {u : ι → α → β}
   (hu_cont : ∀ x, continuous (λ i, u i x)) (h : ∀ i, measurable (u i)) :
   measurable (function.uncurry u) :=
@@ -1698,7 +1699,7 @@ end
 
 lemma strongly_measurable_uncurry_of_continuous_of_strongly_measurable {α β ι : Type*}
   [topological_space ι] [metrizable_space ι] [measurable_space ι] [second_countable_topology ι]
-  [opens_measurable_space ι] [topological_space β] [metrizable_space β]
+  [opens_measurable_space ι] [topological_space β] [pseudo_metrizable_space β]
   [measurable_space α] {u : ι → α → β}
   (hu_cont : ∀ x, continuous (λ i, u i x)) (h : ∀ i, strongly_measurable (u i)) :
   strongly_measurable (function.uncurry u) :=

@@ -570,11 +570,6 @@ theorem nmul_assoc : ∀ a b c, a ⨳ b ⨳ c = a ⨳ (b ⨳ c)
 end
 using_well_founded { dec_tac := `[solve_by_elim [psigma.lex.left, psigma.lex.right]] }
 
-theorem mul_le_nmul (a b) : a * b ≤ a ⨳ b :=
-begin
-  induction b using ordinal.induction with b IH,
-end
-
 end ordinal
 
 open ordinal
@@ -601,3 +596,37 @@ instance : ordered_comm_semiring nat_ordinal :=
   ..nat_ordinal.linear_order }
 
 end nat_ordinal
+
+namespace ordinal
+
+local infix ` ♯ `:65 := nadd
+local infix ` ⨳ `:70 := nmul
+
+theorem nmul_nadd_one : ∀ a b, a ⨳ (b ♯ 1) = a ⨳ b ♯ a :=
+@_root_.mul_add_one nat_ordinal _
+theorem nadd_one_nmul : ∀ a b, (a ♯ 1) ⨳ b = a ⨳ b ♯ b :=
+@add_one_mul nat_ordinal _
+theorem nmul_succ (a b) : a ⨳ (succ b) = a ⨳ b ♯ a :=
+by rw [←nadd_one, nmul_nadd_one]
+theorem succ_nmul (a b) : (succ a) ⨳ b = a ⨳ b ♯ b :=
+by rw [←nadd_one, nadd_one_nmul]
+theorem nmul_add_one (a b) : a ⨳ (b + 1) = a ⨳ b ♯ a :=
+by rw [←succ_eq_add_one, nmul_succ]
+theorem add_one_nmul (a b) : (a + 1) ⨳ b = a ⨳ b ♯ b :=
+by rw [←succ_eq_add_one, succ_nmul]
+
+theorem mul_le_nmul (a b : ordinal.{u}) : a * b ≤ a ⨳ b :=
+begin
+  apply b.limit_rec_on,
+  { simp },
+  { intros c h,
+    rw [mul_succ, nmul_succ],
+    exact (add_le_nadd _ a).trans (nadd_le_nadd_right h a) },
+  { intros c hc H,
+    rcases eq_zero_or_pos a with rfl | ha,
+    { simp },
+    { rw [←is_normal.blsub_eq.{u u} (mul_is_normal ha) hc, blsub_le_iff],
+      exact λ i hi, (H i hi).trans_lt (nmul_lt_nmul_of_pos_left hi ha) } }
+end
+
+end ordinal

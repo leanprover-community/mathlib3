@@ -127,8 +127,9 @@ lemma orbit_zpowers_equiv_symm_apply (k : zmod (minimal_period ((•) a) b)) :
     (⟨a, mem_zpowers a⟩ : zpowers a) ^ (k : ℤ) • ⟨b, mem_orbit_self b⟩ :=
 rfl
 
-lemma orbit_zpowers_equiv_symm_apply' (k : ℤ) : (orbit_zpowers_equiv a b).symm k =
-  (⟨a, mem_zpowers a⟩ : zpowers a) ^ k • ⟨b, mem_orbit_self b⟩ :=
+lemma orbit_zpowers_equiv_symm_apply' (k : ℤ) :
+  (orbit_zpowers_equiv a b).symm k =
+    (⟨a, mem_zpowers a⟩ : zpowers a) ^ k • ⟨b, mem_orbit_self b⟩ :=
 begin
   rw [orbit_zpowers_equiv_symm_apply, zmod.coe_int_cast],
   exact subtype.ext (zpow_smul_mod_minimal_period _ _ k),

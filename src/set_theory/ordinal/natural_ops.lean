@@ -227,19 +227,13 @@ by rw [nadd_comm, nadd_nat]
 
 theorem add_le_nadd : a + b ≤ a ♯ b :=
 begin
-  induction b using ordinal.induction with b IH,
-  rw nadd_def,
-  rcases zero_or_succ_or_limit b with rfl | ⟨c, rfl⟩ | hb,
-  { apply le_max_of_le_left,
-    simp },
-  { apply le_max_of_le_right,
-    rw [blsub_succ_of_mono, add_succ, succ_le_succ],
-    { apply IH c,
-      exact lt_succ_self c },
-    { exact λ i j _ _ h, nadd_le_nadd_left h a } },
-  { apply le_max_of_le_right,
-    rw [←is_normal.blsub_eq.{u u} (add_is_normal a) hb, blsub_le_iff],
-    exact λ i hi, (IH i hi).trans_lt (lt_blsub.{u u} _ i hi) }
+  apply ordinal.limit_rec_on b,
+  { simp },
+  { intros c h,
+    rwa [add_succ, nadd_succ, succ_le_succ] },
+  { intros c hc H,
+    rw [←is_normal.blsub_eq.{u u} (add_is_normal a) hc, blsub_le_iff],
+    exact λ i hi, (H i hi).trans_lt (nadd_lt_nadd_left hi a) }
 end
 
 end ordinal

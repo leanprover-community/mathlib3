@@ -34,7 +34,6 @@ between both types, we attempt to prove and state most results on `ordinal`.
 
 # Todo
 
-- Define natural multiplication and provide a basic API.
 - Prove the characterizations of natural addition and multiplication in terms of the Cantor normal
   form.
 -/

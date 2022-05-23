@@ -332,7 +332,7 @@ begin
     { exfalso, specialize disj h, rw ←set.mem_empty_eq, rw ←disj,
       apply set.mem_inter aj _,
       simp only [and_true, implies_true_iff, eq_iff_true_of_subsingleton] at h2,
-      exact h2.1, }, },
+      exact h2, }, },
 end
 
 /-- Takes a nonempty `s` in `finset_clopen` and returns an element of it. -/
@@ -486,9 +486,7 @@ open locally_constant.density
 
 variables {X} {A}
 
-instance : has_coe_to_fun (measures X A) :=
-{ F := _,
-  coe := λ φ, φ.1, }
+instance : has_coe_to_fun (measures X A) _ := { coe := λ φ, φ.1, }
 
 /-- Any measure is uniformly continuous -/
 lemma uniform_continuous (φ : measures X A) : uniform_continuous ⇑φ :=
@@ -533,8 +531,8 @@ lemma cont [complete_space A] (φ : measures X A) :
 
 /-- The extended map is additive -/
 lemma map_add_extend [complete_space A] (φ : measures X A) (x y : C(X, A)) :
-  (dense_ind_inclusion X A).extend ⇑φ (x + y) =
-  (dense_ind_inclusion X A).extend ⇑φ x + (dense_ind_inclusion X A).extend ⇑φ y :=
+  (dense_ind_inclusion X A).extend ⇑⇑φ (x + y) =
+  (dense_ind_inclusion X A).extend ⇑⇑φ x + (dense_ind_inclusion X A).extend ⇑⇑φ y :=
 begin
   have cont := cont φ,
   have di := dense_ind_inclusion X A,
@@ -543,16 +541,15 @@ begin
     (is_closed_eq (cont.comp continuous_add)
       ((cont.comp continuous_fst).add (cont.comp continuous_snd))) (λ a b, _) x y,
 --   restricting to `inclusion`
-    rw ← linear_map.map_add,
-    simp only [dense_inducing.extend_eq di (integral_cont φ), linear_map.map_add ⇑φ a b],
+    rw [← linear_map.map_add, dense_inducing.extend_eq di (integral_cont φ)],
+    simp only [dense_inducing.extend_eq di (integral_cont φ), linear_map.map_add _ a b],
 end
 
 /-- The extended map preserves smul -/
 lemma map_smul_extend [complete_space A] (φ : measures X A) (m : A) (x : C(X, A)) :
-  (dense_ind_inclusion X A).extend ⇑φ (m • x) =
-  m • (dense_ind_inclusion X A).extend ⇑φ x :=
+  (dense_ind_inclusion X A).extend ⇑⇑φ (m • x) =
+  m • (dense_ind_inclusion X A).extend ⇑⇑φ x :=
 begin
-  let : has_continuous_smul A C(X, A) := continuous_map.has_continuous_smul X,
   have cont := cont φ,
   have di := dense_ind_inclusion X A,
 --   it is sufficient to restrict to `inclusion`, since it has dense range
@@ -560,8 +557,8 @@ begin
     (is_closed_eq (cont.comp (continuous_const.smul continuous_id))
       ((continuous_const.smul continuous_id).comp cont)) (λ a, _),
 --   restricting to `inclusion`
-    rw ← linear_map.map_smul,
-    simp only [dense_inducing.extend_eq di (integral_cont φ), linear_map.map_smul ⇑φ m a],
+    rw [← linear_map.map_smul, dense_inducing.extend_eq di (integral_cont φ)],
+    simp only [dense_inducing.extend_eq di (integral_cont φ), linear_map.map_smul _ m a],
 end
 
 /-- Given a profinite space `X` and a normed commutative ring `A`, and a `p-adic measure` φ, the
@@ -569,8 +566,8 @@ end
   be extended continuously and linearly to C(X, A), due to `loc_const_dense`. We use the dense
   inducing and uniform continuity properties of the map `inclusion X A`. -/
 noncomputable def integral [complete_space A] (φ : measures X A) :
-  continuous_linear_map A C(X, A) A :=
-  ⟨{ to_fun := dense_inducing.extend (dense_ind_inclusion X A) (φ.1),
+  continuous_linear_map (ring_hom.id A) C(X, A) A :=
+  ⟨{ to_fun := (dense_ind_inclusion X A).extend (⇑⇑φ),
      map_add' := λ x y, map_add_extend φ x y,
      map_smul' := λ m x, map_smul_extend φ m x, },
      cont φ⟩

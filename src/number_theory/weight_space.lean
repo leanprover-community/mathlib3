@@ -8,6 +8,7 @@ import ring_theory.witt_vector.teichmuller
 import ring_theory.witt_vector.compare
 import data.nat.modeq
 import topology.discrete_quotient
+import data.set.prod
 --import algebra.pointwise
 import data.real.basic
 
@@ -56,9 +57,8 @@ attribute [nolint doc_blame] weight_space.to_monoid_hom
 attribute [nolint doc_blame] weight_space.to_fun
 
 namespace weight_space
-instance : has_coe_to_fun (weight_space X A) :=
-{ F := _,
-  coe := to_fun, }
+instance : has_coe_to_fun (weight_space X A) _ :=
+{ coe := to_fun, }
 
 /-lemma ext_iff (A : Type*) [topological_space A] [mul_one_class A]
   (a b : (units (zmod d)) × (units ℤ_[p]) →* A) [ha : continuous a] [hb : continuous b] :
@@ -175,9 +175,9 @@ lemma unit_pow_eq_one (a : units ℤ_[p]) :
 begin
   -- applying FLT
   apply zmod.pow_card_sub_one_eq_one,
-  by_contra, push_neg at h,
-  have h' : (a : ℤ_[p]) ∈ padic_int.to_zmod.ker,
-  { exact padic_int.to_zmod.mem_ker.mpr h, },
+  by_contra, --push_neg at h,
+  have h' : (a : ℤ_[p]) ∈ (@padic_int.to_zmod p _).ker,
+  { exact (@padic_int.to_zmod p _).mem_ker.mpr h, },
   rw [padic_int.ker_to_zmod, local_ring.mem_maximal_ideal, mem_nonunits_iff] at h',
   apply h', simp,
 end
@@ -229,9 +229,9 @@ end padic_int
 
 lemma discrete_topology.is_topological_basis {α : Type*} [topological_space α]
   [discrete_topology α] [monoid α] :
-  @topological_space.is_topological_basis α _ (set.range set.singleton_hom) :=
+  @topological_space.is_topological_basis α _ (set.range set.singleton_monoid_hom) :=
   topological_space.is_topological_basis_of_open_of_nhds (λ u hu, is_open_discrete u)
-    (λ  a u mema openu, ⟨({a} : set α), ⟨a, by simpa [monoid_hom.coe_mk]⟩,
+    (λ  a u mema openu, ⟨({a} : set α), ⟨a, rfl⟩,
       set.mem_singleton a, set.singleton_subset_iff.2 mema⟩)
 
 namespace padic_int
@@ -280,8 +280,8 @@ end
 -- enable set addition for additive groups
 open_locale pointwise
 
-lemma preimage_to_zmod_pow (n : ℕ) (x : zmod (p^n)) : (to_zmod_pow n) ⁻¹' {x} =
- {(x : ℤ_[p])} + (((to_zmod_pow n).ker : ideal ℤ_[p]) : set ℤ_[p]) :=
+lemma preimage_to_zmod_pow (n : ℕ) (x : zmod (p^n)) : (@to_zmod_pow p _ n) ⁻¹' {x} =
+ {(x : ℤ_[p])} + (((@to_zmod_pow p _ n).ker : ideal ℤ_[p]) : set ℤ_[p]) :=
 begin
   ext y,
   simp only [set.image_add_left, set.mem_preimage, set.singleton_add, set.mem_singleton_iff,
@@ -313,7 +313,7 @@ begin
   ext z,
   have : dist (-x + z) y = dist z (x + y),
   { rw [dist_eq_norm, dist_eq_norm], refine congr_arg _ _, ring, }, -- why can't I unfold this?
-  simp [this],
+  simp [this, add_comm],
 end
 -- this should ideally be true for any add_comm_normed_group
 
@@ -327,7 +327,7 @@ end padic_int
 
 /-- The product of clopen sets is clopen. -/
 lemma is_clopen_prod {α β : Type*} [topological_space α] [topological_space β] {s : set α}
-  {t : set β} (hs : is_clopen s) (ht : is_clopen t) : is_clopen (s.prod t) :=
+  {t : set β} (hs : is_clopen s) (ht : is_clopen t) : is_clopen (set.prod s t) :=
   ⟨is_open_prod_iff'.2 (or.inl ⟨(hs).1, (ht).1⟩), is_closed.prod (hs).2 (ht).2⟩
 
 /-- Any singleton in a discrete space is clopen. -/

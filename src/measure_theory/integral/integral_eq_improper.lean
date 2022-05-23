@@ -187,7 +187,7 @@ begin
     let ⟨i, hi⟩ := (hu.eventually hx).exists in mem_Union.mpr ⟨i, hi⟩
 end
 
-lemma ae_cover.ae_strongly_measurable {β : Type*} [topological_space β] [metrizable_space β]
+lemma ae_cover.ae_strongly_measurable {β : Type*} [topological_space β] [pseudo_metrizable_space β]
   [l.is_countably_generated] [l.ne_bot]
   {f : α → β} {φ : ι → set α} (hφ : ae_cover μ l φ)
   (hfm : ∀ i, ae_strongly_measurable f (μ.restrict $ φ i)) : ae_strongly_measurable f μ :=

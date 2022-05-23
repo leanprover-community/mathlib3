@@ -148,7 +148,7 @@ def dom_restrict₂ (f : M →ₛₗ[ρ₁₂] N →ₛₗ[σ₁₂] P) (q : sub
   M →ₛₗ[ρ₁₂] q →ₛₗ[σ₁₂] P :=
 { to_fun := λ m, (f m).dom_restrict q,
   map_add' := λ m₁ m₂, linear_map.ext $ λ _, by simp only [map_add, dom_restrict_apply, add_apply],
-  map_smul' := λ c m, linear_map.ext $ λ _, by simp only [map_smulₛₗ, dom_restrict_apply,
+  map_smul' := λ c m, linear_map.ext $ λ _, by simp only [f.map_smulₛₗ, dom_restrict_apply,
     smul_apply]}
 
 lemma dom_restrict₂_apply (f : M →ₛₗ[ρ₁₂] N →ₛₗ[σ₁₂] P) (q : submodule S N) (x : M) (y : q) :
@@ -328,7 +328,8 @@ lemma sum_repr_mul_repr_mul {B : M →ₛₗ[ρ₁₂] N →ₛₗ[σ₁₂] P} 
   B x y :=
 begin
   conv_rhs { rw [← b₁.total_repr x, ← b₂.total_repr y] },
-  simp_rw [finsupp.total_apply, finsupp.sum, map_sum₂, map_sum, map_smulₛₗ₂, map_smulₛₗ],
+  simp_rw [finsupp.total_apply, finsupp.sum, map_sum₂, map_sum,
+    linear_map.map_smulₛₗ₂, linear_map.map_smulₛₗ],
 end
 
 

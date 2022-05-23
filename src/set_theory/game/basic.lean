@@ -218,6 +218,26 @@ rfl
    = x.move_right i * y + x * y.move_left j - x.move_right i * y.move_left j :=
 by { cases x, cases y, refl }
 
+lemma left_moves_mul_cases {x y : pgame} (k : (x * y).left_moves) :
+  (∃ i j, k = to_left_moves_mul (sum.inl ⟨i, j⟩)) ∨
+  ∃ i j, k = to_left_moves_mul (sum.inr ⟨i, j⟩) :=
+begin
+  rw ←to_left_moves_mul.apply_symm_apply k,
+  rcases to_left_moves_mul.symm k with ⟨i, j⟩ | ⟨i, j⟩,
+  { exact or.inl ⟨i, j, rfl⟩ },
+  { exact or.inr ⟨i, j, rfl⟩ }
+end
+
+lemma right_moves_mul_cases {x y : pgame} (k : (x * y).right_moves) :
+  (∃ i j, k = to_right_moves_mul (sum.inl ⟨i, j⟩)) ∨
+  ∃ i j, k = to_right_moves_mul (sum.inr ⟨i, j⟩) :=
+begin
+  rw ←to_right_moves_mul.apply_symm_apply k,
+  rcases to_right_moves_mul.symm k with ⟨i, j⟩ | ⟨i, j⟩,
+  { exact or.inl ⟨i, j, rfl⟩ },
+  { exact or.inr ⟨i, j, rfl⟩ }
+end
+
 theorem quot_mul_comm : Π (x y : pgame.{u}), ⟦x * y⟧ = ⟦y * x⟧
 | (mk xl xr xL xR) (mk yl yr yL yR) :=
 begin

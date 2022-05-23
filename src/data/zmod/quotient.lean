@@ -131,7 +131,7 @@ lemma orbit_zpowers_equiv_symm_apply' (k : ℤ) : (orbit_zpowers_equiv a b).symm
   (⟨a, mem_zpowers a⟩ : zpowers a) ^ k • ⟨b, mem_orbit_self b⟩ :=
 begin
   rw [orbit_zpowers_equiv_symm_apply, zmod.coe_int_cast],
-  exact subtype.ext (zpow_smul_mod_minimal_period k _ _),
+  exact subtype.ext (zpow_smul_mod_minimal_period _ _ k),
 end
 
 lemma _root_.add_action.orbit_zmultiples_equiv_symm_apply'
@@ -139,10 +139,8 @@ lemma _root_.add_action.orbit_zmultiples_equiv_symm_apply'
   (add_action.orbit_zmultiples_equiv a b).symm k =
     (k • (⟨a, mem_zmultiples a⟩ : zmultiples a)) +ᵥ ⟨b, add_action.mem_orbit_self b⟩ :=
 begin
-  conv_rhs { rw ← int.mod_add_div k (minimal_period ((+ᵥ) a) b) },
-  rw [add_zsmul, add_vadd, add_action.orbit_zmultiples_equiv_symm_apply, zmod.coe_int_cast,
-      vadd_left_cancel_iff, eq_comm],
-  exact subtype.ext (zsmul_vadd_eq_iff_minimal_period_dvd.mpr (dvd_mul_right _ _)),
+  rw [add_action.orbit_zmultiples_equiv_symm_apply, zmod.coe_int_cast],
+  exact subtype.ext (zsmul_vadd_mod_minimal_period _ _ k),
 end
 
 attribute [to_additive orbit_zmultiples_equiv_symm_apply'] orbit_zpowers_equiv_symm_apply'

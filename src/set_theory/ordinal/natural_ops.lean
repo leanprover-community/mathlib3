@@ -266,14 +266,17 @@ instance add_contravariant_class_le :
   contravariant_class nat_ordinal.{u} nat_ordinal.{u} (+) (≤) :=
 ⟨λ a b c h, by { by_contra' h', exact h.not_lt (add_lt_add_left h' a) }⟩
 
-instance : add_cancel_comm_monoid nat_ordinal :=
+instance : ordered_cancel_add_comm_monoid nat_ordinal :=
 { add := (+),
   add_assoc := nadd_assoc,
   add_left_cancel := λ a b c, add_left_cancel'',
+  add_le_add_left := λ a b, add_le_add_left,
+  le_of_add_le_add_left := λ a b c, le_of_add_le_add_left,
   zero := 0,
   zero_add := zero_nadd,
   add_zero := nadd_zero,
-  add_comm := nadd_comm }
+  add_comm := nadd_comm,
+  ..nat_ordinal.linear_order }
 
 @[simp] theorem to_ordinal_cast_nat (n : ℕ) : to_ordinal n = n :=
 begin
@@ -348,7 +351,7 @@ theorem nadd_right_comm : ∀ a b c, a ♯ b ♯ c = a ♯ c ♯ b :=
 
 /-! ### Natural multiplication -/
 
-variables {a b c : ordinal.{u}}
+variables {a b c d : ordinal.{u}}
 
 /-- Natural multiplication on ordinals `a ⨳ b` is recursively defined as the least ordinal such that
 `a ⨳ b + a' ⨳ b'` is greater than `a' ⨳ b + a ⨳ b'` for all `a' < a` and `b < b'`. In contrast to
@@ -480,4 +483,122 @@ using_well_founded { dec_tac := `[solve_by_elim [psigma.lex.left, psigma.lex.rig
 theorem nadd_nmul (a b c) : (a ♯ b) ⨳ c = a ⨳ c ♯ b ⨳ c :=
 by rw [nmul_comm, nmul_nadd, nmul_comm, nmul_comm c]
 
+theorem nmul_nadd_lt₃ {a' b' c' : ordinal} (ha : a' < a) (hb : b' < b) (hc : c' < c) :
+  a' ⨳ b ⨳ c ♯ a ⨳ b' ⨳ c ♯ a ⨳ b ⨳ c' ♯ a' ⨳ b' ⨳ c' <
+  a ⨳ b ⨳ c ♯ a' ⨳ b' ⨳ c ♯ a' ⨳ b ⨳ c' ♯ a ⨳ b' ⨳ c' :=
+by simpa only [nadd_nmul, ←nadd_assoc] using nmul_nadd_lt (nmul_nadd_lt ha hb) hc
+
+theorem nmul_nadd_le₃ {a' b' c' : ordinal} (ha : a' ≤ a) (hb : b' ≤ b) (hc : c' ≤ c) :
+  a' ⨳ b ⨳ c ♯ a ⨳ b' ⨳ c ♯ a ⨳ b ⨳ c' ♯ a' ⨳ b' ⨳ c' ≤
+  a ⨳ b ⨳ c ♯ a' ⨳ b' ⨳ c ♯ a' ⨳ b ⨳ c' ♯ a ⨳ b' ⨳ c' :=
+by simpa only [nadd_nmul, ←nadd_assoc] using nmul_nadd_le (nmul_nadd_le ha hb) hc
+
+theorem nmul_nadd_lt₃' {a' b' c' : ordinal} (ha : a' < a) (hb : b' < b) (hc : c' < c) :
+  a' ⨳ (b ⨳ c) ♯ a ⨳ (b' ⨳ c) ♯ a ⨳ (b ⨳ c') ♯ a' ⨳ (b' ⨳ c') <
+  a ⨳ (b ⨳ c) ♯ a' ⨳ (b' ⨳ c) ♯ a' ⨳ (b ⨳ c') ♯ a ⨳ (b' ⨳ c') :=
+begin
+  have := nmul_nadd_lt ha (nmul_nadd_lt hb hc),
+  simp only [nmul_nadd, ←nadd_assoc] at this,
+  rwa [nadd_right_comm (a' ⨳ _), nadd_right_comm, nadd_right_comm (a ⨳ _),
+    nadd_right_comm _ (a ⨳ (b' ⨳ c'))] at this
+end
+
+theorem nmul_nadd_le₃' {a' b' c' : ordinal} (ha : a' ≤ a) (hb : b' ≤ b) (hc : c' ≤ c) :
+  a' ⨳ (b ⨳ c) ♯ a ⨳ (b' ⨳ c) ♯ a ⨳ (b ⨳ c') ♯ a' ⨳ (b' ⨳ c') ≤
+  a ⨳ (b ⨳ c) ♯ a' ⨳ (b' ⨳ c) ♯ a' ⨳ (b ⨳ c') ♯ a ⨳ (b' ⨳ c') :=
+begin
+  have := nmul_nadd_le ha (nmul_nadd_le hb hc),
+  simp only [nmul_nadd, ←nadd_assoc] at this,
+  rwa [nadd_right_comm (a' ⨳ _), nadd_right_comm, nadd_right_comm (a ⨳ _),
+    nadd_right_comm _ (a ⨳ (b' ⨳ c'))] at this
+end
+
+theorem lt_nmul_iff₃ : d < a ⨳ b ⨳ c ↔ ∃ (a' < a) (b' < b) (c' < c),
+  d ♯ a' ⨳ b' ⨳ c ♯ a' ⨳ b ⨳ c' ♯ a ⨳ b' ⨳ c' ≤
+  a' ⨳ b ⨳ c ♯ a ⨳ b' ⨳ c ♯ a ⨳ b ⨳ c' ♯ a' ⨳ b' ⨳ c' :=
+begin
+  refine ⟨λ h, _, _⟩,
+  { rcases lt_nmul_iff.1 h with ⟨e, he, c', hc, H₁⟩,
+    rcases lt_nmul_iff.1 he with ⟨a', ha, b', hb, H₂⟩,
+    refine ⟨a', ha, b', hb, c', hc, _⟩,
+    have := nadd_le_nadd H₁ (nmul_nadd_le H₂ hc.le),
+    simp only [nadd_nmul, nadd_assoc] at this,
+    rw [nadd_left_comm, nadd_left_comm d, nadd_left_comm, nadd_le_nadd_iff_left,
+      nadd_left_comm (a ⨳ b' ⨳ c), nadd_left_comm (a' ⨳ b ⨳ c), nadd_left_comm (a ⨳ b ⨳ c'),
+      nadd_le_nadd_iff_left, nadd_left_comm (a ⨳ b ⨳ c'), nadd_left_comm (a ⨳ b ⨳ c')] at this,
+    simpa [nadd_assoc] },
+  { rintro ⟨a', ha, b', hb, c', hc, h⟩,
+    have := h.trans_lt (nmul_nadd_lt₃ ha hb hc),
+    repeat { rwa nadd_lt_nadd_iff_right at this } }
+end
+
+theorem nmul_le_iff₃ : a ⨳ b ⨳ c ≤ d ↔ ∀ (a' < a) (b' < b) (c' < c),
+  a' ⨳ b ⨳ c ♯ a ⨳ b' ⨳ c ♯ a ⨳ b ⨳ c' ♯ a' ⨳ b' ⨳ c' <
+  d ♯ a' ⨳ b' ⨳ c ♯ a' ⨳ b ⨳ c' ♯ a ⨳ b' ⨳ c' :=
+by { rw ←not_iff_not, simp [lt_nmul_iff₃] }
+
+theorem lt_nmul_iff₃' : d < a ⨳ (b ⨳ c) ↔ ∃ (a' < a) (b' < b) (c' < c),
+  d ♯ a' ⨳ (b' ⨳ c) ♯ a' ⨳ (b ⨳ c') ♯ a ⨳ (b' ⨳ c') ≤
+  a' ⨳ (b ⨳ c) ♯ a ⨳ (b' ⨳ c) ♯ a ⨳ (b ⨳ c') ♯ a' ⨳ (b' ⨳ c') :=
+begin
+  refine ⟨λ h, _, _⟩,
+  { rcases lt_nmul_iff.1 h with ⟨a', ha, e, he, H₁⟩,
+    rcases lt_nmul_iff.1 he with ⟨b', hb, c', hc, H₂⟩,
+    refine ⟨a', ha, b', hb, c', hc, _⟩,
+    have := nadd_le_nadd H₁ (nmul_nadd_le ha.le H₂),
+    simp only [nmul_nadd, nadd_assoc] at this,
+    rw [nadd_left_comm, nadd_left_comm (a' ⨳ (b ⨳ c)), nadd_left_comm (a ⨳ (b ⨳ c')),
+      nadd_left_comm (a ⨳ (b' ⨳ c)), nadd_left_comm (a' ⨳ (b ⨳ c)), nadd_left_comm (a ⨳ e),
+      nadd_le_nadd_iff_left, nadd_left_comm (a' ⨳ (b ⨳ c')), nadd_left_comm (a' ⨳ (b' ⨳ c)),
+      nadd_left_comm d, nadd_le_nadd_iff_left] at this,
+    simpa [nadd_assoc] },
+  { rintro ⟨a', ha, b', hb, c', hc, h⟩,
+    have := h.trans_lt (nmul_nadd_lt₃' ha hb hc),
+    repeat { rwa nadd_lt_nadd_iff_right at this } }
+end
+
+theorem nmul_le_iff₃' : a ⨳ (b ⨳ c) ≤ d ↔ ∀ (a' < a) (b' < b) (c' < c),
+  a' ⨳ (b ⨳ c) ♯ a ⨳ (b' ⨳ c) ♯ a ⨳ (b ⨳ c') ♯ a' ⨳ (b' ⨳ c') <
+  d ♯ a' ⨳ (b' ⨳ c) ♯ a' ⨳ (b ⨳ c') ♯ a ⨳ (b' ⨳ c') :=
+by { rw ←not_iff_not, simp [lt_nmul_iff₃'] }
+
+theorem nmul_assoc : ∀ a b c, a ⨳ b ⨳ c = a ⨳ (b ⨳ c)
+| a b c := begin
+  apply le_antisymm,
+  { rw nmul_le_iff₃,
+    intros a' ha b' hb c' hc,
+    repeat { rw nmul_assoc },
+    exact nmul_nadd_lt₃' ha hb hc },
+  { rw nmul_le_iff₃',
+    intros a' ha b' hb c' hc,
+    repeat { rw ←nmul_assoc },
+    exact nmul_nadd_lt₃ ha hb hc },
+end
+using_well_founded { dec_tac := `[solve_by_elim [psigma.lex.left, psigma.lex.right]] }
+
 end ordinal
+
+open ordinal
+
+namespace nat_ordinal
+
+instance : has_mul nat_ordinal := ⟨nmul⟩
+
+instance : ordered_comm_semiring nat_ordinal :=
+{ mul := (*),
+  left_distrib := nmul_nadd,
+  right_distrib := nadd_nmul,
+  zero_mul := zero_nmul,
+  mul_zero := nmul_zero,
+  mul_assoc := nmul_assoc,
+  one := 1,
+  one_mul := one_nmul,
+  mul_one := nmul_one,
+  mul_comm := nmul_comm,
+  zero_le_one := zero_le_one,
+  mul_lt_mul_of_pos_left := λ a b c, nmul_lt_nmul_of_pos_left,
+  mul_lt_mul_of_pos_right := λ a b c, nmul_lt_nmul_of_pos_right,
+  ..nat_ordinal.ordered_cancel_add_comm_monoid,
+  ..nat_ordinal.linear_order }
+
+end nat_ordinal

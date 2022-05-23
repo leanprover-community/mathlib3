@@ -466,8 +466,8 @@ begin
   use option.get hoj,
   rw [is_torsion_by_iff_torsion_by_eq_top, eq_top_iff, ← hs, submodule.span_le,
     set.range_subset_iff], intro i, change _ • _ = _,
-  have : p_order hM (s i) ≤ p_order hM (s $ option.get hoj) := by apply
-    list.le_argmax_of_mem (list.mem_fin_range i) (option.get_mem hoj),
+  have : p_order hM (s i) ≤ p_order hM (s $ option.get hoj) :=
+    list.le_of_mem_argmax (list.mem_fin_range i) (option.get_mem hoj),
   rw [← nat.sub_add_cancel this, pow_add, mul_smul, pow_p_order_smul, smul_zero]
 end
 

@@ -48,11 +48,13 @@ noncomputable theory
 /-- A type synonym for ordinals with natural addition and multiplication. -/
 def nat_ordinal : Type* := ordinal
 
+instance : linear_order nat_ordinal := ordinal.linear_order
+
 /-- The identity function between `ordinal` and `nat_ordinal`. -/
-@[pattern] def ordinal.to_nat_ordinal : ordinal ≃ nat_ordinal := equiv.refl _
+@[pattern] def ordinal.to_nat_ordinal : ordinal ≃o nat_ordinal := order_iso.refl _
 
 /-- The identity function between `nat_ordinal` and `ordinal`. -/
-@[pattern] def nat_ordinal.to_ordinal : nat_ordinal ≃ ordinal := equiv.refl _
+@[pattern] def nat_ordinal.to_ordinal : nat_ordinal ≃o ordinal := order_iso.refl _
 
 open ordinal
 
@@ -67,17 +69,12 @@ instance : has_zero nat_ordinal := ⟨to_nat_ordinal 0⟩
 instance : inhabited nat_ordinal := ⟨0⟩
 instance : has_one nat_ordinal := ⟨to_nat_ordinal 1⟩
 instance : has_well_founded nat_ordinal := ordinal.has_well_founded
-instance : linear_order nat_ordinal := ordinal.linear_order
 
 @[simp] theorem to_ordinal_zero : to_ordinal 0 = 0 := rfl
 @[simp] theorem to_ordinal_one : to_ordinal 1 = 1 := rfl
 
 @[simp] theorem to_ordinal_eq_zero (a) : to_ordinal a = 0 ↔ a = 0 := iff.rfl
 @[simp] theorem to_ordinal_eq_one (a) : to_ordinal a = 1 ↔ a = 1 := iff.rfl
-
-@[simp] theorem to_ordinal_lt_iff : a.to_ordinal < b.to_ordinal ↔ a < b := iff.rfl
-@[simp] theorem to_ordinal_le_iff : a.to_ordinal ≤ b.to_ordinal ↔ a ≤ b := iff.rfl
-@[simp] theorem to_ordinal_inj : a.to_ordinal = b.to_ordinal ↔ a = b := iff.rfl
 
 @[simp] theorem to_ordinal_max : (max a b).to_ordinal = max a.to_ordinal b.to_ordinal := rfl
 @[simp] theorem to_ordinal_min : (min a b).to_ordinal = min a.to_ordinal b.to_ordinal := rfl
@@ -104,10 +101,6 @@ variables {a b c : ordinal.{u}}
 
 @[simp] theorem to_nat_ordinal_eq_zero (a) : to_nat_ordinal a = 0 ↔ a = 0 := iff.rfl
 @[simp] theorem to_nat_ordinal_eq_one (a) : to_nat_ordinal a = 1 ↔ a = 1 := iff.rfl
-
-@[simp] theorem to_nat_ordinal_lt_iff : a.to_nat_ordinal < b.to_nat_ordinal ↔ a < b := iff.rfl
-@[simp] theorem to_nat_ordinal_le_iff : a.to_nat_ordinal ≤ b.to_nat_ordinal ↔ a ≤ b := iff.rfl
-@[simp] theorem to_nat_ordinal_inj : a.to_nat_ordinal = b.to_nat_ordinal ↔ a = b := iff.rfl
 
 @[simp] theorem to_nat_ordinal_max :
   to_nat_ordinal (max a b) = max a.to_nat_ordinal b.to_nat_ordinal := rfl

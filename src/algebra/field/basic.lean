@@ -334,30 +334,34 @@ end noncomputable_defs
 See note [reducible non-instances]. -/
 @[reducible]
 protected def function.injective.division_ring [division_ring K] {K'}
-  [add_monoid_with_one K'] [has_mul K'] [has_neg K'] [has_sub K'] [has_inv K'] [has_div K']
-  [has_scalar ℤ K'] [has_pow K' ℕ] [has_pow K' ℤ]
+  [has_zero K'] [has_one K'] [has_add K'] [has_mul K'] [has_neg K'] [has_sub K']
+  [has_inv K'] [has_div K'] [has_scalar ℕ K']
+  [has_scalar ℤ K'] [has_pow K' ℕ] [has_pow K' ℤ] [has_nat_cast K'] [has_int_cast K']
   (f : K' → K) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y)
   (inv : ∀ x, f (x⁻¹) = (f x)⁻¹) (div : ∀ x y, f (x / y) = f x / f y)
   (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (zsmul : ∀ x (n : ℤ), f (n • x) = n • f x)
-  (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n) (zpow : ∀ x (n : ℤ), f (x ^ n) = f x ^ n) :
+  (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n) (zpow : ∀ x (n : ℤ), f (x ^ n) = f x ^ n)
+  (nat_cast : ∀ n : ℕ, f n = n) (int_cast : ∀ n : ℤ, f n = n) :
   division_ring K' :=
 { .. hf.group_with_zero f zero one mul inv div npow zpow,
-  .. hf.ring f zero one add mul neg sub nsmul zsmul npow }
+  .. hf.ring f zero one add mul neg sub nsmul zsmul npow nat_cast int_cast }
 
 /-- Pullback a `field` along an injective function.
 See note [reducible non-instances]. -/
 @[reducible]
 protected def function.injective.field [field K] {K'}
-  [add_group_with_one K'] [has_mul K'] [has_inv K'] [has_div K']
-  [has_pow K' ℕ] [has_pow K' ℤ]
+  [has_zero K'] [has_one K'] [has_add K'] [has_mul K'] [has_neg K'] [has_sub K']
+  [has_inv K'] [has_div K'] [has_scalar ℕ K']
+  [has_scalar ℤ K'] [has_pow K' ℕ] [has_pow K' ℤ] [has_nat_cast K'] [has_int_cast K']
   (f : K' → K) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y)
   (inv : ∀ x, f (x⁻¹) = (f x)⁻¹) (div : ∀ x y, f (x / y) = f x / f y)
   (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (zsmul : ∀ x (n : ℤ), f (n • x) = n • f x)
-  (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n) (zpow : ∀ x (n : ℤ), f (x ^ n) = f x ^ n) :
+  (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n) (zpow : ∀ x (n : ℤ), f (x ^ n) = f x ^ n)
+  (nat_cast : ∀ n : ℕ, f n = n) (int_cast : ∀ n : ℤ, f n = n) :
   field K' :=
 { .. hf.comm_group_with_zero f zero one mul inv div npow zpow,
-  .. hf.comm_ring f zero one add mul neg sub nsmul zsmul npow }
+  .. hf.comm_ring f zero one add mul neg sub nsmul zsmul npow nat_cast int_cast }

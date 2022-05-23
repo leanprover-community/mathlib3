@@ -30,17 +30,24 @@ protected def nat.unary_cast {R : Type u} [has_one R] [has_zero R] [has_add R] :
 | (n + 1) := nat.unary_cast n + 1
 
 /--
+Type class for the canonical homomorphism `ℕ → R`.
+-/
+@[protect_proj]
+class has_nat_cast (R : Type u) :=
+(nat_cast : ℕ → R)
+
+/--
 An `add_monoid_with_one` is an `add_monoid` with a `1`.
 It also contains data for the unique homomorphism `ℕ → R`.
 -/
 @[protect_proj]
-class add_monoid_with_one (R : Type u) extends add_monoid R, has_one R :=
-(nat_cast : ℕ → R := nat.unary_cast)
+class add_monoid_with_one (R : Type u) extends has_nat_cast R, add_monoid R, has_one R :=
+(nat_cast := nat.unary_cast)
 (nat_cast_zero : nat_cast 0 = (0 : R) . control_laws_tac)
 (nat_cast_succ : ∀ n, nat_cast (n + 1) = (nat_cast n + 1 : R) . control_laws_tac)
 
 /-- Canonical homomorphism from `ℕ` to a additive monoid `R` with a `1`. -/
-protected def nat.cast {R : Type*} [add_monoid_with_one R] : ℕ → R := add_monoid_with_one.nat_cast
+protected def nat.cast {R : Type u} [has_nat_cast R] : ℕ → R := has_nat_cast.nat_cast
 
 /-- An `add_comm_monoid_with_one` is an `add_monoid_with_one` satisfying `a + b = b + a`.  -/
 @[protect_proj]
@@ -79,7 +86,7 @@ attribute [instance, priority 500] coe_trans
 namespace nat
 
 -- see note [coercion into rings]
-@[priority 900] instance cast_coe : has_coe_t ℕ R := ⟨nat.cast⟩
+@[priority 900] instance cast_coe {R} [has_nat_cast R] : has_coe_t ℕ R := ⟨nat.cast⟩
 
 @[simp, norm_cast] theorem cast_zero : ((0 : ℕ) : R) = 0 := add_monoid_with_one.nat_cast_zero
 

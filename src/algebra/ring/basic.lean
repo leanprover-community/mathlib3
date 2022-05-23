@@ -158,26 +158,31 @@ See note [reducible non-instances]. -/
 @[reducible]
 protected def function.injective.non_assoc_semiring
   {α : Type u} [non_assoc_semiring α]
-  {β : Type v} [has_mul β] [add_monoid_with_one β]
+  {β : Type v} [has_zero β] [has_one β] [has_mul β] [has_add β]
+  [has_scalar ℕ β] [has_nat_cast β]
   (f : β → α) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
-  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) :
+  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x)
+  (nat_cast : ∀ n : ℕ, f n = n) :
   non_assoc_semiring β :=
-{ .. ‹add_monoid_with_one β›,
-  .. hf.non_unital_non_assoc_semiring f zero add mul nsmul, .. hf.mul_one_class f one mul }
+{ .. hf.add_monoid_with_one f zero one add nsmul nat_cast,
+  .. hf.non_unital_non_assoc_semiring f zero add mul nsmul,
+  .. hf.mul_one_class f one mul }
 
 /-- Pullback a `semiring` instance along an injective function.
 See note [reducible non-instances]. -/
 @[reducible]
 protected def function.injective.semiring
   {α : Type u} [semiring α]
-  {β : Type v} [add_monoid_with_one β] [has_mul β] [has_pow β ℕ]
+  {β : Type v} [has_zero β] [has_one β] [has_add β] [has_mul β] [has_pow β ℕ]
+  [has_scalar ℕ β] [has_nat_cast β]
   (f : β → α) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
-  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n) :
+  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n)
+  (nat_cast : ∀ n : ℕ, f n = n) :
   semiring β :=
-{ .. ‹add_monoid_with_one β›,
-  .. hf.monoid_with_zero f zero one mul npow, .. hf.add_comm_monoid f zero add nsmul,
+{ .. hf.non_assoc_semiring f zero one add mul nsmul nat_cast,
+  .. hf.monoid_with_zero f zero one mul npow,
   .. hf.distrib f add mul }
 
 /-- Pushforward a `non_unital_non_assoc_semiring` instance along a surjective function.
@@ -207,12 +212,14 @@ See note [reducible non-instances]. -/
 @[reducible]
 protected def function.surjective.non_assoc_semiring
   {α : Type u} [non_assoc_semiring α]
-  {β : Type v} [add_monoid_with_one β] [has_mul β]
+  {β : Type v} [has_zero β] [has_one β] [has_add β] [has_mul β]
+  [has_scalar ℕ β] [has_nat_cast β]
   (f : α → β) (hf : surjective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
-  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) :
+  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x)
+  (nat_cast : ∀ n : ℕ, f n = n) :
   non_assoc_semiring β :=
-{ .. ‹add_monoid_with_one β›,
+{ .. hf.add_monoid_with_one f zero one add nsmul nat_cast,
   .. hf.non_unital_non_assoc_semiring f zero add mul nsmul, .. hf.mul_one_class f one mul }
 
 /-- Pushforward a `semiring` instance along a surjective function.
@@ -220,12 +227,14 @@ See note [reducible non-instances]. -/
 @[reducible]
 protected def function.surjective.semiring
   {α : Type u} [semiring α]
-  {β : Type v} [add_monoid_with_one β] [has_mul β] [has_pow β ℕ]
+  {β : Type v} [has_zero β] [has_one β] [has_add β] [has_mul β] [has_pow β ℕ]
+  [has_scalar ℕ β] [has_nat_cast β]
   (f : α → β) (hf : surjective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
-  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n) :
+  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n)
+  (nat_cast : ∀ n : ℕ, f n = n) :
   semiring β :=
-{ .. ‹add_monoid_with_one β›,
+{ .. hf.non_assoc_semiring f zero one add mul nsmul nat_cast,
   .. hf.monoid_with_zero f zero one mul npow, .. hf.add_comm_monoid f zero add nsmul,
   .. hf.distrib f add mul }
 
@@ -883,22 +892,26 @@ variables [comm_semiring α] [comm_semiring β] {a b c : α}
 /-- Pullback a `semiring` instance along an injective function.
 See note [reducible non-instances]. -/
 @[reducible]
-protected def function.injective.comm_semiring [add_monoid_with_one γ] [has_mul γ]
+protected def function.injective.comm_semiring
+  [has_zero γ] [has_one γ] [has_add γ] [has_mul γ] [has_scalar ℕ γ] [has_nat_cast γ]
   [has_pow γ ℕ] (f : γ → α) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
-  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n) :
+  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n)
+  (nat_cast : ∀ n : ℕ, f n = n) :
   comm_semiring γ :=
-{ .. hf.semiring f zero one add mul nsmul npow, .. hf.comm_semigroup f mul }
+{ .. hf.semiring f zero one add mul nsmul npow nat_cast, .. hf.comm_semigroup f mul }
 
 /-- Pushforward a `semiring` instance along a surjective function.
 See note [reducible non-instances]. -/
 @[reducible]
-protected def function.surjective.comm_semiring [add_monoid_with_one γ] [has_mul γ]
+protected def function.surjective.comm_semiring
+  [has_zero γ] [has_one γ] [has_add γ] [has_mul γ] [has_scalar ℕ γ] [has_nat_cast γ]
   [has_pow γ ℕ] (f : α → γ) (hf : surjective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
-  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n) :
+  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n)
+  (nat_cast : ∀ n : ℕ, f n = n) :
   comm_semiring γ :=
-{ .. hf.semiring f zero one add mul nsmul npow, .. hf.comm_semigroup f mul }
+{ .. hf.semiring f zero one add mul nsmul npow nat_cast, .. hf.comm_semigroup f mul }
 
 lemma add_mul_self_eq (a b : α) : (a + b) * (a + b) = a*a + 2*a*b + b*b :=
 by simp only [two_mul, add_mul, mul_add, add_assoc, mul_comm b]
@@ -1203,14 +1216,16 @@ instance ring.to_semiring : semiring α :=
 See note [reducible non-instances]. -/
 @[reducible]
 protected def function.injective.ring
-  [add_monoid_with_one β] [has_mul β] [has_neg β] [has_sub β] [has_scalar ℤ β] [has_pow β ℕ]
+  [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
+  [has_scalar ℕ β] [has_scalar ℤ β] [has_pow β ℕ] [has_nat_cast β] [has_int_cast β]
   (f : β → α) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y)
   (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (zsmul : ∀ x (n : ℤ), f (n • x) = n • f x)
-  (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n) :
+  (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n)
+  (nat_cast : ∀ n : ℕ, f n = n) (int_cast : ∀ n : ℤ, f n = n) :
   ring β :=
-{ .. ‹add_monoid_with_one β›,
+{ .. hf.add_group_with_one f zero one add neg sub nsmul zsmul nat_cast int_cast,
   .. hf.add_comm_group f zero add neg sub nsmul zsmul,
   .. hf.monoid f one mul npow, .. hf.distrib f add mul }
 
@@ -1218,14 +1233,16 @@ protected def function.injective.ring
 See note [reducible non-instances]. -/
 @[reducible]
 protected def function.surjective.ring
-  [add_monoid_with_one β] [has_mul β] [has_neg β] [has_sub β] [has_scalar ℤ β] [has_pow β ℕ]
+  [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
+  [has_scalar ℕ β] [has_scalar ℤ β] [has_pow β ℕ] [has_nat_cast β] [has_int_cast β]
   (f : α → β) (hf : surjective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y)
   (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (zsmul : ∀ x (n : ℤ), f (n • x) = n • f x)
-  (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n) :
+  (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n)
+  (nat_cast : ∀ n : ℕ, f n = n) (int_cast : ∀ n : ℤ, f n = n) :
   ring β :=
-{ .. ‹add_monoid_with_one β›,
+{ .. hf.add_group_with_one f zero one add neg sub nsmul zsmul nat_cast int_cast,
   .. hf.add_comm_group f zero add neg sub nsmul zsmul,
   .. hf.monoid f one mul npow, .. hf.distrib f add mul }
 
@@ -1412,57 +1429,33 @@ variables [comm_ring α] {a b c : α}
 See note [reducible non-instances]. -/
 @[reducible]
 protected def function.injective.comm_ring
-  [add_group_with_one β] [has_mul β] [has_pow β ℕ]
-  (f : β → α) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
-  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
-  (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y)
-  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (zsmul : ∀ x (n : ℤ), f (n • x) = n • f x)
-  (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n) :
-  comm_ring β :=
-{ .. hf.ring f zero one add mul neg sub nsmul zsmul npow, .. hf.comm_semigroup f mul }
-
-/-- Pullback a `comm_ring` instance along an injective function.
-See note [reducible non-instances]. -/
-@[reducible]
-protected def function.injective.comm_ring'
   [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
-  [has_scalar ℕ β] [has_scalar ℤ β] [has_pow β ℕ]
+  [has_scalar ℕ β] [has_scalar ℤ β] [has_pow β ℕ] [has_nat_cast β] [has_int_cast β]
   (f : β → α) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y)
   (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (zsmul : ∀ x (n : ℤ), f (n • x) = n • f x)
-  (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n) :
+  (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n)
+  (nat_cast : ∀ n : ℕ, f n = n) (int_cast : ∀ n : ℤ, f n = n) :
   comm_ring β :=
-by letI := hf.add_group_with_one f zero add neg sub nsmul zsmul; exact
-hf.comm_ring f zero one add mul neg sub nsmul zsmul npow
+{ .. hf.ring f zero one add mul neg sub nsmul zsmul npow nat_cast int_cast,
+  .. hf.comm_semigroup f mul }
 
 /-- Pushforward a `comm_ring` instance along a surjective function.
 See note [reducible non-instances]. -/
 @[reducible]
 protected def function.surjective.comm_ring
-  [add_monoid_with_one β] [has_mul β] [has_neg β] [has_sub β] [has_pow β ℕ] [has_scalar ℤ β]
-  (f : α → β) (hf : surjective f) (zero : f 0 = 0) (one : f 1 = 1)
-  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
-  (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y)
-  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (zsmul : ∀ x (n : ℤ), f (n • x) = n • f x)
-  (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n) :
-  comm_ring β :=
-{ .. hf.ring f zero one add mul neg sub nsmul zsmul npow, .. hf.comm_semigroup f mul }
-
-/-- Pushforward a `comm_ring` instance along a surjective function.
-See note [reducible non-instances]. -/
-@[reducible]
-protected def function.surjective.comm_ring'
   [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
-  [has_scalar ℕ β] [has_scalar ℤ β] [has_pow β ℕ]
+  [has_scalar ℕ β] [has_scalar ℤ β] [has_pow β ℕ] [has_nat_cast β] [has_int_cast β]
   (f : α → β) (hf : surjective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y)
   (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (zsmul : ∀ x (n : ℤ), f (n • x) = n • f x)
-  (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n) :
+  (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n)
+  (nat_cast : ∀ n : ℕ, f n = n) (int_cast : ∀ n : ℤ, f n = n) :
   comm_ring β :=
-by letI := hf.add_monoid_with_one f zero add nsmul; exact
-hf.comm_ring f zero one add mul neg sub nsmul zsmul npow
+{ .. hf.ring f zero one add mul neg sub nsmul zsmul npow nat_cast int_cast,
+  .. hf.comm_semigroup f mul }
 
 end comm_ring
 

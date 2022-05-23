@@ -262,7 +262,8 @@ variables (A : ι → submodule R M)
 indexed by `ι`. This is `direct_sum.coe_add_monoid_hom` as a `linear_map`. -/
 def coe_linear_map : (⨁ i, A i) →ₗ[R] M := to_module R ι M (λ i, (A i).subtype)
 
-@[simp] lemma coe_linear_map_of (i : ι) (x : A i) : direct_sum.coe_linear_map A (of (λ i, A i) i x) = x :=
+@[simp] lemma coe_linear_map_of (i : ι) (x : A i) :
+  direct_sum.coe_linear_map A (of (λ i, A i) i x) = x :=
 to_add_monoid_of _ _ _
 
 variables {A}
@@ -284,7 +285,8 @@ components of the direct sum, the disjoint union of these bases is a basis for `
 noncomputable def is_internal.collected_basis
   (h : is_internal A) {α : ι → Type*} (v : Π i, basis (α i) R (A i)) :
   basis (Σ i, α i) R M :=
-{ repr := (linear_equiv.of_bijective (direct_sum.coe_linear_map A) h.injective h.surjective).symm ≪≫ₗ
+{ repr :=
+    (linear_equiv.of_bijective (direct_sum.coe_linear_map A) h.injective h.surjective).symm ≪≫ₗ
       (dfinsupp.map_range.linear_equiv (λ i, (v i).repr)) ≪≫ₗ
       (sigma_finsupp_lequiv_dfinsupp R).symm }
 

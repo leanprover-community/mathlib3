@@ -40,7 +40,7 @@ function field, ring of integers
 -/
 
 noncomputable theory
-open_locale non_zero_divisors polynomial
+open_locale non_zero_divisors polynomial discrete_valuation
 
 variables (Fq F : Type) [field Fq] [field F]
 
@@ -148,7 +148,7 @@ variable [decidable_eq (ratfunc Fq)]
 /-- The valuation at infinity is the nonarchimedean valuation on `Fq(t)` with uniformizer `1/t`.
 Explicitly, if `f/g ∈ Fq(t)` is a nonzero quotient of polynomials, its valuation at infinity is
 `multiplicative.of_add(degree(f) - degree(g))`. -/
-def infty_valuation_def (r : ratfunc Fq) : with_zero (multiplicative ℤ) :=
+def infty_valuation_def (r : ratfunc Fq) : ℤₘ₀ :=
 if r = 0 then 0 else (multiplicative.of_add r.int_degree)
 
 lemma infty_valuation.map_zero' : infty_valuation_def Fq 0 = 0 := if_pos rfl
@@ -197,7 +197,7 @@ end
 by rw [infty_valuation_def, if_neg hx]
 
 /-- The valuation at infinity on `Fq(t)`. -/
-def infty_valuation  : valuation (ratfunc Fq) (with_zero (multiplicative ℤ)) :=
+def infty_valuation  : valuation (ratfunc Fq) ℤₘ₀ :=
 { to_fun          := infty_valuation_def Fq,
   map_zero'       := infty_valuation.map_zero' Fq,
   map_one'        := infty_valuation.map_one' Fq,
@@ -228,7 +228,7 @@ begin
 end
 
 /-- The valued field `Fq(t)` with the valuation at infinity. -/
-def infty_valued_Fqt : valued (ratfunc Fq) (with_zero (multiplicative ℤ)) :=
+def infty_valued_Fqt : valued (ratfunc Fq) ℤₘ₀ :=
 valued.mk' $ infty_valuation Fq
 
 lemma infty_valued_Fqt.def {x : ratfunc Fq} :
@@ -246,7 +246,7 @@ end
 instance : inhabited (Fqt_infty Fq) := ⟨(0 : Fqt_infty Fq)⟩
 
 /-- The valuation at infinity on `k(t)` extends to a valuation on `Fqt_infty`. -/
-instance valued_Fqt_infty : valued (Fqt_infty Fq) (with_zero (multiplicative ℤ)) :=
+instance valued_Fqt_infty : valued (Fqt_infty Fq) ℤₘ₀ :=
 @valued.valued_completion _ _ _ _ (infty_valued_Fqt Fq)
 
 lemma valued_Fqt_infty.def {x : Fqt_infty Fq} :

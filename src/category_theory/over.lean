@@ -50,7 +50,7 @@ variables {X : T}
   (h : f.left = g.left) : f = g :=
 by tidy
 
-@[simp] lemma over_right (U : over X) : U.right = punit.star := by tidy
+@[simp] lemma over_right (U : over X) : U.right = ⟨⟨⟩⟩ := by tidy
 
 @[simp] lemma id_left (U : over X) : comma_morphism.left (𝟙 U) = 𝟙 U.left := rfl
 @[simp] lemma comp_left (a b c : over X) (f : a ⟶ b) (g : b ⟶ c) :
@@ -60,7 +60,7 @@ by tidy
 by have := f.w; tidy
 
 /-- To give an object in the over category, it suffices to give a morphism with codomain `X`. -/
-@[simps]
+@[simps left hom]
 def mk {X Y : T} (f : Y ⟶ X) : over X :=
 costructured_arrow.mk f
 
@@ -248,7 +248,7 @@ variables {X : T}
   (h : f.right = g.right) : f = g :=
 by tidy
 
-@[simp] lemma under_left (U : under X) : U.left = punit.star := by tidy
+@[simp] lemma under_left (U : under X) : U.left = ⟨⟨⟩⟩ := by tidy
 
 @[simp] lemma id_right (U : under X) : comma_morphism.right (𝟙 U) = 𝟙 U.right := rfl
 @[simp] lemma comp_right (a b c : under X) (f : a ⟶ b) (g : b ⟶ c) :
@@ -258,7 +258,7 @@ by tidy
 by have := f.w; tidy
 
 /-- To give an object in the under category, it suffices to give an arrow with domain `X`. -/
-@[simps]
+@[simps right hom]
 def mk {X Y : T} (f : X ⟶ Y) : under X :=
 structured_arrow.mk f
 

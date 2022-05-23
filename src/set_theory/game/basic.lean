@@ -9,15 +9,16 @@ import tactic.abel
 /-!
 # Combinatorial games.
 
-In this file we define the quotient of pre-games by the equivalence relation `p ≈ q ↔ p ≤ q ∧ q ≤
-p`, and construct an instance `add_comm_group game`, as well as an instance `partial_order game`.
+In this file we define the quotient of pre-games by the equivalence relation
+`p ≈ q ↔ p ≤ q ∧ q ≤ p` (its `antisymmetrization`), and construct an instance `add_comm_group game`,
+as well as an instance `partial_order game`.
 
 ## Multiplication on pre-games
 
 We define the operations of multiplication and inverse on pre-games, and prove a few basic theorems
-about them. Multiplication is not well-behaved under equivalence of pre-games i.e. `x.equiv y` does
-not imply `(x*z).equiv (y*z)`. Hence, multiplication is not a well-defined operation on games.
-Nevertheless, the abelian group structure on games allows us to simplify many proofs for pre-games.
+about them. Multiplication is not well-behaved under equivalence of pre-games i.e. `x ≈ y` does not
+imply `x * z ≈ y * z`. Hence, multiplication is not a well-defined operation on games. Nevertheless,
+the abelian group structure on games allows us to simplify many proofs for pre-games.
 -/
 
 open function

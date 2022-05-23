@@ -43,47 +43,6 @@ variables (𝕜 : Type*) {E : Type*} [is_R_or_C 𝕜] [inner_product_space 𝕜 
 
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 
-section move
-
--- TODO: move
-lemma fin.of_nat'_coe {m : ℕ} (n : fin m) :
-  @fin.of_nat' _ ⟨lt_of_le_of_lt (nat.zero_le _) n.2⟩ n = n :=
-begin
-  haveI hm : fact (0 < m), from ⟨lt_of_le_of_lt (nat.zero_le _) n.2⟩,
-  ext,
-  rw [fin.coe_of_nat_eq_mod', nat.mod_eq_of_lt],
-  exact n.2,
-end
-
--- TODO: move
-lemma fin.cast_lt_cast_lt {m n : ℕ} (i : fin n) (hm : i.val < m) (hn : i.val < n) :
-  (i.cast_lt hm).cast_lt hn = i :=
-by simp [fin.cast_lt]
-
--- TODO: move
-lemma sum_fin_range_eq_sum_range {M : Type*} [add_comm_monoid M] (n : ℕ) (f : ℕ → M) :
-∑ i in finset.fin_range n, f i = ∑ i in finset.range n, f i :=
-begin
-  apply finset.sum_bij (λ (i : fin n) ih, i.val),
-  exact λ i ih, finset.mem_range.2 i.2,
-  { intros, rw fin.coe_eq_val },
-  exact λ _ _ _ _, (fin.eq_iff_veq _ _).2,
-  exact λ i hi, ⟨⟨i, finset.mem_range.1 hi⟩, finset.mem_fin_range _, rfl⟩
-end
-
-open submodule set order
-
--- TODO: move
-lemma fin.image_of_nat' (m : ℕ) [h : fact (0 < m)] :
-  (fin.of_nat' '' Iio m) = (set.univ : set (fin m)) :=
-eq_univ_of_forall (λ i, (mem_image _ _ _).2 ⟨i, mem_Iio.2 i.2, fin.of_nat'_coe _⟩)
-
--- TODO: move
-lemma fin.range_coe (m : ℕ) : range (λ (i : fin m), (i : ℕ)) = Iio m :=
-by simp [Iio]
-
-end move
-
 section nat
 
 /-- The Gram-Schmidt process takes a set of vectors as input

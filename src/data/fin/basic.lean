@@ -122,6 +122,8 @@ iff.intro (congr_arg _) fin.eq_of_veq
 
 lemma coe_injective {n : ℕ} : injective (coe : fin n → ℕ) := subtype.coe_injective
 
+lemma fin.range_coe (m : ℕ) : set.range (λ (i : fin m), (i : ℕ)) = set.Iio m := by simp [set.Iio]
+
 lemma eq_iff_veq (a b : fin n) : a = b ↔ a.1 = b.1 :=
 ⟨veq_of_eq, eq_of_veq⟩
 
@@ -569,6 +571,10 @@ def cast_lt (i : fin m) (h : i.1 < n) : fin n := ⟨i.1, h⟩
 @[simp] lemma coe_cast_lt (i : fin m) (h : i.1 < n) : (cast_lt i h : ℕ) = i := rfl
 
 @[simp] lemma cast_lt_mk (i n m : ℕ) (hn : i < n) (hm : i < m) : cast_lt ⟨i, hn⟩ hm = ⟨i, hm⟩ := rfl
+
+lemma fin.cast_lt_cast_lt {m n : ℕ} (i : fin n) (hm : i.val < m) (hn : i.val < n) :
+  (i.cast_lt hm).cast_lt hn = i :=
+by simp [fin.cast_lt]
 
 /-- `cast_le h i` embeds `i` into a larger `fin` type.  -/
 def cast_le (h : n ≤ m) : fin n ↪o fin m :=
@@ -1610,6 +1616,17 @@ by rw [← of_nat_eq_coe]; refl
 @[simp] lemma coe_of_nat_eq_mod' (m n : ℕ) [I : fact (0 < m)] :
   (@fin.of_nat' _ I n : ℕ) = n % m :=
 rfl
+
+lemma fin.of_nat'_coe {m : ℕ} (n : fin m) :
+  @fin.of_nat' _ ⟨lt_of_le_of_lt (nat.zero_le _) n.2⟩ n = n :=
+begin
+  haveI hm : fact (0 < m), from ⟨lt_of_le_of_lt (nat.zero_le _) n.2⟩,
+  ext, rw [fin.coe_of_nat_eq_mod', nat.mod_eq_of_lt], exact n.2,
+end
+
+lemma fin.image_of_nat' (m : ℕ) [h : fact (0 < m)] :
+  (fin.of_nat' '' set.Iio m) = (set.univ : set (fin m)) :=
+set.eq_univ_of_forall (λ i, (set.mem_image _ _ _).2 ⟨i, set.mem_Iio.2 i.2, fin.of_nat'_coe _⟩)
 
 section mul
 

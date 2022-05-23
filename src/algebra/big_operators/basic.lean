@@ -940,6 +940,17 @@ lemma prod_range_one (f : ℕ → β) :
   ∏ k in range 1, f k = f 0 :=
 by { rw [range_one], apply @prod_singleton β ℕ 0 f }
 
+@[to_additive]
+lemma prod_fin_range_eq_prod_range (n : ℕ) (f : ℕ → β) :
+  ∏ i in finset.fin_range n, f i = ∏ i in finset.range n, f i :=
+begin
+  apply finset.prod_bij (λ (i : fin n) ih, i.val),
+  exact λ i ih, finset.mem_range.2 i.2,
+  { intros, rw fin.coe_eq_val },
+  exact λ _ _ _ _, (fin.eq_iff_veq _ _).2,
+  exact λ i hi, ⟨⟨i, finset.mem_range.1 hi⟩, finset.mem_fin_range _, rfl⟩
+end
+
 open list
 
 @[to_additive] lemma prod_list_map_count [decidable_eq α] (l : list α)

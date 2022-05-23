@@ -271,7 +271,7 @@ end
 
 For the alternate statement in terms of independence and spanning, see
 `direct_sum.subgroup_is_internal_iff_independent_and_supr_eq_top` and
-`direct_sum.submodule_is_internal_iff_independent_and_supr_eq_top`. -/
+`direct_sum.is_internal_submodule_iff_independent_and_supr_eq_top`. -/
 def is_internal {M S : Type*} [decidable_eq ι] [add_comm_monoid M]
   [set_like S M] [add_submonoid_class S M] (A : ι → S) : Prop :=
 function.bijective (direct_sum.coe_add_monoid_hom A)

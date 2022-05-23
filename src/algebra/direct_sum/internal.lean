@@ -26,10 +26,10 @@ subobjects into their carrier type:
 Strictly the definitions in this file are not sufficient to fully define an "internal" direct sum;
 to represent this case, `(h : direct_sum.is_internal A) [set_like.graded_monoid A]` is
 needed. In the future there will likely be a data-carrying, constructive, typeclass version of
-`direct_sum.submodule_is_internal` for providing an explicit decomposition function.
+`direct_sum.is_internal` for providing an explicit decomposition function.
 
 When `complete_lattice.independent (set.range A)` (a weaker condition than
-`direct_sum.submodule_is_internal A`), these provide a grading of `⨆ i, A i`, and the
+`direct_sum.is_internal A`), these provide a grading of `⨆ i, A i`, and the
 mapping `⨁ i, A i →+ ⨆ i, A i` can be obtained as
 `direct_sum.to_monoid (λ i, add_submonoid.inclusion $ le_supr A i)`.
 

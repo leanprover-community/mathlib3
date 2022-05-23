@@ -14,8 +14,9 @@ import algebra.direct_sum.algebra
 This module provides `gsemiring` and `gcomm_semiring` instances for a collection of subobjects `A`
 when a `set_like.graded_monoid` instance is available:
 
+* `set_like.gnon_unital_non_assoc_semiring`
 * `set_like.gsemiring`
-* `set_like.gcomm_semiring`.
+* `set_like.gcomm_semiring`
 
 With these instances in place, it provides the bundled canonical maps out of a direct sum of
 subobjects into their carrier type:
@@ -56,6 +57,17 @@ variables [decidable_eq ι]
 /-! #### From `add_submonoid`s and `add_subgroup`s -/
 
 namespace set_like
+
+/-- Build a `gnon_unital_non_assoc_semiring` instance for a collection of additive submonoids. -/
+instance gnon_unital_non_assoc_semiring [has_add ι] [non_unital_non_assoc_semiring R]
+  [set_like σ R] [add_submonoid_class σ R]
+  (A : ι → σ) [set_like.has_graded_mul A] :
+  direct_sum.gnon_unital_non_assoc_semiring (λ i, A i) :=
+{ mul_zero := λ i j _, subtype.ext (mul_zero _),
+  zero_mul := λ i j _, subtype.ext (zero_mul _),
+  mul_add := λ i j _ _ _, subtype.ext (mul_add _ _ _),
+  add_mul := λ i j _ _ _, subtype.ext (add_mul _ _ _),
+  ..set_like.ghas_mul A }
 
 /-- Build a `gsemiring` instance for a collection of additive submonoids. -/
 instance gsemiring [add_monoid ι] [semiring R] [set_like σ R] [add_submonoid_class σ R]
@@ -99,7 +111,7 @@ begin
   simp_rw [direct_sum.coe_of_apply, ←finset.sum_filter, set_like.coe_ghas_mul],
 end
 
-/-! #### From `submodules`s -/
+/-! #### From `submodule`s -/
 
 namespace submodule
 

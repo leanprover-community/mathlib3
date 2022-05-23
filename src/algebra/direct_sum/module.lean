@@ -14,9 +14,9 @@ construction of the direct sum using the universal property and proves its uniqu
 (`direct_sum.to_module.unique`).
 
 The second part of the file covers the special case of direct sums of submodules of a fixed module
-`M`.  There is a canonical linear map from this direct sum to `M` (`direct_sum.coe_linear_map`), and the
-construction is of particular importance when this linear map is an equivalence; that is, when the
-submodules provide an internal decomposition of `M`.  The property is defined more generally
+`M`.  There is a canonical linear map from this direct sum to `M` (`direct_sum.coe_linear_map`), and
+the construction is of particular importance when this linear map is an equivalence; that is, when
+the submodules provide an internal decomposition of `M`.  The property is defined more generally
 elsewhere as `direct_sum.is_internal`, but its basic consequences on `submodule`s are established
 in this file.
 

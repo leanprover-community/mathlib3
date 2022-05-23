@@ -271,6 +271,9 @@ instance : has_neg surreal  :=
   (λ x ox, ⟦⟨-x, ox.neg⟩⟧)
   (λ _ _ _ _ a, quotient.sound (pgame.neg_congr a))⟩
 
+noncomputable def _root_.ordinal.to_surreal (o : ordinal) : surreal :=
+mk _ (numeric_to_pgame o)
+
 instance : ordered_add_comm_group surreal :=
 { add               := (+),
   add_assoc         := by { rintros ⟨_⟩ ⟨_⟩ ⟨_⟩, exact quotient.sound add_assoc_equiv },

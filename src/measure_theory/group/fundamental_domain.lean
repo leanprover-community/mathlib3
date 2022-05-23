@@ -230,7 +230,7 @@ protected lemma measure_eq (hs : is_fundamental_domain G s μ)
 by simpa only [set_lintegral_one] using hs.set_lintegral_eq ht (λ _, 1) (λ _ _, rfl)
 
 @[to_additive] protected lemma ae_strongly_measurable_on_iff
-  {β : Type*} [topological_space β] [metrizable_space β]
+  {β : Type*} [topological_space β] [pseudo_metrizable_space β]
   (hs : is_fundamental_domain G s μ) (ht : is_fundamental_domain G t μ) {f : α → β}
   (hf : ∀ (g : G) x, f (g • x) = f x) :
   ae_strongly_measurable f (μ.restrict s) ↔ ae_strongly_measurable f (μ.restrict t) :=

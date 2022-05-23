@@ -195,7 +195,7 @@ begin
   have e := (D.snd_inv_app_t_app' i j k U).some_spec,
   reassoc! e,
   rw ← e,
-  simp,
+  simp [eq_to_hom_map],
 end
 
 variable [has_limits C]

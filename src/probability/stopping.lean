@@ -858,11 +858,11 @@ by simp [stopped_process, min_eq_right h]
 section prog_measurable
 
 variables [measurable_space ι] [topological_space ι] [order_topology ι]
-  [second_countable_topology ι] [borel_space ι] [metrizable_space ι]
+  [second_countable_topology ι] [borel_space ι]
   [topological_space β]
   {u : ι → α → β} {τ : α → ι} {f : filtration ι m}
 
-lemma prog_measurable_min_stopping_time (hτ : is_stopping_time f τ) :
+lemma prog_measurable_min_stopping_time [metrizable_space ι] (hτ : is_stopping_time f τ) :
   prog_measurable f (λ i x, min i (τ x)) :=
 begin
   intro i,
@@ -899,19 +899,49 @@ begin
     simp only [not_le, set.mem_compl_eq, set.mem_set_of_eq], },
 end
 
-lemma prog_measurable.stopped_process (h : prog_measurable f u) (hτ : is_stopping_time f τ) :
+lemma prog_measurable.stopped_process [metrizable_space ι]
+  (h : prog_measurable f u) (hτ : is_stopping_time f τ) :
   prog_measurable f (stopped_process u τ) :=
 h.comp (prog_measurable_min_stopping_time hτ) (λ i x, min_le_left _ _)
 
-lemma prog_measurable.adapted_stopped_process
+lemma prog_measurable.adapted_stopped_process [metrizable_space ι]
   (h : prog_measurable f u) (hτ : is_stopping_time f τ) :
   adapted f (stopped_process u τ) :=
 (h.stopped_process hτ).adapted
 
-lemma prog_measurable.strongly_measurable_stopped_process
+lemma prog_measurable.strongly_measurable_stopped_process [metrizable_space ι]
   (hu : prog_measurable f u) (hτ : is_stopping_time f τ) (i : ι) :
   strongly_measurable (stopped_process u τ i) :=
 (hu.adapted_stopped_process hτ i).mono (f.le _)
+
+lemma strongly_measurable_stopped_value_of_le
+  (h : prog_measurable f u) (hτ : is_stopping_time f τ) {n : ι} (hτ_le : ∀ x, τ x ≤ n) :
+  strongly_measurable[f n] (stopped_value u τ) :=
+begin
+  have : stopped_value u τ = (λ (p : set.Iic n × α), u ↑(p.fst) p.snd) ∘ (λ x, (⟨τ x, hτ_le x⟩, x)),
+  { ext1 x, simp only [stopped_value, function.comp_app, subtype.coe_mk], },
+  rw this,
+  refine strongly_measurable.comp_measurable (h n) _,
+  exact (hτ.measurable_of_le hτ_le).subtype_mk.prod_mk measurable_id,
+end
+
+lemma measurable_stopped_value [metrizable_space β] [measurable_space β] [borel_space β]
+  (hf_prog : prog_measurable f u) (hτ : is_stopping_time f τ) :
+  measurable[hτ.measurable_space] (stopped_value u τ) :=
+begin
+  have h_str_meas : ∀ i, strongly_measurable[f i] (stopped_value u (λ x, min (τ x) i)),
+    from λ i, strongly_measurable_stopped_value_of_le hf_prog (hτ.min_const i)
+      (λ _, min_le_right _ _),
+  intros t ht i,
+  suffices : stopped_value u τ ⁻¹' t ∩ {x : α | τ x ≤ i}
+      = stopped_value u (λ x, min (τ x) i) ⁻¹' t ∩ {x : α | τ x ≤ i},
+    by { rw this, exact ((h_str_meas i).measurable ht).inter (hτ.measurable_set_le i), },
+  ext1 x,
+  simp only [stopped_value, set.mem_inter_eq, set.mem_preimage, set.mem_set_of_eq,
+    and.congr_left_iff],
+  intro h,
+  rw min_eq_left h,
+end
 
 end prog_measurable
 

@@ -39,7 +39,7 @@ section map
 variables (F : C ⥤ D) [preserves_zero_morphisms F]
 
 section bicone
-variables {J : Type v} [decidable_eq J]
+variables {J : Type v}
 
 /-- The image of a bicone under a functor. -/
 @[simps]
@@ -80,7 +80,7 @@ open category_theory.functor
 namespace limits
 
 section bicone
-variables {J : Type v} [decidable_eq J]
+variables {J : Type v}
 
 /-- A functor `F` preserves biproducts of `f` if `F` maps every bilimit bicone over `f` to a
     bilimit bicone over `F.obj ∘ f`. -/
@@ -107,20 +107,20 @@ end bicone
 /-- A functor `F` preserves finite biproducts if it preserves biproducts of shape `J` whenever
     `J` is a fintype. -/
 class preserves_finite_biproducts (F : C ⥤ D) [preserves_zero_morphisms F] :=
-(preserves : Π {J : Type v} [decidable_eq J] [fintype J], preserves_biproducts_of_shape J F)
+(preserves : Π {J : Type v} [fintype J], preserves_biproducts_of_shape J F)
 
 attribute [instance, priority 100] preserves_finite_biproducts.preserves
 
 /-- A functor `F` preserves biproducts if it preserves biproducts of any (small) shape `J`. -/
 class preserves_biproducts (F : C ⥤ D) [preserves_zero_morphisms F] :=
-(preserves : Π {J : Type v} [decidable_eq J], preserves_biproducts_of_shape J F)
+(preserves : Π {J : Type v}, preserves_biproducts_of_shape J F)
 
 attribute [instance, priority 100] preserves_biproducts.preserves
 
 @[priority 100]
 instance preserves_finite_biproducts_of_preserves_biproducts (F : C ⥤ D)
   [preserves_zero_morphisms F] [preserves_biproducts F] : preserves_finite_biproducts F :=
-{ preserves := λ J _ _, infer_instance }
+{ preserves := λ J _, infer_instance }
 
 /-- A functor `F` preserves binary biproducts of `X` and `Y` if `F` maps every bilimit bicone over
     `X` and `Y` to a bilimit bicone over `F.obj X` and `F.obj Y`. -/
@@ -167,7 +167,7 @@ open category_theory.limits
 namespace functor
 
 section bicone
-variables {J : Type v} [decidable_eq J] (F : C ⥤ D) [preserves_zero_morphisms F] (f : J → C)
+variables {J : Type v} (F : C ⥤ D) [preserves_zero_morphisms F] (f : J → C)
   [has_biproduct f] [preserves_biproduct f F]
 
 instance has_biproduct_of_preserves : has_biproduct (F.obj ∘ f) :=
@@ -216,7 +216,7 @@ namespace limits
 variables (F : C ⥤ D) [preserves_zero_morphisms F]
 
 section bicone
-variables {J : Type v} [decidable_eq J] (f : J → C) [has_biproduct f] [preserves_biproduct f F]
+variables {J : Type v} (f : J → C) [has_biproduct f] [preserves_biproduct f F]
   {W : C}
 
 lemma biproduct.map_lift_map_biprod (g : Π j, W ⟶ f j) :
@@ -266,7 +266,7 @@ variables [preadditive C] [preadditive D] (F : C ⥤ D) [preserves_zero_morphism
 namespace limits
 
 section fintype
-variables {J : Type v} [decidable_eq J] [fintype J]
+variables {J : Type v} [fintype J]
 
 local attribute [tidy] tactic.discrete_cases
 

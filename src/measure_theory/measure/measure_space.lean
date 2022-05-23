@@ -1202,14 +1202,22 @@ restrict_eq_zero.2 h
 
 @[simp] lemma restrict_univ : μ.restrict univ = μ := ext $ λ s hs, by simp [hs]
 
-lemma restrict_union_add_inter₀ (s : set α) (ht : null_measurable_set t μ) :
-  μ.restrict (s ∪ t) + μ.restrict (s ∩ t) = μ.restrict s + μ.restrict t :=
+lemma restrict_inter_add_diff₀ (s : set α) (ht : null_measurable_set t μ) :
+  μ.restrict (s ∩ t) + μ.restrict (s \ t) = μ.restrict s :=
 begin
   ext1 u hu,
-  simp only [add_apply, restrict_apply hu, inter_union_distrib_left],
-  convert measure_union_add_inter₀ (u ∩ s) (hu.null_measurable_set.inter ht) using 3,
-  rw [set.inter_left_comm (u ∩ s), set.inter_assoc, ← set.inter_assoc u u, set.inter_self]
+  simp only [add_apply, restrict_apply hu, ← inter_assoc, diff_eq],
+  exact measure_inter_add_diff₀ (u ∩ s) ht
 end
+
+lemma restrict_inter_add_diff (s : set α) (ht : measurable_set t) :
+  μ.restrict (s ∩ t) + μ.restrict (s \ t) = μ.restrict s :=
+restrict_inter_add_diff₀ s ht.null_measurable_set
+
+lemma restrict_union_add_inter₀ (s : set α) (ht : null_measurable_set t μ) :
+  μ.restrict (s ∪ t) + μ.restrict (s ∩ t) = μ.restrict s + μ.restrict t :=
+by rw [← restrict_inter_add_diff₀ (s ∪ t) ht, union_inter_cancel_right, union_diff_right,
+ ← restrict_inter_add_diff₀ s ht, add_comm, ← add_assoc, add_right_comm]
 
 lemma restrict_union_add_inter (s : set α) (ht : measurable_set t) :
   μ.restrict (s ∪ t) + μ.restrict (s ∩ t) = μ.restrict s + μ.restrict t :=

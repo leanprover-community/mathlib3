@@ -138,19 +138,39 @@ theorem to_pgame_add : ∀ a b : ordinal.{u}, a.to_pgame + b.to_pgame ≈ (a ♯
 end
 using_well_founded { dec_tac := `[solve_by_elim [psigma.lex.left, psigma.lex.right]] }
 
-/-- The product of ordinals as games corresponds to natural multiplication of ordinals. -/
-theorem to_pgame_mul : ∀ a b : ordinal.{u}, a.to_pgame * b.to_pgame ≈ (a ⨳ b).to_pgame
+@[simp] theorem to_pgame_add_mk (a b : ordinal) :
+  ⟦a.to_pgame⟧ + ⟦b.to_pgame⟧ = ⟦(a ♯ b).to_pgame⟧ :=
+quot.sound (to_pgame_add a b)
+
+@[simp] theorem to_pgame_mul_mk :
+  ∀ a b : ordinal.{u}, ⟦a.to_pgame * b.to_pgame⟧ = ⟦(a ⨳ b).to_pgame⟧
 | a b := begin
+  apply quot.sound,
   split,
   { rw le_iff_forall_lf,
     split,
-    {
-      
+    { intro i,
+      rcases left_moves_mul_cases i with ⟨ix, iy, rfl⟩ | ⟨jx, jy, rfl⟩,
+      { simp only [mul_move_left_inl, to_pgame_move_left'],
+        change game.lf ⟦_⟧ ⟦_⟧,
+        dsimp,
+        rw to_pgame_mul_mk,
+        rw to_pgame_mul_mk,
+        rw to_pgame_mul_mk,
+        rw sub_lt_i
+
+       },
+      { exact is_empty_elim jx }
+
     }
 
   }
 end
 using_well_founded { dec_tac := `[solve_by_elim [psigma.lex.left, psigma.lex.right]] }
+
+/-- The product of ordinals as games corresponds to natural multiplication of ordinals. -/
+theorem to_pgame_mul (a b : ordinal) : a.to_pgame * b.to_pgame ≈ (a ⨳ b).to_pgame :=
+quotient.exact (to_pgame_mul_mk a b)
 
 
 end ordinal

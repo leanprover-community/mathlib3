@@ -133,8 +133,8 @@ begin
     refine ⟨((ℓ z)† / ⟪z, z⟫) • z, _⟩,
     ext x,
     have h₁ : (ℓ z) • x - (ℓ x) • z ∈ Y,
-    { rw [mem_ker, map_sub, map_smul, map_smul, algebra.id.smul_eq_mul, algebra.id.smul_eq_mul,
-          mul_comm],
+    { rw [mem_ker, map_sub, continuous_linear_map.map_smul, continuous_linear_map.map_smul,
+          algebra.id.smul_eq_mul, algebra.id.smul_eq_mul, mul_comm],
       exact sub_self (ℓ x * ℓ z) },
     have h₂ : (ℓ z) * ⟪z, x⟫ = (ℓ x) * ⟪z, z⟫,
     { have h₃ := calc

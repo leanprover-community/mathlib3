@@ -304,7 +304,7 @@ continuous_induced_dom
 depends continuously on the measure. -/
 lemma continuous_test_against_nn_eval (f : α →ᵇ ℝ≥0) :
   continuous (λ (μ : finite_measure α), μ.test_against_nn f) :=
-(by apply (eval_continuous _ _).comp to_weak_dual_bcnn_continuous :
+(by apply (weak_bilin.eval_continuous _ _).comp to_weak_dual_bcnn_continuous :
   continuous ((λ φ : weak_dual ℝ≥0 (α →ᵇ ℝ≥0), φ f) ∘ to_weak_dual_bcnn))
 
 lemma tendsto_iff_weak_star_tendsto {γ : Type*} {F : filter γ}

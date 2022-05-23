@@ -467,9 +467,10 @@ theorem exists_finite_iff_finset {p : set α → Prop} :
 
 /-- There are finitely many subsets of a given finite set -/
 lemma finite.finite_subsets {α : Type u} {a : set α} (h : a.finite) : {b | b ⊆ a}.finite :=
-⟨fintype.of_finset ((finset.powerset h.to_finset).map finset.coe_emb.1) $ λ s,
+set.finite.intro $
+fintype.of_finset ((finset.powerset h.to_finset).map finset.coe_emb.1) $ λ s,
   by simpa [← @exists_finite_iff_finset α (λ t, t ⊆ a ∧ t = s), subset_to_finset_iff,
-    ← and.assoc] using h.subset⟩
+    ← and.assoc] using h.subset
 
 /-- Finite product of finite sets is finite -/
 lemma finite.pi {δ : Type*} [fintype δ] {κ : δ → Type*} {t : Π d, set (κ d)}
@@ -707,7 +708,7 @@ theorem infinite_univ [h : infinite α] : (@univ α).infinite :=
 infinite_univ_iff.2 h
 
 theorem infinite_coe_iff {s : set α} : infinite s ↔ s.infinite :=
-⟨λ ⟨h₁⟩ h₂, h₁ h₂.fintype, λ h₁, ⟨λ h₂, h₁ ⟨h₂⟩⟩⟩
+⟨λ ⟨h₁⟩ h₂, h₁ h₂.fintype, λ h₁, ⟨λ h₂, h₁ (set.finite.intro h₂)⟩⟩
 
 theorem infinite.to_subtype {s : set α} (h : s.infinite) : infinite s :=
 infinite_coe_iff.2 h

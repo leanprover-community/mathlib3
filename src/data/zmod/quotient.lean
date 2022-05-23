@@ -130,9 +130,8 @@ rfl
 lemma orbit_zpowers_equiv_symm_apply' (k : ℤ) : (orbit_zpowers_equiv a b).symm k =
   (⟨a, mem_zpowers a⟩ : zpowers a) ^ k • ⟨b, mem_orbit_self b⟩ :=
 begin
-  ext,
   rw [orbit_zpowers_equiv_symm_apply, zmod.coe_int_cast],
-  exact zpow_smul_mod_minimal_period _ _ _
+  exact subtype.ext (zpow_smul_mod_minimal_period k _ _),
 end
 
 lemma _root_.add_action.orbit_zmultiples_equiv_symm_apply'

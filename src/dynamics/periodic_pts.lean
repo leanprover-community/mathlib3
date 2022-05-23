@@ -403,6 +403,8 @@ begin
         dvd_neg, int.coe_nat_dvd, pow_smul_eq_iff_minimal_period_dvd] },
 end
 
+variables (a b)
+
 @[to_additive] lemma pow_smul_mod_minimal_period (n : ℕ) :
   a ^ (n % function.minimal_period ((•) a) b) • b = a ^ n • b :=
 by conv_rhs { rw [← nat.mod_add_div n (minimal_period ((•) a) b), pow_add, mul_smul,

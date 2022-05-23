@@ -127,8 +127,9 @@ variables {k : Type u} [comm_ring k] {G : Group.{u}}
 lemma mem_invariants_iff_comm {X Y : Rep k G} (f : X.V →ₗ[k] Y.V) (g : G) :
   (lin_hom X.ρ Y.ρ) g f = f ↔ f.comp (X.ρ g) = (Y.ρ g).comp f :=
 begin
-  erw [lin_hom_apply, ←ρ_Aut_apply_inv, ←linear_map.comp_assoc, ←Module.comp_def, ←Module.comp_def,
-    iso.inv_comp_eq, ρ_Aut_apply_hom],
+  dsimp,
+  erw [←ρ_Aut_apply_inv],
+  rw [←linear_map.comp_assoc, ←Module.comp_def, ←Module.comp_def, iso.inv_comp_eq, ρ_Aut_apply_hom],
   exact comm,
 end
 

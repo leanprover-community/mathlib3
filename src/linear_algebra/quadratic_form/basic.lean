@@ -851,37 +851,4 @@ begin
         mul_zero, mul_zero] },
 end
 
-variables {V : Type*} {K : Type*} [field K] [invertible (2 : K)]
-variables [add_comm_group V] [module K V]
-
-/-- Given an orthogonal basis, a quadratic form is isometric with a weighted sum of squares. -/
-noncomputable def isometry_weighted_sum_squares (Q : quadratic_form K V)
-  (v : basis (fin (finite_dimensional.finrank K V)) K V)
-  (hv₁ : (associated Q).is_Ortho v):
-  Q.isometry (weighted_sum_squares K (λ i, Q (v i))) :=
-begin
-  let iso := Q.isometry_basis_repr v,
-  refine ⟨iso, λ m, _⟩,
-  convert iso.map_app m,
-  rw basis_repr_eq_of_is_Ortho _ _ hv₁,
-end
-
-variables [finite_dimensional K V]
-
-lemma equivalent_weighted_sum_squares (Q : quadratic_form K V) :
-  ∃ w : fin (finite_dimensional.finrank K V) → K, equivalent Q (weighted_sum_squares K w) :=
-let ⟨v, hv₁⟩ := exists_orthogonal_basis (associated_is_symm _ Q) in
-  ⟨_, ⟨Q.isometry_weighted_sum_squares v hv₁⟩⟩
-
-lemma equivalent_weighted_sum_squares_units_of_nondegenerate'
-  (Q : quadratic_form K V) (hQ : (associated Q).nondegenerate) :
-  ∃ w : fin (finite_dimensional.finrank K V) → Kˣ,
-    equivalent Q (weighted_sum_squares K w) :=
-begin
-  obtain ⟨v, hv₁⟩ := exists_orthogonal_basis (associated_is_symm _ Q),
-  have hv₂ := hv₁.not_is_ortho_basis_self_of_nondegenerate hQ,
-  simp_rw [is_ortho, associated_eq_self_apply] at hv₂,
-  exact ⟨λ i, units.mk0 _ (hv₂ i), ⟨Q.isometry_weighted_sum_squares v hv₁⟩⟩,
-end
-
 end quadratic_form

@@ -18,9 +18,9 @@ This file defines two `ℤ`-valued analogs of the logarithm of `r : R` with base
 Note that `int.log` gives the position of the left-most non-zero digit:
 ```lean
 #eval (int.log 10 (0.09 : ℚ), int.log 10 (0.10 : ℚ), int.log 10 (0.11 : ℚ))
---    (-2,                    -1,                     -1)
+--    (-2,                    -1,                    -1)
 #eval (int.log 10 (9 : ℚ),    int.log 10 (10 : ℚ),   int.log 10 (11 : ℚ))
---    (0,                      1,                     1)
+--    (0,                     1,                     1)
 ```
 which means it can be used for computing digit expansions
 ```lean

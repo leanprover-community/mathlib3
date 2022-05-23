@@ -56,11 +56,11 @@ instance monoid_with_zero : monoid_with_zero (Icc (0:α) 1) :=
 subtype.coe_injective.monoid_with_zero _ coe_zero coe_one coe_mul coe_pow
 
 instance comm_monoid_with_zero {α : Type*} [ordered_comm_semiring α] :
-    comm_monoid_with_zero (Icc (0:α) 1) :=
+  comm_monoid_with_zero (Icc (0:α) 1) :=
 subtype.coe_injective.comm_monoid_with_zero _ coe_zero coe_one coe_mul coe_pow
 
 instance cancel_monoid_with_zero {α : Type*} [ordered_ring α] [no_zero_divisors α] :
-    cancel_monoid_with_zero (Icc (0:α) 1) :=
+  cancel_monoid_with_zero (Icc (0:α) 1) :=
 @function.injective.cancel_monoid_with_zero α _ no_zero_divisors.to_cancel_monoid_with_zero
   _ _ _ _ coe subtype.coe_injective coe_zero coe_one coe_mul coe_pow
 
@@ -79,7 +79,7 @@ namespace set.Ico
 
 instance has_mul : has_mul (Ico (0:α) 1) :=
 { mul := λ p q, ⟨p*q, ⟨mul_nonneg p.2.1 q.2.1,
-    mul_lt_one_of_nonneg_of_lt_one_right p.2.2.le q.2.1 q.2.2⟩⟩ }
+  mul_lt_one_of_nonneg_of_lt_one_right p.2.2.le q.2.1 q.2.2⟩⟩ }
 
 @[simp, norm_cast] lemma coe_mul (x y : Ico (0:α) 1) : ↑(x * y) = (x * y : α) := rfl
 
@@ -117,7 +117,7 @@ instance comm_semigroup {α : Type*} [ordered_comm_semiring α] : comm_semigroup
 subtype.coe_injective.comm_semigroup _ coe_mul
 
 instance comm_monoid {α : Type*} [ordered_comm_semiring α] [nontrivial α] :
-    comm_monoid (Ioc (0:α) 1) :=
+  comm_monoid (Ioc (0:α) 1) :=
 subtype.coe_injective.comm_monoid _ coe_one coe_mul coe_pow
 
 end set.Ioc
@@ -127,7 +127,7 @@ end set.Ioc
 namespace set.Ioo
 
 instance has_mul : has_mul (Ioo (0:α) 1) := { mul := λ p q, ⟨p.1 * q.1, ⟨mul_pos p.2.1 q.2.1,
-    mul_lt_one_of_nonneg_of_lt_one_right p.2.2.le q.2.1.le q.2.2⟩⟩ }
+  mul_lt_one_of_nonneg_of_lt_one_right p.2.2.le q.2.1.le q.2.2⟩⟩ }
 
 @[simp, norm_cast] lemma coe_mul (x y : Ioo (0:α) 1) : ↑(x * y) = (x * y : α) := rfl
 

@@ -102,7 +102,9 @@ structure quadratic_form (R : Type u) (M : Type v) [ring R] [add_comm_group M] [
 
 namespace quadratic_form
 
-variables {Q : quadratic_form R M}
+variables {Q Q' : quadratic_form R M}
+
+section fun_like
 
 instance fun_like : fun_like (quadratic_form R M) M (λ _, R) :=
 { coe := to_fun,
@@ -114,6 +116,22 @@ instance : has_coe_to_fun (quadratic_form R M) (λ _, M → R) := ⟨to_fun⟩
 
 /-- The `simp` normal form for a quadratic form is `coe_fn`, not `to_fun`. -/
 @[simp] lemma to_fun_eq_coe : Q.to_fun = ⇑ Q := rfl
+
+@[ext] lemma ext (H : ∀ (x : M), Q x = Q' x) : Q = Q' := fun_like.ext _ _ H
+
+lemma congr_fun (h : Q = Q') (x : M) : Q x = Q' x := fun_like.congr_fun h _
+
+lemma ext_iff : Q = Q' ↔ (∀ x, Q x = Q' x) := fun_like.ext_iff
+
+/-- Copy of a `quadratic_form` with a new `to_fun` equal to the old one. Useful to fix definitional
+equalities. -/
+protected def copy (Q : quadratic_form R M) (Q' : M → R) (h : Q' = ⇑Q) : quadratic_form R M :=
+{ to_fun := Q',
+  to_fun_smul := h.symm ▸ Q.to_fun_smul,
+  polar_add_left' := h.symm ▸ Q.polar_add_left',
+  polar_smul_left' := h.symm ▸ Q.polar_smul_left' }
+
+end fun_like
 
 lemma map_smul (a : R) (x : M) : Q (a • x) = a * a * Q x := Q.to_fun_smul a x
 
@@ -208,22 +226,6 @@ lemma polar_smul_right_of_tower (a : S) (x y : M) :
 by rw [←is_scalar_tower.algebra_map_smul R a y, polar_smul_right, algebra.smul_def]
 
 end of_tower
-
-variable {Q' : quadratic_form R M}
-
-@[ext] lemma ext (H : ∀ (x : M), Q x = Q' x) : Q = Q' := fun_like.ext _ _ H
-
-lemma congr_fun (h : Q = Q') (x : M) : Q x = Q' x := fun_like.congr_fun h _
-
-lemma ext_iff : Q = Q' ↔ (∀ x, Q x = Q' x) := fun_like.ext_iff
-
-/-- Copy of a `quadratic_form` with a new `to_fun` equal to the old one. Useful to fix definitional
-equalities. -/
-protected def copy (Q : quadratic_form R M) (Q' : M → R) (h : Q' = ⇑Q) : quadratic_form R M :=
-{ to_fun := Q',
-  to_fun_smul := h.symm ▸ Q.to_fun_smul,
-  polar_add_left' := h.symm ▸ Q.polar_add_left',
-  polar_smul_left' := h.symm ▸ Q.polar_smul_left' }
 
 section has_scalar
 
@@ -325,25 +327,16 @@ open_locale big_operators
 
 end sum
 
-section distrib_mul_action
-
-variables [monoid S] [distrib_mul_action S R] [smul_comm_class S R R]
-
-instance : distrib_mul_action S (quadratic_form R M) :=
+instance [monoid S] [distrib_mul_action S R] [smul_comm_class S R R] :
+  distrib_mul_action S (quadratic_form R M) :=
 { mul_smul := λ a b Q, ext (λ x, by simp only [smul_apply, mul_smul]),
   one_smul := λ Q, ext (λ x, by simp only [quadratic_form.smul_apply, one_smul]),
   smul_add := λ a Q Q', by { ext, simp only [add_apply, smul_apply, smul_add] },
   smul_zero := λ a, by { ext, simp only [zero_apply, smul_apply, smul_zero] }, }
 
-end distrib_mul_action
-
-section module
-
 instance [semiring S] [module S R] [smul_comm_class S R R] : module S (quadratic_form R M) :=
 { zero_smul := λ Q, by { ext, simp only [zero_apply, smul_apply, zero_smul] },
   add_smul := λ a b Q, by { ext, simp only [add_apply, smul_apply, add_smul] } }
-
-end module
 
 section comp
 

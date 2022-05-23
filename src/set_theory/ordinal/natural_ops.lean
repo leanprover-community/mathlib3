@@ -601,18 +601,12 @@ namespace ordinal
 local infix ` ♯ `:65 := nadd
 local infix ` ⨳ `:70 := nmul
 
-theorem nmul_nadd_one : ∀ a b, a ⨳ (b ♯ 1) = a ⨳ b ♯ a :=
-@_root_.mul_add_one nat_ordinal _
-theorem nadd_one_nmul : ∀ a b, (a ♯ 1) ⨳ b = a ⨳ b ♯ b :=
-@add_one_mul nat_ordinal _
-theorem nmul_succ (a b) : a ⨳ (succ b) = a ⨳ b ♯ a :=
-by rw [←nadd_one, nmul_nadd_one]
-theorem succ_nmul (a b) : (succ a) ⨳ b = a ⨳ b ♯ b :=
-by rw [←nadd_one, nadd_one_nmul]
-theorem nmul_add_one (a b) : a ⨳ (b + 1) = a ⨳ b ♯ a :=
-by rw [←succ_eq_add_one, nmul_succ]
-theorem add_one_nmul (a b) : (a + 1) ⨳ b = a ⨳ b ♯ b :=
-by rw [←succ_eq_add_one, succ_nmul]
+theorem nmul_nadd_one : ∀ a b, a ⨳ (b ♯ 1) = a ⨳ b ♯ a := @_root_.mul_add_one nat_ordinal _
+theorem nadd_one_nmul : ∀ a b, (a ♯ 1) ⨳ b = a ⨳ b ♯ b := @add_one_mul nat_ordinal _
+theorem nmul_succ (a b) : a ⨳ (succ b) = a ⨳ b ♯ a := by rw [←nadd_one, nmul_nadd_one]
+theorem succ_nmul (a b) : (succ a) ⨳ b = a ⨳ b ♯ b := by rw [←nadd_one, nadd_one_nmul]
+theorem nmul_add_one : ∀ a b, a ⨳ (b + 1) = a ⨳ b ♯ a := nmul_succ
+theorem add_one_nmul : ∀ a b, (a + 1) ⨳ b = a ⨳ b ♯ b := succ_nmul
 
 theorem mul_le_nmul (a b : ordinal.{u}) : a * b ≤ a ⨳ b :=
 begin

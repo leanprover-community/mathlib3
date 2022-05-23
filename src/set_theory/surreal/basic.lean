@@ -3,7 +3,7 @@ Copyright (c) 2019 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Scott Morrison
 -/
-import set_theory.game.pgame
+import set_theory.game.ordinal
 
 /-!
 # Surreal numbers
@@ -197,6 +197,16 @@ begin
   split; rintro ⟨ ⟩,
   { exact numeric_zero },
   { exact numeric_one }
+end
+
+/-- Ordinal games are numeric. -/
+theorem numeric_to_pgame (o : ordinal) : o.to_pgame.numeric :=
+begin
+  induction o using ordinal.induction with o IH,
+  rw numeric_def,
+  refine ⟨λ i, is_empty_elim, λ i, _, is_empty_elim⟩,
+  rw ordinal.to_pgame_move_left',
+  exact IH _ (ordinal.to_left_moves_to_pgame_symm_lt i)
 end
 
 end pgame

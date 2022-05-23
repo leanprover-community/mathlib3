@@ -415,7 +415,7 @@ theorem is_complemented_of_Sup_atoms_eq_top (h : Sup {a : α | is_atom a} = ⊤)
     rw [← h, Sup_le_iff],
     intros a ha,
     rw ← inf_eq_left,
-    refine (eq_bot_or_eq_of_le_atom ha inf_le_left).resolve_left (λ con, ha.1 _),
+    refine (ha.le_iff.mp inf_le_left).resolve_left (λ con, ha.1 _),
     rw [eq_bot_iff, ← con],
     refine le_inf (le_refl a) ((le_Sup _).trans le_sup_right),
     rw ← disjoint_iff at *,

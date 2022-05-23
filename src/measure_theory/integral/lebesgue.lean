@@ -1612,6 +1612,8 @@ begin
   exact hf (measurable_set_singleton r)
 end
 
+/-- A version of **Markov's inequality** for two functions. It doesn't follow from the standard
+Markov's inequality because we only assume measurability of `g`, not `f`. -/
 lemma lintegral_add_mul_meas_add_le_le_lintegral {f g : α → ℝ≥0∞} (hle : f ≤ᵐ[μ] g)
   (hg : ae_measurable g μ) (ε : ℝ≥0∞) :
   ∫⁻ a, f a ∂μ + ε * μ {x | f x + ε ≤ g x} ≤ ∫⁻ a, g a ∂μ :=

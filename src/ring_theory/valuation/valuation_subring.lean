@@ -535,9 +535,36 @@ begin
     ← ideal.quotient.mk_eq_mk, ← submodule.quotient.mk'_eq_mk, quotient.out_eq'] using this h,
 end
 
+def unit_group_mod_to_residue_field_units :
+  (A.unit_group ⧸ (A.principal_unit_group.comap A.unit_group.subtype)) →*
+  (local_ring.residue_field A)ˣ :=
+quotient_group.lift _
+(monoid_hom.comp (units.map $ (ideal.quotient.mk _).to_monoid_hom)
+  A.unit_group_equiv.to_monoid_hom)
+begin
+  rintros ⟨a, ha⟩ h,
+  simp only [ring_hom.to_monoid_hom_eq_coe, monoid_hom.coe_comp, mul_equiv.coe_to_monoid_hom,
+    function.comp_app, subgroup.mem_comap, subgroup.coe_subtype, subgroup.coe_mk] at h ⊢,
+  apply units.ext,
+  dsimp,
+  let π := ideal.quotient.mk (local_ring.maximal_ideal ↥A), change π _ = _,
+  rw [← π.map_one, ← sub_eq_zero, ← π.map_sub, ideal.quotient.eq_zero_iff_mem,
+    valuation_lt_one_iff],
+  exact h,
+end
+
+def unit_group_mod_to_residue_field_units_apply (x : A.unit_group) :
+  (A.unit_group_mod_to_residue_field_units
+    (quotient_group.mk x) : local_ring.residue_field A) =
+    (ideal.quotient.mk _ (A.unit_group_equiv x : A)) := rfl
+
 def units_residue_field_equiv :
-  (local_ring.residue_field A)ˣ ≃*
-  (A.unit_group ⧸ (A.principal_unit_group.comap A.unit_group.subtype)) :=
+    (A.unit_group ⧸ (A.principal_unit_group.comap A.unit_group.subtype)) ≃*
+    (local_ring.residue_field A)ˣ :=
+mul_equiv.of_bijective A.unit_group_mod_to_residue_field_units
+sorry
+
+/-
 { to_fun := λ x,
   begin
     choose a ha using (mem_units_residue_field_has_unit_rep A x),
@@ -569,6 +596,7 @@ def units_residue_field_equiv :
   end,
 
   }
+-/
 
 end unit_group
 

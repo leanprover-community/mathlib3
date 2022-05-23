@@ -262,14 +262,17 @@ instance add_contravariant_class_le :
   contravariant_class nat_ordinal.{u} nat_ordinal.{u} (+) (≤) :=
 ⟨λ a b c h, by { by_contra' h', exact h.not_lt (add_lt_add_left h' a) }⟩
 
-instance : add_cancel_comm_monoid nat_ordinal :=
+instance : ordered_cancel_add_comm_monoid nat_ordinal :=
 { add := (+),
   add_assoc := nadd_assoc,
   add_left_cancel := λ a b c, add_left_cancel'',
+  add_le_add_left := λ a b, add_le_add_left,
+  le_of_add_le_add_left := λ a b c, le_of_add_le_add_left,
   zero := 0,
   zero_add := zero_nadd,
   add_zero := nadd_zero,
-  add_comm := nadd_comm }
+  add_comm := nadd_comm,
+  ..nat_ordinal.linear_order }
 
 @[simp] theorem to_ordinal_cast_nat (n : ℕ) : to_ordinal n = n :=
 begin

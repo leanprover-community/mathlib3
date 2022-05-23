@@ -1255,6 +1255,34 @@ end has_binary_biproduct
 
 end biprod_kernel
 
+section is_zero
+
+/-- If `Y` is a zero object, `X ≅ X ⊞ Y` for any `X`. -/
+@[simps]
+def iso_biprod_zero {X Y : C} [has_binary_biproduct X Y] (hY : is_zero Y) : X ≅ X ⊞ Y :=
+{ hom := biprod.inl,
+  inv := biprod.fst,
+  inv_hom_id' := begin
+    apply category_theory.limits.biprod.hom_ext;
+    simp only [category.assoc, biprod.inl_fst, category.comp_id, category.id_comp,
+      biprod.inl_snd, comp_zero],
+    apply hY.eq_of_tgt
+  end }
+
+/-- If `X` is a zero object, `Y ≅ X ⊞ Y` for any `Y`. -/
+@[simps]
+def iso_zero_biprod {X Y : C} [has_binary_biproduct X Y] (hY : is_zero X) : Y ≅ X ⊞ Y :=
+{ hom := biprod.inr,
+  inv := biprod.snd,
+  inv_hom_id' := begin
+    apply category_theory.limits.biprod.hom_ext;
+    simp only [category.assoc, biprod.inr_snd, category.comp_id, category.id_comp,
+      biprod.inr_fst, comp_zero],
+    apply hY.eq_of_tgt
+  end }
+
+end is_zero
+
 section
 variables [has_binary_biproducts C]
 

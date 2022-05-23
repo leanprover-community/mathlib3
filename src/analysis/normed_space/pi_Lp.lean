@@ -203,19 +203,17 @@ include fact_one_le_p
 instance [Π i, pseudo_emetric_space (β i)] : pseudo_emetric_space (pi_Lp p β) :=
 (pseudo_emetric_aux p β).replace_uniformity (aux_uniformity_eq p β).symm
 
-variables {p β}
-
-lemma edist_eq [Π i, pseudo_emetric_space (β i)] (x y : pi_Lp p β) :
-  edist x y = (∑ i, edist (x i) (y i) ^ p) ^ (1/p) := rfl
-
-variables (p β)
-
 /-- emetric space instance on the product of finitely many emetric spaces, using the `L^p`
 edistance, and having as uniformity the product uniformity. -/
 instance [Π i, emetric_space (α i)] : emetric_space (pi_Lp p α) :=
 @emetric.of_t0_pseudo_emetric_space _ _ $
   -- TODO: add `Pi.t0_space`
   by { haveI : t2_space (pi_Lp p α) := Pi.t2_space, apply_instance }
+
+variables {p β}
+lemma edist_eq [Π i, pseudo_emetric_space (β i)] (x y : pi_Lp p β) :
+  edist x y = (∑ i, edist (x i) (y i) ^ p) ^ (1/p) := rfl
+variables (p β)
 
 /-- pseudometric space instance on the product of finitely many psuedometric spaces, using the
 `L^p` distance, and having as uniformity the product uniformity. -/

@@ -39,26 +39,7 @@ variables (𝕜 : Type*) {E : Type*} [is_R_or_C 𝕜] [inner_product_space 𝕜 
 
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 
-/-- The Gram-Schmidt process takes a set of vectors as input
-and outputs a set of orthogonal vectors which have the same span. -/
-noncomputable def gram_schmidt (f : ℕ → E) : ℕ → E
-| n := f n - ∑ i : fin n, orthogonal_projection (𝕜 ∙ gram_schmidt i) (f n)
-using_well_founded {dec_tac := `[exact i.prop]}
-
-noncomputable def gram_schmidt_fin {m : ℕ} (f : fin m → E) : fin m → E :=
-  λ i, have hm : fact (0 < m), from ⟨lt_of_le_of_lt (nat.zero_le _) i.2⟩,
-    gram_schmidt 𝕜 (λ j, f (@fin.of_nat' _ hm j)) i
-
-/-- `gram_schmidt_def` turns the sum over `fin n` into a sum over `ℕ`. -/
-lemma gram_schmidt_def (f : ℕ → E) (n : ℕ) :
-  gram_schmidt 𝕜 f n = f n - ∑ i in finset.range n,
-    orthogonal_projection (𝕜 ∙ gram_schmidt 𝕜 f i) (f n) :=
-begin
-  rw gram_schmidt,
-  congr' 1,
-  exact fin.sum_univ_eq_sum_range (λ i,
-    (orthogonal_projection (𝕜 ∙ gram_schmidt 𝕜 f i) (f n) : E)) n,
-end
+section move
 
 -- TODO: move
 lemma fin.of_nat'_coe {m : ℕ} (n : fin m) :
@@ -86,14 +67,36 @@ begin
   exact λ i hi, ⟨⟨i, finset.mem_range.1 hi⟩, finset.mem_fin_range _, rfl⟩
 end
 
-lemma gram_schmidt_fin_def {m : ℕ} (f : fin m → E) (n : fin m) :
-  gram_schmidt_fin 𝕜 f n = f n - ∑ i in finset.fin_range n,
-    orthogonal_projection (𝕜 ∙ gram_schmidt_fin 𝕜 f (i.cast_lt (lt_trans i.2 n.2))) (f n) :=
+open submodule set order
+
+-- TODO: move
+lemma fin.image_of_nat' (m : ℕ) [h : fact (0 < m)] :
+  (fin.of_nat' '' Iio m) = (set.univ : set (fin m)) :=
+eq_univ_of_forall (λ i, (mem_image _ _ _).2 ⟨i, mem_Iio.2 i.2, fin.of_nat'_coe _⟩)
+
+-- TODO: move
+lemma fin.range_coe (m : ℕ) : range (λ (i : fin m), (i : ℕ)) = Iio m :=
+by simp [Iio]
+
+end move
+
+section nat
+
+/-- The Gram-Schmidt process takes a set of vectors as input
+and outputs a set of orthogonal vectors which have the same span. -/
+noncomputable def gram_schmidt (f : ℕ → E) : ℕ → E
+| n := f n - ∑ i : fin n, orthogonal_projection (𝕜 ∙ gram_schmidt i) (f n)
+using_well_founded {dec_tac := `[exact i.prop]}
+
+/-- `gram_schmidt_def` turns the sum over `fin n` into a sum over `ℕ`. -/
+lemma gram_schmidt_def (f : ℕ → E) (n : ℕ) :
+  gram_schmidt 𝕜 f n = f n - ∑ i in finset.range n,
+    orthogonal_projection (𝕜 ∙ gram_schmidt 𝕜 f i) (f n) :=
 begin
-  haveI hm : fact (0 < m), from ⟨lt_of_le_of_lt (nat.zero_le _) n.2⟩,
-  convert gram_schmidt_def 𝕜 (λ (j : ℕ), f (fin.of_nat' j)) n using 2,
-  { rw [fin.of_nat'_coe] },
-  { rw [←sum_fin_range_eq_sum_range, fin.of_nat'_coe], refl }
+  rw gram_schmidt,
+  congr' 1,
+  exact fin.sum_univ_eq_sum_range (λ i,
+    (orthogonal_projection (𝕜 ∙ gram_schmidt 𝕜 f i) (f n) : E)) n,
 end
 
 lemma gram_schmidt_def' (f : ℕ → E) (n : ℕ):
@@ -101,18 +104,9 @@ lemma gram_schmidt_def' (f : ℕ → E) (n : ℕ):
     orthogonal_projection (𝕜 ∙ gram_schmidt 𝕜 f i) (f n) :=
 by simp only [gram_schmidt_def, sub_add_cancel]
 
-lemma gram_schmidt_fin_def' {m : ℕ} (f : fin m → E) (n : fin m) :
-  f n = gram_schmidt_fin 𝕜 f n + ∑ i in finset.fin_range n,
-    orthogonal_projection (𝕜 ∙ gram_schmidt_fin 𝕜 f (i.cast_lt (lt_trans i.2 n.2))) (f n) :=
-by simp only [gram_schmidt_fin_def, sub_add_cancel]
-
 @[simp] lemma gram_schmidt_zero (f : ℕ → E) :
   gram_schmidt 𝕜 f 0 = f 0 :=
 by simp only [gram_schmidt, fintype.univ_of_is_empty, finset.sum_empty, sub_zero]
-
-@[simp] lemma gram_schmidt_fin_zero {m : ℕ} (f : fin m.succ → E) :
-  gram_schmidt_fin 𝕜 f 0 = f 0 :=
-by { simp [gram_schmidt_fin, gram_schmidt_zero], refl }
 
 /-- **Gram-Schmidt Orthogonalisation**:
 `gram_schmidt` produces an orthogonal system of vectors. -/
@@ -148,14 +142,6 @@ theorem gram_schmidt_pairwise_orthogonal (f : ℕ → E) :
   pairwise (λ a b, ⟪gram_schmidt 𝕜 f a, gram_schmidt 𝕜 f b⟫ = 0) :=
 @gram_schmidt_orthogonal 𝕜 _ _ _ f
 
-theorem gram_schmidt_fin_orthogonal {m : ℕ} (f : fin m → E) {a b : fin m} (h₀ : a ≠ b) :
-  ⟪gram_schmidt_fin 𝕜 f a, gram_schmidt_fin 𝕜 f b⟫ = 0 :=
-gram_schmidt_orthogonal 𝕜 _ (λ h, h₀ ((fin.ext_iff _ _).2 h))
-
-theorem gram_schmidt_fin_pairwise_orthogonal {m : ℕ} (f : fin m → E) :
-  pairwise (λ a b, ⟪gram_schmidt_fin 𝕜 f a, gram_schmidt_fin 𝕜 f b⟫ = 0) :=
-@gram_schmidt_fin_orthogonal 𝕜 _ _ _ _ f
-
 open submodule set order
 
 /-- `gram_schmidt` preserves span of vectors. -/
@@ -184,24 +170,6 @@ begin
     apply submodule.add_mem _ _ _,
     { exact mem_sup_left (mem_span_singleton_self (gram_schmidt 𝕜 f c)), },
     { exact submodule.sum_mem _ (λ b hb, mem_sup_right (smul_mem _ _ (h₀ b hb))), }, },
-end
-
-lemma fin.image_of_nat' (m : ℕ) [h : fact (0 < m)] :
-  (fin.of_nat' '' Iio m) = (set.univ : set (fin m)) :=
-eq_univ_of_forall (λ i, (mem_image _ _ _).2 ⟨i, mem_Iio.2 i.2, fin.of_nat'_coe _⟩)
-
-lemma fin.range_coe (m : ℕ) : range (λ (i : fin m), (i : ℕ)) = Iio m :=
-by simp [Iio]
-
-lemma span_gram_schmidt_fin {m : ℕ} (f : fin m → E) (c : ℕ) :
-  span 𝕜 (range (gram_schmidt_fin 𝕜 f)) = span 𝕜 (range f) :=
-begin
-  cases m,
-  { simp only [matrix.range_empty] },
-  { haveI : fact (0 < m.succ) := ⟨nat.zero_lt_succ m⟩,
-    rw [gram_schmidt_fin, range_comp (gram_schmidt 𝕜 (λ (j : ℕ), f (fin.of_nat' j))) coe,
-      fin.range_coe, ←image_univ, span_gram_schmidt 𝕜 (λ i, f (fin.of_nat' i)) m.succ,
-      image_comp f (λ (x : ℕ), fin.of_nat' x), fin.image_of_nat', image_univ] }
 end
 
 /-- If the input of the first `n + 1` vectors of `gram_schmidt` are linearly independent,
@@ -243,41 +211,16 @@ lemma gram_schmidt_ne_zero (f : ℕ → E) (h₀ : linear_independent 𝕜 f) (n
   gram_schmidt 𝕜 f n ≠ 0 :=
 gram_schmidt_ne_zero_aux 𝕜 f (n + 1) (linear_independent.comp h₀ _ (fin.coe_injective)) n (lt_succ n)
 
-lemma gram_schmidt_fin_ne_zero {m : ℕ} (f : fin m → E)
-  (h₀ : linear_independent 𝕜 f) :
-    ∀ i, gram_schmidt_fin 𝕜 f i ≠ 0 :=
-begin
-  intro i,
-  haveI : fact (0 < m) := ⟨lt_of_le_of_lt (nat.zero_le _) i.2⟩,
-  have : linear_independent 𝕜 ((λ (j : fin m), f (fin.of_nat' ↑j))),
-    by simpa only [fin.of_nat'_coe],
-  exact gram_schmidt_ne_zero_aux 𝕜 (λ (j : ℕ), f (fin.of_nat' j)) m this i.1 i.2,
-end
-
 /-- the normalized `gram_schmidt`
 (i.e each vector in `gram_schmidt_normed` has unit length.) -/
 noncomputable def gram_schmidt_normed (f : ℕ → E) (n : ℕ) : E :=
 (∥gram_schmidt 𝕜 f n∥ : 𝕜)⁻¹ • (gram_schmidt 𝕜 f n)
-
-noncomputable def gram_schmidt_normed_fin {m : ℕ} (f : fin m → E) (n : fin m) : E :=
-  have hm : fact (0 < m), from ⟨lt_of_le_of_lt (nat.zero_le _) n.2⟩,
-  gram_schmidt_normed 𝕜 (λ i, f (@fin.of_nat' m hm i)) n
-
-lemma gram_schmidt_normed_fin_def {m : ℕ} (f : fin m → E) (n : fin m) :
-  gram_schmidt_normed_fin 𝕜 f n = (∥gram_schmidt_fin 𝕜 f n∥ : 𝕜)⁻¹ • (gram_schmidt_fin 𝕜 f n) :=
-rfl
 
 lemma gram_schmidt_normed_unit_length (f : ℕ → E) (n : ℕ)
   (h₀ : linear_independent 𝕜 f) :
     ∥gram_schmidt_normed 𝕜 f n∥ = 1 :=
 by simp only [gram_schmidt_ne_zero 𝕜 f h₀,
   gram_schmidt_normed, norm_smul_inv_norm, ne.def, not_false_iff]
-
-lemma gram_schmidt_normed_fin_unit_length {m : ℕ} (f : fin m → E) (n : fin m)
-  (h₀ : linear_independent 𝕜 f):
-    ∥gram_schmidt_normed_fin 𝕜 f n∥ = 1 :=
-by simp only [gram_schmidt_fin_ne_zero 𝕜 f h₀,
-  gram_schmidt_normed_fin_def, norm_smul_inv_norm, ne.def, not_false_iff]
 
 /-- **Gram-Schmidt Orthonormalization**:
 `gram_schmidt_normed` produces an orthornormal system of vectors. -/
@@ -294,6 +237,79 @@ begin
     exact gram_schmidt_orthogonal 𝕜 f hij, },
 end
 
+end nat
+
+section fin
+
+noncomputable def gram_schmidt_fin {m : ℕ} (f : fin m → E) : fin m → E :=
+  λ i, have hm : fact (0 < m), from ⟨lt_of_le_of_lt (nat.zero_le _) i.2⟩,
+    gram_schmidt 𝕜 (λ j, f (@fin.of_nat' _ hm j)) i
+
+lemma gram_schmidt_fin_def {m : ℕ} (f : fin m → E) (n : fin m) :
+  gram_schmidt_fin 𝕜 f n = f n - ∑ i in finset.fin_range n,
+    orthogonal_projection (𝕜 ∙ gram_schmidt_fin 𝕜 f (i.cast_lt (lt_trans i.2 n.2))) (f n) :=
+begin
+  haveI hm : fact (0 < m), from ⟨lt_of_le_of_lt (nat.zero_le _) n.2⟩,
+  convert gram_schmidt_def 𝕜 (λ (j : ℕ), f (fin.of_nat' j)) n using 2,
+  { rw [fin.of_nat'_coe] },
+  { rw [←sum_fin_range_eq_sum_range, fin.of_nat'_coe], refl }
+end
+
+lemma gram_schmidt_fin_def' {m : ℕ} (f : fin m → E) (n : fin m) :
+  f n = gram_schmidt_fin 𝕜 f n + ∑ i in finset.fin_range n,
+    orthogonal_projection (𝕜 ∙ gram_schmidt_fin 𝕜 f (i.cast_lt (lt_trans i.2 n.2))) (f n) :=
+by simp only [gram_schmidt_fin_def, sub_add_cancel]
+
+@[simp] lemma gram_schmidt_fin_zero {m : ℕ} (f : fin m.succ → E) :
+  gram_schmidt_fin 𝕜 f 0 = f 0 :=
+by { simp [gram_schmidt_fin, gram_schmidt_zero], refl }
+
+theorem gram_schmidt_fin_orthogonal {m : ℕ} (f : fin m → E) {a b : fin m} (h₀ : a ≠ b) :
+  ⟪gram_schmidt_fin 𝕜 f a, gram_schmidt_fin 𝕜 f b⟫ = 0 :=
+gram_schmidt_orthogonal 𝕜 _ (λ h, h₀ ((fin.ext_iff _ _).2 h))
+
+theorem gram_schmidt_fin_pairwise_orthogonal {m : ℕ} (f : fin m → E) :
+  pairwise (λ a b, ⟪gram_schmidt_fin 𝕜 f a, gram_schmidt_fin 𝕜 f b⟫ = 0) :=
+@gram_schmidt_fin_orthogonal 𝕜 _ _ _ _ f
+
+open submodule set order
+
+lemma span_gram_schmidt_fin {m : ℕ} (f : fin m → E) (c : ℕ) :
+  span 𝕜 (range (gram_schmidt_fin 𝕜 f)) = span 𝕜 (range f) :=
+begin
+  cases m,
+  { simp only [matrix.range_empty] },
+  { haveI : fact (0 < m.succ) := ⟨nat.zero_lt_succ m⟩,
+    rw [gram_schmidt_fin, range_comp (gram_schmidt 𝕜 (λ (j : ℕ), f (fin.of_nat' j))) coe,
+      fin.range_coe, ←image_univ, span_gram_schmidt 𝕜 (λ i, f (fin.of_nat' i)) m.succ,
+      image_comp f (λ (x : ℕ), fin.of_nat' x), fin.image_of_nat', image_univ] }
+end
+
+lemma gram_schmidt_fin_ne_zero {m : ℕ} (f : fin m → E)
+  (h₀ : linear_independent 𝕜 f) :
+    ∀ i, gram_schmidt_fin 𝕜 f i ≠ 0 :=
+begin
+  intro i,
+  haveI : fact (0 < m) := ⟨lt_of_le_of_lt (nat.zero_le _) i.2⟩,
+  have : linear_independent 𝕜 ((λ (j : fin m), f (fin.of_nat' ↑j))),
+    by simpa only [fin.of_nat'_coe],
+  exact gram_schmidt_ne_zero_aux 𝕜 (λ (j : ℕ), f (fin.of_nat' j)) m this i.1 i.2,
+end
+
+noncomputable def gram_schmidt_normed_fin {m : ℕ} (f : fin m → E) (n : fin m) : E :=
+  have hm : fact (0 < m), from ⟨lt_of_le_of_lt (nat.zero_le _) n.2⟩,
+  gram_schmidt_normed 𝕜 (λ i, f (@fin.of_nat' m hm i)) n
+
+lemma gram_schmidt_normed_fin_def {m : ℕ} (f : fin m → E) (n : fin m) :
+  gram_schmidt_normed_fin 𝕜 f n = (∥gram_schmidt_fin 𝕜 f n∥ : 𝕜)⁻¹ • (gram_schmidt_fin 𝕜 f n) :=
+rfl
+
+lemma gram_schmidt_normed_fin_unit_length {m : ℕ} (f : fin m → E) (n : fin m)
+  (h₀ : linear_independent 𝕜 f):
+    ∥gram_schmidt_normed_fin 𝕜 f n∥ = 1 :=
+by simp only [gram_schmidt_fin_ne_zero 𝕜 f h₀,
+  gram_schmidt_normed_fin_def, norm_smul_inv_norm, ne.def, not_false_iff]
+
 theorem gram_schmidt_fin_orthonormal {m : ℕ} (f : fin m → E) (h₀ : linear_independent 𝕜 f) :
   orthonormal 𝕜 (gram_schmidt_normed_fin 𝕜 f) :=
 begin
@@ -306,3 +322,5 @@ begin
     repeat { right },
     exact gram_schmidt_fin_orthogonal 𝕜 f hij, },
 end
+
+end fin

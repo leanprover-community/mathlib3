@@ -338,7 +338,11 @@ normal ordinal multiplication, it is commutative.
 Natural multiplication can equivalently be characterized as the ordinal resulting from multiplying
 the Cantor normal forms of `a` and `b` as if they were polynomials in `ω`. -/
 noncomputable def nmul : ordinal → ordinal → ordinal
-| a b := Inf {c | ∀ (a' < a) (b' < b), }
+| a b := Inf {c | ∀ (a' < a) (b' < b), nmul a' b ♯ nmul a b' < c + nmul a' b' }
 using_well_founded { dec_tac := `[solve_by_elim [psigma.lex.left, psigma.lex.right]] }
+
+local infix ` ⨳ `:70 := nmul
+
+theorem nmul_def (a b : ordinal) : a
 
 end ordinal

@@ -19,10 +19,6 @@ The map to surreals is defined in `ordinal.to_surreal`.
 
 - `ordinal.to_pgame`: The canonical map between ordinals and pre-games.
 - `ordinal.to_pgame_embedding`: The order embedding version of the previous map.
-
-# Todo
-
-- Extend this map to `game`.
 -/
 
 universe u

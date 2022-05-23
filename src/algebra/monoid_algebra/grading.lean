@@ -178,7 +178,7 @@ graded_algebra.of_alg_hom _
   (begin
     ext : 2,
     dsimp,
-    rw [decompose_aux_single, direct_sum.submodule_coe_alg_hom_of, subtype.coe_mk],
+    rw [decompose_aux_single, direct_sum.coe_alg_hom_of, subtype.coe_mk],
   end)
   (λ i x, by convert (decompose_aux_coe f x : _))
 

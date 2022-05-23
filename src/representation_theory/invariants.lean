@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Antoine Labelle
 -/
 import representation_theory.basic
+import representation_theory.Rep
 
 /-!
 # Subspace of invariants a group representation
@@ -66,6 +67,8 @@ end group_algebra
 
 namespace representation
 
+section invariants
+
 open group_algebra
 
 variables {k G V : Type*} [comm_semiring k] [group G] [add_comm_monoid V] [module k V]
@@ -110,5 +113,35 @@ begin
   rw mem_invariants at hv,
   simp [average_def, map_sum, hv, finset.card_univ, nsmul_eq_smul_cast k _ v, smul_smul],
 end
+
+end invariants
+
+namespace lin_hom
+
+universes u
+
+open category_theory Action
+
+variables {k : Type u} [comm_ring k] {G : Group.{u}}
+
+lemma mem_invariants_iff_comm {X Y : Rep k G} (f : X.V →ₗ[k] Y.V) (g : G) :
+  (lin_hom X.ρ Y.ρ) g f = f ↔ X.ρ g ≫ f = f ≫ Y.ρ g :=
+begin
+  rw [lin_hom_apply, ←ρ_Aut_apply_inv, ←linear_map.comp_assoc, ←Module.comp_def, ←Module.comp_def,
+  iso.inv_comp_eq, ρ_Aut_apply_hom], exact comm,
+end
+
+/-- The invariants of the representation `lin_hom X.ρ Y.ρ` correspond to the the representation
+homomorphisms from `X` to `Y` -/
+@[simps]
+def invariants_equiv_Rep_hom (X Y : Rep k G) : (lin_hom X.ρ Y.ρ).invariants ≃ₗ[k] (X ⟶ Y) :=
+{ to_fun := λ f, ⟨f.val, λ g, (mem_invariants_iff_comm _ g).1 (f.property g)⟩,
+  map_add' := λ _ _, rfl,
+  map_smul' := λ _ _, rfl,
+  inv_fun := λ f, ⟨f.hom, λ g, (mem_invariants_iff_comm _ g).2 (f.comm g)⟩,
+  left_inv := λ _, by { ext, refl },
+  right_inv := λ _, by { ext, refl } }
+
+end lin_hom
 
 end representation

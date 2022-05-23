@@ -10,10 +10,13 @@ import category_theory.limits.preserves.basic
 import category_theory.adjunction.limits
 import category_theory.monoidal.functor_category
 import category_theory.monoidal.transport
+import category_theory.monoidal.rigid.of_equivalence
+import category_theory.monoidal.rigid.functor_category
 import category_theory.monoidal.linear
 import category_theory.monoidal.braided
 import category_theory.abelian.functor_category
 import category_theory.abelian.transfer
+import category_theory.conj
 import category_theory.linear.functor_category
 
 /-!
@@ -194,7 +197,7 @@ def functor_category_equivalence : Action V G ≌ (single_obj G ⥤ V) :=
 attribute [simps] functor_category_equivalence
 
 instance [has_finite_products V] : has_finite_products (Action V G) :=
-{ out := λ J _ _, by exactI
+{ out := λ J _, by exactI
   adjunction.has_limits_of_shape_of_equivalence (Action.functor_category_equivalence _ _).functor }
 
 instance [has_limits V] : has_limits (Action V G) :=
@@ -245,6 +248,10 @@ preserves_colimits_of_nat_iso
 -- TODO construct categorical images?
 
 end forget
+
+lemma iso.conj_ρ {M N : Action V G} (f : M ≅ N) (g : G) :
+   N.ρ g = (((forget V G).map_iso f).conj (M.ρ g)) :=
+by { rw [iso.conj_apply, iso.eq_inv_comp], simp [f.hom.comm'] }
 
 section has_zero_morphisms
 variables [has_zero_morphisms V]
@@ -389,15 +396,44 @@ end
 instance [symmetric_category V] : symmetric_category (Action V G) :=
 symmetric_category_of_faithful (forget_braided V G)
 
-variables [preadditive V] [monoidal_preadditive V]
-
+section
 local attribute [simp] monoidal_preadditive.tensor_add monoidal_preadditive.add_tensor
+
+variables [preadditive V] [monoidal_preadditive V]
 
 instance : monoidal_preadditive (Action V G) := {}
 
 variables {R : Type*} [semiring R] [linear R V] [monoidal_linear R V]
 
 instance : monoidal_linear R (Action V G) := {}
+
+end
+
+variables (V G)
+noncomputable theory
+
+/-- Upgrading the functor `Action V G ⥤ (single_obj G ⥤ V)` to a monoidal functor. -/
+def functor_category_monoidal_equivalence : monoidal_functor (Action V G) (single_obj G ⥤ V) :=
+monoidal.from_transported (Action.functor_category_equivalence _ _).symm
+
+instance : is_equivalence ((functor_category_monoidal_equivalence V G).to_functor) :=
+by { change is_equivalence (Action.functor_category_equivalence _ _).functor, apply_instance, }
+
+variables (H : Group.{u})
+
+instance [right_rigid_category V] : right_rigid_category (single_obj (H : Mon.{u}) ⥤ V) :=
+by { change right_rigid_category (single_obj H ⥤ V), apply_instance }
+
+/-- If `V` is right rigid, so is `Action V G`. -/
+instance [right_rigid_category V] : right_rigid_category (Action V H) :=
+right_rigid_category_of_equivalence (functor_category_monoidal_equivalence V _)
+
+instance [rigid_category V] : rigid_category (single_obj (H : Mon.{u}) ⥤ V) :=
+by { change rigid_category (single_obj H ⥤ V), apply_instance }
+
+/-- If `V` is rigid, so is `Action V G`. -/
+instance [rigid_category V] : rigid_category (Action V H) :=
+rigid_category_of_equivalence (functor_category_monoidal_equivalence V _)
 
 end monoidal
 

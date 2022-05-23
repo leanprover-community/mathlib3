@@ -3,7 +3,7 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne
 -/
-import analysis.special_functions.log
+import analysis.special_functions.log.basic
 import analysis.special_functions.exp_deriv
 
 /-!
@@ -207,7 +207,7 @@ begin
     have : (∑ i in range n, (↑i + 1) * y ^ i / (↑i + 1)) = (∑ i in range n, y ^ i),
     { congr' with i,
       exact mul_div_cancel_left _ (nat.cast_add_one_pos i).ne' },
-    field_simp [F, this, ← geom_sum_def, geom_sum_eq (ne_of_lt hy.2),
+    field_simp [F, this, geom_sum_eq (ne_of_lt hy.2),
                 sub_ne_zero_of_ne (ne_of_gt hy.2), sub_ne_zero_of_ne (ne_of_lt hy.2)],
     ring },
   -- second step: show that the derivative of `F` is small

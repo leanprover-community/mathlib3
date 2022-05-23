@@ -69,7 +69,7 @@ begin
   ... ≤ (m + m : ℕ) * (∥y∥ / (ε / ∥k∥))
       : le_mul_of_one_le_right (nat.cast_nonneg _)
           ((one_le_div $ div_pos ε_pos (zero_lt_one.trans hk)).2 le_y)
-  ... = (m + m : ℕ) / (ε / ∥k∥) * ∥y∥ : (mul_comm_div' _ _ _).symm,
+  ... = (m + m : ℕ) / (ε / ∥k∥) * ∥y∥ : (mul_comm_div _ _ _).symm,
 end
 
 open_locale ennreal

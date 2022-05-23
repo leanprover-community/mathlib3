@@ -604,10 +604,6 @@ lemma integrable.sub {f g : α → β}
   (hf : integrable f μ) (hg : integrable g μ) : integrable (f - g) μ :=
 by simpa only [sub_eq_add_neg] using hf.add hg.neg
 
-lemma integrable.sub' {f g : α → β}
-  (hf : integrable f μ) (hg : integrable g μ) : has_finite_integral (f - g) μ :=
-(hf.sub hg).has_finite_integral
-
 lemma integrable.norm {f : α → β} (hf : integrable f μ) :
   integrable (λa, ∥f a∥) μ :=
 ⟨hf.ae_strongly_measurable.norm, hf.has_finite_integral.norm⟩

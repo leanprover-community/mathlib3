@@ -960,7 +960,7 @@ begin
       cases h' with h_eq hτ_le,
       rwa [min_eq_left hτ_le, min_eq_left hπ_le] at h_eq, }, },
   rw this,
-  refine measurable_set.inter ( measurable_set.inter _ (hτ.measurable_set_le j))
+  refine measurable_set.inter (measurable_set.inter _ (hτ.measurable_set_le j))
     (hπ.measurable_set_le j),
   apply measurable_set_eq_fun_of_encodable,
   { exact (hτ.min_const j).measurable_of_le (λ _, min_le_right _ _), },

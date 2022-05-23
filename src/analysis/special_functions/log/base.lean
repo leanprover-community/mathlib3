@@ -312,7 +312,7 @@ begin
   have hb1' : 1 < (b : ℝ) := nat.one_lt_cast.mpr hb,
   apply le_antisymm,
   { rw [int.ceil_le, logb_le_iff_le_rpow hb1' hr, rpow_int_cast],
-    refine int.self_le_zpow_clog hb hr },
+    refine int.self_le_zpow_clog hb r },
   { rw [←int.le_zpow_iff_clog_le hb hr, ←rpow_int_cast b],
     refine (rpow_logb (zero_lt_one.trans hb1') hb1'.ne' hr).symm.trans_le _,
     exact rpow_le_rpow_of_exponent_le hb1'.le (int.le_ceil _) },

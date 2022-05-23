@@ -7,9 +7,14 @@ Authors: Antoine Chambert-Loir
 import tactic.lift
 
 
-import set_theory.cardinal.basic
+import set_theory.cardinal.finite
 
 import group_theory.group_action.embedding
+import group_theory.index
+
+import order.hom.basic
+import order.bounded_order
+
 -- import group_theory.group_action.fixing_subgroup
 -- import field_theory.galois
 
@@ -19,8 +24,6 @@ import .ad_to_ulift
 import .ad_sub_mul_actions
 import .mul_action_bihom
 import .wielandt
-
-
 
 -- import group_theory.subgroup.pointwise
 -- import group_theory.coset
@@ -727,6 +730,220 @@ begin
       refl } },
   { rw nat.sub_eq_zero_of_le hnd,
     apply is_zero_pretransitive }
+end
+
+/- Voire multiple_prim, line 344 -/
+lemma finset_eq_insert {s : finset α} {k : ℕ} (hs : s.card = k.succ) :
+  ∃ (a : α) (t : finset α), ((s = insert a t) ∧ (t.card = k)) :=
+begin
+  suffices : s.nonempty,
+  obtain ⟨a, ha⟩ := finset.nonempty.bex this,
+  use a,
+  use s.erase a,
+  split,
+  apply symm, exact finset.insert_erase ha,
+  rw finset.card_erase_of_mem ha, rw hs,
+  simp only [← nat.pred_eq_sub_one, nat.pred_succ],
+
+  rw ← finset.card_pos,
+  rw hs, exact succ_pos k,
+end
+
+lemma set_eq_insert {s : set α} {k : ℕ} (hs : nat.card s = k.succ) :
+  ∃ (a : α) (t : set α), ((s = insert a t) ∧ (nat.card t = k)) :=
+begin
+  suffices : s.nonempty,
+  obtain ⟨a, ha⟩ := set.nonempty_def.mp this,
+  use a,
+  use s \ {a},
+  split,
+  rw set.insert_diff_singleton ,
+
+  rw set.insert_eq,
+  apply subset_antisymm,
+  apply set.subset_union_right ,
+  rw set.union_subset_iff,
+  exact ⟨set.singleton_subset_iff.mpr ha, rfl.subset⟩,
+
+  rw ← nat.succ_inj', rw ← hs,
+  haveI hfs : fintype ↥s, sorry,
+  simp only [nat.card_eq_fintype_card] at hs ⊢,
+  simp only [fintype.card_of_finset],
+  rw finset.card_sdiff _,
+  simp only [set.to_finset_card, set.card_singleton],
+  rw ← nat.pred_eq_sub_one,
+  rw nat.succ_pred_eq_of_pos _,
+  rw hs, exact succ_pos k,
+
+  simp only [set.to_finset_mono, set.singleton_subset_iff], exact ha,
+
+  rw hs, exact succ_pos k,
+end
+
+/-
+lemma induction_on_finset_mul_action
+  (P : Π (G : Type*) (X : Type*) (group G) (mul_action G X) (s : finset X), Prop) :
+  (∀ (G X : Type*) (group G) (mul_action G X), P (∅ : finset X)) →
+  (∀ (G X : Type*) (group G) (mul_action G X) (a : X) (s : finset (sub_mul_action_of_stabilizer G X a)),
+    P (stabilizer G a) (sub_mul_action_of_stabilizer G X a) s → P G X (insert a s)) →
+  ∀ (G X : Type*) (group G) (mul_action G X) (s : finset X), P G X s :=
+begin
+  sorry
+end
+ -/
+
+/-- Cardinality of a multiply transitive action -/
+lemma aux_index_of (k : ℕ) (G X : Type*) [group G] [fintype X] [hGX : mul_action G X]
+    (hmk : is_multiply_pretransitive G X k)
+    {s : finset X} (hs : s.card = k) :
+    (fixing_subgroup G (s : set X)).index * (fintype.card X - s.card).factorial
+    = (fintype.card X).factorial :=
+begin
+  unfreezingI {revert G X},
+  induction k with k hrec,
+
+  -- k = 0
+  { introsI G X _ _ _ hmk s hs,
+    rw finset.card_eq_zero  at hs,
+    simp only [hs, finset.coe_empty, finset.card_empty, tsub_zero],
+    suffices : fixing_subgroup G ∅ = ⊤,
+    by rw [this, subgroup.index_top, one_mul],
+    exact galois_connection.l_bot (fixing_subgroup_fixed_points_gc G X) },
+
+  -- induction step
+  introsI G X _ _ _ hmk s hs,
+  suffices : s.nonempty,
+  obtain ⟨a, has⟩ := finset.nonempty.bex this,
+  let t' : set (sub_mul_action_of_stabilizer G X a) := coe ⁻¹' (↑(s.erase a) : set X),
+  have hat' : (coe '' t' : set X) = s.erase a,
+  { simp only [subtype.image_preimage_coe, finset.coe_erase, set_like.mem_coe,
+    set.inter_eq_left_iff_subset, set.diff_singleton_subset_iff],
+    simp_rw mem_sub_mul_action_of_stabilizer_iff,
+    intros x _,
+    simp only [set.mem_insert_iff],
+    cases em (x = a) with hx hx,
+    apply or.intro_left, exact hx,
+    apply or.intro_right, exact hx },
+
+--   have hat : a ∉ s.erase a := finset.not_mem_erase a s,
+  rw ← finset.insert_erase has,
+  rw finset.card_insert_of_not_mem (finset.not_mem_erase a s),
+  rw finset.coe_insert,
+
+  rw [nat.add_comm, ← nat.sub_sub],
+  -- change (fixing_subgroup G ↑(insert a t)).index * _ = _,
+  rw ← hat',
+
+  have : insert a (coe '' t') = set.insert a (coe '' t'),
+  refl, rw this,
+  rw fixing_subgroup_of_insert,
+
+  --   H.relindex K = (H.subgroup_of K).index = (K : H ⊓ K)
+  -- si H ≤ K, H.relindex K * K.index = H.index
+  -- (K : H) (G : K) = (G : H)
+  -- (G : Gat) = (G : Ga) (Ga : Gat)
+  -- prendre K = Ga, H = Gat
+  rw subgroup.index_map,
+  rw (monoid_hom.ker_eq_bot_iff (stabilizer G a).subtype).mpr
+    (by simp only [subgroup.coe_subtype, subtype.coe_injective]),
+  rw sup_bot_eq,
+
+  let hz := hrec (stabilizer G a) (sub_mul_action_of_stabilizer G X a) _ _ ,
+  swap,
+  { rw ← stabilizer.is_multiply_pretransitive, exact hmk,
+    rw is_pretransitive_iff_is_one_pretransitive,
+    apply is_multiply_pretransitive_of_higher G X hmk,
+    rw nat.succ_le_succ_iff, apply nat.zero_le,
+    rw ← hs, simp only [cardinal.mk_fintype, cardinal.nat_cast_le], exact finset.card_le_univ s,
+  },
+  swap,
+  exact t'.to_finset,
+  swap,
+  { rw ← finset.card_image_of_injective t'.to_finset (subtype.coe_injective),
+
+    rw ← set.coe_to_finset t' at hat',
+    rw ← finset.coe_image at hat',
+    rw finset.coe_inj at hat',
+    rw hat',
+
+    rw finset.card_erase_of_mem has,
+    rw hs,
+    rw nat.sub_one k.succ,
+    rw nat.pred_succ },
+
+    suffices : (fixing_subgroup (stabilizer G a) t').index *
+      (fintype.card X - 1 - fintype.card t').factorial = (fintype.card X - 1).factorial,
+
+    rw mul_comm, rw ← mul_assoc,
+    rw mul_comm at hz,
+
+-- Il faudrait probablement fabriquer t = t'.to_finset
+-- Et réfléchir à l'ordre du produit
+-- Il reste des transformations : card (sub_mul_action_of_stabilizer ) = card - 1 …
+
+
+sorry,
+  -- s.nonempty
+  rw [← finset.card_pos, hs], exact succ_pos k,
+end
+
+
+theorem index_of_fixing_subgroup_of_multiply_pretransitive' [fintype α] (s : set α) :
+  (fixing_subgroup M s).index * (fintype.card α - nat.card s).factorial
+    = (fintype.card α).factorial :=
+begin
+  set s' := s.to_finset,
+  suffices : nat.card ↥s = s'.card,
+  rw this,
+  rw ← set.coe_to_finset s,
+  apply aux_index_of s'.card,
+  refl,
+
+  rw nat.card_eq_fintype_card,
+  rw ← set.to_finset_card,
+end
+
+  /-
+  apply s.induction_on,
+
+  simp only [finset.coe_empty, finset.card_empty, tsub_zero],
+  suffices : fixing_subgroup M ∅ = ⊤,
+  by rw [this, subgroup.index_top, one_mul],
+  exact galois_connection.l_bot (fixing_subgroup_fixed_points_gc M α)  ,
+
+  intros a s has hs,
+  let s' : finset (sub_mul_action_of_stabilizer M α a) := (coe ⁻¹' ↑s).to_finset,
+  have : fixing_subgroup M ↑(insert a s)
+    = subgroup.map (stabilizer M a).subtype (fixing_subgroup (stabilizer M a) ↑s'),
+  rw [finset.coe_insert, set.coe_to_finset],
+  sorry,
+
+   -/
+
+
+theorem index_of_fixing_subgroup_of_multiply_pretransitive [fintype α] {k : ℕ}
+  (hmk : is_multiply_pretransitive M α k)
+  {s : set α} (hs : nat.card s = k) :
+  (fixing_subgroup M (s : set α)).index * (fintype.card α - k).factorial = (fintype.card α).factorial :=
+begin
+
+  suffices : ∀ (s : finset α), (fixing_subgroup M (s : set α)).index *
+    (fintype.card α - s.card).factorial
+    = (fintype.card α).factorial,
+
+  rw ← set.coe_to_finset s at hs ⊢,
+  rw ← this s.to_finset,
+  rw ← hs, simp only [set.to_finset_card, set.coe_to_finset, card_eq_fintype_card],
+
+  intro s,
+  apply s.induction_on,
+
+  { simp only [finset.coe_empty, finset.card_empty, tsub_zero],
+    suffices : fixing_subgroup M ∅ = ⊤,
+    by rw [this, subgroup.index_top, one_mul],
+    exact galois_connection.l_bot (fixing_subgroup_fixed_points_gc M α) },
+
+  sorry
 end
 
 open_locale classical

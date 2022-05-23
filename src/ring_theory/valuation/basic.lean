@@ -460,12 +460,14 @@ lemma is_equiv_iff_val_sub_one_lt_one
   v.is_equiv v' ↔ ∀ {x : K}, v (x - 1) < 1 ↔ v' (x - 1) < 1 :=
 begin
   rw is_equiv_iff_val_lt_one,
-  split,
-  { intros h x,
-    exact @h (x - 1) },
-  { intros h x,
-    simpa using @h (x + 1) }
+  refine ⟨λ h x, @h (x - 1), λ h x, by simpa using @h (x + 1)⟩,
 end
+
+lemma is_equiv_tfae
+  [linear_ordered_comm_group_with_zero Γ₀]
+  [linear_ordered_comm_group_with_zero Γ'₀]
+  {K : Type*} [division_ring K]
+  (v : valuation K Γ₀) (v' : valuation K Γ'₀) :
 
 end
 

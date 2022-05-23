@@ -656,12 +656,10 @@ begin
 end
 
 lemma krull_topology_compact (h_int : algebra.is_integral K L) :
-is_compact (set.univ : set (L ≃ₐ[K] L)) := is_compact_iff_ultrafilter_le_nhds.2
-  (λ f _,  ⟨ultrafilter.glued_generators_of_pushforwards_alg_equiv h_int (f.map (λ (σ : L ≃ₐ[K] L),
-  σ.to_alg_hom)),
-  set.mem_univ (ultrafilter.glued_generators_of_pushforwards_alg_equiv h_int (f.map
-  (λ (σ : L ≃ₐ[K] L), σ.to_alg_hom))),
-  ultrafilter_converges_to_glued_equiv h_int f⟩)
+  is_compact (set.univ : set (L ≃ₐ[K] L)) :=
+is_compact_iff_ultrafilter_le_nhds.2 (λ f _,
+  ⟨ultrafilter.glued_generators_of_pushforwards_alg_equiv h_int (f.map alg_equiv.to_alg_hom),
+    set.mem_univ _, ultrafilter_converges_to_glued_equiv h_int f⟩)
 
 end compact
 

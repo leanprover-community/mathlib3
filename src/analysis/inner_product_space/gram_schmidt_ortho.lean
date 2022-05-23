@@ -172,7 +172,8 @@ end
 /-- If the input of `gram_schmidt` is linearly independent, then the output is non-zero. -/
 lemma gram_schmidt_ne_zero (f : ℕ → E) (h₀ : linear_independent 𝕜 f) (n : ℕ) :
   gram_schmidt 𝕜 f n ≠ 0 :=
-gram_schmidt_ne_zero_aux 𝕜 f (n + 1) (linear_independent.comp h₀ _ (fin.coe_injective)) n (lt_succ n)
+gram_schmidt_ne_zero_aux
+  𝕜 f (n + 1) (linear_independent.comp h₀ _ (fin.coe_injective)) n (lt_succ n)
 
 /-- The normalized `gram_schmidt` (Infinite version).
 Each vector in `gram_schmidt_normed` has unit length. -/

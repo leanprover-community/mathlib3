@@ -99,6 +99,7 @@ theorem add_succ (o₁ o₂ : ordinal) : o₁ + succ o₂ = succ (o₁ + o₂) :
 (add_assoc _ _ _).symm
 
 @[simp] theorem succ_zero : succ 0 = 1 := zero_add _
+@[simp] theorem succ_one : succ 1 = 2 := rfl
 
 theorem one_le_iff_pos {o : ordinal} : 1 ≤ o ↔ 0 < o :=
 by rw [← succ_zero, succ_le]
@@ -1051,7 +1052,7 @@ rfl
 theorem bdd_above_range {ι : Type u} (f : ι → ordinal.{max u v}) : bdd_above (set.range f) :=
 ⟨(cardinal.sup.{u v} (cardinal.succ ∘ card ∘ f)).ord, begin
   rintros a ⟨i, rfl⟩,
-  exact le_of_lt (cardinal.lt_ord.2 ((cardinal.lt_succ_self _).trans_le (le_sup _ _)))
+  exact le_of_lt (cardinal.lt_ord.2 ((cardinal.lt_succ _).trans_le (le_sup _ _)))
 end⟩
 
 theorem le_sup {ι} (f : ι → ordinal) : ∀ i, f i ≤ sup f :=
@@ -1221,6 +1222,10 @@ theorem lt_bsup_of_limit {o : ordinal} {f : Π a < o, ordinal}
   (hf : ∀ {a a'} (ha : a < o) (ha' : a' < o), a < a' → f a ha < f a' ha')
   (ho : ∀ a < o, succ a < o) (i h) : f i h < bsup o f :=
 (hf _ _ $ lt_succ_self i).trans_le (le_bsup f i.succ $ ho _ h)
+
+theorem bsup_succ_of_mono {o : ordinal} {f : Π a < succ o, ordinal}
+  (hf : ∀ {i j} hi hj, i ≤ j → f i hi ≤ f j hj) : bsup _ f = f o (lt_succ_self o) :=
+le_antisymm (bsup_le (λ i hi, hf _ _ (lt_succ.1 hi))) (le_bsup _ _ _)
 
 @[simp] theorem bsup_zero (f : Π a < (0 : ordinal), ordinal) : bsup 0 f = 0 :=
 bsup_eq_zero_iff.2 (λ i hi, (ordinal.not_lt_zero i hi).elim)
@@ -1455,6 +1460,10 @@ begin
   exact λ i hi, (hf i hi).trans_le (le_bsup f _ _)
 end
 
+theorem blsub_succ_of_mono {o : ordinal} {f : Π a < succ o, ordinal}
+  (hf : ∀ {i j} hi hj, i ≤ j → f i hi ≤ f j hj) : blsub _ f = succ (f o (lt_succ_self o)) :=
+bsup_succ_of_mono $ λ i j hi hj h, succ_le_succ.2 (hf hi hj h)
+
 @[simp] theorem blsub_eq_zero_iff {o} {f : Π a < o, ordinal} : blsub o f = 0 ↔ o = 0 :=
 by { rw [←lsub_eq_blsub, lsub_eq_zero_iff], exact out_empty_iff_eq_zero }
 
@@ -1584,7 +1593,7 @@ end
 theorem mex_lt_ord_succ_mk {ι} (f : ι → ordinal) : mex f < (#ι).succ.ord :=
 begin
   by_contra' h,
-  apply not_le_of_lt (cardinal.lt_succ_self (#ι)),
+  apply (cardinal.lt_succ (#ι)).not_le,
   have H := λ a, exists_of_lt_mex ((typein_lt_self a).trans_le h),
   let g : (#ι).succ.ord.out.α → ι := λ a, classical.some (H a),
   have hg : injective g := λ a b h', begin
@@ -2279,7 +2288,7 @@ by rw [← add_left_cancel (n*(m/n)), div_add_mod, ← nat_cast_div, ← nat_cas
  λ h, card_nat n ▸ card_le_card h⟩
 
 @[simp] theorem nat_lt_card {o} {n : ℕ} : (n : cardinal) < card o ↔ (n : ordinal) < o :=
-by rw [← succ_le, ← cardinal.succ_le, ← cardinal.nat_succ, nat_le_card]; refl
+by rw [← succ_le, ← cardinal.succ_le_iff, ← cardinal.nat_succ, nat_le_card]; refl
 
 @[simp] theorem card_lt_nat {o} {n : ℕ} : card o < n ↔ o < n :=
 lt_iff_lt_of_le_iff_le nat_le_card

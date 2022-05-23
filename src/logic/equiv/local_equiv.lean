@@ -533,10 +533,9 @@ local_equiv.ext (λx, rfl) (λx, rfl) $ by { simp [trans_source, inter_comm], rw
 
 /-- Postcompose a local equivalence with an equivalence.
 We modify the source and target to have better definitional behavior. -/
--- We're reproving `equiv.image_eq_preimage` here to not have to add an import to this file.
 @[simps] def trans_equiv (e' : β ≃ γ) : local_equiv α γ :=
-(e.trans e'.to_local_equiv).copy _ rfl _ rfl e.source (inter_univ _) (e' '' e.target) (by simp
-  [equiv.to_local_equiv, image_eq_preimage_of_inverse e'.left_inverse_symm e'.right_inverse_symm])
+(e.trans e'.to_local_equiv).copy _ rfl _ rfl e.source (inter_univ _) (e'.symm ⁻¹' e.target)
+  (univ_inter _)
 
 lemma trans_equiv_eq_trans (e' : β ≃ γ) : e.trans_equiv e' = e.trans e'.to_local_equiv :=
 copy_eq_self _ _ _ _ _ _ _ _ _

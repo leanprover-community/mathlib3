@@ -531,6 +531,26 @@ lemma restr_trans (s : set α) :
   (e.restr s).trans e' = (e.trans e').restr s :=
 local_equiv.ext (λx, rfl) (λx, rfl) $ by { simp [trans_source, inter_comm], rwa inter_assoc }
 
+/-- Postcompose a local equivalence with an equivalence.
+We modify the source and target to have better definitional behavior. -/
+-- We're reproving `equiv.image_eq_preimage` here to not have to add an import to this file.
+@[simps] def trans_equiv (e' : β ≃ γ) : local_equiv α γ :=
+(e.trans e'.to_local_equiv).copy _ rfl _ rfl e.source (inter_univ _) (e' '' e.target) (by simp
+  [equiv.to_local_equiv, image_eq_preimage_of_inverse e'.left_inverse_symm e'.right_inverse_symm])
+
+lemma trans_equiv_eq_trans (e' : β ≃ γ) : e.trans_equiv e' = e.trans e'.to_local_equiv :=
+copy_eq_self _ _ _ _ _ _ _ _ _
+
+/-- Precompose a local equivalence with an equivalence.
+We modify the source and target to have better definitional behavior. -/
+@[simps] def _root_.equiv.trans_local_equiv (e : α ≃ β) : local_equiv α γ :=
+(e.to_local_equiv.trans e').copy _ rfl _ rfl (e ⁻¹' e'.source) (univ_inter _) e'.target
+  (inter_univ _)
+
+lemma _root_.equiv.trans_local_equiv_eq_trans (e : α ≃ β) :
+  e.trans_local_equiv e' = e.to_local_equiv.trans e' :=
+copy_eq_self _ _ _ _ _ _ _ _ _
+
 /-- `eq_on_source e e'` means that `e` and `e'` have the same source, and coincide there. Then `e`
 and `e'` should really be considered the same local equiv. -/
 def eq_on_source (e e' : local_equiv α β) : Prop :=

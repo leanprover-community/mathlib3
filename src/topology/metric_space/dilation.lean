@@ -19,7 +19,7 @@ Here `r : ℝ≥0`, so we do not exclude the degenerate case of dilations
 which collapse into constant maps. Since there is no `ℝ>0` API defined in mathlib,
 no matter where you choose to exclude r = 0, you will end up having to carry
 it around with you anyways. So statements that do need strict dilations should
-just say `f : dilation α β r` and `hr : r ≠ 0`.
+just say `f : dilation α β` and `hr : r ≠ 0`.
 
 TODO: Introduce dilation equivs. Refactor the isometry API
 to match the `*_hom_class` API below.
@@ -33,7 +33,7 @@ noncomputable theory
 open function set
 open_locale topological_space ennreal nnreal
 
-section setup
+section defs
 
 variables (α : Type*) (β : Type*) [pseudo_emetric_space α] [pseudo_emetric_space β]
 
@@ -55,62 +55,136 @@ class dilation_class (F : Type*) (α β : out_param $ Type*)
 
 attribute [nolint dangerous_instance] dilation_class.to_fun_like
 
-instance dilation.to_dilation_class :
+end defs
+
+namespace dilation
+variables {α : Type*} {β : Type*} {γ : Type*} {F : Type*} {G : Type*}
+
+section setup
+variables [pseudo_emetric_space α] [pseudo_emetric_space β]
+
+instance to_dilation_class :
   dilation_class (dilation α β) α β :=
-{ coe := dilation.to_fun,
+{ coe := to_fun,
   coe_injective' := λ f g h, by { cases f; cases g; congr', },
-  edist_eq' := λ f, dilation.edist_eq' f }
+  edist_eq' := λ f, edist_eq' f }
 
 instance : has_coe_to_fun (dilation α β) (λ _, α → β) := fun_like.has_coe_to_fun
 
-@[simp] lemma dilation.to_fun_eq_coe {f : dilation α β} : f.to_fun = (f : α → β) := rfl
+@[simp] lemma to_fun_eq_coe {f : dilation α β} : f.to_fun = (f : α → β) := rfl
 
-@[ext] theorem dilation.ext {f g : dilation α β} (h : ∀ x, f x = g x) : f = g :=
+@[simp] lemma coe_mk (f : α → β) (h) : ⇑(⟨f, h⟩ : dilation α β) = f := rfl
+
+lemma congr_fun {f g : dilation α β} (h : f = g) (x : α) : f x = g x := fun_like.congr_fun h x
+lemma congr_arg (f : dilation α β) {x y : α} (h : x = y) : f x = f y := fun_like.congr_arg f h
+
+@[ext] theorem ext {f g : dilation α β} (h : ∀ x, f x = g x) : f = g :=
 fun_like.ext f g h
+
+lemma ext_iff {f g : dilation α β} : f = g ↔ ∀ x, f x = g x := fun_like.ext_iff
+
+@[simp] lemma mk_coe (f : dilation α β) (h) : dilation.mk f h = f := ext $ λ _, rfl
 
 /-- Copy of a `dilation` with a new `to_fun` equal to the old one. Useful to fix definitional
 equalities. -/
-protected def dilation.copy (f : dilation α β) (f' : α → β) (h : f' = ⇑f) : dilation α β :=
+protected def copy (f : dilation α β) (f' : α → β) (h : f' = ⇑f) : dilation α β :=
 { to_fun := f',
   edist_eq' := h.symm ▸ f.edist_eq' }
 
-/-- The ratio of a dilation `f`. Uses `Exists.some` -/
-def ratio {α β} [pseudo_emetric_space α] [pseudo_emetric_space β] {F : Type*}
-  [dilation_class F α β] (f : F) : ℝ≥0 :=
+/-- The ratio of a dilation `f`. Uses `Exists.some`, the `some_spec` counterpart
+is the lemma `edist_eq` below -/
+def ratio [dilation_class F α β] (f : F) : ℝ≥0 :=
 (dilation_class.edist_eq' f).some
 
-end setup
-
-namespace dilation
-
-variables {α : Type*} {β : Type*} {γ : Type*} {F : Type*} {G : Type*}
-
-@[simp] lemma edist_eq
-  [pseudo_emetric_space α] [pseudo_emetric_space β] [dilation_class F α β]
-  (f : F) (x y : α) : edist (f x) (f y) = ratio f * edist x y :=
+@[simp] lemma edist_eq [dilation_class F α β] (f : F) (x y : α) :
+  edist (f x) (f y) = ratio f * edist x y :=
 (dilation_class.edist_eq' f).some_spec x y
 
-@[simp] lemma dist_eq
+@[simp] lemma dist_eq {α β} {F : Type*}
   [pseudo_metric_space α] [pseudo_metric_space β] [dilation_class F α β]
   (f : F) (x y : α) : dist (f x) (f y) = ratio f * dist x y :=
-by simp only [dist_edist, edist_eq, ennreal.to_real_mul, ennreal.coe_to_real]
+by simp only [dist_edist, ennreal.to_real_mul, edist_eq, ennreal.coe_to_real]
 
-theorem nndist_eq [pseudo_metric_space α] [pseudo_metric_space β] [dilation_class F α β]
+@[simp] lemma nndist_eq {α β} {F : Type*}
+  [pseudo_metric_space α] [pseudo_metric_space β] [dilation_class F α β]
   (f : F) (x y : α) : nndist (f x) (f y) = ratio f * nndist x y :=
 begin
   apply subtype.ext _,
   simp only [coe_nndist, dist_eq, nonneg.coe_mul],
 end
 
-section pseudo_emetric_dilation
+/-- The `ratio` is equal to the distance ratio for any two points with nonzero finite distance.
+`dist` and `nndist` versions below -/
+lemma ratio_unique [dilation_class F α β] {f : F} {x y : α} {r : ℝ≥0}
+  (hxy : edist x y ≠ 0 ∧ edist x y ≠ ⊤) (hr : edist (f x) (f y) = r * edist x y) :
+  r = ratio f :=
+begin
+  have h := edist_eq f x y,
+  rwa [hr, ennreal.mul_eq_mul_right hxy.1 hxy.2, ennreal.coe_eq_coe] at h,
+end
 
+/-- The `ratio` is equal to the distance ratio for any two points
+with nonzero finite distance; `dist version` -/
+lemma ratio_unique' {α β} {F : Type*} [pseudo_metric_space α] [pseudo_metric_space β]
+  [dilation_class F α β] {f : F} {x y : α} {r : ℝ≥0}
+  (hxy : dist x y ≠ 0) (hr : dist (f x) (f y) = r * dist x y) :
+  r = ratio f :=
+begin
+  have h := dist_eq f x y,
+  rw [hr, (mul_eq_mul_right_iff)] at h,
+  have := or.resolve_right h hxy,
+  rwa nnreal.coe_eq at this,
+end
+
+/-- The `ratio` is equal to the distance ratio for any two points
+with nonzero finite distance; `nndist version` -/
+lemma ratio_unique'' {α β} {F : Type*} [pseudo_metric_space α] [pseudo_metric_space β]
+  [dilation_class F α β] {f : F} {x y : α} {r : ℝ≥0}
+  (hxy : nndist x y ≠ 0) (hr : nndist (f x) (f y) = r * nndist x y) :
+  r = ratio f :=
+begin
+  have h := nndist_eq f x y,
+  rwa [hr, mul_comm, mul_comm (ratio f), nnreal.mul_eq_mul_left hxy] at h,
+end
+
+/-- Alternative `dilation` constructor when the distance hypothesis is over `dist` -/
+lemma mk' {α β} {F : Type*}
+  [pseudo_metric_space α] [pseudo_metric_space β]
+  (f : α → β) (h : ∃ (r : ℝ≥0), ∀ (x y : α), dist (f x) (f y) = r * dist x y) :
+  dilation α β :=
+{ to_fun := f,
+  edist_eq' :=
+  begin
+    rcases h with ⟨r, h⟩,
+    refine ⟨r, λ x y, _⟩,
+    rw [edist_dist, edist_dist, ← ennreal.of_real_to_real ennreal.coe_ne_top,
+      ← ennreal.of_real_mul],
+    refine _root_.congr_arg _ (h x y),
+    exact nnreal.zero_le_coe,
+  end }
+
+/-- Alternative `dilation` constructor when the distance hypothesis is over `nndist` -/
+lemma mk'' {α β} {F : Type*}
+  [pseudo_metric_space α] [pseudo_metric_space β]
+  (f : α → β) (h : ∃ (r : ℝ≥0), ∀ (x y : α), nndist (f x) (f y) = r * nndist x y) :
+  dilation α β :=
+{ to_fun := f,
+  edist_eq' :=
+  begin
+    rcases h with ⟨r, h⟩,
+    refine ⟨r, λ x y, _⟩,
+    rw [edist_nndist, edist_nndist, ← ennreal.coe_mul, h x y],
+  end }
+
+end setup
+
+section pseudo_emetric_dilation
 variables [pseudo_emetric_space α] [pseudo_emetric_space β] [pseudo_emetric_space γ]
 variables [dilation_class F α β] [dilation_class G β γ]
 variables (f : F) (g : G) {x y z : α}  {s : set α}
 
 lemma lipschitz : lipschitz_with (ratio f) (f : α → β) :=
 λ x y, (edist_eq f x y).le
-
 
 -- TODO: add `instance ennreal.div_inv_comm_monoid`
 -- TODO: fix `antilipschitz_with` decl header
@@ -132,17 +206,101 @@ def of_subsingleton [subsingleton α] (f : α → β) : dilation α β :=
 { to_fun := f,
   edist_eq' := ⟨0, λ x y, by { rw subsingleton.elim x y, simp, }⟩ }
 
-/-- The composition of similarities is a dilation -/
-def comp (f : dilation α β) (g : dilation β γ):
+/-- The identity is a dilation -/
+def id (α) [pseudo_emetric_space α] : dilation α α :=
+{ to_fun := _root_.id,
+  edist_eq' := ⟨1, λ x y, by simp only [id.def, ennreal.coe_one, one_mul]⟩ }
+
+#print id
+
+instance : inhabited (dilation α α) := ⟨id α⟩
+
+@[simp] lemma id_apply (x : α) : id α x = x := rfl
+
+lemma id_ratio {α} [metric_space α] [nontrivial α] : ratio (id α) = 1 :=
+begin
+  rcases exists_pair_ne α with ⟨x, y, hne⟩,
+  have := dist_eq (id α) x y,
+  rw ← dist_ne_zero at hne,
+  rwa [id_apply, id_apply, eq_comm, ← div_eq_iff_mul_eq hne,
+    div_self hne, eq_comm, nnreal.coe_eq_one] at this,
+end
+
+/-- The composition of dilations is a dilation -/
+def comp (g : dilation β γ) (f : dilation α β) :
   dilation α γ :=
 { to_fun := g ∘ f,
-  edist_eq' := ⟨ratio f * ratio g, λ x y, by { simp only [edist_eq, ennreal.coe_mul], ring, }⟩ }
+  edist_eq' := ⟨ratio g * ratio f, λ x y, by { simp only [edist_eq, ennreal.coe_mul], ring, }⟩ }
+
+lemma comp_assoc {δ : Type*} [pseudo_emetric_space δ]
+  (f : dilation α β) (g : dilation β γ) (h : dilation γ δ) :
+  (h.comp g).comp f = h.comp (g.comp f) := rfl
+
+@[simp] lemma coe_comp (g : dilation β γ) (f : dilation α β) :
+  (g.comp f : α → γ) = g ∘ f := rfl
+
+lemma comp_apply (g : dilation β γ) (f : dilation α β) (x : α) :
+  (g.comp f : α → γ) x = (g (f x)) := rfl
+
+@[simp] lemma comp_ratio {α β γ} [metric_space α] [nontrivial α]
+  [pseudo_metric_space β] [pseudo_metric_space γ]
+  (g : dilation β γ) (f : dilation α β) :
+  ratio g * ratio f = ratio (g.comp f) :=
+begin
+  rcases exists_pair_ne α with ⟨x, y, hα⟩,
+  rw ← dist_ne_zero at hα,
+  have hgf := dist_eq (g.comp f) x y,
+  simp only [dist_eq, coe_comp, ← mul_assoc, mul_eq_mul_right_iff] at hgf,
+  rw ← nnreal.coe_eq,
+  rw nnreal.coe_mul,
+  refine or.resolve_right hgf hα,
+end
+
+@[simp] lemma comp_id (f : dilation α β) : f.comp (id α) = f := ext $ λ x, rfl
+
+@[simp] lemma id_comp (f : dilation α β) : (id β).comp f = f := ext $ λ x, rfl
+
+instance : monoid (dilation α α) :=
+{ one := id α,
+  mul := comp,
+  mul_one := comp_id,
+  one_mul := id_comp,
+  mul_assoc := λ f g h, comp_assoc _ _ _ }
+
+lemma one_def : (1 : dilation α α) = id α := rfl
+lemma mul_def (f g : dilation α α) : f * g = f.comp g := rfl
+
+@[simp] lemma coe_one : ⇑(1 : dilation α α) = _root_.id := rfl
+@[simp] lemma coe_mul (f g : dilation α α) : ⇑(f * g) = f ∘ g := rfl
+
+lemma cancel_right {g₁ g₂ : dilation β γ} {f : dilation α β} (hf : surjective f) :
+  g₁.comp f = g₂.comp f ↔ g₁ = g₂ :=
+⟨λ h, dilation.ext $ hf.forall.2 (ext_iff.1 h), λ h, h ▸ rfl⟩
+
+lemma cancel_left {g : dilation β γ} {f₁ f₂ : dilation α β} (hg : function.injective g) :
+  g.comp f₁ = g.comp f₂ ↔ f₁ = f₂ :=
+⟨λ h, dilation.ext $ λ x, hg $ by rw [← comp_apply, h, comp_apply], λ h, h ▸ rfl⟩
 
 /-- The constant function of is a dilation -/
-def const (b : β) :
+def const (α) [pseudo_emetric_space α] (b : β) :
   dilation α β :=
 { to_fun := λ _, b,
   edist_eq' := ⟨0, λ x y, by simp⟩ }
+
+@[simp] lemma const_apply (b : β) (x : α) :
+  (const α b) x = b := rfl
+
+@[simp] lemma const_ratio {α} [metric_space α] [nontrivial α]
+  {β} [pseudo_metric_space β] (b : β) :
+  ratio (const α b) = 0 :=
+begin
+  rcases exists_pair_ne α with ⟨x, y, hα⟩,
+  rw ← dist_ne_zero at hα,
+  have := dist_eq (const α b) x y,
+  simp only [const_apply, dist_self] at this,
+  rw [eq_comm, mul_eq_zero, nnreal.coe_eq_zero] at this,
+  exact or.resolve_right this hα,
+end
 
 /-- A dilation from a metric space is a uniform inducing map -/
 theorem uniform_inducing (hr : ratio f ≠ 0) :
@@ -157,7 +315,7 @@ lemma tendsto_nhds_iff {ι : Type*} {g : ι → α} {a : filter ι} {b : α} (hr
 lemma to_continuous : continuous (f : α → β) :=
 (lipschitz f).continuous
 
-/-- Similarities multiply the diameter by their ratio in pseudoemetric spaces. -/
+/-- Dilations multiply the diameter by their ratio in pseudoemetric spaces. -/
 lemma ediam_image (s : set α) :
   emetric.diam ((f: α → β) '' s) = ratio f * emetric.diam s :=
 begin

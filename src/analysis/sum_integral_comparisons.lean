@@ -78,15 +78,12 @@ end
 lemma antitone_on.integral_le_sum_Ico (hab : a ≤ b) (hf : antitone_on f (set.Icc a b)) :
   ∫ x in a..b, f x ≤ ∑ x in finset.Ico a b, f x :=
 begin
-  have bb : b = (b - a) + a, { zify, ring, },
-  conv { to_rhs, rw [←zero_add a, bb], },
-  have bb' : (b : ℝ) = (a : ℝ) + ↑(b - a), { simp [hab], },
-  conv { to_lhs, rw bb', },
+  rw [(nat.sub_add_cancel hab).symm, nat.cast_add],
+  conv { congr, congr, skip, skip, rw add_comm, skip, skip, congr, congr, rw ←zero_add a, },
   rw [← finset.sum_Ico_add, nat.Ico_zero_eq_range],
-  conv
-  { to_rhs, congr, skip, funext, rw nat.cast_add a x, },
+  conv { to_rhs, congr, skip, funext, rw nat.cast_add, },
   apply antitone_on.integral_le_sum,
-  rwa ←bb',
+  simp only [hf, hab, nat.cast_sub, add_sub_cancel'_right],
 end
 
 lemma antitone_on.sum_le_integral (hf : antitone_on f (Icc x₀ (x₀ + a))) :
@@ -124,15 +121,12 @@ end
 lemma antitone_on.sum_le_integral_Ico (hab : a ≤ b) (hf : antitone_on f (set.Icc a b)) :
   ∑ i in finset.Ico a b, f (i + 1 : ℕ) ≤ ∫ x in a..b, f x :=
 begin
-  have bb : b = (b - a) + a, { zify, ring, },
-  conv { to_lhs, rw [←zero_add a, bb], },
-  have bb' : (b : ℝ) = (a : ℝ) + ↑(b - a), { simp [hab], },
-  conv { to_rhs, rw bb', },
-  rw [←finset.sum_Ico_add, nat.Ico_zero_eq_range],
-  conv
-  { to_lhs, congr, skip, funext, rw [add_assoc, nat.cast_add a _], },
+  rw [(nat.sub_add_cancel hab).symm, nat.cast_add],
+  conv { congr, congr, congr, rw ← zero_add a, skip, skip, skip, rw add_comm, },
+  rw [← finset.sum_Ico_add, nat.Ico_zero_eq_range],
+  conv { to_lhs, congr, congr, skip, funext, rw [add_assoc, nat.cast_add], },
   apply antitone_on.sum_le_integral,
-  rwa ←bb',
+  simp only [hf, hab, nat.cast_sub, add_sub_cancel'_right],
 end
 
 lemma monotone_on.sum_le_integral (hf : monotone_on f (Icc x₀ (x₀ + a))) :

@@ -18,7 +18,7 @@ modulus principle for an unbounded domain.
   `{z : ℂ | a < complex.im z < b}`;
 
 * `phragmen_lindelof.eq_zero_on_horizontal_strip`, `phragmen_lindelof.eq_on_horizontal_strip`:
-  extensionality lemmas based in the Phragmen-Lindelöf principle in a horizontal strip;
+  extensionality lemmas based on the Phragmen-Lindelöf principle in a horizontal strip;
 
 * `phragmen_lindelof.quadrant_I`, `phragmen_lindelof.quadrant_II`, `phragmen_lindelof.quadrant_III`,
   `phragmen_lindelof.quadrant_IV`: the Phragmen-Lindelöf principle in the coordinate quadrants;
@@ -77,11 +77,8 @@ begin
   clear_dependent C, intros C hC₀ hle_a hle_b,
   -- After a change of variables, we deal with the strip `a - b < im z < a + b` instead
   -- of `a < im z < b`
-  obtain ⟨a, b, rfl, rfl⟩ : ∃ a' b', a = a' - b' ∧ b = a' + b',
-  { refine ⟨(a + b) / 2, (b - a) / 2, _, _⟩,
-    { rw [← sub_div, ← sub_add, add_sub_cancel, ← two_mul, mul_div_cancel_left a two_ne_zero] },
-    { rw [← add_div, add_comm (a + b), ← add_assoc, sub_add_cancel, ← two_mul,
-        mul_div_cancel_left b two_ne_zero] } },
+  obtain ⟨a, b, rfl, rfl⟩ : ∃ a' b', a = a' - b' ∧ b = a' + b' :=
+    ⟨(a + b) / 2, (b - a) / 2, by ring, by ring⟩,
   have hab : a - b < a + b, from hz.1.trans hz.2,
   have hb : 0 < b,
     by simpa only [sub_eq_add_neg, add_lt_add_iff_left, neg_lt_self_iff] using hab,
@@ -316,7 +313,7 @@ end
 /-- **Phragmen-Lindelöf principle** in the third quadrant. Let `f : ℂ → E` be a function such that
 
 * `f` is differentiable in the open third quadrant and is continuous on its closure;
-* `∥f z∥` is bounded from above by `A * exp(B * (abs z) ^ c)` on the open third quadrant
+* `∥f z∥` is bounded from above by `A * exp (B * (abs z) ^ c)` on the open third quadrant
   for some `c < 2`;
 * `∥f z∥` is bounded from above by a constant `C` on the boundary of the third quadrant.
 
@@ -433,8 +430,8 @@ begin
       ... ≤ |x - z.re| : le_abs_self _
       ... = |(z - x).re| : by rw [sub_re, of_real_re, _root_.abs_sub_comm]
       ... ≤ abs (z - x) : abs_re_le_abs _ },
-    { refine (h.not_le $ this ▸ _).elim,
-      simpa using him 0 } }
+    refine (h.not_le $ this ▸ _).elim,
+    simpa using him 0 }
 end
 
 /-- **Phragmen-Lindelöf principle** in the right half-plane. Let `f : ℂ → E` be a function such that

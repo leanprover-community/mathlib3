@@ -390,7 +390,7 @@ end emetric_dilation --section
 section pseudo_metric_dilation
 variables [pseudo_metric_space α] [pseudo_metric_space β] [dilation_class F α β] (f : F)
 
-/-- An isometry preserves the diameter in pseudometric spaces. -/
+/-- A dilation preserves the diameter in pseudometric spaces. -/
 lemma diam_image (s : set α) : metric.diam ((f : α → β) '' s) = ratio f * metric.diam s :=
 by { simp [metric.diam, metric.diam, ediam_image, ennreal.to_real_mul], }
 

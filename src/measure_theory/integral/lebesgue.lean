@@ -1057,6 +1057,8 @@ section
 
 variable (μ)
 
+/-- For any function `f : α → ℝ≥0∞`, there exists a measurable function `g ≤ f` with the same
+integral. -/
 lemma exists_measurable_le_lintegral_eq (f : α → ℝ≥0∞) :
   ∃ g : α → ℝ≥0∞, measurable g ∧ g ≤ f ∧ ∫⁻ a, f a ∂μ = ∫⁻ a, g a ∂μ :=
 begin

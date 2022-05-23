@@ -127,6 +127,36 @@ log_of_right_le_zero b le_rfl
 @[simp] lemma log_one_right (b : ℕ) : log b (1 : R) = 0 :=
 by rw [log_of_one_le_right _ le_rfl, nat.floor_one, nat.log_one_right, int.coe_nat_zero]
 
+
+/-- `zpow b` and `int.log b` (almost) form a Galois connection. -/
+lemma lt_zpow_iff_log_lt {b : ℕ} (hb : 1 < b) {x : ℤ} {r : R} (hr : 0 < r) :
+  r < (b : R) ^ x ↔ log b r < x :=
+begin
+  have h1b' : 1 ≤ (b : R) := by exact_mod_cast hb.le,
+  cases le_or_lt 1 r with h h,
+  { rw log_of_one_le_right _ h,
+    obtain ⟨a, rfl | rfl⟩ := x.eq_coe_or_neg,
+    { simp only [zpow_coe_nat, ←nat.cast_pow, ←nat.floor_lt hr.le, int.coe_nat_lt],
+      exact nat.lt_pow_iff_log_lt hb (nat.floor_pos.mpr h) },
+    { have hba : -(a : ℤ) ≤ 0 := neg_nonpos.mpr (int.coe_nat_nonneg _),
+      rw ←le_iff_le_iff_lt_iff_lt,
+      refine iff_of_true _ _,
+      { exact (zpow_le_one_of_nonpos h1b' hba).trans h },
+      { exact hba.trans (int.coe_nat_nonneg _) } } },
+  { rw log_of_right_le_one _ h.le,
+    obtain ⟨a, rfl | rfl⟩ := x.eq_coe_or_neg,
+    { refine iff_of_true (h.trans_le _) _,
+      { exact one_le_zpow_of_nonneg h1b' (int.coe_nat_nonneg _)},
+      { refine lt_of_lt_of_le _ (int.coe_nat_nonneg _),
+        rw [neg_lt_zero, int.coe_nat_pos],
+        refine (nat.clog_pos hb $ nat.succ_le_of_lt $ nat.cast_one.symm.trans_lt $
+          nat.lt_ceil.mpr _),
+        exact_mod_cast one_lt_inv hr h } },
+    { rw [zpow_neg, zpow_coe_nat, neg_lt_neg_iff, int.coe_nat_lt,
+        lt_inv hr (pow_pos (zero_lt_one.trans_le h1b') _), ←nat.pow_lt_iff_lt_clog hb,
+        ←nat.cast_pow, nat.lt_ceil] }, },
+end
+
 /-- `zpow b` and `int.log b` (almost) form a Galois connection. -/
 lemma zpow_le_iff_le_log {b : ℕ} (hb : 1 < b) {x : ℤ} {r : R} (hr : 0 < r) :
   (b : R) ^ x ≤ r ↔ x ≤ log b r :=
@@ -235,6 +265,15 @@ clog_of_right_le_zero _ le_rfl
 
 @[simp] lemma clog_one_right (b : ℕ) : clog b (1 : R) = 0 :=
 by rw [clog_of_one_le_right _ le_rfl, nat.ceil_one, nat.clog_one_right, int.coe_nat_zero]
+
+/-- `int.clog b` and `zpow b` (almost) form a Galois connection. -/
+lemma zpow_lt_iff_lt_clog {b : ℕ} (hb : 1 < b) {x : ℤ} {r : R} (hr : 0 < r) :
+  (b : R) ^ x < r ↔ x < clog b r :=
+begin
+  rw [←neg_log_inv_eq_clog, lt_neg, ←lt_zpow_iff_log_lt hb (inv_pos.mpr hr), zpow_neg,
+    inv_lt_inv hr (zpow_pos_of_pos _ _)],
+  { exact nat.cast_pos.mpr (zero_le_one.trans_lt hb), },
+end
 
 /-- `int.clog b` and `zpow b` (almost) form a Galois connection. -/
 lemma le_zpow_iff_clog_le {b : ℕ} (hb : 1 < b) {x : ℤ} {r : R} (hr : 0 < r) :

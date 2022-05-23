@@ -84,7 +84,6 @@ is a pullback square.
 structure is_pullback
   {P X Y Z : C} (fst : P ⟶ X) (snd : P ⟶ Y) (f : X ⟶ Z) (g : Y ⟶ Z)
   extends comm_sq fst snd f g : Prop :=
-mk' ::
 (is_limit' : nonempty (is_limit (pullback_cone.mk _ _ w)))
 
 /-- The proposition that a square
@@ -102,7 +101,6 @@ is a pushout square.
 structure is_pushout
   {Z X Y P : C} (f : Z ⟶ X) (g : Z ⟶ Y) (inl : X ⟶ P) (inr : Y ⟶ P)
   extends comm_sq f g inl inr : Prop :=
-mk' ::
 (is_colimit' : nonempty (is_colimit (pushout_cocone.mk _ _ w)))
 
 /-!

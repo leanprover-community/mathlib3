@@ -5,6 +5,7 @@ Authors: Chris Hughes
 -/
 
 import algebra.char_p.basic
+import algebra.ne_zero
 import ring_theory.ideal.operations
 import tactic.fin_cases
 
@@ -80,6 +81,9 @@ namespace zmod
 instance fintype : Π (n : ℕ) [fact (0 < n)], fintype (zmod n)
 | 0     h := false.elim $ nat.not_lt_zero 0 h.1
 | (n+1) _ := fin.fintype (n+1)
+
+instance fintype' (n : ℕ) [hn : ne_zero n] : fintype (zmod n) :=
+@zmod.fintype n ⟨nat.pos_of_ne_zero hn.1⟩
 
 instance infinite : infinite (zmod 0) :=
 int.infinite
@@ -597,7 +601,7 @@ begin
              ... = nat.gcd a.val k : (congr_arg coe (nat.gcd_eq_gcd_ab a.val k)).symm, }
 end
 
-@[simp] lemma nat_cast_mod (n : ℕ) (a : ℕ) : ((a % n : ℕ) : zmod n) = a :=
+@[simp] lemma nat_cast_mod (a : ℕ) (n : ℕ) : ((a % n : ℕ) : zmod n) = a :=
 by conv {to_rhs, rw ← nat.mod_add_div a n}; simp
 
 lemma eq_iff_modeq_nat (n : ℕ) {a b : ℕ} : (a : zmod n) = b ↔ a ≡ b [MOD n] :=

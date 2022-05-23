@@ -3,12 +3,9 @@ Copyright (c) 2022 Eric Wieser. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
-
-import data.fin.vec_notation
-import algebra.big_operators.basic
-import data.list.nat_antidiagonal
-import data.multiset.nat_antidiagonal
+import algebra.big_operators.fin
 import data.finset.nat_antidiagonal
+import data.fin.vec_notation
 import logic.equiv.fin
 
 /-!
@@ -76,11 +73,8 @@ begin
     { simp },
     { simp [eq_comm] }, },
   { refine fin.cons_induction (λ x₀ x, _) x,
-    have : (0 : fin k.succ) ∉ finset.image fin.succ (finset.univ : finset (fin k)) := by simp,
-    simp_rw [antidiagonal_tuple, list.mem_bind, list.mem_map, list.nat.mem_antidiagonal,
-      fin.univ_succ, finset.sum_insert this, fin.cons_zero,
-      finset.sum_image (λ x hx y hy h, fin.succ_injective _ h), fin.cons_succ, fin.cons_eq_cons,
-      exists_eq_right_right, ih, prod.exists],
+    simp_rw [fin.sum_cons, antidiagonal_tuple, list.mem_bind, list.mem_map,
+      list.nat.mem_antidiagonal, fin.cons_eq_cons, exists_eq_right_right, ih, prod.exists],
     split,
     { rintros ⟨a, b, rfl, rfl, rfl⟩, refl },
     { rintro rfl, exact ⟨_, _, rfl, rfl, rfl⟩, } },

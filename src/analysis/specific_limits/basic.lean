@@ -138,7 +138,6 @@ lemma has_sum_geometric_of_lt_1 {r : ℝ} (h₁ : 0 ≤ r) (h₂ : r < 1) :
 have r ≠ 1, from ne_of_lt h₂,
 have tendsto (λn, (r ^ n - 1) * (r - 1)⁻¹) at_top (𝓝 ((0 - 1) * (r - 1)⁻¹)),
   from ((tendsto_pow_at_top_nhds_0_of_lt_1 h₁ h₂).sub tendsto_const_nhds).mul tendsto_const_nhds,
-have (λ n, (∑ i in range n, r ^ i)) = (λ n, geom_sum r n) := rfl,
 (has_sum_iff_tendsto_nat_of_nonneg (pow_nonneg h₁) _).mpr $
   by simp [neg_inv, geom_sum_eq, div_eq_mul_inv, *] at *
 
@@ -378,7 +377,7 @@ lemma dist_le_of_le_geometric_two_of_tendsto {a : α} (ha : tendsto f at_top (�
   dist (f n) a ≤ C / 2^n :=
 begin
   convert dist_le_tsum_of_dist_le_of_tendsto _ hu₂ (summable_geometric_two' C) ha n,
-  simp only [add_comm n, pow_add, ← div_div_eq_div_mul],
+  simp only [add_comm n, pow_add, ← div_div],
   symmetry,
   exact ((has_sum_geometric_two' C).div_const _).tsum_eq
 end
@@ -499,7 +498,7 @@ tendsto_of_tendsto_of_tendsto_of_le_of_le'
     refine (eventually_gt_at_top 0).mono (λ n hn, _),
     rcases nat.exists_eq_succ_of_ne_zero hn.ne.symm with ⟨k, rfl⟩,
     rw [← prod_range_add_one_eq_factorial, pow_eq_prod_const, div_eq_mul_inv, ← inv_eq_one_div,
-      prod_nat_cast, nat.cast_succ, ← prod_inv_distrib', ← prod_mul_distrib,
+      prod_nat_cast, nat.cast_succ, ← prod_inv_distrib, ← prod_mul_distrib,
       finset.prod_range_succ'],
     simp only [prod_range_succ', one_mul, nat.cast_add, zero_add, nat.cast_one],
     refine mul_le_of_le_one_left (inv_nonneg.mpr $ by exact_mod_cast hn.le) (prod_le_one _ _);

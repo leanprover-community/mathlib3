@@ -82,7 +82,6 @@ begin
   convert h (s'.image coe) using 1,
   simp only [card_image_of_injective s' subtype.coe_injective],
   rw image_bUnion,
-  congr,
 end
 
 /--

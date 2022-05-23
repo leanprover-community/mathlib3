@@ -8,6 +8,7 @@ import linear_algebra.matrix.trace
 import linear_algebra.contraction
 import linear_algebra.tensor_product_basis
 import linear_algebra.free_module.strong_rank_condition
+import linear_algebra.projection
 
 /-!
 # Trace of a linear map
@@ -35,7 +36,7 @@ open finite_dimensional
 open_locale tensor_product
 
 section
-variables (R : Type u) [comm_ring R] {M : Type v} [add_comm_group M] [module R M]
+variables (R : Type u) [comm_semiring R] {M : Type v} [add_comm_monoid M] [module R M]
 variables {ι : Type w} [decidable_eq ι] [fintype ι]
 variables {κ : Type*} [decidable_eq κ] [fintype κ]
 variables (b : basis ι R M) (c : basis κ R M)
@@ -136,7 +137,7 @@ lemma trace_eq_contract_of_basis' [decidable_eq ι] (b : basis ι R M) :
   (contract_left R M) ∘ₗ (dual_tensor_hom_equiv_of_basis b).symm.to_linear_map :=
 by simp [linear_equiv.eq_comp_to_linear_map_symm, trace_eq_contract_of_basis b]
 
-variables (R M)
+variables (R M N)
 variables [module.free R M] [module.finite R M] [module.free R N] [module.finite R N] [nontrivial R]
 
 /-- When `M` is finite free, the trace of a linear map correspond to the contraction pairing under
@@ -166,21 +167,94 @@ begin
   simp,
 end
 
-variables (M)
+/-- The trace of the identity endomorphism is the dimension of the free module -/
+@[simp] theorem trace_id : trace R M id = (finrank R M : R) :=
+by rw [←one_eq_id, trace_one]
+
+@[simp] theorem trace_transpose : trace R (module.dual R M) ∘ₗ module.dual.transpose = trace R M :=
+begin
+  let e := dual_tensor_hom_equiv R M M,
+  have h : function.surjective e.to_linear_map := e.surjective,
+  refine (cancel_right h).1 _,
+  ext f m, simp [e],
+end
+
+theorem trace_prod_map :
+  trace R (M × N) ∘ₗ prod_map_linear R M N M N R =
+  (coprod id id : R × R →ₗ[R] R) ∘ₗ prod_map (trace R M) (trace R N) :=
+begin
+  let e := ((dual_tensor_hom_equiv R M M).prod (dual_tensor_hom_equiv R N N)),
+  have h : function.surjective e.to_linear_map := e.surjective,
+  refine (cancel_right h).1 _,
+  ext,
+  { simp only [dual_tensor_hom_equiv, tensor_product.algebra_tensor_module.curry_apply,
+  to_fun_eq_coe, tensor_product.curry_apply, coe_restrict_scalars_eq_coe, coe_comp,
+  linear_equiv.coe_to_linear_map, coe_inl, function.comp_app, linear_equiv.prod_apply,
+  dual_tensor_hom_equiv_of_basis_apply, map_zero, prod_map_apply, coprod_apply, id_coe, id.def,
+  add_zero, prod_map_linear_apply, dual_tensor_hom_prod_map_zero, trace_eq_contract_apply,
+  contract_left_apply, fst_apply] },
+  { simp only [dual_tensor_hom_equiv, tensor_product.algebra_tensor_module.curry_apply,
+  to_fun_eq_coe, tensor_product.curry_apply, coe_restrict_scalars_eq_coe, coe_comp,
+  linear_equiv.coe_to_linear_map, coe_inr, function.comp_app, linear_equiv.prod_apply,
+  dual_tensor_hom_equiv_of_basis_apply, map_zero, prod_map_apply, coprod_apply, id_coe, id.def,
+  zero_add, prod_map_linear_apply, zero_prod_map_dual_tensor_hom, trace_eq_contract_apply,
+  contract_left_apply, snd_apply], },
+end
+
+variables {R M N}
+
+theorem trace_prod_map' (f : M →ₗ[R] M) (g : N →ₗ[R] N) :
+  trace R (M × N) (prod_map f g) = trace R M f + trace R N g :=
+begin
+  have h := ext_iff.1 (trace_prod_map R M N) (f, g),
+  simp only [coe_comp, function.comp_app, prod_map_apply, coprod_apply, id_coe, id.def,
+  prod_map_linear_apply] at h, exact h,
+end
+
+variables (R M N)
+
+open tensor_product function
+
+theorem trace_tensor_product :
+  compr₂ (map_bilinear R M N M N) (trace R (M ⊗ N)) =
+  compl₁₂ (lsmul R R : R →ₗ[R] R →ₗ[R] R) (trace R M) (trace R N) :=
+begin
+  apply (compl₁₂_inj
+    (show surjective (dual_tensor_hom R M M), from (dual_tensor_hom_equiv R M M).surjective)
+    (show surjective (dual_tensor_hom R N N), from (dual_tensor_hom_equiv R N N).surjective)).1,
+  ext f m g n,
+  simp only [algebra_tensor_module.curry_apply, to_fun_eq_coe, tensor_product.curry_apply,
+  coe_restrict_scalars_eq_coe, compl₁₂_apply, compr₂_apply, map_bilinear_apply,
+  trace_eq_contract_apply, contract_left_apply, lsmul_apply, algebra.id.smul_eq_mul,
+  map_dual_tensor_hom, dual_distrib_apply],
+end
 
 theorem trace_comp_comm :
   compr₂ (llcomp R M N M) (trace R M) = compr₂ (llcomp R N M N).flip (trace R N) :=
 begin
   apply (compl₁₂_inj
-    (dual_tensor_hom_equiv R N M).surjective (dual_tensor_hom_equiv R M N).surjective).1,
+    (show surjective (dual_tensor_hom R N M), from (dual_tensor_hom_equiv R N M).surjective)
+    (show surjective (dual_tensor_hom R M N), from (dual_tensor_hom_equiv R M N).surjective)).1,
   ext g m f n,
   simp only [tensor_product.algebra_tensor_module.curry_apply, to_fun_eq_coe,
-  tensor_product.curry_apply, coe_restrict_scalars_eq_coe, compl₁₂_apply, compr₂_apply, flip_apply,
-  llcomp_apply', comp_dual_tensor_hom, map_smul, trace_eq_contract_apply, contract_left_apply,
-  smul_eq_mul, mul_comm],
+      linear_equiv.coe_to_linear_map, tensor_product.curry_apply, coe_restrict_scalars_eq_coe,
+      compl₁₂_apply, compr₂_apply, flip_apply, llcomp_apply', comp_dual_tensor_hom, map_smul,
+      trace_eq_contract_apply, contract_left_apply, smul_eq_mul, mul_comm],
 end
 
-variables {R M}
+variables {R M N}
+
+@[simp]
+theorem trace_transpose' (f : M →ₗ[R] M) : trace R _ (module.dual.transpose f) = trace R M f :=
+by { rw [←comp_apply, trace_transpose] }
+
+theorem trace_tensor_product' (f : M →ₗ[R] M) (g : N →ₗ[R] N) :
+  trace R (M ⊗ N) (map f g) = trace R M f * trace R N g :=
+begin
+  have h := ext_iff.1 (ext_iff.1 (trace_tensor_product R M N) f) g,
+  simp only [compr₂_apply, map_bilinear_apply, compl₁₂_apply, lsmul_apply,
+    algebra.id.smul_eq_mul] at h, exact h,
+end
 
 theorem trace_comp_comm' (f : M →ₗ[R] N) (g : N →ₗ[R] M) :
   trace R M (g ∘ₗ f) = trace R N (f ∘ₗ g) :=
@@ -193,6 +267,11 @@ end
 @[simp] theorem trace_conj' (f : M →ₗ[R] M) (e : M ≃ₗ[R] N) : trace R N (e.conj f) = trace R M f :=
 by rw [e.conj_apply, trace_comp_comm', ←comp_assoc, linear_equiv.comp_coe,
   linear_equiv.self_trans_symm, linear_equiv.refl_to_linear_map, id_comp]
+
+theorem is_proj.trace {p : submodule R M} {f : M →ₗ[R] M} (h : is_proj p f)
+  [module.free R p] [module.finite R p] [module.free R f.ker] [module.finite R f.ker] :
+  trace R M f = (finrank R p : R) :=
+by rw [h.eq_conj_prod_map, trace_conj', trace_prod_map', trace_id, map_zero, add_zero]
 
 end
 

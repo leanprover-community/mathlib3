@@ -5,7 +5,6 @@ Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro, Johannes Hölzl
 -/
 import algebra.abs
 import algebra.order.sub
-import order.order_dual
 
 /-!
 # Ordered groups
@@ -1140,6 +1139,19 @@ lemma le_abs' : a ≤ |b| ↔ b ≤ -a ∨ a ≤ b := by rw [le_abs, or.comm, le
 lemma neg_le_of_abs_le (h : |a| ≤ b) : -b ≤ a := (abs_le.mp h).1
 
 lemma le_of_abs_le (h : |a| ≤ b) : a ≤ b := (abs_le.mp h).2
+
+@[to_additive] lemma apply_abs_le_mul_of_one_le' {β : Type*} [mul_one_class β] [preorder β]
+  [covariant_class β β (*) (≤)] [covariant_class β β (swap (*)) (≤)] {f : α → β} {a : α}
+  (h₁ : 1 ≤ f a) (h₂ : 1 ≤ f (-a)) :
+  f (|a|) ≤ f a * f (-a) :=
+(le_total a 0).by_cases (λ ha, (abs_of_nonpos ha).symm ▸ le_mul_of_one_le_left' h₁)
+  (λ ha, (abs_of_nonneg ha).symm ▸ le_mul_of_one_le_right' h₂)
+
+@[to_additive] lemma apply_abs_le_mul_of_one_le {β : Type*} [mul_one_class β] [preorder β]
+  [covariant_class β β (*) (≤)] [covariant_class β β (swap (*)) (≤)] {f : α → β}
+  (h : ∀ x, 1 ≤ f x) (a : α) :
+  f (|a|) ≤ f a * f (-a) :=
+apply_abs_le_mul_of_one_le' (h _) (h _)
 
 /--
 The **triangle inequality** in `linear_ordered_add_comm_group`s.

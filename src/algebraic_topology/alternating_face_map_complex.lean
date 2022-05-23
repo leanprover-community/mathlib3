@@ -121,6 +121,16 @@ end
 /-- The alternating face map complex, on objects -/
 def obj : chain_complex C ℕ := chain_complex.of (λ n, X _[n]) (obj_d X) (d_squared X)
 
+@[simp]
+lemma obj_X (X : simplicial_object C) (n : ℕ) :
+  (alternating_face_map_complex.obj X).X n = X _[n] := rfl
+
+@[simp]
+lemma obj_d_eq (X : simplicial_object C) (n : ℕ) :
+  (alternating_face_map_complex.obj X).d (n+1) n =
+  ∑ (i : fin (n+2)), (-1 : ℤ)^(i : ℕ) • X.δ i :=
+by apply chain_complex.of_d
+
 variables {X} {Y}
 
 /-- The alternating face map complex, on morphisms -/
@@ -156,7 +166,7 @@ lemma alternating_face_map_complex_obj_X (X : simplicial_object C) (n : ℕ) :
 @[simp]
 lemma alternating_face_map_complex_obj_d (X : simplicial_object C) (n : ℕ) :
   ((alternating_face_map_complex C).obj X).d (n+1) n =
-  ∑ (i : fin (n+2)), (-1 : ℤ)^(i : ℕ) • X.δ i :=
+  alternating_face_map_complex.obj_d X n :=
 by apply chain_complex.of_d
 
 @[simp]
@@ -182,7 +192,8 @@ begin
       subst h,
       dsimp only [functor.comp_obj],
       simpa only [functor.map_homological_complex_obj_d, alternating_face_map_complex_obj_d,
-        eq_to_hom_refl, id_comp, comp_id, functor.map_sum, functor.map_zsmul], },
+        eq_to_hom_refl, id_comp, comp_id, alternating_face_map_complex.obj_d,
+        functor.map_sum, functor.map_zsmul], },
     { ext n,
       refl, }, },
 end

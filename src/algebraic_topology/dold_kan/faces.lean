@@ -30,7 +30,7 @@ open category_theory.limits
 open category_theory.category
 open category_theory.preadditive
 open category_theory.simplicial_object
-open_locale simplicial
+open_locale simplicial dold_kan
 
 namespace algebraic_topology
 
@@ -60,7 +60,7 @@ begin
   { intro d, rw [add_assoc, add_comm d, ← add_assoc, hnaq], },
   rw [Hσ, homotopy.null_homotopic_map'_f (c_mk (n+2) (n+1) rfl) (c_mk (n+1) n rfl),
     hσ'_eq hnaq (c_mk (n+1) n rfl), hσ'_eq (hnaq_shift 1) (c_mk (n+2) (n+1) rfl)],
-  simp only [alternating_face_map_complex_obj_d, eq_to_hom_refl,
+  simp only [alternating_face_map_complex.obj_d_eq, eq_to_hom_refl,
     comp_id, comp_sum, sum_comp, comp_add],
   simp only [comp_zsmul, zsmul_comp, ← assoc, ← mul_zsmul],
   /- cleaning up the first sum -/

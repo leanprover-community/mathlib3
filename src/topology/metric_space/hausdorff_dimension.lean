@@ -194,7 +194,7 @@ bUnion_of_singleton s ▸ by simp only [dimH_bUnion hs, dimH_singleton, ennreal.
 
 alias dimH_countable ← set.countable.dimH_zero
 
-lemma dimH_finite {s : set X} (hs : finite s) : dimH s = 0 := hs.countable.dimH_zero
+lemma dimH_finite {s : set X} (hs : s.finite) : dimH s = 0 := hs.countable.dimH_zero
 
 alias dimH_finite ← set.finite.dimH_zero
 

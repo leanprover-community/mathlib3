@@ -635,14 +635,14 @@ theorem cauchy_seq_iff_nnreal [nonempty β] [semilattice_sup β] {u : β → α}
 uniformity_basis_edist_nnreal.cauchy_seq_iff'
 
 theorem totally_bounded_iff {s : set α} :
-  totally_bounded s ↔ ∀ ε > 0, ∃t : set α, finite t ∧ s ⊆ ⋃y∈t, ball y ε :=
+  totally_bounded s ↔ ∀ ε > 0, ∃t : set α, t.finite ∧ s ⊆ ⋃y∈t, ball y ε :=
 ⟨λ H ε ε0, H _ (edist_mem_uniformity ε0),
  λ H r ru, let ⟨ε, ε0, hε⟩ := mem_uniformity_edist.1 ru,
                ⟨t, ft, h⟩ := H ε ε0 in
   ⟨t, ft, h.trans $ Union₂_mono $ λ y yt z, hε⟩⟩
 
 theorem totally_bounded_iff' {s : set α} :
-  totally_bounded s ↔ ∀ ε > 0, ∃t⊆s, finite t ∧ s ⊆ ⋃y∈t, ball y ε :=
+  totally_bounded s ↔ ∀ ε > 0, ∃t⊆s, set.finite t ∧ s ⊆ ⋃y∈t, ball y ε :=
 ⟨λ H ε ε0, (totally_bounded_iff_subset.1 H) _ (edist_mem_uniformity ε0),
  λ H r ru, let ⟨ε, ε0, hε⟩ := mem_uniformity_edist.1 ru,
                ⟨t, _, ft, h⟩ := H ε ε0 in

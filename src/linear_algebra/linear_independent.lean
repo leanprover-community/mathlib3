@@ -383,7 +383,7 @@ begin
 end
 
 lemma linear_independent_of_finite (s : set M)
-  (H : ∀ t ⊆ s, finite t → linear_independent R (λ x, x : t → M)) :
+  (H : ∀ t ⊆ s, set.finite t → linear_independent R (λ x, x : t → M)) :
   linear_independent R (λ x, x : s → M) :=
 linear_independent_subtype.2 $
   λ l hl, linear_independent_subtype.1 (H _ hl (finset.finite_to_set _)) l (subset.refl _)
@@ -643,7 +643,7 @@ lemma linear_independent.union {s t : set M}
 
 lemma linear_independent_Union_finite_subtype {ι : Type*} {f : ι → set M}
   (hl : ∀i, linear_independent R (λ x, x : f i → M))
-  (hd : ∀i, ∀t:set ι, finite t → i ∉ t → disjoint (span R (f i)) (⨆i∈t, span R (f i))) :
+  (hd : ∀i, ∀t:set ι, t.finite → i ∉ t → disjoint (span R (f i)) (⨆i∈t, span R (f i))) :
   linear_independent R (λ x, x : (⋃i, f i) → M) :=
 begin
   rw [Union_eq_Union_finset f],
@@ -663,7 +663,7 @@ end
 lemma linear_independent_Union_finite {η : Type*} {ιs : η → Type*}
   {f : Π j : η, ιs j → M}
   (hindep : ∀j, linear_independent R (f j))
-  (hd : ∀i, ∀t:set η, finite t → i ∉ t →
+  (hd : ∀i, ∀t:set η, t.finite → i ∉ t →
       disjoint (span R (range (f i))) (⨆i∈t, span R (range (f i)))) :
   linear_independent R (λ ji : Σ j, ιs j, f ji.1 ji.2) :=
 begin
@@ -1271,11 +1271,11 @@ begin
 end
 
 lemma exists_finite_card_le_of_finite_of_linear_independent_of_span
-  (ht : finite t) (hs : linear_independent K (λ x, x : s → V)) (hst : s ⊆ span K t) :
-  ∃h : finite s, h.to_finset.card ≤ ht.to_finset.card :=
+  (ht : t.finite) (hs : linear_independent K (λ x, x : s → V)) (hst : s ⊆ span K t) :
+  ∃h : s.finite, h.to_finset.card ≤ ht.to_finset.card :=
 have s ⊆ (span K ↑(ht.to_finset) : submodule K V), by simp; assumption,
 let ⟨u, hust, hsu, eq⟩ := exists_of_linear_independent_of_finite_span hs this in
-have finite s, from u.finite_to_set.subset hsu,
+have s.finite, from u.finite_to_set.subset hsu,
 ⟨this, by rw [←eq]; exact (finset.card_le_of_subset $ finset.coe_subset.mp $ by simp [hsu])⟩
 
 end module

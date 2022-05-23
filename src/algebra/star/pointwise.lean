@@ -91,7 +91,7 @@ equiv.star.surjective.preimage_subset_preimage_iff
 lemma star_subset [has_involutive_star α] {s t : set α} : s⋆ ⊆ t ↔ s ⊆ t⋆ :=
 by { rw [← star_subset_star, star_star] }
 
-lemma finite.star [has_involutive_star α] {s : set α} (hs : finite s) : finite s⋆ :=
+lemma finite.star [has_involutive_star α] {s : set α} (hs : s.finite) : s⋆.finite :=
 hs.preimage $ star_injective.inj_on _
 
 lemma star_singleton {β : Type*} [has_involutive_star β] (x : β) : ({x} : set β)⋆ = {x⋆} :=

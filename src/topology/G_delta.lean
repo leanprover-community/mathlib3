@@ -128,7 +128,7 @@ begin
   exact is_Gδ_bInter hs (λ x _, is_Gδ_compl_singleton x)
 end
 
-lemma set.finite.is_Gδ_compl {s : set α} (hs : finite s) : is_Gδ sᶜ :=
+lemma set.finite.is_Gδ_compl {s : set α} (hs : s.finite) : is_Gδ sᶜ :=
 hs.countable.is_Gδ_compl
 
 lemma set.subsingleton.is_Gδ_compl {s : set α} (hs : s.subsingleton) : is_Gδ sᶜ :=
@@ -148,7 +148,7 @@ begin
   exact is_Gδ_bInter (countable_encodable _) (λ n hn, (hU n).2.is_Gδ),
 end
 
-lemma set.finite.is_Gδ {s : set α} (hs : finite s) : is_Gδ s :=
+lemma set.finite.is_Gδ {s : set α} (hs : s.finite) : is_Gδ s :=
 finite.induction_on hs is_Gδ_empty $ λ a s _ _ hs, (is_Gδ_singleton a).union hs
 
 end t1_space

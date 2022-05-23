@@ -214,7 +214,7 @@ lemma measure_Union_fintype_le [fintype β] (f : β → set α) :
   μ (⋃ b, f b) ≤ ∑ p, μ (f p) :=
 by { convert measure_bUnion_finset_le finset.univ f, simp }
 
-lemma measure_bUnion_lt_top {s : set β} {f : β → set α} (hs : finite s)
+lemma measure_bUnion_lt_top {s : set β} {f : β → set α} (hs : s.finite)
   (hfin : ∀ i ∈ s, μ (f i) ≠ ∞) : μ (⋃ i ∈ s, f i) < ∞ :=
 begin
   convert (measure_bUnion_finset_le hs.to_finset f).trans_lt _,

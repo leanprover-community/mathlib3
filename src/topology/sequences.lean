@@ -277,7 +277,7 @@ begin
   contrapose! h,
   rcases h with ⟨V, V_in, V_symm, h⟩,
   simp_rw [not_subset] at h,
-  have : ∀ (t : set β), finite t → ∃ a, a ∈ s ∧ a ∉ ⋃ y ∈ t, ball y V,
+  have : ∀ (t : set β), t.finite → ∃ a, a ∈ s ∧ a ∉ ⋃ y ∈ t, ball y V,
   { intros t ht,
     obtain ⟨a, a_in, H⟩ : ∃ a ∈ s, ∀ (x : β), x ∈ t → (x, a) ∉ V,
       by simpa [ht] using h t,

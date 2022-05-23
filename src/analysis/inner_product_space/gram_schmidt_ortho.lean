@@ -218,7 +218,7 @@ begin
   haveI hm : fact (0 < m), from ⟨lt_of_le_of_lt (nat.zero_le _) n.2⟩,
   convert gram_schmidt_def 𝕜 (λ (j : ℕ), f (fin.of_nat' j)) n using 2,
   { rw [fin.of_nat'_coe] },
-  { rw [←sum_fin_range_eq_sum_range, fin.of_nat'_coe], refl }
+  { rw [←finset.sum_fin_range_eq_sum_range, fin.of_nat'_coe], refl }
 end
 
 lemma gram_schmidt_fin_def' {m : ℕ} (f : fin m → E) (n : fin m) :

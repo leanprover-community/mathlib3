@@ -123,25 +123,14 @@ def is_pushout_of_is_initial_is_coproduct {W X Y Z : C} (f : X ⟶ Z) (g : Y ⟶
 begin
   apply pushout_cocone.is_colimit_aux',
   intro s,
-<<<<<<< HEAD
   use H₂.desc (binary_cofan.mk s.inl s.inr),
-  use H₂.fac (binary_cofan.mk s.inl s.inr) walking_pair.left,
-  use H₂.fac (binary_cofan.mk s.inl s.inr) walking_pair.right,
-  intros m h₁ h₂,
-  apply H₂.hom_ext,
-  rintro ⟨⟩,
-  { exact h₁.trans (H₂.fac (binary_cofan.mk s.inl s.inr) walking_pair.left).symm },
-  { exact h₂.trans (H₂.fac (binary_cofan.mk s.inl s.inr) walking_pair.right).symm }
-=======
-  use H₂.lift (binary_fan.mk s.fst s.snd),
-  use H₂.fac (binary_fan.mk s.fst s.snd) ⟨walking_pair.left⟩,
-  use H₂.fac (binary_fan.mk s.fst s.snd) ⟨walking_pair.right⟩,
+  use H₂.fac (binary_cofan.mk s.inl s.inr) ⟨walking_pair.left⟩,
+  use H₂.fac (binary_cofan.mk s.inl s.inr) ⟨walking_pair.right⟩,
   intros m h₁ h₂,
   apply H₂.hom_ext,
   rintro ⟨⟨⟩⟩,
-  { exact h₁.trans (H₂.fac (binary_fan.mk s.fst s.snd) ⟨walking_pair.left⟩).symm },
-  { exact h₂.trans (H₂.fac (binary_fan.mk s.fst s.snd) ⟨walking_pair.right⟩).symm }
->>>>>>> origin/master
+  { exact h₁.trans (H₂.fac (binary_cofan.mk s.inl s.inr) ⟨walking_pair.left⟩).symm },
+  { exact h₂.trans (H₂.fac (binary_cofan.mk s.inl s.inr) ⟨walking_pair.right⟩).symm }
 end
 
 variable (C)

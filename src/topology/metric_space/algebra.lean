@@ -64,7 +64,7 @@ end
 
 @[to_additive, priority 100] -- see Note [lower instance priority]
 instance has_lipschitz_mul.has_continuous_mul : has_continuous_mul β :=
-⟨ lipschitz_with_lipschitz_const_mul_edist.continuous ⟩
+⟨(@lipschitz_with_lipschitz_const_mul_edist β _ _ _).continuous⟩
 
 @[to_additive] instance submonoid.has_lipschitz_mul (s : submonoid β) : has_lipschitz_mul s :=
 { lipschitz_mul := ⟨has_lipschitz_mul.C β, begin

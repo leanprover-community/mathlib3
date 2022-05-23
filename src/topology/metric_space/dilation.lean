@@ -13,13 +13,10 @@ import data.fun_like.basic
 We define dilations, i.e., maps between emetric spaces that
 satisfy `edist (f x) (f y) = r * edist x y`.
 
-Defines `ratio f`, which is the ratio of the dilation `f`
-
-Here `r : ℝ≥0`, so we do not exclude the degenerate case of dilations
-which collapse into constant maps. Since there is no `ℝ>0` API defined in mathlib,
-no matter where you choose to exclude r = 0, you will end up having to carry
-it around with you anyways. So statements that do need strict dilations should
-just say `f : dilation α β` and `hr : r ≠ 0`.
+Defines `ratio f`, which is the ratio of some `f : dilation α β`.
+Note that `ratio f : ℝ≥0`, so we do not exclude the degenerate case of dilations
+which collapse into constant maps. Statements that do need strict dilations should
+just say `f : dilation α β` and `hr : ratio f ≠ 0`.
 
 TODO: Introduce dilation equivs. Refactor the isometry API
 to match the `*_hom_class` API below.

@@ -89,5 +89,5 @@ begin
 end
 
 /-- And so they do not represent an internal direct sum. -/
-lemma with_sign.not_internal : ¬direct_sum.submodule_is_internal with_sign :=
+lemma with_sign.not_internal : ¬direct_sum.is_internal with_sign :=
 with_sign.not_injective ∘ and.elim_left

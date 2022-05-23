@@ -1024,7 +1024,7 @@ variables {ι : Type*}
 /-- An orthogonal family of subspaces of `E` satisfies `direct_sum.is_internal` (that is,
 they provide an internal direct sum decomposition of `E`) if and only if their span has trivial
 orthogonal complement. -/
-lemma orthogonal_family.is_internal_submodule_iff_of_is_complete [decidable_eq ι]
+lemma orthogonal_family.is_internal_iff_of_is_complete [decidable_eq ι]
   {V : ι → submodule 𝕜 E} (hV : @orthogonal_family 𝕜 _ _ _ _ (λ i, V i) _ (λ i, (V i).subtypeₗᵢ))
   (hc : is_complete (↑(supr V) : set E)) :
   direct_sum.is_internal V ↔ (supr V)ᗮ = ⊥ :=
@@ -1042,7 +1042,7 @@ lemma orthogonal_family.is_internal_iff [decidable_eq ι] [finite_dimensional �
   direct_sum.is_internal V ↔ (supr V)ᗮ = ⊥ :=
 begin
   haveI h := finite_dimensional.proper_is_R_or_C 𝕜 ↥(supr V),
-  exact hV.is_internal_submodule_iff_of_is_complete
+  exact hV.is_internal_iff_of_is_complete
     (complete_space_coe_iff_is_complete.mp infer_instance)
 end
 

@@ -5,7 +5,7 @@ Authors: Violeta Hernández Palacios
 -/
 
 import set_theory.game.pgame
-import set_theory.ordinal.basic
+import set_theory.ordinal.arithmetic
 
 /-!
 # Ordinals as games
@@ -56,6 +56,9 @@ by { rw to_pgame_left_moves, apply_instance }
 instance (o : ordinal) : is_empty o.to_pgame.right_moves :=
 by { rw to_pgame_right_moves, apply_instance }
 
+noncomputable instance : unique (to_pgame 1).left_moves :=
+by { rw to_pgame_left_moves, apply_instance }
+
 /-- Converts an ordinal less than `o` into a move for the `pgame` corresponding to `o`, and vice
 versa. -/
 noncomputable def to_left_moves_to_pgame {o : ordinal} : set.Iio o ≃ o.to_pgame.left_moves :=
@@ -75,6 +78,14 @@ by { rw to_pgame, refl }
 
 theorem to_pgame_move_left {o : ordinal} (i) :
   o.to_pgame.move_left (to_left_moves_to_pgame i) = i.val.to_pgame :=
+by simp
+
+@[simp] theorem to_left_moves_to_pgame_symm_one (i : (to_pgame 1).left_moves) :
+  to_left_moves_to_pgame.symm i = ⟨0, zero_lt_one⟩ :=
+subtype.ext (lt_one_iff_zero.1 (to_left_moves_to_pgame_symm_lt i))
+
+theorem to_pgame_move_left_one (i : (to_pgame 1).left_moves) :
+  (to_pgame 1).move_left i = to_pgame 0 :=
 by simp
 
 theorem to_pgame_lf {a b : ordinal} (h : a < b) : a.to_pgame ⧏ b.to_pgame :=
@@ -116,5 +127,15 @@ end
 { to_fun := ordinal.to_pgame,
   inj' := to_pgame_injective,
   map_rel_iff' := @to_pgame_le_iff }
+
+noncomputable def zero_to_pgame_relabelling : relabelling (to_pgame 0) 0 := relabelling.is_empty _
+
+theorem zero_to_pgame_equiv : to_pgame 0 ≈ 0 := pgame.equiv.is_empty _
+
+noncomputable def one_to_pgame_relabelling : relabelling (to_pgame 1) 1 :=
+⟨equiv_punit_of_unique, equiv.equiv_pempty _,
+  λ i, by simpa using relabelling.is_empty _, is_empty_elim⟩
+
+theorem one_to_pgame_equiv : to_pgame 1 ≈ 1 := one_to_pgame_relabelling.equiv
 
 end ordinal

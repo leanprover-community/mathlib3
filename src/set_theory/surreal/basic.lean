@@ -306,6 +306,12 @@ noncomputable def to_surreal : ordinal ↪o surreal :=
   inj' := λ a b h, to_pgame_equiv_iff.1 (quotient.exact h),
   map_rel_iff' := @to_pgame_le_iff }
 
+@[simp] theorem zero_to_surreal : to_surreal 0 = 0 :=
+quot.sound zero_to_pgame_equiv
+
+@[simp] theorem one_to_surreal : to_surreal 1 = 1 :=
+quot.sound one_to_pgame_equiv
+
 end ordinal
 
 -- We conclude with some ideas for further work on surreals; these would make fun projects.

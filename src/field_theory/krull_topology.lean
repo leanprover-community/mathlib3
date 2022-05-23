@@ -677,7 +677,7 @@ CompHaus :=
 
 /-- The Krull topology on `L ≃ₐ[K] L` is totally disconnected whenever `L/K` is a normal
   extension -/
-lemma krull_topology_totally_disconnected_space (h_int : ∀ (x : L), is_integral K x) :
+lemma krull_topology_totally_disconnected_space (h_int : algebra.is_integral K L) :
 totally_disconnected_space (L ≃ₐ[K] L) :=
 { is_totally_disconnected_univ := krull_topology_totally_disconnected h_int }
 

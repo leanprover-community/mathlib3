@@ -713,6 +713,14 @@ rfl
 lemma binary_cofan_inr_to_cocone (c : binary_bicone P Q) : binary_cofan.inr c.to_cocone = c.inr :=
 rfl
 
+instance (c : binary_bicone P Q) : split_mono c.inl := { retraction := c.fst, id' := c.inl_fst }
+
+instance (c : binary_bicone P Q) : split_mono c.inr := { retraction := c.snd, id' := c.inr_snd }
+
+instance (c : binary_bicone P Q) : split_epi c.fst := { section_ := c.inl, id' := c.inl_fst }
+
+instance (c : binary_bicone P Q) : split_epi c.snd := { section_ := c.inr, id' := c.inr_snd }
+
 /-- Convert a `binary_bicone` into a `bicone` over a pair. -/
 @[simps]
 def to_bicone {X Y : C} (b : binary_bicone X Y) : bicone (pair_function X Y) :=

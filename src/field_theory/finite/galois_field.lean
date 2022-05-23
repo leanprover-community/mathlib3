@@ -155,7 +155,7 @@ instance {K K' : Type*} [field K] [field K'] [fintype K'] [algebra K K'] : is_ga
 begin
   obtain ⟨p, hp⟩ := char_p.exists K,
   haveI : char_p K p := hp,
-  haveI : char_p K' p := char_p_of_injective_algebra_map (algebra_map K K').injective p,
+  haveI : char_p K' p := char_p_of_injective_algebra_map' K K' p,
   exact is_galois.of_separable_splitting_field (galois_poly_separable p (fintype.card K')
     (let ⟨n, hp, hn⟩ := finite_field.card K' p in hn.symm ▸ dvd_pow_self p n.ne_zero)),
 end

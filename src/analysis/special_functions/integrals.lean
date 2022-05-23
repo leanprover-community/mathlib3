@@ -59,9 +59,8 @@ lemma interval_integrable_rpow' {r : ℝ} (h : -1 < r) :
 begin
   suffices : ∀ (c : ℝ), interval_integrable (λ x, x ^ r) volume 0 c,
   { exact interval_integrable.trans (this a).symm (this b) },
-  intro c,
-  rcases le_total 0 c with hc|hc,
-  { -- case 0 ≤ c (the interesting one)
+  have : ∀ (c : ℝ), (0 ≤ c) → interval_integrable (λ x, x ^ r) volume 0 c,
+  { intros c hc,
     have hderiv : ∀ x ∈ Ioo 0 c, has_deriv_at (λ x : ℝ, x ^ (r + 1) / (r + 1)) (x ^ r) x,
     { intros x hx, convert (real.has_deriv_at_rpow_const (or.inl hx.1.ne')).div_const (r + 1),
       field_simp [(by linarith : r + 1 ≠ 0)], ring, },
@@ -70,25 +69,16 @@ begin
     { intros x hx, apply rpow_nonneg_of_nonneg hx.1.le, },
     { refine (continuous_on_id.rpow_const _).div_const, intros x hx, right, linarith },
     { apply continuous_on_id.rpow_const, intros x hx, left, exact hx.1.ne', },  },
-  { -- case c ≤ 0 (of little interest, but included for completeness)
-    apply interval_integrable.symm,
-    rw interval_integrable_iff_integrable_Ioc_of_le hc,
-    split,
-    { refine (measurable_of_continuous_on_compl_singleton (0 : ℝ) _).ae_strongly_measurable,
-      apply continuous_on_id.rpow_const, tauto },
-    have bd : ∀ᵐ y ∂volume.restrict (Ioc c 0), ∥y ^ r∥ ≤ (-y) ^ r,
-    { refine (ae_restrict_iff' measurable_set_Ioc).mpr (ae_of_all _ (λ y hy, _)),
-      rw (abs_of_nonpos hy.2).symm, exact abs_rpow_le_abs_rpow y r, },
-    have hderiv' : ∀ x ∈ Ioo c 0, has_deriv_at (λ x : ℝ, -(-x) ^ (r + 1) / (r + 1)) ((-x) ^ r) x,
-    { intros x hx,
-      convert ((has_deriv_at_neg' x).rpow_const _).neg.div_const (r + 1),
-      { field_simp [(by linarith : r + 1 ≠ 0)], ring },
-      { left, simp only [ne.def, neg_eq_zero], exact hx.2.ne}, },
-    refine (integral_eq_sub_of_has_deriv_at_of_nonneg_of_le hderiv' _ _ _ hc).1.2.mono' bd,
-    { intros y hy, apply rpow_nonneg_of_nonneg, linarith [hy.2], },
-    { refine (continuous_id.neg.rpow_const _).neg.div_const.continuous_on,
-      intro x, right, linarith, },
-    { exact continuous_on_id.neg.rpow_const (λ x hx, or.inl $ neg_ne_zero.mpr hx.2.ne) }, }
+  intro c, rcases le_total 0 c with hc|hc,
+  { exact this c hc },
+  { rw interval_integrable.iff_comp_neg, rw neg_zero,
+    have m := (this (-c) (by linarith)).smul (cos (r * π)),
+    rw interval_integrable_iff at m ⊢,
+    refine m.congr_fun _ measurable_set_Ioc, intros x hx,
+    rw interval_oc_of_le (by linarith : 0 ≤ -c) at hx,
+    simp only [pi.smul_apply, algebra.id.smul_eq_mul],
+    rw [rpow_def_of_pos hx.1, rpow_def_of_neg (by linarith [hx.1] : -x < 0),
+      log_neg_eq_log, mul_comm], }
 end
 
 @[simp]

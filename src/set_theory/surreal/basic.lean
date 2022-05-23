@@ -301,17 +301,10 @@ open surreal
 namespace ordinal
 
 /-- Converts an ordinal into the corresponding surreal. -/
-noncomputable def to_surreal (o : ordinal) : surreal :=
-mk _ (numeric_to_pgame o)
-
-@[simp] theorem to_surreal_le_iff (a b : ordinal) : a.to_surreal ≤ b.to_surreal ↔ a ≤ b :=
-to_pgame_le_iff
-
-@[simp] theorem to_surreal_lt_iff (a b : ordinal) : a.to_surreal < b.to_surreal ↔ a < b :=
-to_pgame_lt_iff
-
-@[simp] theorem to_surreal_inj (a b : ordinal) : a.to_surreal = b.to_surreal ↔ a = b :=
-by { change ⟦_⟧ = ⟦_⟧ ↔ _, rw quotient.eq, exact to_pgame_equiv_iff }
+noncomputable def to_surreal : ordinal ↪o surreal :=
+{ to_fun := λ o, mk _ (numeric_to_pgame o),
+  inj' := λ a b h, to_pgame_equiv_iff.1 (quotient.exact h),
+  map_rel_iff' := @to_pgame_le_iff }
 
 end ordinal
 

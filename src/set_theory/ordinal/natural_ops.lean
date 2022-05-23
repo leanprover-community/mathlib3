@@ -115,7 +115,7 @@ variables {a b c : ordinal.{u}}
   (linear_order.min a b).to_nat_ordinal = linear_order.min a.to_nat_ordinal b.to_nat_ordinal := rfl
 
 /-- Natural addition on ordinals `a ♯ b` is recursively defined as the least ordinal greater than
-`a' ♯ b` and `a ♯ b'` for all `a' < a` and `b < b'`. In contrast to normal ordinal addition, it is
+`a' ♯ b` and `a ♯ b'` for all `a' < a` and `b' < b`. In contrast to normal ordinal addition, it is
 commutative.
 
 Natural addition can equivalently be characterized as the ordinal resulting from adding up

@@ -261,22 +261,11 @@ by rw [clog_of_one_le_right _ le_rfl, nat.ceil_one, nat.clog_one_right, int.coe_
 lemma clog_zpow {b : ℕ} (hb : 1 < b) (z : ℤ) : clog b (b ^ z : R) = z :=
 by rw [←neg_log_inv_eq_clog, ←zpow_neg, log_zpow hb, neg_neg]
 
-/-- `int.clog b` and `zpow b` (almost) form a Galois connection. -/
-lemma zpow_lt_iff_lt_clog {b : ℕ} (hb : 1 < b) {x : ℤ} {r : R} (hr : 0 < r) :
-  (b : R) ^ x < r ↔ x < clog b r :=
+@[mono] lemma clog_mono_right {b : ℕ} {r₁ r₂ : R} (h₀ : 0 < r₁) (h : r₁ ≤ r₂) :
+  clog b r₁ ≤ clog b r₂ :=
 begin
-  rw [←neg_log_inv_eq_clog, lt_neg, ←lt_zpow_iff_log_lt hb (inv_pos.mpr hr), zpow_neg,
-    inv_lt_inv hr (zpow_pos_of_pos _ _)],
-  { exact nat.cast_pos.mpr (zero_le_one.trans_lt hb), },
-end
-
-/-- `int.clog b` and `zpow b` (almost) form a Galois connection. -/
-lemma le_zpow_iff_clog_le {b : ℕ} (hb : 1 < b) {x : ℤ} {r : R} (hr : 0 < r) :
-  r ≤ (b : R) ^ x ↔ clog b r ≤ x :=
-begin
-  rw [←neg_log_inv_eq_clog, neg_le, ←zpow_le_iff_le_log hb (inv_pos.mpr hr), zpow_neg,
-    inv_le_inv (zpow_pos_of_pos _ _) hr],
-  { exact nat.cast_pos.mpr (zero_le_one.trans_lt hb), },
+  rw [←neg_log_inv_eq_clog, ←neg_log_inv_eq_clog, neg_le_neg_iff],
+  exact log_mono_right (inv_pos.mpr $ h₀.trans_le h) (inv_le_inv_of_le h₀ h),
 end
 
 variables (R)
@@ -285,10 +274,21 @@ def clog_zpow_gi {b : ℕ} (hb : 1 < b) :
   galois_insertion
     (λ r : set.Ioi (0 : R), int.clog b (r : R))
     (λ z : ℤ, ⟨(b : R) ^ z, zpow_pos_of_pos (by exact_mod_cast zero_lt_one.trans hb) z⟩) :=
-{ choice := _,
-  gc := λ r x, (le_zpow_iff_clog_le hb r.prop).symm,
-  le_l_u := λ x, (clog_zpow hb _).ge,
-  choice_eq := λ _ _, rfl }
+galois_insertion.monotone_intro
+  (λ z₁ z₂ hz, subtype.coe_le_coe.mp $ (zpow_strict_mono $ by exact_mod_cast hb).monotone hz)
+  (λ r₁ r₂, clog_mono_right r₁.prop)
+  (λ r, subtype.coe_le_coe.mp $ self_le_zpow_clog hb r.prop)
+  (λ _, clog_zpow hb _)
 variables {R}
+
+/-- `int.clog b` and `zpow b` (almost) form a Galois connection. -/
+lemma zpow_lt_iff_lt_clog {b : ℕ} (hb : 1 < b) {x : ℤ} {r : R} (hr : 0 < r) :
+  (b : R) ^ x < r ↔ x < clog b r :=
+(@galois_connection.lt_iff_lt _ _ _ _ _ _ (clog_zpow_gi R hb).gc ⟨r, hr⟩ x).symm
+
+/-- `int.clog b` and `zpow b` (almost) form a Galois connection. -/
+lemma le_zpow_iff_clog_le {b : ℕ} (hb : 1 < b) {x : ℤ} {r : R} (hr : 0 < r) :
+  r ≤ (b : R) ^ x ↔ clog b r ≤ x :=
+(@galois_connection.le_iff_le _ _ _ _ _ _ (clog_zpow_gi R hb).gc ⟨r, hr⟩ x).symm
 
 end int

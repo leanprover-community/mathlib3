@@ -302,10 +302,6 @@ begin
   exact e.to_local_homeomorph.continuous_on_symm
 end
 
-<<<<<<< HEAD
-
-=======
->>>>>>> upstream/master
 end topological_vector_bundle.trivialization
 
 end topological_vector_space
@@ -404,25 +400,14 @@ def continuous_linear_equiv_at (e : trivialization R F E) (b : B)
   (hb : b ∈ e.base_set) : E b ≃L[R] F :=
 { to_fun := λ y, (e ⟨b, y⟩).2,
   inv_fun := e.symm b,
-<<<<<<< HEAD
-  left_inv := e.symm_apply_apply_mk hb,
-  right_inv := λ v, by simp_rw [e.apply_mk_symm hb v],
-  map_add' := λ v w, (e.linear _ hb).map_add v w,
-  map_smul' := λ c v, (e.linear _ hb).map_smul c v,
-=======
->>>>>>> upstream/master
   continuous_to_fun := continuous_snd.comp (e.to_local_homeomorph.continuous_on.comp_continuous
     (total_space_mk_inducing R F E b).continuous (λ x, e.mem_source.mpr hb)),
   continuous_inv_fun := begin
     rw (topological_vector_bundle.total_space_mk_inducing R F E b).continuous_iff,
     exact e.continuous_on_symm.comp_continuous (continuous_const.prod_mk continuous_id)
       (λ x, mk_mem_prod hb (mem_univ x)),
-<<<<<<< HEAD
-  end }
-=======
   end,
   .. e.to_pretrivialization.linear_equiv_at b hb }
->>>>>>> upstream/master
 
 @[simp] lemma continuous_linear_equiv_at_apply (e : trivialization R F E) (b : B)
   (hb : b ∈ e.base_set) (y : E b) : e.continuous_linear_equiv_at b hb y = (e ⟨b, y⟩).2 := rfl

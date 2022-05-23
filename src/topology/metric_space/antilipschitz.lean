@@ -23,18 +23,18 @@ we do not have a `posreal` type.
 variables {α : Type*} {β : Type*} {γ : Type*}
 
 open_locale nnreal ennreal uniformity
-open set filter bornology
+open set
 
 /-- We say that `f : α → β` is `antilipschitz_with K` if for any two points `x`, `y` we have
 `K * edist x y ≤ edist (f x) (f y)`. -/
-def antilipschitz_with [has_edist α] [has_edist β] (K : ℝ≥0) (f : α → β) :=
+def antilipschitz_with [pseudo_emetric_space α] [pseudo_emetric_space β] (K : ℝ≥0) (f : α → β) :=
 ∀ x y, edist x y ≤ K * edist (f x) (f y)
 
-lemma antilipschitz_with.edist_lt_top [has_edist α] [pseudo_metric_space β] {K : ℝ≥0}
+lemma antilipschitz_with.edist_lt_top [pseudo_emetric_space α] [pseudo_metric_space β] {K : ℝ≥0}
   {f : α → β} (h : antilipschitz_with K f) (x y : α) : edist x y < ⊤ :=
 (h x y).trans_lt $ ennreal.mul_lt_top ennreal.coe_ne_top (edist_ne_top _ _)
 
-lemma antilipschitz_with.edist_ne_top [has_edist α] [pseudo_metric_space β] {K : ℝ≥0}
+lemma antilipschitz_with.edist_ne_top [pseudo_emetric_space α] [pseudo_metric_space β] {K : ℝ≥0}
   {f : α → β} (h : antilipschitz_with K f) (x y : α) : edist x y ≠ ⊤ :=
 (h.edist_lt_top x y).ne
 

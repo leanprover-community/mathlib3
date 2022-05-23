@@ -15,6 +15,13 @@ the unit intervals (`set.Icc`, `set.Ioc`, `set.Ioc`, and `set.Ioo`) from `0` to 
 
 Note: Instances for the interval `Ici 0` are dealt with in `algebra/order/nonneg.lean`.
 
+## Main definitions
+The strongest typeclass provided on each interval is:
+* `set.Icc.cancel_comm_monoid_with_zero`
+* `set.Ico.comm_semigroup`
+* `set.Ioc.comm_monoid`
+* `set.Ioo.comm_semigroup`
+
 ## TODO
 * algebraic instances for intervals -1 to 1
 * algebraic instances for `Ici 1`
@@ -26,7 +33,7 @@ variables {α : Type*} [ordered_semiring α]
 
 open set
 
-/-! ### Instances for `(Icc 0 1)` -/
+/-! ### Instances for `↥(set.Icc 0 1)` -/
 
 namespace set.Icc
 
@@ -66,7 +73,7 @@ instance cancel_comm_monoid_with_zero {α : Type*} [ordered_comm_ring α] [no_ze
 
 end set.Icc
 
-/-! ### Instances for `(Ico 0 1)` -/
+/-! ### Instances for `↥(set.Ico 0 1)` -/
 
 namespace set.Ico
 
@@ -84,7 +91,7 @@ subtype.coe_injective.comm_semigroup _ coe_mul
 
 end set.Ico
 
-/-! ### Instances for `(Ioc 0 1)` -/
+/-! ### Instances for `↥(set.Ioc 0 1)` -/
 
 namespace set.Ioc
 
@@ -115,7 +122,7 @@ subtype.coe_injective.comm_monoid _ coe_one coe_mul coe_pow
 
 end set.Ioc
 
-/-! ### Instances for `(Ioo 0 1)` -/
+/-! ### Instances for `↥(set.Ioo 0 1)` -/
 
 namespace set.Ioo
 

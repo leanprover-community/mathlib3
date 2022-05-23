@@ -38,7 +38,7 @@ def digits (b : ℕ) (q : ℚ) (n : ℕ) : ℕ :=
 * For `int.log`:
   * `int.zpow_log_le_self`, `int.lt_zpow_succ_log_self`: the bounds formed by `int.log`,
     `(b : R) ^ log b r ≤ r < (b : R) ^ (log b r + 1)`.
-  * `int.zpow_log_gci`: the galois coinsertion between `zpow` and `int.log`.
+  * `int.zpow_log_gi`: the galois coinsertion between `zpow` and `int.log`.
 * For `int.clog`:
   * `int.zpow_pred_clog_lt_self`, `int.self_le_zpow_clog`: the bounds formed by `int.clog`,
     `(b : R) ^ (clog b r - 1) < r ≤ (b : R) ^ clog b r`.
@@ -102,9 +102,12 @@ begin
     exact nat.le_pow_clog hb _ },
 end
 
-lemma lt_zpow_succ_log_self {b : ℕ} {r : R} (hb : 1 < b) (hr : 0 < r) :
+lemma lt_zpow_succ_log_self {b : ℕ} (hb : 1 < b) (r : R) :
   r < (b : R) ^ (log b r + 1) :=
 begin
+  cases le_or_lt r 0 with hr hr,
+  { rw [log_of_right_le_zero _ hr, zero_add, zpow_one],
+    exact hr.trans_lt (zero_lt_one.trans_le $ by exact_mod_cast hb.le) },
   cases le_or_lt 1 r with hr1 hr1,
   { rw log_of_one_le_right _ hr1,
     rw [int.coe_nat_add_one_out, zpow_coe_nat, ←nat.cast_pow],
@@ -156,7 +159,7 @@ end
 variables (R)
 
 /-- Over suitable subtypes, `zpow` and `int.log` form a galois coinsertion -/
-def zpow_log_gci {b : ℕ} (hb : 1 < b) :
+def zpow_log_gi {b : ℕ} (hb : 1 < b) :
   galois_coinsertion
     (λ z : ℤ, subtype.mk ((b : R) ^ z) $ zpow_pos_of_pos (by exact_mod_cast zero_lt_one.trans hb) z)
     (λ r : set.Ioi (0 : R), int.log b (r : R)) :=
@@ -171,12 +174,12 @@ variables {R}
 /-- `zpow b` and `int.log b` (almost) form a Galois connection. -/
 lemma lt_zpow_iff_log_lt {b : ℕ} (hb : 1 < b) {x : ℤ} {r : R} (hr : 0 < r) :
   r < (b : R) ^ x ↔ log b r < x :=
-@galois_connection.lt_iff_lt _ _ _ _ _ _ (zpow_log_gci R hb).gc x ⟨r, hr⟩
+@galois_connection.lt_iff_lt _ _ _ _ _ _ (zpow_log_gi R hb).gc x ⟨r, hr⟩
 
 /-- `zpow b` and `int.log b` (almost) form a Galois connection. -/
 lemma zpow_le_iff_le_log {b : ℕ} (hb : 1 < b) {x : ℤ} {r : R} (hr : 0 < r) :
   (b : R) ^ x ≤ r ↔ x ≤ log b r :=
-@galois_connection.le_iff_le _ _ _ _ _ _ (zpow_log_gci R hb).gc x ⟨r, hr⟩
+@galois_connection.le_iff_le _ _ _ _ _ _ (zpow_log_gi R hb).gc x ⟨r, hr⟩
 
 /-- The least power of `b` such that `r ≤ b ^ log b r`. -/
 def clog (b : ℕ) (r : R) : ℤ :=
@@ -236,9 +239,11 @@ end
 lemma clog_of_left_le_one {b : ℕ} (hb : b ≤ 1) (r : R) : clog b r = 0 :=
 by rw [←neg_log_inv_eq_clog, log_of_left_le_one hb, neg_zero]
 
-lemma self_le_zpow_clog {b : ℕ} {r : R} (hb : 1 < b) (hr : 0 < r) :
-  r ≤ (b : R) ^ clog b r :=
+lemma self_le_zpow_clog {b : ℕ} (hb : 1 < b) (r : R) : r ≤ (b : R) ^ clog b r :=
 begin
+  cases le_or_lt r 0 with hr hr,
+  { rw [clog_of_right_le_zero _ hr, zpow_zero],
+    exact hr.trans zero_le_one },
   rw [←neg_log_inv_eq_clog, zpow_neg, le_inv hr (zpow_pos_of_pos _ _)],
   { exact zpow_log_le_self hb (inv_pos.mpr hr), },
   { exact nat.cast_pos.mpr (zero_le_one.trans_lt hb), },
@@ -248,7 +253,7 @@ lemma zpow_pred_clog_lt_self {b : ℕ} {r : R} (hb : 1 < b) (hr : 0 < r) :
   (b : R) ^ (clog b r - 1) < r :=
 begin
   rw [←neg_log_inv_eq_clog, ←neg_add', zpow_neg, inv_lt (zpow_pos_of_pos _ _) hr],
-  { exact lt_zpow_succ_log_self hb (inv_pos.mpr hr), },
+  { exact lt_zpow_succ_log_self hb _, },
   { exact nat.cast_pos.mpr (zero_le_one.trans_lt hb), },
 end
 
@@ -277,7 +282,7 @@ def clog_zpow_gi {b : ℕ} (hb : 1 < b) :
 galois_insertion.monotone_intro
   (λ z₁ z₂ hz, subtype.coe_le_coe.mp $ (zpow_strict_mono $ by exact_mod_cast hb).monotone hz)
   (λ r₁ r₂, clog_mono_right r₁.prop)
-  (λ r, subtype.coe_le_coe.mp $ self_le_zpow_clog hb r.prop)
+  (λ r, subtype.coe_le_coe.mp $ self_le_zpow_clog hb _)
   (λ _, clog_zpow hb _)
 variables {R}
 

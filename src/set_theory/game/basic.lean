@@ -219,23 +219,23 @@ rfl
 by { cases x, cases y, refl }
 
 lemma left_moves_mul_cases {x y : pgame} (k : (x * y).left_moves) :
-  (∃ i j, k = to_left_moves_mul (sum.inl ⟨i, j⟩)) ∨
-  ∃ i j, k = to_left_moves_mul (sum.inr ⟨i, j⟩) :=
+  (∃ ix iy, k = to_left_moves_mul (sum.inl ⟨ix, iy⟩)) ∨
+  ∃ jx jy, k = to_left_moves_mul (sum.inr ⟨jx, jy⟩) :=
 begin
   rw ←to_left_moves_mul.apply_symm_apply k,
-  rcases to_left_moves_mul.symm k with ⟨i, j⟩ | ⟨i, j⟩,
-  { exact or.inl ⟨i, j, rfl⟩ },
-  { exact or.inr ⟨i, j, rfl⟩ }
+  rcases to_left_moves_mul.symm k with ⟨ix, iy⟩ | ⟨jx, jy⟩,
+  { exact or.inl ⟨ix, iy, rfl⟩ },
+  { exact or.inr ⟨jx, jy, rfl⟩ }
 end
 
 lemma right_moves_mul_cases {x y : pgame} (k : (x * y).right_moves) :
-  (∃ i j, k = to_right_moves_mul (sum.inl ⟨i, j⟩)) ∨
-  ∃ i j, k = to_right_moves_mul (sum.inr ⟨i, j⟩) :=
+  (∃ ix jy, k = to_right_moves_mul (sum.inl ⟨ix, jy⟩)) ∨
+  ∃ jx iy, k = to_right_moves_mul (sum.inr ⟨jx, iy⟩) :=
 begin
   rw ←to_right_moves_mul.apply_symm_apply k,
-  rcases to_right_moves_mul.symm k with ⟨i, j⟩ | ⟨i, j⟩,
-  { exact or.inl ⟨i, j, rfl⟩ },
-  { exact or.inr ⟨i, j, rfl⟩ }
+  rcases to_right_moves_mul.symm k with ⟨ix, jy⟩ | ⟨jx, iy⟩,
+  { exact or.inl ⟨ix, jy, rfl⟩ },
+  { exact or.inr ⟨jx, iy, rfl⟩ }
 end
 
 theorem quot_mul_comm : Π (x y : pgame.{u}), ⟦x * y⟧ = ⟦y * x⟧

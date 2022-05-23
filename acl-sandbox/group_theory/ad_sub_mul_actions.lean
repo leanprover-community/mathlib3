@@ -18,6 +18,7 @@ open mul_action
 section monoid
 variables {G : Type*} [monoid G] {X : Type*} [mul_action G X]
 
+
 /-- Stabilizers in monoid sub_mul_action coincide with stabilizer -/
 lemma stabilizer_submonoid_of_sub_mul { Y : sub_mul_action G X } (y : Y) :
   stabilizer.submonoid G y = stabilizer.submonoid G (y : X) :=
@@ -38,6 +39,49 @@ section group
 
 open mul_action
 variables {G : Type*} [group G] {X : Type*} [mul_action G X]
+
+/-- The canonical bihom from a sub_mul_action to an action of its permutation group -/
+def sub_mul_action_canonical_bihom (Y : sub_mul_action G X) :
+  mul_action_bihom G Y (equiv.perm Y) Y := {
+to_fun := id,
+to_monoid_hom := {
+  to_fun := λ g, {
+    to_fun := λ ⟨u, hu⟩, ⟨g • u, sub_mul_action.smul_mem Y g hu⟩,
+    inv_fun := λ ⟨u, hu⟩, ⟨g⁻¹ • u, sub_mul_action.smul_mem Y g⁻¹ hu⟩,
+    left_inv := λ ⟨u, hu⟩,
+    begin
+      unfold sub_mul_action_canonical_bihom._match_1,
+      unfold sub_mul_action_canonical_bihom._match_2,
+      simp only [inv_smul_smul]
+    end,
+    right_inv := λ ⟨u, hu⟩,
+    begin
+      unfold sub_mul_action_canonical_bihom._match_2,
+      unfold sub_mul_action_canonical_bihom._match_1,
+      simp only [smul_inv_smul]
+    end },
+  map_mul' := λ g h,
+  begin
+    ext ⟨u, hu⟩,
+    simp only [equiv.coe_fn_mk, equiv.perm.coe_mul, function.comp_app, set_like.coe_eq_coe],
+    unfold sub_mul_action_canonical_bihom._match_1,
+    simp only [subtype.mk_eq_mk],
+    rw mul_smul,
+  end,
+  map_one' :=
+  begin
+    ext ⟨u, hu⟩,
+    simp only [equiv.coe_fn_mk, equiv.perm.coe_one, id.def, sub_mul_action.coe_mk],
+    unfold sub_mul_action_canonical_bihom._match_1,
+    simp only [one_smul, sub_mul_action.coe_mk],
+  end },
+map_smul' := λ g ⟨u, hu⟩, rfl }
+
+lemma sub_mul_action_canonical_canonical_bihom_bijective {Y : sub_mul_action G X} :
+  function.bijective (@sub_mul_action_canonical_bihom G _ X _ Y).to_fun :=
+begin
+  apply function.bijective_id,
+end
 
 /-- Stabilizers in sub_mul_action coincide with stabilizer -/
 lemma stabilizer_of_sub_mul { Y : sub_mul_action G X } (y : Y) :
@@ -242,7 +286,7 @@ set_like.eta : ∀ (x : ↥?M_4) (hx : ↑x ∈ ?M_4), ⟨↑x, hx⟩ = x
 
 variables (G X)
 
-/- Remomve pairs
+/- Remove pairs
 /-- If a *group* G acts on X, it acts on pairs of X -/
 def action_on_pairs_of : sub_mul_action G (set X) :=
 { carrier := pair.pairs_of X,
@@ -322,6 +366,19 @@ end
 variables (M α : Type*) [group M] [mul_action M α]
 
 variable {α}
+
+example {s : set α} : ∀ (g : fixing_subgroup M s) (y : sᶜ), g • ↑y ∈ sᶜ :=
+begin
+  rintros ⟨g, hg⟩ ⟨y, hy⟩,
+  simp only [set.mem_compl_iff] at hy ⊢,
+  intro h, apply hy,
+
+  let hg' := inv_mem hg,
+  rw mem_fixing_subgroup_iff at hg',
+  rw ← inv_smul_smul g y,
+  rw hg' (g • y) h,
+  exact h
+end
 
 def sub_mul_action_of_fixing_subgroup (s : set α) :
   sub_mul_action (fixing_subgroup M s) α := {
@@ -432,6 +489,82 @@ begin
 end
 
 variable {α}
+
+def sub_mul_action_of_fixing_subgroup_bihom {s : set α} :
+  mul_action_bihom (fixing_subgroup M sᶜ) (sub_mul_action_of_fixing_subgroup M sᶜ)
+    (equiv.perm s) (s) := {
+to_fun := λ ⟨x, hx⟩, ⟨x,
+begin
+  rw mem_sub_mul_action_of_fixing_subgroup_iff at hx,
+  simp only [set.mem_compl_eq, set.not_not_mem] at hx,
+  exact hx
+end⟩,
+to_monoid_hom := {
+  to_fun := λ ⟨g, hg⟩,  {
+    to_fun := λ ⟨u, hu⟩, ⟨g • u,
+    begin
+      rw ← set.not_mem_compl_iff at  ⊢ hu,
+      intro h,  apply hu,
+      let hg' := (mem_fixing_subgroup_iff M).mp (subgroup.inv_mem _ hg) _ h,
+      rw inv_smul_smul at hg',
+      rw hg', exact h
+    end⟩,
+    inv_fun := λ ⟨u, hu⟩, ⟨g⁻¹ • u,
+    begin
+      rw ← set.not_mem_compl_iff at ⊢ hu, intro h,
+      apply hu,
+      rw mem_fixing_subgroup_iff at hg,
+      rw ← smul_inv_smul g u,
+      rw hg _ h, exact h,
+    end⟩,
+    left_inv := λ ⟨u, hu⟩,
+    begin
+      unfold sub_mul_action_of_fixing_subgroup_bihom._match_2,
+      unfold sub_mul_action_of_fixing_subgroup_bihom._match_3,
+      simp only [inv_smul_smul]
+    end,
+    right_inv := λ ⟨u, hu⟩,
+    begin
+      unfold sub_mul_action_of_fixing_subgroup_bihom._match_3,
+      unfold sub_mul_action_of_fixing_subgroup_bihom._match_2,
+      simp only [smul_inv_smul]
+    end },
+  map_one' :=
+  begin
+    ext ⟨u, hu⟩,
+    simp only [equiv.perm.coe_one, id.def],
+    have hv : (1 : M) • u ∈ s, rw one_smul, exact hu,
+    suffices : (sub_mul_action_of_fixing_subgroup_bihom._match_6 M 1) ⟨u, hu⟩ = ⟨1 • u, hv⟩,
+    rw this,
+    simp only [one_smul],
+    refl
+  end,
+  map_mul' := λ ⟨x, hx⟩ ⟨y, hy⟩,
+  begin
+    ext ⟨u, hu⟩,
+    simp,
+    suffices : sub_mul_action_of_fixing_subgroup_bihom._match_6 M ⟨y, hy⟩ ⟨u, hu⟩
+       = ⟨y • u, _⟩,
+    rw this,
+    suffices : sub_mul_action_of_fixing_subgroup_bihom._match_6 M ⟨x, hx⟩ ⟨y • u, _⟩
+      = ⟨x • y • u, _⟩,
+    rw this,
+    suffices : sub_mul_action_of_fixing_subgroup_bihom._match_6 M ⟨x * y, _⟩ ⟨u, hu⟩
+      = ⟨(x * y) • u, _⟩,
+    rw this,
+    simp only [subtype.coe_mk, mul_smul],
+    refl,
+    refl,
+    refl
+  end },
+map_smul' := λ ⟨g, hg⟩ ⟨x, hx⟩,
+begin
+  simp only [monoid_hom.coe_mk, equiv.perm.smul_def],
+  unfold sub_mul_action_of_fixing_subgroup_bihom._match_1,
+  unfold sub_mul_action_of_fixing_subgroup_bihom._match_6,
+  refl
+end }
+
 def sub_mul_action_of_fixing_subgroup_inclusion {s t : set α} (hst : s ⊇ t) :
   mul_action_bihom (fixing_subgroup M s) (sub_mul_action_of_fixing_subgroup M s)
    (fixing_subgroup M t) (sub_mul_action_of_fixing_subgroup M t) :=
@@ -640,13 +773,27 @@ to_monoid_hom := {
   map_mul' := λ ⟨⟨m, mn⟩, hm'⟩ ⟨⟨n,hn⟩, hn'⟩, rfl },
 map_smul' := λ ⟨⟨m, hm⟩, hm'⟩ ⟨⟨x, hx⟩, hx'⟩, rfl }
 
+lemma sub_mul_action_of_fixing_subgroup_union'_bihom_def (s t : set α) :
+∀ (x : (sub_mul_action_of_fixing_subgroup (fixing_subgroup M s)
+      (coe ⁻¹' t : set(sub_mul_action_of_fixing_subgroup M s)))),
+  (sub_mul_action_of_fixing_subgroup_union'_bihom M s t).to_fun x) = ↑(x : α) :=
+begin
+  sorry
+end
+
+
 lemma sub_mul_action_of_fixing_subgroup_union_bihom'_surjective (s t : set α) :
   function.bijective (sub_mul_action_of_fixing_subgroup_union'_bihom M s t).to_fun :=
 begin
   split,
-  { intros a b h,
-    simp only [coe_coe, ← set_like.coe_eq_coe],
-    simp only [← set_like.coe_eq_coe] at h,
+  { rintros ⟨a, ha⟩ ⟨b, hb⟩ h,
+    simp only [subtype.mk_eq_mk],
+    unfold sub_mul_action_of_fixing_subgroup_union'_bihom at h,
+    simp only [subtype.mk_eq_mk] at h,
+
+    unfold sub_mul_action_of_fixing_subgroup_union'_bihom._match_1 M s t at h,
+
+
     exact h },
   { rintro ⟨⟨a, ha⟩, ha'⟩, use a,
     { intro hy, cases (set.mem_union a s t).mp hy,

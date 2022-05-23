@@ -81,7 +81,7 @@ begin
   rw nim_def,
   refine ⟨_, _, λ i,  _, λ j, _⟩,
   any_goals { dsimp, apply equiv_of_unique_of_unique },
-  all_goals { simp, exact nim_zero_relabelling.symm }
+  all_goals { simp, exact nim_zero_relabelling }
 end
 
 @[simp] theorem nim_one_equiv : nim 1 ≈ star := nim_one_relabelling.equiv

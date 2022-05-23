@@ -329,6 +329,15 @@ theorem nadd_left_cancel_iff : ∀ {a b c}, a ♯ b = a ♯ c ↔ b = c :=
 theorem nadd_right_cancel_iff : ∀ {a b c}, b ♯ a = c ♯ a ↔ b = c :=
 @add_right_cancel_iff nat_ordinal _
 
+theorem le_nadd_self {a b} : a ≤ b ♯ a :=
+by simpa using nadd_le_nadd_right (ordinal.zero_le b) a
+theorem le_nadd_left {a b c} (h : a ≤ c) : a ≤ b ♯ c :=
+le_nadd_self.trans (nadd_le_nadd_left h b)
+theorem le_self_nadd {a b} : a ≤ a ♯ b :=
+by simpa using nadd_le_nadd_left (ordinal.zero_le b) a
+theorem le_nadd_right {a b c} (h : a ≤ b) : a ≤ b ♯ c :=
+le_self_nadd.trans (nadd_le_nadd_right h c)
+
 /-! ### Natural multiplication -/
 
 /-- Natural multiplication on ordinals `a ⨳ b` is recursively defined as the least ordinal such that
@@ -337,12 +346,38 @@ normal ordinal multiplication, it is commutative.
 
 Natural multiplication can equivalently be characterized as the ordinal resulting from multiplying
 the Cantor normal forms of `a` and `b` as if they were polynomials in `ω`. -/
-noncomputable def nmul : ordinal → ordinal → ordinal
-| a b := Inf {c | ∀ (a' < a) (b' < b), nmul a' b ♯ nmul a b' < c + nmul a' b' }
+noncomputable def nmul : ordinal.{u} → ordinal.{u} → ordinal.{u}
+| a b := Inf {c | ∀ (a' < a) (b' < b), nmul a' b ♯ nmul a b' < c ♯ nmul a' b'}
 using_well_founded { dec_tac := `[solve_by_elim [psigma.lex.left, psigma.lex.right]] }
 
 local infix ` ⨳ `:70 := nmul
 
-theorem nmul_def (a b : ordinal) : a
+theorem nmul_def (a b : ordinal) :
+  a ⨳ b = Inf {c | ∀ (a' < a) (b' < b), a' ⨳ b ♯ a ⨳ b' < c ♯ a' ⨳ b'} :=
+by rw nmul
+
+/-- The set in the definition of `nmul` is nonempty. -/
+theorem nmul_nonempty (a b : ordinal.{u}) :
+  {c : ordinal.{u} | ∀ (a' < a) (b' < b), a' ⨳ b ♯ a ⨳ b' < c ♯ a' ⨳ b'}.nonempty :=
+⟨_, λ a' ha' b' hb', (lt_blsub₂.{u u u} _ ha' hb').trans_le le_self_nadd⟩
+
+theorem nmul_nadd_lt {a b a' b' : ordinal.{u}} (ha : a' < a) (hb : b' < b) :
+  a' ⨳ b ♯ a ⨳ b' < a ⨳ b ♯ a' ⨳ b' :=
+by { rw nmul_def a b, exact Inf_mem (nmul_nonempty a b) a' ha b' hb }
+
+theorem lt_nmul_iff {a b c : ordinal} :
+  c < a ⨳ b ↔ ∃ (a' < a) (b' < b), c ♯ a' ⨳ b' ≤ a' ⨳ b ♯ a ⨳ b' :=
+begin
+  refine ⟨λ h, _, _⟩,
+  { rw nmul_def at h,
+    simpa using not_mem_of_lt_cInf h ⟨0, λ _ _, bot_le⟩ },
+  { rintros ⟨a', ha', b', hb', h⟩,
+    have := h.trans_lt (nmul_nadd_lt ha' hb'),
+    rwa nadd_lt_nadd_iff_right at this }
+end
+
+theorem nmul_le_iff {a b c : ordinal} :
+  a ⨳ b ≤ c ↔ ∀ (a' < a) (b' < b), a' ⨳ b ♯ a ⨳ b' < c ♯ a' ⨳ b' :=
+by { rw ←not_iff_not, simp [lt_nmul_iff] }
 
 end ordinal

@@ -148,6 +148,13 @@ instance fun_like : fun_like (quadratic_form R M) M (λ _, R) :=
 `fun_like.has_coe_to_fun` directly. -/
 instance : has_coe_to_fun (quadratic_form R M) (λ _, M → R) := ⟨to_fun⟩
 
+variables (Q)
+
+/-- The `simp` normal form for a quadratic form is `coe_fn`, not `to_fun`. -/
+@[simp] lemma to_fun_eq_coe : Q.to_fun = ⇑Q := rfl
+
+variables {Q}
+
 @[ext] lemma ext (H : ∀ (x : M), Q x = Q' x) : Q = Q' := fun_like.ext _ _ H
 
 lemma congr_fun (h : Q = Q') (x : M) : Q x = Q' x := fun_like.congr_fun h _
@@ -162,10 +169,6 @@ protected def copy (Q : quadratic_form R M) (Q' : M → R) (h : Q' = ⇑Q) : qua
   to_fun_add_add_add_to_fun := h.symm ▸ Q.to_fun_add_add_add_to_fun,
   to_fun_smul_add_add_mul := h.symm ▸ Q.to_fun_smul_add_add_mul }
 
-variables (Q)
-
-/-- The `simp` normal form for a quadratic form is `coe_fn`, not `to_fun`. -/
-@[simp] lemma to_fun_eq_coe : Q.to_fun = ⇑ Q := rfl
 
 end fun_like
 

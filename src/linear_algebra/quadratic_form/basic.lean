@@ -12,14 +12,21 @@ import linear_algebra.matrix.bilinear_form
 # Quadratic forms
 
 This file defines quadratic forms over a `R`-module `M`.
-A quadratic form is a map `Q : M → R` such that
-  (`to_fun_smul`) `Q (a • x) = a * a * Q x`
-  (`polar_...`) The map `polar Q := λ x y, Q (x + y) - Q x - Q y` is bilinear.
-They come with a scalar multiplication, `(a • Q) x = Q (a • x) = a * a * Q x`,
+A quadratic form on a ring `R` is a map `Q : M → R` such that:
+* `quadratic_form.map_smul`: `Q (a • x) = a * a * Q x`
+* `quadratic_form.polar_add_left`, `quadratic_form.polar_add_right`,
+  `quadratic_form.polar_smul_left`, `quadratic_form.polar_smul_right`:
+  the map `quadratic_form.polar Q := λ x y, Q (x + y) - Q x - Q y` is bilinear.
+
+This notion generalizes to semirings by moving the `-`s across the equality. To construct a
+`quadratic_form` from the `polar` axioms, use `quadratic_form.of_polar`.
+
+Quadratic forms come with a scalar multiplication, `(a • Q) x = Q (a • x) = a * a * Q x`,
 and composition with linear maps `f`, `Q.comp f x = Q (f x)`.
 
 ## Main definitions
 
+ * `quadratic_form.of_polar`: a more familiar constructor that works on rings
  * `quadratic_form.associated`: associated bilinear form
  * `quadratic_form.pos_def`: positive definite quadratic forms
  * `quadratic_form.anisotropic`: anisotropic quadratic forms
@@ -57,7 +64,9 @@ universes u v w
 variables {S : Type*}
 variables {R R₁: Type*} {M : Type*}
 
-/-- A quadratic form over a module. -/
+/-- A quadratic form over a module.
+
+For a more familiar constructor when `R` is a ring, see `quadratic_form.of_polar`. -/
 structure quadratic_form (R : Type u) (M : Type v) [semiring R] [add_comm_monoid M] [module R M] :=
 (to_fun : M → R)
 (to_fun_smul : ∀ (a : R) (x : M), to_fun (a • x) = a * a * to_fun x)
@@ -260,9 +269,7 @@ by rw [←is_scalar_tower.algebra_map_smul R a y, polar_smul_right, algebra.smul
 
 /-- An alternative constructor to `quadratic_form.mk`, for rings where `polar` can be used. -/
 @[simps]
-def of_polar
-  (to_fun : M → R)
-  (to_fun_smul : ∀ (a : R) (x : M), to_fun (a • x) = a * a * to_fun x)
+def of_polar (to_fun : M → R) (to_fun_smul : ∀ (a : R) (x : M), to_fun (a • x) = a * a * to_fun x)
   (polar_add_left : ∀ (x x' y : M), polar to_fun (x + x') y = polar to_fun x y + polar to_fun x' y)
   (polar_smul_left : ∀ (a : R) (x y : M), polar to_fun (a • x) y = a • polar to_fun x y) :
   quadratic_form R M :=

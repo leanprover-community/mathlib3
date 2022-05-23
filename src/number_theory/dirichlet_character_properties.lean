@@ -9,14 +9,18 @@ def zmod.topological_space' (d : ℕ) : topological_space (zmod d) := ⊥
 
 local attribute [instance] zmod.topological_space'
 open_locale big_operators
+instance (α : Type*) [topological_space α] : topological_space αᵒᵖ :=
+topological_space.induced opposite.unop infer_instance
+
 instance (α : Type*) [topological_space α] [discrete_topology α] : discrete_topology αᵒᵖ :=
 discrete_topology_induced opposite.unop_injective
 
 /-- Like disc_top_units but includes k = 0. -/
 lemma disc_top_units' (k : ℕ) : discrete_topology (units (zmod k)) :=
 begin
-  convert @discrete_topology_induced _ _ _ _ _ (embed_product_injective _),
+  convert @discrete_topology_induced _ _ _ _ _ (units.embed_product_injective _),
   apply @prod.discrete_topology _ _ infer_instance infer_instance infer_instance infer_instance,
+  swap, apply discrete_topology_induced mul_opposite.unop_injective,
   any_goals { apply_instance, },
 end
 

@@ -67,7 +67,7 @@ lemma teichmuller_character_mod_p_ne_one (p : ℕ) [fact (nat.prime p)] (hp : 2 
   haveI : nontrivial (units (zmod p)),
   { refine fintype.one_lt_card_iff_nontrivial.mp _,
     rw zmod.card_units p,
-    exact lt_sub_iff_left.mpr hp, },
+    exact lt_tsub_iff_right.mpr hp, },
   have h' := function.injective.exists_ne this 1,
   simp only [eq_self_iff_true, exists_false, monoid_hom.one_apply, not_true, ne.def] at h',
   assumption,
@@ -164,10 +164,11 @@ end
 variables [semi_normed_algebra ℚ_[p] R] [fact (0 < m)]
 
 /-- Returns ω⁻¹ = ω^(p - 2) : ℤ/(d * p^m)ℤ* →* R*. -/
-noncomputable abbreviation teichmuller_character_mod_p_change_level : dirichlet_character R (d * p^m) :=
+noncomputable abbreviation teichmuller_character_mod_p_change_level [algebra ℚ_[p] R] : dirichlet_character R (d * p^m) :=
   dirichlet_character.change_level (((units.map ((algebra_map ℚ_[p] R).comp
   (padic_int.coe.ring_hom)).to_monoid_hom).comp (teichmuller_character_mod_p p) : dirichlet_character R p)^(p - 2) )
   (begin apply dvd_mul_of_dvd_right (dvd_pow_self p (ne_of_gt (fact.out _))), apply_instance, end)
+--replace ^(p - 2) with ⁻¹
 
 /-noncomputable abbreviation weight_space_extend :=
   monoid_hom.comp (units.map w.to_monoid_hom)

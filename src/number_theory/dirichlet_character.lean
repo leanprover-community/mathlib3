@@ -30,7 +30,7 @@ lemma is_unit.unit_mul {α : Type*} [monoid α] {x y : α} (hx : is_unit x) (hy 
   hx.unit * hy.unit = (hx.mul hy).unit :=
   by { rw ←units.eq_iff, simp [is_unit.unit_spec] }
 
-/-- A Dirichlet character is defined as a multiplicative homomorphism which is periodic. -/
+/-- A Dirichlet character is defined as a monoid homomorphism which is periodic. -/
 abbreviation dirichlet_character (R : Type*) [monoid R] (n : ℕ) := units (zmod n) →* units R
 
 open_locale classical
@@ -239,7 +239,7 @@ begin
   apply subsingleton.elim _ _,
   rw hχ,
   refine fintype.card_le_one_iff_subsingleton.mp _,
-  rw [zmod.card_units_eq_totient _, nat.totient_one],
+  rw [zmod.card_units_eq_totient _, nat.totient_one], exact succ_pos'' 0,
 end
 
 lemma nat.le_one {n : ℕ} (h : n ≤ 1) : n = 0 ∨ n = 1 :=
@@ -380,7 +380,15 @@ begin
   suffices : (χ.change_level hm).conductor_set = χ.conductor_set,
   { rw conductor, rw this, refl, },
   ext,
-  refine ⟨λ h, _, λ h, ⟨dvd_trans h.1 hm, (h.2).some, λ a, _⟩⟩,
+  refine ⟨λ h, _, λ h, ⟨dvd_trans h.1 hm, ⟨(h.2).some, _⟩⟩⟩,
+  { rw mem_conductor_set_iff at *,
+    cases h,
+    split,
+    --simp at h,
+    sorry, sorry, },
+  { rw change_level_dvd _ h.1 hm,
+    congr,
+    convert h.2.some_spec, },
   sorry,
   { by_cases is_unit a,
     { sorry, },
@@ -388,7 +396,7 @@ begin
       rw asso_dirichlet_character_eq_zero _ _,
       contrapose h, rw not_not at *,
       rw zmod.uni }, },
-end -/
+end-/
 
 lemma mem_conductor_set_eq_conductor {d : ℕ} (hd : d ∈ χ.conductor_set) :
   χ.conductor ≤ (classical.some hd.2).conductor :=
@@ -545,7 +553,7 @@ begin
     { right, rw [is_even, ←units.eq_iff], simp only [this, units.coe_one], }, },
   { rw [←monoid_hom.map_pow, ←monoid_hom.map_one ψ],
     congr, rw units.ext_iff,
-    simp only [units.coe_one, units.coe_neg_one, nat.neg_one_sq, units.coe_pow], },
+    simp only [units.coe_one, units.coe_neg_one, units.coe_pow], rw neg_one_sq, },
 end
 -- can conditions on S be relaxed? comm needed for sq_sub_sq, and no_divisors needed for mul_eq_zero
 

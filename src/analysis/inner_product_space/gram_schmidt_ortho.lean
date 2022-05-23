@@ -206,7 +206,7 @@ end
 
 /-- If the input of the first `n + 1` vectors of `gram_schmidt` are linearly independent,
 then the output of the first `n + 1` vectors are non-zero. -/
-lemma gram_schmidt_ne_zero (f : ℕ → E) (n : ℕ)
+lemma gram_schmidt_ne_zero_aux (f : ℕ → E) (n : ℕ)
   (h₀ : linear_independent 𝕜 (f ∘ (coe : fin n → ℕ))) :
     ∀ i (h : i < n), gram_schmidt 𝕜 f i ≠ 0 :=
 begin
@@ -239,26 +239,45 @@ begin
 end
 
 /-- If the input of `gram_schmidt` is linearly independent, then the output is non-zero. -/
-lemma gram_schmidt_ne_zero' (f : ℕ → E) (h₀ : linear_independent 𝕜 f) (n : ℕ) :
+lemma gram_schmidt_ne_zero (f : ℕ → E) (h₀ : linear_independent 𝕜 f) (n : ℕ) :
   gram_schmidt 𝕜 f n ≠ 0 :=
-gram_schmidt_ne_zero 𝕜 f (n + 1) (linear_independent.comp h₀ _ (fin.coe_injective)) n (lt_succ n)
+gram_schmidt_ne_zero_aux 𝕜 f (n + 1) (linear_independent.comp h₀ _ (fin.coe_injective)) n (lt_succ n)
+
+lemma gram_schmidt_fin_ne_zero {m : ℕ} (f : fin m → E)
+  (h₀ : linear_independent 𝕜 f) :
+    ∀ i, gram_schmidt_fin 𝕜 f i ≠ 0 :=
+begin
+  intro i,
+  haveI : fact (0 < m) := ⟨lt_of_le_of_lt (nat.zero_le _) i.2⟩,
+  have : linear_independent 𝕜 ((λ (j : fin m), f (fin.of_nat' ↑j))),
+    by simpa only [fin.of_nat'_coe],
+  exact gram_schmidt_ne_zero_aux 𝕜 (λ (j : ℕ), f (fin.of_nat' j)) m this i.1 i.2,
+end
 
 /-- the normalized `gram_schmidt`
 (i.e each vector in `gram_schmidt_normed` has unit length.) -/
 noncomputable def gram_schmidt_normed (f : ℕ → E) (n : ℕ) : E :=
 (∥gram_schmidt 𝕜 f n∥ : 𝕜)⁻¹ • (gram_schmidt 𝕜 f n)
 
-lemma gram_schmidt_normed_unit_length (f : ℕ → E) (n : ℕ)
-  (h₀ : linear_independent 𝕜 (f ∘ (coe : fin n → ℕ))) (i : ℕ) (hi : i < n) :
-    ∥gram_schmidt_normed 𝕜 f i∥ = 1 :=
-by simp only [gram_schmidt_ne_zero 𝕜 f n h₀ i hi,
-  gram_schmidt_normed, norm_smul_inv_norm, ne.def, not_false_iff]
+noncomputable def gram_schmidt_normed_fin {m : ℕ} (f : fin m → E) (n : fin m) : E :=
+  have hm : fact (0 < m), from ⟨lt_of_le_of_lt (nat.zero_le _) n.2⟩,
+  gram_schmidt_normed 𝕜 (λ i, f (@fin.of_nat' m hm i)) n
 
-lemma gram_schmidt_normed_unit_length' (f : ℕ → E) (n : ℕ)
+lemma gram_schmidt_normed_fin_def {m : ℕ} (f : fin m → E) (n : fin m) :
+  gram_schmidt_normed_fin 𝕜 f n = (∥gram_schmidt_fin 𝕜 f n∥ : 𝕜)⁻¹ • (gram_schmidt_fin 𝕜 f n) :=
+rfl
+
+lemma gram_schmidt_normed_unit_length (f : ℕ → E) (n : ℕ)
   (h₀ : linear_independent 𝕜 f) :
     ∥gram_schmidt_normed 𝕜 f n∥ = 1 :=
-by simp only [gram_schmidt_ne_zero' 𝕜 f h₀,
+by simp only [gram_schmidt_ne_zero 𝕜 f h₀,
   gram_schmidt_normed, norm_smul_inv_norm, ne.def, not_false_iff]
+
+lemma gram_schmidt_normed_fin_unit_length {m : ℕ} (f : fin m → E) (n : fin m)
+  (h₀ : linear_independent 𝕜 f):
+    ∥gram_schmidt_normed_fin 𝕜 f n∥ = 1 :=
+by simp only [gram_schmidt_fin_ne_zero 𝕜 f h₀,
+  gram_schmidt_normed_fin_def, norm_smul_inv_norm, ne.def, not_false_iff]
 
 /-- **Gram-Schmidt Orthonormalization**:
 `gram_schmidt_normed` produces an orthornormal system of vectors. -/
@@ -267,7 +286,7 @@ theorem gram_schmidt_orthonormal (f : ℕ → E) (h₀ : linear_independent 𝕜
 begin
   unfold orthonormal,
   split,
-  { simp only [gram_schmidt_normed_unit_length', h₀, forall_const], },
+  { simp only [gram_schmidt_normed_unit_length, h₀, forall_const], },
   { intros i j hij,
     simp only [gram_schmidt_normed, inner_smul_left, inner_smul_right, is_R_or_C.conj_inv,
       is_R_or_C.conj_of_real, mul_eq_zero, inv_eq_zero, is_R_or_C.of_real_eq_zero, norm_eq_zero],
@@ -275,50 +294,15 @@ begin
     exact gram_schmidt_orthogonal 𝕜 f hij, },
 end
 
-theorem gram_schmidt_orthonormal' (f : ℕ → E) (n : ℕ)
-    (h₀ : linear_independent 𝕜 (f ∘ (coe : fin n → ℕ))) :
-  orthonormal 𝕜 (gram_schmidt_normed 𝕜 f ∘ (coe : fin n → ℕ)) :=
+theorem gram_schmidt_fin_orthonormal {m : ℕ} (f : fin m → E) (h₀ : linear_independent 𝕜 f) :
+  orthonormal 𝕜 (gram_schmidt_normed_fin 𝕜 f) :=
 begin
   unfold orthonormal,
   split,
-  { rintro ⟨i, hi⟩,
-    apply gram_schmidt_normed_unit_length _ f n h₀ i hi },
+  { intro i, simp only [gram_schmidt_normed_fin_unit_length, h₀, forall_const] },
   { intros i j hij,
-    simp only [(∘)],
-    simp only [gram_schmidt_normed, inner_smul_left, inner_smul_right, is_R_or_C.conj_inv,
+    simp only [gram_schmidt_normed_fin_def, inner_smul_left, inner_smul_right, is_R_or_C.conj_inv,
       is_R_or_C.conj_of_real, mul_eq_zero, inv_eq_zero, is_R_or_C.of_real_eq_zero, norm_eq_zero],
     repeat { right },
-    refine gram_schmidt_orthogonal 𝕜 f (λ h, hij ((fin.ext_iff i j).2 h)) },
+    exact gram_schmidt_fin_orthogonal 𝕜 f hij, },
 end
-
-section fintype
-
-variables {ι : Type*} [fintype ι]
-
-noncomputable def gram_schmidt_normed_fin (f : ι → E) : ι → E :=
-  λ i, gram_schmidt_normed 𝕜
-        (λ i,
-            if hi : i < fintype.card ι
-            then f ((fintype.equiv_fin ι).symm (fin.mk i hi))
-            else 0)
-        (fintype.equiv_fin ι i)
-
-theorem gram_schmidt_fin_orthonormal (f : ι → E)
-    (h₀ : linear_independent 𝕜 f) :
-  orthonormal 𝕜 (gram_schmidt_normed_fin 𝕜 f) :=
-begin
-  unfold gram_schmidt_normed_fin,
-
-  change orthonormal 𝕜 ((λ (j : fin _),
-  gram_schmidt_normed 𝕜
-         (λ i,
-            if hi : i < fintype.card ι
-            then f ((fintype.equiv_fin ι).symm (fin.mk i hi))
-            else 0) j) ∘ (λ j,
-  fintype.equiv_fin ι j )),
-
-  apply orthonormal.comp,
-  apply gram_schmidt_orthonormal',
-  apply linear_independent.comp,
-end
-end fintype

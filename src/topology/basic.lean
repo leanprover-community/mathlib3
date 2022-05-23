@@ -129,12 +129,12 @@ by rw union_eq_Union; exact is_open_Union (bool.forall_bool.2 ⟨h₂, h₁⟩)
 @[simp] lemma is_open_empty : is_open (∅ : set α) :=
 by rw ← sUnion_empty; exact is_open_sUnion (assume a, false.elim)
 
-lemma is_open_sInter {s : set (set α)} (hs : finite s) : (∀t ∈ s, is_open t) → is_open (⋂₀ s) :=
+lemma is_open_sInter {s : set (set α)} (hs : s.finite) : (∀t ∈ s, is_open t) → is_open (⋂₀ s) :=
 finite.induction_on hs (λ _, by rw sInter_empty; exact is_open_univ) $
 λ a s has hs ih h, by rw sInter_insert; exact
 is_open.inter (h _ $ mem_insert _ _) (ih $ λ t, h t ∘ mem_insert_of_mem _)
 
-lemma is_open_bInter {s : set β} {f : β → set α} (hs : finite s) :
+lemma is_open_bInter {s : set β} {f : β → set α} (hs : s.finite) :
   (∀i∈s, is_open (f i)) → is_open (⋂i∈s, f i) :=
 finite.induction_on hs
   (λ _, by rw bInter_empty; exact is_open_univ)
@@ -199,7 +199,7 @@ by { rw [← is_open_compl_iff] at *, rw compl_inter, exact is_open.union h₁ h
 lemma is_closed.sdiff {s t : set α} (h₁ : is_closed s) (h₂ : is_open t) : is_closed (s \ t) :=
 is_closed.inter h₁ (is_closed_compl_iff.mpr h₂)
 
-lemma is_closed_bUnion {s : set β} {f : β → set α} (hs : finite s) :
+lemma is_closed_bUnion {s : set β} {f : β → set α} (hs : s.finite) :
   (∀i∈s, is_closed (f i)) → is_closed (⋃i∈s, f i) :=
 finite.induction_on hs
   (λ _, by rw bUnion_empty; exact is_closed_empty)
@@ -1184,10 +1184,10 @@ section locally_finite
 /-- A family of sets in `set α` is locally finite if at every point `x:α`,
   there is a neighborhood of `x` which meets only finitely many sets in the family -/
 def locally_finite (f : β → set α) :=
-∀x:α, ∃t ∈ 𝓝 x, finite {i | (f i ∩ t).nonempty }
+∀x:α, ∃t ∈ 𝓝 x, {i | (f i ∩ t).nonempty}.finite
 
 lemma locally_finite.point_finite {f : β → set α} (hf : locally_finite f) (x : α) :
-  finite {b | x ∈ f b} :=
+  {b | x ∈ f b}.finite :=
 let ⟨t, hxt, ht⟩ := hf x in ht.subset $ λ b hb, ⟨x, hb, mem_of_mem_nhds hxt⟩
 
 lemma locally_finite_of_fintype [fintype β] (f : β → set α) : locally_finite f :=

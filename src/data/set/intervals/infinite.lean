@@ -22,7 +22,7 @@ variables [densely_ordered α]
 
 lemma Ioo.infinite {a b : α} (h : a < b) : (Ioo a b).infinite :=
 begin
-  rintro (f : finite (Ioo a b)),
+  rintro (f : (Ioo a b).finite),
   obtain ⟨m, hm₁, hm₂⟩ : ∃ m ∈ Ioo a b, ∀ x ∈ Ioo a b, ¬x < m,
   { simpa [h] using finset.exists_minimal f.to_finset },
   obtain ⟨z, hz₁, hz₂⟩ : ∃ z, a < z ∧ z < m := exists_between hm₁.1,
@@ -46,7 +46,7 @@ variables [no_min_order α]
 
 lemma Iio.infinite {b : α} : (Iio b).infinite :=
 begin
-  rintro (f : finite (Iio b)),
+  rintro (f : (Iio b).finite),
   obtain ⟨m, hm₁, hm₂⟩ : ∃ m < b, ∀ x < b, ¬x < m,
   { simpa using finset.exists_minimal f.to_finset },
   obtain ⟨z, hz⟩ : ∃ z, z < m := exists_lt _,

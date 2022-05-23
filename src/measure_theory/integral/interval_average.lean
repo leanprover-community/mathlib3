@@ -9,8 +9,9 @@ import measure_theory.integral.interval_integral
 /-!
 # Integral average over an interval
 
-In this file we prove formulas for the averate of a function over an interval w.r.t. the Lebesgue
-measure:
+In this file we introduce notation `⨍ x in a..b, f x` for the average `⨍ x in Ι a b, f x` of `f`
+over the interval `Ι a b = set.Ioc (min a b) (max a b)` w.r.t. the Lebesgue measure, then prove
+formulas for this average:
 
 * `interval_average_eq`: `⨍ x in a..b, f x = (b - a)⁻¹ • ∫ x in a..b, f x`;
 * `interval_average_eq_div`: `⨍ x in a..b, f x = (∫ x in a..b, f x) / (b - a)`.

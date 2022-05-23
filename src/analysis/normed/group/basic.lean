@@ -377,56 +377,56 @@ instance {r : ℝ} : has_neg (sphere (0:E) r) :=
   (((-v) : sphere _ _) : E) = - (v:E) :=
 rfl
 
-namespace isometric
+namespace isometry_equiv
 -- TODO This material is superseded by similar constructions such as
 -- `affine_isometry_equiv.const_vadd`; deduplicate
 
-/-- Addition `y ↦ y + x` as an `isometry`. -/
+/-- Addition `y ↦ y + x` as an `isometry_equiv`. -/
 protected def add_right (x : E) : E ≃ᵢ E :=
 { isometry_to_fun := isometry_emetric_iff_metric.2 $ λ y z, dist_add_right _ _ _,
   .. equiv.add_right x }
 
 @[simp] lemma add_right_to_equiv (x : E) :
-  (isometric.add_right x).to_equiv = equiv.add_right x := rfl
+  (isometry_equiv.add_right x).to_equiv = equiv.add_right x := rfl
 
-@[simp] lemma coe_add_right (x : E) : (isometric.add_right x : E → E) = λ y, y + x := rfl
+@[simp] lemma coe_add_right (x : E) : (isometry_equiv.add_right x : E → E) = λ y, y + x := rfl
 
-lemma add_right_apply (x y : E) : (isometric.add_right x : E → E) y = y + x := rfl
+lemma add_right_apply (x y : E) : (isometry_equiv.add_right x : E → E) y = y + x := rfl
 
 @[simp] lemma add_right_symm (x : E) :
-  (isometric.add_right x).symm = isometric.add_right (-x) :=
+  (isometry_equiv.add_right x).symm = isometry_equiv.add_right (-x) :=
 ext $ λ y, rfl
 
-/-- Addition `y ↦ x + y` as an `isometry`. -/
+/-- Addition `y ↦ x + y` as an `isometry_equiv`. -/
 protected def add_left (x : E) : E ≃ᵢ E :=
 { isometry_to_fun := isometry_emetric_iff_metric.2 $ λ y z, dist_add_left _ _ _,
   to_equiv := equiv.add_left x }
 
 @[simp] lemma add_left_to_equiv (x : E) :
-  (isometric.add_left x).to_equiv = equiv.add_left x := rfl
+  (isometry_equiv.add_left x).to_equiv = equiv.add_left x := rfl
 
-@[simp] lemma coe_add_left (x : E) : ⇑(isometric.add_left x) = (+) x := rfl
+@[simp] lemma coe_add_left (x : E) : ⇑(isometry_equiv.add_left x) = (+) x := rfl
 
 @[simp] lemma add_left_symm (x : E) :
-  (isometric.add_left x).symm = isometric.add_left (-x) :=
+  (isometry_equiv.add_left x).symm = isometry_equiv.add_left (-x) :=
 ext $ λ y, rfl
 
 variable (E)
 
-/-- Negation `x ↦ -x` as an `isometry`. -/
+/-- Negation `x ↦ -x` as an `isometry_equiv`. -/
 protected def neg : E ≃ᵢ E :=
 { isometry_to_fun := isometry_emetric_iff_metric.2 $ λ x y, dist_neg_neg _ _,
   to_equiv := equiv.neg E }
 
 variable {E}
 
-@[simp] lemma neg_symm : (isometric.neg E).symm = isometric.neg E := rfl
+@[simp] lemma neg_symm : (isometry_equiv.neg E).symm = isometry_equiv.neg E := rfl
 
-@[simp] lemma neg_to_equiv : (isometric.neg E).to_equiv = equiv.neg E := rfl
+@[simp] lemma neg_to_equiv : (isometry_equiv.neg E).to_equiv = equiv.neg E := rfl
 
-@[simp] lemma coe_neg : ⇑(isometric.neg E) = has_neg.neg := rfl
+@[simp] lemma coe_neg : ⇑(isometry_equiv.neg E) = has_neg.neg := rfl
 
-end isometric
+end isometry_equiv
 
 theorem normed_group.tendsto_nhds_zero {f : α → E} {l : filter α} :
   tendsto f l (𝓝 0) ↔ ∀ ε > 0, ∀ᶠ x in l, ∥ f x ∥ < ε :=
@@ -510,14 +510,14 @@ begin
   exact ⟨C, λ x hx, hC _ (set.mem_image_of_mem _ hx)⟩,
 end
 
-lemma add_monoid_hom.isometry_iff_norm (f : E →+ F) : isometry f ↔ ∀ x, ∥f x∥ = ∥x∥ :=
+lemma add_monoid_hom.isometry_iff_norm (f : E →+ F) : is_isometry f ↔ ∀ x, ∥f x∥ = ∥x∥ :=
 begin
   simp only [isometry_emetric_iff_metric, dist_eq_norm, ← f.map_sub],
   refine ⟨λ h x, _, λ h x y, h _⟩,
   simpa using h x 0
 end
 
-lemma add_monoid_hom.isometry_of_norm (f : E →+ F) (hf : ∀ x, ∥f x∥ = ∥x∥) : isometry f :=
+lemma add_monoid_hom.isometry_of_norm (f : E →+ F) (hf : ∀ x, ∥f x∥ = ∥x∥) : is_isometry f :=
 f.isometry_iff_norm.2 hf
 
 lemma controlled_sum_of_mem_closure {s : add_subgroup E} {g : E}

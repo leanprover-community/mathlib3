@@ -54,12 +54,12 @@ def star_normed_group_hom : normed_group_hom E E :=
   .. star_add_equiv }
 
 /-- The `star` map in a normed star group is an isometry -/
-lemma star_isometry : isometry (star : E → E) :=
-star_add_equiv.to_add_monoid_hom.isometry_of_norm norm_star
+lemma star_is_isometry : is_isometry (star : E → E) :=
+star_add_equiv.to_add_monoid_hom.is_isometry_of_norm norm_star
 
 @[priority 100]
 instance normed_star_group.to_has_continuous_star : has_continuous_star E :=
-⟨star_isometry.continuous⟩
+⟨star_is_isometry.continuous⟩
 
 end normed_star_group
 

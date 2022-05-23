@@ -104,11 +104,11 @@ f.to_linear_map.map_smul c x
 
 @[simp] lemma nnnorm_map (x : E) : ∥f x∥₊ = ∥x∥₊ := nnreal.eq $ f.norm_map x
 
-protected lemma isometry : isometry f :=
-f.to_linear_map.to_add_monoid_hom.isometry_of_norm f.norm_map
+protected lemma is_isometry : is_isometry f :=
+f.to_linear_map.to_add_monoid_hom.is_isometry_of_norm f.norm_map
 
 @[simp] lemma is_complete_image_iff {s : set E} : is_complete (f '' s) ↔ is_complete s :=
-is_complete_image_iff f.isometry.uniform_inducing
+is_complete_image_iff f.is_isometry.uniform_inducing
 
 lemma is_complete_map_iff [ring_hom_surjective σ₁₂] {p : submodule R E} :
   is_complete (p.map f.to_linear_map : set E₂) ↔ is_complete (p : set E) :=
@@ -118,32 +118,32 @@ instance complete_space_map [ring_hom_surjective σ₁₂] (p : submodule R E) [
   complete_space (p.map f.to_linear_map) :=
 (f.is_complete_map_iff.2 $ complete_space_coe_iff_is_complete.1 ‹_›).complete_space_coe
 
-@[simp] lemma dist_map (x y : E) : dist (f x) (f y) = dist x y := f.isometry.dist_eq x y
-@[simp] lemma edist_map (x y : E) : edist (f x) (f y) = edist x y := f.isometry.edist_eq x y
+@[simp] lemma dist_map (x y : E) : dist (f x) (f y) = dist x y := f.is_isometry.dist_eq x y
+@[simp] lemma edist_map (x y : E) : edist (f x) (f y) = edist x y := f.is_isometry.edist_eq x y
 
-protected lemma injective : injective f₁ := f₁.isometry.injective
+protected lemma injective : injective f₁ := f₁.is_isometry.injective
 
 @[simp] lemma map_eq_iff {x y : F} : f₁ x = f₁ y ↔ x = y := f₁.injective.eq_iff
 
 lemma map_ne {x y : F} (h : x ≠ y) : f₁ x ≠ f₁ y := f₁.injective.ne h
 
-protected lemma lipschitz : lipschitz_with 1 f := f.isometry.lipschitz
+protected lemma lipschitz : lipschitz_with 1 f := f.is_isometry.lipschitz
 
-protected lemma antilipschitz : antilipschitz_with 1 f := f.isometry.antilipschitz
+protected lemma antilipschitz : antilipschitz_with 1 f := f.is_isometry.antilipschitz
 
-@[continuity] protected lemma continuous : continuous f := f.isometry.continuous
+@[continuity] protected lemma continuous : continuous f := f.is_isometry.continuous
 
 lemma ediam_image (s : set E) : emetric.diam (f '' s) = emetric.diam s :=
-f.isometry.ediam_image s
+f.is_isometry.ediam_image s
 
 lemma ediam_range : emetric.diam (range f) = emetric.diam (univ : set E) :=
-f.isometry.ediam_range
+f.is_isometry.ediam_range
 
 lemma diam_image (s : set E) : metric.diam (f '' s) = metric.diam s :=
-f.isometry.diam_image s
+f.is_isometry.diam_image s
 
 lemma diam_range : metric.diam (range f) = metric.diam (univ : set E) :=
-f.isometry.diam_range
+f.is_isometry.diam_range
 
 /-- Interpret a linear isometry as a continuous linear map. -/
 def to_continuous_linear_map : E →SL[σ₁₂] E₂ := ⟨f.to_linear_map, f.continuous⟩
@@ -211,8 +211,8 @@ lemma mul_def (f g : E →ₗᵢ[R] E) : (f * g : E →ₗᵢ[R] E) = f.comp g :
 
 end linear_isometry
 
-/-- Construct a `linear_isometry` from a `linear_map` satisfying `isometry`. -/
-def linear_map.to_linear_isometry (f : E →ₛₗ[σ₁₂] E₂) (hf : isometry f) : E →ₛₗᵢ[σ₁₂] E₂ :=
+/-- Construct a `linear_isometry` from a `linear_map` satisfying `is_isometry`. -/
+def linear_map.to_linear_isometry (f : E →ₛₗ[σ₁₂] E₂) (hf : is_isometry f) : E →ₛₗᵢ[σ₁₂] E₂ :=
 { norm_map' := by { simp_rw [←dist_zero_right, ←f.map_zero], exact λ x, hf.dist_eq x _ },
   .. f }
 
@@ -315,26 +315,26 @@ to_linear_isometry_injective.eq_iff
 
 @[simp] lemma coe_to_linear_isometry : ⇑e.to_linear_isometry = e := rfl
 
-protected lemma isometry : isometry e := e.to_linear_isometry.isometry
+protected lemma is_isometry : is_isometry e := e.to_linear_isometry.is_isometry
 
-/-- Reinterpret a `linear_isometry_equiv` as an `isometric`. -/
-def to_isometric : E ≃ᵢ E₂ := ⟨e.to_linear_equiv.to_equiv, e.isometry⟩
+/-- Reinterpret a `linear_isometry_equiv` as an `isometry_equiv`. -/
+def to_isometry_equiv : E ≃ᵢ E₂ := ⟨e.to_linear_equiv.to_equiv, e.isometry⟩
 
-lemma to_isometric_injective :
-  function.injective (to_isometric : (E ≃ₛₗᵢ[σ₁₂] E₂) → E ≃ᵢ E₂) :=
-λ x y h, coe_injective (congr_arg _ h : ⇑x.to_isometric = _)
+lemma to_isometry_equiv_injective :
+  function.injective (to_isometry_equiv : (E ≃ₛₗᵢ[σ₁₂] E₂) → E ≃ᵢ E₂) :=
+λ x y h, coe_injective (congr_arg _ h : ⇑x.to_isometry_equiv = _)
 
-@[simp] lemma to_isometric_inj {f g : E ≃ₛₗᵢ[σ₁₂] E₂} :
-  f.to_isometric = g.to_isometric ↔ f = g :=
-to_isometric_injective.eq_iff
+@[simp] lemma to_isometry_equiv_inj {f g : E ≃ₛₗᵢ[σ₁₂] E₂} :
+  f.to_isometry_equiv = g.to_isometry_equiv ↔ f = g :=
+to_isometry_equiv_injective.eq_iff
 
-@[simp] lemma coe_to_isometric : ⇑e.to_isometric = e := rfl
+@[simp] lemma coe_to_isometry_equiv : ⇑e.to_isometry_equiv = e := rfl
 
 lemma range_eq_univ (e : E ≃ₛₗᵢ[σ₁₂] E₂) : set.range e = set.univ :=
-by { rw ← coe_to_isometric, exact isometric.range_eq_univ _, }
+by { rw ← coe_to_isometry_equiv, exact isometry_equiv.range_eq_univ _, }
 
 /-- Reinterpret a `linear_isometry_equiv` as an `homeomorph`. -/
-def to_homeomorph : E ≃ₜ E₂ := e.to_isometric.to_homeomorph
+def to_homeomorph : E ≃ₜ E₂ := e.to_isometry_equiv.to_homeomorph
 
 lemma to_homeomorph_injective :
   function.injective (to_homeomorph : (E ≃ₛₗᵢ[σ₁₂] E₂) → E ≃ₜ E₂) :=
@@ -346,7 +346,7 @@ to_homeomorph_injective.eq_iff
 
 @[simp] lemma coe_to_homeomorph : ⇑e.to_homeomorph = e := rfl
 
-protected lemma continuous : continuous e := e.isometry.continuous
+protected lemma continuous : continuous e := e.is_isometry.continuous
 protected lemma continuous_at {x} : continuous_at e x := e.continuous.continuous_at
 protected lemma continuous_on {s} : continuous_on e s := e.continuous.continuous_on
 
@@ -392,7 +392,7 @@ def symm : E₂ ≃ₛₗᵢ[σ₂₁] E :=
 @[simp] lemma symm_symm : e.symm.symm = e := ext $ λ x, rfl
 
 @[simp] lemma to_linear_equiv_symm : e.to_linear_equiv.symm = e.symm.to_linear_equiv := rfl
-@[simp] lemma to_isometric_symm : e.to_isometric.symm = e.symm.to_isometric := rfl
+@[simp] lemma to_isometry_equiv_symm : e.to_isometry_equiv.symm = e.symm.to_isometry_equiv := rfl
 @[simp] lemma to_homeomorph_symm : e.to_homeomorph.symm = e.symm.to_homeomorph := rfl
 
 include σ₃₁ σ₃₂
@@ -470,7 +470,7 @@ include σ₂₁
 
 /-- Reinterpret a `linear_isometry_equiv` as a `continuous_linear_equiv`. -/
 instance : has_coe_t (E ≃ₛₗᵢ[σ₁₂] E₂) (E ≃SL[σ₁₂] E₂) :=
-⟨λ e, ⟨e.to_linear_equiv, e.continuous, e.to_isometric.symm.continuous⟩⟩
+⟨λ e, ⟨e.to_linear_equiv, e.continuous, e.to_isometry_equiv.symm.continuous⟩⟩
 
 instance : has_coe_t (E ≃ₛₗᵢ[σ₁₂] E₂) (E →SL[σ₁₂] E₂) := ⟨λ e, ↑(e : E ≃SL[σ₁₂] E₂)⟩
 
@@ -509,25 +509,25 @@ protected lemma surjective : surjective e := e.1.surjective
 
 lemma map_ne {x y : E} (h : x ≠ y) : e x ≠ e y := e.injective.ne h
 
-protected lemma lipschitz : lipschitz_with 1 e := e.isometry.lipschitz
+protected lemma lipschitz : lipschitz_with 1 e := e.is_isometry.lipschitz
 
-protected lemma antilipschitz : antilipschitz_with 1 e := e.isometry.antilipschitz
+protected lemma antilipschitz : antilipschitz_with 1 e := e.is_isometry.antilipschitz
 
 @[simp] lemma ediam_image (s : set E) : emetric.diam (e '' s) = emetric.diam s :=
-e.isometry.ediam_image s
+e.is_isometry.ediam_image s
 
 @[simp] lemma diam_image (s : set E) : metric.diam (e '' s) = metric.diam s :=
-e.isometry.diam_image s
+e.is_isometry.diam_image s
 
 variables {α : Type*} [topological_space α]
 
 @[simp] lemma comp_continuous_on_iff {f : α → E} {s : set α} :
   continuous_on (e ∘ f) s ↔ continuous_on f s :=
-e.isometry.comp_continuous_on_iff
+e.is_isometry.comp_continuous_on_iff
 
 @[simp] lemma comp_continuous_iff {f : α → E} :
   continuous (e ∘ f) ↔ continuous f :=
-e.isometry.comp_continuous_iff
+e.is_isometry.comp_continuous_iff
 
 instance complete_space_map (p : submodule R E) [complete_space p] :
   complete_space (p.map (e.to_linear_equiv : E →ₛₗ[σ₁₂] E₂)) :=

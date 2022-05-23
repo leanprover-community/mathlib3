@@ -63,11 +63,11 @@ end
 instance has_zero_object : limits.has_zero_object SemiNormedGroup.{u} :=
 ⟨⟨of punit, is_zero_of_subsingleton _⟩⟩
 
-lemma iso_isometry_of_norm_noninc {V W : SemiNormedGroup} (i : V ≅ W)
+lemma iso_is_isometry_of_norm_noninc {V W : SemiNormedGroup} (i : V ≅ W)
   (h1 : i.hom.norm_noninc) (h2 : i.inv.norm_noninc) :
-  isometry i.hom :=
+  is_isometry i.hom :=
 begin
-  apply normed_group_hom.isometry_of_norm,
+  apply normed_group_hom.is_isometry_of_norm,
   intro v,
   apply le_antisymm (h1 v),
   calc ∥v∥ = ∥i.inv (i.hom v)∥ : by rw [iso.hom_inv_id_apply]
@@ -161,10 +161,10 @@ end
 instance has_zero_object : limits.has_zero_object SemiNormedGroup₁.{u} :=
 ⟨⟨of punit, is_zero_of_subsingleton _⟩⟩
 
-lemma iso_isometry {V W : SemiNormedGroup₁} (i : V ≅ W) :
+lemma iso_is_isometry {V W : SemiNormedGroup₁} (i : V ≅ W) :
   isometry i.hom :=
 begin
-  apply normed_group_hom.isometry_of_norm,
+  apply normed_group_hom.is_isometry_of_norm,
   intro v,
   apply le_antisymm (i.hom.2 v),
   calc ∥v∥ = ∥i.inv (i.hom v)∥ : by rw [iso.hom_inv_id_apply]

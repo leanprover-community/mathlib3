@@ -365,7 +365,7 @@ lemma mk_metric_mono {m₁ m₂ : ℝ≥0∞ → ℝ≥0∞} (hle : m₁ ≤ᶠ[
   (mk_metric m₁ : outer_measure X) ≤ mk_metric m₂ :=
 by { convert mk_metric_mono_smul ennreal.one_ne_top ennreal.zero_lt_one.ne' _; simp * }
 
-lemma isometry_comap_mk_metric (m : ℝ≥0∞ → ℝ≥0∞) {f : X → Y} (hf : isometry f)
+lemma isometry_comap_mk_metric (m : ℝ≥0∞ → ℝ≥0∞) {f : X → Y} (hf : is_isometry f)
   (H : monotone m ∨ surjective f) :
   comap f (mk_metric m) = mk_metric m :=
 begin
@@ -383,18 +383,18 @@ begin
     simp only [(diam_mono hst).trans ht, le_refl, cinfi_pos] }
 end
 
-lemma isometry_map_mk_metric (m : ℝ≥0∞ → ℝ≥0∞) {f : X → Y} (hf : isometry f)
+lemma is_isometry_map_mk_metric (m : ℝ≥0∞ → ℝ≥0∞) {f : X → Y} (hf : is_isometry f)
   (H : monotone m ∨ surjective f) :
   map f (mk_metric m) = restrict (range f) (mk_metric m) :=
-by rw [← isometry_comap_mk_metric _ hf H, map_comap]
+by rw [← is_isometry_comap_mk_metric _ hf H, map_comap]
 
-lemma isometric_comap_mk_metric (m : ℝ≥0∞ → ℝ≥0∞) (f : X ≃ᵢ Y) :
+lemma isometry_equiv_comap_mk_metric (m : ℝ≥0∞ → ℝ≥0∞) (f : X ≃ᵢ Y) :
   comap f (mk_metric m) = mk_metric m :=
 isometry_comap_mk_metric _ f.isometry (or.inr f.surjective)
 
-lemma isometric_map_mk_metric (m : ℝ≥0∞ → ℝ≥0∞) (f : X ≃ᵢ Y) :
+lemma isometry_equiv_map_mk_metric (m : ℝ≥0∞ → ℝ≥0∞) (f : X ≃ᵢ Y) :
   map f (mk_metric m) = mk_metric m :=
-by rw [← isometric_comap_mk_metric _ f, map_comap_of_surjective f.surjective]
+by rw [← isometry_equiv_comap_mk_metric _ f, map_comap_of_surjective f.surjective]
 
 lemma trim_mk_metric [measurable_space X] [borel_space X] (m : ℝ≥0∞ → ℝ≥0∞) :
   (mk_metric m : outer_measure X).trim = mk_metric m :=
@@ -919,11 +919,11 @@ end antilipschitz_with
 ### Isometries preserve the Hausdorff measure and Hausdorff dimension
 -/
 
-namespace isometry
+namespace is_isometry
 
 variables {f : X → Y} {d : ℝ}
 
-lemma hausdorff_measure_image (hf : isometry f) (hd : 0 ≤ d ∨ surjective f) (s : set X) :
+lemma hausdorff_measure_image (hf : is_isometry f) (hd : 0 ≤ d ∨ surjective f) (s : set X) :
   μH[d] (f '' s) = μH[d] s :=
 begin
   simp only [hausdorff_measure, ← outer_measure.coe_mk_metric, ← outer_measure.comap_apply],
@@ -931,27 +931,27 @@ begin
   exact λ hd x y hxy, ennreal.rpow_le_rpow hxy hd
 end
 
-lemma hausdorff_measure_preimage (hf : isometry f) (hd : 0 ≤ d ∨ surjective f) (s : set Y) :
+lemma hausdorff_measure_preimage (hf : is_isometry f) (hd : 0 ≤ d ∨ surjective f) (s : set Y) :
   μH[d] (f ⁻¹' s) = μH[d] (s ∩ range f) :=
 by rw [← hf.hausdorff_measure_image hd, image_preimage_eq_inter_range]
 
-lemma map_hausdorff_measure (hf : isometry f) (hd : 0 ≤ d ∨ surjective f) :
+lemma map_hausdorff_measure (hf : is_isometry f) (hd : 0 ≤ d ∨ surjective f) :
   measure.map f μH[d] = (μH[d]).restrict (range f) :=
 begin
   ext1 s hs,
   rw [map_apply hf.continuous.measurable hs, restrict_apply hs, hf.hausdorff_measure_preimage hd]
 end
 
-end isometry
+end is_isometry
 
-namespace isometric
+namespace isometry_equiv
 
 @[simp] lemma hausdorff_measure_image (e : X ≃ᵢ Y) (d : ℝ) (s : set X) :
   μH[d] (e '' s) = μH[d] s :=
-e.isometry.hausdorff_measure_image (or.inr e.surjective) s
+e.is_isometry.hausdorff_measure_image (or.inr e.surjective) s
 
 @[simp] lemma hausdorff_measure_preimage (e : X ≃ᵢ Y) (d : ℝ) (s : set Y) :
   μH[d] (e ⁻¹' s) = μH[d] s :=
 by rw [← e.image_symm, e.symm.hausdorff_measure_image]
 
-end isometric
+end isometry_equiv

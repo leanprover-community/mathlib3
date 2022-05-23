@@ -122,35 +122,35 @@ by rw [dist_eq_norm_vsub V₂, dist_eq_norm_vsub V, ← map_vsub, f.linear_isome
 
 @[simp] lemma edist_map (x y : P) : edist (f x) (f y) = edist x y := by simp [edist_dist]
 
-protected lemma isometry : isometry f := f.edist_map
+protected lemma is_isometry : is_isometry f := f.edist_map
 
-protected lemma injective : injective f₁ := f₁.isometry.injective
+protected lemma injective : injective f₁ := f₁.is_isometry.injective
 
 @[simp] lemma map_eq_iff {x y : P₁} : f₁ x = f₁ y ↔ x = y := f₁.injective.eq_iff
 
 lemma map_ne {x y : P₁} (h : x ≠ y) : f₁ x ≠ f₁ y := f₁.injective.ne h
 
-protected lemma lipschitz : lipschitz_with 1 f := f.isometry.lipschitz
+protected lemma lipschitz : lipschitz_with 1 f := f.is_isometry.lipschitz
 
-protected lemma antilipschitz : antilipschitz_with 1 f := f.isometry.antilipschitz
+protected lemma antilipschitz : antilipschitz_with 1 f := f.is_isometry.antilipschitz
 
-@[continuity] protected lemma continuous : continuous f := f.isometry.continuous
+@[continuity] protected lemma continuous : continuous f := f.is_isometry.continuous
 
 lemma ediam_image (s : set P) : emetric.diam (f '' s) = emetric.diam s :=
-f.isometry.ediam_image s
+f.is_isometry.ediam_image s
 
 lemma ediam_range : emetric.diam (range f) = emetric.diam (univ : set P) :=
-f.isometry.ediam_range
+f.is_isometry.ediam_range
 
 lemma diam_image (s : set P) : metric.diam (f '' s) = metric.diam s :=
-f.isometry.diam_image s
+f.is_isometry.diam_image s
 
 lemma diam_range : metric.diam (range f) = metric.diam (univ : set P) :=
-f.isometry.diam_range
+f.is_isometry.diam_range
 
 @[simp] lemma comp_continuous_iff {α : Type*} [topological_space α] {g : α → P} :
   continuous (f ∘ g) ↔ continuous g :=
-f.isometry.comp_continuous_iff
+f.is_isometry.comp_continuous_iff
 
 include V
 /-- The identity affine isometry. -/
@@ -291,24 +291,24 @@ end linear_isometry_equiv
 namespace affine_isometry_equiv
 variables (e : P ≃ᵃⁱ[𝕜] P₂)
 
-protected lemma isometry : isometry e := e.to_affine_isometry.isometry
+protected lemma is_isometry : is_isometry e := e.to_affine_isometry.is_isometry
 
-/-- Reinterpret a `affine_isometry_equiv` as an `isometric`. -/
-def to_isometric : P ≃ᵢ P₂ := ⟨e.to_affine_equiv.to_equiv, e.isometry⟩
+/-- Reinterpret a `affine_isometry_equiv` as an `isometry_equiv`. -/
+def to_isometry_equiv : P ≃ᵢ P₂ := ⟨e.to_affine_equiv.to_equiv, e.is_isometry⟩
 
-@[simp] lemma coe_to_isometric : ⇑e.to_isometric = e := rfl
+@[simp] lemma coe_to_isometry_equiv : ⇑e.to_isometry_equiv = e := rfl
 
 include V V₂
 lemma range_eq_univ (e : P ≃ᵃⁱ[𝕜] P₂) : set.range e = set.univ :=
-by { rw ← coe_to_isometric, exact isometric.range_eq_univ _, }
+by { rw ← coe_to_isometry_equiv, exact isometry_equiv.range_eq_univ _, }
 omit V V₂
 
 /-- Reinterpret a `affine_isometry_equiv` as an `homeomorph`. -/
-def to_homeomorph : P ≃ₜ P₂ := e.to_isometric.to_homeomorph
+def to_homeomorph : P ≃ₜ P₂ := e.to_isometry_equiv.to_homeomorph
 
 @[simp] lemma coe_to_homeomorph : ⇑e.to_homeomorph = e := rfl
 
-protected lemma continuous : continuous e := e.isometry.continuous
+protected lemma continuous : continuous e := e.is_isometry.continuous
 protected lemma continuous_at {x} : continuous_at e x := e.continuous.continuous_at
 protected lemma continuous_on {s} : continuous_on e s := e.continuous.continuous_on
 
@@ -327,7 +327,7 @@ instance : inhabited (P ≃ᵃⁱ[𝕜] P) := ⟨refl 𝕜 P⟩
 
 @[simp] lemma coe_refl : ⇑(refl 𝕜 P) = id := rfl
 @[simp] lemma to_affine_equiv_refl : (refl 𝕜 P).to_affine_equiv = affine_equiv.refl 𝕜 P := rfl
-@[simp] lemma to_isometric_refl : (refl 𝕜 P).to_isometric = isometric.refl P := rfl
+@[simp] lemma to_isometry_equiv_refl : (refl 𝕜 P).to_isometry_equiv = isometry_equiv.refl P := rfl
 @[simp] lemma to_homeomorph_refl : (refl 𝕜 P).to_homeomorph = homeomorph.refl P := rfl
 omit V
 
@@ -341,7 +341,7 @@ def symm : P₂ ≃ᵃⁱ[𝕜] P :=
 @[simp] lemma symm_symm : e.symm.symm = e := ext $ λ x, rfl
 
 @[simp] lemma to_affine_equiv_symm : e.to_affine_equiv.symm = e.symm.to_affine_equiv := rfl
-@[simp] lemma to_isometric_symm : e.to_isometric.symm = e.symm.to_isometric := rfl
+@[simp] lemma to_isometry_equiv_symm : e.to_isometry_equiv.symm = e.symm.to_isometry_equiv := rfl
 @[simp] lemma to_homeomorph_symm : e.to_homeomorph.symm = e.symm.to_homeomorph := rfl
 
 include V₃
@@ -405,25 +405,25 @@ protected lemma surjective : surjective e := e.1.surjective
 
 lemma map_ne {x y : P} (h : x ≠ y) : e x ≠ e y := e.injective.ne h
 
-protected lemma lipschitz : lipschitz_with 1 e := e.isometry.lipschitz
+protected lemma lipschitz : lipschitz_with 1 e := e.is_isometry.lipschitz
 
-protected lemma antilipschitz : antilipschitz_with 1 e := e.isometry.antilipschitz
+protected lemma antilipschitz : antilipschitz_with 1 e := e.is_isometry.antilipschitz
 
 @[simp] lemma ediam_image (s : set P) : emetric.diam (e '' s) = emetric.diam s :=
-e.isometry.ediam_image s
+e.is_isometry.ediam_image s
 
 @[simp] lemma diam_image (s : set P) : metric.diam (e '' s) = metric.diam s :=
-e.isometry.diam_image s
+e.is_isometry.diam_image s
 
 variables {α : Type*} [topological_space α]
 
 @[simp] lemma comp_continuous_on_iff {f : α → P} {s : set α} :
   continuous_on (e ∘ f) s ↔ continuous_on f s :=
-e.isometry.comp_continuous_on_iff
+e.is_isometry.comp_continuous_on_iff
 
 @[simp] lemma comp_continuous_iff {f : α → P} :
   continuous (e ∘ f) ↔ continuous f :=
-e.isometry.comp_continuous_iff
+e.is_isometry.comp_continuous_iff
 
 section constructions
 
@@ -476,10 +476,10 @@ variables {𝕜 P}
 include 𝕜 V
 /-- The map `g` from `V` to `V₂` corresponding to a map `f` from `P` to `P₂`, at a base point `p`,
 is an isometry if `f` is one. -/
-lemma vadd_vsub {f : P → P₂} (hf : isometry f) {p : P} {g : V → V₂}
-  (hg : ∀ v, g v = f (v +ᵥ p) -ᵥ f p) : isometry g :=
+lemma vadd_vsub {f : P → P₂} (hf : is_isometry f) {p : P} {g : V → V₂}
+  (hg : ∀ v, g v = f (v +ᵥ p) -ᵥ f p) : is_isometry g :=
 begin
-  convert (vadd_const 𝕜 (f p)).symm.isometry.comp (hf.comp (vadd_const 𝕜 p).isometry),
+  convert (vadd_const 𝕜 (f p)).symm.is_isometry.comp (hf.comp (vadd_const 𝕜 p).is_isometry),
   exact funext hg
 end
 omit 𝕜

@@ -346,7 +346,7 @@ lemma tendsto_iff_tendsto_uniformly {ι : Type*} {F : ι → C₀(α, β)} {f : 
 by simpa only [metric.tendsto_nhds] using @bounded_continuous_function.tendsto_iff_tendsto_uniformly
   _ _ _ _ _ (λ i, (F i).to_bcf) f.to_bcf l
 
-lemma isometry_to_bcf : isometry (to_bcf : C₀(α, β) → α →ᵇ β) := by tauto
+lemma is_isometry_to_bcf : is_isometry (to_bcf : C₀(α, β) → α →ᵇ β) := by tauto
 
 lemma closed_range_to_bcf : is_closed (range (to_bcf : C₀(α, β) → α →ᵇ β)) :=
 begin
@@ -366,7 +366,7 @@ end
 /-- Continuous functions vanishing at infinity taking values in a complete space form a
 complete space. -/
 instance [complete_space β] : complete_space C₀(α, β) :=
-(complete_space_iff_is_complete_range isometry_to_bcf.uniform_inducing).mpr
+(complete_space_iff_is_complete_range is_isometry_to_bcf.uniform_inducing).mpr
   closed_range_to_bcf.is_complete
 
 end metric

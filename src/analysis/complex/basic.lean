@@ -175,13 +175,13 @@ def conj_lie : ℂ ≃ₗᵢ[ℝ] ℂ := ⟨conj_ae.to_linear_equiv, abs_conj⟩
 
 @[simp] lemma conj_lie_symm : conj_lie.symm = conj_lie := rfl
 
-lemma isometry_conj : isometry (conj : ℂ → ℂ) := conj_lie.isometry
+lemma is_isometry_conj : is_isometry (conj : ℂ → ℂ) := conj_lie.is_isometry
 
 @[simp] lemma dist_conj_conj (z w : ℂ) : dist (conj z) (conj w) = dist z w :=
-isometry_conj.dist_eq z w
+is_isometry_conj.dist_eq z w
 
 @[simp] lemma nndist_conj_conj (z w : ℂ) : nndist (conj z) (conj w) = nndist z w :=
-isometry_conj.nndist_eq z w
+is_isometry_conj.nndist_eq z w
 
 lemma dist_conj_comm (z w : ℂ) : dist (conj z) w = dist z (conj w) :=
 by rw [← dist_conj_conj, conj_conj]
@@ -216,7 +216,7 @@ conj_lie.to_linear_isometry.norm_to_continuous_linear_map
 /-- Linear isometry version of the canonical embedding of `ℝ` in `ℂ`. -/
 def of_real_li : ℝ →ₗᵢ[ℝ] ℂ := ⟨of_real_am.to_linear_map, norm_real⟩
 
-lemma isometry_of_real : isometry (coe : ℝ → ℂ) := of_real_li.isometry
+lemma is_isometry_of_real : is_isometry (coe : ℝ → ℂ) := of_real_li.is_isometry
 
 @[continuity] lemma continuous_of_real : continuous (coe : ℝ → ℂ) := of_real_li.continuous
 

@@ -624,32 +624,31 @@ lemma comp {g : normed_group_hom V₂ V₃} {f : normed_group_hom V₁ V₂}
 
 end norm_noninc
 
-section isometry
+section is_isometry
 
-lemma isometry_iff_norm (f : normed_group_hom V W) :
-  isometry f ↔ ∀ v, ∥f v∥ = ∥v∥ :=
-add_monoid_hom.isometry_iff_norm f.to_add_monoid_hom
+lemma is_isometry_iff_norm (f : normed_group_hom V W) : is_isometry f ↔ ∀ v, ∥f v∥ = ∥v∥ :=
+add_monoid_hom.is_isometry_iff_norm f.to_add_monoid_hom
 
-lemma isometry_of_norm (f : normed_group_hom V W) (hf : ∀ v, ∥f v∥ = ∥v∥) :
-  isometry f :=
-f.isometry_iff_norm.mpr hf
+lemma is_isometry_of_norm (f : normed_group_hom V W) (hf : ∀ v, ∥f v∥ = ∥v∥) :
+  is_isometry f :=
+f.is_isometry_iff_norm.mpr hf
 
-lemma norm_eq_of_isometry {f : normed_group_hom V W} (hf : isometry f) (v : V) :
+lemma norm_eq_of_is_isometry {f : normed_group_hom V W} (hf : is_isometry f) (v : V) :
   ∥f v∥ = ∥v∥ :=
-f.isometry_iff_norm.mp hf v
+f.is_isometry_iff_norm.mp hf v
 
-lemma isometry_id : @isometry V V _ _ (id V) :=
-isometry_id
+lemma is_isometry_id : @is_isometry V V _ _ (id V) :=
+is_isometry_id
 
-lemma isometry_comp {g : normed_group_hom V₂ V₃} {f : normed_group_hom V₁ V₂}
-  (hg : isometry g) (hf : isometry f) :
-  isometry (g.comp f) :=
+lemma is_isometry_comp {g : normed_group_hom V₂ V₃} {f : normed_group_hom V₁ V₂}
+  (hg : is_isometry g) (hf : is_isometry f) :
+  is_isometry (g.comp f) :=
 hg.comp hf
 
-lemma norm_noninc_of_isometry (hf : isometry f) : f.norm_noninc :=
-λ v, le_of_eq $ norm_eq_of_isometry hf v
+lemma norm_noninc_of_is_isometry (hf : is_isometry f) : f.norm_noninc :=
+λ v, le_of_eq $ norm_eq_of_is_isometry hf v
 
-end isometry
+end is_isometry
 
 variables {W₁ W₂ W₃ : Type*} [semi_normed_group W₁] [semi_normed_group W₂] [semi_normed_group W₃]
 variables (f) (g : normed_group_hom V W)

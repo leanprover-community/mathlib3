@@ -191,11 +191,11 @@ end
 
 /-- Every `binary_fan` is isomorphic to an application of `binary_fan.mk`. -/
 def iso_binary_fan_mk {X Y : C} (c : binary_fan X Y) : c ≅ binary_fan.mk c.fst c.snd :=
-cones.ext (iso.refl _) (λ j, by cases j; tidy)
+cones.ext (iso.refl _) (λ j, by discrete_cases; cases j; tidy)
 
 /-- Every `binary_fan` is isomorphic to an application of `binary_fan.mk`. -/
 def iso_binary_cofan_mk {X Y : C} (c : binary_cofan X Y) : c ≅ binary_cofan.mk c.inl c.inr :=
-cocones.ext (iso.refl _) (λ j, by cases j; tidy)
+cocones.ext (iso.refl _) (λ j, by discrete_cases; cases j; tidy)
 
 /-- If `s` is a limit binary fan over `X` and `Y`, then every pair of morphisms `f : W ⟶ X` and
     `g : W ⟶ Y` induces a morphism `l : W ⟶ s.X` satisfying `l ≫ s.fst = f` and `l ≫ s.snd = g`.

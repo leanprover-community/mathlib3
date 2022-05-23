@@ -437,7 +437,7 @@ begin
 end
 
 lemma dvd_of_mem_factors {p a : α} (h : p ∈ factors a) : p ∣ a :=
-dvd_trans (multiset.dvd_prod h) (associated.dvd (factors_prod (ne_zero_of_exists_mem_factors h)))
+dvd_trans (multiset.dvd_prod h) (associated.dvd (factors_prod (ne_zero_of_mem_factors h)))
 
 end unique_factorization_monoid
 

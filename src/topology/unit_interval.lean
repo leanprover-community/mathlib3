@@ -50,7 +50,7 @@ end
 
 instance has_zero : has_zero I := ⟨⟨0, zero_mem⟩⟩
 
-@[simp, norm_cast] lemma coe_zero : ((0 : I) : ℝ) = 0 := rfl
+@[norm_cast] lemma coe_zero : ((0 : I) : ℝ) = 0 := rfl
 
 @[simp] lemma mk_zero (h : (0 : ℝ) ∈ Icc (0 : ℝ) 1) : (⟨0, h⟩ : I) = 0 := rfl
 
@@ -59,7 +59,7 @@ by { symmetry, exact subtype.ext_iff }
 
 instance has_one : has_one I := ⟨⟨1, by split ; norm_num⟩⟩
 
-@[simp, norm_cast] lemma coe_one : ((1 : I) : ℝ) = 1 := rfl
+@[norm_cast] lemma coe_one : ((1 : I) : ℝ) = 1 := rfl
 
 lemma coe_ne_zero {x : I} : (x : ℝ) ≠ 0 ↔ x ≠ 0 :=
 not_iff_not.mpr coe_eq_zero
@@ -76,7 +76,7 @@ instance : nonempty I := ⟨0⟩
 
 instance : has_mul I := ⟨λ x y, ⟨x * y, mul_mem x.2 y.2⟩⟩
 
-@[simp, norm_cast] lemma coe_mul {x y : I} : ((x * y : I) : ℝ) = x * y := rfl
+@[norm_cast] lemma coe_mul {x y : I} : ((x * y : I) : ℝ) = x * y := rfl
 
 -- todo: we could set up a `linear_ordered_comm_monoid_with_zero I` instance
 
@@ -92,10 +92,10 @@ def symm : I → I := λ t, ⟨1 - t, mem_iff_one_sub_mem.mp t.prop⟩
 localized "notation `σ` := unit_interval.symm" in unit_interval
 
 @[simp] lemma symm_zero : σ 0 = 1 :=
-subtype.ext $ by simp [symm]
+by { simp only [symm], push_cast [sub_zero, mk_one] }
 
 @[simp] lemma symm_one : σ 1 = 0 :=
-subtype.ext $ by simp [symm]
+by { simp only [symm], push_cast [sub_self, mk_zero] }
 
 @[simp] lemma symm_symm (x : I) : σ (σ x) = x :=
 subtype.ext $ by simp [symm]

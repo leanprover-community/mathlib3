@@ -36,7 +36,7 @@ open finite_dimensional
 open_locale tensor_product
 
 section
-variables (R : Type u) [comm_ring R] {M : Type v} [add_comm_group M] [module R M]
+variables (R : Type u) [comm_semiring R] {M : Type v} [add_comm_monoid M] [module R M]
 variables {ι : Type w} [decidable_eq ι] [fintype ι]
 variables {κ : Type*} [decidable_eq κ] [fintype κ]
 variables (b : basis ι R M) (c : basis κ R M)

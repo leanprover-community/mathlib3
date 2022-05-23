@@ -134,7 +134,7 @@ apply_eq_of_chain hc (find_mem _ _) hv
 
 /-- Least upper bound of a nonempty chain of partial refinements. -/
 def chain_Sup (c : set (partial_refinement u s)) (hc : is_chain (≤) c)
-  (ne : c.nonempty) (hfin : ∀ x ∈ s, finite {i | x ∈ u i}) (hU : s ⊆ ⋃ i, u i) :
+  (ne : c.nonempty) (hfin : ∀ x ∈ s, {i | x ∈ u i}.finite) (hU : s ⊆ ⋃ i, u i) :
   partial_refinement u s :=
 begin
   refine ⟨λ i, find c ne i i, chain_Sup_carrier c,
@@ -160,7 +160,7 @@ end
 
 /-- `chain_Sup hu c hc ne hfin hU` is an upper bound of the chain `c`. -/
 lemma le_chain_Sup {c : set (partial_refinement u s)} (hc : is_chain (≤) c)
-  (ne : c.nonempty) (hfin : ∀ x ∈ s, finite {i | x ∈ u i}) (hU : s ⊆ ⋃ i, u i)
+  (ne : c.nonempty) (hfin : ∀ x ∈ s, {i | x ∈ u i}.finite) (hU : s ⊆ ⋃ i, u i)
   {v} (hv : v ∈ c) :
   v ≤ chain_Sup c hc ne hfin hU :=
 ⟨λ i hi, mem_bUnion hv hi, λ i hi, (find_apply_of_mem hc _ hv hi).symm⟩
@@ -207,7 +207,7 @@ variables {u : ι → set X} {s : set X}
 to a new open cover so that the closure of each new open set is contained in the corresponding
 original open set. -/
 lemma exists_subset_Union_closure_subset (hs : is_closed s) (uo : ∀ i, is_open (u i))
-  (uf : ∀ x ∈ s, finite {i | x ∈ u i}) (us : s ⊆ ⋃ i, u i) :
+  (uf : ∀ x ∈ s, {i | x ∈ u i}.finite) (us : s ⊆ ⋃ i, u i) :
   ∃ v : ι → set X, s ⊆ Union v ∧ (∀ i, is_open (v i)) ∧ ∀ i, closure (v i) ⊆ u i :=
 begin
   classical,
@@ -228,7 +228,7 @@ end
 to a new closed cover so that each new closed set is contained in the corresponding original open
 set. See also `exists_subset_Union_closure_subset` for a stronger statement. -/
 lemma exists_subset_Union_closed_subset (hs : is_closed s) (uo : ∀ i, is_open (u i))
-  (uf : ∀ x ∈ s, finite {i | x ∈ u i}) (us : s ⊆ ⋃ i, u i) :
+  (uf : ∀ x ∈ s, {i | x ∈ u i}.finite) (us : s ⊆ ⋃ i, u i) :
   ∃ v : ι → set X, s ⊆ Union v ∧ (∀ i, is_closed (v i)) ∧ ∀ i, v i ⊆ u i :=
 let ⟨v, hsv, hvo, hv⟩ := exists_subset_Union_closure_subset hs uo uf us
 in ⟨λ i, closure (v i), subset.trans hsv (Union_mono $ λ i, subset_closure),
@@ -237,7 +237,7 @@ in ⟨λ i, closure (v i), subset.trans hsv (Union_mono $ λ i, subset_closure),
 /-- Shrinking lemma. A point-finite open cover of a closed subset of a normal space can be "shrunk"
 to a new open cover so that the closure of each new open set is contained in the corresponding
 original open set. -/
-lemma exists_Union_eq_closure_subset (uo : ∀ i, is_open (u i)) (uf : ∀ x, finite {i | x ∈ u i})
+lemma exists_Union_eq_closure_subset (uo : ∀ i, is_open (u i)) (uf : ∀ x, {i | x ∈ u i}.finite)
   (uU : (⋃ i, u i) = univ) :
   ∃ v : ι → set X, Union v = univ ∧ (∀ i, is_open (v i)) ∧ ∀ i, closure (v i) ⊆ u i :=
 let ⟨v, vU, hv⟩ := exists_subset_Union_closure_subset is_closed_univ uo (λ x _, uf x) uU.ge
@@ -246,7 +246,7 @@ in ⟨v, univ_subset_iff.1 vU, hv⟩
 /-- Shrinking lemma. A point-finite open cover of a closed subset of a normal space can be "shrunk"
 to a new closed cover so that each of the new closed sets is contained in the corresponding
 original open set. See also `exists_Union_eq_closure_subset` for a stronger statement. -/
-lemma exists_Union_eq_closed_subset (uo : ∀ i, is_open (u i)) (uf : ∀ x, finite {i | x ∈ u i})
+lemma exists_Union_eq_closed_subset (uo : ∀ i, is_open (u i)) (uf : ∀ x, {i | x ∈ u i}.finite)
   (uU : (⋃ i, u i) = univ) :
   ∃ v : ι → set X, Union v = univ ∧ (∀ i, is_closed (v i)) ∧ ∀ i, v i ⊆ u i :=
 let ⟨v, vU, hv⟩ := exists_subset_Union_closed_subset is_closed_univ uo (λ x _, uf x) uU.ge

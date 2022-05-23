@@ -239,7 +239,7 @@ instance [Π i, pseudo_emetric_space (β i)] : pseudo_emetric_space (pi_Lp p β)
 /-- emetric space instance on the product of finitely many emetric spaces, using the `L^p`
 edistance, and having as uniformity the product uniformity. -/
 instance [Π i, emetric_space (α i)] : emetric_space (pi_Lp p α) :=
-emetric_of_t2_pseudo_emetric_space (Pi.separated _)
+emetric.of_t0_pseudo_emetric_space (Pi.separated _)
 
 /-- pseudometric space instance on the product of finitely many psuedometric spaces, using the
 `L^p` distance, and having as uniformity the product uniformity. -/
@@ -250,7 +250,7 @@ instance [Π i, pseudo_metric_space (β i)] : pseudo_metric_space (pi_Lp p β) :
 /-- metric space instance on the product of finitely many metric spaces, using the `L^p` distance,
 and having as uniformity the product uniformity. -/
 instance [Π i, metric_space (α i)] : metric_space (pi_Lp p α) :=
-metric.of_t2_pseudo_metric_space (Pi.separated _)
+metric.of_t0_pseudo_metric_space (Pi.separated _)
 
 omit fact_one_le_p
 lemma dist_eq {p : ℝ} [fact (1 ≤ p)] {β : ι → Type*}

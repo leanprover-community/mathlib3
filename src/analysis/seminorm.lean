@@ -193,8 +193,8 @@ instance : has_coe_to_fun (seminorm 𝕜 E) (λ _, E → ℝ) := ⟨λ p, p.to_f
 
 @[ext] lemma ext {p q : seminorm 𝕜 E} (h : ∀ x, (p : E → ℝ) x = q x) : p = q := fun_like.ext p q h
 
-instance : has_zero (seminorm 𝕜 E) := ⟨{
-  smul' := λ _ _, (mul_zero _).symm,
+instance : has_zero (seminorm 𝕜 E) :=
+⟨{ smul' := λ _ _, (mul_zero _).symm,
   ..add_monoid_seminorm.has_zero.zero }⟩
 
 @[simp] lemma coe_zero : ⇑(0 : seminorm 𝕜 E) = 0 := rfl

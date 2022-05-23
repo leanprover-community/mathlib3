@@ -32,7 +32,7 @@ local notation x ` ⟶ ` p := tendsto x at_top (𝓝 p)
 section topological_space
 variables [topological_space α] [topological_space β]
 
-/-- The sequential closure of a set `s : set α` in a topological space `α` is the set of all `p ∈ α`
+/-- The sequential closure of a set `s : set α` in a topological space `α` is the set of all `p : α`
 which arise as limit of sequences in `s`. Note that it does not need to be sequentially closed. -/
 def seq_closure (s : set α) : set α :=
 {p | ∃ x : ℕ → α, (∀ n : ℕ, x n ∈ s) ∧ (x ⟶ p)}

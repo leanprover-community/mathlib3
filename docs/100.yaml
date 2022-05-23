@@ -109,7 +109,7 @@
   title  : Feuerbach’s Theorem
 30:
   title  : The Ballot Problem
-  decl   : ballot
+  decl   : ballot.ballot_problem
   author : Bhavik Mehta, Kexing Ying
 31:
   title  : Ramsey’s Theorem

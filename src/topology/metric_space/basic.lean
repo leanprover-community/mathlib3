@@ -1103,8 +1103,8 @@ let m : pseudo_metric_space α :=
     { exact edist_triangle _ _ _ },
     { simp [ennreal.add_eq_top, edist_ne_top] }
   end,
-  edist := λx y, edist x y,
-  edist_dist := λx y, by simp [h, ennreal.of_real_to_real, edist_ne_top] } in
+  edist := edist,
+  edist_dist := λ x y, by simp [h, ennreal.of_real_to_real, edist_ne_top] } in
 m.replace_uniformity $ by { rw [uniformity_pseudoedist, metric.uniformity_edist], refl }
 
 /-- One gets a pseudometric space from an emetric space if the edistance
@@ -1126,6 +1126,11 @@ def pseudo_metric_space.replace_bornology {α} [B : bornology α] (m : pseudo_me
   cobounded_sets := set.ext $ compl_surjective.forall.2 $ λ s, (H s).trans $
     by rw [is_bounded_iff, mem_set_of_eq, compl_compl],
   .. m }
+
+lemma pseudo_metric_space.replace_bornology_eq {α} [m : pseudo_metric_space α] [B : bornology α]
+  (H : ∀ s, @is_bounded _ B s ↔ @is_bounded _ pseudo_metric_space.to_bornology' s) :
+  pseudo_metric_space.replace_bornology _ H = m :=
+by { ext, refl }
 
 /-- A very useful criterion to show that a space is complete is to show that all sequences
 which satisfy a bound of the form `dist (u n) (u m) < B N` for all `n m ≥ N` are

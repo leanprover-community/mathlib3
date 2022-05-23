@@ -8,6 +8,7 @@ import data.set.intervals.proj_Icc
 import topology.metric_space.basic
 import category_theory.endomorphism
 import category_theory.types
+import topology.bornology.hom
 
 /-!
 # Lipschitz continuous functions
@@ -46,7 +47,7 @@ variables {α : Type u} {β : Type v} {γ : Type w} {ι : Type x}
 
 /-- A function `f` is Lipschitz continuous with constant `K ≥ 0` if for all `x, y`
 we have `dist (f x) (f y) ≤ K * dist x y` -/
-def lipschitz_with [pseudo_emetric_space α] [pseudo_emetric_space β] (K : ℝ≥0) (f : α → β) :=
+def lipschitz_with [has_edist α] [has_edist β] (K : ℝ≥0) (f : α → β) :=
 ∀x y, edist (f x) (f y) ≤ K * edist x y
 
 lemma lipschitz_with_iff_dist_le_mul [pseudo_metric_space α] [pseudo_metric_space β] {K : ℝ≥0}
@@ -57,15 +58,15 @@ alias lipschitz_with_iff_dist_le_mul ↔ lipschitz_with.dist_le_mul lipschitz_wi
 
 /-- A function `f` is Lipschitz continuous with constant `K ≥ 0` on `s` if for all `x, y` in `s`
 we have `dist (f x) (f y) ≤ K * dist x y` -/
-def lipschitz_on_with [pseudo_emetric_space α] [pseudo_emetric_space β] (K : ℝ≥0) (f : α → β)
+def lipschitz_on_with [has_edist α] [has_edist β] (K : ℝ≥0) (f : α → β)
   (s : set α) :=
 ∀ ⦃x⦄ (hx : x ∈ s) ⦃y⦄ (hy : y ∈ s), edist (f x) (f y) ≤ K * edist x y
 
-@[simp] lemma lipschitz_on_with_empty [pseudo_emetric_space α] [pseudo_emetric_space β] (K : ℝ≥0)
+@[simp] lemma lipschitz_on_with_empty [has_edist α] [has_edist β] (K : ℝ≥0)
   (f : α → β) : lipschitz_on_with K f ∅ :=
 λ x x_in y y_in, false.elim x_in
 
-lemma lipschitz_on_with.mono [pseudo_emetric_space α] [pseudo_emetric_space β] {K : ℝ≥0}
+lemma lipschitz_on_with.mono [has_edist α] [has_edist β] {K : ℝ≥0}
   {s t : set α} {f : α → β} (hf : lipschitz_on_with K f t) (h : s ⊆ t) : lipschitz_on_with K f s :=
 λ x x_in y y_in, hf (h x_in) (h y_in)
 
@@ -77,7 +78,7 @@ by { simp only [lipschitz_on_with, edist_nndist, dist_nndist], norm_cast }
 alias lipschitz_on_with_iff_dist_le_mul ↔
   lipschitz_on_with.dist_le_mul lipschitz_on_with.of_dist_le_mul
 
-@[simp] lemma lipschitz_on_univ [pseudo_emetric_space α] [pseudo_emetric_space β] {K : ℝ≥0}
+@[simp] lemma lipschitz_on_univ [has_edist α] [has_edist β] {K : ℝ≥0}
   {f : α → β} : lipschitz_on_with K f univ ↔ lipschitz_with K f :=
 by simp [lipschitz_on_with, lipschitz_with]
 
@@ -319,6 +320,21 @@ lemma dist_lt_mul_of_lt (hf : lipschitz_with K f) (hK : K ≠ 0) (hr : dist x y 
 lemma maps_to_ball (hf : lipschitz_with K f) (hK : K ≠ 0) (x : α) (r : ℝ) :
   maps_to f (metric.ball x r) (metric.ball (f x) (K * r)) :=
 λ y hy, hf.dist_lt_mul_of_lt hK hy
+
+/-- A Lipschitz continuous map is a locally bounded map. -/
+def to_locally_bounded_map (f : α → β) (hf : lipschitz_with K f) :
+  locally_bounded_map α β :=
+locally_bounded_map.of_map_bounded f $ λ s hs, let ⟨C, hC⟩ := metric.is_bounded_iff.1 hs
+in metric.is_bounded_iff.2 ⟨K * C, ball_image_iff.2 $ λ x hx, ball_image_iff.2 $ λ y hy,
+  hf.dist_le_mul_of_le (hC hx hy)⟩
+
+@[simp] lemma coe_to_locally_bounded_map (hf : lipschitz_with K f) :
+  ⇑(hf.to_locally_bounded_map f) = f :=
+rfl
+
+lemma comap_cobounded_le (hf : lipschitz_with K f) :
+  comap f (bornology.cobounded β) ≤ bornology.cobounded α :=
+(hf.to_locally_bounded_map f).2
 
 lemma bounded_image (hf : lipschitz_with K f) {s : set α} (hs : metric.bounded s) :
   metric.bounded (f '' s) :=

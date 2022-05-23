@@ -313,6 +313,16 @@ theorem nadd_le_nadd_iff_left : ∀ a {b c}, a ♯ b ≤ a ♯ c ↔ b ≤ c :=
 theorem nadd_le_nadd_iff_right : ∀ a {b c}, b ♯ a ≤ c ♯ a ↔ b ≤ c :=
 @_root_.add_le_add_iff_right nat_ordinal _ _ _ _
 
+theorem nadd_le_nadd : ∀ {a b c d}, a ≤ b → c ≤ d → a ♯ c ≤ b ♯ d :=
+@add_le_add nat_ordinal _ _ _ _
+theorem nadd_lt_nadd : ∀ {a b c d}, a < b → c < d → a ♯ c < b ♯ d :=
+@add_lt_add nat_ordinal _ _ _ _
+
+theorem nadd_lt_nadd_of_lt_of_le : ∀ {a b c d}, a < b → c ≤ d → a ♯ c < b ♯ d :=
+@add_lt_add_of_lt_of_le nat_ordinal _ _ _ _
+theorem nadd_lt_nadd_of_le_of_lt : ∀ {a b c d}, a ≤ b → c < d → a ♯ c < b ♯ d :=
+@add_lt_add_of_le_of_lt nat_ordinal _ _ _ _
+
 theorem nadd_left_cancel : ∀ {a b c}, a ♯ b = a ♯ c → b = c :=
 @_root_.add_left_cancel nat_ordinal _
 theorem nadd_right_cancel : ∀ {a b c}, a ♯ b = c ♯ b → a = c :=
@@ -331,7 +341,14 @@ by simpa using nadd_le_nadd_left (ordinal.zero_le b) a
 theorem le_nadd_right {a b c} (h : a ≤ b) : a ≤ b ♯ c :=
 le_self_nadd.trans (nadd_le_nadd_right h c)
 
+theorem nadd_left_comm : ∀ a b c, a ♯ (b ♯ c) = b ♯ (a ♯ c) :=
+@add_left_comm nat_ordinal _
+theorem nadd_right_comm : ∀ a b c, a ♯ b ♯ c = a ♯ c ♯ b :=
+@add_right_comm nat_ordinal _
+
 /-! ### Natural multiplication -/
+
+variables {a b c : ordinal.{u}}
 
 /-- Natural multiplication on ordinals `a ⨳ b` is recursively defined as the least ordinal such that
 `a ⨳ b + a' ⨳ b'` is greater than `a' ⨳ b + a ⨳ b'` for all `a' < a` and `b < b'`. In contrast to
@@ -352,25 +369,115 @@ by rw nmul
 /-- The set in the definition of `nmul` is nonempty. -/
 theorem nmul_nonempty (a b : ordinal.{u}) :
   {c : ordinal.{u} | ∀ (a' < a) (b' < b), a' ⨳ b ♯ a ⨳ b' < c ♯ a' ⨳ b'}.nonempty :=
-⟨_, λ a' ha' b' hb', (lt_blsub₂.{u u u} _ ha' hb').trans_le le_self_nadd⟩
+⟨_, λ a' ha b' hb, (lt_blsub₂.{u u u} _ ha hb).trans_le le_self_nadd⟩
 
-theorem nmul_nadd_lt {a b a' b' : ordinal.{u}} (ha : a' < a) (hb : b' < b) :
+theorem nmul_nadd_lt {a' b' : ordinal} (ha : a' < a) (hb : b' < b) :
   a' ⨳ b ♯ a ⨳ b' < a ⨳ b ♯ a' ⨳ b' :=
 by { rw nmul_def a b, exact Inf_mem (nmul_nonempty a b) a' ha b' hb }
 
-theorem lt_nmul_iff {a b c : ordinal} :
-  c < a ⨳ b ↔ ∃ (a' < a) (b' < b), c ♯ a' ⨳ b' ≤ a' ⨳ b ♯ a ⨳ b' :=
+theorem nmul_nadd_le {a' b' : ordinal} (ha : a' ≤ a) (hb : b' ≤ b) :
+  a' ⨳ b ♯ a ⨳ b' ≤ a ⨳ b ♯ a' ⨳ b' :=
+begin
+  rcases lt_or_eq_of_le ha with ha | rfl,
+  { rcases lt_or_eq_of_le hb with hb | rfl,
+    { exact (nmul_nadd_lt ha hb).le },
+    { rw nadd_comm } },
+  { exact le_rfl }
+end
+
+theorem lt_nmul_iff : c < a ⨳ b ↔ ∃ (a' < a) (b' < b), c ♯ a' ⨳ b' ≤ a' ⨳ b ♯ a ⨳ b' :=
 begin
   refine ⟨λ h, _, _⟩,
   { rw nmul_def at h,
     simpa using not_mem_of_lt_cInf h ⟨0, λ _ _, bot_le⟩ },
-  { rintros ⟨a', ha', b', hb', h⟩,
-    have := h.trans_lt (nmul_nadd_lt ha' hb'),
+  { rintros ⟨a', ha, b', hb, h⟩,
+    have := h.trans_lt (nmul_nadd_lt ha hb),
     rwa nadd_lt_nadd_iff_right at this }
 end
 
-theorem nmul_le_iff {a b c : ordinal} :
-  a ⨳ b ≤ c ↔ ∀ (a' < a) (b' < b), a' ⨳ b ♯ a ⨳ b' < c ♯ a' ⨳ b' :=
+theorem nmul_le_iff : a ⨳ b ≤ c ↔ ∀ (a' < a) (b' < b), a' ⨳ b ♯ a ⨳ b' < c ♯ a' ⨳ b' :=
 by { rw ←not_iff_not, simp [lt_nmul_iff] }
+
+theorem nmul_comm : ∀ (a b), a ⨳ b = b ⨳ a
+| a b := begin
+  rw [nmul_def, nmul_def],
+  congr, ext x, split;
+  intros H c hc d hd,
+  { rw [nadd_comm, ←nmul_comm, ←nmul_comm a, ←nmul_comm d],
+    exact H _ hd _ hc },
+  { rw [nadd_comm, nmul_comm, nmul_comm c, nmul_comm c],
+    exact H _ hd _ hc }
+end
+using_well_founded { dec_tac := `[solve_by_elim [psigma.lex.left, psigma.lex.right]] }
+
+@[simp] theorem nmul_zero (a) : a ⨳ 0 = 0 :=
+by { rw [←ordinal.le_zero, nmul_le_iff], exact λ  _ _ a ha, (ordinal.not_lt_zero a ha).elim }
+
+@[simp] theorem zero_nmul (a) : 0 ⨳ a = 0 :=
+by rw [nmul_comm, nmul_zero]
+
+@[simp] theorem nmul_one (a) : a ⨳ 1 = a :=
+begin
+  induction a using ordinal.induction with a IH,
+  apply le_antisymm,
+  { rw nmul_le_iff,
+    intros b hb c hc,
+    rw lt_one_iff_zero at hc,
+    subst hc,
+    simp [hb, IH b hb] },
+  { rw [nmul_def, le_cInf_iff'' (nmul_nonempty _ _)],
+    apply λ b H, le_of_forall_lt (λ c hc, _),
+    simpa [IH c hc] using H c hc 0 zero_lt_one }
+end
+
+@[simp] theorem one_nmul (a) : 1 ⨳ a = a :=
+by rw [nmul_comm, nmul_one]
+
+theorem nmul_lt_nmul_of_pos_left (h₁ : a < b) (h₂ : 0 < c) : c ⨳ a < c ⨳ b :=
+lt_nmul_iff.2 ⟨0, h₂, a, h₁, by simp⟩
+
+theorem nmul_lt_nmul_of_pos_right (h₁ : a < b) (h₂ : 0 < c) : a ⨳ c < b ⨳ c :=
+lt_nmul_iff.2 ⟨a, h₁, 0, h₂, by simp⟩
+
+theorem nmul_nadd : ∀ (a b c), a ⨳ (b ♯ c) = a ⨳ b ♯ a ⨳ c
+| a b c := begin
+  apply le_antisymm (nmul_le_iff.2 $ λ a' ha d hd, _) (nadd_le_iff.2 ⟨λ d hd, _, λ d hd, _⟩),
+  { rw nmul_nadd,
+    rcases lt_nadd_iff.1 hd with ⟨b', hb, hd⟩ | ⟨c', hc, hd⟩,
+    { have := nadd_lt_nadd_of_lt_of_le (nmul_nadd_lt ha hb) (nmul_nadd_le ha.le hd),
+      rw [nmul_nadd, nmul_nadd] at this,
+      simp only [nadd_assoc] at this,
+      rwa [nadd_left_comm, nadd_left_comm _ (a ⨳ b'), nadd_left_comm (a ⨳ b), nadd_lt_nadd_iff_left,
+        nadd_left_comm (a' ⨳ b), nadd_left_comm (a ⨳ b), nadd_lt_nadd_iff_left, ←nadd_assoc,
+        ←nadd_assoc] at this },
+    { have := nadd_lt_nadd_of_le_of_lt (nmul_nadd_le ha.le hd) (nmul_nadd_lt ha hc),
+      rw [nmul_nadd, nmul_nadd] at this,
+      simp only [nadd_assoc] at this,
+      rwa [nadd_left_comm, nadd_comm (a ⨳ c), nadd_left_comm (a' ⨳ d), nadd_left_comm (a ⨳ c'),
+        nadd_left_comm (a ⨳ b), nadd_lt_nadd_iff_left, nadd_comm (a' ⨳ c), nadd_left_comm (a ⨳ d),
+        nadd_left_comm (a' ⨳ b), nadd_left_comm (a ⨳ b), nadd_lt_nadd_iff_left, nadd_comm (a ⨳ d),
+        nadd_comm (a' ⨳ d), ←nadd_assoc, ←nadd_assoc] at this } },
+  { rcases lt_nmul_iff.1 hd with ⟨a', ha, b', hb, hd⟩,
+    have := nadd_lt_nadd_of_le_of_lt hd (nmul_nadd_lt ha (nadd_lt_nadd_right hb c)),
+    rw [nmul_nadd, nmul_nadd, nmul_nadd a'] at this,
+    simp only [nadd_assoc] at this,
+    rwa [nadd_left_comm (a' ⨳ b'), nadd_left_comm, nadd_lt_nadd_iff_left, nadd_left_comm,
+      nadd_left_comm _ (a' ⨳ b'), nadd_left_comm (a ⨳ b'), nadd_lt_nadd_iff_left,
+      nadd_left_comm (a' ⨳ c), nadd_left_comm, nadd_lt_nadd_iff_left, nadd_left_comm,
+      nadd_comm _ (a' ⨳ c), nadd_lt_nadd_iff_left] at this },
+  { rcases lt_nmul_iff.1 hd with ⟨a', ha, c', hc, hd⟩,
+    have := nadd_lt_nadd_of_lt_of_le (nmul_nadd_lt ha (nadd_lt_nadd_left hc b)) hd,
+    rw [nmul_nadd, nmul_nadd, nmul_nadd a'] at this,
+    simp only [nadd_assoc] at this,
+    rwa [nadd_left_comm _ (a' ⨳ b), nadd_lt_nadd_iff_left, nadd_left_comm (a' ⨳ c'),
+      nadd_left_comm _ (a' ⨳ c), nadd_lt_nadd_iff_left, nadd_left_comm,
+      nadd_comm (a' ⨳ c'), nadd_left_comm _ (a ⨳ c'), nadd_lt_nadd_iff_left,
+      nadd_comm _ (a' ⨳ c'), nadd_comm _ (a' ⨳ c'), nadd_left_comm,
+      nadd_lt_nadd_iff_left] at this }
+end
+using_well_founded { dec_tac := `[solve_by_elim [psigma.lex.left, psigma.lex.right]] }
+
+theorem nadd_nmul (a b c) : (a ♯ b) ⨳ c = a ⨳ c ♯ b ⨳ c :=
+by rw [nmul_comm, nmul_nadd, nmul_comm, nmul_comm c]
 
 end ordinal

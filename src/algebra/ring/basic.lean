@@ -996,7 +996,7 @@ lemma is_regular_iff_ne_zero' [nontrivial α] [non_unital_non_assoc_ring α] [no
   {k : α} : is_regular k ↔ k ≠ 0 :=
 ⟨λ h, by { rintro rfl, exact not_not.mpr h.left not_is_left_regular_zero }, is_regular_of_ne_zero'⟩
 
-/-- A ring with no zero divisors is a cancel_monoid_with_zero.
+/-- A ring with no zero divisors is a `cancel_monoid_with_zero`.
 
 Note this is not an instance as it forms a typeclass loop. -/
 @[reducible]
@@ -1006,7 +1006,16 @@ def no_zero_divisors.to_cancel_monoid_with_zero [ring α] [no_zero_divisors α] 
     @is_regular.left _ _ _ (is_regular_of_ne_zero' ha) _ _,
   mul_right_cancel_of_ne_zero := λ a b c hb,
     @is_regular.right _ _ _ (is_regular_of_ne_zero' hb) _ _,
-  .. (infer_instance : semiring α) }
+  .. (by apply_instance : monoid_with_zero α) }
+
+/-- A commutative ring with no zero divisors is a `cancel_comm_monoid_with_zero`.
+
+Note this is not an instance as it forms a typeclass loop. -/
+@[reducible]
+def no_zero_divisors.to_cancel_comm_monoid_with_zero [comm_ring α] [no_zero_divisors α] :
+  cancel_comm_monoid_with_zero α :=
+{ .. no_zero_divisors.to_cancel_monoid_with_zero,
+  .. (by apply_instance : comm_monoid_with_zero α) }
 
 /-- A domain is a nontrivial ring with no zero divisors, i.e. satisfying
   the condition `a * b = 0 ↔ a = 0 ∨ b = 0`.
@@ -1026,7 +1035,7 @@ variables [comm_ring α] [is_domain α]
 
 @[priority 100] -- see Note [lower instance priority]
 instance is_domain.to_cancel_comm_monoid_with_zero : cancel_comm_monoid_with_zero α :=
-{ ..comm_semiring.to_comm_monoid_with_zero, ..is_domain.to_cancel_monoid_with_zero }
+no_zero_divisors.to_cancel_comm_monoid_with_zero
 
 end is_domain
 

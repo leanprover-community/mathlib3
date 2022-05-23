@@ -498,7 +498,7 @@ tendsto_of_tendsto_of_tendsto_of_le_of_le'
     refine (eventually_gt_at_top 0).mono (λ n hn, _),
     rcases nat.exists_eq_succ_of_ne_zero hn.ne.symm with ⟨k, rfl⟩,
     rw [← prod_range_add_one_eq_factorial, pow_eq_prod_const, div_eq_mul_inv, ← inv_eq_one_div,
-      prod_nat_cast, nat.cast_succ, ← prod_inv_distrib', ← prod_mul_distrib,
+      prod_nat_cast, nat.cast_succ, ← prod_inv_distrib, ← prod_mul_distrib,
       finset.prod_range_succ'],
     simp only [prod_range_succ', one_mul, nat.cast_add, zero_add, nat.cast_one],
     refine mul_le_of_le_one_left (inv_nonneg.mpr $ by exact_mod_cast hn.le) (prod_le_one _ _);

@@ -77,8 +77,8 @@ def nim_zero_relabelling : relabelling (nim 0) 0 := relabelling.is_empty _
 
 @[simp] theorem nim_zero_equiv : nim 0 ≈ 0 := equiv.is_empty _
 
-/-- `star` has exactly the same moves as `nim 1`. -/
-noncomputable def star_relabelling : relabelling star (nim 1) :=
+/-- `nim 1` has exactly the same moves as `star`. -/
+noncomputable def nim_one_relabelling : relabelling (nim 1) star :=
 begin
   rw nim_def,
   refine ⟨_, _, λ i,  _, λ j, _⟩,
@@ -86,7 +86,7 @@ begin
   all_goals { simp, exact nim_zero_relabelling.symm }
 end
 
-@[simp] theorem star_equiv_nim_one : star ≈ nim 1 := star_relabelling.equiv
+@[simp] theorem nim_one_equiv : nim 1 ≈ star := nim_one_relabelling.equiv
 
 @[simp] lemma nim_birthday (O : ordinal) : (nim O).birthday = O :=
 begin
@@ -255,14 +255,12 @@ by simp
   grundy_value G = grundy_value H ↔ G ≈ H :=
 (grundy_value_eq_iff_equiv_nim _ _).trans (equiv_congr_left.1 (equiv_nim_grundy_value H) _).symm
 
-lemma grundy_value_zero : grundy_value 0 = 0 :=
-by simp [equiv_symm nim.nim_zero_equiv]
+@[simp] lemma grundy_value_zero : grundy_value 0 = 0 := by simp [equiv_symm nim.nim_zero_equiv]
 
 @[simp] lemma grundy_value_iff_equiv_zero (G : pgame) [G.impartial] : grundy_value G = 0 ↔ G ≈ 0 :=
 by rw [←grundy_value_eq_iff_equiv, grundy_value_zero]
 
-lemma grundy_value_star : grundy_value star = 1 :=
-by simp
+lemma grundy_value_star : grundy_value star = 1 := by simp [equiv_symm nim.nim_one_equiv]
 
 @[simp] lemma grundy_value_nim_add_nim (n m : ℕ) :
   grundy_value (nim.{u} n + nim.{u} m) = nat.lxor n m :=

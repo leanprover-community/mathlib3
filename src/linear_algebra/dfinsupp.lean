@@ -303,7 +303,7 @@ begin
     rw ← hμ, symmetry, apply finset.sum_subset,
     { intro x, contrapose, intro hx,
       rw [mem_support_iff, not_ne_iff],
-      ext, rw [coe_zero, ← mem_bot R], convert coe_mem (μ x),
+      ext, rw [add_submonoid_class.coe_zero, ← mem_bot R], convert coe_mem (μ x),
       symmetry, exact supr_neg hx },
     { intros x _ hx, rw [mem_support_iff, not_ne_iff] at hx, rw hx, refl } },
   { refine ⟨dfinsupp.mk s _, _⟩,

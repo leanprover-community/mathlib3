@@ -163,7 +163,7 @@ instance : has_neg (GL_pos n R) :=
 rfl
 
 instance : has_distrib_neg (GL_pos n R) :=
-subtype.coe_injective.has_distrib_neg _ GL_pos.coe_neg_GL (GL_pos n R).coe_mul
+subtype.coe_injective.has_distrib_neg _ GL_pos.coe_neg_GL submonoid_class.coe_mul
 
 end has_neg
 

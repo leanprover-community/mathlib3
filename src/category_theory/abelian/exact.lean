@@ -337,7 +337,7 @@ begin
 end
 
 instance preserves_binary_product_of_preserves_kernels
-  [pres_kernels : ∀ {X Y} (f : X ⟶ Y), preserves_limit (parallel_pair f 0) F] {X Y : C} :
+  [∀ {X Y} (f : X ⟶ Y), preserves_limit (parallel_pair f 0) F] {X Y : C} :
   preserves_limit (pair X Y) F :=
 { preserves := λ c hc, is_limit.of_iso_limit
     (is_limit_map_cone_binary_fan_of_preserves_kernels F _ _
@@ -345,7 +345,7 @@ instance preserves_binary_product_of_preserves_kernels
     ((cones.functoriality _ F).map_iso (iso_binary_fan_mk c).symm) }
 
 instance preserves_binary_products_of_preserves_kernels
-  [pres_kernels : ∀ {X Y} (f : X ⟶ Y), preserves_limit (parallel_pair f 0) F] :
+  [∀ {X Y} (f : X ⟶ Y), preserves_limit (parallel_pair f 0) F] :
   preserves_limits_of_shape (discrete walking_pair) F :=
 { preserves_limit := λ p, preserves_limit_of_iso_diagram F (diagram_iso_pair p).symm }
 
@@ -353,7 +353,7 @@ instance preserves_binary_products_of_preserves_kernels
 A functor from a preadditive category into an abelian category preserves the equalizer of two
 morphisms if it preserves all kernels. -/
 def preserves_equalizer_of_preserves_kernels
-  [pres_kernels : ∀ {X Y} (f : X ⟶ Y), preserves_limit (parallel_pair f 0) F] {X Y : C}
+  [∀ {X Y} (f : X ⟶ Y), preserves_limit (parallel_pair f 0) F] {X Y : C}
   (f g : X ⟶ Y) : preserves_limit (parallel_pair f g) F :=
 begin
   haveI := preserves_binary_biproducts_of_preserves_binary_products F,
@@ -378,7 +378,7 @@ A functor from a preadditive category into an abelian category preserves all equ
 preserves all kernels.
 -/
 def preserves_equalizers_of_preserves_kernels
-  [pres_kernels : ∀ {X Y} (f : X ⟶ Y), preserves_limit (parallel_pair f 0) F] :
+  [∀ {X Y} (f : X ⟶ Y), preserves_limit (parallel_pair f 0) F] :
   preserves_limits_of_shape walking_parallel_pair F :=
 { preserves_limit := λ K,
   begin
@@ -425,7 +425,7 @@ begin
 end
 
 instance preserves_coproduct_of_preserves_cokernels
-  [pres_cokernels : ∀ {X Y} (f : X ⟶ Y), preserves_colimit (parallel_pair f 0) F] {X Y : C} :
+  [∀ {X Y} (f : X ⟶ Y), preserves_colimit (parallel_pair f 0) F] {X Y : C} :
   preserves_colimit (pair X Y) F :=
 { preserves := λ c hc, is_colimit.of_iso_colimit
     (is_colimit_map_cocone_binary_cofan_of_preserves_cokernels F _ _
@@ -433,7 +433,7 @@ instance preserves_coproduct_of_preserves_cokernels
     ((cocones.functoriality _ F).map_iso (iso_binary_cofan_mk c).symm) }
 
 instance preserves_binary_coproducts_of_preserves_cokernels
-  [pres_cokernels : ∀ {X Y} (f : X ⟶ Y), preserves_colimit (parallel_pair f 0) F] :
+  [∀ {X Y} (f : X ⟶ Y), preserves_colimit (parallel_pair f 0) F] :
   preserves_colimits_of_shape (discrete walking_pair) F :=
 { preserves_colimit := λ p, preserves_colimit_of_iso_diagram F (diagram_iso_pair p).symm }
 
@@ -441,7 +441,7 @@ instance preserves_binary_coproducts_of_preserves_cokernels
 A functor from a preadditive category into an abelian category preserves the coequalizer of two
 morphisms if it preserves all cokernels. -/
 def preserves_coequalizer_of_preserves_cokernels
-  [pres_kernels : ∀ {X Y} (f : X ⟶ Y), preserves_colimit (parallel_pair f 0) F] {X Y : C}
+  [∀ {X Y} (f : X ⟶ Y), preserves_colimit (parallel_pair f 0) F] {X Y : C}
   (f g : X ⟶ Y) : preserves_colimit (parallel_pair f g) F :=
 begin
   haveI := preserves_binary_biproducts_of_preserves_binary_coproducts F,
@@ -466,7 +466,7 @@ A functor from a preadditive category into an abelian category preserves all coe
 preserves all kernels.
 -/
 def preserves_coequalizers_of_preserves_cokernels
-  [pres_kernels : ∀ {X Y} (f : X ⟶ Y), preserves_colimit (parallel_pair f 0) F] :
+  [∀ {X Y} (f : X ⟶ Y), preserves_colimit (parallel_pair f 0) F] :
   preserves_colimits_of_shape walking_parallel_pair F :=
 { preserves_colimit := λ K,
   begin
@@ -481,8 +481,7 @@ A functor from a preadditive category to an abelian category which preserves ker
 all finite limits.
 -/
 def preserves_finite_colimits_of_preserves_cokernels
-  [pres_cokernels : ∀ {X Y} (f : X ⟶ Y), preserves_colimit (parallel_pair f 0) F] :
-  preserves_finite_colimits F :=
+  [∀ {X Y} (f : X ⟶ Y), preserves_colimit (parallel_pair f 0) F] : preserves_finite_colimits F :=
 begin
   haveI := preserves_coequalizers_of_preserves_cokernels F,
   haveI := preserves_initial_object_of_preserves_zero_morphisms F,

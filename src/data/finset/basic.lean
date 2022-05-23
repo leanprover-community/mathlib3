@@ -582,17 +582,14 @@ instance : is_lawful_singleton α (finset α) := ⟨λ a, by { ext, simp }⟩
 
 @[simp] lemma insert_eq_of_mem (h : a ∈ s) : insert a s = s := eq_of_veq $ ndinsert_of_mem h
 
-@[simp] theorem insert_singleton_self_eq (a : α) : ({a, a} : finset α) = {a} :=
+@[simp] theorem pair_self_eq (a : α) : ({a, a} : finset α) = {a} :=
 insert_eq_of_mem $ mem_singleton_self _
 
 theorem insert.comm (a b : α) (s : finset α) : insert a (insert b s) = insert b (insert a s) :=
 ext $ λ x, by simp only [mem_insert, or.left_comm]
 
-theorem insert_singleton_comm (a b : α) : ({a, b} : finset α) = {b, a} :=
-begin
-  ext,
-  simp [or.comm]
-end
+theorem pair_comm (a b : α) : ({a, b} : finset α) = {b, a} :=
+insert.comm a b ∅
 
 @[simp] theorem insert_idem (a : α) (s : finset α) : insert a (insert a s) = insert a s :=
 ext $ λ x, by simp only [mem_insert, or.assoc.symm, or_self]

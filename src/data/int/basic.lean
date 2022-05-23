@@ -729,6 +729,19 @@ begin
   rw [sub_add_cancel, ← add_mod_mod, sub_add_cancel, mod_mod]
 end
 
+protected theorem div_mod_unique {a b r q : ℤ} (h : 0 < b) :
+  a / b = q ∧ a % b = r ↔ r + b * q = a ∧ 0 ≤ r ∧ r < b :=
+begin
+  split,
+  { rintro ⟨rfl, rfl⟩,
+    exact ⟨mod_add_div a b, mod_nonneg _ h.ne.symm, mod_lt_of_pos _ h⟩, },
+  { rintro ⟨rfl, hz, hb⟩,
+    split,
+    { rw [int.add_mul_div_left r q (ne_of_gt h), div_eq_zero_of_lt hz hb],
+      simp, },
+    { rw [add_mul_mod_self_left, mod_eq_of_lt hz hb] } },
+end
+
 /-! ### properties of `/` and `%` -/
 
 @[simp] theorem mul_div_mul_of_pos {a : ℤ} (b c : ℤ) (H : 0 < a) : a * b / (a * c) = b / c :=

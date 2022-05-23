@@ -34,7 +34,7 @@ For finsets `s` and `t`:
 For `α` a semigroup/monoid, `finset α` is a semigroup/monoid.
 As an unfortunate side effect, this means that `n • s`, where `n : ℕ`, is ambiguous between
 pointwise scaling and repeated pointwise addition; the former has `(2 : ℕ) • {1, 2} = {2, 4}`, while
-the latter has `(2 : ℕ) • {1, 2} = {2, 3, 4}`.
+the latter has `(2 : ℕ) • {1, 2} = {2, 3, 4}`. See note [pointwise nat action].
 
 ## Implementation notes
 
@@ -280,21 +280,22 @@ open_locale pointwise
 section instances
 variables [decidable_eq α]
 
-/-- Repeated pointwise addition (not the same as pointwise repeated addition!) of a `finset`. -/
+/-- Repeated pointwise addition (not the same as pointwise repeated addition!) of a `finset`. See
+note [pointwise nat action]. -/
 protected def has_nsmul [has_zero α] [has_add α] : has_scalar ℕ (finset α) := ⟨nsmul_rec⟩
 
 /-- Repeated pointwise multiplication (not the same as pointwise repeated multiplication!) of a
-`finset`. -/
+`finset`. See note [pointwise nat action]. -/
 @[to_additive]
 protected def has_npow [has_one α] [has_mul α] : has_pow (finset α) ℕ := ⟨λ s n, npow_rec n s⟩
 
 /-- Repeated pointwise addition/subtraction (not the same as pointwise repeated
-addition/subtraction!) of a `finset`. -/
+addition/subtraction!) of a `finset`. See note [pointwise nat action]. -/
 protected def has_zsmul [has_zero α] [has_add α] [has_neg α] : has_scalar ℤ (finset α) :=
 ⟨zsmul_rec⟩
 
 /-- Repeated pointwise multiplication/division (not the same as pointwise repeated
-multiplication/division!) of a `finset`. -/
+multiplication/division!) of a `finset`. See note [pointwise nat action]. -/
 @[to_additive] protected def has_zpow [has_one α] [has_mul α] [has_inv α] : has_pow (finset α) ℤ :=
 ⟨λ s n, zpow_rec n s⟩
 
@@ -402,8 +403,34 @@ pointwise operations if `α` is."]
 protected def division_comm_monoid [division_comm_monoid α] : division_comm_monoid (finset α) :=
 coe_injective.division_comm_monoid _ coe_one coe_mul coe_inv coe_div coe_pow coe_zpow
 
+/-- `finset α` has distributive negation if `α` has. -/
+protected def has_distrib_neg [has_mul α] [has_distrib_neg α] : has_distrib_neg (finset α) :=
+coe_injective.has_distrib_neg _ coe_neg coe_mul
+
 localized "attribute [instance] finset.comm_monoid finset.add_comm_monoid finset.division_monoid
-  finset.subtraction_monoid finset.division_comm_monoid finset.subtraction_comm_monoid" in pointwise
+  finset.subtraction_monoid finset.division_comm_monoid finset.subtraction_comm_monoid
+  finset.has_distrib_neg" in pointwise
+
+section distrib
+variables [distrib α] (s t u : finset α)
+
+/-!
+Note that `finset α` is not a `distrib` because `s * t + s * u` has cross terms that `s * (t + u)`
+lacks.
+
+```lean
+-- {10, 16, 18, 20, 8, 9}
+#eval {1, 2} * ({3, 4} + {5, 6} : finset ℕ)
+
+-- {10, 11, 12, 13, 14, 15, 16, 18, 20, 8, 9}
+#eval ({1, 2} : finset ℕ) * {3, 4} + {1, 2} * {5, 6}
+```
+-/
+
+lemma mul_add_subset : s * (t + u) ⊆ s * t + s * u := image₂_distrib_subset_left mul_add
+lemma add_mul_subset : (s + t) * u ⊆ s * u + t * u := image₂_distrib_subset_right add_mul
+
+end distrib
 
 section group
 variables [group α] {s t : finset α}
@@ -576,7 +603,7 @@ subset_image₂
 
 end has_scalar
 
-/-! ### Finset addition/multiplication -/
+/-! ### Scalar subtraction of finsets -/
 
 section has_vsub
 variables [decidable_eq α] [has_vsub α β] {s s₁ s₂ t t₁ t₂ : finset β} {u : finset α} {a : α}
@@ -657,7 +684,7 @@ lemma mem_smul_finset {x : β} : x ∈ a • s ↔ ∃ y, y ∈ s ∧ a • y = 
 by simp only [finset.smul_finset_def, and.assoc, mem_image, exists_prop, prod.exists, mem_product]
 
 @[simp, norm_cast, to_additive]
-lemma coe_smul_finset (s : finset β) : (↑(a • s) : set β) = a • s := coe_image
+lemma coe_smul_finset (a : α) (s : finset β) : (↑(a • s) : set β) = a • s := coe_image
 
 @[to_additive] lemma smul_finset_mem_smul_finset : b ∈ s → a • b ∈ a • s := mem_image_of_mem _
 @[to_additive] lemma smul_finset_card_le : (a • s).card ≤ s.card := card_image_le
@@ -722,6 +749,39 @@ instance is_scalar_tower'' [has_scalar α β] [has_scalar α γ] [has_scalar β 
 instance is_central_scalar [has_scalar α β] [has_scalar αᵐᵒᵖ β] [is_central_scalar α β] :
   is_central_scalar α (finset β) :=
 ⟨λ a s, coe_injective $ by simp only [coe_smul_finset, coe_smul, op_smul_eq_smul]⟩
+
+/-- A multiplicative action of a monoid `α` on a type `β` gives a multiplicative action of
+`finset α` on `finset β`. -/
+@[to_additive "An additive action of an additive monoid `α` on a type `β` gives an additive action
+of `finset α` on `finset β`"]
+protected def mul_action [decidable_eq α] [monoid α] [mul_action α β] :
+  mul_action (finset α) (finset β) :=
+{ mul_smul := λ _ _ _, image₂_assoc mul_smul,
+  one_smul := λ s, image₂_singleton_left.trans $ by simp_rw [one_smul, image_id'] }
+
+/-- A multiplicative action of a monoid on a type `β` gives a multiplicative action on `finset β`.
+-/
+@[to_additive "An additive action of an additive monoid on a type `β` gives an additive action
+on `finset β`."]
+protected def mul_action_finset [monoid α] [mul_action α β] : mul_action α (finset β) :=
+coe_injective.mul_action _ coe_smul_finset
+
+localized "attribute [instance] finset.mul_action_finset finset.add_action_finset
+  finset.mul_action finset.add_action" in pointwise
+
+/-- A distributive multiplicative action of a monoid on an additive monoid `β` gives a distributive
+multiplicative action on `finset β`. -/
+protected def distrib_mul_action_finset [monoid α] [add_monoid β] [distrib_mul_action α β] :
+  distrib_mul_action α (finset β) :=
+function.injective.distrib_mul_action ⟨coe, coe_zero, coe_add⟩ coe_injective coe_smul_finset
+
+/-- A multiplicative action of a monoid on a monoid `β` gives a multiplicative action on `set β`. -/
+protected def mul_distrib_mul_action_finset [monoid α] [monoid β] [mul_distrib_mul_action α β] :
+  mul_distrib_mul_action α (finset β) :=
+function.injective.mul_distrib_mul_action ⟨coe, coe_one, coe_mul⟩ coe_injective coe_smul_finset
+
+localized "attribute [instance] finset.distrib_mul_action_finset
+  finset.mul_distrib_mul_action_finset" in pointwise
 
 end instances
 end finset

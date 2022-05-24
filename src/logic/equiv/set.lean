@@ -153,8 +153,6 @@ def image {α β : Type*} (e : α ≃ β) (s : set α) : s ≃ e '' s :=
   left_inv := λ x, by simp,
   right_inv := λ y, by simp, }.
 
-open set
-
 namespace set
 
 /-- `univ α` is equivalent to `α`. -/

@@ -14,6 +14,13 @@ def invariants : add_subgroup M :=
   add_mem' := λ x y hx hy g, by rw [smul_add, hx, hy],
   neg_mem' := λ x hx g, by rw [smul_neg, hx] }
 
+variables {G M}
+
+@[simp] lemma smul_coe_invariants (m : invariants G M) (g : G) :
+  g • (m : M) = m := m.2 g
+
+variables (G M)
+
 def invariants_map {M N : Type u} [add_comm_group M] [add_comm_group N]
   [distrib_mul_action G M] [distrib_mul_action G N] (f : M →+[G] N) :
   invariants G M →+ invariants G N :=
@@ -114,6 +121,13 @@ def one_cocycles : add_subgroup (G → M) :=
     simp only [neg_sub_neg, pi.neg_apply, smul_neg, hf],
     abel,
   end }
+
+lemma one_cocycle_map_one (f : one_cocycles G M) : (↑f : G → M) 1 = 0 :=
+begin
+  have := f.2 1 1,
+  simp only [subtype.val_eq_coe, one_smul, mul_one, sub_self, zero_add] at this,
+  assumption,
+end
 
 variables {G M}
 
@@ -240,6 +254,7 @@ abbreviation firstcoh := one_cocycles G M ⧸ (add_subgroup.inclusion
 
 instance jhnkj : (add_subgroup.inclusion
   (λ f hf, mem_one_cocycles_of_mem_one_coboundaries (⟨f, hf⟩ : one_coboundaries G M))).range.normal := by apply_instance
+
 def first_iso : (cochain_cx G M).homology 1 ≃+ firstcoh G M :=
 ((homology_of_rel (cochain_cx G M) (show 0 + 1 = 1, from rfl)
   (show 1 + 1 = 2, from rfl)).trans
@@ -250,40 +265,64 @@ def first_iso : (cochain_cx G M).homology 1 ≃+ firstcoh G M :=
   ker_equiv_one_cocycles G M) _ _ $
 sorry -- the category library stumps me once again
 
-@[simps] def hm2 (G H : Type u) [group G] [group H]
-   [distrib_mul_action G M] [distrib_mul_action H M]
-  (f : G →* H) (h : ∀ (g : G) (m : M), (f(g) • m) = g • m) (n : ℕ) :
-  ((fin n → H) → M) →+ ((fin n → G) → M) :=
-{ to_fun := λ φ x, φ (f ∘ x),
-  map_zero' := by ext; refl,
-  map_add' := λ x y, by ext; refl }
+namespace stuff
 
-def fucksake (H : subgroup G) [H.normal] (g : G) (m : invariants H M) :
-  invariants H M := ⟨g • m, sorry⟩
+class pair {G H : Type u} [group G] [group H]
+  {M N : Type u} [add_comm_group M] [add_comm_group N] [distrib_mul_action G M]
+  [distrib_mul_action H N] (f : G →* H) (φ : N →+ M) :=
+(compatible : ∀ (g : G) (x : N), φ (f(g) • x) = g • φ x)
+
+@[simps] def pair_chain_map_aux  {G H : Type u} [group G] [group H]
+  {M N : Type u} [add_comm_group M] [add_comm_group N] [distrib_mul_action G M]
+  [distrib_mul_action H N] (f : G →* H) (φ : N →+ M) (n : ℕ) :
+  ((fin n → H) → N) →+ ((fin n → G) → M) :=
+{ to_fun := λ F x, φ (F (f ∘ x)),
+  map_zero' := by ext; exact φ.map_zero,
+  map_add' := λ x y, by ext; exact φ.map_add _ _ }
+
+variables  (H : subgroup G) [h1 : H.normal] (g : G) (m : invariants H M)
+ (h : H)
+
+def fucksake (H : subgroup G) [h1 : H.normal] (g : G) (m : invariants H M) :
+  invariants H M := ⟨g • m, λ h, by { have : (g⁻¹ * h * g) • (m : M) = m,
+  by {refine m.2 (⟨g⁻¹ * h * g, _⟩ : H),
+  convert subgroup.normal.conj_mem h1 (h : H) h.2 g⁻¹, rw inv_inv},
+  conv_rhs {rw ←this},
+  rw [←mul_smul, ←mul_assoc, mul_inv_cancel_left, mul_smul],
+  refl }⟩
 
 instance (H : subgroup G) [H.normal] :
   distrib_mul_action (G ⧸ H) (invariants H M) :=
-{ smul := λ g, quotient.lift_on' g (λ (g : G), fucksake G M H g) sorry,
-  one_smul := sorry,
-  mul_smul := sorry,
-  smul_add := sorry,
-  smul_zero := sorry }
+{ smul := λ g, quotient.lift_on' g (λ (g : G), fucksake G M H g) $ λ a b hab,
+  begin
+    ext,
+    show (a • x : M) = b • x,
+    have : (a⁻¹  * b) • (x : M) = x, from x.2 (⟨a⁻¹ * b, hab⟩),
+    conv_lhs {rw ←this},
+    rw [←mul_smul, mul_inv_cancel_left],
+  end,
+  one_smul := λ x, by { ext, show ((1 : G) • x : M) = x, from one_smul _ _ },
+  mul_smul := λ x y z, quotient.induction_on₂' x y $ λ v w, by {show quotient.mk' _ • z = _,
+    dsimp, ext, exact mul_smul _ _ _ },
+  smul_add := λ x y z, quotient.induction_on' x $ λ w, by {show quotient.mk' _ • _ = _,
+    dsimp, ext, exact smul_add _ _ _ },
+  smul_zero := λ x, quotient.induction_on' x $ λ y, by {dsimp, ext, exact smul_zero _ } }
 
-@[simps] def inf_aux (H : subgroup G)
-  [H.normal] (n : ℕ) :
-  ((fin n → G) → M) →+ ((fin n → G ⧸ H) → invariants H M) :=
-{ to_fun := λ φ x, sorry,
-  map_zero' := sorry,
-  map_add' := sorry }
+instance jfdks (H : subgroup G) [H.normal] : pair (quotient_group.mk' H) (invariants H M).subtype :=
+⟨λ x y, rfl⟩
 
-lemma hm2_comm (G H : Type u) [group G] [group H]
-   [distrib_mul_action G M] [distrib_mul_action H M]
-  (f : G →* H) (h : ∀ (g : G) (m : M), (f(g) • m) = g • m) (n : ℕ) :
-  (cochain.d G M n).comp (hm2 M G H f h n) = (hm2 M G H f h (n + 1)).comp (cochain.d H M n) :=
+instance dsadsa (H : subgroup G) : pair H.subtype (add_monoid_hom.id M) :=
+⟨λ x y, rfl⟩
+
+lemma pair_chain_map_aux_comm {G H : Type u} [group G] [group H]
+  {M N : Type u} [add_comm_group M] [add_comm_group N] [distrib_mul_action G M]
+  [distrib_mul_action H N] (f : G →* H) (φ : N →+ M) [pair f φ] (n : ℕ) :
+  (cochain.d G M n).comp (pair_chain_map_aux f φ n)
+    = (pair_chain_map_aux f φ (n + 1)).comp (cochain.d H N n) :=
 begin
   ext x g,
-  dsimp [d_to_fun, hm2],
-  rw h,
+  dsimp [d_to_fun, pair_chain_map_aux],
+  simp only [φ.map_add, φ.map_sum, φ.map_zsmul, pair.compatible],
   congr,
   ext i,
   congr,
@@ -296,23 +335,141 @@ begin
     { simp only [F_neg_apply _ _ _ h heq] }}
 end
 
-def hmm2 (G H : Type u) [group G] [group H]
-   [distrib_mul_action G M] [distrib_mul_action H M]
-  (f : G →* H)
-  (h : ∀ (g : G) (n : M), (f(g) • n) = g • n) :
-  cochain_cx H M ⟶ cochain_cx G M :=
-{ f := λ i, hm2 M G H f h i,
+def pair_chain_map {G H : Type u} [group G] [group H]
+  {M N : Type u} [add_comm_group M] [add_comm_group N] [distrib_mul_action G M]
+  [distrib_mul_action H N] (f : G →* H) (φ : N →+ M) [pair f φ] :
+  cochain_cx H N ⟶ cochain_cx G M :=
+{ f := λ i, pair_chain_map_aux f φ i,
   comm' := λ i j hij, by
   { cases hij,
     dsimp,
     erw [cochain_complex.of_d, cochain_complex.of_d],
-    exact hm2_comm M G H f h i }}
+    exact pair_chain_map_aux_comm f φ i }}
 
-def Res (G H : Type u) [group G] [group H]
-   [distrib_mul_action G M] [distrib_mul_action H M]
-  (f : G →* H)
-  (h : ∀ (g : G) (n : M), (f(g) • n) = g • n) (n : ℕ) :
-  (cochain_cx H M).homology n →+ (cochain_cx G M).homology n :=
-(homology_functor _ _ n).map (hmm2 M G H f h)
+def pair_homology_map {G H : Type u} [group G] [group H]
+  {M N : Type u} [add_comm_group M] [add_comm_group N] [distrib_mul_action G M]
+  [distrib_mul_action H N] (f : G →* H) (φ : N →+ M) [pair f φ] (n : ℕ) :
+  (cochain_cx H N).homology n →+ (cochain_cx G M).homology n :=
+(homology_functor _ _ n).map (pair_chain_map f φ)
+
+variables {G}
+
+def Res (H : subgroup G) (n : ℕ) :
+  (cochain_cx G M).homology n →+ (cochain_cx H M).homology n :=
+pair_homology_map H.subtype (add_monoid_hom.id M) n
+
+def Res_one (H : subgroup G) :
+  firstcoh G M →+ firstcoh H M :=
+((first_iso H M).to_add_monoid_hom.comp (Res M H 1)).comp (first_iso G M).symm.to_add_monoid_hom
+
+lemma myearhurtssss (H : subgroup G) (x : one_cocycles G M) :
+  (↑x ∘ H.subtype) ∈ one_cocycles H M :=
+λ g h, x.2 g h
+
+@[simp] lemma Res_one_apply (H : subgroup G) (x : one_cocycles G M) :
+  Res_one M H x = (⟨↑x ∘ H.subtype, myearhurtssss _ _ _⟩ : one_cocycles H M) :=
+begin
+  dsimp [Res_one, Res, first_iso],
+  simp only [comp_apply],
+  sorry
+end
+
+def Inf (H : subgroup G) [h1 : H.normal] (n : ℕ) :
+  (cochain_cx (G ⧸ H) (invariants H M)).homology n →+ (cochain_cx G M).homology n :=
+pair_homology_map (quotient_group.mk' H) (invariants H M).subtype n
+
+def Inf_one (H : subgroup G) [h1 : H.normal] :
+  firstcoh (G ⧸ H) (invariants H M) →+ firstcoh G M :=
+((first_iso G M).to_add_monoid_hom.comp (Inf M H 1)).comp
+  (first_iso (G ⧸ H) (invariants H M)).symm.to_add_monoid_hom
+
+lemma owww (H : subgroup G) [h1 : H.normal] (x : one_cocycles (G ⧸ H) (invariants H M)) :
+  (invariants H M).subtype ∘ ↑x ∘ (coe : G → G ⧸ H)  ∈ one_cocycles G M :=
+λ g h, subtype.ext_iff.1 (x.2 g h)
+
+lemma Inf_one_apply (H : subgroup G) [h1 : H.normal] (x : one_cocycles (G ⧸ H) (invariants H M)) :
+  Inf_one M H x =
+    (⟨(invariants H M).subtype ∘ ↑x ∘ (coe : G → G ⧸ H), owww M H x⟩ : one_cocycles G M) :=
+begin
+  dsimp [Inf_one, Inf, first_iso],
+  sorry
+end
+
+def ibuprofenrules (H : subgroup G) [h1 : H.normal]
+  (x : one_cocycles (G ⧸ H) (invariants H M)) (m : M)
+  (h : ∀ g : G, ((↑x : G ⧸ H → invariants H M) (g : G ⧸ H) : M) = g • m - m) :
+  G ⧸ H → M :=
+λ g, quotient.lift_on' g (λ y, y • m - m) $ λ a b hab,
+begin
+  dsimp,
+  rw [←h a, ←h b, quotient_group.eq.2 hab],
+end
+
+def ibuprofen (H : subgroup G) [h1 : H.normal]
+  (x : one_cocycles (G ⧸ H) (invariants H M)) (m : M)
+  (h : ∀ g : G, ((↑x : G ⧸ H → invariants H M) (g : G ⧸ H) : M) = g • m - m) :
+  G ⧸ H → invariants H M :=
+λ g, ⟨ibuprofenrules M H x m h g,
+begin
+  intros a,
+  refine g.induction_on' _,
+  intro y,
+  dsimp [ibuprofenrules],
+  rw ←h,
+  exact coe_invariants _,
+end⟩
+
+lemma Inf_ker_eq_bot_aux (H : subgroup G) [h1 : H.normal]
+  (x : one_cocycles (G ⧸ H) (invariants H M)) (m : M)
+  (h : ∀ g : G, ((↑x : G ⧸ H → invariants H M) (g : G ⧸ H) : M) = g • m - m) :
+  m ∈ invariants H M :=
+begin
+  intro y,
+  rw ←sub_eq_zero,
+  erw ←h y,
+  rw (quotient_group.eq_one_iff (y : G)).2 y.2,
+  rw one_cocycle_map_one _ _, refl,
+end
+
+lemma ughhhh (H : subgroup G) [h1 : H.normal]
+  (x : one_cocycles (G ⧸ H) (invariants H M)) (m : M)
+  (h : ∀ g : G, ((↑x : G ⧸ H → invariants H M) (g : G ⧸ H) : M) = g • m - m) (v : G) :
+  (ibuprofen M H x m h v : M) = (x : G ⧸ H → invariants H M) (v : G ⧸ H) :=
+(h v).symm
+
+lemma Inf_ker_eq_bot (H : subgroup G) [h1 : H.normal] :
+  (Inf_one M H).ker = ⊥ :=
+begin
+  rw eq_bot_iff,
+  intros x,
+  refine x.induction_on' _,
+  intros y hy,
+  erw [add_monoid_hom.mem_ker, Inf_one_apply] at hy,
+  show quotient.mk' y = 0,
+  refine (quotient_add_group.eq_zero_iff y).2 _,
+  obtain ⟨⟨w, hw⟩, hy'⟩ := (quotient_add_group.eq_zero_iff _).1 hy,
+  obtain ⟨m, hm⟩ := hw,
+  --constructor,
+  have ffs := subtype.ext_iff.1 hy',
+  dsimp at hy',
+  let F := ibuprofen M H y m (λ g, by {rw ←hm, exact congr_fun ffs.symm g}),
+  use F,
+  use m,
+  exact Inf_ker_eq_bot_aux _ _ y _ (λ g, by {rw ←hm, exact congr_fun ffs.symm g}),
+  intro,
+  ext,
+  refine quotient_group.induction_on' g _,
+  intro v,
+  refl,
+  ext g,
+  refine quotient_group.induction_on' g _,
+  intro v,
+  have := congr_fun ffs v,
+  dsimp at this,
+  rw ←this,
+  exact (hm v).symm,
+end
+
+end stuff
 
 end first_cohomology

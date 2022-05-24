@@ -206,10 +206,8 @@ theorem numeric_half : numeric half :=
 theorem numeric_to_pgame (o : ordinal) : o.to_pgame.numeric :=
 begin
   induction o using ordinal.induction with o IH,
-  rw numeric_def,
-  refine ⟨λ i, is_empty_elim, λ i, _, is_empty_elim⟩,
-  rw ordinal.to_pgame_move_left',
-  exact IH _ (ordinal.to_left_moves_to_pgame_symm_lt i)
+  apply numeric_of_is_empty_right_moves,
+  simpa using λ i, IH _ (ordinal.to_left_moves_to_pgame_symm_lt i)
 end
 
 end pgame

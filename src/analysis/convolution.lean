@@ -175,10 +175,10 @@ integrable on the support of the integrand, and that both functions are strongly
 
 Note: we could weaken the measurability condition to hold only for `μ.restrict s`. -/
 lemma bdd_above.convolution_exists_at' {x₀ : G}
-  {s : set G} (hs : measurable_set s) (h2s : support (λ t, L (f t) (g (x₀ - t))) ⊆ s)
+  {s : set G} (hbg : bdd_above ((λ i, ∥g i∥) '' ((λ t, - t + x₀) ⁻¹' s)))
+  (hs : measurable_set s) (h2s : support (λ t, L (f t) (g (x₀ - t))) ⊆ s)
   (hf : integrable_on f s μ)
   (hmf : ae_strongly_measurable f μ)
-  (hbg : bdd_above ((λ i, ∥g i∥) '' ((λ t, - t + x₀) ⁻¹' s)))
   (hmg : ae_strongly_measurable g $ map (λ t, x₀ - t) μ) :
     convolution_exists_at f g x₀ L μ :=
 begin
@@ -261,7 +261,7 @@ lemma has_compact_support.convolution_exists_at {x₀ : G}
   (hf h) hf.ae_strongly_measurable hg.ae_strongly_measurable
 
 lemma has_compact_support.convolution_exists_right
-  (hf : locally_integrable f μ) (hcg : has_compact_support g) (hg : continuous g) :
+  (hcg : has_compact_support g) (hf : locally_integrable f μ) (hg : continuous g) :
   convolution_exists f g L μ :=
 begin
   intro x₀,
@@ -300,14 +300,14 @@ integrable on the support of the integrand, and that both functions are strongly
 This is a variant of `bdd_above.convolution_exists_at'` in an abelian group with a left-invariant
 measure. This allows us to state the boundedness and measurability of `g` in a more natural way. -/
 lemma bdd_above.convolution_exists_at [sigma_finite μ] {x₀ : G}
-  {s : set G} (hs : measurable_set s) (h2s : support (λ t, L (f t) (g (x₀ - t))) ⊆ s)
+  {s : set G} (hbg : bdd_above ((λ i, ∥g i∥) '' ((λ t, x₀ - t) ⁻¹' s)))
+  (hs : measurable_set s) (h2s : support (λ t, L (f t) (g (x₀ - t))) ⊆ s)
   (hf : integrable_on f s μ)
   (hmf : ae_strongly_measurable f μ)
-  (hbg : bdd_above ((λ i, ∥g i∥) '' ((λ t, x₀ - t) ⁻¹' s)))
   (hmg : ae_strongly_measurable g μ) :
     convolution_exists_at f g x₀ L μ :=
 begin
-  refine bdd_above.convolution_exists_at' L hs h2s hf hmf _ _,
+  refine bdd_above.convolution_exists_at' L _ hs h2s hf hmf _,
   { simp_rw [← sub_eq_neg_add, hbg] },
   { exact hmg.mono' (map_sub_left_absolutely_continuous μ x₀) }
 end
@@ -449,7 +449,7 @@ variables [borel_space G] [second_countable_topology G]
 /-- The convolution is continuous if one function is locally integrable and the other has compact
   support and is continuous. -/
 lemma has_compact_support.continuous_convolution_right [locally_compact_space G] [t2_space G]
-  (hf : locally_integrable f μ) (hcg : has_compact_support g)
+  (hcg : has_compact_support g) (hf : locally_integrable f μ)
   (hg : continuous g) : continuous (f ⋆[L, μ] g) :=
 begin
   refine continuous_iff_continuous_at.mpr (λ x₀, _),
@@ -472,7 +472,7 @@ end
 /-- The convolution is continuous if one function is integrable and the other is bounded and
   continuous. -/
 lemma bdd_above.continuous_convolution_right_of_integrable
-  (hf : integrable f μ) (hbg : bdd_above (range (λ x, ∥g x∥))) (hg : continuous g) :
+  (hbg : bdd_above (range (λ x, ∥g x∥))) (hf : integrable f μ) (hg : continuous g) :
     continuous (f ⋆[L, μ] g) :=
 begin
   refine continuous_iff_continuous_at.mpr (λ x₀, _),
@@ -590,9 +590,9 @@ lemma dist_convolution_le' {x₀ : G} {R ε : ℝ}
   dist ((f ⋆[L, μ] g : G → F) x₀) (∫ (t : G), (L (f t)) (g x₀) ∂μ) ≤ ∥L∥ * ∫ x, ∥f x∥ ∂μ * ε :=
 begin
   have hfg : convolution_exists_at f g x₀ L μ,
-  { refine bdd_above.convolution_exists_at L metric.is_open_ball.measurable_set (subset_trans _ hf)
-      hif.integrable_on hif.ae_strongly_measurable _ hmg,
-    { refine λ t, mt (λ ht : f t = 0, _), simp_rw [ht, L.map_zero₂] },
+  { refine bdd_above.convolution_exists_at L _ metric.is_open_ball.measurable_set
+    (subset_trans _ hf) hif.integrable_on hif.ae_strongly_measurable hmg,
+    swap, { refine λ t, mt (λ ht : f t = 0, _), simp_rw [ht, L.map_zero₂] },
     rw [bdd_above_def],
     refine ⟨∥g x₀∥ + ε, _⟩,
     rintro _ ⟨x, hx, rfl⟩,
@@ -780,7 +780,7 @@ variables [sigma_finite μ] [is_add_left_invariant μ]
 variables [normed_space 𝕜 G] [proper_space G]
 
 lemma has_compact_support.has_fderiv_at_convolution_right
-  (hf : locally_integrable f μ) (hcg : has_compact_support g) (hg : cont_diff 𝕜 1 g) (x₀ : G) :
+  (hcg : has_compact_support g) (hf : locally_integrable f μ) (hg : cont_diff 𝕜 1 g) (x₀ : G) :
   has_fderiv_at (f ⋆[L, μ] g) ((f ⋆[L.precompR G, μ] fderiv 𝕜 g) x₀) x₀ :=
 begin
   set L' := L.precompR G,
@@ -817,7 +817,7 @@ begin
 end
 
 lemma has_compact_support.cont_diff_convolution_right [finite_dimensional 𝕜 G]
-  (hf : locally_integrable f μ) (hcg : has_compact_support g) (hg : cont_diff 𝕜 n g) :
+  (hcg : has_compact_support g) (hf : locally_integrable f μ) (hg : cont_diff 𝕜 n g) :
   cont_diff 𝕜 n (f ⋆[L, μ] g) :=
 begin
   induction n using with_top.nat_induction with n ih ih generalizing g,

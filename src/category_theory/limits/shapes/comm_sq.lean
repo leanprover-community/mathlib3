@@ -40,9 +40,11 @@ show that the pullback and pushout squares for a biproduct are bicartesian.
 open category_theory
 open category_theory.limits
 
+universes v₁ v₂ u₁ u₂
+
 namespace category_theory
 
-variables {C : Type*} [category C]
+variables {C : Type u₁} [category.{v₁} C]
 
 /-- The proposition that a square
 ```
@@ -381,22 +383,42 @@ end is_pushout
 
 namespace functor
 
-variables {D : Type*} [category D]
+variables {D : Type u₂} [category.{v₂} D]
 variables (F : C ⥤ D) {W X Y Z : C} {f : W ⟶ X} {g : W ⟶ Y} {h : X ⟶ Z} {i : Y ⟶ Z}
 
 lemma map_comm_sq (s : comm_sq f g h i) : comm_sq (F.map f) (F.map g) (F.map h) (F.map i) :=
 ⟨by simpa using congr_arg (λ k : W ⟶ Z, F.map k) s.w⟩
 
-set_option pp.universes true
-
 lemma map_is_pullback [preserves_limit (cospan h i) F] (s : is_pullback f g h i) :
   is_pullback (F.map f) (F.map g) (F.map h) (F.map i) :=
+-- This is made slightly awkward because `C` and `D` have different universes,
+-- and so the relevant `walking_cospan` diagrams live in different universes too!
 begin
-  apply is_pullback.of_is_limit' (F.map_comm_sq s.to_comm_sq),
-  let := is_limit_of_preserves F s.is_limit,
-  apply is_limit.of_iso_limit this,
+  refine is_pullback.of_is_limit' (F.map_comm_sq s.to_comm_sq)
+    (is_limit.of_whisker_equivalence walking_cospan_equiv
+      (is_limit.equiv_of_nat_iso_of_iso (cospan_comp_iso F h i) _ _ (walking_cospan.ext _ _ _)
+        (is_limit_of_preserves F s.is_limit))),
+  { refl, },
+  { dsimp, simp, refl, },
+  { dsimp, simp, refl, },
+end
+
+lemma map_is_pushout [preserves_colimit (span f g) F] (s : is_pushout f g h i) :
+  is_pushout (F.map f) (F.map g) (F.map h) (F.map i) :=
+begin
+  refine is_pushout.of_is_colimit' (F.map_comm_sq s.to_comm_sq)
+    (is_colimit.of_whisker_equivalence walking_span_equiv
+      (is_colimit.equiv_of_nat_iso_of_iso (span_comp_iso F f g) _ _ (walking_span.ext _ _ _)
+        (is_colimit_of_preserves F s.is_colimit))),
+  { refl, },
+  { dsimp, simp, refl, },
+  { dsimp, simp, refl, },
 end
 
 end functor
+
+alias functor.map_comm_sq ← comm_sq.map
+alias functor.map_is_pullback ← is_pullback.map
+alias functor.map_is_pushout ← is_pushout.map
 
 end category_theory

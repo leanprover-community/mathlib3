@@ -31,6 +31,19 @@ lemma to_tensor_algebra_ghas_one :
   (@graded_monoid.ghas_one.one _ (λ n, ⨂[R]^n M) _ _).to_tensor_algebra = 1 :=
 tensor_power.to_tensor_algebra_tprod _
 
+lemma _root_.list.of_fn_fin_append' {α i j} (a : fin i → α) (b : fin j → α):
+  list.of_fn (fin.append' a b) = list.of_fn a ++ list.of_fn b :=
+begin
+  apply list.ext_le,
+  { rw [list.length_of_fn, list.length_append, list.length_of_fn, list.length_of_fn] },
+  intros n ha hb,
+  simp_rw list.nth_le_of_fn',
+  -- rw [←fin.cast_add_mk, fin.append'_apply_left],
+  -- cases lt_or_le n i,
+  -- rw [list.nth_le_append, fin.append'],
+  -- rw [list.nth_le_of_fn', list.of_fn_eq_map, list.of_fn_eq_map],
+end
+
 @[simp]
 lemma to_tensor_algebra_ghas_mul {i j} (a : ⨂[R]^i M) (b : ⨂[R]^j M) :
   (@graded_monoid.ghas_mul.mul _ (λ n, ⨂[R]^n M) _ _ _ _ a b).to_tensor_algebra
@@ -48,7 +61,8 @@ begin
     tensor_power.to_tensor_algebra_tprod, tensor_algebra.tprod_apply, ←ghas_mul_eq_coe_linear_map],
   refine eq.trans _ list.prod_append,
   congr',
-  sorry,  -- a boring statement about `fin` / `list`
+  rw [←list.map_of_fn _ (tensor_algebra.ι R), ←list.map_of_fn _ (tensor_algebra.ι R),
+    ←list.map_of_fn _ (tensor_algebra.ι R), ←list.map_append, list.of_fn_fin_append'],
 end
 
 @[simp]

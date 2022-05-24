@@ -54,6 +54,98 @@ begin
   { exact λ p q fg gn hf hg, by simp [mul_add, hf, hg, add_add_add_comm] }
 end
 
+lemma nat_degree_ne_zero_of_mul_X (f0 : f ≠ 0) : (f * X).nat_degree ≠ 0 :=
+begin
+  contrapose! f0,
+  suffices : f * X = 0 * X, from mul_X_injective (by simpa [X_mul]),
+  rw eq_C_of_nat_degree_eq_zero f0,
+  simp [eq_C_of_nat_degree_eq_zero f0],
+end
+
+lemma coeff_mul_nat_degree_add_sub_one_le_X
+  (fa : f.nat_degree ≤ a) (gb : g.nat_degree ≤ b) :
+  ((f * X) * (g * X)).coeff ((a + 1) + (b + 1) - 1) =
+    f.coeff a * (g * X).coeff b + (f * X).coeff a * g.coeff b :=
+begin
+  by_cases f0 : f = 0,
+  { simp [f0] },
+  by_cases g0 : g = 0,
+  { simp [g0] },
+  rw coeff_mul_nat_degree_add_sub_one_le,
+  { simp },
+  repeat { exact nat_degree_ne_zero_of_mul_X ‹_› },
+  repeat { exact nat_degree_mul_le.trans (add_le_add ‹_› nat_degree_X_le) },
+end
+
+lemma coeff_pow_nat_degree_add_sub_one_le {R : Type*} [comm_semiring R] {n : ℕ} (n0 : n ≠ 0)
+  {f : R[X]} (f0 : f ≠ 0) (fa : f.nat_degree ≤ a) :
+  ((f * X) ^ n).coeff (n * (a + 1) - 1) = f.coeff a ^ (n - 1) * n * (f * X).coeff a :=
+begin
+  rcases n,
+  { refine (n0 rfl).elim },
+  { --by_cases fna : (f ^ n).nat_degree = 0,
+    --{ rw [pow_succ, eq_C_of_nat_degree_eq_zero fna, coeff_mul_C],
+    --  sorry },
+    induction n with n hn,
+    { simp },
+  {
+    rw [pow_succ, succ_mul, add_comm],
+    replace hn := hn (succ_ne_zero _),
+    rw [mul_pow, pow_succ' X, ← mul_assoc (f ^ _)],
+    convert coeff_mul_nat_degree_add_sub_one_le_X fa _,
+    { simp,
+      sorry },
+    { refine nat_degree_mul_le.trans (add_le_add (nat_degree_pow_le.trans (by simpa)) _),
+      refine nat_degree_pow_le.trans (_),
+      refine le_trans _ (mul_one _).le,
+      exact mul_le_mul_of_nonneg_left nat_degree_X_le (nat.zero_le _) } } },
+end
+
+lemma coeff_pow_nat_degree_add_sub_one_le {R : Type*} [comm_semiring R] {n : ℕ} (n0 : n ≠ 0)
+  {f g : R[X]} (f0 : f.nat_degree ≠ 0) (fa : f.nat_degree ≤ a) :
+  (f ^ n).coeff (n * a - 1) = f.coeff a ^ (n - 1) * n * f.coeff (a - 1) :=
+begin
+  rcases n,
+  { refine (n0 rfl).elim },
+  { --by_cases fna : (f ^ n).nat_degree = 0,
+    --{ rw [pow_succ, eq_C_of_nat_degree_eq_zero fna, coeff_mul_C],
+    --  sorry },
+    induction n with n hn,
+    { simp },
+  {
+    rw [pow_succ, succ_mul, add_comm],
+    replace hn := hn (succ_ne_zero _),
+    rw [← coeff_mul_X_pow _ n.succ, mul_assoc, ← mul_pow, nat.add_sub_assoc, add_assoc,
+      add_comm (_ - _), ← nat.add_sub_assoc, ← mul_one n.succ, mul_assoc, ← mul_add, mul_one,
+      one_mul, ← nat.add_sub_assoc],
+    rw [coeff_mul_nat_degree_add_sub_one_le f0 _ fa _, hn],
+    norm_num,
+    rw [mul_add _ (↑n + 1) (1 : R), add_mul, mul_one, ← mul_assoc, ← mul_assoc, ← pow_succ],
+    apply congr_arg,
+    rw mul_comm (_ ^ _),
+    apply congr_arg,
+    sorry,
+
+    refine λ hh, fna _,
+    convert coeff_mul_nat_degree_add_sub_one_le f0 _ fa _,
+
+  }
+     },
+end
+
+lemma coeff_pow_nat_degree_add_sub_one_le {n : ℕ} (n0 : n ≠ 0)
+  (f0 : f.nat_degree ≠ 0) (fa : f.nat_degree ≤ a) :
+  (f ^ n).coeff (n * a - 1) = f.coeff a ^ (n - 1) * n * f.coeff (a - 1) :=
+begin
+  rcases n with _|_|n,
+  { refine (n0 rfl).elim },
+  { simp },
+  {
+    rw [pow_succ, succ_mul, add_comm],
+    convert coeff_mul_nat_degree_add_sub_one_le f0 _ fa _,
+
+  }
+end
 /--  `coeff_mul_nat_degree_add_sub_one` computes the coefficient of the term of degree one less
 than the expected `nat_degree` of a product of polynomials.  If
 

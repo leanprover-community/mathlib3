@@ -13,29 +13,28 @@ import algebra.category.Module.monoidal
 # The category of finite dimensional vector spaces
 
 This introduces `FinVect K`, the category of finite dimensional vector spaces over a field `K`.
-It is implemented as a full monoidal subcategory on a subtype of `Module K`.
-We create the instance as a symmetric monoidal category, and then provide a right rigid monoidal
-category instance.
+It is implemented as a full subcategory on a subtype of `Module K`, which inherits monoidal and
+symmetric structure as `finite_dimensional K` is a monoidal predicate.
+We also provide a right rigid monoidal category instance.
 -/
 noncomputable theory
 
-open category_theory Module.monoidal_category category_theory.monoidal_category
+open category_theory Module.monoidal_category
 open_locale classical big_operators
 
 universes u
 
 variables (K : Type u) [field K]
 
-def FinVect_monoidal_predicate : monoidal_predicate (Module.{u} K) :=
-{ P := λ V, finite_dimensional K V,
-  h_id := finite_dimensional.finite_dimensional_self K,
-  h_tensor := λ X Y hX hY, by exactI module.finite.tensor_product K X Y }
+instance monoidal_proedicate_finite_dimensional :
+  monoidal_category.monoidal_predicate (λ V : Module.{u} K, finite_dimensional K V) :=
+{ prop_id' := finite_dimensional.finite_dimensional_self K,
+  prop_tensor' := λ X Y hX hY, by exactI module.finite.tensor_product K X Y }
 
 /-- Define `FinVect` as the subtype of `Module.{u} K` of finite dimensional vector spaces. -/
-@[derive [large_category, concrete_category, monoidal_category, symmetric_category]]
-def FinVect := full_monoidal_subcategory (FinVect_monoidal_predicate K)
-
-instance : has_coe_to_sort (FinVect K) (Sort*) := ⟨λ V, V.1⟩
+@[derive [large_category, λ α, has_coe_to_sort α (Sort*), concrete_category, monoidal_category,
+symmetric_category]]
+def FinVect := { V : Module.{u} K // finite_dimensional K V }
 
 namespace FinVect
 

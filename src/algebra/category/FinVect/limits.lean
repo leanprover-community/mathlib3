@@ -44,7 +44,7 @@ end
 
 /-- Finite limits of finite finite dimensional vectors spaces are finite dimensional,
 because we can realise them as subobjects of a finite product. -/
-instance finite_dimensional_limit (F : J ⥤ FinVect k) :
+instance (F : J ⥤ FinVect k) :
   finite_dimensional k (limit (F ⋙ forget₂ (FinVect k) (Module.{v} k)) : Module.{v} k) :=
 begin
   haveI : ∀ j, finite_dimensional k ((F ⋙ forget₂ (FinVect k) (Module.{v} k)).obj j),
@@ -58,8 +58,7 @@ end
 def forget₂_creates_limit (F : J ⥤ FinVect k) :
   creates_limit F (forget₂ (FinVect k) (Module.{v} k)) :=
 creates_limit_of_fully_faithful_of_iso
-  ⟨(limit (F ⋙ forget₂ (FinVect k) (Module.{v} k)) : Module.{v} k),
-    FinVect.finite_dimensional_limit F⟩
+  ⟨(limit (F ⋙ forget₂ (FinVect k) (Module.{v} k)) : Module.{v} k), by apply_instance⟩
   (iso.refl _)
 
 instance : creates_limits_of_shape J (forget₂ (FinVect k) (Module.{v} k)) :=

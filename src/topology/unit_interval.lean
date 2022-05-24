@@ -18,10 +18,6 @@ We provide basic instances, as well as a custom tactic for discharging
 
 -/
 
-noncomputable theory
-open_locale classical topological_space filter
-open set int
-
 -- /-! ### The unit interval -/
 
 -- /-- The unit interval `[0,1]` in ℝ. -/

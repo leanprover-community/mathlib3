@@ -6,6 +6,7 @@ Authors: Stuart Presnell, Eric Wieser, Yaël Dillies, Patrick Massot, Scott Morr
 import data.set.intervals.basic
 import algebra.order.ring
 import algebra.group_power.order
+
 import topology.instances.real
 import topology.algebra.field
 import data.set.intervals.proj_Icc
@@ -157,10 +158,6 @@ end set.Ioo
 
 /-! ### The unit interval in the real numbers -/
 
-noncomputable theory
-open_locale classical topological_space filter
-open set int
-
 /-- The unit interval `[0,1]` in ℝ. -/
 abbreviation unit_interval : set ℝ := set.Icc 0 1
 
@@ -178,7 +175,7 @@ lemma mul_mem {x y : ℝ} (hx : x ∈ I) (hy : y ∈ I) : x * y ∈ I :=
 lemma div_mem {x y : ℝ} (hx : 0 ≤ x) (hy : 0 ≤ y) (hxy : x ≤ y) : x / y ∈ I :=
 ⟨div_nonneg hx hy, div_le_one_of_le hxy hy⟩
 
-lemma fract_mem (x : ℝ) : fract x ∈ I := ⟨fract_nonneg _, (fract_lt_one _).le⟩
+lemma fract_mem (x : ℝ) : int.fract x ∈ I := ⟨int.fract_nonneg _, (int.fract_lt_one _).le⟩
 
 lemma mem_iff_one_sub_mem {t : ℝ} : t ∈ I ↔ 1 - t ∈ I :=
 begin

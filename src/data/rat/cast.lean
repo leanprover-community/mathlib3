@@ -92,7 +92,7 @@ end
   suffices : (n₁ * (d₂ * (d₂⁻¹ * d₁⁻¹)) +
     n₂ * (d₁ * d₂⁻¹) * d₁⁻¹ : α) = n₁ * d₁⁻¹ + n₂ * d₂⁻¹,
   { rw [cast_mk_of_ne_zero, cast_mk_of_ne_zero, cast_mk_of_ne_zero],
-    { simpa [division_def, left_distrib, right_distrib, mul_inv_rev₀, d₁0, d₂0, mul_assoc] },
+    { simpa [division_def, left_distrib, right_distrib, mul_inv_rev, d₁0, d₂0, mul_assoc] },
     all_goals {simp [d₁0, d₂0]} },
   rw [← mul_assoc (d₂:α), mul_inv_cancel d₂0, one_mul,
       (nat.cast_commute _ _).eq], simp [d₁0, mul_assoc]
@@ -115,7 +115,7 @@ by simp [sub_eq_add_neg, (cast_add_of_ne_zero m0 this)]
   rw [num_denom', num_denom', mul_def d₁0' d₂0'],
   suffices : (n₁ * ((n₂ * d₂⁻¹) * d₁⁻¹) : α) = n₁ * (d₁⁻¹ * (n₂ * d₂⁻¹)),
   { rw [cast_mk_of_ne_zero, cast_mk_of_ne_zero, cast_mk_of_ne_zero],
-    { simpa [division_def, mul_inv_rev₀, d₁0, d₂0, mul_assoc] },
+    { simpa [division_def, mul_inv_rev, d₁0, d₂0, mul_assoc] },
     all_goals {simp [d₁0, d₂0]} },
   rw [(d₁.commute_cast (_:α)).inv_right₀.eq]
 end

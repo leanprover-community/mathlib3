@@ -419,8 +419,11 @@ begin
   exact nat.proper_divisors.not_self_mem
 end
 
+open_locale big_operators
+open finset
+
 lemma prod_cyclotomic_eq_geom_sum {n : ℕ} (h : 0 < n) (R) [comm_ring R] [is_domain R] :
-  ∏ i in n.divisors \ {1}, cyclotomic i R = geom_sum X n :=
+  ∏ i in n.divisors \ {1}, cyclotomic i R = ∑ i in range n, X ^ i :=
 begin
   apply_fun (* cyclotomic 1 R) using mul_left_injective₀ (cyclotomic_ne_zero 1 R),
   have : ∏ i in {1}, cyclotomic i R = cyclotomic 1 R := finset.prod_singleton,
@@ -429,9 +432,10 @@ begin
 end
 
 lemma cyclotomic_dvd_geom_sum_of_dvd (R) [comm_ring R] {d n : ℕ} (hdn : d ∣ n)
-  (hd : d ≠ 1) : cyclotomic d R ∣ geom_sum X n :=
+  (hd : d ≠ 1) : cyclotomic d R ∣ ∑ i in range n, X ^ i :=
 begin
-  suffices : (cyclotomic d ℤ).map (int.cast_ring_hom R) ∣ (geom_sum X n).map (int.cast_ring_hom R),
+  suffices : (cyclotomic d ℤ).map (int.cast_ring_hom R) ∣
+    (∑ i in range n, X ^ i).map (int.cast_ring_hom R),
   { have key := (map_ring_hom (int.cast_ring_hom R)).map_geom_sum X n,
     simp only [coe_map_ring_hom, map_X] at key,
     rwa [map_cyclotomic, key] at this },
@@ -701,9 +705,9 @@ begin
     exact monic.ne_zero prod_monic (degree_eq_bot.1 h) },
 end
 
-/-- If `p` is prime, then `cyclotomic p R = geom_sum X p`. -/
+/-- If `p` is prime, then `cyclotomic p R = ∑ i in range p, X ^ i`. -/
 lemma cyclotomic_eq_geom_sum {R : Type*} [comm_ring R] {p : ℕ}
-  (hp : nat.prime p) : cyclotomic p R = geom_sum X p :=
+  (hp : nat.prime p) : cyclotomic p R = ∑ i in range p, X ^ i :=
 begin
   refine ((eq_cyclotomic_iff hp.pos _).mpr _).symm,
   simp only [nat.prime.proper_divisors hp, geom_sum_mul, finset.prod_singleton, cyclotomic_one],
@@ -713,12 +717,13 @@ lemma cyclotomic_prime_mul_X_sub_one (R : Type*) [comm_ring R] (p : ℕ) [hn : f
   (cyclotomic p R) * (X - 1) = X ^ p - 1 :=
 by rw [cyclotomic_eq_geom_sum hn.out, geom_sum_mul]
 
-/-- If `p ^ k` is a prime power, then `cyclotomic (p ^ (n + 1)) R = geom_sum (X ^ p ^ n) p`. -/
+/-- If `p ^ k` is a prime power, then
+`cyclotomic (p ^ (n + 1)) R = ∑ i in range p, (X ^ (p ^ n)) ^ i`. -/
 lemma cyclotomic_prime_pow_eq_geom_sum {R : Type*} [comm_ring R] {p n : ℕ} (hp : nat.prime p) :
-  cyclotomic (p ^ (n + 1)) R = geom_sum (X ^ p ^ n) p :=
+  cyclotomic (p ^ (n + 1)) R = ∑ i in range p, (X ^ (p ^ n)) ^ i :=
 begin
-  have : ∀ m, cyclotomic (p ^ (m + 1)) R = geom_sum (X ^ (p ^ m)) p ↔
-    geom_sum (X ^ p ^ m) p * ∏ (x : ℕ) in finset.range (m + 1),
+  have : ∀ m, cyclotomic (p ^ (m + 1)) R = ∑ i in range p, (X ^ (p ^ m)) ^ i ↔
+    (∑ i in range p, (X ^ (p ^ m)) ^ i) * ∏ (x : ℕ) in finset.range (m + 1),
       cyclotomic (p ^ x) R = X ^ p ^ (m + 1) - 1,
   { intro m,
     have := eq_cyclotomic_iff (pow_pos hp.pos (m + 1)) _,
@@ -729,7 +734,7 @@ begin
   rw ((eq_cyclotomic_iff (pow_pos hp.pos (n_n.succ + 1)) _).mpr _).symm,
   rw [nat.prod_proper_divisors_prime_pow hp, finset.prod_range_succ, n_ih],
   rw this at n_ih,
-  rw [mul_comm _ (geom_sum _ _), n_ih, geom_sum_mul, sub_left_inj, ← pow_mul, pow_add, pow_one],
+  rw [mul_comm _ (∑ i in _, _), n_ih, geom_sum_mul, sub_left_inj, ← pow_mul, pow_add, pow_one],
 end
 
 lemma cyclotomic_prime_pow_mul_X_pow_sub_one (R : Type*) [comm_ring R] (p k : ℕ)

@@ -54,7 +54,7 @@ lemma of_finsupp_algebra_map (r : R) :
 to_finsupp_injective (to_finsupp_algebra_map _).symm
 
 /--
-When we have `[comm_ring R]`, the function `C` is the same as `algebra_map R R[X]`.
+When we have `[comm_semiring R]`, the function `C` is the same as `algebra_map R R[X]`.
 
 (But note that `C` is defined when `R` is not necessarily commutative, in which case
 `algebra_map` is not available.)

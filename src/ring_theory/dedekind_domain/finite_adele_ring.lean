@@ -61,10 +61,10 @@ instance prod_completions.inhabited : inhabited (prod_completions R K) := ⟨0�
 def diag_inj : R → (R_hat R K) := λ r v, inj_adic_completion_integers R K v r
 
 lemma diag_inj.map_one : diag_inj R K 1 = 1 :=
-by { rw diag_inj, ext v, simp_rw inj_adic_completion_integers.map_one R K v, refl }
+by { rw diag_inj, simp_rw ring_hom.map_one, refl }
 
 lemma diag_inj.map_mul (x y : R): diag_inj R K (x*y) = (diag_inj R K x) * (diag_inj R K y) :=
-by { rw diag_inj, ext v, apply congr_arg _ (inj_adic_completion_integers.map_mul R K v x y) }
+by { rw diag_inj, ext v, apply congr_arg _ (ring_hom.map_mul _ _ _) }
 
 namespace prod_completions_integers
 

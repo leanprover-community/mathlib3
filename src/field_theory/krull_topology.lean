@@ -531,11 +531,8 @@ begin
   change ↑f ≤ nhds σ,
   rw [←map_mul_left_nhds_one, group_filter_basis.nhds_one_eq],
   apply filter.le_map,
-  suffices : ∀ s ∈ gal_basis K L, has_mul.mul σ '' s ∈ (f : filter (L ≃ₐ[K] L)),
-  { rintros s ⟨t, ht, hs⟩,
-    have key := this t ht,
-    exact filter.mem_of_superset key (set.image_subset _ hs) },
-  rintros - ⟨-, ⟨E, h_findim, rfl⟩, rfl⟩,
+  rintros S ⟨-, ⟨-, ⟨E, h_findim, rfl⟩, rfl⟩, hS⟩,
+  refine filter.mem_of_superset _ (set.image_subset _ hS),
   have key : f.map p = _ :=
   ultrafilter.generator_of_pushforward_spec h_findim (f.map alg_equiv.to_alg_hom),
   have h_preim : p⁻¹' {p σ} = has_mul.mul σ '' E.fixing_subgroup.carrier,

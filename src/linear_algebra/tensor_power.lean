@@ -60,11 +60,46 @@ def mul_equiv {n m : ℕ} : (⨂[R]^n M) ⊗[R] (⨂[R]^m M) ≃ₗ[R] ⨂[R]^(n
 
 /-- As a graded monoid, `⨂[R]^i M` has a `(*) : ⨂[R]^i M → ⨂[R]^j M → ⨂[R]^(i + j) M`. -/
 instance ghas_mul : graded_monoid.ghas_mul (λ i, ⨂[R]^i M) :=
-{ mul := λ i j a b, mul_equiv (a ⊗ₜ b) }
+{ mul := λ i j a b, (tensor_product.mk R _ _).compr₂ ↑(mul_equiv : _ ≃ₗ[R] ⨂[R]^(i + j) M) a b}
 
 local infix `ₜ*`:70 := @graded_monoid.ghas_mul.mul ℕ (λ i, ⨂[R]^i M) _ _ _ _
 
 lemma ghas_mul_def {i j} (a : ⨂[R]^i M) (b : ⨂[R]^j M) : a ₜ* b = mul_equiv (a ⊗ₜ b) := rfl
+
+lemma ghas_mul_eq_coe_linear_map {i j} (a : ⨂[R]^i M) (b : ⨂[R]^j M) :
+  a ₜ* b =
+    ((tensor_product.mk R _ _).compr₂ ↑(mul_equiv : _ ≃ₗ[R] ⨂[R]^(i + j) M)
+      : ⨂[R]^i M →ₗ[R] ⨂[R]^j M →ₗ[R] ⨂[R]^(i + j) M) a b := rfl
+
+variables (R M)
+
+/-- Cast between "equal" tensor powers. -/
+def cast {i j} (h : i = j) : ⨂[R]^i M ≃ₗ[R] (⨂[R]^j M) :=
+reindex R M (fin.cast h).to_equiv
+
+lemma cast_tprod {i j} (h : i = j) (a : fin i → M) :
+  cast R M h (tprod R a) = tprod R (a ∘ fin.cast h.symm) :=
+reindex_tprod _ _
+
+@[simp] lemma cast_symm {i j} (h : i = j) : (cast R M h).symm = cast R M h.symm := reindex_symm _
+
+@[simp] lemma cast_trans {i j k} (h : i = j) (h' : j = k) :
+  (cast R M h).trans (cast R M h') = cast R M (h.trans h') := reindex_trans _ _
+
+variables {R M}
+
+@[simp] lemma cast_cast {i j k} (h : i = j) (h' : j = k) (a : ⨂[R]^i M) :
+  cast R M h' (cast R M h a) = cast R M (h.trans h') a := reindex_reindex _ _ _
+
+@[ext]
+lemma graded_monoid_eq_of_cast {a b : graded_monoid (λ n, ⨂[R] i : fin n, M)}
+  (h : a.fst = b.fst) (h2 : cast R M h a.snd = b.snd) : a = b :=
+begin
+  refine sigma_eq_of_reindex_cast h _,
+  rw cast at h2,
+  rw [←fin.cast_to_equiv, ← h2],
+end
+
 
 variables (R)
 include R
@@ -83,13 +118,13 @@ omit R
 variables {R}
 
 lemma one_mul {n} (a : ⨂[R]^n M) :
-  reindex R M (equiv.cast $ congr_arg fin (zero_add n)) (ₜ1 ₜ* a) = a :=
+  cast R M (zero_add n) (ₜ1 ₜ* a) = a :=
 begin
   rw [ghas_mul_def, ghas_one_def],
   induction a using pi_tensor_product.induction_on with r a x y hx hy,
   { dsimp only at a,
     rw [tensor_product.tmul_smul, linear_equiv.map_smul, linear_equiv.map_smul, ←ghas_mul_def,
-      tprod_mul_tprod, reindex_tprod],
+      tprod_mul_tprod, cast_tprod],
     congr' 2 with i,
     rw fin.elim0_append',
     refine congr_arg a (fin.ext _),
@@ -97,14 +132,13 @@ begin
   { rw [tensor_product.tmul_add, map_add, map_add, hx, hy], },
 end
 
-lemma mul_one {n} (a : ⨂[R]^n M) :
-  reindex R M (equiv.cast $ congr_arg fin $ add_zero _) (a ₜ* ₜ1) = a :=
+lemma mul_one {n} (a : ⨂[R]^n M) : cast R M (add_zero _) (a ₜ* ₜ1) = a :=
 begin
   rw [ghas_mul_def, ghas_one_def],
   induction a using pi_tensor_product.induction_on with r a x y hx hy,
   { dsimp only at a,
     rw [←tensor_product.smul_tmul', linear_equiv.map_smul, linear_equiv.map_smul, ←ghas_mul_def,
-      tprod_mul_tprod R a _, reindex_tprod],
+      tprod_mul_tprod R a _, cast_tprod],
     congr' 2 with i,
     rw fin.append'_elim0,
     refine congr_arg a (fin.ext _),
@@ -113,37 +147,37 @@ begin
 end
 
 lemma mul_assoc {na nb nc} (a : ⨂[R]^na M) (b : ⨂[R]^nb M) (c : ⨂[R]^nc M) :
-  reindex R M (equiv.cast $ congr_arg fin (add_assoc _ _ _)) ((a ₜ* b) ₜ* c) = a ₜ* (b  ₜ* c) :=
+  cast R M (add_assoc _ _ _) ((a ₜ* b) ₜ* c) = a ₜ* (b  ₜ* c) :=
 begin
+  let mul : Π (n m : ℕ), (⨂[R]^n M) →ₗ[R] (⨂[R]^m M) →ₗ[R] ⨂[R]^(n + m) M :=
+    (λ n m, (tensor_product.mk R _ _).compr₂ ↑(mul_equiv : _ ≃ₗ[R] ⨂[R]^(n + m) M)),
   -- replace `a`, `b`, `c` with `tprod R a`, `tprod R b`, `tprod R c`
-  let e : ⨂[R]^(na + nb + nc) M ≃ₗ[R] ⨂[R]^(na + (nb + nc)) M :=
-    reindex R M (equiv.cast $ by rw add_assoc),
+  let e : ⨂[R]^(na + nb + nc) M ≃ₗ[R] ⨂[R]^(na + (nb + nc)) M := cast R M (add_assoc _ _ _),
   let lhs : (⨂[R]^na M) →ₗ[R] (⨂[R]^nb M) →ₗ[R] (⨂[R]^nc M) →ₗ[R] (⨂[R]^(na + (nb + nc)) M) :=
-    (linear_map.llcomp R _ _ _ ((@mul R M _ _ _ _ nc).compr₂ e.to_linear_map)).comp
-      (@mul R M _ _ _ na nb),
-  have lhs_eq : ∀ a b c, lhs a b c = e (mul (mul a b) c) := λ _ _ _, rfl,
+    (linear_map.llcomp R _ _ _ ((mul _ nc).compr₂ e.to_linear_map)).comp
+      (mul na nb),
+  have lhs_eq : ∀ a b c, lhs a b c = e ((a ₜ* b) ₜ* c) := λ _ _ _, rfl,
   let rhs : (⨂[R]^na M) →ₗ[R] (⨂[R]^nb M) →ₗ[R] (⨂[R]^nc M) →ₗ[R] (⨂[R]^(na + (nb + nc)) M) :=
     (linear_map.llcomp R _ _ _ (linear_map.lflip R _ _ _) $
-      (linear_map.llcomp R _ _ _ (@mul R M _ _ _ na _).flip).comp (@mul R M _ _ _ nb nc)).flip,
-  have rhs_eq : ∀ a b c, rhs a b c = (mul a $ mul b c) := λ _ _ _, rfl,
+      (linear_map.llcomp R _ _ _ (mul na _).flip).comp (mul nb nc)).flip,
+  have rhs_eq : ∀ a b c, rhs a b c = (a ₜ* (b ₜ* c)) := λ _ _ _, rfl,
   suffices : lhs = rhs,
   from linear_map.congr_fun (linear_map.congr_fun (linear_map.congr_fun this a) b) c,
   ext a b c,
   -- clean up
   simp only [linear_map.comp_multilinear_map_apply, lhs_eq, rhs_eq, tprod_mul_tprod, e,
-    reindex_tprod],
+    cast_tprod],
   congr' with j,
   rw fin.append'_assoc,
   refine congr_arg (fin.append' a (fin.append' b c)) (fin.ext _),
-  rw [fin.coe_cast, equiv.cast_symm, equiv.cast_apply, ←fin.cast_eq_cast (add_assoc _ _ _).symm,
-    fin.coe_cast],
+  rw [fin.coe_cast, fin.coe_cast],
 end
 
 -- for now we just use the default for the `gnpow` field as it's easier.
 instance gmonoid : graded_monoid.gmonoid (λ i, ⨂[R]^i M) :=
-{ one_mul := λ a, sigma_eq_of_reindex_cast (zero_add _) (one_mul _),
-  mul_one := λ a, sigma_eq_of_reindex_cast (add_zero _) (mul_one _),
-  mul_assoc := λ a b c, sigma_eq_of_reindex_cast (add_assoc _ _ _) (mul_assoc _ _ _),
+{ one_mul := λ a, graded_monoid_eq_of_cast (zero_add _) (one_mul _), --(one_mul _),
+  mul_one := λ a, graded_monoid_eq_of_cast (add_zero _) (mul_one _), --(mul_one _),
+  mul_assoc := λ a b c, graded_monoid_eq_of_cast (add_assoc _ _ _) (mul_assoc _ _ _),
   ..tensor_power.ghas_mul,
   ..tensor_power.ghas_one, }
 
@@ -166,16 +200,17 @@ lemma algebra_map_eq_smul_one (r : R) :
 by { simp [algebra_map], congr }
 
 lemma algebra_map_mul {n} (r : R) (a : ⨂[R]^n M) :
-  reindex R M (equiv.cast $ by rw zero_add) (mul (algebra_map r) a) = r • a :=
-by rw [algebra_map_eq_smul_one, linear_map.map_smul₂, linear_equiv.map_smul, one_mul]
+  cast R M (zero_add _) (algebra_map r ₜ* a) = r • a :=
+by rw [ghas_mul_eq_coe_linear_map, algebra_map_eq_smul_one, linear_map.map_smul₂,
+  linear_equiv.map_smul,  ←ghas_mul_eq_coe_linear_map, one_mul]
 
 lemma mul_algebra_map {n} (r : R) (a : ⨂[R]^n M) :
-  reindex R M (equiv.cast $ by rw add_zero) (mul a (algebra_map r)) = r • a :=
-by rw [algebra_map_eq_smul_one, linear_map.map_smul, linear_equiv.map_smul, mul_one]
+  cast R M (add_zero _) (a ₜ* algebra_map r) = r • a :=
+by rw [ghas_mul_eq_coe_linear_map, algebra_map_eq_smul_one, linear_map.map_smul,
+  linear_equiv.map_smul, ←ghas_mul_eq_coe_linear_map, mul_one]
 
 lemma algebra_map_mul_algebra_map (r s : R) :
-  reindex R M (equiv.cast $ by rw add_zero) (mul (algebra_map r) (algebra_map s)) =
-    algebra_map (r * s) :=
+  cast R M (add_zero _) (algebra_map r ₜ* algebra_map s) = algebra_map (r * s) :=
 begin
   rw [←smul_eq_mul, linear_equiv.map_smul],
   exact algebra_map_mul r (@algebra_map R M _ _ _ s),
@@ -184,20 +219,19 @@ end
 instance galgebra : direct_sum.galgebra R (λ i, ⨂[R]^i M) :=
 { to_fun := (tensor_power.algebra_map : R ≃ₗ[R] ⨂[R]^0 M) .to_linear_map.to_add_monoid_hom,
   map_one := (algebra_map_eq_smul_one 1).trans (one_smul _ _),
-  map_mul := λ r s, sigma_eq_of_reindex_cast rfl begin
+  map_mul := λ r s, graded_monoid_eq_of_cast rfl begin
     rw [←linear_equiv.eq_symm_apply],
     have := algebra_map_mul_algebra_map r s,
     exact this.symm,
   end,
-  commutes := λ r x, sigma_eq_of_reindex_cast (add_comm _ _) begin
+  commutes := λ r x, graded_monoid_eq_of_cast (add_comm _ _) begin
     have := (algebra_map_mul r x.snd).trans (mul_algebra_map r x.snd).symm,
-    rw [←linear_equiv.eq_symm_apply, reindex_symm, equiv.cast_symm],
-    rw [←linear_equiv.eq_symm_apply, reindex_symm, reindex_reindex, equiv.cast_symm,
-      equiv.cast_trans] at this,
+    rw [←linear_equiv.eq_symm_apply, cast_symm],
+    rw [←linear_equiv.eq_symm_apply, cast_symm, cast_cast] at this,
     exact this,
   end,
-  smul_def := λ r x, sigma_eq_of_reindex_cast (zero_add x.fst).symm begin
-    rw [←linear_equiv.eq_symm_apply, reindex_symm],
+  smul_def := λ r x, graded_monoid_eq_of_cast (zero_add x.fst).symm begin
+    rw [←linear_equiv.eq_symm_apply, cast_symm],
     exact (algebra_map_mul r x.snd).symm,
   end }
 

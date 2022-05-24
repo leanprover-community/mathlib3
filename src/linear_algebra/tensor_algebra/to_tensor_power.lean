@@ -37,7 +37,7 @@ lemma to_tensor_algebra_ghas_mul {i j} (a : ⨂[R]^i M) (b : ⨂[R]^j M) :
     = a.to_tensor_algebra * b.to_tensor_algebra :=
 begin
   -- change `a` and `b` to `tprod R a` and `tprod R b`
-  rw [tensor_power.ghas_mul_def, ←linear_map.compr₂_apply, ←@algebra.lmul_apply R,
+  rw [tensor_power.ghas_mul_eq_coe_linear_map, ←linear_map.compr₂_apply, ←@algebra.lmul_apply R,
     ←alg_hom.to_linear_map_apply, ←linear_map.compl₂_apply, ←linear_map.comp_apply],
   refine linear_map.congr_fun (linear_map.congr_fun _ a) b,
   clear a b,
@@ -45,7 +45,7 @@ begin
   simp only [linear_map.compr₂_apply, algebra.lmul_apply, alg_hom.to_linear_map_apply,
     linear_map.compl₂_apply, linear_map.comp_apply, linear_map.comp_multilinear_map_apply,
     pi_tensor_product.lift.tprod, tensor_power.tprod_mul_tprod,
-    tensor_power.to_tensor_algebra_tprod, tensor_algebra.tprod_apply],
+    tensor_power.to_tensor_algebra_tprod, tensor_algebra.tprod_apply, ←ghas_mul_eq_coe_linear_map],
   refine eq.trans _ list.prod_append,
   congr',
   sorry,  -- a boring statement about `fin` / `list`
@@ -155,7 +155,7 @@ begin
       { simp [he] } },
     conv_rhs {rw [this, ←pi_tensor_product.reindex_tprod e] },
     dsimp only [list.dprod_index_cons],
-    rw [←graded_monoid.mk_mul_mk,hx', ← tensor_power.tprod_mul_tprod, ←tensor_power.ghas_mul_def,
+    rw [←graded_monoid.mk_mul_mk,hx', ← tensor_power.tprod_mul_tprod,-- ←tensor_power.ghas_mul_def,
         he, mk_reindex_fin_cast, ←graded_monoid.mk_mul_mk],
     congr' 1,
     rw ←n_ih (x ∘ fin.succ) _ rfl,

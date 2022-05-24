@@ -174,10 +174,10 @@ integrable on the support of the integrand, and that both functions are strongly
 
 Note: we could weaken the measurability condition to hold only for `μ.restrict s`. -/
 lemma bdd_above.convolution_exists_at' {x₀ : G}
-  {s : set G} (hs : measurable_set s) (h2s : support (λ t, L (f t) (g (x₀ - t))) ⊆ s)
+  {s : set G} (hbg : bdd_above ((λ i, ∥g i∥) '' ((λ t, - t + x₀) ⁻¹' s)))
+  (hs : measurable_set s) (h2s : support (λ t, L (f t) (g (x₀ - t))) ⊆ s)
   (hf : integrable_on f s μ)
   (hmf : ae_strongly_measurable f μ)
-  (hbg : bdd_above ((λ i, ∥g i∥) '' ((λ t, - t + x₀) ⁻¹' s)))
   (hmg : ae_strongly_measurable g $ map (λ t, x₀ - t) μ) :
     convolution_exists_at f g x₀ L μ :=
 begin
@@ -260,7 +260,7 @@ lemma has_compact_support.convolution_exists_at {x₀ : G}
   (hf h) hf.ae_strongly_measurable hg.ae_strongly_measurable
 
 lemma has_compact_support.convolution_exists_right
-  (hf : locally_integrable f μ) (hcg : has_compact_support g) (hg : continuous g) :
+  (hcg : has_compact_support g) (hf : locally_integrable f μ) (hg : continuous g) :
   convolution_exists f g L μ :=
 begin
   intro x₀,
@@ -299,14 +299,14 @@ integrable on the support of the integrand, and that both functions are strongly
 This is a variant of `bdd_above.convolution_exists_at'` in an abelian group with a left-invariant
 measure. This allows us to state the boundedness and measurability of `g` in a more natural way. -/
 lemma bdd_above.convolution_exists_at [sigma_finite μ] {x₀ : G}
-  {s : set G} (hs : measurable_set s) (h2s : support (λ t, L (f t) (g (x₀ - t))) ⊆ s)
+  {s : set G} (hbg : bdd_above ((λ i, ∥g i∥) '' ((λ t, x₀ - t) ⁻¹' s)))
+  (hs : measurable_set s) (h2s : support (λ t, L (f t) (g (x₀ - t))) ⊆ s)
   (hf : integrable_on f s μ)
   (hmf : ae_strongly_measurable f μ)
-  (hbg : bdd_above ((λ i, ∥g i∥) '' ((λ t, x₀ - t) ⁻¹' s)))
   (hmg : ae_strongly_measurable g μ) :
     convolution_exists_at f g x₀ L μ :=
 begin
-  refine bdd_above.convolution_exists_at' L hs h2s hf hmf _ _,
+  refine bdd_above.convolution_exists_at' L _ hs h2s hf hmf _,
   { simp_rw [← sub_eq_neg_add, hbg] },
   { exact hmg.mono' (map_sub_left_absolutely_continuous μ x₀) }
 end

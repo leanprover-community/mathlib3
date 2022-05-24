@@ -88,6 +88,24 @@ begin
   rw [of_fn_aux, IH], refl
 end
 
+@[simp] lemma of_fn_add {m n} (f : fin (m + n) → α) :
+  list.of_fn f = list.of_fn (λ i, f (fin.cast_add n i)) ++ list.of_fn (λ j, f (fin.nat_add m j)) :=
+begin
+  -- There's probably a clever trick to prove this like `of_fn_succ`, but this required less insight
+  apply list.ext_le,
+  { rw [list.length_of_fn, list.length_append, list.length_of_fn, list.length_of_fn] },
+  intros n ha hb,
+  simp_rw list.nth_le_of_fn',
+  cases lt_or_le n m,
+  { rw [list.nth_le_append, list.nth_le_of_fn', fin.cast_add_mk],
+    rw list.length_of_fn, exact h },
+  { obtain ⟨n', rfl⟩ := nat.exists_eq_add_of_le h,
+    rw [list.nth_le_append_right, list.nth_le_of_fn'],
+    simp_rw [list.length_of_fn, add_tsub_cancel_left, fin.nat_add_mk],
+    rw list.length_of_fn,
+    exact h },
+end
+
 theorem of_fn_nth_le : ∀ l : list α, of_fn (λ i, nth_le l i i.2) = l
 | [] := rfl
 | (a::l) := by { rw of_fn_succ, congr, simp only [fin.coe_succ], exact of_fn_nth_le l }

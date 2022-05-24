@@ -24,10 +24,6 @@ f.to_monoid_with_zero_hom.map_zpow
   ∀ (a : K) (n : ℤ), f (a ^ n) = f a ^ n :=
 f.to_ring_hom.map_zpow
 
-@[simp] lemma zpow_bit0_neg {K : Type*} [division_ring K] (x : K) (n : ℤ) :
-  (-x) ^ (bit0 n) = x ^ bit0 n :=
-by rw [zpow_bit0', zpow_bit0', neg_mul_neg]
-
 @[simp] lemma zpow_bit1_neg {K : Type*} [division_ring K] (x : K) (n : ℤ) :
   (-x) ^ (bit1 n) = - x ^ bit1 n :=
 by rw [zpow_bit1', zpow_bit1', neg_mul_neg, neg_mul_eq_mul_neg]
@@ -86,7 +82,7 @@ calc p ^ z ≥ p ^ 0 : zpow_le_of_le hp hz
           ... = 1        : by simp
 
 theorem zpow_bit0_nonneg (a : K) (n : ℤ) : 0 ≤ a ^ bit0 n :=
-by { rw zpow_bit0₀, exact mul_self_nonneg _ }
+by { rw zpow_bit0, exact mul_self_nonneg _ }
 
 theorem zpow_two_nonneg (a : K) : 0 ≤ a ^ (2 : ℤ) :=
 zpow_bit0_nonneg a 1
@@ -180,7 +176,7 @@ begin
   rcases h₁.lt_or_lt with H|H,
   { apply (zpow_strict_mono (one_lt_inv h₀ H)).injective,
     show x⁻¹ ^ m = x⁻¹ ^ n,
-    rw [← zpow_neg_one, ← zpow_mul₀, ← zpow_mul₀, mul_comm _ m, mul_comm _ n, zpow_mul₀, zpow_mul₀,
+    rw [← zpow_neg_one, ← zpow_mul, ← zpow_mul, mul_comm _ m, mul_comm _ n, zpow_mul, zpow_mul,
       h], },
   { exact (zpow_strict_mono H).injective h, },
 end

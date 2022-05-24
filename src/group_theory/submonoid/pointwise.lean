@@ -34,6 +34,8 @@ on `set`s.
 
 -/
 
+open set
+
 variables {α : Type*} {G : Type*} {M : Type*} {R : Type*} {A : Type*}
 variables [monoid M] [add_monoid A]
 

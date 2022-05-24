@@ -315,18 +315,20 @@ begin
   { simpa [h y (mem_cons_self _ _)] using IH (λ x hx, h x $ mem_cons_of_mem _ hx) }
 end
 
-lemma le_max_of_exists_le (l : list α) (a : α) (h1 : l ≠ []) (h2 : ∃ x ∈ l, a ≤ x) :
+lemma le_max_of_exists_le (l : list α) (a : α) {x : α} (hx : x ∈ l) (h : a ≤ x) :
   a ≤ l.foldr max ⊥ :=
 begin
   induction l with y l IH,
-  { contradiction },
+  { exact absurd hx (not_mem_nil _), },
   { by_cases hl_nil : l = nil,
-    { simp only [hl_nil, mem_singleton, exists_prop, exists_eq_left] at h2,
-      simp only [foldr, foldr_cons, le_max_of_le_left h2], },
-    { cases (list.exists_mem_cons_iff _ _ _).mp h2 with hy hl,
+    { rw [hl_nil, mem_singleton] at hx,
+      rw hx at h,
+      simp only [foldr, foldr_cons, le_max_of_le_left h] },
+    { cases hx with hy hl,
       simp only [foldr, foldr_cons],
-      { exact le_max_of_le_left hy, },
-      { exact le_max_of_le_right (IH hl_nil hl) }}}
+      { rw hy at h,
+        exact le_max_of_le_left h, },
+      { exact le_max_of_le_right (IH hl) }}}
 end
 
 end order_bot
@@ -340,9 +342,9 @@ variables [order_top α] {l : list α}
 lemma le_min_of_forall_le (l : list α) (a : α) (h : ∀ x ∈ l, a ≤ x) : a ≤ l.foldr min ⊤ :=
 @max_le_of_forall_le αᵒᵈ _ _ _ _ h
 
-lemma min_le_of_exists_le (l : list α) (a : α) (h1 : l ≠ []) (h2 : ∃ x ∈ l, x ≤ a) :
+lemma min_le_of_exists_le (l : list α) (a : α) {x : α} (hx : x ∈ l) (h : x ≤ a) :
   l.foldr min ⊤ ≤ a :=
-@le_max_of_exists_le αᵒᵈ _ _ _ _ h1 h2
+@le_max_of_exists_le αᵒᵈ _ _ _ _ _ hx h
 
 end order_top
 end fold

@@ -157,8 +157,25 @@ begin
   sorry
 end
 
-instance tadalem {G : Type*} [group G] {H K : subgroup G} [H.is_commutative] :
-  (H.subgroup_of K).is_commutative := sorry
+instance map_is_commutative {G G' : Type*} [group G] [group G'] (f : G →* G') {H : subgroup G}
+  [hH : H.is_commutative] : (H.map f).is_commutative :=
+⟨⟨begin
+  rintros ⟨-, a, ha, rfl⟩ ⟨-, b, hb, rfl⟩,
+  simp_rw [subtype.ext_iff, coe_mul, subtype.coe_mk, ←map_mul],
+  exact congr_arg f (subtype.ext_iff.mp (mul_comm ⟨a, ha⟩ ⟨b, hb⟩)),
+end⟩⟩
+
+lemma comap_injective_is_commutative {G G' : Type*} [group G] [group G'] {f : G →* G'}
+  (hf : function.injective f) {H : subgroup G'}
+  [hH : H.is_commutative] : (H.comap f).is_commutative :=
+⟨⟨λ a b, subtype.ext begin
+  have := mul_comm (⟨f a, a.2⟩ : H) (⟨f b, b.2⟩ : H),
+  rwa [subtype.ext_iff, coe_mul, coe_mul, coe_mk, coe_mk, ←map_mul, ←map_mul, hf.eq_iff] at this,
+end⟩⟩
+
+instance tadalem {G : Type*} [group G] {H K : subgroup G} [hH : H.is_commutative] :
+  (H.subgroup_of K).is_commutative :=
+subgroup.comap_injective_is_commutative subtype.coe_injective
 
 lemma key_lemma [fintype {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g}] :
   nat.card (commutator G) ∣ (center G).index ^

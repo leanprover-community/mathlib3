@@ -520,18 +520,7 @@ end
 
 lemma inv_mul_alg_equiv_of_elem (x : L) (f g : L ≃ₐ[K] L) :
 (f⁻¹ * g) x = x ↔ g x = f x :=
-begin
-   rw alg_equiv.mul_apply,
-   split,
-   { intro h,
-    have h' := congr_arg f h,
-    rw [← alg_equiv.mul_apply, mul_right_inv] at h',
-    exact h' },
-   { intro h,
-    have h' := congr_arg f.symm h,
-    rw alg_equiv.symm_apply_apply at h',
-    exact h' },
-end
+f.to_equiv.symm_apply_eq
 
 
 lemma top_group_map_nhds_eq {G : Type*} [group G] [topological_space G]

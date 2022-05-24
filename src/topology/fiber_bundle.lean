@@ -777,8 +777,7 @@ instance [I : topological_space F] : ∀ x : B, topological_space (trivial B F x
 
 instance [t₁ : topological_space B] [t₂ : topological_space F] :
   topological_space (total_space (trivial B F)) :=
-topological_space.induced (proj (trivial B F)) t₁ ⊓
-  topological_space.induced (trivial.proj_snd B F) t₂
+induced proj t₁ ⊓ induced (trivial.proj_snd B F) t₂
 
 end bundle
 
@@ -837,7 +836,7 @@ different name for typeclass inference. -/
 def total_space := bundle.total_space Z.fiber
 
 /-- The projection from the total space of a topological fiber bundle core, on its base. -/
-@[reducible, simp, mfld_simps] def proj : Z.total_space → B := bundle.proj Z.fiber
+@[reducible, simp, mfld_simps] def proj : Z.total_space → B := bundle.proj
 
 /-- Local homeomorphism version of the trivialization change. -/
 def triv_change (i j : ι) : local_homeomorph (B × F) (B × F) :=
@@ -1076,7 +1075,8 @@ open bundle
 
 /-- The inclusion of a fiber into the total space is a continuous map. -/
 @[continuity]
-lemma continuous_total_space_mk (b : B) : continuous (λ a, total_space_mk Z.fiber b a) :=
+lemma continuous_total_space_mk (b : B) :
+  continuous (total_space_mk b : Z.fiber b → bundle.total_space Z.fiber) :=
 begin
   rw [continuous_iff_le_induced, topological_fiber_bundle_core.to_topological_space],
   apply le_induced_generate_from,

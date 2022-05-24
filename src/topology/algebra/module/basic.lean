@@ -381,8 +381,8 @@ def simps.apply (h : M₁ →SL[σ₁₂] M₂) : M₁ → M₂ := h
 /-- See Note [custom simps projection]. -/
 def simps.coe (h : M₁ →SL[σ₁₂] M₂) : M₁ →ₛₗ[σ₁₂] M₂ := h
 
-initialize_simps_projections continuous_linear_map
-  (to_linear_map_to_fun → apply, to_linear_map → coe)
+initialize_simps_projections? continuous_linear_map
+  (to_linear_map_to_fun → apply, to_linear_map → coe, -coe)
 
 @[ext] theorem ext {f g : M₁ →SL[σ₁₂] M₂} (h : ∀ x, f x = g x) : f = g :=
 fun_like.ext f g h
@@ -1449,7 +1449,7 @@ def simps.apply (h : M₁ ≃SL[σ₁₂] M₂) : M₁ → M₂ := h
 /-- See Note [custom simps projection] -/
 def simps.symm_apply (h : M₁ ≃SL[σ₁₂] M₂) : M₂ → M₁ := h.symm
 
-initialize_simps_projections continuous_linear_equiv
+initialize_simps_projections? continuous_linear_equiv
   (to_linear_equiv_to_fun → apply, to_linear_equiv_inv_fun → symm_apply)
 
 lemma symm_map_nhds_eq (e : M₁ ≃SL[σ₁₂] M₂) (x : M₁) : map e.symm (𝓝 (e x)) = 𝓝 x :=
@@ -1825,7 +1825,7 @@ variables {ι R M}
 variables (R M)
 
 /-- Continuous linear equivalence between dependent functions `Π i : fin 2, M i` and `M 0 × M 1`. -/
-@[simps { fully_applied := ff }]
+@[simps? { fully_applied := ff }]
 def pi_fin_two (M : fin 2 → Type*) [Π i, add_comm_monoid (M i)] [Π i, module R (M i)]
   [Π i, topological_space (M i)] :
   (Π i, M i) ≃L[R] M 0 × M 1 :=

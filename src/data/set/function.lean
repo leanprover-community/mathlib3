@@ -220,6 +220,20 @@ lemma _root_.strict_mono_on.mono (h : strict_mono_on f s) (h' : s₂ ⊆ s) : st
 lemma _root_.strict_anti_on.mono (h : strict_anti_on f s) (h' : s₂ ⊆ s) : strict_anti_on f s₂ :=
 λ x hx y hy, h (h' hx) (h' hy)
 
+protected lemma _root_.monotone_on.monotone (h : monotone_on f s) : monotone (f ∘ coe : s → β) :=
+λ x y hle, h x.coe_prop y.coe_prop hle
+
+protected lemma _root_.antitone_on.monotone (h : antitone_on f s) : antitone (f ∘ coe : s → β) :=
+λ x y hle, h x.coe_prop y.coe_prop hle
+
+protected lemma _root_.strict_mono_on.strict_mono (h : strict_mono_on f s) :
+  strict_mono (f ∘ coe : s → β) :=
+λ x y hlt, h x.coe_prop y.coe_prop hlt
+
+protected lemma _root_.strict_anti_on.strict_anti (h : strict_anti_on f s) :
+  strict_anti (f ∘ coe : s → β) :=
+λ x y hlt, h x.coe_prop y.coe_prop hlt
+
 end mono
 
 /-! ### maps to -/

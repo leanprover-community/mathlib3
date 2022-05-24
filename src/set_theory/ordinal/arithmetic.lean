@@ -183,7 +183,7 @@ lt_iff_le_and_ne.2 ⟨ordinal.zero_le _, ne.symm $ ordinal.one_ne_zero⟩
 @[simp] theorem zero_le_one : (0 : ordinal) ≤ 1 :=
 zero_lt_one.le
 
-instance : unique (1 : ordinal).out.α :=
+instance unique_out_one : unique (1 : ordinal).out.α :=
 { default := enum (<) 0 (by simp),
   uniq := λ a, begin
     rw ←enum_typein (<) a,
@@ -353,7 +353,7 @@ end
   @limit_rec_on C o H₁ H₂ H₃ = H₃ o h (λ x h, @limit_rec_on C x H₁ H₂ H₃) :=
 by rw [limit_rec_on, wf.fix_eq, dif_neg h.1, dif_neg (not_succ_of_is_limit h)]; refl
 
-instance (o : ordinal) : order_top o.succ.out.α :=
+instance order_top_out_succ (o : ordinal) : order_top o.succ.out.α :=
 ⟨_, le_enum_succ⟩
 
 theorem enum_succ_eq_top {o : ordinal} :

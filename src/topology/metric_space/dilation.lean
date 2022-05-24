@@ -208,8 +208,6 @@ def id (α) [pseudo_emetric_space α] : dilation α α :=
 { to_fun := _root_.id,
   edist_eq' := ⟨1, λ x y, by simp only [id.def, ennreal.coe_one, one_mul]⟩ }
 
-#print id
-
 instance : inhabited (dilation α α) := ⟨id α⟩
 
 @[simp] lemma id_apply (x : α) : id α x = x := rfl

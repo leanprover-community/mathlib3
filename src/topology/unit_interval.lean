@@ -18,6 +18,20 @@ We provide basic instances, as well as a custom tactic for discharging
 
 -/
 
+open_locale unit_interval
+
+@[continuity]
+lemma continuous_symm : continuous σ :=
+by continuity!
+
+instance : connected_space I :=
+subtype.connected_space ⟨set.nonempty_Icc.mpr zero_le_one, is_preconnected_Icc⟩
+
+/-- Verify there is an instance for `compact_space I`. -/
+example : compact_space I := by apply_instance
+
+
+
 namespace tactic.interactive
 
 /-- A tactic that solves `0 ≤ ↑x`, `0 ≤ 1 - ↑x`, `↑x ≤ 1`, and `1 - ↑x ≤ 1` for `x : I`. -/

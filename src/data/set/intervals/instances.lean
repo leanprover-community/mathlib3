@@ -156,7 +156,11 @@ subtype.coe_injective.comm_semigroup _ coe_mul
 
 end set.Ioo
 
-/-! ### The unit interval in the real numbers -/
+/-! ### The unit interval in the real numbers
+
+Use `open_locale unit_interval` to turn on the notation `I := set.Icc (0 : ℝ) (1 : ℝ)`.
+
+-/
 
 /-- The unit interval `[0,1]` in ℝ. -/
 abbreviation unit_interval : set ℝ := set.Icc 0 1
@@ -236,16 +240,6 @@ by { simp only [symm], push_cast [sub_self, mk_zero] }
 subtype.ext $ by simp [symm]
 
 @[simp] lemma coe_symm_eq (x : I) : (σ x : ℝ) = 1 - x := rfl
-
-@[continuity]
-lemma continuous_symm : continuous σ :=
-by continuity!
-
-instance : connected_space I :=
-subtype.connected_space ⟨nonempty_Icc.mpr zero_le_one, is_preconnected_Icc⟩
-
-/-- Verify there is an instance for `compact_space I`. -/
-example : compact_space I := by apply_instance
 
 lemma nonneg (x : I) : 0 ≤ (x : ℝ) := x.2.1
 lemma one_minus_nonneg (x : I) : 0 ≤ 1 - (x : ℝ) := by simpa using x.2.2

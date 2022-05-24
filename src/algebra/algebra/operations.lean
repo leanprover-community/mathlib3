@@ -321,8 +321,8 @@ begin
     apply mul_subset_mul }
 end
 
-/-- Dependent version of `submodule.pow_induction_on`. -/
-@[elab_as_eliminator] protected theorem pow_induction_on'
+/-- Dependent version of `submodule.pow_induction_on_left`. -/
+@[elab_as_eliminator] protected theorem pow_induction_on_left'
   {C : Π (n : ℕ) x, x ∈ M ^ n → Prop}
   (hr : ∀ r : R, C 0 (algebra_map _ _ r) (algebra_map_mem r))
   (hadd : ∀ x y i hx hy, C i x hx → C i y hy → C i (x + y) (add_mem ‹_› ‹_›))
@@ -338,16 +338,48 @@ begin
     (λ x hx y hy Cx Cy, hadd _ _ _ _ _ Cx Cy) hx,
 end
 
+/-- Dependent version of `submodule.pow_induction_on_right`. -/
+@[elab_as_eliminator] protected theorem pow_induction_on_right'
+  {C : Π (n : ℕ) x, x ∈ M ^ n → Prop}
+  (hr : ∀ r : R, C 0 (algebra_map _ _ r) (algebra_map_mem r))
+  (hadd : ∀ x y i hx hy, C i x hx → C i y hy → C i (x + y) (add_mem ‹_› ‹_›))
+  (hmul : ∀ i x hx, C i x hx → ∀ m ∈ M,
+    C (i.succ) (x * m) ((pow_succ' M i).symm ▸ mul_mem_mul hx H))
+  {x : A} {n : ℕ} (hx : x ∈ M ^ n) : C n x hx :=
+begin
+  induction n with n n_ih generalizing x,
+  { rw pow_zero at hx,
+    obtain ⟨r, rfl⟩ := hx,
+    exact hr r, },
+  revert hx,
+  simp_rw pow_succ',
+  intro hx,
+  exact submodule.mul_induction_on'
+    (λ m hm x ih, hmul _ _ hm (n_ih _) _ ih)
+    (λ x hx y hy Cx Cy, hadd _ _ _ _ _ Cx Cy) hx,
+end
+
 /-- To show a property on elements of `M ^ n` holds, it suffices to show that it holds for scalars,
 is closed under addition, and holds for `m * x` where `m ∈ M` and it holds for `x` -/
-@[elab_as_eliminator] protected theorem pow_induction_on
+@[elab_as_eliminator] protected theorem pow_induction_on_left
   {C : A → Prop}
   (hr : ∀ r : R, C (algebra_map _ _ r))
   (hadd : ∀ x y, C x → C y → C (x + y))
   (hmul : ∀ (m ∈ M) x, C x → C (m * x))
   {x : A} {n : ℕ} (hx : x ∈ M ^ n) : C x :=
-submodule.pow_induction_on' M
+submodule.pow_induction_on_left' M
   (by exact hr) (λ x y i hx hy, hadd x y) (λ m hm i x hx, hmul _ hm _) hx
+
+/-- To show a property on elements of `M ^ n` holds, it suffices to show that it holds for scalars,
+is closed under addition, and holds for `x * m` where `m ∈ M` and it holds for `x` -/
+@[elab_as_eliminator] protected theorem pow_induction_on_right
+  {C : A → Prop}
+  (hr : ∀ r : R, C (algebra_map _ _ r))
+  (hadd : ∀ x y, C x → C y → C (x + y))
+  (hmul : ∀ x, C x → ∀ (m ∈ M), C (x * m))
+  {x : A} {n : ℕ} (hx : x ∈ M ^ n) : C x :=
+submodule.pow_induction_on_right' M
+  (by exact hr) (λ x y i hx hy, hadd x y) (λ i x hx, hmul _) hx
 
 /-- `submonoid.map` as a `monoid_with_zero_hom`, when applied to `alg_hom`s. -/
 @[simps]

@@ -1130,19 +1130,18 @@ end prod
 section linear_order
 variables [linear_order α]
 
-lemma min_top_left [order_top α] (a : α) : min (⊤ : α) a = a := min_eq_right le_top
-lemma min_top_right [order_top α] (a : α) : min a ⊤ = a := min_eq_left le_top
-lemma max_bot_left [order_bot α] (a : α) : max (⊥ : α) a = a := max_eq_right bot_le
-lemma max_bot_right [order_bot α] (a : α) : max a ⊥ = a := max_eq_left bot_le
-
 -- `simp` can prove these, so they shouldn't be simp-lemmas.
-lemma min_bot_left [order_bot α] (a : α) : min ⊥ a = ⊥ := min_eq_left bot_le
-lemma min_bot_right [order_bot α] (a : α) : min a ⊥ = ⊥ := min_eq_right bot_le
-lemma max_top_left [order_top α] (a : α) : max ⊤ a = ⊤ := max_eq_left le_top
-lemma max_top_right [order_top α] (a : α) : max a ⊤ = ⊤ := max_eq_right le_top
+lemma min_bot_left [order_bot α] (a : α) : min ⊥ a = ⊥ := bot_inf_eq
+lemma max_top_left [order_top α] (a : α) : max ⊤ a = ⊤ := top_sup_eq
+lemma min_top_left [order_top α] (a : α) : min ⊤ a = a := top_inf_eq
+lemma max_bot_left [order_bot α] (a : α) : max ⊥ a = a := bot_sup_eq
+lemma min_top_right [order_top α] (a : α) : min a ⊤ = a := inf_top_eq
+lemma max_bot_right [order_bot α] (a : α) : max a ⊥ = a := sup_bot_eq
+lemma min_bot_right [order_bot α] (a : α) : min a ⊥ = ⊥ := inf_bot_eq
+lemma max_top_right [order_top α] (a : α) : max a ⊤ = ⊤ := sup_top_eq
 
 @[simp] lemma min_eq_bot [order_bot α] {a b : α} : min a b = ⊥ ↔ a = ⊥ ∨ b = ⊥ :=
-by { symmetry, cases le_total a b; simpa [*, min_eq_left, min_eq_right] using eq_bot_mono h }
+by simp only [←inf_eq_min, ←le_bot_iff, inf_le_iff]
 
 @[simp] lemma max_eq_top [order_top α] {a b : α} : max a b = ⊤ ↔ a = ⊤ ∨ b = ⊤ :=
 @min_eq_bot αᵒᵈ _ _ a b
@@ -1167,6 +1166,8 @@ lemma disjoint.eq_bot : disjoint a b → a ⊓ b = ⊥ := bot_unique
 lemma disjoint.comm : disjoint a b ↔ disjoint b a := by rw [disjoint, disjoint, inf_comm]
 @[symm] lemma disjoint.symm ⦃a b : α⦄ : disjoint a b → disjoint b a := disjoint.comm.1
 lemma symmetric_disjoint : symmetric (disjoint : α → α → Prop) := disjoint.symm
+lemma disjoint_assoc : disjoint (a ⊓ b) c ↔ disjoint a (b ⊓ c) :=
+by rw [disjoint, disjoint, inf_assoc]
 
 @[simp] lemma disjoint_bot_left : disjoint ⊥ a := inf_le_left
 @[simp] lemma disjoint_bot_right : disjoint a ⊥ := inf_le_right
@@ -1177,12 +1178,20 @@ le_trans $ inf_le_inf h₁ h₂
 lemma disjoint.mono_left (h : a ≤ b) : disjoint b c → disjoint a c := disjoint.mono h le_rfl
 lemma disjoint.mono_right : b ≤ c → disjoint a c → disjoint a b := disjoint.mono le_rfl
 
+variables (c)
+
 lemma disjoint.inf_left (h : disjoint a b) : disjoint (a ⊓ c) b := h.mono_left inf_le_left
 lemma disjoint.inf_left' (h : disjoint a b) : disjoint (c ⊓ a) b := h.mono_left inf_le_right
 lemma disjoint.inf_right (h : disjoint a b) : disjoint a (b ⊓ c) := h.mono_right inf_le_left
 lemma disjoint.inf_right' (h : disjoint a b) : disjoint a (c ⊓ b) := h.mono_right inf_le_right
 
+variables {c}
+
 @[simp] lemma disjoint_self : disjoint a a ↔ a = ⊥ := by simp [disjoint]
+
+/- TODO: Rename `disjoint.eq_bot` to `disjoint.inf_eq` and `disjoint.eq_bot_of_self` to
+`disjoint.eq_bot` -/
+alias disjoint_self ↔ disjoint.eq_bot_of_self _
 
 lemma disjoint.ne (ha : a ≠ ⊥) (hab : disjoint a b) : a ≠ b :=
 λ h, ha $ disjoint_self.1 $ by rwa ←h at hab
@@ -1190,8 +1199,7 @@ lemma disjoint.ne (ha : a ≠ ⊥) (hab : disjoint a b) : a ≠ b :=
 lemma disjoint.eq_bot_of_le (hab : disjoint a b) (h : a ≤ b) : a = ⊥ :=
 eq_bot_iff.2 (by rwa ←inf_eq_left.2 h)
 
-lemma disjoint_assoc : disjoint (a ⊓ b) c ↔ disjoint a (b ⊓ c) :=
-by rw [disjoint, disjoint, inf_assoc]
+lemma disjoint.eq_bot_of_ge (hab : disjoint a b) : b ≤ a → b = ⊥ := hab.symm.eq_bot_of_le
 
 lemma disjoint.of_disjoint_inf_of_le (h : disjoint (a ⊓ b) c) (hle : a ≤ c) : disjoint a b :=
 disjoint_iff.2 $ h.eq_bot_of_le $ inf_le_of_left_le hle
@@ -1202,13 +1210,7 @@ disjoint_iff.2 $ h.eq_bot_of_le $ inf_le_of_right_le hle
 end semilattice_inf_bot
 
 section lattice
-variables [lattice α]
-
-lemma eq_bot_of_disjoint_absorbs [order_bot α] {a b : α} (hab : disjoint a b) (h : a ⊔ b = a) :
-  b = ⊥ :=
-by rwa [←hab.eq_bot, right_eq_inf, ←sup_eq_left]
-
-variables [bounded_order α] {a : α}
+variables [lattice α] [bounded_order α] {a : α}
 
 @[simp] theorem disjoint_top : disjoint a ⊤ ↔ a = ⊥ := by simp [disjoint_iff]
 @[simp] theorem top_disjoint : disjoint ⊤ a ↔ a = ⊥ := by simp [disjoint_iff]
@@ -1394,8 +1396,7 @@ h.disjoint_right_iff.symm
 lemma le_right_iff (h : is_compl x y) : z ≤ y ↔ disjoint z x :=
 h.symm.le_left_iff
 
-lemma left_le_iff (h : is_compl x y) : x ≤ z ↔ ⊤ ≤ z ⊔ y :=
-h.dual.le_left_iff
+lemma left_le_iff (h : is_compl x y) : x ≤ z ↔ ⊤ ≤ z ⊔ y := h.dual.le_left_iff
 
 lemma right_le_iff (h : is_compl x y) : y ≤ z ↔ ⊤ ≤ z ⊔ x :=
 h.symm.left_le_iff

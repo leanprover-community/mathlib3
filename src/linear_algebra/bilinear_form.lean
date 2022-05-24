@@ -616,20 +616,20 @@ end
 
 section basis
 
-variables {B₃ F₃ : bilin_form R₃ M₃}
-variables {ι : Type*} (b : basis ι R₃ M₃)
+variables {F₂ : bilin_form R₂ M₂}
+variables {ι : Type*} (b : basis ι R₂ M₂)
 
 /-- Two bilinear forms are equal when they are equal on all basis vectors. -/
-lemma ext_basis (h : ∀ i j, B₃ (b i) (b j) = F₃ (b i) (b j)) : B₃ = F₃ :=
+lemma ext_basis (h : ∀ i j, B₂ (b i) (b j) = F₂ (b i) (b j)) : B₂ = F₂ :=
 to_lin.injective $ b.ext $ λ i, b.ext $ λ j, h i j
 
 /-- Write out `B x y` as a sum over `B (b i) (b j)` if `b` is a basis. -/
-lemma sum_repr_mul_repr_mul (x y : M₃) :
-  (b.repr x).sum (λ i xi, (b.repr y).sum (λ j yj, xi • yj • B₃ (b i) (b j))) = B₃ x y :=
+lemma sum_repr_mul_repr_mul (x y : M₂) :
+  (b.repr x).sum (λ i xi, (b.repr y).sum (λ j yj, xi • yj • B₂ (b i) (b j))) = B₂ x y :=
 begin
   conv_rhs { rw [← b.total_repr x, ← b.total_repr y] },
   simp_rw [finsupp.total_apply, finsupp.sum, sum_left, sum_right,
-    smul_left, smul_right, smul_eq_mul]
+    smul_left, smul_right, smul_eq_mul],
 end
 
 end basis
@@ -781,18 +781,15 @@ def is_pair_self_adjoint_submodule : submodule R₂ (module.End R₂ M₂) :=
   f ∈ is_pair_self_adjoint_submodule B₂ F₂ ↔ is_pair_self_adjoint B₂ F₂ f :=
 by refl
 
-variables {M₃' : Type*} [add_comm_group M₃'] [module R₃ M₃']
-variables (B₃ F₃ : bilin_form R₃ M₃)
-
-lemma is_pair_self_adjoint_equiv (e : M₃' ≃ₗ[R₃] M₃) (f : module.End R₃ M₃) :
-  is_pair_self_adjoint B₃ F₃ f ↔
-    is_pair_self_adjoint (B₃.comp ↑e ↑e) (F₃.comp ↑e ↑e) (e.symm.conj f) :=
+lemma is_pair_self_adjoint_equiv (e : M₂' ≃ₗ[R₂] M₂) (f : module.End R₂ M₂) :
+  is_pair_self_adjoint B₂ F₂ f ↔
+    is_pair_self_adjoint (B₂.comp ↑e ↑e) (F₂.comp ↑e ↑e) (e.symm.conj f) :=
 begin
-  have hₗ : (F₃.comp ↑e ↑e).comp_left (e.symm.conj f) = (F₃.comp_left f).comp ↑e ↑e :=
+  have hₗ : (F₂.comp ↑e ↑e).comp_left (e.symm.conj f) = (F₂.comp_left f).comp ↑e ↑e :=
     by { ext, simp [linear_equiv.symm_conj_apply], },
-  have hᵣ : (B₃.comp ↑e ↑e).comp_right (e.symm.conj f) = (B₃.comp_right f).comp ↑e ↑e :=
+  have hᵣ : (B₂.comp ↑e ↑e).comp_right (e.symm.conj f) = (B₂.comp_right f).comp ↑e ↑e :=
     by { ext, simp [linear_equiv.conj_apply], },
-  have he : function.surjective (⇑(↑e : M₃' →ₗ[R₃] M₃) : M₃' → M₃) := e.surjective,
+  have he : function.surjective (⇑(↑e : M₂' →ₗ[R₂] M₂) : M₂' → M₂) := e.surjective,
   show bilin_form.is_adjoint_pair _ _ _ _  ↔ bilin_form.is_adjoint_pair _ _ _ _,
   rw [is_adjoint_pair_iff_comp_left_eq_comp_right, is_adjoint_pair_iff_comp_left_eq_comp_right,
       hᵣ, hₗ, comp_inj _ _ he he],
@@ -817,6 +814,8 @@ def self_adjoint_submodule := is_pair_self_adjoint_submodule B₂ B₂
 
 @[simp] lemma mem_self_adjoint_submodule (f : module.End R₂ M₂) :
   f ∈ B₂.self_adjoint_submodule ↔ B₂.is_self_adjoint f := iff.rfl
+
+variables (B₃ : bilin_form R₃ M₃)
 
 /-- The set of skew-adjoint endomorphisms of a module with bilinear form is a submodule. (In fact
 it is a Lie subalgebra.) -/

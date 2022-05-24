@@ -54,15 +54,17 @@ coerced to a type.
 Note: this is `irreducible` so that it won't be frozen as a local instance. -/
 protected def finite (s : set α) : Prop := nonempty (fintype s)
 
-/-- Constructor for `set.finite` with an explicit `fintype` instance. -/
-protected def finite.intro {s : set α} (h : fintype s) : s.finite := ⟨h⟩
-
-/-- Constructor for `set.finite` with the `fintype` as an instance argument. -/
-theorem finite_of_fintype (s : set α) [h : fintype s] : s.finite := ⟨h⟩
-
 lemma finite_def {s : set α} : s.finite ↔ nonempty (fintype s) := iff.rfl
 
 attribute [irreducible] set.finite
+
+/-- Constructor for `set.finite` with an explicit `fintype` instance. -/
+protected theorem finite.intro {s : set α} (h : fintype s) : s.finite :=
+finite_def.mpr ⟨h⟩
+
+/-- Constructor for `set.finite` with the `fintype` as an instance argument. -/
+theorem finite_of_fintype (s : set α) [h : fintype s] : s.finite :=
+finite_def.mpr ⟨h⟩
 
 lemma finite.elim {s : set α} {p : Prop} (h : s.finite) (q : fintype s → p) : p :=
 nonempty.elim (finite_def.mp h) q

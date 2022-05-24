@@ -108,8 +108,8 @@ theorem le_iff_forall_lt {x y : pgame} (ox : x.numeric) (oy : y.numeric) :
 begin
   rw le_iff_forall_lf,
   refine and_congr _ _;
-  refine forall_congr (λ i, (lf_iff_lt _ _));
-  apply_rules [numeric.move_left, numeric.move_right]
+    refine forall_congr (λ i, (lf_iff_lt _ _));
+    apply_rules [numeric.move_left, numeric.move_right]
 end
 
 theorem le_of_forall_lt {x y : pgame} (ox : x.numeric) (oy : y.numeric) :

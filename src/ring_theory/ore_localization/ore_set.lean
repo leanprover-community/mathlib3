@@ -42,7 +42,7 @@ def ore_left_cancel_factor (r₁ r₂ : R) (s : S) (h : (s : R) * r₁ = s * r�
 (ore_left_cancel r₁ r₂ s h).1
 
 /-- The defining equality of an Ore set's weak cancellability. -/
-def ore_left_cancel_factor_eq (r₁ r₂ : R) (s : S) (h : (s : R) * r₁ = s * r₂) :
+lemma ore_left_cancel_factor_eq (r₁ r₂ : R) (s : S) (h : (s : R) * r₁ = s * r₂) :
   r₁ * (ore_left_cancel_factor r₁ r₂ s h) = r₂ * (ore_left_cancel_factor r₁ r₂ s h) :=
 (ore_left_cancel r₁ r₂ s h).2
 
@@ -53,7 +53,7 @@ def ore_num (r : R) (s : S) : R := is_ore.ore_num r s
 def ore_denom (r : R) (s : S) : S := is_ore.ore_denom r s
 
 /-- The Ore condition of a fraction, expressed in terms of `ore_num` and `ore_denom`. -/
-def ore_eq (r : R) (s : S) : r * (ore_denom r s) = s * (ore_num r s) := is_ore.ore_eq r s
+lemma ore_eq (r : R) (s : S) : r * (ore_denom r s) = s * (ore_num r s) := is_ore.ore_eq r s
 
 /-- The Ore condition bundled in a sigma type. This is useful in situations where we want to obtain
 both witnesses and the condition for a given fraction. -/
@@ -72,11 +72,13 @@ instance is_ore_bot : is_ore (⊥ : submonoid R) :=
   ore_eq := λ _ s, by { rcases s with ⟨s, hs⟩, rw submonoid.mem_bot at hs, simp [hs] } }
 
 /-- Every submonoid of a commutative monoid is an Ore set. -/
-instance is_ore_comm {R} [comm_monoid R] (S : submonoid R) : is_ore S :=
+def is_ore_comm {R} [comm_monoid R] (S : submonoid R) : is_ore S :=
 { ore_left_cancel := λ m n s h, ⟨s, by rw [mul_comm n s, mul_comm m s, h]⟩,
   ore_num := λ r _, r,
   ore_denom := λ _ s, s,
   ore_eq := λ r s, by rw mul_comm }
+
+attribute [instance, priority 100] is_ore_comm
 
 end monoid
 
@@ -86,10 +88,10 @@ variables {R : Type*} [ring R] [no_zero_divisors R] {S : submonoid R}
 
 /-- In rings without zero divisors, the first (cancellability) condition is always fulfilled,
 it suffices to give a prove for the ore condition itself. -/
-instance is_ore_of_no_zero_divisors
+def is_ore_of_no_zero_divisors
   (ore_num : R → S → R)
   (ore_denom : R → S → S)
-  (ore_eq : ∀ (r : R) (s : S), r * (ore_denom r s) = s * (ore_num r s)) :
+  {ore_eq : ∀ (r : R) (s : S), r * (ore_denom r s) = s * (ore_num r s)} :
   is_ore S :=
 { ore_left_cancel := λ r₁ r₂ s h,
   begin

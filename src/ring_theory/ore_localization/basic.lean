@@ -81,7 +81,15 @@ namespace ore_localization
 
 section monoid
 
-variables (R : Type*) [monoid R] (S : submonoid R) [ore : is_ore S]
+variables {R : Type*} [monoid R] {S : submonoid R}
+
+/-- Helper lemma to convert between two common forms of equality in `R` and `S`, used in a lot
+of constructions in this file. -/
+lemma submonoid.eq_of_coe_eq_mul {s s' : S} {r : R} (h : (s : R) = s' * r) :
+  s = ⟨s' * r, by { rw [←h], simp }⟩ :=
+by { ext, simp [h] }
+
+variables (R S) [ore : is_ore S]
 
 include ore
 
@@ -114,10 +122,6 @@ by { apply quotient.sound, refine ⟨s, t * s, _, _⟩; dsimp; rw [mul_assoc]; r
 protected lemma expand' (r : R) (s s' : S) : r /ₒ s = (r * s') /ₒ (s * s') :=
 ore_localization.expand r s s' (by norm_cast; apply set_like.coe_mem)
 
-lemma submonoid.eq_of_coe_eq_mul {s s' : S} {r : R} (h : (s : R) = s' * r) :
-  s = ⟨s' * r, by { rw [←h], simp }⟩ :=
-by { ext, simp [h] }
-
 /-- Fractions which differ by a factor of the numerator can be proven equal if
 those factors expand to equal elements of `R`. -/
 protected lemma eq_of_num_factor_eq {r r' r₁ r₂ : R} {s t : S}
@@ -135,7 +139,7 @@ begin
   ...                     = (r₁ * r' * r₂) /ₒ s : by symmetry; apply ore_localization.expand
 end
 
-/-- A function or predicate over `R` and `S` can be lifted to `R [S ⁻¹]` if it is invariant
+/-- A function or predicate over `R` and `S` can be lifted to `R[S⁻¹]` if it is invariant
 under expansion on the right. -/
 def lift_expand {C : Sort*} (P : R → S → C)
   (hP : ∀ (r t : R) (s : S) (ht : ((s : R) * t) ∈ S), P r s = P (r * t) ⟨s * t, ht⟩) :
@@ -158,6 +162,8 @@ lemma lift_expand_of {C : Sort*} {P : R → S → C}
   (r : R) (s : S) :
   lift_expand P hP (r /ₒ s) = P r s := rfl
 
+/-- A version of `lift_expand` used to simultaneously lift functions with two arguments
+in ``R[S⁻¹]`.-/
 def lift₂_expand {C : Sort*} (P : R → S → R → S → C)
   (hP : ∀ (r₁ t₁ : R) (s₁ : S) (ht₁ : (s₁ : R) * t₁ ∈ S)
           (r₂ t₂ : R) (s₂ : S) (ht₂ : (s₂ : R) * t₂ ∈ S),
@@ -179,10 +185,10 @@ lemma lift₂_expand_of {C : Sort*} {P : R → S → R → S → C}
   lift₂_expand P hP (r₁ /ₒ s₁) (r₂ /ₒ s₂) = P r₁ s₁ r₂ s₂ :=
 rfl
 
-def mul' (r₁ : R) (s₁ : S) (r₂ : R) (s₂ : S) : R[S ⁻¹] :=
+private def mul' (r₁ : R) (s₁ : S) (r₂ : R) (s₂ : S) : R[S ⁻¹] :=
   (r₁ * (ore_num r₂ s₁)) /ₒ (s₂ * (ore_denom r₂ s₁))
 
-lemma mul'_char (r₁ r₂ : R) (s₁ s₂ : S) (u : S) (v : R) (huv : r₂ * (u : R) = s₁ * v) :
+private lemma mul'_char (r₁ r₂ : R) (s₁ s₂ : S) (u : S) (v : R) (huv : r₂ * (u : R) = s₁ * v) :
   mul' r₁ s₁ r₂ s₂ = (r₁ * v) /ₒ (s₂ * u) :=
 begin
   simp only [mul'],
@@ -199,8 +205,9 @@ begin
   { assoc_rw h₃, simp only [mul_assoc] }
 end
 
+/-- The multiplication on the Ore localization of monoids. -/
 protected def mul : R[S ⁻¹] → R[S ⁻¹] → R[S ⁻¹] :=
-lift₂_expand mul' $ λ r₂ p s₂ hp r₁ r s₁ hr, -- variable naming like in Skoda
+lift₂_expand mul' $ λ r₂ p s₂ hp r₁ r s₁ hr,
 begin
   have h₁ := ore_eq r₁ s₂, set r₁' := ore_num r₁ s₂, set s₂' := ore_denom r₁ s₂,
   rcases ore_condition (↑s₂ * r₁') ⟨s₂ * p, hp⟩ with ⟨p', s_star, h₂⟩, dsimp at h₂,
@@ -226,11 +233,15 @@ instance : has_mul R[S⁻¹] := ⟨ore_localization.mul⟩
 lemma ore_div_mul_ore_div {r₁ r₂ : R} {s₁ s₂ : S} :
   (r₁ /ₒ s₁) * (r₂ /ₒ s₂) = (r₁ * (ore_num r₂ s₁)) /ₒ (s₂ * (ore_denom r₂ s₁)) := rfl
 
+/-- A characterization lemma for the multiplication on the Ore localization, allowing for a choice
+of Ore numerator and Ore denominator. -/
 lemma ore_div_mul_char (r₁ r₂ : R) (s₁ s₂ : S) (r' : R) (s' : S)
   (huv : r₂ * (s' : R) = s₁ * r') : (r₁ /ₒ s₁) * (r₂ /ₒ s₂) = (r₁ * r') /ₒ (s₂ * s') :=
 mul'_char r₁ r₂ s₁ s₂ s' r' huv
 
-noncomputable lemma ore_div_mul_char' (r₁ r₂ : R) (s₁ s₂ : S) :
+/-- Another characterization lemma for the multiplication on the Ore localizaion delivering
+Ore witnesses and conditions bundled in a sigma type. -/
+def ore_div_mul_char' (r₁ r₂ : R) (s₁ s₂ : S) :
   Σ' r' : R, Σ' s' : S, r₂ * (s' : R) = s₁ * r'
                         ∧  (r₁ /ₒ s₁) * (r₂ /ₒ s₂) = (r₁ * r') /ₒ (s₂ * s') :=
 ⟨ore_num r₂ s₁, ore_denom r₂ s₁, ore_eq r₂ s₁, ore_div_mul_ore_div⟩
@@ -239,10 +250,15 @@ instance : has_one R[S⁻¹] := ⟨1 /ₒ 1⟩
 
 protected lemma one_def : (1 : R[S ⁻¹]) = 1 /ₒ 1 := rfl
 
--- TODO the reverse statement is false? r/s=1/1 probably doesn't imply r = s, right?
+instance : inhabited R[S⁻¹] := ⟨1⟩
+
 @[simp]
-def of_eq_1 {s : S} : (s : R) /ₒ s = 1 :=
-by { rw [ore_localization.one_def, ore_div_eq_iff], exact ⟨s, 1, by simp, by simp⟩ }
+protected lemma div_eq_one' {r : R} (hr : r ∈ S) : r /ₒ ⟨r, hr⟩ = 1 :=
+by { rw [ore_localization.one_def, ore_div_eq_iff], exact ⟨⟨r, hr⟩, 1, by simp, by simp⟩ }
+
+@[simp]
+protected lemma div_eq_one {s : S} : (s : R) /ₒ s = 1 :=
+by { cases s; apply ore_localization.div_eq_one'}
 
 protected lemma one_mul (x : R[S ⁻¹]) : 1 * x = x :=
 begin
@@ -278,7 +294,6 @@ instance : monoid R[S⁻¹] :=
   .. ore_localization.has_mul,
   .. ore_localization.has_one }
 
-@[simp]
 protected lemma mul_inv (s s' : S) : ((s : R) /ₒ s') * (s' /ₒ s) = 1 :=
 by simp [ore_div_mul_char (s :R) s' s' s 1 1 (by simp)]
 
@@ -299,12 +314,15 @@ lemma div_one_mul {p r : R} {s : S} :
   (r /ₒ 1) * (p /ₒ s) = (r * p) /ₒ s := --TODO use coercion r ↦ r /ₒ 1
 by simp [ore_div_mul_char r p 1 s p 1 (by simp)]
 
+/-- The unit in `R[S⁻¹]` consistinc of the fraction `s /ₒ 1` for `s : S`. -/
 def numerator_unit (s : S) : units R[S⁻¹] :=
 { val := (s : R) /ₒ 1,
   inv := (1 : R) /ₒ s,
   val_inv := ore_localization.mul_inv s 1,
   inv_val := ore_localization.mul_inv 1 s }
 
+/-- The multiplicative homomorphism from `R` to `R[S⁻¹]`, mapping `r : R` to the
+fraction `r /ₒ 1`. -/
 def numerator_hom : R →* R[S⁻¹] :=
 { to_fun := λ r, r /ₒ 1,
   map_one' := rfl,
@@ -323,6 +341,8 @@ variables (hf : ∀ (s : S), f s = fS s)
 
 include f fS hf
 
+/-- The universal lift from a morphism `R →* T`, which maps elements of `S` to units of `T`,
+to a morphism `R[S⁻¹] →* T`. -/
 def universal_mul_hom : R[S⁻¹] →* T :=
 { to_fun := λ x, x.lift_expand (λ r s, (f r) * ((fS s)⁻¹ : units T)) $ λ r t s ht,
   begin
@@ -352,6 +372,7 @@ rfl
 lemma universal_mul_hom_commutes {r : R} : universal_mul_hom f fS hf (numerator_hom r) = f r :=
 by simp [numerator_hom_apply, universal_mul_hom_apply]
 
+/-- The universal morphism `universal_mul_hom` is unique. -/
 lemma universal_mul_hom_unique (φ : R[S⁻¹] →* T) (huniv : ∀ (r : R), φ (numerator_hom r) = f r) :
   φ = universal_mul_hom f fS hf :=
 begin
@@ -384,6 +405,7 @@ instance : comm_monoid R[S⁻¹] :=
 
 variables (R S)
 
+/-- The morphism `numerator_hom` is a monoid localization map in the case of commutative `R`. -/
 protected def localization_map : S.localization_map R[S⁻¹] :=
 { to_fun := numerator_hom,
   map_one' := rfl,
@@ -407,7 +429,8 @@ protected def localization_map : S.localization_map R[S⁻¹] :=
       use s, use s, simp [h, one_mul] }
   end }
 
-protected noncomputable lemma equiv_monoid_localization : localization S ≃* R[S ⁻¹] :=
+/-- If `R` is commutative, Ore localization and monoid localization are isomorphic. -/
+protected noncomputable def equiv_monoid_localization : localization S ≃* R[S ⁻¹] :=
 localization.mul_equiv_of_quotient (ore_localization.localization_map R S)
 
 end comm_monoid
@@ -416,7 +439,7 @@ section semiring
 
 variables {R : Type*} [semiring R] {S : submonoid R} [is_ore S]
 
-def add'' (r₁ : R) (s₁ : S) (r₂ : R) (s₂ : S) : R[S ⁻¹] :=
+private def add'' (r₁ : R) (s₁ : S) (r₂ : R) (s₂ : S) : R[S ⁻¹] :=
 (r₁ * (ore_denom (s₁ : R) s₂) + r₂ * (ore_num s₁ s₂)) /ₒ (s₁ * ore_denom s₁ s₂)
 
 private lemma add''_char
@@ -475,6 +498,7 @@ begin
   { rw [mul_assoc, ←mul_assoc ↑sa, ←hd, hb], noncomm_ring }
 end
 
+/-- The addition on the Ore localization. -/
 private def add : R[S ⁻¹] → R[S ⁻¹] → R[S ⁻¹] :=
 λ x,
 quotient.lift (λ rs : R × S, add' rs.1 rs.2 x)
@@ -491,12 +515,16 @@ lemma ore_div_add_ore_div {r r' : R} {s s' : S} :
   r /ₒ s + r' /ₒ s' = (r * ore_denom (s : R) s' + r' * ore_num s s') /ₒ (s * ore_denom s s') :=
 rfl
 
+/-- A characterization of the addition on the Ore localizaion, allowing for arbitrary Ore
+numerator and Ore denominator. -/
 lemma ore_div_add_char {r r' : R} (s s' : S) (rb : R) (sb : S)
   (h : (s : R) * sb = s' * rb) :
   r /ₒ s + r' /ₒ s' = (r * sb + r' * rb) /ₒ (s * sb) :=
 add''_char r s r' s' rb sb h
 
-noncomputable lemma ore_div_add_char' (r r' : R) (s s' : S) :
+/-- Another characterization of the addition on the Ore localization, bundling up all witnesses
+and conditions into a sigma type. -/
+def ore_div_add_char' (r r' : R) (s s' : S) :
   Σ' r'' : R, Σ' s'' : S, (s : R) * s'' = s' * r'' ∧
                   r /ₒ s + r' /ₒs' = (r * s'' + r' * r'') /ₒ (s * s'') :=
 ⟨ore_num s s', ore_denom s s', ore_eq s s', ore_div_add_ore_div⟩
@@ -625,6 +653,9 @@ variables (hf : ∀ (s : S), f s = fS s)
 
 include f fS hf
 
+/-- The universal lift from a ring homomorphism `f : R →+* T`, which maps elements in `S` to
+units of `T`, to a ring homomorphism `R[S⁻¹] →+* T`. This extends the construction on
+monoids. -/
 def universal_hom : R[S⁻¹] →+* T :=
 { map_zero' :=
   begin
@@ -674,6 +705,7 @@ end semiring
 section ring
 variables {R : Type*} [ring R] {S : submonoid R} [is_ore S]
 
+/-- Negation on the Ore localization is defined via negation on the numerator. -/
 protected def neg : R[S⁻¹] → R[S⁻¹] :=
 lift_expand (λ (r : R) (s : S), (- r) /ₒ s) $
   λ r t s ht, by rw [neg_mul_eq_neg_mul, ←ore_localization.expand]
@@ -698,10 +730,25 @@ open_locale non_zero_divisors
 open_locale classical
 open non_zero_divisors
 
-variables {R : Type*} [ring R] [no_zero_divisors R] [nontrivial R] [is_ore R⁰]
+variables {R : Type*} [ring R] [nontrivial R] [is_ore R⁰]
+
+protected lemma exists_pair_ne : ∃ (x y : R[R⁰⁻¹]), x ≠ y :=
+⟨0, 1,
+  begin
+    rw [ore_localization.one_def, ore_localization.zero_def], intro h,
+    rw ore_div_eq_iff at h, rcases h with ⟨u, v, h, _⟩ ,
+    simp only [one_mul, zero_mul v] at h,
+    apply non_zero_divisors.coe_ne_zero u h
+  end⟩
+
+instance : nontrivial R[R⁰⁻¹] := ⟨ore_localization.exists_pair_ne⟩
+
+variables [no_zero_divisors R]
 
 noncomputable theory
 
+/-- The inversion of Ore fractions for a ring without zero divisors, satisying `0⁻¹ = 0` and
+`(r /ₒ r')⁻¹ = r' /ₒ r` for `r ≠ 0`. -/
 protected def inv : R[R⁰⁻¹] → R[R⁰⁻¹] :=
 lift_expand (λ r s, if hr: r = (0 : R) then (0 : R[R⁰⁻¹])
   else (s /ₒ ⟨r, λ _, eq_zero_of_ne_zero_of_mul_right_eq_zero hr⟩))
@@ -721,26 +768,13 @@ protected lemma inv_def {r : R} {s : R⁰} :
   (r /ₒ s)⁻¹ = if hr: r = (0 : R) then (0 : R[R⁰⁻¹])
   else (s /ₒ ⟨r, λ _, eq_zero_of_ne_zero_of_mul_right_eq_zero hr⟩) := rfl
 
-protected lemma exists_pair_ne : ∃ (x y : R[R⁰⁻¹]), x ≠ y :=
-⟨0, 1,
-  begin
-    rw [ore_localization.one_def, ore_localization.zero_def], intro h,
-    rw ore_div_eq_iff at h, rcases h with ⟨u, v, h, _⟩ ,
-    simp only [one_mul, zero_mul v] at h,
-    apply non_zero_divisors.coe_ne_zero u h
-  end⟩
-
-instance : nontrivial R[R⁰⁻¹] := ⟨ore_localization.exists_pair_ne⟩
-
 protected lemma mul_inv_cancel (x : R[R⁰⁻¹]) (h : x ≠ 0) : x * x⁻¹ = 1 :=
 begin
   induction x using ore_localization.ind with r s,
   rw [ore_localization.inv_def, ore_localization.one_def],
   by_cases hr : r = 0,
   { exfalso, apply h, simp [hr] },
-  { have : 1 * r ∈ R⁰,
-    {  rw one_mul, intro _, apply eq_zero_of_ne_zero_of_mul_right_eq_zero hr },
-    simp [hr, ore_localization.expand (1 : R) (1 : R⁰) r this] }
+  { simp [hr], apply ore_localization.div_eq_one' }
 end
 
 protected lemma inv_zero : (0 : R[R⁰⁻¹])⁻¹ = 0 :=

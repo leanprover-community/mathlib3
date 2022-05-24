@@ -1194,6 +1194,8 @@ variables {c}
 
 @[simp] lemma disjoint_self : disjoint a a ↔ a = ⊥ := by simp [disjoint]
 
+/- TODO: Rename `disjoint.eq_bot` to `disjoint.inf_eq` and `disjoint.eq_bot_of_self` to
+`disjoint.eq_bot` -/
 alias disjoint_self ↔ disjoint.eq_bot_of_self _
 
 lemma disjoint.ne (ha : a ≠ ⊥) (hab : disjoint a b) : a ≠ b :=
@@ -1302,8 +1304,7 @@ h.disjoint_right_iff.symm
 lemma le_right_iff (h : is_compl x y) : z ≤ y ↔ disjoint z x :=
 h.symm.le_left_iff
 
-lemma left_le_iff (h : is_compl x y) : x ≤ z ↔ ⊤ ≤ z ⊔ y :=
-h.dual.le_left_iff
+lemma left_le_iff (h : is_compl x y) : x ≤ z ↔ ⊤ ≤ z ⊔ y := h.dual.le_left_iff
 
 lemma right_le_iff (h : is_compl x y) : y ≤ z ↔ ⊤ ≤ z ⊔ x :=
 h.symm.left_le_iff

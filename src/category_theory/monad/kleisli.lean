@@ -32,7 +32,7 @@ namespace kleisli
 
 variables (T : monad C)
 
-instance [inhabited C] (T : monad C) : inhabited (kleisli T) := ⟨(default _ : C)⟩
+instance [inhabited C] (T : monad C) : inhabited (kleisli T) := ⟨(default : C)⟩
 
 /-- The Kleisli category on a monad `T`.
     cf Definition 5.2.9 in [Riehl][riehl2017]. -/

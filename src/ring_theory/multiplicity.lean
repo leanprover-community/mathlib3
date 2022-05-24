@@ -6,6 +6,7 @@ Authors: Robert Y. Lewis, Chris Hughes
 import algebra.associated
 import algebra.big_operators.basic
 import ring_theory.valuation.basic
+import data.nat.factorization
 
 /-!
 # Multiplicity of a divisor
@@ -87,6 +88,12 @@ lemma is_greatest' {a b : α} {m : ℕ} (h : finite a b) (hm : get (multiplicity
   ¬a ^ m ∣ b :=
 is_greatest (by rwa [← enat.coe_lt_coe, enat.coe_get] at hm)
 
+lemma pos_of_dvd {a b : α} (hfin : finite a b) (hdiv : a ∣ b) : 0 < (multiplicity a b).get hfin :=
+begin
+  refine zero_lt_iff.2 (λ h, _),
+  simpa [hdiv] using (is_greatest' hfin (lt_one_iff.mpr h)),
+end
+
 lemma unique {a b : α} {k : ℕ} (hk : a ^ k ∣ b) (hsucc : ¬a ^ (k + 1) ∣ b) :
   (k : enat) = multiplicity a b :=
 le_antisymm (le_of_not_gt (λ hk', is_greatest hk' hk)) $
@@ -143,10 +150,10 @@ begin
   simpa [is_unit_iff_dvd_one.symm] using not_unit_of_finite ha,
 end
 
-@[simp] lemma unit_left (a : α) (u : units α) : multiplicity (u : α) a = ⊤ :=
+@[simp] lemma unit_left (a : α) (u : αˣ) : multiplicity (u : α) a = ⊤ :=
 is_unit_left a u.is_unit
 
-lemma unit_right {a : α} (ha : ¬is_unit a) (u : units α) : multiplicity a u = 0 :=
+lemma unit_right {a : α} (ha : ¬is_unit a) (u : αˣ) : multiplicity a u = 0 :=
 is_unit_right ha u.is_unit
 
 lemma multiplicity_eq_zero_of_not_dvd {a b : α} (ha : ¬a ∣ b) : multiplicity a b = 0 :=
@@ -160,6 +167,17 @@ by rw [ne.def, eq_top_iff_not_finite, not_not]
 
 lemma lt_top_iff_finite {a b : α} : multiplicity a b < ⊤ ↔ finite a b :=
 by rw [lt_top_iff_ne_top, ne_top_iff_finite]
+
+lemma exists_eq_pow_mul_and_not_dvd {a b : α} (hfin : finite a b) :
+  ∃ (c : α), b = a ^ ((multiplicity a b).get hfin) * c ∧ ¬ a ∣ c :=
+begin
+  obtain ⟨c, hc⟩ := multiplicity.pow_multiplicity_dvd hfin,
+  refine ⟨c, hc, _⟩,
+  rintro ⟨k, hk⟩,
+  rw [hk, ← mul_assoc, ← pow_succ'] at hc,
+  have h₁ : a ^ ((multiplicity a b).get hfin + 1) ∣ b := ⟨k, hc⟩,
+  exact (multiplicity.eq_coe_iff.1 (by simp)).2 h₁,
+end
 
 open_locale classical
 
@@ -220,6 +238,8 @@ begin
     λ h, by cases h; simp *⟩
 end
 
+alias dvd_iff_multiplicity_pos ↔ _ has_dvd.dvd.multiplicity_pos
+
 end comm_monoid
 
 section comm_monoid_with_zero
@@ -268,6 +288,13 @@ part.ext' (by simp only [multiplicity, enat.find, dvd_neg])
   (λ h₁ h₂, enat.coe_inj.1 (by rw [enat.coe_get]; exact
     eq.symm (unique ((dvd_neg _ _).2 (pow_multiplicity_dvd _))
       (mt (dvd_neg _ _).1 (is_greatest' _ (lt_succ_self _))))))
+
+theorem int.nat_abs (a : ℕ) (b : ℤ) : multiplicity a b.nat_abs = multiplicity (a : ℤ) b :=
+begin
+  cases int.nat_abs_eq b with h h; conv_rhs { rw h },
+  { rw [int.coe_nat_multiplicity], },
+  { rw [multiplicity.neg, int.coe_nat_multiplicity], },
+end
 
 lemma multiplicity_add_of_gt {p a b : α} (h : multiplicity p b < multiplicity p a) :
   multiplicity p (a + b) = multiplicity p b :=
@@ -467,5 +494,9 @@ begin
   rw [coprime.gcd_eq_one hab, nat.dvd_one, pow_one] at this,
   exact hp this
 end
+
+lemma multiplicity_eq_factorization {n p : ℕ} (pp : p.prime) (hn : n ≠ 0) :
+  multiplicity p n = n.factorization p :=
+multiplicity.eq_coe_iff.mpr ⟨pow_factorization_dvd n p, pow_succ_factorization_not_dvd hn pp⟩
 
 end nat

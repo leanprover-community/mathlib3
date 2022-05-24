@@ -29,26 +29,44 @@ conflicts with general sigma types.
 -/
 def total_space := Σ x, E x
 
-instance [inhabited B] [inhabited (E (default B))] :
-  inhabited (total_space E) := ⟨⟨default B, default (E (default B))⟩⟩
+instance [inhabited B] [inhabited (E default)] :
+  inhabited (total_space E) := ⟨⟨default, default⟩⟩
 
 /-- `bundle.proj E` is the canonical projection `total_space E → B` on the base space. -/
-@[simp] def proj : total_space E → B := sigma.fst
+@[simp, reducible] def proj : total_space E → B := sigma.fst
 
 /-- Constructor for the total space of a `topological_fiber_bundle_core`. -/
 @[simp, reducible] def total_space_mk (E : B → Type*) (b : B) (a : E b) :
   bundle.total_space E := ⟨b, a⟩
 
-instance {x : B} : has_coe_t (E x) (total_space E) := ⟨sigma.mk x⟩
+lemma total_space.proj_mk {x : B} {y : E x} : proj E (total_space_mk E x y) = x :=
+rfl
+
+lemma sigma_mk_eq_total_space_mk {x : B} {y : E x} : sigma.mk x y = total_space_mk E x y :=
+rfl
+
+lemma total_space.mk_cast {x x' : B} (h : x = x') (b : E x) :
+  total_space_mk E x' (cast (congr_arg E h) b) = total_space_mk E x b :=
+by { subst h, refl }
+
+lemma total_space.eta {B} {E : B → Type*} (z : total_space E) :
+  total_space_mk E (proj E z) z.2 = z :=
+sigma.eta z
+
+instance {x : B} : has_coe_t (E x) (total_space E) := ⟨total_space_mk E x⟩
 
 @[simp] lemma coe_fst (x : B) (v : E x) : (v : total_space E).fst = x := rfl
+@[simp] lemma coe_snd {x : B} {y : E x} : (y : total_space E).snd = y := rfl
 
-lemma to_total_space_coe {x : B} (v : E x) : (v : total_space E) = ⟨x, v⟩ := rfl
+lemma to_total_space_coe {x : B} (v : E x) : (v : total_space E) = total_space_mk E x v := rfl
+
+-- notation for the direct sum of two bundles over the same base
+notation E₁ `×ᵇ`:100 E₂ := λ x, E₁ x × E₂ x
 
 /-- `bundle.trivial B F` is the trivial bundle over `B` of fiber `F`. -/
 def trivial (B : Type*) (F : Type*) : B → Type* := function.const B F
 
-instance {F : Type*} [inhabited F] {b : B} : inhabited (bundle.trivial B F b) := ⟨(default F : F)⟩
+instance {F : Type*} [inhabited F] {b : B} : inhabited (bundle.trivial B F b) := ⟨(default : F)⟩
 
 /-- The trivial bundle, unlike other bundles, has a canonical projection on the fiber. -/
 def trivial.proj_snd (B : Type*) (F : Type*) : (total_space (bundle.trivial B F)) → F := sigma.snd

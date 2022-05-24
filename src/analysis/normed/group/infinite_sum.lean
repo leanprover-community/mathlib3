@@ -66,9 +66,26 @@ lemma cauchy_seq_finset_of_norm_bounded {f : ι → E} (g : ι → ℝ) (hg : su
   (h : ∀i, ∥f i∥ ≤ g i) : cauchy_seq (λ s : finset ι, ∑ i in s, f i) :=
 cauchy_seq_finset_of_norm_bounded_eventually hg $ eventually_of_forall h
 
+/-- A version of the **direct comparison test** for conditionally convergent series.
+See `cauchy_seq_finset_of_norm_bounded` for the same statement about absolutely convergent ones. -/
+lemma cauchy_seq_range_of_norm_bounded {f : ℕ → E} (g : ℕ → ℝ)
+  (hg : cauchy_seq (λ n, ∑ i in range n, g i)) (hf : ∀ i, ∥f i∥ ≤ g i) :
+  cauchy_seq (λ n, ∑ i in range n, f i) :=
+begin
+  refine metric.cauchy_seq_iff'.2 (λ ε hε, _),
+  refine (metric.cauchy_seq_iff'.1 hg ε hε).imp (λ N hg n hn, _),
+  specialize hg n hn,
+  rw [dist_eq_norm, ←sum_Ico_eq_sub _ hn] at ⊢ hg,
+  calc  ∥∑ k in Ico N n, f k∥
+      ≤  ∑ k in _, ∥f k∥ : norm_sum_le _ _
+  ... ≤  ∑ k in _, g k   : sum_le_sum (λ x _, hf x)
+  ... ≤ ∥∑ k in _, g k∥  : le_abs_self _
+  ... <  ε               : hg
+end
+
 lemma cauchy_seq_finset_of_summable_norm {f : ι → E} (hf : summable (λa, ∥f a∥)) :
   cauchy_seq (λ s : finset ι, ∑ a in s, f a) :=
-cauchy_seq_finset_of_norm_bounded _ hf (assume i, le_refl _)
+cauchy_seq_finset_of_norm_bounded _ hf (assume i, le_rfl)
 
 /-- If a function `f` is summable in norm, and along some sequence of finsets exhausting the space
 its sum is converging to a limit `a`, then this holds along all finsets, i.e., `f` is summable
@@ -147,7 +164,7 @@ lemma summable_of_nnnorm_bounded {f : ι → E} (g : ι → ℝ≥0) (hg : summa
 summable_of_norm_bounded (λ i, (g i : ℝ)) (nnreal.summable_coe.2 hg) (λ i, by exact_mod_cast h i)
 
 lemma summable_of_summable_norm {f : ι → E} (hf : summable (λa, ∥f a∥)) : summable f :=
-summable_of_norm_bounded _ hf (assume i, le_refl _)
+summable_of_norm_bounded _ hf (assume i, le_rfl)
 
 lemma summable_of_summable_nnnorm {f : ι → E} (hf : summable (λ a, ∥f a∥₊)) : summable f :=
-summable_of_nnnorm_bounded _ hf (assume i, le_refl _)
+summable_of_nnnorm_bounded _ hf (assume i, le_rfl)

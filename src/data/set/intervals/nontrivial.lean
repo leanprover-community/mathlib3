@@ -3,7 +3,9 @@ Copyright (c) 2021 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
-import order.preorder_hom
+import order.hom.basic
+import order.directed
+import data.set.intervals.basic
 
 /-!
 # Nontrivial intervals
@@ -37,11 +39,11 @@ variables {α : Type*}
 
 instance nonempty_of_sup [semilattice_sup α] [nontrivial α] :
   nonempty (nontrivial_interval α) :=
-let ⟨a, b, h⟩ := exists_lt_of_sup α in ⟨⟨a, b, h⟩⟩
+let ⟨a, b, h⟩ := exists_lt_of_directed_le α in ⟨⟨a, b, h⟩⟩
 
 instance nonempty_of_inf [semilattice_inf α] [nontrivial α] :
   nonempty (nontrivial_interval α) :=
-let ⟨a, b, h⟩ := exists_lt_of_inf α in ⟨⟨a, b, h⟩⟩
+let ⟨a, b, h⟩ := exists_lt_of_directed_ge α in ⟨⟨a, b, h⟩⟩
 
 instance [preorder α] : preorder (nontrivial_interval α) :=
 { le := λ I J, J.left ≤ I.left ∧ I.right ≤ J.right,
@@ -65,22 +67,22 @@ lemma monotone_right : monotone (nontrivial_interval.right : nontrivial_interval
 λ I J h, h.2
 
 /-- The closed interval corresponding to `I : nontrivial_interval α`. -/
-def Icc : nontrivial_interval α →ₘ set α :=
+def Icc : nontrivial_interval α →o set α :=
 { to_fun := λ I, Icc I.left I.right,
   monotone' := λ I J Hle, Icc_subset_Icc Hle.1 Hle.2 }
 
 /-- The closed-open interval corresponding to `I : nontrivial_interval α`. -/
-def Ico : nontrivial_interval α →ₘ set α :=
+def Ico : nontrivial_interval α →o set α :=
 { to_fun := λ I, Ico I.left I.right,
   monotone' := λ I J Hle, Ico_subset_Ico Hle.1 Hle.2 }
 
 /-- The open-closed interval corresponding to `I : nontrivial_interval α`. -/
-def Ioc : nontrivial_interval α →ₘ set α :=
+def Ioc : nontrivial_interval α →o set α :=
 { to_fun := λ I, Ioc I.left I.right,
   monotone' := λ I J Hle, Ioc_subset_Ioc Hle.1 Hle.2 }
 
 /-- The open interval corresponding to `I : nontrivial_interval α`. -/
-def Ioo : nontrivial_interval α →ₘ set α :=
+def Ioo : nontrivial_interval α →o set α :=
 { to_fun := λ I, Ioo I.left I.right,
   monotone' := λ I J Hle, Ioo_subset_Ioo Hle.1 Hle.2 }
 

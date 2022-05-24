@@ -25,7 +25,7 @@ of `𝕜`).
 universes u v
 
 namespace real
-variables {E : Type*} [semi_normed_group E] [semi_normed_space ℝ E]
+variables {E : Type*} [semi_normed_group E] [normed_space ℝ E]
 
 /-- Hahn-Banach theorem for continuous linear functions over `ℝ`. -/
 theorem exists_extension_norm_eq (p : subspace ℝ E) (f : p →L[ℝ] ℝ) :
@@ -52,7 +52,7 @@ end real
 section is_R_or_C
 open is_R_or_C
 
-variables {𝕜 : Type*} [is_R_or_C 𝕜] {F : Type*} [semi_normed_group F] [semi_normed_space 𝕜 F]
+variables {𝕜 : Type*} [is_R_or_C 𝕜] {F : Type*} [semi_normed_group F] [normed_space 𝕜 F]
 
 /-- Hahn-Banach theorem for continuous linear functions over `𝕜` satisyfing `is_R_or_C 𝕜`. -/
 theorem exists_extension_norm_eq (p : subspace 𝕜 F) (f : p →L[𝕜] 𝕜) :
@@ -60,7 +60,7 @@ theorem exists_extension_norm_eq (p : subspace 𝕜 F) (f : p →L[𝕜] 𝕜) :
 begin
   letI : module ℝ F := restrict_scalars.module ℝ 𝕜 F,
   letI : is_scalar_tower ℝ 𝕜 F := restrict_scalars.is_scalar_tower _ _ _,
-  letI : semi_normed_space ℝ F := semi_normed_space.restrict_scalars _ 𝕜 _,
+  letI : normed_space ℝ F := normed_space.restrict_scalars _ 𝕜 _,
   -- Let `fr: p →L[ℝ] ℝ` be the real part of `f`.
   let fr := re_clm.comp (f.restrict_scalars ℝ),
   have fr_apply : ∀ x, fr x = re (f x), by { assume x, refl },
@@ -78,10 +78,10 @@ begin
     rw this,
     apply ext,
     { simp only [add_zero, algebra.id.smul_eq_mul, I_re, of_real_im, add_monoid_hom.map_add,
-        zero_sub, I_im', zero_mul, of_real_re, eq_self_iff_true, sub_zero, mul_neg_eq_neg_mul_symm,
+        zero_sub, I_im', zero_mul, of_real_re, eq_self_iff_true, sub_zero, mul_neg,
         of_real_neg, mul_re, mul_zero, sub_neg_eq_add, continuous_linear_map.map_smul] },
     { simp only [algebra.id.smul_eq_mul, I_re, of_real_im, add_monoid_hom.map_add, zero_sub, I_im',
-        zero_mul, of_real_re, mul_neg_eq_neg_mul_symm, mul_im, zero_add, of_real_neg, mul_re,
+        zero_mul, of_real_re, mul_neg, mul_im, zero_add, of_real_neg, mul_re,
         sub_neg_eq_add, continuous_linear_map.map_smul] } },
   -- And we derive the equality of the norms by bounding on both sides.
   refine ⟨h, le_antisymm _ _⟩,

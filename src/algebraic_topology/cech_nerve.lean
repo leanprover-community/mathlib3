@@ -44,7 +44,7 @@ def cech_nerve : simplicial_object C :=
 { obj := λ n, wide_pullback f.right
     (λ i : ulift (fin (n.unop.len + 1)), f.left) (λ i, f.hom),
   map := λ m n g, wide_pullback.lift (wide_pullback.base _)
-    (λ i, wide_pullback.π (λ i, f.hom) $ ulift.up $ g.unop.to_preorder_hom i.down) $ λ j, by simp,
+    (λ i, wide_pullback.π (λ i, f.hom) $ ulift.up $ g.unop.to_order_hom i.down) $ λ j, by simp,
   map_id' := λ x, by { ext ⟨⟩, { simpa }, { simp } },
   map_comp' := λ x y z f g, by { ext ⟨⟩, { simpa }, { simp } } }
 
@@ -200,7 +200,7 @@ def cech_conerve : cosimplicial_object C :=
 { obj := λ n, wide_pushout f.left
     (λ i : ulift (fin (n.len + 1)), f.right) (λ i, f.hom),
   map := λ m n g, wide_pushout.desc (wide_pushout.head _)
-    (λ i, wide_pushout.ι (λ i, f.hom) $ ulift.up $ g.to_preorder_hom i.down) $
+    (λ i, wide_pushout.ι (λ i, f.hom) $ ulift.up $ g.to_order_hom i.down) $
     λ i, by { rw [wide_pushout.arrow_ι (λ i, f.hom)] },
   map_id' := λ x, by { ext ⟨⟩, { simpa }, { simp } },
   map_comp' := λ x y z f g, by { ext ⟨⟩, { simpa }, { simp } } }

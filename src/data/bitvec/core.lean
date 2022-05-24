@@ -240,8 +240,7 @@ theorem to_nat_of_nat {k n : ℕ}
 begin
   induction k with k ih generalizing n,
   { simp [nat.mod_one], refl },
-  { have h : 0 < 2, { apply le_succ },
-    rw [of_nat_succ, to_nat_append, ih, bits_to_nat_to_bool, mod_pow_succ h, nat.mul_comm] }
+  { rw [of_nat_succ, to_nat_append, ih, bits_to_nat_to_bool, mod_pow_succ, nat.mul_comm] }
 end
 
 /-- Return the integer encoded by the input bitvector -/

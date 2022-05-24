@@ -5,18 +5,20 @@ Authors: Andreas Swerdlow
 -/
 import deprecated.subring
 import algebra.group_with_zero.power
-/-
 
-# Unbundled subfields
+/-!
+# Unbundled subfields (deprecated)
 
-This file introduces the predicate `is_subfield` on `S : set F` where `F` is a field.
-This is *not* the preferred way to do subfields in Lean 3: in general `S : subfield F`
-works more smoothly.
+This file is deprecated, and is no longer imported by anything in mathlib other than other
+deprecated files, and test files. You should not need to import it.
+
+This file defines predicates for unbundled subfields. Instead of using this file, please use
+`subfield`, defined in `field_theory.subfield`, for subfields of fields.
 
 ## Main definitions
 
-`is_subfield (S : set F)` : the predicate that `S` is the underlying set of a subfield
-of the field `F`. Note that the bundled variant `subfield F` is preferred to this approach.
+`is_subfield (S : set F) : Prop` : the predicate that `S` is the underlying set of a subfield
+of the field `F`. The bundled variant `subfield F` should be used in preference to this.
 
 ## Tags
 
@@ -24,6 +26,9 @@ is_subfield
 -/
 variables {F : Type*} [field F] (S : set F)
 
+/-- `is_subfield (S : set F)` is the predicate saying that a given subset of a field is
+the set underlying a subfield. This structure is deprecated; use the bundled variant
+`subfield F` to model subfields of a field. -/
 structure is_subfield extends is_subring S : Prop :=
 (inv_mem : ∀ {x : F}, x ∈ S → x⁻¹ ∈ S)
 
@@ -77,7 +82,7 @@ lemma closure.is_submonoid : is_submonoid (closure S) :=
           is_submonoid.mul_mem ring.closure.is_subring.to_is_submonoid hp hr,
           q * s,
           is_submonoid.mul_mem ring.closure.is_subring.to_is_submonoid hq hs,
-          (div_mul_div _ _ _ _).symm⟩,
+          (div_mul_div_comm _ _ _ _).symm⟩,
   one_mem := ring_closure_subset $ is_submonoid.one_mem ring.closure.is_subring.to_is_submonoid }
 
 lemma closure.is_subfield : is_subfield (closure S) :=
@@ -102,7 +107,7 @@ have h0 : (0:F) ∈ closure S, from ring_closure_subset $
   end,
   inv_mem := begin
     rintros _ ⟨p, hp, q, hq, rfl⟩,
-    exact ⟨q, hq, p, hp, inv_div.symm⟩
+    exact ⟨q, hq, p, hp, (inv_div _ _).symm⟩
   end,
   ..closure.is_submonoid }
 

@@ -82,6 +82,6 @@ add_tactic_doc
 { name        := "rewrite_search",
   category    := doc_category.tactic,
   decl_names  := [`tactic.interactive.rewrite_search],
-  tags        := ["rewrite", "automation"] }
+  tags        := ["rewriting", "automation"] }
 
 end tactic.interactive

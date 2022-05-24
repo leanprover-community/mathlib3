@@ -143,7 +143,7 @@ begin
     { rw [finset.mem_insert, finset.mem_singleton, finset.mem_singleton],
       push_neg,
       exact ⟨⟨hab.ne, (hab.trans hbc).ne⟩, hbc.ne⟩ } },
-  { intros x y hx hy hxy,
+  { intros x hx y hy hxy,
     simp only [finset.mem_insert, finset.mem_singleton] at hx hy,
     rcases hx with rfl|rfl|rfl; rcases hy with rfl|rfl|rfl,
     all_goals { contradiction <|> assumption <|> simpa only [add_comm x y], } },
@@ -177,5 +177,5 @@ begin
   simp only [finset.subset_iff, finset.mem_inter] at hCA,
   -- Now we split into the two cases C ⊆ [n, 2n] \ A and C ⊆ A, which can be dealt with identically.
   cases hCA; [right, left];
-  exact ⟨a, b, (hCA ha).2, (hCA hb).2, hab, h₁ a b (hCA ha).1 (hCA hb).1 hab⟩,
+  exact ⟨a, (hCA ha).2, b, (hCA hb).2, hab, h₁ a (hCA ha).1 b (hCA hb).1 hab⟩,
 end

@@ -9,7 +9,7 @@ import data.list.big_operators
 # Join of a list of lists
 
 This file proves basic properties of `list.join`, which concatenates a list of lists. It is defined
-in [`data.list.defs`](./data/list/defs).
+in [`data.list.defs`](./defs).
 -/
 
 variables {α β : Type*}
@@ -46,6 +46,10 @@ by induction L; [refl, simp only [*, join, map, sum_cons, length_append]]
 @[simp] lemma length_bind (l : list α) (f : α → list β) :
   length (list.bind l f) = sum (map (length ∘ f) l) :=
 by rw [list.bind, length_join, map_map]
+
+@[simp] lemma bind_eq_nil {l : list α} {f : α → list β} :
+  list.bind l f = [] ↔ ∀ x ∈ l, f x = [] :=
+join_eq_nil.trans $ by simp only [mem_map, forall_exists_index, and_imp, forall_apply_eq_imp_iff₂]
 
 /-- In a join, taking the first elements up to an index which is the sum of the lengths of the
 first `i` sublists, is the same as taking the join of the first `i` sublists. -/

@@ -138,9 +138,8 @@ lemma fork_map_comp_first_obj_iso_pi_opens_eq
   presheaf.fork_map R F ≫ (first_obj_iso_pi_opens F U R).hom =
   F.map (eq_to_hom (supr_eq_of_mem_grothendieck U R hR)).op ≫ res F (covering_of_presieve U R) :=
 begin
-  ext f,
-  rw [category.assoc, category.assoc],
-  rw first_obj_iso_pi_opens_π,
+  ext ⟨f⟩,
+  rw [category.assoc, category.assoc, first_obj_iso_pi_opens_π],
   dunfold presheaf.fork_map res,
   rw [limit.lift_π, fan.mk_π_app, limit.lift_π, fan.mk_π_app, ← F.map_comp],
   congr,
@@ -214,7 +213,10 @@ fork.mk_hom (F.map (eq_to_hom (supr_eq_of_mem_grothendieck U R hR)).op)
 instance is_iso_postcompose_diagram_fork_hom_hom
   (hR : sieve.generate R ∈ opens.grothendieck_topology X U) :
   is_iso (postcompose_diagram_fork_hom F U R hR).hom :=
-begin rw postcompose_diagram_fork_hom_hom, apply eq_to_hom.is_iso, end
+begin
+  rw [postcompose_diagram_fork_hom_hom, eq_to_hom_map],
+  apply eq_to_hom.is_iso,
+end
 
 instance is_iso_postcompose_diagram_fork_hom
   (hR : sieve.generate R ∈ opens.grothendieck_topology X U) :
@@ -243,12 +245,24 @@ begin
 end
 
 /--
-Given a family of opens `U : ι → opens X`, we obtain a presieve on `supr U` by declaring that a
-morphism `f : V ⟶ supr U` is a member of the presieve if and only if there exists an index `i : ι`
-such that `V = U i`.
+Given a family of opens `U : ι → opens X` and any open `Y : opens X`, we obtain a presieve
+on `Y` by declaring that a morphism `f : V ⟶ Y` is a member of the presieve if and only if
+there exists an index `i : ι` such that `V = U i`.
 -/
-def presieve_of_covering {ι : Type v} (U : ι → opens X) : presieve (supr U) :=
+def presieve_of_covering_aux {ι : Type v} (U : ι → opens X) (Y : opens X) : presieve Y :=
 λ V f, ∃ i, V = U i
+
+/-- Take `Y` to be `supr U` and obtain a presieve over `supr U`. -/
+def presieve_of_covering {ι : Type v} (U : ι → opens X) : presieve (supr U) :=
+presieve_of_covering_aux U (supr U)
+
+/-- Given a presieve `R` on `Y`, if we take its associated family of opens via
+    `covering_of_presieve` (which may not cover `Y` if `R` is not covering), and take
+    the presieve on `Y` associated to the family of opens via `presieve_of_covering_aux`,
+    then we get back the original presieve `R`. -/
+@[simp] lemma covering_presieve_eq_self {Y : opens X} (R : presieve Y) :
+  presieve_of_covering_aux (covering_of_presieve Y R) Y = R :=
+by { ext Z f, exact ⟨λ ⟨⟨_,_,h⟩,rfl⟩, by convert h, λ h, ⟨⟨Z,f,h⟩,rfl⟩⟩ }
 
 namespace presieve_of_covering
 
@@ -324,7 +338,7 @@ lemma fork_ι_comp_pi_opens_to_first_obj_to_pi_opens_eq
   (s : limits.fork (left_res F U) (right_res F U)) :
   s.ι ≫ pi_opens_to_first_obj F U ≫ first_obj_to_pi_opens F U = s.ι :=
 begin
-  ext j,
+  ext ⟨j⟩,
   dunfold first_obj_to_pi_opens pi_opens_to_first_obj,
   rw [category.assoc, category.assoc, limit.lift_π, fan.mk_π_app, limit.lift_π, fan.mk_π_app],
   -- The issue here is that `index_of_hom U (hom_of_index U j)` need not be equal to `j`.
@@ -450,25 +464,25 @@ variables (C X)
 @[simps]
 def Sheaf_sites_to_sheaf_spaces : Sheaf (opens.grothendieck_topology X) C ⥤ sheaf C X :=
 { obj := λ F, ⟨F.1, is_sheaf_spaces_of_is_sheaf_sites F.1 F.2⟩,
-  map := λ F G f, f }
+  map := λ F G f, f.val }
 
 /-- Turn a sheaf on the space `X` into a sheaf on the site `opens X`. -/
 @[simps]
 def Sheaf_spaces_to_sheaf_sites : sheaf C X ⥤ Sheaf (opens.grothendieck_topology X) C :=
 { obj := λ F, ⟨F.1, is_sheaf_sites_of_is_sheaf_spaces F.1 F.2⟩,
-  map := λ F G f, f }
+  map := λ F G f, ⟨f⟩ }
 
 /--
 The equivalence of categories between sheaves on the site `opens X` and sheaves on the space `X`.
 -/
 @[simps]
 def Sheaf_spaces_equiv_sheaf_sites : Sheaf (opens.grothendieck_topology X) C ≌ sheaf C X :=
-begin
-  refine equivalence.mk (Sheaf_sites_to_sheaf_spaces C X) (Sheaf_spaces_to_sheaf_sites C X) _ _,
-  all_goals
-  { refine nat_iso.of_components (λ F, eq_to_iso (subtype.ext rfl)) (λ F G f, _),
-    ext, dsimp [eq_to_hom], simp },
-end
+{ functor := Sheaf_sites_to_sheaf_spaces C X,
+  inverse := Sheaf_spaces_to_sheaf_sites C X,
+  unit_iso := nat_iso.of_components (λ t, ⟨⟨𝟙 _⟩, ⟨𝟙 _⟩, by { ext1, simp }, by { ext1, simp }⟩) $
+    by { intros, ext1, dsimp, simp },
+  counit_iso := nat_iso.of_components (λ t, ⟨𝟙 _, 𝟙 _, by { ext, simp }, by { ext, simp }⟩) $
+    by { intros, ext, dsimp, simp } }
 
 /-- The two forgetful functors are isomorphic via `Sheaf_spaces_equiv_sheaf_sites`. -/
 def Sheaf_spaces_equiv_sheaf_sites_functor_forget :

@@ -19,7 +19,7 @@ In this file we prove the following theorems:
   `irrational.eventually_forall_le_dist_cast_rat_of_denom_le`: a sufficiently small neighborhood of
   an irrational number is disjoint with the set of rational numbers with bounded denominator.
 
-We also provide `order_topology`, `no_bot_order`, `no_top_order`, and `densely_ordered`
+We also provide `order_topology`, `no_min_order`, `no_max_order`, and `densely_ordered`
 instances for `{x // irrational x}`.
 
 ## Tags
@@ -52,10 +52,10 @@ instance : order_topology {x // irrational x} :=
 induced_order_topology _ (λ x y, iff.rfl) $ λ x y hlt,
   let ⟨a, ha, hxa, hay⟩ := exists_irrational_btwn hlt in ⟨⟨a, ha⟩, hxa, hay⟩
 
-instance : no_top_order {x // irrational x} :=
+instance : no_max_order {x // irrational x} :=
 ⟨λ ⟨x, hx⟩, ⟨⟨x + (1 : ℕ), hx.add_nat 1⟩, by simp⟩⟩
 
-instance : no_bot_order {x // irrational x} :=
+instance : no_min_order {x // irrational x} :=
 ⟨λ ⟨x, hx⟩, ⟨⟨x - (1 : ℕ), hx.sub_nat 1⟩, by simp⟩⟩
 
 instance : densely_ordered {x // irrational x} :=

@@ -114,48 +114,83 @@ by rw [sub_eq_add_neg, sub_eq_add_neg, add_left, neg_left]
 lemma sub_right (x y z : M₁) : B₁ x (y - z) = B₁ x y - B₁ x z :=
 by rw [sub_eq_add_neg, sub_eq_add_neg, add_right, neg_right]
 
-variable {D : bilin_form R M}
+variables {D : bilin_form R M} {D₁ : bilin_form R₁ M₁}
+
+lemma coe_injective : function.injective (coe_fn : bilin_form R M → (M → M → R)) :=
+λ B D h, by { cases B, cases D, congr' }
 
 @[ext] lemma ext (H : ∀ (x y : M), B x y = D x y) : B = D :=
-by { cases B, cases D, congr, funext, exact H _ _ }
+coe_injective $ by { funext, exact H _ _ }
 
 lemma congr_fun (h : B = D) (x y : M) : B x y = D x y := h ▸ rfl
 
 lemma ext_iff : B = D ↔ (∀ x y, B x y = D x y) := ⟨congr_fun, ext⟩
 
-instance : add_comm_monoid (bilin_form R M) :=
+instance : has_zero (bilin_form R M) :=
+{ zero := { bilin := λ x y, 0,
+            bilin_add_left := λ x y z, (add_zero 0).symm,
+            bilin_smul_left := λ a x y, (mul_zero a).symm,
+            bilin_add_right := λ x y z, (zero_add 0).symm,
+            bilin_smul_right := λ a x y, (mul_zero a).symm } }
+
+@[simp] lemma coe_zero : ⇑(0 : bilin_form R M) = 0 := rfl
+@[simp] lemma zero_apply (x y : M) : (0 : bilin_form R M) x y = 0 := rfl
+
+variables (B D B₁ D₁)
+
+instance : has_add (bilin_form R M) :=
 { add := λ B D, { bilin := λ x y, B x y + D x y,
                   bilin_add_left := λ x y z, by rw [add_left, add_left, add_add_add_comm],
                   bilin_smul_left := λ a x y, by rw [smul_left, smul_left, mul_add],
                   bilin_add_right := λ x y z, by rw [add_right, add_right, add_add_add_comm],
-                  bilin_smul_right := λ a x y, by rw [smul_right, smul_right, mul_add] },
-  add_assoc := by { intros, ext, unfold bilin coe_fn has_coe_to_fun.coe bilin, rw add_assoc },
-  zero := { bilin := λ x y, 0,
-            bilin_add_left := λ x y z, (add_zero 0).symm,
-            bilin_smul_left := λ a x y, (mul_zero a).symm,
-            bilin_add_right := λ x y z, (zero_add 0).symm,
-            bilin_smul_right := λ a x y, (mul_zero a).symm },
-  zero_add := by { intros, ext, unfold coe_fn has_coe_to_fun.coe bilin, rw zero_add },
-  add_zero := by { intros, ext, unfold coe_fn has_coe_to_fun.coe bilin, rw add_zero },
-  add_comm := by { intros, ext, unfold coe_fn has_coe_to_fun.coe bilin, rw add_comm } }
+                  bilin_smul_right := λ a x y, by rw [smul_right, smul_right, mul_add] } }
+
+@[simp] lemma coe_add : ⇑(B + D) = B + D := rfl
+@[simp] lemma add_apply (x y : M) : (B + D) x y = B x y + D x y := rfl
+
+instance {α} [monoid α] [distrib_mul_action α R] [smul_comm_class α R R] :
+  has_scalar α (bilin_form R M) :=
+{ smul := λ c B,
+  { bilin := λ x y, c • B x y,
+    bilin_add_left := λ x y z, by { rw [add_left, smul_add] },
+    bilin_smul_left := λ a x y, by { rw [smul_left, ←mul_smul_comm] },
+    bilin_add_right := λ x y z, by { rw [add_right, smul_add] },
+    bilin_smul_right := λ a x y, by { rw [smul_right, ←mul_smul_comm] } } }
+
+@[simp] lemma coe_smul {α} [monoid α] [distrib_mul_action α R] [smul_comm_class α R R]
+  (B : bilin_form R M) (a : α) : ⇑(a • B) = a • B := rfl
+
+@[simp] lemma smul_apply {α} [monoid α] [distrib_mul_action α R] [smul_comm_class α R R]
+  (B : bilin_form R M) (a : α) (x y : M) :
+  (a • B) x y = a • (B x y) :=
+rfl
+
+instance : add_comm_monoid (bilin_form R M) :=
+function.injective.add_comm_monoid _ coe_injective coe_zero coe_add (λ n x, coe_smul _ _)
+
+instance : has_neg (bilin_form R₁ M₁) :=
+{ neg := λ B, { bilin := λ x y, -(B x y),
+                bilin_add_left := λ x y z, by rw [add_left, neg_add],
+                bilin_smul_left := λ a x y, by rw [smul_left, mul_neg],
+                bilin_add_right := λ x y z, by rw [add_right, neg_add],
+                bilin_smul_right := λ a x y, by rw [smul_right, mul_neg] } }
+
+@[simp] lemma coe_neg : ⇑(-B₁) = -B₁ := rfl
+@[simp] lemma neg_apply (x y : M₁) : (-B₁) x y = -(B₁ x y) := rfl
+
+instance : has_sub (bilin_form R₁ M₁) :=
+{ sub := λ B D, { bilin := λ x y, B x y - D x y,
+                  bilin_add_left := λ x y z, by rw [add_left, add_left, add_sub_add_comm],
+                  bilin_smul_left := λ a x y, by rw [smul_left, smul_left, mul_sub],
+                  bilin_add_right := λ x y z, by rw [add_right, add_right, add_sub_add_comm],
+                  bilin_smul_right := λ a x y, by rw [smul_right, smul_right, mul_sub] } }
+
+@[simp] lemma coe_sub : ⇑(B₁ - D₁) = B₁ - D₁ := rfl
+@[simp] lemma sub_apply (x y : M₁) : (B₁ - D₁) x y = B₁ x y - D₁ x y := rfl
 
 instance : add_comm_group (bilin_form R₁ M₁) :=
-{ neg := λ B, { bilin := λ x y, - (B.1 x y),
-                bilin_add_left := λ x y z, by rw [bilin_add_left, neg_add],
-                bilin_smul_left := λ a x y, by rw [bilin_smul_left, mul_neg],
-                bilin_add_right := λ x y z, by rw [bilin_add_right, neg_add],
-                bilin_smul_right := λ a x y, by rw [bilin_smul_right, mul_neg] },
-  add_left_neg := by { intros, ext, unfold coe_fn has_coe_to_fun.coe bilin, rw neg_add_self },
-  .. bilin_form.add_comm_monoid }
-
-@[simp]
-lemma add_apply (x y : M) : (B + D) x y = B x y + D x y := rfl
-
-@[simp]
-lemma zero_apply (x y : M) : (0 : bilin_form R M) x y = 0 := rfl
-
-@[simp]
-lemma neg_apply (x y : M₁) : (-B₁) x y = -(B₁ x y) := rfl
+function.injective.add_comm_group _ coe_injective coe_zero coe_add coe_neg coe_sub
+  (λ n x, coe_smul _ _) (λ n x, coe_smul _ _)
 
 instance : inhabited (bilin_form R M) := ⟨0⟩
 
@@ -165,26 +200,13 @@ section
 
 When `R` itself is commutative, this provides an `R`-action via `algebra.id`. -/
 instance [algebra R₂ R] : module R₂ (bilin_form R M) :=
-{ smul := λ c B,
-  { bilin := λ x y, c • B x y,
-    bilin_add_left := λ x y z,
-      by { unfold coe_fn has_coe_to_fun.coe bilin, rw [bilin_add_left, smul_add] },
-    bilin_smul_left := λ a x y, by { unfold coe_fn has_coe_to_fun.coe bilin,
-      rw [bilin_smul_left, ←algebra.mul_smul_comm] },
-    bilin_add_right := λ x y z, by { unfold coe_fn has_coe_to_fun.coe bilin,
-      rw [bilin_add_right, smul_add] },
-    bilin_smul_right := λ a x y, by { unfold coe_fn has_coe_to_fun.coe bilin,
-      rw [bilin_smul_right, ←algebra.mul_smul_comm] } },
+{ smul := (•),
   smul_add := λ c B D, by { ext, unfold coe_fn has_coe_to_fun.coe bilin, rw smul_add },
   add_smul := λ c B D, by { ext, unfold coe_fn has_coe_to_fun.coe bilin, rw add_smul },
   mul_smul := λ a c D, by { ext, unfold coe_fn has_coe_to_fun.coe bilin, rw ←smul_assoc, refl },
   one_smul := λ B, by { ext, unfold coe_fn has_coe_to_fun.coe bilin, rw one_smul },
   zero_smul := λ B, by { ext, unfold coe_fn has_coe_to_fun.coe bilin, rw zero_smul },
   smul_zero := λ B, by { ext, unfold coe_fn has_coe_to_fun.coe bilin, rw smul_zero } }
-
-@[simp] lemma smul_apply [algebra R₂ R] (B : bilin_form R M) (a : R₂) (x y : M) :
-  (a • B) x y = a • (B x y) :=
-rfl
 
 end
 
@@ -380,6 +402,23 @@ linear_map.to_bilin.symm_symm
 lemma bilin_form.to_lin_apply (x : M₂) : ⇑(bilin_form.to_lin B₂ x) = B₂ x := rfl
 
 end equiv_lin
+
+namespace linear_map
+
+variables {R' : Type} [comm_semiring R'] [algebra R' R] [module R' M] [is_scalar_tower R' R M]
+
+/-- Apply a linear map on the output of a bilinear form. -/
+@[simps]
+def comp_bilin_form (f : R →ₗ[R'] R') (B : bilin_form R M) : bilin_form R' M :=
+{ bilin := λ x y, f (B x y),
+  bilin_add_left := λ x y z, by rw [bilin_form.add_left, map_add],
+  bilin_smul_left := λ r x y, by rw [←smul_one_smul R r (_ : M), bilin_form.smul_left,
+                                     smul_one_mul r (_ : R), map_smul, smul_eq_mul],
+  bilin_add_right := λ x y z, by rw [bilin_form.add_right, map_add],
+  bilin_smul_right := λ r x y, by rw [←smul_one_smul R r (_ : M), bilin_form.smul_right,
+                                      smul_one_mul r (_ : R), map_smul, smul_eq_mul] }
+
+end linear_map
 
 namespace bilin_form
 

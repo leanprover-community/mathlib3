@@ -258,7 +258,7 @@ by { rw [ore_localization.one_def, ore_div_eq_iff], exact ⟨⟨r, hr⟩, 1, by 
 
 @[simp]
 protected lemma div_eq_one {s : S} : (s : R) /ₒ s = 1 :=
-by { cases s; apply ore_localization.div_eq_one'}
+by { cases s; apply ore_localization.div_eq_one' }
 
 protected lemma one_mul (x : R[S ⁻¹]) : 1 * x = x :=
 begin
@@ -352,7 +352,7 @@ def universal_mul_hom : R[S⁻¹] →* T :=
       rw [units.coe_mul, ←mul_assoc, mul_assoc _ ↑(fS s), ←this, mul_assoc] },
     simp only [mul_one, units.mul_inv]
   end,
-  map_one' := by { rw [ore_localization.one_def, lift_expand_of], simp },
+  map_one' := by rw [ore_localization.one_def, lift_expand_of]; simp,
   map_mul' := λ x y,
   begin
     induction x using ore_localization.ind with r₁ s₁,
@@ -621,8 +621,7 @@ begin
   rw ore_localization.expand' (r₂ * ↑sa + r₃ * ra) (s₂ * sa) (sb * sc),
   conv_lhs {
     congr, skip, congr,
-    rw [add_mul, S.coe_mul, ←mul_assoc, hb, ←mul_assoc, mul_assoc r₃, hc, mul_assoc, ←mul_add],
-  },
+    rw [add_mul, S.coe_mul, ←mul_assoc, hb, ←mul_assoc, mul_assoc r₃, hc, mul_assoc, ←mul_add] },
   rw ore_localization.mul_cancel', simp only [mul_one, submonoid.coe_mul, mul_add, ←mul_assoc],
 end
 

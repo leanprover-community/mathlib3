@@ -235,8 +235,7 @@ calc (univ.filter (λ a : α, a ^ n = 1)).card
   have hm0 : 0 < m, from nat.pos_of_ne_zero $
     λ hm0, by { rw [hm0, mul_zero, fintype.card_eq_zero_iff] at hm, exact hm.elim' 1 },
   begin
-    rw set.to_finset_card,
-    simp only [set_like.coe_sort_coe],
+    simp only [set.to_finset_card, set_like.coe_sort_coe],
     rw [←order_eq_card_zpowers, order_of_pow g, order_of_eq_card_of_forall_mem_zpowers hg],
     rw [hm] {occs := occurrences.pos [2,3]},
     rw [nat.mul_div_cancel_left _  (gcd_pos_of_pos_left _ hn0), gcd_mul_left_left,

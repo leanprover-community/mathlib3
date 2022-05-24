@@ -168,7 +168,7 @@ lemma is_artinian.finite_of_linear_independent [nontrivial R] [is_artinian R M]
 begin
   refine classical.by_contradiction (λ hf, (rel_embedding.well_founded_iff_no_descending_seq.1
     (well_founded_submodule_lt R M)).elim' _),
-  have f : ℕ ↪ s, from @infinite.nat_embedding s ⟨λ f, hf ⟨f⟩⟩,
+  have f : ℕ ↪ s, from set.infinite.nat_embedding s hf,
   have : ∀ n, (coe ∘ f) '' {m | n ≤ m} ⊆ s,
   { rintros n x ⟨y, hy₁, rfl⟩, exact (f y).2 },
   have : ∀ a b : ℕ, a ≤ b ↔

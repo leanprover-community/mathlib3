@@ -60,7 +60,7 @@ protected def finite.intro {s : set α} (h : fintype s) : s.finite := ⟨h⟩
 /-- Constructor for `set.finite` with the `fintype` as an instance argument. -/
 theorem finite_of_fintype (s : set α) [h : fintype s] : s.finite := ⟨h⟩
 
-lemma finite_def {s : set α} : s.finite ↔ nonempty (fintype s) := ⟨λ ⟨h⟩, ⟨h⟩, λ ⟨h⟩, ⟨h⟩⟩
+lemma finite_def {s : set α} : s.finite ↔ nonempty (fintype s) := iff.rfl
 
 attribute [irreducible] set.finite
 
@@ -81,11 +81,11 @@ noncomputable def finite.to_finset {s : set α} (h : s.finite) : finset α :=
 
 theorem finite.exists_finset {s : set α} (h : s.finite) :
   ∃ s' : finset α, ∀ a : α, a ∈ s' ↔ a ∈ s :=
-by { haveI := h.fintype, exact ⟨s.to_finset, λ _, mem_to_finset⟩ }
+h.elim (by { introI, exact ⟨s.to_finset, λ _, mem_to_finset⟩ })
 
 theorem finite.exists_finset_coe {s : set α} (h : s.finite) :
   ∃ s' : finset α, ↑s' = s :=
-by { haveI := h.fintype, exact ⟨s.to_finset, s.coe_to_finset⟩ }
+h.elim (by { introI, exact ⟨s.to_finset, s.coe_to_finset⟩ })
 
 /-- Finite sets can be lifted to finsets. -/
 instance : can_lift (set α) (finset α) :=

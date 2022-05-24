@@ -199,6 +199,11 @@ variables {α}
 
 open normed_field
 
+instance : normed_space α (ulift E) :=
+{ norm_smul_le := λ s x, (normed_space.norm_smul_le s x.down : _),
+  ..ulift.normed_group,
+  ..ulift.module' }
+
 /-- The product of two normed spaces is a normed space, with the sup norm. -/
 instance prod.normed_space : normed_space α (E × F) :=
 { norm_smul_le := λ s x, le_of_eq $ by simp [prod.norm_def, norm_smul, mul_max_of_nonneg],
@@ -238,7 +243,7 @@ begin
     exact (div_lt_iff εpos).1 (hn.2) },
   show ε / ∥c∥ ≤ ∥(c ^ (n + 1))⁻¹ • x∥,
   { rw [div_le_iff cpos, norm_smul, norm_inv, norm_zpow, zpow_add₀ (ne_of_gt cpos),
-        zpow_one, mul_inv_rev₀, mul_comm, ← mul_assoc, ← mul_assoc, mul_inv_cancel (ne_of_gt cpos),
+        zpow_one, mul_inv_rev, mul_comm, ← mul_assoc, ← mul_assoc, mul_inv_cancel (ne_of_gt cpos),
         one_mul, ← div_eq_inv_mul, le_div_iff (zpow_pos_of_pos cpos _), mul_comm],
     exact (le_div_iff εpos).1 hn.1 },
   show ∥(c ^ (n + 1))⁻¹∥⁻¹ ≤ ε⁻¹ * ∥c∥ * ∥x∥,
@@ -432,6 +437,9 @@ instance normed_algebra_rat {𝕜} [normed_division_ring 𝕜] [char_zero 𝕜] 
 
 instance punit.normed_algebra : normed_algebra 𝕜 punit :=
 { norm_smul_le := λ q x, by simp only [punit.norm_eq_zero, mul_zero] }
+
+instance : normed_algebra 𝕜 (ulift 𝕜') :=
+{ ..ulift.normed_space }
 
 /-- The product of two normed algebras is a normed algebra, with the sup norm. -/
 instance prod.normed_algebra {E F : Type*} [semi_normed_ring E] [semi_normed_ring F]

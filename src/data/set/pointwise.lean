@@ -30,10 +30,7 @@ For sets `s` and `t` and scalar `a`:
 For `α` a semigroup/monoid, `set α` is a semigroup/monoid.
 As an unfortunate side effect, this means that `n • s`, where `n : ℕ`, is ambiguous between
 pointwise scaling and repeated pointwise addition; the former has `(2 : ℕ) • {1, 2} = {2, 4}`, while
-the latter has `(2 : ℕ) • {1, 2} = {2, 3, 4}`.
-
-We define `set_semiring α`, an alias of `set α`, which we endow with `∪` as addition and `*` as
-multiplication. If `α` is a (commutative) monoid, `set_semiring α` is a (commutative) semiring.
+the latter has `(2 : ℕ) • {1, 2} = {2, 3, 4}`. See note [pointwise nat action].
 
 Appropriate definitions and results are also transported to the additive theory via `to_additive`.
 
@@ -53,6 +50,19 @@ Appropriate definitions and results are also transported to the additive theory 
 set multiplication, set addition, pointwise addition, pointwise multiplication,
 pointwise subtraction
 -/
+
+/--
+Pointwise monoids (`set`, `finset`, `filter`) have derived pointwise actions of the form
+`has_scalar α β → has_scalar α (set β)`. When `α` is `ℕ` or `ℤ`, this action conflicts with the
+nat or int action coming from `set β` being a `monoid` or `div_inv_monoid`. For example,
+`2 • {a, b}` can both be `{2 • a, 2 • b}` (pointwise action, pointwise repeated addition,
+`set.has_scalar_set`) and `{a + a, a + b, b + a, b + b}` (nat or int action, repeated pointwise
+addition, `set.has_nsmul`).
+
+Because the pointwise action can easily be spelled out in such cases, we give higher priority to the
+nat and int actions.
+-/
+library_note "pointwise nat action"
 
 open function
 
@@ -80,6 +90,13 @@ localized "attribute [instance] set.has_one set.has_zero" in pointwise
 @[to_additive] lemma subset_one_iff_eq : s ⊆ 1 ↔ s = ∅ ∨ s = 1 := subset_singleton_iff_eq
 @[to_additive] lemma nonempty.subset_one_iff (h : s.nonempty) : s ⊆ 1 ↔ s = 1 :=
 h.subset_singleton_iff
+
+/-- The singleton operation as a `one_hom`. -/
+@[to_additive "The singleton operation as a `zero_hom`."]
+def singleton_one_hom : one_hom α (set α) := ⟨singleton, singleton_one⟩
+
+@[simp, to_additive] lemma coe_singleton_one_hom : (singleton_one_hom : α → set α) = singleton :=
+rfl
 
 end one
 
@@ -244,13 +261,13 @@ image2_Inter₂_subset_right _ _ _
 def fintype_mul [decidable_eq α] (s t : set α) [fintype s] [fintype t] : fintype (s * t : set α) :=
 set.fintype_image2 _ _ _
 
-/-- Under `[has_mul M]`, the `singleton` map from `M` to `set M` as a `mul_hom`, that is, a map
-which preserves multiplication. -/
-@[to_additive "Under `[has_add A]`, the `singleton` map from `A` to `set A` as an `add_hom`,
-that is, a map which preserves addition.", simps]
-def singleton_mul_hom : α →ₙ* (set α) :=
-{ to_fun := singleton,
-  map_mul' := λ a b, singleton_mul_singleton.symm }
+/-- The singleton operation as a `mul_hom`. -/
+@[to_additive "The singleton operation as an `add_hom`."]
+def singleton_mul_hom : α →ₙ* set α := ⟨singleton, λ a b, singleton_mul_singleton.symm⟩
+
+@[simp, to_additive] lemma coe_singleton_mul_hom : (singleton_mul_hom : α → set α) = singleton :=
+rfl
+@[simp, to_additive] lemma singleton_mul_hom_apply (a : α) : singleton_mul_hom a = {a} := rfl
 
 open mul_opposite
 
@@ -347,6 +364,28 @@ image2_Inter₂_subset_right _ _ _
 
 end has_div
 
+open_locale pointwise
+
+/-- Repeated pointwise addition (not the same as pointwise repeated addition!) of a `finset`. See
+note [pointwise nat action].-/
+protected def has_nsmul [has_zero α] [has_add α] : has_scalar ℕ (set α) := ⟨nsmul_rec⟩
+
+/-- Repeated pointwise multiplication (not the same as pointwise repeated multiplication!) of a
+`set`. See note [pointwise nat action]. -/
+@[to_additive]
+protected def has_npow [has_one α] [has_mul α] : has_pow (set α) ℕ := ⟨λ s n, npow_rec n s⟩
+
+/-- Repeated pointwise addition/subtraction (not the same as pointwise repeated
+addition/subtraction!) of a `set`. See note [pointwise nat action]. -/
+protected def has_zsmul [has_zero α] [has_add α] [has_neg α] : has_scalar ℤ (set α) := ⟨zsmul_rec⟩
+
+/-- Repeated pointwise multiplication/division (not the same as pointwise repeated
+multiplication/division!) of a `set`. See note [pointwise nat action]. -/
+@[to_additive] protected def has_zpow [has_one α] [has_mul α] [has_inv α] : has_pow (set α) ℤ :=
+⟨λ s n, zpow_rec n s⟩
+
+localized "attribute [instance] set.has_nsmul set.has_npow set.has_zsmul set.has_zpow" in pointwise
+
 /-- `set α` is a `semigroup` under pointwise operations if `α` is. -/
 @[to_additive "`set α` is an `add_semigroup` under pointwise operations if `α` is."]
 protected def semigroup [semigroup α] : semigroup (set α) :=
@@ -378,6 +417,14 @@ localized "attribute [instance] set.mul_one_class set.add_zero_class set.semigro
 @[to_additive] lemma subset_mul_right {s : set α} (t : set α) (hs : (1 : α) ∈ s) : t ⊆ s * t :=
 λ x hx, ⟨1, x, hs, hx, one_mul _⟩
 
+/-- The singleton operation as a `monoid_hom`. -/
+@[to_additive "The singleton operation as an `add_monoid_hom`."]
+def singleton_monoid_hom : α →* set α := { ..singleton_mul_hom, ..singleton_one_hom }
+
+@[simp, to_additive] lemma coe_singleton_monoid_hom :
+  (singleton_monoid_hom : α → set α) = singleton := rfl
+@[simp, to_additive] lemma singleton_monoid_hom_apply (a : α) : singleton_monoid_hom a = {a} := rfl
+
 end mul_one_class
 
 section monoid
@@ -385,7 +432,7 @@ variables [monoid α] {s t : set α} {a : α}
 
 /-- `set α` is a `monoid` under pointwise operations if `α` is. -/
 @[to_additive "`set α` is an `add_monoid` under pointwise operations if `α` is."]
-protected def monoid : monoid (set α) := { ..set.semigroup, ..set.mul_one_class }
+protected def monoid : monoid (set α) := { ..set.semigroup, ..set.mul_one_class, ..set.has_npow }
 
 localized "attribute [instance] set.monoid set.add_monoid" in pointwise
 
@@ -421,6 +468,9 @@ begin
   simpa only [mem_mul, eq_univ_iff_forall, mem_univ, true_and]
 end
 
+@[to_additive] protected lemma _root_.is_unit.set : is_unit a → is_unit ({a} : set α) :=
+is_unit.map (singleton_monoid_hom : α →* set α)
+
 end monoid
 
 /-- `set α` is a `comm_monoid` under pointwise operations if `α` is. -/
@@ -432,10 +482,88 @@ localized "attribute [instance] set.comm_monoid set.add_comm_monoid" in pointwis
 
 open_locale pointwise
 
+section division_monoid
+variables [division_monoid α] {s t : set α}
+
+@[to_additive] protected lemma mul_eq_one_iff : s * t = 1 ↔ ∃ a b, s = {a} ∧ t = {b} ∧ a * b = 1 :=
+begin
+  refine ⟨λ h, _, _⟩,
+  { have hst : (s * t).nonempty := h.symm.subst one_nonempty,
+    obtain ⟨a, ha⟩ := hst.of_image2_left,
+    obtain ⟨b, hb⟩ := hst.of_image2_right,
+    have H : ∀ {a b}, a ∈ s → b ∈ t → a * b = (1 : α) :=
+      λ a b ha hb, (h.subset $ mem_image2_of_mem ha hb),
+    refine ⟨a, b, _, _, H ha hb⟩; refine eq_singleton_iff_unique_mem.2 ⟨‹_›, λ x hx, _⟩,
+    { exact (eq_inv_of_mul_eq_one_left $ H hx hb).trans (inv_eq_of_mul_eq_one_left $ H ha hb) },
+    { exact (eq_inv_of_mul_eq_one_right $ H ha hx).trans (inv_eq_of_mul_eq_one_right $ H ha hb) } },
+  { rintro ⟨b, c, rfl, rfl, h⟩,
+    rw [singleton_mul_singleton, h, singleton_one] }
+end
+
+/-- `set α` is a division monoid under pointwise operations if `α` is. -/
+@[to_additive subtraction_monoid "`set α` is a subtraction monoid under pointwise operations if `α`
+is."]
+protected def division_monoid : division_monoid (set α) :=
+{ mul_inv_rev := λ s t, by { simp_rw ←image_inv, exact image_image2_antidistrib mul_inv_rev },
+  inv_eq_of_mul := λ s t h, begin
+    obtain ⟨a, b, rfl, rfl, hab⟩ := set.mul_eq_one_iff.1 h,
+    rw [inv_singleton, inv_eq_of_mul_eq_one_right hab],
+  end,
+  div_eq_mul_inv := λ s t,
+    by { rw [←image_id (s / t), ←image_inv], exact image_image2_distrib_right div_eq_mul_inv },
+  ..set.monoid, ..set.has_involutive_inv, ..set.has_div, ..set.has_zpow }
+
+@[simp, to_additive] lemma is_unit_iff : is_unit s ↔ ∃ a, s = {a} ∧ is_unit a :=
+begin
+  split,
+  { rintro ⟨u, rfl⟩,
+    obtain ⟨a, b, ha, hb, h⟩ := set.mul_eq_one_iff.1 u.mul_inv,
+    refine ⟨a, ha, ⟨a, b, h, singleton_injective _⟩, rfl⟩,
+    rw [←singleton_mul_singleton, ←ha, ←hb],
+    exact u.inv_mul },
+  { rintro ⟨a, rfl, ha⟩,
+    exact ha.set }
+end
+
+end division_monoid
+
+/-- `set α` is a commutative division monoid under pointwise operations if `α` is. -/
+@[to_additive subtraction_comm_monoid "`set α` is a commutative subtraction monoid under pointwise
+operations if `α` is."]
+protected def division_comm_monoid [division_comm_monoid α] : division_comm_monoid (set α) :=
+{ ..set.division_monoid, ..set.comm_semigroup }
+
+/-- `set α` has distributive negation if `α` has. -/
+protected def has_distrib_neg [has_mul α] [has_distrib_neg α] : has_distrib_neg (set α) :=
+{ neg_mul := λ _ _, by { simp_rw ←image_neg, exact image2_image_left_comm neg_mul },
+  mul_neg := λ _ _, by { simp_rw ←image_neg, exact image_image2_right_comm mul_neg },
+  ..set.has_involutive_neg }
+
+localized "attribute [instance] set.division_monoid set.subtraction_monoid set.division_comm_monoid
+  set.subtraction_comm_monoid set.has_distrib_neg" in pointwise
+
+section distrib
+variables [distrib α] (s t u : set α)
+
+/-!
+Note that `set α` is not a `distrib` because `s * t + s * u` has cross terms that `s * (t + u)`
+lacks.
+-/
+
+lemma mul_add_subset : s * (t + u) ⊆ s * t + s * u := image2_distrib_subset_left mul_add
+lemma add_mul_subset : (s + t) * u ⊆ s * u + t * u := image2_distrib_subset_right add_mul
+
+end distrib
+
 section group
 variables [group α] {s t : set α} {a b : α}
 
 /-! Note that `set` is not a `group` because `s / s ≠ 1` in general. -/
+
+@[to_additive] lemma is_unit_singleton (a : α) : is_unit ({a} : set α) := (group.is_unit a).set
+
+@[simp, to_additive] lemma is_unit_iff_singleton : is_unit s ↔ ∃ a, s = {a} :=
+by simp only [is_unit_iff, group.is_unit, and_true]
 
 @[simp, to_additive] lemma image_mul_left : ((*) a) '' t = ((*) a⁻¹) ⁻¹' t :=
 by { rw image_eq_preimage_of_inverse; intro c; simp }
@@ -550,51 +678,6 @@ end
 /-! TODO: define `decidable_mem_finset_prod` and `decidable_mem_finset_sum`. -/
 
 end big_operators
-
-open_locale pointwise
-
-open_locale pointwise
-
-/-- Repeated pointwise addition (not the same as pointwise repeated addition!) of a `finset`. -/
-protected def has_nsmul [has_zero α] [has_add α] : has_scalar ℕ (set α) := ⟨nsmul_rec⟩
-
-/-- Repeated pointwise multiplication (not the same as pointwise repeated multiplication!) of a
-`set`. -/
-@[to_additive]
-protected def has_npow [has_one α] [has_mul α] : has_pow (set α) ℕ := ⟨λ s n, npow_rec n s⟩
-
-/-- Repeated pointwise addition/subtraction (not the same as pointwise repeated
-addition/subtraction!) of a `set`. -/
-protected def has_zsmul [has_zero α] [has_add α] [has_neg α] : has_scalar ℤ (set α) := ⟨zsmul_rec⟩
-
-/-- Repeated pointwise multiplication/division (not the same as pointwise repeated
-multiplication/division!) of a `set`. -/
-@[to_additive] protected def has_zpow [has_one α] [has_mul α] [has_inv α] : has_pow (set α) ℤ :=
-⟨λ s n, zpow_rec n s⟩
-
--- TODO: Generalize the duplicated lemmas and instances below to `division_monoid`
-
-@[to_additive] protected lemma mul_inv_rev [group α] (s t : set α) : (s * t)⁻¹ = t⁻¹ * s⁻¹ :=
-by { simp_rw ←image_inv, exact image_image2_antidistrib mul_inv_rev }
-
-protected lemma mul_inv_rev₀ [group_with_zero α] (s t : set α) : (s * t)⁻¹ = t⁻¹ * s⁻¹ :=
-by { simp_rw ←image_inv, exact image_image2_antidistrib mul_inv_rev₀ }
-
-/-- `s / t = s * t⁻¹` for all `s t : set α` if `a / b = a * b⁻¹` for all `a b : α`. -/
-@[to_additive "`s - t = s + -t` for all `s t : set α` if `a - b = a + -b` for all `a b : α`."]
-protected def div_inv_monoid [group α] : div_inv_monoid (set α) :=
-{ div_eq_mul_inv := λ s t,
-    by { rw [←image_id (s / t), ←image_inv], exact image_image2_distrib_right div_eq_mul_inv },
-  ..set.monoid, ..set.has_inv, ..set.has_div }
-
-/-- `s / t = s * t⁻¹` for all `s t : set α` if `a / b = a * b⁻¹` for all `a b : α`. -/
-protected def div_inv_monoid' [group_with_zero α] : div_inv_monoid (set α) :=
-{ div_eq_mul_inv := λ s t,
-    by { rw [←image_id (s / t), ←image_inv], exact image_image2_distrib_right div_eq_mul_inv },
-  ..set.monoid, ..set.has_inv, ..set.has_div }
-
-localized "attribute [instance] set.has_nsmul set.has_npow set.has_zsmul set.has_zpow
-  set.div_inv_monoid set.div_inv_monoid' set.sub_neg_add_monoid" in pointwise
 
 /-! ### Translation/scaling of sets -/
 
@@ -919,67 +1002,12 @@ by simp_rw [←image_smul, ←image_neg, image_image, neg_smul]
 by simp_rw [←image_smul, ←image_neg, image_image, smul_neg]
 
 @[simp] protected lemma neg_smul : -s • t = -(s • t) :=
-by simp_rw [←image2_smul, ←image_neg, image2_image_left, image_image2, neg_smul]
+by { simp_rw ←image_neg, exact image2_image_left_comm neg_smul }
 
 @[simp] protected lemma smul_neg : s • -t = -(s • t) :=
-by simp_rw [←image2_smul, ←image_neg, image2_image_right, image_image2, smul_neg]
+by { simp_rw ←image_neg, exact image_image2_right_comm smul_neg }
 
 end ring
-
-section monoid
-
-/-! ### `set α` as a `(∪, *)`-semiring -/
-
-/-- An alias for `set α`, which has a semiring structure given by `∪` as "addition" and pointwise
-  multiplication `*` as "multiplication". -/
-@[derive [inhabited, partial_order, order_bot]] def set_semiring (α : Type*) : Type* := set α
-
-/-- The identity function `set α → set_semiring α`. -/
-protected def up (s : set α) : set_semiring α := s
-/-- The identity function `set_semiring α → set α`. -/
-protected def set_semiring.down (s : set_semiring α) : set α := s
-@[simp] protected lemma down_up {s : set α} : s.up.down = s := rfl
-@[simp] protected lemma up_down {s : set_semiring α} : s.down.up = s := rfl
-
-/- This lemma is not tagged `simp`, since otherwise the linter complains. -/
-lemma up_le_up {s t : set α} : s.up ≤ t.up ↔ s ⊆ t := iff.rfl
-/- This lemma is not tagged `simp`, since otherwise the linter complains. -/
-lemma up_lt_up {s t : set α} : s.up < t.up ↔ s ⊂ t := iff.rfl
-
-@[simp] lemma down_subset_down {s t : set_semiring α} : s.down ⊆ t.down ↔ s ≤ t := iff.rfl
-@[simp] lemma down_ssubset_down {s t : set_semiring α} : s.down ⊂ t.down ↔ s < t := iff.rfl
-
-instance set_semiring.add_comm_monoid : add_comm_monoid (set_semiring α) :=
-{ add := λ s t, (s ∪ t : set α),
-  zero := (∅ : set α),
-  add_assoc := union_assoc,
-  zero_add := empty_union,
-  add_zero := union_empty,
-  add_comm := union_comm, }
-
-instance set_semiring.non_unital_non_assoc_semiring [has_mul α] :
-  non_unital_non_assoc_semiring (set_semiring α) :=
-{ zero_mul := λ s, empty_mul,
-  mul_zero := λ s, mul_empty,
-  left_distrib := λ _ _ _, mul_union,
-  right_distrib := λ _ _ _, union_mul,
-  ..set.has_mul, ..set_semiring.add_comm_monoid }
-
-instance set_semiring.non_assoc_semiring [mul_one_class α] : non_assoc_semiring (set_semiring α) :=
-{ ..set_semiring.non_unital_non_assoc_semiring, ..set.mul_one_class }
-
-instance set_semiring.non_unital_semiring [semigroup α] : non_unital_semiring (set_semiring α) :=
-{ ..set_semiring.non_unital_non_assoc_semiring, ..set.semigroup }
-
-instance set_semiring.semiring [monoid α] : semiring (set_semiring α) :=
-{ ..set_semiring.non_assoc_semiring, ..set_semiring.non_unital_semiring }
-
-instance set_semiring.non_unital_comm_semiring [comm_semigroup α] :
-  non_unital_comm_semiring (set_semiring α) :=
-{ ..set_semiring.non_unital_semiring, ..set.comm_semigroup }
-
-instance set_semiring.comm_semiring [comm_monoid α] : comm_semiring (set_semiring α) :=
-{ ..set.comm_monoid, ..set_semiring.semiring }
 
 section mul_hom
 
@@ -992,58 +1020,7 @@ lemma image_mul : (m : α → β) '' (s * t) = m '' s * m '' t := image_image2_d
 lemma preimage_mul_preimage_subset {s t : set β} : (m : α → β) ⁻¹' s * m ⁻¹' t ⊆ m ⁻¹' (s * t) :=
 by { rintro _ ⟨_, _, _, _, rfl⟩, exact ⟨_, _, ‹_›, ‹_›, (map_mul m _ _).symm ⟩ }
 
-instance set_semiring.no_zero_divisors : no_zero_divisors (set_semiring α) :=
-⟨λ a b ab, a.eq_empty_or_nonempty.imp_right $ λ ha, b.eq_empty_or_nonempty.resolve_right $
-  λ hb, nonempty.ne_empty ⟨_, mul_mem_mul ha.some_mem hb.some_mem⟩ ab⟩
-
-/- Since addition on `set_semiring` is commutative (it is set union), there is no need
-to also have the instance `covariant_class (set_semiring α) (set_semiring α) (swap (+)) (≤)`. -/
-instance set_semiring.covariant_class_add :
-  covariant_class (set_semiring α) (set_semiring α) (+) (≤) :=
-{ elim := λ a b c, union_subset_union_right _ }
-
-instance set_semiring.covariant_class_mul_left :
-  covariant_class (set_semiring α) (set_semiring α) (*) (≤) :=
-{ elim := λ a b c, mul_subset_mul_left }
-
-instance set_semiring.covariant_class_mul_right :
-  covariant_class (set_semiring α) (set_semiring α) (swap (*)) (≤) :=
-{ elim := λ a b c, mul_subset_mul_right }
-
 end mul_hom
-
-/-- The image of a set under a multiplicative homomorphism is a ring homomorphism
-with respect to the pointwise operations on sets. -/
-def image_hom [monoid α] [monoid β] (f : α →* β) : set_semiring α →+* set_semiring β :=
-{ to_fun := image f,
-  map_zero' := image_empty _,
-  map_one' := by simp only [← singleton_one, image_singleton, f.map_one],
-  map_add' := image_union _,
-  map_mul' := λ _ _, image_mul f }
-
-end monoid
-
-section comm_monoid
-
-variable [comm_monoid α]
-
-instance : canonically_ordered_comm_semiring (set_semiring α) :=
-{ add_le_add_left := λ a b, add_le_add_left,
-  le_iff_exists_add := λ a b, ⟨λ ab, ⟨b, (union_eq_right_iff_subset.2 ab).symm⟩,
-    by { rintro ⟨c, rfl⟩, exact subset_union_left _ _ }⟩,
-  ..(infer_instance : comm_semiring (set_semiring α)),
-  ..(infer_instance : partial_order (set_semiring α)),
-  ..(infer_instance : order_bot (set_semiring α)),
-  ..(infer_instance : no_zero_divisors (set_semiring α)) }
-
-end comm_monoid
-
-end set
-
-open set
-open_locale pointwise
-
-section
 
 section smul_with_zero
 variables [has_zero α] [has_zero β] [smul_with_zero α β]
@@ -1082,10 +1059,6 @@ begin
 end
 
 end smul_with_zero
-
-lemma smul_add_set [monoid α] [add_monoid β] [distrib_mul_action α β] (c : α) (s t : set β) :
-  c • (s + t) = c • s + c • t :=
-image_add (distrib_mul_action.to_add_monoid_hom β c).to_add_hom
 
 section group
 variables [group α] [mul_action α β] {A B : set β} {a : α} {x : β}
@@ -1169,7 +1142,12 @@ eq_univ_of_forall $ λ b, ⟨a⁻¹ • b, trivial, smul_inv_smul₀ ha _⟩
 
 end group_with_zero
 
-end
+end set
+
+/-! ### Miscellaneous -/
+
+open set
+open_locale pointwise
 
 /-! Some lemmas about pointwise multiplication and submonoids. Ideally we put these in
   `group_theory.submonoid.basic`, but currently we cannot because that file is imported by this. -/
@@ -1256,7 +1234,7 @@ begin
   { refine λ k hk, fintype.card_congr _,
     rw [hS, empty_pow _ (ne_of_gt (lt_of_lt_of_le hG hk)), empty_pow _ (ne_of_gt hG)] },
   obtain ⟨a, ha⟩ := set.ne_empty_iff_nonempty.mp hS,
-  classical,
+  classical!,
   have key : ∀ a (s t : set G), (∀ b : G, b ∈ s → a * b ∈ t) → fintype.card s ≤ fintype.card t,
   { refine λ a s t h, fintype.card_le_of_injective (λ ⟨b, hb⟩, ⟨a * b, h b hb⟩) _,
     rintro ⟨b, hb⟩ ⟨c, hc⟩ hbc,

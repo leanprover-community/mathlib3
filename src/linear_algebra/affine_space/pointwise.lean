@@ -10,21 +10,12 @@ import linear_algebra.affine_space.affine_subspace
 
 This file provides:
 
-* `affine_subspace.has_pointwise_neg`
+* `affine_subspace.has_vadd`
 
 and the actions
 
-* `affine_subspace.pointwise_distrib_mul_action`
-* `affine_subspace.pointwise_mul_action_with_zero`
+* `affine_subspace.add_action`
 
-which matches the action of `mul_action_set`.
-
-These actions are available in the `pointwise` locale.
-
-## Implementation notes
-
-Most of the lemmas in this file are direct copies of lemmas from
-`group_theory/submonoid/pointwise.lean`.
 -/
 
 
@@ -69,9 +60,9 @@ lemma mem_const_vadd_iff (v : V) {s : affine_subspace k P} {p : P} :
   v +ᵥ p ∈ v +ᵥ s ↔ p ∈ s :=
 vadd_mem_vadd_set_iff
 
-lemma const_vadd_empty {v : V} {s : affine_subspace k P} (hs : (s : set P) = ∅) :
-  v +ᵥ s = s :=
-by { ext, simp [hs] }
+lemma const_vadd_empty {v : V} :
+  v +ᵥ (⊥ : affine_subspace k P)  = ⊥ :=
+by { ext, simp, }
 
 lemma mem_const_vadd_direction (v x : V) {s : affine_subspace k P} :
   x ∈ s.direction → x ∈ (v +ᵥ s).direction :=
@@ -84,8 +75,8 @@ begin
     rw ← mem_const_vadd_iff v at hq,
     exact vsub_mem_direction hp hq,
     exact hem, },
-  rw not_nonempty_iff_eq_empty at hem,
-  rw const_vadd_empty hem,
+  rw [not_nonempty_iff_eq_empty, coe_eq_bot_iff] at hem,
+  rw [hem, const_vadd_empty],
   exact id,
 end
 

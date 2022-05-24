@@ -1297,10 +1297,6 @@ begin
   exact (e.symm : P₂ →ᵃ[k] P₁).span_eq_top_of_surjective e.symm.surjective h,
 end
 
-omit V₂
-@[simp] lemma map_refl (s : affine_subspace k P₁) : s.map ↑(refl k P₁) = s :=
-by { ext, simp, }
-
 end affine_equiv
 
 end

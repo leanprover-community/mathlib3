@@ -743,8 +743,7 @@ instance : topological_vector_bundle R F Z.fiber :=
       { simp only [base_set_at, local_triv_at_def, mem_inter_eq, mem_local_triv_at_base_set] at *,
         tauto },
       simp only [dif_pos, hb, Z.coord_change_comp _ _ _ _ this,
-        continuous_linear_equiv.equiv_of_inverse_apply, trivialization.coe_coe] with mfld_simps
-       }
+        continuous_linear_equiv.equiv_of_inverse_apply, trivialization.coe_coe] with mfld_simps }
   end }
 
 /-- The projection on the base of a topological vector bundle created from core is continuous -/

@@ -30,32 +30,35 @@ https://en.wikipedia.org/wiki/Clifford_algebra#Antiautomorphisms
 
 -/
 
-variables {R : Type*} [comm_ring R]
-variables {M : Type*} [add_comm_group M] [module R M]
-variables {Q : quadratic_form R M}
+variables {R R' M M' : Type*}
+variables [comm_semiring R] [add_comm_monoid M] [module R M]
+variables [comm_ring R'] [add_comm_group M'] [module R' M']
+variables {Q : quadratic_form R M} {Q' : quadratic_form R' M'}
 
 namespace clifford_algebra
 
 section involute
 
 /-- Grade involution, inverting the sign of each basis vector. -/
-def involute : clifford_algebra Q →ₐ[R] clifford_algebra Q :=
-clifford_algebra.lift Q ⟨-(ι Q), λ m, by simp⟩
+def involute : clifford_algebra Q' →ₐ[R'] clifford_algebra Q' :=
+clifford_algebra.lift Q' ⟨-(ι Q'), λ m, by
+  simp only [linear_map.neg_apply, neg_mul_neg, ι_sq_scalar Q']⟩
 
-@[simp] lemma involute_ι (m : M) : involute (ι Q m) = -ι Q m :=
+@[simp] lemma involute_ι (m : M') : involute (ι Q' m) = -ι Q' m :=
 lift_ι_apply _ _ m
 
-@[simp] lemma involute_comp_involute : involute.comp involute = alg_hom.id R (clifford_algebra Q) :=
+@[simp] lemma involute_comp_involute :
+  involute.comp involute = alg_hom.id R' (clifford_algebra Q') :=
 by { ext, simp }
 
-lemma involute_involutive : function.involutive (involute : _ → clifford_algebra Q) :=
+lemma involute_involutive : function.involutive (involute : _ → clifford_algebra Q') :=
 alg_hom.congr_fun involute_comp_involute
 
-@[simp] lemma involute_involute : ∀ a : clifford_algebra Q, involute (involute a) = a :=
+@[simp] lemma involute_involute : ∀ a : clifford_algebra Q', involute (involute a) = a :=
 involute_involutive
 
 /-- `clifford_algebra.involute` as an `alg_equiv`. -/
-@[simps] def involute_equiv : clifford_algebra Q ≃ₐ[R] clifford_algebra Q :=
+@[simps] def involute_equiv : clifford_algebra Q' ≃ₐ[R'] clifford_algebra Q' :=
 alg_equiv.of_alg_hom involute involute
   (alg_hom.ext $ involute_involute) (alg_hom.ext $ involute_involute)
 
@@ -110,7 +113,7 @@ linear_equiv.of_involutive reverse reverse_involutive
 
 lemma reverse_comp_involute :
   reverse.comp involute.to_linear_map =
-    (involute.to_linear_map.comp reverse : _ →ₗ[R] clifford_algebra Q) :=
+    (involute.to_linear_map.comp reverse : _ →ₗ[R'] clifford_algebra Q') :=
 begin
   ext,
   simp only [linear_map.comp_apply, alg_hom.to_linear_map_apply],
@@ -123,10 +126,10 @@ end
 
 /-- `clifford_algebra.reverse` and `clifford_algebra.inverse` commute. Note that the composition
 is sometimes referred to as the "clifford conjugate". -/
-lemma reverse_involute_commute : function.commute (reverse : _ → clifford_algebra Q) involute :=
+lemma reverse_involute_commute : function.commute (reverse : _ → clifford_algebra Q') involute :=
 linear_map.congr_fun reverse_comp_involute
 
-lemma reverse_involute : ∀ a : clifford_algebra Q, reverse (involute a) = involute (reverse a) :=
+lemma reverse_involute : ∀ a : clifford_algebra Q', reverse (involute a) = involute (reverse a) :=
 reverse_involute_commute
 
 end reverse
@@ -145,8 +148,8 @@ lemma reverse_prod_map_ι : ∀ (l : list M), reverse (l.map $ ι Q).prod = (l.m
 
 /-- Taking the involute of the product a list of $n$ vectors lifted via `ι` is equivalent to
 premultiplying by ${-1}^n$. -/
-lemma involute_prod_map_ι : ∀ l : list M,
-  involute (l.map $ ι Q).prod = ((-1 : R)^l.length) • (l.map $ ι Q).prod
+lemma involute_prod_map_ι : ∀ l : list M',
+  involute (l.map $ ι Q').prod = ((-1 : R')^l.length) • (l.map $ ι Q').prod
 | [] := by simp
 | (x :: xs) := by simp [pow_add, involute_prod_map_ι xs]
 
@@ -158,27 +161,27 @@ end list
 
 section submodule
 
-variables (Q)
+variables (Q Q')
 
 section involute
 
-lemma submodule_map_involute_eq_comap (p : submodule R (clifford_algebra Q)) :
+lemma submodule_map_involute_eq_comap (p : submodule R' (clifford_algebra Q')) :
   p.map involute.to_linear_map = p.comap involute.to_linear_map :=
-(submodule.map_equiv_eq_comap_symm involute_equiv.to_linear_equiv _)
+(submodule.map_equiv_eq_comap_symm involute_equiv.to_linear_equiv p)
 
-@[simp] lemma ι_range_map_involute : (ι Q).range.map involute.to_linear_map = (ι Q).range :=
+@[simp] lemma ι_range_map_involute : (ι Q').range.map involute.to_linear_map = (ι Q').range :=
 (ι_range_map_lift _ _).trans (linear_map.range_neg _)
 
-@[simp] lemma ι_range_comap_involute : (ι Q).range.comap involute.to_linear_map = (ι Q).range :=
-by rw [←submodule_map_involute_eq_comap, ι_range_map_involute]
+@[simp] lemma ι_range_comap_involute : (ι Q').range.comap involute.to_linear_map = (ι Q').range :=
+by rw [←submodule_map_involute_eq_comap Q', ι_range_map_involute Q']
 
 @[simp] lemma even_odd_map_involute (n : zmod 2) :
-  (even_odd Q n).map involute.to_linear_map = (even_odd Q n) :=
+  (even_odd Q' n).map involute.to_linear_map = (even_odd Q' n) :=
 by simp_rw [even_odd, submodule.map_supr, submodule.map_pow, ι_range_map_involute]
 
 @[simp] lemma even_odd_comap_involute (n : zmod 2) :
-  (even_odd Q n).comap involute.to_linear_map = even_odd Q n :=
-by rw [←submodule_map_involute_eq_comap, even_odd_map_involute]
+  (even_odd Q' n).comap involute.to_linear_map = even_odd Q' n :=
+by rw [←submodule_map_involute_eq_comap Q', even_odd_map_involute Q']
 
 end involute
 
@@ -225,9 +228,9 @@ by rw [←submodule_map_reverse_eq_comap, even_odd_map_reverse]
 
 end reverse
 
-@[simp] lemma involute_mem_even_odd_iff {x : clifford_algebra Q} {n : zmod 2} :
-  involute x ∈ even_odd Q n ↔ x ∈ even_odd Q n :=
-set_like.ext_iff.mp (even_odd_comap_involute Q n) x
+@[simp] lemma involute_mem_even_odd_iff {x : clifford_algebra Q'} {n : zmod 2} :
+  involute x ∈ even_odd Q' n ↔ x ∈ even_odd Q' n :=
+set_like.ext_iff.mp (even_odd_comap_involute Q' n) x
 
 @[simp] lemma reverse_mem_even_odd_iff {x : clifford_algebra Q} {n : zmod 2} :
   reverse x ∈ even_odd Q n ↔ x ∈ even_odd Q n :=
@@ -241,20 +244,20 @@ end submodule
 TODO: show that these are `iff`s when `invertible (2 : R)`.
 -/
 
-lemma involute_eq_of_mem_even {x : clifford_algebra Q} (h : x ∈ even_odd Q 0) :
+lemma involute_eq_of_mem_even {x : clifford_algebra Q'} (h : x ∈ even_odd Q' 0) :
   involute x = x :=
 begin
-  refine even_induction Q (alg_hom.commutes _) _ _ x h,
+  refine even_induction Q' (alg_hom.commutes _) _ _ x h,
   { rintros x y hx hy ihx ihy,
     rw [map_add, ihx, ihy]},
   { intros m₁ m₂ x hx ihx,
     rw [map_mul, map_mul, involute_ι, involute_ι, ihx, neg_mul_neg], },
 end
 
-lemma involute_eq_of_mem_odd {x : clifford_algebra Q} (h : x ∈ even_odd Q 1) :
+lemma involute_eq_of_mem_odd {x : clifford_algebra Q'} (h : x ∈ even_odd Q' 1) :
   involute x = -x :=
 begin
-  refine odd_induction Q involute_ι _ _ x h,
+  refine odd_induction Q' involute_ι _ _ x h,
   { rintros x y hx hy ihx ihy,
     rw [map_add, ihx, ihy, neg_add] },
   { intros m₁ m₂ x hx ihx,

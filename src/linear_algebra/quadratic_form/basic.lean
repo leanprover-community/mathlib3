@@ -308,11 +308,10 @@ instance : has_scalar S (quadratic_form R M) :=
 ⟨ λ a Q,
   { to_fun := a • Q,
     to_fun_smul := λ b x, by rw [pi.smul_apply, map_smul, pi.smul_apply, mul_smul_comm],
-    to_fun_add_add_add_to_fun := λ x y z, by {
-      simp only [pi.smul_apply, ←smul_add, map_add_add_add_map], },
-    to_fun_smul_add_add_mul := λ b x y, begin
-      simp only [pi.smul_apply, ←smul_add, map_smul_add_add_mul, mul_smul_comm],
-    end } ⟩
+    to_fun_add_add_add_to_fun := λ x y z, by
+      simp only [pi.smul_apply, ←smul_add, map_add_add_add_map],
+    to_fun_smul_add_add_mul := λ b x y, by
+      simp only [pi.smul_apply, ←smul_add, map_smul_add_add_mul, mul_smul_comm] } ⟩
 
 @[simp] lemma coe_fn_smul (a : S) (Q : quadratic_form R M) : ⇑(a • Q) = a • Q := rfl
 
@@ -340,13 +339,12 @@ instance : has_add (quadratic_form R M) :=
       by simp only [pi.add_apply, map_smul, mul_add],
     to_fun_add_add_add_to_fun := λ x x' y,
       by simp only [pi.add_apply, add_add_add_comm, ←map_add_add_add_map],
-    to_fun_smul_add_add_mul := λ a x y,
-      by {
-        simp only [pi.add_apply],
-        rw [mul_add, mul_add, mul_add, add_add_add_comm (a * _), ← mul_add, ← mul_add,
-          add_add_add_comm, map_smul_add_add_mul, map_smul_add_add_mul, mul_add, add_add_add_comm,
-          add_add_add_comm _ _ (Q y)],
-      } } ⟩
+    to_fun_smul_add_add_mul := λ a x y, begin
+      simp only [pi.add_apply],
+      rw [mul_add, mul_add, mul_add, add_add_add_comm (a * _), ← mul_add, ← mul_add,
+        add_add_add_comm, map_smul_add_add_mul, map_smul_add_add_mul, mul_add, add_add_add_comm,
+        add_add_add_comm _ _ (Q y)],
+    end } ⟩
 
 @[simp] lemma coe_fn_add (Q Q' : quadratic_form R M) : ⇑(Q + Q') = Q + Q' := rfl
 
@@ -719,7 +717,8 @@ end anisotropic
 
 section pos_def
 
-variables {R₂ : Type u} [ordered_ring R₂] [add_comm_monoid M] [module R₂ M] {Q₂ : quadratic_form R₂ M}
+variables {R₂ : Type u} [ordered_ring R₂] [add_comm_monoid M] [module R₂ M]
+variables {Q₂ : quadratic_form R₂ M}
 
 /-- A positive definite quadratic form is positive on nonzero vectors. -/
 def pos_def (Q₂ : quadratic_form R₂ M) : Prop := ∀ x ≠ 0, 0 < Q₂ x
@@ -774,12 +773,10 @@ The determinant of the matrix is the discriminant of the quadratic form.
 variables {n : Type w} [fintype n] [decidable_eq n]
 variables [comm_ring R₁] [add_comm_monoid M] [module R₁ M]
 
-set_option pp.implicit true
-
 /-- `M.to_quadratic_form` is the map `λ x, col x ⬝ M ⬝ row x` as a quadratic form. -/
 def matrix.to_quadratic_form' (M : matrix n n R₁) :
   quadratic_form R₁ (n → R₁) :=
-bilin_form.to_quadratic_form (matrix.to_bilin' M)
+M.to_bilin'.to_quadratic_form
 
 variables [invertible (2 : R₁)]
 

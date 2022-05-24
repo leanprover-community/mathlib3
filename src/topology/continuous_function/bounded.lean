@@ -438,12 +438,10 @@ begin
   We extract finitely many of these sets that cover the whole space, by compactness -/
   rcases compact_univ.elim_finite_subcover_image
     (λx _, (hU x).2.1) (λx hx, mem_bUnion (mem_univ _) (hU x).1)
-    with ⟨tα, _, htαf, htα⟩,
+    with ⟨tα, _, ⟨_⟩, htα⟩,
   /- tα : set α, htα : univ ⊆ ⋃x ∈ tα, U x -/
   rcases @finite_cover_balls_of_compact β _ _ compact_univ _ ε₂0
-    with ⟨tβ, _, htβf, htβ⟩,
-  haveI := htαf.fintype,
-  haveI := htβf.fintype,
+    with ⟨tβ, _, ⟨_⟩, htβ⟩, resetI,
   /- tβ : set β, htβ : univ ⊆ ⋃y ∈ tβ, ball y ε₂ -/
   /- Associate to every point `y` in the space a nearby point `F y` in tβ -/
   choose F hF using λy, show ∃z∈tβ, dist y z < ε₂, by simpa using htβ (mem_univ y),

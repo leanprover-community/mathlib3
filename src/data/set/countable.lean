@@ -184,8 +184,8 @@ by simp only [insert_eq, countable_union, countable_singleton, true_and]
 lemma countable.insert {s : set α} (a : α) (h : countable s) : countable (insert a s) :=
 countable_insert.2 h
 
-lemma finite.countable {s : set α} (h : s.finite) : countable s :=
-trunc.nonempty (by { haveI := h.fintype, exact fintype.trunc_encodable s })
+lemma finite.countable {s : set α} : s.finite → countable s
+| ⟨h⟩ := trunc.nonempty (by exactI fintype.trunc_encodable s)
 
 lemma subsingleton.countable {s : set α} (hs : s.subsingleton) : countable s :=
 hs.finite.countable
@@ -203,8 +203,7 @@ begin
   resetI,
   refine countable.mono _ (countable_range
     (λ t : finset s, {a | ∃ h:a ∈ s, subtype.mk a h ∈ t})),
-  rintro t ⟨ht, ts⟩,
-  haveI := ht.fintype,
+  rintro t ⟨⟨ht⟩, ts⟩, resetI,
   refine ⟨finset.univ.map (embedding_of_subset _ _ ts),
     set.ext $ λ a, _⟩,
   suffices : a ∈ s ∧ a ∈ t ↔ a ∈ t, by simpa,

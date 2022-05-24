@@ -116,6 +116,7 @@ by rw [sub_eq_add_neg, sub_eq_add_neg, add_right, neg_right]
 
 variables {D : bilin_form R M} {D₁ : bilin_form R₁ M₁}
 
+-- TODO: instantiate `fun_like`
 lemma coe_injective : function.injective (coe_fn : bilin_form R M → (M → M → R)) :=
 λ B D h, by { cases B, cases D, congr' }
 
@@ -148,6 +149,10 @@ instance : has_add (bilin_form R M) :=
 @[simp] lemma coe_add : ⇑(B + D) = B + D := rfl
 @[simp] lemma add_apply (x y : M) : (B + D) x y = B x y + D x y := rfl
 
+/-- `bilin_form R M` inherits the scalar action by `α` on `R` if this is compatible with
+multiplication.
+
+When `R` itself is commutative, this provides an `R`-action via `algebra.id`. -/
 instance {α} [monoid α] [distrib_mul_action α R] [smul_comm_class α R R] :
   has_scalar α (bilin_form R M) :=
 { smul := λ c B,
@@ -158,10 +163,10 @@ instance {α} [monoid α] [distrib_mul_action α R] [smul_comm_class α R R] :
     bilin_smul_right := λ a x y, by { rw [smul_right, ←mul_smul_comm] } } }
 
 @[simp] lemma coe_smul {α} [monoid α] [distrib_mul_action α R] [smul_comm_class α R R]
-  (B : bilin_form R M) (a : α) : ⇑(a • B) = a • B := rfl
+  (a : α) (B : bilin_form R M) : ⇑(a • B) = a • B := rfl
 
 @[simp] lemma smul_apply {α} [monoid α] [distrib_mul_action α R] [smul_comm_class α R R]
-  (B : bilin_form R M) (a : α) (x y : M) :
+  (a : α) (B : bilin_form R M) (x y : M) :
   (a • B) x y = a • (B x y) :=
 rfl
 
@@ -194,21 +199,17 @@ function.injective.add_comm_group _ coe_injective coe_zero coe_add coe_neg coe_s
 
 instance : inhabited (bilin_form R M) := ⟨0⟩
 
-section
+/-- `coe_fn` as an `add_monoid_hom` -/
+def coe_fn_add_monoid_hom : bilin_form R M →+ (M → M → R) :=
+{ to_fun := coe_fn, map_zero' := coe_zero, map_add' := coe_add }
 
-/-- `bilin_form R M` inherits the scalar action from any commutative subalgebra `R₂` of `R`.
+instance {α} [monoid α] [distrib_mul_action α R] [smul_comm_class α R R] :
+  distrib_mul_action α (bilin_form R M) :=
+function.injective.distrib_mul_action coe_fn_add_monoid_hom coe_injective coe_smul
 
-When `R` itself is commutative, this provides an `R`-action via `algebra.id`. -/
-instance [algebra R₂ R] : module R₂ (bilin_form R M) :=
-{ smul := (•),
-  smul_add := λ c B D, by { ext, unfold coe_fn has_coe_to_fun.coe bilin, rw smul_add },
-  add_smul := λ c B D, by { ext, unfold coe_fn has_coe_to_fun.coe bilin, rw add_smul },
-  mul_smul := λ a c D, by { ext, unfold coe_fn has_coe_to_fun.coe bilin, rw ←smul_assoc, refl },
-  one_smul := λ B, by { ext, unfold coe_fn has_coe_to_fun.coe bilin, rw one_smul },
-  zero_smul := λ B, by { ext, unfold coe_fn has_coe_to_fun.coe bilin, rw zero_smul },
-  smul_zero := λ B, by { ext, unfold coe_fn has_coe_to_fun.coe bilin, rw smul_zero } }
-
-end
+instance {α} [semiring α] [module α R] [smul_comm_class α R R] :
+  module α (bilin_form R M) :=
+function.injective.module _ coe_fn_add_monoid_hom coe_injective coe_smul
 
 section flip
 

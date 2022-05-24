@@ -558,10 +558,10 @@ begin
     ... ≤ ennreal.of_real (ε ⁻¹ ^ 2 * C) :
       begin
         apply ennreal.of_real_le_of_real,
-        simp_rw [div_eq_inv_mul, ← inv_pow₀, mul_inv, mul_comm _ (ε⁻¹), mul_pow, mul_assoc,
+        simp_rw [div_eq_inv_mul, ← inv_pow, mul_inv, mul_comm _ (ε⁻¹), mul_pow, mul_assoc,
           ← mul_sum],
         refine mul_le_mul_of_nonneg_left _ (sq_nonneg _),
-        simp_rw [inv_pow₀],
+        simp_rw [inv_pow],
         exact I2 N
       end },
   have I4 : ∑' i, ℙ {ω | (u i * ε : ℝ) ≤ |S (u i) ω - 𝔼[S (u i)]|} < ∞ :=

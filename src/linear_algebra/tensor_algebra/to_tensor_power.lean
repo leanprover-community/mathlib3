@@ -38,11 +38,19 @@ begin
   { rw [list.length_of_fn, list.length_append, list.length_of_fn, list.length_of_fn] },
   intros n ha hb,
   simp_rw list.nth_le_of_fn',
-  -- rw [←fin.cast_add_mk, fin.append'_apply_left],
-  -- cases lt_or_le n i,
+  cases lt_or_le n i,
+  { rw [←fin.cast_add_mk _ _ h, fin.append'_apply_left, list.nth_le_append, list.nth_le_of_fn'],
+    rw list.length_of_fn, exact h },
+  { obtain ⟨n', rfl⟩ := nat.exists_eq_add_of_le h,
+    rw [list.nth_le_append_right, list.nth_le_of_fn'],
+    simp_rw list.length_of_fn,
+    sorry,
+    simp_rw list.length_of_fn,
+    exact h },
   -- rw [list.nth_le_append, fin.append'],
   -- rw [list.nth_le_of_fn', list.of_fn_eq_map, list.of_fn_eq_map],
 end
+#exit
 
 @[simp]
 lemma to_tensor_algebra_ghas_mul {i j} (a : ⨂[R]^i M) (b : ⨂[R]^j M) :

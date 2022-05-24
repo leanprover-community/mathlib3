@@ -315,20 +315,15 @@ begin
   { simpa [h y (mem_cons_self _ _)] using IH (λ x hx, h x $ mem_cons_of_mem _ hx) }
 end
 
-lemma le_max_of_exists_le (l : list α) (a : α) {x : α} (hx : x ∈ l) (h : a ≤ x) :
+lemma le_max_of_exists_le {l : list α} {a x : α} (hx : x ∈ l) (h : a ≤ x) :
   a ≤ l.foldr max ⊥ :=
 begin
   induction l with y l IH,
   { exact absurd hx (not_mem_nil _), },
-  { by_cases hl_nil : l = nil,
-    { rw [hl_nil, mem_singleton] at hx,
-      rw hx at h,
-      simp only [foldr, foldr_cons, le_max_of_le_left h] },
-    { cases hx with hy hl,
-      simp only [foldr, foldr_cons],
-      { rw hy at h,
-        exact le_max_of_le_left h, },
-      { exact le_max_of_le_right (IH hl) }}}
+  { obtain rfl | hl := hx,
+    simp only [foldr, foldr_cons],
+    { exact le_max_of_le_left h, },
+    { exact le_max_of_le_right (IH hl) }}
 end
 
 end order_bot

@@ -204,6 +204,192 @@ def diagram_iso_span (F : walking_span ⥤ C) :
   F ≅ span (F.map fst) (F.map snd) :=
 nat_iso.of_components (λ j, eq_to_iso (by tidy)) (by tidy)
 
+variables {D : Type*} [category.{v} D]
+
+/-- A functor applied to a cospan is a cospan. -/
+def cospan_comp_iso (F : C ⥤ D) {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z) :
+  cospan f g ⋙ F ≅ cospan (F.map f) (F.map g) :=
+nat_iso.of_components (by rintros (⟨⟩|⟨⟨⟩⟩); exact iso.refl _)
+  (by rintros (⟨⟩|⟨⟨⟩⟩) (⟨⟩|⟨⟨⟩⟩) ⟨⟩; repeat { dsimp, simp, })
+
+section
+variables (F : C ⥤ D) {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z)
+
+@[simp] lemma cospan_comp_iso_app_left :
+(cospan_comp_iso F f g).app walking_cospan.left = iso.refl _ :=
+rfl
+
+@[simp] lemma cospan_comp_iso_app_right :
+  (cospan_comp_iso F f g).app walking_cospan.right = iso.refl _ :=
+rfl
+
+@[simp] lemma cospan_comp_iso_app_one :
+  (cospan_comp_iso F f g).app walking_cospan.one = iso.refl _ :=
+rfl
+
+@[simp] lemma cospan_comp_iso_hom_app_left :
+  (cospan_comp_iso F f g).hom.app walking_cospan.left = 𝟙 _ :=
+rfl
+
+@[simp] lemma cospan_comp_iso_hom_app_right :
+  (cospan_comp_iso F f g).hom.app walking_cospan.right = 𝟙 _ :=
+rfl
+
+@[simp] lemma cospan_comp_iso_hom_app_one :
+  (cospan_comp_iso F f g).hom.app walking_cospan.one = 𝟙 _ :=
+rfl
+
+@[simp] lemma cospan_comp_iso_inv_app_left :
+  (cospan_comp_iso F f g).inv.app walking_cospan.left = 𝟙 _ :=
+rfl
+
+@[simp] lemma cospan_comp_iso_inv_app_right :
+  (cospan_comp_iso F f g).inv.app walking_cospan.right = 𝟙 _ :=
+rfl
+
+@[simp] lemma cospan_comp_iso_inv_app_one :
+  (cospan_comp_iso F f g).inv.app walking_cospan.one = 𝟙 _ :=
+rfl
+
+end
+
+/-- A functor applied to a span is a span. -/
+def span_comp_iso (F : C ⥤ D) {X Y Z : C} (f : X ⟶ Y) (g : X ⟶ Z) :
+  span f g ⋙ F ≅ span (F.map f) (F.map g) :=
+nat_iso.of_components (by rintros (⟨⟩|⟨⟨⟩⟩); exact iso.refl _)
+  (by rintros (⟨⟩|⟨⟨⟩⟩) (⟨⟩|⟨⟨⟩⟩) ⟨⟩; repeat { dsimp, simp, })
+
+section
+variables (F : C ⥤ D) {X Y Z : C} (f : X ⟶ Y) (g : X ⟶ Z)
+
+@[simp] lemma span_comp_iso_app_left : (span_comp_iso F f g).app walking_span.left = iso.refl _ :=
+rfl
+
+@[simp] lemma span_comp_iso_app_right : (span_comp_iso F f g).app walking_span.right = iso.refl _ :=
+rfl
+
+@[simp] lemma span_comp_iso_app_zero : (span_comp_iso F f g).app walking_span.zero = iso.refl _ :=
+rfl
+
+@[simp] lemma span_comp_iso_hom_app_left : (span_comp_iso F f g).hom.app walking_span.left = 𝟙 _ :=
+rfl
+
+@[simp] lemma span_comp_iso_hom_app_right :
+  (span_comp_iso F f g).hom.app walking_span.right = 𝟙 _ :=
+rfl
+
+@[simp] lemma span_comp_iso_hom_app_zero : (span_comp_iso F f g).hom.app walking_span.zero = 𝟙 _ :=
+rfl
+
+@[simp] lemma span_comp_iso_inv_app_left : (span_comp_iso F f g).inv.app walking_span.left = 𝟙 _ :=
+rfl
+
+@[simp] lemma span_comp_iso_inv_app_right :
+  (span_comp_iso F f g).inv.app walking_span.right = 𝟙 _ :=
+rfl
+
+@[simp] lemma span_comp_iso_inv_app_zero : (span_comp_iso F f g).inv.app walking_span.zero = 𝟙 _ :=
+rfl
+
+end
+
+section
+variables {X Y Z X' Y' Z' : C} (iX : X ≅ X') (iY : Y ≅ Y') (iZ : Z ≅ Z')
+
+section
+variables {f : X ⟶ Z} {g : Y ⟶ Z} {f' : X' ⟶ Z'} {g' : Y' ⟶ Z'}
+
+/-- Construct an isomorphism of cospans from components. -/
+def cospan_ext (wf : iX.hom ≫ f' = f ≫ iZ.hom) (wg : iY.hom ≫ g' = g ≫ iZ.hom) :
+  cospan f g ≅ cospan f' g' :=
+nat_iso.of_components (by { rintros (⟨⟩|⟨⟨⟩⟩), exacts [iZ, iX, iY], })
+  (by rintros (⟨⟩|⟨⟨⟩⟩) (⟨⟩|⟨⟨⟩⟩) ⟨⟩; repeat { dsimp, simp [wf, wg], })
+
+variables (wf : iX.hom ≫ f' = f ≫ iZ.hom) (wg : iY.hom ≫ g' = g ≫ iZ.hom)
+
+@[simp] lemma cospan_ext_app_left : (cospan_ext iX iY iZ wf wg).app walking_cospan.left = iX :=
+by { dsimp [cospan_ext], simp, }
+
+@[simp] lemma cospan_ext_app_right : (cospan_ext iX iY iZ wf wg).app walking_cospan.right = iY :=
+by { dsimp [cospan_ext], simp, }
+
+@[simp] lemma cospan_ext_app_one : (cospan_ext iX iY iZ wf wg).app walking_cospan.one = iZ :=
+by { dsimp [cospan_ext], simp, }
+
+@[simp] lemma cospan_ext_hom_app_left :
+  (cospan_ext iX iY iZ wf wg).hom.app walking_cospan.left = iX.hom :=
+by { dsimp [cospan_ext], simp, }
+
+@[simp] lemma cospan_ext_hom_app_right :
+  (cospan_ext iX iY iZ wf wg).hom.app walking_cospan.right = iY.hom :=
+by { dsimp [cospan_ext], simp, }
+
+@[simp] lemma cospan_ext_hom_app_one :
+  (cospan_ext iX iY iZ wf wg).hom.app walking_cospan.one = iZ.hom :=
+by { dsimp [cospan_ext], simp, }
+
+@[simp] lemma cospan_ext_inv_app_left :
+  (cospan_ext iX iY iZ wf wg).inv.app walking_cospan.left = iX.inv :=
+by { dsimp [cospan_ext], simp, }
+
+@[simp] lemma cospan_ext_inv_app_right :
+  (cospan_ext iX iY iZ wf wg).inv.app walking_cospan.right = iY.inv :=
+by { dsimp [cospan_ext], simp, }
+
+@[simp] lemma cospan_ext_inv_app_one :
+  (cospan_ext iX iY iZ wf wg).inv.app walking_cospan.one = iZ.inv :=
+by { dsimp [cospan_ext], simp, }
+
+end
+
+section
+variables {f : X ⟶ Y} {g : X ⟶ Z} {f' : X' ⟶ Y'} {g' : X' ⟶ Z'}
+
+/-- Construct an isomorphism of spans from components. -/
+def span_ext (wf : iX.hom ≫ f' = f ≫ iY.hom) (wg : iX.hom ≫ g' = g ≫ iZ.hom) :
+  span f g ≅ span f' g' :=
+nat_iso.of_components (by { rintros (⟨⟩|⟨⟨⟩⟩), exacts [iX, iY, iZ], })
+  (by rintros (⟨⟩|⟨⟨⟩⟩) (⟨⟩|⟨⟨⟩⟩) ⟨⟩; repeat { dsimp, simp [wf, wg], })
+
+variables (wf : iX.hom ≫ f' = f ≫ iY.hom) (wg : iX.hom ≫ g' = g ≫ iZ.hom)
+
+@[simp] lemma span_ext_app_left : (span_ext iX iY iZ wf wg).app walking_span.left = iY :=
+by { dsimp [span_ext], simp, }
+
+@[simp] lemma span_ext_app_right : (span_ext iX iY iZ wf wg).app walking_span.right = iZ :=
+by { dsimp [span_ext], simp, }
+
+@[simp] lemma span_ext_app_one : (span_ext iX iY iZ wf wg).app walking_span.zero = iX :=
+by { dsimp [span_ext], simp, }
+
+@[simp] lemma span_ext_hom_app_left :
+  (span_ext iX iY iZ wf wg).hom.app walking_span.left = iY.hom :=
+by { dsimp [span_ext], simp, }
+
+@[simp] lemma span_ext_hom_app_right :
+  (span_ext iX iY iZ wf wg).hom.app walking_span.right = iZ.hom :=
+by { dsimp [span_ext], simp, }
+
+@[simp] lemma span_ext_hom_app_zero :
+  (span_ext iX iY iZ wf wg).hom.app walking_span.zero = iX.hom :=
+by { dsimp [span_ext], simp, }
+
+@[simp] lemma span_ext_inv_app_left :
+  (span_ext iX iY iZ wf wg).inv.app walking_span.left = iY.inv :=
+by { dsimp [span_ext], simp, }
+
+@[simp] lemma span_ext_inv_app_right :
+  (span_ext iX iY iZ wf wg).inv.app walking_span.right = iZ.inv :=
+by { dsimp [span_ext], simp, }
+
+@[simp] lemma span_ext_inv_app_zero :
+  (span_ext iX iY iZ wf wg).inv.app walking_span.zero = iX.inv :=
+by { dsimp [span_ext], simp, }
+
+end
+
+end
+
 variables {W X Y Z : C}
 
 /-- A pullback cone is just a cone on the cospan formed by two morphisms `f : X ⟶ Z` and
@@ -218,6 +404,12 @@ abbreviation fst (t : pullback_cone f g) : t.X ⟶ X := t.π.app walking_cospan.
 
 /-- The second projection of a pullback cone. -/
 abbreviation snd (t : pullback_cone f g) : t.X ⟶ Y := t.π.app walking_cospan.right
+
+@[simp] lemma condition_one (t : pullback_cone f g) : t.π.app walking_cospan.one = t.fst ≫ f :=
+begin
+  have w := t.π.naturality walking_cospan.hom.inl,
+  dsimp at w, simpa using w,
+end
 
 /-- This is a slightly more convenient method to verify that a pullback cone is a limit cone. It
     only asks for a proof of facts that carry any mathematical content -/
@@ -289,6 +481,19 @@ lemma mono_snd_of_is_pullback_of_mono {t : pullback_cone f g} (ht : is_limit t) 
 lemma mono_fst_of_is_pullback_of_mono {t : pullback_cone f g} (ht : is_limit t) [mono g] :
   mono t.fst :=
 ⟨λ W h k i, is_limit.hom_ext ht i (by simp [←cancel_mono g, ←t.condition, reassoc_of i])⟩
+
+/-- To construct an isomorphism of pullback cones, it suffices to construct an isomorphism
+of the cone points and check it commutes with `fst` and `snd`. -/
+def ext {s t : pullback_cone f g} (i : s.X ≅ t.X)
+  (w₁ : s.fst = i.hom ≫ t.fst) (w₂ : s.snd = i.hom ≫ t.snd) :
+  s ≅ t :=
+begin
+  apply cones.ext i,
+  rintro (⟨⟩|⟨⟨⟩⟩),
+  { rw [condition_one, condition_one, w₁, category.assoc], },
+  { exact w₁, },
+  { exact w₂, },
+end
 
 /-- If `t` is a limit pullback cone over `f` and `g` and `h : W ⟶ X` and `k : W ⟶ Y` are such that
     `h ≫ f = k ≫ g`, then we have `l : W ⟶ t.X` satisfying `l ≫ fst t = h` and `l ≫ snd t = k`.
@@ -397,6 +602,12 @@ abbreviation inl (t : pushout_cocone f g) : Y ⟶ t.X := t.ι.app walking_span.l
 /-- The second inclusion of a pushout cocone. -/
 abbreviation inr (t : pushout_cocone f g) : Z ⟶ t.X := t.ι.app walking_span.right
 
+@[simp] lemma condition_zero (t : pushout_cocone f g) : t.ι.app walking_span.zero = f ≫ t.inl :=
+begin
+  have w := t.ι.naturality walking_span.hom.fst,
+  dsimp at w, simpa using w.symm,
+end
+
 /-- This is a slightly more convenient method to verify that a pushout cocone is a colimit cocone.
     It only asks for a proof of facts that carry any mathematical content -/
 def is_colimit_aux (t : pushout_cocone f g) (desc : Π (s : pushout_cocone f g), t.X ⟶ s.X)
@@ -473,6 +684,19 @@ lemma epi_inr_of_is_pushout_of_epi {t : pushout_cocone f g} (ht : is_colimit t) 
 lemma epi_inl_of_is_pushout_of_epi {t : pushout_cocone f g} (ht : is_colimit t) [epi g] :
   epi t.inl :=
 ⟨λ W h k i, is_colimit.hom_ext ht i (by simp [←cancel_epi g, ←t.condition_assoc, i])⟩
+
+/-- To construct an isomorphism of pushout cocones, it suffices to construct an isomorphism
+of the cocone points and check it commutes with `inl` and `inr`. -/
+def ext {s t : pushout_cocone f g} (i : s.X ≅ t.X)
+  (w₁ : s.inl ≫ i.hom = t.inl) (w₂ : s.inr ≫ i.hom = t.inr) :
+  s ≅ t :=
+begin
+  apply cocones.ext i,
+  rintro (⟨⟩|⟨⟨⟩⟩),
+  { rw [condition_zero, condition_zero, category.assoc, w₁], },
+  { exact w₁, },
+  { exact w₂, },
+end
 
 /--
 This is a more convenient formulation to show that a `pushout_cocone` constructed using
@@ -886,7 +1110,7 @@ end
 
 section
 
-variables {D : Type u₂} [category.{v} D] (G : C ⥤ D)
+variables (G : C ⥤ D)
 
 /--
 The comparison morphism for the pullback of `f,g`.
@@ -1086,7 +1310,7 @@ end
 variables (i : Z ⟶ W) [mono i]
 
 instance has_pullback_of_right_factors_mono (f : X ⟶ Z) : has_pullback i (f ≫ i) :=
-by { nth_rewrite 0 ← category.id_comp i, apply_instance }
+by { conv { congr, rw ←category.id_comp i, }, apply_instance }
 
 instance pullback_snd_iso_of_right_factors_mono (f : X ⟶ Z) :
   is_iso (pullback.snd : pullback i (f ≫ i) ⟶ _) :=
@@ -1148,7 +1372,7 @@ end
 variables (i : Z ⟶ W) [mono i]
 
 instance has_pullback_of_left_factors_mono (f : X ⟶ Z) : has_pullback (f ≫ i) i :=
-by { nth_rewrite 1 ← category.id_comp i, apply_instance }
+by { conv { congr, skip, rw ←category.id_comp i, }, apply_instance }
 
 instance pullback_snd_iso_of_left_factors_mono (f : X ⟶ Z) :
   is_iso (pullback.fst : pullback (f ≫ i) i ⟶ _) :=
@@ -1221,7 +1445,7 @@ end
 variables (h : W ⟶ X) [epi h]
 
 instance has_pushout_of_right_factors_epi (f : X ⟶ Y) : has_pushout h (h ≫ f) :=
-by { nth_rewrite 0 ← category.comp_id h, apply_instance }
+by { conv { congr, rw ←category.comp_id h, }, apply_instance }
 
 instance pushout_inr_iso_of_right_factors_epi (f : X ⟶ Y) :
   is_iso (pushout.inr : _ ⟶ pushout h (h ≫ f)) :=
@@ -1283,7 +1507,7 @@ end
 variables (h : W ⟶ X) [epi h]
 
 instance has_pushout_of_left_factors_epi (f : X ⟶ Y) : has_pushout (h ≫ f) h :=
-by { nth_rewrite 1 ← category.comp_id h, apply_instance }
+by { conv { congr, skip, rw ←category.comp_id h, }, apply_instance }
 
 instance pushout_inl_iso_of_left_factors_epi (f : X ⟶ Y) :
   is_iso (pushout.inl : _ ⟶ pushout (h ≫ f) h) :=
@@ -1952,7 +2176,7 @@ variables (C)
 /--
 `has_pullbacks` represents a choice of pullback for every pair of morphisms
 
-See https://stacks.math.columbia.edu/tag/001W
+See <https://stacks.math.columbia.edu/tag/001W>
 -/
 abbreviation has_pullbacks := has_limits_of_shape walking_cospan.{v} C
 
@@ -1970,5 +2194,13 @@ lemma has_pushouts_of_has_colimit_span
   [Π {X Y Z : C} {f : X ⟶ Y} {g : X ⟶ Z}, has_colimit (span f g)] :
   has_pushouts C :=
 { has_colimit := λ F, has_colimit_of_iso (diagram_iso_span F) }
+
+/-- The duality equivalence `walking_spanᵒᵖ ≌ walking_cospan` -/
+def walking_span_op_equiv : walking_spanᵒᵖ ≌ walking_cospan :=
+wide_pushout_shape_op_equiv _
+
+/-- The duality equivalence `walking_cospanᵒᵖ ≌ walking_span` -/
+def walking_cospan_op_equiv : walking_cospanᵒᵖ ≌ walking_span :=
+wide_pullback_shape_op_equiv _
 
 end category_theory.limits

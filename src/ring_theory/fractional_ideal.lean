@@ -831,7 +831,7 @@ lemma _root_.is_fractional.div_of_nonzero {I J : submodule R₁ K} :
     have : algebra_map R₁ K aJ * y = 0,
     { rw [← algebra.smul_def, ←hy', y'_eq_zero, ring_hom.map_zero] },
     have y_zero := (mul_eq_zero.mp this).resolve_left
-      (mt ((algebra_map R₁ K).injective_iff.1 (is_fraction_ring.injective _ _) _)
+      (mt ((injective_iff_map_eq_zero (algebra_map R₁ K)).1 (is_fraction_ring.injective _ _) _)
           (mem_non_zero_divisors_iff_ne_zero.mp haJ)),
     apply not_mem_zero,
     simpa only using (mem_zero_iff R₁⁰).mpr y_zero, },
@@ -913,7 +913,7 @@ begin
     exact (algebra.smul_def _ _).symm }
 end
 
-theorem eq_one_div_of_mul_eq_one (I J : fractional_ideal R₁⁰ K) (h : I * J = 1) :
+theorem eq_one_div_of_mul_eq_one_right (I J : fractional_ideal R₁⁰ K) (h : I * J = 1) :
   J = 1 / I :=
 begin
   have hI : I ≠ 0 := ne_zero_of_mul_eq_one I J h,
@@ -935,7 +935,7 @@ end
 
 theorem mul_div_self_cancel_iff {I : fractional_ideal R₁⁰ K} :
   I * (1 / I) = 1 ↔ ∃ J, I * J = 1 :=
-⟨λ h, ⟨(1 / I), h⟩, λ ⟨J, hJ⟩, by rwa [← eq_one_div_of_mul_eq_one I J hJ]⟩
+⟨λ h, ⟨(1 / I), h⟩, λ ⟨J, hJ⟩, by rwa [← eq_one_div_of_mul_eq_one_right I J hJ]⟩
 
 variables {K' : Type*} [field K'] [algebra R₁ K'] [is_fraction_ring R₁ K']
 
@@ -1188,7 +1188,7 @@ variables [is_domain R₁]
 
 lemma one_div_span_singleton (x : K) :
   1 / span_singleton R₁⁰ x = span_singleton R₁⁰ (x⁻¹) :=
-if h : x = 0 then by simp [h] else (eq_one_div_of_mul_eq_one _ _ (by simp [h])).symm
+if h : x = 0 then by simp [h] else (eq_one_div_of_mul_eq_one_right _ _ (by simp [h])).symm
 
 @[simp] lemma div_span_singleton (J : fractional_ideal R₁⁰ K) (d : K) :
   J / span_singleton R₁⁰ d = span_singleton R₁⁰ (d⁻¹) * J :=
@@ -1307,7 +1307,8 @@ begin
   { rw [hx, ring_hom.map_zero, _root_.inv_zero, span_singleton_zero, zero_mul],
     exact is_noetherian_zero },
   have h_gx : algebra_map R₁ K x ≠ 0,
-    from mt ((algebra_map R₁ K).injective_iff.mp (is_fraction_ring.injective _ _) x) hx,
+  from mt ((injective_iff_map_eq_zero (algebra_map R₁ K)).mp
+    (is_fraction_ring.injective _ _) x) hx,
   have h_spanx : span_singleton R₁⁰ (algebra_map R₁ K x) ≠ 0,
     from span_singleton_ne_zero_iff.mpr h_gx,
 

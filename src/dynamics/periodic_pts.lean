@@ -3,6 +3,7 @@ Copyright (c) 2020 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
+import algebra.hom.iterate
 import data.nat.prime
 import dynamics.fixed_points.basic
 import data.pnat.basic
@@ -237,6 +238,9 @@ begin
   { exact is_periodic_pt_zero f x }
 end
 
+lemma iterate_minimal_period (f : α → α) (x : α) : f^[minimal_period f x] x = x :=
+is_periodic_pt_minimal_period f x
+
 lemma iterate_eq_mod_minimal_period : f^[n] x = (f^[n % minimal_period f x] x) :=
 ((is_periodic_pt_minimal_period f x).iterate_mod_apply n).symm
 
@@ -259,6 +263,16 @@ lemma is_periodic_pt.minimal_period_le (hn : 0 < n) (hx : is_periodic_pt f n x) 
 begin
   rw [minimal_period, dif_pos (mk_mem_periodic_pts hn hx)],
   exact nat.find_min' (mk_mem_periodic_pts hn hx) ⟨hn, hx⟩
+end
+
+lemma iterate_injective_of_lt_minimal_period (hm : m < minimal_period f x)
+  (hn : n < minimal_period f x) (hf : (f^[m] x) = (f^[n] x)) : m = n :=
+begin
+  wlog h_le : n ≤ m,
+  rw [←h_le.le_iff_eq, ←tsub_le_tsub_iff_left hm.le, tsub_le_iff_right],
+  apply is_periodic_pt.minimal_period_le (nat.add_pos_left (tsub_pos_of_lt hm) n),
+  rw [is_periodic_pt, is_fixed_pt, iterate_add_apply, ←hf, ←iterate_add_apply,
+      nat.sub_add_cancel hm.le, iterate_minimal_period],
 end
 
 lemma minimal_period_id : minimal_period id x = 1 :=
@@ -369,3 +383,24 @@ minimal_period_iterate_eq_div_gcd_aux $
   gcd_pos_of_pos_left n (minimal_period_pos_iff_mem_periodic_pts.mpr h)
 
 end function
+
+namespace mul_action
+
+open function
+
+variables {α β : Type*} [group α] [mul_action α β] {a : α} {b : β}
+
+@[to_additive] lemma pow_smul_eq_iff_minimal_period_dvd {n : ℕ} :
+  a ^ n • b = b ↔ function.minimal_period ((•) a) b ∣ n :=
+by rw [←is_periodic_pt_iff_minimal_period_dvd, is_periodic_pt, is_fixed_pt, smul_iterate]
+
+@[to_additive] lemma zpow_smul_eq_iff_minimal_period_dvd {n : ℤ} :
+  a ^ n • b = b ↔ (function.minimal_period ((•) a) b : ℤ) ∣ n :=
+begin
+  cases n,
+  { rw [int.of_nat_eq_coe, zpow_coe_nat, int.coe_nat_dvd, pow_smul_eq_iff_minimal_period_dvd] },
+  { rw [int.neg_succ_of_nat_coe, zpow_neg, zpow_coe_nat, inv_smul_eq_iff, eq_comm,
+        dvd_neg, int.coe_nat_dvd, pow_smul_eq_iff_minimal_period_dvd] },
+end
+
+end mul_action

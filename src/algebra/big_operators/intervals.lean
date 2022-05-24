@@ -72,6 +72,20 @@ lemma prod_Ico_consecutive (f : ℕ → β) {m n k : ℕ} (hmn : m ≤ n) (hnk :
 Ico_union_Ico_eq_Ico hmn hnk ▸ eq.symm $ prod_union $ Ico_disjoint_Ico_consecutive m n k
 
 @[to_additive]
+lemma prod_Ioc_consecutive (f : ℕ → β) {m n k : ℕ} (hmn : m ≤ n) (hnk : n ≤ k) :
+  (∏ i in Ioc m n, f i) * (∏ i in Ioc n k, f i) = (∏ i in Ioc m k, f i) :=
+begin
+  rw [← Ioc_union_Ioc_eq_Ioc hmn hnk, prod_union],
+  apply disjoint_left.2 (λ x hx h'x, _),
+  exact lt_irrefl _ ((mem_Ioc.1 h'x).1.trans_le (mem_Ioc.1 hx).2),
+end
+
+@[to_additive]
+lemma prod_Ioc_succ_top {a b : ℕ} (hab : a ≤ b) (f : ℕ → β) :
+  (∏ k in Ioc a (b + 1), f k) = (∏ k in Ioc a b, f k) * f (b + 1) :=
+by rw [← prod_Ioc_consecutive _ hab (nat.le_succ b), nat.Ioc_succ_singleton, prod_singleton]
+
+@[to_additive]
 lemma prod_range_mul_prod_Ico (f : ℕ → β) {m n : ℕ} (h : m ≤ n) :
   (∏ k in range m, f k) * (∏ k in Ico m n, f k) = (∏ k in range n, f k) :=
 nat.Ico_zero_eq_range ▸ nat.Ico_zero_eq_range ▸ prod_Ico_consecutive f m.zero_le h
@@ -81,9 +95,22 @@ lemma prod_Ico_eq_mul_inv {δ : Type*} [comm_group δ] (f : ℕ → δ) {m n : �
   (∏ k in Ico m n, f k) = (∏ k in range n, f k) * (∏ k in range m, f k)⁻¹ :=
 eq_mul_inv_iff_mul_eq.2 $ by rw [mul_comm]; exact prod_range_mul_prod_Ico f h
 
-lemma sum_Ico_eq_sub {δ : Type*} [add_comm_group δ] (f : ℕ → δ) {m n : ℕ} (h : m ≤ n) :
-  (∑ k in Ico m n, f k) = (∑ k in range n, f k) - (∑ k in range m, f k) :=
-by simpa only [sub_eq_add_neg] using sum_Ico_eq_add_neg f h
+@[to_additive]
+lemma prod_Ico_eq_div {δ : Type*} [comm_group δ] (f : ℕ → δ) {m n : ℕ} (h : m ≤ n) :
+  (∏ k in Ico m n, f k) = (∏ k in range n, f k) / (∏ k in range m, f k) :=
+by simpa only [div_eq_mul_inv] using prod_Ico_eq_mul_inv f h
+
+@[to_additive]
+lemma prod_range_sub_prod_range {α : Type*} [comm_group α] {f : ℕ → α}
+  {n m : ℕ} (hnm : n ≤ m) : (∏ k in range m, f k) / (∏ k in range n, f k) =
+  ∏ k in (range m).filter (λ k, n ≤ k), f k :=
+begin
+  rw [← prod_Ico_eq_div f hnm],
+  congr,
+  apply finset.ext,
+  simp only [mem_Ico, mem_filter, mem_range, *],
+  tauto,
+end
 
 /-- The two ways of summing over `(i,j)` in the range `a<=i<=j<b` are equal. -/
 lemma sum_Ico_Ico_comm {M : Type*} [add_comm_monoid M]
@@ -233,10 +260,17 @@ begin
   abel,
 end
 
+variable (n)
+
 /-- **Summation by parts** for ranges -/
-lemma sum_range_by_parts (hn : 0 < n) :
+lemma sum_range_by_parts :
   ∑ i in range n, (f i • g i) = f (n-1) • G n - ∑ i in range (n-1), (f (i+1) - f i) • G (i+1) :=
-by rw [range_eq_Ico, sum_Ico_by_parts f g hn, sum_range_zero, smul_zero, sub_zero, range_eq_Ico]
+begin
+  by_cases hn : n = 0,
+  { simp [hn], },
+  { rw [range_eq_Ico, sum_Ico_by_parts f g (nat.pos_of_ne_zero hn), sum_range_zero,
+      smul_zero, sub_zero, range_eq_Ico] },
+end
 
 end module
 

@@ -93,7 +93,7 @@ begin
   rw [aeval_def, polynomial.eval₂_eq_eval_map, eval_eq_sum_range, range_add_one,
     sum_insert not_mem_range_self, sum_range, (hmo.map
     (algebra_map R S)).coeff_nat_degree, one_mul] at hx,
-  replace hx := eq_neg_of_add_eq_zero hx,
+  replace hx := eq_neg_of_add_eq_zero_left hx,
   have : ∀ n < f.nat_degree, p ∣ f.coeff n,
   { intros n hn,
     refine mem_span_singleton.1 (by simpa using hf.mem hn) },
@@ -137,7 +137,7 @@ begin
   { exact mul_mem_right (x ^ k) 𝓟 this },
   rw [is_root.def, eval_eq_sum_range, finset.range_add_one, finset.sum_insert
     finset.not_mem_range_self, finset.sum_range, hmo.coeff_nat_degree, one_mul] at hroot,
-  rw [eq_neg_of_add_eq_zero hroot, neg_mem_iff],
+  rw [eq_neg_of_add_eq_zero_left hroot, neg_mem_iff],
   refine submodule.sum_mem _ (λ i hi,  mul_mem_right _ _ (hf.mem (fin.is_lt i)))
 end
 
@@ -277,7 +277,7 @@ begin
         simpa [map_comp] using hn },
       { exact ⟨p ^ n, by rw [pow_succ]⟩ } } },
   { rw [coeff_zero_eq_eval_zero, eval_comp, cyclotomic_prime_pow_eq_geom_sum hp.out, eval_add,
-      eval_X, eval_one, zero_add, geom_sum_def, eval_finset_sum],
+      eval_X, eval_one, zero_add, eval_finset_sum],
     simp only [eval_pow, eval_X, one_pow, sum_const, card_range, nat.smul_one_eq_coe,
       int.nat_cast_eq_coe_nat, submodule_span_eq, ideal.submodule_span_eq,
       ideal.span_singleton_pow, ideal.mem_span_singleton],
@@ -357,12 +357,12 @@ begin
           p • Q.coeff x • f (x + n))
     : congr_arg (norm K) (eq_sub_of_add_eq _)
   ... = _ : _,
-  { simp only [algebra.smul_def, algebra_map_apply R K L, norm_algebra_map, _root_.map_mul,
+  { simp only [algebra.smul_def, algebra_map_apply R K L, algebra.norm_algebra_map, _root_.map_mul,
       _root_.map_pow, finrank_K_L, power_basis.norm_gen_eq_coeff_zero_minpoly,
       minpoly.gcd_domain_eq_field_fractions K hBint, coeff_map, ← hn],
     ring_exp },
   swap, { simp_rw [← smul_sum, ← smul_sub, algebra.smul_def p, algebra_map_apply R K L,
-      _root_.map_mul, norm_algebra_map, finrank_K_L, hr, ← hn] },
+      _root_.map_mul, algebra.norm_algebra_map, finrank_K_L, hr, ← hn] },
 
   calc _ = (Q.coeff 0 • 1 + ∑ (x : ℕ) in (range (Q.nat_degree + 1)).erase 0,
               Q.coeff x • B.gen ^ x) * B.gen ^ n : _
@@ -428,7 +428,7 @@ begin
     { have : function.injective (algebra_map R L),
       { rw [algebra_map_eq R K L],
         exact (algebra_map K L).injective.comp (is_fraction_ring.injective R K) },      exfalso,
-      exact hp.ne_zero ((ring_hom.injective_iff _).1 this _ H) },
+      exact hp.ne_zero ((injective_iff_map_eq_zero _).1 this _ H) },
     { rw [H₁],
       exact subalgebra.zero_mem _ } },
 
@@ -529,7 +529,8 @@ begin
         simpa using hk } },
     obtain ⟨r, hr⟩ := is_integral_iff.1 (is_integral_norm K hintsum),
     rw [algebra.smul_def, mul_assoc, ← mul_sub, _root_.map_mul, algebra_map_apply R K L, map_pow,
-      norm_algebra_map, _root_.map_mul, algebra_map_apply R K L, norm_algebra_map, finrank B, ← hr,
+      algebra.norm_algebra_map, _root_.map_mul, algebra_map_apply R K L, algebra.norm_algebra_map,
+      finrank B, ← hr,
       power_basis.norm_gen_eq_coeff_zero_minpoly, minpoly.gcd_domain_eq_field_fractions K hBint,
       coeff_map, show (-1 : K) = algebra_map R K (-1), by simp, ← map_pow, ← map_pow,
       ← _root_.map_mul, ← map_pow, ← _root_.map_mul, ← map_pow, ← _root_.map_mul] at hQ,

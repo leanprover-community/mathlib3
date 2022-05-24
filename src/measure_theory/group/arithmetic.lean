@@ -3,7 +3,7 @@ Copyright (c) 2021 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import measure_theory.measure.measure_space
+import measure_theory.measure.ae_measurable
 
 /-!
 # Typeclasses for measurability of operations
@@ -57,6 +57,8 @@ class has_measurable_add (M : Type*) [measurable_space M] [has_add M] : Prop :=
 (measurable_const_add : ∀ c : M, measurable ((+) c))
 (measurable_add_const : ∀ c : M, measurable (+ c))
 
+export has_measurable_add (measurable_const_add measurable_add_const)
+
 /-- We say that a type `has_measurable_add` if `uncurry (+)` is a measurable functions.
 For a typeclass assuming measurability of `((+) c)` and `(+ c)` see `has_measurable_add`. -/
 class has_measurable_add₂ (M : Type*) [measurable_space M] [has_add M] : Prop :=
@@ -72,6 +74,8 @@ class has_measurable_mul (M : Type*) [measurable_space M] [has_mul M] : Prop :=
 (measurable_const_mul : ∀ c : M, measurable ((*) c))
 (measurable_mul_const : ∀ c : M, measurable (* c))
 
+export has_measurable_mul (measurable_const_mul measurable_mul_const)
+
 /-- We say that a type `has_measurable_mul` if `uncurry (*)` is a measurable functions.
 For a typeclass assuming measurability of `((*) c)` and `(* c)` see `has_measurable_mul`. -/
 @[to_additive has_measurable_add₂]
@@ -79,7 +83,6 @@ class has_measurable_mul₂ (M : Type*) [measurable_space M] [has_mul M] : Prop 
 (measurable_mul : measurable (λ p : M × M, p.1 * p.2))
 
 export has_measurable_mul₂ (measurable_mul)
-  has_measurable_mul (measurable_const_mul measurable_mul_const)
 
 section mul
 
@@ -152,8 +155,15 @@ instance pi.has_measurable_mul₂ {ι : Type*} {α : ι → Type*} [∀ i, has_m
 attribute [measurability] measurable.add' measurable.add ae_measurable.add ae_measurable.add'
   measurable.const_add ae_measurable.const_add measurable.add_const ae_measurable.add_const
 
-
 end mul
+
+/-- A version of `measurable_div_const` that assumes `has_measurable_mul` instead of
+  `has_measurable_div`. This can be nice to avoid unnecessary type-class assumptions. -/
+@[to_additive /-" A version of `measurable_sub_const` that assumes `has_measurable_add` instead of
+  `has_measurable_sub`. This can be nice to avoid unnecessary type-class assumptions. "-/]
+lemma measurable_div_const' {G : Type*} [div_inv_monoid G] [measurable_space G]
+  [has_measurable_mul G] (g : G) : measurable (λ h, h / g) :=
+by simp_rw [div_eq_mul_inv, measurable_mul_const]
 
 /-- This class assumes that the map `β × γ → β` given by `(x, y) ↦ x ^ y` is measurable. -/
 class has_measurable_pow (β γ : Type*) [measurable_space β] [measurable_space γ] [has_pow β γ] :=
@@ -217,6 +227,8 @@ class has_measurable_sub (G : Type*) [measurable_space G] [has_sub G] : Prop :=
 (measurable_const_sub : ∀ c : G, measurable (λ x, c - x))
 (measurable_sub_const : ∀ c : G, measurable (λ x, x - c))
 
+export has_measurable_sub (measurable_const_sub measurable_sub_const)
+
 /-- We say that a type `has_measurable_sub` if `uncurry (-)` is a measurable functions.
 For a typeclass assuming measurability of `((-) c)` and `(- c)` see `has_measurable_sub`. -/
 class has_measurable_sub₂ (G : Type*) [measurable_space G] [has_sub G] : Prop :=
@@ -229,6 +241,8 @@ For a typeclass assuming measurability of `uncurry (/)` see `has_measurable_div�
 @[to_additive] class has_measurable_div (G₀: Type*) [measurable_space G₀] [has_div G₀] : Prop :=
 (measurable_const_div : ∀ c : G₀, measurable ((/) c))
 (measurable_div_const : ∀ c : G₀, measurable (/ c))
+
+export has_measurable_div (measurable_const_div measurable_div_const)
 
 /-- We say that a type `has_measurable_div` if `uncurry (/)` is a measurable functions.
 For a typeclass assuming measurability of `((/) c)` and `(/ c)` see `has_measurable_div`. -/
@@ -320,6 +334,19 @@ begin
     exact (hf.sub hg) measurable_set_eq, },
   ext,
   simp_rw [set.mem_set_of_eq, pi.sub_apply, sub_eq_zero],
+end
+
+lemma measurable_set_eq_fun_of_encodable {m : measurable_space α} {E} [measurable_space E]
+  [measurable_singleton_class E] [encodable E] {f g : α → E}
+  (hf : measurable f) (hg : measurable g) :
+  measurable_set {x | f x = g x} :=
+begin
+  have : {x | f x = g x} = ⋃ j, {x | f x = j} ∩ {x | g x = j},
+  { ext1 x, simp only [set.mem_set_of_eq, set.mem_Union, set.mem_inter_eq, exists_eq_right'], },
+  rw this,
+  refine measurable_set.Union (λ j, measurable_set.inter _ _),
+  { exact hf (measurable_set_singleton j), },
+  { exact hg (measurable_set_singleton j), },
 end
 
 lemma ae_eq_trim_of_measurable {α E} {m m0 : measurable_space α} {μ : measure α}
@@ -447,9 +474,9 @@ class has_measurable_smul₂ (M α : Type*) [has_scalar M α] [measurable_space 
 (measurable_smul : measurable (function.uncurry (•) : M × α → α))
 
 export has_measurable_smul (measurable_const_smul measurable_smul_const)
-  has_measurable_smul₂ (measurable_smul)
+export has_measurable_smul₂ (measurable_smul)
 export has_measurable_vadd (measurable_const_vadd measurable_vadd_const)
-  has_measurable_vadd₂ (measurable_vadd)
+export has_measurable_vadd₂ (measurable_vadd)
 
 @[to_additive]
 instance has_measurable_smul_of_mul (M : Type*) [has_mul M] [measurable_space M]

@@ -218,8 +218,9 @@ namespace surreal
 /-- Construct a surreal number from a numeric pre-game. -/
 def mk (x : pgame) (h : x.numeric) : surreal := ⟦⟨x, h⟩⟧
 
-instance : has_one surreal :=
-{ one := mk 1 numeric_one }
+instance : has_zero surreal := ⟨mk 0 numeric_zero⟩
+instance : has_one surreal := ⟨mk 1 numeric_one⟩
+instance : inhabited surreal := ⟨0⟩
 
 /-- Lift an equivalence-respecting function on pre-games to surreals. -/
 def lift {α} (f : ∀ x, numeric x → α)
@@ -256,7 +257,7 @@ instance : has_neg surreal  :=
 instance : ordered_add_comm_group surreal :=
 { add               := (+),
   add_assoc         := by { rintros ⟨_⟩ ⟨_⟩ ⟨_⟩, exact quotient.sound add_assoc_equiv },
-  zero              := mk 0 numeric_zero,
+  zero              := 0,
   zero_add          := by { rintros ⟨_⟩, exact quotient.sound (pgame.zero_add_equiv a) },
   add_zero          := by { rintros ⟨_⟩, exact quotient.sound (pgame.add_zero_equiv a) },
   neg               := has_neg.neg,
@@ -275,8 +276,6 @@ noncomputable instance : linear_ordered_add_comm_group surreal :=
     or_iff_not_imp_left.2 (λ h, le_of_lf oy ox (pgame.not_le.1 h)),
   decidable_le := classical.dec_rel _,
   ..surreal.ordered_add_comm_group }
-
-instance : inhabited surreal := ⟨0⟩
 
 -- We conclude with some ideas for further work on surreals; these would make fun projects.
 

@@ -13,17 +13,8 @@ This file contains computations of certain, hopefully meaningful, coefficients o
 
 For instance, there is a computation of the coefficients "just before" the `leading_coeff`.
 
-Let `R` be a (semi)ring.
-We introduce the "previous-to-last" coefficient `ptl`, taking two natural numbers `a b : ℕ`
-and two polynomials `f g : R[X]` as inputs.  We define
-```lean
-ptl a b f g = f.coeff a * g.coeff b.
-```
-This is intended simply as a helper definition to prove results without being constantly required
-to prove that some natural number is positive, that some coefficient is non-zero, that some
-polynomial has precisely some degree...  We develop enough API for `ptl` to essentially prove that
-it is linear in its right polynomial input.
-Linearity on its left input is not needed (though true). -/
+Let `R` be a (semi)ring.  We prove a formula for computing the previous-to-last coefficient of a
+product of polynomials. -/
 
 open_locale polynomial
 namespace polynomial
@@ -33,39 +24,19 @@ open_locale polynomial
 
 variables {R : Type*} [semiring R] {r : R} {f g h : R[X]} {a b c d : ℕ}
 
-/-- "Previous-To-Last coefficient":
-
-`ptl (a b : ℕ) (f g : R[X]) = f_a * g_b`, where `p_i` is the i`th coefficient of the polynomial `p`.
-`ptl` is an auxilliary definition whose main purpose is to prove
-lemma `coeff_mul_nat_degree_add_sub_one`.  The intended application is to compute
-`(f * g)_(deg f + deg g - 1)`, the coefficient of `f * g` just before the top.  -/
-def ptl (a b : ℕ) (f g : R[X]) : R :=
-f.coeff a * g.coeff b
-
-/-!  We prove lemmas showing linearity of `ptl` in its right polynomial variable.
-It is also linear in its left variable, but we do not use this fact. -/
-namespace ptl
-
-@[simp] lemma zero_right : ptl a b f 0 = 0 :=
-by simp [ptl]
-
-@[simp] lemma add_right : ptl a b f (g + h) = ptl a b f g + ptl a b f h :=
-by simp [ptl, mul_add, add_add_add_comm]
-
-@[simp] lemma C_mul_right : ptl a b f (g * C r) = ptl a b f g * r:=
-by simp only [ptl, add_mul, mul_assoc, coeff_mul_C]
-
-lemma eq_right
+lemma coeff_mul_nat_degree_add_sub_one_le
   (f0 : f.nat_degree ≠ 0) (g0 : g.nat_degree ≠ 0) (fa : f.nat_degree ≤ a) (gb : g.nat_degree ≤ b) :
-  (f * g).coeff (a + b - 1) = ptl a (b - 1) f g + ptl (a - 1) b f g :=
+  (f * g).coeff (a + b - 1) = f.coeff a * g.coeff (b - 1) + f.coeff (a - 1) * g.coeff b :=
 begin
   refine induction_with_nat_degree_le
-    (λ q, (f * q).coeff (a + b - 1) = ptl a (b - 1) f q + ptl (a - 1) b f q) b _ _ _ _ gb,
-  { simp only [mul_zero, coeff_zero, zero_right, add_zero]  },
+    (λ q, (f * q).coeff (a + b - 1) =
+      f.coeff a * q.coeff (b - 1) + f.coeff (a - 1) * q.coeff b) b _ _ _ _ gb,
+  { simp only [mul_zero, coeff_zero, add_zero],   },
   { intros n r r0 nb,
     have b1 : 1 ≤ b := (nat.one_le_iff_ne_zero.mpr g0).trans gb,
     have : b - 1 ≠ b := (nat.pred_lt (nat.one_le_iff_ne_zero.mp b1)).ne,
-    rw [← X_pow_mul, ← mul_assoc, coeff_mul_C, C_mul_right, C_mul_right, ← add_mul, ptl, ptl],
+    rw [← X_pow_mul, ← mul_assoc, coeff_mul_C, coeff_mul_C, coeff_mul_C, ← mul_assoc, ← mul_assoc,
+      ← add_mul],
     apply congr_arg (* r),
     by_cases bn : b = n,
     { rw [← bn, coeff_X_pow, if_neg this, coeff_X_pow, if_pos rfl, mul_zero, zero_add, mul_one],
@@ -83,8 +54,6 @@ begin
   { exact λ p q fg gn hf hg, by simp [mul_add, hf, hg, add_add_add_comm] }
 end
 
-end ptl
-
 /--  `coeff_mul_nat_degree_add_sub_one` computes the coefficient of the term of degree one less
 than the expected `nat_degree` of a product of polynomials.  If
 
@@ -97,7 +66,7 @@ then the lemmas shows that `f₀ * g₁ + f₁ * g₀` equals `r₁ : R`  in
 lemma coeff_mul_nat_degree_add_sub_one (f0 : f.nat_degree ≠ 0) (g0 : g.nat_degree ≠ 0) :
   (f * g).coeff (f.nat_degree + g.nat_degree - 1) =
     f.leading_coeff * g.coeff (g.nat_degree - 1) + f.coeff (f.nat_degree - 1) * g.leading_coeff :=
-ptl.eq_right f0 g0 rfl.le rfl.le
+coeff_mul_nat_degree_add_sub_one_le f0 g0 rfl.le rfl.le
 
 /--  `pow_coeff_mul_sub_one` computes the coefficient of the term of degree one less
 than the expected `nat_degree` of a power of a polynomial.  If

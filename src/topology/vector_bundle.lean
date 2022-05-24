@@ -1006,8 +1006,9 @@ def topological_vector_bundle.trivialization.pullback (e : trivialization 𝕜 F
     exact (f.continuous.comp $ pullback.continuous_proj E f).is_open_preimage _ e.open_base_set },
   open_target := (f.continuous.is_open_preimage _ e.open_base_set).prod is_open_univ,
   open_base_set := f.continuous.is_open_preimage _ e.open_base_set,
-  continuous_to_fun := (pullback.continuous_proj E f).continuous_on.prod (continuous_snd
-    .comp_continuous_on $ e.continuous_on.comp (pullback.continuous_lift E f).continuous_on subset.rfl),
+  continuous_to_fun := (pullback.continuous_proj E f).continuous_on.prod
+    (continuous_snd.comp_continuous_on $
+    e.continuous_on.comp (pullback.continuous_lift E f).continuous_on subset.rfl),
   continuous_inv_fun := begin
     dsimp only,
     simp_rw [(inducing_pullback_total_space_embedding E f).continuous_on_iff, function.comp,

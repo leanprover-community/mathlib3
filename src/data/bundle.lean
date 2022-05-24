@@ -98,7 +98,7 @@ rfl
   pullback.lift E f (total_space_mk (f *ᵖ E) x y) = total_space_mk E (f x) y :=
 rfl
 
-@[simp] lemma pullback_total_space_embedding_snd (f : B' → B) (x : total_space (f *ᵖ E)) :
+lemma pullback_total_space_embedding_snd (f : B' → B) (x : total_space (f *ᵖ E)) :
   (pullback_total_space_embedding E f x).2 = pullback.lift E f x :=
 rfl
 

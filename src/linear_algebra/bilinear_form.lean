@@ -116,6 +116,7 @@ by rw [sub_eq_add_neg, sub_eq_add_neg, add_right, neg_right]
 
 variables {D : bilin_form R M} {D₁ : bilin_form R₁ M₁}
 
+-- TODO: instantiate `fun_like`
 lemma coe_injective : function.injective (coe_fn : bilin_form R M → (M → M → R)) :=
 λ B D h, by { cases B, cases D, congr' }
 

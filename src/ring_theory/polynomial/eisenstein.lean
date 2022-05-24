@@ -279,7 +279,7 @@ begin
   { rw [coeff_zero_eq_eval_zero, eval_comp, cyclotomic_prime_pow_eq_geom_sum hp.out, eval_add,
       eval_X, eval_one, zero_add, eval_finset_sum],
     simp only [eval_pow, eval_X, one_pow, sum_const, card_range, nat.smul_one_eq_coe,
-      int.nat_cast_eq_coe_nat, submodule_span_eq, ideal.submodule_span_eq,
+      submodule_span_eq, ideal.submodule_span_eq,
       ideal.span_singleton_pow, ideal.mem_span_singleton],
     intro h,
     obtain ⟨k, hk⟩ := int.coe_nat_dvd.1 h,

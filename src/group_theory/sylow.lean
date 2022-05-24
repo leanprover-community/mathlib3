@@ -292,29 +292,32 @@ lemma card_sylow_dvd_index [fact p.prime] [fintype (sylow p G)] (P : sylow p G) 
   card (sylow p G) ∣ P.1.index :=
 ((congr_arg _ (card_sylow_eq_index_normalizer P)).mp dvd_rfl).trans (index_dvd_of_le le_normalizer)
 
-lemma comap_le_comap {G N : Type*} [group G] [group N] {f : G →* N}
-  (hf : function.surjective f) {K L : subgroup N} : K.comap f ≤ L.comap f ↔ K ≤ L :=
-begin
-  refine ⟨λ h n hn, _, comap_mono⟩,
-  obtain ⟨g, rfl⟩ := hf n,
-  exact h hn,
-end
+lemma comap_le_comap_of_le_range {G N : Type*} [group G] [group N] {f : G →* N}
+  {K L : subgroup N} (hf : K ≤ f.range) : K.comap f ≤ L.comap f ↔ K ≤ L :=
+⟨(map_comap_eq_self hf).ge.trans ∘ map_le_iff_le_comap.mpr, comap_mono⟩
 
-lemma comap_lt_comap {G N : Type*} [group G] [group N] {f : G →* N}
+lemma comap_le_comap_of_surjective {G N : Type*} [group G] [group N] {f : G →* N}
+  (hf : function.surjective f) {K L : subgroup N} : K.comap f ≤ L.comap f ↔ K ≤ L :=
+comap_le_comap_of_le_range (le_top.trans (f.range_top_of_surjective hf).ge)
+
+lemma comap_lt_comap_of_surjective {G N : Type*} [group G] [group N] {f : G →* N}
   (hf : function.surjective f) {K L : subgroup N} : K.comap f < L.comap f ↔ K < L :=
-by rw [lt_iff_le_and_ne, lt_iff_le_and_ne, comap_le_comap hf, ne, (comap_injective hf).eq_iff]
+by simp_rw [lt_iff_le_not_le, comap_le_comap_of_surjective hf]
+
+lemma zpowers_eq_bot_iff {G : Type*} [group G] {g : G} : zpowers g = ⊥ ↔ g = 1 :=
+by rw [zpowers_eq_closure, closure_eq_bot_iff, set.singleton_subset_iff, set.mem_singleton_iff]
 
 lemma lema18 [hp : fact p.prime] (P : sylow p G) [P.1.normal]
   (hP : P.1.index ≠ 0) : ¬ p ∣ P.1.index :=
 begin
   intro h,
   haveI : fintype (G ⧸ P.1) := fintype_of_index_ne_zero hP,
-  have key : p ∣ card (G ⧸ P.1) := by rwa ← index_eq_card,
-  obtain ⟨x, hx⟩ := equiv.perm.exists_prime_order_of_dvd_card p key,
+  rw index_eq_card at h,
+  obtain ⟨x, hx⟩ := equiv.perm.exists_prime_order_of_dvd_card p h,
   let Q := (zpowers x).comap (quotient_group.mk' P.1),
   have hx' : is_p_group p (zpowers x),
   { apply is_p_group.of_card,
-    rw [pow_one],
+    rw [pow_one], -- todo: fix order_eq_card_zpowers
     exact order_eq_card_zpowers.symm.trans hx },
   have hQ : is_p_group p Q,
   { refine hx'.comap_of_ker_is_p_group (quotient_group.mk' P.1) _,
@@ -323,9 +326,8 @@ begin
   suffices hQ' : P.1 < Q,
   { exact hQ'.ne' (P.3 hQ hQ'.le) },
   rw [←quotient_group.ker_mk P.1, ←monoid_hom.comap_bot,
-    comap_lt_comap (quotient_group.mk'_surjective P.1)],
-  rw [zpowers_eq_closure, bot_lt_iff_ne_bot, ne, closure_eq_bot_iff, set.singleton_subset_iff,
-    set.mem_singleton_iff, ←order_of_eq_one_iff, hx],
+    comap_lt_comap_of_surjective (quotient_group.mk'_surjective P.1)],
+  rw [bot_lt_iff_ne_bot, ne, zpowers_eq_bot_iff, ←order_of_eq_one_iff, hx],
   exact hp.1.ne_one,
 end
 

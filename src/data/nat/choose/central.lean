@@ -232,33 +232,35 @@ begin
     exact zero_lt_one, },
 end
 
+lemma factorization_eq_zero_of_lt (h : n < p) : n.factorization p = 0 :=
+finsupp.not_mem_support_iff.mp (mt le_of_mem_factorization (not_le_of_lt h))
+
+lemma factorization_factorial_eq_zero_of_lt_prime (h : n < p) :
+  (factorial n).factorization p = 0 :=
+begin
+  induction n with n hn,
+  { rw [factorial_zero, factorization_one, finsupp.coe_zero, pi.zero_apply] },
+  rw [factorial_succ, factorization_mul n.succ_ne_zero n.factorial_ne_zero, finsupp.coe_add,
+      pi.add_apply, hn (lt_of_succ_lt h), add_zero, factorization_eq_zero_of_lt h],
+end
+
+lemma factorization_binom_eq_zero_of_lt_prime (h : n < p) (k : ℕ) :
+  (choose n k).factorization p = 0 :=
+begin
+  by_cases hnk : n < k,
+  { rw [choose_eq_zero_of_lt hnk, factorization_zero, finsupp.coe_zero, pi.zero_apply] },
+  rw [choose_eq_factorial_div_factorial (le_of_not_lt hnk),
+      factorization_div (factorial_mul_factorial_dvd_factorial (le_of_not_lt hnk)),
+      finsupp.coe_tsub, pi.sub_apply, factorization_factorial_eq_zero_of_lt_prime h, zero_tsub],
+end
+
 /--
 If a prime `p` has positive multiplicity in the `n`th central binomial coefficient,
 `p` is no more than `2 * n`
 -/
-lemma factorization_central_binom_eq_zero_of_two_mul_lt_prime (hp : p.prime) (h : 2 * n < p) :
+lemma factorization_central_binom_eq_zero_of_two_mul_lt_prime (h : 2 * n < p) :
   ((central_binom n).factorization p) = 0 :=
-begin
-  -- TODO generalize to any binomial coefficient, not just central ones, then prove this from that
-  -- more general theorem
-  rw ←@padic_val_nat_eq_factorization p (central_binom n) ⟨hp⟩,
-  rw central_binom_eq_two_mul_choose,
-  rw @padic_val_nat_def p ⟨hp⟩ ((2 * n).choose n) (nat.pos_of_ne_zero (central_binom_ne_zero n)),
-  simp only [prime.multiplicity_choose hp (le_mul_of_pos_left zero_lt_two)
-              (lt_add_one (p.log (2 * n)))],
-  have two_mul_sub : 2 * n - n = n, by rw [two_mul n, nat.add_sub_cancel n n],
-  simp only [two_mul_sub, ←two_mul, gt_iff_lt, enat.get_coe', finset.filter_congr_decidable],
-  rw finset.card_eq_zero,
-  ext,
-  simp only [and_imp, finset.not_mem_empty, not_and, finset.mem_filter, finset.mem_Ico, iff_false],
-  intros ha hap,
-  simp only [not_le],
-  -- cases h_pos with m hm,
-  -- simp only [finset.mem_Ico, finset.mem_filter] at hm,
-  calc 2 * (n % p ^ a) ≤ 2 * n : nat.mul_le_mul_left _ (mod_le n _)
-    ... < p : h
-    ... ≤ p ^ a : le_self_pow (le_of_lt hp.one_lt) ha,
-end
+factorization_binom_eq_zero_of_lt_prime h n
 
 /--
 Contrapositive form of `nat.factorization_central_binom_eq_zero_of_two_mul_lt_prime`

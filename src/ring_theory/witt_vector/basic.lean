@@ -250,7 +250,7 @@ variables {p R}
 
 /-- `witt_vector.map f` is the ring homomorphism `𝕎 R →+* 𝕎 S` naturally induced
 by a ring homomorphism `f : R →+* S`. It acts coefficientwise. -/
-def map (f : R →+* S) : 𝕎 R →+* 𝕎 S :=
+noncomputable! def map (f : R →+* S) : 𝕎 R →+* 𝕎 S :=
 { to_fun := map_fun f,
   map_zero' := map_fun.zero f,
   map_one' := map_fun.one f,
@@ -300,7 +300,7 @@ end invertible
 
 /-- `witt_vector.coeff x 0` as a `ring_hom` -/
 @[simps]
-def constant_coeff : 𝕎 R →+* R :=
+noncomputable! def constant_coeff : 𝕎 R →+* R :=
 { to_fun := λ x, x.coeff 0,
   map_zero' := by simp,
   map_one' := by simp,

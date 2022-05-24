@@ -252,14 +252,14 @@ end
   derivative^[k] (n * f) = n * (derivative^[k] f) :=
 by induction k with k ih generalizing f; simp*
 
-lemma mem_support_derivative [char_zero R] [no_zero_smul_divisors ℕ R]
+lemma mem_support_derivative [no_zero_smul_divisors ℕ R]
   (p : R[X]) (n : ℕ) :
   n ∈ (derivative p).support ↔ n + 1 ∈ p.support :=
 suffices ¬p.coeff (n + 1) * (n + 1 : ℕ) = 0 ↔ coeff p (n + 1) ≠ 0,
   by simpa only [mem_support_iff, coeff_derivative, ne.def],
 by { rw [← nsmul_eq_mul', smul_eq_zero], simp only [nat.succ_ne_zero, false_or] }
 
-@[simp] lemma degree_derivative_eq [char_zero R] [no_zero_smul_divisors ℕ R]
+@[simp] lemma degree_derivative_eq [no_zero_smul_divisors ℕ R]
   (p : R[X]) (hp : 0 < nat_degree p) :
   degree (derivative p) = (nat_degree p - 1 : ℕ) :=
 begin

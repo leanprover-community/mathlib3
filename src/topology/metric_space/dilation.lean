@@ -145,7 +145,7 @@ begin
 end
 
 /-- Alternative `dilation` constructor when the distance hypothesis is over `dist` -/
-lemma mk' {α β} {F : Type*}
+def mk' {α β}
   [pseudo_metric_space α] [pseudo_metric_space β]
   (f : α → β) (h : ∃ (r : ℝ≥0), ∀ (x y : α), dist (f x) (f y) = r * dist x y) :
   dilation α β :=

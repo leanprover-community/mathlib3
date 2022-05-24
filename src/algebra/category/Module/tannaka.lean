@@ -13,6 +13,8 @@ the endomorphisms of the additive forgetful functor `Module R ⥤ AddCommGroup`.
 
 -/
 
+universes u
+
 open category_theory
 
 /--
@@ -20,8 +22,8 @@ An ingredient of Tannaka duality for rings:
 A ring `R` is equivalent to
 the endomorphisms of the additive forgetful functor `Module R ⥤ AddCommGroup`.
 -/
-def ring_equiv_End_forget₂ (R : Type*) [ring R] :
-  R ≃+* End (AdditiveFunctor.of (forget₂ (Module R) AddCommGroup)) :=
+def ring_equiv_End_forget₂ (R : Type u) [ring R] :
+  R ≃+* End (AdditiveFunctor.of (forget₂ (Module.{u} R) AddCommGroup.{u})) :=
 { to_fun := λ r,
   { app := λ M, by apply distrib_mul_action.to_add_monoid_hom M r,
     naturality' := λ M N f, by { ext, exact (f.map_smul _ _).symm, }, },

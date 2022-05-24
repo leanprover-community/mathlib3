@@ -36,8 +36,8 @@ open set
 
 namespace affine_subspace
 variables {k : Type*} {V : Type*} {P : Type*} [ring k] [add_comm_group V] [module k V]
-          [S : affine_space V P]
-include S
+          [affine_space V P]
+include V
 
 instance : has_vadd V (affine_subspace k P) :=
 { vadd := λ x S, S.map (affine_equiv.const_vadd k P x) }
@@ -102,7 +102,7 @@ variables [add_comm_group V₁] [module k V₁] [add_torsor V₁ P₁]
 variables [add_comm_group V₂] [module k V₂] [add_torsor V₂ P₂]
 variables [add_comm_group V₃] [module k V₃] [add_torsor V₃ P₃]
 include V₁ V₂
-
+omit V
 lemma map_const_vadd {f : P₁ →ᵃ[k] P₂} (v : V₁) (s : affine_subspace k P₁) :
   (v +ᵥ s).map f = f.linear v +ᵥ s.map f :=
 begin

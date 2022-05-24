@@ -475,16 +475,16 @@ no nontrivial distinguished commutative subring, use `associated'`, which gives 
 homomorphism (or more precisely a `ℤ`-linear map.) -/
 def associated_hom : quadratic_form R M →ₗ[S] bilin_form R M :=
 { to_fun := λ Q,
-  ((•) (submonoid.center R) → _ → _)
+  ((•) : submonoid.center R → bilin_form R M → bilin_form R M)
     (⟨⅟2, λ x, (commute.one_right x).bit0_right.inv_of_right⟩)
     { bilin := polar Q,
-      bilin_add_left := polar_add_left Q,
-      bilin_smul_left := polar_smul_left Q,
-      bilin_add_right := polar_add_right Q,
-      bilin_smul_right :=polar_smul_right Q },
-  map_add' := λ Q Q', by { ext, simp only [bilin_form.add_apply, coe_fn_mk, polar_add, coe_fn_add,
-    mul_add] },
-  map_smul' := λ s Q, by { ext, simp only [ring_hom.id_apply, polar_smul, algebra.mul_smul_comm,
+      bilin_add_left := polar_add_left,
+      bilin_smul_left := polar_smul_left,
+      bilin_add_right := polar_add_right,
+      bilin_smul_right := polar_smul_right },
+  map_add' := λ Q Q', by { ext, simp only [bilin_form.add_apply, bilin_form.smul_apply, coe_fn_mk,
+    polar_add, coe_fn_add, smul_add] },
+  map_smul' := λ s Q, by { ext, simp only [ring_hom.id_apply, polar_smul, smul_comm s,
     coe_fn_mk, coe_fn_smul, bilin_form.smul_apply] } }
 
 variables (Q : quadratic_form R M) (S)

@@ -536,40 +536,17 @@ begin
     have key := this t ht,
     exact filter.mem_of_superset key (set.image_subset _ hs) },
   rintros - ⟨-, ⟨E, h_findim, rfl⟩, rfl⟩,
-  let p : (L ≃ₐ[K] L) → (E →ₐ[K] L) := λ σ, (σ.to_alg_hom.comp E.val),
-  have h_principal : f.map p = pure (p σ),
-  { have h : p σ = (f.map (λ (e : L ≃ₐ[K] L), e.to_alg_hom)).generator_of_pushforward h_findim :=
-    equiv_restricts_to_alg_hom_of_finite_dimensional h_int
-    (f.map (λ (e : L ≃ₐ[K] L), e.to_alg_hom)) h_findim,
-    rw h,
-    have h2 : f.map p = pure (((f.map (λ (e : L ≃ₐ[K] L), e.to_alg_hom))).generator_of_pushforward
-    h_findim) :=
-    (f.map (λ (e : L ≃ₐ[K] L), e.to_alg_hom)).generator_of_pushforward_spec h_findim,
-    ext,
-    split,
-    { intro hs,
-      rw [← ultrafilter.mem_coe, h2] at hs,
-      exact hs },
-    { intro hs,
-      rw ultrafilter.mem_pure at hs,
-      have h3 : s ∈ (pure ((f.map (λ (e : L ≃ₐ[K] L), e.to_alg_hom)).generator_of_pushforward
-      h_findim) :
-      ultrafilter (↥E →ₐ[K] L)),
-      { rw ultrafilter.mem_pure,
-        exact hs },
-      rw ← h2 at h3,
-      exact h3 } },
-  have h_small_set : left_coset σ E.fixing_subgroup ∈ f,
-  { have h : {p σ} ∈ (pure (p σ) : ultrafilter (E →ₐ[K] L)) := set.mem_singleton (p σ),
-    rw [← h_principal, ultrafilter.mem_map] at h,
-    have h_preim : p⁻¹' {p σ} = left_coset σ E.fixing_subgroup,
-    { ext g,
-      rw [set.mem_preimage, set.mem_singleton_iff, mem_left_coset_iff, set_like.mem_coe,
-        fun_like.ext_iff],
-      apply forall_congr,
-      exact λ x, (inv_mul_alg_equiv_of_elem _ _ _).symm, },
-    rwa h_preim at h },
-  exact h_small_set,
+  have key : f.map p = _ :=
+  ultrafilter.generator_of_pushforward_spec h_findim (f.map alg_equiv.to_alg_hom),
+  have h_preim : p⁻¹' {p σ} = has_mul.mul σ '' E.fixing_subgroup.carrier,
+  { ext g,
+    change p g = p σ ↔ g ∈ left_coset σ E.fixing_subgroup,
+    rw [mem_left_coset_iff, set_like.mem_coe, fun_like.ext_iff],
+    apply forall_congr,
+    exact λ x, (inv_mul_alg_equiv_of_elem _ _ _).symm },
+  rw [←h_preim, mem_coe, ←mem_map, key],
+  exact (equiv_restricts_to_alg_hom_of_finite_dimensional h_int
+    (f.map alg_equiv.to_alg_hom) h_findim).symm,
 end
 
 lemma krull_topology_compact (h_int : algebra.is_integral K L) : is_compact (set.univ : set

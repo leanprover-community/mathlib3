@@ -13,8 +13,9 @@ import data.set.intervals.instances
 
 Use `open_locale unit_interval` to turn on the notation `I := set.Icc (0 : ℝ) (1 : ℝ)`.
 
-We provide basic instances, as well as a custom tactic for discharging
-`0 ≤ ↑x`, `0 ≤ 1 - ↑x`, `↑x ≤ 1`, and `1 - ↑x ≤ 1` when `x : I`.
+Basic instances for the unit interval are provided in `set/intervals/instances`.
+Here we prove some topological facts about the unit interval, and provide a custom tactic
+for discharging `0 ≤ ↑x`, `0 ≤ 1 - ↑x`, `↑x ≤ 1`, and `1 - ↑x ≤ 1` when `x : I`.
 
 -/
 
@@ -29,8 +30,6 @@ subtype.connected_space ⟨set.nonempty_Icc.mpr zero_le_one, is_preconnected_Icc
 
 /-- Verify there is an instance for `compact_space I`. -/
 example : compact_space I := by apply_instance
-
-
 
 namespace tactic.interactive
 

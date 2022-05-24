@@ -272,7 +272,7 @@ begin
   rw pos_iff_ne_zero at h_pos,
   apply h_pos,
   simp only [not_le] at h,
-  exact factorization_central_binom_eq_zero_of_two_mul_lt_prime hp h,
+  exact factorization_central_binom_eq_zero_of_two_mul_lt_prime h,
 end
 
 end padic_val_nat

@@ -49,7 +49,7 @@ lemma aux₀ (hA : A' ⊆ A) (hB : B' ⊆ B) (hA' : A'.nonempty) (hB' : B'.nonem
  (A'.card : ℚ)/A.card * (B'.card/B.card) * edge_density r A' B' ≤ edge_density r A B :=
 begin
   have hAB' : (A'.card : ℚ) * (B'.card) ≠ 0 := by simp [hA'.ne_empty, hB'.ne_empty],
-  rw [edge_density, edge_density, div_mul_div_comm₀, mul_comm, div_mul_div_cancel _ hAB'],
+  rw [edge_density, edge_density, div_mul_div_comm, mul_comm, div_mul_div_cancel _ hAB'],
   refine div_le_div_of_le (by exact_mod_cast (A.card * B.card).zero_le) _,
   exact_mod_cast card_le_of_subset (interedges_mono hA hB),
 end

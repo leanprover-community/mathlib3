@@ -12,23 +12,11 @@ import data.real.basic
 open finset function sum
 open_locale big_operators
 
-variables {α β γ ι ι' : Type*}
-
-namespace sum3
-
-/-- The map from the first summand into a ternary sum. -/
-@[pattern, simp, reducible] def in₀ (a) : α ⊕ β ⊕ γ := inl a
-/-- The map from the second summand into a ternary sum. -/
-@[pattern, simp, reducible] def in₁ (b) : α ⊕ β ⊕ γ := inr $ inl b
-/-- The map from the third summand into a ternary sum. -/
-@[pattern, simp, reducible] def in₂ (c) : α ⊕ β ⊕ γ := inr $ inr c
-
-end sum3
+variables {α ι : Type*}
 
 namespace finset
 
-lemma sum_mod (s : finset α) {m : ℕ} (f : α → ℕ) :
-  (∑ i in s, f i) % m = (∑ i in s, (f i % m)) % m :=
+lemma sum_mod (s : finset α) {m : ℕ} (f : α → ℕ) : (∑ i in s, f i) % m = (∑ i in s, f i % m) % m :=
 begin
   classical,
   induction s using finset.induction with i s hi ih,

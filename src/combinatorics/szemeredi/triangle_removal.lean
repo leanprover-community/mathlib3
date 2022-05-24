@@ -12,6 +12,8 @@ import .triangle_counting
 In this file, we prove the triangle removal lemma.
 -/
 
+local attribute [protected] nat.div_mul_div_comm
+
 open finset fintype nat szemeredi_regularity
 open_locale classical
 
@@ -40,7 +42,7 @@ lemma triangle_removal_bound_mul_cube_lt {ε : ℝ} (hε : 0 < ε) :
 begin
   have : triangle_removal_bound ε ≤ _ := min_le_left _ _,
   apply (mul_le_mul_of_nonneg_right this (pow_nonneg (nat.cast_nonneg _) _)).trans_lt,
-  rw [←div_div_eq_div_mul, div_mul_cancel],
+  rw [←div_div, div_mul_cancel],
   { norm_num },
   apply ne_of_gt (pow_pos _ _),
   rw [nat.cast_pos, nat.lt_ceil, nat.cast_zero],
@@ -83,7 +85,7 @@ begin
   refine (mul_le_mul_of_nonneg_right (min_le_right (_:ℝ) _) (pow_nonneg _ _)).trans _,
   apply nat.cast_nonneg,
   rw [mul_assoc, ←mul_pow, div_mul_eq_mul_div, (show (16:ℝ) = 8 * 2, by norm_num), mul_assoc (8:ℝ),
-    ←div_mul_div_comm₀, mul_pow, ←mul_assoc],
+    ←div_mul_div_comm, mul_pow, ←mul_assoc],
   suffices : ((card α : ℝ) / (2 * bound (ε / 8) ⌈4 / ε⌉₊)) ^ 3 ≤ X.card * Y.card * Z.card,
   { refine (mul_le_mul_of_nonneg_left this (mul_nonneg _ _)).trans _,
     { linarith },

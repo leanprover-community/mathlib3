@@ -17,7 +17,7 @@ In this file, we prove the triangle counting lemma.
 open finset fintype
 open_locale big_operators classical
 
-variables {α : Type*} (G : simple_graph α)
+variables {α : Type*} (G : simple_graph α) {ε : ℝ} {X Y Z : finset α}
 
 namespace simple_graph
 
@@ -25,26 +25,24 @@ namespace simple_graph
 noncomputable def bad_vertices (ε : ℝ) (X Y : finset α) :=
 X.filter (λ x, ((Y.filter (G.adj x)).card : ℝ) < (G.edge_density X Y - ε) * Y.card)
 
-lemma of_mem_bad_vertices {ε : ℝ} {X Y : finset α} :
+lemma of_mem_bad_vertices :
   ∀ x ∈ G.bad_vertices ε X Y, ((Y.filter (G.adj x)).card : ℝ) ≤ (G.edge_density X Y - ε) * Y.card :=
 λ x hx, (mem_filter.1 hx).2.le
 
-lemma bad_vertices_eq {ε : ℝ} {X Y : finset α} :
-  rel.interedges G.adj (G.bad_vertices ε X Y) Y ⊆
-    (G.bad_vertices ε X Y).bUnion (λ x, (Y.filter (G.adj x)).image (λ y, (x,y))) :=
+lemma bad_vertices_eq :
+  rel.interedges G.adj (G.bad_vertices ε X Y) Y =
+    (G.bad_vertices ε X Y).bUnion (λ x, (Y.filter (G.adj x)).image (λ y, (x, y))) :=
 begin
-  rintro ⟨x, y⟩,
+  ext ⟨x, y⟩,
   simp only [mem_bUnion, mem_image, exists_prop, mem_filter, prod.mk.inj_iff,
     exists_eq_right_right, rel.mem_interedges_iff],
-  rintro ⟨hx, hy, hxy⟩,
-  refine ⟨x, hx, ⟨hy, hxy⟩, rfl⟩,
 end
 
-lemma pairs_card_bad_le {ε : ℝ} {X Y : finset α} :
+lemma pairs_card_bad_le :
   ((rel.interedges G.adj (G.bad_vertices ε X Y) Y).card : ℝ) ≤
     (G.bad_vertices ε X Y).card * Y.card * (G.edge_density X Y - ε) :=
 begin
-  refine (nat.cast_le.2 (card_le_of_subset G.bad_vertices_eq)).trans _,
+  refine (nat.cast_le.2 (card_le_of_subset $ subset_of_eq G.bad_vertices_eq)).trans _,
   refine (nat.cast_le.2 card_bUnion_le).trans _,
   rw nat.cast_sum,
   simp_rw [card_image_of_injective _ (prod.mk.inj_left _)],
@@ -52,8 +50,7 @@ begin
   rw [sum_const, nsmul_eq_mul, mul_comm (_ - _), mul_assoc],
 end
 
-lemma edge_density_bad_vertices {ε : ℝ} {X Y : finset α} (hε : 0 ≤ ε)
-  (dXY : 2 * ε ≤ G.edge_density X Y) :
+lemma edge_density_bad_vertices (hε : 0 ≤ ε) (dXY : 2 * ε ≤ G.edge_density X Y) :
   (G.edge_density (G.bad_vertices ε X Y) Y : ℝ) ≤ G.edge_density X Y - ε :=
 begin
   rw edge_density_def,
@@ -65,8 +62,8 @@ begin
     exact G.pairs_card_bad_le }
 end
 
-lemma few_bad_vertices {X Y : finset α} {ε : ℝ} (hε₀ : 0 ≤ ε) (hε : ε ≤ 1)
-  (dXY : 2 * ε ≤ G.edge_density X Y) (uXY : G.is_uniform ε X Y) :
+lemma few_bad_vertices (hε₀ : 0 ≤ ε) (hε : ε ≤ 1) (dXY : 2 * ε ≤ G.edge_density X Y)
+  (uXY : G.is_uniform ε X Y) :
   ((G.bad_vertices ε X Y).card : ℝ) ≤ X.card * ε :=
 begin
   by_contra,
@@ -79,7 +76,7 @@ begin
 end
 
 -- A subset of the triangles constructed in a weird way to make them easy to count
-lemma triangle_split_helper {X Y Z : finset α} {ε : ℝ} :
+lemma triangle_split_helper :
   (X \ (G.bad_vertices ε X Y ∪ G.bad_vertices ε X Z)).bUnion
     (λ x, (((Y.filter (G.adj x)).product (Z.filter (G.adj x))).filter
       (λ (yz : _ × _), G.adj yz.1 yz.2)).image (prod.mk x)) ⊆
@@ -93,7 +90,7 @@ begin
   exact ⟨hx, hy, hz, xy, xz, yz⟩,
 end
 
-lemma good_vertices_triangle_card {X Y Z : finset α} {ε : ℝ} (hε : 0 ≤ ε)
+lemma good_vertices_triangle_card (hε : 0 ≤ ε)
   (dXY : 2 * ε ≤ G.edge_density X Y)
   (dXZ : 2 * ε ≤ G.edge_density X Z)
   (dYZ : 2 * ε ≤ G.edge_density Y Z)
@@ -126,7 +123,7 @@ begin
 end
 
 -- can probably golf things by relaxing < to ≤
-lemma triangle_counting {X Y Z : finset α} {ε : ℝ} (hε₀ : 0 < ε) (hε₁ : ε ≤ 1)
+lemma triangle_counting (hε₀ : 0 < ε) (hε₁ : ε ≤ 1)
   (dXY : 2 * ε ≤ G.edge_density X Y) (uXY : G.is_uniform ε X Y)
   (dXZ : 2 * ε ≤ G.edge_density X Z) (uXZ : G.is_uniform ε X Z)
   (dYZ : 2 * ε ≤ G.edge_density Y Z) (uYZ : G.is_uniform ε Y Z) :

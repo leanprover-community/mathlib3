@@ -41,17 +41,6 @@ integer points on that sphere and map them onto `ℕ` in a way that preserves ar
 Salem-Spencer, Behrend construction, arithmetic progression, sphere, strictly convex
 -/
 
-namespace set
-variables {α : Type*} [has_mul α] {s t u : set α}
-
-open_locale pointwise
-
-@[to_additive]
-lemma mul_subset_iff : s * t ⊆ u ↔ ∀ ⦃a⦄, a ∈ s → ∀ ⦃b⦄, b ∈ t → a * b ∈ u := image2_subset_iff
--- TODO: `div` too
-
-end set
-
 namespace nat
 
 lemma le_succ_mul_neg (n : ℕ) : ∀ d, d ≤ (n + 1) * d - n
@@ -214,7 +203,7 @@ begin
   have : ((2 * d - 2) + 1) = 2 * d - 1,
   { rw ←tsub_tsub_assoc (nat.le_mul_of_pos_right hd) one_le_two },
   rw [←sum_range (λ i, (d - 1) * (2 * d - 1)^(i : ℕ)), ←mul_sum, mul_right_comm, tsub_mul,
-    mul_comm d, one_mul, ←this, ←geom_sum_def, ←geom_sum_mul_add, add_tsub_cancel_right, mul_comm],
+    mul_comm d, one_mul, ←this, ←geom_sum_mul_add, add_tsub_cancel_right, mul_comm],
 end
 
 lemma digits_sum_le (hd : 0 < d) : ∑ i : fin n, (d - 1) * (2 * d - 1)^(i : ℕ) < (2 * d - 1)^n :=
@@ -288,7 +277,7 @@ lemma bound_aux (hd : 0 < d) (hn : 2 ≤ n) (hN : (2 * d - 1)^n ≤ N) :
   (d ^ (n - 2) / n : ℝ) ≤ roth_number_nat N :=
 begin
   convert bound_aux' hd (zero_lt_two.trans_le hn) hN using 1,
-  rw [cast_mul, cast_pow, mul_comm, ←div_div_eq_div_mul, pow_sub₀ _ _ hn, ←div_eq_mul_inv],
+  rw [cast_mul, cast_pow, mul_comm, ←div_div, pow_sub₀ _ _ hn, ←div_eq_mul_inv],
   rw cast_ne_zero,
   apply hd.ne',
 end
@@ -475,7 +464,7 @@ begin
   apply floor_lt_mul _,
   rw [←log_le_log, log_rpow, mul_comm, ←div_eq_mul_one_div],
   { apply le_trans _ (div_le_div_of_le_left _ _ (ceil_lt_mul _).le),
-    rw [mul_comm, ←div_div_eq_div_mul, div_sqrt, le_div_iff],
+    rw [mul_comm, ←div_div, div_sqrt, le_div_iff],
     { exact annoying_bound hN },
     { norm_num1 },
     { apply log_nonneg,
@@ -524,9 +513,9 @@ begin
     exact three_le_n_value (hN.trans' $ by norm_num1) },
   rw [←rpow_nat_cast, div_rpow (rpow_nonneg_of_nonneg hN₀.le _) (exp_pos _).le, ←rpow_mul hN₀.le,
     mul_comm (_ / _), mul_one_div, cast_sub hn₂, cast_two, same_sub_div, exp_one_rpow,
-    div_div_eq_div_mul, rpow_sub, rpow_one, div_div_eq_div_mul, div_eq_mul_inv],
+    div_div, rpow_sub, rpow_one, div_div, div_eq_mul_inv],
   { refine mul_le_mul_of_nonneg_left _ (cast_nonneg _),
-    rw [mul_inv₀, mul_inv₀, ←exp_neg, ←rpow_neg (cast_nonneg _), neg_sub, ←div_eq_mul_inv],
+    rw [mul_inv, mul_inv, ←exp_neg, ←rpow_neg (cast_nonneg _), neg_sub, ←div_eq_mul_inv],
     have : exp ((-4) * sqrt (log N)) = exp (-2 * sqrt (log N)) * exp (-2 * sqrt (log N)),
     { rw [←exp_add, ←add_mul],
       norm_num },

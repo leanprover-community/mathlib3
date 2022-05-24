@@ -131,7 +131,7 @@ lemma uniform_add_nonuniform_eq_off_diag_pairs [nonempty α] (hε₁ : ε ≤ 1)
 begin
   conv_rhs
   { rw [←sum_div, card_increment hPα hPG, step_bound, ←nat.cast_pow, mul_pow, pow_right_comm,
-      nat.cast_mul, mul_comm, ←div_div_eq_div_mul, (show 4^2 = 16, by norm_num), sum_div] },
+      nat.cast_mul, mul_comm, ←div_div, (show 4^2 = 16, by norm_num), sum_div] },
   rw [←nat.cast_pow, nat.cast_pow 16],
   refine div_le_div_of_le_of_nonneg _ (nat.cast_nonneg _),
   norm_num,

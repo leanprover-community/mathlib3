@@ -90,7 +90,7 @@ lemma one_sub_eps_mul_card_nonuniform_witness_le_card_star (hV : V ∈ P.parts) 
 begin
   have hP₁ : 0 < P.parts.card := finset.card_pos.2 ⟨_, hU⟩,
   have : (2^P.parts.card : ℝ) * m/(U.card * ε) ≤ ε/10,
-  { rw [←div_div_eq_div_mul, div_le_iff' (eps_pos hPε)],
+  { rw [←div_div, div_le_iff' (eps_pos hPε)],
     refine le_of_mul_le_mul_left _ (pow_pos zero_lt_two P.parts.card),
     calc
       2^P.parts.card * ((2^P.parts.card * m : ℝ)/U.card)
@@ -204,7 +204,7 @@ begin
   { rw [one_sub_div coe_m_add_one_pos.ne', add_sub_cancel] },
   rw [this, sub_sq, one_pow, mul_one],
   refine le_trans _ (le_add_of_nonneg_right (sq_nonneg _)),
-  rw [sub_le_sub_iff_left, ←le_div_iff' (show (0:ℝ) < 2, by norm_num), div_div_eq_div_mul,
+  rw [sub_le_sub_iff_left, ←le_div_iff' (show (0:ℝ) < 2, by norm_num), div_div,
     one_div_le coe_m_add_one_pos (div_pos (eps_pow_five_pos hPε) (show (0:ℝ) < 50*2, by norm_num)),
     one_div_div],
   refine le_trans _ (le_add_of_nonneg_right zero_le_one),
@@ -224,7 +224,7 @@ begin
   refine (pow_le_pow_of_le_left _ this 2).trans _,
   { exact add_nonneg zero_le_one (one_div_nonneg.2 (nat.cast_nonneg _)) },
   rw [add_sq, one_pow, add_assoc, add_le_add_iff_left, mul_one, ←le_sub_iff_add_le',
-    div_eq_mul_one_div _ (49:ℝ), mul_div_comm (2:ℝ), ←mul_sub_left_distrib, div_pow,
+    div_eq_mul_one_div _ (49:ℝ), mul_div_left_comm (2:ℝ), ←mul_sub_left_distrib, div_pow,
     div_le_iff (show (0:ℝ) < 100^2, by norm_num), mul_assoc, sq],
   refine mul_le_mul_of_nonneg_left _ (eps_pow_five_pos hPε).le,
   exact (pow_le_one 5 (eps_pos hPε).le hε₁).trans (by norm_num),
@@ -245,8 +245,8 @@ begin
   refine this.trans _,
   simp only [simple_graph.edge_density_def, simple_graph.interedges, ←sup_eq_bUnion, nat.cast_sum,
     rel.card_interedges_finpartition (of_subset _ hA rfl) (of_subset _ hB rfl), of_subset_parts,
-    sum_div, mul_sum, rat.cast_sum, rat.cast_div, rat.cast_mul, div_div_eq_div_mul,
-    mul_div_comm ((1:ℝ) - _)],
+    sum_div, mul_sum, rat.cast_sum, rat.cast_div, rat.cast_mul, div_div,
+    mul_div_left_comm ((1:ℝ) - _)],
   push_cast,
   apply sum_le_sum,
   simp only [and_imp, prod.forall, mem_product],
@@ -283,7 +283,7 @@ begin
   simp only [simple_graph.edge_density, edge_density, ←sup_eq_bUnion, nat.cast_sum, mul_sum,
     sum_div, rel.card_interedges_finpartition (of_subset _ hA rfl) (of_subset _ hB rfl),
     rat.cast_sum, rat.cast_div, rat.cast_mul,
-    of_subset_parts, mul_div_comm ((1:ℝ) + _), div_div_eq_div_mul],
+    of_subset_parts, mul_div_left_comm ((1:ℝ) + _), div_div],
   push_cast,
   apply sum_le_sum,
   simp only [and_imp, prod.forall, mem_product],
@@ -354,7 +354,7 @@ begin
   apply le_trans _ (pow_le_pow_of_le_left hGε this 2),
   rw [sub_sq, sub_add, sub_le_sub_iff_left],
   apply (sub_le_self _ (sq_nonneg (ε^5/50))).trans,
-  rw [mul_right_comm, mul_div_comm, div_eq_mul_one_div (ε^5), (show (2:ℝ)/50 = 1/25, by norm_num)],
+  rw [mul_right_comm, mul_div_left_comm, div_eq_mul_one_div (ε^5), (show (2:ℝ)/50 = 1/25, by norm_num)],
   exact mul_le_of_le_one_right (mul_nonneg (eps_pow_five_pos hPε).le (by norm_num))
     (by exact_mod_cast G.edge_density_le_one _ _),
 end
@@ -419,7 +419,7 @@ begin
             (eps_pos hPε).le
             (mul_nonneg hε hm)
     ... = (1 - ε/10) * (G.nonuniform_witness ε U V).card * ((1 - 1/m) / U.card)
-        : by rw [mul_assoc, mul_assoc, mul_div_comm]
+        : by rw [mul_assoc, mul_assoc, mul_div_left_comm]
     ... ≤ ((hP.star G ε hU V).bUnion id).card * ((1 - 1/m) / U.card)
         : (mul_le_mul_of_nonneg_right
             (one_sub_eps_mul_card_nonuniform_witness_le_card_star hV hUV hunif hPε hε₁)
@@ -433,8 +433,7 @@ begin
             (mul_nonneg (nat.cast_nonneg _) $ add_nonneg (nat.cast_nonneg _) zero_le_one)
     ... ≤ (hP.star G ε hU V).card / 4^P.parts.card :
     begin
-      rw [mul_assoc, mul_comm ((4:ℝ)^P.parts.card), ←div_div_eq_div_mul, ←mul_div_assoc,
-        ←div_mul_eq_mul_div_comm],
+      rw [mul_assoc, mul_comm ((4:ℝ)^P.parts.card), ←div_div, ←mul_div_assoc, ←mul_comm_div],
       refine mul_le_of_le_one_right (div_nonneg (nat.cast_nonneg _) four_pow_pos.le) _,
       rw mul_div_assoc',
       exact m_bound (m_coe_pos hPα),
@@ -503,7 +502,7 @@ calc
             eps_le_card_star_div hPα hPε hε₁ hU hV h_diff hUV,
           have Vl : 4/5 * ε ≤ (hP.star G ε hV U).card / _ :=
             eps_le_card_star_div hPα hPε hε₁ hV hU h_diff.symm (λ h, hUV h.symm),
-          rw [(show (16 : ℝ) = 4^2, by norm_num), pow_right_comm, sq ((4:ℝ)^_), ←div_mul_div_comm₀,
+          rw [(show (16 : ℝ) = 4^2, by norm_num), pow_right_comm, sq ((4:ℝ)^_), ←div_mul_div_comm,
             mul_assoc],
           have UVl :=
             mul_le_mul Ul Vl

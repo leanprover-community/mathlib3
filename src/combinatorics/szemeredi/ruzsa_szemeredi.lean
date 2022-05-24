@@ -3,9 +3,8 @@ Copyright (c) 2022 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
-import .behrend
-import .mathlib
-import .triangle
+import combinatorics.simple_graph.clique
+import combinatorics.additive.salem_spencer
 
 /-!
 # The Ruzsa-Szemerédi problem
@@ -23,11 +22,12 @@ open_locale pointwise
 variables {α : Type*} [fintype α] [decidable_eq α]
 
 /-- A Ruzsa-Szemerédi graph is a graph such that each edge belongs to at most one triangle. -/
-def ruzsa_szemeredi (G : simple_graph α) [G.decidable] : Prop :=
+def ruzsa_szemeredi (G : simple_graph α) [decidable_rel G.adj] : Prop :=
 (G.clique_finset 3 : set (finset α)).pairwise $ λ x y, (x ∩ y).card ≤ 1
 
 /-- Whether a given graph is Ruzsa-Szemerédi is decidable. -/
-instance (G : simple_graph α) [G.decidable] : decidable (ruzsa_szemeredi G) := pairwise.decidable
+instance (G : simple_graph α) [decidable_rel G.adj] : decidable (ruzsa_szemeredi G) :=
+pairwise.decidable
 
 namespace ruzsa_szemeredi
 

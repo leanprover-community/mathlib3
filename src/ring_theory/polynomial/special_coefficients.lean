@@ -31,7 +31,7 @@ begin
   refine induction_with_nat_degree_le
     (λ q, (f * q).coeff (a + b - 1) =
       f.coeff a * q.coeff (b - 1) + f.coeff (a - 1) * q.coeff b) b _ _ _ _ gb,
-  { simp only [mul_zero, coeff_zero, add_zero],   },
+  { simp only [mul_zero, coeff_zero, add_zero] },
   { intros n r r0 nb,
     have b1 : 1 ≤ b := (nat.one_le_iff_ne_zero.mpr g0).trans gb,
     have : b - 1 ≠ b := (nat.pred_lt (nat.one_le_iff_ne_zero.mp b1)).ne,

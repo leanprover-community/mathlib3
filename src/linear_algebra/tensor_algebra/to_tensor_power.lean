@@ -31,26 +31,30 @@ lemma to_tensor_algebra_ghas_one :
   (@graded_monoid.ghas_one.one _ (λ n, ⨂[R]^n M) _ _).to_tensor_algebra = 1 :=
 tensor_power.to_tensor_algebra_tprod _
 
-lemma _root_.list.of_fn_fin_append' {α i j} (a : fin i → α) (b : fin j → α):
-  list.of_fn (fin.append' a b) = list.of_fn a ++ list.of_fn b :=
+#check list.of_fn_succ
+
+lemma _root_.list.of_fn_add {α i j} (a : fin (i + j) → α) :
+  list.of_fn a = list.of_fn (λ i, a (fin.cast_add j i)) ++ list.of_fn (λ j, a (fin.nat_add i j)) :=
 begin
   apply list.ext_le,
   { rw [list.length_of_fn, list.length_append, list.length_of_fn, list.length_of_fn] },
   intros n ha hb,
   simp_rw list.nth_le_of_fn',
   cases lt_or_le n i,
-  { rw [←fin.cast_add_mk _ _ h, fin.append'_apply_left, list.nth_le_append, list.nth_le_of_fn'],
+  { rw [list.nth_le_append, list.nth_le_of_fn', fin.cast_add_mk],
     rw list.length_of_fn, exact h },
   { obtain ⟨n', rfl⟩ := nat.exists_eq_add_of_le h,
     rw [list.nth_le_append_right, list.nth_le_of_fn'],
-    simp_rw list.length_of_fn,
-    sorry,
-    simp_rw list.length_of_fn,
+    simp_rw [list.length_of_fn, add_tsub_cancel_left, fin.nat_add_mk],
+    rw list.length_of_fn,
     exact h },
-  -- rw [list.nth_le_append, fin.append'],
-  -- rw [list.nth_le_of_fn', list.of_fn_eq_map, list.of_fn_eq_map],
 end
-#exit
+
+lemma _root_.list.of_fn_fin_append' {α i j} (a : fin i → α) (b : fin j → α):
+  list.of_fn (fin.append' a b) = list.of_fn a ++ list.of_fn b :=
+begin
+  simp_rw [_root_.list.of_fn_add, fin.append'_apply_left, fin.append'_apply_right],
+end
 
 @[simp]
 lemma to_tensor_algebra_ghas_mul {i j} (a : ⨂[R]^i M) (b : ⨂[R]^j M) :

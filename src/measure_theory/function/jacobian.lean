@@ -297,7 +297,7 @@ begin
       (𝓝[>] 0) (𝓝 (μ (A '' (closed_ball 0 1)))),
     { apply L0.congr' _,
       filter_upwards [self_mem_nhds_within] with r hr,
-      rw [HC.cthickening_eq_add_closed_ball (le_of_lt hr), add_comm] },
+      rw [←HC.add_closed_ball_zero (le_of_lt hr), add_comm] },
     have L2 : tendsto (λ ε, μ (closed_ball 0 ε + A '' (closed_ball 0 1)))
       (𝓝[>] 0) (𝓝 (d * μ (closed_ball 0 1))),
     { convert L1,
@@ -330,7 +330,7 @@ begin
         abel } },
     have : A '' (closed_ball 0 r) + closed_ball (f x) (ε * r)
       = {f x} + r • (A '' (closed_ball 0 1) + closed_ball 0 ε),
-      by rw [smul_add_set, ← add_assoc, add_comm ({f x}), add_assoc, smul_closed_ball _ _ εpos.le,
+      by rw [smul_add, ← add_assoc, add_comm ({f x}), add_assoc, smul_closed_ball _ _ εpos.le,
         smul_zero, singleton_add_closed_ball_zero, ← A.image_smul_set,
         smul_closed_ball _ _ zero_le_one, smul_zero, real.norm_eq_abs, abs_of_nonneg r0, mul_one,
         mul_comm],

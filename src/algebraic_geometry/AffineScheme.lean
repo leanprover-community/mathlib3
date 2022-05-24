@@ -69,7 +69,7 @@ by { rw [← mem_AffineScheme] at h ⊢, exact functor.ess_image.of_iso (as_iso 
 namespace AffineScheme
 
 /-- The `Spec` functor into the category of affine schemes. -/
-@[derive [full, faithful, ess_surj], simps]
+@[derive [full, faithful, ess_surj]]
 def Spec : CommRingᵒᵖ ⥤ AffineScheme := Scheme.Spec.to_ess_image
 
 /-- The forgetful functor `AffineScheme ⥤ Scheme`. -/
@@ -202,7 +202,7 @@ begin
   cases h,
   refine (Scheme.congr_app this _).trans _,
   erw category.id_comp,
-  simpa
+  simpa [eq_to_hom_map],
 end
 
 lemma is_affine_open.Spec_Γ_identity_hom_app_from_Spec {X : Scheme} {U : opens X.carrier}

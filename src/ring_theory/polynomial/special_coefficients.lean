@@ -22,7 +22,8 @@ ptl a b f g = f.coeff a * g.coeff b.
 This is intended simply as a helper definition to prove results without being constantly required
 to prove that some natural number is positive, that some coefficient is non-zero, that some
 polynomial has precisely some degree...  We develop enough API for `ptl` to essentially prove that
-it is linear in either one of its polynomial inputs. -/
+it is linear in its right polynomial input.
+Linearity on its left input is not needed (though true). -/
 
 open_locale polynomial
 namespace polynomial
@@ -41,7 +42,8 @@ lemma `coeff_mul_nat_degree_add_sub_one`.  The intended application is to comput
 def ptl (a b : ℕ) (f g : R[X]) : R :=
 f.coeff a * g.coeff b
 
-/-!  We prove lemmas showing linearity of `ptl` in its polynomial variables. -/
+/-!  We prove lemmas showing linearity of `ptl` in its right polynomial variable.
+It is also linear in its left variable, but we do not use this fact. -/
 namespace ptl
 
 @[simp] lemma zero_right : ptl a b f 0 = 0 :=
@@ -52,46 +54,6 @@ by simp [ptl, mul_add, add_add_add_comm]
 
 @[simp] lemma C_mul_right : ptl a b f (g * C r) = ptl a b f g * r:=
 by simp only [ptl, add_mul, mul_assoc, coeff_mul_C]
-/-
-@[simp] lemma zero_left : ptl a b 0 g = 0 :=
-by simp [ptl]
-
-@[simp] lemma add_left : ptl a b (f + h) g = ptl a b f g + ptl a b h g :=
-by simp [ptl, add_mul, add_add_add_comm]
-
-@[simp] lemma C_mul_left : ptl a b (C r * f) g = r * ptl a b f g :=
-by simp only [ptl, mul_add, mul_assoc, coeff_C_mul]
-
-@[simp] lemma mul_X_left (f : R[X]) :
-  ptl (a + 1) b (f * X) g = ptl a b f g :=
-by rw [ptl, coeff_mul_X, ← ptl]
-
-@[simp] lemma mul_X_right (f : R[X]) :
-  ptl a (b + 1) f (g * X) = ptl a b f g :=
-by rw [ptl, coeff_mul_X, ← ptl]
-
-@[simp] lemma mul_X_pow_left :
-  ∀ n : ℕ, ptl (a + n) b (f * X ^ n) g = ptl a b f g
-| 0       := by rw [add_zero, pow_zero, mul_one]
-| (n + 1) := by simp only [pow_add, ←mul_assoc, ←add_assoc, mul_X_pow_left, pow_one, mul_X_left]
-
-@[simp] lemma mul_X_pow_right :
-  ∀ n : ℕ, ptl a (b + n) f (g * X ^ n) = ptl a b f g
-| 0       := by rw [add_zero, pow_zero, mul_one]
-| (a + 1) := by simp only [pow_add, ←mul_assoc, ←add_assoc, mul_X_pow_right, pow_one, mul_X_right]
-
-@[simp] lemma X_pow_left (n : ℕ) : ptl (a + n) b (X ^ n) g = ptl a b 1 g :=
-begin
-  rw ← one_mul (X ^ n),
-  exact mul_X_pow_left _,
-end
-
-@[simp] lemma X_pow_right (n : ℕ) : ptl a (b + n) f (X ^ n) = ptl a b f 1 :=
-begin
-  rw ← one_mul (X ^ n),
-  exact mul_X_pow_right _,
-end
--/
 
 lemma eq_right
   (f0 : f.nat_degree ≠ 0) (g0 : g.nat_degree ≠ 0) (fa : f.nat_degree ≤ a) (gb : g.nat_degree ≤ b) :

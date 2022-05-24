@@ -169,9 +169,9 @@ by rw [e.mk_symm hb, e.apply_symm_apply (e.mk_mem_target.mpr hb)]
 
 /-- A pretrivialization for a topological vector bundle defines linear equivalences between the
 fibers and the model space. -/
-def linear_equiv_at (e : pretrivialization R F E) (b : B)
-  (hb : b ∈ e.base_set) : E b ≃ₗ[R] F :=
-{ to_fun := λ y, (e ⟨b, y⟩).2,
+@[simps] def linear_equiv_at (e : pretrivialization R F E) (b : B) (hb : b ∈ e.base_set) :
+  E b ≃ₗ[R] F :=
+{ to_fun := λ y, (e (total_space_mk E b y)).2,
   inv_fun := e.symm b,
   left_inv := e.symm_apply_apply_mk hb,
   right_inv := λ v, by simp_rw [e.apply_mk_symm hb v],
@@ -393,7 +393,7 @@ namespace trivialization
 
 /-- In a topological vector bundle, a trivialization in the fiber (which is a priori only linear)
 is in fact a continuous linear equiv between the fibers and the model fiber. -/
-def continuous_linear_equiv_at (e : trivialization R F E) (b : B)
+@[simps apply symm_apply] def continuous_linear_equiv_at (e : trivialization R F E) (b : B)
   (hb : b ∈ e.base_set) : E b ≃L[R] F :=
 { to_fun := λ y, (e ⟨b, y⟩).2,
   inv_fun := e.symm b,
@@ -405,9 +405,6 @@ def continuous_linear_equiv_at (e : trivialization R F E) (b : B)
       (λ x, mk_mem_prod hb (mem_univ x)),
   end,
   .. e.to_pretrivialization.linear_equiv_at b hb }
-
-@[simp] lemma continuous_linear_equiv_at_apply (e : trivialization R F E) (b : B)
-  (hb : b ∈ e.base_set) (y : E b) : e.continuous_linear_equiv_at b hb y = (e ⟨b, y⟩).2 := rfl
 
 @[simp] lemma continuous_linear_equiv_at_apply' (e : trivialization R F E)
   (x : total_space E) (hx : x ∈ e.source) :
@@ -901,18 +898,18 @@ variables (E₁ : B → Type*) (E₂ : B → Type*)
 variables [topological_space (total_space E₁)] [topological_space (total_space E₂)]
 
 /-- Equip the total space of the fibrewise product of two topological vector bundles `E₁`, `E₂` with
-the induced topology from the diagonal embedding into `(total_space E₁) × (total_space E₂)`. -/
+the induced topology from the diagonal embedding into `total_space E₁ × total_space E₂`. -/
 instance prod.topological_space :
   topological_space (total_space (E₁ ×ᵇ E₂)) :=
 topological_space.induced
   (λ p, ((⟨p.1, p.2.1⟩ : total_space E₁), (⟨p.1, p.2.2⟩ : total_space E₂)))
-  (by apply_instance : topological_space ((total_space E₁) × (total_space E₂)))
+  (by apply_instance : topological_space (total_space E₁ × total_space E₂))
 
 /-- The diagonal map from the total space of the fibrewise product of two topological vector bundles
-`E₁`, `E₂` into `(total_space E₁) × (total_space E₂)` is `inducing`. -/
+`E₁`, `E₂` into `total_space E₁ × total_space E₂` is `inducing`. -/
 lemma prod.inducing_diag : inducing
   (λ p, (⟨p.1, p.2.1⟩, ⟨p.1, p.2.2⟩) :
-    total_space (E₁ ×ᵇ E₂) → (total_space E₁) × (total_space E₂)) :=
+    total_space (E₁ ×ᵇ E₂) → total_space E₁ × total_space E₂) :=
 ⟨rfl⟩
 
 end defs
@@ -964,48 +961,21 @@ end
 
 variables (e₁ e₂)
 
-variables [Π x : B, topological_space (E₁ x)] [Π x : B, topological_space (E₂ x)]
-  [topological_vector_bundle R F₁ E₁] [topological_vector_bundle R F₂ E₂]
-
 /-- Given trivializations `e₁`, `e₂` for vector bundles `E₁`, `E₂` over a base `B`, the inverse
 function for the construction `topological_vector_bundle.trivialization.prod`, the induced
 trivialization for the direct sum of `E₁` and `E₂`. -/
 def prod.inv_fun' (p : B × (F₁ × F₂)) : total_space (E₁ ×ᵇ E₂) :=
-begin
-  obtain ⟨x, w₁, w₂⟩ := p,
-  refine ⟨x, _, _⟩,
-  { by_cases h : x ∈ e₁.base_set,
-    { exact (e₁.continuous_linear_equiv_at x h).symm w₁ },
-    { exact 0 } },
-  { by_cases h : x ∈ e₂.base_set,
-    { exact (e₂.continuous_linear_equiv_at x h).symm w₂ },
-    { exact 0 } },
-end
+⟨p.1, e₁.symm p.1 p.2.1, e₂.symm p.1 p.2.2⟩
 
 variables {e₁ e₂}
-
-lemma prod.inv_fun'_apply {x : B} (hx₁ : x ∈ e₁.base_set) (hx₂ : x ∈ e₂.base_set)
-  (w₁ : F₁) (w₂ : F₂) :
-  prod.inv_fun' e₁ e₂ ⟨x, w₁, w₂⟩
-  = ⟨x, ((e₁.continuous_linear_equiv_at x hx₁).symm w₁,
-    (e₂.continuous_linear_equiv_at x hx₂).symm w₂)⟩ :=
-begin
-  dsimp [prod.inv_fun'],
-  rw [dif_pos, dif_pos],
-end
 
 lemma prod.left_inv {x : total_space (E₁ ×ᵇ E₂)}
   (h : x ∈ proj (E₁ ×ᵇ E₂) ⁻¹' (e₁.base_set ∩ e₂.base_set)) :
   prod.inv_fun' e₁ e₂ (prod.to_fun' e₁ e₂ x) = x :=
 begin
   obtain ⟨x, v₁, v₂⟩ := x,
-  simp only [prod.to_fun', prod.inv_fun', sigma.mk.inj_iff, true_and, eq_self_iff_true,
-    prod.mk.inj_iff, heq_iff_eq],
-  split,
-  { rw [dif_pos, ← e₁.continuous_linear_equiv_at_apply x h.1,
-      continuous_linear_equiv.symm_apply_apply] },
-  { rw [dif_pos, ← e₂.continuous_linear_equiv_at_apply x h.2,
-      continuous_linear_equiv.symm_apply_apply] },
+  obtain ⟨h₁ : x ∈ e₁.base_set, h₂ : x ∈ e₂.base_set⟩ := h,
+  simp only [prod.to_fun', prod.inv_fun', symm_apply_apply_mk, h₁, h₂]
 end
 
 lemma prod.right_inv {x : B × F₁ × F₂}
@@ -1013,46 +983,28 @@ lemma prod.right_inv {x : B × F₁ × F₂}
   prod.to_fun' e₁ e₂ (prod.inv_fun' e₁ e₂ x) = x :=
 begin
   obtain ⟨x, w₁, w₂⟩ := x,
-  obtain ⟨h, -⟩ := h,
-  dsimp only [prod.to_fun', prod.inv_fun'],
-  simp only [prod.mk.inj_iff, eq_self_iff_true, true_and],
-  split,
-  { rw [dif_pos, ← e₁.continuous_linear_equiv_at_apply x h.1,
-      continuous_linear_equiv.apply_symm_apply] },
-  { rw [dif_pos, ← e₂.continuous_linear_equiv_at_apply x h.2,
-      continuous_linear_equiv.apply_symm_apply] },
+  obtain ⟨⟨h₁ : x ∈ e₁.base_set, h₂ : x ∈ e₂.base_set⟩, -⟩ := h,
+  simp only [prod.to_fun', prod.inv_fun', apply_mk_symm, h₁, h₂]
 end
 
 lemma prod.continuous_inv_fun :
   continuous_on (prod.inv_fun' e₁ e₂) ((e₁.base_set ∩ e₂.base_set) ×ˢ (univ : set (F₁ × F₂))) :=
 begin
   rw (prod.inducing_diag E₁ E₂).continuous_on_iff,
-  suffices : continuous_on (λ p : B × F₁ × F₂,
-    (e₁.to_local_homeomorph.symm ⟨p.1, p.2.1⟩, e₂.to_local_homeomorph.symm ⟨p.1, p.2.2⟩))
-    ((e₁.base_set ∩ e₂.base_set) ×ˢ (univ : set (F₁ × F₂))),
-  { refine this.congr _,
-    rintros ⟨b, v₁, v₂⟩ ⟨⟨h₁, h₂⟩, _⟩,
-    dsimp at ⊢ h₁ h₂,
-    rw [prod.inv_fun'_apply h₁ h₂, e₁.symm_apply_eq_mk_continuous_linear_equiv_at_symm b h₁,
-      e₂.symm_apply_eq_mk_continuous_linear_equiv_at_symm b h₂] },
   have H₁ : continuous (λ p : B × F₁ × F₂, ((p.1, p.2.1), (p.1, p.2.2))) :=
     (continuous_id.prod_map continuous_fst).prod_mk (continuous_id.prod_map continuous_snd),
-  have H₂ := e₁.to_local_homeomorph.symm.continuous_on.prod_map
-    e₂.to_local_homeomorph.symm.continuous_on,
-  refine H₂.comp H₁.continuous_on (λ x h, ⟨_, _⟩),
-  { dsimp,
-    rw e₁.target_eq,
-    exact ⟨h.1.1, mem_univ _⟩ },
-  { dsimp,
-    rw e₂.target_eq,
-    exact ⟨h.1.2, mem_univ _⟩ }
+  refine (e₁.continuous_on_symm.prod_map e₂.continuous_on_symm).comp H₁.continuous_on _,
+  exact λ x h, ⟨⟨h.1.1, mem_univ _⟩, ⟨h.1.2, mem_univ _⟩⟩
 end
 
 variables (e₁ e₂)
+variables [Π x : B, topological_space (E₁ x)] [Π x : B, topological_space (E₂ x)]
+  [topological_vector_bundle R F₁ E₁] [topological_vector_bundle R F₂ E₂]
 
 /-- Given trivializations `e₁`, `e₂` for vector bundles `E₁`, `E₂` over a base `B`, the induced
 trivialization for the direct sum of `E₁` and `E₂`, whose base set is `e₁.base_set ∩ e₂.base_set`.
 -/
+@[nolint unused_arguments]
 def prod : trivialization R (F₁ × F₂) (E₁ ×ᵇ E₂) :=
 { to_fun := prod.to_fun' e₁ e₂,
   inv_fun := prod.inv_fun' e₁ e₂,
@@ -1065,7 +1017,7 @@ def prod : trivialization R (F₁ × F₂) (E₁ ×ᵇ E₂) :=
   open_source := begin
     refine (e₁.open_base_set.inter e₂.open_base_set).preimage _,
     have : continuous (proj E₁) := continuous_proj R B F₁,
-    exact this.comp (continuous_fst.comp (prod.inducing_diag E₁ E₂).continuous),
+    exact this.comp (prod.inducing_diag E₁ E₂).continuous.fst,
   end,
   open_target := (e₁.open_base_set.inter e₂.open_base_set).prod is_open_univ,
   continuous_to_fun := prod.continuous_to_fun,
@@ -1092,11 +1044,9 @@ lemma prod_apply {x : B} (hx₁ : x ∈ e₁.base_set) (hx₂ : x ∈ e₂.base_
   = ⟨x, e₁.continuous_linear_equiv_at x hx₁ v₁, e₂.continuous_linear_equiv_at x hx₂ v₂⟩ :=
 rfl
 
-lemma prod_symm_apply {x : B} (hx₁ : x ∈ e₁.base_set) (hx₂ : x ∈ e₂.base_set) (w₁ : F₁) (w₂ : F₂) :
-  (prod e₁ e₂).to_local_equiv.symm (x, (w₁, w₂))
-  = ⟨x, ((e₁.continuous_linear_equiv_at x hx₁).symm w₁,
-      (e₂.continuous_linear_equiv_at x hx₂).symm w₂)⟩ :=
-prod.inv_fun'_apply hx₁ hx₂ w₁ w₂
+lemma prod_symm_apply (x : B) (w₁ : F₁) (w₂ : F₂) : (prod e₁ e₂).to_local_equiv.symm (x, w₁, w₂)
+  = ⟨x, e₁.symm x w₁, e₂.symm x w₂⟩ :=
+rfl
 
 end trivialization
 
@@ -1127,7 +1077,7 @@ instance _root_.bundle.prod.topological_vector_bundle :
     let ε := coord_change he₁ he'₁,
     let η := coord_change he₂ he'₂,
     have fact : (s ∩ t) ×ˢ (univ : set $ F₁ × F₂) =
-        (e₁.base_set ∩ e₂.base_set ∩  (e'₁.base_set ∩ e'₂.base_set)) ×ˢ (univ : set $ F₁ × F₂),
+        (e₁.base_set ∩ e₂.base_set ∩ (e'₁.base_set ∩ e'₂.base_set)) ×ˢ (univ : set $ F₁ × F₂),
       by mfld_set_tac,
     refine ⟨s ∩ t, _, _, λ b, (ε b).prod (η b), _, _⟩,
     { rw fact,
@@ -1138,14 +1088,13 @@ instance _root_.bundle.prod.topological_vector_bundle :
       have hη := (continuous_on_coord_change he₂ he'₂).mono (inter_subset_right s t),
       exact hε.prod_map_equivL R hη },
     { rintros b ⟨hbs, hbt⟩ ⟨u, v⟩,
-      have h : (e₁.prod e₂).to_local_homeomorph.symm _ = _ := prod_symm_apply hbs.1 hbt.1 u v,
-      simp only [ε, η, h, prod_apply hbs.2 hbt.2,
-        ← comp_continuous_linear_equiv_at_eq_coord_change he₁ he'₁ hbs,
+      have h : (e₁.prod e₂).to_local_homeomorph.symm _ = _ := prod_symm_apply b u v,
+      simp_rw [ε, local_equiv.coe_trans, local_homeomorph.coe_coe_symm, local_homeomorph.coe_coe,
+        function.comp_app, h, η, topological_vector_bundle.trivialization.coe_coe,
+        prod_apply hbs.2 hbt.2, ← comp_continuous_linear_equiv_at_eq_coord_change he₁ he'₁ hbs,
         ← comp_continuous_linear_equiv_at_eq_coord_change he₂ he'₂ hbt,
-        eq_self_iff_true, function.comp_app, local_equiv.coe_trans, local_homeomorph.coe_coe,
-        local_homeomorph.coe_coe_symm, prod.mk.inj_iff,
-        topological_vector_bundle.trivialization.coe_coe, true_and,
-        continuous_linear_equiv.prod_apply, continuous_linear_equiv.trans_apply] },
+        continuous_linear_equiv.prod_apply, continuous_linear_equiv.trans_apply,
+        continuous_linear_equiv_at_symm_apply] },
   end }
 
 variables {R F₁ E₁ F₂ E₂}

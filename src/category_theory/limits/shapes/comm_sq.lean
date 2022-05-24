@@ -3,7 +3,7 @@ Copyright (c) 2022 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import category_theory.limits.shapes.pullbacks
+import category_theory.limits.preserves.shapes.pullbacks
 import category_theory.limits.shapes.zero_morphisms
 
 /-!
@@ -38,8 +38,9 @@ show that the pullback and pushout squares for a biproduct are bicartesian.
 -/
 
 open category_theory
+open category_theory.limits
 
-namespace category_theory.limits
+namespace category_theory
 
 variables {C : Type*} [category C]
 
@@ -62,10 +63,23 @@ attribute [reassoc] comm_sq.w
 
 namespace comm_sq
 
-lemma flip {W X Y Z : C} {f : W ⟶ X} {g : W ⟶ Y} {h : X ⟶ Z} {i : Y ⟶ Z}
-  (p : comm_sq f g h i) : comm_sq g f i h := ⟨p.w.symm⟩
+variables {W X Y Z : C} {f : W ⟶ X} {g : W ⟶ Y} {h : X ⟶ Z} {i : Y ⟶ Z}
+
+lemma flip (p : comm_sq f g h i) : comm_sq g f i h := ⟨p.w.symm⟩
 
 lemma of_arrow {f g : arrow C} (h : f ⟶ g) : comm_sq f.hom h.left h.right g.hom := ⟨h.w.symm⟩
+
+/--
+The (not necessarily limiting) `pullback_cone h i` implicit in the statement
+that we have `comm_sq f g h i`.
+-/
+def cone (s : comm_sq f g h i) : pullback_cone h i := pullback_cone.mk _ _ s.w
+
+/--
+The (not necessarily limiting) `pushout_cocone f g` implicit in the statement
+that we have `comm_sq f g h i`.
+-/
+def cocone (s : comm_sq f g h i) : pushout_cocone f g := pushout_cocone.mk _ _ s.w
 
 end comm_sq
 
@@ -113,9 +127,9 @@ namespace is_pullback
 variables {P X Y Z : C} {fst : P ⟶ X} {snd : P ⟶ Y} {f : X ⟶ Z} {g : Y ⟶ Z}
 
 /--
-The `pullback_cone f g` implicit in the statement that we have a `is_pullback fst snd f g`.
+The (limiting) `pullback_cone f g` implicit in the statement that we have a `is_pullback fst snd f g`.
 -/
-def cone (h : is_pullback fst snd f g) : pullback_cone f g := pullback_cone.mk _ _ h.w
+def cone (h : is_pullback fst snd f g) : pullback_cone f g := h.to_comm_sq.cone
 
 /--
 The cone obtained from `is_pullback fst snd f g` is a limit cone.
@@ -130,10 +144,39 @@ lemma of_is_limit {c : pullback_cone f g} (h : limits.is_limit c) :
   is_limit' := ⟨is_limit.of_iso_limit h
     (limits.pullback_cone.ext (iso.refl _) (by tidy) (by tidy))⟩, }
 
+/-- A variant of `of_is_limit` that is more useful with `apply`. -/
+lemma of_is_limit' (w : comm_sq fst snd f g) (h : limits.is_limit w.cone) :
+  is_pullback fst snd f g :=
+of_is_limit h
+
 /-- The pullback provided by `has_pullback f g` fits into a `is_pullback`. -/
 lemma of_has_pullback (f : X ⟶ Z) (g : Y ⟶ Z) [has_pullback f g] :
   is_pullback (pullback.fst : pullback f g ⟶ X) (pullback.snd : pullback f g ⟶ Y) f g :=
 of_is_limit (limit.is_limit (cospan f g))
+
+/-- Any object at the top left of a pullback square is
+isomorphic to the pullback provided by the `has_limit` API. -/
+noncomputable
+def iso_pullback (h : is_pullback fst snd f g) [has_pullback f g] : P ≅ pullback f g :=
+(limit.iso_limit_cone ⟨_, h.is_limit⟩).symm
+
+@[simp] lemma iso_pullback_hom_fst (h : is_pullback fst snd f g) [has_pullback f g] :
+  h.iso_pullback.hom ≫ pullback.fst = fst :=
+by { dsimp [iso_pullback, cone, comm_sq.cone], simp, }
+@[simp] lemma iso_pullback_hom_snd (h : is_pullback fst snd f g) [has_pullback f g] :
+  h.iso_pullback.hom ≫ pullback.snd = snd :=
+by { dsimp [iso_pullback, cone, comm_sq.cone], simp, }
+@[simp] lemma iso_pullback_inv_fst (h : is_pullback fst snd f g) [has_pullback f g] :
+  h.iso_pullback.inv ≫ fst = pullback.fst :=
+by simp [iso.inv_comp_eq]
+@[simp] lemma iso_pullback_inv_snd (h : is_pullback fst snd f g) [has_pullback f g] :
+  h.iso_pullback.inv ≫ snd = pullback.snd :=
+by simp [iso.inv_comp_eq]
+
+lemma of_iso_pullback (h : comm_sq fst snd f g) [has_pullback f g] (i : P ≅ pullback f g)
+  (w₁ : i.hom ≫ pullback.fst = fst) (w₂ : i.hom ≫ pullback.snd = snd) : is_pullback fst snd f g :=
+of_is_limit' h (limits.is_limit.of_iso_limit (limit.is_limit _)
+  (@pullback_cone.ext _ _ _ _ _ _ _ (pullback_cone.mk _ _ _) _ i w₁.symm w₂.symm).symm)
 
 end is_pullback
 
@@ -142,9 +185,10 @@ namespace is_pushout
 variables {Z X Y P : C} {f : Z ⟶ X} {g : Z ⟶ Y} {inl : X ⟶ P} {inr : Y ⟶ P}
 
 /--
-The `pushout_cocone f g` implicit in the statement that we have a `is_pushout f g inl inr`.
+The (colimiting) `pushout_cocone f g` implicit in the statement
+that we have a `is_pushout f g inl inr`.
 -/
-def cocone (h : is_pushout f g inl inr) : pushout_cocone f g := pushout_cocone.mk _ _ h.w
+def cocone (h : is_pushout f g inl inr) : pushout_cocone f g := h.to_comm_sq.cocone
 
 /--
 The cocone obtained from `is_pushout f g inl inr` is a colimit cocone.
@@ -159,10 +203,39 @@ lemma of_is_colimit {c : pushout_cocone f g} (h : limits.is_colimit c) :
   is_colimit' := ⟨is_colimit.of_iso_colimit h
     (limits.pushout_cocone.ext (iso.refl _) (by tidy) (by tidy))⟩, }
 
+/-- A variant of `of_is_colimit` that is more useful with `apply`. -/
+lemma of_is_colimit' (w : comm_sq f g inl inr) (h : limits.is_colimit w.cocone) :
+  is_pushout f g inl inr :=
+of_is_colimit h
+
 /-- The pushout provided by `has_pushout f g` fits into a `is_pushout`. -/
 lemma of_has_pushout (f : Z ⟶ X) (g : Z ⟶ Y) [has_pushout f g] :
   is_pushout f g (pushout.inl : X ⟶ pushout f g) (pushout.inr : Y ⟶ pushout f g) :=
 of_is_colimit (colimit.is_colimit (span f g))
+
+/-- Any object at the top left of a pullback square is
+isomorphic to the pullback provided by the `has_limit` API. -/
+noncomputable
+def iso_pushout (h : is_pushout f g inl inr) [has_pushout f g] : P ≅ pushout f g :=
+(colimit.iso_colimit_cocone ⟨_, h.is_colimit⟩).symm
+
+@[simp] lemma inl_iso_pushout_inv (h : is_pushout f g inl inr) [has_pushout f g] :
+  pushout.inl ≫ h.iso_pushout.inv = inl :=
+by { dsimp [iso_pushout, cocone, comm_sq.cocone], simp, }
+@[simp] lemma inr_iso_pushout_inv (h : is_pushout f g inl inr) [has_pushout f g] :
+  pushout.inr ≫ h.iso_pushout.inv = inr :=
+by { dsimp [iso_pushout, cocone, comm_sq.cocone], simp, }
+@[simp] lemma inl_iso_pushout_hom (h : is_pushout f g inl inr) [has_pushout f g] :
+  inl ≫ h.iso_pushout.hom = pushout.inl :=
+by simp [←iso.eq_comp_inv]
+@[simp] lemma inr_iso_pushout_hom (h : is_pushout f g inl inr) [has_pushout f g] :
+  inr ≫ h.iso_pushout.hom = pushout.inr :=
+by simp [←iso.eq_comp_inv]
+
+lemma of_iso_pushout (h : comm_sq f g inl inr) [has_pushout f g] (i : P ≅ pushout f g)
+  (w₁ : inl ≫ i.hom = pushout.inl) (w₂ : inr ≫ i.hom = pushout.inr) : is_pushout f g inl inr :=
+of_is_colimit' h (limits.is_colimit.of_iso_colimit (colimit.is_colimit _)
+  (@pushout_cocone.ext _ _ _ _ _ _ _ (pushout_cocone.mk _ _ _) _ i w₁ w₂).symm)
 
 end is_pushout
 
@@ -306,5 +379,24 @@ lemma of_right {X₁₁ X₁₂ X₁₃ X₂₁ X₂₂ X₂₃ : C}
 
 end is_pushout
 
+namespace functor
 
-end category_theory.limits
+variables {D : Type*} [category D]
+variables (F : C ⥤ D) {W X Y Z : C} {f : W ⟶ X} {g : W ⟶ Y} {h : X ⟶ Z} {i : Y ⟶ Z}
+
+lemma map_comm_sq (s : comm_sq f g h i) : comm_sq (F.map f) (F.map g) (F.map h) (F.map i) :=
+⟨by simpa using congr_arg (λ k : W ⟶ Z, F.map k) s.w⟩
+
+set_option pp.universes true
+
+lemma map_is_pullback [preserves_limit (cospan h i) F] (s : is_pullback f g h i) :
+  is_pullback (F.map f) (F.map g) (F.map h) (F.map i) :=
+begin
+  apply is_pullback.of_is_limit' (F.map_comm_sq s.to_comm_sq),
+  let := is_limit_of_preserves F s.is_limit,
+  apply is_limit.of_iso_limit this,
+end
+
+end functor
+
+end category_theory

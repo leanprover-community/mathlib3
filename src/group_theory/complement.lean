@@ -430,9 +430,8 @@ rfl
 
 lemma quotient_equiv_sigma_zmod_apply (q : quotient (orbit_rel (zpowers g) (G ⧸ H))) (k : ℤ) :
   quotient_equiv_sigma_zmod H g (g ^ k • q.out') = ⟨q, k⟩ :=
-by rw [apply_eq_iff_eq_symm_apply, quotient_equiv_sigma_zmod_symm_apply, ←inv_smul_eq_iff,
-  ←zpow_neg, ←mul_smul, ←zpow_add, neg_add_eq_sub, zpow_smul_eq_iff_minimal_period_dvd,
-  ←int_coe_eq_int_coe_iff_dvd_sub, int_cast_cast, cast_int_cast']
+by rw [apply_eq_iff_eq_symm_apply, quotient_equiv_sigma_zmod_symm_apply,
+  zmod.coe_int_cast, zpow_smul_mod_minimal_period]
 
 /-- The transfer transversal as a function. -/
 noncomputable def transfer_function : G ⧸ H → G :=
@@ -443,7 +442,7 @@ lemma transfer_function_apply (q : G ⧸ H) : transfer_function H g q =
 rfl
 
 lemma coe_transfer_function (q : G ⧸ H) : ↑(transfer_function H g q) = q :=
-by simp_rw [transfer_function_apply, ←smul_eq_mul, coe_smul_out',
+by rw [transfer_function_apply, ←smul_eq_mul, coe_smul_out',
   ←quotient_equiv_sigma_zmod_symm_apply, sigma.eta, symm_apply_apply]
 
 /-- The transfer transversal as a set. -/

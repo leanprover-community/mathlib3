@@ -72,7 +72,7 @@ variables [ring R] [comm_ring R₁] [add_comm_group M]
 
 namespace quadratic_form
 
-/-- Up to a factor 2, `Q.polar` is the associated bilinear form for a quadratic form `Q`.d
+/-- Up to a factor 2, `Q.polar` is the associated bilinear form for a quadratic form `Q`.
 
 Source of this name: https://en.wikipedia.org/wiki/Quadratic_form#Generalization
 -/
@@ -262,6 +262,15 @@ begin
   norm_num
 end
 
+/-- `quadratic_form.polar` as a bilinear form -/
+@[simps]
+def polar_bilin : bilin_form R M :=
+{ bilin := polar Q,
+  bilin_add_left := polar_add_left Q,
+  bilin_smul_left := polar_smul_left Q,
+  bilin_add_right := λ x y z, by simp_rw [polar_comm _ x, polar_add_left Q],
+  bilin_smul_right := λ r x y, by simp_rw [polar_comm _ x, polar_smul_left Q] }
+
 variables [comm_semiring S] [algebra S R] [module S M] [is_scalar_tower S R M]
 
 @[simp]
@@ -289,6 +298,11 @@ def of_polar (to_fun : M → R) (to_fun_smul : ∀ (a : R) (x : M), to_fun (a �
       bilin_add_right := λ x y z, by simp_rw [polar_comm _ x, polar_add_left],
       bilin_smul_right := λ r x y, by simp_rw [polar_comm _ x, polar_smul_left, smul_eq_mul] },
     λ x y, by rw [bilin_form.coe_fn_mk, polar,  sub_sub, add_sub_cancel'_right]⟩ }
+
+/-- In a ring the companion bilinear form is unique and equal to `quadratic_form.polar`. -/
+lemma some_exists_companion : Q.exists_companion.some = polar_bilin Q :=
+bilin_form.ext $ λ x y,
+  by rw [polar_bilin_apply, polar, Q.exists_companion.some_spec, sub_sub, add_sub_cancel']
 
 end ring
 

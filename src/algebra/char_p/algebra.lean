@@ -41,8 +41,7 @@ lemma char_p_of_injective_algebra_map {R A : Type*} [comm_semiring R] [semiring 
     rw ring_hom.map_zero,
   end }
 
-/-- If a field has characteristic `p`, then so does any extension. -/
-def char_p_of_injective_algebra_map' (R A : Type*) [field R] [semiring A] [algebra R A]
+lemma char_p_of_injective_algebra_map' (R A : Type*) [field R] [semiring A] [algebra R A]
   [nontrivial A] (p : ℕ) [char_p R p] : char_p A p :=
 char_p_of_injective_algebra_map (algebra_map R A).injective p
 

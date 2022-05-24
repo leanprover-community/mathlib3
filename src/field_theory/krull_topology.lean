@@ -589,7 +589,7 @@ begin
       apply forall_congr,
       exact λ x, (inv_mul_alg_equiv_of_elem _ _ _).symm, },
     rwa h_preim at h },
-  exact f.to_filter.sets_of_superset h_small_set hEA',
+  exact h_small_set,
 end
 
 lemma krull_topology_compact (h_int : algebra.is_integral K L) :

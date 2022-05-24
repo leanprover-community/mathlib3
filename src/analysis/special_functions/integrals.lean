@@ -266,6 +266,24 @@ by simp only [one_div, integral_inv_of_neg ha hb]
 lemma integral_exp : ∫ x in a..b, exp x = exp b - exp a :=
 by rw integral_deriv_eq_sub'; norm_num [continuous_on_exp]
 
+lemma integral_exp_mul_complex {c : ℂ} (hc : c ≠ 0) :
+  ∫ x in a..b, complex.exp (c * x) = (complex.exp (c * b) - complex.exp (c * a)) / c :=
+begin
+  have D : ∀ (x : ℝ), has_deriv_at (λ (y : ℝ), complex.exp (c * y) / c) (complex.exp (c * x)) x,
+  { intro x,
+    conv begin congr, skip, rw ←@mul_div_cancel _ _ (complex.exp (c * x)) c hc, end,
+    apply has_deriv_at.div_const,
+    convert has_deriv_at.comp x (complex.has_deriv_at_exp (c * x)) _ using 1,
+    have t := complex.of_real_clm.has_deriv_at.mul_const c,
+    simp only [complex.of_real_clm_apply, complex.of_real_one, one_mul] at t,
+    convert t, ext1, ring,},
+  rw integral_deriv_eq_sub' (λ x : ℝ, complex.exp (c * x) / c),
+  { ring_nf },
+  { ext1 x, exact (D x).deriv,},
+  { intros x hx, exact (D x).differentiable_at },
+  { apply continuous.continuous_on, continuity,}
+end
+
 @[simp]
 lemma integral_log (h : (0:ℝ) ∉ [a, b]) :
   ∫ x in a..b, log x = b * log b - a * log a - b + a :=

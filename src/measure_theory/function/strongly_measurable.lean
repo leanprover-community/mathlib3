@@ -776,7 +776,7 @@ begin
   let g_seq_s : ℕ → @simple_func α m β := λ n,
   { to_fun := s.indicator (hf.approx n),
     measurable_set_fiber' := λ x, begin
-      classical,
+      classical!,
       by_cases hx : x = 0,
       { rw [s.indicator_preimage, hx, pi.zero_def, set.preimage_const, set.mem_singleton_iff,
           set.ite, set.inter_comm],

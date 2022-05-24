@@ -143,13 +143,6 @@ begin
   ... = H.index * group.rank G : congr_arg ((*) H.index) hS₀,
 end
 
-lemma relindex_dvd_index_of_normal {G : Type*} [group G] (H K : subgroup G) [H.normal] :
-  H.relindex K ∣ H.index :=
-begin
-  rw relindex_eq_relindex_sup,
-  exact ⟨(K ⊔ H).index, (relindex_mul_index (show H ≤ K ⊔ H, from le_sup_right)).symm⟩,
-end
-
 lemma key_lemma0 {G : Type*} [comm_group G] [group.fg G] {n : ℕ} (hG : ∀ g : G, g ^ n = 1)
   [decidable_pred (λ n, ∃ (S : finset G), S.card = n ∧ subgroup.closure (S : set G) = ⊤)] :
   nat.card G ∣ n ^ group.rank G :=

@@ -146,16 +146,10 @@ lemma legendre_sym_eq_zero_iff (p : ℕ) [fact p.prime] (a : ℤ) :
 quadratic_char_eq_zero_iff a
 
 @[simp] lemma legendre_sym_zero (p : ℕ) [fact p.prime] : legendre_sym p 0 = 0 :=
-begin
-  rw legendre_sym,
-  exact quadratic_char_zero,
-end
+by rw [legendre_sym, int.cast_zero, quadratic_char_zero]
 
 @[simp] lemma legendre_sym_one (p : ℕ) [fact p.prime] : legendre_sym p 1 = 1 :=
-begin
-  rw [legendre_sym, (by norm_cast : ((1 : ℤ) : zmod p) = 1)],
-  exact quadratic_char_one,
-end
+by rw [legendre_sym, int.cast_one, quadratic_char_one]
 
 /-- The Legendre symbol is multiplicative in `a` for `p` fixed. -/
 lemma legendre_sym_mul (p : ℕ) [fact p.prime] (a b : ℤ) :

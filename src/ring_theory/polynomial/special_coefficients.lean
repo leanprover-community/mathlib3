@@ -14,10 +14,10 @@ This file contains computations of certain, hopefully meaningful, coefficients o
 For instance, there is a computation of the coefficients "just before" the `leading_coeff`.
 
 Let `R` be a (semi)ring.
-We introduce the "previous-to-last" coefficient `ptl`, taking four natural numbers `a b c d : ℕ`
+We introduce the "previous-to-last" coefficient `ptl`, taking two natural numbers `a b : ℕ`
 and two polynomials `f g : R[X]` as inputs.  We define
 ```lean
-ptl a b c d f g = f.coeff a * g.coeff b + f.coeff c * g.coeff d.
+ptl a b f g = f.coeff a * g.coeff b.
 ```
 This is intended simply as a helper definition to prove results without being constantly required
 to prove that some natural number is positive, that some coefficient is non-zero, that some
@@ -34,64 +34,76 @@ variables {R : Type*} [semiring R] {r : R} {f g h : R[X]} {a b c d : ℕ}
 
 /-- "Previous-To-Last coefficient":
 
-`ptl (a b c d : ℕ) (f g : R[X]) = f_a * g_b + f_c * g_d`, where `p_i` is the
-i`th coefficient of the polynomial `p`.  `ptl` is an auxilliary definition whose
-main purpose is to prove lemma `coeff_mul_nat_degree_add_sub_one`.  The intended
-application is to compute `(f * g)_(deg f + deg g - 1)`, the coefficient of
-`f * g` just before the top.  -/
-def ptl (a b c d : ℕ) (f g : R[X]) : R :=
-f.coeff a * g.coeff b + f.coeff c * g.coeff d
+`ptl (a b : ℕ) (f g : R[X]) = f_a * g_b`, where `p_i` is the i`th coefficient of the polynomial `p`.
+`ptl` is an auxilliary definition whose main purpose is to prove
+lemma `coeff_mul_nat_degree_add_sub_one`.  The intended application is to compute
+`(f * g)_(deg f + deg g - 1)`, the coefficient of `f * g` just before the top.  -/
+def ptl (a b : ℕ) (f g : R[X]) : R :=
+f.coeff a * g.coeff b
 
 /-!  We prove lemmas showing linearity of `ptl` in its polynomial variables. -/
 namespace ptl
 
-@[simp] lemma zero_left : ptl a b c d 0 g = 0 :=
+@[simp] lemma zero_right : ptl a b f 0 = 0 :=
 by simp [ptl]
 
-@[simp] lemma zero_right : ptl a b c d f 0 = 0 :=
-by simp [ptl]
-
-@[simp] lemma add_left : ptl a b c d (f + h) g = ptl a b c d f g + ptl a b c d h g :=
-by simp [ptl, add_mul, add_add_add_comm]
-
-@[simp] lemma add_right : ptl a b c d f (g + h) = ptl a b c d f g + ptl a b c d f h :=
+@[simp] lemma add_right : ptl a b f (g + h) = ptl a b f g + ptl a b f h :=
 by simp [ptl, mul_add, add_add_add_comm]
 
-@[simp] lemma C_mul_left : ptl a b c d (C r * f) g = r * ptl a b c d f g :=
+@[simp] lemma C_mul_right : ptl a b f (g * C r) = ptl a b f g * r:=
+by simp only [ptl, add_mul, mul_assoc, coeff_mul_C]
+/-
+@[simp] lemma zero_left : ptl a b 0 g = 0 :=
+by simp [ptl]
+
+@[simp] lemma add_left : ptl a b (f + h) g = ptl a b f g + ptl a b h g :=
+by simp [ptl, add_mul, add_add_add_comm]
+
+@[simp] lemma C_mul_left : ptl a b (C r * f) g = r * ptl a b f g :=
 by simp only [ptl, mul_add, mul_assoc, coeff_C_mul]
 
-@[simp] lemma C_mul_right : ptl a b c d f (g * C r) = ptl a b c d f g * r:=
-by simp only [ptl, add_mul, mul_assoc, coeff_mul_C]
-
 @[simp] lemma mul_X_left (f : R[X]) :
-  ptl (a + 1) b (c + 1) d (f * X) g = ptl a b c d f g :=
-by rw [ptl, coeff_mul_X, coeff_mul_X, ptl]
+  ptl (a + 1) b (f * X) g = ptl a b f g :=
+by rw [ptl, coeff_mul_X, ← ptl]
 
 @[simp] lemma mul_X_right (f : R[X]) :
-  ptl a (b + 1) c (d + 1) f (g * X) = ptl a b c d f g :=
-by rw [ptl, coeff_mul_X, coeff_mul_X, ← ptl]
+  ptl a (b + 1) f (g * X) = ptl a b f g :=
+by rw [ptl, coeff_mul_X, ← ptl]
 
 @[simp] lemma mul_X_pow_left :
-  ∀ n : ℕ, ptl (a + n) b (c + n) d (f * X ^ n) g = ptl a b c d f g
-| 0       := by rw [add_zero, add_zero, pow_zero, mul_one]
-| (n + 1) := by simp [pow_add, ← mul_assoc, ← add_assoc, mul_X_pow_left]
+  ∀ n : ℕ, ptl (a + n) b (f * X ^ n) g = ptl a b f g
+| 0       := by rw [add_zero, pow_zero, mul_one]
+| (n + 1) := by simp only [pow_add, ←mul_assoc, ←add_assoc, mul_X_pow_left, pow_one, mul_X_left]
 
 @[simp] lemma mul_X_pow_right :
-  ∀ n : ℕ, ptl a (b + n) c (d + n) f (g * X ^ n) = ptl a b c d f g
-| 0       := by rw [add_zero, add_zero, pow_zero, mul_one]
-| (a + 1) := by simp [pow_add, ← mul_assoc, ← add_assoc, mul_X_pow_right]
+  ∀ n : ℕ, ptl a (b + n) f (g * X ^ n) = ptl a b f g
+| 0       := by rw [add_zero, pow_zero, mul_one]
+| (a + 1) := by simp only [pow_add, ←mul_assoc, ←add_assoc, mul_X_pow_right, pow_one, mul_X_right]
+
+@[simp] lemma X_pow_left (n : ℕ) : ptl (a + n) b (X ^ n) g = ptl a b 1 g :=
+begin
+  rw ← one_mul (X ^ n),
+  exact mul_X_pow_left _,
+end
+
+@[simp] lemma X_pow_right (n : ℕ) : ptl a (b + n) f (X ^ n) = ptl a b f 1 :=
+begin
+  rw ← one_mul (X ^ n),
+  exact mul_X_pow_right _,
+end
+-/
 
 lemma eq_right
   (f0 : f.nat_degree ≠ 0) (g0 : g.nat_degree ≠ 0) (fa : f.nat_degree ≤ a) (gb : g.nat_degree ≤ b) :
-  (f * g).coeff (a + b - 1) = ptl a (b - 1) (a - 1) b f g :=
+  (f * g).coeff (a + b - 1) = ptl a (b - 1) f g + ptl (a - 1) b f g :=
 begin
   refine induction_with_nat_degree_le
-    (λ q, (f * q).coeff (a + b - 1) = ptl a (b - 1) (a - 1) b f q) b _ _ _ _ gb,
-  { simp only [mul_zero, coeff_zero, zero_right] },
+    (λ q, (f * q).coeff (a + b - 1) = ptl a (b - 1) f q + ptl (a - 1) b f q) b _ _ _ _ gb,
+  { simp only [mul_zero, coeff_zero, zero_right, add_zero]  },
   { intros n r r0 nb,
     have b1 : 1 ≤ b := (nat.one_le_iff_ne_zero.mpr g0).trans gb,
     have : b - 1 ≠ b := (nat.pred_lt (nat.one_le_iff_ne_zero.mp b1)).ne,
-    rw [← X_pow_mul, ← mul_assoc, coeff_mul_C, C_mul_right, ptl],
+    rw [← X_pow_mul, ← mul_assoc, coeff_mul_C, C_mul_right, C_mul_right, ← add_mul, ptl, ptl],
     apply congr_arg (* r),
     by_cases bn : b = n,
     { rw [← bn, coeff_X_pow, if_neg this, coeff_X_pow, if_pos rfl, mul_zero, zero_add, mul_one],
@@ -106,7 +118,7 @@ begin
       refine add_lt_add_of_le_of_lt fa (nat_degree_pow_le.trans_lt (mul_lt_of_lt_of_le_one _ _)),
       { exact (le_pred_of_lt (nb.lt_of_ne (ne.symm bn))).lt_of_ne a1 },
       { exact nat_degree_X_le } } },
-  { exact λ f g fg gn hf hg, by simp [mul_add, hf, hg] }
+  { exact λ p q fg gn hf hg, by simp [mul_add, hf, hg, add_add_add_comm] }
 end
 
 end ptl

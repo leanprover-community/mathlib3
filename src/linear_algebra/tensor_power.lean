@@ -18,17 +18,22 @@ We define the `n`th tensor power of `M` as the n-ary tensor product indexed by `
 This file introduces the notation `⨂[R]^n M` for `tensor_power R n M`, which in turn is an
 abbreviation for `⨂[R] i : fin n, M`.
 
-## Main results
+## Main definitions:
 
 * `tensor_power.gsemiring`: the tensor powers form a graded semiring.
 * `tensor_power.galgebra`: the tensor powers form a graded algebra.
+
+## Implementation notes
+
+In this file we use `ₜ1` and `ₜ*` as local notation for the graded multiplicative structure on
+tensor powers. Elsewhere, using `1` and `*` on `graded_monoid` should be preferred.
 -/
 
 open_locale tensor_product
 
 /-- Homogenous tensor powers $M^{\otimes n}$. `⨂[R]^n M` is a shorthand for
 `⨂[R] (i : fin n), M`. -/
-protected abbreviation tensor_power (R : Type*) (n : ℕ) (M : Type*)
+@[reducible] protected def tensor_power (R : Type*) (n : ℕ) (M : Type*)
   [comm_semiring R] [add_comm_monoid M] [module R M] : Type* :=
 ⨂[R] i : fin n, M
 
@@ -41,6 +46,7 @@ namespace tensor_power
 open_locale tensor_product direct_sum
 open pi_tensor_product
 
+/-- As a graded monoid, `⨂[R]^i M` has a `1 : ⨂[R]^0 M`. -/
 instance ghas_one : graded_monoid.ghas_one (λ i, ⨂[R]^i M) :=
 { one := tprod R fin.elim0 }
 
@@ -52,21 +58,20 @@ lemma ghas_one_def : ₜ1 = tprod R fin.elim0 := rfl
 def mul_equiv {n m : ℕ} : (⨂[R]^n M) ⊗[R] (⨂[R]^m M) ≃ₗ[R] ⨂[R]^(n + m) M :=
 (tmul_equiv R M).trans (reindex R M fin_sum_fin_equiv)
 
-def mul {n m : ℕ} : (⨂[R]^n M) →ₗ[R] (⨂[R]^m M) →ₗ[R] ⨂[R]^(n + m) M :=
-(tensor_product.mk R _ _).compr₂ ↑(mul_equiv : _ ≃ₗ[R] ⨂[R]^(n + m) M)
-
+/-- As a graded monoid, `⨂[R]^i M` has a `(*) : ⨂[R]^i M → ⨂[R]^j M → ⨂[R]^(i + j) M`. -/
 instance ghas_mul : graded_monoid.ghas_mul (λ i, ⨂[R]^i M) :=
-{ mul := λ i j a b, mul a b }
+{ mul := λ i j a b, mul_equiv (a ⊗ₜ b) }
 
-lemma ghas_mul_def {i j} (a : ⨂[R]^i M) (b : ⨂[R]^j M) :
-  @graded_monoid.ghas_mul.mul ℕ (λ i, ⨂[R]^i M) _ _ _ _ a b = mul a b := rfl
+local infix `ₜ*`:70 := @graded_monoid.ghas_mul.mul ℕ (λ i, ⨂[R]^i M) _ _ _ _
 
-local infix `ₜ*`:70 := mul
+lemma ghas_mul_def {i j} (a : ⨂[R]^i M) (b : ⨂[R]^j M) : a ₜ* b = mul_equiv (a ⊗ₜ b) := rfl
 
+variables (R)
+include R
 lemma tprod_mul_tprod {na nb} (a : fin na → M) (b : fin nb → M) :
   tprod R a ₜ* tprod R b = (tprod R $ fin.append' a b) :=
 begin
-  dsimp [ghas_mul_def, mul, mul_equiv],
+  dsimp [ghas_mul_def, mul_equiv],
   rw [tmul_equiv_apply R M a b],
   refine (reindex_tprod _ _).trans _,
   congr' 1,
@@ -74,43 +79,41 @@ begin
   apply funext,
   apply fin.add_cases; simp,
 end
+omit R
+variables {R}
 
 lemma one_mul {n} (a : ⨂[R]^n M) :
   reindex R M (equiv.cast $ congr_arg fin (zero_add n)) (ₜ1 ₜ* a) = a :=
 begin
-  -- replace `a` with `tprod R a`
-  rw [ghas_one_def, ←linear_equiv.coe_coe _, ←linear_map.compr₂_apply],
-  refine linear_map.congr_fun (_ : _ = linear_map.id) a,
-  clear a,
-  ext a,
-  show reindex R M (equiv.cast _) (mul (tprod R (fin.elim0 : fin 0 → M)) (tprod R a)) = tprod R a,
-  -- clean up
-  rw [tprod_mul_tprod, reindex_tprod],
-  congr' 1 with i,
-  rw fin.elim0_append',
-  refine congr_arg a (fin.ext _),
-  simp,
+  rw [ghas_mul_def, ghas_one_def],
+  induction a using pi_tensor_product.induction_on with r a x y hx hy,
+  { dsimp only at a,
+    rw [tensor_product.tmul_smul, linear_equiv.map_smul, linear_equiv.map_smul, ←ghas_mul_def,
+      tprod_mul_tprod, reindex_tprod],
+    congr' 2 with i,
+    rw fin.elim0_append',
+    refine congr_arg a (fin.ext _),
+    simp },
+  { rw [tensor_product.tmul_add, map_add, map_add, hx, hy], },
 end
 
 lemma mul_one {n} (a : ⨂[R]^n M) :
   reindex R M (equiv.cast $ congr_arg fin $ add_zero _) (a ₜ* ₜ1) = a :=
 begin
-  -- replace `a` with `tprod R a`
-  rw [ghas_one_def, ←linear_map.flip_apply, ←linear_equiv.coe_coe _, ←linear_map.llcomp_apply],
-  refine linear_map.congr_fun (_ : _ = linear_map.id) a,
-  clear a,
-  ext a,
-  show reindex R M (equiv.cast _) (mul (tprod R a) (tprod R (fin.elim0 : fin 0 → M))) = tprod R a,
-  -- clean up
-  rw [tprod_mul_tprod, reindex_tprod],
-  congr' 1 with i,
-  rw fin.append'_elim0,
-  refine congr_arg a (fin.ext _),
-  simp,
+  rw [ghas_mul_def, ghas_one_def],
+  induction a using pi_tensor_product.induction_on with r a x y hx hy,
+  { dsimp only at a,
+    rw [←tensor_product.smul_tmul', linear_equiv.map_smul, linear_equiv.map_smul, ←ghas_mul_def,
+      tprod_mul_tprod R a _, reindex_tprod],
+    congr' 2 with i,
+    rw fin.append'_elim0,
+    refine congr_arg a (fin.ext _),
+    simp },
+  { rw [tensor_product.add_tmul, map_add, map_add, hx, hy], },
 end
 
 lemma mul_assoc {na nb nc} (a : ⨂[R]^na M) (b : ⨂[R]^nb M) (c : ⨂[R]^nc M) :
-  reindex R M (equiv.cast $ by rw add_assoc) ((a ₜ* b) ₜ* c) = a ₜ* (b  ₜ* c) :=
+  reindex R M (equiv.cast $ congr_arg fin (add_assoc _ _ _)) ((a ₜ* b) ₜ* c) = a ₜ* (b  ₜ* c) :=
 begin
   -- replace `a`, `b`, `c` with `tprod R a`, `tprod R b`, `tprod R c`
   let e : ⨂[R]^(na + nb + nc) M ≃ₗ[R] ⨂[R]^(na + (nb + nc)) M :=

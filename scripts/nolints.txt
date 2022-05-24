@@ -17,8 +17,6 @@ apply_nolint freiman_hom.has_coe_to_fun to_additive_doc
 
 -- algebra/hom/group.lean
 apply_nolint monoid_hom.ext_iff to_additive_doc
-apply_nolint monoid_hom.map_inv to_additive_doc
-apply_nolint monoid_hom.map_mul_inv to_additive_doc
 apply_nolint mul_hom.ext_iff to_additive_doc
 apply_nolint one_hom.comp_assoc to_additive_doc
 
@@ -382,11 +380,6 @@ apply_nolint wseq.mem doc_blame
 apply_nolint wseq.tail.aux doc_blame
 apply_nolint wseq.think_congr unused_arguments
 
--- data/set/pointwise.lean
-apply_nolint set.set_semiring.comm_semiring check_reducibility
-apply_nolint set.set_semiring.non_assoc_semiring check_reducibility
-apply_nolint set.set_semiring.non_unital_non_assoc_semiring check_reducibility
-
 -- data/stream/defs.lean
 apply_nolint stream.corec doc_blame
 apply_nolint stream.corec' doc_blame
@@ -395,32 +388,6 @@ apply_nolint stream.unfolds doc_blame
 
 -- data/stream/init.lean
 apply_nolint stream.is_bisimulation doc_blame
-
--- deprecated/group.lean
-apply_nolint is_group_hom.comp to_additive_doc
-apply_nolint is_group_hom.id to_additive_doc
-apply_nolint is_group_hom.injective_iff to_additive_doc
-apply_nolint is_group_hom.inv to_additive_doc
-apply_nolint is_group_hom.map_inv to_additive_doc
-apply_nolint is_group_hom.map_one to_additive_doc
-apply_nolint is_group_hom.mk' to_additive_doc
-apply_nolint is_group_hom.mul to_additive_doc
-apply_nolint is_group_hom.to_is_monoid_hom to_additive_doc
-apply_nolint is_monoid_hom.comp to_additive_doc
-apply_nolint is_monoid_hom.id to_additive_doc
-apply_nolint is_monoid_hom.inv to_additive_doc
-apply_nolint is_monoid_hom.map_mul to_additive_doc
-apply_nolint is_mul_hom.inv to_additive_doc
-apply_nolint is_mul_hom.mul to_additive_doc
-apply_nolint is_mul_hom.to_is_monoid_hom to_additive_doc
-apply_nolint mul_equiv.is_monoid_hom to_additive_doc
-apply_nolint mul_equiv.is_mul_hom to_additive_doc
-
--- deprecated/subfield.lean
-apply_nolint is_subfield doc_blame
-
--- deprecated/subring.lean
-apply_nolint ring.closure doc_blame
 
 -- group_theory/coset.lean
 apply_nolint subgroup.card_subgroup_dvd_card to_additive_doc
@@ -530,9 +497,6 @@ apply_nolint tactic.add_coinductive_predicate.coind_rule doc_blame
 apply_nolint tactic.coinductive_predicate doc_blame
 apply_nolint tactic.interactive.coinduction doc_blame
 apply_nolint tactic.mono doc_blame
-
--- order/filter/at_top_bot.lean
-apply_nolint filter.map_at_top_finset_prod_le_of_prod_eq to_additive_doc
 
 -- order/prime_ideal.lean
 apply_nolint order.ideal.is_prime.is_maximal fails_quickly

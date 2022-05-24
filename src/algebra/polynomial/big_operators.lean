@@ -61,7 +61,7 @@ begin
     suffices : (l.map nat_degree).maximum = ((l.map nat_degree).foldr max 0 : ℕ),
     { rw this,
       simpa [this] using nat_degree_list_sum_le l },
-    rw list.maximum_eq_coe_foldr_max_of_ne_nil,
+    rw ← list.foldr_max_of_ne_nil,
     { congr },
     contrapose! h,
     rw [list.map_eq_nil] at h,

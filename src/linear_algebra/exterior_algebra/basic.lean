@@ -294,9 +294,9 @@ end
 variables (R)
 /-- The product of `n` terms of the form `ι R m` is an alternating map.
 
-This is a special case of `multilinear_map.mk_pi_algebra_fin` -/
-def ι_multi (n : ℕ) :
-  alternating_map R M (exterior_algebra R M) (fin n) :=
+This is a special case of `multilinear_map.mk_pi_algebra_fin`, and the exterior algebra version of
+`tensor_algebra.tprod`. -/
+def ι_multi (n : ℕ) : alternating_map R M (exterior_algebra R M) (fin n) :=
 let F := (multilinear_map.mk_pi_algebra_fin R n (exterior_algebra R M)).comp_linear_map (λ i, ι R)
 in
 { map_eq_zero_of_eq' := λ f x y hfxy hxy, begin

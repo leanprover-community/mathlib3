@@ -88,11 +88,11 @@ theorem self_adjoint.mem_spectrum_eq_re [star_module ℂ A] [nontrivial A] {a : 
   (ha : a ∈ self_adjoint A) {z : ℂ} (hz : z ∈ spectrum ℂ a) : z = z.re :=
 begin
   let Iu := units.mk0 I I_ne_zero,
-  have : exp ℂ ℂ (I • z) ∈ spectrum ℂ (exp ℂ A (I • a)),
+  have : exp ℂ (I • z) ∈ spectrum ℂ (exp ℂ (I • a)),
     by simpa only [units.smul_def, units.coe_mk0]
       using spectrum.exp_mem_exp (Iu • a) (smul_mem_smul_iff.mpr hz),
   exact complex.ext (of_real_re _)
-    (by simpa only [←complex.exp_eq_exp_ℂ_ℂ, mem_sphere_zero_iff_norm, norm_eq_abs, abs_exp,
+    (by simpa only [←complex.exp_eq_exp_ℂ, mem_sphere_zero_iff_norm, norm_eq_abs, abs_exp,
       real.exp_eq_one_iff, smul_eq_mul, I_mul, neg_eq_zero]
       using spectrum.subset_circle_of_unitary (self_adjoint.exp_i_smul_unitary ha) this),
 end

@@ -31,6 +31,7 @@ universes v' u'
 
 open category_theory
 open category_theory.category
+open_locale classical
 
 namespace category_theory.limits
 
@@ -131,6 +132,63 @@ instance : has_zero_morphisms (C ⥤ D) :=
 @[simp] lemma zero_app (F G : C ⥤ D) (j : C) : (0 : F ⟶ G).app j = 0 := rfl
 
 end
+
+namespace is_zero
+variables [has_zero_morphisms C]
+
+lemma eq_zero_of_src {X Y : C} (o : is_zero X) (f : X ⟶ Y) : f = 0 :=
+o.eq_of_src _ _
+
+lemma eq_zero_of_tgt {X Y : C} (o : is_zero Y) (f : X ⟶ Y) : f = 0 :=
+o.eq_of_tgt _ _
+
+lemma iff_id_eq_zero (X : C) : is_zero X ↔ (𝟙 X = 0) :=
+⟨λ h, h.eq_of_src _ _,
+ λ h, ⟨
+  λ Y, ⟨⟨⟨0⟩, λ f, by { rw [←id_comp f, ←id_comp default, h, zero_comp, zero_comp], }⟩⟩,
+  λ Y, ⟨⟨⟨0⟩, λ f, by { rw [←comp_id f, ←comp_id default, h, comp_zero, comp_zero], }⟩⟩⟩⟩
+
+lemma of_mono_zero (X Y : C) [mono (0 : X ⟶ Y)] : is_zero X :=
+(iff_id_eq_zero X).mpr ((cancel_mono (0 : X ⟶ Y)).1 (by simp))
+
+lemma of_epi_zero (X Y : C) [epi (0 : X ⟶ Y)] : is_zero Y :=
+(iff_id_eq_zero Y).mpr ((cancel_epi (0 : X ⟶ Y)).1 (by simp))
+
+lemma of_mono_eq_zero {X Y : C} (f : X ⟶ Y) [mono f] (h : f = 0) : is_zero X :=
+by { unfreezingI { subst h, }, apply of_mono_zero X Y, }
+
+lemma of_epi_eq_zero {X Y : C} (f : X ⟶ Y) [epi f] (h : f = 0) : is_zero Y :=
+by { unfreezingI { subst h, }, apply of_epi_zero X Y, }
+
+lemma iff_split_mono_eq_zero {X Y : C} (f : X ⟶ Y) [split_mono f] : is_zero X ↔ f = 0 :=
+begin
+  rw iff_id_eq_zero,
+  split,
+  { intro h, rw [←category.id_comp f, h, zero_comp], },
+  { intro h, rw [←split_mono.id f], simp [h], },
+end
+
+lemma iff_split_epi_eq_zero {X Y : C} (f : X ⟶ Y) [split_epi f] : is_zero Y ↔ f = 0 :=
+begin
+  rw iff_id_eq_zero,
+  split,
+  { intro h, rw [←category.comp_id f, h, comp_zero], },
+  { intro h, rw [←split_epi.id f], simp [h], },
+end
+
+lemma of_mono {X Y : C} (f : X ⟶ Y) [mono f] (i : is_zero Y) : is_zero X :=
+begin
+  unfreezingI { have hf := i.eq_zero_of_tgt f, subst hf, },
+  exact is_zero.of_mono_zero X Y,
+end
+
+lemma of_epi {X Y : C} (f : X ⟶ Y) [epi f] (i : is_zero X) : is_zero Y :=
+begin
+  unfreezingI { have hf := i.eq_zero_of_src f, subst hf, },
+  exact is_zero.of_epi_zero X Y,
+end
+
+end is_zero
 
 /-- A category with a zero object has zero morphisms.
 
@@ -294,6 +352,14 @@ def iso_zero_of_epi_zero {X Y : C} (h : epi (0 : X ⟶ Y)) : Y ≅ 0 :=
   inv := 0,
   hom_inv_id' := (cancel_epi (0 : X ⟶ Y)).mp (by simp) }
 
+/-- If a monomorphism out of `X` is zero, then `X ≅ 0`. -/
+def iso_zero_of_mono_eq_zero {X Y : C} {f : X ⟶ Y} [mono f] (h : f = 0) : X ≅ 0 :=
+by { unfreezingI { subst h, }, apply iso_zero_of_mono_zero ‹_›, }
+
+/-- If an epimorphism in to `Y` is zero, then `Y ≅ 0`. -/
+def iso_zero_of_epi_eq_zero {X Y : C} {f : X ⟶ Y} [epi f] (h : f = 0) : Y ≅ 0 :=
+by { unfreezingI { subst h, }, apply iso_zero_of_epi_zero ‹_›, }
+
 /-- If an object `X` is isomorphic to 0, there's no need to use choice to construct
 an explicit isomorphism: the zero morphism suffices. -/
 def iso_of_is_isomorphic_zero {X : C} (P : is_isomorphic X 0) : X ≅ 0 :=
@@ -454,15 +520,13 @@ end image
 
 /-- In the presence of zero morphisms, coprojections into a coproduct are (split) monomorphisms. -/
 instance split_mono_sigma_ι
-  {β : Type v} [decidable_eq β]
-  [has_zero_morphisms C]
+  {β : Type v} [has_zero_morphisms C]
   (f : β → C) [has_colimit (discrete.functor f)] (b : β) : split_mono (sigma.ι f b) :=
 { retraction := sigma.desc (λ b', if h : b' = b then eq_to_hom (congr_arg f h) else 0), }
 
 /-- In the presence of zero morphisms, projections into a product are (split) epimorphisms. -/
 instance split_epi_pi_π
-  {β : Type v} [decidable_eq β]
-  [has_zero_morphisms C]
+  {β : Type v} [has_zero_morphisms C]
   (f : β → C) [has_limit (discrete.functor f)] (b : β) : split_epi (pi.π f b) :=
 { section_ := pi.lift (λ b', if h : b = b' then eq_to_hom (congr_arg f h) else 0), }
 

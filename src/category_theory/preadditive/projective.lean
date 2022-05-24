@@ -105,10 +105,15 @@ instance {P Q : C} [has_binary_coproduct P Q] [projective P] [projective Q] :
 { factors := λ E X' f e epi, by exactI
   ⟨coprod.desc (factor_thru (coprod.inl ≫ f) e) (factor_thru (coprod.inr ≫ f) e), by tidy⟩, }
 
+section
+local attribute [tidy] tactic.discrete_cases
+
 instance {β : Type v} (g : β → C) [has_coproduct g] [∀ b, projective (g b)] :
   projective (∐ g) :=
 { factors := λ E X' f e epi, by exactI
   ⟨sigma.desc (λ b, factor_thru (sigma.ι g b ≫ f) e), by tidy⟩, }
+
+end
 
 instance {P Q : C} [has_zero_morphisms C] [has_binary_biproduct P Q]
   [projective P] [projective Q] :
@@ -116,7 +121,7 @@ instance {P Q : C} [has_zero_morphisms C] [has_binary_biproduct P Q]
 { factors := λ E X' f e epi, by exactI
   ⟨biprod.desc (factor_thru (biprod.inl ≫ f) e) (factor_thru (biprod.inr ≫ f) e), by tidy⟩, }
 
-instance {β : Type v} [decidable_eq β] (g : β → C) [has_zero_morphisms C] [has_biproduct g]
+instance {β : Type v} (g : β → C) [has_zero_morphisms C] [has_biproduct g]
   [∀ b, projective (g b)] : projective (⨁ g) :=
 { factors := λ E X' f e epi, by exactI
   ⟨biproduct.desc (λ b, factor_thru (biproduct.ι g b ≫ f) e), by tidy⟩, }

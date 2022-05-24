@@ -9,17 +9,16 @@ import tactic.abel
 /-!
 # Combinatorial games.
 
-In this file we define the quotient of pre-games by the equivalence relation `p ≈ q ↔ p ≤ q ∧ q ≤
-p`, and construct an instance `add_comm_group game`, as well as an instance `partial_order game`
-(although note carefully the warning that the `<` field in this instance is not the usual relation
-on combinatorial games).
+In this file we define the quotient of pre-games by the equivalence relation
+`p ≈ q ↔ p ≤ q ∧ q ≤ p` (its `antisymmetrization`), and construct an instance `add_comm_group game`,
+as well as an instance `partial_order game`.
 
 ## Multiplication on pre-games
 
 We define the operations of multiplication and inverse on pre-games, and prove a few basic theorems
-about them. Multiplication is not well-behaved under equivalence of pre-games i.e. `x.equiv y` does
-not imply `(x*z).equiv (y*z)`. Hence, multiplication is not a well-defined operation on games.
-Nevertheless, the abelian group structure on games allows us to simplify many proofs for pre-games.
+about them. Multiplication is not well-behaved under equivalence of pre-games i.e. `x ≈ y` does not
+imply `x * z ≈ y * z`. Hence, multiplication is not a well-defined operation on games. Nevertheless,
+the abelian group structure on games allows us to simplify many proofs for pre-games.
 -/
 
 open function
@@ -48,135 +47,73 @@ open pgame
 
 namespace game
 
-/-- The relation `x ≤ y` on games. -/
-def le : game → game → Prop :=
-quotient.lift₂ (λ x y, x ≤ y) (λ x₁ y₁ x₂ y₂ hx hy, propext (le_congr hx hy))
-
-instance : has_le game :=
-{ le := le }
-
--- Adding `@[refl]` and `@[trans]` attributes here would override the ones on
--- `preorder.le_refl` and `preorder.le_trans`, which breaks all non-`game` uses of `≤`!
-theorem le_refl : ∀ x : game, x ≤ x :=
-by { rintro ⟨x⟩, apply pgame.le_refl }
-theorem le_trans : ∀ x y z : game, x ≤ y → y ≤ z → x ≤ z :=
-by { rintro ⟨x⟩ ⟨y⟩ ⟨z⟩, apply pgame.le_trans }
-theorem le_antisymm : ∀ x y : game, x ≤ y → y ≤ x → x = y :=
-by { rintro ⟨x⟩ ⟨y⟩ h₁ h₂, apply quot.sound, exact ⟨h₁, h₂⟩ }
-
-/-- The relation `x < y` on games. -/
--- We don't yet make this into an instance, because it will conflict with the (incorrect) notion
--- of `<` provided by `partial_order` later.
-def lt : game → game → Prop :=
-quotient.lift₂ (λ x y, x < y) (λ x₁ y₁ x₂ y₂ hx hy, propext (lt_congr hx hy))
-
-theorem not_le : ∀ {x y : game}, ¬ (x ≤ y) ↔ (lt y x) :=
-by { rintro ⟨x⟩ ⟨y⟩, exact not_le }
-
-instance : has_zero game := ⟨⟦0⟧⟩
-instance : inhabited game := ⟨0⟩
-instance : has_one game := ⟨⟦1⟧⟩
-
-/-- The negation of `{L | R}` is `{-R | -L}`. -/
-def neg : game → game :=
-quot.lift (λ x, ⟦-x⟧) (λ x y h, quot.sound (@neg_congr x y h))
-
-instance : has_neg game :=
-{ neg := neg }
-
-/-- The sum of `x = {xL | xR}` and `y = {yL | yR}` is `{xL + y, x + yL | xR + y, x + yR}`. -/
-def add : game → game → game :=
-quotient.lift₂ (λ x y : pgame, ⟦x + y⟧) (λ x₁ y₁ x₂ y₂ hx hy, quot.sound (pgame.add_congr hx hy))
-
-instance : has_add game := ⟨add⟩
-
-theorem add_assoc : ∀ (x y z : game), (x + y) + z = x + (y + z) :=
-begin
-  rintros ⟨x⟩ ⟨y⟩ ⟨z⟩,
-  apply quot.sound,
-  exact add_assoc_equiv
-end
-
-instance : add_semigroup game.{u} :=
-{ add_assoc := add_assoc,
-  ..game.has_add }
-
-theorem add_zero : ∀ (x : game), x + 0 = x :=
-begin
-  rintro ⟨x⟩,
-  apply quot.sound,
-  apply add_zero_equiv
-end
-theorem zero_add : ∀ (x : game), 0 + x = x :=
-begin
-  rintro ⟨x⟩,
-  apply quot.sound,
-  apply zero_add_equiv
-end
-
-instance : add_monoid game :=
-{ add_zero := add_zero,
-  zero_add := zero_add,
-  ..game.has_zero,
-  ..game.add_semigroup }
-
-theorem add_left_neg : ∀ (x : game), (-x) + x = 0 :=
-begin
-  rintro ⟨x⟩,
-  apply quot.sound,
-  apply add_left_neg_equiv
-end
-
-instance : add_group game :=
-{ add_left_neg := add_left_neg,
-  ..game.has_neg,
-  ..game.add_monoid }
-
-theorem add_comm : ∀ (x y : game), x + y = y + x :=
-begin
-  rintros ⟨x⟩ ⟨y⟩,
-  apply quot.sound,
-  exact add_comm_equiv
-end
-
-instance : add_comm_semigroup game :=
-{ add_comm := add_comm,
-  ..game.add_semigroup }
-
 instance : add_comm_group game :=
-{ ..game.add_comm_semigroup,
-  ..game.add_group }
+{ zero := ⟦0⟧,
+  neg := quot.lift (λ x, ⟦-x⟧) (λ x y h, quot.sound (@neg_congr x y h)),
+  add := quotient.lift₂ (λ x y : pgame, ⟦x + y⟧)
+    (λ x₁ y₁ x₂ y₂ hx hy, quot.sound (pgame.add_congr hx hy)),
+  add_zero := by { rintro ⟨x⟩, exact quot.sound (add_zero_equiv x) },
+  zero_add := by { rintro ⟨x⟩, exact quot.sound (zero_add_equiv x) },
+  add_assoc := by { rintros ⟨x⟩ ⟨y⟩ ⟨z⟩, exact quot.sound add_assoc_equiv },
+  add_left_neg := by { rintro ⟨x⟩, exact quot.sound (add_left_neg_equiv x) },
+  add_comm := by { rintros ⟨x⟩ ⟨y⟩, exact quot.sound add_comm_equiv } }
+
+instance : has_one game := ⟨⟦1⟧⟩
+instance : inhabited game := ⟨0⟩
+
+instance : partial_order game :=
+{ le := quotient.lift₂ (λ x y, x ≤ y) (λ x₁ y₁ x₂ y₂ hx hy, propext (le_congr hx hy)),
+  le_refl := by { rintro ⟨x⟩, exact le_refl x },
+  le_trans := by { rintro ⟨x⟩ ⟨y⟩ ⟨z⟩, exact @le_trans _ _ x y z },
+  le_antisymm := by { rintro ⟨x⟩ ⟨y⟩ h₁ h₂, apply quot.sound, exact ⟨h₁, h₂⟩ } }
+
+/-- The less or fuzzy relation on games.
+
+If `0 ⧏ x` (less or fuzzy with), then Left can win `x` as the first player. -/
+def lf : game → game → Prop :=
+quotient.lift₂ lf (λ x₁ y₁ x₂ y₂ hx hy, propext (lf_congr hx hy))
+
+local infix ` ⧏ `:50 := lf
+
+/-- On `pgame`, simp-normal inequalities should use as few negations as possible. -/
+@[simp] theorem not_le : ∀ {x y : game}, ¬ x ≤ y ↔ y ⧏ x :=
+by { rintro ⟨x⟩ ⟨y⟩, exact pgame.not_le }
+
+/-- On `pgame`, simp-normal inequalities should use as few negations as possible. -/
+@[simp] theorem not_lf : ∀ {x y : game}, ¬ x ⧏ y ↔ y ≤ x :=
+by { rintro ⟨x⟩ ⟨y⟩, exact pgame.not_lf }
+
+instance : is_trichotomous game (⧏) :=
+⟨by { rintro ⟨x⟩ ⟨y⟩, change _ ∨ ⟦x⟧ = ⟦y⟧ ∨ _, rw quotient.eq, apply lf_or_equiv_or_gf }⟩
+
+/-- The fuzzy, confused, or incomparable relation on games.
+
+If `x ∥ 0`, then the first player can always win `x`. -/
+def fuzzy : game → game → Prop :=
+quotient.lift₂ fuzzy (λ x₁ y₁ x₂ y₂ hx hy, propext (fuzzy_congr hx hy))
 
 instance covariant_class_add_le : covariant_class game game (+) (≤) :=
-⟨begin rintro ⟨a⟩ ⟨b⟩ ⟨c⟩ h, exact @add_le_add_left _ _ _ _ b c h a end⟩
+⟨by { rintro ⟨a⟩ ⟨b⟩ ⟨c⟩ h, exact @add_le_add_left _ _ _ _ b c h a }⟩
 
 instance covariant_class_swap_add_le : covariant_class game game (swap (+)) (≤) :=
-⟨begin rintro ⟨a⟩ ⟨b⟩ ⟨c⟩ h, exact @add_le_add_right _ _ _ _ b c h a end⟩
+⟨by { rintro ⟨a⟩ ⟨b⟩ ⟨c⟩ h, exact @add_le_add_right _ _ _ _ b c h a }⟩
 
--- While it is very tempting to define a `partial_order` on games, and prove
--- that games form an `ordered_add_comm_group`, it is a bit dangerous.
+instance covariant_class_add_lt : covariant_class game game (+) (<) :=
+⟨by { rintro ⟨a⟩ ⟨b⟩ ⟨c⟩ h, exact @add_lt_add_left _ _ _ _ b c h a }⟩
 
--- The relations `≤` and `<` on games do not satisfy
--- `lt_iff_le_not_le : ∀ a b : α, a < b ↔ (a ≤ b ∧ ¬ b ≤ a)`
--- (Consider `a = 0`, `b = star`.)
--- (`lt_iff_le_not_le` is satisfied by surreal numbers, however.)
--- Thus we can not use `<` when defining a `partial_order`.
+instance covariant_class_swap_add_lt : covariant_class game game (swap (+)) (<) :=
+⟨by { rintro ⟨a⟩ ⟨b⟩ ⟨c⟩ h, exact @add_lt_add_right _ _ _ _ b c h a }⟩
 
--- Because of this issue, we define the `partial_order` and `ordered_add_comm_group` instances,
--- but do not actually mark them as instances, for safety.
+theorem add_lf_add_right : ∀ {b c : game} (h : b ⧏ c) (a), b + a ⧏ c + a :=
+by { rintro ⟨b⟩ ⟨c⟩ h ⟨a⟩, apply add_lf_add_right h }
 
-/-- The `<` operation provided by this partial order is not the usual `<` on games! -/
-def game_partial_order : partial_order game :=
-{ le_refl := le_refl,
-  le_trans := le_trans,
-  le_antisymm := le_antisymm,
-  ..game.has_le }
+theorem add_lf_add_left : ∀ {b c : game} (h : b ⧏ c) (a), a + b ⧏ a + c :=
+by { rintro ⟨b⟩ ⟨c⟩ h ⟨a⟩, apply add_lf_add_left h }
 
-/-- The `<` operation provided by this `ordered_add_comm_group` is not the usual `<` on games! -/
-def ordered_add_comm_group_game : ordered_add_comm_group game :=
+instance ordered_add_comm_group : ordered_add_comm_group game :=
 { add_le_add_left := @add_le_add_left _ _ _ game.covariant_class_add_le,
   ..game.add_comm_group,
-  ..game_partial_order }
+  ..game.partial_order }
 
 end game
 
@@ -205,8 +142,8 @@ Hence we define them here. -/
 
 /-- The product of `x = {xL | xR}` and `y = {yL | yR}` is
 `{xL*y + x*yL - xL*yL, xR*y + x*yR - xR*yR | xL*y + x*yR - xL*yR, x*yL + xR*y - xR*yL }`. -/
-def mul (x y : pgame) : pgame :=
-begin
+instance : has_mul pgame.{u} :=
+⟨λ x y, begin
   induction x with xl xr xL xR IHxl IHxr generalizing y,
   induction y with yl yr yL yR IHyl IHyr,
   have y := mk yl yr yL yR,
@@ -215,29 +152,41 @@ begin
   { exact IHxr i y + IHyr j - IHxr i (yR j) },
   { exact IHxl i y + IHyr j - IHxl i (yR j) },
   { exact IHxr i y + IHyl j - IHxr i (yL j) }
-end
+end⟩
 
-instance : has_mul pgame := ⟨mul⟩
+theorem left_moves_mul : ∀ (x y : pgame.{u}), (x * y).left_moves
+  = (x.left_moves × y.left_moves ⊕ x.right_moves × y.right_moves)
+| ⟨_, _, _, _⟩ ⟨_, _, _, _⟩ := rfl
 
-/-- An explicit description of the moves for Left in `x * y`. -/
-def left_moves_mul (x y : pgame) : (x * y).left_moves
-  ≃ x.left_moves × y.left_moves ⊕ x.right_moves × y.right_moves :=
-by { cases x, cases y, refl, }
+theorem right_moves_mul : ∀ (x y : pgame.{u}), (x * y).right_moves
+  = (x.left_moves × y.right_moves ⊕ x.right_moves × y.left_moves)
+| ⟨_, _, _, _⟩ ⟨_, _, _, _⟩ := rfl
 
-/-- An explicit description of the moves for Right in `x * y`. -/
-def right_moves_mul (x y : pgame) : (x * y).right_moves
-  ≃ x.left_moves × y.right_moves ⊕ x.right_moves × y.left_moves :=
-by { cases x, cases y, refl, }
+/-- Turns two left or right moves for `x` and `y` into a left move for `x * y` and vice versa.
+
+Even though these types are the same (not definitionally so), this is the preferred way to convert
+between them. -/
+def to_left_moves_mul {x y : pgame} : x.left_moves × y.left_moves ⊕ x.right_moves × y.right_moves
+  ≃ (x * y).left_moves :=
+equiv.cast (left_moves_mul x y).symm
+
+/-- Turns a left and a right move for `x` and `y` into a right move for `x * y` and vice versa.
+
+Even though these types are the same (not definitionally so), this is the preferred way to convert
+between them. -/
+def to_right_moves_mul {x y : pgame} : x.left_moves × y.right_moves ⊕ x.right_moves × y.left_moves
+  ≃ (x * y).right_moves :=
+equiv.cast (right_moves_mul x y).symm
 
 @[simp] lemma mk_mul_move_left_inl {xl xr yl yr} {xL xR yL yR} {i j} :
   (mk xl xr xL xR * mk yl yr yL yR).move_left (sum.inl (i, j))
   = xL i * (mk yl yr yL yR) + (mk xl xr xL xR) * yL j - xL i * yL j :=
- rfl
+rfl
 
 @[simp] lemma mul_move_left_inl {x y : pgame} {i j} :
-   (x * y).move_left ((left_moves_mul x y).symm (sum.inl (i, j)))
+   (x * y).move_left (to_left_moves_mul (sum.inl (i, j)))
    = x.move_left i * y + x * y.move_left j - x.move_left i * y.move_left j :=
-by {cases x, cases y, refl}
+by { cases x, cases y, refl }
 
 @[simp] lemma mk_mul_move_left_inr {xl xr yl yr} {xL xR yL yR} {i j} :
   (mk xl xr xL xR * mk yl yr yL yR).move_left (sum.inr (i, j))
@@ -245,9 +194,9 @@ by {cases x, cases y, refl}
 rfl
 
 @[simp] lemma mul_move_left_inr {x y : pgame} {i j} :
-   (x * y).move_left ((left_moves_mul x y).symm (sum.inr (i, j)))
+   (x * y).move_left (to_left_moves_mul (sum.inr (i, j)))
    = x.move_right i * y + x * y.move_right j - x.move_right i * y.move_right j :=
-by {cases x, cases y, refl}
+by { cases x, cases y, refl }
 
 @[simp] lemma mk_mul_move_right_inl {xl xr yl yr} {xL xR yL yR} {i j} :
   (mk xl xr xL xR * mk yl yr yL yR).move_right (sum.inl (i, j))
@@ -255,9 +204,9 @@ by {cases x, cases y, refl}
 rfl
 
 @[simp] lemma mul_move_right_inl {x y : pgame} {i j} :
-   (x * y).move_right ((right_moves_mul x y).symm (sum.inl (i, j)))
+   (x * y).move_right (to_right_moves_mul (sum.inl (i, j)))
    = x.move_left i * y + x * y.move_right j - x.move_left i * y.move_right j :=
-by {cases x, cases y, refl}
+by { cases x, cases y, refl }
 
 @[simp] lemma mk_mul_move_right_inr {xl xr yl yr} {xL xR yL yR} {i j} :
   (mk xl xr xL xR * mk yl yr yL yR).move_right (sum.inr (i,j))
@@ -265,32 +214,41 @@ by {cases x, cases y, refl}
 rfl
 
 @[simp] lemma mul_move_right_inr {x y : pgame} {i j} :
-   (x * y).move_right ((right_moves_mul x y).symm (sum.inr (i, j)))
+   (x * y).move_right (to_right_moves_mul (sum.inr (i, j)))
    = x.move_right i * y + x * y.move_left j - x.move_right i * y.move_left j :=
-by {cases x, cases y, refl}
+by { cases x, cases y, refl }
+
+lemma left_moves_mul_cases {x y : pgame} (k : (x * y).left_moves) :
+  (∃ ix iy, k = to_left_moves_mul (sum.inl ⟨ix, iy⟩)) ∨
+  ∃ jx jy, k = to_left_moves_mul (sum.inr ⟨jx, jy⟩) :=
+begin
+  rw ←to_left_moves_mul.apply_symm_apply k,
+  rcases to_left_moves_mul.symm k with ⟨ix, iy⟩ | ⟨jx, jy⟩,
+  { exact or.inl ⟨ix, iy, rfl⟩ },
+  { exact or.inr ⟨jx, jy, rfl⟩ }
+end
+
+lemma right_moves_mul_cases {x y : pgame} (k : (x * y).right_moves) :
+  (∃ ix jy, k = to_right_moves_mul (sum.inl ⟨ix, jy⟩)) ∨
+  ∃ jx iy, k = to_right_moves_mul (sum.inr ⟨jx, iy⟩) :=
+begin
+  rw ←to_right_moves_mul.apply_symm_apply k,
+  rcases to_right_moves_mul.symm k with ⟨ix, jy⟩ | ⟨jx, iy⟩,
+  { exact or.inl ⟨ix, jy, rfl⟩ },
+  { exact or.inr ⟨jx, iy, rfl⟩ }
+end
 
 theorem quot_mul_comm : Π (x y : pgame.{u}), ⟦x * y⟧ = ⟦y * x⟧
 | (mk xl xr xL xR) (mk yl yr yL yR) :=
 begin
-  let x := mk xl xr xL xR,
-  let y := mk yl yr yL yR,
-  refine quot_eq_of_mk_quot_eq _ _ _ _,
-  apply equiv.sum_congr (equiv.prod_comm _ _) (equiv.prod_comm _ _),
-  calc
-    xl × yr ⊕ xr × yl
-       ≃ xr × yl ⊕ xl × yr : equiv.sum_comm _ _
-   ... ≃ yl × xr ⊕ yr × xl : equiv.sum_congr (equiv.prod_comm _ _) (equiv.prod_comm _ _),
-  { rintro (⟨i, j⟩ | ⟨i, j⟩),
-    { change ⟦xL i * y⟧ + ⟦x * yL j⟧ - ⟦xL i * yL j⟧ = ⟦yL j * x⟧ + ⟦y * xL i⟧ - ⟦yL j * xL i⟧,
-      rw [quot_mul_comm (xL i) y, quot_mul_comm x (yL j), quot_mul_comm (xL i) (yL j), add_comm] },
-    { change ⟦xR i * y⟧ + ⟦x * yR j⟧ - ⟦xR i * yR j⟧ = ⟦yR j * x⟧ + ⟦y * xR i⟧ - ⟦yR j * xR i⟧,
-      rw [quot_mul_comm (xR i) y, quot_mul_comm x (yR j), quot_mul_comm (xR i) (yR j),
-        add_comm] } },
-  { rintro (⟨j, i⟩ | ⟨j, i⟩),
-    { change ⟦xR i * y⟧ + ⟦x * yL j⟧ - ⟦xR i * yL j⟧ = ⟦yL j * x⟧ + ⟦y * xR i⟧ - ⟦yL j * xR i⟧,
-      rw [quot_mul_comm (xR i) y, quot_mul_comm x (yL j), quot_mul_comm (xR i) (yL j), add_comm] },
-    { change ⟦xL i * y⟧ + ⟦x * yR j⟧ - ⟦xL i * yR j⟧ = ⟦yR j * x⟧ + ⟦y * xL i⟧ - ⟦yR j * xL i⟧,
-      rw [quot_mul_comm (xL i) y, quot_mul_comm x (yR j), quot_mul_comm (xL i) (yR j), add_comm] } }
+  refine quot_eq_of_mk_quot_eq
+    (equiv.sum_congr (equiv.prod_comm _ _) (equiv.prod_comm _ _))
+    ((equiv.sum_comm _ _).trans (equiv.sum_congr (equiv.prod_comm _ _) (equiv.prod_comm _ _))) _ _,
+  all_goals { rintro (⟨i, j⟩ | ⟨i, j⟩); dsimp; rw [quot_mul_comm, quot_mul_comm (mk xl xr xL xR)] },
+  { rw [quot_mul_comm (xL i), add_comm] },
+  { rw [quot_mul_comm (xR i), add_comm] },
+  { rw [quot_mul_comm (xR j), add_comm] },
+  { rw [quot_mul_comm (xL j), add_comm] }
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 
@@ -566,11 +524,9 @@ def inv' : pgame → pgame
     inv_val L' R IHl' IHr, inv_val L' R IHl' IHr⟩
 
 /-- The inverse of a surreal number in terms of the inverse on positive surreals. -/
-noncomputable def inv (x : pgame) : pgame :=
-by classical; exact
-if x = 0 then 0 else if 0 < x then inv' x else inv' (-x)
+noncomputable instance : has_inv pgame :=
+⟨by { classical, exact λ x, if x = 0 then 0 else if 0 < x then inv' x else inv' (-x) }⟩
 
-noncomputable instance : has_inv pgame := ⟨inv⟩
 noncomputable instance : has_div pgame := ⟨λ x y, x * y⁻¹⟩
 
 end pgame

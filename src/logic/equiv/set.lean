@@ -217,13 +217,12 @@ protected def singleton {α} (a : α) : ({a} : set α) ≃ punit.{u} :=
  λ ⟨x, h⟩, by { simp at h, subst x },
  λ ⟨⟩, rfl⟩
 
-/-- Equal sets are equivalent. -/
+/-- Equal sets are equivalent.
+
+TODO: this is the same as `equiv.set_congr`! -/
 @[simps apply symm_apply]
 protected def of_eq {α : Type u} {s t : set α} (h : s = t) : s ≃ t :=
-{ to_fun := λ x, ⟨x, h ▸ x.2⟩,
-  inv_fun := λ x, ⟨x, h.symm ▸ x.2⟩,
-  left_inv := λ _, subtype.eq rfl,
-  right_inv := λ _, subtype.eq rfl }
+equiv.set_congr h
 
 /-- If `a ∉ s`, then `insert a s` is equivalent to `s ⊕ punit`. -/
 protected def insert {α} {s : set.{u} α} [decidable_pred (∈ s)] {a : α} (H : a ∉ s) :
@@ -511,6 +510,23 @@ begin
   dsimp only [subtype.coe_mk],
   by_cases hi : p i; simp [hi]
 end
+
+/-- `sigma_fiber_equiv f` for `f : α → β` is the natural equivalence between
+the type of all preimages of points under `f` and the total space `α`. -/
+-- See also `equiv.sigma_fiber_equiv`.
+@[simps] def sigma_preimage_equiv {α β} (f : α → β) : (Σ b, f ⁻¹' {b}) ≃ α :=
+sigma_fiber_equiv f
+
+/-- A family of equivalences between preimages of points gives an equivalence between domains. -/
+-- See also `equiv.of_fiber_equiv`.
+@[simps]
+def of_preimage_equiv {α β γ} {f : α → γ} {g : β → γ} (e : Π c, (f ⁻¹' {c}) ≃ (g ⁻¹' {c})) :
+  α ≃ β :=
+equiv.of_fiber_equiv e
+
+lemma of_preimage_equiv_map {α β γ} {f : α → γ} {g : β → γ}
+  (e : Π c, (f ⁻¹' {c}) ≃ (g ⁻¹' {c})) (a : α) : g (of_preimage_equiv e a) = f a :=
+equiv.of_fiber_equiv_map e a
 
 end equiv
 

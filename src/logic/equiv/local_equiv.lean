@@ -731,7 +731,7 @@ section pi
 variables {ι : Type*} {αi βi : ι → Type*} (ei : Π i, local_equiv (αi i) (βi i))
 
 /-- The product of a family of local equivs, as a local equiv on the pi type. -/
-@[simps {fully_applied := ff}] protected def pi : local_equiv (Π i, αi i) (Π i, βi i) :=
+@[simps (mfld_cfg)] protected def pi : local_equiv (Π i, αi i) (Π i, βi i) :=
 { to_fun := λ f i, ei i (f i),
   inv_fun := λ f i, (ei i).symm (f i),
   source := pi univ (λ i, (ei i).source),

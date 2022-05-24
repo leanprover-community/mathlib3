@@ -85,7 +85,7 @@ def comap_of_ker_is_p_group (hϕ : is_p_group p ϕ.ker) (h : ↑P ≤ ϕ.range) 
 @[simp] lemma coe_comap_of_ker_is_p_group (hϕ : is_p_group p ϕ.ker) (h : ↑P ≤ ϕ.range) :
   ↑(P.comap_of_ker_is_p_group ϕ hϕ h) = subgroup.comap ϕ ↑P := rfl
 
-/-- The preimage of a Sylow subgroup under an injective homomorphism is a Sylow subgroup -/
+/-- The preimage of a Sylow subgroup under an injective homomorphism is a Sylow subgroup. -/
 def comap_of_injective (hϕ : function.injective ϕ) (h : P.1 ≤ ϕ.range) : sylow p K :=
 P.comap_of_ker_is_p_group ϕ (is_p_group.ker_is_p_group_of_injective hϕ) h
 

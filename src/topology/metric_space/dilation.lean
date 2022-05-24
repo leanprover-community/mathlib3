@@ -310,7 +310,7 @@ lemma tendsto_nhds_iff {ι : Type*} {g : ι → α} {a : filter ι} {b : α} (hr
 lemma to_continuous : continuous (f : α → β) :=
 (lipschitz f).continuous
 
-/-- Dilations multiply the diameter by their ratio in pseudoemetric spaces. -/
+/-- Dilations scale the diameter by `ratio f` in pseudoemetric spaces. -/
 lemma ediam_image (s : set α) :
   emetric.diam ((f: α → β) '' s) = ratio f * emetric.diam s :=
 begin
@@ -388,7 +388,7 @@ end emetric_dilation --section
 section pseudo_metric_dilation
 variables [pseudo_metric_space α] [pseudo_metric_space β] [dilation_class F α β] (f : F)
 
-/-- A dilation preserves the diameter in pseudometric spaces. -/
+/-- A dilation scales the diameter by `ratio f` in pseudometric spaces. -/
 lemma diam_image (s : set α) : metric.diam ((f : α → β) '' s) = ratio f * metric.diam s :=
 by { simp [metric.diam, metric.diam, ediam_image, ennreal.to_real_mul], }
 

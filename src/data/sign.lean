@@ -204,7 +204,7 @@ end linear_ordered_ring
 
 namespace int
 
-@[simp] lemma sign_eq_sign (n : ℤ) : n.sign = _root_.sign n :=
+lemma sign_eq_sign (n : ℤ) : n.sign = _root_.sign n :=
 begin
   obtain ((_ | _) | _) := n,
   { exact congr_arg coe sign_zero.symm },
@@ -216,18 +216,18 @@ end int
 open finset nat
 open_locale big_operators
 
-variables [decidable_eq α] [nonempty α]
-
 -- TODO: Inlining this yields an app-builder exception
-lemma exists_signed_sum_aux {n : ℕ} (sgn : ℕ → sign_type) (b : α) [decidable_eq α] {f : α → ℤ}
+lemma exists_signed_sum_aux [decidable_eq α] {n : ℕ} (sgn : ℕ → sign_type) (b : α) {f : α → ℤ}
   ⦃a : α⦄ (g : ℕ → α) (i : ℕ) :
-   ite ((range (n - (f a).nat_abs)).piecewise g (λ _, a) i = b)
-        ((range (n - (f a).nat_abs)).piecewise sgn (λ _, sign (f a)) i : ℤ) 0 =
-    (range (n - (f a).nat_abs)).piecewise (λ j, ite (g j = b) ↑(sgn j) 0)
-        (λ j, ite (a = b) ↑(sign (f a)) 0) i :=
+   if (range (n - (f a).nat_abs)).piecewise g (λ _, a) i = b then
+        then ((range (n - (f a).nat_abs)).piecewise sgn (λ _, sign (f a)) i : ℤ) else 0 =
+    (range (n - (f a).nat_abs)).piecewise (λ j, if g j = b then ↑(sgn j) else 0)
+        (λ j, if a = b then ↑(sign (f a)) else 0) i :=
 by { unfold piecewise, split_ifs; refl }
 
-lemma exists_signed_sum (s : finset α) (n : ℕ) (f : α → ℤ) (hn : ∑ i in s, (f i).nat_abs ≤ n) :
+/-- We can decompose a sum of absolute value less than `n` into a sum of at most `n` signs. -/
+lemma exists_signed_sum [decidable_eq α] [nonempty α] (s : finset α) (n : ℕ) (f : α → ℤ)
+  (hn : ∑ i in s, (f i).nat_abs ≤ n) :
   ∃ (sgn : ℕ → sign_type) (g : ℕ → α), (∀ i, g i ∉ s → sgn i = 0) ∧
     ∀ a ∈ s, (∑ i in range n, if g i = a then (sgn i : ℤ) else 0) = f a :=
 begin

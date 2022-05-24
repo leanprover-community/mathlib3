@@ -931,6 +931,7 @@ end
 
 variables [topological_space B'] [topological_space (total_space E)]
 
+/-- Definition of `pullback.total_space.topological_space`, which we make irreducible. -/
 @[irreducible] def pullback_topology : topological_space (total_space (f *ᵖ E)) :=
 induced (proj (f *ᵖ E)) ‹topological_space B'› ⊓
 induced (pullback.lift E f) ‹topological_space (total_space E)›

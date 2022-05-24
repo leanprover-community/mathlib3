@@ -211,12 +211,13 @@ instance closeds.compact_space [compact_space α] : compact_space (closeds α) :
   let F := {f : closeds α | (f : set α) ⊆ s},
   refine ⟨F, _, λ u _, _⟩,
   -- `F` is finite
-  { apply @finite_of_finite_image _ _ F coe,
-    { exact set_like.coe_injective.inj_on F },
-    { refine fs.finite_subsets.subset (λb, _),
+  { apply @finite.of_finite_image _ _ F coe,
+    { apply fs.finite_subsets.subset (λb, _),
       simp only [and_imp, set.mem_image, set.mem_set_of_eq, exists_imp_distrib],
       assume x hx hx',
-      rwa hx' at hx }},
+      rwa hx' at hx },
+    { exact set_like.coe_injective.inj_on F } },
+
   -- `F` is ε-dense
   { obtain ⟨t0, t0s, Dut0⟩ := main u,
     have : is_closed t0 := (fs.subset t0s).is_compact.is_closed,

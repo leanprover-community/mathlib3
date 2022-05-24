@@ -155,7 +155,7 @@ section finite_intervals
 
 variables [linear_order α] [topological_space α] [order_closed_topology α]
   [opens_measurable_space α] {a b : ι → α} {A B : α}
-  (ha : tendsto a l (nhds A)) (hb : tendsto b l (nhds B))
+  (ha : tendsto a l (𝓝 A)) (hb : tendsto b l (𝓝 B))
 
 lemma ae_cover_Ioo_of_Icc :
   ae_cover (μ.restrict $ Ioo A B) l (λ i, Icc (a i) (b i)) :=
@@ -195,51 +195,51 @@ lemma ae_cover_Ioo_of_Ioo :
 
 variables [has_no_atoms μ]
 
-lemma ae_cover_Ioc_of_Icc (ha : tendsto a l (nhds A)) (hb : tendsto b l (nhds B)) :
+lemma ae_cover_Ioc_of_Icc (ha : tendsto a l (𝓝 A)) (hb : tendsto b l (𝓝 B)) :
   ae_cover (μ.restrict $ Ioc A B) l (λ i, Icc (a i) (b i)) :=
 by simp [measure.restrict_congr_set Ioo_ae_eq_Ioc.symm, ae_cover_Ioo_of_Icc ha hb]
 
-lemma ae_cover_Ioc_of_Ico (ha : tendsto a l (nhds A)) (hb : tendsto b l (nhds B)) :
+lemma ae_cover_Ioc_of_Ico (ha : tendsto a l (𝓝 A)) (hb : tendsto b l (𝓝 B)) :
   ae_cover (μ.restrict $ Ioc A B) l (λ i, Ico (a i) (b i)) :=
 by simp [measure.restrict_congr_set Ioo_ae_eq_Ioc.symm, ae_cover_Ioo_of_Ico ha hb]
 
-lemma ae_cover_Ioc_of_Ioc (ha : tendsto a l (nhds A)) (hb : tendsto b l (nhds B)) :
+lemma ae_cover_Ioc_of_Ioc (ha : tendsto a l (𝓝 A)) (hb : tendsto b l (𝓝 B)) :
   ae_cover (μ.restrict $ Ioc A B) l (λ i, Ioc (a i) (b i)) :=
 by simp [measure.restrict_congr_set Ioo_ae_eq_Ioc.symm, ae_cover_Ioo_of_Ioc ha hb]
 
-lemma ae_cover_Ioc_of_Ioo (ha : tendsto a l (nhds A)) (hb : tendsto b l (nhds B)) :
+lemma ae_cover_Ioc_of_Ioo (ha : tendsto a l (𝓝 A)) (hb : tendsto b l (𝓝 B)) :
   ae_cover (μ.restrict $ Ioc A B) l (λ i, Ioo (a i) (b i)) :=
 by simp [measure.restrict_congr_set Ioo_ae_eq_Ioc.symm, ae_cover_Ioo_of_Ioo ha hb]
 
-lemma ae_cover_Ico_of_Icc (ha : tendsto a l (nhds A)) (hb : tendsto b l (nhds B)) :
+lemma ae_cover_Ico_of_Icc (ha : tendsto a l (𝓝 A)) (hb : tendsto b l (𝓝 B)) :
   ae_cover (μ.restrict $ Ico A B) l (λ i, Icc (a i) (b i)) :=
 by simp [measure.restrict_congr_set Ioo_ae_eq_Ico.symm, ae_cover_Ioo_of_Icc ha hb]
 
-lemma ae_cover_Ico_of_Ico (ha : tendsto a l (nhds A)) (hb : tendsto b l (nhds B)) :
+lemma ae_cover_Ico_of_Ico (ha : tendsto a l (𝓝 A)) (hb : tendsto b l (𝓝 B)) :
   ae_cover (μ.restrict $ Ico A B) l (λ i, Ico (a i) (b i)) :=
 by simp [measure.restrict_congr_set Ioo_ae_eq_Ico.symm, ae_cover_Ioo_of_Ico ha hb]
 
-lemma ae_cover_Ico_of_Ioc (ha : tendsto a l (nhds A)) (hb : tendsto b l (nhds B)) :
+lemma ae_cover_Ico_of_Ioc (ha : tendsto a l (𝓝 A)) (hb : tendsto b l (𝓝 B)) :
   ae_cover (μ.restrict $ Ico A B) l (λ i, Ioc (a i) (b i)) :=
 by simp [measure.restrict_congr_set Ioo_ae_eq_Ico.symm, ae_cover_Ioo_of_Ioc ha hb]
 
-lemma ae_cover_Ico_of_Ioo (ha : tendsto a l (nhds A)) (hb : tendsto b l (nhds B)) :
+lemma ae_cover_Ico_of_Ioo (ha : tendsto a l (𝓝 A)) (hb : tendsto b l (𝓝 B)) :
   ae_cover (μ.restrict $ Ico A B) l (λ i, Ioo (a i) (b i)) :=
 by simp [measure.restrict_congr_set Ioo_ae_eq_Ico.symm, ae_cover_Ioo_of_Ioo ha hb]
 
-lemma ae_cover_Icc_of_Icc (ha : tendsto a l (nhds A)) (hb : tendsto b l (nhds B)) :
+lemma ae_cover_Icc_of_Icc (ha : tendsto a l (𝓝 A)) (hb : tendsto b l (𝓝 B)) :
   ae_cover (μ.restrict $ Icc A B) l (λ i, Icc (a i) (b i)) :=
 by simp [measure.restrict_congr_set Ioo_ae_eq_Icc.symm, ae_cover_Ioo_of_Icc ha hb]
 
-lemma ae_cover_Icc_of_Ico (ha : tendsto a l (nhds A)) (hb : tendsto b l (nhds B)) :
+lemma ae_cover_Icc_of_Ico (ha : tendsto a l (𝓝 A)) (hb : tendsto b l (𝓝 B)) :
   ae_cover (μ.restrict $ Icc A B) l (λ i, Ico (a i) (b i)) :=
 by simp [measure.restrict_congr_set Ioo_ae_eq_Icc.symm, ae_cover_Ioo_of_Ico ha hb]
 
-lemma ae_cover_Icc_of_Ioc (ha : tendsto a l (nhds A)) (hb : tendsto b l (nhds B)) :
+lemma ae_cover_Icc_of_Ioc (ha : tendsto a l (𝓝 A)) (hb : tendsto b l (𝓝 B)) :
   ae_cover (μ.restrict $ Icc A B) l (λ i, Ioc (a i) (b i)) :=
 by simp [measure.restrict_congr_set Ioo_ae_eq_Icc.symm, ae_cover_Ioo_of_Ioc ha hb]
 
-lemma ae_cover_Icc_of_Ioo (ha : tendsto a l (nhds A)) (hb : tendsto b l (nhds B)) :
+lemma ae_cover_Icc_of_Ioo (ha : tendsto a l (𝓝 A)) (hb : tendsto b l (𝓝 B)) :
   ae_cover (μ.restrict $ Icc A B) l (λ i, Ioo (a i) (b i)) :=
 by simp [measure.restrict_congr_set Ioo_ae_eq_Icc.symm, ae_cover_Ioo_of_Ioo ha hb]
 
@@ -281,7 +281,7 @@ begin
     let ⟨i, hi⟩ := (hu.eventually hx).exists in mem_Union.mpr ⟨i, hi⟩
 end
 
-lemma ae_cover.ae_strongly_measurable {β : Type*} [topological_space β] [metrizable_space β]
+lemma ae_cover.ae_strongly_measurable {β : Type*} [topological_space β] [pseudo_metrizable_space β]
   [l.is_countably_generated] [l.ne_bot]
   {f : α → β} {φ : ι → set α} (hφ : ae_cover μ l φ)
   (hfm : ∀ i, ae_strongly_measurable f (μ.restrict $ φ i)) : ae_strongly_measurable f μ :=

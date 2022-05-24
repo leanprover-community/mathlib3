@@ -63,6 +63,8 @@ another answer, which is constructively more satisfying, could be obtained by sh
 
 -/
 
+open set
+
 variables {ι : Type*} (M : Π i : ι, Type*) [Π i, monoid (M i)]
 
 /-- A relation on the free monoid on alphabet `Σ i, M i`, relating `⟨i, 1⟩` with `1` and
@@ -688,13 +690,11 @@ theorem lift_injective_of_ping_pong:
 begin
   classical,
   apply (injective_iff_map_eq_one (lift f)).mpr,
-  rw free_product.word.equiv.forall_congr_left',
+  rw (free_product.word.equiv : _ ≃ word H).forall_congr_left',
   { intros w Heq,
     dsimp [word.equiv] at *,
     { rw empty_of_word_prod_eq_one f hcard X hXnonempty hXdisj hpp Heq,
       reflexivity, }, },
-  apply_instance,
-  apply_instance,
 end
 
 end ping_pong_lemma

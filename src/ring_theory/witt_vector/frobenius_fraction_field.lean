@@ -226,7 +226,7 @@ lemma exists_frobenius_solution_fraction_ring_aux
   (hq : ↑p ^ n * q' ∈ non_zero_divisors (𝕎 k)) :
   let b : 𝕎 k := frobenius_rotation p hr' hq' in
   is_fraction_ring.field_equiv_of_ring_equiv
-      (ring_equiv.of_bijective frobenius (frobenius_bijective p k))
+      (frobenius_equiv p k)
       (algebra_map (𝕎 k) (fraction_ring (𝕎 k)) b) *
     localization.mk (↑p ^ m * r') ⟨↑p ^ n * q', hq⟩ =
   ↑p ^ (m - n : ℤ) * algebra_map (𝕎 k) (fraction_ring (𝕎 k)) b :=
@@ -256,16 +256,16 @@ begin
   revert ha,
   refine localization.induction_on a _,
   rintros ⟨r, q, hq⟩ hrq,
-  rw mem_non_zero_divisors_iff_ne_zero at hq,
-  have : r ≠ 0 := λ h, hrq (by simp [h]),
-  obtain ⟨m, r', hr', rfl⟩ := exists_eq_pow_p_mul r this,
-  obtain ⟨n, q', hq', rfl⟩ := exists_eq_pow_p_mul q hq,
+  have hq0 : q ≠ 0 := mem_non_zero_divisors_iff_ne_zero.1 hq,
+  have hr0 : r ≠ 0 := λ h, hrq (by simp [h]),
+  obtain ⟨m, r', hr', rfl⟩ := exists_eq_pow_p_mul r hr0,
+  obtain ⟨n, q', hq', rfl⟩ := exists_eq_pow_p_mul q hq0,
   let b := frobenius_rotation p hr' hq',
   refine ⟨algebra_map (𝕎 k) _ b, _, m - n, _⟩,
   { simpa only [map_zero] using
       (is_fraction_ring.injective (witt_vector p k) (fraction_ring (witt_vector p k))).ne
         (frobenius_rotation_nonzero p hr' hq')},
-  apply exists_frobenius_solution_fraction_ring_aux; assumption,
+  exact exists_frobenius_solution_fraction_ring_aux p m n r' q' hr' hq' hq,
 end
 
 end is_alg_closed

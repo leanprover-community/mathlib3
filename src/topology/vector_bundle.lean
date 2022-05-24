@@ -395,7 +395,7 @@ namespace trivialization
 is in fact a continuous linear equiv between the fibers and the model fiber. -/
 @[simps apply symm_apply] def continuous_linear_equiv_at (e : trivialization R F E) (b : B)
   (hb : b ∈ e.base_set) : E b ≃L[R] F :=
-{ to_fun := λ y, (e ⟨b, y⟩).2,
+{ to_fun := λ y, (e (total_space_mk E b y)).2,
   inv_fun := e.symm b,
   continuous_to_fun := continuous_snd.comp (e.to_local_homeomorph.continuous_on.comp_continuous
     (total_space_mk_inducing R F E b).continuous (λ x, e.mem_source.mpr hb)),

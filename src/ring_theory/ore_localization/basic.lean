@@ -181,7 +181,7 @@ lemma lift₂_expand_of {C : Sort*} {P : R → S → R → S → C}
   {hP : ∀ (r₁ t₁ : R) (s₁ : S) (ht₁ : (s₁ : R) * t₁ ∈ S)
           (r₂ t₂ : R) (s₂ : S) (ht₂ : (s₂ : R) * t₂ ∈ S),
     P r₁ s₁ r₂ s₂ = P (r₁ * t₁) ⟨s₁ * t₁, ht₁⟩ (r₂ * t₂) ⟨s₂ * t₂, ht₂⟩}
-  (r₁ : R) (s₁ : S) (r₂ : R) (s₂ : S):
+  (r₁ : R) (s₁ : S) (r₂ : R) (s₂ : S) :
   lift₂_expand P hP (r₁ /ₒ s₁) (r₂ /ₒ s₂) = P r₁ s₁ r₂ s₂ :=
 rfl
 
@@ -619,8 +619,7 @@ begin
   rcases ore_div_mul_char' r₁ (r₃ * (ra * sb)) s₁ (s₂ * sa * sb) with ⟨rc, sc, hc, hc'⟩, rw hc',
   rw ore_div_add_char (s₂ * sa * sb) (s₂ * sa * sb * sc) 1 sc (by simp),
   rw ore_localization.expand' (r₂ * ↑sa + r₃ * ra) (s₂ * sa) (sb * sc),
-  conv_lhs {
-    congr, skip, congr,
+  conv_lhs { congr, skip, congr,
     rw [add_mul, S.coe_mul, ←mul_assoc, hb, ←mul_assoc, mul_assoc r₃, hc, mul_assoc, ←mul_add] },
   rw ore_localization.mul_cancel', simp only [mul_one, submonoid.coe_mul, mul_add, ←mul_assoc],
 end
@@ -676,8 +675,7 @@ def universal_hom : R[S⁻¹] →+* T :=
     rw [←units.coe_mul, ←mul_inv_rev, ←fS.map_mul, h₃'],
     have hs₂r₃ : ↑s₂ * r₃ ∈ S, { rw ←h₃, exact set_like.coe_mem (s₁ * s₃)},
     apply (units.inv_mul_cancel_left (fS s₂) _).symm.trans,
-    conv_lhs {
-      congr, skip,
+    conv_lhs { congr, skip,
       rw [←units.mul_inv_cancel_left (fS ⟨s₂ * r₃, hs₂r₃⟩) (fS s₂), mul_assoc, mul_assoc],
       congr, skip, rw [←hf, ←mul_assoc (f s₂), ←f.map_mul],
       conv { congr, skip, congr, rw [←h₃] },

@@ -57,17 +57,17 @@ lemma nim_def (O : ordinal) : nim O = pgame.mk O.out.α O.out.α
   (λ O₂, nim (ordinal.typein (<) O₂)) :=
 by { rw nim, refl }
 
-instance : is_empty (left_moves (nim 0)) :=
-by { rw nim_def, exact α.is_empty }
+instance : is_empty (nim 0).left_moves :=
+by { rw nim_def, exact ordinal.is_empty_out_zero }
 
-instance : is_empty (right_moves (nim 0)) :=
-by { rw nim_def, exact α.is_empty }
+instance : is_empty (nim 0).right_moves :=
+by { rw nim_def, exact ordinal.is_empty_out_zero }
 
-noncomputable instance : unique (left_moves (nim 1)) :=
-by { rw nim_def, exact α.unique }
+noncomputable instance : unique (nim 1).left_moves :=
+by { rw nim_def, exact ordinal.unique_out_one }
 
-noncomputable instance : unique (right_moves (nim 1)) :=
-by { rw nim_def, exact α.unique }
+noncomputable instance : unique (nim 1).right_moves :=
+by { rw nim_def, exact ordinal.unique_out_one }
 
 /-- `nim 0` has exactly the same moves as `0`. -/
 def nim_zero_relabelling : relabelling (nim 0) 0 := relabelling.is_empty _

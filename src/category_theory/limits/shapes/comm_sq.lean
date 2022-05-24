@@ -129,7 +129,8 @@ namespace is_pullback
 variables {P X Y Z : C} {fst : P ⟶ X} {snd : P ⟶ Y} {f : X ⟶ Z} {g : Y ⟶ Z}
 
 /--
-The (limiting) `pullback_cone f g` implicit in the statement that we have a `is_pullback fst snd f g`.
+The (limiting) `pullback_cone f g` implicit in the statement
+that we have a `is_pullback fst snd f g`.
 -/
 def cone (h : is_pullback fst snd f g) : pullback_cone f g := h.to_comm_sq.cone
 

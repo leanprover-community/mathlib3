@@ -299,13 +299,21 @@ end
 end with_top
 
 namespace pi
-variables {α : Type*} {β : α → Type*} [∀ a, add_monoid_with_one (β a)]
+variables {α : Type*} {β : α → Type*} [∀ a, has_nat_cast (β a)]
 
-instance : add_monoid_with_one (∀ a, β a) :=
+instance : has_nat_cast (∀ a, β a) :=
 by refine_struct { .. }; tactic.pi_instance_derive_field
 
 lemma nat_apply (n : ℕ) (a : α) : (n : ∀ a, β a) a = n := rfl
 
 @[simp] lemma coe_nat (n : ℕ) : (n : ∀ a, β a) = λ _, n := rfl
+
+end pi
+
+namespace pi
+variables {α : Type*} {β : α → Type*} [∀ a, add_monoid_with_one (β a)]
+
+instance : add_monoid_with_one (∀ a, β a) :=
+by refine_struct { .. }; tactic.pi_instance_derive_field
 
 end pi

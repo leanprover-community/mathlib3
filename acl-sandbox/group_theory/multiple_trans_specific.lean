@@ -499,11 +499,12 @@ begin
   apply nat.mul_le_mul_right _ hG,
 end
 
+/-
 -- Preuve très maladroite
 -- Il vaudrait mieux prouver la divisibilité de Wielandt, 9.3
 -- On verrait tout de suite que #G est multiple de n!/2,
 -- donc l'indice de G est au plus 2.
-lemma contains_alternating_iff_is_all_minus_two_pretransitive
+lemma contains_alternating_iff_is_all_minus_two_pretransitive'
   {G : Type*} [G : subgroup (equiv.perm α)]
   (hmt : is_multiply_pretransitive ↥G α (fintype.card α - 2)) :
   alternating_group α ≤ G :=
@@ -688,8 +689,9 @@ begin
           exact le_trans hα h' },
         rw [hx, ← gx1_eq_kx2, hs', equiv.swap_inv, smul_left_cancel_iff, equiv.swap_apply_right] } }
 end
+ -/
 
-lemma contains_alternating_iff_is_all_minus_two_pretransitive'
+lemma contains_alternating_iff_is_all_minus_two_pretransitive
   {G : subgroup (equiv.perm α)}
   (hmt : is_multiply_pretransitive ↥G α (fintype.card α - 2)) :
   alternating_group α ≤ G :=
@@ -985,7 +987,7 @@ begin
         rw htb at *,
         obtain ⟨g, hg⟩ := hG_eq a b,
         have hst : g • {a} = {b}, sorry,
-        apply is_preprimitive_of_bihom _
+        apply is_preprimitive_via_surjective_bihom
           (function.bijective.surjective
             (sub_mul_action_of_fixing_subgroup_conj_bihom_bijective G hst))
           hprim },
@@ -1067,9 +1069,13 @@ begin
   rw sub_mul_action_of_fixing_subgroup_def,
   rw ← hs2, simp only [compl_compl, cardinal.mk_fintype],
 
+  norm_num,
+
   let j : mul_action_bihom (fixing_subgroup G sᶜ) (sub_mul_action_of_fixing_subgroup G sᶜ)
     (equiv.perm s) s :=
     sub_mul_action_of_fixing_subgroup_bihom G,
+  have hj : function.bijective j.to_fun,
+  apply sub_mul_action_of_fixing_subgroup_bihom_bijective,
 
   /-
   let j : mul_action_bihom (equiv.perm s) (s)
@@ -1085,7 +1091,7 @@ begin
   map_smul' := sorry },
   have hj : function.surjective j.to_fun, sorry,
   -/
-  apply is_multiply_pretransitive_via_surjective_bihom hj,
+  rw is_multiply_pretransitive_via_bijective_bihom_iff hj _,
   norm_num, rw ← hs2,
   apply equiv_perm_is_fully_pretransitive },
 

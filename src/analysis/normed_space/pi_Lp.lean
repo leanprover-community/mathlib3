@@ -76,7 +76,7 @@ instance fact_one_le_two_real : fact ((1:ℝ) ≤ 2) := ⟨one_le_two⟩
 
 namespace pi_Lp
 
-variables (p : ℝ) [fact_one_le_p : fact (1 ≤ p)] (α : ι → Type*) (β : ι → Type*)
+variables (p : ℝ) [fact_one_le_p : fact (1 ≤ p)] (𝕜 : Type*) (α : ι → Type*) (β : ι → Type*)
 
 /-- Canonical bijection between `pi_Lp p α` and the original Pi type. We introduce it to be able
 to compare the `L^p` and `L^∞` distances through it. -/
@@ -287,7 +287,7 @@ subtype.ext $ by { push_cast, exact norm_eq_of_L2 x }
 
 include fact_one_le_p
 
-variables (𝕜 : Type*) [normed_field 𝕜]
+variables [normed_field 𝕜]
 
 /-- The product of finitely many normed spaces is a normed space, with the `L^p` norm. -/
 instance normed_space [Π i, semi_normed_group (β i)] [Π i, normed_space 𝕜 (β i)] :

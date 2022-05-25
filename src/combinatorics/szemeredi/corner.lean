@@ -143,7 +143,7 @@ begin
   refine (card_congr (λ a _, triangle_map a) (λ t ht, triangle_map_mem _ (mem_filter.1 ht).2)
     (λ x y _ _, _) (λ t ht, _)).symm,
   { apply triangle_map_injective },
-  obtain ⟨_, ht', rfl⟩ := triangle_map_surj ((mem_clique_finset_iff _ _).1 ht),
+  obtain ⟨_, ht', rfl⟩ := triangle_map_surj ((mem_clique_finset_iff _).1 ht),
   exact ⟨w, by simpa using ht', rfl⟩,
 end
 

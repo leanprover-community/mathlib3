@@ -49,7 +49,8 @@ lemma card_nonuniform_witness_sdiff_bUnion_star (hV : V ∈ P.parts) (hUV : U �
   (h₂ : ¬G.is_uniform ε U V) :
   (G.nonuniform_witness ε U V \ (hP.star G ε hU V).bUnion id).card ≤ 2^(P.parts.card - 1) * m :=
 begin
-  have hX : G.nonuniform_witness ε U V ∈ P.nonuniform_witnesses G ε U := mem_image_of_mem _ (by simp [hUV, hV, h₂]),
+  have hX : G.nonuniform_witness ε U V ∈ P.nonuniform_witnesses G ε U :=
+    mem_image_of_mem _ (by simp [hUV, hV, h₂]),
   have q : G.nonuniform_witness ε U V \ (hP.star G ε hU V).bUnion id ⊆
     ((atomise U $ P.nonuniform_witnesses G ε U).parts.filter
       (λ B, B ⊆ G.nonuniform_witness ε U V ∧ B.nonempty)).bUnion
@@ -63,7 +64,8 @@ begin
     exact ⟨B, hB₁, hB₂, λ A hA AB, hx A hA $ AB.trans hB₁.2.1⟩ },
   apply (card_le_of_subset q).trans (card_bUnion_le.trans _),
   have :
-    ∑ i in (atomise U (P.nonuniform_witnesses G ε U)).parts.filter (λ B, B ⊆ G.nonuniform_witness ε U V ∧ B.nonempty), m
+    ∑ i in (atomise U (P.nonuniform_witnesses G ε U)).parts.filter
+      (λ B, B ⊆ G.nonuniform_witness ε U V ∧ B.nonempty), m
       ≤ 2 ^ (P.parts.card - 1) * m,
   { rw sum_const_nat,
     { apply nat.mul_le_mul_right,
@@ -116,7 +118,8 @@ begin
     (1 - ε/10) * (G.nonuniform_witness ε U V).card
         ≤ (1 - 2^P.parts.card * m/(U.card * ε)) * (G.nonuniform_witness ε U V).card
         : mul_le_mul_of_nonneg_right (sub_le_sub_left this _) (nat.cast_nonneg _)
-    ... = (G.nonuniform_witness ε U V).card - 2^P.parts.card * m/(U.card * ε) * (G.nonuniform_witness ε U V).card
+    ... = (G.nonuniform_witness ε U V).card - 2^P.parts.card * m/(U.card * ε)
+            * (G.nonuniform_witness ε U V).card
         : by rw [sub_mul, one_mul]
     ... ≤ (G.nonuniform_witness ε U V).card - 2^(P.parts.card - 1) * m : begin
           refine sub_le_sub_left _ _,
@@ -132,8 +135,9 @@ begin
     ... ≤ ((hP.star G ε hU V).bUnion id).card
         : begin
           norm_cast,
-          rw [sub_le, ←nat.cast_sub (finset.card_le_of_subset $ bUnion_star_subset_nonuniform_witness
-            hP G ε hU V), ←card_sdiff (bUnion_star_subset_nonuniform_witness hP G ε hU V), nat.cast_le],
+          rw [sub_le, ←nat.cast_sub (card_le_of_subset $
+            bUnion_star_subset_nonuniform_witness hP G ε hU V), ←card_sdiff
+            (bUnion_star_subset_nonuniform_witness hP G ε hU V), nat.cast_le],
           exact card_nonuniform_witness_sdiff_bUnion_star hV hUV hunif,
         end
 end
@@ -354,7 +358,7 @@ begin
   apply le_trans _ (pow_le_pow_of_le_left hGε this 2),
   rw [sub_sq, sub_add, sub_le_sub_iff_left],
   apply (sub_le_self _ (sq_nonneg (ε^5/50))).trans,
-  rw [mul_right_comm, mul_div_left_comm, div_eq_mul_one_div (ε^5), (show (2:ℝ)/50 = 1/25, by norm_num)],
+  rw [mul_right_comm, mul_div_left_comm, div_eq_mul_inv (ε^5), (show (2:ℝ)/50 = 25⁻¹, by norm_num)],
   exact mul_le_of_le_one_right (mul_nonneg (eps_pow_five_pos hPε).le (by norm_num))
     (by exact_mod_cast G.edge_density_le_one _ _),
 end
@@ -385,7 +389,8 @@ begin
     (bUnion_star_subset_nonuniform_witness hP G ε hV U)
     (div_nonneg (eps_pos hPε).le $ by norm_num)
     (one_sub_eps_mul_card_nonuniform_witness_le_card_star hV hUV' hUV hPε hε₁)
-    (one_sub_eps_mul_card_nonuniform_witness_le_card_star hU hUV'.symm (λ hVU, hUV hVU.symm) hPε hε₁),
+    (one_sub_eps_mul_card_nonuniform_witness_le_card_star hU hUV'.symm (λ hVU, hUV hVU.symm)
+      hPε hε₁),
   linarith,
 end
 

@@ -142,6 +142,27 @@ forall_imp $ λ s, mt $ is_n_clique.mono h
 
 end clique_free
 
+/-! ### Set of cliques -/
+
+section clique_set
+variables (G) {n : ℕ} {a b c : α} {s : finset α}
+
+/-- The `n`-cliques in a graph as a set. -/
+def clique_set (n : ℕ) : set (finset α) := {s | G.is_n_clique n s}
+
+lemma mem_clique_set_iff : s ∈ G.clique_set n ↔ G.is_n_clique n s := iff.rfl
+
+@[simp] lemma clique_set_eq_empty_iff : G.clique_set n = ∅ ↔ G.clique_free n :=
+by simp_rw [clique_free, set.eq_empty_iff_forall_not_mem, mem_clique_set_iff]
+
+alias clique_set_eq_empty_iff ↔ _ simple_graph.clique_free.clique_set
+
+attribute [protected] clique_free.clique_set
+
+lemma clique_set_mono (h : G ≤ H) : G.clique_set n ⊆ H.clique_set n := λ _, is_n_clique.mono h
+
+end clique_set
+
 /-! ### Finset of cliques -/
 
 section clique_finset
@@ -150,8 +171,11 @@ variables (G) [fintype α] [decidable_eq α] [decidable_rel G.adj] {n : ℕ} {a 
 /-- The `n`-cliques in a graph as a finset. -/
 def clique_finset (n : ℕ) : finset (finset α) := univ.filter $ G.is_n_clique n
 
-lemma mem_clique_finset_iff (s : finset α) : s ∈ G.clique_finset n ↔ G.is_n_clique n s :=
+lemma mem_clique_finset_iff : s ∈ G.clique_finset n ↔ G.is_n_clique n s :=
 mem_filter.trans $ and_iff_right $ mem_univ _
+
+@[simp] lemma coe_clique_finset (n : ℕ) : (G.clique_finset n : set (finset α)) = G.clique_set n :=
+set.ext $ λ _, mem_clique_finset_iff _
 
 @[simp] lemma clique_finset_eq_empty_iff : G.clique_finset n = ∅ ↔ G.clique_free n :=
 by simp_rw [clique_free, eq_empty_iff_forall_not_mem, mem_clique_finset_iff]

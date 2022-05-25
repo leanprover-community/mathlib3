@@ -221,8 +221,7 @@ begin
     by_contra' h,
     refine hG' t _,
     simp only [not_and, mem_sdiff, not_not, mem_edge_finset, mem_edge_set] at h,
-    obtain ⟨x, y, z, xy, xz, yz, rfl⟩ :=
-      is_3_clique_iff.1 ((G.mem_clique_finset_iff _).1 $ htris ht),
+    obtain ⟨x, y, z, xy, xz, yz, rfl⟩ := is_3_clique_iff.1 (G.mem_clique_finset_iff.1 $ htris ht),
     rw is_3_clique_triple_iff,
     refine ⟨h _ _ _ _ xy.ne xy, h _ _ _ _ xz.ne xz, h _ _ _ _ yz.ne yz⟩; simp },
   choose fx hfx fy hfy hfne fmem using this,

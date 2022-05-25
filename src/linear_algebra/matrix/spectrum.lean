@@ -78,8 +78,8 @@ begin
   { simp only [diagonal_mul, (∘), eigenvalues, eigenvector_basis,
       inner_product_space.is_self_adjoint.diagonalization_basis],
     rw [basis.to_matrix_apply, basis.coe_to_orthonormal_basis_repr, basis.reindex_repr,
-      basis.equiv_fun_apply, pi.basis_fun_apply],
-    refl }
+      basis.equiv_fun_apply, pi.basis_fun_apply, eigenvalues₀, linear_map.coe_std_basis,
+      euclidean_space.single] }
 end
 
 end is_hermitian

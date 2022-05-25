@@ -651,6 +651,7 @@ namespace finset
 variables {γ : Type*} [linear_order γ] [locally_finite_order γ]
   [decidable (nonempty γ)] [is_well_order γ (<)]
 
+/-- Left-infinte right-open interval as a finset -/
 noncomputable def Iio_wf (a : γ) : finset γ :=
 if h : nonempty γ
 then Ico ((@is_well_order.wf γ (<) _).min set.univ (@set.univ_nonempty γ h)) a

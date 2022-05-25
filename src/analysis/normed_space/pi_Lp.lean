@@ -354,6 +354,8 @@ lemma norm_equiv_symm_one {β} [semi_normed_group β] [has_one β] :
   ∥(pi_Lp.equiv p (λ _ : ι, β)).symm 1∥ = fintype.card ι ^ (1 / p) * ∥(1 : β)∥ :=
 (norm_equiv_symm_const (1 : β)).trans rfl
 
+variables (𝕜)
+
 /-- `pi_Lp.equiv` as a linear map. -/
 @[simps {fully_applied := ff}]
 protected def linear_equiv : pi_Lp p β ≃ₗ[𝕜] Π i, β i :=

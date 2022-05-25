@@ -215,7 +215,7 @@ begin
       (teichmuller_character_mod_p p) ^ (p - 2)) (-1) = 1,
     swap, convert h,
     { rw units.map,
-      simp only [one_inv, monoid_hom.mk'_apply, ring_hom.coe_monoid_hom, units.coe_neg_one,
+      simp only [monoid_hom.mk'_apply, ring_hom.coe_monoid_hom, units.coe_neg_one,
         units.val_eq_coe, units.inv_eq_coe_inv, zmod.cast_hom_apply, units.neg_inv],
       have : ((-1 : zmod (d * p^m)) : zmod p) = -1,
       { rw zmod.cast_neg _,

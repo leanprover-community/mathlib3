@@ -161,7 +161,7 @@ begin
     refine discrete_topology_induced (λ a b h, units.eq_iff.1 h), },
 end
 
-variables [semi_normed_algebra ℚ_[p] R] [fact (0 < m)]
+variables [normed_algebra ℚ_[p] R] [fact (0 < m)] -- [norm_one_class R]
 
 /-- Returns ω⁻¹ = ω^(p - 2) : ℤ/(d * p^m)ℤ* →* R*. -/
 noncomputable abbreviation teichmuller_character_mod_p_change_level [algebra ℚ_[p] R] : dirichlet_character R (d * p^m) :=
@@ -198,10 +198,10 @@ homeomorph.trans (homeomorph.prod_assoc _ _ _)
   (homeomorph.symm (homeomorph.trans (homeomorph.prod_comm _ _)
   (homeomorph.prod_congr (homeomorph.refl δ) (homeomorph.prod_comm _ _)))))))))))
 
-/-- Defines a homeomorphism between α and αᵒᵖ. -/
-def homeomorph.op {α : Type*} [topological_space α] : α ≃ₜ αᵒᵖ :=
+/-/-- Defines a homeomorphism between α and αᵒᵖ. -/
+def homeomorph.op {α : Type*} [topological_space α] : α ≃ₜ αᵐᵒᵖ :=
 begin
-  refine homeomorph.homeomorph_of_continuous_open opposite.equiv_to_opposite continuous_op _,
+  refine homeomorph.homeomorph_of_continuous_open opposite.equiv_to_opposite mul_opposite.continuous_op _,
   { change is_open_map opposite.op,
     apply is_open_map.of_inverse,
     { apply continuous_unop, },
@@ -214,7 +214,7 @@ def homeomorph.prod_op_comm {α β : Type*} [topological_space α] [topological_
  ((α × β) × (α × β)ᵒᵖ) ≃ₜ ((α × αᵒᵖ) × (β × βᵒᵖ)) :=
 homeomorph.symm (homeomorph.trans (homeomorph.prod_prod_comm α β (αᵒᵖ) (βᵒᵖ)).symm
   (homeomorph.prod_congr (homeomorph.refl _) (homeomorph.symm
-  (homeomorph.trans homeomorph.op.symm (homeomorph.prod_congr homeomorph.op homeomorph.op)))))
+  (homeomorph.trans homeomorph.op.symm (homeomorph.prod_congr homeomorph.op homeomorph.op))))) -/
 
 /- lemma mul_equiv.prod_units_is_open_map : is_open_map (@mul_equiv.prod_units (zmod d) ℤ_[p] _ _) :=
 begin
@@ -332,7 +332,7 @@ noncomputable abbreviation neg_pow'_to_hom (s : ℕ) :
   monoid_hom (units (zmod d) × units ℤ_[p]) R :=
   ((algebra_map ℚ_[p] R).to_monoid_hom).comp ((
     (@padic_int.coe.ring_hom p _).to_monoid_hom).comp ((units.coe_hom ℤ_[p]).comp
-    (gpow_group_hom (-s) ((monoid_hom.snd (units (zmod d)) (units ℤ_[p])) * (monoid_hom.comp
+    (zpow_group_hom (-s) ((monoid_hom.snd (units (zmod d)) (units ℤ_[p])) * (monoid_hom.comp
     (monoid_hom.comp ((teichmuller_character_mod_p p)^(p - 2))
     (units.map padic_int.to_zmod.to_monoid_hom))
     (monoid_hom.snd (units (zmod d)) (units ℤ_[p]))) ))) )
@@ -350,7 +350,7 @@ noncomputable abbreviation neg_pow'_to_hom (s : ℕ) :
 
 --instance : metric_space (units ℤ_[p]) := infer_instance
 
-lemma padic_int.continuous_units_gpow (s : ℤ) : continuous (gpow s : units ℤ_[p] → units ℤ_[p]) :=
+/-lemma padic_int.continuous_units_gpow (s : ℤ) : continuous (gpow s : units ℤ_[p] → units ℤ_[p]) :=
 begin
   suffices : continuous ((units.coe_hom ℤ_[p]) ∘ (gpow s)),
   { fconstructor, rintros t ht,
@@ -399,7 +399,7 @@ end
 noncomputable abbreviation neg_pow' (s : ℕ) :
   weight_space (units (zmod d) × units ℤ_[p]) R :=
 ⟨(neg_pow'_to_hom p d R s).to_fun, (neg_pow'_to_hom p d R s).map_one', (neg_pow'_to_hom p d R s).map_mul',
-  neg_pow'_continuous p d R s⟩
+  neg_pow'_continuous p d R s⟩ -/
 
 variable [fact (0 < d)]
 
@@ -436,7 +436,7 @@ variables [complete_space R] [char_zero R]
 
 /-- The p-adic L- function, as defined in Thm 12.2, absorbing the (1 - χ(c)<c>^(-n)) term
   (since it appears as it is in the Iwasawa Main Conjecture). -/
-noncomputable def p_adic_L_function' [semi_normed_algebra ℚ R] : R :=
+noncomputable def p_adic_L_function' [normed_algebra ℚ R] [norm_one_class R] : R :=
     (measure.integral (bernoulli_measure' p d R hc hc' hd na)
       ⟨(units.coe_hom R).comp (pri_dir_char_extend' p d R m hd (χ *
   (teichmuller_character_mod_p_change_level p d R m))) * w.to_monoid_hom,

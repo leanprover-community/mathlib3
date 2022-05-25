@@ -33,6 +33,24 @@ and outputs a set of orthogonal vectors which have the same span.
 ## TODO
   Construct a version with an orthonormal basis from Gram-Schmidt process.
 -/
+
+namespace succ_order
+open set
+
+lemma Iio_succ_eq_insert {α : Type*} [partial_order α] [succ_order α]
+    (a : α) (ha : a ≠ succ a):
+  Iio (succ a) = insert a (Iio a) :=
+begin
+  apply le_antisymm,
+  { exact λ x hx, mem_insert_iff.1 (le_iff_eq_or_lt.1 (le_of_lt_succ hx)) },
+  { intros x hx,
+    have h1 : x ≤ a := le_iff_eq_or_lt.2 (mem_insert_iff.1 hx),
+    have h2 : a < succ a := or.resolve_left (le_iff_eq_or_lt.1 (le_succ a)) ha,
+    exact lt_of_le_of_lt (h1) h2 }
+end
+
+end succ_order
+
 namespace locally_finite_order
 
 lemma exists_min_greater {α : Type*} [linear_order α] [locally_finite_order α] (x : α) :
@@ -112,13 +130,16 @@ instance {ι : Type*} [encodable ι] : has_sizeof ι := {
   sizeof := encode
 }
 
+instance {ι : Type*} [encodable ι] : has_well_founded ι := has_well_founded_of_has_sizeof ι
+
 end encodable
 
 open_locale big_operators
 
 variables (𝕜 : Type*) {E : Type*} [is_R_or_C 𝕜] [inner_product_space 𝕜 E]
-variables {ι : Type*} [encodable ι] [has_bot ι]
--- TODO: derive has_bot from inhabited?
+variables {ι : Type*} [encodable ι] [order_bot ι] [is_succ_archimedean ι]
+-- TODO: derive order_bot from inhabited?
+-- TODO: derive is_succ_archimedean
 
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 
@@ -157,10 +178,12 @@ begin
       exact this _ _ hb, }, },
   clear h₀ a b,
   intros a b h₀,
-  induction b using nat.strong_induction_on with b ih generalizing a,
+  revert a,
+  apply well_founded.induction (has_well_founded_of_has_sizeof ι).wf b,
+  intros b ih a h₀,
   simp only [gram_schmidt_def 𝕜 f b, inner_sub_right, inner_sum,
     orthogonal_projection_singleton, inner_smul_right],
-  rw finset.sum_eq_single_of_mem a (finset.mem_range.mpr h₀),
+  rw finset.sum_eq_single_of_mem a (finset.mem_Ico.mpr ⟨bot_le, h₀⟩),
   { by_cases h : gram_schmidt 𝕜 f a = 0,
     { simp only [h, inner_zero_left, zero_div, zero_mul, sub_zero], },
     { rw [← inner_self_eq_norm_sq_to_K, div_mul_cancel, sub_self],
@@ -170,43 +193,47 @@ begin
   right,
   cases hia.lt_or_lt with hia₁ hia₂,
   { rw inner_eq_zero_sym,
-    exact ih a h₀ i hia₁, },
-  { exact ih i hi a hia₂, },
+    exact ih a ((encodable.lt_iff _ _).1 h₀) i hia₁, },
+  { exact ih i ((encodable.lt_iff _ _).1 (mem_Ico.1 hi).2) a hia₂, },
 end
 
 /-- This is another version of `gram_schmidt_orthogonal` using `pairwise` instead. -/
-theorem gram_schmidt_pairwise_orthogonal (f : ℕ → E) :
+theorem gram_schmidt_pairwise_orthogonal (f : ι → E) :
   pairwise (λ a b, ⟪gram_schmidt 𝕜 f a, gram_schmidt 𝕜 f b⟫ = 0) :=
-@gram_schmidt_orthogonal 𝕜 _ _ _ f
+λ a b, gram_schmidt_orthogonal 𝕜 f
 
 open submodule set order
 
 /-- `gram_schmidt` preserves span of vectors. -/
-lemma span_gram_schmidt (f : ℕ → E) (c : ℕ) :
+lemma span_gram_schmidt (f : ι → E) (c : ι) :
   span 𝕜 (gram_schmidt 𝕜 f '' Iio c) = span 𝕜 (f '' Iio c) :=
 begin
-  induction c with c hc,
-  { simp only [Iio, not_lt_zero', set_of_false, image_empty], },
-  have h₀ : ∀ b, b ∈ finset.range c → gram_schmidt 𝕜 f b ∈ span 𝕜 (f '' Iio c),
+  apply @succ.rec ι _ _ _ (λ c, span 𝕜 (gram_schmidt 𝕜 f '' Iio c) = span 𝕜 (f '' Iio c)) ⊥,
+  { simp only [set.Iio_bot, set.image_empty] },
+  intros c _ hc,
+  by_cases h : c = succ c,
+  { rwa ← h },
+  have h₀ : ∀ b, b ∈ finset.Ico ⊥ c → gram_schmidt 𝕜 f b ∈ span 𝕜 (f '' Iio c),
   { simp_intros b hb only [finset.mem_range, nat.succ_eq_add_one],
     rw ← hc,
     refine subset_span _,
-    simp only [mem_image, mem_Iio],
-    refine ⟨b, by linarith, by refl⟩, },
-  rw [← nat.succ_eq_succ, Iio_succ_eq_insert],
+    simp only [set.mem_image, set.mem_Iio],
+    refine ⟨b, (finset.mem_Ico.1 hb).2, by refl⟩, },
+  rw [succ, succ_order.Iio_succ_eq_insert _ h],
   simp only [span_insert, image_insert_eq, hc],
   apply le_antisymm,
   { simp only [nat.succ_eq_succ,gram_schmidt_def 𝕜 f c, orthogonal_projection_singleton,
-      sup_le_iff, span_singleton_le_iff_mem, le_sup_right, and_true],
+      _root_.sup_le_iff, span_singleton_le_iff_mem, le_sup_right, and_true],
     apply submodule.sub_mem _ _ _,
     { exact mem_sup_left (mem_span_singleton_self (f c)), },
     { exact submodule.sum_mem _ (λ b hb, mem_sup_right (smul_mem _ _ (h₀ b hb))), }, },
   { rw [gram_schmidt_def' 𝕜 f c],
     simp only [orthogonal_projection_singleton,
-      sup_le_iff, span_singleton_le_iff_mem, le_sup_right, and_true],
+      _root_.sup_le_iff, span_singleton_le_iff_mem, le_sup_right, and_true],
     apply submodule.add_mem _ _ _,
     { exact mem_sup_left (mem_span_singleton_self (gram_schmidt 𝕜 f c)), },
     { exact submodule.sum_mem _ (λ b hb, mem_sup_right (smul_mem _ _ (h₀ b hb))), }, },
+  exact bot_le,
 end
 
 /-- If the input of the first `n` vectors of `gram_schmidt` are linearly independent,

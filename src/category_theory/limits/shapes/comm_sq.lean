@@ -38,6 +38,8 @@ Bicartesian squares, and
 show that the pullback and pushout squares for a biproduct are bicartesian.
 -/
 
+noncomputable theory
+
 open category_theory
 open category_theory.limits
 
@@ -169,14 +171,16 @@ of_is_limit (is_pullback_of_is_terminal_is_product _ _ _ _ t
 variables (X Y)
 
 lemma of_has_binary_product' [has_binary_product X Y] [has_terminal C] :
-  is_pullback (prod.fst : _ ⟶ X) (prod.snd : _ ⟶ Y) (terminal.from _) (terminal.from _) :=
+  is_pullback limits.prod.fst limits.prod.snd (terminal.from X) (terminal.from Y) :=
 of_is_product (limit.is_limit _) terminal_is_terminal
 
 open_locale zero_object
 
 lemma of_has_binary_product [has_binary_product X Y] [has_zero_object C] [has_zero_morphisms C] :
-  is_pullback prod.fst prod.snd (0 : X ⟶ 0) (0 : Y ⟶ 0) :=
+  is_pullback limits.prod.fst limits.prod.snd (0 : X ⟶ 0) (0 : Y ⟶ 0) :=
 by convert of_is_product (limit.is_limit _) has_zero_object.zero_is_terminal
+
+variables {X Y}
 
 /-- Any object at the top left of a pullback square is
 isomorphic to the pullback provided by the `has_limit` API. -/
@@ -258,6 +262,8 @@ lemma of_has_binary_coproduct
   [has_binary_coproduct X Y] [has_zero_object C] [has_zero_morphisms C] :
   is_pushout (0 : 0 ⟶ X) (0 : 0 ⟶ Y) coprod.inl coprod.inr :=
 by convert of_is_coproduct (colimit.is_colimit _) has_zero_object.zero_is_initial
+
+variables {X Y}
 
 /-- Any object at the top left of a pullback square is
 isomorphic to the pullback provided by the `has_limit` API. -/

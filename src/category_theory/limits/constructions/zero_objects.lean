@@ -7,7 +7,7 @@ import category_theory.limits.shapes.pullbacks
 import category_theory.limits.shapes.zero_morphisms
 import category_theory.limits.constructions.binary_products
 
-/--
+/-!
 # Limits involving zero objects
 
 Binary products and coproducts with a zero object always exist,

@@ -1381,13 +1381,13 @@ begin
   exact eq_bot_iff.mpr (nat.lt_succ_iff.mp h₂)
 end
 
-lemma list.nth_le_eq_iff {α : Type}
+lemma nth_le_eq_iff {α : Type}
   {l : list α} {n : ℕ} {x : α} {h} : l.nth_le n h = x ↔ l.nth n = some x :=
-by { rw list.nth_eq_some, tauto }
+by { rw nth_eq_some, tauto }
 
-lemma list.some_nth_le_eq {α : Type}
+lemma some_nth_le_eq {α : Type}
   {l : list α} {n : ℕ} {h} : some (l.nth_le n h) = l.nth n :=
-by { symmetry, rw list.nth_eq_some, tauto }
+by { symmetry, rw nth_eq_some, tauto }
 
 lemma modify_nth_tail_modify_nth_tail {f g : list α → list α} (m : ℕ) :
   ∀n (l:list α), (l.modify_nth_tail f n).modify_nth_tail g (m + n) =

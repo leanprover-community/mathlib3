@@ -330,11 +330,11 @@ lemma nodup.pairwise_of_set_pairwise {l : list α} {r : α → α → Prop}
   (hl : l.nodup) (h : {x | x ∈ l}.pairwise r) : l.pairwise r :=
 hl.pairwise_of_forall_ne h
 
-lemma list.nodup_iff {α : Type} {l : list α} :
+lemma nodup_iff {α : Type} {l : list α} :
   l.nodup ↔ ∀ (i j : ℕ), i < j → j < l.length → l.nth i ≠ l.nth j :=
 begin
-  rw list.nodup_iff_nth_le_inj,
-  simp only [list.nth_le_eq_iff, list.some_nth_le_eq],
+  rw nodup_iff_nth_le_inj,
+  simp only [nth_le_eq_iff, some_nth_le_eq],
   split; rintro h i j h₁ h₂,
   { exact mt (h i j (h₁.trans h₂) h₂) (ne_of_lt h₁) },
   { intro h₃,

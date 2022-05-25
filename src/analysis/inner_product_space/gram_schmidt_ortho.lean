@@ -48,23 +48,23 @@ local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 /-- The Gram-Schmidt process takes a set of vectors as input
 and outputs a set of orthogonal vectors which have the same span. -/
 noncomputable def gram_schmidt (f : ι → E) : ι → E
-| n := f n - ∑ i : Ico ⊥ n, orthogonal_projection (𝕜 ∙ gram_schmidt i) (f n)
+| n := f n - ∑ i : Iio n, orthogonal_projection (𝕜 ∙ gram_schmidt i) (f n)
 using_well_founded { dec_tac := `[exact (mem_Ico.1 i.2).2] }
 
 /-- This lemma uses `∑ i in` instead of `∑ i :`.-/
 lemma gram_schmidt_def (f : ι → E) (n : ι):
-  gram_schmidt 𝕜 f n = f n - ∑ i in Ico ⊥ n,
+  gram_schmidt 𝕜 f n = f n - ∑ i in Iio n,
     orthogonal_projection (𝕜 ∙ gram_schmidt 𝕜 f i) (f n) :=
 by { rw [←sum_attach, attach_eq_univ, gram_schmidt], refl }
 
 lemma gram_schmidt_def' (f : ι → E) (n : ι):
-  f n = gram_schmidt 𝕜 f n + ∑ i in Ico ⊥ n,
+  f n = gram_schmidt 𝕜 f n + ∑ i in Iio n,
     orthogonal_projection (𝕜 ∙ gram_schmidt 𝕜 f i) (f n) :=
 by rw [gram_schmidt_def, sub_add_cancel]
 
 @[simp] lemma gram_schmidt_zero (f : ι → E) :
   gram_schmidt 𝕜 f ⊥ = f ⊥ :=
-by rw [gram_schmidt_def, finset.Ico_self, finset.sum_empty, sub_zero]
+by rw [gram_schmidt_def, Iio, finset.Ico_self, finset.sum_empty, sub_zero]
 
 /-- **Gram-Schmidt Orthogonalisation**:
 `gram_schmidt` produces an orthogonal system of vectors. -/
@@ -83,7 +83,7 @@ begin
   intros b ih a h₀,
   simp only [gram_schmidt_def 𝕜 f b, inner_sub_right, inner_sum,
     orthogonal_projection_singleton, inner_smul_right],
-  rw finset.sum_eq_single_of_mem a (finset.mem_Ico.mpr ⟨bot_le, h₀⟩),
+  rw finset.sum_eq_single_of_mem a (finset.mem_Iio.mpr h₀),
   { by_cases h : gram_schmidt 𝕜 f a = 0,
     { simp only [h, inner_zero_left, zero_div, zero_mul, sub_zero], },
     { rw [← inner_self_eq_norm_sq_to_K, div_mul_cancel, sub_self],
@@ -114,7 +114,7 @@ begin
   intros c _ hc,
   by_cases h : succ c = c,
   { rwa h },
-  have h₀ : ∀ b, b ∈ finset.Ico ⊥ c → gram_schmidt 𝕜 f b ∈ span 𝕜 (f '' Iio c),
+  have h₀ : ∀ b, b ∈ finset.Iio c → gram_schmidt 𝕜 f b ∈ span 𝕜 (f '' Iio c),
   { simp_intros b hb only [finset.mem_range, nat.succ_eq_add_one],
     rw ← hc,
     refine subset_span _,
@@ -149,7 +149,8 @@ begin
     simp_intros a ha only [finset.mem_Ico],
     simp only [set.mem_image, set.mem_Iio, orthogonal_projection_singleton],
     apply submodule.smul_mem _ _ _,
-    exact subset_span ⟨a, ha.2, by refl⟩ },
+    rw finset.mem_Iio at ha,
+    refine subset_span ⟨a, ha, by refl⟩, },
   apply linear_independent.not_mem_span_image h₀ _ h₃,
   simp only [set.mem_Iio, lt_self_iff_false, not_false_iff]
 end

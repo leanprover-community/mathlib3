@@ -61,8 +61,8 @@ diagonalized by a change of basis.
 
 For the spectral theorem on linear maps, see `diagonalization_basis_apply_self_apply`. -/
 theorem spectral_theorem :
-  hA.eigenvector_matrix_inv ⬝ A
-    = diagonal (coe ∘ hA.eigenvalues) ⬝ hA.eigenvector_matrix_inv :=
+  hA.eigenvector_matrix_inv ⬝ A =
+    diagonal (coe ∘ hA.eigenvalues) ⬝ hA.eigenvector_matrix_inv :=
 begin
   rw [eigenvector_matrix_inv, basis_to_matrix_basis_fun_mul],
   ext i j,

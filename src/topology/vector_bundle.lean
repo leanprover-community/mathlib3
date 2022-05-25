@@ -763,14 +763,14 @@ end
 section
 variables [nondiscrete_normed_field R] [∀ x, add_comm_monoid (E x)] [∀ x, module R (E x)]
   [normed_group F] [normed_space R F] [topological_space B]
-  [∀ x, topological_space (E x)]
 
 open topological_space
 
 /-- This structure permits to define a vector bundle when trivializations are given as local
-equivalences but there is not yet a topology on the total space. The total space is hence given a
-topology in such a way that there is a fiber bundle structure for which the local equivalences
-are also local homeomorphisms and hence vector bundle trivializations. -/
+equivalences but there is not yet a topology on the total space or the fibers.
+The total space is hence given a topology in such a way that there is a fiber bundle structure for
+which the local equivalences are also local homeomorphisms and hence vector bundle trivializations.
+The topology on the fibers is induced from the one on the total space. -/
 @[nolint has_inhabited_instance]
 structure topological_vector_prebundle :=
 (pretrivialization_atlas : set (topological_vector_bundle.pretrivialization R F E))
@@ -779,7 +779,6 @@ structure topological_vector_prebundle :=
 (pretrivialization_mem_atlas : ∀ x : B, pretrivialization_at x ∈ pretrivialization_atlas)
 (continuous_coord_change : ∀ e e' ∈ pretrivialization_atlas,
   continuous_transitions R B F (e'.to_local_equiv.symm.trans e.to_local_equiv : _))
-(total_space_mk_inducing : ∀ (b : B), inducing ((pretrivialization_at b) ∘ (total_space_mk E b)))
 
 namespace topological_vector_prebundle
 
@@ -845,27 +844,18 @@ begin
   exact a.mem_base_pretrivialization_at b,
 end
 
-@[continuity] lemma continuous_total_space_mk (b : B) :
-  @continuous _ _ _ a.total_space_topology (total_space_mk E b) :=
-begin
-  letI := a.total_space_topology,
-  let e := a.trivialization_of_mem_pretrivialization_atlas (a.pretrivialization_mem_atlas b),
-  rw e.to_local_homeomorph.continuous_iff_continuous_comp_left
-    (a.total_space_mk_preimage_source b),
-  exact continuous_iff_le_induced.mpr (le_antisymm_iff.mp (a.total_space_mk_inducing b).induced).1,
-end
+def fiber_topology (b : B) : topological_space (E b) :=
+topological_space.induced (total_space_mk E b) a.total_space_topology
 
-lemma inducing_total_space_mk_of_inducing_comp (b : B)
-  (h : inducing ((a.pretrivialization_at b) ∘ (total_space_mk E b))) :
-  @inducing _ _ _ a.total_space_topology (total_space_mk E b) :=
+@[continuity] lemma inducing_total_space_mk (b : B) :
+  @inducing _ _ (a.fiber_topology b) a.total_space_topology (total_space_mk E b) :=
+by { letI := a.total_space_topology, letI := a.fiber_topology b, exact ⟨rfl⟩ }
+
+@[continuity] lemma continuous_total_space_mk (b : B) :
+  @continuous _ _ (a.fiber_topology b) a.total_space_topology (total_space_mk E b) :=
 begin
-  letI := a.total_space_topology,
-  rw ←restrict_comp_cod_restrict (a.mem_trivialization_at_source b) at h,
-  apply inducing.of_cod_restrict (a.mem_trivialization_at_source b),
-  refine inducing_of_inducing_compose _ (continuous_on_iff_continuous_restrict.mp
-    (a.trivialization_of_mem_pretrivialization_atlas
-    (a.pretrivialization_mem_atlas b)).continuous_to_fun) h,
-  exact (a.continuous_total_space_mk b).cod_restrict (a.mem_trivialization_at_source b),
+  letI := a.total_space_topology, letI := a.fiber_topology b,
+  exact (a.inducing_total_space_mk b).continuous
 end
 
 /-- Make a `topological_vector_bundle` from a `topological_vector_prebundle`.  Concretely this means
@@ -875,9 +865,8 @@ establishes that for the topology constructed on the sigma-type using
 `topological_vector_prebundle.total_space_topology`, these "pretrivializations" are actually
 "trivializations" (i.e., homeomorphisms with respect to the constructed topology). -/
 def to_topological_vector_bundle :
-  @topological_vector_bundle R _ F E _ _ _ _ _ _ a.total_space_topology _ :=
-{ total_space_mk_inducing := λ b, a.inducing_total_space_mk_of_inducing_comp b
-    (a.total_space_mk_inducing b),
+  @topological_vector_bundle R _ F E _ _ _ _ _ _ a.total_space_topology a.fiber_topology :=
+{ total_space_mk_inducing := a.inducing_total_space_mk,
   trivialization_atlas := {e | ∃ e₀ (he₀ : e₀ ∈ a.pretrivialization_atlas),
     e = a.trivialization_of_mem_pretrivialization_atlas he₀},
   trivialization_at := λ x, a.trivialization_of_mem_pretrivialization_atlas

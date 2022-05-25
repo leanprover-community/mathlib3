@@ -18,6 +18,8 @@ A typeclass for categories with all finite (co)limits.
 
 universes v' u' v u
 
+noncomputable theory
+
 open category_theory
 
 namespace category_theory.limits
@@ -112,7 +114,7 @@ namespace wide_pullback_shape
 instance fintype_obj [fintype J] : fintype (wide_pullback_shape J) :=
 by { rw wide_pullback_shape, apply_instance }
 
-instance fintype_hom [decidable_eq J] (j j' : wide_pullback_shape J) :
+instance fintype_hom (j j' : wide_pullback_shape J) :
   fintype (j ⟶ j') :=
 { elems :=
   begin
@@ -134,7 +136,7 @@ namespace wide_pushout_shape
 instance fintype_obj [fintype J] : fintype (wide_pushout_shape J) :=
 by { rw wide_pushout_shape, apply_instance }
 
-instance fintype_hom [decidable_eq J] (j j' : wide_pushout_shape J) :
+instance fintype_hom (j j' : wide_pushout_shape J) :
   fintype (j ⟶ j') :=
 { elems :=
   begin
@@ -151,11 +153,11 @@ instance fintype_hom [decidable_eq J] (j j' : wide_pushout_shape J) :
 
 end wide_pushout_shape
 
-instance fin_category_wide_pullback [decidable_eq J] [fintype J] :
+instance fin_category_wide_pullback [fintype J] :
   fin_category (wide_pullback_shape J) :=
 { fintype_hom := wide_pullback_shape.fintype_hom }
 
-instance fin_category_wide_pushout [decidable_eq J] [fintype J] :
+instance fin_category_wide_pushout [fintype J] :
   fin_category (wide_pushout_shape J) :=
 { fintype_hom := wide_pushout_shape.fintype_hom }
 
@@ -166,24 +168,24 @@ for every finite collection of morphisms
 -- We can't just made this an `abbreviation`
 -- because of https://github.com/leanprover-community/lean/issues/429
 class has_finite_wide_pullbacks : Prop :=
-(out (J : Type v) [decidable_eq J] [fintype J] : has_limits_of_shape (wide_pullback_shape J) C)
+(out (J : Type v) [fintype J] : has_limits_of_shape (wide_pullback_shape J) C)
 
 instance has_limits_of_shape_wide_pullback_shape
   (J : Type v) [fintype J] [has_finite_wide_pullbacks C] :
   has_limits_of_shape (wide_pullback_shape J) C :=
-by { haveI := @has_finite_wide_pullbacks.out C _ _ J (classical.dec_eq _), apply_instance }
+by { haveI := @has_finite_wide_pullbacks.out C _ _ J, apply_instance }
 
 /--
 `has_finite_wide_pushouts` represents a choice of wide pushout
 for every finite collection of morphisms
 -/
 class has_finite_wide_pushouts : Prop :=
-(out (J : Type v) [decidable_eq J] [fintype J] : has_colimits_of_shape (wide_pushout_shape J) C)
+(out (J : Type v) [fintype J] : has_colimits_of_shape (wide_pushout_shape J) C)
 
 instance has_colimits_of_shape_wide_pushout_shape
   (J : Type v) [fintype J] [has_finite_wide_pushouts C] :
   has_colimits_of_shape (wide_pushout_shape J) C :=
-by { haveI := @has_finite_wide_pushouts.out C _ _ J (classical.dec_eq _), apply_instance }
+by { haveI := @has_finite_wide_pushouts.out C _ _ J, apply_instance }
 
 /--
 Finite wide pullbacks are finite limits, so if `C` has all finite limits,
@@ -191,7 +193,7 @@ it also has finite wide pullbacks
 -/
 lemma has_finite_wide_pullbacks_of_has_finite_limits [has_finite_limits C] :
   has_finite_wide_pullbacks C :=
-⟨λ J _ _, by exactI has_finite_limits.out _⟩
+⟨λ J _, by exactI has_finite_limits.out _⟩
 
 /--
 Finite wide pushouts are finite colimits, so if `C` has all finite colimits,
@@ -199,7 +201,7 @@ it also has finite wide pushouts
 -/
 lemma has_finite_wide_pushouts_of_has_finite_limits [has_finite_colimits C] :
   has_finite_wide_pushouts C :=
-⟨λ J _ _, by exactI has_finite_colimits.out _⟩
+⟨λ J _, by exactI has_finite_colimits.out _⟩
 
 instance fintype_walking_pair : fintype walking_pair :=
 { elems := {walking_pair.left, walking_pair.right},

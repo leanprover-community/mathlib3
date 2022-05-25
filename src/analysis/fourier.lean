@@ -59,7 +59,7 @@ this Hilbert basis.
 noncomputable theory
 open_locale real ennreal complex_conjugate classical
 open real complex topological_space continuous_map measure_theory measure_theory.measure
-  algebra submodule set
+  algebra submodule set interval_integral
 
 /-! ### Choice of measure on the circle -/
 
@@ -113,12 +113,28 @@ lemma integral_circle_eq (f : circle → ℂ) :
   integral circle_measure f = 1 / (2 * π) * ∫ θ in -π..π, f (exp_map_circle θ) :=
 begin
   dsimp only [circle_measure],
-  rw [integral_map_equiv, integral_smul_measure,
+  rw [integral_map_equiv, measure_theory.integral_smul_measure,
     ennreal.to_real_of_real (one_div_nonneg.mpr two_pi_pos.le),
     real_smul, of_real_div, of_real_one, of_real_mul, of_real_bit0],
   congr' 1, symmetry,
-  rw interval_integral.integral_of_le (by linarith [pi_pos] : -π ≤ π),
+  rw integral_of_le (by linarith [pi_pos] : -π ≤ π),
   exact set_integral_eq_subtype measurable_set_Ioc _,
+end
+
+lemma integrable_circle_iff' (f : circle → ℂ) :
+  integrable f circle_measure ↔ integrable_on (f ∘ exp_map_circle) (Ioc 0 (2 * π)) :=
+begin
+  rw [integrable_circle_iff, ←Ioc_union_Ioc_eq_Ioc (neg_nonpos.mpr pi_pos.le) pi_pos.le,
+    integrable_on_union, ←Ioc_union_Ioc_eq_Ioc (pi_pos.le) (by linarith [pi_pos] : π ≤ (2 * π)),
+    integrable_on_union,
+    ←interval_integrable_iff_integrable_Ioc_of_le (by linarith [pi_pos] : -π ≤ 0),
+    ←interval_integrable_iff_integrable_Ioc_of_le (by linarith [pi_pos] : 0 ≤ π),
+    ←interval_integrable_iff_integrable_Ioc_of_le (by linarith [pi_pos] : π ≤ 2 * π)],
+  split,
+  { rintros ⟨a, b⟩, refine ⟨b, _⟩, convert a.comp_sub_right (2 * π),
+    ext1, rw exp_map_circle_sub_two_pi, ring, ring, },
+  { rintros ⟨b, c⟩, refine ⟨_, b⟩, convert c.comp_sub_right (-2 * π),
+    ext1, rw ←exp_map_circle_add_two_pi, simp only [neg_mul, sub_neg_eq_add], ring, ring },
 end
 
 /-- Alternative version of integral_circle_eq with the interval of integration [0, 2 * π].
@@ -126,33 +142,20 @@ This is useful for comparing with `circle_integral` in the complex analysis libr
 lemma integral_circle_eq' (f : circle → ℂ) (hf : integrable f circle_measure):
   integral circle_measure f = 1 / (2 * π) * ∫ θ in 0..(2 * π), f (exp_map_circle θ) :=
 begin
-  rw integrable_circle_iff at hf,
-  rw integral_circle_eq, congr' 1,
-  have : ∫ θ in -π..π, f (exp_map_circle θ) =
-    (∫ θ in 0..π, f (exp_map_circle θ)) + (∫ θ in (-π)..0, f (exp_map_circle θ)),
-  { symmetry, rw add_comm,
-    apply interval_integral.integral_add_adjacent_intervals,
-    { rw interval_integrable_iff_integrable_Ioc_of_le (neg_nonpos.mpr pi_pos.le),
-      exact hf.mono_set (Ioc_subset_Ioc_right pi_pos.le) },
-    { rw interval_integrable_iff_integrable_Ioc_of_le pi_pos.le,
-      exact hf.mono_set (Ioc_subset_Ioc_left (neg_nonpos.mpr pi_pos.le)) }, },
-  rw this,
-  have : ∫ θ in 0..(2 * π), f (exp_map_circle θ) =
-    (∫ θ in 0..π, f (exp_map_circle θ)) + (∫ θ in π..(2 * π), f (exp_map_circle θ)),
-  { symmetry, apply interval_integral.integral_add_adjacent_intervals,
-    { rw interval_integrable_iff_integrable_Ioc_of_le pi_pos.le,
-      exact hf.mono_set (Ioc_subset_Ioc_left (neg_nonpos.mpr pi_pos.le)) },
-    { have t := hf.mono_set (Ioc_subset_Ioc_right pi_pos.le),
-      rw ←interval_integrable_iff_integrable_Ioc_of_le (neg_nonpos.mpr pi_pos.le) at t,
-      convert interval_integrable.comp_sub_right t (2 * π),
-      ext1 x, congr' 1, rw exp_map_circle_sub_two_pi,
-      ring, ring, } },
-  rw this,
-  suffices : (∫ θ in (-π)..0, f (exp_map_circle θ))
-    = (∫ θ in π..(2 * π), f (exp_map_circle θ)), { rw this, },
-  conv begin to_lhs, congr, funext, rw ←exp_map_circle_add_two_pi, end,
-  rw interval_integral.integral_comp_add_right (λ θ, f(exp_map_circle θ)) (2 * π), congr,
-  ring, ring,
+  obtain hf0 := ((integrable_circle_iff f).mp hf).mono_set (Ioc_subset_Ioc_right pi_pos.le),
+  obtain hf1 := ((integrable_circle_iff f).mp hf).mono_set
+    (Ioc_subset_Ioc_left (neg_nonpos.mpr pi_pos.le)),
+  obtain hf2 := ((integrable_circle_iff' f).mp hf).mono_set (Ioc_subset_Ioc_left pi_pos.le),
+  have u1 := integral_union Ioc_disjoint_Ioc_same measurable_set_Ioc hf0 hf1,
+  have u2 := integral_union Ioc_disjoint_Ioc_same measurable_set_Ioc hf1 hf2,
+  rw add_comm at u2, rw Ioc_union_Ioc_eq_Ioc at u1 u2,
+  rw [integral_circle_eq, integral_of_le, integral_of_le, u1, u2],
+  suffices : ∫ θ in Ioc (-π) 0, f (exp_map_circle θ) = ∫ θ in Ioc π (2 * π), f (exp_map_circle θ),
+  { rw this, },
+  conv begin to_lhs, congr, skip, funext, rw ←exp_map_circle_add_two_pi, end,
+  rw [←integral_of_le, ←integral_of_le,
+    integral_comp_add_right (λ θ, f (exp_map_circle θ)) (2 * π), (by ring : -π + 2 * π = π),
+    (by ring : 0 + 2 * π = 2 * π)], all_goals { linarith [pi_pos] },
 end
 
 end circle_measure
@@ -302,7 +305,7 @@ lemma fourier_series_repr (f : Lp ℂ 2 circle_measure) (i : ℤ) :
 begin
   transitivity ∫ t : circle, conj ((fourier_Lp 2 i : circle → ℂ) t) * f t ∂ circle_measure,
   { simp [fourier_series.repr_apply_apply f i, measure_theory.L2.inner_def] },
-  apply integral_congr_ae,
+  apply measure_theory.integral_congr_ae,
   filter_upwards [coe_fn_fourier_Lp 2 i] with _ ht,
   rw [ht, ← fourier_neg],
   simp [-fourier_neg]

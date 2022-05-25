@@ -33,7 +33,7 @@ variables (I : model_with_corners 𝕜 E H) {I' : model_with_corners 𝕜 E' H'}
 variables (I₂ : model_with_corners 𝕜 E₂ H₂) (I₃ : model_with_corners 𝕜 E₃ H₃)
 variables {I₄ : model_with_corners 𝕜 E₄ H₄} {I₅ : model_with_corners 𝕜 E₅ H₅}
 variables {B B' F F' Z Z' : Type*}
-variables [topological_space B]  [charted_space H B]   [smooth_manifold_with_corners I B]
+variables [topological_space B]  [charted_space H B] -- [smooth_manifold_with_corners I B]
 variables [topological_space B'] [charted_space H' B'] -- [smooth_manifold_with_corners I' B']
 variables [topological_space F]  [charted_space H₂ F]  -- [smooth_manifold_with_corners I₂ F]
 variables [topological_space F'] [charted_space H₅ F'] -- [smooth_manifold_with_corners I₅ F']
@@ -413,8 +413,14 @@ def total_space := bundle.total_space X.fiber
 /-- The projection from the total space of a smooth fiber bundle core, on its base. -/
 @[reducible, simp, mfld_simps] def proj : X.total_space → B := bundle.proj X.fiber
 
+@[simps (mfld_cfg)]
 def to_topological : topological_fiber_bundle_core ι B F :=
 { coord_change_continuous := λ i j, (X.smooth_on_coord_change i j).continuous_on, .. X }
+
+@[simp, mfld_simps]
+lemma to_topological_local_triv_index_at (b : B) :
+  X.to_topological.local_triv (X.index_at b) = X.to_topological.local_triv_at b :=
+rfl
 
 /-- Local homeomorphism version of the trivialization change. -/
 -- todo: upgrade to diffeomorphism
@@ -455,29 +461,35 @@ lemma local_triv_as_local_equiv_trans (i j : ι) :
     (X.local_triv_as_local_equiv j) ≈ (X.triv_change i j).to_local_equiv :=
 X.to_topological.local_triv_as_local_equiv_trans i j
 
-variable (ι)
-
 /-- Topological structure on the total space of a smooth bundle created from core, designed so
 that all the local trivialization are continuous. -/
-instance to_topological_space : topological_space (bundle.total_space X.fiber) :=
+instance to_topological_space : topological_space X.total_space :=
 X.to_topological.to_topological_space ι
+
+/-- A local trivialization as a local homeomorphism -/
+def local_homeomorph_chart (f : local_homeomorph B H) (g : local_homeomorph F H₂)
+  (i : ι) : local_homeomorph X.total_space (model_prod H H₂) :=
+(X.to_topological.local_triv i).to_local_homeomorph ≫ₕ f.prod g
 
 /-- Charted space structure on the total space of a smooth bundle created from core, designed so
 that all the local trivialization are smooth. -/
-instance to_charted_space : charted_space (model_prod H H₂) /- todo -/ (bundle.total_space X.fiber) :=
-sorry
+instance to_charted_space : charted_space (model_prod H H₂) X.total_space :=
+{ atlas := ⋃ (f ∈ atlas H B) (g ∈ atlas H₂ F) (i : ι), {X.local_homeomorph_chart f g i},
+  chart_at := λ x, X.local_homeomorph_chart (chart_at H (bundle.proj _ x)) (chart_at H₂ x.2)
+    (X.index_at (bundle.proj _ x)),
+  mem_chart_source := λ x, by { simp only [local_homeomorph_chart] with mfld_simps },
+  chart_mem_atlas := λ x, by { simp_rw [mem_Union, mem_singleton_iff],
+    exact ⟨_, chart_mem_atlas H _, _, chart_mem_atlas H₂ _, _, rfl⟩ } }
 
-variable {ι}
-
-lemma open_source' (i : ι) : is_open (X.local_triv_as_local_equiv i).source :=
-X.to_topological.open_source' i
+-- lemma open_source' (i : ι) : is_open (X.local_triv_as_local_equiv i).source :=
+-- X.to_topological.open_source' i
 
 open smooth_fiber_bundle
 
-/-- Extended version of the local trivialization of a fiber bundle constructed from core,
+/-- Extended version of the local trivialization of a smooth fiber bundle constructed from core,
 registering additionally in its type that it is a local bundle trivialization. -/
 def local_triv (i : ι) : trivialization I I₂ (I.prod I₂) F X.proj :=
-{ smooth_on_to_fun := sorry,
+{ smooth_on_to_fun := sorry
   smooth_on_inv_fun := sorry,
   ..X.to_topological.local_triv i }
 -- { base_set      := X.base_set i,

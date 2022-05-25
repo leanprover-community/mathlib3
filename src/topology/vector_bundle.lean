@@ -965,11 +965,6 @@ begin
   refl
 end
 
-lemma pullback_total_space_embedding_def {B B' : Type*} {E : B → Type*} (f : B' → B)
-  (x : total_space (f *ᵖ E)) : pullback_total_space_embedding E f x =
-  (proj (f *ᵖ E) x, total_space_mk E (f (proj (f *ᵖ E) x)) x.2) :=
-rfl
-
 variables (F) [nondiscrete_normed_field 𝕜]
   [normed_group F] [normed_space 𝕜 F] [topological_space B]
   [∀ x, add_comm_monoid (E x)] [∀ x, module 𝕜 (E x)]
@@ -987,8 +982,8 @@ end
 variables {E 𝕜 F} {K : Type*} [continuous_map_class K B' B]
 
 /-- A vector bundle trivialization can be pulled back to a trivialization on the pullback bundle. -/
-def topological_vector_bundle.trivialization.pullback (e : trivialization 𝕜 F E) (f : C(B', B)) :
-  trivialization 𝕜 F (f *ᵖ E) :=
+def topological_vector_bundle.trivialization.pullback (e : trivialization 𝕜 F E) (f : K) :
+  trivialization 𝕜 F ((f : B' → B) *ᵖ E) :=
 { to_fun := λ z, (proj (f *ᵖ E) z, (e (pullback.lift E f z)).2),
   inv_fun := λ y, total_space_mk (f *ᵖ E) y.1 (e.symm (f y.1) y.2),
   source := pullback.lift E f ⁻¹' e.source,
@@ -1002,29 +997,28 @@ def topological_vector_bundle.trivialization.pullback (e : trivialization 𝕜 F
     simp_rw [pullback.lift, e.symm_apply_apply_mk h, total_space.eta] },
   right_inv' := λ x h, by { simp_rw [mem_prod, mem_preimage, mem_univ, and_true] at h,
     simp_rw [total_space.proj_mk, pullback.lift_mk, e.apply_mk_symm h, prod.mk.eta] },
-  open_source := by { simp_rw [e.source_eq, ← preimage_comp],
-    exact (f.continuous.comp $ pullback.continuous_proj E f).is_open_preimage _ e.open_base_set },
-  open_target := (f.continuous.is_open_preimage _ e.open_base_set).prod is_open_univ,
-  open_base_set := f.continuous.is_open_preimage _ e.open_base_set,
+  open_source := by { simp_rw [e.source_eq, ← preimage_comp], exact ((map_continuous f).comp $
+    pullback.continuous_proj E f).is_open_preimage _ e.open_base_set },
+  open_target := ((map_continuous f).is_open_preimage _ e.open_base_set).prod is_open_univ,
+  open_base_set := (map_continuous f).is_open_preimage _ e.open_base_set,
   continuous_to_fun := (pullback.continuous_proj E f).continuous_on.prod
     (continuous_snd.comp_continuous_on $
     e.continuous_on.comp (pullback.continuous_lift E f).continuous_on subset.rfl),
   continuous_inv_fun := begin
     dsimp only,
     simp_rw [(inducing_pullback_total_space_embedding E f).continuous_on_iff, function.comp,
-      pullback_total_space_embedding_def, total_space.proj_mk],
+      pullback_total_space_embedding, total_space.proj_mk],
     dsimp only [total_space.proj_mk],
     refine continuous_on_fst.prod (e.continuous_on_symm.comp
-      (f.continuous.continuous_on.prod_map continuous_on_id)
-      (subset.rfl : (f ⁻¹' e.base_set) ×ˢ (univ : set F) ⊆ _))
+      ((map_continuous f).prod_map continuous_id).continuous_on subset.rfl)
   end,
   source_eq := by { dsimp only, rw e.source_eq, refl, },
   target_eq := rfl,
   proj_to_fun := λ y h, rfl,
   linear' := λ x h, e.linear (f x) h }
 
-instance pullback [∀ x, topological_space (E x)] [topological_vector_bundle 𝕜 F E] {f : C(B', B)} :
-  topological_vector_bundle 𝕜 F (f *ᵖ E) :=
+instance pullback [∀ x, topological_space (E x)] [topological_vector_bundle 𝕜 F E] (f : K) :
+  topological_vector_bundle 𝕜 F ((f : B' → B) *ᵖ E) :=
 { total_space_mk_inducing := λ x, inducing_of_inducing_compose
     (pullback.continuous_total_space_mk 𝕜 F E) (pullback.continuous_lift E f)
     (total_space_mk_inducing 𝕜 F E (f x)),
@@ -1040,7 +1034,7 @@ instance pullback [∀ x, topological_space (E x)] [topological_vector_bundle �
     { ext ⟨x, y⟩, simp only [topological_vector_bundle.trivialization.pullback, pullback.lift_mk,
         e.source_eq, and_comm] with mfld_simps, },
     { exact λ x, coord_change he he' (f x) },
-    { exact (continuous_on_coord_change he he').comp f.continuous.continuous_on (subset.rfl : _) },
+    { exact (continuous_on_coord_change he he').comp (map_continuous f).continuous_on subset.rfl },
     { rintro b hb v,
       rw [← preimage_inter, mem_preimage] at hb,
       simp only [topological_vector_bundle.trivialization.pullback, pullback.lift_mk]

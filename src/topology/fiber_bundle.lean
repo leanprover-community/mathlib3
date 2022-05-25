@@ -937,7 +937,7 @@ variable (ι)
 
 /-- Topological structure on the total space of a topological bundle created from core, designed so
 that all the local trivialization are continuous. -/
-instance to_topological_space : topological_space (bundle.total_space Z.fiber) :=
+instance to_topological_space : topological_space Z.total_space :=
 topological_space.generate_from $ ⋃ (i : ι) (s : set (B × F)) (s_open : is_open s),
   {(Z.local_triv_as_local_equiv i).source ∩ (Z.local_triv_as_local_equiv i) ⁻¹' s}
 
@@ -946,11 +946,8 @@ variable {ι}
 lemma open_source' (i : ι) : is_open (Z.local_triv_as_local_equiv i).source :=
 begin
   apply topological_space.generate_open.basic,
-  simp only [exists_prop, mem_Union, mem_singleton_iff],
-  refine ⟨i, Z.base_set i ×ˢ (univ : set F), (Z.is_open_base_set i).prod is_open_univ, _⟩,
-  ext p,
-  simp only [local_triv_as_local_equiv_apply, prod_mk_mem_set_prod_eq, mem_inter_eq, and_self,
-    mem_local_triv_as_local_equiv_source, and_true, mem_univ, mem_preimage],
+  simp_rw [mem_Union, mem_singleton_iff],
+  exact ⟨i, univ, is_open_univ, by rw [preimage_univ, inter_univ]⟩
 end
 
 open topological_fiber_bundle

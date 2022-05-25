@@ -352,7 +352,7 @@ variables {R F E}
 /-- The co-ordinate change (transition function) between two trivializations of a vector bundle
 over `B` modelled on `F`: this is a function from `B` to `F ≃L[R] F` (of course, only meaningful
 on the intersection of the domains of definition of the two trivializations). -/
-def coord_change {e e' : trivialization R F E} (he : e ∈ trivialization_atlas R F E)
+@[irreducible] def coord_change {e e' : trivialization R F E} (he : e ∈ trivialization_atlas R F E)
   (he' : e' ∈ trivialization_atlas R F E) :
   B → F ≃L[R] F :=
 (topological_vector_bundle.continuous_coord_change e he e' he').some_spec.2.2.some
@@ -368,7 +368,7 @@ begin
       hs.symm.trans (topological_fiber_bundle.trivialization.symm_trans_source_eq e e'),
     have hF : (univ : set F).nonempty := univ_nonempty,
       rwa prod_eq_iff_eq hF at this },
-  rw ← hs,
+  rw [← hs, coord_change],
   exact (continuous_coord_change e he e' he').some_spec.2.2.some_spec.1
 end
 
@@ -383,11 +383,10 @@ begin
       hs.symm.trans (topological_fiber_bundle.trivialization.symm_trans_source_eq e e'),
     have hF : (univ : set F).nonempty := univ_nonempty,
       rwa prod_eq_iff_eq hF at this },
-  rw ← hs at hb,
+  rw [← hs] at hb,
+  rw [coord_change],
   exact (continuous_coord_change e he e' he').some_spec.2.2.some_spec.2 b hb v
 end
-
-attribute [irreducible] coord_change
 
 namespace trivialization
 
@@ -423,8 +422,8 @@ end
 
 lemma symm_apply_eq_mk_continuous_linear_equiv_at_symm (e : trivialization R F E) (b : B)
   (hb : b ∈ e.base_set) (z : F) :
-  e.to_local_homeomorph.symm ⟨b, z⟩
-  = total_space_mk E b ((e.continuous_linear_equiv_at b hb).symm z) :=
+  e.to_local_homeomorph.symm ⟨b, z⟩ =
+  total_space_mk E b ((e.continuous_linear_equiv_at b hb).symm z) :=
 begin
   have h : (b, z) ∈ e.to_local_homeomorph.target,
   { rw e.target_eq,
@@ -438,13 +437,12 @@ end
 lemma comp_continuous_linear_equiv_at_eq_coord_change {e e' : trivialization R F E}
   (he : e ∈ trivialization_atlas R F E) (he' : e' ∈ trivialization_atlas R F E) {b : B}
   (hb : b ∈ e.base_set ∩ e'.base_set) :
-  (e.continuous_linear_equiv_at b hb.1).symm.trans (e'.continuous_linear_equiv_at b hb.2)
-  = coord_change he he' b :=
+  (e.continuous_linear_equiv_at b hb.1).symm.trans (e'.continuous_linear_equiv_at b hb.2) = coord_change he he' b :=
 begin
   ext v,
   suffices :
-    (b, e'.continuous_linear_equiv_at b hb.2 ((e.continuous_linear_equiv_at b hb.1).symm v))
-    = (b, coord_change he he' b v),
+    (b, e'.continuous_linear_equiv_at b hb.2 ((e.continuous_linear_equiv_at b hb.1).symm v)) =
+    (b, coord_change he he' b v),
   { simpa only [prod.mk.inj_iff, eq_self_iff_true, true_and] using this },
   rw [← trans_eq_coord_change he he' hb, ← apply_eq_prod_continuous_linear_equiv_at,
     symm_apply_eq_mk_continuous_linear_equiv_at_symm],
@@ -454,7 +452,6 @@ end
 end trivialization
 
 section
-local attribute [reducible] bundle.trivial
 
 instance {B : Type*} {F : Type*} [add_comm_monoid F] (b : B) :
   add_comm_monoid (bundle.trivial B F b) := ‹add_comm_monoid F›
@@ -1040,13 +1037,12 @@ rfl
 variables {e₁ e₂}
 
 lemma prod_apply {x : B} (hx₁ : x ∈ e₁.base_set) (hx₂ : x ∈ e₂.base_set) (v₁ : E₁ x)
-  (v₂ : E₂ x) :
-  prod e₁ e₂ ⟨x, (v₁, v₂)⟩
-  = ⟨x, e₁.continuous_linear_equiv_at x hx₁ v₁, e₂.continuous_linear_equiv_at x hx₂ v₂⟩ :=
+  (v₂ : E₂ x) : prod e₁ e₂ ⟨x, (v₁, v₂)⟩ =
+  ⟨x, e₁.continuous_linear_equiv_at x hx₁ v₁, e₂.continuous_linear_equiv_at x hx₂ v₂⟩ :=
 rfl
 
-lemma prod_symm_apply (x : B) (w₁ : F₁) (w₂ : F₂) : (prod e₁ e₂).to_local_equiv.symm (x, w₁, w₂)
-  = ⟨x, e₁.symm x w₁, e₂.symm x w₂⟩ :=
+lemma prod_symm_apply (x : B) (w₁ : F₁) (w₂ : F₂) : (prod e₁ e₂).to_local_equiv.symm (x, w₁, w₂) =
+  ⟨x, e₁.symm x w₁, e₂.symm x w₂⟩ :=
 rfl
 
 end trivialization
@@ -1102,8 +1098,8 @@ variables {R F₁ E₁ F₂ E₂}
 
 @[simp] lemma trivialization.continuous_linear_equiv_at_prod {e₁ : trivialization R F₁ E₁}
   {e₂ : trivialization R F₂ E₂} {x : B} (hx₁ : x ∈ e₁.base_set) (hx₂ : x ∈ e₂.base_set) :
-  (e₁.prod e₂).continuous_linear_equiv_at x ⟨hx₁, hx₂⟩
-  = (e₁.continuous_linear_equiv_at x hx₁).prod (e₂.continuous_linear_equiv_at x hx₂) :=
+  (e₁.prod e₂).continuous_linear_equiv_at x ⟨hx₁, hx₂⟩ =
+  (e₁.continuous_linear_equiv_at x hx₁).prod (e₂.continuous_linear_equiv_at x hx₂) :=
 begin
   ext1,
   funext v,

@@ -273,6 +273,41 @@ begin
   simp only [to_fun_eq_coe, smul_apply]
 end
 
+lemma is_multiply_pretransitive_via_bijective_bihom_iff {N β : Type*} [group N] [mul_action N β] {n : ℕ}
+  {j : mul_action_bihom M α N β} (hj : function.bijective j.to_fun)
+  (hj' : function.surjective j.to_monoid_hom.to_fun) :
+  is_multiply_pretransitive M α n ↔ is_multiply_pretransitive N β n :=
+begin
+  split,
+  apply is_multiply_pretransitive_via_surjective_bihom (function.bijective.surjective hj),
+  intro hN, let hN_heq := hN.exists_smul_eq,
+  apply is_pretransitive.mk,
+  intros x y,
+  let x' : fin n ↪ β := ⟨j.to_fun ∘ x.to_fun, function.injective.comp (function.bijective.injective hj) x.inj'⟩,
+  let y' : fin n ↪ β := ⟨j.to_fun ∘ y.to_fun, function.injective.comp (function.bijective.injective hj) y.inj'⟩,
+  obtain ⟨g', hg'⟩ := hN_heq x' y',
+  obtain ⟨g, hg⟩ := hj' g',
+  use g,
+  ext i,
+  apply function.bijective.injective hj,
+  simp only [smul_apply], rw ← j.map_smul',
+  suffices : j.to_fun (x i) = x' i, rw this,
+  suffices : j.to_fun (y i) = y' i, rw this,
+  rw ← hg', rw ← hg,
+  simp only [monoid_hom.to_fun_eq_coe, smul_apply],
+  refl, refl,
+end
+
+lemma is_pretransitive_iff_image :
+  is_pretransitive M α
+  ↔ is_pretransitive
+    (monoid_hom.range (mul_action.to_perm_hom M α)) α := sorry
+
+lemma is_multiply_pretransitive_iff_image {n : ℕ} :
+  is_multiply_pretransitive M α n
+  ↔ is_multiply_pretransitive
+    (monoid_hom.range (mul_action.to_perm_hom M α)) α n := sorry
+
 variables (M α)
 lemma is_zero_pretransitive : is_multiply_pretransitive M α 0 :=
 begin

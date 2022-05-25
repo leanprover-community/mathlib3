@@ -191,8 +191,8 @@ begin
     exact hin (hτ_le x), },
 end
 
-lemma aux [topological_space ι] [order_topology ι] [first_countable_topology ι]
-  [sigma_finite_filtration μ ℱ] {f : ι → α → E}
+lemma stopped_value_ae_eq_restrict_eq_condexp [topological_space ι] [order_topology ι]
+  [first_countable_topology ι] [sigma_finite_filtration μ ℱ] {f : ι → α → E}
   (h : martingale f ℱ μ) (hτ : is_stopping_time ℱ τ) {i n : ι}
   (hτ_le : ∀ x, τ x ≤ n)
   [sigma_finite (μ.trim ((hτ.measurable_space_le_of_le_const hτ_le).trans (ℱ.le n)))] :
@@ -205,7 +205,7 @@ begin
   simp_rw [stopped_value, hx],
 end
 
-lemma martingale.stopped_value_eq_of_le_const [encodable ι] [topological_space ι]
+lemma martingale.stopped_value_ae_eq_condexp_of_le_const [encodable ι] [topological_space ι]
   [order_topology ι] [first_countable_topology ι] [sigma_finite_filtration μ ℱ]
   {f : ι → α → E} (h : martingale f ℱ μ) (hτ : is_stopping_time ℱ τ) {n : ι}
   (hτ_le : ∀ x, τ x ≤ n)
@@ -217,10 +217,10 @@ begin
   rw this,
   rw ae_restrict_Union_iff,
   intro i,
-  exact aux h _ hτ_le,
+  exact stopped_value_ae_eq_restrict_eq_condexp h _ hτ_le,
 end
 
-lemma martingale.stopped_value_eq_of_le [encodable ι] [topological_space ι]
+lemma martingale.stopped_value_ae_eq_condexp_of_le [encodable ι] [topological_space ι]
   [order_topology ι] [first_countable_topology ι] [sigma_finite_filtration μ ℱ] {f : ι → α → E}
   (h : martingale f ℱ μ)
   (hτ : is_stopping_time ℱ τ) (hσ : is_stopping_time ℱ σ) {n : ι}
@@ -230,9 +230,9 @@ lemma martingale.stopped_value_eq_of_le [encodable ι] [topological_space ι]
 begin
   have : μ[stopped_value f τ|hσ.measurable_space]
       =ᵐ[μ] μ[μ[f n|hτ.measurable_space] | hσ.measurable_space],
-    from condexp_congr_ae (h.stopped_value_eq_of_le_const hτ hτ_le),
+    from condexp_congr_ae (h.stopped_value_ae_eq_condexp_of_le_const hτ hτ_le),
   refine (filter.eventually_eq.trans _ (condexp_condexp_of_le _ _).symm).trans this.symm,
-  { exact h.stopped_value_eq_of_le_const hσ (λ x, (hσ_le_τ x).trans (hτ_le x)), },
+  { exact h.stopped_value_ae_eq_condexp_of_le_const hσ (λ x, (hσ_le_τ x).trans (hτ_le x)), },
   { exact is_stopping_time.measurable_space_mono _ _ hσ_le_τ, },
   { exact hτ.measurable_space_le, },
   { apply_instance, },
@@ -283,7 +283,7 @@ variables {𝒢 : filtration ℕ m} {τ σ : α → ℕ}
   [normed_group E] [normed_space ℝ E] [complete_space E]
 
 /-- **Optional Sampling** -/
-lemma martingale.stopped_value_min_eq
+lemma martingale.stopped_value_min_ae_eq_condexp
   [measurable_space E] [borel_space E] [second_countable_topology E]
   [sigma_finite_filtration μ 𝒢] {f : ℕ → α → E} (h : martingale f 𝒢 μ)
   (hτ : is_stopping_time 𝒢 τ) (hσ : is_stopping_time 𝒢 σ) {n : ℕ}
@@ -296,7 +296,7 @@ begin
     by rw [is_stopping_time.measurable_space_min, is_stopping_time.measurable_space_min, inf_comm],
   haveI : sigma_finite (μ.trim (hσ.min hτ).measurable_space_le),
   { convert h_sf_min; { ext1 x, rw min_comm, }, },
-  refine (h.stopped_value_eq_of_le hτ (hσ.min hτ) (λ x, min_le_right _ _) hτ_le).trans _,
+  refine (h.stopped_value_ae_eq_condexp_of_le hτ (hσ.min hτ) (λ x, min_le_right _ _) hτ_le).trans _,
   refine ae_of_ae_restrict_of_ae_restrict_compl {x | σ x ≤ τ x} _ _,
   { refine (condexp_indicator_stopping_time_le hσ hτ _).symm,
     exact integrable_stopped_value hτ h.integrable hτ_le, },

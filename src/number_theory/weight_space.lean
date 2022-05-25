@@ -3849,6 +3849,11 @@ begin
   apply ha,
 end
 
+example {α β : Type*} [topological_space α] [topological_space β] [monoid α] [monoid β]
+  (f g : α →* β) (hf : continuous f) (hg : continuous g) : continuous (f.prod_map g) :=
+by { --simp,
+refine continuous.prod_map hf hg, }
+
 lemma cont_paLf [fact (0 < m)] (h : d.gcd p = 1) (cont : continuous inj) :
   continuous (λ (a : (units (zmod d) × units ℤ_[p])), ((pri_dir_char_extend p d R m h χ) a) *
   (inj (teichmuller_character p (a.snd)))^(p - 2) * (w.to_fun a : R)) :=
@@ -3872,13 +3877,17 @@ begin
               apply fact_iff.2, apply pow_pos _ _,
               apply nat.prime.pos, apply fact.out, }, },
           { apply continuous.comp _ continuous_id,
-            apply continuous.prod_mk,
-            { apply continuous.comp _ continuous_id,
-              apply continuous.comp,
-              { convert continuous_id, },
-              { convert continuous_fst, }, },
-            { apply continuous.comp _ continuous_id,
-              apply continuous.comp,
+            rw monoid_hom.to_mul_hom_coe,
+            simp,
+            refine continuous.prod_map _ _,
+--           apply continuous.prod_mk,
+            { convert continuous_id, },
+              -- apply continuous.comp _ continuous_id,
+              -- apply continuous.comp,
+              -- { convert continuous_id, },
+              -- { convert continuous_fst, }, },
+            { --apply continuous.comp _ continuous_id,
+              --apply continuous.comp,
               { apply cont_units_map,
                 { apply cont_inv, },
                 { apply @continuous_of_discrete_topology _ _ _ _ _,
@@ -3886,9 +3895,9 @@ begin
                   rintros x y hxy, rw units.ext_iff, convert hxy, },
                   --refine @disc_top_units (p^m) (fact_iff.2 (pow_pos (nat.prime.pos (fact_iff.1 _)) m)), },
                 { change continuous ((to_zmod_pow m)),
-                  apply continuous_to_zmod_pow, }, },
-              { apply continuous.comp _ continuous_id,
-                convert continuous_snd, }, }, }, }, }, },
+                  apply continuous_to_zmod_pow, }, }, }, }, }, }, },
+              -- { apply continuous.comp _ continuous_id,
+              --   convert continuous_snd, }, }, }, }, }, },
     { apply continuous_id, }, },
   { --rw teichmuller_character,
     simp only [monoid_hom.coe_mk],

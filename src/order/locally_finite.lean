@@ -646,3 +646,23 @@ begin
 end
 
 end finset
+
+namespace finset
+variables {γ : Type*} [linear_order γ] [locally_finite_order γ]
+  [decidable (nonempty γ)] [is_well_order γ (<)]
+
+noncomputable def Iio_wf (a : γ) : finset γ :=
+if h : nonempty γ
+then Ico ((@is_well_order.wf γ (<) _).min set.univ (@set.univ_nonempty γ h)) a
+else ∅
+
+lemma mem_Iio_wf (x b : γ) : x ∈ Iio_wf b ↔ x < b :=
+begin
+  by_cases h : nonempty γ,
+  { simp only [Iio_wf, h, dif_pos, mem_Ico, and_iff_right_iff_imp],
+    exact λ _, not_lt.1 ((@is_well_order.wf γ (<) _).not_lt_min
+      set.univ (@set.univ_nonempty γ h) (set.mem_univ x)) },
+  { exact false.elim (h ⟨x⟩) }
+end
+
+end finset

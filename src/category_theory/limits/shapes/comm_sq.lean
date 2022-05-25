@@ -40,6 +40,8 @@ Bicartesian squares, and
 show that the pullback and pushout squares for a biproduct are bicartesian.
 -/
 
+noncomputable theory
+
 open category_theory
 open category_theory.limits
 

@@ -160,13 +160,6 @@ end set.Ioo
 
 namespace unit_interval
 
-lemma zero_mem : (0 : ℝ) ∈ Icc (0:ℝ) 1 := ⟨le_rfl, zero_le_one⟩
-
-lemma one_mem : (1 : ℝ) ∈ Icc (0:ℝ) 1 := ⟨zero_le_one, le_rfl⟩
-
-lemma mul_mem {x y : ℝ} (hx : x ∈ Icc (0:ℝ) 1) (hy : y ∈ Icc (0:ℝ) 1) : x * y ∈ Icc (0:ℝ) 1 :=
-⟨mul_nonneg hx.1 hy.1, (mul_le_mul hx.2 hy.2 hy.1 zero_le_one).trans_eq $ one_mul 1⟩
-
 lemma div_mem {x y : ℝ} (hx : 0 ≤ x) (hy : 0 ≤ y) (hxy : x ≤ y) : x / y ∈ Icc (0:ℝ) 1 :=
 ⟨div_nonneg hx hy, div_le_one_of_le hxy hy⟩
 
@@ -178,18 +171,10 @@ begin
   split ; intro ; split ; linarith
 end
 
-instance has_zero : has_zero (Icc (0:ℝ) 1) := ⟨⟨0, zero_mem⟩⟩
-
-@[norm_cast] lemma coe_zero : ((0 : Icc (0:ℝ) 1) : ℝ) = 0 := rfl
-
 @[simp] lemma mk_zero (h : (0 : ℝ) ∈ Icc (0 : ℝ) 1) : (⟨0, h⟩ : Icc (0:ℝ) 1) = 0 := rfl
 
 @[simp, norm_cast] lemma coe_eq_zero {x : Icc (0:ℝ) 1} : (x : ℝ) = 0 ↔ x = 0 :=
 by { symmetry, exact subtype.ext_iff }
-
-instance has_one : has_one (Icc (0:ℝ) 1) := ⟨⟨1, by split ; norm_num⟩⟩
-
-@[norm_cast] lemma coe_one : ((1 : Icc (0:ℝ) 1) : ℝ) = 1 := rfl
 
 lemma coe_ne_zero {x : Icc (0:ℝ) 1} : (x : ℝ) ≠ 0 ↔ x ≠ 0 :=
 not_iff_not.mpr coe_eq_zero
@@ -201,10 +186,6 @@ by { symmetry, exact subtype.ext_iff }
 
 lemma coe_ne_one {x : Icc (0:ℝ) 1} : (x : ℝ) ≠ 1 ↔ x ≠ 1 :=
 not_iff_not.mpr coe_eq_one
-
-instance : nonempty (Icc (0:ℝ) 1) := ⟨0⟩
-
-instance : has_mul (Icc (0:ℝ) 1) := ⟨λ x y, ⟨x * y, mul_mem x.2 y.2⟩⟩
 
 @[norm_cast] lemma coe_mul {x y : Icc (0:ℝ) 1} : ((x * y : Icc (0:ℝ) 1) : ℝ) = x * y := rfl
 

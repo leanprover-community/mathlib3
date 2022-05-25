@@ -132,7 +132,7 @@ by rw [← e.coe_fst ex, prod.mk.eta, ← e.coe_coe, e.to_local_equiv.left_inv e
 e.to_fiber_bundle_pretrivialization.preimage_symm_proj_base_set
 
 lemma symm_coe_proj {x : B} {y : F} (e : pretrivialization R F E) (h : x ∈ e.base_set) :
-  (e.to_local_equiv.symm (x, y)).proj = x :=
+  (e.to_local_equiv.symm (x, y)).1 = x :=
 e.proj_symm_apply' h
 
 /-- A fiberwise inverse to `e`. This is the function `F → E b` that induces a local inverse
@@ -257,7 +257,7 @@ e.to_local_equiv.left_inv hx
 
 @[simp, mfld_simps] lemma symm_coe_proj {x : B} {y : F}
   (e : trivialization R F E) (h : x ∈ e.base_set) :
-  (e.to_local_homeomorph.symm (x, y)).proj = x := e.proj_symm_apply' h
+  (e.to_local_homeomorph.symm (x, y)).1 = x := e.proj_symm_apply' h
 
 /-- A fiberwise inverse to `e`. The function `F → E x` that induces a local inverse
   `B × F → total_space E` of `e` on `e.base_set`. It is defined to be `0` outside `e.base_set`. -/

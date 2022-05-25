@@ -941,8 +941,8 @@ def prod.to_fun' : total_space (E₁ ×ᵇ E₂) → B × (F₁ × F₂) :=
 
 variables {e₁ e₂}
 
-lemma prod.continuous_to_fun :
-  continuous_on (prod.to_fun' e₁ e₂) (@total_space.proj B (E₁ ×ᵇ E₂) ⁻¹' (e₁.base_set ∩ e₂.base_set)) :=
+lemma prod.continuous_to_fun : continuous_on (prod.to_fun' e₁ e₂)
+  (@total_space.proj B (E₁ ×ᵇ E₂) ⁻¹' (e₁.base_set ∩ e₂.base_set)) :=
 begin
   let f₁ : total_space (E₁ ×ᵇ E₂) → total_space E₁ × total_space E₂ :=
     λ p, ((⟨p.1, p.2.1⟩ : total_space E₁), (⟨p.1, p.2.2⟩ : total_space E₂)),

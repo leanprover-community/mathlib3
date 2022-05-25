@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2022 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Scott Morrison
+-/
 import representation_theory.basic
 import representation_theory.Rep
 import algebra.category.Module.adjunctions
@@ -55,9 +60,16 @@ instance blah (n : ℕ) : module (monoid_algebra k G) ((fin n → G) →₀ k) :
 representation.as_module_module ((Rep.linearisation k G).obj (Action.diagonal G n)).ρ
 
 example (n : ℕ) :
-  ((fin (n+1) → G) →₀ k) ≃ₗ[monoid_algebra k G] (tensor_product k (monoid_algebra k G) ((fin n → G) →₀ k)) :=
+  ((fin (n+1) → G) →₀ k) ≃ₗ[monoid_algebra k G]
+    (tensor_product k (monoid_algebra k G) ((fin n → G) →₀ k)) :=
 -- This doesn't quite do it:
--- `(Rep.equivalence_Module_monoid_algebra.functor.map_iso (Rep.linearisation_diagonal_succ k G n)).to_linear_equiv`
--- We still need to know what `Rep.equivalence_Module_monoid_algebra.functor` does to tensor products:
+/-
+```
+(Rep.equivalence_Module_monoid_algebra.functor.map_iso
+  (Rep.linearisation_diagonal_succ k G n)).to_linear_equiv
+```
+-/
+-- We still need to know what `Rep.equivalence_Module_monoid_algebra.functor`
+-- does to tensor products. We would want to use the fact that
 -- `Module (monoid_algebra k G)` is monoidal since `monoid_algebra k G` is a hopf algebra.
 sorry

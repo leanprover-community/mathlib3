@@ -71,23 +71,39 @@ section circle_measure
 instance : measurable_space circle := borel circle
 instance : borel_space circle := ⟨rfl⟩
 
-def arg_m_equiv : measurable_equiv circle (Ioc (-π) π) :=
-{ measurable_to_fun := by
-  { rw ←(measurable_embedding.subtype_coe
-          (@measurable_set_Ioc _ _ _ _ _ _ (-π) π)).measurable_comp_iff,
-    exact measurable_arg.comp continuous_subtype_coe.measurable },
-  measurable_inv_fun := (exp_map_circle.continuous.borel_measurable).comp measurable_subtype_coe,
-  .. circle.arg_equiv }
+lemma measurable_arg' : measurable arg' :=
+begin
+  let t1 := { z : ℂ | 0 < arg z}, let t2 := t1ᶜ,
+  apply measurable_of_measurable_union_cover t1 t2 _ _ (by simp),
+  { have : (λ (a : t1), arg' a) = (λ (a : t1), arg a),
+    { ext, rw arg', split_ifs, refl, exfalso, exact h x.property }, rw this,
+    exact measurable_arg.comp measurable_subtype_coe },
+  { have : (λ (a : t2), arg' a) = (λ (a : t2), arg a + (2 * π)),
+    { ext, rw arg', split_ifs, exfalso, exact x.property h, refl, }, rw this,
+    exact (measurable_arg.add_const _).comp measurable_subtype_coe },
+  { exact measurable_set_lt measurable_const measurable_arg },
+  { exact (measurable_set_lt measurable_const measurable_arg).compl },
+end
+
+def circle_m_equiv : measurable_equiv (Ioc 0 (2* π)) circle :=
+{ measurable_inv_fun := by
+  { rw circle.circle_equiv, rw circle.arg'_equiv,
+    simp only [equiv.inv_fun_as_coe, equiv.symm_symm, equiv.coe_fn_mk, equiv.coe_fn_symm_mk],
+    rw ←(measurable_embedding.subtype_coe
+          (@measurable_set_Ioc ℝ _ _ _ _ _ _ _)).measurable_comp_iff,
+    exact measurable_arg'.comp continuous_subtype_coe.measurable },
+  measurable_to_fun := (exp_map_circle.continuous.borel_measurable).comp measurable_subtype_coe,
+  .. circle.circle_equiv }
 
 /-- Measure on the circle, normalized to have total measure 1. -/
 def circle_measure : measure circle :=
-  (ennreal.of_real (1 / (2 * π)) • volume).map (arg_m_equiv.symm)
+  (ennreal.of_real (1 / (2 * π)) • volume).map circle_m_equiv
 
 lemma circle_measure_univ : circle_measure univ = 1 :=
 begin
   dsimp only [circle_measure],
-  rw [(arg_m_equiv.symm).map_apply, preimage_univ, measure.smul_apply, id.smul_eq_mul,
-    ←volume_image_subtype_coe (@measurable_set_Ioc _ _ _ _ _ _ (-π) π), image_univ,
+  rw [circle_m_equiv.map_apply, preimage_univ, measure.smul_apply, id.smul_eq_mul,
+    ←volume_image_subtype_coe (@measurable_set_Ioc ℝ _ _ _ _ _ _ _), image_univ,
     subtype.range_coe, real.volume_Ioc, ←ennreal.of_real_mul (one_div_nonneg.mpr two_pi_pos.le)],
   ring_nf, field_simp [real.pi_ne_zero],
 end
@@ -97,13 +113,13 @@ instance : is_probability_measure circle_measure := ⟨circle_measure_univ⟩
 instance : measure_space circle := { volume := circle_measure,  .. circle.measurable_space }
 
 lemma integrable_circle_iff (f : circle → ℂ) :
-  integrable f circle_measure ↔ integrable_on (f ∘ exp_map_circle) (Ioc (-π) π) :=
+  integrable f circle_measure ↔ integrable_on (f ∘ exp_map_circle) (Ioc 0 (2 * π)) :=
 begin
   rw [circle_measure, measure_theory.measure.map_smul,
     integrable_smul_measure _ ennreal.of_real_ne_top],
   swap, { rw [ne.def, ennreal.of_real_eq_zero, not_le, one_div_pos], exact two_pi_pos },
-  rw arg_m_equiv.symm.measurable_embedding.integrable_map_iff,
-  have : f ∘ (arg_m_equiv.symm) = f ∘ exp_map_circle ∘ coe := by { ext1, refl, }, rw this,
+  rw circle_m_equiv.measurable_embedding.integrable_map_iff,
+  have : f ∘ circle_m_equiv = f ∘ exp_map_circle ∘ coe := by { ext1, refl, }, rw this,
   convert (@measurable_embedding.integrable_map_iff _ _ _ _ _ _ _ _
     (measurable_embedding.subtype_coe _) (f ∘ exp_map_circle)).symm,
   rw integrable_on, congr' 1, symmetry,
@@ -111,58 +127,21 @@ begin
 end
 
 lemma integral_circle_eq (f : circle → ℂ) :
-  integral circle_measure f = 1 / (2 * π) * ∫ θ in -π..π, f (exp_map_circle θ) :=
+  integral circle_measure f = 1 / (2 * π) * ∫ θ in 0..(2 * π), f (exp_map_circle θ) :=
 begin
   dsimp only [circle_measure],
   rw [integral_map_equiv, measure_theory.integral_smul_measure,
     ennreal.to_real_of_real (one_div_nonneg.mpr two_pi_pos.le),
     real_smul, of_real_div, of_real_one, of_real_mul, of_real_bit0],
   congr' 1, symmetry,
-  rw integral_of_le (by linarith [pi_pos] : -π ≤ π),
+  rw integral_of_le (by linarith [pi_pos] : 0 ≤ 2 * π),
   exact set_integral_eq_subtype measurable_set_Ioc _,
-end
-
-lemma integrable_circle_iff' (f : circle → ℂ) :
-  integrable f circle_measure ↔ integrable_on (f ∘ exp_map_circle) (Ioc 0 (2 * π)) :=
-begin
-  rw [integrable_circle_iff, ←Ioc_union_Ioc_eq_Ioc (neg_nonpos.mpr pi_pos.le) pi_pos.le,
-    integrable_on_union, ←Ioc_union_Ioc_eq_Ioc (pi_pos.le) (by linarith [pi_pos] : π ≤ (2 * π)),
-    integrable_on_union,
-    ←interval_integrable_iff_integrable_Ioc_of_le (by linarith [pi_pos] : -π ≤ 0),
-    ←interval_integrable_iff_integrable_Ioc_of_le (by linarith [pi_pos] : 0 ≤ π),
-    ←interval_integrable_iff_integrable_Ioc_of_le (by linarith [pi_pos] : π ≤ 2 * π)],
-  split,
-  { rintros ⟨a, b⟩, refine ⟨b, _⟩, convert a.comp_sub_right (2 * π),
-    ext1, rw exp_map_circle_sub_two_pi, ring, ring, },
-  { rintros ⟨b, c⟩, refine ⟨_, b⟩, convert c.comp_sub_right (-2 * π),
-    ext1, rw ←exp_map_circle_add_two_pi, simp only [neg_mul, sub_neg_eq_add], ring, ring },
-end
-
-/-- Alternative version of integral_circle_eq with the interval of integration [0, 2 * π].
-This is useful for comparing with `circle_integral` in the complex analysis library. -/
-lemma integral_circle_eq' (f : circle → ℂ) (hf : integrable f circle_measure):
-  integral circle_measure f = 1 / (2 * π) * ∫ θ in 0..(2 * π), f (exp_map_circle θ) :=
-begin
-  obtain hf0 := ((integrable_circle_iff f).mp hf).mono_set (Ioc_subset_Ioc_right pi_pos.le),
-  obtain hf1 := ((integrable_circle_iff f).mp hf).mono_set
-    (Ioc_subset_Ioc_left (neg_nonpos.mpr pi_pos.le)),
-  obtain hf2 := ((integrable_circle_iff' f).mp hf).mono_set (Ioc_subset_Ioc_left pi_pos.le),
-  have u1 := integral_union Ioc_disjoint_Ioc_same measurable_set_Ioc hf0 hf1,
-  have u2 := integral_union Ioc_disjoint_Ioc_same measurable_set_Ioc hf1 hf2,
-  rw add_comm at u2, rw Ioc_union_Ioc_eq_Ioc at u1 u2,
-  rw [integral_circle_eq, integral_of_le, integral_of_le, u1, u2],
-  suffices : ∫ θ in Ioc (-π) 0, f (exp_map_circle θ) = ∫ θ in Ioc π (2 * π), f (exp_map_circle θ),
-  { rw this, },
-  conv begin to_lhs, congr, skip, funext, rw ←exp_map_circle_add_two_pi, end,
-  rw [←integral_of_le, ←integral_of_le,
-    integral_comp_add_right (λ θ, f (exp_map_circle θ)) (2 * π), (by ring : -π + 2 * π = π),
-    (by ring : 0 + 2 * π = 2 * π)], all_goals { linarith [pi_pos] },
 end
 
 lemma integrable_circle_iff_circle_integrable (f : ℂ → ℂ) :
   integrable (f ∘ coe) circle_measure ↔ (circle_integrable f 0 1) :=
 begin
-  rw [circle_integrable, integrable_circle_iff'],
+  rw [circle_integrable, integrable_circle_iff],
   rw interval_integrable_iff_integrable_Ioc_of_le (by linarith [pi_pos] : 0 ≤ (2 * π)),
   suffices : eq_on ((f ∘ coe) ∘ ⇑exp_map_circle) (λ (θ : ℝ), f (circle_map 0 1 θ)) (Ioc 0 (2 * π)),
   { exact ⟨λ h, integrable_on.congr_fun h this measurable_set_Ioc,
@@ -173,22 +152,13 @@ end
 lemma integral_circle_eq_circle_integral (f : ℂ → ℂ) (hf : circle_integrable f 0 1):
   circle_integral f 0 1 = (2 * π * I) * integral circle_measure (λ z, z * f z) :=
 begin
-  rw [integral_circle_eq', circle_integral],
-  { simp_rw deriv_circle_map, rw ←mul_assoc,
-    rw (by ring : 2 * ↑π * I * (1 / (2 * ↑π)) = I * ((2 * π) / (2 * π))),
-    rw [div_self, mul_one, ←integral_const_mul], swap, { simp [pi_pos.ne'] },
-    apply integral_congr, intros x hx,
-    simp only [circle_map, of_real_one, one_mul, zero_add, id.smul_eq_mul, exp_map_circle_apply],
-    ring, },
-  { have hff := hf.out, simp only [deriv_circle_map, id.smul_eq_mul] at hff,
-    rw [interval_integrable_iff_integrable_Ioc_of_le, integrable_on] at hff,
-    swap, {linarith [pi_pos]},
-    rw integrable_circle_iff',
-    have g := integrable.smul (-I) hff, rw ←integrable_on at g, apply integrable_on.congr_fun g,
-    { intros x hx, simp [circle_map], ring_nf, norm_num },
-    { apply measurable_set_Ioc}, }
+  simp_rw [integral_circle_eq, circle_integral, deriv_circle_map, ←mul_assoc,
+    (by ring : 2 * ↑π * I * (1 / (2 * ↑π)) = I * ((2 * π) / (2 * π)))],
+  rw [div_self, mul_one, ←integral_const_mul], swap, { simp [pi_pos.ne'] },
+  apply integral_congr, intros x hx,
+  simp only [circle_map, of_real_one, one_mul, zero_add, id.smul_eq_mul, exp_map_circle_apply],
+  ring,
 end
-
 
 end circle_measure
 
@@ -313,7 +283,8 @@ begin
   convert integral_exp_mul_complex (_ : I * (-i + j) ≠ 0),
   { ext1 θ, congr' 1, simp only [int.cast_add, int.cast_neg], ring },
   { symmetry, rw div_eq_zero_iff, left, rw sub_eq_zero,
-    rw exp_eq_exp_iff_exists_int, use (j - i), rw int.cast_sub, rw complex.of_real_neg, ring_nf },
+    rw exp_eq_exp_iff_exists_int, use (j - i), rw int.cast_sub, rw complex.of_real_mul,
+    rw complex.of_real_bit0, rw complex.of_real_one, simp, ring_nf, },
   { apply mul_ne_zero, exact I_ne_zero, rwa [←int.cast_neg, ←int.cast_add, int.cast_ne_zero],}
 end
 

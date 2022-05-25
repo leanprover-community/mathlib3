@@ -106,6 +106,8 @@ begin
   { rw [h, exp_map_circle_add_two_pi], apply exp_map_circle_arg },
 end
 
+namespace circle
+
 noncomputable def arg'_equiv : circle ≃ Ioc 0 (2 * π) :=
 { to_fun := λ z, ⟨arg' z, arg'_mem_Ioc z⟩,
   inv_fun := exp_map_circle ∘ coe,
@@ -113,6 +115,8 @@ noncomputable def arg'_equiv : circle ≃ Ioc 0 (2 * π) :=
   right_inv := λ x, subtype.ext (arg'_exp_map_circle x.2.1 x.2.2) }
 
 noncomputable def circle_equiv : Ioc 0 (2 * π) ≃ circle := arg'_equiv.symm
+
+end circle
 
 end arg'_equiv
 

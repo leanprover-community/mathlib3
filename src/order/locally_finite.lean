@@ -223,10 +223,12 @@ end order_top
 section order_bot
 variables [preorder α] [order_bot α] [locally_finite_order α] {b x : α}
 
-/-- The finset of elements `x` such that `x ≤ b`. Basically `set.Iic b` as a finset. -/
+/-- The finset of elements `x` such that `x ≤ b`. Basically `set.Iic b` as a finset.
+See also `finset.Iic_wf`. -/
 def Iic (b : α) : finset α := Icc ⊥ b
 
-/-- The finset of elements `x` such that `x < b`. Basically `set.Iio b` as a finset. -/
+/-- The finset of elements `x` such that `x < b`. Basically `set.Iio b` as a finset.
+See also `finset.Iio_wf`. -/
 def Iio (b : α) : finset α := Ico ⊥ b
 
 lemma Iic_eq_Icc : Iic = Icc (⊥ : α) := rfl
@@ -651,7 +653,27 @@ namespace finset
 variables {γ : Type*} [linear_order γ] [locally_finite_order γ]
   [decidable (nonempty γ)] [is_well_order γ (<)]
 
-/-- Left-infinte right-open interval as a finset -/
+/--
+The finset of elements `x` such that `x ≤ a`. Basically `set.Iic a` as a finset.
+
+In contrast to `finset.Iic`, this definition does not require the type to be inhabited, but it does
+require `linear_order` and `is_well_order` instead. -/
+noncomputable def Iic_wf (a : γ) : finset γ :=
+if h : nonempty γ
+then Ico ((@is_well_order.wf γ (<) _).min set.univ (@set.univ_nonempty γ h)) a
+else ∅
+
+lemma mem_Iic_wf (x b : γ) : x ∈ Iic_wf b ↔ x < b :=
+begin
+  by_cases h : nonempty γ,
+  { simp only [Iic_wf, h, dif_pos, mem_Ico, and_iff_right_iff_imp],
+    exact λ _, not_lt.1 ((@is_well_order.wf γ (<) _).not_lt_min
+      set.univ (@set.univ_nonempty γ h) (set.mem_univ x)) },
+  { exact false.elim (h ⟨x⟩) }
+end
+
+/-- The finset of elements `x` such that `x < a`. Basically `set.Iio a` as a finset.
+See also `finset.Iic`. -/
 noncomputable def Iio_wf (a : γ) : finset γ :=
 if h : nonempty γ
 then Ico ((@is_well_order.wf γ (<) _).min set.univ (@set.univ_nonempty γ h)) a

@@ -221,15 +221,15 @@ end
 
 /-- The `basis ι 𝕜 E` underlying the `orthonormal_basis` --/
 protected def to_basis (b : orthonormal_basis ι 𝕜 E) : basis ι 𝕜 E :=
-basis.of_equiv_fun b.repr.to_linear_equiv
+basis.of_equiv_fun (b.repr.to_linear_equiv ≪≫ₗ pi_Lp.linear_equiv 𝕜 _)
 
 @[simp] protected lemma coe_to_basis (b : orthonormal_basis ι 𝕜 E) :
   (⇑b.to_basis : ι → E) = ⇑b :=
 begin
-  change ⇑(basis.of_equiv_fun b.repr.to_linear_equiv) = b,
+  rw orthonormal_basis.to_basis,
   ext j,
   rw basis.coe_of_equiv_fun,
-  simp only [orthonormal_basis.repr_symm_single],
+  simp only [orthonormal_basis.repr_symm_single, linear_equiv.symm_trans_apply],
   congr,
 end
 
@@ -252,16 +252,17 @@ variable {v : ι → E}
 def _root_.basis.to_orthonormal_basis (v : basis ι 𝕜 E) (hv : orthonormal 𝕜 v) :
   orthonormal_basis ι 𝕜 E :=
 orthonormal_basis.of_repr $
-linear_equiv.isometry_of_inner v.equiv_fun
+linear_equiv.isometry_of_inner (v.equiv_fun ≪≫ₗ (pi_Lp.linear_equiv 𝕜 (λ _ : ι, 𝕜)).symm)
 begin
   intros x y,
-  let p : euclidean_space 𝕜 ι := v.equiv_fun x,
-  let q : euclidean_space 𝕜 ι := v.equiv_fun y,
+  let p : euclidean_space 𝕜 ι := pi_Lp.equiv 2 _ (v.equiv_fun x),
+  let q : euclidean_space 𝕜 ι := pi_Lp.equiv 2 _ (v.equiv_fun y),
   have key : ⟪p, q⟫ = ⟪∑ i, p i • v i, ∑ i, q i • v i⟫,
   { simp [sum_inner, inner_smul_left, hv.inner_right_fintype] },
+  simp_rw linear_equiv.trans_apply,
   convert key,
-  { rw [← v.equiv_fun.symm_apply_apply x, v.equiv_fun_symm_apply] },
-  { rw [← v.equiv_fun.symm_apply_apply y, v.equiv_fun_symm_apply] }
+  { rw [← v.equiv_fun.symm_apply_apply x, v.equiv_fun_symm_apply], refl },
+  { rw [← v.equiv_fun.symm_apply_apply y, v.equiv_fun_symm_apply], refl }
 end
 
 @[simp] lemma _root_.basis.coe_to_orthonormal_basis_repr (v : basis ι 𝕜 E) (hv : orthonormal 𝕜 v) :
@@ -275,7 +276,7 @@ rfl
 
 @[simp] lemma _root_.basis.to_basis_to_orthonormal_basis (v : basis ι 𝕜 E) (hv : orthonormal 𝕜 v) :
   (v.to_orthonormal_basis hv).to_basis = v :=
-by simp [basis.to_orthonormal_basis, orthonormal_basis.to_basis]
+v.of_equiv_fun_equiv_fun
 
 @[simp] lemma _root_.basis.coe_to_orthonormal_basis (v : basis ι 𝕜 E) (hv : orthonormal 𝕜 v) :
   (v.to_orthonormal_basis hv : ι → E) = (v : ι → E) :=

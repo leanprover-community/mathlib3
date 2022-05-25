@@ -5,6 +5,7 @@ Authors: Jiale Miao, Kevin Buzzard
 -/
 
 import analysis.inner_product_space.projection
+import order.well_founded_set
 
 /-!
 # Gram-Schmidt Orthogonalization and Orthonormalization
@@ -32,16 +33,104 @@ and outputs a set of orthogonal vectors which have the same span.
 ## TODO
   Construct a version with an orthonormal basis from Gram-Schmidt process.
 -/
+namespace locally_finite_order
+
+lemma exists_min_greater {α : Type*} [linear_order α] [locally_finite_order α] (x : α) :
+  ∃ sx, x ≤ sx ∧ ∀ y, x < y → x < sx ∧ sx ≤ y :=
+begin
+  by_cases h : ∃ y, x < y,
+  { rcases h with ⟨y, hy⟩,
+    use finset.min' (finset.Ioc x y) ⟨y, finset.mem_Ioc.2 ⟨hy, le_refl y⟩⟩,
+    have h_min' : x < (finset.Ioc x y).min' _ ∧ (finset.Ioc x y).min' _ ≤ y :=
+      (finset.mem_Ioc.1 (finset.min'_mem (finset.Ioc x y) ⟨y, finset.mem_Ioc.2 ⟨hy, le_refl y⟩⟩)),
+    refine ⟨finset.le_min' _ _ _ (λ z hz, le_of_lt (finset.mem_Ioc.1 hz).1), _⟩,
+    intros z hz,
+    by_cases hzy : z ≤ y,
+    { exact ⟨h_min'.1, finset.min'_le (finset.Ioc x y) z (finset.mem_Ioc.2 ⟨hz, hzy⟩)⟩, },
+    { exact ⟨h_min'.1, h_min'.2.trans (le_of_not_le hzy)⟩, } },
+  { refine ⟨x, le_refl x, λ y hy, false.elim ((not_exists.1 h) _ hy)⟩ }
+end
+
+noncomputable instance {α : Type*} [linear_order α] [locally_finite_order α] : succ_order α := {
+  succ := λ x, classical.some (exists_min_greater x),
+  le_succ := λ x, (classical.some_spec (exists_min_greater x)).1,
+  max_of_succ_le := λ x hx y hxy, classical.by_contradiction
+    (λ h, not_le_of_lt ((classical.some_spec (exists_min_greater x)).2 y (lt_of_not_le h)).1 hx),
+  succ_le_of_lt := λ x y hxy, ((classical.some_spec (exists_min_greater x)).2 y hxy).2,
+  le_of_lt_succ := λ y x hy, by {contrapose hy, simp only [not_lt, not_le] at *,
+    exact ((classical.some_spec (exists_min_greater x)).2 y hy).2},
+}
+
+end locally_finite_order
+--TODO: move
+namespace encodable
+
+local attribute [instance] nat.locally_finite_order
+local attribute [-instance] nat.encodable
+local attribute [-instance] denumerable.nat
+
+instance {ι : Type*} [encodable ι] : partial_order ι := {
+  le := λ i j, (encode i) ≤ (encode j),
+  le_refl := λ i, nat.le_refl _,
+  le_trans := λ i j k hij hjk, nat.le_trans hij hjk,
+  le_antisymm := λ i j h₁ h₂, encode_injective (nat.le_antisymm h₁ h₂)
+}
+
+noncomputable def preimage_encode {ι : Type*} [encodable ι] (s : finset ℕ) : finset ι :=
+finset.preimage s encode (set.inj_on_of_injective encode_injective _)
+
+open locally_finite_order
+
+noncomputable instance {ι : Type*} [encodable ι] : locally_finite_order ι := {
+  finset_Icc := λ i j, preimage_encode (finset_Icc (encode i) (encode j)),
+  finset_Ioc := λ i j, preimage_encode (finset_Ioc (encode i) (encode j)),
+  finset_Ico := λ i j, preimage_encode (finset_Ico (encode i) (encode j)),
+  finset_Ioo := λ i j, preimage_encode (finset_Ioo (encode i) (encode j)),
+  finset_mem_Icc := λ i j k, by { rw [preimage_encode, finset.mem_preimage], apply finset_mem_Icc },
+  finset_mem_Ioc := λ i j k,
+    by { simp only [preimage_encode, finset.mem_preimage, finset_mem_Ioc, nat.lt_iff_le_not_le],
+         refl },
+  finset_mem_Ico := λ i j k,
+    by { simp only  [preimage_encode, finset.mem_preimage, finset_mem_Ico, nat.lt_iff_le_not_le],
+         refl },
+  finset_mem_Ioo := λ i j k,
+    by { simp only [preimage_encode, finset.mem_preimage, finset_mem_Ioo, nat.lt_iff_le_not_le],
+         refl },
+}
+
+instance {ι : Type*} [encodable ι] : linear_order ι := {
+  le_total := λ i j, @nat.le_total (encode i) (encode j),
+  decidable_le := λ i j, nat.decidable_le (encode i) (encode j),
+  ..encodable.partial_order
+}
+
+-- TODO: use locally_finite_order.of_Icc or locally_finite_order.of_finite_Icc?
+
+
+noncomputable instance {ι : Type*} [encodable ι] : succ_order ι := {
+  succ := λ i, @nat.find (λ n, encode i < n ∧ (decode ι n).is_some),
+  le_succ := _,
+  max_of_succ_le := _,
+  succ_le_of_lt := _,
+  le_of_lt_succ := _,
+
+}
+
+noncomputable instance {ι : Type*} [encodable ι] : has_bot ι := {
+}
+
+end encodable
 
 open_locale big_operators
 
 variables (𝕜 : Type*) {E : Type*} [is_R_or_C 𝕜] [inner_product_space 𝕜 E]
+variables (ι : Type*) [encodable ι]
 
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 
 /-- The Gram-Schmidt process takes a set of vectors as input
 and outputs a set of orthogonal vectors which have the same span. -/
-noncomputable def gram_schmidt (f : ℕ → E) : ℕ → E
+noncomputable def gram_schmidt (f : ι → E) : ι → E
 | n := f n - ∑ i : fin n, orthogonal_projection (𝕜 ∙ gram_schmidt i) (f n)
 using_well_founded {dec_tac := `[exact i.prop]}
 

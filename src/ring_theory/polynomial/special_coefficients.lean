@@ -2,6 +2,19 @@
 Copyright (c) 2022 Damiano Testa. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Damiano Testa
+
+Dear David,
+
+I am sorry to hear that you are struggling.  We can certainly have a chat about how to deal with certain difficulties and how to plan ahead.
+
+I would also encourage you to reach out to Isobel Bowles (isabel.bowles@warwick.ac.uk), who is the departmental contact for well-being issues.
+
+I think that it might be useful to reach out to her soon, since she can probably guide you better right now.
+
+In the meantime, I hope that you can find focus and motivation while concentrating for exams.  As usual, if there is anything that I can do to help, let me know.  And do not worry about reaching out!
+
+Best wishes,
+Damiano
 -/
 
 import data.polynomial.erase_lead
@@ -23,6 +36,44 @@ open polynomial nat
 open_locale polynomial
 
 variables {R : Type*} [semiring R] {r : R} {f g h : R[X]} {a b c d : ℕ}
+
+lemma expl (l m n o : R) (fa : f.nat_degree ≤ a) (gb : g.nat_degree ≤ b) :
+  ((C l * (X ^ (a + 2) : R[X]) + C m * (X ^ (a + 1)) + f) *
+    ((C n * X ^ (b + 2) + C o * X ^ (b + 1) + g))).coeff (a + 2 + b + 2 - 1) =
+   l * o + m * n :=
+begin
+  simp only [mul_add, add_mul, mul_assoc, add_succ_sub_one, coeff_add],
+  repeat { rw [X_pow_mul] },
+  repeat { rw [mul_assoc _ (X ^ _) (X ^ _), ← pow_add] },
+  repeat { rw [coeff_C_mul] },
+  repeat { rw [coeff_X_pow] },
+  rw [if_neg, if_pos, if_pos, if_neg],
+  repeat { rw coeff_eq_zero_of_nat_degree_lt },
+  { simp },
+  any_goals { refine nat_degree_mul_le.trans_lt _ },
+  { rw add_assoc, refine add_lt_add (fa.trans_lt (lt_succ_of_lt _)) (gb.trans_lt _);
+    exact (lt_add_one _) },
+  repeat { rw [add_assoc a, add_assoc a],
+    refine add_lt_add_of_le_of_lt fa ((nat_degree_C_mul_le _ _).trans_lt _),
+    refine (nat_degree_X_pow_le _).trans_lt _,
+    simp [add_comm] },
+  repeat { rw [add_comm, add_comm (_ + b) 1, ← add_assoc],
+    refine add_lt_add_of_lt_of_le (((nat_degree_X_pow_le _).trans_lt _)) gb,
+    simp [add_comm a] },
+  any_goals { simp only [add_comm, add_left_comm, add_assoc, add_right_inj, nat.succ_ne_self,
+      not_false_iff, add_left_inj, nat.one_ne_bit0, add_lt_add_iff_left, one_lt_succ_succ] },
+end
+
+lemma coeff_mul_nat_degree_add_sub_one_le
+  (f0 : f.nat_degree ≠ 0) (g0 : g.nat_degree ≠ 0) (fa : f.nat_degree ≤ a) (gb : g.nat_degree ≤ b) :
+  (f * g).coeff (a + b - 1) = f.coeff a * g.coeff (b - 1) + f.coeff (a - 1) * g.coeff b :=
+begin
+
+  have := expl (f.coeff a) (f.coeff (a - 1)) (g.coeff b) (g.coeff (b - 1))
+    (_ : nat_degree _ ≤ a - 2) (_ : nat_degree _ ≤ b - 2),
+  convert this using 2,
+  convert expl (f.coeff a) (f.coeff (a - 1)) (g.coeff b) (g.coeff (b - 1)) _ _,
+end
 
 lemma coeff_mul_nat_degree_add_sub_one_le
   (f0 : f.nat_degree ≠ 0) (g0 : g.nat_degree ≠ 0) (fa : f.nat_degree ≤ a) (gb : g.nat_degree ≤ b) :
@@ -58,23 +109,21 @@ lemma nat_degree_ne_zero_of_mul_X (f0 : f ≠ 0) : (f * X).nat_degree ≠ 0 :=
 begin
   contrapose! f0,
   suffices : f * X = 0 * X, from mul_X_injective (by simpa [X_mul]),
-  rw eq_C_of_nat_degree_eq_zero f0,
-  simp [eq_C_of_nat_degree_eq_zero f0],
+  rw [eq_C_of_nat_degree_eq_zero f0, mul_coeff_zero, coeff_X_zero, mul_zero, map_zero, zero_mul],
 end
 
-lemma coeff_mul_nat_degree_add_sub_one_le_X
-  (fa : f.nat_degree ≤ a) (gb : g.nat_degree ≤ b) :
+lemma coeff_mul_nat_degree_add_sub_one_le_X (fa : f.nat_degree ≤ a) (gb : g.nat_degree ≤ b) :
   ((f * X) * (g * X)).coeff ((a + 1) + (b + 1) - 1) =
     f.coeff a * (g * X).coeff b + (f * X).coeff a * g.coeff b :=
 begin
   by_cases f0 : f = 0,
   { simp [f0] },
-  by_cases g0 : g = 0,
-  { simp [g0] },
-  rw coeff_mul_nat_degree_add_sub_one_le,
-  { simp },
-  repeat { exact nat_degree_ne_zero_of_mul_X ‹_› },
-  repeat { exact nat_degree_mul_le.trans (add_le_add ‹_› nat_degree_X_le) },
+  { by_cases g0 : g = 0,
+    { simp [g0] },
+    { rw coeff_mul_nat_degree_add_sub_one_le,
+      { simp },
+      repeat { exact nat_degree_ne_zero_of_mul_X ‹_› },
+      repeat { exact nat_degree_mul_le.trans (add_le_add ‹_› nat_degree_X_le) } } },
 end
 
 lemma coeff_pow_nat_degree_add_sub_one_le {R : Type*} [comm_semiring R] {n : ℕ} (n0 : n ≠ 0)

@@ -43,7 +43,13 @@ The main definitions are the
    common textbook definition of weak convergence of measures.
 
 TODO:
-* Portmanteau theorem.
+* Prove the portmanteau theorem.
+  * `finite_measure.limsup_measure_closed_le_of_tendsto` proves one implication.
+    The current formulation assumes `pseudo_emetric_space`. The only reason is to have
+    bounded continuous pointwise approximations to the indicator function of a closed set. Clearly
+    for example metrizability or pseudo-emetrizability would be sufficient assumptions. The
+    typeclass assumptions should be later adjusted in a way that takes into account use cases, but
+    the proof will presumably remain essentially the same.
 
 ## Notations
 
@@ -334,8 +340,8 @@ end
 If bounded continuous non-negative functions are uniformly bounded by a constant and tend to a
 limit, then their integrals against the finite measure tend to the integral of the limit.
 This formulation assumes:
- * the limit is in the almost everywhere sense;
  * the functions tend to a limit along a countably generated filter;
+ * the limit is in the almost everywhere sense;
  * boundedness holds almost everywhere;
  * integration is `lintegral`, i.e., the functions and their integral are `ℝ≥0∞`-valued.
 -/
@@ -370,8 +376,8 @@ tendsto_lintegral_nn_filter_of_le_const μ
 If bounded continuous non-negative functions are uniformly bounded by a constant and tend to a
 limit, then their integrals against the finite measure tend to the integral of the limit.
 This formulation assumes:
- * the limit is in the almost everywhere sense;
  * the functions tend to a limit along a countably generated filter;
+ * the limit is in the almost everywhere sense;
  * boundedness holds almost everywhere;
  * integration is the pairing against non-negative continuous test functions (`test_against_nn`).
 -/
@@ -521,6 +527,13 @@ end probability_measure
 
 section convergence_implies_limsup_closed_le
 
+/-- If bounded continuous functions tend to the indicator of a measurable set and are
+uniformly bounded, then their integrals against a finite measure tend to the measure of the set.
+This formulation assumes:
+ * the functions tend to a limit along a countably generated filter;
+ * the limit is in the almost everywhere sense;
+ * boundedness holds almost everywhere.
+-/
 lemma measure_of_cont_bdd_of_tendsto_filter_indicator {ι : Type*} {L : filter ι}
   [L.is_countably_generated] [topological_space α] [opens_measurable_space α]
   (μ : finite_measure α) {c : ℝ≥0} {E : set α} (E_mble : measurable_set E)
@@ -537,6 +550,12 @@ begin
   simp only [lintegral_one, measure.restrict_apply, measurable_set.univ, univ_inter],
 end
 
+/-- If a sequence of bounded continuous functions tends to the indicator of a measurable set and
+the functions are uniformly bounded, then their integrals against a finite measure tend to the
+measure of the set.
+
+A similar result with more general assumptions is `measure_of_cont_bdd_of_tendsto_filter_indicator`.
+-/
 lemma measure_of_cont_bdd_of_tendsto_indicator
   [topological_space α] [opens_measurable_space α]
   (μ : finite_measure α) {c : ℝ≥0} {E : set α} (E_mble : measurable_set E)
@@ -552,6 +571,9 @@ begin
       (eventually_of_forall (λ n, eventually_of_forall (fs_bdd n))) (eventually_of_forall fs_lim'),
 end
 
+/-- The integrals of thickenined indicators of a closed set against a finite measure tend to the
+measure of the closed set if the thickening radii tend to zero.
+-/
 lemma tendsto_lintegral_thickened_indicator_of_is_closed
   {α : Type*} [measurable_space α] [pseudo_emetric_space α] [opens_measurable_space α]
   (μ : finite_measure α) {F : set α} (F_closed : is_closed F) {δs : ℕ → ℝ}
@@ -566,13 +588,19 @@ begin
   rwa F_closed.closure_eq at key,
 end
 
+/-- One implication of the portmanteau theorem:
+Weak convergence of finite measures implies that the limsup of the measures of any closed set is
+at most the measure of the closed set under the limit measure.
+-/
 lemma finite_measure.limsup_measure_closed_le_of_tendsto
-  {α ι : Type*} {L : filter ι} [ne_bot L]
+  {α ι : Type*} {L : filter ι}
   [measurable_space α] [pseudo_emetric_space α] [opens_measurable_space α]
   {μ : finite_measure α} {μs : ι → finite_measure α}
   (μs_lim : tendsto μs L (𝓝 μ)) {F : set α} (F_closed : is_closed F) :
   L.limsup (λ i, (μs i : measure α) F) ≤ (μ : measure α) F :=
 begin
+  by_cases L = ⊥,
+  { simp only [h, limsup, filter.map_bot, Limsup_bot, ennreal.bot_eq_zero, zero_le], },
   apply ennreal.le_of_forall_pos_le_add,
   intros ε ε_pos μ_F_finite,
   set δs := λ (n : ℕ), (1 : ℝ) / (n+1) with def_δs,
@@ -597,6 +625,7 @@ begin
                             (μs n : measure α) F_closed.measurable_set (δs_pos M)),
   have ev_near' := eventually.mono ev_near aux,
   apply (filter.limsup_le_limsup ev_near').trans,
+  haveI : ne_bot L, from ⟨h⟩,
   rw limsup_const,
   apply le_trans (add_le_add (hM M rfl.le).le (le_refl (ε/2 : ℝ≥0∞))),
   simp only [add_assoc, ennreal.add_halves, le_refl],

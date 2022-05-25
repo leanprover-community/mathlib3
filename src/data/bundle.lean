@@ -11,9 +11,18 @@ import algebra.module.basic
 # Bundle
 Basic data structure to implement fiber bundles, vector bundles (maybe fibrations?), etc. This file
 should contain all possible results that do not involve any topology.
+
+We represent a bundle `E` over a base space `B` as a dependent type `E : B → Type*`.
+
 We provide a type synonym of `Σ x, E x` as `bundle.total_space E`, to be able to endow it with
 a topology which is not the disjoint union topology `sigma.topological_space`. In general, the
 constructions of fiber bundles we will make will be of this form.
+
+## Main Definitions
+
+* `bundle.total_space` the total space of a bundle.
+* `bundle.total_space.proj` the projection from the total space to the base space.
+* `bundle.total_space_mk` the constructor for the total space.
 
 ## References
 - https://en.wikipedia.org/wiki/Bundle_(mathematics)
@@ -24,8 +33,8 @@ namespace bundle
 variables {B : Type*} (E : B → Type*)
 
 /--
-`total_space E` is the total space of the bundle `Σ x, E x`. This type synonym is used to avoid
-conflicts with general sigma types.
+`bundle.total_space E` is the total space of the bundle `Σ x, E x`.
+This type synonym is used to avoid conflicts with general sigma types.
 -/
 def total_space := Σ x, E x
 
@@ -34,10 +43,11 @@ instance [inhabited B] [inhabited (E default)] :
 
 variables {E}
 
-/-- `bundle.proj` is the canonical projection `total_space E → B` on the base space. -/
+/-- `bundle.total_space.proj` is the canonical projection `bundle.total_space E → B` from the
+total space to the base space. -/
 @[simp, reducible] def total_space.proj : total_space E → B := sigma.fst
 
-/-- Constructor for the total space of a `topological_fiber_bundle_core`. -/
+/-- Constructor for the total space of a bundle. -/
 @[simp, reducible] def total_space_mk (b : B) (a : E b) :
   bundle.total_space E := ⟨b, a⟩
 

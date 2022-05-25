@@ -11,6 +11,7 @@ import measure_theory.function.continuous_map_dense
 import measure_theory.function.l2_space
 import measure_theory.measure.haar
 import measure_theory.group.integration
+import measure_theory.integral.circle_integral
 import analysis.special_functions.integrals
 import topology.metric_space.emetric_paracompact
 import topology.continuous_function.stone_weierstrass
@@ -157,6 +158,37 @@ begin
     integral_comp_add_right (λ θ, f (exp_map_circle θ)) (2 * π), (by ring : -π + 2 * π = π),
     (by ring : 0 + 2 * π = 2 * π)], all_goals { linarith [pi_pos] },
 end
+
+lemma integrable_circle_iff_circle_integrable (f : ℂ → ℂ) :
+  integrable (f ∘ coe) circle_measure ↔ (circle_integrable f 0 1) :=
+begin
+  rw [circle_integrable, integrable_circle_iff'],
+  rw interval_integrable_iff_integrable_Ioc_of_le (by linarith [pi_pos] : 0 ≤ (2 * π)),
+  suffices : eq_on ((f ∘ coe) ∘ ⇑exp_map_circle) (λ (θ : ℝ), f (circle_map 0 1 θ)) (Ioc 0 (2 * π)),
+  { exact ⟨λ h, integrable_on.congr_fun h this measurable_set_Ioc,
+      λ h, integrable_on.congr_fun h this.symm measurable_set_Ioc⟩,  },
+  intros x hx, simp [circle_map]
+end
+
+lemma integral_circle_eq_circle_integral (f : ℂ → ℂ) (hf : circle_integrable f 0 1):
+  circle_integral f 0 1 = (2 * π * I) * integral circle_measure (λ z, z * f z) :=
+begin
+  rw [integral_circle_eq', circle_integral],
+  { simp_rw deriv_circle_map, rw ←mul_assoc,
+    rw (by ring : 2 * ↑π * I * (1 / (2 * ↑π)) = I * ((2 * π) / (2 * π))),
+    rw [div_self, mul_one, ←integral_const_mul], swap, { simp [pi_pos.ne'] },
+    apply integral_congr, intros x hx,
+    simp only [circle_map, of_real_one, one_mul, zero_add, id.smul_eq_mul, exp_map_circle_apply],
+    ring, },
+  { have hff := hf.out, simp only [deriv_circle_map, id.smul_eq_mul] at hff,
+    rw [interval_integrable_iff_integrable_Ioc_of_le, integrable_on] at hff,
+    swap, {linarith [pi_pos]},
+    rw integrable_circle_iff',
+    have g := integrable.smul (-I) hff, rw ←integrable_on at g, apply integrable_on.congr_fun g,
+    { intros x hx, simp [circle_map], ring_nf, norm_num },
+    { apply measurable_set_Ioc}, }
+end
+
 
 end circle_measure
 

@@ -292,7 +292,7 @@ end
 
 end b_pos_and_b_lt_one
 
-lemma floor_logb_nat_cast (b : ℕ) (r : ℝ) (hb : 1 < b) (hr : 0 ≤ r) : ⌊logb b r⌋ = int.log b r :=
+lemma floor_logb_nat_cast {b : ℕ} {r : ℝ} (hb : 1 < b) (hr : 0 ≤ r) : ⌊logb b r⌋ = int.log b r :=
 begin
   obtain rfl | hr := hr.eq_or_lt,
   { rw [logb_zero, int.log_zero_right, int.floor_zero] },
@@ -302,10 +302,10 @@ begin
     refine le_of_le_of_eq _ (rpow_logb (zero_lt_one.trans hb1') hb1'.ne' hr),
     exact rpow_le_rpow_of_exponent_le hb1'.le (int.floor_le _) },
   { rw [int.le_floor, le_logb_iff_rpow_le hb1' hr, rpow_int_cast],
-    refine int.zpow_log_le_self hb hr }
+    exact int.zpow_log_le_self hb hr }
 end
 
-lemma ceil_logb_nat_cast (b : ℕ) (r : ℝ) (hb : 1 < b) (hr : 0 ≤ r) : ⌈logb b r⌉ = int.clog b r :=
+lemma ceil_logb_nat_cast {b : ℕ} {r : ℝ} (hb : 1 < b) (hr : 0 ≤ r) : ⌈logb b r⌉ = int.clog b r :=
 begin
   obtain rfl | hr := hr.eq_or_lt,
   { rw [logb_zero, int.clog_zero_right, int.ceil_zero] },

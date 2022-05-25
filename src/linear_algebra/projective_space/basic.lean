@@ -67,8 +67,6 @@ lemma mk'_eq_mk (v : { v : V // v ≠ 0}) :
   mk' K v = mk K v v.2 :=
 by { dsimp [mk, mk'], congr' 1, simp }
 
-/- Since `mk` is the preferred representation, we can `simp` others to it. -/
-
 @[simp]
 lemma quotient_mk_eq_mk (z : V) (h : z ≠ 0) :
   @quotient.mk _ (projectivization_setoid _ _) ⟨z, h⟩ = mk K z h := rfl

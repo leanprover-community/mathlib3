@@ -43,11 +43,13 @@ variables {α β γ : Type*}
 While this could be defined as `nonempty (fintype α)`, it is defined
 in this way to allow there to be `finite` instances for propositions.
 -/
-class finite (α : Sort*) : Prop :=
-(exists_equiv_fin [] : ∃ (n : ℕ), nonempty (α ≃ fin n))
+class inductive finite (α : Sort*) : Prop
+| intro {n : ℕ} : α ≃ fin n → finite
 
-lemma finite.of_fintype {α : Type*} (h : fintype α) : finite α :=
-⟨⟨fintype.card α, ⟨fintype.equiv_fin α⟩⟩⟩
+lemma finite.exists_equiv_fin (α : Sort*) [h : finite α] : ∃ (n : ℕ), nonempty (α ≃ fin n) :=
+by { casesI h with n f, exact ⟨n, ⟨f⟩⟩ }
+
+lemma finite.of_fintype {α : Type*} (h : fintype α) : finite α := ⟨fintype.equiv_fin α⟩
 
 /-- For efficiency reasons, we want `finite` instances to have higher
 priority than ones coming from `fintype` instances. -/
@@ -88,6 +90,25 @@ by { haveI := fintype.of_finite α, exact not_fintype α }
 lemma finite.of_not_infinite {α : Type*} (h : ¬ infinite α) : finite α :=
 finite.of_fintype (fintype_of_not_infinite h)
 
+lemma infinite.of_not_finite {α : Type*} (h : ¬ finite α) : infinite α :=
+⟨λ h', h (finite.of_fintype h')⟩
+
+lemma not_infinite_iff_finite {α : Type*} : ¬ infinite α ↔ finite α :=
+⟨finite.of_not_infinite, λ h h', by exactI not_finite α⟩
+
+lemma not_finite_iff_infinite {α : Type*} : ¬ finite α ↔ infinite α :=
+not_infinite_iff_finite.not_right.symm
+
+lemma _root_.nat.card_eq (α : Type*) :
+  nat.card α = if h : finite α then by exactI @fintype.card α (fintype.of_finite α) else 0 :=
+begin
+  casesI finite_or_infinite α,
+  { haveI := fintype.of_finite α,
+    simp only [*, nat.card_eq_fintype_card, dif_pos],
+    congr, },
+  { simp [*, not_finite_iff_infinite.mpr h] },
+end
+
 lemma finite.card_pos_iff [finite α] :
   0 < nat.card α ↔ nonempty α :=
 begin
@@ -101,8 +122,8 @@ instance finite.prop (p : Prop) : finite p :=
 begin
   classical,
   refine if h : p then _ else _,
-  { exact ⟨⟨1, ⟨(equiv.prop_equiv_punit h).trans (by simpa using fintype.equiv_fin punit)⟩⟩⟩ },
-  { exact ⟨⟨0, ⟨(equiv.prop_equiv_pempty h).trans (by simpa using fintype.equiv_fin pempty)⟩⟩⟩ }
+  { exact ⟨(equiv.prop_equiv_punit h).trans (by simpa using fintype.equiv_fin punit)⟩ },
+  { exact ⟨(equiv.prop_equiv_pempty h).trans (by simpa using fintype.equiv_fin pempty)⟩ }
 end
 
 namespace finite

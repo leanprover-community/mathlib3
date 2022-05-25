@@ -104,8 +104,6 @@ theorem gram_schmidt_pairwise_orthogonal (f : ι → E) :
 
 open submodule set order
 
-
-
 /-- `gram_schmidt` preserves span of vectors. -/
 lemma span_gram_schmidt (f : ι → E) (c : ι) :
   span 𝕜 (gram_schmidt 𝕜 f '' Iio c) = span 𝕜 (f '' Iio c) :=

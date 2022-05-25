@@ -187,6 +187,10 @@ begin
   { apply image.lift_fac }
 end
 
+lemma sup_eq_mk_desc {A : C} {X Y : mono_over A} :
+  (mono_over.sup.obj X).obj Y = mono_over.mk' (image.ι (coprod.desc X.arrow Y.arrow)) :=
+rfl
+
 end sup
 
 end mono_over
@@ -301,6 +305,9 @@ lemma mk_eq_bot_iff_zero {f : X ⟶ Y} [mono f] : subobject.mk f = ⊥ ↔ f = 0
 ⟨λ h, by simpa [h, bot_factors_iff_zero] using mk_factors_self f,
   λ h, mk_eq_mk_of_comm _ _ ((iso_zero_of_mono_eq_zero h).trans has_zero_object.zero_iso_initial)
     (by simp [h])⟩
+
+lemma eq_bot_iff_arrow_eq_zero {B : C} (X : subobject B) : X = ⊥ ↔ X.arrow = 0 :=
+by rw [←mk_arrow X, mk_eq_bot_iff_zero, mk_arrow]
 
 end zero_order_bot
 
@@ -473,6 +480,25 @@ lemma sup_factors_of_factors_right {A B : C} {X Y : subobject B} {f : A ⟶ B} (
   (X ⊔ Y).factors f :=
 factors_of_le f le_sup_right P
 
+lemma sup_eq_mk_desc [has_equalizers C] {A : C} {X Y : subobject A} :
+  X ⊔ Y = subobject.mk (image.ι (coprod.desc X.arrow Y.arrow)) :=
+begin
+  refine quotient.induction_on' X (λ f, _),
+  refine quotient.induction_on' Y (λ g, _),
+  apply quotient.sound,
+  dsimp,
+  rw mono_over.sup_eq_mk_desc,
+  refine ⟨mono_over.iso_mk _ _⟩,
+  let k := coprod.map
+    ((mono_over.forget _ ⋙ over.forget _).map (representative_iso f).hom)
+    ((mono_over.forget _ ⋙ over.forget _).map (representative_iso g).hom),
+  refine (as_iso (image.pre_comp k _)).symm ≪≫ image.eq_to_iso _,
+  { simp only [k, functor.map_iso_hom, functor.comp_map, over.forget_map, coprod.map_desc, over.w,
+      mono_over.forget_obj_hom, representative_arrow],
+    congr, },
+  { dsimp, simp only [←image.eq_fac, assoc, is_iso.inv_comp_eq, image.pre_comp_ι], },
+end
+
 variables [has_initial C] [initial_mono_class C]
 
 lemma finset_sup_factors {I : Type*} {A B : C} {s : finset I} {P : I → subobject B}
@@ -609,7 +635,7 @@ section Sup
 variables [well_powered C] [has_coproducts C]
 
 /--
-The univesal morphism out of the coproduct of a set of subobjects,
+The universal morphism out of the coproduct of a set of subobjects,
 after using `[well_powered C]` to reindex by a small type.
 -/
 def small_coproduct_desc {A : C} (s : set (subobject A)) : _ ⟶ A :=

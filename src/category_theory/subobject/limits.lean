@@ -382,18 +382,55 @@ subobject.mk biprod.inl
 abbreviation subobject_inr : subobject (X ⊞ Y) :=
 subobject.mk biprod.inr
 
-lemma inl_inf_inr [has_pullbacks C] [has_initial C] [initial_mono_class C] :
+open_locale zero_object
+
+lemma inl_inf_inr [has_pullbacks C] [has_zero_object C] :
   subobject_inl X Y ⊓ subobject_inr X Y = ⊥ :=
-sorry
+-- We could alternatively prove this using
+-- `pullback (biprod.inl : X ⟶ _) (biprod.inr : Y ⟶ _) ≅ 0`
+begin
+  rw eq_bot_iff_arrow_eq_zero,
+  ext,
+  { rw [←factor_thru_arrow _ _ (inf_arrow_factors_right (subobject_inl X Y) (subobject_inr X Y)),
+      ←underlying_iso_hom_comp_eq_mk, category.assoc, category.assoc, biprod.inr_fst],
+    simp only [comp_zero, zero_comp], },
+  { rw [←factor_thru_arrow _ _ (inf_arrow_factors_left (subobject_inl X Y) (subobject_inr X Y)),
+      ←underlying_iso_hom_comp_eq_mk, category.assoc, category.assoc, biprod.inl_snd],
+    simp only [comp_zero, zero_comp], },
+end
 
-lemma inl_sup_inr [has_images C] [has_binary_coproducts C] :
+lemma inl_sup_inr [has_images C] [has_binary_coproducts C] [has_equalizers C] :
   subobject_inl X Y ⊔ subobject_inr X Y = ⊤ :=
-sorry
+begin
+  haveI : is_iso (coprod.desc (subobject_inl X Y).arrow (subobject_inr X Y).arrow) := sorry,
+  rw sup_eq_mk_desc,
+  exact mk_eq_top_of_is_iso _,
+end
 
-def is_compl_subobject_inl_subobject_inr [has_pullbacks C] [has_initial C]
-  [initial_mono_class C] [has_images C] [has_binary_coproducts C] :
+lemma is_compl_subobject_inl_subobject_inr [has_pullbacks C] [has_zero_object C]
+  [has_images C] [has_binary_coproducts C] [has_equalizers C] :
   is_compl (subobject_inl X Y) (subobject_inr X Y) :=
-sorry
+{ inf_le_bot := (inl_inf_inr X Y).le,
+  top_le_sup := (inl_sup_inr X Y).ge, }
+
+/--
+A subobject `X` of `A` is complemented in the lattice sense (`∃ Y, is_compl X Y`)
+if and only if
+it is complemented in the biproduct sense (`∃ Y, X ⊞ Y ≅ A`).
+-/
+lemma exists_is_compl_iff_exists_iso_biprod [has_pullbacks C] [has_zero_object C]
+  [has_images C] [has_binary_biproducts C] [has_equalizers C] {A : C} (X : subobject A) :
+  (∃ Y, is_compl X Y) ↔ (∃ (Y : C) (i : (X : C) ⊞ Y ≅ A), X.arrow = biprod.inl ≫ i.hom) :=
+begin
+  fsplit,
+  { rintro ⟨Y, w₁, w₂⟩,
+    use Y,
+    sorry, },
+  { rintro ⟨Y, i, w⟩,
+    use subobject.mk (biprod.inr ≫ i.hom),
+    sorry, }
+
+end
 
 @[simp]
 lemma kernel_subobject_biprod_snd :

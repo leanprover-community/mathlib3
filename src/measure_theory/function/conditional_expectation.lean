@@ -2114,14 +2114,16 @@ end
 
 /-- Auxiliary lemma for `condexp_indicator`. -/
 lemma condexp_indicator_aux (hm : m ≤ m0) (hs : measurable_set[m] s) (hf : f =ᵐ[μ.restrict sᶜ] 0) :
-  s.indicator (μ[f | m]) =ᵐ[μ] μ[s.indicator f | m] :=
+  μ[s.indicator f | m] =ᵐ[μ] s.indicator (μ[f | m]) :=
 begin
   have hsf_zero : ∀ g : α → F', g =ᵐ[μ.restrict sᶜ] 0 → s.indicator g =ᵐ[μ] g,
     from λ g, indicator_ae_eq_of_restrict_compl_ae_eq_zero (hm _ hs),
-  refine (hsf_zero (μ[f | m]) (condexp_ae_eq_restrict_zero hs.compl hf)).trans _,
+  refine ((hsf_zero (μ[f | m]) (condexp_ae_eq_restrict_zero hs.compl hf)).trans _).symm,
   exact condexp_congr_ae (hsf_zero f hf).symm,
 end
 
+/-- The conditional expectation of the indicator of a function over an `m`-measurable set with
+respect to the σ-algebra `m` is a.e. equal to the indicator of the conditional expectation. -/
 lemma condexp_indicator (hf_int : integrable f μ) (hs : measurable_set[m] s) :
   μ[s.indicator f | m] =ᵐ[μ] s.indicator (μ[f | m]) :=
 begin
@@ -2150,7 +2152,7 @@ begin
     begin
       refine filter.eventually_eq.rfl.add _,
       have : sᶜ.indicator (μ[sᶜ.indicator f|m]) =ᵐ[μ] μ[sᶜ.indicator f|m],
-      { refine (condexp_indicator_aux hm hs.compl _).trans _,
+      { refine (condexp_indicator_aux hm hs.compl _).symm.trans _,
         { exact indicator_ae_eq_restrict_compl (hm _ hs.compl), },
         { rw [set.indicator_indicator, set.inter_self], }, },
       filter_upwards [this] with x hx,
@@ -2162,7 +2164,7 @@ begin
     by rw [set.indicator_indicator, set.inter_compl_self, set.indicator_empty', add_zero]
   ... =ᵐ[μ] μ[s.indicator f|m] :
     begin
-      refine (condexp_indicator_aux hm hs _).trans _,
+      refine (condexp_indicator_aux hm hs _).symm.trans _,
       { exact indicator_ae_eq_restrict_compl (hm _ hs), },
       { rw [set.indicator_indicator, set.inter_self], },
     end
@@ -2171,15 +2173,19 @@ end
 /-- If the restriction to a `m`-measurable set `s` of a σ-algebra `m` is equal to the restriction
 to `s` of another σ-algebra `m₂` (hypothesis `hs`), then `μ[f | m] =ᵐ[μ.restrict s] μ[f | m₂]`. -/
 lemma condexp_ae_eq_restrict_of_measurable_space_eq_on {m m₂ m0 : measurable_space α}
-  {μ : measure α}
-  (hm : m ≤ m0) (hm₂ : m₂ ≤ m0) [sigma_finite (μ.trim hm)] [sigma_finite (μ.trim hm₂)]
-  (hf_int : integrable f μ) (hs_m : measurable_set[m] s)
-  (hs : ∀ t, measurable_set[m] (s ∩ t) ↔ measurable_set[m₂] (s ∩ t)) :
+  {μ : measure α} (hm : m ≤ m0) (hm₂ : m₂ ≤ m0)
+  [sigma_finite (μ.trim hm)] [sigma_finite (μ.trim hm₂)]
+  (hs_m : measurable_set[m] s) (hs : ∀ t, measurable_set[m] (s ∩ t) ↔ measurable_set[m₂] (s ∩ t)) :
   μ[f | m] =ᵐ[μ.restrict s] μ[f | m₂] :=
 begin
   rw ae_eq_restrict_iff_indicator_ae_eq (hm _ hs_m),
   have hs_m₂ : measurable_set[m₂] s,
   { rwa [← set.inter_univ s, ← hs set.univ, set.inter_univ], },
+  by_cases hf_int : integrable f μ,
+  swap,
+  { filter_upwards [@condexp_undef _ _ _ _ _ m _ μ _ hf_int,
+      @condexp_undef _ _ _ _ _ m₂ _ μ _ hf_int] with x hxm hxm₂,
+    simp only [set.indicator_apply, hxm, hxm₂], },
   refine ((condexp_indicator hf_int hs_m).symm.trans _).trans (condexp_indicator hf_int hs_m₂),
   refine ae_eq_of_forall_set_integral_eq_of_sigma_finite' hm₂
     (λ s hs hμs, integrable_condexp.integrable_on)

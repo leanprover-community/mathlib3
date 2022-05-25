@@ -2043,6 +2043,19 @@ lemma self_mem_ae_restrict {s} (hs : measurable_set s) : s ∈ (μ.restrict s).a
 by simp only [ae_restrict_eq hs, exists_prop, mem_principal, mem_inf_iff];
   exact ⟨_, univ_mem, s, subset.rfl, (univ_inter s).symm⟩
 
+/-- If two measurable sets are ae_eq then any proposition that is almost everywhere true on one
+is almost everywhere true on the other -/
+lemma ae_restrict_of_ae_eq_of_ae_restrict {s t} (hst : s =ᵐ[μ] t) {p : α → Prop} :
+  (∀ᵐ x ∂μ.restrict s, p x) → (∀ᵐ x ∂μ.restrict t, p x) :=
+by simp [measure.restrict_congr_set hst]
+
+/-- If two measurable sets are ae_eq then any proposition that is almost everywhere true on one
+is almost everywhere true on the other -/
+lemma ae_restrict_congr_set {s t} (hst : s =ᵐ[μ] t) {p : α → Prop} :
+  (∀ᵐ x ∂μ.restrict s, p x) ↔ (∀ᵐ x ∂μ.restrict t, p x) :=
+⟨ae_restrict_of_ae_eq_of_ae_restrict hst, ae_restrict_of_ae_eq_of_ae_restrict hst.symm⟩
+
+
 /-- A version of the **Borel-Cantelli lemma**: if `pᵢ` is a sequence of predicates such that
 `∑ μ {x | pᵢ x}` is finite, then the measure of `x` such that `pᵢ x` holds frequently as `i → ∞` (or
 equivalently, `pᵢ x` holds for infinitely many `i`) is equal to zero. -/

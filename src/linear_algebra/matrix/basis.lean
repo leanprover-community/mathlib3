@@ -199,9 +199,8 @@ begin
   classical,
   simp only [basis_to_matrix_mul _ _ (pi.basis_fun R ι), matrix.to_lin_eq_to_lin'],
   ext i j,
-  have : A.mul_vec ((linear_map.std_basis R (λ (i : ι), R) j) 1) = Aᵀ j :=
-    funext (λ x, matrix.mul_vec_std_basis A x j),
-  rw [linear_map.to_matrix_apply, matrix.to_lin'_apply, pi.basis_fun_apply, this]
+  rw [linear_map.to_matrix_apply, matrix.to_lin'_apply, pi.basis_fun_apply,
+    matrix.mul_vec_std_basis_apply]
 end
 
 /-- A generalization of `linear_map.to_matrix_id`. -/

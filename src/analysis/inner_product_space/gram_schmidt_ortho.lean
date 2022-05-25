@@ -34,39 +34,14 @@ and outputs a set of orthogonal vectors which have the same span.
   Construct a version with an orthonormal basis from Gram-Schmidt process.
 -/
 
--- TODO: move
-namespace order
-open set
-variables {α : Type*} [partial_order α] [succ_order α] (a : α)
-@[simp] lemma succ_eq_self_iff_is_max : succ a = a ↔ is_max a :=
-begin
-  rw [←order.succ_le_iff_is_max],
-  exact iff.intro (λ h, by rw [h]) (λ h, (le_antisymm h (le_succ a))),
-end
-
-lemma Iio_succ_eq_insert' {α : Type*} [partial_order α] [succ_order α]
-    (a : α) (ha : ¬ is_max a):
-  Iio (succ a) = insert a (Iio a) :=
-ext (λ _, lt_succ_iff_eq_or_lt_of_not_is_max ha)
-
-end order
-
--- TODO: move
-namespace is_well_order
-def has_well_founded {ι : Type*} [preorder ι] [hwo : is_well_order ι (<)] : has_well_founded ι := {
-  r := (<),
-  wf := hwo.wf
-}
-end is_well_order
-
-local attribute [instance] is_well_order.has_well_founded
-
 open_locale big_operators
 open finset
 
 variables (𝕜 : Type*) {E : Type*} [is_R_or_C 𝕜] [inner_product_space 𝕜 E]
 variables {ι : Type*} [linear_order ι] [order_bot ι] [succ_order ι]
 variables [is_succ_archimedean ι] [locally_finite_order ι] [is_well_order ι (<)]
+
+local attribute [instance] is_well_order.has_well_founded
 
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 
@@ -147,7 +122,7 @@ begin
     refine subset_span _,
     simp only [set.mem_image, set.mem_Iio],
     refine ⟨b, (finset.mem_Ico.1 hb).2, by refl⟩ },
-  rw not_iff_not.2 (order.succ_eq_self_iff_is_max _) at h,
+  rw not_iff_not.2 (order.succ_eq_iff_is_max _) at h,
   rw [order.Iio_succ_eq_insert' _ h],
   simp only [span_insert, image_insert_eq, hc],
   apply le_antisymm,

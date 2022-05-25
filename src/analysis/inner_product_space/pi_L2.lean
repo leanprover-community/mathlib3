@@ -476,15 +476,15 @@ lemma inner_matrix_col_col (A B : matrix (fin n) (fin m) 𝕜) (i j : (fin m)) :
 variables (i : ι) (j : ι')
 
 lemma euclidean_space.mul_vec_single_apply [decidable_eq ι] (A : matrix ι' ι 𝕜) :
-  A.mul_vec (euclidean_space.single i 1) j = A j i :=
+  A.mul_vec (pi_Lp.equiv _ _ (euclidean_space.single i 1)) j = Aᵀ i j :=
 matrix.mul_vec_std_basis A j i
 
 @[simp] lemma euclidean_space.mul_vec_single [decidable_eq ι] (A : matrix ι' ι 𝕜) :
-  A.mul_vec (euclidean_space.single i 1) = λ j, A j i :=
+  A.mul_vec (pi_Lp.equiv _ _ (euclidean_space.single i 1)) = Aᵀ i :=
 by ext; apply euclidean_space.mul_vec_single_apply
 
 @[simp] lemma euclidean_space.vec_mul_single [decidable_eq ι] (A : matrix ι ι' 𝕜) :
-  A.vec_mul (euclidean_space.single i 1) j = A i j :=
+  A.vec_mul (pi_Lp.equiv _ _ (euclidean_space.single i 1)) j = A i j :=
 matrix.vec_mul_std_basis A i j
 
 end matrix

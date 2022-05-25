@@ -223,7 +223,7 @@ include β
 lemma disjoint.map (h : disjoint a b) : disjoint (f a) (f b) :=
 by rw [disjoint_iff, ←map_inf, h.eq_bot, map_bot]
 
-lemma codisjoint.map (h : codisjoint a b) : disjoint (f a) (f b) :=
+lemma codisjoint.map (h : codisjoint a b) : codisjoint (f a) (f b) :=
 by rw [codisjoint_iff, ←map_sup, h.eq_top, map_top]
 
 lemma is_compl.map (h : is_compl a b) : is_compl (f a) (f b) := ⟨h.1.map _, h.2.map _⟩

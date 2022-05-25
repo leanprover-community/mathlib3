@@ -1253,6 +1253,8 @@ lemma codisjoint.eq_top : codisjoint a b → a ⊔ b = ⊤ := top_unique
 lemma codisjoint.comm : codisjoint a b ↔ codisjoint b a := by rw [codisjoint, codisjoint, sup_comm]
 @[symm] lemma codisjoint.symm ⦃a b : α⦄ : codisjoint a b → codisjoint b a := codisjoint.comm.1
 lemma symmetric_codisjoint : symmetric (codisjoint : α → α → Prop) := codisjoint.symm
+lemma codisjoint_assoc : codisjoint (a ⊔ b) c ↔ codisjoint a (b ⊔ c) :=
+by rw [codisjoint, codisjoint, sup_assoc]
 
 @[simp] lemma codisjoint_top_left : codisjoint ⊤ a := le_sup_left
 @[simp] lemma codisjoint_top_right : codisjoint a ⊤ := le_sup_right
@@ -1263,40 +1265,41 @@ le_trans' $ sup_le_sup h₁ h₂
 lemma codisjoint.mono_left (h : a ≤ b) : codisjoint a c → codisjoint b c := codisjoint.mono h le_rfl
 lemma codisjoint.mono_right : b ≤ c → codisjoint a b → codisjoint a c := codisjoint.mono le_rfl
 
+variables (c)
+
 lemma codisjoint.sup_left (h : codisjoint a b) : codisjoint (a ⊔ c) b := h.mono_left le_sup_left
 lemma codisjoint.sup_left' (h : codisjoint a b) : codisjoint (c ⊔ a) b := h.mono_left le_sup_right
 lemma codisjoint.sup_right (h : codisjoint a b) : codisjoint a (b ⊔ c) := h.mono_right le_sup_left
 lemma codisjoint.sup_right' (h : codisjoint a b) : codisjoint a (c ⊔ b) := h.mono_right le_sup_right
 
+variables {c}
+
 @[simp] lemma codisjoint_self : codisjoint a a ↔ a = ⊤ := by simp [codisjoint]
+
+/- TODO: Rename `codisjoint.eq_top` to `codisjoint.sup_eq` and `codisjoint.eq_top_of_self` to
+`disjoint.eq_bot` -/
+alias codisjoint_self ↔ codisjoint.eq_top_of_self _
 
 lemma codisjoint.ne (ha : a ≠ ⊤) (hab : codisjoint a b) : a ≠ b :=
 λ h, ha $ codisjoint_self.1 $ by rwa ←h at hab
 
-lemma codisjoint.eq_top_of_le (hab : codisjoint a b) (h : b ≤ a) : a = ⊤ :=
+lemma codisjoint.eq_top_of_ge (hab : codisjoint a b) (h : b ≤ a) : a = ⊤ :=
 eq_top_iff.2 $ by rwa ←sup_eq_left.2 h
 
-lemma codisjoint_assoc : codisjoint (a ⊔ b) c ↔ codisjoint a (b ⊔ c) :=
-by rw [codisjoint, codisjoint, sup_assoc]
+lemma codisjoint.eq_top_of_le (hab : codisjoint a b) : a ≤ b → b = ⊤ := hab.symm.eq_top_of_ge
 
 lemma codisjoint.of_codisjoint_sup_of_le (h : codisjoint (a ⊔ b) c) (hle : c ≤ a) :
   codisjoint a b :=
-codisjoint_iff.2 $ h.eq_top_of_le $ le_sup_of_le_left hle
+codisjoint_iff.2 $ h.eq_top_of_ge $ le_sup_of_le_left hle
 
 lemma codisjoint.of_codisjoint_sup_of_le' (h : codisjoint (a ⊔ b) c) (hle : c ≤ b) :
   codisjoint a b :=
-codisjoint_iff.2 $ h.eq_top_of_le $ le_sup_of_le_right hle
+codisjoint_iff.2 $ h.eq_top_of_ge $ le_sup_of_le_right hle
 
 end semilattice_sup_top
 
 section lattice
-variables [lattice α]
-
-lemma eq_top_of_codisjoint_absorbs [order_top α] {a b : α} (hab : codisjoint a b) (h : a ⊓ b = a) :
-  b = ⊤ :=
-by rwa [←hab.eq_top, right_eq_sup, ←inf_eq_left]
-
-variables [bounded_order α] {a : α}
+variables [lattice α] [bounded_order α] {a : α}
 
 @[simp] lemma codisjoint_bot : codisjoint a ⊥ ↔ a = ⊤ := by simp [codisjoint_iff]
 @[simp] lemma bot_codisjoint : codisjoint ⊥ a ↔ a = ⊤ := by simp [codisjoint_iff]

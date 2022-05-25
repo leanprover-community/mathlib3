@@ -18,11 +18,12 @@ modules and linear maps without using any category theory.
 universes u v
 variables {R : Type u} {A M B : Type v} [ring R] [add_comm_group A] [module R A]
   [add_comm_group B] [module R B] [add_comm_group M] [module R M]
+variables {j : A →ₗ[R] M} {g : M →ₗ[R] B}
 open Module
 
 /--The isomorphism `A × B ≃ₗ[R] M` coming from a right split exact sequence `0 ⟶ A ⟶ M ⟶ B ⟶ 0`
 of modules.-/
-noncomputable def lequiv_prod_of_right_split_exact (j : A →ₗ[R] M) (g : M →ₗ[R] B) (f : B →ₗ[R] M)
+noncomputable def lequiv_prod_of_right_split_exact {f : B →ₗ[R] M}
   (hj : function.injective j) (exac : j.range = g.ker) (h : g.comp f = linear_map.id) :
   (A × B) ≃ₗ[R] M :=
 (({ right_split := ⟨as_hom f, h⟩,
@@ -32,7 +33,7 @@ noncomputable def lequiv_prod_of_right_split_exact (j : A →ₗ[R] M) (g : M �
 
 /--The isomorphism `A × B ≃ₗ[R] M` coming from a left split exact sequence `0 ⟶ A ⟶ M ⟶ B ⟶ 0`
 of modules.-/
-noncomputable def lequiv_prod_of_left_split_exact (j : A →ₗ[R] M) (g : M →ₗ[R] B) (f : M →ₗ[R] A)
+noncomputable def lequiv_prod_of_left_split_exact {f : M →ₗ[R] A}
   (hg : function.surjective g) (exac : j.range = g.ker) (h : f.comp j = linear_map.id) :
   (A × B) ≃ₗ[R] M :=
 (({ left_split := ⟨as_hom f, h⟩,

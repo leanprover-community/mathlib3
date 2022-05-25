@@ -50,7 +50,7 @@ noncomputable def eigenvector_matrix : matrix n n 𝕜 :=
 
 /-- The inverse of `eigenvector_matrix` -/
 noncomputable def eigenvector_matrix_inv : matrix n n 𝕜 :=
-  (eigenvector_basis hA).to_matrix (pi.basis_fun 𝕜 n)
+(eigenvector_basis hA).to_matrix (pi.basis_fun 𝕜 n)
 
 lemma eigenvector_matrix_mul_inv :
   hA.eigenvector_matrix ⬝ hA.eigenvector_matrix_inv = 1 :=

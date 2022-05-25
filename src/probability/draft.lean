@@ -21,9 +21,33 @@ variables {α ι E : Type*} {m : measurable_space α} {μ : measure α}
 
 section not_nat
 
+lemma ae_restrict_Union_finset_eq (s : ι → set α) (t : finset ι) :
+  (μ.restrict (⋃ i ∈ t, s i)).ae = ⨆ i ∈ t, (μ.restrict (s i)).ae :=
+begin
+  have : (⋃ i ∈ t, s i) = ⋃ i : t, s i,
+  { ext1 x, simp only [set.mem_Union, exists_prop],
+    split,
+    { rintros ⟨i, hit, hixs⟩,
+      exact ⟨⟨i, hit⟩, hixs⟩, },
+    { rintros ⟨i, hixs⟩,
+      refine ⟨i, i.prop, hixs⟩, }, },
+  rw this,
+  haveI : encodable t := fintype.to_encodable ↥t,
+  rw ae_restrict_Union_eq,
+  ext1 u,
+  simp only [filter.mem_supr],
+  split; intros h i,
+  { exact λ hit, h ⟨i, hit⟩, },
+  { exact h i i.prop, },
+end
+
 lemma ae_restrict_Union_iff [encodable ι] (s : ι → set α) {f g : α → E} :
   f =ᵐ[μ.restrict (⋃ i, s i)] g ↔ ∀ i, f =ᵐ[μ.restrict (s i)] g :=
 by simp_rw [filter.eventually_eq, filter.eventually, ae_restrict_Union_eq, filter.mem_supr]
+
+lemma ae_restrict_Union_finset_iff (s : ι → set α) (t : finset ι) {f g : α → E} :
+  f =ᵐ[μ.restrict (⋃ i ∈ t, s i)] g ↔ ∀ i ∈ t, f =ᵐ[μ.restrict (s i)] g :=
+by simp_rw [filter.eventually_eq, filter.eventually, ae_restrict_Union_finset_eq, filter.mem_supr]
 
 variables [linear_order ι] {ℱ : filtration ι m} {τ σ : α → ι}
 

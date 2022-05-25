@@ -79,6 +79,10 @@ instance cancel_comm_monoid_with_zero {α : Type*} [ordered_comm_ring α] [no_ze
 lemma one_sub_mem [ordered_ring α] {t : α} (ht : t ∈ Icc (0:α) 1) : 1 - t ∈ Icc (0:α) 1 :=
 by { rw mem_Icc at *, exact ⟨sub_nonneg.2 ht.2, (sub_le_self_iff _).2 ht.1⟩ }
 
+lemma mem_iff_one_sub_mem [ordered_ring α] {t : α} : t ∈ Icc (0:α) 1 ↔ 1 - t ∈ Icc (0:α) 1 :=
+⟨one_sub_mem, λ h, (sub_sub_cancel 1 t) ▸ one_sub_mem h⟩
+
+
 end set.Icc
 
 /-! ### Instances for `↥(set.Ico 0 1)` -/
@@ -164,6 +168,9 @@ begin
   exact lt_of_le_of_ne ((sub_le_self_iff 1).2 ht.1.le) (mt sub_eq_self.mp ht.1.ne'),
 end
 
+lemma mem_iff_one_sub_mem [ordered_ring α] {t : α} : t ∈ Ioo (0:α) 1 ↔ 1 - t ∈ Ioo (0:α) 1 :=
+⟨one_sub_mem, λ h, (sub_sub_cancel 1 t) ▸ one_sub_mem h⟩
+
 end set.Ioo
 
 -- ### The unit interval in the real numbers
@@ -174,12 +181,6 @@ lemma div_mem {x y : ℝ} (hx : 0 ≤ x) (hy : 0 ≤ y) (hxy : x ≤ y) : x / y 
 ⟨div_nonneg hx hy, div_le_one_of_le hxy hy⟩
 
 lemma fract_mem (x : ℝ) : int.fract x ∈ Icc (0:ℝ) 1 := ⟨int.fract_nonneg _, (int.fract_lt_one _).le⟩
-
-lemma mem_iff_one_sub_mem {t : ℝ} : t ∈ Icc (0:ℝ) 1 ↔ 1 - t ∈ Icc (0:ℝ) 1 :=
-begin
-  rw [mem_Icc, mem_Icc],
-  split ; intro ; split ; linarith
-end
 
 @[simp] lemma mk_zero (h : (0 : ℝ) ∈ Icc (0 : ℝ) 1) : (⟨0, h⟩ : Icc (0:ℝ) 1) = 0 := rfl
 

@@ -125,7 +125,8 @@ begin
     refine lt_of_lt_of_le _ this,
     simp only [ennreal.coe_pos],
     exact zero_lt_iff.mpr (nnnorm_ne_zero_iff.mpr (norm_pos_iff.mp z_pos)) },
-  { simp only [mem_ball, lt_inf_iff, edist_lt_coe, apply_eq_pow_smul_coef, and_imp, dist_zero_right] at h ⊢,
+  { simp only [mem_ball, lt_inf_iff, edist_lt_coe, apply_eq_pow_smul_coef, and_imp,
+      dist_zero_right] at h ⊢,
     refine λ y hyp hyr, h _,
     simpa [nndist_eq_nnnorm, real.lt_to_nnreal_iff_coe_lt] using hyr }
 end
@@ -133,7 +134,8 @@ end
 lemma locally_zero_of_order_eq_top' (hp : has_fpower_series_at f p z₀) (h : p.order = ⊤) :
   ∀ᶠ z in 𝓝 0, f (z₀ + z) = 0 :=
 begin
-  simp only [has_fpower_series_at_iff, order_eq_top_iff.mp h, apply_eq_pow_smul_coef, smul_zero] at hp,
+  simp only [has_fpower_series_at_iff, order_eq_top_iff.mp h, apply_eq_pow_smul_coef, smul_zero]
+    at hp,
   exact hp.mono (λ x hx, has_sum.unique hx has_sum_zero)
 end
 

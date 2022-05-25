@@ -29,7 +29,9 @@ variables {S : Type*} [comm_semiring S] [algebra ℚ S] {n : ℕ} (ψ : dirichle
 open dirichlet_character
 open_locale big_operators
 
-/-- The generalized Bernoulli number -/
+/-- The generalized Bernoulli number
+  `B_{m, ψ} = f^{m - 1} * ∑_{a = 0}^{f - 1} ψ(a) * B_m(a+1/f)`,
+  where `f` is the conductor of the Dirichlet character `ψ`. -/
 noncomputable def general_bernoulli_number (m : ℕ) : S :=
   (algebra_map ℚ S ((ψ.conductor)^(m - 1 : ℤ))) * (∑ a in finset.range ψ.conductor,
   asso_dirichlet_character (asso_primitive_character ψ) a.succ * algebra_map ℚ S
@@ -42,6 +44,20 @@ lemma general_bernoulli_number_def (m : ℕ) : general_bernoulli_number ψ m =
   (algebra_map ℚ S ((ψ.conductor)^(m - 1 : ℤ))) * (∑ a in finset.range ψ.conductor,
   asso_dirichlet_character (asso_primitive_character ψ) a.succ *
   algebra_map ℚ S ((polynomial.bernoulli m).eval (a.succ / ψ.conductor : ℚ))) := rfl
+
+/-- B_{n,1} = B_n, where 1 is the trivial Dirichlet character of level 1. -/
+lemma general_bernoulli_number_one_eval {n : ℕ} :
+  general_bernoulli_number (1 : dirichlet_character S 1) n = algebra_map ℚ S (bernoulli' n) :=
+begin
+  rw general_bernoulli_number_def, simp_rw [conductor_one nat.one_pos],
+  simp only [one_pow, one_mul, nat.cast_zero, polynomial.bernoulli_eval_one,
+    nat.cast_one, div_one, finset.sum_singleton, finset.range_one, monoid_hom.coe_mk],
+  rw extend_eq_char _ is_unit_one,
+  rw asso_primitive_character_one nat.one_pos,
+  convert one_mul _,
+  { simp only [one_zpow, ring_hom.map_one], },
+  { convert (one_mul _).symm, },
+end
 
 lemma general_bernoulli_number_one_eval_one :
 general_bernoulli_number (1 : dirichlet_character S 1) 1 = algebra_map ℚ S (1/2 : ℚ) :=
@@ -56,20 +72,9 @@ begin
   { simp only [one_zpow, ring_hom.map_one], },
   { convert (one_mul _).symm, },
 end
+--revise proof using above lemma
 
-lemma general_bernoulli_number_one_eval {n : ℕ} :
-  general_bernoulli_number (1 : dirichlet_character S 1) n = algebra_map ℚ S (bernoulli' n) :=
-begin
-  rw general_bernoulli_number_def, simp_rw [conductor_one nat.one_pos],
-  simp only [one_pow, one_mul, nat.cast_zero, polynomial.bernoulli_eval_one,
-    nat.cast_one, div_one, finset.sum_singleton, finset.range_one, monoid_hom.coe_mk],
-  rw extend_eq_char _ is_unit_one,
-  rw asso_primitive_character_one nat.one_pos,
-  convert one_mul _,
-  { simp only [one_zpow, ring_hom.map_one], },
-  { convert (one_mul _).symm, },
-end
-
+/-- `∑_{a = 0}^{m*n - 1} f a = ∑_{i = 0}^{n - 1} (∑_{a = m*i}^{m*(i + 1)} fa)`. -/
 lemma finset.sum_range_mul_eq_sum_Ico {m n : ℕ} (f : ℕ → S) :
   ∑ a in finset.range (m * n), f a =
   ∑ i in finset.range n, (∑ a in finset.Ico (m * i) (m * i.succ), f a) :=

@@ -327,7 +327,7 @@ end padic_int
 
 /-- The product of clopen sets is clopen. -/
 lemma is_clopen_prod {α β : Type*} [topological_space α] [topological_space β] {s : set α}
-  {t : set β} (hs : is_clopen s) (ht : is_clopen t) : is_clopen (set.prod s t) :=
+  {t : set β} (hs : is_clopen s) (ht : is_clopen t) : is_clopen (s ×ˢ t) :=
   ⟨is_open_prod_iff'.2 (or.inl ⟨(hs).1, (ht).1⟩), is_closed.prod (hs).2 (ht).2⟩
 
 /-- Any singleton in a discrete space is clopen. -/
@@ -343,7 +343,7 @@ abbreviation clopen_basis : set (set ℤ_[p]) := {x : set ℤ_[p] | ∃ (n : ℕ
 /-- The clopen sets that form a topological basis for `zmod d × ℤ_[p]`. It is better than
   `clopen_basis` because one need not use `classical.choice`. -/
 abbreviation clopen_from (n : ℕ) (a : zmod (d * (p^n))) : set (zmod d × ℤ_[p]) :=
-  ({a} : set (zmod d)).prod ((padic_int.to_zmod_pow n)⁻¹' {(a : zmod (p^n))})
+  ({a} : set (zmod d)) ×ˢ ((@padic_int.to_zmod_pow p _ n)⁻¹' {(a : zmod (p^n))})
 
 lemma is_clopen_clopen_from (n : ℕ) (a : zmod (d * (p^n))) : is_clopen (clopen_from p d n a) :=
   is_clopen_prod (is_clopen_singleton (a : zmod d)) (proj_lim_preimage_clopen p d n a)
@@ -361,7 +361,7 @@ lemma is_clopen_clopen_from (n : ℕ) (a : zmod (d * (p^n))) : is_clopen (clopen
 lemma find_this_out (ε : ℝ) (h : (0 < ε)) : ∃ (n : ℕ), (1 / (p^n) : ℝ) < ε :=
 begin
   convert exists_pow_lt_of_lt_one h _, swap, exact 1/p,
-  { simp only [one_div, inv_pow'], },
+  { simp only [one_div, inv_pow], },
   rw div_lt_iff _,
   { simp only [one_mul, one_lt_cast], apply nat.prime.one_lt, apply fact_iff.1 _, assumption, },
   simp only [cast_pos], apply nat.prime.pos, apply fact_iff.1 _, assumption,
@@ -391,7 +391,7 @@ example (a b c : ℤ) (h1 : a < c) (h2 : b ≤ d) : a + b < c + d := add_lt_add_
 
 example (m : ℕ) : 1/((p : ℝ)^m) = ((p^m) : ℝ)⁻¹ := one_div (↑p ^ m)
 
-example (a : ℝ) (m n : ℤ) : a^(0 : ℤ) = 1 := gpow_zero a
+example (a : ℝ) (m n : ℤ) : a^(0 : ℤ) = 1 := zpow_zero a
 
 theorem clopen_basis_clopen : topological_space.is_topological_basis (clopen_basis p) ∧
   ∀ x ∈ (clopen_basis p), is_clopen x :=
@@ -416,7 +416,7 @@ begin
       rw has_coe_t_eq_coe p a m.succ,
       have := appr_spec m.succ a, rw ←norm_le_pow_iff_mem_span_pow _ m.succ at this,
       refine gt_of_gt_of_ge _ this,
-      repeat{rw fpow_neg, rw ←one_div,},
+      repeat{rw zpow_neg, rw ←one_div,},
       apply one_div_lt_one_div_of_lt, norm_num, convert pow_pos _ m,
       { norm_num, apply lt_of_le_of_ne,
         { apply nat.zero_le, },
@@ -466,8 +466,8 @@ variables {c : ℕ}
 --def clopen_nat_equiv : clopen_basis' p d ≃ (ℕ → )
 
 /-- A Bernoulli measure, as defined by Washington. -/
-def E_c (hc : c.gcd p = 1) := λ (n : ℕ) (a : (zmod (d * (p^n)))), fract ((a.val : ℚ) / (d*p^n))
-    - c * fract ( (((((c : zmod (d * p^(2 * n)))⁻¹ : zmod (d * p^n)) * a) : zmod (d * p^n)) : ℚ) / (d * p^n)) + (c - 1)/2
+def E_c (hc : c.gcd p = 1) := λ (n : ℕ) (a : (zmod (d * (p^n)))), int.fract ((a.val : ℚ) / (d*p^n))
+    - c * int.fract ( (((((c : zmod (d * p^(2 * n)))⁻¹ : zmod (d * p^n)) * a) : zmod (d * p^n)) : ℚ) / (d * p^n)) + (c - 1)/2
 
 -- I don't understand why this works!
 example (n : ℕ) (a b : zmod n) : ((a * b) : ℚ) = (a : ℚ) * (b : ℚ) :=
@@ -502,7 +502,7 @@ begin
     have f : (2 : ℝ) / (p^m) = (1 / (p^m)) + (1 : ℝ) / (p^m), {  rw ← _root_.add_div, refl, },
     rw f, rw dist_comm _ ↑y,
     have f' : ↑p ^ (1 - (m.succ : ℤ)) = (1 : ℝ) / (p^m),
-    { symmetry, rw div_eq_iff _, rw ←gpow_coe_nat, rw ←fpow_add _,
+    { symmetry, rw div_eq_iff _, rw ←zpow_coe_nat, rw ←zpow_add _,
       norm_num, rw sub_add, rw add_sub_cancel', rw sub_self, rw gpow_zero,
       any_goals { apply pow_ne_zero, },
       all_goals { norm_cast, apply nat.prime.ne_zero, apply fact.out, }, },
@@ -527,7 +527,7 @@ begin
 end
 --better way to do it? maybe without showing totally bounded (should that be a separate lemma?)?
 -- better stick to either div or inv. which is easier to work with?
-
+#exit
 --instance [fact (0 < d)] : compact_space (zmod d × ℤ_[p]) := infer_instance
 instance : totally_disconnected_space ℤ_[p] :=
 begin

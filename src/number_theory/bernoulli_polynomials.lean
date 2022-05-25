@@ -282,7 +282,7 @@ begin
 end
 
 /-- Bernoulli polynomials multiplication theorem :
-  For k ≥ 1, B_m(k*x) = ∑ i in range k, B_m (x + i / k).  -/
+  For k ≥ 1, B_m(k*x) = k^{m - 1} ∑ i in range k, B_m (x + i / k).  -/
 theorem bernoulli_eval_mul' (m : ℕ) {k : ℕ} (hk : k ≠ 0) (x : ℚ) :
   (bernoulli m).eval ((k : ℚ) * x) =
   k^(m - 1 : ℤ) * ∑ i in range k, (bernoulli m).eval (x + i / k) :=
@@ -299,9 +299,8 @@ begin
       specialize this m,
       have symm := this.symm,
       rw inv_smul_eq_iff₀ _ at symm,
-      { rw [symm], rw [←mul_sum], rw [←smul_mul_assoc], rw [←smul_sum],
-        rw [smul_eq_mul, smul_eq_mul, ←mul_assoc, mul_comm _ (m! : ℚ)⁻¹, ←mul_assoc,
-          inv_mul_cancel _, one_mul],
+      { rw [symm, ←mul_sum, ←smul_mul_assoc, ←smul_sum, smul_eq_mul, smul_eq_mul, ←mul_assoc,
+          mul_comm _ (m! : ℚ)⁻¹, ←mul_assoc, inv_mul_cancel _, one_mul],
         { norm_cast, apply factorial_ne_zero _, }, },
       { norm_cast, apply factorial_ne_zero _, }, },
     { exfalso, rw mul_eq_zero at this, cases this,

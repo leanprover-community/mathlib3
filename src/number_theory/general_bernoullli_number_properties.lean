@@ -161,7 +161,7 @@ begin
       simp only [this, units.coe_one], }, },
   { rw [←monoid_hom.map_pow, ←monoid_hom.map_one (teichmuller_character p)],
     congr, rw units.ext_iff,
-    simp only [units.coe_one, units.coe_neg_one, nat.neg_one_sq, units.coe_pow], },
+    simp only [units.coe_one, units.coe_neg_one, neg_one_sq, units.coe_pow], },
 end
 
 lemma teichmuller_character_mod_p_eval_neg_one --[no_zero_divisors R] [semi_normed_algebra ℚ_[p] R]
@@ -193,11 +193,11 @@ begin
     rw [this, pow_one], },
 end
 
-example [semi_normed_algebra ℚ_[p] R] [nontrivial R] : function.injective (algebra_map ℚ_[p] R) :=
+example [normed_algebra ℚ_[p] R] [nontrivial R] : function.injective (algebra_map ℚ_[p] R) :=
 (algebra_map ℚ_[p] R).injective
 
 lemma teichmuller_character_mod_p_change_level_eval_neg_one
-  [no_zero_divisors R] [semi_normed_algebra ℚ_[p] R] [nontrivial R] (hp : (2 < p))
+  [no_zero_divisors R] [normed_algebra ℚ_[p] R] [nontrivial R] (hp : (2 < p))
 --  (hinj : function.injective (algebra_map ℚ_[p] R))
   [fact (0 < m)] :
   (((teichmuller_character_mod_p_change_level p d R m)) (-1 : units (zmod (d * p^m))) ) =
@@ -241,7 +241,7 @@ begin
       simp, }, },
 end
 .
-
+#exit
 lemma teichmuller_character_mod_p_change_level_pow_eval_neg_one
   (k : ℕ) (hp : 2 < p) [semi_normed_algebra ℚ_[p] R] [nontrivial R] [no_zero_divisors R]
   [fact (0 < m)] : ((teichmuller_character_mod_p_change_level p d R m ^ k) is_unit_one.neg.unit) =

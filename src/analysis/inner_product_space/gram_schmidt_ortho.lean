@@ -35,22 +35,21 @@ and outputs a set of orthogonal vectors which have the same span.
 -/
 
 -- TODO: move
-namespace succ_order
+namespace order
 open set
-
-lemma Iio_succ_eq_insert {α : Type*} [partial_order α] [succ_order α]
-    (a : α) (ha : a ≠ succ a):
-  Iio (succ a) = insert a (Iio a) :=
+variables {α : Type*} [partial_order α] [succ_order α] (a : α)
+@[simp] lemma succ_eq_self_iff_is_max : succ a = a ↔ is_max a :=
 begin
-  apply le_antisymm,
-  { exact λ x hx, mem_insert_iff.1 (le_iff_eq_or_lt.1 (le_of_lt_succ hx)) },
-  { intros x hx,
-    have h1 : x ≤ a := le_iff_eq_or_lt.2 (mem_insert_iff.1 hx),
-    have h2 : a < succ a := or.resolve_left (le_iff_eq_or_lt.1 (le_succ a)) ha,
-    exact lt_of_le_of_lt (h1) h2 }
+  rw [←order.succ_le_iff_is_max],
+  exact iff.intro (λ h, by rw [h]) (λ h, (le_antisymm h (le_succ a))),
 end
 
-end succ_order
+lemma Iio_succ_eq_insert' {α : Type*} [partial_order α] [succ_order α]
+    (a : α) (ha : ¬ is_max a):
+  Iio (succ a) = insert a (Iio a) :=
+ext (λ _, lt_succ_iff_eq_or_lt_of_not_is_max ha)
+
+end order
 
 -- TODO: move
 namespace is_well_order
@@ -130,6 +129,8 @@ theorem gram_schmidt_pairwise_orthogonal (f : ι → E) :
 
 open submodule set order
 
+
+
 /-- `gram_schmidt` preserves span of vectors. -/
 lemma span_gram_schmidt (f : ι → E) (c : ι) :
   span 𝕜 (gram_schmidt 𝕜 f '' Iio c) = span 𝕜 (f '' Iio c) :=
@@ -138,15 +139,16 @@ begin
     _ _ _ bot_le,
   { simp only [set.Iio_bot, set.image_empty] },
   intros c _ hc,
-  by_cases h : c = succ c,
-  { rwa ← h },
+  by_cases h : succ c = c,
+  { rwa h },
   have h₀ : ∀ b, b ∈ finset.Ico ⊥ c → gram_schmidt 𝕜 f b ∈ span 𝕜 (f '' Iio c),
   { simp_intros b hb only [finset.mem_range, nat.succ_eq_add_one],
     rw ← hc,
     refine subset_span _,
     simp only [set.mem_image, set.mem_Iio],
     refine ⟨b, (finset.mem_Ico.1 hb).2, by refl⟩ },
-  rw [succ, succ_order.Iio_succ_eq_insert _ h],
+  rw not_iff_not.2 (order.succ_eq_self_iff_is_max _) at h,
+  rw [order.Iio_succ_eq_insert' _ h],
   simp only [span_insert, image_insert_eq, hc],
   apply le_antisymm,
   { simp only [nat.succ_eq_succ,gram_schmidt_def 𝕜 f c, orthogonal_projection_singleton,

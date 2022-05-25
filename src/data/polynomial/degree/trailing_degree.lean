@@ -150,7 +150,7 @@ begin
 end
 
 @[simp] lemma trailing_degree_monomial (ha : a ≠ 0) : trailing_degree (monomial n a) = n :=
-by rw [trailing_degree, support_monomial _ _ ha, inf_singleton, with_top.some_eq_coe]
+by rw [trailing_degree, support_monomial n ha, inf_singleton, with_top.some_eq_coe]
 
 lemma nat_trailing_degree_monomial (ha : a ≠ 0) : nat_trailing_degree (monomial n a) = n :=
 by rw [nat_trailing_degree, trailing_degree_monomial ha]; refl

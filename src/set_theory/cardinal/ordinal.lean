@@ -408,11 +408,17 @@ begin
   convert mul_le_mul_left' (one_le_iff_ne_zero.mpr h') _, rw [mul_one],
 end
 
+lemma mul_eq_max_of_omega_le_right {a b : cardinal} (h' : a ≠ 0) (h : ω ≤ b) : a * b = max a b :=
+begin
+  rw [mul_comm, max_comm],
+  exact mul_eq_max_of_omega_le_left h h'
+end
+
 lemma mul_eq_max' {a b : cardinal} (h : ω ≤ a * b) : a * b = max a b :=
 begin
-  rcases omega_le_mul_iff.mp h with ⟨ha, hb, h⟩,
-  wlog h : ω ≤ a := h using [a b],
-  exact mul_eq_max_of_omega_le_left h hb
+  rcases omega_le_mul_iff.mp h with ⟨ha, hb, ha' | hb'⟩,
+  { exact mul_eq_max_of_omega_le_left ha' hb },
+  { exact mul_eq_max_of_omega_le_right ha hb' }
 end
 
 theorem mul_le_max (a b : cardinal) : a * b ≤ max (max a b) ω :=

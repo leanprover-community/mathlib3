@@ -5,6 +5,7 @@ Authors: Mario Carneiro
 -/
 import data.fin.basic
 import data.list.basic
+import data.list.join
 
 /-!
 # Lists from functions
@@ -76,6 +77,15 @@ begin
   simp only [d_array.rev_iterate_aux, of_fn_aux, IH]
 end
 
+@[congr]
+theorem of_fn_congr {m n : ℕ} (h : m = n) (f : fin m → α) :
+  of_fn f = of_fn (λ i : fin n, f (fin.cast h.symm i)) :=
+begin
+  subst h,
+  simp_rw fin.cast_refl,
+  refl,
+end
+
 /-- `of_fn` on an empty domain is the empty list. -/
 @[simp] theorem of_fn_zero (f : fin 0 → α) : of_fn f = [] := rfl
 
@@ -106,6 +116,26 @@ begin
   { rw [of_fn_zero, append_nil, fin.cast_add_zero, fin.cast_refl], refl },
   { rw [of_fn_succ', of_fn_succ', IH, append_concat], refl, },
 end
+
+/-- This breaks a list of `m*n` items into `m` groups each containing `n` elements. -/
+theorem of_fn_mul {m n} (f : fin (m * n) → α) :
+  list.of_fn f = list.join (list.of_fn $ λ i : fin m, list.of_fn $ λ j : fin n,
+  f ⟨i * n + j,
+    calc ↑i * n + j < (i + 1) *n : (add_lt_add_left j.prop _).trans_eq (add_one_mul _ _).symm
+                ... ≤ _ : nat.mul_le_mul_right _ i.prop⟩) :=
+begin
+  induction m with m IH,
+  { simp_rw [of_fn_zero, zero_mul, of_fn_zero, join], },
+  { simp_rw [of_fn_succ', succ_mul, join_concat, of_fn_add, IH], refl, },
+end
+
+/-- This breaks a list of `m*n` items into `n` groups each containing `m` elements. -/
+theorem of_fn_mul' {m n} (f : fin (m * n) → α) :
+  list.of_fn f = list.join (list.of_fn $ λ i : fin n, list.of_fn $ λ j : fin m,
+  f ⟨m * i + j,
+    calc m * i + j < m * (i + 1) : (add_lt_add_left j.prop _).trans_eq (mul_add_one _ _).symm
+               ... ≤ _ : nat.mul_le_mul_left _ i.prop⟩) :=
+by simp_rw [mul_comm m n, mul_comm m, of_fn_mul, fin.cast_mk]
 
 theorem of_fn_nth_le : ∀ l : list α, of_fn (λ i, nth_le l i i.2) = l
 | [] := rfl

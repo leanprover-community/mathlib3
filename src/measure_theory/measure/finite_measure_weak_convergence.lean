@@ -330,6 +330,15 @@ begin
            ennreal.tendsto_coe, ennreal.to_nnreal_coe],
 end
 
+/-- A bounded convergence theorem for a finite measure:
+If bounded continuous non-negative functions are uniformly bounded by a constant and tend to a
+limit, then their integrals against the finite measure tend to the integral of the limit.
+This formulation assumes:
+ * the limit is in the almost everywhere sense;
+ * the functions tend to a limit along a countably generated filter;
+ * boundedness holds almost everywhere;
+ * integration is `lintegral`, i.e., the functions and their integral are `ℝ≥0∞`-valued.
+-/
 lemma tendsto_lintegral_nn_filter_of_le_const {ι : Type*} {L : filter ι} [L.is_countably_generated]
   (μ : finite_measure α) {fs : ι → (α →ᵇ ℝ≥0)} {c : ℝ≥0}
   (fs_le_const : ∀ᶠ i in L, ∀ᵐ (a : α) ∂(μ : measure α), fs i a ≤ c) {f : α → ℝ≥0}
@@ -343,6 +352,13 @@ begin
   { simpa only [ennreal.tendsto_coe] using fs_lim, },
 end
 
+/-- A bounded convergence theorem for a finite measure:
+If a sequence of bounded continuous non-negative functions are uniformly bounded by a constant
+and tend pointwise to a limit, then their integrals (`lintegral`) against the finite measure tend
+to the integral of the limit.
+
+A similar result with more general assumptions is `tendsto_lintegral_nn_filter_of_le_const`.
+-/
 lemma tendsto_lintegral_nn_of_le_const (μ : finite_measure α) {fs : ℕ → (α →ᵇ ℝ≥0)} {c : ℝ≥0}
   (fs_le_const : ∀ n a, fs n a ≤ c) {f : α → ℝ≥0}
   (fs_lim : ∀ a, tendsto (λ n, fs n a) at_top (𝓝 (f a))) :
@@ -350,6 +366,15 @@ lemma tendsto_lintegral_nn_of_le_const (μ : finite_measure α) {fs : ℕ → (�
 tendsto_lintegral_nn_filter_of_le_const μ
   (eventually_of_forall (λ n, eventually_of_forall (fs_le_const n))) (eventually_of_forall fs_lim)
 
+/-- A bounded convergence theorem for a finite measure:
+If bounded continuous non-negative functions are uniformly bounded by a constant and tend to a
+limit, then their integrals against the finite measure tend to the integral of the limit.
+This formulation assumes:
+ * the limit is in the almost everywhere sense;
+ * the functions tend to a limit along a countably generated filter;
+ * boundedness holds almost everywhere;
+ * integration is the pairing against non-negative continuous test functions (`test_against_nn`).
+-/
 lemma tendsto_test_against_nn_filter_of_le_const {ι : Type*} {L : filter ι}
   [L.is_countably_generated] {μ : finite_measure α} {fs : ι → (α →ᵇ ℝ≥0)} {c : ℝ≥0}
   (fs_le_const : ∀ᶠ i in L, ∀ᵐ (a : α) ∂(μ : measure α), fs i a ≤ c) {f : α →ᵇ ℝ≥0}
@@ -361,6 +386,13 @@ begin
   exact finite_measure.tendsto_lintegral_nn_filter_of_le_const μ fs_le_const fs_lim,
 end
 
+/-- A bounded convergence theorem for a finite measure:
+If a sequence of bounded continuous non-negative functions are uniformly bounded by a constant
+and tend pointwise to a limit, then their integrals (`test_against_nn`) against the finite measure
+tend to the integral of the limit.
+
+A similar result with more general assumptions is `tendsto_test_against_nn_filter_of_le_const`.
+-/
 lemma tendsto_test_against_nn_of_le_const {μ : finite_measure α}
   {fs : ℕ → (α →ᵇ ℝ≥0)} {c : ℝ≥0} (fs_le_const : ∀ n a, fs n a ≤ c) {f : α →ᵇ ℝ≥0}
   (fs_lim : ∀ a, tendsto (λ n, fs n a) at_top (𝓝 (f a))) :

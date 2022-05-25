@@ -1083,7 +1083,7 @@ end
 
 lemma lintegral_const_lt_top [is_finite_measure μ] {c : ℝ≥0∞} (hc : c ≠ ∞) :
   ∫⁻ a, c ∂μ < ∞ :=
-by simpa only [measure.restrict_univ] using set_lintegral_const_lt_top univ hc.ne
+by simpa only [measure.restrict_univ] using set_lintegral_const_lt_top univ hc
 
 /-- `∫⁻ a in s, f a ∂μ` is defined as the supremum of integrals of simple functions
 `φ : α →ₛ ℝ≥0∞` such that `φ ≤ f`. This lemma says that it suffices to take

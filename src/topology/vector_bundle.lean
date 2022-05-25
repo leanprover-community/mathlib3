@@ -844,6 +844,7 @@ begin
   exact a.mem_base_pretrivialization_at b,
 end
 
+/-- Topology on the fibers `E b` induced by the map `E b → E.total_space`. -/
 def fiber_topology (b : B) : topological_space (E b) :=
 topological_space.induced (total_space_mk E b) a.total_space_topology
 

@@ -120,7 +120,7 @@ begin
     refine subset_span _,
     simp only [set.mem_image, set.mem_Iio],
     refine ⟨b, (finset.mem_Ico.1 hb).2, by refl⟩ },
-  rw not_iff_not.2 (order.succ_eq_iff_is_max _) at h,
+  rw not_iff_not.2 order.succ_eq_iff_is_max at h,
   rw [order.Iio_succ_eq_insert_of_not_is_max _ h],
   simp only [span_insert, image_insert_eq, hc],
   apply le_antisymm,
@@ -136,7 +136,7 @@ begin
     { exact mem_sup_left (mem_span_singleton_self (gram_schmidt 𝕜 f c)), },
     { exact submodule.sum_mem _ (λ b hb, mem_sup_right (smul_mem _ _ (h₀ b hb))) } }
 end
-#check finset.sup_le_iff
+
 /-- If the input vectors of `gram_schmidt` are linearly independent,
 then the output vectors are non-zero. -/
 lemma gram_schmidt_ne_zero (f : ι → E) (n : ι) (h₀ : linear_independent 𝕜 f) :

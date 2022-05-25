@@ -214,10 +214,8 @@ lemma martingale.stopped_value_ae_eq_condexp_of_le_const [encodable ι] [topolog
 begin
   have : set.univ = ⋃ i, {x | τ x = i}, by {ext1 x, simp, },
   nth_rewrite 0 ← @measure.restrict_univ α _ μ,
-  rw this,
-  rw ae_restrict_Union_iff,
-  intro i,
-  exact stopped_value_ae_eq_restrict_eq_condexp h _ hτ_le,
+  rw [this, ae_restrict_Union_iff],
+  exact λ i, stopped_value_ae_eq_restrict_eq_condexp h _ hτ_le,
 end
 
 lemma martingale.stopped_value_ae_eq_condexp_of_le [encodable ι] [topological_space ι]

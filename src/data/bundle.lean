@@ -35,13 +35,13 @@ instance [inhabited B] [inhabited (E default)] :
 variables {E}
 
 /-- `bundle.proj` is the canonical projection `total_space E → B` on the base space. -/
-@[simp, reducible] def proj : total_space E → B := sigma.fst
+@[simp, reducible] def total_space.proj : total_space E → B := sigma.fst
 
 /-- Constructor for the total space of a `topological_fiber_bundle_core`. -/
 @[simp, reducible] def total_space_mk (b : B) (a : E b) :
   bundle.total_space E := ⟨b, a⟩
 
-lemma total_space.proj_mk {x : B} {y : E x} : proj (total_space_mk x y) = x :=
+lemma total_space.proj_mk {x : B} {y : E x} : (total_space_mk x y).proj = x :=
 rfl
 
 lemma sigma_mk_eq_total_space_mk {x : B} {y : E x} : sigma.mk x y = total_space_mk x y :=
@@ -52,7 +52,7 @@ lemma total_space.mk_cast {x x' : B} (h : x = x') (b : E x) :
 by { subst h, refl }
 
 lemma total_space.eta (z : total_space E) :
-  total_space_mk (proj z) z.2 = z :=
+  total_space_mk z.proj z.2 = z :=
 sigma.eta z
 
 instance {x : B} : has_coe_t (E x) (total_space E) := ⟨total_space_mk x⟩

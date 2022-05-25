@@ -5,7 +5,6 @@ Authors: Kalle Kytölä
 -/
 import data.real.ennreal
 import topology.continuous_function.bounded
-import measure_theory.integral.bochner
 
 /-!
 # Thickened indicators
@@ -249,31 +248,6 @@ begin
       by refine (congr_fun (comp_indicator_const 1 ennreal.to_nnreal zero_to_nnreal) x).symm),
   refine tendsto.comp (tendsto_to_nnreal _) (key x),
   by_cases x_mem : x ∈ closure E; simp [x_mem],
-end
-
-open measure_theory
-
-variables [measurable_space α]
-
-lemma measure_le_lintegral_thickened_indicator_aux
-  (μ : measure α) {E : set α} (E_mble : measurable_set E) (δ : ℝ) :
-  μ E ≤ lintegral μ (λ a, (thickened_indicator_aux δ E a : ℝ≥0∞)) :=
-begin
-  convert_to lintegral μ (E.indicator (λ _, (1 : ℝ≥0∞)))
-              ≤ lintegral μ (thickened_indicator_aux δ E),
-  { rw [lintegral_indicator _ E_mble],
-    simp only [lintegral_one, measure.restrict_apply, measurable_set.univ, univ_inter], },
-  { apply lintegral_mono,
-    apply indicator_le_thickened_indicator_aux, },
-end
-
-lemma measure_le_lintegral_thickened_indicator
-  (μ : measure α) {E : set α} (E_mble : measurable_set E) {δ : ℝ} (δ_pos : 0 < δ) :
-  μ E ≤ lintegral μ (λ a, (thickened_indicator δ_pos E a : ℝ≥0∞)) :=
-begin
-  convert measure_le_lintegral_thickened_indicator_aux μ E_mble δ,
-  dsimp,
-  simp only [thickened_indicator_aux_lt_top.ne, ennreal.coe_to_nnreal, ne.def, not_false_iff],
 end
 
 end thickened_indicator -- section

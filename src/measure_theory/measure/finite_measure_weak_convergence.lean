@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kalle Kytölä
 -/
 import measure_theory.measure.measure_space
-import measure_theory.integral.bochner
+import measure_theory.integral.set_integral
 import topology.continuous_function.bounded
 import topology.algebra.module.weak_dual
 import topology.metric_space.thickened_indicator
@@ -43,13 +43,14 @@ The main definitions are the
    common textbook definition of weak convergence of measures.
 
 TODO:
-* Prove the portmanteau theorem.
+* Portmanteau theorem:
   * `finite_measure.limsup_measure_closed_le_of_tendsto` proves one implication.
     The current formulation assumes `pseudo_emetric_space`. The only reason is to have
     bounded continuous pointwise approximations to the indicator function of a closed set. Clearly
     for example metrizability or pseudo-emetrizability would be sufficient assumptions. The
     typeclass assumptions should be later adjusted in a way that takes into account use cases, but
     the proof will presumably remain essentially the same.
+  * Prove the rest of the implications.
 
 ## Notations
 

@@ -6,7 +6,7 @@ Authors: Alexander Bentkamp, Yury Kudriashov, Yaël Dillies
 import algebra.order.invertible
 import algebra.order.module
 import linear_algebra.affine_space.midpoint
-import linear_algebra.affine_space.affine_subspace
+import linear_algebra.affine_space.affine_subspace.basic
 import linear_algebra.ray
 
 /-!

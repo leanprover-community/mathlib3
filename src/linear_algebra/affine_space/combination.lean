@@ -6,7 +6,7 @@ Authors: Joseph Myers
 import algebra.invertible
 import algebra.indicator_function
 import linear_algebra.affine_space.affine_map
-import linear_algebra.affine_space.affine_subspace
+import linear_algebra.affine_space.affine_subspace.basic
 import linear_algebra.finsupp
 import tactic.fin_cases
 

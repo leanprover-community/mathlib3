@@ -76,6 +76,9 @@ instance {ι : Type*} [encodable ι] : partial_order ι := {
   le_antisymm := λ i j h₁ h₂, encode_injective (nat.le_antisymm h₁ h₂)
 }
 
+lemma lt_iff {ι : Type*} [encodable ι] (i j : ι) : i < j ↔ encode i < encode j :=
+by {rw nat.lt_iff_le_not_le, refl}
+
 noncomputable def preimage_encode {ι : Type*} [encodable ι] (s : finset ℕ) : finset ι :=
 finset.preimage s encode (set.inj_on_of_injective encode_injective _)
 
@@ -97,6 +100,7 @@ noncomputable instance {ι : Type*} [encodable ι] : locally_finite_order ι := 
     by { simp only [preimage_encode, finset.mem_preimage, finset_mem_Ioo, nat.lt_iff_le_not_le],
          refl },
 }
+-- TODO: use locally_finite_order.of_Icc or locally_finite_order.of_finite_Icc?
 
 instance {ι : Type*} [encodable ι] : linear_order ι := {
   le_total := λ i j, @nat.le_total (encode i) (encode j),
@@ -104,19 +108,8 @@ instance {ι : Type*} [encodable ι] : linear_order ι := {
   ..encodable.partial_order
 }
 
--- TODO: use locally_finite_order.of_Icc or locally_finite_order.of_finite_Icc?
-
-
-noncomputable instance {ι : Type*} [encodable ι] : succ_order ι := {
-  succ := λ i, @nat.find (λ n, encode i < n ∧ (decode ι n).is_some),
-  le_succ := _,
-  max_of_succ_le := _,
-  succ_le_of_lt := _,
-  le_of_lt_succ := _,
-
-}
-
-noncomputable instance {ι : Type*} [encodable ι] : has_bot ι := {
+instance {ι : Type*} [encodable ι] : has_sizeof ι := {
+  sizeof := encode
 }
 
 end encodable
@@ -124,42 +117,40 @@ end encodable
 open_locale big_operators
 
 variables (𝕜 : Type*) {E : Type*} [is_R_or_C 𝕜] [inner_product_space 𝕜 E]
-variables (ι : Type*) [encodable ι]
+variables {ι : Type*} [encodable ι] [has_bot ι]
+-- TODO: derive has_bot from inhabited?
 
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
+
+open finset
 
 /-- The Gram-Schmidt process takes a set of vectors as input
 and outputs a set of orthogonal vectors which have the same span. -/
 noncomputable def gram_schmidt (f : ι → E) : ι → E
-| n := f n - ∑ i : fin n, orthogonal_projection (𝕜 ∙ gram_schmidt i) (f n)
-using_well_founded {dec_tac := `[exact i.prop]}
+| n := f n - ∑ i : Ico ⊥ n, orthogonal_projection (𝕜 ∙ gram_schmidt i) (f n)
+using_well_founded {dec_tac := `[exact (encodable.lt_iff _ _).1 (mem_Ico.1 i.2).2]}
 
-/-- `gram_schmidt_def` turns the sum over `fin n` into a sum over `ℕ`. -/
-lemma gram_schmidt_def (f : ℕ → E) (n : ℕ) :
-  gram_schmidt 𝕜 f n = f n - ∑ i in finset.range n,
+/-- This lemma uses `∑ i in` instead of `∑ i :`.-/
+lemma gram_schmidt_def (f : ι → E) (n : ι):
+  gram_schmidt 𝕜 f n = f n - ∑ i in Ico ⊥ n,
     orthogonal_projection (𝕜 ∙ gram_schmidt 𝕜 f i) (f n) :=
-begin
-  rw gram_schmidt,
-  congr' 1,
-  exact fin.sum_univ_eq_sum_range (λ i,
-    (orthogonal_projection (𝕜 ∙ gram_schmidt 𝕜 f i) (f n) : E)) n,
-end
+by { rw [←sum_attach, attach_eq_univ, gram_schmidt], refl }
 
-lemma gram_schmidt_def' (f : ℕ → E) (n : ℕ):
-  f n = gram_schmidt 𝕜 f n + ∑ i in finset.range n,
+lemma gram_schmidt_def' (f : ι → E) (n : ι):
+  f n = gram_schmidt 𝕜 f n + ∑ i in Ico ⊥ n,
     orthogonal_projection (𝕜 ∙ gram_schmidt 𝕜 f i) (f n) :=
-by simp only [gram_schmidt_def, sub_add_cancel]
+by rw [gram_schmidt_def, sub_add_cancel]
 
-@[simp] lemma gram_schmidt_zero (f : ℕ → E) :
-  gram_schmidt 𝕜 f 0 = f 0 :=
-by simp only [gram_schmidt, fintype.univ_of_is_empty, finset.sum_empty, sub_zero]
+@[simp] lemma gram_schmidt_zero (f : ι → E) :
+  gram_schmidt 𝕜 f ⊥ = f ⊥ :=
+by rw [gram_schmidt_def, finset.Ico_self, finset.sum_empty, sub_zero]
 
 /-- **Gram-Schmidt Orthogonalisation**:
 `gram_schmidt` produces an orthogonal system of vectors. -/
-theorem gram_schmidt_orthogonal (f : ℕ → E) {a b : ℕ} (h₀ : a ≠ b) :
+theorem gram_schmidt_orthogonal (f : ι → E) {a b : ι} (h₀ : a ≠ b) :
   ⟪gram_schmidt 𝕜 f a, gram_schmidt 𝕜 f b⟫ = 0 :=
 begin
-  suffices : ∀ a b : ℕ, a < b → ⟪gram_schmidt 𝕜 f a, gram_schmidt 𝕜 f b⟫ = 0,
+  suffices : ∀ a b : ι, a < b → ⟪gram_schmidt 𝕜 f a, gram_schmidt 𝕜 f b⟫ = 0,
   { cases h₀.lt_or_lt with ha hb,
     { exact this _ _ ha, },
     { rw inner_eq_zero_sym,

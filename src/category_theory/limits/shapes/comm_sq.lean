@@ -142,6 +142,9 @@ is both a pullback square and a pushout square.
 structure bicartesian_sq {W X Y Z : C} (f : W ⟶ X) (g : W ⟶ Y) (h : X ⟶ Z) (i : Y ⟶ Z)
   extends is_pullback f g h i, is_pushout f g h i : Prop
 
+-- Lean should make these parent projections as `lemma`, not `def`.
+attribute [nolint def_lemma doc_blame] bicartesian_sq.to_is_pullback bicartesian_sq.to_is_pushout
+
 end
 
 /-!

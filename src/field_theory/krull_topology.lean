@@ -400,28 +400,7 @@ lemma ultrafilter.glued_generators_of_pushforwards_alg_hom_injective
   (h_int : algebra.is_integral K L)
   (f : ultrafilter (L →ₐ[K] L)) : function.injective
   (ultrafilter.glued_generators_of_pushforwards_alg_hom f h_int) :=
-begin
-  intros x y hxy,
-  let E := intermediate_field.adjoin K ({x, y} : set L),
-  let S := ({x, y} : finset L),
-  have hE := intermediate_field.adjoin.finite_dimensional_of_finite_set (finset.finite_to_set S)
-  (λ a ha, h_int a),
-  have hS_equiv_def : (S : set L) = {x, y} := by simp,
-  rw hS_equiv_def at hE,
-  change finite_dimensional K E at hE,
-  have h_sub : {x, y} ⊆ E.carrier := intermediate_field.gc.le_u_l {x, y},
-  have hxE : x ∈ E := h_sub (mem_insert x {y}),
-  have hyE : y ∈ E,
-  { apply h_sub,
-    simp only [set.mem_insert_iff, set.mem_singleton, or_true] },
-  change (ultrafilter.glued_generators_of_pushforwards_alg_hom f h_int) (⟨x, hxE⟩ : E) =
-    (ultrafilter.glued_generators_of_pushforwards_alg_hom f h_int) (⟨y, hyE⟩ : E) at hxy,
-  change (ultrafilter.glued_generators_of_pushforwards_function h_int f) (⟨x, hxE⟩ : E) =
-    (ultrafilter.glued_generators_of_pushforwards_function h_int f) (⟨y, hyE⟩ : E) at hxy,
-  rw ultrafilter.glued_generators_of_pushforwards_function_spec' h_int f hE ⟨x, hxE⟩ at hxy,
-  rw ultrafilter.glued_generators_of_pushforwards_function_spec' h_int f hE ⟨y, hyE⟩ at hxy,
-  simpa using ring_hom.injective (f.generator_of_pushforward hE).to_ring_hom hxy,
-end
+(ultrafilter.glued_generators_of_pushforwards_alg_hom f h_int).to_ring_hom.injective
 
 lemma eq_of_map_le {f : L →ₐ[K] L} (h_findim : finite_dimensional K E) (h_map_le : E.map f ≤ E) :
   E.map f = E :=

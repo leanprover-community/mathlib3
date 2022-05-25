@@ -726,23 +726,24 @@ instance : topological_vector_bundle R F Z.fiber :=
         (Z.coord_change i i' b) (Z.coord_change i' i b) _ _ else continuous_linear_equiv.refl R F,
       _, _⟩,
     { ext ⟨b, f⟩,
-      simp },
+      simp only with mfld_simps },
     { ext ⟨b, f⟩,
-      simp [and_comm] },
+      simp only [and_comm] with mfld_simps },
     { intro f,
       rw [Z.coord_change_comp _ _ _ _ ⟨h, h.1⟩, Z.coord_change_self _ _ h.1] },
     { intro f,
       rw [Z.coord_change_comp _ _ _ _ ⟨⟨h.2, h.1⟩, h.2⟩, Z.coord_change_self _ _ h.2] },
     { apply continuous_on.congr (Z.coord_change_continuous i i'),
       intros b hb,
-      simp [hb],
       ext v,
-      refl },
+      simp only [hb, dif_pos, continuous_linear_equiv.coe_coe,
+        continuous_linear_equiv.equiv_of_inverse_apply] with mfld_simps },
     { intros b hb v,
       have : b ∈ Z.base_set i ∩ Z.base_set (Z.index_at b) ∩ Z.base_set i',
       { simp only [base_set_at, local_triv_at_def, mem_inter_eq, mem_local_triv_at_base_set] at *,
         tauto },
-      simp [hb, Z.coord_change_comp _ _ _ _ this] }
+      simp only [dif_pos, hb, Z.coord_change_comp _ _ _ _ this,
+        continuous_linear_equiv.equiv_of_inverse_apply, trivialization.coe_coe] with mfld_simps }
   end }
 
 /-- The projection on the base of a topological vector bundle created from core is continuous -/

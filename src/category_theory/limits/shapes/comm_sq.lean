@@ -3,10 +3,11 @@ Copyright (c) 2022 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import category_theory.limits.shapes.pullbacks
 import category_theory.limits.shapes.biproducts
+import category_theory.limits.preserves.shapes.pullbacks
 import category_theory.limits.shapes.zero_morphisms
 import category_theory.limits.constructions.binary_products
+import category_theory.limits.constructions.zero_objects
 
 /-!
 # Pullback and pushout squares
@@ -40,10 +41,13 @@ show that the pullback and pushout squares for a biproduct are bicartesian.
 -/
 
 open category_theory
+open category_theory.limits
 
-namespace category_theory.limits
+universes v₁ v₂ u₁ u₂
 
-variables {C : Type*} [category C]
+namespace category_theory
+
+variables {C : Type u₁} [category.{v₁} C]
 
 /-- The proposition that a square
 ```
@@ -61,13 +65,27 @@ structure comm_sq {W X Y Z : C} (f : W ⟶ X) (g : W ⟶ Y) (h : X ⟶ Z) (i : Y
 (w : f ≫ h = g ≫ i)
 
 attribute [reassoc] comm_sq.w
+attribute [simp] comm_sq.mk
 
 namespace comm_sq
 
-lemma flip {W X Y Z : C} {f : W ⟶ X} {g : W ⟶ Y} {h : X ⟶ Z} {i : Y ⟶ Z}
-  (p : comm_sq f g h i) : comm_sq g f i h := ⟨p.w.symm⟩
+variables {W X Y Z : C} {f : W ⟶ X} {g : W ⟶ Y} {h : X ⟶ Z} {i : Y ⟶ Z}
+
+lemma flip (p : comm_sq f g h i) : comm_sq g f i h := ⟨p.w.symm⟩
 
 lemma of_arrow {f g : arrow C} (h : f ⟶ g) : comm_sq f.hom h.left h.right g.hom := ⟨h.w.symm⟩
+
+/--
+The (not necessarily limiting) `pullback_cone h i` implicit in the statement
+that we have `comm_sq f g h i`.
+-/
+def cone (s : comm_sq f g h i) : pullback_cone h i := pullback_cone.mk _ _ s.w
+
+/--
+The (not necessarily limiting) `pushout_cocone f g` implicit in the statement
+that we have `comm_sq f g h i`.
+-/
+def cocone (s : comm_sq f g h i) : pushout_cocone f g := pushout_cocone.mk _ _ s.w
 
 end comm_sq
 
@@ -134,9 +152,10 @@ namespace is_pullback
 variables {P X Y Z : C} {fst : P ⟶ X} {snd : P ⟶ Y} {f : X ⟶ Z} {g : Y ⟶ Z}
 
 /--
-The `pullback_cone f g` implicit in the statement that we have a `is_pullback fst snd f g`.
+The (limiting) `pullback_cone f g` implicit in the statement
+that we have a `is_pullback fst snd f g`.
 -/
-def cone (h : is_pullback fst snd f g) : pullback_cone f g := pullback_cone.mk _ _ h.w
+def cone (h : is_pullback fst snd f g) : pullback_cone f g := h.to_comm_sq.cone
 
 /--
 The cone obtained from `is_pullback fst snd f g` is a limit cone.
@@ -151,6 +170,11 @@ lemma of_is_limit {c : pullback_cone f g} (h : limits.is_limit c) :
   is_limit' := ⟨is_limit.of_iso_limit h
     (limits.pullback_cone.ext (iso.refl _) (by tidy) (by tidy))⟩, }
 
+/-- A variant of `of_is_limit` that is more useful with `apply`. -/
+lemma of_is_limit' (w : comm_sq fst snd f g) (h : limits.is_limit w.cone) :
+  is_pullback fst snd f g :=
+of_is_limit h
+
 /-- The pullback provided by `has_pullback f g` fits into a `is_pullback`. -/
 lemma of_has_pullback (f : X ⟶ Z) (g : Y ⟶ Z) [has_pullback f g] :
   is_pullback (pullback.fst : pullback f g ⟶ X) (pullback.snd : pullback f g ⟶ Y) f g :=
@@ -164,17 +188,48 @@ lemma of_is_product {c : binary_fan X Y} (h : limits.is_limit c) (t : is_termina
 of_is_limit (is_pullback_of_is_terminal_is_product _ _ _ _ t
   (is_limit.of_iso_limit h (limits.cones.ext (iso.refl c.X) (by rintro ⟨⟨⟩⟩; { dsimp, simp, }))))
 
+/-- A variant of `of_is_product` that is more useful with `apply`. -/
+lemma of_is_product' (h : limits.is_limit (binary_fan.mk fst snd)) (t : is_terminal Z) :
+  is_pullback fst snd (t.from _) (t.from _) :=
+of_is_product h t
+
 variables (X Y)
 
 lemma of_has_binary_product' [has_binary_product X Y] [has_terminal C] :
-  is_pullback (prod.fst : _ ⟶ X) (prod.snd : _ ⟶ Y) (terminal.from _) (terminal.from _) :=
+  is_pullback limits.prod.fst limits.prod.snd (terminal.from X) (terminal.from Y) :=
 of_is_product (limit.is_limit _) terminal_is_terminal
 
 open_locale zero_object
 
 lemma of_has_binary_product [has_binary_product X Y] [has_zero_object C] [has_zero_morphisms C] :
-  is_pullback prod.fst prod.snd (0 : X ⟶ 0) (0 : Y ⟶ 0) :=
+  is_pullback limits.prod.fst limits.prod.snd (0 : X ⟶ 0) (0 : Y ⟶ 0) :=
 by convert of_is_product (limit.is_limit _) has_zero_object.zero_is_terminal
+
+variables {X Y}
+
+/-- Any object at the top left of a pullback square is
+isomorphic to the pullback provided by the `has_limit` API. -/
+noncomputable
+def iso_pullback (h : is_pullback fst snd f g) [has_pullback f g] : P ≅ pullback f g :=
+(limit.iso_limit_cone ⟨_, h.is_limit⟩).symm
+
+@[simp] lemma iso_pullback_hom_fst (h : is_pullback fst snd f g) [has_pullback f g] :
+  h.iso_pullback.hom ≫ pullback.fst = fst :=
+by { dsimp [iso_pullback, cone, comm_sq.cone], simp, }
+@[simp] lemma iso_pullback_hom_snd (h : is_pullback fst snd f g) [has_pullback f g] :
+  h.iso_pullback.hom ≫ pullback.snd = snd :=
+by { dsimp [iso_pullback, cone, comm_sq.cone], simp, }
+@[simp] lemma iso_pullback_inv_fst (h : is_pullback fst snd f g) [has_pullback f g] :
+  h.iso_pullback.inv ≫ fst = pullback.fst :=
+by simp [iso.inv_comp_eq]
+@[simp] lemma iso_pullback_inv_snd (h : is_pullback fst snd f g) [has_pullback f g] :
+  h.iso_pullback.inv ≫ snd = pullback.snd :=
+by simp [iso.inv_comp_eq]
+
+lemma of_iso_pullback (h : comm_sq fst snd f g) [has_pullback f g] (i : P ≅ pullback f g)
+  (w₁ : i.hom ≫ pullback.fst = fst) (w₂ : i.hom ≫ pullback.snd = snd) : is_pullback fst snd f g :=
+of_is_limit' h (limits.is_limit.of_iso_limit (limit.is_limit _)
+  (@pullback_cone.ext _ _ _ _ _ _ _ (pullback_cone.mk _ _ _) _ i w₁.symm w₂.symm).symm)
 
 end is_pullback
 
@@ -183,9 +238,10 @@ namespace is_pushout
 variables {Z X Y P : C} {f : Z ⟶ X} {g : Z ⟶ Y} {inl : X ⟶ P} {inr : Y ⟶ P}
 
 /--
-The `pushout_cocone f g` implicit in the statement that we have a `is_pushout f g inl inr`.
+The (colimiting) `pushout_cocone f g` implicit in the statement
+that we have a `is_pushout f g inl inr`.
 -/
-def cocone (h : is_pushout f g inl inr) : pushout_cocone f g := pushout_cocone.mk _ _ h.w
+def cocone (h : is_pushout f g inl inr) : pushout_cocone f g := h.to_comm_sq.cocone
 
 /--
 The cocone obtained from `is_pushout f g inl inr` is a colimit cocone.
@@ -199,6 +255,11 @@ lemma of_is_colimit {c : pushout_cocone f g} (h : limits.is_colimit c) :
 { w := c.condition,
   is_colimit' := ⟨is_colimit.of_iso_colimit h
     (limits.pushout_cocone.ext (iso.refl _) (by tidy) (by tidy))⟩, }
+
+/-- A variant of `of_is_colimit` that is more useful with `apply`. -/
+lemma of_is_colimit' (w : comm_sq f g inl inr) (h : limits.is_colimit w.cocone) :
+  is_pushout f g inl inr :=
+of_is_colimit h
 
 /-- The pushout provided by `has_pushout f g` fits into a `is_pushout`. -/
 lemma of_has_pushout (f : Z ⟶ X) (g : Z ⟶ Y) [has_pushout f g] :
@@ -214,6 +275,11 @@ of_is_colimit (is_pushout_of_is_initial_is_coproduct _ _ _ _ t
   (is_colimit.of_iso_colimit h
     (limits.cocones.ext (iso.refl c.X) (by rintro ⟨⟨⟩⟩; { dsimp, simp, }))))
 
+/-- A variant of `of_is_coproduct` that is more useful with `apply`. -/
+lemma of_is_coproduct' (h : limits.is_colimit (binary_cofan.mk inl inr)) (t : is_initial Z) :
+  is_pushout (t.to _) (t.to _) inl inr :=
+of_is_coproduct h t
+
 variables (X Y)
 
 lemma of_has_binary_coproduct' [has_binary_coproduct X Y] [has_initial C] :
@@ -227,27 +293,33 @@ lemma of_has_binary_coproduct
   is_pushout (0 : 0 ⟶ X) (0 : 0 ⟶ Y) coprod.inl coprod.inr :=
 by convert of_is_coproduct (colimit.is_colimit _) has_zero_object.zero_is_initial
 
+variables {X Y}
+
+/-- Any object at the top left of a pullback square is
+isomorphic to the pullback provided by the `has_limit` API. -/
+noncomputable
+def iso_pushout (h : is_pushout f g inl inr) [has_pushout f g] : P ≅ pushout f g :=
+(colimit.iso_colimit_cocone ⟨_, h.is_colimit⟩).symm
+
+@[simp] lemma inl_iso_pushout_inv (h : is_pushout f g inl inr) [has_pushout f g] :
+  pushout.inl ≫ h.iso_pushout.inv = inl :=
+by { dsimp [iso_pushout, cocone, comm_sq.cocone], simp, }
+@[simp] lemma inr_iso_pushout_inv (h : is_pushout f g inl inr) [has_pushout f g] :
+  pushout.inr ≫ h.iso_pushout.inv = inr :=
+by { dsimp [iso_pushout, cocone, comm_sq.cocone], simp, }
+@[simp] lemma inl_iso_pushout_hom (h : is_pushout f g inl inr) [has_pushout f g] :
+  inl ≫ h.iso_pushout.hom = pushout.inl :=
+by simp [←iso.eq_comp_inv]
+@[simp] lemma inr_iso_pushout_hom (h : is_pushout f g inl inr) [has_pushout f g] :
+  inr ≫ h.iso_pushout.hom = pushout.inr :=
+by simp [←iso.eq_comp_inv]
+
+lemma of_iso_pushout (h : comm_sq f g inl inr) [has_pushout f g] (i : P ≅ pushout f g)
+  (w₁ : inl ≫ i.hom = pushout.inl) (w₂ : inr ≫ i.hom = pushout.inr) : is_pushout f g inl inr :=
+of_is_colimit' h (limits.is_colimit.of_iso_colimit (colimit.is_colimit _)
+  (@pushout_cocone.ext _ _ _ _ _ _ _ (pushout_cocone.mk _ _ _) _ i w₁ w₂).symm)
+
 end is_pushout
-
-namespace bicartesian_sq
-
-variables {W X Y Z : C} (f : W ⟶ X) (g : W ⟶ Y) (h : X ⟶ Z) (i : Y ⟶ Z)
-variables [has_zero_morphisms C]
-
-lemma of_is_pullback_is_pushout (p₁ : is_pullback f g h i) (p₂ : is_pushout f g h i) :
-  bicartesian_sq f g h i :=
-bicartesian_sq.mk p₁.to_comm_sq ⟨p₁.is_limit⟩ ⟨p₂.is_colimit⟩
-
-lemma of_is_biproduct {b : binary_bicone X Y} (h : b.is_bilimit) (t : is_zero Z) :
-  bicartesian_sq b.fst b.snd (t.from X) (t.from Y) :=
-begin
-  apply of_is_pullback_is_pushout,
-  { apply is_pullback.of_is_limit, },
-  { sorry, },
-end
-
-
-end bicartesian_sq
 
 namespace is_pullback
 
@@ -262,7 +334,7 @@ variables [has_zero_object C] [has_zero_morphisms C]
 open_locale zero_object
 
 /-- The square with `0 : 0 ⟶ 0` on the left and `𝟙 X` on the right is a pullback square. -/
-lemma zero_left (X : C) : is_pullback (0 : 0 ⟶ X) (0 : 0 ⟶ 0) (𝟙 X) (0 : 0 ⟶ X) :=
+@[simp] lemma zero_left (X : C) : is_pullback (0 : 0 ⟶ X) (0 : 0 ⟶ 0) (𝟙 X) (0 : 0 ⟶ X) :=
 { w := by simp,
   is_limit' :=
   ⟨{ lift := λ s, 0,
@@ -270,8 +342,17 @@ lemma zero_left (X : C) : is_pullback (0 : 0 ⟶ X) (0 : 0 ⟶ 0) (𝟙 X) (0 : 
        (by simpa using (pullback_cone.condition s).symm), }⟩ }
 
 /-- The square with `0 : 0 ⟶ 0` on the top and `𝟙 X` on the bottom is a pullback square. -/
-lemma zero_top (X : C) : is_pullback (0 : 0 ⟶ 0) (0 : 0 ⟶ X) (0 : 0 ⟶ X) (𝟙 X) :=
+@[simp] lemma zero_top (X : C) : is_pullback (0 : 0 ⟶ 0) (0 : 0 ⟶ X) (0 : 0 ⟶ X) (𝟙 X) :=
 (zero_left X).flip
+
+/-- The square with `0 : 0 ⟶ 0` on the right and `𝟙 X` on the left is a pullback square. -/
+@[simp] lemma zero_right (X : C) : is_pullback (0 : X ⟶ 0) (𝟙 X) (0 : 0 ⟶ 0) (0 : X ⟶ 0) :=
+of_iso_pullback (by simp) ((zero_prod_iso X).symm ≪≫ (pullback_zero_zero_iso _ _).symm)
+  (by simp) (by simp)
+
+/-- The square with `0 : 0 ⟶ 0` on the bottom and `𝟙 X` on the top is a pullback square. -/
+@[simp] lemma zero_bot (X : C) : is_pullback (𝟙 X) (0 : X ⟶ 0) (0 : X ⟶ 0) (0 : 0 ⟶ 0) :=
+(zero_right X).flip
 
 end
 
@@ -315,6 +396,61 @@ lemma of_right {X₁₁ X₁₂ X₁₃ X₂₁ X₂₂ X₂₃ : C}
   is_pullback h₁₁ v₁₁ v₁₂ h₂₁ :=
 (of_bot s.flip p.symm t.flip).flip
 
+section
+
+variables [has_zero_object C] [has_zero_morphisms C]
+open_locale zero_object
+
+lemma of_is_bilimit {b : binary_bicone X Y} (h : b.is_bilimit) :
+  is_pullback b.fst b.snd (0 : X ⟶ 0) (0 : Y ⟶ 0) :=
+by convert is_pullback.of_is_product' h.is_limit has_zero_object.zero_is_terminal
+
+@[simp] lemma of_has_biproduct [has_binary_biproduct X Y] :
+  is_pullback biprod.fst biprod.snd (0 : X ⟶ 0) (0 : Y ⟶ 0) :=
+of_is_bilimit (binary_biproduct.is_bilimit X Y)
+
+lemma inl_snd' {b : binary_bicone X Y} (h : b.is_bilimit) :
+  is_pullback b.inl (0 : X ⟶ 0) b.snd (0 : 0 ⟶ Y) :=
+by { refine of_right _ (by simp) (of_is_bilimit h), simp, }
+
+/--
+The square
+```
+  X --inl--> X ⊞ Y
+  |            |
+  0           snd
+  |            |
+  v            v
+  0 ---0-----> Y
+```
+is a pullback square.
+-/
+@[simp] lemma inl_snd [has_binary_biproduct X Y] :
+  is_pullback biprod.inl (0 : X ⟶ 0) biprod.snd (0 : 0 ⟶ Y) :=
+inl_snd' (binary_biproduct.is_bilimit X Y)
+
+lemma inr_fst' {b : binary_bicone X Y} (h : b.is_bilimit) :
+  is_pullback b.inr (0 : Y ⟶ 0) b.fst (0 : 0 ⟶ X) :=
+by { apply flip, refine of_bot _ (by simp) (of_is_bilimit h), simp, }
+
+/--
+The square
+```
+  Y --inr--> X ⊞ Y
+  |            |
+  0           fst
+  |            |
+  v            v
+  0 ---0-----> X
+```
+is a pullback square.
+-/
+@[simp] lemma inr_fst [has_binary_biproduct X Y] :
+  is_pullback biprod.inr (0 : Y ⟶ 0) biprod.fst (0 : 0 ⟶ X) :=
+inr_fst' (binary_biproduct.is_bilimit X Y)
+
+end
+
 end is_pullback
 
 namespace is_pushout
@@ -330,7 +466,7 @@ variables [has_zero_object C] [has_zero_morphisms C]
 open_locale zero_object
 
 /-- The square with `0 : 0 ⟶ 0` on the right and `𝟙 X` on the left is a pushout square. -/
-lemma zero_right (X : C) : is_pushout (0 : X ⟶ 0) (𝟙 X) (0 : 0 ⟶ 0) (0 : X ⟶ 0) :=
+@[simp] lemma zero_right (X : C) : is_pushout (0 : X ⟶ 0) (𝟙 X) (0 : 0 ⟶ 0) (0 : X ⟶ 0) :=
 { w := by simp,
   is_colimit' :=
   ⟨{ desc := λ s, 0,
@@ -342,8 +478,17 @@ lemma zero_right (X : C) : is_pushout (0 : X ⟶ 0) (𝟙 X) (0 : 0 ⟶ 0) (0 : 
      end }⟩ }
 
 /-- The square with `0 : 0 ⟶ 0` on the bottom and `𝟙 X` on the top is a pushout square. -/
-lemma zero_bot (X : C) : is_pushout (𝟙 X) (0 : X ⟶ 0) (0 : X ⟶ 0) (0 : 0 ⟶ 0) :=
+@[simp] lemma zero_bot (X : C) : is_pushout (𝟙 X) (0 : X ⟶ 0) (0 : X ⟶ 0) (0 : 0 ⟶ 0) :=
 (zero_right X).flip
+
+/-- The square with `0 : 0 ⟶ 0` on the right left `𝟙 X` on the right is a pushout square. -/
+@[simp] lemma zero_left (X : C) : is_pushout (0 : 0 ⟶ X) (0 : 0 ⟶ 0) (𝟙 X) (0 : 0 ⟶ X) :=
+of_iso_pushout (by simp) ((coprod_zero_iso X).symm ≪≫ (pushout_zero_zero_iso _ _).symm)
+  (by simp) (by simp)
+
+/-- The square with `0 : 0 ⟶ 0` on the top and `𝟙 X` on the bottom is a pushout square. -/
+@[simp] lemma zero_top (X : C) : is_pushout (0 : 0 ⟶ 0) (0 : 0 ⟶ X) (0 : 0 ⟶ X) (𝟙 X) :=
+(zero_left X).flip
 
 end
 
@@ -387,7 +532,181 @@ lemma of_right {X₁₁ X₁₂ X₁₃ X₂₁ X₂₂ X₂₃ : C}
   is_pushout h₁₂ v₁₂ v₁₃ h₂₂ :=
 (of_bot s.flip p.symm t.flip).flip
 
+section
+
+variables [has_zero_object C] [has_zero_morphisms C]
+open_locale zero_object
+
+lemma of_is_bilimit {b : binary_bicone X Y} (h : b.is_bilimit) :
+  is_pushout (0 : 0 ⟶ X) (0 : 0 ⟶ Y) b.inl b.inr :=
+by convert is_pushout.of_is_coproduct' h.is_colimit has_zero_object.zero_is_initial
+
+@[simp] lemma of_has_biproduct [has_binary_biproduct X Y] :
+  is_pushout (0 : 0 ⟶ X) (0 : 0 ⟶ Y) biprod.inl biprod.inr :=
+of_is_bilimit (binary_biproduct.is_bilimit X Y)
+
+lemma inl_snd' {b : binary_bicone X Y} (h : b.is_bilimit) :
+  is_pushout b.inl (0 : X ⟶ 0) b.snd (0 : 0 ⟶ Y) :=
+by { apply flip, refine of_right _ (by simp) (of_is_bilimit h), simp, }
+
+/--
+The square
+```
+  X --inl--> X ⊞ Y
+  |            |
+  0           snd
+  |            |
+  v            v
+  0 ---0-----> Y
+```
+is a pushout square.
+-/
+lemma inl_snd [has_binary_biproduct X Y] :
+  is_pushout biprod.inl (0 : X ⟶ 0) biprod.snd (0 : 0 ⟶ Y) :=
+inl_snd' (binary_biproduct.is_bilimit X Y)
+
+lemma inr_fst' {b : binary_bicone X Y} (h : b.is_bilimit) :
+  is_pushout b.inr (0 : Y ⟶ 0) b.fst (0 : 0 ⟶ X) :=
+by { refine of_bot _ (by simp) (of_is_bilimit h), simp, }
+
+/--
+The square
+```
+  Y --inr--> X ⊞ Y
+  |            |
+  0           fst
+  |            |
+  v            v
+  0 ---0-----> X
+```
+is a pushhout square.
+-/
+lemma inr_fst [has_binary_biproduct X Y] :
+  is_pushout biprod.inr (0 : Y ⟶ 0) biprod.fst (0 : 0 ⟶ X) :=
+inr_fst' (binary_biproduct.is_bilimit X Y)
+
+end
+
 end is_pushout
 
+namespace bicartesian_sq
 
-end category_theory.limits
+variables {W X Y Z : C} {f : W ⟶ X} {g : W ⟶ Y} {h : X ⟶ Z} {i : Y ⟶ Z}
+
+lemma of_is_pullback_is_pushout (p₁ : is_pullback f g h i) (p₂ : is_pushout f g h i) :
+  bicartesian_sq f g h i :=
+bicartesian_sq.mk p₁.to_comm_sq ⟨p₁.is_limit⟩ ⟨p₂.is_colimit⟩
+
+lemma flip (p : bicartesian_sq f g h i) : bicartesian_sq g f i h :=
+of_is_pullback_is_pushout p.to_is_pullback.flip p.to_is_pushout.flip
+
+variables [has_zero_object C] [has_zero_morphisms C]
+open_locale zero_object
+
+/--
+```
+ X ⊞ Y --fst--> X
+   |            |
+  snd           0
+   |            |
+   v            v
+   Y -----0---> 0
+```
+is a bicartesian square.
+-/
+lemma of_is_biproduct₁ {b : binary_bicone X Y} (h : b.is_bilimit) :
+  bicartesian_sq b.fst b.snd (0 : X ⟶ 0) (0 : Y ⟶ 0) :=
+of_is_pullback_is_pushout
+  (is_pullback.of_is_bilimit h)
+  (by { refine is_pushout.of_right _ (by simp) (is_pushout.inl_snd' h), simp, })
+
+/--
+```
+   0 -----0---> X
+   |            |
+   0           inl
+   |            |
+   v            v
+   Y --inr--> X ⊞ Y
+```
+is a bicartesian square.
+-/
+lemma of_is_biproduct₂ {b : binary_bicone X Y} (h : b.is_bilimit) :
+  bicartesian_sq (0 : 0 ⟶ X) (0 : 0 ⟶ Y) b.inl b.inr :=
+of_is_pullback_is_pushout
+  (by { refine is_pullback.of_right _ (by simp) (is_pullback.inl_snd' h).flip, simp, })
+  (is_pushout.of_is_bilimit h)
+
+/--
+```
+ X ⊞ Y --fst--> X
+   |            |
+  snd           0
+   |            |
+   v            v
+   Y -----0---> 0
+```
+is a bicartesian square.
+-/
+@[simp] lemma of_has_biproduct₁ [has_binary_biproduct X Y] :
+  bicartesian_sq biprod.fst biprod.snd (0 : X ⟶ 0) (0 : Y ⟶ 0) :=
+by convert of_is_biproduct₁ (binary_biproduct.is_bilimit X Y)
+
+/--
+```
+   0 -----0---> X
+   |            |
+   0           inl
+   |            |
+   v            v
+   Y --inr--> X ⊞ Y
+```
+is a bicartesian square.
+-/
+@[simp] lemma of_has_biproduct₂ [has_binary_biproduct X Y] :
+  bicartesian_sq (0 : 0 ⟶ X) (0 : 0 ⟶ Y) biprod.inl biprod.inr :=
+by convert of_is_biproduct₂ (binary_biproduct.is_bilimit X Y)
+
+end bicartesian_sq
+
+namespace functor
+
+variables {D : Type u₂} [category.{v₂} D]
+variables (F : C ⥤ D) {W X Y Z : C} {f : W ⟶ X} {g : W ⟶ Y} {h : X ⟶ Z} {i : Y ⟶ Z}
+
+lemma map_comm_sq (s : comm_sq f g h i) : comm_sq (F.map f) (F.map g) (F.map h) (F.map i) :=
+⟨by simpa using congr_arg (λ k : W ⟶ Z, F.map k) s.w⟩
+
+lemma map_is_pullback [preserves_limit (cospan h i) F] (s : is_pullback f g h i) :
+  is_pullback (F.map f) (F.map g) (F.map h) (F.map i) :=
+-- This is made slightly awkward because `C` and `D` have different universes,
+-- and so the relevant `walking_cospan` diagrams live in different universes too!
+begin
+  refine is_pullback.of_is_limit' (F.map_comm_sq s.to_comm_sq)
+    (is_limit.of_whisker_equivalence walking_cospan_equiv
+      (is_limit.equiv_of_nat_iso_of_iso (cospan_comp_iso F h i) _ _ (walking_cospan.ext _ _ _)
+        (is_limit_of_preserves F s.is_limit))),
+  { refl, },
+  { dsimp, simp, refl, },
+  { dsimp, simp, refl, },
+end
+
+lemma map_is_pushout [preserves_colimit (span f g) F] (s : is_pushout f g h i) :
+  is_pushout (F.map f) (F.map g) (F.map h) (F.map i) :=
+begin
+  refine is_pushout.of_is_colimit' (F.map_comm_sq s.to_comm_sq)
+    (is_colimit.of_whisker_equivalence walking_span_equiv
+      (is_colimit.equiv_of_nat_iso_of_iso (span_comp_iso F f g) _ _ (walking_span.ext _ _ _)
+        (is_colimit_of_preserves F s.is_colimit))),
+  { refl, },
+  { dsimp, simp, refl, },
+  { dsimp, simp, refl, },
+end
+
+end functor
+
+alias functor.map_comm_sq ← comm_sq.map
+alias functor.map_is_pullback ← is_pullback.map
+alias functor.map_is_pushout ← is_pushout.map
+
+end category_theory

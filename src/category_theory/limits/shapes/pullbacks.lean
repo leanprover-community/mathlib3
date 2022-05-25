@@ -152,6 +152,44 @@ open walking_span.hom walking_cospan.hom wide_pullback_shape.hom wide_pushout_sh
 
 variables {C : Type u} [category.{v} C]
 
+/-- To construct an isomorphism of cones over the walking cospan,
+it suffices to construct an isomorphism
+of the cone points and check it commutes with the legs to `left` and `right`. -/
+def walking_cospan.ext {F : walking_cospan ⥤ C} {s t : cone F} (i : s.X ≅ t.X)
+  (w₁ : s.π.app walking_cospan.left = i.hom ≫ t.π.app walking_cospan.left)
+  (w₂ : s.π.app walking_cospan.right = i.hom ≫ t.π.app walking_cospan.right) :
+  s ≅ t :=
+begin
+  apply cones.ext i,
+  rintro (⟨⟩|⟨⟨⟩⟩),
+  { have h₁ := s.π.naturality walking_cospan.hom.inl,
+    dsimp at h₁, simp only [category.id_comp] at h₁,
+    have h₂ := t.π.naturality walking_cospan.hom.inl,
+    dsimp at h₂, simp only [category.id_comp] at h₂,
+    simp_rw [h₂, ←category.assoc, ←w₁, ←h₁], },
+  { exact w₁, },
+  { exact w₂, },
+end
+
+/-- To construct an isomorphism of cocones over the walking span,
+it suffices to construct an isomorphism
+of the cocone points and check it commutes with the legs from `left` and `right`. -/
+def walking_span.ext {F : walking_span ⥤ C} {s t : cocone F} (i : s.X ≅ t.X)
+  (w₁ : s.ι.app walking_cospan.left ≫ i.hom = t.ι.app walking_cospan.left)
+  (w₂ : s.ι.app walking_cospan.right ≫ i.hom = t.ι.app walking_cospan.right) :
+  s ≅ t :=
+begin
+  apply cocones.ext i,
+  rintro (⟨⟩|⟨⟨⟩⟩),
+  { have h₁ := s.ι.naturality walking_span.hom.fst,
+    dsimp at h₁, simp only [category.comp_id] at h₁,
+    have h₂ := t.ι.naturality walking_span.hom.fst,
+    dsimp at h₂, simp only [category.comp_id] at h₂,
+    simp_rw [←h₁, category.assoc, w₁, h₂], },
+  { exact w₁, },
+  { exact w₂, },
+end
+
 /-- `cospan f g` is the functor from the walking cospan hitting `f` and `g`. -/
 def cospan {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z) : walking_cospan ⥤ C :=
 wide_pullback_shape.wide_cospan Z
@@ -204,11 +242,11 @@ def diagram_iso_span (F : walking_span ⥤ C) :
   F ≅ span (F.map fst) (F.map snd) :=
 nat_iso.of_components (λ j, eq_to_iso (by tidy)) (by tidy)
 
-variables {D : Type*} [category.{v} D]
+variables {D : Type u₂} [category.{v₂} D]
 
 /-- A functor applied to a cospan is a cospan. -/
 def cospan_comp_iso (F : C ⥤ D) {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z) :
-  cospan f g ⋙ F ≅ cospan (F.map f) (F.map g) :=
+  cospan f g ⋙ F ≅ walking_cospan_functor ⋙ cospan (F.map f) (F.map g) :=
 nat_iso.of_components (by rintros (⟨⟩|⟨⟨⟩⟩); exact iso.refl _)
   (by rintros (⟨⟩|⟨⟨⟩⟩) (⟨⟩|⟨⟨⟩⟩) ⟨⟩; repeat { dsimp, simp, })
 
@@ -255,7 +293,7 @@ end
 
 /-- A functor applied to a span is a span. -/
 def span_comp_iso (F : C ⥤ D) {X Y Z : C} (f : X ⟶ Y) (g : X ⟶ Z) :
-  span f g ⋙ F ≅ span (F.map f) (F.map g) :=
+  span f g ⋙ F ≅ walking_span_functor ⋙ span (F.map f) (F.map g) :=
 nat_iso.of_components (by rintros (⟨⟩|⟨⟨⟩⟩); exact iso.refl _)
   (by rintros (⟨⟩|⟨⟨⟩⟩) (⟨⟩|⟨⟨⟩⟩) ⟨⟩; repeat { dsimp, simp, })
 
@@ -487,13 +525,7 @@ of the cone points and check it commutes with `fst` and `snd`. -/
 def ext {s t : pullback_cone f g} (i : s.X ≅ t.X)
   (w₁ : s.fst = i.hom ≫ t.fst) (w₂ : s.snd = i.hom ≫ t.snd) :
   s ≅ t :=
-begin
-  apply cones.ext i,
-  rintro (⟨⟩|⟨⟨⟩⟩),
-  { rw [condition_one, condition_one, w₁, category.assoc], },
-  { exact w₁, },
-  { exact w₂, },
-end
+walking_cospan.ext i w₁ w₂
 
 /-- If `t` is a limit pullback cone over `f` and `g` and `h : W ⟶ X` and `k : W ⟶ Y` are such that
     `h ≫ f = k ≫ g`, then we have `l : W ⟶ t.X` satisfying `l ≫ fst t = h` and `l ≫ snd t = k`.
@@ -690,13 +722,7 @@ of the cocone points and check it commutes with `inl` and `inr`. -/
 def ext {s t : pushout_cocone f g} (i : s.X ≅ t.X)
   (w₁ : s.inl ≫ i.hom = t.inl) (w₂ : s.inr ≫ i.hom = t.inr) :
   s ≅ t :=
-begin
-  apply cocones.ext i,
-  rintro (⟨⟩|⟨⟨⟩⟩),
-  { rw [condition_zero, condition_zero, category.assoc, w₁], },
-  { exact w₁, },
-  { exact w₂, },
-end
+walking_span.ext i w₁ w₂
 
 /--
 This is a more convenient formulation to show that a `pushout_cocone` constructed using

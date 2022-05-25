@@ -637,8 +637,8 @@ begin
       exact nat.succ_le_succ_iff.mp p }, },
 
   obtain ⟨n, w⟩ := monotone_stabilizes_iff_noetherian.mpr I (partial_sups f),
-  exact ⟨n, (λ m p,
-    eq_bot_of_disjoint_absorbs (h m) ((eq.symm (w (m + 1) (le_add_right p))).trans (w m p)))⟩
+  exact ⟨n, λ m p, (h m).eq_bot_of_ge $ sup_eq_left.1 $ (w (m + 1) $ le_add_right p).symm.trans $
+    w m p⟩
 end
 
 /--

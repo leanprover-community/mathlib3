@@ -49,7 +49,7 @@ card_image_le.trans_eq $ card_product _ _
 lemma card_image₂_iff :
   (image₂ f s t).card = s.card * t.card ↔
     ((s : set α) ×ˢ (t : set β) : set (α × β)).inj_on (λ x, f x.1 x.2) :=
-by { rw [←card_product, ←coe_product], exact card_image_eq_iff_inj_on }
+by { rw [←card_product, ←coe_product], exact card_image_iff }
 
 lemma card_image₂ (hf : injective2 f) (s : finset α) (t : finset β) :
   (image₂ f s t).card = s.card * t.card :=

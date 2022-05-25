@@ -208,7 +208,8 @@ open submodule set order
 lemma span_gram_schmidt (f : ι → E) (c : ι) :
   span 𝕜 (gram_schmidt 𝕜 f '' Iio c) = span 𝕜 (f '' Iio c) :=
 begin
-  apply @succ.rec ι _ _ _ (λ c, span 𝕜 (gram_schmidt 𝕜 f '' Iio c) = span 𝕜 (f '' Iio c)) ⊥,
+  apply @succ.rec ι _ _ _ (λ c, span 𝕜 (gram_schmidt 𝕜 f '' Iio c) = span 𝕜 (f '' Iio c)) ⊥
+    _ _ _ bot_le,
   { simp only [set.Iio_bot, set.image_empty] },
   intros c _ hc,
   by_cases h : c = succ c,
@@ -218,91 +219,61 @@ begin
     rw ← hc,
     refine subset_span _,
     simp only [set.mem_image, set.mem_Iio],
-    refine ⟨b, (finset.mem_Ico.1 hb).2, by refl⟩, },
+    refine ⟨b, (finset.mem_Ico.1 hb).2, by refl⟩ },
   rw [succ, succ_order.Iio_succ_eq_insert _ h],
   simp only [span_insert, image_insert_eq, hc],
   apply le_antisymm,
   { simp only [nat.succ_eq_succ,gram_schmidt_def 𝕜 f c, orthogonal_projection_singleton,
       _root_.sup_le_iff, span_singleton_le_iff_mem, le_sup_right, and_true],
     apply submodule.sub_mem _ _ _,
-    { exact mem_sup_left (mem_span_singleton_self (f c)), },
-    { exact submodule.sum_mem _ (λ b hb, mem_sup_right (smul_mem _ _ (h₀ b hb))), }, },
+    { exact mem_sup_left (mem_span_singleton_self (f c)) },
+    { exact submodule.sum_mem _ (λ b hb, mem_sup_right (smul_mem _ _ (h₀ b hb))) } },
   { rw [gram_schmidt_def' 𝕜 f c],
     simp only [orthogonal_projection_singleton,
       _root_.sup_le_iff, span_singleton_le_iff_mem, le_sup_right, and_true],
     apply submodule.add_mem _ _ _,
     { exact mem_sup_left (mem_span_singleton_self (gram_schmidt 𝕜 f c)), },
-    { exact submodule.sum_mem _ (λ b hb, mem_sup_right (smul_mem _ _ (h₀ b hb))), }, },
-  exact bot_le,
+    { exact submodule.sum_mem _ (λ b hb, mem_sup_right (smul_mem _ _ (h₀ b hb))) } }
 end
 
-/-- If the input of the first `n` vectors of `gram_schmidt` are linearly independent,
-then the output of the first `n` vectors are non-zero. -/
-lemma gram_schmidt_ne_zero (f : ℕ → E) (n : ℕ)
-  (h₀ : linear_independent 𝕜 (f ∘ (coe : fin n → ℕ))) :
-    ∀ i, i < n → gram_schmidt 𝕜 f i ≠ 0 :=
+/-- If the input vectors of `gram_schmidt` are linearly independent,
+then the output vectors are non-zero. -/
+lemma gram_schmidt_ne_zero (f : ι → E) (n : ι) (h₀ : linear_independent 𝕜 f) :
+  gram_schmidt 𝕜 f n ≠ 0 :=
 begin
-  induction n with n hn,
-  { intros, linarith },
-  { intros i hi h₁,
-    rw nat.succ_eq_add_one at hi,
-    have h₂ := gram_schmidt_def' 𝕜 f i,
-    simp only [nat.succ_eq_add_one, h₁, orthogonal_projection_singleton, zero_add] at h₂,
-    have h₃ : f i ∈ span 𝕜 (f '' Iio i),
-    { rw [h₂, ← span_gram_schmidt 𝕜 f i],
-      apply submodule.sum_mem _ _,
-      simp_intros a ha only [finset.mem_range],
-      apply submodule.smul_mem _ _ _,
-      refine subset_span _,
-      simp only [mem_image, mem_Iio],
-      exact ⟨a, by linarith, by refl⟩, },
-    change linear_independent 𝕜 (f ∘ (coe : fin (n + 1) → ℕ)) at h₀,
-    have h₄ : (i : fin (n + 1)) ∉ (coe : fin (n + 1) → ℕ) ⁻¹' (Iio i),
-    { simp only [mem_preimage, mem_Iio, not_le],
-      rw [fin.coe_coe_of_lt, not_lt],
-      exact hi },
-    apply linear_independent.not_mem_span_image h₀ h₄,
-    rw [image_comp, image_preimage_eq_inter_range],
-    simp only [function.comp_app, subtype.range_coe_subtype],
-    convert h₃,
-    { exact fin.coe_coe_of_lt hi, },
-    { simp only [inter_eq_left_iff_subset, Iio, set_of_subset_set_of],
-      exact (λ a ha, by linarith) } }
+  by_contra h,
+  have h₃ : f n ∈ span 𝕜 (f '' Iio n),
+  { rw [← span_gram_schmidt 𝕜 f n, gram_schmidt_def' _ f, h, zero_add],
+    apply submodule.sum_mem _ _,
+    simp_intros a ha only [finset.mem_Ico],
+    simp only [set.mem_image, set.mem_Iio, orthogonal_projection_singleton],
+    apply submodule.smul_mem _ _ _,
+    exact subset_span ⟨a, ha.2, by refl⟩ },
+  apply linear_independent.not_mem_span_image h₀ _ h₃,
+  simp only [set.mem_Iio, lt_self_iff_false, not_false_iff]
 end
-
-/-- If the input of `gram_schmidt` is linearly independent, then the output is non-zero. -/
-lemma gram_schmidt_ne_zero' (f : ℕ → E) (h₀ : linear_independent 𝕜 f) (n : ℕ) :
-  ∀ i, i < n → gram_schmidt 𝕜 f i ≠ 0 :=
-λ i hi, gram_schmidt_ne_zero 𝕜 f n (linear_independent.comp h₀ _ (fin.coe_injective)) i hi
 
 /-- the normalized `gram_schmidt`
 (i.e each vector in `gram_schmidt_normed` has unit length.) -/
-noncomputable def gram_schmidt_normed (f : ℕ → E) (n : ℕ) : E :=
+noncomputable def gram_schmidt_normed (f : ι → E) (n : ι) : E :=
 (∥gram_schmidt 𝕜 f n∥ : 𝕜)⁻¹ • (gram_schmidt 𝕜 f n)
 
-lemma gram_schmidt_normed_unit_length (f : ℕ → E) (n : ℕ)
-  (h₀ : linear_independent 𝕜 (f ∘ (coe : fin n → ℕ))) (i : ℕ) (hi : i < n) :
-    ∥gram_schmidt_normed 𝕜 f i∥ = 1 :=
-by simp only [gram_schmidt_ne_zero 𝕜 f n h₀ i hi,
-  gram_schmidt_normed, norm_smul_inv_norm, ne.def, not_false_iff]
-
-lemma gram_schmidt_normed_unit_length' (f : ℕ → E) (n : ℕ)
-  (h₀ : linear_independent 𝕜 f) :
+lemma gram_schmidt_normed_unit_length (f : ι → E) (n : ι) (h₀ : linear_independent 𝕜 f) :
     ∥gram_schmidt_normed 𝕜 f n∥ = 1 :=
-by simp only [gram_schmidt_ne_zero' 𝕜 f h₀ n.succ n (lt_succ n),
+by simp only [gram_schmidt_ne_zero 𝕜 f n h₀,
   gram_schmidt_normed, norm_smul_inv_norm, ne.def, not_false_iff]
 
 /-- **Gram-Schmidt Orthonormalization**:
 `gram_schmidt_normed` produces an orthornormal system of vectors. -/
-theorem gram_schmidt_orthonormal (f : ℕ → E) (h₀ : linear_independent 𝕜 f) :
+theorem gram_schmidt_orthonormal (f : ι → E) (h₀ : linear_independent 𝕜 f) :
   orthonormal 𝕜 (gram_schmidt_normed 𝕜 f) :=
 begin
   unfold orthonormal,
   split,
-  { simp only [gram_schmidt_normed_unit_length', h₀, forall_const], },
+  { simp only [gram_schmidt_normed_unit_length, h₀, forall_const] },
   { intros i j hij,
     simp only [gram_schmidt_normed, inner_smul_left, inner_smul_right, is_R_or_C.conj_inv,
       is_R_or_C.conj_of_real, mul_eq_zero, inv_eq_zero, is_R_or_C.of_real_eq_zero, norm_eq_zero],
     repeat { right },
-    exact gram_schmidt_orthogonal 𝕜 f hij, },
+    exact gram_schmidt_orthogonal 𝕜 f hij }
 end

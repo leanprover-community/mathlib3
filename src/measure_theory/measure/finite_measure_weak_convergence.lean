@@ -347,7 +347,7 @@ lemma tendsto_lintegral_nn_filter_of_le_const {ι : Type*} {L : filter ι} [L.is
 begin
   simpa only using tendsto_lintegral_filter_of_dominated_convergence (λ _, c)
     (eventually_of_forall ((λ i, (ennreal.continuous_coe.comp (fs i).continuous).measurable)))
-    _ ((@lintegral_const_lt_top _ _ (μ : measure α) _ _ (@ennreal.coe_lt_top c)).ne) _,
+    _ ((@lintegral_const_lt_top _ _ (μ : measure α) _ _ (@ennreal.coe_ne_top c)).ne) _,
   { simpa only [ennreal.coe_le_coe] using fs_le_const, },
   { simpa only [ennreal.tendsto_coe] using fs_lim, },
 end

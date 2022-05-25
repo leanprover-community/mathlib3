@@ -28,59 +28,65 @@ class incidence_geometry :=
 
 (online : point → line → Prop)
 (sameside : point → point → line → Prop)
-(B : point → point → point → Prop)
+(B : point → point → point → Prop) -- Betweenness
 (oncircle : point → circle → Prop)
-(inside : point → circle → Prop)
-(center : point → circle → Prop)
-(interlineline : line → line → Prop)
-(interlinecircle : line → circle → Prop)
-(intercirclecircle : circle → circle → Prop)
+(inside_circle : point → circle → Prop)
+(center_circle : point → circle → Prop)
+(line_line_inter : line → line → Prop)
+(line_circle_inter : line → circle → Prop)
+(circle_circle_inter : circle → circle → Prop)
 (dist : point → point → real)
 (angle : point → point → point → real)
 (rightangle : real)
 (area : point → point → point → real)
 
 --(P1 : ∀ (S: set point), ∃ (a : point), a∉ S) --Does not work for S= everything. What to do?
-(P2 : ∀ (L :  line), ∃ (a : point), online a L) -- NEVER USED
-(P3 : ∀ {L : line}, ∀ {b c : point}, online b L → online c L → b ≠ c →
-  ∃ (a : point), online a L ∧ B b a c)
-(P4 : ∀ {L : line}, ∀ {b c : point}, online b L → online c  L → b ≠ c →
-  ∃ (a : point), B b c a) --not necessary?
-(P5 : ∀ (L : line), ∀ (b : point), ¬online b L → ∃ (a : point), a ≠ b ∧ sameside a b L) -- NEVER USED
-(P6 : ∀ {L : line}, ∀ {b : point}, ¬online b L → ∃ (a : point), ¬online a L ∧ ¬sameside a b L)
-(P7 : ∀ (α : circle), ∃ (a : point), oncircle a α) -- NEVER USED!!
-(P8 : ∀ (α : circle), ∃ (a : point), inside a α) -- NEVER USED!!
-(P9 : ∀ (α : circle), ∃ (a : point), ¬inside a α ∧ ¬oncircle a α) -- NEVER USED!!
+--(P2 : ∀ (L :  line), ∃ (a : point), online a L) -- NEVER USED
+(pt_B_of_ne : ∀ {b c : point}, b ≠ c → ∃ (a : point), B b a c) -- old (P3)
+(pt_extension_of_ne : ∀ {b c : point}, b ≠ c → ∃ (a : point), B b c a)
+  -- (P4) not strictly necessary but doesn't cost moves
+--(P5 : ∀ (L : line), ∀ (b : point), ¬online b L → ∃ (a : point), a ≠ b ∧ sameside a b L)
+  -- (P5) NEVER USED
+(opp_side_of_not_online : ∀ {L : line}, ∀ {b : point}, ¬online b L →
+  ∃ (a : point), ¬online a L ∧ ¬sameside a b L)
+--(P7 : ∀ (α : circle), ∃ (a : point), oncircle a α) -- NEVER USED!!
+--(P8 : ∀ (α : circle), ∃ (a : point), inside_circle a α) -- NEVER USED!!
+--(P9 : ∀ (α : circle), ∃ (a : point), ¬inside_circle a α ∧ ¬oncircle a α) -- NEVER USED!!
 
-(LC1 : ∀ {a b : point}, a ≠ b → ∃ (L :line), online a L ∧ online b L)
-(LC2 : ∀ {a b : point}, a ≠ b → ∃ (α : circle), center a α ∧ oncircle b α)
+(line_of_ne : ∀ {a b : point}, a ≠ b → ∃ (L :line), online a L ∧ online b L) -- old (LC1)
+(circle_of_ne : ∀ {a b : point}, a ≠ b → ∃ (α : circle), center_circle a α ∧ oncircle b α)
+  -- old (LC2)
 
-(I1 : ∀ {L M : line}, interlineline L M → ∃ (a : point), online a L ∧ online a M)
-(I2 : ∀ {L : line}, ∀ {α : circle}, interlinecircle L α → ∃ (a : point), online a L ∧ oncircle a α)
-   --I3 Should be proven
-(I3 : ∀ {L : line}, ∀ {α : circle}, interlinecircle L α →
+(pt_of_line_line_inter : ∀ {L M : line}, line_line_inter L M →
+  ∃ (a : point), online a L ∧ online a M)
+--(pt_of_line_circle_inter : ∀ {L : line}, ∀ {α : circle}, line_circle_inter L α →
+--  ∃ (a : point), online a L ∧ oncircle a α)
+   --pts_of_line_circle_inter Should be proven?
+(pts_of_line_circle_inter : ∀ {L : line}, ∀ {α : circle}, line_circle_inter L α →
   ∃ (a b : point), online a L ∧ online b L ∧ oncircle a α ∧ oncircle b α ∧ a ≠ b)
-(I4 : ∀ {b c : point}, ∀ {L : line}, ∀ {α : circle}, inside b α → online b L → ¬inside c α →
-  ¬oncircle c α → online c L →∃ (a : point), oncircle a α ∧ online a L∧ B b a c)
-(I5 : ∀ {b c : point}, ∀ {L : line}, ∀ {α : circle}, inside b α → online b L → c ≠ b → online c L →
-  ∃ (a : point), oncircle a α ∧ online a L ∧ B a b c)
---I5 can be proven
-(I6 : ∀ {α β : circle}, intercirclecircle α β → ∃ (a : point), oncircle a α ∧ oncircle a β)
-(I7 : ∀ {α β : circle}, intercirclecircle α β →
+(pt_oncircle_of_inside_outside : ∀ {b c : point}, ∀ {α : circle},
+  inside_circle b α → ¬inside_circle c α → ¬oncircle c α →
+  ∃ (a : point), oncircle a α ∧ B b a c)
+(pt_oncircle_of_inside_ne : ∀ {b c : point}, ∀ {α : circle}, inside_circle b α → c ≠ b →
+  ∃ (a : point), oncircle a α ∧ B a b c)
+--pt_oncircle_of_inside_ne can be proven?
+--(I6 : ∀ {α β : circle}, circle_circle_inter α β → ∃ (a : point), oncircle a α ∧ oncircle a β)
+(pts_of_circle_circle_inter : ∀ {α β : circle}, circle_circle_inter α β →
   ∃ (a b : point), oncircle a α ∧ oncircle a β ∧ oncircle b α ∧ oncircle b β ∧ a ≠ b)
-(I8 : ∀ {b c d : point}, ∀ {α β : circle}, ∀ {L : line}, intercirclecircle α β → center c α →
-  center d β → online c L → online d L → ¬online b L →
-  ∃ (a : point), oncircle a α ∧ oncircle a β ∧ sameside a b L)
-(I9 : ∀ {b c d : point}, ∀ {α β : circle}, ∀ {L : line}, intercirclecircle α β → center c α →
-  center d β → online c L → online d L → ¬online b L →
-  ∃ (a : point), oncircle a α ∧ oncircle a β ∧ ¬sameside a b L ∧ ¬online a L) -- NEVER USED!!
+(pt_sameside_of_circle_circle_inter : ∀ {b c d : point}, ∀ {α β : circle}, ∀ {L : line},
+  circle_circle_inter α β → center_circle c α → center_circle d β → online c L → online d L →
+  ¬online b L → ∃ (a : point), oncircle a α ∧ oncircle a β ∧ sameside a b L)
+--(I9 : ∀ {b c d : point}, ∀ {α β : circle}, ∀ {L : line}, circle_circle_inter α β → center_circle c α →
+--  center_circle d β → online c L → online d L → ¬online b L →
+--  ∃ (a : point), oncircle a α ∧ oncircle a β ∧ ¬sameside a b L ∧ ¬online a L) -- NEVER USED!!
 
-(G1 : ∀ {a b : point}, ∀ {L M : line}, a ≠ b → online a L → online b L → online a M → online b M →
-  L = M)
-(G2 : ∀ {a b : point}, ∀ {α : circle}, center a α → center b α → a = b)
-  --G2 should be proven?
-(G3 : ∀ {a : point}, ∀ {α : circle}, center a α → inside a α)
-(G4 : ∀ {a : point}, ∀ {α : circle}, inside a α → ¬oncircle a α)
+(line_unique_of_pts : ∀ {a b : point}, ∀ {L M : line}, a ≠ b → online a L → online b L →
+  online a M → online b M → L = M)
+(center_circle_unique : ∀ {a b : point}, ∀ {α : circle}, center_circle a α → center_circle b α →
+  a = b)
+  --center_circle_unique should be proven?
+(G3 : ∀ {a : point}, ∀ {α : circle}, center_circle a α → inside_circle a α)
+(G4 : ∀ {a : point}, ∀ {α : circle}, inside_circle a α → ¬oncircle a α)
 
 (B1 : ∀ {a b c : point}, B a b c → B c b a ∧ a ≠ b ∧ a ≠ c ∧ b ≠ c ∧ ¬B b a c)
   -- B1 slightly modified, hope no issue?
@@ -116,24 +122,24 @@ class incidence_geometry :=
   sameside c e L) -- NEVER USED!!
 
 (C1 : ∀ {a b c : point}, ∀ {L : line}, ∀ {α : circle }, online a L → online b L → online c L
-  → inside a α → oncircle b α → oncircle c α → b ≠ c → B b a c)
-(C2 : ∀ (a b c : point), ∀ (α : circle), inside a α ∨ oncircle a α → inside b α ∨ oncircle b α →
-  B a c b → inside c α)
-(C3 : ∀ (a b c : point), ∀ (α : circle), inside a α ∨ oncircle a α → ¬inside c α → B a c b →
-  ¬inside b α ∧ ¬oncircle b α) -- NEVER USED!!!
-(C4 : ∀ {a b c d : point}, ∀ {α β : circle}, ∀ {L : line}, α ≠ β → c ≠ d→ intercirclecircle α β →
-  oncircle c α → oncircle c β → oncircle d α → oncircle d β → center a α → center b β → online a L
+  → inside_circle a α → oncircle b α → oncircle c α → b ≠ c → B b a c)
+(C2 : ∀ (a b c : point), ∀ (α : circle), inside_circle a α ∨ oncircle a α → inside_circle b α ∨ oncircle b α →
+  B a c b → inside_circle c α)
+(C3 : ∀ (a b c : point), ∀ (α : circle), inside_circle a α ∨ oncircle a α → ¬inside_circle c α → B a c b →
+  ¬inside_circle b α ∧ ¬oncircle b α) -- NEVER USED!!!
+(C4 : ∀ {a b c d : point}, ∀ {α β : circle}, ∀ {L : line}, α ≠ β → c ≠ d→ circle_circle_inter α β →
+  oncircle c α → oncircle c β → oncircle d α → oncircle d β → center_circle a α → center_circle b β → online a L
   → online b L → ¬sameside c d L)
 
 (Int1 : ∀ {a b : point}, ∀ {L M : line}, ¬sameside a b L → online a M → online b M →
-  interlineline L M)
-(Int2 : ∀ {a b : point}, ∀ {L : line}, ∀ {α : circle}, inside a α ∨ oncircle a α →
-  inside b α ∨ oncircle b α → ¬sameside a b L → interlinecircle L α)
-(Int3 : ∀ {a : point}, ∀ {L : line}, ∀ {α : circle}, inside a α → online a L → interlinecircle L α)
-(Int4 : ∀ {a b : point}, ∀ {α β : circle}, oncircle a α → inside b α ∨ oncircle b α → inside a β →
-  ¬inside b β → ¬oncircle b β → intercirclecircle α β) -- NEVER USED!!
-(Int5 : ∀ {a b : point}, ∀ {α β : circle}, inside a α → oncircle b α → inside b β → oncircle a β →
-  intercirclecircle α β)
+  line_line_inter L M)
+(Int2 : ∀ {a b : point}, ∀ {L : line}, ∀ {α : circle}, inside_circle a α ∨ oncircle a α →
+  inside_circle b α ∨ oncircle b α → ¬sameside a b L → line_circle_inter L α)
+(Int3 : ∀ {a : point}, ∀ {L : line}, ∀ {α : circle}, inside_circle a α → online a L → line_circle_inter L α)
+(Int4 : ∀ {a b : point}, ∀ {α β : circle}, oncircle a α → inside_circle b α ∨ oncircle b α → inside_circle a β →
+  ¬inside_circle b β → ¬oncircle b β → circle_circle_inter α β) -- NEVER USED!!
+(Int5 : ∀ {a b : point}, ∀ {α β : circle}, inside_circle a α → oncircle b α → inside_circle b β → oncircle a β →
+  circle_circle_inter α β)
 
 (M1 : ∀ {a b : point}, dist a b = 0 ↔ a = b)
 (M2 : ∀ (a b : point), dist a b = dist b a)
@@ -149,12 +155,12 @@ class incidence_geometry :=
   angle a c b = angle a1 c1 b1 → area a b c = area a1 b1 c1)
 
 (DS1 : ∀ {a b c : point}, B a b c → dist a b + dist b c = dist a c)
-(DS2 : ∀ {a b c : point}, ∀ {α β : circle}, center a α → center a β → oncircle b α → oncircle c β
+(DS2 : ∀ {a b c : point}, ∀ {α β : circle}, center_circle a α → center_circle a β → oncircle b α → oncircle c β
   → dist a b = dist a c → α = β) -- NEVER USED!
-(DS3 : ∀ {a b c : point}, ∀ {α : circle}, center a α → oncircle b α →
+(DS3 : ∀ {a b c : point}, ∀ {α : circle}, center_circle a α → oncircle b α →
   (dist a b = dist a c ↔ oncircle c α))
-(DS4 : ∀ {a b c : point}, ∀ {α : circle}, center a α → oncircle b α →
-  (dist a c < dist a b ↔ inside c α))
+(DS4 : ∀ {a b c : point}, ∀ {α : circle}, center_circle a α → oncircle b α →
+  (dist a c < dist a b ↔ inside_circle c α))
 
 (A1 : ∀ {a b c : point}, ∀ {L : line}, a ≠ b → a ≠ c → online a L → online b L →
   (online c L ∧ ¬B b a c ↔ angle b a c = 0))--better reformulation?
@@ -212,7 +218,7 @@ end
 theorem Beasy3 {a b c : point} (Babc : B a b c) :
   ∃ (L : line), online a L ∧ online b L ∧ online c L ∧ a ≠ b ∧ b ≠ c ∧ c ≠ a :=
 begin
-  rcases LC1 (B1 Babc).2.1 with ⟨L, aL, bL⟩,
+  rcases line_of_ne (B1 Babc).2.1 with ⟨L, aL, bL⟩,
   refine ⟨L, aL, bL, B2 Babc aL bL, (B1 Babc).2.1, (B1 Babc).2.2.2.1, (B1 Babc).2.2.1.symm⟩,
 end
 
@@ -258,11 +264,11 @@ end
 
 theorem Leasy2 {a b c : point} {L M : line} (ab : a ≠ b) (ac : a ≠ c) (LM : L ≠ M)
   (aL : online a L) (aM : online a M) (bL : online b L) (cM : online c M) : b ≠ c
-   := λ bc, LM (G1 ab aL bL aM (by rwa bc.symm at cM))
+   := λ bc, LM (line_unique_of_pts ab aL bL aM (by rwa bc.symm at cM))
 
 theorem Leasy3 {a b c : point} {L M : line} (ab : a ≠ b) (aL : online a L) (bL : online b L)
   (cL : ¬online c L) (bM : online b M) (cM : online c M) : ¬online a M
-   := λ aM, cL (by rwa ← (G1 ab aL bL aM bM) at cM)
+   := λ aM, cL (by rwa ← (line_unique_of_pts ab aL bL aM bM) at cM)
 
 theorem Leasy4 {a : point} {L M : line} (aL : online a L) (aM : ¬online a M) : L ≠ M
   := λ LM, aM (by rwa LM at aL)
@@ -281,24 +287,24 @@ theorem A2mprmod {a b c d : point} {L M : line} (ab : a ≠ b) (ac : a ≠ c) (a
 begin
   have angsplit := (A2 aL bL aM cM ab ac (S3 (S2 bdM)) (S3 (S2 cdL))
     (λ LM, (S3 cdL) (by rwa ← LM at cM))).mpr ⟨bdM, cdL⟩,
-  rcases LC1 (Leasy aL (S3 (S2 cdL))) with ⟨N, aN, dN⟩,
+  rcases line_of_ne (Leasy aL (S3 (S2 cdL))) with ⟨N, aN, dN⟩,
   have ang1 := A1mprmod ab aL bL (S3 (S2 cdL)),
   have ang2 := A1mprmod (Leasy aL (S3 (S2 cdL))) aN dN (λ cN, (S3 (S2 bdM))
-    (by rwa ← (G1 ac aM cM aN cN) at dN)),
+    (by rwa ← (line_unique_of_pts ac aM cM aN cN) at dN)),
   exact ⟨angsplit, by linarith, by linarith, ang1, ang2⟩,
 end
 
 theorem A4mod {a b c b1 c1 : point} (Babb1 : B a b b1) (Bacc1 : B a c c1) :
   angle b a c = angle b1 a c1 :=
 begin
-  rcases LC1 (B1 Babb1).2.1 with ⟨L, aL, bL⟩; rcases LC1 (B1 Bacc1).2.1 with ⟨M, aM, cM⟩,
+  rcases line_of_ne (B1 Babb1).2.1 with ⟨L, aL, bL⟩; rcases line_of_ne (B1 Bacc1).2.1 with ⟨M, aM, cM⟩,
   exact A4 aL bL (B2 Babb1 aL bL) aM cM (B2 Bacc1 aM cM) (B1 Babb1).2.1.symm (B1 Babb1).2.2.1.symm
   (B1 Bacc1).2.1.symm (B1 Bacc1).2.2.1.symm (B1 Babb1).2.2.2.2 (B1 Bacc1).2.2.2.2,
 end
 
 theorem A4mod1 {a b c b1 : point} (ac : a ≠ c) (Babb1 : B a b b1) : angle b a c = angle b1 a c :=
 begin
-  rcases LC1 (B1 Babb1).2.1 with ⟨L, aL, bL⟩, rcases LC1 ac with ⟨M, aM, cM⟩,
+  rcases line_of_ne (B1 Babb1).2.1 with ⟨L, aL, bL⟩, rcases line_of_ne ac with ⟨M, aM, cM⟩,
   exact A4 aL bL (B2 Babb1 aL bL) aM cM cM (B1 Babb1).2.1.symm (B1 Babb1).2.2.1.symm ac.symm
     ac.symm (B1 Babb1).2.2.2.2 (Beasy c a).1,
 end
@@ -341,7 +347,7 @@ end
 theorem Leneasy {a b c : point} (ac : a ≠ c) (len : dist a b = dist b c) : a ≠ b
   := λ ab, by linarith [nonzerolen (ne_of_eq_of_ne (eq.symm ab) ac), M1.mpr ab]
 
-theorem ceneqon {a b : point} {α : circle} (acen : center a α) (bcirc : oncircle b α) : a ≠ b :=
+theorem ceneqon {a b : point} {α : circle} (acen : center_circle a α) (bcirc : oncircle b α) : a ≠ b :=
 begin
   intro ab,
   have := G4 (G3 acen),
@@ -349,11 +355,11 @@ begin
   exact this bcirc,
 end
 
-theorem difcendifcirc {a b : point} {α β : circle} (acen : center a α) (bcen : center b β)
+theorem difcendifcirc {a b : point} {α β : circle} (acen : center_circle a α) (bcen : center_circle b β)
   (ab : a ≠ b) : α ≠ β :=
 begin
   intro albet, rw albet at acen,
-  have := G2 acen bcen,
+  have := center_circle_unique acen bcen,
   exact ab this,
 end
 
@@ -413,9 +419,9 @@ begin
   have bN : ¬online b N, { intro bN, cases par.2.2.2.2 b, exact h par.2.1, exact h bN, },
   have cM : ¬online c M, { intro cM, cases par.2.2.2.2 c, exact h cM, exact h par.2.2.1, },
   have dM : ¬online d M, { intro dM, cases par.2.2.2.2 d, exact h dM, exact h par.2.2.2.1, },
-  have abN : sameside a b N, { by_contra abN, rcases I1 (Int1 abN par.1 par.2.1) with ⟨z,zN,zM⟩,
+  have abN : sameside a b N, { by_contra abN, rcases pt_of_line_line_inter (Int1 abN par.1 par.2.1) with ⟨z,zN,zM⟩,
     cases par.2.2.2.2 z, exact h zM, exact h zN, },
-  have cdM : sameside c d M, { by_contra cdM, rcases I1 (Int1 cdM par.2.2.1 par.2.2.2.1) with
+  have cdM : sameside c d M, { by_contra cdM, rcases pt_of_line_line_inter (Int1 cdM par.2.2.1 par.2.2.2.1) with
     ⟨z, zM, zN⟩, cases par.2.2.2.2 z, exact h zM, exact h zN, },
   exact ⟨MN, aN, bN, cM, dM, abN, cdM⟩,
 end
@@ -434,22 +440,22 @@ theorem paraeasy6 {a b c d : point} {M N : line} (par : para a b c d M N) : para
   ⟨par.2.1, par.1, par.2.2.1, par.2.2.2.1, (λ e, par.2.2.2.2 e)⟩
 
 
-theorem circint {a b c d : point} {α β : circle} (acen : center a α) (bcen : center b β)
+theorem circint {a b c d : point} {α β : circle} (acen : center_circle a α) (bcen : center_circle b β)
   (ccirc : oncircle c α) (dcirc : oncircle d β) (cenbig : |dist a c - dist b d| < dist a b)
-  (censmall : dist a b < dist a c + dist b d) : intercirclecircle α β :=
+  (censmall : dist a b < dist a c + dist b d) : circle_circle_inter α β :=
 begin
   have := abs_lt.mp cenbig,
   have ab : a ≠ b := mt M1.mpr (by linarith : dist a b ≠ 0),
-  rcases LC1 ab with ⟨L, aL, bL⟩,
-  rcases I3 (Int3 (G3 acen) aL) with ⟨c1, c2, c1L, c2L, c1circ, c2circ, c1c2⟩,
-  rcases I3 (Int3 (G3 bcen) bL) with ⟨d1, d2, d1L, d2L, d1circ, d2circ, d1d2⟩,
+  rcases line_of_ne ab with ⟨L, aL, bL⟩,
+  rcases pts_of_line_circle_inter (Int3 (G3 acen) aL) with ⟨c1, c2, c1L, c2L, c1circ, c2circ, c1c2⟩,
+  rcases pts_of_line_circle_inter (Int3 (G3 bcen) bL) with ⟨d1, d2, d1L, d2L, d1circ, d2circ, d1d2⟩,
   have Bc1ac2 := C1 aL c1L c2L (G3 acen) c1circ c2circ c1c2,
   have Bd1bd2 := C1 bL d1L d2L (G3 bcen) d1circ d2circ d1d2,
   have clen1 := (DS3 acen ccirc).mpr c1circ,
   have clen2 := (DS3 acen ccirc).mpr c2circ,
   have dlen1 := (DS3 bcen dcirc).mpr d1circ,
   have dlen2 := (DS3 bcen dcirc).mpr d2circ,
-  have cin : inside c1 β ∨ inside c2 β,
+  have cin : inside_circle c1 β ∨ inside_circle c2 β,
   { by_contra out, push_neg at out,
     have ineq2 := mt (DS4 bcen d2circ).mp out.1, push_neg at ineq2,
     have ineq4 := mt (DS4 bcen d2circ).mp out.2, push_neg at ineq4,
@@ -464,7 +470,7 @@ begin
     linarith [DS1 Bac1b, M2 b c1],
     linarith [DS1 Babc1],
     linarith [DS1 Babc2], },
-  have din : inside d1 α ∨ inside d2 α,
+  have din : inside_circle d1 α ∨ inside_circle d2 α,
   { by_contra out, push_neg at out,
     have := mt (DS4 acen c2circ).mp out.1, push_neg at this,
     have := mt (DS4 acen c2circ).mp out.2, push_neg at this,
@@ -494,20 +500,20 @@ theorem quadiag {a b c d : point} {L M N : line} (ab : a ≠ b) (cd : c ≠ d) (
   ∃ (e : point) (O P : line), online a O ∧ online d O ∧ online b P ∧ online c P ∧  online e O ∧
   online e P ∧ B b e c ∧ B d e a ∧ ¬online c O ∧ ¬online b O ∧ ¬online d P ∧ ¬online a P :=
 begin
-  rcases LC1 (Leasy aL (S3 (S2 cdL))) with ⟨O, aO, dO⟩,
-  rcases LC1 (Leasy cM (S3 (S2 abM))) with ⟨P, cP, bP⟩,
-  rcases LC1 (Leasy aL (S3 cdL)) with ⟨K, aK, cK⟩,
-  have OP : O ≠ P := λ OP, (S3 cdL (by rwa ←(G1 ab aL bL (by rwa OP at aO) bP) at cP)),
+  rcases line_of_ne (Leasy aL (S3 (S2 cdL))) with ⟨O, aO, dO⟩,
+  rcases line_of_ne (Leasy cM (S3 (S2 abM))) with ⟨P, cP, bP⟩,
+  rcases line_of_ne (Leasy aL (S3 cdL)) with ⟨K, aK, cK⟩,
+  have OP : O ≠ P := λ OP, (S3 cdL (by rwa ←(line_unique_of_pts ab aL bL (by rwa OP at aO) bP) at cP)),
   have bcO := T1 dN dO dM bN aO cM acN (S2 abM),
-  rcases I1 (Int1 bcO bP cP) with ⟨e, eO, eP⟩,
-  have be : b ≠ e := λ be, (S3 (S2 cdL)) (by rwa ←(G1 ab aL bL aO (by rwa ← be at eO)) at dO),
-  have ce : c ≠ e := λ ce, (S3 abM) (by rwa G1 cd cM dM (by rwa ← ce at eO) dO),
-  have de : d ≠ e := λ de, (S3 (S2 abM)) (by rwa ← G1 cd cM dM cP (by rwa ← de at eP) at bP),
-  have ae : a ≠ e := λ ae, (S3 cdL) (by rwa ← (G1 ab aL bL (by rwa ← ae at eP) bP) at cP),
-  have cO := λ cO, OP (G1 ce cO eO cP eP),
-  have bO := λ bO, OP (G1 be bO eO bP eP),
-  have dP := λ dP, OP (G1 de dO eO dP eP),
-  have aP := λ aP, OP (G1 ae aO eO aP eP),
+  rcases pt_of_line_line_inter (Int1 bcO bP cP) with ⟨e, eO, eP⟩,
+  have be : b ≠ e := λ be, (S3 (S2 cdL)) (by rwa ←(line_unique_of_pts ab aL bL aO (by rwa ← be at eO)) at dO),
+  have ce : c ≠ e := λ ce, (S3 abM) (by rwa line_unique_of_pts cd cM dM (by rwa ← ce at eO) dO),
+  have de : d ≠ e := λ de, (S3 (S2 abM)) (by rwa ← line_unique_of_pts cd cM dM cP (by rwa ← de at eP) at bP),
+  have ae : a ≠ e := λ ae, (S3 cdL) (by rwa ← (line_unique_of_pts ab aL bL (by rwa ← ae at eP) bP) at cP),
+  have cO := λ cO, OP (line_unique_of_pts ce cO eO cP eP),
+  have bO := λ bO, OP (line_unique_of_pts be bO eO bP eP),
+  have dP := λ dP, OP (line_unique_of_pts de dO eO dP eP),
+  have aP := λ aP, OP (line_unique_of_pts ae aO eO aP eP),
   have daP := T1 cK cP cM aK bP dM (T2 aL aO aK bL dO cK (S2 cdL) bcO cO ab.symm) abM,
   have Bbec := Pa4 OP (Leasy bL (S3 cdL)) bP eP cP eO be ce bcO,
   have Bdea := Pa4 OP.symm (Leasy dM (S3 abM)) dO eO aO eP de ae (difsym daP),
@@ -531,19 +537,19 @@ theorem quadarea1 {a b c d : point} {L M N : line} (ab : a ≠ b) (cd : c ≠ d)
   area b a d + area b c d = area a d c + area a b c :=
   --***** redundant?
 begin
-  rcases LC1 (Leasy aL (S3 (S2 cdL))) with ⟨O, aO, dO⟩,
-  rcases LC1 (Leasy cM (S3 (S2 abM))) with ⟨P, cP, bP⟩,
-  rcases LC1 (Leasy aL (S3 cdL)) with ⟨K, aK, cK⟩,
-  have NK : N ≠ K := λ NK, (S3 (S2 cdL) (by rwa ←(G1 ab aL bL (by rwa NK.symm at aK) bN) at dN)),
-  rcases I1 (Int1 acN aK cK) with ⟨e, eN, eK⟩,
-  have be : b ≠ e := λ be, (S3 cdL) (by rwa ←(G1 ab aL bL aK (by rwa ← be at eK)) at cK),
-  have ce : c ≠ e := λ ce, (S3 (S2 abM)) (by rwa G1 cd cM dM (by rwa ← ce at eN) dN),
-  have de : d ≠ e := λ de, (S3 abM) (by rwa ← G1 cd.symm dM cM (by rwa ← de at eK) cK at aK),
-  have ae : a ≠ e := λ ae, (S3 (S2 cdL)) (by rwa ←(G1 ab aL bL (by rwa ←  ae at eN) bN) at dN),
-  have cN := λ cN, NK (G1 ce cN eN cK eK),
-  have bK := λ bK, NK (G1 be bN eN bK eK),
-  have dK := λ dK, NK (G1 de dN eN dK eK),
-  have aN := λ aN, NK (G1 ae aN eN aK eK),
+  rcases line_of_ne (Leasy aL (S3 (S2 cdL))) with ⟨O, aO, dO⟩,
+  rcases line_of_ne (Leasy cM (S3 (S2 abM))) with ⟨P, cP, bP⟩,
+  rcases line_of_ne (Leasy aL (S3 cdL)) with ⟨K, aK, cK⟩,
+  have NK : N ≠ K := λ NK, (S3 (S2 cdL) (by rwa ←(line_unique_of_pts ab aL bL (by rwa NK.symm at aK) bN) at dN)),
+  rcases pt_of_line_line_inter (Int1 acN aK cK) with ⟨e, eN, eK⟩,
+  have be : b ≠ e := λ be, (S3 cdL) (by rwa ←(line_unique_of_pts ab aL bL aK (by rwa ← be at eK)) at cK),
+  have ce : c ≠ e := λ ce, (S3 (S2 abM)) (by rwa line_unique_of_pts cd cM dM (by rwa ← ce at eN) dN),
+  have de : d ≠ e := λ de, (S3 abM) (by rwa ← line_unique_of_pts cd.symm dM cM (by rwa ← de at eK) cK at aK),
+  have ae : a ≠ e := λ ae, (S3 (S2 cdL)) (by rwa ←(line_unique_of_pts ab aL bL (by rwa ←  ae at eN) bN) at dN),
+  have cN := λ cN, NK (line_unique_of_pts ce cN eN cK eK),
+  have bK := λ bK, NK (line_unique_of_pts be bN eN bK eK),
+  have dK := λ dK, NK (line_unique_of_pts de dN eN dK eK),
+  have aN := λ aN, NK (line_unique_of_pts ae aN eN aK eK),
   have bdK := T1 aL aK aO bL cK dO cdL (S2 (T2 dM dN dO cM bN aO (S2 abM) (difsym acN) aN cd)),
   have Baec := Pa4 NK (Leasy aL (S3 cdL)) aK eK cK eN ae ce acN,
   have Bbed := Pa4 NK.symm (Leasy bL (S3 (S2 cdL))) bN eN dN eK be de bdK,
@@ -558,7 +564,7 @@ theorem quadext {a b c d e f : point} {L M N : line} (aL : online a L) (cL : onl
 begin
   rcases quadiag (B1 Babc).2.2.1 (B1 Bdef).2.2.2.1 aL cL (B3 Bdef dM fM) fM cN fN acM
     (S4 (Pa1 Bdef dfL) dfL) (S2 (S4 (S2 (Pa2 (B1 Bdef).1 fN (λ eN, (S3 (S2 acM))
-    (by rwa (G1 (B1 Bdef).2.2.2.1 eN fN (B3 Bdef dM fM) fM) at cN)))) (S2 adN))) with
+    (by rwa (line_unique_of_pts (B1 Bdef).2.2.2.1 eN fN (B3 Bdef dM fM) fM) at cN)))) (S2 adN))) with
     ⟨h, O, P, aO, fO, cP, eP, hO, hP, Bche, Bfha, eO, cO, fP, aP⟩,
   linarith [DA2mpmod aL cL (B3 Babc aL cL) (S3 (S2 (Pa1 Bdef dfL))) Babc, DA2mpmod eP cP
     (B3 Bche cP eP) aP (B1 Bche).1, DA2mpmod eP cP (B3 Bche cP eP) fP (B1 Bche).1,
@@ -579,9 +585,9 @@ lemma makeeqtriaux {a b c : point} (hab : a ≠ b) (h1 : dist a b = dist a c)
 
 theorem makeeqtri {a b : point} (hab : a ≠ b) : ∃ (c : point), iseqtri a b c := --Euclid 1.1
 begin
-  rcases LC2 hab with ⟨α, acen, bcirc⟩,
-  rcases LC2 (ne.symm hab) with ⟨β, bcen, acirc⟩,
-  rcases I6 (Int5 (G3 acen) bcirc (G3 bcen) acirc) with ⟨c, cona, conb⟩,
+  rcases circle_of_ne hab with ⟨α, acen, bcirc⟩,
+  rcases circle_of_ne (ne.symm hab) with ⟨β, bcen, acirc⟩,
+  rcases pts_of_circle_circle_inter (Int5 (G3 acen) bcirc (G3 bcen) acirc) with ⟨c, -, cona, conb, -, -, -⟩,
   have abeqac := (DS3 acen bcirc).2 cona,
   have bceqba := (DS3 bcen conb).mpr acirc,
   have caeqcb : dist c a = dist c b :=
@@ -592,9 +598,9 @@ end
 theorem makeeqtri1 {a b : point} (hab : a ≠ b) : ∃ (c d : point), iseqtri a b c ∧ iseqtri a b d ∧
   c ≠ d := --Euclid 1.1
 begin
-  rcases LC2 hab with ⟨α, acen, bcirc⟩,
-  rcases LC2 (ne.symm hab) with ⟨β, bcen, acirc⟩,
-  rcases I7 (Int5 (G3 acen) bcirc (G3 bcen) acirc) with ⟨c, d, cona, conb, dona, donb, cd⟩,
+  rcases circle_of_ne hab with ⟨α, acen, bcirc⟩,
+  rcases circle_of_ne (ne.symm hab) with ⟨β, bcen, acirc⟩,
+  rcases pts_of_circle_circle_inter (Int5 (G3 acen) bcirc (G3 bcen) acirc) with ⟨c, d, cona, conb, dona, donb, cd⟩,
   have abeqac := (DS3 acen bcirc).2 cona,
   have abeqad := (DS3 acen bcirc).2 dona,
   have bceqba := (DS3 bcen conb).mpr acirc,
@@ -608,10 +614,10 @@ end
 theorem makeeqtri2 {a b : point} (hab : a ≠ b) : ∃ (c d : point), ∃ (L : line), iseqtri a b c ∧
   iseqtri a b d ∧ online a L ∧ online b L ∧ ¬sameside c d L ∧ c ≠ d := --Euclid 1.1
 begin
-  rcases LC1 hab with ⟨L, aL, bL⟩,
-  rcases LC2 hab with ⟨α, acen, bcirc⟩,
-  rcases LC2 (ne.symm hab) with ⟨β, bcen, acirc⟩,
-  rcases I7 (Int5 (G3 acen) bcirc (G3 bcen) acirc) with ⟨c, d, cona, conb, dona, donb, cd⟩,
+  rcases line_of_ne hab with ⟨L, aL, bL⟩,
+  rcases circle_of_ne hab with ⟨α, acen, bcirc⟩,
+  rcases circle_of_ne (ne.symm hab) with ⟨β, bcen, acirc⟩,
+  rcases pts_of_circle_circle_inter (Int5 (G3 acen) bcirc (G3 bcen) acirc) with ⟨c, d, cona, conb, dona, donb, cd⟩,
   have nss := C4 (difcendifcirc acen bcen hab) cd (Int5 (G3 acen) bcirc (G3 bcen) acirc) cona conb
     dona donb acen bcen aL bL,
   have abeqac := (DS3 acen bcirc).2 cona,
@@ -627,10 +633,10 @@ end
 theorem makeeqtri3 {a b : point} (hab : a ≠ b) : ∃ (c d : point), ∃ (L : line), iseqtri a b c ∧
   iseqtri a b d ∧ online a L ∧ online b L ∧ diffside c d L := --Euclid 1.1
 begin
-  rcases LC1 hab with ⟨L, aL, bL⟩,
-  rcases LC2 hab with ⟨α, acen, bcirc⟩,
-  rcases LC2 (ne.symm hab) with ⟨β, bcen, acirc⟩,
-  rcases I7 (Int5 (G3 acen) bcirc (G3 bcen) acirc) with ⟨c, d, cona, conb, dona, donb, cd⟩,
+  rcases line_of_ne hab with ⟨L, aL, bL⟩,
+  rcases circle_of_ne hab with ⟨α, acen, bcirc⟩,
+  rcases circle_of_ne (ne.symm hab) with ⟨β, bcen, acirc⟩,
+  rcases pts_of_circle_circle_inter (Int5 (G3 acen) bcirc (G3 bcen) acirc) with ⟨c, d, cona, conb, dona, donb, cd⟩,
   have nss := C4 (difcendifcirc acen bcen hab) cd (Int5 (G3 acen) bcirc (G3 bcen) acirc) cona conb
     dona donb acen bcen aL bL,
   have abeqac := (DS3 acen bcirc).2 cona,
@@ -692,45 +698,46 @@ theorem ex {a b c : point} {L : line} (hbc : b ≠ c) (aL : online a L) : ∃ (d
   online d L ∧ dist a d = dist b c := --Euclid 1.2,3 (generalizations and corrollaries)
 begin
     by_cases hab : a = b,
-    { rcases LC2 hbc with ⟨α, bcen, ccirc⟩,
-      rcases I2 (Int3 (G3 bcen) (by rwa hab at aL)) with ⟨d, dL, dalpha⟩,
+    { rcases circle_of_ne hbc with ⟨α, bcen, ccirc⟩,
+      rcases pts_of_line_circle_inter (Int3 (G3 bcen) (by rwa hab at aL)) with
+        ⟨d, -, dL, -, dalpha, -, -⟩,
       refine ⟨d, dL, by rwa hab; linarith [(DS3 bcen dalpha).mpr ccirc]⟩, },
     rcases makeeqtri hab with ⟨d, len1, len2, len3, hab, hbd, hda⟩,
-    rcases LC1 hda with ⟨M, dM, aM⟩,
-    rcases LC1 hbd.symm with ⟨N, dN, bN⟩,
-    rcases LC2 hbc with ⟨α, bcen, ccirc⟩,
-    rcases I5 (G3 bcen) bN hbd.symm dN with ⟨g, gcirc, gN, Bgbd⟩,
+    rcases line_of_ne hda with ⟨M, dM, aM⟩,
+    rcases line_of_ne hbd.symm with ⟨N, dN, bN⟩,
+    rcases circle_of_ne hbc with ⟨α, bcen, ccirc⟩,
+    rcases pt_oncircle_of_inside_ne (G3 bcen) hbd.symm with ⟨g, gcirc, Bgbd⟩,
     have hyp : dist d g = dist b a + dist b g := by linarith [DS1 (B1 Bgbd).1, M2 d b],
     have hyp2 : dist d a < dist d g,
     { by_contra  h, -- by_contra and then push_neg?
       exact (ne.symm (B1 Bgbd).2.1) (M1.mp (by linarith [M5 b g, flipboth len3, M2 a d])), },
-    rcases LC2 (ne.symm(B1 Bgbd).2.2.1) with ⟨β, dcen, gcirc2⟩,
-    rcases I5 ((DS4 dcen gcirc2).1 hyp2) aM hda dM with ⟨f, fcirc, fM, Bfad⟩,
+    rcases circle_of_ne (ne.symm(B1 Bgbd).2.2.1) with ⟨β, dcen, gcirc2⟩,
+    rcases pt_oncircle_of_inside_ne ((DS4 dcen gcirc2).1 hyp2) hda with ⟨f, fcirc, Bfad⟩,
     have key : dist b c = dist f a := by linarith [DS1 Bfad, (DS3 dcen fcirc).2 gcirc2, M2 d f,
       flipboth len3, (DS3 bcen ccirc).2 gcirc],
-    rcases LC2 (ne.symm (B1 Bfad).2.1) with ⟨γ, acen2, fcirc3⟩,
-    rcases I2 (Int3 (G3 acen2) aL) with ⟨h, hL, hcirc⟩,
+    rcases circle_of_ne (ne.symm (B1 Bfad).2.1) with ⟨γ, acen2, fcirc3⟩,
+    rcases pts_of_line_circle_inter (Int3 (G3 acen2) aL) with ⟨h, -, hL, -, hcirc, -, -⟩,
     refine ⟨h, hL, by linarith [M2 a f, (DS3 acen2 fcirc3).2 hcirc]⟩,
 end
 
 theorem excor {a b c : point} (hab : a ≠ b) (hbc : b ≠ c) :
   ∃ (p : point), B a b p ∧ dist b p = dist c b :=
 begin
-  rcases LC1 hab with ⟨L, aL, bL⟩,
-  rcases LC2 hbc with ⟨α, bcirc, ccirc⟩,
-  rcases I5 (G3 bcirc) bL hab aL with ⟨p, pcirc, pL, Bpba⟩,
+  rcases line_of_ne hab with ⟨L, aL, bL⟩,
+  rcases circle_of_ne hbc with ⟨α, bcirc, ccirc⟩,
+  rcases pt_oncircle_of_inside_ne (G3 bcirc) hab with ⟨p, pcirc, Bpba⟩,
   refine ⟨p, (B1 Bpba).1, by rwa [M2 c b, ((DS3 bcirc pcirc).2 ccirc)]⟩,
 end
 
 theorem excor2 {a b c d : point} (hab : a ≠ b) (hcd : c ≠ d) :
   ∃ (p : point), B a b p ∧ dist b p = dist c d :=
 begin
-  rcases LC1 hab with ⟨L, aL, bL⟩,
+  rcases line_of_ne hab with ⟨L, aL, bL⟩,
   rcases ex hcd bL with ⟨p1, p1L, len⟩,
   by_cases b = p1, { exfalso, refine hcd (M1.mp (eq.trans (M1.mpr h).symm len).symm), },
   by_cases hap1 : a = p1,
-  { rcases LC2 (ne.symm hab) with ⟨α, bcen, acirc⟩,
-    rcases I3 (Int3 (G3 bcen) bL) with ⟨e, f, eL, fL, ecirc, fcirc, hef⟩,
+  { rcases circle_of_ne (ne.symm hab) with ⟨α, bcen, acirc⟩,
+    rcases pts_of_line_circle_inter (Int3 (G3 bcen) bL) with ⟨e, f, eL, fL, ecirc, fcirc, hef⟩,
     by_cases hyp : a = e,
     { use f, split,
       { -- refine later
@@ -747,16 +754,15 @@ end
 theorem excor3 {a b c d : point} (cd : c ≠ d) (big : dist c d < dist a b) :
   ∃ (p : point), B a p b ∧ dist a p = dist c d := --can use for I.11
 begin
-  rcases LC1 (nonzerolenconv (by linarith [M5 c d]) : a ≠ b) with ⟨L, aL, bL⟩,
-  rcases P4 bL aL (nonzerolenconv (by linarith [M5 c d]) : a ≠ b).symm with ⟨q, Bbaq⟩, --is this axiom useless?
-  --have := P3 bL aL (nonzerolenconv (by linarith [M5 c d]) : a ≠ b).symm,
+  rcases line_of_ne (nonzerolenconv (by linarith [M5 c d]) : a ≠ b) with ⟨L, aL, bL⟩,
+  rcases pt_extension_of_ne (nonzerolenconv (by linarith [M5 c d]) : a ≠ b).symm with ⟨q, Bbaq⟩,
   by_cases ad : a = d,
   { by_cases ac : a = c, { exfalso, rw [← ac, ← ad] at cd, exact cd rfl, },
-    rcases LC2 ac with ⟨α, acen, ccirc⟩,
+    rcases circle_of_ne ac with ⟨α, acen, ccirc⟩,
     rw ← ad at big,
     have noin := mt (DS4 acen ccirc).mpr (by linarith [M2 a c] : ¬(dist a b < dist a c)),
     have := mt (DS3 acen ccirc).mpr ((by linarith [M2 a c]) : dist a c ≠ dist a b),
-    rcases I4 (G3 acen) aL noin this bL with ⟨p, pcirc, pL, Bapb⟩,
+    rcases pt_oncircle_of_inside_outside (G3 acen) noin this with ⟨p, pcirc, Bapb⟩,
     have := (DS3 acen ccirc).mpr pcirc,
     rw ← ad, --optimize?
     refine ⟨p, Bapb, by linarith [M2 a c]⟩, },
@@ -790,8 +796,8 @@ theorem isoangleext {a b c d e : point} {L : line} (bc : b ≠ c) (aL : online a
 begin
   have key1 : angle d a c = angle e a b := by linarith [A4mod1 (B1 Babd).2.1 Bace,
     (aflip1 (B1 Babd).2.1.symm bc) (A4mod1 (B1 Bace).2.1 Babd)],
-  rcases LC1 (B1 Bace).2.2.1 with ⟨M, aM, eM⟩,
-  have bM : ¬online b M, { intro bM, rw (G1 (B1 Babd).2.1 aL bL aM bM) at cL,
+  rcases line_of_ne (B1 Bace).2.2.1 with ⟨M, aM, eM⟩,
+  have bM : ¬online b M, { intro bM, rw (line_unique_of_pts (B1 Babd).2.1 aL bL aM bM) at cL,
     exact cL (B3 Bace aM eM), },--anything better here? (intro rw exact)
   have key2 := aflipboth (B1 Babd).2.2.1.symm (Beasy2 bc.symm aM (B3 Bace aM eM) bM Bace
     Babd).symm (B1 Bace).2.2.1.symm (Beasy2 bc aL bL cL Babd Bace).symm key1,
@@ -843,8 +849,8 @@ theorem bisline {a b : point} (ab : a ≠ b) : ∃ (d : point), B a d b ∧ dist
 begin
   rcases makeeqtri2 ab with ⟨c, e, L, ⟨labac, lbcba, lcacb, ab, bc, ca⟩,
     ⟨labae, lbeba, lcaeb, ab, be, ea⟩, aL, bL, nss, ce⟩,
-  rcases LC1 ce with ⟨M, cM, eM⟩,
-  rcases I1 (Int1 nss cM eM) with ⟨d, dL, dM⟩,
+  rcases line_of_ne ce with ⟨M, cM, eM⟩,
+  rcases pt_of_line_line_inter (Int1 nss cM eM) with ⟨d, dL, dM⟩,
   have cd : c ≠ d,
   { intro cd,
     rw ← cd at dL,
@@ -893,8 +899,8 @@ theorem bisangiso {a b c : point} {L M : line} (ab : a ≠ b) (ac : a ≠ c) (LM
 begin
   rcases bisline (Leasy2 ab ac LM aL aM bL cM) with ⟨d, Bbdc, len⟩,
   rcases Beasy3 Bbdc with ⟨N, bN, dN, cN, bd, dc, cb⟩,
-  have dM : ¬online d M := λ dM, LM (G1 ab aL bL aM (by rwa (G1 dc.symm cN dN cM dM) at bN)),
-  have dL : ¬online d L := λ dL, LM (G1 ac aL (by rwa (G1 bd bN dN bL dL) at cN) aM cM),
+  have dM : ¬online d M := λ dM, LM (line_unique_of_pts ab aL bL aM (by rwa (line_unique_of_pts dc.symm cN dN cM dM) at bN)),
+  have dL : ¬online d L := λ dL, LM (line_unique_of_pts ac aL (by rwa (line_unique_of_pts bd bN dN bL dL) at cN) aM cM),
   refine ⟨d, (sss abeqac (flip2 len) rfl).2.1, Pa2 (B1 Bbdc).1 cM dM, Pa2 Bbdc bL dL, Bbdc⟩,
 end
 
@@ -910,12 +916,12 @@ begin
     (B2 Bace aM cM) len,
   rcases key with ⟨f, ang, ss1, ss2, Bdfe⟩,
   rcases Beasy3 Bdfe with ⟨N, dN, fN, eN, df, fe, ed⟩,
-  have af : a ≠ f := λ af, LM ((rfl.congr (eq.symm (G1 (B1 Babd).2.2.1 aL (B2 Babd aL bL)
-    (by rwa af.symm at fN) dN))).mp (G1 (B1 Bace).2.2.1 aM (B2 Bace aM cM)
+  have af : a ≠ f := λ af, LM ((rfl.congr (eq.symm (line_unique_of_pts (B1 Babd).2.2.1 aL (B2 Babd aL bL)
+    (by rwa af.symm at fN) dN))).mp (line_unique_of_pts (B1 Bace).2.2.1 aM (B2 Bace aM cM)
     (by rwa af.symm at fN) eN)).symm,
   refine ⟨f, by linarith [A4mod1 af Babd, A4mod1 af Bace], S4 (S2 ss1) (S2 (Pa2 Babd aM
-    (λ bM, LM (G1 ab aL bL aM bM)))), S4 (S2 ss2) (S2 (Pa2 Bace aL (λ cL,
-    LM (G1 ac aL cL aM cM))))⟩,
+    (λ bM, LM (line_unique_of_pts ab aL bL aM bM)))), S4 (S2 ss2) (S2 (Pa2 Bace aL (λ cL,
+    LM (line_unique_of_pts ac aL cL aM cM))))⟩,
 end
 
 --Euclid I.11
@@ -961,7 +967,7 @@ begin
   { have key := (A3 (B3 (B5 (B1 Bbae).1 (B5 Babc Bbcf)) eL fL) (B3 (B5 (B1 Bbcf).1 (B5 (B1 Babc).1
       Bbae)) fL eL) Babc ds.1).1 (by linarith [A4mod1 bd Bbcf, (sss len3 len4 rfl).2.2]),
     refine ⟨d, key, by linarith [(sss len3 len4 rfl).2.2], h⟩, },
-  have OL := G1 (B1 Babc).2.2.1 aO cO (B3 (B5 (B1 Bbae).1 (B5 Babc Bbcf)) eL fL)
+  have OL := line_unique_of_pts (B1 Babc).2.2.1 aO cO (B3 (B5 (B1 Bbae).1 (B5 Babc Bbcf)) eL fL)
     (B3 (B5 (B1 Bbcf).1 (B5 (B1 Babc).1 Bbae)) fL eL),
   rw OL at h,
   rw OL at pO,
@@ -975,9 +981,9 @@ end
 theorem perppointnon { c : point} {O : line} (cO : ¬online c O) : ∃ (e h g : point), online e O ∧
   online h O ∧ online g O ∧ B e h g ∧ angle c h e = rightangle ∧ angle c h g = rightangle :=
 begin
-  rcases P6 cO with ⟨d, dO, dcO⟩,
-  rcases LC2 (λ cd, (by rwa cd at dcO : ¬sameside d d O) (S1 dO) : c ≠ d) with ⟨α, ccen, dcirc⟩,
-  rcases I3 (Int2 (by right; exact dcirc) (by left; exact (G3 ccen)) dcO) with
+  rcases opp_side_of_not_online cO with ⟨d, dO, dcO⟩,
+  rcases circle_of_ne (λ cd, (by rwa cd at dcO : ¬sameside d d O) (S1 dO) : c ≠ d) with ⟨α, ccen, dcirc⟩,
+  rcases pts_of_line_circle_inter (Int2 (by right; exact dcirc) (by left; exact (G3 ccen)) dcO) with
     ⟨e, g, eO, gO, ecirc, gcirc, eg⟩,
   rcases bisline eg with ⟨h, Behg, len⟩,
   have := (sss ((DS3 ccen ecirc).mpr gcirc) (flip2 len) rfl).2.2,
@@ -991,13 +997,13 @@ theorem flatsumright {a b c d : point} {L : line} (dL : online d L) (cL : online
   (aL : ¬online a L) (Bdbc : B d b c) : angle a b c + angle a b d = 2 * rightangle :=
 begin
   have ab := (Leasy (B3 Bdbc dL cL) aL).symm,
-  rcases LC1 ab with ⟨N, aN, bN⟩,
+  rcases line_of_ne ab with ⟨N, aN, bN⟩,
   by_cases (angle a b c = angle a b d),
   { linarith [(A3 dL cL Bdbc aL).mp ((aflip2 ab ((Leasy dL aL).symm) h).symm),
       (aflip2 ab ((Leasy dL aL).symm) h).symm], },
   rcases perplinecor cL dL aL (B1 Bdbc).1 with ⟨e, a1, a2, eaL⟩,
   have eb := (Leasy (B3 Bdbc dL cL) (S3 eaL)).symm,
-  rcases LC1 eb with ⟨M, eM, bM⟩,
+  rcases line_of_ne eb with ⟨M, eM, bM⟩,
   have ra : angle e b c = angle e b d := by linarith [M3 (B1 Bdbc).2.2.2.1.symm
     (Leasy cL (S3 eaL)), M3 (B1 Bdbc).2.1 (Leasy dL (S3 eaL))],
   have aM : ¬online a M,
@@ -1016,20 +1022,20 @@ begin
     { left, assumption, },
     right,
     have cM : ¬online c M := λ cM, (S3 eaL)
-      (by rwa (G1 (B1 Bdbc).2.2.2.1 bM cM (B3 Bdbc dL cL) cL) at eM),
+      (by rwa (line_unique_of_pts (B1 Bdbc).2.2.2.1 bM cM (B3 Bdbc dL cL) cL) at eM),
     have dM : ¬online d M := λ dM, (S3 eaL)
-      (by rwa (G1 (B1 Bdbc).2.1.symm bM dM (B3 Bdbc dL cL) dL) at eM),
+      (by rwa (line_unique_of_pts (B1 Bdbc).2.1.symm bM dM (B3 Bdbc dL cL) dL) at eM),
     exact difdifsame ⟨cM, aM, difsym h1⟩ ⟨cM, dM, difsym (Pa3 Bdbc bM)⟩, },
     --end of proof of wlog; not worth it?
   { have splitcbe := (A2 (B3 Bdbc dL cL) cL bM eM (B1 Bdbc).2.2.2.1 eb.symm aM aL (λ LM, (S3 eaL)
       (by rwa ← LM at eM))).mpr ⟨S2 acM, eaL⟩,
-    have eNL : ¬online e N ∧ ¬online e L := ⟨(λ eN, (by rwa (G1 eb eM bM eN bN) at aM :
+    have eNL : ¬online e N ∧ ¬online e L := ⟨(λ eN, (by rwa (line_unique_of_pts eb eM bM eN bN) at aM :
       ¬online a N) aN), (λ eL, (S3 eaL) eL)⟩,
     have deN : sameside d e N,
     { have cN : ¬online c N := λ cN,
-        aL (by rwa (G1 (B1 Bdbc).2.2.2.1 bN cN (B3 Bdbc dL cL) cL) at aN),
+        aL (by rwa (line_unique_of_pts (B1 Bdbc).2.2.2.1 bN cN (B3 Bdbc dL cL) cL) at aN),
       have dN : ¬online d N  := λ dN,
-        aL (by rwa (G1 (B1 Bdbc).2.1.symm bN dN (B3 Bdbc dL cL) dL) at aN),
+        aL (by rwa (line_unique_of_pts (B1 Bdbc).2.1.symm bN dN (B3 Bdbc dL cL) dL) at aN),
       exact S2 (difdifsame ⟨cN, eNL.1, difsym (T1 bM bN (B3 Bdbc dL cL) eM aN cL acM eaL)⟩
         ⟨cN, dN, difsym (Pa3 Bdbc bN)⟩), },
     have splitabd := (A2 bN aN (B3 Bdbc dL cL) dL ab.symm (B1 Bdbc).2.1.symm eNL.2 eNL.1
@@ -1047,18 +1053,18 @@ begin
   have cd := difneq cdN, --API and degenerate cases
   have bd : b ≠ d := λ bd, cdN.2.1 (by rwa bd at bN),
   rcases excor (Leasy bN cdN.1).symm (Leasy bN cdN.1) with ⟨e, Bcbe, len⟩,
-  rcases LC1 (Leasy bN cdN.1) with ⟨M, bM, cM⟩,
+  rcases line_of_ne (Leasy bN cdN.1) with ⟨M, bM, cM⟩,
   have eM := B2 Bcbe cM bM,
   have eN : ¬online e N := λ eN, cdN.1 (B2 (B1 Bcbe).1 eN bN),
   have edN := difdifsame ⟨cdN.1, eN, difsym (Pa3 (B1 Bcbe).1 bN)⟩ cdN,
-  rcases LC1 bd with ⟨L, bL, dL⟩,
+  rcases line_of_ne bd with ⟨L, bL, dL⟩,
   have LN : L ≠ N := λ LN, cdN.2.1 (by rwa LN at dL),
   by_cases eL : online e L,
   { exact Pa4 LN.symm cd (B2 (B1 Bcbe).1 eL bL) bL dL bN (Leasy bN cdN.1).symm bd.symm cdN.2.2, },
-  have dM : ¬online d M := λ dM, eL (by rwa (G1 bd bM dM bL dL) at eM),
+  have dM : ¬online d M := λ dM, eL (by rwa (line_unique_of_pts bd bM dM bL dL) at eM),
   have ae : a ≠ e := λ ae, eN (by rwa ae at aN),
   by_cases ed : e = d, { rwa ed at Bcbe, },
-  have ang1 := flatsumright cM eM (λ aM, cdN.1 (by rwa ← (G1 ab aN bN aM bM) at cM)) Bcbe, --beginning of proof
+  have ang1 := flatsumright cM eM (λ aM, cdN.1 (by rwa ← (line_unique_of_pts ab aN bN aM bM) at cM)) Bcbe, --beginning of proof
   by_cases eaL : sameside e a L,
   { have split := (A2 bL dL bN aN bd ab.symm eN eL LN).mpr ⟨S2 edN, S2 eaL⟩,
     have dM := ((A1 (B1 Bcbe).2.2.2.1 bd bM eM).mpr (by linarith [M3 ab ae,
@@ -1079,9 +1085,9 @@ theorem vertang {a b c d e : point} {L : line} (cL : online c L) (dL : online d 
 begin
   rcases Beasy3 Baeb with ⟨N, aN, eN, bN, nq⟩,
   have dN : ¬online d N := λ dN,
-    ((by rwa (G1 (B1 Bced).2.2.2.1 (B3 Bced cL dL) dL eN dN) at aL) : ¬online a N) aN,
+    ((by rwa (line_unique_of_pts (B1 Bced).2.2.2.1 (B3 Bced cL dL) dL eN dN) at aL) : ¬online a N) aN,
   have bL : ¬online b L := λ bL,
-    (by rwa G1 nq.2.1 (B3 Bced cL dL) bL eN bN at aL : ¬online a N) aN,
+    (by rwa line_unique_of_pts nq.2.1 (B3 Bced cL dL) bL eN bN at aL : ¬online a N) aN,
   have := flatsumright cL dL bL Bced,
   have := flatsumright aN bN dN Baeb,
   linarith [M3 nq.1 (Leasy dL aL).symm, M3 nq.2.1.symm (Leasy bN dN)],
@@ -1102,25 +1108,25 @@ begin
     (Pa2 Bbef bL (λ eL, aL ((B2 Bcea) cL eL))),
   rcases Beasy3 Bbef with ⟨M, bM, eM, fM, nq⟩,
   have cM : ¬online c M := λ cM,
-    ((by rwa ← (G1 (B1 Bbcd).2.1 bM cM bL cL) at aL) : ¬online a M) (B2 Bcea cM eM),
+    ((by rwa ← (line_unique_of_pts (B1 Bbcd).2.1 bM cM bL cL) at aL) : ¬online a M) (B2 Bcea cM eM),
   have ang := vertang bM fM cM Bbef Bcea,
   have ang2 := (sas (flip2 len2) (flip1 len) (by linarith [M3 be ba])).2.2,
   rcases Beasy3 Bcea with ⟨N, cN, eN, aN, nq1⟩,
   have fN : ¬online f N := λ fN,
-    aL (by rwa (G1 (B1 Bbcd).2.1 (B2 (B1 Bbef).1 fN eN) cN bL cL) at aN),
+    aL (by rwa (line_unique_of_pts (B1 Bbcd).2.1 (B2 (B1 Bbef).1 fN eN) cN bL cL) at aN),
   have bN : ¬online b N := λ bN, fN (B2 Bbef bN eN),
   have dfN := S2 (difdifsame ⟨bN, fN, Pa3 Bbef eN⟩ ⟨bN, (λ dN, bN (B2 (B1 Bbcd).1 dN cN)),
     Pa3 Bbcd cN⟩),
   have NL : N ≠ L := λ NL, bN (by rwa ←NL at bL), --start of pf below, API above
   have splitang := (A2 cN aN cL dL nq1.2.2.symm (B1 Bbcd).2.2.2.1 (S3 (S2 afL))
     (S3 (S2 dfN)) NL).mpr ⟨afL, dfN⟩,
-  rcases LC1 cf with ⟨P, cP, fP⟩,
+  rcases line_of_ne cf with ⟨P, cP, fP⟩,
   have geq := lt_of_le_of_ne (M4 f c d).2 (ne_comm.mp (mt (A1 cf (B1 Bbcd).2.2.2.1 cP fP).mpr _)),--better way to deal with or?
   have geq2 := lt_of_le_of_ne (M4 b a c).2 (angeasy ca (B1 Bbcd).2.1.symm
     (ne_comm.mp (mt (A1 ca.symm ba.symm aN cN).mpr _))),
   linarith [M3 ca (B1 Bbcd).2.1.symm, A4mod1 ba.symm (B1 Bcea).1, A4mod1 cf Bcea],
-  exact λ bN, NL (G1 (B1 Bbcd).2.1 bN.1 cN bL cL),
-  exact λ dP, S3 (S2 (by rwa ←(G1 (B1 Bbcd).2.2.2.1 cP dP.1 cL dL) at afL)) fP,
+  exact λ bN, NL (line_unique_of_pts (B1 Bbcd).2.1 bN.1 cN bL cL),
+  exact λ dP, S3 (S2 (by rwa ←(line_unique_of_pts (B1 Bbcd).2.2.2.1 cP dP.1 cL dL) at afL)) fP,
 end
 
 --Euclid I.16 (Elliptic geometry fails)
@@ -1132,7 +1138,7 @@ begin
   have := aflipboth (B1 Bacg).2.2.2.1.symm gb (B1 Bbcd).2.2.2.1.symm (Leasy dL aL)
     (vertang bL dL aL Bbcd Bacg),
   rcases Beasy3 Bacg with ⟨N, aN, cN, gN, nq⟩,
-  linarith [extang (λ bN, aL (by rwa G1 (B1 Bbcd).2.1 bN cN bL (B3 Bbcd bL dL) at aN)) aN gN Bacg],
+  linarith [extang (λ bN, aL (by rwa line_unique_of_pts (B1 Bbcd).2.1 bN cN bL (B3 Bbcd bL dL) at aN)) aN gN Bacg],
 end
 
  --Euclid I.18
@@ -1141,14 +1147,14 @@ end
 begin
   rcases excor3 (Leasy bL aL).symm len with ⟨d, Badc, len2⟩,
   rcases Beasy3 Badc with ⟨M, aM, dM, cM, nq⟩,
-  have ang := extangcor (λ bM, aL (by rwa G1 bc bM cM bL cL at aM)) cM aM (B1 Badc).1,
-  have db : d ≠ b := Leasy dM (λ bM, aL (by rwa G1 bc bM cM bL cL at aM)),
+  have ang := extangcor (λ bM, aL (by rwa line_unique_of_pts bc bM cM bL cL at aM)) cM aM (B1 Badc).1,
+  have db : d ≠ b := Leasy dM (λ bM, aL (by rwa line_unique_of_pts bc bM cM bL cL at aM)),
   have LM : L ≠ M := λ LM, aL (by rwa LM.symm at aM),
-  rcases LC1 (Leasy bL aL) with ⟨N, bN, aN⟩,
+  rcases line_of_ne (Leasy bL aL) with ⟨N, bN, aN⟩,
   have adL : sameside a d L, {by_contra adL, exact Beasy4 (B1 (B1 Badc).1).2.2.2.2
     (Pa4 LM (B1 Badc).2.1 aM cM dM cL nq.2.2.symm nq.2.1 adL), },
-  rcases LC1 db with ⟨P, dP, bP⟩,
-  have aP : ¬online a P := λ aP, LM (G1 bc bL cL (by rwa (G1 nq.1 aP dP aM dM) at bP) cM),
+  rcases line_of_ne db with ⟨P, dP, bP⟩,
+  have aP : ¬online a P := λ aP, LM (line_unique_of_pts bc bL cL (by rwa (line_unique_of_pts nq.1 aP dP aM dM) at bP) cM),
   have cdN := T2 bL bP bN cL dP aN (S2 adL) (Pa3 (B1 Badc).1 dP) aP bc.symm,
   have splitang := (A2 bL cL bN aN bc (Leasy bL aL) (S3 (S2 cdN)) (S3 (S2 adL))
     (λ LN, aL (by rwa ← LN at aN))).mpr ⟨cdN, adL⟩,
@@ -1177,11 +1183,11 @@ begin
   rcases excor ab.symm (Leasy aL cL) with ⟨d, Bbad, len⟩,
   have dc := Leasy (B2 Bbad bL aL) cL,
   have ang := isoangle (B1 Bbad).2.2.2.1 dc (flip2 len),
-  rcases LC1 (Leasy bL cL) with ⟨M, bM, cM⟩,
-  rcases LC1 dc with ⟨N, dN, cN⟩,
+  rcases line_of_ne (Leasy bL cL) with ⟨M, bM, cM⟩,
+  rcases line_of_ne dc with ⟨N, dN, cN⟩,
   have aN : ¬online a N := λ aN,
-    cL (by rwa ← (G1 (B1 Bbad).2.2.2.1 aL (B2 Bbad bL aL) aN dN) at cN),
-  have adM := Pa2 Bbad bM (λ aM, cL (by rwa (G1 ab aM bM aL bL) at cM)),
+    cL (by rwa ← (line_unique_of_pts (B1 Bbad).2.2.2.1 aL (B2 Bbad bL aL) aN dN) at cN),
+  have adM := Pa2 Bbad bM (λ aM, cL (by rwa (line_unique_of_pts ab aM bM aL bL) at cM)),
   have abN := Pa2 (B1 Bbad).1 dN aN,
   have angsplit := A2mprmod dc.symm bc.symm cN dN cM bM (S2 adM) (S2 (Pa2 (B1 Bbad).1 dN aN)),
   have bigside := angbigside dc.symm cN dN (S3 (S2 abN)) (by linarith [A4mod1 dc (B1 Bbad).1,
@@ -1194,10 +1200,10 @@ theorem triineqcor {a b c : point} {L : line} (ab : a ≠ b) (aL : online a L) (
   (cL : ¬online c L) : dist b c < dist a b + dist a c ∧ dist a c < dist a b + dist b c ∧
   dist a b < dist a c + dist b c :=
 begin
-  rcases LC1 (Leasy bL cL) with ⟨M, bM, cM⟩,
-  rcases LC1 (Leasy aL cL) with ⟨N, aN, cN⟩,
-  have aM : ¬online a M := λ aM, cL (by rwa ← (G1 ab aL bL aM bM) at cM),
-  have bN : ¬online b N := λ bN, cL (by rwa (G1 ab aN bN aL bL) at cN),
+  rcases line_of_ne (Leasy bL cL) with ⟨M, bM, cM⟩,
+  rcases line_of_ne (Leasy aL cL) with ⟨N, aN, cN⟩,
+  have aM : ¬online a M := λ aM, cL (by rwa ← (line_unique_of_pts ab aL bL aM bM) at cM),
+  have bN : ¬online b N := λ bN, cL (by rwa (line_unique_of_pts ab aN bN aL bL) at cN),
   exact ⟨triineq ab aL bL cL, by linarith [M2 a b, M2 a c, triineq (Leasy bL cL) bM cM aM],
     by linarith [M2 a c, M2 b c, triineq (Leasy aL cL).symm cN aN bN]⟩,
 end
@@ -1216,9 +1222,9 @@ begin
   { intro c1c2, rw c1c2 at ac; rw c1c2 at bc, linarith [M1.mpr (rfl : c2 = c2)], },
   rcases excor2 df.symm b1b2 with ⟨k1, Bfdk1, lenb⟩,
   rcases excor2 df c1c2 with ⟨k2, Bdfk2, lenc⟩,
-  rcases LC2 (B1 Bdfk2).2.2.2.1 with ⟨α, fcen, k2circ⟩,
-  rcases LC2 (B1 Bfdk1).2.2.2.1 with ⟨β, dcen, k1circ⟩,
-  rcases I8 (circint fcen dcen k2circ k1circ _ (by linarith [M2 d f])) fcen dcen fL dL gL with
+  rcases circle_of_ne (B1 Bdfk2).2.2.2.1 with ⟨α, fcen, k2circ⟩,
+  rcases circle_of_ne (B1 Bfdk1).2.2.2.1 with ⟨β, dcen, k1circ⟩,
+  rcases pt_sameside_of_circle_circle_inter (circint fcen dcen k2circ k1circ _ (by linarith [M2 d f])) fcen dcen fL dL gL with
     ⟨k, kalph, kbet, kgL⟩,
   refine ⟨k, by linarith [(DS3 dcen k1circ).mpr kbet], by linarith [(DS3 fcen k2circ).mpr kalph],
     S2 kgL⟩,
@@ -1249,7 +1255,7 @@ theorem asa {a b c d e f : point} {L : line} (ef : e ≠ f) (eL : online e L) (f
   dist a b = dist d e ∧ dist a c = dist d f ∧ angle b a c = angle e d f :=
 begin
   have bc : b ≠ c := λ bc, by linarith [nonzerolen ef, M1.mpr bc],
-  rcases LC1 bc with ⟨M, bM, cM⟩,
+  rcases line_of_ne bc with ⟨M, bM, cM⟩,
   by_cases len : dist a b = dist d e,
   { have congr := sas side (flipboth len) ang1,
     exact ⟨len, flipboth congr.1, congr.2.2⟩, },
@@ -1273,14 +1279,14 @@ begin
         (by linarith)).1], },
     have := M3 bc.symm gc.symm,
     have sasc := sas side (flip2 len2) (by linarith [M3 bc.symm gc.symm]),
-    rcases LC1 ac with ⟨N, aN, cN⟩,
+    rcases line_of_ne ac with ⟨N, aN, cN⟩,
     have gM : ¬online g M,--oneliner?
     { intro gM,
       have := (DA1 bM cM bc).mpr gM,
       exact (mt (DA1 eL fL ef).mp dL) (by rwa (M9 side sasc.1 (flip1 len2) sasc.2.1
         (by linarith) sasc.2.2) at this), },
     rcases Beasy3 Bbga with ⟨O, bO, gO, aO, nq⟩,
-    have gN : ¬online g N := λ gN, (Leasy4 gN gM) (G1 bc (by rwa (G1 nq.2.1 gO aO gN aN) at
+    have gN : ¬online g N := λ gN, (Leasy4 gN gM) (line_unique_of_pts bc (by rwa (line_unique_of_pts nq.2.1 gO aO gN aN) at
       bO : online b N) cN bM cM),
     have key := A2mprmod ac.symm bc.symm cN aN cM bM (S2 (Pa2 Bbga bM gM))
       (S2 (Pa2 (B1 Bbga).1 aN gN)),
@@ -1295,14 +1301,14 @@ begin
     ⟨g, Begd, len2⟩,
   have := A4mod1 ef Begd,
   have := M3 ef.symm (Leasy fL dL),
-  rcases LC1 (Leasy eL dL) with ⟨M, eM, dM⟩,
-  rcases LC1 (Leasy fL dL) with ⟨N, fN, dN⟩,
+  rcases line_of_ne (Leasy eL dL) with ⟨M, eM, dM⟩,
+  rcases line_of_ne (Leasy fL dL) with ⟨N, fN, dN⟩,
   have gL : ¬online g L := λ gL, dL (B2 Begd eL gL),
   have sasc := sas side (flip2 len2).symm (by linarith [M3 ef.symm (Leasy fL gL)]),
   have gN : ¬online g N,--oneliner?
   { intro gN,
-    have := G1 (B1 Begd).2.2.2.1 gN dN (B3 Begd eM dM) dM,
-    exact (Leasy4 gN gL) (G1 ef eL fL (by rwa ← this at eM : online e N) fN).symm, },
+    have := line_unique_of_pts (B1 Begd).2.2.2.1 gN dN (B3 Begd eM dM) dM,
+    exact (Leasy4 gN gL) (line_unique_of_pts ef eL fL (by rwa ← this at eM : online e N) fN).symm, },
   have key := A2mprmod (Leasy fL dL) ef.symm fN dN fL eL (S2 (Pa2 Begd eL gL))
     (S2 (Pa2 (B1 Begd).1 dN gN)),
   linarith [M3 bc ab.symm, M3 ef (B1 Begd).2.1],
@@ -1320,9 +1326,9 @@ begin
   push_neg at gMN,
   have ML : M ≠ L := λ ML, adL.1 (by rwa ML at aM),
   have NL : N ≠ L := λ NL, adL.2.1 (by rwa NL at dN),
-  have eN : ¬online e N := λ eN, NL (G1 ef eN fN eL fL),
-  have fM : ¬online f M := λ fM, ML (G1 ef eM fM eL fL),
-  have gL : ¬online g L := λ gL, ML (G1 (Leasy gMN.2 eN) gMN.1 eM gL eL),
+  have eN : ¬online e N := λ eN, NL (line_unique_of_pts ef eN fN eL fL),
+  have fM : ¬online f M := λ fM, ML (line_unique_of_pts ef eM fM eL fL),
+  have gL : ¬online g L := λ gL, ML (line_unique_of_pts (Leasy gMN.2 eN) gMN.1 eM gL eL),
   have dg : d ≠ g,
   { intro dg,
     rw dg at *,
@@ -1415,12 +1421,13 @@ end
 theorem drawpar {a b c : point} {L : line} (bc : b ≠ c) (bL : online b L) (cL : online c L)
   (aL : ¬online a L) : ∃ (e : point), ∃ (N : line), para e a b c N L :=
 begin
-  rcases P3 bL cL bc with ⟨d, dL, Bbdc⟩,
-  rcases LC1 (Leasy dL aL) with ⟨M, dM, aM⟩,
-  have bM : ¬online b M := λ bM, (Leasy4 aM aL) (G1 bc bM (B2 Bbdc bM dM) bL cL),
+  rcases pt_B_of_ne bc with ⟨d, Bbdc⟩,
+  have dL := B3 Bbdc bL cL,
+  rcases line_of_ne (Leasy dL aL) with ⟨M, dM, aM⟩,
+  have bM : ¬online b M := λ bM, (Leasy4 aM aL) (line_unique_of_pts bc bM (B2 Bbdc bM dM) bL cL),
   rcases angcopy (Leasy dL aL).symm (B1 Bbdc).2.2.2.1 dL cL aL aM dM bM with ⟨e, ang, ebM⟩,
   have ae : a ≠ e := λ ae, (S3 ebM) (by rwa ae at aM),
-  rcases LC1 ae with ⟨N, aN, eN⟩,
+  rcases line_of_ne ae with ⟨N, aN, eN⟩,
   refine ⟨e, N, paraeasy bL (angeqpar ae.symm (Leasy dL aL).symm (B1 Bbdc).2.2.2.1
     (Leasy4 aN aL) eN aN dL cL aM dM (by linarith [M3 ae.symm (Leasy dM (S3 ebM)).symm,
     M3 (Leasy dL aL).symm (Leasy cL aL).symm]) (difsamedif (S2 ebM)
@@ -1436,14 +1443,14 @@ begin
   have cd : c ≠ d := Leasy par2.2.1 (paraeasy2 par2).2.2.2.2.1,
   have cb : c ≠ b := Leasy par1.2.2.1 (paraeasy2 par1).2.2.1,
   have ca : c ≠ a := Leasy par1.2.2.1 (paraeasy2 par1).2.1,
-  rcases LC1 cb with ⟨O, cO, bO⟩,
+  rcases line_of_ne cb with ⟨O, cO, bO⟩,
   have adO := T1 par1.2.1 bO par2.2.2.1 par1.1 cO par2.2.2.2.1
     (paraeasy2 par1).2.2.2.2.2.2 (paraeasy2 par2).2.2.2.2.2.1,
   have aO : ¬online a O,
-  { intro aO, have := G1 ab par1.1 par1.2.1 aO bO, rw this at par1, cases par1.2.2.2.2 c,
+  { intro aO, have := line_unique_of_pts ab par1.1 par1.2.1 aO bO, rw this at par1, cases par1.2.2.2.2 c,
     exact h cO, exact h par1.2.2.1, },
   have dO : ¬online d O,
-  { intro dO, have := G1 cd cO dO par1.2.2.1 par1.2.2.2.1, rw this at *, cases par1.2.2.2.2 b,
+  { intro dO, have := line_unique_of_pts cd cO dO par1.2.2.1 par1.2.2.2.1, rw this at *, cases par1.2.2.2.2 b,
     exact h par1.2.1, exact h bO, },
   have ang1 := parapostcor cd.symm cO bO par1 ⟨aO, dO, adO⟩,
   have ang2 := parapostcor ca.symm cO bO (paraeasy1 par2) ⟨dO, aO, difsym adO⟩,
@@ -1480,7 +1487,7 @@ begin
       M8 a b e], },
   by_cases df : d = f,
   { rw ← df at *,
-    have NP := G1 (Leasy par1.2.1 (paraeasy2 par1).2.2.2.2.1) par3.2.2.1 par3.2.2.2.1
+    have NP := line_unique_of_pts (Leasy par1.2.1 (paraeasy2 par1).2.2.2.2.1) par3.2.2.1 par3.2.2.2.1
       par4.2.2.2.1 par4.2.2.1, rw ← NP at *, exfalso, cases B6 par1.1 par2.2.2.1 par1.2.1
       (B1 Baed).2.1 ad (B1 Baed).2.2.2.1,
     linarith [DS1 h, nonzerolen (B1 Baed).2.1],
@@ -1548,7 +1555,7 @@ begin
     linarith [M8 d c b, M8 d a b, M8 b d a, M8 c b e, M8 c b a, M8 c d a, M8 a c d, M8 a e b,
       M8 a b e], },
   by_cases df : d = f,
-  { rw ← df at *, have NP := G1 dc par3.2.2.1 par3.2.2.2.1 par4.2.2.2.1 par4.2.2.1, rw ← NP at *,
+  { rw ← df at *, have NP := line_unique_of_pts dc par3.2.2.1 par3.2.2.2.1 par4.2.2.2.1 par4.2.2.1, rw ← NP at *,
     { exfalso, cases B6 par1.1 par2.2.2.1 par1.2.1 (B1 Bade).2.2.1 ad (B1 Bade).2.2.2.1.symm,
       linarith [DS1 h, nonzerolen (B1 Bade).2.2.1], cases h, linarith [DS1 h, nonzerolen
         (B1 Bade).2.2.1.symm],
@@ -1583,7 +1590,7 @@ begin
     ⟨(paraeasy2 par4).2.2.2.2.1, dO, difsym (Pa3 Bdef par4.2.1)⟩).2.2,
   have beN := (difsamedif (paraeasy2 par3).2.2.2.2.2.1 ⟨(paraeasy2 par3).2.1, eN,
     (Pa3 Bade par3.2.2.1)⟩).2.2,
-  rcases I1 (Int1 beN par4.1 par4.2.1) with ⟨g, gN, gO⟩,
+  rcases pt_of_line_line_inter (Int1 beN par4.1 par4.2.1) with ⟨g, gN, gO⟩,
   have Bbge := Pa4 (Leasy4 par4.2.1 eN).symm (Leasy par1.2.2.1 (paraeasy2 par2).2.2.2.1)
     par4.1 gO par4.2.1 gN (Leasy gN (paraeasy2 par3).2.2.1).symm (Leasy gN eN).symm beN,
   have Bcgd := Pa4 (Leasy4 par4.2.1 eN) dc.symm par3.2.2.2.1 gN par3.2.2.1 gO (Leasy gO
@@ -1629,7 +1636,7 @@ begin
       M8 a b e], },
   by_cases df : d = f,
   { rw ← df at *,
-    have NP := G1 (Leasy par1.2.1 (paraeasy2 par1).2.2.2.2.1) par3.2.2.1 par3.2.2.2.1 par4.2.2.2.1
+    have NP := line_unique_of_pts (Leasy par1.2.1 (paraeasy2 par1).2.2.2.2.1) par3.2.2.1 par3.2.2.2.1 par4.2.2.2.1
       par4.2.2.1,
     rw ← NP at *,
     exfalso,
@@ -1692,7 +1699,7 @@ begin
   by_cases ed : e = d, { rw ed at *, linarith, },
   by_cases df : d = f,
   { rw ← df at *,
-    have NP := G1 dc par3.2.2.1 par3.2.2.2.1 par4.2.2.2.1 par4.2.2.1,
+    have NP := line_unique_of_pts dc par3.2.2.1 par3.2.2.2.1 par4.2.2.2.1 par4.2.2.1,
     rw ← NP at *,
     by_cases ae : a ≠ e,
     { exfalso,
@@ -1711,7 +1718,7 @@ begin
   by_cases ae : a = e,
   { exfalso,
     rw ← ae at *,
-    have OK := G1 ab par4.2.1 par4.1 par3.1 par3.2.1,
+    have OK := line_unique_of_pts ab par4.2.1 par4.1 par3.1 par3.2.1,
     rw OK at *,
     cases B6 par1.1 par1.2.1 par2.2.2.2.1 ad af df,
     linarith [nonzerolen df, DS1 h],
@@ -1731,8 +1738,8 @@ theorem parallelodraw {a d b c : point} {L M N : line} (ad : a ≠ d) (bc : b �
   (cN : online c N) (par : para a d b c L M) (bdN : ¬sameside b d N) :
   ∃ (e : point) (P : line), para e b a c P N ∧ para e a b c L M ∧ B d a e :=
 begin
-  rcases LC1 (Leasy par.1 (paraeasy2 par).2.2.2.1) with ⟨O, aO, bO⟩,
-  have bN := λ bN, (paraeasy2 par).2.1 (by rwa (G1 bc bN cN par.2.2.1 par.2.2.2.1) at aN),
+  rcases line_of_ne (Leasy par.1 (paraeasy2 par).2.2.2.1) with ⟨O, aO, bO⟩,
+  have bN := λ bN, (paraeasy2 par).2.1 (by rwa (line_unique_of_pts bc bN cN par.2.2.1 par.2.2.2.1) at aN),
   rcases excor2 ad.symm bc with ⟨e, Bdae, len⟩,
   have dcO := T2 par.1 aN aO par.2.1 cN bO (S2 (paraeasy2 par).2.2.2.2.2.2) (difsym bdN) bN
     ad.symm,
@@ -1745,7 +1752,7 @@ begin
     (paraeasy5 (paraeasy4 (paraeasy5 par))))) ecO,
   have eb := (Leasy par2.2.2.2.1 (paraeasy2 par2).2.2.1),
   have := sas len (M2 a b) (by linarith [M3 (B1 Bdae).2.2.2.1.symm eb]),
-  rcases LC1 eb with ⟨P, eP, bP⟩,
+  rcases line_of_ne eb with ⟨P, eP, bP⟩,
   have := angeqpar eb (Leasy aN bN).symm (Leasy par.1 (paraeasy2 par).2.2.2.2.1) (Leasy4 bP bN) eP
     bP aN cN bO aO (by linarith [M3 eb (B1 Bdae).2.2.2.1.symm]) ⟨ecO.2.1, ecO.1, difsym ecO.2.2⟩,
   refine ⟨e, P, this, paraeasy1 par2, Bdae⟩,
@@ -1760,11 +1767,11 @@ begin
   by_cases bc : b= c,
   rw bc,
   linarith [M8 a c c, M8 c a c, M8 d c c, M8 c d c, M6 c a, M6 c d],
-  rcases LC1 (Leasy par.1 (paraeasy2 par).2.2.2.2.1) with ⟨N, aN, cN⟩,
-  rcases LC1 (Leasy par.2.2.1 (paraeasy2 par).2.2.1) with ⟨Q, bQ, dQ⟩,
-  rcases LC1 (Leasy par.2.1 (paraeasy2 par).2.2.2.2.1) with ⟨K, dK, cK⟩,
-  rcases LC1 (Leasy par.1 (paraeasy2 par).2.2.2.1) with ⟨O, aO, bO⟩,
-  have bN := λ bN, (paraeasy2 par).2.1 (by rwa (G1 bc bN cN par.2.2.1 par.2.2.2.1) at aN),
+  rcases line_of_ne (Leasy par.1 (paraeasy2 par).2.2.2.2.1) with ⟨N, aN, cN⟩,
+  rcases line_of_ne (Leasy par.2.2.1 (paraeasy2 par).2.2.1) with ⟨Q, bQ, dQ⟩,
+  rcases line_of_ne (Leasy par.2.1 (paraeasy2 par).2.2.2.2.1) with ⟨K, dK, cK⟩,
+  rcases line_of_ne (Leasy par.1 (paraeasy2 par).2.2.2.1) with ⟨O, aO, bO⟩,
+  have bN := λ bN, (paraeasy2 par).2.1 (by rwa (line_unique_of_pts bc bN cN par.2.2.1 par.2.2.2.1) at aN),
   by_cases bdN : ¬sameside b d N,
   { rcases parallelodraw ad bc aN cN par bdN with ⟨e, P, par1, par2, Bdae⟩,
     rcases parallelodraw (ne.symm ad) (ne.symm bc) dQ bQ (paraeasy3 par)
@@ -1801,14 +1808,14 @@ begin
   rcases perplinecor bL (B2 Bbab1 bL aL) gL Bbab1 with ⟨c, per, per2, cgL⟩,
   rcases excor (Leasy aL (S3 cgL)).symm ab with ⟨d, Bcad, len1⟩,
   rcases excor (B1 Bcad).2.2.2.1 (B1 Bcad).2.2.2.1.symm with ⟨d1, Badd1, lend1⟩,
-  rcases LC2 (B1 Bcad).2.2.2.1.symm with ⟨α, dcen, acirc⟩,
-  rcases LC1 (B1 Bcad).2.2.1 with ⟨M, cM, dM⟩,
+  rcases circle_of_ne (B1 Bcad).2.2.2.1.symm with ⟨α, dcen, acirc⟩,
+  rcases line_of_ne (B1 Bcad).2.2.1 with ⟨M, cM, dM⟩,
   have gdL := difsamedif cgL ⟨S3 cgL, (λ dL, (S3 cgL) (B2 (B1 Bcad).1 dL aL)), Pa3 Bcad aL⟩,
   rcases drawpar ab aL bL gdL.2.1 with ⟨e1, N, par1⟩,
-  have bM : ¬online b M,-- := λ bM, (S3 cgL) (by rw (G1 ab aL bL (B3 Bcad cM dM) bM) at cM; exact cM),--why is this not a proof?
-  { intro bM, have := G1 ab aL bL (B3 Bcad cM dM) bM, rw ← this at cM; exact  (S3 cgL) cM, },
+  have bM : ¬online b M,-- := λ bM, (S3 cgL) (by rw (line_unique_of_pts ab aL bL (B3 Bcad cM dM) bM) at cM; exact cM),--why is this not a proof?
+  { intro bM, have := line_unique_of_pts ab aL bL (B3 Bcad cM dM) bM, rw ← this at cM; exact  (S3 cgL) cM, },
   have eex : ∃ (e : point), online e N ∧ sameside b e M ∧ oncircle e α ∧ d ≠ e,
-  { rcases I3 (Int3 (G3 dcen) par1.2.1) with ⟨e2, e3, e2N, e3N, e2circ, e3circ, e2e3⟩,
+  { rcases pts_of_line_circle_inter (Int3 (G3 dcen) par1.2.1) with ⟨e2, e3, e2N, e3N, e2circ, e3circ, e2e3⟩,
     have Be2de3 : B e2 d e3,
     { have same := (DS3 dcen e2circ).mpr e3circ,
       cases B6 e2N par1.2.1 e3N (λ e2d, (G4 (G3 dcen)) (by rwa e2d at e2circ)) e2e3
@@ -1824,24 +1831,24 @@ begin
     { refine ⟨e2, e2N, beM, e2circ, (B1 Be2de3).2.1.symm⟩, },
     have e2M : ¬online e2 M,
     { intro e2M,
-      have := G1 (B1 Be2de3).2.1 e2M dM e2N par1.2.1,
+      have := line_unique_of_pts (B1 Be2de3).2.1 e2M dM e2N par1.2.1,
       rw this at *,
       exact (paraeasy2 par1).2.2.2.1 (B3 Bcad cM dM), },
     have e3M := λ e3M, e2M (B2 (B1 Be2de3).1 e3M dM),
     refine ⟨e3, e3N, difdifsame ⟨e2M, bM, difsym beM⟩ ⟨e2M, e3M, Pa3 Be2de3 dM⟩, e3circ,
       (B1 Be2de3).2.2.2.1⟩, },
   rcases eex with ⟨e, eN, beM, ecirc, de⟩,
-  rcases LC1 (Leasy eN (paraeasy2 par1).2.2.2.2.1) with ⟨O, eO, bO⟩,
-  rcases LC1 (Leasy eN (paraeasy2 par1).2.2.2.1) with ⟨P, eP, aP⟩,
+  rcases line_of_ne (Leasy eN (paraeasy2 par1).2.2.2.2.1) with ⟨O, eO, bO⟩,
+  rcases line_of_ne (Leasy eN (paraeasy2 par1).2.2.2.1) with ⟨P, eP, aP⟩,
   rcases excor de.symm de with ⟨e4, Bede4, lene4⟩,
   have par := paraeasy5 (paraeasy eN (paraeasy4 par1)),
   have bdP := T1 aL aP (B3 Bcad cM dM) bL eP dM (S2 (paraeasy2 par).2.2.2.2.2.2) beM,
-  have bP : ¬online b P := λ bP, (paraeasy2 (by rwa (G1 ab aL bL aP bP) at par)).2.2.2.2.1 eP,--works here, seems like rwa something with par and thenn doing it on par is the problem. Why?
+  have bP : ¬online b P := λ bP, (paraeasy2 (by rwa (line_unique_of_pts ab aL bL aP bP) at par)).2.2.2.2.1 eP,--works here, seems like rwa something with par and thenn doing it on par is the problem. Why?
   have dP : ¬online d P,
   { intro dP,
-    have := G1 de par.2.2.1 eN dP eP,
+    have := line_unique_of_pts de par.2.2.1 eN dP eP,
     rw this at *,
-    exact (paraeasy2 (by rwa (G1 de par.2.2.1 eN dP eP) at par)).2.1 aP, },
+    exact (paraeasy2 (by rwa (line_unique_of_pts de par.2.2.1 eN dP eP) at par)).2.1 aP, },
   have := (DS3 dcen acirc).mpr ecirc,
   have := parapostcor de eP aP (paraeasy3 par) ⟨bP, dP, bdP⟩,
   have := sas (M2 a e) (flipboth (by linarith [M2 d a] : dist d e = dist b a)).symm
@@ -1868,12 +1875,12 @@ theorem pythagorasdraw {a b c : point} {N : line} (ab : a ≠ b) (aN : online a 
   square b a f g N W V U ∧ square c a k h M R S T ∧ square b c d e L Q P O ∧ ¬sameside f c N ∧
   ¬sameside k b M ∧ ¬sameside d a L :=
 begin
-  rcases LC1 (Leasy aN cN) with ⟨M, aM, cM⟩,
-  rcases LC1 (Leasy bN cN) with ⟨L, bL, cL⟩,
+  rcases line_of_ne (Leasy aN cN) with ⟨M, aM, cM⟩,
+  rcases line_of_ne (Leasy bN cN) with ⟨L, bL, cL⟩,
   rcases drawsq ab.symm bN aN cN with ⟨f, g, W, V, U, sq1, fcN⟩,
-  rcases drawsq (Leasy aN cN).symm cM aM (λ bM, (Leasy4 cM cN) (G1 ab aM bM aN bN)) with
+  rcases drawsq (Leasy aN cN).symm cM aM (λ bM, (Leasy4 cM cN) (line_unique_of_pts ab aM bM aN bN)) with
     ⟨k, h, R, S,T, sq2, hbM⟩,
-  rcases drawsq (Leasy bN cN) bL cL (λ aL, (Leasy4 cL cN) (G1 ab aL bL aN bN)) with
+  rcases drawsq (Leasy bN cN) bL cL (λ aL, (Leasy4 cL cN) (line_unique_of_pts ab aL bL aN bN)) with
     ⟨d, e, Q, P, O, sq3, daL⟩,
   refine ⟨f, g, h, k, d, e, L, M, O, P, Q, R, S,T, U, V, W, sq1, sq2, sq3, fcN, hbM, daL⟩,
 end
@@ -1906,10 +1913,10 @@ begin
   rcases perppointnon aL with ⟨h, m, g, hL, mL, gL, Bhmg, ang1⟩,
   have mb : m ≠ b,
   { intro mb,
-    rcases LC1 (Leasy bL aL) with ⟨M, bM, aM⟩,
+    rcases line_of_ne (Leasy bL aL) with ⟨M, bM, aM⟩,
     have cM : ¬online c M,
     { intro cM,
-      exact (Leasy4 aM aL) (G1 bc bL cL bM cM).symm, },
+      exact (Leasy4 aM aL) (line_unique_of_pts bc bL cL bM cM).symm, },
     rw mb at *,
     rcases excor (Leasy bL aL) (Leasy bL aL).symm with ⟨a1, Bbaa1, junk⟩,
     have := flatsumright bM (B2 Bbaa1 bM aM) cM Bbaa1,
@@ -1924,10 +1931,10 @@ begin
       linarith, },
     have hM : ¬online h M,
     { intro hM,
-      exact (Leasy4 aM aL) (G1 (B1 Bhmg).2.1.symm bL hL bM hM).symm, },
+      exact (Leasy4 aM aL) (line_unique_of_pts (B1 Bhmg).2.1.symm bL hL bM hM).symm, },
     have gM : ¬online g M,
     { intro gM,
-      exact (Leasy4 aM aL) (G1 (B1 Bhmg).2.2.2.1 bL gL bM gM).symm, },
+      exact (Leasy4 aM aL) (line_unique_of_pts (B1 Bhmg).2.2.2.1 bL gL bM gM).symm, },
     have hcM := S2 (difdifsame ⟨gM, cM, gcM⟩ ⟨gM, hM, difsym (Pa3 Bhmg bM)⟩),
     by_cases hc : h = c,
     rw hc at *,
@@ -1937,10 +1944,10 @@ begin
     linarith, },
   have mc : m ≠ c,
   { intro mc,
-    rcases LC1 (Leasy cL aL) with ⟨M, cM, aM⟩,
+    rcases line_of_ne (Leasy cL aL) with ⟨M, cM, aM⟩,
     have bM : ¬online b M,
     { intro bM,
-      exact (Leasy4 aM aL) (G1 bc bL cL bM cM).symm, },
+      exact (Leasy4 aM aL) (line_unique_of_pts bc bL cL bM cM).symm, },
     rw mc at *,
     rcases excor (Leasy cL aL) (Leasy cL aL).symm with ⟨a1, Bcaa1, junk⟩,
     have := flatsumright cM (B2 Bcaa1 cM aM) bM Bcaa1,
@@ -1956,10 +1963,10 @@ begin
       linarith, },
     have hM : ¬online h M,
     { intro hM,
-      exact (Leasy4 aM aL) (G1 (B1 Bhmg).2.1.symm cL hL cM hM).symm, },
+      exact (Leasy4 aM aL) (line_unique_of_pts (B1 Bhmg).2.1.symm cL hL cM hM).symm, },
     have gM : ¬online g M,
     { intro gM,
-      exact (Leasy4 aM aL) (G1 (B1 Bhmg).2.2.2.1 cL gL cM gM).symm, },
+      exact (Leasy4 aM aL) (line_unique_of_pts (B1 Bhmg).2.2.2.1 cL gL cM gM).symm, },
     have hbM := S2 (difdifsame ⟨gM, bM, gbM⟩ ⟨gM, hM, difsym (Pa3 Bhmg cM)⟩),
     by_cases hb : h = b,
     rw hb at *,
@@ -1975,8 +1982,8 @@ begin
   have := flatsumright bL (B2 Bbmm1 bL mL) aL Bbmm1,
   have := extangcor aL bL (B2 Bbmm1 bL mL) Bbmm1,
   have := flatsumright mL cL aL Bmbc,
-  rcases LC1 (Leasy bL aL) with ⟨M, bM, aM⟩,
-  have cM := λ cM, (Leasy4 aM aL) (G1 bc bL cL bM cM).symm,
+  rcases line_of_ne (Leasy bL aL) with ⟨M, bM, aM⟩,
+  have cM := λ cM, (Leasy4 aM aL) (line_unique_of_pts bc bL cL bM cM).symm,
   rcases excor (Leasy bL aL) (Leasy bL aL).symm with ⟨a1, Bbaa1, junk⟩,
   have := flatsumright bM (B2 Bbaa1 bM aM) cM Bbaa1,
   have := extangcor cM bM (B2 Bbaa1 bM aM) Bbaa1,
@@ -1987,8 +1994,8 @@ begin
   have := flatsumright cL (B2 Bcmm1 cL mL) aL Bcmm1,
   have := extangcor aL cL (B2 Bcmm1 cL mL) Bcmm1,
   have := flatsumright mL bL aL Bmcb,
-  rcases LC1 (Leasy cL aL) with ⟨M, cM, aM⟩,
-  have bM := λ bM, (Leasy4 aM aL) (G1 bc.symm cL bL cM bM).symm,
+  rcases line_of_ne (Leasy cL aL) with ⟨M, cM, aM⟩,
+  have bM := λ bM, (Leasy4 aM aL) (line_unique_of_pts bc.symm cL bL cM bM).symm,
   rcases excor (Leasy cL aL) (Leasy cL aL).symm with ⟨a1, Bcaa1, junk⟩,
   have := flatsumright cM (B2 Bcaa1 cM aM) bM Bcaa1,
   have := extangcor bM cM (B2 Bcaa1 cM aM) Bcaa1,
@@ -2049,12 +2056,12 @@ begin
   have ma := (Leasy mL aL),
   have md := Leasy mL dL,
   have me := Leasy mL eL,
-  rcases LC1 ma with ⟨X, mX, aX⟩,
+  rcases line_of_ne ma with ⟨X, mX, aX⟩,
   have mP := (paraeasy2 (paraeasy mL (paraeasy1 (sq3.2.2.2.2.2.2.2.2)))).2.2.2.1,
   have mQ : ¬online m Q,
-  { intro mQ, have := G1 (B1 Bbmc).2.1 bL mL bQ mQ, rw this at *, exact dL dQ, },
+  { intro mQ, have := line_unique_of_pts (B1 Bbmc).2.1 bL mL bQ mQ, rw this at *, exact dL dQ, },
   have mO : ¬online m O,
-  { intro mO, have := G1 (B1 (B1 Bbmc).1).2.1 cL mL cO mO, rw this at *, exact eL eO, },
+  { intro mO, have := line_unique_of_pts (B1 (B1 Bbmc).1).2.1 cL mL cO mO, rw this at *, exact eL eO, },
   have mcQ := Pa2 Bbmc bQ mQ,
   have ceQ := (paraeasy2 sq3.2.2.2.2.2.2.2.1).2.2.2.2.2.2,
   have meQ := S2 (S4 ceQ (S2 mcQ)),
@@ -2067,7 +2074,7 @@ begin
   have par1 := paraeasy mL (paraeasy1 (paraeasy6 sq3.2.2.2.2.2.2.2.2)),
   rcases perppointnon mP with ⟨p1, l, p2, p1P, lP, p2P, Bp1lp2, angs⟩,
   have lm := Leasy lP mP,
-  rcases LC1 lm with ⟨X', lX', mX'⟩,
+  rcases line_of_ne lm with ⟨X', lX', mX'⟩,
   have := M3 bc.symm cd,
   have dl : d ≠ l,
   { intro dl, rw ← dl at *,
@@ -2076,9 +2083,9 @@ begin
     have := extangcor dL mL (B2 Bmbb1 mL bL) Bmbb1,
     have beX' := T1 dQ lX' dP bQ mX' eP meQ (S2 mbP),
     have bX' : ¬online b X',
-    { intro bX', have := G1 (B1 Bmbb1).2.1 mL bL mX' bX', rw this at *, exact dL lX', },
+    { intro bX', have := line_unique_of_pts (B1 Bmbb1).2.1 mL bL mX' bX', rw this at *, exact dL lX', },
     have eX' : ¬online e X',
-    { intro eX', have := G1 (Leasy dQ eQ) dP eP lX' eX', rw this at *, exact mP mX', },
+    { intro eX', have := line_unique_of_pts (Leasy dQ eQ) dP eP lX' eX', rw this at *, exact mP mX', },
     have := parapostcor (B1 Bmbb1).2.1.symm mX' lX' par ⟨eX', bX', difsym beX'⟩,
     have := pythlem0 (B1 Bp1lp2).2.1.symm (Leasy dQ eQ) dP p1P eP mP (by linarith),
     have := A4mod1 db.symm Bbmc,
@@ -2094,9 +2101,9 @@ begin
     have := extangcor eL mL (B2 Bmcc1 mL cL) Bmcc1,
     have cdX' := T1 eO lX' eP cO mX' dP mdO (S2 mcP),
     have cX' : ¬online c X',
-    { intro cX', have := G1 (B1 Bmcc1).2.1 mL cL mX' cX', rw this at *, exact eL lX', },
+    { intro cX', have := line_unique_of_pts (B1 Bmcc1).2.1 mL cL mX' cX', rw this at *, exact eL lX', },
     have dX' : ¬online d X',
-    { intro dX', have := G1 (Leasy eO dO) eP dP lX' dX', rw this at *, exact mP mX', },
+    { intro dX', have := line_unique_of_pts (Leasy eO dO) eP dP lX' dX', rw this at *, exact mP mX', },
     have := parapostcor (B1 Bmcc1).2.1.symm mX' lX' (paraeasy6 par1) ⟨dX', cX', difsym cdX'⟩,
     have := pythlem0 (B1 Bp1lp2).2.1.symm (Leasy eO dO) eP p1P dP mP (by linarith),
     have := A4mod1 ec.symm (B1 Bbmc).1,
@@ -2104,9 +2111,9 @@ begin
     have := M3 (B1 (B1 Bbmc).1).2.1.symm me,
     linarith, },
   have eX' : ¬online e X',
-  { intro eX', have := G1 el eP lP eX' lX', rw this at *, exact mP mX', },
+  { intro eX', have := line_unique_of_pts el eP lP eX' lX', rw this at *, exact mP mX', },
   have dX' : ¬online d X',
-  { intro dX', have := G1 dl dP lP dX' lX', rw this at *, exact mP mX', },
+  { intro dX', have := line_unique_of_pts dl dP lP dX' lX', rw this at *, exact mP mX', },
   have := M3 de cd.symm,
   have := M3 lm.symm md,
   have := M3 lm.symm me,
@@ -2137,19 +2144,19 @@ begin
   have Blma := rightimpflat (B1 Bbmc).2.1 bL mL (difsamedif (paraeasy2 par4).2.2.2.2.2.2
     ⟨dL, aL, daL⟩) (by linarith),
   have Bdle := DS1rev dl el.symm de dP lP eP (by linarith [M2 m c, M2 e l]),
-  have := (G1 ma mX aX mX' (B2 Blma lX' mX')),
+  have := (line_unique_of_pts ma mX aX mX' (B2 Blma lX' mX')),
   rw ← this at *,
   have cN : ¬online c N,
-  { intro cN, have := G1 bc bL cL bN cN, rw this at *, exact aL aN, },
+  { intro cN, have := line_unique_of_pts bc bL cL bN cN, rw this at *, exact aL aN, },
   have fgN := (paraeasy2 sq1.2.2.2.2.2.2.2.2).2.2.2.2.2.2,
   have UM : U = M,
   { have := rightimpflat ba bN aN (difsamedif fgN ⟨S3 fgN, cN, fcN⟩) (by linarith [M3 ba bc]),
-    exact G1 (B1 this).2.2.2.1 aU (B2 this gU aU) aM cM, },
+    exact line_unique_of_pts (B1 this).2.2.2.1 aU (B2 this gU aU) aM cM, },
     have khM := (paraeasy2 sq2.2.2.2.2.2.2.2.2).2.2.2.2.2.2, --hkM
-    have bM : ¬online b M, { intro bM, have := G1 bc bL cL bM cM, rw this at *, exact aL aM, },
+    have bM : ¬online b M, { intro bM, have := line_unique_of_pts bc bL cL bM cM, rw this at *, exact aL aM, },
   have TN : T = N,
   { have := rightimpflat ca cM aM (difsamedif khM ⟨S3 khM, bM, kbM⟩) (by linarith [M3 ca bc.symm]),
-    exact G1 (B1 this).2.2.2.1 aT (B2 this hT aT) aN bN, },
+    exact line_unique_of_pts (B1 this).2.2.2.1 aT (B2 this hT aT) aN bN, },
   rw TN at *,
   rw UM at *,
   have ang1 : angle a b d = angle f b c,
@@ -2163,9 +2170,9 @@ begin
       (S2 (paraeasy2 par6).2.2.2.2.2.2) dmN with
       ⟨y,Y1,Y2, dY1, aY1, bY2, mY2,yY1,yY2, Bbym, Bayd, mY1, bY1, aY2, dY2⟩,
     have yQ : ¬online y Q,
-    { intro yQ, have := G1 (B1 Bayd).2.2.2.1 yY1 dY1 yQ dQ, rw this at *, exact bY1 bQ, },
+    { intro yQ, have := line_unique_of_pts (B1 Bayd).2.2.2.1 yY1 dY1 yQ dQ, rw this at *, exact bY1 bQ, },
     have yN : ¬online y N,
-    { intro yN, have := G1 (B1 Bayd).2.1 aY1 yY1 aN yN, rw this at *, exact bY1 bN, },
+    { intro yN, have := line_unique_of_pts (B1 Bayd).2.1 aY1 yY1 aN yN, rw this at *, exact bY1 bN, },
     have := A2mprmod ba db.symm bN aN bQ dQ (S2 (Pa2 (B1 Bayd).1 dQ yQ)) (S2 (Pa2 Bayd aN yN)),
     have := A4mod1 ba (B4 Bbmc Bbym),
     have := A4mod1 db.symm (B4 Bbmc Bbym),
@@ -2184,9 +2191,9 @@ begin
       (S2 (paraeasy2 par9).2.2.2.2.2.2) emM with
       ⟨y,Y1,Y2, eY1, aY1, cY2, mY2,yY1,yY2, Bcym, Baye, mY1, cY1, aY2, eY2⟩,
     have yO : ¬online y O,
-    { intro yO, have := G1 (B1 Baye).2.2.2.1 yY1 eY1 yO eO, rw this at *, exact cY1 cO, },
+    { intro yO, have := line_unique_of_pts (B1 Baye).2.2.2.1 yY1 eY1 yO eO, rw this at *, exact cY1 cO, },
     have yM : ¬online y M,
-    { intro yM, have := G1 (B1 Baye).2.1 aY1 yY1 aM yM, rw this at *, exact cY1 cM, },
+    { intro yM, have := line_unique_of_pts (B1 Baye).2.1 aY1 yY1 aM yM, rw this at *, exact cY1 cM, },
     have := A2mprmod ca ec.symm cM aM cO eO (S2 (Pa2 (B1 Baye).1 eO yO)) (S2 (Pa2 Baye aM yM)),
     have := A4mod1 ca (B4 (B1 Bbmc).1 Bcym),
     have := A4mod1 ec.symm (B4 (B1 Bbmc).1 Bcym),

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import category_theory.limits.shapes.pullbacks
+import category_theory.limits.shapes.biproducts
 import category_theory.limits.shapes.zero_morphisms
 import category_theory.limits.constructions.binary_products
 
@@ -80,10 +81,9 @@ end comm_sq
   Y ---g---> Z
 
 ```
-is a pullback square.
+is a pullback square. (Also known as a fibered product or cartesian square.)
 -/
-structure is_pullback
-  {P X Y Z : C} (fst : P ⟶ X) (snd : P ⟶ Y) (f : X ⟶ Z) (g : Y ⟶ Z)
+structure is_pullback {P X Y Z : C} (fst : P ⟶ X) (snd : P ⟶ Y) (f : X ⟶ Z) (g : Y ⟶ Z)
   extends comm_sq fst snd f g : Prop :=
 (is_limit' : nonempty (is_limit (pullback_cone.mk _ _ w)))
 
@@ -97,12 +97,32 @@ structure is_pullback
   Y --inr--> P
 
 ```
-is a pushout square.
+is a pushout square. (Also known as a fiber coproduct or cocartesian square.)
 -/
-structure is_pushout
-  {Z X Y P : C} (f : Z ⟶ X) (g : Z ⟶ Y) (inl : X ⟶ P) (inr : Y ⟶ P)
+structure is_pushout {Z X Y P : C} (f : Z ⟶ X) (g : Z ⟶ Y) (inl : X ⟶ P) (inr : Y ⟶ P)
   extends comm_sq f g inl inr : Prop :=
 (is_colimit' : nonempty (is_colimit (pushout_cocone.mk _ _ w)))
+
+
+section
+set_option old_structure_cmd true
+
+/-- The proposition that a square
+```
+  W ---f---> X
+  |          |
+  g          h
+  |          |
+  v          v
+  Y ---i---> Z
+
+```
+is both a pullback square and a pushout square.
+-/
+structure bicartesian_sq {W X Y Z : C} (f : W ⟶ X) (g : W ⟶ Y) (h : X ⟶ Z) (i : Y ⟶ Z)
+  extends is_pullback f g h i, is_pushout f g h i : Prop
+
+end
 
 /-!
 We begin by providing some glue between `is_pullback` and the `is_limit` and `has_limit` APIs.
@@ -208,6 +228,26 @@ lemma of_has_binary_coproduct
 by convert of_is_coproduct (colimit.is_colimit _) has_zero_object.zero_is_initial
 
 end is_pushout
+
+namespace bicartesian_sq
+
+variables {W X Y Z : C} (f : W ⟶ X) (g : W ⟶ Y) (h : X ⟶ Z) (i : Y ⟶ Z)
+variables [has_zero_morphisms C]
+
+lemma of_is_pullback_is_pushout (p₁ : is_pullback f g h i) (p₂ : is_pushout f g h i) :
+  bicartesian_sq f g h i :=
+bicartesian_sq.mk p₁.to_comm_sq ⟨p₁.is_limit⟩ ⟨p₂.is_colimit⟩
+
+lemma of_is_biproduct {b : binary_bicone X Y} (h : b.is_bilimit) (t : is_zero Z) :
+  bicartesian_sq b.fst b.snd (t.from X) (t.from Y) :=
+begin
+  apply of_is_pullback_is_pushout,
+  { apply is_pullback.of_is_limit, },
+  { sorry, },
+end
+
+
+end bicartesian_sq
 
 namespace is_pullback
 

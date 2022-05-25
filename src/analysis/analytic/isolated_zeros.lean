@@ -117,8 +117,8 @@ begin
   refine ⟨p.radius ⊓ r.to_nnreal, by simp, _, _⟩,
   { simp only [r_pos.lt, lt_inf_iff, ennreal.coe_pos, real.to_nnreal_pos, and_true],
     obtain ⟨z, z_pos, le_z⟩ := normed_field.exists_norm_lt 𝕜 r_pos.lt,
-    have : (∥z∥₊ : ennreal) ≤ p.radius := by {
-      simp only [dist_zero_right] at h,
+    have : (∥z∥₊ : ennreal) ≤ p.radius,
+    by { simp only [dist_zero_right] at h,
       apply formal_multilinear_series.le_radius_of_tendsto,
       convert tendsto_norm.comp (h le_z).summable.tendsto_at_top_zero,
       funext; simp [norm_smul, mul_comm] },
@@ -172,8 +172,8 @@ begin
     have order_ne_0 : p.order ≠ 0 := by { by_contra h'; rw h' at h; norm_cast at h },
     have hf0 : f z₀ = 0 :=
       by simpa [← hp0, order_eq_zero_iff.not] using order_ne_0,
-    have ofslope : p.fslope.order = n := by {
-      rw [order_fslope (hp0.symm ▸ hf0 : p.coef 0 = 0), h]; norm_cast },
+    have ofslope : p.fslope.order = n,
+      by { rw [order_fslope (hp0.symm ▸ hf0 : p.coef 0 = 0), h]; norm_cast },
     simp only [eventually_nhds_within_iff] at ih ⊢,
     refine (ih hp.has_fpower_series_dslope_fslope ofslope).mono (λ z hs hz hf, _),
     specialize hs hz,

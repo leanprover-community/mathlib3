@@ -125,18 +125,18 @@ begin
   simp only [span_insert, image_insert_eq, hc],
   apply le_antisymm,
   { simp only [nat.succ_eq_succ,gram_schmidt_def 𝕜 f c, orthogonal_projection_singleton,
-      _root_.sup_le_iff, span_singleton_le_iff_mem, le_sup_right, and_true],
+      sup_le_iff, span_singleton_le_iff_mem, le_sup_right, and_true],
     apply submodule.sub_mem _ _ _,
     { exact mem_sup_left (mem_span_singleton_self (f c)) },
     { exact submodule.sum_mem _ (λ b hb, mem_sup_right (smul_mem _ _ (h₀ b hb))) } },
   { rw [gram_schmidt_def' 𝕜 f c],
     simp only [orthogonal_projection_singleton,
-      _root_.sup_le_iff, span_singleton_le_iff_mem, le_sup_right, and_true],
+      sup_le_iff, span_singleton_le_iff_mem, le_sup_right, and_true],
     apply submodule.add_mem _ _ _,
     { exact mem_sup_left (mem_span_singleton_self (gram_schmidt 𝕜 f c)), },
     { exact submodule.sum_mem _ (λ b hb, mem_sup_right (smul_mem _ _ (h₀ b hb))) } }
 end
-
+#check finset.sup_le_iff
 /-- If the input vectors of `gram_schmidt` are linearly independent,
 then the output vectors are non-zero. -/
 lemma gram_schmidt_ne_zero (f : ι → E) (n : ι) (h₀ : linear_independent 𝕜 f) :

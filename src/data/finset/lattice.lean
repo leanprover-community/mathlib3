@@ -65,7 +65,7 @@ end
 theorem sup_congr {f g : β → α} (hs : s₁ = s₂) (hfg : ∀a∈s₂, f a = g a) : s₁.sup f = s₂.sup g :=
 by subst hs; exact finset.fold_congr hfg
 
-@[simp] lemma sup_le_iff {a : α} : s.sup f ≤ a ↔ (∀b ∈ s, f b ≤ a) :=
+@[simp] protected lemma sup_le_iff {a : α} : s.sup f ≤ a ↔ (∀b ∈ s, f b ≤ a) :=
 begin
   apply iff.trans multiset.sup_le,
   simp only [multiset.mem_map, and_imp, exists_imp_distrib],
@@ -198,7 +198,7 @@ begin
     -- z ∈ s is above x and y
     obtain ⟨z, hzs, ⟨hxz, hyz⟩⟩ := hdir x hxs y hys,
     use [z, hzs],
-    rw [sup_insert, id.def, _root_.sup_le_iff],
+    rw [sup_insert, id.def, sup_le_iff],
     exact ⟨le_trans hay hyz, le_trans hsx_sup hxz⟩, },
 end
 

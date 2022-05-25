@@ -76,6 +76,9 @@ instance cancel_comm_monoid_with_zero {α : Type*} [ordered_comm_ring α] [no_ze
   no_zero_divisors.to_cancel_comm_monoid_with_zero
   _ _ _ _ coe subtype.coe_injective coe_zero coe_one coe_mul coe_pow
 
+lemma one_sub_mem [ordered_ring α] {t : α} (ht : t ∈ Icc (0:α) 1) : 1 - t ∈ Icc (0:α) 1 :=
+by { rw mem_Icc at *, exact ⟨sub_nonneg.2 ht.2, (sub_le_self_iff _).2 ht.1⟩ }
+
 end set.Icc
 
 /-! ### Instances for `↥(set.Ico 0 1)` -/
@@ -153,6 +156,13 @@ subtype.coe_injective.semigroup _ coe_mul
 
 instance comm_semigroup {α : Type*} [ordered_comm_semiring α] : comm_semigroup (Ioo (0:α) 1) :=
 subtype.coe_injective.comm_semigroup _ coe_mul
+
+lemma one_sub_mem [ordered_ring α] {t : α} (ht : t ∈ Ioo (0:α) 1) : 1 - t ∈ Ioo (0:α) 1 :=
+begin
+  rw mem_Ioo at *,
+  refine ⟨sub_pos.2 ht.2, _⟩,
+  exact lt_of_le_of_ne ((sub_le_self_iff 1).2 ht.1.le) (mt sub_eq_self.mp ht.1.ne'),
+end
 
 end set.Ioo
 

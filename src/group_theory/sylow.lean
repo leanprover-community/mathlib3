@@ -304,9 +304,6 @@ lemma comap_lt_comap_of_surjective {G N : Type*} [group G] [group N] {f : G →*
   (hf : function.surjective f) {K L : subgroup N} : K.comap f < L.comap f ↔ K < L :=
 by simp_rw [lt_iff_le_not_le, comap_le_comap_of_surjective hf]
 
-lemma zpowers_eq_bot_iff {G : Type*} [group G] {g : G} : zpowers g = ⊥ ↔ g = 1 :=
-by rw [zpowers_eq_closure, closure_eq_bot_iff, set.singleton_subset_iff, set.mem_singleton_iff]
-
 lemma lema18 [hp : fact p.prime] (P : sylow p G) [P.1.normal]
   (hP : P.1.index ≠ 0) : ¬ p ∣ P.1.index :=
 begin
@@ -327,7 +324,7 @@ begin
   { exact hQ'.ne' (P.3 hQ hQ'.le) },
   rw [←quotient_group.ker_mk P.1, ←monoid_hom.comap_bot,
     comap_lt_comap_of_surjective (quotient_group.mk'_surjective P.1)],
-  rw [bot_lt_iff_ne_bot, ne, zpowers_eq_bot_iff, ←order_of_eq_one_iff, hx],
+  rw [bot_lt_iff_ne_bot, ne, zpowers_eq_bot, ←order_of_eq_one_iff, hx],
   exact hp.1.ne_one,
 end
 

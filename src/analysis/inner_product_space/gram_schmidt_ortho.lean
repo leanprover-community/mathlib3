@@ -23,8 +23,8 @@ and outputs a set of orthogonal vectors which have the same span.
 - `span_gram_schmidt` :
   `gram_schmidt` preserves span of vectors.
 - `gram_schmidt_ne_zero` :
-  If the input of the first `n + 1` vectors of `gram_schmidt` are linearly independent,
-  then the output of the first `n + 1` vectors are non-zero.
+  If the input vectors of `gram_schmidt` are linearly independent,
+  then the output vectors are non-zero.
 - `gram_schmidt_normed` :
   the normalized `gram_schmidt` (i.e each vector in `gram_schmidt_normed` has unit length.)
 - `gram_schmidt_orthornormal` :

@@ -9,6 +9,7 @@ import ring_theory.witt_vector.compare
 import data.nat.modeq
 import topology.discrete_quotient
 import data.set.prod
+import algebra.order.sub
 --import algebra.pointwise
 import data.real.basic
 
@@ -421,10 +422,10 @@ begin
       { norm_num, apply lt_of_le_of_ne,
         { apply nat.zero_le, },
         { symmetry, apply nat.prime.ne_zero, apply fact.out, }, },
-      { rw fpow_lt_iff_lt _,
+      { rw zpow_lt_iff_lt _,
         { norm_num, },
         { norm_cast, apply nat.prime.one_lt, apply fact.out, }, }, },
-    { rintros c hc, apply h, simp only [metric.mem_ball, fpow_neg, gpow_coe_nat] at hc,
+    { rintros c hc, apply h, simp only [metric.mem_ball, zpow_neg, zpow_coe_nat] at hc,
       simp only [metric.mem_ball],
       suffices f1 : dist c a < 2 / (p^m),
       { refine lt_trans f1 _, simp only, refine (lt_div_iff' _).mp _, exact zero_lt_two,
@@ -436,12 +437,12 @@ begin
         { have f : (p : ℝ) ≠ 0,
           { norm_cast, apply nat.prime.ne_zero, apply fact.out, },
           rw ←one_div _, rw div_eq_iff _,
-          { rw ←gpow_coe_nat (p : ℝ) m, rw ←fpow_add,
-            { rw neg_add_self, rw gpow_zero _, },
+          { rw ←zpow_coe_nat (p : ℝ) m, rw ←zpow_add₀,
+            { rw neg_add_self, rw zpow_zero _, },
             apply f, },
           { apply pow_ne_zero _, apply f, apply_instance, }, },
         rw this, refine le_trans (dist_appr_spec p a m.succ) _,
-        { rw fpow_le_iff_le _,
+        { rw zpow_le_iff_le _,
           { apply neg_le_neg, norm_num, },
           { norm_cast, apply nat.prime.one_lt, apply fact.out, }, }, },
       convert add_lt_add_of_lt_of_le hc ha,
@@ -502,15 +503,15 @@ begin
     have f : (2 : ℝ) / (p^m) = (1 / (p^m)) + (1 : ℝ) / (p^m), {  rw ← _root_.add_div, refl, },
     rw f, rw dist_comm _ ↑y,
     have f' : ↑p ^ (1 - (m.succ : ℤ)) = (1 : ℝ) / (p^m),
-    { symmetry, rw div_eq_iff _, rw ←zpow_coe_nat, rw ←zpow_add _,
-      norm_num, rw sub_add, rw add_sub_cancel', rw sub_self, rw gpow_zero,
+    { symmetry, rw div_eq_iff _, rw ←zpow_coe_nat, rw ← zpow_add₀ _, --rw ←zpow_add (p : ℝ),
+      norm_num, rw sub_add, rw add_sub_cancel', rw sub_self, rw zpow_zero,
       any_goals { apply pow_ne_zero, },
       all_goals { norm_cast, apply nat.prime.ne_zero, apply fact.out, }, },
     rw f' at h,
     rw add_comm (dist _ _) _,
     have f'' : ↑p ^ -(m.succ : ℤ) < (1 : ℝ) / (p^m),
-    { rw div_eq_inv_mul, rw mul_one, rw fpow_neg, rw inv_lt_inv,
-      { simp, rw fpow_add, simp, rw ←mul_one ((p : ℝ)^m), rw mul_comm, rw mul_comm _ (p : ℝ), apply mul_lt_mul,
+    { rw div_eq_inv_mul, rw mul_one, rw zpow_neg, rw inv_lt_inv,
+      { simp, rw zpow_add₀, simp, rw ←mul_one ((p : ℝ)^m), rw mul_comm, rw mul_comm _ (p : ℝ), apply mul_lt_mul,
           { norm_cast, apply nat.prime.one_lt, rw fact_iff at *, assumption, },
           { rw one_mul, },
           { norm_cast, apply pow_pos, apply nat.prime.pos, rw fact_iff at *, assumption, },
@@ -527,7 +528,7 @@ begin
 end
 --better way to do it? maybe without showing totally bounded (should that be a separate lemma?)?
 -- better stick to either div or inv. which is easier to work with?
-#exit
+
 --instance [fact (0 < d)] : compact_space (zmod d × ℤ_[p]) := infer_instance
 instance : totally_disconnected_space ℤ_[p] :=
 begin
@@ -565,7 +566,7 @@ end
       (proj_lim_preimage_clopen p d n a) ⟩ }
 -/
 variables [fact (0 < d)]
-variable [semi_normed_algebra ℚ R]
+variables [normed_algebra ℚ R] [norm_one_class R]
 
 /-- The set of Bernoulli measures. -/
 def bernoulli_measure (hc : c.gcd p = 1) :=
@@ -730,7 +731,8 @@ end⟩,
     rw nat.div_mul_cancel,
     { have : fact (0 < d * p ^ m.succ),
       { rw fact_iff at *, apply mul_pos, assumption, apply ((pow_pos (nat.prime.pos _)) m.succ), assumption, },
-      rw nat.add_sub_cancel',
+      rw ← nat.add_sub_assoc _ _,
+      rw nat.add_sub_cancel_left,
       { rw @zmod.nat_cast_val _ _ _ this _, norm_cast, },
       { rw h, apply nat.le_add_right, }, },
     { rw [h, nat.add_sub_cancel_left, mul_assoc], simp, },
@@ -740,14 +742,15 @@ end⟩,
     simp only [nat.cast_pow],
     rw subtype.ext_iff_val,
     simp only [fin.coe_mk, subtype.val_eq_coe, _root_.coe_coe],
-    have : fact (0 < d * p ^ m.succ),
+    haveI : fact (0 < d * p ^ m.succ),
     { rw fact_iff at *, apply mul_pos, assumption, apply ((pow_pos (nat.prime.pos _)) m.succ), assumption, },
     have h2 : fact (0 < d * p ^ m),
     { rw fact_iff at *, apply mul_pos, assumption, apply ((pow_pos (nat.prime.pos _)) m), assumption, },
     apply nat.div_eq_of_eq_mul_left,
     { apply fact_iff.1 h2, },
-    apply nat.sub_eq_of_eq_add,
+    apply tsub_eq_of_eq_add,
     rw [mul_assoc, zmod.val_nat_cast, nat.mod_eq_of_lt],
+    rw add_comm,
     have h1 := @zmod.val_lt _ h2 a,
     have h2 : ↑x * (d * p ^ m) ≤ (d * p ^ m) * (p - 1),
     { rw mul_comm, apply nat.mul_le_mul_left, rw [←nat.lt_succ_iff, nat.succ_eq_add_one, nat.sub_add_cancel], apply x.2,
@@ -807,7 +810,7 @@ begin
 end
 
 /-- TBD -/
-noncomputable def F : ℕ → discrete_quotient (zmod d × ℤ_[p]) := λ n,
+def F : ℕ → discrete_quotient (zmod d × ℤ_[p]) := λ n,
   ⟨λ a b, to_zmod_pow n a.2 = to_zmod_pow n b.2 ∧ a.1 = b.1,
     ⟨ by tauto, by tauto, λ a b c hab hbc, begin simp at *, split, rw [hab.1, hbc.1], rw [hab.2, hbc.2], end⟩,
     λ x, begin apply remove_extras p d x n,
@@ -1002,7 +1005,7 @@ begin
     obtain ⟨n, w, h⟩ := U.prop,
     refine ⟨{(w : zmod d)}, ((to_zmod_pow n) ⁻¹' {↑w}), _, _⟩,
     { rw set.mem_range, use (w : zmod d),
-      rw set.singleton_hom, simp only [monoid_hom.coe_mk], },
+      rw set.singleton_monoid_hom_apply, },
     { --rw clopen_basis,
       rw hU, --rw ←subtype.val_eq_coe at h,
       --have := subtype.ext_iff_val.1 h, simp only [subtype.val_eq_coe] at this,
@@ -1017,7 +1020,7 @@ begin
     --rw clopen_basis at hy,
     simp only [set.mem_set_of_eq] at hy,
     rcases hy with ⟨n, y, hy⟩,
-    set U' : set (zmod d × ℤ_[p]) := ({x} : set (zmod d)).prod
+    set U' : set (zmod d × ℤ_[p]) := ({x} : set (zmod d)) ×ˢ
       (set.preimage (padic_int.to_zmod_pow n) {y}) with hU',
     have hU'' : is_clopen U' := is_clopen_prod (is_clopen_singleton x) (proj_lim_preimage_clopen' p n y),
     set U : clopen_basis' p d := ⟨U', _⟩ with hU,
@@ -1027,7 +1030,7 @@ begin
       { convert (proj_snd' _ _ _ _ _).symm, }, },
     { refine ⟨U, _⟩,
       rw ←h, rw hU, simp only, congr,
-      { rw ←hx, rw set.singleton_hom, simp only [monoid_hom.coe_mk], },
+      { rw ←hx, rw set.singleton_monoid_hom_apply, },
       { rw hy, }, }, },
 end
 
@@ -1250,9 +1253,9 @@ begin
 end
 -- This lemma has a lot of mini lemmas that can be generalized.
 
-lemma fract_eq_self {a : ℚ} (h : 0 ≤ a) (ha : a < 1) : fract a = a :=
+lemma fract_eq_self {a : ℚ} (h : 0 ≤ a) (ha : a < 1) : int.fract a = a :=
 begin
-   rw fract_eq_iff,
+   rw int.fract_eq_iff,
    refine ⟨h, ha, ⟨0, _⟩⟩, simp,
 end
 
@@ -1453,7 +1456,7 @@ end
 example {α β : Type*} {f : α → β} {a b : α} (h : a = b) : f a = f b :=by refine congr_arg f h
 
 lemma sum_fract (m : ℕ)  (x : zmod (d * p^m)) : ∑ (x_1 : (equi_class p d m m.succ (nat.le_succ m) x)),
-  fract (((x_1 : zmod (d * p^m.succ)).val : ℚ) / ((d : ℚ) * (p : ℚ)^m.succ)) =
+  int.fract (((x_1 : zmod (d * p^m.succ)).val : ℚ) / ((d : ℚ) * (p : ℚ)^m.succ)) =
     (x.val : ℚ) / (d * p^m) + (p - 1) / 2 :=
 begin
   conv_lhs { congr, skip, funext, rw [fract_eq_self ((zero_le_and_lt_one p d m.succ x_1).1)
@@ -1475,7 +1478,7 @@ begin
       (↑x_1 * ((d : zmod (d * p^m.succ)) * (p : zmod (d * p^m.succ)) ^ m) : ℤ) : ℚ)) / (d * p^m.succ : ℚ) = _,
 --  sorry, sorry }, sorry, recover, sorry, end #exit -- 0.6 seconds
     { congr,
-      ext y,
+      funext y,
 --sorry }, sorry }, sorry, end #exit -- 0.8 seconds
       rw ←int.cast_add, congr,
       --rw nat.cast_add,
@@ -1545,7 +1548,9 @@ begin
     { rw finset.sum_add_distrib, rw finset.sum_const, rw finset.card_univ, rw fintype.card_fin _,
       norm_cast, rw ←finset.sum_mul, rw _root_.add_div, apply congr_arg2,
       { rw div_eq_iff _,
-        { rw div_mul_comm', rw _root_.nsmul_eq_mul, apply congr_arg2,
+        { rw div_mul_comm,
+          --rw div_mul_comm',
+          rw _root_.nsmul_eq_mul, apply congr_arg2,
           { norm_num, rw mul_div_mul_left _, rw pow_succ, rw mul_div_cancel _,
             { norm_cast, apply pow_ne_zero m (nat.prime.ne_zero (fact_iff.1 _)), assumption, },
             { norm_num, apply ne_of_gt, apply fact_iff.1, assumption, }, },
@@ -1566,7 +1571,9 @@ begin
         --have : (((∑ (x : fin p), (x : ℤ)) : ℤ) : ℚ) = (p - 1) * (p : ℚ) / 2, sorry,
         rw sum_rat_fin, rw nat.cast_mul, rw int.cast_mul,
         have one : ((p : ℚ) - 1) * (p : ℚ) / 2 * (1 / (p : ℚ)) = ((p : ℚ) - 1) / 2,
-        { rw _root_.div_mul_div, rw mul_one, rw mul_div_mul_right,
+        { rw _root_.div_mul_div_comm,
+          --rw _root_.div_mul_div,
+          rw mul_one, rw mul_div_mul_right,
           norm_cast, apply ne_of_gt, apply nat.prime.pos, apply fact_iff.1, assumption, },
         convert one using 2, rw div_eq_div_iff _ _,
 --        sorry, sorry, sorry, }, }, }, sorry, end #exit -- 5.14 seconds
@@ -1592,7 +1599,8 @@ begin
                     { rw nat.succ_le_iff, apply fact_iff.1, assumption, },
                     { apply _root_.one_lt_pow,
                       { apply nat.prime.one_lt, apply fact_iff.1, assumption, },
-                      { rw nat.succ_le_iff, apply nat.pos_of_ne_zero h, }, }, },
+                      { apply h, }, }, },
+                        --rw nat.succ_le_iff, apply nat.pos_of_ne_zero h, }, }, },
                   { apply nat.prime.pos, apply fact_iff.1, assumption, }, },
                 { rw ←pow_succ', apply imp p d (m + 1), }, },
               { refl, }, },
@@ -1611,9 +1619,9 @@ begin
   rw zmod.cast_hom_apply,
 end
 
-lemma fract_eq_val (n : ℕ) [h : fact (0 < n)] (a : zmod n) : fract ((a : ℚ) / n) = (a.val : ℚ) / n :=
+lemma fract_eq_val (n : ℕ) [h : fact (0 < n)] (a : zmod n) : int.fract ((a : ℚ) / n) = (a.val : ℚ) / n :=
 begin
-  rw fract_eq_iff, split,
+  rw int.fract_eq_iff, split,
   { apply div_nonneg _ _,
     { exact (zmod.val a).cast_nonneg, },
     { exact nat.cast_nonneg n, }, },
@@ -1726,7 +1734,7 @@ begin
   convert_to ((x.val : ℚ) / (d * p ^ m) + (p - 1) / 2) - (c : ℚ) *
     ∑ (x_1 : (equi_class p d m m.succ (nat.le_succ m)
       ( ((c : zmod (d * p^(2*m.succ)))⁻¹ : zmod (d * p^m)) * x))),
-    fract (((x_1 : zmod (d * p^m.succ)).val : ℚ) / ((d : ℚ) * (p : ℚ)^m.succ)) +
+    int.fract (((x_1 : zmod (d * p^m.succ)).val : ℚ) / ((d : ℚ) * (p : ℚ)^m.succ)) +
     (∑ (x : (equi_class p d m m.succ _ x)), ((c : ℚ) - 1) / 2) = _ - _ + _,
   { rw [add_right_cancel_iff, sub_right_inj], refine congr_arg _ _,
     apply finset.sum_bij,
@@ -1741,7 +1749,7 @@ begin
         swap, { exact zmod.char_p (d * p^m), },
         { apply mul_dvd_mul_left, rw pow_succ', apply dvd_mul_right, }, }, },
     { simp, }, --squeeze_simp does not work!
-    { rintros, rw fract_eq_fract, simp only [subtype.coe_mk],
+    { rintros, rw int.fract_eq_fract, simp only [subtype.coe_mk],
       rw [div_sub_div_same, zmod.nat_cast_val], use 0, simp, },
     { simp, rintros a1 ha1 a2 ha2 h, rw is_unit.mul_right_inj at h, assumption,
       { rw is_unit_iff_exists_inv',
@@ -1800,7 +1808,8 @@ begin
     { rintros a b ha hb h, simp only [subtype.mk_eq_mk] at h, rw h, },
     { rintros b hb, simp only [set.mem_to_finset],
       refine ⟨b.val, _, _⟩,
-      { rw set.mem_to_finset, apply b.prop, },
+      { --rw set.mem_to_finset,
+        apply b.prop, },
       { rw subtype.ext_iff_val, }, }, },
   any_goals { assumption, },
 end
@@ -1988,7 +1997,8 @@ begin
           swap, { refine zmod.char_p _, },
           { apply dvd_mul_right _ _, },  }, },
       { convert (h2.2).symm,
-        { simp only [ring_hom.map_nat_cast, prod.snd_nat_cast],
+        { --rw map_nat_cast,
+          simp only [map_nat_cast, prod.snd_nat_cast],
           --make into separate lemma?
           convert_to _ = ((b : zmod (d * p^n)) : zmod (p^n)),
           { rw zmod.cast_nat_cast _,
@@ -2050,7 +2060,7 @@ begin
       { rintros b hb,
         simp only [exists_prop, finset.mem_univ, set_coe.exists, finset.mem_bUnion,
           set.mem_to_finset, exists_true_left, subtype.coe_mk, subtype.val_eq_coe],
-        refine ⟨b.val, _, _, _⟩,
+        refine ⟨b.val, _, _⟩,
         { assumption, },
         { rw mem_equi_class,
           have := b.prop, rw mem_equi_class at this,
@@ -2065,7 +2075,7 @@ begin
           { apply le_trans hm (nat.le_succ m), },
           { apply nat.le_succ m, },
           { assumption, }, },
-        { trivial, },
+        --{ apply b.prop, trivial, },
         { rw mem_equi_class, rw subtype.val_eq_coe, }, },
       { rintros b hb, simp only, rw subtype.val_eq_coe, },
       { rintros b b' hb hb' h, simp only at h,
@@ -2073,10 +2083,10 @@ begin
       { rintros b hb,
         simp only [exists_prop, finset.mem_univ, set_coe.exists, finset.mem_bUnion,
           set.mem_to_finset, exists_true_left, subtype.coe_mk] at hb,
-        rcases hb with ⟨z, h1, h2, h3⟩,
+        rcases hb with ⟨z, h1, h3⟩,
         simp only [exists_prop, finset.mem_univ, set_coe.exists, exists_eq_right',
           exists_true_left, subtype.coe_mk, subtype.val_eq_coe],
-        refine ⟨b, _, trivial, rfl⟩,
+        --refine ⟨b, _, trivial, rfl⟩,
         rw mem_equi_class, rw mem_equi_class at h3,
         rw mem_equi_class at h1, rw ←h1, rw ←h3,
         -- stop being lazy and make a lemma from this!
@@ -2088,6 +2098,7 @@ begin
         { assumption, },
         { apply le_trans hm (nat.le_succ m), }, }, },
     { rintros x hx y hy hxy,
+      rw function.on_fun,
       rw finset.disjoint_iff_ne,
       rintros z hz z' hz',
       contrapose hxy, push_neg, push_neg at hxy,
@@ -2103,7 +2114,7 @@ end
 -- can hd be removed?
 lemma bernoulli_measure_nonempty (hc : c.gcd p = 1) (hc' : c.gcd d = 1)
   [hd : ∀ n : ℕ, fact (0 < d * p^n)] (h' : d.gcd p = 1) :
-  nonempty (@bernoulli_measure p _ d R _ _ _ _ _ _ hc) :=
+  nonempty (@bernoulli_measure p _ d R _ _ _ _ _ _ _ hc) :=
 begin
   refine mem_nonempty _,
 --  have hd' : 0 < d, sorry,
@@ -2134,7 +2145,7 @@ begin
     repeat { rw sequence_limit_eq (g p d R hc hc' hd' _ h') n _, },
     { repeat { rw g_def p d R hc hc' hd' _ n h', }, simp only [algebra.id.smul_eq_mul, locally_constant.coe_smul, pi.smul_apply], rw finset.mul_sum,
       apply finset.sum_congr, refl,
-      rintros, rw mul_assoc, },
+      rintros, rw mul_assoc, rw ring_hom.id_apply, },
     { rw le_sup_iff, left, apply le_refl, },
     { rw le_sup_iff, right, apply le_refl, }, }, --there has to be a less repetitive way of doing this
   { rw bernoulli_measure, simp only [le_refl, algebra.id.smul_eq_mul, pi.add_apply, locally_constant.coe_add, linear_map.coe_mk, locally_constant.coe_smul,
@@ -2198,7 +2209,7 @@ begin
               have h4 := congr_arg zmod.val h3,
               rw zmod.val_cast_of_lt (hx.1) at h4, rw zmod.val_cast_of_lt (zmod.val_lt a) at h4,
               rw h4, },
-            { rw (h''.2), simp only [ring_hom.map_nat_cast, prod.snd_nat_cast], }, }, }, },
+            { rw (h''.2), simp only [map_nat_cast, prod.snd_nat_cast], }, }, }, },
     { convert seq_lim_g_char_fn p d R n a hc hc' h' hd', }, },
 end
 
@@ -2223,7 +2234,7 @@ end
   map_smul' := sorry,
 }-/
 
--- not used, delete?
+/- -- not used, delete?
 /-- Constructing a linear map, given that _. -/
 noncomputable
 def linear_map_from_span (η : S → N)
@@ -2239,7 +2250,7 @@ begin
   refine linear_map.comp _ e.symm.to_linear_map,
   refine F.ker.liftq (finsupp.total S N R' η) _,
   apply cond,
-end
+end -/
 
 /-- Looking at the set of characteristic functions obtained from the clopen basis. -/
 --abbreviation s : set (locally_constant (zmod d × ℤ_[p]) R) := set.image (char_fn)
@@ -2510,17 +2521,15 @@ by { ext, simp, }
 def inv_mul_hom {α : Type*} [topological_space α] [comm_monoid α] : units α →* α :=
 {
   to_fun := λ u, (units.coe_hom α) u⁻¹,
-  map_one' := by simp only [one_inv, units.coe_hom_apply, units.coe_one],
+  map_one' := by simp,
   map_mul' := λ x y, begin simp only [mul_inv_rev, units.coe_hom_apply, units.coe_mul],
     rw mul_comm, end,
 }
 
-def op_mul_hom (α : Type*) [topological_space α] [comm_monoid α] : α →* αᵒᵖ :=
-{
-  to_fun := λ a, opposite.op a,
+def op_mul_hom (α : Type*) [topological_space α] [comm_monoid α] : α →* αᵐᵒᵖ :=
+{ to_fun := λ a, mul_opposite.op a,
   map_one' := by simp,
-  map_mul' := λ x y, by { simp, rw mul_comm, },
-}
+  map_mul' := λ x y, by { simp, rw mul_comm, }, }
 
 example {α β γ : Type*} {f : α → β} {g : α → γ} : α → α × α := λ a, (a, a)
 
@@ -2619,9 +2628,9 @@ begin
   rw units.topological_space, rw ←continuous_iff_le_induced,
   apply continuous.prod_mk,
   { convert continuous_induced_dom, },
-  { change continuous (opposite.op ∘ units.inv),
+  { change continuous (mul_opposite.op ∘ units.inv),
     apply continuous.comp,
-    { apply continuous_op, },
+    { apply mul_opposite.continuous_op, },
     { convert h, }, },
 end
 
@@ -2669,11 +2678,11 @@ begin
   have f := ball_mem_unit p (units.is_unit _) r_pos hz h,
   rw mem_ball_iff_norm at *,
   suffices : ∥z.val * x.val∥ * ∥z.inv - x.inv∥ < r,
-  { rw norm_mul at this, change is_unit z.val at f, rw is_unit_iff.1 f at this,
+  { rw padic_int.norm_mul at this, change is_unit z.val at f, rw is_unit_iff.1 f at this,
     rw units.val_eq_coe at this,
     rw is_unit_iff.1 (units.is_unit x) at this, rw one_mul at this, rw one_mul at this,
     exact this, },
-  { rw ←norm_mul, rw mul_sub, rw mul_right_comm,
+  { rw ←padic_int.norm_mul, rw mul_sub, rw mul_right_comm,
     rw mul_assoc _ x.val _, rw units.val_inv, rw units.val_inv,
     rw one_mul, rw mul_one, change ∥z.val - x.val∥ < r at hz, rw norm_sub_rev, exact hz, },
 end
@@ -2725,17 +2734,17 @@ lemma top_eq_iff_cont_inv {α : Type*} [monoid α] [topological_space α] :
 begin
   split, all_goals { rintro h, },
   { rw h,
-    have h1 : prod.snd ∘ (embed_product α) = opposite.op ∘ units.val ∘ units.has_inv.inv,
-    { ext, rw embed_product,
+    have h1 : prod.snd ∘ (units.embed_product α) = mul_opposite.op ∘ units.val ∘ units.has_inv.inv,
+    { ext, rw units.embed_product,
       simp only [function.comp_app, units.val_eq_coe, monoid_hom.coe_mk], },
-    have h2 : continuous (prod.snd ∘ (embed_product α)),
+    have h2 : continuous (prod.snd ∘ (units.embed_product α)),
     { apply continuous.comp,
       { refine continuous_snd, },
       { refine continuous_induced_dom, }, },
     rw h1 at h2,
     convert_to continuous (units.val ∘ units.has_inv.inv),
-    have h3 := continuous.comp (@continuous_unop α _) h2,
-    rw ←function.comp.assoc at h3, rw comp_unop_op at h3,
+    have h3 := continuous.comp (@mul_opposite.continuous_unop α _) h2,
+    rw ←function.comp.assoc at h3, rw mul_opposite.unop_comp_op at h3,
     simp only [function.comp.left_id] at h3, exact h3, },
   { apply le_antisymm,
     { apply top_eq_if_cont_inv', apply h, },
@@ -3098,8 +3107,8 @@ lemma disc_top_units : discrete_topology (units (zmod d)) :=
 begin
   convert @discrete_topology_induced _ _ _ _ _ _,
   { apply @prod.discrete_topology _ _ _ _ (discrete_topology_bot (zmod d)) _,
-    refine discrete_topology_induced (opposite.unop_injective), },
-  { intros x y h, rw embed_product at h,
+    refine discrete_topology_induced (mul_opposite.unop_injective), },
+  { intros x y h, rw units.embed_product at h,
     simp only [prod.mk.inj_iff, opposite.op_inj_iff, monoid_hom.coe_mk] at h,
     rw units.ext_iff, rw h.1, },
 end
@@ -3243,16 +3252,16 @@ begin
   --rw clopen_from,
   rw this,
   convert_to ∥(E_c p d hc n a)∥ ≤ _,
-  { rw norm_algebra_map_eq _ _, },
+  { rw norm_algebra_map, rw norm_one_class.norm_one, rw mul_one, },
   rw E_c, simp only,
   apply le_trans (norm_add_le _ _) _,
   apply add_le_add_right _ _,
   { apply_instance, },
   { apply le_trans (norm_sub_le _ _) _,
-    have : ∀ (x : ℚ), ∥fract x∥ ≤ 1, --should be separate lemma
-    { intro x, convert_to ∥((fract x : ℚ) : ℝ)∥ ≤ 1, rw real.norm_of_nonneg _,
-      { norm_cast, apply le_of_lt, apply fract_lt_one, },
-      { norm_cast, apply fract_nonneg, }, },
+    have : ∀ (x : ℚ), ∥int.fract x∥ ≤ 1, --should be separate lemma
+    { intro x, convert_to ∥((int.fract x : ℚ) : ℝ)∥ ≤ 1, rw real.norm_of_nonneg _,
+      { norm_cast, apply le_of_lt, apply int.fract_lt_one, },
+      { norm_cast, apply int.fract_nonneg, }, },
     apply add_le_add,
     { apply this, },
     { rw ←mul_one (∥(c : ℚ)∥), apply le_trans (norm_mul_le _ _) _,
@@ -3441,7 +3450,7 @@ end
 
 noncomputable def bernoulli_distribution (hc : c.gcd p = 1) (hc' : c.gcd d = 1)
   [hd : ∀ n : ℕ, fact (0 < d * p^n)] (h' : d.gcd p = 1) :
-  linear_map R (locally_constant ((zmod d) × ℤ_[p]) R) R :=
+  linear_map (ring_hom.id R) (locally_constant ((zmod d) × ℤ_[p]) R) R :=
 { to_fun := λ f, sequence_limit (g p d R hc hc' (by {apply fact_iff.1, convert hd 0,
     rw [pow_zero, mul_one], }) f h'),
   map_add' := begin rintros,
@@ -3483,7 +3492,7 @@ noncomputable def bernoulli_distribution (hc : c.gcd p = 1) (hc' : c.gcd d = 1)
     repeat { rw sequence_limit_eq (g p d R hc hc' hd' _ h') n _, },
     { repeat { rw g_def p d R hc hc' hd' _ n h', }, simp only [algebra.id.smul_eq_mul, locally_constant.coe_smul, pi.smul_apply], rw finset.mul_sum,
       apply finset.sum_congr, refl,
-      rintros, rw mul_assoc, },
+      rintros, rw mul_assoc, rw ring_hom.id_apply, },
     { rw le_sup_iff, left, apply le_refl, },
     { rw le_sup_iff, right, apply le_refl, },
    end, }
@@ -3569,20 +3578,24 @@ begin
   --rw clopen_from,
 --  rw this,
   convert_to ∥(E_c p d hc n a)∥ ≤ _,
-  { rw ←norm_algebra_map_eq R _,
-    { congr, rw bernoulli_distribution, simp only [linear_map.coe_mk],
+  { haveI : norm_one_class ℝ, exact cstar_ring.norm_one_class,
+    conv_rhs { rw ← mul_one (∥E_c p d hc n a∥), congr, skip, rw ← @norm_one_class.norm_one R _ _ _, },
+    rw ← norm_algebra_map,
+--    rw ← mul_one (∥E_c p d hc n a∥), rw ← norm_one_class.norm_one, rw ←norm_algebra_map_eq R _,
+    { --congr,
+      rw bernoulli_distribution, simp only [linear_map.coe_mk],
       rw sequence_limit_eq _ _ (seq_lim_g_char_fn p d R n a hc hc' h' _),
-      apply g_to_seq, }, },
+      rw g_to_seq, }, },
 --    { apply_instance, }, },
   rw E_c, simp only,
   apply le_trans (norm_add_le _ _) _,
   apply add_le_add_right _ _,
   { apply_instance, },
   { apply le_trans (norm_sub_le _ _) _,
-    have : ∀ (x : ℚ), ∥fract x∥ ≤ 1, --should be separate lemma
-    { intro x, convert_to ∥((fract x : ℚ) : ℝ)∥ ≤ 1, rw real.norm_of_nonneg _,
-      { norm_cast, apply le_of_lt, apply fract_lt_one, },
-      { norm_cast, apply fract_nonneg, }, },
+    have : ∀ (x : ℚ), ∥int.fract x∥ ≤ 1, --should be separate lemma
+    { intro x, convert_to ∥((int.fract x : ℚ) : ℝ)∥ ≤ 1, rw real.norm_of_nonneg _,
+      { norm_cast, apply le_of_lt, apply int.fract_lt_one, },
+      { norm_cast, apply int.fract_nonneg, }, },
     apply add_le_add,
     { apply this, },
     { rw ←mul_one (∥(c : ℚ)∥), apply le_trans (norm_mul_le _ _) _,
@@ -3776,8 +3789,8 @@ noncomputable def bernoulli_measure' (hc : c.gcd p = 1) (hc' : c.gcd d = 1)
 open padic_int
 open_locale pointwise -- needed for has_add (set ℤ_[p])
 
-lemma preimage_to_zmod (x : zmod (p)) : (to_zmod) ⁻¹' {x} =
- {(x : ℤ_[p])} + (((to_zmod).ker : ideal ℤ_[p]) : set ℤ_[p]) :=
+lemma preimage_to_zmod (x : zmod (p)) : (@to_zmod p _) ⁻¹' {x} =
+ {(x : ℤ_[p])} + (((@to_zmod p _).ker : ideal ℤ_[p]) : set ℤ_[p]) :=
 begin
  ext y,
     simp only [set.image_add_left, set.mem_preimage, set.singleton_add,
@@ -3804,9 +3817,9 @@ begin
     { exact prod.discrete_topology, },
     { apply @discrete_topology_induced _ _ _ _ _ _,
       { exact prod.discrete_topology, },
-      { exact opposite.unop_injective, }, }, },
+      { exact mul_opposite.unop_injective, }, }, },
   { rintros x y h,
-    rw embed_product at h,
+    rw units.embed_product at h,
     simp only [prod.mk.inj_iff, opposite.op_inj_iff, monoid_hom.coe_mk] at h,
     rw units.ext_iff,
     rw h.1, },

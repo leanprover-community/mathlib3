@@ -114,13 +114,13 @@ lemma finrank_euclidean_space_fin {n : ℕ} :
 
 /-- A finite, mutually orthogonal family of subspaces of `E`, which span `E`, induce an isometry
 from `E` to `pi_Lp 2` of the subspaces equipped with the `L2` inner product. -/
-def direct_sum.submodule_is_internal.isometry_L2_of_orthogonal_family
-  [decidable_eq ι] {V : ι → submodule 𝕜 E} (hV : direct_sum.submodule_is_internal V)
+def direct_sum.is_internal.isometry_L2_of_orthogonal_family
+  [decidable_eq ι] {V : ι → submodule 𝕜 E} (hV : direct_sum.is_internal V)
   (hV' : @orthogonal_family 𝕜 _ _ _ _ (λ i, V i) _ (λ i, (V i).subtypeₗᵢ)) :
   E ≃ₗᵢ[𝕜] pi_Lp 2 (λ i, V i) :=
 begin
   let e₁ := direct_sum.linear_equiv_fun_on_fintype 𝕜 ι (λ i, V i),
-  let e₂ := linear_equiv.of_bijective _ hV.injective hV.surjective,
+  let e₂ := linear_equiv.of_bijective (direct_sum.coe_linear_map V) hV.injective hV.surjective,
   refine (e₂.symm.trans e₁).isometry_of_inner _,
   suffices : ∀ v w, ⟪v, w⟫ = ⟪e₂ (e₁.symm v), e₂ (e₁.symm w)⟫,
   { intros v₀ w₀,
@@ -132,19 +132,19 @@ begin
   { congr; simp }
 end
 
-@[simp] lemma direct_sum.submodule_is_internal.isometry_L2_of_orthogonal_family_symm_apply
-  [decidable_eq ι] {V : ι → submodule 𝕜 E} (hV : direct_sum.submodule_is_internal V)
+@[simp] lemma direct_sum.is_internal.isometry_L2_of_orthogonal_family_symm_apply
+  [decidable_eq ι] {V : ι → submodule 𝕜 E} (hV : direct_sum.is_internal V)
   (hV' : @orthogonal_family 𝕜 _ _ _ _ (λ i, V i) _ (λ i, (V i).subtypeₗᵢ))
   (w : pi_Lp 2 (λ i, V i)) :
   (hV.isometry_L2_of_orthogonal_family hV').symm w = ∑ i, (w i : E) :=
 begin
   classical,
   let e₁ := direct_sum.linear_equiv_fun_on_fintype 𝕜 ι (λ i, V i),
-  let e₂ := linear_equiv.of_bijective _ hV.injective hV.surjective,
+  let e₂ := linear_equiv.of_bijective (direct_sum.coe_linear_map V) hV.injective hV.surjective,
   suffices : ∀ v : ⨁ i, V i, e₂ v = ∑ i, e₁ v i,
   { exact this (e₁.symm w) },
   intros v,
-  simp [e₂, direct_sum.submodule_coe, direct_sum.to_module, dfinsupp.sum_add_hom_apply]
+  simp [e₂, direct_sum.coe_linear_map, direct_sum.to_module, dfinsupp.sum_add_hom_apply]
 end
 
 end

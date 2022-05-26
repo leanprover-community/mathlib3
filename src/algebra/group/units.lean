@@ -423,15 +423,18 @@ theorem is_unit_iff_has_left_inv_right_inv [monoid M] {a : M} :
   λ ⟨⟨x, hxa⟩, ⟨y, hay⟩⟩, ⟨⟨a, x, by { convert hay,
   rw [←mul_one x, ←hay, ←mul_assoc, hxa, one_mul] }, hxa⟩, rfl⟩⟩
 
+def units_of_left_inv_of_has_left_inv [monoid M] {a b : M}
+  (h₁ : b * a = 1) (h₂ : has_left_inv b) : Mˣ :=
+⟨a, b, by { obtain ⟨c, hcb⟩ := h₂, convert hcb,
+  rw [←one_mul a, ←hcb, mul_assoc, h₁, mul_one] }, h₁⟩
+
 /-- An element of a monoid is a unit
 if it has a left inverse which also has a left inverse. -/
 theorem is_unit_of_left_inv_of_has_left_inv [monoid M] {a b : M}
   (h₁ : b * a = 1) (h₂ : has_left_inv b) : is_unit a :=
-let ⟨c, hcb⟩ := h₂ in ⟨⟨a, b, by { convert hcb,
-  rw [←one_mul a, ←hcb, mul_assoc, h₁, mul_one] }, h₁⟩, rfl⟩
+(units_of_left_inv_of_has_left_inv h₁ h₂).is_unit
 
 end is_unit
-
 section noncomputable_defs
 
 variables {M : Type*}

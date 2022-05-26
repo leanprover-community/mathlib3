@@ -135,7 +135,7 @@ begin
   apply @rel_iso.cof_eq _ _ _ _ _ _ ,
   { split, exact λ a b, not_iff_not.2 hf },
   { exact ⟨(is_well_order.is_irrefl r).1⟩ },
-  { exact ⟨(is_well_order.is_irrefl s).1⟩ },
+  { exact ⟨(is_well_order.is_irrefl s).1⟩ }
 end
 
 lemma cof_type (r : α → α → Prop) [is_well_order α r] : (type r).cof = strict_order.cof r := rfl

@@ -727,8 +727,8 @@ lemma inter_eq_singleton_orthogonal_projection_fn {s : affine_subspace ℝ P} [n
   [complete_space s.direction] (p : P) :
   (s : set P) ∩ (mk' p s.directionᗮ) = {orthogonal_projection_fn s p} :=
 classical.some_spec $ inter_eq_singleton_of_nonempty_of_is_compl
-  (nonempty_subtype.mp ‹_›)
-  (mk'_nonempty p s.directionᗮ)
+  (ne_bot_of_nonempty s)
+  (mk'_ne_bot p s.directionᗮ)
   begin
     rw direction_mk' p s.directionᗮ,
     exact submodule.is_compl_orthogonal_of_complete_space

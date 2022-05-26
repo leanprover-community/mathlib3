@@ -284,7 +284,7 @@ end
 lemma monge_point_mem_monge_plane {n : ℕ} (s : simplex ℝ P (n + 2)) {i₁ i₂ : fin (n + 3)} :
   s.monge_point ∈ s.monge_plane i₁ i₂ :=
 begin
-  rw [monge_plane_def, mem_inf_iff, ←vsub_right_mem_direction_iff_mem (self_mem_mk' _ _),
+  rw [monge_plane_def, mem_inf, ←vsub_right_mem_direction_iff_mem (self_mem_mk' _ _),
       direction_mk', submodule.mem_orthogonal'],
   refine ⟨_, s.monge_point_mem_affine_span⟩,
   intros v hv,
@@ -355,7 +355,7 @@ rfl
 /-- A vertex lies in the corresponding altitude. -/
 lemma mem_altitude {n : ℕ} (s : simplex ℝ P (n + 1)) (i : fin (n + 2)) :
   s.points i ∈ s.altitude i :=
-(mem_inf_iff _ _ _).2 ⟨self_mem_mk' _ _, mem_affine_span ℝ (set.mem_range_self _)⟩
+mem_inf.2 ⟨self_mem_mk' _ _, mem_affine_span ℝ (set.mem_range_self _)⟩
 
 /-- The direction of an altitude. -/
 lemma direction_altitude {n : ℕ} (s : simplex ℝ P (n + 1)) (i : fin (n + 2)) :
@@ -574,8 +574,7 @@ begin
   rw [h₂],
   use t₁.independent.injective.ne hi₁₂,
   have he : affine_span ℝ (set.range t₂.points) = affine_span ℝ (set.range t₁.points),
-  { refine ext_of_direction_eq _
-      ⟨t₁.points i₃, mem_affine_span ℝ ⟨j₃, h₃⟩, mem_affine_span ℝ (set.mem_range_self _)⟩,
+  { refine ext_of_direction_eq _ _,
     refine eq_of_le_of_finrank_eq (direction_le (span_points_subset_coe_of_subset_coe _)) _,
     { have hu : (finset.univ : finset (fin 3)) = {j₁, j₂, j₃}, { clear h₁ h₂ h₃, dec_trivial! },
       rw [←set.image_univ, ←finset.coe_univ, hu, finset.coe_insert, finset.coe_insert,
@@ -586,7 +585,9 @@ begin
              mem_affine_span ℝ (set.mem_range_self _)⟩ },
     { rw [direction_affine_span, direction_affine_span,
           t₁.independent.finrank_vector_span (fintype.card_fin _),
-          t₂.independent.finrank_vector_span (fintype.card_fin _)] } },
+          t₂.independent.finrank_vector_span (fintype.card_fin _)] },
+    { rw affine_subspace.ne_bot_iff,
+      exact ⟨t₁.points i₃, ⟨mem_affine_span ℝ ⟨j₃, h₃⟩, mem_affine_span ℝ (set.mem_range_self _)⟩⟩, } },
   rw he,
   use mem_affine_span ℝ (set.mem_range_self _),
   have hu : finset.univ.erase j₂ = {j₁, j₃}, { clear h₁ h₂ h₃, dec_trivial! },
@@ -735,8 +736,9 @@ begin
   rcases ho with ⟨t, hto, hts⟩,
   have hs : affine_span ℝ s = affine_span ℝ (set.range t.points),
   { rw [hts, affine_span_insert_eq_affine_span ℝ t.orthocenter_mem_affine_span] },
-  refine ext_of_direction_eq _
-    ⟨p 0, mem_affine_span ℝ (set.mem_range_self _), mem_affine_span ℝ (hps (set.mem_range_self _))⟩,
+  refine ext_of_direction_eq _ (affine_subspace.ne_bot_iff.mpr
+    ⟨p 0, ⟨mem_affine_span ℝ (set.mem_range_self _),
+          mem_affine_span ℝ (hps (set.mem_range_self _))⟩⟩),
   have hfd : finite_dimensional ℝ (affine_span ℝ s).direction, { rw hs, apply_instance },
   haveI := hfd,
   refine eq_of_le_of_finrank_eq (direction_le (affine_span_mono ℝ hps)) _,

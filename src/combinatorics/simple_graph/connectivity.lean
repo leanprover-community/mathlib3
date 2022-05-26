@@ -945,20 +945,12 @@ variables {G}
 
 /-- Given a walk that avoids a set of edges, produce a walk in the graph
 with those edges deleted. -/
+@[simp]
 def to_delete_edges (s : set (sym2 V)) :
   Π {v w : V} (p : G.walk v w) (hp : ∀ e, e ∈ p.edges → ¬ e ∈ s), (G.delete_edges s).walk v w
 | _ _ nil _ := nil
-| _ _ (cons' u v w h p) hp := cons' u v w (by simpa [h] using hp ⟦(u, v)⟧)
-  (to_delete_edges p (λ e he, hp e (by simp only [he, edges_cons, list.mem_cons_iff, or_true])))
-
-@[simp] lemma to_delete_edges_nil {s : set (sym2 V)} {v : V} :
-  (nil : G.walk v v).to_delete_edges s (by simp) = nil := rfl
-
-@[simp] lemma to_delete_edges_cons {s : set (sym2 V)}
-  {u v w : V} {huv : G.adj u v} {p : G.walk v w} {hp} :
-  (cons huv p).to_delete_edges s hp = cons (by simpa [huv] using hp ⟦(u, v)⟧)
-                                        (p.to_delete_edges s (λ e he, hp e (by simp [he]))) :=
-rfl
+| _ _ (cons' u v w huv p) hp := cons ((G.delete_edges_adj _ _ _).mpr ⟨huv, hp ⟦(u, v)⟧ (by simp)⟩)
+                                (p.to_delete_edges (λ e he, hp e (by simp [he])))
 
 /-- Given a walk that avoids an edge, create a walk in the subgraph with that edge deleted.
 This is an abbreviation for `simple_graph.walk.to_delete_edges`. -/

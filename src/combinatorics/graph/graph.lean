@@ -41,13 +41,6 @@ def deg (G : graph V E) : V → ℕ :=
 class finite_at (G : graph V E) (v : V) :=
   (fin : fintype (G.edge_nhd v))
 
-class locally_finite (G : graph V E) :=
-  (fins : ∀ (v : V), fintype (G.edge_nhd v))
-
-instance finite_at_of_locally_finite [locally_finite G] {v : V}:
-  fintype (G.edge_nhd v) :=
-locally_finite.fins v
-
 lemma adj_symm (G : graph V E) (u v : V):
   G.adj u v → G.adj v u :=
 by {induction G, exact digraph.adj_symm _ _, exact λ h, rfl}

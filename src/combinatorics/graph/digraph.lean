@@ -60,16 +60,16 @@ def loops_at (G : digraph V E) (v : V) : set E :=
 def adj (G: digraph V E)(u v : V) : Prop :=
   ∃ e i, G.ends i e = u ∧ G.ends (i+1) e = v
 
-class finite_at (G : digraph V E) (v : V) :=
-  (fin : ∀ (i : fin 2), fintype (G.dir_edge_nhd i v))
+class finite_at (G : digraph V E) (v : V) : Prop :=
+  (fin : ∀ (i : fin 2), (G.dir_edge_nhd i v).finite)
 
-class locally_finite (G : digraph V E) :=
+class locally_finite (G : digraph V E) : Prop :=
   (fins : ∀  (v : V), G.finite_at v)
 
 instance [G.finite_at v] : fintype (G.dir_edge_nhd i v) :=
-  finite_at.fin i
+  set.finite.fintype (finite_at.fin i)
 
-instance loc_fin [locally_finite G] : G.finite_at v :=
+instance loc_fin [locally_finite G] {v : V}: G.finite_at v :=
   locally_finite.fins v
 
 instance [G.finite_at v]: fintype (G.edge_nhd v) :=
@@ -79,7 +79,7 @@ instance [G.finite_at v]: fintype (G.loops_at v) :=
   set.fintype_subset _ (set.Inter_subset (λ i, dir_edge_nhd G i v) 0)
 
 instance finite_at_of_fintype [fintype E] : G.finite_at v :=
-  ⟨λ v, infer_instance⟩
+  ⟨λ v, ⟨infer_instance⟩⟩
 
 instance loc_finite_of_fintype [fintype E] : locally_finite G :=
   ⟨λ v, infer_instance⟩
@@ -89,7 +89,8 @@ lemma dir_edge_nhd_finite_of_loc_finite (G : digraph V E) [locally_finite G] (i 
 set.finite.intro (infer_instance)
 
 instance finite_at_of_edge_nhd_finite (h : (G.edge_nhd v).finite) : G.finite_at v :=
-  { fin := λ i, @set.fintype_subset _ (G.edge_nhd v) _ h.fintype _ (set.subset_Union _ _)}
+  {fin := λ i, ⟨@set.fintype_subset _ (G.edge_nhd v) _ h.fintype _ (set.subset_Union _ _)⟩}
+
 
 def dir_edge_nhd_finset (G : digraph V E) (i : fin 2) (v : V) [G.finite_at v]  : finset E :=
   (G.dir_edge_nhd i v).to_finset
@@ -156,6 +157,11 @@ by {ext, rw [set.mem_union, edge_nhd_def, set.mem_Union, fin.exists_fin_two]}
   G.loops_at v = G.dir_edge_nhd 0 v ∩ G.dir_edge_nhd 1 v :=
 by {ext, rw [set.mem_inter_iff, loops_at_def, set.mem_Inter, fin.forall_fin_two] }
 
+lemma finite_at_iff_edge_nhd_finite:
+  G.finite_at v ↔ (G.edge_nhd v).finite :=
+⟨λ h, by {rw [edge_nhd_def, fin.Union_fin_two], cases h, exact set.finite.union (h 0) (h 1)},
+ λ h, digraph.finite_at_of_edge_nhd_finite h⟩
+
 lemma is_loop_of_mem_loops_at :
   e ∈ G.loops_at v → G.is_loop e :=
 begin
@@ -175,7 +181,6 @@ begin
   rw [inc_def, fin.exists_fin_two, is_loop_def.mp h1, or_self] at h2,
   rwa [is_loop_def.mp h1, and_self],
 end
-
 
 lemma adj_iff_nhd_inter (huv : u ≠ v):
   G.adj u v ↔ ((G.edge_nhd u) ∩ (G.edge_nhd v)).nonempty :=
@@ -201,7 +206,7 @@ begin
   { rcases h with ⟨e, ⟨i,h1,h2⟩⟩,
     refine ⟨e, mem_loops_at_iff_is_loop_inc.mpr ⟨_,set.mem_set_of.mpr ⟨i, h1⟩⟩⟩,
     rw is_loop_def,
-    cases fin.zero_or_one_of_fin_two i,
+    cases fin.fin_two_eq_zero_or_one i,
       { subst h, rw h1, exact h2.symm,},
       subst h, rw h1, exact h2,
   },
@@ -209,7 +214,7 @@ begin
   rw [mem_loops_at_iff_is_loop_inc, is_loop_def, inc_def] at h,
   refine ⟨e, 0, _⟩,
   rcases h with ⟨h1, ⟨j, h2⟩⟩,
-  cases fin.zero_or_one_of_fin_two j with h,
+  cases fin.fin_two_eq_zero_or_one j with h,
   { subst h,
     rw [h1, zero_add, ←h2, h1, and_self]},
   subst h,
@@ -225,7 +230,6 @@ begin
   exact id,
 end
 
-
 lemma ends_adj (e : E):
   G.adj (G.ends 0 e) (G.ends 1 e) :=
 ⟨e,0,⟨rfl,rfl⟩⟩
@@ -233,12 +237,11 @@ lemma ends_adj (e : E):
 lemma ends_adj' (e : E) (i : fin 2):
   G.adj (G.ends i e) (G.ends (i + 1) e) :=
 begin
-  cases fin.zero_or_one_of_fin_two i with h,
+  cases fin.fin_two_eq_zero_or_one i with h,
   { subst h, apply ends_adj},
   subst h,
   exact adj_symm _ _ (ends_adj _),
 end
-
 
 lemma edge_nhd_eq_in_edge_nhd_union_out_edge_nhd (G : digraph V E)(v : V):
   (G.edge_nhd v) = G.in_edge_nhd v ∪ G.out_edge_nhd v :=
@@ -285,7 +288,7 @@ lemma other_end_eq (e : E) (i : fin 2):
   G.other_end (G.ends i e) e = G.ends (i+1) e :=
 begin
   rw [other_end_def],
-  cases fin.zero_or_one_of_fin_two i,
+  cases fin.fin_two_eq_zero_or_one i,
   { subst h, simp},
   subst h, simp only [eq_self_iff_true, if_true],
   split_ifs,
@@ -493,7 +496,7 @@ begin
     cases equiv.eq_add_of_equiv_fin_two φ with j hj,
     exact ⟨j, λ i, by rw [← hj i, ← hφ i]⟩},
   cases h e with j hj,
-  cases fin.zero_or_one_of_fin_two j with hj_eq hj_eq,
+  cases fin.fin_two_eq_zero_or_one j with hj_eq hj_eq,
   { subst hj_eq,
     exact ⟨equiv.refl (fin 2), λ i, by simp [hj]⟩},
   subst hj_eq,
@@ -520,7 +523,7 @@ begin
   refine λ h, funext (λ e, iff_iff_eq.mp _),
   cases orientation_equiv_iff_shift.mp h e with j hj,
   rw [is_loop_def, is_loop_def, hj 0, hj 1],
-  cases fin.zero_or_one_of_fin_two j with hj hj,
+  cases fin.fin_two_eq_zero_or_one j with hj hj,
   { subst hj, tauto,},
   subst hj, tauto,
 end
@@ -565,7 +568,7 @@ begin
   refine (λ h, funext (λ v, funext (λ e, _))),
   cases orientation_equiv_iff_shift.mp h e with j hj,
   simp_rw [other_end_def, hj, zero_add],
-  cases fin.zero_or_one_of_fin_two j with hj hj;
+  cases fin.fin_two_eq_zero_or_one j with hj hj;
   simp only [hj, fin.fin_two_one_add_one],
   split_ifs,
   all_goals {try {refl}},
@@ -592,6 +595,25 @@ begin
   have hinf2 := hinf,
   rw [edge_nhd_respects h] at hinf2,
   rw [deg_eq_zero_of_edge_nhd_infinite hinf, deg_eq_zero_of_edge_nhd_infinite hinf2],
+end
+
+lemma finite_at_respects :
+  G₁ ~ G₂ → (G₁.finite_at v ↔ G₂.finite_at v) :=
+begin
+  simp_rw finite_at_iff_edge_nhd_finite,
+  exact λ h, ⟨λ h1, by rwa [←edge_nhd_respects h], λ h2, by rwa[edge_nhd_respects h]⟩,
+end
+
+lemma locally_finite_respects:
+  G₁ ~ G₂ → (G₁.locally_finite ↔ G₂.locally_finite) :=
+begin
+  refine λ h, ⟨λ h1, ⟨λ v, _⟩, λ h1, ⟨λ v, _⟩⟩,
+  { cases h1,
+    rw ← finite_at_respects h,
+    exact h1 v},
+  cases h1,
+  rw finite_at_respects h,
+  exact h1 v,
 end
 
 end reorientation

@@ -164,7 +164,7 @@ begin
     simp only [units.coe_one, units.coe_neg_one, neg_one_sq, units.coe_pow], },
 end
 
-lemma teichmuller_character_mod_p_eval_neg_one --[no_zero_divisors R] [semi_normed_algebra ℚ_[p] R]
+lemma teichmuller_character_mod_p_eval_neg_one --[no_zero_divisors R] [normed_algebra ℚ_[p] R]
   (hp : 2 < p) : (((teichmuller_character_mod_p p)) (-1) ) = -1 :=
 begin
   cases is_odd_or_is_even (teichmuller_character_mod_p p),
@@ -216,15 +216,15 @@ begin
     swap, convert h,
     { rw units.map,
       simp only [monoid_hom.mk'_apply, ring_hom.coe_monoid_hom, units.coe_neg_one,
-        units.val_eq_coe, units.inv_eq_coe_inv, zmod.cast_hom_apply, units.neg_inv],
+        units.val_eq_coe, units.inv_eq_coe_inv, zmod.cast_hom_apply, inv_neg', inv_one], -- units.neg_inv
       have : ((-1 : zmod (d * p^m)) : zmod p) = -1,
       { rw zmod.cast_neg _,
         swap 3, { apply zmod.char_p _, },
         rw zmod.cast_one _,
         swap, { apply zmod.char_p _, },
-        any_goals { apply dvd_mul_of_dvd_right (dvd_pow dvd_rfl
-            (ne_zero_of_lt _)) _, exact 0, apply fact.out, }, },
-      simp_rw [this], tauto, },
+        any_goals { apply dvd_mul_of_dvd_right, apply dvd_pow dvd_rfl (ne_zero_of_lt _),
+           exact 0, apply fact.out, }, },
+      simp_rw [this], refl, },
     rw teichmuller_character_mod_p_change_level_pow at this,
     rw monoid_hom.comp_apply at this,
     rw teichmuller_character_mod_p_eval_neg_one p hp at this,
@@ -241,9 +241,9 @@ begin
       simp, }, },
 end
 .
-#exit
+
 lemma teichmuller_character_mod_p_change_level_pow_eval_neg_one
-  (k : ℕ) (hp : 2 < p) [semi_normed_algebra ℚ_[p] R] [nontrivial R] [no_zero_divisors R]
+  (k : ℕ) (hp : 2 < p) [normed_algebra ℚ_[p] R] [nontrivial R] [no_zero_divisors R]
   [fact (0 < m)] : ((teichmuller_character_mod_p_change_level p d R m ^ k) is_unit_one.neg.unit) =
   (-1) ^ k :=
 begin
@@ -266,7 +266,7 @@ end
 
 open_locale big_operators
 --set_option pp.proofs true
-lemma sum_eq_neg_sum_add_dvd (hχ : χ.is_even) [semi_normed_algebra ℚ_[p] R] [nontrivial R]
+lemma sum_eq_neg_sum_add_dvd (hχ : χ.is_even) [normed_algebra ℚ_[p] R] [nontrivial R]
   [no_zero_divisors R] [fact (0 < m)] (hp : 2 < p) (k : ℕ) (hk : 1 ≤ k) {x : ℕ} (hx : m ≤ x) :
   ∑ (i : ℕ) in finset.range (d * p ^ x).succ, (asso_dirichlet_character (χ.mul
   (teichmuller_character_mod_p_change_level p d R m ^ k))) ↑i * ↑i ^ (k - 1) =
@@ -307,7 +307,7 @@ begin
       rw teichmuller_character_mod_p_change_level_pow_eval_neg_one d p m k hp,
       simp only [units.coe_neg_one, units.coe_pow],
       any_goals { apply_instance, }, },
-    { rw ←pow_add, rw nat.add_sub_pred, rw nat.neg_one_pow_of_odd _, rw nat.odd_iff,
+    { rw ←pow_add, rw nat.add_sub_pred, rw odd.neg_one_pow _, rw nat.odd_iff,
       rw nat.two_mul_sub_one_mod_two_eq_one hk, },
     any_goals { apply fact_iff.2 (mul_prime_pow_pos p d m), }, },
   { rw ←finset.sum_flip, },
@@ -319,11 +319,11 @@ begin
   conv_rhs { congr, rw ←pow_one (d * p^m), },
   rw ←pow_add, congr, rw add_comm,
   conv_rhs { rw nat.sub_succ, rw ←nat.succ_eq_add_one,
-    rw nat.succ_pred_eq_of_pos (nat.lt_sub_right_iff_add_lt.2 _), skip,
+    rw nat.succ_pred_eq_of_pos (lt_tsub_iff_right.2 _), skip,
     apply_congr hk, },
 end
 
-lemma asso_dc [semi_normed_algebra ℚ_[p] R] [fact (0 < m)] (k : ℕ)
+lemma asso_dc [normed_algebra ℚ_[p] R] [fact (0 < m)] (k : ℕ)
   (hχ : χ.change_level (dvd_lcm_left _ _) *
     (teichmuller_character_mod_p_change_level p d R m ^ k).change_level (dvd_lcm_right _ _) ≠ 1) :
   (asso_dirichlet_character (χ.mul (teichmuller_character_mod_p_change_level p d R m ^ k)))
@@ -348,12 +348,12 @@ begin
     rw lcm_eq_nat_lcm, rw nat.lcm_self, apply (mul_prime_pow_pos p d m), },
 end
 
---instance {R : Type*} [normed_comm_ring R] [semi_normed_algebra ℚ_[p] R] : norm_one_class R :=
+--instance {R : Type*} [normed_comm_ring R] [normed_algebra ℚ_[p] R] : norm_one_class R :=
 --by {fconstructor, convert normed_algebra.norm_one ℚ_[p] R, }
 
 example {R : Type*} [comm_ring R] {a b c : R} : a * (b * c) = b * (a * c) := by refine mul_left_comm a b c
 
-lemma norm_sum_le_smul {k : ℕ} [nontrivial R] [no_zero_divisors R] [semi_normed_algebra ℚ_[p] R]
+lemma norm_sum_le_smul {k : ℕ} [nontrivial R] [no_zero_divisors R] [normed_algebra ℚ_[p] R] [norm_one_class R]
   (na : ∀ (n : ℕ) (f : ℕ → R), ∥ ∑ (i : ℕ) in finset.range n, f i∥ ≤ ⨆ (i : zmod n), ∥f i.val∥)
   [fact (0 < m)] (hk : 1 < k) (hχ : χ.is_even) (hp : 2 < p) {x : ℕ} (hx : m ≤ x) :
   ∥∑ (y : ℕ) in finset.range (d * p ^ x + 1), (asso_dirichlet_character
@@ -382,15 +382,18 @@ begin
         have : (((d * p ^ x) ^ a * (l ^ (k - 1 - (a + 1)) * (k - 1).choose (a + 1)) : ℕ) : R) =
           (algebra_map ℚ_[p] R) (padic_int.coe.ring_hom ((d * p ^ x) ^ a *
           (l ^ (k - 1 - (a + 1)) * (k - 1).choose (a + 1)) : ℤ_[p])),
-        { simp only [ring_hom.map_nat_cast, ring_hom.map_pow, nat.cast_mul, nat.cast_pow,
+        { simp only [map_nat_cast, ring_hom.map_pow, nat.cast_mul, nat.cast_pow,
             ring_hom.map_mul], },
         cases neg_one_pow_eq_or R (k - 1 - (a + 1)),
-        { rw h, rw normed_algebra.norm_one ℚ_[p] R, rw one_mul,
+        { rw h, rw norm_one_class.norm_one, rw one_mul,
           rw ← nat.cast_pow, rw ← nat.cast_pow, rw ← nat.cast_mul, rw ← nat.cast_mul,
-          rw this, rw norm_algebra_map_eq, apply padic_int.norm_le_one, },
-        { rw h, rw norm_neg, rw normed_algebra.norm_one ℚ_[p] R, rw one_mul,
+          rw this, rw norm_algebra_map,  rw norm_one_class.norm_one, --norm_algebra_map_eq,
+          rw mul_one,
+          apply padic_int.norm_le_one, },
+        { rw h, rw norm_neg, rw norm_one_class.norm_one, rw one_mul,
           rw ← nat.cast_pow, rw ← nat.cast_pow, rw ← nat.cast_mul, rw ← nat.cast_mul,
-          rw this, rw norm_algebra_map_eq, apply padic_int.norm_le_one, }, },
+          rw this, rw norm_algebra_map, rw norm_one_class.norm_one, rw mul_one, --rw norm_algebra_map_eq,
+          apply padic_int.norm_le_one, }, },
       { convert le_trans (finset.sum_le_sum this) _,
         rw finset.sum_const, rw finset.card_range, rw nat.smul_one_eq_coe,
         rw nat.cast_sub (le_of_lt hk), rw nat.cast_one, }, }, },
@@ -411,10 +414,10 @@ begin
     rw finset.card_range, }, -/
 end
 
-instance wut [nontrivial R] [semi_normed_algebra ℚ_[p] R] : char_zero R :=
+instance wut [nontrivial R] [normed_algebra ℚ_[p] R] : char_zero R :=
 (ring_hom.char_zero_iff ((algebra_map ℚ_[p] R).injective)).1 infer_instance
 
-lemma sum_odd_char [nontrivial R] [no_zero_divisors R] [semi_normed_algebra ℚ_[p] R]
+lemma sum_odd_char [nontrivial R] [no_zero_divisors R] [normed_algebra ℚ_[p] R]  [norm_one_class R]
   --[fact (0 < n)]
   (na : ∀ (n : ℕ) (f : ℕ → R), ∥ ∑ (i : ℕ) in finset.range n, f i∥ ≤ ⨆ (i : zmod n), ∥f i.val∥)
   [fact (0 < m)] {k : ℕ} (hk : 1 < k) (hχ : χ.is_even) (hp : 2 < p) {x : ℕ} (hx : m ≤ x) :
@@ -472,15 +475,15 @@ begin
       { rw nat.cast_eq_zero at h, apply pow_ne_zero _ _ h,
         apply ne_zero_of_lt (mul_prime_pow_pos p d _), },
       { rw ← eq_neg_iff_add_eq_zero at h,
-        apply zero_ne_one (eq_zero_of_eq_neg R h).symm, }, },
+        apply zero_ne_one ((self_eq_neg R R).1 h).symm, }, },
     { rw nat.cast_pow, }, },
 end
 
-lemma two_mul_eq_inv_two_smul [nontrivial R] [no_zero_divisors R] [semi_normed_algebra ℚ_[p] R]
+lemma two_mul_eq_inv_two_smul [nontrivial R] [no_zero_divisors R] [normed_algebra ℚ_[p] R]
   (a b : R) (h : (2 : R) * a = b) : a = (2 : ℚ_[p])⁻¹ • b :=
 begin
   symmetry,
-  rw inv_smul_eq_iff' _,
+  rw inv_smul_eq_iff₀ _,
   { rw ← h,
     convert_to _ = ((algebra_map ℚ_[p] R) 2) * a,
     { rw [algebra.algebra_map_eq_smul_one, smul_mul_assoc, one_mul], },
@@ -488,44 +491,44 @@ begin
   { apply two_ne_zero', },
 end
 
-lemma coe_eq_ring_hom_map [semi_normed_algebra ℚ_[p] R] (y : ℕ) :
+lemma coe_eq_ring_hom_map [normed_algebra ℚ_[p] R] (y : ℕ) :
   (algebra_map ℚ_[p] R) (padic_int.coe.ring_hom (y : ℤ_[p])) = ((y : ℕ) : R) :=
 by { simp }
 
-lemma norm_coe_eq_ring_hom_map [semi_normed_algebra ℚ_[p] R] (y : ℕ) :
+lemma norm_coe_eq_ring_hom_map [normed_algebra ℚ_[p] R]  [norm_one_class R] (y : ℕ) :
   ∥((y : ℕ) : R)∥ = ∥padic_int.coe.ring_hom (y : ℤ_[p])∥ :=
-by { rw [← coe_eq_ring_hom_map p, norm_algebra_map_eq], }
+by { rw [← coe_eq_ring_hom_map p, norm_algebra_map, norm_one_class.norm_one, mul_one], }
 
-lemma norm_mul_pow_le_one_div_pow [semi_normed_algebra ℚ_[p] R] (y : ℕ) :
+lemma norm_mul_pow_le_one_div_pow [normed_algebra ℚ_[p] R] [norm_one_class R] (y : ℕ) :
   ∥((d * p^y : ℕ) : R)∥ ≤ 1 / p^y :=
 begin
   rw nat.cast_mul,
   apply le_trans (norm_mul_le _ _) _,
   rw ← one_mul (1 / (p : ℝ)^y),
   apply mul_le_mul _ _ (norm_nonneg _) zero_le_one,
-  { rw norm_coe_eq_ring_hom_map p, apply padic_int.norm_le_one, apply_instance, },
+  { rw norm_coe_eq_ring_hom_map p, apply padic_int.norm_le_one, apply_instance, apply_instance, },
   { --simp, rw padic_int.norm_int_le_pow_iff_dvd,
     apply le_of_eq, rw norm_coe_eq_ring_hom_map p,
-    simp only [one_div, ring_hom.map_nat_cast, normed_field.norm_pow, ring_hom.map_pow, inv_pow',
+    simp only [one_div, map_nat_cast, norm_pow, ring_hom.map_pow, inv_pow,
       nat.cast_pow, padic_norm_e.norm_p],
-    apply_instance, },
+    apply_instance,  apply_instance, },
 end
 
-lemma norm_mul_two_le_one {k : ℕ} [semi_normed_algebra ℚ_[p] R] (hk : 1 < k) (hp : 2 < p)
+lemma norm_mul_two_le_one {k : ℕ} [normed_algebra ℚ_[p] R] [norm_one_class R] (hk : 1 < k) (hp : 2 < p)
   (y : ℕ) : ∥((d * p ^ y : ℕ) : R) ^ (k - 2) * (1 + 1)∥ ≤ 1 :=
 begin
   rw ← nat.cast_pow,
   have : (((d * p ^ y) ^ (k - 2) : ℕ) : R) * (1 + 1 : R) = (algebra_map ℚ_[p] R)
      (padic_int.coe.ring_hom (((d * p ^ y) ^ (k - 2) : ℤ_[p]) * (2 : ℤ_[p]))),
   { symmetry,
-    simp only [ring_hom.map_nat_cast, ring_hom.map_bit0, ring_hom.map_pow, ring_hom.map_one,
+    simp only [map_nat_cast, ring_hom.map_bit0, ring_hom.map_pow, ring_hom.map_one,
       nat.cast_mul, nat.cast_pow, ring_hom.map_mul],
     refl, },
-  rw [this], rw norm_algebra_map_eq,
+  rw [this], rw norm_algebra_map, rw norm_one_class.norm_one, rw mul_one, -- rw norm_algebra_map_eq,
   apply padic_int.norm_le_one _,
 end
 
-lemma sub_add_norm_nonneg {k : ℕ} [semi_normed_algebra ℚ_[p] R] (hk : 1 < k) (y : ℕ) :
+lemma sub_add_norm_nonneg {k : ℕ} [normed_algebra ℚ_[p] R] (hk : 1 < k) (y : ℕ) :
   0 ≤ (k : ℝ) - 1 + ∥((d * p ^ y : ℕ) : R) ^ (k - 2) * (1 + 1)∥ :=
 begin
   apply add_nonneg _ (norm_nonneg _),
@@ -533,12 +536,12 @@ begin
   apply le_of_lt hk,
 end
 
-lemma norm_two_mul_le {k : ℕ} [semi_normed_algebra ℚ_[p] R] (hk : 1 < k) (hp : 2 < p) (y : ℕ) :
+lemma norm_two_mul_le {k : ℕ} [normed_algebra ℚ_[p] R] [norm_one_class R] (hk : 1 < k) (hp : 2 < p) (y : ℕ) :
   ∥(2⁻¹ : ℚ_[p])∥ * (↑k - 1 + ∥((d * p ^ y : ℕ) : R) ^ (k - 2) * (1 + 1)∥) ≤ k :=
 begin
   rw ← one_mul ↑k, apply mul_le_mul,
-  { apply le_of_eq, rw normed_field.norm_inv,
-    rw inv_eq_one',
+  { apply le_of_eq, rw norm_inv,
+    rw inv_eq_one,
     have : ((2 : ℕ) : ℚ_[p]) = (2 : ℚ_[p]), norm_cast,
     rw ← this, rw ← rat.cast_coe_nat,
     rw padic_norm_e.eq_padic_norm,
@@ -552,6 +555,7 @@ begin
   { rw one_mul,
     apply le_trans (add_le_add le_rfl (norm_mul_two_le_one d p hk hp _)) _,
     { apply_instance, }, --why is this a problem?
+    { apply_instance, },
     rw sub_add_cancel, },
   { rw one_mul, convert sub_add_norm_nonneg d p hk y,
     { apply_instance, }, },
@@ -560,7 +564,7 @@ end
 
 lemma exists_mul_mul_mul_lt {k : ℕ} (ε : ℝ)
   (χ : dirichlet_character R (d * p ^ m)) [nontrivial R] [no_zero_divisors R]
-  [semi_normed_algebra ℚ_[p] R]
+  [normed_algebra ℚ_[p] R] [norm_one_class R]
   (na : ∀ (n : ℕ) (f : ℕ → R), ∥∑ (i : ℕ) in finset.range n, f i∥ ≤ ⨆ (i : zmod n), ∥f i.val∥)
   [fact (0 < m)] (hk : 1 < k) (hχ : χ.is_even) (hp : 2 < p) (hε : ε > 0) :  ∃ x : ℕ,
   ∥(2⁻¹ : ℚ_[p])∥ * (↑k - 1 + ∥((d * p ^ x : ℕ) : R) ^ (k - 2) * (1 + 1)∥) *
@@ -581,8 +585,10 @@ begin
   apply lt_of_le_of_lt (mul_le_mul (norm_two_mul_le d p hk hp _) le_rfl (mul_nonneg (norm_nonneg _)
     (le_of_lt (dirichlet_character.bound_pos _))) (nat.cast_nonneg _)) _,
   { apply_instance, },
+  { apply_instance, },
   rw mul_left_comm,
   apply lt_of_le_of_lt (mul_le_mul (norm_mul_pow_le_one_div_pow d p _) le_rfl (le_of_lt pos') _) _,
+  { apply_instance, },
   { apply_instance, },
   { rw ← one_div_pow, apply pow_nonneg _ _,
     apply div_nonneg _ _,
@@ -600,7 +606,7 @@ begin
         exact this, }, }, },
 end
 
-lemma norm_mul_eq [semi_normed_algebra ℚ_[p] R] (x y : ℕ) :
+lemma norm_mul_eq [normed_algebra ℚ_[p] R] [norm_one_class R] (x y : ℕ) :
   ∥(x * y : R)∥ = ∥(x : R)∥ * ∥(y : R)∥ :=
 begin
   rw ← nat.cast_mul, rw norm_coe_eq_ring_hom_map p,
@@ -610,22 +616,22 @@ begin
   any_goals { apply_instance, },
 end
 
-lemma norm_pow_eq [semi_normed_algebra ℚ_[p] R] (x n : ℕ) :
+lemma norm_pow_eq [normed_algebra ℚ_[p] R]  [norm_one_class R] (x n : ℕ) :
   ∥(x ^ n : R)∥ = ∥(x : R)∥^n :=
 begin
   rw ← nat.cast_pow, rw norm_coe_eq_ring_hom_map p,
-  rw nat.cast_pow, rw ring_hom.map_pow, rw normed_field.norm_pow,
+  rw nat.cast_pow, rw ring_hom.map_pow, rw norm_pow,
   rw ← norm_coe_eq_ring_hom_map p,
   any_goals { apply_instance, },
 end
 
-lemma norm_le_of_ge [semi_normed_algebra ℚ_[p] R] {x y : ℕ} (h : x ≤ y) :
+lemma norm_le_of_ge [normed_algebra ℚ_[p] R] [norm_one_class R] {x y : ℕ} (h : x ≤ y) :
   ∥((d * p^y : ℕ) : R)∥ ≤ ∥((d * p^x : ℕ) : R)∥ :=
 begin
   repeat { rw nat.cast_mul, rw norm_mul_eq p, },
   { apply mul_le_mul le_rfl _ (norm_nonneg _) (norm_nonneg _),
     rw norm_coe_eq_ring_hom_map p, rw norm_coe_eq_ring_hom_map p,
-    simp only [ring_hom.map_nat_cast, normed_field.norm_pow, ring_hom.map_pow, inv_pow',
+    simp only [map_nat_cast, norm_pow, ring_hom.map_pow, inv_pow,
       nat.cast_pow, padic_norm_e.norm_p],
     rw inv_le_inv _ _,
     apply pow_le_pow _ h,
@@ -635,7 +641,8 @@ begin
   any_goals { apply_instance, },
 end
 .
-lemma sum_even_character [nontrivial R] [no_zero_divisors R] [semi_normed_algebra ℚ_[p] R]
+
+lemma sum_even_character [nontrivial R] [no_zero_divisors R] [normed_algebra ℚ_[p] R]  [norm_one_class R]
  --(n : ℕ) --[fact (0 < n)]
   (na : ∀ (n : ℕ) (f : ℕ → R), ∥ ∑ (i : ℕ) in finset.range n, f i∥ ≤ ⨆ (i : zmod n), ∥f i.val∥)
   [fact (0 < m)] {k : ℕ} (hk : 1 < k) (hχ : χ.is_even) (hp : 2 < p) :
@@ -665,8 +672,8 @@ begin
       (le_of_lt (dirichlet_character.bound_pos _))) _,
     { apply mul_le_mul le_rfl _ _ (norm_nonneg _),
       { apply add_le_add le_rfl _,
-        { exact covariant_swap_add_le_of_covariant_add_le ℝ, },
-        { exact ordered_add_comm_monoid.to_covariant_class_left ℝ, },
+        { exact has_add.to_covariant_class_left ℝ, },
+        { exact has_add.to_covariant_class_right ℝ, },
         { have : ((2 : ℕ) : R) = 1 + 1,
           { simp only [nat.cast_bit0, nat.cast_one], refl, },
           rw ← this, repeat { rw ← nat.cast_pow, rw norm_mul_eq p, }, --rw norm_mul_eq p,
@@ -674,11 +681,11 @@ begin
             repeat { rw nat.cast_pow, rw norm_pow_eq p, },
             any_goals { apply_instance, },
             apply pow_le_pow_of_le_left (norm_nonneg _) _ _,
-            { apply norm_le_of_ge d p (le_trans (le_max_left _ _) hx), apply_instance, }, },
+            { apply norm_le_of_ge d p (le_trans (le_max_left _ _) hx), apply_instance, apply_instance, }, },
           any_goals { apply_instance, }, }, },
       { apply sub_add_norm_nonneg, assumption, }, },
     { apply mul_le_mul _ le_rfl (le_of_lt (dirichlet_character.bound_pos _)) (norm_nonneg _),
-      { apply norm_le_of_ge d p (le_trans (le_max_left _ _) hx), apply_instance, }, },
+      { apply norm_le_of_ge d p (le_trans (le_max_left _ _) hx), apply_instance, apply_instance, }, },
     { apply mul_nonneg (norm_nonneg _) _,
       apply sub_add_norm_nonneg, assumption, }, },
   { apply le_trans (le_max_right _ _) hx, },
@@ -697,11 +704,11 @@ lemma nat.sub_one_le (n : ℕ) : n - 1 ≤ n := nat.sub_le n 1
 example : group ℚ := multiplicative.group
 
 lemma aux_one [nontrivial R] [no_zero_divisors R] [algebra ℚ R]
-  [semi_normed_algebra ℚ_[p] R] [is_scalar_tower ℚ ℚ_[p] R]
+  [normed_algebra ℚ_[p] R] [is_scalar_tower ℚ ℚ_[p] R]
   (na : ∀ (n : ℕ) (f : ℕ → R), ∥ ∑ (i : ℕ) in finset.range n, f i∥ ≤ ⨆ (i : zmod n), ∥f i.val∥)
   {k : ℕ} (hk : 1 < k) (hχ : χ.is_even)
   (hp : 2 < p) (x y : ℕ) : (algebra_map ℚ R) (((d * p ^ x : ℕ) : ℚ) ^ k) * (algebra_map ℚ R)
-  (polynomial.eval (↑(y.succ) / ↑(d * p ^ x : ℕ)) (bernoulli_poly k)) =
+  (polynomial.eval (↑(y.succ) / ↑(d * p ^ x : ℕ)) (polynomial.bernoulli k)) =
   ((y + 1 : ℕ) : R)^k + ((algebra_map ℚ R) (bernoulli 1 * (k : ℚ))) * ((d * p^x : ℕ) : R) *
   ((y + 1 : ℕ) : R)^k.pred + (d * p^x : ℕ) * (∑ (x_1 : ℕ) in finset.range k.pred,
   (algebra_map ℚ R) (bernoulli (k.pred.succ - x_1) * ↑(k.pred.succ.choose x_1) *
@@ -709,7 +716,7 @@ lemma aux_one [nontrivial R] [no_zero_divisors R] [algebra ℚ R]
 begin
 --  conv_lhs { congr, rw ← ring_hom.to_fun_eq_coe, congr, },
   rw ← (algebra_map ℚ R).map_mul,
-  rw bernoulli_poly_def,
+  rw polynomial.bernoulli_def,
   rw polynomial.eval_finset_sum,
   rw finset.mul_sum,
   simp only [polynomial.eval_monomial, div_pow, nat.cast_succ],
@@ -721,41 +728,41 @@ begin
   { rw (algebra_map ℚ R).map_add,
     conv_lhs { congr, skip, rw ← nat.succ_pred_eq_of_pos (pos_of_gt hk),
       rw finset.sum_range_succ_comm, },
-    rw div_mul_comm',
+    rw div_mul_comm,
     rw (algebra_map ℚ R).map_add, rw add_assoc,
     congr,
-    { simp only [nat.choose_self, ring_hom.map_nat_cast, one_mul, ring_hom.map_add, nat.sub_self,
+    { simp only [nat.choose_self, map_nat_cast, one_mul, ring_hom.map_add, nat.sub_self,
         bernoulli_zero, ring_hom.map_pow, ring_hom.map_one, nat.cast_one], },
     { rw nat.choose_succ_self_right, rw ← nat.succ_eq_add_one,
       rw nat.succ_pred_eq_of_pos (pos_of_gt hk),
       rw nat.pred_eq_sub_one, rw div_eq_mul_inv,
-      rw ← pow_sub' ((d * p^x : ℕ) : ℚ) _ (nat.sub_le k 1),
+      rw ← pow_sub₀ ((d * p^x : ℕ) : ℚ) _ (nat.sub_le k 1),
       { rw nat.sub_sub_self (le_of_lt hk),
         rw pow_one, rw ← mul_assoc, rw (algebra_map ℚ R).map_mul,
-        simp only [ring_hom.map_nat_cast, ring_hom.map_add, ring_hom.map_pow, ring_hom.map_one,
+        simp only [map_nat_cast, ring_hom.map_add, ring_hom.map_pow, ring_hom.map_one,
           ring_hom.map_mul], },
       { norm_cast, apply ne_zero_of_lt (mul_prime_pow_pos p d x), }, },
     { rw ring_hom.map_sum, rw pow_succ',
       conv_lhs { apply_congr, skip, rw ← mul_assoc, rw ← mul_assoc, rw ← mul_assoc,
         rw (algebra_map ℚ R).map_mul, },
-      rw ← finset.sum_mul, rw mul_comm, rw ring_hom.map_nat_cast,
+      rw ← finset.sum_mul, rw mul_comm, rw map_nat_cast,
       conv_rhs { congr, skip, apply_congr, skip, rw ← mul_assoc, rw ← mul_assoc, }, }, },
   { norm_cast, apply pow_ne_zero _ (ne_zero_of_lt (mul_prime_pow_pos p d x)), },
 end
 
 lemma norm_mul_pow_pos [nontrivial R] [no_zero_divisors R] [algebra ℚ R]
-  [semi_normed_algebra ℚ_[p] R] (x : ℕ) : 0 < ∥((d * p^x : ℕ) : R)∥ :=
+  [normed_algebra ℚ_[p] R] (x : ℕ) : 0 < ∥((d * p^x : ℕ) : R)∥ :=
 begin
   rw norm_pos_iff, norm_cast, apply ne_zero_of_lt (mul_prime_pow_pos p d x),
 end
 
 /-lemma exists_just [nontrivial R] [no_zero_divisors R] [algebra ℚ R]
-  [semi_normed_algebra ℚ_[p] R] [is_scalar_tower ℚ ℚ_[p] R]
+  [normed_algebra ℚ_[p] R] [is_scalar_tower ℚ ℚ_[p] R]
   (na : ∀ (n : ℕ) (f : ℕ → R), ∥ ∑ (i : ℕ) in finset.range n, f i∥ ≤ ⨆ (i : zmod n), ∥f i.val∥)
   {k : ℕ} (hk : 1 < k) (hχ : χ.is_even)
   (hp : 2 < p) (x y : ℕ) : ∃ z,
   (algebra_map ℚ R) (((d * p ^ x : ℕ) : ℚ) ^ k) * (algebra_map ℚ R)
-  (polynomial.eval (↑(y.succ) / ↑(d * p ^ x : ℕ)) (bernoulli_poly k)) =
+  (polynomial.eval (↑(y.succ) / ↑(d * p ^ x : ℕ)) (polynomial.bernoulli k)) =
   ((y + 1 : ℕ) : R)^k + ((algebra_map ℚ R) (bernoulli 1 * (k : ℚ))) * ((d * p^x : ℕ) : R) *
   ((y + 1 : ℕ) : R)^k.pred + (d * p^x : ℕ) * z ∧ ∥z∥ ≤ ∥((d * p^x : ℕ) : R)∥ *
   ⨆ (x_1 : zmod k.pred), ∥(algebra_map ℚ R) (bernoulli (k.pred.succ - x_1.val) *
@@ -765,7 +772,7 @@ begin
     ↑(k.pred.succ.choose x_1) * ((↑y + 1) ^ x_1 / ↑(d * p ^ x) ^ x_1) * ↑(d * p ^ x) ^ k.pred),
     _, _⟩,
   { rw ← (algebra_map ℚ R).map_mul,
-    rw bernoulli_poly_def,
+    rw polynomial.bernoulli_def,
     rw polynomial.eval_finset_sum,
     rw finset.mul_sum,
     simp only [polynomial.eval_monomial, div_pow, nat.cast_succ],
@@ -819,10 +826,10 @@ begin
 end
 
 lemma exists_just [nontrivial R] [no_zero_divisors R] [algebra ℚ R]
-  [semi_normed_algebra ℚ_[p] R] [is_scalar_tower ℚ ℚ_[p] R] {k : ℕ} (hk : 1 < k) (hχ : χ.is_even)
+  [normed_algebra ℚ_[p] R] [is_scalar_tower ℚ ℚ_[p] R] {k : ℕ} (hk : 1 < k) (hχ : χ.is_even)
   (hp : 2 < p) (x y : ℕ) : ∃ z,
   (algebra_map ℚ R) (((d * p ^ x : ℕ) : ℚ) ^ k) * (algebra_map ℚ R)
-  (polynomial.eval (↑(y.succ) / ↑(d * p ^ x : ℕ)) (bernoulli_poly k)) =
+  (polynomial.eval (↑(y.succ) / ↑(d * p ^ x : ℕ)) (polynomial.bernoulli k)) =
   ((y + 1 : ℕ) : R)^k + ((algebra_map ℚ R) (bernoulli 1 * (k : ℚ))) * ((d * p^x : ℕ) : R) *
   ((y + 1 : ℕ) : R)^k.pred + (d * p^x : ℕ) * z ∧ ∃ M : ℝ, ∥z∥ ≤ ∥((d * p^x : ℕ) : R)∥ * M :=
 begin
@@ -830,7 +837,7 @@ begin
     ↑(k.pred.succ.choose x_1) * ((↑y + 1) ^ x_1 / ↑(d * p ^ x) ^ x_1) * ↑(d * p ^ x) ^ k.pred),
     _, _⟩,
   { rw ← (algebra_map ℚ R).map_mul,
-    rw bernoulli_poly_def,
+    rw polynomial.bernoulli_def,
     rw polynomial.eval_finset_sum,
     rw finset.mul_sum,
     simp only [polynomial.eval_monomial, div_pow, nat.cast_succ],
@@ -879,7 +886,7 @@ begin
 end
 
 lemma spec_nonneg [nontrivial R] [no_zero_divisors R] [algebra ℚ R]
-  [semi_normed_algebra ℚ_[p] R] [is_scalar_tower ℚ ℚ_[p] R] {k : ℕ} (hk : 1 < k) (hχ : χ.is_even)
+  [normed_algebra ℚ_[p] R] [is_scalar_tower ℚ ℚ_[p] R] {k : ℕ} (hk : 1 < k) (hχ : χ.is_even)
   (hp : 2 < p) (x y : ℕ) : 0 ≤ (classical.some (classical.some_spec
     (exists_just d p m χ hk hχ hp x y)).2) :=
 begin
@@ -892,7 +899,7 @@ begin
 end
 
 lemma exists_just_cont' [nontrivial R] [no_zero_divisors R] [algebra ℚ R]
-  [semi_normed_algebra ℚ_[p] R] [is_scalar_tower ℚ ℚ_[p] R] {k : ℕ} (hk : 1 < k) (hχ : χ.is_even)
+  [normed_algebra ℚ_[p] R] [is_scalar_tower ℚ ℚ_[p] R] {k : ℕ} (hk : 1 < k) (hχ : χ.is_even)
   (hp : 2 < p) (x : ℕ) : ∃ (M : ℝ),
   (⨆ (i : zmod (d * p^x)),
   ∥classical.some (exists_just d p m χ hk hχ hp x i.val) ∥) ≤ ∥((d * p^x : ℕ) : R)∥ * M ∧
@@ -931,7 +938,7 @@ begin
 end-/
 
 lemma aux_two [nontrivial R] [no_zero_divisors R] [algebra ℚ R]
-  [semi_normed_algebra ℚ_[p] R] [is_scalar_tower ℚ ℚ_[p] R]
+  [normed_algebra ℚ_[p] R] [norm_one_class R] [is_scalar_tower ℚ ℚ_[p] R]
   (na : ∀ (n : ℕ) (f : ℕ → R), ∥ ∑ (i : ℕ) in finset.range n, f i∥ ≤ ⨆ (i : zmod n), ∥f i.val∥)
   {k : ℕ} (hk : 1 < k) (hχ : χ.is_even)
   (hp : 2 < p) (x y : ℕ) : ∥(∑ (x_1 : ℕ) in finset.range k.pred,
@@ -947,20 +954,20 @@ begin
   apply csupr_le (λ z, _),
   { apply_instance, },
   conv { congr, congr, find (↑(d * p ^ x) ^ k.pred) { rw [le], rw pow_add, rw pow_one, }, rw ← mul_assoc,
-      rw (algebra_map ℚ R).map_mul, rw mul_assoc _ _ (↑(d * p ^ x) ^ (k.pred - 1)), rw div_mul_comm', },
+      rw (algebra_map ℚ R).map_mul, rw mul_assoc _ _ (↑(d * p ^ x) ^ (k.pred - 1)), rw div_mul_comm, },
   rw mul_comm, --rw ring_hom.map_nat_cast,
   apply le_trans (norm_mul_le _ _) _,
-  rw ring_hom.map_nat_cast,
+  rw map_nat_cast,
   rw mul_le_mul_left _,
 --  simp_rw [div_mul_comm'],
   conv { congr, rw ← mul_assoc, rw (algebra_map ℚ R).map_mul, },
   apply le_trans (norm_mul_le _ _) _,
   have padic_le : ∥(algebra_map ℚ R) (((y + 1 : ℕ) : ℚ) ^ z.val)∥ ≤ 1,
   { rw ← nat.cast_pow,
-    rw ring_hom.map_nat_cast,
+    rw map_nat_cast,
     rw norm_coe_eq_ring_hom_map p,
     apply padic_int.norm_le_one _,
-    apply_instance, },
+    apply_instance, apply_instance, },
   apply le_trans (mul_le_mul le_rfl padic_le (norm_nonneg _) (norm_nonneg _)) _,
   rw mul_one,
   { refine le_cSup _ _,
@@ -985,7 +992,7 @@ example (a b : R) : a - a - b = -b := by { rw sub_self, rw zero_sub, }
 -- #where
 
 -- lemma bla [nontrivial R] [no_zero_divisors R] [algebra ℚ R]
---   [semi_normed_algebra ℚ_[p] R] [is_scalar_tower ℚ ℚ_[p] R]
+--   [normed_algebra ℚ_[p] R] [is_scalar_tower ℚ ℚ_[p] R]
 --   (na : ∀ (n : ℕ) (f : ℕ → R), ∥∑ (i : ℕ) in finset.range n, f i∥ ≤ ⨆ (i : zmod n), ∥f i.val∥)
 --   [fact (0 < m)] {k : ℕ} (ε : ℝ) (x : ℕ) (hk : 1 < k) (hχ : χ.is_even) (hp : 2 < p) (hε : ε > 0)
 --   (ne_zero : (d * p ^ x) ≠ 0) (coe_sub : ↑k - 1 = ↑(k - 1))
@@ -1008,7 +1015,7 @@ lemma inv_smul_self [algebra ℚ R] {n : ℕ} (hn : n ≠ 0) :
   (n : ℚ)⁻¹ • (n : R) = 1 :=
 begin
   rw ← one_mul (n : R), rw ← smul_mul_assoc, rw ← algebra.algebra_map_eq_smul_one,
-  have : (algebra_map ℚ R) (n : ℚ) = (n : R), simp only [ring_hom.map_nat_cast],
+  have : (algebra_map ℚ R) (n : ℚ) = (n : R), simp only [map_nat_cast],
   conv_lhs { congr, skip, rw ← this, }, rw ← (algebra_map ℚ R).map_mul, rw inv_mul_cancel _,
   simp only [ring_hom.map_one],
   { norm_cast, apply hn, },
@@ -1018,7 +1025,7 @@ lemma one_div_smul_self [algebra ℚ R] {n : ℕ} (hn : n ≠ 0) :
   (1 / (n : ℚ)) • (n : R) = 1 :=
 by { rw [← inv_eq_one_div, inv_smul_self hn], }
 
-lemma norm_asso_dir_char_bound [semi_normed_algebra ℚ_[p] R] [fact (0 < m)] (k : ℕ) (x : ℕ) :
+lemma norm_asso_dir_char_bound [normed_algebra ℚ_[p] R] [fact (0 < m)] (k : ℕ) (x : ℕ) :
   ⨆ (i : zmod (d * p ^ x)), ∥(asso_dirichlet_character (χ.mul
   (teichmuller_character_mod_p_change_level p d R m ^ k))) ↑(i.val.succ)∥ <
   dirichlet_character.bound (χ.mul (teichmuller_character_mod_p_change_level p d R m ^ k)) :=
@@ -1059,7 +1066,7 @@ begin
   { apply zmod.val_le_self, },
 end
 
-/-lemma not_is_unit_mul [semi_normed_algebra ℚ_[p] R] [fact (0 < m)] (k : ℕ) {x : ℕ} (hx : m ≤ x) :
+/-lemma not_is_unit_mul [normed_algebra ℚ_[p] R] [fact (0 < m)] (k : ℕ) {x : ℕ} (hx : m ≤ x) :
   ¬ is_unit ((d * p^x : ℕ) : zmod (χ.change_level (dvd_lcm_left (d * p^m) (d * p^m)) *
     (teichmuller_character_mod_p_change_level p d R m ^ k).change_level
     (dvd_lcm_right (d * p^m) (d * p^m))).conductor) :=
@@ -1070,7 +1077,7 @@ begin
   sorry
 end-/
 
-lemma norm_lim_eq_zero [semi_normed_algebra ℚ_[p] R] (k : R) :
+lemma norm_lim_eq_zero [normed_algebra ℚ_[p] R] [norm_one_class R] (k : R) :
   filter.tendsto (λ n : ℕ, (((d * p^n) : ℕ) : R) * k) (filter.at_top) (nhds 0) :=
 begin
   by_cases k = 0,
@@ -1094,15 +1101,16 @@ begin
     apply lt_of_le_of_lt (norm_mul_le _ _) _,
     apply lt_of_le_of_lt (mul_le_mul (norm_mul_pow_le_one_div_pow d p n) le_rfl (norm_nonneg _) _) _,
     { apply_instance, },
+    { apply_instance, },
     { rw ← one_div_pow, apply pow_nonneg f3 _, },
-    rw ← inv_inv' (∥k∥),
+    rw ← inv_inv (∥k∥),
     rw mul_inv_lt_iff f,
     { rw ← one_div_pow,
       apply lt_of_le_of_lt (pow_le_pow_of_le_one f3 (le_of_lt f2) hn) _,
       apply classical.some_spec (exists_pow_lt_of_lt_one f1 f2), }, },
 end
 
-lemma norm_lim_eq_zero' [semi_normed_algebra ℚ_[p] R] {ε : ℝ} (hε : 0 < ε) {k : ℝ} (hk : 0 ≤ k) :
+lemma norm_lim_eq_zero' [normed_algebra ℚ_[p] R] [norm_one_class R] {ε : ℝ} (hε : 0 < ε) {k : ℝ} (hk : 0 ≤ k) :
   ∃ n : ℕ, ∀ x ≥ n, ∥((d * p^x : ℕ) : R)∥ * k < ε :=
 begin
   by_cases k = 0,
@@ -1123,14 +1131,15 @@ begin
     refine ⟨n, λ x hx, _⟩,
     apply lt_of_le_of_lt (mul_le_mul (norm_mul_pow_le_one_div_pow d p x) le_rfl hk _) _,
     { apply_instance, },
+    { apply_instance, },
     { rw ← one_div_pow, apply pow_nonneg f3 _, },
-    rw ← inv_inv' k,
+    rw ← inv_inv k,
     rw mul_inv_lt_iff f,
     { rw ← one_div_pow,
       apply lt_of_le_of_lt (pow_le_pow_of_le_one f3 (le_of_lt f2) hx) hn, }, },
 end
 
-lemma lim_eq_lim [semi_normed_algebra ℚ_[p] R] {a : R} (k : R) {f : ℕ → R}
+lemma lim_eq_lim [normed_algebra ℚ_[p] R] [norm_one_class R] {a : R} (k : R) {f : ℕ → R}
   (ha : filter.tendsto f (filter.at_top) (nhds a)) :
   filter.tendsto (λ n : ℕ, f n + (((d * p^n) : ℕ) : R) * k) (filter.at_top) (nhds a) :=
 begin
@@ -1138,7 +1147,7 @@ begin
   apply filter.tendsto.add ha (norm_lim_eq_zero d p k),
 end
 
-noncomputable abbreviation N1 [semi_normed_algebra ℚ_[p] R] [algebra ℚ R] [fact (0 < m)]
+noncomputable abbreviation N1 [normed_algebra ℚ_[p] R] [algebra ℚ R] [fact (0 < m)]
   {k : ℕ} (hk : 1 < k) (ε : ℝ) (hε : 0 < ε) :=
   Inf {n : ℕ | ∀ (x : ℕ) (hx : n ≤ x), ∥(∑ (i : ℕ) in finset.range (d * p ^ x),
   (asso_dirichlet_character (χ.mul (teichmuller_character_mod_p_change_level p d R m ^ k))) ↑i *
@@ -1151,7 +1160,7 @@ noncomputable abbreviation N1 [semi_normed_algebra ℚ_[p] R] [algebra ℚ R] [f
 lemma nat_spec (p : ℕ → Prop) (h : ({n : ℕ | ∀ (x : ℕ), x ≥ n → p x}).nonempty) (x : ℕ)
   (hx : x ≥ Inf {n : ℕ | ∀ (x : ℕ) (hx : x ≥ n), p x}) : p x := nat.Inf_mem h x hx
 
-lemma N1_spec [nontrivial R] [no_zero_divisors R] [semi_normed_algebra ℚ_[p] R] [algebra ℚ R] [fact (0 < m)]
+lemma N1_spec [nontrivial R] [no_zero_divisors R] [normed_algebra ℚ_[p] R] [algebra ℚ R] [norm_one_class R] [fact (0 < m)]
   (na : ∀ (n : ℕ) (f : ℕ → R), ∥ ∑ (i : ℕ) in finset.range n, f i∥ ≤ ⨆ (i : zmod n), ∥f i.val∥)
   {k : ℕ} (hk : 1 < k) (hχ : χ.is_even) (hp : 2 < p) (ε : ℝ) (hε : 0 < ε) (x : ℕ)
   (hx : N1 d p m χ hk ε hε ≤ x) :
@@ -1167,12 +1176,12 @@ begin
     (sum_even_character d p m χ na hk hχ hp) ε hε) x hx,
 end
 
-noncomputable abbreviation N2 [semi_normed_algebra ℚ_[p] R] [algebra ℚ R] [fact (0 < m)]
+noncomputable abbreviation N2 [normed_algebra ℚ_[p] R] [algebra ℚ R] [norm_one_class R] [fact (0 < m)]
   {k : ℕ} (hk : 1 < k) (ε : ℝ) (hε : 0 < ε) :=
   Inf { n : ℕ | ∀ (x : ℕ) (hx : n ≤ x), ∥((d * p ^ x : ℕ) : R)∥ *
   (χ.mul (teichmuller_character_mod_p_change_level p d R m ^ k)).bound < ε}
 
-lemma N2_spec [nontrivial R] [no_zero_divisors R] [semi_normed_algebra ℚ_[p] R] [algebra ℚ R] [fact (0 < m)]
+lemma N2_spec [nontrivial R] [no_zero_divisors R] [normed_algebra ℚ_[p] R] [algebra ℚ R] [norm_one_class R] [fact (0 < m)]
   (na : ∀ (n : ℕ) (f : ℕ → R), ∥ ∑ (i : ℕ) in finset.range n, f i∥ ≤ ⨆ (i : zmod n), ∥f i.val∥)
   {k : ℕ} (hk : 1 < k) (hχ : χ.is_even) (hp : 2 < p) (ε : ℝ) (hε : 0 < ε) (x : ℕ)
   (hx : N2 d p m χ hk ε hε ≤ x) :
@@ -1188,15 +1197,15 @@ begin
     (χ.mul (teichmuller_character_mod_p_change_level p d R m ^ k))))) x hx,
 end
 
-lemma norm_le_one [semi_normed_algebra ℚ_[p] R] (n : ℕ) : ∥(n : R)∥ ≤ 1 :=
+lemma norm_le_one [normed_algebra ℚ_[p] R][norm_one_class R] (n : ℕ) : ∥(n : R)∥ ≤ 1 :=
 begin
   rw norm_coe_eq_ring_hom_map p,
   apply padic_int.norm_le_one,
-  apply_instance,
+  apply_instance, apply_instance,
 end
 
 lemma lim_even_character_aux1 [nontrivial R] [no_zero_divisors R] [algebra ℚ R]
-  [semi_normed_algebra ℚ_[p] R] [is_scalar_tower ℚ ℚ_[p] R]
+  [normed_algebra ℚ_[p] R] [norm_one_class R] [is_scalar_tower ℚ ℚ_[p] R]
   (na : ∀ (n : ℕ) (f : ℕ → R), ∥ ∑ (i : ℕ) in finset.range n, f i∥ ≤ ⨆ (i : zmod n), ∥f i.val∥)
   [fact (0 < m)] {k : ℕ} (hk : 1 < k) (hχ : χ.is_even) (hp : 2 < p) {x : ℕ} (ε : ℝ) (hε : 0 < ε)
   (hx : N1 d p m χ hk (ε/2) (half_pos hε) ≤ x)
@@ -1204,7 +1213,7 @@ lemma lim_even_character_aux1 [nontrivial R] [no_zero_divisors R] [algebra ℚ R
   ∥∑ (x : ℕ) in finset.range (d * p ^ x), (asso_dirichlet_character (χ.mul
   (teichmuller_character_mod_p_change_level p d R m ^ k))) ↑(x.succ) * ↑(x + 1) ^ (k - 1)∥ < ε :=
 begin
-  have pos : 0 < k - 1, { rw nat.lt_sub_left_iff_add_lt, rw add_zero, apply hk, },
+  have pos : 0 < k - 1, { rw lt_tsub_iff_left, rw add_zero, apply hk, },
   convert_to ∥∑ (x : ℕ) in finset.range (d * p ^ x), (asso_dirichlet_character (χ.mul
     (teichmuller_character_mod_p_change_level p d R m ^ k))) ↑x * ↑x ^ (k - 1) +
     (((asso_dirichlet_character (χ.mul (teichmuller_character_mod_p_change_level
@@ -1237,6 +1246,7 @@ begin
     rw ← nat.cast_pow,
     apply lt_of_le_of_lt (add_le_add le_rfl (mul_le_mul le_rfl (norm_le_one p _) _ _)) _,
     { apply_instance, },
+    { apply_instance, },
     { apply norm_nonneg _, },
     { apply mul_nonneg (le_of_lt (dirichlet_character.bound_pos _)) (norm_nonneg _), },
     rw mul_one, rw mul_comm,
@@ -1246,7 +1256,7 @@ begin
 end
 
 lemma aux_three {k : ℕ} (x : ℕ) [nontrivial R] [no_zero_divisors R] [algebra ℚ R]
-  [semi_normed_algebra ℚ_[p] R] [is_scalar_tower ℚ ℚ_[p] R]
+  [normed_algebra ℚ_[p] R] [norm_one_class R] [is_scalar_tower ℚ ℚ_[p] R]
   (na : ∀ (n : ℕ) (f : ℕ → R), ∥∑ (i : ℕ) in finset.range n, f i∥ ≤ ⨆ (i : zmod n), ∥f i.val∥)
   [fact (0 < m)] (hk : 1 < k) :
   0 ≤ (⨆ (x_1 : zmod k.pred), ∥(algebra_map ℚ R) (bernoulli (k.pred.succ - x_1.val) *
@@ -1266,21 +1276,22 @@ begin
 end
 
 lemma norm_coe_nat_le_one [nontrivial R] [no_zero_divisors R] [algebra ℚ R]
-  [semi_normed_algebra ℚ_[p] R] [is_scalar_tower ℚ ℚ_[p] R] (n : ℕ) : ∥(algebra_map ℚ R) n∥ ≤ 1 :=
+  [normed_algebra ℚ_[p] R] [norm_one_class R] [is_scalar_tower ℚ ℚ_[p] R] (n : ℕ) : ∥(algebra_map ℚ R) n∥ ≤ 1 :=
 begin
-  rw [ring_hom.map_nat_cast, norm_coe_eq_ring_hom_map p],
+  rw [map_nat_cast, norm_coe_eq_ring_hom_map p],
   { apply padic_int.norm_le_one, },
+  { apply_instance, },
   { apply_instance, },
 end
 
-noncomputable abbreviation N5 [semi_normed_algebra ℚ_[p] R] [algebra ℚ R] [fact (0 < m)]
+noncomputable abbreviation N5 [normed_algebra ℚ_[p] R] [algebra ℚ R] [fact (0 < m)]
   {k : ℕ} (hk : 1 < k) (ε : ℝ) (hε : 0 < ε) :=
   Inf { n : ℕ | ∀ (x : ℕ) (hx : n ≤ x), ∥((d * p ^ x : ℕ) : R)∥ * ((⨆ (x_1 : zmod k.pred),
   ∥(algebra_map ℚ R) (bernoulli (k.pred.succ - x_1.val) * ↑(k.pred.succ.choose x_1.val))∥) *
  -- (↑(d * p ^ x) ^ (k.pred - 1) / ↑(d * p ^ x) ^ x_1.val))∥) *
   (χ.mul (teichmuller_character_mod_p_change_level p d R m ^ k)).bound) < ε}
 
-lemma N5_spec [nontrivial R] [no_zero_divisors R] [semi_normed_algebra ℚ_[p] R] [algebra ℚ R] [fact (0 < m)]
+lemma N5_spec [nontrivial R] [no_zero_divisors R] [normed_algebra ℚ_[p] R] [algebra ℚ R] [norm_one_class R] [fact (0 < m)]
   (na : ∀ (n : ℕ) (f : ℕ → R), ∥ ∑ (i : ℕ) in finset.range n, f i∥ ≤ ⨆ (i : zmod n), ∥f i.val∥)
   {k : ℕ} (hk : 1 < k) (hχ : χ.is_even) (hp : 2 < p) (ε : ℝ) (hε : 0 < ε) (x : ℕ)
   (hx : N5 d p m χ hk ε hε ≤ x) :
@@ -1312,7 +1323,7 @@ begin
 end
 
 lemma aux_four {k : ℕ} (ε : ℝ) (x : ℕ) [nontrivial R] [no_zero_divisors R] [algebra ℚ R]
-  [semi_normed_algebra ℚ_[p] R] [is_scalar_tower ℚ ℚ_[p] R]
+  [normed_algebra ℚ_[p] R] [norm_one_class R] [is_scalar_tower ℚ ℚ_[p] R]
   (na : ∀ (n : ℕ) (f : ℕ → R), ∥∑ (i : ℕ) in finset.range n, f i∥ ≤ ⨆ (i : zmod n), ∥f i.val∥)
   [fact (0 < m)] (hk : 1 < k) (hχ : χ.is_even) (hp : 2 < p) (hε : ε > 0)
   (hx : x ≥ N5 d p m χ hk (ε/6) (by linarith)) :
@@ -1389,12 +1400,12 @@ begin
       apply le_csupr_of_le _ _,
       rw (algebra_map ℚ R).map_mul,
       rw div_eq_mul_inv,
-      rw ← pow_sub' ((d * p^x : ℕ) : ℚ) _ _,
+      rw ← pow_sub₀ ((d * p^x : ℕ) : ℚ) _ _,
       rw ← nat.cast_pow,
       apply le_trans (norm_mul_le _ _) _,
-      rw ring_hom.map_nat_cast,
+      rw map_nat_cast,
       apply le_trans (mul_le_mul le_rfl (norm_le_one p _) _ _) _,
-      { apply_instance, },
+      any_goals { apply_instance, },
       any_goals { apply norm_nonneg _, },
       { rw mul_one, },
       { exact nonzero_of_invertible ↑(d * p ^ x), },
@@ -1438,9 +1449,9 @@ by { rw [mul, mul_eq_asso_pri_char], }
 
 lemma nat.pred_add_one_eq_self {n : ℕ} (hn : 0 < n) : n.pred + 1 = n := nat.succ_pred_eq_of_pos hn
 
-lemma aux_five_aux [algebra ℚ R] [semi_normed_algebra ℚ_[p] R] [fact (0 < m)] (k : ℕ) {ε : ℝ}
+lemma aux_five_aux [algebra ℚ R] [normed_algebra ℚ_[p] R] [fact (0 < m)] (k : ℕ) {ε : ℝ}
   (hε : 0 < ε) :
-  0 ≤ ∥(algebra_map ℚ R) (polynomial.eval 1 (bernoulli_poly k.pred.pred.succ.succ))∥ * (χ.mul
+  0 ≤ ∥(algebra_map ℚ R) (polynomial.eval 1 (polynomial.bernoulli k.pred.pred.succ.succ))∥ * (χ.mul
   (teichmuller_character_mod_p_change_level
   p d R m ^ k.pred.pred.succ.succ)).asso_primitive_character.bound ∧ 0 < ε/3 :=
 begin
@@ -1449,18 +1460,18 @@ begin
   { linarith, },
 end
 
-noncomputable abbreviation N3 [semi_normed_algebra ℚ_[p] R] [algebra ℚ R] [fact (0 < m)]
+noncomputable abbreviation N3 [normed_algebra ℚ_[p] R] [algebra ℚ R] [fact (0 < m)]
   {k : ℕ} (hk : 1 < k) (ε : ℝ) (hε : 0 < ε) :=
   Inf { n : ℕ | ∀ (x : ℕ) (hx : n ≤ x), ∥((d * p ^ x : ℕ) : R)∥ * (∥(algebra_map ℚ R) (polynomial.eval 1
-    (bernoulli_poly k.pred.pred.succ.succ))∥ * (χ.mul
+    (polynomial.bernoulli k.pred.pred.succ.succ))∥ * (χ.mul
   (teichmuller_character_mod_p_change_level p d R
     m ^ k.pred.pred.succ.succ)).asso_primitive_character.bound) < ε}
 
-lemma N3_spec [nontrivial R] [no_zero_divisors R] [semi_normed_algebra ℚ_[p] R] [algebra ℚ R] [fact (0 < m)]
+lemma N3_spec [nontrivial R] [no_zero_divisors R] [normed_algebra ℚ_[p] R] [algebra ℚ R] [norm_one_class R] [fact (0 < m)]
   (na : ∀ (n : ℕ) (f : ℕ → R), ∥ ∑ (i : ℕ) in finset.range n, f i∥ ≤ ⨆ (i : zmod n), ∥f i.val∥)
   {k : ℕ} (hk : 1 < k) (hχ : χ.is_even) (hp : 2 < p) (ε : ℝ) (hε : 0 < ε) (x : ℕ)
   (hx : N3 d p m χ hk ε hε ≤ x) :
-  ∥((d * p ^ x : ℕ) : R)∥ * (∥(algebra_map ℚ R) (polynomial.eval 1 (bernoulli_poly k.pred.pred.succ.succ))∥ *
+  ∥((d * p ^ x : ℕ) : R)∥ * (∥(algebra_map ℚ R) (polynomial.eval 1 (polynomial.bernoulli k.pred.pred.succ.succ))∥ *
   (χ.mul (teichmuller_character_mod_p_change_level p d R
   m ^ k.pred.pred.succ.succ)).asso_primitive_character.bound) < ε :=
 begin
@@ -1472,7 +1483,7 @@ begin
 end
 
 lemma aux_five [nontrivial R] [no_zero_divisors R] [algebra ℚ R]
-  [semi_normed_algebra ℚ_[p] R] [is_scalar_tower ℚ ℚ_[p] R]
+  [normed_algebra ℚ_[p] R]  [norm_one_class R] [is_scalar_tower ℚ ℚ_[p] R]
 -- (n : ℕ) --[fact (0 < n)]
   (na : ∀ (n : ℕ) (f : ℕ → R), ∥ ∑ (i : ℕ) in finset.range n, f i∥ ≤ ⨆ (i : zmod n), ∥f i.val∥)
   [fact (0 < m)] {k : ℕ} (hk : 1 < k) (hχ : χ.is_even) (hp : 2 < p) (ε : ℝ) (hε : 0 < ε) (x : ℕ)
@@ -1480,12 +1491,12 @@ lemma aux_five [nontrivial R] [no_zero_divisors R] [algebra ℚ R]
   ∥(1 / ((d * p ^ x : ℕ) : ℚ)) • ((asso_dirichlet_character
   (χ.mul (teichmuller_character_mod_p_change_level p d R m ^ k)).asso_primitive_character)
   ↑(d * p ^ x) * ((algebra_map ℚ R) (↑(d * p ^ x) ^ k) *
-  (algebra_map ℚ R) (polynomial.eval (↑(d * p ^ x) / ↑(d * p ^ x)) (bernoulli_poly k))))∥ < ε/3 :=
+  (algebra_map ℚ R) (polynomial.eval (↑(d * p ^ x) / ↑(d * p ^ x)) (polynomial.bernoulli k))))∥ < ε/3 :=
 begin
   rw [mul_comm _ ((algebra_map ℚ R) (↑(d * p ^ x) ^ k) *
-    (algebra_map ℚ R) (polynomial.eval (↑(d * p ^ x) / ↑(d * p ^ x)) (bernoulli_poly k))),
+    (algebra_map ℚ R) (polynomial.eval (↑(d * p ^ x) / ↑(d * p ^ x)) (polynomial.bernoulli k))),
     mul_assoc, ← smul_mul_assoc, ← nat.succ_pred_eq_of_pos (pos_of_gt hk), pow_succ,
-   (algebra_map ℚ R).map_mul, ← smul_mul_assoc, ← inv_eq_one_div, ring_hom.map_nat_cast,
+   (algebra_map ℚ R).map_mul, ← smul_mul_assoc, ← inv_eq_one_div, map_nat_cast,
    inv_smul_self (ne_zero_of_lt (mul_prime_pow_pos p d x)), one_mul, div_self _],
   { have pred_pos : 0 < k.pred := nat.lt_pred_iff.2 hk,
     rw [← nat.succ_pred_eq_of_pos pred_pos, pow_succ, (algebra_map ℚ R).map_mul, mul_assoc],
@@ -1507,13 +1518,13 @@ begin
             _ _) _,
           { apply norm_nonneg _, },
           { apply mul_nonneg (norm_nonneg _) (norm_nonneg _), },
-          { rw [mul_assoc, ring_hom.map_nat_cast],
+          { rw [mul_assoc, map_nat_cast],
             apply N3_spec d p m χ na hk hχ hp (ε/3) (by linarith) x hx, }, }, }, }, },
   { norm_cast, apply (ne_zero_of_lt (mul_prime_pow_pos p d x)), },
 end
 
 lemma aux_6_one [nontrivial R] [no_zero_divisors R] [algebra ℚ R]
-  [semi_normed_algebra ℚ_[p] R] [is_scalar_tower ℚ ℚ_[p] R]
+  [normed_algebra ℚ_[p] R] [norm_one_class R] [is_scalar_tower ℚ ℚ_[p] R]
   {k : ℕ} (hk : 1 < k) {ε : ℝ} (hε : 0 < ε) :
   0 < ε / (6 * ∥(algebra_map ℚ R) (bernoulli 1 * ↑k)∥) :=
 begin
@@ -1527,12 +1538,12 @@ begin
   apply ne_zero_of_lt hk,
 end
 
-noncomputable abbreviation N4 [semi_normed_algebra ℚ_[p] R] [algebra ℚ R] [fact (0 < m)]
+noncomputable abbreviation N4 [normed_algebra ℚ_[p] R] [algebra ℚ R]  [norm_one_class R] [fact (0 < m)]
   {k : ℕ} (hk : 1 < k) (ε : ℝ) (hε : 0 < ε) :=
   Inf { n : ℕ | ∀ (x : ℕ) (hx : n ≤ x), ∥((d * p ^ x : ℕ) : R)∥ * (∥(algebra_map ℚ R) (bernoulli 1 * ↑k)∥ *
   (χ.mul (teichmuller_character_mod_p_change_level p d R m ^ k)).bound) < ε}
 
-lemma N4_spec [nontrivial R] [no_zero_divisors R] [semi_normed_algebra ℚ_[p] R] [algebra ℚ R] [fact (0 < m)]
+lemma N4_spec [nontrivial R] [no_zero_divisors R] [normed_algebra ℚ_[p] R] [algebra ℚ R] [norm_one_class R] [fact (0 < m)]
   (na : ∀ (n : ℕ) (f : ℕ → R), ∥ ∑ (i : ℕ) in finset.range n, f i∥ ≤ ⨆ (i : zmod n), ∥f i.val∥)
   {k : ℕ} (hk : 1 < k) (hχ : χ.is_even) (hp : 2 < p) (ε : ℝ) (hε : 0 < ε) (x : ℕ)
   (hx : N4 d p m χ hk ε hε ≤ x) :
@@ -1555,14 +1566,14 @@ begin
 end
 
 lemma aux_6 [nontrivial R] [no_zero_divisors R] [algebra ℚ R]
-  [semi_normed_algebra ℚ_[p] R] [is_scalar_tower ℚ ℚ_[p] R]
+  [normed_algebra ℚ_[p] R]  [norm_one_class R] [is_scalar_tower ℚ ℚ_[p] R]
 -- (n : ℕ) --[fact (0 < n)]
   (na : ∀ (n : ℕ) (f : ℕ → R), ∥ ∑ (i : ℕ) in finset.range n, f i∥ ≤ ⨆ (i : zmod n), ∥f i.val∥)
   [fact (0 < m)] {k : ℕ} (hk : 1 < k) (hχ : χ.is_even) (hp : 2 < p) {ε : ℝ} (hε : 0 < ε) (x : ℕ)
   -- (h1x : classical.some (metric.tendsto_at_top.1 (sum_even_character d p m χ na hk hχ hp) _
   --   (@aux_6_one p _ R _ _ _ _ _ _ k hk ε hε)) ≤ x)
-  (h1x : x ≥ N1 d p m χ hk _ (half_pos (@aux_6_one p _ R _ _ _ _ _ _ k hk ε hε)))
-  (h2x : x ≥ N2 d p m χ hk _ (half_pos (@aux_6_one p _ R _ _ _ _ _ _ k hk ε hε)))
+  (h1x : x ≥ N1 d p m χ hk _ (half_pos (@aux_6_one p _ R  _ _ _ _ _ _ _ k hk ε hε)))
+  (h2x : x ≥ N2 d p m χ hk _ (half_pos (@aux_6_one p _ R _ _ _ _ _ _ _ k hk ε hε)))
   (h4x : x ≥ N4 d p m χ hk (ε / 6) (by linarith)) :
   -- (h2x : x ≥ classical.some (metric.tendsto_at_top.1
   --        (norm_lim_eq_zero d p (((d * p ^ x : ℕ) : R) ^ (k - 1).pred))
@@ -1625,7 +1636,7 @@ begin
       apply mul_lt_mul (dirichlet_character.lt_bound _ _) _ _
         (le_of_lt (dirichlet_character.bound_pos _)),
       { rw ← nat.cast_pow, rw norm_coe_eq_ring_hom_map p, apply padic_int.norm_le_one,
-        apply_instance, },
+        apply_instance, apply_instance, },
       { rw norm_pos_iff, rw ← nat.cast_pow, norm_cast,
         apply pow_ne_zero _ (ne_zero_of_lt (mul_prime_pow_pos p d x)), }, },
     apply lt_of_le_of_lt (add_le_add le_rfl (mul_le_mul le_rfl (le_of_lt nlt) _ (norm_nonneg _))) _,
@@ -1683,7 +1694,7 @@ begin
 end
 .
 lemma lim_even_character [nontrivial R] [no_zero_divisors R] [algebra ℚ R]
-  [semi_normed_algebra ℚ_[p] R] [is_scalar_tower ℚ ℚ_[p] R]
+  [normed_algebra ℚ_[p] R] [norm_one_class R] [is_scalar_tower ℚ ℚ_[p] R]
   (na : ∀ (n : ℕ) (f : ℕ → R), ∥ ∑ (i : ℕ) in finset.range n, f i∥ ≤ ⨆ (i : zmod n), ∥f i.val∥)
   [fact (0 < m)] {k : ℕ} (hk : 1 < k) (hχ : χ.is_even) (hp : 2 < p) :
   filter.tendsto (λ n, (1/((d * p^n : ℕ) : ℚ)) • ∑ i in finset.range (d * p^n), ((asso_dirichlet_character
@@ -1696,8 +1707,8 @@ begin
   have six_pos : 0 < ε/6, linarith,
   have three_pos : 0 < ε/3, linarith,
   obtain ⟨N, hN⟩ := metric.tendsto_at_top'.1 (sum_even_character d p m χ na hk hχ hp) ε hε,
-  set s : set ℕ := {N, m, N1 d p m χ hk _ (half_pos (@aux_6_one p _ R _ _ _ _ _ _ k hk ε hε)),
-    N2 d p m χ hk _ (half_pos (@aux_6_one p _ R _ _ _ _ _ _ k hk ε hε)),
+  set s : set ℕ := {N, m, N1 d p m χ hk _ (half_pos (@aux_6_one p _ R _ _ _ _ _ _ _ k hk ε hε)),
+    N2 d p m χ hk _ (half_pos (@aux_6_one p _ R _ _ _ _ _ _ _ k hk ε hε)),
     N3 d p m χ hk (ε / 3) three_pos, N4 d p m χ hk (ε / 6) six_pos,
     N5 d p m χ hk (ε / 6) six_pos} with hs,
   set l : ℕ := Sup s with hl,
@@ -1725,7 +1736,7 @@ begin
     rw int.of_nat_sub (le_of_lt hk),
     rw int.of_nat_one, },
   conv { congr, congr,
-    conv { congr, skip, rw coe_sub, rw gpow_coe_nat,
+    conv { congr, skip, rw coe_sub, rw zpow_coe_nat,
     rw [← one_mul ((algebra_map ℚ R) (((d * p ^ x : ℕ) : ℚ) ^ (k - 1)))],
     rw ← (algebra_map ℚ R).map_one, rw ← one_div_mul_cancel ne_zero, rw (algebra_map ℚ R).map_mul,
     rw mul_assoc _ _ ((algebra_map ℚ R) (((d * p ^ x : ℕ) : ℚ) ^ (k - 1))),

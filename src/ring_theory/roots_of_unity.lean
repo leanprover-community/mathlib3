@@ -84,6 +84,10 @@ def roots_of_unity (k : ℕ+) (M : Type*) [comm_monoid M] : subgroup Mˣ :=
 @[simp] lemma mem_roots_of_unity (k : ℕ+) (ζ : Mˣ) :
   ζ ∈ roots_of_unity k M ↔ ζ ^ (k : ℕ) = 1 := iff.rfl
 
+lemma mem_roots_of_unity' (k : ℕ+) (ζ : Mˣ) :
+  ζ ∈ roots_of_unity k M ↔ (ζ : M) ^ (k : ℕ) = 1 :=
+by { rw [mem_roots_of_unity], norm_cast }
+
 lemma roots_of_unity.coe_injective {n : ℕ+} : function.injective (coe : (roots_of_unity n M) → M) :=
 units.ext.comp (λ x y, subtype.ext)
 
@@ -231,6 +235,17 @@ begin
 end
 
 end is_domain
+
+section reduced
+
+variables (R) [comm_ring R] [is_reduced R]
+
+@[simp] lemma mem_roots_of_unity_prime_pow_mul_iff (p k : ℕ) (m : ℕ+) [hp : fact p.prime]
+  [char_p R p] {ζ : Rˣ} :
+  ζ ∈ roots_of_unity (⟨p, hp.1.pos⟩ ^ k * m) R ↔ ζ ∈ roots_of_unity m R :=
+by simp [mem_roots_of_unity']
+
+end reduced
 
 end roots_of_unity
 

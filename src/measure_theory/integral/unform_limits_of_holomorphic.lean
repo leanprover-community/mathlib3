@@ -160,17 +160,16 @@ end
 lemma circle_integral_transform_deriv_bound {R r : ℝ} (hR: 0 < R) (hr : r < R) (hr' : 0 ≤ r)
   {z x : ℂ} {f : ℂ → ℂ} (hx : x ∈ ball z r) (hf : continuous_on f (sphere z R)) :
   ∃ (B ε : ℝ), 0 < ε ∧ ball x ε ⊆ ball z R ∧
-  (∀   (t ∈ [0, 2 * π]) (y ∈ ball x ε), ∥circle_integral_transform_deriv R z y f t∥ ≤ B) :=
+  (∀ (t ∈ [0, 2 * π]) (y ∈ ball x ε), ∥circle_integral_transform_deriv R z y f t∥ ≤ B) :=
 begin
   obtain ⟨ε', hε', H⟩ := exists_ball_subset_ball hx,
   obtain ⟨⟨⟨a, b⟩, ⟨ha, hb⟩⟩, hab⟩ := circle_integral_bounding_function_bound hR hr hr' z,
   let V : ℝ → (ℂ → ℂ) := λ θ w, circle_integral_transform_deriv R z w (λ x, 1) θ,
-  have scomp := is_compact_sphere z R,
-  have snone : (sphere z R).nonempty, by {simp only [normed_space.sphere_nonempty, hR.le]},
   have funccomp : continuous_on (λ r , abs (f r)) (sphere z R),
   by { have cabs : continuous_on abs ⊤ := by apply continuous_abs.continuous_on,
     apply cabs.comp (hf), rw maps_to, tauto,},
-  have sbou := is_compact.exists_forall_ge scomp snone funccomp,
+  have sbou := is_compact.exists_forall_ge (is_compact_sphere z R)
+    (normed_space.sphere_nonempty.2 hR.le) funccomp,
   obtain ⟨X, HX, HX2⟩ := sbou,
   refine ⟨abs (V b a) * abs (f X), ε' , hε', subset.trans H (ball_subset_ball hr.le),  _ ⟩,
   intros y hy v hv,

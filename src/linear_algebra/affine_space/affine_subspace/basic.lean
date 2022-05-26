@@ -567,6 +567,11 @@ by { rw ← ne_empty_iff_nonempty, exact not_congr Q.coe_eq_bot_iff }
 lemma eq_bot_or_nonempty (Q : affine_subspace k P) : Q = ⊥ ∨ (Q : set P).nonempty :=
 by { rw nonempty_iff_ne_bot, apply eq_or_ne }
 
+/-- This lemma is used a lot in geometry when we are carrying around
+`{s : affine_subspace k P} [nonempty s]` hypotheses everywhere. -/
+lemma ne_bot_of_nonempty (s : affine_subspace k P) [nonempty s] : s ≠ ⊥ :=
+affine_subspace.ne_bot_iff.mpr (nonempty_subtype.mp ‹_›)
+
 lemma subsingleton_of_subsingleton_span_eq_top {s : set P} (h₁ : s.subsingleton)
   (h₂ : affine_span k s = ⊤) : subsingleton P :=
 begin

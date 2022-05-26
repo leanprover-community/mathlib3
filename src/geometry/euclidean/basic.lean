@@ -697,7 +697,7 @@ begin
   { rw [direction_top, finrank_top],
     exact hd },
   exact eq_of_dist_eq_of_dist_eq_of_mem_of_finrank_eq_two hd'
-    (mem_top ℝ V _) (mem_top ℝ V _) (mem_top ℝ V _) (mem_top ℝ V _) (mem_top ℝ V _)
+    mem_top mem_top mem_top mem_top mem_top
     hc hp hp₁c₁ hp₂c₁ hpc₁ hp₁c₂ hp₂c₂ hpc₂
 end
 
@@ -711,8 +711,8 @@ defined. -/
 def orthogonal_projection_fn (s : affine_subspace ℝ P) [nonempty s] [complete_space s.direction]
   (p : P) : P :=
 classical.some $ inter_eq_singleton_of_nonempty_of_is_compl
-  (nonempty_subtype.mp ‹_›)
-  (mk'_nonempty p s.directionᗮ)
+  (ne_bot_of_nonempty s)
+  (mk'_ne_bot p s.directionᗮ)
   begin
     rw direction_mk' p s.directionᗮ,
     exact submodule.is_compl_orthogonal_of_complete_space,

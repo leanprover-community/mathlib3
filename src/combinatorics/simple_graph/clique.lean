@@ -137,42 +137,50 @@ def clique_free (n : ℕ) : Prop := ∀ t, ¬ G.is_n_clique n t
 
 variables {G H}
 
-lemma clique_free_iff {n : ℕ} :
-  G.clique_free n ↔ is_empty ((⊤ : simple_graph (fin n)) ↪g G) :=
+lemma not_clique_free_of_top_embedding {n : ℕ}
+  (f : (⊤ : simple_graph (fin n)) ↪g G) : ¬ G.clique_free n :=
 begin
-  simp_rw [clique_free, is_n_clique_iff, is_clique_iff_induce_eq, not_and, is_empty_iff],
-  split,
-  { intros h f,
-    specialize h (finset.map f.to_embedding finset.univ),
-    simp only [card_map, finset.card_fin, eq_self_iff_true, not_true] at h,
-    apply h,
-    ext ⟨v, hv⟩ ⟨w, hw⟩,
-    simp only [induce_adj, subtype.coe_mk, top_adj, ne.def, subtype.mk_eq_mk],
-    refine ⟨adj.ne, _⟩,
-    intro h,
-    simp only [coe_map, rel_embedding.coe_fn_to_embedding, set.mem_image,
-      coe_univ, set.mem_univ, true_and] at hv hw,
-    obtain ⟨v', rfl⟩ := hv,
-    obtain ⟨w', rfl⟩ := hw,
-    rw embedding.map_adj_iff f,
-    simp only [top_adj, ne.def],
-    rintro rfl,
-    exact absurd rfl h, },
-  { rintros h s hi rfl,
-    apply h,
-    have : (⊤ : simple_graph (fin s.card)) ≃g (⊤ : simple_graph s),
-    { apply iso.complete_graph,
-      simpa using (fintype.equiv_fin s).symm },
-    rw ← hi at this,
-    exact (embedding.induce ↑s).comp this.to_embedding, }
+  simp only [clique_free, is_n_clique_iff, is_clique_iff_induce_eq, not_forall, not_not],
+  use finset.univ.map f.to_embedding,
+  simp only [card_map, finset.card_fin, eq_self_iff_true, and_true],
+  ext ⟨v, hv⟩ ⟨w, hw⟩,
+  simp only [coe_map, rel_embedding.coe_fn_to_embedding, set.mem_image,
+    coe_univ, set.mem_univ, true_and] at hv hw,
+  obtain ⟨v', rfl⟩ := hv,
+  obtain ⟨w', rfl⟩ := hw,
+  simp only [induce_adj, subtype.coe_mk, top_adj, ne.def, subtype.mk_eq_mk, f.map_adj_iff],
+  exact (function.embedding.apply_eq_iff_eq _ _ _).symm.not,
+end
+
+noncomputable
+def complete_graph_embedding_of_not_clique_free {n : ℕ} (h : ¬ G.clique_free n) :
+  (⊤ : simple_graph (fin n)) ↪g G :=
+begin
+  simp only [clique_free, is_n_clique_iff, is_clique_iff_induce_eq, not_forall, not_not] at h,
+  obtain ⟨ha, hb⟩ := h.some_spec,
+  have : (⊤ : simple_graph (fin h.some.card)) ≃g (⊤ : simple_graph h.some),
+  { apply iso.complete_graph,
+    simpa using (fintype.equiv_fin h.some).symm },
+  rw ← ha at this,
+  convert (embedding.induce ↑h.some).comp this.to_embedding;
+  exact hb.symm,
 end
 
 lemma not_clique_free_iff (n : ℕ) :
   ¬ G.clique_free n ↔ nonempty ((⊤ : simple_graph (fin n)) ↪g G) :=
-by simp [clique_free_iff]
+begin
+  split,
+  { exact λ h, ⟨complete_graph_embedding_of_not_clique_free h⟩ },
+  { rintro ⟨f⟩,
+    exact not_clique_free_of_top_embedding f },
+end
 
-lemma not_clique_free_of_top_embedding [fintype α] (f : (⊤ : simple_graph α) ↪g G) :
-  ¬ G.clique_free (fintype.card α) :=
+lemma clique_free_iff {n : ℕ} :
+  G.clique_free n ↔ is_empty ((⊤ : simple_graph (fin n)) ↪g G) :=
+by rw [← not_iff_not, not_clique_free_iff, not_is_empty_iff]
+
+lemma not_clique_free_card_of_top_embedding [fintype α] (f : (⊤ : simple_graph α) ↪g G) :
+  ¬ G.clique_free (card α) :=
 begin
   rw [not_clique_free_iff],
   use (iso.complete_graph (fintype.equiv_fin α)).symm.to_embedding.trans f,

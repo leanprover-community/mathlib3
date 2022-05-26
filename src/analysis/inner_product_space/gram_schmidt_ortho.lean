@@ -38,8 +38,8 @@ open_locale big_operators
 open finset
 
 variables (𝕜 : Type*) {E : Type*} [is_R_or_C 𝕜] [inner_product_space 𝕜 E]
-variables {ι : Type*} [linear_order ι] [order_bot ι] [succ_order ι]
-variables [is_succ_archimedean ι] [locally_finite_order ι] [is_well_order ι (<)]
+variables {ι : Type*} [linear_order ι] [order_bot ι]
+variables [locally_finite_order ι] [is_well_order ι (<)]
 
 local attribute [instance] is_well_order.has_well_founded
 
@@ -105,7 +105,7 @@ theorem gram_schmidt_pairwise_orthogonal (f : ι → E) :
 open submodule set order
 
 /-- `gram_schmidt` preserves span of vectors. -/
-lemma span_gram_schmidt (f : ι → E) (c : ι) :
+lemma span_gram_schmidt [succ_order ι] [is_succ_archimedean ι] (f : ι → E) (c : ι) :
   span 𝕜 (gram_schmidt 𝕜 f '' Iio c) = span 𝕜 (f '' Iio c) :=
 begin
   apply @succ.rec ι _ _ _ (λ c, span 𝕜 (gram_schmidt 𝕜 f '' Iio c) = span 𝕜 (f '' Iio c)) ⊥
@@ -139,7 +139,8 @@ end
 
 /-- If the input vectors of `gram_schmidt` are linearly independent,
 then the output vectors are non-zero. -/
-lemma gram_schmidt_ne_zero (f : ι → E) (n : ι) (h₀ : linear_independent 𝕜 f) :
+lemma gram_schmidt_ne_zero [succ_order ι] [is_succ_archimedean ι]
+    (f : ι → E) (n : ι) (h₀ : linear_independent 𝕜 f) :
   gram_schmidt 𝕜 f n ≠ 0 :=
 begin
   by_contra h,
@@ -160,14 +161,16 @@ end
 noncomputable def gram_schmidt_normed (f : ι → E) (n : ι) : E :=
 (∥gram_schmidt 𝕜 f n∥ : 𝕜)⁻¹ • (gram_schmidt 𝕜 f n)
 
-lemma gram_schmidt_normed_unit_length (f : ι → E) (n : ι) (h₀ : linear_independent 𝕜 f) :
-    ∥gram_schmidt_normed 𝕜 f n∥ = 1 :=
+lemma gram_schmidt_normed_unit_length [succ_order ι] [is_succ_archimedean ι]
+    (f : ι → E) (n : ι) (h₀ : linear_independent 𝕜 f) :
+  ∥gram_schmidt_normed 𝕜 f n∥ = 1 :=
 by simp only [gram_schmidt_ne_zero 𝕜 f n h₀,
   gram_schmidt_normed, norm_smul_inv_norm, ne.def, not_false_iff]
 
 /-- **Gram-Schmidt Orthonormalization**:
 `gram_schmidt_normed` produces an orthornormal system of vectors. -/
-theorem gram_schmidt_orthonormal (f : ι → E) (h₀ : linear_independent 𝕜 f) :
+theorem gram_schmidt_orthonormal [succ_order ι] [is_succ_archimedean ι]
+    (f : ι → E) (h₀ : linear_independent 𝕜 f) :
   orthonormal 𝕜 (gram_schmidt_normed 𝕜 f) :=
 begin
   unfold orthonormal,

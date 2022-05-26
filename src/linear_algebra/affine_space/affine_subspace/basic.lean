@@ -882,6 +882,29 @@ span_points_nonempty k s
 instance {s : set P} [nonempty s] : nonempty (affine_span k s) :=
 ((affine_span_nonempty k s).mpr (nonempty_subtype.mp ‹_›)).to_subtype
 
+variables {k}
+
+/-- Suppose a set of vectors spans `V`.  Then a point `p`, together
+with those vectors added to `p`, spans `P`. -/
+lemma affine_span_singleton_union_vadd_eq_top_of_span_eq_top {s : set V} (p : P)
+    (h : submodule.span k (set.range (coe : s → V)) = ⊤) :
+  affine_span k ({p} ∪ (λ v, v +ᵥ p) '' s) = ⊤ :=
+begin
+  refine ext_of_direction_eq _ _,
+  { rw [direction_affine_span, direction_top],
+    rw vector_span_eq_span_vsub_set_right k
+      ((set.mem_union_left _ (set.mem_singleton _)) : p ∈ _),
+    rw _root_.eq_top_iff, rw ← h,
+    apply submodule.span_mono,
+    rintros v ⟨v', rfl⟩,
+    use (v' : V) +ᵥ p,
+    simp, },
+  rw affine_subspace.ne_bot_iff,
+  refine ⟨p, mem_inf.mpr ⟨mem_affine_span k $ mem_union_left _ (mem_singleton p), mem_top⟩⟩,
+end
+
+variables (k)
+
 /-- `affine_span` is monotone. -/
 @[mono]
 lemma affine_span_mono {s₁ s₂ : set P} (h : s₁ ⊆ s₂) : affine_span k s₁ ≤ affine_span k s₂ :=

@@ -653,5 +653,5 @@ theorem coe_subset_nonunits [semiring α] {I : ideal α} (h : I ≠ ⊤) :
 λ x hx hu, h $ I.eq_top_of_is_unit_mem hx hu
 
 lemma mem_nonunits_iff_exists_max_ideal [comm_semiring α] :
-a ∈ nonunits α ↔ ∃ I : ideal α, I.is_maximal ∧ a ∈ I :=
-iff.trans mem_nonunits_iff' ideal.not_has_left_inv_iff_mem_maximal
+  a ∈ nonunits α ↔ ∃ I : ideal α, I.is_maximal ∧ a ∈ I :=
+mem_nonunits_iff'.trans ideal.not_has_left_inv_iff_mem_maximal

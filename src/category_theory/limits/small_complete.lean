@@ -63,7 +63,7 @@ begin
       ext k,
       simp },
     { intros f,
-      ext,
+      ext ⟨j⟩,
       simp } },
   { apply cardinal.mk_le_of_injective _,
     { intro f,

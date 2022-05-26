@@ -390,7 +390,7 @@ begin
     { rw [←add_mul, ←add_mul, ←C_add, h, C_0, zero_mul, zero_mul] } },
 end
 
-lemma irreducible1_aux3 {k m m' n : ℕ} {u v w : ℤ}
+lemma irreducible_step1 {k m m' n : ℕ} {u v w : ℤ}
   (hkm : k < m) (hmn : m < n) (hkm' : k < m') (hmn' : m' < n)
   (hu : is_unit u) (hv : is_unit v) (hw : is_unit w)
   (hp : p = C u * X ^ k + C v * X ^ m + C w * X ^ n)
@@ -444,7 +444,7 @@ begin
     norm_num at h },
 end
 
-lemma irreducible1_aux2 {k m m' n : ℕ} {u v w x z : ℤ}
+lemma irreducible_step2 {k m m' n : ℕ} {u v w x z : ℤ}
   (hkm : k < m) (hmn : m < n) (hkm' : k < m') (hmn' : m' < n)
   (hu : is_unit u) (hv : is_unit v) (hw : is_unit w) (hx : is_unit x) (hz : is_unit z)
   (hp : p = C u * X ^ k + C v * X ^ m + C w * X ^ n)
@@ -452,36 +452,30 @@ lemma irreducible1_aux2 {k m m' n : ℕ} {u v w x z : ℤ}
   (h : p * p.mirror = q * q.mirror) :
   q = p ∨ q = p.mirror :=
 begin
-  have key2 := congr_arg leading_coeff h,
-  simp only [leading_coeff_mul, mirror_leading_coeff] at key2,
-  rw [hp, hq, trinomial_leading_coeff hkm hmn hw.ne_zero,
-      trinomial_leading_coeff hkm' hmn' hz.ne_zero,
+  have hmul := congr_arg leading_coeff h,
+  rw [leading_coeff_mul, leading_coeff_mul, mirror_leading_coeff, mirror_leading_coeff, hp, hq,
+      trinomial_leading_coeff hkm hmn hw.ne_zero, trinomial_leading_coeff hkm' hmn' hz.ne_zero,
       trinomial_trailing_coeff hkm hmn hu.ne_zero,
-      trinomial_trailing_coeff hkm' hmn' hx.ne_zero] at key2,
+      trinomial_trailing_coeff hkm' hmn' hx.ne_zero] at hmul,
 
-  have key1 := congr_arg (eval 1) h,
-  rw [hp, hq, trinomial_mirror hkm hmn hu.ne_zero hw.ne_zero,
-    trinomial_mirror hkm' hmn' hx.ne_zero hz.ne_zero] at key1,
-  simp only [eval_add, eval_mul, eval_pow, eval_C, eval_X, one_pow, mul_one, mul_add, add_mul,
-    int.is_unit_mul_self, hu, hv, hw, hx, hz] at key1,
-  rw [mul_comm u w, mul_comm x z, mul_comm u v, mul_comm w v, mul_comm x v, mul_comm z v, key2] at key1,
-  simp_rw [add_assoc, add_right_inj, ←add_assoc, add_left_inj] at key1,
-  abel at key1,
-  simp_rw [add_right_inj, ←smul_add, smul_eq_mul, ←mul_add] at key1,
-  rw [mul_right_inj' (show (2 : ℤ) ≠ (0 : ℤ), from two_ne_zero), mul_right_inj' hv.ne_zero] at key1,
+  have hadd := congr_arg (eval 1) h,
+  rw [eval_mul, eval_mul, mirror_eval_one, mirror_eval_one, ←sq, ←sq, hp, hq] at hadd,
+  simp only [eval_add, eval_C_mul, eval_pow, eval_X, one_pow, mul_one] at hadd,
+  rw [add_assoc, add_assoc, add_comm u, add_comm x, add_assoc, add_assoc] at hadd,
+  simp only [add_sq', add_assoc, add_right_inj, int.is_unit_sq, hu, hv, hw, hx, hz] at hadd,
+  rw [mul_assoc, hmul, ←mul_assoc, add_right_inj,
+      mul_right_inj' (show 2 * v ≠ 0, from mul_ne_zero two_ne_zero hv.ne_zero)] at hadd,
 
-  rcases sublemma hu hw hx hz key1 with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩,
-  { exact irreducible1_aux3 hkm hmn hkm' hmn' hu hv hw hp hq h },
-  { replace hq := congr_arg mirror hq,
-    rw [trinomial_mirror hkm' hmn' hw.ne_zero hu.ne_zero] at hq,
-    have key := irreducible1_aux3 hkm hmn _ _ hu hv hw hp hq _,
-    { rwa [mirror_inj, mirror_eq_iff, or_comm] at key },
-    { rwa [lt_add_iff_pos_left, tsub_pos_iff_lt] },
-    { rwa [←lt_tsub_iff_right, tsub_lt_tsub_iff_left_of_le hmn'.le] },
-    { rwa [mirror_mirror, mul_comm _ q] } },
+  rcases sublemma hw hu hz hx hadd with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩,
+  { exact irreducible_step1 hkm hmn hkm' hmn' hu hv hw hp hq h },
+  { rw [←mirror_inj, trinomial_mirror hkm' hmn' hw.ne_zero hu.ne_zero] at hq,
+    rw [mul_comm q, ←q.mirror_mirror, q.mirror.mirror_mirror] at h,
+    rw [←mirror_inj, or_comm, ←mirror_eq_iff],
+    exact irreducible_step1 hkm hmn (lt_add_of_pos_left k (tsub_pos_of_lt hmn'))
+      ((lt_tsub_iff_right).mp ((tsub_lt_tsub_iff_left_of_le hmn'.le).mpr hkm')) hu hv hw hp hq h },
 end
 
-lemma irreducible1 (hp : p.is_unit_trinomial)
+lemma irreducible_step3 (hp : p.is_unit_trinomial)
   (h : ∀ q : ℤ[X], q ∣ p → q ∣ p.mirror → is_unit q) :
   irreducible p :=
 begin
@@ -500,20 +494,20 @@ begin
   subst hk,
   subst hn,
   rcases eq_or_eq_neg_of_sq_eq_sq y v ((int.is_unit_sq hy).trans (int.is_unit_sq hv).symm) with rfl | rfl,
-  { rcases irreducible1_aux2 hkm hmn hkm' hmn' hu hv hw hx hz hp hq hpq with rfl | rfl,
+  { rcases irreducible_step2 hkm hmn hkm' hmn' hu hv hw hx hz hp hq hpq with rfl | rfl,
     { exact or.inl rfl },
     { exact or.inr (or.inr (or.inl rfl)) } },
   { rw [←neg_inj, neg_add, neg_add, ←neg_mul, ←neg_mul, ←neg_mul, ←C_neg, ←C_neg, ←C_neg] at hp,
-    rcases irreducible1_aux2 hkm hmn hkm' hmn' hu.neg hv.neg hw.neg hx hz hp hq _ with rfl | rfl,
+    rcases irreducible_step2 hkm hmn hkm' hmn' hu.neg hv.neg hw.neg hx hz hp hq _ with rfl | rfl,
     { exact or.inr (or.inl rfl) },
     { exact or.inr (or.inr (or.inr p.mirror_neg)) },
     { rwa [mirror_neg, neg_mul_neg] } },
 end
 
-lemma irreducible2 (hp : is_unit_trinomial p)
+lemma irreducible_step4 (hp : is_unit_trinomial p)
   (h : ∀ z : ℂ, ¬ (aeval z p = 0 ∧ aeval z (mirror p) = 0)) : irreducible p :=
 begin
-  refine hp.irreducible1 (λ q hq hq', _),
+  refine hp.irreducible_step3 (λ q hq hq', _),
   suffices : ¬ (0 < q.nat_degree),
   { rw [not_lt, nat.le_zero_iff] at this,
     rw [eq_C_of_nat_degree_eq_zero this, is_unit_C, ←this],
@@ -540,7 +534,7 @@ lemma irreducible21 (hp : is_unit_trinomial p)
   (hp1 : ¬ aeval (0 : ℂ) p = 0)
   (hp2 : ¬ aeval μ₃ p = 0) (hp3 : ¬ aeval μ₆ p = 0) : irreducible p :=
 begin
-  apply hp.irreducible2,
+  apply hp.irreducible_step4,
   rintros z ⟨hz1, hz2⟩,
   sorry,
   -- The key is that either p + p.mirror or p - p.mirror will be a unit binomial, so z must be 0
@@ -557,7 +551,6 @@ end
 lemma irreducible3 (hp : is_unit_trinomial p)
   (hp1 : ¬ X ∣ p) (hp2 : ¬ X ^ 2 + X + 1 ∣ p) (hp3 : ¬ X ^ 2 - X + 1 ∣ p) : irreducible p :=
 begin
-  refine hp.irreducible2 (λ z hz, _),
   sorry,
 end
 

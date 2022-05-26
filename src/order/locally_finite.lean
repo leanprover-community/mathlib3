@@ -650,8 +650,7 @@ end
 end finset
 
 namespace finset
-variables {γ : Type*} [linear_order γ] [locally_finite_order γ]
-  [decidable (nonempty γ)] [is_well_order γ (<)]
+variables {γ : Type*} [linear_order γ] [locally_finite_order γ] [is_well_order γ (<)]
 
 /--
 The finset of elements `x` such that `x ≤ a`. Basically `set.Iic a` as a finset.
@@ -659,33 +658,25 @@ The finset of elements `x` such that `x ≤ a`. Basically `set.Iic a` as a finse
 In contrast to `finset.Iic`, this definition does not require the type to be inhabited, but it does
 require `linear_order` and `is_well_order` instead. -/
 noncomputable def Iic_wf (a : γ) : finset γ :=
-if h : nonempty γ
-then Ico ((@is_well_order.wf γ (<) _).min set.univ (@set.univ_nonempty γ h)) a
-else ∅
+Ico ((@is_well_order.wf γ (<) _).min set.univ (@set.univ_nonempty γ ⟨a⟩)) a
 
 lemma mem_Iic_wf (x b : γ) : x ∈ Iic_wf b ↔ x < b :=
 begin
-  by_cases h : nonempty γ,
-  { simp only [Iic_wf, h, dif_pos, mem_Ico, and_iff_right_iff_imp],
-    exact λ _, not_lt.1 ((@is_well_order.wf γ (<) _).not_lt_min
-      set.univ (@set.univ_nonempty γ h) (set.mem_univ x)) },
-  { exact false.elim (h ⟨x⟩) }
+  simp only [Iic_wf, dif_pos, mem_Ico, and_iff_right_iff_imp],
+  exact λ _, not_lt.1 ((@is_well_order.wf γ (<) _).not_lt_min
+    set.univ (@set.univ_nonempty γ ⟨b⟩) (set.mem_univ x))
 end
 
 /-- The finset of elements `x` such that `x < a`. Basically `set.Iio a` as a finset.
 See also `finset.Iic`. -/
 noncomputable def Iio_wf (a : γ) : finset γ :=
-if h : nonempty γ
-then Ico ((@is_well_order.wf γ (<) _).min set.univ (@set.univ_nonempty γ h)) a
-else ∅
+Ico ((@is_well_order.wf γ (<) _).min set.univ (@set.univ_nonempty γ ⟨a⟩)) a
 
 lemma mem_Iio_wf (x b : γ) : x ∈ Iio_wf b ↔ x < b :=
 begin
-  by_cases h : nonempty γ,
-  { simp only [Iio_wf, h, dif_pos, mem_Ico, and_iff_right_iff_imp],
-    exact λ _, not_lt.1 ((@is_well_order.wf γ (<) _).not_lt_min
-      set.univ (@set.univ_nonempty γ h) (set.mem_univ x)) },
-  { exact false.elim (h ⟨x⟩) }
+  simp only [Iio_wf, dif_pos, mem_Ico, and_iff_right_iff_imp],
+  exact λ _, not_lt.1 ((@is_well_order.wf γ (<) _).not_lt_min
+    set.univ (@set.univ_nonempty γ ⟨b⟩) (set.mem_univ x))
 end
 
 end finset

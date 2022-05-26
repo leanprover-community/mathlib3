@@ -461,14 +461,7 @@ lemma equiv_restricts_to_alg_hom_of_finite_dimensional (h_int : algebra.is_integ
   (f : ultrafilter (L →ₐ[K] L)) {E : intermediate_field K L} (h_findim : finite_dimensional K E) :
   ((ultrafilter.glued_generators_of_pushforwards_alg_equiv h_int f).to_alg_hom.comp E.val) =
   f.generator_of_pushforward h_findim :=
-begin
-  ext,
-  have h : ((ultrafilter.glued_generators_of_pushforwards_alg_equiv h_int f).to_alg_hom.comp E.val)
-  x =
-  (ultrafilter.glued_generators_of_pushforwards_alg_equiv h_int f).to_fun x := rfl,
-  rw h,
-  exact ultrafilter.glued_generators_of_pushforwards_function_spec' _ _ _ _,
-end
+alg_hom.ext (ultrafilter.glued_generators_of_pushforwards_function_spec' h_int f h_findim)
 
 lemma inv_mul_alg_equiv_of_elem (x : L) (f g : L ≃ₐ[K] L) : (f⁻¹ * g) x = x ↔ g x = f x :=
 f.to_equiv.symm_apply_eq

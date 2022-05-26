@@ -110,8 +110,7 @@ by rw [← with_bot.coe_eq_coe, ← degree_eq_nat_degree (mul_ne_zero hp hq),
     with_bot.coe_add, ← degree_eq_nat_degree hp,
     ← degree_eq_nat_degree hq, degree_mul]
 
-lemma trailing_degree_mul [no_zero_divisors R] :
-  (p * q).trailing_degree = p.trailing_degree + q.trailing_degree :=
+lemma trailing_degree_mul : (p * q).trailing_degree = p.trailing_degree + q.trailing_degree :=
 begin
   by_cases hp : p = 0,
   { rw [hp, zero_mul, trailing_degree_zero, top_add] },

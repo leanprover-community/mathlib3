@@ -811,18 +811,81 @@ begin
   { exact nonempty.elim hα (λ a, ⟨a, λ x hx, absurd (set.nonempty_of_mem hx) hs⟩) }
 end
 
+lemma finite.supr_binfi_of_monotone {ι ι' α : Type*} [preorder ι'] [nonempty ι']
+  [is_directed ι' (≤)] [order.frame α] {s : set ι} (hs : s.finite) {f : ι → ι' → α}
+  (hf : ∀ i ∈ s, monotone (f i)) :
+  (⨆ j, ⨅ i ∈ s, f i j) = ⨅ i ∈ s, ⨆ j, f i j :=
+begin
+  revert hf,
+  refine hs.induction_on _ _,
+  { intro hf, simp [supr_const] },
+  { intros a s has hs ihs hf,
+    rw [ball_insert_iff] at hf,
+    simp only [infi_insert, ← ihs hf.2],
+    exact supr_inf_of_monotone hf.1 (λ j₁ j₂ hj, infi₂_mono $ λ i hi, hf.2 i hi hj) }
+end
+
+lemma finite.supr_binfi_of_antitone {ι ι' α : Type*} [preorder ι'] [nonempty ι']
+  [is_directed ι' (swap (≤))] [order.frame α] {s : set ι} (hs : s.finite) {f : ι → ι' → α}
+  (hf : ∀ i ∈ s, antitone (f i)) :
+  (⨆ j, ⨅ i ∈ s, f i j) = ⨅ i ∈ s, ⨆ j, f i j :=
+@finite.supr_binfi_of_monotone ι ι'ᵒᵈ α _ _ _ _ _ hs _ (λ i hi, (hf i hi).dual_left)
+
+lemma finite.infi_bsupr_of_monotone {ι ι' α : Type*} [preorder ι'] [nonempty ι']
+  [is_directed ι' (swap (≤))] [order.coframe α] {s : set ι} (hs : s.finite) {f : ι → ι' → α}
+  (hf : ∀ i ∈ s, monotone (f i)) :
+  (⨅ j, ⨆ i ∈ s, f i j) = ⨆ i ∈ s, ⨅ j, f i j :=
+hs.supr_binfi_of_antitone (λ i hi, (hf i hi).dual_right)
+
+lemma finite.infi_bsupr_of_antitone {ι ι' α : Type*} [preorder ι'] [nonempty ι']
+  [is_directed ι' (≤)] [order.coframe α] {s : set ι} (hs : s.finite) {f : ι → ι' → α}
+  (hf : ∀ i ∈ s, antitone (f i)) :
+  (⨅ j, ⨆ i ∈ s, f i j) = ⨆ i ∈ s, ⨅ j, f i j :=
+hs.supr_binfi_of_monotone (λ i hi, (hf i hi).dual_right)
+
+lemma _root_.supr_infi_of_monotone {ι ι' α : Type*} [fintype ι] [preorder ι'] [nonempty ι']
+  [is_directed ι' (≤)] [order.frame α] {f : ι → ι' → α} (hf : ∀ i, monotone (f i)) :
+  (⨆ j, ⨅ i, f i j) = ⨅ i, ⨆ j, f i j :=
+by simpa only [infi_univ] using finite_univ.supr_binfi_of_monotone (λ i hi, hf i)
+
+lemma _root_.supr_infi_of_antitone {ι ι' α : Type*} [fintype ι] [preorder ι'] [nonempty ι']
+  [is_directed ι' (swap (≤))] [order.frame α] {f : ι → ι' → α} (hf : ∀ i, antitone (f i)) :
+  (⨆ j, ⨅ i, f i j) = ⨅ i, ⨆ j, f i j :=
+@supr_infi_of_monotone ι ι'ᵒᵈ α _ _ _ _ _ _ (λ i, (hf i).dual_left)
+
+lemma _root_.infi_supr_of_monotone {ι ι' α : Type*} [fintype ι] [preorder ι'] [nonempty ι']
+  [is_directed ι' (swap (≤))] [order.coframe α] {f : ι → ι' → α} (hf : ∀ i, monotone (f i)) :
+  (⨅ j, ⨆ i, f i j) = ⨆ i, ⨅ j, f i j :=
+supr_infi_of_antitone (λ i, (hf i).dual_right)
+
+lemma _root_.infi_supr_of_antitone {ι ι' α : Type*} [fintype ι] [preorder ι'] [nonempty ι']
+  [is_directed ι' (≤)] [order.coframe α] {f : ι → ι' → α} (hf : ∀ i, antitone (f i)) :
+  (⨅ j, ⨆ i, f i j) = ⨆ i, ⨅ j, f i j :=
+supr_infi_of_monotone (λ i, (hf i).dual_right)
+
 /-- An increasing union distributes over finite intersection. -/
-lemma Union_Inter_of_monotone {ι ι' α : Type*} [fintype ι] [linear_order ι']
+lemma Union_Inter_of_monotone {ι ι' α : Type*} [fintype ι] [preorder ι'] [is_directed ι' (≤)]
   [nonempty ι'] {s : ι → ι' → set α} (hs : ∀ i, monotone (s i)) :
   (⋃ j : ι', ⋂ i : ι, s i j) = ⋂ i : ι, ⋃ j : ι', s i j :=
-begin
-  ext x, refine ⟨λ hx, Union_Inter_subset hx, λ hx, _⟩,
-  simp only [mem_Inter, mem_Union, mem_Inter] at hx ⊢, choose j hj using hx,
-  obtain ⟨j₀⟩ := show nonempty ι', by apply_instance,
-  refine ⟨finset.univ.fold max j₀ j, λ i, hs i _ (hj i)⟩,
-  rw [finset.fold_op_rel_iff_or (@le_max_iff _ _)],
-  exact or.inr ⟨i, finset.mem_univ i, le_rfl⟩
-end
+supr_infi_of_monotone hs
+
+/-- A decreasing union distributes over finite intersection. -/
+lemma Union_Inter_of_antitone {ι ι' α : Type*} [fintype ι] [preorder ι'] [is_directed ι' (swap (≤))]
+  [nonempty ι'] {s : ι → ι' → set α} (hs : ∀ i, antitone (s i)) :
+  (⋃ j : ι', ⋂ i : ι, s i j) = ⋂ i : ι, ⋃ j : ι', s i j :=
+supr_infi_of_antitone hs
+
+/-- An increasing intersection distributes over finite union. -/
+lemma Inter_Union_of_monotone {ι ι' α : Type*} [fintype ι] [preorder ι'] [is_directed ι' (swap (≤))]
+  [nonempty ι'] {s : ι → ι' → set α} (hs : ∀ i, monotone (s i)) :
+  (⋂ j : ι', ⋃ i : ι, s i j) = ⋃ i : ι, ⋂ j : ι', s i j :=
+infi_supr_of_monotone hs
+
+/-- A decreasing intersection distributes over finite union. -/
+lemma Inter_Union_of_antitone {ι ι' α : Type*} [fintype ι] [preorder ι'] [is_directed ι' (≤)]
+  [nonempty ι'] {s : ι → ι' → set α} (hs : ∀ i, antitone (s i)) :
+  (⋂ j : ι', ⋃ i : ι, s i j) = ⋃ i : ι, ⋂ j : ι', s i j :=
+infi_supr_of_antitone hs
 
 lemma Union_pi_of_monotone {ι ι' : Type*} [linear_order ι'] [nonempty ι'] {α : ι → Type*}
   {I : set ι} {s : Π i, ι' → set (α i)} (hI : finite I) (hs : ∀ i ∈ I, monotone (s i)) :

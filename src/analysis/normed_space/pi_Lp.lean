@@ -76,7 +76,7 @@ instance fact_one_le_two_real : fact ((1:ℝ) ≤ 2) := ⟨one_le_two⟩
 
 namespace pi_Lp
 
-variables (p : ℝ) [fact_one_le_p : fact (1 ≤ p)] (α β γ : ι → Type*)
+variables (p : ℝ) [fact_one_le_p : fact (1 ≤ p)] (α : ι → Type*) (β : ι → Type*)
 
 /-- Canonical bijection between `pi_Lp p α` and the original Pi type. We introduce it to be able
 to compare the `L^p` and `L^∞` distances through it. -/
@@ -132,6 +132,25 @@ def pseudo_emetric_aux : pseudo_emetric_space (pi_Lp p β) :=
 
 local attribute [instance] pi_Lp.pseudo_emetric_aux
 
+/-- Endowing the space `pi_Lp p β` with the `L^p` pseudoedistance. This definition is not
+satisfactory, as it does not register the fact that the topology and the uniform structure coincide
+with the product one. Therefore, we do not register it as an instance. Using this as a temporary
+pseudoemetric space instance, we will show that the uniform structure is equal (but not defeq) to
+the product one, and then register an instance in which we replace the uniform structure by the
+product one using this pseudoemetric space and `pseudo_emetric_space.replace_uniformity`. -/
+@[reducible] def pseudo_metric_aux : pseudo_metric_space (pi_Lp p α) :=
+pseudo_emetric_space.to_pseudo_metric_space_of_dist
+  (λ f g, (∑ i, dist (f i) (g i) ^ p) ^ (1/p))
+  (λ f g, ennreal.rpow_ne_top_of_nonneg (one_div_nonneg.2 (pos p).le) $ ne_of_lt $
+    (ennreal.sum_lt_top $ λ i hi, ennreal.rpow_ne_top_of_nonneg (pos p).le (edist_ne_top _ _)))
+  (λ f g,
+    have A : ∀ i, edist (f i) (g i) ^ p ≠ ⊤,
+      from λ i, ennreal.rpow_ne_top_of_nonneg (pos p).le (edist_ne_top _ _),
+    have B : edist f g = (∑ i, edist (f i) (g i) ^ p) ^ (1/p), from rfl,
+    by simp only [B, dist_edist, ennreal.to_real_rpow, ← ennreal.to_real_sum (λ i _, A i)])
+
+local attribute [instance] pi_Lp.pseudo_metric_aux
+
 lemma lipschitz_with_equiv_aux : lipschitz_with 1 (pi_Lp.equiv p β) :=
 begin
   have cancel : p * (1/p) = 1 := mul_div_cancel' 1 (pos p).ne',
@@ -176,47 +195,6 @@ begin
   end
 end
 
-/-- Endowing the space `pi_Lp p β` with the `L^p` pseudoedistance. This definition is not
-satisfactory, as it does not register the fact that the topology and the uniform structure coincide
-with the product one. Therefore, we do not register it as an instance. Using this as a temporary
-pseudoemetric space instance, we will show that the uniform structure is equal (but not defeq) to
-the product one, and then register an instance in which we replace the uniform structure by the
-product one using this pseudoemetric space and `pseudo_emetric_space.replace_uniformity`. -/
-@[reducible] def pseudo_emetric_aux : pseudo_emetric_space (pi_Lp p β) :=
-{ edist          := edist,
-  edist_self     := λ f, by simp [edist, ennreal.zero_rpow_of_pos (pos p),
-    ennreal.zero_rpow_of_pos (inv_pos.2 $ pos p)],
-  edist_comm     := λ f g, by simp [edist, edist_comm],
-  edist_triangle := λ f g h, calc
-    (∑ i, edist (f i) (h i) ^ p) ^ (1 / p) ≤
-    (∑ i, (edist (f i) (g i) + edist (g i) (h i)) ^ p) ^ (1 / p) :
-    begin
-      apply ennreal.rpow_le_rpow _ (one_div_nonneg.2 (pos p).le),
-      refine finset.sum_le_sum (λ i hi, _),
-      exact ennreal.rpow_le_rpow (edist_triangle _ _ _) (pos p).le
-    end
-    ... ≤
-    (∑ i, edist (f i) (g i) ^ p) ^ (1 / p) + (∑ i, edist (g i) (h i) ^ p) ^ (1 / p) :
-      ennreal.Lp_add_le _ _ _ fact_one_le_p.out }
-
-local attribute [instance] pi_Lp.pseudo_emetric_aux
-
-/-- Endowing the space `pi_Lp p β` with the `L^p` pseudoedistance. This definition is not
-satisfactory, as it does not register the fact that the topology and the uniform structure coincide
-with the product one. Therefore, we do not register it as an instance. Using this as a temporary
-pseudoemetric space instance, we will show that the uniform structure is equal (but not defeq) to
-the product one, and then register an instance in which we replace the uniform structure by the
-product one using this pseudoemetric space and `pseudo_emetric_space.replace_uniformity`. -/
-@[reducible] def pseudo_metric_aux : pseudo_metric_space (pi_Lp p α) :=
-pseudo_emetric_space.to_pseudo_metric_space_of_dist
-  (λ f g, (∑ i, dist (f i) (g i) ^ p) ^ (1/p))
-  (λ f g, ennreal.rpow_ne_top_of_nonneg (one_div_nonneg.2 (pos p).le) $ ne_of_lt $
-    (ennreal.sum_lt_top $ λ i hi, ennreal.rpow_ne_top_of_nonneg (pos p).le (edist_ne_top _ _)))
-  (λ f g,
-    have A : ∀ i, edist (f i) (g i) ^ p ≠ ⊤,
-      from λ i, ennreal.rpow_ne_top_of_nonneg (pos p).le (edist_ne_top _ _),
-    by simp only [edist_eq, dist_edist, ennreal.to_real_rpow, ← ennreal.to_real_sum (λ i _, A i)])
-
 local attribute [instance] pi_Lp.pseudo_metric_aux
 
 lemma aux_uniformity_eq :
@@ -234,8 +212,8 @@ end
 lemma aux_cobounded_eq :
   cobounded (pi_Lp p α) = @cobounded _ pi.bornology :=
 calc cobounded (pi_Lp p α) = comap (pi_Lp.equiv p α) (cobounded _) :
-  le_antisymm (antilipschitz_with_equiv p α).tendsto_cobounded.le_comap
-    (lipschitz_with_equiv p α).comap_cobounded_le
+  le_antisymm (antilipschitz_with_equiv_aux p α).tendsto_cobounded.le_comap
+    (lipschitz_with_equiv_aux p α).comap_cobounded_le
 ... = _ : comap_id
 
 end

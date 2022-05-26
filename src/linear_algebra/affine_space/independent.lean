@@ -533,7 +533,8 @@ begin
       change (equiv.vadd_const p).symm '' insert p ((equiv.vadd_const p) '' b) = _,
       rw [set.image_insert_eq, ← set.image_comp],
       simp, },
-    { use p,
+    { rw affine_subspace.ne_bot_iff,
+      use p,
       simp only [equiv.coe_vadd_const, set.singleton_union, set.mem_inter_eq, coe_affine_span],
       exact ⟨mem_span_points k _ _ (set.mem_insert p _), mem_span_points k _ _ hp⟩, }, },
 end

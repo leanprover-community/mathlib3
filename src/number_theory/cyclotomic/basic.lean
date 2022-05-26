@@ -551,8 +551,7 @@ instance is_cyclotomic_extension :
     { exact subalgebra.mul_mem _ hy hz },
   end }
 
-instance [ne_zero ((n : ℕ) : A)] :
-  is_fraction_ring (cyclotomic_ring n A K) (cyclotomic_field n K) :=
+instance : is_fraction_ring (cyclotomic_ring n A K) (cyclotomic_field n K) :=
 { map_units := λ ⟨x, hx⟩, begin
     rw is_unit_iff_ne_zero,
     apply map_ne_zero_of_mem_non_zero_divisors,
@@ -561,7 +560,6 @@ instance [ne_zero ((n : ℕ) : A)] :
   end,
   surj := λ x,
   begin
-    letI : ne_zero ((n : ℕ) : K) := ne_zero.nat_of_injective (is_fraction_ring.injective A K),
     refine algebra.adjoin_induction (((is_cyclotomic_extension.iff_singleton n K _).1
       (cyclotomic_field.is_cyclotomic_extension n K)).2 x) (λ y hy, _) (λ k, _) _ _,
     { exact ⟨⟨⟨y, subset_adjoin hy⟩, 1⟩, by simpa⟩ },

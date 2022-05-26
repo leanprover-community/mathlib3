@@ -345,6 +345,10 @@ lemma le_iff_exists_mul : a ≤ b ↔ ∃c, b = a * c :=
 canonically_ordered_monoid.le_iff_exists_mul a b
 
 @[to_additive]
+lemma le_iff_exists_mul' : a ≤ b ↔ ∃c, b = c * a :=
+by simpa only [mul_comm _ a] using le_iff_exists_mul
+
+@[to_additive]
 lemma self_le_mul_right (a b : α) : a ≤ a * b :=
 le_iff_exists_mul.mpr ⟨b, rfl⟩
 

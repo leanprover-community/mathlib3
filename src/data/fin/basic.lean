@@ -102,8 +102,9 @@ variables {n m : ℕ} {a b : fin n}
 
 instance fin_to_nat (n : ℕ) : has_coe (fin n) nat := ⟨subtype.val⟩
 
-lemma pos_iff_nonempty {n : ℕ} : 0 < n ↔ nonempty (fin n) :=
-⟨λ h, ⟨⟨0, h⟩⟩, λ ⟨i⟩, lt_of_le_of_lt (nat.zero_le _) i.2⟩
+protected lemma pos {n : ℕ} (i : fin n) : 0 < n := lt_of_le_of_lt (nat.zero_le _) i.2
+
+lemma pos_iff_nonempty {n : ℕ} : 0 < n ↔ nonempty (fin n) := ⟨λ h, ⟨⟨0, h⟩⟩, λ ⟨i⟩, i.pos⟩
 
 section coe
 
@@ -175,7 +176,9 @@ section order
 
 lemma is_lt (i : fin n) : (i : ℕ) < n := i.2
 
-lemma is_le (i : fin (n + 1)) : (i : ℕ) ≤ n := le_of_lt_succ i.is_lt
+lemma is_le_pred (i : fin n) : (i : ℕ) ≤ n - 1 := nat.le_pred_of_lt i.is_lt
+
+lemma is_le (i : fin (n + 1)) : (i : ℕ) ≤ n := i.is_le_pred
 
 lemma lt_iff_coe_lt_coe : a < b ↔ (a : ℕ) < b := iff.rfl
 
@@ -230,6 +233,9 @@ attribute [simp] val_zero
 @[simp] lemma val_zero' (n) : (0 : fin (n+1)).val = 0 := rfl
 @[simp] lemma mk_zero : (⟨0, nat.succ_pos'⟩ : fin (n + 1)) = (0 : fin _) := rfl
 
+@[simp] lemma coe_eq_zero {n : ℕ} {i : fin (n + 1)} : (i : ℕ) = 0 ↔ i = 0 :=
+(ext_iff i 0).symm
+
 @[simp] lemma zero_le (a : fin (n + 1)) : 0 ≤ a := zero_le a.1
 
 lemma zero_lt_one : (0 : fin (n + 2)) < 1 := nat.zero_lt_one
@@ -255,6 +261,9 @@ lemma last_val (n : ℕ) : (last n).val = n := rfl
 
 theorem le_last (i : fin (n+1)) : i ≤ last n :=
 le_of_lt_succ i.is_lt
+
+lemma coe_eq_iff_eq_last {i : fin (n + 1)} : (i : ℕ) = n ↔ i = last n :=
+(ext_iff i (last n)).symm
 
 instance : bounded_order (fin (n + 1)) :=
 { top := last n,
@@ -318,23 +327,21 @@ rel_embedding.ext $ funext_iff.1 $ strict_mono_unique f.strict_mono g.strict_mon
 
 end
 
-/-- A function `f` on `fin n` is strictly monotone if and only if `f i < f (i+1)` for all `i`. -/
-lemma strict_mono_iff_lt_succ {α : Type*} [preorder α] {f : fin n → α} :
-  strict_mono f ↔ ∀ i (h : i + 1 < n), f ⟨i, lt_of_le_of_lt (nat.le_succ i) h⟩ < f ⟨i+1, h⟩ :=
-begin
-  split,
-  { assume H i hi,
-    apply H,
-    exact nat.lt_succ_self _ },
-  { assume H,
-    have A : ∀ i j (h : i < j) (h' : j < n), f ⟨i, lt_trans h h'⟩ < f ⟨j, h'⟩,
-    { assume i j h h',
-      induction h with k h IH,
-      { exact H _ _ },
-      { exact lt_trans (IH (nat.lt_of_succ_lt h')) (H _ _) } },
-    assume i j hij,
-    convert A (i : ℕ) (j : ℕ) hij j.2; ext; simp only [subtype.coe_eta] }
-end
+/-- Order-reversing isomorphism of `fin n`. -/
+def reverse : equiv.perm (fin n) :=
+involutive.to_perm
+  (λ i, ⟨n - 1 - i, (nat.sub_le _ _).trans_lt $ nat.sub_lt i.pos _root_.zero_lt_one⟩)
+  (λ x, fin.ext $ by simp only [coe_mk, nat.sub_sub_self x.is_le_pred])
+
+@[simp] lemma coe_reverse (i : fin n) : (i.reverse : ℕ) = n - 1 - i := rfl
+
+lemma involutive_reverse : involutive (@reverse n) := involutive.to_perm_involutive _
+
+@[simp] lemma reverse_symm : (@reverse n).symm = reverse := involutive.to_perm_symm _
+
+lemma strict_anti_reverse : strict_anti (@reverse n) :=
+λ i j h, by rwa [lt_iff_coe_lt_coe, coe_reverse, coe_reverse,
+  tsub_lt_tsub_iff_left_of_le_of_le j.is_le_pred i.is_le_pred]
 
 end order
 
@@ -354,6 +361,19 @@ lemma coe_one' {n : ℕ} : ((1 : fin (n+1)) : ℕ) = 1 % (n+1) := rfl
 @[simp] lemma mk_one : (⟨1, nat.succ_lt_succ (nat.succ_pos n)⟩ : fin (n + 2)) = (1 : fin _) := rfl
 
 instance {n : ℕ} : nontrivial (fin (n + 2)) := ⟨⟨0, 1, dec_trivial⟩⟩
+
+lemma nontrivial_iff_two_le : nontrivial (fin n) ↔ 2 ≤ n :=
+begin
+  refine ⟨λ H, _, λ H, _⟩,
+  { rcases @exists_lt_of_directed_le (fin n) _ _ H with ⟨x, y, hlt⟩,
+    refine nat.succ_le_iff.2 (lt_of_le_of_lt _ y.is_lt),
+    exact nat.succ_le_iff.2 (bot_le.trans_lt hlt) },
+  { rcases le_iff_exists_add'.1 H with ⟨k, rfl⟩,
+    exact fin.nontrivial }
+end
+
+lemma subsingleton_iff_le_one : subsingleton (fin n) ↔ n ≤ 1 :=
+by rw [← not_nontrivial_iff_subsingleton, nontrivial_iff_two_le, not_le, ← nat.lt_succ_iff]
 
 section monoid
 
@@ -865,6 +885,10 @@ by { cases j, refl }
 | ⟨0,     h⟩ hi := by contradiction
 | ⟨n + 1, h⟩ hi := rfl
 
+@[simp] lemma range_succ : set.range (fin.succ : fin n → fin (n + 1)) = {0}ᶜ :=
+set.subset.antisymm (set.range_subset_iff.2 $ λ i, i.succ_pos.ne')
+  (λ i hi, ⟨pred i hi, succ_pred i hi⟩)
+
 @[simp] lemma pred_succ (i : fin n) {h : i.succ ≠ 0} : i.succ.pred h = i :=
 by { cases i, refl }
 
@@ -1145,6 +1169,42 @@ begin
 end
 
 end rec
+
+lemma lift_fun_iff_succ {α : Type*} (r : α → α → Prop) [is_trans α r] {f : fin (n + 1) → α} :
+  ((<) ⇒ r) f f ↔ ∀ i : fin n, r (f i.cast_succ) (f i.succ) :=
+begin
+  split,
+  { intros H i,
+    exact H i.cast_succ_lt_succ },
+  { refine λ H i, fin.induction _ _,
+    { exact λ h, (h.not_le (zero_le i)).elim },
+    { intros j ihj hij,
+      rw [← le_cast_succ_iff] at hij,
+      rcases hij.eq_or_lt with rfl|hlt,
+      exacts [H j, trans (ihj hlt) (H j)] } }
+end
+
+/-- A function `f` on `fin (n + 1)` is strictly monotone if and only if `f i < f (i + 1)`
+for all `i`. -/
+lemma strict_mono_iff_lt_succ {α : Type*} [preorder α] {f : fin (n + 1) → α} :
+  strict_mono f ↔ ∀ i : fin n, f i.cast_succ < f i.succ :=
+lift_fun_iff_succ (<)
+
+/-- A function `f` on `fin (n + 1)` is monotone if and only if `f i ≤ f (i + 1)` for all `i`. -/
+lemma monotone_iff_le_succ {α : Type*} [preorder α] {f : fin (n + 1) → α} :
+  monotone f ↔ ∀ i : fin n, f i.cast_succ ≤ f i.succ :=
+monotone_iff_forall_lt.trans $ lift_fun_iff_succ (≤)
+
+/-- A function `f` on `fin (n + 1)` is strictly antitone if and only if `f (i + 1) < f i`
+for all `i`. -/
+lemma strict_anti_iff_succ_lt {α : Type*} [preorder α] {f : fin (n + 1) → α} :
+  strict_anti f ↔ ∀ i : fin n, f i.succ < f i.cast_succ :=
+lift_fun_iff_succ (>)
+
+/-- A function `f` on `fin (n + 1)` is antitone if and only if `f (i + 1) ≤ f i` for all `i`. -/
+lemma antitone_iff_succ_le {α : Type*} [preorder α] {f : fin (n + 1) → α} :
+  antitone f ↔ ∀ i : fin n, f i.succ ≤ f i.cast_succ :=
+antitone_iff_forall_lt.trans $ lift_fun_iff_succ (≥)
 
 section add_group
 

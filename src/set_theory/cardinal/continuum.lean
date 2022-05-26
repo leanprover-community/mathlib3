@@ -152,7 +152,7 @@ instance encodable.to_has_card_le_continuum (α : Type u) [encodable α] :
 @[priority 100] -- See Note [lower instance priority]
 instance fintype.to_has_card_le_continuum (α : Type u) [fintype α] :
   has_card_le_continuum α :=
-by { haveI := fintype.encodable α, exact encodable.to_has_card_le_continuum α }
+by { haveI := fintype.to_encodable α, exact encodable.to_has_card_le_continuum α }
 
 @[priority 100] -- See Note [lower instance priority]
 instance has_card_continuum.to_infinite (α : Type u) [has_card_continuum α] : infinite α :=
@@ -179,7 +179,7 @@ instance (α : Type u) (π : α → Type v) [denumerable α] [∀ a, nontrivial 
 
 instance pi.has_card_continuum' (α : Type u) (π : α → Type v) [denumerable α]
   [∀ a, nontrivial (π a)] [Π a, fintype (π a)] : has_card_continuum (Π a, π a) :=
-by { haveI := λ a, fintype.encodable (π a), exact pi.has_card_continuum α π }
+by { haveI := λ a, fintype.to_encodable (π a), exact pi.has_card_continuum α π }
 
 instance (α : Type u) [denumerable α] : has_card_continuum (set α) :=
 pi.has_card_continuum _ _

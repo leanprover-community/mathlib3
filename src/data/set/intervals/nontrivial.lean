@@ -90,6 +90,18 @@ lemma nonempty_Ioo [densely_ordered α] (I : nontrivial_interval α) :
   I.Ioo.nonempty :=
 nonempty_Ioo.2 I.left_lt_right
 
+instance Ioo.nonempty [densely_ordered α] (I : nontrivial_interval α) :
+  nonempty I.Ioo :=
+nonempty_Ioo_subtype I.left_lt_right
+
+instance Ioo.no_max_order [densely_ordered α] (I : nontrivial_interval α) :
+  no_max_order I.Ioo :=
+set.Ioo.no_max_order _
+
+instance Ioo.no_min_order [densely_ordered α] (I : nontrivial_interval α) :
+  no_min_order I.Ioo :=
+set.Ioo.no_min_order _
+
 end nontrivial_interval
 
 end set

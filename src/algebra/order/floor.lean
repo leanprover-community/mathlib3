@@ -96,7 +96,12 @@ lemma le_floor (h : (n : α) ≤ a) : n ≤ ⌊a⌋₊ := (le_floor_iff $ n.cast
 
 lemma floor_lt (ha : 0 ≤ a) : ⌊a⌋₊ < n ↔ a < n := lt_iff_lt_of_le_iff_le $ le_floor_iff ha
 
+lemma floor_lt_one (ha : 0 ≤ a) : ⌊a⌋₊ < 1 ↔ a < 1 :=
+(floor_lt ha).trans $ by rw nat.cast_one
+
 lemma lt_of_floor_lt (h : ⌊a⌋₊ < n) : a < n := lt_of_not_le $ λ h', (le_floor h').not_lt h
+
+lemma lt_one_of_floor_lt_one (h : ⌊a⌋₊ < 1) : a < 1 := by exact_mod_cast lt_of_floor_lt h
 
 lemma floor_le (ha : 0 ≤ a) : (⌊a⌋₊ : α) ≤ a := (le_floor_iff ha).1 le_rfl
 
@@ -146,6 +151,9 @@ lemma lt_of_lt_floor (h : n < ⌊a⌋₊) : ↑n < a :=
 
 lemma floor_le_of_le (h : a ≤ n) : ⌊a⌋₊ ≤ n := le_imp_le_iff_lt_imp_lt.2 lt_of_lt_floor h
 
+lemma floor_le_one_of_le_one (h : a ≤ 1) : ⌊a⌋₊ ≤ 1 :=
+floor_le_of_le $ h.trans_eq $ nat.cast_one.symm
+
 @[simp] lemma floor_eq_zero : ⌊a⌋₊ = 0 ↔ a < 1 :=
 by { rw [←lt_one_iff, ←@cast_one α], exact floor_lt' nat.one_ne_zero }
 
@@ -185,6 +193,8 @@ lemma ceil_mono : monotone (ceil : α → ℕ) := gc_ceil_coe.monotone_l
 eq_of_forall_ge_iff $ λ a, ceil_le.trans nat.cast_le
 
 @[simp] lemma ceil_zero : ⌈(0 : α)⌉₊ = 0 := ceil_coe 0
+
+@[simp] lemma ceil_one : ⌈(1 : α)⌉₊ = 1 := by rw [←nat.cast_one, ceil_coe]
 
 @[simp] lemma ceil_eq_zero : ⌈a⌉₊ = 0 ↔ a ≤ 0 := le_zero_iff.symm.trans ceil_le
 
@@ -630,6 +640,8 @@ by { rw [← lt_ceil, ← int.cast_one, ceil_add_int], apply lt_add_one }
 lemma ceil_pos : 0 < ⌈a⌉ ↔ 0 < a := lt_ceil
 
 @[simp] lemma ceil_zero : ⌈(0 : α)⌉ = 0 := ceil_coe 0
+
+@[simp] lemma ceil_one : ⌈(1 : α)⌉ = 1 := by rw [←int.cast_one, ceil_coe]
 
 lemma ceil_nonneg (ha : 0 ≤ a) : 0 ≤ ⌈a⌉ :=
 by exact_mod_cast ha.trans (le_ceil a)

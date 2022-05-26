@@ -132,12 +132,13 @@ def pseudo_emetric_aux : pseudo_emetric_space (pi_Lp p β) :=
 
 local attribute [instance] pi_Lp.pseudo_emetric_aux
 
-/-- Endowing the space `pi_Lp p β` with the `L^p` pseudoedistance. This definition is not
-satisfactory, as it does not register the fact that the topology and the uniform structure coincide
-with the product one. Therefore, we do not register it as an instance. Using this as a temporary
-pseudoemetric space instance, we will show that the uniform structure is equal (but not defeq) to
-the product one, and then register an instance in which we replace the uniform structure by the
-product one using this pseudoemetric space and `pseudo_emetric_space.replace_uniformity`. -/
+/-- Endowing the space `pi_Lp p β` with the `L^p` pseudodistance. This definition is not
+satisfactory, as it does not register the fact that the topology, the uniform structure, and the
+bornology coincide with the product ones. Therefore, we do not register it as an instance. Using
+this as a temporary pseudoemetric space instance, we will show that the uniform structure is equal
+(but not defeq) to the product one, and then register an instance in which we replace the uniform
+structure and the bornology by the product ones using this pseudometric space,
+`pseudo_metric_space.replace_uniformity`, and `pseudo_metric_space.replace_bornology`. -/
 @[reducible] def pseudo_metric_aux : pseudo_metric_space (pi_Lp p α) :=
 pseudo_emetric_space.to_pseudo_metric_space_of_dist
   (λ f g, (∑ i, dist (f i) (g i) ^ p) ^ (1/p))

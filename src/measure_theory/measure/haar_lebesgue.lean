@@ -171,7 +171,8 @@ lemma add_haar_affine_subspace
 begin
   rcases s.eq_bot_or_nonempty with rfl|hne,
   { rw [affine_subspace.bot_coe, measure_empty] },
-  rw [ne.def, ← affine_subspace.direction_eq_top_iff_of_nonempty hne] at hs,
+  rw [ne.def, ← affine_subspace.direction_eq_top_iff_of_nonempty
+    (affine_subspace.ne_bot_iff.mpr hne)] at hs,
   rcases hne with ⟨x, hx : x ∈ s⟩,
   simpa only [affine_subspace.coe_direction_eq_vsub_set_right hx, vsub_eq_sub,
     sub_eq_add_neg, image_add_right, neg_neg, measure_preimage_add_right]

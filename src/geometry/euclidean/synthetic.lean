@@ -5,6 +5,7 @@ Author : André Hernandez-Espiet
 -/
 
 import data.real.basic
+import data.real.sqrt
 
 /-!
 # Synthetic Geometry, Euclid's Elements Book I using Avigad Axioms
@@ -185,6 +186,117 @@ class incidence_geometry :=
   (angle b a c = angle e d f ↔ dist b c = dist e f)) --Euclid Prop 4,8
 
 open incidence_geometry
+
+----------------------
+
+noncomputable theory
+
+instance incidence_geometry_ℝ_ℝ : incidence_geometry :=
+{ point := ℝ × ℝ, -- p = (x, y)
+  line := ℝ × ℝ × ℝ, -- a x + b y = c ↔ (a, b, c)
+  circle := (ℝ × ℝ) × (ℝ × ℝ), -- center and point on circle
+  online := λ p L, L.1 * p.1 + L.2.1 * p.2 = L.2.2,
+  sameside := λ p1 p2 L, L.1 * p1.1 + L.2.1 * p1.2 - L.2.2 ≠ 0 ∧
+  L.1 * p2.1 + L.2.1 * p2.2 - L.2.2 ≠ 0 ∧
+  ∃ (μ : ℝ), 0 < μ ∧ (L.1 * p1.1 + L.2.1 * p1.2 - L.2.2) = μ * (L.1 * p2.1 + L.2.1 * p2.2 - L.2.2),
+  B := λ p1 p2 p3, p1 ≠ p2 ∧ p2 ≠ p3 ∧ ∃ (μ : ℝ), 0 < μ ∧ (p3 - p2) = μ • (p2-p1),
+  oncircle := λ p ⟨c, b⟩, -- p is a point, c is the center, b is a point on the circle
+   (c.1^2 - b.1^2) + (c.2^2 - b.2^2) = (c.1^2 - p.1^2) + (c.2^2 - p.2^2),
+  inside_circle := λ p ⟨c, b⟩, -- p is a point, c is the center, b is a point on the circle
+   (c.1^2 - p.1^2) + (c.2^2 - p.2^2) < (c.1^2 - b.1^2) + (c.2^2 - b.2^2),
+  center_circle := λ p ⟨c, b⟩, p = c,
+  line_line_inter := λ L1 L2,
+    ¬∃ (μ : ℝ), L1 = μ • L2 ∧ ¬∃ (μ : ℝ), (L1.1, L1.2.1) = μ • (L2.1, L2.2.1),
+  line_circle_inter := sorry, -- messy...?
+  circle_circle_inter := sorry, -- already have the conditions below
+  dist := λ p1 p2, ((p1.1 - p2.1)^2 + (p2.1 - p2.2)^2).sqrt,
+  angle := sorry, -- messy...?
+  rightangle := sorry, -- slopes
+  area := sorry, -- Heron's formula!
+  pt_B_of_ne := begin
+    intros p1 p2 p1_ne_p2,
+    use ((1:ℝ) / 2) • (p1+p2),
+    split,
+    {
+      intro h,
+      have : 2 • p1 = p1 + p2,
+      {
+        sorry,
+      } ,
+      sorry,
+    },
+    split,
+    { sorry, },
+    refine ⟨1, by norm_num, _⟩,
+    field_simp,
+    simp,
+    sorry,
+  end,
+  pt_extension_of_ne := sorry,
+  opp_side_of_not_online := sorry,
+  line_of_ne := sorry,
+  circle_of_ne := sorry,
+  pt_of_line_line_inter := sorry,
+  pts_of_line_circle_inter := sorry,
+  pt_oncircle_of_inside_outside := sorry,
+  pt_oncircle_of_inside_ne := sorry,
+  pts_of_circle_circle_inter := sorry,
+  pt_sameside_of_circle_circle_inter := sorry,
+  line_unique_of_pts := sorry,
+  center_circle_unique := sorry,
+  G3 := sorry,
+  G4 := sorry,
+  B1 := sorry,
+  B2 := sorry,
+  B3 := sorry,
+  B4 := sorry,
+  B5 := sorry,
+  B6 := sorry,
+  B7 := sorry,
+  S1 := sorry,
+  S2 := sorry,
+  S3 := sorry,
+  S4 := sorry,
+  S5 := sorry,
+  Pa1 := sorry,
+  Pa2 := sorry,
+  Pa3 := sorry,
+  Pa4 := sorry,
+  T1 := sorry,
+  T2 := sorry,
+  T3 := sorry,
+  C1 := sorry,
+  C2 := sorry,
+  C3 := sorry,
+  C4 := sorry,
+  Int1 := sorry,
+  Int2 := sorry,
+  Int3 := sorry,
+  Int4 := sorry,
+  Int5 := sorry,
+  M1 := sorry,
+  M2 := sorry,
+  M3 := sorry,
+  M4 := sorry,
+  M5 := sorry,
+  M6 := sorry,
+  M7 := sorry,
+  M8 := sorry,
+  M9 := sorry,
+  DS1 := sorry,
+  DS2 := sorry,
+  DS3 := sorry,
+  DS4 := sorry,
+  A1 := sorry,
+  A2 := sorry,
+  A3 := sorry,
+  A4 := sorry,
+  A5 := sorry,
+  DA1 := sorry,
+  DA2 := sorry,
+  S := sorry }
+
+----------------------
 
 variables[AxA: incidence_geometry]
 

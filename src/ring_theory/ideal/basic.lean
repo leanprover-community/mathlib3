@@ -342,6 +342,28 @@ theorem eq_top_iff_one : I = ⊤ ↔ (1:α) ∈ I :=
 theorem ne_top_iff_one : I ≠ ⊤ ↔ (1:α) ∉ I :=
 not_congr I.eq_top_iff_one
 
+/-- A right ideal is a left ideal of the opposite (semi)ring. -/
+@[simps] def to_ideal : ideal αᵐᵒᵖ :=
+{ carrier := mul_opposite.op '' I,
+  zero_mem' := ⟨0, I.zero_mem, rfl⟩,
+  add_mem' :=
+  begin
+    rintros a' b' ⟨a, ha, rfl⟩ ⟨b, hb, rfl⟩,
+    exact ⟨a + b, I.add_mem ha hb, rfl⟩,
+  end,
+  smul_mem' :=
+  begin
+    rintros a b' ⟨b, hb, rfl⟩,
+    exact ⟨b • mul_opposite.unop a, I.smul_mem a hb, rfl⟩,
+  end }
+
+lemma mem_to_ideal {a : αᵐᵒᵖ} : a ∈ I.to_ideal ↔ mul_opposite.unop a ∈ I :=
+begin
+  refine ⟨_, λ ha, ⟨mul_opposite.unop a, ha, rfl⟩⟩,
+  rintros ⟨b, hb, rfl⟩,
+  exact hb,
+end
+
 end right_ideal
 
 end semiring

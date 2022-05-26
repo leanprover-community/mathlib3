@@ -199,7 +199,7 @@ protected lemma comap_comap (g : C(β, γ)) (f : C(α, β)) (U : opens γ) :
   comap f (comap g U) = comap (g.comp f) U := rfl
 
 lemma comap_injective [t0_space β] : injective (comap : C(α, β) → frame_hom (opens β) (opens α)) :=
-λ f g h, continuous_map.ext $ λ a, indistinguishable.eq $ λ s hs, begin
+λ f g h, continuous_map.ext $ λ a, inseparable.eq $ λ s hs, begin
   simp_rw ←mem_preimage,
   congr' 2,
   have := fun_like.congr_fun h ⟨_, hs⟩,

@@ -166,20 +166,20 @@ lemma t0_space_def (α : Type u) [topological_space α] :
   t0_space α ↔ ∀ x y, x ≠ y → ∃ U:set α, is_open U ∧ (xor (x ∈ U) (y ∈ U)) :=
 by { split, apply @t0_space.t0, apply t0_space.mk }
 
-/-- Two points are topologically indistinguishable if no open set separates them. -/
-def indistinguishable {α : Type u} [topological_space α] (x y : α) : Prop :=
+/-- Two points are topologically inseparable if no open set separates them. -/
+def inseparable {α : Type u} [topological_space α] (x y : α) : Prop :=
 ∀ (U : set α) (hU : is_open U), x ∈ U ↔ y ∈ U
 
-lemma indistinguishable_iff_nhds_eq {x y : α} : indistinguishable x y ↔ 𝓝 x = 𝓝 y :=
+lemma inseparable_iff_nhds_eq {x y : α} : inseparable x y ↔ 𝓝 x = 𝓝 y :=
 ⟨λ h, by simp only [nhds_def', h _] { contextual := tt },
   λ h U hU, by simp only [← hU.mem_nhds_iff, h]⟩
 
-alias indistinguishable_iff_nhds_eq ↔ indistinguishable.nhds_eq _
+alias inseparable_iff_nhds_eq ↔ inseparable.nhds_eq _
 
 lemma t0_space_iff_distinguishable (α : Type u) [topological_space α] :
-  t0_space α ↔ ∀ (x y : α), x ≠ y → ¬ indistinguishable x y :=
+  t0_space α ↔ ∀ (x y : α), x ≠ y → ¬ inseparable x y :=
 begin
-  delta indistinguishable,
+  delta inseparable,
   rw t0_space_def,
   push_neg,
   simp_rw xor_iff_not_iff,
@@ -187,28 +187,28 @@ end
 
 @[simp] lemma nhds_eq_nhds_iff [t0_space α] {a b : α} : 𝓝 a = 𝓝 b ↔ a = b :=
 function.injective.eq_iff $ λ x y h, of_not_not $
-  λ hne, (t0_space_iff_distinguishable α).mp ‹_› x y hne (indistinguishable_iff_nhds_eq.mpr h)
+  λ hne, (t0_space_iff_distinguishable α).mp ‹_› x y hne (inseparable_iff_nhds_eq.mpr h)
 
-lemma indistinguishable.eq [t0_space α] {x y : α} (h : indistinguishable x y) : x = y :=
+lemma inseparable.eq [t0_space α] {x y : α} (h : inseparable x y) : x = y :=
 nhds_eq_nhds_iff.mp h.nhds_eq
 
-lemma indistinguishable_iff_closed {x y : α} :
-  indistinguishable x y ↔ ∀ (U : set α) (hU : is_closed U), x ∈ U ↔ y ∈ U :=
+lemma inseparable_iff_closed {x y : α} :
+  inseparable x y ↔ ∀ (U : set α) (hU : is_closed U), x ∈ U ↔ y ∈ U :=
 ⟨λ h U hU, not_iff_not.mp (h _ hU.1), λ h U hU, not_iff_not.mp (h _ (is_closed_compl_iff.mpr hU))⟩
 
-lemma indistinguishable_iff_closure (x y : α) :
-  indistinguishable x y ↔ x ∈ closure ({y} : set α) ∧ y ∈ closure ({x} : set α) :=
+lemma inseparable_iff_closure (x y : α) :
+  inseparable x y ↔ x ∈ closure ({y} : set α) ∧ y ∈ closure ({x} : set α) :=
 begin
-  rw indistinguishable_iff_closed,
+  rw inseparable_iff_closed,
   exact ⟨λ h, ⟨(h _ is_closed_closure).mpr (subset_closure $ set.mem_singleton y),
       (h _ is_closed_closure).mp (subset_closure $ set.mem_singleton x)⟩,
     λ h U hU, ⟨λ hx, (is_closed.closure_subset_iff hU).mpr (set.singleton_subset_iff.mpr hx) h.2,
       λ hy, (is_closed.closure_subset_iff hU).mpr (set.singleton_subset_iff.mpr hy) h.1⟩⟩
 end
 
-lemma subtype_indistinguishable_iff {α : Type u} [topological_space α] {U : set α} (x y : U) :
-  indistinguishable x y ↔ indistinguishable (x : α) y :=
-by { simp_rw [indistinguishable_iff_closure, closure_subtype, image_singleton] }
+lemma subtype_inseparable_iff {α : Type u} [topological_space α] {U : set α} (x y : U) :
+  inseparable x y ↔ inseparable (x : α) y :=
+by { simp_rw [inseparable_iff_closure, closure_subtype, image_singleton] }
 
 theorem minimal_nonempty_closed_subsingleton [t0_space α] {s : set α} (hs : is_closed s)
   (hmin : ∀ t ⊆ s, t.nonempty → is_closed t → t = s) :

@@ -191,6 +191,8 @@ open incidence_geometry
 
 noncomputable theory
 
+-- instantiation of axioms in ℝ × ℝ
+
 instance incidence_geometry_ℝ_ℝ : incidence_geometry :=
 { point := ℝ × ℝ, -- p = (x, y)
   line := ℝ × ℝ × ℝ, -- a x + b y = c ↔ (a, b, c)

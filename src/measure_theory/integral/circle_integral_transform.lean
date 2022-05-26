@@ -89,11 +89,10 @@ begin
   apply_rules [continuous_on.pow, continuous_on.div, continuous_on_const],
   refine ((continuous_circle_map z R).continuous_on.comp continuous_on_snd (λ _, and.right)).sub
     (continuous_on_id.comp continuous_on_fst (λ _, and.left)),
-  simp only [mem_prod, mem_closed_ball, ne.def, and_imp, prod.forall],
+  simp only [mem_prod, ne.def, and_imp, prod.forall],
   intros a b ha hb,
-  apply circle_map_ne_on_ball hR,
-  simp only [mem_ball],
-  linarith,
+  have ha2 : a ∈ ball z R, by {simp at *, linarith,},
+  refine (sub_ne_zero.2 (circle_map_ne_of_mem hR ha2 b)),
 end
 
 lemma circle_integral_bounding_function_continuous {R r : ℝ} (hR : 0 < R) (hr : r < R) (z : ℂ) :

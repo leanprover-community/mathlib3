@@ -129,12 +129,12 @@ funext $ λ θ, circle_map_eq_center_iff.2 rfl
 lemma circle_map_ne_center {c : ℂ} {R : ℝ} (hR : R ≠ 0) {θ : ℝ} : circle_map c R θ ≠ c :=
 mt circle_map_eq_center_iff.1 hR
 
-lemma circle_map_ne_on_ball {R : ℝ} (hR : 0 < R) {z w : ℂ} (hw : w ∈ ball z R) :
-  ∀ (x : ℝ), circle_map z R x - w ≠ 0 :=
+lemma circle_map_ne_of_mem {R : ℝ} (hR : 0 < R) {z w : ℂ} (hw : w ∈ ball z R) (θ : ℝ) :
+  circle_map z R θ ≠ w :=
 begin
-  intros x hx,
-  rw ←(sub_eq_zero.mp hx) at hw,
-  have h2 := circle_map_mem_sphere z hR.le x,
+  intros hx,
+  rw ←(hx) at hw,
+  have h2 := circle_map_mem_sphere z hR.le θ,
   simp only [mem_ball, mem_sphere] at *,
   rw h2 at hw,
   linarith,
@@ -178,9 +178,9 @@ lipschitz_with_of_nnnorm_deriv_le (differentiable_circle_map _ _) $ λ θ,
 lemma circle_map_inv_continuous {R : ℝ} (hR : 0 < R) {z w : ℂ} (hw : w ∈ ball z R) :
  continuous (λ θ, (circle_map z R θ - w)⁻¹) :=
 begin
-  simp_rw ←one_div,
-  apply_rules [continuous.div, continuous_const, continuous.sub, continuous_circle_map z R],
-  apply circle_map_ne_on_ball hR hw,
+  have : ∀ θ, circle_map z R θ - w ≠ 0,
+  { simp_rw sub_ne_zero, exact λ θ, circle_map_ne_of_mem hR hw θ, },
+  continuity,
 end
 
 /-!

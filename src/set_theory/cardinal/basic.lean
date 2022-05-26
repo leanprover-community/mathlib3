@@ -477,7 +477,7 @@ instance : no_max_order cardinal.{u} :=
 { exists_gt := λ a, ⟨_, cantor a⟩, ..cardinal.partial_order }
 
 instance : canonically_linear_ordered_add_monoid cardinal.{u} :=
-{ le_total     := by { rintros ⟨α⟩ ⟨β⟩, exact embedding.total },
+{ le_total     := by { rintros ⟨α⟩ ⟨β⟩, apply embedding.total },
   decidable_le := classical.dec_rel _,
   ..(infer_instance : canonically_ordered_add_monoid cardinal),
   ..cardinal.partial_order }

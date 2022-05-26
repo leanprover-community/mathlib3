@@ -433,7 +433,7 @@ begin
     { rw b.coord_apply_combination_of_not_mem hi hw₁, }, },
   { intros hx,
     have hx' : x ∈ affine_span R (range b.points),
-    { rw b.tot, exact affine_subspace.mem_top R E x, },
+    { rw b.tot, exact affine_subspace.mem_top, },
     obtain ⟨s, w, hw₁, rfl⟩ := (mem_affine_span_iff_eq_affine_combination R E).mp hx',
     refine ⟨s, w, _, hw₁, rfl⟩,
     intros i hi,

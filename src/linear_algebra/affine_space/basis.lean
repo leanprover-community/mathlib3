@@ -134,7 +134,7 @@ end
 @[simp] lemma sum_coord_apply_eq_one [fintype ι] (q : P) :
   ∑ i, b.coord i q = 1 :=
 begin
-  have hq : q ∈ affine_span k (range b.points), { rw b.tot, exact affine_subspace.mem_top k V q, },
+  have hq : q ∈ affine_span k (range b.points), { rw b.tot, exact affine_subspace.mem_top, },
   obtain ⟨w, hw, rfl⟩ := eq_affine_combination_of_mem_affine_span_of_fintype hq,
   convert hw,
   ext i,
@@ -144,7 +144,7 @@ end
 @[simp] lemma affine_combination_coord_eq_self [fintype ι] (q : P) :
   finset.univ.affine_combination b.points (λ i, b.coord i q) = q :=
 begin
-  have hq : q ∈ affine_span k (range b.points), { rw b.tot, exact affine_subspace.mem_top k V q, },
+  have hq : q ∈ affine_span k (range b.points), { rw b.tot, exact affine_subspace.mem_top, },
   obtain ⟨w, hw, rfl⟩ := eq_affine_combination_of_mem_affine_span_of_fintype hq,
   congr,
   ext i,

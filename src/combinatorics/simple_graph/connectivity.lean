@@ -860,6 +860,8 @@ by induction p; simp [*]
 @[simp] lemma edges_map : (p.map f).edges = p.edges.map (sym2.map f) :=
 by induction p; simp [*]
 
+variables {p f}
+
 lemma map_is_path_of_injective (hinj : function.injective f) (hp : p.is_path) :
   (p.map f).is_path :=
 begin
@@ -872,9 +874,7 @@ begin
     exact hp.2 hx, },
 end
 
-variable {p}
-
-protected lemma is_path.map (hp : (p.map f).is_path) : p.is_path :=
+protected lemma is_path.of_map {f : G →g G'} (hp : (p.map f).is_path) : p.is_path :=
 begin
   induction p with w u v w huv hvw ih,
   { simp },
@@ -886,7 +886,11 @@ begin
     exact list.mem_map_of_mem f hp2, }
 end
 
-variable (p)
+lemma map_is_path_iff_of_injective (hinj : function.injective f) :
+  (p.map f).is_path ↔ p.is_path :=
+⟨is_path.of_map, map_is_path_of_injective hinj⟩
+
+variables (p f)
 
 lemma map_injective_of_injective {f : G →g G'} (hinj : function.injective f) (u v : V) :
   function.injective (walk.map f : G.walk u v → G'.walk (f u) (f v)) :=
@@ -913,7 +917,7 @@ variables {G G'}
 /-- Given an injective graph homomorphism, map paths to paths. -/
 @[simps] protected def map (f : G →g G') (hinj : function.injective f) {u v : V} (p : G.path u v) :
   G'.path (f u) (f v) :=
-⟨walk.map f p, walk.map_is_path_of_injective f p hinj p.2⟩
+⟨walk.map f p, walk.map_is_path_of_injective hinj p.2⟩
 
 lemma map_injective {f : G →g G'} (hinj : function.injective f) (u v : V) :
   function.injective (path.map f hinj : G.path u v → G'.path (f u) (f v)) :=
@@ -970,7 +974,7 @@ by induction p; simp [*]
 lemma is_path.to_delete_edges (s : set (sym2 V))
   {v w : V} {p : G.walk v w} (h : p.is_path) (hp) :
   (p.to_delete_edges s hp).is_path :=
-by { rw ← map_to_delete_edges_eq s hp at h, exact h.map _ }
+by { rw ← map_to_delete_edges_eq s hp at h, exact h.of_map }
 
 end walk
 

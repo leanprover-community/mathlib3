@@ -210,17 +210,21 @@ lemma subtype_indistinguishable_iff {α : Type u} [topological_space α] {U : se
   indistinguishable x y ↔ indistinguishable (x : α) y :=
 by { simp_rw [indistinguishable_iff_closure, closure_subtype, image_singleton] }
 
-theorem minimal_nonempty_closed_eq_singleton [t0_space α] {s : set α} (hs : is_closed s)
-  (hne : s.nonempty) (hmin : ∀ t ⊆ s, t.nonempty → is_closed t → t = s) :
-  ∃ x, s = {x} :=
+theorem minimal_nonempty_closed_subsingleton [t0_space α] {s : set α} (hs : is_closed s)
+  (hmin : ∀ t ⊆ s, t.nonempty → is_closed t → t = s) :
+  s.subsingleton :=
 begin
-  suffices : s.subsingleton, from exists_eq_singleton_iff_nonempty_subsingleton.2 ⟨hne, this⟩,
   refine λ x hx y hy, of_not_not (λ hxy, _),
   rcases exists_is_open_xor_mem hxy with ⟨U, hUo, hU⟩,
   wlog h : x ∈ U ∧ y ∉ U := hU using [x y, y x], cases h with hxU hyU,
   have : s \ U = s := hmin (s \ U) (diff_subset _ _) ⟨y, hy, hyU⟩ (hs.sdiff hUo),
   exact (this.symm.subset hx).2 hxU
 end
+
+theorem minimal_nonempty_closed_eq_singleton [t0_space α] {s : set α} (hs : is_closed s)
+  (hne : s.nonempty) (hmin : ∀ t ⊆ s, t.nonempty → is_closed t → t = s) :
+  ∃ x, s = {x} :=
+exists_eq_singleton_iff_nonempty_subsingleton.2 ⟨hne, minimal_nonempty_closed_subsingleton hs hmin⟩
 
 /-- Given a closed set `S` in a compact T₀ space,
 there is some `x ∈ S` such that `{x}` is closed. -/
@@ -233,11 +237,10 @@ begin
   exact ⟨x, Vsub (mem_singleton x), Vcls⟩
 end
 
-theorem minimal_nonempty_open_eq_singleton [t0_space α] {s : set α} (hs : is_open s)
-  (hne : s.nonempty) (hmin : ∀ t ⊆ s, t.nonempty → is_open t → t = s) :
-  ∃ x, s = {x} :=
+theorem minimal_nonempty_open_subsingleton [t0_space α] {s : set α} (hs : is_open s)
+  (hmin : ∀ t ⊆ s, t.nonempty → is_open t → t = s) :
+  s.subsingleton :=
 begin
-  suffices : s.subsingleton, from exists_eq_singleton_iff_nonempty_subsingleton.2 ⟨hne, this⟩,
   refine λ x hx y hy, of_not_not (λ hxy, _),
   rcases exists_is_open_xor_mem hxy with ⟨U, hUo, hU⟩,
   wlog h : x ∈ U ∧ y ∉ U := hU using [x y, y x], cases h with hxU hyU,
@@ -245,10 +248,15 @@ begin
   exact hyU (this.symm.subset hy).2
 end
 
+theorem minimal_nonempty_open_eq_singleton [t0_space α] {s : set α} (hs : is_open s)
+  (hne : s.nonempty) (hmin : ∀ t ⊆ s, t.nonempty → is_open t → t = s) :
+  ∃ x, s = {x} :=
+exists_eq_singleton_iff_nonempty_subsingleton.2 ⟨hne, minimal_nonempty_open_subsingleton hs hmin⟩
+
 /-- Given an open finite set `S` in a T₀ space, there is some `x ∈ S` such that `{x}` is open. -/
 theorem exists_open_singleton_of_open_finite [t0_space α] {s : set α} (hfin : s.finite)
   (hne : s.nonempty) (ho : is_open s) :
-  ∃ x ∈ s, is_open ({x} : set α):=
+  ∃ x ∈ s, is_open ({x} : set α) :=
 begin
   lift s to finset α using hfin,
   induction s using finset.strong_induction_on with s ihs,
@@ -263,7 +271,7 @@ begin
 end
 
 theorem exists_open_singleton_of_fintype [t0_space α] [fintype α] [nonempty α] :
-  ∃ x:α, is_open ({x}:set α) :=
+  ∃ x : α, is_open ({x} : set α) :=
 let ⟨x, _, h⟩ := exists_open_singleton_of_open_finite (finite.of_fintype _) univ_nonempty
   is_open_univ in ⟨x, h⟩
 

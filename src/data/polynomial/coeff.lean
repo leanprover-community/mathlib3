@@ -288,4 +288,38 @@ end cast
 instance [char_zero R] : char_zero R[X] :=
 { cast_injective := λ x y, nat_cast_inj.mp }
 
+lemma binomial_eq_binomial {k l m n : ℕ} {u v : R} (hu : u ≠ 0) (hv : v ≠ 0) :
+  C u * X ^ k + C v * X ^ l = C u * X ^ m + C v * X ^ n ↔
+  (k = m ∧ l = n) ∨ (u = v ∧ k = n ∧ l = m) ∨ (u + v = 0 ∧ k = l ∧ m = n) :=
+begin
+  refine ⟨λ h, _, _⟩,
+  { have hk := congr_arg (λ p, coeff p k) h,
+    have hl := congr_arg (λ p, coeff p l) h,
+    have hm := congr_arg (λ p, coeff p m) h,
+    have hn := congr_arg (λ p, coeff p n) h,
+    simp only [coeff_add, coeff_C_mul_X_pow, if_pos rfl] at hk hl hm hn,
+    by_cases hmk : m = k,
+    { by_cases hnl : n = l,
+      { exact or.inl ⟨hmk.symm, hnl.symm⟩ },
+      { refine (hv _).elim,
+        by_cases hlk : l = k,
+        { rwa [hmk, ←hlk, if_neg hnl, if_neg hnl, zero_add, zero_add, eq_comm] at hn },
+        { rwa [hmk, if_neg hlk, if_neg (ne.symm hnl), zero_add, zero_add] at hl } } },
+    { by_cases hkl : k = l,
+      { by_cases hmn : m = n,
+        { rw [←hkl, if_neg hmk, if_neg hmk, zero_add, eq_comm, if_pos hmn] at hm,
+          exact or.inr (or.inr ⟨hm, hkl, hmn⟩) },
+        { rw [←hkl, if_neg hmk, if_neg hmk, zero_add, eq_comm, if_neg hmn, add_zero] at hm,
+          exact (hu hm).elim } },
+      { rw [if_neg (ne.symm hmk), if_neg hkl, zero_add, add_zero] at hk,
+        have hkn := (ite_ne_right_iff.mp (ne_of_eq_of_ne hk.symm hu)).1,
+        rw [←hkn, if_neg hmk, if_neg hmk, zero_add, add_zero] at hm,
+        have hml := (ite_ne_right_iff.mp (ne_of_eq_of_ne hm hu)).1,
+        exact or.inr (or.inl ⟨hk.trans (if_pos hkn), hkn, hml.symm⟩) } } },
+  { rintros (⟨rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩ | ⟨h, rfl, rfl⟩),
+    { refl },
+    { apply add_comm },
+    { rw [←add_mul, ←add_mul, ←C_add, h, C_0, zero_mul, zero_mul] } },
+end
+
 end polynomial

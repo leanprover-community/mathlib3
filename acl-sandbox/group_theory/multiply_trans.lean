@@ -228,6 +228,63 @@ open function.embedding nat
 
 variables (M α : Type*) [group M] [mul_action M α]
 
+def is_multiply_pretransitive (n : ℕ) :=
+  is_pretransitive M (fin n ↪ α)
+
+variables {M α}
+
+def embedding_bihom_of_bihom_of_injective {N β : Type*} [group N] [mul_action N β]
+  (j : mul_action_bihom M α N β) (hj : function.injective j.to_fun) (ι : Type*) :
+  mul_action_bihom M (ι ↪ α) N (ι ↪ β) := {
+to_fun := λ x, ⟨j.to_fun ∘ x.to_fun, hj.comp x.inj'⟩,
+to_monoid_hom := j.to_monoid_hom,
+map_smul' := λ m x,
+begin
+  ext i,
+  simp only [smul_apply, coe_fn_mk, function.comp_app, to_fun_eq_coe, smul_apply],
+  rw j.map_smul',
+end }
+
+lemma embedding_bihom_of_bihom_of_injective.to_fun.def {N β : Type*} [group N] [mul_action N β]
+  (j : mul_action_bihom M α N β) (hj : function.injective j.to_fun) (ι : Type*) (x : ι ↪ α) (i : ι) :
+  (embedding_bihom_of_bihom_of_injective j hj ι).to_fun x i = j.to_fun (x i) := rfl
+
+lemma embedding_bihom_of_bihom_of_injective.to_monoid_hom.def
+  {N β : Type*} [group N] [mul_action N β]
+  (j : mul_action_bihom M α N β) (hj : function.injective j.to_fun) (ι : Type*) :
+  (embedding_bihom_of_bihom_of_injective j hj ι).to_monoid_hom = j.to_monoid_hom := rfl
+
+def embedding_bihom_of_bihom_of_bijective_bijective {N β : Type*} [group N] [mul_action N β]
+  (j : mul_action_bihom M α N β) (hj : function.bijective j.to_fun) (ι : Type*) :
+  function.bijective
+    (embedding_bihom_of_bihom_of_injective j (function.bijective.injective hj) ι).to_fun :=
+begin
+  split,
+  { intros x y hxy, ext i,
+    let hxyi := congr_fun (congr_arg coe_fn hxy) i,
+    apply function.bijective.injective hj,
+    exact hxyi },
+  { intro x,
+    obtain ⟨k, hkj, hjk⟩ := function.bijective_iff_has_inverse.mp hj,
+    use k ∘ x,
+    apply function.injective.of_comp, rw ← function.comp.assoc ,
+    rw function.right_inverse_iff_comp at hjk,
+    rw hjk,
+    rw function.comp.left_id ,
+    refine embedding_like.injective x,
+    ext i,
+    rw embedding_bihom_of_bihom_of_injective.to_fun.def,
+    simp only [coe_fn_mk, ← function.comp_app],
+    rw ← function.comp_app j.to_fun, rw ← function.comp.assoc,
+        rw function.right_inverse_iff_comp at hjk,
+  rw hjk, rw function.comp.left_id  }
+end
+
+example {β : Type*} (f g : α ↪ β) (x : α) (h : f = g) : f x = g x :=
+begin
+  refine congr_fun (congr_arg coe_fn h) x,
+end
+
 /--/
 def is_multiply_pretransitive' (M α : Type*) [has_scalar M α] (n : ℕ) :=
 ∀ {x : list α} (hx : x.length = n) (ndx : x.nodup)
@@ -235,10 +292,27 @@ def is_multiply_pretransitive' (M α : Type*) [has_scalar M α] (n : ℕ) :=
 ∃ (g : M), g • x = y
 -/
 
-def is_multiply_pretransitive (n : ℕ) :=
-  is_pretransitive M (fin n ↪ α)
-
 variables {M α}
+
+
+lemma is_pretransitive_via_bijective_bihom {N β : Type*} [group N] [mul_action N β]
+  {j : mul_action_bihom M α N β} (hj : function.bijective j.to_fun)
+  (hj' : function.surjective j.to_monoid_hom.to_fun):
+  is_pretransitive M α ↔ is_pretransitive N β :=
+begin
+  split,
+  apply is_pretransitive_of_bihom j (function.bijective.surjective hj),
+  intro hN, let hN_heq := hN.exists_smul_eq,
+  apply is_pretransitive.mk,
+  intros x y,
+  obtain ⟨k, hk⟩ := hN_heq (j.to_fun x) (j.to_fun y),
+  obtain ⟨g, rfl⟩ := hj' k,
+  use g,
+  apply function.bijective.injective hj,
+  simp only [← hk, ← j.map_smul'],
+  refl,
+end
+
 lemma is_multiply_pretransitive_via_surjective_bihom {N β : Type*} [group N] [mul_action N β] {n : ℕ}
   {j : mul_action_bihom M α N β} (hj : function.surjective j.to_fun)
   (h : is_multiply_pretransitive M α n) : is_multiply_pretransitive N β n :=
@@ -301,12 +375,46 @@ end
 lemma is_pretransitive_iff_image :
   is_pretransitive M α
   ↔ is_pretransitive
-    (monoid_hom.range (mul_action.to_perm_hom M α)) α := sorry
+    (monoid_hom.range (mul_action.to_perm_hom M α)) α :=
+is_pretransitive_via_bijective_bihom
+  (canonical_bihom_bijective M α) (canonical_bihom_monoid_hom_surjective M α)
+
+/-
+begin
+   let j : mul_action_bihom M α (monoid_hom.range (mul_action.to_perm_hom M α)) α := {
+  to_fun := λ x, x,
+  to_monoid_hom := {
+    to_fun := λ m, ⟨mul_action.to_perm m,
+    (by simp only [monoid_hom.mem_range, to_perm_hom_apply, exists_apply_eq_apply])⟩,
+    map_one' := begin
+      ext, simp only [subgroup.coe_mk, to_perm_apply,
+        one_smul, subgroup.coe_one, equiv.perm.coe_one, id.def],
+    end,
+    map_mul' := λ m n, begin
+      ext, simp, rw mul_smul, end },
+  map_smul' := λ m x,  begin simp, refl end },
+
+  have hj : function.bijective j.to_fun := function.bijective_id,
+  suffices hj' : function.surjective (canonical_bihom).to_monoid_hom.to_fun,
+  --  rintro ⟨f, m, rfl⟩, use m, refl,
+-/
+
 
 lemma is_multiply_pretransitive_iff_image {n : ℕ} :
   is_multiply_pretransitive M α n
   ↔ is_multiply_pretransitive
-    (monoid_hom.range (mul_action.to_perm_hom M α)) α n := sorry
+    (monoid_hom.range (mul_action.to_perm_hom M α)) α n :=
+begin
+  unfold is_multiply_pretransitive is_multiply_pretransitive,
+
+  apply is_pretransitive_via_bijective_bihom
+  (embedding_bihom_of_bihom_of_bijective_bijective
+    (canonical_bihom M α)
+    (canonical_bihom_bijective M α)
+    (fin n)) ,
+  rw embedding_bihom_of_bihom_of_injective.to_monoid_hom.def,
+  apply canonical_bihom_monoid_hom_surjective,
+end
 
 variables (M α)
 lemma is_zero_pretransitive : is_multiply_pretransitive M α 0 :=

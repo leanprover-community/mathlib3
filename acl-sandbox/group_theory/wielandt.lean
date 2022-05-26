@@ -14,6 +14,7 @@ import data.setoid.partition
 import order.rel_classes
 import algebra.big_operators.order
 import group_theory.subgroup.pointwise
+import data.nat.prime
 
 import .ad_mathlib
 import .ad_sub_mul_actions
@@ -661,8 +662,8 @@ end
 open_locale classical
 
 
-lemma card_of_block_mul_card_of_orbit_of [hfX : fintype X] [is_pretransitive G X]
-  (B : set X) [hB_ne : B.nonempty] (hB : is_block G X B) :
+lemma card_of_block_mul_card_of_orbit_of [hfX : fintype X] (hGX : is_pretransitive G X)
+  {B : set X} (hB : is_block G X B) (hB_ne : B.nonempty) :
   (set.range (λ (g : G), g • B)).to_finset.card * fintype.card B = fintype.card X :=
 begin
   rw setoid.is_partition.card_eq_sum_parts (is_block_system.of_block G X hB hB_ne).left,
@@ -676,11 +677,11 @@ begin
   simp only [← finset.coe_inj, set.coe_to_finset, finset.coe_image, set.image_smul],
 end
 
-lemma card_of_block_divides [hfX : fintype X] [is_pretransitive G X]
-  (B : set X) [hB_ne : B.nonempty] (hB : is_block G X B)  :
+lemma card_of_block_divides [hfX : fintype X] (hGX : is_pretransitive G X)
+  {B : set X} (hB : is_block G X B) (hB_ne : B.nonempty) :
   fintype.card B ∣ fintype.card X :=
 begin
-  rw ← @card_of_block_mul_card_of_orbit_of G X _ _ hfX _ B hB_ne hB,
+  rw ← card_of_block_mul_card_of_orbit_of G X hGX hB hB_ne,
   simp only [dvd_mul_left],
 end
 
@@ -862,6 +863,26 @@ begin
   apply or.intro_right, apply or.intro_right, exact h,
 end
 -/
+
+lemma is_preprimitive_of_prime [fintype X] (hGX : is_pretransitive G X)
+  (hp : nat.prime (fintype.card X)) : is_preprimitive G X :=
+begin
+  apply is_preprimitive.mk,
+  exact hGX,
+  intros B hB,
+  cases subsingleton_or_nontrivial B with hB' hB',
+  { apply or.intro_left, exact hB' },
+  apply or.intro_right,
+  have : B.nonempty, rw ← set.nonempty_coe_sort, exact @nontrivial.to_nonempty _ hB',
+  cases (nat.dvd_prime hp).mp (card_of_block_divides G X hGX hB this),
+  { exfalso,
+    rw ← fintype.one_lt_card_iff_nontrivial at hB',
+    exact ne_of_lt hB' h.symm },
+  rw [set.top_eq_univ, ← set.coe_to_finset B, ← set.coe_to_finset set.univ, finset.coe_inj],
+  rw [set.to_finset_univ, ← finset.card_eq_iff_eq_univ, ← h],
+  simp only [set.to_finset_card],
+  exact set_fintype set.univ,
+end
 
 lemma is_pretransitive_of_subgroup {H : subgroup G} (hG : is_pretransitive H X) :
   is_pretransitive G X :=

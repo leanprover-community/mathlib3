@@ -105,6 +105,36 @@ section group
 variables (M : Type*) [group M] (X : Type*) [mul_action M X]
 variables (N : Type*) [group N] (Y : Type*) [mul_action N Y]
 
+def canonical_bihom : mul_action_bihom M X (equiv.perm X) X := {
+  to_fun := λ x, x,
+  to_monoid_hom := mul_action.to_perm_hom M X,
+  map_smul' := λ m x, (by simp) }
+
+lemma canonical_bihom_bijective : function.bijective (canonical_bihom M X).to_fun :=
+function.bijective_id
+
+def subcanonical_bihom : mul_action_bihom M X (monoid_hom.range (mul_action.to_perm_hom M X)) X := {
+  to_fun := λ x, x,
+  to_monoid_hom := {
+    to_fun := λ m, ⟨mul_action.to_perm m,
+    (by simp only [monoid_hom.mem_range, mul_action.to_perm_hom_apply, exists_apply_eq_apply])⟩,
+    map_one' := begin
+      ext, simp only [subgroup.coe_mk, mul_action.to_perm_apply,
+        one_smul, subgroup.coe_one, equiv.perm.coe_one, id.def],
+    end,
+    map_mul' := λ m n, begin
+      ext, simp, rw mul_smul, end },
+  map_smul' := λ m x,  begin simp, refl end }
+
+lemma subcanonical_bihom_bijective : function.bijective (subcanonical_bihom M X).to_fun :=
+function.bijective_id
+
+lemma subcanonical_bihom_monoid_hom_surjective :
+  function.surjective (subcanonical_bihom M X).to_monoid_hom.to_fun :=
+begin
+  rintro ⟨f, m, rfl⟩, use m, refl
+end
+
 lemma mul_of_preimage_eq (f : mul_action_bihom M X N Y) (B : set Y) (m : M) :
   m • f.to_fun ⁻¹' B = f.to_fun ⁻¹' ((f.to_monoid_hom m) • B) :=
 begin

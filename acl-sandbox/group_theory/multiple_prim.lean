@@ -127,7 +127,8 @@ begin
     apply set.disjoint_preimage h }
 end
 
-lemma is_preprimitive_of_bihom (f : mul_action_bihom M α N β) (hf : function.surjective f.to_fun):
+lemma is_preprimitive_via_surjective_bihom {f : mul_action_bihom M α N β}
+  (hf : function.surjective f.to_fun):
   is_preprimitive M α → is_preprimitive N β :=
 begin
   intro h, let h.htb := h.has_trivial_blocks,
@@ -144,6 +145,60 @@ begin
     simp only [set.top_eq_univ],
     rw set.image_univ, rw set.range_iff_surjective,
     assumption }
+end
+
+lemma is_pretransitive_via_bijective_bihom (f : mul_action_bihom M α N β)
+  (hf : function.bijective f.to_fun) (hφ : function.surjective f.to_monoid_hom.to_fun) :
+  is_pretransitive M α ↔ is_pretransitive N β :=
+begin
+  split,
+  apply is_pretransitive_of_bihom f (function.bijective.surjective hf),
+  intro hN, let hN_eq := hN.exists_smul_eq,
+  apply is_pretransitive.mk,
+  intros x y,
+  obtain ⟨k, hk⟩ := hN_eq (f.to_fun x) (f.to_fun y),
+  obtain ⟨g, rfl⟩ := hφ k,
+  use g,
+  apply function.bijective.injective hf,
+  rw ← f.map_smul', exact hk,
+end
+
+lemma is_preprimitive_via_bijective_bihom_iff (f : mul_action_bihom M α N β)
+  (hf : function.bijective f.to_fun) (hφ : function.bijective f.to_monoid_hom.to_fun) :
+  is_preprimitive M α ↔ is_preprimitive N β :=
+begin
+  split,
+  apply is_preprimitive_via_surjective_bihom (function.bijective.surjective hf),
+  intro hN,
+  apply is_preprimitive.mk,
+  rw (is_pretransitive_via_bijective_bihom f hf (function.bijective.surjective hφ)),
+  exact hN.to_is_pretransitive,
+  intros B hB,
+  let B' := f.to_fun '' B,
+  suffices hB' : is_block N β B',
+  cases hN.has_trivial_blocks hB' with hB' hB',
+  { apply or.intro_left,
+    simp only [set.subsingleton_coe] at ⊢ hB',
+    exact set.subsingleton_of_image (function.bijective.injective hf) B hB' },
+  { apply or.intro_right,
+    rw set.top_eq_univ at hB' ⊢,
+    rw ← set.preimage_univ,
+    rw set.eq_preimage_iff_image_eq hf,
+    exact hB' },
+  rw is_block.mk at hB ⊢,
+  intro k, obtain ⟨g, hg⟩ := (function.bijective.surjective hφ) k,
+  suffices : k • B' = f.to_fun '' (g • B),
+  rw this,
+  cases hB g with hBg hBg,
+  { apply or.intro_left, rw hBg },
+  { apply or.intro_right,
+    exact set.disjoint_image_of_injective (function.bijective.injective hf) hBg },
+  rw ← hg,
+  change (λ y, f.to_monoid_hom.to_fun g • y) '' B' = f.to_fun '' ((λ x, g • x) '' B),
+  simp only [← set.image_comp],
+  refine congr_arg2 _ _ (rfl),
+  ext x, simp only [monoid_hom.to_fun_eq_coe, function.comp_app],
+  rw f.map_smul',
 end
 
 end mul_action_bihom
@@ -178,9 +233,8 @@ lemma is_multiply_preprimitive_one_iff :
 begin
   split,
   { rintro ⟨h1, h1'⟩,
-    apply is_preprimitive_of_bihom (sub_mul_action_of_fixing_subgroup_empty_bihom M α),
-    apply function.bijective.surjective,
-    apply sub_mul_action_of_fixing_subgroup_empty_bihom_bijective,
+    apply is_preprimitive_via_surjective_bihom
+      (function.bijective.surjective (sub_mul_action_of_fixing_subgroup_empty_bihom_bijective M α)),
     apply h1',
     simp },
   { intro h,
@@ -190,10 +244,9 @@ begin
     intros s hs,
     suffices : s = ∅,
     rw this,
-    refine is_preprimitive_of_bihom (sub_mul_action_of_fixing_subgroup_empty_bihom' M α) _ h,
-    apply function.bijective.surjective,
-    apply sub_mul_action_of_fixing_subgroup_empty_bihom'_bijective,
-
+    apply is_preprimitive_via_surjective_bihom
+      (function.bijective.surjective (sub_mul_action_of_fixing_subgroup_empty_bihom'_bijective M α)),
+    exact h,
     rw [← nat.cast_one] at hs,
     rw [← cardinal.mk_emptyc_iff, ← nat.cast_zero],
     apply cardinal.add_cancel, rw hs,
@@ -223,8 +276,9 @@ begin
 
 --    let j := sub_mul_action_of_fixing_subgroup_of_stabilizer_bihom M a s,
 
-    apply is_preprimitive_of_bihom _,
-    exact (sub_mul_action_of_fixing_subgroup_of_stabilizer_bihom_bijective M a s).right,
+    apply is_preprimitive_via_surjective_bihom
+      (function.bijective.surjective
+        (sub_mul_action_of_fixing_subgroup_of_stabilizer_bihom_bijective M a s)),
     apply hn.right,
 
     suffices : # (set.insert a (coe '' s)) = # s + 1,
@@ -237,7 +291,8 @@ begin
 
     rintro ⟨x, hx, hx'⟩,
     apply x.prop, simp only [set.mem_singleton_iff],
-    exact hx' },
+    exact hx',
+     },
   { intro hn_0,
     split,
     { rw (stabilizer.is_multiply_pretransitive M α h),
@@ -584,7 +639,7 @@ begin
     { intro h, apply hy, rw ← hs', exact ⟨x, h, hx⟩ },
     simp only [subtype.mk_eq_mk],
     exact hx },
-  exact is_preprimitive_of_bihom js hjs (h.right s hs)
+  exact is_preprimitive_via_surjective_bihom hjs (h.right s hs)
 end
 
 end MultiplePrimitivity

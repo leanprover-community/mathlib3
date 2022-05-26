@@ -153,7 +153,7 @@ begin
 end
 
 noncomputable
-def complete_graph_embedding_of_not_clique_free {n : ℕ} (h : ¬ G.clique_free n) :
+def top_embedding_of_not_clique_free {n : ℕ} (h : ¬ G.clique_free n) :
   (⊤ : simple_graph (fin n)) ↪g G :=
 begin
   simp only [clique_free, is_n_clique_iff, is_clique_iff_induce_eq, not_forall, not_not] at h,
@@ -170,7 +170,7 @@ lemma not_clique_free_iff (n : ℕ) :
   ¬ G.clique_free n ↔ nonempty ((⊤ : simple_graph (fin n)) ↪g G) :=
 begin
   split,
-  { exact λ h, ⟨complete_graph_embedding_of_not_clique_free h⟩ },
+  { exact λ h, ⟨top_embedding_of_not_clique_free h⟩ },
   { rintro ⟨f⟩,
     exact not_clique_free_of_top_embedding f },
 end

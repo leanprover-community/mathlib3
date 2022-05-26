@@ -352,14 +352,8 @@ begin
     rw [add_comm, add_lt_add_iff_right] at this,
     exact asymm this hmn },
   { exact λ h, h.1.ne rfl },
-  { intro h,
-    have := h.1,
-    rw [add_lt_add_iff_left] at this,
-    exact asymm this key },
-  { intro h,
-    have := h.1,
-    rw [add_lt_add_iff_left] at this,
-    exact asymm this (hkm.trans hmn) },
+  { exact λ h, asymm ((add_lt_add_iff_left k).mp h.1) key },
+  { exact λ h, asymm ((add_lt_add_iff_left k).mp h.1) (hkm.trans hmn) },
 end
 
 lemma binomial_eq_binomial {R : Type*} [semiring R] {k l m n : ℕ} {u v : R} (hu : u ≠ 0) (hv : v ≠ 0) :

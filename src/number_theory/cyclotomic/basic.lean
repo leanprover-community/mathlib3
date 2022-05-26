@@ -518,24 +518,27 @@ no_zero_smul_divisors.of_algebra_map_injective (adjoin_algebra_injective n A K)
 instance : is_scalar_tower A (cyclotomic_ring n A K) (cyclotomic_field n K) :=
 is_scalar_tower.subalgebra' _ _ _ _
 
-instance is_cyclotomic_extension [ne_zero ((n : ℕ) : A)] :
+instance is_cyclotomic_extension :
   is_cyclotomic_extension {n} A (cyclotomic_ring n A K) :=
 { exists_root := λ a han,
   begin
     rw mem_singleton_iff at han,
     subst a,
-    haveI := ne_zero.of_no_zero_smul_divisors A K n,
-    haveI := ne_zero.of_no_zero_smul_divisors A (cyclotomic_ring n A K) n,
-    haveI := ne_zero.of_no_zero_smul_divisors A (cyclotomic_field n K) n,
     obtain ⟨μ, hμ⟩ := let h := (cyclotomic_field.is_cyclotomic_extension n K).exists_root
                       in h $ mem_singleton n,
-    refine ⟨⟨μ, subset_adjoin _⟩, _⟩,
-    { apply (is_root_of_unity_iff n.pos (cyclotomic_field n K)).mpr,
+    have hμmem : μ ∈ (adjoin A {b : cyclotomic_field n K | b ^ (n : ℕ) = 1}),
+    { refine subset_adjoin _,
+      apply (is_root_of_unity_iff n.pos (cyclotomic_field n K)).mpr,
       refine ⟨n, nat.mem_divisors_self _ n.ne_zero, _⟩,
       rwa [aeval_def, eval₂_eq_eval_map, map_cyclotomic] at hμ },
-    simp_rw [aeval_def, eval₂_eq_eval_map,
-      map_cyclotomic, ←is_root.def, is_root_cyclotomic_iff] at hμ ⊢,
-    rwa ←is_primitive_root.map_iff_of_injective (adjoin_algebra_injective n A K)
+    refine ⟨⟨μ, hμmem⟩, _⟩,
+    have := adjoin_algebra_injective n A K,
+    rw [ring_hom.injective_iff_ker_eq_bot, ring_hom.ker_eq_bot_iff_eq_zero] at this,
+    simp_rw [aeval_def, eval₂_eq_eval_map, map_cyclotomic],
+    refine this _ _,
+    have h : (algebra_map (cyclotomic_ring n A K) (cyclotomic_field n K)) ⟨μ, hμmem⟩ = μ := rfl,
+    rw [← aeval_algebra_map_apply, h, aeval_def, eval₂_eq_eval_map, map_cyclotomic],
+    rwa [aeval_def, eval₂_eq_eval_map, map_cyclotomic] at hμ,
   end,
   adjoin_roots := λ x,
   begin

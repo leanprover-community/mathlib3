@@ -6,7 +6,7 @@ Authors: Haruhisa Enomoto
 import ring_theory.jacobson_ideal
 import ring_theory.inverses
 /-!
-# Noncommutative Jacobson radical
+# Jacobson radical of a noncommutative ring
 
 In this file, we define the Jacobson radical of a ring and prove its basic properties.
 
@@ -16,43 +16,62 @@ all maximal *right* ideals, so it is a two-sided ideal.
 
 ## Main definitions
 
-* `nc_jacobson R : ideal R`: the Jacobson radical of a ring `R`, that is,
+* `ring.jacobson R : ideal R`: the Jacobson radical of a ring `R`, that is,
   the intersection of all maximal *left* ideals.
 
 ## Main statements
 
-* `mem_nc_jacobson_tfae`: some equivalent conditions for an element in a ring
+* `ring.mem_jacobson_tfae`: some equivalent conditions for an element in a ring
   to be contained in the Jacobson radical.
 
-* `nc_jacobson_op`: the Jacobson radical of a ring coincides with that of its opposite ring.
+* `ring.jacobson_op`: the Jacobson radical of a ring coincides with that of its opposite ring.
   This essentially says that the definition of the Jacobson radical is left-right symmetric:
   the intersection of all maximal left ideals coincides with that of all maximal right ideals.
+
+## Implementation notes
+
+In `ring_theory/jacobson_ideal`, `ideal.jacobson I` is defined for `I : ideal R`. This is
+the intersection of all maximal left ideals containing `I`.
+This should not be confused with `ring.jacobson R` (which is actually defined by
+`ideal.jacobson ⊥` in this file).
+
+## TODO
+
+* Define the Jacobson radical of a module, and make it compatible with `ideal.jacobson`
+and `ring.jacobson`, and prove Nakayama's lemma.
+
+* State and prove more direct statement saying that the intersection of maximal left ideals
+coincides with that of maximal right ideals.
+
+* State that `ring.jacobson R` is a two-sided ideal.
 -/
 
 universe u
 
-namespace ideal
+open ideal
+
+namespace ring
 variables {R : Type u} [ring R]
 /-! ### Jacobson radical of a ring -/
 
 /--
-For a ring `R`, `nc_jacobson R` is the Jacobson radical of `R`, that is,
+For a ring `R`, `jacobson R` is the Jacobson radical of `R`, that is,
 the intersection of all maximal left ideals of of `R`. Note that we use left ideals.
 -/
-def nc_jacobson (R : Type u) [ring R] : ideal R := jacobson ⊥
+def jacobson (R : Type u) [ring R] : ideal R := ideal.jacobson ⊥
 
-lemma nc_jacobson_def : nc_jacobson R = Inf {I : ideal R | I.is_maximal } :=
+lemma jacobson_def : jacobson R = Inf {I : ideal R | I.is_maximal } :=
 congr_arg Inf $ by simp
 
 lemma has_left_inv_one_add_of_mem_jacobson {x : R} :
-  x ∈ nc_jacobson R → has_left_inv (1 + x):=
+  x ∈ jacobson R → has_left_inv (1 + x):=
 begin
   contrapose,
   rw not_has_left_inv_iff_mem_maximal,
   rintro ⟨I, hImax, hxxI⟩ hx,
   refine hImax.ne_top _,
   rw eq_top_iff_one,
-  have hxI : x ∈ I := by { rw [nc_jacobson_def, mem_Inf] at hx, apply hx hImax },
+  have hxI : x ∈ I := by { rw [jacobson_def, mem_Inf] at hx, apply hx hImax },
   exact (add_mem_cancel_right hxI).mp hxxI,
 end
 
@@ -81,8 +100,8 @@ The following are equivalent for an element `x` in a ring `R`.
 * 3: `1 + x * b` is a unit for any `b : R`.
 * 4: `1 + a * x * b` is a unit for any `a b : R`.
 -/
-theorem mem_nc_jacobson_tfae {R : Type u} [ring R] (x : R) : tfae [
-  x ∈ nc_jacobson R,
+theorem mem_jacobson_tfae {R : Type u} [ring R] (x : R) : tfae [
+  x ∈ jacobson R,
   ∀ a : R, has_left_inv (1 + a * x),
   ∀ a : R, is_unit (1 + a * x),
   ∀ b : R, is_unit (1 + x * b),
@@ -90,7 +109,7 @@ theorem mem_nc_jacobson_tfae {R : Type u} [ring R] (x : R) : tfae [
 begin
   tfae_have : 1 → 2,
   { exact λ hx a, has_left_inv_one_add_of_mem_jacobson $
-    (nc_jacobson R).smul_mem' a hx },
+    (jacobson R).smul_mem' a hx },
   tfae_have : 2 → 3,
   { intros hx a,
     obtain ⟨c, hc⟩ := hx a,
@@ -107,7 +126,7 @@ begin
   tfae_have : 5 → 1,
   { intro h,
     by_contra hx,
-    rw [nc_jacobson_def, submodule.mem_Inf] at hx,
+    rw [jacobson_def, submodule.mem_Inf] at hx,
     simp only [not_forall] at hx,
     rcases hx with ⟨I, hImax, hxI⟩,
     refine hImax.ne_top _,
@@ -122,22 +141,20 @@ end
 
 open mul_opposite
 /-- The Jacobson radical of `R` coincides with that of its opposite ring `Rᵐᵒᵖ`. -/
-theorem nc_jacobson_op {x : R} :
-  x ∈ nc_jacobson R ↔ op x ∈ nc_jacobson Rᵐᵒᵖ :=
+theorem jacobson_op {x : R} :
+  x ∈ jacobson R ↔ op x ∈ jacobson Rᵐᵒᵖ :=
 begin
   split,
   { intro hx,
-    rw (mem_nc_jacobson_tfae $ op x).out 0 3,
+    rw (mem_jacobson_tfae $ op x).out 0 3,
     intro a,
     rw [←is_unit_unop_iff_is_unit, unop_add, unop_one, unop_mul, unop_op],
-    apply ((mem_nc_jacobson_tfae x).out 0 2).mp hx },
+    apply ((mem_jacobson_tfae x).out 0 2).mp hx },
   { intro hx,
-    rw (mem_nc_jacobson_tfae x).out 0 3,
+    rw (mem_jacobson_tfae x).out 0 3,
     intro a,
     rw [←is_unit_op_iff_is_unit, op_add, op_one, op_mul],
-    apply ((mem_nc_jacobson_tfae $ op x).out 0 2).mp hx },
+    apply ((mem_jacobson_tfae $ op x).out 0 2).mp hx },
 end
--- TODO: state and prove more direct statement saying that the intersection of maximal left ideals
--- coincides with that of maximal right ideals.
 
-end ideal
+end ring

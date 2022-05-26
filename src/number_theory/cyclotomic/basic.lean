@@ -406,7 +406,7 @@ def cyclotomic_field : Type w := (cyclotomic n K).splitting_field
 
 namespace cyclotomic_field
 
-instance is_cyclotomic_extension [ne_zero ((n : ℕ) : K)] :
+instance is_cyclotomic_extension :
   is_cyclotomic_extension {n} K (cyclotomic_field n K) :=
 { exists_root := λ a han,
   begin
@@ -420,10 +420,48 @@ instance is_cyclotomic_extension [ne_zero ((n : ℕ) : K)] :
     letI := classical.dec_eq (cyclotomic_field n K),
     obtain ⟨ζ, hζ⟩ := exists_root_of_splits _ (splitting_field.splits (cyclotomic n K))
       (degree_cyclotomic_pos n _ n.pos).ne',
-    haveI : ne_zero ((n : ℕ) : (cyclotomic_field n K)) :=
-      ne_zero.nat_of_injective (algebra_map K _).injective,
-    rw [eval₂_eq_eval_map, map_cyclotomic, ← is_root.def, is_root_cyclotomic_iff] at hζ,
-    exact is_cyclotomic_extension.adjoin_roots_cyclotomic_eq_adjoin_nth_roots n hζ,
+    rw [eval₂_eq_eval_map, map_cyclotomic, ← is_root.def] at hζ,
+    let L := (cyclotomic ↑n K).splitting_field,
+    let p := ring_char L,
+    by_cases hp : p ∣ n,
+    { have hfin := (multiplicity.finite_nat_iff.2 ⟨char_p.char_ne_one L p, n.pos⟩),
+      obtain ⟨m, hm⟩ := multiplicity.exists_eq_pow_mul_and_not_dvd hfin,
+      conv at hζ { congr, congr, rw [hm.1] },
+      haveI : fact (p.prime),
+      { refine ⟨(or_iff_left (λ h, _)).1 (char_p.char_is_prime_or_zero L p)⟩,
+        have := hm.1,
+        conv at this { congr, skip, congr, congr, rw [h] },
+        rw [zero_pow, zero_mul] at this,
+        { exact pnat.ne_zero n this },
+        { refine multiplicity.pos_of_dvd hfin hp } },
+      letI hmz : ne_zero (m : L) := ne_zero.of_not_dvd L hm.2,
+      rw [is_root_cyclotomic_prime_pow_mul_iff_of_char_p] at hζ,
+      have H₁ : ({b : cyclotomic_field n K | ∃ (a : ℕ+), a ∈ ({n} : set ℕ+) ∧ b ^ (a : ℕ) = 1}) =
+        {b : cyclotomic_field n K | ∃ (a : ℕ+), a ∈ ({⟨m, ne_zero.pos_of_ne_zero_coe L⟩} : set ℕ+)
+        ∧ b ^ (a : ℕ) = 1},
+      { haveI : char_p (cyclotomic_field n K) p,
+        { rw [← ring_hom.char_p_iff_char_p (algebra_map K _) p,
+            ring_hom.char_p_iff_char_p (algebra_map K L) p],
+          all_goals { apply_instance } },
+        ext x,
+        simp only [mem_singleton_iff, exists_eq_left, mem_set_of_eq, pnat.mk_coe],
+        rw [hm.1, pow_prime_pow_mul_eq_one_iff] },
+      have H₂ : (map (algebra_map K (cyclotomic ↑n K).splitting_field)
+        (cyclotomic ↑n K)).roots.to_finset =
+        (map (algebra_map K (cyclotomic ↑n K).splitting_field)
+        (cyclotomic ↑(⟨m, ne_zero.pos_of_ne_zero_coe L⟩ : ℕ+) K)).roots.to_finset,
+        { ext x,
+          simp only [map_cyclotomic, multiset.mem_to_finset, pnat.mk_coe],
+          conv { congr, congr, skip, congr, congr, rw [hm.1] },
+          rw [mem_roots (cyclotomic_ne_zero _ _), mem_roots (cyclotomic_ne_zero _ _),
+            is_root_cyclotomic_prime_pow_mul_iff_of_char_p, is_root_cyclotomic_iff],
+          all_goals { apply_instance } },
+      rw [H₁, H₂],
+      exact is_cyclotomic_extension.adjoin_roots_cyclotomic_eq_adjoin_nth_roots
+        ⟨m, ne_zero.pos_of_ne_zero_coe L⟩ hζ },
+    { letI := ne_zero.of_not_dvd L hp,
+      rw [is_root_cyclotomic_iff] at hζ,
+      exact is_cyclotomic_extension.adjoin_roots_cyclotomic_eq_adjoin_nth_roots n hζ }
   end }
 
 end cyclotomic_field

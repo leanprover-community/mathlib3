@@ -399,6 +399,23 @@ begin
     simp only [comp_zero, zero_comp], },
 end
 
+lemma bar [has_pullbacks C] [has_zero_object C] [has_binary_coproducts C]
+  {A : C} {X Y : subobject A} (h : X ⊓ Y = ⊥) : mono (coprod.desc X.arrow Y.arrow) :=
+begin
+  refine ⟨λ Z f g w, _⟩,
+  sorry,
+end
+
+lemma sup_eq_top_iff_is_iso_desc [has_images C] [has_binary_coproducts C] [has_equalizers C]
+  {A : C} {X Y : subobject A} [mono (coprod.desc X.arrow Y.arrow)] :
+  X ⊔ Y = ⊤ ↔ is_iso (coprod.desc X.arrow Y.arrow) :=
+begin
+  rw [sup_eq_mk_desc, is_iso_iff_mk_eq_top],
+  congr' 2,
+  exact mk_eq_mk_of_comm _ _
+    (image_mono_iso_source (coprod.desc (subobject.arrow X) (subobject.arrow Y))) (by simp),
+end
+
 lemma inl_sup_inr [has_images C] [has_binary_coproducts C] [has_equalizers C] :
   subobject_inl X Y ⊔ subobject_inr X Y = ⊤ :=
 begin
@@ -413,12 +430,18 @@ lemma is_compl_subobject_inl_subobject_inr [has_pullbacks C] [has_zero_object C]
 { inf_le_bot := (inl_inf_inr X Y).le,
   top_le_sup := (inl_sup_inr X Y).ge, }
 
+lemma foo [has_initial C] [initial_mono_class C]
+  [has_pullbacks C] [has_images C] [has_binary_biproducts C]
+  {A : C} {X Y : subobject A} (h : is_compl X Y) : (X : C) ⊞ (Y : C) ≅ A :=
+{ hom := biprod.desc X.arrow Y.arrow,
+  inv := sorry, }
+
 /--
 A subobject `X` of `A` is complemented in the lattice sense (`∃ Y, is_compl X Y`)
 if and only if
 it is complemented in the biproduct sense (`∃ Y, X ⊞ Y ≅ A`).
 -/
-lemma exists_is_compl_iff_exists_iso_biprod [has_pullbacks C] [has_zero_object C]
+lemma exists_is_compl_iff_exists_biprod_iso [has_pullbacks C] [has_zero_object C]
   [has_images C] [has_binary_biproducts C] [has_equalizers C] {A : C} (X : subobject A) :
   (∃ Y, is_compl X Y) ↔ (∃ (Y : C) (i : (X : C) ⊞ Y ≅ A), X.arrow = biprod.inl ≫ i.hom) :=
 begin

@@ -152,6 +152,7 @@ begin
   exact (function.embedding.apply_eq_iff_eq _ _ _).symm.not,
 end
 
+/-- An embedding of a complete graph that witnesses the fact that the graph is not clique-free. -/
 noncomputable
 def top_embedding_of_not_clique_free {n : ℕ} (h : ¬ G.clique_free n) :
   (⊤ : simple_graph (fin n)) ↪g G :=

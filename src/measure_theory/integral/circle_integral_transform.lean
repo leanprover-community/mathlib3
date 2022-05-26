@@ -39,18 +39,6 @@ def circle_integral_transform (R : ℝ) (z w : ℂ) (f : ℂ → E) : ℝ → E 
 def circle_integral_transform_deriv (R : ℝ) (z w : ℂ) (f : ℂ → E) (θ : ℝ) : E :=
   (2 * ↑π * I)⁻¹ • deriv (circle_map z R) θ • ((circle_map z R θ - w) ^ 2)⁻¹ • f (circle_map z R θ)
 
-/-- Cauchy integral form of a function around a disk of radius `R` around `z` -/
-def circle_integral_form [complete_space E] (R : ℝ) (z : ℂ) (f : ℂ → E) : ℂ → E :=
-  λ w, (2 * ↑π * I)⁻¹ • (∮ z in C(z, R), (z - w)⁻¹ • f z)
-
-lemma circle_integral_form_eq_int [complete_space E] (R : ℝ) (z : ℂ) (f : ℂ → E) :
-  circle_integral_form R z f = λ w,
- ∫ (θ : ℝ) in 0..2 * π, (circle_integral_transform R z w f ) θ :=
-begin
-  simp_rw [circle_integral_form, circle_integral_transform, circle_integral,
-    interval_integral.integral_smul],
-end
-
 lemma circle_integral_transform_deriv_eq (R : ℝ) (z w : ℂ) (f : ℂ → E) :
   circle_integral_transform_deriv R z w f =
   (λ θ, (circle_map z R θ - w)⁻¹ • (circle_integral_transform R z w f θ)) :=
@@ -141,28 +129,28 @@ end
 /-- The derivative of a `circle_integral_transform` is bounded by a continuous function -/
 lemma circle_integral_transform_deriv_bound {R r : ℝ} (hR: 0 < R) (hr : r < R) (hr' : 0 ≤ r)
   {z x : ℂ} {f : ℂ → ℂ} (hx : x ∈ ball z r) (hf : continuous_on f (sphere z R)) :
-  ∃ (bound : ℝ → ℝ) (ε : ℝ), 0 < ε ∧ ball x ε ⊆ ball z R ∧
-  (∀ᵐ t ∂volume, t ∈ [0, 2 * π] → ∀ y ∈ ball x ε,
-  ∥circle_integral_transform_deriv R z y f t∥ ≤ bound t) ∧ continuous_on bound [0, 2 * π] :=
+  ∃ (B ε : ℝ), 0 < ε ∧ ball x ε ⊆ ball z R ∧
+  (∀ (t ∈ [0, 2 * π]) (y ∈ ball x ε), ∥circle_integral_transform_deriv R z y f t∥ ≤ B) :=
 begin
   obtain ⟨ε', hε', H⟩ := exists_ball_subset_ball hx,
   obtain ⟨⟨⟨a, b⟩, ⟨ha, hb⟩⟩, hab⟩ := circle_integral_bounding_function_bound hR hr hr' z,
   let V : ℝ → (ℂ → ℂ) := λ θ w, circle_integral_transform_deriv R z w (λ x, 1) θ,
-  refine ⟨λ r, abs (V b a) * abs (f $ circle_map z R r), ε', _⟩,
-  refine ⟨hε', subset.trans H (ball_subset_ball hr.le), eventually_of_forall _, _⟩,
-  { intros y hy v hv,
-    simp only [circle_integral_bounding_function, circle_integral_transform_deriv, V, norm_eq_abs,
-      mul_one, algebra.id.smul_eq_mul] at *,
-    have := mul_le_mul_of_nonneg_right (hab ⟨⟨v, y⟩, ⟨ball_subset_closed_ball (H hv), hy⟩⟩)
-      (abs_nonneg $ f $ circle_map z R y),
-    simp_rw [deriv_circle_map, abs_mul, abs_circle_map_zero, abs_I, mul_one, ←mul_assoc] at *,
-    apply this, },
-  { have cabs : continuous_on abs ⊤ := by apply continuous_abs.continuous_on,
-    simp_rw ←abs_mul,
-    apply_rules [cabs.comp, continuous_on_const.mul, continuous_on.comp hf,
-      (continuous_circle_map z R).continuous_on, semi_normed_ring_top_monoid],
-    { rw maps_to, intros x hx, apply circle_map_mem_sphere _ hR.le, },
-    { rw maps_to, tauto, }, },
+  have funccomp : continuous_on (λ r , abs (f r)) (sphere z R),
+  by { have cabs : continuous_on abs ⊤ := by apply continuous_abs.continuous_on,
+    apply cabs.comp (hf), rw maps_to, tauto,},
+  have sbou := is_compact.exists_forall_ge (is_compact_sphere z R)
+    (normed_space.sphere_nonempty.2 hR.le) funccomp,
+  obtain ⟨X, HX, HX2⟩ := sbou,
+  refine ⟨abs (V b a) * abs (f X), ε' , hε', subset.trans H (ball_subset_ball hr.le),  _ ⟩,
+  intros y hy v hv,
+  have := mul_le_mul (hab ⟨⟨v, y⟩, ⟨ball_subset_closed_ball (H hv), hy⟩⟩)
+   (HX2 (circle_map z R y) (circle_map_mem_sphere z hR.le y)) (abs_nonneg _) (abs_nonneg _),
+  simp only [circle_integral_bounding_function, circle_integral_transform_deriv, V, norm_eq_abs,
+    algebra.id.smul_eq_mul, deriv_circle_map, abs_mul, abs_circle_map_zero, abs_I, mul_one,
+    ←mul_assoc, mul_inv_rev, inv_I, abs_neg, abs_inv, abs_of_real, one_mul, abs_two, abs_pow,
+    mem_ball, gt_iff_lt, subtype.coe_mk, set_coe.forall, mem_prod,  mem_closed_ball, and_imp,
+    prod.forall, normed_space.sphere_nonempty, mem_sphere_iff_norm] at *,
+  exact this,
 end
 
 end complex

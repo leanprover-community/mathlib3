@@ -150,16 +150,16 @@ end
 
 /-- Rearrangement of `polynomial.sum_range_pow_eq_bernoulli_sub`. -/
 lemma bernoulli_succ_eval (n p : ℕ) : (bernoulli p.succ).eval n =
-  _root_.bernoulli (p.succ) + (p  + 1 : ℚ) * ∑ k in range n, (k : ℚ) ^ p :=
+  _root_.bernoulli (p.succ) + (p + 1 : ℚ) * ∑ k in range n, (k : ℚ) ^ p :=
 by { apply eq_add_of_sub_eq', rw sum_range_pow_eq_bernoulli_sub, }
 
 lemma bernoulli_eval_one_add (n : ℕ) (x : ℚ) :
   (bernoulli n).eval (1 + x) = (bernoulli n).eval x + n * x^(n - 1) :=
 begin
   apply nat.strong_induction_on n (λ d hd, _),
-  apply (mul_right_inj' _).1,
-  swap 3, exact d.succ,
-  swap 3, { norm_cast, exact d.succ_ne_zero, },
+  have nz : ((d.succ : ℕ): ℚ) ≠ 0,
+  { norm_cast, exact d.succ_ne_zero, },
+  apply (mul_right_inj' nz).1,
   rw [← smul_eq_mul, ←eval_smul, bernoulli_eq_sub_sum, mul_add, ←smul_eq_mul,
     ←eval_smul, bernoulli_eq_sub_sum, eval_sub, eval_finset_sum],
   conv_lhs { congr, skip, apply_congr, skip, rw [eval_smul, hd x_1 (mem_range.1 H)], },
@@ -167,7 +167,7 @@ begin
   simp_rw [eval_smul, smul_add],
   rw [sum_add_distrib, sub_add, sub_eq_sub_iff_sub_eq_sub, _root_.add_sub_sub_cancel],
   conv_rhs { congr, skip, congr, rw [succ_eq_add_one, ←choose_succ_self_right d], },
-  rw [← smul_eq_mul, ←sum_range_succ _ d, eval_monomial_one_add_sub],
+  rw [nat.cast_succ, ← smul_eq_mul, ←sum_range_succ _ d, eval_monomial_one_add_sub],
   simp_rw [smul_eq_mul],
 end
 

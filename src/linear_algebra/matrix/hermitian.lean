@@ -46,8 +46,9 @@ begin
   show (∀ x y, ⟪A.mul_vec x, y⟫ = ⟪x, A.mul_vec y⟫) → A.is_hermitian,
   { intro h,
     ext i j,
+    have := h (euclidean_space.single i 1) (euclidean_space.single j 1),
     simpa [euclidean_space.inner_single_right, euclidean_space.inner_single_left]
-      using h (euclidean_space.single i 1) (euclidean_space.single j 1) }
+      using this }
 end
 
 end matrix

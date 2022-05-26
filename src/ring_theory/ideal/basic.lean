@@ -631,9 +631,8 @@ def nonunits (α : Type u) [monoid α] : set α := { a | ¬is_unit a }
 
 @[simp] theorem mem_nonunits_iff [monoid α] : a ∈ nonunits α ↔ ¬ is_unit a := iff.rfl
 
-theorem mem_nonunits_iff' [comm_monoid α] :
-  a ∈ nonunits α ↔ ¬has_left_inv a :=
-iff.not is_unit_iff_exists_inv'
+theorem mem_nonunits_iff' [comm_monoid α] : a ∈ nonunits α ↔ ¬has_left_inv a :=
+is_unit_iff_exists_inv'.not
 
 theorem mul_mem_nonunits_right [comm_monoid α] :
   b ∈ nonunits α → a * b ∈ nonunits α :=

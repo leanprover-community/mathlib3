@@ -65,9 +65,9 @@ lemma ideal.is_homogeneous.is_prime_of_homogeneous_mem_or_mem
   This is a contradiction, because both `proj (max₁ + max₂) (x * y) ∈ I` and the sum on the
   right hand side is in `I` however `proj max₁ x * proj max₂ y` is not in `I`.
   -/
+  classical,
   letI : Π (x : A),
     decidable_pred (λ (i : ι), proj 𝒜 i x ∉ I) := λ x, classical.dec_pred _,
-  letI : Π i (x : 𝒜 i), decidable (x ≠ 0) := λ i x, classical.dec _,
   set set₁ := (support 𝒜 x).filter (λ i, proj 𝒜 i x ∉ I) with set₁_eq,
   set set₂ := (support 𝒜 y).filter (λ i, proj 𝒜 i y ∉ I) with set₂_eq,
   have nonempty : ∀ (x : A), (x ∉ I) → ((support 𝒜 x).filter (λ i, proj 𝒜 i x ∉ I)).nonempty,
@@ -91,7 +91,7 @@ lemma ideal.is_homogeneous.is_prime_of_homogeneous_mem_or_mem
     have eq_add_sum :=
       calc  proj 𝒜 (max₁ + max₂) (x * y)
           = ∑ ij in antidiag, proj 𝒜 ij.1 x * proj 𝒜 ij.2 y
-          : by simp_rw [ha, proj_apply, map_mul, support, direct_sum.coe_mul_apply_submodule]
+          : by simp_rw [ha, proj_apply, map_mul, support, direct_sum.coe_mul_apply 𝒜]
       ... = proj 𝒜 max₁ x * proj 𝒜 max₂ y + ∑ ij in antidiag.erase (max₁, max₂),
                                               proj 𝒜 ij.1 x * proj 𝒜 ij.2 y
           : (add_sum_erase _ _ mem_antidiag).symm,

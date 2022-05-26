@@ -26,11 +26,6 @@ if the relation `<` on submodules is well founded.
 A ring is said to be left (or right) Artinian if it is Artinian as a left (or right) module over
 itself, or simply Artinian if it is both left and right Artinian.
 
-(Note that we do not assume yet that our rings are commutative,
-so perhaps this should be called "left Artinian".
-To avoid cumbersome names once we specialize to the commutative case,
-we don't make this explicit in the declaration names.)
-
 ## Main definitions
 
 Let `R` be a ring and let `M` and `P` be `R`-modules. Let `N` be an `R`-submodule of `M`.

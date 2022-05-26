@@ -150,7 +150,7 @@ begin
 end
 
 @[simp] lemma trailing_degree_monomial (ha : a ≠ 0) : trailing_degree (monomial n a) = n :=
-by rw [trailing_degree, support_monomial _ _ ha, inf_singleton, with_top.some_eq_coe]
+by rw [trailing_degree, support_monomial n ha, inf_singleton, with_top.some_eq_coe]
 
 lemma nat_trailing_degree_monomial (ha : a ≠ 0) : nat_trailing_degree (monomial n a) = n :=
 by rw [nat_trailing_degree, trailing_degree_monomial ha]; refl
@@ -263,6 +263,27 @@ begin
       exact by_contra (λ h, hy (if_neg h)) },
     rw [mem_support_iff, coeff_mul_X_pow', if_pos key] at hy,
     exact (le_tsub_iff_right key).mp (nat_trailing_degree_le_of_ne_zero hy) },
+end
+
+lemma le_trailing_degree_mul : p.trailing_degree + q.trailing_degree ≤ (p * q).trailing_degree :=
+begin
+  refine le_inf (λ n hn, _),
+  rw [mem_support_iff, coeff_mul] at hn,
+  obtain ⟨⟨i, j⟩, hij, hpq⟩ := exists_ne_zero_of_sum_ne_zero hn,
+  refine (add_le_add (inf_le (mem_support_iff.mpr (left_ne_zero_of_mul hpq)))
+    (inf_le (mem_support_iff.mpr (right_ne_zero_of_mul hpq)))).trans (le_of_eq _),
+  rwa [with_top.some_eq_coe, with_top.some_eq_coe, with_top.some_eq_coe,
+      ←with_top.coe_add, with_top.coe_eq_coe, ←nat.mem_antidiagonal],
+end
+
+lemma le_nat_trailing_degree_mul (h : p * q ≠ 0) :
+  p.nat_trailing_degree + q.nat_trailing_degree ≤ (p * q).nat_trailing_degree :=
+begin
+  have hp : p ≠ 0 := λ hp, h (by rw [hp, zero_mul]),
+  have hq : q ≠ 0 := λ hq, h (by rw [hq, mul_zero]),
+  rw [←with_top.coe_le_coe, with_top.coe_add, ←trailing_degree_eq_nat_trailing_degree hp,
+      ←trailing_degree_eq_nat_trailing_degree hq, ←trailing_degree_eq_nat_trailing_degree h],
+  exact le_trailing_degree_mul,
 end
 
 end semiring

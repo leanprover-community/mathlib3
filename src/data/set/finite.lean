@@ -229,6 +229,13 @@ instance fintype_singleton (a : α) : fintype ({a} : set α) := fintype.of_finse
 instance fintype_pure : ∀ a : α, fintype (pure a : set α) :=
 set.fintype_singleton
 
+/-- A `fintype` instance for inserting an element into a `set` using the
+corresponding `insert` function on `finset`. This requires `decidable_eq α`.
+There is also `set.fintype_insert'` when `a ∈ s` is decidable. -/
+instance fintype_insert (a : α) (s : set α) [decidable_eq α] [fintype s] :
+  fintype (insert a s : set α) :=
+fintype.of_finset (insert a s.to_finset) $ by simp
+
 /-- A `fintype` structure on `insert a s` when inserting a new element. -/
 def fintype_insert_of_not_mem {a : α} (s : set α) [fintype s] (h : a ∉ s) :
   fintype (insert a s : set α) :=
@@ -239,12 +246,15 @@ def fintype_insert_of_mem {a : α} (s : set α) [fintype s] (h : a ∈ s) :
   fintype (insert a s : set α) :=
 fintype.of_finset s.to_finset $ by simp [h]
 
-instance fintype_insert (a : α) (s : set α) [decidable_eq α] [fintype s] :
-  fintype (insert a s : set α) :=
-fintype.of_finset (insert a s.to_finset) $ by simp
+/-- The `set.fintype_insert` instance requires decidable equality, but when `a ∈ s`
+is decidable for this particular `a` we can still get a `fintype` instance by using
+`set.fintype_insert_of_not_mem` or `set.fintype_insert_of_mem`.
 
-/-- Normally, `insert a s` for `finset` requires `[decidable_eq α]`, but we can use this weaker
-assumption here. -/
+This instance pre-dates `set.fintype_insert`, and it is less efficient.
+When `decidable_mem_of_fintype` is made a local instance, then this instance would
+override `set.fintype_insert` if not for the fact that its priority has been
+adjusted. See Note [lower instance priority]. -/
+@[priority 100]
 instance fintype_insert' (a : α) (s : set α) [decidable $ a ∈ s] [fintype s] :
   fintype (insert a s : set α) :=
 if h : a ∈ s then fintype_insert_of_mem s h else fintype_insert_of_not_mem s h

@@ -23,6 +23,8 @@ This file is almost identical to `group_theory/submonoid/pointwise.lean`. Where 
 keep them in sync.
 -/
 
+open set
+
 variables {α : Type*} {G : Type*} {A : Type*} [group G] [add_group A]
 
 namespace subgroup

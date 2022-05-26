@@ -110,6 +110,17 @@ by rw [← with_bot.coe_eq_coe, ← degree_eq_nat_degree (mul_ne_zero hp hq),
     with_bot.coe_add, ← degree_eq_nat_degree hp,
     ← degree_eq_nat_degree hq, degree_mul]
 
+lemma trailing_degree_mul : (p * q).trailing_degree = p.trailing_degree + q.trailing_degree :=
+begin
+  by_cases hp : p = 0,
+  { rw [hp, zero_mul, trailing_degree_zero, top_add] },
+  by_cases hq : q = 0,
+  { rw [hq, mul_zero, trailing_degree_zero, add_top] },
+  rw [trailing_degree_eq_nat_trailing_degree hp, trailing_degree_eq_nat_trailing_degree hq,
+      trailing_degree_eq_nat_trailing_degree (mul_ne_zero hp hq),
+      nat_trailing_degree_mul hp hq, with_top.coe_add],
+end
+
 @[simp] lemma nat_degree_pow (p : R[X]) (n : ℕ) :
   nat_degree (p ^ n) = n * nat_degree p :=
 if hp0 : p = 0

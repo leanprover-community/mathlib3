@@ -30,7 +30,7 @@ open_locale polynomial
 
 section semiring
 
-variables {R : Type*} [semiring R] (p : R[X])
+variables {R : Type*} [semiring R] (p q : R[X])
 
 /-- mirror of a polynomial: reverses the coefficients while preserving `polynomial.nat_degree` -/
 noncomputable def mirror := p.reverse * X ^ p.nat_trailing_degree
@@ -118,14 +118,27 @@ lemma mirror_mirror : p.mirror.mirror = p :=
 polynomial.ext (λ n, by rw [coeff_mirror, coeff_mirror,
   mirror_nat_degree, mirror_nat_trailing_degree, rev_at_invol])
 
-lemma mirror_eq_zero : p.mirror = 0 ↔ p = 0 :=
+variables {p q}
+
+lemma mirror_involutive : function.involutive (mirror : R[X] → R[X]) :=
+mirror_mirror
+
+lemma mirror_eq_iff : p.mirror = q ↔ p = q.mirror :=
+mirror_involutive.eq_iff
+
+@[simp] lemma mirror_inj : p.mirror = q.mirror ↔ p = q :=
+mirror_involutive.injective.eq_iff
+
+@[simp] lemma mirror_eq_zero : p.mirror = 0 ↔ p = 0 :=
 ⟨λ h, by rw [←p.mirror_mirror, h, mirror_zero], λ h, by rw [h, mirror_zero]⟩
 
-lemma mirror_trailing_coeff : p.mirror.trailing_coeff = p.leading_coeff :=
+variables (p q)
+
+@[simp] lemma mirror_trailing_coeff : p.mirror.trailing_coeff = p.leading_coeff :=
 by rw [leading_coeff, trailing_coeff, mirror_nat_trailing_degree, coeff_mirror,
   rev_at_le (nat.le_add_left _ _), add_tsub_cancel_right]
 
-lemma mirror_leading_coeff : p.mirror.leading_coeff = p.trailing_coeff :=
+@[simp] lemma mirror_leading_coeff : p.mirror.leading_coeff = p.trailing_coeff :=
 by rw [←p.mirror_mirror, mirror_trailing_coeff, p.mirror_mirror]
 
 lemma coeff_mul_mirror :

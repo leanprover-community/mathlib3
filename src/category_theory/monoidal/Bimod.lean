@@ -822,14 +822,14 @@ iso_of_iso
   (right_unitor_Bimod.hom_left_act_hom' M)
   (right_unitor_Bimod.hom_right_act_hom' M)
 
-lemma wisker_left_comp_Bimod {X Y Z : Mon_ C}
+lemma whisker_left_comp_Bimod {X Y Z : Mon_ C}
   (M : Bimod X Y) {N P Q : Bimod Y Z} (f : N ⟶ P) (g : P ⟶ Q) :
   tensor_hom (𝟙 M) (f ≫ g) = tensor_hom (𝟙 M) f ≫ tensor_hom (𝟙 M) g :=
 begin
   rw [←tensor_comp, category.comp_id],
 end
 
-lemma id_wisker_left_Bimod {X Y : Mon_ C} {M N : Bimod X Y} (f : M ⟶ N) :
+lemma id_whisker_left_Bimod {X Y : Mon_ C} {M N : Bimod X Y} (f : M ⟶ N) :
   tensor_hom (𝟙 (regular X)) f = (left_unitor_Bimod M).hom ≫ f ≫ (left_unitor_Bimod N).inv :=
 begin
   dunfold tensor_hom regular left_unitor_Bimod, dsimp,
@@ -853,7 +853,7 @@ begin
   slice_rhs 1 2 { rw category.comp_id },
 end
 
-lemma comp_wisker_left_Bimod {W X Y Z : Mon_ C}
+lemma comp_whisker_left_Bimod {W X Y Z : Mon_ C}
   (M : Bimod W X) (N : Bimod X Y) {P P' : Bimod Y Z} (f : P ⟶ P') :
   tensor_hom (𝟙 (tensor_Bimod M N)) f =
   (associator_Bimod M N P).hom ≫ tensor_hom (𝟙 M) (tensor_hom (𝟙 N) f) ≫
@@ -882,14 +882,14 @@ begin
   simp only [category.assoc],
 end
 
-lemma comp_wisker_right_Bimod {X Y Z : Mon_ C}
+lemma comp_whisker_right_Bimod {X Y Z : Mon_ C}
   {M N P : Bimod X Y} (f : M ⟶ N) (g : N ⟶ P) (Q : Bimod Y Z) :
   tensor_hom (f ≫ g) (𝟙 Q) = tensor_hom f (𝟙 Q) ≫ tensor_hom g (𝟙 Q) :=
 begin
   rw [←tensor_comp, category.comp_id],
 end
 
-lemma wisker_right_id_Bimod {X Y : Mon_ C} {M N : Bimod X Y} (f : M ⟶ N) :
+lemma whisker_right_id_Bimod {X Y : Mon_ C} {M N : Bimod X Y} (f : M ⟶ N) :
   tensor_hom f (𝟙 (regular Y)) = (right_unitor_Bimod M).hom ≫ f ≫ (right_unitor_Bimod N).inv :=
 begin
   dunfold tensor_hom regular right_unitor_Bimod, dsimp,
@@ -912,7 +912,7 @@ begin
   slice_rhs 1 2 { rw category.comp_id },
 end
 
-lemma wisker_right_comp_Bimod {W X Y Z : Mon_ C}
+lemma whisker_right_comp_Bimod {W X Y Z : Mon_ C}
   {M M' : Bimod W X} (f : M ⟶ M') (N : Bimod X Y) (P : Bimod Y Z) :
   tensor_hom f (𝟙 (tensor_Bimod N P)) =
   (associator_Bimod M N P).inv ≫ tensor_hom (tensor_hom f (𝟙 N)) (𝟙 P) ≫
@@ -941,7 +941,7 @@ begin
   simp only [category.assoc],
 end
 
-lemma wisker_assoc_Bimod {W X Y Z : Mon_ C}
+lemma whisker_assoc_Bimod {W X Y Z : Mon_ C}
   (M : Bimod W X) {N N' : Bimod X Y} (f : N ⟶ N') (P : Bimod Y Z) :
   tensor_hom (tensor_hom (𝟙 M) f) (𝟙 P) =
   (associator_Bimod M N P).hom ≫ tensor_hom (𝟙 M) (tensor_hom f (𝟙 P)) ≫
@@ -970,7 +970,7 @@ begin
   slice_lhs 1 1 { rw comp_tensor_id },
 end
 
-lemma wisker_exchange_Bimod {X Y Z : Mon_ C}
+lemma whisker_exchange_Bimod {X Y Z : Mon_ C}
   {M N : Bimod X Y} {P Q : Bimod Y Z} (f : M ⟶ N) (g : P ⟶ Q) :
   tensor_hom (𝟙 M) g ≫ tensor_hom f (𝟙 Q) = tensor_hom f (𝟙 P) ≫ tensor_hom (𝟙 N) g :=
 begin
@@ -1061,15 +1061,15 @@ def Mon_bicategory : bicategory (Mon_ C) :=
   left_unitor := λ _ _ M, left_unitor_Bimod M,
   right_unitor := λ _ _ M, right_unitor_Bimod M,
   whisker_left_id' := λ _ _ _ _ _, tensor_id,
-  whisker_left_comp' := λ _ _ _ M _ _ _ f g, wisker_left_comp_Bimod M f g,
-  id_whisker_left' := λ _ _ _ _ f, id_wisker_left_Bimod f,
-  comp_whisker_left' := λ _ _ _ _ M N _ _ f, comp_wisker_left_Bimod M N f,
+  whisker_left_comp' := λ _ _ _ M _ _ _ f g, whisker_left_comp_Bimod M f g,
+  id_whisker_left' := λ _ _ _ _ f, id_whisker_left_Bimod f,
+  comp_whisker_left' := λ _ _ _ _ M N _ _ f, comp_whisker_left_Bimod M N f,
   id_whisker_right' := λ _ _ _ _ _, tensor_id,
-  comp_whisker_right' := λ _ _ _ _ _ _ f g Q, comp_wisker_right_Bimod f g Q,
-  whisker_right_id' := λ _ _ _ _ f, wisker_right_id_Bimod f,
-  whisker_right_comp' := λ _ _ _ _ _ _ f N P, wisker_right_comp_Bimod f N P,
-  whisker_assoc' := λ _ _ _ _ M _ _ f P, wisker_assoc_Bimod M f P,
-  whisker_exchange' := λ _ _ _ _ _ _ _ f g, wisker_exchange_Bimod f g,
+  comp_whisker_right' := λ _ _ _ _ _ _ f g Q, comp_whisker_right_Bimod f g Q,
+  whisker_right_id' := λ _ _ _ _ f, whisker_right_id_Bimod f,
+  whisker_right_comp' := λ _ _ _ _ _ _ f N P, whisker_right_comp_Bimod f N P,
+  whisker_assoc' := λ _ _ _ _ M _ _ f P, whisker_assoc_Bimod M f P,
+  whisker_exchange' := λ _ _ _ _ _ _ _ f g, whisker_exchange_Bimod f g,
   pentagon' := λ _ _ _ _ _ M N P Q, pentagon_Bimod M N P Q,
   triangle' := λ _ _ _ M N, triangle_Bimod M N }
 

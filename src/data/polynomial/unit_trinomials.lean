@@ -17,62 +17,47 @@ section semiring
 
 variables {R : Type*} [semiring R] {p q : R[X]}
 
--- todo: PR to `data/polynomial/basic` with other support lemmas
-lemma support_binomial_le {k m : ℕ} {x y : R} :
-  (C x * X ^ k + C y * X ^ m).support ⊆ {k, m} :=
-support_add.trans (union_subset ((support_C_mul_X_pow x k).trans
-  (singleton_subset_iff.mpr (mem_insert_self k {m}))) ((support_C_mul_X_pow y m).trans
+lemma support_binomial' (k m : ℕ) (x y : R) : (C x * X ^ k + C y * X ^ m).support ⊆ {k, m} :=
+support_add.trans (union_subset ((support_C_mul_X_pow' k x).trans
+  (singleton_subset_iff.mpr (mem_insert_self k {m}))) ((support_C_mul_X_pow' m y).trans
   (singleton_subset_iff.mpr (mem_insert_of_mem (mem_singleton_self m)))))
 
--- todo: PR to `data/polynomial/basic` with other support lemmas
-lemma support_trinomial_le {k m n : ℕ} {x y z : R} :
+lemma support_trinomial' (k m n : ℕ) (x y z : R) :
   (C x * X ^ k + C y * X ^ m + C z * X ^ n).support ⊆ {k, m, n} :=
-support_add.trans (union_subset (support_add.trans (union_subset (support_C_mul_X_pow'.trans
-  (singleton_subset_iff.mpr (mem_insert_self k {m, n}))) (support_C_mul_X_pow'.trans
+support_add.trans (union_subset (support_add.trans (union_subset ((support_C_mul_X_pow' k x).trans
+  (singleton_subset_iff.mpr (mem_insert_self k {m, n}))) ((support_C_mul_X_pow' m y).trans
   (singleton_subset_iff.mpr (mem_insert_of_mem (mem_insert_self m {n}))))))
-  (support_C_mul_X_pow'.trans (singleton_subset_iff.mpr
+  ((support_C_mul_X_pow' n z).trans (singleton_subset_iff.mpr
   (mem_insert_of_mem (mem_insert_of_mem (mem_singleton_self n))))))
 
--- todo: PR to `data/polynomial/basic` with other support lemmas
-lemma support_binomial_eq {k m : ℕ} (hkm : k ≠ m) {x y : R} (hx : x ≠ 0) (hy : y ≠ 0) :
+lemma support_binomial {k m : ℕ} (hkm : k ≠ m) {x y : R} (hx : x ≠ 0) (hy : y ≠ 0) :
   (C x * X ^ k + C y * X ^ m).support = {k, m} :=
 begin
-  refine subset_antisymm support_binomial_le _,
+  apply subset_antisymm (support_binomial' k m x y),
   simp_rw [insert_subset, singleton_subset_iff, mem_support_iff, coeff_add, coeff_C_mul,
     coeff_X_pow_self, mul_one, coeff_X_pow, if_neg hkm, if_neg hkm.symm,
     mul_zero, zero_add, add_zero, ne.def, hx, hy, and_self, not_false_iff],
 end
 
--- todo: PR to `data/polynomial/basic` with other support lemmas
-lemma support_trinomial_eq {k m n : ℕ} (hkm : k < m) (hmn : m < n) {x y z : R} (hx : x ≠ 0)
+lemma support_trinomial {k m n : ℕ} (hkm : k < m) (hmn : m < n) {x y z : R} (hx : x ≠ 0)
   (hy : y ≠ 0) (hz : z ≠ 0) : (C x * X ^ k + C y * X ^ m + C z * X ^ n).support = {k, m, n} :=
 begin
-  refine subset_antisymm support_trinomial_le _,
+  apply subset_antisymm (support_trinomial' k m n x y z),
   simp_rw [insert_subset, singleton_subset_iff, mem_support_iff, coeff_add, coeff_C_mul,
     coeff_X_pow_self, mul_one, coeff_X_pow, if_neg hkm.ne, if_neg hkm.ne', if_neg hmn.ne,
-    if_neg hmn.ne', if_neg (hkm.trans hmn).ne, if_neg (hkm.trans hmn).ne', mul_zero, add_zero,
-    zero_add, ne.def, hx, hy, hz, and_self, not_false_iff],
+    if_neg hmn.ne', if_neg (hkm.trans hmn).ne, if_neg (hkm.trans hmn).ne',
+    mul_zero, add_zero, zero_add, ne.def, hx, hy, hz, and_self, not_false_iff],
 end
 
--- todo: PR to `data/polynomial/basic` with other support lemmas
-lemma card_support_binomial_eq {k m : ℕ} (hkm : k ≠ m) {x y : R} (hx : x ≠ 0) (hy : y ≠ 0) :
+lemma card_support_binomial {k m : ℕ} (h : k ≠ m) {x y : R} (hx : x ≠ 0) (hy : y ≠ 0) :
   (C x * X ^ k + C y * X ^ m).support.card = 2 :=
-begin
-  rw [support_binomial_eq hkm hx hy, card_insert_of_not_mem, card_singleton],
-  rwa [mem_singleton],
-end
+by rw [support_binomial h hx hy, card_insert_of_not_mem (mt mem_singleton.mp h), card_singleton]
 
--- todo: PR to `data/polynomial/basic` with other support lemmas
-lemma card_support_trinomial_eq {k m n : ℕ} (hkm : k < m) (hmn : m < n) {x y z : R} (hx : x ≠ 0)
+lemma card_support_trinomial {k m n : ℕ} (hkm : k < m) (hmn : m < n) {x y z : R} (hx : x ≠ 0)
   (hy : y ≠ 0) (hz : z ≠ 0) : (C x * X ^ k + C y * X ^ m + C z * X ^ n).support.card = 3 :=
-begin
-  rw [support_trinomial_eq hkm hmn hx hy hz, card_insert_of_not_mem, card_insert_of_not_mem,
-      card_singleton],
-  { rw [mem_singleton],
-    exact hmn.ne },
-  { rw [mem_insert, mem_singleton, not_or_distrib],
-    exact ⟨hkm.ne, (hkm.trans hmn).ne⟩ },
-end
+by rw [support_trinomial hkm hmn hx hy hz, card_insert_of_not_mem
+  (mt mem_insert.mp (not_or hkm.ne (mt mem_singleton.mp (hkm.trans hmn).ne))),
+  card_insert_of_not_mem (mt mem_singleton.mp hmn.ne), card_singleton]
 
 -- todo: PR to `data/polynomial/basic` with other support lemmas
 lemma card_support_eq_one : p.support.card = 1 ↔ ∃ (k : ℕ) (x : R) (hx : x ≠ 0), p = C x * X ^ k :=
@@ -84,7 +69,7 @@ begin
       exact one_ne_zero },
     { conv_lhs { rw [←p.erase_lead_add_C_mul_X_pow, hp, zero_add] } } },
   { rintros ⟨k, x, hx, rfl⟩,
-    rw [support_mul_X_pow x k hx, card_singleton] },
+    rw [support_C_mul_X_pow k hx, card_singleton] },
 end
 
 -- todo: PR to `data/polynomial/basic` with other support lemmas
@@ -100,7 +85,7 @@ begin
       exact two_ne_zero },
     { rw [←hp, erase_lead_add_C_mul_X_pow] } },
   { rintros ⟨k, m, hkm, x, y, hx, hy, rfl⟩,
-    exact card_support_binomial_eq hkm.ne hx hy },
+    exact card_support_binomial hkm.ne hx hy },
 end
 
 -- todo: PR to `data/polynomial/basic` with other support lemmas
@@ -117,7 +102,7 @@ begin
       exact three_ne_zero },
     { rw [←hp, erase_lead_add_C_mul_X_pow] } },
   { rintros ⟨k, m, n, hkm, hmn, x, y, z, hx, hy, hz, rfl⟩,
-    exact card_support_trinomial_eq hkm hmn hx hy hz },
+    exact card_support_trinomial hkm hmn hx hy hz },
 end
 
 end semiring
@@ -164,7 +149,7 @@ lemma trinomial_nat_degree (hkm : k < m) (hmn : m < n) (hw : w ≠ 0) :
 begin
   refine nat_degree_eq_of_degree_eq_some (le_antisymm (sup_le (λ i hi, _))
     (le_degree_of_ne_zero (by rwa trinomial_coeff_n hkm hmn))),
-  have := support_trinomial_le hi,
+  have := support_trinomial' k m n u v w hi,
   rw [mem_insert, mem_insert, mem_singleton] at this,
   rcases this with rfl | rfl | rfl,
   { exact with_bot.coe_le_coe.mpr (hkm.trans hmn).le },
@@ -177,7 +162,7 @@ lemma trinomial_nat_trailing_degree (hkm : k < m) (hmn : m < n) (hu : u ≠ 0) :
 begin
   refine nat_trailing_degree_eq_of_trailing_degree_eq_some (le_antisymm
     (le_trailing_degree_of_ne_zero (by rwa trinomial_coeff_k hkm hmn)) (le_inf (λ i hi, _))),
-  have := support_trinomial_le hi,
+  have := support_trinomial' k m n u v w hi,
   rw [mem_insert, mem_insert, mem_singleton] at this,
   rcases this with rfl | rfl | rfl,
   { exact le_rfl },
@@ -213,7 +198,7 @@ namespace is_unit_trinomial
 lemma card_support_eq_three (hp : p.is_unit_trinomial) : p.support.card = 3 :=
 begin
   obtain ⟨k, m, n, hkm, hmn, u, v, w, hu, hv, hw, rfl⟩ := hp,
-  rw [support_trinomial_eq hkm hmn hu.ne_zero hv.ne_zero hw.ne_zero, card_insert_of_not_mem
+  rw [support_trinomial hkm hmn hu.ne_zero hv.ne_zero hw.ne_zero, card_insert_of_not_mem
         (mt mem_insert.mp (not_or hkm.ne (mt mem_singleton.mp (hkm.trans hmn).ne))),
       card_insert_of_not_mem (mt mem_singleton.mp hmn.ne), card_singleton],
 end
@@ -229,7 +214,7 @@ lemma coeff_is_unit (hp : p.is_unit_trinomial) {k : ℕ} (hk : k ∈ p.support) 
   is_unit (p.coeff k) :=
 begin
   obtain ⟨k, m, n, hkm, hmn, u, v, w, hu, hv, hw, rfl⟩ := hp,
-  have := support_trinomial_le hk,
+  have := support_trinomial' k m n u v w hk,
   rw [mem_insert, mem_insert, mem_singleton] at this,
   rcases this with rfl | rfl | rfl,
   { rwa trinomial_coeff_k hkm hmn },
@@ -250,7 +235,7 @@ lemma is_unit_trinomial_iff :
 begin
   refine ⟨λ hp, ⟨hp.card_support_eq_three, λ k, hp.coeff_is_unit⟩, λ hp, _⟩,
   obtain ⟨k, m, n, hkm, hmn, x, y, z, hx, hy, hz, rfl⟩ := card_support_eq_three.mp hp.1,
-  rw [support_trinomial_eq hkm hmn hx hy hz] at hp,
+  rw [support_trinomial hkm hmn hx hy hz] at hp,
   replace hx := hp.2 k (mem_insert_self k {m, n}),
   replace hy := hp.2 m (mem_insert_of_mem (mem_insert_self m {n})),
   replace hz := hp.2 n (mem_insert_of_mem (mem_insert_of_mem (mem_singleton_self n))),
@@ -321,7 +306,7 @@ begin
       nat.mul_div_right _ zero_lt_two, coeff_mul_mirror],
   refine ⟨_, λ hp, _⟩,
   { rintros ⟨k, m, n, hkm, hmn, u, v, w, hu, hv, hw, rfl⟩,
-    rw [sum_def, support_trinomial_eq hkm hmn hu.ne_zero hv.ne_zero hw.ne_zero,
+    rw [sum_def, support_trinomial hkm hmn hu.ne_zero hv.ne_zero hw.ne_zero,
       sum_insert (mt mem_insert.mp (not_or hkm.ne (mt mem_singleton.mp (hkm.trans hmn).ne))),
       sum_insert (mt mem_singleton.mp hmn.ne), sum_singleton,
       trinomial_coeff_k hkm hmn, trinomial_coeff_m hkm hmn, trinomial_coeff_n hkm hmn],
@@ -377,50 +362,34 @@ begin
     exact asymm this (hkm.trans hmn) },
 end
 
-lemma sublemma3 {R : Type*} [semiring R] {k l m n : ℕ} {u v : R} (hu : u ≠ 0) (hv : v ≠ 0) :
+lemma binomial_eq_binomial {R : Type*} [semiring R] {k l m n : ℕ} {u v : R} (hu : u ≠ 0) (hv : v ≠ 0) :
   C u * X ^ k + C v * X ^ l = C u * X ^ m + C v * X ^ n ↔
   (k = m ∧ l = n) ∨ (u = v ∧ k = n ∧ l = m) ∨ (u + v = 0 ∧ k = l ∧ m = n) :=
 begin
-  split,
-  { intro h,
-    have hk := congr_arg (λ p, coeff p k) h,
+  refine ⟨λ h, _, _⟩,
+  { have hk := congr_arg (λ p, coeff p k) h,
     have hl := congr_arg (λ p, coeff p l) h,
     have hm := congr_arg (λ p, coeff p m) h,
     have hn := congr_arg (λ p, coeff p n) h,
     simp only [coeff_add, coeff_C_mul_X_pow, if_pos rfl] at hk hl hm hn,
-    by_cases hkm : k = m,
-    { subst hkm,
-      by_cases hln : l = n,
-      { subst hln,
-        exact or.inl ⟨rfl, rfl⟩ },
-      { by_cases hkl : k = l,
-        { subst hkl,
-          rw [if_neg (ne.symm hln), if_neg (ne.symm hln), zero_add, zero_add, eq_comm] at hn,
-          exact (hv hn).elim },
-        { rw [if_neg (ne.symm hkl), if_neg hln, zero_add, zero_add] at hl,
-          exact (hv hl).elim } } },
-    { by_cases hkn : k = n,
-      { subst hkn,
-        by_cases hlm : l = m,
-        { subst hlm,
-          rw [if_pos rfl, if_neg hkm, if_neg hkm, zero_add, add_zero] at hk,
-          exact or.inr (or.inl ⟨hk, rfl, rfl⟩) },
-        { by_cases hkl : k = l,
-          { subst hkl,
-            rw [if_neg (ne.symm hlm), if_neg (ne.symm hlm), add_zero, add_zero, eq_comm] at hm,
-            exact (hu hm).elim },
-          { rw [if_neg (ne.symm hkl), if_neg (ne.symm hkl), if_neg hlm, zero_add, zero_add] at hl,
-            exact (hv hl).elim } } },
-      { by_cases hkl : k = l,
-        { subst hkl,
-          by_cases hmn : m = n,
-          { subst hmn,
-            rw [if_pos rfl, if_neg hkm, if_neg hkm, zero_add] at hk,
-            exact or.inr (or.inr (⟨hk, rfl, rfl⟩)) },
-          { rw [if_neg (ne.symm hkm), if_neg (ne.symm hkm), if_neg hmn, add_zero, add_zero] at hm,
-            exact (hu hm.symm).elim } },
-        { rw [if_neg hkl, if_neg hkm, if_neg hkn, add_zero, add_zero] at hk,
-          exact (hu hk).elim } } } },
+    by_cases hmk : m = k,
+    { by_cases hnl : n = l,
+      { exact or.inl ⟨hmk.symm, hnl.symm⟩ },
+      { refine (hv _).elim,
+        by_cases hlk : l = k,
+        { rwa [hmk, ←hlk, if_neg hnl, if_neg hnl, zero_add, zero_add, eq_comm] at hn },
+        { rwa [hmk, if_neg hlk, if_neg (ne.symm hnl), zero_add, zero_add] at hl } } },
+    { by_cases hkl : k = l,
+      { by_cases hmn : m = n,
+        { rw [←hkl, if_neg hmk, if_neg hmk, zero_add, eq_comm, if_pos hmn] at hm,
+          exact or.inr (or.inr ⟨hm, hkl, hmn⟩) },
+        { rw [←hkl, if_neg hmk, if_neg hmk, zero_add, eq_comm, if_neg hmn, add_zero] at hm,
+          exact (hu hm).elim } },
+      { rw [if_neg (ne.symm hmk), if_neg hkl, zero_add, add_zero] at hk,
+        have hkn := (ite_ne_right_iff.mp (ne_of_eq_of_ne hk.symm hu)).1,
+        rw [←hkn, if_neg hmk, if_neg hmk, zero_add, add_zero] at hm,
+        have hml := (ite_ne_right_iff.mp (ne_of_eq_of_ne hm hu)).1,
+        exact or.inr (or.inl ⟨hk.trans (if_pos hkn), hkn, hml.symm⟩) } } },
   { rintros (⟨rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩ | ⟨h, rfl, rfl⟩),
     { refl },
     { apply add_comm },
@@ -441,7 +410,7 @@ begin
   replace h := (sublemma2 hkm hmn hu hv hw hp).trans h,
   replace h := h.trans (sublemma2 hkm' hmn' hu hv hw hq).symm,
   rw (is_unit_C.mpr hv).mul_right_inj at h,
-  rw sublemma3 hu.ne_zero hw.ne_zero at h,
+  rw binomial_eq_binomial hu.ne_zero hw.ne_zero at h,
   simp only [add_left_inj] at h,
   rcases h with ⟨rfl, -⟩ | ⟨rfl, rfl, h⟩ | ⟨-, hm, hm'⟩,
   { exact or.inl (hq.trans hp.symm) },
@@ -579,6 +548,7 @@ lemma irreducible21 (hp : is_unit_trinomial p)
 begin
   apply hp.irreducible2,
   rintros z ⟨hz1, hz2⟩,
+  sorry,
   -- The key is that either p + p.mirror or p - p.mirror will be a unit binomial, so z must be 0
   -- or a root of unity. Then a sum of three roots of unity vanishes, so they must be rotations of
   -- each other.

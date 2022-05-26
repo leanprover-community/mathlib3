@@ -1071,8 +1071,7 @@ map_adj_iff f
   end }
 
 /-- Embeddings of types induce embeddings of complete graphs on those types. -/
-def complete_graph.of_embedding {α β : Type*} (f : α ↪ β) :
-  (⊤ : simple_graph α) ↪g (⊤ : simple_graph β) :=
+def complete_graph.of_embedding {α β : Type*} (f : α ↪ β) : complete_graph α ↪g complete_graph β :=
 { to_fun := f,
   inj' := f.inj',
   map_rel_iff' := by simp }
@@ -1081,7 +1080,7 @@ def complete_graph.of_embedding {α β : Type*} (f : α ↪ β) :
 
 Note that if `G.induce s = ⊤` (i.e., if `s` is a clique) then this gives the embedding of a
 complete graph. -/
-@[simps] def induce (s : set V) : G.induce s ↪g G :=
+@[simps] protected def induce (s : set V) : G.induce s ↪g G :=
 { to_fun := coe,
   inj' := subtype.coe_injective,
   map_rel_iff' := by simp }
@@ -1159,7 +1158,7 @@ lemma card_eq_of_iso [fintype V] [fintype W] (f : G ≃g G') : fintype.card V = 
 by convert (fintype.of_equiv_card f.to_equiv).symm
 
 /-- Equivalences of types induce isomorphisms of complete graphs on those types. -/
-def complete_graph.of_equiv {α β : Type*} (f : α ≃ β) :
+protected def complete_graph {α β : Type*} (f : α ≃ β) :
   (⊤ : simple_graph α) ≃g (⊤ : simple_graph β) :=
 { to_fun := f,
   inv_fun := f.symm,

@@ -415,7 +415,7 @@ begin
       contradiction }, },
 end
 
-/-! ## Cliques -/
+/-! ### Cliques -/
 
 lemma is_clique.card_le_of_coloring {s : finset V} (h : G.is_clique s)
   [fintype α] (C : G.coloring α) :
@@ -436,19 +436,25 @@ begin
   simp,
 end
 
+-- TODO eliminate `fintype V` constraint once chromatic numbers are refactored.
+-- This is just to ensure the chromatic number exists.
 lemma is_clique.card_le_chromatic_number [fintype V] {s : finset V} (h : G.is_clique s) :
   s.card ≤ G.chromatic_number :=
 h.card_le_of_colorable G.colorable_chromatic_number_of_fintype
 
-lemma colorable.clique_free {n : ℕ} (hc : G.colorable n) : G.clique_free (n + 1) :=
+protected
+lemma colorable.clique_free {n m : ℕ} (hc : G.colorable n) (hm : n < m) : G.clique_free m :=
 begin
   by_contra h,
   simp only [clique_free, is_n_clique_iff, not_forall, not_not] at h,
-  obtain ⟨s, h, hs⟩ := h,
-  simpa [hs] using h.card_le_of_colorable hc
+  obtain ⟨s, h, rfl⟩ := h,
+  exact nat.lt_le_antisymm hm (h.card_le_of_colorable hc),
 end
 
-lemma clique_free_chromatic_number_succ [fintype V] : G.clique_free (G.chromatic_number + 1) :=
-G.colorable_chromatic_number_of_fintype.clique_free
+-- TODO eliminate `fintype V` constraint once chromatic numbers are refactored.
+-- This is just to ensure the chromatic number exists.
+lemma clique_free_of_chromatic_number_lt [fintype V] {n : ℕ} (hc : G.chromatic_number < n) :
+  G.clique_free n :=
+G.colorable_chromatic_number_of_fintype.clique_free hc
 
 end simple_graph

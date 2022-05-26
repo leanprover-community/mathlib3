@@ -137,7 +137,7 @@ def clique_free (n : ℕ) : Prop := ∀ t, ¬ G.is_n_clique n t
 
 variables {G H}
 
-lemma clique_free_iff (n : ℕ) :
+lemma clique_free_iff {n : ℕ} :
   G.clique_free n ↔ is_empty ((⊤ : simple_graph (fin n)) ↪g G) :=
 begin
   simp_rw [clique_free, is_n_clique_iff, is_clique_iff_induce_eq, not_and, is_empty_iff],
@@ -161,7 +161,7 @@ begin
   { rintros h s hi rfl,
     apply h,
     have : (⊤ : simple_graph (fin s.card)) ≃g (⊤ : simple_graph s),
-    { apply iso.complete_graph.of_equiv,
+    { apply iso.complete_graph,
       simpa using (fintype.equiv_fin s).symm },
     rw ← hi at this,
     exact (embedding.induce ↑s).comp this.to_embedding, }
@@ -175,7 +175,7 @@ lemma not_clique_free_of_top_embedding [fintype α] (f : (⊤ : simple_graph α)
   ¬ G.clique_free (fintype.card α) :=
 begin
   rw [not_clique_free_iff],
-  use (iso.complete_graph.of_equiv (fintype.equiv_fin α)).symm.to_embedding.trans f,
+  use (iso.complete_graph (fintype.equiv_fin α)).symm.to_embedding.trans f,
 end
 
 lemma clique_free_bot (h : 2 ≤ n) : (⊥ : simple_graph α).clique_free n :=
@@ -196,9 +196,10 @@ lemma clique_free.anti (h : G ≤ H) : H.clique_free n → G.clique_free n :=
 forall_imp $ λ s, mt $ is_n_clique.mono h
 
 /-- See `simple_graph.clique_free_chromatic_number_succ` for a tighter bound. -/
-lemma clique_free_card_succ [fintype α] : G.clique_free (fintype.card α + 1) :=
+lemma clique_free_of_card_lt [fintype α] (hc : card α < n) : G.clique_free n :=
 begin
   by_contra h,
+  refine nat.lt_le_antisymm hc _,
   rw [clique_free_iff, not_is_empty_iff] at h,
   simpa using fintype.card_le_of_embedding h.some.to_embedding,
 end

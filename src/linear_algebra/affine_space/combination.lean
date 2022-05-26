@@ -773,7 +773,8 @@ lemma eq_affine_combination_of_mem_affine_span {p1 : P} {p : ι → P}
   ∃ (s : finset ι) (w : ι → k) (hw : ∑ i in s, w i = 1), p1 = s.affine_combination p w :=
 begin
   have hn : ((affine_span k (set.range p)) : set P).nonempty := ⟨p1, h⟩,
-  rw [affine_span_nonempty, set.range_nonempty_iff_nonempty] at hn,
+  rw [← affine_subspace.ne_bot_iff_nonempty, affine_span_ne_bot_iff,
+    set.range_nonempty_iff_nonempty] at hn,
   cases hn with i0,
   have h0 : p i0 ∈ affine_span k (set.range p) := mem_affine_span k (set.mem_range_self i0),
   have hd : p1 -ᵥ p i0 ∈ (affine_span k (set.range p)).direction :=

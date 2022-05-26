@@ -874,13 +874,21 @@ end
 
 /-- The affine span of a set is nonempty if and only if that set
 is. -/
-lemma affine_span_nonempty (s : set P) :
-  (affine_span k s : set P).nonempty ↔ s.nonempty :=
-span_points_nonempty k s
+lemma affine_span_ne_bot_iff (s : set P) :
+  affine_span k s ≠ ⊥ ↔ s.nonempty :=
+begin
+  rw affine_subspace.ne_bot_iff,
+  exact span_points_nonempty k s,
+end
 
 /-- The affine span of a nonempty set is nonempty. -/
 instance {s : set P} [nonempty s] : nonempty (affine_span k s) :=
-((affine_span_nonempty k s).mpr (nonempty_subtype.mp ‹_›)).to_subtype
+nonempty.to_subtype (begin
+  change (affine_span k s : set P).nonempty,
+  rw ← affine_subspace.ne_bot_iff_nonempty,
+  rw affine_span_ne_bot_iff k s,
+  exact nonempty_subtype.mp ‹_›,
+end)
 
 variables {k}
 

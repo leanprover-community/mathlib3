@@ -228,7 +228,7 @@ lemma affine_independent.affine_span_image_finset_eq_of_le_of_card_eq_finrank_ad
 begin
   have hn : (s.image p).nonempty,
   { rw [finset.nonempty.image_iff, ← finset.card_pos, hc], apply nat.succ_pos },
-  refine eq_of_direction_eq_of_nonempty_of_le _ ((affine_span_nonempty k _).2 hn) hle,
+  refine eq_of_direction_eq_of_nonempty_of_le _ ((affine_span_ne_bot_iff k _).2 hn) hle,
   have hd := direction_le hle,
   rw direction_affine_span at ⊢ hd,
   exact hi.vector_span_image_finset_eq_of_le_of_card_eq_finrank_add_one hd hc

@@ -31,13 +31,13 @@ variables {C : Type u} [category.{v} C] [monoidal_category C] (P : C → Prop)
 A property `C → Prop` is a monoidal predicate if it is closed under `𝟙_` and `⊗`.
 -/
 class monoidal_predicate :=
-(prop_id' : P (𝟙_ C))
-(prop_tensor' : ∀ {X Y}, P X → P Y → P (X ⊗ Y))
+(prop_id' : P (𝟙_ C) . obviously)
+(prop_tensor' : ∀ {X Y}, P X → P Y → P (X ⊗ Y) . obviously)
 
-lemma prop_id [hP : monoidal_predicate P] : P (𝟙_ C) := hP.prop_id'
+restate_axiom monoidal_predicate.prop_id'
+restate_axiom monoidal_predicate.prop_tensor'
 
-lemma prop_tensor [hP : monoidal_predicate P] {X Y : C} (hX : P X) (hY : P Y) : P (X ⊗ Y) :=
-monoidal_predicate.prop_tensor' hX hY
+open monoidal_predicate
 
 variables [monoidal_predicate P]
 
@@ -46,10 +46,10 @@ When `P` is a monoidal predicate, the full subcategory `{X : C // P X}` inherits
 structure of `C`
 -/
 instance full_monoidal_subcategory : monoidal_category {X : C // P X} :=
-{ tensor_obj := λ X Y, ⟨X ⊗ Y, prop_tensor P X.2 Y.2⟩,
+{ tensor_obj := λ X Y, ⟨X ⊗ Y, prop_tensor X.2 Y.2⟩,
   tensor_hom := λ X₁ Y₁ X₂ Y₂ f g, by { change X₁.1 ⊗ X₂.1 ⟶ Y₁.1 ⊗ Y₂.1,
     change X₁.1 ⟶ Y₁.1 at f, change X₂.1 ⟶ Y₂.1 at g, exact f ⊗ g },
-  tensor_unit := ⟨𝟙_ C, prop_id P⟩,
+  tensor_unit := ⟨𝟙_ C, prop_id⟩,
   associator := λ X Y Z,
     ⟨(α_ X.1 Y.1 Z.1).hom, (α_ X.1 Y.1 Z.1).inv,
      hom_inv_id (α_ X.1 Y.1 Z.1), inv_hom_id (α_ X.1 Y.1 Z.1)⟩,

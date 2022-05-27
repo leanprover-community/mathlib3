@@ -385,6 +385,14 @@ structure smooth_fiber_bundle_core :=
 (coord_change_comp : ∀ i j k, ∀ x ∈ base_set i ∩ base_set j ∩ base_set k, ∀ v,
   (coord_change j k x) (coord_change i j x v) = coord_change i k x v)
 
+-- (coord_change      : atlas H M → atlas H M → H → (F →L[𝕜] F))
+-- (coord_change_self : ∀ i : atlas H M, ∀ x ∈ i.1.target, ∀ v, coord_change i i x v = v)
+-- (coord_change_comp : ∀ i j k : atlas H M,
+--   ∀ x ∈ ((i.1.symm.trans j.1).trans (j.1.symm.trans k.1)).source, ∀ v,
+--   (coord_change j k ((i.1.symm.trans j.1) x)) (coord_change i j x v) = coord_change i k x v)
+-- (coord_change_smooth_clm : ∀ i j : atlas H M,
+--   cont_diff_on 𝕜 ∞ ((coord_change i j) ∘ I.symm) (I '' (i.1.symm.trans j.1).source))
+
 namespace smooth_fiber_bundle_core
 
 variables {ι B F I I₂} (X : smooth_fiber_bundle_core ι I I₂ B F)
@@ -435,7 +443,7 @@ X.to_topological.mem_triv_change_source i j p
 between `proj ⁻¹ (base_set i)` and `base_set i × F`. As the fiber above `x` is `F` but read in the
 chart with index `index_at x`, the trivialization in the fiber above x is by definition the
 coordinate change from i to `index_at x`, so it depends on `x`.
-The local trivialization will ultimately be a local homeomorphism. For now, we only introduce the
+The local trivialization will ultimately be a local diffeomorphism. For now, we only introduce the
 local equiv version, denoted with a prime. In further developments, avoid this auxiliary version,
 and use `X.local_triv` instead.
 -/
@@ -486,12 +494,37 @@ instance to_charted_space : charted_space (model_prod H H₂) X.total_space :=
 
 open smooth_fiber_bundle
 
-/-- Extended version of the local trivialization of a smooth fiber bundle constructed from core,
+lemma foo (i : ι) (x : X.total_space) :
+  ext_chart_at (I.prod I₂) ((X.to_topological.local_triv i) x) ∘ X.to_topological.local_triv i ∘ (ext_chart_at (I.prod I₂) x).symm = id :=
+begin
+  ext1 y,
+  -- refine (congr_arg (ext_chart_at _ _) ((X.to_topological.local_triv i).apply_symm_apply _)).trans _,
+  dsimp only [ext_chart_at_coe_symm, smooth_fiber_bundle_core.to_charted_space, function.comp,
+    smooth_fiber_bundle_core.local_homeomorph_chart, local_homeomorph.coe_trans_symm],
+  -- simp_rw [local_homeomorph.coe_trans_symm]
+  -- dsimp,
+  /-
+(⇑I (⇑(chart_at H x.fst) (⇑((chart_at (model_prod H H₂) x).symm) (⇑((I.to_local_equiv.prod I₂.to_local_equiv).symm) (b, f))).fst), ⇑I₂ (⇑(chart_at H₂ (X.coord_change (X.index_at x.fst) i x.fst x.snd)) (X.coord_change (X.index_at (⇑((chart_at (model_prod H H₂) x).symm) (⇑((I.to_local_equiv.prod I₂.to_local_equiv).symm) (b, f))).fst) i (⇑((chart_at (model_prod H H₂) x).symm) (⇑((I.to_local_equiv.prod I₂.to_local_equiv).symm) (b, f))).fst (⇑((chart_at (model_prod H H₂) x).symm) (⇑((I.to_local_equiv.prod I₂.to_local_equiv).symm) (b, f))).snd)))
+  -/
+end
+
+#exit
+(⇑I (⇑(chart_at H x.fst) (⇑((chart_at (model_prod H H₂) x).symm) (⇑((I.to_local_equiv.prod I₂.to_local_equiv).symm) (b, f))).fst),
+⇑I₂ (⇑(chart_at H₂ (X.coord_change (X.index_at x.fst) i x.fst x.snd)) (X.coord_change (X.index_at (⇑((chart_at (model_prod H H₂) x).symm) (⇑((I.to_local_equiv.prod I₂.to_local_equiv).symm) (b, f))).fst) i (⇑((chart_at (model_prod H H₂) x).symm) (⇑((I.to_local_equiv.prod I₂.to_local_equiv).symm) (b, f))).fst (⇑((chart_at (model_prod H H₂) x).symm) (⇑((I.to_local_equiv.prod I₂.to_local_equiv).symm) (b, f))).snd)))
+
+/-- Extended version of the local trivialization of a fiber bundle constructed from core,
 registering additionally in its type that it is a local bundle trivialization. -/
 def local_triv (i : ι) : trivialization I I₂ (I.prod I₂) F X.proj :=
-{ smooth_on_to_fun := sorry
+{ smooth_on_to_fun := by { simp only [smooth_on] with mfld_simps, intros x hx,
+  rw [cont_mdiff_within_at_iff],
+  refine ⟨(X.to_topological.local_triv i).continuous_to_fun x hx, _⟩,
+   },
   smooth_on_inv_fun := sorry,
   ..X.to_topological.local_triv i }
+  -- { source      := Z.proj ⁻¹' (Z.base_set i),
+  -- target      := Z.base_set i ×ˢ (univ : set F),
+  -- inv_fun     := λp, ⟨p.1, Z.coord_change i (Z.index_at p.1) p.1 p.2⟩,
+  -- to_fun      := λp, ⟨p.1, Z.coord_change (Z.index_at p.1) i p.1 p.2⟩,
 -- { base_set      := X.base_set i,
 --   open_base_set := X.is_open_base_set i,
 --   source_eq     := rfl,

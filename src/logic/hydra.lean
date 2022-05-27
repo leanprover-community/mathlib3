@@ -138,12 +138,6 @@ begin
   rw [add_assoc, h', ←add_assoc]
 end
 
-theorem cut_expand_add {x t} (s) (h : ∀ x' ∈ t, r x' x) : cut_expand r (s + t) (s + {x}) :=
-⟨t, x, h, add_right_comm s t _⟩
-
-theorem cut_expand_add_singleton {x x'} (s) (h : r x' x) : cut_expand r (s + {x'}) (s + {x}) :=
-cut_expand_add s $ λ a h, by { rw multiset.mem_singleton at h, rwa h }
-
 lemma cut_expand_iff [decidable_eq α] (hr : irreflexive r) {s' s : multiset α} :
   cut_expand r s' s ↔ ∃ (t : multiset α) a, (∀ a' ∈ t, r a' a) ∧ a ∈ s ∧ s' = s.erase a + t :=
 begin

@@ -31,8 +31,8 @@ variables {C : Type u} [category.{v} C] [monoidal_category C] (P : C → Prop)
 A property `C → Prop` is a monoidal predicate if it is closed under `𝟙_` and `⊗`.
 -/
 class monoidal_predicate :=
-  (prop_id' : P (𝟙_ C))
-  (prop_tensor' : ∀ {X Y}, P X → P Y → P (X ⊗ Y))
+(prop_id' : P (𝟙_ C))
+(prop_tensor' : ∀ {X Y}, P X → P Y → P (X ⊗ Y))
 
 lemma prop_id [hP : monoidal_predicate P] : P (𝟙_ C) := hP.prop_id'
 

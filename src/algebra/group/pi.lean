@@ -338,10 +338,10 @@ lemma pi.mul_single_mul_mul_single_eq_mul_single_mul_mul_single
   (k = m ∧ l = n) ∨ (u = v ∧ k = n ∧ l = m) ∨ (u * v = 1 ∧ k = l ∧ m = n) :=
 begin
   refine ⟨λ h, _, _⟩,
-  { have hk := congr_arg (λ p : I → M, p k) h,
-    have hl := congr_arg (λ p : I → M, p l) h,
-    have hm := congr_arg (λ p : I → M, p m) h,
-    have hn := congr_arg (λ p : I → M, p n) h,
+  { have hk := congr_fun h k,
+    have hl := congr_fun h l,
+    have hm := congr_fun h m,
+    have hn := congr_fun h n,
     simp only [mul_apply, mul_single_apply, if_pos rfl] at hk hl hm hn,
     by_cases hmk : m = k,
     { by_cases hnl : n = l,

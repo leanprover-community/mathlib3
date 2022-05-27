@@ -288,13 +288,4 @@ end cast
 instance [char_zero R] : char_zero R[X] :=
 { cast_injective := λ x y, nat_cast_inj.mp }
 
--- todo: move (but wait for oleans)
-lemma binomial_eq_binomial {k l m n : ℕ} {u v : R} (hu : u ≠ 0) (hv : v ≠ 0) :
-  C u * X ^ k + C v * X ^ l = C u * X ^ m + C v * X ^ n ↔
-  (k = m ∧ l = n) ∨ (u = v ∧ k = n ∧ l = m) ∨ (u + v = 0 ∧ k = l ∧ m = n) :=
-begin
-  simp_rw [C_mul_X_pow_eq_monomial, ←to_finsupp_inj, to_finsupp_add, to_finsupp_monomial],
-  exact finsupp.single_add_single_eq_single_add_single hu hv,
-end
-
 end polynomial

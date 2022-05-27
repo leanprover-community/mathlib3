@@ -40,7 +40,7 @@ protected def add_action : add_action V (affine_subspace k P) :=
   add_vadd := λ x y p,
     (congr_arg (λ f, p.map f) $ affine_map.ext $ by exact add_vadd _ _).trans (p.map_map _ _).symm }
 
-localized "attribute [instance] submodule.pointwise_distrib_mul_action" in pointwise
+localized "attribute [instance] affine_subspace.add_action" in pointwise
 open_locale pointwise
 
 @[simp] lemma coe_const_vadd (v : V) (s : affine_subspace k P) :

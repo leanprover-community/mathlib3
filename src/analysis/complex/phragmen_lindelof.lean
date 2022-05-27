@@ -826,7 +826,7 @@ that
 * `f` and `g` are differentiable in the open right half-plane and are continuous on its closure;
 * `∥f z∥` and `∥g z∥` are bounded from above by `A * exp(B * (abs z) ^ c)` on the open right
   half-plane for some `c < 2`;
-* `∥f z∥` anre `∥g z∥` are bounded from above by constants on the imaginary axis;
+* `∥f z∥` and `∥g z∥` are bounded from above by constants on the imaginary axis;
 * `f x - g x`, `x : ℝ`, tends to zero superexponentially fast as `x → ∞`:
   for any natural `n`, `exp (n * x) * ∥f x - g x∥` tends to zero as `x → ∞`.
 

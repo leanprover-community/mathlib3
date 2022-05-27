@@ -331,6 +331,42 @@ begin
   { simp [function.update_noteq h.symm, h] }
 end
 
+@[to_additive pi.single_add_single_eq_single_add_single]
+lemma pi.mul_single_mul_mul_single_eq_mul_single_mul_mul_single
+  {M : Type*} [comm_monoid M] {k l m n : I} {u v : M} (hu : u ≠ 1) (hv : v ≠ 1) :
+  mul_single k u * mul_single l v = mul_single m u * mul_single n v ↔
+  (k = m ∧ l = n) ∨ (u = v ∧ k = n ∧ l = m) ∨ (u * v = 1 ∧ k = l ∧ m = n) :=
+begin
+  refine ⟨λ h, _, _⟩,
+  { have hk := congr_arg (λ p : I → M, p k) h,
+    have hl := congr_arg (λ p : I → M, p l) h,
+    have hm := congr_arg (λ p : I → M, p m) h,
+    have hn := congr_arg (λ p : I → M, p n) h,
+    simp only [mul_apply, mul_single_apply, if_pos rfl] at hk hl hm hn,
+    by_cases hmk : m = k,
+    { by_cases hnl : n = l,
+      { exact or.inl ⟨hmk.symm, hnl.symm⟩ },
+      { refine (hv _).elim,
+        by_cases hlk : l = k,
+        { rwa [hmk, ←hlk, if_neg hnl, if_neg hnl, one_mul, one_mul, eq_comm] at hn },
+        { rwa [hmk, if_neg hlk, if_neg (ne.symm hnl), one_mul, one_mul] at hl } } },
+    { by_cases hkl : k = l,
+      { by_cases hmn : m = n,
+        { rw [←hkl, if_neg hmk, if_neg hmk, one_mul, eq_comm, if_pos hmn] at hm,
+          exact or.inr (or.inr ⟨hm, hkl, hmn⟩) },
+        { rw [←hkl, if_neg hmk, if_neg hmk, one_mul, eq_comm, if_neg hmn, mul_one] at hm,
+          exact (hu hm).elim } },
+      { rw [if_neg (ne.symm hmk), if_neg hkl, one_mul, mul_one] at hk,
+        have hkn := (ite_ne_right_iff.mp (ne_of_eq_of_ne hk.symm hu)).1,
+        rw [←hkn, if_neg hmk, if_neg hmk, one_mul, mul_one] at hm,
+        have hml := (ite_ne_right_iff.mp (ne_of_eq_of_ne hm hu)).1,
+        exact or.inr (or.inl ⟨hk.trans (if_pos hkn), hkn, hml.symm⟩) } } },
+  { rintros (⟨rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩ | ⟨h, rfl, rfl⟩),
+    { refl },
+    { apply mul_comm },
+    { simp_rw [←pi.mul_single_mul, h, mul_single_one] } },
+end
+
 end single
 
 namespace function

@@ -339,7 +339,7 @@ lemma le_min_of_forall_le (l : list α) (a : α) (h : ∀ x ∈ l, a ≤ x) : a 
 
 lemma min_le_of_le (l : list α) (a : α) {x : α} (hx : x ∈ l) (h : x ≤ a) :
   l.foldr min ⊤ ≤ a :=
-@le_max_of_exists_le αᵒᵈ _ _ _ _ _ hx h
+@le_max_of_le αᵒᵈ _ _ _ _ _ hx h
 
 end order_top
 end fold

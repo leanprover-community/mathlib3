@@ -112,8 +112,7 @@ def graded_algebra.proj (𝒜 : ι → submodule R A) [graded_algebra 𝒜] (i :
   graded_algebra.proj 𝒜 i r = (graded_algebra.decompose 𝒜 r : ⨁ i, 𝒜 i) i := rfl
 
 /-- The support of `r` is the `finset` where `proj R A i r ≠ 0 ↔ i ∈ r.support`-/
-def graded_algebra.support [Π (i : ι) (x : 𝒜 i), decidable (x ≠ 0)]
-  (r : A) : finset ι :=
+def graded_algebra.support [decidable_eq A] (r : A) : finset ι :=
 (graded_algebra.decompose 𝒜 r).support
 
 lemma graded_algebra.proj_recompose (a : ⨁ i, 𝒜 i) (i : ι) :
@@ -137,7 +136,7 @@ lemma graded_algebra.decompose_of_mem_ne {x : A} {i j : ι} (hx : x ∈ 𝒜 i) 
   (graded_algebra.decompose 𝒜 x j : A) = 0 :=
 by rw [graded_algebra.decompose_of_mem _ hx, direct_sum.of_eq_of_ne _ _ _ _ hij, submodule.coe_zero]
 
-variable [Π (i : ι) (x : 𝒜 i), decidable (x ≠ 0)]
+variable [decidable_eq A]
 
 lemma graded_algebra.mem_support_iff (r : A) (i : ι) :
   i ∈ graded_algebra.support 𝒜 r ↔ graded_algebra.proj 𝒜 i r ≠ 0 :=

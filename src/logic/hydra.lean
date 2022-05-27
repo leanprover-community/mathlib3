@@ -201,11 +201,7 @@ theorem cut_expand_add {x t} (s) (h : ∀ x' ∈ t, r x' x) : cut_expand r (s + 
 ⟨t, x, h, add_right_comm s t _⟩
 
 theorem cut_expand_add_singleton {x x'} (s) (h : r x' x) : cut_expand r (s + {x'}) (s + {x}) :=
-begin
-  refine cut_expand_add s (λ a h, _),
-  rw multiset.mem_singleton at h,
-  rwa h
-end
+cut_expand_add s $ λ a h, by { rw multiset.mem_singleton at h, rwa h }
 
 end hydra
 

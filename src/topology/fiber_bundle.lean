@@ -1074,7 +1074,7 @@ trivialization.mem_target _
   p ∈ (Z.local_triv_at b).target ↔ p.1 ∈ (Z.local_triv_at b).base_set :=
 trivialization.mem_target _
 
-@[simp, mfld_simps] lemma local_triv_symm_fst (p : B × F) :
+@[simp, mfld_simps] lemma local_triv_symm_apply (p : B × F) :
   (Z.local_triv i).to_local_homeomorph.symm p =
     ⟨p.1, Z.coord_change i (Z.index_at p.1) p.1 p.2⟩ := rfl
 

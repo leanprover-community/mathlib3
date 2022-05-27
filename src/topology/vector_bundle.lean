@@ -674,7 +674,7 @@ variable (i : ι)
   p ∈ (Z.local_triv i).target ↔ p.1 ∈ (Z.local_triv i).base_set :=
 topological_fiber_bundle_core.mem_local_triv_target Z i p
 
-@[simp, mfld_simps] lemma local_triv_symm_fst (p : B × F) :
+@[simp, mfld_simps] lemma local_triv_symm_apply (p : B × F) :
   (Z.local_triv i).to_local_homeomorph.symm p =
     ⟨p.1, Z.coord_change i (Z.index_at p.1) p.1 p.2⟩ := rfl
 

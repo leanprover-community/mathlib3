@@ -343,22 +343,22 @@ begin
     have hm := congr_fun h m,
     have hn := congr_fun h n,
     simp only [mul_apply, mul_single_apply, if_pos rfl] at hk hl hm hn,
-    rcases eq_or_ne m k with rfl | hmk,
-    { rcases eq_or_ne n l with rfl | hnl,
+    rcases eq_or_ne k m with rfl | hkm,
+    { rcases eq_or_ne l n with rfl | hln,
       { exact or.inl ⟨rfl, rfl⟩ },
       { refine (hv _).elim,
-        rcases eq_or_ne l m with rfl | hlm,
-        { rwa [if_neg hnl, if_neg hnl, one_mul, one_mul, eq_comm] at hn },
-        { rwa [if_neg hlm, if_neg (ne.symm hnl), one_mul, one_mul] at hl } } },
+        rcases eq_or_ne k l with rfl | hkl,
+        { rwa [if_neg hln.symm, if_neg hln.symm, one_mul, one_mul, eq_comm] at hn },
+        { rwa [if_neg hkl.symm, if_neg hln, one_mul, one_mul] at hl } } },
     { rcases eq_or_ne k l with rfl | hkl,
       { rcases eq_or_ne m n with rfl | hmn,
-        { rw [if_neg hmk, if_neg hmk, one_mul, eq_comm, if_pos rfl] at hm,
+        { rw [if_neg hkm.symm, if_neg hkm.symm, one_mul, eq_comm, if_pos rfl] at hm,
           exact or.inr (or.inr ⟨hm, rfl, rfl⟩) },
-        { rw [if_neg hmk, if_neg hmk, one_mul, eq_comm, if_neg hmn, mul_one] at hm,
+        { rw [if_neg hkm.symm, if_neg hkm.symm, one_mul, eq_comm, if_neg hmn, mul_one] at hm,
           exact (hu hm).elim } },
-      { rw [if_neg (ne.symm hmk), if_neg hkl, one_mul, mul_one] at hk,
+      { rw [if_neg hkm, if_neg hkl, one_mul, mul_one] at hk,
         have hkn := (ite_ne_right_iff.mp (ne_of_eq_of_ne hk.symm hu)).1,
-        rw [←hkn, if_neg hmk, if_neg hmk, one_mul, mul_one] at hm,
+        rw [←hkn, if_neg hkm.symm, if_neg hkm.symm, one_mul, mul_one] at hm,
         have hml := (ite_ne_right_iff.mp (ne_of_eq_of_ne hm hu)).1,
         exact or.inr (or.inl ⟨hk.trans (if_pos hkn), hkn, hml.symm⟩) } } },
   { rintros (⟨rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩ | ⟨h, rfl, rfl⟩),
@@ -368,6 +368,8 @@ begin
 end
 
 end single
+
+#exit
 
 namespace function
 

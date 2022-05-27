@@ -29,7 +29,9 @@ in `D` (i.e. we have `hG : W.is_inverted_by G`), then there exists a unique func
 The expected property of `lift G hG` if expressed by the lemma `fac` and the
 uniqueness is expressed by `fac`.
 
-TODO : add reference to Gabriel-Zisman
+## References
+
+* [P. Gabriel, M. Zisman, *Calculus of fractions and homotopy theory*][gabriel-zisman-1967]
 
 -/
 

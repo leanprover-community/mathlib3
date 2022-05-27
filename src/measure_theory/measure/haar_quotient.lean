@@ -44,6 +44,7 @@ begin
   refine ⟨g₁, hg₁, h.ae_eq hg₁'⟩,
 end
 
+-- exists in mathlib, not merged
 theorem measure_theory.measure.empty_of_count_eq_zero {α : Type*} {s : set α} [measurable_space α]
 [measurable_singleton_class α] (hsc : measure_theory.measure.count s = 0) :
 s = ∅ := sorry
@@ -53,42 +54,51 @@ theorem measure_theory.L1.tsum_eq_set_to_L1 {α : Type*} {E : Type*} [normed_gro
   (f : (Lp E 1 measure.count)) :
 ∑' (a : α), f a = (L1.set_to_L1 (dominated_fin_meas_additive_weighted_smul measure.count)) f :=
 begin
+  dsimp,
 
   sorry,
 end
 
+
+-- exists in mathlib, not merged
 theorem measure_theory.measure.count_eq_zero_iff {α : Type*} {s : set α} [measurable_space α]
 [measurable_singleton_class α] :
 measure_theory.measure.count s = 0 ↔ s = ∅ := sorry
 
+-- exists in mathlib, not merged
 structure measure_theory.ae_cover {α : Type*} {ι : Type*} [measurable_space α]
 (μ : measure_theory.measure α) (l : filter ι) (φ : ι → set α) :
 Prop :=
 (ae_eventually_mem : ∀ᵐ (x : α) ∂μ, ∀ᶠ (i : ι) in l, x ∈ φ i)
 (measurable : ∀ (i : ι), measurable_set (φ i))
 
-
+-- exists in mathlib, not merged
 theorem measure_theory.ae_cover.integral_tendsto_of_countably_generated {α : Type*} {ι : Type*}
 {E : Type*} [measurable_space α] {μ : measure_theory.measure α} {l : filter ι} [normed_group E]
 [normed_space ℝ E] [complete_space E] [l.is_countably_generated] {φ : ι → set α}
 (hφ : measure_theory.ae_cover μ l φ) {f : α → E} (hfi : measure_theory.integrable f μ) :
 filter.tendsto (λ (i : ι), ∫ (x : α) in φ i, f x ∂μ) l (nhds (∫ (x : α), f x ∂μ)) := sorry
 
+-- exists in mathlib, not merged
 theorem measure_theory.measure.count_singleton {α : Type*} [measurable_space α]
 [measurable_singleton_class α] (a : α) :
 measure.count ({a} : set α) = 1
 := sorry
 
+-- exists in mathlib, not merged
 theorem measure_theory.ae_cover.lintegral_tendsto_of_countably_generated {α : Type*} {ι : Type*}
 [measurable_space α] {μ : measure_theory.measure α} {l : filter ι} [l.is_countably_generated]
 {φ : ι → set α} (hφ : measure_theory.ae_cover μ l φ) {f : α → ennreal} (hfm : ae_measurable f μ) :
 filter.tendsto (λ (i : ι), ∫⁻ (x : α) in φ i, f x ∂μ) l (nhds (∫⁻ (x : α), f x ∂μ)) := sorry
 
+open_locale big_operators nnreal
+
+noncomputable theory
+
 def foo (f : ℝ → ℝ) (s : finset ℝ) : simple_func ℝ ℝ :=
-∑ i in s, (simple_func.const ℝ (f i)).piecewise
+  ∑ i in s, (simple_func.const ℝ (f i)).piecewise
   {i} (measurable_set_singleton i) (simple_func.const ℝ 0)
 
-open_locale big_operators nnreal
 
 -- if
 lemma something' {β : Type*} [partial_order β] {C : nnreal} (F : β → ℝ≥0) (hF₁ : monotone F)
@@ -98,6 +108,7 @@ lemma something' {β : Type*} [partial_order β] {C : nnreal} (F : β → ℝ≥
   (filter.at_top : filter (β)) (nhds (0))
  :=
 begin
+
   sorry
 end
 
@@ -132,10 +143,16 @@ begin
   refl,
 end
 
+-- prove and add to mathlib analysis.normed.group.basic *** Not needed???
 theorem tendsto_zero_iff_nnnorm_tendsto_zero {α : Type*} {E : Type*} [semi_normed_group E]
 {f : α → E} {a : filter α} :
 filter.tendsto f a (nhds 0) ↔ filter.tendsto (λ (e : α), ∥f e∥₊) a (nhds 0) :=
 sorry
+
+-- prove and add to mathlib analysis.normed.group.basic
+theorem tendsto_iff_nnnorm_tendsto_zero {α : Type*} {E : Type*} [semi_normed_group E]
+{f : α → E} {a : filter α} {b : E} :
+filter.tendsto f a (nhds b) ↔ filter.tendsto (λ (e : α), ∥f e - b∥₊) a (nhds 0) := sorry
 
 lemma tendsto_Lp_count_compl_at_top_zero {α : Type*} [measurable_space α]
   [measurable_singleton_class α] [encodable α]
@@ -143,7 +160,8 @@ lemma tendsto_Lp_count_compl_at_top_zero {α : Type*} [measurable_space α]
   [complete_space E] {p : ennreal} (f : Lp E p (measure.count : measure α)) :
   --filter.tendsto  (filter.at_top : filter (finset α)) (nhds f)
   -----***** FIX **** Or drop!? :)
-  filter.tendsto (λ (s : finset α), measure_theory.indicator_const_Lp p (s.measurable_set) ) filter.at_top (𝓝 0)
+  filter.tendsto (λ (s : finset α), measure_theory.indicator_const_Lp p (s.measurable_set) )
+  filter.at_top (𝓝 0)
 :=
 begin
   rw tendsto_zero_iff_nnnorm_tendsto_zero,
@@ -154,6 +172,84 @@ begin
     ← tsum_subtype],
   refl,
 end
+
+-- map ennreal → real continuous at zero
+
+
+theorem extracted_goal_from_next_theorem {α : Type*} {E : Type*}
+  [measurable_space α]
+  [measurable_singleton_class α]
+  [encodable α]
+  [normed_group E]
+  [normed_space ℝ E]
+  [measurable_space E]
+  [borel_space E]
+  [complete_space E]
+  {f : α → E}
+  (hf : integrable f measure.count)
+  (hf' : mem_ℒp f 1 measure.count)
+  (hF : ∀ (s : finset α), mem_ℒp ((s:set α).indicator f) 1 measure.count)
+  (hh : ∀ (s : finset α), L1.integral_clm ((hF s).to_Lp _) = s.sum f)
+  :
+  filter.tendsto (λ (s : finset α), s.sum f) filter.at_top
+  (𝓝 (L1.integral_clm (integrable.to_L1 f hf))) :=
+begin
+  rw  tendsto_iff_nnnorm_tendsto_zero,
+
+  have : filter.tendsto (λ (s : finset α),
+    ∫⁻ x in (s : set α).compl, nnnorm (f x) ∂measure.count )
+    filter.at_top (𝓝 0),
+  {
+    sorry,
+  },
+
+  convert tendsto_of_tendsto_of_tendsto_of_le_of_le (tendsto_const_nhds)
+    ((ennreal.tendsto_to_nnreal ennreal.zero_ne_top).comp this) bot_le _ using 1,
+
+  intros s,
+  simp only [coe_nnnorm, set.compl_eq_compl, function.comp_app, ←hh s],
+  rw ←continuous_linear_map.map_sub,
+
+--  have := measure_theory.L1.norm_Integral_le_one,
+
+  -- FIX NAMING CONVENTION `continuous_linear_map.le_op_nnnorm_of_le`
+  refine le_trans (continuous_linear_map.le_op_nnnorm _ _) _,
+--  have := continuous_linear_map.le_op_norm_of_le (L1.integral_clm : ),
+
+  refine le_trans _ _,
+
+  --  STOPPED HERE *** 5/27 ****
+
+  rw L1.norm_def,
+
+
+  have : filter.tendsto (λ (s : finset α),
+    ∥ L1.integral_clm (((hF s).to_Lp _) - (integrable.to_L1 f hf))∥₊)
+    filter.at_top (𝓝 0),
+  {
+    sorry,
+    /-
+    rw measure_theory.lintegral_count,
+    convert ennreal.tendsto_tsum_compl_at_top_zero hf.ne using 1,
+    ext1 s,
+    rw [←lintegral_indicator _ s.measurable_set.compl, measure_theory.lintegral_count,
+      ← tsum_subtype],
+    refl,
+
+    sorry,
+    -/
+  },
+  convert this,
+  ext s,
+  have : L1.integral_clm (((hF s).to_Lp _) - (integrable.to_L1 f hf)) =
+    L1.integral_clm (((hF (s.compl)).to_Lp _)),
+  {
+    sorry,
+  },
+  rw continuous_linear_map.map_sub,
+  rw hh s,
+end
+
 
 theorem measure_theory.integral_count {α : Type*} [measurable_space α]
   [measurable_singleton_class α] [encodable α]
@@ -257,26 +353,16 @@ begin
     {
       sorry,
     },
-/-
---    rw L1.integral_eq,
-    simp only [continuous_linear_map.map_sum],
-    rw finset.sum_congr rfl,
-    intros i hi,
-    rw ← L1.integral_eq,
-    rw measure_theory.L1.integral_eq_integral,
-    have : indicator_const_Lp 1 (measurable_set_singleton i) (single_not_top i) (f i)
-      =ᵐ[measure.count] _ :=  indicator_const_Lp_coe_fn,
-    rw integral_congr_ae this,
-    simp [measure_theory.measure.count_singleton],
-  -/
   },
   -- ADD TO LIBRARY
   -- f is limit of
+  extract_goal,
+
   have : filter.tendsto F (filter.at_top : filter (finset α)) (nhds (hf.to_Lp f)),
   {
     --have := measure_theory.ae_cover.lintegral_tendsto_of_countably_generated ,
     dsimp [F],
-    have := something (nnnorm ∘ f) _,
+    have := something' (nnnorm ∘ f) _,
 
     -- if f: α→ ℝ≥0 lintegral f < ⊤ , then limit in cofinite filter over sᶜ of lintegral f → 0
 

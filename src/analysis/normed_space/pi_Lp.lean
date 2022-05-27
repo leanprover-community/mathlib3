@@ -206,7 +206,7 @@ instance [Π i, pseudo_emetric_space (β i)] : pseudo_emetric_space (pi_Lp p β)
 /-- emetric space instance on the product of finitely many emetric spaces, using the `L^p`
 edistance, and having as uniformity the product uniformity. -/
 instance [Π i, emetric_space (α i)] : emetric_space (pi_Lp p α) :=
-@emetric.of_t0_pseudo_emetric_space _ _ (@pi.t0_space _ α _ _)
+@emetric.of_t0_pseudo_emetric_space (pi_Lp p α) _ pi.t0_space
 
 variables {p β}
 lemma edist_eq [Π i, pseudo_emetric_space (β i)] (x y : pi_Lp p β) :

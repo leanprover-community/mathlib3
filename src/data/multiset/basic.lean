@@ -848,6 +848,17 @@ begin
     simp }
 end
 
+lemma map_eq_cons (f : α → β) {s : multiset α} {t : multiset β} (b : β) (h : s.map f = b ::ₘ t) :
+  ∃ a ∈ s, f a = b ∧ ∃ u : multiset α, u.map f = t :=
+begin
+  have : b ∈ s.map f,
+  { rw h, exact mem_cons_self _ _ },
+  obtain ⟨a, h1, rfl⟩ := mem_map.mp this,
+  obtain ⟨u, rfl⟩ := exists_cons_of_mem h1,
+  rw [map_cons, cons_inj_right] at h,
+  exact ⟨a, mem_cons_self _ _, rfl, u, h⟩,
+end
+
 theorem mem_map_of_injective {f : α → β} (H : function.injective f) {a : α} {s : multiset α} :
   f a ∈ map f s ↔ a ∈ s :=
 quot.induction_on s $ λ l, mem_map_of_injective H
@@ -1547,6 +1558,9 @@ quot.induction_on s $ λ l, countp_le_length p
 @[simp] theorem countp_add (s t) : countp p (s + t) = countp p s + countp p t :=
 by simp [countp_eq_card_filter]
 
+@[simp] theorem countp_nsmul (s) (n : ℕ) : countp p (n • s) = n * countp p s :=
+by induction n; simp [*, succ_nsmul', succ_mul, zero_nsmul]
+
 theorem card_eq_countp_add_countp (s) : card s = countp p s + countp (λ x, ¬ p x) s :=
 quot.induction_on s $ λ l, by simp [l.length_eq_countp_add_countp p]
 
@@ -2039,6 +2053,28 @@ lemma rel_repeat_left {m : multiset α} {a : α} {r : α → α → Prop} {n : �
 lemma rel_repeat_right {m : multiset α} {a : α} {r : α → α → Prop} {n : ℕ} :
   m.rel r (repeat a n) ↔ m.card = n ∧ ∀ x, x ∈ m → r x a :=
 by { rw [← rel_flip], exact rel_repeat_left }
+
+lemma rel.trans (r : α → α → Prop) [is_trans α r] {s t u : multiset α}
+  (r1 : rel r s t) (r2 : rel r t u) :
+  rel r s u :=
+begin
+  induction t using multiset.induction_on with x t ih generalizing s u,
+  { rw [rel_zero_right.mp r1, rel_zero_left.mp r2, rel_zero_left] },
+  { obtain ⟨a, as, ha1, ha2, rfl⟩ := rel_cons_right.mp r1,
+    obtain ⟨b, bs, hb1, hb2, rfl⟩ := rel_cons_left.mp r2,
+    exact multiset.rel.cons (trans ha1 hb1) (ih ha2 hb2) }
+end
+
+lemma rel.countp_eq (r : α → α → Prop) [is_trans α r] [is_symm α r] {s t : multiset α} (x : α)
+  [decidable_pred (r x)] (h : rel r s t) :
+  countp (r x) s = countp (r x) t :=
+begin
+  induction s using multiset.induction_on with y s ih generalizing t,
+  { rw rel_zero_left.mp h, },
+  { obtain ⟨b, bs, hb1, hb2, rfl⟩ := rel_cons_left.mp h,
+    rw [countp_cons, countp_cons, ih hb2],
+    exact congr_arg _ (if_congr ⟨λ h, trans h hb1, λ h, trans h (symm hb1)⟩ rfl rfl) },
+end
 
 end rel
 

@@ -36,9 +36,8 @@ class monoidal_predicate :=
 
 lemma prop_id [hP : monoidal_predicate P] : P (𝟙_ C) := hP.prop_id'
 
--- For some reason which I don't understand `hP.prop_tensor' hX hY` doesn't work here.
 lemma prop_tensor [hP : monoidal_predicate P] {X Y : C} (hX : P X) (hY : P Y) : P (X ⊗ Y) :=
-by { apply hP.prop_tensor', exact hX, exact hY }
+monoidal_predicate.prop_tensor' hX hY
 
 variables [monoidal_predicate P]
 
@@ -81,7 +80,7 @@ instance full_monoidal_subcategory.faithful :
 
 variables {P} {P' : C → Prop} [monoidal_predicate P']
 
-/-- An implication of predicates `p.P → p'.P` induces a monoidal functor between full monoidal
+/-- An implication of predicates `P → P'` induces a monoidal functor between full monoidal
 subcategories. -/
 @[simps]
 def full_monoidal_subcategory.map (h : ∀ ⦃X⦄, P X → P' X) :
@@ -100,7 +99,7 @@ section braided
 variables (P) [braided_category C]
 
 /--
-The monoidal structure on `full_monoidal_subcategory p` inherited by the braided structure on `C`.
+The braided structure on `{X : C // P X}` inherited by the braided structure on `C`.
 -/
 instance full_braided_subcategory : braided_category {X : C // P X} :=
 braided_category_of_faithful (full_monoidal_subcategory_inclusion P)
@@ -123,7 +122,7 @@ instance full_braided_subcategory.faithful :
 
 variables {P}
 
-/-- An implication of predicates `p.P → p'.P` induces a braided functor between full braided
+/-- An implication of predicates `P → P'` induces a braided functor between full braided
 subcategories. -/
 @[simps]
 def full_braided_subcategory.map (h : ∀ ⦃X⦄, P X → P' X) :

@@ -8,6 +8,7 @@ import data.pi.algebra
 import data.set.function
 import data.set.pairwise
 import tactic.pi_instances
+import tactic.wlog
 
 /-!
 # Pi instances for groups and monoids
@@ -349,17 +350,17 @@ begin
       rcases eq_or_ne k l with rfl | hkl,
       { rwa [if_neg hln.symm, if_neg hln.symm, one_mul, one_mul, eq_comm] at hn },
       { rwa [if_neg hkl.symm, if_neg hln, one_mul, one_mul] at hl } },
-    { rcases eq_or_ne k l with rfl | hkl,
-      { rcases eq_or_ne m n with rfl | hmn,
+    { rcases eq_or_ne m n with rfl | hmn,
+      { rcases eq_or_ne k l with rfl | hkl,
         { rw [if_neg hkm.symm, if_neg hkm.symm, one_mul, eq_comm, if_pos rfl] at hm,
           exact or.inr (or.inr ⟨hm, rfl, rfl⟩) },
-        { rw [if_neg hkm.symm, if_neg hkm.symm, one_mul, eq_comm, if_neg hmn, mul_one] at hm,
-          exact (hu hm).elim } },
-      { rw [if_neg hkm, if_neg hkl, one_mul, mul_one] at hk,
-        have hkn := (ite_ne_right_iff.mp (ne_of_eq_of_ne hk.symm hu)).1,
-        rw [←hkn, if_neg hkm.symm, if_neg hkm.symm, one_mul, mul_one] at hm,
-        have hml := (ite_ne_right_iff.mp (ne_of_eq_of_ne hm hu)).1,
-        exact or.inr (or.inl ⟨hk.trans (if_pos hkn), hkn, hml.symm⟩) } } },
+        { rw [if_neg hkm, if_neg hkm, if_neg hkl, one_mul, mul_one] at hk,
+          exact (hu hk).elim } },
+      { rw [if_neg hkm.symm, if_neg hmn, one_mul, mul_one] at hm,
+        obtain rfl := (ite_ne_right_iff.mp (ne_of_eq_of_ne hm hu)).1,
+        rw [if_neg hkm, if_neg hkm, one_mul, mul_one] at hk,
+        obtain rfl := (ite_ne_right_iff.mp (ne_of_eq_of_ne hk.symm hu)).1,
+        exact or.inr (or.inl ⟨hk.trans (if_pos rfl), rfl, rfl⟩) } } },
   { rintros (⟨rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩ | ⟨h, rfl, rfl⟩),
     { refl },
     { apply mul_comm },

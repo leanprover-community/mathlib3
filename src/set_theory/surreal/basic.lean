@@ -323,8 +323,8 @@ end ordinal
 
 namespace pgame
 
-/-- To prove that surreal multiplication is well-defined, we use a modified argument by Schleicher.
-We simultaneously prove two assertions on numeric pre-games:
+/-- To prove that surreal multiplication is well-defined, we use a modified argument by Schleicher
+and Stoll. We simultaneously prove two assertions on numeric pre-games:
 
 - `P1 x y` means `x * y` is numeric.
 - `P2 x₁ x₂ y` means all of the following hold:

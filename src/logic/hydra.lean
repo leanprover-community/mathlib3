@@ -45,6 +45,7 @@ variables (rα : α → α → Prop) (rβ : β → β → Prop) (f : α → β)
 def fibration := ∀ ⦃a b⦄, rβ b (f a) → ∃ a', rα a' a ∧ f a' = b
 
 variables {rα rβ}
+
 /-- If `f : α → β` is a fibration between relations `rα` and `rβ`, and `a : α` is
   accessible under `rα`, then `f a` is accessible under `rβ`. -/
 lemma _root_.acc.of_fibration (fib : fibration rα rβ f) {a} (ha : acc rα a) : acc rβ (f a) :=
@@ -60,6 +61,7 @@ lemma _root_.acc.of_downward_closed (dc : ∀ {a b}, rβ b (f a) → b ∈ set.r
 ha.of_fibration f (λ a b h, let ⟨a', he⟩ := dc h in ⟨a', he.substr h, he⟩)
 
 variables (rα rβ)
+
 /-- The "addition of games" relation in combinatorial game theory, on the product type: if
   `rα a' a` means that `a ⟶ a'` is a valid move in game `α`, and `rβ b' b` means that `b ⟶ b'`
   is a valid move in game `β`, then `game_add rα rβ` specifies the valid moves in the juxtaposition
@@ -81,6 +83,7 @@ lemma rprod_le_trans_gen_game_add : prod.rprod rα rβ ≤ trans_gen (game_add r
 end
 
 variables {rα rβ}
+
 /-- If `a` is accessible under `rα` and `b` is accessible under `rβ`, then `(a, b)` is
   accessible under `(a, b)`. Notice that `prod.lex_accessible` requires the stronger
   condition `∀ b, acc rb b`. -/

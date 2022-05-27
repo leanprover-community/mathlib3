@@ -243,7 +243,7 @@ end
 lemma symm_trans_symm (e e' : pretrivialization F proj) :
   (e.to_local_equiv.symm.trans e'.to_local_equiv).symm =
   e'.to_local_equiv.symm.trans e.to_local_equiv :=
-by rw [local_equiv.trans_symm_eq_symm_trans_symm,local_equiv.symm_symm]
+by rw [local_equiv.trans_symm_eq_symm_trans_symm, local_equiv.symm_symm]
 
 lemma symm_trans_source_eq (e e' : pretrivialization F proj) :
   (e.to_local_equiv.symm.trans e'.to_local_equiv).source =
@@ -447,13 +447,12 @@ namespace topological_fiber_bundle.trivialization
 that sends `p : Z` to `((e p).1, h (e p).2)`. -/
 def trans_fiber_homeomorph {F' : Type*} [topological_space F']
   (e : trivialization F proj) (h : F ≃ₜ F') : trivialization F' proj :=
-{ to_local_homeomorph := e.to_local_homeomorph.trans
-    ((homeomorph.refl _).prod_congr h).to_local_homeomorph,
+{ to_local_homeomorph := e.to_local_homeomorph.trans_homeomorph $ (homeomorph.refl _).prod_congr h,
   base_set := e.base_set,
   open_base_set := e.open_base_set,
-  source_eq := by simp [e.source_eq],
-  target_eq := by { ext, simp [e.target_eq] },
-  proj_to_fun := λ p hp, have p ∈ e.source, by simpa using hp, by simp [this] }
+  source_eq := e.source_eq,
+  target_eq := by simp [e.target_eq, prod_univ, preimage_preimage],
+  proj_to_fun := e.proj_to_fun }
 
 @[simp] lemma trans_fiber_homeomorph_apply {F' : Type*} [topological_space F']
   (e : trivialization F proj) (h : F ≃ₜ F') (x : Z) :
@@ -741,7 +740,7 @@ begin
     (mem_nhds_within_Ici_iff_exists_mem_Ioc_Ico_subset hlt).1
       (mem_nhds_within_of_mem_nhds $ is_open.mem_nhds ec.open_base_set (hec ⟨hc.1, le_rfl⟩)),
   have had : Ico a d ⊆ ec.base_set,
-    from subset.trans Ico_subset_Icc_union_Ico (union_subset hec hd),
+    from Ico_subset_Icc_union_Ico.trans (union_subset hec hd),
   by_cases he : disjoint (Iio d) (Ioi c),
   { /- If `(c, d) = ∅`, then let `ed` be a trivialization of `proj` over a neighborhood of `d`.
     Then the disjoint union of `ec` restricted to `(-∞, d)` and `ed` restricted to `(c, ∞)` is
@@ -755,7 +754,7 @@ begin
   { /- If `(c, d)` is nonempty, then take `d' ∈ (c, d)`. Since the base set of `ec` includes
     `[a, d)`, it includes `[a, d'] ⊆ [a, d)` as well. -/
     rw [disjoint_left] at he, push_neg at he, rcases he with ⟨d', hdd' : d' < d, hd'c⟩,
-    exact ⟨d', ⟨hd'c, hdd'.le.trans hdcb.2⟩, ec, subset.trans (Icc_subset_Ico_right hdd') had⟩ }
+    exact ⟨d', ⟨hd'c, hdd'.le.trans hdcb.2⟩, ec, (Icc_subset_Ico_right hdd').trans had⟩ }
 end
 
 end piecewise
@@ -770,7 +769,8 @@ namespace bundle
 
 variable (E : B → Type*)
 
-attribute [mfld_simps] proj total_space_mk coe_fst coe_snd_map_apply coe_snd_map_smul
+attribute [mfld_simps] proj total_space_mk coe_fst coe_snd coe_snd_map_apply coe_snd_map_smul
+  total_space.mk_cast
 
 instance [I : topological_space F] : ∀ x : B, topological_space (trivial B F x) := λ x, I
 

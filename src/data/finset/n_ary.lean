@@ -93,7 +93,7 @@ lemma nonempty.of_image₂_right (h : (image₂ f s t).nonempty) : t.nonempty :=
 @[simp] lemma image₂_eq_empty_iff : image₂ f s t = ∅ ↔ s = ∅ ∨ t = ∅ :=
 by simp_rw [←not_nonempty_iff_eq_empty, image₂_nonempty_iff, not_and_distrib]
 
-@[simp] lemma image₂_singleton_left : image₂ f {a} t = t.image (f a) := ext $ λ x, by simp
+@[simp] lemma image₂_singleton_left : image₂ f {a} t = t.image (λ b, f a b) := ext $ λ x, by simp
 @[simp] lemma image₂_singleton_right : image₂ f s {b} = s.image (λ a, f a b) := ext $ λ x, by simp
 
 lemma image₂_singleton : image₂ f {a} {b} = {f a b} := by simp

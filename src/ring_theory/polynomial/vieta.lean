@@ -47,7 +47,6 @@ begin
   have h : (univ \ t).card = card σ - j :=
   by { rw card_sdiff (mem_powerset_len.mp ht).1, congr, exact (mem_powerset_len.mp ht).2 },
   rw [map_prod, prod_const, ← h],
-  congr,
 end
 
 /-- A fully expanded sum version of Vieta's formula, evaluated at the roots.

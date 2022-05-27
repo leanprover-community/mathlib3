@@ -262,7 +262,7 @@ theorem subset_zero {s : multiset α} : s ⊆ 0 ↔ s = 0 :=
 ⟨eq_zero_of_subset_zero, λ xeq, xeq.symm ▸ subset.refl 0⟩
 
 lemma induction_on' {p : multiset α → Prop} (S : multiset α)
-  (h₁ : p ∅) (h₂ : ∀ {a s}, a ∈ S → s ⊆ S → p s → p (insert a s)) : p S :=
+  (h₁ : p 0) (h₂ : ∀ {a s}, a ∈ S → s ⊆ S → p s → p (insert a s)) : p S :=
 @multiset.induction_on α (λ T, T ⊆ S → p T) S (λ _, h₁) (λ a s hps hs,
   let ⟨hS, sS⟩ := cons_subset.1 hs in h₂ hS sS (hps sS)) (subset.refl S)
 
@@ -377,6 +377,8 @@ ne_of_gt (lt_cons_self _ _)
 ⟨λ h, mem_of_le h (mem_singleton_self _),
  λ h, let ⟨t, e⟩ := exists_cons_of_mem h in e.symm ▸ cons_le_cons _ (zero_le _)⟩
 
+theorem pair_comm (x y : α) : ({x, y} : multiset α) = {y, x} := cons_swap x y 0
+
 /-! ### Additive monoid -/
 
 /-- The sum of two multisets is the lift of the list append operation.
@@ -390,32 +392,28 @@ instance : has_add (multiset α) := ⟨multiset.add⟩
 
 @[simp] theorem coe_add (s t : list α) : (s + t : multiset α) = (s ++ t : list α) := rfl
 
-protected theorem add_comm (s t : multiset α) : s + t = t + s :=
-quotient.induction_on₂ s t $ λ l₁ l₂, quot.sound perm_append_comm
-
-protected theorem zero_add (s : multiset α) : 0 + s = s :=
-quot.induction_on s $ λ l, rfl
-
 theorem singleton_add (a : α) (s : multiset α) : {a} + s = a ::ₘ s := rfl
 
-protected theorem add_le_add_left (s) {t u : multiset α} : s + t ≤ s + u ↔ t ≤ u :=
+private theorem add_le_add_iff_left' {s t u : multiset α} : s + t ≤ s + u ↔ t ≤ u :=
 quotient.induction_on₃ s t u $ λ l₁ l₂ l₃, subperm_append_left _
 
-protected theorem add_left_cancel (s) {t u : multiset α} (h : s + t = s + u) : t = u :=
-le_antisymm ((multiset.add_le_add_left _).1 (le_of_eq h))
-  ((multiset.add_le_add_left _).1 (le_of_eq h.symm))
+instance : covariant_class (multiset α) (multiset α) (+) (≤) :=
+⟨λ s t u, add_le_add_iff_left'.2⟩
+
+instance : contravariant_class (multiset α) (multiset α) (+) (≤) :=
+⟨λ s t u, add_le_add_iff_left'.1⟩
 
 instance : ordered_cancel_add_comm_monoid (multiset α) :=
 { zero                  := 0,
   add                   := (+),
-  add_comm              := multiset.add_comm,
+  add_comm              := λ s t, quotient.induction_on₂ s t $ λ l₁ l₂, quot.sound perm_append_comm,
   add_assoc             := λ s₁ s₂ s₃, quotient.induction_on₃ s₁ s₂ s₃ $ λ l₁ l₂ l₃,
     congr_arg coe $ append_assoc l₁ l₂ l₃,
-  zero_add              := multiset.zero_add,
-  add_zero              := λ s, by rw [multiset.add_comm, multiset.zero_add],
-  add_left_cancel       := multiset.add_left_cancel,
-  add_le_add_left       := λ s₁ s₂ h s₃, (multiset.add_le_add_left _).2 h,
-  le_of_add_le_add_left := λ s₁ s₂ s₃, (multiset.add_le_add_left _).1,
+  zero_add              := λ s, quot.induction_on s $ λ l, rfl,
+  add_zero              := λ s, quotient.induction_on s $ λ l, congr_arg coe $ append_nil l,
+  add_left_cancel       := λ a b c, add_left_cancel'',
+  add_le_add_left       := λ s₁ s₂, add_le_add_left,
+  le_of_add_le_add_left := λ s₁ s₂ s₃, le_of_add_le_add_left,
   ..@multiset.partial_order α }
 
 theorem le_add_right (s t : multiset α) : s ≤ s + t :=
@@ -682,6 +680,14 @@ quot.induction_on s $ λ l h, quot.sound (perm_cons_erase h).symm
 theorem le_cons_erase (s : multiset α) (a : α) : s ≤ a ::ₘ s.erase a :=
 if h : a ∈ s then le_of_eq (cons_erase h).symm
 else by rw erase_of_not_mem h; apply le_cons_self
+
+lemma add_singleton_eq_iff {s t : multiset α} {a : α} :
+  s + {a} = t ↔ a ∈ t ∧ s = t.erase a :=
+begin
+  rw [add_comm, singleton_add], split,
+  { rintro rfl, exact ⟨s.mem_cons_self a, (s.erase_cons_head a).symm⟩ },
+  { rintro ⟨h, rfl⟩, exact cons_erase h },
+end
 
 theorem erase_add_left_pos {a : α} {s : multiset α} (t) : a ∈ s → (s + t).erase a = s.erase a + t :=
 quotient.induction_on₂ s t $ λ l₁ l₂ h, congr_arg coe $ erase_append_left l₂ h

@@ -3,7 +3,7 @@ Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Yury Kudryashov, Yaël Dillies
 -/
-import order.order_dual
+import order.synonym
 
 /-!
 # Minimal/maximal and bottom/top elements
@@ -184,14 +184,3 @@ protected lemma is_max.eq_of_le (ha : is_max a) (h : a ≤ b) : a = b := h.antis
 protected lemma is_max.eq_of_ge (ha : is_max a) (h : a ≤ b) : b = a := h.antisymm' $ ha h
 
 end partial_order
-
-section linear_order
-variables [linear_order α]
-
---TODO: Delete in favor of the directed version
-lemma is_top_or_exists_gt (a : α) : is_top a ∨ ∃ b, a < b :=
-by simpa only [or_iff_not_imp_left, is_top, not_forall, not_le] using id
-
-lemma is_bot_or_exists_lt (a : α) : is_bot a ∨ ∃ b, b < a := @is_top_or_exists_gt αᵒᵈ _ a
-
-end linear_order

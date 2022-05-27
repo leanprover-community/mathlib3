@@ -548,8 +548,7 @@ theorem zero_lf_inv' : ∀ {x : pgame}, 0 ⧏ inv' x
 /-- `inv' 0` has exactly the same moves as `1`. -/
 def inv'_zero : relabelling (inv' 0) 1 :=
 begin
-  change relabelling (inv' (mk _ _ _ _)) 1,
-  rw inv',
+  change relabelling (mk _ _ _ _) 1,
   refine ⟨_, _, λ i, _, is_empty_elim⟩;
   simp,
   { apply equiv_punit_of_unique },
@@ -561,9 +560,9 @@ theorem inv'_zero_equiv : inv' 0 ≈ 1 := inv'_zero.equiv
 /-- `inv' 1` has exactly the same moves as `1`. -/
 def inv'_one : relabelling (inv' 1) (1 : pgame.{u}) :=
 begin
-  change relabelling (inv' (mk _ _ _ _)) 1,
-  rw inv',
-  haveI : is_empty {i : punit.{u+1} // (0 : pgame.{u}) < 0} := by { simp, apply_instance },
+  change relabelling (mk _ _ _ _) 1,
+  haveI : is_empty {i : punit.{u+1} // (0 : pgame.{u}) < 0},
+  { rw lt_self_iff_false, apply_instance },
   refine ⟨_, _, λ i, _, is_empty_elim⟩;
   simp,
   { apply equiv_punit_of_unique },

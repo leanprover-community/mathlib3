@@ -119,12 +119,12 @@ h.pairwise_ae_disjoint.mono $ λ g₁ g₂ H, hν H
     end }
 
 @[to_additive] lemma image_of_equiv (h : is_fundamental_domain G s μ)
-  (f : measurable_equiv α α) (hfμ : measure_preserving f μ μ)
+  (f : α ≃ᵐ α) (hfμ : measure_preserving f μ μ)
   (e : equiv.perm G) (hef : ∀ g, semiconj f ((•) (e g)) ((•) g)) :
   is_fundamental_domain G (f '' s) μ :=
 begin
   rw f.image_eq_preimage,
-  refine h.preimage_of_equiv hfμ.symm.quasi_measure_preserving e.symm.bijective (λ g x, _),
+  refine h.preimage_of_equiv (hfμ.symm f).quasi_measure_preserving e.symm.bijective (λ g x, _),
   rcases f.surjective x with ⟨x, rfl⟩,
   rw [← hef _ _, f.symm_apply_apply, f.symm_apply_apply, e.apply_symm_apply]
 end
@@ -230,7 +230,7 @@ protected lemma measure_eq (hs : is_fundamental_domain G s μ)
 by simpa only [set_lintegral_one] using hs.set_lintegral_eq ht (λ _, 1) (λ _ _, rfl)
 
 @[to_additive] protected lemma ae_strongly_measurable_on_iff
-  {β : Type*} [topological_space β] [metrizable_space β]
+  {β : Type*} [topological_space β] [pseudo_metrizable_space β]
   (hs : is_fundamental_domain G s μ) (ht : is_fundamental_domain G t μ) {f : α → β}
   (hf : ∀ (g : G) x, f (g • x) = f x) :
   ae_strongly_measurable f (μ.restrict s) ↔ ae_strongly_measurable f (μ.restrict t) :=

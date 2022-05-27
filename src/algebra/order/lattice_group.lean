@@ -148,12 +148,12 @@ lemma m_neg_part_def (a : α) : a⁻ = a⁻¹ ⊔ 1 := rfl
 lemma pos_one : (1 : α)⁺ = 1 := sup_idem
 
 @[simp, to_additive]
-lemma neg_one : (1 : α)⁻ = 1 := by rw [m_neg_part_def, one_inv, sup_idem]
+lemma neg_one : (1 : α)⁻ = 1 := by rw [m_neg_part_def, inv_one, sup_idem]
 
 -- a⁻ = -(a ⊓ 0)
 @[to_additive]
 lemma neg_eq_inv_inf_one [covariant_class α α (*) (≤)] (a : α) : a⁻ = (a ⊓ 1)⁻¹ :=
-by rw [m_neg_part_def, ← inv_inj, inv_sup_eq_inv_inf_inv, inv_inv, inv_inv, one_inv]
+by rw [m_neg_part_def, ← inv_inj, inv_sup_eq_inv_inf_inv, inv_inv, inv_inv, inv_one]
 
 @[to_additive le_abs]
 lemma le_mabs (a : α) : a ≤ |a| := le_sup_left
@@ -253,7 +253,7 @@ calc a ⊓ b = (a * 1) ⊓ (a * (b / a)) : by { rw [mul_one a, div_eq_mul_inv, m
 ... = a * ((b / a) ⊓ 1)     : by rw inf_comm
 ... = a * ((a / b)⁻¹ ⊓ 1)   : by { rw div_eq_mul_inv, nth_rewrite 0 ← inv_inv b,
   rw [← mul_inv, mul_comm b⁻¹, ← div_eq_mul_inv], }
-... = a * ((a / b)⁻¹ ⊓ 1⁻¹) : by rw one_inv
+... = a * ((a / b)⁻¹ ⊓ 1⁻¹) : by rw inv_one
 ... = a / ((a / b) ⊔ 1)     : by rw [← inv_sup_eq_inv_inf_inv, ← div_eq_mul_inv]
 
 -- Bourbaki A.VI.12 Prop 9 c)
@@ -476,7 +476,7 @@ end
 lemma abs_inv_comm (a b : α) : |a/b| = |b/a| :=
 begin
   unfold has_abs.abs,
-  rw [inv_div' a b, ← inv_inv (a / b), inv_div', sup_comm],
+  rw [inv_div a b, ← inv_inv (a / b), inv_div, sup_comm],
 end
 
 -- | |a| - |b| | ≤ |a - b|

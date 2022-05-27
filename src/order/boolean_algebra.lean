@@ -768,6 +768,9 @@ boolean_algebra.of_core
   top_le_sup_compl := λ _, inf_compl_eq_bot.ge,
   ..order_dual.distrib_lattice α, ..order_dual.bounded_order α }
 
+@[simp] lemma of_dual_compl (a : αᵒᵈ) : of_dual aᶜ = (of_dual a)ᶜ := rfl
+@[simp] lemma to_dual_compl (a : α) : to_dual aᶜ = (to_dual a)ᶜ := rfl
+
 theorem sdiff_eq : x \ y = x ⊓ yᶜ := boolean_algebra.sdiff_eq x y
 
 @[simp] theorem sdiff_compl : x \ yᶜ = x ⊓ y := by rw [sdiff_eq, compl_compl]
@@ -808,6 +811,9 @@ instance pi.has_compl {ι : Type u} {α : ι → Type v} [∀ i, has_compl (α i
 
 lemma pi.compl_def {ι : Type u} {α : ι → Type v} [∀ i, has_compl (α i)] (x : Π i, α i) :
   xᶜ = λ i, (x i)ᶜ := rfl
+
+instance is_irrefl.compl (r) [is_irrefl α r] : is_refl α rᶜ := ⟨@irrefl α r _⟩
+instance is_refl.compl (r) [is_refl α r] : is_irrefl α rᶜ := ⟨λ a, not_not_intro (refl a)⟩
 
 @[simp]
 lemma pi.compl_apply {ι : Type u} {α : ι → Type v} [∀ i, has_compl (α i)] (x : Π i, α i) (i : ι)  :

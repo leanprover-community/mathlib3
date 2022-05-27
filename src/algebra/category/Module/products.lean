@@ -13,12 +13,12 @@ import linear_algebra.pi
 open category_theory
 open category_theory.limits
 
-universes u v
+universes u v w
 
 namespace Module
 variables {R : Type u} [ring R]
 
-variables {ι : Type v} (Z : ι → Module.{v} R)
+variables {ι : Type v} (Z : ι → Module.{max v w} R)
 
 /-- The product cone induced by the concrete product. -/
 def product_cone : fan Z :=
@@ -26,14 +26,14 @@ fan.mk (Module.of R (Π i : ι, Z i)) (λ i, (linear_map.proj i : (Π i : ι, Z 
 
 /-- The concrete product cone is limiting. -/
 def product_cone_is_limit : is_limit (product_cone Z) :=
-{ lift := λ s, (linear_map.pi s.π.app : s.X →ₗ[R] (Π i : ι, Z i)),
-  fac' := by tidy,
-  uniq' := λ s m w, by { ext x i, exact linear_map.congr_fun (w i) x, }, }
+{ lift := λ s, (linear_map.pi (λ j, s.π.app ⟨j⟩) : s.X →ₗ[R] (Π i : ι, Z i)),
+  fac' := λ s j, by { cases j, tidy, },
+  uniq' := λ s m w, by { ext x i, exact linear_map.congr_fun (w ⟨i⟩) x, }, }
 
 -- While we could use this to construct a `has_products (Module R)` instance,
 -- we already have `has_limits (Module R)` in `algebra.category.Module.limits`.
 
-variables [has_products (Module.{v} R)]
+variables [has_product Z]
 
 /--
 The categorical product of a family of objects in `Module`
@@ -51,6 +51,6 @@ limit.iso_limit_cone_inv_π _ _
 
 @[simp, elementwise] lemma pi_iso_pi_hom_ker_subtype (i : ι) :
   (pi_iso_pi Z).hom ≫ (linear_map.proj i : (Π i : ι, Z i) →ₗ[R] Z i) = pi.π Z i :=
-is_limit.cone_point_unique_up_to_iso_inv_comp _ (limit.is_limit _) _
+is_limit.cone_point_unique_up_to_iso_inv_comp _ (limit.is_limit _) (discrete.mk i)
 
 end Module

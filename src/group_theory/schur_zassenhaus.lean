@@ -36,7 +36,7 @@ variables {G : Type*} [group G] (H : subgroup G) [is_commutative H] [fintype (G 
 /-- The quotient of the transversals of an abelian normal `N` by the `diff` relation. -/
 def quotient_diff :=
 quotient (setoid.mk (λ α β, diff (monoid_hom.id H) α β = 1) ⟨λ α, diff_self (monoid_hom.id H) α,
-  λ α β h, by rw [←diff_inv, h, one_inv], λ α β γ h h', by rw [←diff_mul_diff, h, h', one_mul]⟩)
+  λ α β h, by rw [←diff_inv, h, inv_one], λ α β γ h h', by rw [←diff_mul_diff, h, h', one_mul]⟩)
 
 instance : inhabited H.quotient_diff := quotient.inhabited _
 
@@ -65,7 +65,7 @@ instance : mul_action G H.quotient_diff :=
   mul_smul := λ g₁ g₂ q, quotient.induction_on' q (λ T, congr_arg quotient.mk'
     (by rw mul_inv_rev; exact mul_smul (op g₁⁻¹) (op g₂⁻¹) T)),
   one_smul := λ q, quotient.induction_on' q (λ T, congr_arg quotient.mk'
-    (by rw one_inv; apply one_smul Gᵐᵒᵖ T)) }
+    (by rw inv_one; apply one_smul Gᵐᵒᵖ T)) }
 
 lemma smul_diff' (h : H) :
   diff (monoid_hom.id H) α ((op (h : G)) • β) = diff (monoid_hom.id H) α β * h ^ H.index :=

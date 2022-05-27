@@ -122,6 +122,7 @@ protected lemma coe_inv (r : ℝ≥0) : ((r⁻¹ : ℝ≥0) : ℝ) = r⁻¹ := r
 protected lemma coe_div (r₁ r₂ : ℝ≥0) : ((r₁ / r₂ : ℝ≥0) : ℝ) = r₁ / r₂ := rfl
 @[simp, norm_cast] protected lemma coe_bit0 (r : ℝ≥0) : ((bit0 r : ℝ≥0) : ℝ) = bit0 r := rfl
 @[simp, norm_cast] protected lemma coe_bit1 (r : ℝ≥0) : ((bit1 r : ℝ≥0) : ℝ) = bit1 r := rfl
+protected lemma coe_two : ((2 : ℝ≥0) : ℝ) = 2 := rfl
 
 @[simp, norm_cast] protected lemma coe_sub {r₁ r₂ : ℝ≥0} (h : r₂ ≤ r₁) :
   ((r₁ - r₂ : ℝ≥0) : ℝ) = r₁ - r₂ :=
@@ -318,6 +319,13 @@ eq.symm $ @subset_Inf_of_within ℝ (set.Ici 0) _ ⟨(0 : ℝ≥0)⟩ s $
 
 @[norm_cast] lemma coe_infi {ι : Sort*} (s : ι → ℝ≥0) : (↑(⨅ i, s i) : ℝ) = ⨅ i, (s i) :=
 by rw [infi, infi, coe_Inf, set.range_comp]
+
+lemma le_infi_add_infi {ι ι' : Sort*} [nonempty ι] [nonempty ι'] {f : ι → ℝ≥0} {g : ι' → ℝ≥0}
+  {a : ℝ≥0} (h : ∀ i j, a ≤ f i + g j) : a ≤ (⨅ i, f i) + ⨅ j, g j :=
+begin
+  rw [← nnreal.coe_le_coe, nnreal.coe_add, coe_infi, coe_infi],
+  exact le_cinfi_add_cinfi h
+end
 
 example : archimedean ℝ≥0 := by apply_instance
 
@@ -563,7 +571,7 @@ by simp [pos_iff_ne_zero]
 lemma div_pos {r p : ℝ≥0} (hr : 0 < r) (hp : 0 < p) : 0 < r / p :=
 by simpa only [div_eq_mul_inv] using mul_pos hr (inv_pos.2 hp)
 
-protected lemma mul_inv {r p : ℝ≥0} : (r * p)⁻¹ = p⁻¹ * r⁻¹ := nnreal.eq $ mul_inv_rev₀ _ _
+protected lemma mul_inv {r p : ℝ≥0} : (r * p)⁻¹ = p⁻¹ * r⁻¹ := nnreal.eq $ mul_inv_rev _ _
 
 lemma div_self_le (r : ℝ≥0) : r / r ≤ 1 := div_self_le_one (r : ℝ)
 
@@ -652,6 +660,8 @@ eq.symm $ right_distrib a b (c⁻¹)
 lemma half_pos {a : ℝ≥0} (h : 0 < a) : 0 < a / 2 := div_pos h zero_lt_two
 
 lemma add_halves (a : ℝ≥0) : a / 2 + a / 2 = a := nnreal.eq (add_halves a)
+
+lemma half_le_self (a : ℝ≥0) : a / 2 ≤ a := nnreal.coe_le_coe.mp $ half_le_self a.coe_nonneg
 
 lemma half_lt_self {a : ℝ≥0} (h : a ≠ 0) : a / 2 < a :=
 by rw [← nnreal.coe_lt_coe, nnreal.coe_div]; exact

@@ -227,12 +227,9 @@ begin
   choose after_clear_denominator hacd using hN,
   have prop1 : ∀ i, i ∈ c.support → c i ∈ finset.image c c.support,
   { intros i hi, rw finset.mem_image, refine ⟨_, hi, rfl⟩, },
-  set g :=
-  λ (a : {y : away f | ∃ (g : A),
-      g ∈ (projective_spectrum.as_homogeneous_ideal x.val).to_ideal ∧ y = localization.mk g 1}),
-    classical.some a.2 with g_eq,
 
-  have := calc z.1 * mk (f ^ N) 1
+  refine ⟨c, N, after_clear_denominator, _⟩,
+  calc z.1 * mk (f ^ N) 1
       = (∑ i in c.support, c i • i) * mk (f ^ N) 1 : by rw ← eq1
   ... = ∑ i in c.support, (c i • i) * mk (f ^ N) 1 : by rw finset.sum_mul
   ... = ∑ i in c.support, c i * i.1 * mk (f ^ N) 1 : finset.sum_congr rfl (λ y hy, rfl)
@@ -265,8 +262,6 @@ begin
     { rw [finset.sum_insert hi, finset.sum_insert hi, ih, add_mk, one_mul],
       erw [one_mul, one_mul, add_comm], },
   end,
-
-  exact ⟨c, N, after_clear_denominator, this⟩,
 end
 
 lemma carrier_ne_top :
@@ -276,20 +271,17 @@ begin
   haveI : decidable_eq (localization.away f) := classical.dec_eq _,
   contrapose! eq_top,
   rw ideal.eq_top_iff_one at eq_top,
-  have := mem_carrier.clear_denominator f_deg x eq_top,
-  obtain ⟨c, N, acd, eq1⟩ := this,
+  obtain ⟨c, N, acd, eq1⟩ := mem_carrier.clear_denominator f_deg x eq_top,
   erw [one_mul] at eq1,
   simp only [mk_eq_mk', is_localization.eq] at eq1,
   rcases eq1 with ⟨⟨_, ⟨M, rfl⟩⟩, eq1⟩,
   erw [mul_one, mul_one] at eq1,
   simp only [← subtype.val_eq_coe] at eq1,
   rw [set.ne_empty_iff_nonempty],
-  use f^N * f^M,
-  refine ⟨eq1.symm ▸ ideal.mul_mem_right _ _ (ideal.sum_mem _ (λ i hi, ideal.mul_mem_left _ _ _)),
-    ⟨N+M, by rw pow_add⟩⟩,
+  refine ⟨f^N * f^M, eq1.symm ▸ ideal.mul_mem_right _ _
+    (ideal.sum_mem _ (λ i hi, ideal.mul_mem_left _ _ _)), ⟨N+M, by rw pow_add⟩⟩,
   generalize_proofs _ h,
-  rcases (classical.some_spec h) with ⟨h1, -⟩,
-  exact h1,
+  exact (classical.some_spec h).1,
 end
 
 lemma no_intersection :
@@ -311,63 +303,48 @@ end
 `Spec A⁰_f`. The fact that this function is continuous is proven in `Top_component.forward`.
 -/
 def to_fun : (Proj.T| (pbo f)) → (Spec.T (A⁰_ f_deg)) := λ x,
-⟨carrier f_deg x,
-  ⟨begin
-    classical,
-    apply carrier_ne_top,
-    apply no_intersection
-  end, λ x1 x2 hx12, begin
-    haveI : decidable_eq (away f) := classical.dec_eq _,
-    rcases x1 with ⟨x1, hx1⟩,
-    induction x1 using localization.induction_on with data_x1,
-    rcases x2 with ⟨x2, hx2⟩,
-    induction x2 using localization.induction_on with data_x2,
-    rcases data_x1 with ⟨a1, _, ⟨n1, rfl⟩⟩,
-    rcases data_x2 with ⟨a2, _, ⟨n2, rfl⟩⟩,
-    rcases mem_carrier.clear_denominator f_deg x hx12 with ⟨c, N, acd, eq1⟩,
-    simp only [degree_zero_part.mul_val, localization.mk_mul, mul_one] at eq1,
-    simp only [mk_eq_mk', is_localization.eq] at eq1,
-    rcases eq1 with ⟨⟨_, ⟨M, rfl⟩⟩, eq1⟩,
-    erw [mul_one] at eq1,
-    simp only [← subtype.val_eq_coe, submonoid.coe_mul] at eq1,
+⟨carrier f_deg x, carrier_ne_top f_deg x (no_intersection x), λ x1 x2 hx12, begin
+  haveI : decidable_eq (away f) := classical.dec_eq _,
+  rcases x1 with ⟨x1, hx1⟩,
+  induction x1 using localization.induction_on with data_x1,
+  rcases x2 with ⟨x2, hx2⟩,
+  induction x2 using localization.induction_on with data_x2,
+  rcases data_x1 with ⟨a1, _, ⟨n1, rfl⟩⟩,
+  rcases data_x2 with ⟨a2, _, ⟨n2, rfl⟩⟩,
+  rcases mem_carrier.clear_denominator f_deg x hx12 with ⟨c, N, acd, eq1⟩,
+  simp only [degree_zero_part.mul_val, localization.mk_mul, mul_one] at eq1,
+  simp only [mk_eq_mk', is_localization.eq] at eq1,
+  rcases eq1 with ⟨⟨_, ⟨M, rfl⟩⟩, eq1⟩,
+  erw [mul_one] at eq1,
+  simp only [← subtype.val_eq_coe, submonoid.coe_mul] at eq1,
+  dsimp only,
+  have mem1 : a1 * a2 * f ^ N * f ^ M ∈ x.1.as_homogeneous_ideal.1,
+  { rw eq1,
+    refine ideal.mul_mem_right _ _
+      (ideal.mul_mem_right _ _ (ideal.sum_mem _ (λ i hi, ideal.mul_mem_left _ _ _))),
+    generalize_proofs _ h,
+    rcases (classical.some_spec h) with ⟨h1, -⟩,
+    exact h1, },
+  rcases x.1.is_prime.mem_or_mem mem1 with h1|rid2,
+  rcases x.1.is_prime.mem_or_mem h1 with h1|rid1,
+  rcases x.1.is_prime.mem_or_mem h1 with h1|h2,
+  { left,
+    rw mem_carrier_iff,
     dsimp only,
-    have mem1 : a1 * a2 * f ^ N * f ^ M ∈ x.1.as_homogeneous_ideal.1,
-    { rw eq1,
-      refine ideal.mul_mem_right _ _
-        (ideal.mul_mem_right _ _ (ideal.sum_mem _ (λ i hi, ideal.mul_mem_left _ _ _))),
-      generalize_proofs _ h,
-      rcases (classical.some_spec h) with ⟨h1, -⟩,
-      exact h1, },
-    rcases x.1.is_prime.mem_or_mem mem1 with h1|rid2,
-    rcases x.1.is_prime.mem_or_mem h1 with h1|rid1,
-    rcases x.1.is_prime.mem_or_mem h1 with h1|h2,
-    { left,
-      rw mem_carrier_iff,
-      have eq3 : (localization.mk a1 ⟨f ^ n1, _⟩ : localization.away f) =
-        localization.mk a1 1 * localization.mk 1 ⟨f^n1, ⟨n1, rfl⟩⟩,
-      { erw [localization.mk_mul, mul_one, one_mul], },
-      dsimp only,
-      rw eq3,
-      refine ideal.mul_mem_right _ _ _,
-      apply ideal.subset_span,
-      refine ⟨a1, h1, rfl⟩ },
-    { right,
-      rw mem_carrier_iff,
-      have eq3 : (localization.mk a2 ⟨f ^ n2, _⟩ : localization.away f) =
-        localization.mk a2 1 * localization.mk 1 ⟨f^n2, ⟨n2, rfl⟩⟩,
-      { erw [localization.mk_mul, mul_one, one_mul], },
-      dsimp only,
-      rw eq3,
-      refine ideal.mul_mem_right _ _ _,
-      apply ideal.subset_span,
-      refine ⟨a2, h2, rfl⟩ },
-    { exfalso,
-      apply x.2,
-      apply x.1.is_prime.mem_of_pow_mem N rid1, },
-    { exfalso,
-      apply x.2,
-      apply x.1.is_prime.mem_of_pow_mem M rid2, },
-  end⟩⟩
+    erw show (localization.mk a1 ⟨f ^ n1, _⟩ : localization.away f) =
+      localization.mk a1 1 * localization.mk 1 ⟨f^n1, ⟨n1, rfl⟩⟩,
+    { erw [localization.mk_mul, mul_one, one_mul], },
+    refine ideal.mul_mem_right _ _ (ideal.subset_span ⟨_, h1, rfl⟩), },
+  { right,
+    rw mem_carrier_iff,
+    dsimp only,
+    erw show (localization.mk a2 ⟨f ^ n2, _⟩ : localization.away f) =
+      localization.mk a2 1 * localization.mk 1 ⟨f^n2, ⟨n2, rfl⟩⟩,
+    { erw [localization.mk_mul, mul_one, one_mul], },
+    refine ideal.mul_mem_right _ _ (ideal.subset_span ⟨_, h2, rfl⟩), },
+  { exact false.elim (x.2 (x.1.is_prime.mem_of_pow_mem N rid1)), },
+  { exact false.elim (x.2 (x.1.is_prime.mem_of_pow_mem M rid2)), },
+end⟩
 
 lemma preimage_eq (a : A) (n : ℕ)
   (a_mem_degree_zero : (mk a ⟨f ^ n, ⟨n, rfl⟩⟩ : away f) ∈ A⁰_ f_deg) :
@@ -401,15 +378,11 @@ begin
 
     rcases y.1.is_prime.mem_or_mem mem1 with H1 | H3,
     rcases y.1.is_prime.mem_or_mem H1 with H1 | H2,
-    { apply hy2,
-      exact H1, },
-    { apply y.2,
-      apply y.1.is_prime.mem_of_pow_mem N H2, },
-    { apply y.2,
-      apply y.1.is_prime.mem_of_pow_mem M H3, }, },
+    { exact hy2 H1, },
+    { exact y.2 (y.1.is_prime.mem_of_pow_mem N H2), },
+    { exact y.2 (y.1.is_prime.mem_of_pow_mem M H3), }, },
 
-  { change y.1 ∈ _ ⊓ _,
-    refine ⟨y.2, _⟩,
+  { refine ⟨y.2, _⟩,
     -- a ∉ y,
     erw [set.mem_preimage, prime_spectrum.mem_basic_open] at hy,
     erw projective_spectrum.mem_basic_open,
@@ -418,13 +391,9 @@ begin
     unfold to_fun,
     rw mem_carrier_iff,
     dsimp only,
-    have eq1 : (localization.mk a ⟨f^n, ⟨_, rfl⟩⟩ : localization.away f) =
-      localization.mk 1 ⟨f^n, ⟨_, rfl⟩⟩ * localization.mk a 1,
+    erw show (mk a ⟨f^n, ⟨_, rfl⟩⟩ : away f) = mk 1 ⟨f^n, ⟨_, rfl⟩⟩ * mk a 1,
     { erw [localization.mk_mul, one_mul, mul_one], },
-    erw eq1,
-    change _ ∈ (_ : ideal _),
-    convert ideal.mul_mem_left _ _ _,
-    exact ideal.subset_span ⟨a, a_mem_y, rfl⟩, }
+    exact ideal.mul_mem_left _ _ (ideal.subset_span ⟨_, a_mem_y, rfl⟩), }
 end
 
 end forward
@@ -446,24 +415,12 @@ def forward {f : A} (m : ℕ) (f_deg : f ∈ 𝒜 m) :
     obtain ⟨a, ⟨_, ⟨n, rfl⟩⟩⟩ := data,
     dsimp only,
 
-    -- we want to use `projective_spectrum.basic_open 𝒜 (f*a) = preimage`
-    set set1 : set (Proj.T| (pbo f)) :=
-    { x | x.1 ∈ (pbo f) ⊓ (pbo a) } with set1_eq,
-    have o1 : is_open set1,
-    { rw is_open_induced_iff,
-      refine ⟨(pbo f).1 ⊓ (pbo a).1, is_open.inter (pbo f).2 (pbo a).2, _⟩,
-      ext z, split; intros hz,
-      { erw set.mem_preimage at hz,
-        erw set1_eq,
-        exact hz, },
-      { erw set1_eq at hz,
-        change _ ∧ _ at hz,
-        erw set.mem_preimage,
-        exact hz, }, },
-    suffices : set1 = forward.to_fun 𝒜 f_deg ⁻¹'
-      (prime_spectrum.basic_open (⟨mk a ⟨f ^ n, _⟩, hg⟩ : A⁰_ f_deg)).1,
-    { erw ←this, exact o1, },
-    { symmetry, apply forward.preimage_eq },
+    erw forward.preimage_eq,
+    rw is_open_induced_iff,
+    refine ⟨(pbo f).1 ⊓ (pbo a).1, is_open.inter (pbo f).2 (pbo a).2, _⟩,
+    ext z, split; intros hz,
+    { assumption, },
+    { rwa set.mem_preimage, },
   end }
 
 end

@@ -7,6 +7,7 @@ import data.nat.enat
 import data.set.countable
 import logic.small
 import order.conditionally_complete_lattice
+import order.succ_pred.basic
 import set_theory.schroeder_bernstein
 
 /-!
@@ -164,9 +165,14 @@ induction_on a $ λ α,
 /-- We define the order on cardinal numbers by `#α ≤ #β` if and only if
   there exists an embedding (injective function) from α to β. -/
 instance : has_le cardinal.{u} :=
-⟨λq₁ q₂, quotient.lift_on₂ q₁ q₂ (λα β, nonempty $ α ↪ β) $
-  assume α β γ δ ⟨e₁⟩ ⟨e₂⟩,
-    propext ⟨assume ⟨e⟩, ⟨e.congr e₁ e₂⟩, assume ⟨e⟩, ⟨e.congr e₁.symm e₂.symm⟩⟩⟩
+⟨λ q₁ q₂, quotient.lift_on₂ q₁ q₂ (λ α β, nonempty $ α ↪ β) $
+  λ α β γ δ ⟨e₁⟩ ⟨e₂⟩, propext ⟨λ ⟨e⟩, ⟨e.congr e₁ e₂⟩, λ ⟨e⟩, ⟨e.congr e₁.symm e₂.symm⟩⟩⟩
+
+instance : partial_order cardinal.{u} :=
+{ le          := (≤),
+  le_refl     := by rintros ⟨α⟩; exact ⟨embedding.refl _⟩,
+  le_trans    := by rintros ⟨α⟩ ⟨β⟩ ⟨γ⟩ ⟨e₁⟩ ⟨e₂⟩; exact ⟨e₁.trans e₂⟩,
+  le_antisymm := by { rintros ⟨α⟩ ⟨β⟩ ⟨e₁⟩ ⟨e₂⟩, exact quotient.sound (e₁.antisymm e₂) } }
 
 theorem le_def (α β : Type u) : #α ≤ #β ↔ nonempty (α ↪ β) :=
 iff.rfl
@@ -193,15 +199,6 @@ mk_subtype_le s
 
 theorem out_embedding {c c' : cardinal} : c ≤ c' ↔ nonempty (c.out ↪ c'.out) :=
 by { transitivity _, rw [←quotient.out_eq c, ←quotient.out_eq c'], refl }
-
-instance : preorder cardinal.{u} :=
-{ le          := (≤),
-  le_refl     := by rintros ⟨α⟩; exact ⟨embedding.refl _⟩,
-  le_trans    := by rintros ⟨α⟩ ⟨β⟩ ⟨γ⟩ ⟨e₁⟩ ⟨e₂⟩; exact ⟨e₁.trans e₂⟩ }
-
-instance : partial_order cardinal.{u} :=
-{ le_antisymm := by { rintros ⟨α⟩ ⟨β⟩ ⟨e₁⟩ ⟨e₂⟩, exact quotient.sound (e₁.antisymm e₂) },
-  .. cardinal.preorder }
 
 theorem lift_mk_le {α : Type u} {β : Type v} :
   lift.{(max v w)} (#α) ≤ lift.{(max u w)} (#β) ↔ nonempty (α ↪ β) :=
@@ -265,7 +262,7 @@ theorem mk_ne_zero_iff {α : Type u} : #α ≠ 0 ↔ nonempty α :=
 
 @[simp] lemma mk_ne_zero (α : Type u) [nonempty α] : #α ≠ 0 := mk_ne_zero_iff.2 ‹_›
 
-instance : has_one cardinal.{u} := ⟨⟦punit⟧⟩
+instance : has_one cardinal.{u} := ⟨#punit⟩
 
 instance : nontrivial cardinal.{u} := ⟨⟨1, 0, mk_ne_zero _⟩⟩
 
@@ -307,38 +304,13 @@ theorem mul_def (α β : Type u) : #α * #β = #(α × β) := rfl
   #(α × β) = lift.{v u} (#α) * lift.{u v} (#β) :=
 mk_congr (equiv.ulift.symm.prod_congr (equiv.ulift).symm)
 
-protected theorem add_comm (a b : cardinal.{u}) : a + b = b + a :=
-induction_on₂ a b $ λ α β, mk_congr (equiv.sum_comm α β)
-
-protected theorem mul_comm (a b : cardinal.{u}) : a * b = b * a :=
-induction_on₂ a b $ λ α β, mk_congr (equiv.prod_comm α β)
-
-protected theorem zero_add (a : cardinal.{u}) : 0 + a = a :=
-induction_on a $ λ α, mk_congr (equiv.empty_sum pempty α)
-
-protected theorem zero_mul (a : cardinal.{u}) : 0 * a = 0 :=
-induction_on a $ λ α, mk_congr (equiv.pempty_prod α)
-
-protected theorem one_mul (a : cardinal.{u}) : 1 * a = a :=
-induction_on a $ λ α, mk_congr (equiv.punit_prod α)
-
-protected theorem left_distrib (a b c : cardinal.{u}) : a * (b + c) = a * b + a * c :=
-induction_on₃ a b c $ λ α β γ, mk_congr (equiv.prod_sum_distrib α β γ)
-
-protected theorem eq_zero_or_eq_zero_of_mul_eq_zero {a b : cardinal.{u}} :
-  a * b = 0 → a = 0 ∨ b = 0 :=
-begin
-  induction a using cardinal.induction_on with α,
-  induction b using cardinal.induction_on with β,
-  simp only [mul_def, mk_eq_zero_iff, is_empty_prod],
-  exact id
-end
+private theorem mul_comm' (a b : cardinal.{u}) : a * b = b * a :=
+induction_on₂ a b $ λ α β, mk_congr $ equiv.prod_comm α β
 
 /-- The cardinal exponential. `#α ^ #β` is the cardinal of `β → α`. -/
-protected def power (a b : cardinal.{u}) : cardinal.{u} :=
-map₂ (λ α β : Type u, β → α) (λ α β γ δ e₁ e₂, e₂.arrow_congr e₁) a b
+instance : has_pow cardinal.{u} cardinal.{u} :=
+⟨map₂ (λ α β, β → α) (λ α β γ δ e₁ e₂, e₂.arrow_congr e₁)⟩
 
-instance : has_pow cardinal cardinal := ⟨cardinal.power⟩
 local infixr ^ := @has_pow.pow cardinal cardinal cardinal.has_pow
 local infixr ` ^ℕ `:80 := @has_pow.pow cardinal ℕ monoid.has_pow
 
@@ -349,38 +321,37 @@ mk_congr (equiv.ulift.symm.arrow_congr equiv.ulift.symm)
 
 @[simp] theorem lift_power (a b) : lift (a ^ b) = lift a ^ lift b :=
 induction_on₂ a b $ λ α β,
-mk_congr (equiv.ulift.trans (equiv.ulift.arrow_congr equiv.ulift).symm)
+mk_congr $ equiv.ulift.trans (equiv.ulift.arrow_congr equiv.ulift).symm
 
 @[simp] theorem power_zero {a : cardinal} : a ^ 0 = 1 :=
-induction_on a $ assume α, (equiv.pempty_arrow_equiv_punit α).cardinal_eq
+induction_on a $ λ α, mk_congr $ equiv.pempty_arrow_equiv_punit α
 
 @[simp] theorem power_one {a : cardinal} : a ^ 1 = a :=
-induction_on a $ assume α, (equiv.punit_arrow_equiv α).cardinal_eq
+induction_on a $ λ α, mk_congr $ equiv.punit_arrow_equiv α
 
 theorem power_add {a b c : cardinal} : a ^ (b + c) = a ^ b * a ^ c :=
-induction_on₃ a b c $ assume α β γ, (equiv.sum_arrow_equiv_prod_arrow β γ α).cardinal_eq
+induction_on₃ a b c $ λ α β γ, mk_congr $ equiv.sum_arrow_equiv_prod_arrow β γ α
 
 instance : comm_semiring cardinal.{u} :=
 { zero          := 0,
   one           := 1,
   add           := (+),
   mul           := (*),
-  zero_add      := cardinal.zero_add,
-  add_zero      := assume a, by rw [cardinal.add_comm a 0, cardinal.zero_add a],
-  add_assoc     := λa b c, induction_on₃ a b c $ assume α β γ, mk_congr (equiv.sum_assoc α β γ),
-  add_comm      := cardinal.add_comm,
-  zero_mul      := cardinal.zero_mul,
-  mul_zero      := assume a, by rw [cardinal.mul_comm a 0, cardinal.zero_mul a],
-  one_mul       := cardinal.one_mul,
-  mul_one       := assume a, by rw [cardinal.mul_comm a 1, cardinal.one_mul a],
-  mul_assoc     := λa b c, induction_on₃ a b c $ assume α β γ, mk_congr (equiv.prod_assoc α β γ),
-  mul_comm      := cardinal.mul_comm,
-  left_distrib  := cardinal.left_distrib,
-  right_distrib := assume a b c, by rw [cardinal.mul_comm (a + b) c, cardinal.left_distrib c a b,
-    cardinal.mul_comm c a, cardinal.mul_comm c b],
+  zero_add      := λ a, induction_on a $ λ α, mk_congr $ equiv.empty_sum pempty α,
+  add_zero      := λ a, induction_on a $ λ α, mk_congr $ equiv.sum_empty α pempty,
+  add_assoc     := λ a b c, induction_on₃ a b c $ λ α β γ, mk_congr $ equiv.sum_assoc α β γ,
+  add_comm      := λ a b, induction_on₂ a b $ λ α β, mk_congr $ equiv.sum_comm α β,
+  zero_mul      := λ a, induction_on a $ λ α, mk_congr $ equiv.pempty_prod α,
+  mul_zero      := λ a, induction_on a $ λ α, mk_congr $ equiv.prod_pempty α,
+  one_mul       := λ a, induction_on a $ λ α, mk_congr $ equiv.punit_prod α,
+  mul_one       := λ a, induction_on a $ λ α, mk_congr $ equiv.prod_punit α,
+  mul_assoc     := λ a b c, induction_on₃ a b c $ λ α β γ, mk_congr $ equiv.prod_assoc α β γ,
+  mul_comm      := mul_comm',
+  left_distrib  := λ a b c, induction_on₃ a b c $ λ α β γ, mk_congr $ equiv.prod_sum_distrib α β γ,
+  right_distrib := λ a b c, induction_on₃ a b c $ λ α β γ, mk_congr $ equiv.sum_prod_distrib α β γ,
   npow          := λ n c, c ^ n,
   npow_zero'    := @power_zero,
-  npow_succ'    := λ n c, by rw [nat.cast_succ, power_add, power_one, cardinal.mul_comm] }
+  npow_succ'    := λ n c, by rw [nat.cast_succ, power_add, power_one, mul_comm'] }
 
 theorem power_bit0 (a b : cardinal) : a ^ (bit0 b) = a ^ b * a ^ b :=
 power_add
@@ -389,14 +360,14 @@ theorem power_bit1 (a b : cardinal) : a ^ (bit1 b) = a ^ b * a ^ b * a :=
 by rw [bit1, ←power_bit0, power_add, power_one]
 
 @[simp] theorem one_power {a : cardinal} : 1 ^ a = 1 :=
-induction_on a $ assume α, (equiv.arrow_punit_equiv_punit α).cardinal_eq
+induction_on a $ λ α, (equiv.arrow_punit_equiv_punit α).cardinal_eq
 
 @[simp] theorem mk_bool : #bool = 2 := by simp
 
 @[simp] theorem mk_Prop : #(Prop) = 2 := by simp
 
 @[simp] theorem zero_power {a : cardinal} : a ≠ 0 → 0 ^ a = 0 :=
-induction_on a $ assume α heq, mk_eq_zero_iff.2 $ is_empty_pi.2 $
+induction_on a $ λ α heq, mk_eq_zero_iff.2 $ is_empty_pi.2 $
 let ⟨a⟩ := mk_ne_zero_iff.1 heq in ⟨a, pempty.is_empty⟩
 
 theorem power_ne_zero {a : cardinal} (b) : a ≠ 0 → a ^ b ≠ 0 :=
@@ -404,26 +375,24 @@ induction_on₂ a b $ λ α β h,
 let ⟨a⟩ := mk_ne_zero_iff.1 h in mk_ne_zero_iff.2 ⟨λ _, a⟩
 
 theorem mul_power {a b c : cardinal} : (a * b) ^ c = a ^ c * b ^ c :=
-induction_on₃ a b c $ assume α β γ, (equiv.arrow_prod_equiv_prod_arrow α β γ).cardinal_eq
+induction_on₃ a b c $ λ α β γ, mk_congr $ equiv.arrow_prod_equiv_prod_arrow α β γ
 
 theorem power_mul {a b c : cardinal} : a ^ (b * c) = (a ^ b) ^ c :=
-by rw [mul_comm b c];
-from (induction_on₃ a b c $ assume α β γ, mk_congr (equiv.curry γ β α))
+by { rw [mul_comm b c], exact induction_on₃ a b c (λ α β γ, mk_congr $ equiv.curry γ β α) }
 
-@[simp] lemma pow_cast_right (κ : cardinal.{u}) (n : ℕ) :
-  (κ ^ (↑n : cardinal.{u})) = κ ^ℕ n :=
+@[simp] lemma pow_cast_right (a : cardinal.{u}) (n : ℕ) : (a ^ (↑n : cardinal.{u})) = a ^ℕ n :=
 rfl
 
 @[simp] theorem lift_one : lift 1 = 1 :=
-mk_congr (equiv.ulift.trans equiv.punit_equiv_punit)
+mk_congr $ equiv.ulift.trans equiv.punit_equiv_punit
 
 @[simp] theorem lift_add (a b) : lift (a + b) = lift a + lift b :=
 induction_on₂ a b $ λ α β,
-mk_congr (equiv.ulift.trans (equiv.sum_congr equiv.ulift equiv.ulift).symm)
+mk_congr $ equiv.ulift.trans (equiv.sum_congr equiv.ulift equiv.ulift).symm
 
 @[simp] theorem lift_mul (a b) : lift (a * b) = lift a * lift b :=
 induction_on₂ a b $ λ α β,
-mk_congr (equiv.ulift.trans (equiv.prod_congr equiv.ulift equiv.ulift).symm)
+mk_congr $ equiv.ulift.trans (equiv.prod_congr equiv.ulift equiv.ulift).symm
 
 @[simp] theorem lift_bit0 (a : cardinal) : lift (bit0 a) = bit0 (lift a) :=
 lift_add a a
@@ -435,36 +404,39 @@ theorem lift_two : lift.{u v} 2 = 2 := by simp
 
 @[simp] theorem mk_set {α : Type u} : #(set α) = 2 ^ #α := by simp [set, mk_arrow]
 
+/-- A variant of `cardinal.mk_set` expressed in terms of a `set` instead of a `Type`. -/
+@[simp] theorem mk_powerset {α : Type u} (s : set α) : #↥(𝒫 s) = 2 ^ #↥s :=
+(mk_congr (equiv.set.powerset s)).trans mk_set
+
 theorem lift_two_power (a) : lift (2 ^ a) = 2 ^ lift a := by simp
 
 section order_properties
 open sum
 
-protected theorem zero_le : ∀(a : cardinal), 0 ≤ a :=
+protected theorem zero_le : ∀ a : cardinal, 0 ≤ a :=
 by rintro ⟨α⟩; exact ⟨embedding.of_is_empty⟩
 
-protected theorem add_le_add : ∀{a b c d : cardinal}, a ≤ b → c ≤ d → a + c ≤ b + d :=
+private theorem add_le_add' : ∀ {a b c d : cardinal}, a ≤ b → c ≤ d → a + c ≤ b + d :=
 by rintros ⟨α⟩ ⟨β⟩ ⟨γ⟩ ⟨δ⟩ ⟨e₁⟩ ⟨e₂⟩; exact ⟨e₁.sum_map e₂⟩
 
-protected theorem add_le_add_left (a) {b c : cardinal} : b ≤ c → a + b ≤ a + c :=
-cardinal.add_le_add le_rfl
+instance add_covariant_class : covariant_class cardinal cardinal (+) (≤) :=
+⟨λ a b c, add_le_add' le_rfl⟩
 
-protected theorem le_iff_exists_add {a b : cardinal} : a ≤ b ↔ ∃ c, b = a + c :=
-⟨induction_on₂ a b $ λ α β ⟨⟨f, hf⟩⟩,
-  have (α ⊕ ((range f)ᶜ : set β)) ≃ β, from
-    (equiv.sum_congr (equiv.of_injective f hf) (equiv.refl _)).trans $
-    (equiv.set.sum_compl (range f)),
-  ⟨#↥(range f)ᶜ, mk_congr this.symm⟩,
- λ ⟨c, e⟩, add_zero a ▸ e.symm ▸ cardinal.add_le_add_left _ (cardinal.zero_le _)⟩
-
-instance : order_bot cardinal.{u} :=
-{ bot := 0, bot_le := cardinal.zero_le }
+instance add_swap_covariant_class : covariant_class cardinal cardinal (swap (+)) (≤) :=
+⟨λ a b c h, add_le_add' h le_rfl⟩
 
 instance : canonically_ordered_comm_semiring cardinal.{u} :=
-{ add_le_add_left       := λ a b h c, cardinal.add_le_add_left _ h,
-  le_iff_exists_add     := @cardinal.le_iff_exists_add,
-  eq_zero_or_eq_zero_of_mul_eq_zero := @cardinal.eq_zero_or_eq_zero_of_mul_eq_zero,
-  ..cardinal.order_bot,
+{ bot                   := 0,
+  bot_le                := cardinal.zero_le,
+  add_le_add_left       := λ a b, add_le_add_left,
+  le_iff_exists_add     := λ a b, ⟨induction_on₂ a b $ λ α β ⟨⟨f, hf⟩⟩,
+    have (α ⊕ ((range f)ᶜ : set β)) ≃ β, from
+      (equiv.sum_congr (equiv.of_injective f hf) (equiv.refl _)).trans $
+      (equiv.set.sum_compl (range f)),
+    ⟨#↥(range f)ᶜ, mk_congr this.symm⟩,
+    λ ⟨c, e⟩, add_zero a ▸ e.symm ▸ add_le_add_left (cardinal.zero_le _) _⟩,
+  eq_zero_or_eq_zero_of_mul_eq_zero := λ a b, induction_on₂ a b $ λ α β,
+    by simpa only [mul_def, mk_eq_zero_iff, is_empty_prod] using id,
   ..cardinal.comm_semiring, ..cardinal.partial_order }
 
 @[simp] theorem zero_lt_one : (0 : cardinal) < 1 :=
@@ -498,14 +470,11 @@ end
 instance : no_max_order cardinal.{u} :=
 { exists_gt := λ a, ⟨_, cantor a⟩, ..cardinal.partial_order }
 
-instance : linear_order cardinal.{u} :=
-{ le_total    := by rintros ⟨α⟩ ⟨β⟩; exact embedding.total,
-  decidable_le := classical.dec_rel _,
-  .. cardinal.partial_order }
-
 instance : canonically_linear_ordered_add_monoid cardinal.{u} :=
-{ .. (infer_instance : canonically_ordered_add_monoid cardinal.{u}),
-  .. cardinal.linear_order }
+{ le_total     := by { rintros ⟨α⟩ ⟨β⟩, exact embedding.total },
+  decidable_le := classical.dec_rel _,
+  ..(infer_instance : canonically_ordered_add_monoid cardinal),
+  ..cardinal.partial_order }
 
 -- short-circuit type class inference
 instance : distrib_lattice cardinal.{u} := by apply_instance
@@ -521,7 +490,7 @@ begin
 end
 
 theorem power_le_power_right {a b c : cardinal} : a ≤ b → a ^ c ≤ b ^ c :=
-induction_on₃ a b c $ assume α β γ ⟨e⟩, ⟨embedding.arrow_congr_right e⟩
+induction_on₃ a b c $ λ α β γ ⟨e⟩, ⟨embedding.arrow_congr_right e⟩
 
 end order_properties
 
@@ -560,22 +529,27 @@ cardinal.wf.conditionally_complete_linear_order_with_bot 0 $ le_antisymm (cardin
 
 instance wo : @is_well_order cardinal.{u} (<) := ⟨cardinal.wf⟩
 
+/-- The set in the definition of `cardinal.succ` is nonempty. -/
+theorem succ_nonempty (c : cardinal) : {c' : cardinal | c < c'}.nonempty := ⟨_, cantor c⟩
+
 /-- The successor cardinal - the smallest cardinal greater than
   `c`. This is not the same as `c + 1` except in the case of finite `c`. -/
 def succ (c : cardinal) : cardinal :=
 Inf {c' | c < c'}
 
-theorem succ_nonempty (c : cardinal) : {c' : cardinal | c < c'}.nonempty :=
-⟨_, cantor _⟩
-
-theorem lt_succ_self (c : cardinal) : c < succ c :=
+theorem lt_succ (c : cardinal) : c < succ c :=
 Inf_mem (succ_nonempty c)
 
-theorem succ_le {a b : cardinal} : succ a ≤ b ↔ a < b :=
-⟨lt_of_lt_of_le (lt_succ_self _), λ h, cInf_le' h⟩
+theorem succ_le_iff {a b : cardinal} : succ a ≤ b ↔ a < b :=
+⟨(lt_succ a).trans_le, λ h, cInf_le' h⟩
 
-@[simp] theorem lt_succ {a b : cardinal} : a < succ b ↔ a ≤ b :=
-by rw [← not_le, succ_le, not_lt]
+instance : succ_order cardinal :=
+succ_order.of_succ_le_iff succ (λ a b, succ_le_iff)
+
+theorem le_succ : ∀ a, a ≤ succ a := order.le_succ
+theorem lt_succ_iff {a b : cardinal} : a < succ b ↔ a ≤ b := order.lt_succ_iff
+theorem succ_le_of_lt {a b : cardinal} : a < b → succ a ≤ b := order.succ_le_of_lt
+theorem le_of_lt_succ {a b : cardinal} : a < succ b → a ≤ b := order.le_of_lt_succ
 
 theorem add_one_le_succ (c : cardinal.{u}) : c + 1 ≤ succ c :=
 begin
@@ -589,7 +563,7 @@ begin
           ... ≤ #β          : (f.option_elim b hb).cardinal_le
 end
 
-lemma succ_pos (c : cardinal) : 0 < succ c := by simp
+lemma succ_pos (c : cardinal) : 0 < succ c := order.bot_lt_succ c
 
 lemma succ_ne_zero (c : cardinal) : succ c ≠ 0 := (succ_pos _).ne'
 
@@ -612,13 +586,27 @@ induction_on a $ λ α, mk_congr $
 
 theorem sum_const' (ι : Type u) (a : cardinal.{u}) : sum (λ _:ι, a) = #ι * a := by simp
 
+@[simp] theorem sum_add_distrib {ι} (f g : ι → cardinal) :
+  sum (f + g) = sum f + sum g :=
+by simpa only [mk_sigma, mk_sum, mk_out, lift_id] using
+  mk_congr (equiv.sigma_sum_distrib (quotient.out ∘ f) (quotient.out ∘ g))
+
+@[simp] theorem sum_add_distrib' {ι} (f g : ι → cardinal) :
+  cardinal.sum (λ i, f i + g i) = sum f + sum g :=
+sum_add_distrib f g
+
+@[simp] theorem lift_sum {ι : Type u} (f : ι → cardinal.{v}) :
+  cardinal.lift.{w} (cardinal.sum f) = cardinal.sum (λ i, cardinal.lift.{w} (f i)) :=
+equiv.cardinal_eq $ equiv.ulift.trans $ equiv.sigma_congr_right $ λ a, nonempty.some $
+  by rw [←lift_mk_eq, mk_out, mk_out, lift_lift]
+
 theorem sum_le_sum {ι} (f g : ι → cardinal) (H : ∀ i, f i ≤ g i) : sum f ≤ sum g :=
 ⟨(embedding.refl _).sigma_map $ λ i, classical.choice $
   by have := H i; rwa [← quot.out_eq (f i), ← quot.out_eq (g i)] at this⟩
 
 lemma mk_le_mk_mul_of_mk_preimage_le {c : cardinal} (f : α → β) (hf : ∀ b : β, #(f ⁻¹' {b}) ≤ c) :
   #α ≤ #β * c :=
-by simpa only [←mk_congr (@equiv.sigma_preimage_equiv α β f), mk_sigma, ←sum_const']
+by simpa only [←mk_congr (@equiv.sigma_fiber_equiv α β f), mk_sigma, ←sum_const']
   using sum_le_sum _ _ hf
 
 /-- The range of an indexed cardinal function, whose outputs live in a higher universe than the
@@ -676,6 +664,13 @@ theorem sum_le_sup_lift {ι : Type u} (f : ι → cardinal.{max u v}) :
 begin
   rw [←(sup f).lift_id, ←lift_umax, lift_umax.{(max u v) u}, ←sum_const],
   exact sum_le_sum _ _ (le_sup _)
+end
+
+theorem sum_nat_eq_add_sum_succ (f : ℕ → cardinal.{u}) :
+  cardinal.sum f = f 0 + cardinal.sum (λ i, f (i + 1)) :=
+begin
+  refine (equiv.sigma_nat_succ (λ i, quotient.out (f i))).cardinal_eq.trans _,
+  simp only [mk_sum, mk_out, lift_id, mk_sigma],
 end
 
 theorem sup_eq_zero {ι} {f : ι → cardinal} [is_empty ι] : sup f = 0 :=
@@ -745,10 +740,10 @@ theorem lt_lift_iff {a : cardinal.{u}} {b : cardinal.{max u v}} :
 le_antisymm
   (le_of_not_gt $ λ h, begin
     rcases lt_lift_iff.1 h with ⟨b, e, h⟩,
-    rw [lt_succ, ← lift_le, e] at h,
-    exact not_lt_of_le h (lt_succ_self _)
+    rw [lt_succ_iff, ← lift_le, e] at h,
+    exact h.not_lt (lt_succ _)
   end)
-  (succ_le.2 $ lift_lt.2 $ lt_succ_self _)
+  (succ_le_of_lt $ lift_lt.2 $ lt_succ a)
 
 @[simp] theorem lift_max {a : cardinal.{u}} {b : cardinal.{v}} :
   lift.{(max v w)} a = lift.{(max u w)} b ↔ lift.{v} a = lift.{u} b :=
@@ -890,7 +885,7 @@ lemma nat_cast_injective : injective (coe : ℕ → cardinal) :=
 nat.cast_injective
 
 @[simp, norm_cast, priority 900] theorem nat_succ (n : ℕ) : (n.succ : cardinal) = succ n :=
-le_antisymm (add_one_le_succ _) (succ_le.2 $ nat_cast_lt.2 $ nat.lt_succ_self _)
+(add_one_le_succ _).antisymm (succ_le_of_lt $ nat_cast_lt.2 $ nat.lt_succ_self _)
 
 @[simp] theorem succ_zero : succ 0 = 1 :=
 by norm_cast
@@ -898,7 +893,7 @@ by norm_cast
 theorem card_le_of {α : Type u} {n : ℕ} (H : ∀ s : finset α, s.card ≤ n) :
   # α ≤ n :=
 begin
-  refine lt_succ.1 (lt_of_not_ge $ λ hn, _),
+  refine le_of_lt_succ (lt_of_not_ge $ λ hn, _),
   rw [← cardinal.nat_succ, ← cardinal.lift_mk_fin n.succ] at hn,
   cases hn with f,
   refine not_lt_of_le (H $ finset.univ.map f) _,
@@ -907,17 +902,17 @@ begin
 end
 
 theorem cantor' (a) {b : cardinal} (hb : 1 < b) : a < b ^ a :=
-by rw [← succ_le, (by norm_cast : succ 1 = 2)] at hb;
-   exact lt_of_lt_of_le (cantor _) (power_le_power_right hb)
+by rw [← succ_le_iff, (by norm_cast : succ 1 = 2)] at hb;
+   exact (cantor a).trans_le (power_le_power_right hb)
 
 theorem one_le_iff_pos {c : cardinal} : 1 ≤ c ↔ 0 < c :=
-by rw [← succ_zero, succ_le]
+by rw [← succ_zero, succ_le_iff]
 
 theorem one_le_iff_ne_zero {c : cardinal} : 1 ≤ c ↔ c ≠ 0 :=
 by rw [one_le_iff_pos, pos_iff_ne_zero]
 
 theorem nat_lt_omega (n : ℕ) : (n : cardinal.{u}) < ω :=
-succ_le.1 $ by rw [← nat_succ, ← lift_mk_fin, omega, lift_mk_le.{0 0 u}]; exact
+succ_le_iff.1 $ by rw [← nat_succ, ← lift_mk_fin, omega, lift_mk_le.{0 0 u}]; exact
 ⟨⟨coe, λ a b, fin.ext⟩⟩
 
 @[simp] theorem one_lt_omega : 1 < ω :=
@@ -969,6 +964,21 @@ lemma add_lt_omega_iff {a b : cardinal} : a + b < ω ↔ a < ω ∧ b < ω :=
 
 lemma omega_le_add_iff {a b : cardinal} : ω ≤ a + b ↔ ω ≤ a ∨ ω ≤ b :=
 by simp only [← not_lt, add_lt_omega_iff, not_and_distrib]
+
+/-- See also `cardinal.nsmul_lt_omega_iff_of_ne_zero` if you already have `n ≠ 0`. -/
+lemma nsmul_lt_omega_iff {n : ℕ} {a : cardinal} : n • a < ω ↔ n = 0 ∨ a < ω :=
+begin
+  cases n,
+  { simpa using nat_lt_omega 0 },
+  simp only [nat.succ_ne_zero, false_or],
+  induction n with n ih,
+  { simp },
+  rw [succ_nsmul, add_lt_omega_iff, ih, and_self]
+end
+
+/-- See also `cardinal.nsmul_lt_omega_iff` for a hypothesis-free version. -/
+lemma nsmul_lt_omega_iff_of_ne_zero {n : ℕ} {a : cardinal} (h : n ≠ 0) : n • a < ω ↔ a < ω :=
+nsmul_lt_omega_iff.trans $ or_iff_right h
 
 theorem mul_lt_omega {a b : cardinal} (ha : a < ω) (hb : b < ω) : a * b < ω :=
 match a, b, lt_omega.1 ha, lt_omega.1 hb with
@@ -1223,7 +1233,7 @@ lt_of_not_ge $ λ ⟨F⟩, begin
   let G := inv_fun F,
   have sG : surjective G := inv_fun_surjective F.2,
   choose C hc using show ∀ i, ∃ b, ∀ a, G ⟨i, a⟩ i ≠ b,
-  { assume i,
+  { intro i,
     simp only [- not_exists, not_exists.symm, not_forall.symm],
     refine λ h, not_le_of_lt (H i) _,
     rw [← mk_out (f i), ← mk_out (g i)],
@@ -1249,7 +1259,7 @@ mk_eq_one _
 (mk_congr (equiv.vector_equiv_fin α n)).trans $ by simp
 
 theorem mk_list_eq_sum_pow (α : Type u) : #(list α) = sum (λ n : ℕ, (#α) ^ℕ n) :=
-calc #(list α) = #(Σ n, vector α n) : mk_congr (equiv.sigma_preimage_equiv list.length).symm
+calc #(list α) = #(Σ n, vector α n) : mk_congr (equiv.sigma_fiber_equiv list.length).symm
 ... = sum (λ n : ℕ, (#α) ^ℕ n) : by simp
 
 theorem mk_quot_le {α : Type u} {r : α → α → Prop} : #(quot r) ≤ #α :=
@@ -1446,7 +1456,7 @@ begin
   split,
   { rintro ⟨f⟩, refine ⟨f $ sum.inl ⟨⟩, f $ sum.inr ⟨⟩, _⟩, intro h, cases f.2 h },
   { rintro ⟨x, y, h⟩, by_contra h',
-    rw [not_le, ←nat.cast_two, nat_succ, lt_succ, nat.cast_one, le_one_iff_subsingleton] at h',
+    rw [not_le, ←nat.cast_two, nat_succ, lt_succ_iff, nat.cast_one, le_one_iff_subsingleton] at h',
     apply h, exactI subsingleton.elim _ _ }
 end
 
@@ -1473,7 +1483,7 @@ lemma three_le {α : Type*} (h : 3 ≤ # α) (x : α) (y : α) :
   ∃ (z : α), z ≠ x ∧ z ≠ y :=
 begin
   have : ((3:nat) : cardinal) ≤ # α, simpa using h,
-  have : ((2:nat) : cardinal) < # α, rwa [← cardinal.succ_le, ← cardinal.nat_succ],
+  have : ((2:nat) : cardinal) < # α, rwa [← cardinal.succ_le_iff, ← cardinal.nat_succ],
   have := exists_not_mem_of_length_le [x, y] this,
   simpa [not_or_distrib] using this,
 end
@@ -1511,8 +1521,8 @@ by { rw [powerlt, sup_le_iff], exact λ ⟨s, hs⟩, le_powerlt (lt_of_lt_of_le 
 lemma powerlt_succ {c₁ c₂ : cardinal} (h : c₁ ≠ 0) : c₁ ^< c₂.succ = c₁ ^ c₂ :=
 begin
   apply le_antisymm,
-  { rw powerlt_le, intros c₃ h2, apply power_le_power_left h, rwa [←lt_succ] },
-  { apply le_powerlt, apply lt_succ_self }
+  { rw powerlt_le, intros c₃ h2, apply power_le_power_left h, rwa [←lt_succ_iff] },
+  { apply le_powerlt, apply lt_succ }
 end
 
 lemma powerlt_max {c₁ c₂ c₃ : cardinal} : c₁ ^< max c₂ c₃ = max (c₁ ^< c₂) (c₁ ^< c₃) :=

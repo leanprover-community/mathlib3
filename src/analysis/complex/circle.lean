@@ -70,7 +70,7 @@ lemma coe_inv_circle_eq_conj (z : circle) : ↑(z⁻¹) = conj (z : ℂ) := rfl
 @[simp] lemma coe_inv_circle (z : circle) : ↑(z⁻¹) = (z : ℂ)⁻¹ :=
 begin
   rw coe_inv_circle_eq_conj,
-  apply eq_inv_of_mul_right_eq_one,
+  apply eq_inv_of_mul_eq_one_right,
   rw [mul_comm, ← complex.norm_sq_eq_conj_mul_self],
   simp,
 end

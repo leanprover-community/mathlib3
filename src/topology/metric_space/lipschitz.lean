@@ -8,6 +8,7 @@ import data.set.intervals.proj_Icc
 import topology.metric_space.basic
 import category_theory.endomorphism
 import category_theory.types
+import topology.bornology.hom
 
 /-!
 # Lipschitz continuous functions
@@ -319,6 +320,21 @@ lemma dist_lt_mul_of_lt (hf : lipschitz_with K f) (hK : K ≠ 0) (hr : dist x y 
 lemma maps_to_ball (hf : lipschitz_with K f) (hK : K ≠ 0) (x : α) (r : ℝ) :
   maps_to f (metric.ball x r) (metric.ball (f x) (K * r)) :=
 λ y hy, hf.dist_lt_mul_of_lt hK hy
+
+/-- A Lipschitz continuous map is a locally bounded map. -/
+def to_locally_bounded_map (f : α → β) (hf : lipschitz_with K f) :
+  locally_bounded_map α β :=
+locally_bounded_map.of_map_bounded f $ λ s hs, let ⟨C, hC⟩ := metric.is_bounded_iff.1 hs
+in metric.is_bounded_iff.2 ⟨K * C, ball_image_iff.2 $ λ x hx, ball_image_iff.2 $ λ y hy,
+  hf.dist_le_mul_of_le (hC hx hy)⟩
+
+@[simp] lemma coe_to_locally_bounded_map (hf : lipschitz_with K f) :
+  ⇑(hf.to_locally_bounded_map f) = f :=
+rfl
+
+lemma comap_cobounded_le (hf : lipschitz_with K f) :
+  comap f (bornology.cobounded β) ≤ bornology.cobounded α :=
+(hf.to_locally_bounded_map f).2
 
 lemma bounded_image (hf : lipschitz_with K f) {s : set α} (hs : metric.bounded s) :
   metric.bounded (f '' s) :=

@@ -211,6 +211,7 @@ h.1.subsingleton
 @[priority 100] instance of_subsingleton [subsingleton M] : is_adic_complete I M := {}
 
 open_locale big_operators
+open finset
 
 lemma le_jacobson_bot [is_adic_complete I R] : I ≤ (⊥ : ideal R).jacobson :=
 begin
@@ -218,10 +219,10 @@ begin
   rw [← ideal.neg_mem_iff, ideal.mem_jacobson_bot],
   intros y,
   rw add_comm,
-  let f : ℕ → R := geom_sum (x * y),
+  let f : ℕ → R := λ n, ∑ i in range n, (x * y) ^ i,
   have hf : ∀ m n, m ≤ n → f m ≡ f n [SMOD I ^ m • (⊤ : submodule R R)],
   { intros m n h,
-    simp only [f, geom_sum_def, algebra.id.smul_eq_mul, ideal.mul_top, smodeq.sub_mem],
+    simp only [f, algebra.id.smul_eq_mul, ideal.mul_top, smodeq.sub_mem],
     rw [← add_tsub_cancel_of_le h, finset.sum_range_add, ← sub_sub, sub_self, zero_sub,
       neg_mem_iff],
     apply submodule.sum_mem,

@@ -247,6 +247,18 @@ lemma coe_pow (x : H) (n : ℕ) : ((x ^ n : H) : G) = x ^ n :=
 def inclusion {H K : S} (h : H ≤ K) : H →* K :=
 monoid_hom.mk' (λ x, ⟨x, h x.prop⟩) (λ ⟨a, ha⟩  ⟨b, hb⟩, rfl)
 
+@[simp, to_additive] lemma inclusion_self (x : H) : inclusion le_rfl x = x := by { cases x, refl }
+@[simp, to_additive] lemma inclusion_mk {h : H ≤ K} (x : G) (hx : x ∈ H) :
+  inclusion h ⟨x, hx⟩ = ⟨x, h hx⟩ := rfl
+
+@[to_additive]
+lemma inclusion_right (h : H ≤ K) (x : K) (hx : (x : G) ∈ H) : inclusion h ⟨x, hx⟩ = x :=
+by { cases x, refl }
+
+@[simp] lemma inclusion_inclusion {L : S} (hHK : H ≤ K) (hKL : K ≤ L) (x : H) :
+  inclusion hKL (inclusion hHK x) = inclusion (hHK.trans hKL) x :=
+by { cases x, refl }
+
 @[simp, to_additive]
 lemma coe_inclusion {H K : S} {h : H ≤ K} (a : H) : (inclusion h a : G) = a :=
 by { cases a, simp only [inclusion, set_like.coe_mk, monoid_hom.mk'_apply] }
@@ -1930,7 +1942,7 @@ def normal_core (H : subgroup G) : subgroup G :=
   mul_mem' := λ a b ha hb c, (congr_arg (∈ H) conj_mul).mp (H.mul_mem (ha c) (hb c)) }
 
 lemma normal_core_le (H : subgroup G) : H.normal_core ≤ H :=
-λ a h, by { rw [←mul_one a, ←one_inv, ←one_mul a], exact h 1 }
+λ a h, by { rw [←mul_one a, ←inv_one, ←one_mul a], exact h 1 }
 
 instance normal_core_normal (H : subgroup G) : H.normal_core.normal :=
 ⟨λ a h b c, by rw [mul_assoc, mul_assoc, ←mul_inv_rev, ←mul_assoc, ←mul_assoc]; exact h (c * b)⟩
@@ -2647,6 +2659,22 @@ begin
   rw equiv.eq_image_iff_symm_image_eq,
   exact of_mul_image_zpowers_eq_zmultiples_of_mul,
 end
+
+namespace subgroup
+
+@[to_additive zmultiples_is_commutative]
+instance zpowers_is_commutative (g : G) : (zpowers g).is_commutative :=
+⟨⟨λ ⟨_, _, h₁⟩ ⟨_, _, h₂⟩, by rw [subtype.ext_iff, coe_mul, coe_mul,
+  subtype.coe_mk, subtype.coe_mk, ←h₁, ←h₂, zpow_mul_comm]⟩⟩
+
+@[simp, to_additive zmultiples_le]
+lemma zpowers_le {g : G} {H : subgroup G} : zpowers g ≤ H ↔ g ∈ H :=
+by rw [zpowers_eq_closure, closure_le, set.singleton_subset_iff, set_like.mem_coe]
+
+@[simp, to_additive zmultiples_eq_bot] lemma zpowers_eq_bot {g : G} : zpowers g = ⊥ ↔ g = 1 :=
+by rw [eq_bot_iff, zpowers_le, mem_bot]
+
+end subgroup
 
 namespace monoid_hom
 

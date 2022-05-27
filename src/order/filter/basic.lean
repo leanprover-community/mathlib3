@@ -308,31 +308,19 @@ lemma mem_generate_iff {s : set $ set α} {U : set α} :
   U ∈ generate s ↔ ∃ t ⊆ s, finite t ∧ ⋂₀ t ⊆ U :=
 begin
   split ; intro h,
-  { induction h with V V_in V W V_in hVW hV V W V_in W_in hV hW,
-    { use {V},
-      simp [V_in] },
-    { use ∅,
-      simp [subset.refl, univ] },
-    { rcases hV with ⟨t, hts, htfin, hinter⟩,
-      exact ⟨t, hts, htfin, hinter.trans hVW⟩ },
-    { rcases hV with ⟨t, hts, htfin, htinter⟩,
-      rcases hW with ⟨z, hzs, hzfin, hzinter⟩,
-      refine ⟨t ∪ z, union_subset hts hzs, htfin.union hzfin, _⟩,
-      rw sInter_union,
-      exact inter_subset_inter htinter hzinter } },
-  { rcases h with ⟨t, ts, tfin, h⟩,
-    apply generate_sets.superset _ h,
-    revert ts,
-    apply finite.induction_on tfin,
-    { intro h,
-      rw sInter_empty,
-      exact generate_sets.univ },
-    { intros V r hV rfin hinter h,
-      cases insert_subset.mp h with V_in r_sub,
-      rw [insert_eq V r, sInter_union],
-      apply generate_sets.inter _ (hinter r_sub),
-      rw sInter_singleton,
-      exact generate_sets.basic V_in } },
+  { induction h,
+    case basic : V V_in
+    { exact ⟨{V}, singleton_subset_iff.2 V_in, finite_singleton _, (sInter_singleton _).subset⟩ },
+    case univ { exact ⟨∅, empty_subset _, finite_empty, subset_univ _⟩ },
+    case superset : V W hV' hVW hV
+    { rcases hV with ⟨t, hts, ht, htV⟩,
+      exact ⟨t, hts, ht, htV.trans hVW⟩ },
+    case inter : V W hV' hW' hV hW
+    { rcases ⟨hV, hW⟩ with ⟨⟨t, hts, ht, htV⟩, u, hus, hu, huW⟩,
+      exact ⟨t ∪ u, union_subset hts hus, ht.union hu,
+        (sInter_union _ _).subset.trans $ inter_subset_inter htV huW⟩ } },
+  { rcases h with ⟨t, hts, tfin, h⟩,
+    exact mem_of_superset ((sInter_mem tfin).2 $ λ V hV, generate_sets.basic $ hts hV) h },
 end
 
 /-- `mk_of_closure s hs` constructs a filter on `α` whose elements set is exactly
@@ -351,7 +339,7 @@ show u ∈ (filter.mk_of_closure s hs).sets ↔ u ∈ (generate s).sets, from hs
 
 /-- Galois insertion from sets of sets into filters. -/
 def gi_generate (α : Type*) :
-  @galois_insertion (set (set α)) (order_dual (filter α)) _ _ filter.generate filter.sets :=
+  @galois_insertion (set (set α)) (filter α)ᵒᵈ _ _ filter.generate filter.sets :=
 { gc        := λ s f, sets_iff_generate,
   le_l_u    := λ f u h, generate_sets.basic h,
   choice    := λ s hs, filter.mk_of_closure s (le_antisymm hs $ sets_iff_generate.1 $ le_rfl),
@@ -1805,7 +1793,7 @@ lemma le_of_map_le_map_inj_iff {f g : filter α} {m : α → β} {s : set α}
 iff.intro (le_of_map_le_map_inj' hsf hsg hm) (λ h, map_mono h)
 
 lemma eq_of_map_eq_map_inj' {f g : filter α} {m : α → β} {s : set α}
-  (hsf : s ∈ f) (hsg : s ∈ g) (hm : ∀ x ∈ s, ∀ y ∈ s, m x = m y → x = y)
+  (hsf : s ∈ f) (hsg : s ∈ g) (hm : inj_on m s)
   (h : map m f = map m g) : f = g :=
 le_antisymm
   (le_of_map_le_map_inj' hsf hsg hm $ le_of_eq h)
@@ -1813,14 +1801,12 @@ le_antisymm
 
 lemma map_inj {f g : filter α} {m : α → β} (hm : injective m) (h : map m f = map m g) :
   f = g :=
-have comap m (map m f) = comap m (map m g), by rw h,
-by rwa [comap_map hm, comap_map hm] at this
+eq_of_map_eq_map_inj' univ_mem univ_mem (hm.inj_on _) h
 
 lemma comap_ne_bot_iff {f : filter β} {m : α → β} : ne_bot (comap m f) ↔ ∀ t ∈ f, ∃ a, m a ∈ t :=
 begin
-  rw ← forall_mem_nonempty_iff_ne_bot,
-  exact ⟨λ h t t_in, h (m ⁻¹' t) ⟨t, t_in, subset.rfl⟩,
-         λ h s ⟨u, u_in, hu⟩, let ⟨x, hx⟩ := h u u_in in ⟨x, hu hx⟩⟩,
+  simp only [← forall_mem_nonempty_iff_ne_bot, mem_comap, forall_exists_index],
+  exact ⟨λ h t t_in, h (m ⁻¹' t) t t_in subset.rfl, λ h s t ht hst, (h t ht).imp hst⟩,
 end
 
 lemma comap_ne_bot {f : filter β} {m : α → β} (hm : ∀ t ∈ f, ∃ a, m a ∈ t) : ne_bot (comap m f) :=
@@ -2728,6 +2714,14 @@ lemma mem_coprod_iff {s : set (α×β)} {f : filter α} {g : filter β} :
   s ∈ f.coprod g ↔ ((∃ t₁ ∈ f, prod.fst ⁻¹' t₁ ⊆ s) ∧ (∃ t₂ ∈ g, prod.snd ⁻¹' t₂ ⊆ s)) :=
 by simp [filter.coprod]
 
+@[simp] lemma bot_coprod (l : filter β) : (⊥ : filter α).coprod l = comap prod.snd l :=
+by simp [filter.coprod]
+
+@[simp] lemma coprod_bot (l : filter α) : l.coprod (⊥ : filter β) = comap prod.fst l :=
+by simp [filter.coprod]
+
+lemma bot_coprod_bot : (⊥ : filter α).coprod (⊥ : filter β) = ⊥ := by simp
+
 lemma compl_mem_coprod {s : set (α × β)} {la : filter α} {lb : filter β} :
   sᶜ ∈ la.coprod lb ↔ (prod.fst '' s)ᶜ ∈ la ∧ (prod.snd '' s)ᶜ ∈ lb :=
 by simp only [filter.coprod, mem_sup, compl_mem_comap]
@@ -2755,12 +2749,8 @@ coprod_ne_bot_iff.2 (or.inr ⟨‹_›, ‹_›⟩)
 
 lemma principal_coprod_principal (s : set α) (t : set β) :
   (𝓟 s).coprod (𝓟 t) = 𝓟 (sᶜ ×ˢ tᶜ)ᶜ :=
-begin
-  rw [filter.coprod, comap_principal, comap_principal, sup_principal],
-  congr,
-  ext x,
-  simp ; tauto,
-end
+by rw [filter.coprod, comap_principal, comap_principal, sup_principal, set.prod_eq, compl_inter,
+  preimage_compl, preimage_compl, compl_compl, compl_compl]
 
 -- this inequality can be strict; see `map_const_principal_coprod_map_id_principal` and
 -- `map_prod_map_const_id_principal_coprod_principal` below.
@@ -2781,13 +2771,8 @@ example showing that the inequality in the lemma `map_prod_map_coprod_le` can be
 lemma map_const_principal_coprod_map_id_principal {α β ι : Type*} (a : α) (b : β) (i : ι) :
   (map (λ _ : α, b) (𝓟 {a})).coprod (map id (𝓟 {i}))
   = 𝓟 (({b} : set β) ×ˢ (univ : set ι) ∪ (univ : set β) ×ˢ ({i} : set ι)) :=
-begin
-  rw [map_principal, map_principal, principal_coprod_principal],
-  congr,
-  ext ⟨b', i'⟩,
-  simp,
-  tauto,
-end
+by simp only [map_principal, filter.coprod, comap_principal, sup_principal, image_singleton,
+  image_id, prod_univ, univ_prod]
 
 /-- Characterization of the `filter.map` of the coproduct of two principal filters `𝓟 {a}` and
 `𝓟 {i}`, under the `prod.map` of two functions, respectively the constant function `λ a, b` and the

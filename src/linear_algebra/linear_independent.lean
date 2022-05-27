@@ -3,9 +3,9 @@ Copyright (c) 2020 Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Alexander Bentkamp, Anne Baanen
 -/
+import algebra.big_operators.fin
 import linear_algebra.finsupp
 import linear_algebra.prod
-import logic.equiv.fin
 import set_theory.cardinal.basic
 
 /-!
@@ -253,19 +253,12 @@ lemma linear_independent.fin_cons' {m : ℕ} (x : M) (v : fin m → M)
 begin
   rw fintype.linear_independent_iff at hli ⊢,
   rintros g total_eq j,
-  have zero_not_mem : (0 : fin m.succ) ∉ finset.univ.image (fin.succ : fin m → fin m.succ),
-  { rw finset.mem_image,
-    rintro ⟨x, hx, succ_eq⟩,
-    exact fin.succ_ne_zero _ succ_eq },
-  simp only [submodule.coe_mk, fin.univ_succ, finset.sum_insert zero_not_mem,
-  fin.cons_zero, fin.cons_succ,
-  forall_true_iff, imp_self, fin.succ_inj, finset.sum_image] at total_eq,
+  simp_rw [fin.sum_univ_succ, fin.cons_zero, fin.cons_succ] at total_eq,
   have : g 0 = 0,
   { refine x_ortho (g 0) ⟨∑ (i : fin m), g i.succ • v i, _⟩ total_eq,
     exact sum_mem (λ i _, smul_mem _ _ (subset_span ⟨i, rfl⟩)) },
-  refine fin.cases this (λ j, _) j,
-  apply hli (λ i, g i.succ),
-  simpa only [this, zero_smul, zero_add] using total_eq
+  rw [this, zero_smul, zero_add] at total_eq,
+  exact fin.cases this (hli _ total_eq) j,
 end
 
 /-- A set of linearly independent vectors in a module `M` over a semiring `K` is also linearly
@@ -811,11 +804,11 @@ begin
     dsimp [indep],
     rw [linear_independent_comp_subtype],
     intros f hsupport hsum,
-    rcases eq_empty_or_nonempty c with rfl | ⟨a, hac⟩,
+    rcases eq_empty_or_nonempty c with rfl | hn,
     { simpa using hsupport },
     haveI : is_refl X r := ⟨λ _, set.subset.refl _⟩,
     obtain ⟨I, I_mem, hI⟩ : ∃ I ∈ c, (f.support : set ι) ⊆ I :=
-      finset.exists_mem_subset_of_subset_bUnion_of_directed_on hac hc.directed_on hsupport,
+      hc.directed_on.exists_mem_subset_of_finset_subset_bUnion hn hsupport,
     exact linear_independent_comp_subtype.mp I.2 f hI hsum },
   have trans : transitive r := λ I J K, set.subset.trans,
   obtain ⟨⟨I, hli : indep I⟩, hmax : ∀ a, r ⟨I, hli⟩ a → r a ⟨I, hli⟩⟩ :=

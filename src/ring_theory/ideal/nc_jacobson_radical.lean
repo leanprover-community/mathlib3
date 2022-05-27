@@ -47,12 +47,32 @@ coincides with that of maximal right ideals.
 -/
 
 universe u
+variables {R : Type u} [ring R]
 
-open ideal
+namespace ideal
+
+lemma one_add_mul_self_mem_maximal_of_not_mem_maximal {x : R} {I : ideal R}
+  (h₁ : I.is_maximal) (h₂ : x ∉ I) : ∃ a : R, 1 + a * x ∈ I :=
+begin
+  have : (1 : R) ∈ I ⊔ span {x},
+  { rw is_maximal_iff at h₁,
+    apply h₁.2 _ _ le_sup_left h₂,
+    apply mem_sup_right,
+    apply submodule.mem_span_singleton_self },
+  rw submodule.mem_sup at this,
+  obtain ⟨m, hmI, y, hy, hmy⟩ := this,
+  rw mem_span_singleton' at hy,
+  obtain ⟨a, rfl⟩ := hy,
+  existsi -a,
+  rwa [←hmy, neg_mul, add_neg_cancel_right],
+end
+
+end ideal
+
+/-! ### Jacobson radical of a ring -/
 
 namespace ring
-variables {R : Type u} [ring R]
-/-! ### Jacobson radical of a ring -/
+open ideal
 
 /--
 For a ring `R`, `jacobson R` is the Jacobson radical of `R`, that is,
@@ -73,22 +93,6 @@ begin
   rw eq_top_iff_one,
   have hxI : x ∈ I := by { rw [jacobson_def, mem_Inf] at hx, apply hx hImax },
   exact (add_mem_cancel_right hxI).mp hxxI,
-end
-
-lemma one_add_mul_self_mem_maximal_of_not_mem_maximal {x : R} {I : ideal R}
-  (h₁ : I.is_maximal) (h₂ : x ∉ I) : ∃ a : R, 1 + a * x ∈ I :=
-begin
-  have : (1 : R) ∈ I ⊔ span {x},
-  { rw is_maximal_iff at h₁,
-    apply h₁.2 _ _ le_sup_left h₂,
-    apply mem_sup_right,
-    apply submodule.mem_span_singleton_self },
-  rw submodule.mem_sup at this,
-  obtain ⟨m, hmI, y, hy, hmy⟩ := this,
-  rw mem_span_singleton' at hy,
-  obtain ⟨a, rfl⟩ := hy,
-  existsi -a,
-  rwa [←hmy, neg_mul, add_neg_cancel_right],
 end
 
 /-- Characterizations of the Jacobson radical of a ring.
@@ -130,7 +134,7 @@ begin
     simp only [not_forall] at hx,
     rcases hx with ⟨I, hImax, hxI⟩,
     refine hImax.ne_top _,
-    obtain ⟨a, ha⟩ := one_add_mul_self_mem_maximal_of_not_mem_maximal hImax hxI,
+    obtain ⟨a, ha⟩ := ideal.one_add_mul_self_mem_maximal_of_not_mem_maximal hImax hxI,
     apply eq_top_of_is_unit_mem _ ha,
     specialize h a 1,
     rwa [mul_assoc, mul_one] at h },

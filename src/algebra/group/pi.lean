@@ -369,8 +369,6 @@ end
 
 end single
 
-#exit
-
 namespace function
 
 @[simp, to_additive]

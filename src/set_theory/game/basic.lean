@@ -75,22 +75,34 @@ quotient.lift₂ lf (λ x₁ y₁ x₂ y₂ hx hy, propext (lf_congr hx hy))
 
 local infix ` ⧏ `:50 := lf
 
-/-- On `pgame`, simp-normal inequalities should use as few negations as possible. -/
+/-- On `game`, simp-normal inequalities should use as few negations as possible. -/
 @[simp] theorem not_le : ∀ {x y : game}, ¬ x ≤ y ↔ y ⧏ x :=
 by { rintro ⟨x⟩ ⟨y⟩, exact pgame.not_le }
 
-/-- On `pgame`, simp-normal inequalities should use as few negations as possible. -/
+/-- On `game`, simp-normal inequalities should use as few negations as possible. -/
 @[simp] theorem not_lf : ∀ {x y : game}, ¬ x ⧏ y ↔ y ≤ x :=
 by { rintro ⟨x⟩ ⟨y⟩, exact pgame.not_lf }
 
 instance : is_trichotomous game (⧏) :=
 ⟨by { rintro ⟨x⟩ ⟨y⟩, change _ ∨ ⟦x⟧ = ⟦y⟧ ∨ _, rw quotient.eq, apply lf_or_equiv_or_gf }⟩
 
+/-! The `add_comm_group` structure on `game` often simplifies many proofs of inequalities on
+`pgame`. -/
+
+theorem le_iff {x y : pgame} : x ≤ y ↔ ⟦x⟧ ≤ ⟦y⟧ := iff.rfl
+theorem lf_iff {x y : pgame} : pgame.lf x y ↔ ⟦x⟧ ⧏ ⟦y⟧ := iff.rfl
+theorem lt_iff {x y : pgame} : x < y ↔ ⟦x⟧ < ⟦y⟧ := iff.rfl
+theorem equiv_iff {x y : pgame} : x ≈ y ↔ ⟦x⟧ = ⟦y⟧ := (@quotient.eq _ _ x y).symm
+
 /-- The fuzzy, confused, or incomparable relation on games.
 
 If `x ∥ 0`, then the first player can always win `x`. -/
 def fuzzy : game → game → Prop :=
 quotient.lift₂ fuzzy (λ x₁ y₁ x₂ y₂ hx hy, propext (fuzzy_congr hx hy))
+
+local infix ` ∥ `:50 := fuzzy
+
+theorem fuzzy_iff {x y : pgame} : pgame.fuzzy x y ↔ ⟦x⟧ ∥ ⟦y⟧ := iff.rfl
 
 instance covariant_class_add_le : covariant_class game game (+) (≤) :=
 ⟨by { rintro ⟨a⟩ ⟨b⟩ ⟨c⟩ h, exact @add_le_add_left _ _ _ _ b c h a }⟩

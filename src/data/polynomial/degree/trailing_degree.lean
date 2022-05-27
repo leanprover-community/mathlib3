@@ -286,6 +286,50 @@ begin
   exact le_trailing_degree_mul,
 end
 
+lemma coeff_mul_nat_trailing_degree_add_nat_trailing_degree :
+  (p * q).coeff (p.nat_trailing_degree + q.nat_trailing_degree) =
+    p.trailing_coeff * q.trailing_coeff :=
+begin
+  rw coeff_mul,
+  refine finset.sum_eq_single (p.nat_trailing_degree, q.nat_trailing_degree) _
+    (λ h, (h (nat.mem_antidiagonal.mpr rfl)).elim),
+  rintro ⟨i, j⟩ h₁ h₂,
+  rw nat.mem_antidiagonal at h₁,
+  by_cases hi : i < p.nat_trailing_degree,
+  { rw [coeff_eq_zero_of_lt_nat_trailing_degree hi, zero_mul] },
+  by_cases hj : j < q.nat_trailing_degree,
+  { rw [coeff_eq_zero_of_lt_nat_trailing_degree hj, mul_zero] },
+  rw not_lt at hi hj,
+  refine (h₂ (prod.ext_iff.mpr _).symm).elim,
+  exact (add_eq_add_iff_eq_and_eq hi hj).mp h₁.symm,
+end
+
+lemma trailing_degree_mul' (h : p.trailing_coeff * q.trailing_coeff ≠ 0) :
+  (p * q).trailing_degree = p.trailing_degree + q.trailing_degree :=
+begin
+  have hp : p ≠ 0 := λ hp, h (by rw [hp, trailing_coeff_zero, zero_mul]),
+  have hq : q ≠ 0 := λ hq, h (by rw [hq, trailing_coeff_zero, mul_zero]),
+  refine le_antisymm _ le_trailing_degree_mul,
+  rw [trailing_degree_eq_nat_trailing_degree hp, trailing_degree_eq_nat_trailing_degree hq],
+  apply le_trailing_degree_of_ne_zero,
+  rwa coeff_mul_nat_trailing_degree_add_nat_trailing_degree,
+end
+
+lemma nat_trailing_degree_mul' (h : p.trailing_coeff * q.trailing_coeff ≠ 0) :
+  (p * q).nat_trailing_degree = p.nat_trailing_degree + q.nat_trailing_degree :=
+begin
+  have hp : p ≠ 0 := λ hp, h (by rw [hp, trailing_coeff_zero, zero_mul]),
+  have hq : q ≠ 0 := λ hq, h (by rw [hq, trailing_coeff_zero, mul_zero]),
+  apply nat_trailing_degree_eq_of_trailing_degree_eq_some,
+  rw [trailing_degree_mul' h, with_top.coe_add,
+      ←trailing_degree_eq_nat_trailing_degree hp, ←trailing_degree_eq_nat_trailing_degree hq],
+end
+
+lemma nat_trailing_degree_mul [no_zero_divisors R] (hp : p ≠ 0) (hq : q ≠ 0) :
+  (p * q).nat_trailing_degree = p.nat_trailing_degree + q.nat_trailing_degree :=
+nat_trailing_degree_mul' (mul_ne_zero (mt trailing_coeff_eq_zero.mp hp)
+  (mt trailing_coeff_eq_zero.mp hq))
+
 end semiring
 
 section nonzero_semiring

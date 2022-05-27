@@ -710,7 +710,7 @@ begin
     refine forall_congr (λ a, _),
     have h := ih3 (sum.elim (v ∘ sum.inl) (snoc (v ∘ sum.inr) a)),
     simp only [sum.elim_comp_inl, sum.elim_comp_inr] at h,
-    rw [← h, realize_relabel, formula.realize, iff_eq_eq],
+    rw [← h, realize_relabel, formula.realize],
     rcongr,
     { cases x,
       { simp },

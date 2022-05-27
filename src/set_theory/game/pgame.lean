@@ -394,10 +394,10 @@ alias lf_of_le_of_lf ← has_le.le.trans_lf
 alias lf_of_lf_of_le ← pgame.lf.trans_le
 
 @[trans] theorem lf_of_lt_of_lf {x y z : pgame} (h₁ : x < y) (h₂ : y ⧏ z) : x ⧏ z :=
-lf_of_le_of_lf h₁.le h₂
+h₁.le.trans_lf h₂
 
 @[trans] theorem lf_of_lf_of_lt {x y z : pgame} (h₁ : x ⧏ y) (h₂ : y < z) : x ⧏ z :=
-lf_of_lf_of_le h₁ h₂.le
+h₁.trans_le h₂.le
 
 alias lf_of_lt_of_lf ← has_lt.lt.trans_lf
 alias lf_of_lf_of_lt ← pgame.lf.trans_lt

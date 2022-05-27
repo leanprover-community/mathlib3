@@ -198,6 +198,14 @@ begin
   apply_instance,
 end
 
+/-- The dual of this lemma is only true when `V` is abelian. -/
+lemma exact_comp_mono_iff [mono h] : exact f g ↔ exact f (g ≫ h) :=
+begin
+  refine ⟨λ h, exact_comp_mono h, λ hfg, ⟨zero_of_comp_mono h (by rw [category.assoc, hfg.1]), _⟩⟩,
+  rw ← (iso.eq_comp_inv _).1 (image_to_kernel_comp_mono _ _ h hfg.1),
+  haveI := hfg.2, apply_instance
+end
+
 @[simp]
 lemma exact_comp_iso [is_iso h] : exact f (g ≫ h) ↔ exact f g :=
 ⟨λ w, begin

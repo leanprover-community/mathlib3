@@ -121,6 +121,15 @@ begin
     is_iso.comp_right_eq_zero _ (cokernel_comparison f F)],
 end
 
+lemma exact_epi_comp_iff {W : C} (h : W ⟶ X) [epi h] : exact f g ↔ exact (h ≫ f) g :=
+begin
+  refine ⟨λ h, exact_epi_comp h, λ hfg, _⟩,
+  let hc := is_cokernel_of_comp _ (colimit.is_colimit (parallel_pair (h ≫ f) 0))
+    (by rw [← cancel_epi h, ← category.assoc, cokernel_cofork.condition, comp_zero]),
+  refine (exact_iff' _ _ (limit.is_limit _) hc).2 ⟨_, ((exact_iff _ _).1 hfg).2⟩,
+  exact zero_of_epi_comp h (by rw [← hfg.1, category.assoc])
+end
+
 /-- If `(f, g)` is exact, then `images.image.ι f` is a kernel of `g`. -/
 def is_limit_image (h : exact f g) :
   is_limit

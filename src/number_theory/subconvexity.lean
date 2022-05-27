@@ -53,6 +53,6 @@ def is_eigenvalue {n : ℕ} (A : M n) (μ : ℂ) : Prop := (A - μ • 1).det = 
 theorem one_point_eight {n : ℕ} (τ x : M (n+1))
   (hτ : ∃ c : ℂ, is_eigenvalue τ c → ¬ (is_eigenvalue (upper_left_restriction τ) c))
   (hxτ : bracket τ x = 0)
-  (hxτ' : ∃ y : M (n+1), bracket x (bracket z τ ) = bracket y τ)
+  (hxτ' : ∃ y : M (n+1), bracket x (bracket z τ) = bracket y τ)
   : ∃ μ : ℂ, x = μ • 1 :=
   sorry

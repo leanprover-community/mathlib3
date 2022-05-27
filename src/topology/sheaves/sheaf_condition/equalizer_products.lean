@@ -31,7 +31,7 @@ open topological_space.opens
 
 namespace Top
 
-variables {C : Type u} [category.{v} C] [has_products C]
+variables {C : Type u} [category.{v} C] [has_products.{v} C]
 variables {X : Top.{v}} (F : presheaf C X) {ι : Type v} (U : ι → opens X)
 
 namespace presheaf
@@ -86,7 +86,7 @@ end
 The equalizer diagram for the sheaf condition.
 -/
 @[reducible]
-def diagram : walking_parallel_pair.{v} ⥤ C :=
+def diagram : walking_parallel_pair ⥤ C :=
 parallel_pair (left_res F U) (right_res F U)
 
 /--

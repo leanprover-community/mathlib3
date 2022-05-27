@@ -51,7 +51,7 @@ namespace category_theory.limits
 
 local attribute [tidy] tactic.case_bash
 
-universes v u u₂
+universes v v₂ u u₂
 
 /-- The type of objects for the diagram indexing a (co)equalizer. -/
 @[derive decidable_eq, derive inhabited] inductive walking_parallel_pair : Type
@@ -827,7 +827,7 @@ rfl
 
 section comparison
 
-variables {D : Type u₂} [category.{v} D] (G : C ⥤ D)
+variables {D : Type u₂} [category.{v₂} D] (G : C ⥤ D)
 
 /--
 The comparison morphism for the equalizer of `f,g`.

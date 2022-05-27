@@ -49,7 +49,7 @@ open topological_space.opens
 
 namespace Top
 
-variables {C : Type u} [category.{v} C] [has_products C]
+variables {C : Type u} [category.{v} C] [has_products.{v} C]
 variables {X : Top.{v}} (F : presheaf C X) {ι : Type v} (U : ι → opens X)
 
 namespace presheaf

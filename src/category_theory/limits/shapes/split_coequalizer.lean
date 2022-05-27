@@ -32,7 +32,7 @@ namespace category_theory
 universes v v₂ u u₂
 
 variables {C : Type u} [category.{v} C]
-variables {D : Type u₂} [category.{v} D]
+variables {D : Type u₂} [category.{v₂} D]
 variables (G : C ⥤ D)
 variables {X Y : C} (f g : X ⟶ Y)
 

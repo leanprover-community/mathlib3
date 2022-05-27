@@ -29,10 +29,10 @@ open opposite
 
 namespace category_theory.limits
 
-universes v u u₂
+universes w v u u₂
 variables {C : Type u} [category.{v} C]
 
-variables {J : Type v} [small_category J]
+variables {J : Type w} [small_category J]
 
 -- We hide the "implementation details" inside a namespace
 namespace has_limit_of_has_products_of_has_equalizers
@@ -112,6 +112,8 @@ lemma has_limit_of_equalizer_and_product (F : J ⥤ C)
   [has_limit (discrete.functor (λ f : (Σ p : J × J, p.1 ⟶ p.2), F.obj f.1.2))]
   [has_equalizers C] : has_limit F :=
 has_limit.mk (limit_cone_of_equalizer_and_product F)
+
+local attribute [instance] has_smallest_limits_of_has_limits
 
 /-- A limit can be realised as a subobject of a product. -/
 noncomputable

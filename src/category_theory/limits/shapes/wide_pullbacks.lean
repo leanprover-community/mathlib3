@@ -24,13 +24,13 @@ Typeclasses `has_wide_pullbacks` and `has_finite_wide_pullbacks` assert the exis
 pullbacks and finite wide pullbacks.
 -/
 
-universes v u
+universes v u w
 
 open category_theory category_theory.limits opposite
 
 namespace category_theory.limits
 
-variable (J : Type v)
+variable (J : Type w)
 
 /-- A wide pullback shape for any type `J` can be written simply as `option J`. -/
 @[derive inhabited]
@@ -46,7 +46,7 @@ variable {J}
 
 /-- The type of arrows for the shape indexing a wide pullback. -/
 @[derive decidable_eq]
-inductive hom : wide_pullback_shape J → wide_pullback_shape J → Type v
+inductive hom : wide_pullback_shape J → wide_pullback_shape J → Type w
 | id : Π X, hom X X
 | term : Π (j : J), hom (some j) none
 
@@ -124,7 +124,7 @@ variable {J}
 
 /-- The type of arrows for the shape indexing a wide psuhout. -/
 @[derive decidable_eq]
-inductive hom : wide_pushout_shape J → wide_pushout_shape J → Type v
+inductive hom : wide_pushout_shape J → wide_pushout_shape J → Type w
 | id : Π X, hom X X
 | init : Π (j : J), hom none (some j)
 

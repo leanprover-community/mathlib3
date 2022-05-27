@@ -34,7 +34,7 @@ local attribute [tidy] tactic.case_bash
 The type of objects for the diagram indexing a pullback, defined as a special case of
 `wide_pullback_shape`.
 -/
-abbreviation walking_cospan : Type v := wide_pullback_shape walking_pair
+abbreviation walking_cospan : Type := wide_pullback_shape walking_pair
 
 /-- The left point of the walking cospan. -/
 @[pattern] abbreviation walking_cospan.left : walking_cospan := some walking_pair.left
@@ -47,7 +47,7 @@ abbreviation walking_cospan : Type v := wide_pullback_shape walking_pair
 The type of objects for the diagram indexing a pushout, defined as a special case of
 `wide_pushout_shape`.
 -/
-abbreviation walking_span : Type v := wide_pushout_shape walking_pair
+abbreviation walking_span : Type := wide_pushout_shape walking_pair
 
 /-- The left point of the walking span. -/
 @[pattern] abbreviation walking_span.left : walking_span := some walking_pair.left
@@ -59,7 +59,7 @@ abbreviation walking_span : Type v := wide_pushout_shape walking_pair
 namespace walking_cospan
 
 /-- The type of arrows for the diagram indexing a pullback. -/
-abbreviation hom : walking_cospan → walking_cospan → Type v := wide_pullback_shape.hom
+abbreviation hom : walking_cospan → walking_cospan → Type := wide_pullback_shape.hom
 
 /-- The left arrow of the walking cospan. -/
 @[pattern] abbreviation hom.inl : left ⟶ one := wide_pullback_shape.hom.term _
@@ -75,7 +75,7 @@ end walking_cospan
 namespace walking_span
 
 /-- The type of arrows for the diagram indexing a pushout. -/
-abbreviation hom : walking_span → walking_span → Type v := wide_pushout_shape.hom
+abbreviation hom : walking_span → walking_span → Type := wide_pushout_shape.hom
 
 /-- The left arrow of the walking span. -/
 @[pattern] abbreviation hom.fst : zero ⟶ left := wide_pushout_shape.hom.init _
@@ -87,66 +87,6 @@ abbreviation hom : walking_span → walking_span → Type v := wide_pushout_shap
 instance (X Y : walking_span) : subsingleton (X ⟶ Y) := by tidy
 
 end walking_span
-
-section
-open walking_cospan
-
-/-- The functor between two `walking_cospan`s in different universes. -/
-def walking_cospan_functor : walking_cospan.{v₁} ⥤ walking_cospan.{v₂} :=
-{ obj := by { rintro (_|_|_), exacts [one, left, right] },
-  map := by { rintro _ _ (_|_|_), exacts [hom.id _, hom.inl, hom.inr] },
-  map_id' := λ X, rfl,
-  map_comp' := λ _ _ _ _ _, subsingleton.elim _ _ }
-
-@[simp] lemma walking_cospan_functor_one : walking_cospan_functor.obj one = one := rfl
-@[simp] lemma walking_cospan_functor_left : walking_cospan_functor.obj left = left := rfl
-@[simp] lemma walking_cospan_functor_right : walking_cospan_functor.obj right = right := rfl
-@[simp] lemma walking_cospan_functor_id (X) : walking_cospan_functor.map (𝟙 X) = 𝟙 _ := rfl
-@[simp] lemma walking_cospan_functor_inl : walking_cospan_functor.map hom.inl = hom.inl := rfl
-@[simp] lemma walking_cospan_functor_inr : walking_cospan_functor.map hom.inr = hom.inr := rfl
-
-/-- The equivalence between two `walking_cospan`s in different universes. -/
-def walking_cospan_equiv : walking_cospan.{v₁} ≌ walking_cospan.{v₂} :=
-{ functor := walking_cospan_functor,
-  inverse := walking_cospan_functor,
-  unit_iso := nat_iso.of_components
-    (λ x, eq_to_iso (by { rcases x with (_|_|_); refl }))
-    (by { rintros _ _ (_|_|_); simp }),
-  counit_iso := nat_iso.of_components
-    (λ x, eq_to_iso (by { rcases x with (_|_|_); refl }))
-    (by { rintros _ _ (_|_|_); simp }) }
-
-end
-
-section
-open walking_span
-
-/-- The functor between two `walking_span`s in different universes. -/
-def walking_span_functor : walking_span.{v₁} ⥤ walking_span.{v₂} :=
-{ obj := by { rintro (_|_|_), exacts [zero, left, right] },
-  map := by { rintro _ _ (_|_|_), exacts [hom.id _, hom.fst, hom.snd] },
-  map_id' := λ X, rfl,
-  map_comp' := λ _ _ _ _ _, subsingleton.elim _ _ }
-
-@[simp] lemma walking_span_functor_zero : walking_span_functor.obj zero = zero := rfl
-@[simp] lemma walking_span_functor_left : walking_span_functor.obj left = left := rfl
-@[simp] lemma walking_span_functor_right : walking_span_functor.obj right = right := rfl
-@[simp] lemma walking_span_functor_id (X) : walking_span_functor.map (𝟙 X) = 𝟙 _ := rfl
-@[simp] lemma walking_span_functor_fst : walking_span_functor.map hom.fst = hom.fst := rfl
-@[simp] lemma walking_span_functor_snd : walking_span_functor.map hom.snd = hom.snd := rfl
-
-/-- The equivalence between two `walking_span`s in different universes. -/
-def walking_span_equiv : walking_span.{v₁} ≌ walking_span.{v₂} :=
-{ functor := walking_span_functor,
-  inverse := walking_span_functor,
-  unit_iso := nat_iso.of_components
-    (λ x, eq_to_iso (by { rcases x with (_|_|_); refl }))
-    (by { rintros _ _ (_|_|_); simp }),
-  counit_iso := nat_iso.of_components
-    (λ x, eq_to_iso (by { rcases x with (_|_|_); refl }))
-    (by { rintros _ _ (_|_|_); simp }) }
-
-end
 
 open walking_span.hom walking_cospan.hom wide_pullback_shape.hom wide_pushout_shape.hom
 
@@ -2140,10 +2080,10 @@ variables (C)
 
 See <https://stacks.math.columbia.edu/tag/001W>
 -/
-abbreviation has_pullbacks := has_limits_of_shape walking_cospan.{v} C
+abbreviation has_pullbacks := has_limits_of_shape walking_cospan C
 
 /-- `has_pushouts` represents a choice of pushout for every pair of morphisms -/
-abbreviation has_pushouts := has_colimits_of_shape walking_span.{v} C
+abbreviation has_pushouts := has_colimits_of_shape walking_span C
 
 /-- If `C` has all limits of diagrams `cospan f g`, then it has all pullbacks -/
 lemma has_pullbacks_of_has_limit_cospan

@@ -187,8 +187,8 @@ end comparison
 variables (C)
 
 /-- An abbreviation for `Π J, has_limits_of_shape (discrete J) C` -/
-abbreviation has_products := Π (J : Type v), has_limits_of_shape (discrete J) C
+abbreviation has_products := Π (J : Type w), has_limits_of_shape (discrete J) C
 /-- An abbreviation for `Π J, has_colimits_of_shape (discrete J) C` -/
-abbreviation has_coproducts := Π (J : Type v), has_colimits_of_shape (discrete J) C
+abbreviation has_coproducts := Π (J : Type w), has_colimits_of_shape (discrete J) C
 
 end category_theory.limits

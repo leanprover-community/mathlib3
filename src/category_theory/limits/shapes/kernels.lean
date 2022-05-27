@@ -150,6 +150,14 @@ lemma is_kernel_comp_mono_lift {c : kernel_fork f} (i : is_limit c) {Z} (g : Y �
   (is_kernel_comp_mono i g hh).lift s
   = i.lift (fork.of_ι s.ι (by { rw [←cancel_mono g, category.assoc, ←hh], simp })) := rfl
 
+/-- Every kernel of `f ≫ g` is also a kernel of `f`, as long as `c.ι ≫ f` vanishes. -/
+def is_kernel_of_comp {W : C} (g : Y ⟶ W) {c : kernel_fork (f ≫ g)} (i : is_limit c)
+  (h : c.ι ≫ f = 0) : is_limit (kernel_fork.of_ι c.ι h) :=
+fork.is_limit.mk _
+  (λ s, i.lift (kernel_fork.of_ι s.ι (by simp)))
+  (λ s, by simp only [kernel_fork.ι_of_ι, fork.is_limit.lift_ι])
+  (λ s m h, by { apply fork.is_limit.hom_ext i, simpa using h })
+
 end
 
 section
@@ -481,6 +489,14 @@ lemma is_cokernel_epi_comp_desc {c : cokernel_cofork f} (i : is_colimit c) {W}
   (g : W ⟶ X) [hg : epi g] {h : W ⟶ Y} (hh : h = g ≫ f) (s : cokernel_cofork h) :
   (is_cokernel_epi_comp i g hh).desc s
   = i.desc (cofork.of_π s.π (by { rw [←cancel_epi g, ←category.assoc, ←hh], simp })) := rfl
+
+/-- Every cokernel of `g ≫ f` is also a cokernel of `f`, as long as `f ≫ c.π` vanishes. -/
+def is_cokernel_of_comp {W : C} (g : W ⟶ X) {c : cokernel_cofork (g ≫ f)} (i : is_colimit c)
+  (h : f ≫ c.π = 0) : is_colimit (cokernel_cofork.of_π c.π h) :=
+cofork.is_colimit.mk _
+  (λ s, i.desc (cokernel_cofork.of_π s.π (by simp)))
+  (λ s, by simp only [cokernel_cofork.π_of_π, cofork.is_colimit.π_desc])
+  (λ s m h, by { apply cofork.is_colimit.hom_ext i, simpa using h })
 
 end
 

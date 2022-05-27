@@ -10,7 +10,9 @@ variables (K V : Type*) [field K] [add_comm_group V] [module K V]
 namespace projectivization
 
 
-
+/- A subspace of projective space is a set of points such that if two nonzero vectors determine
+  points in the set, and their sum is nonzero, then the point their sum determines is also
+  in the set. -/
 @[ext] structure subspace :=
 (carrier : set (ℙ K V))
 (mem_of_add' (v w : V) (hv : v ≠ 0) (hw : w ≠ 0) (hvw : v + w ≠ 0) :
@@ -31,37 +33,41 @@ lemma mem_add (T : subspace K V) (v w : V) (hv : v ≠ 0) (hw : w ≠ 0) (hvw : 
 
 
 open_locale big_operators
+
 lemma mem_sum (T : subspace K V) {ι : Type*} [fintype ι] {f : ι → V} (hf : ∀ i : ι, f i ≠ 0)
   (hs : (∑ i : ι, f i) ≠ 0) (h : ∀ i : ι, projectivization.mk K (f i) (hf i) ∈ T) :
-  projectivization.mk K (∑ i : ι, f i) (hs) ∈ T := sorry
+  projectivization.mk K (∑ i : ι, f i) (hs) ∈ T :=
+begin
+  sorry
+end
 
-lemma mem_of_dependent (T : subspace K V) (x y z : ℙ K V)
-  (h : x ≠ y) (hdep : dependent ![x,y,z]) (hx : x ∈ T) (hy : y ∈ T) :
-  z ∈ T := sorry
-
-
-
+/- The span of a set of points in projective space is a set of points which contains the original
+set, and contains all points that represent the (nonzero) sum of two nonzero vectors which determine
+points in the span. -/
 inductive span_carrier (S : set (ℙ K V)) : set (ℙ K V)
 | of (x : ℙ K V) (hx : x ∈ S) : span_carrier x
-| mem_of_add (v w : V) (hv : v ≠ 0) (hw : w ≠ 0) (hvw : v + w ≠ 0) : span_carrier (projectivization.mk K v hv)  →
-  span_carrier (projectivization.mk K w hw) → span_carrier (projectivization.mk K (v + w) (hvw))
+| mem_of_add (v w : V) (hv : v ≠ 0) (hw : w ≠ 0) (hvw : v + w ≠ 0) :
+    span_carrier (projectivization.mk K v hv)  →  span_carrier (projectivization.mk K w hw) →
+    span_carrier (projectivization.mk K (v + w) (hvw))
 
-
+/- The span of a set of points in projective space is a subspace. -/
 def span (S : set (ℙ K V)) : subspace K V :=
 { carrier := span_carrier S,
   mem_of_add' := λ v w hv hw hvw,
     span_carrier.mem_of_add v w hv hw hvw }
 
+/- The span of a set of points contains the set. -/
 lemma subset_span (S : set (ℙ K V)) : S ⊆ span S :=
 λ x hx, span_carrier.of _ hx
 
+/- The span of a subspace is itself. -/
 @[simp] lemma span_subspace_self (W : subspace K V) : span ↑W = W :=
 begin
   ext, split; intro hx,
-  { induction hx,
-    exact hx_hx,
-    refine W.mem_of_dependent hx_x hx_y hx_z hx_h _ _ _, assumption' },
-  { exact subset_span W hx  },
+  { induction hx with a ha u w hu hw huw _ _ hum hwm,
+    exact ha,
+    exact mem_add W u w hu hw huw hum hwm },
+  { exact subset_span W hx },
 end
 
 def gi : galois_insertion (span : set (ℙ K V) → subspace K V) coe :=
@@ -70,21 +76,25 @@ def gi : galois_insertion (span : set (ℙ K V) → subspace K V) coe :=
     intros h x hx,
     induction hx,
     { apply h, assumption },
-    { apply B.mem_of_dependent, assumption' }
+    { apply B.mem_add, assumption' }
   end⟩,
   le_l_u := λ S, subset_span _,
   choice_eq := λ _ _, rfl }
 
+/- The Galois insertion determines a complete lattice structure on the subspaces of a
+  projective space. -/
 instance : complete_lattice (subspace K V) :=
 gi.lift_complete_lattice
 
-/- The intersection of two subspaces is a subspace-/
+/- The intersection of two subspaces is a subspace. -/
 instance : has_inter (subspace K V) :=
 { inter := λ W T,
   { carrier := W.carrier ∩ T.carrier,
-    mem_of_dependent' := λ x y z h hdep hx hy,
-      ⟨W.mem_of_dependent x y z h hdep hx.1 hy.1, T.mem_of_dependent x y z h hdep hx.2 hy.2⟩ } }
+    mem_of_add' := λ v w hv hw hvw h1 h2,
+      ⟨W.mem_add v w hv hw hvw h1.1 h2.1, T.mem_add v w hv hw hvw h1.2 h2.2⟩ } }
 
+/- The subspace associated to a submodule is the set of points whose representative's are
+  are contained in the submodule. -/
 def of_submodule (H : submodule K V) : subspace K V :=
 { carrier := { x | x.submodule ≤ H },
   mem_of_add' :=
@@ -94,22 +104,103 @@ def of_submodule (H : submodule K V) : subspace K V :=
     exact H.add_mem h1 h2,
   end }
 
+/- The supremum of the submodules determined by the points in the span of a set S is a submodule of
+  the span of the representatives of the points in S. -/
+lemma equiv_span_eq_span_reps (S : set (ℙ K V)) :
+  (⨆ (x : ℙ K V) (hx : x ∈ span S), x.submodule) = submodule.span K (projectivization.rep '' S ) :=
+begin
+  ext,
+  split; intro hx,
+  { apply submodule.supr_induction _ hx,
+    { intros v y hy,
+      apply ((submodule.mem_supr _).1) hy (submodule.span K (projectivization.rep '' S)),
+      clear hy,
+      intro hv,
+      induction hv with s hs _ _ _ _ _ _ _ hus hws,
+      { rw [← mk_rep s, submodule_mk, submodule.span_singleton_le_iff_mem],
+        exact submodule.subset_span ⟨s, ⟨hs, rfl⟩⟩ },
+      { rw [submodule_mk, submodule.span_singleton_le_iff_mem] at *,
+        exact submodule.add_mem _ hus hws } },
+    { exact submodule.zero_mem _ },
+    { intros y z hy hz, exact submodule.add_mem _ hy hz } },
+  { refine (submodule.span_le.2) _ hx,
+    rintros y ⟨v, ⟨hs, hv⟩⟩,
+    refine submodule.mem_supr_of_mem v (submodule.mem_supr_of_mem (subspace.subset_span S hs) _),
+    rw [← hv, ← mk_rep v, submodule_mk, mk_rep],
+    exact submodule.mem_span_singleton_self (v.rep) },
+end
+
+/- If the representative of a point is contained in the span of the set of representatives of a
+  subspace, then that point is contained in the subspace. -/
+lemma rep_mem_reps_span (v : ℙ K V) (S : subspace K V)
+  (hv : v.rep ∈ submodule.span K (projectivization.rep '' (S : set (ℙ K V)))) : v ∈ S :=
+begin
+  suffices h : ∀ (v : V), v ∈ (submodule.span K (projectivization.rep '' (S : set (ℙ K V)))) →
+    v ≠ 0 → (∃ (hv : v ≠ 0), projectivization.mk K v hv ∈ S), by
+    { specialize h v.rep hv (rep_nonzero v), simp_rw mk_rep at h, cases h with _ hs, exact hs },
+  clear hv,
+  intros v hv,
+  apply submodule.span_induction hv,
+  { intros w hw _,
+    rcases hw with ⟨s, ⟨hs, hw⟩⟩,
+    simp_rw ← hw,
+    exact ⟨rep_nonzero s, by { rwa mk_rep s }⟩ },
+  { intro h, exfalso, exact h (eq.refl 0) },
+  { intros u w hu hw huw,
+    by_cases h1 : w = 0; by_cases h2 : u = 0,
+    { rw [h1, h2, zero_add] at huw, exfalso, exact huw (eq.refl 0) },
+    { rw [h1, add_zero], specialize hu h2, cases hu with _ hu, exact ⟨hu_w, hu⟩ },
+    { rw [h2, zero_add], specialize hw h1, cases hw with _ hw, exact ⟨hw_w, hw⟩ },
+    { use huw, specialize hu h2, specialize hw h1, cases hu with _ _, cases hw with _ _,
+      exact mem_add S u w hu_w hw_w huw hu_h hw_h } },
+  { intros a u hus hau,
+    have hu : u ≠ 0, by { intro h, rw [h, smul_zero] at hau, exact hau (eq.refl 0) },
+    cases (hus hu) with hu hus,
+    use hau,
+    convert hus using 1,
+    rw mk_eq_mk_iff', exact ⟨a, refl _⟩ }
+end
+
 open_locale big_operators classical
+/- There is an order preserving bijection between subspaces of ℙ K V and submodules of V. -/
 def equiv : subspace K V ≃o submodule K V :=
 { to_fun := λ S, ⨆ (x : ℙ K V) (hx : x ∈ S), x.submodule,
   inv_fun := of_submodule,
   left_inv :=
   begin
     intros W,
-    dsimp,
     ext,
     unfold of_submodule,
+    rw [← span_subspace_self W, equiv_span_eq_span_reps, span_subspace_self W, set.mem_set_of_eq,
+      ← mk_rep x, submodule_mk, mk_rep x, submodule.span_singleton_le_iff_mem],
+    split; intro hx,
+    { exact rep_mem_reps_span x W hx },
+    { exact submodule.subset_span ⟨x, ⟨hx, eq.refl x.rep⟩⟩ },
+  end,
+  right_inv :=
+  begin
+    intros W, dsimp, unfold of_submodule,
+    change (⨆ (x : ℙ K V) (x_1 : x.submodule ≤ W), x.submodule) = W,
+    apply le_antisymm,
+    { refine (supr_le _), simp },
+    { intros x hx,
+      by_cases hxt : x = 0,
+      { rw hxt, exact submodule.zero_mem _ },
+      { rw ← submodule.span_singleton_le_iff_mem x,
+        refine le_Sup ⟨projectivization.mk K x hxt, _ ⟩,
+        simp only [submodule_mk, submodule.span_singleton_le_iff_mem, supr_pos hx] } },
+  end,
+  map_rel_iff' :=
+  begin
+    intros W S,
+    rw [equiv.coe_fn_mk, ← span_subspace_self W, ← span_subspace_self S, equiv_span_eq_span_reps ↑S,
+      equiv_span_eq_span_reps ↑W, span_subspace_self S, span_subspace_self W],
     split,
+    { intros hw v hv, exact rep_mem_reps_span v S (hw (submodule.subset_span ⟨v, ⟨hv, rfl⟩⟩)) },
+    { intro h, apply submodule.span_mono, exact set.image_subset projectivization.rep h },
+  end, }
 
-    { rw ← mk_rep x,
-      intros h,
-      dsimp at h,
-      simp at h,
+      /-
       rw submodule.mem_bsupr_iff_exists_dfinsupp at h,
       obtain ⟨f, hf ⟩ := h,
       dsimp at hf,
@@ -117,124 +208,55 @@ def equiv : subspace K V ≃o submodule K V :=
       dsimp [dfinsupp.sum] at hf,
       rw finset.sum_subtype at hf,
       rotate,
-      exact f.support,
-      rw ← hf,
+      --exact f.support,
+      --rw ← hf,
+      -/
 
+/-  If two nonzero vectors go to the same point in projective space, and their sum is nonzero,
+  then their sum also goes to that same point.-/
+lemma eq_mk_sum_mk {v u : V} {w : (ℙ K V)} {hv : v ≠ 0} {hu : u ≠ 0} (hvu : v + u ≠ 0)
+  (hva : projectivization.mk K v hv = w) (hua : projectivization.mk K u hu = w) :
+  projectivization.mk K (v + u) hvu = w :=
+begin
+  cases exists_smul_mk_rep_eq K v hv with a ha,
+  cases exists_smul_mk_rep_eq K u hu with b hb,
+  simp_rw [hva, hua] at *,
+  rw [← mk_rep w, mk_eq_mk_iff'],
+  exact ⟨a + b, by { rw [hb, ha, add_smul], refl }⟩,
+end
 
-
-      /-
-      have heq : (⨆ (x : ℙ K V) (hx : x ∈ W), x.submodule) = (⨆ (x : ℙ K V) (hx : x ∈ W),
-      submodule.span K {x.rep}), by {congr, ext, rw [← submodule_mk x_1.rep (rep_nonzero x_1), mk_rep],},
-      rw heq at hx,
-      have hxr : _, by { exact (hx (submodule.mem_span_singleton_self x.rep))},
-      suffices hmemw : x.rep = 0 ∨ (∃ hx : x.rep ≠ 0, (projectivization.mk K x.rep hx) ∈ W.carrier), by {sorry},
-      apply @submodule.supr_induction K V _ _ _ _ _ (λ y, y = 0 ∨ (∃ hy : y ≠ 0, (projectivization.mk K y hy) ∈ W.carrier)) x.rep hxr,
-
-      { intros y v hv,
-        simp at hv,
-        have hvy: v ∈ submodule.span K {y.rep}, by { sorry },
-        rw submodule.mem_span_singleton at hvy,
-        by_cases hvz : v = 0,
-        { exact or.inl hvz,},
-        { right,
-          use hvz,
-          rw ← projectivization.mk_eq_mk_iff' K v y.rep hvz (rep_nonzero y) at hvy,
-          rw hvy,
-          sorry },},
-      { simp,},
-      { intros v u hv hu,
-        cases hv,
-        { cases hu,
-          { rw [hv, hu, add_zero], exact or.inl (rfl),},
-          { simp_rw [hv, zero_add], exact or.inr hu},},
-        { cases hu,
-          { simp_rw [hu, add_zero], exact or.inr hv},
-          { cases hv with hv hvw,
-            cases hu with hu huw,
-            sorry},},},
-
-            -/
-            },
-    { intro hx,
-      rw set.mem_set_of_eq,
-      refine le_Sup _,
-      rw set.mem_range,
-      exact ⟨x, supr_pos hx⟩ },
-  end,
-  right_inv :=
-  begin
-    intros W, dsimp, ext, split,
-    { intro hx,
-      have hxw : (⨆ (x : ℙ K V) (hx : x ∈ of_submodule W), x.submodule) ≤ W, by
-      { refine supr_le _, simp only [supr_le_iff], intros i hi, exact hi },
-      exact hxw hx },
-    { intro hx,
-      by_cases hxt : x = 0,
-      { rw hxt, exact submodule.zero_mem _ },
-      { have hxw : (projectivization.mk K x hxt) ∈ (of_submodule W), by
-        { exact (submodule.span_singleton_le_iff_mem x W).mpr hx },
-        have : (projectivization.mk K x hxt).submodule ≤
-        ⨆ (x : ℙ K V) (hx : x ∈ of_submodule W), x.submodule, by
-        { refine le_Sup _, rw [submodule_mk, set.mem_range],
-          exact ⟨(projectivization.mk K x hxt), supr_pos hxw⟩ },
-        exact this (by { rw submodule_mk, exact submodule.mem_span_singleton_self x }) } },
-  end,
-  map_rel_iff' :=
-  begin
-    intros W S,
-    rw [equiv.coe_fn_mk, supr₂_le_iff],
-    split,
-    {
-      intros hw v hv,
-      specialize hw v hv,
-      rw [← mk_rep v, submodule_mk, submodule.span_singleton_le_iff_mem,
-      submodule.supr_eq_span] at hw,
-      rcases (submodule.mem_span_finite_of_mem_span hw) with ⟨s, ⟨hs, hvs⟩⟩,
-      rw mem_span_finset at hvs,
-      cases hvs with f hf,
-      sorry},
-
-    { intros hws w hw u hu,
-      specialize hws hw,
-      have : w.submodule ≤ ⨆ (x : ℙ K V) (hx : x ∈ S), x.submodule,
-      by { refine le_Sup _, rw set.mem_range, exact ⟨w, supr_pos hws⟩},
-      exact this hu},
-  end, }
-
-
-
-/- A point in projective space determines a subspace consisting of the point. -/
+/- A set containing a single point is a subspace. -/
 instance : has_singleton (ℙ K V) (subspace K V):=
 { singleton := λ a,
 { carrier := {a},
-  mem_of_dependent' :=
-  by {intros x y z h hdep hx hy, simp at *, rw [hx, hy] at h, contradiction} }}
+  mem_of_add' :=
+  by { intros v w hv hw hvw h1 h2, rw set.mem_singleton_iff at *, exact eq_mk_sum_mk hvw h1 h2 } } }
 
 /- A point belongs to a singleton subspace iff the point is equal to the singleton determining
-  the subspace-/
+  the subspace. -/
 lemma mem_singleton_iff (a b : ℙ K V) : b ∈ ({a} : subspace K V) ↔ b = a :=
-begin
-  exact ⟨by { intro hb, induction hb, refl }, by { intro h, rw h, split }⟩,
-end
+  by { exact ⟨by { intro hb, induction hb, refl }, by { intro h, rw h, split }⟩ }
 
-/- The submodule corresponding to the intersection of two subspaces is the intersection of the
-  two submodules corresponding to the respective subspaces. -/
-lemma inter_equiv_eq_equiv_inter (W S : subspace K V) :
-  subspace.equiv (W ∩ S) = (subspace.equiv W) ∩ (subspace.equiv S) :=
-begin
-  sorry
-end
 
-/- The line determined by two points in projective space is their span. -/
+/- There must be an instance of this. -/
+instance : has_inter (submodule K V) :=
+{ inter := λ W S,
+  { carrier := W ∩ S,
+  add_mem' := sorry,
+  zero_mem' := sorry,
+  smul_mem' := sorry }}
+
+/- The line determined by two points in projective space is the subspace give by their span. -/
 def line (a b : ℙ K V) : subspace K V := span {a, b}
 
-/- A point in projective space is a member of a subspace iff the subspace determined by that
-  point is in the subspace. -/
+/- A point in projective space is a member of a subspace iff the singleton subspace determined by
+  that point is in the subspace. -/
 lemma singleton_mem_iff_leq (a : ℙ K V) (W : subspace K V) : a ∈ W ↔ {a} ≤ W :=
   by { change a ∈ W ↔ ({a} : set (ℙ K V)) ⊆ W, rw [set.singleton_subset_iff, set_like.mem_coe] }
 
 /- The submodule corresponding to a one point subspace in projective space is the same as the
-  submodule determined by the point. -/
+  submodule determined by the point, i.e it is the submodule give by the span of the representative
+  of the point. -/
 lemma of_submodule_singleton (a : ℙ K V) : subspace.equiv {a} = a.submodule :=
 begin
   unfold equiv,
@@ -246,79 +268,66 @@ end
 lemma mem_of_subspace_iff (a : ℙ K V) (W : subspace K V) : a ∈ W ↔ a.rep ∈ subspace.equiv W :=
 begin
   rw [← submodule.span_singleton_le_iff_mem, singleton_mem_iff_leq a W,
-   ← subspace.equiv.map_rel_iff'],
+    ← subspace.equiv.map_rel_iff'],
   change (subspace.equiv) {a} ≤ (subspace.equiv) W ↔ submodule.span K {a.rep} ≤ equiv W,
   rw [of_submodule_singleton, ← submodule_mk a.rep (rep_nonzero a), mk_rep],
 end
 
-/- If a point is contained in the span of a set of points, then the point's representative is
-  contained in the span of the set's representatives. -/
-lemma in_span_in_rep_span (a : ℙ K V) (S : set (ℙ K V)) (h : a ∈ span S) :
-  a.rep ∈ submodule.span K {v : V | ∃ s : ℙ K V, s ∈ S ∧  v = s.rep} :=
+/- A nonzero vector belongs to a submodule iff the representative of the point it goes to in
+  projective space beongs to that submodule. -/
+lemma rep_mem_submodule_iff (T : submodule K V) (v : V) (hv : v ≠ 0) :
+  (projectivization.mk K v hv).rep ∈ T ↔ v ∈ T :=
 begin
-  change a ∈ span_carrier S at h,
-  induction h with a b c d e f g h i j k,
-  { exact submodule.subset_span ⟨a, by { simpa }⟩ },
-  { rcases  (dependent_triple_and_neq_pair f g) with ⟨p, q, hpq, hz ⟩,
-    rw hz,
-    exact submodule.add_mem _ (submodule.smul_mem _ p j) (submodule.smul_mem _ q k) },
+  cases exists_smul_eq_mk_rep K v hv with a ha,
+  convert submodule.smul_mem_iff T (units.ne_zero a),
+  exact ha.symm
 end
 
-/- The supremum of the submodules determined by the points in the span of set S is a submodule of
-  the span of the representatives of the points in S. -/
-lemma supr_span_submodule_leq_span (S : set (ℙ K V)) :
-  (⨆ (x : ℙ K V) (hx : x ∈ span S), x.submodule) ≤
-  submodule.span K {v : V | ∃ s : ℙ K V, s ∈ S ∧ v = s.rep} :=
+/- If a point is contained in the span of a set of points, then the point's representative is
+  contained in the span of the set's representatives. -/
+lemma in_span_in_rep_span (v : ℙ K V) (S : set (ℙ K V)) (h : v ∈ span S) :
+  v.rep ∈ submodule.span K (projectivization.rep '' S) :=
 begin
-  intros x hx,
-  apply submodule.supr_induction _ hx,
-  { intros v y hy,
-    dsimp at hy,
-    sorry},
-  { exact submodule.zero_mem _ },
-  { intros y z hy hz, exact submodule.add_mem _ hy hz },
+  induction h with u v w s hw hs hws h1 h2 hwr hsr,
+  { exact submodule.subset_span ⟨u, by { simpa }⟩ },
+  { rw rep_mem_submodule_iff at *, exact submodule.add_mem _ hwr hsr },
 end
 
 /- The submodule corresponding to the span of a set of points in projective space is
   the submodule spanned by the representatives of the points. -/
 lemma of_submodule_eq_span_mem_reps (S : set (ℙ K V)) :
-submodule.span K {v : V | ∃ s : ℙ K V, s ∈ S ∧  v = s.rep} = subspace.equiv (span S) :=
-begin
-  unfold equiv,
-  rw [rel_iso.coe_fn_mk, equiv.coe_fn_mk],
-  ext,
-  split,
-  { intro hx,
-    apply submodule.span_induction hx,
-    { intros y hy,
-      refine submodule.mem_supr_of_mem (projectivization.mk K y _) _,
-      rcases hy with ⟨s, ⟨hs, hsy⟩⟩,
-      { rw hsy, exact rep_nonzero s },
-      { rcases hy with ⟨z, ⟨hs, hy⟩⟩,
-        simp_rw [submodule_mk, hy, mk_rep z],
-        apply submodule.mem_supr_of_mem,
-        exact (subset_span S hs),
-        exact submodule.mem_span_singleton_self (z.rep) } },
-    { simp },
-    { intros y z hy hz, exact submodule.add_mem _ hy hz },
-    { intros a y hy, exact submodule.smul_mem _ a hy } },
-  { intro hxx, exact ((supr_span_submodule_leq_span S) hxx) },
-end
+submodule.span K (projectivization.rep '' S) = subspace.equiv (span S) :=
+  by { exact (equiv_span_eq_span_reps S).symm }
 
-/- The submodule corresponding to a line is the span of the
+/- The submodule corresponding to a line in projective space is the span of the
   representatives of the two points which determine the line. -/
 lemma equiv_line_eq_span_reps (a b : ℙ K V) : submodule.span K {a.rep, b.rep} =
   subspace.equiv (line a b) :=
+  by { convert of_submodule_eq_span_mem_reps _, rw set.image_pair }
+
+/- The line determined by two points in projective space does not depend on their order. -/
+lemma line_symm (u v : ℙ K V) : line u v = line v u :=
+  by { unfold line, rw set.pair_comm u v }
+
+/- Elements are contained in the intersection of two submodules/subspaces iff they are contained
+  in both of the modules/subspaces. -/
+
+lemma submodule_mem_inter_iff (W S : submodule K V) (v : V) : v ∈ W ∩ S ↔ v ∈ W ∧ v ∈ S :=
+  by { refl }
+
+lemma mem_inter_iff (W S : subspace K V) (v : ℙ K V) : v ∈ W ∩ S ↔ v ∈ W ∧ v ∈ S :=
+  by { refl }
+
+/- The submodule corresponding to the intersection of two subspaces is the intersection of the
+  two submodules corresponding to the respective subspaces. -/
+lemma inter_equiv_eq_equiv_inter (W S : subspace K V) :
+  subspace.equiv (W ∩ S) = (subspace.equiv W) ∩ (subspace.equiv S) :=
 begin
-  convert of_submodule_eq_span_mem_reps _,
   ext,
-  simp only [set.mem_insert_iff, set.mem_singleton_iff, set.mem_set_of_eq],
-  split,
-  { rintro ⟨ha, hb⟩,
-    { use a, simpa },
-    { use b, simpa } },
-  { rintro ⟨y, hy⟩,
-    rcases hy with ⟨⟨hab, hab⟩, hr⟩, exact or.inl hr, rw hy_left at hr, exact or.inr hr }
+  by_cases hx : x = 0,
+  { rw hx, simp },
+  { simp_rw [submodule_mem_inter_iff, ← rep_mem_submodule_iff _ x hx,
+      ← mem_of_subspace_iff, mem_inter_iff] }
 end
 
 /- The line determined by a single point is the one-point subspace containing that point. -/
@@ -327,33 +336,80 @@ by { unfold line, rw set.pair_eq_singleton, exact span_subspace_self {a} }
 
 /- A point in projective space is a member of any line it determines. -/
 
-lemma P2 (a b : ℙ K V) : a ∈ line b a :=
+lemma P2 (a b : ℙ K V) : a ∈ line a b :=
+begin
+  refine subset_span {a, b} _,
+  simp only [set.mem_insert_iff, eq_self_iff_true, true_or],
+end
+
+lemma P2_ref (a b : ℙ K V) : a ∈ line b a :=
 begin
   refine subset_span {b, a} _,
   simp only [set.mem_insert_iff, set.mem_singleton, or_true],
 end
 
-lemma P2_ref (a b : ℙ K V) : a ∈ line a b :=
+/- If two points determine a line, and another point is contained in that line, then the line
+  determined by the new point and one of the original points is contained in the original line. -/
+
+lemma mem_line_le_line₁ (u v w : ℙ K V) (hu : u ∈ line v w) : line u w ≤ line v w :=
 begin
-  refine subset_span {a, b} _,
-  simp only [set.mem_insert_iff, eq_self_iff_true, true_or],
+  simp_rw mem_of_subspace_iff at hu,
+  rw ← equiv.map_rel_iff',
+  change equiv (line u w) ≤ equiv (line v w),
+  simp_rw [← equiv_line_eq_span_reps, submodule.span_le] at *,
+  intros x hx,
+  rcases hx,
+  { rwa hx },
+  { rw [set.mem_singleton_iff] at hx, rw hx, refine submodule.subset_span _, simp },
 end
+
+lemma mem_line_le_line₂ (u v w : ℙ K V) (hu : u ∈ line v w) : line v u ≤ line v w :=
+  by {  rw [line_symm v w, line_symm v u] at *, exact mem_line_le_line₁ u w v hu }
+
+/- If a point is contained in the line deterimined by two other points, and the point is not equal
+  to one of the points which determines the line, then the other point which determines the
+  original line is contained in the line determined by the two nonequal points. -/
+lemma line_exchange (u v w : ℙ K V) (huv : v ≠ u) (h : u ∈ line v w) : w ∈ line u v :=
+begin
+  simp_rw [mem_of_subspace_iff, ← equiv_line_eq_span_reps, set.pair_comm v.rep w.rep] at *,
+  refine mem_span_insert_exchange h _,
+  intro ha,
+  rw [submodule.mem_span_singleton] at ha,
+  rw [← mk_rep v, ← mk_rep u] at huv,
+  exact huv.symm ((mk_eq_mk_iff' K u.rep v.rep (rep_nonzero u) (rep_nonzero v)).2 ha)
+end
+
 
 /- If -/
 lemma P3 (a b p c d : ℙ K V) (h1: a ≠ c) (h2: a ∈ line b p) (h3: p ∈ line c d) :
 (∃ q : ℙ K V, q ∈ line a c ∩ line b d) :=
 begin
   by_cases hbp : b = p,
-  { refine ⟨b, _, P2_ref b d ⟩,
-    rw [hbp, P1, mem_singleton_iff] at h2, rw [hbp, h2], exact P2_ref p c },
+  { refine ⟨b, _, P2 b d ⟩,
+    rw [hbp, P1, mem_singleton_iff] at h2, rw [hbp, h2], exact P2 p c },
   { by_cases hcd : c = d,
     { use d,
-      rw hcd, exact ⟨P2 d a, P2 d b⟩ },
-    { simp_rw [mem_of_subspace_iff, ← equiv_line_eq_span_reps] at *,
-      change b ≠ p at hbp,
-      change c ≠ d at hcd,
-      rw [← pair_independent_iff_neq, independent_iff, fin_comp_commutes₂] at hbp hcd,
-      sorry } },
+      rw hcd, exact ⟨P2_ref d a, P2_ref d b⟩ },
+    { by_cases hab : a = b,
+      { rw hab, use b, exact ⟨P2 b c,P2 b d⟩ },
+      { by_cases hbd : b = d,
+        { rw ← hbd at *,
+          have := mem_line_le_line₂ p b c,
+          rw line_symm c b at h3,
+          specialize this h3 h2,
+          refine ⟨b, _, P2 b b⟩,
+          rw line_symm b c at this,
+          exact line_exchange a c b (ne.symm h1) this },
+        { simp_rw [mem_of_subspace_iff, ← equiv_line_eq_span_reps, ← ne.def,
+            ← pair_independent_iff_neq, independent_iff, fin_comp_commutes₂,
+            inter_equiv_eq_equiv_inter, ← equiv_line_eq_span_reps] at *,
+          suffices h : ∃ (v : V) (hv : v ≠ 0),
+            v ∈ submodule.span K {a.rep, c.rep} ∩ submodule.span K {b.rep, d.rep}, by
+            { rcases h with ⟨v, ⟨ hv, hvm⟩⟩, refine ⟨projectivization.mk K v hv, _⟩,
+              rwa rep_mem_submodule_iff },
+          by_contra,
+          simp only [ne.def, exists_prop, not_exists, not_and] at h,
+          sorry } } } },
 end
 
 end subspace

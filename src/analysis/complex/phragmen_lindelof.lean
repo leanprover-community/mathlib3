@@ -34,7 +34,6 @@ modulus principle for an unbounded domain.
 In the case of the right half-plane, we prove a version of the Phragmen-Lindelöf principle that is
 useful for Ilyashenko's proof of the individual finiteness theorem (a polynomial vector field on the
 real plane has only finitely many limit cycles).
-
 -/
 
 open set function filter asymptotics metric complex
@@ -44,7 +43,12 @@ local notation `expR` := real.exp
 
 namespace phragmen_lindelof
 
-variables {E : Type*} [normed_group E] [normed_space ℂ E] {a b C : ℝ} {f : ℂ → E} {z : ℂ}
+variables {E : Type*} [normed_group E] [normed_space ℂ E] {a b C : ℝ} {f g : ℂ → E} {z : ℂ}
+  {l : filter ℂ}
+
+/-!
+### Phragmen-Lindelöf principle in a horizontal strip
+-/
 
 /-- **Phragmen-Lindelöf principle** in a strip `U = {z : ℂ | a < im z < b}`.
 Let `f : ℂ → E` be a function such that
@@ -61,12 +65,13 @@ lemma horizontal_strip (hfd : diff_cont_on_cl ℂ f (im ⁻¹' Ioo a b))
   (hB : ∃ (c < π / (b - a)) B, is_O f (λ z, expR (B * expR (c * |z.re|)))
     (comap (has_abs.abs ∘ re) at_top ⊓ 𝓟 (im ⁻¹' Ioo a b)))
   (hle_a : ∀ z : ℂ, im z = a → ∥f z∥ ≤ C) (hle_b : ∀ z, im z = b → ∥f z∥ ≤ C)
-  (hz : im z ∈ Icc a b) :
+  (hza : a ≤ im z) (hzb : im z ≤ b) :
   ∥f z∥ ≤ C :=
 begin
   -- If `im z = a` or `im z = b`, then we apply `hle_a` or `hle_b`, otherwise `im z ∈ Ioo a b`.
-  rcases eq_endpoints_or_mem_Ioo_of_mem_Icc hz with rfl|rfl|hz',
-  { exact hle_a _ rfl }, { exact hle_b _ rfl }, clear hz, rename hz' hz,
+  rw le_iff_eq_or_lt at hza hzb,
+  cases hza with hza hza, { exact hle_a _ hza.symm },
+  cases hzb with hzb hzb, { exact hle_b _ hzb },
   -- WLOG, `0 < C`.
   suffices : ∀ C' : ℝ, 0 < C' → (∀ w : ℂ, im w = a → ∥f w∥ ≤ C') →
     (∀ w : ℂ, im w = b → ∥f w∥ ≤ C') → ∥f z∥ ≤ C',
@@ -79,7 +84,7 @@ begin
   -- of `a < im z < b`
   obtain ⟨a, b, rfl, rfl⟩ : ∃ a' b', a = a' - b' ∧ b = a' + b' :=
     ⟨(a + b) / 2, (b - a) / 2, by ring, by ring⟩,
-  have hab : a - b < a + b, from hz.1.trans hz.2,
+  have hab : a - b < a + b, from hza.trans hzb,
   have hb : 0 < b,
     by simpa only [sub_eq_add_neg, add_lt_add_iff_left, neg_lt_self_iff] using hab,
   rw [add_sub_sub_cancel, ← two_mul, div_mul_eq_div_div] at hB,
@@ -163,7 +168,7 @@ begin
       have hw' := eq_endpoints_or_mem_Ioo_of_mem_Icc hw.2, rw ← or.assoc at hw',
       exact hR _ ((abs_eq hR₀.le).2 hw.1.symm) (hw'.resolve_left him) } },
   { rw [closure_re_prod_im, closure_Ioo hab.ne, closure_Ioo (neg_lt_self hR₀).ne],
-    exact ⟨abs_le.1 hzR.le, Ioo_subset_Icc_self hz⟩ }
+    exact ⟨abs_le.1 hzR.le, ⟨hza.le, hzb.le⟩⟩ }
 end
 
 /-- **Phragmen-Lindelöf principle** in a strip `U = {z : ℂ | a < im z < b}`.
@@ -181,7 +186,29 @@ lemma eq_zero_on_horizontal_strip (hd : diff_cont_on_cl ℂ f (im ⁻¹' Ioo a b
   (ha : ∀ z : ℂ, z.im = a → f z = 0) (hb : ∀ z : ℂ, z.im = b → f z = 0) :
   eq_on f 0 (im ⁻¹' Icc a b) :=
 λ z hz, norm_le_zero_iff.1 $ horizontal_strip hd hB
-  (λ z hz, (ha z hz).symm ▸ norm_zero.le) (λ z hz, (hb z hz).symm ▸ norm_zero.le) hz
+  (λ z hz, (ha z hz).symm ▸ norm_zero.le) (λ z hz, (hb z hz).symm ▸ norm_zero.le) hz.1 hz.2
+
+/-- An auxiliary lemma that combines two double exponential estimates into a similar estimate
+on the difference of the functions. -/
+lemma is_O_sub_exp_exp {u : ℂ → ℝ}
+  (hBf : ∃ (c < a) B, is_O f (λ z, expR (B * expR (c * |u z|))) l)
+  (hBg : ∃ (c < a) B, is_O g (λ z, expR (B * expR (c * |u z|))) l) :
+  ∃ (c < a) B, is_O (f - g) (λ z, expR (B * expR (c * |u z|))) l :=
+begin
+  rcases hBf with ⟨cf, hcf, Bf, hOf⟩, rcases hBg with ⟨cg, hcg, Bg, hOg⟩,
+  refine ⟨max cf cg, max_lt hcf hcg, max 0 (max Bf Bg), _⟩,
+  refine (hOf.trans_le $ λ w, _).sub (hOg.trans_le $ λ w, _),
+  { rw [real.norm_eq_abs, real.norm_eq_abs, abs_of_pos (real.exp_pos _),
+      abs_of_pos (real.exp_pos _), real.exp_le_exp],
+    exact mul_le_mul ((le_max_left _ _).trans (le_max_right _ _))
+      (real.exp_le_exp.2 $ mul_le_mul_of_nonneg_right (le_max_left _ _) $ abs_nonneg _)
+      (real.exp_pos _).le (le_max_left _ _) },
+  { rw [real.norm_eq_abs, real.norm_eq_abs, abs_of_pos (real.exp_pos _),
+      abs_of_pos (real.exp_pos _), real.exp_le_exp],
+    exact mul_le_mul ((le_max_right _ _).trans (le_max_right _ _))
+      (real.exp_le_exp.2 $ mul_le_mul_of_nonneg_right (le_max_right _ _) $ abs_nonneg _)
+      (real.exp_pos _).le (le_max_left _ _) }
+end
 
 /-- **Phragmen-Lindelöf principle** in a strip `U = {z : ℂ | a < im z < b}`.
 Let `f g : ℂ → E` be functions such that
@@ -201,28 +228,86 @@ lemma eq_on_horizontal_strip {g : ℂ → E} (hdf : diff_cont_on_cl ℂ f (im �
     (comap (has_abs.abs ∘ re) at_top ⊓ 𝓟 (im ⁻¹' Ioo a b)))
   (ha : ∀ z : ℂ, z.im = a → f z = g z) (hb : ∀ z : ℂ, z.im = b → f z = g z) :
   eq_on f g (im ⁻¹' Icc a b) :=
+λ z hz, sub_eq_zero.1 (eq_zero_on_horizontal_strip (hdf.sub hdg) (is_O_sub_exp_exp hBf hBg)
+  (λ w hw, sub_eq_zero.2 (ha w hw)) (λ w hw, sub_eq_zero.2 (hb w hw)) hz)
+
+/-!
+### Phragmen-Lindelöf principle in a vertical strip
+-/
+
+/-- **Phragmen-Lindelöf principle** in a strip `U = {z : ℂ | a < re z < b}`.
+Let `f : ℂ → E` be a function such that
+
+* `f` is differentiable on `U` and is continuous on its closure;
+* `∥f z∥` is bounded from above by `A * exp(B * exp(c * |im z|))` on `U` for some `c < π / (b - a)`;
+* `∥f z∥` is bounded from above by a constant `C` on the boundary of `U`.
+
+Then `∥f z∥` is bounded by the same constant on the closed strip
+`{z : ℂ | a ≤ re z ≤ b}`. Moreover, it suffices to verify the second assumption
+only for sufficiently large values of `|im z|`.
+-/
+lemma vertical_strip (hfd : diff_cont_on_cl ℂ f (re ⁻¹' Ioo a b))
+  (hB : ∃ (c < π / (b - a)) B, is_O f (λ z, expR (B * expR (c * |z.im|)))
+    (comap (has_abs.abs ∘ im) at_top ⊓ 𝓟 (re ⁻¹' Ioo a b)))
+  (hle_a : ∀ z : ℂ, re z = a → ∥f z∥ ≤ C) (hle_b : ∀ z, re z = b → ∥f z∥ ≤ C)
+  (hza : a ≤ re z) (hzb : re z ≤ b) :
+  ∥f z∥ ≤ C :=
 begin
-  intros z hz,
-  rcases eq_endpoints_or_mem_Ioo_of_mem_Icc hz with rfl|rfl|hz',
-  { exact ha _ rfl }, { exact hb _ rfl },
-  refine sub_eq_zero.1 (eq_zero_on_horizontal_strip (hdf.sub hdg) _
-    (λ w hw, sub_eq_zero.2 (ha w hw)) (λ w hw, sub_eq_zero.2 (hb w hw)) hz),
-  rcases hBf with ⟨cf, hcf, Bf, hOf⟩, rcases hBg with ⟨cg, hcg, Bg, hOg⟩,
-  have hab : a < b := hz'.1.trans hz'.2,
-  have hπab : 0 < π / (b - a), from div_pos real.pi_pos (sub_pos.2 hab),
-  refine ⟨max cf cg, max_lt hcf hcg, max 0 (max Bf Bg), _⟩,
-  refine (hOf.trans_le $ λ w, _).sub (hOg.trans_le $ λ w, _),
-  { rw [real.norm_eq_abs, real.norm_eq_abs, abs_of_pos (real.exp_pos _),
-      abs_of_pos (real.exp_pos _), real.exp_le_exp],
-    exact mul_le_mul ((le_max_left _ _).trans (le_max_right _ _))
-      (real.exp_le_exp.2 $ mul_le_mul_of_nonneg_right (le_max_left _ _) $ abs_nonneg _)
-      (real.exp_pos _).le (le_max_left _ _) },
-  { rw [real.norm_eq_abs, real.norm_eq_abs, abs_of_pos (real.exp_pos _),
-      abs_of_pos (real.exp_pos _), real.exp_le_exp],
-    exact mul_le_mul ((le_max_right _ _).trans (le_max_right _ _))
-      (real.exp_le_exp.2 $ mul_le_mul_of_nonneg_right (le_max_right _ _) $ abs_nonneg _)
-      (real.exp_pos _).le (le_max_left _ _) }
+  suffices : ∥(λ z, f (z * (-I))) (z * I)∥ ≤ C, by simpa [mul_assoc] using this,
+  have H : maps_to (λ z, z * (-I)) (im ⁻¹' Ioo a b) (re ⁻¹' Ioo a b),
+  { intros z hz, simpa using hz },
+  refine horizontal_strip (hfd.comp (differentiable_id.mul_const _).diff_cont_on_cl H)
+    _ (λ z hz, hle_a _ _) (λ z hz, hle_b _ _) _ _,
+  { refine Exists₃.imp (λ c hc B hO, _) hB,
+    have : tendsto (λ z, z * (-I)) (comap (has_abs.abs ∘ re) at_top ⊓ 𝓟 (im ⁻¹' Ioo a b))
+      (comap (has_abs.abs ∘ im) at_top ⊓ 𝓟 (re ⁻¹' Ioo a b)),
+    { refine (tendsto_comap_iff.2 _).inf H.tendsto,
+      simpa [(∘)] using tendsto_comap },
+    simpa [(∘)] using hO.comp_tendsto this },
+  all_goals { simpa }
 end
+
+/-- **Phragmen-Lindelöf principle** in a strip `U = {z : ℂ | a < re z < b}`.
+Let `f : ℂ → E` be a function such that
+
+* `f` is differentiable on `U` and is continuous on its closure;
+* `∥f z∥` is bounded from above by `A * exp(B * exp(c * |im z|))` on `U` for some `c < π / (b - a)`;
+* `f z = 0` on the boundary of `U`.
+
+Then `f` is equal to zero on the closed strip `{z : ℂ | a ≤ re z ≤ b}`.
+-/
+lemma eq_zero_on_vertical_strip (hd : diff_cont_on_cl ℂ f (re ⁻¹' Ioo a b))
+  (hB : ∃ (c < π / (b - a)) B, is_O f (λ z, expR (B * expR (c * |im z|)))
+    (comap (has_abs.abs ∘ im) at_top ⊓ 𝓟 (re ⁻¹' Ioo a b)))
+  (ha : ∀ z : ℂ, re z = a → f z = 0) (hb : ∀ z : ℂ, re z = b → f z = 0) :
+  eq_on f 0 (re ⁻¹' Icc a b) :=
+λ z hz, norm_le_zero_iff.1 $ vertical_strip hd hB
+  (λ z hz, (ha z hz).symm ▸ norm_zero.le) (λ z hz, (hb z hz).symm ▸ norm_zero.le) hz.1 hz.2
+
+/-- **Phragmen-Lindelöf principle** in a strip `U = {z : ℂ | a < re z < b}`.
+Let `f g : ℂ → E` be functions such that
+
+* `f` and `g` are differentiable on `U` and are continuous on its closure;
+* `∥f z∥` and `∥g z∥` are bounded from above by `A * exp(B * exp(c * |im z|))` on `U` for some
+  `c < π / (b - a)`;
+* `f z = g z` on the boundary of `U`.
+
+Then `f` is equal to `g` on the closed strip `{z : ℂ | a ≤ re z ≤ b}`.
+-/
+lemma eq_on_vertical_strip {g : ℂ → E} (hdf : diff_cont_on_cl ℂ f (re ⁻¹' Ioo a b))
+  (hBf : ∃ (c < π / (b - a)) B, is_O f (λ z, expR (B * expR (c * |im z|)))
+    (comap (has_abs.abs ∘ im) at_top ⊓ 𝓟 (re ⁻¹' Ioo a b)))
+  (hdg : diff_cont_on_cl ℂ g (re ⁻¹' Ioo a b))
+  (hBg : ∃ (c < π / (b - a)) B, is_O g (λ z, expR (B * expR (c * |im z|)))
+    (comap (has_abs.abs ∘ im) at_top ⊓ 𝓟 (re ⁻¹' Ioo a b)))
+  (ha : ∀ z : ℂ, re z = a → f z = g z) (hb : ∀ z : ℂ, re z = b → f z = g z) :
+  eq_on f g (re ⁻¹' Icc a b) :=
+λ z hz, sub_eq_zero.1 (eq_zero_on_vertical_strip (hdf.sub hdg) (is_O_sub_exp_exp hBf hBg)
+  (λ w hw, sub_eq_zero.2 (ha w hw)) (λ w hw, sub_eq_zero.2 (hb w hw)) hz)
+
+/-!
+### Phragmen-Lindelöf principle in coordinate quadrants
+-/
 
 /-- **Phragmen-Lindelöf principle** in the first quadrant. Let `f : ℂ → E` be a function such that
 
@@ -256,7 +341,8 @@ begin
       (real.cos_pos_of_mem_Ioo ⟨(neg_lt_zero.2 $ div_pos real.pi_pos two_pos).trans hz.1, hz.2⟩),
       mul_pos (real.exp_pos _)
         (real.sin_pos_of_mem_Ioo ⟨hz.1, hz.2.trans (half_lt_self real.pi_pos)⟩)⟩ },
-  refine horizontal_strip (hd.comp differentiable_exp.diff_cont_on_cl H) _ _ _ hζ; clear hζ ζ,
+  refine horizontal_strip (hd.comp differentiable_exp.diff_cont_on_cl H) _ _ _ hζ.1 hζ.2;
+    clear hζ ζ,
   { -- The estimate `hB` on `f` implies the required estimate on
     -- `f ∘ exp` with the same `c` and `B' = max B 0`.
     rw [sub_zero, div_div_cancel' real.pi_pos.ne'],
@@ -385,6 +471,10 @@ begin
   { rw [comp_app, ← neg_mul, ← of_real_neg],
     exact him (-x) (neg_nonpos.2 hx) }
 end
+
+/-!
+### Phragmen-Lindelöf principle in the right half-plane
+-/
 
 /-- **Phragmen-Lindelöf principle** in the right half-plane. Let `f : ℂ → E` be a function such that
 

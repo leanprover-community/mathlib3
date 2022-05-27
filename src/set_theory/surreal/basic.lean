@@ -146,12 +146,7 @@ theorem not_fuzzy {x y : pgame} (ox : numeric x) (oy : numeric y) : ¬ fuzzy x y
 λ h, not_lf.2 ((lf_of_fuzzy h).le ox oy) h.2
 
 theorem lt_or_equiv_or_gt {x y : pgame} (ox : numeric x) (oy : numeric y) : x < y ∨ x ≈ y ∨ y < x :=
-begin
-  rcases lf_or_equiv_or_gf x y with h | h | h,
-  { exact or.inl (h.lt ox oy) },
-  { exact or.inr (or.inl h) },
-  { exact or.inr (or.inr (h.lt oy ox)) }
-end
+(lf_or_equiv_or_gf x y).imp (λ h, h.lt ox oy) $ or.imp_right $ λ h, h.lt oy ox
 
 theorem numeric_zero : numeric 0 :=
 ⟨by rintros ⟨⟩ ⟨⟩, ⟨by rintros ⟨⟩, by rintros ⟨⟩⟩⟩

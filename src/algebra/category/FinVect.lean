@@ -26,7 +26,7 @@ universes u
 
 variables (K : Type u) [field K]
 
-instance monoidal_proedicate_finite_dimensional :
+instance monoidal_predicate_finite_dimensional :
   monoidal_category.monoidal_predicate (λ V : Module.{u} K, finite_dimensional K V) :=
 { prop_id' := finite_dimensional.finite_dimensional_self K,
   prop_tensor' := λ X Y hX hY, by exactI module.finite.tensor_product K X Y }

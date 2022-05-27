@@ -818,11 +818,11 @@ lemma eval_prod {ι : Type*} (s : finset ι) (p : ι → R[X]) (x : R) :
   eval x (∏ j in s, p j) = ∏ j in s, eval x (p j) :=
 (eval_ring_hom x).map_prod _ _
 
-lemma list.prod_comp (l : list R[X]) (q : R[X]) :
+lemma list_prod_comp (l : list R[X]) (q : R[X]) :
   l.prod.comp q = (l.map (λ p : R[X], p.comp q)).prod :=
 map_list_prod (comp_ring_hom q) _
 
-lemma multiset.prod_comp (s : multiset R[X]) (q : R[X]) :
+lemma multiset_prod_comp (s : multiset R[X]) (q : R[X]) :
   s.prod.comp q = (s.map (λ p : R[X], p.comp q)).prod :=
 map_multiset_prod (comp_ring_hom q) _
 

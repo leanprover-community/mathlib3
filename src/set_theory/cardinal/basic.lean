@@ -512,7 +512,7 @@ theorem le_min {ι I} {f : ι → cardinal} {a} : a ≤ cardinal.min I f ↔ ∀
 ⟨λ h i, le_trans h (min_le _ _),
  λ h, let ⟨i, e⟩ := min_eq I f in e.symm ▸ h i⟩
 
-protected theorem wf : @well_founded cardinal.{u} (<) :=
+protected theorem lt_wf : @well_founded cardinal.{u} (<) :=
 ⟨λ a, classical.by_contradiction $ λ h,
   let ι := {c :cardinal // ¬ acc (<) c},
       f : ι → cardinal := subtype.val,
@@ -521,13 +521,13 @@ protected theorem wf : @well_founded cardinal.{u} (<) :=
       classical.by_contradiction $ λ hj, h' $
       by have := min_le f ⟨j, hj⟩; rwa hi at this))⟩
 
-instance has_wf : @has_well_founded cardinal.{u} := ⟨(<), cardinal.wf⟩
+instance has_wf : @has_well_founded cardinal.{u} := ⟨(<), cardinal.lt_wf⟩
 
 instance : conditionally_complete_linear_order_bot cardinal :=
-cardinal.wf.conditionally_complete_linear_order_with_bot 0 $ le_antisymm (cardinal.zero_le _) $
-  not_lt.1 (cardinal.wf.not_lt_min set.univ ⟨0, mem_univ _⟩ (mem_univ 0))
+cardinal.lt_wf.conditionally_complete_linear_order_with_bot 0 $ le_antisymm (cardinal.zero_le _) $
+  not_lt.1 (cardinal.lt_wf.not_lt_min set.univ ⟨0, mem_univ _⟩ (mem_univ 0))
 
-instance wo : @is_well_order cardinal.{u} (<) := ⟨cardinal.wf⟩
+instance wo : @is_well_order cardinal.{u} (<) := ⟨cardinal.lt_wf⟩
 
 /-- The set in the definition of `cardinal.succ` is nonempty. -/
 theorem succ_nonempty (c : cardinal) : {c' : cardinal | c < c'}.nonempty := ⟨_, cantor c⟩

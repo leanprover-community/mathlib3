@@ -695,7 +695,7 @@ lemma rel_iso_enum {α β : Type u} {r : α → α → Prop} {s : β → β → 
   enum s o (by {convert hr using 1, apply quotient.sound, exact ⟨f.symm⟩ }) :=
 rel_iso_enum' _ _ _ _
 
-theorem wf : @well_founded ordinal (<) :=
+theorem lt_wf : @well_founded ordinal (<) :=
 ⟨λ a, induction_on a $ λ α r wo, by exactI
 suffices ∀ a, acc (<) (typein r a), from
 ⟨_, λ o h, let ⟨a, e⟩ := typein_surj r h in e ▸ this a⟩,
@@ -710,7 +710,7 @@ instance : has_well_founded ordinal := ⟨(<), wf⟩
 `induction` tactic, as in `induction i using ordinal.induction with i IH`. -/
 lemma induction {p : ordinal.{u} → Prop} (i : ordinal.{u})
   (h : ∀ j, (∀ k, k < j → p k) → p j) : p i :=
-ordinal.wf.induction i h
+ordinal.lt_wf.induction i h
 
 /-- Principal segment version of the `typein` function, embedding a well order into
   ordinals as a principal segment. -/

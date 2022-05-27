@@ -74,7 +74,7 @@ begin
 end
 
 @[simp] lemma realize_lift_at {n n' m : ℕ} {t : L.term (α ⊕ fin n)}
-  {v : (α ⊕ fin (n + n')) → M} :
+  {v : α ⊕ fin (n + n') → M} :
   (t.lift_at n' m).realize v = t.realize (v ∘
     (sum.map id (λ i, if ↑i < m then fin.cast_add n' i else fin.add_nat n' i))) :=
 realize_relabel
@@ -287,9 +287,9 @@ begin
 end
 
 lemma realize_relabel {m n : ℕ}
-  {φ : L.bounded_formula α n} {g : α → (β ⊕ fin m)} {v : β → M} {xs : fin (m + n) → M} :
+  {φ : L.bounded_formula α n} {g : α → β ⊕ fin m} {v : β → M} {xs : fin (m + n) → M} :
   (φ.relabel g).realize v xs ↔
-    φ.realize (sum.elim v (xs ∘ (fin.cast_add n)) ∘ g) (xs ∘ (fin.nat_add m)) :=
+    φ.realize (sum.elim v (xs ∘ fin.cast_add n) ∘ g) (xs ∘ fin.nat_add m) :=
 begin
   induction φ with _ _ _ _ _ _ _ _ _ _ _ ih1 ih2 n' _ ih3,
   { refl },
@@ -697,7 +697,7 @@ begin
       exact ⟨_, _, h⟩ } }
 end
 
-@[simp] lemma realize_to_formula (φ : L.bounded_formula α n) (v : (α ⊕ fin n) → M) :
+@[simp] lemma realize_to_formula (φ : L.bounded_formula α n) (v : α ⊕ fin n → M) :
   φ.to_formula.realize v ↔ φ.realize (v ∘ sum.inl) (v ∘ sum.inr) :=
 begin
   induction φ with _ _ _ _ _ _ _ _ _ _ _ ih1 ih2 _ _ ih3 a8 a9 a0,

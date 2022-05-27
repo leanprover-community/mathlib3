@@ -22,6 +22,7 @@ inductive path {V : Type u} [quiver.{v} V] (a : V) : V → Sort (max (u+1) v)
 | cons : Π {b c : V}, path b → (b ⟶ c) → path c
 
 /-- An arrow viewed as a path of length one. -/
+@[simp]
 def hom.to_path {V} [quiver V] {a b : V} (e : a ⟶ b) : path a b :=
 path.nil.cons e
 

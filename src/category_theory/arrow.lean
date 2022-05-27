@@ -51,6 +51,9 @@ def mk {X Y : T} (f : X ⟶ Y) : arrow T :=
   right := Y,
   hom := f }
 
+lemma mk_eq (f : arrow T) : arrow.mk f.hom = f :=
+by { cases f, refl, }
+
 theorem mk_injective (A B : T) :
   function.injective (arrow.mk : (A ⟶ B) → arrow T) :=
 λ f g h, by { cases h, refl }
@@ -227,7 +230,7 @@ subsingleton.intro $ λ a b, lift_struct.ext a b $ (cancel_mono g.hom).1 $ by si
 
 end
 
-variables {C : Type u} [category.{v} C]
+variables {C : Type u} [category.{v} C] {D : Type*} [category D]
 /-- A helper construction: given a square between `i` and `f ≫ g`, produce a square between
 `i` and `g`, whose top leg uses `f`:
 A  → X
@@ -252,6 +255,8 @@ B  → Z                 B → Z
 @[simps]
 def left_to_right : (left_func : arrow C ⥤ C) ⟶ right_func :=
 { app := λ f, f.hom }
+
+def is_inverted_by (f : arrow C) (F : C ⥤ D) : Prop := is_iso (F.map f.hom)
 
 end arrow
 

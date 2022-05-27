@@ -833,7 +833,7 @@ instance : has_zero nonote := ⟨⟨0, NF.zero⟩⟩
 instance : inhabited nonote := ⟨0⟩
 
 theorem lt_wf : @well_founded nonote (<) := inv_image.wf repr ordinal.lt_wf
-instance : has_well_founded nonote := ⟨(<), wf⟩
+instance : has_well_founded nonote := ⟨(<), lt_wf⟩
 
 /-- Convert a natural number to an ordinal notation -/
 def of_nat (n : ℕ) : nonote := ⟨of_nat n, ⟨⟨_, NF_below_of_nat _⟩⟩⟩

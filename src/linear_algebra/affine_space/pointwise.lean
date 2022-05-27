@@ -30,14 +30,18 @@ variables {k : Type*} {V : Type*} {P : Type*} [ring k] [add_comm_group V] [modul
           [affine_space V P]
 include V
 
-instance : has_vadd V (affine_subspace k P) :=
-{ vadd := λ x S, S.map (affine_equiv.const_vadd k P x) }
+/-- The additive action on an affine subspace corresponding to applying the action to every element.
 
-instance : add_action V (affine_subspace k P) :=
-{ zero_vadd := λ p,
+This is available as an instance in the `pointwise` locale. -/
+protected def add_action : add_action V (affine_subspace k P) :=
+{ vadd := λ x S, S.map (affine_equiv.const_vadd k P x),
+  zero_vadd := λ p,
     (congr_arg (λ f, p.map f) $ affine_map.ext $ by exact zero_vadd _).trans (p.map_id),
   add_vadd := λ x y p,
     (congr_arg (λ f, p.map f) $ affine_map.ext $ by exact add_vadd _ _).trans (p.map_map _ _).symm }
+
+localized "attribute [instance] submodule.pointwise_distrib_mul_action" in pointwise
+open_locale pointwise
 
 @[simp] lemma coe_const_vadd (v : V) (s : affine_subspace k P) :
   ((v +ᵥ s : affine_subspace k P) : set P) = v +ᵥ s := rfl
@@ -46,8 +50,7 @@ lemma mem_const_vadd_iff (v : V) {s : affine_subspace k P} {p : P} :
   v +ᵥ p ∈ v +ᵥ s ↔ p ∈ s :=
 vadd_mem_vadd_set_iff
 
-lemma const_vadd_empty {v : V} :
-  v +ᵥ (⊥ : affine_subspace k P)  = ⊥ :=
+lemma const_vadd_bot {v : V} : v +ᵥ (⊥ : affine_subspace k P) = ⊥ :=
 by { ext, simp, }
 
 lemma const_vadd_direction (v : V) {s : affine_subspace k P} :

@@ -78,7 +78,7 @@ The following notations are localized in the locale `convolution`:
 
 open set function filter measure_theory measure_theory.measure topological_space
 open continuous_linear_map metric
-open_locale pointwise topological_space
+open_locale pointwise topological_space nnreal
 
 variables {𝕜 G E E' E'' F F' F'' : Type*}
 variables [normed_group E] [normed_group E'] [normed_group E''] [normed_group F]
@@ -126,13 +126,13 @@ section measurability
 variables [measurable_space G] {μ : measure G}
 
 /-- The convolution of `f` and `g` exists at `x` when the function `t ↦ L (f t) (g (x - t))` is
-  integrable. There are various conditions on `f` and `g` to prove this. -/
+integrable. There are various conditions on `f` and `g` to prove this. -/
 def convolution_exists_at [has_sub G] (f : G → E) (g : G → E') (x : G) (L : E →L[𝕜] E' →L[𝕜] F)
   (μ : measure G . volume_tac) : Prop :=
 integrable (λ t, L (f t) (g (x - t))) μ
 
 /-- The convolution of `f` and `g` exists when the function `t ↦ L (f t) (g (x - t))` is integrable
-  for all `x : G`. There are various conditions on `f` and `g` to prove this. -/
+for all `x : G`. There are various conditions on `f` and `g` to prove this. -/
 def convolution_exists [has_sub G] (f : G → E) (g : G → E') (L : E →L[𝕜] E' →L[𝕜] F)
   (μ : measure G . volume_tac) : Prop :=
 ∀ x : G, convolution_exists_at f g x L μ
@@ -226,9 +226,9 @@ hf.convolution_integrand' L $ hg.mono' (quasi_measure_preserving_sub μ).absolut
 lemma measure_theory.integrable.convolution_integrand (hf : integrable f μ) (hg : integrable g μ) :
   integrable (λ p : G × G, L (f p.2) (g (p.1 - p.2))) (μ.prod μ) :=
 begin
-  have h_meas : ae_strongly_measurable (λ (p : G × G), (L (f p.2)) (g (p.1 - p.2))) (μ.prod μ) :=
+  have h_meas : ae_strongly_measurable (λ (p : G × G), L (f p.2) (g (p.1 - p.2))) (μ.prod μ) :=
     hf.ae_strongly_measurable.convolution_integrand L hg.ae_strongly_measurable,
-  have h2_meas : ae_strongly_measurable (λ (y : G), ∫ (x : G), ∥(L (f y)) (g (x - y))∥ ∂μ) μ :=
+  have h2_meas : ae_strongly_measurable (λ (y : G), ∫ (x : G), ∥L (f y) (g (x - y))∥ ∂μ) μ :=
     h_meas.prod_swap.norm.integral_prod_right',
   simp_rw [integrable_prod_iff' h_meas],
   refine ⟨eventually_of_forall (λ t, (L (f t)).integrable_comp (hg.comp_sub_right t)), _⟩,
@@ -351,7 +351,7 @@ end convolution_exists
 variables [normed_space ℝ F] [complete_space F]
 
 /-- The convolution of two functions `f` and `g` with respect to a continuous bilinear map `L` and
-  measure `μ`. It is defined to be `(f ⋆[L, μ] g) x = ∫ t, L (f t) (g (x - t)) ∂μ`. -/
+measure `μ`. It is defined to be `(f ⋆[L, μ] g) x = ∫ t, L (f t) (g (x - t)) ∂μ`. -/
 noncomputable def convolution [has_sub G] (f : G → E) (g : G → E') (L : E →L[𝕜] E' →L[𝕜] F)
   (μ : measure G . volume_tac) : G → F :=
 λ x, ∫ t, L (f t) (g (x - t)) ∂μ
@@ -447,7 +447,7 @@ compact_of_is_closed_subset (hcg.is_compact.add hcf) is_closed_closure $ closure
 variables [borel_space G] [second_countable_topology G]
 
 /-- The convolution is continuous if one function is locally integrable and the other has compact
-  support and is continuous. -/
+support and is continuous. -/
 lemma has_compact_support.continuous_convolution_right [locally_compact_space G] [t2_space G]
   (hcg : has_compact_support g) (hf : locally_integrable f μ)
   (hg : continuous g) : continuous (f ⋆[L, μ] g) :=
@@ -470,7 +470,7 @@ begin
 end
 
 /-- The convolution is continuous if one function is integrable and the other is bounded and
-  continuous. -/
+continuous. -/
 lemma bdd_above.continuous_convolution_right_of_integrable
   (hbg : bdd_above (range (λ x, ∥g x∥))) (hf : integrable f μ) (hg : continuous g) :
     continuous (f ⋆[L, μ] g) :=
@@ -489,6 +489,14 @@ begin
   { exact eventually_of_forall (λ t, (L.continuous₂.comp₂ continuous_const $
       hg.comp $ continuous_id.sub $ by apply continuous_const).continuous_at) }
 end
+
+/-- A version of `has_compact_support.continuous_convolution_right` that works if `G` is
+not locally compact but requires that `g` is integrable. -/
+lemma has_compact_support.continuous_convolution_right_of_integrable
+  (hcg : has_compact_support g) (hf : integrable f μ) (hg : continuous g) :
+    continuous (f ⋆[L, μ] g) :=
+(hg.norm.bdd_above_range_of_has_compact_support hcg.norm).continuous_convolution_right_of_integrable
+  L hf hg
 
 variables [sigma_finite μ] [is_add_right_invariant μ]
 
@@ -547,12 +555,11 @@ lemma bdd_above.continuous_convolution_left_of_integrable
 by { rw [← convolution_flip], exact hbf.continuous_convolution_right_of_integrable L.flip hg hf }
 
 /-- A version of `has_compact_support.continuous_convolution_left` that works if `G` is
-  not locally compact but requires that `g` is integrable. -/
+not locally compact but requires that `g` is integrable. -/
 lemma has_compact_support.continuous_convolution_left_of_integrable
   (hcf : has_compact_support f) (hf : continuous f) (hg : integrable g μ) :
     continuous (f ⋆[L, μ] g) :=
-(hf.norm.bdd_above_range_of_has_compact_support hcf.norm).continuous_convolution_left_of_integrable
-  L hf hg
+by { rw [← convolution_flip], exact hcf.continuous_convolution_right_of_integrable L.flip hg hf }
 
 end comm_group
 
@@ -560,11 +567,14 @@ section normed_group
 
 variables [semi_normed_group G]
 
-/-- We can simplify the RHS further if we assume `f` is integrable, but also if `L = (•)`.
-  TODO: add a version that assumes `antilipschitz_with` on `L`. -/
+/-- Compute `(f ⋆ g) x₀` if the support of the `f` is within `metric.ball 0 R`, and `g` is constant
+on `metric.ball x₀ R`.
+
+We can simplify the RHS further if we assume `f` is integrable, but also if `L = (•)` or more
+generally if `L` has a `antilipschitz_with`-condition. -/
 lemma convolution_eq_right' {x₀ : G} {R : ℝ}
   (hf : support f ⊆ ball (0 : G) R)
-  (hg : ∀ x ∈ ball x₀ R, g x = g x₀) : (f ⋆[L, μ] g) x₀ = ∫ (t : G), (L (f t)) (g x₀) ∂μ :=
+  (hg : ∀ x ∈ ball x₀ R, g x = g x₀) : (f ⋆[L, μ] g) x₀ = ∫ t, L (f t) (g x₀) ∂μ :=
 begin
   have h2 : ∀ t, L (f t) (g (x₀ - t)) = L (f t) (g x₀),
   { intro t, by_cases ht : t ∈ support f,
@@ -581,13 +591,18 @@ end
 variables [borel_space G] [second_countable_topology G]
 variables [is_add_left_invariant μ] [sigma_finite μ]
 
+/-- Approximate `(f ⋆ g) x₀` if the support of the `f` is bounded within a ball, and `g` is near
+`g x₀` on a ball with the same radius around `x₀`. See `dist_convolution_le` for a special case.
+
+We can simplify the second argument of `dist` further if we assume `f` is integrable, but also if
+`L = (•)` or more generally if `L` has a `antilipschitz_with`-condition. -/
 lemma dist_convolution_le' {x₀ : G} {R ε : ℝ}
   (hε : 0 ≤ ε)
   (hif : integrable f μ)
   (hf : support f ⊆ ball (0 : G) R)
   (hmg : ae_strongly_measurable g μ)
   (hg : ∀ x ∈ ball x₀ R, dist (g x) (g x₀) ≤ ε) :
-  dist ((f ⋆[L, μ] g : G → F) x₀) (∫ (t : G), (L (f t)) (g x₀) ∂μ) ≤ ∥L∥ * ∫ x, ∥f x∥ ∂μ * ε :=
+  dist ((f ⋆[L, μ] g : G → F) x₀) (∫ t, L (f t) (g x₀) ∂μ) ≤ ∥L∥ * ∫ x, ∥f x∥ ∂μ * ε :=
 begin
   have hfg : convolution_exists_at f g x₀ L μ,
   { refine bdd_above.convolution_exists_at L _ metric.is_open_ball.measurable_set
@@ -622,6 +637,11 @@ end
 
 variables [normed_space ℝ E] [normed_space ℝ E'] [complete_space E']
 
+/-- Approximate `f ⋆ g` if the support of the `f` is bounded within a ball, and `g` is near `g x₀`
+on a ball with the same radius around `x₀`.
+
+This is a special case of `dist_convolution_le'` where `L` is `(•)`, `f` has integral 1 and `f` is
+nonnegative. -/
 lemma dist_convolution_le {f : G → ℝ} {x₀ : G} {R ε : ℝ}
   (hε : 0 ≤ ε)
   (hf : support f ⊆ ball (0 : G) R)
@@ -636,9 +656,13 @@ begin
   convert (dist_convolution_le' _ hε hif hf hmg hg).trans _,
   { simp_rw [lsmul_apply, integral_smul_const, hintf, one_smul] },
   { simp_rw [real.norm_of_nonneg (hnf _), hintf, mul_one],
-    convert (mul_le_mul_of_nonneg_right op_norm_lsmul_le hε).trans_eq (one_mul ε) }
+    exact (mul_le_mul_of_nonneg_right op_norm_lsmul_le hε).trans_eq (one_mul ε) }
 end
 
+/-- `(φ i ⋆ g) x₀` tends to `g x₀` if `φ` is a sequence of nonnegative functions with integral 1
+whose support tends to small neighborhoods around `(0 : G)` and `g` is continuous at `x₀`.
+
+See also `cont_diff_bump_of_inner.convolution_tendsto_right'`. -/
 lemma convolution_tendsto_right {ι} {l : filter ι} {φ : ι → G → ℝ}
   (hnφ : ∀ i x, 0 ≤ φ i x)
   (hiφ : ∀ i, ∫ s, φ i s ∂μ = 1)
@@ -666,6 +690,7 @@ variables [inner_product_space ℝ G]
 variables [complete_space E']
 variables {a : G} {φ : cont_diff_bump_of_inner (0 : G)}
 
+/-- If `φ` is a bump function, compute `(φ ⋆ g) x₀` if `g` is constant on `metric.ball x₀ φ.R`. -/
 lemma convolution_eq_right {x₀ : G}
   (hg : ∀ x ∈ ball x₀ φ.R, g x = g x₀) : (φ ⋆[lsmul ℝ ℝ, μ] g : G → E') x₀ = integral μ φ • g x₀ :=
 by simp_rw [convolution_eq_right' _ φ.support_eq.subset hg, lsmul_apply, integral_smul_const]
@@ -674,6 +699,7 @@ variables [borel_space G]
 variables [is_locally_finite_measure μ] [is_open_pos_measure μ]
 variables [finite_dimensional ℝ G]
 
+/-- If `φ` is a normed bump function, compute `φ ⋆ g` if `g` is constant on `metric.ball x₀ φ.R`. -/
 lemma normed_convolution_eq_right {x₀ : G}
   (hg : ∀ x ∈ ball x₀ φ.R, g x = g x₀) : (φ.normed μ ⋆[lsmul ℝ ℝ, μ] g : G → E') x₀ = g x₀ :=
 by { simp_rw [convolution_eq_right' _ φ.support_normed_eq.subset hg, lsmul_apply],
@@ -681,6 +707,8 @@ by { simp_rw [convolution_eq_right' _ φ.support_normed_eq.subset hg, lsmul_appl
 
 variables [is_add_left_invariant μ]
 
+/-- If `φ` is a normed bump function, approximate `(φ ⋆ g) x₀` if `g` is near `g x₀` on a ball with
+radius `φ.R` around `x₀`. -/
 lemma dist_normed_convolution_le {x₀ : G} {ε : ℝ}
   (hmg : ae_strongly_measurable g μ)
   (hg : ∀ x ∈ ball x₀ φ.R, dist (g x) (g x₀) ≤ ε) :
@@ -688,6 +716,8 @@ lemma dist_normed_convolution_le {x₀ : G} {ε : ℝ}
 dist_convolution_le (by simp_rw [← dist_self (g x₀), hg x₀ (mem_ball_self φ.R_pos)])
   φ.support_normed_eq.subset φ.nonneg_normed φ.integral_normed hmg hg
 
+/-- If `φ i` is a sequence of normed bump function, `(φ i ⋆ g) x₀` tends to `g x₀` if `(φ i).R`
+tends to `0` and `g` is continuous at `x₀`. -/
 lemma convolution_tendsto_right' {ι} {φ : ι → cont_diff_bump_of_inner (0 : G)}
   {l : filter ι} (hφ : tendsto (λ i, (φ i).R) l (𝓝 0))
   (hmg : ae_strongly_measurable g μ) {x₀ : G} (hcg : continuous_at g x₀) :
@@ -705,6 +735,7 @@ begin
   exact ball_subset_ball hi.le
 end
 
+/-- Special case of `cont_diff_bump_of_inner.convolution_tendsto_right'` where `g` is continuous. -/
 lemma convolution_tendsto_right {ι} {φ : ι → cont_diff_bump_of_inner (0 : G)}
   {l : filter ι} (hφ : tendsto (λ i, (φ i).R) l (𝓝 0))
   (hg : continuous g) (x₀ : G) :
@@ -779,6 +810,9 @@ end
 variables [sigma_finite μ] [is_add_left_invariant μ]
 variables [normed_space 𝕜 G] [proper_space G]
 
+/-- Compute the total derivative of `f ⋆ g` if `g` is `C^1` with compact support and `f` is locally
+integrable. To write down the total derivative as a convolution, we use
+`continuous_linear_map.precompR`. -/
 lemma has_compact_support.has_fderiv_at_convolution_right
   (hcg : has_compact_support g) (hf : locally_integrable f μ) (hg : cont_diff 𝕜 1 g) (x₀ : G) :
   has_fderiv_at (f ⋆[L, μ] g) ((f ⋆[L.precompR G, μ] fderiv 𝕜 g) x₀) x₀ :=
@@ -842,10 +876,7 @@ end
 lemma has_compact_support.cont_diff_convolution_left [finite_dimensional 𝕜 G] [is_neg_invariant μ]
   (hcf : has_compact_support f) (hf : cont_diff 𝕜 n f) (hg : locally_integrable g μ) :
   cont_diff 𝕜 n (f ⋆[L, μ] g) :=
-begin
-  rw [← convolution_flip],
-  exact hcf.cont_diff_convolution_right L.flip hg hf,
-end
+by { rw [← convolution_flip], exact hcf.cont_diff_convolution_right L.flip hg hf }
 
 end is_R_or_C
 

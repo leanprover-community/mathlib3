@@ -513,7 +513,7 @@ protected theorem wf : @well_founded cardinal.{u} (<) :=
   simpa [mk_out] using this
 end⟩
 
-instance has_wf : @has_well_founded cardinal.{u} := ⟨(<), cardinal.wf⟩
+instance : has_well_founded cardinal.{u} := ⟨(<), cardinal.wf⟩
 
 instance : conditionally_complete_linear_order_bot cardinal :=
 cardinal.wf.conditionally_complete_linear_order_with_bot 0 $ le_antisymm (cardinal.zero_le _) $

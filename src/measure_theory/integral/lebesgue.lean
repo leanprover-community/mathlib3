@@ -1375,7 +1375,7 @@ end
 
 -- Use stronger lemmas `lintegral_add_left`/`lintegral_add_right` instead
 private lemma lintegral_add_aux {f g : α → ℝ≥0∞} (hf : measurable f) (hg : measurable g) :
-  (∫⁻ a, f a + g a ∂μ) = (∫⁻ a, f a ∂μ) + (∫⁻ a, g a ∂μ) :=
+  ∫⁻ a, f a + g a ∂μ = ∫⁻ a, f a ∂μ + ∫⁻ a, g a ∂μ :=
 calc (∫⁻ a, f a + g a ∂μ) =
     (∫⁻ a, (⨆n, (eapprox f n : α → ℝ≥0∞) a) + (⨆n, (eapprox g n : α → ℝ≥0∞) a) ∂μ) :
     by simp only [supr_eapprox_apply, hf, hg]
@@ -1405,7 +1405,7 @@ calc (∫⁻ a, f a + g a ∂μ) =
 integral of `f + g` equals the sum of integrals. This lemma assumes that `f` is integrable, see also
 `measure_theory.lintegral_add_right` and primed versions of these lemmas. -/
 @[simp] lemma lintegral_add_left {f : α → ℝ≥0∞} (hf : measurable f) (g : α → ℝ≥0∞) :
-  (∫⁻ a, f a + g a ∂μ) = (∫⁻ a, f a ∂μ) + (∫⁻ a, g a ∂μ) :=
+  ∫⁻ a, f a + g a ∂μ = ∫⁻ a, f a ∂μ + ∫⁻ a, g a ∂μ :=
 begin
   refine le_antisymm _ (le_lintegral_add _ _),
   rcases exists_measurable_le_lintegral_eq μ (λ a, f a + g a) with ⟨φ, hφm, hφ_le, hφ_eq⟩,
@@ -1417,19 +1417,19 @@ begin
 end
 
 lemma lintegral_add_left' {f : α → ℝ≥0∞} (hf : ae_measurable f μ) (g : α → ℝ≥0∞) :
-  (∫⁻ a, f a + g a ∂μ) = (∫⁻ a, f a ∂μ) + (∫⁻ a, g a ∂μ) :=
+  ∫⁻ a, f a + g a ∂μ = ∫⁻ a, f a ∂μ + ∫⁻ a, g a ∂μ :=
 by rw [lintegral_congr_ae hf.ae_eq_mk, ← lintegral_add_left hf.measurable_mk,
   lintegral_congr_ae (hf.ae_eq_mk.add (ae_eq_refl g))]
 
 lemma lintegral_add_right' (f : α → ℝ≥0∞) {g : α → ℝ≥0∞} (hg : ae_measurable g μ) :
-  (∫⁻ a, f a + g a ∂μ) = (∫⁻ a, f a ∂μ) + (∫⁻ a, g a ∂μ) :=
+  ∫⁻ a, f a + g a ∂μ = ∫⁻ a, f a ∂μ + ∫⁻ a, g a ∂μ :=
 by simpa only [add_comm] using lintegral_add_left' hg f
 
 /-- If `f g : α → ℝ≥0∞` are two functions and one of them is (a.e.) measurable, then the Lebesgue
 integral of `f + g` equals the sum of integrals. This lemma assumes that `g` is integrable, see also
 `measure_theory.lintegral_add_left` and primed versions of these lemmas. -/
 @[simp] lemma lintegral_add_right (f : α → ℝ≥0∞) {g : α → ℝ≥0∞} (hg : measurable g) :
-  (∫⁻ a, f a + g a ∂μ) = (∫⁻ a, f a ∂μ) + (∫⁻ a, g a ∂μ) :=
+  ∫⁻ a, f a + g a ∂μ = ∫⁻ a, f a ∂μ + ∫⁻ a, g a ∂μ :=
 lintegral_add_right' f hg.ae_measurable
 
 @[simp] lemma lintegral_smul_measure (c : ℝ≥0∞) (f : α → ℝ≥0∞) :
@@ -1596,7 +1596,7 @@ begin
     simp [hφ x, hs, indicator_le_indicator] }
 end
 
-lemma lintegral_indicator' (f : α → ℝ≥0∞) {s : set α} (hs : null_measurable_set s μ) :
+lemma lintegral_indicator₀ (f : α → ℝ≥0∞) {s : set α} (hs : null_measurable_set s μ) :
   ∫⁻ a, s.indicator f a ∂μ = ∫⁻ a in s, f a ∂μ :=
 by rw [← lintegral_congr_ae (indicator_ae_eq_of_ae_eq_set hs.to_measurable_ae_eq),
   lintegral_indicator _ (measurable_set_to_measurable _ _),
@@ -1626,7 +1626,7 @@ begin
       (measure_mono $ λ x, (add_le_add_right (hφ_le _) _).trans) _) _
   ... = ∫⁻ x, φ x + indicator {x | φ x + ε ≤ g x} (λ _, ε) x ∂μ :
     begin
-      rw [lintegral_add_left hφm, lintegral_indicator', set_lintegral_const],
+      rw [lintegral_add_left hφm, lintegral_indicator₀, set_lintegral_const],
       exact measurable_set_le (hφm.null_measurable.measurable'.add_const _) hg.null_measurable
     end
   ... ≤ ∫⁻ x, g x ∂μ : lintegral_mono_ae (hle.mono $ λ x hx₁, _),

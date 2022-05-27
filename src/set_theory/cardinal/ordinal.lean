@@ -305,7 +305,7 @@ begin
     (by simpa only [mul_one] using
       mul_le_mul_left' (one_lt_omega.le.trans h) c),
   -- the only nontrivial part is `c * c ≤ c`. We prove it inductively.
-  refine acc.rec_on (cardinal.wf.apply c) (λ c _,
+  refine acc.rec_on (has_well_founded.wf.apply c) (λ c _,
     quotient.induction_on c $ λ α IH ol, _) h,
   -- consider the minimal well-order `r` on `α` (a type with cardinality `c`).
   rcases ord_eq α with ⟨r, wo, e⟩, resetI,

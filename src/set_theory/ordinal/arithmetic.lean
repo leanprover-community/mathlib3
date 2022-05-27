@@ -25,7 +25,7 @@ successor ordinals and limit ordinals, in `limit_rec_on`.
 * `o₁ * o₂` is the lexicographic order on `o₂ × o₁`.
 * `o₁ / o₂` is the ordinal `o` such that `o₁ = o₂ * o + o'` with `o' < o₂`. We also define the
   divisibility predicate, and a modulo operation.
-* `succ o = o + 1` is the successor of `o`.
+* `order.succ o = o + 1` is the successor of `o`.
 * `pred o` if the predecessor of `o`. If `o` is not a successor, we set `pred o = o`.
 
 We also define the power function and the logarithm function on ordinals, and discuss the properties

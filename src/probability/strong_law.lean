@@ -279,7 +279,7 @@ begin
   ... = ∫ x in 0..N, x + 1 ∂ρ :
     begin
       rw interval_integral.sum_integral_adjacent_intervals (λ k hk, _),
-      { refl },
+      { norm_cast },
       { exact (continuous_id.add continuous_const).interval_integrable _ _ }
     end
   ... = ∫ x in 0..N, x ∂ρ + ∫ x in 0..N, 1 ∂ρ :
@@ -369,7 +369,7 @@ begin
       congr' 1 with j,
       congr' 1,
       rw interval_integral.sum_integral_adjacent_intervals,
-      { refl },
+      { norm_cast },
       assume k hk,
       exact (continuous_id.pow _).interval_integrable _ _,
     end
@@ -410,7 +410,7 @@ begin
           begin
             apply mul_le_mul_of_nonneg_right _
               (mul_nonneg zero_le_two ((nat.cast_nonneg k).trans hx.1.le)),
-            apply (div_le_one _).2 hx.2,
+            apply_mod_cast (div_le_one _).2 hx.2,
             simp only [nat.cast_add, nat.cast_one],
             linarith only [show (0 : ℝ) ≤ k, from  nat.cast_nonneg k],
           end
@@ -421,7 +421,7 @@ begin
       rw interval_integral.sum_integral_adjacent_intervals (λ k hk, _),
       swap, { exact (continuous_const.mul continuous_id').interval_integrable _ _ },
       rw interval_integral.integral_const_mul,
-      refl
+      norm_cast
     end
   ... ≤ 2 * 𝔼[X] :
     begin

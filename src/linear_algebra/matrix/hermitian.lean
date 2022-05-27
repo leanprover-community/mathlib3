@@ -35,20 +35,21 @@ variables [fintype n] [decidable_eq n]
 
 /-- A matrix is hermitian iff the corresponding linear map is self adjoint. -/
 lemma is_hermitian_iff_is_self_adjoint {A : matrix n n 𝕜} :
-  is_hermitian A ↔ @inner_product_space.is_self_adjoint 𝕜 (pi_Lp 2 (λ (_ : n), 𝕜)) _ _ A.to_lin' :=
+  is_hermitian A ↔ inner_product_space.is_self_adjoint
+    ((pi_Lp.linear_equiv 𝕜 (λ _ : n, 𝕜)).symm.conj A.to_lin' : module.End 𝕜 (pi_Lp 2 _)) :=
 begin
+  rw [inner_product_space.is_self_adjoint, (pi_Lp.equiv 2 (λ _ : n, 𝕜)).symm.surjective.forall₂],
+  simp only [linear_equiv.conj_apply, linear_map.comp_apply, linear_equiv.coe_coe,
+    pi_Lp.linear_equiv_apply, pi_Lp.linear_equiv_symm_apply, linear_equiv.symm_symm],
+  simp_rw [euclidean_space.inner_eq_star_dot_product, equiv.apply_symm_apply, to_lin'_apply,
+    star_mul_vec, dot_product_mul_vec],
   split,
-  show A.is_hermitian → ∀ x y, ⟪A.mul_vec x, y⟫ = ⟪x, A.mul_vec y⟫,
-  { intros h x y,
-    unfold is_hermitian at h,
-    simp only [pi_Lp.equiv, equiv.refl_apply, euclidean_space.inner_eq_star_dot_product,
-      star_mul_vec, matrix.dot_product_mul_vec, h, star_eq_conj_transpose] },
-  show (∀ x y, ⟪A.mul_vec x, y⟫ = ⟪x, A.mul_vec y⟫) → A.is_hermitian,
+  { rintro (h : Aᴴ = A) x y,
+    rw h },
   { intro h,
     ext i j,
-    have := h (euclidean_space.single i 1) (euclidean_space.single j 1),
-    simpa [euclidean_space.inner_single_right, euclidean_space.inner_single_left]
-      using this }
+    simpa only [matrix.star_single, map_one, vec_mul_single, one_smul,
+      dot_product_single, mul_one, star_one] using h (pi.single i 1) (pi.single j 1) }
 end
 
 end matrix

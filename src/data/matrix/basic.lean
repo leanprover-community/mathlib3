@@ -1142,6 +1142,10 @@ lemma mul_vec_smul [fintype n] [monoid R] [non_unital_non_assoc_semiring S] [dis
   M.mul_vec (b • v) = b • M.mul_vec v :=
 by { ext i, simp only [mul_vec, dot_product, finset.smul_sum, pi.smul_apply, mul_smul_comm] }
 
+@[simp] lemma vec_mul_single [fintype m] [decidable_eq m] (A : matrix m n α) (x : α) (i : m) :
+   vec_mul (pi.single i x) A = x • A i :=
+by { ext, simp [vec_mul, pi.single_apply] }
+
 end non_unital_non_assoc_semiring
 
 section non_unital_semiring
@@ -1487,6 +1491,10 @@ lemma star_eq_conj_transpose [has_star α] (M : matrix m m α) : star M = Mᴴ :
 
 @[simp] lemma star_apply [has_star α] (M : matrix n n α) (i j) :
   (star M) i j = star (M j i) := rfl
+
+lemma star_single [add_monoid α] [star_add_monoid α] [decidable_eq n] (i : n) (a : α) :
+  star (pi.single i a) = pi.single i (star a) :=
+by { ext j, by_cases h : j = i; simp [pi.single_apply, h, star_zero] }
 
 instance [has_involutive_star α] : has_involutive_star (matrix n n α) :=
 { star_involutive := conj_transpose_conj_transpose }

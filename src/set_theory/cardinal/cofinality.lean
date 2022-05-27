@@ -306,7 +306,7 @@ theorem nfp_family_lt_ord_lift {ι} {f : ι → ordinal → ordinal} {c} (hc : �
   nfp_family.{u v} f a < c :=
 begin
   refine sup_lt_ord_lift ((cardinal.lift_le.2 (mk_list_le_max ι)).trans_lt _) (λ l, _),
-  { rw lift_max',
+  { rw lift_max,
     apply max_lt _ hc',
     rwa cardinal.lift_omega },
   { induction l with i l H,

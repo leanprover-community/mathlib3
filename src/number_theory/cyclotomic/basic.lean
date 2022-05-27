@@ -429,7 +429,7 @@ begin
   have hfin := (multiplicity.finite_nat_iff.2 ⟨char_p.char_ne_one K p, n.pos⟩),
   obtain ⟨m, hm⟩ := multiplicity.exists_eq_pow_mul_and_not_dvd hfin,
   by_cases hp : p ∣ n,
-  { haveI : fact (p.prime),
+  { haveI : fact p.prime,
     { refine ⟨(or_iff_left (λ h, _)).1 (char_p.char_is_prime_or_zero K p)⟩,
       have := hm.1,
       conv at this { congr, skip, congr, congr, rw [h] },

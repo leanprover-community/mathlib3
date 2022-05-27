@@ -477,11 +477,15 @@ noncomputable def with_top_add_equiv : enat ≃+ with_top ℕ :=
 
 end with_top_equiv
 
-instance : is_well_order enat (<) :=
-⟨show well_founded (λ a b : enat, a < b),
-by haveI := classical.dec; simp only [to_with_top_lt.symm] {eta := ff};
-    exact inv_image.wf _ (with_top.well_founded_lt nat.lt_wf)⟩
+lemma lt_wf : @well_founded enat (<) :=
+begin
+  classical,
+  change well_founded (λ a b : enat, a < b),
+  simp only [to_with_top_lt.symm] {eta := ff}
+  exact inv_image.wf _ (with_top.well_founded_lt nat.lt_wf)
+end
 
+instance : is_well_order enat (<) := ⟨lt_wf⟩ 
 instance : has_well_founded enat := ⟨(<), is_well_order.wf⟩
 
 section find

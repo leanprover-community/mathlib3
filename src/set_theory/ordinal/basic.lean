@@ -695,22 +695,20 @@ lemma rel_iso_enum {α β : Type u} {r : α → α → Prop} {s : β → β → 
   enum s o (by {convert hr using 1, apply quotient.sound, exact ⟨f.symm⟩ }) :=
 rel_iso_enum' _ _ _ _
 
-theorem wf : @well_founded ordinal (<) :=
-⟨λ a, induction_on a $ λ α r wo, by exactI
+instance : has_well_founded ordinal :=
+⟨(<), ⟨λ a, induction_on a $ λ α r wo, by exactI
 suffices ∀ a, acc (<) (typein r a), from
 ⟨_, λ o h, let ⟨a, e⟩ := typein_surj r h in e ▸ this a⟩,
 λ a, acc.rec_on (wo.wf.apply a) $ λ x H IH, ⟨_, λ o h, begin
   rcases typein_surj r (lt_trans h (typein_lt_type r _)) with ⟨b, rfl⟩,
   exact IH _ ((typein_lt_typein r).1 h)
-end⟩⟩
-
-instance : has_well_founded ordinal := ⟨(<), wf⟩
+end⟩⟩⟩
 
 /-- Reformulation of well founded induction on ordinals as a lemma that works with the
 `induction` tactic, as in `induction i using ordinal.induction with i IH`. -/
 lemma induction {p : ordinal.{u} → Prop} (i : ordinal.{u})
   (h : ∀ j, (∀ k, k < j → p k) → p j) : p i :=
-ordinal.wf.induction i h
+has_well_founded.wf.induction i h
 
 /-- Principal segment version of the `typein` function, embedding a well order into
   ordinals as a principal segment. -/
@@ -1056,7 +1054,7 @@ instance : linear_order ordinal :=
   decidable_le := classical.dec_rel _,
   ..ordinal.partial_order }
 
-instance : is_well_order ordinal (<) := ⟨wf⟩
+instance : is_well_order ordinal (<) := ⟨has_well_founded.wf⟩
 
 instance : succ_order ordinal := succ_order.of_succ_le_iff succ (λ _ _, succ_le)
 
@@ -1178,13 +1176,13 @@ by simp only [lift.principal_seg_top, univ_id]
 
 /-- The minimal element of a nonempty family of ordinals -/
 def min {ι} (I : nonempty ι) (f : ι → ordinal) : ordinal :=
-wf.min (set.range f) (let ⟨i⟩ := I in ⟨_, set.mem_range_self i⟩)
+has_well_founded.wf.min (set.range f) (let ⟨i⟩ := I in ⟨_, set.mem_range_self i⟩)
 
 theorem min_eq {ι} (I) (f : ι → ordinal) : ∃ i, min I f = f i :=
-let ⟨i, e⟩ := wf.min_mem (set.range f) _ in ⟨i, e.symm⟩
+let ⟨i, e⟩ := has_well_founded.wf.min_mem (set.range f) _ in ⟨i, e.symm⟩
 
 theorem min_le {ι I} (f : ι → ordinal) (i) : min I f ≤ f i :=
-le_of_not_gt $ wf.not_lt_min (set.range f) _ (set.mem_range_self i)
+le_of_not_gt $ has_well_founded.wf.not_lt_min (set.range f) _ (set.mem_range_self i)
 
 theorem le_min {ι I} {f : ι → ordinal} {a} : a ≤ min I f ↔ ∀ i, a ≤ f i :=
 ⟨λ h i, le_trans h (min_le _ _),
@@ -1197,8 +1195,8 @@ by rw e; exact lift_le.2 (le_min.2 $ λ j, lift_le.1 $
 by have := min_le (lift ∘ f) j; rwa e at this)
 
 instance : conditionally_complete_linear_order_bot ordinal :=
-wf.conditionally_complete_linear_order_with_bot 0 $ le_antisymm (ordinal.zero_le _) $
-  not_lt.1 (wf.not_lt_min set.univ ⟨0, mem_univ _⟩ (mem_univ 0))
+is_well_order.wf.conditionally_complete_linear_order_with_bot 0 $ le_antisymm (ordinal.zero_le _) $
+  not_lt.1 (is_well_order.wf.not_lt_min set.univ ⟨0, mem_univ _⟩ (mem_univ 0))
 
 @[simp] lemma bot_eq_zero : (⊥ : ordinal) = 0 := rfl
 
@@ -1216,10 +1214,7 @@ instance : no_max_order ordinal :=
 ⟨λ a, ⟨a.succ, lt_succ_self a⟩⟩
 
 @[simp] theorem Inf_empty : Inf (∅ : set ordinal) = 0 :=
-begin
-  change dite _ (wf.min ∅) (λ _, 0) = 0,
-  simp only [not_nonempty_empty, not_false_iff, dif_neg]
-end
+dif_neg not_nonempty_empty
 
 end ordinal
 

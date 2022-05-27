@@ -114,6 +114,9 @@ begin
   simp [average_def, map_sum, hv, finset.card_univ, nsmul_eq_smul_cast k _ v, smul_smul],
 end
 
+theorem is_proj_average_map : linear_map.is_proj ρ.invariants ρ.average_map :=
+⟨ρ.average_map_invariant, ρ.average_map_id⟩
+
 end invariants
 
 namespace lin_hom

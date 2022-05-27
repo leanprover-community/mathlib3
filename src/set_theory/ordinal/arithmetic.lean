@@ -99,6 +99,7 @@ theorem add_succ (o₁ o₂ : ordinal) : o₁ + succ o₂ = succ (o₁ + o₂) :
 (add_assoc _ _ _).symm
 
 @[simp] theorem succ_zero : succ 0 = 1 := zero_add _
+@[simp] theorem succ_one : succ 1 = 2 := rfl
 
 theorem one_le_iff_pos {o : ordinal} : 1 ≤ o ↔ 0 < o :=
 by rw [← succ_zero, succ_le]
@@ -182,7 +183,7 @@ lt_iff_le_and_ne.2 ⟨ordinal.zero_le _, ne.symm $ ordinal.one_ne_zero⟩
 @[simp] theorem zero_le_one : (0 : ordinal) ≤ 1 :=
 zero_lt_one.le
 
-instance : unique (1 : ordinal).out.α :=
+instance unique_out_one : unique (1 : ordinal).out.α :=
 { default := enum (<) 0 (by simp),
   uniq := λ a, begin
     rw ←enum_typein (<) a,
@@ -352,7 +353,7 @@ end
   @limit_rec_on C o H₁ H₂ H₃ = H₃ o h (λ x h, @limit_rec_on C x H₁ H₂ H₃) :=
 by rw [limit_rec_on, wf.fix_eq, dif_neg h.1, dif_neg (not_succ_of_is_limit h)]; refl
 
-instance (o : ordinal) : order_top o.succ.out.α :=
+instance order_top_out_succ (o : ordinal) : order_top o.succ.out.α :=
 ⟨_, le_enum_succ⟩
 
 theorem enum_succ_eq_top {o : ordinal} :
@@ -1222,6 +1223,10 @@ theorem lt_bsup_of_limit {o : ordinal} {f : Π a < o, ordinal}
   (ho : ∀ a < o, succ a < o) (i h) : f i h < bsup o f :=
 (hf _ _ $ lt_succ_self i).trans_le (le_bsup f i.succ $ ho _ h)
 
+theorem bsup_succ_of_mono {o : ordinal} {f : Π a < succ o, ordinal}
+  (hf : ∀ {i j} hi hj, i ≤ j → f i hi ≤ f j hj) : bsup _ f = f o (lt_succ_self o) :=
+le_antisymm (bsup_le (λ i hi, hf _ _ (lt_succ.1 hi))) (le_bsup _ _ _)
+
 @[simp] theorem bsup_zero (f : Π a < (0 : ordinal), ordinal) : bsup 0 f = 0 :=
 bsup_eq_zero_iff.2 (λ i hi, (ordinal.not_lt_zero i hi).elim)
 
@@ -1454,6 +1459,10 @@ begin
   rw bsup_eq_blsub_iff_lt_bsup,
   exact λ i hi, (hf i hi).trans_le (le_bsup f _ _)
 end
+
+theorem blsub_succ_of_mono {o : ordinal} {f : Π a < succ o, ordinal}
+  (hf : ∀ {i j} hi hj, i ≤ j → f i hi ≤ f j hj) : blsub _ f = succ (f o (lt_succ_self o)) :=
+bsup_succ_of_mono $ λ i j hi hj h, succ_le_succ.2 (hf hi hj h)
 
 @[simp] theorem blsub_eq_zero_iff {o} {f : Π a < o, ordinal} : blsub o f = 0 ↔ o = 0 :=
 by { rw [←lsub_eq_blsub, lsub_eq_zero_iff], exact out_empty_iff_eq_zero }

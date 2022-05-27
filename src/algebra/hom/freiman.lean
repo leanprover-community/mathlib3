@@ -232,7 +232,7 @@ Freiman homomorphism sending `x` to `-f x`."]
 instance : has_inv (A →*[n] G) :=
 ⟨λ f, { to_fun := λ x, (f x)⁻¹,
   map_prod_eq_map_prod' := λ s t hsA htA hs ht h,
-    by rw [prod_map_inv', prod_map_inv', map_prod_eq_map_prod f hsA htA hs ht h] }⟩
+    by rw [prod_map_inv, prod_map_inv, map_prod_eq_map_prod f hsA htA hs ht h] }⟩
 
 @[simp, to_additive] lemma inv_apply (f : A →*[n] G) (x : α) : f⁻¹ x = (f x)⁻¹ := rfl
 

@@ -79,11 +79,11 @@ def zmod : ℕ → Type
 namespace zmod
 
 instance fintype : Π (n : ℕ) [fact (0 < n)], fintype (zmod n)
-| 0     h := false.elim $ nat.not_lt_zero 0 h.1
+| 0     h := (lt_irrefl _ h.1).elim
 | (n+1) _ := fin.fintype (n+1)
 
-instance fintype' (n : ℕ) [hn : ne_zero n] : fintype (zmod n) :=
-@zmod.fintype n ⟨nat.pos_of_ne_zero hn.1⟩
+instance fintype' (n : ℕ) [ne_zero n] : fintype (zmod n) :=
+@zmod.fintype n ⟨ne_zero.pos n⟩
 
 instance infinite : infinite (zmod 0) :=
 int.infinite
@@ -91,7 +91,7 @@ int.infinite
 @[simp] lemma card (n : ℕ) [fintype (zmod n)] : fintype.card (zmod n) = n :=
 begin
   casesI n,
-  { exfalso, exact not_fintype (zmod 0) },
+  { exact (not_fintype (zmod 0)).elim },
   { convert fintype.card_fin (n+1) }
 end
 

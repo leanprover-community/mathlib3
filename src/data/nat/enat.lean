@@ -481,7 +481,7 @@ lemma lt_wf : @well_founded enat (<) :=
 begin
   classical,
   change well_founded (λ a b : enat, a < b),
-  simp only [to_with_top_lt.symm] {eta := ff},
+  simp_rw ←to_with_top_lt,
   exact inv_image.wf _ (with_top.well_founded_lt nat.lt_wf)
 end
 

@@ -226,3 +226,7 @@ lemma ring_hom.char_zero_iff {ϕ : R →+* S} (hϕ : function.injective ϕ) :
   λ hS, by exactI ϕ.char_zero⟩
 
 end ring_hom
+
+lemma ring_hom.injective_nat {α : Type*} [non_assoc_semiring α] (f : ℕ →+* α) [char_zero α] :
+  function.injective f :=
+subsingleton.elim (nat.cast_ring_hom _) f ▸ nat.cast_injective

@@ -49,8 +49,55 @@ local notation `expR` := real.exp
 
 namespace phragmen_lindelof
 
-variables {E : Type*} [normed_group E] [normed_space ℂ E] {a b C : ℝ} {f g : ℂ → E} {z : ℂ}
-  {l : filter ℂ}
+/-!
+### Auxiliary lemmas
+-/
+
+variables {E : Type*} [normed_group E]
+
+/-- An auxiliary lemma that combines two double exponential estimates into a similar estimate
+on the difference of the functions. -/
+lemma is_O_sub_exp_exp {a : ℝ} {f g : ℂ → E} {l : filter ℂ} {u : ℂ → ℝ}
+  (hBf : ∃ (c < a) B, is_O f (λ z, expR (B * expR (c * |u z|))) l)
+  (hBg : ∃ (c < a) B, is_O g (λ z, expR (B * expR (c * |u z|))) l) :
+  ∃ (c < a) B, is_O (f - g) (λ z, expR (B * expR (c * |u z|))) l :=
+begin
+  have : ∀ {c₁ c₂ B₁ B₂}, c₁ ≤ c₂ → 0 ≤ B₂ → B₁ ≤ B₂ → ∀ z,
+    ∥expR (B₁ * expR (c₁ * |u z|))∥ ≤ ∥expR (B₂ * expR (c₂ * |u z|))∥,
+  { intros c₁ c₂ B₁ B₂ hc hB₀ hB z,
+    rw [real.norm_eq_abs, real.norm_eq_abs, real.abs_exp, real.abs_exp, real.exp_le_exp],
+    exact mul_le_mul hB (real.exp_le_exp.2 $ mul_le_mul_of_nonneg_right hc $ abs_nonneg _)
+      (real.exp_pos _).le hB₀ },
+  rcases hBf with ⟨cf, hcf, Bf, hOf⟩, rcases hBg with ⟨cg, hcg, Bg, hOg⟩,
+  refine ⟨max cf cg, max_lt hcf hcg, max 0 (max Bf Bg), _⟩,
+  refine (hOf.trans_le $ this _ _ _).sub (hOg.trans_le $ this _ _ _),
+  exacts [le_max_left _ _, le_max_left _ _, (le_max_left _ _).trans (le_max_right _ _),
+    le_max_right _ _, le_max_left _ _, (le_max_right _ _).trans (le_max_right _ _)]
+end
+
+/-- An auxiliary lemma that combines two “exponential of a power” estimates into a similar estimate
+on the difference of the functions. -/
+lemma is_O_sub_exp_rpow {a : ℝ} {f g : ℂ → E} {l : filter ℂ}
+  (hBf : ∃ (c < a) B, is_O f (λ z, expR (B * (abs z) ^ c)) (comap abs at_top ⊓ l))
+  (hBg : ∃ (c < a) B, is_O g (λ z, expR (B * (abs z) ^ c)) (comap abs at_top ⊓ l)) :
+  ∃ (c < a) B, is_O (f - g) (λ z, expR (B * (abs z) ^ c)) (comap abs at_top ⊓ l) :=
+begin
+  have : ∀ {c₁ c₂ B₁ B₂ : ℝ}, c₁ ≤ c₂ → 0 ≤ B₂ → B₁ ≤ B₂ →
+    is_O (λ z : ℂ, expR (B₁ * (abs z) ^ c₁)) (λ z, expR (B₂ * (abs z) ^ c₂)) (comap abs at_top ⊓ l),
+  { have : ∀ᶠ z : ℂ in comap abs at_top ⊓ l, 1 ≤ abs z,
+      from ((eventually_ge_at_top 1).comap _).filter_mono inf_le_left,
+    refine λ c₁ c₂ B₁ B₂ hc hB₀ hB, is_O.of_bound 1 (this.mono $ λ z hz, _),
+    rw [one_mul, real.norm_eq_abs, real.norm_eq_abs, real.abs_exp, real.abs_exp, real.exp_le_exp],
+    exact mul_le_mul hB (real.rpow_le_rpow_of_exponent_le hz hc)
+      (real.rpow_nonneg_of_nonneg (abs_nonneg _) _) hB₀ },
+  rcases hBf with ⟨cf, hcf, Bf, hOf⟩, rcases hBg with ⟨cg, hcg, Bg, hOg⟩,
+  refine ⟨max cf cg, max_lt hcf hcg, max 0 (max Bf Bg), _⟩,
+  refine (hOf.trans $ this _ _ _).sub (hOg.trans $ this _ _ _),
+  exacts [le_max_left _ _, le_max_left _ _, (le_max_left _ _).trans (le_max_right _ _),
+    le_max_right _ _, le_max_left _ _, (le_max_right _ _).trans (le_max_right _ _)]
+end
+
+variables [normed_space ℂ E] {a b C : ℝ} {f g : ℂ → E} {z : ℂ}
 
 /-!
 ### Phragmen-Lindelöf principle in a horizontal strip
@@ -193,28 +240,6 @@ lemma eq_zero_on_horizontal_strip (hd : diff_cont_on_cl ℂ f (im ⁻¹' Ioo a b
   eq_on f 0 (im ⁻¹' Icc a b) :=
 λ z hz, norm_le_zero_iff.1 $ horizontal_strip hd hB
   (λ z hz, (ha z hz).symm ▸ norm_zero.le) (λ z hz, (hb z hz).symm ▸ norm_zero.le) hz.1 hz.2
-
-/-- An auxiliary lemma that combines two double exponential estimates into a similar estimate
-on the difference of the functions. -/
-lemma is_O_sub_exp_exp {u : ℂ → ℝ}
-  (hBf : ∃ (c < a) B, is_O f (λ z, expR (B * expR (c * |u z|))) l)
-  (hBg : ∃ (c < a) B, is_O g (λ z, expR (B * expR (c * |u z|))) l) :
-  ∃ (c < a) B, is_O (f - g) (λ z, expR (B * expR (c * |u z|))) l :=
-begin
-  rcases hBf with ⟨cf, hcf, Bf, hOf⟩, rcases hBg with ⟨cg, hcg, Bg, hOg⟩,
-  refine ⟨max cf cg, max_lt hcf hcg, max 0 (max Bf Bg), _⟩,
-  refine (hOf.trans_le $ λ w, _).sub (hOg.trans_le $ λ w, _),
-  { rw [real.norm_eq_abs, real.norm_eq_abs, abs_of_pos (real.exp_pos _),
-      abs_of_pos (real.exp_pos _), real.exp_le_exp],
-    exact mul_le_mul ((le_max_left _ _).trans (le_max_right _ _))
-      (real.exp_le_exp.2 $ mul_le_mul_of_nonneg_right (le_max_left _ _) $ abs_nonneg _)
-      (real.exp_pos _).le (le_max_left _ _) },
-  { rw [real.norm_eq_abs, real.norm_eq_abs, abs_of_pos (real.exp_pos _),
-      abs_of_pos (real.exp_pos _), real.exp_le_exp],
-    exact mul_le_mul ((le_max_right _ _).trans (le_max_right _ _))
-      (real.exp_le_exp.2 $ mul_le_mul_of_nonneg_right (le_max_right _ _) $ abs_nonneg _)
-      (real.exp_pos _).le (le_max_left _ _) }
-end
 
 /-- **Phragmen-Lindelöf principle** in a strip `U = {z : ℂ | a < im z < b}`.
 Let `f g : ℂ → E` be functions such that
@@ -385,6 +410,41 @@ begin
     exact him _ (real.exp_pos _).le }
 end
 
+/-- **Phragmen-Lindelöf principle** in the first quadrant. Let `f : ℂ → E` be a function such that
+
+* `f` is differentiable in the open first quadrant and is continuous on its closure;
+* `∥f z∥` is bounded from above by `A * exp(B * (abs z) ^ c)` on the open first quadrant
+  for some `A`, `B`, and `c < 2`;
+* `f` is equal to zero on the boundary of the first quadrant.
+
+Then `f` is equal to zero on the closed first quadrant. -/
+lemma eq_zero_on_quadrant_I (hd : diff_cont_on_cl ℂ f (Ioi 0 ×ℂ Ioi 0))
+  (hB : ∃ (c < (2 : ℝ)) B, is_O f (λ z, expR (B * (abs z) ^ c))
+    (comap abs at_top ⊓ 𝓟 (Ioi 0 ×ℂ Ioi 0)))
+  (hre : ∀ x : ℝ, 0 ≤ x → f x = 0) (him : ∀ x : ℝ, 0 ≤ x → f (x * I) = 0) :
+  eq_on f 0 {z | 0 ≤ z.re ∧ 0 ≤ z.im} :=
+λ z hz, norm_le_zero_iff.1 $ quadrant_I hd hB (λ x hx, norm_le_zero_iff.2 $ hre x hx)
+  (λ x hx, norm_le_zero_iff.2 $ him x hx) hz.1 hz.2
+
+/-- **Phragmen-Lindelöf principle** in the first quadrant. Let `f g : ℂ → E` be functions such that
+
+* `f` and `g` are differentiable in the open first quadrant and are continuous on its closure;
+* `∥f z∥` and `∥g z∥` are bounded from above by `A * exp(B * (abs z) ^ c)` on the open first
+  quadrant for some `A`, `B`, and `c < 2`;
+* `f` is equal to `g` on the boundary of the first quadrant.
+
+Then `f` is equal to `g` on the closed first quadrant. -/
+lemma eq_on_quadrant_I (hdf : diff_cont_on_cl ℂ f (Ioi 0 ×ℂ Ioi 0))
+  (hBf : ∃ (c < (2 : ℝ)) B, is_O f (λ z, expR (B * (abs z) ^ c))
+    (comap abs at_top ⊓ 𝓟 (Ioi 0 ×ℂ Ioi 0)))
+  (hdg : diff_cont_on_cl ℂ g (Ioi 0 ×ℂ Ioi 0))
+  (hBg : ∃ (c < (2 : ℝ)) B, is_O g (λ z, expR (B * (abs z) ^ c))
+    (comap abs at_top ⊓ 𝓟 (Ioi 0 ×ℂ Ioi 0)))
+  (hre : ∀ x : ℝ, 0 ≤ x → f x = g x) (him : ∀ x : ℝ, 0 ≤ x → f (x * I) = g (x * I)) :
+  eq_on f g {z | 0 ≤ z.re ∧ 0 ≤ z.im} :=
+λ z hz, sub_eq_zero.1 $ eq_zero_on_quadrant_I (hdf.sub hdg) (is_O_sub_exp_rpow hBf hBg)
+  (λ x hx, sub_eq_zero.2 $ hre x hx) (λ x hx, sub_eq_zero.2 $ him x hx) hz
+
 /-- **Phragmen-Lindelöf principle** in the second quadrant. Let `f : ℂ → E` be a function such that
 
 * `f` is differentiable in the open second quadrant and is continuous on its closure;
@@ -413,6 +473,41 @@ begin
   { rw [comp_app, mul_assoc, I_mul_I, mul_neg_one, ← of_real_neg],
     exact hre _ (neg_nonpos.2 hx) }
 end
+
+/-- **Phragmen-Lindelöf principle** in the second quadrant. Let `f : ℂ → E` be a function such that
+
+* `f` is differentiable in the open second quadrant and is continuous on its closure;
+* `∥f z∥` is bounded from above by `A * exp(B * (abs z) ^ c)` on the open second quadrant
+  for some `A`, `B`, and `c < 2`;
+* `f` is equal to zero on the boundary of the second quadrant.
+
+Then `f` is equal to zero on the closed second quadrant. -/
+lemma eq_zero_on_quadrant_II (hd : diff_cont_on_cl ℂ f (Iio 0 ×ℂ Ioi 0))
+  (hB : ∃ (c < (2 : ℝ)) B, is_O f (λ z, expR (B * (abs z) ^ c))
+    (comap abs at_top ⊓ 𝓟 (Iio 0 ×ℂ Ioi 0)))
+  (hre : ∀ x : ℝ, x ≤ 0 → f x = 0) (him : ∀ x : ℝ, 0 ≤ x → f (x * I) = 0) :
+  eq_on f 0 {z | z.re ≤ 0 ∧ 0 ≤ z.im} :=
+λ z hz, norm_le_zero_iff.1 $ quadrant_II hd hB (λ x hx, norm_le_zero_iff.2 $ hre x hx)
+  (λ x hx, norm_le_zero_iff.2 $ him x hx) hz.1 hz.2
+
+/-- **Phragmen-Lindelöf principle** in the second quadrant. Let `f g : ℂ → E` be functions such that
+
+* `f` and `g` are differentiable in the open second quadrant and are continuous on its closure;
+* `∥f z∥` and `∥g z∥` are bounded from above by `A * exp(B * (abs z) ^ c)` on the open second
+  quadrant for some `A`, `B`, and `c < 2`;
+* `f` is equal to `g` on the boundary of the second quadrant.
+
+Then `f` is equal to `g` on the closed second quadrant. -/
+lemma eq_on_quadrant_II (hdf : diff_cont_on_cl ℂ f (Iio 0 ×ℂ Ioi 0))
+  (hBf : ∃ (c < (2 : ℝ)) B, is_O f (λ z, expR (B * (abs z) ^ c))
+    (comap abs at_top ⊓ 𝓟 (Iio 0 ×ℂ Ioi 0)))
+  (hdg : diff_cont_on_cl ℂ g (Iio 0 ×ℂ Ioi 0))
+  (hBg : ∃ (c < (2 : ℝ)) B, is_O g (λ z, expR (B * (abs z) ^ c))
+    (comap abs at_top ⊓ 𝓟 (Iio 0 ×ℂ Ioi 0)))
+  (hre : ∀ x : ℝ, x ≤ 0 → f x = g x) (him : ∀ x : ℝ, 0 ≤ x → f (x * I) = g (x * I)) :
+  eq_on f g {z | z.re ≤ 0 ∧ 0 ≤ z.im} :=
+λ z hz, sub_eq_zero.1 $ eq_zero_on_quadrant_II (hdf.sub hdg) (is_O_sub_exp_rpow hBf hBg)
+  (λ x hx, sub_eq_zero.2 $ hre x hx) (λ x hx, sub_eq_zero.2 $ him x hx) hz
 
 /-- **Phragmen-Lindelöf principle** in the third quadrant. Let `f : ℂ → E` be a function such that
 
@@ -446,6 +541,41 @@ begin
     exact him (-x) (neg_nonpos.2 hx) }
 end
 
+/-- **Phragmen-Lindelöf principle** in the third quadrant. Let `f : ℂ → E` be a function such that
+
+* `f` is differentiable in the open third quadrant and is continuous on its closure;
+* `∥f z∥` is bounded from above by `A * exp(B * (abs z) ^ c)` on the open third quadrant
+  for some `A`, `B`, and `c < 2`;
+* `f` is equal to zero on the boundary of the third quadrant.
+
+Then `f` is equal to zero on the closed third quadrant. -/
+lemma eq_zero_on_quadrant_III (hd : diff_cont_on_cl ℂ f (Iio 0 ×ℂ Iio 0))
+  (hB : ∃ (c < (2 : ℝ)) B, is_O f (λ z, expR (B * (abs z) ^ c))
+    (comap abs at_top ⊓ 𝓟 (Iio 0 ×ℂ Iio 0)))
+  (hre : ∀ x : ℝ, x ≤ 0 → f x = 0) (him : ∀ x : ℝ, x ≤ 0 → f (x * I) = 0) :
+  eq_on f 0 {z | z.re ≤ 0 ∧ z.im ≤ 0} :=
+λ z hz, norm_le_zero_iff.1 $ quadrant_III hd hB (λ x hx, norm_le_zero_iff.2 $ hre x hx)
+  (λ x hx, norm_le_zero_iff.2 $ him x hx) hz.1 hz.2
+
+/-- **Phragmen-Lindelöf principle** in the third quadrant. Let `f g : ℂ → E` be functions such that
+
+* `f` and `g` are differentiable in the open third quadrant and are continuous on its closure;
+* `∥f z∥` and `∥g z∥` are bounded from above by `A * exp(B * (abs z) ^ c)` on the open third
+  quadrant for some `A`, `B`, and `c < 2`;
+* `f` is equal to `g` on the boundary of the third quadrant.
+
+Then `f` is equal to `g` on the closed third quadrant. -/
+lemma eq_on_quadrant_III (hdf : diff_cont_on_cl ℂ f (Iio 0 ×ℂ Iio 0))
+  (hBf : ∃ (c < (2 : ℝ)) B, is_O f (λ z, expR (B * (abs z) ^ c))
+    (comap abs at_top ⊓ 𝓟 (Iio 0 ×ℂ Iio 0)))
+  (hdg : diff_cont_on_cl ℂ g (Iio 0 ×ℂ Iio 0))
+  (hBg : ∃ (c < (2 : ℝ)) B, is_O g (λ z, expR (B * (abs z) ^ c))
+    (comap abs at_top ⊓ 𝓟 (Iio 0 ×ℂ Iio 0)))
+  (hre : ∀ x : ℝ, x ≤ 0 → f x = g x) (him : ∀ x : ℝ, x ≤ 0 → f (x * I) = g (x * I)) :
+  eq_on f g {z | z.re ≤ 0 ∧ z.im ≤ 0} :=
+λ z hz, sub_eq_zero.1 $ eq_zero_on_quadrant_III (hdf.sub hdg) (is_O_sub_exp_rpow hBf hBg)
+  (λ x hx, sub_eq_zero.2 $ hre x hx) (λ x hx, sub_eq_zero.2 $ him x hx) hz
+
 /-- **Phragmen-Lindelöf principle** in the fourth quadrant. Let `f : ℂ → E` be a function such that
 
 * `f` is differentiable in the open fourth quadrant and is continuous on its closure;
@@ -477,6 +607,41 @@ begin
   { rw [comp_app, ← neg_mul, ← of_real_neg],
     exact him (-x) (neg_nonpos.2 hx) }
 end
+
+/-- **Phragmen-Lindelöf principle** in the fourth quadrant. Let `f : ℂ → E` be a function such that
+
+* `f` is differentiable in the open fourth quadrant and is continuous on its closure;
+* `∥f z∥` is bounded from above by `A * exp(B * (abs z) ^ c)` on the open fourth quadrant
+  for some `A`, `B`, and `c < 2`;
+* `f` is equal to zero on the boundary of the fourth quadrant.
+
+Then `f` is equal to zero on the closed fourth quadrant. -/
+lemma eq_zero_on_quadrant_IV (hd : diff_cont_on_cl ℂ f (Ioi 0 ×ℂ Iio 0))
+  (hB : ∃ (c < (2 : ℝ)) B, is_O f (λ z, expR (B * (abs z) ^ c))
+    (comap abs at_top ⊓ 𝓟 (Ioi 0 ×ℂ Iio 0)))
+  (hre : ∀ x : ℝ, 0 ≤ x → f x = 0) (him : ∀ x : ℝ, x ≤ 0 → f (x * I) = 0) :
+  eq_on f 0 {z | 0 ≤ z.re ∧ z.im ≤ 0} :=
+λ z hz, norm_le_zero_iff.1 $ quadrant_IV hd hB (λ x hx, norm_le_zero_iff.2 $ hre x hx)
+  (λ x hx, norm_le_zero_iff.2 $ him x hx) hz.1 hz.2
+
+/-- **Phragmen-Lindelöf principle** in the fourth quadrant. Let `f g : ℂ → E` be functions such that
+
+* `f` and `g` are differentiable in the open fourth quadrant and are continuous on its closure;
+* `∥f z∥` and `∥g z∥` are bounded from above by `A * exp(B * (abs z) ^ c)` on the open fourth
+  quadrant for some `A`, `B`, and `c < 2`;
+* `f` is equal to `g` on the boundary of the fourth quadrant.
+
+Then `f` is equal to `g` on the closed fourth quadrant. -/
+lemma eq_on_quadrant_IV (hdf : diff_cont_on_cl ℂ f (Ioi 0 ×ℂ Iio 0))
+  (hBf : ∃ (c < (2 : ℝ)) B, is_O f (λ z, expR (B * (abs z) ^ c))
+    (comap abs at_top ⊓ 𝓟 (Ioi 0 ×ℂ Iio 0)))
+  (hdg : diff_cont_on_cl ℂ g (Ioi 0 ×ℂ Iio 0))
+  (hBg : ∃ (c < (2 : ℝ)) B, is_O g (λ z, expR (B * (abs z) ^ c))
+    (comap abs at_top ⊓ 𝓟 (Ioi 0 ×ℂ Iio 0)))
+  (hre : ∀ x : ℝ, 0 ≤ x → f x = g x) (him : ∀ x : ℝ, x ≤ 0 → f (x * I) = g (x * I)) :
+  eq_on f g {z | 0 ≤ z.re ∧ z.im ≤ 0} :=
+λ z hz, sub_eq_zero.1 $ eq_zero_on_quadrant_IV (hdf.sub hdg) (is_O_sub_exp_rpow hBf hBg)
+  (λ x hx, sub_eq_zero.2 $ hre x hx) (λ x hx, sub_eq_zero.2 $ him x hx) hz
 
 /-!
 ### Phragmen-Lindelöf principle in the right half-plane

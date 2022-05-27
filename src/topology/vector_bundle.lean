@@ -171,7 +171,7 @@ by rw [e.mk_symm hb, e.apply_symm_apply (e.mk_mem_target.mpr hb)]
 fibers and the model space. -/
 @[simps] def linear_equiv_at (e : pretrivialization R F E) (b : B) (hb : b ∈ e.base_set) :
   E b ≃ₗ[R] F :=
-{ to_fun := λ y, (e (total_space_mk E b y)).2,
+{ to_fun := λ y, (e (total_space_mk b y)).2,
   inv_fun := e.symm b,
   left_inv := e.symm_apply_apply_mk hb,
   right_inv := λ v, by simp_rw [e.apply_mk_symm hb v],
@@ -396,7 +396,7 @@ namespace trivialization
 is in fact a continuous linear equiv between the fibers and the model fiber. -/
 @[simps apply symm_apply] def continuous_linear_equiv_at (e : trivialization R F E) (b : B)
   (hb : b ∈ e.base_set) : E b ≃L[R] F :=
-{ to_fun := λ y, (e (total_space_mk E b y)).2,
+{ to_fun := λ y, (e (total_space_mk b y)).2,
   inv_fun := e.symm b,
   continuous_to_fun := continuous_snd.comp (e.to_local_homeomorph.continuous_on.comp_continuous
     (total_space_mk_inducing R F E b).continuous (λ x, e.mem_source.mpr hb)),

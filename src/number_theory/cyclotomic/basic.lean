@@ -491,7 +491,7 @@ instance is_cyclotomic_extension :
         conv at this { congr, skip, congr, congr, rw [h] },
         rw [zero_pow, zero_mul] at this,
         { exact pnat.ne_zero n this },
-        { refine multiplicity.pos_of_dvd hfin hp } },
+        { exact multiplicity.pos_of_dvd hfin hp } },
       letI hmz : ne_zero (m : L) := ne_zero.of_not_dvd L hm.2,
       rw [is_root_cyclotomic_prime_pow_mul_iff_of_char_p] at hζ,
       have H₁ : ({b : cyclotomic_field n K | ∃ (a : ℕ+), a ∈ ({n} : set ℕ+) ∧ b ^ (a : ℕ) = 1}) =

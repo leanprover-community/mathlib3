@@ -375,7 +375,7 @@ end trans_gen
 
 lemma _root_.acc.trans_gen {α} {r : α → α → Prop} {a : α} (h : acc r a) : acc (trans_gen r) a :=
 begin
-  refine h.rec_on (λ x _ H, _),
+  induction h with x _ H,
   refine acc.intro x (λ y hy, _),
   cases hy with _ hyx z _ hyz hzx,
   exacts [H y hyx, (H z hzx).inv hyz],

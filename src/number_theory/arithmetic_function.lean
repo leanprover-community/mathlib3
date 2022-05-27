@@ -484,6 +484,18 @@ hf.2 h
 
 end monoid_with_zero
 
+lemma map_prod {ι : Type*} [comm_monoid_with_zero R] (g : ι → ℕ) {f : nat.arithmetic_function R}
+  (hf : f.is_multiplicative) (s : finset ι) (hs : (s : set ι).pairwise (coprime on g)):
+  f (∏ i in s, g i) = ∏ i in s, f (g i) :=
+begin
+  classical,
+  induction s using finset.induction_on with a s has ih hs,
+  { simp [hf] },
+  rw [coe_insert, set.pairwise_insert_of_symmetric (coprime.symmetric.comap g)] at hs,
+  rw [prod_insert has, prod_insert has, hf.map_mul_of_coprime, ih hs.1],
+  exact nat.coprime_prod_right (λ i hi, hs.2 _ hi (hi.ne_of_not_mem has).symm),
+end
+
 lemma nat_cast {f : arithmetic_function ℕ} [semiring R] (h : f.is_multiplicative) :
   is_multiplicative (f : arithmetic_function R) :=
 ⟨by simp [h], λ m n cop, by simp [cop, h]⟩

@@ -113,7 +113,7 @@ end
 def restrict_var [decidable_eq α] : Π (t : L.term α) (f : t.var_finset → β), L.term β
 | (var a) f := var (f ⟨a, mem_singleton_self a⟩)
 | (func F ts) f := func F (λ i, (ts i).restrict_var
-  (f ∘ (set.inclusion (subset_bUnion_of_mem _ (mem_univ i)))))
+  (f ∘ set.inclusion (subset_bUnion_of_mem _ (mem_univ i))))
 
 /-- Restricts a term to use only a set of the given variables on the left side of a sum. -/
 def restrict_var_left [decidable_eq α] {γ : Type*} :
@@ -121,7 +121,7 @@ def restrict_var_left [decidable_eq α] {γ : Type*} :
 | (var (sum.inl a)) f := var (sum.inl (f ⟨a, mem_singleton_self a⟩))
 | (var (sum.inr a)) f := var (sum.inr a)
 | (func F ts) f := func F (λ i, (ts i).restrict_var_left
-  (f ∘ (set.inclusion (subset_bUnion_of_mem _ (mem_univ i)))))
+  (f ∘ set.inclusion (subset_bUnion_of_mem _ (mem_univ i))))
 
 end term
 
@@ -337,7 +337,7 @@ open finset
 /-- A function to help relabel the variables in bounded formulas. -/
 def relabel_aux (g : α → β ⊕ fin n) (k : ℕ) :
   α ⊕ fin k → β ⊕ fin (n + k) :=
-(sum.map id fin_sum_fin_equiv) ∘ (equiv.sum_assoc _ _ _) ∘ (sum.map g id)
+sum.map id fin_sum_fin_equiv ∘ equiv.sum_assoc _ _ _ ∘ sum.map g id
 
 @[simp] lemma sum_elim_comp_relabel_aux {m : ℕ} {g : α → (β ⊕ fin n)}
   {v : β → M} {xs : fin (n + m) → M} :
@@ -388,13 +388,13 @@ def restrict_free_var [decidable_eq α] : Π {n : ℕ} (φ : L.bounded_formula �
   (f : φ.free_var_finset → β), L.bounded_formula β n
 | n falsum f := falsum
 | n (equal t₁ t₂) f := equal
-  (t₁.restrict_var_left (f ∘ (set.inclusion (subset_union_left _ _))))
-  (t₂.restrict_var_left (f ∘ (set.inclusion (subset_union_right _ _))))
+  (t₁.restrict_var_left (f ∘ set.inclusion (subset_union_left _ _)))
+  (t₂.restrict_var_left (f ∘ set.inclusion (subset_union_right _ _)))
 | n (rel R ts) f := rel R (λ i, (ts i).restrict_var_left
   (f ∘ set.inclusion (subset_bUnion_of_mem _ (mem_univ i))))
 | n (imp φ₁ φ₂) f :=
-  (φ₁.restrict_free_var (f ∘ (set.inclusion (subset_union_left _ _)))).imp
-  (φ₂.restrict_free_var (f ∘ (set.inclusion (subset_union_right _ _))))
+  (φ₁.restrict_free_var (f ∘ set.inclusion (subset_union_left _ _))).imp
+  (φ₂.restrict_free_var (f ∘ set.inclusion (subset_union_right _ _)))
 | n (all φ) f := (φ.restrict_free_var f).all
 
 /-- Places universal quantifiers on all extra variables of a bounded formula. -/
@@ -472,7 +472,7 @@ end⟩
 | n (rel R ts) := R.formula ts
 | n (imp φ₁ φ₂) := φ₁.to_formula.imp φ₂.to_formula
 | n (all φ) := (φ.to_formula.relabel
-  (sum.elim (sum.inl ∘ sum.inl) ((sum.map sum.inr id) ∘ fin_sum_fin_equiv.symm))).all
+  (sum.elim (sum.inl ∘ sum.inl) (sum.map sum.inr id ∘ fin_sum_fin_equiv.symm))).all
 
 variables {l : ℕ} {φ ψ : L.bounded_formula α l} {θ : L.bounded_formula α l.succ}
 variables {v : α → M} {xs : fin l → M}

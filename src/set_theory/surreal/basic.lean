@@ -5,7 +5,9 @@ Authors: Mario Carneiro, Scott Morrison, Violeta Hernández Palacios, Junyan Xu
 -/
 
 import logic.hydra
+import set_theory.game.basic
 import set_theory.game.ordinal
+import tactic.fin_cases
 
 /-!
 # Surreal numbers
@@ -307,6 +309,18 @@ noncomputable instance : linear_ordered_add_comm_group surreal :=
 
 end surreal
 
+open surreal
+
+namespace ordinal
+
+/-- Converts an ordinal into the corresponding surreal. -/
+noncomputable def to_surreal : ordinal ↪o surreal :=
+{ to_fun := λ o, mk _ (numeric_to_pgame o),
+  inj' := λ a b h, to_pgame_equiv_iff.1 (quotient.exact h),
+  map_rel_iff' := @to_pgame_le_iff }
+
+end ordinal
+
 namespace pgame
 
 /-- To prove that surreal multiplication is well-defined, we use a modified argument by Schleicher.
@@ -441,7 +455,7 @@ theorem arg_rel_trans : transitive arg_rel := transitive_trans_gen
 
 instance : has_well_founded mul_args :=
 { r := inv_image arg_rel to_multiset,
-  wf := inv_image.wf _ (wf_subsequent.cut_expand _).trans_gen }
+  wf := inv_image.wf _ wf_subsequent.cut_expand.trans_gen }
 
 theorem arg_rel_of_cut_expand {x y : multiset pgame} : cut_expand subsequent x y → arg_rel x y :=
 trans_gen.single
@@ -701,7 +715,7 @@ end
     (result (P2 _ _ _) ox₁ (ox₂.move_right jx₂) oy).2 (h.trans_lt (ox₂.lt_move_right jx₂)),
 
   -- Prove that if `x₁ ≈ x₂`, then `x₁ * y ≈ x₂ * y`.
-  refine ⟨λ h, ⟨le_def_lf.2 ⟨_, _⟩, le_def_lf.2 ⟨_, _⟩⟩, λ h, _⟩,
+  refine ⟨λ h, ⟨le_of_forall_lf ⟨_, _⟩, le_of_forall_lf ⟨_, _⟩⟩, λ h, _⟩,
   { rintro (⟨ix₁, iy⟩ | ⟨jx₁, jy⟩);
     apply lf_of_lt;
     change (⟦_⟧ : game) < ⟦_⟧; dsimp,
@@ -750,7 +764,7 @@ end
 
   -- Prove that if `x₁ < x₂`, then `x₂ * yL + x₁ * y < x₁ * yL + x₂ * y` and
   -- `x₂ * y + x₁ * yR < x₁ * y + x₂ * yR`.
-  rcases lf_def_le.1 h.lf with ⟨ix₂, h⟩ | ⟨jx₁, h⟩,
+  rcases lf_iff_forall_le.1 h.lf with ⟨ix₂, h⟩ | ⟨jx₁, h⟩,
   { cases lt_or_equiv_of_le h ox₁ (ox₂.move_left ix₂) with h h;
     refine ⟨λ iy, _, λ jy, _⟩,
     { have H : (⟦_⟧ : game) < ⟦_⟧ := add_lt_add ((HR₂.2 h).1 iy) (HS₁ ix₂ iy),

@@ -232,6 +232,19 @@ def preserves_limits_of_shape_of_equiv {J' : Type w₂} [category.{w₂'} J'] (e
       { dsimp, simp [←functor.map_comp] }, -- See library note [dsimp, simp].
     end } }
 
+/--
+`preserves_limits_of_size_shrink.{v u} C` tries to obtain `preserves_limits_of_size.{v u} C`
+from some other `has_limits_of_size C`.
+-/
+lemma preserves_limits_of_size_shrink (F : C ⥤ D)
+  [preserves_limits_of_size.{(max w w₂) (max w' w₂')} F] : preserves_limits_of_size.{w w'} F :=
+⟨λ J hJ, by exactI preserves_limits_of_shape_of_equiv
+  (ulift_hom_ulift_category.equiv.{w₂ w₂'} J).symm F⟩
+
+lemma preserves_smallest_limits_of_preserve_limits
+  (F : C ⥤ D) [preserves_limits_of_size.{v₂ u₂} F] : preserves_limits_of_size.{0 0} F :=
+preserves_limits_of_size_shrink F
+
 /-- If F preserves one colimit cocone for the diagram K,
   then it preserves any colimit cocone for K. -/
 def preserves_colimit_of_preserves_colimit_cocone {F : C ⥤ D} {t : cocone K}

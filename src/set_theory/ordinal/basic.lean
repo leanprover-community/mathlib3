@@ -1178,13 +1178,13 @@ by simp only [lift.principal_seg_top, univ_id]
 
 /-- The minimal element of a nonempty family of ordinals -/
 def min {ι} (I : nonempty ι) (f : ι → ordinal) : ordinal :=
-wf.min (set.range f) (let ⟨i⟩ := I in ⟨_, set.mem_range_self i⟩)
+lt_wf.min (set.range f) (let ⟨i⟩ := I in ⟨_, set.mem_range_self i⟩)
 
 theorem min_eq {ι} (I) (f : ι → ordinal) : ∃ i, min I f = f i :=
-let ⟨i, e⟩ := wf.min_mem (set.range f) _ in ⟨i, e.symm⟩
+let ⟨i, e⟩ := lt_wf.min_mem (set.range f) _ in ⟨i, e.symm⟩
 
 theorem min_le {ι I} (f : ι → ordinal) (i) : min I f ≤ f i :=
-le_of_not_gt $ wf.not_lt_min (set.range f) _ (set.mem_range_self i)
+le_of_not_gt $ lt_wf.not_lt_min (set.range f) _ (set.mem_range_self i)
 
 theorem le_min {ι I} {f : ι → ordinal} {a} : a ≤ min I f ↔ ∀ i, a ≤ f i :=
 ⟨λ h i, le_trans h (min_le _ _),

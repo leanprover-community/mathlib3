@@ -314,7 +314,7 @@ begin
     { obtain ⟨s, hs⟩ := exists_multiset_of_splits _ (splitting_field.splits p),
       rw [map_comp, polynomial.map_pow, map_X, hs, mul_comp, C_comp],
       apply gal_mul_is_solvable (gal_C_is_solvable _),
-      rw multiset.prod_comp,
+      rw multiset_prod_comp,
       apply gal_prod_is_solvable,
       intros q hq,
       rw multiset.mem_map at hq,

@@ -141,7 +141,7 @@ To define a UFD using the definition in terms of multisets
 of prime factors, use the definition `of_exists_prime_factors`
 
 -/
-class unique_factorization_monoid (α : Type*) [cancel_comm_monoid_with_zero α]
+class unique_factorization_monoid (α : Type*) [comm_monoid_with_zero α]
   extends wf_dvd_monoid α : Prop :=
 (irreducible_iff_prime : ∀ {a : α}, irreducible a ↔ prime a)
 
@@ -151,7 +151,7 @@ class unique_factorization_monoid (α : Type*) [cancel_comm_monoid_with_zero α]
 { irreducible_iff_prime := λ _, gcd_monoid.irreducible_iff_prime
   .. ‹wf_dvd_monoid α› }
 
-instance associates.ufm [cancel_comm_monoid_with_zero α]
+instance associates.ufm [comm_monoid_with_zero α]
   [unique_factorization_monoid α] : unique_factorization_monoid (associates α) :=
 { irreducible_iff_prime := by { rw ← associates.irreducible_iff_prime_iff,
     apply unique_factorization_monoid.irreducible_iff_prime, }
@@ -160,7 +160,7 @@ instance associates.ufm [cancel_comm_monoid_with_zero α]
 end prio
 
 namespace unique_factorization_monoid
-variables [cancel_comm_monoid_with_zero α] [unique_factorization_monoid α]
+variables [comm_monoid_with_zero α] [unique_factorization_monoid α]
 
 theorem exists_prime_factors (a : α) : a ≠ 0 →
   ∃ f : multiset α, (∀b ∈ f, prime b) ∧ f.prod ~ᵤ a :=
@@ -174,6 +174,11 @@ begin
   simp_rw ← unique_factorization_monoid.irreducible_iff_prime at h₃,
   exact wf_dvd_monoid.induction_on_irreducible a h₁ h₂ h₃,
 end
+
+end unique_factorization_monoid
+
+namespace unique_factorization_monoid
+variables [cancel_comm_monoid_with_zero α] [unique_factorization_monoid α]
 
 lemma factors_unique : ∀{f g : multiset α},
   (∀x∈f, irreducible x) → (∀x∈g, irreducible x) → f.prod ~ᵤ g.prod →
@@ -230,7 +235,7 @@ by haveI := classical.dec_eq α; exact
 
 /-- If an irreducible has a prime factorization,
   then it is an associate of one of its prime factors. -/
-lemma prime_factors_irreducible [cancel_comm_monoid_with_zero α] {a : α} {f : multiset α}
+lemma prime_factors_irreducible [comm_monoid_with_zero α] {a : α} {f : multiset α}
   (ha : irreducible a) (pfa : (∀ b ∈ f, prime b) ∧ f.prod ~ᵤ a) :
   ∃ p, a ~ᵤ p ∧ f = {p} :=
 begin
@@ -392,8 +397,7 @@ unique_factorization_monoid.of_exists_prime_factors (by
     simp_rw irreducible_iff_prime_of_exists_unique_irreducible_factors eif uif })
 
 namespace unique_factorization_monoid
-variables [cancel_comm_monoid_with_zero α] [decidable_eq α]
-variables [unique_factorization_monoid α]
+variables [comm_monoid_with_zero α] [decidable_eq α] [unique_factorization_monoid α]
 /-- Noncomputably determines the multiset of prime factors. -/
 noncomputable def factors (a : α) : multiset α := if h : a = 0 then 0 else
 classical.some (unique_factorization_monoid.exists_prime_factors a h)
@@ -404,6 +408,16 @@ begin
   exact (classical.some_spec (exists_prime_factors a ane0)).2
 end
 
+lemma ne_zero_of_mem_factors {p a : α} (h : p ∈ factors a) : a ≠ 0 :=
+begin
+  intro ha,
+  rw [factors, dif_pos ha] at h,
+  exact multiset.not_mem_zero _ h
+end
+
+lemma dvd_of_mem_factors {p a : α} (h : p ∈ factors a) : p ∣ a :=
+dvd_trans (multiset.dvd_prod h) (associated.dvd (factors_prod (ne_zero_of_mem_factors h)))
+
 theorem prime_of_factor {a : α} : ∀ (x : α), x ∈ factors a → prime x :=
 begin
   rw [factors],
@@ -411,6 +425,19 @@ begin
   intros x hx,
   exact (classical.some_spec (unique_factorization_monoid.exists_prime_factors a ane0)).1 x hx,
 end
+
+lemma no_factors_of_no_prime_factors {a b : α} (ha : a ≠ 0)
+  (h : (∀ {d}, d ∣ a → d ∣ b → ¬ prime d)) : ∀ {d}, d ∣ a → d ∣ b → is_unit d :=
+λ d, induction_on_prime d
+  (by { simp only [zero_dvd_iff], intros, contradiction })
+  (λ x hx _ _, hx)
+  (λ d q hp hq ih dvd_a dvd_b,
+    absurd hq (h (dvd_of_mul_right_dvd dvd_a) (dvd_of_mul_right_dvd dvd_b)))
+
+end unique_factorization_monoid
+
+namespace unique_factorization_monoid
+variables [cancel_comm_monoid_with_zero α] [decidable_eq α] [unique_factorization_monoid α]
 
 theorem irreducible_of_factor {a : α} : ∀ (x : α), x ∈ factors a → irreducible x :=
 λ x h, (prime_of_factor x h).irreducible
@@ -428,16 +455,6 @@ have multiset.rel associated (p ::ₘ factors b) (factors a),
       ... ~ᵤ multiset.prod (p ::ₘ factors b) :
         by rw multiset.prod_cons; exact (factors_prod hb0).symm.mul_left _),
 multiset.exists_mem_of_rel_of_mem this (by simp)
-
-lemma ne_zero_of_mem_factors {p a : α} (h : p ∈ factors a) : a ≠ 0 :=
-begin
-  intro ha,
-  rw [factors, dif_pos ha] at h,
-  exact multiset.not_mem_zero _ h
-end
-
-lemma dvd_of_mem_factors {p a : α} (h : p ∈ factors a) : p ∣ a :=
-dvd_trans (multiset.dvd_prod h) (associated.dvd (factors_prod (ne_zero_of_mem_factors h)))
 
 end unique_factorization_monoid
 
@@ -648,14 +665,6 @@ end unique_factorization_monoid
 namespace unique_factorization_monoid
 
 variables {R : Type*} [cancel_comm_monoid_with_zero R] [unique_factorization_monoid R]
-
-lemma no_factors_of_no_prime_factors {a b : R} (ha : a ≠ 0)
-  (h : (∀ {d}, d ∣ a → d ∣ b → ¬ prime d)) : ∀ {d}, d ∣ a → d ∣ b → is_unit d :=
-λ d, induction_on_prime d
-  (by { simp only [zero_dvd_iff], intros, contradiction })
-  (λ x hx _ _, hx)
-  (λ d q hp hq ih dvd_a dvd_b,
-    absurd hq (h (dvd_of_mul_right_dvd dvd_a) (dvd_of_mul_right_dvd dvd_b)))
 
 /-- Euclid's lemma: if `a ∣ b * c` and `a` and `c` have no common prime factors, `a ∣ b`.
 Compare `is_coprime.dvd_of_dvd_mul_left`. -/

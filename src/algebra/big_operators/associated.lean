@@ -133,9 +133,9 @@ end
 
 end comm_monoid
 
-section cancel_comm_monoid_with_zero
+section comm_monoid_with_zero
 
-variables [cancel_comm_monoid_with_zero α]
+variables [comm_monoid_with_zero α]
 
 lemma exists_mem_multiset_le_of_prime {s : multiset (associates α)} {p : associates α}
   (hp : prime p) :
@@ -148,13 +148,13 @@ assume a s ih h,
   | or.inr h := let ⟨a, has, h⟩ := ih h in ⟨a, multiset.mem_cons_of_mem has, h⟩
   end
 
-end cancel_comm_monoid_with_zero
+end comm_monoid_with_zero
 
 end associates
 
 namespace multiset
 
-lemma prod_ne_zero_of_prime [cancel_comm_monoid_with_zero α] [nontrivial α]
+lemma prod_ne_zero_of_prime [comm_monoid_with_zero α] [no_zero_divisors α] [nontrivial α]
  (s : multiset α) (h : ∀ x ∈ s, prime x) : s.prod ≠ 0 :=
 multiset.prod_ne_zero (λ h0, prime.ne_zero (h 0 h0) rfl)
 

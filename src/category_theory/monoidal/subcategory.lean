@@ -15,6 +15,9 @@ structure is defined in `category_theory.full_subcategory`).
 
 When `C` is also braided/symmetric, the full monoidal subcategory also inherits the
 braided/symmetric structure.
+
+## TODO
+* Add monoidal/braided versions of `category_theory.full_subcategory.lift`
 -/
 
 universes u v

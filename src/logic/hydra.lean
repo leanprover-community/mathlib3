@@ -127,6 +127,17 @@ variable {r : α → α → Prop}
 theorem cut_expand_singleton {s x} (h : ∀ x' ∈ s, r x' x) : cut_expand r s {x} :=
 ⟨s, x, h, add_comm s _⟩
 
+theorem cut_expand_singleton_singleton {x' x} (h : r x' x) : cut_expand r {x'} {x} :=
+cut_expand_singleton (λ a h, by { rw mem_singleton at h, rwa h })
+
+theorem cut_expand_add_of_cut_expand {t u} (s) (h : cut_expand r t u) :
+  cut_expand r (s + t) (s + u) :=
+begin
+  rcases h with ⟨v, a, h, h'⟩,
+  refine ⟨v, a, h, _⟩,
+  rw [add_assoc, h', ←add_assoc]
+end
+
 theorem cut_expand_add {x t} (s) (h : ∀ x' ∈ t, r x' x) : cut_expand r (s + t) (s + {x}) :=
 ⟨t, x, h, add_right_comm s t _⟩
 

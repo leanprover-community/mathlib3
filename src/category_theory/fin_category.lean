@@ -6,6 +6,7 @@ Authors: Scott Morrison
 import data.fintype.basic
 import category_theory.discrete_category
 import category_theory.opposites
+import category_theory.category.ulift
 
 /-!
 # Finite categories
@@ -18,7 +19,7 @@ We also ask for decidable equality of objects and morphisms, but it may be reaso
 go classical in future.
 -/
 
-universes v u
+universes w v u
 
 namespace category_theory
 
@@ -101,5 +102,10 @@ instance fin_category_opposite {J : Type v} [small_category J] [fin_category J] 
   fintype_obj := fintype.of_equiv _ equiv_to_opposite,
   decidable_eq_hom := λ j j', equiv.decidable_eq (op_equiv j j'),
   fintype_hom := λ j j', fintype.of_equiv _ (op_equiv j j').symm, }
+
+/-- Applying `ulift` to morphisms and objects of a category preserves finiteness. -/
+instance fin_category_ulift {J : Type v} [small_category J] [fin_category J] :
+  fin_category.{(max w v)} (ulift_hom.{w (max w v)} (ulift.{w v} J)) :=
+{ fintype_obj := additive.fintype }
 
 end category_theory

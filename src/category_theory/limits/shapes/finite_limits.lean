@@ -16,7 +16,7 @@ import data.fintype.basic
 A typeclass for categories with all finite (co)limits.
 -/
 
-universes w v' u' v u
+universes w' w v' u' v u
 
 open category_theory
 
@@ -51,6 +51,13 @@ instance has_finite_limits_of_has_limits_of_size [has_limits_of_size.{v' u'} C] 
 instance has_finite_limits_of_has_limits [has_limits C] : has_finite_limits.{w} C :=
 infer_instance
 
+lemma has_finite_limits_shrink [has_finite_limits.{(max w w')} C] : has_finite_limits.{w} C :=
+⟨λ J _ _, by exactI has_limits_of_shape_of_equivalence
+  (ulift_hom_ulift_category.equiv.{w' w' w} J).symm ⟩
+
+instance has_smallest_finite_limits_of_has_finite_limits [has_finite_limits.{w} C] :
+  has_finite_limits.{0} C := has_finite_limits_shrink C
+
 /--
 A category has all finite colimits if every functor `J ⥤ C` with a `fin_category J` instance
 has a colimit.
@@ -75,6 +82,14 @@ instance has_finite_colimits_of_has_colimits_of_size [has_colimits_of_size.{v' u
 @[priority 100]
 instance has_finite_colimits_of_has_colimits [has_colimits C] : has_finite_colimits.{w} C :=
 infer_instance
+
+lemma has_finite_colimits_shrink [has_finite_colimits.{(max w w')} C] :
+  has_finite_colimits.{w} C :=
+⟨λ J _ _, by exactI has_colimits_of_shape_of_equivalence
+  (ulift_hom_ulift_category.equiv.{w' w' w} J).symm ⟩
+
+instance has_smallest_finite_colimits_of_has_finite_colimits [has_finite_colimits.{w} C] :
+  has_finite_colimits.{0} C := has_finite_colimits_shrink C
 
 section
 

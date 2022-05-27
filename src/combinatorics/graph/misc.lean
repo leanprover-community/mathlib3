@@ -28,10 +28,15 @@ end
   ∑ᶠ (x ∈ S), 1 = nat.card S :=
 by {rw [←finsum_ones_eq_card, ←finsum_subtype_eq_finsum_cond], refl}
 
+
 lemma fin.fin_two_eq_zero_or_one (u : fin 2):
   u = 0 ∨ u = 1 :=
 fin.exists_fin_two.mp ⟨u, rfl⟩
 
+lemma fin_two_of_one_zero {P : fin 2 → Prop}(x : fin 2):
+  P 0 → P 1 → P x :=
+λ h0 h1, or.elim (fin.exists_fin_two.mp ⟨x, rfl⟩)
+  (λ hx, eq.subst hx.symm h0) (λ hx, eq.subst hx.symm h1)
 
 lemma fin.fin_two_eq_or_eq_add_one (u v : fin 2):
   u = v ∨ u = v + 1 :=

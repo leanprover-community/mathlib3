@@ -7,9 +7,11 @@ import logic.equiv.fin
 open_locale classical big_operators
 noncomputable theory
 
-variables {V E : Type*} {u v w x y : V} {e f g : E} {i j : fin 2}
+universes u v w
 
-structure digraph (V E : Type*) :=
+variables {V : Type u}{E : Type v} {x y z : V} {e f g : E} {i j : fin 2}
+
+structure digraph (V : Type u)(E : Type v) :=
   (ends : fin 2 → E → V)
 
 namespace digraph
@@ -24,153 +26,167 @@ def head (G : digraph V E) (e : E) : V :=
 def tail (G : digraph V E) (e : E) : V :=
   G.ends 1 e
 
-def dir_adj (G : digraph V E) (u v : V) : Prop :=
-  ∃ e : E, G.ends 0 e = u ∧ G.ends 1 e = v
+def dir_adj (G : digraph V E) (x y : V) : Prop :=
+  ∃ e : E, G.ends 0 e = x ∧ G.ends 1 e = y
 
-def inc (G : digraph V E)(v : V)(e : E) : Prop :=
-  ∃ i, G.ends i e = v
+def inc (G : digraph V E)(x : V)(e : E) : Prop :=
+  ∃ i, G.ends i e = x
 
-def other_end (G : digraph V E)(u : V)(e : E) : V :=
-  if G.ends 0 e = u then G.ends 1 e else if G.ends 1 e = u then G.ends 0 e else u
+def other_end (G : digraph V E) (x : V) (e : E) : V :=
+  if G.ends 0 e = x then G.ends 1 e else if G.ends 1 e = x then G.ends 0 e else x
 
-def is_loop (G : digraph V E)(e : E) : Prop :=
+def is_loop (G : digraph V E) (e : E) : Prop :=
   G.ends 0 e = G.ends 1 e
 
-def ends_set (G : digraph V E)(e : E) : set V :=
-  {G.ends 0 e, G.ends 1 e}
+def ends_set (G : digraph V E) (e : E) : set V :=
+  {x : V | G.inc x e}
 
 def ends_finset (G : digraph V E) (e : E) : finset V :=
   {G.ends 0 e, G.ends 1 e}
 
-def dir_edge_nhd (G : digraph V E)(i : fin 2)(v : V) : set E :=
-  {e : E | G.ends i e = v}
+def dir_edge_nhd (G : digraph V E) (i : fin 2) (x : V) : set E :=
+  {e : E | G.ends i e = x}
 
-def in_edge_nhd (G : digraph V E)(v : V) : set E :=
-  G.dir_edge_nhd 0 v
+def in_edge_nhd (G : digraph V E) (x : V) : set E :=
+  G.dir_edge_nhd 0 x
 
-def out_edge_nhd (G : digraph V E)(v : V) : set E :=
-  G.dir_edge_nhd 1 v
+def out_edge_nhd (G : digraph V E)(x : V) : set E :=
+  G.dir_edge_nhd 1 x
 
-def edge_nhd (G: digraph V E)(v : V) : set E :=
-  ⋃ (i : fin 2), (G.dir_edge_nhd i v)
+def edge_nhd (G: digraph V E)(x : V) : set E :=
+  ⋃ (i : fin 2), (G.dir_edge_nhd i x)
 
-def loops_at (G : digraph V E) (v : V) : set E :=
-  ⋂ (i : fin 2), (G.dir_edge_nhd i v)
+def loops_at (G : digraph V E) (x : V) : set E :=
+  ⋂ (i : fin 2), (G.dir_edge_nhd i x)
 
-def adj (G: digraph V E)(u v : V) : Prop :=
-  ∃ e i, G.ends i e = u ∧ G.ends (i+1) e = v
+def adj (G: digraph V E) (x y : V) : Prop :=
+  ∃ e i, G.ends i e = x ∧ G.ends (i+1) e = y
 
-class finite_at (G : digraph V E) (v : V) : Prop :=
-  (fin : ∀ (i : fin 2), (G.dir_edge_nhd i v).finite)
+@[reducible] def finite_at' (G : digraph V E) (x : V) :=
+  ∀ (i : fin 2), (G.dir_edge_nhd i x).finite
+
+@[reducible] def locally_finite' (G : digraph V E) :=
+  ∀ (x : V), G.finite_at' x
+
+instance fintype_of_finite_at' [G.finite_at' x] : fintype (G.dir_edge_nhd i x) :=
+  set.finite.fintype (‹G.finite_at' x› i)
+
+--instance blah [locally_finite' G] : G.finite_at' x :=
+--  λ i, (‹locally_finite' G› x i)
+
+--#check λ {inst : locally_finite' G} (i : fin 2),
+def blah := (λ {V E : Type*} (G : digraph V E), locally_finite' G)
+
+class finite_at (G : digraph V E) (x : V) : Prop :=
+  (fin : ∀ (i : fin 2), (G.dir_edge_nhd i x).finite)
 
 class locally_finite (G : digraph V E) : Prop :=
-  (fins : ∀  (v : V), G.finite_at v)
+  (fins : ∀  (x : V), G.finite_at x)
 
-instance [G.finite_at v] : fintype (G.dir_edge_nhd i v) :=
+instance [G.finite_at x] : fintype (G.dir_edge_nhd i x) :=
   set.finite.fintype (finite_at.fin i)
 
-instance loc_fin [locally_finite G] {v : V}: G.finite_at v :=
-  locally_finite.fins v
+instance loc_fin [locally_finite G] {x : V}: G.finite_at x :=
+  locally_finite.fins x
 
-instance [G.finite_at v]: fintype (G.edge_nhd v) :=
-  set.fintype_Union (λ i, dir_edge_nhd G i v)
+instance [G.finite_at x]: fintype (G.edge_nhd x) :=
+  set.fintype_Union (λ i, dir_edge_nhd G i x)
 
-instance [G.finite_at v]: fintype (G.loops_at v) :=
-  set.fintype_subset _ (set.Inter_subset (λ i, dir_edge_nhd G i v) 0)
+instance [G.finite_at x]: fintype (G.loops_at x) :=
+  set.fintype_subset _ (set.Inter_subset (λ i, dir_edge_nhd G i x) 0)
 
-instance finite_at_of_fintype [fintype E] : G.finite_at v :=
-  ⟨λ v, ⟨infer_instance⟩⟩
+instance finite_at_of_fintype [fintype E] : G.finite_at x :=
+  ⟨λ x, ⟨infer_instance⟩⟩
 
 instance loc_finite_of_fintype [fintype E] : locally_finite G :=
-  ⟨λ v, infer_instance⟩
+  ⟨λ x, infer_instance⟩
 
-lemma dir_edge_nhd_finite_of_loc_finite (G : digraph V E) [locally_finite G] (i : fin 2) (v : V):
-  (G.dir_edge_nhd i v).finite :=
+lemma dir_edge_nhd_finite_of_loc_finite (G : digraph V E) [locally_finite G] (i : fin 2) (x : V):
+  (G.dir_edge_nhd i x).finite :=
 set.finite.intro (infer_instance)
 
-instance finite_at_of_edge_nhd_finite (h : (G.edge_nhd v).finite) : G.finite_at v :=
-  {fin := λ i, ⟨@set.fintype_subset _ (G.edge_nhd v) _ h.fintype _ (set.subset_Union _ _)⟩}
+instance finite_at_of_edge_nhd_finite (h : (G.edge_nhd x).finite) : G.finite_at x :=
+  {fin := λ i, ⟨@set.fintype_subset _ (G.edge_nhd x) _ h.fintype _ (set.subset_Union _ _)⟩}
 
+def dir_edge_nhd_finset (G : digraph V E) (i : fin 2) (x : V) [G.finite_at x]  : finset E :=
+  (G.dir_edge_nhd i x).to_finset
 
-def dir_edge_nhd_finset (G : digraph V E) (i : fin 2) (v : V) [G.finite_at v]  : finset E :=
-  (G.dir_edge_nhd i v).to_finset
+def in_edge_nhd_finset (G : digraph V E) (x : V) [G.finite_at x] : finset E :=
+  G.dir_edge_nhd_finset 0 x
 
-def in_edge_nhd_finset (G : digraph V E) (v : V) [G.finite_at v] : finset E :=
-  G.dir_edge_nhd_finset 0 v
+def out_edge_nhd_finset (G : digraph V E) (x : V) [G.finite_at x]: finset E :=
+  G.dir_edge_nhd_finset 1 x
 
-def out_edge_nhd_finset (G : digraph V E) (v : V) [G.finite_at v]: finset E :=
-  G.dir_edge_nhd_finset 1 v
+def edge_nhd_finset (G: digraph V E) (x : V) [G.finite_at x] : finset E :=
+  (G.edge_nhd x).to_finset
 
-def edge_nhd_finset (G: digraph V E) (v : V) [G.finite_at v] : finset E :=
-  (G.edge_nhd v).to_finset
+def loops_at_finset (G : digraph V E) (x : V) [G.finite_at x] : finset E :=
+  (G.loops_at x).to_finset
 
-def loops_at_finset (G : digraph V E) (v : V) [G.finite_at v] : finset E :=
-  (G.loops_at v).to_finset
+def nhd (G : digraph V E) (x : V) : set V :=
+  {y : V | G.adj x y}
 
-def nhd (G : digraph V E)(u : V) : set V :=
-  {v : V | G.adj u v}
-
-def nhd_finset (G : digraph V E)(u : V)[fintype (G.nhd v)] : finset V :=
-  (G.nhd v).to_finset
+def nhd_finset (G : digraph V E)(x : V)[fintype (G.nhd x)] : finset V :=
+  (G.nhd x).to_finset
 
 lemma is_loop_def:
   G.is_loop e ↔ G.ends 0 e = G.ends 1 e :=
 iff.rfl
 
 lemma adj_def:
-  G.adj u v ↔ ∃ e i, G.ends i e = u ∧ G.ends (i+1) e = v   :=
+  G.adj x y ↔ ∃ e i, G.ends i e = x ∧ G.ends (i+1) e = y  :=
 iff.rfl
 
-lemma inc_def {G : digraph V E} {v : V} {e : E}:
-  G.inc v e ↔ ∃ i, G.ends i e = v :=
+lemma inc_def {G : digraph V E} {x : V} {e : E}:
+  G.inc x e ↔ ∃ i, G.ends i e = x :=
 iff.rfl
 
-lemma dir_edge_nhd_def (G : digraph V E) (i : fin 2) (v : V):
-  G.dir_edge_nhd i v = {e : E | G.ends i e = v} :=
+lemma dir_edge_nhd_def (G : digraph V E) (i : fin 2) (x : V):
+  G.dir_edge_nhd i x = {e : E | G.ends i e = x} :=
 rfl
 
-lemma edge_nhd_def (G : digraph V E) (v : V):
-  G.edge_nhd v = ⋃ (i : fin 2), (G.dir_edge_nhd i v) :=
+lemma edge_nhd_def (G : digraph V E) (x : V):
+  G.edge_nhd x = ⋃ (i : fin 2), (G.dir_edge_nhd i x) :=
 rfl
 
-lemma loops_at_def (G : digraph V E) (v : V):
-  G.loops_at v = ⋂ (i : fin 2), (G.dir_edge_nhd i v) :=
+lemma loops_at_def (G : digraph V E) (x : V):
+  G.loops_at x = ⋂ (i : fin 2), (G.dir_edge_nhd i x) :=
 rfl
 
-lemma dir_edge_nhd_finset_def [G.finite_at v]:
-  G.dir_edge_nhd_finset i v = (G.dir_edge_nhd i v).to_finset :=
+lemma dir_edge_nhd_finset_def [G.finite_at x]:
+  G.dir_edge_nhd_finset i x = (G.dir_edge_nhd i x).to_finset :=
 rfl
 
-lemma edge_nhd_finset_def [G.finite_at v]:
-  G.edge_nhd_finset v = (G.edge_nhd v).to_finset :=
+lemma edge_nhd_finset_def [G.finite_at x]:
+  G.edge_nhd_finset x = (G.edge_nhd x).to_finset :=
 rfl
 
-lemma loops_at_finset_def [G.finite_at v]:
-  G.loops_at_finset v = (G.loops_at v).to_finset :=
+lemma loops_at_finset_def [G.finite_at x]:
+  G.loops_at_finset x = (G.loops_at x).to_finset :=
 rfl
 
 @[simp] lemma edge_nhd_eq_union :
-  G.edge_nhd v = G.dir_edge_nhd 0 v ∪ G.dir_edge_nhd 1 v :=
+  G.edge_nhd x = G.dir_edge_nhd 0 x ∪ G.dir_edge_nhd 1 x :=
 by {ext, rw [set.mem_union, edge_nhd_def, set.mem_Union, fin.exists_fin_two]}
 
 @[simp] lemma loops_at_eq_inter :
-  G.loops_at v = G.dir_edge_nhd 0 v ∩ G.dir_edge_nhd 1 v :=
+  G.loops_at x = G.dir_edge_nhd 0 x ∩ G.dir_edge_nhd 1 x :=
 by {ext, rw [set.mem_inter_iff, loops_at_def, set.mem_Inter, fin.forall_fin_two] }
 
 lemma finite_at_iff_edge_nhd_finite:
-  G.finite_at v ↔ (G.edge_nhd v).finite :=
+  G.finite_at x ↔ (G.edge_nhd x).finite :=
 ⟨λ h, by {rw [edge_nhd_def, fin.Union_fin_two], cases h, exact set.finite.union (h 0) (h 1)},
  λ h, digraph.finite_at_of_edge_nhd_finite h⟩
 
 lemma is_loop_of_mem_loops_at :
-  e ∈ G.loops_at v → G.is_loop e :=
+  e ∈ G.loops_at x → G.is_loop e :=
 begin
   simp_rw [is_loop_def, loops_at_def, set.mem_Inter, dir_edge_nhd_def, set.mem_set_of],
   exact λ h, by rw [h 0, h 1],
 end
 
 lemma mem_loops_at_iff_is_loop_inc :
-  e ∈ G.loops_at v ↔ G.is_loop e ∧ G.inc v e :=
+  e ∈ G.loops_at x ↔ G.is_loop e ∧ G.inc x e :=
 begin
   refine ⟨λ h, ⟨is_loop_of_mem_loops_at h, _⟩, λ h, _⟩,
   { rw [loops_at_def, set.mem_Inter] at h,
@@ -182,8 +198,8 @@ begin
   rwa [is_loop_def.mp h1, and_self],
 end
 
-lemma adj_iff_nhd_inter (huv : u ≠ v):
-  G.adj u v ↔ ((G.edge_nhd u) ∩ (G.edge_nhd v)).nonempty :=
+lemma adj_iff_nhd_inter (huv : x ≠ y):
+  G.adj x y ↔ ((G.edge_nhd x) ∩ (G.edge_nhd y)).nonempty :=
 begin
   refine ⟨λ h, _, λ h, _⟩,
   { rcases h with ⟨e,⟨i,hi1,hi2⟩⟩,
@@ -200,7 +216,7 @@ begin
 end
 
 lemma adj_self_iff_exists_loop :
-  G.adj u u ↔ (G.loops_at u).nonempty :=
+  G.adj x x ↔ (G.loops_at x).nonempty :=
 begin
   refine ⟨λ h, _, λ h, _⟩,
   { rcases h with ⟨e, ⟨i,h1,h2⟩⟩,
@@ -221,10 +237,10 @@ begin
   rw [h1, zero_add, h2, and_self],
 end
 
-lemma adj_symm (u v : V) :
-  G.adj u v → G.adj v u :=
+lemma adj_symm (x y : V) :
+  G.adj x y → G.adj y x :=
 begin
-  by_cases u = v,
+  by_cases x = y,
   { subst h, exact id},
   rw [adj_iff_nhd_inter h, adj_iff_nhd_inter (ne.symm h), set.inter_comm],
   exact id,
@@ -243,8 +259,8 @@ begin
   exact adj_symm _ _ (ends_adj _),
 end
 
-lemma edge_nhd_eq_in_edge_nhd_union_out_edge_nhd (G : digraph V E)(v : V):
-  (G.edge_nhd v) = G.in_edge_nhd v ∪ G.out_edge_nhd v :=
+lemma edge_nhd_eq_in_edge_nhd_union_out_edge_nhd (G : digraph V E)(x : V):
+  (G.edge_nhd x) = G.in_edge_nhd x ∪ G.out_edge_nhd x :=
 begin
   ext x,
   unfold edge_nhd in_edge_nhd out_edge_nhd,
@@ -252,7 +268,7 @@ begin
 end
 
 lemma dir_nhds_pairwise_disjoint (G : digraph V E)(i : fin 2):
-  (set.univ : set V).pairwise_disjoint (λ v, G.dir_edge_nhd i v) :=
+  (set.univ : set V).pairwise_disjoint (λ x, G.dir_edge_nhd i x) :=
 begin
   refine λ x _ y _ hxy e he, false.elim _,
   dsimp [dir_edge_nhd] at he,
@@ -268,13 +284,13 @@ lemma sUnion_dir_nhds_eq_univ (G : digraph V E)(i : fin 2):
   ⋃₀ ((G.dir_edge_nhd i) '' set.univ) = (set.univ : set E) :=
 set.sUnion_eq_univ_iff.mpr (λ e, ⟨G.dir_edge_nhd i (G.ends i e), by simp [dir_edge_nhd_def] ⟩ )
 
-lemma other_end_def (v : V) (e : E):
-  G.other_end v e =
-  if G.ends 0 e = v then G.ends 1 e else if G.ends 1 e = v then G.ends 0 e else v  :=
+lemma other_end_def (x : V) (e : E):
+  G.other_end x e =
+  if G.ends 0 e = x then G.ends 1 e else if G.ends 1 e = x then G.ends 0 e else x  :=
 rfl
 
-lemma other_end_idem (v : V) (e : E):
-  G.other_end (G.other_end v e) e = v :=
+lemma other_end_idem (x : V) (e : E):
+  G.other_end (G.other_end x e) e = x :=
 begin
   simp_rw digraph.other_end,
   split_ifs,
@@ -296,34 +312,34 @@ begin
   refl,
 end
 
-lemma other_end_adj (hve : G.inc u e):
-  G.adj u (G.other_end u e) :=
+lemma other_end_adj (hve : G.inc x e):
+  G.adj x (G.other_end x e) :=
 by {cases hve with i h, rw [← h, other_end_eq],  apply ends_adj'}
 
 
-lemma edge_nhd_eq_inc (G : digraph V E) (v : V):
-  G.edge_nhd v = {e | G.inc v e} :=
+lemma edge_nhd_eq_inc (G : digraph V E) (x : V):
+  G.edge_nhd x = {e | G.inc x e} :=
 begin
   rw [edge_nhd_eq_union, dir_edge_nhd_def, dir_edge_nhd_def],
   ext,
   simp [inc_def, fin.exists_fin_two],
 end
 
-lemma dir_edge_nhd_subset_edge_nhd (G : digraph V E)(i : fin 2)(v : V):
-  G.dir_edge_nhd i v ⊆ G.edge_nhd v :=
-set.subset_Union (λ j, G.dir_edge_nhd j v) i
+lemma dir_edge_nhd_subset_edge_nhd (G : digraph V E)(i : fin 2)(x : V):
+  G.dir_edge_nhd i x ⊆ G.edge_nhd x :=
+set.subset_Union (λ j, G.dir_edge_nhd j x) i
 
-lemma loops_at_subset_dir_edge_nhd (G : digraph V E)(i : fin 2)(v : V):
-  G.loops_at v ⊆ G.dir_edge_nhd i v :=
+lemma loops_at_subset_dir_edge_nhd (G : digraph V E)(i : fin 2)(x : V):
+  G.loops_at x ⊆ G.dir_edge_nhd i x :=
 set.Inter_subset _ _
 
-lemma loops_at_subset_edge_nhd (G : digraph V E)(v : V):
-  G.loops_at v ⊆ G.edge_nhd v :=
-subset_trans (G.loops_at_subset_dir_edge_nhd 0 v) (G.dir_edge_nhd_subset_edge_nhd 0 v)
+lemma loops_at_subset_edge_nhd (G : digraph V E)(x : V):
+  G.loops_at x ⊆ G.edge_nhd x :=
+subset_trans (G.loops_at_subset_dir_edge_nhd 0 x) (G.dir_edge_nhd_subset_edge_nhd 0 x)
 
 lemma ends_set_nonempty(G : digraph V E)(e : E):
   (G.ends_set e).nonempty :=
-by simp [ends_set]
+⟨G.ends 0 e, set.mem_set_of.mpr ⟨0, rfl⟩⟩
 
 lemma ends_finset_nonempty(G : digraph V E)(e : E):
   (G.ends_finset e).nonempty :=
@@ -374,35 +390,35 @@ end basic
 
 section degree
 
-def dir_deg (G : digraph V E) (i : fin 2) (v : V) : ℕ :=
-  nat.card (G.dir_edge_nhd i v)
+def dir_deg (G : digraph V E) (i : fin 2) (x : V) : ℕ :=
+  nat.card (G.dir_edge_nhd i x)
 
-def in_deg (G : digraph V E) (v : V) : ℕ :=
-  G.dir_deg 0 v
+def in_deg (G : digraph V E) (x : V) : ℕ :=
+  G.dir_deg 0 x
 
-def out_deg (G : digraph V E) (v : V) : ℕ :=
-  G.dir_deg 1 v
+def out_deg (G : digraph V E) (x : V) : ℕ :=
+  G.dir_deg 1 x
 
-def deg (G : digraph V E)(v : V) : ℕ :=
-  nat.card ((G.dir_edge_nhd 0 v) ⊕ (G.dir_edge_nhd 1 v))
+def deg (G : digraph V E)(x : V) : ℕ :=
+  nat.card ((G.dir_edge_nhd 0 x) ⊕ (G.dir_edge_nhd 1 x))
 
-lemma dir_deg_def (G : digraph V E) (i : fin 2) (v : V) :
-  G.dir_deg i v = nat.card (G.dir_edge_nhd i v) :=
+lemma dir_deg_def (G : digraph V E) (i : fin 2) (x : V) :
+  G.dir_deg i x = nat.card (G.dir_edge_nhd i x) :=
 rfl
 
-lemma deg_def (G : digraph V E)(v : V)[G.finite_at v]:
-  G.deg v = G.dir_deg 0 v + G.dir_deg 1 v :=
+lemma deg_def (G : digraph V E)(x : V)[G.finite_at x]:
+  G.deg x = G.dir_deg 0 x + G.dir_deg 1 x :=
 by simp [deg, dir_deg]
 
-lemma dir_deg_eq_finset_card (G: digraph V E) (i : fin 2) (v : V) [G.finite_at v] :
-  G.dir_deg i v = (G.dir_edge_nhd_finset i v).card :=
+lemma dir_deg_eq_finset_card (G: digraph V E) (i : fin 2) (x : V) [G.finite_at x] :
+  G.dir_deg i x = (G.dir_edge_nhd_finset i x).card :=
 begin
   unfold dir_deg dir_edge_nhd_finset,
   rw [nat.card_eq_fintype_card, eq_comm, set.to_finset_card],
 end
 
-lemma deg_eq_sum_card_nhd_card_loops (G : digraph V E) (v : V) [G.finite_at v] :
-  G.deg v = (G.edge_nhd_finset v).card + (G.loops_at_finset v).card :=
+lemma deg_eq_sum_card_nhd_card_loops (G : digraph V E) (x : V) [G.finite_at x] :
+  G.deg x = (G.edge_nhd_finset x).card + (G.loops_at_finset x).card :=
 begin
   rw [deg_def, dir_deg_eq_finset_card, dir_deg_eq_finset_card, eq_comm],
   convert finset.card_union_add_card_inter _ _,
@@ -412,8 +428,8 @@ begin
     ←set.to_finset_inter, set.to_finset_inj, loops_at_eq_inter],
 end
 
-def deg_eq_zero_of_edge_nhd_infinite (h : (G.edge_nhd v).infinite):
-  G.deg v = 0 :=
+def deg_eq_zero_of_edge_nhd_infinite (h : (G.edge_nhd x).infinite):
+  G.deg x = 0 :=
 begin
   apply @nat.card_eq_zero_of_infinite _ _,
   rw [infinite_sum, set.infinite_coe_iff, set.infinite_coe_iff],
@@ -423,7 +439,7 @@ end
 variables [fintype V][fintype E]
 
 lemma dir_handshake (G : digraph V E) (i : fin 2):
-  ∑ᶠ (v : V), (G.dir_deg i v) = fintype.card E :=
+  ∑ᶠ (x : V), (G.dir_deg i x) = fintype.card E :=
 begin
   simp_rw dir_deg_def,
   rw [←finsum_mem_univ, eq_comm],
@@ -438,7 +454,7 @@ begin
 end
 
 theorem handshake (G : digraph V E):
-  ∑ᶠ (v : V), G.deg v = 2 * (fintype.card E) :=
+  ∑ᶠ (x : V), G.deg x = 2 * (fintype.card E) :=
 begin
   simp_rw deg_def,
   rw [finsum_add_distrib (set.finite.of_fintype _) (set.finite.of_fintype _), dir_handshake,
@@ -507,7 +523,7 @@ end
 lemma inc_respects:
   G₁ ~ G₂ → G₁.inc = G₂.inc :=
 begin
-  refine λ h, funext (λ v, funext (λ e, iff_iff_eq.mp _)),
+  refine λ h, funext (λ x, funext (λ e, iff_iff_eq.mp _)),
   cases orientation_equiv_iff_shift.mp h e with j hj,
   simp_rw [inc_def, hj],
   refine ⟨λ h, _, λ h, _⟩,
@@ -534,13 +550,13 @@ lemma edge_nhd_respects:
 
 lemma loops_at_respects:
   G₁ ~ G₂ → G₁.loops_at = G₂.loops_at :=
-λ h, funext (λ v, set.ext (λ e,
+λ h, funext (λ x, set.ext (λ e,
   by simp_rw [mem_loops_at_iff_is_loop_inc, is_loop_respects h, inc_respects h]))
 
-lemma adj_of_adj_equiv (u v : V):
-  G₁ ~ G₂ → G₁.adj u v → G₂.adj u v :=
+lemma adj_of_adj_equiv (x y : V):
+  G₁ ~ G₂ → G₁.adj x y → G₂.adj x y :=
 begin
-  refine classical.by_cases (λ huv : (u = v), λ h h', _) (λ huv : (u ≠ v), λ h h', _) ,
+  refine classical.by_cases (λ huv : (x = y), λ h h', _) (λ huv : (x ≠ y), λ h h', _) ,
   { subst huv,
     rw adj_self_iff_exists_loop at h' ⊢,
     cases h' with e he,
@@ -565,7 +581,7 @@ end
 lemma other_end_respects:
   G₁ ~ G₂ → G₁.other_end = G₂.other_end :=
 begin
-  refine (λ h, funext (λ v, funext (λ e, _))),
+  refine (λ h, funext (λ x, funext (λ e, _))),
   cases orientation_equiv_iff_shift.mp h e with j hj,
   simp_rw [other_end_def, hj, zero_add],
   cases fin.fin_two_eq_zero_or_one j with hj hj;
@@ -585,8 +601,8 @@ end
 lemma deg_respects:
   G₁ ~ G₂ → G₁.deg = G₂.deg :=
 begin
-  refine (λ h, funext (λ v, _)),
-  cases @set.finite_or_infinite _ (G₁.edge_nhd v) with hfin hinf,
+  refine (λ h, funext (λ x, _)),
+  cases @set.finite_or_infinite _ (G₁.edge_nhd x) with hfin hinf,
   { haveI := digraph.finite_at_of_edge_nhd_finite hfin,
     rw edge_nhd_respects h at hfin,
     haveI := digraph.finite_at_of_edge_nhd_finite hfin,
@@ -597,8 +613,12 @@ begin
   rw [deg_eq_zero_of_edge_nhd_infinite hinf, deg_eq_zero_of_edge_nhd_infinite hinf2],
 end
 
+lemma ends_set_respects:
+  G₁ ~ G₂ → G₁.ends_set = G₂.ends_set :=
+λ h, funext (λ x, by simp_rw [ends_set, inc_respects h])
+
 lemma finite_at_respects :
-  G₁ ~ G₂ → (G₁.finite_at v ↔ G₂.finite_at v) :=
+  G₁ ~ G₂ → (G₁.finite_at x ↔ G₂.finite_at x) :=
 begin
   simp_rw finite_at_iff_edge_nhd_finite,
   exact λ h, ⟨λ h1, by rwa [←edge_nhd_respects h], λ h2, by rwa[edge_nhd_respects h]⟩,
@@ -607,14 +627,15 @@ end
 lemma locally_finite_respects:
   G₁ ~ G₂ → (G₁.locally_finite ↔ G₂.locally_finite) :=
 begin
-  refine λ h, ⟨λ h1, ⟨λ v, _⟩, λ h1, ⟨λ v, _⟩⟩,
-  { cases h1,
-    rw ← finite_at_respects h,
-    exact h1 v},
-  cases h1,
-  rw finite_at_respects h,
-  exact h1 v,
+  refine λ h, ⟨λ h1, ⟨λ x, _⟩, λ h1, ⟨λ x, _⟩⟩,
+  all_goals { have := (h1.fins : _) x},
+     rwa ← finite_at_respects h,
+  rwa finite_at_respects h,
 end
+
+--begin
+--  refine ⟨λ h, λ x, _, λ h, λ x, _⟩,
+--end
 
 end reorientation
 

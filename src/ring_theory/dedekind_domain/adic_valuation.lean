@@ -342,12 +342,8 @@ iff.rfl
 
 /-- The natural inclusion of `R` in `adic_completion_integers`, as a ring homomorphism. -/
 @[simps] def inj_adic_completion_integers : R →+* v.adic_completion_integers K :=
-{ to_fun := λ r, ⟨coe $ algebra_map R K r,
-  begin
-    change @valued.extension K _ _ _ v.adic_valued (algebra_map R K r) ≤ 1,
-    rw @valued.extension_extends K _ _ _ v.adic_valued (algebra_map R K r),
-    exact v.valuation_le_one _,
-  end⟩,
+{ to_fun := λ r, ⟨coe $ algebra_map R K r, by simpa only [adic_completion.is_integer,
+    valued.valued_completion_apply] using v.valuation_le_one _⟩,
   map_one' := by simpa only [ring_hom.map_one],
   map_mul' := λ x y,
   begin
@@ -365,8 +361,7 @@ lemma inj_adic_completion_integers.injective :
   function.injective (inj_adic_completion_integers R K v) :=
 begin
   intros x y hxy,
-  have h_inj : function.injective (coe : K → v.adic_completion K) :=
-    @uniform_space.completion.coe_injective K v.adic_valued.to_uniform_space _,
-  simp only [inj_adic_completion_integers, ring_hom.coe_mk, subtype.mk_eq_mk] at hxy,
-  exact is_fraction_ring.injective R K (h_inj hxy)
+  letI : uniform_space K := v.adic_valued.to_uniform_space,
+  exact is_fraction_ring.injective R K
+    (uniform_space.completion.coe_injective K (subtype.ext_iff.mp hxy)),
 end

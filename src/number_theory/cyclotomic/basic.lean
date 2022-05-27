@@ -399,7 +399,7 @@ begin
   haveI := ne_zero.of_no_zero_smul_divisors K L m,
   rw [aeval_def, eval₂_eq_eval_map, map_cyclotomic, hn, ← is_root.def,
     is_root_cyclotomic_prime_pow_mul_iff_of_char_p] at hz,
-  refine X_pow_sub_one_splits hz,
+  exact X_pow_sub_one_splits hz
 end
 
 lemma splitting_field_X_pow_sub_one_char_p {p k m : ℕ} {n : ℕ+} [fact p.prime]

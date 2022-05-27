@@ -20,6 +20,12 @@ modulus principle for an unbounded domain.
 * `phragmen_lindelof.eq_zero_on_horizontal_strip`, `phragmen_lindelof.eq_on_horizontal_strip`:
   extensionality lemmas based on the Phragmen-Lindelöf principle in a horizontal strip;
 
+* `phragmen_lindelof.vertical_strip`: the Phragmen-Lindelöf principle in a vertical strip
+  `{z : ℂ | a < complex.re z < b}`;
+
+* `phragmen_lindelof.eq_zero_on_vertical_strip`, `phragmen_lindelof.eq_on_vertical_strip`:
+  extensionality lemmas based on the Phragmen-Lindelöf principle in a vertical strip;
+
 * `phragmen_lindelof.quadrant_I`, `phragmen_lindelof.quadrant_II`, `phragmen_lindelof.quadrant_III`,
   `phragmen_lindelof.quadrant_IV`: the Phragmen-Lindelöf principle in the coordinate quadrants;
 

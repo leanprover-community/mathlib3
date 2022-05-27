@@ -77,9 +77,6 @@ end
   N.centralizer.comap f = (N.comap f).centralizer :=
 by { ext, simp, }
 
-lemma centralizer_bot_eq_max_triv_submodule :
-  (⊥ : lie_submodule R L M).centralizer = lie_module.max_triv_submodule R L M :=
-rfl
 
 lemma top_lie_le_iff_le_centralizer (N' : lie_submodule R L M) :
   ⁅(⊤ : lie_ideal R L), N⁆ ≤ N' ↔ N ≤ N'.centralizer :=
@@ -88,6 +85,12 @@ by { rw lie_le_iff, tauto, }
 lemma gc_top_lie_centralizer :
   galois_connection (λ N : lie_submodule R L M, ⁅(⊤ : lie_ideal R L), N⁆) centralizer :=
 top_lie_le_iff_le_centralizer
+
+variables (R L M)
+
+lemma centralizer_bot_eq_max_triv_submodule :
+  (⊥ : lie_submodule R L M).centralizer = lie_module.max_triv_submodule R L M :=
+rfl
 
 end lie_submodule
 

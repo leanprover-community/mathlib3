@@ -500,8 +500,8 @@ induction_on₃ a b c $ λ α β γ ⟨e⟩, ⟨embedding.arrow_congr_right e⟩
 
 end order_properties
 
-protected theorem wf : @well_founded cardinal.{u} (<) :=
-⟨λ a, classical.by_contradiction $ λ h, begin
+instance : is_well_order cardinal.{u} (<) :=
+⟨⟨λ a, classical.by_contradiction $ λ h, begin
   let ι := {c : cardinal // ¬ acc (<) c},
   let f : ι → cardinal := subtype.val,
   haveI hι : nonempty ι := ⟨⟨_, h⟩⟩,
@@ -511,18 +511,16 @@ protected theorem wf : @well_founded cardinal.{u} (<) :=
   apply hc (acc.intro _ (λ j h', classical.by_contradiction (λ hj, h'.2 _))),
   have : #_ ≤ #_ := ⟨h ⟨j, hj⟩⟩,
   simpa [mk_out] using this
-end⟩
+end⟩⟩
 
-instance has_wf : @has_well_founded cardinal.{u} := ⟨(<), cardinal.wf⟩
+instance : has_well_founded cardinal.{u} := ⟨(<), is_well_order.wf⟩
 
 instance : conditionally_complete_linear_order_bot cardinal :=
-cardinal.wf.conditionally_complete_linear_order_with_bot 0 $ le_antisymm (cardinal.zero_le _) $
-  not_lt.1 (cardinal.wf.not_lt_min set.univ ⟨0, mem_univ _⟩ (mem_univ 0))
+is_well_order.wf.conditionally_complete_linear_order_with_bot 0 $ le_antisymm (cardinal.zero_le _) $
+  not_lt.1 (is_well_order.wf.not_lt_min set.univ ⟨0, mem_univ _⟩ (mem_univ 0))
 
 @[simp] theorem Inf_empty : Inf (∅ : set cardinal.{u}) = 0 :=
 dif_neg not_nonempty_empty
-
-instance wo : @is_well_order cardinal.{u} (<) := ⟨cardinal.wf⟩
 
 /-- The set in the definition of `cardinal.succ` is nonempty. -/
 theorem succ_nonempty (c : cardinal) : {c' : cardinal | c < c'}.nonempty := ⟨_, cantor c⟩

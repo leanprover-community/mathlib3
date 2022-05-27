@@ -386,7 +386,7 @@ localized "attribute [instance] is_cyclotomic_extension.splitting_field_cyclotom
 omit hne
 
 lemma splits_X_pow_sub_one_char_p {p k m : ℕ} {n : ℕ+} [fact p.prime] (hn : ↑n = p ^ k * m)
-  (K : Type*) (L : Type*) [field K] [field L] [algebra K L] [char_p K p] [ne_zero (m : K)]
+  (K L : Type*) [field K] [field L] [algebra K L] [char_p K p] [ne_zero (m : K)]
   [is_cyclotomic_extension {n} K L] :
   splits (algebra_map K L) (X ^ m - 1) :=
 begin
@@ -403,7 +403,7 @@ begin
 end
 
 lemma splitting_field_X_pow_sub_one_char_p {p k m : ℕ} {n : ℕ+} [fact p.prime]
-  (hn : ↑n = p ^ k * m) (K : Type*) (L : Type*) [field K] [field L] [algebra K L] [char_p K p]
+  (hn : ↑n = p ^ k * m) (K L : Type*) [field K] [field L] [algebra K L] [char_p K p]
   [ne_zero (m : K)] [is_cyclotomic_extension {n} K L] :
   is_splitting_field K L (X ^ m - 1) :=
 { splits := splits_X_pow_sub_one_char_p hn K L,

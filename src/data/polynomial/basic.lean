@@ -584,7 +584,7 @@ lemma binomial_eq_binomial {k l m n : ℕ} {u v : R} (hu : u ≠ 0) (hv : v ≠ 
   C u * X ^ k + C v * X ^ l = C u * X ^ m + C v * X ^ n ↔
   (k = m ∧ l = n) ∨ (u = v ∧ k = n ∧ l = m) ∨ (u + v = 0 ∧ k = l ∧ m = n) :=
 begin
-  simp_rw [C_mul_X_pow_eq_monomial, ←to_finsupp_inj, to_finsupp_add, to_finsupp_monomial],
+  simp_rw [←monomial_eq_C_mul_X, ←to_finsupp_inj, to_finsupp_add, to_finsupp_monomial],
   exact finsupp.single_add_single_eq_single_add_single hu hv,
 end
 

@@ -619,7 +619,7 @@ le_antisymm (cof_le_card _) begin
   let g := λ a, (f a).1,
   let o := succ (sup.{u u} g),
   rcases H o with ⟨b, h, l⟩,
-  refine l (lt_succ_iff.2 _),
+  refine l (order.lt_succ_iff.2 _),
   rw ← show g (f.symm ⟨b, h⟩) = b, by dsimp [g]; simp,
   apply le_sup
 end

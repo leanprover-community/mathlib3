@@ -5,6 +5,24 @@ Authors: Kalle Kytölä
 -/
 import measure_theory.integral.interval_integral
 
+/-!
+# The layer cake formula, a.k.a. Cavalieri's principle
+
+In this file we prove the layer cake formula using Fubini's theorem.
+
+## Main definitions
+
+None.
+
+## Main results
+
+* `layercake`
+
+## Tags
+
+layer cake theorem, Cavalieri's principle
+-/
+
 noncomputable theory
 open_locale classical topological_space ennreal measure_theory
 open set function real ennreal
@@ -72,7 +90,8 @@ begin
     rw ← of_real_integral_eq_lintegral_of_real intble_now.1 g_ae_nn,
     apply congr_arg,
     rw interval_integral.interval_integral_eq_integral_interval_oc,
-    simp only [interval_oc_of_le, (show (0 ≤ f ω), from f_nn ω), if_true, algebra.id.smul_eq_mul, one_mul], },
+    simp only [interval_oc_of_le, (show (0 ≤ f ω), from f_nn ω), if_true,
+               algebra.id.smul_eq_mul, one_mul], },
   simp_rw [integrand_eq, ← lintegral_indicator (λ t, ennreal.of_real (g t)) measurable_set_Ioc],
   simp_rw [← lintegral_indicator _ measurable_set_Ioi],
   rw lintegral_lintegral_swap,
@@ -106,7 +125,8 @@ begin
     rw lintegral_const_mul',
     swap, { apply ennreal.mul_ne_top ennreal.of_real_ne_top,
             by_cases s ∈ Ioi (0 : ℝ); { simp [h], }, },
-    have aux : (λ a, (Ici s).indicator (λ (t : ℝ), (1 : ℝ≥0∞)) (f a)) = (λ a, {a : α | s ≤ f a}.indicator (λ _, 1) a),
+    have aux : (λ a, (Ici s).indicator (λ (t : ℝ), (1 : ℝ≥0∞)) (f a))
+              = (λ a, {a : α | s ≤ f a}.indicator (λ _, 1) a),
     { funext a,
       by_cases s ≤ f a; simp [h], },
     simp_rw [aux],
@@ -122,8 +142,9 @@ begin
     rw mul_comm _ (ennreal.of_real _),
     simp_rw [one_mul],
     refl, },
-  have : function.uncurry (λ (x : α) (y : ℝ), (Ioc 0 (f x)).indicator (λ (t : ℝ), ennreal.of_real (g t)) y)
-         = {p : α × ℝ | p.2 ∈ Ioc 0 (f p.1)}.indicator (λ p, ennreal.of_real (g p.2)),
+  have : function.uncurry
+         (λ (x : α) (y : ℝ), (Ioc 0 (f x)).indicator (λ (t : ℝ), ennreal.of_real (g t)) y)
+           = {p : α × ℝ | p.2 ∈ Ioc 0 (f p.1)}.indicator (λ p, ennreal.of_real (g p.2)),
   { funext p,
     by_cases p.2 ∈ Ioc 0 (f p.1),
     { have h' : p ∈ {p : α × ℝ | p.snd ∈ Ioc 0 (f p.fst)}, by simpa only using h,

@@ -584,7 +584,7 @@ instance is_cyclotomic_extension :
     subst a,
     obtain ⟨μ, hμ⟩ := let h := (cyclotomic_field.is_cyclotomic_extension n K).exists_root
                       in h $ mem_singleton n,
-    have hμmem : μ ∈ (adjoin A {b : cyclotomic_field n K | b ^ (n : ℕ) = 1}),
+    have hμmem : μ ∈ adjoin A {b : cyclotomic_field n K | b ^ (n : ℕ) = 1},
     { refine subset_adjoin _,
       apply (is_root_of_unity_iff n.pos (cyclotomic_field n K)).mpr,
       refine ⟨n, nat.mem_divisors_self _ n.ne_zero, _⟩,

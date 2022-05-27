@@ -486,7 +486,7 @@ begin
 end
 
 instance : is_well_order enat (<) := ⟨lt_wf⟩
-instance : has_well_founded enat := ⟨(<), is_well_order.wf⟩
+instance : has_well_founded enat := ⟨(<), lt_wf⟩
 
 section find
 

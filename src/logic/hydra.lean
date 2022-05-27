@@ -185,6 +185,28 @@ end
 theorem _root_.well_founded.cut_expand (hr : well_founded r) : well_founded (cut_expand r) :=
 ⟨λ s, acc_of_singleton hr.is_irrefl.1 $ λ a _, (hr.apply a).cut_expand hr.is_irrefl.1⟩
 
+theorem not_cut_expand_zero (hr : irreflexive r) (s) : ¬ cut_expand r s 0 :=
+begin
+  rintro ⟨t, a, h, h'⟩,
+  rw zero_add at h',
+  apply hr a (h a _),
+  rw ←h',
+  exact multiset.mem_add.2 (or.inr $ multiset.mem_singleton_self a)
+end
+
+theorem cut_expand_singleton {s x} (h : ∀ x' ∈ s, r x' x) : cut_expand r s {x} :=
+⟨s, x, h, add_comm s _⟩
+
+theorem cut_expand_add {x t} (s) (h : ∀ x' ∈ t, r x' x) : cut_expand r (s + t) (s + {x}) :=
+⟨t, x, h, add_right_comm s t _⟩
+
+theorem cut_expand_add_singleton {x x'} (s) (h : r x' x) : cut_expand r (s + {x'}) (s + {x}) :=
+begin
+  refine cut_expand_add s (λ a h, _),
+  rw multiset.mem_singleton at h,
+  rwa h
+end
+
 end hydra
 
 end relation

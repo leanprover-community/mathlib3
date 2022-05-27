@@ -420,7 +420,7 @@ lemma splitting_field_X_pow_sub_one_char_p {p k m : ℕ} {n : ℕ+} [fact (p.pri
     rw [mem_roots, is_root.def, eval_sub, eval_pow, eval_X, eval_one, hn,
       pow_prime_pow_mul_eq_one_iff, sub_eq_zero],
     rw [← ring_hom.map_one C],
-    refine X_pow_sub_C_ne_zero (ne_zero.pos_of_ne_zero_coe K) _
+    exact X_pow_sub_C_ne_zero (ne_zero.pos_of_ne_zero_coe K) _
     end }
 
 lemma is_galois : is_galois K L :=

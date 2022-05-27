@@ -704,13 +704,13 @@ suffices ∀ a, acc (<) (typein r a), from
   exact IH _ ((typein_lt_typein r).1 h)
 end⟩⟩
 
-instance : has_well_founded ordinal := ⟨(<), wf⟩
+instance : has_well_founded ordinal := ⟨(<), lt_wf⟩
 
 /-- Reformulation of well founded induction on ordinals as a lemma that works with the
 `induction` tactic, as in `induction i using ordinal.induction with i IH`. -/
 lemma induction {p : ordinal.{u} → Prop} (i : ordinal.{u})
   (h : ∀ j, (∀ k, k < j → p k) → p j) : p i :=
-ordinal.lt_wf.induction i h
+lt_wf.induction i h
 
 /-- Principal segment version of the `typein` function, embedding a well order into
   ordinals as a principal segment. -/
@@ -1056,7 +1056,7 @@ instance : linear_order ordinal :=
   decidable_le := classical.dec_rel _,
   ..ordinal.partial_order }
 
-instance : is_well_order ordinal (<) := ⟨wf⟩
+instance : is_well_order ordinal (<) := ⟨lt_wf⟩
 
 instance : succ_order ordinal := succ_order.of_succ_le_iff succ (λ _ _, succ_le)
 

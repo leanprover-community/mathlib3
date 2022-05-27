@@ -30,7 +30,7 @@ We define cardinal numbers as a quotient of types under the equivalence relation
   (contrast with `ℕ : Type`, which lives in a specific universe).
   In some cases the universe level has to be given explicitly.
 * `cardinal.min (I : nonempty ι) (c : ι → cardinal)` is the minimal cardinal in the range of `c`.
-* `cardinal.succ c` is the successor cardinal, the smallest cardinal larger than `c`.
+* `order.succ c` is the successor cardinal, the smallest cardinal larger than `c`.
 * `cardinal.sum` is the sum of a collection of cardinals.
 * `cardinal.sup` is the supremum of a collection of cardinals.
 * `cardinal.powerlt c₁ c₂` or `c₁ ^< c₂` is defined as `sup_{γ < β} α^γ`.

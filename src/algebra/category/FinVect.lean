@@ -33,7 +33,7 @@ instance monoidal_predicate_finite_dimensional :
 
 /-- Define `FinVect` as the subtype of `Module.{u} K` of finite dimensional vector spaces. -/
 @[derive [large_category, λ α, has_coe_to_sort α (Sort*), concrete_category, monoidal_category,
-symmetric_category]]
+  symmetric_category]]
 def FinVect := { V : Module.{u} K // finite_dimensional K V }
 
 namespace FinVect

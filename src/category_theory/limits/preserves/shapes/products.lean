@@ -18,17 +18,17 @@ the limit of `f`.
 
 noncomputable theory
 
-universes v u₁ u₂
+universes w v₁ v₂ u₁ u₂
 
 open category_theory category_theory.category category_theory.limits
 
-variables {C : Type u₁} [category.{v} C]
-variables {D : Type u₂} [category.{v} D]
+variables {C : Type u₁} [category.{v₁} C]
+variables {D : Type u₂} [category.{v₂} D]
 variables (G : C ⥤ D)
 
 namespace category_theory.limits
 
-variables {J : Type v} (f : J → C)
+variables {J : Type w} (f : J → C)
 
 /--
 The map of a fan is a limit iff the fan consisting of the mapped morphisms is a limit. This

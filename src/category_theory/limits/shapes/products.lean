@@ -33,7 +33,7 @@ general limits can be used.
 
 noncomputable theory
 
-universes w v u u₂
+universes w v v₂ u u₂
 
 open category_theory
 
@@ -145,7 +145,7 @@ colim.map_iso (discrete.nat_iso p)
 
 section comparison
 
-variables {D : Type u₂} [category.{v} D] (G : C ⥤ D)
+variables {D : Type u₂} [category.{v₂} D] (G : C ⥤ D)
 variables (f : β → C)
 
 /-- The comparison morphism for the product of `f`. This is an iso iff `G` preserves the product

@@ -37,7 +37,7 @@ for those `V : opens X` such that `V ≤ U i` for some `i`.
 
 -/
 
-universes v u
+universes w v u
 
 noncomputable theory
 
@@ -50,7 +50,7 @@ open topological_space.opens
 namespace Top
 
 variables {C : Type u} [category.{v} C] [has_products.{v} C]
-variables {X : Top.{v}} (F : presheaf C X) {ι : Type v} (U : ι → opens X)
+variables {X : Top.{w}} (F : presheaf C X) {ι : Type v} (U : ι → opens X)
 
 namespace presheaf
 
@@ -68,7 +68,7 @@ def is_sheaf (F : presheaf C X) : Prop :=
 /--
 The presheaf valued in `punit` over any topological space is a sheaf.
 -/
-lemma is_sheaf_punit (F : presheaf (category_theory.discrete punit) X) : F.is_sheaf :=
+lemma is_sheaf_punit (F : presheaf (category_theory.discrete unit) X) : F.is_sheaf :=
 λ ι U, ⟨punit_cone_is_limit⟩
 
 /--

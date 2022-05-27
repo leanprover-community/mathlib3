@@ -397,6 +397,20 @@ begin
     exact h (units.mk0 x hx) }
 end
 
+def unit_group_ordered_embedding :
+  valuation_subring K ↪o subgroup Kˣ :=
+{ to_fun := λ A, A.unit_group,
+  inj' := λ A B h, by rwa eq_iff_unit_group,
+  map_rel_iff' := begin
+    intros A B,
+    dsimp,
+    split,
+    { sorry },
+    { rintros h x (hx : A.valuation x = 1),
+      apply_fun A.map_of_le B h at hx,
+      simpa using hx }
+  end }
+
 /-- `A.unit_group` agrees with the units of `A`. -/
 def unit_group_equiv : A.unit_group ≃* Aˣ :=
 { to_fun := λ x,
@@ -517,6 +531,12 @@ begin
     { simp only [hx, zero_sub, valuation.map_neg, valuation.map_one, lt_self_iff_false], },
     { exact h (units.mk0 x hx) } }
 end
+
+def principal_unit_group_ordered_embedding :
+  valuation_subring K ↪o (subgroup Kˣ)ᵒᵈ :=
+{ to_fun := λ A, A.principal_unit_group,
+  inj' := λ A B h, by rwa eq_iff_principal_unit_group,
+  map_rel_iff' := sorry }
 
 lemma principal_units_le_units : A.principal_unit_group ≤ A.unit_group :=
 begin

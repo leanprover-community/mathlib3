@@ -22,7 +22,7 @@ noncomputable theory
 
 /-! ### General definition of smooth fiber bundles -/
 
-variables {ι 𝕜 E E' E₂ E₃ E₄ E₅ H H' H₂ H₃ H₄ H₅ : Type*}
+variables {𝕜 E E' E₂ E₃ E₄ E₅ H H' H₂ H₃ H₄ H₅ : Type*}
 variables [nondiscrete_normed_field 𝕜]
 variables [normed_group E] [normed_space 𝕜 E] [normed_group E'] [normed_space 𝕜 E']
 variables [normed_group E₂] [normed_space 𝕜 E₂] [normed_group E₃] [normed_space 𝕜 E₃]
@@ -363,7 +363,7 @@ namespace bundle
 
 end bundle
 
-variables (ι B F I I₂)
+variables (B F I I₂)
 /-- Core data defining a locally trivial smooth bundle with fiber `F` over a smooth
 space `B`. Note that "bundle" is used in its mathematical sense. This is the (computer science)
 bundled version, i.e., all the relevant data is contained in the following structure. A family of
@@ -374,34 +374,27 @@ Trivialization changes from `i` to `j` are given by smooth maps `coord_change i 
 space of smooth maps on `F`. -/
 @[nolint has_inhabited_instance]
 structure smooth_fiber_bundle_core :=
-(base_set          : ι → set B)
-(is_open_base_set  : ∀ i, is_open (base_set i))
-(index_at          : B → ι)
-(mem_base_set_at   : ∀ x, x ∈ base_set (index_at x))
-(coord_change      : ι → ι → B → F → F)
-(coord_change_self : ∀ i, ∀ x ∈ base_set i, ∀ v, coord_change i i x v = v)
-(smooth_on_coord_change : ∀ i j, smooth_on (I.prod I₂) I₂ (λ p : B × F, coord_change i j p.1 p.2)
-                                               ((base_set i ∩ base_set j) ×ˢ (univ : set F)))
-(coord_change_comp : ∀ i j k, ∀ x ∈ base_set i ∩ base_set j ∩ base_set k, ∀ v,
-  (coord_change j k x) (coord_change i j x v) = coord_change i k x v)
-
--- (coord_change      : atlas H M → atlas H M → H → (F →L[𝕜] F))
--- (coord_change_self : ∀ i : atlas H M, ∀ x ∈ i.1.target, ∀ v, coord_change i i x v = v)
--- (coord_change_comp : ∀ i j k : atlas H M,
---   ∀ x ∈ ((i.1.symm.trans j.1).trans (j.1.symm.trans k.1)).source, ∀ v,
---   (coord_change j k ((i.1.symm.trans j.1) x)) (coord_change i j x v) = coord_change i k x v)
--- (coord_change_smooth_clm : ∀ i j : atlas H M,
---   cont_diff_on 𝕜 ∞ ((coord_change i j) ∘ I.symm) (I '' (i.1.symm.trans j.1).source))
+(coord_change      : atlas H B → atlas H B → B → F → F)
+(coord_change_self : ∀ i : atlas H B, ∀ x ∈ i.1.source, ∀ v, coord_change i i x v = v)
+(smooth_on_coord_change : ∀ i j : atlas H B,
+  smooth_on (I.prod I₂) I₂ (λ p : B × F, coord_change i j p.1 p.2)
+            ((i.1.source ∩ j.1.source) ×ˢ (univ : set F)))
+(coord_change_comp : ∀ i j k : atlas H B, ∀ x ∈ i.1.source ∩ j.1.source ∩ k.1.source, ∀ v,
+  coord_change j k x (coord_change i j x v) = coord_change i k x v)
 
 namespace smooth_fiber_bundle_core
 
-variables {ι B F I I₂} (X : smooth_fiber_bundle_core ι I I₂ B F)
+variables {B F I I₂} (X : smooth_fiber_bundle_core I I₂ B F)
 
+variable (H)
+-- todo: move
+/-- The chart at `b`, as an element of `atlas H B`. -/
+@[simps (mfld_cfg)] def achart_at (b : B) : atlas H B := ⟨chart_at H b, chart_mem_atlas H b⟩
+
+@[simp, mfld_simps] lemma achart_at_val {b : B} : (achart_at H b).1 = chart_at H b := rfl
+
+variable {H}
 include X
-
-/-- The index set of a smooth fiber bundle core, as a convenience function for dot notation -/
-@[nolint unused_arguments has_inhabited_instance]
-def index := ι
 
 /-- The base space of a smooth fiber bundle core, as a convenience function for dot notation -/
 @[nolint unused_arguments, reducible]
@@ -421,22 +414,28 @@ def total_space := bundle.total_space X.fiber
 /-- The projection from the total space of a smooth fiber bundle core, on its base. -/
 @[reducible, simp, mfld_simps] def proj : X.total_space → B := bundle.proj X.fiber
 
+/-- A `smooth_fiber_bundle_core` interpreted as a `topological_fiber_bundle_core`. -/
 @[simps (mfld_cfg)]
-def to_topological : topological_fiber_bundle_core ι B F :=
-{ coord_change_continuous := λ i j, (X.smooth_on_coord_change i j).continuous_on, .. X }
+def to_topological : topological_fiber_bundle_core (atlas H B) B F :=
+{ base_set := λ i, i.1.source,
+  is_open_base_set := λ i, i.1.open_source,
+  index_at := achart_at H,
+  mem_base_set_at := mem_chart_source H,
+  coord_change_continuous := λ i j, (X.smooth_on_coord_change i j).continuous_on, .. X }
 
 @[simp, mfld_simps]
-lemma to_topological_local_triv_index_at (b : B) :
-  X.to_topological.local_triv (X.index_at b) = X.to_topological.local_triv_at b :=
+lemma to_topological_local_triv_achart_at (b : B) :
+  X.to_topological.local_triv (achart_at H b) =
+  X.to_topological.local_triv_at b :=
 rfl
 
 /-- Local homeomorphism version of the trivialization change. -/
 -- todo: upgrade to diffeomorphism
-def triv_change (i j : ι) : local_homeomorph (B × F) (B × F) :=
+def triv_change (i j : atlas H B) : local_homeomorph (B × F) (B × F) :=
 X.to_topological.triv_change i j
 
-@[simp, mfld_simps] lemma mem_triv_change_source (i j : ι) (p : B × F) :
-  p ∈ (X.triv_change i j).source ↔ p.1 ∈ X.base_set i ∩ X.base_set j :=
+@[simp, mfld_simps] lemma mem_triv_change_source (i j : atlas H B) (p : B × F) :
+  p ∈ (X.triv_change i j).source ↔ p.1 ∈ i.1.source ∩ j.1.source :=
 X.to_topological.mem_triv_change_source i j p
 
 /-- Associate to a trivialization index `i : ι` the corresponding trivialization, i.e., a bijection
@@ -447,24 +446,24 @@ The local trivialization will ultimately be a local diffeomorphism. For now, we 
 local equiv version, denoted with a prime. In further developments, avoid this auxiliary version,
 and use `X.local_triv` instead.
 -/
-def local_triv_as_local_equiv (i : ι) : local_equiv X.total_space (B × F) :=
+def local_triv_as_local_equiv (i : atlas H B) : local_equiv X.total_space (B × F) :=
 X.to_topological.local_triv_as_local_equiv i
 
-variable (i : ι)
+variable (i : atlas H B)
 
 lemma mem_local_triv_as_local_equiv_source (p : X.total_space) :
-  p ∈ (X.local_triv_as_local_equiv i).source ↔ p.1 ∈ X.base_set i :=
+  p ∈ (X.local_triv_as_local_equiv i).source ↔ p.1 ∈ i.1.source :=
 iff.rfl
 
 lemma mem_local_triv_as_local_equiv_target (p : B × F) :
-  p ∈ (X.local_triv_as_local_equiv i).target ↔ p.1 ∈ X.base_set i :=
+  p ∈ (X.local_triv_as_local_equiv i).target ↔ p.1 ∈ i.1.source :=
 X.to_topological.mem_local_triv_as_local_equiv_target i p
 
 lemma local_triv_as_local_equiv_apply (p : X.total_space) :
-  (X.local_triv_as_local_equiv i) p = ⟨p.1, X.coord_change (X.index_at p.1) i p.1 p.2⟩ := rfl
+  (X.local_triv_as_local_equiv i) p = ⟨p.1, X.coord_change (achart_at H p.1) i p.1 p.2⟩ := rfl
 
 /-- The composition of two local trivializations is the trivialization change X.triv_change i j. -/
-lemma local_triv_as_local_equiv_trans (i j : ι) :
+lemma local_triv_as_local_equiv_trans (i j : atlas H B) :
   (X.local_triv_as_local_equiv i).symm.trans
     (X.local_triv_as_local_equiv j) ≈ (X.triv_change i j).to_local_equiv :=
 X.to_topological.local_triv_as_local_equiv_trans i j
@@ -472,29 +471,42 @@ X.to_topological.local_triv_as_local_equiv_trans i j
 /-- Topological structure on the total space of a smooth bundle created from core, designed so
 that all the local trivialization are continuous. -/
 instance to_topological_space : topological_space X.total_space :=
-X.to_topological.to_topological_space ι
+X.to_topological.to_topological_space $ atlas H B
 
 /-- A local trivialization as a local homeomorphism -/
-def local_homeomorph_chart (f : local_homeomorph B H) (g : local_homeomorph F H₂)
-  (i : ι) : local_homeomorph X.total_space (model_prod H H₂) :=
-(X.to_topological.local_triv i).to_local_homeomorph ≫ₕ f.prod g
+def local_homeomorph_chart (i : atlas H B) (j : atlas H₂ F) :
+  local_homeomorph X.total_space (model_prod H H₂) :=
+(X.to_topological.local_triv i).to_local_homeomorph ≫ₕ i.1.prod j.1
 
 /-- Charted space structure on the total space of a smooth bundle created from core, designed so
 that all the local trivialization are smooth. -/
 instance to_charted_space : charted_space (model_prod H H₂) X.total_space :=
-{ atlas := ⋃ (f ∈ atlas H B) (g ∈ atlas H₂ F) (i : ι), {X.local_homeomorph_chart f g i},
-  chart_at := λ x, X.local_homeomorph_chart (chart_at H (bundle.proj _ x)) (chart_at H₂ x.2)
-    (X.index_at (bundle.proj _ x)),
+{ atlas := ⋃ (i : atlas H B) (j : atlas H₂ F), {X.local_homeomorph_chart i j},
+  chart_at := λ x, X.local_homeomorph_chart (achart_at H x.1) (achart_at H₂ x.2),
   mem_chart_source := λ x, by { simp only [local_homeomorph_chart] with mfld_simps },
-  chart_mem_atlas := λ x, by { simp_rw [mem_Union, mem_singleton_iff],
-    exact ⟨_, chart_mem_atlas H _, _, chart_mem_atlas H₂ _, _, rfl⟩ } }
+  chart_mem_atlas := λ x, by { simp_rw [mem_Union, mem_singleton_iff], exact ⟨_, _, rfl⟩ } }
 
--- lemma open_source' (i : ι) : is_open (X.local_triv_as_local_equiv i).source :=
--- X.to_topological.open_source' i
+variables
+[smooth_manifold_with_corners I B]
+[smooth_manifold_with_corners I' B']
+[smooth_manifold_with_corners I₂ F]
+[smooth_manifold_with_corners I₅ F']
+[smooth_manifold_with_corners I₃ Z]
+[smooth_manifold_with_corners I₄ Z']
+
+instance to_smooth_manifold_with_corners :
+  smooth_manifold_with_corners (I.prod I₂) X.total_space :=
+begin
+  refine @smooth_manifold_with_corners.mk _ _ _ _ _ _ _ _ _ _ _ ⟨λ e e', _⟩,
+  rintro ⟨_, ⟨i, rfl⟩, _, ⟨j, rfl⟩, he⟩ ⟨_, ⟨i', rfl⟩, _, ⟨j', rfl⟩, he'⟩,
+  rw [mem_singleton_iff] at he he', substs he he',
+  simp_rw [local_homeomorph_chart, local_homeomorph.trans_symm_eq_symm_trans_symm],
+end
+
 
 open smooth_fiber_bundle
 
-lemma foo (i : ι) (x : X.total_space) :
+lemma foo (i : atlas H B) (x : X.total_space) :
   ext_chart_at (I.prod I₂) ((X.to_topological.local_triv i) x) ∘ X.to_topological.local_triv i ∘ (ext_chart_at (I.prod I₂) x).symm = id :=
 begin
   ext1 y,
@@ -508,13 +520,12 @@ begin
   -/
 end
 
-#exit
-(⇑I (⇑(chart_at H x.fst) (⇑((chart_at (model_prod H H₂) x).symm) (⇑((I.to_local_equiv.prod I₂.to_local_equiv).symm) (b, f))).fst),
-⇑I₂ (⇑(chart_at H₂ (X.coord_change (X.index_at x.fst) i x.fst x.snd)) (X.coord_change (X.index_at (⇑((chart_at (model_prod H H₂) x).symm) (⇑((I.to_local_equiv.prod I₂.to_local_equiv).symm) (b, f))).fst) i (⇑((chart_at (model_prod H H₂) x).symm) (⇑((I.to_local_equiv.prod I₂.to_local_equiv).symm) (b, f))).fst (⇑((chart_at (model_prod H H₂) x).symm) (⇑((I.to_local_equiv.prod I₂.to_local_equiv).symm) (b, f))).snd)))
+-- (⇑I (⇑(chart_at H x.fst) (⇑((chart_at (model_prod H H₂) x).symm) (⇑((I.to_local_equiv.prod I₂.to_local_equiv).symm) (b, f))).fst),
+-- ⇑I₂ (⇑(chart_at H₂ (X.coord_change (X.index_at x.fst) i x.fst x.snd)) (X.coord_change (X.index_at (⇑((chart_at (model_prod H H₂) x).symm) (⇑((I.to_local_equiv.prod I₂.to_local_equiv).symm) (b, f))).fst) i (⇑((chart_at (model_prod H H₂) x).symm) (⇑((I.to_local_equiv.prod I₂.to_local_equiv).symm) (b, f))).fst (⇑((chart_at (model_prod H H₂) x).symm) (⇑((I.to_local_equiv.prod I₂.to_local_equiv).symm) (b, f))).snd)))
 
 /-- Extended version of the local trivialization of a fiber bundle constructed from core,
 registering additionally in its type that it is a local bundle trivialization. -/
-def local_triv (i : ι) : trivialization I I₂ (I.prod I₂) F X.proj :=
+def local_triv (i : atlas H B) : trivialization I I₂ (I.prod I₂) F X.proj :=
 { smooth_on_to_fun := by { simp only [smooth_on] with mfld_simps, intros x hx,
   rw [cont_mdiff_within_at_iff],
   refine ⟨(X.to_topological.local_triv i).continuous_to_fun x hx, _⟩,
@@ -525,7 +536,7 @@ def local_triv (i : ι) : trivialization I I₂ (I.prod I₂) F X.proj :=
   -- target      := Z.base_set i ×ˢ (univ : set F),
   -- inv_fun     := λp, ⟨p.1, Z.coord_change i (Z.index_at p.1) p.1 p.2⟩,
   -- to_fun      := λp, ⟨p.1, Z.coord_change (Z.index_at p.1) i p.1 p.2⟩,
--- { base_set      := X.base_set i,
+-- { base_set      := i.1.source,
 --   open_base_set := X.is_open_base_set i,
 --   source_eq     := rfl,
 --   target_eq     := rfl,
@@ -561,6 +572,8 @@ def local_triv (i : ι) : trivialization I I₂ (I.prod I₂) F X.proj :=
 --   end,
 --   to_local_equiv := X.local_triv_as_local_equiv i }
 
+#exit
+
 /-- A smooth fiber bundle constructed from core is indeed a smooth fiber bundle. -/
 protected theorem is_smooth_fiber_bundle : is_smooth_fiber_bundle I I₂ (I.prod I₂) F X.proj :=
 λx, ⟨X.local_triv (X.index_at x), X.mem_base_set_at x⟩
@@ -586,7 +599,7 @@ corresponding section of the fiber bundle, which is smooth. This applies in part
 zero section of a vector bundle. Another example (not yet defined) would be the identity
 section of the endomorphism bundle of a vector bundle. -/
 lemma smooth_const_section (v : F)
-  (h : ∀ i j, ∀ x ∈ (X.base_set i) ∩ (X.base_set j), X.coord_change i j x v = v) :
+  (h : ∀ i j, ∀ x ∈ i.1.source ∩ j.1.source, X.coord_change i j x v = v) :
   smooth I (I.prod I₂) (show B → X.total_space, from λ x, ⟨x, v⟩) :=
 begin
   sorry
@@ -615,7 +628,7 @@ end
 @[simp, mfld_simps] lemma local_triv_as_local_equiv_symm :
   (X.local_triv_as_local_equiv i).symm = (X.local_triv i).to_local_equiv.symm := rfl
 
-@[simp, mfld_simps] lemma base_set_at : X.base_set i = (X.local_triv i).base_set := rfl
+@[simp, mfld_simps] lemma base_set_at : i.1.source = (X.local_triv i).base_set := rfl
 
 @[simp, mfld_simps] lemma local_triv_apply (p : X.total_space) :
   (X.local_triv i) p = ⟨p.1, X.coord_change (X.index_at p.1) i p.1 p.2⟩ := rfl
@@ -627,7 +640,7 @@ end
   p ∈ (X.local_triv i).target ↔ p.1 ∈ (X.local_triv i).base_set :=
 trivialization.mem_target _
 
-@[simp, mfld_simps] lemma local_triv_symm_fst (p : B × F) :
+@[simp, mfld_simps] lemma local_triv_symm_apply (p : B × F) :
   (X.local_triv i).to_local_homeomorph.symm p =
     ⟨p.1, X.coord_change i (X.index_at p.1) p.1 p.2⟩ := rfl
 
@@ -660,7 +673,7 @@ begin
   --   { rw preimage_const_of_not_mem h, exact is_open_empty, }},
   -- { simp only [function.comp, local_triv_apply],
   --   rw [preimage_inter, preimage_comp],
-  --   by_cases (b ∈ X.base_set i),
+  --   by_cases (b ∈ i.1.source),
   --   { have hc : smooth (λ (x : X.fiber b), (X.coord_change (X.index_at b) i b) x),
   --       from (X.smooth_on_coord_change (X.index_at b) i).comp_smooth
   --         (smooth_const.prod_mk smooth_id) (λ x, ⟨⟨X.mem_base_set_at b, h⟩, mem_univ x⟩),

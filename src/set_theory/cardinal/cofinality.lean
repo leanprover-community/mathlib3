@@ -124,13 +124,13 @@ theorem le_cof_type [is_well_order α r] {c} : c ≤ cof (type r) ↔
 by dsimp [cof, strict_order.cof, order.cof, type, quotient.mk, quot.lift_on];
    rw [cardinal.le_min, subtype.forall]; refl
 
-theorem cof_type_le [is_well_order α r] (S : set α) (h : ∀ a, ∃ b ∈ S, ¬ r b a) :
+theorem cof_type_le [is_well_order α r] {S : set α} (h : ∀ a, ∃ b ∈ S, ¬ r b a) :
   cof (type r) ≤ #S :=
 le_cof_type.1 le_rfl S h
 
-theorem lt_cof_type [is_well_order α r] (S : set α) (hl : #S < cof (type r)) :
+theorem lt_cof_type [is_well_order α r] {S : set α} (hl : #S < cof (type r)) :
   ∃ a, ∀ b ∈ S, r b a :=
-not_forall_not.1 $ λ h, not_le_of_lt hl $ cof_type_le S (λ a, not_ball.1 (h a))
+not_forall_not.1 $ λ h, not_le_of_lt hl $ cof_type_le (λ a, not_ball.1 (h a))
 
 theorem cof_eq (r : α → α → Prop) [is_well_order α r] :
   ∃ S : set α, (∀ a, ∃ b ∈ S, ¬ r b a) ∧ #S = cof (type r) :=
@@ -148,7 +148,7 @@ let ⟨S, hS, e⟩ := cof_eq r, ⟨s, _, e'⟩ := cardinal.ord_eq S,
 begin
   resetI, suffices,
   { refine ⟨T, this,
-      le_antisymm _ (cardinal.ord_le.2 $ cof_type_le T this)⟩,
+      le_antisymm _ (cardinal.ord_le.2 $ cof_type_le this)⟩,
     rw [← e, e'],
     refine type_le'.2 ⟨rel_embedding.of_monotone
       (λ a, ⟨a, let ⟨aS, _⟩ := a.2 in aS⟩) (λ a b h, _)⟩,
@@ -184,7 +184,7 @@ begin
   refine le_antisymm (le_cInf (cof_lsub_def_nonempty o) _) (cInf_le' _),
   { rintros a ⟨ι, f, hf, rfl⟩,
     rw ←type_lt o,
-    refine (cof_type_le _ (λ a, _)).trans (@mk_le_of_injective _ _
+    refine (cof_type_le (λ a, _)).trans (@mk_le_of_injective _ _
       (λ s : (typein ((<) : o.out.α → o.out.α → Prop))⁻¹' (set.range f), classical.some s.prop)
       (λ s t hst, let H := congr_arg f hst in by rwa [classical.some_spec s.prop,
         classical.some_spec t.prop, typein_inj, subtype.coe_inj] at H)),
@@ -213,14 +213,14 @@ induction_on o $ begin introsI α r _,
     have : (#(ulift.up ⁻¹' S)).lift ≤ #S :=
      ⟨⟨λ ⟨⟨x, h⟩⟩, ⟨⟨x⟩, h⟩,
        λ ⟨⟨x, h₁⟩⟩ ⟨⟨y, h₂⟩⟩ e, by simp at e; congr; injection e⟩⟩,
-    refine le_trans (cardinal.lift_le.2 $ cof_type_le _ _) this,
+    refine le_trans (cardinal.lift_le.2 $ cof_type_le _) this,
     exact λ a, let ⟨⟨b⟩, bs, br⟩ := H ⟨a⟩ in ⟨b, bs, br⟩ },
   { rcases cof_eq r with ⟨S, H, e'⟩,
     have : #(ulift.down ⁻¹' S) ≤ (#S).lift :=
      ⟨⟨λ ⟨⟨x⟩, h⟩, ⟨⟨x, h⟩⟩,
        λ ⟨⟨x⟩, h₁⟩ ⟨⟨y⟩, h₂⟩ e, by simp at e; congr; injections⟩⟩,
     rw e' at this,
-    unfreezingI { refine le_trans (cof_type_le _ _) this },
+    unfreezingI { refine le_trans (cof_type_le _) this },
     exact λ ⟨a⟩, let ⟨b, bs, br⟩ := H a in ⟨⟨b⟩, bs, br⟩ }
 end
 
@@ -388,7 +388,7 @@ begin
     { refine λ a, ⟨sum.inr punit.star, set.mem_singleton _, _⟩,
       rcases a with a|⟨⟨⟨⟩⟩⟩; simp [empty_relation] },
     { rw [cardinal.mk_fintype, set.card_singleton], simp } },
-  { rw [← cardinal.succ_zero, cardinal.succ_le],
+  { rw [← cardinal.succ_zero, cardinal.succ_le_iff],
     simpa [lt_iff_le_and_ne, cardinal.zero_le] using
       λ h, succ_ne_zero o (cof_eq_zero.1 (eq.symm h)) }
 end
@@ -712,7 +712,7 @@ def is_strong_limit (c : cardinal) : Prop :=
 c ≠ 0 ∧ ∀ x < c, 2 ^ x < c
 
 theorem is_strong_limit.is_limit {c} (H : is_strong_limit c) : is_limit c :=
-⟨H.1, λ x h, lt_of_le_of_lt (succ_le.2 $ cantor _) (H.2 _ h)⟩
+⟨H.1, λ x h, lt_of_le_of_lt (succ_le_of_lt $ cantor x) (H.2 _ h)⟩
 
 /-- A cardinal is regular if it is infinite and it equals its own cofinality. -/
 def is_regular (c : cardinal) : Prop :=
@@ -737,24 +737,24 @@ theorem is_regular_omega : is_regular ω :=
 ⟨le_rfl, by simp⟩
 
 theorem is_regular_succ {c : cardinal.{u}} (h : ω ≤ c) : is_regular (succ c) :=
-⟨le_trans h (le_of_lt $ lt_succ_self _), begin
-  refine le_antisymm (cof_ord_le _) (succ_le.2 _),
+⟨h.trans (lt_succ c).le, begin
+  refine (cof_ord_le _).antisymm (succ_le_of_lt _),
   cases quotient.exists_rep (succ c) with α αe, simp at αe,
   rcases ord_eq α with ⟨r, wo, re⟩, resetI,
-  have := ord_is_limit (le_trans h $ le_of_lt $ lt_succ_self _),
+  have := ord_is_limit (h.trans (lt_succ _).le),
   rw [← αe, re] at this ⊢,
   rcases cof_eq' r this with ⟨S, H, Se⟩,
   rw [← Se],
   apply lt_imp_lt_of_le_imp_le
     (λ (h : #S ≤ c), mul_le_mul_right' h c),
-  rw [mul_eq_self h, ← succ_le, ← αe, ← sum_const'],
+  rw [mul_eq_self h, ← succ_le_iff, ← αe, ← sum_const'],
   refine le_trans _ (sum_le_sum (λ x:S, card (typein r x)) _ _),
   { simp only [← card_typein, ← mk_sigma],
     refine ⟨embedding.of_surjective _ _⟩,
     { exact λ x, x.2.1 },
     { exact λ a, let ⟨b, h, ab⟩ := H a in ⟨⟨⟨_, h⟩, _, ab⟩, rfl⟩ } },
   { intro i,
-    rw [← lt_succ, ← lt_ord, ← αe, re],
+    rw [← lt_succ_iff, ← lt_ord, ← αe, re],
     apply typein_lt_type }
 end⟩
 
@@ -776,10 +776,10 @@ theorem infinite_pigeonhole_card_lt {β α : Type u} (f : β → α)
   (w : #α < #β) (w' : ω ≤ #α) :
   ∃ a : α, #α < #(f ⁻¹' {a}) :=
 begin
-  simp_rw [← succ_le],
-  exact ordinal.infinite_pigeonhole_card f (#α).succ (succ_le.mpr w)
-    (w'.trans (lt_succ_self _).le)
-    ((lt_succ_self _).trans_le (is_regular_succ w').2.ge),
+  simp_rw [← succ_le_iff],
+  exact ordinal.infinite_pigeonhole_card f (#α).succ (succ_le_of_lt w)
+    (w'.trans (lt_succ _).le)
+    ((lt_succ _).trans_le (is_regular_succ w').2.ge),
 end
 
 /--

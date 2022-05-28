@@ -906,6 +906,16 @@ begin
   { rw [s.erase_cons_tail hxy, map_cons, map_cons, (s.map f).erase_cons_tail (hf.ne hxy), ih] }
 end
 
+lemma exists_map_eq_of_surjective (s : multiset β) (f : α → β) (hf : function.surjective f) :
+  ∃ t : multiset α, t.map f = s :=
+begin
+  induction s using multiset.induction_on with x s ih,
+  { exact ⟨0, map_zero _⟩ },
+  { obtain ⟨y, rfl⟩ := hf x,
+    obtain ⟨t, rfl⟩ := ih,
+    exact ⟨y ::ₘ t, map_cons _ _ _⟩, }
+end
+
 /-! ### `multiset.fold` -/
 
 /-- `foldl f H b s` is the lift of the list operation `foldl f b l`,

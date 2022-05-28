@@ -63,6 +63,8 @@ another answer, which is constructively more satisfying, could be obtained by sh
 
 -/
 
+open set
+
 variables {ι : Type*} (M : Π i : ι, Type*) [Π i, monoid (M i)]
 
 /-- A relation on the free monoid on alphabet `Σ i, M i`, relating `⟨i, 1⟩` with `1` and

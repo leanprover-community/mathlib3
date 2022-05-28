@@ -114,13 +114,13 @@ We verify that the biproduct we've just defined is isomorphic to the AddCommGrou
 on the dependent function type
 -/
 @[simps hom_apply] noncomputable
-def biproduct_iso_pi [decidable_eq J] [fintype J] (f : J → AddCommGroup.{u}) :
+def biproduct_iso_pi [fintype J] (f : J → AddCommGroup.{u}) :
   (⨁ f : AddCommGroup) ≅ AddCommGroup.of (Π j, f j) :=
 is_limit.cone_point_unique_up_to_iso
   (biproduct.is_limit f)
   (product_limit_cone f).is_limit
 
-@[simp, elementwise] lemma biproduct_iso_pi_inv_comp_π [decidable_eq J] [fintype J]
+@[simp, elementwise] lemma biproduct_iso_pi_inv_comp_π [fintype J]
   (f : J → AddCommGroup.{u}) (j : J) :
   (biproduct_iso_pi f).inv ≫ biproduct.π f j = pi.eval_add_monoid_hom (λ j, f j) j :=
 is_limit.cone_point_unique_up_to_iso_inv_comp _ _ (discrete.mk j)

@@ -126,6 +126,9 @@ mirror_mirror
 lemma mirror_eq_iff : p.mirror = q ↔ p = q.mirror :=
 mirror_involutive.eq_iff
 
+@[simp] lemma mirror_inj : p.mirror = q.mirror ↔ p = q :=
+mirror_involutive.injective.eq_iff
+
 @[simp] lemma mirror_eq_zero : p.mirror = 0 ↔ p = 0 :=
 ⟨λ h, by rw [←p.mirror_mirror, h, mirror_zero], λ h, by rw [h, mirror_zero]⟩
 
@@ -157,7 +160,7 @@ variables {R : Type*} [ring R] (p q : R[X])
 lemma mirror_neg : (-p).mirror = -(p.mirror) :=
 by rw [mirror, mirror, reverse_neg, nat_trailing_degree_neg, neg_mul_eq_neg_mul]
 
-variables [is_domain R]
+variables [no_zero_divisors R]
 
 lemma mirror_mul_of_domain : (p * q).mirror = p.mirror * q.mirror :=
 begin
@@ -178,7 +181,7 @@ end ring
 
 section comm_ring
 
-variables {R : Type*} [comm_ring R] [is_domain R] {f : R[X]}
+variables {R : Type*} [comm_ring R] [no_zero_divisors R] {f : R[X]}
 
 lemma irreducible_of_mirror (h1 : ¬ is_unit f)
   (h2 : ∀ k, f * f.mirror = k * k.mirror → k = f ∨ k = -f ∨ k = f.mirror ∨ k = -f.mirror)

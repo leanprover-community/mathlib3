@@ -548,7 +548,7 @@ begin
           ... ≤ #β          : (f.option_elim b hb).cardinal_le
 end
 
-lemma succ_pos : ∀ c : cardinal, 0 < succ c := order.bot_lt_succ
+lemma succ_pos : ∀ c : cardinal, 0 < succ c := bot_lt_succ
 
 lemma succ_ne_zero (c : cardinal) : succ c ≠ 0 := (succ_pos _).ne'
 

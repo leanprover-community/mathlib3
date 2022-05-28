@@ -1082,7 +1082,7 @@ theorem le_enum_succ {o : ordinal} (a : (succ o).out.α) :
 begin
   rw ←enum_typein (<) a,
   apply (enum_le_enum' (succ o) _ _).2,
-  rw ←order.lt_succ_iff,
+  rw ←lt_succ_iff,
   all_goals { apply typein_lt_self }
 end
 
@@ -1274,7 +1274,7 @@ theorem ord_card_le (o : ordinal) : o.card.ord ≤ o :=
 ord_le.2 le_rfl
 
 lemma lt_ord_succ_card (o : ordinal) : o < (succ o.card).ord :=
-by { rw lt_ord, apply order.lt_succ }
+by { rw lt_ord, apply lt_succ }
 
 @[simp] theorem ord_le_ord {c₁ c₂} : ord c₁ ≤ ord c₂ ↔ c₁ ≤ c₂ :=
 by simp only [ord_le, card_ord]
@@ -1289,7 +1289,7 @@ le_antisymm (ord_le.2 $ zero_le _) (ordinal.zero_le _)
 le_antisymm (ord_le.2 $ by simp only [card_nat]) $ begin
   induction n with n IH,
   { apply ordinal.zero_le },
-  { exact order.succ_le_of_lt (IH.trans_lt $ ord_lt_ord.2 $ nat_cast_lt.2 (nat.lt_succ_self n)) }
+  { exact succ_le_of_lt (IH.trans_lt $ ord_lt_ord.2 $ nat_cast_lt.2 (nat.lt_succ_self n)) }
 end
 
 @[simp] theorem ord_one : ord 1 = 1 :=

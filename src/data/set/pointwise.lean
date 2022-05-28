@@ -158,6 +158,9 @@ lemma inv_subset_inv : s⁻¹ ⊆ t⁻¹ ↔ s ⊆ t :=
 @[simp, to_additive] lemma inv_singleton (a : α) : ({a} : set α)⁻¹ = {a⁻¹} :=
 by rw [←image_inv, image_singleton]
 
+@[to_additive] lemma inv_range {ι : Sort*} {f : ι → α} : (range f)⁻¹ = range (λ i, (f i)⁻¹) :=
+by { rw ←image_inv, exact (range_comp _ _).symm }
+
 open mul_opposite
 
 @[to_additive]
@@ -849,6 +852,9 @@ theorem range_smul_range {ι κ : Type*} [has_scalar α β] (b : ι → α) (c :
 ext $ λ x, ⟨λ hx, let ⟨p, q, ⟨i, hi⟩, ⟨j, hj⟩, hpq⟩ := set.mem_smul.1 hx in
   ⟨(i, j), hpq ▸ hi ▸ hj ▸ rfl⟩,
 λ ⟨⟨i, j⟩, h⟩, set.mem_smul.2 ⟨b i, c j, ⟨i, rfl⟩, ⟨j, rfl⟩, h⟩⟩
+
+@[to_additive] lemma smul_set_range [has_scalar α β] {ι : Sort*} {f : ι → β} :
+  a • range f = range (λ i, a • f i) := (range_comp _ _).symm
 
 @[to_additive]
 instance smul_comm_class_set [has_scalar α γ] [has_scalar β γ] [smul_comm_class α β γ] :

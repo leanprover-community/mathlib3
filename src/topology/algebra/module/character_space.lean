@@ -60,6 +60,17 @@ instance character_space_continuous_map_class : continuous_map_class (character_
   coe_injective' := fun_like.coe_injective.comp subtype.coe_injective,
   map_continuous := λ φ, (φ : weak_dual 𝕜 A).continuous }
 
+instance character_space_linear_map_class : linear_map_class (character_space 𝕜 A) 𝕜 A 𝕜 :=
+{ map_add := λ φ, (φ : weak_dual 𝕜 A).map_add,
+  map_smulₛₗ := λ φ, ((φ : weak_dual 𝕜 A) : A →L[𝕜] 𝕜).map_smulₛₗ,
+  ..character_space.character_space_continuous_map_class }
+
+instance character_space_non_unital_ring_hom_class :
+  non_unital_ring_hom_class (character_space 𝕜 A) A 𝕜 :=
+{ map_mul := λ φ, φ.prop.2,
+  map_zero := map_zero,
+  ..character_space.character_space_linear_map_class }
+
 lemma coe_apply (φ : character_space 𝕜 A) (x : A) : (φ : weak_dual 𝕜 A) x = φ x := rfl
 
 /-- An element of the character space, as a continuous linear map. -/
@@ -70,14 +81,14 @@ lemma to_clm_apply (φ : character_space 𝕜 A) (x : A) : φ x = to_clm φ x :=
 /-- An element of the character space, as an non-unital algebra homomorphism. -/
 @[simps] def to_non_unital_alg_hom (φ : character_space 𝕜 A) : A →ₙₐ[𝕜] 𝕜 :=
 { to_fun := (φ : A → 𝕜),
-  map_mul' := φ.prop.2,
-  map_smul' := (to_clm φ).map_smul,
-  map_zero' := continuous_linear_map.map_zero _,
-  map_add' := continuous_linear_map.map_add _ }
+  map_mul' := map_mul _,
+  map_smul' := map_smul _,
+  map_zero' := map_zero _,
+  map_add' := map_add _ }
 
-lemma map_zero (φ : character_space 𝕜 A) : φ 0 = 0 := (to_non_unital_alg_hom φ).map_zero
-lemma map_add (φ : character_space 𝕜 A) (x y : A) : φ (x + y) = φ x + φ y :=
-  (to_non_unital_alg_hom φ).map_add _ _
+--lemma map_zero (φ : character_space 𝕜 A) : φ 0 = 0 := (to_non_unital_alg_hom φ).map_zero
+--lemma map_add (φ : character_space 𝕜 A) (x y : A) : φ (x + y) = φ x + φ y :=
+--  (to_non_unital_alg_hom φ).map_add _ _
 lemma map_smul (φ : character_space 𝕜 A) (r : 𝕜) (x : A) : φ (r • x) = r • (φ x) :=
   (to_clm φ).map_smul _ _
 lemma map_mul (φ : character_space 𝕜 A) (x y : A) : φ (x * y) = φ x * φ y :=
@@ -107,6 +118,10 @@ begin
   { rw [sub_eq_zero] at h₂,
     exact h₂.symm },
 end
+
+instance character_space_ring_hom_class : ring_hom_class (character_space 𝕜 A) A 𝕜 :=
+{ map_one := map_one,
+  ..character_space.character_space_non_unital_ring_hom_class }
 
 @[simp] lemma map_algebra_map (φ : character_space 𝕜 A) (r : 𝕜) : φ (algebra_map 𝕜 A r) = r :=
 by rw [algebra.algebra_map_eq_smul_one, map_smul, map_one, smul_eq_mul, mul_one]
@@ -178,8 +193,9 @@ def gelfand_transform : A →ₐ[𝕜] C(character_space 𝕜 A, 𝕜) :=
     continuous_to_fun := (weak_dual.eval_continuous a).comp (continuous_subtype_coe) },
   map_one' := by { ext, exact character_space.map_one _ },
   map_mul' := λ _ _, by { ext, exact character_space.map_mul _ _ _ },
-  map_zero' := by { ext, exact character_space.map_zero _ },
-  map_add' := λ _ _, by { ext, exact character_space.map_add _ _ _},
+  map_zero' := by { ext, simp only [map_zero, continuous_map.coe_mk, continuous_map.coe_zero,
+                                    pi.zero_apply] },
+  map_add' := λ _ _, by { ext, exact map_add _ _ _},
   commutes' := λ r, by { ext φ, exact character_space.map_algebra_map _ _ } }
 
 /-- A type class that states that the Gelfand transform is bijective. -/

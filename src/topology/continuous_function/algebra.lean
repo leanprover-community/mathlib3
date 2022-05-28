@@ -370,6 +370,7 @@ coe_injective.non_unital_ring _ coe_zero coe_add coe_mul coe_neg coe_sub coe_nsm
 instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
   [non_assoc_ring β] [topological_ring β] : non_assoc_ring C(α, β) :=
 coe_injective.non_assoc_ring _ coe_zero coe_one coe_add coe_mul coe_neg coe_sub coe_nsmul coe_zsmul
+  coe_nat_cast coe_int_cast
 
 instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
   [ring β] [topological_ring β] : ring C(α, β) :=

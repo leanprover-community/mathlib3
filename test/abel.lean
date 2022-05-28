@@ -18,4 +18,3 @@ begin
   success_if_fail { abel; done },
   abel!
 end
-#check 1

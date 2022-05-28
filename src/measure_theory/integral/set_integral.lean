@@ -141,6 +141,24 @@ begin
   ... = ∫ x in s, f x ∂μ : by simp
 end
 
+lemma of_real_set_integral_one_of_measure_ne_top {α : Type*} {m : measurable_space α}
+  {μ : measure α} {s : set α} (hs : μ s ≠ ∞) :
+  ennreal.of_real (∫ x in s, (1 : ℝ) ∂μ) = μ s :=
+calc
+ennreal.of_real (∫ x in s, (1 : ℝ) ∂μ)
+    = ennreal.of_real (∫ x in s, ∥(1 : ℝ)∥ ∂μ) : by simp only [norm_one]
+... = ∫⁻ x in s, 1 ∂μ :
+begin
+  rw of_real_integral_norm_eq_lintegral_nnnorm (integrable_on_const.2 (or.inr hs.lt_top)),
+  simp only [nnnorm_one, ennreal.coe_one],
+end
+... = μ s : set_lintegral_one _
+
+lemma of_real_set_integral_one {α : Type*} {m : measurable_space α} (μ : measure α)
+  [is_finite_measure μ] (s : set α) :
+  ennreal.of_real (∫ x in s, (1 : ℝ) ∂μ) = μ s :=
+of_real_set_integral_one_of_measure_ne_top (measure_ne_top μ s)
+
 lemma integral_piecewise [decidable_pred (∈ s)] (hs : measurable_set s)
   {f g : α → E} (hf : integrable_on f s μ) (hg : integrable_on g sᶜ μ) :
   ∫ x, s.piecewise f g x ∂μ = ∫ x in s, f x ∂μ + ∫ x in sᶜ, g x ∂μ :=
@@ -521,7 +539,7 @@ end tendsto_mono
 We prove that for any set `s`, the function `λ f : α →₁[μ] E, ∫ x in s, f x ∂μ` is continuous. -/
 
 section continuous_set_integral
-variables [normed_group E] {𝕜 : Type*} [is_R_or_C 𝕜] [normed_group F] [normed_space 𝕜 F]
+variables [normed_group E] {𝕜 : Type*} [normed_field 𝕜] [normed_group F] [normed_space 𝕜 F]
   {p : ℝ≥0∞} {μ : measure α}
 
 /-- For `f : Lp E p μ`, we can define an element of `Lp E p (μ.restrict s)` by

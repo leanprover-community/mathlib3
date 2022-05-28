@@ -758,7 +758,7 @@ begin
         mv_power_series.inv_mul_cancel _ h.right] }
 end
 
-@[simp] lemma one_inv : (1 : mv_power_series σ k)⁻¹ = 1 :=
+@[simp] lemma inv_one : (1 : mv_power_series σ k)⁻¹ = 1 :=
 by { rw [mv_power_series.inv_eq_iff_mul_eq_one, mul_one], simp }
 
 @[simp] lemma C_inv (r : k) : (C σ k r)⁻¹ = C σ k r⁻¹ :=
@@ -1284,6 +1284,21 @@ by simp
 by { ext, simp only [ring_hom.id_apply, rescale, one_pow, coeff_mk, one_mul,
   ring_hom.coe_mk], }
 
+lemma rescale_mk (f : ℕ → R) (a : R) :
+  rescale a (mk f) = mk (λ n : ℕ, a^n * (f n)) :=
+by { ext, rw [coeff_rescale, coeff_mk, coeff_mk], }
+
+lemma rescale_rescale (f : power_series R) (a b : R) :
+  rescale b (rescale a f) = rescale (a * b) f :=
+begin
+  ext,
+  repeat { rw coeff_rescale, },
+  rw [mul_pow, mul_comm _ (b^n), mul_assoc],
+end
+
+lemma rescale_mul (a b : R) : rescale (a * b) = (rescale b).comp (rescale a) :=
+by { ext, simp [← rescale_rescale], }
+
 section trunc
 
 /-- The `n`th truncation of a formal power series to a polynomial -/
@@ -1579,8 +1594,8 @@ mv_power_series.inv_eq_iff_mul_eq_one h
   (φ * ψ)⁻¹ = ψ⁻¹ * φ⁻¹ :=
 mv_power_series.mul_inv_rev _ _
 
-@[simp] lemma one_inv : (1 : power_series k)⁻¹ = 1 :=
-mv_power_series.one_inv
+@[simp] lemma inv_one : (1 : power_series k)⁻¹ = 1 :=
+mv_power_series.inv_one
 
 @[simp] lemma C_inv (r : k) : (C k r)⁻¹ = C k r⁻¹ :=
 mv_power_series.C_inv _

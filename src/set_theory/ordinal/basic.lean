@@ -59,7 +59,7 @@ for the empty set by convention.
 
 noncomputable theory
 
-open function cardinal set equiv
+open function cardinal set equiv order
 open_locale classical cardinal
 
 universes u v w
@@ -638,9 +638,9 @@ induction_on o (λ β s _ ⟨f⟩, by exactI ⟨f.top, typein_top _⟩) h
 lemma typein_injective (r : α → α → Prop) [is_well_order α r] : injective (typein r) :=
 injective_of_increasing r (<) (typein r) (λ x y, (typein_lt_typein r).2)
 
-theorem typein_inj (r : α → α → Prop) [is_well_order α r]
+@[simp] theorem typein_inj (r : α → α → Prop) [is_well_order α r]
   {a b} : typein r a = typein r b ↔ a = b :=
-injective.eq_iff (typein_injective r)
+(typein_injective r).eq_iff
 
 /-! ### Enumerating elements in a well-order with ordinals. -/
 
@@ -734,7 +734,7 @@ quot.lift_on o (λ a, #a.α) $ λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨e⟩, quotien
 @[simp] theorem card_type (r : α → α → Prop) [is_well_order α r] :
   card (type r) = #α := rfl
 
-lemma card_typein {r : α → α → Prop} [wo : is_well_order α r] (x : α) :
+@[simp] lemma card_typein {r : α → α → Prop} [wo : is_well_order α r] (x : α) :
   #{y // r y x} = (typein r x).card := rfl
 
 theorem card_le_card {o₁ o₂ : ordinal} : o₁ ≤ o₂ → card o₁ ≤ card o₂ :=
@@ -964,12 +964,6 @@ by induction n; [refl, simp only [card_add, card_one, nat.cast_succ, *]]
 @[simp] theorem type_add {α β : Type u} (r : α → α → Prop) (s : β → β → Prop)
   [is_well_order α r] [is_well_order β s] : type r + type s = type (sum.lex r s) := rfl
 
-/-- The ordinal successor is the smallest ordinal larger than `o`.
-  It is defined as `o + 1`. -/
-def succ (o : ordinal) : ordinal := o + 1
-
-theorem succ_eq_add_one (o) : succ o = o + 1 := rfl
-
 instance has_le.le.add_covariant_class : covariant_class ordinal.{u} ordinal.{u} (+) (≤) :=
 ⟨λ c a b h, begin
   revert h c, exact (
@@ -1011,34 +1005,6 @@ by simpa only [add_zero] using add_le_add_left (ordinal.zero_le b) a
 theorem le_add_left (a b : ordinal) : a ≤ b + a :=
 by simpa only [zero_add] using add_le_add_right (ordinal.zero_le b) a
 
-theorem lt_succ_self (o : ordinal.{u}) : o < succ o :=
-induction_on o $ λ α r _, ⟨⟨⟨⟨λ x, sum.inl x, λ _ _, sum.inl.inj⟩,
-  λ _ _, sum.lex_inl_inl⟩,
-sum.inr punit.star, λ b, sum.rec_on b
-  (λ x, ⟨λ _, ⟨x, rfl⟩, λ _, sum.lex.sep _ _⟩)
-  (λ x, sum.lex_inr_inr.trans ⟨false.elim, λ ⟨x, H⟩, sum.inl_ne_inr H⟩)⟩⟩
-
-theorem succ_ne_self (o : ordinal.{u}) : succ o ≠ o := (lt_succ_self o).ne'
-
-theorem succ_le {a b : ordinal} : succ a ≤ b ↔ a < b :=
-⟨lt_of_lt_of_le (lt_succ_self _),
-induction_on a $ λ α r hr, induction_on b $ λ β s hs ⟨⟨f, t, hf⟩⟩, begin
-  refine ⟨⟨@rel_embedding.of_monotone (α ⊕ punit) β _ _
-    (@sum.lex.is_well_order _ _ _ _ hr _).1.1
-    (@is_asymm_of_is_trans_of_is_irrefl _ _ hs.1.2.2 hs.1.2.1)
-    (sum.rec _ _) (λ a b, _), λ a b, _⟩⟩,
-  { exact f }, { exact λ _, t },
-  { rcases a with a|_; rcases b with b|_,
-    { simpa only [sum.lex_inl_inl] using f.map_rel_iff.2 },
-    { intro _, rw hf, exact ⟨_, rfl⟩ },
-    { exact false.elim ∘ sum.lex_inr_inl },
-    { exact false.elim ∘ sum.lex_inr_inr.1 } },
-  { rcases a with a|_,
-    { intro h, have := @principal_seg.init _ _ _ _ hs.1.2.2 ⟨f, t, hf⟩ _ _ h,
-      cases this with w h, exact ⟨sum.inl w, h⟩ },
-    { intro h, cases (hf b).1 h with w h, exact ⟨sum.inl w, h⟩ } }
-end⟩
-
 instance : linear_order ordinal :=
 { le_total     := λ a b,
     match lt_or_eq_of_le (le_add_left b a), lt_or_eq_of_le (le_add_right a b) with
@@ -1058,10 +1024,34 @@ instance : linear_order ordinal :=
 
 instance : is_well_order ordinal (<) := ⟨lt_wf⟩
 
-instance : succ_order ordinal := succ_order.of_succ_le_iff succ (λ _ _, succ_le)
+private theorem succ_le_iff' {a b : ordinal} : a + 1 ≤ b ↔ a < b :=
+⟨lt_of_lt_of_le (induction_on a $ λ α r _, ⟨⟨⟨⟨λ x, sum.inl x, λ _ _, sum.inl.inj⟩,
+  λ _ _, sum.lex_inl_inl⟩,
+  sum.inr punit.star, λ b, sum.rec_on b
+    (λ x, ⟨λ _, ⟨x, rfl⟩, λ _, sum.lex.sep _ _⟩)
+    (λ x, sum.lex_inr_inr.trans ⟨false.elim, λ ⟨x, H⟩, sum.inl_ne_inr H⟩)⟩⟩),
+induction_on a $ λ α r hr, induction_on b $ λ β s hs ⟨⟨f, t, hf⟩⟩, begin
+  refine ⟨⟨@rel_embedding.of_monotone (α ⊕ punit) β _ _
+    (@sum.lex.is_well_order _ _ _ _ hr _).1.1
+    (@is_asymm_of_is_trans_of_is_irrefl _ _ hs.1.2.2 hs.1.2.1)
+    (sum.rec _ _) (λ a b, _), λ a b, _⟩⟩,
+  { exact f }, { exact λ _, t },
+  { rcases a with a|_; rcases b with b|_,
+    { simpa only [sum.lex_inl_inl] using f.map_rel_iff.2 },
+    { intro _, rw hf, exact ⟨_, rfl⟩ },
+    { exact false.elim ∘ sum.lex_inr_inl },
+    { exact false.elim ∘ sum.lex_inr_inr.1 } },
+  { rcases a with a|_,
+    { intro h, have := @principal_seg.init _ _ _ _ hs.1.2.2 ⟨f, t, hf⟩ _ _ h,
+      cases this with w h, exact ⟨sum.inl w, h⟩ },
+    { intro h, cases (hf b).1 h with w h, exact ⟨sum.inl w, h⟩ } }
+end⟩
 
-theorem lt_succ {a b : ordinal} : a < succ b ↔ a ≤ b :=
-by rw [← not_le, succ_le, not_lt]
+instance : no_max_order ordinal := ⟨λ a, ⟨_, succ_le_iff'.1 le_rfl⟩⟩
+
+instance : succ_order ordinal.{u} := succ_order.of_succ_le_iff (λ o, o + 1) (λ a b, succ_le_iff')
+
+@[simp] theorem add_one_eq_succ (o : ordinal) : o + 1 = succ o := rfl
 
 @[simp] lemma typein_le_typein (r : α → α → Prop) [is_well_order α r] {x x' : α} :
   typein r x ≤ typein r x' ↔ ¬r x' x :=
@@ -1071,12 +1061,12 @@ by rw [←not_lt, typein_lt_typein]
   typein (<) x ≤ typein (<) x' ↔ x ≤ x' :=
 by { rw typein_le_typein, exact not_lt }
 
-lemma enum_le_enum (r : α → α → Prop) [is_well_order α r] {o o' : ordinal}
+@[simp] lemma enum_le_enum (r : α → α → Prop) [is_well_order α r] {o o' : ordinal}
   (ho : o < type r) (ho' : o' < type r) : ¬r (enum r o' ho') (enum r o ho) ↔ o ≤ o' :=
 by rw [←@not_lt _ _ o' o, enum_lt_enum ho']
 
-lemma enum_le_enum' (a : ordinal) {o o' : ordinal} (ho : o < a) (ho' : o' < a) :
-  @enum a.out.α (<) _ o (by rwa type_lt) ≤ @enum a.out.α (<) _ o' (by rwa type_lt) ↔ o ≤ o' :=
+@[simp] lemma enum_le_enum' (a : ordinal) {o o' : ordinal}
+  (ho : o < type (<)) (ho' : o' < type (<)) : enum (<) o ho ≤ @enum a.out.α (<) _ o' ho' ↔ o ≤ o' :=
 by rw [←enum_le_enum (<), ←not_lt]
 
 theorem enum_zero_le {r : α → α → Prop} [is_well_order α r] (h0 : 0 < type r) (a : α) :
@@ -1087,16 +1077,11 @@ theorem enum_zero_le' {o : ordinal} (h0 : 0 < o) (a : o.out.α) :
   @enum o.out.α (<) _ 0 (by rwa type_lt) ≤ a :=
 by { rw ←not_lt, apply enum_zero_le }
 
-theorem le_enum_succ {o : ordinal} (a : o.succ.out.α) :
-  a ≤ @enum o.succ.out.α (<) _ o (by { rw type_lt, exact lt_succ_self o }) :=
-begin
-  rw ←enum_typein (<) a,
-  apply (enum_le_enum' o.succ _ _).2,
-  rw ←lt_succ,
-  all_goals { apply typein_lt_self }
-end
+theorem le_enum_succ {o : ordinal} (a : (succ o).out.α) :
+  a ≤ @enum (succ o).out.α (<) _ o (by { rw type_lt, exact lt_succ o }) :=
+by { rw [←enum_typein (<) a, enum_le_enum', ←lt_succ_iff], apply typein_lt_self }
 
-theorem enum_inj {r : α → α → Prop} [is_well_order α r] {o₁ o₂ : ordinal} (h₁ : o₁ < type r)
+@[simp] theorem enum_inj {r : α → α → Prop} [is_well_order α r] {o₁ o₂ : ordinal} (h₁ : o₁ < type r)
   (h₂ : o₂ < type r) : enum r o₁ h₁ = enum r o₂ h₂ ↔ o₁ = o₂ :=
 ⟨λ h, begin
   by_contra hne,
@@ -1212,9 +1197,6 @@ not_lt_bot
 theorem eq_zero_or_pos : ∀ a : ordinal, a = 0 ∨ 0 < a :=
 eq_bot_or_bot_lt
 
-instance : no_max_order ordinal :=
-⟨λ a, ⟨a.succ, lt_succ_self a⟩⟩
-
 @[simp] theorem Inf_empty : Inf (∅ : set ordinal) = 0 :=
 dif_neg not_nonempty_empty
 
@@ -1283,8 +1265,8 @@ let ⟨r, _, e⟩ := ord_eq α in by simp only [mk_def, e, card_type]
 theorem ord_card_le (o : ordinal) : o.card.ord ≤ o :=
 ord_le.2 le_rfl
 
-lemma lt_ord_succ_card (o : ordinal) : o < o.card.succ.ord :=
-by { rw [lt_ord], apply cardinal.lt_succ }
+lemma lt_ord_succ_card (o : ordinal) : o < (succ o.card).ord :=
+by { rw lt_ord, apply lt_succ }
 
 @[simp] theorem ord_le_ord {c₁ c₂} : ord c₁ ≤ ord c₂ ↔ c₁ ≤ c₂ :=
 by simp only [ord_le, card_ord]
@@ -1299,8 +1281,7 @@ le_antisymm (ord_le.2 $ zero_le _) (ordinal.zero_le _)
 le_antisymm (ord_le.2 $ by simp only [card_nat]) $ begin
   induction n with n IH,
   { apply ordinal.zero_le },
-  { exact (@ordinal.succ_le n _).2 (lt_of_le_of_lt IH $
-    ord_lt_ord.2 $ nat_cast_lt.2 (nat.lt_succ_self n)) }
+  { exact succ_le_of_lt (IH.trans_lt $ ord_lt_ord.2 $ nat_cast_lt.2 (nat.lt_succ_self n)) }
 end
 
 @[simp] theorem ord_one : ord 1 = 1 :=

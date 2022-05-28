@@ -197,8 +197,8 @@ by resetI; apply e.injective.non_unital_semiring _; intros; exact e.apply_symm_a
 /-- Transfer `add_monoid_with_one` across an `equiv` -/
 protected def add_monoid_with_one [add_monoid_with_one β] : add_monoid_with_one α :=
 { nat_cast := λ n, e.symm n,
-  nat_cast_zero := by simp; refl,
-  nat_cast_succ := by simp [add_def, one_def],
+  nat_cast_zero := show e.symm _ = _, by simp [zero_def],
+  nat_cast_succ := λ n, show e.symm _ = e.symm (e (e.symm _) + _), by simp [add_def, one_def],
   .. e.add_monoid, .. e.has_one }
 
 /-- Transfer `add_group_with_one` across an `equiv` -/
@@ -246,8 +246,7 @@ by resetI; apply e.injective.non_unital_ring _; intros; exact e.apply_symm_apply
 /-- Transfer `non_assoc_ring` across an `equiv` -/
 protected def non_assoc_ring [non_assoc_ring β] :
   non_assoc_ring α :=
-let zero := e.has_zero, add := e.has_add, one := e.has_one, mul := e.has_mul, neg := e.has_neg,
-  sub := e.has_sub, nsmul := e.has_scalar ℕ, zsmul := e.has_scalar ℤ in
+let add_group_with_one := e.add_group_with_one, mul := e.has_mul in
 by resetI; apply e.injective.non_assoc_ring _; intros; exact e.apply_symm_apply _
 
 /-- Transfer `ring` across an `equiv` -/

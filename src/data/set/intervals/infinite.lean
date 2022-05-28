@@ -9,12 +9,21 @@ import data.set.finite
 # Infinitude of intervals
 
 Bounded intervals in dense orders are infinite, as are unbounded intervals
-in orders that are unbounded on the appropriate side.
+in orders that are unbounded on the appropriate side. We also prove that an unbounded
+preorder is an infinite type.
 -/
 
-namespace set
-
 variables {α : Type*} [preorder α]
+
+@[priority 100]
+instance no_max_order.infinite [nonempty α] [no_max_order α] : infinite α :=
+let ⟨f, hf⟩ := nat.exists_strict_mono α in infinite.of_injective f hf.injective
+
+@[priority 100]
+instance no_min_order.infinite [nonempty α] [no_min_order α] : infinite α :=
+@no_max_order.infinite αᵒᵈ _ _ _
+
+namespace set
 
 section bounded
 
@@ -22,11 +31,8 @@ variables [densely_ordered α]
 
 lemma Ioo.infinite {a b : α} (h : a < b) : (Ioo a b).infinite :=
 begin
-  rintro (f : finite (Ioo a b)),
-  obtain ⟨m, hm₁, hm₂⟩ : ∃ m ∈ Ioo a b, ∀ x ∈ Ioo a b, ¬x < m,
-  { simpa [h] using finset.exists_minimal f.to_finset },
-  obtain ⟨z, hz₁, hz₂⟩ : ∃ z, a < z ∧ z < m := exists_between hm₁.1,
-  exact hm₂ z ⟨hz₁, lt_trans hz₂ hm₁.2⟩ hz₂,
+  haveI := nonempty_Ioo_subtype h,
+  exact infinite_coe_iff.1 no_max_order.infinite
 end
 
 lemma Ico.infinite {a b : α} (h : a < b) : (Ico a b).infinite :=
@@ -42,16 +48,10 @@ end bounded
 
 section unbounded_below
 
-variables [no_min_order α]
+variables [no_min_order α] {a : α}
 
 lemma Iio.infinite {b : α} : (Iio b).infinite :=
-begin
-  rintro (f : finite (Iio b)),
-  obtain ⟨m, hm₁, hm₂⟩ : ∃ m < b, ∀ x < b, ¬x < m,
-  { simpa using finset.exists_minimal f.to_finset },
-  obtain ⟨z, hz⟩ : ∃ z, z < m := exists_lt _,
-  exact hm₂ z (lt_trans hz hm₁) hz
-end
+infinite_coe_iff.1 no_min_order.infinite
 
 lemma Iic.infinite {b : α} : (Iic b).infinite :=
 Iio.infinite.mono Iio_subset_Iic_self

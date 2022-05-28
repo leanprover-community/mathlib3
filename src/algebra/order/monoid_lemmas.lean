@@ -132,8 +132,7 @@ lemma mul_lt_mul_of_lt_of_lt [covariant_class α α (*) (<)] [covariant_class α
 calc  a * c < a * d : mul_lt_mul_left' h₂ a
         ... < b * d : mul_lt_mul_right' h₁ d
 
-alias mul_lt_mul_of_lt_of_lt ← mul_lt_mul'''
-attribute [to_additive add_lt_add "**Alias** of `add_lt_add_of_lt_of_lt`."] mul_lt_mul'''
+alias add_lt_add_of_lt_of_lt ← add_lt_add
 
 @[to_additive]
 lemma mul_lt_mul_of_le_of_lt [covariant_class α α (*) (<)] [covariant_class α α (swap (*)) (≤)]

@@ -124,7 +124,7 @@ variables [has_involutive_inv α] {f : filter α} {s : set α}
 
 /-- Inversion is involutive on `filter α` if it is on `α`. -/
 @[to_additive "Negation is involutive on `filter α` if it is on `α`."]
-def has_involutive_inv : has_involutive_inv (filter α) :=
+protected def has_involutive_inv : has_involutive_inv (filter α) :=
 { inv_inv := λ f, map_map.trans $ by rw [inv_involutive.comp_self, map_id],
   ..filter.has_inv }
 

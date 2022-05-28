@@ -345,6 +345,10 @@ lemma le_iff_exists_mul : a ≤ b ↔ ∃c, b = a * c :=
 canonically_ordered_monoid.le_iff_exists_mul a b
 
 @[to_additive]
+lemma le_iff_exists_mul' : a ≤ b ↔ ∃c, b = c * a :=
+by simpa only [mul_comm _ a] using le_iff_exists_mul
+
+@[to_additive]
 lemma self_le_mul_right (a b : α) : a ≤ a * b :=
 le_iff_exists_mul.mpr ⟨b, rfl⟩
 
@@ -1032,6 +1036,31 @@ coe_lt_top 0
 @[simp, norm_cast] lemma zero_lt_coe [ordered_add_comm_monoid α] (a : α) :
   (0 : with_top α) < a ↔ 0 < a :=
 coe_lt_coe
+
+/-- A version of `with_top.map` for `one_hom`s. -/
+@[to_additive "A version of `with_top.map` for `zero_hom`s", simps { fully_applied := ff }]
+protected def _root_.one_hom.with_top_map {M N : Type*} [has_one M] [has_one N] (f : one_hom M N) :
+  one_hom (with_top M) (with_top N) :=
+{ to_fun := with_top.map f,
+  map_one' := by rw [with_top.map_one, map_one, coe_one] }
+
+/-- A version of `with_top.map` for `add_hom`s. -/
+@[simps { fully_applied := ff }] protected def _root_.add_hom.with_top_map
+  {M N : Type*} [has_add M] [has_add N] (f : add_hom M N) :
+  add_hom (with_top M) (with_top N) :=
+{ to_fun := with_top.map f,
+  map_add' := λ x y, match x, y with
+    ⊤, y := by rw [top_add, map_top, top_add],
+    x, ⊤ := by rw [add_top, map_top, add_top],
+    (x : M), (y : M) := by simp only [← coe_add, map_coe, map_add]
+  end }
+
+/-- A version of `with_top.map` for `add_monoid_hom`s. -/
+@[simps { fully_applied := ff }] protected def _root_.add_monoid_hom.with_top_map
+  {M N : Type*} [add_zero_class M] [add_zero_class N] (f : M →+ N) :
+  with_top M →+ with_top N :=
+{ to_fun := with_top.map f,
+  .. f.to_zero_hom.with_top_map, .. f.to_add_hom.with_top_map }
 
 end with_top
 

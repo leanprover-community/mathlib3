@@ -5,6 +5,7 @@ Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro
 -/
 import algebra.order.group
 import algebra.order.sub
+import algebra.hom.ring
 import data.set.intervals.basic
 
 /-!
@@ -1587,6 +1588,26 @@ instance [mul_zero_one_class α] [nontrivial α] : mul_zero_one_class (with_top 
   end,
   .. with_top.mul_zero_class }
 
+/-- A version of `with_top.map` for `monoid_with_zero_hom`s. -/
+@[simps { fully_applied := ff }] protected def _root_.monoid_with_zero_hom.with_top_map
+  {R S : Type*} [mul_zero_one_class R] [decidable_eq R] [nontrivial R]
+  [mul_zero_one_class S] [decidable_eq S] [nontrivial S] (f : R →*₀ S) (hf : function.injective f) :
+  with_top R →*₀ with_top S :=
+{ to_fun := with_top.map f,
+  map_mul' := λ x y,
+    begin
+      have : ∀ z, map f z = 0 ↔ z = 0,
+        from λ z, (option.map_injective hf).eq_iff' f.to_zero_hom.with_top_map.map_zero,
+      rcases eq_or_ne x 0 with rfl|hx, { simp },
+      rcases eq_or_ne y 0 with rfl|hy, { simp },
+      induction x using with_top.rec_top_coe, { simp [hy, this] },
+      induction y using with_top.rec_top_coe,
+      { have : (f x : with_top S) ≠ 0, by simpa [hf.eq_iff' (map_zero f)] using hx,
+        simp [hx, this] },
+      simp [← coe_mul]
+    end,
+  .. f.to_zero_hom.with_top_map, .. f.to_monoid_hom.to_one_hom.with_top_map }
+
 instance [mul_zero_class α] [no_zero_divisors α] : no_zero_divisors (with_top α) :=
 ⟨λ a b, by cases a; cases b; dsimp [mul_def]; split_ifs;
   simp [*, none_eq_top, some_eq_coe, mul_eq_zero] at *⟩
@@ -1647,6 +1668,15 @@ instance [nontrivial α] : canonically_ordered_comm_semiring (with_top α) :=
 { .. with_top.comm_semiring,
   .. with_top.canonically_ordered_add_monoid,
   .. with_top.no_zero_divisors, }
+
+/-- A version of `with_top.map` for `ring_hom`s. -/
+@[simps { fully_applied := ff }] protected def _root_.ring_hom.with_top_map
+  {R S : Type*} [canonically_ordered_comm_semiring R] [decidable_eq R] [nontrivial R]
+  [canonically_ordered_comm_semiring S] [decidable_eq S] [nontrivial S]
+  (f : R →+* S) (hf : function.injective f) :
+  with_top R →+* with_top S :=
+{ to_fun := with_top.map f,
+  .. f.to_monoid_with_zero_hom.with_top_map hf, .. f.to_add_monoid_hom.with_top_map }
 
 end with_top
 

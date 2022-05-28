@@ -682,7 +682,7 @@ end non_unital_ring
 /-- A unital but not-necessarily-associative ring. -/
 @[protect_proj, ancestor non_unital_non_assoc_ring non_assoc_semiring]
 class non_assoc_ring (α : Type*) extends
-  non_unital_non_assoc_ring α, non_assoc_semiring α
+  non_unital_non_assoc_ring α, non_assoc_semiring α, add_group_with_one α
 
 section non_assoc_ring
 variables [non_assoc_ring α]
@@ -692,13 +692,15 @@ See note [reducible non-instances]. -/
 @[reducible]
 protected def function.injective.non_assoc_ring
   [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
-  [has_scalar ℕ β] [has_scalar ℤ β]
+  [has_scalar ℕ β] [has_scalar ℤ β] [has_nat_cast β] [has_int_cast β]
   (f : β → α) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y)
-  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (gsmul : ∀ x (n : ℤ), f (n • x) = n • f x) :
+  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (gsmul : ∀ x (n : ℤ), f (n • x) = n • f x)
+  (nat_cast : ∀ n : ℕ, f n = n) (int_cast : ∀ n : ℤ, f n = n) :
   non_assoc_ring β :=
 { .. hf.add_comm_group f zero add neg sub nsmul gsmul,
+  .. hf.add_group_with_one f zero one add neg sub nsmul gsmul nat_cast int_cast,
   .. hf.mul_zero_class f zero mul, .. hf.distrib f add mul,
   .. hf.mul_one_class f one mul }
 
@@ -707,13 +709,15 @@ See note [reducible non-instances]. -/
 @[reducible]
 protected def function.surjective.non_assoc_ring
   [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
-  [has_scalar ℕ β] [has_scalar ℤ β]
+  [has_scalar ℕ β] [has_scalar ℤ β] [has_nat_cast β] [has_int_cast β]
   (f : α → β) (hf : surjective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y)
-  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (gsmul : ∀ x (n : ℤ), f (n • x) = n • f x) :
+  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (gsmul : ∀ x (n : ℤ), f (n • x) = n • f x)
+  (nat_cast : ∀ n : ℕ, f n = n) (int_cast : ∀ n : ℤ, f n = n) :
   non_assoc_ring β :=
 { .. hf.add_comm_group f zero add neg sub nsmul gsmul, .. hf.mul_zero_class f zero mul,
+  .. hf.add_group_with_one f zero one add neg sub nsmul gsmul nat_cast int_cast,
   .. hf.distrib f add mul, .. hf.mul_one_class f one mul }
 
 lemma sub_one_mul (a b : α) : (a - 1) * b = a * b - b :=

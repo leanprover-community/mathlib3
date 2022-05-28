@@ -29,7 +29,7 @@ def of_nat_hom : ℕ →+* ℤ := ⟨coe, rfl, int.of_nat_mul, rfl, int.of_nat_a
 section cast
 variables {α : Type*}
 
-@[simp, norm_cast] theorem cast_mul [ring α] : ∀ m n, ((m * n : ℤ) : α) = m * n :=
+@[simp, norm_cast] theorem cast_mul [non_assoc_ring α] : ∀ m n, ((m * n : ℤ) : α) = m * n :=
 λ m, int.induction_on' m 0 (by simp) (λ k _ ih n, by simp [add_mul, ih])
   (λ k _ ih n, by simp [sub_mul, ih])
 
@@ -47,19 +47,20 @@ def cast_add_hom (α : Type*) [add_group_with_one α] : ℤ →+ α := ⟨coe, c
 @[simp] lemma coe_cast_add_hom [add_group_with_one α] : ⇑(cast_add_hom α) = coe := rfl
 
 /-- `coe : ℤ → α` as a `ring_hom`. -/
-def cast_ring_hom (α : Type*) [ring α] : ℤ →+* α := ⟨coe, cast_one, cast_mul, cast_zero, cast_add⟩
+def cast_ring_hom (α : Type*) [non_assoc_ring α] : ℤ →+* α :=
+⟨coe, cast_one, cast_mul, cast_zero, cast_add⟩
 
-@[simp] lemma coe_cast_ring_hom [ring α] : ⇑(cast_ring_hom α) = coe := rfl
+@[simp] lemma coe_cast_ring_hom [non_assoc_ring α] : ⇑(cast_ring_hom α) = coe := rfl
 
-lemma cast_commute [ring α] : ∀ (m : ℤ) (x : α), commute ↑m x
+lemma cast_commute [non_assoc_ring α] : ∀ (m : ℤ) (x : α), commute ↑m x
 | (n : ℕ) x := by simpa using n.cast_commute x
 | -[1+ n] x := by simpa only [cast_neg_succ_of_nat, commute.neg_left_iff, commute.neg_right_iff]
   using (n + 1).cast_commute (-x)
 
-lemma cast_comm [ring α] (m : ℤ) (x : α) : (m : α) * x = x * m :=
+lemma cast_comm [non_assoc_ring α] (m : ℤ) (x : α) : (m : α) * x = x * m :=
 (cast_commute m x).eq
 
-lemma commute_cast [ring α] (x : α) (m : ℤ) : commute x m :=
+lemma commute_cast [non_assoc_ring α] (x : α) (m : ℤ) : commute x m :=
 (m.cast_commute x).symm
 
 theorem cast_mono [ordered_ring α] : monotone (coe : ℤ → α) :=
@@ -245,7 +246,7 @@ end monoid_with_zero_hom
 
 namespace ring_hom
 
-variables {α : Type*} {β : Type*} [ring α] [ring β]
+variables {α : Type*} {β : Type*} [non_assoc_ring α] [non_assoc_ring β]
 
 @[simp] lemma eq_int_cast (f : ℤ →+* α) (n : ℤ) : f n  = n :=
 f.to_add_monoid_hom.eq_int_cast f.map_one n
@@ -256,10 +257,10 @@ ring_hom.ext f.eq_int_cast
 @[simp] lemma map_int_cast (f : α →+* β) (n : ℤ) : f n = n :=
 (f.comp (int.cast_ring_hom α)).eq_int_cast n
 
-lemma ext_int {R : Type*} [semiring R] (f g : ℤ →+* R) : f = g :=
+lemma ext_int {R : Type*} [non_assoc_semiring R] (f g : ℤ →+* R) : f = g :=
 coe_add_monoid_hom_injective $ add_monoid_hom.ext_int $ f.map_one.trans g.map_one.symm
 
-instance int.subsingleton_ring_hom {R : Type*} [semiring R] : subsingleton (ℤ →+* R) :=
+instance int.subsingleton_ring_hom {R : Type*} [non_assoc_semiring R] : subsingleton (ℤ →+* R) :=
 ⟨ring_hom.ext_int⟩
 
 end ring_hom

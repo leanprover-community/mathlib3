@@ -1115,6 +1115,30 @@ theorem enum_zero_eq_bot {o : ordinal} (ho : 0 < o) :
   enum (<) 0 (by rwa type_lt) = by { haveI H := out_order_bot_of_pos ho, exact ⊥ } :=
 rfl
 
+instance succ_order_out (o : ordinal) : succ_order o.out.α :=
+{ succ := λ a, if h : order.succ (typein (<) a) < o
+    then enum (<) (order.succ (typein (<) a)) (by rwa type_lt)
+    else a,
+  le_succ := λ a, begin
+    split_ifs,
+    { nth_rewrite_lhs 0 ←enum_typein (<) a,
+      rw enum_le_enum',
+      apply order.le_succ },
+    { apply le_rfl }
+  end,
+  max_of_succ_le := λ a, begin
+    split_ifs,
+    { intro h,
+      nth_rewrite_rhs 0 ←enum_typein (<) a at h,
+      rw enum_le_enum' at h,
+      exact ((order.lt_succ _).not_le h).elim },
+    { intros _ b hab,
+      rw [←typein_le_typein', ←order.lt_succ_iff],
+      exact (typein_lt_self b).trans_le (not_lt.1 h) }
+  end,
+  succ_le_of_lt := _,
+  le_of_lt_succ := _ }
+
 /-- `univ.{u v}` is the order type of the ordinals of `Type u` as a member
   of `ordinal.{v}` (when `u < v`). It is an inaccessible cardinal. -/
 @[nolint check_univs] -- intended to be used with explicit universe parameters

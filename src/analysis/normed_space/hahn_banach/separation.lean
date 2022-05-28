@@ -31,23 +31,6 @@ We provide many variations to stricten the result under more assumptions on the 
 * `convex ℝ s → interior (closure s) ⊆ s`
 -/
 
-namespace set
-variables {α : Type*} [group α] {s t : set α}
-
-open_locale pointwise
-
-@[simp, to_additive] lemma one_mem_div_iff : (1 : α) ∈ s / t ↔ ¬ disjoint s t :=
-by simp [not_disjoint_iff_nonempty_inter, mem_div, div_eq_one, set.nonempty]
-
-@[to_additive] lemma one_not_mem_div_iff : (1 : α) ∉ s / t ↔ disjoint s t :=
-one_mem_div_iff.not_left
-
-alias one_not_mem_div_iff ↔ _ disjoint.one_not_mem_div_set
-
-attribute [to_additive] disjoint.one_not_mem_div_set
-
-end set
-
 open function metric set
 open_locale pointwise topological_space
 

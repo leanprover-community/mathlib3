@@ -50,13 +50,26 @@ by { change module k ((forget₂ (fdRep k G) (FinVect k)).obj V), apply_instance
 instance (V : fdRep k G) : finite_dimensional k V :=
 by { change finite_dimensional k ((forget₂ (fdRep k G) (FinVect k)).obj V), apply_instance, }
 
+def ρ (V : fdRep k G) : G →* (V →ₗ[k] V) := V.ρ
+
+def iso_to_linear_equiv {V W : fdRep k G} (i : V ≅ W) : V ≃ₗ[k] W :=
+  FinVect.iso_to_linear_equiv ((Action.forget (FinVect k) (Mon.of G)).map_iso i)
+
+lemma iso.conj_ρ {V W : fdRep k G} (i : V ≅ W) (g : G) :
+   W.ρ g = (fdRep.iso_to_linear_equiv i).conj (V.ρ g) :=
+begin
+  rw [fdRep.iso_to_linear_equiv, ←FinVect.iso.conj_eq_conj, iso.conj_apply],
+  rw [iso.eq_inv_comp ((Action.forget (FinVect k) (Mon.of G)).map_iso i)],
+  exact (i.hom.comm g).symm,
+end
+
 -- This works well with the new design for representations:
 example (V : fdRep k G) : G →* (V →ₗ[k] V) := V.ρ
 
-/-- Lift an unbundled representation to `Rep`. -/
+/-- Lift an unbundled representation to `fdRep`. -/
 @[simps ρ]
 def of {V : Type u} [add_comm_group V] [module k V] [finite_dimensional k V]
-  (ρ : G →* (V →ₗ[k] V)) : Rep k G :=
+  (ρ : G →* (V →ₗ[k] V)) : fdRep k G :=
 ⟨FinVect.of k V, ρ⟩
 
 instance : has_forget₂ (fdRep k G) (Rep k G) :=

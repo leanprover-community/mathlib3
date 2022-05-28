@@ -9,6 +9,7 @@ import algebra.monoid_algebra.basic
 import linear_algebra.trace
 import linear_algebra.dual
 import linear_algebra.free_module.basic
+import representation_theory.fdRep
 
 /-!
 # Monoid representations
@@ -29,6 +30,8 @@ representations.
 Representations of a monoid `G` on a `k`-module `V` are implemented as
 homomorphisms `G →* (V →ₗ[k] V)`.
 -/
+
+universes u
 
 open monoid_algebra (lift) (of)
 open linear_map
@@ -153,7 +156,7 @@ def tprod : representation k G (V ⊗[k] W) :=
   map_one' := by simp only [map_one, tensor_product.map_one],
   map_mul' := λ g h, by simp only [map_mul, tensor_product.map_mul] }
 
-notation ρV ` ⊗ ` ρW := tprod ρV ρW
+local notation ρV ` ⊗ ` ρW := tprod ρV ρW
 
 @[simp]
 lemma tprod_apply (g : G) : (ρV ⊗ ρW) g = tensor_product.map (ρV g) (ρW g) := rfl
@@ -199,8 +202,27 @@ def dual : representation k G (module.dual k V) :=
     by {ext, simp only [coe_comp, function.comp_app, mul_inv_rev, map_mul, coe_mk, mul_apply]}}
 
 @[simp]
-lemma dual_apply (g : G) (f : module.dual k V) : (dual ρV) g f = f ∘ₗ (ρV g⁻¹) := rfl
+lemma dual_apply (g : G) : (dual ρV) g = module.dual.transpose (ρV g⁻¹) := rfl
 
 end linear_hom
+
+section
+
+variables {k G V W : Type u} [field k] [group G]
+variables [add_comm_group V] [module k V] [add_comm_group W] [module k W]
+variables [finite_dimensional k V] [finite_dimensional k W]
+variables (ρV : representation k G V) (ρW : representation k G W)
+
+local attribute tensor_product.ext
+
+noncomputable
+def dual_tensor_iso_lin_hom : (fdRep.of ρV.dual) ⊗ (fdRep.of ρW) ≅ fdRep.of (lin_hom ρV ρW) :=
+begin
+  refine Action.mk_iso (dual_tensor_hom_equiv k V W).to_FinVect_iso _,
+  intro g, ext f w v, simp [module.dual.transpose_apply],
+  --this simp is extremely long (~2.5 min), I'm not sure why
+end
+
+end
 
 end representation

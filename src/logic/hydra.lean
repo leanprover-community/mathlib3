@@ -128,7 +128,7 @@ theorem cut_expand_singleton {s x} (h : ∀ x' ∈ s, r x' x) : cut_expand r s {
 ⟨s, x, h, add_comm s _⟩
 
 theorem cut_expand_singleton_singleton {x' x} (h : r x' x) : cut_expand r {x'} {x} :=
-cut_expand_singleton (λ a h, by { rw mem_singleton at h, rwa h })
+cut_expand_singleton (λ a h, by rwa mem_singleton.1 h)
 
 theorem cut_expand_add_of_cut_expand {t u} (s) (h : cut_expand r t u) :
   cut_expand r (s + t) (s + u) :=

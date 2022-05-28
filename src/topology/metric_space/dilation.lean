@@ -24,6 +24,18 @@ to match the `*_hom_class` API below.
 Since a lot of elementary properties don't require `eq_of_dist_eq_zero`
 we start setting up the theory for `pseudo_emetric_space` and
 we specialize to `pseudo_metric_space` and `metric_space` when needed.
+
+# Notes
+
+The type of dilations defined in this file are also referred to as
+"similiarties" or "similitudes" by other authors. The name `dilation` was choosen
+to match the Wikipedia name.
+
+# References
+
+- https://en.wikipedia.org/wiki/Dilation_(metric_space)
+- Marcel Berger, Geometry
+
 -/
 
 noncomputable theory

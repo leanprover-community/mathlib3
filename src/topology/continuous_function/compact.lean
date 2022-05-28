@@ -428,3 +428,86 @@ end
 end weierstrass
 
 end continuous_map
+
+/-!
+### Star structures
+
+In this section, if `β` is a normed ⋆-group, then so is the space of
+continuous functions from `α` to `β`, by using the star operation pointwise.
+
+If `𝕜` is normed field and a ⋆-ring over which `β` is a normed algebra and a
+star module, then the space of continuous functions from `α` to `β`
+is a star module.
+
+If `β` is a ⋆-ring in addition to being a normed ⋆-group, then `C(α, β)`
+inherits a ⋆-ring structure.
+
+Furthermore, if `α` is compact and `β` is a C⋆-ring, then `C(α, β)` is a C⋆-ring.  -/
+
+section continuous_star
+
+variables {α : Type*} {β : Type*}
+variables [topological_space α] [topological_space β] [add_monoid β] [has_continuous_add β]
+  [star_add_monoid β] [has_continuous_star β]
+
+instance : star_add_monoid C(α, β) :=
+{ star            := λ f, star_continuous_map.comp f,
+  star_involutive := λ f, by { ext, exact star_star _ },
+  star_add        := λ f g, by { ext, exact star_add _ _ } }
+
+@[simp] lemma coe_star (f : C(α, β)) : ⇑(star f) = star f := rfl
+
+@[simp] lemma star_apply (f : C(α, β)) (x : α) : star f x = star (f x) := rfl
+
+end continuous_star
+
+section normed_space
+
+variables {α : Type*} {β : Type*} {𝕜 : Type*}
+variables [normed_field 𝕜] [star_ring 𝕜]
+variables [topological_space α] [compact_space α] [normed_group β] [star_add_monoid β]
+  [normed_star_group β] [normed_space 𝕜 β] [star_module 𝕜 β]
+
+lemma _root_.bounded_continuous_function.mk_of_compact_star (f : C(α, β)) :
+  mk_of_compact (star f) = star (mk_of_compact f) := rfl
+
+instance : normed_star_group C(α, β) :=
+{ norm_star := λ f, by rw [←bounded_continuous_function.norm_mk_of_compact,
+                          bounded_continuous_function.mk_of_compact_star, norm_star,
+                          bounded_continuous_function.norm_mk_of_compact] }
+
+instance : star_module 𝕜 C(α, β) :=
+{ star_smul := λ k f, by { ext, exact star_smul _ _ } }
+
+end normed_space
+
+section cstar_ring
+
+variables {α : Type*} {β : Type*} {𝕜 : Type*}
+variables [normed_field 𝕜] [star_ring 𝕜]
+variables [topological_space α] [compact_space α] [normed_ring β] [star_ring β]
+
+instance [has_continuous_star β] : star_ring C(α, β) :=
+{ star_mul := λ f g, by { ext, exact star_mul _ _ },
+  ..continuous_map.star_add_monoid }
+
+instance [cstar_ring β] : cstar_ring C(α, β) :=
+{ norm_star_mul_self :=
+  begin
+    intros f,
+    refine le_antisymm _ _,
+    { rw [←sq, continuous_map.norm_le _ (sq_nonneg _)],
+      intro x,
+      simp only [continuous_map.coe_mul, _root_.coe_star, pi.mul_apply, pi.star_apply,
+                 cstar_ring.norm_star_mul_self, ←sq],
+      refine sq_le_sq' _ _,
+      { linarith [norm_nonneg (f x), norm_nonneg f] },
+      { exact continuous_map.norm_coe_le_norm f x }, },
+    { rw [←sq, ←real.le_sqrt (norm_nonneg _) (norm_nonneg _),
+          continuous_map.norm_le _ (real.sqrt_nonneg _)],
+      intro x,
+      rw [real.le_sqrt (norm_nonneg _) (norm_nonneg _), sq, ←cstar_ring.norm_star_mul_self],
+      exact continuous_map.norm_coe_le_norm (star f * f) x },
+  end }
+
+end cstar_ring

@@ -553,7 +553,8 @@ instance : inhabited normalize_mode := ⟨normalize_mode.horner⟩
 /-- A `ring`-based normalization simplifier that rewrites ring expressions into the specified mode.
   See `normalize`. This version takes a list of atoms to persist across multiple calls. -/
 meta def normalize' (atoms : ref (buffer expr))
-  (red : transparency) (mode := normalize_mode.horner) : expr → opt_param _ ff → tactic (expr × expr)
+  (red : transparency) (mode := normalize_mode.horner) :
+  expr → opt_param _ ff → tactic (expr × expr)
 | e inner := do
   pow_lemma ← simp_lemmas.mk.add_simp ``pow_one,
   let lemmas := match mode with

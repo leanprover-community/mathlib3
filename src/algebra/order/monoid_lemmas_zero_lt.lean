@@ -47,6 +47,9 @@ We use `α>0 = {x : α // 0 < x}` with a strict inequality since in most cases w
 is clear.  This creates a few bumps in the first couple of proofs, where we have to split cases on
 whether an element is `0` or not, but goes smoothly after that.  A further advantage is that we
 only introduce notation for the positive elements and we do not need also the non-negative ones.
+
+Some lemmas for `partial_order` also have a variant for `preorder`, where the `preorder` version has
+stronger hypotheses.  In this case we put the `preorder` lemma in the `preorder` namespace.
 -/
 
 /- I am changing the file `algebra/order/monoid_lemmas` incrementally, with the idea of

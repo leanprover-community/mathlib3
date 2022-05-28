@@ -354,6 +354,17 @@ end
 
 open_locale classical
 
+noncomputable def fintype_of_admissible_of_algebraic' [is_fraction_ring S L] [is_dedekind_domain S]
+  (h : algebra.is_algebraic R L) :
+  fintype {b : ideal S // algebra_map R S (∏ (m : R) in finset_approx bS adm, m) ∈ ↑b}  :=
+(@fintype.of_equiv _
+  {J // J ∣ ideal.span ({algebra_map R S (∏ (m : R) in finset_approx bS adm, m)} : set S)}
+  (unique_factorization_monoid.fintype_subtype_dvd _
+    (by { rw [ne.def, ideal.zero_eq_bot, ideal.span_singleton_eq_bot],
+          exact prod_finset_approx_ne_zero bS adm }))
+  ((equiv.refl _).subtype_equiv (λ I, ideal.dvd_iff_le.trans
+    (by rw [equiv.refl_apply, ideal.span_le, set.singleton_subset_iff]))))
+
 /-- The main theorem: the class group of an integral closure `S` of `R` in an
 algebraic extension `L` is finite if there is an admissible absolute value.
 
@@ -363,13 +374,7 @@ extension of `K = Frac(R)`, supplying most of the required assumptions automatic
 noncomputable def fintype_of_admissible_of_algebraic [is_fraction_ring S L] [is_dedekind_domain S]
   (h : algebra.is_algebraic R L) : fintype (class_group S L) :=
 @fintype.of_surjective _ _ _
-  (@fintype.of_equiv _
-    {J // J ∣ ideal.span ({algebra_map R S (∏ (m : R) in finset_approx bS adm, m)} : set S)}
-    (unique_factorization_monoid.fintype_subtype_dvd _
-      (by { rw [ne.def, ideal.zero_eq_bot, ideal.span_singleton_eq_bot],
-            exact prod_finset_approx_ne_zero bS adm }))
-    ((equiv.refl _).subtype_equiv (λ I, ideal.dvd_iff_le.trans
-      (by rw [equiv.refl_apply, ideal.span_le, set.singleton_subset_iff]))))
+  (fintype_of_admissible_of_algebraic' _ _ _ h)
   (class_group.mk_M_mem L bS adm)
   (class_group.mk_M_mem_surjective L bS adm h)
 

@@ -127,8 +127,7 @@ theorem cof_type_le [is_well_order α r] {S : set α} (h : ∀ a, ∃ b ∈ S, �
   cof (type r) ≤ #S :=
 le_cof_type.1 le_rfl S h
 
-theorem lt_cof_type [is_well_order α r] {S : set α} (hl : #S < cof (type r)) :
-  ∃ a, ∀ b ∈ S, r b a :=
+theorem lt_cof_type [is_well_order α r] {S : set α} (hl : #S < cof (type r)) : bounded r S :=
 not_forall_not.1 $ λ h, not_le_of_lt hl $ cof_type_le (λ a, not_ball.1 (h a))
 
 theorem cof_eq (r : α → α → Prop) [is_well_order α r] :
@@ -705,6 +704,12 @@ local infixr ^ := @pow cardinal.{u} cardinal cardinal.has_pow
 def is_limit (c : cardinal) : Prop :=
 c ≠ 0 ∧ ∀ x < c, succ x < c
 
+theorem is_limit.ne_zero {c} (h : is_limit c) : c ≠ 0 :=
+h.1
+
+theorem is_limit.succ_lt {x c} (h : is_limit c) (hx : x < c) : succ x < c :=
+h.2 x hx
+
 theorem is_limit.omega_le {c} (h : is_limit c) : ω ≤ c :=
 begin
   by_contra' h',
@@ -719,14 +724,27 @@ end
 def is_strong_limit (c : cardinal) : Prop :=
 c ≠ 0 ∧ ∀ x < c, 2 ^ x < c
 
+theorem is_strong_limit.ne_zero {c} (h : is_strong_limit c) : c ≠ 0 :=
+h.1
+
+theorem is_strong_limit.power_lt {x c} (h : is_strong_limit c) (hx : x < c) : 2 ^ x < c :=
+h.2 x hx
+
 theorem is_strong_limit.is_limit {c} (H : is_strong_limit c) : is_limit c :=
 ⟨H.1, λ x h, lt_of_le_of_lt (succ_le_of_lt $ cantor x) (H.2 _ h)⟩
 
-example {α : Type*} (h : is_strong_limit (#α)) : #{s : set α | #s < cof (#α).ord} = #α :=
+theorem mk_subset_mk_lt_cof {α : Type*} (h : is_strong_limit (#α)) :
+  #{s : set α | #s < cof (#α).ord} = #α :=
 begin
   apply le_antisymm,
-  {
-
+  { rcases ord_eq α with ⟨r, wo, hr⟩,
+    haveI := wo,
+    have : #{s : set α | #s < cof (#α).ord} ≤ #{s : set α | bounded r s},
+    { apply mk_le_mk_of_subset,
+      intros s hs,
+      rw hr at hs,
+      exact lt_cof_type hs },
+    apply this.trans,
   },
   { refine @mk_le_of_injective α _ (λ x, subtype.mk {x} _) _,
     { rw [mem_set_of_eq, mk_singleton],

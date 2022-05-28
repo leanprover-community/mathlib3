@@ -493,15 +493,16 @@ begin
       nat_degree_mul_mirror, hq, trinomial_nat_degree hkm' hmn' hz.ne_zero] },
   subst hk,
   subst hn,
-  rcases eq_or_eq_neg_of_sq_eq_sq y v ((int.is_unit_sq hy).trans (int.is_unit_sq hv).symm) with rfl | rfl,
+  rcases eq_or_eq_neg_of_sq_eq_sq y v
+    ((int.is_unit_sq hy).trans (int.is_unit_sq hv).symm) with rfl | rfl,
   { rcases irreducible_step2 hkm hmn hkm' hmn' hu hv hw hx hz hp hq hpq with rfl | rfl,
     { exact or.inl rfl },
     { exact or.inr (or.inr (or.inl rfl)) } },
   { rw [←neg_inj, neg_add, neg_add, ←neg_mul, ←neg_mul, ←neg_mul, ←C_neg, ←C_neg, ←C_neg] at hp,
-    rcases irreducible_step2 hkm hmn hkm' hmn' hu.neg hv.neg hw.neg hx hz hp hq _ with rfl | rfl,
+    rw [←neg_mul_neg, ←mirror_neg] at hpq,
+    rcases irreducible_step2 hkm hmn hkm' hmn' hu.neg hv.neg hw.neg hx hz hp hq hpq with rfl | rfl,
     { exact or.inr (or.inl rfl) },
-    { exact or.inr (or.inr (or.inr p.mirror_neg)) },
-    { rwa [mirror_neg, neg_mul_neg] } },
+    { exact or.inr (or.inr (or.inr p.mirror_neg)) } },
 end
 
 lemma irreducible_step4 (hp : is_unit_trinomial p)
@@ -526,6 +527,21 @@ begin
     rw [hg', aeval_mul, hz, zero_mul] },
   { cases hq' with g' hg',
     rw [hg', aeval_mul, hz, zero_mul] },
+end
+
+lemma irreducible_step5 (hp : is_unit_trinomial p) (h0 : aeval (0 : ℂ) p ≠ 0)
+  (h : ∀ (n : ℕ) (hn : n ≠ 0) (z : ℂ) (hz : z ^ n = 1), aeval z p ≠ 0) : irreducible p :=
+begin
+  refine hp.irreducible_step4 (λ z hz, _),
+  sorry,
+end
+
+lemma irreducible_step6 {m n : ℕ} (hm : 0 < m) (hmn : m < n) {u v w : ℤ}
+  (hu : is_unit u) (hv : is_unit v) (hw : is_unit w)
+  (hp : p = C u * X ^ 0 + C v * X ^ m + C w * X ^ n)
+  (h : ∀ (n : ℕ) (z : ℂ) (hz : z ^ n = 1), aeval z p ≠ 0) : irreducible p :=
+begin
+
 end
 
 lemma irreducible21 (hp : is_unit_trinomial p)

@@ -88,7 +88,7 @@ If the space is also compact:
 https://en.wikipedia.org/wiki/Separation_axiom
 -/
 
-open set filter topological_space
+open function set filter topological_space
 open_locale topological_space filter classical
 
 universes u v
@@ -176,30 +176,28 @@ lemma inseparable_iff_nhds_eq {x y : α} : inseparable x y ↔ 𝓝 x = 𝓝 y :
 
 alias inseparable_iff_nhds_eq ↔ inseparable.nhds_eq _
 
-lemma indistinguishable.map [topological_space β] {x y : α} {f : α → β}
-  (h : indistinguishable x y) (hf : continuous f) :
-  indistinguishable (f x) (f y) :=
+lemma inseparable.map [topological_space β] {x y : α} {f : α → β}
+  (h : inseparable x y) (hf : continuous f) :
+  inseparable (f x) (f y) :=
 λ U hU, h (f ⁻¹' U) (hU.preimage hf)
 
-lemma t0_space_iff_distinguishable (α : Type u) [topological_space α] :
-  t0_space α ↔ ∀ (x y : α), x ≠ y → ¬ inseparable x y :=
-begin
-  delta inseparable,
-  rw t0_space_def,
-  push_neg,
-  simp_rw xor_iff_not_iff,
-end
-
-lemma t0_space_iff_indistinguishable (α : Type u) [topological_space α] :
-  t0_space α ↔ ∀ (x y : α), indistinguishable x y → x = y :=
-(t0_space_iff_distinguishable α).trans $ forall₂_congr $ λ a b, not_imp_not
-
-@[simp] lemma nhds_eq_nhds_iff [t0_space α] {a b : α} : 𝓝 a = 𝓝 b ↔ a = b :=
-function.injective.eq_iff $ λ x y h, of_not_not $
-  λ hne, (t0_space_iff_distinguishable α).mp ‹_› x y hne (inseparable_iff_nhds_eq.mpr h)
+lemma t0_space_iff_inseparable (α : Type u) [topological_space α] :
+  t0_space α ↔ ∀ (x y : α), inseparable x y → x = y :=
+by simp only [t0_space_def, xor_iff_not_iff, ← not_imp, ← not_forall, ne.def, not_imp_not,
+  inseparable]
 
 lemma inseparable.eq [t0_space α] {x y : α} (h : inseparable x y) : x = y :=
-nhds_eq_nhds_iff.mp h.nhds_eq
+(t0_space_iff_inseparable α).1 ‹_› x y h
+
+lemma t0_space_iff_nhds_injective (α : Type u) [topological_space α] :
+  t0_space α ↔ injective (𝓝 : α → filter α) :=
+by simp only [t0_space_iff_inseparable, injective, inseparable_iff_nhds_eq]
+
+lemma nhds_injective [t0_space α] : injective (𝓝 : α → filter α) :=
+(t0_space_iff_nhds_injective α).1 ‹_›
+
+@[simp] lemma nhds_eq_nhds_iff [t0_space α] {a b : α} : 𝓝 a = 𝓝 b ↔ a = b :=
+nhds_injective.eq_iff
 
 lemma inseparable_iff_closed {x y : α} :
   inseparable x y ↔ ∀ (U : set α) (hU : is_closed U), x ∈ U ↔ y ∈ U :=
@@ -298,15 +296,15 @@ embedding_subtype_coe.t0_space
 
 theorem t0_space_iff_or_not_mem_closure (α : Type u) [topological_space α] :
   t0_space α ↔ (∀ a b : α, a ≠ b → (a ∉ closure ({b} : set α) ∨ b ∉ closure ({a} : set α))) :=
-by simp only [t0_space_iff_distinguishable, indistinguishable_iff_closure, not_and_distrib]
+by simp only [t0_space_iff_distinguishable, inseparable_iff_closure, not_and_distrib]
 
 instance [topological_space β] [t0_space α] [t0_space β] : t0_space (α × β) :=
-(t0_space_iff_indistinguishable _).2 $
+(t0_space_iff_inseparable _).2 $
   λ x y h, prod.ext (h.map continuous_fst).eq (h.map continuous_snd).eq
 
 instance {ι : Type*} {π : ι → Type*} [Π i, topological_space (π i)] [Π i, t0_space (π i)] :
   t0_space (Π i, π i) :=
-(t0_space_iff_indistinguishable _).2 $ λ x y h, funext $ λ i, (h.map (continuous_apply i)).eq
+(t0_space_iff_inseparable _).2 $ λ x y h, funext $ λ i, (h.map (continuous_apply i)).eq
 
 /-- A T₁ space, also known as a Fréchet space, is a topological space
   where every singleton set is closed. Equivalently, for every pair

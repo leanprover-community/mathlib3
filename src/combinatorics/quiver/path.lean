@@ -22,7 +22,6 @@ inductive path {V : Type u} [quiver.{v} V] (a : V) : V → Sort (max (u+1) v)
 | cons : Π {b c : V}, path b → (b ⟶ c) → path c
 
 /-- An arrow viewed as a path of length one. -/
-@[simp]
 def hom.to_path {V} [quiver V] {a b : V} (e : a ⟶ b) : path a b :=
 path.nil.cons e
 
@@ -84,5 +83,8 @@ def map_path {a : V} :
   ∀ {c : V} (q : path b c), F.map_path (p.comp q) = (F.map_path p).comp (F.map_path q)
 | _ path.nil := rfl
 | _ (path.cons p e) := begin dsimp, rw [map_path_comp], end
+
+@[simp]
+lemma map_path_to_path {a b : V} (f : a ⟶ b) : F.map_path f.to_path = (F.map f).to_path := rfl
 
 end prefunctor

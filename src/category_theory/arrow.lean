@@ -256,6 +256,7 @@ B  → Z                 B → Z
 def left_to_right : (left_func : arrow C ⥤ C) ⟶ right_func :=
 { app := λ f, f.hom }
 
+/-- Condition that the image of `f` by `F` is an isomorphism -/
 def is_inverted_by (f : arrow C) (F : C ⥤ D) : Prop := is_iso (F.map f.hom)
 
 end arrow

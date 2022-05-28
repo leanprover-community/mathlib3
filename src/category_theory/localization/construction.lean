@@ -139,6 +139,7 @@ Quiv.lift
   end, }
 
 /-- The lifting of a functor `C ⥤ D` inverting `W` as a functor `localization W ⥤ D` -/
+@[simps]
 def lift : localization W ⥤ D :=
 quotient.lift (relations W) (lift_to_path_category G hG)
 begin
@@ -154,7 +155,7 @@ begin
   { intros X Y f,
     simp only [functor.comp_map, eq_to_hom_refl, comp_id, id_comp],
     dsimp [lift, lift_to_path_category, Q],
-    rw id_comp, },
+    rw compose_path_to_path, },
   { intro X,
     refl, }
 end

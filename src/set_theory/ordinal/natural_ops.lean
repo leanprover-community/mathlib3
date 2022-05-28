@@ -41,7 +41,7 @@ between both types, we attempt to prove and state most results on `ordinal`.
 
 universes u v
 
-open function
+open function order
 
 noncomputable theory
 
@@ -69,6 +69,7 @@ instance : has_zero nat_ordinal := ⟨to_nat_ordinal 0⟩
 instance : inhabited nat_ordinal := ⟨0⟩
 instance : has_one nat_ordinal := ⟨to_nat_ordinal 1⟩
 instance : has_well_founded nat_ordinal := ordinal.has_well_founded
+instance : succ_order nat_ordinal := ordinal.succ_order
 
 @[simp] theorem to_ordinal_zero : to_ordinal 0 = 0 := rfl
 @[simp] theorem to_ordinal_one : to_ordinal 1 = 1 := rfl
@@ -206,7 +207,7 @@ begin
   induction a using ordinal.induction with a IH,
   rw [nadd_def, blsub_one, nadd_zero, max_eq_right_iff, blsub_le_iff],
   intros i hi,
-  rwa [IH i hi, succ_lt_succ]
+  rwa [IH i hi, succ_lt_succ_iff]
 end
 
 @[simp] theorem one_nadd : 1 ♯ a = succ a :=
@@ -219,7 +220,7 @@ by rw [←nadd_one (a ♯ b), nadd_assoc, nadd_one]
 begin
   induction n with n hn,
   { simp },
-  { rw [nat.cast_succ, ←succ_eq_add_one, nadd_succ, add_succ, hn] }
+  { rw [nat.cast_succ, add_one_eq_succ, nadd_succ, add_succ, hn] }
 end
 
 @[simp] theorem nat_nadd (n : ℕ) : ↑n ♯ a = a + n :=
@@ -230,7 +231,7 @@ begin
   apply b.limit_rec_on,
   { simp },
   { intros c h,
-    rwa [add_succ, nadd_succ, succ_le_succ] },
+    rwa [add_succ, nadd_succ, succ_le_succ_iff] },
   { intros c hc H,
     rw [←is_normal.blsub_eq.{u u} (add_is_normal a) hc, blsub_le_iff],
     exact λ i hi, (H i hi).trans_lt (nadd_lt_nadd_left hi a) }
@@ -267,6 +268,8 @@ instance : ordered_cancel_add_comm_monoid nat_ordinal :=
   add_zero := nadd_zero,
   add_comm := nadd_comm,
   ..nat_ordinal.linear_order }
+
+@[simp] theorem add_one_eq_succ : ∀ a : nat_ordinal, a + 1 = succ a := nadd_one
 
 @[simp] theorem to_ordinal_cast_nat (n : ℕ) : to_ordinal n = n :=
 begin

@@ -131,6 +131,10 @@ instance {R : Type u₁} [ring R] (r : R → R → Prop) : ring (ring_quot r) :=
   add_left_neg  := by { rintros ⟨⟨⟩⟩, simp [neg_quot, add_quot, ← zero_quot], },
   sub            := has_sub.sub,
   sub_eq_add_neg := by { rintros ⟨⟨⟩⟩ ⟨⟨⟩⟩, simp [neg_quot, sub_quot, add_quot, sub_eq_add_neg] },
+  zsmul          := (•),
+  zsmul_zero'   := by { rintros ⟨⟨⟩⟩, simp [smul_quot, ← zero_quot] },
+  zsmul_succ'   := by { rintros n ⟨⟨⟩⟩, simp [smul_quot, add_quot, add_mul, add_comm] },
+  zsmul_neg'   := by { rintros n ⟨⟨⟩⟩, simp [smul_quot, neg_quot, add_mul] },
   .. (ring_quot.semiring r) }
 
 instance {R : Type u₁} [comm_semiring R] (r : R → R → Prop) : comm_semiring (ring_quot r) :=

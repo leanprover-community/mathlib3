@@ -365,13 +365,13 @@ def dual_iso (α β : Type*) [preorder α] [preorder β] : (α →o β) ≃o (α
 
 /-- Lift an order homomorphism `f : α →o β` to an order homomorphism `with_bot α →o with_bot β`. -/
 @[simps { fully_applied := ff }]
-protected def with_bot (f : α →o β) : with_bot α →o with_bot β :=
-⟨with_bot.map f, f.mono.with_bot⟩
+protected def with_bot_map (f : α →o β) : with_bot α →o with_bot β :=
+⟨with_bot.map f, f.mono.with_bot_map⟩
 
 /-- Lift an order homomorphism `f : α →o β` to an order homomorphism `with_top α →o with_top β`. -/
 @[simps { fully_applied := ff }]
-protected def with_top (f : α →o β) : with_top α →o with_top β :=
-⟨with_top.map f, f.mono.with_top⟩
+protected def with_top_map (f : α →o β) : with_top α →o with_top β :=
+⟨with_top.map f, f.mono.with_top_map⟩
 
 end order_hom
 
@@ -423,16 +423,16 @@ protected def dual : αᵒᵈ ↪o βᵒᵈ :=
 
 /-- A version of `with_bot.map` for order embeddings. -/
 @[simps { fully_applied := ff }]
-protected def with_bot (f : α ↪o β) : with_bot α ↪o with_bot β :=
+protected def with_bot_map (f : α ↪o β) : with_bot α ↪o with_bot β :=
 { to_fun := with_bot.map f,
   map_rel_iff' := λ a b, by cases a; cases b; simp [with_bot.none_eq_bot, with_bot.some_eq_coe],
   .. f.to_embedding.option_map }
 
 /-- A version of `with_top.map` for order embeddings. -/
 @[simps { fully_applied := ff }]
-protected def with_top (f : α ↪o β) : with_top α ↪o with_top β :=
+protected def with_top_map (f : α ↪o β) : with_top α ↪o with_top β :=
 { to_fun := with_top.map f,
-  .. f.dual.with_bot.dual }
+  .. f.dual.with_bot_map.dual }
 
 /--
 To define an order embedding from a partial order to a preorder it suffices to give a function
@@ -821,7 +821,7 @@ variables [partial_order α] [partial_order β] [partial_order γ]
 @[simps apply]
 def with_top_congr (e : α ≃o β) : with_top α ≃o with_top β :=
 { to_equiv := e.to_equiv.option_congr,
-  .. e.to_order_embedding.with_top }
+  .. e.to_order_embedding.with_top_map }
 
 @[simp] lemma with_top_congr_refl : (order_iso.refl α).with_top_congr = order_iso.refl _ :=
 rel_iso.to_equiv_injective equiv.option_congr_refl
@@ -838,7 +838,7 @@ rel_iso.to_equiv_injective $ e₁.to_equiv.option_congr_trans e₂.to_equiv
 def with_bot_congr (e : α ≃o β) :
   with_bot α ≃o with_bot β :=
 { to_equiv := e.to_equiv.option_congr,
-  .. e.to_order_embedding.with_bot }
+  .. e.to_order_embedding.with_bot_map }
 
 @[simp] lemma with_bot_congr_refl : (order_iso.refl α).with_bot_congr = order_iso.refl _ :=
 rel_iso.to_equiv_injective equiv.option_congr_refl

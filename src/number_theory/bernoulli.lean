@@ -137,7 +137,7 @@ begin
   rw [bernoulli'_power_series, coeff_mul, mul_comm X, sum_antidiagonal_succ'],
   suffices : ∑ p in antidiagonal n, (bernoulli' p.1 / p.1!) * ((p.2 + 1) * p.2!)⁻¹ = n!⁻¹,
   { simpa [ring_hom.map_sum] using congr_arg (algebra_map ℚ A) this },
-  apply eq_inv_of_mul_left_eq_one,
+  apply eq_inv_of_mul_eq_one_left,
   rw sum_mul,
   convert bernoulli'_spec' n using 1,
   apply sum_congr rfl,
@@ -284,7 +284,7 @@ begin
     rw [choose_eq_factorial_div_factorial h.le, eq_comm, div_eq_iff (hne q.succ), succ_eq_add_one,
         mul_assoc _ _ ↑q.succ!, mul_comm _ ↑q.succ!, ← mul_assoc, div_mul_eq_mul_div,
         mul_comm (↑n ^ (q - m + 1)), ← mul_assoc _ _ (↑n ^ (q - m + 1)), ← one_div, mul_one_div,
-        div_div_eq_div_mul, tsub_add_eq_add_tsub (le_of_lt_succ h), cast_div, cast_mul],
+        div_div, tsub_add_eq_add_tsub (le_of_lt_succ h), cast_div, cast_mul],
     { ring },
     { exact factorial_mul_factorial_dvd_factorial h.le },
     { simp [hne] } },
@@ -307,7 +307,7 @@ begin
     { have h_const : C ℚ (constant_coeff ℚ (exp ℚ ^ n)) = 1 := by simp,
       rw [← h_const, sub_const_eq_X_mul_shift] },
     -- key step: a chain of equalities of power series
-    rw [← mul_right_inj' hexp, mul_comm, ← exp_pow_sum, ← geom_sum_def, geom_sum_mul, h_r,
+    rw [← mul_right_inj' hexp, mul_comm, ← exp_pow_sum, geom_sum_mul, h_r,
         ← bernoulli_power_series_mul_exp_sub_one, bernoulli_power_series, mul_right_comm],
     simp [h_cauchy, mul_comm] },
   -- massage `hps` into our goal

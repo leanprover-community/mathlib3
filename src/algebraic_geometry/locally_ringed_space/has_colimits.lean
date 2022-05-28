@@ -11,7 +11,7 @@ import category_theory.limits.constructions.limits_of_products_and_equalizers
 /-!
 # Colimits of LocallyRingedSpace
 
-We construct the explict coproducts and coequalizers of `LocallyRingedSpace`.
+We construct the explicit coproducts and coequalizers of `LocallyRingedSpace`.
 It then follows that `LocallyRingedSpace` has all colimits, and
 `forget_to_SheafedSpace` preserves them.
 
@@ -70,7 +70,9 @@ def coproduct : LocallyRingedSpace :=
 noncomputable
 def coproduct_cofan : cocone F :=
 { X := coproduct F,
-  ι := { app := λ j, ⟨colimit.ι (F ⋙ forget_to_SheafedSpace) j, infer_instance⟩ } }
+  ι :=
+  { app := λ j, ⟨colimit.ι (F ⋙ forget_to_SheafedSpace) j, infer_instance⟩,
+    naturality' := λ j j' f, by { cases j, cases j', tidy, }, } }
 
 /-- The explicit coproduct cofan constructed in `coproduct_cofan` is indeed a colimit. -/
 noncomputable

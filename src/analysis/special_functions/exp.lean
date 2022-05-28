@@ -194,7 +194,7 @@ begin
     (((tendsto_exp_div_pow_at_top n).const_mul_at_top hb).at_top_add
       ((tendsto_pow_neg_at_top hn).mul (@tendsto_const_nhds _ _ _ c _))),
   intros x hx,
-  simp only [zpow_neg₀ x n],
+  simp only [zpow_neg x n],
   ring,
 end
 
@@ -207,7 +207,7 @@ begin
   { intros b' c' h,
     convert (tendsto_mul_exp_add_div_pow_at_top b' c' n h).inv_tendsto_at_top ,
     ext x,
-    simpa only [pi.inv_apply] using inv_div.symm },
+    simpa only [pi.inv_apply] using (inv_div _ _).symm },
   cases lt_or_gt_of_ne hb,
   { exact H b c h },
   { convert (H (-b) (-c) (neg_pos.mpr h)).neg,

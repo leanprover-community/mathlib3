@@ -194,6 +194,9 @@ theorem le_mk_iff_exists_set {c : cardinal} {α : Type u} :
 theorem mk_subtype_le {α : Type u} (p : α → Prop) : #(subtype p) ≤ #α :=
 ⟨embedding.subtype p⟩
 
+@[simp] theorem mk_coe_set {α : Type u} (p : α → Prop) : #{x | p x} = #{x // p x} :=
+rfl
+
 theorem mk_set_le (s : set α) : #s ≤ #α :=
 mk_subtype_le s
 

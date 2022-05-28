@@ -875,6 +875,18 @@ linear_isometry.norm_to_continuous_linear_map of_real_li
 
 @[continuity] lemma continuous_of_real : continuous (coe : ℝ → K) := of_real_li.continuous
 
+@[continuity] lemma continuous_abs : continuous (@is_R_or_C.abs K _) :=
+by simp only [show @is_R_or_C.abs K _ = has_norm.norm, by { ext, exact (norm_eq_abs _).symm },
+              continuous_norm]
+
+@[continuity] lemma continuous_norm_sq : continuous (@is_R_or_C.norm_sq K _) :=
+begin
+  have : (@is_R_or_C.norm_sq K _ : K → ℝ) = λ x, (is_R_or_C.abs x) ^ 2,
+  { ext,
+    exact norm_sq_eq_abs _ },
+  simp only [this, continuous_abs.pow 2],
+end
+
 end linear_maps
 
 end is_R_or_C

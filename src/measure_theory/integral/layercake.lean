@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kalle Kytölä
 -/
 import measure_theory.integral.interval_integral
+import analysis.special_functions.integrals
 
 /-!
 # The layer cake formula, a.k.a. Cavalieri's principle
@@ -217,6 +218,58 @@ begin
   rw eq₁,
   simp_rw eq₂,
   exact layercake_of_measurable μ f_nn f_mble G_intble G_mble (λ t t_pos, G_nn t),
+end
+
+theorem layercake_one --{α : Type*} [measurable_space α]
+  (μ : measure α) [sigma_finite μ]
+  {f : α → ℝ} (f_nn : 0 ≤ f) (f_mble : measurable f) :
+  ∫⁻ ω, ennreal.of_real (f ω) ∂μ = ∫⁻ t in Ioi 0, (μ {a : α | t ≤ f a}) :=
+begin
+  set cst := λ (t : ℝ), (1 : ℝ) with def_cst,
+  have cst_intble : ∀ t > 0, interval_integrable cst volume 0 t,
+  from λ _ _, interval_integrable_const,
+  have key := layercake μ f_nn f_mble cst_intble (eventually_of_forall (λ t, zero_le_one)),-- f_nn cst_intble (λ t _, zero_le_one),
+  simp_rw [def_cst, ennreal.of_real_one, mul_one] at key,
+  rw ← key,
+  apply congr_arg,
+  funext ω,
+  simp only [interval_integral.integral_const, sub_zero, algebra.id.smul_eq_mul, mul_one],
+end
+
+-- TODO: Lean gets stuck if I try with `(p_large : 0 < p)` instead... Why?
+theorem layercake_p --{α : Type*} [measurable_space α]
+  (μ : measure α) [sigma_finite μ]
+  {f : α → ℝ} (f_nn : 0 ≤ f) (f_mble : measurable f) {p : ℝ}
+  (p_large : 1 < p) :
+  ∫⁻ ω, ennreal.of_real ((f ω)^p) ∂μ
+    = (ennreal.of_real p) * ∫⁻ t in Ioi 0, (μ {a : α | t ≤ f a}) * ennreal.of_real (t^(p-1)) :=
+begin
+  have p_pos : 0 < p := by linarith,
+  have obs : ∀ (x : ℝ), (∫ (t : ℝ) in 0..x, t^(p-1)) = x^p / p,
+  { intros x,
+    rw integral_rpow (or.inl (show 0 ≤ p - 1, by linarith)),
+    simp [real.zero_rpow p_pos.ne.symm], },
+  set g := λ (t : ℝ), t^(p-1) with g_def,
+  have g_nn : ∀ᵐ t ∂(volume.restrict (Ioi (0 : ℝ))), 0 ≤ g t,
+  { filter_upwards [self_mem_ae_restrict
+                    (show measurable_set (Ioi (0 : ℝ)), from measurable_set_Ioi)],
+    intros t t_pos,
+    rw g_def,
+    apply real.rpow_nonneg_of_nonneg (mem_Ioi.mp t_pos).le, },
+  have g_intble : ∀ t > 0, interval_integrable g volume 0 t,
+  from λ _ _, interval_integral.interval_integrable_rpow (or.inl (show 0 ≤ p - 1, by linarith)),
+  have key := layercake μ f_nn f_mble g_intble g_nn,
+  simp_rw [g_def] at key,
+  rw [← key, ← lintegral_const_mul (ennreal.of_real p)]; simp_rw obs,
+  { apply congr_arg,
+    funext ω,
+    rw [← ennreal.of_real_mul p_pos.le, mul_div_cancel' ((f ω)^p) p_pos.ne.symm], },
+  { apply ennreal.measurable_of_real.comp,
+    apply (measurable_div_const' p).comp,
+    have : measurable (λ (z : ℝ), z^p),
+    { apply continuous.measurable,
+      exact continuous.rpow_const continuous_id (λ _, (or.inr p_pos.le)), },
+    apply this.comp f_mble, },
 end
 
 end layercake

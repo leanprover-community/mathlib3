@@ -713,9 +713,7 @@ c ≠ 0 ∧ ∀ x < c, 2 ^ x < c
 theorem is_strong_limit_omega : is_strong_limit ω :=
 ⟨omega_ne_zero, λ x hx, begin
   rcases lt_omega.1 hx with ⟨n, rfl⟩,
-  suffices : ↑(pow 2 n) < omega,
-  { simpa using this },
-  { apply nat_lt_omega }
+  exact_mod_cast nat_lt_omega (pow 2 n)
 end⟩
 
 theorem is_strong_limit.is_limit {c} (H : is_strong_limit c) : is_limit c :=

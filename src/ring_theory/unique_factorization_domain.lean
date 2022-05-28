@@ -125,8 +125,9 @@ section prio
 set_option default_priority 100 -- see Note [default priority]
 /-- unique factorization monoids.
 
-These are defined as `cancel_comm_monoid_with_zero`s with well-founded strict divisibility
-relations, but this is equivalent to more familiar definitions:
+These are defined as `comm_monoid_with_zero`s with well-founded strict divisibility relations
+(though most results need `cancel_comm_monoid_with_zero`),
+but this is equivalent to more familiar definitions:
 
 Each element (except zero) is uniquely represented as a multiset of irreducible factors.
 Uniqueness is only up to associated elements.

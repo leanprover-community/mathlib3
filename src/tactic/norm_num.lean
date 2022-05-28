@@ -1108,7 +1108,10 @@ prod.mk `(false) <$> mk_app ``eq_false_intro [p]
 theorem not_refl_false_intro {α} (a : α) : (a ≠ a) = false :=
 eq_false_intro $ not_not_intro rfl
 
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem gt_intro {α} [has_lt α] (a b : α) (c) (h : a < b = c) : b > a = c := h
+
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem ge_intro {α} [has_le α] (a b : α) (c) (h : a ≤ b = c) : b ≥ a = c := h
 
 /-- Evaluates the inequality operations `=`,`<`,`>`,`≤`,`≥`,`≠` on numerals. -/

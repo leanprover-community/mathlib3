@@ -51,7 +51,7 @@ def mk {X Y : T} (f : X ⟶ Y) : arrow T :=
   right := Y,
   hom := f }
 
-lemma mk_eq (f : arrow T) : arrow.mk f.hom = f :=
+@[simp] lemma mk_eq (f : arrow T) : arrow.mk f.hom = f :=
 by { cases f, refl, }
 
 theorem mk_injective (A B : T) :

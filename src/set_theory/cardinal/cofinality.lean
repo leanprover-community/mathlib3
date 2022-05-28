@@ -708,8 +708,7 @@ c ≠ 0 ∧ ∀ x < c, succ x < c
 theorem is_limit.omega_le {c} (h : is_limit c) : ω ≤ c :=
 begin
   by_contra' h',
-  rcases lt_omega.1 h' with ⟨n, rfl⟩,
-  cases n,
+  rcases lt_omega.1 h' with ⟨_ | n, rfl⟩,
   { exact h.1.irrefl },
   { simpa using h.2 n }
 end

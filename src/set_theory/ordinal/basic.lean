@@ -933,12 +933,17 @@ the addition, together with properties of the other operations, are proved in
 `ordinal_arithmetic.lean`.
 -/
 
+/-- `o₁ + o₂` is the order on the disjoint union of `o₁` and `o₂` obtained by declaring that
+  every element of `o₁` is smaller than every element of `o₂`. -/
+instance : has_add ordinal.{u} :=
+⟨λ o₁ o₂, quotient.lift_on₂ o₁ o₂
+  (λ ⟨α, r, wo⟩ ⟨β, s, wo'⟩, ⟦⟨α ⊕ β, sum.lex r s, by exactI sum.lex.is_well_order _ _⟩⟧
+    : Well_order → Well_order → ordinal) $
+  λ ⟨α₁, r₁, o₁⟩ ⟨α₂, r₂, o₂⟩ ⟨β₁, s₁, p₁⟩ ⟨β₂, s₂, p₂⟩ ⟨f⟩ ⟨g⟩,
+  quot.sound ⟨rel_iso.sum_lex_congr f g⟩⟩
+
 instance : add_monoid ordinal.{u} :=
-{ add       := λ o₁ o₂, quotient.lift_on₂ o₁ o₂
-    (λ ⟨α, r, wo⟩ ⟨β, s, wo'⟩, ⟦⟨α ⊕ β, sum.lex r s, by exactI sum.lex.is_well_order _ _⟩⟧
-      : Well_order → Well_order → ordinal) $
-    λ ⟨α₁, r₁, o₁⟩ ⟨α₂, r₂, o₂⟩ ⟨β₁, s₁, p₁⟩ ⟨β₂, s₂, p₂⟩ ⟨f⟩ ⟨g⟩,
-    quot.sound ⟨rel_iso.sum_lex_congr f g⟩,
+{ add       := (+),
   zero      := 0,
   zero_add  := λ o, induction_on o $ λ α r _, eq.symm $ quotient.sound
     ⟨⟨(empty_sum pempty α).symm, λ a b, sum.lex_inr_inr⟩⟩,
@@ -951,10 +956,6 @@ instance : add_monoid ordinal.{u} :=
       simp only [sum_assoc_apply_inl_inl, sum_assoc_apply_inl_inr, sum_assoc_apply_inr,
         sum.lex_inl_inl, sum.lex_inr_inr, sum.lex.sep, sum.lex_inr_inl] end⟩⟩ }
 
-/-- `o₁ + o₂` is the order on the disjoint union of `o₁` and `o₂` obtained by declaring that
-  every element of `o₁` is smaller than every element of `o₂`. -/
-add_decl_doc ordinal.add_monoid.add
-
 @[simp] theorem card_add (o₁ o₂ : ordinal) : card (o₁ + o₂) = card o₁ + card o₂ :=
 induction_on o₁ $ λ α r _, induction_on o₂ $ λ β s _, rfl
 
@@ -964,7 +965,7 @@ by induction n; [refl, simp only [card_add, card_one, nat.cast_succ, *]]
 @[simp] theorem type_add {α β : Type u} (r : α → α → Prop) (s : β → β → Prop)
   [is_well_order α r] [is_well_order β s] : type r + type s = type (sum.lex r s) := rfl
 
-instance has_le.le.add_covariant_class : covariant_class ordinal.{u} ordinal.{u} (+) (≤) :=
+instance add_covariant_class_le : covariant_class ordinal.{u} ordinal.{u} (+) (≤) :=
 ⟨λ c a b h, begin
   revert h c, exact (
   induction_on a $ λ α₁ r₁ _, induction_on b $ λ α₂ r₂ _ ⟨⟨⟨f, fo⟩, fi⟩⟩ c,
@@ -984,8 +985,7 @@ instance has_le.le.add_covariant_class : covariant_class ordinal.{u} ordinal.{u}
     end⟩⟩)
 end⟩
 
-instance has_le.le.add_swap_covariant_class :
-  covariant_class ordinal.{u} ordinal.{u} (swap (+)) (≤) :=
+instance add_swap_covariant_class_le : covariant_class ordinal.{u} ordinal.{u} (swap (+)) (≤) :=
 ⟨λ c a b h, begin
   revert h c, exact (
   induction_on a $ λ α₁ r₁ hr₁, induction_on b $ λ α₂ r₂ hr₂ ⟨⟨⟨f, fo⟩, fi⟩⟩ c,

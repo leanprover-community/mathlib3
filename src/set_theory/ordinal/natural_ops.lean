@@ -80,6 +80,8 @@ instance : succ_order nat_ordinal := ordinal.succ_order
 @[simp] theorem to_ordinal_max : (max a b).to_ordinal = max a.to_ordinal b.to_ordinal := rfl
 @[simp] theorem to_ordinal_min : (min a b).to_ordinal = min a.to_ordinal b.to_ordinal := rfl
 
+theorem succ_def (a : nat_ordinal) : succ a = (a.to_ordinal + 1).to_nat_ordinal := rfl
+
 /-- A recursor for `nat_ordinal`. Use as `induction x using nat_ordinal.rec`. -/
 protected def rec {β : nat_ordinal → Sort*} (h : Π a, β (to_nat_ordinal a)) : Π a, β a :=
 λ a, h a.to_ordinal

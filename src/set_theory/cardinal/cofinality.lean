@@ -708,8 +708,8 @@ c ≠ 0 ∧ ∀ x < c, succ x < c
 theorem is_limit.ne_zero {c} (h : is_limit c) : c ≠ 0 :=
 h.1
 
-theorem is_limit.succ_lt {x c} (h : is_limit c) (hx : x < c) : succ x < c :=
-h.2 x hx
+theorem is_limit.succ_lt {x c} (h : is_limit c) : x < c → succ x < c :=
+h.2 x
 
 /-- A cardinal is a strong limit if it is not zero and it is
   closed under powersets. Note that `ω` is a strong limit by this definition. -/
@@ -719,8 +719,8 @@ c ≠ 0 ∧ ∀ x < c, 2 ^ x < c
 theorem is_strong_limit.ne_zero {c} (h : is_strong_limit c) : c ≠ 0 :=
 h.1
 
-theorem is_strong_limit.succ_lt {x c} (h : is_strong_limit c) (hx : x < c) : 2 ^ x < c :=
-h.2 x hx
+theorem is_strong_limit.succ_lt {x c} (h : is_strong_limit c) : x < c → 2 ^ x < c :=
+h.2 x
 
 theorem is_strong_limit.is_limit {c} (H : is_strong_limit c) : is_limit c :=
 ⟨H.1, λ x h, lt_of_le_of_lt (succ_le_of_lt $ cantor x) (H.2 _ h)⟩

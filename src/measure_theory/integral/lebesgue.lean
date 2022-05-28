@@ -1040,9 +1040,9 @@ lintegral_mono
 @[simp] lemma lintegral_const (c : ℝ≥0∞) : ∫⁻ a, c ∂μ = c * μ univ :=
 by rw [← simple_func.const_lintegral, ← simple_func.lintegral_eq_lintegral, simple_func.coe_const]
 
-lemma lintegral_zero : (∫⁻ a:α, 0 ∂μ) = 0 := by simp
+lemma lintegral_zero : ∫⁻ a:α, 0 ∂μ = 0 := by simp
 
-lemma lintegral_zero_fun : (∫⁻ a:α, (0 : α → ℝ≥0∞) a ∂μ) = 0 := by simp
+lemma lintegral_zero_fun : lintegral μ (0 : α → ℝ≥0∞) = 0 := lintegral_zero
 
 @[simp] lemma lintegral_one : ∫⁻ a, (1 : ℝ≥0∞) ∂μ = μ univ :=
 by rw [lintegral_const, one_mul]
@@ -1374,7 +1374,7 @@ begin
 end
 
 -- Use stronger lemmas `lintegral_add_left`/`lintegral_add_right` instead
-private lemma lintegral_add_aux {f g : α → ℝ≥0∞} (hf : measurable f) (hg : measurable g) :
+lemma lintegral_add_aux {f g : α → ℝ≥0∞} (hf : measurable f) (hg : measurable g) :
   ∫⁻ a, f a + g a ∂μ = ∫⁻ a, f a ∂μ + ∫⁻ a, g a ∂μ :=
 calc (∫⁻ a, f a + g a ∂μ) =
     (∫⁻ a, (⨆n, (eapprox f n : α → ℝ≥0∞) a) + (⨆n, (eapprox g n : α → ℝ≥0∞) a) ∂μ) :
@@ -1678,13 +1678,13 @@ begin
 end
 
 @[simp] lemma lintegral_eq_zero_iff' {f : α → ℝ≥0∞} (hf : ae_measurable f μ) :
-  ∫⁻ a, f a ∂μ = 0 ↔ (f =ᵐ[μ] 0) :=
+  ∫⁻ a, f a ∂μ = 0 ↔ f =ᵐ[μ] 0 :=
 have ∫⁻ a : α, 0 ∂μ ≠ ∞, by simpa only [lintegral_zero] using zero_ne_top,
 ⟨λ h, (ae_eq_of_ae_le_of_lintegral_le (ae_of_all _ $ zero_le f) this hf
   (h.trans lintegral_zero.symm).le).symm, λ h, (lintegral_congr_ae h).trans lintegral_zero⟩
 
 @[simp] lemma lintegral_eq_zero_iff {f : α → ℝ≥0∞} (hf : measurable f) :
-  ∫⁻ a, f a ∂μ = 0 ↔ (f =ᵐ[μ] 0) :=
+  ∫⁻ a, f a ∂μ = 0 ↔ f =ᵐ[μ] 0 :=
 lintegral_eq_zero_iff' hf.ae_measurable
 
 lemma lintegral_pos_iff_support {f : α → ℝ≥0∞} (hf : measurable f) :

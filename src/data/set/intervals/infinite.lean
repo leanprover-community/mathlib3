@@ -15,58 +15,46 @@ preorder is an infinite type.
 
 variables {α : Type*} [preorder α]
 
-@[priority 100]
-instance no_max_order.infinite [nonempty α] [no_max_order α] : infinite α :=
+/-- A nonempty preorder with no maximal element is infinite. This is not an instance to avoid
+a cycle with `infinite α → nontrivial α → nonempty α`. -/
+lemma no_max_order.infinite [nonempty α] [no_max_order α] : infinite α :=
 let ⟨f, hf⟩ := nat.exists_strict_mono α in infinite.of_injective f hf.injective
 
-@[priority 100]
-instance no_min_order.infinite [nonempty α] [no_min_order α] : infinite α :=
+/-- A nonempty preorder with no minimal element is infinite. This is not an instance to avoid
+a cycle with `infinite α → nontrivial α → nonempty α`. -/
+lemma no_min_order.infinite [nonempty α] [no_min_order α] : infinite α :=
 @no_max_order.infinite αᵒᵈ _ _ _
 
 namespace set
 
-section bounded
+section densely_ordered
 
-variables [densely_ordered α]
+variables [densely_ordered α] {a b : α} (h : a < b)
 
-lemma Ioo.infinite {a b : α} (h : a < b) : (Ioo a b).infinite :=
-begin
-  haveI := nonempty_Ioo_subtype h,
-  exact infinite_coe_iff.1 no_max_order.infinite
-end
+lemma Ioo.infinite : infinite (Ioo a b) := @no_max_order.infinite _ _ (nonempty_Ioo_subtype h) _
+lemma Ioo_infinite : (Ioo a b).infinite := infinite_coe_iff.1 $ Ioo.infinite h
 
-lemma Ico.infinite {a b : α} (h : a < b) : (Ico a b).infinite :=
-(Ioo.infinite h).mono Ioo_subset_Ico_self
+lemma Ico_infinite : (Ico a b).infinite := (Ioo_infinite h).mono Ioo_subset_Ico_self
+lemma Ico.infinite : infinite (Ico a b) := infinite_coe_iff.2 $ Ico_infinite h
 
-lemma Ioc.infinite {a b : α} (h : a < b) : (Ioc a b).infinite :=
-(Ioo.infinite h).mono Ioo_subset_Ioc_self
+lemma Ioc_infinite : (Ioc a b).infinite := (Ioo_infinite h).mono Ioo_subset_Ioc_self
+lemma Ioc.infinite : infinite (Ioc a b) := infinite_coe_iff.2 $ Ioc_infinite h
 
-lemma Icc.infinite {a b : α} (h : a < b) : (Icc a b).infinite :=
-(Ioo.infinite h).mono Ioo_subset_Icc_self
+lemma Icc_infinite : (Icc a b).infinite := (Ioo_infinite h).mono Ioo_subset_Icc_self
+lemma Icc.infinite : infinite (Icc a b) := infinite_coe_iff.2 $ Icc_infinite h
 
-end bounded
+end densely_ordered
 
-section unbounded_below
+instance [no_min_order α] {a : α} : infinite (Iio a) := no_min_order.infinite
+lemma Iio_infinite [no_min_order α] (a : α) : (Iio a).infinite := infinite_coe_iff.1 Iio.infinite
 
-variables [no_min_order α] {a : α}
+instance [no_min_order α] {a : α} : infinite (Iic a) := no_min_order.infinite
+lemma Iic_infinite [no_min_order α] (a : α) : (Iic a).infinite := infinite_coe_iff.1 Iic.infinite
 
-lemma Iio.infinite {b : α} : (Iio b).infinite :=
-infinite_coe_iff.1 no_min_order.infinite
+instance [no_max_order α] {a : α} : infinite (Ioi a) := no_max_order.infinite
+lemma Ioi_infinite [no_min_order α] (a : α) : (Iio a).infinite := infinite_coe_iff.1 Iio.infinite
 
-lemma Iic.infinite {b : α} : (Iic b).infinite :=
-Iio.infinite.mono Iio_subset_Iic_self
-
-end unbounded_below
-
-section unbounded_above
-
-variables [no_max_order α]
-
-lemma Ioi.infinite {a : α} : (Ioi a).infinite := @Iio.infinite αᵒᵈ _ _ _
-
-lemma Ici.infinite {a : α} : (Ici a).infinite :=
-Ioi.infinite.mono Ioi_subset_Ici_self
-
-end unbounded_above
+instance [no_max_order α] {a : α} : infinite (Ici a) := no_max_order.infinite
+lemma Ici_infinite [no_max_order α] (a : α) : (Ici a).infinite := infinite_coe_iff.1 Ici.infinite
 
 end set

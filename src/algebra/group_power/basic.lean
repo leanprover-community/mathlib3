@@ -419,11 +419,6 @@ by rw [sq, sq, mul_self_sub_mul_self]
 
 alias sq_sub_sq ← pow_two_sub_pow_two
 
-lemma eq_or_eq_neg_of_sq_eq_sq [no_zero_divisors R] (a b : R) (h : a ^ 2 = b ^ 2) :
-  a = b ∨ a = -b :=
-by rwa [← add_eq_zero_iff_eq_neg, ← sub_eq_zero, or_comm, ← mul_eq_zero,
-        ← sq_sub_sq a b, sub_eq_zero]
-
 lemma sub_sq (a b : R) : (a - b) ^ 2 = a ^ 2 - 2 * a * b + b ^ 2 :=
 by rw [sub_eq_add_neg, add_sq, neg_sq, mul_neg, ← sub_eq_add_neg]
 
@@ -432,11 +427,23 @@ alias sub_sq ← sub_pow_two
 lemma sub_sq' (a b : R) : (a - b) ^ 2 = a ^ 2 + b ^ 2 - 2 * a * b :=
 by rw [sub_eq_add_neg, add_sq', neg_sq, mul_neg, ← sub_eq_add_neg]
 
+variables [no_zero_divisors R] {a b : R}
+
+lemma sq_eq_sq_iff_eq_or_eq_neg : a ^ 2 = b ^ 2 ↔ a = b ∨ a = -b :=
+by rw [←sub_eq_zero, sq_sub_sq, mul_eq_zero, add_eq_zero_iff_eq_neg, sub_eq_zero, or_comm]
+
+lemma eq_or_eq_neg_of_sq_eq_sq (a b : R) : a ^ 2 = b ^ 2 → a = b ∨ a = -b :=
+sq_eq_sq_iff_eq_or_eq_neg.1
+
+@[simp] lemma sq_eq_one_iff : a^2 = 1 ↔ a = 1 ∨ a = -1 :=
+by rw [←sq_eq_sq_iff_eq_or_eq_neg, one_pow]
+
+lemma sq_ne_one_iff : a^2 ≠ 1 ↔ a ≠ 1 ∧ a ≠ -1 := sq_eq_one_iff.not.trans not_or_distrib
+
 /- Copies of the above comm_ring lemmas for `units R`. -/
 namespace units
 
-lemma eq_or_eq_neg_of_sq_eq_sq [no_zero_divisors R] (a b : Rˣ) (h : a ^ 2 = b ^ 2) :
-  a = b ∨ a = -b :=
+lemma eq_or_eq_neg_of_sq_eq_sq (a b : Rˣ) (h : a ^ 2 = b ^ 2) : a = b ∨ a = -b :=
 begin
   refine (eq_or_eq_neg_of_sq_eq_sq _ _ _).imp (λ h, units.ext h) (λ h, units.ext h),
   replace h := congr_arg (coe : Rˣ → R) h,

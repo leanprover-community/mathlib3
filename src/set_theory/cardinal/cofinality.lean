@@ -723,7 +723,7 @@ theorem is_strong_limit.succ_lt {x c} (h : is_strong_limit c) : x < c → 2 ^ x 
 h.2 x
 
 theorem is_strong_limit.is_limit {c} (H : is_strong_limit c) : is_limit c :=
-⟨H.1, λ x h, lt_of_le_of_lt (succ_le_of_lt $ cantor x) (H.2 _ h)⟩
+⟨H.1, λ x h, (succ_le_of_lt $ cantor x).trans_lt (H.succ_lt h)⟩
 
 /-- A cardinal is regular if it is infinite and it equals its own cofinality. -/
 def is_regular (c : cardinal) : Prop :=

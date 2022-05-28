@@ -218,7 +218,7 @@ rfl
    = x.move_right i * y + x * y.move_left j - x.move_right i * y.move_left j :=
 by { cases x, cases y, refl }
 
-lemma left_moves_mul_cases {x y : pgame} (k) {P : (x * y).left_moves -> Prop}
+lemma left_moves_mul_cases {x y : pgame} (k) {P : (x * y).left_moves → Prop}
   (hl : ∀ ix iy, P $ to_left_moves_mul (sum.inl ⟨ix, iy⟩))
   (hr : ∀ jx jy, P $ to_left_moves_mul (sum.inr ⟨jx, jy⟩)) : P k :=
 begin
@@ -228,7 +228,7 @@ begin
   { apply hr }
 end
 
-lemma right_moves_mul_cases {x y : pgame} (k) {P : (x * y).right_moves -> Prop}
+lemma right_moves_mul_cases {x y : pgame} (k) {P : (x * y).right_moves → Prop}
   (hl : ∀ ix jy, P $ to_right_moves_mul (sum.inl ⟨ix, jy⟩))
   (hr : ∀ jx iy, P $ to_right_moves_mul (sum.inr ⟨jx, iy⟩)) : P k :=
 begin

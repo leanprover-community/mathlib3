@@ -916,10 +916,11 @@ begin
   { simpa only [hJ0, zero_mul] using hJ },
   obtain ⟨I', rfl⟩ := hK,
   rw mul_comm,
-  exact mul_dvd_mul_left K
-    (unique_factorization_monoid.dvd_of_dvd_mul_right_of_no_prime_factors hJ0
-      (λ P hPJ hPK, mt ideal.is_prime_of_prime (coprime P hPJ hPK))
-      hJ)
+  refine mul_dvd_mul_left K _,
+  refine unique_factorization_monoid.dvd_of_dvd_mul_right_of_no_prime_factors hJ0 _ hJ,
+  intros P hPJ hPK hPP,
+  have := @ideal.is_prime_of_prime R _ _ _ P,
+  exact coprime P hPJ hPK (this hPP),
 end
 
 lemma ideal.le_of_pow_le_prime {I P : ideal R} [hP : P.is_prime] {n : ℕ} (h : I^n ≤ P) : I ≤ P :=

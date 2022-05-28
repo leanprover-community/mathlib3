@@ -679,6 +679,10 @@ theorem enum_lt_enum {r : α → α → Prop} [is_well_order α r]
   r (enum r o₁ h₁) (enum r o₂ h₂) ↔ o₁ < o₂ :=
 by rw [← typein_lt_typein r, typein_enum, typein_enum]
 
+@[simp] lemma enum_lt_enum' (a : ordinal) {o o' : ordinal}
+  (ho : o < type (<)) (ho' : o' < type (<)) : enum (<) o ho < @enum a.out.α (<) _ o' ho' ↔ o < o' :=
+by rw [←@enum_lt_enum _ (<) _, ←not_le]
+
 lemma rel_iso_enum' {α β : Type u} {r : α → α → Prop} {s : β → β → Prop}
   [is_well_order α r] [is_well_order β s]
   (f : r ≃r s) (o : ordinal) : ∀(hr : o < type r) (hs : o < type s),
@@ -1061,17 +1065,17 @@ by rw [←not_lt, typein_lt_typein]
   typein (<) x ≤ typein (<) x' ↔ x ≤ x' :=
 by { rw typein_le_typein, exact not_lt }
 
-@[simp] lemma enum_le_enum (r : α → α → Prop) [is_well_order α r] {o o' : ordinal}
+@[simp] lemma enum_le_enum {r : α → α → Prop} [is_well_order α r] {o o' : ordinal}
   (ho : o < type r) (ho' : o' < type r) : ¬r (enum r o' ho') (enum r o ho) ↔ o ≤ o' :=
 by rw [←@not_lt _ _ o' o, enum_lt_enum ho']
 
 @[simp] lemma enum_le_enum' (a : ordinal) {o o' : ordinal}
   (ho : o < type (<)) (ho' : o' < type (<)) : enum (<) o ho ≤ @enum a.out.α (<) _ o' ho' ↔ o ≤ o' :=
-by rw [←enum_le_enum (<), ←not_lt]
+by rw [←@enum_le_enum _ (<) _, ←not_lt]
 
 theorem enum_zero_le {r : α → α → Prop} [is_well_order α r] (h0 : 0 < type r) (a : α) :
   ¬ r a (enum r 0 h0) :=
-by { rw [←enum_typein r a, enum_le_enum r], apply ordinal.zero_le }
+by { rw [←enum_typein r a, enum_le_enum], apply ordinal.zero_le }
 
 theorem enum_zero_le' {o : ordinal} (h0 : 0 < o) (a : o.out.α) :
   @enum o.out.α (<) _ 0 (by rwa type_lt) ≤ a :=
@@ -1116,14 +1120,14 @@ theorem enum_zero_eq_bot {o : ordinal} (ho : 0 < o) :
 rfl
 
 instance succ_order_out (o : ordinal) : succ_order o.out.α :=
-{ succ := λ a, if h : order.succ (typein (<) a) < o
-    then enum (<) (order.succ (typein (<) a)) (by rwa type_lt)
+{ succ := λ a, if h : succ (typein (<) a) < o
+    then enum (<) (succ (typein (<) a)) (by rwa type_lt)
     else a,
   le_succ := λ a, begin
     split_ifs,
     { nth_rewrite_lhs 0 ←enum_typein (<) a,
       rw enum_le_enum',
-      apply order.le_succ },
+      apply le_succ },
     { apply le_rfl }
   end,
   max_of_succ_le := λ a, begin
@@ -1131,13 +1135,21 @@ instance succ_order_out (o : ordinal) : succ_order o.out.α :=
     { intro h,
       nth_rewrite_rhs 0 ←enum_typein (<) a at h,
       rw enum_le_enum' at h,
-      exact ((order.lt_succ _).not_le h).elim },
+      exact ((lt_succ _).not_le h).elim },
     { intros _ b hab,
-      rw [←typein_le_typein', ←order.lt_succ_iff],
+      rw [←typein_le_typein', ←lt_succ_iff],
       exact (typein_lt_self b).trans_le (not_lt.1 h) }
   end,
-  succ_le_of_lt := _,
-  le_of_lt_succ := _ }
+  succ_le_of_lt := λ a b hab, begin
+    split_ifs,
+    { rwa [←enum_typein (<) b, enum_le_enum', succ_le_iff, typein_lt_typein] },
+    { exact hab.le }
+  end,
+  le_of_lt_succ := λ a b hab, begin
+    split_ifs at hab,
+    { rwa [←enum_typein (<) a, enum_lt_enum', lt_succ_iff, typein_le_typein'] at hab },
+    { exact hab.le }
+  end }
 
 /-- `univ.{u v}` is the order type of the ordinals of `Type u` as a member
   of `ordinal.{v}` (when `u < v`). It is an inaccessible cardinal. -/
@@ -1292,8 +1304,8 @@ let ⟨r, _, e⟩ := ord_eq α in by simp only [mk_def, e, card_type]
 theorem ord_card_le (o : ordinal) : o.card.ord ≤ o :=
 ord_le.2 le_rfl
 
-lemma lt_ord_succ_card (o : ordinal) : o < o.card.succ.ord :=
-by { rw [lt_ord], apply cardinal.lt_succ }
+lemma lt_ord_succ_card (o : ordinal) : o < (succ o.card).ord :=
+by { rw lt_ord, apply lt_succ }
 
 @[simp] theorem ord_le_ord {c₁ c₂} : ord c₁ ≤ ord c₂ ↔ c₁ ≤ c₂ :=
 by simp only [ord_le, card_ord]
@@ -1308,7 +1320,7 @@ le_antisymm (ord_le.2 $ zero_le _) (ordinal.zero_le _)
 le_antisymm (ord_le.2 $ by simp only [card_nat]) $ begin
   induction n with n IH,
   { apply ordinal.zero_le },
-  { exact order.succ_le_of_lt (IH.trans_lt $ ord_lt_ord.2 $ nat_cast_lt.2 (nat.lt_succ_self n)) }
+  { exact succ_le_of_lt (IH.trans_lt $ ord_lt_ord.2 $ nat_cast_lt.2 (nat.lt_succ_self n)) }
 end
 
 @[simp] theorem ord_one : ord 1 = 1 :=

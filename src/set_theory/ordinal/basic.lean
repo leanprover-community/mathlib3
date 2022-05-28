@@ -1120,36 +1120,26 @@ theorem enum_zero_eq_bot {o : ordinal} (ho : 0 < o) :
 rfl
 
 instance succ_order_out (o : ordinal) : succ_order o.out.α :=
-{ succ := λ a, if h : succ (typein (<) a) < o
+succ_order.of_core
+  (λ a, if h : succ (typein (<) a) < o
     then enum (<) (succ (typein (<) a)) (by rwa type_lt)
-    else a,
-  le_succ := λ a, begin
+    else a)
+  (λ a ha b, begin
     split_ifs,
-    { nth_rewrite_lhs 0 ←enum_typein (<) a,
-      rw enum_le_enum',
-      apply le_succ },
-    { apply le_rfl }
-  end,
-  max_of_succ_le := λ a, begin
-    split_ifs,
-    { intro h,
-      nth_rewrite_rhs 0 ←enum_typein (<) a at h,
-      rw enum_le_enum' at h,
-      exact ((lt_succ _).not_le h).elim },
-    { intros _ b hab,
-      rw [←typein_le_typein', ←lt_succ_iff],
-      exact (typein_lt_self b).trans_le (not_lt.1 h) }
-  end,
-  succ_le_of_lt := λ a b hab, begin
-    split_ifs,
-    { rwa [←enum_typein (<) b, enum_le_enum', succ_le_iff, typein_lt_typein] },
-    { exact hab.le }
-  end,
-  le_of_lt_succ := λ a b hab, begin
-    split_ifs at hab,
-    { rwa [←enum_typein (<) a, enum_lt_enum', lt_succ_iff, typein_le_typein'] at hab },
-    { exact hab.le }
-  end }
+    { nth_rewrite_rhs 0 ←enum_typein (<) b,
+      rw [enum_le_enum', succ_le_iff, typein_lt_typein] },
+    { apply (ha (λ b hab, _)).elim,
+      rw [←typein_le_typein', ←succ_le_succ_iff],
+      apply le_trans _ (not_lt.1 h),
+      rw succ_le_iff,
+      apply typein_lt_self }
+  end) $
+  λ a ha, dif_neg $ λ ha', begin
+    have := ha.is_top (enum (<) _ $ by rwa type_lt),
+    nth_rewrite_rhs 0 ←enum_typein (<) a at this,
+    rw [enum_le_enum', ←not_lt] at this,
+    exact this (lt_succ _)
+  end
 
 /-- `univ.{u v}` is the order type of the ordinals of `Type u` as a member
   of `ordinal.{v}` (when `u < v`). It is an inaccessible cardinal. -/

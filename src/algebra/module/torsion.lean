@@ -291,8 +291,8 @@ include hp
 /--If the `p i` are pairwise coprime, a `∏ i, p i`-torsion module is the internal direct sum of
 its `p i`-torsion submodules.-/
 lemma torsion_is_internal [decidable_eq ι] (hM : torsion_by R M (∏ i in S, p i) = ⊤) :
-  direct_sum.submodule_is_internal (λ i : S, torsion_by R M (p i)) :=
-direct_sum.submodule_is_internal_of_independent_of_supr_eq_top
+  direct_sum.is_internal (λ i : S, torsion_by R M (p i)) :=
+direct_sum.is_internal_submodule_of_independent_of_supr_eq_top
   (torsion_by_independent hp) (by { rw ← hM, exact supr_torsion_by_eq_torsion_by_prod hp})
 
 end submodule

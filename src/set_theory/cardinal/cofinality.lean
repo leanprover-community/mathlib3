@@ -62,13 +62,12 @@ def cof (r : α → α → Prop) [is_refl α r] : cardinal :=
   ⟨⟨set.univ, λ a, ⟨a, ⟨⟩, refl _⟩⟩⟩
   (λ S, #S)
 
-lemma cof_le (r : α → α → Prop) [is_refl α r] {S : set α} (h : ∀a, ∃(b ∈ S), r a b) :
-  order.cof r ≤ #S :=
+lemma cof_le (r : α → α → Prop) [is_refl α r] {S : set α} (h : ∀a, ∃(b ∈ S), r a b) : cof r ≤ #S :=
 le_trans (cardinal.min_le _ ⟨S, h⟩) le_rfl
 
 lemma le_cof {r : α → α → Prop} [is_refl α r] (c : cardinal) :
-  c ≤ order.cof r ↔ ∀ {S : set α} (h : ∀a, ∃(b ∈ S), r a b) , c ≤ #S :=
-by { rw [order.cof, cardinal.le_min], exact ⟨λ H S h, H ⟨S, h⟩, λ H ⟨S, h⟩, H h ⟩ }
+  c ≤ cof r ↔ ∀ {S : set α} (h : ∀a, ∃(b ∈ S), r a b) , c ≤ #S :=
+by { rw [cof, cardinal.le_min], exact ⟨λ H S h, H ⟨S, h⟩, λ H ⟨S, h⟩, H h ⟩ }
 
 end order
 
@@ -388,7 +387,7 @@ begin
     { refine λ a, ⟨sum.inr punit.star, set.mem_singleton _, _⟩,
       rcases a with a|⟨⟨⟨⟩⟩⟩; simp [empty_relation] },
     { rw [cardinal.mk_fintype, set.card_singleton], simp } },
-  { rw [← cardinal.succ_zero, cardinal.succ_le_iff],
+  { rw [← cardinal.succ_zero, succ_le_iff],
     simpa [lt_iff_le_and_ne, cardinal.zero_le] using
       λ h, succ_ne_zero o (cof_eq_zero.1 (eq.symm h)) }
 end
@@ -619,7 +618,7 @@ le_antisymm (cof_le_card _) begin
   let g := λ a, (f a).1,
   let o := succ (sup.{u u} g),
   rcases H o with ⟨b, h, l⟩,
-  refine l (order.lt_succ_iff.2 _),
+  refine l (lt_succ_iff.2 _),
   rw ← show g (f.symm ⟨b, h⟩) = b, by dsimp [g]; simp,
   apply le_sup
 end
@@ -739,7 +738,7 @@ theorem is_regular_omega : is_regular ω :=
 theorem is_regular_succ {c : cardinal.{u}} (h : ω ≤ c) : is_regular (succ c) :=
 ⟨h.trans (lt_succ c).le, begin
   refine (cof_ord_le _).antisymm (succ_le_of_lt _),
-  cases quotient.exists_rep (succ c) with α αe, simp at αe,
+  cases quotient.exists_rep (@succ cardinal _ _ c) with α αe, simp at αe,
   rcases ord_eq α with ⟨r, wo, re⟩, resetI,
   have := ord_is_limit (h.trans (lt_succ _).le),
   rw [← αe, re] at this ⊢,
@@ -762,10 +761,10 @@ theorem is_regular_aleph_one : is_regular (aleph 1) :=
 by { rw ← succ_omega, exact is_regular_succ le_rfl }
 
 theorem is_regular_aleph'_succ {o : ordinal} (h : ordinal.omega ≤ o) :
-  is_regular (aleph' (order.succ o)) :=
+  is_regular (aleph' (succ o)) :=
 by { rw aleph'_succ, exact is_regular_succ (omega_le_aleph'.2 h) }
 
-theorem is_regular_aleph_succ (o : ordinal) : is_regular (aleph (order.succ o)) :=
+theorem is_regular_aleph_succ (o : ordinal) : is_regular (aleph (succ o)) :=
 by { rw aleph_succ, exact is_regular_succ (omega_le_aleph o) }
 
 /--
@@ -777,7 +776,7 @@ theorem infinite_pigeonhole_card_lt {β α : Type u} (f : β → α)
   ∃ a : α, #α < #(f ⁻¹' {a}) :=
 begin
   simp_rw [← succ_le_iff],
-  exact ordinal.infinite_pigeonhole_card f (#α).succ (succ_le_of_lt w)
+  exact ordinal.infinite_pigeonhole_card f (succ (#α)) (succ_le_of_lt w)
     (w'.trans (lt_succ _).le)
     ((lt_succ _).trans_le (is_regular_succ w').2.ge),
 end
@@ -906,7 +905,7 @@ begin
   { intros b hb hb',
     rw deriv_family_succ,
     exact nfp_family_lt_ord_lift hω (by rwa hc.2) hf
-      ((ord_is_limit hc.1).2 _ (hb ((order.lt_succ b).trans hb'))) },
+      ((ord_is_limit hc.1).2 _ (hb ((lt_succ b).trans hb'))) },
   { intros b hb H hb',
     rw deriv_family_limit f hb,
     exact bsup_lt_ord_of_is_regular hc (ord_lt_ord.1 ((ord_card_le b).trans_lt hb'))

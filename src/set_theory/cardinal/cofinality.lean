@@ -705,6 +705,15 @@ local infixr ^ := @pow cardinal.{u} cardinal cardinal.has_pow
 def is_limit (c : cardinal) : Prop :=
 c ≠ 0 ∧ ∀ x < c, succ x < c
 
+theorem is_limit.omega_le {c} (h : is_limit c) : ω ≤ c :=
+begin
+  by_contra' h',
+  rcases lt_omega.1 h' with ⟨n, rfl⟩,
+  cases n,
+  { exact h.1.irrefl },
+  { simpa using h.2 n }
+end
+
 /-- A cardinal is a strong limit if it is not zero and it is
   closed under powersets. Note that `ω` is a strong limit by this definition. -/
 def is_strong_limit (c : cardinal) : Prop :=
@@ -712,6 +721,22 @@ c ≠ 0 ∧ ∀ x < c, 2 ^ x < c
 
 theorem is_strong_limit.is_limit {c} (H : is_strong_limit c) : is_limit c :=
 ⟨H.1, λ x h, lt_of_le_of_lt (succ_le_of_lt $ cantor x) (H.2 _ h)⟩
+
+theorem is_strong_limit.omega_le {c} (h : is_strong_limit c) : ω ≤ c :=
+h.is_limit.omega_le
+
+example {α : Type*} (h : is_strong_limit (#α)) : #{s : set α | #s < cof (#α).ord} = #α :=
+begin
+  apply le_antisymm,
+  {
+
+  },
+  { refine @mk_le_of_injective α _ (λ x, subtype.mk {x} _) _,
+    { rw [mem_set_of_eq, mk_singleton],
+      exact one_lt_omega.trans_le (omega_le_cof.2 (ord_is_limit h.omega_le)) },
+    { intros a b hab,
+      simpa only [singleton_eq_singleton_iff] using hab } }
+end
 
 /-- A cardinal is regular if it is infinite and it equals its own cofinality. -/
 def is_regular (c : cardinal) : Prop :=

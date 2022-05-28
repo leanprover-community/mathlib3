@@ -39,7 +39,7 @@ cardinal arithmetic (for infinite cardinals)
 
 noncomputable theory
 
-open function cardinal set equiv
+open function cardinal set equiv order
 open_locale classical cardinal
 
 universes u v w
@@ -152,16 +152,16 @@ cardinal.aleph_idx.rel_iso.to_equiv.apply_symm_apply o
 by rw [← nonpos_iff_eq_zero, ← aleph'_aleph_idx 0, aleph'_le];
    apply ordinal.zero_le
 
-@[simp] theorem aleph'_succ {o : ordinal.{u}} : aleph' o.succ = (aleph' o).succ :=
-le_antisymm
- (cardinal.aleph_idx_le.1 $
-  by rw [aleph_idx_aleph', ordinal.succ_le, ← aleph'_lt, aleph'_aleph_idx];
-     apply cardinal.lt_succ)
- (cardinal.succ_le_of_lt $ aleph'_lt.2 $ ordinal.lt_succ_self _)
+@[simp] theorem aleph'_succ {o : ordinal.{u}} : aleph' (order.succ o) = (aleph' o).succ :=
+begin
+  apply (succ_le_of_lt $ aleph'_lt.2 $ order.lt_succ o).antisymm' (cardinal.aleph_idx_le.1 $ _),
+  rw [aleph_idx_aleph', order.succ_le_iff, ← aleph'_lt, aleph'_aleph_idx],
+  apply cardinal.lt_succ
+end
 
 @[simp] theorem aleph'_nat : ∀ n : ℕ, aleph' n = n
 | 0     := aleph'_zero
-| (n+1) := show aleph' (ordinal.succ n) = n.succ,
+| (n+1) := show aleph' (order.succ n) = n.succ,
            by rw [aleph'_succ, aleph'_nat, nat_succ]
 
 theorem aleph'_le_of_limit {o : ordinal.{u}} (l : o.is_limit) {c} :
@@ -202,7 +202,7 @@ begin
   { rw [max_eq_left h, max_eq_left (aleph_le.1 h)] }
 end
 
-@[simp] theorem aleph_succ {o : ordinal.{u}} : aleph o.succ = (aleph o).succ :=
+@[simp] theorem aleph_succ {o : ordinal.{u}} : aleph (order.succ o) = (aleph o).succ :=
 by rw [aleph, ordinal.add_succ, aleph'_succ]; refl
 
 @[simp] theorem aleph_zero : aleph 0 = ω :=
@@ -239,7 +239,7 @@ theorem exists_aleph {c : cardinal} : ω ≤ c ↔ ∃ o, c = aleph o :=
  λ ⟨o, e⟩, e.symm ▸ omega_le_aleph _⟩
 
 theorem aleph'_is_normal : is_normal (ord ∘ aleph') :=
-⟨λ o, ord_lt_ord.2 $ aleph'_lt.2 $ ordinal.lt_succ_self _,
+⟨λ o, ord_lt_ord.2 $ aleph'_lt.2 $ order.lt_succ o,
  λ o l a, by simp only [ord_le, aleph'_le_of_limit l]⟩
 
 theorem aleph_is_normal : is_normal (ord ∘ aleph) :=
@@ -328,7 +328,8 @@ begin
   refine le_of_forall_lt (λ o h, _),
   rcases typein_surj s h with ⟨p, rfl⟩,
   rw [← e, lt_ord],
-  refine lt_of_le_of_lt (_ : _ ≤ card (typein (<) (g p)).succ * card (typein (<) (g p)).succ) _,
+  refine lt_of_le_of_lt
+    (_ : _ ≤ card (order.succ (typein (<) (g p))) * card (order.succ (typein (<) (g p)))) _,
   { have : {q | s q p} ⊆ insert (g p) {x | x < g p} ×ˢ insert (g p) {x | x < g p},
     { intros q h,
       simp only [s, embedding.coe_fn_mk, order.preimage, typein_lt_typein, prod.lex_def, typein_inj]
@@ -340,7 +341,7 @@ begin
     refine (equiv.set.insert _).trans
       ((equiv.refl _).sum_congr punit_equiv_punit),
     apply @irrefl _ r },
-  cases lt_or_le (card (typein (<) (g p)).succ) ω with qo qo,
+  cases lt_or_le (card (order.succ (typein (<) (g p)))) ω with qo qo,
   { exact lt_of_lt_of_le (mul_lt_omega qo qo) ol },
   { suffices, {exact lt_of_le_of_lt (IH _ this qo) this},
     rw ← lt_ord, apply (ord_is_limit ol).2,

@@ -131,8 +131,7 @@ theorem cut_expand_singleton_singleton {x' x} (h : r x' x) : cut_expand r {x'} {
 cut_expand_singleton (λ a h, by rwa mem_singleton.1 h)
 
 theorem cut_expand_add_left {t u} (s) : cut_expand r (s + t) (s + u) ↔ cut_expand r t u :=
-⟨λ ⟨v, a, h, h'⟩, ⟨v, a, h, by { rw [add_assoc, add_assoc] at h', exact add_left_cancel h' }⟩,
- λ ⟨v, a, h, h'⟩, ⟨v, a, h, by rw [add_assoc, h', ←add_assoc]⟩⟩
+exists₂_congr $ λ _ _, and_congr iff.rfl $ by rw [add_assoc, add_assoc, add_left_cancel_iff]
 
 lemma cut_expand_iff [decidable_eq α] (hr : irreflexive r) {s' s : multiset α} :
   cut_expand r s' s ↔ ∃ (t : multiset α) a, (∀ a' ∈ t, r a' a) ∧ a ∈ s ∧ s' = s.erase a + t :=

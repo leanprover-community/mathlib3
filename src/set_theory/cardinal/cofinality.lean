@@ -715,13 +715,13 @@ theorem is_strong_limit.is_limit {c} (H : is_strong_limit c) : is_limit c :=
 
 /-- A cardinal is regular if it is infinite and it equals its own cofinality. -/
 def is_regular (c : cardinal) : Prop :=
-ω ≤ c ∧ c.ord.cof = c
+ω ≤ c ∧ c ≤ c.ord.cof
 
 lemma is_regular.omega_le {c : cardinal} (H : c.is_regular) : ω ≤ c :=
 H.1
 
 lemma is_regular.cof_eq {c : cardinal} (H : c.is_regular) : c.ord.cof = c :=
-H.2
+H.2.antisymm' $ by { convert cof_le_card _, exact (card_ord c).symm }
 
 lemma is_regular.pos {c : cardinal} (H : c.is_regular) : 0 < c :=
 omega_pos.trans_le H.1
@@ -730,14 +730,13 @@ lemma is_regular.ord_pos {c : cardinal} (H : c.is_regular) : 0 < c.ord :=
 by { rw cardinal.lt_ord, exact H.pos }
 
 theorem is_regular_cof {o : ordinal} (h : o.is_limit) : is_regular o.cof :=
-⟨omega_le_cof.2 h, cof_cof _⟩
+⟨omega_le_cof.2 h, (cof_cof o).ge⟩
 
 theorem is_regular_omega : is_regular ω :=
 ⟨le_rfl, by simp⟩
 
 theorem is_regular_succ {c : cardinal.{u}} (h : ω ≤ c) : is_regular (succ c) :=
-⟨h.trans (lt_succ c).le, begin
-  refine (cof_ord_le _).antisymm (succ_le_of_lt _),
+⟨h.trans (lt_succ c).le, succ_le_of_lt begin
   cases quotient.exists_rep (@succ cardinal _ _ c) with α αe, simp at αe,
   rcases ord_eq α with ⟨r, wo, re⟩, resetI,
   have := ord_is_limit (h.trans (lt_succ _).le),
@@ -823,43 +822,43 @@ end
 
 theorem lsub_lt_ord_lift_of_is_regular {ι} {f : ι → ordinal} {c} (hc : is_regular c)
   (hι : cardinal.lift (#ι) < c) : (∀ i, f i < c.ord) → ordinal.lsub f < c.ord :=
-lsub_lt_ord_lift (by rwa hc.2)
+lsub_lt_ord_lift (by rwa hc.cof_eq)
 
 theorem lsub_lt_ord_of_is_regular {ι} {f : ι → ordinal} {c} (hc : is_regular c) (hι : #ι < c) :
   (∀ i, f i < c.ord) → ordinal.lsub f < c.ord :=
-lsub_lt_ord (by rwa hc.2)
+lsub_lt_ord (by rwa hc.cof_eq)
 
 theorem sup_lt_ord_lift_of_is_regular {ι} {f : ι → ordinal} {c} (hc : is_regular c)
   (hι : cardinal.lift (#ι) < c) : (∀ i, f i < c.ord) → ordinal.sup f < c.ord :=
-sup_lt_ord_lift (by rwa hc.2)
+sup_lt_ord_lift (by rwa hc.cof_eq)
 
 theorem sup_lt_ord_of_is_regular {ι} {f : ι → ordinal} {c} (hc : is_regular c) (hι : #ι < c) :
   (∀ i, f i < c.ord) → ordinal.sup f < c.ord :=
-sup_lt_ord (by rwa hc.2)
+sup_lt_ord (by rwa hc.cof_eq)
 
 theorem blsub_lt_ord_lift_of_is_regular {o : ordinal} {f : Π a < o, ordinal} {c} (hc : is_regular c)
   (ho : cardinal.lift o.card < c) : (∀ i hi, f i hi < c.ord) → ordinal.blsub o f < c.ord :=
-blsub_lt_ord_lift (by rwa hc.2)
+blsub_lt_ord_lift (by rwa hc.cof_eq)
 
 theorem blsub_lt_ord_of_is_regular {o : ordinal} {f : Π a < o, ordinal} {c} (hc : is_regular c)
   (ho : o.card < c) : (∀ i hi, f i hi < c.ord) → ordinal.blsub o f < c.ord :=
-blsub_lt_ord (by rwa hc.2)
+blsub_lt_ord (by rwa hc.cof_eq)
 
 theorem bsup_lt_ord_lift_of_is_regular {o : ordinal} {f : Π a < o, ordinal} {c} (hc : is_regular c)
   (hι : cardinal.lift o.card < c) : (∀ i hi, f i hi < c.ord) → ordinal.bsup o f < c.ord :=
-bsup_lt_ord_lift (by rwa hc.2)
+bsup_lt_ord_lift (by rwa hc.cof_eq)
 
 theorem bsup_lt_ord_of_is_regular {o : ordinal} {f : Π a < o, ordinal} {c} (hc : is_regular c)
   (hι : o.card < c) : (∀ i hi, f i hi < c.ord) → ordinal.bsup o f < c.ord :=
-bsup_lt_ord (by rwa hc.2)
+bsup_lt_ord (by rwa hc.cof_eq)
 
 theorem sup_lt_lift_of_is_regular {ι} {f : ι → cardinal} {c} (hc : is_regular c)
   (hι : cardinal.lift (#ι) < c) : (∀ i, f i < c) → sup.{u v} f < c :=
-sup_lt_lift (by rwa hc.2)
+sup_lt_lift (by rwa hc.cof_eq)
 
 theorem sup_lt_of_is_regular {ι} {f : ι → cardinal} {c} (hc : is_regular c) (hι : #ι < c) :
   (∀ i, f i < c) → sup.{u u} f < c :=
-sup_lt (by rwa hc.2)
+sup_lt (by rwa hc.cof_eq)
 
 theorem sum_lt_lift_of_is_regular {ι : Type u} {f : ι → cardinal} {c : cardinal} (hc : is_regular c)
   (hι : cardinal.lift.{v u} (#ι) < c) (hf : ∀ i, f i < c) : sum f < c :=
@@ -872,7 +871,7 @@ sum_lt_lift_of_is_regular.{u u} hc (by rwa lift_id)
 theorem nfp_family_lt_ord_lift_of_is_regular {ι} {f : ι → ordinal → ordinal} {c} (hc : is_regular c)
   (hι : (#ι).lift < c) (hc' : c ≠ ω) (hf : ∀ i (b < c.ord), f i b < c.ord) {a} (ha : a < c.ord) :
   nfp_family.{u v} f a < c.ord :=
-by { apply nfp_family_lt_ord_lift _ _ hf ha; rwa hc.2, exact lt_of_le_of_ne hc.1 hc'.symm }
+by { apply nfp_family_lt_ord_lift _ _ hf ha; rwa hc.cof_eq, exact lt_of_le_of_ne hc.1 hc'.symm }
 
 theorem nfp_family_lt_ord_of_is_regular {ι} {f : ι → ordinal → ordinal} {c} (hc : is_regular c)
   (hι : #ι < c) (hc' : c ≠ ω) {a} (hf : ∀ i (b < c.ord), f i b < c.ord) :
@@ -891,20 +890,20 @@ nfp_bfamily_lt_ord_lift_of_is_regular hc (by rwa lift_id) hc' hf
 
 theorem nfp_lt_ord_of_is_regular {f : ordinal → ordinal} {c} (hc : is_regular c) (hc' : c ≠ ω)
   (hf : ∀ i < c.ord, f i < c.ord) {a} : (a < c.ord) → nfp f a < c.ord :=
-nfp_lt_ord (by { rw hc.2, exact lt_of_le_of_ne hc.1 hc'.symm }) hf
+nfp_lt_ord (by { rw hc.cof_eq, exact lt_of_le_of_ne hc.1 hc'.symm }) hf
 
 theorem deriv_family_lt_ord_lift {ι} {f : ι → ordinal → ordinal} {c} (hc : is_regular c)
   (hι : (#ι).lift < c) (hc' : c ≠ ω) (hf : ∀ i (b < c.ord), f i b < c.ord) {a} :
   a < c.ord → deriv_family.{u v} f a < c.ord :=
 begin
   have hω : ω < c.ord.cof,
-  { rw hc.2, exact lt_of_le_of_ne hc.1 hc'.symm },
+  { rw hc.cof_eq, exact lt_of_le_of_ne hc.1 hc'.symm },
   apply a.limit_rec_on,
   { rw deriv_family_zero,
-    exact nfp_family_lt_ord_lift hω (by rwa hc.2) hf },
+    exact nfp_family_lt_ord_lift hω (by rwa hc.cof_eq) hf },
   { intros b hb hb',
     rw deriv_family_succ,
-    exact nfp_family_lt_ord_lift hω (by rwa hc.2) hf
+    exact nfp_family_lt_ord_lift hω (by rwa hc.cof_eq) hf
       ((ord_is_limit hc.1).2 _ (hb ((lt_succ b).trans hb'))) },
   { intros b hb H hb',
     rw deriv_family_limit f hb,
@@ -938,11 +937,9 @@ deriv_family_lt_ord_lift hc
 def is_inaccessible (c : cardinal) :=
 ω < c ∧ is_regular c ∧ is_strong_limit c
 
-theorem is_inaccessible.mk {c}
- (h₁ : ω < c) (h₂ : c ≤ c.ord.cof) (h₃ : ∀ x < c, 2 ^ x < c) :
- is_inaccessible c :=
-⟨h₁, ⟨le_of_lt h₁, le_antisymm (cof_ord_le _) h₂⟩,
-  ne_of_gt (lt_trans omega_pos h₁), h₃⟩
+theorem is_inaccessible.mk {c} (h₁ : ω < c) (h₂ : c ≤ c.ord.cof) (h₃ : ∀ x < c, 2 ^ x < c) :
+  is_inaccessible c :=
+⟨h₁, ⟨h₁.le, h₂⟩, (omega_pos.trans h₁).ne', h₃⟩
 
 /- Lean's foundations prove the existence of ω many inaccessible cardinals -/
 theorem univ_inaccessible : is_inaccessible (univ.{u v}) :=

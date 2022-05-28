@@ -191,6 +191,9 @@ theorem le_mk_iff_exists_set {c : cardinal} {α : Type u} :
   ⟨set.range f, (equiv.of_injective f hf).cardinal_eq.symm⟩,
 λ ⟨p, e⟩, e ▸ ⟨⟨subtype.val, λ a b, subtype.eq⟩⟩⟩
 
+@[simp] theorem mk_coe_set {α : Type u} (p : α → Prop) : #{x | p x} = #{x // p x} :=
+rfl
+
 theorem mk_subtype_le {α : Type u} (p : α → Prop) : #(subtype p) ≤ #α :=
 ⟨embedding.subtype p⟩
 

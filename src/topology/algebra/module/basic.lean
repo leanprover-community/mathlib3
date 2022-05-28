@@ -1201,10 +1201,10 @@ end smul
 
 section smul_rightₗ
 
-variables {R S T M M₂ : Type*} [ring R] [ring S] [ring T] [module R S]
-  [add_comm_group M₂] [module R M₂] [module S M₂] [is_scalar_tower R S M₂]
+variables {R S T M M₂ : Type*} [semiring R] [semiring S] [semiring T] [module R S]
+  [add_comm_monoid M₂] [module R M₂] [module S M₂] [is_scalar_tower R S M₂]
   [topological_space S] [topological_space M₂] [has_continuous_smul S M₂]
-  [topological_space M] [add_comm_group M] [module R M] [topological_add_group M₂]
+  [topological_space M] [add_comm_monoid M] [module R M] [has_continuous_add M₂]
   [module T M₂] [has_continuous_const_smul T M₂]
   [smul_comm_class R T M₂] [smul_comm_class S T M₂]
 

@@ -1171,6 +1171,8 @@ end polynomial
 
 namespace mv_polynomial
 
+variables (D)
+
 private lemma unique_factorization_monoid_of_fintype [fintype σ] :
   unique_factorization_monoid (mv_polynomial σ D) :=
 (rename_equiv D (fintype.equiv_fin σ)).to_mul_equiv.symm.unique_factorization_monoid $
@@ -1188,7 +1190,7 @@ begin
   rw iff_exists_prime_factors,
   intros a ha, obtain ⟨s,a',rfl⟩ := exists_finset_rename a,
   obtain ⟨w,h,u,hw⟩ := iff_exists_prime_factors.1
-    (unique_factorization_monoid_of_fintype s) a' (λ h, ha $ by simp [h]),
+    (unique_factorization_monoid_of_fintype s D) a' (λ h, ha $ by simp [h]),
   exact ⟨ w.map (rename coe),
     λ b hb, let ⟨b',hb',he⟩ := multiset.mem_map.1 hb in he ▸ (prime_rename_iff ↑s).2 (h b' hb'),
     units.map (@rename s σ D _ coe).to_ring_hom.to_monoid_hom u,

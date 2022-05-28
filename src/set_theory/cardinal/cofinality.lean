@@ -732,20 +732,13 @@ h.2 x hx
 theorem is_strong_limit.is_limit {c} (H : is_strong_limit c) : is_limit c :=
 ⟨H.1, λ x h, lt_of_le_of_lt (succ_le_of_lt $ cantor x) (H.2 _ h)⟩
 
-theorem mk_subset_mk_lt_cof {α : Type*} (h : is_strong_limit (#α)) :
-  #{s : set α // #s < cof (#α).ord} = #α :=
+theorem mk_bounded_subset {α : Type*} (h : is_strong_limit (#α)) (r : α → α → Prop)
+  [is_well_order α r] (hr : (#α).ord = type r) : #{s : set α // bounded r s} = #α :=
 begin
   have ha := h.is_limit.omega_le,
   apply le_antisymm,
-  { rcases ord_eq α with ⟨r, wo, hr⟩,
-    haveI := wo,
-    have : #{s : set α // #s < cof (#α).ord} ≤ #{s : set α | bounded r s},
-    { apply mk_le_mk_of_subset (λ s hs, _),
-      rw hr at hs,
-      exact lt_cof_type hs },
-    apply this.trans,
-    have : {s : set α | bounded r s} = _ := set_of_exists _,
-    rw this,
+  { have : {s : set α | bounded r s} = _ := set_of_exists _,
+    rw [←mk_coe_set, this],
     convert mk_Union_le_sum_mk.trans ((sum_le_sup _).trans (mul_le_max_of_omega_le_left ha)),
     apply (max_eq_left $ sup_le $ λ i, _).symm,
     rw [mk_coe_set, mk_subset_interval],
@@ -753,8 +746,26 @@ begin
     rw [←lt_ord, hr],
     apply typein_lt_type },
   { refine @mk_le_of_injective α _ (λ x, subtype.mk {x} _) _,
+    { apply bounded_singleton,
+      rw ←hr,
+      apply ord_is_limit ha },
+    { intros a b hab,
+      simpa only [singleton_eq_singleton_iff] using hab } }
+end
+
+theorem mk_subset_mk_lt_cof {α : Type*} (h : is_strong_limit (#α)) :
+  #{s : set α // #s < cof (#α).ord} = #α :=
+begin
+  rcases ord_eq α with ⟨r, wo, hr⟩,
+  haveI := wo,
+  apply le_antisymm,
+  { nth_rewrite_rhs 0 ←mk_bounded_subset h r hr,
+    apply mk_le_mk_of_subset (λ s hs, _),
+    rw hr at hs,
+    exact lt_cof_type hs },
+  { refine @mk_le_of_injective α _ (λ x, subtype.mk {x} _) _,
     { rw mk_singleton,
-      exact one_lt_omega.trans_le (omega_le_cof.2 (ord_is_limit ha)) },
+      exact one_lt_omega.trans_le (omega_le_cof.2 (ord_is_limit h.is_limit.omega_le)) },
     { intros a b hab,
       simpa only [singleton_eq_singleton_iff] using hab } }
 end

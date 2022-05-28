@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Topaz, Scott Morrison
 -/
 import category_theory.limits.preserves.shapes.biproducts
+import category_theory.limits.preserves.shapes.kernels
 import category_theory.preadditive.functor_category
 
 /-!
@@ -103,6 +104,22 @@ variables {C : Type u₁} {D : Type u₂} [category.{v} C] [category.{v} D]
 
 open category_theory.limits
 open category_theory.preadditive
+
+def preserves_binary_biproduct_of_preserves_kernel {X Y Z : C} [has_binary_biproduct X Y]
+  [preserves_zero_morphisms F] [preserves_limit (parallel_pair (biprod.snd : X ⊞ Y ⟶ Y) 0) F] :
+  preserves_binary_biproduct X Y F :=
+begin
+  let i_f := binary_bicone.is_limit_snd_kernel_fork (binary_biproduct.is_limit X Y),
+  let Fi_f := ((is_limit_map_cone_fork_equiv' F _).to_fun (is_limit_of_preserves F i_f)),
+  let hc := is_bilimit_binary_bicone_of_split_epi_of_kernel Fi_f,
+  haveI : has_binary_biproduct (F.obj X) (F.obj Y) := has_binary_biproduct.mk ⟨_, hc⟩,
+  haveI : has_binary_biproduct (kernel_fork.of_ι (F.map (binary_biproduct.bicone X Y).inl)
+    (by simp [← functor.map_comp]) : kernel_fork (F.map (biprod.snd))).X (F.obj Y),
+  { dsimp, apply_instance },
+  haveI : is_iso (biprod_comparison' F X Y),
+  { change is_iso (biprod.unique_up_to_iso _ _ hc).inv, apply_instance },
+  apply preserves_binary_biproduct_of_is_iso_biprod_comparison'
+end
 
 @[priority 100]
 instance preserves_finite_biproducts_of_additive [additive F] : preserves_finite_biproducts F :=

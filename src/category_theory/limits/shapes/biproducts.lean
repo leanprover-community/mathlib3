@@ -1085,21 +1085,20 @@ begin
     simp }
 end
 
-instance biprod.inl_mono {X Y : C} [has_binary_biproduct X Y] :
-  split_mono (biprod.inl : X ⟶ X ⊞ Y) :=
-{ retraction := biprod.fst }
+section
+variables {X Y : C} [has_binary_biproduct X Y]
 
-instance biprod.inr_mono {X Y : C} [has_binary_biproduct X Y] :
-  split_mono (biprod.inr : Y ⟶ X ⊞ Y) :=
-{ retraction := biprod.snd }
+instance biprod.inl_mono : split_mono (biprod.inl : X ⟶ X ⊞ Y) := ⟨biprod.fst⟩
+instance biprod.inr_mono : split_mono (biprod.inr : Y ⟶ X ⊞ Y) := ⟨biprod.snd⟩
+instance biprod.fst_epi : split_epi (biprod.fst : X ⊞ Y ⟶ X) := ⟨biprod.inl⟩
+instance biprod.snd_epi : split_epi (biprod.snd : X ⊞ Y ⟶ Y) := ⟨biprod.inr⟩
 
-instance biprod.fst_epi {X Y : C} [has_binary_biproduct X Y] :
-  split_epi (biprod.fst : X ⊞ Y ⟶ X) :=
-{ section_ := biprod.inl }
+@[simp] lemma biprod.retraction_inl : retraction (biprod.inl : X ⟶ X ⊞ Y) = biprod.fst := rfl
+@[simp] lemma biprod.retraction_inr : retraction (biprod.inr : Y ⟶ X ⊞ Y) = biprod.snd := rfl
+@[simp] lemma biprod.section_fst : section_ (biprod.fst : X ⊞ Y ⟶ X) = biprod.inl := rfl
+@[simp] lemma biprod.section_snd : section_ (biprod.snd : X ⊞ Y ⟶ Y) = biprod.inr := rfl
 
-instance biprod.snd_epi {X Y : C} [has_binary_biproduct X Y] :
-  split_epi (biprod.snd : X ⊞ Y ⟶ Y) :=
-{ section_ := biprod.inr }
+end
 
 @[simp,reassoc]
 lemma biprod.map_fst {W X Y Z : C} [has_binary_biproduct W X] [has_binary_biproduct Y Z]

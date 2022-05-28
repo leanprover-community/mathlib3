@@ -201,10 +201,17 @@ instance {X Y : C} (f : X ⟶ Y) [split_mono f] (F : C ⥤ D) : split_mono (F.ma
 { retraction := F.map (retraction f),
   id' := by { rw [←functor.map_comp, split_mono.id, functor.map_id], } }
 
+lemma retraction_map {X Y : C} (f : X ⟶ Y) [split_mono f] (F : C ⥤ D) :
+  retraction (F.map f) = F.map (retraction f) := rfl
+
 /-- Split epimorphisms are also absolute epimorphisms. -/
 instance {X Y : C} (f : X ⟶ Y) [split_epi f] (F : C ⥤ D) : split_epi (F.map f) :=
 { section_ := F.map (section_ f),
   id' := by { rw [←functor.map_comp, split_epi.id, functor.map_id], } }
+
+lemma section_map {X Y : C} (f : X ⟶ Y) [split_epi f] (F : C ⥤ D) :
+  section_ (F.map f) = F.map (section_ f) := rfl
+
 end
 
 end category_theory

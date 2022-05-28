@@ -2243,6 +2243,8 @@ def inclusion (h : s ⊆ t) : s → t :=
 
 @[simp] lemma inclusion_self (x : s) : inclusion subset.rfl x = x := by { cases x, refl }
 
+lemma inclusion_eq_id (h : s ⊆ s) : inclusion h = id := funext inclusion_self
+
 @[simp] lemma inclusion_mk {h : s ⊆ t} (a : α) (ha : a ∈ s) : inclusion h ⟨a, ha⟩ = ⟨a, h ha⟩ := rfl
 
 lemma inclusion_right (h : s ⊆ t) (x : t) (m : (x : α) ∈ s) : inclusion h ⟨x, m⟩ = x :=

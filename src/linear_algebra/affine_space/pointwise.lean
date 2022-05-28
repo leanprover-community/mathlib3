@@ -8,13 +8,7 @@ import linear_algebra.affine_space.affine_subspace
 
 /-! # Pointwise instances on `affine_subspace`s
 
-This file provides:
-
-* `affine_subspace.has_vadd`
-
-and the actions
-
-* `affine_subspace.add_action`
+This file provides the additive action `affine_subspace.pointwise_add_action`
 
 -/
 
@@ -33,14 +27,14 @@ include V
 /-- The additive action on an affine subspace corresponding to applying the action to every element.
 
 This is available as an instance in the `pointwise` locale. -/
-protected def add_action : add_action V (affine_subspace k P) :=
+protected def pointwise_add_action : add_action V (affine_subspace k P) :=
 { vadd := λ x S, S.map (affine_equiv.const_vadd k P x),
   zero_vadd := λ p,
     (congr_arg (λ f, p.map f) $ affine_map.ext $ by exact zero_vadd _).trans (p.map_id),
   add_vadd := λ x y p,
     (congr_arg (λ f, p.map f) $ affine_map.ext $ by exact add_vadd _ _).trans (p.map_map _ _).symm }
 
-localized "attribute [instance] affine_subspace.add_action" in pointwise
+localized "attribute [instance] affine_subspace.pointwise_add_action" in pointwise
 open_locale pointwise
 
 @[simp] lemma coe_const_vadd (v : V) (s : affine_subspace k P) :
@@ -67,6 +61,7 @@ variables [add_comm_group V₂] [module k V₂] [add_torsor V₂ P₂]
 variables [add_comm_group V₃] [module k V₃] [add_torsor V₃ P₃]
 include V₁ V₂
 omit V
+
 lemma map_const_vadd {f : P₁ →ᵃ[k] P₂} (v : V₁) (s : affine_subspace k P₁) :
   (v +ᵥ s).map f = f.linear v +ᵥ s.map f :=
 begin

@@ -833,8 +833,8 @@ instance : preorder nonote :=
 instance : has_zero nonote := ⟨⟨0, NF.zero⟩⟩
 instance : inhabited nonote := ⟨0⟩
 
-theorem wf : @well_founded nonote (<) := inv_image.wf repr ordinal.wf
-instance : has_well_founded nonote := ⟨(<), wf⟩
+theorem lt_wf : @well_founded nonote (<) := inv_image.wf repr ordinal.lt_wf
+instance : has_well_founded nonote := ⟨(<), lt_wf⟩
 
 /-- Convert a natural number to an ordinal notation -/
 def of_nat (n : ℕ) : nonote := ⟨of_nat n, ⟨⟨_, NF_below_of_nat _⟩⟩⟩
@@ -852,8 +852,7 @@ theorem cmp_compares : ∀ a b : nonote, (cmp a b).compares a b
 end
 
 instance : linear_order nonote := linear_order_of_compares cmp cmp_compares
-
-instance : is_well_order nonote (<) := ⟨wf⟩
+instance : is_well_order nonote (<) := ⟨lt_wf⟩
 
 /-- Asserts that `repr a < ω ^ repr b`. Used in `nonote.rec_on` -/
 def below (a b : nonote) : Prop := NF_below a.1 (repr b)

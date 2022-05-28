@@ -170,7 +170,7 @@ end
 lemma acc_of_singleton (hi : irreflexive r) {s : multiset α} :
   (∀ a ∈ s, acc (cut_expand r) {a}) → acc (cut_expand r) s :=
 begin
-  refine multiset.induction _ _ s, classical,
+  refine multiset.induction _ _ s,
   { exact λ _, acc.intro 0 $ λ s h, (not_cut_expand_zero hi s h).elim },
   { intros a s ih hacc, rw ← s.singleton_add a,
     exact ((hacc a $ s.mem_cons_self a).game_add $ ih $ λ a ha,

@@ -90,6 +90,10 @@ lemma subalgebra.topological_closure_minimal
   s.topological_closure ≤ t :=
 closure_minimal h ht
 
+lemma subalgebra.eq_topological_closure_of_is_closed {s : subalgebra R A}
+  (hs : is_closed (s : set A)) : s.topological_closure = s :=
+le_antisymm (s.topological_closure_minimal (le_refl _) hs) s.subalgebra_topological_closure
+
 /-- If a subalgebra of a topological algebra is commutative, then so is its topological closure. -/
 def subalgebra.comm_semiring_topological_closure [t2_space A] (s : subalgebra R A)
   (hs : ∀ (x y : s), x * y = y * x) : comm_semiring s.topological_closure :=

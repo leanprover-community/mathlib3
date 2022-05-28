@@ -36,6 +36,19 @@ begin
   ring
 end
 
+example {A : ℤ} (f : ℤ → ℤ) : f 0 = f (A - A) := by ring_nf
+example {A : ℤ} (f : ℤ → ℤ) : f 0 = f (A + -A) := by ring_nf
+
+example {a b c : ℝ} (h : 0 < a ^ 4 + b ^ 4 + c ^ 4) :
+  a ^ 4 / (a ^ 4 + b ^ 4 + c ^ 4) +
+  b ^ 4 / (b ^ 4 + c ^ 4 + a ^ 4) +
+  c ^ 4 / (c ^ 4 + a ^ 4 + b ^ 4)
+  = 1 :=
+begin
+  ring_nf at ⊢ h,
+  field_simp [h.ne'],
+end
+
 example (a b c d x y : ℚ) (hx : x ≠ 0) (hy : y ≠ 0) :
   a + b / x - c / x^2 + d / x^3 = a + x⁻¹ * (y * b / y + (d / x - c) / x) :=
 begin

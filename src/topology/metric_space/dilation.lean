@@ -136,7 +136,8 @@ end
 
 /-- The `ratio` is equal to the distance ratio for any two points
 with nonzero finite distance; `nndist version` -/
-lemma ratio_unique_of_nndist_ne_zero {α β} {F : Type*} [pseudo_metric_space α] [pseudo_metric_space β]
+lemma ratio_unique_of_nndist_ne_zero
+  {α β} {F : Type*} [pseudo_metric_space α] [pseudo_metric_space β]
   [dilation_class F α β] {f : F} {x y : α} {r : ℝ≥0}
   (hxy : nndist x y ≠ 0) (hr : nndist (f x) (f y) = r * nndist x y) :
   r = ratio f :=

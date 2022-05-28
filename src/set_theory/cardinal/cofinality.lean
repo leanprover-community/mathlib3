@@ -717,7 +717,7 @@ theorem is_strong_limit_omega : is_strong_limit ω :=
 end⟩
 
 theorem is_strong_limit.is_limit {c} (H : is_strong_limit c) : is_limit c :=
-⟨H.1, λ x h, (succ_le_of_lt $ cantor x).trans_lt (H.2 _ h)⟩
+⟨H.1, λ x h, lt_of_le_of_lt (succ_le_of_lt $ cantor x) (H.2 _ h)⟩
 
 theorem is_limit_omega : is_limit ω :=
 is_strong_limit_omega.is_limit

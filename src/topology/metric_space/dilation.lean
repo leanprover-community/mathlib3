@@ -16,13 +16,14 @@ satisfy `edist (f x) (f y) = r * edist x y`.
 Defines `ratio f`, which is the ratio of some `f : dilation α β`.
 Note that `ratio f : ℝ≥0`, so we do not exclude the degenerate case of dilations
 which collapse into constant maps. Statements that do need strict dilations should
-just say `f : dilation α β` and `hr : ratio f ≠ 0`.
+say `f : dilation α β` and `hr : ratio f ≠ 0`.
 
 TODO: Introduce dilation equivs. Refactor the isometry API
 to match the `*_hom_class` API below.
 
-Since a lot of elementary properties don't require `eq_of_dist_eq_zero` we start setting up the
-theory for `pseudo_metric_space` and we specialize to `metric_space` when needed.
+Since a lot of elementary properties don't require `eq_of_dist_eq_zero`
+we start setting up the theory for `pseudo_emetric_space` and
+we specialize to `pseudo_metric_space` and `metric_space` when needed.
 -/
 
 noncomputable theory
@@ -122,7 +123,7 @@ end
 
 /-- The `ratio` is equal to the distance ratio for any two points
 with nonzero finite distance; `dist version` -/
-lemma ratio_unique' {α β} {F : Type*} [pseudo_metric_space α] [pseudo_metric_space β]
+lemma ratio_unique_of_dist_ne_zero {α β} {F : Type*} [pseudo_metric_space α] [pseudo_metric_space β]
   [dilation_class F α β] {f : F} {x y : α} {r : ℝ≥0}
   (hxy : dist x y ≠ 0) (hr : dist (f x) (f y) = r * dist x y) :
   r = ratio f :=
@@ -135,7 +136,7 @@ end
 
 /-- The `ratio` is equal to the distance ratio for any two points
 with nonzero finite distance; `nndist version` -/
-lemma ratio_unique'' {α β} {F : Type*} [pseudo_metric_space α] [pseudo_metric_space β]
+lemma ratio_unique_of_nndist_ne_zero {α β} {F : Type*} [pseudo_metric_space α] [pseudo_metric_space β]
   [dilation_class F α β] {f : F} {x y : α} {r : ℝ≥0}
   (hxy : nndist x y ≠ 0) (hr : nndist (f x) (f y) = r * nndist x y) :
   r = ratio f :=
@@ -145,7 +146,7 @@ begin
 end
 
 /-- Alternative `dilation` constructor when the distance hypothesis is over `dist` -/
-def mk' {α β}
+def mk_of_dist_eq {α β}
   [pseudo_metric_space α] [pseudo_metric_space β]
   (f : α → β) (h : ∃ (r : ℝ≥0), ∀ (x y : α), dist (f x) (f y) = r * dist x y) :
   dilation α β :=
@@ -160,8 +161,17 @@ def mk' {α β}
     exact nnreal.zero_le_coe,
   end }
 
+@[simp] lemma coe_mk_of_dist_eq {α β}
+  [pseudo_metric_space α] [pseudo_metric_space β]
+  (f : α → β) (h) : ⇑(mk_of_dist_eq f h : dilation α β) = f := rfl
+
+@[simp] lemma mk_coe_of_dist_eq {α β}
+  [pseudo_metric_space α] [pseudo_metric_space β]
+  (f : dilation α β) (h) : dilation.mk_of_dist_eq f h = f :=
+ext $ λ _, rfl
+
 /-- Alternative `dilation` constructor when the distance hypothesis is over `nndist` -/
-def mk'' {α β}
+def mk_of_nndist_eq {α β}
   [pseudo_metric_space α] [pseudo_metric_space β]
   (f : α → β) (h : ∃ (r : ℝ≥0), ∀ (x y : α), nndist (f x) (f y) = r * nndist x y) :
   dilation α β :=
@@ -172,6 +182,15 @@ def mk'' {α β}
     refine ⟨r, λ x y, _⟩,
     rw [edist_nndist, edist_nndist, ← ennreal.coe_mul, h x y],
   end }
+
+@[simp] lemma coe_mk_of_nndist_eq {α β}
+  [pseudo_metric_space α] [pseudo_metric_space β]
+  (f : α → β) (h) : ⇑(mk_of_nndist_eq f h : dilation α β) = f := rfl
+
+@[simp] lemma mk_coe_of_nndist_eq {α β}
+  [pseudo_metric_space α] [pseudo_metric_space β]
+  (f : dilation α β) (h) : dilation.mk_of_nndist_eq f h = f :=
+ext $ λ _, rfl
 
 end setup
 
@@ -325,10 +344,12 @@ begin
   simp [hr],
 end
 
+/-- A dilation scales scale the diameter of the range by `ratio f`. -/
 lemma ediam_range :
   emetric.diam (range (f : α → β)) = ratio f * emetric.diam (univ : set α) :=
 by { rw ← image_univ, exact ediam_image f univ }
 
+/-- A dilation maps balls to balls and scales the radius by `ratio f`. -/
 lemma maps_to_emetric_ball  (hr : ratio f ≠ 0) (x : α) (r' : ℝ≥0∞) :
   maps_to (f : α → β) (emetric.ball x r') (emetric.ball (f x) (ratio f * r')) :=
 begin
@@ -339,6 +360,7 @@ begin
   simp [hr],
 end
 
+/-- A dilation maps closed balls to closed balls and scales the radius by `ratio f`. -/
 lemma maps_to_emetric_closed_ball (x : α) (r' : ℝ≥0∞) :
   maps_to (f : α → β) (emetric.closed_ball x r') (emetric.closed_ball (f x) (ratio f * r')) :=
 begin
@@ -395,6 +417,7 @@ by { simp [metric.diam, metric.diam, ediam_image, ennreal.to_real_mul], }
 lemma diam_range : metric.diam (range (f : α → β)) = ratio f * metric.diam (univ : set α) :=
 by rw [← image_univ, diam_image]
 
+/-- A dilation maps balls to balls and scales the radius by `ratio f`. -/
 lemma maps_to_ball (hr : ratio f ≠ 0) (x : α) (r' : ℝ) :
   maps_to (f : α → β) (metric.ball x r') (metric.ball (f x) (ratio f * r')) :=
 begin
@@ -405,6 +428,7 @@ begin
   rwa [nnreal.coe_pos, pos_iff_ne_zero],
 end
 
+/-- A dilation maps spheres to spheres and scales the radius by `ratio f`. -/
 lemma maps_to_sphere (x : α) (r' : ℝ) :
   maps_to (f : α → β) (metric.sphere x r') (metric.sphere (f x) (ratio f * r')) :=
 begin
@@ -413,6 +437,7 @@ begin
   rw [metric.mem_sphere, dist_eq, hy],
 end
 
+/-- A dilation maps closed balls to closed balls and scales the radius by `ratio f`. -/
 lemma maps_to_closed_ball (x : α) (r' : ℝ) :
   maps_to (f : α → β) (metric.closed_ball x r') (metric.closed_ball (f x) (ratio f * r')) :=
 begin

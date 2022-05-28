@@ -82,7 +82,7 @@ begin
   rw content,
   by_cases h0 : r = 0,
   { simp [h0] },
-  have h : (C r).support = {0} := support_monomial _ _ h0,
+  have h : (C r).support = {0} := support_monomial _ h0,
   simp [h],
 end
 

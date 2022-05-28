@@ -203,6 +203,8 @@
   author : mathlib <!--Jeremy Avigad in lean 2-->
 59:
   title  : The Laws of Large Numbers
+  decl   : probability_theory.strong_law_ae
+  author : Sébastien Gouëzel
 60:
   title  : Bezout’s Theorem
   decl   : nat.gcd_eq_gcd_ab

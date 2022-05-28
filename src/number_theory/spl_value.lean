@@ -350,9 +350,12 @@ noncomputable abbreviation neg_pow'_to_hom (s : ℕ) :
 
 --instance : metric_space (units ℤ_[p]) := infer_instance
 
-/-lemma padic_int.continuous_units_gpow (s : ℤ) : continuous (gpow s : units ℤ_[p] → units ℤ_[p]) :=
+--noncomputable instance : has_pow (units ℤ_[p]) ℤ := div_inv_monoid.has_pow
+
+lemma padic_int.continuous_units_zpow (s : ℤ) : continuous (λ (x : units ℤ_[p]), x^s : units ℤ_[p] → units ℤ_[p]) := --continuous (pow s : units ℤ_[p] → units ℤ_[p]) :=
 begin
-  suffices : continuous ((units.coe_hom ℤ_[p]) ∘ (gpow s)),
+  exact continuous_zpow s,
+/-  suffices : continuous ((units.coe_hom ℤ_[p]) ∘ (zpow s)),
   { fconstructor, rintros t ht,
     rw continuous_def at this,
     specialize this ((units.coe_hom ℤ_[p])'' t) (is_open_coe p t ht),
@@ -369,9 +372,9 @@ begin
       refine continuous.comp _ (continuous_pow s.succ),
       change continuous (units.val ∘ units.has_inv.inv),
       refine continuous.comp _ continuous_id'.inv, change continuous coe,
-      apply units.continuous_coe, }, },
+      apply units.continuous_coe, }, }, -/
 end
--- this can be generalized to whenever inv is continuous?
+-- this can be generalized to whenever inv is continuous? -/
 
 lemma neg_pow'_continuous (s : ℕ) : continuous (neg_pow'_to_hom p d R s) :=
 begin
@@ -380,17 +383,16 @@ begin
     rw algebra.algebra_map_eq_smul_one',
     exact continuous_id'.smul continuous_const, },
   { refine continuous.comp (continuous_induced_dom.comp (continuous.comp
-      (continuous.comp units.continuous_coe (continuous.comp (continuous.comp
-      (padic_int.continuous_units_gpow p _)
-      (continuous.comp (continuous.mul continuous_snd
-      (continuous.comp (continuous.comp (continuous.comp _
-      (cont_units_map (cont_inv p) _ (continuous_to_zmod p)))
-      continuous_snd) continuous_id)) continuous_id))
-      continuous_id)) continuous_id))
-      continuous_id,
+      (units.continuous_coe.comp (continuous.comp ((continuous_zpow (-s : ℤ)).comp
+      (continuous.comp (continuous.mul continuous_snd (continuous.comp
+      (continuous.comp (continuous.comp _ (continuous.comp (cont_units_map (cont_inv p) _ _)
+      continuous_id)) continuous_snd) continuous_id)) continuous_id)) continuous_id))
+      continuous_id)) continuous_id,
     { convert continuous_of_discrete_topology, exact disc_top_units _, },
     { convert continuous_of_discrete_topology,
-      refine discrete_topology_induced units.ext, }, },
+      refine discrete_topology_induced units.ext, },
+    { rw [ring_hom.to_monoid_hom_eq_coe, ring_hom.coe_monoid_hom],
+      apply continuous_to_zmod p, }, },
 end
 -- why can't i use the dot notation?
 -- maybe make a separate lemma saying any Dir char is cont?
@@ -399,7 +401,7 @@ end
 noncomputable abbreviation neg_pow' (s : ℕ) :
   weight_space (units (zmod d) × units ℤ_[p]) R :=
 ⟨(neg_pow'_to_hom p d R s).to_fun, (neg_pow'_to_hom p d R s).map_one', (neg_pow'_to_hom p d R s).map_mul',
-  neg_pow'_continuous p d R s⟩ -/
+  neg_pow'_continuous p d R s⟩
 
 variable [fact (0 < d)]
 
@@ -453,16 +455,17 @@ begin
   convert this using 1,
 end
 
--- theorem p_adic_L_function_eval_neg_int [semi_normed_algebra ℚ R] (n : ℕ) :
---   (n : R) * (p_adic_L_function' p d R m hd χ hc hc' na (neg_pow' p d R (n - 1))) =
---   -(1 - (χ (zmod.unit_of_coprime c (nat.coprime_mul_iff_right.2 ⟨hc', nat.coprime_pow_spl p c m hc⟩))
---   * (neg_pow' p d R n (zmod.unit_of_coprime c hc', is_unit.unit ((is_unit_iff_not_dvd p c)
---   ((nat.prime.coprime_iff_not_dvd (fact.out _)).1 (nat.coprime.symm hc))
---     )) ))) * (1 - ((asso_dirichlet_character (dirichlet_character.mul χ
---     ((teichmuller_character_mod_p_change_level p d R m)^n))) p * p^(n - 1)) ) *
---   (general_bernoulli_number (dirichlet_character.mul χ
---     ((teichmuller_character_mod_p_change_level p d R m)^n)) n) :=
--- begin
---   sorry
--- end
+theorem p_adic_L_function_eval_neg_int [normed_algebra ℚ R] [norm_one_class R] (n : ℕ) :
+   (n : R) * (p_adic_L_function' p d R m hd χ hc hc' na (neg_pow' p d R (n - 1))) =
+   -(1 - (χ (zmod.unit_of_coprime c (nat.coprime_mul_iff_right.2 ⟨hc', nat.coprime_pow_spl p c m hc⟩))
+   * (neg_pow' p d R n (zmod.unit_of_coprime c hc', is_unit.unit ((is_unit_iff_not_dvd p c)
+   ((nat.prime.coprime_iff_not_dvd (fact.out _)).1 (nat.coprime.symm hc))
+     )) ))) * (1 - ((asso_dirichlet_character (dirichlet_character.mul χ
+     ((teichmuller_character_mod_p_change_level p d R m)^n))) p * p^(n - 1)) ) *
+   (general_bernoulli_number (dirichlet_character.mul χ
+     ((teichmuller_character_mod_p_change_level p d R m)^n)) n) :=
+begin
+  sorry,
+end
+
 -- don't really need to change level to d*p^m for ω, right?

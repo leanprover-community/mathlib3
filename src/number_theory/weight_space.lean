@@ -3711,7 +3711,6 @@ noncomputable def bernoulli_measure' (hc : c.gcd p = 1) (hc' : c.gcd d = 1)
       apply mul_nonneg,
       { apply le_of_lt, apply Kpos, },
       apply norm_nonneg, },
-
 --this is the proof to show it is also a measure on zmod _ × ℤ_[p]
 /-    set K := 1 + ∥(c : ℚ)∥ + ∥((c : ℚ) - 1) / 2∥ with hK,
     have Kpos : 0 < K,

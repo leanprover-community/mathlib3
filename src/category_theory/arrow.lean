@@ -259,6 +259,12 @@ def left_to_right : (left_func : arrow C ⥤ C) ⟶ right_func :=
 /-- Condition that the image of `f` by `F` is an isomorphism -/
 def is_inverted_by (f : arrow C) (F : C ⥤ D) : Prop := is_iso (F.map f.hom)
 
+namespace is_inverted_by
+
+def of_is_iso {f : arrow C} {F : C ⥤ D} (h : is_iso (F.map f.hom)) : f.is_inverted_by F := h
+
+end is_inverted_by
+
 end arrow
 
 namespace functor

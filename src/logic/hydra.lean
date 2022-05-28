@@ -130,9 +130,9 @@ theorem cut_expand_singleton {s x} (h : ∀ x' ∈ s, r x' x) : cut_expand r s {
 theorem cut_expand_singleton_singleton {x' x} (h : r x' x) : cut_expand r {x'} {x} :=
 cut_expand_singleton (λ a h, by rwa mem_singleton.1 h)
 
-theorem cut_expand_add_of_cut_expand {t u} (s) :
-  cut_expand r t u → cut_expand r (s + t) (s + u) :=
-λ ⟨v, a, h, h'⟩, ⟨v, a, h, by rw [add_assoc, h', ←add_assoc]⟩
+theorem cut_expand_add_left {t u} (s) : cut_expand r (s + t) (s + u) ↔ cut_expand r t u :=
+⟨λ ⟨v, a, h, h'⟩, ⟨v, a, h, by { rw [add_assoc, add_assoc] at h', exact add_left_cancel h' }⟩,
+ λ ⟨v, a, h, h'⟩, ⟨v, a, h, by rw [add_assoc, h', ←add_assoc]⟩⟩
 
 lemma cut_expand_iff [decidable_eq α] (hr : irreflexive r) {s' s : multiset α} :
   cut_expand r s' s ↔ ∃ (t : multiset α) a, (∀ a' ∈ t, r a' a) ∧ a ∈ s ∧ s' = s.erase a + t :=

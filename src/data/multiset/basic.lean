@@ -848,15 +848,20 @@ begin
     simp }
 end
 
-lemma map_eq_cons (f : α → β) {s : multiset α} {t : multiset β} (b : β) (h : s.map f = b ::ₘ t) :
-  ∃ a ∈ s, f a = b ∧ ∃ u : multiset α, u.map f = t :=
+lemma map_eq_cons' [decidable_eq α] (f : α → β) {s : multiset α} {t : multiset β} (b : β) :
+  (∃ a ∈ s, f a = b ∧ (s.erase a).map f = t) ↔ s.map f = b ::ₘ t :=
 begin
-  have : b ∈ s.map f,
-  { rw h, exact mem_cons_self _ _ },
-  obtain ⟨a, h1, rfl⟩ := mem_map.mp this,
-  obtain ⟨u, rfl⟩ := exists_cons_of_mem h1,
-  rw [map_cons, cons_inj_right] at h,
-  exact ⟨a, mem_cons_self _ _, rfl, u, h⟩,
+  split,
+  { rintro ⟨a, ha, rfl, rfl⟩,
+    rw [←map_cons, multiset.cons_erase ha] },
+  { intro h,
+    have : b ∈ s.map f,
+    { rw h, exact mem_cons_self _ _ },
+    obtain ⟨a, h1, rfl⟩ := mem_map.mp this,
+    obtain ⟨u, rfl⟩ := exists_cons_of_mem h1,
+    rw [map_cons, cons_inj_right] at h,
+    refine ⟨a, mem_cons_self _ _, rfl, _⟩,
+    rw [multiset.erase_cons_head, h] }
 end
 
 theorem mem_map_of_injective {f : α → β} (H : function.injective f) {a : α} {s : multiset α} :
@@ -906,14 +911,15 @@ begin
   { rw [s.erase_cons_tail hxy, map_cons, map_cons, (s.map f).erase_cons_tail (hf.ne hxy), ih] }
 end
 
-lemma exists_map_eq_of_surjective (s : multiset β) (f : α → β) (hf : function.surjective f) :
-  ∃ t : multiset α, t.map f = s :=
+lemma map_surjective_of_surjective {f : α → β} (hf : function.surjective f) :
+  function.surjective (map f) :=
 begin
+  intro s,
   induction s using multiset.induction_on with x s ih,
   { exact ⟨0, map_zero _⟩ },
   { obtain ⟨y, rfl⟩ := hf x,
     obtain ⟨t, rfl⟩ := ih,
-    exact ⟨y ::ₘ t, map_cons _ _ _⟩, }
+    exact ⟨y ::ₘ t, map_cons _ _ _⟩ }
 end
 
 /-! ### `multiset.fold` -/

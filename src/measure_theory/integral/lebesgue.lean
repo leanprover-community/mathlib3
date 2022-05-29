@@ -2158,6 +2158,31 @@ end
 
 end dirac_and_count
 
+section singleton
+
+lemma lintegral_singleton' {f : α → ℝ≥0∞} (hf : measurable f) (a : α) :
+  ∫⁻ x in {a}, f x ∂μ = f a * μ {a} :=
+by simp only [restrict_singleton, lintegral_smul_measure, lintegral_dirac' _ hf, mul_comm]
+
+lemma lintegral_singleton [measurable_singleton_class α] (f : α → ℝ≥0∞) (a : α) :
+  ∫⁻ x in {a}, f x ∂μ = f a * μ {a} :=
+by simp only [restrict_singleton, lintegral_smul_measure, lintegral_dirac, mul_comm]
+
+lemma lintegral_insert [measurable_singleton_class α]
+  {a : α} {s : set α} (h : a ∉ s) (f : α → ℝ≥0∞) :
+  ∫⁻ x in insert a s, f x ∂μ = f a * μ {a} + ∫⁻ x in s, f x ∂μ :=
+begin
+  rw [← union_singleton, lintegral_union (measurable_set_singleton a), lintegral_singleton,
+    add_comm],
+  rwa disjoint_singleton_right
+end
+
+lemma lintegral_unique [unique α] (f : α → ℝ≥0∞) : ∫⁻ x, f x ∂μ = f default * μ univ :=
+calc ∫⁻ x, f x ∂μ = ∫⁻ x, f default ∂μ : lintegral_congr $ unique.forall_iff.2 rfl
+... = f default * μ univ : lintegral_const _
+
+end singleton
+
 lemma ae_lt_top {f : α → ℝ≥0∞} (hf : measurable f) (h2f : ∫⁻ x, f x ∂μ ≠ ∞) :
   ∀ᵐ x ∂μ, f x < ∞ :=
 begin

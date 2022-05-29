@@ -130,7 +130,7 @@ by simpa only [equiv.image_eq_preimage] using prod_assoc_preimage
 
 /-- A set `s` in `α × β` is equivalent to the sigma-type `Σ x, {y | (x, y) ∈ s}`. -/
 def set_prod_equiv_sigma {α β : Type*} (s : set (α × β)) :
-  s ≃ Σ x : α, {y | (x, y) ∈ s} :=
+  s ≃ Σ x : α, {y // (x, y) ∈ s} :=
 { to_fun := λ x, ⟨x.1.1, x.1.2, by simp⟩,
   inv_fun := λ x, ⟨(x.1, x.2.1), x.2.2⟩,
   left_inv := λ ⟨⟨x, y⟩, h⟩, rfl,

@@ -1422,12 +1422,12 @@ by { convert mk_preimage_of_injective_of_subset_range_lift.{u u} f s h h2 using 
 
 lemma mk_subset_ge_of_subset_image_lift {α : Type u} {β : Type v} (f : α → β) {s : set α}
   {t : set β} (h : t ⊆ f '' s) :
-    lift.{u} (#t) ≤ lift.{v} (#({ x ∈ s | f x ∈ t } : set α)) :=
+    lift.{u} (#t) ≤ lift.{v} (#({x ∈ s | f x ∈ t} : set α)) :=
 by { rw [image_eq_range] at h, convert mk_preimage_of_subset_range_lift _ _ h using 1,
      rw [mk_sep], refl }
 
 lemma mk_subset_ge_of_subset_image (f : α → β) {s : set α} {t : set β} (h : t ⊆ f '' s) :
-  #t ≤ #({ x ∈ s | f x ∈ t } : set α) :=
+  #t ≤ #({x ∈ s | f x ∈ t} : set α) :=
 by { rw [image_eq_range] at h, convert mk_preimage_of_subset_range _ _ h using 1,
      rw [mk_sep], refl }
 

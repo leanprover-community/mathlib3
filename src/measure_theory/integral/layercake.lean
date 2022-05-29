@@ -186,7 +186,7 @@ begin
   exact layercake_of_measurable μ f_nn f_mble G_intble G_mble (λ t t_pos, G_nn t),
 end
 
-theorem layercake_one --{α : Type*} [measurable_space α]
+theorem layercake_one
   (μ : measure α) [sigma_finite μ]
   {f : α → ℝ} (f_nn : 0 ≤ f) (f_mble : measurable f) :
   ∫⁻ ω, ennreal.of_real (f ω) ∂μ = ∫⁻ t in Ioi 0, (μ {a : α | t ≤ f a}) :=
@@ -194,7 +194,7 @@ begin
   set cst := λ (t : ℝ), (1 : ℝ) with def_cst,
   have cst_intble : ∀ t > 0, interval_integrable cst volume 0 t,
   from λ _ _, interval_integrable_const,
-  have key := layercake μ f_nn f_mble cst_intble (eventually_of_forall (λ t, zero_le_one)),-- f_nn cst_intble (λ t _, zero_le_one),
+  have key := layercake μ f_nn f_mble cst_intble (eventually_of_forall (λ t, zero_le_one)),
   simp_rw [def_cst, ennreal.of_real_one, mul_one] at key,
   rw ← key,
   apply congr_arg,
@@ -203,7 +203,7 @@ begin
 end
 
 -- TODO: Lean gets stuck if I try with `(p_large : 0 < p)` instead... Why?
-theorem layercake_p --{α : Type*} [measurable_space α]
+theorem layercake_p
   (μ : measure α) [sigma_finite μ]
   {f : α → ℝ} (f_nn : 0 ≤ f) (f_mble : measurable f) {p : ℝ}
   (p_large : 1 < p) :

@@ -128,7 +128,7 @@ variables {α : Type u}
 
 theorem set.coe_eq_subtype (s : set α) : ↥s = {x // x ∈ s} := rfl
 
-@[simp] theorem set.coe_set_of (p : α → Prop) : ↥{x | p x} = subtype p := rfl
+@[simp] theorem set.coe_set_of (p : α → Prop) : ↥{x | p x} = {x // p x} := rfl
 
 @[simp] theorem set_coe.forall {s : set α} {p : s → Prop} :
   (∀ x : s, p x) ↔ (∀ x (h : x ∈ s), p ⟨x, h⟩) :=

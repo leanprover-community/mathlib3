@@ -318,7 +318,9 @@ end
 
 section field
 
-variable [ne_zero ((n : ℕ) : K)]
+variable [hne : ne_zero ((n : ℕ) : K)]
+
+include hne
 
 /-- A cyclotomic extension splits `X ^ n - 1` if `n ∈ S` and `ne_zero (n : K)`.-/
 lemma splits_X_pow_sub_one [H : is_cyclotomic_extension S K L] (hS : n ∈ S) :
@@ -365,15 +367,6 @@ localized "attribute [instance] is_cyclotomic_extension.splitting_field_X_pow_su
 
 include n
 
-lemma is_galois : is_galois K L :=
-begin
-  letI := splitting_field_X_pow_sub_one n K L,
-  exact is_galois.of_separable_splitting_field (X_pow_sub_one_separable_iff.2
-    (ne_zero.ne _ : ((n : ℕ) : K) ≠ 0)),
-end
-
-localized "attribute [instance] is_cyclotomic_extension.is_galois" in cyclotomic
-
 /-- If `is_cyclotomic_extension {n} K L` and `ne_zero ((n : ℕ) : K)`, then `L` is the splitting
 field of `cyclotomic n K`. -/
 lemma splitting_field_cyclotomic : is_splitting_field K L (cyclotomic n K) :=
@@ -389,6 +382,71 @@ lemma splitting_field_cyclotomic : is_splitting_field K L (cyclotomic n K) :=
   end }
 
 localized "attribute [instance] is_cyclotomic_extension.splitting_field_cyclotomic" in cyclotomic
+
+omit hne
+
+lemma splits_X_pow_sub_one_char_p {p k m : ℕ} {n : ℕ+} [fact p.prime] (hn : ↑n = p ^ k * m)
+  (K L : Type*) [field K] [field L] [algebra K L] [char_p K p] [ne_zero (m : K)]
+  [is_cyclotomic_extension {n} K L] :
+  splits (algebra_map K L) (X ^ m - 1) :=
+begin
+  rw [← splits_id_iff_splits, polynomial.map_sub, polynomial.map_one,
+      polynomial.map_pow, polynomial.map_X],
+  obtain ⟨z, hz⟩ := ((is_cyclotomic_extension_iff {n} K L).1 infer_instance).1 (mem_singleton n),
+  haveI : char_p L p,
+    { rw [← ring_hom.char_p_iff_char_p (algebra_map K _) p],
+      all_goals { apply_instance } },
+  haveI := ne_zero.of_no_zero_smul_divisors K L m,
+  rw [aeval_def, eval₂_eq_eval_map, map_cyclotomic, hn, ← is_root.def,
+    is_root_cyclotomic_prime_pow_mul_iff_of_char_p] at hz,
+  exact X_pow_sub_one_splits hz
+end
+
+lemma splitting_field_X_pow_sub_one_char_p {p k m : ℕ} {n : ℕ+} [fact p.prime]
+  (hn : ↑n = p ^ k * m) (K L : Type*) [field K] [field L] [algebra K L] [char_p K p]
+  [ne_zero (m : K)] [is_cyclotomic_extension {n} K L] :
+  is_splitting_field K L (X ^ m - 1) :=
+{ splits := splits_X_pow_sub_one_char_p hn K L,
+  adjoin_roots :=
+  begin
+    rw [← ((iff_adjoin_eq_top {n} K L).1 infer_instance).2],
+    congr,
+    refine set.ext (λ x, _),
+    simp only [polynomial.map_pow, mem_singleton_iff, multiset.mem_to_finset, exists_eq_left,
+      mem_set_of_eq, polynomial.map_X, polynomial.map_one, finset.mem_coe, polynomial.map_sub],
+    haveI : char_p L p,
+    { rw [← ring_hom.char_p_iff_char_p (algebra_map K _) p],
+      all_goals { apply_instance } },
+    rw [mem_roots, is_root.def, eval_sub, eval_pow, eval_X, eval_one, hn,
+      pow_prime_pow_mul_eq_one_iff, sub_eq_zero],
+    rw [← ring_hom.map_one C],
+    exact X_pow_sub_C_ne_zero (ne_zero.pos_of_ne_zero_coe K) _
+  end }
+
+lemma is_galois : is_galois K L :=
+begin
+  let p := ring_char K,
+  have hfin := (multiplicity.finite_nat_iff.2 ⟨char_p.char_ne_one K p, n.pos⟩),
+  obtain ⟨m, hm⟩ := multiplicity.exists_eq_pow_mul_and_not_dvd hfin,
+  by_cases hp : p ∣ n,
+  { haveI : fact p.prime,
+    { refine ⟨(or_iff_left (λ h, _)).1 (char_p.char_is_prime_or_zero K p)⟩,
+      have := hm.1,
+      conv at this { congr, skip, congr, congr, rw [h] },
+      rw [zero_pow, zero_mul] at this,
+      { exact pnat.ne_zero n this },
+      { refine multiplicity.pos_of_dvd hfin hp } },
+    letI : ne_zero (m : K) := ne_zero.of_not_dvd K hm.2,
+    letI := splitting_field_X_pow_sub_one_char_p hm.1 K L,
+    exact is_galois.of_separable_splitting_field
+      (X_pow_sub_one_separable_iff.2 (ne_zero.ne _ : (m : K) ≠ 0)) },
+  { letI := ne_zero.of_not_dvd K hp,
+    letI := splitting_field_X_pow_sub_one n K L,
+    exact is_galois.of_separable_splitting_field (X_pow_sub_one_separable_iff.2
+      (ne_zero.ne _ : ((n : ℕ) : K) ≠ 0)) }
+end
+
+localized "attribute [instance] is_cyclotomic_extension.is_galois" in cyclotomic
 
 end singleton
 
@@ -406,7 +464,7 @@ def cyclotomic_field : Type w := (cyclotomic n K).splitting_field
 
 namespace cyclotomic_field
 
-instance is_cyclotomic_extension [ne_zero ((n : ℕ) : K)] :
+instance is_cyclotomic_extension :
   is_cyclotomic_extension {n} K (cyclotomic_field n K) :=
 { exists_root := λ a han,
   begin
@@ -420,10 +478,48 @@ instance is_cyclotomic_extension [ne_zero ((n : ℕ) : K)] :
     letI := classical.dec_eq (cyclotomic_field n K),
     obtain ⟨ζ, hζ⟩ := exists_root_of_splits _ (splitting_field.splits (cyclotomic n K))
       (degree_cyclotomic_pos n _ n.pos).ne',
-    haveI : ne_zero ((n : ℕ) : (cyclotomic_field n K)) :=
-      ne_zero.nat_of_injective (algebra_map K _).injective,
-    rw [eval₂_eq_eval_map, map_cyclotomic, ← is_root.def, is_root_cyclotomic_iff] at hζ,
-    exact is_cyclotomic_extension.adjoin_roots_cyclotomic_eq_adjoin_nth_roots n hζ,
+    rw [eval₂_eq_eval_map, map_cyclotomic, ← is_root.def] at hζ,
+    let L := (cyclotomic ↑n K).splitting_field,
+    let p := ring_char L,
+    by_cases hp : p ∣ n,
+    { have hfin := (multiplicity.finite_nat_iff.2 ⟨char_p.char_ne_one L p, n.pos⟩),
+      obtain ⟨m, hm⟩ := multiplicity.exists_eq_pow_mul_and_not_dvd hfin,
+      conv at hζ { congr, congr, rw [hm.1] },
+      haveI : fact (p.prime),
+      { refine ⟨(or_iff_left (λ h, _)).1 (char_p.char_is_prime_or_zero L p)⟩,
+        have := hm.1,
+        conv at this { congr, skip, congr, congr, rw [h] },
+        rw [zero_pow, zero_mul] at this,
+        { exact pnat.ne_zero n this },
+        { exact multiplicity.pos_of_dvd hfin hp } },
+      letI hmz : ne_zero (m : L) := ne_zero.of_not_dvd L hm.2,
+      rw [is_root_cyclotomic_prime_pow_mul_iff_of_char_p] at hζ,
+      have H₁ : ({b : cyclotomic_field n K | ∃ (a : ℕ+), a ∈ ({n} : set ℕ+) ∧ b ^ (a : ℕ) = 1}) =
+        {b : cyclotomic_field n K | ∃ (a : ℕ+), a ∈ ({⟨m, ne_zero.pos_of_ne_zero_coe L⟩} : set ℕ+)
+        ∧ b ^ (a : ℕ) = 1},
+      { haveI : char_p (cyclotomic_field n K) p,
+        { rw [← ring_hom.char_p_iff_char_p (algebra_map K _) p,
+            ring_hom.char_p_iff_char_p (algebra_map K L) p],
+          all_goals { apply_instance } },
+        ext x,
+        simp only [mem_singleton_iff, exists_eq_left, mem_set_of_eq, pnat.mk_coe],
+        rw [hm.1, pow_prime_pow_mul_eq_one_iff] },
+      have H₂ : (map (algebra_map K (cyclotomic ↑n K).splitting_field)
+        (cyclotomic ↑n K)).roots.to_finset =
+        (map (algebra_map K (cyclotomic ↑n K).splitting_field)
+        (cyclotomic ↑(⟨m, ne_zero.pos_of_ne_zero_coe L⟩ : ℕ+) K)).roots.to_finset,
+        { ext x,
+          simp only [map_cyclotomic, multiset.mem_to_finset, pnat.mk_coe],
+          conv { congr, congr, skip, congr, congr, rw [hm.1] },
+          rw [mem_roots (cyclotomic_ne_zero _ _), mem_roots (cyclotomic_ne_zero _ _),
+            is_root_cyclotomic_prime_pow_mul_iff_of_char_p, is_root_cyclotomic_iff],
+          all_goals { apply_instance } },
+      rw [H₁, H₂],
+      exact is_cyclotomic_extension.adjoin_roots_cyclotomic_eq_adjoin_nth_roots
+        ⟨m, ne_zero.pos_of_ne_zero_coe L⟩ hζ },
+    { letI := ne_zero.of_not_dvd L hp,
+      rw [is_root_cyclotomic_iff] at hζ,
+      exact is_cyclotomic_extension.adjoin_roots_cyclotomic_eq_adjoin_nth_roots n hζ }
   end }
 
 end cyclotomic_field
@@ -480,24 +576,26 @@ no_zero_smul_divisors.of_algebra_map_injective (adjoin_algebra_injective n A K)
 instance : is_scalar_tower A (cyclotomic_ring n A K) (cyclotomic_field n K) :=
 is_scalar_tower.subalgebra' _ _ _ _
 
-instance is_cyclotomic_extension [ne_zero ((n : ℕ) : A)] :
-  is_cyclotomic_extension {n} A (cyclotomic_ring n A K) :=
+instance is_cyclotomic_extension : is_cyclotomic_extension {n} A (cyclotomic_ring n A K) :=
 { exists_root := λ a han,
   begin
     rw mem_singleton_iff at han,
     subst a,
-    haveI := ne_zero.of_no_zero_smul_divisors A K n,
-    haveI := ne_zero.of_no_zero_smul_divisors A (cyclotomic_ring n A K) n,
-    haveI := ne_zero.of_no_zero_smul_divisors A (cyclotomic_field n K) n,
     obtain ⟨μ, hμ⟩ := let h := (cyclotomic_field.is_cyclotomic_extension n K).exists_root
                       in h $ mem_singleton n,
-    refine ⟨⟨μ, subset_adjoin _⟩, _⟩,
-    { apply (is_root_of_unity_iff n.pos (cyclotomic_field n K)).mpr,
+    have hμmem : μ ∈ adjoin A {b : cyclotomic_field n K | b ^ (n : ℕ) = 1},
+    { refine subset_adjoin _,
+      apply (is_root_of_unity_iff n.pos (cyclotomic_field n K)).mpr,
       refine ⟨n, nat.mem_divisors_self _ n.ne_zero, _⟩,
       rwa [aeval_def, eval₂_eq_eval_map, map_cyclotomic] at hμ },
-    simp_rw [aeval_def, eval₂_eq_eval_map,
-      map_cyclotomic, ←is_root.def, is_root_cyclotomic_iff] at hμ ⊢,
-    rwa ←is_primitive_root.map_iff_of_injective (adjoin_algebra_injective n A K)
+    refine ⟨⟨μ, hμmem⟩, _⟩,
+    have := adjoin_algebra_injective n A K,
+    rw [ring_hom.injective_iff_ker_eq_bot, ring_hom.ker_eq_bot_iff_eq_zero] at this,
+    simp_rw [aeval_def, eval₂_eq_eval_map, map_cyclotomic],
+    refine this _ _,
+    have h : (algebra_map (cyclotomic_ring n A K) (cyclotomic_field n K)) ⟨μ, hμmem⟩ = μ := rfl,
+    rw [← aeval_algebra_map_apply, h, aeval_def, eval₂_eq_eval_map, map_cyclotomic],
+    rwa [aeval_def, eval₂_eq_eval_map, map_cyclotomic] at hμ,
   end,
   adjoin_roots := λ x,
   begin
@@ -510,8 +608,7 @@ instance is_cyclotomic_extension [ne_zero ((n : ℕ) : A)] :
     { exact subalgebra.mul_mem _ hy hz },
   end }
 
-instance [ne_zero ((n : ℕ) : A)] :
-  is_fraction_ring (cyclotomic_ring n A K) (cyclotomic_field n K) :=
+instance : is_fraction_ring (cyclotomic_ring n A K) (cyclotomic_field n K) :=
 { map_units := λ ⟨x, hx⟩, begin
     rw is_unit_iff_ne_zero,
     apply map_ne_zero_of_mem_non_zero_divisors,
@@ -520,7 +617,6 @@ instance [ne_zero ((n : ℕ) : A)] :
   end,
   surj := λ x,
   begin
-    letI : ne_zero ((n : ℕ) : K) := ne_zero.nat_of_injective (is_fraction_ring.injective A K),
     refine algebra.adjoin_induction (((is_cyclotomic_extension.iff_singleton n K _).1
       (cyclotomic_field.is_cyclotomic_extension n K)).2 x) (λ y hy, _) (λ k, _) _ _,
     { exact ⟨⟨⟨y, subset_adjoin hy⟩, 1⟩, by simpa⟩ },

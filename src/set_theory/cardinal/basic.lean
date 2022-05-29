@@ -1382,7 +1382,7 @@ lemma mk_subtype_of_equiv {α β : Type u} (p : β → Prop) (e : α ≃ β) :
   #{a : α // p (e a)} = #{b : β // p b} :=
 mk_congr (equiv.subtype_equiv_of_subtype e)
 
-lemma mk_sep (s : set α) (t : α → Prop) : #({ x ∈ s | t x } : set α) = #{ x : s | t x.1 } :=
+lemma mk_sep (s : set α) (t : α → Prop) : #({x ∈ s | t x} : set α) = #{x : s // t x.1} :=
 mk_congr (equiv.set.sep s t)
 
 lemma mk_preimage_of_injective_lift {α : Type u} {β : Type v} (f : α → β) (s : set β)

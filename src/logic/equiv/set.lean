@@ -399,7 +399,7 @@ protected def congr {α β : Type*} (e : α ≃ β) : set α ≃ set β :=
 
 /-- The set `{x ∈ s | t x}` is equivalent to the set of `x : s` such that `t x`. -/
 protected def sep {α : Type u} (s : set α) (t : α → Prop) :
-  ({ x ∈ s | t x } : set α) ≃ { x : s | t x } :=
+  ({x ∈ s | t x} : set α) ≃ {x : s // t x} :=
 (equiv.subtype_subtype_equiv_subtype_inter s t).symm
 
 /-- The set `𝒫 S := {x | x ⊆ S}` is equivalent to the type `set S`. -/

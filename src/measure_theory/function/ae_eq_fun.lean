@@ -674,7 +674,7 @@ by rw [← lintegral_mk, mk_coe_fn]
 induction_on f $ λ f hf, (lintegral_eq_zero_iff' hf.ae_measurable).trans mk_eq_mk.symm
 
 lemma lintegral_add (f g : α →ₘ[μ] ℝ≥0∞) : lintegral (f + g) = lintegral f + lintegral g :=
-induction_on₂ f g $ λ f hf g hg, by simp [lintegral_add' hf.ae_measurable hg.ae_measurable]
+induction_on₂ f g $ λ f hf g hg, by simp [lintegral_add_left' hf.ae_measurable]
 
 lemma lintegral_mono {f g : α →ₘ[μ] ℝ≥0∞} : f ≤ g → lintegral f ≤ lintegral g :=
 induction_on₂ f g $ λ f hf g hg hfg, lintegral_mono_ae hfg

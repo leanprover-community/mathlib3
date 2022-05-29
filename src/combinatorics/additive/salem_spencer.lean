@@ -194,7 +194,7 @@ lemma mul_salem_spencer_insert_of_lt (hs : ∀ i ∈ s, i < a) :
 begin
   refine mul_salem_spencer_insert.trans _,
   rw ←and_assoc,
-  exact and_iff_left (λ b c hb hc h, ((mul_lt_mul''' (hs _ hb) (hs _ hc)).ne h).elim),
+  exact and_iff_left (λ b c hb hc h, ((mul_lt_mul_of_lt_of_lt (hs _ hb) (hs _ hc)).ne h).elim),
 end
 
 end ordered_cancel_comm_monoid

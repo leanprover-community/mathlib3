@@ -217,6 +217,10 @@ begin
   exact (P.2.card_modeq_card_fixed_points (sylow p G)).trans (by rw this),
 end
 
+lemma not_dvd_card_sylow [hp : fact p.prime] [fintype (sylow p G)] : ¬ p ∣ card (sylow p G) :=
+λ h, hp.1.ne_one (nat.dvd_one.mp ((nat.modeq_iff_dvd' zero_le_one).mp
+  ((nat.modeq_zero_iff_dvd.mpr h).symm.trans (card_sylow_modeq_one p G))))
+
 variables {p} {G}
 
 /-- Sylow subgroups are isomorphic -/

@@ -26,8 +26,6 @@ instance : Π n, locally_finite_order_top (fin n)
 | (n + 1) := infer_instance
 
 namespace fin
-
-section bounded
 variables {n} (a b : fin n)
 
 lemma Icc_eq_finset_subtype : Icc a b = (Icc (a : ℕ) b).subtype (λ x, x < n) := rfl
@@ -133,30 +131,5 @@ by rw [fintype.card_of_finset, card_Iic]
 
 @[simp] lemma card_fintype_Iio : fintype.card (set.Iio b) = b :=
 by rw [fintype.card_of_finset, card_Iio]
-
-end bounded
-
-section filter
-
-variables {n} (a b : fin n)
-
-lemma prod_filter_lt_mul_neg_eq_prod_off_diag {R : Type*} [comm_monoid R] {n : ℕ}
-  {f : fin n → fin n → R} :
-  ∏ i, (∏ j in univ.filter (λ j, i < j), (f j i) * (f i j)) =
-  ∏ i, (∏ j in univ.filter (λ j, i ≠ j), (f j i)) :=
-begin
-  simp_rw [ne_iff_lt_or_gt, or.comm, filter_or, prod_mul_distrib],
-  have : ∀ i : fin n, disjoint (filter (gt i) univ) (filter (has_lt.lt i) univ),
-  { simp_rw disjoint_filter,
-    intros i x y,
-    apply lt_asymm },
-  simp only [prod_union, this, prod_mul_distrib],
-  rw mul_comm,
-  congr' 1,
-  rw [prod_sigma', prod_sigma'],
-  refine prod_bij' (λ i hi, ⟨i.2, i.1⟩) _ _ (λ i hi, ⟨i.2, i.1⟩) _ _ _; simp
-end
-
-end filter
 
 end fin

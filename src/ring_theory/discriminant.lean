@@ -152,7 +152,7 @@ by rw [discr_def, ring_hom.map_det, ring_hom.map_matrix_apply,
 /-- The discriminant of a power basis. -/
 lemma discr_power_basis_eq_prod (e : fin pb.dim ≃ (L →ₐ[K] E)) [is_separable K L] :
   algebra_map K E (discr K pb.basis) =
-  ∏ i : fin pb.dim, ∏ j in finset.univ.filter (λ j, i < j), (e j pb.gen- (e i pb.gen)) ^ 2 :=
+  ∏ i : fin pb.dim, ∏ j in Ioi i, (e j pb.gen- (e i pb.gen)) ^ 2 :=
 begin
   rw [discr_eq_det_embeddings_matrix_reindex_pow_two K E pb.basis e,
     embeddings_matrix_reindex_eq_vandermonde, det_transpose, det_vandermonde, ← prod_pow],
@@ -163,8 +163,7 @@ end
 /-- A variation of `of_power_basis_eq_prod`. -/
 lemma discr_power_basis_eq_prod' [is_separable K L] (e : fin pb.dim ≃ (L →ₐ[K] E)) :
   algebra_map K E (discr K pb.basis) =
-  ∏ i : fin pb.dim, ∏ j in finset.univ.filter (λ j, i < j),
-  -((e j pb.gen- (e i pb.gen)) * (e i pb.gen- (e j pb.gen))) :=
+  ∏ i : fin pb.dim, ∏ j in Ioi i, -((e j pb.gen - e i pb.gen) * (e i pb.gen - e j pb.gen)) :=
 begin
   rw [discr_power_basis_eq_prod _ _ _ e],
   congr, ext i, congr, ext j,
@@ -176,8 +175,8 @@ local notation `n` := finrank K L
 /-- A variation of `of_power_basis_eq_prod`. -/
 lemma discr_power_basis_eq_prod'' [is_separable K L] (e : fin pb.dim ≃ (L →ₐ[K] E)) :
   algebra_map K E (discr K pb.basis) =
-  (-1) ^ (n * (n - 1) / 2) * ∏ i : fin pb.dim, ∏ j in finset.univ.filter (λ j, i < j),
-  ((e j pb.gen- (e i pb.gen)) * (e i pb.gen- (e j pb.gen))) :=
+  (-1) ^ (n * (n - 1) / 2) * ∏ i : fin pb.dim, ∏ j in Ioi i,
+    (e j pb.gen - e i pb.gen) * (e i pb.gen - e j pb.gen) :=
 begin
   rw [discr_power_basis_eq_prod' _ _ _ e],
   simp_rw [λ i j, neg_eq_neg_one_mul ((e j pb.gen- (e i pb.gen)) * (e i pb.gen- (e j pb.gen))),
@@ -185,7 +184,7 @@ begin
   congr,
   simp only [prod_pow_eq_pow_sum, prod_const],
   congr,
-  simp_rw [fin.card_filter_lt],
+  simp_rw [fin.card_Ioi],
   apply (@nat.cast_inj ℚ _ _ _ _ _).1,
   rw [nat.cast_sum],
   have : ∀ (x : fin pb.dim), (↑x + 1) ≤ pb.dim := by simp [nat.succ_le_iff, fin.is_lt],
@@ -228,7 +227,7 @@ begin
   rw [ring_hom.map_mul, ring_hom.map_pow, ring_hom.map_neg, ring_hom.map_one,
     discr_power_basis_eq_prod'' _ _ _ e],
   congr,
-  rw [norm_eq_prod_embeddings, fin.prod_filter_lt_mul_neg_eq_prod_off_diag],
+  rw [norm_eq_prod_embeddings, prod_Ioi_mul_prod_Ioi_mul_eq_prod_off_diag],
   conv_rhs { congr, skip, funext,
     rw [← aeval_alg_hom_apply, aeval_root_derivative_of_splits (minpoly.monic
       (is_separable.is_integral K pb.gen)) (is_alg_closed.splits_codomain _) (hroots σ),

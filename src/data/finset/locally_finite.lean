@@ -18,7 +18,9 @@ generalize these lemmas properly and many lemmas about `Icc`, `Ioc`, `Ioo` are m
 what's to do is taking the lemmas in `data.x.intervals` and abstract away the concrete structure.
 -/
 
-variables {α : Type*}
+open_locale big_operators
+
+variables {ι α : Type*}
 
 namespace finset
 section preorder
@@ -501,4 +503,23 @@ lemma image_add_right_Ioo (a b c : α) : (Ioo a b).image (+ c) = Ioo (a + c) (b 
 by { simp_rw add_comm _ c, exact image_add_left_Ioo a b c }
 
 end ordered_cancel_add_comm_monoid
+
+@[to_additive] lemma prod_Ioi_mul_prod_Ioi_mul_eq_prod_off_diag [fintype ι] [linear_order ι]
+  [locally_finite_order_top ι] [locally_finite_order_bot ι] [comm_monoid α] (f : ι → ι → α) :
+  ∏ i, ∏ j in Ioi i, f j i * f i j = ∏ i, ∏ j in univ.filter (λ j, i ≠ j), f j i :=
+begin
+  have Ioiio : ∀ i : ι, univ.filter (λ j, i ≠ j) = Ioi i ∪ Iio i,
+  { rintro i,
+    ext,
+    simp only [mem_filter, mem_univ, true_and, mem_union, mem_Ioi, mem_Iio, lt_or_lt_iff_ne] },
+  have : ∀ i : ι, disjoint (Ioi i) (Iio i),
+  { rintro i x hx,
+    rw [inf_eq_inter, mem_inter, mem_Iio, mem_Ioi] at hx,
+    exact hx.1.not_lt hx.2 },
+  simp only [Ioiio, prod_union, this, prod_mul_distrib],
+  congr' 1,
+  rw [prod_sigma', prod_sigma'],
+  refine prod_bij' (λ i hi, ⟨i.2, i.1⟩) _ _ (λ i hi, ⟨i.2, i.1⟩) _ _ _; simp,
+end
+
 end finset

@@ -8,7 +8,7 @@ import algebra.big_operators.fin
 import algebra.geom_sum
 import group_theory.perm.fin
 import linear_algebra.matrix.determinant
-import tactic.ring_exp
+import order.locally_finite
 
 /-!
 # Vandermonde matrix
@@ -27,10 +27,8 @@ This file defines the `vandermonde` matrix and gives its determinant.
 
 variables {R : Type*} [comm_ring R]
 
-open_locale big_operators
-open_locale matrix
-
-open equiv
+open equiv finset
+open_locale big_operators matrix
 
 namespace matrix
 
@@ -71,7 +69,7 @@ lemma vandermonde_transpose_mul_vandermonde {n : ℕ} (v : fin n → R) (i j) :
 by simp only [vandermonde_apply, matrix.mul_apply, matrix.transpose_apply, pow_add]
 
 lemma det_vandermonde {n : ℕ} (v : fin n → R) :
-  det (vandermonde v) = ∏ i : fin n, ∏ j in finset.univ.filter (λ j, i < j), (v j - v i) :=
+  det (vandermonde v) = ∏ i : fin n, ∏ j in Ioi i, (v j - v i) :=
 begin
   unfold vandermonde,
 
@@ -99,9 +97,8 @@ begin
     det_mul_column (λ i, v (fin.succ i) - v 0) _
   ... = (∏ (i : fin n), (v (fin.succ i) - v 0)) * det (λ (i j : fin n), v (fin.succ i) ^ (j : ℕ)) :
     congr_arg ((*) _) _
-  ... = ∏ i : fin n.succ, ∏ j in finset.univ.filter (λ j, i < j), (v j - v i) :
-    by { simp_rw [ih (v ∘ fin.succ), fin.prod_univ_succ, fin.prod_filter_zero_lt,
-                  fin.prod_filter_succ_lt] },
+  ... = ∏ i : fin n.succ, ∏ j in Ioi i, (v j - v i) :
+    by simp_rw [ih (v ∘ fin.succ), fin.prod_univ_succ, fin.prod_Ioi_zero, fin.prod_filter_succ_lt],
   { intros i j,
     rw fin.cons_zero,
     refine fin.cases _ (λ i, _) i,

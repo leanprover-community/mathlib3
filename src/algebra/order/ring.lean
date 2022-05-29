@@ -5,6 +5,7 @@ Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro
 -/
 import algebra.order.group
 import algebra.order.sub
+import algebra.hom.ring
 import data.set.intervals.basic
 
 /-!
@@ -95,20 +96,20 @@ namespace order_dual
 /-! Note that `order_dual` does not satisfy any of the ordered ring typeclasses due to the
 `zero_le_one` field. -/
 
-instance [h : distrib α] : distrib (order_dual α) := h
-instance [has_mul α] [h : has_distrib_neg α] : has_distrib_neg (order_dual α) := h
-instance [h : non_unital_non_assoc_semiring α] : non_unital_non_assoc_semiring (order_dual α) := h
-instance [h : non_unital_semiring α] : non_unital_semiring (order_dual α) := h
-instance [h : non_assoc_semiring α] : non_assoc_semiring (order_dual α) := h
-instance [h : semiring α] : semiring (order_dual α) := h
-instance [h : non_unital_comm_semiring α] : non_unital_comm_semiring (order_dual α) := h
-instance [h : comm_semiring α] : comm_semiring (order_dual α) := h
-instance [h : non_unital_non_assoc_ring α] : non_unital_non_assoc_ring (order_dual α) := h
-instance [h : non_unital_ring α] : non_unital_ring (order_dual α) := h
-instance [h : non_assoc_ring α] : non_assoc_ring (order_dual α) := h
-instance [h : ring α] : ring (order_dual α) := h
-instance [h : non_unital_comm_ring α] : non_unital_comm_ring (order_dual α) := h
-instance [h : comm_ring α] : comm_ring (order_dual α) := h
+instance [h : distrib α] : distrib αᵒᵈ := h
+instance [has_mul α] [h : has_distrib_neg α] : has_distrib_neg αᵒᵈ := h
+instance [h : non_unital_non_assoc_semiring α] : non_unital_non_assoc_semiring αᵒᵈ := h
+instance [h : non_unital_semiring α] : non_unital_semiring αᵒᵈ := h
+instance [h : non_assoc_semiring α] : non_assoc_semiring αᵒᵈ := h
+instance [h : semiring α] : semiring αᵒᵈ := h
+instance [h : non_unital_comm_semiring α] : non_unital_comm_semiring αᵒᵈ := h
+instance [h : comm_semiring α] : comm_semiring αᵒᵈ := h
+instance [h : non_unital_non_assoc_ring α] : non_unital_non_assoc_ring αᵒᵈ := h
+instance [h : non_unital_ring α] : non_unital_ring αᵒᵈ := h
+instance [h : non_assoc_ring α] : non_assoc_ring αᵒᵈ := h
+instance [h : ring α] : ring αᵒᵈ := h
+instance [h : non_unital_comm_ring α] : non_unital_comm_ring αᵒᵈ := h
+instance [h : comm_ring α] : comm_ring αᵒᵈ := h
 
 end order_dual
 
@@ -447,7 +448,7 @@ by classical; exact decidable.one_lt_mul
 -- See Note [decidable namespace]
 protected lemma decidable.mul_le_one [@decidable_rel α (≤)]
   (ha : a ≤ 1) (hb' : 0 ≤ b) (hb : b ≤ 1) : a * b ≤ 1 :=
-begin rw ← one_mul (1 : α), apply decidable.mul_le_mul; {assumption <|> apply zero_le_one} end
+one_mul (1 : α) ▸ decidable.mul_le_mul ha hb hb' zero_le_one
 
 lemma mul_le_one : a ≤ 1 → 0 ≤ b → b ≤ 1 → a * b ≤ 1 :=
 by classical; exact decidable.mul_le_one
@@ -1587,6 +1588,26 @@ instance [mul_zero_one_class α] [nontrivial α] : mul_zero_one_class (with_top 
   end,
   .. with_top.mul_zero_class }
 
+/-- A version of `with_top.map` for `monoid_with_zero_hom`s. -/
+@[simps { fully_applied := ff }] protected def _root_.monoid_with_zero_hom.with_top_map
+  {R S : Type*} [mul_zero_one_class R] [decidable_eq R] [nontrivial R]
+  [mul_zero_one_class S] [decidable_eq S] [nontrivial S] (f : R →*₀ S) (hf : function.injective f) :
+  with_top R →*₀ with_top S :=
+{ to_fun := with_top.map f,
+  map_mul' := λ x y,
+    begin
+      have : ∀ z, map f z = 0 ↔ z = 0,
+        from λ z, (option.map_injective hf).eq_iff' f.to_zero_hom.with_top_map.map_zero,
+      rcases eq_or_ne x 0 with rfl|hx, { simp },
+      rcases eq_or_ne y 0 with rfl|hy, { simp },
+      induction x using with_top.rec_top_coe, { simp [hy, this] },
+      induction y using with_top.rec_top_coe,
+      { have : (f x : with_top S) ≠ 0, by simpa [hf.eq_iff' (map_zero f)] using hx,
+        simp [hx, this] },
+      simp [← coe_mul]
+    end,
+  .. f.to_zero_hom.with_top_map, .. f.to_monoid_hom.to_one_hom.with_top_map }
+
 instance [mul_zero_class α] [no_zero_divisors α] : no_zero_divisors (with_top α) :=
 ⟨λ a b, by cases a; cases b; dsimp [mul_def]; split_ifs;
   simp [*, none_eq_top, some_eq_coe, mul_eq_zero] at *⟩
@@ -1647,6 +1668,15 @@ instance [nontrivial α] : canonically_ordered_comm_semiring (with_top α) :=
 { .. with_top.comm_semiring,
   .. with_top.canonically_ordered_add_monoid,
   .. with_top.no_zero_divisors, }
+
+/-- A version of `with_top.map` for `ring_hom`s. -/
+@[simps { fully_applied := ff }] protected def _root_.ring_hom.with_top_map
+  {R S : Type*} [canonically_ordered_comm_semiring R] [decidable_eq R] [nontrivial R]
+  [canonically_ordered_comm_semiring S] [decidable_eq S] [nontrivial S]
+  (f : R →+* S) (hf : function.injective f) :
+  with_top R →+* with_top S :=
+{ to_fun := with_top.map f,
+  .. f.to_monoid_with_zero_hom.with_top_map hf, .. f.to_add_monoid_hom.with_top_map }
 
 end with_top
 

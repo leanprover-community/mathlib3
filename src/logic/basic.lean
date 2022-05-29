@@ -152,6 +152,10 @@ assume ⟨h⟩, h.elim
 @[simp] theorem exists_pempty {P : pempty → Prop} : (∃ x : pempty, P x) ↔ false :=
 ⟨λ h, by { cases h with w, cases w }, false.elim⟩
 
+lemma congr_heq {α β γ : Sort*} {f : α → γ} {g : β → γ} {x : α} {y : β} (h₁ : f == g)
+  (h₂ : x == y) : f x = g y :=
+by { cases h₂, cases h₁, refl }
+
 lemma congr_arg_heq {α} {β : α → Sort*} (f : ∀ a, β a) : ∀ {a₁ a₂ : α}, a₁ = a₂ → f a₁ == f a₂
 | a _ rfl := heq.rfl
 
@@ -885,10 +889,6 @@ lemma heq_of_cast_eq :
   ∀ {α β : Sort*} {a : α} {a' : β} (e : α = β) (h₂ : cast e a = a'), a == a'
 | α ._ a a' rfl h := eq.rec_on h (heq.refl _)
 
-lemma congr_fun_heq {α β γ : Sort*} {f : α → γ} {g : β → γ} (h₁ : β = α) (h₂ : f == g) (x : β) :
-  f (cast h₁ x) = g x :=
-by { subst h₁, rw [eq_of_heq h₂, cast_eq] }
-
 lemma cast_eq_iff_heq {α β : Sort*} {a : α} {a' : β} {e : α = β} : cast e a = a' ↔ a == a' :=
 ⟨heq_of_cast_eq _, λ h, by cases h; refl⟩
 
@@ -1147,11 +1147,11 @@ by simp only [exists_unique, and_self, forall_eq', exists_eq']
 (exists_congr $ by exact λ a, and.comm).trans exists_eq_left
 
 @[simp] theorem exists_eq_right_right {a' : α} :
-  (∃ (a : α), p a ∧ b ∧ a = a') ↔ p a' ∧ b :=
+  (∃ (a : α), p a ∧ q a ∧ a = a') ↔ p a' ∧ q a' :=
 ⟨λ ⟨_, hp, hq, rfl⟩, ⟨hp, hq⟩, λ ⟨hp, hq⟩, ⟨a', hp, hq, rfl⟩⟩
 
 @[simp] theorem exists_eq_right_right' {a' : α} :
-  (∃ (a : α), p a ∧ b ∧ a' = a) ↔ p a' ∧ b :=
+  (∃ (a : α), p a ∧ q a ∧ a' = a) ↔ p a' ∧ q a' :=
 ⟨λ ⟨_, hp, hq, rfl⟩, ⟨hp, hq⟩, λ ⟨hp, hq⟩, ⟨a', hp, hq, rfl⟩⟩
 
 @[simp] theorem exists_apply_eq_apply (f : α → β) (a' : α) : ∃ a, f a = f a' := ⟨a', rfl⟩

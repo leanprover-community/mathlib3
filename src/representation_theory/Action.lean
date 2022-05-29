@@ -10,8 +10,14 @@ import category_theory.limits.preserves.basic
 import category_theory.adjunction.limits
 import category_theory.monoidal.functor_category
 import category_theory.monoidal.transport
+import category_theory.monoidal.rigid.of_equivalence
+import category_theory.monoidal.rigid.functor_category
+import category_theory.monoidal.linear
+import category_theory.monoidal.braided
 import category_theory.abelian.functor_category
 import category_theory.abelian.transfer
+import category_theory.conj
+import category_theory.linear.functor_category
 
 /-!
 # `Action V G`, the category of actions of a monoid `G` inside some category `V`.
@@ -23,8 +29,8 @@ We check `Action V G ≌ (single_obj G ⥤ V)`,
 and construct the restriction functors `res {G H : Mon} (f : G ⟶ H) : Action V H ⥤ Action V G`.
 
 * When `V` has (co)limits so does `Action V G`.
-* When `V` is monoidal so is `Action V G`.
-* When `V` is preadditive or abelian so is `Action V G`.
+* When `V` is monoidal, braided, or symmetric, so is `Action V G`.
+* When `V` is preadditive, linear, or abelian so is `Action V G`.
 -/
 
 universes u
@@ -191,7 +197,7 @@ def functor_category_equivalence : Action V G ≌ (single_obj G ⥤ V) :=
 attribute [simps] functor_category_equivalence
 
 instance [has_finite_products V] : has_finite_products (Action V G) :=
-{ out := λ J _ _, by exactI
+{ out := λ J _, by exactI
   adjunction.has_limits_of_shape_of_equivalence (Action.functor_category_equivalence _ _).functor }
 
 instance [has_limits V] : has_limits (Action V G) :=
@@ -216,11 +222,11 @@ def forget : Action V G ⥤ V :=
 { obj := λ M, M.V,
   map := λ M N f, f.hom, }
 
+instance : faithful (forget V G) :=
+{ map_injective' := λ X Y f g w, hom.ext _ _ w, }
+
 instance [concrete_category V] : concrete_category (Action V G) :=
-{ forget := forget V G ⋙ (concrete_category.forget V),
-  forget_faithful :=
-  { map_injective' := λ M N f g w,
-      hom.ext _ _ (faithful.map_injective (concrete_category.forget V) w), } }
+{ forget := forget V G ⋙ (concrete_category.forget V), }
 
 instance has_forget_to_V [concrete_category V] : has_forget₂ (Action V G) V :=
 { forget₂ := forget V G }
@@ -242,6 +248,10 @@ preserves_colimits_of_nat_iso
 -- TODO construct categorical images?
 
 end forget
+
+lemma iso.conj_ρ {M N : Action V G} (f : M ≅ N) (g : G) :
+   N.ρ g = (((forget V G).map_iso f).conj (M.ρ g)) :=
+by { rw [iso.conj_apply, iso.eq_inv_comp], simp [f.hom.comm'] }
 
 section has_zero_morphisms
 variables [has_zero_morphisms V]
@@ -271,7 +281,32 @@ instance : preadditive (Action V G) :=
 
 instance : functor.additive (functor_category_equivalence V G).functor := {}
 
+@[simp] lemma zero_hom {X Y : Action V G} : (0 : X ⟶ Y).hom = 0 := rfl
+@[simp] lemma neg_hom {X Y : Action V G} (f : X ⟶ Y) : (-f).hom = -f.hom := rfl
+@[simp] lemma add_hom {X Y : Action V G} (f g : X ⟶ Y) : (f + g).hom = f.hom + g.hom := rfl
+
 end preadditive
+
+section linear
+variables [preadditive V] {R : Type*} [semiring R] [linear R V]
+
+instance : linear R (Action V G) :=
+{ hom_module := λ X Y,
+  { smul := λ r f, ⟨r • f.hom, by simp [f.comm]⟩,
+    one_smul := by { intros, ext, exact one_smul _ _, },
+    smul_zero := by { intros, ext, exact smul_zero _, },
+    zero_smul := by { intros, ext, exact zero_smul _ _, },
+    add_smul := by { intros, ext, exact add_smul _ _ _, },
+    smul_add := by { intros, ext, exact smul_add _ _ _, },
+    mul_smul := by { intros, ext, exact mul_smul _ _ _, }, },
+  smul_comp' := by { intros, ext, exact linear.smul_comp _ _ _ _ _ _, },
+  comp_smul' := by { intros, ext, exact linear.comp_smul _ _ _ _ _ _, }, }
+
+instance : functor.linear R (functor_category_equivalence V G).functor := {}
+
+@[simp] lemma smul_hom {X Y : Action V G} (r : R) (f : X ⟶ Y) : (r • f).hom = r • f.hom := rfl
+
+end linear
 
 section abelian
 /-- Auxilliary construction for the `abelian (Action V G)` instance. -/
@@ -284,18 +319,121 @@ abelian_of_equivalence abelian_aux.functor
 end abelian
 
 section monoidal
+variables [monoidal_category V]
 
-instance [monoidal_category V] : monoidal_category (Action V G) :=
+instance : monoidal_category (Action V G) :=
 monoidal.transport (Action.functor_category_equivalence _ _).symm
+
+@[simp] lemma tensor_V {X Y : Action V G} : (X ⊗ Y).V = X.V ⊗ Y.V := rfl
+@[simp] lemma tensor_rho {X Y : Action V G} {g : G} : (X ⊗ Y).ρ g = X.ρ g ⊗ Y.ρ g := rfl
+@[simp] lemma tensor_hom {W X Y Z : Action V G} (f : W ⟶ X) (g : Y ⟶ Z) :
+  (f ⊗ g).hom = f.hom ⊗ g.hom := rfl
+@[simp] lemma associator_hom_hom {X Y Z : Action V G} :
+  hom.hom (α_ X Y Z).hom = (α_ X.V Y.V Z.V).hom :=
+begin
+  dsimp [monoidal.transport_associator],
+  simp,
+end
+@[simp] lemma associator_inv_hom {X Y Z : Action V G} :
+  hom.hom (α_ X Y Z).inv = (α_ X.V Y.V Z.V).inv :=
+begin
+  dsimp [monoidal.transport_associator],
+  simp,
+end
+@[simp] lemma left_unitor_hom_hom {X : Action V G} :
+  hom.hom (λ_ X).hom = (λ_ X.V).hom :=
+begin
+  dsimp [monoidal.transport_left_unitor],
+  simp,
+end
+@[simp] lemma left_unitor_inv_hom {X : Action V G} :
+  hom.hom (λ_ X).inv = (λ_ X.V).inv :=
+begin
+  dsimp [monoidal.transport_left_unitor],
+  simp,
+end
+@[simp] lemma right_unitor_hom_hom {X : Action V G} :
+  hom.hom (ρ_ X).hom = (ρ_ X.V).hom :=
+begin
+  dsimp [monoidal.transport_right_unitor],
+  simp,
+end
+@[simp] lemma right_unitor_inv_hom {X : Action V G} :
+  hom.hom (ρ_ X).inv = (ρ_ X.V).inv :=
+begin
+  dsimp [monoidal.transport_right_unitor],
+  simp,
+end
+
+variables (V G)
 
 /-- When `V` is monoidal the forgetful functor `Action V G` to `V` is monoidal. -/
 @[simps]
-def forget_monoidal [monoidal_category V] : monoidal_functor (Action V G) V :=
+def forget_monoidal : monoidal_functor (Action V G) V :=
 { ε := 𝟙 _,
   μ := λ X Y, 𝟙 _,
   ..Action.forget _ _, }
 
--- TODO braiding and symmetry
+instance forget_monoidal_faithful : faithful (forget_monoidal V G).to_functor :=
+by { change faithful (forget V G), apply_instance, }
+
+section
+variables [braided_category V]
+
+instance : braided_category (Action V G) :=
+braided_category_of_faithful (forget_monoidal V G) (λ X Y, mk_iso (β_ _ _) (by tidy)) (by tidy)
+
+/-- When `V` is braided the forgetful functor `Action V G` to `V` is braided. -/
+@[simps]
+def forget_braided : braided_functor (Action V G) V :=
+{ ..forget_monoidal _ _, }
+
+instance forget_braided_faithful : faithful (forget_braided V G).to_functor :=
+by { change faithful (forget V G), apply_instance, }
+
+end
+
+instance [symmetric_category V] : symmetric_category (Action V G) :=
+symmetric_category_of_faithful (forget_braided V G)
+
+section
+local attribute [simp] monoidal_preadditive.tensor_add monoidal_preadditive.add_tensor
+
+variables [preadditive V] [monoidal_preadditive V]
+
+instance : monoidal_preadditive (Action V G) := {}
+
+variables {R : Type*} [semiring R] [linear R V] [monoidal_linear R V]
+
+instance : monoidal_linear R (Action V G) := {}
+
+end
+
+variables (V G)
+noncomputable theory
+
+/-- Upgrading the functor `Action V G ⥤ (single_obj G ⥤ V)` to a monoidal functor. -/
+def functor_category_monoidal_equivalence : monoidal_functor (Action V G) (single_obj G ⥤ V) :=
+monoidal.from_transported (Action.functor_category_equivalence _ _).symm
+
+instance : is_equivalence ((functor_category_monoidal_equivalence V G).to_functor) :=
+by { change is_equivalence (Action.functor_category_equivalence _ _).functor, apply_instance, }
+
+variables (H : Group.{u})
+
+instance [right_rigid_category V] : right_rigid_category (single_obj (H : Mon.{u}) ⥤ V) :=
+by { change right_rigid_category (single_obj H ⥤ V), apply_instance }
+
+/-- If `V` is right rigid, so is `Action V G`. -/
+instance [right_rigid_category V] : right_rigid_category (Action V H) :=
+right_rigid_category_of_equivalence (functor_category_monoidal_equivalence V _)
+
+instance [rigid_category V] : rigid_category (single_obj (H : Mon.{u}) ⥤ V) :=
+by { change rigid_category (single_obj H ⥤ V), apply_instance }
+
+/-- If `V` is rigid, so is `Action V G`. -/
+instance [rigid_category V] : rigid_category (Action V H) :=
+rigid_category_of_equivalence (functor_category_monoidal_equivalence V _)
 
 end monoidal
 
@@ -346,6 +484,14 @@ attribute [simps] res_comp
 -- TODO promote `res` to a pseudofunctor from
 -- the locally discrete bicategory constructed from `Monᵒᵖ` to `Cat`, sending `G` to `Action V G`.
 
+variables {G} {H : Mon.{u}} (f : G ⟶ H)
+
+instance res_additive [preadditive V] : (res V f).additive := {}
+
+variables {R : Type*} [semiring R]
+
+instance res_linear [preadditive V] [linear R V] : (res V f).linear R := {}
+
 end Action
 
 namespace category_theory.functor
@@ -367,5 +513,13 @@ def map_Action (F : V ⥤ W) (G : Mon.{u}) : Action V G ⥤ Action W G :=
     comm' := λ g, by { dsimp, rw [←F.map_comp, f.comm, F.map_comp], }, },
   map_id' := λ M, by { ext, simp only [Action.id_hom, F.map_id], },
   map_comp' := λ M N P f g, by { ext, simp only [Action.comp_hom, F.map_comp], }, }
+
+variables (F : V ⥤ W) (G : Mon.{u}) [preadditive V] [preadditive W]
+
+instance map_Action_preadditive [F.additive] : (F.map_Action G).additive := {}
+
+variables {R : Type*} [semiring R] [category_theory.linear R V] [category_theory.linear R W]
+
+instance map_Action_linear [F.additive] [F.linear R] : (F.map_Action G).linear R := {}
 
 end category_theory.functor

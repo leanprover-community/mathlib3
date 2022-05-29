@@ -34,7 +34,7 @@ variables {α : Type*}
 variables {a b c d x y z : α}
 
 instance [linear_ordered_add_comm_monoid_with_top α] :
-  linear_ordered_comm_monoid_with_zero (multiplicative (order_dual α)) :=
+  linear_ordered_comm_monoid_with_zero (multiplicative αᵒᵈ) :=
 { zero := multiplicative.of_add (⊤ : α),
   zero_mul := top_add,
   mul_zero := add_top,
@@ -43,7 +43,7 @@ instance [linear_ordered_add_comm_monoid_with_top α] :
   ..multiplicative.linear_order }
 
 instance [linear_ordered_add_comm_group_with_top α] :
-  linear_ordered_comm_group_with_zero (multiplicative (order_dual α)) :=
+  linear_ordered_comm_group_with_zero (multiplicative αᵒᵈ) :=
 { inv_zero := linear_ordered_add_comm_group_with_top.neg_top,
   mul_inv_cancel := linear_ordered_add_comm_group_with_top.add_neg_cancel,
   ..multiplicative.div_inv_monoid,
@@ -196,7 +196,7 @@ lemma ne_zero_of_lt (h : b < a) : a ≠ 0 :=
 lemma pow_pos_iff [no_zero_divisors α] {n : ℕ} (hn : 0 < n) : 0 < a ^ n ↔ 0 < a :=
 by simp_rw [zero_lt_iff, pow_ne_zero_iff hn]
 
-instance : linear_ordered_add_comm_monoid_with_top (additive (order_dual α)) :=
+instance : linear_ordered_add_comm_monoid_with_top (additive αᵒᵈ) :=
 { top := (0 : α),
   top_add' := λ a, (zero_mul a : (0 : α) * a = 0),
   le_top := λ _, zero_le',
@@ -285,8 +285,14 @@ end
 lemma mul_le_mul_right₀ (hc : c ≠ 0) : a * c ≤ b * c ↔ a ≤ b :=
 ⟨le_of_le_mul_right hc, λ hab, mul_le_mul_right' hab _⟩
 
+lemma mul_le_mul_left₀ (ha : a ≠ 0) : a * b ≤ a * c ↔ b ≤ c :=
+by {simp only [mul_comm a], exact mul_le_mul_right₀ ha }
+
 lemma div_le_div_right₀ (hc : c ≠ 0) : a/c ≤ b/c ↔ a ≤ b :=
 by rw [div_eq_mul_inv, div_eq_mul_inv, mul_le_mul_right₀ (inv_ne_zero hc)]
+
+lemma div_le_div_left₀ (ha : a ≠ 0) (hb : b ≠ 0) (hc : c ≠ 0) : a/b ≤ a/c ↔ c ≤ b :=
+by simp only [div_eq_mul_inv, mul_le_mul_left₀ ha, inv_le_inv₀ hb hc]
 
 lemma le_div_iff₀ (hc : c ≠ 0) : a ≤ b/c ↔ a*c ≤ b :=
 by rw [div_eq_mul_inv, le_mul_inv_iff₀ hc]
@@ -294,7 +300,29 @@ by rw [div_eq_mul_inv, le_mul_inv_iff₀ hc]
 lemma div_le_iff₀ (hc : c ≠ 0) : a/c ≤ b ↔ a ≤ b*c :=
 by rw [div_eq_mul_inv, mul_inv_le_iff₀ hc]
 
-instance : linear_ordered_add_comm_group_with_top (additive (order_dual α)) :=
+/-- `equiv.mul_left₀` as an order_iso on a `linear_ordered_comm_group_with_zero.`.
+
+Note that `order_iso.mul_left₀` refers to the `linear_ordered_field` version. -/
+@[simps apply to_equiv {simp_rhs := tt}]
+def order_iso.mul_left₀' {a : α} (ha : a ≠ 0) : α ≃o α :=
+{ map_rel_iff' := λ x y,  mul_le_mul_left₀ ha, ..equiv.mul_left₀ a ha }
+
+lemma order_iso.mul_left₀'_symm {a : α} (ha : a ≠ 0) :
+  (order_iso.mul_left₀' ha).symm = order_iso.mul_left₀' (inv_ne_zero ha) :=
+by { ext, refl }
+
+/-- `equiv.mul_right₀` as an order_iso on a `linear_ordered_comm_group_with_zero.`.
+
+Note that `order_iso.mul_right₀` refers to the `linear_ordered_field` version. -/
+@[simps apply to_equiv {simp_rhs := tt}]
+def order_iso.mul_right₀' {a : α} (ha : a ≠ 0) : α ≃o α :=
+{ map_rel_iff' := λ _ _, mul_le_mul_right₀ ha, ..equiv.mul_right₀ a ha }
+
+lemma order_iso.mul_right₀'_symm {a : α} (ha : a ≠ 0) :
+  (order_iso.mul_right₀' ha).symm = order_iso.mul_right₀' (inv_ne_zero ha) :=
+by { ext, refl }
+
+instance : linear_ordered_add_comm_group_with_top (additive αᵒᵈ) :=
 { neg_top := inv_zero,
   add_neg_cancel := λ a ha, mul_inv_cancel ha,
   ..additive.sub_neg_monoid,

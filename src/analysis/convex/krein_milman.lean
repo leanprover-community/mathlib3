@@ -96,7 +96,7 @@ set is the closure of the convex hull of its extreme points. -/
 lemma closure_convex_hull_extreme_points (hscomp : is_compact s) (hAconv : convex ℝ s) :
   closure (convex_hull ℝ $ s.extreme_points ℝ) = s :=
 begin
-  refine (closure_minimal (convex_hull_min extreme_points_subset hAconv) hscomp.is_closed).antisymm _,
+  apply (closure_minimal (convex_hull_min extreme_points_subset hAconv) hscomp.is_closed).antisymm,
   by_contra hs,
   obtain ⟨x, hxA, hxt⟩ := not_subset.1 hs,
   obtain ⟨l, r, hlr, hrx⟩ := geometric_hahn_banach_closed_point (convex_convex_hull _ _).closure

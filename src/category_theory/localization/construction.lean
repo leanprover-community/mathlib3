@@ -63,31 +63,23 @@ def ι_paths (X : C) : paths (loc_quiver W) := ⟨X⟩
 
 /-- The morphism in the path category associated to a morphism in the original category. -/
 @[simp]
-def ψ₁' {X Y : paths (loc_quiver W)} (f : X.obj ⟶ Y.obj) : X ⟶ Y := paths.of.map (sum.inl f)
-
-/-- The morphism in the path category associated to a morphism in the original category. -/
-@[simp]
 def ψ₁ {X Y : C} (f : X ⟶ Y) : ι_paths W X ⟶ ι_paths W Y := paths.of.map (sum.inl f)
 
 /-- The morphism in the path category corresponding to a formal inverse. -/
 @[simp]
-def ψ₂' {X Y : paths (loc_quiver W)} (w : X.obj ⟶ Y.obj) (hw : arrow.mk w ∈ W) : Y ⟶ X :=
+def ψ₂ {X Y : C} (w : X ⟶ Y) (hw : arrow.mk w ∈ W) : ι_paths W Y ⟶ ι_paths W X :=
 paths.of.map (sum.inr ⟨w, hw⟩)
 
-/-- The morphism in the path category corresponding to a formal inverse. -/
-@[simp]
-def ψ₂ {X Y : C} (w : X ⟶ Y) (hw : arrow.mk w ∈ W) : ι_paths W Y ⟶ ι_paths W X := ψ₂' W w hw
-
 /-- The relations by which we take the quotient in order to get the localized category. -/
-inductive relations ⦃X Y : (paths (loc_quiver W))⦄ : (X ⟶ Y) → (X ⟶ Y) → Prop
-| id (φ : X ⟶ Y) :
-  relations (ψ₁' W (𝟙 X.obj) ≫ φ) φ
-| comp {Z : paths (loc_quiver W)} (f : X.obj ⟶ Z.obj) (g : Z.obj ⟶ Y.obj) :
-  relations (ψ₁' W (f ≫ g)) (ψ₁' W f ≫ ψ₁' W g)
-| Winv₁ {Z : paths (loc_quiver W)} (w : X.obj ⟶ Z.obj) (hw : arrow.mk w ∈ W) (φ : X ⟶ Y) :
-  relations (ψ₁' W w ≫ ψ₂' W w hw ≫ φ) φ
-| Winv₂ {Z : paths (loc_quiver W)} (w : Z.obj ⟶ Y.obj) (hw : arrow.mk w ∈ W) (φ : X ⟶ Y) :
-  relations (φ ≫ ψ₂' W w hw ≫ ψ₁' W w) φ
+inductive relations : hom_rel (paths (loc_quiver W))
+| id (X : C) :
+  relations (ψ₁ W (𝟙 X)) (𝟙 _)
+| comp {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) :
+  relations (ψ₁ W (f ≫ g)) (ψ₁ W f ≫ ψ₁ W g)
+| Winv₁ {X Y : C} (w : X ⟶ Y) (hw : arrow.mk w ∈ W) :
+  relations (ψ₁ W w ≫ ψ₂ W w hw) (𝟙 _)
+| Winv₂ {X Y : C} (w : X ⟶ Y) (hw : arrow.mk w ∈ W) :
+  relations (ψ₂ W w hw ≫ ψ₁ W w) (𝟙 _)
 
 end localization
 
@@ -101,18 +93,15 @@ namespace localization
 def Q : C ⥤ W.localization :=
 { obj := λ X, (quotient.functor _).obj (paths.of.obj ⟨X⟩),
   map := λ X Y f, (quotient.functor _).map (ψ₁ W f),
-  map_id' := λ X, by convert quotient.sound _ (@relations.id _ _ W (paths.of.obj ⟨X⟩) _ (𝟙 _)),
-  map_comp' := λ X Z Y f g, quotient.sound _
-    (@relations.comp _ _ W (paths.of.obj ⟨X⟩) (paths.of.obj ⟨Y⟩) (paths.of.obj ⟨Z⟩) f g), }
+  map_id' := λ X, quotient.sound _ (relations.id X),
+  map_comp' := λ X Z Y f g, quotient.sound _ (relations.comp f g), }
 
 /-- The isomorphism in `localization W` associated to a morphism `w` in W -/
 def Wiso {X Y : C} (w : X ⟶ Y) (hw : arrow.mk w ∈ W) : iso ((Q W).obj X) ((Q W).obj Y) :=
 { hom := (Q W).map w,
   inv := (quotient.functor _).map (paths.of.map (sum.inr ⟨w, hw⟩)),
-  hom_inv_id' := quotient.sound _ (@relations.Winv₁ _ _ _
-    (paths.of.obj ⟨X⟩) _ (paths.of.obj ⟨Y⟩) w hw (𝟙 _)),
-  inv_hom_id' := quotient.sound _ (@relations.Winv₂ _ _ _
-    (paths.of.obj ⟨Y⟩) (paths.of.obj ⟨Y⟩) (paths.of.obj ⟨X⟩) w hw (𝟙 _)), }
+  hom_inv_id' := quotient.sound _ (relations.Winv₁ w hw),
+  inv_hom_id' := quotient.sound _ (relations.Winv₂ w hw), }
 
 /-- The isomorphism in `localization W` associated to a morphism `w : W` -/
 def Wiso' (w : W) : iso ((Q W).obj w.1.left) ((Q W).obj w.1.right) :=
@@ -144,7 +133,7 @@ def lift : localization W ⥤ D :=
 quotient.lift (relations W) (lift_to_path_category G hG)
 begin
   rintro ⟨X⟩ ⟨Y⟩ f₁ f₂ r,
-  rcases r with (_|⟨⟨Z⟩, f, g⟩|⟨⟨Z⟩, w, hw⟩|⟨⟨Z⟩, w, hw⟩),
+  rcases r,
   tidy,
 end
 

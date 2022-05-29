@@ -484,7 +484,7 @@ begin
   apply filter.le_map,
   rintros S ⟨-, ⟨-, ⟨E, h_findim, rfl⟩, rfl⟩, hS⟩,
   refine filter.mem_of_superset _ (set.image_subset _ hS),
-  let p : (L ≃ₐ[K] L) → (E →ₐ[K] L) := λ σ, (σ.to_alg_hom.comp E.val),
+  let p : (L ≃ₐ[K] L) → (E →ₐ[K] L) := (λ σ : L →ₐ[K] L, σ.comp E.val) ∘ alg_equiv.to_alg_hom,
   have key : f.map p = _ :=
   ultrafilter.generator_of_pushforward_spec h_findim (f.map alg_equiv.to_alg_hom),
   have h_preim : p⁻¹' {p σ} = has_mul.mul σ '' E.fixing_subgroup.carrier,

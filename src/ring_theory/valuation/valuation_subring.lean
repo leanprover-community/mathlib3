@@ -397,20 +397,6 @@ begin
     exact h (units.mk0 x hx) }
 end
 
-def unit_group_ordered_embedding :
-  valuation_subring K ↪o subgroup Kˣ :=
-{ to_fun := λ A, A.unit_group,
-  inj' := λ A B h, by rwa eq_iff_unit_group,
-  map_rel_iff' := begin
-    intros A B,
-    dsimp,
-    split,
-    { sorry },
-    { rintros h x (hx : A.valuation x = 1),
-      apply_fun A.map_of_le B h at hx,
-      simpa using hx }
-  end }
-
 /-- `A.unit_group` agrees with the units of `A`. -/
 def unit_group_equiv : A.unit_group ≃* Aˣ :=
 { to_fun := λ x,
@@ -431,6 +417,37 @@ def unit_group_equiv : A.unit_group ≃* Aˣ :=
   left_inv := λ a, by { ext, refl },
   right_inv := λ a, by { ext, refl },
   map_mul' := λ a b, by { ext, refl } }
+
+  def unit_group_ordered_embedding :
+  valuation_subring K ↪o subgroup Kˣ :=
+{ to_fun := λ A, A.unit_group,
+  inj' := λ A B h, by rwa eq_iff_unit_group,
+  map_rel_iff' := begin
+    intros A B,
+    dsimp,
+    split,
+    { rintros h x hx,
+      by_cases hh : x = 0, { simp only [hh, zero_mem] },
+      rw [← A.valuation_le_one_iff x, le_iff_lt_or_eq] at hx,
+      cases hx,
+      { have hh : ¬1 + x = 0,
+        { by_contra,
+          rw add_eq_zero_iff_neg_eq at h,
+          apply_fun A.valuation at h,
+          rwa [← h, valuation.map_neg, valuation.map_one, lt_self_iff_false] at hx },
+        have := h (show (units.mk0 (1 + x) hh) ∈ A.unit_group,
+          by exact A.valuation.map_one_add_of_lt hx),
+        have q := set_like.coe_mem ((B.unit_group_equiv ⟨_, this⟩) : B),
+        change 1 + x ∈ B at q,
+        simpa using B.add_mem _ _ q (B.neg_mem _ B.one_mem)
+      },
+      { have := h (show (units.mk0 x hh) ∈ A.unit_group, by exact hx),
+        refine set_like.coe_mem ((B.unit_group_equiv ⟨_, this⟩) : B) }
+    },
+    { rintros h x (hx : A.valuation x = 1),
+      apply_fun A.map_of_le B h at hx,
+      simpa using hx }
+  end }
 
 @[simp]
 lemma coe_unit_group_equiv_apply (a : A.unit_group) :
@@ -536,13 +553,20 @@ def principal_unit_group_ordered_embedding :
   valuation_subring K ↪o (subgroup Kˣ)ᵒᵈ :=
 { to_fun := λ A, A.principal_unit_group,
   inj' := λ A B h, by rwa eq_iff_principal_unit_group,
-  map_rel_iff' := sorry }
+  map_rel_iff' := begin
+    intros A B,
+    dsimp,
+    split,
+    { sorry},
+    { rintros h x (hx : B.valuation (x - 1) < 1),
+      rw mem_principal_unit_group_iff,
+      have := le_of_lt,
+      have := monotone_map_of_le A B h this,
+    }
+  end }
 
 lemma principal_units_le_units : A.principal_unit_group ≤ A.unit_group :=
-begin
-  intros a h,
-  simpa using A.valuation.map_one_add_of_lt h,
-end
+λ a h, by {simpa using A.valuation.map_one_add_of_lt h}
 
 def unit_group_mod_to_residue_field_units :
   (A.unit_group ⧸ (A.principal_unit_group.comap A.unit_group.subtype)) →*

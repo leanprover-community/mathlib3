@@ -661,8 +661,22 @@ begin
   simp [division_def, coe_int_eq_mk, mul_def one_ne_zero d0]
 end
 
-@[simp] lemma mk_one_div {n d : ℤ} : (n /. 1) / (d /. 1) = n /. d :=
-by rw [rat.mk_eq_div n d, rat.coe_int_eq_mk, rat.coe_int_eq_mk]
+lemma mk_div_mk_cancel_left {n d x : ℤ} (hx : x ≠ 0) : (n /. x) / (d /. x) = n /. d :=
+begin
+  rw [div_eq_mul_inv, inv_def],
+  by_cases hd : d = 0,
+  { rw hd,
+    simp},
+  { rw mul_def hx hd,
+    nth_rewrite 1 mul_comm,
+    rw div_mk_div_cancel_left hx}
+end
+
+@[simp] lemma coe_int_div_eq_mk {n d : ℤ} : (n : ℚ) / ↑d = n /. d :=
+begin
+  repeat {rw coe_int_eq_mk},
+  exact mk_div_mk_cancel_left one_ne_zero,
+end
 
 @[simp]
 theorem num_div_denom (r : ℚ) : (r.num / r.denom : ℚ) = r :=

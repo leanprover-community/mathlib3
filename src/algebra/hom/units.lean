@@ -146,9 +146,13 @@ by { rintro ⟨u, rfl⟩, rw [←units.coe_inv, units.inv_mul] }
 @[simp, to_additive] protected lemma mul_inv_cancel : is_unit a → a * a⁻¹ = 1 :=
 by { rintro ⟨u, rfl⟩, rw [←units.coe_inv, units.mul_inv] }
 
-/-- The element of the group of units, corresponding to an element of a monoid which is a unit. -/
+/-- The element of the group of units, corresponding to an element of a monoid which is a unit. As
+opposed to `is_unit.unit`, the inverse is computable and comes from the inversion on `α`. This is
+useful to transfer properties of inversion in `units α` to `α`. See also `to_units`. -/
 @[to_additive "The element of the additive group of additive units, corresponding to an element of
-an additive monoid which is an additive unit.", simps]
+an additive monoid which is an additive unit. As opposed to `is_add_unit.add_unit`, the negation is
+computable and comes from the negation on `α`. This is useful to transfer properties of negation in
+`add_units α` to `α`. See also `to_add_units`.", simps]
 def unit' (h : is_unit a) : αˣ := ⟨a, a⁻¹, h.mul_inv_cancel, h.inv_mul_cancel⟩
 
 @[simp, to_additive] protected lemma mul_inv_cancel_left (h : is_unit a) : ∀ b, a * (a⁻¹ * b) = b :=

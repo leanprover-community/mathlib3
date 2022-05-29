@@ -479,7 +479,6 @@ lemma ultrafilter_converges_to_glued_equiv (h_int : algebra.is_integral K L)
 begin
   let σ := ultrafilter.glued_generators_of_pushforwards_alg_equiv h_int (f.map (λ (e : L ≃ₐ[K] L),
   e.to_alg_hom)),
-  change ↑f ≤ nhds σ,
   rw [←map_mul_left_nhds_one, group_filter_basis.nhds_one_eq],
   apply filter.le_map,
   rintros S ⟨-, ⟨-, ⟨E, h_findim, rfl⟩, rfl⟩, hS⟩,

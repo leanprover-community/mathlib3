@@ -12,7 +12,7 @@ import topology.local_homeomorph
 
 We introduce these relations:
 
-* `is_O_with c f g l` : "f is big O of g along l with constant c";
+* `is_O_with c l f g` : "f is big O of g along l with constant c";
 * `f =O[l] g` : "f is big O of g along l";
 * `f =o[l] g` : "f is little o of g along l".
 

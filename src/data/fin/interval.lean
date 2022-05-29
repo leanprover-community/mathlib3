@@ -142,68 +142,32 @@ variables {n} (a b : fin n)
 
 @[simp]
 lemma card_filter_lt : (finset.univ.filter (λ j, a < j)).card = n - a - 1 :=
-begin
-  cases n,
-  { simp },
-  { rw [filter_lt_eq_Ioi, card_Ioi, tsub_tsub],
-    exact (add_tsub_add_eq_tsub_right _ 1 _).symm }
-end
+by rw [filter_lt_eq_Ioi, card_Ioi, tsub_right_comm]
 
 @[simp]
-lemma card_filter_le : (univ.filter (λ j, a ≤ j)).card = n - a :=
-begin
-  cases n,
-  { simp },
-  { rw [filter_le_eq_Ici, card_Ici] }
-end
+lemma card_filter_le : (univ.filter $ λ j, a ≤ j).card = n - a := by rw [filter_le_eq_Ici, card_Ici]
 
 @[simp]
-lemma card_filter_gt : (finset.univ.filter (λ j, j < a)).card = a :=
-begin
-  cases n,
-  { exact fin.elim0 a },
-  { rw [filter_gt_eq_Iio, card_Iio] }
-end
+lemma card_filter_gt : (univ.filter $ λ j, j < a).card = a := by rw [filter_gt_eq_Iio, card_Iio]
 
 @[simp]
-lemma card_filter_ge : (finset.univ.filter (λ j, j ≤ a)).card = a + 1 :=
-begin
-  cases n,
-  { exact fin.elim0 a },
-  { rw [filter_ge_eq_Iic, card_Iic] }
-end
+lemma card_filter_ge : (univ.filter $ λ j, j ≤ a).card = a + 1 := by rw [filter_ge_eq_Iic, card_Iic]
 
 @[simp]
-lemma card_filter_lt_lt : (finset.univ.filter (λ j, a < j ∧ j < b)).card = b - a - 1 :=
-begin
-  cases n,
-  { exact fin.elim0 a },
-  { rw [filter_lt_lt_eq_Ioo, card_Ioo] }
-end
+lemma card_filter_lt_lt : (univ.filter (λ j, a < j ∧ j < b)).card = b - a - 1 :=
+by rw [filter_lt_lt_eq_Ioo, card_Ioo]
 
 @[simp]
 lemma card_filter_lt_le : (finset.univ.filter (λ j, a < j ∧ j ≤ b)).card = b - a :=
-begin
-  cases n,
-  { exact fin.elim0 a },
-  { rw [filter_lt_le_eq_Ioc, card_Ioc] }
-end
+by rw [filter_lt_le_eq_Ioc, card_Ioc]
 
 @[simp]
 lemma card_filter_le_lt : (finset.univ.filter (λ j, a ≤ j ∧ j < b)).card = b - a :=
-begin
-  cases n,
-  { exact fin.elim0 a },
-  { rw [filter_le_lt_eq_Ico, card_Ico] }
-end
+by rw [filter_le_lt_eq_Ico, card_Ico]
 
 @[simp]
 lemma card_filter_le_le : (finset.univ.filter (λ j, a ≤ j ∧ j ≤ b)).card = b + 1 - a :=
-begin
-  cases n,
-  { exact fin.elim0 a },
-  { rw [filter_le_le_eq_Icc, card_Icc] }
-end
+by rw [filter_le_le_eq_Icc, card_Icc]
 
 lemma prod_filter_lt_mul_neg_eq_prod_off_diag {R : Type*} [comm_monoid R] {n : ℕ}
   {f : fin n → fin n → R} :

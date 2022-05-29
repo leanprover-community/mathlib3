@@ -433,9 +433,8 @@ begin
     { refine ⟨(or_iff_left (λ h, _)).1 (char_p.char_is_prime_or_zero K p)⟩,
       have := hm.1,
       conv at this { congr, skip, congr, congr, rw [h] },
-      rw [zero_pow, zero_mul] at this,
-      { exact pnat.ne_zero n this },
-      { refine multiplicity.pos_of_dvd hfin hp } },
+      rw [zero_pow (multiplicity.pos_of_dvd hfin hp), zero_mul] at this,
+      exact pnat.ne_zero n this },
     letI : ne_zero (m : K) := ne_zero.of_not_dvd K hm.2,
     letI := splitting_field_X_pow_sub_one_char_p hm.1 K L,
     exact is_galois.of_separable_splitting_field
@@ -489,9 +488,8 @@ instance is_cyclotomic_extension :
       { refine ⟨(or_iff_left (λ h, _)).1 (char_p.char_is_prime_or_zero L p)⟩,
         have := hm.1,
         conv at this { congr, skip, congr, congr, rw [h] },
-        rw [zero_pow, zero_mul] at this,
-        { exact pnat.ne_zero n this },
-        { exact multiplicity.pos_of_dvd hfin hp } },
+        rw [zero_pow (multiplicity.pos_of_dvd hfin hp), zero_mul] at this,
+        exact pnat.ne_zero n this },
       letI hmz : ne_zero (m : L) := ne_zero.of_not_dvd L hm.2,
       rw [is_root_cyclotomic_prime_pow_mul_iff_of_char_p] at hζ,
       have H₁ : ({b : cyclotomic_field n K | ∃ (a : ℕ+), a ∈ ({n} : set ℕ+) ∧ b ^ (a : ℕ) = 1}) =

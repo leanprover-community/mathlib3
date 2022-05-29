@@ -219,8 +219,8 @@ open_locale big_operators
 -- TODO: Inlining this yields an app-builder exception
 lemma exists_signed_sum_aux [decidable_eq α] {n : ℕ} (sgn : ℕ → sign_type) (b : α) {f : α → ℤ}
   ⦃a : α⦄ (g : ℕ → α) (i : ℕ) :
-   if (range (n - (f a).nat_abs)).piecewise g (λ _, a) i = b then
-        then ((range (n - (f a).nat_abs)).piecewise sgn (λ _, sign (f a)) i : ℤ) else 0 =
+   (if (range (n - (f a).nat_abs)).piecewise g (λ _, a) i = b then
+       ((range (n - (f a).nat_abs)).piecewise sgn (λ _, sign (f a)) i : ℤ) else 0) =
     (range (n - (f a).nat_abs)).piecewise (λ j, if g j = b then ↑(sgn j) else 0)
         (λ j, if a = b then ↑(sign (f a)) else 0) i :=
 by { unfold piecewise, split_ifs; refl }

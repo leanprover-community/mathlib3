@@ -491,9 +491,8 @@ begin
     rw [mem_left_coset_iff, set_like.mem_coe, fun_like.ext_iff],
     apply forall_congr,
     exact λ x, (inv_mul_alg_equiv_of_elem _ _ _).symm },
-  rw [←h_preim, mem_coe, ←mem_map, key],
-  exact (equiv_restricts_to_alg_hom_of_finite_dimensional h_int
-    (f.map alg_equiv.to_alg_hom) h_findim).symm,
+  rw [←h_preim, mem_coe, ←mem_map, ←map_map, ultrafilter.generator_of_pushforward_spec h_findim,
+      mem_pure, mem_singleton_iff, ←equiv_restricts_to_alg_hom_of_finite_dimensional],
 end
 
 lemma krull_topology_compact (h_int : algebra.is_integral K L) : is_compact (set.univ : set

@@ -1363,6 +1363,9 @@ lemma mk_subtype_mono {p q : α → Prop} (h : ∀x, p x → q x) : #{x // p x} 
 lemma mk_union_le_omega {α} {P Q : set α} : #((P ∪ Q : set α)) ≤ ω ↔ #P ≤ ω ∧ #Q ≤ ω :=
 by simp
 
+@[simp] lemma mk_subset (t : set α) : #{s : set α // s ⊆ t} = 2 ^ #t :=
+by { rw ←mk_set, exact (equiv.subset_equiv_set_coe t).cardinal_eq }
+
 lemma mk_image_eq_lift {α : Type u} {β : Type v} (f : α → β) (s : set α) (h : injective f) :
   lift.{u} (#(f '' s)) = lift.{v} (#s) :=
 lift_mk_eq.{v u 0}.mpr ⟨(equiv.set.image f s h).symm⟩

@@ -740,27 +740,6 @@ begin
   rintro ⟨t, h1t, h2t⟩, exact le_trans (mk_preimage_of_injective _ _ subtype.val_injective) h2t
 end
 
-@[simp] lemma mk_subset_interval {α : Type u} (r : α → α → Prop) [is_well_order α r] (a : α) :
-  #{s : set α // ∀ b ∈ s, r b a} = 2 ^ (ordinal.typein r a).card :=
-begin
-  rw [←ordinal.card_typein, ←mk_set],
-  apply le_antisymm,
-  { refine @mk_le_of_injective _ _ (λ s, _) (λ b c hbc, _),
-    { exact {t : {y // r y a} | t.1 ∈ s.1} },
-    rw set.ext_iff at hbc, ext,
-    exact ⟨λ hx, (hbc ⟨x, b.prop x hx⟩).1 hx, λ hx, (hbc ⟨x, c.prop x hx⟩).2 hx⟩ },
-  { refine @mk_le_of_injective _ _ (λ s, _) (λ b c hbc, _),
-    { refine ⟨subtype.val '' s, λ b hb, _⟩,
-      rcases (mem_image _ _ _).1 hb with ⟨h, -, rfl⟩,
-      exact h.2 },
-    rw [subtype.mk_eq_mk, set.ext_iff] at hbc,
-    ext,
-    have := hbc x,
-    simp only [mem_image, subtype.exists, exists_and_distrib_right, exists_eq_right,
-      subtype.coe_eta, exists_prop, and.congr_right_iff] at this,
-    exact this x.2 }
-end
-
 /-! ### Properties of `compl` -/
 
 lemma mk_compl_of_infinite {α : Type*} [infinite α] (s : set α) (h2 : #s < #α) :

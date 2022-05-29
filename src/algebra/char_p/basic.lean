@@ -475,6 +475,19 @@ end
 
 end
 
+section
+
+/-- The characteristic of a finite ring cannot be zero. -/
+lemma ring_char.char_ne_zero_of_finite (R) [non_assoc_ring R] [fintype R] : ring_char R ≠ 0 :=
+begin
+  intro h,
+  haveI := eq.mp (congr_arg (char_p R) h) (ring_char.char_p R),
+  haveI := char_p.char_p_to_char_zero R,
+  exact not_injective_infinite_fintype (coe : ℕ → R) nat.cast_injective,
+end
+
+end
+
 section prod
 
 variables (S : Type v) [semiring R] [semiring S] (p q : ℕ) [char_p R p]

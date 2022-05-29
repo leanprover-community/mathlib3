@@ -181,7 +181,7 @@ section K_S_n
 variables [number_field K] {S S' : finset $ height_one_spectrum $ 𝓞 K} {n : ℕ}
 
 /-- The subgroup `K(S, n) = {b(Kˣ)ⁿ ∈ Kˣ/(Kˣ)ⁿ | ∀ p ∉ S, ord_p(b) ≡ 0 mod n}`. -/
-def K_S_n : subgroup (Kˣ ⧸ (n⬝Kˣ)) :=
+def K_S_n : subgroup $ Kˣ ⧸ (n⬝Kˣ) :=
 { carrier  := {b : Kˣ ⧸ (n⬝Kˣ) | ∀ p ∉ S, val_of_ne_zero_mod p b = 1},
   one_mem' := λ _ _, by rw [map_one],
   mul_mem' := λ _ _ hx hy p hp, by rw [map_mul, hx p hp, hy p hp, one_mul],

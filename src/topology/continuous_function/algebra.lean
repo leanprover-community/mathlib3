@@ -7,6 +7,7 @@ import topology.algebra.module.basic
 import topology.continuous_function.ordered
 import topology.algebra.uniform_group
 import topology.uniform_space.compact_convergence
+import topology.algebra.star
 import algebra.algebra.subalgebra.basic
 import tactic.field_simp
 
@@ -755,5 +756,29 @@ lemma sup_eq (f g : C(α, β)) : f ⊔ g = (2⁻¹ : β) • (f + g + |f - g|) :
 ext (λ x, by simpa [mul_add] using @max_eq_half_add_add_abs_sub _ _ (f x) (g x))
 
 end lattice
+
+/-!
+### Star structure
+
+If `β` has a continuous star operation, we put a star structure on `C(α, β)` by using the
+star operation pointwise.
+-/
+
+section star_structure
+
+variables {α : Type*} {β : Type*}
+variables [topological_space α] [topological_space β] [add_monoid β] [has_continuous_add β]
+  [star_add_monoid β] [has_continuous_star β]
+
+instance : star_add_monoid C(α, β) :=
+{ star            := λ f, star_continuous_map.comp f,
+  star_involutive := λ f, by { ext, exact star_star _ },
+  star_add        := λ f g, by { ext, exact star_add _ _ } }
+
+@[simp] lemma coe_star (f : C(α, β)) : ⇑(star f) = star f := rfl
+
+@[simp] lemma star_apply (f : C(α, β)) (x : α) : star f x = star (f x) := rfl
+
+end star_structure
 
 end continuous_map

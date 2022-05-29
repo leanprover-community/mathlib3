@@ -489,8 +489,7 @@ begin
   { ext g,
     change p g = p σ ↔ g ∈ left_coset σ E.fixing_subgroup,
     rw [mem_left_coset_iff, set_like.mem_coe, fun_like.ext_iff],
-    apply forall_congr,
-    exact λ x, (inv_mul_alg_equiv_of_elem _ _ _).symm },
+    exact forall_congr (λ x, σ.to_equiv.symm_apply_eq.symm) },
   rw [←h_preim, mem_coe, ←mem_map, ←map_map, ultrafilter.generator_of_pushforward_spec h_findim,
       mem_pure, mem_singleton_iff, ←equiv_restricts_to_alg_hom_of_finite_dimensional],
 end

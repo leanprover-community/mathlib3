@@ -35,8 +35,7 @@ variables (R : Type u) (A : Type v) [comm_ring R] [comm_ring A] [is_domain A] [a
   [no_zero_smul_divisors R A]
 
 theorem cardinal_mk_lift_le_mul :
-  cardinal.lift.{u v} (#{x : A // is_algebraic R x}) ≤
-  cardinal.lift.{v u} (#(polynomial R)) * ω :=
+  cardinal.lift.{u v} (#{x : A // is_algebraic R x}) ≤ cardinal.lift.{v u} (#(polynomial R)) * ω :=
 begin
   rw [←mk_ulift, ←mk_ulift],
   let g : ulift.{u} {x : A | is_algebraic R x} → ulift.{v} (polynomial R) :=

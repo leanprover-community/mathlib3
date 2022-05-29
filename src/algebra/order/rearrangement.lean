@@ -39,7 +39,7 @@ The case for `monotone`/`antitone` pairs of functions over a `linear_order` is n
 file because it is easily deducible from the `monovary` API.
 -/
 
-open equiv equiv.perm finset order_dual
+open equiv equiv.perm finset function order_dual
 open_locale big_operators
 
 variables {ι α β : Type*}
@@ -169,18 +169,16 @@ lemma monovary_on.sum_comp_perm_smul_eq_sum_smul_iff (hfg : monovary_on f g s)
   (hσ : {x | σ x ≠ x} ⊆ s) :
   ∑ i in s, f (σ i) • g i = ∑ i in s, f i • g i ↔ monovary_on (f ∘ σ) g s :=
 begin
-  have hσinv : {x | σ⁻¹ x ≠ x} ⊆ s := by simp only [set_support_inv_eq, hσ],
-  convert hfg.sum_smul_comp_perm_eq_sum_smul_iff hσinv using 1,
-  { simpa [σ.sum_comp' s (λ i j, f i • g j) hσ, eq_iff_iff] },
-  { refine eq_iff_iff.mpr ⟨λ h, _, λ h, _⟩,
-    { convert h.comp_right (σ.symm),
-      { ext, simp only [function.comp_app, apply_symm_apply]},
-      { rw [set.eq_preimage_iff_image_eq (equiv.symm σ).bijective],
-        exact set.image_perm hσinv } },
-    { convert h.comp_right σ,
-      { ext, simp only [function.comp_app, inv_apply_self]},
-      { rw [set.eq_preimage_iff_image_eq σ.bijective],
-        exact set.image_perm hσ } } }
+  have hσinv : {x | σ⁻¹ x ≠ x} ⊆ s := (set_support_inv_eq _).subset.trans hσ,
+  refine (iff.trans _ $ hfg.sum_smul_comp_perm_eq_sum_smul_iff hσinv).trans ⟨λ h, _, λ h, _⟩,
+  { simpa only [σ.sum_comp' s (λ i j, f i • g j) hσ] },
+  { convert h.comp_right σ,
+    { rw [comp.assoc, inv_def, symm_comp_self, comp.right_id] },
+    { rw [σ.eq_preimage_iff_image_eq, set.image_perm hσ] } },
+  { convert h.comp_right σ.symm,
+    { rw [comp.assoc, self_comp_symm, comp.right_id] },
+    { rw σ.symm.eq_preimage_iff_image_eq,
+      exact set.image_perm hσinv } }
 end
 
 /-- **Strict inequality case of Rearrangement Inequality**: Pointwise scalar multiplication of
@@ -204,13 +202,8 @@ hfg.dual_right.sum_smul_comp_perm_le_sum_smul hσ
 together. Stated by permuting the entries of `g`. -/
 lemma antivary_on.sum_smul_eq_sum_smul_comp_perm_iff (hfg : antivary_on f g s)
   (hσ : {x | σ x ≠ x} ⊆ s) :
-  ∑ i in s, f i • g i = ∑ i in s, f i • g (σ i) ↔ antivary_on f (g ∘ σ) s :=
-begin
-  convert hfg.dual_right.sum_smul_comp_perm_eq_sum_smul_iff hσ using 1,
-  { simp only [function.comp_app, eq_iff_iff],
-    refine ⟨λ h, eq.symm h, λ h, eq.symm h⟩ },
-  { refine iff.to_eq ⟨λ h, h.dual_right, λ h, h.dual_right ⟩}
-end
+  ∑ i in s, f i • g (σ i) = ∑ i in s, f i • g i ↔ antivary_on f (g ∘ σ) s :=
+(hfg.dual_right.sum_smul_comp_perm_eq_sum_smul_iff hσ).trans monovary_on_to_dual_right
 
 /-- **Strict inequality case of the Rearrangement Inequality**: Pointwise scalar multiplication of
 `f` and `g`, which antivary together, is strictly decreased by a permutation if and only if
@@ -218,8 +211,8 @@ end
 lemma antivary_on.sum_smul_lt_sum_smul_comp_perm_iff (hfg : antivary_on f g s)
   (hσ : {x | σ x ≠ x} ⊆ s) :
   ∑ i in s, f i • g i < ∑ i in s, f i • g (σ i) ↔ ¬ antivary_on f (g ∘ σ) s :=
-by simp [←hfg.sum_smul_eq_sum_smul_comp_perm_iff hσ,
-  lt_iff_le_and_ne, hfg.sum_smul_le_sum_smul_comp_perm hσ]
+by simp [←hfg.sum_smul_eq_sum_smul_comp_perm_iff hσ, lt_iff_le_and_ne, eq_comm,
+  hfg.sum_smul_le_sum_smul_comp_perm hσ]
 
 /-- **Rearrangement Inequality**: Pointwise scalar multiplication of `f` and `g` is minimized when
 `f` and `g` antivary together. Stated by permuting the entries of `f`. -/
@@ -233,20 +226,8 @@ hfg.dual_right.sum_comp_perm_smul_le_sum_smul hσ
 together. Stated by permuting the entries of `f`. -/
 lemma antivary_on.sum_smul_eq_sum_comp_perm_smul_iff (hfg : antivary_on f g s)
   (hσ : {x | σ x ≠ x} ⊆ s) :
-  ∑ i in s, f i • g i = ∑ i in s, f (σ i) • g i ↔ antivary_on (f ∘ σ) g s :=
-begin
-  have hσinv : {x | σ⁻¹ x ≠ x} ⊆ s := by simp only [set_support_inv_eq, hσ],
-  refine (iff.trans _ $ hfg.sum_smul_eq_sum_smul_comp_perm_iff hσinv).trans ⟨λ h, _, λ h, _⟩,
-  { simpa [σ.sum_comp' s (λ i j, f i • g j) hσ] },
-  { convert h.comp_right σ,
-    { ext, simp only [function.comp_app, inv_apply_self]},
-    { rw [set.eq_preimage_iff_image_eq σ.bijective],
-      exact set.image_perm hσ } },
-  { convert h.comp_right σ.symm,
-    { ext, simp only [function.comp_app, apply_symm_apply]},
-    { rw [set.eq_preimage_iff_image_eq σ.symm.bijective],
-      exact set.image_perm hσinv } }
-end
+  ∑ i in s, f (σ i) • g i = ∑ i in s, f i • g i ↔ antivary_on (f ∘ σ) g s :=
+(hfg.dual_right.sum_comp_perm_smul_eq_sum_smul_iff hσ).trans monovary_on_to_dual_right
 
 /-- **Strict inequality case of the Rearrangement Inequality**: Pointwise scalar multiplication of
 `f` and `g`, which antivary together, is strictly decreased by a permutation if and only if
@@ -254,8 +235,8 @@ end
 lemma antivary_on.sum_smul_lt_sum_comp_perm_smul_iff (hfg : antivary_on f g s)
   (hσ : {x | σ x ≠ x} ⊆ s) :
   ∑ i in s, f i • g i < ∑ i in s, f (σ i) • g i ↔ ¬ antivary_on (f ∘ σ) g s :=
-by simp [←hfg.sum_smul_eq_sum_comp_perm_smul_iff hσ,
-  lt_iff_le_and_ne, hfg.sum_smul_le_sum_comp_perm_smul hσ]
+by simp [←hfg.sum_smul_eq_sum_comp_perm_smul_iff hσ, eq_comm, lt_iff_le_and_ne,
+  hfg.sum_smul_le_sum_comp_perm_smul hσ]
 
 variables [fintype ι]
 
@@ -309,7 +290,7 @@ lemma antivary.sum_smul_le_sum_smul_comp_perm (hfg : antivary f g) :
 `g`, which antivary together, is unchanged by a permutation if and only if `f` and `g ∘ σ` antivary
 together. Stated by permuting the entries of `g`. -/
 lemma antivary.sum_smul_eq_sum_smul_comp_perm_iff (hfg : antivary f g) :
-  ∑ i, f i • g i = ∑ i, f i • g (σ i) ↔ antivary f (g ∘ σ) :=
+  ∑ i, f i • g (σ i) = ∑ i, f i • g i ↔ antivary f (g ∘ σ) :=
 by simp [(hfg.antivary_on _).sum_smul_eq_sum_smul_comp_perm_iff (λ i _, mem_univ _)]
 
 /-- **Strict inequality case of the Rearrangement Inequality**: Pointwise scalar multiplication of
@@ -329,7 +310,7 @@ lemma antivary.sum_smul_le_sum_comp_perm_smul (hfg : antivary f g) :
 `g`, which antivary together, is unchanged by a permutation if and only if `f ∘ σ` and `g` antivary
 together. Stated by permuting the entries of `f`. -/
 lemma antivary.sum_smul_eq_sum_comp_perm_smul_iff (hfg : antivary f g) :
-  ∑ i, f i • g i = ∑ i, f (σ i) • g i ↔ antivary (f ∘ σ) g :=
+  ∑ i, f (σ i) • g i = ∑ i, f i • g i ↔ antivary (f ∘ σ) g :=
 by simp [(hfg.antivary_on _).sum_smul_eq_sum_comp_perm_smul_iff (λ i _, mem_univ _)]
 
 /-- **Strict inequality case of the Rearrangement Inequality**: Pointwise scalar multiplication of
@@ -405,7 +386,7 @@ which antivary together, is unchanged by a permutation if and only if `f` and `g
 together. Stated by permuting the entries of `g`. -/
 lemma antivary_on.sum_mul_eq_sum_mul_comp_perm_iff (hfg : antivary_on f g s)
   (hσ : {x | σ x ≠ x} ⊆ s) :
-  ∑ i in s, f i * g i = ∑ i in s, f i * g (σ i) ↔ antivary_on f (g ∘ σ) s :=
+  ∑ i in s, f i * g (σ i) = ∑ i in s, f i * g i ↔ antivary_on f (g ∘ σ) s :=
 hfg.sum_smul_eq_sum_smul_comp_perm_iff hσ
 
 /-- **Strict inequality case of the Rearrangement Inequality**: Pointwise multiplication of
@@ -427,7 +408,7 @@ which antivary together, is unchanged by a permutation if and only if `f ∘ σ`
 together. Stated by permuting the entries of `f`. -/
 lemma antivary_on.sum_mul_eq_sum_comp_perm_mul_iff (hfg : antivary_on f g s)
   (hσ : {x | σ x ≠ x} ⊆ s) :
-  ∑ i in s, f i * g i = ∑ i in s, f (σ i) * g i ↔ antivary_on (f ∘ σ) g s :=
+  ∑ i in s, f (σ i) * g i = ∑ i in s, f i * g i ↔ antivary_on (f ∘ σ) g s :=
 hfg.sum_smul_eq_sum_comp_perm_smul_iff hσ
 
 /-- **Strict inequality case of the Rearrangement Inequality**: Pointwise multiplication of
@@ -490,7 +471,7 @@ hfg.sum_smul_le_sum_smul_comp_perm
 which antivary together, is unchanged by a permutation if and only if `f` and `g ∘ σ` antivary
 together. Stated by permuting the entries of `g`. -/
 lemma antivary.sum_mul_eq_sum_mul_comp_perm_iff (hfg : antivary f g) :
-  ∑ i, f i * g i = ∑ i, f i * g (σ i) ↔ antivary f (g ∘ σ) :=
+  ∑ i, f i * g (σ i) = ∑ i, f i * g i ↔ antivary f (g ∘ σ) :=
 hfg.sum_smul_eq_sum_smul_comp_perm_iff
 
 /-- **Strict inequality case of the Rearrangement Inequality**: Pointwise multiplication of
@@ -510,7 +491,7 @@ hfg.sum_smul_le_sum_comp_perm_smul
 which antivary together, is unchanged by a permutation if and only if `f ∘ σ` and `g` antivary
 together. Stated by permuting the entries of `f`. -/
 lemma antivary.sum_mul_eq_sum_comp_perm_mul_iff (hfg : antivary f g) :
-  ∑ i, f i * g i = ∑ i, f (σ i) * g i ↔ antivary (f ∘ σ) g :=
+  ∑ i, f (σ i) * g i = ∑ i, f i * g i ↔ antivary (f ∘ σ) g :=
 hfg.sum_smul_eq_sum_comp_perm_smul_iff
 
 /-- **Strict inequality case of the Rearrangement Inequality**: Pointwise multiplication of

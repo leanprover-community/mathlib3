@@ -159,6 +159,12 @@ lemma coe_nat_succ_pos (n : ℕ) : 0 < (n.succ : ℤ) := int.coe_nat_pos.2 (succ
 @[simp, norm_cast] theorem coe_nat_abs (n : ℕ) : |(n : ℤ)| = n :=
 abs_of_nonneg (coe_nat_nonneg n)
 
+lemma add_abs_nonneg (a : ℤ) : 0 ≤ a + |a| :=
+begin
+  rw [←(abs_neg a), (int.abs_eq_nat_abs (-a)), add_comm, ←sub_neg_eq_add],
+  apply sub_nonneg.mpr (int.le_nat_abs),
+end
+
 /-! ### succ and pred -/
 
 /-- Immediate successor of an integer: `succ n = n + 1` -/

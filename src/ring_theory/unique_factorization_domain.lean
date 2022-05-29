@@ -427,6 +427,11 @@ begin
   exact (classical.some_spec (unique_factorization_monoid.exists_prime_factors a ane0)).1 x hx,
 end
 
+end unique_factorization_monoid
+
+namespace unique_factorization_monoid
+variables [comm_monoid_with_zero α] [unique_factorization_monoid α]
+
 lemma no_factors_of_no_prime_factors {a b : α} (ha : a ≠ 0)
   (h : (∀ {d}, d ∣ a → d ∣ b → ¬ prime d)) : ∀ {d}, d ∣ a → d ∣ b → is_unit d :=
 λ d, induction_on_prime d

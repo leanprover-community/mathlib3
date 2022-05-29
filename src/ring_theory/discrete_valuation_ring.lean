@@ -177,12 +177,10 @@ begin
       exact (hϖ.not_unit (is_unit_of_mul_is_unit_left H0)).elim } }
 end
 
-variables [is_domain R]
-
 /-- An integral domain in which there is an irreducible element `p`
 such that every nonzero element is associated to a power of `p` is a unique factorization domain.
 See `discrete_valuation_ring.of_has_unit_mul_pow_irreducible_factorization`. -/
-theorem to_unique_factorization_monoid : unique_factorization_monoid R :=
+theorem to_unique_factorization_monoid [is_domain R] : unique_factorization_monoid R :=
 let p := classical.some hR in
 let spec := classical.some_spec hR in
 unique_factorization_monoid.of_exists_prime_factors $ λ x hx,

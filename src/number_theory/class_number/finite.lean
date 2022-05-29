@@ -354,8 +354,12 @@ end
 
 open_locale classical
 
-noncomputable def fintype_of_admissible_of_algebraic' [is_fraction_ring S L] [is_dedekind_domain S]
-  (h : algebra.is_algebraic R L) :
+omit iic ist
+
+/--
+Auxiliary definition for `class_group.fintype_of_admissible_of_algebraic` below.
+-/
+noncomputable def fintype_of_admissible_of_algebraic' [is_dedekind_domain S]
   fintype {b : ideal S // algebra_map R S (∏ (m : R) in finset_approx bS adm, m) ∈ ↑b}  :=
 (@fintype.of_equiv _
   {J // J ∣ ideal.span ({algebra_map R S (∏ (m : R) in finset_approx bS adm, m)} : set S)}
@@ -364,6 +368,8 @@ noncomputable def fintype_of_admissible_of_algebraic' [is_fraction_ring S L] [is
           exact prod_finset_approx_ne_zero bS adm }))
   ((equiv.refl _).subtype_equiv (λ I, ideal.dvd_iff_le.trans
     (by rw [equiv.refl_apply, ideal.span_le, set.singleton_subset_iff]))))
+
+include iic ist
 
 /-- The main theorem: the class group of an integral closure `S` of `R` in an
 algebraic extension `L` is finite if there is an admissible absolute value.

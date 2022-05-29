@@ -454,7 +454,7 @@ begin
   haveI : ne_zero (((2 ^ k : ℕ+) : ℕ) : K),
   { rw [show 2 = ↑(2 : ℕ+), by simp, ← pnat.pow_coe] at hζ,
     haveI := hζ.ne_zero',
-    exact ne_zero.nat_of_ne_zero (algebra_map K L), },
+    exact ne_zero.nat_of_ne_zero (algebra_map K L) },
   have : 2 < (2 ^ k : ℕ+),
   { simp only [← coe_lt_coe, pnat.coe_bit0, one_coe, pow_coe],
     nth_rewrite 0 [← pow_one 2],

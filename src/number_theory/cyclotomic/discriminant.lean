@@ -60,16 +60,18 @@ variables [algebra K L]
 `hζ.power_basis K` is `(-1) ^ ((p ^ (k + 1).totient) / 2) * p ^ (p ^ k * ((p - 1) * (k + 1) - 1))`
 if `irreducible (cyclotomic (p ^ (k + 1)) K))`, and `p ^ (k + 1) ≠ 2`. -/
 lemma discr_prime_pow_ne_two [is_cyclotomic_extension {p ^ (k + 1)} K L] [hp : fact (p : ℕ).prime]
-  [ne_zero ((p : ℕ) : K)] (hζ : is_primitive_root ζ ↑(p ^ (k + 1)))
-  (hirr : irreducible (cyclotomic (↑(p ^ (k + 1)) : ℕ) K))
+  (hζ : is_primitive_root ζ ↑(p ^ (k + 1))) (hirr : irreducible (cyclotomic (↑(p ^ (k + 1)) : ℕ) K))
   (hk : p ^ (k + 1) ≠ 2) :
   discr K (hζ.power_basis K).basis =
   (-1) ^ (((p ^ (k + 1) : ℕ).totient) / 2) * p ^ ((p : ℕ) ^ k * ((p - 1) * (k + 1) - 1)) :=
 begin
-  haveI : ne_zero ((↑(p ^ (k + 1)) : ℕ) : K),
+  haveI hne : ne_zero ((↑(p ^ (k + 1)) : ℕ) : K),
+  { haveI := hζ.ne_zero',
+    exact ne_zero.nat_of_ne_zero (algebra_map K L) },
+  haveI : ne_zero ((p : ℕ) : K),
   { refine ⟨λ hzero, _⟩,
-    rw [pnat.pow_coe] at hzero,
-    simpa [ne_zero.ne ((p : ℕ) : K)] using hzero },
+    rw [pnat.pow_coe, cast_pow, hzero, zero_pow (succ_pos _)] at hne,
+    simpa using hne.1 },
   have hp2 : p = 2 → 1 ≤ k,
   { intro hp,
     refine one_le_iff_ne_zero.2 (λ h, _),
@@ -137,7 +139,7 @@ end
 `hζ.power_basis K` is `(-1) ^ (p ^ k * (p - 1) / 2) * p ^ (p ^ k * ((p - 1) * (k + 1) - 1))`
 if `irreducible (cyclotomic (p ^ (k + 1)) K))`, and `p ^ (k + 1) ≠ 2`. -/
 lemma discr_prime_pow_ne_two' [is_cyclotomic_extension {p ^ (k + 1)} K L] [hp : fact (p : ℕ).prime]
-  [ne_zero ((p : ℕ) : K)] (hζ : is_primitive_root ζ ↑(p ^ (k + 1)))
+  (hζ : is_primitive_root ζ ↑(p ^ (k + 1)))
   (hirr : irreducible (cyclotomic (↑(p ^ (k + 1)) : ℕ) K)) (hk : p ^ (k + 1) ≠ 2) :
   discr K (hζ.power_basis K).basis =
   (-1) ^ (((p : ℕ) ^ k  * (p - 1)) / 2) * p ^ ((p : ℕ) ^ k * ((p - 1) * (k + 1) - 1)) :=
@@ -149,11 +151,13 @@ if `irreducible (cyclotomic (p ^ k) K))`. Beware that in the cases `p ^ k = 1` a
 the formula uses `1 / 2 = 0` and `0 - 1 = 0`. It is useful only to have a uniform result.
 See also `is_cyclotomic_extension.discr_prime_pow_eq_unit_mul_pow`. -/
 lemma discr_prime_pow [hcycl : is_cyclotomic_extension {p ^ k} K L] [hp : fact (p : ℕ).prime]
-  [ne_zero ((p : ℕ) : K)] (hζ : is_primitive_root ζ ↑(p ^ k))
-  (hirr : irreducible (cyclotomic (↑(p ^ k) : ℕ) K)) :
+  (hζ : is_primitive_root ζ ↑(p ^ k)) (hirr : irreducible (cyclotomic (↑(p ^ k) : ℕ) K)) :
   discr K (hζ.power_basis K).basis =
   (-1) ^ (((p ^ k : ℕ).totient) / 2) * p ^ ((p : ℕ) ^ (k - 1) * ((p - 1) * k - 1)) :=
 begin
+  haveI hne : ne_zero ((↑(p ^ k) : ℕ) : K),
+  { haveI := hζ.ne_zero',
+    exact ne_zero.nat_of_ne_zero (algebra_map K L) },
   unfreezingI { cases k },
   { haveI : ne_zero ((↑(p ^ 0) : ℕ) : K) := ⟨by simp⟩,
     simp only [coe_basis, pow_zero, power_basis_gen, totient_one, mul_zero, mul_one, show 1 / 2 = 0,
@@ -166,11 +170,7 @@ begin
     { simp },
     { simpa using hcycl } },
   { by_cases hk : p ^ (k + 1) = 2,
-    { haveI : ne_zero ((↑(p ^ (k + 1)) : ℕ) : K),
-      { refine ⟨λ hzero, _⟩,
-        rw [pnat.pow_coe] at hzero,
-        simpa [ne_zero.ne ((p : ℕ) : K)] using hzero },
-      have hp : p = 2,
+    { have hp : p = 2,
       { rw [← pnat.coe_inj, pnat.coe_bit0, pnat.one_coe, pnat.pow_coe, ← pow_one 2] at hk,
       replace hk := eq_of_prime_pow_eq (prime_iff.1 hp.out) (prime_iff.1 nat.prime_two)
         (succ_pos _) hk,
@@ -197,7 +197,7 @@ end
 `n : ℕ` such that the discriminant of `hζ.power_basis K` is `u * p ^ n`. Often this is enough and
 less cumbersome to use than `is_cyclotomic_extension.discr_prime_pow`. -/
 lemma discr_prime_pow_eq_unit_mul_pow [is_cyclotomic_extension {p ^ k} K L]
-  [hp : fact (p : ℕ).prime] [ne_zero ((p : ℕ) : K)] (hζ : is_primitive_root ζ ↑(p ^ k))
+  [hp : fact (p : ℕ).prime] (hζ : is_primitive_root ζ ↑(p ^ k))
   (hirr : irreducible (cyclotomic (↑(p ^ k) : ℕ) K)) :
   ∃ (u : ℤˣ) (n : ℕ), discr K (hζ.power_basis K).basis = u * p ^ n :=
 begin
@@ -212,7 +212,7 @@ end
 `discr K (hζ.power_basis K).basis = (-1) ^ ((p - 1) / 2) * p ^ (p - 2)` if
 `irreducible (cyclotomic p K)`. -/
 lemma discr_odd_prime [is_cyclotomic_extension {p} K L] [hp : fact (p : ℕ).prime]
-  [ne_zero ((p : ℕ) : K)] (hζ : is_primitive_root ζ p) (hirr : irreducible (cyclotomic p K))
+  (hζ : is_primitive_root ζ p) (hirr : irreducible (cyclotomic p K))
   (hodd : p ≠ 2) :
   discr K (hζ.power_basis K).basis = (-1) ^ (((p : ℕ) - 1) / 2) * p ^ ((p : ℕ) - 2) :=
 begin

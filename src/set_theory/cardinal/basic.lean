@@ -1030,6 +1030,9 @@ begin
   { rintro ⟨f, hf⟩, exact ⟨embedding.trans ⟨f, hf⟩ equiv.ulift.symm.to_embedding⟩ }
 end
 
+@[simp] lemma mk_subtype_le_omega (p : α → Prop) : #{x // p x} ≤ ω ↔ countable {x | p x} :=
+mk_set_le_omega _
+
 @[simp] lemma omega_add_omega : ω + ω = ω := mk_denumerable _
 
 lemma omega_mul_omega : ω * ω = ω := mk_denumerable _

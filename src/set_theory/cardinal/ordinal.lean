@@ -697,7 +697,7 @@ calc #(finset α) ≤ #(list α) : mk_le_of_surjective list.to_finset_surjective
 ... = #α : mk_list_eq_mk α
 
 lemma mk_bounded_set_le_of_infinite (α : Type u) [infinite α] (c : cardinal) :
-  #{t : set α // mk t ≤ c} ≤ #α ^ c :=
+  #{t : set α // #t ≤ c} ≤ #α ^ c :=
 begin
   refine le_trans _ (by rw [←add_one_eq (omega_le_mk α)]),
   induction c using cardinal.induction_on with β,

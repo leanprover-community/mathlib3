@@ -299,7 +299,8 @@ private lemma card_order_of_eq_totient_aux₁ :
 begin
   intros d hd hd0,
   induction d using nat.strong_rec' with d IH,
-  rcases d.eq_zero_or_pos with rfl | hd_pos, { cases (fintype.card_ne_zero) (zero_dvd_iff.1 hd) },
+  rcases d.eq_zero_or_pos with rfl | hd_pos,
+  { cases fintype.card_ne_zero (eq_zero_of_zero_dvd hd) },
   rcases card_pos.1 hd0 with ⟨a, ha'⟩,
   have ha : order_of a = d := (mem_filter.1 ha').2,
   have h1 : ∑ m in d.proper_divisors, (univ.filter (λ a : α, order_of a = m)).card =

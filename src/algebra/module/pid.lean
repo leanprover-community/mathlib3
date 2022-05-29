@@ -9,6 +9,7 @@ import algebra.module.projective
 import algebra.category.Module.abelian
 import algebra.category.Module.biproducts
 import algebra.homology.short_exact.abelian
+import ring_theory.dedekind_domain.ideal
 
 /-!
 # Structure of finitely generated modules over a PID
@@ -47,7 +48,7 @@ Finitely generated module, principal ideal domain, classification, structure the
 universes u v
 open_locale big_operators
 
-section split_exact --where to move ??
+section split_exact --pending #14376
 variables {R : Type u} {A M B : Type v} [ring R] [add_comm_group A] [module R A]
   [add_comm_group B] [module R B] [add_comm_group M] [module R M]
 open Module
@@ -64,65 +65,82 @@ noncomputable def lequiv_prod_of_right_split_exact (j : A →ₗ[R] M) (g : M �
 
 end split_exact
 
-variables {R : Type u} [comm_ring R] [is_domain R] [is_principal_ideal_ring R]
-variables {M : Type v} [add_comm_group M] [module R M]
+variables {R : Type u} [comm_ring R] [is_domain R] {M : Type v} [add_comm_group M] [module R M]
 variables {N : Type (max u v)} [add_comm_group N] [module R N]
 
 open_locale direct_sum
 open submodule
 
-section internal
-open dfinsupp
-
-@[priority 100]
-noncomputable instance inst [decidable_eq R] [decidable_eq (associates R)] :
-gcd_monoid R := unique_factorization_monoid.to_gcd_monoid _
-
-lemma coprime_of_irreducible_pow {ι : Type*} (p : ι → R) (irred : ∀ i, irreducible (p i))
-  (assoc : ∀ i j, associated (p i) (p j) → i = j) (e : ι → ℕ) :
-  pairwise (is_coprime on λ i, p i ^ e i) :=
-by { classical,
-exact λ i j h, ((irred i).coprime_iff_not_dvd.mpr
-  (λ h', h (assoc _ _ ((irred i).associated_of_dvd (irred j) h')))).pow_left.pow_right }
-
-open finset multiset
-
-theorem is_internal_prime_power_torsion [module.finite R M] (hM : module.is_torsion R M) :
-  ∃ (ι : Type u) [fintype ι] [decidable_eq ι] (p : ι → R) [∀ i, irreducible (p i)] (e : ι → ℕ),
-  by exactI direct_sum.submodule_is_internal (λ i, torsion_by R M $ p i ^ e i) :=
+lemma is_torsion_by_ideal_of_finite_of_is_torsion [module.finite R M] (hM : module.is_torsion R M) :
+  ∃ I : ideal R, I ≠ 0 ∧ module.is_torsion_by_set R M I :=
 begin
-  cases (module.finite_def.mp (by apply_instance) : (⊤ : submodule R M).fg) with S h,
-  let P : multiset (associates R) :=
-    S.val.bind (λ s, map associates.mk $
-      principal_ideal_ring.factors ↑(classical.some $ @hM s)),
-  haveI : decidable_eq (associates R), classical, apply_instance,
-  let ι := P.to_finset,
-  let p : _ → R := λ i, classical.some $ associates.mk_surjective i,
-  have hp : ∀ i, associates.mk (p i) = i := λ i, classical.some_spec $ associates.mk_surjective i,
-  have irred : ∀ i : ι, irreducible (p i) := λ i, begin
-    have hi := i.prop, rw [mem_to_finset, mem_bind] at hi,
-    obtain ⟨s, hs, hi⟩ := hi, rw multiset.mem_map at hi, obtain ⟨q, hq, hi⟩ := hi,
-    rw [← associates.irreducible_mk, hp i, ← hi, associates.irreducible_mk],
-    apply (principal_ideal_ring.factors_spec _ _).left _ hq,
-    exact non_zero_divisors.coe_ne_zero _
-  end,
-  refine ⟨ι, by apply_instance, by apply_instance, λ i, p i, irred, λ i, P.count i, _⟩,
-  have coprime : pairwise (is_coprime on λ i : ι, p i ^ P.count i) :=
-    coprime_of_irreducible_pow _ irred (λ i j assoc, subtype.coe_injective
-      (by { rw [← hp ↑i, ← hp ↑j, associates.mk_eq_mk_iff_associated], exact assoc })) _,
-  apply @torsion_is_internal _ _ _ _ _ _ (λ i, p i ^ P.count i) _ coprime,
-  rw [is_torsion_by_iff_torsion_by_eq_top, eq_top_iff, ← h, span_le],
-  intros s hs, rw set_like.mem_coe,
-  refine torsion_by_le_torsion_by_of_dvd ↑_ _ _ (classical.some_spec $ @hM s),
-  rw [← (principal_ideal_ring.factors_spec (_ : R)
-    (non_zero_divisors.coe_ne_zero _)).right.dvd_iff_dvd_left,
-  ← associates.mk_dvd_mk, ← associates.prod_mk, ← associates.finset_prod_mk],
-  convert prod_dvd_prod_of_le (S.val.le_bind hs),
-  change _ = P.prod, rw prod_multiset_count,
-  congr', ext i, rw [associates.mk_pow, hp],
+  cases (module.finite_def.mp infer_instance : (⊤ : submodule R M).fg) with S h,
+  refine ⟨∏ x in S, torsion_of R M x, _, _⟩,
+  { rw finset.prod_ne_zero_iff,
+    intros x hx h0, obtain ⟨⟨a, ha⟩, h1⟩ := @hM x,
+    change a ∈ torsion_of R M x at h1, rw [h0, ideal.zero_eq_bot, ideal.mem_bot] at h1,
+    rw h1 at ha, apply @one_ne_zero R, apply ha, apply mul_zero },
+  { rw [is_torsion_by_set_iff_torsion_by_set_eq_top, eq_top_iff, ← h, span_le],
+    intros x hx, apply torsion_by_set_le_torsion_by_set_of_subset,
+    { apply ideal.le_of_dvd, exact finset.dvd_prod_of_mem _ hx },
+    { rw mem_torsion_by_set_iff, rintro ⟨a, ha⟩, exact ha } }
 end
 
-end internal
+section dedekind_domain
+variables [is_dedekind_domain R]
+open unique_factorization_monoid
+
+lemma is_internal_prime_power_torsion_of_is_torsion_by_ideal {I : ideal R} (hI : I ≠ 0)
+  (hM : module.is_torsion_by_set R M I) :
+  ∃ (P : finset $ ideal R) [decidable_eq P] [∀ p ∈ P, prime p] (e : P → ℕ),
+  by exactI direct_sum.submodule_is_internal (λ p : P, torsion_by_set R M (p ^ e p : ideal R)) :=
+begin
+  classical,
+  let P := factors I,
+  have prime_of_mem := λ p (hp : p ∈ P.to_finset), prime_of_factor p (multiset.mem_to_finset.mp hp),
+  refine ⟨P.to_finset, infer_instance, prime_of_mem, λ i, P.count i, _⟩,
+  apply @torsion_is_internal _ _ _ _ _ _ _ (λ p, p ^ P.count p) _,
+  { intros p hp q hq pq, dsimp,
+    rw irreducible_pow_sup,
+    { suffices : (normalized_factors _).count p = 0,
+      { rw [this, zero_min, pow_zero, ideal.one_eq_top] },
+      { rw [multiset.count_eq_zero, normalized_factors_of_irreducible_pow
+          (prime_of_mem q hq).irreducible, multiset.mem_repeat],
+        exact λ H, pq $ H.2.trans $ normalize_eq q } },
+    { rw ← ideal.zero_eq_bot, apply pow_ne_zero, exact (prime_of_mem q hq).ne_zero },
+    { exact (prime_of_mem p hp).irreducible } },
+  { convert hM,
+    rw [← finset.inf_eq_infi, is_dedekind_domain.inf_prime_pow_eq_prod,
+      ← finset.prod_multiset_count, ← associated_iff_eq],
+    exact factors_prod hI,
+    { exact prime_of_mem }, { exact λ _ _ _ _ ij, ij } }
+end
+
+theorem is_internal_prime_power_torsion [module.finite R M] (hM : module.is_torsion R M) :
+  ∃ (P : finset $ ideal R) [decidable_eq P] [∀ p ∈ P, prime p] (e : P → ℕ),
+  by exactI direct_sum.submodule_is_internal (λ p : P, torsion_by_set R M (p ^ e p : ideal R)) :=
+begin
+  obtain ⟨I, hI, hM'⟩ := is_torsion_by_ideal_of_finite_of_is_torsion hM,
+  exact is_internal_prime_power_torsion_of_is_torsion_by_ideal hI hM'
+end
+
+end dedekind_domain
+
+variables [is_domain R] [is_principal_ideal_ring R]
+
+theorem is_internal_prime_power_torsion_of_pid [module.finite R M] (hM : module.is_torsion R M) :
+  ∃ (ι : Type u) [fintype ι] [decidable_eq ι] (p : ι → R) [∀ i, irreducible $ p i] (e : ι → ℕ),
+  by exactI direct_sum.submodule_is_internal (λ i, torsion_by R M $ p i ^ e i) :=
+begin
+  obtain ⟨P, dec, hP, e, this⟩ := is_internal_prime_power_torsion hM,
+  refine ⟨P, infer_instance, dec, λ p, is_principal.generator (p : ideal R), _, e, _⟩,
+  { rintro ⟨p, hp⟩,
+    haveI := ideal.is_prime_of_prime (hP p hp),
+    exact (is_principal.prime_generator_of_is_prime p (hP p hp).ne_zero).irreducible },
+  { convert this, ext p : 1,
+    rw [← torsion_by_span_singleton_eq, ideal.submodule_span_eq, ← ideal.span_singleton_pow,
+      ideal.span_singleton_generator] }
+end
 
 section p_torsion
 variables {p : R} (hp : irreducible p) (hM : module.is_torsion' M (submonoid.powers p))
@@ -252,7 +270,7 @@ theorem equiv_direct_sum_of_is_torsion [h' : module.finite R N] (hN : module.is_
   ∃ (ι : Type u) [fintype ι] (p : ι → R) [∀ i, irreducible $ p i] (e : ι → ℕ),
   nonempty $ N ≃ₗ[R] ⨁ (i : ι), R ⧸ R ∙ (p i ^ e i) :=
 begin
-  obtain ⟨I, fI, _, p, hp, e, h⟩ := is_internal_prime_power_torsion hN, haveI := fI,
+  obtain ⟨I, fI, _, p, hp, e, h⟩ := is_internal_prime_power_torsion_of_pid hN, haveI := fI,
   have : ∀ i, ∃ (d : ℕ) (k : fin d → ℕ),
     nonempty $ torsion_by R N (p i ^ e i) ≃ₗ[R] ⨁ j, R ⧸ R ∙ (p i ^ k j),
   { haveI := is_noetherian_of_fg_of_noetherian' (module.finite_def.mp h'),

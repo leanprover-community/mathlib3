@@ -265,7 +265,7 @@ factorization_binom_eq_zero_of_lt_prime h n
 /--
 Contrapositive form of `nat.factorization_central_binom_eq_zero_of_two_mul_lt_prime`
 -/
-lemma prime_le_two_mul_of_factorization_central_binom_pos (hp : p.prime)
+lemma prime_le_two_mul_of_factorization_central_binom_pos
   (h_pos : 0 < ((central_binom n).factorization p)) : p ≤ 2 * n :=
 begin
   by_contra,

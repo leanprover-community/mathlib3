@@ -60,7 +60,7 @@ included in the `cyclotomic` locale.
 
 -/
 
-open polynomial algebra finite_dimensional module set
+open polynomial algebra finite_dimensional module set char_p
 
 open_locale big_operators
 
@@ -426,15 +426,10 @@ lemma splitting_field_X_pow_sub_one_char_p {p k m : ℕ} {n : ℕ+} [fact p.prim
 lemma is_galois : is_galois K L :=
 begin
   let p := ring_char K,
-  have hfin := (multiplicity.finite_nat_iff.2 ⟨char_p.char_ne_one K p, n.pos⟩),
+  have hfin := (multiplicity.finite_nat_iff.2 ⟨char_ne_one K p, n.pos⟩),
   obtain ⟨m, hm⟩ := multiplicity.exists_eq_pow_mul_and_not_dvd hfin,
   by_cases hp : p ∣ n,
-  { haveI : fact p.prime,
-    { refine ⟨(or_iff_left (λ h, _)).1 (char_p.char_is_prime_or_zero K p)⟩,
-      have := hm.1,
-      conv at this { congr, skip, congr, congr, rw [h] },
-      rw [zero_pow (multiplicity.pos_of_dvd hfin hp), zero_mul] at this,
-      exact pnat.ne_zero n this },
+  { haveI : fact p.prime := @char_is_prime_of_pos K _ _ _ p ⟨nat.pos_of_dvd_of_pos hp n.pos⟩ _,
     letI : ne_zero (m : K) := ne_zero.of_not_dvd K hm.2,
     letI := splitting_field_X_pow_sub_one_char_p hm.1 K L,
     exact is_galois.of_separable_splitting_field
@@ -481,15 +476,10 @@ instance is_cyclotomic_extension :
     let L := (cyclotomic ↑n K).splitting_field,
     let p := ring_char L,
     by_cases hp : p ∣ n,
-    { have hfin := (multiplicity.finite_nat_iff.2 ⟨char_p.char_ne_one L p, n.pos⟩),
+    { have hfin := (multiplicity.finite_nat_iff.2 ⟨char_ne_one L p, n.pos⟩),
       obtain ⟨m, hm⟩ := multiplicity.exists_eq_pow_mul_and_not_dvd hfin,
       conv at hζ { congr, congr, rw [hm.1] },
-      haveI : fact (p.prime),
-      { refine ⟨(or_iff_left (λ h, _)).1 (char_p.char_is_prime_or_zero L p)⟩,
-        have := hm.1,
-        conv at this { congr, skip, congr, congr, rw [h] },
-        rw [zero_pow (multiplicity.pos_of_dvd hfin hp), zero_mul] at this,
-        exact pnat.ne_zero n this },
+      haveI : fact p.prime := @char_is_prime_of_pos L _ _ _ p ⟨nat.pos_of_dvd_of_pos hp n.pos⟩ _,
       letI hmz : ne_zero (m : L) := ne_zero.of_not_dvd L hm.2,
       rw [is_root_cyclotomic_prime_pow_mul_iff_of_char_p] at hζ,
       have H₁ : ({b : cyclotomic_field n K | ∃ (a : ℕ+), a ∈ ({n} : set ℕ+) ∧ b ^ (a : ℕ) = 1}) =

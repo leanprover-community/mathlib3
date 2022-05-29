@@ -200,10 +200,10 @@ calc ↑u⁻¹ = ↑u⁻¹ * 1 : by rw mul_one
 @[to_additive] protected lemma eq_inv_of_mul_eq_one_right {a : α} (h : a * u = 1) : a = ↑u⁻¹ :=
 (units.inv_eq_of_mul_eq_one_left h).symm
 
-@[to_additive] lemma mul_inv_eq_one {a : α} : a * ↑u⁻¹ = 1 ↔ a = u :=
+@[simp, to_additive] lemma mul_inv_eq_one {a : α} : a * ↑u⁻¹ = 1 ↔ a = u :=
 ⟨inv_inv u ▸ units.eq_inv_of_mul_eq_one_right, λ h, mul_inv_of_eq h.symm⟩
 
-@[to_additive] lemma inv_mul_eq_one {a : α} : ↑u⁻¹ * a = 1 ↔ ↑u = a :=
+@[simp, to_additive] lemma inv_mul_eq_one {a : α} : ↑u⁻¹ * a = 1 ↔ ↑u = a :=
 ⟨inv_inv u ▸ units.inv_eq_of_mul_eq_one_right, inv_mul_of_eq⟩
 
 @[to_additive] lemma mul_eq_one_iff_eq_inv {a : α} : a * u = 1 ↔ a = ↑u⁻¹ :=
@@ -386,9 +386,11 @@ lemma is_unit.mul_iff [comm_monoid M] {x y : M} : is_unit (x * y) ↔ is_unit x 
 ⟨λ h, ⟨is_unit_of_mul_is_unit_left h, is_unit_of_mul_is_unit_right h⟩,
   λ h, is_unit.mul h.1 h.2⟩
 
-/-- The element of the group of units, corresponding to an element of a monoid which is a unit. -/
+/-- The element of the group of units, corresponding to an element of a monoid which is a unit. When
+`α` is a `division_monoid`, use `is_unit.unit'` instead. -/
 @[to_additive "The element of the additive group of additive units, corresponding to an element of
-an additive monoid which is an additive unit."]
+an additive monoid which is an additive unit. When `α` is a `subtraction_monoid`, use
+`is_add_unit.add_unit'` instead."]
 noncomputable def is_unit.unit [monoid M] {a : M} (h : is_unit a) : Mˣ :=
 (classical.some h).copy a (classical.some_spec h).symm _ rfl
 

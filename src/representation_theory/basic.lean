@@ -112,33 +112,6 @@ by simp only [as_group_hom, monoid_hom.coe_to_hom_units]
 
 end group
 
-section character
-
-variables {k G V : Type*} [comm_ring k] [group G] [add_comm_group V] [module k V]
-variables (ρ : representation k G V)
-
-/--
-The character associated to a representation of `G`, which as a map `G → k`
-sends each element to the trace of the corresponding linear map.
--/
-@[simp]
-noncomputable def character (g : G) : k := trace k V (ρ g)
-
-theorem char_mul_comm (g : G) (h : G) : character ρ (h * g) = character ρ (g * h) :=
-by simp only [trace_mul_comm, character, map_mul]
-
-/-- The character of a representation is constant on conjugacy classes. -/
-theorem char_conj (g : G) (h : G) : (character ρ) (h * g * h⁻¹) = (character ρ) g :=
-by simp only [character, ←as_group_hom_apply, map_mul, map_inv, trace_conj]
-
-variables [nontrivial k] [module.free k V] [module.finite k V]
-
-/-- The evaluation of the character at the identity is the dimension of the representation. -/
-theorem char_one : character ρ 1 = finite_dimensional.finrank k V :=
-by simp only [character, map_one, trace_one]
-
-end character
-
 section tensor_product
 
 variables {k G V W : Type*} [comm_semiring k] [monoid G]
@@ -215,12 +188,14 @@ variables (ρV : representation k G V) (ρW : representation k G W)
 
 local attribute tensor_product.ext
 
+/-- When `V` and `W` are finite dimensional representations of a group `G`, the isomorphism
+`dual_tensor_hom_equiv k V W` of vector spaces induces an isomorphism of representations.  -/
 noncomputable
 def dual_tensor_iso_lin_hom : (fdRep.of ρV.dual) ⊗ (fdRep.of ρW) ≅ fdRep.of (lin_hom ρV ρW) :=
 begin
   refine Action.mk_iso (dual_tensor_hom_equiv k V W).to_FinVect_iso _,
   intro g, ext f w v, simp [module.dual.transpose_apply],
-  --this simp is extremely long (~2.5 min), I'm not sure why
+  --this simp is extremely slow (~2.5 min), I'm not sure why
 end
 
 end

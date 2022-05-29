@@ -149,6 +149,8 @@ symmetric_category_of_faithful (full_braided_subcategory_inclusion P)
 
 end symmetric
 
+attribute [simps] category_theory.monoidal_category.full_monoidal_subcategory
+
 end monoidal_category
 
 end category_theory

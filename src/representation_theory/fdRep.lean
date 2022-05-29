@@ -50,8 +50,10 @@ by { change module k ((forget₂ (fdRep k G) (FinVect k)).obj V), apply_instance
 instance (V : fdRep k G) : finite_dimensional k V :=
 by { change finite_dimensional k ((forget₂ (fdRep k G) (FinVect k)).obj V), apply_instance, }
 
+/-- The monoid homomorphism corresponding to the action of `G` onto `V : fdRep k G`. -/
 def ρ (V : fdRep k G) : G →* (V →ₗ[k] V) := V.ρ
 
+/-- The underlying `linear_equiv` of an isomorphism of representations. -/
 def iso_to_linear_equiv {V W : fdRep k G} (i : V ≅ W) : V ≃ₗ[k] W :=
   FinVect.iso_to_linear_equiv ((Action.forget (FinVect k) (Mon.of G)).map_iso i)
 

@@ -33,9 +33,10 @@ variables {p n : ℕ}
 /--
 A logarithmic upper bound on the multiplicity of a prime in the central binomial coefficient.
 -/
-lemma factorization_central_binom_le (hp : p.prime) :
+lemma factorization_central_binom_le :
   ((central_binom n).factorization p) ≤ log p (2 * n) :=
 begin
+  by_cases hp : p.prime,
   rw ←@padic_val_nat_eq_factorization p (central_binom n) ⟨hp⟩,
   rw @padic_val_nat_def _ ⟨hp⟩ _ (central_binom_pos n),
   unfold central_binom,
@@ -44,6 +45,7 @@ begin
       two_mul_sub, ←two_mul, enat.get_coe', finset.filter_congr_decidable],
   calc _  ≤ (finset.Ico 1 (log p (2 * n) + 1)).card : finset.card_filter_le _ _
       ... = (log p (2 * n) + 1) - 1                 : nat.card_Ico _ _,
+  simp [hp],
 end
 
 /--
@@ -51,16 +53,18 @@ A `pow` form of `nat.factorization_central_binom_le`
 -/
 lemma pow_factorization_central_binom_le_two_mul {p n : ℕ} (hp : p.prime) (n_pos : 0 < n) :
   p ^ ((central_binom n).factorization p) ≤ 2 * n :=
-(pow_le_pow hp.one_lt.le (factorization_central_binom_le hp)).trans
+(pow_le_pow hp.one_lt.le (factorization_central_binom_le)).trans
   (pow_log_le_self hp.one_lt (by linarith))
 
 /--
 Primes greater than about `sqrt (2 * n)` appear only to multiplicity 0 or 1 in the central binomial
 coefficient.
 -/
-lemma factorization_central_binom_of_large_le_one (hp : p.prime) (p_large : 2 * n < p ^ 2) :
+lemma factorization_central_binom_of_large_le_one (p_large : 2 * n < p ^ 2) :
   (((central_binom n).factorization p)) ≤ 1 :=
 begin
+  by_cases hp : p.prime,
+
   have log_weak_bound : log p (2 * n) ≤ 2,
   { calc log p (2 * n) ≤ log p (p ^ 2) : log_monotone (le_of_lt p_large)
     ... = 2 : log_pow hp.one_lt 2, },
@@ -79,7 +83,9 @@ begin
       { rw log_of_lt h,
         exact zero_le 1, }, }, },
 
-  exact le_trans (factorization_central_binom_le hp) log_bound,
+  exact le_trans (factorization_central_binom_le) log_bound,
+
+  simp [hp],
 end
 
 /--
@@ -87,9 +93,10 @@ Primes greater than about `2 * n / 3` and less than `n` do not appear in the fac
 `central_binom n`.
 -/
 lemma factorization_central_binom_of_two_mul_self_lt_3_mul_prime
-  (hp : p.prime) (n_big : 2 < n) (p_le_n : p ≤ n) (big : 2 * n < 3 * p) :
+  (n_big : 2 < n) (p_le_n : p ≤ n) (big : 2 * n < 3 * p) :
   ((central_binom n).factorization p) = 0 :=
 begin
+  by_cases hp : p.prime,
   rw ←@padic_val_nat_eq_factorization p (central_binom n) ⟨hp⟩,
   rw @padic_val_nat_def _ ⟨hp⟩ _ (central_binom_pos n),
   unfold central_binom,
@@ -134,6 +141,7 @@ begin
   { have i_zero: i = 0 := nat.le_zero_iff.mp (nat.le_of_lt_succ H),
     rw [i_zero, pow_zero, nat.mod_one, mul_zero],
     exact zero_lt_one, },
+  simp [hp],
 end
 
 lemma factorization_eq_zero_of_lt (h : n < p) : n.factorization p = 0 :=

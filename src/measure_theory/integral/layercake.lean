@@ -36,7 +36,9 @@ section layercake
 
 variables {α : Type*} [measurable_space α] {f g : α → ℝ} {s : set α}
 
-theorem layercake_of_measurable
+/-- An auxiliary version of the layer cake theorem (Cavalieri's principle), with a
+measurability assumption that follows from integrability assumptions. -/
+lemma layercake_of_measurable
   (μ : measure α) [sigma_finite μ]
   {f : α → ℝ} (f_nn : 0 ≤ f) (f_mble : measurable f)
   {g : ℝ → ℝ} (g_intble : ∀ t > 0, interval_integrable g volume 0 t)
@@ -64,9 +66,9 @@ begin
   rw lintegral_lintegral_swap,
   { apply congr_arg,
     funext s,
-    have : (λ (x : α), (Ioc 0 (f x)).indicator (λ (t : ℝ), ennreal.of_real (g t)) s)
-            = (λ (x : α), (ennreal.of_real (g s) * (Ioi (0 : ℝ)).indicator (λ _, 1) s)
-                          * (Ici s).indicator (λ (t : ℝ), (1 : ℝ≥0∞)) (f x)),
+    have aux₁ : (λ (x : α), (Ioc 0 (f x)).indicator (λ (t : ℝ), ennreal.of_real (g t)) s)
+               = (λ (x : α), (ennreal.of_real (g s) * (Ioi (0 : ℝ)).indicator (λ _, 1) s)
+                             * (Ici s).indicator (λ (t : ℝ), (1 : ℝ≥0∞)) (f x)),
     { funext a,
       by_cases s ∈ Ioc (0 : ℝ) (f a),
       { simp only [h, (show s ∈ Ioi (0 : ℝ), from h.1),
@@ -88,30 +90,27 @@ begin
                     zero_mul, indicator_apply_eq_zero, mem_Ioc, ennreal.of_real_eq_zero, and_imp],
           intros con,
           contradiction, }, }, },
-    simp_rw this,
+    simp_rw aux₁,
     rw lintegral_const_mul',
     swap, { apply ennreal.mul_ne_top ennreal.of_real_ne_top,
             by_cases s ∈ Ioi (0 : ℝ); { simp [h], }, },
-    have aux : (λ a, (Ici s).indicator (λ (t : ℝ), (1 : ℝ≥0∞)) (f a))
-              = (λ a, {a : α | s ≤ f a}.indicator (λ _, 1) a),
-    { funext a,
-      by_cases s ≤ f a; simp [h], },
-    simp_rw [aux],
+    simp_rw [(show (λ a, (Ici s).indicator (λ (t : ℝ), (1 : ℝ≥0∞)) (f a))
+                = (λ a, {a : α | s ≤ f a}.indicator (λ _, 1) a),
+              by { funext a, by_cases s ≤ f a; simp [h], })],
     rw lintegral_indicator, swap, { exact f_mble measurable_set_Ici, },
     rw lintegral_one,
     simp only [measure.restrict_apply, measurable_set.univ, univ_inter],
     rw indicator_mul_left,
     rw mul_assoc,
-    have whee : (Ioi 0).indicator (λ (_x : ℝ), (1 : ℝ≥0∞)) s * μ {a : α | s ≤ f a}
+    rw [(show (Ioi 0).indicator (λ (_x : ℝ), (1 : ℝ≥0∞)) s * μ {a : α | s ≤ f a}
                 = (Ioi 0).indicator (λ (_x : ℝ), 1 * μ {a : α | s ≤ f a}) s,
-    { by_cases 0 < s; simp [h], },
-    rw whee,
+         by { by_cases 0 < s; simp [h], })],
     rw mul_comm _ (ennreal.of_real _),
     simp_rw [one_mul],
     refl, },
-  have : function.uncurry
-         (λ (x : α) (y : ℝ), (Ioc 0 (f x)).indicator (λ (t : ℝ), ennreal.of_real (g t)) y)
-           = {p : α × ℝ | p.2 ∈ Ioc 0 (f p.1)}.indicator (λ p, ennreal.of_real (g p.2)),
+  have aux₂ : function.uncurry
+              (λ (x : α) (y : ℝ), (Ioc 0 (f x)).indicator (λ (t : ℝ), ennreal.of_real (g t)) y)
+              = {p : α × ℝ | p.2 ∈ Ioc 0 (f p.1)}.indicator (λ p, ennreal.of_real (g p.2)),
   { funext p,
     by_cases p.2 ∈ Ioc 0 (f p.1),
     { have h' : p ∈ {p : α × ℝ | p.snd ∈ Ioc 0 (f p.fst)}, by simpa only using h,
@@ -124,7 +123,7 @@ begin
       cases p,
       dsimp,
       rw set.indicator_of_not_mem h, }, },
-  rw this,
+  rw aux₂,
   have mble := measurable_set_region_between_oc measurable_zero f_mble measurable_set.univ,
   simp only [mem_univ, pi.zero_apply, true_and] at mble,
   apply (ae_measurable_indicator_iff mble).mpr,
@@ -133,6 +132,14 @@ begin
   exact g_mble.comp measurable_snd,
 end
 
+/-- The layer cake theorem (Cavalieri's principle):
+Consider a non-negative measurable function `f`. Apply pointwise to it an increasing absolutely
+continuous function `G` vanishing at the origin, with derivative `G' = g` on the positive real
+line (in other words, `G` a primitive of a non-negative locally integrable function `g` on the
+positive real line). Then the integral of the result, `∫ G ∘ f`, can be written as the integral
+over the positive real line of the "complementary cumulative distribution function" of `f`
+(i.e., a function giving the measures of the sets on which `f` exceeds different positive real
+values) weighted by `g`. -/
 theorem layercake (μ : measure α) [sigma_finite μ]
   {f : α → ℝ} (f_nn : 0 ≤ f) (f_mble : measurable f)
   {g : ℝ → ℝ} (g_intble : ∀ t > 0, interval_integrable g volume 0 t)
@@ -152,9 +159,8 @@ begin
       { exact λ a, by simp only [pi.zero_apply, le_max_iff, le_refl, true_or], }, },
     suffices : ae_measurable g (volume.restrict (Ioi (0 : ℝ))), from this,
     have Ioi_eq_Union : Ioi (0 : ℝ) = ⋃ (n : ℕ), Ioc 0 (n : ℝ),
-    { rw Union_Ioc_eq_Ioi_self_iff.mpr,
-      intros x x_pos,
-      exact exists_nat_ge x, },
+    { rw Union_Ioc_eq_Ioi_self_iff.mpr _,
+      exact λ x _, exists_nat_ge x, },
     rw [Ioi_eq_Union, ae_measurable_Union_iff],
     intros n,
     by_cases n = 0,

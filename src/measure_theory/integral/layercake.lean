@@ -36,40 +36,6 @@ section layercake
 
 variables {α : Type*} [measurable_space α] {f g : α → ℝ} {s : set α}
 
-lemma measurable_set_region_between_oc
-  (hf : measurable f) (hg : measurable g) (hs : measurable_set s) :
-  measurable_set {p : α × ℝ | p.fst ∈ s ∧ p.snd ∈ Ioc (f p.fst) (g p.fst)} :=
-begin
-  dsimp only [region_between, Ioc, mem_set_of_eq, set_of_and],
-  refine measurable_set.inter _ ((measurable_set_lt (hf.comp measurable_fst) measurable_snd).inter
-    (measurable_set_le measurable_snd (hg.comp measurable_fst))),
-  exact measurable_fst hs,
-end
-
-lemma measurable_set_region_between_co
-  (hf : measurable f) (hg : measurable g) (hs : measurable_set s) :
-  measurable_set {p : α × ℝ | p.fst ∈ s ∧ p.snd ∈ Ico (f p.fst) (g p.fst)} :=
-begin
-  dsimp only [region_between, Ico, mem_set_of_eq, set_of_and],
-  refine measurable_set.inter _ ((measurable_set_le (hf.comp measurable_fst) measurable_snd).inter
-    (measurable_set_lt measurable_snd (hg.comp measurable_fst))),
-  exact measurable_fst hs,
-end
-
-lemma measurable_set_region_between_cc
-  (hf : measurable f) (hg : measurable g) (hs : measurable_set s) :
-  measurable_set {p : α × ℝ | p.fst ∈ s ∧ p.snd ∈ Icc (f p.fst) (g p.fst)} :=
-begin
-  dsimp only [region_between, Icc, mem_set_of_eq, set_of_and],
-  refine measurable_set.inter _ ((measurable_set_le (hf.comp measurable_fst) measurable_snd).inter
-    (measurable_set_le measurable_snd (hg.comp measurable_fst))),
-  exact measurable_fst hs,
-end
-
-lemma measurable_set_graph (hf : measurable f) :
-  measurable_set {p : α × ℝ | p.snd = f p.fst} :=
-by simpa using measurable_set_region_between_cc hf hf measurable_set.univ
-
 theorem layercake_of_measurable
   (μ : measure α) [sigma_finite μ]
   {f : α → ℝ} (f_nn : 0 ≤ f) (f_mble : measurable f)

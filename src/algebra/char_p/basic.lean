@@ -338,12 +338,8 @@ lemma cast_eq_mod (p : ℕ) [char_p R p] (k : ℕ) : (k : R) = (k % p : ℕ) :=
 calc (k : R) = ↑(k % p + p * (k / p)) : by rw [nat.mod_add_div]
          ... = ↑(k % p)               : by simp [cast_eq_zero]
 
-end
-
-section
-variables [non_assoc_ring R]
-
-theorem char_ne_zero_of_fintype (p : ℕ) [hc : char_p R p] [fintype R] : p ≠ 0 :=
+theorem char_ne_zero_of_fintype (R : Type*) [non_assoc_ring R] [fintype R]
+ (p : ℕ) [hc : char_p R p] : p ≠ 0 :=
 assume h : p = 0,
 have char_zero R := @char_p_to_char_zero R _ _ (h ▸ hc),
 absurd (@nat.cast_injective R _ _ this) (not_injective_infinite_fintype coe)
@@ -477,10 +473,6 @@ begin
   { apply hR i hi, rw [← nat.cast_pow, ← hc, char_p.cast_eq_zero] },
   rwa ← hc
 end
-
-end
-
-section
 
 /-- The characteristic of a finite ring cannot be zero. -/
 lemma ring_char.char_ne_zero_of_fintype (R) [non_assoc_ring R] [fintype R] : ring_char R ≠ 0 :=

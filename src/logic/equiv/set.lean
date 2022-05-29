@@ -526,6 +526,14 @@ lemma of_preimage_equiv_map {α β γ} {f : α → γ} {g : β → γ}
   (e : Π c, (f ⁻¹' {c}) ≃ (g ⁻¹' {c})) (a : α) : g (of_preimage_equiv e a) = f a :=
 equiv.of_fiber_equiv_map e a
 
+/-- The subtype of subsets of `t` is equivalent to `set ↥t`. -/
+@[simps {fully_applied := ff}]
+def subset_equiv_set_coe {α : Type*} (t : set α) : {s // s ⊆ t} ≃ set t :=
+{ to_fun := λ s, {x | ↑x ∈ (s : set α)},
+  inv_fun := λ s, ⟨s.image subtype.val, image_subset_iff.2 $ λ x _, x.2⟩,
+  left_inv := λ s, by { ext, simpa using (λ hx, s.2 hx) },
+  right_inv := λ s, by simp }
+
 end equiv
 
 /-- If a function is a bijection between two sets `s` and `t`, then it induces an

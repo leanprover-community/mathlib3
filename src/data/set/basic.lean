@@ -1621,13 +1621,6 @@ begin
     convert congr_arg σ h; exact (σ.apply_symm_apply _).symm }
 end
 
-/-- The subtype of subsets of `t` is equivalent to `set ↥t`. -/
-def _root_.equiv.subset_equiv_set_coe (t : set α) : {s // s ⊆ t} ≃ set t :=
-{ to_fun := λ s, {x | ↑x ∈ s.1},
-  inv_fun := λ s, ⟨s.image subtype.val, image_subset_iff.2 $ λ x _, x.2⟩,
-  left_inv := λ s, by { ext, simpa using (λ hx, s.2 hx) },
-  right_inv := λ s, by simp }
-
 end image
 
 /-! ### Subsingleton -/

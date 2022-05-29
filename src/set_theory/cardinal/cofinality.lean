@@ -736,23 +736,20 @@ theorem is_regular_omega : is_regular ω :=
 ⟨le_rfl, by simp⟩
 
 theorem is_regular_succ {c : cardinal.{u}} (h : ω ≤ c) : is_regular (succ c) :=
-⟨h.trans (lt_succ c).le, succ_le_of_lt begin
+⟨h.trans (le_succ c), succ_le_of_lt begin
   cases quotient.exists_rep (@succ cardinal _ _ c) with α αe, simp at αe,
   rcases ord_eq α with ⟨r, wo, re⟩, resetI,
-  have := ord_is_limit (h.trans (lt_succ _).le),
+  have := ord_is_limit (h.trans (le_succ _)),
   rw [← αe, re] at this ⊢,
   rcases cof_eq' r this with ⟨S, H, Se⟩,
   rw [← Se],
-  apply lt_imp_lt_of_le_imp_le
-    (λ (h : #S ≤ c), mul_le_mul_right' h c),
+  apply lt_imp_lt_of_le_imp_le (λ h, mul_le_mul_right' h c),
   rw [mul_eq_self h, ← succ_le_iff, ← αe, ← sum_const'],
-  refine le_trans _ (sum_le_sum (λ x:S, card (typein r x)) _ _),
+  refine le_trans _ (sum_le_sum (λ x, card (typein r x)) _ (λ i, _)),
   { simp only [← card_typein, ← mk_sigma],
-    refine ⟨embedding.of_surjective _ _⟩,
-    { exact λ x, x.2.1 },
-    { exact λ a, let ⟨b, h, ab⟩ := H a in ⟨⟨⟨_, h⟩, _, ab⟩, rfl⟩ } },
-  { intro i,
-    rw [← lt_succ_iff, ← lt_ord, ← αe, re],
+    exact ⟨embedding.of_surjective (λ x, x.2.1)
+      (λ a, let ⟨b, h, ab⟩ := H a in ⟨⟨⟨_, h⟩, _, ab⟩, rfl⟩)⟩ },
+  { rw [← lt_succ_iff, ← lt_ord, ← αe, re],
     apply typein_lt_type }
 end⟩
 

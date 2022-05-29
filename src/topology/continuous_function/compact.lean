@@ -458,9 +458,6 @@ instance [compact_space α] : normed_star_group C(α, β) :=
                           bounded_continuous_function.mk_of_compact_star, norm_star,
                           bounded_continuous_function.norm_mk_of_compact] }
 
-instance : star_module 𝕜 C(α, β) :=
-{ star_smul := λ k f, by { ext, exact star_smul _ _ } }
-
 end normed_space
 
 section cstar_ring
@@ -468,10 +465,6 @@ section cstar_ring
 variables {α : Type*} {β : Type*} {𝕜 : Type*}
 variables [normed_field 𝕜] [star_ring 𝕜]
 variables [topological_space α] [normed_ring β] [star_ring β]
-
-instance [has_continuous_star β] : star_ring C(α, β) :=
-{ star_mul := λ f g, by { ext, exact star_mul _ _ },
-  ..continuous_map.star_add_monoid }
 
 instance [compact_space α] [cstar_ring β] : cstar_ring C(α, β) :=
 { norm_star_mul_self :=

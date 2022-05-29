@@ -765,19 +765,40 @@ star operation pointwise.
 -/
 
 section star_structure
+variables {R α β : Type*}
+variables [topological_space α] [topological_space β]
 
-variables {α : Type*} {β : Type*}
-variables [topological_space α] [topological_space β] [add_monoid β] [has_continuous_add β]
-  [star_add_monoid β] [has_continuous_star β]
+section has_star
+variables [has_star β] [has_continuous_star β]
 
-instance : star_add_monoid C(α, β) :=
-{ star            := λ f, star_continuous_map.comp f,
-  star_involutive := λ f, by { ext, exact star_star _ },
-  star_add        := λ f g, by { ext, exact star_add _ _ } }
+instance : has_star C(α, β) :=
+{ star := λ f, star_continuous_map.comp f }
 
 @[simp] lemma coe_star (f : C(α, β)) : ⇑(star f) = star f := rfl
 
 @[simp] lemma star_apply (f : C(α, β)) (x : α) : star f x = star (f x) := rfl
+
+end has_star
+
+instance [has_involutive_star β] [has_continuous_star β] : has_involutive_star C(α, β) :=
+{ star_involutive := λ f, ext $ λ x, star_star _ }
+
+instance [add_monoid β] [has_continuous_add β] [star_add_monoid β] [has_continuous_star β] :
+  star_add_monoid C(α, β) :=
+{ star_add := λ f g, ext $ λ x, star_add _ _ }
+
+instance [semigroup β] [has_continuous_mul β] [star_semigroup β] [has_continuous_star β] :
+  star_semigroup C(α, β) :=
+{ star_mul := λ f g, ext $ λ x, star_mul _ _ }
+
+instance [non_unital_semiring β] [topological_semiring β] [star_ring β] [has_continuous_star β] :
+  star_ring C(α, β) :=
+{ ..continuous_map.star_add_monoid }
+
+instance [has_star R] [has_star β] [has_scalar R β] [star_module R β]
+  [has_continuous_star β] [has_continuous_const_smul R β] :
+  star_module R C(α, β) :=
+{ star_smul := λ k f, ext $ λ x, star_smul _ _ }
 
 end star_structure
 

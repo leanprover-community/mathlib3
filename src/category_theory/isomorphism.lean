@@ -43,7 +43,7 @@ The inverse morphism is bundled.
 See also `category_theory.core` for the category with the same objects and isomorphisms playing
 the role of morphisms.
 
-See https://stacks.math.columbia.edu/tag/0017.
+See <https://stacks.math.columbia.edu/tag/0017>.
 -/
 structure iso {C : Type u} [category.{v} C] (X Y : C) :=
 (hom : X ⟶ Y)
@@ -154,6 +154,12 @@ by rw [←eq_inv_comp, comp_id]
 lemma comp_hom_eq_id (α : X ≅ Y) {f : Y ⟶ X} : f ≫ α.hom = 𝟙 Y ↔ f = α.inv :=
 by rw [←eq_comp_inv, id_comp]
 
+lemma inv_comp_eq_id (α : X ≅ Y) {f : X ⟶ Y} : α.inv ≫ f = 𝟙 Y ↔ f = α.hom :=
+hom_comp_eq_id α.symm
+
+lemma comp_inv_eq_id (α : X ≅ Y) {f : X ⟶ Y} : f ≫ α.inv = 𝟙 X ↔ f = α.hom :=
+comp_hom_eq_id α.symm
+
 lemma hom_eq_inv (α : X ≅ Y) (β : Y ≅ X) : α.hom = β.inv ↔ β.hom = α.inv :=
 by { erw [inv_eq_inv α.symm β, eq_comm], refl }
 
@@ -236,6 +242,11 @@ variables {f g : X ⟶ Y} {h : Y ⟶ Z}
 instance inv_is_iso [is_iso f] : is_iso (inv f) :=
 is_iso.of_iso_inv (as_iso f)
 
+/- The following instance has lower priority for the following reason:
+Suppose we are given `f : X ≅ Y` with `X Y : Type u`.
+Without the lower priority, typeclass inference cannot deduce `is_iso f.hom`
+because `f.hom` is defeq to `(λ x, x) ≫ f.hom`, triggering a loop. -/
+@[priority 900]
 instance comp_is_iso [is_iso f] [is_iso h] : is_iso (f ≫ h) :=
 is_iso.of_iso $ (as_iso f) ≪≫ (as_iso h)
 
@@ -261,6 +272,22 @@ lemma comp_inv_eq (α : X ⟶ Y) [is_iso α] {f : Z ⟶ Y} {g : Z ⟶ X} : f ≫
 lemma eq_comp_inv (α : X ⟶ Y) [is_iso α] {f : Z ⟶ Y} {g : Z ⟶ X} : g = f ≫ inv α ↔ g ≫ α = f :=
 (as_iso α).eq_comp_inv
 
+lemma of_is_iso_comp_left {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z)
+  [is_iso f] [is_iso (f ≫ g)] : is_iso g :=
+by { rw [← id_comp g, ← inv_hom_id f, assoc], apply_instance, }
+
+lemma of_is_iso_comp_right {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z)
+  [is_iso g] [is_iso (f ≫ g)] : is_iso f :=
+by { rw [← comp_id f, ← hom_inv_id g, ← assoc], apply_instance, }
+
+lemma of_is_iso_fac_left {X Y Z : C} {f : X ⟶ Y} {g : Y ⟶ Z} {h : X ⟶ Z}
+  [is_iso f] [hh : is_iso h] (w : f ≫ g = h) : is_iso g :=
+by { rw ← w at hh, haveI := hh, exact of_is_iso_comp_left f g, }
+
+lemma of_is_iso_fac_right {X Y Z : C} {f : X ⟶ Y} {g : Y ⟶ Z} {h : X ⟶ Z}
+  [is_iso g] [hh : is_iso h] (w : f ≫ g = h) : is_iso f :=
+by { rw ← w at hh, haveI := hh, exact of_is_iso_comp_right f g, }
+
 end is_iso
 
 open is_iso
@@ -280,18 +307,27 @@ lemma hom_comp_eq_id (g : X ⟶ Y) [is_iso g] {f : Y ⟶ X} : g ≫ f = 𝟙 X �
 lemma comp_hom_eq_id (g : X ⟶ Y) [is_iso g] {f : Y ⟶ X} : f ≫ g = 𝟙 Y ↔ f = inv g :=
 (as_iso g).comp_hom_eq_id
 
+lemma inv_comp_eq_id (g : X ⟶ Y) [is_iso g] {f : X ⟶ Y} : inv g ≫ f = 𝟙 Y ↔ f = g :=
+(as_iso g).inv_comp_eq_id
+
+lemma comp_inv_eq_id (g : X ⟶ Y) [is_iso g] {f : X ⟶ Y} : f ≫ inv g = 𝟙 X ↔ f = g :=
+(as_iso g).comp_inv_eq_id
+
+lemma is_iso_of_hom_comp_eq_id (g : X ⟶ Y) [is_iso g] {f : Y ⟶ X} (h : g ≫ f = 𝟙 X) : is_iso f :=
+by { rw [(hom_comp_eq_id _).mp h], apply_instance }
+
+lemma is_iso_of_comp_hom_eq_id (g : X ⟶ Y) [is_iso g] {f : Y ⟶ X} (h : f ≫ g = 𝟙 Y) : is_iso f :=
+by { rw [(comp_hom_eq_id _).mp h], apply_instance }
+
 namespace iso
 
 @[ext] lemma inv_ext {f : X ≅ Y} {g : Y ⟶ X}
   (hom_inv_id : f.hom ≫ g = 𝟙 X) : f.inv = g :=
-begin
-  apply (cancel_epi f.hom).mp,
-  simp [hom_inv_id],
-end
+((hom_comp_eq_id f).1 hom_inv_id).symm
 
 @[ext] lemma inv_ext' {f : X ≅ Y} {g : Y ⟶ X}
   (hom_inv_id : f.hom ≫ g = 𝟙 X) : g = f.inv :=
-by { symmetry, ext, assumption, }
+(hom_comp_eq_id f).1 hom_inv_id
 
 /-!
 All these cancellation lemmas can be solved by `simp [cancel_mono]` (or `simp [cancel_epi]`),

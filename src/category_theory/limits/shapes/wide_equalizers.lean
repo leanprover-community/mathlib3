@@ -624,10 +624,10 @@ end
 variables (C)
 
 /-- `has_wide_equalizers` represents a choice of wide equalizer for every family of morphisms -/
-abbreviation has_wide_equalizers := Π J, has_limits_of_shape (walking_parallel_family J) C
+abbreviation has_wide_equalizers := Π J, has_limits_of_shape (walking_parallel_family.{v} J) C
 
 /-- `has_wide_coequalizers` represents a choice of wide coequalizer for every family of morphisms -/
-abbreviation has_wide_coequalizers := Π J, has_colimits_of_shape (walking_parallel_family J) C
+abbreviation has_wide_coequalizers := Π J, has_colimits_of_shape (walking_parallel_family.{v} J) C
 
 /-- If `C` has all limits of diagrams `parallel_family f`, then it has all wide equalizers -/
 lemma has_wide_equalizers_of_has_limit_parallel_family

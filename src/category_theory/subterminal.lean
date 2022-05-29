@@ -3,9 +3,9 @@ Copyright (c) 2020 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
-import category_theory.limits.shapes.terminal
 import category_theory.limits.shapes.binary_products
-import category_theory.subobject.basic
+import category_theory.limits.shapes.terminal
+import category_theory.subobject.mono_over
 
 /-!
 # Subterminal objects
@@ -138,7 +138,7 @@ def subterminals_equiv_mono_over_terminal [has_terminal C] :
   subterminals C ≌ mono_over (⊤_ C) :=
 { functor :=
   { obj := λ X, ⟨over.mk (terminal.from X.1), X.2.mono_terminal_from⟩,
-    map := λ X Y f, mono_over.hom_mk f (by ext1 ⟨⟩) },
+    map := λ X Y f, mono_over.hom_mk f (by ext1 ⟨⟨⟩⟩) },
   inverse :=
   { obj := λ X, ⟨X.val.left, λ Z f g, by { rw ← cancel_mono X.arrow, apply subsingleton.elim }⟩,
     map := λ X Y f, f.1 },

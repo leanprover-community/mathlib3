@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 
-import category_theory.limits.preserves.basic
-import category_theory.limits.lattice
+import category_theory.category.preorder
+import category_theory.limits.is_limit
 
 /-!
 # The category of "pairwise intersections".
@@ -43,7 +43,7 @@ variables {ι : Type v}
 
 namespace pairwise
 
-instance pairwise_inhabited [inhabited ι] : inhabited (pairwise ι) := ⟨single (default ι)⟩
+instance pairwise_inhabited [inhabited ι] : inhabited (pairwise ι) := ⟨single default⟩
 
 /--
 Morphisms in the category `pairwise ι`. The only non-identity morphisms are
@@ -57,8 +57,8 @@ inductive hom : pairwise ι → pairwise ι → Type v
 
 open hom
 
-instance hom_inhabited [inhabited ι] : inhabited (hom (single (default ι)) (single (default ι))) :=
-⟨id_single (default ι)⟩
+instance hom_inhabited [inhabited ι] : inhabited (hom (single (default : ι)) (single default)) :=
+⟨id_single default⟩
 
 /--
 The identity morphism in `pairwise ι`.

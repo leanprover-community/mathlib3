@@ -34,7 +34,7 @@ halting problem. Instead, this requirement is limited to only functions that are
 sense of `ω`-complete partial orders, which excludes the example because it is not monotone
 (making the input argument less defined can make `f` more defined). -/
 class lawful_fix (α : Type*) [omega_complete_partial_order α] extends has_fix α :=
-(fix_eq : ∀ {f : α →ₘ α}, continuous f → has_fix.fix f = f (has_fix.fix f))
+(fix_eq : ∀ {f : α →o α}, continuous f → has_fix.fix f = f (has_fix.fix f))
 
 lemma lawful_fix.fix_eq' {α} [omega_complete_partial_order α] [lawful_fix α]
   {f : α → α} (hf : continuous' f) :
@@ -47,20 +47,19 @@ open part nat nat.upto
 
 namespace fix
 
-variables (f : (Π a, part $ β a) →ₘ (Π a, part $ β a))
+variables (f : (Π a, part $ β a) →o (Π a, part $ β a))
 
 lemma approx_mono' {i : ℕ} : fix.approx f i ≤ fix.approx f (succ i) :=
 begin
-  induction i, dsimp [approx], apply @bot_le _ _ (f ⊥),
+  induction i, dsimp [approx], apply @bot_le _ _ _ (f ⊥),
   intro, apply f.monotone, apply i_ih
 end
 
 lemma approx_mono ⦃i j : ℕ⦄ (hij : i ≤ j) : approx f i ≤ approx f j :=
 begin
-  induction j, cases hij, refine @le_refl _ _ _,
-  cases hij, apply @le_refl _ _ _,
-  apply @le_trans _ _ _ (approx f j_n) _ (j_ih ‹_›),
-  apply approx_mono' f
+  induction j with j ih, { cases hij, exact le_rfl },
+  cases hij, { exact le_rfl },
+  exact le_trans (ih ‹_›) (approx_mono' f)
 end
 
 lemma mem_iff (a : α) (b : β a) : b ∈ part.fix f a ↔ ∃ i, b ∈ approx f i a :=
@@ -93,8 +92,8 @@ begin
   { rcases hh with ⟨i,b,hb⟩, existsi i,
     intros b' h',
     have hb' := approx_le_fix f i _ _ hb,
-    have hh := part.mem_unique h' hb',
-    subst hh, exact hb },
+    obtain rfl := part.mem_unique h' hb',
+    exact hb },
   { simp only [not_exists] at hh, existsi 0,
     intros b' h',
     simp only [mem_iff f] at h',
@@ -107,10 +106,10 @@ include f
 /-- The series of approximations of `fix f` (see `approx`) as a `chain` -/
 def approx_chain : chain (Π a, part $ β a) := ⟨approx f, approx_mono f⟩
 
-lemma le_f_of_mem_approx {x} (hx : x ∈ approx_chain f) : x ≤ f x :=
+lemma le_f_of_mem_approx {x} : x ∈ approx_chain f → x ≤ f x :=
 begin
-  revert hx, simp [(∈)],
-  intros i hx, subst x,
+  simp only [(∈), forall_exists_index],
+  rintro i rfl,
   apply approx_mono'
 end
 
@@ -122,7 +121,7 @@ end fix
 open fix
 
 variables {α}
-variables (f : (Π a, part $ β a) →ₘ (Π a, part $ β a))
+variables (f : (Π a, part $ β a) →o (Π a, part $ β a))
 
 open omega_complete_partial_order
 
@@ -138,7 +137,7 @@ begin
     apply' le_ωSup_of_le i.succ,
     dsimp [approx], refl', },
   { apply ωSup_le _ _ _,
-    simp only [fix.approx_chain, preorder_hom.coe_fun_mk],
+    simp only [fix.approx_chain, order_hom.coe_fun_mk],
     intros y x, apply approx_le_fix f },
 end
 
@@ -146,7 +145,7 @@ lemma fix_le {X : Π a, part $ β a} (hX : f X ≤ X) : part.fix f ≤ X :=
 begin
   rw fix_eq_ωSup f,
   apply ωSup_le _ _ _,
-  simp only [fix.approx_chain, preorder_hom.coe_fun_mk],
+  simp only [fix.approx_chain, order_hom.coe_fun_mk],
   intros i,
   induction i, dsimp [fix.approx], apply' bot_le,
   transitivity' f X, apply f.monotone i_ih,
@@ -173,18 +172,18 @@ namespace part
 
 /-- `to_unit` as a monotone function -/
 @[simps]
-def to_unit_mono (f : part α →ₘ part α) : (unit → part α) →ₘ (unit → part α) :=
+def to_unit_mono (f : part α →o part α) : (unit → part α) →o (unit → part α) :=
 { to_fun := λ x u, f (x u),
   monotone' := λ x y (h : x ≤ y) u, f.monotone $ h u }
 
-lemma to_unit_cont (f : part α →ₘ part α) (hc : continuous f) : continuous (to_unit_mono f)
+lemma to_unit_cont (f : part α →o part α) (hc : continuous f) : continuous (to_unit_mono f)
 | c := begin
   ext ⟨⟩ : 1,
   dsimp [omega_complete_partial_order.ωSup],
   erw [hc, chain.map_comp], refl
 end
 
-noncomputable instance : lawful_fix (part α) :=
+instance : lawful_fix (part α) :=
 ⟨λ f hc, show part.fix (to_unit_mono f) () = _, by rw part.fix_eq (to_unit_cont f hc); refl⟩
 
 end part
@@ -193,7 +192,7 @@ open sigma
 
 namespace pi
 
-noncomputable instance {β} : lawful_fix (α → part β) := ⟨λ f, part.fix_eq⟩
+instance {β} : lawful_fix (α → part β) := ⟨λ f, part.fix_eq⟩
 
 variables {γ : Π a : α, β a → Type*}
 
@@ -204,14 +203,14 @@ variables (α β γ)
 /-- `sigma.curry` as a monotone function. -/
 @[simps]
 def monotone_curry [∀ x y, preorder $ γ x y] :
-  (Π x : Σ a, β a, γ x.1 x.2) →ₘ (Π a (b : β a), γ a b) :=
+  (Π x : Σ a, β a, γ x.1 x.2) →o (Π a (b : β a), γ a b) :=
 { to_fun := curry,
   monotone' := λ x y h a b, h ⟨a,b⟩ }
 
 /-- `sigma.uncurry` as a monotone function. -/
 @[simps]
 def monotone_uncurry [∀ x y, preorder $ γ x y] :
-  (Π a (b : β a), γ a b) →ₘ (Π x : Σ a, β a, γ x.1 x.2) :=
+  (Π a (b : β a), γ a b) →o (Π x : Σ a, β a, γ x.1 x.2) :=
 { to_fun := uncurry,
   monotone' := λ x y h a, h a.1 a.2 }
 
@@ -236,7 +235,7 @@ variables [∀ x y, omega_complete_partial_order $ γ x y]
 
 section curry
 
-variables {f : (Π x (y : β x), γ x y) →ₘ (Π x (y : β x), γ x y)}
+variables {f : (Π x (y : β x), γ x y) →o (Π x (y : β x), γ x y)}
 variables (hc : continuous f)
 
 lemma uncurry_curry_continuous :

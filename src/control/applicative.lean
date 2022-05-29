@@ -2,13 +2,21 @@
 Copyright (c) 2017 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon
-
-Instances for identity and composition functors
 -/
+import algebra.group.defs
 import control.functor
-import algebra.group.basic
 
-universe variables u v w
+/-!
+# `applicative` instances
+
+This file provides `applicative` instances for concrete functors:
+* `id`
+* `functor.comp`
+* `functor.const`
+* `functor.add_const`
+-/
+
+universes u v w
 
 section lemmas
 
@@ -22,8 +30,7 @@ lemma applicative.map_seq_map (f : α → β → γ) (g : σ → β) (x : F α) 
   (f <$> x) <*> (g <$> y) = (flip (∘) g ∘ f) <$> x <*> y :=
 by simp [flip] with functor_norm
 
-lemma applicative.pure_seq_eq_map' (f : α → β) :
-  (<*>) (pure f : F (α → β)) = (<$>) f :=
+lemma applicative.pure_seq_eq_map' (f : α → β) : (<*>) (pure f : F (α → β)) = (<$>) f :=
 by ext; simp with functor_norm
 
 theorem applicative.ext {F} : ∀ {A1 : applicative F} {A2 : applicative F}
@@ -36,13 +43,12 @@ theorem applicative.ext {F} : ∀ {A1 : applicative F} {A2 : applicative F}
 | {to_functor := F1, seq := s1, pure := p1, seq_left := sl1, seq_right := sr1}
   {to_functor := F2, seq := s2, pure := p2, seq_left := sl2, seq_right := sr2} L1 L2 H1 H2 :=
 begin
-  have : @p1 = @p2, {funext α x, apply H1}, subst this,
-  have : @s1 = @s2, {funext α β f x, apply H2}, subst this,
+  obtain rfl : @p1 = @p2, {funext α x, apply H1},
+  obtain rfl : @s1 = @s2, {funext α β f x, apply H2},
   cases L1, cases L2,
-  have : F1 = F2,
+  obtain rfl : F1 = F2,
   { resetI, apply functor.ext, intros,
     exact (L1_pure_seq_eq_map _ _).symm.trans (L2_pure_seq_eq_map _ _) },
-  subst this,
   congr; funext α β x y,
   { exact (L1_seq_left_eq _ _).trans (L2_seq_left_eq _ _).symm },
   { exact (L1_seq_right_eq _ _).trans (L2_seq_right_eq _ _).symm }

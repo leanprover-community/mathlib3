@@ -3,13 +3,14 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Johannes Hölzl
 -/
-import data.list.basic
+import data.list.infix
 
 /-!
 # Double universal quantification on a list
 
 This file provides an API for `list.forall₂` (definition in `data.list.defs`).
-`forall₂ r l₁ l₂` means that `∀ a ∈ l₁, ∀ b ∈ l₂, r a b`, where `l₁`, `l₂` are lists.
+`forall₂ R l₁ l₂` means that `l₁` and `l₂` have the same length, and whenever `a` is the nth element
+of `l₁`, and `b` is the nth element of `l₂`, then `R a b` is satisfied.
 -/
 
 open nat function
@@ -40,21 +41,19 @@ lemma forall₂.flip : ∀ {a b}, forall₂ (flip r) b a → forall₂ r a b
 | _ _                 forall₂.nil          := forall₂.nil
 | (a :: as) (b :: bs) (forall₂.cons h₁ h₂) := forall₂.cons h₁ h₂.flip
 
-lemma forall₂_same {r : α → α → Prop} : ∀ {l}, (∀ x∈l, r x x) → forall₂ r l l
-| []        _ := forall₂.nil
-| (a :: as) h := forall₂.cons
-    (h _ (mem_cons_self _ _))
-    (forall₂_same $ λ a ha, h a $ mem_cons_of_mem _ ha)
+@[simp] lemma forall₂_same {r : α → α → Prop} : ∀ {l : list α}, forall₂ r l l ↔ ∀ x ∈ l, r x x
+| [] := by simp
+| (a :: l) := by simp [@forall₂_same l]
 
 lemma forall₂_refl {r} [is_refl α r] (l : list α) : forall₂ r l l :=
-forall₂_same $ λ a h, is_refl.refl _
+forall₂_same.2 $ λ a h, refl _
 
-lemma forall₂_eq_eq_eq : forall₂ ((=) : α → α → Prop) = (=) :=
+@[simp] lemma forall₂_eq_eq_eq : forall₂ ((=) : α → α → Prop) = (=) :=
 begin
   funext a b, apply propext,
   split,
   { intro h, induction h, {refl}, simp only [*]; split; refl },
-  { intro h, subst h, exact forall₂_refl _ }
+  { rintro rfl, exact forall₂_refl _ }
 end
 
 @[simp, priority 900] lemma forall₂_nil_left_iff {l} : forall₂ r nil l ↔ l = nil :=
@@ -211,15 +210,6 @@ lemma rel_filter {p : α → Prop} {q : β → Prop} [decidable_pred p] [decidab
       simp only [filter_cons_of_neg _ h, filter_cons_of_neg _ this, rel_filter h₂], },
   end
 
-theorem filter_map_cons (f : α → option β) (a : α) (l : list α) :
-  filter_map f (a :: l) = option.cases_on (f a) (filter_map f l) (λb, b :: filter_map f l) :=
-begin
-  generalize eq : f a = b,
-  cases b,
-  { rw filter_map_cons_none _ _ eq },
-  { rw filter_map_cons_some _ _ _ eq },
-end
-
 lemma rel_filter_map : ((r ⇒ option.rel p) ⇒ forall₂ r ⇒ forall₂ p) filter_map filter_map
 | f g hfg _ _ forall₂.nil := forall₂.nil
 | f g hfg (a :: as) (b :: bs) (forall₂.cons h₁ h₂) :=
@@ -249,7 +239,7 @@ begin
   { induction h with _ a b l1 l2 rab rll ih b l1 l2 hl ih,
     { exact ⟨nil, forall₂.nil, nil_sublist _⟩ },
     { obtain ⟨l, hl1, hl2⟩ := ih,
-      refine ⟨b :: l, forall₂.cons rab hl1, cons_sublist_cons b hl2⟩ },
+      refine ⟨b :: l, forall₂.cons rab hl1, hl2.cons_cons b⟩ },
     { obtain ⟨l, hl1, hl2⟩ := ih,
       exact ⟨l, hl1, hl2.trans (sublist.cons _ _ _ (sublist.refl _))⟩ } },
   { obtain ⟨l, hl1, hl2⟩ := h,

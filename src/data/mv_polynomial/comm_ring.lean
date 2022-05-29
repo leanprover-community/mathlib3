@@ -64,15 +64,11 @@ variables (σ a a')
 @[simp] lemma coeff_sub (m : σ →₀ ℕ) (p q : mv_polynomial σ R) :
   coeff m (p - q) = coeff m p - coeff m q := finsupp.sub_apply _ _ _
 
-@[simp] lemma monomial_neg (m : σ →₀ ℕ) (a : R) : -(monomial m a) = monomial m (-a) :=
-single_neg.symm
-
-@[simp] lemma monomial_sub (m : σ →₀ ℕ) (a b : R) :
-  monomial m a - monomial m b = monomial m (a - b) :=
-single_sub.symm
-
 @[simp] lemma support_neg : (- p).support = p.support :=
-finsupp.support_neg
+finsupp.support_neg p
+
+lemma support_sub (p q : mv_polynomial σ R) : (p - q).support ⊆ p.support ∪ q.support :=
+finsupp.support_sub
 
 variables {σ} (p)
 
@@ -141,6 +137,26 @@ def hom_equiv : (mv_polynomial σ ℤ →+* S) ≃ (σ → S) :=
   right_inv := λ f, funext $ λ x, by simp only [coe_eval₂_hom, function.comp_app, eval₂_X] }
 
 end eval₂
+
+section degree_of
+
+lemma degree_of_sub_lt {x : σ} {f g : mv_polynomial σ R} {k : ℕ} (h : 0 < k)
+  (hf : ∀ (m : σ →₀ ℕ), m ∈ f.support → (k ≤ m x) → coeff m f = coeff m g)
+  (hg : ∀ (m : σ →₀ ℕ), m ∈ g.support → (k ≤ m x) → coeff m f = coeff m g) :
+  degree_of x (f - g) < k :=
+begin
+  rw degree_of_lt_iff h,
+  intros m hm,
+  by_contra hc,
+  simp only [not_lt] at hc,
+  have h := support_sub σ f g hm,
+  simp only [mem_support_iff, ne.def, coeff_sub, sub_eq_zero] at hm,
+  cases (finset.mem_union).1 h with cf cg,
+  { exact hm (hf m cf hc), },
+  { exact hm (hg m cg hc), },
+end
+
+end degree_of
 
 section total_degree
 

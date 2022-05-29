@@ -16,16 +16,18 @@ function indeed satisfies the following recurrences:
 -/
 
 namespace generalized_continued_fraction
-open generalized_continued_fraction as gcf
-variables {K : Type*} {g : gcf K} {n : ℕ} [division_ring K]
 
-lemma continuants_aux_recurrence {gp ppred pred : gcf.pair K} (nth_s_eq : g.s.nth n = some gp)
+variables {K : Type*} {g : generalized_continued_fraction K} {n : ℕ} [division_ring K]
+
+lemma continuants_aux_recurrence
+  {gp ppred pred : pair K} (nth_s_eq : g.s.nth n = some gp)
   (nth_conts_aux_eq : g.continuants_aux n = ppred)
   (succ_nth_conts_aux_eq : g.continuants_aux (n + 1) = pred) :
   g.continuants_aux (n + 2) = ⟨gp.b * pred.a + gp.a * ppred.a, gp.b * pred.b + gp.a * ppred.b⟩ :=
 by simp [*, continuants_aux, next_continuants, next_denominator, next_numerator]
 
-lemma continuants_recurrence_aux {gp ppred pred : gcf.pair K} (nth_s_eq : g.s.nth n = some gp)
+lemma continuants_recurrence_aux
+  {gp ppred pred : pair K} (nth_s_eq : g.s.nth n = some gp)
   (nth_conts_aux_eq : g.continuants_aux n = ppred)
   (succ_nth_conts_aux_eq : g.continuants_aux (n + 1) = pred) :
   g.continuants (n + 1) = ⟨gp.b * pred.a + gp.a * ppred.a, gp.b * pred.b + gp.a * ppred.b⟩ :=
@@ -33,7 +35,8 @@ by simp [nth_cont_eq_succ_nth_cont_aux,
   (continuants_aux_recurrence nth_s_eq nth_conts_aux_eq succ_nth_conts_aux_eq)]
 
 /-- Shows that `Aₙ = bₙ * Aₙ₋₁ + aₙ * Aₙ₋₂` and `Bₙ = bₙ * Bₙ₋₁ + aₙ * Bₙ₋₂`. -/
-theorem continuants_recurrence {gp ppred pred : gcf.pair K}
+theorem continuants_recurrence
+  {gp ppred pred : pair K}
   (succ_nth_s_eq : g.s.nth (n + 1) = some gp)
   (nth_conts_eq : g.continuants n = ppred)
   (succ_nth_conts_eq : g.continuants (n + 1) = pred) :
@@ -44,7 +47,7 @@ begin
 end
 
 /-- Shows that `Aₙ = bₙ * Aₙ₋₁ + aₙ * Aₙ₋₂`. -/
-lemma numerators_recurrence {gp : gcf.pair K} {ppredA predA : K}
+lemma numerators_recurrence {gp : pair K} {ppredA predA : K}
   (succ_nth_s_eq : g.s.nth (n + 1) = some gp)
   (nth_num_eq : g.numerators n = ppredA)
   (succ_nth_num_eq : g.numerators (n + 1) = predA) :
@@ -59,7 +62,7 @@ begin
 end
 
 /-- Shows that `Bₙ = bₙ * Bₙ₋₁ + aₙ * Bₙ₋₂`. -/
-lemma denominators_recurrence {gp : gcf.pair K} {ppredB predB : K}
+lemma denominators_recurrence {gp : pair K} {ppredB predB : K}
   (succ_nth_s_eq : g.s.nth (n + 1) = some gp)
   (nth_denom_eq : g.denominators n = ppredB)
   (succ_nth_denom_eq : g.denominators (n + 1) = predB) :

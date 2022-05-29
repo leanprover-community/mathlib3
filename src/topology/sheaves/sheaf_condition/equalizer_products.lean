@@ -3,12 +3,10 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import topology.sheaves.presheaf
-import category_theory.limits.punit
-import category_theory.limits.shapes.products
-import category_theory.limits.shapes.equalizers
 import category_theory.full_subcategory
-import tactic.elementwise
+import category_theory.limits.shapes.equalizers
+import category_theory.limits.shapes.products
+import topology.sheaves.presheaf
 
 /-!
 # The sheaf condition in terms of an equalizer of products
@@ -69,7 +67,7 @@ def res : F.obj (op (supr U)) ⟶ pi_opens F U :=
 pi.lift (λ i : ι, F.map (topological_space.opens.le_supr U i).op)
 
 @[simp, elementwise]
-lemma res_π (i : ι) : res F U ≫ limit.π _ i = F.map (opens.le_supr U i).op :=
+lemma res_π (i : ι) : res F U ≫ limit.π _ ⟨i⟩ = F.map (opens.le_supr U i).op :=
 by rw [res, limit.lift_π, fan.mk_π_app]
 
 @[elementwise]
@@ -179,10 +177,10 @@ pi.map_iso (λ X, F.map_iso
     exact iso.op
     { hom := hom_of_le (by
       { simp only [oe.to_embedding.inj, set.image_inter],
-        apply le_refl _, }),
+        exact le_rfl, }),
       inv := hom_of_le (by
       { simp only [oe.to_embedding.inj, set.image_inter],
-        apply le_refl _, }), },
+        exact le_rfl, }), },
   end)
 
 /-- The isomorphism of sheaf condition diagrams corresponding to an open embedding. -/
@@ -238,7 +236,7 @@ begin
       inv := hom_of_le
       (by simp only [supr_s, supr_mk, le_def, subtype.coe_mk, set.le_eq_subset,
                      set.image_Union]) }), },
-  { ext,
+  { ext ⟨j⟩,
     dunfold fork.ι, -- Ugh, it is unpleasant that we need this.
     simp only [res, diagram.iso_of_open_embedding, discrete.nat_iso_inv_app, functor.map_iso_inv,
       limit.lift_π, cones.postcompose_obj_π, functor.comp_map,

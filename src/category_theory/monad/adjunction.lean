@@ -3,8 +3,25 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Bhavik Mehta
 -/
+import category_theory.adjunction.reflective
 import category_theory.monad.algebra
-import category_theory.adjunction
+
+/-!
+# Adjunctions and monads
+
+We develop the basic relationship between adjunctions and monads.
+
+Given an adjunction `h : L ⊣ R`, we have `h.to_monad : monad C` and `h.to_comonad : comonad D`.
+We then have
+`monad.comparison (h : L ⊣ R) : D ⥤ h.to_monad.algebra`
+sending `Y : D` to the Eilenberg-Moore algebra for `L ⋙ R` with underlying object `R.obj X`,
+and dually `comonad.comparison`.
+
+We say `R : D ⥤ C` is `monadic_right_adjoint`, if it is a right adjoint and its `monad.comparison`
+is an equivalence of categories. (Similarly for `monadic_left_adjoint`.)
+
+Finally we prove that reflective functors are `monadic_right_adjoint`.
+-/
 
 namespace category_theory
 open category

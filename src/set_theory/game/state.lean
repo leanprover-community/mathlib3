@@ -153,7 +153,7 @@ def relabelling_move_left_aux (n : ℕ) {s : S} (h : turn_bound s ≤ n)
     (move_left (of_aux n s h) t)
     (of_aux (n-1) (((left_moves_of_aux n h) t) : S)
       ((turn_bound_of_left ((left_moves_of_aux n h) t).2 (n-1)
-        (nat.le_trans h le_sub_add)))) :=
+        (nat.le_trans h le_tsub_add)))) :=
 begin
   induction n,
   { have t' := (left_moves_of_aux 0 h) t,
@@ -183,7 +183,7 @@ def relabelling_move_right_aux (n : ℕ) {s : S} (h : turn_bound s ≤ n)
     (move_right (of_aux n s h) t)
     (of_aux (n-1) (((right_moves_of_aux n h) t) : S)
       ((turn_bound_of_right ((right_moves_of_aux n h) t).2 (n-1)
-        (nat.le_trans h le_sub_add)))) :=
+        (nat.le_trans h le_tsub_add)))) :=
 begin
   induction n,
   { have t' := (right_moves_of_aux 0 h) t,

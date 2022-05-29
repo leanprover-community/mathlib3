@@ -22,7 +22,7 @@ if they are equal upon evaluating them on an arbitrary assignment of the variabl
 
 namespace mv_polynomial
 
-variables {R : Type*} [integral_domain R] [infinite R]
+variables {R : Type*} [comm_ring R] [is_domain R] [infinite R]
 
 private lemma funext_fin {n : ℕ} {p : mv_polynomial (fin n) R}
   (h : ∀ x : fin n → R, eval x p = 0) : p = 0 :=
@@ -60,7 +60,8 @@ begin
       congr' 1,
       by_cases hi : i = 0,
       { subst hi, simp only [polynomial.eval_X, fin.cases_zero] },
-      { rw [← fin.succ_pred i hi], simp only [eval_X, polynomial.eval_C, fin.cases_succ] } } }
+      { rw [← fin.succ_pred i hi], simp only [eval_X, polynomial.eval_C, fin.cases_succ] } },
+    { apply_instance, }, },
 end
 
 /-- Two multivariate polynomials over an infinite integral domain are equal

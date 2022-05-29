@@ -3,6 +3,8 @@ Copyright (c) 2020 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Robert Y. Lewis, Gabriel Ebner
 -/
+import data.bool.basic
+import meta.rb_map
 import tactic.lint.basic
 
 /-!
@@ -82,7 +84,7 @@ exhaustive search to find a commutative group. These instances take a long time 
 Other instances will only apply if the goal has a certain shape. For example
 `int.add_group : add_group ℤ` or
 `add_group.prod {α β} [add_group α] [add_group β] : add_group (α × β)`. Usually these instances
-will fail quickly, and when they apply, they are almost the desired instance.
+will fail quickly, and when they apply, they are almost always the desired instance.
 For this reason, we want the instances of the second type (that only apply in specific cases) to
 always have higher priority than the instances of the first type (that always apply).
 See also #1561.
@@ -255,7 +257,7 @@ Some instances take quite some time to fail, and we seem to run against the cach
 https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/odd.20repeated.20type.20class.20search
 -/
 @[linter] meta def linter.fails_quickly : linter :=
-{ test := fails_quickly 10000,
+{ test := fails_quickly 20000,
   auto_decls := tt,
   no_errors_found := "No type-class searches timed out.",
   errors_found := "TYPE CLASS SEARCHES TIMED OUT.
@@ -376,9 +378,10 @@ args ← unfreezing intros,
 expr.sort _ ← target | pure none,
 let ty : expr := (expr.const d.to_name d.univ_levels).mk_app args,
 some coe_fn_inst ←
-  try_core $ to_expr ``(_root_.has_coe_to_fun %%ty) >>= mk_instance | pure none,
+  try_core $ to_expr ``(_root_.has_coe_to_fun %%ty _) >>= mk_instance | pure none,
+set_bool_option `pp.all true,
 some trans_inst@(expr.app (expr.app _ trans_inst_1) trans_inst_2) ←
-  try_core $ to_expr ``(@_root_.coe_fn_trans %%ty _ _ _) | pure none,
+  try_core $ to_expr ``(@_root_.coe_fn_trans %%ty _ _ _ _) | pure none,
 tt ← succeeds $ unify trans_inst coe_fn_inst transparency.reducible | pure none,
 set_bool_option `pp.all true,
 trans_inst_1 ← pp trans_inst_1,
@@ -416,8 +419,8 @@ meta def check_reducible_non_instances (d : declaration) : tactic (option string
   let cls := d.type.pi_codomain.get_app_fn.const_name,
   some constrs ← return $ env.structure_fields cls | return none,
   tt ← return $ constrs.mem `add || constrs.mem `mul | return none,
-  l ← d.value.list_constant.mfilter $ λ nm, do {
-    d ← env.get nm,
+  l ← d.value.list_constant.mfilter $ λ nm, do
+  { d ← env.get nm,
     ff ← is_instance nm | return ff,
     tt ← is_class d.type | return ff,
     tt ← return d.is_definition | return ff,

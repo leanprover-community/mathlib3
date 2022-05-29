@@ -48,6 +48,9 @@ lemma inv_inv : inv (inv r) = r := by { ext x y, reflexivity }
 /-- Domain of a relation -/
 def dom := {x | ∃ y, r x y}
 
+lemma dom_mono {r s : rel α β} (h : r ≤ s) : dom r ⊆ dom s :=
+λ a ⟨b, hx⟩, ⟨b, h a b hx⟩
+
 /-- Codomain aka range of a relation -/
 def codom := {y | ∃ x, r x y}
 

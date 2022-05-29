@@ -47,27 +47,62 @@ better browsing interface, and to participate in the discussions, we strongly
 suggest joining the chat. Questions from users at all levels of expertise are
 welcomed.
 
+## Contributing
+
+The complete documentation for contributing to ``mathlib`` is located
+[on the community guide contribute to mathlib](https://leanprover-community.github.io/contribute/index.html)
+
+The process is different from other projects where one should not fork the repository.
+Instead write permission for non-master branches should be requested on [Zulip](https://leanprover.zulipchat.com)
+by introducing yourself, providing your GitHub handle and what contribution you are planning on doing.
+
+### Guidelines
+
+Mathlib has the following guidelines and conventions that must be followed
+
+ - The [style guide](https://leanprover-community.github.io/contribute/style.html)
+ - A guide on the [naming convention](https://leanprover-community.github.io/contribute/naming.html)
+ - The [documentation style](https://leanprover-community.github.io/contribute/doc.html)
+ - The [commit naming conventions](https://github.com/leanprover-community/lean/blob/master/doc/commit_convention.md)
+
+Note: the title of a PR should follow the commit naming convention.
+
+### Using ``leanproject`` to contribute
+
+Running the ``leanproject get -b mathlib:shiny_lemma`` command will create a new worktree ``mathlib_shiny_lemma``
+with a local branch called ``shiny_lemma`` which has a copy of mathlib to work on.
+
+``leanproject build`` will check that nothing broke.
+Be warned that this will take some time if a fundamental file was changed.
+
 ## Maintainers:
 
-* Jeremy Avigad (@avigad): analysis
 * Anne Baanen (@Vierkantor): algebra, number theory, tactics
 * Reid Barton (@rwbarton): category theory, topology
-* Mario Carneiro (@digama0): all
+* Riccardo Brasca (@riccardobrasca): algebra, number theory, algebraic geometry, category theory
+* Mario Carneiro (@digama0): lean formalization, tactics, type theory, proof engineering
 * Bryan Gin-ge Chen (@bryangingechen): documentation, infrastructure
-* Johan Commelin (@jcommelin): algebra
+* Johan Commelin (@jcommelin): algebra, number theory, category theory, algebraic geometry
 * Rémy Degenne (@RemyDegenne): probability, measure theory, analysis
-* Floris van Doorn (@fpvandoorn): all
-* Gabriel Ebner (@gebner): all
-* Sébastien Gouëzel (@sgouezel): topology, calculus
+* Floris van Doorn (@fpvandoorn): measure theory, model theory, tactics
+* Frédéric Dupuis (@dupuisf): linear algebra, functional analysis
+* Gabriel Ebner (@gebner): tactics, infrastructure, core, formal languages
+* Sébastien Gouëzel (@sgouezel): topology, calculus, geometry, analysis, measure theory
 * Markus Himmel (@TwoFX): category theory
-* Simon Hudon (@cipher1024): all
-* Chris Hughes (@ChrisHughes24): group theory, ring theory, field theory
-* Yury G. Kudryashov (@urkud): analysis, topology
-* Robert Y. Lewis (@robertylewis): all
+* Chris Hughes (@ChrisHughes24): algebra
+* Yury G. Kudryashov (@urkud): analysis, topology, measure theory
+* Robert Y. Lewis (@robertylewis): tactics, documentation
 * Heather Macbeth (@hrmacbeth): geometry, analysis
-* Patrick Massot (@patrickmassot): documentation, topology
+* Patrick Massot (@patrickmassot): documentation, topology, geometry
 * Bhavik Mehta (@b-mehta): category theory, combinatorics
-* Scott Morrison (@semorrison): category theory
+* Kyle Miller (@kmill): combinatorics, documentation
+* Scott Morrison (@semorrison): category theory, tactics
 * Oliver Nash (@ocfnash): algebra, geometry, topology
-* Adam Topaz (@adamtopaz): algebra, category theory
+* Adam Topaz (@adamtopaz): algebra, category theory, algebraic geometry
 * Eric Wieser (@eric-wieser): algebra, infrastructure
+
+## Emeritus maintainers:
+
+* Jeremy Avigad (@avigad): analysis
+* Johannes Hölzl (@johoelzl): measure theory, topology
+* Simon Hudon (@cipher1024): tactics

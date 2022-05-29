@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Yury Kudryashov
 -/
 import algebra.algebra.basic
+import algebra.hom.iterate
 import linear_algebra.tensor_product
 
 /-!
@@ -50,9 +51,17 @@ variables (R)
 def lmul_left (r : A) : A →ₗ[R] A :=
 lmul R A r
 
+@[simp] lemma lmul_left_to_add_monoid_hom (r : A) :
+  (lmul_left R r : A →+ A) = add_monoid_hom.mul_left r :=
+fun_like.coe_injective rfl
+
 /-- The multiplication on the right in an algebra is a linear map. -/
 def lmul_right (r : A) : A →ₗ[R] A :=
 (lmul R A).to_linear_map.flip r
+
+@[simp] lemma lmul_right_to_add_monoid_hom (r : A) :
+  (lmul_right R r : A →+ A) = add_monoid_hom.mul_right r :=
+fun_like.coe_injective rfl
 
 /-- Simultaneous multiplication on the left and right is a linear map. -/
 def lmul_left_right (vw: A × A) : A →ₗ[R] A :=
@@ -130,17 +139,17 @@ variables {R A : Type*} [comm_semiring R] [ring A] [algebra R A]
 
 lemma lmul_left_injective [no_zero_divisors A] {x : A} (hx : x ≠ 0) :
   function.injective (lmul_left R x) :=
-by { letI : domain A := { exists_pair_ne := ⟨x, 0, hx⟩, ..‹ring A›, ..‹no_zero_divisors A› },
+by { letI : is_domain A := { exists_pair_ne := ⟨x, 0, hx⟩, ..‹ring A›, ..‹no_zero_divisors A› },
      exact mul_right_injective₀ hx }
 
 lemma lmul_right_injective [no_zero_divisors A] {x : A} (hx : x ≠ 0) :
   function.injective (lmul_right R x) :=
-by { letI : domain A := { exists_pair_ne := ⟨x, 0, hx⟩, ..‹ring A›, ..‹no_zero_divisors A› },
+by { letI : is_domain A := { exists_pair_ne := ⟨x, 0, hx⟩, ..‹ring A›, ..‹no_zero_divisors A› },
      exact mul_left_injective₀ hx }
 
 lemma lmul_injective [no_zero_divisors A] {x : A} (hx : x ≠ 0) :
   function.injective (lmul R A x) :=
-by { letI : domain A := { exists_pair_ne := ⟨x, 0, hx⟩, ..‹ring A›, ..‹no_zero_divisors A› },
+by { letI : is_domain A := { exists_pair_ne := ⟨x, 0, hx⟩, ..‹ring A›, ..‹no_zero_divisors A› },
      exact mul_right_injective₀ hx }
 
 end

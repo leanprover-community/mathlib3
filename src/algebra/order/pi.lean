@@ -41,7 +41,7 @@ instance {ι : Type*} {Z : ι → Type*} [∀ i, canonically_ordered_monoid (Z i
       { ext i,
         exact (le_iff_exists_mul.mp (w i)).some_spec, }, },
     { rintro ⟨h, rfl⟩,
-      exact λ i, le_mul_right (le_refl _), },
+      exact λ i, le_mul_right le_rfl, },
   end,
   ..pi.order_bot,
   ..pi.ordered_comm_monoid, }
@@ -50,14 +50,14 @@ instance {ι : Type*} {Z : ι → Type*} [∀ i, canonically_ordered_monoid (Z i
 instance ordered_cancel_comm_monoid [∀ i, ordered_cancel_comm_monoid $ f i] :
   ordered_cancel_comm_monoid (Π i : I, f i) :=
 by refine_struct { mul := (*), one := (1 : Π i, f i), le := (≤), lt := (<),
-  npow := λ n x i, npow n (x i), .. pi.partial_order, .. pi.monoid };
+  npow := monoid.npow, .. pi.partial_order, .. pi.monoid };
   tactic.pi_instance_derive_field
 
 @[to_additive]
 instance ordered_comm_group [∀ i, ordered_comm_group $ f i] :
   ordered_comm_group (Π i : I, f i) :=
 { mul := (*), one := (1 : Π i, f i), le := (≤), lt := (<),
-  npow := λ n x i, npow n (x i),
+  npow := monoid.npow,
   ..pi.comm_group,
   ..pi.ordered_comm_monoid, }
 

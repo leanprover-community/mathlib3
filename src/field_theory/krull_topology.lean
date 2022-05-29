@@ -463,15 +463,6 @@ lemma equiv_restricts_to_alg_hom_of_finite_dimensional (h_int : algebra.is_integ
   f.generator_of_pushforward h_findim :=
 alg_hom.ext (ultrafilter.glued_generators_of_pushforwards_function_spec' h_int f h_findim)
 
-lemma inv_mul_alg_equiv_of_elem (x : L) (f g : L ≃ₐ[K] L) : (f⁻¹ * g) x = x ↔ g x = f x :=
-f.to_equiv.symm_apply_eq
-
-
-lemma top_group_map_nhds_eq {G : Type*} [group G] [topological_space G] [topological_group G]
-  (g x : G) : filter.map (λ y, g * y) (nhds x) = nhds (g * x) :=
-map_mul_left_nhds g x
-
-
 lemma ultrafilter_converges_to_glued_equiv (h_int : algebra.is_integral K L)
   (f : ultrafilter (L ≃ₐ[K] L)) : (f : filter (L ≃ₐ[K] L)) ≤ nhds
   (ultrafilter.glued_generators_of_pushforwards_alg_equiv h_int

@@ -110,6 +110,17 @@ by rw [← with_bot.coe_eq_coe, ← degree_eq_nat_degree (mul_ne_zero hp hq),
     with_bot.coe_add, ← degree_eq_nat_degree hp,
     ← degree_eq_nat_degree hq, degree_mul]
 
+lemma trailing_degree_mul : (p * q).trailing_degree = p.trailing_degree + q.trailing_degree :=
+begin
+  by_cases hp : p = 0,
+  { rw [hp, zero_mul, trailing_degree_zero, top_add] },
+  by_cases hq : q = 0,
+  { rw [hq, mul_zero, trailing_degree_zero, add_top] },
+  rw [trailing_degree_eq_nat_trailing_degree hp, trailing_degree_eq_nat_trailing_degree hq,
+      trailing_degree_eq_nat_trailing_degree (mul_ne_zero hp hq),
+      nat_trailing_degree_mul hp hq, with_top.coe_add],
+end
+
 @[simp] lemma nat_degree_pow (p : R[X]) (n : ℕ) :
   nat_degree (p ^ n) = n * nat_degree p :=
 if hp0 : p = 0
@@ -160,16 +171,6 @@ variables [ring R] [is_domain R] {p q : R[X]}
 instance : is_domain R[X] :=
 { ..polynomial.no_zero_divisors,
   ..polynomial.nontrivial, }
-
-lemma nat_trailing_degree_mul (hp : p ≠ 0) (hq : q ≠ 0) :
-  (p * q).nat_trailing_degree = p.nat_trailing_degree + q.nat_trailing_degree :=
-begin
-  simp only [←tsub_eq_of_eq_add_rev (nat_degree_eq_reverse_nat_degree_add_nat_trailing_degree _)],
-  rw [reverse_mul_of_domain, nat_degree_mul hp hq, nat_degree_mul (mt reverse_eq_zero.mp hp)
-    (mt reverse_eq_zero.mp hq), reverse_nat_degree, reverse_nat_degree, tsub_add_eq_tsub_tsub,
-    nat.add_comm, add_tsub_assoc_of_le (nat.sub_le _ _), add_comm,
-    add_tsub_assoc_of_le (nat.sub_le _ _)],
-end
 
 end ring
 

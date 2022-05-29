@@ -899,11 +899,12 @@ section
 
 open_locale classical
 
-lemma ideal.count_normalized_factors_eq {p x : ideal R} (hp0 : p ≠ ⊥) [hp : p.is_prime] {n : ℕ}
+lemma ideal.count_normalized_factors_eq {p x : ideal R} [hp : p.is_prime] {n : ℕ}
   (hle : x ≤ p^n) (hlt : ¬ (x ≤ p^(n+1))) :
   (normalized_factors x).count p = n :=
-count_normalized_factors_eq ((ideal.prime_iff_is_prime hp0).mpr hp).irreducible (normalize_eq _)
-  (ideal.dvd_iff_le.mpr hle) (mt ideal.le_of_dvd hlt)
+count_normalized_factors_eq'
+  ((eq_or_ne p 0).imp_right $ λ hp0, (ideal.prime_of_is_prime hp0 hp).irreducible)
+  (normalize_eq _) (ideal.dvd_iff_le.mpr hle) (mt ideal.le_of_dvd hlt)
 
 end
 

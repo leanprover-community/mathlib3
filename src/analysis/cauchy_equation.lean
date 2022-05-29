@@ -23,8 +23,8 @@ variables {ι : Type*} [fintype ι] {s : set ℝ} {a : ℝ}
 local notation `ℝⁿ` := ι → ℝ
 
 /-- **Cauchy's functional equation**. An additive monoid homomorphism automatically preserves `ℚ`.
--/
-theorem add_monoid_hom.is_linear_map_rat (f : ℝ →+ ℝ) : is_linear_map ℚ f :=
+See also `add_monoid_hom.to_rat_linear_map`. -/
+lemma add_monoid_hom.is_linear_map_rat (f : ℝ →+ ℝ) : is_linear_map ℚ f :=
 ⟨map_add f, map_rat_cast_smul f ℝ ℝ⟩
 
 -- should this one get generalised?
@@ -127,46 +127,6 @@ begin
   { simpa [mem_ball, dist_self] }
 end
 
-lemma continuous.is_linear_real (f : ℝ →+ ℝ) (h : continuous f) : is_linear_map ℝ f :=
-begin
-  rw is_linear_map_iff_apply_eq_apply_one_mul,
-  have h1 := is_linear_rat f,
-  refine λ x, eq_of_norm_sub_le_zero (le_of_forall_pos_lt_add _),
-  by_contra' hf,
-  rcases hf with ⟨ε, hε, hf⟩,
-  rw continuous_iff at h,
-  specialize h x (ε/2) (by linarith [hε]),
-  rcases h with ⟨δ, hδ, h⟩,
-  by_cases hf1 : f 1 = 0,
-  { simp only [hf1, zero_mul] at h1,
-    simp only [hf1, zero_mul, sub_zero] at hf,
-    cases (exists_rat_near x hδ) with q hq,
-    specialize h q _,
-    { simp only [dist_eq_norm', real.norm_eq_abs, hq] },
-    simp only [h1, dist_zero_left] at h,
-    linarith },
-  have hq : ∃ (q : ℚ), | x - ↑q | < min δ (ε / 2 / ∥f 1∥),
-  apply exists_rat_near,
-  { refine lt_min hδ (mul_pos (by linarith) _),
-    simp only [_root_.inv_pos, norm_pos_iff, ne.def, hf1, not_false_iff] },
-  cases hq with q hq,
-  specialize h ↑q _,
-  { simp only [dist_eq_norm', real.norm_eq_abs],
-    exact hq.trans_le (min_le_left δ _) },
-  rw [dist_eq_norm', h1] at h,
-  suffices h2 : ∥ f x - f 1 * x ∥ < ε, by linarith [hf, h2],
-  have h3 : ∥ f x - f 1 * q ∥ + ∥ f 1 * q - f 1 * x ∥ < ε,
-  { have h4 : ∥ f 1 * q - f 1 * x ∥ < ε / 2,
-    { replace hf1 : 0 < ∥ f 1 ∥ := by simpa [norm_pos_iff, ne.def],
-      simp only [←mul_sub, norm_mul, mul_comm (∥f 1∥) _, ←lt_div_iff hf1],
-      rw [←dist_eq_norm, dist_eq_norm', real.norm_eq_abs],
-      apply lt_of_lt_of_le hq (min_le_right δ _) },
-    linarith },
-  refine ((norm_add_le _ _).trans_eq' _).trans_lt h3,
-  congr,
-  abel
-end
-
 -- to generalize
 lemma add_monoid_hom.continuous_at_iff_continuous_at_zero (f : ℝ →+ ℝ) :
   continuous_at f a ↔ continuous_at f 0 :=
@@ -182,8 +142,8 @@ begin
 end
 
 lemma continuous_at.is_linear_real (f : ℝ →+ ℝ) (h : continuous_at f a) : is_linear_map ℝ f :=
-(f.uniform_continuous_of_continuous_at_zero $
-  (f.continuous_at_iff_continuous_at_zero).mp h).continuous.is_linear_real f
+(f.to_real_linear_map $ (f.uniform_continuous_of_continuous_at_zero $
+  (f.continuous_at_iff_continuous_at_zero).mp h).continuous).to_linear_map.is_linear
 
 lemma is_linear_map_real_of_bounded_nhds (f : ℝ →+ ℝ) (hs : s ∈ 𝓝 a) (hf : bounded (f '' s)) :
   is_linear_map ℝ f :=

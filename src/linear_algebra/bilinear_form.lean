@@ -1097,14 +1097,11 @@ begin
     rintro ⟨n, hn⟩,
     rw [restrict_apply, submodule.coe_mk, submodule.coe_mk, b₁],
     exact hx₂ n hn },
-  refine ⟨this ▸ le_rfl, _⟩,
-  { rw top_le_iff,
-    refine eq_top_of_finrank_eq _,
-    refine le_antisymm (submodule.finrank_le _) _,
-    conv_rhs { rw ← add_zero (finrank K _) },
-    rw [← finrank_bot K V, ← this, submodule.dim_sup_add_dim_inf_eq,
-        finrank_add_finrank_orthogonal b₁],
-    exact nat.le.intro rfl }
+  refine is_compl.of_eq this (eq_top_of_finrank_eq $ (submodule.finrank_le _).antisymm _),
+  conv_rhs { rw ← add_zero (finrank K _) },
+  rw [← finrank_bot K V, ← this, submodule.dim_sup_add_dim_inf_eq,
+      finrank_add_finrank_orthogonal b₁],
+  exact le_self_add,
 end
 
 /-- A subspace is complement to its orthogonal complement with respect to some reflexive bilinear

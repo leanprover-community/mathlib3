@@ -181,10 +181,13 @@ lemma inseparable.map [topological_space β] {x y : α} {f : α → β}
   inseparable (f x) (f y) :=
 λ U hU, h (f ⁻¹' U) (hU.preimage hf)
 
+lemma t0_space_iff_not_inseparable (α : Type u) [topological_space α] :
+  t0_space α ↔ ∀ (x y : α), x ≠ y → ¬inseparable x y :=
+by simp only [t0_space_def, xor_iff_not_iff, not_forall, exists_prop, inseparable]
+
 lemma t0_space_iff_inseparable (α : Type u) [topological_space α] :
   t0_space α ↔ ∀ (x y : α), inseparable x y → x = y :=
-by simp only [t0_space_def, xor_iff_not_iff, ← not_imp, ← not_forall, ne.def, not_imp_not,
-  inseparable]
+by simp only [t0_space_iff_not_inseparable, ne.def, not_imp_not]
 
 lemma inseparable.eq [t0_space α] {x y : α} (h : inseparable x y) : x = y :=
 (t0_space_iff_inseparable α).1 ‹_› x y h
@@ -296,7 +299,7 @@ embedding_subtype_coe.t0_space
 
 theorem t0_space_iff_or_not_mem_closure (α : Type u) [topological_space α] :
   t0_space α ↔ (∀ a b : α, a ≠ b → (a ∉ closure ({b} : set α) ∨ b ∉ closure ({a} : set α))) :=
-by simp only [t0_space_iff_distinguishable, inseparable_iff_closure, not_and_distrib]
+by simp only [t0_space_iff_not_inseparable, inseparable_iff_closure, not_and_distrib]
 
 instance [topological_space β] [t0_space α] [t0_space β] : t0_space (α × β) :=
 (t0_space_iff_inseparable _).2 $

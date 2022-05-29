@@ -311,7 +311,7 @@ begin
   constructor,
   rintro S h -,
   obtain ⟨x, rfl⟩ := (is_irreducible_iff_singleton S).mp h,
-  exact ⟨x, (t1_space.t1 x).closure_eq⟩
+  exact ⟨x, closure_singleton⟩
 end
 
 end sober

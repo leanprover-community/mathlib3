@@ -20,6 +20,7 @@ while the impact on writing code is minimal as `convex_hull 𝕜 s` is automatic
 -/
 
 open set
+open_locale pointwise
 
 variables {𝕜 E F : Type*}
 
@@ -46,15 +47,24 @@ lemma subset_convex_hull : s ⊆ convex_hull 𝕜 s := (convex_hull 𝕜).le_clo
 
 lemma convex_convex_hull : convex 𝕜 (convex_hull 𝕜 s) := closure_operator.closure_mem_mk₃ s
 
-variables {𝕜 s} {t : set E}
+lemma convex_hull_eq_Inter : convex_hull 𝕜 s = ⋂ (t : set E) (hst : s ⊆ t) (ht : convex 𝕜 t), t :=
+rfl
+
+variables {𝕜 s} {t : set E} {x : E}
+
+lemma mem_convex_hull_iff : x ∈ convex_hull 𝕜 s ↔ ∀ t, s ⊆ t → convex 𝕜 t → x ∈ t :=
+by simp_rw [convex_hull_eq_Inter, mem_Inter]
 
 lemma convex_hull_min (hst : s ⊆ t) (ht : convex 𝕜 t) : convex_hull 𝕜 s ⊆ t :=
 closure_operator.closure_le_mk₃_iff (show s ≤ t, from hst) ht
 
+lemma convex.convex_hull_subset_iff (ht : convex 𝕜 t) : convex_hull 𝕜 s ⊆ t ↔ s ⊆ t :=
+⟨(subset_convex_hull _ _).trans, λ h, convex_hull_min h ht⟩
+
 @[mono] lemma convex_hull_mono (hst : s ⊆ t) : convex_hull 𝕜 s ⊆ convex_hull 𝕜 t :=
 (convex_hull 𝕜).monotone hst
 
-lemma convex.convex_hull_eq {s : set E} (hs : convex 𝕜 s) : convex_hull 𝕜 s = s :=
+lemma convex.convex_hull_eq (hs : convex 𝕜 s) : convex_hull 𝕜 s = s :=
 closure_operator.mem_mk₃_closed hs
 
 @[simp] lemma convex_hull_univ : convex_hull 𝕜 (univ : set E) = univ :=
@@ -78,6 +88,10 @@ begin
   exact not_congr convex_hull_empty_iff,
 end
 
+alias convex_hull_nonempty_iff ↔ _ set.nonempty.convex_hull
+
+attribute [protected] set.nonempty.convex_hull
+
 @[simp]
 lemma convex_hull_singleton {x : E} : convex_hull 𝕜 ({x} : set E) = {x} :=
 (convex_singleton x).convex_hull_eq
@@ -95,21 +109,6 @@ begin
     by { rintro (rfl : y = x), exact hx hy }⟩),
 end
 
-lemma is_linear_map.image_convex_hull {f : E → F} (hf : is_linear_map 𝕜 f) :
-  f '' (convex_hull 𝕜 s) = convex_hull 𝕜 (f '' s) :=
-begin
-  apply set.subset.antisymm ,
-  { rw set.image_subset_iff,
-    exact convex_hull_min (set.image_subset_iff.1 $ subset_convex_hull 𝕜 $ f '' s)
-      ((convex_convex_hull 𝕜 (f '' s)).is_linear_preimage hf) },
-  { exact convex_hull_min (set.image_subset _ $ subset_convex_hull 𝕜 s)
-     ((convex_convex_hull 𝕜 s).is_linear_image hf) }
-end
-
-lemma linear_map.image_convex_hull (f : E →ₗ[𝕜] F) :
-  f '' (convex_hull 𝕜 s) = convex_hull 𝕜 (f '' s) :=
-f.is_linear.image_convex_hull
-
 lemma is_linear_map.convex_hull_image {f : E → F} (hf : is_linear_map 𝕜 f) (s : set E) :
   convex_hull 𝕜 (f '' s) = f '' convex_hull 𝕜 s :=
 set.subset.antisymm (convex_hull_min (image_subset _ (subset_convex_hull 𝕜 s)) $
@@ -125,6 +124,14 @@ f.is_linear.convex_hull_image s
 end add_comm_monoid
 end ordered_semiring
 
+section ordered_comm_semiring
+variables [ordered_comm_semiring 𝕜] [add_comm_monoid E] [module 𝕜 E]
+
+lemma convex_hull_smul (a : 𝕜) (s : set E) : convex_hull 𝕜 (a • s) = a • convex_hull 𝕜 s :=
+(linear_map.lsmul _ _ a).convex_hull_image _
+
+end ordered_comm_semiring
+
 section ordered_ring
 variables [ordered_ring 𝕜]
 
@@ -132,7 +139,7 @@ section add_comm_group
 variables [add_comm_group E] [add_comm_group F] [module 𝕜 E] [module 𝕜 F] (s : set E)
 
 lemma affine_map.image_convex_hull (f : E →ᵃ[𝕜] F) :
-  f '' (convex_hull 𝕜 s) = convex_hull 𝕜 (f '' s) :=
+  f '' convex_hull 𝕜 s = convex_hull 𝕜 (f '' s) :=
 begin
   apply set.subset.antisymm,
   { rw set.image_subset_iff,
@@ -152,6 +159,9 @@ begin
   rw affine_span_le,
   exact convex_hull_subset_affine_span s,
 end
+
+lemma convex_hull_neg (s : set E) : convex_hull 𝕜 (-s) = -convex_hull 𝕜 s :=
+by { simp_rw ←image_neg, exact (affine_map.image_convex_hull _ $ -1).symm }
 
 end add_comm_group
 end ordered_ring

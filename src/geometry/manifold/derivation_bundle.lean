@@ -43,7 +43,7 @@ variables {𝕜 M}
 namespace pointed_smooth_map
 
 instance {x : M} : has_coe_to_fun C^∞⟮I, M; 𝕜⟯⟨x⟩ (λ _, M → 𝕜) :=
-times_cont_mdiff_map.has_coe_to_fun
+cont_mdiff_map.has_coe_to_fun
 instance {x : M} : comm_ring C^∞⟮I, M; 𝕜⟯⟨x⟩ := smooth_map.comm_ring
 instance {x : M} : algebra 𝕜 C^∞⟮I, M; 𝕜⟯⟨x⟩ := smooth_map.algebra
 instance {x : M} : inhabited C^∞⟮I, M; 𝕜⟯⟨x⟩ := ⟨0⟩
@@ -110,7 +110,7 @@ def hfdifferential {f : C^∞⟮I, M; I', M'⟯} {x : M} {y : M'} (h : f x = y) 
       map_smul' := λ k g,
         by simp only [smooth_map.smul_comp, derivation.map_smul, ring_hom.id_apply], }
     (λ g g', by simp only [derivation.leibniz, smooth_map.mul_comp, linear_map.coe_mk,
-      pointed_smooth_map.smul_def, times_cont_mdiff_map.comp_apply, h]),
+      pointed_smooth_map.smul_def, cont_mdiff_map.comp_apply, h]),
   map_smul' := λ k v, rfl,
   map_add' := λ v w, rfl }
 

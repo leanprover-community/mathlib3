@@ -8,6 +8,7 @@ import algebra.module.linear_map
 import algebra.big_operators.basic
 import data.set.finite
 import group_theory.submonoid.membership
+import data.finset.preimage
 
 /-!
 # Dependent functions with finite support
@@ -57,8 +58,19 @@ namespace dfinsupp
 section basic
 variables [Π i, has_zero (β i)] [Π i, has_zero (β₁ i)] [Π i, has_zero (β₂ i)]
 
-instance : has_coe_to_fun (Π₀ i, β i) (λ _, Π i, β i) :=
-⟨λ f, quotient.lift_on f pre.to_fun $ λ _ _, funext⟩
+instance fun_like : fun_like (Π₀ i, β i) ι β :=
+⟨λ f, quotient.lift_on f pre.to_fun $ λ _ _, funext,
+  λ f g H, quotient.induction_on₂ f g (λ _ _ H, quotient.sound H) (congr_fun H)⟩
+
+/-- Helper instance for when there are too many metavariables to apply `fun_like.has_coe_to_fun`
+directly. -/
+instance : has_coe_to_fun (Π₀ i, β i) (λ _, Π i, β i) := fun_like.has_coe_to_fun
+
+@[ext] lemma ext {f g : Π₀ i, β i} (h : ∀ i, f i = g i) : f = g := fun_like.ext _ _ h
+/-- Deprecated. Use `fun_like.ext_iff` instead. -/
+lemma ext_iff {f g : Π₀ i, β i} : f = g ↔ ∀ i, f i = g i := fun_like.ext_iff
+/-- Deprecated. Use `fun_like.coe_injective` instead. -/
+lemma coe_fn_injective : @function.injective (Π₀ i, β i) (Π i, β i) coe_fn := fun_like.coe_injective
 
 instance : has_zero (Π₀ i, β i) := ⟨⟦⟨0, ∅, λ i, or.inr rfl⟩⟧⟩
 instance : inhabited (Π₀ i, β i) := ⟨0⟩
@@ -69,15 +81,6 @@ lemma coe_pre_mk (f : Π i, β i) (s : multiset ι) (hf) :
 
 @[simp] lemma coe_zero : ⇑(0 : Π₀ i, β i) = 0 := rfl
 lemma zero_apply (i : ι) : (0 : Π₀ i, β i) i = 0 := rfl
-
-lemma coe_fn_injective : @function.injective (Π₀ i, β i) (Π i, β i) coe_fn :=
-λ f g H, quotient.induction_on₂ f g (λ _ _ H, quotient.sound H) (congr_fun H)
-
-@[ext] lemma ext {f g : Π₀ i, β i} (H : ∀ i, f i = g i) : f = g :=
-coe_fn_injective (funext H)
-
-lemma ext_iff {f g : Π₀ i, β i} : f = g ↔ ∀ i, f i = g i :=
-coe_fn_injective.eq_iff.symm.trans function.funext_iff
 
 /-- The composition of `f : β₁ → β₂` and `g : Π₀ i, β₁ i` is
   `map_range f hf g : Π₀ i, β₂ i`, well defined when `f 0 = 0`.
@@ -150,17 +153,22 @@ zip_with_apply _ _ g₁ g₂ i
 funext $ add_apply g₁ g₂
 
 instance [Π i, add_zero_class (β i)] : add_zero_class (Π₀ i, β i) :=
-{ zero      := 0,
-  add       := (+),
-  zero_add  := λ f, ext $ λ i, by simp only [add_apply, zero_apply, zero_add],
-  add_zero  := λ f, ext $ λ i, by simp only [add_apply, zero_apply, add_zero] }
+fun_like.coe_injective.add_zero_class _ coe_zero coe_add
+
+/-- Note the general `dfinsupp.has_scalar` instance doesn't apply as `ℕ` is not distributive
+unless `β i`'s addition is commutative. -/
+instance has_nat_scalar [Π i, add_monoid (β i)] : has_scalar ℕ (Π₀ i, β i) :=
+⟨λc v, v.map_range (λ _, (•) c) (λ _, nsmul_zero _)⟩
+
+lemma nsmul_apply [Π i, add_monoid (β i)] (b : ℕ) (v : Π₀ i, β i) (i : ι) :
+  (b • v) i = b • (v i) :=
+map_range_apply _ _ v i
+
+@[simp] lemma coe_nsmul [Π i, add_monoid (β i)] (b : ℕ) (v : Π₀ i, β i) : ⇑(b • v) = b • v :=
+funext $ nsmul_apply b v
 
 instance [Π i, add_monoid (β i)] : add_monoid (Π₀ i, β i) :=
-{ add_monoid .
-  zero      := 0,
-  add       := (+),
-  add_assoc := λ f g h, ext $ λ i, by simp only [add_apply, add_assoc],
-  .. dfinsupp.add_zero_class }
+fun_like.coe_injective.add_monoid _ coe_zero coe_add (λ _ _, coe_nsmul _ _)
 
 /-- Coercion from a `dfinsupp` to a pi type is an `add_monoid_hom`. -/
 def coe_fn_add_monoid_hom [Π i, add_zero_class (β i)] : (Π₀ i, β i) →+ (Π i, β i) :=
@@ -172,12 +180,7 @@ def eval_add_monoid_hom [Π i, add_zero_class (β i)] (i : ι) : (Π₀ i, β i)
 (pi.eval_add_monoid_hom β i).comp coe_fn_add_monoid_hom
 
 instance [Π i, add_comm_monoid (β i)] : add_comm_monoid (Π₀ i, β i) :=
-{ add_comm := λ f g, ext $ λ i, by simp only [add_apply, add_comm],
-  nsmul := λ n v, v.map_range (λ _, (•) n) (λ _, smul_zero _),
-  nsmul_zero' := λ n, ext $ λ i, by simp only [map_range_apply, zero_apply, zero_smul],
-  nsmul_succ' := λ n z, ext $ λ i, by simp only [map_range_apply, add_apply,
-    nat.succ_eq_one_add, add_smul, one_smul],
-  .. dfinsupp.add_monoid }
+fun_like.coe_injective.add_comm_monoid _ coe_zero coe_add (λ _ _, coe_nsmul _ _)
 
 @[simp] lemma coe_finset_sum {α} [Π i, add_comm_monoid (β i)] (s : finset α) (g : α → Π₀ i, β i) :
   ⇑(∑ a in s, g a) = ∑ a in s, g a :=
@@ -208,23 +211,24 @@ zip_with_apply _ _ g₁ g₂ i
   ⇑(g₁ - g₂) = g₁ - g₂ :=
 funext $ sub_apply g₁ g₂
 
+/-- Note the general `dfinsupp.has_scalar` instance doesn't apply as `ℤ` is not distributive
+unless `β i`'s addition is commutative. -/
+instance has_int_scalar [Π i, add_group (β i)] : has_scalar ℤ (Π₀ i, β i) :=
+⟨λc v, v.map_range (λ _, (•) c) (λ _, zsmul_zero _)⟩
+
+lemma zsmul_apply [Π i, add_group (β i)] (b : ℤ) (v : Π₀ i, β i) (i : ι) : (b • v) i = b • (v i) :=
+map_range_apply _ _ v i
+
+@[simp] lemma coe_zsmul [Π i, add_group (β i)] (b : ℤ) (v : Π₀ i, β i) : ⇑(b • v) = b • v :=
+funext $ zsmul_apply b v
+
 instance [Π i, add_group (β i)] : add_group (Π₀ i, β i) :=
-{ add_left_neg := λ f, ext $ λ i, by simp only [add_apply, neg_apply, zero_apply, add_left_neg],
-  sub_eq_add_neg := λ f g, ext $ λ i,
-    by simp only [sub_apply, add_apply, neg_apply, sub_eq_add_neg],
-  .. dfinsupp.add_monoid,
-  .. dfinsupp.has_sub,
-  .. dfinsupp.has_neg }
+fun_like.coe_injective.add_group _
+  coe_zero coe_add coe_neg coe_sub (λ _ _, coe_nsmul _ _) (λ _ _, coe_zsmul _ _)
 
 instance [Π i, add_comm_group (β i)] : add_comm_group (Π₀ i, β i) :=
-{ zsmul := λ n v, v.map_range (λ _, (•) n) (λ _, smul_zero _),
-  zsmul_neg' := λ n f, ext $ λ i, by
-    rw [neg_apply, map_range_apply, map_range_apply, zsmul_neg_succ_of_nat, nsmul_eq_smul_cast ℤ,
-      int.nat_cast_eq_coe_nat],
-  zsmul_zero' := λ n, ext $ λ i, by simp only [map_range_apply, zero_apply, zero_smul],
-  zsmul_succ' := λ n f, ext $ λ i, by simp [map_range_apply, add_smul, add_comm],
-  ..@dfinsupp.add_comm_monoid _ β _,
-  ..dfinsupp.add_group }
+fun_like.coe_injective.add_comm_group _
+  coe_zero coe_add coe_neg coe_sub (λ _ _, coe_nsmul _ _) (λ _ _, coe_zsmul _ _)
 
 /-- Dependent functions with finite support inherit a semiring action from an action on each
 coordinate. -/
@@ -263,11 +267,7 @@ instance [monoid γ] [Π i, add_monoid (β i)] [Π i, distrib_mul_action γ (β 
 structure on each coordinate. -/
 instance [monoid γ] [Π i, add_monoid (β i)] [Π i, distrib_mul_action γ (β i)] :
   distrib_mul_action γ (Π₀ i, β i) :=
-{ smul_zero := λ c, ext $ λ i, by simp only [smul_apply, smul_zero, zero_apply],
-  smul_add := λ c x y, ext $ λ i, by simp only [add_apply, smul_apply, smul_add],
-  one_smul := λ x, ext $ λ i, by simp only [smul_apply, one_smul],
-  mul_smul := λ r s x, ext $ λ i, by simp only [smul_apply, smul_smul],
-  ..dfinsupp.has_scalar }
+function.injective.distrib_mul_action coe_fn_add_monoid_hom fun_like.coe_injective coe_smul
 
 /-- Dependent functions with finite support inherit a module structure from such a structure on
 each coordinate. -/
@@ -435,9 +435,11 @@ def mk (s : finset ι) (x : Π i : (↑s : set ι), β (i : ι)) : Π₀ i, β i
 ⟦⟨λ i, if H : i ∈ s then x ⟨i, H⟩ else 0, s.1,
 λ i, if H : i ∈ s then or.inl H else or.inr $ dif_neg H⟩⟧
 
-@[simp] lemma mk_apply {s : finset ι} {x : Π i : (↑s : set ι), β i} {i : ι} :
-  (mk s x : Π i, β i) i = if H : i ∈ s then x ⟨i, H⟩ else 0 :=
-rfl
+variables {s : finset ι} {x : Π i : (↑s : set ι), β i} {i : ι}
+
+@[simp] lemma mk_apply : (mk s x : Π i, β i) i = if H : i ∈ s then x ⟨i, H⟩ else 0 := rfl
+lemma mk_of_mem (hi : i ∈ s) : (mk s x : Π i, β i) i = x ⟨i, hi⟩ := dif_pos hi
+lemma mk_of_not_mem (hi : i ∉ s) : (mk s x : Π i, β i) i = 0 := dif_neg hi
 
 theorem mk_injective (s : finset ι) : function.injective (@mk ι β _ _ s) :=
 begin
@@ -451,6 +453,9 @@ begin
 end
 
 omit dec
+instance [is_empty ι] : unique (Π₀ i, β i) :=
+⟨⟨0⟩, λ a, by { ext, exact is_empty_elim i }⟩
+
 /-- Given `fintype ι`, `equiv_fun_on_fintype` is the `equiv` between `Π₀ i, β i` and `Π i, β i`.
   (All dependent functions on a finite type are finitely supported.) -/
 @[simps apply] def equiv_fun_on_fintype [fintype ι] : (Π₀ i, β i) ≃ (Π i, β i) :=
@@ -519,9 +524,8 @@ begin
       rw dfinsupp.single_eq_of_ne (ne.symm hij) at hci,
       rw dfinsupp.single_eq_of_ne (hij) at hcj,
       exact or.inr ⟨hci, hcj.symm⟩, }, },
-  { rintros (⟨hi, hxi⟩ | ⟨hi, hj⟩),
-    { subst hi,
-      rw eq_of_heq hxi, },
+  { rintros (⟨rfl, hxi⟩ | ⟨hi, hj⟩),
+    { rw eq_of_heq hxi, },
     { rw [hi, hj, dfinsupp.single_zero, dfinsupp.single_zero], }, },
 end
 
@@ -619,7 +623,7 @@ by rw [erase_single, if_neg h]
 
 section update
 
-variables (f : Π₀ i, β i) (i : ι) (b : β i) [decidable (b = 0)]
+variables (f : Π₀ i, β i) (i) (b : β i) [decidable (b = 0)]
 
 /-- Replace the value of a `Π₀ i, β i` at a given point `i : ι` by a given value `b : β i`.
 If `b = 0`, this amounts to removing `i` from the support.
@@ -896,8 +900,10 @@ end
 
 @[simp] lemma support_zero : (0 : Π₀ i, β i).support = ∅ := rfl
 
-lemma mem_support_iff (f : Π₀ i, β i) : ∀i:ι, i ∈ f.support ↔ f i ≠ 0 :=
-f.mem_support_to_fun
+lemma mem_support_iff {f : Π₀ i, β i} {i : ι} : i ∈ f.support ↔ f i ≠ 0 := f.mem_support_to_fun _
+
+lemma not_mem_support_iff {f : Π₀ i, β i} {i : ι} : i ∉ f.support ↔ f i = 0 :=
+not_iff_comm.1 mem_support_iff.symm
 
 @[simp] lemma support_eq_empty {f : Π₀ i, β i} : f.support = ∅ ↔ f = 0 :=
 ⟨λ H, ext $ by simpa [finset.ext_iff] using H, by simp {contextual:=tt}⟩
@@ -984,7 +990,7 @@ lemma support_update (f : Π₀ i, β i) (i : ι) (b : β i) [decidable (b = 0)]
 begin
   ext j,
   split_ifs with hb,
-  { simp only [hb, update_eq_erase, support_erase] },
+  { substI hb, simp [update_eq_erase, support_erase] },
   { rw [support_update_ne_zero f _ hb] }
 end
 
@@ -1003,8 +1009,7 @@ by ext i; by_cases h : p i; simp [h]
 
 lemma subtype_domain_def (f : Π₀ i, β i) :
   f.subtype_domain p = mk (f.support.subtype p) (λ i, f i) :=
-by { ext i; by_cases h2 : f i ≠ 0; try {simp at h2};
-  dsimp; simp [h2, ← subtype.val_eq_coe], }
+by ext i; by_cases h2 : f i ≠ 0; try {simp at h2}; dsimp; simp [h2]
 
 @[simp] lemma support_subtype_domain {f : Π₀ i, β i} :
   (subtype_domain p f).support = f.support.subtype p :=
@@ -1033,10 +1038,244 @@ instance [Π i, has_zero (β i)] [Π i, decidable_eq (β i)] : decidable_eq (Π�
 assume f g, decidable_of_iff (f.support = g.support ∧ (∀i∈f.support, f i = g i))
   ⟨assume ⟨h₁, h₂⟩, ext $ assume i,
       if h : i ∈ f.support then h₂ i h else
-        have hf : f i = 0, by rwa [f.mem_support_iff, not_not] at h,
-        have hg : g i = 0, by rwa [h₁, g.mem_support_iff, not_not] at h,
+        have hf : f i = 0, by rwa [mem_support_iff, not_not] at h,
+        have hg : g i = 0, by rwa [h₁, mem_support_iff, not_not] at h,
         by rw [hf, hg],
-    by intro h; subst h; simp⟩
+    by { rintro rfl, simp }⟩
+
+section equiv
+open finset
+
+variables {κ : Type*}
+/--Reindexing (and possibly removing) terms of a dfinsupp.-/
+noncomputable def comap_domain [Π i, has_zero (β i)] (h : κ → ι) (hh : function.injective h) :
+  (Π₀ i, β i) → Π₀ k, β (h k) :=
+begin
+  refine quotient.lift (λ f, ⟦_⟧) (λ f f' h, _),
+  exact { to_fun := λ x, f.to_fun (h x),
+    pre_support := (f.pre_support.to_finset.preimage h (hh.inj_on _)).val,
+    zero := λ x, (f.zero (h x)).imp_left $ λ hx, mem_preimage.mpr $ multiset.mem_to_finset.mpr hx },
+  exact quot.sound (λ x, h _)
+end
+@[simp] lemma comap_domain_apply [Π i, has_zero (β i)] (h : κ → ι) (hh : function.injective h)
+  (f : Π₀ i, β i) (k : κ) :
+  comap_domain h hh f k = f (h k) :=
+by { rcases f, refl }
+
+@[simp] lemma comap_domain_zero [Π i, has_zero (β i)] (h : κ → ι) (hh : function.injective h) :
+  comap_domain h hh (0 : Π₀ i, β i) = 0 :=
+by { ext, rw [zero_apply, comap_domain_apply, zero_apply] }
+
+@[simp] lemma comap_domain_add [Π i, add_zero_class (β i)] (h : κ → ι) (hh : function.injective h)
+  (f g : Π₀ i, β i) :
+  comap_domain h hh (f + g) = comap_domain h hh f + comap_domain h hh g :=
+by { ext, rw [add_apply, comap_domain_apply, comap_domain_apply, comap_domain_apply, add_apply] }
+
+@[simp] lemma comap_domain_smul [monoid γ] [Π i, add_monoid (β i)] [Π i, distrib_mul_action γ (β i)]
+  (h : κ → ι) (hh : function.injective h) (r : γ) (f : Π₀ i, β i) :
+  comap_domain h hh (r • f) = r • comap_domain h hh f :=
+by { ext, rw [smul_apply, comap_domain_apply, smul_apply, comap_domain_apply] }
+
+omit dec
+/--A computable version of comap_domain when an explicit left inverse is provided.-/
+def comap_domain'[Π i, has_zero (β i)] (h : κ → ι) {h' : ι → κ} (hh' : function.left_inverse h' h) :
+  (Π₀ i, β i) → (Π₀ k, β (h k)) :=
+begin
+  refine quotient.lift (λ f, ⟦_⟧) (λ f f' h, _),
+  exact { to_fun := λ x, f.to_fun (h x),
+    pre_support := f.pre_support.map h',
+    zero := λ x, (f.zero (h x)).imp_left $ λ hx, multiset.mem_map.mpr ⟨_, hx, hh' _⟩ },
+  exact quot.sound (λ x, h _),
+end
+
+@[simp] lemma comap_domain'_apply [Π i, has_zero (β i)] (h : κ → ι) {h' : ι → κ}
+  (hh' : function.left_inverse h' h) (f : Π₀ i, β i) (k : κ) : comap_domain' h hh' f k = f (h k) :=
+by { rcases f, refl }
+
+@[simp] lemma comap_domain'_zero [Π i, has_zero (β i)] (h : κ → ι) {h' : ι → κ}
+  (hh' : function.left_inverse h' h) :
+  comap_domain' h hh' (0 : Π₀ i, β i) = 0 :=
+by { ext, rw [zero_apply, comap_domain'_apply, zero_apply] }
+
+@[simp] lemma comap_domain'_add [Π i, add_zero_class (β i)] (h : κ → ι) {h' : ι → κ}
+  (hh' : function.left_inverse h' h) (f g : Π₀ i, β i) :
+  comap_domain' h hh' (f + g) = comap_domain' h hh' f + comap_domain' h hh' g :=
+by { ext, rw [add_apply, comap_domain'_apply, comap_domain'_apply, comap_domain'_apply, add_apply] }
+
+@[simp] lemma comap_domain'_smul [monoid γ] [Π i, add_monoid (β i)]
+  [Π i, distrib_mul_action γ (β i)] (h : κ → ι) {h' : ι → κ}
+  (hh' : function.left_inverse h' h) (r : γ) (f : Π₀ i, β i) :
+  comap_domain' h hh' (r • f) = r • comap_domain' h hh' f :=
+by { ext, rw [smul_apply, comap_domain'_apply, smul_apply, comap_domain'_apply] }
+
+/-- Reindexing terms of a dfinsupp.
+
+This is the dfinsupp version of `equiv.Pi_congr_left'`. -/
+@[simps apply]
+def equiv_congr_left [Π i, has_zero (β i)] (h : ι ≃ κ) : (Π₀ i, β i) ≃ (Π₀ k, β (h.symm k)) :=
+{ to_fun := comap_domain' h.symm h.right_inv,
+  inv_fun := λ f, map_range (λ i, equiv.cast $ congr_arg β $ h.symm_apply_apply i)
+    (λ i, (equiv.cast_eq_iff_heq _).mpr $
+      by { convert heq.rfl, repeat { exact (h.symm_apply_apply i).symm } })
+        (@comap_domain' _ _ _ _ h _ h.left_inv f),
+  left_inv := λ f, by { ext i, rw [map_range_apply, comap_domain'_apply, comap_domain'_apply,
+    equiv.cast_eq_iff_heq, h.symm_apply_apply] },
+  right_inv := λ f, by { ext k, rw [comap_domain'_apply, map_range_apply, comap_domain'_apply,
+    equiv.cast_eq_iff_heq, h.apply_symm_apply] } }
+
+section curry
+variables {α : ι → Type*} {δ : Π i, α i → Type v}
+
+-- lean can't find these instances
+instance has_add₂ [Π i j, add_zero_class (δ i j)] : has_add (Π₀ (i : ι) (j : α i), δ i j) :=
+@dfinsupp.has_add ι (λ i, Π₀ j, δ i j) _
+
+instance add_zero_class₂ [Π i j, add_zero_class (δ i j)] :
+  add_zero_class (Π₀ (i : ι) (j : α i), δ i j) :=
+@dfinsupp.add_zero_class ι (λ i, Π₀ j, δ i j) _
+
+instance add_monoid₂ [Π i j, add_monoid (δ i j)] :
+  add_monoid (Π₀ (i : ι) (j : α i), δ i j) :=
+@dfinsupp.add_monoid ι (λ i, Π₀ j, δ i j) _
+
+instance distrib_mul_action₂ [monoid γ] [Π i j, add_monoid (δ i j)]
+  [Π i j, distrib_mul_action γ (δ i j)] :
+  distrib_mul_action γ (Π₀ (i : ι) (j : α i), δ i j) :=
+@dfinsupp.distrib_mul_action ι _ (λ i, Π₀ j, δ i j) _ _ _
+
+/--The natural map between `Π₀ (i : Σ i, α i), δ i.1 i.2` and `Π₀ i (j : α i), δ i j`.  -/
+noncomputable def sigma_curry [Π i j, has_zero (δ i j)] (f : Π₀ (i : Σ i, _), δ i.1 i.2) :
+  Π₀ i j, δ i j :=
+by { classical,
+  exact mk (f.support.image $ λ i, i.1)
+    (λ i, mk (f.support.preimage (sigma.mk i) $ sigma_mk_injective.inj_on _) $ λ j, f ⟨i, j⟩) }
+
+@[simp] lemma sigma_curry_apply [Π i j, has_zero (δ i j)] (f : Π₀ (i : Σ i, _), δ i.1 i.2)
+  (i : ι) (j : α i) :
+  sigma_curry f i j = f ⟨i, j⟩ :=
+begin
+  dunfold sigma_curry, by_cases h : f ⟨i, j⟩ = 0,
+  { rw [h, mk_apply], split_ifs, { rw mk_apply, split_ifs, { exact h }, { refl } }, { refl } },
+  { rw [mk_of_mem, mk_of_mem], { refl },
+    { rw [mem_preimage, mem_support_to_fun], exact h },
+    { rw mem_image, refine ⟨⟨i, j⟩, _, rfl⟩, rw mem_support_to_fun, exact h } }
+end
+
+@[simp] lemma sigma_curry_zero [Π i j, has_zero (δ i j)] :
+  sigma_curry (0 : Π₀ (i : Σ i, _), δ i.1 i.2) = 0 :=
+by { ext i j, rw sigma_curry_apply, refl }
+
+@[simp] lemma sigma_curry_add [Π i j, add_zero_class (δ i j)] (f g : Π₀ (i : Σ i, α i), δ i.1 i.2) :
+  @sigma_curry _ _ δ _ (f + g) = (@sigma_curry _ _ δ _ f + @sigma_curry ι α δ _ g) :=
+begin
+  ext i j,
+  rw [@add_apply _ (λ i, Π₀ j, δ i j) _ (sigma_curry _), add_apply, sigma_curry_apply,
+      sigma_curry_apply, sigma_curry_apply, add_apply]
+end
+
+@[simp] lemma sigma_curry_smul [monoid γ] [Π i j, add_monoid (δ i j)]
+  [Π i j, distrib_mul_action γ (δ i j)] (r : γ) (f : Π₀ (i : Σ i, α i), δ i.1 i.2) :
+  @sigma_curry _ _ δ _ (r • f) = r • @sigma_curry _ _ δ _ f :=
+begin
+  ext i j,
+  rw [@smul_apply _ _ (λ i, Π₀ j, δ i j) _ _ _ _ (sigma_curry _), smul_apply, sigma_curry_apply,
+      sigma_curry_apply, smul_apply]
+end
+
+/--The natural map between `Π₀ i (j : α i), δ i j` and `Π₀ (i : Σ i, α i), δ i.1 i.2`, inverse of
+`curry`.-/
+noncomputable def sigma_uncurry [Π i j, has_zero (δ i j)] (f : Π₀ i j, δ i j) :
+  Π₀ (i : Σ i, _), δ i.1 i.2 :=
+by { classical,
+  exact mk (f.support.bUnion $ λ i, (f i).support.image $ sigma.mk i) (λ ⟨⟨i, j⟩, _⟩, f i j) }
+
+@[simp] lemma sigma_uncurry_apply [Π i j, has_zero (δ i j)] (f : Π₀ i j, δ i j) (i : ι) (j : α i) :
+  sigma_uncurry f ⟨i, j⟩ = f i j :=
+begin
+  dunfold sigma_uncurry, by_cases h : f i j = 0,
+  { rw mk_apply, split_ifs, { refl }, { exact h.symm } },
+  { apply mk_of_mem, rw mem_bUnion, refine ⟨i, _, _⟩,
+    { rw mem_support_to_fun, intro H, rw ext_iff at H, exact h (H j) },
+    { apply mem_image_of_mem, rw mem_support_to_fun, exact h } }
+end
+
+@[simp] lemma sigma_uncurry_zero [Π i j, has_zero (δ i j)] :
+  sigma_uncurry (0 : Π₀ i j, δ i j) = 0 :=
+by { ext ⟨i, j⟩, rw sigma_uncurry_apply, refl }
+
+@[simp] lemma sigma_uncurry_add [Π i j, add_zero_class (δ i j)] (f g : Π₀ i j, δ i j) :
+  sigma_uncurry (f + g) = sigma_uncurry f + sigma_uncurry g :=
+by { ext ⟨i, j⟩, rw [add_apply, sigma_uncurry_apply,
+    sigma_uncurry_apply, sigma_uncurry_apply, @add_apply _ (λ i, Π₀ j, δ i j) _, add_apply] }
+
+@[simp] lemma sigma_uncurry_smul [monoid γ] [Π i j, add_monoid (δ i j)]
+  [Π i j, distrib_mul_action γ (δ i j)] (r : γ) (f : Π₀ i j, δ i j) :
+  sigma_uncurry (r • f) = r • sigma_uncurry f :=
+by { ext ⟨i, j⟩, rw [smul_apply, sigma_uncurry_apply,
+    sigma_uncurry_apply, @smul_apply _ _ (λ i, Π₀ j, δ i j) _ _ _, smul_apply] }
+
+/--The natural bijection between `Π₀ (i : Σ i, α i), δ i.1 i.2` and `Π₀ i (j : α i), δ i j`.
+
+This is the dfinsupp version of `equiv.Pi_curry`. -/
+noncomputable def sigma_curry_equiv [Π i j, has_zero (δ i j)] :
+  (Π₀ (i : Σ i, _), δ i.1 i.2) ≃ Π₀ i j, δ i j :=
+{ to_fun := sigma_curry,
+  inv_fun := sigma_uncurry,
+  left_inv := λ f, by { ext ⟨i, j⟩, rw [sigma_uncurry_apply, sigma_curry_apply] },
+  right_inv := λ f, by { ext i j, rw [sigma_curry_apply, sigma_uncurry_apply] } }
+
+end curry
+
+variables {α : option ι → Type v}
+
+/-- Adds a term to a dfinsupp, making a dfinsupp indexed by an `option`.
+
+This is the dfinsupp version of `option.rec`. -/
+def extend_with [Π i, has_zero (α i)] (a : α none) : (Π₀ i, α (some i)) → Π₀ i, α i :=
+begin
+  refine quotient.lift (λ f, ⟦_⟧) (λ f f' h, _),
+  exact { to_fun := option.rec a f.to_fun,
+    pre_support := none ::ₘ (f.pre_support.map some),
+    zero := λ i, option.rec (or.inl $ multiset.mem_cons_self _ _)
+      (λ i, (f.zero i).imp_left $ λ h, multiset.mem_cons_of_mem $ multiset.mem_map_of_mem _ h) i },
+  { refine quot.sound (option.rec _ $ λ x, _), refl, exact h x },
+end
+@[simp] lemma extend_with_none [Π i, has_zero (α i)] (f : Π₀ i, α (some i)) (a : α none) :
+  f.extend_with a none = a :=
+by { rcases f, refl }
+@[simp] lemma extend_with_some [Π i, has_zero (α i)] (f : Π₀ i, α (some i)) (a : α none) (i : ι) :
+  f.extend_with a (some i) = f i :=
+by { rcases f, refl }
+
+include dec
+/-- Bijection obtained by separating the term of index `none` of a dfinsupp over `option ι`.
+
+This is the dfinsupp version of `equiv.pi_option_equiv_prod`. -/
+@[simps] noncomputable def equiv_prod_dfinsupp [Π i, has_zero (α i)] :
+  (Π₀ i, α i) ≃ α none × Π₀ i, α (some i) :=
+{ to_fun := λ f, (f none, comap_domain some (option.some_injective _) f),
+  inv_fun := λ f, f.2.extend_with f.1,
+  left_inv := λ f, begin
+    ext i, cases i with i,
+    { rw extend_with_none },
+    { rw [extend_with_some, comap_domain_apply] }
+  end,
+  right_inv := λ _, begin
+    ext,
+    { exact extend_with_none _ _ },
+    { rw [comap_domain_apply, extend_with_some] }
+  end }
+
+lemma equiv_prod_dfinsupp_add [Π i, add_zero_class (α i)] (f g : Π₀ i, α i) :
+  equiv_prod_dfinsupp (f + g) = equiv_prod_dfinsupp f + equiv_prod_dfinsupp g :=
+prod.ext (add_apply _ _ _) (comap_domain_add _ _ _ _)
+
+lemma equiv_prod_dfinsupp_smul [monoid γ] [Π i, add_monoid (α i)] [Π i, distrib_mul_action γ (α i)]
+  (r : γ) (f : Π₀ i, α i) :
+  equiv_prod_dfinsupp (r • f) = r • equiv_prod_dfinsupp f :=
+prod.ext (smul_apply _ _ _) (comap_domain_smul _ _ _ _)
+
+end equiv
 
 section prod_and_sum
 
@@ -1112,7 +1351,7 @@ have ∀i₁ : ι, f.sum (λ (i : ι₁) (b : β₁ i), (g i b) i₁) ≠ 0 →
     (∃ (i : ι₁), f i ≠ 0 ∧ ¬ (g i (f i)) i₁ = 0),
   from assume i₁ h,
   let ⟨i, hi, ne⟩ := finset.exists_ne_zero_of_sum_ne_zero h in
-  ⟨i, (f.mem_support_iff i).mp hi, ne⟩,
+  ⟨i, mem_support_iff.1 hi, ne⟩,
 by simpa [finset.subset_iff, mem_support_iff, finset.mem_bUnion, sum_apply] using this
 
 @[simp, to_additive] lemma prod_one [Π i, add_comm_monoid (β i)] [Π i (x : β i), decidable (x ≠ 0)]
@@ -1128,7 +1367,15 @@ finset.prod_mul_distrib
 @[simp, to_additive] lemma prod_inv [Π i, add_comm_monoid (β i)] [Π i (x : β i), decidable (x ≠ 0)]
   [comm_group γ] {f : Π₀ i, β i} {h : Π i, β i → γ} :
   f.prod (λi b, (h i b)⁻¹) = (f.prod h)⁻¹ :=
-((comm_group.inv_monoid_hom : γ →* γ).map_prod _ f.support).symm
+((inv_monoid_hom : γ →* γ).map_prod _ f.support).symm
+
+@[to_additive] lemma prod_eq_one [Π i, has_zero (β i)] [Π i (x : β i), decidable (x ≠ 0)]
+  [comm_monoid γ] {f : Π₀ i, β i} {h : Π i, β i → γ} (hyp : ∀ i, h i (f i) = 1) :
+  f.prod h = 1 := finset.prod_eq_one $ λ i hi, hyp i
+
+lemma smul_sum {α : Type*} [monoid α] [Π i, has_zero (β i)] [Π i (x : β i), decidable (x ≠ 0)]
+  [add_comm_monoid γ] [distrib_mul_action α γ] {f : Π₀ i, β i} {h : Π i, β i → γ} {c : α} :
+  c • f.sum h = f.sum (λ a b, c • h a b) := finset.smul_sum
 
 @[to_additive]
 lemma prod_add_index [Π i, add_comm_monoid (β i)] [Π i (x : β i), decidable (x ≠ 0)]
@@ -1151,13 +1398,13 @@ calc ∏ i in (f + g).support, h i ((f + g) i) =
   ... = _ : by rw [f_eq, g_eq]
 
 @[to_additive]
-lemma _root_.submonoid.dfinsupp_prod_mem [Π i, has_zero (β i)] [Π i (x : β i), decidable (x ≠ 0)]
-  [comm_monoid γ] (S : submonoid γ)
-  (f : Π₀ i, β i) (g : Π i, β i → γ) (h : ∀ c, f c ≠ 0 → g c (f c) ∈ S) : f.prod g ∈ S :=
-S.prod_mem $ λ i hi, h _ $ (f.mem_support_iff _).mp hi
+lemma _root_.dfinsupp_prod_mem [Π i, has_zero (β i)] [Π i (x : β i), decidable (x ≠ 0)]
+  [comm_monoid γ] {S : Type*} [set_like S γ] [submonoid_class S γ] (s : S)
+  (f : Π₀ i, β i) (g : Π i, β i → γ) (h : ∀ c, f c ≠ 0 → g c (f c) ∈ s) : f.prod g ∈ s :=
+prod_mem $ λ i hi, h _ $ mem_support_iff.1 hi
 
 @[simp, to_additive] lemma prod_eq_prod_fintype [fintype ι] [Π i, has_zero (β i)]
-  [Π (i : ι) (x : β i), decidable (x ≠ 0)] [comm_monoid γ] (v : Π₀ i, β i) {f : Π i, β i → γ}
+  [Π (i : ι) (x : β i), decidable (x ≠ 0)] [comm_monoid γ] (v : Π₀ i, β i) [f : Π i, β i → γ]
   (hf : ∀ i, f i 0 = 1) :
   v.prod f = ∏ i, f i (dfinsupp.equiv_fun_on_fintype v i) :=
 begin
@@ -1234,13 +1481,14 @@ begin
   rw [(not_not.mp h), add_monoid_hom.map_zero],
 end
 
-lemma _root_.add_submonoid.dfinsupp_sum_add_hom_mem [Π i, add_zero_class (β i)] [add_comm_monoid γ]
-  (S : add_submonoid γ) (f : Π₀ i, β i) (g : Π i, β i →+ γ) (h : ∀ c, f c ≠ 0 → g c (f c) ∈ S) :
-  dfinsupp.sum_add_hom g f ∈ S :=
+lemma _root_.dfinsupp_sum_add_hom_mem [Π i, add_zero_class (β i)] [add_comm_monoid γ] {S : Type*}
+  [set_like S γ] [add_submonoid_class S γ] (s : S) (f : Π₀ i, β i) (g : Π i, β i →+ γ)
+  (h : ∀ c, f c ≠ 0 → g c (f c) ∈ s) : dfinsupp.sum_add_hom g f ∈ s :=
 begin
   classical,
   rw dfinsupp.sum_add_hom_apply,
-  convert S.dfinsupp_sum_mem _ _ _,
+  convert dfinsupp_sum_mem _ _ _ _,
+  { apply_instance },
   exact h
 end
 
@@ -1255,7 +1503,7 @@ begin
     intros i y hy,
     exact ⟨dfinsupp.single i ⟨y, hy⟩, dfinsupp.sum_add_hom_single _ _ _⟩, },
   { rintros x ⟨v, rfl⟩,
-    exact add_submonoid.dfinsupp_sum_add_hom_mem _ v _ (λ i _, (le_supr S i : S i ≤ _) (v i).prop) }
+    exact dfinsupp_sum_add_hom_mem _ v _ (λ i _, (le_supr S i : S i ≤ _) (v i).prop) }
 end
 
 /-- The bounded supremum of a family of commutative additive submonoids is equal to the range of
@@ -1268,13 +1516,11 @@ lemma _root_.add_submonoid.bsupr_eq_mrange_dfinsupp_sum_add_hom (p : ι → Prop
     ((sum_add_hom (λ i, (S i).subtype)).comp (filter_add_monoid_hom _ p)).mrange :=
 begin
   apply le_antisymm,
-  { apply bsupr_le _,
-    intros i hi y hy,
-    refine ⟨dfinsupp.single i ⟨y, hy⟩, _⟩,
+  { refine supr₂_le (λ i hi y hy, ⟨dfinsupp.single i ⟨y, hy⟩, _⟩),
     rw [add_monoid_hom.comp_apply, filter_add_monoid_hom_apply, filter_single_pos _ _ hi],
     exact sum_add_hom_single _ _ _, },
   { rintros x ⟨v, rfl⟩,
-    refine add_submonoid.dfinsupp_sum_add_hom_mem _ _ _ (λ i hi, _),
+    refine dfinsupp_sum_add_hom_mem _ _ _ (λ i hi, _),
     refine add_submonoid.mem_supr_of_mem i _,
     by_cases hp : p i,
     { simp [hp], },
@@ -1505,8 +1751,9 @@ end dfinsupp
 
 /-! ### Product and sum lemmas for bundled morphisms.
 
-In this section, we provide analogues of `add_monoid_hom.map_sum`, `add_monoid_hom.coe_sum`, and
-`add_monoid_hom.sum_apply` for `dfinsupp.sum` and `dfinsupp.sum_add_hom` instead of `finset.sum`.
+In this section, we provide analogues of `add_monoid_hom.map_sum`, `add_monoid_hom.coe_finset_sum`,
+and `add_monoid_hom.finset_sum_apply` for `dfinsupp.sum` and `dfinsupp.sum_add_hom` instead of
+`finset.sum`.
 
 We provide these for `add_monoid_hom`, `monoid_hom`, `ring_hom`, `add_equiv`, and `mul_equiv`.
 
@@ -1528,7 +1775,7 @@ lemma map_dfinsupp_prod [comm_monoid R] [comm_monoid S]
 @[to_additive]
 lemma coe_dfinsupp_prod [monoid R] [comm_monoid S]
   (f : Π₀ i, β i) (g : Π i, β i → R →* S) :
-  ⇑(f.prod g) = f.prod (λ a b, (g a b)) := coe_prod _ _
+  ⇑(f.prod g) = f.prod (λ a b, (g a b)) := coe_finset_prod _ _
 
 @[simp, to_additive]
 lemma dfinsupp_prod_apply [monoid R] [comm_monoid S]

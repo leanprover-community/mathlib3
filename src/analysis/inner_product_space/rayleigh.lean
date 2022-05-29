@@ -70,7 +70,7 @@ begin
     { rw T.rayleigh_smul x this,
       exact hxT } },
   { rintros ⟨x, hx, hxT⟩,
-    exact ⟨x, nonzero_of_mem_sphere hr ⟨x, hx⟩, hxT⟩ },
+    exact ⟨x, ne_zero_of_mem_sphere hr.ne' ⟨x, hx⟩, hxT⟩ },
 end
 
 lemma supr_rayleigh_eq_supr_rayleigh_sphere {r : ℝ} (hr : 0 < r) :
@@ -139,7 +139,7 @@ begin
   have hc : T x₀ = c • x₀,
   { have : b * (b⁻¹ * a) = a := by field_simp [mul_comm],
     apply smul_right_injective F hb,
-    simp [c, ← neg_eq_of_add_eq_zero h₂, ← mul_smul, this] },
+    simp [c, eq_neg_of_add_eq_zero_left h₂, ← mul_smul, this] },
   convert hc,
   have : ∥x₀∥ ≠ 0 := by simp [hx₀],
   field_simp,

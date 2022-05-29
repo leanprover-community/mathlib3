@@ -83,7 +83,7 @@ begin
   apply finset.card_erase_of_mem,
   rw [nth, set.finite.mem_to_finset],
   apply Inf_mem,
-  rwa [←set.finite.to_finset.nonempty hp'', ←finset.card_pos, hk],
+  rwa [←hp''.nonempty_to_finset, ←finset.card_pos, hk],
 end
 
 lemma nth_set_card {n : ℕ} (hp : (set_of p).finite)
@@ -108,7 +108,7 @@ lemma nth_set_nonempty_of_lt_card {n : ℕ} (hp : (set_of p).finite) (hlt: n < h
 begin
   have hp': {i : ℕ | p i ∧ ∀ (k : ℕ), k < n → nth p k < i}.finite,
   { exact hp.subset (λ x hx, hx.1) },
-  rw [←hp'^.to_finset.nonempty, ←finset.card_pos, nth_set_card p hp],
+  rw [←hp'.nonempty_to_finset, ←finset.card_pos, nth_set_card p hp],
   exact nat.sub_pos_of_lt hlt,
 end
 
@@ -146,6 +146,16 @@ lemma nth_mem_of_infinite (hp : (set_of p).infinite) (n : ℕ) : p (nth p n) :=
 lemma nth_strict_mono (hp : (set_of p).infinite) : strict_mono (nth p) :=
 λ a b, (nth_mem_of_infinite_aux p hp b).2 _
 
+lemma nth_injective_of_infinite (hp : (set_of p).infinite) : function.injective (nth p) :=
+begin
+  intros m n h,
+  wlog h' : m ≤ n,
+  rw le_iff_lt_or_eq at h',
+  obtain (h' | rfl) := h',
+  { simpa [h] using nth_strict_mono p hp h' },
+  { refl },
+end
+
 lemma nth_monotone (hp : (set_of p).infinite) : monotone (nth p) :=
 (nth_strict_mono p hp).monotone
 
@@ -161,8 +171,7 @@ lemma le_nth_of_lt_nth_succ_finite {k a : ℕ} (hp : (set_of p).finite)
   (hlt : k.succ < hp.to_finset.card) (h : a < nth p k.succ) (ha : p a) :
   a ≤ nth p k :=
 begin
-  by_contra hak,
-  push_neg at hak,
+  by_contra' hak,
   refine h.not_le _,
   rw nth,
   apply nat.Inf_le,
@@ -174,8 +183,7 @@ lemma le_nth_of_lt_nth_succ_infinite {k a : ℕ} (hp : (set_of p).infinite)
   (h : a < nth p k.succ) (ha : p a) :
   a ≤ nth p k :=
 begin
-  by_contra hak,
-  push_neg at hak,
+  by_contra' hak,
   refine h.not_le _,
   rw nth,
   apply nat.Inf_le,
@@ -379,8 +387,7 @@ begin
       exact (nth_monotone p hi hr).trans (by simp) },
     simp only [exists_prop, not_and, not_lt, set.mem_set_of_eq, not_forall],
     refine λ hpn, ⟨k, lt_add_one k, _⟩,
-    by_contra hlt,
-    push_neg at hlt,
+    by_contra' hlt,
     replace hn : n - nth p k - 1 < t,
     { rw tsub_lt_iff_left,
       { rw tsub_lt_iff_left hlt.le,

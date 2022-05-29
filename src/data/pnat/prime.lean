@@ -28,7 +28,7 @@ end
 end nat.primes
 
 namespace pnat
-open nat
+open _root_.nat
 
 /-- The greatest common divisor (gcd) of two positive natural numbers,
   viewed as positive natural number. -/
@@ -93,9 +93,9 @@ lemma not_prime_one : ¬ (1: ℕ+).prime :=  nat.not_prime_one
 lemma prime.not_dvd_one {p : ℕ+} :
 p.prime →  ¬ p ∣ 1 := λ pp : p.prime, by {rw dvd_iff, apply nat.prime.not_dvd_one pp}
 
-lemma exists_prime_and_dvd {n : ℕ+} : 2 ≤ n → (∃ (p : ℕ+), p.prime ∧ p ∣ n) :=
+lemma exists_prime_and_dvd {n : ℕ+} (hn : n ≠ 1) : (∃ (p : ℕ+), p.prime ∧ p ∣ n) :=
 begin
-  intro h, cases nat.exists_prime_and_dvd h with p hp,
+  obtain ⟨p, hp⟩ := nat.exists_prime_and_dvd (mt coe_eq_one_iff.mp hn),
   existsi (⟨p, nat.prime.pos hp.left⟩ : ℕ+), rw dvd_iff, apply hp
 end
 

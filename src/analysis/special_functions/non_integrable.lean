@@ -39,9 +39,8 @@ integrable function
 open_locale measure_theory topological_space interval nnreal ennreal
 open measure_theory topological_space set filter asymptotics interval_integral
 
-variables {E F : Type*} [normed_group E] [normed_space ℝ E] [measurable_space E] [borel_space E]
-  [second_countable_topology E] [complete_space E] [normed_group F]
-  [measurable_space F] [borel_space F]
+variables {E F : Type*} [normed_group E] [normed_space ℝ E] [second_countable_topology E]
+[complete_space E] [normed_group F]
 
 /-- If `f` is eventually differentiable along a nontrivial filter `l : filter ℝ` that is generated
 by convex sets, the norm of `f` tends to infinity along `l`, and `f' = O(g)` along `l`, where `f'`
@@ -61,7 +60,7 @@ begin
   { rcases hfg.exists_nonneg with ⟨C, C₀, hC⟩,
     have h : ∀ᶠ x : ℝ × ℝ in l.prod l, ∀ y ∈ [x.1, x.2], (differentiable_at ℝ f y ∧
       ∥deriv f y∥ ≤ C * ∥g y∥) ∧ y ∈ [a, b],
-      from (tendsto_fst.interval tendsto_snd).eventually ((hd.and hC.bound).and hl).lift'_powerset,
+      from (tendsto_fst.interval tendsto_snd).eventually ((hd.and hC.bound).and hl).small_sets,
     rcases mem_prod_self_iff.1 h with ⟨s, hsl, hs⟩,
     simp only [prod_subset_iff, mem_set_of_eq] at hs,
     exact ⟨C, C₀, s, hsl, λ x hx y hy z hz, (hs x hx y hy z hz).2,
@@ -79,7 +78,7 @@ begin
   have hsub' : Ι c d ⊆ Ι a b,
     from interval_oc_subset_interval_oc_of_interval_subset_interval hsub,
   have hfi : interval_integrable (deriv f) volume c d,
-    from (hgi.mono_set hsub).mono_fun' (ae_measurable_deriv _ _) hg_ae,
+    from (hgi.mono_set hsub).mono_fun' (ae_strongly_measurable_deriv _ _) hg_ae,
   refine hlt.not_le (sub_le_iff_le_add'.1 _),
   calc ∥f d∥ - ∥f c∥ ≤ ∥f d - f c∥ : norm_sub_norm_le _ _
   ... = ∥∫ x in c..d, deriv f x∥ : congr_arg _ (integral_deriv_eq_sub hfd hfi).symm
@@ -139,8 +138,7 @@ lemma not_interval_integrable_of_sub_inv_is_O_punctured {f : ℝ → F} {a b c :
   ¬interval_integrable f volume a b :=
 begin
   have A : ∀ᶠ x in 𝓝[≠] c, has_deriv_at (λ x, real.log (x - c)) (x - c)⁻¹ x,
-  { filter_upwards [self_mem_nhds_within],
-    intros x hx,
+  { filter_upwards [self_mem_nhds_within] with x hx,
     simpa using ((has_deriv_at_id x).sub_const c).log (sub_ne_zero.2 hx) },
   have B : tendsto (λ x, ∥real.log (x - c)∥) (𝓝[≠] c) at_top,
   { refine tendsto_abs_at_bot_at_top.comp (real.tendsto_log_nhds_within_zero.comp _),

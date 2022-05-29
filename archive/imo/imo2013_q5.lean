@@ -32,8 +32,7 @@ lemma le_of_all_pow_lt_succ {x y : ℝ} (hx : 1 < x) (hy : 1 < y)
   (h : ∀ n : ℕ, 0 < n → x^n - 1 < y^n) :
   x ≤ y :=
 begin
-  by_contra hxy,
-  push_neg at hxy,
+  by_contra' hxy,
   have hxmy : 0 < x - y := sub_pos.mpr hxy,
   have hn : ∀ n : ℕ, 0 < n → (x - y) * (n : ℝ) ≤ x^n - y^n,
   { intros n hn,
@@ -72,8 +71,7 @@ lemma le_of_all_pow_lt_succ' {x y : ℝ} (hx : 1 < x) (hy : 0 < y)
   x ≤ y :=
 begin
   refine le_of_all_pow_lt_succ hx _ h,
-  by_contra hy'',
-  push_neg at hy'', -- hy'' : y ≤ 1.
+  by_contra' hy'' : y ≤ 1,
 
   -- Then there exists y' such that 0 < y ≤ 1 < y' < x.
   let y' := (x + 1) / 2,
@@ -185,7 +183,7 @@ begin
   have hxp : 0 < x := zero_lt_one.trans hx,
 
   have hNp : 0 < N,
-  { by_contra H, push_neg at H, rw [nat.le_zero_iff.mp H] at hN, linarith },
+  { by_contra' H, rw [nat.le_zero_iff.mp H] at hN, linarith },
 
   have h2 := calc f x + f (a^N - x)
                         ≤ f (x + (a^N - x)) : H2 x (a^N - x) hxp (zero_lt_one.trans h_big_enough)

@@ -577,7 +577,7 @@ prod.topological_space
 /- Next lemma shows up often when dealing with derivatives, register it as simp. -/
 @[simp, mfld_simps] lemma model_prod_range_prod_id
   {H : Type*} {H' : Type*} {α : Type*} (f : H → α) :
-  range (λ (p : model_prod H H'), (f p.1, p.2)) = set.prod (range f) univ :=
+  range (λ (p : model_prod H H'), (f p.1, p.2)) = range f ×ˢ (univ : set H') :=
 by rw prod_range_univ_eq
 
 end

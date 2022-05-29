@@ -5,7 +5,7 @@ Authors: Yaël Dillies, Vladimir Goryachev, Kyle Miller, Scott Morrison, Eric Ro
 -/
 import data.list.basic
 import data.nat.prime
-import set_theory.fincard
+import set_theory.cardinal.finite
 
 /-!
 # Counting on ℕ
@@ -63,11 +63,11 @@ begin
     obtain ⟨⟨hx, _⟩, ⟨c, _, rfl⟩, _⟩ := hx,
     exact (self_le_add_right _ _).not_lt hx },
   simp_rw [count_eq_card_filter_range, range_add, filter_union, card_disjoint_union this,
-    map_filter, add_left_embedding, card_map, function.embedding.coe_fn_mk]
+    map_filter, add_left_embedding, card_map], refl,
 end
 
 lemma count_add' (a b : ℕ) : count p (a + b) = count (λ k, p (k + b)) a + count p b :=
-by { rw [add_comm, count_add, add_comm], simp_rw add_comm b, congr, }
+by { rw [add_comm, count_add, add_comm], simp_rw [add_comm b] }
 
 lemma count_one : count p 1 = if p 0 then 1 else 0 := by simp [count_succ]
 

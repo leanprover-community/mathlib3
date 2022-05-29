@@ -5,7 +5,7 @@ Authors: Jireh Loreaux
 -/
 import analysis.normed_space.operator_norm
 import topology.metric_space.baire
-import topology.algebra.module
+import topology.algebra.module.basic
 /-!
 # The Banach-Steinhaus theorem: Uniform Boundedness Principle
 
@@ -25,7 +25,7 @@ variables
 {E F 𝕜 𝕜₂ : Type*}
 [semi_normed_group E] [semi_normed_group F]
 [nondiscrete_normed_field 𝕜] [nondiscrete_normed_field 𝕜₂]
-[semi_normed_space 𝕜 E] [semi_normed_space 𝕜₂ F]
+[normed_space 𝕜 E] [normed_space 𝕜₂ F]
 {σ₁₂ : 𝕜 →+* 𝕜₂} [ring_hom_isometric σ₁₂]
 
 
@@ -69,7 +69,7 @@ begin
   ... ≤ (m + m : ℕ) * (∥y∥ / (ε / ∥k∥))
       : le_mul_of_one_le_right (nat.cast_nonneg _)
           ((one_le_div $ div_pos ε_pos (zero_lt_one.trans hk)).2 le_y)
-  ... = (m + m : ℕ) / (ε / ∥k∥) * ∥y∥ : (mul_comm_div' _ _ _).symm,
+  ... = (m + m : ℕ) / (ε / ∥k∥) * ∥y∥ : (mul_comm_div _ _ _).symm,
 end
 
 open_locale ennreal

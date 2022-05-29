@@ -45,37 +45,18 @@ theorem is_open_univ : is_open α set.univ :=
   by convert @complete_lattice.top_continuous α Prop _ _; ext; simp ⟩
 
 theorem is_open.inter (s t : set α) : is_open α s → is_open α t → is_open α (s ∩ t) :=
-begin
-  simp only [is_open, exists_imp_distrib, continuous'],
-  intros h₀ h₁ h₂ h₃,
-  rw ← set.inf_eq_inter,
-  let s' : α →o Prop := ⟨λ x, x ∈ s, h₀⟩,
-  let t' : α →o Prop := ⟨λ x, x ∈ t, h₂⟩,
-  split,
-  { change omega_complete_partial_order.continuous (s' ⊓ t'),
-    haveI : is_total Prop (≤) := ⟨ @le_total Prop _ ⟩,
-    apply complete_lattice.inf_continuous; assumption },
-  { intros x y h, apply and_implies;
-    solve_by_elim [h₀ h, h₂ h], }
-end
+complete_lattice.inf_continuous'
 
-theorem is_open_sUnion : ∀s, (∀t∈s, is_open α t) → is_open α (⋃₀ s) :=
+theorem is_open_sUnion (s : set (set α)) (hs : ∀t∈s, is_open α t) : is_open α (⋃₀ s) :=
 begin
-  introv h₀,
-  suffices : is_open α ({ x | Sup (flip (∈) '' s) x }),
-  { convert this, ext,
-    simp only [set.sUnion, Sup, set.mem_image, set.mem_set_of_eq, supr,
-               conditionally_complete_lattice.Sup, exists_exists_and_eq_and,
-               complete_lattice.Sup, exists_prop, set.mem_range,
-               set_coe.exists, eq_iff_iff, subtype.coe_mk],
-    tauto, },
-  dsimp [is_open] at *,
-  apply complete_lattice.Sup_continuous' _,
-  introv ht, specialize h₀ { x | f x } _,
-  { simp only [flip, set.mem_image] at *,
-    rcases ht with ⟨x,h₀,h₁⟩, subst h₁,
-    simpa, },
-  { simpa using h₀ }
+  simp only [is_open] at hs ⊢,
+  convert complete_lattice.Sup_continuous' (set_of ⁻¹' s) _,
+  { ext1 x,
+    simp only [Sup_apply, set.set_of_bijective.surjective.exists, exists_prop, set.mem_preimage,
+      set_coe.exists, supr_Prop_eq, set.mem_set_of_eq, subtype.coe_mk] },
+  { intros p hp,
+    convert hs (set_of p) (set.mem_preimage.1 hp),
+    simp only [set.mem_set_of_eq] },
 end
 
 end Scott

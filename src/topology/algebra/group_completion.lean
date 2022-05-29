@@ -3,9 +3,9 @@ Copyright (c) 2018 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Johannes Hölzl
 -/
-import algebra.group.hom_instances
-import topology.uniform_space.completion
+import algebra.hom.group_instances
 import topology.algebra.uniform_group
+import topology.uniform_space.completion
 
 /-!
 # Completion of topological groups:
@@ -85,7 +85,7 @@ instance : add_monoid (completion α) :=
 instance : sub_neg_monoid (completion α) :=
 { sub_eq_add_neg := λ a b, completion.induction_on₂ a b
     (is_closed_eq (continuous_map₂ continuous_fst continuous_snd)
-      (continuous_map₂ continuous_fst (continuous_map.comp continuous_snd)))
+      (continuous_map₂ continuous_fst (completion.continuous_map.comp continuous_snd)))
    (λ a b, by exact_mod_cast congr_arg coe (sub_eq_add_neg a b)),
   .. completion.add_monoid, .. completion.has_neg, .. completion.has_sub }
 
@@ -130,7 +130,7 @@ open uniform_space uniform_space.completion
 /-- Extension to the completion of a continuous group hom. -/
 def add_monoid_hom.extension [complete_space β] [separated_space β] (f : α →+ β)
   (hf : continuous f) : completion α →+ β :=
-have hf : uniform_continuous f, from uniform_continuous_of_continuous hf,
+have hf : uniform_continuous f, from uniform_continuous_add_monoid_hom_of_continuous hf,
 { to_fun := completion.extension f,
   map_zero' := by rw [← coe_zero, extension_coe hf, f.map_zero],
   map_add' := assume a b, completion.induction_on₂ a b
@@ -142,7 +142,7 @@ have hf : uniform_continuous f, from uniform_continuous_of_continuous hf,
 
 lemma add_monoid_hom.extension_coe [complete_space β] [separated_space β] (f : α →+ β)
   (hf : continuous f) (a : α) : f.extension hf a = f a :=
-extension_coe (uniform_continuous_of_continuous hf) a
+extension_coe (uniform_continuous_add_monoid_hom_of_continuous hf) a
 
 @[continuity]
 lemma add_monoid_hom.continuous_extension [complete_space β] [separated_space β] (f : α →+ β)
@@ -160,7 +160,7 @@ continuous_map
 
 lemma add_monoid_hom.completion_coe (f : α →+ β)
   (hf : continuous f) (a : α) : f.completion hf a = f a :=
-map_coe (uniform_continuous_of_continuous hf) a
+map_coe (uniform_continuous_add_monoid_hom_of_continuous hf) a
 
 lemma add_monoid_hom.completion_zero : (0 : α →+ β).completion continuous_const = 0 :=
 begin

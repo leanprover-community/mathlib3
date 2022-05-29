@@ -5,6 +5,7 @@ Authors: Frédéric Dupuis, Heather Macbeth
 -/
 
 import analysis.inner_product_space.dual
+import analysis.inner_product_space.pi_L2
 
 /-!
 # Adjoint of operators on Hilbert spaces
@@ -95,7 +96,7 @@ linear_isometry_equiv.of_surjective
   ..adjoint_aux }
 (λ A, ⟨adjoint_aux A, adjoint_aux_adjoint_aux A⟩)
 
-localized "postfix `†`:1000 := adjoint" in inner_product
+localized "postfix `†`:1000 := continuous_linear_map.adjoint" in inner_product
 
 /-- The fundamental property of the adjoint. -/
 lemma adjoint_inner_left (A : E →L[𝕜] F) (x : E) (y : F) : ⟪A† y, x⟫ = ⟪y, A x⟫ :=
@@ -147,7 +148,7 @@ end
 /-- `E →L[𝕜] E` is a star algebra with the adjoint as the star operation. -/
 instance : has_star (E →L[𝕜] E) := ⟨adjoint⟩
 instance : has_involutive_star (E →L[𝕜] E) := ⟨adjoint_adjoint⟩
-instance : star_monoid (E →L[𝕜] E) := ⟨adjoint_comp⟩
+instance : star_semigroup (E →L[𝕜] E) := ⟨adjoint_comp⟩
 instance : star_ring (E →L[𝕜] E) := ⟨linear_isometry_equiv.map_add adjoint⟩
 instance : star_module 𝕜 (E →L[𝕜] E) := ⟨linear_isometry_equiv.map_smulₛₗ adjoint⟩
 
@@ -177,11 +178,12 @@ section real
 variables {E' : Type*} {F' : Type*} [inner_product_space ℝ E'] [inner_product_space ℝ F']
 variables [complete_space E'] [complete_space F']
 
-lemma is_adjoint_pair (A : E' →L[ℝ] F') :
-  bilin_form.is_adjoint_pair (bilin_form_of_real_inner : bilin_form ℝ E')
-  (bilin_form_of_real_inner : bilin_form ℝ F') A (A†) :=
-λ x y, by simp only [adjoint_inner_right, to_linear_map_eq_coe,
-                     bilin_form_of_real_inner_apply, coe_coe]
+-- Todo: Generalize this to `is_R_or_C`.
+lemma is_adjoint_pair_inner (A : E' →L[ℝ] F') :
+  linear_map.is_adjoint_pair (sesq_form_of_inner : E' →ₗ[ℝ] E' →ₗ[ℝ] ℝ)
+  (sesq_form_of_inner : F' →ₗ[ℝ] F' →ₗ[ℝ] ℝ) A (A†) :=
+λ x y, by simp only [sesq_form_of_inner_apply_apply, adjoint_inner_left, to_linear_map_eq_coe,
+  coe_coe]
 
 end real
 
@@ -272,10 +274,14 @@ begin
   refine ext_inner_right_basis b (λ i, by simp only [h i, adjoint_inner_left]),
 end
 
+lemma is_self_adjoint_iff_eq_adjoint (A : E →ₗ[𝕜] E) :
+  is_self_adjoint A ↔ A = A.adjoint :=
+by rw [is_self_adjoint, ← linear_map.eq_adjoint_iff]
+
 /-- `E →ₗ[𝕜] E` is a star algebra with the adjoint as the star operation. -/
 instance : has_star (E →ₗ[𝕜] E) := ⟨adjoint⟩
 instance : has_involutive_star (E →ₗ[𝕜] E) := ⟨adjoint_adjoint⟩
-instance : star_monoid (E →ₗ[𝕜] E) := ⟨adjoint_comp⟩
+instance : star_semigroup (E →ₗ[𝕜] E) := ⟨adjoint_comp⟩
 instance : star_ring (E →ₗ[𝕜] E) := ⟨linear_equiv.map_add adjoint⟩
 instance : star_module 𝕜 (E →ₗ[𝕜] E) := ⟨linear_equiv.map_smulₛₗ adjoint⟩
 
@@ -286,11 +292,44 @@ section real
 variables {E' : Type*} {F' : Type*} [inner_product_space ℝ E'] [inner_product_space ℝ F']
 variables [finite_dimensional ℝ E'] [finite_dimensional ℝ F']
 
-lemma is_adjoint_pair (A : E' →ₗ[ℝ] F') :
-  bilin_form.is_adjoint_pair (bilin_form_of_real_inner : bilin_form ℝ E')
-  (bilin_form_of_real_inner : bilin_form ℝ F') A A.adjoint :=
-λ x y, by simp only [adjoint_inner_right, bilin_form_of_real_inner_apply]
+-- Todo: Generalize this to `is_R_or_C`.
+lemma is_adjoint_pair_inner (A : E' →ₗ[ℝ] F') :
+  is_adjoint_pair (sesq_form_of_inner : E' →ₗ[ℝ] E' →ₗ[ℝ] ℝ)
+  (sesq_form_of_inner : F' →ₗ[ℝ] F' →ₗ[ℝ] ℝ) A A.adjoint :=
+λ x y, by simp only [sesq_form_of_inner_apply_apply, adjoint_inner_left]
 
 end real
 
+/-- The Gram operator T†T is self-adjoint. -/
+lemma is_self_adjoint_adjoint_mul_self (T : E →ₗ[𝕜] E) : is_self_adjoint (T.adjoint * T) :=
+λ x y, by simp only [linear_map.mul_apply, linear_map.adjoint_inner_left,
+  linear_map.adjoint_inner_right]
+
+/-- The Gram operator T†T is a positive operator. -/
+lemma re_inner_adjoint_mul_self_nonneg (T : E →ₗ[𝕜] E) (x : E) :
+  0 ≤ is_R_or_C.re ⟪ x, (T.adjoint * T) x ⟫ := by {simp only [linear_map.mul_apply,
+  linear_map.adjoint_inner_right, inner_self_eq_norm_sq_to_K], norm_cast, exact sq_nonneg _}
+
+@[simp] lemma im_inner_adjoint_mul_self_eq_zero (T : E →ₗ[𝕜] E) (x : E) :
+  is_R_or_C.im ⟪ x, linear_map.adjoint T (T x) ⟫ = 0 := by {simp only [linear_map.mul_apply,
+    linear_map.adjoint_inner_right, inner_self_eq_norm_sq_to_K], norm_cast}
+
 end linear_map
+
+namespace matrix
+variables {m n : Type*} [fintype m] [decidable_eq m] [fintype n] [decidable_eq n]
+open_locale complex_conjugate
+
+/-- The adjoint of the linear map associated to a matrix is the linear map associated to the
+conjugate transpose of that matrix. -/
+lemma conj_transpose_eq_adjoint (A : matrix m n 𝕜) :
+  to_lin' A.conj_transpose =
+  @linear_map.adjoint _ (euclidean_space 𝕜 n) (euclidean_space 𝕜 m) _ _ _ _ _ (to_lin' A) :=
+begin
+  rw @linear_map.eq_adjoint_iff _ (euclidean_space 𝕜 m) (euclidean_space 𝕜 n),
+  intros x y,
+  convert dot_product_assoc (conj ∘ (id x : m → 𝕜)) y A using 1,
+  simp [dot_product, mul_vec, ring_hom.map_sum,  ← star_ring_end_apply, mul_comm],
+end
+
+end matrix

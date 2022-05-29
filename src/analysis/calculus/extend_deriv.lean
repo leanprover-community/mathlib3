@@ -53,14 +53,14 @@ begin
   set B := ball x δ,
   suffices : ∀ y ∈ B ∩ (closure s), ∥f y - f x - (f' y - f' x)∥ ≤ ε * ∥y - x∥,
     from mem_nhds_within_iff.2 ⟨δ, δ_pos, λy hy, by simpa using this y hy⟩,
-  suffices : ∀ p : E × E, p ∈ closure ((B ∩ s).prod (B ∩ s)) → ∥f p.2 - f p.1 - (f' p.2 - f' p.1)∥
+  suffices : ∀ p : E × E, p ∈ closure ((B ∩ s) ×ˢ (B ∩ s)) → ∥f p.2 - f p.1 - (f' p.2 - f' p.1)∥
     ≤ ε * ∥p.2 - p.1∥,
   { rw closure_prod_eq at this,
     intros y y_in,
     apply this ⟨x, y⟩,
     have : B ∩ closure s ⊆ closure (B ∩ s), from closure_inter_open is_open_ball,
     exact ⟨this ⟨mem_ball_self δ_pos, hx⟩, this y_in⟩ },
-  have key : ∀ p : E × E, p ∈ (B ∩ s).prod (B ∩ s) → ∥f p.2 - f p.1 - (f' p.2 - f' p.1)∥
+  have key : ∀ p : E × E, p ∈ (B ∩ s) ×ˢ (B ∩ s) → ∥f p.2 - f p.1 - (f' p.2 - f' p.1)∥
     ≤ ε * ∥p.2 - p.1∥,
   { rintros ⟨u, v⟩ ⟨u_in, v_in⟩,
     have conv : convex ℝ (B ∩ s) := (convex_ball _ _).inter s_conv,
@@ -78,7 +78,7 @@ begin
   { intros y y_in,
     exact tendsto.sub (f_cont y y_in) (f'.cont.continuous_within_at) },
   all_goals { -- common start for both continuity proofs
-    have : (B ∩ s).prod (B ∩ s) ⊆ s.prod s, by mono ; exact inter_subset_right _ _,
+    have : (B ∩ s) ×ˢ (B ∩ s) ⊆ s ×ˢ s, by mono ; exact inter_subset_right _ _,
     obtain ⟨u_in, v_in⟩ : u ∈ closure s ∧ v ∈ closure s,
       by simpa [closure_prod_eq] using closure_mono this uv_in,
     apply continuous_within_at.mono _ this,
@@ -106,14 +106,14 @@ begin
   /- This is a specialization of `has_fderiv_at_boundary_of_tendsto_fderiv`. To be in the setting of
   this theorem, we need to work on an open interval with closure contained in `s ∪ {a}`, that we
   call `t = (a, b)`. Then, we check all the assumptions of this theorem and we apply it. -/
-  obtain ⟨b, ab, sab⟩ : ∃ b ∈ Ioi a, Ioc a b ⊆ s :=
+  obtain ⟨b, ab : a < b, sab : Ioc a b ⊆ s⟩ :=
     mem_nhds_within_Ioi_iff_exists_Ioc_subset.1 hs,
   let t := Ioo a b,
   have ts : t ⊆ s := subset.trans Ioo_subset_Ioc_self sab,
   have t_diff : differentiable_on ℝ f t := f_diff.mono ts,
   have t_conv : convex ℝ t := convex_Ioo a b,
   have t_open : is_open t := is_open_Ioo,
-  have t_closure : closure t = Icc a b := closure_Ioo ab,
+  have t_closure : closure t = Icc a b := closure_Ioo ab.ne,
   have t_cont : ∀y ∈ closure t, continuous_within_at f t y,
   { rw t_closure,
     assume y hy,
@@ -122,9 +122,11 @@ begin
     { have : y ∈ s := sab ⟨lt_of_le_of_ne hy.1 (ne.symm h), hy.2⟩,
       exact (f_diff.continuous_on y this).mono ts } },
   have t_diff' : tendsto (λx, fderiv ℝ f x) (𝓝[t] a) (𝓝 (smul_right 1 e)),
-  { simp [deriv_fderiv.symm],
-    refine tendsto.comp is_bounded_bilinear_map_smul_right.continuous_right.continuous_at _,
-    exact tendsto_nhds_within_mono_left Ioo_subset_Ioi_self f_lim' },
+  { simp only [deriv_fderiv.symm],
+    exact tendsto.comp
+      (is_bounded_bilinear_map_smul_right : is_bounded_bilinear_map ℝ _)
+        .continuous_right.continuous_at
+      (tendsto_nhds_within_mono_left Ioo_subset_Ioi_self f_lim'), },
   -- now we can apply `has_fderiv_at_boundary_of_differentiable`
   have : has_deriv_within_at f e (Icc a b) a,
   { rw [has_deriv_within_at_iff_has_fderiv_within_at, ← t_closure],
@@ -150,7 +152,7 @@ begin
   have t_diff : differentiable_on ℝ f t := f_diff.mono ts,
   have t_conv : convex ℝ t := convex_Ioo b a,
   have t_open : is_open t := is_open_Ioo,
-  have t_closure : closure t = Icc b a := closure_Ioo ba,
+  have t_closure : closure t = Icc b a := closure_Ioo (ne_of_lt ba),
   have t_cont : ∀y ∈ closure t, continuous_within_at f t y,
   { rw t_closure,
     assume y hy,
@@ -159,9 +161,11 @@ begin
     { have : y ∈ s := sab ⟨hy.1, lt_of_le_of_ne hy.2 h⟩,
       exact (f_diff.continuous_on y this).mono ts } },
   have t_diff' : tendsto (λx, fderiv ℝ f x) (𝓝[t] a) (𝓝 (smul_right 1 e)),
-  { simp [deriv_fderiv.symm],
-    refine tendsto.comp is_bounded_bilinear_map_smul_right.continuous_right.continuous_at _,
-    exact tendsto_nhds_within_mono_left Ioo_subset_Iio_self f_lim' },
+  { simp only [deriv_fderiv.symm],
+    exact tendsto.comp
+      (is_bounded_bilinear_map_smul_right : is_bounded_bilinear_map ℝ _)
+        .continuous_right.continuous_at
+      (tendsto_nhds_within_mono_left Ioo_subset_Iio_self f_lim'), },
   -- now we can apply `has_fderiv_at_boundary_of_differentiable`
   have : has_deriv_within_at f e (Icc b a) a,
   { rw [has_deriv_within_at_iff_has_fderiv_within_at, ← t_closure],

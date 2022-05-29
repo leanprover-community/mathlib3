@@ -243,6 +243,28 @@ end
 
 end
 
+section has_scalar
+variables {M : Type*} [add_comm_monoid M] [topological_space M]
+variables {R : Type*} [semiring R] [distrib_mul_action R M] [has_continuous_const_smul R M]
+
+include m
+
+/-- Given a real number `r` and a signed measure `s`, `smul r s` is the signed
+measure corresponding to the function `r • s`. -/
+def smul (r : R) (v : vector_measure α M) : vector_measure α M :=
+{ measure_of' := r • v,
+  empty' := by rw [pi.smul_apply, empty, smul_zero],
+  not_measurable' := λ _ hi, by rw [pi.smul_apply, v.not_measurable hi, smul_zero],
+  m_Union' := λ _ hf₁ hf₂, has_sum.const_smul (v.m_Union hf₁ hf₂) }
+
+instance : has_scalar R (vector_measure α M) := ⟨smul⟩
+
+@[simp] lemma coe_smul (r : R) (v : vector_measure α M) : ⇑(r • v) = r • v := rfl
+lemma smul_apply (r : R) (v : vector_measure α M) (i : set α) :
+  (r • v) i = r • v i := rfl
+
+end has_scalar
+
 section add_comm_monoid
 
 variables {M : Type*} [add_comm_monoid M] [topological_space M]
@@ -271,10 +293,10 @@ def add (v w : vector_measure α M) : vector_measure α M :=
 instance : has_add (vector_measure α M) := ⟨add⟩
 
 @[simp] lemma coe_add (v w : vector_measure α M) : ⇑(v + w) = v + w := rfl
-lemma add_apply (v w : vector_measure α M) (i : set α) :(v + w) i = v i + w i := rfl
+lemma add_apply (v w : vector_measure α M) (i : set α) : (v + w) i = v i + w i := rfl
 
 instance : add_comm_monoid (vector_measure α M) :=
-function.injective.add_comm_monoid _ coe_injective coe_zero coe_add
+function.injective.add_comm_monoid _ coe_injective coe_zero coe_add (λ _ _, coe_smul _ _)
 
 /-- `coe_fn` is an `add_monoid_hom`. -/
 @[simps]
@@ -318,30 +340,15 @@ lemma sub_apply (v w : vector_measure α M) (i : set α) : (v - w) i = v i - w i
 
 instance : add_comm_group (vector_measure α M) :=
 function.injective.add_comm_group _ coe_injective coe_zero coe_add coe_neg coe_sub
+  (λ _ _, coe_smul _ _) (λ _ _, coe_smul _ _)
 
 end add_comm_group
 
 section distrib_mul_action
-
 variables {M : Type*} [add_comm_monoid M] [topological_space M]
-variables {R : Type*} [semiring R] [distrib_mul_action R M]
-variables [topological_space R] [has_continuous_smul R M]
+variables {R : Type*} [semiring R] [distrib_mul_action R M] [has_continuous_const_smul R M]
 
 include m
-
-/-- Given a real number `r` and a signed measure `s`, `smul r s` is the signed
-measure corresponding to the function `r • s`. -/
-def smul (r : R) (v : vector_measure α M) : vector_measure α M :=
-{ measure_of' := r • v,
-  empty' := by rw [pi.smul_apply, empty, smul_zero],
-  not_measurable' := λ _ hi, by rw [pi.smul_apply, v.not_measurable hi, smul_zero],
-  m_Union' := λ _ hf₁ hf₂, has_sum.const_smul (v.m_Union hf₁ hf₂) }
-
-instance : has_scalar R (vector_measure α M) := ⟨smul⟩
-
-@[simp] lemma coe_smul (r : R) (v : vector_measure α M) : ⇑(r • v) = r • v := rfl
-lemma smul_apply (r : R) (v : vector_measure α M) (i : set α) :
-  (r • v) i = r • v i := rfl
 
 instance [has_continuous_add M] : distrib_mul_action R (vector_measure α M) :=
 function.injective.distrib_mul_action coe_fn_add_monoid_hom coe_injective coe_smul
@@ -351,8 +358,7 @@ end distrib_mul_action
 section module
 
 variables {M : Type*} [add_comm_monoid M] [topological_space M]
-variables {R : Type*} [semiring R] [module R M]
-variables [topological_space R] [has_continuous_smul R M]
+variables {R : Type*} [semiring R] [module R M] [has_continuous_const_smul R M]
 
 include m
 
@@ -381,9 +387,9 @@ def to_signed_measure (μ : measure α) [hμ : is_finite_measure μ] : signed_me
     { congr, ext n, rw if_pos (hf₁ n) },
     { refine @summable_of_nonneg_of_le _ (ennreal.to_real ∘ μ ∘ f) _ _ _ _,
       { intro, split_ifs,
-        exacts [ennreal.to_real_nonneg, le_refl _] },
+        exacts [ennreal.to_real_nonneg, le_rfl] },
       { intro, split_ifs,
-        exacts [le_refl _, ennreal.to_real_nonneg] },
+        exacts [le_rfl, ennreal.to_real_nonneg] },
         exact summable_measure_to_real hf₁ hf₂ },
     { intros a ha,
       apply ne_of_lt hμ.measure_univ_lt_top,
@@ -436,7 +442,7 @@ end
 begin
   ext i hi,
   rw [to_signed_measure_apply_measurable hi, vector_measure.smul_apply,
-      to_signed_measure_apply_measurable hi, coe_nnreal_smul, pi.smul_apply,
+      to_signed_measure_apply_measurable hi, coe_smul, pi.smul_apply,
       ennreal.to_real_smul],
 end
 
@@ -590,8 +596,8 @@ end has_continuous_add
 section module
 
 variables {R : Type*} [semiring R] [module R M] [module R N]
-variables [topological_space R] [has_continuous_add M] [has_continuous_add N]
-  [has_continuous_smul R M] [has_continuous_smul R N]
+variables [has_continuous_add M] [has_continuous_add N]
+  [has_continuous_const_smul R M] [has_continuous_const_smul R N]
 
 /-- Given a continuous linear map `f : M → N`, `map_rangeₗ` is the linear map mapping the
 vector measure `v` on `M` to the vector measure `f ∘ v` on `N`. -/
@@ -688,8 +694,7 @@ section
 
 variables [measurable_space β]
 variables {M : Type*} [add_comm_monoid M] [topological_space M]
-variables {R : Type*} [semiring R] [distrib_mul_action R M]
-variables [topological_space R] [has_continuous_smul R M]
+variables {R : Type*} [semiring R] [distrib_mul_action R M] [has_continuous_const_smul R M]
 
 include m
 
@@ -722,7 +727,7 @@ section
 variables [measurable_space β]
 variables {M : Type*} [add_comm_monoid M] [topological_space M]
 variables {R : Type*} [semiring R] [module R M]
-variables [topological_space R] [has_continuous_smul R M] [has_continuous_add M]
+  [has_continuous_const_smul R M] [has_continuous_add M]
 
 include m
 
@@ -751,7 +756,7 @@ include m
 This definition is consistent with `measure.partial_order`. -/
 instance : partial_order (vector_measure α M) :=
 { le          := λ v w, ∀ i, measurable_set i → v i ≤ w i,
-  le_refl     := λ v i hi, le_refl _,
+  le_refl     := λ v i hi, le_rfl,
   le_trans    := λ u v w h₁ h₂ i hi, le_trans (h₁ i hi) (h₂ i hi),
   le_antisymm := λ v w h₁ h₂, ext (λ i hi, le_antisymm (h₁ i hi) (h₂ i hi)) }
 
@@ -800,7 +805,7 @@ begin
   by_cases hi : measurable_set i,
   { exact (restrict_le_restrict_iff _ _ hi).2 h },
   { rw [restrict_not_measurable v hi, restrict_not_measurable w hi],
-    exact le_refl _ },
+    exact le_rfl },
 end
 
 lemma restrict_le_restrict_subset {i j : set α}
@@ -928,14 +933,14 @@ lemma zero_le_restrict_not_measurable (hi : ¬ measurable_set i) :
   0 ≤[i] v :=
 begin
   rw [restrict_zero, restrict_not_measurable _ hi],
-  exact le_refl _,
+  exact le_rfl,
 end
 
 lemma restrict_le_zero_of_not_measurable (hi : ¬ measurable_set i) :
   v ≤[i] 0 :=
 begin
   rw [restrict_zero, restrict_not_measurable _ hi],
-  exact le_refl _,
+  exact le_rfl,
 end
 
 lemma measurable_of_not_zero_le_restrict (hi : ¬ 0 ≤[i] v) : measurable_set i :=
@@ -1025,7 +1030,8 @@ lemma eq {w : vector_measure α M} (h : v = w) : v ≪ᵥ w :=
 @[refl] lemma refl (v : vector_measure α M) : v ≪ᵥ v :=
 eq rfl
 
-@[trans] lemma trans {u : vector_measure α L} (huv : u ≪ᵥ v) (hvw : v ≪ᵥ w) : u ≪ᵥ w :=
+@[trans] lemma trans {u : vector_measure α L} {v : vector_measure α M} {w : vector_measure α N}
+  (huv : u ≪ᵥ v) (hvw : v ≪ᵥ w) : u ≪ᵥ w :=
 λ _ hs, huv $ hvw hs
 
 lemma zero (v : vector_measure α N) : (0 : vector_measure α M) ≪ᵥ v :=
@@ -1052,8 +1058,7 @@ lemma sub {M : Type*} [add_comm_group M] [topological_space M] [topological_add_
   v₁ - v₂ ≪ᵥ w :=
 λ s hs, by { rw [sub_apply, hv₁ hs, hv₂ hs, zero_sub, neg_zero] }
 
-lemma smul {R : Type*} [semiring R] [distrib_mul_action R M]
-  [topological_space R] [has_continuous_smul R M]
+lemma smul {R : Type*} [semiring R] [distrib_mul_action R M] [has_continuous_const_smul R M]
   {r : R} {v : vector_measure α M} {w : vector_measure α N} (h : v ≪ᵥ w) :
   r • v ≪ᵥ w :=
 λ s hs, by { rw [smul_apply, h hs, smul_zero] }
@@ -1148,13 +1153,13 @@ end
 lemma add_right [t2_space M] [has_continuous_add N] (h₁ : v ⊥ᵥ w₁) (h₂ : v ⊥ᵥ w₂) : v ⊥ᵥ w₁ + w₂ :=
 (add_left h₁.symm h₂.symm).symm
 
-lemma smul_right {R : Type*} [semiring R] [distrib_mul_action R N] [topological_space R]
-  [has_continuous_smul R N] (r : R) (h : v ⊥ᵥ w) : v ⊥ᵥ r • w :=
+lemma smul_right {R : Type*} [semiring R] [distrib_mul_action R N] [has_continuous_const_smul R N]
+  (r : R) (h : v ⊥ᵥ w) : v ⊥ᵥ r • w :=
 let ⟨s, hmeas, hs₁, hs₂⟩ := h in
   ⟨s, hmeas, hs₁, λ t ht, by simp only [coe_smul, pi.smul_apply, hs₂ t ht, smul_zero]⟩
 
-lemma smul_left {R : Type*} [semiring R] [distrib_mul_action R M] [topological_space R]
-  [has_continuous_smul R M] (r : R) (h : v ⊥ᵥ w) : r • v ⊥ᵥ w :=
+lemma smul_left {R : Type*} [semiring R] [distrib_mul_action R M] [has_continuous_const_smul R M]
+  (r : R) (h : v ⊥ᵥ w) : r • v ⊥ᵥ w :=
 (smul_right r h.symm).symm
 
 lemma neg_left {M : Type*} [add_comm_group M] [topological_space M] [topological_add_group M]

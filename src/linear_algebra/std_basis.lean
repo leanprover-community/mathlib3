@@ -80,11 +80,12 @@ by ext b; simp [std_basis_ne R φ _ _ h]
 lemma supr_range_std_basis_le_infi_ker_proj (I J : set ι) (h : disjoint I J) :
   (⨆i∈I, range (std_basis R φ i)) ≤ (⨅i∈J, ker (proj i)) :=
 begin
-  refine (supr_le $ assume i, supr_le $ assume hi, range_le_iff_comap.2 _),
+  refine (supr_le $ λ i, supr_le $ λ hi, range_le_iff_comap.2 _),
   simp only [(ker_comp _ _).symm, eq_top_iff, set_like.le_def, mem_ker, comap_infi, mem_infi],
-  assume b hb j hj,
-  have : i ≠ j := assume eq, h ⟨hi, eq.symm ▸ hj⟩,
-  rw [mem_comap, mem_ker, ← comp_apply, proj_std_basis_ne R φ j i this.symm, zero_apply]
+  rintro b - j hj,
+  rw [proj_std_basis_ne R φ j i, zero_apply],
+  rintro rfl,
+  exact h ⟨hi, hj⟩
 end
 
 lemma infi_ker_proj_le_supr_range_std_basis {I : finset ι} {J : set ι} (hu : set.univ ⊆ ↑I ∪ J) :
@@ -100,7 +101,7 @@ begin
     assume hiI,
     rw [std_basis_same],
     exact hb _ ((hu trivial).resolve_left hiI) },
-  exact sum_mem _ (assume i hiI, mem_supr_of_mem i $ mem_supr_of_mem hiI $
+  exact sum_mem (assume i hiI, mem_supr_of_mem i $ mem_supr_of_mem hiI $
     (std_basis R φ i).mem_range_self (b i))
 end
 
@@ -110,9 +111,9 @@ lemma supr_range_std_basis_eq_infi_ker_proj {I J : set ι}
 begin
   refine le_antisymm (supr_range_std_basis_le_infi_ker_proj _ _ _ _ hd) _,
   have : set.univ ⊆ ↑hI.to_finset ∪ J, { rwa [hI.coe_to_finset] },
-  refine le_trans (infi_ker_proj_le_supr_range_std_basis R φ this) (supr_le_supr $ assume i, _),
+  refine le_trans (infi_ker_proj_le_supr_range_std_basis R φ this) (supr_mono $ assume i, _),
   rw [set.finite.mem_to_finset],
-  exact le_refl _
+  exact le_rfl
 end
 
 lemma supr_range_std_basis [fintype ι] : (⨆i:ι, range (std_basis R φ i)) = ⊤ :=
@@ -183,7 +184,7 @@ begin
       apply h₀ },
     have h₂ : (⨆ j ∈ J, span R (range (λ (i : ιs j), std_basis R Ms j (v j i)))) ≤
                ⨆ j ∈ J, range (std_basis R (λ (j : η), Ms j) j) :=
-      supr_le_supr (λ i, supr_le_supr (λ H, h₀ i)),
+      supr₂_mono (λ i _, h₀ i),
     have h₃ : disjoint (λ (i : η), i ∈ {j}) J,
     { convert set.disjoint_singleton_left.2 hiJ using 0 },
     exact (disjoint_std_basis_std_basis _ _ _ _ h₃).mono h₁ h₂ }
@@ -261,11 +262,11 @@ end pi
 
 namespace matrix
 
-variables (R : Type*) (n : Type*) (m : Type*) [fintype m] [fintype n] [semiring R]
+variables (R : Type*) (m n : Type*) [fintype m] [fintype n] [semiring R]
 
-/-- The standard basis of `matrix n m R`. -/
-noncomputable def std_basis : basis (n × m) R (matrix n m R) :=
-basis.reindex (pi.basis (λ (i : n), pi.basis_fun R m)) (equiv.sigma_equiv_prod _ _)
+/-- The standard basis of `matrix m n R`. -/
+noncomputable def std_basis : basis (m × n) R (matrix m n R) :=
+basis.reindex (pi.basis (λ (i : m), pi.basis_fun R n)) (equiv.sigma_equiv_prod _ _)
 
 variables {n m}
 

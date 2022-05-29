@@ -241,6 +241,9 @@ begin
     apply nat.gcd_zero_left }
 end
 
+theorem gcd_pos_iff {i j : ℤ} : 0 < gcd i j ↔ i ≠ 0 ∨ j ≠ 0 :=
+pos_iff_ne_zero.trans $ gcd_eq_zero_iff.not.trans not_and_distrib
+
 theorem gcd_div {i j k : ℤ} (H1 : k ∣ i) (H2 : k ∣ j) :
   gcd (i / k) (j / k) = gcd i j / nat_abs k :=
 by rw [gcd, nat_abs_div i k H1, nat_abs_div j k H2];
@@ -318,8 +321,8 @@ end
 
 lemma gcd_greatest {a b d : ℤ} (hd_pos : 0 ≤ d) (hda : d ∣ a) (hdb : d ∣ b)
   (hd : ∀ e : ℤ, e ∣ a → e ∣ b → e ∣ d) : d = gcd a b :=
-(nat_abs_inj_of_nonneg_of_nonneg hd_pos (coe_zero_le (gcd a b))).mp
-  (nat_abs_eq_of_dvd_dvd (dvd_gcd hda hdb) (hd _ (gcd_dvd_left a b) (gcd_dvd_right a b)))
+dvd_antisymm hd_pos
+  (coe_zero_le (gcd a b)) (dvd_gcd hda hdb) (hd _ (gcd_dvd_left a b) (gcd_dvd_right a b))
 
 /-- Euclid's lemma: if `a ∣ b * c` and `gcd a c = 1` then `a ∣ b`.
 Compare with `is_coprime.dvd_of_dvd_mul_left` and
@@ -438,7 +441,7 @@ lemma nat_gcd_helper_2 (d x y a b u v tx ty : ℕ) (hu : d * u = x) (hv : d * v 
 begin
   rw ← int.coe_nat_gcd, apply @int_gcd_helper' _ _ _ a (-b)
     (int.coe_nat_dvd.2 ⟨_, hu.symm⟩) (int.coe_nat_dvd.2 ⟨_, hv.symm⟩),
-  rw [mul_neg_eq_neg_mul_symm, ← sub_eq_add_neg, sub_eq_iff_eq_add'],
+  rw [mul_neg, ← sub_eq_add_neg, sub_eq_iff_eq_add'],
   norm_cast, rw [hx, hy, h]
 end
 

@@ -64,6 +64,45 @@ multiset.induction_on s (by simp [mt is_unit_iff_dvd_one.2 hp.not_unit])
       exact ⟨q, multiset.mem_cons.2 (or.inr hq₁), hq₂⟩ }
   end)
 
+lemma multiset.prod_primes_dvd
+  [cancel_comm_monoid_with_zero α] [Π a : α, decidable_pred (associated a)]
+  {s : multiset α} (n : α) (h : ∀ a ∈ s, prime a) (div : ∀ a ∈ s, a ∣ n)
+  (uniq : ∀ a, s.countp (associated a) ≤ 1) :
+  s.prod ∣ n :=
+begin
+  induction s using multiset.induction_on with a s induct n primes divs generalizing n,
+  { simp only [multiset.prod_zero, one_dvd] },
+  { rw multiset.prod_cons,
+    obtain ⟨k, rfl⟩ : a ∣ n := div a (multiset.mem_cons_self a s),
+    apply mul_dvd_mul_left a,
+    refine induct
+      (λ a ha, h a (multiset.mem_cons_of_mem ha))
+      (λ a, (multiset.countp_le_of_le _ (multiset.le_cons_self _ _)).trans (uniq a))
+      k (λ b b_in_s, _),
+    { have b_div_n := div b (multiset.mem_cons_of_mem b_in_s),
+      have a_prime := h a (multiset.mem_cons_self a s),
+      have b_prime := h b (multiset.mem_cons_of_mem b_in_s),
+      refine (b_prime.dvd_or_dvd b_div_n).resolve_left (λ b_div_a, _),
+      have assoc := b_prime.associated_of_dvd a_prime b_div_a,
+      have := uniq a,
+      rw [multiset.countp_cons_of_pos _ (associated.refl _), nat.succ_le_succ_iff, ←not_lt,
+        multiset.countp_pos] at this,
+      exact this ⟨b, b_in_s, assoc.symm⟩ } }
+end
+
+lemma finset.prod_primes_dvd
+  [cancel_comm_monoid_with_zero α] [unique αˣ]
+  {s : finset α} (n : α) (h : ∀ a ∈ s, prime a) (div : ∀ a ∈ s, a ∣ n) :
+  (∏ p in s, p) ∣ n :=
+begin
+  classical,
+  exact multiset.prod_primes_dvd n
+    (by simpa only [multiset.map_id', finset.mem_def] using h)
+    (by simpa only [multiset.map_id', finset.mem_def] using div)
+    (by simp only [multiset.map_id', associated_eq_eq, multiset.countp_eq_card_filter,
+        ←multiset.count_eq_card_filter_eq, ←multiset.nodup_iff_count_le_one, s.nodup]),
+end
+
 namespace associates
 
 section comm_monoid
@@ -135,27 +174,4 @@ lemma prime.dvd_finsupp_prod_iff  {f: α →₀ M} {g : α → M → ℕ} {p : �
   p ∣ f.prod g ↔ ∃ a ∈ f.support, p ∣ g a (f a) :=
 prime.dvd_finset_prod_iff pp _
 
-/-- Prime `p` divides the product of a list `L` iff it divides some `a ∈ L` -/
-lemma prime.dvd_prod_iff {p : M} {L : list M} (pp : prime p) :
-p ∣ L.prod ↔ ∃ a ∈ L, p ∣ a :=
-begin
-  split,
-  { intros h,
-    induction L,
-    { simp only [list.prod_nil] at h, exact absurd h (prime.not_dvd_one pp) },
-    { rw list.prod_cons at h,
-      cases (prime.dvd_or_dvd pp) h, { use L_hd, simp [h_1] },
-      { rcases L_ih h_1 with ⟨x, hx1, hx2⟩, use x, simp [list.mem_cons_iff, hx1, hx2] } } },
-  { exact λ ⟨a, ha1, ha2⟩, dvd_trans ha2 (list.dvd_prod ha1) },
-end
-
 end comm_monoid_with_zero
-
-lemma nat.prime.dvd_finset_prod_iff {α : Type*} {S : finset α} {p : ℕ}
-  (pp : prime p) (g : α → ℕ) : p ∣ S.prod g ↔ ∃ a ∈ S, p ∣ g a :=
-by apply prime.dvd_finset_prod_iff pp
-
-lemma nat.prime.dvd_finsupp_prod_iff {α M : Type*} [has_zero M] {f: α →₀ M}
-  {g : α → M → ℕ} {p : ℕ} (pp : prime p) :
-p ∣ f.prod g ↔ ∃ a ∈ f.support, p ∣ g a (f a) :=
-nat.prime.dvd_finset_prod_iff pp _

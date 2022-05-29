@@ -5,7 +5,6 @@ Authors: Bhavik Mehta, Yaël Dillies
 -/
 import analysis.convex.cone
 import analysis.convex.gauge
-import analysis.convex.topology
 
 /-!
 # Separation Hahn-Banach theorem
@@ -31,8 +30,8 @@ We provide many variations to stricten the result under more assumptions on the 
 * `convex ℝ s → interior (closure s) ⊆ s`
 -/
 
-open function metric set
-open_locale pointwise topological_space
+open set
+open_locale pointwise
 
 variables {𝕜 E : Type*}
 

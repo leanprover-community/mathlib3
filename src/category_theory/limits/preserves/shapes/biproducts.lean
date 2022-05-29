@@ -15,7 +15,10 @@ We define the image of a (binary) bicone under a functor that preserves zero mor
 classes `preserves_biproduct` and `preserves_binary_biproduct`. We then
 
 * show that a functor that preserves biproducts of a two-element type preserves binary biproducts,
-* give the canonical isomorphism between the image of a biproduct and the biproduct of the images,
+* construct the comparison morphisms between the image of a biproduct and the biproduct of the
+  images and show that the biproduct is preserved if one of them is an isomorphism,
+* give the canonical isomorphism between the image of a biproduct and the biproduct of the images
+  in case that the biproduct is preserved,
 * show that in a preadditive category, a functor preserves a biproduct if and only if it preserves
   the corresponding product if and only if it preserves the corresponding coproduct.
 
@@ -196,7 +199,7 @@ biproduct.ι_desc _ _
 variables [preserves_zero_morphisms F]
 
 /-- The composition in the opposite direction is equal to the identity if and only if `F` preserves
-    the biproduct. -/
+    the biproduct, see `preserves_biproduct_of_mono_biproduct_comparison`.  -/
 @[simp, reassoc] lemma biproduct_comparison'_comp_biproduct_comparison :
   biproduct_comparison' F f ≫ biproduct_comparison F f = 𝟙 (⨁ (F.obj ∘ f)) :=
 by { classical, ext, simp [biproduct.ι_π, ← functor.map_comp, eq_to_hom_map] }
@@ -270,7 +273,7 @@ biprod.inr_desc _ _
 variables [preserves_zero_morphisms F]
 
 /-- The composition in the opposite direction is equal to the identity if and only if `F` preserves
-    the biproduct. -/
+    the biproduct, see `preserves_binary_biproduct_of_mono_biprod_comparison`. -/
 @[simp, reassoc] lemma biprod_comparison'_comp_biprod_comparison :
   biprod_comparison' F X Y ≫ biprod_comparison F X Y = 𝟙 (F.obj X ⊞ F.obj Y) :=
 by { ext; simp [← functor.map_comp] }

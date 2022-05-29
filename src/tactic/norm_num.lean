@@ -16,26 +16,6 @@ universes u v w
 
 namespace tactic
 
-/-- Reflexivity conversion: given `e` returns `(e, ⊢ e = e)` -/
-meta def refl_conv (e : expr) : tactic (expr × expr) :=
-do p ← mk_eq_refl e, return (e, p)
-
-/-- Turns a conversion tactic into one that always succeeds, where failure is interpreted as a
-proof by reflexivity. -/
-meta def or_refl_conv (tac : expr → tactic (expr × expr))
-  (e : expr) : tactic (expr × expr) := tac e <|> refl_conv e
-
-/-- Transitivity conversion: given two conversions (which take an
-expression `e` and returns `(e', ⊢ e = e')`), produces another
-conversion that combines them with transitivity, treating failures
-as reflexivity conversions. -/
-meta def trans_conv (t₁ t₂ : expr → tactic (expr × expr)) (e : expr) :
-  tactic (expr × expr) :=
-(do (e₁, p₁) ← t₁ e,
-  (do (e₂, p₂) ← t₂ e₁,
-    p ← mk_eq_trans p₁ p₂, return (e₂, p)) <|>
-  return (e₁, p₁)) <|> t₂ e
-
 namespace instance_cache
 
 /-- Faster version of `mk_app ``bit0 [e]`. -/
@@ -747,7 +727,7 @@ meta def prove_clear_denom : instance_cache → expr → expr → ℚ → ℕ �
 theorem clear_denom_add {α} [division_ring α] (a a' b b' c c' d : α)
   (h₀ : d ≠ 0) (ha : a * d = a') (hb : b * d = b') (hc : c * d = c')
   (h : a' + b' = c') : a + b = c :=
-mul_right_cancel' h₀ $ by rwa [add_mul, ha, hb, hc]
+mul_right_cancel₀ h₀ $ by rwa [add_mul, ha, hb, hc]
 
 /-- Given `a`,`b`,`c` nonnegative rational numerals, returns `⊢ a + b = c`. -/
 meta def prove_add_nonneg_rat (ic : instance_cache) (a b c : expr) (na nb nc : ℚ) :
@@ -830,7 +810,7 @@ theorem clear_denom_mul {α} [field α] (a a' b b' c c' d₁ d₂ d : α)
   (ha : d₁ ≠ 0 ∧ a * d₁ = a') (hb : d₂ ≠ 0 ∧ b * d₂ = b')
   (hc : c * d = c') (hd : d₁ * d₂ = d)
   (h : a' * b' = c') : a * b = c :=
-mul_right_cancel' ha.1 $ mul_right_cancel' hb.1 $
+mul_right_cancel₀ ha.1 $ mul_right_cancel₀ hb.1 $
 by rw [mul_assoc c, hd, hc, ← h, ← ha.2, ← hb.2, ← mul_assoc, mul_right_comm a]
 
 /-- Given `a`,`b` nonnegative rational numerals, returns `(c, ⊢ a * b = c)`. -/
@@ -886,7 +866,7 @@ h ▸ by simp only [inv_eq_one_div, one_div_neg_eq_neg_one_div]
 
 theorem inv_one {α} [division_ring α] : (1 : α)⁻¹ = 1 := inv_one
 theorem inv_one_div {α} [division_ring α] (a : α) : (1 / a)⁻¹ = a :=
-by rw [one_div, inv_inv']
+by rw [one_div, inv_inv]
 theorem inv_div_one {α} [division_ring α] (a : α) : a⁻¹ = 1 / a :=
 inv_eq_one_div _
 theorem inv_div {α} [division_ring α] (a b : α) : (a / b)⁻¹ = b / a :=
@@ -975,9 +955,9 @@ match match_sign b with
 end
 
 theorem sub_nat_pos (a b c : ℕ) (h : b + c = a) : a - b = c :=
-h ▸ nat.add_sub_cancel_left _ _
+h ▸ add_tsub_cancel_left _ _
 theorem sub_nat_neg (a b c : ℕ) (h : a + c = b) : a - b = 0 :=
-nat.sub_eq_zero_of_le $ h ▸ nat.le_add_right _ _
+tsub_eq_zero_iff_le.mpr $ h ▸ nat.le_add_right _ _
 
 /-- Given `a : nat`,`b : nat` natural numerals, returns `(c, ⊢ a - b = c)`. -/
 meta def prove_sub_nat (ic : instance_cache) (a b : expr) : tactic (expr × expr) :=
@@ -1065,6 +1045,33 @@ meta def prove_pow (a : expr) (na : ℚ) :
 
 end
 
+lemma zpow_pos {α} [div_inv_monoid α] (a : α) (b : ℤ) (b' : ℕ) (c : α)
+  (hb : b = b') (h : a ^ b' = c) : a ^ b = c := by rw [← h, hb, zpow_coe_nat]
+lemma zpow_neg {α} [div_inv_monoid α] (a : α) (b : ℤ) (b' : ℕ) (c c' : α)
+  (b0 : 0 < b') (hb : b = b') (h : a ^ b' = c) (hc : c⁻¹ = c') : a ^ -b = c' :=
+by rw [← hc, ← h, hb, zpow_neg_coe_of_pos _ b0]
+
+/-- Given `a` a rational numeral and `b : ℤ`, returns `(c, ⊢ a ^ b = c)`. -/
+meta def prove_zpow (ic zc nc : instance_cache) (a : expr) (na : ℚ) (b : expr) :
+  tactic (instance_cache × instance_cache × instance_cache × expr × expr) :=
+  match match_sign b with
+  | sum.inl b := do
+    (zc, nc, b', hb) ← prove_nat_uncast zc nc b,
+    (ic, c, h) ← prove_pow a na ic b',
+    (ic, c', hc) ← c.to_rat >>= prove_inv ic c,
+    (ic, p) ← ic.mk_app ``zpow_neg [a, b, b', c, c', hb, h, hc],
+    pure (ic, zc, nc, c', p)
+  | sum.inr ff := do
+    (ic, o) ← ic.mk_app ``has_one.one [],
+    (ic, p) ← ic.mk_app ``zpow_zero [a],
+    pure (ic, zc, nc, o, p)
+  | sum.inr tt := do
+    (zc, nc, b', hb) ← prove_nat_uncast zc nc b,
+    (ic, c, h) ← prove_pow a na ic b',
+    (ic, p) ← ic.mk_app ``zpow_pos [a, b, b', c, hb, h],
+    pure (ic, zc, nc, c, p)
+  end
+
 /-- Evaluates expressions of the form `a ^ b`, `monoid.npow a b` or `nat.pow a b`. -/
 meta def eval_pow : expr → tactic (expr × expr)
 | `(@has_pow.pow %%α _ %%m %%e₁ %%e₂) := do
@@ -1072,12 +1079,22 @@ meta def eval_pow : expr → tactic (expr × expr)
   c ← infer_type e₁ >>= mk_instance_cache,
   match m with
   | `(@monoid.has_pow %%_ %%_) := prod.snd <$> prove_pow e₁ n₁ c e₂
+  | `(@div_inv_monoid.has_pow %%_ %%_) := do
+    zc ← mk_instance_cache `(ℤ),
+    nc ← mk_instance_cache `(ℕ),
+    (prod.snd ∘ prod.snd ∘ prod.snd) <$> prove_zpow c zc nc e₁ n₁ e₂
   | _ := failed
   end
 | `(monoid.npow %%e₁ %%e₂) := do
   n₁ ← e₁.to_rat,
   c ← infer_type e₁ >>= mk_instance_cache,
   prod.snd <$> prove_pow e₁ n₁ c e₂
+| `(div_inv_monoid.zpow %%e₁ %%e₂) := do
+  n₁ ← e₁.to_rat,
+  c ← infer_type e₁ >>= mk_instance_cache,
+  zc ← mk_instance_cache `(ℤ),
+  nc ← mk_instance_cache `(ℕ),
+  (prod.snd ∘ prod.snd ∘ prod.snd) <$> prove_zpow c zc nc e₁ n₁ e₂
 | _ := failed
 
 /-- Given `⊢ p`, returns `(true, ⊢ p = true)`. -/
@@ -1349,8 +1366,8 @@ protected meta def attr : user_attribute (expr → tactic (expr × expr)) unit :
 { name      := `norm_num,
   descr     := "Add norm_num derivers",
   cache_cfg :=
-  { mk_cache := λ ns, do {
-      t ← ns.mfoldl
+  { mk_cache := λ ns, do
+    { t ← ns.mfoldl
         (λ (t : expr → tactic (expr × expr)) n, do
           t' ← eval_expr (expr → tactic (expr × expr)) (expr.const n []),
           pure (λ e, t' e <|> t e))
@@ -1406,6 +1423,23 @@ meta def tactic.norm_num (step : expr → tactic (expr × expr))
 repeat1 $ orelse' (tactic.norm_num1 step l) $
 interactive.simp_core {} (tactic.norm_num1 step (interactive.loc.ns [none]))
   ff (simp_arg_type.except ``one_div :: hs) [] l >> skip
+
+/-- Carry out similar operations as `tactic.norm_num` but on an `expr` rather than a location.
+Given an expression `e`, returns `(e', ⊢ e = e')`.
+The `no_dflt`, `hs`, and `attr_names` are passed on to `simp`.
+Unlike `norm_num`, this tactic does not fail. -/
+meta def _root_.expr.norm_num (step : expr → tactic (expr × expr))
+  (no_dflt : bool := ff) (hs : list simp_arg_type := []) (attr_names : list name := []) :
+  expr → tactic (expr × expr) :=
+let simp_step (e : expr) := do
+      (e', p, _) ← e.simp {} (tactic.norm_num1 step (interactive.loc.ns [none]))
+                   no_dflt attr_names (simp_arg_type.except ``one_div :: hs),
+      return (e', p)
+in or_refl_conv $ λ e, do
+  (e', p') ← norm_num.derive' step e <|> simp_step e,
+  (e'', p'') ← _root_.expr.norm_num e',
+  p ← mk_eq_trans p' p'',
+  return (e'', p)
 
 namespace tactic.interactive
 open norm_num interactive interactive.types
@@ -1476,6 +1510,8 @@ add_tactic_doc
 
 end tactic.interactive
 
+/-! ## `conv` tactic -/
+
 namespace conv.interactive
 open conv interactive tactic.interactive
 open norm_num (derive)
@@ -1495,3 +1531,87 @@ conv.interactive.simp ff (simp_arg_type.except ``one_div :: hs) []
   { discharger := tactic.interactive.norm_num1 (loc.ns [none]) }
 
 end conv.interactive
+
+/-!
+## `#norm_num` command
+A user command to run `norm_num`. Mostly copied from the `#simp` command.
+-/
+
+namespace tactic
+
+setup_tactic_parser
+
+/- With this option, turn off the messages if the result is exactly `true` -/
+declare_trace silence_norm_num_if_true
+
+/--
+The basic usage is `#norm_num e`, where `e` is an expression,
+which will print the `norm_num` form of `e`.
+
+Syntax: `#norm_num` (`only`)? (`[` simp lemma list `]`)? (`with` simp sets)? `:`? expression
+
+This accepts the same options as the `#simp` command.
+You can specify additional simp lemmas as usual, for example using
+`#norm_num [f, g] : e`, or `#norm_num with attr : e`.
+(The colon is optional but helpful for the parser.)
+The `only` restricts `norm_num` to using only the provided lemmas, and so
+`#norm_num only : e` behaves similarly to `norm_num1`.
+
+Unlike `norm_num`, this command does not fail when no simplifications are made.
+
+`#norm_num` understands local variables, so you can use them to
+introduce parameters.
+-/
+@[user_command] meta def norm_num_cmd (_ : parse $ tk "#norm_num") : lean.parser unit :=
+do
+  no_dflt ← only_flag,
+  hs ← simp_arg_list,
+  attr_names ← with_ident_list,
+  o ← optional (tk ":"),
+  e ← texpr,
+
+  /- Retrieve the `pexpr`s parsed as part of the simp args, and collate them into a big list. -/
+  let hs_es := list.join $ hs.map $ option.to_list ∘ simp_arg_type.to_pexpr,
+
+  /- Synthesize a `tactic_state` including local variables as hypotheses under which `expr.simp`
+     may be safely called with expected behaviour given the `variables` in the environment. -/
+  (ts, mappings) ← synthesize_tactic_state_with_variables_as_hyps (e :: hs_es),
+
+  /- Enter the `tactic` monad, *critically* using the synthesized tactic state `ts`. -/
+  result ← lean.parser.of_tactic $ λ _, do
+  { /- Resolve the local variables added by the parser to `e` (when it was parsed) against the local
+       hypotheses added to the `ts : tactic_state` which we are using. -/
+    e ← to_expr e,
+
+    /- Replace the variables referenced in the passed `simp_arg_list` with the `expr`s corresponding
+       to the local hypotheses we created.
+
+       We would prefer to just elaborate the `pexpr`s encoded in the `simp_arg_list` against the
+       tactic state we have created (as we could with `e` above), but the simplifier expects
+       `pexpr`s and not `expr`s. Thus, we just modify the `pexpr`s now and let `simp` do the
+       elaboration when the time comes.
+
+       You might think that we could just examine each of these `pexpr`s, call `to_expr` on them,
+       and then call `to_pexpr` afterward and save the results over the original `pexprs`. Due to
+       how functions like `simp_lemmas.add_pexpr` are implemented in the core library, the `simp`
+       framework is not robust enough to handle this method. When pieces of expressions like
+       annotation macros are injected, the direct patten matches in the `simp_lemmas.*` codebase
+       fail, and the lemmas we want don't get added.
+       -/
+    let hs := hs.map $ λ sat, sat.replace_subexprs mappings,
+
+    /- Try simplifying the expression. -/
+    step ← norm_num.get_step,
+    prod.fst <$> e.norm_num step no_dflt hs attr_names } ts,
+
+  /- Trace the result. -/
+  when (¬ is_trace_enabled_for `silence_norm_num_if_true ∨ result ≠ expr.const `true [])
+    (trace result)
+
+add_tactic_doc
+{ name                     := "#norm_num",
+  category                 := doc_category.cmd,
+  decl_names               := [`tactic.norm_num_cmd],
+  tags                     := ["simplification", "arithmetic", "decision procedure"] }
+
+end tactic

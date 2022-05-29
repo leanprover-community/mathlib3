@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import algebra.homology.additive
+import tactic.abel
 
 /-!
 # Chain homotopies
@@ -55,6 +56,7 @@ begin
   exact preadditive.comp_add _ _ _ _ _ _,
 end
 
+@[simp]
 lemma d_next_eq_d_from_from_next [has_zero_object V] (f : Π i j, C.X i ⟶ D.X j) (i : ι) :
   d_next i f = C.d_from i ≫ from_next i f :=
 begin
@@ -120,6 +122,7 @@ begin
   exact preadditive.add_comp _ _ _ _ _ _,
 end
 
+@[simp]
 lemma prev_d_eq_to_prev_d_to [has_zero_object V] (f : Π i j, C.X i ⟶ D.X j) (j : ι) :
   prev_d j f = to_prev j f ≫ D.d_to j :=
 begin
@@ -146,7 +149,7 @@ begin
     simp, },
 end
 
-@[simp] lemma to_prev'_comp_right (f : Π i j, C.X i ⟶ D.X j) (g : D ⟶ E) (j : ι) :
+@[simp] lemma prev_d_comp_right (f : Π i j, C.X i ⟶ D.X j) (g : D ⟶ E) (j : ι) :
   prev_d j (λ i j, f i j ≫ g.f j) = prev_d j f ≫ g.f j :=
 begin
   dsimp [prev_d],
@@ -237,13 +240,25 @@ def trans {e f g : C ⟶ D} (h : homotopy e f) (k : homotopy f g) : homotopy e g
   zero' := λ i j w, by rw [pi.add_apply, pi.add_apply, h.zero i j w, k.zero i j w, zero_add],
   comm := λ i, by { rw [add_monoid_hom.map_add, add_monoid_hom.map_add, h.comm, k.comm], abel }, }
 
+/-- the sum of two homotopies is a homotopy between the sum of the respective morphisms. -/
+@[simps]
+def add {f₁ g₁ f₂ g₂ : C ⟶ D}
+  (h₁ : homotopy f₁ g₁) (h₂ : homotopy f₂ g₂) : homotopy (f₁+f₂) (g₁+g₂) :=
+{ hom := h₁.hom + h₂.hom,
+  zero' := λ i j hij, by
+    rw [pi.add_apply, pi.add_apply, h₁.zero' i j hij, h₂.zero' i j hij, add_zero],
+  comm := λ i, by
+    { simp only [homological_complex.add_f_apply, h₁.comm, h₂.comm,
+        add_monoid_hom.map_add],
+      abel, }, }
+
 /-- homotopy is closed under composition (on the right) -/
 @[simps]
 def comp_right {e f : C ⟶ D} (h : homotopy e f) (g : D ⟶ E) : homotopy (e ≫ g) (f ≫ g) :=
 { hom := λ i j, h.hom i j ≫ g.f j,
   zero' := λ i j w, by rw [h.zero i j w, zero_comp],
   comm := λ i, by simp only [h.comm i, d_next_comp_right, preadditive.add_comp,
-    to_prev'_comp_right, comp_f], }
+    prev_d_comp_right, comp_f], }
 
 /-- homotopy is closed under composition (on the left) -/
 @[simps]
@@ -270,7 +285,236 @@ def comp_left_id {f : D ⟶ D} (h : homotopy f (𝟙 D)) (g : C ⟶ D) : homotop
 (h.comp_left g).trans (of_eq $ category.comp_id _)
 
 /-!
-`homotopy.mk_inductive` allows us to build a homotopy inductively,
+Null homotopic maps can be constructed using the formula `hd+dh`. We show that
+these morphisms are homotopic to `0` and provide some convenient simplification
+lemmas that give a degreewise description of `hd+dh`, depending on whether we have
+two differentials going to and from a certain degree, only one, or none.
+-/
+
+/-- The null homotopic map associated to a family `hom` of morphisms `C_i ⟶ D_j`.
+This is the same datum as for the field `hom` in the structure `homotopy`. For
+this definition, we do not need the field `zero` of that structure
+as this definition uses only the maps `C_i ⟶ C_j` when `c.rel j i`. -/
+def null_homotopic_map (hom : Π i j, C.X i ⟶ D.X j) : C ⟶ D :=
+{ f      := λ i, d_next i hom + prev_d i hom,
+  comm'  := λ i j hij,
+  begin
+    have eq1 : prev_d i hom ≫ D.d i j = 0,
+    { rcases h : c.prev i with _|⟨i',w⟩,
+      { dsimp [prev_d], rw h, erw zero_comp, },
+      { rw [prev_d_eq hom w, category.assoc, D.d_comp_d' i' i j w hij, comp_zero], }, },
+    have eq2 : C.d i j ≫ d_next j hom = 0,
+    { rcases h : c.next j with _|⟨j',w⟩,
+      { dsimp [d_next], rw h, erw comp_zero, },
+      { rw [d_next_eq hom w, ← category.assoc, C.d_comp_d' i j j' hij w, zero_comp], }, },
+    rw [d_next_eq hom hij, prev_d_eq hom hij, preadditive.comp_add, preadditive.add_comp,
+      eq1, eq2, add_zero, zero_add, category.assoc],
+  end }
+
+/-- Variant of `null_homotopic_map` where the input consists only of the
+relevant maps `C_i ⟶ D_j` such that `c.rel j i`. -/
+def null_homotopic_map' (h : Π i j, c.rel j i → (C.X i ⟶ D.X j)) : C ⟶ D :=
+null_homotopic_map (λ i j, dite (c.rel j i) (h i j) (λ _, 0))
+
+/-- Compatibility of `null_homotopic_map` with the postcomposition by a morphism
+of complexes. -/
+lemma null_homotopic_map_comp (hom : Π i j, C.X i ⟶ D.X j) (g : D ⟶ E) :
+null_homotopic_map hom ≫ g = null_homotopic_map (λ i j, hom i j ≫ g.f j) :=
+begin
+  ext n,
+  dsimp [null_homotopic_map],
+  simp only [preadditive.add_comp, d_next_comp_right, prev_d_comp_right],
+end
+
+/-- Compatibility of `null_homotopic_map'` with the postcomposition by a morphism
+of complexes. -/
+lemma null_homotopic_map'_comp (hom : Π i j, c.rel j i → (C.X i ⟶ D.X j)) (g : D ⟶ E) :
+null_homotopic_map' hom ≫ g = null_homotopic_map' (λ i j hij, hom i j hij ≫ g.f j) :=
+begin
+  ext n,
+  erw null_homotopic_map_comp,
+  congr',
+  ext i j,
+  split_ifs,
+  { refl, },
+  { rw zero_comp, },
+end
+
+/-- Compatibility of `null_homotopic_map` with the precomposition by a morphism
+of complexes. -/
+lemma comp_null_homotopic_map (f : C ⟶ D) (hom : Π i j, D.X i ⟶ E.X j) :
+f ≫ null_homotopic_map hom = null_homotopic_map (λ i j, f.f i ≫ hom i j) :=
+begin
+  ext n,
+  dsimp [null_homotopic_map],
+  simp only [preadditive.comp_add, d_next_comp_left, prev_d_comp_left],
+end
+
+/-- Compatibility of `null_homotopic_map'` with the precomposition by a morphism
+of complexes. -/
+lemma comp_null_homotopic_map' (f : C ⟶ D) (hom : Π i j, c.rel j i → (D.X i ⟶ E.X j)) :
+f ≫ null_homotopic_map' hom = null_homotopic_map' (λ i j hij, f.f i ≫ hom i j hij) :=
+begin
+  ext n,
+  erw comp_null_homotopic_map,
+  congr',
+  ext i j,
+  split_ifs,
+  { refl, },
+  { rw comp_zero, },
+end
+
+/-- Compatibility of `null_homotopic_map` with the application of additive functors -/
+lemma map_null_homotopic_map {W : Type*} [category W] [preadditive W]
+  (G : V ⥤ W) [G.additive] (hom : Π i j, C.X i ⟶ D.X j) :
+  (G.map_homological_complex c).map (null_homotopic_map hom) =
+  null_homotopic_map (λ i j, G.map (hom i j)) :=
+begin
+  ext i,
+  dsimp [null_homotopic_map, d_next, prev_d],
+  rcases c.next i with _|⟨inext,wn⟩;
+  rcases c.prev i with _|⟨iprev,wp⟩;
+  dsimp [d_next, prev_d];
+  simp only [G.map_comp, functor.map_zero, functor.map_add],
+end
+
+/-- Compatibility of `null_homotopic_map'` with the application of additive functors -/
+lemma map_null_homotopic_map' {W : Type*} [category W] [preadditive W]
+  (G : V ⥤ W) [G.additive] (hom : Π i j, c.rel j i → (C.X i ⟶ D.X j)) :
+  (G.map_homological_complex c).map (null_homotopic_map' hom) =
+  null_homotopic_map' (λ i j hij, G.map (hom i j hij)) :=
+begin
+  ext n,
+  erw map_null_homotopic_map,
+  congr',
+  ext i j,
+  split_ifs,
+  { refl, },
+  { rw G.map_zero, }
+end
+
+/-- Tautological construction of the `homotopy` to zero for maps constructed by
+`null_homotopic_map`, at least when we have the `zero'` condition. -/
+@[simps]
+def null_homotopy (hom : Π i j, C.X i ⟶ D.X j) (zero' : ∀ i j, ¬ c.rel j i → hom i j = 0) :
+  homotopy (null_homotopic_map hom) 0 :=
+{ hom := hom,
+  zero' := zero',
+  comm := by { intro i, rw [homological_complex.zero_f_apply, add_zero], refl, }, }
+
+/-- Homotopy to zero for maps constructed with `null_homotopic_map'` -/
+@[simps]
+def null_homotopy' (h : Π i j, c.rel j i → (C.X i ⟶ D.X j)) :
+  homotopy (null_homotopic_map' h) 0 :=
+begin
+  apply null_homotopy (λ i j, dite (c.rel j i) (h i j) (λ _, 0)),
+  intros i j hij,
+  dsimp,
+  rw [dite_eq_right_iff],
+  intro hij',
+  exfalso,
+  exact hij hij',
+end
+
+/-! This lemma and the following ones can be used in order to compute
+the degreewise morphisms induced by the null homotopic maps constructed
+with `null_homotopic_map` or `null_homotopic_map'` -/
+@[simp]
+lemma null_homotopic_map_f {k₂ k₁ k₀ : ι} (r₂₁ : c.rel k₂ k₁) (r₁₀ : c.rel k₁ k₀)
+  (hom : Π i j, C.X i ⟶ D.X j) :
+  (null_homotopic_map hom).f k₁ = C.d k₁ k₀ ≫ hom k₀ k₁ + hom k₁ k₂ ≫ D.d k₂ k₁ :=
+by { dsimp [null_homotopic_map], rw [d_next_eq hom r₁₀, prev_d_eq hom r₂₁], }
+
+@[simp]
+lemma null_homotopic_map'_f {k₂ k₁ k₀  : ι} (r₂₁ : c.rel k₂ k₁) (r₁₀ : c.rel k₁ k₀)
+  (h : Π i j, c.rel j i → (C.X i ⟶ D.X j)) :
+  (null_homotopic_map' h).f k₁ = C.d k₁ k₀ ≫ h k₀ k₁ r₁₀ + h k₁ k₂ r₂₁ ≫ D.d k₂ k₁ :=
+begin
+  simp only [← null_homotopic_map'],
+  rw null_homotopic_map_f r₂₁ r₁₀ (λ i j, dite (c.rel j i) (h i j) (λ _, 0)),
+  dsimp,
+  split_ifs,
+  refl,
+end
+
+@[simp]
+lemma null_homotopic_map_f_of_not_rel_left {k₁ k₀ : ι} (r₁₀ : c.rel k₁ k₀)
+  (hk₀ : ∀ l : ι, ¬c.rel k₀ l)
+  (hom : Π i j, C.X i ⟶ D.X j) :
+  (null_homotopic_map hom).f k₀ = hom k₀ k₁ ≫ D.d k₁ k₀ :=
+begin
+  dsimp [null_homotopic_map],
+  rw prev_d_eq hom r₁₀,
+  rcases h : c.next k₀ with _|⟨l,w⟩, swap, exfalso, exact hk₀ l w,
+  dsimp [d_next], rw h, erw zero_add,
+end
+
+@[simp]
+lemma null_homotopic_map'_f_of_not_rel_left {k₁ k₀ : ι} (r₁₀ : c.rel k₁ k₀)
+  (hk₀ : ∀ l : ι, ¬c.rel k₀ l)
+  (h : Π i j, c.rel j i → (C.X i ⟶ D.X j)) :
+  (null_homotopic_map' h).f k₀ = h k₀ k₁ r₁₀ ≫ D.d k₁ k₀ :=
+begin
+  simp only [← null_homotopic_map'],
+  rw null_homotopic_map_f_of_not_rel_left r₁₀ hk₀ (λ i j, dite (c.rel j i) (h i j) (λ _, 0)),
+  dsimp,
+  split_ifs,
+  refl,
+end
+
+@[simp]
+lemma null_homotopic_map_f_of_not_rel_right {k₁ k₀ : ι} (r₁₀ : c.rel k₁ k₀)
+  (hk₁ : ∀ l : ι, ¬c.rel l k₁)
+  (hom : Π i j, C.X i ⟶ D.X j) :
+  (null_homotopic_map hom).f k₁ = C.d k₁ k₀ ≫ hom k₀ k₁ :=
+begin
+  dsimp [null_homotopic_map],
+  rw d_next_eq hom r₁₀,
+  rcases h : c.prev k₁ with _|⟨l,w⟩, swap, exfalso, exact hk₁ l w,
+  dsimp [prev_d], rw h, erw add_zero,
+end
+
+@[simp]
+lemma null_homotopic_map'_f_of_not_rel_right {k₁ k₀ : ι} (r₁₀ : c.rel k₁ k₀)
+  (hk₁ : ∀ l : ι, ¬c.rel l k₁)
+  (h : Π i j, c.rel j i → (C.X i ⟶ D.X j)) :
+  (null_homotopic_map' h).f k₁ = C.d k₁ k₀ ≫ h k₀ k₁ r₁₀ :=
+begin
+  simp only [← null_homotopic_map'],
+  rw null_homotopic_map_f_of_not_rel_right r₁₀ hk₁ (λ i j, dite (c.rel j i) (h i j) (λ _, 0)),
+  dsimp,
+  split_ifs,
+  refl,
+end
+
+@[simp]
+lemma null_homotopic_map_f_eq_zero {k₀ : ι}
+  (hk₀ : ∀ l : ι, ¬c.rel k₀ l) (hk₀' : ∀ l : ι, ¬c.rel l k₀)
+  (hom : Π i j, C.X i ⟶ D.X j) :
+  (null_homotopic_map hom).f k₀ = 0 :=
+begin
+  dsimp [null_homotopic_map],
+  rcases h1 : c.next k₀ with _|⟨l,w⟩, swap, exfalso, exact hk₀ l w,
+  rcases h2 : c.prev k₀ with _|⟨l,w⟩, swap, exfalso, exact hk₀' l w,
+  dsimp [d_next, prev_d],
+  rw [h1, h2],
+  erw zero_add,
+  refl,
+end
+
+@[simp]
+lemma null_homotopic_map'_f_eq_zero {k₀ : ι}
+  (hk₀ : ∀ l : ι, ¬c.rel k₀ l) (hk₀' : ∀ l : ι, ¬c.rel l k₀)
+  (h : Π i j, c.rel j i → (C.X i ⟶ D.X j)) :
+  (null_homotopic_map' h).f k₀ = 0 :=
+begin
+  simp only [← null_homotopic_map'],
+  exact null_homotopic_map_f_eq_zero hk₀ hk₀'
+    (λ i j, dite (c.rel j i) (h i j) (λ _, 0)),
+end
+
+/-!
+`homotopy.mk_inductive` allows us to build a homotopy of chain complexes inductively,
 so that as we construct each component, we have available the previous two components,
 and the fact that they satisfy the homotopy condition.
 
@@ -403,6 +647,140 @@ end
 
 end mk_inductive
 
+/-!
+`homotopy.mk_coinductive` allows us to build a homotopy of cochain complexes inductively,
+so that as we construct each component, we have available the previous two components,
+and the fact that they satisfy the homotopy condition.
+-/
+section mk_coinductive
+
+variables {P Q : cochain_complex V ℕ}
+
+@[simp] lemma d_next_cochain_complex (f : Π i j, P.X i ⟶ Q.X j) (j : ℕ) :
+  d_next j f = P.d _ _ ≫ f (j+1) j :=
+begin
+  dsimp [d_next],
+  simp only [cochain_complex.next],
+  refl,
+end
+
+@[simp] lemma prev_d_succ_cochain_complex (f : Π i j, P.X i ⟶ Q.X j) (i : ℕ) :
+  prev_d (i+1) f = f (i+1) _ ≫ Q.d i (i+1) :=
+begin
+  dsimp [prev_d],
+  simp [cochain_complex.prev_nat_succ],
+  refl,
+end
+
+@[simp] lemma prev_d_zero_cochain_complex (f : Π i j, P.X i ⟶ Q.X j) :
+  prev_d 0 f = 0 :=
+begin
+  dsimp [prev_d],
+  simp only [cochain_complex.prev_nat_zero],
+  refl,
+end
+
+variables (e : P ⟶ Q)
+  (zero : P.X 1 ⟶ Q.X 0)
+  (comm_zero : e.f 0 = P.d 0 1 ≫ zero)
+  (one : P.X 2 ⟶ Q.X 1)
+  (comm_one : e.f 1 = zero ≫ Q.d 0 1 + P.d 1 2 ≫ one)
+  (succ : ∀ (n : ℕ)
+    (p : Σ' (f : P.X (n+1) ⟶ Q.X n) (f' : P.X (n+2) ⟶ Q.X (n+1)),
+      e.f (n+1) = f ≫ Q.d n (n+1) + P.d (n+1) (n+2) ≫ f'),
+    Σ' f'' : P.X (n+3) ⟶ Q.X (n+2), e.f (n+2) = p.2.1 ≫ Q.d (n+1) (n+2) + P.d (n+2) (n+3) ≫ f'')
+
+include comm_one comm_zero succ
+
+/--
+An auxiliary construction for `mk_coinductive`.
+
+Here we build by induction a family of diagrams,
+but don't require at the type level that these successive diagrams actually agree.
+They do in fact agree, and we then capture that at the type level (i.e. by constructing a homotopy)
+in `mk_coinductive`.
+
+At this stage, we don't check the homotopy condition in degree 0,
+because it "falls off the end", and is easier to treat using `X_next` and `X_prev`,
+which we do in `mk_inductive_aux₂`.
+-/
+@[simp, nolint unused_arguments]
+def mk_coinductive_aux₁ :
+  Π n, Σ' (f : P.X (n+1) ⟶ Q.X n) (f' : P.X (n+2) ⟶ Q.X (n+1)),
+    e.f (n+1) = f ≫ Q.d n (n+1) + P.d (n+1) (n+2) ≫ f'
+| 0 := ⟨zero, one, comm_one⟩
+| 1 := ⟨one, (succ 0 ⟨zero, one, comm_one⟩).1, (succ 0 ⟨zero, one, comm_one⟩).2⟩
+| (n+2) :=
+  ⟨(mk_coinductive_aux₁ (n+1)).2.1,
+    (succ (n+1) (mk_coinductive_aux₁ (n+1))).1,
+    (succ (n+1) (mk_coinductive_aux₁ (n+1))).2⟩
+
+section
+
+variable [has_zero_object V]
+
+/--
+An auxiliary construction for `mk_inductive`.
+-/
+@[simp]
+def mk_coinductive_aux₂ :
+  Π n, Σ' (f : P.X n ⟶ Q.X_prev n) (f' : P.X_next n ⟶ Q.X n),
+    e.f n = f ≫ Q.d_to n + P.d_from n ≫ f'
+| 0 := ⟨0, (P.X_next_iso rfl).hom ≫ zero, by simpa using comm_zero⟩
+| (n+1) := let I := mk_coinductive_aux₁ e zero comm_zero one comm_one succ n in
+  ⟨I.1 ≫ (Q.X_prev_iso rfl).inv, (P.X_next_iso rfl).hom ≫ I.2.1, by simpa using I.2.2⟩
+
+lemma mk_coinductive_aux₃ (i : ℕ) :
+  (mk_coinductive_aux₂ e zero comm_zero one comm_one succ i).2.1 ≫ (Q.X_prev_iso rfl).inv
+    = (P.X_next_iso rfl).hom ≫ (mk_coinductive_aux₂ e zero comm_zero one comm_one succ (i+1)).1 :=
+by rcases i with (_|_|i); { dsimp, simp, }
+
+/--
+A constructor for a `homotopy e 0`, for `e` a chain map between `ℕ`-indexed cochain complexes,
+working by induction.
+
+You need to provide the components of the homotopy in degrees 0 and 1,
+show that these satisfy the homotopy condition,
+and then give a construction of each component,
+and the fact that it satisfies the homotopy condition,
+using as an inductive hypothesis the data and homotopy condition for the previous two components.
+-/
+def mk_coinductive : homotopy e 0 :=
+{ hom := λ i j, if h : j + 1 = i then
+    (P.X_next_iso h).inv ≫ (mk_coinductive_aux₂ e zero comm_zero one comm_one succ j).2.1
+  else
+    0,
+  zero' := λ i j w, by rwa dif_neg,
+  comm := λ i, begin
+    dsimp,
+    rw [add_zero, add_comm],
+    convert (mk_coinductive_aux₂ e zero comm_zero one comm_one succ i).2.2 using 2,
+    { rcases i with (_|_|_|i),
+      { simp only [mk_coinductive_aux₂, prev_d_zero_cochain_complex, zero_comp] },
+      all_goals
+      { simp only [prev_d_succ_cochain_complex],
+        dsimp,
+        simp only [eq_self_iff_true, iso.inv_hom_id_assoc, dite_eq_ite,
+          if_true, category.assoc, X_prev_iso_comp_d_to], }, },
+    { cases i,
+      { dsimp,
+        simp only [eq_self_iff_true, d_next_cochain_complex, dif_pos,
+          d_from_comp_X_next_iso_assoc, ←comm_zero],
+      rw mk_coinductive_aux₂,
+      dsimp,
+      convert comm_zero.symm,
+      simp only [iso.inv_hom_id_assoc], },
+      { dsimp,
+        simp only [eq_self_iff_true, d_next_cochain_complex, dif_pos, d_from_comp_X_next_iso_assoc],
+        rw mk_coinductive_aux₂,
+        dsimp only,
+        simp only [iso.inv_hom_id_assoc], }, },
+  end }
+
+end
+
+end mk_coinductive
+
 end homotopy
 
 /--
@@ -451,9 +829,7 @@ instance : inhabited (homotopy_equiv C C) := ⟨refl C⟩
 
 end homotopy_equiv
 
-variables [has_equalizers V] [has_cokernels V] [has_images V] [has_image_maps V]
-
-variable [has_zero_object V]
+variables [has_equalizers V] [has_cokernels V] [has_images V] [has_image_maps V] [has_zero_object V]
 
 /--
 Homotopic maps induce the same map on homology.

@@ -3,7 +3,8 @@ Copyright (c) 2020 James Arthur. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: James Arthur, Chris Hughes, Shing Tak Lam
 -/
-import analysis.special_functions.trigonometric
+import analysis.special_functions.trigonometric.deriv
+import analysis.special_functions.log.basic
 
 /-!
 # Inverse of the sinh function
@@ -34,7 +35,7 @@ lemma sinh_injective : function.injective sinh := sinh_strict_mono.injective
 
 private lemma aux_lemma (x : ℝ) : 1 / (x + sqrt (1 + x ^ 2)) = -x + sqrt (1 + x ^ 2) :=
 begin
-  refine (eq_one_div_of_mul_eq_one _).symm,
+  refine (eq_one_div_of_mul_eq_one_right _).symm,
   have : 0 ≤ 1 + x ^ 2 := add_nonneg zero_le_one (sq_nonneg x),
   rw [add_comm, ← sub_eq_neg_add, ← mul_self_sub_mul_self,
       mul_self_sqrt this, sq, add_sub_cancel]
@@ -42,8 +43,8 @@ end
 
 private lemma b_lt_sqrt_b_one_add_sq (b : ℝ) : b < sqrt (1 + b ^ 2) :=
 calc  b
-    ≤ sqrt (b ^ 2)     : le_sqrt_of_sq_le $ le_refl _
-... < sqrt (1 + b ^ 2) : (sqrt_lt (sq_nonneg _)).2 (lt_one_add _)
+    ≤ sqrt (b ^ 2)     : le_sqrt_of_sq_le le_rfl
+... < sqrt (1 + b ^ 2) : sqrt_lt_sqrt (sq_nonneg _) (lt_one_add _)
 
 private lemma add_sqrt_one_add_sq_pos (b : ℝ) : 0 < b + sqrt (1 + b ^ 2) :=
 by { rw [← neg_neg b, ← sub_eq_neg_add, sub_pos, sq, neg_mul_neg, ← sq],

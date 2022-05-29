@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Kevin Buzzard, Yury Kudryashov, Eric Wieser
 -/
 import linear_algebra.basic
+import logic.equiv.fin
 
 /-!
 # Pi types of modules
@@ -110,7 +111,7 @@ families of functions on these modules. See note [bundled maps over different ri
 { to_fun := λ f, ∑ i : ι, (f i).comp (proj i),
   inv_fun := λ f i, f.comp (single i),
   map_add' := λ f g, by simp only [pi.add_apply, add_comp, finset.sum_add_distrib],
-  map_smul' := λ c f, by simp only [pi.smul_apply, smul_comp, finset.smul_sum],
+  map_smul' := λ c f, by simp only [pi.smul_apply, smul_comp, finset.smul_sum, ring_hom.id_apply],
   left_inv := λ f, by { ext i x, simp [apply_single] },
   right_inv := λ f,
     begin
@@ -163,8 +164,11 @@ begin
     assume j hjJ,
     have : j ∉ I := assume hjI, hd ⟨hjI, hjJ⟩,
     rw [dif_neg this, zero_apply] },
-  { simp only [pi_comp, comp_assoc, subtype_comp_cod_restrict, proj_pi, dif_pos, subtype.coe_prop],
-    ext b ⟨j, hj⟩, refl },
+  { simp only [pi_comp, comp_assoc, subtype_comp_cod_restrict, proj_pi, subtype.coe_prop],
+    ext b ⟨j, hj⟩,
+    simp only [dif_pos, function.comp_app, function.eval_apply, linear_map.cod_restrict_apply,
+      linear_map.coe_comp, linear_map.coe_proj, linear_map.pi_apply, submodule.subtype_apply,
+      subtype.coe_prop], refl },
   { ext1 ⟨b, hb⟩,
     apply subtype.ext,
     ext j,
@@ -211,11 +215,20 @@ def pi (I : set ι) (p : Π i, submodule R (φ i)) : submodule R (Π i, φ i) :=
   add_mem' := λ x y hx hy i hi, (p i).add_mem (hx i hi) (hy i hi),
   smul_mem' := λ c x hx i hi, (p i).smul_mem c (hx i hi) }
 
-variables {I : set ι} {p : Π i, submodule R (φ i)} {x : Π i, φ i}
+variables {I : set ι} {p q : Π i, submodule R (φ i)} {x : Π i, φ i}
 
 @[simp] lemma mem_pi : x ∈ pi I p ↔ ∀ i ∈ I, x i ∈ p i := iff.rfl
 
 @[simp, norm_cast] lemma coe_pi : (pi I p : set (Π i, φ i)) = set.pi I (λ i, p i) := rfl
+
+@[simp] lemma pi_empty (p : Π i, submodule R (φ i)) : pi ∅ p = ⊤ :=
+set_like.coe_injective $ set.empty_pi _
+
+@[simp] lemma pi_top (s : set ι) : pi s (λ i : ι, (⊤ : submodule R (φ i))) = ⊤ :=
+set_like.coe_injective $ set.pi_univ _
+
+lemma pi_mono {s : set ι} (h : ∀ i ∈ s, p i ≤ q i) : pi s p ≤ pi s q :=
+set.pi_mono h
 
 lemma binfi_comap_proj : (⨅ i ∈ I, comap (proj i) (p i)) = pi I p :=
 by { ext x, simp }
@@ -279,6 +292,14 @@ This is `equiv.Pi_congr_left` as a `linear_equiv` -/
 def Pi_congr_left (e : ι' ≃ ι) : (Π i', φ (e i')) ≃ₗ[R] (Π i, φ i) :=
 (Pi_congr_left' R φ e.symm).symm
 
+/-- This is `equiv.pi_option_equiv_prod` as a `linear_equiv` -/
+def pi_option_equiv_prod {ι : Type*} {M : option ι → Type*}
+  [Π i, add_comm_group (M i)] [Π i, module R (M i)] :
+  (Π i : option ι, M i) ≃ₗ[R] (M none × Π i : ι, M (some i)) :=
+{ map_add' := by simp [function.funext_iff],
+  map_smul' := by simp [function.funext_iff],
+  ..equiv.pi_option_equiv_prod }
+
 variables (ι R M) (S : Type*) [fintype ι] [decidable_eq ι] [semiring S]
   [add_comm_monoid M] [module R M] [module S M] [smul_comm_class R S M]
 
@@ -291,7 +312,7 @@ Otherwise, `S = ℕ` shows that the equivalence is additive.
 See note [bundled maps over different rings]. -/
 def pi_ring : ((ι → R) →ₗ[R] M) ≃ₗ[S] (ι → M) :=
 (linear_map.lsum R (λ i : ι, R) S).symm.trans
-  (Pi_congr_right $ λ i, linear_map.ring_lmap_equiv_self R M S)
+  (Pi_congr_right $ λ i, linear_map.ring_lmap_equiv_self R S M)
 
 variables {ι R M}
 
@@ -322,4 +343,113 @@ def sum_arrow_lequiv_prod_arrow (α β R M : Type*) [semiring R] [add_comm_monoi
 @[simp] lemma sum_arrow_lequiv_prod_arrow_symm_apply_inr {α β} (f : α → M) (g : β → M) (b : β) :
   ((sum_arrow_lequiv_prod_arrow α β R M).symm (f, g)) (sum.inr b) = g b := rfl
 
+/-- If `ι` has a unique element, then `ι → M` is linearly equivalent to `M`. -/
+@[simps { simp_rhs := tt, fully_applied := ff }]
+def fun_unique (ι R M : Type*) [unique ι] [semiring R] [add_comm_monoid M] [module R M] :
+  (ι → M) ≃ₗ[R] M :=
+{ map_add' := λ f g, rfl,
+  map_smul' := λ c f, rfl,
+  .. equiv.fun_unique ι M }
+
+variables (R M)
+
+/-- Linear equivalence between dependent functions `Π i : fin 2, M i` and `M 0 × M 1`. -/
+@[simps { simp_rhs := tt, fully_applied := ff }]
+def pi_fin_two (M : fin 2 → Type v) [Π i, add_comm_monoid (M i)] [Π i, module R (M i)] :
+  (Π i, M i) ≃ₗ[R] M 0 × M 1 :=
+{ map_add' := λ f g, rfl,
+  map_smul' := λ c f, rfl,
+  .. pi_fin_two_equiv M }
+
+/-- Linear equivalence between vectors in `M² = fin 2 → M` and `M × M`. -/
+@[simps { simp_rhs := tt, fully_applied := ff }]
+def fin_two_arrow : (fin 2 → M) ≃ₗ[R] M × M :=
+{ .. fin_two_arrow_equiv M, .. pi_fin_two R (λ _, M) }
+
 end linear_equiv
+
+section extend
+
+variables (R) {η : Type x} [semiring R] (s : ι → η)
+
+/-- `function.extend s f 0` as a bundled linear map. -/
+@[simps]
+noncomputable def function.extend_by_zero.linear_map : (ι → R) →ₗ[R] (η → R) :=
+{ to_fun := λ f, function.extend s f 0,
+  map_smul' := λ r f, by { simpa using function.extend_smul r s f 0 },
+  ..function.extend_by_zero.hom R s }
+
+end extend
+
+
+/-! ### Bundled versions of `matrix.vec_cons` and `matrix.vec_empty`
+
+The idea of these definitions is to be able to define a map as `x ↦ ![f₁ x, f₂ x, f₃ x]`, where
+`f₁ f₂ f₃` are already linear maps, as `f₁.vec_cons $ f₂.vec_cons $ f₃.vec_cons $ vec_empty`.
+
+While the same thing could be achieved using `linear_map.pi ![f₁, f₂, f₃]`, this is not
+definitionally equal to the result using `linear_map.vec_cons`, as `fin.cases` and function
+application do not commute definitionally.
+
+Versions for when `f₁ f₂ f₃` are bilinear maps are also provided.
+
+-/
+section fin
+
+section semiring
+
+variables [semiring R] [add_comm_monoid M] [add_comm_monoid M₂] [add_comm_monoid M₃]
+variables [module R M] [module R M₂] [module R M₃]
+
+/-- The linear map defeq to `matrix.vec_empty` -/
+def linear_map.vec_empty : M →ₗ[R] (fin 0 → M₃) :=
+{ to_fun := λ m, matrix.vec_empty,
+  map_add' := λ x y, subsingleton.elim _ _,
+  map_smul' := λ r x, subsingleton.elim _ _ }
+
+@[simp]
+lemma linear_map.vec_empty_apply (m : M) :
+  (linear_map.vec_empty : M →ₗ[R] (fin 0 → M₃)) m = ![] := rfl
+
+/-- A linear map into `fin n.succ → M₃` can be built out of a map into `M₃` and a map into
+`fin n → M₃`. -/
+def linear_map.vec_cons {n} (f : M →ₗ[R] M₂) (g : M →ₗ[R] (fin n → M₂)) :
+  M →ₗ[R] (fin n.succ → M₂) :=
+{ to_fun := λ m, matrix.vec_cons (f m) (g m),
+  map_add' := λ x y, begin
+    rw [f.map_add, g.map_add, matrix.cons_add_cons (f x)]
+  end,
+  map_smul' := λ c x, by rw [f.map_smul, g.map_smul, ring_hom.id_apply, matrix.smul_cons c (f x)] }
+
+@[simp]
+lemma linear_map.vec_cons_apply {n} (f : M →ₗ[R] M₂) (g : M →ₗ[R] (fin n → M₂)) (m : M) :
+  f.vec_cons g m = matrix.vec_cons (f m) (g m) := rfl
+
+end semiring
+
+section comm_semiring
+
+variables [comm_semiring R] [add_comm_monoid M] [add_comm_monoid M₂] [add_comm_monoid M₃]
+variables [module R M] [module R M₂] [module R M₃]
+
+/-- The empty bilinear map defeq to `matrix.vec_empty` -/
+@[simps]
+def linear_map.vec_empty₂ : M →ₗ[R] M₂ →ₗ[R] (fin 0 → M₃) :=
+{ to_fun := λ m, linear_map.vec_empty,
+  map_add' := λ x y, linear_map.ext $ λ z, subsingleton.elim _ _,
+  map_smul' := λ r x, linear_map.ext $ λ z, subsingleton.elim _ _, }
+
+/-- A bilinear map into `fin n.succ → M₃` can be built out of a map into `M₃` and a map into
+`fin n → M₃` -/
+@[simps]
+def linear_map.vec_cons₂ {n} (f : M →ₗ[R] M₂ →ₗ[R] M₃) (g : M →ₗ[R] M₂ →ₗ[R] (fin n → M₃)) :
+  M →ₗ[R] M₂ →ₗ[R] (fin n.succ → M₃) :=
+{ to_fun := λ m, linear_map.vec_cons (f m) (g m),
+  map_add' := λ x y, linear_map.ext $ λ z, by
+    simp only [f.map_add, g.map_add, linear_map.add_apply, linear_map.vec_cons_apply,
+      matrix.cons_add_cons (f x z)],
+  map_smul' := λ r x, linear_map.ext $ λ z, by simp [matrix.smul_cons r (f x z)], }
+
+end comm_semiring
+
+end fin

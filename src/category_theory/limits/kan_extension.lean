@@ -3,10 +3,9 @@ Copyright (c) 2021 Adam Topaz. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta, Adam Topaz
 -/
+import category_theory.limits.shapes.terminal
 import category_theory.punit
 import category_theory.structured_arrow
-import category_theory.limits.functor_category
-import category_theory.limits.shapes.terminal
 
 /-!
 
@@ -35,10 +34,10 @@ namespace category_theory
 
 open limits
 
-universes v u₁ u₂ u₃
+universes v v₁ v₂ v₃ u₁ u₂ u₃
 
-variables {S : Type v} {L : Type u₂} {D : Type u₃}
-variables [category.{v} S] [category.{v} L] [category.{v} D]
+variables {S : Type u₁} {L : Type u₂} {D : Type u₃}
+variables [category.{v₁} S] [category.{v₂} L] [category.{v₃} D]
 variables (ι : S ⥤ L)
 
 namespace Ran
@@ -121,7 +120,7 @@ def equiv (F : S ⥤ D) [∀ x, has_limit (diagram ι F x)] (G : L ⥤ D) :
     simp only [nat_trans.naturality_assoc, loc_map],
     erw limit.pre_π,
     congr,
-    cases j,
+    rcases j with ⟨⟨⟩, _, _⟩,
     tidy,
   end,
   right_inv := by tidy }
@@ -141,6 +140,19 @@ variable (D)
 def adjunction [∀ X, has_limits_of_shape (structured_arrow X ι) D] :
   (whiskering_left _ _ D).obj ι ⊣ Ran ι :=
 adjunction.adjunction_of_equiv_right _ _
+
+lemma reflective [full ι] [faithful ι] [∀ X, has_limits_of_shape (structured_arrow X ι) D] :
+  is_iso (adjunction D ι).counit :=
+begin
+  apply nat_iso.is_iso_of_is_iso_app _,
+  intros F,
+  apply nat_iso.is_iso_of_is_iso_app _,
+  intros X,
+  dsimp [adjunction],
+  simp only [category.id_comp],
+  exact is_iso.of_iso ((limit.is_limit _).cone_point_unique_up_to_iso
+    (limit_of_diagram_initial structured_arrow.mk_id_initial _)),
+end
 
 end Ran
 
@@ -241,7 +253,7 @@ def equiv (F : S ⥤ D) [I : ∀ x, has_colimit (diagram ι F x)] (G : L ⥤ D) 
     change colimit.ι _ _ ≫ colimit.pre (diagram ι F k) (costructured_arrow.map _) = _,
     rw colimit.ι_pre,
     congr,
-    cases j,
+    rcases j with ⟨_, ⟨⟩, _⟩,
     tidy,
   end,
   right_inv := by tidy }
@@ -261,6 +273,19 @@ variable (D)
 def adjunction [∀ X, has_colimits_of_shape (costructured_arrow ι X) D] :
   Lan ι ⊣ (whiskering_left _ _ D).obj ι :=
 adjunction.adjunction_of_equiv_left _ _
+
+lemma coreflective [full ι] [faithful ι] [∀ X, has_colimits_of_shape (costructured_arrow ι X) D] :
+  is_iso (adjunction D ι).unit :=
+begin
+  apply nat_iso.is_iso_of_is_iso_app _,
+  intros F,
+  apply nat_iso.is_iso_of_is_iso_app _,
+  intros X,
+  dsimp [adjunction],
+  simp only [category.comp_id],
+  exact is_iso.of_iso ((colimit.is_colimit _).cocone_point_unique_up_to_iso
+    (colimit_of_diagram_terminal costructured_arrow.mk_id_terminal _)).symm,
+end
 
 end Lan
 

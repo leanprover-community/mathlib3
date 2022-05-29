@@ -20,8 +20,7 @@ begin
     -- so we get to rewrite `f x`, in the presence of the crucial `H : x ∈ S` hypothesis.
     apply_congr,
     skip,
-    simp [h, H],
-  }
+    simp [h, H], }
 end
 
 -- Again, with some `guard` statements.
@@ -35,8 +34,7 @@ begin
     guard_target S,
     skip,
     guard_target f x,
-    simp [h, H]
-  }
+    simp [h, H] }
 end
 
 -- Verify we can `rw` as well as `simp`.

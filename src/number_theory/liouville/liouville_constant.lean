@@ -23,7 +23,7 @@ We prove that, for $m \in \mathbb{N}$ satisfying $2 \le m$, Liouville's constant
 is a transcendental number.  Classically, the Liouville number for $m = 2$ is the one called
 ``Liouville's constant''.
 
-# Implementation notes
+## Implementation notes
 
 The indexing $m$ is eventually a natural number satisfying $2 ≤ m$.  However, we prove the first few
 lemmas for $m \in \mathbb{R}$.
@@ -94,7 +94,7 @@ lemma tsum_one_div_pow_factorial_lt (n : ℕ) {m : ℝ} (m1 : 1 < m) :
   ∑' (i : ℕ), 1 / m ^ (i + (n + 1))! < (1 - 1 / m)⁻¹ * (1 / m ^ (n + 1)!) :=
 -- two useful inequalities
 have m0 : 0 < m := (zero_lt_one.trans m1),
-have mi : abs (1 / m) < 1 :=
+have mi : |1 / m| < 1 :=
   (le_of_eq (abs_of_pos (one_div_pos.mpr m0))).trans_lt ((div_lt_one m0).mpr m1),
 calc (∑' i, 1 / m ^ (i + (n + 1))!)
     < ∑' i, 1 / m ^ (i + (n + 1)!) :
@@ -106,12 +106,12 @@ calc (∑' i, 1 / m ^ (i + (n + 1))!)
       (λ b, one_div_pow_le_one_div_pow_of_le m1.le (b.add_factorial_succ_le_factorial_add_succ n))
       -- 3. the term with index `i = 2` of the first series is strictly smaller than
       -- the corresponding term of the second series
-      (one_div_pow_strict_mono m1 (n.add_factorial_succ_lt_factorial_add_succ rfl.le))
+      (one_div_pow_strict_anti m1 (n.add_factorial_succ_lt_factorial_add_succ rfl.le))
       -- 4. the second series is summable, since its terms grow quickly
       (summable_one_div_pow_of_le m1 (λ j, nat.le.intro rfl))
 ... = ∑' i, (1 / m) ^ i * (1 / m ^ (n + 1)!) :
     -- split the sum in the exponent and massage
-    by { congr, ext i, rw [pow_add, ← div_div_eq_div_mul, div_eq_mul_one_div, ← one_div_pow i] }
+    by { congr, ext i, rw [pow_add, ← div_div, div_eq_mul_one_div, one_div_pow] }
 -- factor the constant `(1 / m ^ (n + 1)!)` out of the series
 ... = (∑' i, (1 / m) ^ i) * (1 / m ^ (n + 1)!) : tsum_mul_right
 ... = (1 - 1 / m)⁻¹ * (1 / m ^ (n + 1)!) :
@@ -158,8 +158,8 @@ begin
     rw [sum_range_succ, h_k, div_add_div, div_eq_div_iff, add_mul],
     { norm_cast,
       rw [add_mul, one_mul, nat.factorial_succ,
-        show k.succ * k! - k! = (k.succ - 1) * k!, by rw [nat.mul_sub_right_distrib, one_mul],
-        nat.succ_sub_one, nat.succ_eq_add_one, add_mul, one_mul, pow_add],
+        show k.succ * k! - k! = (k.succ - 1) * k!, by rw [tsub_mul, one_mul],
+        nat.succ_sub_one, add_mul, one_mul, pow_add],
       simp [mul_assoc] },
     refine mul_ne_zero_iff.mpr ⟨_, _⟩,
     all_goals { exact pow_ne_zero _ (nat.cast_ne_zero.mpr hm.ne.symm) } }
@@ -174,7 +174,7 @@ begin
   intro n,
   -- the first `n` terms sum to `p / m ^ k!`
   rcases liouville_number_rat_initial_terms (zero_lt_two.trans_le hm) n with ⟨p, hp⟩,
-  refine ⟨p, m ^ n!, one_lt_pow mZ1 n.factorial_pos, _⟩,
+  refine ⟨p, m ^ n!, one_lt_pow mZ1 n.factorial_ne_zero, _⟩,
   push_cast,
   -- separate out the sum of the first `n` terms and the rest
   rw [liouville_number_eq_initial_terms_add_tail m1 n,

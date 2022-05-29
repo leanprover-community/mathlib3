@@ -21,7 +21,7 @@ open category_theory.limits preadditive
 
 variables {C D : Type*} [category C] [category D] [preadditive D]
 
-instance : preadditive (C ⥤ D) :=
+instance functor_category_preadditive : preadditive (C ⥤ D) :=
 { hom_group := λ F G,
   { add := λ α β,
     { app := λ X, α.app X + β.app X,
@@ -64,8 +64,8 @@ as group homomorphism -/
 @[simp] lemma app_nsmul (X : C) (α : F ⟶ G) (n : ℕ) : (n • α).app X = n • α.app X :=
 (app_hom X).map_nsmul α n
 
-@[simp] lemma app_gsmul (X : C) (α : F ⟶ G) (n : ℤ) : (n • α).app X = n • α.app X :=
-(app_hom X).map_gsmul α n
+@[simp] lemma app_zsmul (X : C) (α : F ⟶ G) (n : ℤ) : (n • α).app X = n • α.app X :=
+(app_hom X : (F ⟶ G) →+ (F.obj X ⟶ G.obj X)).map_zsmul α n
 
 @[simp] lemma app_sum {ι : Type*} (s : finset ι) (X : C) (α : ι → (F ⟶ G)) :
   (∑ i in s, α i).app X = ∑ i in s, ((α i).app X) :=

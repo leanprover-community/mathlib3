@@ -44,10 +44,10 @@ example (a b : ℕ) : a + b = b + a :=
 by library_search -- says: `exact add_comm a b`
 
 example (n m k : ℕ) : n * (m - k) = n * m - n * k :=
-by library_search -- says: `exact nat.mul_sub_left_distrib n m k`
+by library_search -- says: `exact mul_tsub n m k`
 
 example (n m k : ℕ) : n * m - n * k = n * (m - k) :=
-by library_search -- says: `exact eq.symm (nat.mul_sub_left_distrib n m k)`
+by library_search -- says: `exact eq.symm (mul_tsub n m k)`
 
 example {α : Type} (x y : α) : x = y ↔ y = x :=
 by library_search -- says: `exact eq_comm`
@@ -118,8 +118,7 @@ def map_from_sum {A B C : Type} (f : A → C) (g : B → C) : (A ⊕ B) → C :=
 lemma bind_singleton {α β} (x : α) (f : α → list β) : list.bind [x] f = f x :=
 begin
   success_if_fail {
-    library_search { md := tactic.transparency.reducible },
-  },
+    library_search { md := tactic.transparency.reducible }, },
   library_search!,
 end
 
@@ -131,5 +130,38 @@ example (a b : ℕ) (h : a ≤ b) : f a ≤ f b := by library_search
 -- Test #3432
 theorem nonzero_gt_one (n : ℕ) : ¬ n = 0 → n ≥ 1 :=
 by library_search!   -- `exact nat.pos_of_ne_zero`
+
+example (L : list (list ℕ)) : list ℕ :=
+by library_search using L
+
+example (n m : ℕ) : ℕ :=
+by library_search using n m
+
+example (P Q : list ℕ) (h : ℕ) : list ℕ :=
+by library_search using h Q
+
+example (P Q : list ℕ) (h : ℕ) : list ℕ :=
+by library_search using P Q
+
+-- Make sure `library_search` finds nothing when we list too many hypotheses after `using`.
+example (P Q R S T : list ℕ) : list ℕ :=
+begin
+  success_if_fail { library_search using P Q R S T, },
+  exact []
+end
+
+-- Tests for #3428
+constants (x y w z : ℕ)
+axiom not_axiom : ¬ x = y
+axiom ne_axiom : w ≠ z
+example : x ≠ y := by library_search
+example : ¬ w = z := by library_search
+
+structure foo := (a : nat) (b : nat)
+constants (k l : foo)
+axiom ne_axiom' (h : k.a ≠ 0) : k.b ≠ 0
+axiom not_axiom' (h : l.a ≠ 0) : ¬ l.b = 0
+example (hq : k.a ≠ 0) : k.b ≠ 0 := by library_search
+example (hq : l.a ≠ 0) : ¬ l.b = 0 := by library_search
 
 end test.library_search

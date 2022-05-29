@@ -5,6 +5,8 @@ Authors: Bhavik Mehta, Scott Morrison
 -/
 import category_theory.subobject.mono_over
 import category_theory.skeletal
+import tactic.elementwise
+import tactic.apply_fun
 
 /-!
 # Subobjects
@@ -96,13 +98,18 @@ namespace subobject
 abbreviation mk {X A : C} (f : A ⟶ X) [mono f] : subobject X :=
 (to_thin_skeleton _).obj (mono_over.mk' f)
 
+/-- The category of subobjects is equivalent to the `mono_over` category. It is more convenient to
+use the former due to the partial order instance, but oftentimes it is easier to define structures
+on the latter. -/
+noncomputable def equiv_mono_over (X : C) : subobject X ≌ mono_over X :=
+thin_skeleton.equivalence _
+
 /--
 Use choice to pick a representative `mono_over X` for each `subobject X`.
 -/
 noncomputable
 def representative {X : C} : subobject X ⥤ mono_over X :=
-thin_skeleton.from_thin_skeleton _
-
+(equiv_mono_over X).functor
 
 /--
 Starting with `A : mono_over X`, we can take its equivalence class in `subobject X`
@@ -112,7 +119,7 @@ This is isomorphic (in `mono_over X`) to the original `A`.
 noncomputable
 def representative_iso {X : C} (A : mono_over X) :
   representative.obj ((to_thin_skeleton _).obj A) ≅ A :=
-(thin_skeleton.from_thin_skeleton _).as_equivalence.counit_iso.app A
+(equiv_mono_over X).counit_iso.app A
 
 /--
 Use choice to pick a representative underlying object in `C` for any `subobject X`.
@@ -167,7 +174,7 @@ lemma underlying_arrow {X : C} {Y Z : subobject X} (f : Y ⟶ Z) :
   underlying.map f ≫ arrow Z = arrow Y :=
 over.w (representative.map f)
 
-@[simp, reassoc]
+@[simp, reassoc, elementwise]
 lemma underlying_iso_arrow {X Y : C} (f : X ⟶ Y) [mono f] :
   (underlying_iso f).inv ≫ (subobject.mk f).arrow = f :=
 over.w _
@@ -324,11 +331,11 @@ by simp [of_mk_le, of_le_mk, of_le, of_mk_le_mk, ←functor.map_comp underlying]
 by simp [of_mk_le, of_le_mk, of_le, of_mk_le_mk, ←functor.map_comp_assoc underlying]
 
 @[simp] lemma of_le_refl {B : C} (X : subobject B) :
-  of_le X X (le_refl _) = 𝟙 _ :=
+  of_le X X le_rfl = 𝟙 _ :=
 by { apply (cancel_mono X.arrow).mp, simp }
 
 @[simp] lemma of_mk_le_mk_refl {B A₁ : C} (f : A₁ ⟶ B) [mono f] :
-  of_mk_le_mk f f (le_refl _) = 𝟙 _ :=
+  of_mk_le_mk f f le_rfl = 𝟙 _ :=
 by { apply (cancel_mono f).mp, simp }
 
 /-- An equality of subobjects gives an isomorphism of the corresponding objects.

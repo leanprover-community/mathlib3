@@ -3,7 +3,7 @@ Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
-import data.multiset.basic
+import data.multiset.bind
 
 /-!
 # Sections of a multiset
@@ -22,7 +22,7 @@ def sections (s : multiset (multiset α)) : multiset (multiset α) :=
 multiset.rec_on s {0} (λs _ c, s.bind $ λa, c.map (multiset.cons a))
   (assume a₀ a₁ s pi, by simp [map_bind, bind_bind a₀ a₁, cons_swap])
 
-@[simp] lemma sections_zero : sections (0 : multiset (multiset α)) = 0 ::ₘ 0 :=
+@[simp] lemma sections_zero : sections (0 : multiset (multiset α)) = {0} :=
 rfl
 
 @[simp] lemma sections_cons (s : multiset (multiset α)) (m : multiset α) :

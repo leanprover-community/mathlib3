@@ -3,7 +3,7 @@ Copyright (c) 2021 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import measure_theory.prod
+import measure_theory.measure.ae_measurable
 
 /-!
 # Measure preserving maps
@@ -42,10 +42,42 @@ structure measure_preserving (f : α → β) (μa : measure α . volume_tac)
 (measurable : measurable f)
 (map_eq : map f μa = μb)
 
+protected lemma _root_.measurable.measure_preserving {f : α → β}
+  (h : measurable f) (μa : measure α) :
+  measure_preserving f μa (map f μa) :=
+⟨h, rfl⟩
+
 namespace measure_preserving
 
 protected lemma id (μ : measure α) : measure_preserving id μ μ :=
 ⟨measurable_id, map_id⟩
+
+protected lemma ae_measurable {f : α → β} (hf : measure_preserving f μa μb) :
+  ae_measurable f μa :=
+hf.1.ae_measurable
+
+lemma symm (e : α ≃ᵐ β) {μa : measure α} {μb : measure β} (h : measure_preserving e μa μb) :
+  measure_preserving e.symm μb μa :=
+⟨e.symm.measurable,
+  by rw [← h.map_eq, map_map e.symm.measurable e.measurable, e.symm_comp_self, map_id]⟩
+
+lemma restrict_preimage {f : α → β} (hf : measure_preserving f μa μb) {s : set β}
+  (hs : measurable_set s) : measure_preserving f (μa.restrict (f ⁻¹' s)) (μb.restrict s) :=
+⟨hf.measurable, by rw [← hf.map_eq, restrict_map hf.measurable hs]⟩
+
+lemma restrict_preimage_emb {f : α → β} (hf : measure_preserving f μa μb)
+  (h₂ : measurable_embedding f) (s : set β) :
+  measure_preserving f (μa.restrict (f ⁻¹' s)) (μb.restrict s) :=
+⟨hf.measurable, by rw [← hf.map_eq, h₂.restrict_map]⟩
+
+lemma restrict_image_emb {f : α → β} (hf : measure_preserving f μa μb) (h₂ : measurable_embedding f)
+  (s : set α) : measure_preserving f (μa.restrict s) (μb.restrict (f '' s)) :=
+by simpa only [preimage_image_eq _ h₂.injective] using hf.restrict_preimage_emb h₂ (f '' s)
+
+lemma ae_measurable_comp_iff {f : α → β} (hf : measure_preserving f μa μb)
+  (h₂ : measurable_embedding f) {g : β → γ} :
+  ae_measurable (g ∘ f) μa ↔ ae_measurable g μb :=
+by rw [← hf.map_eq, h₂.ae_measurable_map_iff]
 
 protected lemma quasi_measure_preserving {f : α → β} (hf : measure_preserving f μa μb) :
   quasi_measure_preserving f μa μb :=
@@ -58,55 +90,22 @@ lemma comp {g : β → γ} {f : α → β} (hg : measure_preserving g μb μc)
 
 protected lemma sigma_finite {f : α → β} (hf : measure_preserving f μa μb) [sigma_finite μb] :
   sigma_finite μa :=
-sigma_finite.of_map μa hf.1 (by rwa hf.map_eq)
+sigma_finite.of_map μa hf.ae_measurable (by rwa hf.map_eq)
 
 lemma measure_preimage {f : α → β} (hf : measure_preserving f μa μb)
   {s : set β} (hs : measurable_set s) :
   μa (f ⁻¹' s) = μb s :=
 by rw [← hf.map_eq, map_apply hf.1 hs]
 
+lemma measure_preimage_emb {f : α → β} (hf : measure_preserving f μa μb)
+  (hfe : measurable_embedding f) (s : set β) :
+  μa (f ⁻¹' s) = μb s :=
+by rw [← hf.map_eq, hfe.map_apply]
+
 protected lemma iterate {f : α → α} (hf : measure_preserving f μa μa) :
   ∀ n, measure_preserving (f^[n]) μa μa
 | 0 := measure_preserving.id μa
 | (n + 1) := (iterate n).comp hf
-
-lemma skew_product [sigma_finite μb] [sigma_finite μd]
-  {f : α → β} (hf : measure_preserving f μa μb) {g : α → γ → δ}
-  (hgm : measurable (uncurry g)) (hg : ∀ᵐ x ∂μa, map (g x) μc = μd) :
-  measure_preserving (λ p : α × γ, (f p.1, g p.1 p.2)) (μa.prod μc) (μb.prod μd) :=
-begin
-  classical,
-  have : measurable (λ p : α × γ, (f p.1, g p.1 p.2)) := (hf.1.comp measurable_fst).prod_mk hgm,
-  /- if `μa = 0`, then the lemma is trivial, otherwise we can use `hg`
-  to deduce `sigma_finite μc`. -/
-  by_cases ha : μa = 0,
-  { rw [← hf.map_eq, ha, zero_prod, (map f).map_zero, zero_prod],
-    exact ⟨this, (map _).map_zero⟩ },
-  haveI : μa.ae.ne_bot := ae_ne_bot.2 ha,
-  rcases hg.exists with ⟨x, hx⟩,
-  haveI : sigma_finite μc := sigma_finite.of_map _ hgm.of_uncurry_left (by rwa hx),
-  clear hx x,
-  refine ⟨this, (prod_eq $ λ s t hs ht, _).symm⟩,
-  rw [map_apply this (hs.prod ht)],
-  refine (prod_apply (this $ hs.prod ht)).trans _,
-  have : ∀ᵐ x ∂μa, μc ((λ y, (f x, g x y)) ⁻¹' s.prod t) = indicator (f ⁻¹' s) (λ y, μd t) x,
-  { refine hg.mono (λ x hx, _),
-    simp only [mk_preimage_prod_right_fn_eq_if, indicator_apply, mem_preimage],
-    split_ifs,
-    { rw [← map_apply hgm.of_uncurry_left ht, hx] },
-    { exact measure_empty } },
-  simp only [preimage_preimage],
-  rw [lintegral_congr_ae this, lintegral_indicator _ (hf.1 hs),
-    set_lintegral_const, hf.measure_preimage hs, mul_comm]
-end
-
-/-- If `f : α → β` sends the measure `μa` to `μb` and `g : γ → δ` sends the measure `μc` to `μd`,
-then `prod.map f g` sends `μa.prod μc` to `μb.prod μd`. -/
-lemma prod [sigma_finite μb] [sigma_finite μd] {f : α → β} {g : γ → δ}
-  (hf : measure_preserving f μa μb) (hg : measure_preserving g μc μd) :
-  measure_preserving (prod.map f g) (μa.prod μc) (μb.prod μd) :=
-have measurable (uncurry $ λ _ : α, g), from (hg.1.comp measurable_snd),
-hf.skew_product this $ filter.eventually_of_forall $ λ _, hg.map_eq
 
 variables {μ : measure α} {f : α → α} {s : set α}
 
@@ -125,8 +124,8 @@ begin
   -- without `tactic.skip` Lean closes the extra goal but it takes a long time; not sure why
   wlog hlt : i < j := hij.lt_or_lt using [i j, j i] tactic.skip,
   { simp only [set.mem_preimage, finset.mem_range] at hi hj hxi hxj,
-    refine ⟨f^[i] x, hxi, j - i, ⟨nat.sub_pos_of_lt hlt, lt_of_le_of_lt (j.sub_le i) hj⟩, _⟩,
-    rwa [← iterate_add_apply, nat.sub_add_cancel hlt.le] },
+    refine ⟨f^[i] x, hxi, j - i, ⟨tsub_pos_of_lt hlt, lt_of_le_of_lt (j.sub_le i) hj⟩, _⟩,
+    rwa [← iterate_add_apply, tsub_add_cancel_of_le hlt.le] },
   { exact λ hi hj hij hxi hxj, this hj hi hij.symm hxj hxi }
 end
 
@@ -134,7 +133,7 @@ end
 `x ∈ s` comes back to `s` under iterations of `f`. Actually, a.e. point of `s` comes back to `s`
 infinitely many times, see `measure_theory.measure_preserving.conservative` and theorems about
 `measure_theory.conservative`. -/
-lemma exists_mem_image_mem [finite_measure μ] (hf : measure_preserving f μ μ)
+lemma exists_mem_image_mem [is_finite_measure μ] (hf : measure_preserving f μ μ)
   (hs : measurable_set s) (hs' : μ s ≠ 0) :
   ∃ (x ∈ s) (m ≠ 0), f^[m] x ∈ s :=
 begin

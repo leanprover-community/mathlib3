@@ -3,8 +3,9 @@ Copyright (c) 2021 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import topology.instances.ennreal
 import data.real.ereal
+import topology.algebra.order.monotone_continuity
+import topology.instances.ennreal
 
 /-!
 # Topological structure on `ereal`
@@ -67,12 +68,12 @@ lemma embedding_coe : embedding (coe : ℝ → ereal) :=
     refine le_generate_from (assume s ha, _),
     rcases ha with ⟨a, rfl | rfl⟩,
     show is_open {b : ℝ | a < ↑b},
-    { rcases a.cases with rfl|⟨x, rfl⟩|rfl,
+    { induction a using ereal.rec,
       { simp only [is_open_univ, bot_lt_coe, set_of_true] },
       { simp only [ereal.coe_lt_coe_iff], exact is_open_Ioi },
       { simp only [set_of_false, is_open_empty, not_top_lt] } },
     show is_open {b : ℝ | ↑b < a},
-    { rcases a.cases with rfl|⟨x, rfl⟩|rfl,
+    { induction a using ereal.rec,
       { simp only [not_lt_bot, set_of_false, is_open_empty] },
       { simp only [ereal.coe_lt_coe_iff], exact is_open_Iio },
       { simp only [is_open_univ, coe_lt_top, set_of_true] } } },
@@ -89,7 +90,7 @@ lemma open_embedding_coe : open_embedding (coe : ℝ → ereal) :=
 begin
   convert @is_open_Ioo ereal _ _ _ ⊥ ⊤,
   ext x,
-  rcases x.cases with rfl|⟨y, rfl⟩|rfl,
+  induction x using ereal.rec,
   { simp only [left_mem_Ioo, mem_range, coe_ne_bot, exists_false, not_false_iff] },
   { simp only [mem_range_self, mem_Ioo, bot_lt_coe, coe_lt_top, and_self] },
   { simp only [mem_range, right_mem_Ioo, exists_false, coe_ne_top] }
@@ -121,12 +122,12 @@ begin
   exact tendsto_id
 end
 
-lemma continuous_on_to_real : continuous_on ereal.to_real ({⊥, ⊤} : set ereal).compl :=
+lemma continuous_on_to_real : continuous_on ereal.to_real ({⊥, ⊤}ᶜ : set ereal) :=
 λ a ha, continuous_at.continuous_within_at (tendsto_to_real
   (by { simp [not_or_distrib] at ha, exact ha.2 }) (by { simp [not_or_distrib] at ha, exact ha.1 }))
 
 /-- The set of finite `ereal` numbers is homeomorphic to `ℝ`. -/
-def ne_bot_top_homeomorph_real : ({⊥, ⊤} : set ereal).compl ≃ₜ ℝ :=
+def ne_bot_top_homeomorph_real : ({⊥, ⊤}ᶜ : set ereal) ≃ₜ ℝ :=
 { continuous_to_fun := continuous_on_iff_continuous_restrict.1 continuous_on_to_real,
   continuous_inv_fun := continuous_subtype_mk _ continuous_coe_real_ereal,
   .. ne_top_bot_equiv_real }
@@ -142,7 +143,7 @@ lemma embedding_coe_ennreal : embedding (coe : ℝ≥0∞ → ereal) :=
     refine le_generate_from (assume s ha, _),
     rcases ha with ⟨a, rfl | rfl⟩,
     show is_open {b : ℝ≥0∞ | a < ↑b},
-    { rcases a.cases with rfl|⟨x, rfl⟩|rfl,
+    { induction a using ereal.rec with x,
       { simp only [is_open_univ, bot_lt_coe_ennreal, set_of_true] },
       { rcases le_or_lt 0 x with h|h,
         { have : (x : ereal) = ((id ⟨x, h⟩ : ℝ≥0) : ℝ≥0∞) := rfl,
@@ -154,7 +155,7 @@ lemma embedding_coe_ennreal : embedding (coe : ℝ≥0∞ → ereal) :=
           simp only [this, is_open_univ, set_of_true] } },
       { simp only [set_of_false, is_open_empty, not_top_lt] } },
     show is_open {b : ℝ≥0∞ | ↑b < a},
-    { rcases a.cases with rfl|⟨x, rfl⟩|rfl,
+    { induction a using ereal.rec with x,
       { simp only [not_lt_bot, set_of_false, is_open_empty] },
       { rcases le_or_lt 0 x with h|h,
         { have : (x : ereal) = ((id ⟨x, h⟩ : ℝ≥0) : ℝ≥0∞) := rfl,
@@ -195,9 +196,9 @@ lemma nhds_top' : 𝓝 (⊤ : ereal) = ⨅ a : ℝ, 𝓟 (Ioi a) :=
 begin
   rw [nhds_top],
   apply le_antisymm,
-  { exact infi_le_infi2 (λ x, ⟨x, by simp⟩) },
+  { exact infi_mono' (λ x, ⟨x, by simp⟩) },
   { refine le_infi (λ r, le_infi (λ hr, _)),
-    rcases r.cases with rfl|⟨x, rfl⟩|rfl,
+    induction r using ereal.rec,
     { exact (infi_le _ 0).trans (by simp) },
     { exact infi_le _ _ },
     { simpa using hr, } }
@@ -206,7 +207,7 @@ end
 lemma mem_nhds_top_iff {s : set ereal} :
   s ∈ 𝓝 (⊤ : ereal) ↔ ∃ (y : ℝ), Ioi (y : ereal) ⊆ s :=
 begin
-  rw [nhds_top', mem_infi],
+  rw [nhds_top', mem_infi_of_directed],
   { refl },
   exact λ x y, ⟨max x y, by simp [le_refl], by simp [le_refl]⟩,
 end
@@ -222,9 +223,9 @@ lemma nhds_bot' : 𝓝 (⊥ : ereal) = ⨅ a : ℝ, 𝓟 (Iio a) :=
 begin
   rw [nhds_bot],
   apply le_antisymm,
-  { exact infi_le_infi2 (λ x, ⟨x, by simp⟩) },
+  { exact infi_mono' (λ x, ⟨x, by simp⟩) },
   { refine le_infi (λ r, le_infi (λ hr, _)),
-    rcases r.cases with rfl|⟨x, rfl⟩|rfl,
+    induction r using ereal.rec,
     { simpa using hr },
     { exact infi_le _ _ },
     { exact (infi_le _ 0).trans (by simp) } }
@@ -233,7 +234,7 @@ end
 lemma mem_nhds_bot_iff {s : set ereal} :
   s ∈ 𝓝 (⊥ : ereal) ↔ ∃ (y : ℝ), Iio (y : ereal) ⊆ s :=
 begin
-  rw [nhds_bot', mem_infi],
+  rw [nhds_bot', mem_infi_of_directed],
   { refl },
   exact λ x y, ⟨min x y, by simp [le_refl], by simp [le_refl]⟩,
 end
@@ -296,10 +297,8 @@ begin
   refine ⟨λ z, z < ((r - (a + 1): ℝ) : ereal), Iio_mem_nhds (bot_lt_coe _),
           λ z, z < ((a + 1 : ℝ) : ereal), Iio_mem_nhds (by simp [-coe_add, zero_lt_one]),
           λ x hx y hy, _⟩,
-  dsimp,
   convert add_lt_add hx hy,
-  dsimp,
-  ring,
+  rw sub_add_cancel,
 end
 
 lemma continuous_at_add_coe_bot (a : ℝ) :
@@ -331,7 +330,7 @@ lemma continuous_at_add {p : ereal × ereal} (h : p.1 ≠ ⊤ ∨ p.2 ≠ ⊥) (
   continuous_at (λ (p : ereal × ereal), p.1 + p.2) p :=
 begin
   rcases p with ⟨x, y⟩,
-  rcases x.cases with rfl|⟨x, rfl⟩|rfl; rcases y.cases with rfl|⟨y, rfl⟩|rfl,
+  induction x using ereal.rec; induction y using ereal.rec,
   { exact continuous_at_add_bot_bot },
   { exact continuous_at_add_bot_coe _ },
   { simpa using h' },

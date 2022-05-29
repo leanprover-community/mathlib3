@@ -142,7 +142,7 @@ begin
   cases i;
     simp_rw [centroid_weights_with_circumcenter, circumcenter_weights_with_circumcenter,
              monge_point_weights_with_circumcenter];
-    rw [nat.add_sub_assoc (dec_trivial : 1 ≤ 2), (dec_trivial : 2 - 1 = 1)],
+    rw [add_tsub_assoc_of_le (dec_trivial : 1 ≤ 2), (dec_trivial : 2 - 1 = 1)],
   { rw [if_pos (mem_univ _), sub_zero, add_zero, card_fin],
     have hn3 : (n + 2 + 1 : ℝ) ≠ 0,
     { exact_mod_cast nat.succ_ne_zero _ },
@@ -212,10 +212,12 @@ by simp_rw [monge_point_eq_affine_combination_of_points_with_circumcenter,
 n-dimensional face, is orthogonal to the difference of the two
 vertices not in that face. -/
 lemma inner_monge_point_vsub_face_centroid_vsub {n : ℕ} (s : simplex ℝ P (n + 2))
-  {i₁ i₂ : fin (n + 3)} (h : i₁ ≠ i₂) :
+  {i₁ i₂ : fin (n + 3)} :
   ⟪s.monge_point -ᵥ ({i₁, i₂}ᶜ : finset (fin (n + 3))).centroid ℝ s.points,
         s.points i₁ -ᵥ s.points i₂⟫ = 0 :=
 begin
+  by_cases h : i₁ = i₂,
+  { simp [h], },
   simp_rw [monge_point_vsub_face_centroid_eq_weighted_vsub_of_points_with_circumcenter s h,
            point_eq_affine_combination_of_points_with_circumcenter,
            affine_combination_vsub],
@@ -237,7 +239,7 @@ begin
     { simp_rw [sum_insert (not_mem_singleton.2 h), sum_singleton],
       repeat { rw ←sum_subset fs.subset_univ _ },
       { simp_rw [sum_insert (not_mem_singleton.2 h), sum_singleton],
-        simp [h, h.symm, dist_comm (s.points i₁)] },
+        simp [h, ne.symm h, dist_comm (s.points i₁)] },
       all_goals { intros i hu hi, simp [hfs i hi] } },
     { intros i hu hi,
       simp [hfs i hi, point_weights_with_circumcenter] } },
@@ -271,7 +273,7 @@ begin
   simp_rw monge_plane_def,
   congr' 3,
   { congr' 1,
-    exact insert_singleton_comm _ _ },
+    exact pair_comm _ _ },
   { ext,
     simp_rw submodule.mem_span_singleton,
     split,
@@ -279,25 +281,22 @@ begin
 end
 
 /-- The Monge point lies in the Monge planes. -/
-lemma monge_point_mem_monge_plane {n : ℕ} (s : simplex ℝ P (n + 2)) {i₁ i₂ : fin (n + 3)}
-    (h : i₁ ≠ i₂) : s.monge_point ∈ s.monge_plane i₁ i₂ :=
+lemma monge_point_mem_monge_plane {n : ℕ} (s : simplex ℝ P (n + 2)) {i₁ i₂ : fin (n + 3)} :
+  s.monge_point ∈ s.monge_plane i₁ i₂ :=
 begin
   rw [monge_plane_def, mem_inf_iff, ←vsub_right_mem_direction_iff_mem (self_mem_mk' _ _),
       direction_mk', submodule.mem_orthogonal'],
   refine ⟨_, s.monge_point_mem_affine_span⟩,
   intros v hv,
   rcases submodule.mem_span_singleton.mp hv with ⟨r, rfl⟩,
-  rw [inner_smul_right, s.inner_monge_point_vsub_face_centroid_vsub h, mul_zero]
+  rw [inner_smul_right, s.inner_monge_point_vsub_face_centroid_vsub, mul_zero]
 end
 
--- This doesn't actually need the `i₁ ≠ i₂` hypothesis, but it's
--- convenient for the proof and `monge_plane` isn't intended to be
--- useful without that hypothesis.
 /-- The direction of a Monge plane. -/
-lemma direction_monge_plane {n : ℕ} (s : simplex ℝ P (n + 2)) {i₁ i₂ : fin (n + 3)} (h : i₁ ≠ i₂) :
+lemma direction_monge_plane {n : ℕ} (s : simplex ℝ P (n + 2)) {i₁ i₂ : fin (n + 3)} :
   (s.monge_plane i₁ i₂).direction = (ℝ ∙ (s.points i₁ -ᵥ s.points i₂))ᗮ ⊓
     vector_span ℝ (set.range s.points) :=
-by rw [monge_plane_def, direction_inf_of_mem_inf (s.monge_point_mem_monge_plane h), direction_mk',
+by rw [monge_plane_def, direction_inf_of_mem_inf s.monge_point_mem_monge_plane, direction_mk',
        direction_affine_span]
 
 /-- The Monge point is the only point in all the Monge planes from any
@@ -310,8 +309,8 @@ begin
   have h' : ∀ i₂, i₁ ≠ i₂ → p -ᵥ s.monge_point ∈
     (ℝ ∙ (s.points i₁ -ᵥ s.points i₂))ᗮ ⊓ vector_span ℝ (set.range s.points),
   { intros i₂ hne,
-    rw [←s.direction_monge_plane hne,
-        vsub_right_mem_direction_iff_mem (s.monge_point_mem_monge_plane hne)],
+    rw [←s.direction_monge_plane,
+        vsub_right_mem_direction_iff_mem s.monge_point_mem_monge_plane],
     exact h i₂ hne },
   have hi : p -ᵥ s.monge_point ∈ ⨅ (i₂ : {i // i₁ ≠ i}),
     (ℝ ∙ (s.points i₁ -ᵥ s.points i₂))ᗮ,
@@ -398,13 +397,13 @@ begin
     (vector_span_mono ℝ (set.image_subset_range s.points ↑(univ.erase i))),
   have hc : card (univ.erase i) = n + 1, { rw card_erase_of_mem (mem_univ _), simp },
   refine add_left_cancel (trans h _),
-  rw [finrank_vector_span_of_affine_independent s.independent (fintype.card_fin _),
-      ← finset.coe_image, finrank_vector_span_image_finset_of_affine_independent s.independent hc]
+  rw [s.independent.finrank_vector_span (fintype.card_fin _),
+      ← finset.coe_image, s.independent.finrank_vector_span_image_finset hc]
 end
 
 /-- A line through a vertex is the altitude through that vertex if and
 only if it is orthogonal to the opposite face. -/
-lemma affine_span_insert_singleton_eq_altitude_iff {n : ℕ} (s : simplex ℝ P (n + 1))
+lemma affine_span_pair_eq_altitude_iff {n : ℕ} (s : simplex ℝ P (n + 1))
     (i : fin (n + 2)) (p : P) :
   affine_span ℝ {p, s.points i} = s.altitude i ↔ (p ≠ s.points i ∧
     p ∈ affine_span ℝ (set.range s.points) ∧
@@ -422,11 +421,11 @@ begin
       have hd : finrank ℝ (s.altitude i).direction = 0,
       { rw [←h, finrank_bot] },
       simpa using hd },
-    { rw [←submodule.mem_inf, inf_comm, ←direction_altitude, ←h],
+    { rw [←submodule.mem_inf, _root_.inf_comm, ←direction_altitude, ←h],
       exact vsub_mem_vector_span ℝ (set.mem_insert _ _)
                                    (set.mem_insert_of_mem _ (set.mem_singleton _)) } },
   { rintro ⟨hne, h⟩,
-    rw [←submodule.mem_inf, inf_comm, ←direction_altitude] at h,
+    rw [←submodule.mem_inf, _root_.inf_comm, ←direction_altitude] at h,
     rw [vector_span_eq_span_vsub_set_left_ne ℝ (set.mem_insert _ _),
         set.insert_diff_of_mem _ (set.mem_singleton _),
         set.diff_singleton_eq_self (λ h, hne (set.mem_singleton_iff.1 h)), set.image_singleton],
@@ -496,7 +495,7 @@ lemma orthocenter_mem_altitude (t : triangle ℝ P) {i₁ : fin 3} :
 begin
   obtain ⟨i₂, i₃, h₁₂, h₂₃, h₁₃⟩ : ∃ i₂ i₃, i₁ ≠ i₂ ∧ i₂ ≠ i₃ ∧ i₁ ≠ i₃, by dec_trivial!,
   rw [orthocenter_eq_monge_point, t.altitude_eq_monge_plane h₁₂ h₁₃ h₂₃],
-  exact t.monge_point_mem_monge_plane h₂₃
+  exact t.monge_point_mem_monge_plane
 end
 
 /-- The orthocenter is the only point lying in any two of the
@@ -571,9 +570,9 @@ lemma altitude_replace_orthocenter_eq_affine_span {t₁ t₂ : triangle ℝ P} {
   t₂.altitude j₂ = affine_span ℝ {t₁.points i₁, t₁.points i₂} :=
 begin
   symmetry,
-  rw [←h₂, t₂.affine_span_insert_singleton_eq_altitude_iff],
+  rw [←h₂, t₂.affine_span_pair_eq_altitude_iff],
   rw [h₂],
-  use (injective_of_affine_independent t₁.independent).ne hi₁₂,
+  use t₁.independent.injective.ne hi₁₂,
   have he : affine_span ℝ (set.range t₂.points) = affine_span ℝ (set.range t₁.points),
   { refine ext_of_direction_eq _
       ⟨t₁.points i₃, mem_affine_span ℝ ⟨j₃, h₃⟩, mem_affine_span ℝ (set.mem_range_self _)⟩,
@@ -586,8 +585,8 @@ begin
              mem_affine_span ℝ (set.mem_range_self _),
              mem_affine_span ℝ (set.mem_range_self _)⟩ },
     { rw [direction_affine_span, direction_affine_span,
-          finrank_vector_span_of_affine_independent t₁.independent (fintype.card_fin _),
-          finrank_vector_span_of_affine_independent t₂.independent (fintype.card_fin _)] } },
+          t₁.independent.finrank_vector_span (fintype.card_fin _),
+          t₂.independent.finrank_vector_span (fintype.card_fin _)] } },
   rw he,
   use mem_affine_span ℝ (set.mem_range_self _),
   have hu : finset.univ.erase j₂ = {j₁, j₃}, { clear h₁ h₂ h₃, dec_trivial! },
@@ -677,7 +676,7 @@ begin
     rw set.insert_diff_self_of_not_mem ho at hs,
     refine set.eq_of_subset_of_card_le hs _,
     rw [set.card_range_of_injective hpi,
-        set.card_range_of_injective (injective_of_affine_independent t.independent)] }
+        set.card_range_of_injective t.independent.injective] }
 end
 
 /-- For any three points in an orthocentric system generated by
@@ -742,8 +741,8 @@ begin
   haveI := hfd,
   refine eq_of_le_of_finrank_eq (direction_le (affine_span_mono ℝ hps)) _,
   rw [hs, direction_affine_span, direction_affine_span,
-      finrank_vector_span_of_affine_independent ha (fintype.card_fin _),
-      finrank_vector_span_of_affine_independent t.independent (fintype.card_fin _)]
+      ha.finrank_vector_span (fintype.card_fin _),
+      t.independent.finrank_vector_span (fintype.card_fin _)]
 end
 
 /-- All triangles in an orthocentric system have the same circumradius. -/
@@ -756,15 +755,15 @@ begin
   have ht₂s := ht₂,
   rw hts at ht₂,
   rcases exists_dist_eq_circumradius_of_subset_insert_orthocenter hto ht₂
-    (injective_of_affine_independent t₂.independent) with ⟨c, hc, h⟩,
+    t₂.independent.injective with ⟨c, hc, h⟩,
   rw set.forall_range_iff at h,
   have hs : set.range t.points ⊆ s,
   { rw hts,
     exact set.subset_insert _ _ },
   rw [affine_span_of_orthocentric_system ⟨t, hto, hts⟩ hs
-        (injective_of_affine_independent t.independent),
+        t.independent.injective,
       ←affine_span_of_orthocentric_system ⟨t, hto, hts⟩ ht₂s
-        (injective_of_affine_independent t₂.independent)] at hc,
+        t₂.independent.injective] at hc,
   exact (t₂.eq_circumradius_of_dist_eq hc h).symm
 end
 
@@ -777,7 +776,7 @@ begin
   rcases ho with ⟨t₀, ht₀o, ht₀s⟩,
   rw ht₀s at ht,
   rcases exists_of_range_subset_orthocentric_system ht₀o ht
-    (injective_of_affine_independent t.independent) with
+    t.independent.injective with
     ⟨i₁, i₂, i₃, j₂, j₃, h₁₂, h₁₃, h₂₃, h₁₂₃, h₁, hj₂₃, h₂, h₃⟩ | hs,
   { obtain ⟨j₁, hj₁₂, hj₁₃, hj₁₂₃⟩ :
       ∃ j₁ : fin 3, j₁ ≠ j₂ ∧ j₁ ≠ j₃ ∧ ∀ j : fin 3, j = j₁ ∨ j = j₂ ∨ j = j₃,

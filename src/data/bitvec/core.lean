@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joe Hendrix, Sebastian Ullrich
 -/
 
-import data.vector2
+import data.vector.basic
 import data.nat.basic
 
 /-!
@@ -58,11 +58,11 @@ def fill_shr (x : bitvec n) (i : ℕ) (fill : bool) : bitvec n :=
 bitvec.cong
   begin
     by_cases (i ≤ n),
-    { have h₁ := sub_le n i,
+    { have h₁ := nat.sub_le n i,
       rw [min_eq_right h],
-      rw [min_eq_left h₁, ← nat.add_sub_assoc h, nat.add_comm, nat.add_sub_cancel] },
+      rw [min_eq_left h₁, ← add_tsub_assoc_of_le h, nat.add_comm, add_tsub_cancel_right] },
     { have h₁ := le_of_not_ge h,
-      rw [min_eq_left h₁, sub_eq_zero_of_le h₁, zero_min, nat.add_zero] }
+      rw [min_eq_left h₁, tsub_eq_zero_iff_le.mpr h₁, zero_min, nat.add_zero] }
   end $
   repeat fill (min n i) ++ₜ take (n-i) x
 
@@ -240,8 +240,7 @@ theorem to_nat_of_nat {k n : ℕ}
 begin
   induction k with k ih generalizing n,
   { simp [nat.mod_one], refl },
-  { have h : 0 < 2, { apply le_succ },
-    rw [of_nat_succ, to_nat_append, ih, bits_to_nat_to_bool, mod_pow_succ h, nat.mul_comm] }
+  { rw [of_nat_succ, to_nat_append, ih, bits_to_nat_to_bool, mod_pow_succ, nat.mul_comm] }
 end
 
 /-- Return the integer encoded by the input bitvector -/

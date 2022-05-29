@@ -3,9 +3,10 @@ Copyright (c) 2020 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta, Scott Morrison
 -/
-import category_theory.currying
+import category_theory.functor.currying
 import category_theory.limits.over
-import category_theory.monad.adjunction
+import category_theory.limits.shapes.images
+import category_theory.adjunction.reflective
 
 /-!
 # Monomorphisms over a fixed object
@@ -369,7 +370,7 @@ nat_iso.of_components
 begin
   intro Z,
   suffices : (forget _).obj ((«exists» f).obj Z) ≅ (forget _).obj ((map f).obj Z),
-    apply preimage_iso this,
+    apply (forget _).preimage_iso this,
   apply over.iso_mk _ _,
   apply image_mono_iso_source (Z.arrow ≫ f),
   apply image_mono_iso_source_hom_self,

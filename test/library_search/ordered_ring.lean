@@ -5,7 +5,7 @@ Authors: Scott Morrison
 -/
 import tactic.basic
 import data.nat.basic
-import algebra.ordered_ring
+import algebra.order.ring
 
 /- Turn off trace messages so they don't pollute the test build: -/
 set_option trace.silence_library_search true

@@ -1,8 +1,10 @@
 /-
 Copyright (c) 2020 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Floris van Doorn, Robert Y. Lewis
+Authors: Floris van Doorn, Robert Y. Lewis, Arthur Paulino
 -/
+import data.bool.basic
+import meta.rb_map
 import tactic.lint.basic
 
 /-!
@@ -16,6 +18,10 @@ This file defines several small linters:
   - `doc_blame_thm` checks that every theorem has a documentation string (not enabled by default).
   - `def_lemma` checks that a declaration is a lemma iff its type is a proposition.
   - `check_type` checks that the statement of a declaration is well-typed.
+  - `check_univs` checks that there are no bad `max u v` universe levels.
+  - `syn_taut` checks that declarations are not syntactic tautologies.
+  - `unused_haves_suffices` checks that declarations produced via term mode do not have
+    ineffectual `have` or `suffices` statements
 -/
 
 open tactic expr
@@ -126,7 +132,7 @@ return $ let nm := d.to_name.components in if nm.chain' (≠) ∨ is_inst then n
   no_errors_found := "No declarations have a duplicate namespace.",
   errors_found := "DUPLICATED NAMESPACES IN NAME:" }
 
-
+attribute [nolint dup_namespace] iff.iff
 
 /-!
 ## Linter for unused arguments
@@ -156,15 +162,17 @@ let l2 := check_unused_arguments_aux [] 1 d.type.pi_arity d.type in
 /-- Check for unused arguments, and print them with their position, variable name, type and whether
 the argument is a duplicate.
 See also `check_unused_arguments`.
-This tactic additionally filters out all unused arguments of type `parse _`. -/
+This tactic additionally filters out all unused arguments of type `parse _`.
+We skip all declarations that contain `sorry` in their value. -/
 private meta def unused_arguments (d : declaration) : tactic (option string) := do
+  ff ← d.to_name.contains_sorry | return none,
   let ns := check_unused_arguments d,
-  if ¬ ns.is_some then return none else do
+  tt ← return ns.is_some | return none,
   let ns := ns.iget,
   (ds, _) ← get_pi_binders d.type,
   let ns := ns.map (λ n, (n, (ds.nth $ n - 1).iget)),
   let ns := ns.filter (λ x, x.2.type.get_app_fn ≠ const `interactive.parse []),
-  if ns = [] then return none else do
+  ff ← return ns.empty | return none,
   ds' ← ds.mmap pp,
   ns ← ns.mmap (λ ⟨n, b⟩, (λ s, to_fmt "argument " ++ to_fmt n ++ ": " ++ s ++
     (if ds.countp (λ b', b.type = b'.type) ≥ 2 then " (duplicate)" else "")) <$> pp b),
@@ -212,8 +220,6 @@ meta def linter.doc_blame_thm : linter :=
   errors_found := "THEOREMS ARE MISSING DOCUMENTATION STRINGS:",
   is_fast := ff }
 
-
-
 /-!
 ## Linter for correct usage of `lemma`/`def`
 -/
@@ -247,7 +253,9 @@ has been used. -/
   no_errors_found := "All declarations correctly marked as def/lemma.",
   errors_found := "INCORRECT DEF/LEMMA:" }
 
-attribute [nolint def_lemma] classical.dec classical.dec_pred classical.dec_rel classical.dec_eq
+/-!
+## Linter that checks whether declarations are well-typed
+-/
 
 /-- Checks whether the statement of a declaration is well-typed. -/
 meta def check_type (d : declaration) : tactic (option string) :=
@@ -266,3 +274,261 @@ Some definitions in the statement are marked `@[irreducible]`, which means that 
 "or `@[semireducible]`. This can especially cause problems with type class inference or " ++
 "`@[simps]`.",
   is_fast := tt }
+
+/-!
+## Linter for universe parameters
+-/
+
+open native
+/--
+  `univ_params_grouped e` computes for each `level` `u` of `e` the parameters that occur in `u`,
+  and returns the corresponding set of lists of parameters.
+  In pseudo-mathematical form, this returns `{ { p : parameter | p ∈ u } | (u : level) ∈ e }`
+  We use `list name` instead of `name_set`, since `name_set` does not have an order.
+  It will ignore `nm₀._proof_i` declarations.
+-/
+meta def expr.univ_params_grouped (e : expr) (nm₀ : name) : rb_set (list name) :=
+e.fold mk_rb_set $ λ e n l,
+  match e with
+  | e@(sort u) := l.insert u.params.to_list
+  | e@(const nm us) := if nm.get_prefix = nm₀ ∧ nm.last.starts_with "_proof_" then l else
+      l.union $ rb_set.of_list $ us.map $ λ u : level, u.params.to_list
+  | _ := l
+  end
+
+/--
+  The good parameters are the parameters that occur somewhere in the `rb_set` as a singleton or
+  (recursively) with only other good parameters.
+  All other parameters in the `rb_set` are bad.
+-/
+meta def bad_params : rb_set (list name) → list name | l :=
+let good_levels : name_set :=
+  l.fold mk_name_set $ λ us prev, if us.length = 1 then prev.insert us.head else prev in
+if good_levels.empty then
+l.fold [] list.union
+else bad_params $ rb_set.of_list $ l.to_list.map $ λ us, us.filter $ λ nm, !good_levels.contains nm
+
+/--
+Checks whether all universe levels `u` in the type of `d` are "good".
+This means that `u` either occurs in a `level` of `d` by itself, or (recursively)
+with only other good levels.
+When this fails, usually this means that there is a level `max u v`, where neither `u` nor `v`
+occur by themselves in a level. It is ok if *one* of `u` or `v` never occurs alone. For example,
+`(α : Type u) (β : Type (max u v))` is a occasionally useful method of saying that `β` lives in
+a higher universe level than `α`.
+-/
+meta def check_univs (d : declaration) : tactic (option string) := do
+  let l := d.type.univ_params_grouped d.to_name,
+  let bad := bad_params l,
+  if bad.empty then return none else
+    return $ some $ "universes " ++ to_string bad ++ " only occur together."
+
+/-- A linter for checking that there are no bad `max u v` universe levels. -/
+@[linter]
+meta def linter.check_univs : linter :=
+{ test := check_univs,
+  auto_decls := ff,
+  no_errors_found :=
+    "All declarations have good universe levels.",
+  errors_found := "THE STATEMENTS OF THE FOLLOWING DECLARATIONS HAVE BAD UNIVERSE LEVELS. " ++
+"This usually means that there is a `max u v` in the type where neither `u` nor `v` " ++
+"occur by themselves. Solution: Find the type (or type bundled with data) that has this " ++
+"universe argument and provide the universe level explicitly. If this happens in an implicit " ++
+"argument of the declaration, a better solution is to move this argument to a `variables` " ++
+"command (then it's not necessary to provide the universe level).
+It is possible that this linter gives a false positive on definitions where the value of the " ++
+"definition has the universes occur separately, and the definition will usually be used with " ++
+"explicit universe arguments. In this case, feel free to add `@[nolint check_univs]`.",
+  is_fast := tt }
+
+/-!
+## Linter for syntactic tautologies
+-/
+
+/--
+Checks whether a lemma is a declaration of the form `∀ a b ... z, e₁ = e₂`
+where `e₁` and `e₂` are identical exprs.
+We call declarations of this form syntactic tautologies.
+Such lemmas are (mostly) useless and sometimes introduced unintentionally when proving basic facts
+with rfl when elaboration results in a different term than the user intended.
+-/
+meta def syn_taut (d : declaration) : tactic (option string) :=
+  (do (el, er) ← d.type.pi_codomain.is_eq,
+    guardb (el =ₐ er),
+    return $ some "LHS equals RHS syntactically") <|>
+  return none
+
+/-- A linter for checking that declarations aren't syntactic tautologies. -/
+@[linter]
+meta def linter.syn_taut : linter :=
+{ test := syn_taut,
+  auto_decls := ff, -- many false positives with this enabled
+  no_errors_found :=
+    "No declarations are syntactic tautologies.",
+  errors_found := "THE FOLLOWING DECLARATIONS ARE SYNTACTIC TAUTOLOGIES. " ++
+"This usually means that they are of the form `∀ a b ... z, e₁ = e₂` where `e₁` and `e₂` are " ++
+"identical expressions. We call declarations of this form syntactic tautologies. " ++
+"Such lemmas are (mostly) useless and sometimes introduced unintentionally when proving " ++
+"basic facts using `rfl`, when elaboration results in a different term than the user intended. " ++
+"You should check that the declaration really says what you think it does.",
+  is_fast := tt }
+
+attribute [nolint syn_taut] rfl
+
+
+/-!
+## Linters for ineffectual have and suffices statements in term mode
+-/
+
+/--
+Check if an expression contains `var 0` by folding over the expression and matching the binder depth
+-/
+meta def expr.has_zero_var (e : expr) : bool :=
+e.fold ff $ λ e' d res, res || match e' with | var k := k = d | _ := ff end
+
+/--
+Return a list of unused have and suffices terms in an expression
+-/
+meta def find_unused_have_suffices_macros : expr → tactic (list string)
+| (app a b) := (++) <$> find_unused_have_suffices_macros a <*> find_unused_have_suffices_macros b
+| (lam var_name bi var_type body) := find_unused_have_suffices_macros body
+| (pi var_name bi var_type body) := find_unused_have_suffices_macros body
+| (elet var_name type assignment body) := (++) <$> find_unused_have_suffices_macros assignment
+                                               <*> find_unused_have_suffices_macros body
+| m@(macro md [l@(lam ppnm bi vt bd)]) := do -- term mode have statements are tagged with a macro
+  -- if the macro annotation is `have then this lambda came from a term mode have statement
+  (++) (if m.is_annotation.iget.fst = `have ∧ ¬bd.has_zero_var then
+      ["unnecessary have " ++ ppnm.to_string ++ " : " ++ vt.to_string]
+    else []) <$>
+  find_unused_have_suffices_macros l
+| m@(macro md [app l@(lam ppnm bi vt bd) arg]) := do
+  -- term mode suffices statements are tagged with a macro
+  -- if the macro annotation is `suffices then this lambda came from a term mode suffices statement
+  (++) (if m.is_annotation.iget.fst = `suffices ∧ ¬bd.has_zero_var then
+      ["unnecessary suffices " ++ ppnm.to_string ++ " : " ++ vt.to_string]
+    else []) <$>
+  ((++) <$> find_unused_have_suffices_macros l <*> find_unused_have_suffices_macros arg)
+| (macro md l) := list.join <$> l.mmap find_unused_have_suffices_macros
+| _ := return []
+
+/--
+Return a list of unused have and suffices terms in a declaration
+-/
+meta def unused_have_of_decl : declaration → tactic (list string)
+| (declaration.defn _ _ _ bd _ _) := find_unused_have_suffices_macros bd
+| (declaration.thm _ _ _ bd) := find_unused_have_suffices_macros bd.get
+| _ := return []
+
+/--
+Checks whether a declaration contains term mode have statements that have no effect on the resulting
+term.
+-/
+meta def has_unused_haves_suffices (d : declaration) : tactic (option string) := do
+  ns ← unused_have_of_decl d,
+  if ns.length = 0 then
+    return none
+  else
+    return (", ".intercalate (ns.map to_string))
+
+/-- A linter for checking that declarations don't have unused term mode have statements. We do not
+tag this as `@[linter]` so that it is not in the default linter set as it is slow and an uncommon
+problem. -/
+meta def linter.unused_haves_suffices : linter :=
+{ test := has_unused_haves_suffices,
+  auto_decls := ff,
+  no_errors_found := "No declarations have unused term mode have statements.",
+  errors_found := "THE FOLLOWING DECLARATIONS HAVE INEFFECTUAL TERM MODE HAVE/SUFFICES BLOCKS. " ++
+"In the case of `have` this is a term of the form `have h := foo, bar` where `bar` does not " ++
+"refer to `foo`. Such statements have no effect on the generated proof, and can just be " ++
+"replaced by `bar`, in addition to being ineffectual, they may make unnecessary assumptions " ++
+"in proofs appear as if they are used. " ++
+"For `suffices` this is a term of the form `suffices h : foo, proof_of_goal, proof_of_foo` where" ++
+" `proof_of_goal` does not refer to `foo`. " ++
+"Such statements have no effect on the generated proof, and can just be replaced by " ++
+"`proof_of_goal`, in addition to being ineffectual, they may make unnecessary assumptions in " ++
+"proofs appear as if they are used. ",
+  is_fast := ff }
+
+
+/-!
+## Linter for unprintable interactive tactics
+-/
+
+/--
+Ensures that every interactive tactic has arguments for which `interactive.param_desc` succeeds.
+This is used to generate the parser documentation that appears in hovers on interactive tactics.
+-/
+meta def unprintable_interactive (d : declaration) : tactic (option string) :=
+match d.to_name with
+| name.mk_string _ (name.mk_string "interactive" (name.mk_string _ name.anonymous)) := do
+  (ds, _) ← mk_local_pis d.type,
+  ds ← ds.mfilter $ λ d, bnot <$> succeeds (interactive.param_desc d.local_type),
+  ff ← return ds.empty | return none,
+  ds ← ds.mmap (pp ∘ to_binder),
+  return $ some $ ds.to_string_aux tt
+| _ := return none
+end
+
+/-- A linter for checking that interactive tactics have parser documentation. -/
+@[linter]
+meta def linter.unprintable_interactive : linter :=
+{ test := unprintable_interactive,
+  auto_decls := tt,
+  no_errors_found := "No tactics are unprintable.",
+  errors_found := "THE FOLLOWING TACTICS ARE UNPRINTABLE. " ++
+"This means that an interactive tactic is using `parse p` where `p` does not have " ++
+"an associated description. You can fix this by wrapping `p` as `with_desc \"p\" p`, " ++
+"and provide the description there, or you can stick to \"approved\" tactic combinators " ++
+"like `?` `*>` `<*` `<*>` `<|>` and `<$>` (but not `>>=` or `do` blocks) " ++
+"that automatically generate a description.",
+  is_fast := tt }
+
+
+/-!
+## Linter for iff's
+-/
+
+open binder_info
+
+/--
+Recursively consumes a Pi expression while accumulating names and the complement of de-Bruijn
+indexes of explicit variables, ultimately obtaining the remaining non-Pi expression as well.
+-/
+meta def unravel_explicits_of_pi :
+  expr → ℕ → list name → list ℕ → (list name) × (list ℕ) × expr
+| (pi n default _ e) i ln li := unravel_explicits_of_pi e (i + 1) (n :: ln) (i :: li)
+| (pi n _ _ e)       i ln li := unravel_explicits_of_pi e (i + 1) ln        li
+| e                  _ ln li := (ln, li, e)
+
+/--
+This function works as follows:
+1. Call `unravel_explicits_of_pi` to obtain the names, complements of de-Bruijn indexes and the
+remaining non-Pi expression;
+2. Check if the remaining non-Pi expression is an iff, already obtaining the respective left and
+right expressions if this is the case. Returns `none` otherwise;
+3. Filter the explicit variables that appear on the left *and* right side of the iff;
+4. If no variable satisfies the condition above, return `none`;
+5. Return a message mentioning the variables that do, otherwise.
+-/
+meta def explicit_vars_of_iff (d : declaration) :
+    tactic (option string) := do
+  let (ln, li, e) := unravel_explicits_of_pi d.type 0 [] [],
+  match e.is_iff with
+  | none          := return none
+  | some (el, er) := do
+    let li := li.map (λ i, d.type.pi_arity - i - 1), -- fixing for the actual de-Bruijn indexes
+    let l := (ln.zip li).filter (λ t, (el.has_var_idx t.2) && (er.has_var_idx t.2)),
+    if l = [] then return none
+    else return $ "The following variables are used on both sides of an iff and ".append $
+      "should be made implicit: ".append $ ", ".intercalate (l.map (λ t, to_string t.1))
+  end
+
+/--
+A linter for checking if variables appearing on both sides of an iff are explicit. Ideally, such
+variables should be implicit instead.
+-/
+meta def linter.explicit_vars_of_iff : linter :=
+{ test := explicit_vars_of_iff,
+  auto_decls := ff,
+  no_errors_found := "No explicit variables on both sides of iff",
+  errors_found := "EXPLICIT VARIABLES ON BOTH SIDES OF IFF" }

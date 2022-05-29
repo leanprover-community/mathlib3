@@ -3,7 +3,7 @@ Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import analysis.specific_limits
+import analysis.specific_limits.basic
 import order.filter.countable_Inter
 import topology.G_delta
 
@@ -34,7 +34,7 @@ variables {α : Type*} {β : Type*} {γ : Type*} {ι : Type*}
 
 section Baire_theorem
 open emetric ennreal
-variables [emetric_space α] [complete_space α]
+variables [pseudo_emetric_space α] [complete_space α]
 
 /-- Baire theorem: a countable intersection of dense open sets is dense. Formulated here when
 the source space is ℕ (and subsumed below by `dense_Inter_of_open` working with any
@@ -51,7 +51,7 @@ begin
   to any n, x, δ, δpos a center and a positive radius such that
   `closed_ball center radius` is included both in `f n` and in `closed_ball x δ`.
   We can also require `radius ≤ (1/2)^(n+1)`, to ensure we get a Cauchy sequence later. -/
-  have : ∀n x δ, δ > 0 → ∃y r, r > 0 ∧ r ≤ B (n+1) ∧ closed_ball y r ⊆ (closed_ball x δ) ∩ f n,
+  have : ∀n x δ, δ ≠ 0 → ∃y r, 0 < r ∧ r ≤ B (n+1) ∧ closed_ball y r ⊆ (closed_ball x δ) ∩ f n,
   { assume n x δ δpos,
     have : x ∈ closure (f n) := hd n x,
     rcases emetric.mem_closure_iff.1 this (δ/2) (ennreal.half_pos δpos) with ⟨y, ys, xy⟩,
@@ -65,12 +65,12 @@ begin
     show z ∈ closed_ball x δ, from calc
       edist z x ≤ edist z y + edist y x : edist_triangle _ _ _
       ... ≤ (min (min (δ / 2) r) (B (n+1))) + (δ/2) : add_le_add hz (le_of_lt xy)
-      ... ≤ δ/2 + δ/2 : add_le_add (le_trans (min_le_left _ _) (min_le_left _ _)) (le_refl _)
+      ... ≤ δ/2 + δ/2 : add_le_add (le_trans (min_le_left _ _) (min_le_left _ _)) le_rfl
       ... = δ : ennreal.add_halves δ,
     show z ∈ f n, from hr (calc
       edist z y ≤ min (min (δ / 2) r) (B (n+1)) : hz
       ... ≤ r : le_trans (min_le_left _ _) (min_le_right _ _)) },
-  choose! center radius H using this,
+  choose! center radius Hpos HB Hball using this,
   refine λ x, (mem_closure_iff_nhds_basis nhds_basis_closed_eball).2 (λ ε εpos, _),
   /- `ε` is positive. We have to find a point in the ball of radius `ε` around `x` belonging to all
   `f n`. For this, we construct inductively a sequence `F n = (c n, r n)` such that the closed ball
@@ -81,18 +81,19 @@ begin
                               (λn p, prod.mk (center n p.1 p.2) (radius n p.1 p.2)),
   let c : ℕ → α := λn, (F n).1,
   let r : ℕ → ℝ≥0∞ := λn, (F n).2,
-  have rpos : ∀n, r n > 0,
+  have rpos : ∀ n, 0 < r n,
   { assume n,
     induction n with n hn,
     exact lt_min εpos (Bpos 0),
-    exact (H n (c n) (r n) hn).1 },
+    exact Hpos n (c n) (r n) hn.ne' },
+  have r0 : ∀ n, r n ≠ 0 := λ n, (rpos n).ne',
   have rB : ∀n, r n ≤ B n,
   { assume n,
     induction n with n hn,
     exact min_le_right _ _,
-    exact (H n (c n) (r n) (rpos n)).2.1 },
+    exact HB n (c n) (r n) (r0 n) },
   have incl : ∀n, closed_ball (c (n+1)) (r (n+1)) ⊆ (closed_ball (c n) (r n)) ∩ (f n) :=
-    λn, (H n (c n) (r n) (rpos n)).2.2,
+    λ n, Hball n (c n) (r n) (r0 n),
   have cdist : ∀n, edist (c n) (c (n+1)) ≤ B n,
   { assume n,
     rw edist_comm,
@@ -170,17 +171,17 @@ theorem dense_sInter_of_Gδ {S : set (set α)} (ho : ∀s∈S, is_Gδ s) (hS : c
 begin
   -- the result follows from the result for a countable intersection of dense open sets,
   -- by rewriting each set as a countable intersection of open sets, which are of course dense.
-  choose T hT using ho,
-  have : ⋂₀ S = ⋂₀ (⋃s∈S, T s ‹_›) := (sInter_bUnion (λs hs, (hT s hs).2.2)).symm,
+  choose T hTo hTc hsT using ho,
+  have : ⋂₀ S = ⋂₀ (⋃ s ∈ S, T s ‹_›), -- := (sInter_bUnion (λs hs, (hT s hs).2.2)).symm,
+    by simp only [sInter_Union, (hsT _ _).symm, ← sInter_eq_bInter],
   rw this,
-  refine dense_sInter_of_open _ (hS.bUnion (λs hs, (hT s hs).2.1)) _;
-    simp only [set.mem_Union, exists_prop]; rintro t ⟨s, hs, tTs⟩,
-  show is_open t,
-  { exact (hT s hs).1 t tTs },
+  refine dense_sInter_of_open _ (hS.bUnion hTc) _;
+    simp only [mem_Union]; rintro t ⟨s, hs, tTs⟩,
+  show is_open t, from hTo s hs t tTs,
   show dense t,
   { intro x,
     have := hd s hs x,
-    rw (hT s hs).2.2 at this,
+    rw hsT s hs at this,
     exact closure_mono (sInter_subset_of_mem tTs) this }
 end
 
@@ -218,15 +219,18 @@ lemma eventually_residual {p : α → Prop} :
 calc (∀ᶠ x in residual α, p x) ↔
   ∀ᶠ x in ⨅ (t : set α) (ht : is_Gδ t ∧ dense t), 𝓟 t, p x :
     by simp only [residual, infi_and]
-... ↔ ∃ (t : set α) (ht : is_Gδ t ∧ dense t), ∀ᶠ x in 𝓟 t, p x :
-  mem_binfi (λ t₁ h₁ t₂ h₂, ⟨t₁ ∩ t₂, ⟨h₁.1.inter h₂.1, dense.inter_of_Gδ h₁.1 h₂.1 h₁.2 h₂.2⟩,
-    by simp⟩) ⟨univ, is_Gδ_univ, dense_univ⟩
+... ↔ ∃ (t : set α) (ht : is_Gδ t ∧ dense t), ∀ᶠ x in 𝓟 t, p x : mem_binfi_of_directed
+    (λ t₁ h₁ t₂ h₂, ⟨t₁ ∩ t₂, ⟨h₁.1.inter h₂.1, dense.inter_of_Gδ h₁.1 h₂.1 h₁.2 h₂.2⟩, by simp⟩)
+    ⟨univ, is_Gδ_univ, dense_univ⟩
 ... ↔ _ : by simp [and_assoc]
 
 /-- A set is residual (comeagre) if and only if it includes a dense `Gδ` set. -/
 lemma mem_residual {s : set α} : s ∈ residual α ↔ ∃ t ⊆ s, is_Gδ t ∧ dense t :=
 (@eventually_residual α _ _ (λ x, x ∈ s)).trans $ exists_congr $
 λ t, by rw [exists_prop, and_comm (t ⊆ s), subset_def, and_assoc]
+
+lemma dense_of_mem_residual {s : set α} (hs : s ∈ residual α) : dense s :=
+let ⟨t, hts, _, hd⟩ := mem_residual.1 hs in hd.mono hts
 
 instance : countable_Inter_filter (residual α) :=
 ⟨begin
@@ -235,7 +239,7 @@ instance : countable_Inter_filter (residual α) :=
   choose T hTs hT using hS,
   refine ⟨⋂ s ∈ S, T s ‹_›, _, _, _⟩,
   { rw [sInter_eq_bInter],
-    exact Inter_subset_Inter (λ s, Inter_subset_Inter $ hTs s) },
+    exact Inter₂_mono hTs },
   { exact is_Gδ_bInter hSc (λ s hs, (hT s hs).1) },
   { exact dense_bInter_of_Gδ (λ s hs, (hT s hs).1) hSc (λ s hs, (hT s hs).2) }
 end⟩
@@ -256,12 +260,12 @@ begin
   show (⋂s∈S, g s) ⊆ (⋃s∈S, interior (f s)),
   assume x hx,
   have : x ∈ ⋃s∈S, f s, { have := mem_univ x, rwa ← hU at this },
-  rcases mem_bUnion_iff.1 this with ⟨s, hs, xs⟩,
-  have : x ∈ g s := mem_bInter_iff.1 hx s hs,
+  rcases mem_Union₂.1 this with ⟨s, hs, xs⟩,
+  have : x ∈ g s := mem_Inter₂.1 hx s hs,
   have : x ∈ interior (f s),
   { have : x ∈ f s \ (frontier (f s)) := mem_inter xs this,
     simpa [frontier, xs, (hc s hs).closure_eq] using this },
-  exact mem_bUnion_iff.2 ⟨s, ⟨hs, this⟩⟩
+  exact mem_Union₂.2 ⟨s, ⟨hs, this⟩⟩
 end
 
 /-- Baire theorem: if countably many closed sets cover the whole space, then their interiors

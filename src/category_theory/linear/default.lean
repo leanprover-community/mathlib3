@@ -15,6 +15,8 @@ import algebra.algebra.basic
 An `R`-linear category is a category in which `X ⟶ Y` is an `R`-module in such a way that
 composition of morphisms is `R`-linear in both variables.
 
+Note that sometimes in the literature a "linear category" is further required to be abelian.
+
 ## Implementation
 
 Corresponding to the fact that we need to have an `add_comm_group X` structure in place
@@ -64,16 +66,17 @@ instance preadditive_nat_linear : linear ℕ C :=
   comp_smul' := λ X Y Z f r g, (preadditive.left_comp Z f).map_nsmul g r, }
 
 instance preadditive_int_linear : linear ℤ C :=
-{ smul_comp' := λ X Y Z r f g, (preadditive.right_comp X g).map_gsmul f r,
-  comp_smul' := λ X Y Z f r g, (preadditive.left_comp Z f).map_gsmul g r, }
+{ smul_comp' := λ X Y Z r f g, (preadditive.right_comp X g).map_zsmul f r,
+  comp_smul' := λ X Y Z f r g, (preadditive.left_comp Z f).map_zsmul g r, }
 
 section End
 
-variables {R : Type w} [comm_ring R] [linear R C]
+variables {R : Type w}
 
-instance (X : C) : module R (End X) := by { dsimp [End], apply_instance, }
+instance [semiring R] [linear R C] (X : C) : module R (End X) :=
+by { dsimp [End], apply_instance, }
 
-instance (X : C) : algebra R (End X) :=
+instance [comm_semiring R] [linear R C] (X : C) : algebra R (End X) :=
 algebra.of_module (λ r f g, comp_smul _ _ _ _ _ _) (λ r f g, smul_comp _ _ _ _ _ _)
 
 end End

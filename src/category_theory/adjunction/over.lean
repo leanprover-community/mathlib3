@@ -3,11 +3,9 @@ Copyright (c) 2021 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
-import category_theory.over
-import category_theory.limits.preserves.basic
-import category_theory.limits.creates
 import category_theory.limits.shapes.binary_products
 import category_theory.monad.products
+import category_theory.over
 
 /-!
 # Adjunctions related to the over category
@@ -29,7 +27,7 @@ variables {C : Type u} [category.{v} C] (X : C)
 /--
 The functor from `C` to `over X` which sends `Y : C` to `π₁ : X ⨯ Y ⟶ X`, sometimes denoted `X*`.
 -/
-@[simps]
+@[simps obj_left obj_hom map_left]
 def star [has_binary_products C] : C ⥤ over X :=
 cofree _ ⋙ coalgebra_to_over X
 

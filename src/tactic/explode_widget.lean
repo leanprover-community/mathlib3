@@ -192,7 +192,7 @@ tc.stateless (λ x, do
 Search for an entry that has the specified line number.
 -/
 meta def lookup_lines : entries → nat → entry
-| ⟨_, []⟩ n := ⟨default _, 0, 0, status.sintro, thm.string "", []⟩
+| ⟨_, []⟩ n := ⟨default, 0, 0, status.sintro, thm.string "", []⟩
 | ⟨rb, (hd::tl)⟩ n := if hd.line = n then hd else lookup_lines ⟨rb, tl⟩ n
 
 
@@ -288,7 +288,9 @@ do expr.const n _ ← resolve_name n | fail "cannot resolve name",
 
 end explode_widget
 
-open lean lean.parser interactive explode_widget
+open explode_widget
+
+setup_tactic_parser
 
 /--
 User command of the explode widget.

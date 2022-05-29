@@ -3,10 +3,10 @@ Copyright (c) 2021 Eric Wieser. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
-import data.equiv.fin
-import data.equiv.fintype
+import group_theory.perm.cycle.type
 import group_theory.perm.option
-import group_theory.perm.cycle_type
+import logic.equiv.fin
+import logic.equiv.fintype
 
 /-!
 # Permutations of `fin n`
@@ -111,7 +111,7 @@ begin
   refine ⟨0, dec_trivial, λ x hx', ⟨x, _⟩⟩,
   clear hx',
   cases x with x hx,
-  rw [coe_coe, gpow_coe_nat, fin.ext_iff, fin.coe_mk],
+  rw [coe_coe, zpow_coe_nat, fin.ext_iff, fin.coe_mk],
   induction x with x ih, { refl },
   rw [pow_succ, perm.mul_apply, coe_fin_rotate_of_ne_last, ih (lt_trans x.lt_succ_self hx)],
   rw [ne.def, fin.ext_iff, ih (lt_trans x.lt_succ_self hx), fin.coe_last],
@@ -291,8 +291,7 @@ end
 lemma is_three_cycle_cycle_range_two {n : ℕ} :
   is_three_cycle (cycle_range 2 : perm (fin (n + 3))) :=
 begin
-  rw [is_three_cycle, cycle_type_cycle_range, multiset.singleton_eq_singleton,
-    multiset.singleton_eq_singleton, multiset.cons_inj_left];
+  rw [is_three_cycle, cycle_type_cycle_range];
   dec_trivial
 end
 

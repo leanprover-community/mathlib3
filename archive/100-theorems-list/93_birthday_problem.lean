@@ -17,6 +17,7 @@ uses is `fintype.card_embedding_eq`.
 
 local notation `‖` x `‖` := fintype.card x
 
+/-- **Birthday Problem** -/
 theorem birthday :
   2 * ‖fin 23 ↪ fin 365‖ < ‖fin 23 → fin 365‖ ∧ 2 * ‖fin 22 ↪ fin 365‖ > ‖fin 22 → fin 365‖ :=
 begin

@@ -741,9 +741,8 @@ begin
     rw mk_eq_zero_iff,
     split,
     rintro ⟨s, hs⟩,
-    sorry
-
-  },
+    exact (not_unbounded_iff s).2 hs (unbounded_of_is_empty r s) },
+  have h : is_strong_limit (#α) := ⟨ha, h⟩,
   have ha := h.is_limit.omega_le,
   apply le_antisymm,
   { have : {s : set α | bounded r s} = ⋃ i, 𝒫 {j | r j i} := set_of_exists _,
@@ -762,9 +761,13 @@ begin
       simpa only [singleton_eq_singleton_iff] using hab } }
 end
 
-theorem mk_subset_mk_lt_cof {α : Type*} (h : is_strong_limit (#α)) :
+theorem mk_subset_mk_lt_cof {α : Type*} (h : ∀ x < #α, 2 ^ x < #α) :
   #{s : set α // #s < cof (#α).ord} = #α :=
 begin
+  rcases eq_or_ne (#α) 0 with ha | ha,
+  { rw ha,
+    simp [λ s, (cardinal.zero_le s).not_lt] },
+  have : is_strong_limit (#α) := ⟨ha, h⟩,
   rcases ord_eq α with ⟨r, wo, hr⟩,
   haveI := wo,
   apply le_antisymm,

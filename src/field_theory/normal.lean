@@ -259,14 +259,15 @@ end restrict
 section lift
 
 variables {F} {K} (E : Type*) [field E] [algebra F E] [algebra K E] [is_scalar_tower F K E]
-
-/-- If `E/K/F` is a tower of fields with `E/F` normal then we can lift
-  an algebra homomorphism `ϕ : K →ₐ[F] K` to `ϕ.lift_normal E : E →ₐ[F] E`. -/
+  {K' : Type*} [field K'] [algebra F K'] [algebra K' E] [is_scalar_tower F K' E] (f : K →ₐ[F] K')
+  (γ : K ≃ₐ[F] K')
+/-- If `E/K/F` and `E/K'/F` are towers of fields with `E/F` normal then we can lift
+  an algebra homomorphism `f : K →ₐ[F] K'` to `f.lift_normal E : E →ₐ[F] E`. -/
 noncomputable def alg_hom.lift_normal [h : normal F E] : E →ₐ[F] E :=
 @alg_hom.restrict_scalars F K E E _ _ _ _ _ _
-  ((is_scalar_tower.to_alg_hom F K E).comp ϕ).to_ring_hom.to_algebra _ _ _ _ $ nonempty.some $
+  ((is_scalar_tower.to_alg_hom F K' E).comp f).to_ring_hom.to_algebra _ _ _ _ $ nonempty.some $
   @intermediate_field.alg_hom_mk_adjoin_splits' _ _ _ _ _ _ _
-  ((is_scalar_tower.to_alg_hom F K E).comp ϕ).to_ring_hom.to_algebra _
+  ((is_scalar_tower.to_alg_hom F K' E).comp f).to_ring_hom.to_algebra _
   (intermediate_field.adjoin_univ _ _)
   (λ x hx, ⟨is_integral_of_is_scalar_tower x (h.out x).1,
     splits_of_splits_of_dvd _ (map_ne_zero (minpoly.ne_zero (h.out x).1))
@@ -274,23 +275,23 @@ noncomputable def alg_hom.lift_normal [h : normal F E] : E →ₐ[F] E :=
     (minpoly.dvd_map_of_is_scalar_tower F K x)⟩)
 
 @[simp] lemma alg_hom.lift_normal_commutes [normal F E] (x : K) :
-  ϕ.lift_normal E (algebra_map K E x) = algebra_map K E (ϕ x) :=
+  f.lift_normal E (algebra_map K E x) = algebra_map K' E (f x) :=
 @alg_hom.commutes K E E _ _ _ _
-  ((is_scalar_tower.to_alg_hom F K E).comp ϕ).to_ring_hom.to_algebra _ x
+  ((is_scalar_tower.to_alg_hom F K' E).comp f).to_ring_hom.to_algebra _ x
 
 @[simp] lemma alg_hom.restrict_lift_normal [normal F K] [normal F E] :
   (ϕ.lift_normal E).restrict_normal K = ϕ :=
 alg_hom.ext (λ x, (algebra_map K E).injective
   (eq.trans (alg_hom.restrict_normal_commutes _ K x) (ϕ.lift_normal_commutes E x)))
 
-/-- If `E/K/F` is a tower of fields with `E/F` normal then we can lift
-  an algebra isomorphism `ϕ : K ≃ₐ[F] K` to `ϕ.lift_normal E : E ≃ₐ[F] E`. -/
+/-- If `E/K/F` and `E/K'/F` are towers of fields with `E/F` normal then we can lift
+  an algebra isomorphism `γ : K ≃ₐ[F] K'` to `γ.lift_normal E : E ≃ₐ[F] E`. -/
 noncomputable def alg_equiv.lift_normal [normal F E] : E ≃ₐ[F] E :=
-alg_equiv.of_bijective (χ.to_alg_hom.lift_normal E) (alg_hom.normal_bijective F E E _)
+alg_equiv.of_bijective (γ.to_alg_hom.lift_normal E) (alg_hom.normal_bijective F E E _)
 
 @[simp] lemma alg_equiv.lift_normal_commutes [normal F E] (x : K) :
-  χ.lift_normal E (algebra_map K E x) = algebra_map K E (χ x) :=
-χ.to_alg_hom.lift_normal_commutes E x
+  γ.lift_normal E (algebra_map K E x) = algebra_map K' E (γ x) :=
+γ.to_alg_hom.lift_normal_commutes E x
 
 @[simp] lemma alg_equiv.restrict_lift_normal [normal F K] [normal F E] :
   (χ.lift_normal E).restrict_normal K = χ :=

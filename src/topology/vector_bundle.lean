@@ -1018,8 +1018,12 @@ def to_topological_vector_bundle :
   trivialization_mem_atlas := λ x, ⟨_, a.pretrivialization_mem_atlas x, rfl⟩,
   continuous_on_coord_change := begin
     rintros _ ⟨e, he, rfl⟩ _ ⟨e', he', rfl⟩,
-    sorry
-    -- exact a.continuous_coord_change e' he' e he,
+    refine (a.continuous_on_coord_change he he').congr _,
+    intros b hb,
+    ext v,
+    rw [a.coord_change_apply he he' b hb v, continuous_linear_equiv.coe_coe,
+      trivialization.coord_change_apply],
+    exacts [rfl, hb]
   end }
 
 end topological_vector_prebundle

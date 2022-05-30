@@ -71,14 +71,13 @@ begin
     { apply continuous_on_id.rpow_const, intros x hx, left, exact hx.1.ne', },  },
   intro c, rcases le_total 0 c with hc|hc,
   { exact this c hc },
-  { rw interval_integrable.iff_comp_neg, rw neg_zero,
+  { rw [interval_integrable.iff_comp_neg, neg_zero],
     have m := (this (-c) (by linarith)).smul (cos (r * π)),
     rw interval_integrable_iff at m ⊢,
     refine m.congr_fun _ measurable_set_Ioc, intros x hx,
     rw interval_oc_of_le (by linarith : 0 ≤ -c) at hx,
-    simp only [pi.smul_apply, algebra.id.smul_eq_mul],
-    rw [rpow_def_of_pos hx.1, rpow_def_of_neg (by linarith [hx.1] : -x < 0),
-      log_neg_eq_log, mul_comm], }
+    simp only [pi.smul_apply, algebra.id.smul_eq_mul, log_neg_eq_log, mul_comm,
+      rpow_def_of_pos hx.1, rpow_def_of_neg (by linarith [hx.1] : -x < 0)], }
 end
 
 @[simp]

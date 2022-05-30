@@ -579,7 +579,7 @@ let ⟨I', hI'⟩ := h.is_bounded_under_le in
 lemma integrable_on_Ioc_of_interval_integral_norm_bounded {I a₀ b₀ : ℝ}
   (hfi : ∀ i, integrable_on f $ Ioc (a i) (b i))
   (ha : tendsto a l $ 𝓝 a₀) (hb : tendsto b l $ 𝓝 b₀)
-  (h : ∀ᶠ i in l, (∫ x in Ioc (a i) (b i), ∥f x∥ ) ≤ I) : integrable_on f (Ioc a₀ b₀) :=
+  (h : ∀ᶠ i in l, (∫ x in Ioc (a i) (b i), ∥f x∥) ≤ I) : integrable_on f (Ioc a₀ b₀) :=
 begin
   refine (ae_cover_Ioc_of_Ioc ha hb).integrable_of_integral_norm_bounded I
     (λ i, (hfi i).restrict measurable_set_Ioc) (eventually.mono h _),

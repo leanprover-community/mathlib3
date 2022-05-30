@@ -16,28 +16,16 @@ We define the action of `SL(2,ℤ)` on `ℍ` (via restriction of the `SL(2,ℝ)`
 (`modular_group.exists_smul_mem_fd`) that any point in `ℍ` can be
 moved inside `𝒟`.
 ## Main definitions
-<<<<<<< HEAD
-
-=======
->>>>>>> 847a8160607d25e8757b688039f25ddb09c570e5
 The standard (closed) fundamental domain of the action of `SL(2,ℤ)` on `ℍ`, denoted `𝒟`:
 `fd := {z | 1 ≤ (z : ℂ).norm_sq ∧ |z.re| ≤ (1 : ℝ) / 2}`
 The standard open fundamental domain of the action of `SL(2,ℤ)` on `ℍ`, denoted `𝒟ᵒ`:
 `fdo := {z | 1 < (z : ℂ).norm_sq ∧ |z.re| < (1 : ℝ) / 2}`
 These notations are localized in the `modular` locale and can be enabled via `open_locale modular`.
-<<<<<<< HEAD
-
-=======
->>>>>>> 847a8160607d25e8757b688039f25ddb09c570e5
 ## Main results
 Any `z : ℍ` can be moved to `𝒟` by an element of `SL(2,ℤ)`:
 `exists_smul_mem_fd (z : ℍ) : ∃ g : SL(2,ℤ), g • z ∈ 𝒟`
 If both `z` and `γ • z` are in the open domain `𝒟ᵒ` then `z = γ • z`:
 `eq_smul_self_of_mem_fdo_mem_fdo {z : ℍ} {g : SL(2,ℤ)} (hz : z ∈ 𝒟ᵒ) (hg : g • z ∈ 𝒟ᵒ) : z = g • z`
-<<<<<<< HEAD
-
-=======
->>>>>>> 847a8160607d25e8757b688039f25ddb09c570e5
 # Discussion
 Standard proofs make use of the identity
 `g • z = a / c - 1 / (c (cz + d))`
@@ -73,8 +61,6 @@ local attribute [instance] fintype.card_fin_even
 namespace modular_group
 
 variables (g : SL(2, ℤ)) (z : ℍ)
-
-variables {g}
 
 section bottom_row
 

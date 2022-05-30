@@ -435,10 +435,34 @@ def coord_change (e e' : trivialization R F E) (b : B) : F ≃L[R] F :=
      (e.linear_equiv_at b (hb.1 : _)).symm.trans (e'.linear_equiv_at b hb.2)
     else linear_equiv.refl R F }
 
-lemma coord_change_apply (e e' : trivialization R F E) {b : B}
+lemma coe_coord_change (e e' : trivialization R F E) {b : B}
   (hb : b ∈ e.base_set ∩ e'.base_set) :
   ⇑(coord_change e e' b) = (e.linear_equiv_at b hb.1).symm.trans (e'.linear_equiv_at b hb.2) :=
 congr_arg linear_equiv.to_fun (dif_pos hb)
+
+lemma coord_change_apply (e e' : trivialization R F E) {b : B}
+  (hb : b ∈ e.base_set ∩ e'.base_set) (y : F) :
+  coord_change e e' b y = (e' (total_space_mk E b (e.symm b y))).2 :=
+congr_arg (λ f, linear_equiv.to_fun f y) (dif_pos hb)
+
+lemma mk_coord_change (e e' : trivialization R F E) {b : B}
+  (hb : b ∈ e.base_set ∩ e'.base_set) (y : F) :
+  (b, coord_change e e' b y) = e' (total_space_mk E b (e.symm b y)) :=
+begin
+  ext,
+  { rw [e.mk_symm hb.1 y, e'.coe_fst', e.proj_symm_apply' hb.1],
+    rw [e.proj_symm_apply' hb.1], exact hb.2 },
+  { exact e.coord_change_apply e' hb y }
+end
+
+/-- A version of `coord_change_apply` that fully unfolds `coord_change`. The right-hand side is
+ugly, but has good definitional properties for specifically defined trivializations. -/
+lemma coord_change_apply_eq_cast (e e' : trivialization R F E) {b : B}
+  (hb : b ∈ e.base_set ∩ e'.base_set) (y : F) :
+  coord_change e e' b y =
+  (e' (total_space_mk E b (cast (congr_arg E (e.proj_symm_apply' hb.1))
+    (e.to_local_homeomorph.symm (b, y)).2))).2 :=
+by rw [e.coord_change_apply e' hb, e.symm_apply hb.1]
 
 lemma coord_change_symm_apply (e e' : trivialization R F E) {b : B}
   (hb : b ∈ e.base_set ∩ e'.base_set) :
@@ -584,16 +608,13 @@ def trivialization : trivialization R F (bundle.trivial B F) :=
   proj_to_fun := λ y hy, rfl,
   linear' := λ x hx, ⟨λ y z, rfl, λ c y, rfl⟩ }
 
-lemma trivialization.symm_def (b : B) (v : F) : (trivialization R B F).symm b v = v :=
-dif_pos (mem_univ _)
-
 lemma trivialization.coord_change (b : B) :
   (trivialization R B F).coord_change
     (trivialization R B F) b = continuous_linear_equiv.refl R F :=
 begin
   ext v,
-  rw [trivialization.coord_change_apply],
-  exacts [trivialization.symm_def R B F b v, ⟨mem_univ _, mem_univ _⟩]
+  rw [trivialization.coord_change_apply_eq_cast],
+  exacts [rfl, ⟨mem_univ _, mem_univ _⟩]
 end
 
 @[simp]
@@ -788,12 +809,9 @@ by apply (Z.local_triv i).symm_apply hb v
   (v : F) :
   (Z.local_triv i).coord_change (Z.local_triv j) b v = Z.coord_change i j b v :=
 begin
-  rw [trivialization.coord_change_apply],
-  swap, { exact hb },
-  change Z.coord_change (Z.index_at b) j b ((Z.local_triv i).symm b v) = _,
-  rw [Z.local_triv_symm_apply i hb.1],
-  rw [coord_change_comp],
-  exact ⟨⟨hb.1, Z.mem_base_set_at b⟩, hb.2⟩
+  rw [trivialization.coord_change_apply_eq_cast, cast_eq, local_triv_symm_fst, local_triv_apply,
+    coord_change_comp],
+  exacts [⟨⟨hb.1, Z.mem_base_set_at b⟩, hb.2⟩, hb]
 end
 
 /-- Preferred local trivialization of a vector bundle constructed from core, at a given point, as
@@ -885,6 +903,17 @@ namespace topological_vector_prebundle
 
 variables {R E F}
 
+lemma mk_coord_change (a : topological_vector_prebundle R F E)
+  {e e' : pretrivialization R F E} (he : e ∈ a.pretrivialization_atlas)
+  (he' : e' ∈ a.pretrivialization_atlas) {b : B} (hb : b ∈ e.base_set ∩ e'.base_set) (v : F) :
+  (b, a.coord_change e he e' he' b v) = e' (total_space_mk E b (e.symm b v)) :=
+begin
+  ext,
+  { rw [e.mk_symm hb.1 v, e'.coe_fst', e.proj_symm_apply' hb.1],
+    rw [e.proj_symm_apply' hb.1], exact hb.2 },
+  { exact a.coord_change_apply he he' b hb v }
+end
+
 /-- Natural identification of `topological_vector_prebundle` as a `topological_fiber_prebundle`. -/
 def to_topological_fiber_prebundle (a : topological_vector_prebundle R F E) :
   topological_fiber_prebundle F (proj E) :=
@@ -895,17 +924,21 @@ def to_topological_fiber_prebundle (a : topological_vector_prebundle R F E) :
   continuous_triv_change := begin
     rintros _ ⟨e, he, rfl⟩ _ ⟨e', he', rfl⟩,
     have := is_bounded_bilinear_map_apply.continuous.comp_continuous_on
-      ((a.continuous_on_coord_change he he').prod_map continuous_on_id),
+      ((a.continuous_on_coord_change he' he).prod_map continuous_on_id),
     have H : e'.to_fiber_bundle_pretrivialization.to_local_equiv.target ∩
-      (e'.to_fiber_bundle_pretrivialization.to_local_equiv.symm) ⁻¹'
+      e'.to_fiber_bundle_pretrivialization.to_local_equiv.symm ⁻¹'
       e.to_fiber_bundle_pretrivialization.to_local_equiv.source =
-      (e.base_set ∩ e'.base_set) ×ˢ (univ : set F),
-    { rw [← inter_univ univ, ← prod_inter_prod, e'.target_eq, e.source_eq, preimage_preimage,
-        inter_comm], congr', sorry },
+      (e'.base_set ∩ e.base_set) ×ˢ (univ : set F),
+    { rw [e'.target_eq, e.source_eq],
+      ext ⟨b, f⟩,
+      simp only [-bundle.proj, and.congr_right_iff, e'.proj_symm_apply', iff_self, implies_true_iff]
+        with mfld_simps {contextual := tt} },
     rw [H],
     refine (continuous_on_fst.prod this).congr _,
     rintros ⟨b, f⟩ ⟨hb, -⟩,
-    dsimp, sorry
+    dsimp only [function.comp, prod.map],
+    rw [a.mk_coord_change _ _ hb, e'.mk_symm hb.1],
+    refl,
   end,
   .. a }
 

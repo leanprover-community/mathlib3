@@ -1090,6 +1090,13 @@ begin
             ... ≤ a     : (neg_neg a).le }
 end
 
+lemma add_abs_nonneg (a : α) : 0 ≤ a + |a| :=
+begin
+  rw ←add_right_neg a,
+  apply add_le_add_left,
+  exact (neg_le_abs_self a),
+end
+
 lemma neg_abs_le_neg (a : α) : -|a| ≤ -a :=
 by simpa using neg_abs_le_self (-a)
 

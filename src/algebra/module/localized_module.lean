@@ -16,11 +16,9 @@ Given a commutative ring `R`, a multiplicative subset `S ⊆ R` and an `R`-modul
 ## Main definitions
 
 * `localized_module.r` : the equivalence relation defining this localization, namely
-  `(m, s) ≈ (m', s')` if and only if if there is some `u : S` such that `u • (s' • m - s • m') = 0`.
+  `(m, s) ≈ (m', s')` if and only if if there is some `u : S` such that `u • s' • m = u • s • m'`.
 * `localized_module M S` : the localized module by `S`.
 * `localized_module.mk`  : the canonical map sending `(m, s) : M × S ↦ m/s : localized_module M S`
-* `localized_module.mk_eq` : in the localized module, `mk m s = mk m' s'` if and only if there
-  exists some `u : S`, such that `u • (s • m' - s' • m) = 0`.
 * `localized_module.lift_on` : any well defined function `f : M × S → α` respecting `r` descents to
   a function `localized_module M S → α`
 * `localized_module.lift_on₂` : any well defined function `f : M × S → M × S → α` respecting `r`

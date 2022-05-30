@@ -142,11 +142,11 @@ open metric set normed_space
 `polar 𝕜 s` is the subset of `dual 𝕜 E` consisting of those functionals which
 evaluate to something of norm at most one at all points `z ∈ s`. -/
 def polar (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
-  {E : Type*} [normed_group E] [normed_space 𝕜 E] : set E → set (dual 𝕜 E) :=
+  {E : Type*} [semi_normed_group E] [normed_space 𝕜 E] : set E → set (dual 𝕜 E) :=
 (dual_pairing 𝕜 E).flip.polar
 
 variables (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
-variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
+variables {E : Type*} [semi_normed_group E] [normed_space 𝕜 E]
 
 lemma mem_polar_iff {x' : dual 𝕜 E} (s : set E) : x' ∈ polar 𝕜 s ↔ ∀ z ∈ s, ∥x' z∥ ≤ 1 := iff.rfl
 
@@ -166,7 +166,8 @@ end
 ((dual_pairing 𝕜 E).flip.polar_antitone subset_closure).antisymm $
   (dual_pairing 𝕜 E).flip.polar_gc.l_le $
   closure_minimal ((dual_pairing 𝕜 E).flip.polar_gc.le_u_l s) $
-  (is_closed_polar _ _).preimage (inclusion_in_double_dual 𝕜 E).continuous
+  by simpa [linear_map.flip_flip]
+    using (is_closed_polar _ _).preimage (inclusion_in_double_dual 𝕜 E).continuous
 
 variables {𝕜}
 
@@ -209,7 +210,7 @@ calc ∥x' x∥ ≤ ∥x'∥ * ∥x∥ : x'.le_op_norm x
 ... ≤ r⁻¹ * r :
   mul_le_mul (mem_closed_ball_zero_iff.1 hx') (mem_closed_ball_zero_iff.1 hx)
     (norm_nonneg _) (dist_nonneg.trans hx')
-... = r / r : div_eq_inv_mul.symm
+... = r / r : inv_mul_eq_div _ _
 ... ≤ 1 : div_self_le_one r
 
 /-- The `polar` of closed ball in a normed space `E` is the closed ball of the dual with

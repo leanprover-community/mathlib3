@@ -459,6 +459,19 @@ begin
   simp [indicator_apply, ← ite_and],
 end
 
+variables (M) [nontrivial M]
+
+lemma indicator_eq_zero_iff_not_mem {U : set α} {x : α} :
+  indicator U 1 x = (0 : M) ↔ x ∉ U :=
+by { classical, simp [indicator_apply, imp_false] }
+
+lemma indicator_eq_one_iff_mem {U : set α} {x : α} :
+  indicator U 1 x = (1 : M) ↔ x ∈ U :=
+by { classical, simp [indicator_apply, imp_false] }
+
+lemma indicator_one_inj {U V : set α} (h : indicator U (1 : α → M) = indicator V 1) : U = V :=
+by { ext, simp_rw [← indicator_eq_one_iff_mem M, h] }
+
 end mul_zero_one_class
 
 section order
@@ -482,7 +495,7 @@ end
 
 @[to_additive] lemma le_mul_indicator_apply {y} (hfg : a ∈ s → y ≤ g a) (hf : a ∉ s → y ≤ 1) :
   y ≤ mul_indicator s g a :=
-@mul_indicator_apply_le' α (order_dual M) ‹_› _ _ _ _ _ hfg hf
+@mul_indicator_apply_le' α Mᵒᵈ ‹_› _ _ _ _ _ hfg hf
 
 @[to_additive] lemma le_mul_indicator (hfg : ∀ a ∈ s, f a ≤ g a) (hf : ∀ a ∉ s, f a ≤ 1) :
   f ≤ mul_indicator s g :=
@@ -573,7 +586,7 @@ end
 
 lemma indicator_nonpos_le_indicator {β} [linear_order β] [has_zero β] (s : set α) (f : α → β) :
   {x | f x ≤ 0}.indicator f ≤ s.indicator f :=
-@indicator_le_indicator_nonneg α (order_dual β) _ _ s f
+@indicator_le_indicator_nonneg α βᵒᵈ _ _ s f
 
 end set
 

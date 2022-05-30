@@ -27,6 +27,7 @@ import ring_theory.unique_factorization_domain
 
 noncomputable theory
 open_locale classical big_operators polynomial
+open finset
 
 universes u v w
 variables {R : Type u} {S : Type*}
@@ -105,7 +106,7 @@ begin
 end
 
 /-- The first `n` coefficients on `degree_lt n` form a linear equivalence with `fin n → R`. -/
-def degree_lt_equiv (n : ℕ) : degree_lt R n ≃ₗ[R] (fin n → R) :=
+def degree_lt_equiv (R) [semiring R] (n : ℕ) : degree_lt R n ≃ₗ[R] (fin n → R) :=
 { to_fun := λ p n, (↑p : R[X]).coeff n,
   inv_fun := λ f, ⟨∑ i : fin n, monomial i (f i),
     (degree_lt R n).sum_mem (λ i _, mem_degree_lt.mpr (lt_of_le_of_lt
@@ -158,7 +159,7 @@ begin
 end
 
 lemma geom_sum_X_comp_X_add_one_eq_sum (n : ℕ) :
-  (geom_sum (X : R[X]) n).comp (X + 1) =
+  (∑ i in range n, (X : R[X]) ^ i).comp (X + 1) =
   (finset.range n).sum (λ (i : ℕ), (n.choose (i + 1) : R[X]) * X ^ i) :=
 begin
   ext i,
@@ -175,11 +176,11 @@ begin
 end
 
 lemma monic.geom_sum {P : R[X]}
-  (hP : P.monic) (hdeg : 0 < P.nat_degree) {n : ℕ} (hn : n ≠ 0) : (geom_sum P n).monic :=
+  (hP : P.monic) (hdeg : 0 < P.nat_degree) {n : ℕ} (hn : n ≠ 0) : (∑ i in range n, P ^ i).monic :=
 begin
   nontriviality R,
   cases n, { exact (hn rfl).elim },
-  rw [geom_sum_succ', geom_sum_def],
+  rw [geom_sum_succ'],
   refine (hP.pow _).add_of_left _,
   refine lt_of_le_of_lt (degree_sum_le _ _) _,
   rw [finset.sup_lt_iff],
@@ -191,11 +192,11 @@ begin
 end
 
 lemma monic.geom_sum' {P : R[X]}
-  (hP : P.monic) (hdeg : 0 < P.degree) {n : ℕ} (hn : n ≠ 0) : (geom_sum P n).monic :=
+  (hP : P.monic) (hdeg : 0 < P.degree) {n : ℕ} (hn : n ≠ 0) : (∑ i in range n, P ^ i).monic :=
 hP.geom_sum (nat_degree_pos_iff_degree_pos.2 hdeg) hn
 
 lemma monic_geom_sum_X {n : ℕ} (hn : n ≠ 0) :
-  (geom_sum (X : R[X]) n).monic :=
+  (∑ i in range n, (X : R[X]) ^ i).monic :=
 begin
   nontriviality R,
   apply monic_X.geom_sum _ hn,
@@ -212,8 +213,7 @@ the ring closure of the original coefficients. -/
 def restriction (p : R[X]) : polynomial (subring.closure (↑p.frange : set R)) :=
 ∑ i in p.support, monomial i (⟨p.coeff i,
   if H : p.coeff i = 0 then H.symm ▸ (subring.closure _).zero_mem
-  else subring.subset_closure (p.coeff_mem_frange _ H)⟩ :
-    (subring.closure (↑p.frange : set R)))
+  else subring.subset_closure (p.coeff_mem_frange _ H)⟩ : (subring.closure (↑p.frange : set R)))
 
 @[simp] theorem coeff_restriction {p : R[X]} {n : ℕ} :
   ↑(coeff (restriction p) n) = coeff p n :=
@@ -277,7 +277,7 @@ section to_subring
 variables (p : R[X]) (T : subring R)
 
 /-- Given a polynomial `p` and a subring `T` that contains the coefficients of `p`,
-return the corresponding polynomial whose coefficients are in `T. -/
+return the corresponding polynomial whose coefficients are in `T`. -/
 def to_subring (hp : (↑p.frange : set R) ⊆ T) : T[X] :=
 ∑ i in p.support, monomial i (⟨p.coeff i,
   if H : p.coeff i = 0 then H.symm ▸ T.zero_mem
@@ -527,19 +527,16 @@ variables [ring R]
 /-- `polynomial R` is never a field for any ring `R`. -/
 lemma polynomial_not_is_field : ¬ is_field R[X] :=
 begin
-  by_contradiction hR,
-  by_cases hR' : ∃ (x y : R), x ≠ y,
-  { haveI : nontrivial R := let ⟨x, y, hxy⟩ := hR' in nontrivial_of_ne x y hxy,
-    obtain ⟨p, hp⟩ := hR.mul_inv_cancel X_ne_zero,
-    by_cases hp0 : p = 0,
-    { replace hp := congr_arg degree hp,
-      rw [hp0, mul_zero, degree_zero, degree_one] at hp,
-      contradiction },
-    { have : p.degree < (X * p).degree := (X_mul.symm : p * X = _) ▸ degree_lt_degree_mul_X hp0,
-      rw [congr_arg degree hp, degree_one, nat.with_bot.lt_zero_iff, degree_eq_bot] at this,
-      exact hp0 this } },
-  { push_neg at hR',
-    exact let ⟨x, y, hxy⟩ := hR.exists_pair_ne in hxy (polynomial.ext (λ n, hR' _ _)) }
+  nontriviality R,
+  intro hR,
+  obtain ⟨p, hp⟩ := hR.mul_inv_cancel X_ne_zero,
+  have hp0 : p ≠ 0,
+  { rintro rfl,
+    rw [mul_zero] at hp,
+    exact zero_ne_one hp },
+  have := degree_lt_degree_mul_X hp0,
+  rw [←X_mul, congr_arg degree hp, degree_one, nat.with_bot.lt_zero_iff, degree_eq_bot] at this,
+  exact hp0 this,
 end
 
 /-- The only constant in a maximal ideal over a field is `0`. -/

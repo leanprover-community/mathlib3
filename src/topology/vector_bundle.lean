@@ -790,7 +790,6 @@ structure topological_vector_prebundle :=
 (pretrivialization_mem_atlas : ∀ x : B, pretrivialization_at x ∈ pretrivialization_atlas)
 (continuous_coord_change : ∀ e e' ∈ pretrivialization_atlas,
   continuous_transitions R B F (e'.to_local_equiv.symm.trans e.to_local_equiv : _))
-(total_space_mk_inducing : ∀ (b : B), inducing (pretrivialization_at b ∘ total_space_mk b))
 
 namespace topological_vector_prebundle
 
@@ -923,8 +922,8 @@ variables [topological_space B'] [topological_space (total_space E)]
 
 /-- Definition of `pullback.total_space.topological_space`, which we make irreducible. -/
 @[irreducible] def pullback_topology : topological_space (total_space (f *ᵖ E)) :=
-induced (@proj _ (f *ᵖ E)) ‹topological_space B'› ⊓
-induced (pullback.lift E f) ‹topological_space (total_space E)›
+induced total_space.proj ‹topological_space B'› ⊓
+induced (pullback.lift f) ‹topological_space (total_space E)›
 
 /-- The topology on the total space of a pullback bundle is the coarsest topology for which both
 the projections to the base and the map to the original bundle are continuous. -/
@@ -933,21 +932,21 @@ instance pullback.total_space.topological_space :
 pullback_topology E f
 
 lemma pullback.continuous_proj (f : B' → B) :
-  continuous (@bundle.proj _ (f *ᵖ E)) :=
+  continuous (@total_space.proj _ (f *ᵖ E)) :=
 begin
   rw [continuous_iff_le_induced, pullback.total_space.topological_space, pullback_topology],
   exact inf_le_left,
 end
 
 lemma pullback.continuous_lift (f : B' → B) :
-  continuous (pullback.lift E f) :=
+  continuous (@pullback.lift B E B' f) :=
 begin
   rw [continuous_iff_le_induced, pullback.total_space.topological_space, pullback_topology],
   exact inf_le_right,
 end
 
 lemma inducing_pullback_total_space_embedding (f : B' → B) :
-  inducing (pullback_total_space_embedding E f) :=
+  inducing (@pullback_total_space_embedding B E B' f) :=
 begin
   constructor,
   simp_rw [prod.topological_space, induced_inf, induced_compose,
@@ -964,7 +963,7 @@ lemma pullback.continuous_total_space_mk [∀ x, topological_space (E x)]
   continuous (@total_space_mk _ (f *ᵖ E) x) :=
 begin
   simp only [continuous_iff_le_induced, pullback.total_space.topological_space, induced_compose,
-    induced_inf, function.comp, total_space_mk, proj, induced_const, top_inf_eq,
+    induced_inf, function.comp, total_space_mk, total_space.proj, induced_const, top_inf_eq,
     pullback_topology],
   exact le_of_eq (topological_vector_bundle.total_space_mk_inducing 𝕜 F E (f x)).induced,
 end
@@ -974,9 +973,9 @@ variables {E 𝕜 F} {K : Type*} [continuous_map_class K B' B]
 /-- A vector bundle trivialization can be pulled back to a trivialization on the pullback bundle. -/
 def topological_vector_bundle.trivialization.pullback (e : trivialization 𝕜 F E) (f : K) :
   trivialization 𝕜 F ((f : B' → B) *ᵖ E) :=
-{ to_fun := λ z, (@proj _ (f *ᵖ E) z, (e (pullback.lift E f z)).2),
+{ to_fun := λ z, (z.proj, (e (pullback.lift f z)).2),
   inv_fun := λ y, @total_space_mk _ (f *ᵖ E) y.1 (e.symm (f y.1) y.2),
-  source := pullback.lift E f ⁻¹' e.source,
+  source := pullback.lift f ⁻¹' e.source,
   base_set := f ⁻¹' e.base_set,
   target := (f ⁻¹' e.base_set) ×ˢ (univ : set F),
   map_source' := λ x h, by { simp_rw [e.source_eq, mem_preimage, pullback.proj_lift] at h,
@@ -1162,7 +1161,7 @@ def prod : trivialization R (F₁ × F₂) (E₁ ×ᵇ E₂) :=
   right_inv' := λ x, prod.right_inv,
   open_source := begin
     refine (e₁.open_base_set.inter e₂.open_base_set).preimage _,
-    have : continuous (@proj B E₁) := continuous_proj R B F₁,
+    have : continuous (@total_space.proj B E₁) := continuous_proj R B F₁,
     exact this.comp (prod.inducing_diag E₁ E₂).continuous.fst,
   end,
   open_target := (e₁.open_base_set.inter e₂.open_base_set).prod is_open_univ,

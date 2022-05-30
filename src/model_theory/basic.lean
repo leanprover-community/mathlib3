@@ -125,9 +125,9 @@ rfl
 def card : cardinal := # L.symbols
 
 /-- A language is countable when it has countably many symbols. -/
-class countable : Prop := (card_le_omega' : L.card ≤ ω)
+class countable : Prop := (card_le_omega' : L.card ≤ ℵ₀)
 
-lemma card_le_omega [L.countable] : L.card ≤ ω := countable.card_le_omega'
+lemma card_le_omega [L.countable] : L.card ≤ ℵ₀ := countable.card_le_omega'
 
 /-- A language is relational when it has no function symbols. -/
 class is_relational : Prop :=
@@ -138,10 +138,9 @@ class is_algebraic : Prop :=
 (empty_relations : ∀ n, is_empty (L.relations n))
 
 /-- A language is countable when it has countably many symbols. -/
-class countable_functions : Prop := (card_functions_le_omega' : # (Σl, L.functions l) ≤ ω)
+class countable_functions : Prop := (card_functions_le_omega' : # (Σ l, L.functions l) ≤ ℵ₀)
 
-lemma card_functions_le_omega [L.countable_functions] :
-  # (Σl, L.functions l) ≤ ω :=
+lemma card_functions_le_omega [L.countable_functions] : #(Σ l, L.functions l) ≤ ℵ₀ :=
 countable_functions.card_functions_le_omega'
 
 variables {L} {L' : language.{u' v'}}

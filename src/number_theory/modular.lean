@@ -10,30 +10,45 @@ import analysis.matrix
 
 /-!
 # The action of the modular group SL(2, ℤ) on the upper half-plane
+
 We define the action of `SL(2,ℤ)` on `ℍ` (via restriction of the `SL(2,ℝ)` action in
 `analysis.complex.upper_half_plane`). We then define the standard fundamental domain
 (`modular_group.fd`, `𝒟`) for this action and show
 (`modular_group.exists_smul_mem_fd`) that any point in `ℍ` can be
 moved inside `𝒟`.
+
 ## Main definitions
+
 The standard (closed) fundamental domain of the action of `SL(2,ℤ)` on `ℍ`, denoted `𝒟`:
 `fd := {z | 1 ≤ (z : ℂ).norm_sq ∧ |z.re| ≤ (1 : ℝ) / 2}`
+
 The standard open fundamental domain of the action of `SL(2,ℤ)` on `ℍ`, denoted `𝒟ᵒ`:
 `fdo := {z | 1 < (z : ℂ).norm_sq ∧ |z.re| < (1 : ℝ) / 2}`
+
 These notations are localized in the `modular` locale and can be enabled via `open_locale modular`.
+
 ## Main results
+
 Any `z : ℍ` can be moved to `𝒟` by an element of `SL(2,ℤ)`:
 `exists_smul_mem_fd (z : ℍ) : ∃ g : SL(2,ℤ), g • z ∈ 𝒟`
+
 If both `z` and `γ • z` are in the open domain `𝒟ᵒ` then `z = γ • z`:
 `eq_smul_self_of_mem_fdo_mem_fdo {z : ℍ} {g : SL(2,ℤ)} (hz : z ∈ 𝒟ᵒ) (hg : g • z ∈ 𝒟ᵒ) : z = g • z`
+
 # Discussion
+
 Standard proofs make use of the identity
+
 `g • z = a / c - 1 / (c (cz + d))`
+
 for `g = [[a, b], [c, d]]` in `SL(2)`, but this requires separate handling of whether `c = 0`.
 Instead, our proof makes use of the following perhaps novel identity (see
 `modular_group.smul_eq_lc_row0_add`):
+
 `g • z = (a c + b d) / (c^2 + d^2) + (d z - c) / ((c^2 + d^2) (c z + d))`
+
 where there is no issue of division by zero.
+
 Another feature is that we delay until the very end the consideration of special matrices
 `T=[[1,1],[0,1]]` (see `modular_group.T`) and `S=[[0,-1],[1,0]]` (see `modular_group.S`), by
 instead using abstract theory on the properness of certain maps (phrased in terms of the filters

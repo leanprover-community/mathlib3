@@ -15,6 +15,35 @@ import group_theory.perm.support
 import group_theory.index
 import group_theory.specific_groups.alternating
 
+open_locale pointwise classical
+
+section ad_group_actions_defs
+
+open mul_action
+
+variables {G α : Type*} [group G] [mul_action G α]
+
+lemma is_pretransitive.mk_base (a : α) (h : ∀ (x : α), ∃ (g : G), g • a = x) :
+  is_pretransitive G α :=
+begin
+  apply is_pretransitive.mk,
+  intros x y,
+  obtain ⟨g, hg⟩ := h x,
+  obtain ⟨k, hk⟩ := h y,
+  use k * g⁻¹,
+  rw [← smul_smul, ← hg, ← hk, inv_smul_smul],
+end
+/-
+lemma smul_set_card_eq [fintype α] [decidable_eq α] (g : G) (s : set α) :
+  fintype.card (g • s) = fintype.card s :=
+begin
+  change fintype.card ((λ x, g • x) '' s) = _,
+
+  sorry
+end -/
+
+end ad_group_actions_defs
+
 section finite_groups
 
 open mul_action
@@ -54,7 +83,7 @@ begin
       exact nat.le_antisymm (nat.le_pred_of_lt hmn) h } },
 end
 
-lemma is_fully_minus_one_pretransitive_iff [G : subgroup (equiv.perm α)]
+lemma is_fully_minus_one_pretransitive_iff {G : subgroup (equiv.perm α)}
   (hmt : is_multiply_pretransitive ↥G α (fintype.card α - 1)) :
   G = ⊤ :=
 begin
@@ -257,7 +286,8 @@ begin
 end
 
 variable {α}
-lemma alternating_group_of_subsingleton (hα : subsingleton α) : alternating_group α = ⊥ :=
+lemma alternating_group_of_subsingleton (hα : subsingleton α) :
+  alternating_group α = (⊥ : subgroup (equiv.perm α)) :=
 begin
     rw eq_bot_iff,
     intros g hg,
@@ -465,6 +495,11 @@ begin
   exact fintype.card_pos
 end
 
+
+example (a b : ℕ) (h : a = b) : 2 * a = 2 * b :=
+begin
+  exact congr_arg (has_mul.mul 2) h,
+end
 
 
 lemma nat.eq_minus_one_of_lt_of_ge {i n : ℕ} (hi : i < n) (hi' : n - 1 ≤ i) : i = n - 1 :=
@@ -763,7 +798,8 @@ begin
   exact cardinal.mk_fintype ↥s
 end
 
-variables (G : subgroup (equiv.perm α))
+variables {G : Type*} [group G] [mul_action G α]
+-- variable (G : subgroup (equiv.perm α))
 
 lemma normal_closure_of_stabilizer_eq_top
   (hsn' : 2 < fintype.card α) (hG' : is_multiply_pretransitive G α 2)
@@ -863,7 +899,7 @@ begin
       exact hs_trans, },
     exact hG.to_is_pretransitive },
 
-  rw normal_closure_of_stabilizer_eq_top G hsn' hG',
+  rw normal_closure_of_stabilizer_eq_top hsn' hG',
   let j : mul_action_bihom G α ↥(⊤ : subgroup G) α := {
   to_fun := id,
   to_monoid_hom := {
@@ -887,29 +923,573 @@ begin
   exact subtype.mk_eq_mk.mp  (ha' ⟨x, hx⟩)
 end
 
+open_locale pointwise
+
+
+lemma is_pretransitive_of_fixing_subgroup_inter {G : Type*} [group G] [mul_action G α]
+  {s : set α}
+  (hs : is_pretransitive (fixing_subgroup G s) (sub_mul_action_of_fixing_subgroup G s))
+  {g : G} {a : α} (ha : a ∉ s ∪ (g • s)) :
+  is_pretransitive (fixing_subgroup G (s ∩ (g • s)))
+    (sub_mul_action_of_fixing_subgroup G (s ∩ g • s)) :=
+begin
+  have ha' : a ∉ s ∩ (g • s),
+  { intro ha', apply ha,
+    apply set.mem_union_left,
+    exact set.mem_of_mem_inter_left ha' },
+  apply is_pretransitive.mk_base (⟨a, ha'⟩ : sub_mul_action_of_fixing_subgroup G (s ∩ (g • s))),
+  let hs_trans_eq := hs.exists_smul_eq,
+  rintros ⟨x, hx⟩,
+  rw mem_sub_mul_action_of_fixing_subgroup_iff at hx,
+  rw [set.mem_inter_iff, not_and_distrib] at hx,
+  cases hx with hx hx,
+  { -- x ∉ s
+  obtain ⟨⟨k, hk⟩, hkax⟩ := hs_trans_eq ⟨a, _⟩ ⟨x, hx⟩,
+  use k,
+  { rintro ⟨z, hz⟩,
+    simp only [subtype.coe_mk],
+    simp only [← set_like.coe_eq_coe, subtype.coe_mk] at hkax,
+    rw mem_fixing_subgroup_iff at hk,
+    rw hk,
+    apply set.mem_of_mem_inter_left hz },
+  { simp only [← set_like.coe_eq_coe] at hkax ⊢,
+    simp only [sub_mul_action.coe_smul_of_tower, sub_mul_action.coe_mk, subtype.coe_mk] at hkax ⊢,
+    exact hkax },
+  { intro ha', apply ha,
+    apply set.mem_union_left,
+    exact ha' } },
+  { -- x ∉ g • s
+  obtain ⟨⟨k, hk⟩, hkax⟩ := hs_trans_eq ⟨g⁻¹ • a, _⟩ ⟨g⁻¹ • x, _⟩,
+  use g * k * g⁻¹,
+  { rintro ⟨z, hz⟩,
+    simp only [subtype.coe_mk],
+    simp only [← set_like.coe_eq_coe, subtype.coe_mk] at hkax,
+    simp only [← smul_smul],
+    rw smul_eq_iff_eq_inv_smul,
+    rw mem_fixing_subgroup_iff at hk,
+    rw hk,
+    rw ← mem_smul_set_iff_inv_smul_mem,
+    apply set.mem_of_mem_inter_right hz },
+  { simp only [← set_like.coe_eq_coe] at hkax ⊢,
+    simp only [sub_mul_action.coe_smul_of_tower, sub_mul_action.coe_mk, subtype.coe_mk] at hkax ⊢,
+    change k • g⁻¹ • a = g⁻¹ • x at hkax,
+    change (g * k * g⁻¹) • a = x,
+    rw ← smul_eq_iff_eq_inv_smul at hkax,
+    simp only [← smul_smul],
+    exact hkax },
+  { rw mem_sub_mul_action_of_fixing_subgroup_iff,
+    rw ← mem_smul_set_iff_inv_smul_mem,
+    intro h, apply ha, apply set.mem_union_right, exact h },
+  { rw mem_sub_mul_action_of_fixing_subgroup_iff,
+    intro h, apply hx,
+    rw mem_smul_set_iff_inv_smul_mem,
+    exact h } }
+end
+
+lemma smul_set_card_eq {G : Type*} [group G] [mul_action G α]
+  (g : G) (s : set α) :
+  fintype.card (g • s : set α) = fintype.card s :=
+begin
+  conv_lhs { simp only [fintype.card_of_finset] },
+  conv_rhs { simp only [← set.to_finset_card] },
+  apply finset.card_image_of_injective,
+  exact mul_action.injective g,
+end
+
+lemma is_preprimitive_of_fixing_subgroup_inter {G : Type*} [group G] [mul_action G α]
+  {s : set α}
+  (hs : is_preprimitive (fixing_subgroup G s) (sub_mul_action_of_fixing_subgroup G s))
+  {g : G} {a : α} (ha : a ∉ s ∪ (g • s)) :
+  is_preprimitive (fixing_subgroup G (s ∩ (g • s)))
+    (sub_mul_action_of_fixing_subgroup G (s ∩ g • s)) :=
+begin
+  have : fixing_subgroup G s ≤ fixing_subgroup G (s ∩ g • s),
+  { apply fixing_subgroup_antitone, apply set.inter_subset_left, },
+  let t := s ∩ g • s,
+  have hts : t ≤ s := set.inter_subset_left s _,
+  let j : mul_action_bihom
+    (fixing_subgroup G s) (sub_mul_action_of_fixing_subgroup G s)
+    (fixing_subgroup G t) (sub_mul_action_of_fixing_subgroup G t) := {
+  to_fun := λ ⟨x, hx⟩, ⟨x, λ h, hx (hts h)⟩,
+  to_monoid_hom := subgroup.inclusion (fixing_subgroup_antitone _ _ hts),
+  map_smul' := λ ⟨g, hg⟩ ⟨x, hx⟩, rfl },
+  have hj : function.injective j.to_fun,
+  { rintros ⟨x, hx⟩ ⟨y, hy⟩ hxy,
+    rw ← set_like.coe_eq_coe at hxy ⊢,
+    simp only [set_like.coe_mk],
+    exact hxy },
+  apply is_primitive_of_bihom' (fixing_subgroup G (s ∩ (g • s)))
+    (sub_mul_action_of_fixing_subgroup G (s ∩ g • s))
+    (is_pretransitive_of_fixing_subgroup_inter hs.to_is_pretransitive ha) hs hj,
+  { change _ > fintype.card (sub_mul_action_of_fixing_subgroup G (s ∩ g • s)).carrier,
+    simp only [← set.to_finset_card],
+    rw sub_mul_action_of_fixing_subgroup_def,
+    rw [set.to_finset_compl, set.to_finset_inter, finset.compl_inter],
+    rw gt_iff_lt,
+    apply nat.lt_of_add_lt_add_right,
+    rw finset.card_union_add_card_inter,
+
+    suffices : (g • s).to_finsetᶜ.card = s.to_finsetᶜ.card,
+    rw [this, ← two_mul],
+    rw nat.lt_iff_add_one_le,
+    apply nat.add_le_add,
+    { apply le_of_eq,
+      refine congr_arg _ _,
+      rw ← set.to_finset_compl,
+      simp only [set.to_finset_card],
+      rw set.card_range_of_injective,
+      change fintype.card (sᶜ : set α) = fintype.card (sub_mul_action_of_fixing_subgroup G s).carrier,
+      rw sub_mul_action_of_fixing_subgroup_def,
+      simp only [fintype.card_of_finset, set.mem_compl_eq],
+      exact hj },
+    { rw nat.succ_le_iff ,
+      simp only [← set.to_finset_compl, ← set.to_finset_inter,
+      ← set.compl_union],
+      rw set.to_finset_card, --  (sᶜ ∩ (g • s)ᶜ),
+      rw fintype.card_pos_iff ,
+      use a },
+    { simp only [finset.card_compl, set.to_finset_card],
+      rw smul_set_card_eq, } },
+end
+
+example {s t : set α} (h : t ≤ s) : set s :=
+begin
+exact {x : ↥s | ↑x ∈ t}
+end
+
+example {G : Type*} [group G] {H K : subgroup G} (h : H ≤ K) : subgroup K :=
+begin
+
+  refine subgroup.subgroup_of H K,
+
+end
+
 -- α = Ω, s = Δ, α \ s = Γ
-theorem jordan0 {n : ℕ} :
-  ∀ {α : Type*} [decidable_eq α] [fintype α],
-  ∀ {G : Type*} [group G] [hGα : by exactI mul_action G α],
-  ∀ (hG : by exactI is_preprimitive G α)
-    {s : set α} (hsn : by exactI fintype.card s = n.succ)
-    (hsn' : by exactI 1 + n.succ < fintype.card α)
-    (hs_trans : by exactI is_pretransitive (fixing_subgroup G s) (sub_mul_action_of_fixing_subgroup G s)),
-  by exactI is_multiply_pretransitive (subgroup.normal_closure (fixing_subgroup G s).carrier) α 2 :=
+-- 1 ≤ #Δ < #Ω, 1 < #Γ < #Ω
+--
+theorem strong_jordan_of_pretransitive {n : ℕ} :
+  ∀ {α : Type*} [decidable_eq α] [fintype α]
+    -- {G : subgroup (equiv.perm α)},
+    {G : Type*} [group G] [by exactI mul_action G α],
+  by exactI ∀ (hG : is_preprimitive G α)
+    {s : set α} (hsn : fintype.card s = n.succ)
+    (hsn' : 1 + n.succ < fintype.card α)
+    (hs_trans : is_pretransitive (fixing_subgroup G s) (sub_mul_action_of_fixing_subgroup G s)),
+  is_multiply_pretransitive (subgroup.normal_closure (fixing_subgroup G s).carrier) α 2 :=
+sorry
+
+
+lemma aux_pigeonhole {s t : set α} (h : fintype.card s + fintype.card t > fintype.card α) :
+  (s ∩ t).nonempty :=
+begin
+  simp only [← set.to_finset_card] at h,
+  rw ← set.ne_empty_iff_nonempty,
+  intro hst,
+  rw [← set.to_finset_inj, set.to_finset_inter, set.to_finset_empty, ← finset.not_nonempty_iff_eq_empty] at hst,
+  apply hst,
+  rw [← finset.card_compl_lt_iff_nonempty, finset.compl_inter],
+  apply lt_of_le_of_lt (finset.card_union_le _ _),
+  apply nat.lt_of_add_lt_add_left,
+  rw ← add_assoc,
+  simp only [finset.card_compl],
+  rw nat.add_sub_of_le (finset.card_le_univ s.to_finset),
+  conv_rhs { rw add_comm },
+  apply nat.add_lt_add_left,
+  apply nat.lt_of_add_lt_add_left,
+  rw nat.add_sub_of_le (finset.card_le_univ t.to_finset),
+  rw add_comm,
+  exact h
+end
+
+/-
+have : ((s.to_finset)ᶜ ∩ (g • s.to_finset)ᶜ).nonempty,
+    { rw ← finset.card_compl_lt_iff_nonempty,
+      simp only [finset.compl_inter, compl_compl],
+      apply lt_of_le_of_lt (finset.card_union_le _ _),
+      rw set.to_finset_card,
+      suffices : (g • s.to_finset).card = fintype.card s,
+      rw [this, hsn, ← two_mul],
+      exact hn1,
+      change (finset.image (λ x, g • x) s.to_finset).card = _,
+      rw finset.card_image_of_injective _ (mul_action.injective g),
+      rw set.to_finset_card },
+
+end
+ -/
+
+theorem weak_jordan_of_pretransitive {n : ℕ} :
+  ∀ {α : Type*} [decidable_eq α] [fintype α]
+    -- {G : subgroup (equiv.perm α)},
+    {G : Type*} [group G] [by exactI mul_action G α],
+  by exactI ∀ (hG : is_preprimitive G α)
+    {s : set α} (hsn : fintype.card s = n.succ)
+    (hsn' : 1 + n.succ < fintype.card α)
+    (hs_trans : is_pretransitive (fixing_subgroup G s) (sub_mul_action_of_fixing_subgroup G s)),
+  is_multiply_pretransitive G α 2 :=
+begin
+  induction n using nat.strong_induction_on with n hrec,
+  introsI α _ _ G _ _ hG s hsn hsn' hs_trans,
+
+  let hs_trans_eq := hs_trans.exists_smul_eq,
+  have hs_ne_top : s ≠ ⊤,
+  { intro hs,
+    rw [set.top_eq_univ, ← set_fintype_card_eq_univ_iff, hsn] at hs,
+    rw hs at hsn',
+    simpa only [add_lt_iff_neg_right, not_lt_zero'] using hsn' },
+  have hs_nonempty : s.nonempty,
+  { rw ← set.nonempty_coe_sort , rw ← not_is_empty_iff ,
+    intro hs,
+    rw ← fintype.card_eq_zero_iff at hs,
+    rw hs at hsn,
+    simpa only using hsn },
+
+  cases nat.lt_or_ge n.succ 2 with hn hn,
+  { -- Initialization : n = 0
+    have hn : n = 0,
+    { rw ← nat.le_zero_iff,
+      apply nat.le_of_succ_le_succ ,
+      apply nat.le_of_lt_succ,
+      exact hn },
+    rw hn at *,
+    let hG_eq := hG.to_is_pretransitive.exists_smul_eq,
+
+    obtain ⟨a, hsa⟩ := card_eq_one_iff_is_singleton s hsn,
+    rw hsa at *,
+
+    rw stabilizer.is_multiply_pretransitive G α hG.to_is_pretransitive,
+
+    rw ← is_pretransitive_iff_is_one_pretransitive,
+      -- is_pretransitive (stabilizer G a) (sub_mul_action_of_stabilizer G α a),
+    exact is_pretransitive_of_bihom
+      (sub_mul_action_of_fixing_subgroup_of_singleton_bihom_bijective G a).surjective
+      hs_trans,
+
+/-     suffices : fixing_subgroup G ({a} : set α) = stabilizer G a,
+    rw this,
+ -/
+  /-   refine jordan0_init hG _ _,
+    apply lt_of_eq_of_lt _ hsn', norm_num,
+    rw is_pretransitive_iff_is_one_pretransitive,
+    exact (stabilizer.is_multiply_pretransitive G α hG.to_is_pretransitive).mp hG',
+
+    { -- stabilizer G a = fixing_subgroup G ({a} : set α),
+      ext g,  split,
+      intro hg, exact (mem_fixing_subgroup_iff G).mp hg a (set.mem_singleton a) ,
+      intro hg, rw mem_fixing_subgroup_iff, intros x hx,
+        rw (set.mem_singleton_iff.mp hx), exact hg } -/
+
+    },
+
+  -- Induction step : n ≥ 1
+
+  cases nat.lt_or_ge (2 * n.succ) (fintype.card α) with hn1 hn2,
+  { -- hn : 2 * s.card < fintype.card α
+
+    -- get a, b ∈ s, a ≠ b
+    obtain ⟨⟨a, ha : a ∈ s⟩, ⟨b, hb : b ∈ s⟩, hab⟩ :=
+      fintype.one_lt_card_iff_nontrivial.mp (nat.succ_le_iff.mp (by { rw hsn, exact hn })),
+    simp only [ne.def, subtype.mk_eq_mk] at hab,
+
+    -- apply rudio to get g ∈ G such that a ∈ g • s, b ∉ g • s
+    obtain ⟨g, hga, hgb⟩ :=
+      @rudio G α _ _ hG s (set.finite.of_fintype s) hs_nonempty hs_ne_top a b hab,
+
+    have : ((s.to_finset)ᶜ ∩ (g • s.to_finset)ᶜ).nonempty,
+    { rw ← finset.card_compl_lt_iff_nonempty,
+      simp only [finset.compl_inter, compl_compl],
+      apply lt_of_le_of_lt (finset.card_union_le _ _),
+      rw set.to_finset_card,
+      suffices : (g • s.to_finset).card = fintype.card s,
+      rw [this, hsn, ← two_mul],
+      exact hn1,
+      change (finset.image (λ x, g • x) s.to_finset).card = _,
+      rw finset.card_image_of_injective _ (mul_action.injective g),
+      rw set.to_finset_card },
+    obtain ⟨c, hc⟩ := this.bex,
+    simp only [finset.mem_inter, finset.mem_compl, set.mem_to_finset] at hc,
+    let hcs := hc.left,
+    have hcgs : g⁻¹ • c ∉ s,
+    { intro h,
+    -- rintro ⟨c', hc'⟩, apply hc.right,
+      rw ← set.mem_to_finset at h,
+      apply hc.right,
+      rw finset.mem_smul_finset,
+      use g⁻¹ • c, apply and.intro h,
+      simp only [smul_inv_smul] },
+
+    -- have : tᶜ = sᶜ ∪ (g • sᶜ) ≠ ∅
+    -- let H := subgroup.closure ((fixing_subgroup G s).carrier ∪ (fixing_subgroup G (g • s)).carrier),
+    -- H ≤ fixing_subgroup G t
+    -- -- have : is_pretransitive H tᶜ
+    -- have : is_pretransitive (fixing_subgroup G t) (sub_mul_action_of_fixing_subgroup G t),
+
+    let t := s ∩ (g • s),
+
+    have hct : c ∉ t, { intro h, apply hcs, apply set.mem_of_mem_inter_left h },
+    have hct' : c ∉ s ∪ (g • s),
+    { intro h, rw set.mem_union at h, cases h with h h,
+      exact hc.left h,
+      apply hcgs, rw ← mem_smul_set_iff_inv_smul_mem, exact h },
+    let ht_trans : is_pretransitive (fixing_subgroup G t) (sub_mul_action_of_fixing_subgroup G t) :=
+      is_pretransitive_of_fixing_subgroup_inter hs_trans hct',
+
+
+    -- from : t ⊆ s, a ∈ t, b ∉ t,
+    -- have : 1 ≤ fintype.card t < fintype.card s
+    have : ∃ (m : ℕ), fintype.card t = m.succ ∧ m < n,
+    { suffices : fintype.card t ≠ 0,
+      obtain ⟨m, hm⟩ := nat.exists_eq_succ_of_ne_zero this,
+      use m, apply and.intro hm,
+      rw ← nat.succ_lt_succ_iff, rw ← hm, rw ← hsn,
+      apply set.card_lt_card,
+      split,
+      rw set.le_eq_subset, apply set.inter_subset_left,
+      intro hst, apply hgb, apply set.inter_subset_right s,
+      apply hst, exact hb,
+
+      intro ht,
+      rw fintype.card_eq_zero_iff at ht,
+      apply ht.false,
+      use ⟨a, ha, hga⟩ },
+    obtain ⟨m, htm, hmn⟩ := this,
+
+    have htm' : 1 + m.succ < fintype.card α,
+    { apply lt_trans _ hsn',
+      simp only [add_lt_add_iff_left],
+      rw nat.succ_lt_succ_iff,
+      exact hmn },
+
+    -- apply hrec : is_multiply_pretransitive (subgroup.normal_closure (fixing_subgroup t).carrier) α 2
+    exact hrec m hmn hG (by
+      { rw ← htm, simp only [fintype.card_of_finset],
+        simp only [set.mem_inter_eq, finset.filter_congr_decidable],
+        apply congr_arg,
+        rw ← finset.filter_filter ,
+        apply congr_arg,
+        simp_rw ← set.mem_to_finset ,
+        rw finset.filter_mem_eq_inter,
+        rw finset.univ_inter  })
+      htm' ht_trans,
+
+     },
+  { -- 2 * s.card ≥ fintype.card α
+
+    have : nontrivial (sᶜ : set α),
+    { rw ← fintype.one_lt_card_iff_nontrivial,
+      rw ← set.to_finset_card ,
+      rw set.to_finset_compl,
+      rw finset.card_compl ,
+      rw lt_tsub_iff_right ,
+      rw [set.to_finset_card , hsn], exact hsn' },
+    -- get a, b ∈ sᶜ, a ≠ b
+    obtain ⟨⟨a, ha : a ∈ sᶜ⟩, ⟨b, hb : b ∈ sᶜ⟩, hab⟩ := this,
+    simp only [ne.def, subtype.mk_eq_mk] at hab,
+
+    have hsc_ne : sᶜ.nonempty := set.nonempty_of_mem ha,
+    have hsc_ne_top : sᶜ ≠ ⊤,
+    { intro h,
+      simp only [set.top_eq_univ, set.compl_univ_iff] at h,
+      simpa only [h, set.not_nonempty_empty] using hs_nonempty },
+
+    -- apply rudio to get g ∈ G such that a ∈ g • sᶜ, b ∉ g • sᶜ
+    obtain ⟨g, hga, hgb⟩ :=
+      @rudio G α _ _ hG sᶜ (set.finite.of_fintype sᶜ) hsc_ne hsc_ne_top a b hab,
+
+    let t := s ∩ (g • s),
+    have hbt : b ∉ t,
+    { intro h, rw set.mem_compl_iff at hb, apply hb,
+      apply set.mem_of_mem_inter_left h },
+    have hat' : a ∉ s ∪ g • s,
+    { intro h, rw set.mem_union at h,
+      cases h with h h,
+      rw set.mem_compl_iff at ha, exact ha h,
+      rw mem_smul_set_iff_inv_smul_mem at hga h,
+      rw set.mem_compl_iff at hga, exact hga h },
+    let ht_trans : is_pretransitive (fixing_subgroup G t) (sub_mul_action_of_fixing_subgroup G t) :=
+      is_pretransitive_of_fixing_subgroup_inter hs_trans hat',
+
+    -- from : t ⊆ s, a ∈ t, b ∉ t,
+    -- have : 1 ≤ fintype.card t < fintype.card s
+    have : ∃ (m : ℕ), fintype.card t = m.succ ∧ m < n,
+    { -- suffices : fintype.card t ≠ 0,
+      suffices : t.nonempty,
+      { rw [← set.nonempty_coe_sort,  ← fintype.card_pos_iff] at this,
+        use (fintype.card t).pred,
+        rw ← nat.succ_lt_succ_iff,
+        rw nat.succ_pred_eq_of_pos this,
+        rw ← hsn,
+        apply and.intro rfl,
+        apply set.card_lt_card,
+        split,
+        rw set.le_eq_subset, apply set.inter_subset_left,
+        intro hst,
+        rw set.mem_compl_iff at hb,
+        simp only [set.smul_compl_set, set.mem_compl_eq, set.not_not_mem] at hgb,
+        suffices : s = g • s,
+        { apply hb, rw this, exact hgb },
+        apply set.eq_of_subset_of_card_le,
+        { rw [set.le_eq_subset] at hst,
+          refine subset_trans hst _,
+          apply set.inter_subset_right },
+        { apply le_of_eq,
+          apply smul_set_card_eq }  },
+
+      { -- aux_pigeonhole ne marche pas !
+        rw ← set.ne_empty_iff_nonempty,
+        intro h,
+        rw [← set.to_finset_inj, set.to_finset_inter, set.to_finset_empty,
+          ← finset.not_nonempty_iff_eq_empty] at h,
+        apply h,
+        rw [← finset.card_compl_lt_iff_nonempty, finset.compl_inter],
+        apply nat.lt_of_add_lt_add_right,
+        rw finset.card_union_add_card_inter,
+        apply nat.lt_of_add_lt_add_left,
+        rw ← add_assoc,
+        simp only [finset.card_compl],
+        rw nat.add_sub_of_le (finset.card_le_univ s.to_finset),
+
+        conv_rhs { rw add_comm, rw add_assoc },
+        apply nat.add_lt_add_left,
+        apply nat.lt_of_add_lt_add_left,
+        rw nat.add_sub_of_le (finset.card_le_univ (g • s).to_finset),
+        rw add_comm,
+        suffices : (g • s).to_finset.card = s.to_finset.card,
+        { rw this, conv_rhs { rw add_assoc },
+          rw [← two_mul, set.to_finset_card, hsn],
+          rw ← nat.one_add_le_iff,
+          apply nat.add_le_add _ hn2,
+          rw nat.succ_le_iff,
+          rw finset.card_pos,
+          use a,
+          simp only [finset.mem_inter, finset.mem_compl, set.mem_to_finset],
+          rw [← not_or_distrib, ← set.mem_union],
+          exact hat' },
+        { conv_lhs { simp only [set.to_finset_card, fintype.card_of_finset] },
+          rw finset.card_image_of_injective _ (mul_action.injective g) } } },
+
+    obtain ⟨m, htm, hmn⟩ := this,
+
+    have htm' : 1 + m.succ < fintype.card α,
+    { apply lt_trans _ hsn',
+      simp only [add_lt_add_iff_left],
+      rw nat.succ_lt_succ_iff,
+      exact hmn },
+
+    -- apply hrec : is_multiply_pretransitive (subgroup.normal_closure (fixing_subgroup t).carrier) α 2
+    exact hrec m hmn hG
+      (by { rw ← htm, simp only [fintype.card_of_finset],
+            simp only [set.mem_inter_eq, finset.filter_congr_decidable],
+            apply congr_arg,
+            rw ← finset.filter_filter ,
+            apply congr_arg,
+            simp_rw ← set.mem_to_finset ,
+            rw finset.filter_mem_eq_inter,
+            rw finset.univ_inter  })
+      htm'
+      ht_trans }
+end
+
+example {s t : set α} (h : fintype.card s = fintype.card t) (h' : s ⊆ t) : s = t :=
+begin
+  apply set.eq_of_subset_of_card_le h',
+  apply le_of_eq h.symm,
+end
+
+example {s : set α} {g : G} : g • (s.to_finset) = (g • s).to_finset :=
+begin
+  ext a,
+  rw set.mem_to_finset,
+  change a ∈ finset.image (λ x, g • x) s.to_finset ↔ a ∈ (λ x, g • x) '' s,
+  generalize :  (λ x, g • x) = f,
+  simp only [finset.mem_image, set.mem_to_finset, exists_prop, set.mem_image],
+end
+
+example {s : set α} {f : α → α} : fintype.card (f '' s) ≤ fintype.card s :=
+begin
+  rw ← set.coe_to_finset s,
+  simp_rw ← finset.coe_image ,
+  rw set.coe_to_finset s,
+  simp only [← set.to_finset_card],
+
+  have : ∀ (t : finset α), (t : set α).to_finset = t,
+  { intro t,
+ext a, simp,
+    },
+  rw this,
+  exact finset.card_image_le,
+end
+
+example {f : α → α} {s : finset α} : (s.image f).card ≤ s.card :=
+begin
+  let h := (s.1.map f).to_finset_card_le,
+exact finset.card_image_le,
+end
+
+
+example {α β : Type*} [fintype α] [fintype β] {f : α → β} {s : set α} :
+  (f '' s).to_finset = finset.image f s.to_finset :=
+begin
+  ext b,
+  simp only [set.mem_to_finset, set.mem_image, finset.mem_image, exists_prop],
+end
+
+
+lemma test {s : set α} {g : G} : let t := s ∩ (g • s) in
+  subgroup.normal_closure (fixing_subgroup G t).carrier
+  ≤ subgroup.normal_closure (fixing_subgroup G s).carrier :=
+begin
+/-   { apply subgroup.normal_closure_mono,
+    intros k hk,
+    simp only [subgroup.mem_carrier] at hk ⊢,
+    rintro ⟨x, hx⟩,
+    simp only [subtype.coe_mk],
+    rw mem_fixing_subgroup_iff at hk,
+    refine hk x (set.mem_of_mem_inter_left hx) },
+ -/
+ { refine subgroup.normal_closure_le_normal _,
+    apply set.subset.trans _ (subgroup.conjugates_of_set_subset_normal_closure),
+    intros k hk,
+    simp only [subgroup.mem_carrier, mem_fixing_subgroup_iff] at hk,
+
+  sorry }
+end
+
+
+example (s t : set α) :
+  finset.filter (λ (x : α), x ∈ s ∧ x ∈ t) finset.univ = finset.filter t s.to_finset :=
+begin
+rw ← finset.filter_filter ,
+apply congr_arg,
+simp_rw ← set.mem_to_finset ,
+rw finset.filter_mem_eq_inter,
+rw finset.univ_inter
+end
+
+
+/-
+theorem jordan0_old {n : ℕ} :
+  ∀ {α : Type*} [decidable_eq α] [fintype α]
+    -- {G : subgroup (equiv.perm α)},
+    {G : Type*} [group G] [by exactI mul_action G α],
+  by exactI ∀ (hG : is_preprimitive G α)
+    {s : set α} (hsn : fintype.card s = n.succ)
+    (hsn' : 1 + n.succ < fintype.card α)
+    (hs_trans : is_pretransitive (fixing_subgroup G s) (sub_mul_action_of_fixing_subgroup G s)),
+  is_multiply_pretransitive (subgroup.normal_closure (fixing_subgroup G s).carrier) α 2 :=
 begin
   induction n with n hrec,
   -- Initialization : n = 0
   { -- s = {a}
-    intros α _ _ G _ _ _ s hsn hsn' hs_trans,
+    intros α _ _ G _ _ hG s hsn hsn' hs_trans,
+    resetI,
+    let hG_eq := hG.to_is_pretransitive.exists_smul_eq,
 
-    let hG_eq := by exactI hG.to_is_pretransitive.exists_smul_eq,
-
-    obtain ⟨a, hsa⟩ := by exactI card_eq_one_iff_is_singleton s hsn,
+    obtain ⟨a, hsa⟩ := card_eq_one_iff_is_singleton s hsn,
     rw hsa at *,
 
-    have hG' : by exactI is_multiply_pretransitive G α 2,
+    have hG' : is_multiply_pretransitive G α 2,
 
-      rw [by exactI stabilizer.is_multiply_pretransitive G α hG.to_is_pretransitive],
+      rw stabilizer.is_multiply_pretransitive G α hG.to_is_pretransitive,
 
       rw ← is_pretransitive_iff_is_one_pretransitive,
       -- is_pretransitive (stabilizer G a) (sub_mul_action_of_stabilizer G α a),
@@ -920,36 +1500,329 @@ begin
         hs_trans,
 
 
-    let this : fixing_subgroup G ({a} : set α) = stabilizer G a :=
-    { -- stabilizer G a = fixing_subgroup G ({a} : set α),
-      by exactI ext g,  split,
-      intro hg, exact (mem_fixing_subgroup_iff G).mp hg a (set.mem_singleton a) ,
-      intro hg, rw mem_fixing_subgroup_iff, intros x hx,
-        rw (set.mem_singleton_iff.mp hx), exact hg },
-
+    suffices : fixing_subgroup G ({a} : set α) = stabilizer G a,
     rw this,
 
-    by exactI refine jordan0_init G hG _ _,
+    refine jordan0_init hG _ _,
     apply lt_of_eq_of_lt _ hsn', norm_num,
     rw is_pretransitive_iff_is_one_pretransitive,
     exact (stabilizer.is_multiply_pretransitive G α hG.to_is_pretransitive).mp hG',
-    },
 
-{
-  -- Induction step
+    { -- stabilizer G a = fixing_subgroup G ({a} : set α),
+      ext g,  split,
+      intro hg, exact (mem_fixing_subgroup_iff G).mp hg a (set.mem_singleton a) ,
+      intro hg, rw mem_fixing_subgroup_iff, intros x hx,
+        rw (set.mem_singleton_iff.mp hx), exact hg } },
+{ -- Induction step
+  intros α _ _ G _ _ hG s hsn hsn' hs_trans,
+  resetI,
+
+  suffices : s.to_finset.nonempty,
+--  rw ← finset.nonempty.to_set at this,
+  obtain ⟨a, has⟩ := finset.nonempty.bex this,
+  simp only [set.mem_to_finset] at has,
+  let t : set (sub_mul_action_of_stabilizer G α a) := coe ⁻¹' ((s.to_finset.erase a) : set α),
+  have hat : (coe '' t : set α) = s.to_finset.erase a,
+  { simp only [subtype.image_preimage_coe, finset.coe_erase, set_like.mem_coe,
+    set.inter_eq_left_iff_subset, set.diff_singleton_subset_iff],
+    simp_rw mem_sub_mul_action_of_stabilizer_iff,
+    intros x _,
+    simp only [set.mem_insert_iff],
+    cases em (x = a) with hx hx,
+    apply or.intro_left, exact hx,
+    apply or.intro_right, exact hx },
+  have hast : s = insert a (coe '' t),
+  { rw hat,
+    simp only [finset.coe_erase, set.coe_to_finset, set.insert_diff_singleton],
+    rw set.insert_eq_of_mem has },
+
+  -- suffices : is_multiply_pretransitive ↥(subgroup.normal_closure
+  -- (fixing_subgroup (stabilizer G a) t).carrier) α 2,
+
+  let k1 := sub_mul_action_of_fixing_subgroup_eq_bihom G hast.symm,
+  let hk1 := sub_mul_action_of_fixing_subgroup_eq_bihom_bijective G hast.symm,
+
+  let k2 := sub_mul_action_of_fixing_subgroup_of_stabilizer_bihom G a t,
+  let hk2 := sub_mul_action_of_fixing_subgroup_of_stabilizer_bihom_bijective G a t,
+
+  -- let k3 := bihom_of_comap k2 (subgroup.normal_closure (fixing_subgroup G s).carrier),
 
 
+  -- let hk := function.bijective.surjective (sub_mul_action_of_fixing_subgroup_of_stabilizer_bihom_bijective G a t),
+  -- apply is_multiply_pretransitive_via_surjective_bihom hk,
 
-    sorry
+  /-
+  rw (subgroup'_is_multiply_pretransitive_via_bijective_bihom_iff
+    (function.bijective.surjective (sub_mul_action_of_fixing_subgroup_of_stabilizer_bijective _ _ _))
+    (sub_mul_action_of_fixing_subgroup_of_stabilizer_bihom_bijective _ _ _),
+ -/
+    sorry,
+
+  { -- s.to_finset.nonempty
+    rw ← finset.card_pos , rw set.to_finset_card, rw hsn, apply nat.succ_pos },
 },
 end
+ -/
 
-theorem jordan0' (hG : is_preprimitive G α)
+theorem strong_jordan_of_preprimitive (hG : is_preprimitive G α)
   {s : set α} {n : ℕ} (hsn : fintype.card s = n.succ) (hsn' : 1 + n.succ < fintype.card α)
   (hs_prim : is_preprimitive (fixing_subgroup G s) (sub_mul_action_of_fixing_subgroup G s)) :
   is_multiply_preprimitive (subgroup.normal_closure (fixing_subgroup G s).carrier) α 2 := sorry
 
-theorem jordan1 (hG : is_preprimitive G α)
+theorem weak_jordan_of_preprimitive {n : ℕ} :
+  ∀ {α : Type*} [decidable_eq α] [fintype α]
+    {G : Type*} [group G] [by exactI mul_action G α],
+  by exactI ∀ (hG : is_preprimitive G α)
+    {s : set α} (hsn : fintype.card s = n.succ)
+    (hsn' : 1 + n.succ < fintype.card α)
+    (hs_prim : is_preprimitive (fixing_subgroup G s) (sub_mul_action_of_fixing_subgroup G s)),
+  is_multiply_preprimitive G α 2 :=
+ begin
+  induction n using nat.strong_induction_on with n hrec,
+  introsI α _ _ G _ _ hG s hsn hsn' hs_prim,
+
+  let hs_trans_eq := hs_prim.to_is_pretransitive.exists_smul_eq,
+  have hs_ne_top : s ≠ ⊤,
+  { intro hs,
+    rw [set.top_eq_univ, ← set_fintype_card_eq_univ_iff, hsn] at hs,
+    rw hs at hsn',
+    simpa only [add_lt_iff_neg_right, not_lt_zero'] using hsn' },
+  have hs_nonempty : s.nonempty,
+  { rw ← set.nonempty_coe_sort , rw ← not_is_empty_iff ,
+    intro hs,
+    rw ← fintype.card_eq_zero_iff at hs,
+    rw hs at hsn,
+    simpa only using hsn },
+
+  cases nat.lt_or_ge n.succ 2 with hn hn,
+  { -- Initialization : n = 0
+    have hn : n = 0,
+    { rw ← nat.le_zero_iff,
+      apply nat.le_of_succ_le_succ ,
+      apply nat.le_of_lt_succ,
+      exact hn },
+    rw hn at *,
+    let hG_eq := hG.to_is_pretransitive.exists_smul_eq,
+
+    obtain ⟨a, hsa⟩ := card_eq_one_iff_is_singleton s hsn,
+    rw hsa at *,
+
+    rw is_multiply_preprimitive_of_stabilizer G α (by norm_num) hG.to_is_pretransitive,
+
+    rw is_multiply_preprimitive_one_iff,
+
+    refine is_preprimitive_via_surjective_bihom
+      (function.bijective.surjective
+        (sub_mul_action_of_fixing_subgroup_of_singleton_bihom_bijective G a))
+      hs_prim },
+
+  -- Induction step : n ≥ 1
+
+  cases nat.lt_or_ge (2 * n.succ) (fintype.card α) with hn1 hn2,
+  { -- hn : 2 * s.card < fintype.card α
+
+    -- get a, b ∈ s, a ≠ b
+    obtain ⟨⟨a, ha : a ∈ s⟩, ⟨b, hb : b ∈ s⟩, hab⟩ :=
+      fintype.one_lt_card_iff_nontrivial.mp (nat.succ_le_iff.mp (by { rw hsn, exact hn })),
+    simp only [ne.def, subtype.mk_eq_mk] at hab,
+
+    -- apply rudio to get g ∈ G such that a ∈ g • s, b ∉ g • s
+    obtain ⟨g, hga, hgb⟩ :=
+      @rudio G α _ _ hG s (set.finite.of_fintype s) hs_nonempty hs_ne_top a b hab,
+
+    have : ((s.to_finset)ᶜ ∩ (g • s.to_finset)ᶜ).nonempty,
+    { rw ← finset.card_compl_lt_iff_nonempty,
+      simp only [finset.compl_inter, compl_compl],
+      apply lt_of_le_of_lt (finset.card_union_le _ _),
+      rw set.to_finset_card,
+      suffices : (g • s.to_finset).card = fintype.card s,
+      rw [this, hsn, ← two_mul],
+      exact hn1,
+      change (finset.image (λ x, g • x) s.to_finset).card = _,
+      rw finset.card_image_of_injective _ (mul_action.injective g),
+      rw set.to_finset_card },
+    obtain ⟨c, hc⟩ := this.bex,
+    simp only [finset.mem_inter, finset.mem_compl, set.mem_to_finset] at hc,
+    let hcs := hc.left,
+    have hcgs : g⁻¹ • c ∉ s,
+    { intro h,
+    -- rintro ⟨c', hc'⟩, apply hc.right,
+      rw ← set.mem_to_finset at h,
+      apply hc.right,
+      rw finset.mem_smul_finset,
+      use g⁻¹ • c, apply and.intro h,
+      simp only [smul_inv_smul] },
+
+    -- have : tᶜ = sᶜ ∪ (g • sᶜ) ≠ ∅
+    -- let H := subgroup.closure ((fixing_subgroup G s).carrier ∪ (fixing_subgroup G (g • s)).carrier),
+    -- H ≤ fixing_subgroup G t
+    -- -- have : is_pretransitive H tᶜ
+    -- have : is_pretransitive (fixing_subgroup G t) (sub_mul_action_of_fixing_subgroup G t),
+
+    let t := s ∩ (g • s),
+
+    have hct : c ∉ t, { intro h, apply hcs, apply set.mem_of_mem_inter_left h },
+    have hct' : c ∉ s ∪ (g • s),
+    { intro h, rw set.mem_union at h, cases h with h h,
+      exact hc.left h,
+      apply hcgs, rw ← mem_smul_set_iff_inv_smul_mem, exact h },
+    let ht_prim : is_preprimitive (fixing_subgroup G t) (sub_mul_action_of_fixing_subgroup G t) :=
+      is_preprimitive_of_fixing_subgroup_inter hs_prim hct',
+
+    -- from : t ⊆ s, a ∈ t, b ∉ t,
+    -- have : 1 ≤ fintype.card t < fintype.card s
+    have : ∃ (m : ℕ), fintype.card t = m.succ ∧ m < n,
+    { suffices : fintype.card t ≠ 0,
+      obtain ⟨m, hm⟩ := nat.exists_eq_succ_of_ne_zero this,
+      use m, apply and.intro hm,
+      rw ← nat.succ_lt_succ_iff, rw ← hm, rw ← hsn,
+      apply set.card_lt_card,
+      split,
+      rw set.le_eq_subset, apply set.inter_subset_left,
+      intro hst, apply hgb, apply set.inter_subset_right s,
+      apply hst, exact hb,
+
+      intro ht,
+      rw fintype.card_eq_zero_iff at ht,
+      apply ht.false,
+      use ⟨a, ha, hga⟩ },
+    obtain ⟨m, htm, hmn⟩ := this,
+
+    have htm' : 1 + m.succ < fintype.card α,
+    { apply lt_trans _ hsn',
+      simp only [add_lt_add_iff_left],
+      rw nat.succ_lt_succ_iff,
+      exact hmn },
+
+    -- apply hrec : is_multiply_pretransitive (subgroup.normal_closure (fixing_subgroup t).carrier) α 2
+    exact hrec m hmn hG (by
+      { rw ← htm, simp only [fintype.card_of_finset],
+        simp only [set.mem_inter_eq, finset.filter_congr_decidable],
+        apply congr_arg,
+        rw ← finset.filter_filter ,
+        apply congr_arg,
+        simp_rw ← set.mem_to_finset ,
+        rw finset.filter_mem_eq_inter,
+        rw finset.univ_inter  })
+      htm' ht_prim,
+
+     },
+  { -- 2 * s.card ≥ fintype.card α
+
+    have : nontrivial (sᶜ : set α),
+    { rw ← fintype.one_lt_card_iff_nontrivial,
+      rw ← set.to_finset_card ,
+      rw set.to_finset_compl,
+      rw finset.card_compl ,
+      rw lt_tsub_iff_right ,
+      rw [set.to_finset_card , hsn], exact hsn' },
+    -- get a, b ∈ sᶜ, a ≠ b
+    obtain ⟨⟨a, ha : a ∈ sᶜ⟩, ⟨b, hb : b ∈ sᶜ⟩, hab⟩ := this,
+    simp only [ne.def, subtype.mk_eq_mk] at hab,
+
+    have hsc_ne : sᶜ.nonempty := set.nonempty_of_mem ha,
+    have hsc_ne_top : sᶜ ≠ ⊤,
+    { intro h,
+      simp only [set.top_eq_univ, set.compl_univ_iff] at h,
+      simpa only [h, set.not_nonempty_empty] using hs_nonempty },
+
+    -- apply rudio to get g ∈ G such that a ∈ g • sᶜ, b ∉ g • sᶜ
+    obtain ⟨g, hga, hgb⟩ :=
+      @rudio G α _ _ hG sᶜ (set.finite.of_fintype sᶜ) hsc_ne hsc_ne_top a b hab,
+
+    let t := s ∩ (g • s),
+    have hat' : a ∉ s ∪ g • s,
+    { intro h, rw set.mem_union at h,
+      cases h with h h,
+      rw set.mem_compl_iff at ha, exact ha h,
+      rw mem_smul_set_iff_inv_smul_mem at hga h,
+      rw set.mem_compl_iff at hga, exact hga h },
+    let ht_prim : is_preprimitive (fixing_subgroup G t) (sub_mul_action_of_fixing_subgroup G t) :=
+      is_preprimitive_of_fixing_subgroup_inter hs_prim hat',
+
+    -- from : t ⊆ s, a ∈ t, b ∉ t,
+    -- have : 1 ≤ fintype.card t < fintype.card s
+    have : ∃ (m : ℕ), fintype.card t = m.succ ∧ m < n,
+    { -- suffices : fintype.card t ≠ 0,
+      suffices : t.nonempty,
+      { rw [← set.nonempty_coe_sort,  ← fintype.card_pos_iff] at this,
+        use (fintype.card t).pred,
+        rw ← nat.succ_lt_succ_iff,
+        rw nat.succ_pred_eq_of_pos this,
+        rw ← hsn,
+        apply and.intro rfl,
+        apply set.card_lt_card,
+        split,
+        rw set.le_eq_subset, apply set.inter_subset_left,
+        intro hst,
+        rw set.mem_compl_iff at hb,
+        simp only [set.smul_compl_set, set.mem_compl_eq, set.not_not_mem] at hgb,
+        suffices : s = g • s,
+        { apply hb, rw this, exact hgb },
+        apply set.eq_of_subset_of_card_le,
+        { rw [set.le_eq_subset] at hst,
+          refine subset_trans hst _,
+          apply set.inter_subset_right },
+        { apply le_of_eq,
+          apply smul_set_card_eq }  },
+
+      { -- aux_pigeonhole ne marche pas !
+        rw ← set.ne_empty_iff_nonempty,
+        intro h,
+        rw [← set.to_finset_inj, set.to_finset_inter, set.to_finset_empty,
+          ← finset.not_nonempty_iff_eq_empty] at h,
+        apply h,
+        rw [← finset.card_compl_lt_iff_nonempty, finset.compl_inter],
+        apply nat.lt_of_add_lt_add_right,
+        rw finset.card_union_add_card_inter,
+        apply nat.lt_of_add_lt_add_left,
+        rw ← add_assoc,
+        simp only [finset.card_compl],
+        rw nat.add_sub_of_le (finset.card_le_univ s.to_finset),
+
+        conv_rhs { rw add_comm, rw add_assoc },
+        apply nat.add_lt_add_left,
+        apply nat.lt_of_add_lt_add_left,
+        rw nat.add_sub_of_le (finset.card_le_univ (g • s).to_finset),
+        rw add_comm,
+        suffices : (g • s).to_finset.card = s.to_finset.card,
+        { rw this, conv_rhs { rw add_assoc },
+          rw [← two_mul, set.to_finset_card, hsn],
+          rw ← nat.one_add_le_iff,
+          apply nat.add_le_add _ hn2,
+          rw nat.succ_le_iff,
+          rw finset.card_pos,
+          use a,
+          simp only [finset.mem_inter, finset.mem_compl, set.mem_to_finset],
+          rw [← not_or_distrib, ← set.mem_union],
+          exact hat' },
+        { conv_lhs { simp only [set.to_finset_card, fintype.card_of_finset] },
+          rw finset.card_image_of_injective _ (mul_action.injective g) } } },
+
+    obtain ⟨m, htm, hmn⟩ := this,
+
+    have htm' : 1 + m.succ < fintype.card α,
+    { apply lt_trans _ hsn',
+      simp only [add_lt_add_iff_left],
+      rw nat.succ_lt_succ_iff,
+      exact hmn },
+
+    -- apply hrec : is_multiply_pretransitive (subgroup.normal_closure (fixing_subgroup t).carrier) α 2
+    exact hrec m hmn hG
+      (by { rw ← htm, simp only [fintype.card_of_finset],
+            simp only [set.mem_inter_eq, finset.filter_congr_decidable],
+            apply congr_arg,
+            rw ← finset.filter_filter ,
+            apply congr_arg,
+            simp_rw ← set.mem_to_finset ,
+            rw finset.filter_mem_eq_inter,
+            rw finset.univ_inter  })
+      htm'
+      ht_prim }
+end
+
+
+theorem weak_jordan_of_pretransitive' (hG : is_preprimitive G α)
   {s : set α} (hs : 1 ≤ fintype.card s) (hs' : 2 + fintype.card (s) ≤ fintype.card α)
   (hs_trans : is_pretransitive (fixing_subgroup G s) (sub_mul_action_of_fixing_subgroup G s)) :
   is_multiply_pretransitive G α 2 :=
@@ -958,45 +1831,50 @@ begin
   apply is_pretransitive_of_subgroup,
   obtain ⟨n,hn : fintype.card ↥s = n.succ⟩ := nat.exists_eq_succ_of_ne_zero
     (nat.one_le_iff_ne_zero.mp hs),
-  apply jordan0 G hG hn
+  apply strong_jordan_of_pretransitive hG hn
     (begin rw hn at hs', apply lt_of_lt_of_le _ hs', norm_num,  end)
     hs_trans,
 end
 
-theorem jordan1' (hG : is_preprimitive G α)
+theorem weak_jordan_of_preprimitive' (hG : is_preprimitive G α)
   {s : set α} (hs : 1 ≤ fintype.card s) (hs' : 2 + fintype.card (s) ≤ fintype.card α)
   (hs_prim : is_preprimitive (fixing_subgroup G s) (sub_mul_action_of_fixing_subgroup G s)) :
   is_multiply_preprimitive G α 2 :=
 begin
- -- We can deduce it from jordan0'
+ -- We can deduce it from strong_jordan_of_preprimitive
   obtain ⟨n,hn : fintype.card ↥s = n.succ⟩ := nat.exists_eq_succ_of_ne_zero
     (nat.one_le_iff_ne_zero.mp hs),
   apply is_multiply_preprimitive_of_subgroup,
   norm_num,
-  refine jordan0' G hG hn
+  refine strong_jordan_of_preprimitive hG hn
     (begin rw hn at hs', apply lt_of_lt_of_le _ hs', norm_num,  end)
     hs_prim
 end
 
 -- Wielandt : s = Δ, n - m = #s, n = #α, m = #sᶜ, 1 < m < n
 -- 1 + #s < n , #s ≥ 1
+.
 
-theorem jordan2 (hG : is_preprimitive G α)
-  {s : set α} {m n : ℕ} (hsn : fintype.card s = n.succ) (hsn' : 1 + n.succ < fintype.card α)
-  (hprim : is_preprimitive (fixing_subgroup G s) (sub_mul_action_of_fixing_subgroup G s)) :
+theorem jordan_of_preprimitive {n : ℕ} :
+  ∀ {G α : Type*} [group G] [fintype α] [decidable_eq α],
+  by exactI ∀ [mul_action G α], by exactI ∀ (hG : is_preprimitive G α)
+  {s : set α} (hsn : fintype.card s = n.succ) (hsn' : 1 + n.succ < fintype.card α)
+  (hprim : is_preprimitive (fixing_subgroup G s) (sub_mul_action_of_fixing_subgroup G s)),
   is_multiply_preprimitive G α (1 + n.succ) :=
 begin
-  let hG_eq := hG.exists_smul_eq,
   induction n with n hrec,
-  { obtain ⟨a, hsa⟩ := card_eq_one_iff_is_singleton s hsn,
+  { -- case n = 0
+    introsI G α _ _ _ _ hG s hsn hα hGs,
+    let hG_eq := hG.exists_smul_eq,
+    obtain ⟨a, hsa⟩ := card_eq_one_iff_is_singleton s hsn,
     rw hsa at *,
     split,
     { rw stabilizer.is_multiply_pretransitive,
       rw ← is_pretransitive_iff_is_one_pretransitive,
       refine is_pretransitive_of_bihom
-        (sub_mul_action_of_fixing_subgroup_of_singleton_bihom G a)
-        (function.bijective.surjective (sub_mul_action_of_fixing_subgroup_of_singleton_bihom_bijective G a))
-        hprim.to_is_pretransitive,
+       -- (sub_mul_action_of_fixing_subgroup_of_singleton_bihom G a)
+        (sub_mul_action_of_fixing_subgroup_of_singleton_bihom_bijective G a).surjective
+        hGs.to_is_pretransitive,
         exact hG.to_is_pretransitive, },
     { intros t h,
       suffices ht' : fintype.card t = 1,
@@ -1005,16 +1883,87 @@ begin
         obtain ⟨g, hg⟩ := hG_eq a b,
         have hst : g • {a} = {b}, sorry,
         apply is_preprimitive_via_surjective_bihom
-          (function.bijective.surjective
-            (sub_mul_action_of_fixing_subgroup_conj_bihom_bijective G hst))
-          hprim },
+          (sub_mul_action_of_fixing_subgroup_conj_bihom_bijective G hst).surjective
+          hGs },
       { rw [cardinal.mk_fintype, ← nat.cast_one, ← nat.cast_add,
           cardinal.nat_cast_inj, add_left_inj] at h,
         exact h } } },
   -- Induction step
-  sorry
+  introsI G α _ _ _ _ hG s hsn hα hGs,
+  suffices : ∃ (a : α) (t : set (sub_mul_action_of_stabilizer G α a)),
+    a ∈ s ∧ s = insert a (coe '' t),
+  obtain ⟨a, t, ha, hst⟩ := this,
+  have ha' : a ∉ coe '' t,
+  { intro h, rw set.mem_image at h, obtain ⟨x, hx⟩ := h,
+    apply x.prop, rw hx.right, exact set.mem_singleton a },
+  have ht_prim : is_preprimitive (stabilizer G a) (sub_mul_action_of_stabilizer G α a),
+  { rw ← is_multiply_preprimitive_one_iff,
+    rw ← is_multiply_preprimitive_of_stabilizer G α (by norm_num) hG.to_is_pretransitive,
+    apply weak_jordan_of_preprimitive hG hsn hα hGs },
+
+  have hGs' : is_preprimitive ↥(fixing_subgroup ↥(stabilizer G a) t) ↥(sub_mul_action_of_fixing_subgroup ↥(stabilizer G a) t),
+  { apply is_preprimitive_via_surjective_bihom
+        (sub_mul_action_of_fixing_subgroup_of_stabilizer_bihom_bijective G a t).surjective,
+    apply is_preprimitive_via_surjective_bihom
+        (sub_mul_action_of_fixing_subgroup_eq_bihom_bijective G hst).surjective,
+    exact hGs },
+
+  rw ← nat.succ_eq_one_add,
+  rw is_multiply_preprimitive_of_stabilizer G α _ hG.to_is_pretransitive,
+  rw nat.succ_eq_one_add,
+  refine hrec ht_prim _ _ hGs',
+  { -- fintype.card t = n.succ
+    rw ← set.card_image_of_injective t (subtype.coe_injective),
+    apply nat.add_right_cancel,
+    rw ← set.card_insert (coe '' t) ha',
+    simp_rw ← hst, rw ← nat.succ_eq_add_one, exact hsn,
+    apply_instance },
+  { -- 1 + n.succ < fintype.card ↥(sub_mul_action_of_stabilizer G α a)
+    change _ < fintype.card ↥(sub_mul_action_of_stabilizer G α a).carrier,
+    rw ← nat.succ_eq_one_add,
+    apply nat.lt_of_add_lt_add_right,
+    rw sub_mul_action_of_stabilizer_def,
+    rw fintype.card_compl_set,
+    rw nat.sub_add_cancel (set_fintype_card_le_univ _),
+    simp only [set.card_singleton],
+    rw add_comm,
+    exact hα },
+    { rw ge_iff_le, apply nat.succ_le_succ, apply nat.zero_le },
+
+
+  -- ∃ (a : α), a ∈ s
+  { suffices : s.nonempty,
+    rw set.nonempty_def at this,
+    obtain ⟨a, ha⟩ := this,
+    use a,
+    use coe ⁻¹' s,
+    apply and.intro ha,
+    rw set.insert_eq,
+    rw set.image_preimage_eq_inter_range,
+    simp only [subtype.range_coe_subtype, set.singleton_union],
+    simp_rw mem_sub_mul_action_of_stabilizer_iff,
+    simp only [ne.def],
+    ext x,
+--    apply subset_antisymm,
+    { rw set.mem_insert_iff,
+      simp,
+      rw or_and_distrib_left,
+      simp_rw or_not,
+      rw and_true,
+      split,
+      intro hx, apply or.intro_right _ hx,
+      intro hx, cases hx with hx hx,
+      rw hx, exact ha,
+      exact hx },
+    rw ← set.ne_empty_iff_nonempty,
+
+    intro h,
+    simp only [h, set.empty_card'] at hsn,
+    simpa using hsn },
 end
 
+#check nat.add_le_to_le_sub
+#check nat.succ_eq_add_one
 example (s : set α) (hs : fintype.card s = fintype.card α) : s = ⊤ :=
 begin
   have : s  ⊆ ⊤,
@@ -1035,8 +1984,24 @@ simp at hs,
   refl
 end
 
+example ( m n : ℕ) (h : (m : cardinal) ≤ n ): m ≤ n :=
+begin
+  refine cardinal.nat_cast_le.mp h
+end
+end Jordan
+
+end  finite_groups
+
+section Jordan'
+
+open mul_action
+open_locale pointwise classical
+
+variables {α : Type*} [fintype α] -- [decidable_eq α]
+variable {G : subgroup (equiv.perm α)}
+
 lemma eq_s2_of_nontrivial (hα : fintype.card α ≤ 2) (hG : nontrivial G) :
-  G = ⊤ :=
+  G = (⊤ : subgroup (equiv.perm α)) :=
 begin
   apply subgroup.eq_top_of_card_eq,
   apply le_antisymm,
@@ -1055,12 +2020,12 @@ begin
   exact congr_fun (congr_arg coe_fn h) a
 end
 
-lemma nontrivial_on_equiv_perm_two {G : Type*} [group G] [mul_action G α]
-  (hα : fintype.card α = 2) {g : G}
-  {a : α} (hga : g • a ≠ a) : is_multiply_pretransitive G α 2 :=
+lemma nontrivial_on_equiv_perm_two {K : Type*} [group K] [mul_action K α]
+  (hα : fintype.card α = 2) {g : K}
+  {a : α} (hga : g • a ≠ a) : is_multiply_pretransitive K α 2 :=
 begin
-  suffices : function.surjective (canonical_bihom G α).to_monoid_hom.to_fun,
-  { rw is_multiply_pretransitive_via_bijective_bihom_iff (canonical_bihom_bijective G α) this,
+  suffices : function.surjective (canonical_bihom K α).to_monoid_hom.to_fun,
+  { rw is_multiply_pretransitive_via_bijective_bihom_iff (canonical_bihom_bijective K α) this,
     rw ← hα,
     exact equiv_perm_is_fully_pretransitive α },
   rw monoid_hom.to_fun_eq_coe,
@@ -1068,9 +2033,9 @@ begin
 
   apply subgroup.eq_top_of_card_eq,
   apply le_antisymm,
-  change fintype.card ↥(set.range (canonical_bihom G α).to_monoid_hom.to_fun) ≤ _,
+  change fintype.card ↥(set.range (canonical_bihom K α).to_monoid_hom.to_fun) ≤ _,
   apply fintype.card_subtype_le,
-  suffices hg : to_perm g ∈ ((canonical_bihom G α).to_monoid_hom.range),
+  suffices hg : to_perm g ∈ ((canonical_bihom K α).to_monoid_hom.range),
   { rw [fintype.card_perm, hα, nat.factorial_two, nat.succ_le_iff, subgroup.one_lt_card_iff_ne_bot],
     intro h, apply hga,
     rw [h, subgroup.mem_bot] at hg,
@@ -1168,7 +2133,7 @@ begin
     simp only [nat.add_succ_sub_one]},
   rw hn',
 
-  refine jordan2 G hG _ _ _,
+  refine jordan_of_preprimitive hG _ _ _,
   exact ((g.support)ᶜ : set α),
   exact n,
   { rw ← hsc,
@@ -1185,7 +2150,7 @@ begin
   rw equiv.perm.card_support_eq_two.mpr h2g,
   norm_num,
 
-  apply is_pretransitive_of_cycle G hg,
+  apply is_pretransitive_of_cycle hg,
   exact equiv.perm.is_swap.is_cycle h2g,
 end
 
@@ -1227,7 +2192,7 @@ begin
   have hs3 : fintype.card (g.support) = 3,
   { simp only [fintype.card_coe],
     exact equiv.perm.is_three_cycle.card_support h3g },
-  refine jordan2 G hG _ _ _,
+  refine jordan_of_preprimitive hG _ _ _,
 
   exact ((g.support)ᶜ : set α),
   exact n,
@@ -1247,15 +2212,11 @@ begin
   rw equiv.perm.is_three_cycle.card_support h3g,
   norm_num,
 
-  apply is_pretransitive_of_cycle G hg,
+  apply is_pretransitive_of_cycle hg,
   exact equiv.perm.is_three_cycle.is_cycle h3g
 end
 
-end Jordan
-
-
-
-end finite_groups
+end Jordan'
 
 
 

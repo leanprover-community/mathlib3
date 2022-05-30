@@ -126,7 +126,7 @@ theorem cof_type_le [is_well_order α r] {S : set α} (h : unbounded r S) : cof 
 le_cof_type.1 le_rfl S h
 
 theorem lt_cof_type [is_well_order α r] {S : set α} : #S < cof (type r) → bounded r S :=
-by { contrapose, simpa using cof_type_le }
+by simpa using not_imp_not.2 cof_type_le
 
 theorem cof_eq (r : α → α → Prop) [is_well_order α r] : ∃ S, unbounded r S ∧ #S = cof (type r) :=
 begin

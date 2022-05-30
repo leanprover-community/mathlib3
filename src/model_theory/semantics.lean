@@ -142,11 +142,8 @@ begin
   induction t with _ n f _ ih,
   { simp },
   { cases n,
-    { cases f,
-      { simp only [ih, realize, constants_to_vars],
-        rw ← (Lhom_with_constants L α).map_on_function M f,
-        refl, },
-      { squeeze_simp [ih], }, },
+    { cases f;
+      simp [ih], }, },
     { cases f,
       { simp [ih] },
       { exact is_empty_elim f } } }
@@ -160,9 +157,7 @@ begin
   induction t with ab n f ts ih,
   { cases ab;
     simp [language.con], },
-  { simp only [ih, realize, vars_to_constants],
-    rw ← (Lhom_with_constants L α).map_on_function M f,
-    refl, }
+  { simp [ih], }
 end
 
 @[simp] lemma realize_constants_vars_equiv_left [L[[α]].Structure M]
@@ -431,7 +426,7 @@ end) (by simp)
 begin
   letI : (constants_on α).Structure M := (constants_on.Structure (v ∘ sum.inl)),
   refine realize_map_term_rel (λ n t x, term.realize_constants_vars_equiv_left) (λ n R x, _),
-  rw ← (Lhom_with_constants L α).map_on_relation,
+  rw with_constants_rel_map_sum_inl,
   cases R,
   { refl },
   { exact is_empty_elim R }

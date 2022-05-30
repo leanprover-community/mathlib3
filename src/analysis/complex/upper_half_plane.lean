@@ -155,8 +155,8 @@ begin
   rw denom_cocycle,
   field_simp [denom_ne_zero, -denom, -num],
   simp only [matrix.mul, dot_product, fin.sum_univ_succ, num, denom, coe_coe, subgroup.coe_mul,
-  general_linear_group.coe_mul, fintype.univ_of_subsingleton, fin.mk_eq_subtype_mk, fin.mk_zero,
-  finset.sum_singleton, fin.succ_zero_eq_one,complex.of_real_add, complex.of_real_mul],
+    general_linear_group.coe_mul, fintype.univ_of_subsingleton, fin.mk_eq_subtype_mk, fin.mk_zero,
+    finset.sum_singleton, fin.succ_zero_eq_one,complex.of_real_add, complex.of_real_mul],
   ring
 end
 
@@ -199,7 +199,7 @@ lemma subgroup_on_SL_apply (s : Γ) (g : SL(2,ℤ) ) (z : ℍ) :
   (s • g) • z = ( (s : SL(2, ℤ)) * g) • z := rfl
 
 instance subgroup_to_SL_tower : is_scalar_tower Γ SL(2,ℤ) ℍ :=
-{ smul_assoc := λ s g z, by { rw subgroup_on_SL_apply, apply upper_half_plane.SL_action.3 } }
+{ smul_assoc := λ s g z, by { rw subgroup_on_SL_apply, apply mul_action.mul_smul } }
 
 end modular_scalar_towers
 

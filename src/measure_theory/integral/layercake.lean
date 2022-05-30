@@ -9,11 +9,14 @@ import analysis.special_functions.integrals
 /-!
 # The layer cake formula, a.k.a. Cavalieri's principle
 
-In this file we prove the layer cake formula using Fubini's theorem.
+In this file we prove the layer cake formula using Fubini's theorem and the two most common
+applications of it: a representation of the integral of a nonnegative function and a representation
+of the integral of the p:th power of a nonnegative function in terms of the "complementary
+cumulative distribution functions" associated with to the measure and the function.
 
 ## Main definitions
 
-None.
+No new definitions.
 
 ## Main results
 
@@ -21,7 +24,7 @@ None.
 
 ## Tags
 
-layer cake theorem, Cavalieri's principle
+layer cake representation, Cavalieri's principle
 -/
 
 noncomputable theory
@@ -34,10 +37,14 @@ open filter
 /-! ### Layercake theorem -/
 section layercake
 
+namespace measure_theory
+
 variables {α : Type*} [measurable_space α] {f g : α → ℝ} {s : set α}
 
 /-- An auxiliary version of the layer cake theorem (Cavalieri's principle), with a
-measurability assumption that follows from integrability assumptions. -/
+measurability assumption that would also essentially follow from the integrability assumptions.
+
+See `measure_theory.layercake` for the main formulation of the layer cake theorem. -/
 lemma layercake_of_measurable
   (μ : measure α) [sigma_finite μ]
   {f : α → ℝ} (f_nn : 0 ≤ f) (f_mble : measurable f)
@@ -208,7 +215,9 @@ begin
   simp only [interval_integral.integral_const, sub_zero, algebra.id.smul_eq_mul, mul_one],
 end
 
--- TODO: Lean gets stuck if I try with `(p_large : 0 < p)` instead... Why?
+-- TODO: The assumption `(p_large : 0 < p)` should suffice, but the assumptions of
+-- `interval_integral.interval_integrable_rpow` and `interval_integral.integral_rpow`
+-- are too stringent to apply here.
 theorem layercake_p
   (μ : measure α) [sigma_finite μ]
   {f : α → ℝ} (f_nn : 0 ≤ f) (f_mble : measurable f) {p : ℝ}
@@ -243,5 +252,7 @@ begin
       exact continuous.rpow_const continuous_id (λ _, (or.inr p_pos.le)), },
     apply this.comp f_mble, },
 end
+
+end measure_theory
 
 end layercake

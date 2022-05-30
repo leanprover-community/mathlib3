@@ -39,7 +39,7 @@ namespace localized_module
 
 universes u v
 
-variables {R : Type u} [comm_ring R] (M : Type v) [add_comm_group M] [module R M]
+variables {R : Type u} [comm_semiring R] (M : Type v) [add_comm_monoid M] [module R M]
 variables (S : submonoid R)
 
 example (r : R) (m : M) : M := r • m
@@ -48,66 +48,30 @@ example (r : R) (m : M) : M := r • m
 for some (u : S), u * (s2 • m1 - s1 • m2) = 0-/
 def r (p1 p2 : M × S) : Prop :=
 match p1, p2 with
-| ⟨m1, s1⟩, ⟨m2, s2⟩ := ∃ (u : S), u • (s1 • m2 - s2 • m1)= 0
+| ⟨m1, s1⟩, ⟨m2, s2⟩ := ∃ (u : S), u • s1 • m2 = u • s2 • m1
 end
 
 lemma r.is_equiv : is_equiv _ (r M S) :=
-{ refl := λ ⟨m, s⟩, ⟨1, by rw [sub_self, smul_zero]⟩,
-  trans := λ ⟨m1, s1⟩ ⟨m2, s2⟩ ⟨m3, s3⟩ ⟨u1, hu1⟩ ⟨u2, hu2⟩, ⟨u1 * u2 * s2,
-    calc (u1 * u2 * s2) • (s1 • m3 - s3 • m1)
-        = (u1 * u2 * s2) • (s1 • m3) - (u1 * u2 * s2) • (s3 • m1)
-        : by rw smul_sub
-    ... = (u1 * u2) • (s2 • s1 • m3) - (u1 * u2 * s2) • (s3 • m1)
-        : by rw mul_smul
-    ... = (u1 * u2) • (s2 • (s1 • m3)) - (u1 * u2) • (s2 • s3 • m1)
-        : by rw mul_smul _ s2
-    ... = (u1 * u2) • ((s2 * s1) • m3) - (u1 * u2) • ((s2 * s3) • m1)
-        : by rw [mul_smul s2, mul_smul s2]
-    ... = (u1 * u2) • ((s1 * s2) • m3) - (u1 * u2) • ((s3 * s2) • m1)
-        : by rw [mul_comm s1 s2, mul_comm s2 s3]
-    ... = (u1 * u2) • (s1 • s2 • m3) - (u1 * u2) • (s3 • s2 • m1)
-        : by rw [mul_smul s1 s2, mul_smul s3 s2]
-    ... = (u1 * u2 * s1) • (s2 • m3) - (u1 * u2 * s3) • (s2 • m1)
-        : by rw [mul_smul _ s1, mul_smul _ s3]
-    ... = (u1 * u2 * s1) • (s2 • m3) - (u1 * u2 * s1) • (s3 • m2)
-        + (u1 * u2 * s1) • (s3 • m2) - (u1 * u2 * s3) • (s2 • m1) : by abel
-    ... = (u1 * s1 * u2) • (s2 • m3) - (u1 * s1 * u2) • (s3 • m2) +
-          (u1 * u2 * s1) • (s3 • m2) - (u1 * u2 * s3) • (s2 • m1)
-        : by congr' 4; rw [mul_assoc, mul_comm u2, ←mul_assoc]
-    ... = (u1 * s1) • (u2 • s2 • m3) - (u1 * s1) • (u2 • s3 • m2) +
-          (u1 * u2 * s1) • (s3 • m2) - (u1 * u2 * s3) • (s2 • m1)
-        : by rw [mul_smul _ u2, mul_smul _ u2]
-    ... = (u1 * s1) • (u2 • s2 • m3 - u2 • s3 • m2) +
-          (u1 * u2 * s1) • (s3 • m2) - (u1 * u2 * s3) • (s2 • m1)
-        : by rw [smul_sub]
-    ... = (u1 * s1) • (u2 • (s2 • m3 - s3 • m2)) +
-          (u1 * u2 * s1) • (s3 • m2) - (u1 * u2 * s3) • (s2 • m1)
-        : by rw [← smul_sub]
-    ... = (u1 * u2 * s1) • (s3 • m2) - (u1 * u2 * s3) • (s2 • m1)
-        : by rw [hu2, smul_zero, zero_add]
-    ... = (u1 * u2) • (s1 • s3 • m2) - (u1 * u2 * s3) • (s2 • m1)
-        : by rw mul_smul
-    ... = (u1 * u2) • ((s1 * s3) • m2) - (u1 * u2 * s3) • (s2 • m1)
-        : by rw mul_smul s1
-    ... = (u1 * u2) • ((s3 * s1) • m2) - (u1 * u2 * s3) • (s2 • m1)
-        : by rw mul_comm s1
-    ... = (u1 * u2) • (s3 • s1 • m2) - (u1 * u2 * s3) • (s2 • m1)
-        : by rw mul_smul s3
-    ... = (u1 * u2 * s3) • (s1 • m2) - (u1 * u2 * s3) • (s2 • m1)
-        : by rw ←mul_smul _ s3
-    ... = (u1 * u2 * s3) • (s1 • m2 - s2 • m1)
-        : by rw smul_sub
-    ... = (u2 * s3 * u1) • (s1 • m2 - s2 • m1)
-        : by congr' 1; rw [mul_comm u1 u2, mul_assoc, mul_comm u1 s3, ←mul_assoc]
-    ... = (u2 * s3) • u1 • (s1 • m2 - s2 • m1)
-        : by rw mul_smul
-    ... = 0 : by rw [hu1, smul_zero]⟩,
-  symm := λ ⟨m1, s1⟩ ⟨m2, s2⟩ ⟨u, hu⟩, ⟨u, eq.symm $
-    calc (0 : M)
-        = - 0 : by rw [neg_zero]
-    ... = - (u • (s1 • m2 - s2 • m1)) : by rw hu
-    ... = u • (- (s1 • m2 - s2 • m1)) : by rw [smul_neg]
-    ... = u • (s2 • m1 - s1 • m2)     : by simp⟩ }
+{ refl := λ ⟨m, s⟩, ⟨1, by rw [one_smul]⟩,
+  trans := λ ⟨m1, s1⟩ ⟨m2, s2⟩ ⟨m3, s3⟩ ⟨u1, hu1⟩ ⟨u2, hu2⟩, begin
+    use u1 * u2 * s2,
+    rw calc (u1 * u2 * s2) • s1 • m3
+        = (u1 * u2 * s2 * s1) • m3 : by simp only [mul_smul]
+    ... = (u1 * s1 * (u2 * s2)) • m3 : by congr' 1; ext; simp only [submonoid.coe_mul]; ring
+    ... = (u1 * s1) • u2 • s2 • m3 : by simp only [mul_smul]
+    ... = (u1 * s1) • u2 • s3 • m2 : by rw [hu2]
+    ... = (u1 * s1 * (u2 * s3)) • m2 : by simp only [mul_smul]
+    ... = (u2 * s3 * (u1 * s1)) • m2 : by congr' 1; ext; simp only [submonoid.coe_mul]; ring
+    ... = (u2 * s3) • u1 • s1 • m2 : by simp only [mul_smul]
+    ... = (u2 * s3) • u1 • s2 • m1 : by rw [hu1]
+    ... = ((u2 * s3) * u1 * s2) • m1 : by simp only [mul_smul],
+    rw [← mul_smul],
+    congr' 1,
+    ext,
+    simp only [submonoid.coe_mul],
+    ring
+  end,
+  symm := λ ⟨m1, s1⟩ ⟨m2, s2⟩ ⟨u, hu⟩, ⟨u, hu.symm⟩ }
 
 
 instance r.setoid : setoid (M × S) :=
@@ -128,7 +92,7 @@ variables {M S}
 def mk (m : M) (s : S) : localized_module M S :=
 quotient.mk ⟨m, s⟩
 
-lemma mk_eq {m m' : M} {s s' : S} : mk m s = mk m' s' ↔ ∃ (u : S), u • (s • m' - s' • m) = 0 :=
+lemma mk_eq {m m' : M} {s s' : S} : mk m s = mk m' s' ↔ ∃ (u : S), u • s • m' = u • s' • m :=
 quotient.eq
 
 @[elab_as_eliminator]
@@ -178,52 +142,32 @@ by convert quotient.lift_on₂_mk f wd _ _
 
 instance : has_zero (localized_module M S) := ⟨mk 0 1⟩
 lemma zero_mk (s : S) : mk (0 : M) s = 0 :=
-mk_eq.mpr ⟨1, by rw [one_smul, smul_zero, smul_zero, sub_zero]⟩
+mk_eq.mpr ⟨1, by rw [one_smul, smul_zero, smul_zero, one_smul]⟩
 
 instance : has_add (localized_module M S) :=
 { add := λ p1 p2, lift_on₂ p1 p2 (λ x y, mk (y.2 • x.1 + x.2 • y.1) (x.2 * y.2)) $
     λ ⟨m1, s1⟩ ⟨m2, s2⟩ ⟨m1', s1'⟩ ⟨m2', s2'⟩ ⟨u1, hu1⟩ ⟨u2, hu2⟩, mk_eq.mpr ⟨u1 * u2, begin
-      rw [smul_sub, sub_eq_zero] at hu1 hu2 ⊢,
-      calc  (u1 * u2) • (s1 * s2) • (s2' • m1' + s1' • m2')
-          = (u1 * u2) • (s1 * s2) • (s2' • m1') + (u1 * u2) • (s1 * s2) • (s1' • m2')
-          : by rw [smul_add, smul_add]
-      ... = (u1 * u2) • (s1 * s2 * s2') • m1' + (u1 * u2) • (s1 * s2 * s1') • m2'
-          : by rw [mul_smul _ s2', mul_smul _ s1']
-      ... = (u1 * u2 * (s1 * s2 * s2')) • m1' + (u1 * u2 * (s1 * s2 * s1')) • m2'
-          : by rw [← mul_smul, ← mul_smul]
-      ... = ((u2 * s2 * s2') * (u1 * s1)) • m1' + (u1 * u2 * (s1 * s2 * s1')) • m2'
-          : by congr' 2; ext; simp only [submonoid.coe_mul]; ring
-      ... = (u2 * s2 * s2') • u1 • s1 • m1' + (u1 * u2 * (s1 * s2 * s1')) • m2'
-          : by rw [mul_smul, mul_smul _ s1]
-      ... = (u2 * s2 * s2') • u1 • s1' • m1 + (u1 * u2 * (s1 * s2 * s1')) • m2'
-          : by rw hu1
-      ... = (u2 * s2 * s2') • (u1 * s1') • m1 + (u1 * u2 * (s1 * s2 * s1')) • m2'
-          : by rw [mul_smul _ s1']
-      ... = ((u2 * s2 * s2') * (u1 * s1')) • m1 + (u1 * u2 * (s1 * s2 * s1')) • m2'
-          : by rw [mul_smul _ (u1 * s1')]
-      ... = (u1 * u2 * (s1' * s2') * s2) • m1 + (u1 * u2 * (s1 * s2 * s1')) • m2'
-          : by congr' 2; ext; simp only [submonoid.coe_mul]; ring
-      ... = (u1 * u2 * (s1' * s2') * s2) • m1 + ((u1 * s1 * s1') * (u2 * s2)) • m2'
-          : by congr' 2; ext; simp only [submonoid.coe_mul]; ring
-      ... = (u1 * u2 * (s1' * s2') * s2) • m1 + (u1 * s1 * s1') • u2 • s2 • m2'
-          : by rw [mul_smul _ _ m2', mul_smul u2]
-      ... = (u1 * u2 * (s1' * s2') * s2) • m1 + (u1 * s1 * s1') • u2 • s2' • m2
-          : by rw [hu2]
-      ... = (u1 * u2 * (s1' * s2') * s2) • m1 + ((u1 * s1 * s1') * (u2 * s2')) • m2
-          : by rw [mul_smul _ _ m2, mul_smul _ _ m2]
-      ... = (u1 * u2 * (s1' * s2') * s2) • m1 + (u1 * u2 * (s1' * s2') * s1) • m2
-          : by congr' 2; ext; simp only [submonoid.coe_mul]; ring
-      ... = (u1 * u2 * (s1' * s2')) • s2 • m1 + (u1 * u2 * (s1' * s2')) • s1 • m2
-          : by rw [mul_smul _ s2, mul_smul _ s1]
-      ... = (u1 * u2 * (s1' * s2')) • (s2 • m1 + s1 • m2)
-          : by rw [smul_add]
-      ... = (u1 * u2) • (s1' * s2') • (s2 • m1 + s1 • m2)
-          : by rw [mul_smul (u1 * u2)]
+      calc (u1 * u2) • (s1 * s2) • (s2' • m1' + s1' • m2')
+          = (u1 * u2) • (s1 * s2) • s2' • m1' + (u1 * u2) • (s1 * s2) • s1' • m2' : by simp only [smul_add]
+      ... = (u1 * u2 * (s1 * s2) * s2') • m1' + (u1 * u2 * (s1 * s2) * s1') • m2' : by simp only [mul_smul]
+      ... = ((u2 * s2 * s2') * (u1 * s1)) • m1' + (u1 * u2 * (s1 * s2) * s1') • m2' : by congr' 2; ext; simp only [submonoid.coe_mul]; ring
+      ... = (u2 * s2 * s2') • u1 • s1 • m1' + (u1 * u2 * (s1 * s2) * s1') • m2' : by simp only [mul_smul]
+      ... = (u2 * s2 * s2') • u1 • s1' • m1 + (u1 * u2 * (s1 * s2) * s1') • m2' : by rw [hu1]
+      ... = ((u2 * s2 * s2') * u1 * s1') • m1 + (u1 * u2 * (s1 * s2) * s1') • m2' : by simp only [mul_smul]
+      ... = ((u1 * u2) * (s1' * s2') * s2) • m1 + (u1 * u2 * (s1 * s2) * s1') • m2' : by congr' 2; ext; simp only [submonoid.coe_mul]; ring
+      ... = (u1 * u2) • (s1' • s2') • s2 • m1 + (u1 * u2 * (s1 * s2) * s1') • m2' : by congr' 1; simp [mul_smul]
+      ... = (u1 * u2) • (s1' • s2') • s2 • m1 + ((u1 * s1 * s1') * (u2 * s2)) • m2' : by congr' 2; ext; simp only [submonoid.coe_mul]; ring
+      ... = (u1 * u2) • (s1' • s2') • s2 • m1 + (u1 * s1 * s1') • u2 • s2 • m2' : by simp [mul_smul]
+      ... = (u1 * u2) • (s1' • s2') • s2 • m1 + (u1 * s1 * s1') • u2 • s2' • m2 : by rw [hu2]
+      ... = (u1 * u2) • (s1' • s2') • s2 • m1 + ((u1 * s1 * s1') * (u2 * s2')) • m2 : by simp [mul_smul]
+      ... = (u1 * u2) • (s1' • s2') • s2 • m1 + ((u1 * u2) * (s1' * s2') * s1) • m2 : by congr' 2; ext; simp only [submonoid.coe_mul]; ring
+      ... = (u1 * u2) • (s1' • s2') • s2 • m1 + (u1 * u2) • (s1' • s2') • s1 • m2 : by simp [mul_smul]
+      ... = (u1 * u2) • (s1' * s2') • (s2 • m1 + s1 • m2) : by simp [smul_add],
     end⟩ }
 
 lemma mk_add_mk {m1 m2 : M} {s1 s2 : S} :
   mk m1 s1 + mk m2 s2 = mk (s2 • m1 + s1 • m2) (s1 * s2) :=
-mk_eq.mpr $ ⟨1, by dsimp only; rw [one_smul, sub_self]⟩
+mk_eq.mpr $ ⟨1, by dsimp only; rw [one_smul]⟩
 
 lemma add_assoc' (x y z : localized_module M S) :
   x + y + z = x + (y + z) :=
@@ -233,7 +177,7 @@ begin
   induction z using localized_module.induction_on with mz sz,
   simp [mk_add_mk],
   refine mk_eq.mpr ⟨1, _⟩,
-  rw [one_smul, sub_eq_zero],
+  rw [one_smul, one_smul],
   congr' 1,
   { rw [mul_assoc] },
   { rw [mul_comm, add_assoc, mul_smul, mul_smul, ←mul_smul sx sz, mul_comm, mul_smul], },
@@ -245,11 +189,11 @@ localized_module.induction_on₂ (λ m m' s s', by rw [mk_add_mk, mk_add_mk, add
 
 lemma zero_add' (x : localized_module M S) : 0 + x = x :=
 induction_on (λ m s, by rw [← zero_mk s, mk_add_mk, smul_zero, zero_add, mk_eq];
-  exact ⟨1, by rw [one_smul, mul_smul, sub_self]⟩) x
+  exact ⟨1, by rw [one_smul, mul_smul, one_smul]⟩) x
 
 lemma add_zero' (x : localized_module M S) : x + 0 = x :=
 induction_on (λ m s, by rw [← zero_mk s, mk_add_mk, smul_zero, add_zero, mk_eq];
-  exact ⟨1, by rw [one_smul, mul_smul, sub_self]⟩) x
+  exact ⟨1, by rw [one_smul, mul_smul, one_smul]⟩) x
 
 instance has_nat_scalar : has_scalar ℕ (localized_module M S) :=
 { smul := λ n, nat.rec_on n (λ x, 0) (λ m f x, x + f x) }
@@ -276,17 +220,15 @@ instance : has_scalar (localization S) (localized_module M S) :=
     begin
       rintros ⟨m1, t1⟩ ⟨m2, t2⟩ ⟨u, h⟩,
       refine mk_eq.mpr ⟨u, _⟩,
-      calc  u • ((s * t1) • r • m2 - (s * t2) • r • m1)
-          = u • (s * t1) • r • m2 - u • (s * t2) • r • m1                     : by rw smul_sub
-      ... = u.1 • (s.1 * t1.1) • r • m2 - u.1 • (s.1 * t2.1) • r • m1         : rfl
-      ... = (u.1 * (s.1 * t1.1) * r) • m2 - (u.1 * (s.1 * t2.1) * r) • m1     : by simp [mul_smul]
-      ... = ((s.1 * r) * (u.1 * t1.1)) • m2 - ((s.1 * r) * (u.1 * t2.1)) • m1 : by congr' 2; ring
-      ... = (s.1 * r) • (u.1 * t1.1) • m2 - (s.1 * r) • (u.1 * t2.1) • m1     : by simp [mul_smul]
-      ... = (s.1 * r) • (u * t1) • m2 - (s.1 * r) • (u * t2) • m1             : rfl
-      ... = (s.1 * r) • u • t1 • m2 - (s.1 * r) • u • t2 • m1                 : by simp [mul_smul]
-      ... = (s.1 * r) • (u • t1 • m2 - u • t2 • m1)                           : by rw smul_sub
-      ... = (s.1 * r) • (u • (t1 • m2 - t2 • m1))                             : by rw smul_sub u
-      ... = 0                                                                 : by rw [h, smul_zero]
+      dsimp only,
+      calc u • (s * t1) • r • m2
+          = ((u : R) * (s * t1) * r) • m2 : by simp only [mul_smul]; congr
+      ... = ((s : R) * r * (u * t1)) • m2 : by congr' 1; ring
+      ... = ((s : R) * r) • u • t1 • m2 : by simp only [mul_smul]; congr
+      ... = ((s : R) * r) • u • t2 • m1 : by rw [h]
+      ... = ((s : R) * r * (u * t2)) • m1 : by simp only [mul_smul]; congr
+      ... = ((u : R) * (s * t2) * r) • m1 : by congr' 1; ring
+      ... = u • (s * t2) • r • m1 : by simp only [mul_smul]; congr,
     end) begin
       induction x using localized_module.induction_on with m t,
       rintros r r' s s' h,
@@ -297,12 +239,12 @@ instance : has_scalar (localization S) (localized_module M S) :=
       rw mk_eq,
       simp only at eq1 ⊢,
       refine ⟨u, _⟩,
-      calc  u • ((s * t) • r' • m - (s' * t) • r • m)
-          = u • (s * t) • r' • m - u • (s' * t) • r • m : by rw smul_sub
-      ... = ((u : R) * (s * t) * r') • m - ((u : R) * (s' * t) * r) • m : by simp [mul_smul]; refl
-      ... = ((r' * s * u) * t) • m - ((r * s' * u) * t) • m : by congr' 2; ring
-      ... = ((r * s' * u) * t) • m - ((r * s' * u) * t) • m : by rw eq1
-      ... = 0 : by rw sub_self,
+      calc u • (s * t) • r' • m
+          = ((u : R) * (s * t) * r') • m : by simp only [mul_smul]; congr
+      ... = ((t : R) * (r' * s * u)) • m : by congr' 1; ring
+      ... = ((t : R) * (r * s' * u)) • m : by rw [eq1]
+      ... = ((u : R) * (s' * t) * r) • m : by congr' 1; ring
+      ... = u • (s' * t) • r • m : by simp only [mul_smul]; congr,
     end }
 
 lemma mk_smul_mk (r : R) (m : M) (s t : S) :
@@ -341,19 +283,13 @@ begin
   rw [mk_smul_mk, mk_smul_mk, mk_add_mk, mk_smul_mk, mk_add_mk],
   refine mk_eq.mpr _,
   refine ⟨1, _⟩,
-  rw [_root_.one_smul,
-      calc (u * s * (u * t)) • r • (t • m + s • n)
-        = (u * (s * t) * u) • r • (t • m + s • n)
-        : by { congr' 1, ext, simp only [submonoid.coe_mul], ring }
-    ... = (u * (s * t)) • u • r • (t • m + s • n) : by rw [mul_smul _ u]
-    ... = (u * (s * t)) • u • r • t • m + (u * (s * t)) • u • r • s • n : by simp only [smul_add]
-    ... = (u * (s * t)) • ((u : R) * r * t) • m + (u * (s * t)) • ((u : R) * r * s) • n
-        : by simp only [mul_smul]; congr
-    ... = (u * (s * t)) • (((u : R) * t) * r) • m + (u * (s * t)) • (((u : R) * s) * r) • n
-        : by congr' 3; ring
-    ... = (u * (s * t)) • (u * t) • r • m + (u * (s * t)) • (u * s) • r • n
-        : by simp only [mul_smul]; congr
-    ... = (u * (s * t)) • ((u * t) • r • m + (u * s) • r • n) : by simp only [smul_add], sub_self],
+  rw [one_smul, one_smul],
+  calc (u * (s * t)) • ((u * t) • r • m + (u * s) • r • n)
+      = (u * (s * t)) • (u * t) • r • m + (u * (s * t)) • (u * s) • r • n : by rw [smul_add]
+  ... = ((u : R) * (s * t) * (u * t) * r) • m + ((u : R) * (s * t) * (u * s) * r) • n : by simp only [mul_smul]; congr
+  ... = ((u : R) * s * (u * t) * r * t) • m + ((u : R) * s * (u * t) * r * s) • n : by congr' 2; ring
+  ... = ((u : R) * s * (u * t)) • r • t • m + (u * s * (u * t)) • r • s • n : by simp only [mul_smul]; congr
+  ... = (u * s * (u * t)) • r • (t • m + s • n) : by simp [smul_add]; congr,
 end
 
 lemma smul_zero' (x : localization S) :
@@ -373,18 +309,16 @@ begin
   rcases ⟨datax, datay⟩ with ⟨⟨r, s⟩, ⟨r', s'⟩⟩,
   rw [localization.add_mk, mk_smul_mk, mk_smul_mk, mk_smul_mk, mk_add_mk],
   refine mk_eq.mpr ⟨1, _⟩,
-  rw [one_smul, sub_eq_zero],
+  rw [one_smul, one_smul],
   dsimp only,
-  rw calc (s * s' * t) • ((s' * t) • r • m + (s * t) • r' • m)
-      = (s * s' * t) • (s' * t) • r • m + (s * s' * t) • (s * t) • r' • m
-      : by rw [smul_add]
-  ... = ((s : R) * s' * t * (s' * t) * r) • m + ((s : R) * s' * t * (s * t) * r') • m
-      : by simp only [mul_smul]; congr
-  ... = ((s : R) * s' * t * (s' * t) * r + (s : R) * s' * t * (s * t) * r') • m : by rw [add_smul],
-  erw [← mul_smul],
-  congr' 1,
-  simp only [submonoid.coe_subtype, submonoid.coe_mul],
-  ring,
+  calc (s * s' * t) • ((s' * t) • r • m + (s * t) • r' • m)
+      = (s * s' * t) • (s' * t) • r • m + (s * s' * t) • (s * t) • r' • m : by rw [smul_add]
+  ... = ((s : R) * s' * t * (s' * t) * r) • m + ((s : R) * s' * t * (s * t) * r') • m : by simp only [mul_smul]; congr
+  ... = ((s : R) * t * (s' * t) * s * r') • m + ((s : R) * t * (s' * t) * s' * r) • m : by rw add_comm; congr' 2; ring
+  ... = (((s : R) * t * (s' * t) * s * r') + ((s : R) * t * (s' * t) * s' * r)) • m : by rw add_smul
+  ... = ((s : R) * t * (s' * t) * (s * r' + s' * r)) • m : by congr' 2 ; ring
+  ... = (s * t * (s' * t)) • ((s : R) * r' + (s' : R) * r) • m : by simp only [mul_smul]; congr
+  ... = (s * t * (s' * t)) • ((s : R) * r' + (s' : R) * r) • m : by simp [add_smul]; congr,
 end
 
 lemma zero_smul (x : localized_module M S) :

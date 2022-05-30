@@ -28,7 +28,7 @@ These results appear in the [Erdős proof of Bertrand's postulate](aigner1999pro
 
 namespace nat
 
-variables {p n : ℕ}
+variables {p n k : ℕ}
 
 /--
 A logarithmic upper bound on the multiplicity of a prime in the central binomial coefficient.

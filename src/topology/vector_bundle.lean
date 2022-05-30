@@ -140,53 +140,6 @@ lemma symm_coe_fst' {x : B} {y : F} (e : pretrivialization R F E) (h : x ∈ e.b
   proj E ((e.to_local_equiv.symm) (x, y)) = x :=
 e.proj_symm_apply' h
 
--- lemma linear_equiv.mk_cast {ι : Sort*} (R : Type*) [semiring R]
---   {M : ι → Type*} [∀ i, add_comm_monoid (M i)] [∀ i, module R (M i)]
---   {N : Type*} [add_comm_monoid N] [module R N]
---   {i : N → ι} {i₀ : ι} (h : ∀ x, i x = i₀)
---   (f : Π x, M (i x)) (hf : ∀ x y, f (x + y) == f x + _)
---   {i j : ι} (h : i = j) :
---   N →ₗ[R] M i₀ :=
--- { to_fun := _,
---   map_add' := λ x y, by { subst h, refl },
---   map_smul' := λ r x, by { subst h, refl } }
-
--- /-- A fiberwise inverse to `e`. This is the function `F → E b` that induces a local inverse
--- `B × F → total_space E` of `e` on `e.base_set`. It is defined to be `0` outside `e.base_set`. -/
--- protected def symm (e : pretrivialization R F E) (b : B) : F →ₗ[R] E b :=
--- if hb : b ∈ e.base_set
--- then
--- { to_fun := λ y, cast (congr_arg E (e.proj_symm_apply' hb)) (e.to_local_equiv.symm (b, y)).2,
---   map_add' := λ x y, _,
---   map_smul' := λ r x, _ }
--- -- (linear_equiv.cast R E (e.proj_symm_apply' hb)).to_linear_map.comp
--- -- ({ to_fun := λ y, (e.to_local_equiv.symm (b, y)).2,
--- --   map_add' := _,
--- --   map_smul' := _ } : F →ₗ[R] E _)
--- else 0
-
--- lemma linear_equiv.cast {ι : Sort*} {R : Type*} [semiring R]
---   (M : ι → Type*) [∀ i, add_comm_monoid (M i)] [∀ i, module R (M i)] {i j : ι} (h : i = j) :
---   M i ≃ₗ[R] M j :=
--- { map_add' := λ x y, by { subst h, refl },
---   map_smul' := λ r x, by { subst h, refl },
---   ..equiv.cast (congr_arg M h) }
-
--- /-- A fiberwise inverse to `e`. This is the function `F → E b` that induces a local inverse
--- `B × F → total_space E` of `e` on `e.base_set`. It is defined to be `0` outside `e.base_set`. -/
--- protected def symm (e : pretrivialization R F E) (b : B) : F →ₗ[R] E b :=
--- if hb : b ∈ e.base_set
--- then
--- { to_fun := λ y, cast (congr_arg E (e.proj_symm_apply' hb)) (e.to_local_equiv.symm (b, y)).2,
---   map_add' := λ x y, _,
---   map_smul' := λ r x, _ }
--- --e.to_linear_map.inverse e.inv_fun e.left_inv e.right_inv
--- -- (linear_equiv.cast R E (e.proj_symm_apply' hb)).to_linear_map.comp
--- -- ({ to_fun := λ y, (e.to_local_equiv.symm (b, y)).2,
--- --   map_add' := _,
--- --   map_smul' := _ } : F →ₗ[R] E _)
--- else 0
-
 /-- A fiberwise inverse to `e`. This is the function `F → E b` that induces a local inverse
 `B × F → total_space E` of `e` on `e.base_set`. It is defined to be `0` outside `e.base_set`. -/
 protected def symm (e : pretrivialization R F E) (b : B) (y : F) : E b :=
@@ -230,30 +183,6 @@ fibers and the model space. -/
   right_inv := λ v, by simp_rw [e.apply_mk_symm hb v],
   map_add' := λ v w, (e.linear _ hb).map_add v w,
   map_smul' := λ c v, (e.linear _ hb).map_smul c v }
-
-/-- A fiberwise linear inverse to `e`. -/
-protected def symmₗ (e : pretrivialization R F E) (b : B) : F →ₗ[R] E b :=
-if hb : b ∈ e.base_set then (e.linear_equiv_at b hb).symm else 0
-
-lemma symmₗ_def (e : pretrivialization R F E) {b : B} (hb : b ∈ e.base_set) :
-  e.symmₗ b = (e.linear_equiv_at b hb).symm :=
-dif_pos hb
-
-lemma symmₗ_eq_zero (e : pretrivialization R F E) {b : B} (hb : b ∉ e.base_set) :
-  e.symmₗ b = 0 :=
-dif_neg hb
-
-/-- A fiberwise linear map equal to `e` on `e.base_set`. -/
-protected def linear_map_at (e : pretrivialization R F E) (b : B) : E b →ₗ[R] F :=
-if hb : b ∈ e.base_set then e.linear_equiv_at b hb else 0
-
-lemma linear_map_at_def (e : pretrivialization R F E) {b : B} (hb : b ∈ e.base_set) :
-  e.linear_map_at b = e.linear_equiv_at b hb :=
-dif_pos hb
-
-lemma linear_map_at_eq_zero (e : pretrivialization R F E) {b : B} (hb : b ∉ e.base_set) :
-  e.linear_map_at b = 0 :=
-dif_neg hb
 
 end topological_vector_bundle.pretrivialization
 
@@ -384,44 +313,11 @@ begin
   exact e.to_local_homeomorph.continuous_on_symm
 end
 
-
 /-- A trivialization for a topological vector bundle defines linear equivalences between the
 fibers and the model space. -/
 def linear_equiv_at (e : trivialization R F E) (b : B) (hb : b ∈ e.base_set) :
   E b ≃ₗ[R] F :=
 e.to_pretrivialization.linear_equiv_at b hb
-
-@[simp]
-lemma linear_equiv_at_apply (e : trivialization R F E) (b : B) (hb : b ∈ e.base_set) (v : E b) :
-  e.linear_equiv_at b hb v = (e (total_space_mk E b v)).2 := rfl
-
-@[simp]
-lemma linear_equiv_at_symm_apply (e : trivialization R F E) (b : B) (hb : b ∈ e.base_set) (v : F) :
-  (e.linear_equiv_at b hb).symm v = e.symm b v := rfl
-
-/-- A fiberwise linear inverse to `e`. -/
-protected def symmₗ (e : trivialization R F E) (b : B) : F →ₗ[R] E b :=
-if hb : b ∈ e.base_set then (e.linear_equiv_at b hb).symm else 0
-
-lemma symmₗ_def (e : trivialization R F E) {b : B} (hb : b ∈ e.base_set) :
-  e.symmₗ b = (e.linear_equiv_at b hb).symm :=
-dif_pos hb
-
-lemma symmₗ_eq_zero (e : trivialization R F E) {b : B} (hb : b ∉ e.base_set) :
-  e.symmₗ b = 0 :=
-dif_neg hb
-
-/-- A fiberwise linear map equal to `e` on `e.base_set`. -/
-protected def linear_map_at (e : trivialization R F E) (b : B) : E b →ₗ[R] F :=
-if hb : b ∈ e.base_set then e.linear_equiv_at b hb else 0
-
-lemma linear_map_at_def (e : trivialization R F E) {b : B} (hb : b ∈ e.base_set) :
-  e.linear_map_at b = e.linear_equiv_at b hb :=
-dif_pos hb
-
-lemma linear_map_at_eq_zero (e : trivialization R F E) {b : B} (hb : b ∉ e.base_set) :
-  e.linear_map_at b = 0 :=
-dif_neg hb
 
 /-- A coordinate change function between two trivializations, as a continuous linear equivalence.
   Defined to be the identity when `b` does not lie in the base set of both trivializations. -/

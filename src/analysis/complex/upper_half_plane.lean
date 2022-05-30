@@ -36,7 +36,7 @@ local attribute [-instance] matrix.special_linear_group.has_coe_to_fun
 
 local prefix `↑ₘ`:1024 := @coe _ (matrix (fin 2) (fin 2) _) _
 
-local notation `GL(` n `, ` R `)`⁺:= matrix.GL_pos (fin n) R
+local notation `GL(` n `, ` R `)`⁺ := matrix.GL_pos (fin n) R
 
 /-- The open upper half plane -/
 @[derive [topological_space, λ α, has_coe α ℂ]]

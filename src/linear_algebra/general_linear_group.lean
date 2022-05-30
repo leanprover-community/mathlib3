@@ -187,23 +187,10 @@ lemma to_GL_pos_injective :
  from subtype.coe_injective).of_comp
 
 /-- Coercing a `special_linear_group` via `GL_pos` and `GL` is the same as coercing striaght to a
-<<<<<<< HEAD
-<<<<<<< HEAD
 matrix -/
 @[simp]
 lemma coe_GL_pos_coe_GL_coe_matrix (g : special_linear_group n R) :
   (↑(↑(↑(g : special_linear_group n R) : GL_pos n R) : GL n R) : matrix n n R) = ↑g := rfl
-=======
-=======
->>>>>>> 847a8160607d25e8757b688039f25ddb09c570e5
-matrix. -/
-@[simp]
-lemma coe_GL_pos_coe_GL_coe_matrix (g : special_linear_group n R) :
-    (↑(↑(↑g : GL_pos n R) : GL n R) : matrix n n R) = ↑g := rfl
-<<<<<<< HEAD
->>>>>>> origin/master
-=======
->>>>>>> 847a8160607d25e8757b688039f25ddb09c570e5
 
 @[simp] lemma coe_to_GL_pos_to_GL_det (g : special_linear_group n R) :
   ((g : GL_pos n R) : GL n R).det = 1 :=
@@ -211,15 +198,7 @@ units.ext g.prop
 
 variable [fact (even (fintype.card n))]
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-@[simp, norm_cast] lemma coe_GL_pos_neg (g : special_linear_group n R) :
-=======
 @[norm_cast] lemma coe_GL_pos_neg (g : special_linear_group n R) :
->>>>>>> origin/master
-=======
-@[norm_cast] lemma coe_GL_pos_neg (g : special_linear_group n R) :
->>>>>>> 847a8160607d25e8757b688039f25ddb09c570e5
   ↑(-g) = -(↑g : GL_pos n R) := subtype.ext $ units.ext rfl
 
 end special_linear_group

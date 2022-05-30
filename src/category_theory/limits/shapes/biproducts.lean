@@ -1783,15 +1783,7 @@ This is a version of the splitting lemma that holds in all preadditive categorie
 def is_bilimit_binary_bicone_of_split_epi_of_kernel {X Y : C} {f : X ⟶ Y} [split_epi f]
   {c : kernel_fork f} (i : is_limit c) :
   (binary_bicone_of_split_epi_of_kernel i).is_bilimit :=
-is_binary_bilimit_of_total _
-begin
-  simp only [binary_bicone_of_split_epi_of_kernel_fst, binary_bicone_of_split_epi_of_kernel_inl,
-    binary_bicone_of_split_epi_of_kernel_inr, binary_bicone_of_split_epi_of_kernel_snd,
-    split_mono_of_idempotent_of_is_limit_fork_retraction],
-  dsimp only [binary_bicone_of_split_epi_of_kernel_X],
-  rw [is_limit_fork_of_kernel_fork_lift, is_kernel_comp_mono_lift],
-  simp only [fork.is_limit.lift_comp_ι, fork.ι_of_ι, kernel_fork_of_fork_ι, sub_add_cancel]
-end
+binary_bicone.is_bilimit_of_kernel_inl _ $ i.of_iso_limit $ fork.ext (iso.refl _) (by simp)
 
 end
 

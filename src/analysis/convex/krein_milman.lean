@@ -9,8 +9,7 @@ import analysis.normed_space.hahn_banach.separation
 /-!
 # The Krein-Milman theorem
 
-This file proves the Krein-Milman lemma and the Krein-Milman theorem in locally convex topological
-vector spaces (LCTVS for short).
+This file proves the Krein-Milman lemma and the Krein-Milman theorem.
 
 ## The lemma
 

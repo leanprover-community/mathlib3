@@ -74,7 +74,7 @@ theorem le_dedup {s t : multiset α} : s ≤ dedup t ↔ s ≤ t ∧ nodup s :=
  λ ⟨l, d⟩, (le_iff_subset d).2 $ subset.trans (subset_of_le l) (subset_dedup _)⟩
 
 theorem dedup_ext {s t : multiset α} : dedup s = dedup t ↔ ∀ a, a ∈ s ↔ a ∈ t :=
-by simp [nodup_ext]
+by simp [nodup.ext]
 
 theorem dedup_map_dedup_eq [decidable_eq β] (f : α → β) (s : multiset α) :
   dedup (map f (dedup s)) = dedup (map f s) := by simp [dedup_ext]

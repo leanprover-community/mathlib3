@@ -58,7 +58,7 @@ le_antisymm (support_scale_roots_le p s)
     intro i,
     simp only [coeff_scale_roots, polynomial.mem_support_iff],
     intros p_ne_zero ps_zero,
-    have := ((non_zero_divisors R).pow_mem hs (p.nat_degree - i)) _ ps_zero,
+    have := pow_mem hs (p.nat_degree - i) _ ps_zero,
     contradiction
   end
 

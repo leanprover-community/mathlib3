@@ -151,22 +151,19 @@ each element. -/
 instance : has_neg (GL_pos n R) :=
 ⟨λ g, ⟨-g, begin
     rw [mem_GL_pos, general_linear_group.coe_det_apply, units.coe_neg, det_neg,
-      nat.neg_one_pow_of_even (fact.out (even (fintype.card n))), one_mul],
+      (fact.out $ even $ fintype.card n).neg_one_pow, one_mul],
     exact g.prop,
   end⟩⟩
 
-instance : has_distrib_neg (GL_pos n R) :=
-{ neg := has_neg.neg,
-  neg_neg := λ x, subtype.ext $ neg_neg _,
-  neg_mul := λ x y, subtype.ext $ neg_mul _ _,
-  mul_neg := λ x y, subtype.ext $ mul_neg _ _ }
-
-@[simp] lemma GL_pos.coe_neg (g : GL_pos n R) : ↑(- g) = - (↑g : matrix n n R) :=
-rfl
+@[simp] lemma GL_pos.coe_neg_GL (g : GL_pos n R) : ↑(-g) = -(g : GL n R) := rfl
+@[simp] lemma GL_pos.coe_neg (g : GL_pos n R) : ↑(-g) = -(g : matrix n n R) := rfl
 
 @[simp] lemma GL_pos.coe_neg_apply (g : GL_pos n R) (i j : n) :
   (↑(-g) : matrix n n R) i j = -((↑g : matrix n n R) i j) :=
 rfl
+
+instance : has_distrib_neg (GL_pos n R) :=
+subtype.coe_injective.has_distrib_neg _ GL_pos.coe_neg_GL (GL_pos n R).coe_mul
 
 end has_neg
 
@@ -190,10 +187,17 @@ lemma to_GL_pos_injective :
  from subtype.coe_injective).of_comp
 
 /-- Coercing a `special_linear_group` via `GL_pos` and `GL` is the same as coercing striaght to a
+<<<<<<< HEAD
 matrix -/
 @[simp]
 lemma coe_GL_pos_coe_GL_coe_matrix (g : special_linear_group n R) :
   (↑(↑(↑(g : special_linear_group n R) : GL_pos n R) : GL n R) : matrix n n R) = ↑g := rfl
+=======
+matrix. -/
+@[simp]
+lemma coe_GL_pos_coe_GL_coe_matrix (g : special_linear_group n R) :
+    (↑(↑(↑g : GL_pos n R) : GL n R) : matrix n n R) = ↑g := rfl
+>>>>>>> origin/master
 
 @[simp] lemma coe_to_GL_pos_to_GL_det (g : special_linear_group n R) :
   ((g : GL_pos n R) : GL n R).det = 1 :=
@@ -201,7 +205,11 @@ units.ext g.prop
 
 variable [fact (even (fintype.card n))]
 
+<<<<<<< HEAD
 @[simp, norm_cast] lemma coe_GL_pos_neg (g : special_linear_group n R) :
+=======
+@[norm_cast] lemma coe_GL_pos_neg (g : special_linear_group n R) :
+>>>>>>> origin/master
   ↑(-g) = -(↑g : GL_pos n R) := subtype.ext $ units.ext rfl
 
 end special_linear_group

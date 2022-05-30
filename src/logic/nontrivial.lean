@@ -3,7 +3,7 @@ Copyright (c) 2020 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import data.prod
+import data.prod.basic
 import data.subtype
 import logic.function.basic
 import logic.unique
@@ -53,6 +53,16 @@ lemma nontrivial_of_ne (x y : α) (h : x ≠ y) : nontrivial α :=
 -- `x` and `y` are explicit here, as they are often needed to guide typechecking of `h`.
 lemma nontrivial_of_lt [preorder α] (x y : α) (h : x < y) : nontrivial α :=
 ⟨⟨x, y, ne_of_lt h⟩⟩
+
+lemma exists_pair_lt (α : Type*) [nontrivial α] [linear_order α] : ∃ (x y : α), x < y :=
+begin
+  rcases exists_pair_ne α with ⟨x, y, hxy⟩,
+  cases lt_or_gt_of_ne hxy;
+  exact ⟨_, _, h⟩
+end
+
+lemma nontrivial_iff_lt [linear_order α] : nontrivial α ↔ ∃ (x y : α), x < y :=
+⟨λ h, @exists_pair_lt α h _, λ ⟨x, y, h⟩, nontrivial_of_lt x y h⟩
 
 lemma nontrivial_iff_exists_ne (x : α) : nontrivial α ↔ ∃ y, y ≠ x :=
 ⟨λ h, @exists_ne α h x, λ ⟨y, hy⟩, nontrivial_of_ne _ _ hy⟩

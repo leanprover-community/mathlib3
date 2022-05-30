@@ -120,7 +120,7 @@ instance {β : Type v} (c : β → C) [has_product c] [∀ b, injective (c b)] :
 { factors := λ X Y g f mono, begin
   resetI,
   refine ⟨pi.lift (λ b, factor_thru (g ≫ (pi.π c _)) f), _⟩,
-  ext,
+  ext ⟨j⟩,
   simp only [category.assoc, limit.lift_π, fan.mk_π_app, comp_factor_thru],
 end }
 
@@ -135,7 +135,7 @@ instance {P Q : C} [has_zero_morphisms C] [has_binary_biproduct P Q]
   { simp only [category.assoc, biprod.lift_snd, comp_factor_thru] },
 end }
 
-instance {β : Type v} [decidable_eq β] (c : β → C) [has_zero_morphisms C] [has_biproduct c]
+instance {β : Type v} (c : β → C) [has_zero_morphisms C] [has_biproduct c]
   [∀ b, injective (c b)] : injective (⨁ c) :=
 { factors := λ X Y g f mono, begin
   resetI,
@@ -223,13 +223,14 @@ Q --- f --> R --- g --> S
             J
 ```
 -/
-def exact.desc {J Q R S : C} [injective J] (h : R ⟶ J) (f : Q ⟶ R) (g : R ⟶ S) [exact g.op f.op]
-  (w : f ≫ h = 0)  : S ⟶ J :=
-(exact.lift h.op g.op f.op (congr_arg quiver.hom.op w)).unop
+def exact.desc {J Q R S : C} [injective J] (h : R ⟶ J) (f : Q ⟶ R) (g : R ⟶ S)
+  (hgf : exact g.op f.op) (w : f ≫ h = 0)  : S ⟶ J :=
+(exact.lift h.op g.op f.op hgf (congr_arg quiver.hom.op w)).unop
 
 @[simp] lemma exact.comp_desc {J Q R S : C} [injective J] (h : R ⟶ J) (f : Q ⟶ R) (g : R ⟶ S)
-  [exact g.op f.op] (w : f ≫ h = 0) : g ≫ exact.desc h f g w = h :=
-by convert congr_arg quiver.hom.unop (exact.lift_comp h.op g.op f.op (congr_arg quiver.hom.op w))
+  (hgf : exact g.op f.op) (w : f ≫ h = 0) : g ≫ exact.desc h f g hgf w = h :=
+by convert congr_arg quiver.hom.unop
+  (exact.lift_comp h.op g.op f.op hgf (congr_arg quiver.hom.op w))
 
 end
 

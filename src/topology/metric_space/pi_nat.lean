@@ -3,6 +3,7 @@ Copyright (c) 2022 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
+import tactic.ring_exp
 import topology.metric_space.hausdorff_distance
 
 /-!
@@ -235,7 +236,7 @@ begin
   { simp },
   rcases eq_or_ne y z with rfl|hyz,
   { simp },
-  simp only [dist_eq_of_ne, hxz, hxy, hyz, inv_le_inv, one_div, inv_pow₀, zero_lt_bit0,
+  simp only [dist_eq_of_ne, hxz, hxy, hyz, inv_le_inv, one_div, inv_pow, zero_lt_bit0,
     ne.def, not_false_iff, le_max_iff, zero_lt_one, pow_le_pow_iff, one_lt_two, pow_pos,
     min_le_iff.1 (min_first_diff_le x y z hxz)],
 end

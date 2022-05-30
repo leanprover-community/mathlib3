@@ -150,7 +150,7 @@ begin
     refine ⟨V, H₁, _⟩,
     cases V, dsimp at H₂, subst H₂, exact hsV },
   { refine is_topological_basis_of_open_of_nhds _ _,
-    { rintros sU ⟨U, ⟨H₁, H₂⟩⟩, subst H₂, exact U.property },
+    { rintros sU ⟨U, ⟨H₁, rfl⟩⟩, exact U.property },
     { intros x sU hx hsU,
       rcases @h (⟨sU, hsU⟩ : opens α) x hx with ⟨V, hV, H⟩,
       exact ⟨V, ⟨V, hV, rfl⟩, H⟩ } }
@@ -179,7 +179,8 @@ def comap (f : C(α, β)) : frame_hom (opens β) (opens α) :=
 { to_fun := λ s, ⟨f ⁻¹' s, s.2.preimage f.continuous⟩,
   map_Sup' := λ s, ext $ by simp only [coe_Sup, preimage_Union, coe_mk, mem_image, Union_exists,
     bUnion_and', Union_Union_eq_right],
-  map_inf' := λ a b, rfl }
+  map_inf' := λ a b, rfl,
+  map_top' := rfl }
 
 @[simp] lemma comap_id : comap (continuous_map.id α) = frame_hom.id _ :=
 frame_hom.ext $ λ a, ext rfl

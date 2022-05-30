@@ -3,9 +3,9 @@ Copyright (c) 2019 Reid Barton. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Patrick Massot, Sébastien Gouëzel, Zhouhang Zhou, Reid Barton
 -/
+import logic.equiv.fin
 import topology.dense_embedding
 import topology.support
-import data.equiv.fin
 
 /-!
 # Homeomorphisms
@@ -49,8 +49,6 @@ instance : has_coe_to_fun (α ≃ₜ β) (λ _, α → β) := ⟨λe, e.to_equiv
   ((homeomorph.mk a b c) : α → β) = a :=
 rfl
 
-@[simp] lemma coe_to_equiv (h : α ≃ₜ β) : ⇑h.to_equiv = h := rfl
-
 /-- Inverse of a homeomorphism. -/
 protected def symm (h : α ≃ₜ β) : β ≃ₜ α :=
 { continuous_to_fun  := h.continuous_inv_fun,
@@ -65,6 +63,9 @@ def simps.symm_apply (h : α ≃ₜ β) : β → α := h.symm
 
 initialize_simps_projections homeomorph
   (to_equiv_to_fun → apply, to_equiv_inv_fun → symm_apply, -to_equiv)
+
+@[simp] lemma coe_to_equiv (h : α ≃ₜ β) : ⇑h.to_equiv = h := rfl
+@[simp] lemma coe_symm_to_equiv (h : α ≃ₜ β) : ⇑h.to_equiv.symm = h.symm := rfl
 
 lemma to_equiv_injective : function.injective (to_equiv : α ≃ₜ β → α ≃ β)
 | ⟨e, h₁, h₂⟩ ⟨e', h₁', h₂'⟩ rfl := rfl
@@ -174,21 +175,29 @@ h.embedding.is_compact_iff_is_compact_image.symm
 lemma compact_preimage {s : set β} (h : α ≃ₜ β) : is_compact (h ⁻¹' s) ↔ is_compact s :=
 by rw ← image_symm; exact h.symm.compact_image
 
+@[simp] lemma comap_cocompact (h : α ≃ₜ β) : comap h (cocompact β) = cocompact α :=
+(comap_cocompact_le h.continuous).antisymm $
+  (has_basis_cocompact.le_basis_iff (has_basis_cocompact.comap h)).2 $ λ K hK,
+    ⟨h ⁻¹' K, h.compact_preimage.2 hK, subset.rfl⟩
+
+@[simp] lemma map_cocompact (h : α ≃ₜ β) : map h (cocompact α) = cocompact β :=
+by rw [← h.comap_cocompact, map_comap_of_surjective h.surjective]
+
 protected lemma compact_space [compact_space α] (h : α ≃ₜ β) : compact_space β :=
 { compact_univ := by { rw [← image_univ_of_surjective h.surjective, h.compact_image],
     apply compact_space.compact_univ } }
 
+protected lemma t0_space [t0_space α] (h : α ≃ₜ β) : t0_space β :=
+h.symm.embedding.t0_space
+
+protected lemma t1_space [t1_space α] (h : α ≃ₜ β) : t1_space β :=
+h.symm.embedding.t1_space
+
 protected lemma t2_space [t2_space α] (h : α ≃ₜ β) : t2_space β :=
-{ t2 :=
-  begin
-    intros x y hxy,
-    obtain ⟨u, v, hu, hv, hxu, hyv, huv⟩ := t2_separation (h.symm.injective.ne hxy),
-    refine ⟨h.symm ⁻¹' u, h.symm ⁻¹' v,
-      h.symm.continuous.is_open_preimage _ hu,
-      h.symm.continuous.is_open_preimage _ hv,
-      hxu, hyv, _⟩,
-    rw [← preimage_inter, huv, preimage_empty],
-  end }
+h.symm.embedding.t2_space
+
+protected lemma regular_space [regular_space α] (h : α ≃ₜ β) : regular_space β :=
+h.symm.embedding.regular_space
 
 protected lemma dense_embedding (h : α ≃ₜ β) : dense_embedding h :=
 { dense   := h.surjective.dense_range,
@@ -215,6 +224,9 @@ open_embedding_of_embedding_open h.embedding h.is_open_map
 
 protected lemma closed_embedding (h : α ≃ₜ β) : closed_embedding h :=
 closed_embedding_of_embedding_closed h.embedding h.is_closed_map
+
+protected lemma normal_space [normal_space α] (h : α ≃ₜ β) : normal_space β :=
+h.symm.closed_embedding.normal_space
 
 lemma preimage_closure (h : α ≃ₜ β) (s : set β) : h ⁻¹' (closure s) = closure (h ⁻¹' s) :=
 h.is_open_map.preimage_closure_eq_closure_preimage h.continuous _

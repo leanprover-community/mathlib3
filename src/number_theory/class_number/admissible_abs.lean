@@ -38,7 +38,7 @@ begin
   refine ⟨λ i, ⟨nat_abs (floor ((A i % b : ℤ) / (abs b • ε) : ℝ)), _⟩, _⟩,
   { rw [← coe_nat_lt, nat_abs_of_nonneg (hfloor i), floor_lt],
     apply lt_of_lt_of_le _ (nat.le_ceil _),
-    rw [algebra.smul_def, ring_hom.eq_int_cast, ← div_div_eq_div_mul, div_lt_div_right hε,
+    rw [algebra.smul_def, ring_hom.eq_int_cast, ← div_div, div_lt_div_right hε,
         div_lt_iff hb', one_mul, cast_lt],
     exact int.mod_lt _ hb },
   intros i₀ i₁ hi,

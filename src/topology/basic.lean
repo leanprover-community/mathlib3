@@ -523,11 +523,29 @@ end
 /-- The frontier of a set is the set of points between the closure and interior. -/
 def frontier (s : set α) : set α := closure s \ interior s
 
+@[simp] lemma closure_diff_interior (s : set α) : closure s \ interior s = frontier s := rfl
+
+@[simp] lemma closure_diff_frontier (s : set α) : closure s \ frontier s = interior s :=
+by rw [frontier, diff_diff_right_self, inter_eq_self_of_subset_right interior_subset_closure]
+
+@[simp] lemma self_diff_frontier (s : set α) : s \ frontier s = interior s :=
+by rw [frontier, diff_diff_right, diff_eq_empty.2 subset_closure,
+  inter_eq_self_of_subset_right interior_subset, empty_union]
+
 lemma frontier_eq_closure_inter_closure {s : set α} :
   frontier s = closure s ∩ closure sᶜ :=
 by rw [closure_compl, frontier, diff_eq]
 
 lemma frontier_subset_closure {s : set α} : frontier s ⊆ closure s := diff_subset _ _
+
+lemma is_closed.frontier_subset (hs : is_closed s) : frontier s ⊆ s :=
+frontier_subset_closure.trans hs.closure_eq.subset
+
+lemma frontier_closure_subset {s : set α} : frontier (closure s) ⊆ frontier s :=
+diff_subset_diff closure_closure.subset $ interior_mono subset_closure
+
+lemma frontier_interior_subset {s : set α} : frontier (interior s) ⊆ frontier s :=
+diff_subset_diff (closure_mono interior_subset) interior_interior.symm.subset
 
 /-- The complement of a set has the same frontier as the original set. -/
 @[simp] lemma frontier_compl (s : set α) : frontier sᶜ = frontier s :=
@@ -626,9 +644,12 @@ localized "notation `𝓝[<] ` x:100 := nhds_within x (set.Iio x)" in topologica
 
 lemma nhds_def (a : α) : 𝓝 a = (⨅ s ∈ {s : set α | a ∈ s ∧ is_open s}, 𝓟 s) := by rw nhds
 
+lemma nhds_def' (a : α) : 𝓝 a = ⨅ (s : set α) (hs : is_open s) (ha : a ∈ s), 𝓟 s :=
+by simp only [nhds_def, mem_set_of_eq, and_comm (a ∈ _), infi_and]
+
 /-- The open sets containing `a` are a basis for the neighborhood filter. See `nhds_basis_opens'`
 for a variant using open neighborhoods instead. -/
-lemma nhds_basis_opens (a : α) : (𝓝 a).has_basis (λ s : set α, a ∈ s ∧ is_open s) (λ x, x) :=
+lemma nhds_basis_opens (a : α) : (𝓝 a).has_basis (λ s : set α, a ∈ s ∧ is_open s) (λ s, s) :=
 begin
   rw nhds_def,
   exact has_basis_binfi_principal
@@ -636,6 +657,10 @@ begin
       ⟨inter_subset_left _ _, inter_subset_right _ _⟩⟩)
     ⟨univ, ⟨mem_univ a, is_open_univ⟩⟩
 end
+
+lemma nhds_basis_closeds (a : α) : (𝓝 a).has_basis (λ s : set α, a ∉ s ∧ is_closed s) compl :=
+⟨λ t, (nhds_basis_opens a).mem_iff.trans $ compl_surjective.exists.trans $
+  by simp only [is_open_compl_iff, mem_compl_iff]⟩
 
 /-- A filter lies below the neighborhood filter at `a` iff it contains every open set around `a`. -/
 lemma le_nhds_iff {f a} : f ≤ 𝓝 a ↔ ∀ s : set α, a ∈ s → is_open s → s ∈ f :=
@@ -689,11 +714,7 @@ lemma nhds_basis_opens' (a : α) : (𝓝 a).has_basis (λ s : set α, s ∈ 𝓝
 begin
   convert nhds_basis_opens a,
   ext s,
-  split,
-  { rintros ⟨s_in, s_op⟩,
-    exact ⟨mem_of_mem_nhds s_in, s_op⟩ },
-  { rintros ⟨a_in, s_op⟩,
-    exact ⟨is_open.mem_nhds s_op a_in, s_op⟩ },
+  exact and.congr_left_iff.2 is_open.mem_nhds_iff
 end
 
 /-- If `U` is a neighborhood of each point of a set `s` then it is a neighborhood of `s`:
@@ -702,11 +723,8 @@ lemma exists_open_set_nhds {s U : set α} (h : ∀ x ∈ s, U ∈ 𝓝 x) :
   ∃ V : set α, s ⊆ V ∧ is_open V ∧ V ⊆ U :=
 begin
   have := λ x hx, (nhds_basis_opens x).mem_iff.1 (h x hx),
-  choose! Z hZ hZ' using this,
-  refine ⟨⋃ x ∈ s, Z x, λ x hx, mem_bUnion hx (hZ x hx).1, is_open_Union _, Union₂_subset hZ'⟩,
-  intro x,
-  by_cases hx : x ∈ s ; simp [hx],
-  exact (hZ x hx).2,
+  choose! Z hZ hZU using this, choose hZmem hZo using hZ,
+  exact ⟨⋃ x ∈ s, Z x, λ x hx, mem_bUnion hx (hZmem x hx), is_open_bUnion hZo, Union₂_subset hZU⟩
 end
 
 /-- If `U` is a neighborhood of each point of a set `s` then it is a neighborhood of s:
@@ -783,6 +801,11 @@ rtendsto'_nhds
 theorem tendsto_nhds {f : β → α} {l : filter β} {a : α} :
   tendsto f l (𝓝 a) ↔ (∀ s, is_open s → a ∈ s → f ⁻¹' s ∈ l) :=
 all_mem_nhds_filter _ _ (λ s t h, preimage_mono h) _
+
+lemma tendsto_at_top_nhds [nonempty β] [semilattice_sup β] {f : β → α} {a : α} :
+  (tendsto f at_top (𝓝 a)) ↔ ∀ U : set α, a ∈ U → is_open U → ∃ N, ∀ n, N ≤ n → f n ∈ U :=
+(at_top_basis.tendsto_iff (nhds_basis_opens a)).trans $
+  by simp only [and_imp, exists_prop, true_and, mem_Ici, ge_iff_le]
 
 lemma tendsto_const_nhds {a : α} {f : filter β} : tendsto (λb:β, a) f (𝓝 a) :=
 tendsto_nhds.mpr $ assume s hs ha, univ_mem' $ assume _, ha

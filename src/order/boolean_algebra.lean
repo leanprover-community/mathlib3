@@ -123,25 +123,6 @@ begin
   exact (eq_of_inf_eq_sup_eq i s).symm,
 end
 
-theorem sdiff_symm (hy : y ≤ x) (hz : z ≤ x) (H : x \ y = z) : x \ z = y :=
-have hyi : x ⊓ y = y := inf_eq_right.2 hy,
-have hzi : x ⊓ z = z := inf_eq_right.2 hz,
-eq_of_inf_eq_sup_eq
-  (begin
-    have ixy := inf_inf_sdiff x y,
-    rw [H, hyi] at ixy,
-    have ixz := inf_inf_sdiff x z,
-    rwa [hzi, inf_comm, ←ixy] at ixz,
-  end)
-  (begin
-    have sxz := sup_inf_sdiff x z,
-    rw [hzi, sup_comm] at sxz,
-    rw sxz,
-    symmetry,
-    have sxy := sup_inf_sdiff x y,
-    rwa [H, hyi] at sxy,
-  end)
-
 lemma sdiff_le : x \ y ≤ x :=
 calc x \ y ≤ (x ⊓ y) ⊔ (x \ y) : le_sup_right
        ... = x                 : sup_inf_sdiff x y
@@ -372,6 +353,8 @@ lemma sdiff_le_iff : y \ x ≤ z ↔ y ≤ x ⊔ z :=
               ... ≤ (x ⊔ z) ⊔ x : sup_le_sup_right h x
               ... ≤ z ⊔ x       : by rw [sup_assoc, sup_comm, sup_assoc, sup_idem])⟩
 
+lemma sdiff_sdiff_le : x \ (x \ y) ≤ y := sdiff_le_iff.2 le_sdiff_sup
+
 @[simp] lemma le_sdiff_iff : x ≤ y \ x ↔ x = ⊥ :=
 ⟨λ h, disjoint_self.1 (disjoint_sdiff_self_right.mono_right h), λ h, h.le.trans bot_le⟩
 
@@ -442,11 +425,21 @@ calc  x \ (y \ z) = (x \ y) ⊔ (x ⊓ y ⊓ z) : sdiff_sdiff_right
               ... = z ⊓ x ⊓ y ⊔ (x \ y)   : by ac_refl
               ... = (x \ y) ⊔ (x ⊓ z)     : by rw [sup_inf_inf_sdiff, sup_comm, inf_comm]
 
+lemma sdiff_sdiff_eq_sdiff_sup (h : z ≤ x) : x \ (y \ z) = x \ y ⊔ z :=
+by rw [sdiff_sdiff_right', inf_eq_right.2 h]
+
 @[simp] lemma sdiff_sdiff_right_self : x \ (x \ y) = x ⊓ y :=
 by rw [sdiff_sdiff_right, inf_idem, sdiff_self, bot_sup_eq]
 
 lemma sdiff_sdiff_eq_self (h : y ≤ x) : x \ (x \ y) = y :=
 by rw [sdiff_sdiff_right_self, inf_of_le_right h]
+
+lemma sdiff_eq_symm (hy : y ≤ x) (h : x \ y = z) : x \ z = y := by rw [←h, sdiff_sdiff_eq_self hy]
+lemma sdiff_eq_comm (hy : y ≤ x) (hz : z ≤ x) : x \ y = z ↔ x \ z = y :=
+⟨sdiff_eq_symm hy, sdiff_eq_symm hz⟩
+
+lemma eq_of_sdiff_eq_sdiff (hxz : x ≤ z) (hyz : y ≤ z) (h : z \ x = z \ y) : x = y :=
+by rw [←sdiff_sdiff_eq_self hxz, h, sdiff_sdiff_eq_self hyz]
 
 lemma sdiff_sdiff_left : (x \ y) \ z = x \ (y ⊔ z) :=
 begin
@@ -527,6 +520,19 @@ sdiff_unique
                             ... = x ⊓ y                     : by rw sup_inf_sdiff)
   (calc x ⊓ y ⊓ z ⊓ (x ⊓ (y \ z)) = x ⊓ x ⊓ ((y ⊓ z) ⊓ (y \ z)) : by ac_refl
                               ... = ⊥                           : by rw [inf_inf_sdiff, inf_bot_eq])
+
+lemma inf_sdiff_right_comm : x \ z ⊓ y = (x ⊓ y) \ z :=
+by rw [@inf_comm _ _ x, inf_comm, inf_sdiff_assoc]
+
+lemma inf_sdiff_distrib_left (a b c : α) : a ⊓ b \ c = (a ⊓ b) \ (a ⊓ c) :=
+by rw [sdiff_inf, sdiff_eq_bot_iff.2 inf_le_left, bot_sup_eq, inf_sdiff_assoc]
+
+lemma inf_sdiff_distrib_right (a b c : α) : a \ b ⊓ c = (a ⊓ c) \ (b ⊓ c) :=
+by simp_rw [@inf_comm _ _ _ c, inf_sdiff_distrib_left]
+
+lemma sdiff_sup_sdiff_cancel (hyx : y ≤ x) (hzy : z ≤ y) : x \ y ⊔ y \ z = x \ z :=
+by rw [←sup_sdiff_inf (x \ z) y, sdiff_sdiff_left, sup_eq_right.2 hzy, inf_sdiff_right_comm,
+  inf_eq_right.2 hyx]
 
 lemma sup_eq_sdiff_sup_sdiff_sup_inf : x ⊔ y = (x \ y) ⊔ (y \ x) ⊔ (x ⊓ y) :=
 eq.symm $
@@ -755,12 +761,15 @@ section boolean_algebra
 variables [boolean_algebra α]
 
 --TODO@Yaël: Once we have co-Heyting algebras, we won't need to go through `boolean_algebra.of_core`
-instance : boolean_algebra (order_dual α) :=
+instance : boolean_algebra αᵒᵈ :=
 boolean_algebra.of_core
 { compl := λ a, to_dual (of_dual a)ᶜ,
   inf_compl_le_bot := λ _, sup_compl_eq_top.ge,
   top_le_sup_compl := λ _, inf_compl_eq_bot.ge,
   ..order_dual.distrib_lattice α, ..order_dual.bounded_order α }
+
+@[simp] lemma of_dual_compl (a : αᵒᵈ) : of_dual aᶜ = (of_dual a)ᶜ := rfl
+@[simp] lemma to_dual_compl (a : α) : to_dual aᶜ = (to_dual a)ᶜ := rfl
 
 theorem sdiff_eq : x \ y = x ⊓ yᶜ := boolean_algebra.sdiff_eq x y
 
@@ -802,6 +811,9 @@ instance pi.has_compl {ι : Type u} {α : ι → Type v} [∀ i, has_compl (α i
 
 lemma pi.compl_def {ι : Type u} {α : ι → Type v} [∀ i, has_compl (α i)] (x : Π i, α i) :
   xᶜ = λ i, (x i)ᶜ := rfl
+
+instance is_irrefl.compl (r) [is_irrefl α r] : is_refl α rᶜ := ⟨@irrefl α r _⟩
+instance is_refl.compl (r) [is_refl α r] : is_irrefl α rᶜ := ⟨λ a, not_not_intro (refl a)⟩
 
 @[simp]
 lemma pi.compl_apply {ι : Type u} {α : ι → Type v} [∀ i, has_compl (α i)] (x : Π i, α i) (i : ι)  :

@@ -10,7 +10,7 @@ import tactic.derive_fintype
 /-!
 # A homogeneous prime that is homogeneously prime but not prime
 
-In `src/ring_theory/graded_algebra/radical.lean`,  we assumed that the underline grading is inedxed
+In `src/ring_theory/graded_algebra/radical.lean`,  we assumed that the underline grading is indexed
 by a `linear_ordered_cancel_add_comm_monoid` to prove that a homogeneous ideal is prime if and only
 if it is homogeneously prime. This file is aimed to show that even if this assumption isn't strictly
 necessary, the assumption of "being cancellative" is. We construct a counterexample where the
@@ -91,7 +91,7 @@ def grading.decompose : (R × R) →+ direct_sum two (λ i, grading R i) :=
   end }
 
 lemma grading.left_inv :
-  function.left_inverse grading.decompose (submodule_coe (grading R)) := λ zz,
+  function.left_inverse grading.decompose (coe_linear_map (grading R)) := λ zz,
 begin
   induction zz using direct_sum.induction_on with i zz d1 d2 ih1 ih2,
   { simp only [map_zero],},
@@ -101,11 +101,11 @@ begin
 end
 
 lemma grading.right_inv :
-  function.right_inverse grading.decompose (submodule_coe (grading R)) := λ zz,
+  function.right_inverse grading.decompose (coe_linear_map (grading R)) := λ zz,
 begin
   cases zz with a b,
   unfold grading.decompose,
-  simp only [add_monoid_hom.coe_mk, map_add, submodule_coe_of, subtype.coe_mk, prod.mk_add_mk,
+  simp only [add_monoid_hom.coe_mk, map_add, coe_linear_map_of, subtype.coe_mk, prod.mk_add_mk,
     add_zero, add_sub_cancel'_right],
 end
 

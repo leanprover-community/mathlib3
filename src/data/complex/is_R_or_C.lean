@@ -442,7 +442,7 @@ by rw [← of_real_int_cast, of_real_im]
 
 @[simp, is_R_or_C_simps, norm_cast, priority 900] theorem of_real_rat_cast (n : ℚ) :
   ((n : ℝ) : K) = n :=
-(@is_R_or_C.of_real_hom K _).map_rat_cast n
+map_rat_cast (@is_R_or_C.of_real_hom K _) n
 
 @[simp, is_R_or_C_simps, norm_cast] lemma rat_cast_re (q : ℚ) : re (q : K) = q :=
 by rw [← of_real_rat_cast, of_real_re]
@@ -668,6 +668,15 @@ ring_hom.map_finsupp_prod _ f g
 
 end is_R_or_C
 
+namespace polynomial
+
+open_locale polynomial
+
+lemma of_real_eval (p : ℝ[X]) (x : ℝ) : (p.eval x : K) = aeval ↑x p :=
+(@aeval_algebra_map_apply ℝ K _ _ _ x p).symm
+
+end polynomial
+
 namespace finite_dimensional
 
 open_locale classical
@@ -705,8 +714,9 @@ end
 
 variable {E}
 
-instance is_R_or_C.proper_space_span_singleton (x : E) : proper_space (K ∙ x) :=
-proper_is_R_or_C K (K ∙ x)
+instance is_R_or_C.proper_space_submodule (S : submodule K E) [finite_dimensional K ↥S] :
+  proper_space S :=
+proper_is_R_or_C K S
 
 end finite_dimensional
 
@@ -836,7 +846,10 @@ noncomputable def conj_cle : K ≃L[ℝ] K := @conj_lie K _
 @[simp, is_R_or_C_simps] lemma conj_cle_norm : ∥(@conj_cle K _ : K →L[ℝ] K)∥ = 1 :=
 (@conj_lie K _).to_linear_isometry.norm_to_continuous_linear_map
 
-@[continuity] lemma continuous_conj : continuous (conj : K → K) := conj_lie.continuous
+@[priority 100]
+instance : has_continuous_star K := ⟨conj_lie.continuous⟩
+
+@[continuity] lemma continuous_conj : continuous (conj : K → K) := continuous_star
 
 /-- The `ℝ → K` coercion, as a linear map -/
 noncomputable def of_real_am : ℝ →ₐ[ℝ] K := algebra.of_id ℝ K
@@ -861,6 +874,18 @@ noncomputable def of_real_clm : ℝ →L[ℝ] K := of_real_li.to_continuous_line
 linear_isometry.norm_to_continuous_linear_map of_real_li
 
 @[continuity] lemma continuous_of_real : continuous (coe : ℝ → K) := of_real_li.continuous
+
+@[continuity] lemma continuous_abs : continuous (@is_R_or_C.abs K _) :=
+by simp only [show @is_R_or_C.abs K _ = has_norm.norm, by { ext, exact (norm_eq_abs _).symm },
+              continuous_norm]
+
+@[continuity] lemma continuous_norm_sq : continuous (@is_R_or_C.norm_sq K _) :=
+begin
+  have : (@is_R_or_C.norm_sq K _ : K → ℝ) = λ x, (is_R_or_C.abs x) ^ 2,
+  { ext,
+    exact norm_sq_eq_abs _ },
+  simp only [this, continuous_abs.pow 2],
+end
 
 end linear_maps
 

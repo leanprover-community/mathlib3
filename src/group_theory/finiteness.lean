@@ -236,6 +236,10 @@ lemma group.fg_iff : group.fg G ↔
   ∃ S : set G, subgroup.closure S = (⊤ : subgroup G) ∧ S.finite :=
 ⟨λ h, (subgroup.fg_iff ⊤).1 h.out, λ h, ⟨(subgroup.fg_iff ⊤).2 h⟩⟩
 
+@[to_additive] lemma group.fg_iff' :
+  group.fg G ↔ ∃ n (S : finset G), S.card = n ∧ subgroup.closure (S : set G) = ⊤ :=
+group.fg_def.trans ⟨λ ⟨S, hS⟩, ⟨S.card, S, rfl, hS⟩, λ ⟨n, S, hn, hS⟩, ⟨S, hS⟩⟩
+
 /-- A group is finitely generated if and only if it is finitely generated as a monoid. -/
 @[to_additive add_group.fg_iff_add_monoid.fg "An additive group is finitely generated if and only
 if it is finitely generated as an additive monoid."]
@@ -263,6 +267,24 @@ group.fg_iff_monoid.fg.mpr $ @monoid.fg_of_surjective G _ G' _ (group.fg_iff_mon
 @[to_additive]
 instance group.fg_range {G' : Type*} [group G'] [group.fg G] (f : G →* G') : group.fg f.range :=
 group.fg_of_surjective f.range_restrict_surjective
+
+variables (G)
+
+/-- The minimum number of generators of a group. -/
+@[to_additive "The minimum number of generators of an additive group"]
+def group.rank [h : group.fg G]
+  [decidable_pred (λ n, ∃ (S : finset G), S.card = n ∧ subgroup.closure (S : set G) = ⊤)] :=
+nat.find (group.fg_iff'.mp h)
+
+@[to_additive] lemma group.rank_spec [h : group.fg G]
+  [decidable_pred (λ n, ∃ (S : finset G), S.card = n ∧ subgroup.closure (S : set G) = ⊤)] :
+  ∃ S : finset G, S.card = group.rank G ∧ subgroup.closure (S : set G) = ⊤ :=
+nat.find_spec (group.fg_iff'.mp h)
+
+@[to_additive] lemma group.rank_le [group.fg G]
+  [decidable_pred (λ n, ∃ (S : finset G), S.card = n ∧ subgroup.closure (S : set G) = ⊤)]
+  {S : finset G} (hS : subgroup.closure (S : set G) = ⊤) : group.rank G ≤ S.card :=
+nat.find_le ⟨S, rfl, hS⟩
 
 end group
 

@@ -247,7 +247,7 @@ alg_hom.ext (λ _, (algebra_map E K₃).injective
 
 /-- Restrict algebra isomorphism to a normal subfield -/
 def alg_equiv.restrict_normal [h : normal F E] : E ≃ₐ[F] E :=
-alg_equiv.of_bijective (χ.to_alg_hom.restrict_normal E) (alg_hom.normal_bijective F E E _)
+alg_hom.restrict_normal' χ.to_alg_hom E
 
 @[simp] lemma alg_equiv.restrict_normal_commutes [normal F E] (x : E) :
   algebra_map E K₂ (χ.restrict_normal E x) = χ (algebra_map E K₁ x) :=

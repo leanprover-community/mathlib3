@@ -812,10 +812,10 @@ pos_iff_ne_zero.2 aleph_0_ne_zero
 @[simp] theorem lift_aleph_0 : lift ℵ₀ = ℵ₀ := lift_lift _
 
 @[simp] theorem aleph_0_le_lift {c : cardinal.{u}} : ℵ₀ ≤ lift.{v} c ↔ ℵ₀ ≤ c :=
-by rw [← lift_aleph_0, lift_le]
+by rw [←lift_aleph_0, lift_le]
 
 @[simp] theorem lift_le_aleph_0 {c : cardinal.{u}} : lift.{v} c ≤ ℵ₀ ↔ c ≤ ℵ₀ :=
-by rw [← lift_aleph_0, lift_le]
+by rw [←lift_aleph_0, lift_le]
 
 /-! ### Properties about the cast from `ℕ` -/
 
@@ -829,14 +829,13 @@ lift_injective.eq_iff' (lift_nat_cast n)
 
 @[simp] lemma nat_eq_lift_iff {n : ℕ} {a : cardinal.{u}} :
   (n : cardinal) = lift.{v} a ↔ (n : cardinal) = a :=
-by rw [← lift_nat_cast.{v} n, lift_inj]
+by rw [←lift_nat_cast.{v} n, lift_inj]
 
 theorem lift_mk_fin (n : ℕ) : lift (#(fin n)) = n := by simp
 
 lemma mk_finset {α : Type u} {s : finset α} : #s = ↑(finset.card s) := by simp
 
-theorem card_le_of_finset {α} (s : finset α) :
-  (s.card : cardinal) ≤ #α :=
+theorem card_le_of_finset {α} (s : finset α) : (s.card : cardinal) ≤ #α :=
 begin
   rw (_ : (s.card : cardinal) = #s),
   { exact ⟨function.embedding.subtype _⟩ },
@@ -847,12 +846,14 @@ end
 by induction n; simp [pow_succ', power_add, *]
 
 @[simp, norm_cast] theorem nat_cast_le {m n : ℕ} : (m : cardinal) ≤ n ↔ m ≤ n :=
-by rw [← lift_mk_fin, ← lift_mk_fin, lift_le]; exact
-⟨λ ⟨⟨f, hf⟩⟩, by simpa only [fintype.card_fin] using fintype.card_le_of_injective f hf,
-  λ h, ⟨(fin.cast_le h).to_embedding⟩⟩
+begin
+  rw [←lift_mk_fin, ←lift_mk_fin, lift_le],
+  exact ⟨λ ⟨⟨f, hf⟩⟩, by simpa only [fintype.card_fin] using fintype.card_le_of_injective f hf,
+    λ h, ⟨(fin.cast_le h).to_embedding⟩⟩
+end
 
 @[simp, norm_cast] theorem nat_cast_lt {m n : ℕ} : (m : cardinal) < n ↔ m < n :=
-by simp [lt_iff_le_not_le, -not_le]
+by simp [lt_iff_le_not_le, ←not_le]
 
 instance : char_zero cardinal := ⟨strict_mono.injective $ λ m n, nat_cast_lt.2⟩
 
@@ -866,8 +867,7 @@ nat.cast_injective
 
 @[simp] theorem succ_zero : succ (0 : cardinal) = 1 := by norm_cast
 
-theorem card_le_of {α : Type u} {n : ℕ} (H : ∀ s : finset α, s.card ≤ n) :
-  # α ≤ n :=
+theorem card_le_of {α : Type u} {n : ℕ} (H : ∀ s : finset α, s.card ≤ n) : # α ≤ n :=
 begin
   refine le_of_lt_succ (lt_of_not_ge $ λ hn, _),
   rw [←cardinal.nat_succ, ←lift_mk_fin n.succ] at hn,

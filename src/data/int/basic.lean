@@ -161,8 +161,8 @@ abs_of_nonneg (coe_nat_nonneg n)
 
 lemma add_abs_nonneg (a : ℤ) : 0 ≤ a + |a| :=
 begin
-  rw [←(abs_neg a), (int.abs_eq_nat_abs (-a)), add_comm, ←sub_neg_eq_add],
-  apply sub_nonneg.mpr (int.le_nat_abs),
+  rw ←add_right_neg a,
+  exact add_le_add_left (neg_le_abs_self a) a,
 end
 
 /-! ### succ and pred -/

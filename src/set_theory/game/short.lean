@@ -94,7 +94,7 @@ def move_right_short' {xl xr} (xL xR) [S : short (mk xl xr xL xR)] (j : xr) : sh
 by { casesI S with _ _ _ _ _ R _ _, apply R }
 local attribute [instance] move_right_short'
 
-theorem short_birthday : ∀ (x : pgame.{u}) [short x], x.birthday < ordinal.aleph_0
+theorem short_birthday : ∀ (x : pgame.{u}) [short x], x.birthday < ordinal.omega
 | ⟨xl, xr, xL, xR⟩ hs :=
 begin
   haveI := hs,

@@ -20,6 +20,7 @@ variables {E : EllipticCurve ℚ} {A B : ℤ}
 variables (ha₁ : E.a₁ = 0) (ha₂ : E.a₂ = 0) (ha₃ : E.a₃ = 0) (ha₄ : E.a₄ = A) (ha₆ : E.a₆ = B)
 
 ----------------------------------------------------------------------------------------------------
+/-! ## Lemmas -/
 
 lemma zero_le_three {α : Type} [ordered_semiring α] : (0 : α) ≤ 3 :=
 add_nonneg zero_le_two zero_le_one
@@ -51,82 +52,25 @@ namespace EllipticCurve
 open point
 
 ----------------------------------------------------------------------------------------------------
-
-/-- The logarithmic height of a point on an elliptic curve over the rationals. -/
-def height : E⟮ℚ⟯ → ℝ
-| 0            := 0
-| (some x _ _) := (max (|x.num|) (|x.denom|) : ℝ).log
-
-lemma height_nonneg (P : E⟮ℚ⟯) : 0 ≤ height P :=
-begin
-  cases P with x,
-  { exact (le_refl 0) },
-  { rw [height, real.le_log_iff_exp_le, real.exp_zero],
-    all_goals { rw [nat.abs_cast] },
-    rw [le_max_iff, nat.one_le_cast, nat.succ_le_iff],
-    any_goals { rw [lt_max_iff, nat.cast_pos] },
-    all_goals { exact or.inr x.pos } }
-end
-
-lemma padic_val_point_of_x_neg {x y : ℚ} {w : y ^ 2 = x ^ 3 + A * x + B} {p : ℕ} [fact p.prime]
-  (hpx : padic_val_rat p x < 0) :
-  ∃ n : ℕ, padic_val_rat p x = 2 * -n ∧ padic_val_rat p y = 3 * -n :=
-begin
-  have hx : x ≠ 0 :=
-  by { intro hx, rw [hx, padic_val_rat.zero] at hpx, exact has_lt.lt.false hpx },
-  have hpAx : padic_val_rat p (x ^ 3) < padic_val_rat p (A * x) :=
-  begin
-    rw [padic_val_rat.pow p hx],
-    by_cases hA : A = 0,
-    { simpa only [hA, int.cast_zero, zero_mul, padic_val_rat.zero]
-      using mul_neg_of_pos_of_neg zero_lt_three hpx },
-    { rw [int.coe_nat_succ, add_mul, one_mul, padic_val_rat.mul p (int.cast_ne_zero.mpr hA) hx,
-          add_lt_add_iff_right, padic_val_rat.of_int],
-      exact lt_of_lt_of_le (mul_neg_of_pos_of_neg zero_lt_two hpx) (int.coe_nat_nonneg _) }
-  end,
-  have hpB : padic_val_rat p (x ^ 3) < padic_val_rat p B :=
-  begin
-    rw [padic_val_rat.pow p hx],
-    by_cases hB : B = 0,
-    { simpa only [hB, int.cast_zero, padic_val_rat.zero]
-      using mul_neg_of_pos_of_neg zero_lt_three hpx },
-    { simpa only [padic_val_rat.of_int]
-      using lt_of_lt_of_le (mul_neg_of_pos_of_neg zero_lt_three hpx) (int.coe_nat_nonneg _) }
-  end,
-  apply_fun padic_val_rat p at w,
-  rw [padic_val_rat.add_of_lt p sorry, padic_val_rat.add_of_lt p sorry hpAx,
-      padic_val_rat.pow p hx] at w,
-  any_goals { simpa only [padic_val_rat.add_of_lt p sorry hpAx] using hpB },
-  have hy : y ≠ 0 :=
-  begin
-    intro hy,
-    rw [hy, zero_pow zero_lt_two, padic_val_rat.zero] at w,
-    rw [eq_zero_of_ne_zero_of_mul_left_eq_zero (@three_ne_zero ℤ _ _) w.symm] at hpx,
-    exact has_lt.lt.false hpx
-  end,
-  rw [padic_val_rat.pow p hy] at w,
-  change 2 * padic_val_rat p y = 3 * padic_val_rat p x at w,
-  cases int.dvd_of_dvd_mul_right_of_gcd_one (dvd.intro (padic_val_rat p y) w) (by norm_num1)
-    with _ hn,
-  rw [hn, ← mul_assoc, mul_comm (3 : ℤ), mul_assoc, mul_right_inj' $ @two_ne_zero ℤ _ _] at w,
-  rw [hn] at hpx,
-  rcases int.exists_eq_neg_of_nat (le_of_lt $ neg_of_mul_neg_left hpx zero_le_two) with ⟨n, rfl⟩,
-  exact ⟨n, hn, w⟩
-end
+/-! ## p-adic valuations of points -/
 
 lemma padic_val_point_of_x_nonneg {x y : ℚ} {w : y ^ 2 = x ^ 3 + A * x + B} {p : ℕ} [fact p.prime]
   (hpx : 0 ≤ padic_val_rat p x) : 0 ≤ padic_val_rat p y :=
 begin
-  by_cases hB : x ^ 3 + A * x + B = 0,
-  { rw [hB, sq_eq_zero_iff] at w,
+  by_cases hx3AxB : x ^ 3 + A * x + B = 0,
+  { rw [hx3AxB, sq_eq_zero_iff] at w,
     rw [w, padic_val_rat.zero] },
-  have hy : y ≠ 0 := by { rintro rfl, rw [zero_pow zero_lt_two] at w, exact hB w.symm },
+  have hy : y ≠ 0 := by { rintro rfl, rw [zero_pow zero_lt_two] at w, exact hx3AxB w.symm },
   apply_fun padic_val_rat p at w,
-  by_cases hA : x ^ 3 + A * x = 0,
-  { rw [padic_val_rat.pow p hy, hA, zero_add, padic_val_rat.of_int] at w,
+  by_cases hx3Ax : x ^ 3 + A * x = 0,
+  { rw [padic_val_rat.pow p hy, hx3Ax, zero_add, padic_val_rat.of_int] at w,
     exact (mul_nonneg_iff_right_nonneg_of_pos zero_lt_two).mp (w.symm ▸ int.coe_nat_nonneg _) },
   have hx : x ≠ 0 :=
-  by { rintro rfl, rw [zero_pow zero_lt_three, zero_add, mul_zero] at hA, exact false_of_ne hA },
+  begin
+    rintro rfl,
+    rw [zero_pow zero_lt_three, zero_add, mul_zero] at hx3Ax,
+    exact false_of_ne hx3Ax
+  end,
   have hpx3 : 0 ≤ padic_val_rat p (x ^ 3) :=
   by simpa only [padic_val_rat.pow p hx]
      using (mul_nonneg_iff_right_nonneg_of_pos zero_lt_three).mpr hpx,
@@ -144,10 +88,90 @@ begin
     { simpa only [padic_val_rat.of_int] using int.coe_nat_nonneg _ }
   end,
   have hpy2 : 0 ≤ padic_val_rat p (x ^ 3 + A * x + B) :=
-  le_trans (le_min (le_trans (le_min hpx3 hpAx) $ padic_val_rat.min_le_padic_val_rat_add p hA) hpB)
-    (padic_val_rat.min_le_padic_val_rat_add p hB),
+  le_trans
+    (le_min (le_trans (le_min hpx3 hpAx) $ padic_val_rat.min_le_padic_val_rat_add p hx3Ax) hpB)
+    (padic_val_rat.min_le_padic_val_rat_add p hx3AxB),
   rw [← w, padic_val_rat.pow p hy] at hpy2,
   exact nonneg_of_mul_nonneg_left hpy2 zero_lt_two
+end
+
+lemma padic_val_point_of_x_neg {x y : ℚ} {w : y ^ 2 = x ^ 3 + A * x + B} {p : ℕ} [fact p.prime]
+  (hpx : padic_val_rat p x < 0) :
+  ∃ n : ℕ, padic_val_rat p x = 2 * -n ∧ padic_val_rat p y = 3 * -n :=
+begin
+  have hx : x ≠ 0 := by { intro hx, rw [hx, padic_val_rat.zero] at hpx, exact has_lt.lt.false hpx },
+  have hx3Ax : x ^ 3 + A * x ≠ 0 :=
+  begin
+    intro hx3Ax,
+    rw [add_eq_zero_iff_eq_neg] at hx3Ax,
+    have hA : (A : ℚ) ≠ 0 := λ hA, by { rw [hA, zero_mul] at hx3Ax, exact hx (pow_eq_zero hx3Ax) },
+    have hpA : 0 ≤ (padic_val_int p A : ℤ) := int.coe_nat_nonneg _,
+    apply_fun padic_val_rat p at hx3Ax,
+    rw [padic_val_rat.pow p hx, int.coe_nat_succ, add_mul, one_mul, padic_val_rat.neg,
+        padic_val_rat.mul p hA hx, add_right_cancel_iff, padic_val_rat.of_int] at hx3Ax,
+    rw [← hx3Ax] at hpA,
+    exact not_lt_of_le (nonneg_of_mul_nonneg_left hpA zero_lt_two) hpx
+  end,
+  have hpx3Ax : padic_val_rat p (x ^ 3 + A * x) = padic_val_rat p (x ^ 3) :=
+  begin
+    apply padic_val_rat.add_of_lt p (pow_ne_zero 3 hx),
+    rw [padic_val_rat.pow p hx],
+    by_cases hA : (A : ℚ) = 0,
+    { simpa only [hA, zero_mul, padic_val_rat.zero] using mul_neg_of_pos_of_neg zero_lt_three hpx },
+    rw [int.coe_nat_succ, add_mul, one_mul, padic_val_rat.mul p hA hx, add_lt_add_iff_right,
+        padic_val_rat.of_int],
+    exact lt_of_lt_of_le (mul_neg_of_pos_of_neg zero_lt_two hpx) (int.coe_nat_nonneg _)
+  end,
+  have hx3AxB : x ^ 3 + A * x + B ≠ 0 :=
+  begin
+    intro hx3AxB,
+    rw [add_eq_zero_iff_eq_neg] at hx3AxB,
+    have hB : (B : ℚ) ≠ 0 := λ hB, by { rw [hB] at hx3AxB, exact hx3Ax hx3AxB },
+    have hpB : 0 ≤ (padic_val_int p B : ℤ) := int.coe_nat_nonneg _,
+    apply_fun padic_val_rat p at hx3AxB,
+    rw [hpx3Ax, padic_val_rat.pow p hx, padic_val_rat.neg, padic_val_rat.of_int] at hx3AxB,
+    rw [← hx3AxB] at hpB,
+    exact not_lt_of_le (nonneg_of_mul_nonneg_left hpB zero_lt_three) hpx
+  end,
+  have hpx3AxB : padic_val_rat p (x ^ 3 + A * x + B) = padic_val_rat p (x ^ 3) :=
+  begin
+    rw [← hpx3Ax],
+    apply padic_val_rat.add_of_lt p hx3Ax,
+    rw [hpx3Ax, padic_val_rat.pow p hx],
+    by_cases hB : (B : ℚ) = 0,
+    { simpa only [hB, padic_val_rat.zero] using mul_neg_of_pos_of_neg zero_lt_three hpx },
+    rw [padic_val_rat.of_int],
+    exact lt_of_lt_of_le (mul_neg_of_pos_of_neg zero_lt_three hpx) (int.coe_nat_nonneg _)
+  end,
+  have hy : y ≠ 0 := (pow_ne_zero_iff zero_lt_two).mp (w.symm ▸ hx3AxB),
+  apply_fun padic_val_rat p at w,
+  rw [padic_val_rat.pow p hy, hpx3AxB, padic_val_rat.pow p hx] at w,
+  change 2 * padic_val_rat p y = 3 * padic_val_rat p x at w,
+  cases int.dvd_of_dvd_mul_right_of_gcd_one (dvd.intro (padic_val_rat p y) w) (by norm_num1)
+    with _ hn,
+  rw [hn, ← mul_assoc, mul_comm (3 : ℤ), mul_assoc, mul_right_inj' $ @two_ne_zero ℤ _ _] at w,
+  rw [hn] at hpx,
+  rcases int.exists_eq_neg_of_nat (le_of_lt $ neg_of_mul_neg_left hpx zero_le_two) with ⟨n, rfl⟩,
+  exact ⟨n, hn, w⟩
+end
+
+----------------------------------------------------------------------------------------------------
+/-! ## Heights -/
+
+/-- The logarithmic height of a point on an elliptic curve over the rationals. -/
+def height : E⟮ℚ⟯ → ℝ
+| 0            := 0
+| (some x _ _) := (max (|x.num|) (|x.denom|) : ℝ).log
+
+lemma height_nonneg (P : E⟮ℚ⟯) : 0 ≤ height P :=
+begin
+  cases P with x,
+  { exact (le_refl 0) },
+  { rw [height, real.le_log_iff_exp_le, real.exp_zero],
+    all_goals { rw [nat.abs_cast] },
+    rw [le_max_iff, nat.one_le_cast, nat.succ_le_iff],
+    any_goals { rw [lt_max_iff, nat.cast_pos] },
+    all_goals { exact or.inr x.pos } }
 end
 
 include ha₁ ha₃

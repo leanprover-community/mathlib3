@@ -368,15 +368,55 @@ def lift_at : ∀ {n : ℕ} (n' m : ℕ), L.bounded_formula α n → L.bounded_f
 | n n' m (imp f₁ f₂) := (f₁.lift_at n' m).imp (f₂.lift_at n' m)
 | n n' m (all f) := ((f.lift_at n' m).cast_le (by rw [add_assoc, add_comm 1, ← add_assoc])).all
 
+/-- Maps bounded formulas along a map of terms and a map of relations. -/
+@[simp] def map_term_rel (ft : ∀ n, L.term (α ⊕ fin n) → L'.term (β ⊕ fin n))
+  (fr : ∀ n, L.relations n → L'.relations n) :
+  ∀ {n}, L.bounded_formula α n → L'.bounded_formula β n
+| n falsum := falsum
+| n (equal t₁ t₂) := equal (ft _ t₁) (ft _ t₂)
+| n (rel R ts) := rel (fr _ R) (λ i, ft _ (ts i))
+| n (imp φ₁ φ₂) := φ₁.map_term_rel.imp φ₂.map_term_rel
+| n (all φ) := φ.map_term_rel.all
+
+@[simp] lemma map_term_rel_map_term_rel {L'' : language}
+  (ft : ∀ n, L.term (α ⊕ fin n) → L'.term (β ⊕ fin n))
+  (fr : ∀ n, L.relations n → L'.relations n)
+  (ft' : ∀ n, L'.term (β ⊕ fin n) → L''.term (γ ⊕ fin n))
+  (fr' : ∀ n, L'.relations n → L''.relations n)
+  {n} (φ : L.bounded_formula α n) :
+  (φ.map_term_rel ft fr).map_term_rel ft' fr' =
+    φ.map_term_rel (λ n, (ft' n) ∘ (ft n)) (λ n, (fr' n) ∘ (fr n)) :=
+begin
+  induction φ with _ _ _ _ _ _ _ _ _ _ _ ih1 ih2 _ _ ih3,
+  { refl },
+  { simp [map_term_rel] },
+  { simp [map_term_rel] },
+  { simp [map_term_rel, ih1, ih2] },
+  { simp [map_term_rel, ih3], }
+end
+
+@[simp] lemma map_term_rel_id_id {n} (φ : L.bounded_formula α n) :
+  φ.map_term_rel (λ _, id) (λ _, id) = φ :=
+begin
+  induction φ with _ _ _ _ _ _ _ _ _ _ _ ih1 ih2 _ _ ih3,
+  { refl },
+  { simp [map_term_rel] },
+  { simp [map_term_rel] },
+  { simp [map_term_rel, ih1, ih2] },
+  { simp [map_term_rel, ih3], }
+end
+
+/-- An equivalence of bounded formulas given by an equivalence of terms and an equivalence of
+relations. -/
+@[simps] def map_term_rel_equiv (ft : ∀ n, L.term (α ⊕ fin n) ≃ L'.term (β ⊕ fin n))
+  (fr : ∀ n, L.relations n ≃ L'.relations n) {n} :
+  L.bounded_formula α n ≃ L'.bounded_formula β n :=
+⟨map_term_rel (λ n, ft n) (λ n, fr n), map_term_rel (λ n, (ft n).symm) (λ n, (fr n).symm),
+  λ φ, by simp, λ φ, by simp⟩
+
 /-- Substitutes the variables in a given formula with terms. -/
-@[simp] def subst : ∀ {n : ℕ}, L.bounded_formula α n → (α → L.term β) → L.bounded_formula β n
-| n falsum tf := falsum
-| n (equal t₁ t₂) tf := equal (t₁.subst (sum.elim (term.relabel sum.inl ∘ tf) (var ∘ sum.inr)))
-  (t₂.subst (sum.elim (term.relabel sum.inl ∘ tf) (var ∘ sum.inr)))
-| n (rel R ts) tf := rel R
-  (λ i, (ts i).subst (sum.elim (term.relabel sum.inl ∘ tf) (var ∘ sum.inr)))
-| n (imp φ₁ φ₂) tf := (φ₁.subst tf).imp (φ₂.subst tf)
-| n (all φ) tf := (φ.subst tf).all
+@[simp] def subst : ∀ {n : ℕ}, L.bounded_formula α n → (α → L.term β) → L.bounded_formula β n :=
+λ n φ f, φ.map_term_rel (λ _ t, t.subst (sum.elim (term.relabel sum.inl ∘ f) (var ∘ sum.inr))) (λ _, id)
 
 /-- Turns the extra variables of a bounded formula into free variables. -/
 @[simp] def to_formula : ∀ {n : ℕ}, L.bounded_formula α n → L.formula (α ⊕ fin n)

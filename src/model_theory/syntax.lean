@@ -138,7 +138,7 @@ def functions.apply₂ (f : L.functions 2) (t₁ t₂ : L.term α) : L.term α :
 namespace term
 
 /-- Sends a term with constants to a term with extra variables. -/
-def constants_to_vars : L[[γ]].term α → L.term (γ ⊕ α)
+@[simp] def constants_to_vars : L[[γ]].term α → L.term (γ ⊕ α)
 | (var a) := var (sum.inr a)
 | (@func _ _ 0 f ts) := sum.cases_on f (λ f, func f (λ i, (ts i).constants_to_vars))
     (λ c, var (sum.inl c))
@@ -146,13 +146,13 @@ def constants_to_vars : L[[γ]].term α → L.term (γ ⊕ α)
     (λ c, is_empty_elim c)
 
 /-- Sends a term with extra variables to a term with constants. -/
-def vars_to_constants : L.term (γ ⊕ α) → L[[γ]].term α
+@[simp] def vars_to_constants : L.term (γ ⊕ α) → L[[γ]].term α
 | (var (sum.inr a)) := var a
 | (var (sum.inl c)) := constants.term (sum.inr c)
 | (func f ts) := func (sum.inl f) (λ i, (ts i).vars_to_constants)
 
 /-- A bijection between terms with constants and terms with extra variables. -/
-def constants_vars_equiv : L[[γ]].term α ≃ L.term (γ ⊕ α) :=
+@[simps] def constants_vars_equiv : L[[γ]].term α ≃ L.term (γ ⊕ α) :=
 ⟨constants_to_vars, vars_to_constants, begin
   intro t,
   induction t with _ n f _ ih,
@@ -174,7 +174,7 @@ end, begin
 end⟩
 
 /-- A bijection between terms with constants and terms with extra variables. -/
-def constants_vars_equiv_left : L[[γ]].term (α ⊕ β) ≃ L.term ((γ ⊕ α) ⊕ β) :=
+@[simps] def constants_vars_equiv_left : L[[γ]].term (α ⊕ β) ≃ L.term ((γ ⊕ α) ⊕ β) :=
 constants_vars_equiv.trans (relabel_equiv (equiv.sum_assoc _ _ _)).symm
 
 instance inhabited_of_var [inhabited α] : inhabited (L.term α) :=
@@ -401,52 +401,52 @@ def lift_at : ∀ {n : ℕ} (n' m : ℕ), L.bounded_formula α n → L.bounded_f
 | n n' m (imp f₁ f₂) := (f₁.lift_at n' m).imp (f₂.lift_at n' m)
 | n n' m (all f) := ((f.lift_at n' m).cast_le (by rw [add_assoc, add_comm 1, ← add_assoc])).all
 
-@[simp] def relabel' (ft : ∀ n, L.term (α ⊕ fin n) → L'.term (β ⊕ fin n))
+@[simp] def map_term_rel (ft : ∀ n, L.term (α ⊕ fin n) → L'.term (β ⊕ fin n))
   (fr : ∀ n, L.relations n → L'.relations n) :
   ∀ {n}, L.bounded_formula α n → L'.bounded_formula β n
 | n falsum := falsum
 | n (equal t₁ t₂) := equal (ft _ t₁) (ft _ t₂)
 | n (rel R ts) := rel (fr _ R) (λ i, ft _ (ts i))
-| n (imp φ₁ φ₂) := φ₁.relabel'.imp φ₂.relabel'
-| n (all φ) := φ.relabel'.all
+| n (imp φ₁ φ₂) := φ₁.map_term_rel.imp φ₂.map_term_rel
+| n (all φ) := φ.map_term_rel.all
 
-@[simp] lemma relabel'_relabel' {L'' : language}
+@[simp] lemma map_term_rel_map_term_rel {L'' : language}
   (ft : ∀ n, L.term (α ⊕ fin n) → L'.term (β ⊕ fin n))
   (fr : ∀ n, L.relations n → L'.relations n)
   (ft' : ∀ n, L'.term (β ⊕ fin n) → L''.term (γ ⊕ fin n))
   (fr' : ∀ n, L'.relations n → L''.relations n)
   {n} (φ : L.bounded_formula α n) :
-  (φ.relabel' ft fr).relabel' ft' fr' =
-    φ.relabel' (λ n, (ft' n) ∘ (ft n)) (λ n, (fr' n) ∘ (fr n)) :=
+  (φ.map_term_rel ft fr).map_term_rel ft' fr' =
+    φ.map_term_rel (λ n, (ft' n) ∘ (ft n)) (λ n, (fr' n) ∘ (fr n)) :=
 begin
   induction φ with _ _ _ _ _ _ _ _ _ _ _ ih1 ih2 _ _ ih3,
   { refl },
-  { simp [relabel'] },
-  { simp [relabel'] },
-  { simp [relabel', ih1, ih2] },
-  { simp [relabel', ih3], }
+  { simp [map_term_rel] },
+  { simp [map_term_rel] },
+  { simp [map_term_rel, ih1, ih2] },
+  { simp [map_term_rel, ih3], }
 end
 
-@[simp] lemma relabel'_id_id {n} (φ : L.bounded_formula α n) :
-  φ.relabel' (λ _, id) (λ _, id) = φ :=
+@[simp] lemma map_term_rel_id_id {n} (φ : L.bounded_formula α n) :
+  φ.map_term_rel (λ _, id) (λ _, id) = φ :=
 begin
   induction φ with _ _ _ _ _ _ _ _ _ _ _ ih1 ih2 _ _ ih3,
   { refl },
-  { simp [relabel'] },
-  { simp [relabel'] },
-  { simp [relabel', ih1, ih2] },
-  { simp [relabel', ih3], }
+  { simp [map_term_rel] },
+  { simp [map_term_rel] },
+  { simp [map_term_rel, ih1, ih2] },
+  { simp [map_term_rel, ih3], }
 end
 
-@[simps] def relabel'_equiv (ft : ∀ n, L.term (α ⊕ fin n) ≃ L'.term (β ⊕ fin n))
+@[simps] def map_term_rel_equiv (ft : ∀ n, L.term (α ⊕ fin n) ≃ L'.term (β ⊕ fin n))
   (fr : ∀ n, L.relations n ≃ L'.relations n) {n} :
   L.bounded_formula α n ≃ L'.bounded_formula β n :=
-⟨relabel' (λ n, ft n) (λ n, fr n), relabel' (λ n, (ft n).symm) (λ n, (fr n).symm),
+⟨map_term_rel (λ n, ft n) (λ n, fr n), map_term_rel (λ n, (ft n).symm) (λ n, (fr n).symm),
   λ φ, by simp, λ φ, by simp⟩
 
 /-- Substitutes the variables in a given formula with terms. -/
 @[simp] def subst : ∀ {n : ℕ}, L.bounded_formula α n → (α → L.term β) → L.bounded_formula β n :=
-λ n φ f, φ.relabel' (λ _ t, t.subst (sum.elim (term.relabel sum.inl ∘ f) (var ∘ sum.inr))) (λ _, id)
+λ n φ f, φ.map_term_rel (λ _ t, t.subst (sum.elim (term.relabel sum.inl ∘ f) (var ∘ sum.inr))) (λ _, id)
 
 /-- Restricts a bounded formula to only use a particular set of free variables. -/
 def restrict_free_var [decidable_eq α] : Π {n : ℕ} (φ : L.bounded_formula α n)
@@ -464,7 +464,7 @@ def restrict_free_var [decidable_eq α] : Π {n : ℕ} (φ : L.bounded_formula �
 
 /-- A bijection sending formulas with constants to formulas with extra variables. -/
 def constants_vars_equiv : L[[γ]].bounded_formula α n ≃ L.bounded_formula (γ ⊕ α) n :=
-relabel'_equiv (λ _, term.constants_vars_equiv_left) (λ _, equiv.sum_empty _ _)
+map_term_rel_equiv (λ _, term.constants_vars_equiv_left) (λ _, equiv.sum_empty _ _)
 
 /-- Turns the extra variables of a bounded formula into free variables. -/
 @[simp] def to_formula : ∀ {n : ℕ}, L.bounded_formula α n → L.formula (α ⊕ fin n)

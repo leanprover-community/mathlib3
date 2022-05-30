@@ -397,25 +397,25 @@ begin
   rw [if_pos i.is_lt],
 end
 
-lemma realize_relabel' [L'.Structure M] {ft : ∀ n, L.term (α ⊕ fin n) → L'.term (β ⊕ fin n)}
+lemma realize_map_term_rel [L'.Structure M] {ft : ∀ n, L.term (α ⊕ fin n) → L'.term (β ⊕ fin n)}
   {fr : ∀ n, L.relations n → L'.relations n}
   {n} {φ : L.bounded_formula α n} {v : α → M} {v' : β → M} {xs : fin n → M}
   (h1 : ∀ n (t : L.term (α ⊕ fin n)) (xs : fin n → M),
     (ft n t).realize (sum.elim v' xs) = t.realize (sum.elim v xs))
   (h2 : ∀ n (R : L.relations n) (x : fin n → M), rel_map (fr n R) x = rel_map R x) :
-  (φ.relabel' ft fr).realize v' xs ↔ φ.realize v xs :=
+  (φ.map_term_rel ft fr).realize v' xs ↔ φ.realize v xs :=
 begin
   induction φ with _ _ _ _ _ _ _ _ _ _ _ ih1 ih2 _ _ ih,
   { refl },
-  { simp [relabel', realize, h1] },
-  { simp [relabel', realize, h1, h2] },
-  { simp [relabel', realize, ih1, ih2], },
-  { simp [relabel', realize, ih], },
+  { simp [map_term_rel, realize, h1] },
+  { simp [map_term_rel, realize, h1, h2] },
+  { simp [map_term_rel, realize, ih1, ih2], },
+  { simp [map_term_rel, realize, ih], },
 end
 
 lemma realize_subst {φ : L.bounded_formula α n} {tf : α → L.term β} {v : β → M} {xs : fin n → M} :
   (φ.subst tf).realize v xs ↔ φ.realize (λ a, (tf a).realize v) xs :=
-realize_relabel' (λ n t x, begin
+realize_map_term_rel (λ n t x, begin
   rw term.realize_subst,
   rcongr a,
   { cases a,
@@ -430,7 +430,7 @@ end) (by simp)
     φ (v ∘ sum.inr) xs :=
 begin
   letI := @language.sum_Structure L _ M _ (constants_on.Structure (v ∘ sum.inl)),
-  refine realize_relabel' (λ n t x, _) _,
+  refine realize_map_term_rel (λ n t x, _) _,
   { rw term.constants_vars_equiv_left
 
   },

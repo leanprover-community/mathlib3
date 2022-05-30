@@ -111,6 +111,48 @@ end
 
 end nat
 
+namespace int
+variables {R : Type*} [comm_ring R] [char_zero R]
+
+/-- extension of `char_zero.cast_injective` to integers. -/
+theorem cast_injective : function.injective (coe : ℤ → R) :=
+begin
+  -- The strategy is to just add `|a| + |b|` to reduce to the `ℕ`-case.
+  intros a b h,
+  have ha : 0 ≤ a + (|a| + |b|) :=
+  begin
+    rw ←add_assoc,
+    apply add_nonneg _ (abs_nonneg b),
+    exact add_abs_nonneg a,
+  end,
+  have hb : 0 ≤ b + (|a| + |b|) :=
+  begin
+    rw [add_comm (|a|), ←add_assoc],
+    apply add_nonneg _ (abs_nonneg a),
+    exact add_abs_nonneg b,
+  end,
+  cases int.eq_coe_of_zero_le ha with m hm,
+  cases int.eq_coe_of_zero_le hb with n hn,
+
+  have hmn : (m : R) = n :=
+  begin
+    have hd' := @congr_arg _ R _ _ coe hm,
+    simp only [int.cast_add, int.cast_coe_nat] at hd',
+    have he' := @congr_arg _ R _ _ coe hn,
+    simp only [int.cast_add, int.cast_coe_nat] at he',
+    rw h at hd',
+    rw hd' at he',
+    exact he',
+  end,
+  replace hmn := char_zero.cast_injective hmn,
+
+  have hab : (m : ℤ) = n := congr_arg coe hmn,
+  rw [←hm, ←hn] at hab,
+  apply (add_left_inj _).mp hab,
+end
+
+end int
+
 section
 
 variables (M : Type*) [add_monoid M] [has_one M] [char_zero M]

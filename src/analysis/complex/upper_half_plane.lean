@@ -156,7 +156,7 @@ begin
   field_simp [denom_ne_zero, -denom, -num],
   simp only [matrix.mul, dot_product, fin.sum_univ_succ, num, denom, coe_coe, subgroup.coe_mul,
     general_linear_group.coe_mul, fintype.univ_of_subsingleton, fin.mk_eq_subtype_mk, fin.mk_zero,
-    finset.sum_singleton, fin.succ_zero_eq_one,complex.of_real_add, complex.of_real_mul],
+    finset.sum_singleton, fin.succ_zero_eq_one, complex.of_real_add, complex.of_real_mul],
   ring
 end
 
@@ -215,8 +215,8 @@ begin
   ext1,
   change _ / _ = _ / _,
   field_simp [denom_ne_zero, -denom, -num],
-  simp_rw [num, denom, GL_pos.coe_neg_apply],
-  simp only [num, denom, GL_pos.coe_neg_apply, coe_coe, complex.of_real_neg, neg_mul],
+  simp only [num, denom, coe_coe, complex.of_real_neg, neg_mul, GL_pos.coe_neg_GL, units.coe_neg,
+    pi.neg_apply],
   ring_nf,
 end
 
@@ -224,8 +224,8 @@ section SL_modular_action
 
 variables (g : SL(2, ℤ)) (z : ℍ) (Γ : subgroup SL(2,ℤ))
 
-@[simp] lemma sl_moeb (A: SL(2,ℤ)) (z : ℍ) : A • z = (A : (GL(2, ℝ)⁺)) • z := rfl
-lemma subgroup_moeb (A: Γ) (z : ℍ) : A • z = (A : (GL(2, ℝ)⁺)) • z := rfl
+@[simp] lemma sl_moeb (A : SL(2,ℤ)) (z : ℍ) : A • z = (A : (GL(2, ℝ)⁺)) • z := rfl
+lemma subgroup_moeb (A : Γ) (z : ℍ) : A • z = (A : (GL(2, ℝ)⁺)) • z := rfl
 @[simp] lemma subgroup_to_sl_moeb (A : Γ) (z : ℍ) : A • z = (A : SL(2,ℤ)) • z := rfl
 
 @[simp] lemma SL_neg_smul (g : SL(2,ℤ)) (z : ℍ) : -g • z = g • z :=

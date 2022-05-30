@@ -187,7 +187,7 @@ namespace Lhom
 begin
   induction t with _ n f ts ih,
   { refl },
-  { simp only [term.realize, Lhom.on_term, Lhom.is_expansion_on.map_on_function, ih] }
+  { simp only [term.realize, Lhom.on_term, Lhom.map_on_function, ih] }
 end
 
 end Lhom
@@ -429,22 +429,28 @@ end) (by simp)
     (@language.sum_Structure L _ M _ (constants_on.Structure (v ∘ sum.inl))) _ _
     φ (v ∘ sum.inr) xs :=
 begin
-  letI := @language.sum_Structure L _ M _ (constants_on.Structure (v ∘ sum.inl)),
-  refine realize_map_term_rel (λ n t x, _) _,
-  { rw term.constants_vars_equiv_left
-
-  },
+  letI : (constants_on α).Structure M := (constants_on.Structure (v ∘ sum.inl)),
+  refine realize_map_term_rel (λ n t x, term.realize_constants_vars_equiv_left) (λ n R x, _),
+  rw ← (Lhom_with_constants L α).map_on_relation,
+  cases R,
+  { refl },
+  { exact is_empty_elim R }
 end
 
-lemma realize_subst {φ : L.bounded_formula α n} {tf : α → L.term β} {v : β → M} {xs : fin n → M} :
-  (φ.subst tf).realize v xs ↔ φ.realize (λ a, (tf a).realize v) xs :=
-realize_map_term_rel (λ n t x, begin
-  rw term.realize_subst,
-  rcongr a,
-  { cases a,
-    { simp only [sum.elim_inl, term.realize_relabel, sum.elim_comp_inl] },
-    { refl } }
-end) (by simp)
+@[simp] lemma realize_constants_vars_equiv_symm [L[[α]].Structure M]
+  [(Lhom_with_constants L α).is_expansion_on M]
+  {n : ℕ} {φ : L.bounded_formula (α ⊕ β) n}
+  {v : β → M} {xs : fin n → M} :
+  (constants_vars_equiv.symm φ).realize v xs ↔ φ.realize (sum.elim (λ a, ↑(L.con a)) v) xs :=
+begin
+  refine realize_map_term_rel (λ n t x, _)
+    (λ n R x, ((Lhom_with_constants L α).map_on_relation _ _ _)),
+  simp only [constants_vars_equiv_left_symm_apply, realize_vars_to_constants,
+      term.realize_relabel],
+  rcongr abi,
+  rcases abi with ((a | b) | i);
+  simp,
+end
 
 @[simp] lemma realize_restrict_free_var [decidable_eq α] {n : ℕ} {φ : L.bounded_formula α n}
   {s : set α} (h : ↑φ.free_var_finset ⊆ s) {v : α → M} {xs : fin n → M} :
@@ -552,7 +558,7 @@ begin
   { refl },
   { simp only [on_bounded_formula, realize_bd_equal, realize_on_term],
     refl, },
-  { simp only [on_bounded_formula, realize_rel, realize_on_term, is_expansion_on.map_on_relation],
+  { simp only [on_bounded_formula, realize_rel, realize_on_term, Lhom.map_on_relation],
     refl, },
   { simp only [on_bounded_formula, ih1, ih2, realize_imp], },
   { simp only [on_bounded_formula, ih3, realize_all], },

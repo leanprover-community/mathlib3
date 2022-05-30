@@ -29,7 +29,7 @@ number of equations and inequalities.
 
 - `a⁺ = a ⊔ 0`: The *positive component* of an element `a` of a lattice ordered commutative group
 - `a⁻ = (-a) ⊔ 0`: The *negative component* of an element `a` of a lattice ordered commutative group
-* `|a| = a⊔(-a)`: The *absolute value* of an element `a` of a lattice ordered commutative group
+- `|a| = a⊔(-a)`: The *absolute value* of an element `a` of a lattice ordered commutative group
 
 ## Implementation notes
 

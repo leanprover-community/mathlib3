@@ -49,7 +49,7 @@ lemma continuum_pos : 0 < 𝔠 := nat_lt_continuum 0
 lemma continuum_ne_zero : 𝔠 ≠ 0 := continuum_pos.ne'
 
 lemma aleph_one_le_continuum : aleph 1 ≤ 𝔠 :=
-by { rw ← succ_aleph_0, exact order.succ_le_of_lt aleph_0_lt_continuum }
+by { rw ←succ_aleph_0, exact order.succ_le_of_lt aleph_0_lt_continuum }
 
 /-!
 ### Addition
@@ -100,6 +100,6 @@ power_self_eq le_rfl
 nat_power_eq le_rfl hn
 
 @[simp] lemma continuum_power_aleph_0 : continuum.{u} ^ aleph_0.{u} = 𝔠 :=
-by rw [← two_power_aleph_0, ← power_mul, mul_eq_left le_rfl le_rfl aleph_0_ne_zero]
+by rw [←two_power_aleph_0, ←power_mul, mul_eq_left le_rfl le_rfl aleph_0_ne_zero]
 
 end cardinal

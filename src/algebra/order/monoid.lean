@@ -167,7 +167,7 @@ def function.injective.linear_ordered_comm_monoid [linear_ordered_comm_monoid α
   .. linear_order.lift f hf }
 
 lemma bit0_pos [ordered_add_comm_monoid α] {a : α} (h : 0 < a) : 0 < bit0 a :=
-add_pos h h
+add_pos' h h
 
 namespace units
 

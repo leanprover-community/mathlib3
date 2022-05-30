@@ -134,14 +134,14 @@ begin
   unfold Hσ,
   rw null_homotopic_map'_f_of_not_rel_left (c_mk 1 0 rfl) cs_down_0_not_rel_left,
   cases q,
-  { erw hσ'_eq (show 0=0+0, by refl) (c_mk 1 0 rfl),
+  { rw hσ'_eq (show 0=0+0, by refl) (c_mk 1 0 rfl),
     simp only [pow_zero, fin.mk_zero, one_zsmul, eq_to_hom_refl, category.comp_id],
     erw chain_complex.of_d,
     simp only [alternating_face_map_complex.obj_d, fin.sum_univ_two,
       fin.coe_zero, pow_zero, one_zsmul, fin.coe_one, pow_one, comp_add,
       neg_smul, one_zsmul, comp_neg, add_neg_eq_zero],
     erw [δ_comp_σ_self, δ_comp_σ_succ], },
-  { erw [hσ'_eq_zero (nat.succ_pos q) (c_mk 1 0 rfl), zero_comp], },
+  { rw [hσ'_eq_zero (nat.succ_pos q) (c_mk 1 0 rfl), zero_comp], },
 end
 
 /-- The maps `hσ' q n m hnm` are natural on the simplicial object -/

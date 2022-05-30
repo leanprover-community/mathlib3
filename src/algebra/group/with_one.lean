@@ -60,6 +60,13 @@ instance [nonempty α] : nontrivial (with_one α) := option.nontrivial
 @[to_additive]
 instance : has_coe_t α (with_one α) := ⟨some⟩
 
+/-- Recursor for `with_one` using the preferred forms `1` and `↑a`. -/
+@[elab_as_eliminator,
+  to_additive "Recursor for `with_zero` using the preferred forms `0` and `↑a`."]
+def rec_one_coe {C : with_one α → Sort*} (h₁ : C 1) (h₂ : Π (a : α), C a) :
+  Π (n : with_one α), C n :=
+option.rec h₁ h₂
+
 @[to_additive]
 lemma some_eq_coe {a : α} : (some a : with_one α) = ↑a := rfl
 
@@ -239,6 +246,9 @@ instance [has_mul α] : mul_zero_class (with_zero α) :=
 
 @[simp] lemma mul_zero {α : Type u} [has_mul α]
   (a : with_zero α) : a * 0 = 0 := by cases a; refl
+
+instance [has_mul α] : no_zero_divisors (with_zero α) :=
+⟨by { rintro (a|a) (b|b) h, exacts [or.inl rfl, or.inl rfl, or.inr rfl, option.no_confusion h] }⟩
 
 instance [semigroup α] : semigroup_with_zero (with_zero α) :=
 { mul_assoc := λ a b c, match a, b, c with

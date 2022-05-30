@@ -60,7 +60,7 @@ local attribute [instance] fintype.card_fin_even
 
 namespace modular_group
 
-variables (g : SL(2, ℤ)) (z : ℍ)
+variables {g : SL(2, ℤ)} (z : ℍ)
 
 section bottom_row
 

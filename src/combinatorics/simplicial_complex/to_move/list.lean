@@ -28,7 +28,7 @@ lemma list.exists_min_of_inf_closed {α : Type*} [semilattice_inf α] {s : list 
   ∃ z ∈ s, ∀ y ∈ s, z ≤ y :=
 begin
   have hs'₁ : s.attach ≠ [] := by simpa using hs₁,
-  letI : semilattice_inf {y // y ∈ s} := subtype.semilattice_inf (λ x y hx hy, hs₂ x y hx hy),
+  letI : semilattice_inf {y // y ∈ s} := subtype.semilattice_inf (λ x y hx hy, hs₂ x hx y hy),
   rcases list.exists_min hs'₁ with ⟨⟨x, hx₁⟩, hx₂⟩,
   refine ⟨x, hx₁, λ y hy, hx₂ ⟨y, hy⟩ _⟩,
   simp only [list.mem_attach],

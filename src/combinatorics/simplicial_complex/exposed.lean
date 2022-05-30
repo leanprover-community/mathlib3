@@ -1,95 +1,93 @@
 /-
-Copyright (c) 2021 Yaël Dillies, Bhavik Mehta. All rights reserved.
+Copyright (c) 2021 Yaël Dillies, thavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Yaël Dillies, Bhavik Mehta
+Authors: Yaël Dillies, thavik Mehta
 -/
 import analysis.convex.exposed
+import analysis.normed_space.hahn_banach.separation
 import combinatorics.simplicial_complex.extreme
 
 /-!
 # Exposed sets
 -/
 
-open_locale classical affine big_operators
+open_locale affine big_operators classical
 open set
 --TODO: Generalise to LCTVS
-variables {E : Type*} [normed_group E] [normed_space ℝ E] {x : E} {A B C : set E}
+variables {E : Type*} [normed_group E] [normed_space ℝ E] {x : E} {s t C : set E}
   {X : finset E} {l : E →L[ℝ] ℝ}
 
 namespace is_exposed
 
-lemma subset_frontier (hAB : is_exposed A B) (hBA : ¬ A ⊆ B) :
-  B ⊆ frontier A :=
-hAB.is_extreme.subset_frontier hBA
+lemma subset_frontier (hst : is_exposed ℝ s t) (hts : ¬ s ⊆ t) : t ⊆ frontier s :=
+hst.is_extreme.subset_frontier hts
 
-lemma span_lt (hAB : is_exposed A B) (hBA : ¬ A ⊆ B) :
-  affine_span ℝ B < affine_span ℝ A :=
+lemma span_lt (hst : is_exposed ℝ s t) (hts : ¬ s ⊆ t) : affine_span ℝ t < affine_span ℝ s :=
 begin
-  apply (affine_span_mono _ hAB.subset).lt_of_ne,
+  apply (affine_span_mono _ hst.subset).lt_of_ne,
   rintro h,
   sorry
 end
 
 end is_exposed
 
-/-lemma is_exposed.dim_lt (hAB : is_exposed A B) (hBA : ¬ A ⊆ B) :
-  (affine_span ℝ B).rank < (affine_span ℝ A).rank :=
+/-lemma is_exposed.dim_lt (hst : is_exposed s t) (hts : ¬ s ⊆ t) :
+  (affine_span ℝ t).rank < (affine_span ℝ s).rank :=
 begin
 
 end-/
 
-lemma mem_exposed_set_iff_mem_frontier (hA₁ : convex 𝕜 A) (hA₂ : (interior A).nonempty) :
-  (∃ B : set E, is_exposed A B ∧ ¬A ⊆ B ∧ x ∈ B) ↔ x ∈ A ∧ x ∈ frontier A :=
+lemma mem_exposed_set_iff_mem_frontier (hs₁ : convex ℝ s) (hs₂ : (interior s).nonempty) :
+  (∃ t : set E, is_exposed ℝ s t ∧ ¬ s ⊆ t ∧ x ∈ t) ↔ x ∈ s ∧ x ∈ frontier s :=
 begin
-  use λ ⟨B, hAB, hBA, hxB⟩, ⟨hAB.subset hxB, hAB.subset_frontier hBA hxB⟩,
+  use λ ⟨t, hst, hts, hxt⟩, ⟨hst.subset hxt, hst.subset_frontier hts hxt⟩,
   rintro ⟨hxA, hxfA⟩,
-  obtain ⟨y, hyA⟩ := id hA₂,
-  obtain ⟨l, hl⟩ := geometric_hahn_banach_open_point (convex.interior hA₁) is_open_interior hxfA.2,
-  refine ⟨{x ∈ A | ∀ y ∈ A, l y ≤ l x}, λ _, ⟨l, rfl⟩, λ h,
+  obtain ⟨y, hyA⟩ := id hs₂,
+  obtain ⟨l, hl⟩ := geometric_hahn_banach_open_point (convex.interior hs₁) is_open_interior hxfA.2,
+  refine ⟨{x ∈ s | ∀ y ∈ s, l y ≤ l x}, λ _, ⟨l, rfl⟩, λ h,
     not_le.2 (hl y hyA) ((h (interior_subset hyA)).2 x hxA), hxA, λ z hzA, _⟩,
-  suffices h : l '' closure (interior A) ⊆ closure (Iio (l x)),
-  { rw [closure_Iio, ←closure_eq_closure_interior hA₁ hA₂] at h,
+  suffices h : l '' closure (interior s) ⊆ closure (Iio (l x)),
+  { rw [closure_Iio, ←closure_eq_closure_interior hs₁ hs₂] at h,
     exact h ⟨z, subset_closure hzA, rfl⟩ },
   refine subset.trans (image_closure_subset_closure_image l.continuous) (closure_mono _),
   rintro _ ⟨w, hw, rfl⟩,
   exact hl w hw,
 end
 
-lemma mem_extreme_set_iff_mem_frontier (hA₁ : convex 𝕜 A) (hA₂ : (interior A).nonempty) :
-  (∃ B : set E, is_extreme A B ∧ ¬A ⊆ B ∧ x ∈ B) ↔ x ∈ A ∧ x ∈ frontier A :=
+lemma mem_extreme_set_iff_mem_frontier (hs₁ : convex ℝ s) (hs₂ : (interior s).nonempty) :
+  (∃ t : set E, is_extreme ℝ s t ∧ ¬ s ⊆ t ∧ x ∈ t) ↔ x ∈ s ∧ x ∈ frontier s :=
 begin
-  use λ ⟨B, hAB, hBA, hxB⟩, ⟨hAB.1 hxB, hAB.subset_frontier hBA hxB⟩,
+  use λ ⟨t, hst, hts, hxt⟩, ⟨hst.1 hxt, hst.subset_frontier hts hxt⟩,
   rintro h,
-  obtain ⟨B, hAB, hBA, hxB⟩ := (mem_exposed_set_iff_mem_frontier hA₁ hA₂).2 h,
-  exact ⟨B, hAB.is_extreme, hBA, hxB⟩,
+  obtain ⟨t, hst, hts, hxt⟩ := (mem_exposed_set_iff_mem_frontier hs₁ hs₂).2 h,
+  exact ⟨t, hst.is_extreme, hts, hxt⟩,
 end
 
 /-! # Harder stuff -/
 
-/-- Eidelheit's Theorem -/
-theorem eq_Inter_halfspaces (hA₁ : convex 𝕜 A) (hA₂ : is_closed A) :
-  A = ⋂ (l : E →L[ℝ] ℝ), {x | ∃ y ∈ A, l x ≤ l y} :=
+/-- **Eidelheit's Theorem** -/
+lemma Inter_halfspaces_eq (hs₁ : convex ℝ s) (hs₂ : is_closed s) :
+  (⋂ (l : E →L[ℝ] ℝ), {x | ∃ y ∈ s, l x ≤ l y}) = s :=
 begin
   ext,
   simp only [mem_Inter],
-  use λ hx l, ⟨x, hx, le_rfl⟩,
-  rintro hx,
+  refine ⟨λ hx, _, λ hx l, ⟨x, hx, le_rfl⟩⟩,
   by_contra,
-  obtain ⟨l, s, hlA, hl⟩ := geometric_hahn_banach_closed_point hA₁ hA₂ h,
+  obtain ⟨l, s, hlA, hl⟩ := geometric_hahn_banach_closed_point hs₁ hs₂ h,
   obtain ⟨y, hy, hxy⟩ := hx l,
   linarith [hlA y hy],
 end
 
 lemma closed_extreme_points [finite_dimensional ℝ E] (hE : finite_dimensional.finrank ℝ E = 2)
-  (hA₁ : convex 𝕜 A) (hA₂ : is_closed A) :
-  is_closed A.extreme_points :=
+  (hs₁ : convex ℝ s) (hs₂ : is_closed s) :
+  is_closed (s.extreme_points ℝ) :=
 begin
   sorry
 end
 
 --theorem of S. Straszewicz proved in 1935
-lemma limit_exposed_points_of_extreme (hA₁ : convex 𝕜 A) (hA₂ : is_closed A) :
-  A.extreme_points ⊆ closure (A.exposed_points) :=
+lemma limit_exposed_points_of_extreme (hs₁ : convex ℝ s) (hs₂ : is_closed s) :
+  s.extreme_points ℝ ⊆ closure (s.exposed_points ℝ) :=
 begin
   sorry
 end

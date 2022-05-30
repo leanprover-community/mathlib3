@@ -5,6 +5,7 @@ Authors: Yaël Dillies, Bhavik Mehta
 -/
 import analysis.convex.topology
 import combinatorics.simplicial_complex.extreme
+import combinatorics.simplicial_complex.to_move
 import order.filter.archimedean
 
 /-!
@@ -14,8 +15,8 @@ These are phrased in terms of finite sets of points, and the assumption of affin
 (ie non-degeneracy) is added to theorems.
 -/
 
-open_locale big_operators classical
 open set
+open_locale big_operators classical
 
 variables {𝕜 E ι : Type*}
 
@@ -36,7 +37,7 @@ lemma mem_combi_frontier_iff :
 by simp [combi_frontier]
 
 lemma combi_frontier_subset_convex_hull : combi_frontier 𝕜 s ⊆ convex_hull 𝕜 ↑s :=
-bUnion_subset $ λ t ht, convex_hull_mono ht.1
+Union₂_subset $ λ t ht, convex_hull_mono ht.1
 
 lemma combi_interior_subset_convex_hull : combi_interior 𝕜 s ⊆ convex_hull 𝕜 ↑s := diff_subset _ _
 
@@ -90,7 +91,7 @@ begin
       obtain ⟨Z, Zt, hZ⟩ := ih,
       exact ⟨_, subset.trans Zt st.1, hZ⟩ },
     { exact subset_bUnion_of_mem (λ _ t, t) ⟨hx, h⟩ } },
-  { exact bUnion_subset (λ t ht, subset.trans (diff_subset _ _) (convex_hull_mono ht)) },
+  { exact Union₂_subset (λ t ht, subset.trans (diff_subset _ _) (convex_hull_mono ht)) },
 end
 
 end ordered_ring
@@ -268,21 +269,19 @@ end
 end topological_space
 
 section semi_normed_group
-variables [semi_normed_group E] [semi_normed_space ℝ E] {s t : finset E}
+variables [semi_normed_group E] [normed_space ℝ E] {s t : finset E}
 
 lemma subset_closure_combi_interior (hs : affine_independent ℝ (coe : (s : set E) → E)) :
   (s : set E) ⊆ closure (combi_interior ℝ s) :=
 begin
   rintro x (hx : x ∈ s),
-  apply sequential_closure_subset_closure,
+  apply seq_closure_subset_closure,
   have hsnonempty : s.nonempty := ⟨x, hx⟩,
   have centroid_weights : ∑ (i : E) in s, finset.centroid_weights ℝ s i = 1,
   { apply finset.sum_centroid_weights_eq_one_of_nonempty ℝ _ hsnonempty },
-  refine ⟨_, _, _⟩,
-  { intro n,
-    apply ((n:ℝ)+2)⁻¹ • s.centroid ℝ id + (1-((n:ℝ)+2)⁻¹) • x },
-  { intro n,
-    rw finset.centroid_def,
+  refine ⟨λ n, _, λ n, _, _⟩,
+  { apply ((n:ℝ)+2)⁻¹ • s.centroid ℝ id + (1-((n:ℝ)+2)⁻¹) • x },
+  { rw finset.centroid_def,
     rw affine_combination_eq_center_mass _,
     { rw ←id.def x,
       rw ←finset.center_mass_ite_eq _ _ id hx,

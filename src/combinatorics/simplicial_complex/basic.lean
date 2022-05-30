@@ -10,8 +10,8 @@ import combinatorics.simplicial_complex.simplex
 # Simplicial complexes
 -/
 
-open_locale classical affine big_operators
 open finset geometry
+open_locale affine big_operators classical
 
 variables {𝕜 E ι : Type*}
 
@@ -98,12 +98,13 @@ begin
   exact set.mem_singleton x,
 end
 
-lemma combi_interiors_cover : K.space = ⋃ s ∈ K, combi_interior 𝕜 s :=
+lemma combi_interiors_cover : (⋃ s ∈ K, combi_interior 𝕜 s) = K.space :=
 begin
-  refine (set.bUnion_subset $ λ s hs, _).antisymm
-    (set.bUnion_subset_bUnion $ λ t ht, ⟨t, ht, combi_interior_subset_convex_hull⟩),
+  unfold space,
+  refine (set.Union₂_mono $ λ _ _, _).antisymm (set.Union₂_subset $ λ s hs, _),
+  { exact combi_interior_subset_convex_hull },
   rw simplex_combi_interiors_cover,
-  refine set.bUnion_subset_bUnion (λ t hts, _),
+  refine set.Union₂_mono' (λ t hts, _),
   obtain rfl | ht := t.eq_empty_or_nonempty,
   { refine ⟨s, hs, _⟩,
     rw combi_interior_empty,
@@ -115,10 +116,8 @@ end
 empty set) -/
 lemma combi_interiors_partition (hx : x ∈ K.space) : ∃! s, s ∈ K ∧ x ∈ combi_interior 𝕜 s :=
 begin
-  rw combi_interiors_cover at hx,
-  change x ∈ ⋃ (s : finset E) (H : s ∈ K.faces), combi_interior 𝕜 s at hx,
-  rw set.mem_bUnion_iff at hx,
-  obtain ⟨s, hs, hxs⟩ := hx,
+  rw ←combi_interiors_cover at hx,
+  obtain ⟨s, hs, hxs⟩ := set.mem_Union₂.1 hx,
   exact ⟨s, ⟨⟨hs, hxs⟩, λ t ⟨ht, hxt⟩, disjoint_interiors ht hs hxt hxs⟩⟩,
 end
 
@@ -132,7 +131,7 @@ begin
   rw mem_combi_frontier_iff,
   split,
   { rintro ⟨t, hts, hxt⟩,
-    --rw [simplex_combi_interiors_cover, mem_bUnion_iff] at hxt,
+    --rw [simplex_combi_interiors_cover, mem_Union₂] at hxt,
     --obtain ⟨u, hu⟩ := simplex_combi_interiors_cover
     sorry
   },

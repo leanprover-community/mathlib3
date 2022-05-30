@@ -10,13 +10,14 @@ import combinatorics.simplicial_complex.glued
 # Polytopes
 -/
 
-open set affine
+open set
 
 variables {𝕜 E : Type*}
 
+namespace geometry
 section ordered_ring
 variables [ordered_ring 𝕜] [add_comm_group E] [module 𝕜 E]
-  {S : simplicial_complex 𝕜 E} {x : E} {X Y : finset E} {C : set E} {A : set (finset E)}
+  {S : simplicial_complex 𝕜 E} {n : ℕ} {X Y : finset E} {C : set E} {x : E} {A : set (finset E)}
 
 variables (𝕜 E)
 
@@ -24,21 +25,17 @@ variables (𝕜 E)
 underlying space. -/
 @[ext] structure polytope :=
 (space : set E)
-(realisable : ∃ {S : simplicial_complex 𝕜 E}, S.pure ∧ space = S.space)
+(realisable : ∃ {S : simplicial_complex 𝕜 E} {n : ℕ}, S.pure n ∧ space = S.space)
 
 variables {𝕜 E} {p : polytope 𝕜 E}
 
 /-- A constructor for polytopes from an underlying simplicial complex. -/
-def simplicial_complex.to_polytope (hS : S.pure) :
-  polytope 𝕜 E :=
-{ space := S.space,
-  realisable := ⟨S, hS, rfl⟩}
+def simplicial_complex.to_polytope (hS : S.pure n) : polytope 𝕜 E := ⟨S.space, S, n, hS, rfl⟩
 
 noncomputable def polytope.to_simplicial_complex (p : polytope 𝕜 E) :
   simplicial_complex 𝕜 E := classical.some p.realisable
 
-lemma pure_polytope_realisation :
-  p.to_simplicial_complex.pure :=
+lemma pure_polytope_realisation : p.to_simplicial_complex.pure n :=
 (classical.some_spec p.realisable).1
 
 lemma polytope_space_eq_realisation_space :
@@ -59,7 +56,7 @@ begin
      sorry
   },
   rw polytope_space_eq_realisation_space,
-  exact mem_space_iff.2 ⟨{x}, hx', by simp⟩,
+  exact simplicial_complex.mem_space_iff.2 ⟨{x}, hx', by simp⟩,
 end
 
 def polytope.edges (p : polytope 𝕜 E) :
@@ -69,8 +66,7 @@ def polytope.edges (p : polytope 𝕜 E) :
 --def polytope.faces {n : ℕ} (P : polytope 𝕜 E) : set (finset E) :=
 --  P.realisation.boundary.faces
 
-noncomputable def polytope.triangulation (p : polytope 𝕜 E) :
-  simplicial_complex 𝕜 E :=
+noncomputable def polytope.triangulation (p : polytope 𝕜 E) : simplicial_complex 𝕜 E :=
 begin
   classical,
   exact
@@ -116,64 +112,51 @@ variables (𝕜 E)
 
 variables {𝕜 E} {P : polytopial_complex 𝕜 E}
 
-def polytopial_complex.polytopes (P : polytopial_complex 𝕜 E) :
-  set (polytope 𝕜 E) :=
-  sorry
+def polytopial_complex.polytopes (P : polytopial_complex 𝕜 E) : set (polytope 𝕜 E) := sorry
 
-def polytopial_complex.space (P : polytopial_complex 𝕜 E) :
-  set E :=
+def polytopial_complex.space (P : polytopial_complex 𝕜 E) : set E :=
 ⋃ (p ∈ P.polytopes), (p : polytope 𝕜 E).space
 
-lemma mem_space_iff :
-  x ∈ P.space ↔ ∃ (p : polytope 𝕜 E), p ∈ P.polytopes ∧ x ∈ p.space :=
-begin
-  unfold polytopial_complex.space,
-  simp,
-end
+lemma mem_space_iff : x ∈ P.space ↔ ∃ p : polytope 𝕜 E, p ∈ P.polytopes ∧ x ∈ p.space :=
+by simp [polytopial_complex.space]
 
 def simplicial_complex.to_polytopial_complex (S : simplicial_complex 𝕜 E) :
   polytopial_complex 𝕜 E :=
 { faces := S.faces,
   indep := λ X hX, (S.indep hX).convex_independent,
   down_closed := λ X Y hX hYX hY, S.down_closed hX hYX,
-  disjoint := S.disjoint }
+  disjoint := S.inter_subset_convex_hull }
 
-noncomputable def polytope.to_polytopial_complex (p : polytope 𝕜 E) :
-  polytopial_complex 𝕜 E :=
+noncomputable def polytope.to_polytopial_complex (p : polytope 𝕜 E) : polytopial_complex 𝕜 E :=
 simplicial_complex.to_polytopial_complex p.to_simplicial_complex
 --@Bhavik I can't use dot notation here because of namespace problems. Do you have a fix?
 
 def polytopial_complex.to_simplicial_complex (P : polytopial_complex 𝕜 E) :
   simplicial_complex 𝕜 E :=
 { faces := ⋃ (p ∈ P.polytopes), (p : polytope 𝕜 E).to_simplicial_complex.faces,
-  indep := begin
-    rintro X hX,
-    rw mem_bUnion_iff at hX,
-    obtain ⟨p, hp, hX⟩ := hX,
+  indep := λ X hX, begin
+    obtain ⟨p, hp, hX⟩ := mem_Union₂.1 hX,
     exact p.to_simplicial_complex.indep hX,
   end,
-  down_closed := begin
-    rintro X Y hX hYX,
-    rw mem_bUnion_iff at ⊢ hX,
+  down_closed := λ X Y hX hYX, begin
+    rw mem_Union₂ at ⊢ hX,
     obtain ⟨p, hp, hX⟩ := hX,
     exact ⟨p, hp, p.to_simplicial_complex.down_closed hX hYX⟩,
   end,
-  disjoint := begin
-    rintro X Y hX hY,
-    rw mem_bUnion_iff at hX hY,
-    obtain ⟨p, hp, hX⟩ := hX,
-    obtain ⟨q, hq, hY⟩ := hY,
+  inter_subset_convex_hull := λ X Y hX hY, begin
+    obtain ⟨p, hp, hX⟩ := mem_Union₂.1 hX,
+    obtain ⟨q, hq, hY⟩ := mem_Union₂.1 hY,
     sorry --this is wrong because faces of adjacent polytopes aren't required to glue nicely
     -- causes problem as soon as their shared faces aren't simplices
-  end }
+  end,
+  not_empty_mem := sorry }
 
 end ordered_ring
 
 section linear_ordered_field
 variables [linear_ordered_field 𝕜] [add_comm_group E] [module 𝕜 E] {C : set E}
 
-def polytopial_complex.coplanarless (P : polytopial_complex 𝕜 E) :
-  Prop :=
+def polytopial_complex.coplanarless (P : polytopial_complex 𝕜 E) : Prop :=
 ∀ X Y ∈ P.faces, adjacent X Y → (X : set E) ⊆ affine_span 𝕜 (Y : set E) →
   X.card = finite_dimensional.finrank 𝕜 E + 1
 
@@ -189,3 +172,4 @@ begin
 end
 
 end linear_ordered_field
+end geometry

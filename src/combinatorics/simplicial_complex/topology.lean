@@ -3,21 +3,23 @@ Copyright (c) 2021 Yaël Dillies, Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
+import combinatorics.simplicial_complex.boundary
 import combinatorics.simplicial_complex.dump
 import combinatorics.simplicial_complex.extreme
 import combinatorics.simplicial_complex.finite
-import combinatorics.simplicial_complex.boundary
 import combinatorics.simplicial_complex.skeleton
 
 /-!
 # Topology of simplicial complexes
 -/
 
-namespace affine
+open geometry set
+open_locale affine big_operators classical
 
-open_locale classical affine big_operators
-open set
-variables {𝕜 E : Type*} [ordered_semiring 𝕜] [add_comm_monoid E] [module 𝕜 E] {m n : ℕ}
+variables {𝕜 E : Type*}
+
+namespace geometry.simplicial_complex
+variables [normed_linear_ordered_field 𝕜] [normed_group E] [normed_space 𝕜 E] {m n : ℕ}
   {S : simplicial_complex 𝕜 E} {X : finset E}
 
 lemma boundary_space_eq_space_frontier_of_full_dimensional (hS : S.full_dimensional) :
@@ -44,15 +46,14 @@ begin
   }
 end
 
-lemma closed_space_of_locally_finite (hS : S.locally_finite) :
-  is_closed S.space :=
+lemma closed_space_of_locally_finite (hS : S.locally_finite) : is_closed S.space :=
 begin
   sorry
 end
 
 lemma space_frontier_eq :
   frontier S.space = (⋃ (X ∈ S.facets) (H : (X : finset E).card ≤ finite_dimensional.finrank 𝕜 E),
-  convex_hull 𝕜 ↑X) ∪ (⋃ (X ∈ S.boundary.faces), combi_interior X) :=
+  convex_hull 𝕜 ↑X) ∪ (⋃ (X ∈ S.boundary.faces), combi_interior 𝕜 X) :=
 begin
   sorry
 end
@@ -69,22 +70,15 @@ begin
   sorry
 end
 
-/-A simplicial complex is connected iff its space is-/
-def simplicial_complex.connected (S : simplicial_complex 𝕜 E) :
-  Prop :=
-connected_space S.space
+/-- A simplicial complex is connected iff its space is. -/
+def connected (S : simplicial_complex 𝕜 E) : Prop := connected_space S.space
 
-/-A simplicial complex is connected iff its 1-skeleton is-/
-lemma connected_iff_one_skeleton_connected :
-  S.connected ↔ (S.skeleton 1).connected :=
+/-- A simplicial complex is connected iff its 1-skeleton is. -/
+lemma skeleton_one_connected : (S.skeleton 1).connected ↔ S.connected :=
 begin
-  split,
-  { rintro h,
-    unfold simplicial_complex.connected,
-    sorry
-  },
-  { sorry
-  }
+  refine ⟨λ h, _, λ h, _⟩,
+  { sorry },
+  { sorry }
 end
 
 lemma locally_compact_realisation_iff_locally_finite :
@@ -107,4 +101,4 @@ end
 --def simplicial_complex.nonsingular (S : simplicial_complex 𝕜 E) {X : finset (fin m → 𝕜)} : Prop :=
 --  homeomorph (S.link {X}).space (metric.ball (0 : E) 1)
 
-end affine
+end geometry.simplicial_complex

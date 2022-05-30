@@ -9,36 +9,33 @@ import combinatorics.simplicial_complex.extreme
 # Intrinsic frontier and interior
 -/
 
-open_locale classical affine big_operators
 open set
+open_locale affine big_operators classical
+
 --TODO: Generalise to LCTVS
-variables {E : Type*} [normed_group E] [normed_space ℝ E] {x y : E} {A B : set E}
+variables {𝕜 E : Type*} [linear_ordered_field 𝕜] [add_comm_group E] [module 𝕜 E] {A B : set E}
+  {x y : E}
 
-namespace affine
+variables (𝕜)
 
-def intrinsic_interior (A : set E) :
-  set E :=
-{x ∈ A | ∃ (ι : Type*) (s : finset ι) (w : ι → ℝ) (z : ι → E) (hs : A ⊆ affine_span ℝ (z '' s))
+def intrinsic_interior (A : set E) : set E :=
+{x ∈ A | ∃ (ι : Type*) (s : finset ι) (w : ι → 𝕜) (z : ι → E) (hs : A ⊆ affine_span 𝕜 (z '' s))
   (hw₀ : ∀ i ∈ s, 0 < w i) (hw₁ : ∑ i in s, w i = 1) (hz : ∀ i ∈ s, z i ∈ A),
   s.center_mass w z = x}
 
-def intrinsic_frontier (A : set E) :
-  set E :=
-{x ∈ A | ∀ (ι : Type*) (s : finset ι) (w : ι → ℝ) (z : ι → E) (hs : A ⊆ affine_span ℝ (z '' s))
+def intrinsic_frontier (A : set E) : set E :=
+{x ∈ A | ∀ (ι : Type*) (s : finset ι) (w : ι → 𝕜) (z : ι → E) (hs : A ⊆ affine_span 𝕜 (z '' s))
   (hw₀ : ∀ i ∈ s, 0 ≤ w i) (hw₁ : ∑ i in s, w i = 1) (hz : ∀ i ∈ s, z i ∈ A)
   (hx : s.center_mass w z = x), ∃ i : ι, w i = 0}
 
-lemma intrinsic_interior_subset (A : set E) :
-  intrinsic_interior A ⊆ A :=
-λ x hx, hx.1
+lemma intrinsic_interior_subset (A : set E) : intrinsic_interior 𝕜 A ⊆ A := λ x hx, hx.1
+lemma intrinsic_frontier_subset (A : set E) : intrinsic_frontier 𝕜 A ⊆ A := λ x hx, hx.1
 
-lemma intrinsic_frontier_subset (A : set E) :
-  intrinsic_frontier A ⊆ A :=
-λ x hx, hx.1
+variables {𝕜}
 
 lemma convex.open_segment_subset_intrinsic_interior_of_mem_left (hA : convex 𝕜 A)
-  (x ∈ intrinsic_interior A) (y ∈ A) :
-  open_segment x y ⊆ intrinsic_interior A :=
+  (x ∈ intrinsic_interior 𝕜 A) (y ∈ A) :
+  open_segment 𝕜 x y ⊆ intrinsic_interior 𝕜 A :=
 begin
   rintro z hz,
   split,
@@ -49,14 +46,12 @@ begin
   sorry
 end
 
-lemma eq_intrinsic_interior_union_intrinsic_frontier :
-  A = intrinsic_interior A ∪ intrinsic_frontier A := sorry
+@[simp] lemma intrinsic_interior_union_intrinsic_frontier :
+  intrinsic_interior 𝕜 A ∪ intrinsic_frontier 𝕜 A = A := sorry
 
-lemma intrinsic_frontier.is_extreme :
-  is_extreme A (intrinsic_frontier A) :=
+lemma is_extreme_intrinsic_frontier : is_extreme 𝕜 A (intrinsic_frontier 𝕜 A) :=
 begin
-  use intrinsic_frontier_subset _,
-  rintro x₁ x₂ hx₁ hx₂ x hxA hx,
+  refine ⟨intrinsic_frontier_subset _ _, λ x₁ x₂ hx₁ hx₂ x hxA hx, _⟩,
   sorry
 end
 
@@ -90,15 +85,15 @@ end-/
 /-
 def intrinsic_frontier (A : set E) :
   set E :=
-coe '' (frontier {x : affine_span ℝ A | ↑x ∈ A})
+coe '' (frontier {x : affine_span 𝕜 A | ↑x ∈ A})
 
 def intrinsic_interior (A : set E) :
   set E :=
-coe '' (interior {x : affine_span ℝ A | ↑x ∈ A})
+coe '' (interior {x : affine_span 𝕜 A | ↑x ∈ A})
 
 def intrinsic_closure (A : set E) :
   set E :=
-coe '' (closure {x : affine_span ℝ A | ↑x ∈ A})
+coe '' (closure {x : affine_span 𝕜 A | ↑x ∈ A})
 
 lemma intrinsic_frontier_empty :
   intrinsic_frontier (∅ : set E) = ∅ :=
@@ -125,7 +120,7 @@ begin
 end
 
 lemma coe_closure_subset_closure_aux (B : set E) :
-  coe '' closure {x : affine_span ℝ A | ↑x ∈ B} ⊆ closure B :=
+  coe '' closure {x : affine_span 𝕜 A | ↑x ∈ B} ⊆ closure B :=
 begin
   rintro _ ⟨x, hx, rfl⟩,
   rw mem_closure_iff_seq_limit at ⊢ hx,
@@ -134,7 +129,7 @@ begin
 end
 
 lemma closure_eq_intrinsic_closure :
-  closure A = coe '' (closure {x : affine_span ℝ A | ↑x ∈ A}) :=
+  closure A = coe '' (closure {x : affine_span 𝕜 A | ↑x ∈ A}) :=
 begin
   refine subset.antisymm _ (coe_closure_subset_closure_aux A),
   rintro x hxA,
@@ -212,12 +207,12 @@ begin
 end
 
 --rewrite the condition to something about dimension?
-lemma intrinsic_frontier_eq_frontier (hA : affine_span ℝ A = ⊤) :
+lemma intrinsic_frontier_eq_frontier (hA : affine_span 𝕜 A = ⊤) :
   intrinsic_frontier A = frontier A :=
 begin
   apply subset.antisymm intrinsic_frontier_subset_frontier,
   rintro x hx,
-  have hxA : x ∈ affine_span ℝ A,
+  have hxA : x ∈ affine_span 𝕜 A,
   { rw hA,
     sorry,
   },
@@ -230,5 +225,3 @@ lemma intrinsic_frontier_convex_hull_eq (hA : affine_independent 𝕜 (λ p, p :
 begin
   sorry --damn hard
 end-/
-
-end affine

@@ -6,20 +6,22 @@ Authors: Yaël Dillies, Bhavik Mehta
 import combinatorics.simplicial_complex.link
 
 /-!
-# Link in a simplicial complex
+# Erasing a vertex in a simplicial complex
 -/
 
-namespace affine
-open set
-variables {𝕜 E : Type*} [ordered_ring 𝕜] [add_comm_group E] [module 𝕜 E]
-  {S : simplicial_complex 𝕜 E} {A : set (finset E)}
+open geometry set
+
+variables {𝕜 E : Type*}
+
+namespace geometry.simplicial_complex
+variables [ordered_ring 𝕜] [add_comm_group E] [module 𝕜 E] {S : simplicial_complex 𝕜 E}
+  {A : set (finset E)}
 
 /--
 The erasure of a simplicial complex S and a set A is the subcomplex obtained after removing all
 faces having a vertex in A.
 -/
-def simplicial_complex.erasure (S : simplicial_complex 𝕜 E) (A : set (finset E)) :
-  simplicial_complex 𝕜 E :=
+def erasure (S : simplicial_complex 𝕜 E) (A : set (finset E)) : simplicial_complex 𝕜 E :=
 simplicial_complex.of_subcomplex
   {X | X ∈ S.faces ∧ ∀ {W}, W ∈ A → disjoint W X}
   (λ X hX, hX.1)
@@ -34,12 +36,9 @@ simplicial_complex.of_subcomplex
   (λ X Y ⟨hX, hXA⟩ hYX,
     ⟨S.down_closed hX hYX, λ Z hZ, finset.disjoint_of_subset_left hYX (hXA hZ)⟩)-/
 
-lemma erasure_subset :
-  (S.erasure A).faces ⊆ S.faces :=
-λ X hX, hX.1
+lemma erasure_subset : (S.erasure A).faces ⊆ S.faces := λ X hX, hX.1
 
-lemma link_eq_erasure_Star :
-  S.link A = (S.Star A).erasure A :=
+lemma link_eq_erasure_Star : S.link A = (S.Star A).erasure A :=
 begin
   ext X,
   split,
@@ -72,8 +71,7 @@ begin
         finset.subset.trans hx (finset.inter_subset_left W X)⟩,
       exact finset.nonempty_iff_ne_empty.1 (finset.singleton_nonempty x),
       exact finset.subset.trans hx (finset.inter_subset_right W X) }},
-  { rintro (hX | hX);
-    exact hX.1 }
+  { rintro (hX | hX); exact hX.1 }
 end
 
 end affine

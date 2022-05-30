@@ -10,8 +10,8 @@ import order.antichain
 # Closure of a simplicial complex
 -/
 
-open_locale classical affine big_operators
 open finset geometry
+open_locale affine big_operators classical
 
 variables {𝕜 E : Type*}
 
@@ -20,8 +20,7 @@ variables [ordered_ring 𝕜] [add_comm_group E] [module 𝕜 E] {m n : ℕ}
   {K : simplicial_complex 𝕜 E} {x : E} {s t : finset E} {A B : set (finset E)}
 
 /-- The closure of a set of faces is the set of their subfaces. -/
-def closure (K : simplicial_complex 𝕜 E) (A : set (finset E)) :
-  simplicial_complex 𝕜 E :=
+def closure (K : simplicial_complex 𝕜 E) (A : set (finset E)) : simplicial_complex 𝕜 E :=
 K.of_subcomplex
   {s | s ∈ K ∧ ∃ t ∈ A, s ⊆ t}
   (λ s ⟨hs, _⟩, hs)
@@ -73,10 +72,11 @@ begin
     refine ⟨⟨hA hs, s, hs, subset.refl _⟩, _⟩,
     rintro t ⟨ht, u, hu, htu⟩ hst,
     refine hst.antisymm _,
-    rwa hAanti.eq_of_related hs hu (hst.trans htu) }
+    rwa hAanti.eq hs hu (hst.trans htu) }
 end
 
-lemma pure.closure (hK : K.pure n) (hA : ∀ W ∈ A, ∃ s ∈ A, s ∈ K ∧ (s : finset E).card = m) :
+protected lemma pure.closure (hK : K.pure n)
+  (hA : ∀ W ∈ A, ∃ s ∈ A, s ∈ K ∧ (s : finset E).card = m) :
   (K.closure A).pure m :=
 begin
   sorry

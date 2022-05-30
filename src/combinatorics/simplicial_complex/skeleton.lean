@@ -28,18 +28,21 @@ K.of_subcomplex
 
 lemma skeleton_le : K.skeleton k ≤ K := K.of_subcomplex_le _
 
-lemma boundary_bot (k : ℕ) : (⊥ : simplicial_complex 𝕜 E).skeleton k = ⊥ := of_subcomplex_bot _
+lemma skeleton_bot (k : ℕ) : (⊥ : simplicial_complex 𝕜 E).skeleton k = ⊥ := of_subcomplex_bot _
 
 lemma skeleton_nonempty_iff : (K.skeleton k).faces.nonempty ↔ K.faces.nonempty :=
 begin
-  split,
-  { exact nonempty.mono skeleton_le },
-  { rintro ⟨s, hs⟩,
-    exact ⟨∅, K.down_closed hs s.empty_subset, nat.zero_le _⟩ }
+  refine ⟨set.nonempty.mono skeleton_le, _⟩,
+  rintro ⟨s, hs⟩,
+  obtain ⟨x, hx⟩ := K.nonempty hs,
+  refine ⟨{x}, K.down_closed hs (singleton_subset_iff.2 hx) $ singleton_nonempty _, _⟩,
+  rw card_singleton,
+  exact le_add_self,
 end
 
 lemma pure.skeleton_of_le (hK : K.pure n) (h : k ≤ n) : (K.skeleton k).pure k :=
 begin
+  refine ⟨λ s hs, hs.2, _⟩,
   rintro s ⟨⟨hs, hscard⟩, hsmax⟩,
   obtain ⟨t, ht, hst, htcard⟩ := hK.exists_face_of_card_le (add_le_add_right h 1) hs hscard,
   rwa hsmax ⟨ht, htcard.le⟩ hst,
@@ -57,10 +60,10 @@ begin
   { rw min_eq_left hn,
     exact hK.skeleton_of_le hn },
   { rw min_eq_right hn,
-    rintro s hs,
+    refine ⟨λ s hs, hK.1 $ skeleton_le hs, λ s hs, _⟩,
     obtain ⟨t, ht, hst⟩ := subfacet (skeleton_le hs.1),
-    rw hs.2 ⟨facets_subset ht, (hK ht).le.trans (add_le_add_right hn _)⟩ hst,
-    exact hK ht }
+    rw hs.2 ⟨facets_subset ht, (hK.2 ht).le.trans (add_le_add_right hn _)⟩ hst,
+    exact hK.2 ht }
 end
 
 end linear_ordered_field

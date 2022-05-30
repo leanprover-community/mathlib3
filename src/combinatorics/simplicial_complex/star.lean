@@ -44,7 +44,7 @@ lemma star_up_closed : s ∈ K → t ∈ K.star A → t ⊆ s → s ∈ K.star A
 lemma Union_star_eq_star : (⋃ (s ∈ A), K.star {s}) = K.star A :=
 begin
   ext s,
-  rw set.mem_bUnion_iff,
+  rw set.mem_Union₂,
   split,
   { rintro ⟨t', ht, hs, t, (htt' : t = t'), hts⟩,
     subst htt',
@@ -67,7 +67,7 @@ begin
     { simp only [set.mem_Inter] at h,
       sorry
     },
-    obtain ⟨ht, u, (hu : u = {x}), hxt⟩ := set.mem_bInter_iff.1 h x hx,
+    obtain ⟨ht, u, (hu : u = {x}), hxt⟩ := set.mem_Inter₂.1 h x hx,
     rw hu at hxt,
     exact singleton_subset_iff.1 hxt }
 end
@@ -135,13 +135,13 @@ begin
   { rintro ⟨⟨hs, t, u, ht, hu, hsu, htu⟩, hsmax⟩,
     have := hsmax ⟨hs.mono hsu, t, u, ht, hu, subset.refl u, htu⟩ hsu,
     subst this,
-    exact ⟨⟨hu, λ v hv hsv, hsmax (star_subset_Star ⟨hv, t, ht, htu.trans hsv⟩) hsv⟩, ⟨t, ht, htu⟩⟩ },
+    exact ⟨⟨hu, λ v hv hsv, hsmax (star_subset_Star ⟨hv, t, ht, htu.trans hsv⟩) hsv⟩, t, ht, htu⟩ },
   { rintro ⟨hs, t, ht, hts⟩,
     exact ⟨⟨K.nonempty hs.1, t, s, ht, hs.1, subset.refl s, hts⟩, λ u hu, hs.2 $ Star_le hu⟩ }
 end
 
 protected lemma pure.Star (hK : K.pure n) : (K.Star A).pure n :=
-λ s hs, hK (mem_facets_Star_iff.1 hs).1
+⟨λ s hs, hK.1 $ Star_le hs, λ s hs, hK.2 (mem_facets_Star_iff.1 hs).1⟩
 
 end ordered_ring
 end geometry.simplicial_complex

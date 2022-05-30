@@ -214,7 +214,7 @@ begin
   have hs := finite_dimensional.fintype_card_le_finrank_of_linear_independent ha,
   simp_rw coe_sort_coe at hs,
   rwa [fintype.card_coe, finset.card_image_of_injective, finset.card_erase_of_mem hx,
-    nat.pred_le_iff] at hs,
+    tsub_le_iff_right] at hs,
   { simp_rw vsub_eq_sub,
     exact λ _ _, sub_left_inj.1 }
 end

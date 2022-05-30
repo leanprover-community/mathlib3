@@ -9,7 +9,7 @@ import combinatorics.simplicial_complex.exposed
 # Vertices of a set
 -/
 
-open_locale classical affine big_operators
+open_locale affine big_operators classical
 open set
 --TODO: Generalise to LCTVS
 variables {E : Type*} [normed_group E] [normed_space ℝ E] {x : E} {A B : set E}

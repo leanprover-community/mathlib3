@@ -11,31 +11,12 @@ import linear_algebra.affine_space.finite_dimensional
 # Previous attempt of Sperner's lemma
 -/
 
-open_locale classical affine big_operators
 open set
-variables {𝕜 E α : Type*} [ordered_ring 𝕜] [ordered_add_comm_group E] [module 𝕜 E] {m n : ℕ}
+open_locale affine big_operators classical
 
-/-
-MATHLIB DEPARTURE ZONE
-A few PRs to be done
--/
-
-lemma erase_image_subset_image_erase {α β : Type*} [decidable_eq α] [decidable_eq β] (f : α → β)
-  (s : finset α) (a : α) :
-  (s.image f).erase (f a) ⊆ finset.image f (s.erase a) :=
-begin
-  intro b,
-  simp only [and_imp, exists_prop, finset.mem_image, exists_imp_distrib, finset.mem_erase],
-  rintro hb x hx rfl,
-  exact ⟨_, ⟨ne_of_apply_ne f hb, hx⟩, rfl⟩,
-end
+variables {𝕜 E α : Type*} [ordered_ring 𝕜] [add_comm_group E] [module 𝕜 E] {m n : ℕ}
 
 #exit
-
-/-
-THEOREMS ON SALE
-Previous attempts of Bhavik
--/
 
 -- lemma affine_independent_image {n m : ℕ} {ι : Type*} (f : (fin n → 𝕜) →ₗ[𝕜] (fin m → 𝕜))
 --   (hf : function.injective f)
@@ -68,24 +49,23 @@ begin
   rw finset.weighted_vsub_eq_weighted_vsub_of_point_of_sum_eq_zero _ _ _ hw (0:fin n → 𝕜) at hs,
   rw finset.weighted_vsub_of_point_apply at hs,
   simp only [vsub_eq_sub, function.comp_app, sub_zero] at hs,
-  have : s.weighted_vsub p w = (0:fin (n+1) → 𝕜),
-  { rw finset.weighted_vsub_eq_weighted_vsub_of_point_of_sum_eq_zero _ _ _ hw (0:fin (n+1) → 𝕜),
-    rw finset.weighted_vsub_of_point_apply,
-    simp only [vsub_eq_sub, sub_zero],
-    ext j,
-    simp only [pi.zero_apply],
-    rw finset.sum_apply _ s (λ i, w i • p i),
-    refine fin.cases _ _ j,
-    { simp [hp₁] },
-    intro j,
-    dsimp,
-    rw function.funext_iff at hs,
-    specialize hs j,
-    simp only [pi.zero_apply] at hs,
-    rw finset.sum_apply _ s (λ i, w i • matrix.vec_tail (p i)) at hs,
-    dsimp [matrix.vec_tail] at hs,
-    apply hs },
-  exact hp₂ s w hw this i hi,
+  refine hp₂ s w hw _ i hi,
+  rw finset.weighted_vsub_eq_weighted_vsub_of_point_of_sum_eq_zero _ _ _ hw (0:fin (n+1) → 𝕜),
+  rw finset.weighted_vsub_of_point_apply,
+  simp only [vsub_eq_sub, sub_zero],
+  ext j,
+  simp only [pi.zero_apply],
+  rw finset.sum_apply _ s (λ i, w i • p i),
+  refine fin.cases _ _ j,
+  { simp [hp₁] },
+  intro j,
+  dsimp,
+  rw function.funext_iff at hs,
+  specialize hs j,
+  simp only [pi.zero_apply] at hs,
+  rw finset.sum_apply _ s (λ i, w i • matrix.vec_tail (p i)) at hs,
+  dsimp [matrix.vec_tail] at hs,
+  apply hs,
 end
 
 lemma cons_inj {n : ℕ} (x y : fin (n+1) → 𝕜) (h0 : x 0 = y 0)
@@ -106,13 +86,9 @@ begin
 end
 
 lemma is_linear_map_matrix_vec_tail {n : ℕ} :
-  is_linear_map 𝕜 (matrix.vec_tail : (fin n.succ → 𝕜) → (fin n → 𝕜)) :=
+  is_linear_map 𝕜 (matrix.vec_tail : (fin n.succ → 𝕜) → fin n → 𝕜) :=
 { map_add := by simp,
-  map_smul := λ c x,
-  begin
-    ext i,
-    simp [matrix.vec_tail],
-  end }
+  map_smul := λ c x, by { ext i, simp [matrix.vec_tail] } }
 
 -- lemma of_affine_independent_set (X : set E) (hX : affine_independent 𝕜 (λ p, p : X → E)) :
 --   ∀ (s : finset E) (w : E → 𝕜),
@@ -167,15 +143,6 @@ lemma is_linear_map_matrix_vec_tail {n : ℕ} :
 --   -- have := (t.image z).attach,
 --   -- have : finset s := t.
 -- end
-
-lemma thing {ι β : Type*} [add_comm_monoid β] (X : finset ι) (f : ι → β) :
-  ∑ (x : (X : set ι)), f ↑x = ∑ x in X, f x :=
-begin
-  rw ←finset.sum_image,
-  apply finset.sum_congr _ (λ _ _, rfl),
-  { ext, simp },
-  { simp },
-end
 
 def triangulation.facets (S : triangulation s) : set (finset E) :=
 {X ∈ S.faces | ∀ Y ∈ S.faces, X ⊆ Y → X = Y}
@@ -294,8 +261,7 @@ of_facets
     simp [eq_comm],
     convert rfl,
   end)
-  (begin
-    rintro X Y hX hY,
+  (λ X Y hX hY, begin
     subst X Y,
     simp,
     exact set.subset.rfl,
@@ -308,13 +274,11 @@ noncomputable def triangulation.faces_finset (S : triangulation s) (hS : S.finit
   finset (finset E) :=
 hS.to_finset
 
-@[simp]
-lemma mem_faces_finset (hS : S.finite) (X : finset E) :
+@[simp] lemma mem_faces_finset (hS : S.finite) (X : finset E) :
   X ∈ S.faces_finset hS ↔ X ∈ S.faces :=
 set.finite.mem_to_finset
 
-def triangulation.points (S : triangulation s) : set E :=
-⋃ k ∈ S.faces, (k : set E)
+def triangulation.points (S : triangulation s) : set E := ⋃ k ∈ S.faces, (k : set E)
 
 lemma convex_hull_face_subset (X) (hX : X ∈ S.faces) : convex_hull 𝕜 ↑X ⊆ s :=
 begin
@@ -337,7 +301,7 @@ begin
   rintro x hx,
   rw S.covering,
   rw triangulation.points at hx,
-  rw set.mem_bUnion_iff at hx,
+  rw set.mem_Union₂ at hx,
   rcases hx with ⟨X, hX, hx⟩,
   exact set.mem_bUnion hX (subset_convex_hull 𝕜 X hx)
 end
@@ -347,17 +311,15 @@ def is_sperner_colouring {s : set (fin (m+1) → 𝕜)} (S : triangulation s)
 ∀ (X : fin (m+1) → 𝕜) i, X ∈ S.points → X i = 0 → f X ≠ i
 
 def panchromatic {n m : ℕ} (f : (fin n → 𝕜) → fin m) (X : finset (fin n → 𝕜)) :=
-  X.image f = finset.univ
+X.image f = finset.univ
 
 lemma panchromatic_iff (f : E → fin m) (X : finset E) :
   panchromatic f X ↔ (X.image f).card = m :=
 begin
   rw panchromatic,
-  split,
-  { intro h,
-    simp [h] },
-  { intro h,
-    refine finset.eq_of_subset_of_card_le (finset.image f X).subset_univ _,
+  refine ⟨λ h, _, λ h, _⟩,
+  { simp [h] },
+  { refine finset.eq_of_subset_of_card_le (X.image f).subset_univ _,
     simp [h] }
 end
 
@@ -407,15 +369,13 @@ end
 def lower_triangulation (S : triangulation (std_simplex 𝕜 (fin (m+1)))) :
   triangulation (edge_of_std_simplex 𝕜 m) :=
 { faces := {X ∈ S.faces | ∀ (x : fin (m+1) → 𝕜), x ∈ X → x 0 = 0 },
-  indep :=
+  indep := λ X hX,
   begin
-    rintro X hX,
     simp only [set.mem_sep_eq] at hX,
     apply S.indep _ hX.1,
   end,
-  down_closed :=
+  down_closed := λ X hX Y YX,
   begin
-    rintro X hX Y YX,
     simp only [set.mem_sep_eq] at hX ⊢,
     refine ⟨S.down_closed X hX.left Y YX, _⟩,
     rintro x hx,
@@ -430,10 +390,10 @@ def lower_triangulation (S : triangulation (std_simplex 𝕜 (fin (m+1)))) :
     split,
     { rintro ⟨hx₁, hx₂⟩,
       rw S.covering at hx₁,
-      rw set.mem_bUnion_iff at hx₁,
+      rw set.mem_Union₂ at hx₁,
       rcases hx₁ with ⟨X, hX, hx⟩,
       have := convex_hull_ne_zero_points _ x _ hx₂ hx,
-      { rw set.mem_bUnion_iff,
+      { rw set.mem_Union₂,
         refine ⟨X.filter (λ p, p 0 = 0), _, _⟩,
         { simp only [and_imp, imp_self, set.mem_sep_eq, and_true, finset.mem_filter,
             forall_true_iff],
@@ -449,7 +409,7 @@ def lower_triangulation (S : triangulation (std_simplex 𝕜 (fin (m+1)))) :
       rw std_simplex_eq_inter at this,
       simp only [set.mem_inter_eq, set.mem_Inter, set.mem_set_of_eq] at this,
       apply this.1 },
-    { rw set.mem_bUnion_iff,
+    { rw set.mem_Union₂,
       rintro ⟨X, hX₁, hX₂⟩,
       simp only [set.mem_sep_eq] at hX₁,
       refine ⟨convex_hull_face_subset X hX₁.1 hX₂, _⟩,
@@ -463,11 +423,7 @@ def lower_triangulation (S : triangulation (std_simplex 𝕜 (fin (m+1)))) :
       apply this,
       apply hX₂ }
   end,
-  disjoint :=
-  begin
-    rintro X Y hX hY,
-    apply S.disjoint _ _ hX.1 hY.1,
-  end }
+  disjoint := λ X Y hX hY, S.disjoint _ _ hX.1 hY.1 }
 
 lemma std_simplex_one : std_simplex 𝕜 (fin 1) = { ![(1 : 𝕜)]} :=
 begin
@@ -485,8 +441,7 @@ begin
     apply zero_le_one }
 end
 
-lemma strong_sperner_zero_aux (S : triangulation (std_simplex 𝕜 (fin 1))) :
-  S.faces = {∅, { ![1]}} :=
+lemma strong_sperner_zero_aux (S : triangulation (std_simplex 𝕜 (fin 1))) : S.faces = {∅, {![1]}} :=
 begin
   have X_subs : ∀ X ∈ S.faces, X ⊆ { ![(1:𝕜)]},
   { rintro X hX,
@@ -499,7 +454,7 @@ begin
     have one_mem : ![(1:𝕜)] ∈ std_simplex 𝕜 (fin 1),
     { rw std_simplex_one,
       simp },
-    rw [std_eq, set.mem_bUnion_iff] at one_mem,
+    rw [std_eq, set.mem_Union₂] at one_mem,
     rcases one_mem with ⟨X, hX₁, hX₂⟩,
     refine ⟨X, hX₁, _⟩,
     have := X_subs X hX₁,
@@ -544,18 +499,10 @@ begin
   simp,
 end
 
-lemma thingy2 {α : Type*} [add_comm_monoid α] {n : ℕ} (k : fin n → α) :
-  ∑ (i : fin n), k i = ∑ i in finset.fin_range n, k i :=
+lemma thing {α : Type*} [add_comm_monoid α] {n : ℕ} (k : fin n → α) :
+  ∑ i : fin (n+1), fin.cases (0:α) k i = ∑ i, k i :=
 begin
-  apply finset.sum_congr _ (λ x _, rfl),
-  ext x,
-  simp only [finset.mem_univ, finset.mem_fin_range],
-end
-
-lemma thingy3 {α : Type*} [add_comm_monoid α] {n : ℕ} (k : fin n → α) :
-  (∑ (i : fin (n+1)), fin.cases (0:α) k i : α) = ∑ i, k i :=
-begin
-  have : (fin.cases (0:α) k (0 : fin (n+1)) : α) = (0 : α),
+  have : fin.cases (0:α) k (0 : fin (n+1)) = (0 : α),
     rw fin.cases_zero,
   rw ←finset.sum_erase finset.univ this,
   symmetry,
@@ -584,7 +531,7 @@ begin
     eq_self_iff_true, and_true, std_simplex, std_simplex, set.mem_set_of_eq, set.mem_set_of_eq,
     fin.forall_fin_succ, matrix.cons_val_zero],
   simp only [matrix.cons_val_succ],
-  rw [matrix.vec_cons, fin.cons, thingy3],
+  rw [matrix.vec_cons, fin.cons, thing],
   tauto,
 end
 
@@ -644,13 +591,13 @@ def flatten_triangulation (S : triangulation (edge_of_std_simplex 𝕜 m)) :
   covering :=
   begin
     ext i,
-    rw set.mem_bUnion_iff,
+    rw set.mem_Union₂,
     simp only [exists_prop, set.mem_image, exists_exists_and_eq_and, finset.coe_image],
     split,
     { intro hi,
       have : matrix.vec_cons 0 i ∈ edge_of_std_simplex 𝕜 m,
       { rwa vec_tail_mem_simplex_iff },
-      rw [S.covering, set.mem_bUnion_iff] at this,
+      rw [S.covering, set.mem_Union₂] at this,
       rcases this with ⟨x, hx₁, hx₂⟩,
       refine ⟨x, hx₁, _⟩,
       rw ←is_linear_map.image_convex_hull,
@@ -727,8 +674,7 @@ begin
   refine ⟨bound z hz, z, hz, finset.subset.trans hyx hxz, rfl⟩
 end
 
-lemma contained_in_facet (S : triangulation s) {X} (hX : X ∈ S.faces) :
-  ∃ Y ∈ S.facets, X ⊆ Y :=
+lemma contained_in_facet (S : triangulation s) {X} (hX : X ∈ S.faces) : ∃ Y ∈ S.facets, X ⊆ Y :=
 begin
   have : ∀ y ∈ S.faces, finset.card y ≤ m+1,
   { rintro y hy,
@@ -772,24 +718,6 @@ begin
   --   set.mem_sep_eq,
   --   set.mem_image, exists_exists_and_eq_and],
   -- -- simp only [induct_down],
-end
-
-lemma subset_iff_eq_or_ssubset {α : Type*} {s t : finset α} :
-  s ⊆ t ↔ s = t ∨ s ⊂ t :=
-begin
-  split,
-  { intro h,
-    rw finset.ssubset_iff_of_subset h,
-    apply or.imp _ _ (t \ s).eq_empty_or_nonempty,
-    { intro q,
-      rw finset.sdiff_eq_empty_iff_subset at q,
-      apply finset.subset.antisymm h q },
-    { rintro ⟨x, hx⟩,
-      simp only [finset.mem_sdiff] at hx,
-      exact ⟨x, hx.1, hx.2⟩ } },
-  { rintro (rfl | ss),
-    { apply finset.subset.refl },
-    { apply ss.1 } }
 end
 
 noncomputable def good_pairs {S : triangulation (std_simplex 𝕜 (fin (m+1)))} (hS : S.finite)
@@ -1049,7 +977,7 @@ theorem strong_sperner (S : triangulation (std_simplex 𝕜 (fin (m+1)))) (hS : 
   {f} (hf : is_sperner_colouring S f) (hS₂ : is_homogeneous (m+1) S):
   odd ((S.faces_finset hS).filter (panchromatic f)).card :=
 begin
-  tactic.unfreeze_local_instances,
+  unfreezingI,
   induction m with n ih generalizing f,
   { apply strong_sperner_zero _ },
   let f' : (fin (n + 1) → 𝕜) → fin (n + 1),
@@ -1058,7 +986,7 @@ begin
   have hf' : is_sperner_colouring (induct_down S) f',
   { rintro x i hx hi,
     simp only [induct_down, flatten_triangulation, lower_triangulation, triangulation.points,
-      set.mem_bUnion_iff, exists_prop, set.mem_sep_eq, finset.mem_image, set.mem_image,
+      set.mem_Union₂, exists_prop, set.mem_sep_eq, finset.mem_image, set.mem_image,
       finset.mem_coe, finset.mem_image, exists_exists_and_eq_and] at hx,
     rcases hx with ⟨X, ⟨hX₁, hX₂⟩, y, hy, rfl⟩,
     rw matrix.vec_tail at hi,

@@ -12,7 +12,7 @@ import data.nat.parity
 
 namespace geometry
 
-open_locale classical affine big_operators
+open_locale affine big_operators classical
 open set
 variables {𝕜 : Type*} [ordered_ring 𝕜] {m n : ℕ}
 local notation `E` := fin m → 𝕜
@@ -267,7 +267,7 @@ theorem strong_sperner {S : simplicial_complex (fin (m+1) → 𝕜)} {f}
   (hf : is_sperner_coloring S f) :
   odd ((S.faces_finset hS₂).filter (panchromatic f)).card :=
 begin
-  tactic.unfreeze_local_instances,
+  unfreezingI,
   induction m with n ih generalizing f,
   { apply strong_sperner_zero hS₁ },
   sorry

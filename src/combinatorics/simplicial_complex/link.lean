@@ -26,32 +26,34 @@ K.of_subcomplex
 
 lemma link_le : K.link A ≤ K := K.of_subcomplex_le _
 
-lemma link_bot : (⊥ : simplicial_complex 𝕜 E).link A = ⊥ := of_subcomplex_bot _
+@[simp] lemma link_bot : (⊥ : simplicial_complex 𝕜 E).link A = ⊥ := of_subcomplex_bot _
 
-lemma link_empty : K.link ∅ = ⊥ :=
+@[simp] lemma link_empty : K.link ∅ = ⊥ :=
 begin
   ext s,
   exact iff_of_false (λ ⟨hs, hsA, t, ht, u, hu, hsu, htu⟩, ht) id,
 end
 
-lemma link_singleton_empty : K.link {∅} = K :=
+@[simp] lemma link_singleton_empty : K.link {∅} = K :=
 begin
   ext s,
   refine ⟨_, λ hs, ⟨K.nonempty hs, _, ⟨∅, rfl, s, hs, subset.refl s, empty_subset s⟩⟩⟩,
   { rintro ⟨hs, _, _, u, _, hu, hsu, _⟩,
     exact K.down_closed hu hsu hs },
   { rintro r (rfl : r = ∅),
-    exact finset.disjoint_empty_left s }
+    rw coe_empty,
+    exact set.empty_disjoint _ }
 end
 
-lemma mem_link_singleton_iff :
+lemma mem_link_singleton_iff [decidable_eq E] :
   t ∈ (K.link {s}).faces ↔ t.nonempty ∧ disjoint s t ∧ ∃ u ∈ K.faces, t ⊆ u ∧ s ⊆ u :=
 begin
   unfold link,
   simp,
 end
 
-lemma link_singleton_subset (hs : s ≠ ∅) : (K.link {s}).faces ⊆ (K.Star {s}).faces \ K.star {s} :=
+lemma link_singleton_subset (hs : s.nonempty) :
+  (K.link {s}).faces ⊆ (K.Star {s}).faces \ K.star {s} :=
 begin
   rintro t ⟨ht, W, u, (hWs : W = s), hu, htu, hWu⟩,
   simp at ht,
@@ -63,7 +65,7 @@ begin
     exact hs (disjoint_self.1 (finset.disjoint_of_subset_right h.2 ht)) }
 end
 
-lemma link_singleton_eq_Star_minus_star_iff_singleton (hs : s ≠ ∅) :
+lemma link_singleton_eq_Star_minus_star_iff_singleton (hs : s.nonempty) :
   (K.link {s}).faces = (K.Star {s}).faces \ K.star {s} ↔ s.card = 1 :=
 begin
   split,
@@ -98,30 +100,17 @@ begin
     rintro ⟨hs, t, ⟨⟨ht, u, hu, htu⟩, (htnonempty : t ≠ ∅)⟩, hts⟩,
     have htus : t ⊆ u ∩ s := finset.subset_inter htu hts,
     rw finset.disjoint_iff_inter_eq_empty.mp (hsdisj hu) at htus,
-    exact htnonempty (finset.subset_empty.mp htus),
-  },
-  { rintro ⟨hsStar, hs'⟩,
-    split,
-    {   rintro W hW,
-      rw finset.disjoint_iff_inter_eq_empty,
-      apply finset.eq_empty_of_forall_not_mem,
-      rintro x hx,
-      apply hs',
-      use Star_subset hsStar,
-      use {x},
-      split,
-      split,
-      {     unfold simplicial_complex.closure simplicial_complex.of_subcomplex,
-        simp,
-        exact ⟨K.down_closed (Star_subset hsStar) (subset.trans (finset.singleton_subset_iff.2 hx)
-          (finset.inter_subset_right _ _)), W, hW, finset.inter_subset_left _ _ hx⟩,
-      },
-      rintro (h : {x} = ∅),
-      exact (finset.singleton_ne_empty x) h,
-      exact finset.singleton_subset_iff.2 (finset.inter_subset_right W s hx),
-    },
-    { exact hsStar }
-  }
+    exact htnonempty (finset.subset_empty.mp htus) },
+  rintro ⟨hsStar, hs'⟩,
+  refine ⟨λ W hW x hx, hs' ⟨Star_subset hsStar, {x}, _, _, _⟩, _⟩,
+  { unfold simplicial_complex.closure simplicial_complex.of_subcomplex,
+      simp,
+      exact ⟨K.down_closed (Star_subset hsStar) (subset.trans (finset.singleton_subset_iff.2 hx)
+        (finset.inter_subset_right _ _)), W, hW, finset.inter_subset_left _ _ hx⟩ },
+  { rintro (h : {x} = ∅),
+    exact (finset.singleton_ne_empty x) h },
+  { exact finset.singleton_subset_iff.2 (finset.inter_subset_right W s hx) },
+  { exact hsStar }
 end
 /-
 

@@ -70,7 +70,8 @@ def space (K : simplicial_complex 𝕜 E) : set E := ⋃ s ∈ K, convex_hull �
 
 lemma mem_space_iff : x ∈ K.space ↔ ∃ s ∈ K, x ∈ convex_hull 𝕜 (s : set E) := mem_Union₂
 
-lemma convex_hull_subset_space (hs : s ∈ K) : convex_hull 𝕜 ↑s ⊆ K.space := subset_bUnion_of_mem hs
+lemma convex_hull_subset_space (hs : s ∈ K) : convex_hull 𝕜 ↑s ⊆ K.space :=
+subset_bUnion_of_mem (by exact hs : s ∈ K.faces)
 
 protected lemma subset_space (hs : s ∈ K) : (s : set E) ⊆ K.space :=
 (subset_convex_hull 𝕜 _).trans $ convex_hull_subset_space hs
@@ -107,7 +108,7 @@ end
 { faces := faces \ {∅},
   not_empty_mem := λ h, h.2 (mem_singleton _),
   indep := λ s hs, indep _ hs.1,
-  down_closed := λ s t hs hts ht, ⟨down_closed _ hs.1 _ hts, ht⟩,
+  down_closed := λ s t hs hts ht, ⟨down_closed _ hs.1 _ hts, ht.ne_empty⟩,
   inter_subset_convex_hull := λ s t hs ht, inter_subset_convex_hull _ hs.1 _ ht.1 }
 
 /-- Construct a simplicial complex as a subset of a given simplicial complex. -/
@@ -134,7 +135,7 @@ begin
   ext x,
   refine ⟨λ h, mem_bUnion h $ mem_coe.2 $ mem_singleton_self x, λ h, _⟩,
   obtain ⟨s, hs, hx⟩ := mem_Union₂.1 h,
-  exact K.down_closed hs (finset.singleton_subset_iff.2 $ mem_coe.1 hx) (singleton_ne_empty _),
+  exact K.down_closed hs (finset.singleton_subset_iff.2 $ mem_coe.1 hx) (singleton_nonempty _),
 end
 
 lemma vertices_subset_space : K.vertices ⊆ K.space :=

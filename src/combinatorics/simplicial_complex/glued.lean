@@ -3,8 +3,8 @@ Copyright (c) 2021 Yaël Dillies, Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
-import logic.relation
 import combinatorics.simplicial_complex.closure
+import logic.relation
 
 /-!
 # Transitive neighborhood relation in simplicial complexes
@@ -15,12 +15,6 @@ open set relation
 open_locale classical
 variables {𝕜 E : Type*} [ordered_ring 𝕜] [add_comm_group E] [module 𝕜 E] {a b m n : ℕ}
   {S S' S₁ S₂ : simplicial_complex 𝕜 E} {X Y Z : finset E}
-
---to add to mathlib?
-lemma curry_eq_of_symmetric_transitive {α : Type*} {R : α → α → Prop} {a b : α}
-  (hRsymm : symmetric R) (hRtrans : transitive R) (hab : R a b) :
-  R a = R b :=
-funext $ λ c, propext ⟨hRtrans (hRsymm hab), hRtrans hab⟩
 
 def adjacent (X Y : finset E) :
   Prop :=

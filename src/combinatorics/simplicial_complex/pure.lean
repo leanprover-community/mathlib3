@@ -65,12 +65,13 @@ lemma pure.mem_facets_iff (hK : K.pure n) (hs : s ∈ K) : s ∈ K.facets ↔ s.
 `n`-dimensional face. -/
 lemma pure_iff : K.pure n ↔ ∀ ⦃s⦄, s ∈ K → ∃ t ∈ K, finset.card t = n + 1 ∧ s ⊆ t :=
 begin
-  refine ⟨λ hK s hs, _, λ hK s hs, _⟩,
-  { obtain ⟨t, ht, hst⟩ := subfacet hs,
-    exact ⟨t, ht.1, hK ht, hst⟩ },
+  refine ⟨λ hK s hs, _, λ hK, ⟨λ s hs, _, λ s hs, _⟩⟩,
+  { obtain ⟨t, ht, hst⟩ := hK.exists_facet hs,
+    exact ⟨t, ht.1, hK.2 ht, hst⟩ },
+  { obtain ⟨t, _, htcard, hst⟩ := hK hs,
+    exact (finset.card_le_of_subset hst).trans_eq htcard },
   { obtain ⟨t, ht, htcard, hst⟩ := hK hs.1,
-    rw hs.2 ht hst,
-    exact htcard }
+    rwa hs.2 ht hst }
 end
 
 lemma facets_mono {K₁ K₂ : simplicial_complex 𝕜 E} (h : K₁ ≤ K₂) (hK₁ : K₁.pure n)

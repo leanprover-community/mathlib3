@@ -83,8 +83,11 @@ to compare the `L^p` and `L^∞` distances through it. -/
 protected def equiv : pi_Lp p α ≃ Π (i : ι), α i :=
 equiv.refl _
 
-@[simp] lemma equiv_apply (x : pi_Lp p α) (i : ι) : pi_Lp.equiv p α x i = x i := rfl
-@[simp] lemma equiv_symm_apply (x : Π i, α i) (i : ι) : (pi_Lp.equiv p α).symm x i = x i := rfl
+lemma equiv_apply (x : pi_Lp p α) (i : ι) : pi_Lp.equiv p α x i = x i := rfl
+lemma equiv_symm_apply (x : Π i, α i) (i : ι) : (pi_Lp.equiv p α).symm x i = x i := rfl
+
+@[simp] lemma equiv_apply' (x : pi_Lp p α) : pi_Lp.equiv p α x = x := rfl
+@[simp] lemma equiv_symm_apply' (x : Π i, α i) : (pi_Lp.equiv p α).symm x = x := rfl
 
 section
 /-!

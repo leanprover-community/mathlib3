@@ -73,15 +73,13 @@ begin
   { rw [eigenvector_basis, inner_product_space.is_self_adjoint.diagonalization_basis,
       to_lin'_apply],
     simp only [basis.to_matrix, basis.coe_to_orthonormal_basis_repr, basis.equiv_fun_apply],
-    rw [basis.reindex_repr, euclidean_space.single],
-    simp_rw [pi_Lp.equiv, equiv.refl_symm, equiv.refl_apply],
-    rw [mul_vec_single],
-    refl },
+    rw [basis.reindex_repr, euclidean_space.single, pi_Lp.equiv_symm_apply', mul_vec_single,
+      one_smul] },
   { simp only [diagonal_mul, (∘), eigenvalues, eigenvector_basis,
       inner_product_space.is_self_adjoint.diagonalization_basis],
     rw [basis.to_matrix_apply, basis.coe_to_orthonormal_basis_repr, basis.reindex_repr,
       basis.equiv_fun_apply, pi.basis_fun_apply, eigenvalues₀, linear_map.coe_std_basis,
-      euclidean_space.single] }
+      euclidean_space.single, pi_Lp.equiv_symm_apply'] }
 end
 
 end is_hermitian

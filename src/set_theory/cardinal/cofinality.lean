@@ -732,9 +732,18 @@ h.2 x hx
 theorem is_strong_limit.is_limit {c} (H : is_strong_limit c) : is_limit c :=
 ⟨H.1, λ x h, lt_of_le_of_lt (succ_le_of_lt $ cantor x) (H.2 _ h)⟩
 
-theorem mk_bounded_subset {α : Type*} (h : is_strong_limit (#α)) {r : α → α → Prop}
+theorem mk_bounded_subset {α : Type*} (h : ∀ x < #α, 2 ^ x < #α) {r : α → α → Prop}
   [is_well_order α r] (hr : (#α).ord = type r) : #{s : set α // bounded r s} = #α :=
 begin
+  rcases eq_or_ne (#α) 0 with ha | ha,
+  { rw ha,
+    haveI := mk_eq_zero_iff.1 ha,
+    rw mk_eq_zero_iff,
+    split,
+    rintro ⟨s, hs⟩,
+    sorry
+
+  },
   have ha := h.is_limit.omega_le,
   apply le_antisymm,
   { have : {s : set α | bounded r s} = ⋃ i, 𝒫 {j | r j i} := set_of_exists _,

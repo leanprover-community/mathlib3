@@ -228,7 +228,7 @@ noncomputable def is_well_order.linear_order (r : α → α → Prop) [is_well_o
 by { letI := λ x y, classical.dec (¬r x y), exact linear_order_of_STO' r }
 
 /-- Derive a `has_well_founded` instance from a `is_well_order` instance. -/
-def is_well_order.has_well_founded [has_lt α] [hwo : is_well_order α (<)] :
+def is_well_order.to_has_well_founded [has_lt α] [hwo : is_well_order α (<)] :
   has_well_founded α := { r := (<), wf := hwo.wf }
 
 instance empty_relation.is_well_order [subsingleton α] : is_well_order α empty_relation :=

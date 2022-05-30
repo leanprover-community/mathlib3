@@ -41,7 +41,7 @@ variables (𝕜 : Type*) {E : Type*} [is_R_or_C 𝕜] [inner_product_space 𝕜 
 variables {ι : Type*} [linear_order ι] [order_bot ι]
 variables [locally_finite_order ι] [is_well_order ι (<)]
 
-local attribute [instance] is_well_order.has_well_founded
+local attribute [instance] is_well_order.to_has_well_founded
 
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 

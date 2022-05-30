@@ -35,6 +35,10 @@ theorem char_p.cast_eq_zero [add_monoid R] [has_one R] (p : ℕ) [char_p R p] :
   (p:R) = 0 :=
 (char_p.cast_eq_zero_iff R p p).2 (dvd_refl p)
 
+lemma char_ne_zero_of_coe_zero {R : Type u} [add_monoid R] [has_one R] (p : ℕ) [char_p R p]
+  {n : ℕ} (hn : n ≠ 0) (h : (n : R) = 0) : p ≠ 0 :=
+ne_zero_of_dvd_ne_zero hn ((char_p.cast_eq_zero_iff R p n).mp h)
+
 @[simp] lemma char_p.cast_card_eq_zero [add_group R] [has_one R] [fintype R] :
   (fintype.card R : R) = 0 :=
 by rw [← nsmul_one, card_nsmul_eq_zero]
@@ -121,6 +125,10 @@ theorem dvd {x : ℕ} (hx : (x : R) = 0) : ring_char R ∣ x :=
 
 @[simp]
 lemma eq_zero [char_zero R] : ring_char R = 0 := eq R 0
+
+@[simp]
+lemma ring_char_cast_eq_zero : (ring_char R : R) = 0 :=
+by rw ring_char.spec
 
 end ring_char
 

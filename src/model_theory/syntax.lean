@@ -22,6 +22,8 @@ This file defines first-order terms, formulas, sentences, and theories in a styl
 * A `first_order.language.Theory` is a set of sentences.
 * The variables of terms and formulas can be relabelled with `first_order.language.term.relabel`,
 `first_order.language.bounded_formula.relabel`, and `first_order.language.formula.relabel`.
+* Given an operation on terms and an operation on relations,
+  `first_order.language.bounded_formula.map_term_rel` gives an operation on formulas.
 * `first_order.language.bounded_formula.cast_le` adds more `fin`-indexed variables.
 * `first_order.language.bounded_formula.lift_at` raises the indexes of the `fin`-indexed variables
 above a particular index.
@@ -383,6 +385,20 @@ begin
     refl, },
 end
 
+/-- Restricts a bounded formula to only use a particular set of free variables. -/
+def restrict_free_var [decidable_eq α] : Π {n : ℕ} (φ : L.bounded_formula α n)
+  (f : φ.free_var_finset → β), L.bounded_formula β n
+| n falsum f := falsum
+| n (equal t₁ t₂) f := equal
+  (t₁.restrict_var_left (f ∘ set.inclusion (subset_union_left _ _)))
+  (t₂.restrict_var_left (f ∘ set.inclusion (subset_union_right _ _)))
+| n (rel R ts) f := rel R (λ i, (ts i).restrict_var_left
+  (f ∘ set.inclusion (subset_bUnion_of_mem _ (mem_univ i))))
+| n (imp φ₁ φ₂) f :=
+  (φ₁.restrict_free_var (f ∘ set.inclusion (subset_union_left _ _))).imp
+  (φ₂.restrict_free_var (f ∘ set.inclusion (subset_union_right _ _)))
+| n (all φ) f := (φ.restrict_free_var f).all
+
 /-- Places universal quantifiers on all extra variables of a bounded formula. -/
 def alls : ∀ {n}, L.bounded_formula α n → L.formula α
 | 0 φ := φ
@@ -401,6 +417,7 @@ def lift_at : ∀ {n : ℕ} (n' m : ℕ), L.bounded_formula α n → L.bounded_f
 | n n' m (imp f₁ f₂) := (f₁.lift_at n' m).imp (f₂.lift_at n' m)
 | n n' m (all f) := ((f.lift_at n' m).cast_le (by rw [add_assoc, add_comm 1, ← add_assoc])).all
 
+/-- Maps bounded formulas along a map of terms and a map of relations. -/
 @[simp] def map_term_rel (ft : ∀ n, L.term (α ⊕ fin n) → L'.term (β ⊕ fin n))
   (fr : ∀ n, L.relations n → L'.relations n) :
   ∀ {n}, L.bounded_formula α n → L'.bounded_formula β n
@@ -438,6 +455,8 @@ begin
   { simp [map_term_rel, ih3], }
 end
 
+/-- An equivalence of bounded formulas given by an equivalence of terms and an equivalence of
+relations. -/
 @[simps] def map_term_rel_equiv (ft : ∀ n, L.term (α ⊕ fin n) ≃ L'.term (β ⊕ fin n))
   (fr : ∀ n, L.relations n ≃ L'.relations n) {n} :
   L.bounded_formula α n ≃ L'.bounded_formula β n :=
@@ -445,22 +464,8 @@ end
   λ φ, by simp, λ φ, by simp⟩
 
 /-- Substitutes the variables in a given formula with terms. -/
-@[simp] def subst : ∀ {n : ℕ}, L.bounded_formula α n → (α → L.term β) → L.bounded_formula β n :=
-λ n φ f, φ.map_term_rel (λ _ t, t.subst (sum.elim (term.relabel sum.inl ∘ f) (var ∘ sum.inr))) (λ _, id)
-
-/-- Restricts a bounded formula to only use a particular set of free variables. -/
-def restrict_free_var [decidable_eq α] : Π {n : ℕ} (φ : L.bounded_formula α n)
-  (f : φ.free_var_finset → β), L.bounded_formula β n
-| n falsum f := falsum
-| n (equal t₁ t₂) f := equal
-  (t₁.restrict_var_left (f ∘ set.inclusion (subset_union_left _ _)))
-  (t₂.restrict_var_left (f ∘ set.inclusion (subset_union_right _ _)))
-| n (rel R ts) f := rel R (λ i, (ts i).restrict_var_left
-  (f ∘ set.inclusion (subset_bUnion_of_mem _ (mem_univ i))))
-| n (imp φ₁ φ₂) f :=
-  (φ₁.restrict_free_var (f ∘ set.inclusion (subset_union_left _ _))).imp
-  (φ₂.restrict_free_var (f ∘ set.inclusion (subset_union_right _ _)))
-| n (all φ) f := (φ.restrict_free_var f).all
+@[simp] def subst {n : ℕ} (φ : L.bounded_formula α n) (f : α → L.term β) : L.bounded_formula β n :=
+φ.map_term_rel (λ _ t, t.subst (sum.elim (term.relabel sum.inl ∘ f) (var ∘ sum.inr))) (λ _, id)
 
 /-- A bijection sending formulas with constants to formulas with extra variables. -/
 def constants_vars_equiv : L[[γ]].bounded_formula α n ≃ L.bounded_formula (γ ⊕ α) n :=

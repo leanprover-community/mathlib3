@@ -96,13 +96,13 @@ end
 /-- Forgetting the `B` action, a submodule over `A ⊗[R] B` is just a submodule over `A`. -/
 @[simps] def to_submodule (p : submodule (A ⊗[R] B) M) : submodule A M :=
 { carrier := p,
-  smul_mem' := subbimodule.smul_mem p,
+  smul_mem' := smul_mem p,
   .. p }
 
 /-- Forgetting the `A` action, a submodule over `A ⊗[R] B` is just a submodule over `B`. -/
-@[simps] def subbimodule.to_submodule' (p : submodule (A ⊗[R] B) M) : submodule B M :=
+@[simps] def to_submodule' (p : submodule (A ⊗[R] B) M) : submodule B M :=
 { carrier := p,
-  smul_mem' := subbimodule.smul_mem' p,
+  smul_mem' := smul_mem' p,
   .. p }
 
 end algebra

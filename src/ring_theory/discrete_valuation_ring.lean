@@ -234,7 +234,7 @@ end
 end has_unit_mul_pow_irreducible_factorization
 
 lemma aux_pid_of_ufd_of_unique_irreducible
-  (R : Type u) [comm_ring R] [is_domain R] [unique_factorization_monoid R]
+  (R : Type u) [comm_ring R] [unique_factorization_monoid R]
   (h₁ : ∃ p : R, irreducible p)
   (h₂ : ∀ ⦃p q : R⦄, irreducible p → irreducible q → associated p q) :
   is_principal_ideal_ring R :=

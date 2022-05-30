@@ -260,8 +260,8 @@ begin
   rwa zero_dvd_iff,
 end
 
-lemma multiplicity_eq_multiplicity_mk [decidable_rel ((∣) : associates α → associates α → Prop)]
-  {a b : α} : multiplicity a b = multiplicity (associates.mk a) (associates.mk b) :=
+lemma multiplicity_mk_eq_multiplicity [decidable_rel ((∣) : associates α → associates α → Prop)]
+  {a b : α} : multiplicity (associates.mk a) (associates.mk b) = multiplicity a b :=
 begin
   by_cases h : finite a b,
   { rw ← enat.coe_get (finite_iff_dom.mp h),

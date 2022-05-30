@@ -5,9 +5,9 @@ Authors: Kenji Nakagawa, Anne Baanen, Filippo A. E. Nuccio
 -/
 import algebra.algebra.subalgebra.pointwise
 import algebraic_geometry.prime_spectrum.noetherian
+import order.hom.basic
 import ring_theory.dedekind_domain.basic
 import ring_theory.fractional_ideal
-import order.hom.basic
 
 /-!
 # Dedekind domains and ideals
@@ -868,7 +868,7 @@ variables {R} {A} [is_domain R] [is_dedekind_domain A] {I : ideal R} {J : ideal 
 /-- The map from ideals of `R` dividing `I` to the ideals of `A` dividing `J` induced by
   a homomorphism `f : R/I →+* A/J` -/
 @[simps]
-def ideal_factors_fun_of_quot_hom (f : R ⧸ I →+* A ⧸ J) (hf : function.surjective f ) :
+def ideal_factors_fun_of_quot_hom {f : R ⧸ I →+* A ⧸ J} (hf : function.surjective f ) :
   {p : ideal R | p ∣ I} →o {p : ideal A | p ∣ J} :=
 { to_fun := λ X, ⟨comap J^.quotient.mk (map f (map I^.quotient.mk X)),
     begin
@@ -906,7 +906,7 @@ begin
 end
 
 /-- The bijection between ideals of `R` dividing `I` and the ideals of `A` dividing `J` induced by
-  an isomorphism `f : R/I ≅ A/J` -/
+  an isomorphism `f : R/I ≅ A/J`. -/
 @[simp]
 def ideal_factors_equiv_of_quot_equiv (f : R ⧸ I ≃+* A ⧸ J) :
   {p : ideal R | p ∣ I} ≃o {p : ideal A | p ∣ J} :=

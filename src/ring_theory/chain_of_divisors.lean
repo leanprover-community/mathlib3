@@ -319,17 +319,15 @@ lemma multiplicity_prime_eq_multiplicity_image_by_factor_order_iso [decidable_eq
   (hp : p ∈ normalized_factors m) (d : {l : associates M // l ≤ m} ≃o {l : associates N // l ≤ n}):
   multiplicity p m = multiplicity ↑(d ⟨p, dvd_of_mem_normalized_factors hp⟩) n :=
 begin
-  convert le_antisymm (multiplicity_prime_le_multiplicity_image_by_factor_order_iso hp d) _,
+  refine le_antisymm (multiplicity_prime_le_multiplicity_image_by_factor_order_iso hp d) _,
   suffices : multiplicity ↑(d ⟨p, dvd_of_mem_normalized_factors hp⟩) n ≤
     multiplicity ↑(d.symm (d ⟨p, dvd_of_mem_normalized_factors hp⟩)) m,
   { rw [d.symm_apply_apply ⟨p, dvd_of_mem_normalized_factors hp⟩, subtype.coe_mk] at this,
     exact this },
-  classical,
-  have := (multiplicity_prime_le_multiplicity_image_by_factor_order_iso
-    (mem_normalized_factors_factor_order_iso_of_mem_normalized_factors hn
-    (by convert hp) d) d.symm),
-  rw [subtype.coe_eta] at this,
-  convert this,
+  letI := classical.dec_eq (associates N),
+  simpa only [subtype.coe_eta] using
+    (multiplicity_prime_le_multiplicity_image_by_factor_order_iso
+      (mem_normalized_factors_factor_order_iso_of_mem_normalized_factors hn hp d) d.symm),
 end
 
 end
@@ -337,7 +335,7 @@ end
 variables [unique (Mˣ)] [unique (Nˣ)]
 
 /-- The order isomorphism between the factors of `mk m` and the factors of `mk n` induced by a
-  bijection between the factors of `m` and the factors of `n` that preserves `∣` -/
+  bijection between the factors of `m` and the factors of `n` that preserves `∣`. -/
 @[simps]
 noncomputable def mk_factor_order_iso_of_factor_dvd_equiv
   {m : M} {n : N} (d : {l : M // l ∣ m} ≃ {l : N // l ∣ n}) (hd : ∀ l l',
@@ -385,10 +383,10 @@ begin
   rw [ ← associates.prime_mk, this],
   classical,
   refine map_prime_of_monotone_equiv (mk_ne_zero.mpr hn) _ _,
-   obtain ⟨q, hq, hq'⟩ := exists_mem_normalized_factors_of_dvd (mk_ne_zero.mpr hm)
+  obtain ⟨q, hq, hq'⟩ := exists_mem_normalized_factors_of_dvd (mk_ne_zero.mpr hm)
     ((prime_mk p).mpr (prime_of_normalized_factor p (by convert hp))).irreducible
       (mk_le_mk_of_dvd (dvd_of_mem_normalized_factors (by convert hp))),
-    rwa [mk_monoid_equiv_apply, associated_iff_eq.mp hq'],
+  rwa [mk_monoid_equiv_apply, associated_iff_eq.mp hq'],
 end
 
 variables [decidable_rel ((∣) : M → M → Prop)] [decidable_rel ((∣) : N → N → Prop)]
@@ -410,11 +408,11 @@ begin
       rw mk_monoid_equiv_apply ; exact mk_le_mk_of_dvd (dvd_of_mem_normalized_factors hp) ⟩),
   { rw mk_factor_order_iso_of_factor_dvd_equiv_apply_coe, refl },
   rw this,
-  classical,
-  convert multiplicity_prime_eq_multiplicity_image_by_factor_order_iso (mk_ne_zero.mpr hn) _
+  letI := classical.dec_eq (associates M),
+  refine multiplicity_prime_eq_multiplicity_image_by_factor_order_iso (mk_ne_zero.mpr hn) _
     (mk_factor_order_iso_of_factor_dvd_equiv d hd),
   obtain ⟨q, hq, hq'⟩ := exists_mem_normalized_factors_of_dvd (mk_ne_zero.mpr hm)
-    ((prime_mk p).mpr (prime_of_normalized_factor p (by convert hp))).irreducible
-      (mk_le_mk_of_dvd (dvd_of_mem_normalized_factors (by convert hp))),
-    rwa associated_iff_eq.mp hq',
+    ((prime_mk p).mpr (prime_of_normalized_factor p hp)).irreducible
+      (mk_le_mk_of_dvd (dvd_of_mem_normalized_factors hp)),
+  rwa associated_iff_eq.mp hq'
 end

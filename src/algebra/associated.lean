@@ -722,14 +722,14 @@ section comm_monoid_with_zero
 
 variables [comm_monoid_with_zero α]
 
+lemma mk_monoid_equiv_le_iff_dvd [unique αˣ] {a b : α} :
+  associates.mk_monoid_equiv a ≤ associates.mk_monoid_equiv b ↔ a ∣ b :=
+by rw [associates.mk_monoid_equiv_apply, associates.mk_monoid_equiv_apply,
+    associates.mk_le_mk_iff_dvd_iff]
+
 lemma mk_monoid_equiv_symm_dvd_iff_le [unique αˣ] {a b : associates α} :
   (associates.mk_monoid_equiv.symm a) ∣ (associates.mk_monoid_equiv.symm b) ↔ a ≤ b :=
-begin
-  conv_rhs {rw [← (associates.mk_monoid_equiv).apply_symm_apply a,
-    ← (associates.mk_monoid_equiv).apply_symm_apply b]},
-  rw [associates.mk_monoid_equiv_apply, associates.mk_monoid_equiv_apply,
-    associates.mk_le_mk_iff_dvd_iff],
-end
+by rw [← mk_monoid_equiv_le_iff_dvd, mul_equiv.apply_symm_apply, mul_equiv.apply_symm_apply]
 
 instance : comm_monoid_with_zero (associates α) :=
 { zero_mul := by { rintro ⟨a⟩, show associates.mk (0 * a) = associates.mk 0, rw [zero_mul] },

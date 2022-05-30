@@ -359,8 +359,8 @@ omit iic ist
 /--
 Auxiliary definition for `class_group.fintype_of_admissible_of_algebraic` below.
 -/
-noncomputable def fintype_of_admissible_of_algebraic' [is_dedekind_domain S]
-  fintype {b : ideal S // algebra_map R S (∏ (m : R) in finset_approx bS adm, m) ∈ ↑b}  :=
+noncomputable def fintype_of_admissible_of_algebraic' [is_dedekind_domain S] :
+  fintype {b : ideal S // algebra_map R S (∏ (m : R) in finset_approx bS adm, m) ∈ ↑b} :=
 (@fintype.of_equiv _
   {J // J ∣ ideal.span ({algebra_map R S (∏ (m : R) in finset_approx bS adm, m)} : set S)}
   (unique_factorization_monoid.fintype_subtype_dvd _
@@ -380,7 +380,7 @@ extension of `K = Frac(R)`, supplying most of the required assumptions automatic
 noncomputable def fintype_of_admissible_of_algebraic [is_fraction_ring S L] [is_dedekind_domain S]
   (h : algebra.is_algebraic R L) : fintype (class_group S L) :=
 @fintype.of_surjective _ _ _
-  (fintype_of_admissible_of_algebraic' _ _ _ h)
+  (fintype_of_admissible_of_algebraic' _ _)
   (class_group.mk_M_mem L bS adm)
   (class_group.mk_M_mem_surjective L bS adm h)
 

@@ -176,7 +176,7 @@ end, begin
 end⟩
 
 /-- A bijection between terms with constants and terms with extra variables. -/
-@[simps] def constants_vars_equiv_left : L[[γ]].term (α ⊕ β) ≃ L.term ((γ ⊕ α) ⊕ β) :=
+def constants_vars_equiv_left : L[[γ]].term (α ⊕ β) ≃ L.term ((γ ⊕ α) ⊕ β) :=
 constants_vars_equiv.trans (relabel_equiv (equiv.sum_assoc _ _ _)).symm
 
 instance inhabited_of_var [inhabited α] : inhabited (L.term α) :=

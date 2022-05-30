@@ -23,12 +23,8 @@ A module satisfying these equivalent conditions is said to be an *Artinian* R-mo
 if every decreasing chain of submodules is eventually constant, or equivalently,
 if the relation `<` on submodules is well founded.
 
-A ring is an *Artinian ring* if it is Artinian as a module over itself.
-
-(Note that we do not assume yet that our rings are commutative,
-so perhaps this should be called "left Artinian".
-To avoid cumbersome names once we specialize to the commutative case,
-we don't make this explicit in the declaration names.)
+A ring is said to be left (or right) Artinian if it is Artinian as a left (or right) module over
+itself, or simply Artinian if it is both left and right Artinian.
 
 ## Main definitions
 
@@ -36,6 +32,7 @@ Let `R` be a ring and let `M` and `P` be `R`-modules. Let `N` be an `R`-submodul
 
 * `is_artinian R M` is the proposition that `M` is a Artinian `R`-module. It is a class,
   implemented as the predicate that the `<` relation on submodules is well founded.
+* `is_artinian_ring R` is the proposition that `R` is a left Artinian ring.
 
 ## References
 
@@ -301,9 +298,10 @@ variables {N : Type w} [add_comm_group N] [module R N]
 
 end
 
-/--
-A ring is Artinian if it is Artinian as a module over itself.
--/
+/-- A ring is Artinian if it is Artinian as a module over itself.
+
+Strictly speaking, this should be called `is_left_artinian_ring` but we omit the `left_` for
+convenience in the commutative case. For a right Artinian ring, use `is_artinian Rᵐᵒᵖ R`. -/
 class is_artinian_ring (R) [ring R] extends is_artinian R R : Prop
 
 theorem is_artinian_ring_iff {R} [ring R] : is_artinian_ring R ↔ is_artinian R R :=

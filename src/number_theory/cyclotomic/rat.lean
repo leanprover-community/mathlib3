@@ -139,7 +139,7 @@ begin
   { convert cyclotomic_field.is_cyclotomic_extension (p ^ k) _,
     { exact subsingleton.elim _ _ },
     { exact ne_zero.char_zero } },
-  have hζ := zeta_primitive_root (p ^ k) ℚ (cyclotomic_field (p ^ k) ℚ),
+  have hζ := zeta_spec (p ^ k) ℚ (cyclotomic_field (p ^ k) ℚ),
   refine ⟨is_fraction_ring.injective _ _, λ x, ⟨λ h, ⟨⟨x, _⟩, rfl⟩, _⟩⟩,
   { have := (is_integral_closure_adjoing_singleton_of_prime_pow hζ).is_integral_iff,
     obtain ⟨y, rfl⟩ := this.1 h,

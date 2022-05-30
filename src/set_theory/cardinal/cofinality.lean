@@ -125,8 +125,8 @@ by dsimp [cof, strict_order.cof, order.cof, type, quotient.mk, quot.lift_on];
 theorem cof_type_le [is_well_order α r] {S : set α} (h : unbounded r S) : cof (type r) ≤ #S :=
 le_cof_type.1 le_rfl S h
 
-theorem lt_cof_type [is_well_order α r] {S : set α} (hl : #S < cof (type r)) : bounded r S :=
-not_forall_not.1 $ λ h, not_le_of_lt hl $ cof_type_le (λ a, not_ball.1 (h a))
+theorem lt_cof_type [is_well_order α r] {S : set α} : #S < cof (type r) → bounded r S :=
+by { contrapose, simpa using cof_type_le }
 
 theorem cof_eq (r : α → α → Prop) [is_well_order α r] : ∃ S, unbounded r S ∧ #S = cof (type r) :=
 begin

@@ -21,8 +21,6 @@ This file proves properties of the central binomial coefficients (that is, `nat.
   coefficient.
 -/
 
-open_locale big_operators
-
 namespace nat
 
 /--

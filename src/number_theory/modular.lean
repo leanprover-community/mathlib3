@@ -10,45 +10,42 @@ import analysis.matrix
 
 /-!
 # The action of the modular group SL(2, ℤ) on the upper half-plane
-
 We define the action of `SL(2,ℤ)` on `ℍ` (via restriction of the `SL(2,ℝ)` action in
 `analysis.complex.upper_half_plane`). We then define the standard fundamental domain
 (`modular_group.fd`, `𝒟`) for this action and show
 (`modular_group.exists_smul_mem_fd`) that any point in `ℍ` can be
 moved inside `𝒟`.
-
 ## Main definitions
+<<<<<<< HEAD
 
+=======
+>>>>>>> 847a8160607d25e8757b688039f25ddb09c570e5
 The standard (closed) fundamental domain of the action of `SL(2,ℤ)` on `ℍ`, denoted `𝒟`:
 `fd := {z | 1 ≤ (z : ℂ).norm_sq ∧ |z.re| ≤ (1 : ℝ) / 2}`
-
 The standard open fundamental domain of the action of `SL(2,ℤ)` on `ℍ`, denoted `𝒟ᵒ`:
 `fdo := {z | 1 < (z : ℂ).norm_sq ∧ |z.re| < (1 : ℝ) / 2}`
-
 These notations are localized in the `modular` locale and can be enabled via `open_locale modular`.
+<<<<<<< HEAD
 
+=======
+>>>>>>> 847a8160607d25e8757b688039f25ddb09c570e5
 ## Main results
-
 Any `z : ℍ` can be moved to `𝒟` by an element of `SL(2,ℤ)`:
 `exists_smul_mem_fd (z : ℍ) : ∃ g : SL(2,ℤ), g • z ∈ 𝒟`
-
 If both `z` and `γ • z` are in the open domain `𝒟ᵒ` then `z = γ • z`:
 `eq_smul_self_of_mem_fdo_mem_fdo {z : ℍ} {g : SL(2,ℤ)} (hz : z ∈ 𝒟ᵒ) (hg : g • z ∈ 𝒟ᵒ) : z = g • z`
+<<<<<<< HEAD
 
+=======
+>>>>>>> 847a8160607d25e8757b688039f25ddb09c570e5
 # Discussion
-
 Standard proofs make use of the identity
-
 `g • z = a / c - 1 / (c (cz + d))`
-
 for `g = [[a, b], [c, d]]` in `SL(2)`, but this requires separate handling of whether `c = 0`.
 Instead, our proof makes use of the following perhaps novel identity (see
 `modular_group.smul_eq_lc_row0_add`):
-
 `g • z = (a c + b d) / (c^2 + d^2) + (d z - c) / ((c^2 + d^2) (c z + d))`
-
 where there is no issue of division by zero.
-
 Another feature is that we delay until the very end the consideration of special matrices
 `T=[[1,1],[0,1]]` (see `modular_group.T`) and `S=[[0,-1],[1,0]]` (see `modular_group.S`), by
 instead using abstract theory on the properness of certain maps (phrased in terms of the filters
@@ -69,7 +66,6 @@ noncomputable theory
 local notation `SL(` n `, ` R `)`:= special_linear_group (fin n) R
 local prefix `↑ₘ`:1024 := @coe _ (matrix (fin 2) (fin 2) ℤ) _
 
-
 open_locale upper_half_plane complex_conjugate
 
 local attribute [instance] fintype.card_fin_even
@@ -78,6 +74,7 @@ namespace modular_group
 
 variables (g : SL(2, ℤ)) (z : ℍ)
 
+<<<<<<< HEAD
 section upper_half_plane_action
 
 /-- For a subring `R` of `ℝ`, the action of `SL(2, R)` on the upper half-plane, as a restriction of
@@ -97,6 +94,8 @@ end
 
 end upper_half_plane_action
 
+=======
+>>>>>>> 847a8160607d25e8757b688039f25ddb09c570e5
 variables {g}
 
 section bottom_row
@@ -251,9 +250,7 @@ begin
 end
 
 /-- This replaces `(g•z).re = a/c + *` in the standard theory with the following novel identity:
-
   `g • z = (a c + b d) / (c^2 + d^2) + (d z - c) / ((c^2 + d^2) (c z + d))`
-
   which does not need to be decomposed depending on whether `c = 0`. -/
 lemma smul_eq_lc_row0_add {p : fin 2 → ℤ} (hp : is_coprime (p 0) (p 1)) (hg : ↑ₘg 1 = p) :
   ↑(g • z) = ((lc_row0 p ↑(g : SL(2, ℝ))) : ℂ) / (p 0 ^ 2 + p 1 ^ 2)
@@ -266,7 +263,7 @@ begin
   rw (by simp : (p 1 : ℂ) * z - p 0 = ((p 1) * z - p 0) * ↑(det (↑g : matrix (fin 2) (fin 2) ℤ))),
   rw [←hg, det_fin_two],
   simp only [int.coe_cast_ring_hom, coe_matrix_coe, int.cast_mul, of_real_int_cast, map_apply,
-  denom, int.cast_sub, _root_.coe_coe, coe_GL_pos_coe_GL_coe_matrix],
+  denom, int.cast_sub, _root_.coe_coe,coe_GL_pos_coe_GL_coe_matrix],
   ring,
 end
 
@@ -306,7 +303,8 @@ begin
     filter.tendsto.exists_within_forall_le hs (tendsto_norm_sq_coprime_pair z),
   obtain ⟨g, -, hg⟩ := bottom_row_surj hp_coprime,
   refine ⟨g, λ g', _⟩,
-  rw [im_smul_eq_div_norm_sq, im_smul_eq_div_norm_sq, div_le_div_left],
+  rw [special_linear_group.im_smul_eq_div_norm_sq, special_linear_group.im_smul_eq_div_norm_sq,
+    div_le_div_left],
   { simpa [← hg] using hp (↑ₘg' 1) (bottom_row_coprime g') },
   { exact z.im_pos },
   { exact norm_sq_denom_pos g' z },
@@ -357,7 +355,7 @@ end
 
 variables {z}
 
-@[simp] lemma coe_T_zpow_smul_eq {n : ℤ} : (↑((T^n) • z) : ℂ) = z + n :=
+lemma coe_T_zpow_smul_eq {n : ℤ} : (↑((T^n) • z) : ℂ) = z + n :=
 by simp [coe_T_zpow]
 
 -- If instead we had `g` and `T` of type `PSL(2, ℤ)`, then we could simply state `g = T^n`.
@@ -372,7 +370,7 @@ begin
     ext i j, fin_cases i; fin_cases j;
     simp [ha, hc, hd, coe_T_zpow], },
   { use -↑ₘg 0 1,
-    suffices : g = -T^(-↑ₘg 0 1), { intros z, conv_lhs { rw [this, neg_smul], }, },
+    suffices : g = -T^(-↑ₘg 0 1), { intros z, conv_lhs { rw [this, SL_neg_smul], }, },
     ext i j, fin_cases i; fin_cases j;
     simp [ha, hc, hd, coe_T_zpow], },
 end
@@ -399,7 +397,7 @@ begin
     apply (lt_div_iff z.norm_sq_pos).mpr,
     nlinarith },
   convert this,
-  simp only [im_smul_eq_div_norm_sq],
+  simp only [special_linear_group.im_smul_eq_div_norm_sq],
   field_simp [norm_sq_denom_ne_zero, norm_sq_ne_zero, S]
 end
 
@@ -461,7 +459,8 @@ begin
   -- `g` has same max im property as `g₀`
   have hg₀' : ∀ (g' : SL(2,ℤ)), (g' • z).im ≤ (g • z).im,
   { have hg'' : (g • z).im = (g₀ • z).im,
-    { rw [im_smul_eq_div_norm_sq, im_smul_eq_div_norm_sq, denom_apply, denom_apply, hg] },
+    { rw [special_linear_group.im_smul_eq_div_norm_sq, special_linear_group.im_smul_eq_div_norm_sq,
+      denom_apply, denom_apply, hg]},
     simpa only [hg''] using hg₀ },
   split,
   { -- Claim: `1 ≤ ⇑norm_sq ↑(g • z)`. If not, then `S•g•z` has larger imaginary part
@@ -517,7 +516,8 @@ begin
       (upper_half_plane.c_mul_im_sq_le_norm_sq_denom z g)) (sq_nonneg _),
   let nsq := norm_sq (denom g z),
   calc 9 * c^4 < c^4 * z.im^2 * (g • z).im^2 * 16 : by linarith
-           ... = c^4 * z.im^4 / nsq^2 * 16 : by { rw [im_smul_eq_div_norm_sq, div_pow], ring, }
+           ... = c^4 * z.im^4 / nsq^2 * 16 : by { rw [special_linear_group.im_smul_eq_div_norm_sq,
+            div_pow], ring, }
            ... ≤ 16 : by { rw ← mul_pow, linarith, },
 end
 
@@ -538,7 +538,7 @@ begin
   have hn : ↑ₘg 1 0 ≠ -1,
   { intros hc,
     replace hc : ↑ₘ(-g) 1 0 = 1, { simp [eq_neg_of_eq_neg hc], },
-    replace hg : (-g) • z ∈ 𝒟ᵒ := (neg_smul g z).symm ▸ hg,
+    replace hg : (-g) • z ∈ 𝒟ᵒ := (SL_neg_smul g z).symm ▸ hg,
     exact hp hg hc, },
   specialize hp hg,
   rcases (int.abs_le_one_iff.mp $ abs_c_le_one hz hg);
@@ -551,7 +551,7 @@ lemma eq_smul_self_of_mem_fdo_mem_fdo (hz : z ∈ 𝒟ᵒ) (hg : g • z ∈ �
 begin
   obtain ⟨n, hn⟩ := exists_eq_T_zpow_of_c_eq_zero (c_eq_zero hz hg),
   rw hn at hg ⊢,
-  simp [eq_zero_of_mem_fdo_of_T_zpow_mem_fdo hz hg],
+  simp [eq_zero_of_mem_fdo_of_T_zpow_mem_fdo hz hg, one_smul],
 end
 
 end unique_representative

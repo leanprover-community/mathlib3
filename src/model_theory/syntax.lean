@@ -383,20 +383,6 @@ begin
     refl, },
 end
 
-/-- Restricts a bounded formula to only use a particular set of free variables. -/
-def restrict_free_var [decidable_eq α] : Π {n : ℕ} (φ : L.bounded_formula α n)
-  (f : φ.free_var_finset → β), L.bounded_formula β n
-| n falsum f := falsum
-| n (equal t₁ t₂) f := equal
-  (t₁.restrict_var_left (f ∘ set.inclusion (subset_union_left _ _)))
-  (t₂.restrict_var_left (f ∘ set.inclusion (subset_union_right _ _)))
-| n (rel R ts) f := rel R (λ i, (ts i).restrict_var_left
-  (f ∘ set.inclusion (subset_bUnion_of_mem _ (mem_univ i))))
-| n (imp φ₁ φ₂) f :=
-  (φ₁.restrict_free_var (f ∘ set.inclusion (subset_union_left _ _))).imp
-  (φ₂.restrict_free_var (f ∘ set.inclusion (subset_union_right _ _)))
-| n (all φ) f := (φ.restrict_free_var f).all
-
 /-- Places universal quantifiers on all extra variables of a bounded formula. -/
 def alls : ∀ {n}, L.bounded_formula α n → L.formula α
 | 0 φ := φ
@@ -415,55 +401,70 @@ def lift_at : ∀ {n : ℕ} (n' m : ℕ), L.bounded_formula α n → L.bounded_f
 | n n' m (imp f₁ f₂) := (f₁.lift_at n' m).imp (f₂.lift_at n' m)
 | n n' m (all f) := ((f.lift_at n' m).cast_le (by rw [add_assoc, add_comm 1, ← add_assoc])).all
 
+@[simp] def relabel' (ft : ∀ n, L.term (α ⊕ fin n) → L'.term (β ⊕ fin n))
+  (fr : ∀ n, L.relations n → L'.relations n) :
+  ∀ {n}, L.bounded_formula α n → L'.bounded_formula β n
+| n falsum := falsum
+| n (equal t₁ t₂) := equal (ft _ t₁) (ft _ t₂)
+| n (rel R ts) := rel (fr _ R) (λ i, ft _ (ts i))
+| n (imp φ₁ φ₂) := φ₁.relabel'.imp φ₂.relabel'
+| n (all φ) := φ.relabel'.all
+
+@[simp] lemma relabel'_relabel' {L'' : language}
+  (ft : ∀ n, L.term (α ⊕ fin n) → L'.term (β ⊕ fin n))
+  (fr : ∀ n, L.relations n → L'.relations n)
+  (ft' : ∀ n, L'.term (β ⊕ fin n) → L''.term (γ ⊕ fin n))
+  (fr' : ∀ n, L'.relations n → L''.relations n)
+  {n} (φ : L.bounded_formula α n) :
+  (φ.relabel' ft fr).relabel' ft' fr' =
+    φ.relabel' (λ n, (ft' n) ∘ (ft n)) (λ n, (fr' n) ∘ (fr n)) :=
+begin
+  induction φ with _ _ _ _ _ _ _ _ _ _ _ ih1 ih2 _ _ ih3,
+  { refl },
+  { simp [relabel'] },
+  { simp [relabel'] },
+  { simp [relabel', ih1, ih2] },
+  { simp [relabel', ih3], }
+end
+
+@[simp] lemma relabel'_id_id {n} (φ : L.bounded_formula α n) :
+  φ.relabel' (λ _, id) (λ _, id) = φ :=
+begin
+  induction φ with _ _ _ _ _ _ _ _ _ _ _ ih1 ih2 _ _ ih3,
+  { refl },
+  { simp [relabel'] },
+  { simp [relabel'] },
+  { simp [relabel', ih1, ih2] },
+  { simp [relabel', ih3], }
+end
+
+@[simps] def relabel'_equiv (ft : ∀ n, L.term (α ⊕ fin n) ≃ L'.term (β ⊕ fin n))
+  (fr : ∀ n, L.relations n ≃ L'.relations n) {n} :
+  L.bounded_formula α n ≃ L'.bounded_formula β n :=
+⟨relabel' (λ n, ft n) (λ n, fr n), relabel' (λ n, (ft n).symm) (λ n, (fr n).symm),
+  λ φ, by simp, λ φ, by simp⟩
+
 /-- Substitutes the variables in a given formula with terms. -/
-@[simp] def subst : ∀ {n : ℕ}, L.bounded_formula α n → (α → L.term β) → L.bounded_formula β n
-| n falsum tf := falsum
-| n (equal t₁ t₂) tf := equal (t₁.subst (sum.elim (term.relabel sum.inl ∘ tf) (var ∘ sum.inr)))
-  (t₂.subst (sum.elim (term.relabel sum.inl ∘ tf) (var ∘ sum.inr)))
-| n (rel R ts) tf := rel R
-  (λ i, (ts i).subst (sum.elim (term.relabel sum.inl ∘ tf) (var ∘ sum.inr)))
-| n (imp φ₁ φ₂) tf := (φ₁.subst tf).imp (φ₂.subst tf)
-| n (all φ) tf := (φ.subst tf).all
+@[simp] def subst : ∀ {n : ℕ}, L.bounded_formula α n → (α → L.term β) → L.bounded_formula β n :=
+λ n φ f, φ.relabel' (λ _ t, t.subst (sum.elim (term.relabel sum.inl ∘ f) (var ∘ sum.inr))) (λ _, id)
 
-/-- Sends a formula with constants to a formula with extra variables. -/
-def constants_to_vars : ∀ {n}, L[[γ]].bounded_formula α n → L.bounded_formula (γ ⊕ α) n
-| n falsum := falsum
-| n (equal t₁ t₂) := equal (term.constants_vars_equiv_left t₁) (term.constants_vars_equiv_left t₂)
-| n (rel (sum.inl R) ts) := rel R (λ i, term.constants_vars_equiv_left (ts i))
-| n (rel (sum.inr R) ts) := (is_algebraic.empty_relations _).elim R
-| n (imp φ₁ φ₂) := φ₁.constants_to_vars.imp φ₂.constants_to_vars
-| n (all φ) := φ.constants_to_vars.all
-
-/-- Sends a formula with extra variables to a formula with constants. -/
-def vars_to_constants : ∀ {n}, L.bounded_formula (γ ⊕ α) n → L[[γ]].bounded_formula α n
-| n falsum := falsum
-| n (equal t₁ t₂) := equal (term.constants_vars_equiv_left.symm t₁)
-  (term.constants_vars_equiv_left.symm t₂)
-| n (rel R ts) := rel (sum.inl R) (λ i, term.constants_vars_equiv_left.symm (ts i))
-| n (imp φ₁ φ₂) := φ₁.vars_to_constants.imp φ₂.vars_to_constants
-| n (all φ) := φ.vars_to_constants.all
+/-- Restricts a bounded formula to only use a particular set of free variables. -/
+def restrict_free_var [decidable_eq α] : Π {n : ℕ} (φ : L.bounded_formula α n)
+  (f : φ.free_var_finset → β), L.bounded_formula β n
+| n falsum f := falsum
+| n (equal t₁ t₂) f := equal
+  (t₁.restrict_var_left (f ∘ set.inclusion (subset_union_left _ _)))
+  (t₂.restrict_var_left (f ∘ set.inclusion (subset_union_right _ _)))
+| n (rel R ts) f := rel R (λ i, (ts i).restrict_var_left
+  (f ∘ set.inclusion (subset_bUnion_of_mem _ (mem_univ i))))
+| n (imp φ₁ φ₂) f :=
+  (φ₁.restrict_free_var (f ∘ set.inclusion (subset_union_left _ _))).imp
+  (φ₂.restrict_free_var (f ∘ set.inclusion (subset_union_right _ _)))
+| n (all φ) f := (φ.restrict_free_var f).all
 
 /-- A bijection sending formulas with constants to formulas with extra variables. -/
 def constants_vars_equiv : L[[γ]].bounded_formula α n ≃ L.bounded_formula (γ ⊕ α) n :=
-⟨constants_to_vars, vars_to_constants, begin
-  intro φ,
-  induction φ with _ _ _ _ _ _ R _ _ _ _ ih1 ih2 _ _ ih3,
-  { refl },
-  { simp [constants_to_vars, vars_to_constants] },
-  { cases R,
-    { simp [constants_to_vars, vars_to_constants] },
-    { exact (is_algebraic.empty_relations _).elim R } },
-  { simp [constants_to_vars, vars_to_constants, ih1, ih2] },
-  { simp [constants_to_vars, vars_to_constants, ih3] }
-end, begin
-  intro φ,
-  induction φ with _ _ _ _ _ _ R _ _ _ _ ih1 ih2 _ _ ih3,
-  { refl },
-  { simp [constants_to_vars, vars_to_constants] },
-  { simp [constants_to_vars, vars_to_constants] },
-  { simp [constants_to_vars, vars_to_constants, ih1, ih2] },
-  { simp [constants_to_vars, vars_to_constants, ih3] }
-end⟩
+relabel'_equiv (λ _, term.constants_vars_equiv_left) (λ _, equiv.sum_empty _ _)
 
 /-- Turns the extra variables of a bounded formula into free variables. -/
 @[simp] def to_formula : ∀ {n : ℕ}, L.bounded_formula α n → L.formula (α ⊕ fin n)

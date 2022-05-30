@@ -134,6 +134,49 @@ begin
     exact congr rfl (funext (λ i, ih i (h i (finset.mem_univ i)))) },
 end
 
+@[simp] lemma realize_constants_to_vars
+  {t : L[[α]].term β} {v : α ⊕ β → M} :
+  t.constants_to_vars.realize v = @term.realize _ _
+    (@language.sum_Structure L _ M _ (constants_on.Structure (v ∘ sum.inl))) _
+    (v ∘ sum.inr) t :=
+begin
+  letI := @language.sum_Structure L _ M _ (constants_on.Structure (v ∘ sum.inl)),
+  induction t with _ n f _ ih,
+  { simp },
+  { cases n,
+    { cases f;
+      simp [ih], },
+    { cases f,
+      { simp [ih] },
+      { exact is_empty_elim f } } }
+end
+
+@[simp] lemma realize_vars_to_constants [L[[α]].Structure M]
+  [(Lhom_with_constants L α).is_expansion_on M]
+  {t : L.term (α ⊕ β)} {v : β → M} :
+  t.vars_to_constants.realize v = t.realize (sum.elim (λ a, ↑(L.con a)) v) :=
+begin
+  induction t with ab n f ts ih,
+  { cases ab;
+    simp [language.con], },
+  { simp only [ih, realize, vars_to_constants],
+    rw ← (Lhom_with_constants L α).map_on_function M f,
+    refl, }
+end
+
+@[simp] lemma realize_constants_vars_equiv_left
+  {n} {t : L[[α]].term (β ⊕ fin n)} {v : α ⊕ β → M} {xs : fin n → M} :
+  (constants_vars_equiv_left t).realize (sum.elim v xs) = @term.realize _ _
+    (@language.sum_Structure L _ M _ (constants_on.Structure (v ∘ sum.inl))) _
+    (sum.elim (v ∘ sum.inr) xs) t :=
+begin
+  letI := @language.sum_Structure L _ M _ (constants_on.Structure (v ∘ sum.inl)),
+  simp only [constants_vars_equiv_left_apply, realize_relabel, realize_constants_to_vars],
+  rcongr,
+  cases x;
+  simp,
+end
+
 end term
 
 namespace Lhom
@@ -354,21 +397,43 @@ begin
   rw [if_pos i.is_lt],
 end
 
-@[simp] lemma realize_subst_aux {tf : α → L.term β} {v : β → M} {xs : fin n → M} :
-  (λ x, term.realize (sum.elim v xs) (sum.elim (term.relabel sum.inl ∘ tf) (var ∘ sum.inr) x)) =
-    sum.elim (λ (a : α), term.realize v (tf a)) xs :=
-funext (λ x, sum.cases_on x (λ x,
-  by simp only [sum.elim_inl, term.realize_relabel, sum.elim_comp_inl]) (λ x, rfl))
-
-lemma realize_subst {φ : L.bounded_formula α n} {tf : α → L.term β} {v : β → M} {xs : fin n → M} :
-  (φ.subst tf).realize v xs ↔ φ.realize (λ a, (tf a).realize v) xs :=
+lemma realize_relabel' [L'.Structure M] {ft : ∀ n, L.term (α ⊕ fin n) → L'.term (β ⊕ fin n)}
+  {fr : ∀ n, L.relations n → L'.relations n}
+  {n} {φ : L.bounded_formula α n} {v : α → M} {v' : β → M} {xs : fin n → M}
+  (h1 : ∀ n (t : L.term (α ⊕ fin n)) (xs : fin n → M),
+    (ft n t).realize (sum.elim v' xs) = t.realize (sum.elim v xs))
+  (h2 : ∀ n (R : L.relations n) (x : fin n → M), rel_map (fr n R) x = rel_map R x) :
+  (φ.relabel' ft fr).realize v' xs ↔ φ.realize v xs :=
 begin
   induction φ with _ _ _ _ _ _ _ _ _ _ _ ih1 ih2 _ _ ih,
   { refl },
-  { simp only [subst, bounded_formula.realize, realize_subst, realize_subst_aux] },
-  { simp only [subst, bounded_formula.realize, realize_subst, realize_subst_aux] },
-  { simp only [subst, realize_imp, ih1, ih2] },
-  { simp only [ih, subst, realize_all] }
+  { simp [relabel', realize, h1] },
+  { simp [relabel', realize, h1, h2] },
+  { simp [relabel', realize, ih1, ih2], },
+  { simp [relabel', realize, ih], },
+end
+
+lemma realize_subst {φ : L.bounded_formula α n} {tf : α → L.term β} {v : β → M} {xs : fin n → M} :
+  (φ.subst tf).realize v xs ↔ φ.realize (λ a, (tf a).realize v) xs :=
+realize_relabel' (λ n t x, begin
+  rw term.realize_subst,
+  rcongr a,
+  { cases a,
+    { simp only [sum.elim_inl, term.realize_relabel, sum.elim_comp_inl] },
+    { refl } }
+end) (by simp)
+
+@[simp] lemma realize_constants_vars_equiv {n : ℕ} {φ : L[[α]].bounded_formula β n}
+  {v : α ⊕ β → M} {xs : fin n → M} :
+  (constants_vars_equiv φ).realize v xs ↔ @bounded_formula.realize (L[[α]]) M
+    (@language.sum_Structure L _ M _ (constants_on.Structure (v ∘ sum.inl))) _ _
+    φ (v ∘ sum.inr) xs :=
+begin
+  letI := @language.sum_Structure L _ M _ (constants_on.Structure (v ∘ sum.inl)),
+  refine realize_relabel' (λ n t x, _) _,
+  { rw term.constants_vars_equiv_left
+
+  },
 end
 
 @[simp] lemma realize_restrict_free_var [decidable_eq α] {n : ℕ} {φ : L.bounded_formula α n}

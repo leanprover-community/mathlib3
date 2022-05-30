@@ -174,12 +174,22 @@ protected structure injective : Prop :=
 /-- A language homomorphism is an expansion on a structure if it commutes with the interpretation of
 all symbols on that structure. -/
 class is_expansion_on (M : Type*) [L.Structure M] [L'.Structure M] : Prop :=
-(map_on_function : ∀ {n} (f : L.functions n) (x : fin n → M),
+(map_on_function' : ∀ {n} (f : L.functions n) (x : fin n → M),
   fun_map (ϕ.on_function f) x = fun_map f x)
-(map_on_relation : ∀ {n} (R : L.relations n) (x : fin n → M),
+(map_on_relation' : ∀ {n} (R : L.relations n) (x : fin n → M),
   rel_map (ϕ.on_relation R) x = rel_map R x)
 
-attribute [simp] is_expansion_on.map_on_function is_expansion_on.map_on_relation
+@[simp] lemma map_on_function (M : Type*)
+  [L.Structure M] [L'.Structure M] [ϕ.is_expansion_on M]
+  {n} (f : L.functions n) (x : fin n → M) :
+  fun_map (ϕ.on_function f) x = fun_map f x :=
+is_expansion_on.map_on_function' f x
+
+@[simp] lemma map_on_relation (M : Type*)
+  [L.Structure M] [L'.Structure M] [ϕ.is_expansion_on M]
+  {n} (R : L.relations n) (x : fin n → M) :
+  rel_map (ϕ.on_relation R) x = rel_map R x :=
+is_expansion_on.map_on_relation' R x
 
 instance id_is_expansion_on (M : Type*) [L.Structure M] : is_expansion_on (Lhom.id L) M :=
 ⟨λ _ _ _, rfl, λ _ _ _, rfl⟩

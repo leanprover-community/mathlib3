@@ -74,28 +74,6 @@ namespace modular_group
 
 variables (g : SL(2, ℤ)) (z : ℍ)
 
-<<<<<<< HEAD
-section upper_half_plane_action
-
-/-- For a subring `R` of `ℝ`, the action of `SL(2, R)` on the upper half-plane, as a restriction of
-the `SL(2, ℝ)`-action defined by `upper_half_plane.mul_action`. -/
-
-lemma im_smul_eq_div_norm_sq :
-  (g • z).im = z.im / (complex.norm_sq (denom g z)) :=
-begin
-simp only [im_smul_eq_div_norm_sq, sl_moeb, coe_coe, denom,
-  general_linear_group.coe_det_apply,coe_GL_pos_coe_GL_coe_matrix,
-  int.coe_cast_ring_hom],
-rw (g : SL(2,ℝ)).prop,
-simp,
-end
-
-@[simp] lemma denom_apply : denom g z = ↑ₘg 1 0 * z + ↑ₘg 1 1 := by simp
-
-end upper_half_plane_action
-
-=======
->>>>>>> 847a8160607d25e8757b688039f25ddb09c570e5
 variables {g}
 
 section bottom_row

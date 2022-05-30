@@ -78,7 +78,8 @@ lemma not_irreducible_of_aleph_0_le (ha : ℵ₀ ≤ a) : ¬irreducible a :=
 begin
   rw [irreducible_iff, not_and_distrib],
   refine or.inr (λ h, _),
-  simpa [mul_aleph_0_eq ha, is_unit_iff, (one_lt_aleph_0.trans_le ha).ne', one_lt_aleph_0.ne'] using h a ℵ₀
+  simpa [mul_aleph_0_eq ha, is_unit_iff, (one_lt_aleph_0.trans_le ha).ne', one_lt_aleph_0.ne']
+    using h a ℵ₀
 end
 
 @[simp, norm_cast] lemma nat_coe_dvd_iff : (n : cardinal) ∣ m ↔ n ∣ m :=
@@ -124,7 +125,8 @@ begin
   simp [not_le.mpr h]
 end
 
-lemma is_prime_pow_iff {a : cardinal} : is_prime_pow a ↔ ℵ₀ ≤ a ∨ ∃ n : ℕ, a = n ∧ is_prime_pow n :=
+lemma is_prime_pow_iff {a : cardinal} :
+  is_prime_pow a ↔ ℵ₀ ≤ a ∨ ∃ n : ℕ, a = n ∧ is_prime_pow n :=
 begin
   by_cases h : ℵ₀ ≤ a,
   { simp [h, (prime_of_aleph_0_le h).is_prime_pow] },

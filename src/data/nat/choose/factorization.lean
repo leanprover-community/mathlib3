@@ -33,19 +33,18 @@ variables {p n : ℕ}
 /--
 A logarithmic upper bound on the multiplicity of a prime in the central binomial coefficient.
 -/
-lemma factorization_central_binom_le :
-  ((central_binom n).factorization p) ≤ log p (2 * n) :=
+lemma factorization_choose_le : (choose n k).factorization p ≤ log p n :=
 begin
-  by_cases hp : p.prime,
-  rw ←@padic_val_nat_eq_factorization p (central_binom n) ⟨hp⟩,
-  rw @padic_val_nat_def _ ⟨hp⟩ _ (central_binom_pos n),
-  unfold central_binom,
-  have two_mul_sub : 2 * n - n = n, by rw [two_mul n, nat.add_sub_cancel n n],
-  simp only [nat.prime.multiplicity_choose hp (le_mul_of_pos_left zero_lt_two) (lt_add_one _),
-      two_mul_sub, ←two_mul, enat.get_coe', finset.filter_congr_decidable],
-  calc _  ≤ (finset.Ico 1 (log p (2 * n) + 1)).card : finset.card_filter_le _ _
-      ... = (log p (2 * n) + 1) - 1                 : nat.card_Ico _ _,
-  simp [hp],
+  by_cases h : (choose n k).factorization p = 0,
+  { exact (le_of_eq h).trans zero_le' },
+  have hp : p.prime := not.imp_symm (choose n k).factorization_eq_zero_of_non_prime h,
+  have hkn : k ≤ n,
+  { refine le_of_not_lt (λ hnk, h _),
+    rw [choose_eq_zero_of_lt hnk, factorization_zero, finsupp.coe_zero, pi.zero_apply] },
+  rw ←@padic_val_nat_eq_factorization p (choose n k) ⟨hp⟩,
+  rw @padic_val_nat_def _ ⟨hp⟩ _ (choose_pos hkn),
+  simp only [nat.prime.multiplicity_choose hp hkn (lt_add_one _), enat.get_coe'],
+  refine (finset.card_filter_le _ _).trans (le_of_eq (nat.card_Ico _ _)),
 end
 
 /--

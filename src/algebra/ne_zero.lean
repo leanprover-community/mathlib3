@@ -56,6 +56,13 @@ lemma trans [has_zero M] [has_coe R S] [has_coe_t S M] (h : ne_zero ((r : S) : M
 lemma of_map [has_zero R] [has_zero M] [zero_hom_class F R M] (f : F) [ne_zero (f r)] :
   ne_zero r := ⟨λ h, ne (f r) $ by convert map_zero f⟩
 
+lemma nat_of_ne_zero [semiring R] [semiring S] [ring_hom_class F R S] (f : F)
+  [hn : ne_zero (n : S)] : ne_zero (n : R) :=
+begin
+  apply ne_zero.of_map f,
+  simp [hn]
+end
+
 lemma of_injective [has_zero R] [h : ne_zero r] [has_zero M] [zero_hom_class F R M]
   {f : F} (hf : function.injective f) : ne_zero (f r) :=
 ⟨by { rw ←map_zero f, exact hf.ne (ne r) }⟩

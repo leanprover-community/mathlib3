@@ -86,18 +86,18 @@ notation f ` *ᵖ ` E := pullback f E
 /-- Natural embedding of the total space of `f *ᵖ E` into `B' × total_space E`. -/
 @[simp] def pullback_total_space_embedding (f : B' → B) :
   total_space (f *ᵖ E) → B' × total_space E :=
-λ z, (proj (f *ᵖ E) z, total_space_mk E (f (proj (f *ᵖ E) z)) z.2)
+λ z, (@proj _ (f *ᵖ E) z, @total_space_mk _ (f (@proj _ (f *ᵖ E) z)) z.2)
 
 /-- The base map `f : B' → B` lifts to a canonical map on the total spaces. -/
 def pullback.lift (f : B' → B) : total_space (f *ᵖ E) → total_space E :=
-λ z, total_space_mk E (f (proj (f *ᵖ E) z)) z.2
+λ z, @total_space_mk _ (f (@proj _ (f *ᵖ E) z)) z.2
 
 @[simp] lemma pullback.proj_lift (f : B' → B) (x : total_space (f *ᵖ E)) :
-  proj E (pullback.lift E f x) = f x.1 :=
+  proj (pullback.lift E f x) = f x.1 :=
 rfl
 
 @[simp] lemma pullback.lift_mk (f : B' → B) (x : B') (y : E (f x)) :
-  pullback.lift E f (total_space_mk (f *ᵖ E) x y) = total_space_mk E (f x) y :=
+  pullback.lift E f (@total_space_mk _ (f *ᵖ E) x y) = @total_space_mk _ E (f x) y :=
 rfl
 
 lemma pullback_total_space_embedding_snd (f : B' → B) (x : total_space (f *ᵖ E)) :

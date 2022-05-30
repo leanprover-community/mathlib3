@@ -176,7 +176,7 @@ by rw [e.mk_symm hb, e.apply_symm_apply (e.mk_mem_target.mpr hb)]
 fibers and the model space. -/
 @[simps] def linear_equiv_at (e : pretrivialization R F E) (b : B) (hb : b ∈ e.base_set) :
   E b ≃ₗ[R] F :=
-{ to_fun := λ y, (e (total_space_mk E b y)).2,
+{ to_fun := λ y, (e (total_space_mk b y)).2,
   inv_fun := e.symm b,
   left_inv := e.symm_apply_apply_mk hb,
   right_inv := λ v, by simp_rw [e.apply_mk_symm hb v],
@@ -408,7 +408,7 @@ namespace trivialization
 is in fact a continuous linear equiv between the fibers and the model fiber. -/
 @[simps apply symm_apply] def continuous_linear_equiv_at (e : trivialization R F E) (b : B)
   (hb : b ∈ e.base_set) : E b ≃L[R] F :=
-{ to_fun := λ y, (e (total_space_mk E b y)).2,
+{ to_fun := λ y, (e (total_space_mk b y)).2,
   inv_fun := e.symm b,
   continuous_to_fun := continuous_snd.comp (e.to_local_homeomorph.continuous_on.comp_continuous
     (total_space_mk_inducing R F E b).continuous (λ x, e.mem_source.mpr hb)),
@@ -857,14 +857,14 @@ end
 
 /-- Topology on the fibers `E b` induced by the map `E b → E.total_space`. -/
 def fiber_topology (b : B) : topological_space (E b) :=
-topological_space.induced (total_space_mk E b) a.total_space_topology
+topological_space.induced (total_space_mk b) a.total_space_topology
 
 @[continuity] lemma inducing_total_space_mk (b : B) :
-  @inducing _ _ (a.fiber_topology b) a.total_space_topology (total_space_mk E b) :=
+  @inducing _ _ (a.fiber_topology b) a.total_space_topology (total_space_mk b) :=
 by { letI := a.total_space_topology, letI := a.fiber_topology b, exact ⟨rfl⟩ }
 
 @[continuity] lemma continuous_total_space_mk (b : B) :
-  @continuous _ _ (a.fiber_topology b) a.total_space_topology (total_space_mk E b) :=
+  @continuous _ _ (a.fiber_topology b) a.total_space_topology (total_space_mk b) :=
 begin
   letI := a.total_space_topology, letI := a.fiber_topology b,
   exact (a.inducing_total_space_mk b).continuous
@@ -922,7 +922,7 @@ variables [topological_space B'] [topological_space (total_space E)]
 
 /-- Definition of `pullback.total_space.topological_space`, which we make irreducible. -/
 @[irreducible] def pullback_topology : topological_space (total_space (f *ᵖ E)) :=
-induced (proj (f *ᵖ E)) ‹topological_space B'› ⊓
+induced (@proj _ (f *ᵖ E)) ‹topological_space B'› ⊓
 induced (pullback.lift E f) ‹topological_space (total_space E)›
 
 /-- The topology on the total space of a pullback bundle is the coarsest topology for which both
@@ -932,7 +932,7 @@ instance pullback.total_space.topological_space :
 pullback_topology E f
 
 lemma pullback.continuous_proj (f : B' → B) :
-  continuous (bundle.proj (f *ᵖ E)) :=
+  continuous (@bundle.proj _ (f *ᵖ E)) :=
 begin
   rw [continuous_iff_le_induced, pullback.total_space.topological_space, pullback_topology],
   exact inf_le_left,
@@ -960,7 +960,7 @@ variables (F) [nondiscrete_normed_field 𝕜]
 
 lemma pullback.continuous_total_space_mk [∀ x, topological_space (E x)]
   [topological_vector_bundle 𝕜 F E] {f : B' → B} {x : B'} :
-  continuous (total_space_mk (f *ᵖ E) x) :=
+  continuous (@total_space_mk _ (f *ᵖ E) x) :=
 begin
   simp only [continuous_iff_le_induced, pullback.total_space.topological_space, induced_compose,
     induced_inf, function.comp, total_space_mk, proj, induced_const, top_inf_eq,
@@ -973,8 +973,8 @@ variables {E 𝕜 F} {K : Type*} [continuous_map_class K B' B]
 /-- A vector bundle trivialization can be pulled back to a trivialization on the pullback bundle. -/
 def topological_vector_bundle.trivialization.pullback (e : trivialization 𝕜 F E) (f : K) :
   trivialization 𝕜 F ((f : B' → B) *ᵖ E) :=
-{ to_fun := λ z, (proj (f *ᵖ E) z, (e (pullback.lift E f z)).2),
-  inv_fun := λ y, total_space_mk (f *ᵖ E) y.1 (e.symm (f y.1) y.2),
+{ to_fun := λ z, (@proj _ (f *ᵖ E) z, (e (pullback.lift E f z)).2),
+  inv_fun := λ y, @total_space_mk _ (f *ᵖ E) y.1 (e.symm (f y.1) y.2),
   source := pullback.lift E f ⁻¹' e.source,
   base_set := f ⁻¹' e.base_set,
   target := (f ⁻¹' e.base_set) ×ˢ (univ : set F),
@@ -1161,7 +1161,7 @@ def prod : trivialization R (F₁ × F₂) (E₁ ×ᵇ E₂) :=
   right_inv' := λ x, prod.right_inv,
   open_source := begin
     refine (e₁.open_base_set.inter e₂.open_base_set).preimage _,
-    have : continuous (proj E₁) := continuous_proj R B F₁,
+    have : continuous (@proj _ E₁) := continuous_proj R B F₁,
     exact this.comp (prod.inducing_diag E₁ E₂).continuous.fst,
   end,
   open_target := (e₁.open_base_set.inter e₂.open_base_set).prod is_open_univ,

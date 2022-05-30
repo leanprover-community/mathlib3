@@ -444,8 +444,6 @@ variables {R A : Type*}
 
 open algebra
 
-section ring
-
 /-- If `algebra_map R A` is injective and `A` has no zero divisors,
 `R`-multiples in `A` are zero only if one of the factors is zero.
 
@@ -470,8 +468,6 @@ lemma iff_algebra_map_injective [comm_ring R] [ring A] [is_domain A] [algebra R 
   no_zero_smul_divisors R A ↔ function.injective (algebra_map R A) :=
 ⟨@@no_zero_smul_divisors.algebra_map_injective R A _ _ _ _,
  no_zero_smul_divisors.of_algebra_map_injective⟩
-
-end ring
 
 section field
 

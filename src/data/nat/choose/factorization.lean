@@ -31,7 +31,7 @@ namespace nat
 variables {p n k : ℕ}
 
 /--
-A logarithmic upper bound on the multiplicity of a prime in the central binomial coefficient.
+A logarithmic upper bound on the multiplicity of a prime in a binomial coefficient.
 -/
 lemma factorization_choose_le : (choose n k).factorization p ≤ log p n :=
 begin
@@ -46,6 +46,9 @@ begin
   simp only [nat.prime.multiplicity_choose hp hkn (lt_add_one _), enat.get_coe'],
   refine (finset.card_filter_le _ _).trans (le_of_eq (nat.card_Ico _ _)),
 end
+
+lemma factorization_central_binom_le :
+  ((central_binom n).factorization p) ≤ log p (2 * n) := factorization_choose_le
 
 /--
 A `pow` form of `nat.factorization_central_binom_le`

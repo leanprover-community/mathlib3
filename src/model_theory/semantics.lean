@@ -134,11 +134,11 @@ begin
     exact congr rfl (funext (λ i, ih i (h i (finset.mem_univ i)))) },
 end
 
-@[simp] lemma realize_constants_to_vars
-  {t : L[[α]].term β} {v : α ⊕ β → M} :
-  t.constants_to_vars.realize v = @term.realize _ _
-    (@language.sum_Structure L _ M _ (constants_on.Structure (v ∘ sum.inl))) _
-    (v ∘ sum.inr) t :=
+@[simp] lemma realize_constants_to_vars [L[[α]].Structure M]
+  [(Lhom_with_constants L α).is_expansion_on M]
+  {t : L[[α]].term β} {v : β → M} :
+  t.constants_to_vars.realize (sum.elim (λ a, ↑(L.con a)) v) =
+    t.realize (v ∘ sum.inr) :=
 begin
   letI := @language.sum_Structure L _ M _ (constants_on.Structure (v ∘ sum.inl)),
   induction t with _ n f _ ih,
@@ -164,11 +164,11 @@ begin
     refl, }
 end
 
-@[simp] lemma realize_constants_vars_equiv_left
-  {n} {t : L[[α]].term (β ⊕ fin n)} {v : α ⊕ β → M} {xs : fin n → M} :
-  (constants_vars_equiv_left t).realize (sum.elim v xs) = @term.realize _ _
-    (@language.sum_Structure L _ M _ (constants_on.Structure (v ∘ sum.inl))) _
-    (sum.elim (v ∘ sum.inr) xs) t :=
+@[simp] lemma realize_constants_vars_equiv_left [L[[α]].Structure M]
+  [(Lhom_with_constants L α).is_expansion_on M]
+  {n} {t : L[[α]].term (β ⊕ fin n)} {v : β → M} {xs : fin n → M} :
+  (constants_vars_equiv_left t).realize (sum.elim (λ a, ↑(L.con a)) v) xs) =
+    t.realize (sum.elim (v ∘ sum.inr) xs) :=
 begin
   letI := @language.sum_Structure L _ M _ (constants_on.Structure (v ∘ sum.inl)),
   simp only [constants_vars_equiv_left, realize_relabel, realize_constants_to_vars, equiv.coe_trans,
@@ -423,11 +423,11 @@ realize_map_term_rel (λ n t x, begin
     { refl } }
 end) (by simp)
 
-@[simp] lemma realize_constants_vars_equiv {n : ℕ} {φ : L[[α]].bounded_formula β n}
-  {v : α ⊕ β → M} {xs : fin n → M} :
-  (constants_vars_equiv φ).realize v xs ↔ @bounded_formula.realize (L[[α]]) M
-    (@language.sum_Structure L _ M _ (constants_on.Structure (v ∘ sum.inl))) _ _
-    φ (v ∘ sum.inr) xs :=
+@[simp] lemma realize_constants_vars_equiv [L[[α]].Structure M]
+  [(Lhom_with_constants L α).is_expansion_on M]
+  {n : ℕ} {φ : L[[α]].bounded_formula β n}
+  {v : β → M} {xs : fin n → M} :
+  (constants_vars_equiv φ).realize (sum.elim (λ a, ↑(L.con a)) v) xs ↔ φ.realize (v ∘ sum.inr) xs :=
 begin
   letI : (constants_on α).Structure M := (constants_on.Structure (v ∘ sum.inl)),
   refine realize_map_term_rel (λ n t x, term.realize_constants_vars_equiv_left) (λ n R x, _),

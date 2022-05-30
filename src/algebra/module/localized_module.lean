@@ -146,20 +146,32 @@ instance : has_add (localized_module M S) :=
 { add := λ p1 p2, lift_on₂ p1 p2 (λ x y, mk (y.2 • x.1 + x.2 • y.1) (x.2 * y.2)) $
     λ ⟨m1, s1⟩ ⟨m2, s2⟩ ⟨m1', s1'⟩ ⟨m2', s2'⟩ ⟨u1, hu1⟩ ⟨u2, hu2⟩, mk_eq.mpr ⟨u1 * u2, begin
       calc (u1 * u2) • (s1 * s2) • (s2' • m1' + s1' • m2')
-          = (u1 * u2) • (s1 * s2) • s2' • m1' + (u1 * u2) • (s1 * s2) • s1' • m2' : by simp only [smul_add]
-      ... = (u1 * u2 * (s1 * s2) * s2') • m1' + (u1 * u2 * (s1 * s2) * s1') • m2' : by simp only [mul_smul]
-      ... = ((u2 * s2 * s2') * (u1 * s1)) • m1' + (u1 * u2 * (s1 * s2) * s1') • m2' : by congr' 2; ext; simp only [submonoid.coe_mul]; ring
-      ... = (u2 * s2 * s2') • u1 • s1 • m1' + (u1 * u2 * (s1 * s2) * s1') • m2' : by simp only [mul_smul]
+          = (u1 * u2) • (s1 * s2) • s2' • m1' + (u1 * u2) • (s1 * s2) • s1' • m2'
+          : by simp only [smul_add]
+      ... = (u1 * u2 * (s1 * s2) * s2') • m1' + (u1 * u2 * (s1 * s2) * s1') • m2'
+          : by simp only [mul_smul]
+      ... = ((u2 * s2 * s2') * (u1 * s1)) • m1' + (u1 * u2 * (s1 * s2) * s1') • m2'
+          : by congr' 2; ext; simp only [submonoid.coe_mul]; ring
+      ... = (u2 * s2 * s2') • u1 • s1 • m1' + (u1 * u2 * (s1 * s2) * s1') • m2'
+          : by simp only [mul_smul]
       ... = (u2 * s2 * s2') • u1 • s1' • m1 + (u1 * u2 * (s1 * s2) * s1') • m2' : by rw [hu1]
-      ... = ((u2 * s2 * s2') * u1 * s1') • m1 + (u1 * u2 * (s1 * s2) * s1') • m2' : by simp only [mul_smul]
-      ... = ((u1 * u2) * (s1' * s2') * s2) • m1 + (u1 * u2 * (s1 * s2) * s1') • m2' : by congr' 2; ext; simp only [submonoid.coe_mul]; ring
-      ... = (u1 * u2) • (s1' • s2') • s2 • m1 + (u1 * u2 * (s1 * s2) * s1') • m2' : by congr' 1; simp [mul_smul]
-      ... = (u1 * u2) • (s1' • s2') • s2 • m1 + ((u1 * s1 * s1') * (u2 * s2)) • m2' : by congr' 2; ext; simp only [submonoid.coe_mul]; ring
-      ... = (u1 * u2) • (s1' • s2') • s2 • m1 + (u1 * s1 * s1') • u2 • s2 • m2' : by simp [mul_smul]
+      ... = ((u2 * s2 * s2') * u1 * s1') • m1 + (u1 * u2 * (s1 * s2) * s1') • m2'
+          : by simp only [mul_smul]
+      ... = ((u1 * u2) * (s1' * s2') * s2) • m1 + (u1 * u2 * (s1 * s2) * s1') • m2'
+          : by congr' 2; ext; simp only [submonoid.coe_mul]; ring
+      ... = (u1 * u2) • (s1' • s2') • s2 • m1 + (u1 * u2 * (s1 * s2) * s1') • m2'
+          : by congr' 1; simp [mul_smul]
+      ... = (u1 * u2) • (s1' • s2') • s2 • m1 + ((u1 * s1 * s1') * (u2 * s2)) • m2'
+          : by congr' 2; ext; simp only [submonoid.coe_mul]; ring
+      ... = (u1 * u2) • (s1' • s2') • s2 • m1 + (u1 * s1 * s1') • u2 • s2 • m2'
+          : by simp [mul_smul]
       ... = (u1 * u2) • (s1' • s2') • s2 • m1 + (u1 * s1 * s1') • u2 • s2' • m2 : by rw [hu2]
-      ... = (u1 * u2) • (s1' • s2') • s2 • m1 + ((u1 * s1 * s1') * (u2 * s2')) • m2 : by simp [mul_smul]
-      ... = (u1 * u2) • (s1' • s2') • s2 • m1 + ((u1 * u2) * (s1' * s2') * s1) • m2 : by congr' 2; ext; simp only [submonoid.coe_mul]; ring
-      ... = (u1 * u2) • (s1' • s2') • s2 • m1 + (u1 * u2) • (s1' • s2') • s1 • m2 : by simp [mul_smul]
+      ... = (u1 * u2) • (s1' • s2') • s2 • m1 + ((u1 * s1 * s1') * (u2 * s2')) • m2
+          : by simp [mul_smul]
+      ... = (u1 * u2) • (s1' • s2') • s2 • m1 + ((u1 * u2) * (s1' * s2') * s1) • m2
+          : by congr' 2; ext; simp only [submonoid.coe_mul]; ring
+      ... = (u1 * u2) • (s1' • s2') • s2 • m1 + (u1 * u2) • (s1' • s2') • s1 • m2
+          : by simp [mul_smul]
       ... = (u1 * u2) • (s1' * s2') • (s2 • m1 + s1 • m2) : by simp [smul_add],
     end⟩ }
 
@@ -284,9 +296,12 @@ begin
   rw [one_smul, one_smul],
   calc (u * (s * t)) • ((u * t) • r • m + (u * s) • r • n)
       = (u * (s * t)) • (u * t) • r • m + (u * (s * t)) • (u * s) • r • n : by rw [smul_add]
-  ... = ((u : R) * (s * t) * (u * t) * r) • m + ((u : R) * (s * t) * (u * s) * r) • n : by simp only [mul_smul]; congr
-  ... = ((u : R) * s * (u * t) * r * t) • m + ((u : R) * s * (u * t) * r * s) • n : by congr' 2; ring
-  ... = ((u : R) * s * (u * t)) • r • t • m + (u * s * (u * t)) • r • s • n : by simp only [mul_smul]; congr
+  ... = ((u : R) * (s * t) * (u * t) * r) • m + ((u : R) * (s * t) * (u * s) * r) • n
+      : by simp only [mul_smul]; congr
+  ... = ((u : R) * s * (u * t) * r * t) • m + ((u : R) * s * (u * t) * r * s) • n
+      : by congr' 2; ring
+  ... = ((u : R) * s * (u * t)) • r • t • m + (u * s * (u * t)) • r • s • n
+      : by simp only [mul_smul]; congr
   ... = (u * s * (u * t)) • r • (t • m + s • n) : by simp [smul_add]; congr,
 end
 
@@ -311,15 +326,18 @@ begin
   dsimp only,
   calc (s * s' * t) • ((s' * t) • r • m + (s * t) • r' • m)
       = (s * s' * t) • (s' * t) • r • m + (s * s' * t) • (s * t) • r' • m : by rw [smul_add]
-  ... = ((s : R) * s' * t * (s' * t) * r) • m + ((s : R) * s' * t * (s * t) * r') • m : by simp only [mul_smul]; congr
-  ... = ((s : R) * t * (s' * t) * s * r') • m + ((s : R) * t * (s' * t) * s' * r) • m : by rw add_comm; congr' 2; ring
-  ... = (((s : R) * t * (s' * t) * s * r') + ((s : R) * t * (s' * t) * s' * r)) • m : by rw add_smul
+  ... = ((s : R) * s' * t * (s' * t) * r) • m + ((s : R) * s' * t * (s * t) * r') • m
+      : by simp only [mul_smul]; congr
+  ... = ((s : R) * t * (s' * t) * s * r') • m + ((s : R) * t * (s' * t) * s' * r) • m
+      : by rw add_comm; congr' 2; ring
+  ... = (((s : R) * t * (s' * t) * s * r') + ((s : R) * t * (s' * t) * s' * r)) • m
+      : by rw add_smul
   ... = ((s : R) * t * (s' * t) * (s * r' + s' * r)) • m : by congr' 2 ; ring
   ... = (s * t * (s' * t)) • ((s : R) * r' + (s' : R) * r) • m : by simp only [mul_smul]; congr
   ... = (s * t * (s' * t)) • ((s : R) * r' + (s' : R) * r) • m : by simp [add_smul]; congr,
 end
 
-lemma zero_smul (x : localized_module M S) :
+lemma zero_smul' (x : localized_module M S) :
   (0 : localization S) • x = 0 :=
 begin
   induction x using localized_module.induction_on with m s,
@@ -333,7 +351,7 @@ instance is_module : module (localization S) (localized_module M S) :=
   smul_add := smul_add',
   smul_zero := smul_zero',
   add_smul := add_smul',
-  zero_smul := zero_smul }
+  zero_smul := zero_smul' }
 
 end
 

@@ -36,7 +36,7 @@ variables [topological_space (total_space E)] [charted_space H' (total_space E)]
 @[nolint has_inhabited_instance]
 structure smooth_vector_bundle.trivialization extends to_fiber_bundle :
   smooth_fiber_bundle.trivialization I 𝓘(𝕜, F) I' F (proj E) :=
-(linear : ∀ x ∈ base_set, is_linear_map 𝕜 (λ y : E x, (to_fun y).2))
+(linear' : ∀ x ∈ base_set, is_linear_map 𝕜 (λ y : E x, (to_fun y).2))
 
 open smooth_vector_bundle
 
@@ -137,11 +137,11 @@ dif_neg hb
 
 lemma mk_symm (e : trivialization I I' F E) {b : B} (hb : b ∈ e.base_set) (y : F) :
   total_space_mk E b (e.symm b y) = e.to_local_homeomorph.symm (b, y) :=
-e.to_pretrivialization.mk_symm hb y
+e.to_topological.mk_symm hb y
 
 lemma symm_proj_apply (e : trivialization I I' F E) (z : total_space E)
   (hz : proj E z ∈ e.base_set) : e.symm (proj E z) (e z).2 = z.2 :=
-e.to_pretrivialization.symm_proj_apply z hz
+e.to_topological.symm_proj_apply z hz
 
 lemma symm_apply_apply_mk (e : trivialization I I' F E) {b : B} (hb : b ∈ e.base_set) (y : E b) :
   e.symm b (e (total_space_mk E b y)).2 = y :=
@@ -149,7 +149,7 @@ e.symm_proj_apply (total_space_mk E b y) hb
 
 lemma apply_mk_symm (e : trivialization I I' F E) {b : B} (hb : b ∈ e.base_set) (y : F) :
   e (total_space_mk E b (e.symm b y)) = (b, y) :=
-e.to_pretrivialization.apply_mk_symm hb y
+e.to_topological.apply_mk_symm hb y
 
 lemma continuous_on_symm (e : trivialization I I' F E) :
   continuous_on (λ z : B × F, total_space_mk E z.1 (e.symm z.1 z.2))
@@ -167,11 +167,9 @@ end smooth_vector_bundle.trivialization
 
 section
 
-variables (B)
-variables [nondiscrete_normed_field 𝕜] [∀ x, add_comm_monoid (E x)] [∀ x, module 𝕜 (E x)]
-  [normed_group F] [normed_space 𝕜 F] [topological_space B]
-  [topological_space (total_space E)] [∀ x, topological_space (E x)]
+variables [∀ x, topological_space (E x)]
 
+-- variables (B)
 -- /-- The valid transition functions for a topological vector bundle over `B` modelled on
 -- a normed space `F`: a transition function must be a local homeomorphism of `B × F` with source and
 -- target both `s ×ˢ univ`, which on this set is of the form `λ (b, v), (b, ε b v)` for some continuous
@@ -181,8 +179,7 @@ variables [nondiscrete_normed_field 𝕜] [∀ x, add_comm_monoid (E x)] [∀ x,
 -- ∃ s : set B, e.source = s ×ˢ (univ : set F) ∧ e.target = s ×ˢ (univ : set F)
 --     ∧ ∃ ε : B → (F ≃L[𝕜] F), continuous_on (λ b, (ε b : F →L[𝕜] F)) s
 --       ∧ ∀ b ∈ s, ∀ v : F, e (b, v) = (b, ε b v)
-
-variables {B}
+-- variables {B}
 
 /-- The space `total_space E` (for `E : B → Type*` such that each `E x` is a topological vector
 space) has a topological vector space structure with fiber `F` (denoted with

@@ -173,7 +173,7 @@ begin
   simp only [constants_vars_equiv_left, realize_relabel, realize_constants_to_vars, equiv.coe_trans,
     function.comp_app, constants_vars_equiv_apply, relabel_equiv_symm_apply],
   rcongr,
-
+  sorry
 end
 
 end term

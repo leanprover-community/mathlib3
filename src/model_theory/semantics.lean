@@ -137,8 +137,7 @@ end
 @[simp] lemma realize_constants_to_vars [L[[α]].Structure M]
   [(Lhom_with_constants L α).is_expansion_on M]
   {t : L[[α]].term β} {v : β → M} :
-  t.constants_to_vars.realize (sum.elim (λ a, ↑(L.con a)) v) =
-    t.realize (v ∘ sum.inr) :=
+  t.constants_to_vars.realize (sum.elim (λ a, ↑(L.con a)) v) = t.realize v :=
 begin
   letI := @language.sum_Structure L _ M _ (constants_on.Structure (v ∘ sum.inl)),
   induction t with _ n f _ ih,
@@ -168,7 +167,7 @@ end
   [(Lhom_with_constants L α).is_expansion_on M]
   {n} {t : L[[α]].term (β ⊕ fin n)} {v : β → M} {xs : fin n → M} :
   (constants_vars_equiv_left t).realize (sum.elim (λ a, ↑(L.con a)) v) xs) =
-    t.realize (sum.elim (v ∘ sum.inr) xs) :=
+    t.realize (sum.elim v xs) :=
 begin
   letI := @language.sum_Structure L _ M _ (constants_on.Structure (v ∘ sum.inl)),
   simp only [constants_vars_equiv_left, realize_relabel, realize_constants_to_vars, equiv.coe_trans,
@@ -427,7 +426,7 @@ end) (by simp)
   [(Lhom_with_constants L α).is_expansion_on M]
   {n : ℕ} {φ : L[[α]].bounded_formula β n}
   {v : β → M} {xs : fin n → M} :
-  (constants_vars_equiv φ).realize (sum.elim (λ a, ↑(L.con a)) v) xs ↔ φ.realize (v ∘ sum.inr) xs :=
+  (constants_vars_equiv φ).realize (sum.elim (λ a, ↑(L.con a)) v) xs ↔ φ.realize v xs :=
 begin
   letI : (constants_on α).Structure M := (constants_on.Structure (v ∘ sum.inl)),
   refine realize_map_term_rel (λ n t x, term.realize_constants_vars_equiv_left) (λ n R x, _),
@@ -779,7 +778,7 @@ begin
 end
 
 @[simp] lemma realize_to_formula (φ : L.bounded_formula α n) (v : α ⊕ fin n → M) :
-  φ.to_formula.realize v ↔ φ.realize (v ∘ sum.inl) (v ∘ sum.inr) :=
+  φ.to_formula.realize v ↔ φ.realize (v ∘ sum.inl) v :=
 begin
   induction φ with _ _ _ _ _ _ _ _ _ _ _ ih1 ih2 _ _ ih3 a8 a9 a0,
   { refl },
@@ -789,7 +788,7 @@ begin
       realize_imp], },
   { rw [to_formula, formula.realize, realize_all, realize_all],
     refine forall_congr (λ a, _),
-    have h := ih3 (sum.elim (v ∘ sum.inl) (snoc (v ∘ sum.inr) a)),
+    have h := ih3 (sum.elim (v ∘ sum.inl) (snoc v a)),
     simp only [sum.elim_comp_inl, sum.elim_comp_inr] at h,
     rw [← h, realize_relabel, formula.realize],
     rcongr,

@@ -825,7 +825,7 @@ begin
 end
 
 @[simp] lemma model_infinite_theory_iff : M ⊨ L.infinite_theory ↔ infinite M :=
-by simp [infinite_theory, infinite_iff, omega_le]
+by simp [infinite_theory, infinite_iff, aleph_0_le]
 
 instance model_infinite_theory [h : infinite M] :
   M ⊨ L.infinite_theory :=

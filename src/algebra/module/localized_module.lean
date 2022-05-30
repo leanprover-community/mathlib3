@@ -406,5 +406,3 @@ instance is_module : module (localization S) (localized_module M S) :=
 end
 
 end localized_module
-
-#lint

@@ -28,7 +28,7 @@ preferable to use the `R ⊗[ℕ] Sᵐᵒᵖ` instance since it works without ad
 
 Bimodules are thus just a special case of `module`s and most of their properties follow from the
 theory of `module`s`. In particular a two-sided submodule of a bimodule is simply a term of type
-`submodule (R ⊗[ℕ] S) M`.
+`submodule (R ⊗[ℕ] Sᵐᵒᵖ) M`.
 
 This file is a place to collect results which are specific to bimodules.
 
@@ -93,13 +93,13 @@ begin
   simp [tensor_product.algebra.smul_def],
 end
 
-/-- Forgetting the `B` action, a submodule over `A ⊗[R] B` is just a submodule over `A`. -/
+/-- Forgetting the `B` action, a `submodule` over `A ⊗[R] B` is just a `submodule` over `A`. -/
 @[simps] def to_submodule (p : submodule (A ⊗[R] B) M) : submodule A M :=
 { carrier := p,
   smul_mem' := smul_mem p,
   .. p }
 
-/-- Forgetting the `A` action, a submodule over `A ⊗[R] B` is just a submodule over `B`. -/
+/-- Forgetting the `A` action, a `submodule` over `A ⊗[R] B` is just a `submodule` over `B`. -/
 @[simps] def to_submodule' (p : submodule (A ⊗[R] B) M) : submodule B M :=
 { carrier := p,
   smul_mem' := smul_mem' p,
@@ -112,12 +112,12 @@ section ring
 variables (R S M : Type*) [ring R] [ring S]
 variables [add_comm_group M] [module R M] [module S M] [smul_comm_class R S M]
 
-/-- A `submodule` over `R ⊗[ℕ] S` is naturally also a submodule over the canonically-isomorphic
+/-- A `submodule` over `R ⊗[ℕ] S` is naturally also a `submodule` over the canonically-isomorphic
 ring `R ⊗[ℤ] S`. -/
 @[simps] def to_subbimodule_int (p : submodule (R ⊗[ℕ] S) M) : submodule (R ⊗[ℤ] S) M :=
 mk p.to_add_submonoid (smul_mem p) (smul_mem' p)
 
-/-- A `submodule` over `R ⊗[ℤ] S` is naturally also a submodule over the canonically-isomorphic
+/-- A `submodule` over `R ⊗[ℤ] S` is naturally also a `submodule` over the canonically-isomorphic
 ring `R ⊗[ℕ] S`. -/
 @[simps] def to_subbimodule_nat (p : submodule (R ⊗[ℤ] S) M) : submodule (R ⊗[ℕ] S) M :=
 mk p.to_add_submonoid (smul_mem p) (smul_mem' p)

@@ -672,4 +672,3 @@ end
 end
 
 end equiv.perm
-#lint

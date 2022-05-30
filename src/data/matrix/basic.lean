@@ -1219,6 +1219,10 @@ lemma vec_mul_transpose [fintype n] (A : matrix m n α) (x : n → α) :
   vec_mul x Aᵀ = mul_vec A x :=
 by { ext, apply dot_product_comm }
 
+@[simp] lemma mul_vec_single [fintype n] [decidable_eq n] (A : matrix m n α) (x : α) (i : n) :
+  mul_vec A (pi.single i x) = x • Aᵀ i :=
+by { ext, simp [mul_vec, pi.single_apply, mul_comm, transpose] }
+
 end non_unital_comm_semiring
 
 section comm_semiring

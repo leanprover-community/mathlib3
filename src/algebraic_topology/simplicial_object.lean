@@ -211,8 +211,8 @@ def whiskering_obj (D : Type*) [category D] (F : C ⥤ D) :
     w' := begin
       ext,
       dsimp,
-      erw [category.comp_id, category.comp_id, ← F.map_comp,
-        ← F.map_comp, ← nat_trans.comp_app, η.w],
+      rw [category.comp_id, category.comp_id, ← F.map_comp, ← F.map_comp, ← nat_trans.comp_app],
+      erw η.w,
       refl,
     end } }
 
@@ -228,7 +228,7 @@ def whiskering (D : Type u') [category.{v'} D] :
       w' := begin
         ext n,
         dsimp,
-        erw [category.comp_id, category.comp_id, η.naturality],
+        rw [category.comp_id, category.comp_id, η.naturality],
       end }, }, }
 
 variable {C}
@@ -256,7 +256,7 @@ def augment (X : simplicial_object C) (X₀ : C) (f : X _[0] ⟶ X₀)
 @[simp]
 lemma augment_hom_zero (X : simplicial_object C) (X₀ : C) (f : X _[0] ⟶ X₀) (w) :
   (X.augment X₀ f w).hom.app (op [0]) = f :=
-by { dsimp, erw [simplex_category.hom_zero_zero ([0].const 0), X.map_id, category.id_comp] }
+by { dsimp, rw [simplex_category.hom_zero_zero ([0].const 0), op_id, X.map_id, category.id_comp] }
 
 end simplicial_object
 
@@ -442,8 +442,8 @@ def whiskering_obj (D : Type*) [category D] (F : C ⥤ D) :
     w' := begin
       ext,
       dsimp,
-      erw [category.id_comp, category.id_comp, ← F.map_comp,
-        ← F.map_comp, ← nat_trans.comp_app, ← η.w],
+      rw [category.id_comp, category.id_comp, ← F.map_comp, ← F.map_comp, ← nat_trans.comp_app],
+      erw ← η.w,
       refl,
     end } }
 
@@ -459,7 +459,7 @@ def whiskering (D : Type u') [category.{v'} D] :
       w' := begin
         ext n,
         dsimp,
-        erw [category.id_comp, category.id_comp, η.naturality],
+        rw [category.id_comp, category.id_comp, η.naturality],
       end }, }, }
 
 variable {C}

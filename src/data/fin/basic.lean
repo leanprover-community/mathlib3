@@ -355,6 +355,12 @@ lemma coe_one' {n : ℕ} : ((1 : fin (n+1)) : ℕ) = 1 % (n+1) := rfl
 
 instance {n : ℕ} : nontrivial (fin (n + 2)) := ⟨⟨0, 1, dec_trivial⟩⟩
 
+lemma nontrivial_iff_two_le : nontrivial (fin n) ↔ 2 ≤ n :=
+by rcases n with _|_|n; simp [fin.nontrivial, not_nontrivial, nat.succ_le_iff]
+
+lemma subsingleton_iff_le_one : subsingleton (fin n) ↔ n ≤ 1 :=
+by rcases n with _|_|n; simp [is_empty.subsingleton, unique.subsingleton, not_subsingleton]
+
 section monoid
 
 @[simp] protected lemma add_zero (k : fin (n + 1)) : k + 0 = k :=

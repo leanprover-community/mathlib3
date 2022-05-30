@@ -711,6 +711,10 @@ h.1
 theorem is_limit.succ_lt {x c} (h : is_limit c) : x < c → succ x < c :=
 h.2 x
 
+/-- `0` would be a limit cardinal if it weren't explicitly excluded. -/
+theorem succ_lt_zero : ∀ x < (0 : cardinal), succ x < 0 :=
+λ x h, ((cardinal.zero_le x).not_lt h).elim
+
 /-- A cardinal is a strong limit if it is not zero and it is
   closed under powersets. Note that `ω` is a strong limit by this definition. -/
 def is_strong_limit (c : cardinal) : Prop :=
@@ -719,8 +723,12 @@ c ≠ 0 ∧ ∀ x < c, 2 ^ x < c
 theorem is_strong_limit.ne_zero {c} (h : is_strong_limit c) : c ≠ 0 :=
 h.1
 
-theorem is_strong_limit.succ_lt {x c} (h : is_strong_limit c) : x < c → 2 ^ x < c :=
+theorem is_strong_limit.power_lt {x c} (h : is_strong_limit c) : x < c → 2 ^ x < c :=
 h.2 x
+
+/-- `0` would be a strong limit cardinal if it weren't explicitly excluded. -/
+theorem power_lt_zero : ∀ x < (0 : cardinal), 2 ^ x < 0 :=
+λ x h, ((cardinal.zero_le x).not_lt h).elim
 
 theorem is_strong_limit.is_limit {c} (H : is_strong_limit c) : is_limit c :=
 ⟨H.1, λ x h, (succ_le_of_lt $ cantor x).trans_lt (H.succ_lt h)⟩

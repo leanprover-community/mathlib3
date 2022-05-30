@@ -289,7 +289,7 @@ end
 
 variable (A)
 
-lemma _root_.is_primitive_root.adjoin_is_cyclotomic_extension [is_domain B] {ζ : B} {n : ℕ+}
+lemma _root_.is_primitive_root.adjoin_is_cyclotomic_extension {ζ : B} {n : ℕ+}
   (h : is_primitive_root ζ n) : is_cyclotomic_extension {n} A (adjoin A ({ζ} : set B)) :=
 { exists_prim_root := λ i hi,
   begin

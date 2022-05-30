@@ -2696,21 +2696,6 @@ lemma lintegral_le_of_forall_fin_meas_le [measurable_space α] {μ : measure α}
 
 local infixr ` →ₛ `:25 := simple_func
 
-lemma ennreal.exists_lt_add_of_lt_add {x y z : ℝ≥0∞} (h : x < y + z) (hy : y ≠ 0) (hz : z ≠ 0) :
-  ∃ y' z', y' < y ∧ z' < z ∧ x < y' + z' :=
-begin
-  haveI : ne_bot (𝓝[<] y) := nhds_within_Iio_self_ne_bot' ⟨0, pos_iff_ne_zero.2 hy⟩,
-  haveI : ne_bot (𝓝[<] z) := nhds_within_Iio_self_ne_bot' ⟨0, pos_iff_ne_zero.2 hz⟩,
-  have A : tendsto (λ (p : ℝ≥0∞ × ℝ≥0∞), p.1 + p.2) ((𝓝[<] y).prod (𝓝[<] z)) (𝓝 (y + z)),
-  { apply tendsto.mono_left _ (filter.prod_mono nhds_within_le_nhds nhds_within_le_nhds),
-    rw ← nhds_prod_eq,
-    exact tendsto_add },
-  rcases (((tendsto_order.1 A).1 x h).and
-    (filter.prod_mem_prod self_mem_nhds_within self_mem_nhds_within)).exists
-    with ⟨⟨y', z'⟩, hx, hy', hz'⟩,
-  exact ⟨y', z', hy', hz', hx⟩,
-end
-
 lemma simple_func.exists_lt_lintegral_simple_func_of_lt_lintegral
   [measurable_space α] {μ : measure α} [sigma_finite μ] {f : α →ₛ ℝ≥0}
   {L : ℝ≥0∞} (hL : L < ∫⁻ x, f x ∂μ) :
@@ -2771,24 +2756,15 @@ lemma exists_lt_lintegral_simple_func_of_lt_lintegral
   {L : ℝ≥0∞} (hL : L < ∫⁻ x, f x ∂μ) :
   ∃ g : α →ₛ ℝ≥0, (∀ x, g x ≤ f x) ∧ (∫⁻ x, g x ∂μ < ∞) ∧ (L < ∫⁻ x, g x ∂μ) :=
 begin
-
+  simp_rw [lintegral_eq_nnreal, lt_supr_iff] at hL,
+  rcases hL with ⟨g₀, hg₀, g₀L⟩,
+  have h'L : L < ∫⁻ x, g₀ x ∂μ,
+  { convert g₀L,
+    rw ← simple_func.lintegral_eq_lintegral,
+    refl },
+  rcases simple_func.exists_lt_lintegral_simple_func_of_lt_lintegral h'L with ⟨g, hg, gL, gtop⟩,
+  exact ⟨g, λ x, (hg x).trans (coe_le_coe.1 (hg₀ x)), gL, gtop⟩,
 end
-
-#exit
-
-{ have A : ∫⁻ (x : α), f₁ x ∂μ + ∫⁻ (x : α), f₂ x ∂μ ≠ ⊤,
-      by rwa ← lintegral_add f₁.measurable.coe_nnreal_ennreal f₂.measurable.coe_nnreal_ennreal ,
-    rcases h₁ (ennreal.add_ne_top.1 A).1 (ennreal.half_pos ε0).ne'
-      with ⟨g₁, f₁_le_g₁, g₁cont, g₁int⟩,
-    rcases h₂ (ennreal.add_ne_top.1 A).2 (ennreal.half_pos ε0).ne'
-      with ⟨g₂, f₂_le_g₂, g₂cont, g₂int⟩,
-    refine ⟨λ x, g₁ x + g₂ x, λ x, add_le_add (f₁_le_g₁ x) (f₂_le_g₂ x), g₁cont.add g₂cont, _⟩,
-    simp only [simple_func.coe_add, ennreal.coe_add, pi.add_apply],
-    rw [lintegral_add f₁.measurable.coe_nnreal_ennreal f₂.measurable.coe_nnreal_ennreal,
-        lintegral_add g₁cont.measurable.coe_nnreal_ennreal g₂cont.measurable.coe_nnreal_ennreal],
-    convert add_le_add g₁int g₂int using 1,
-    conv_lhs { rw ← ennreal.add_halves ε },
-    abel }
 
 /-- A sigma-finite measure is absolutely continuous with respect to some finite measure. -/
 lemma exists_absolutely_continuous_is_finite_measure

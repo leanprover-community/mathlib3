@@ -326,7 +326,6 @@ lemma martingale.stopped_value_min_ae_eq_condexp
   [sigma_finite_filtration μ 𝒢] {f : ℕ → α → E} (h : martingale f 𝒢 μ)
   (hτ : is_stopping_time 𝒢 τ) (hσ : is_stopping_time 𝒢 σ) {n : ℕ}
   (hτ_le : ∀ x, τ x ≤ n)
-  [sigma_finite (μ.trim hτ.measurable_space_le)] [sigma_finite (μ.trim hσ.measurable_space_le)]
   [h_sf_min : sigma_finite (μ.trim (hτ.min hσ).measurable_space_le)] :
   stopped_value f (λ x, min (σ x) (τ x)) =ᵐ[μ] μ[stopped_value f τ | hσ.measurable_space] :=
 begin

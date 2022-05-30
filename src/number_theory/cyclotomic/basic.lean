@@ -551,7 +551,8 @@ end cyclotomic_ring
 
 end is_domain
 
-/-- Algebraically closed fields are cyclotomic extensions over themselves. -/
+/-- Algebraically closed fields are `S`-cyclotomic extensions over themselves if
+`ne_zero ((a : ℕ) : K))` for all `a ∈ S`. -/
 lemma is_alg_closed.is_cyclotomic_extension (K) [field K] [is_alg_closed K]
   (h : ∀ a ∈ S, ne_zero ((a : ℕ) : K)) : is_cyclotomic_extension S K K :=
 begin

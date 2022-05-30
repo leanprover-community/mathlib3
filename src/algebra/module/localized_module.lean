@@ -37,8 +37,8 @@ namespace localized_module
 
 universes u v
 
-variables {R : Type u} [comm_semiring R] (M : Type v) [add_comm_monoid M] [module R M]
-variables (S : submonoid R)
+variables {R : Type u} [comm_semiring R] (S : submonoid R)
+variables (M : Type v) [add_comm_monoid M] [module R M]
 
 example (r : R) (m : M) : M := r • m
 
@@ -49,7 +49,7 @@ match p1, p2 with
 | ⟨m1, s1⟩, ⟨m2, s2⟩ := ∃ (u : S), u • s1 • m2 = u • s2 • m1
 end
 
-lemma r.is_equiv : is_equiv _ (r M S) :=
+lemma r.is_equiv : is_equiv _ (r S M) :=
 { refl := λ ⟨m, s⟩, ⟨1, by rw [one_smul]⟩,
   trans := λ ⟨m1, s1⟩ ⟨m2, s2⟩ ⟨m3, s3⟩ ⟨u1, hu1⟩ ⟨u2, hu2⟩, begin
     use u1 * u2 * s2,
@@ -73,29 +73,29 @@ lemma r.is_equiv : is_equiv _ (r M S) :=
 
 
 instance r.setoid : setoid (M × S) :=
-{ r := r M S,
-  iseqv := ⟨(r.is_equiv M S).refl, (r.is_equiv M S).symm, (r.is_equiv M S).trans⟩ }
+{ r := r S M,
+  iseqv := ⟨(r.is_equiv S M).refl, (r.is_equiv S M).symm, (r.is_equiv S M).trans⟩ }
 
 /--
 If `S` is a multiplicative subset of a ring `R` and `M` an `R`-module, then
 we can localize `M` by `S`.
 -/
 @[nolint has_inhabited_instance]
-def _root_.localized_module : Type (max u v) := quotient (r.setoid M S)
+def _root_.localized_module : Type (max u v) := quotient (r.setoid S M)
 
 section
 variables {M S}
 
 /--The canonical map sending `(m, s) ↦ m/s`-/
-def mk (m : M) (s : S) : localized_module M S :=
+def mk (m : M) (s : S) : localized_module S M :=
 quotient.mk ⟨m, s⟩
 
 lemma mk_eq {m m' : M} {s s' : S} : mk m s = mk m' s' ↔ ∃ (u : S), u • s • m' = u • s' • m :=
 quotient.eq
 
 @[elab_as_eliminator]
-lemma induction_on {β : localized_module M S → Prop} (h : ∀ (m : M) (s : S), β (mk m s)) :
-  ∀ (x : localized_module M S), β x := λ x,
+lemma induction_on {β : localized_module S M → Prop} (h : ∀ (m : M) (s : S), β (mk m s)) :
+  ∀ (x : localized_module S M), β x := λ x,
 begin
   induction x using quotient.induction_on,
   rcases x with ⟨m, s⟩,
@@ -103,7 +103,7 @@ begin
 end
 
 @[elab_as_eliminator]
-lemma induction_on₂ {β : localized_module M S → localized_module M S → Prop}
+lemma induction_on₂ {β : localized_module S M → localized_module S M → Prop}
   (h : ∀ (m m' : M) (s s' : S), β (mk m s) (mk m' s')) : ∀ x y, β x y := λ x y,
 begin
   induction x using quotient.induction_on,
@@ -115,7 +115,7 @@ end
 /--If `f : M × S → α` respects the equivalence relation `localized_module.r`, then
 `f` descents to a map `localized_module M S → α`.
 -/
-def lift_on {α : Type*} (x : localized_module M S) (f : M × S → α)
+def lift_on {α : Type*} (x : localized_module S M) (f : M × S → α)
   (wd : ∀ (p p' : M × S) (h1 : p ≈ p'), f p = f p') : α :=
 quotient.lift_on x f wd
 
@@ -128,7 +128,7 @@ by convert quotient.lift_on_mk f wd ⟨m, s⟩
 /--If `f : M × S → M × S → α` respects the equivalence relation `localized_module.r`, then
 `f` descents to a map `localized_module M S → localized_module M S → α`.
 -/
-def lift_on₂ {α : Type*} (x y : localized_module M S) (f : (M × S) → (M × S) → α)
+def lift_on₂ {α : Type*} (x y : localized_module S M) (f : (M × S) → (M × S) → α)
   (wd : ∀ (p q p' q' : M × S) (h1 : p ≈ p') (h2 : q ≈ q'), f p q = f p' q') : α :=
 quotient.lift_on₂ x y f wd
 
@@ -138,11 +138,11 @@ lemma lift_on₂_mk {α : Type*} (f : (M × S) → (M × S) → α)
   lift_on₂ (mk m s) (mk m' s') f wd = f ⟨m, s⟩ ⟨m', s'⟩ :=
 by convert quotient.lift_on₂_mk f wd _ _
 
-instance : has_zero (localized_module M S) := ⟨mk 0 1⟩
+instance : has_zero (localized_module S M) := ⟨mk 0 1⟩
 lemma zero_mk (s : S) : mk (0 : M) s = 0 :=
 mk_eq.mpr ⟨1, by rw [one_smul, smul_zero, smul_zero, one_smul]⟩
 
-instance : has_add (localized_module M S) :=
+instance : has_add (localized_module S M) :=
 { add := λ p1 p2, lift_on₂ p1 p2 (λ x y, mk (y.2 • x.1 + x.2 • y.1) (x.2 * y.2)) $
     λ ⟨m1, s1⟩ ⟨m2, s2⟩ ⟨m1', s1'⟩ ⟨m2', s2'⟩ ⟨u1, hu1⟩ ⟨u2, hu2⟩, mk_eq.mpr ⟨u1 * u2, begin
       calc (u1 * u2) • (s1 * s2) • (s2' • m1' + s1' • m2')
@@ -179,7 +179,7 @@ lemma mk_add_mk {m1 m2 : M} {s1 s2 : S} :
   mk m1 s1 + mk m2 s2 = mk (s2 • m1 + s1 • m2) (s1 * s2) :=
 mk_eq.mpr $ ⟨1, by dsimp only; rw [one_smul]⟩
 
-lemma add_assoc' (x y z : localized_module M S) :
+lemma add_assoc' (x y z : localized_module S M) :
   x + y + z = x + (y + z) :=
 begin
   induction x using localized_module.induction_on with mx sx,
@@ -193,28 +193,28 @@ begin
   { rw [mul_comm, add_assoc, mul_smul, mul_smul, ←mul_smul sx sz, mul_comm, mul_smul], },
 end
 
-lemma add_comm' (x y : localized_module M S) :
+lemma add_comm' (x y : localized_module S M) :
   x + y = y + x :=
 localized_module.induction_on₂ (λ m m' s s', by rw [mk_add_mk, mk_add_mk, add_comm, mul_comm]) x y
 
-lemma zero_add' (x : localized_module M S) : 0 + x = x :=
+lemma zero_add' (x : localized_module S M) : 0 + x = x :=
 induction_on (λ m s, by rw [← zero_mk s, mk_add_mk, smul_zero, zero_add, mk_eq];
   exact ⟨1, by rw [one_smul, mul_smul, one_smul]⟩) x
 
-lemma add_zero' (x : localized_module M S) : x + 0 = x :=
+lemma add_zero' (x : localized_module S M) : x + 0 = x :=
 induction_on (λ m s, by rw [← zero_mk s, mk_add_mk, smul_zero, add_zero, mk_eq];
   exact ⟨1, by rw [one_smul, mul_smul, one_smul]⟩) x
 
-instance has_nat_scalar : has_scalar ℕ (localized_module M S) :=
+instance has_nat_scalar : has_scalar ℕ (localized_module S M) :=
 { smul := λ n, nat.rec_on n (λ x, 0) (λ m f x, x + f x) }
 
-lemma nsmul_zero' (x : localized_module M S) : (0 : ℕ) • x = 0 :=
+lemma nsmul_zero' (x : localized_module S M) : (0 : ℕ) • x = 0 :=
 localized_module.induction_on (λ _ _, rfl) x
-lemma nsmul_succ' (n : ℕ) (x : localized_module M S) :
+lemma nsmul_succ' (n : ℕ) (x : localized_module S M) :
   n.succ • x = x + n • x :=
 localized_module.induction_on (λ _ _, rfl) x
 
-instance : add_comm_monoid (localized_module M S) :=
+instance : add_comm_monoid (localized_module S M) :=
 { add := (+),
   add_assoc := add_assoc',
   zero := 0,
@@ -225,7 +225,7 @@ instance : add_comm_monoid (localized_module M S) :=
   nsmul_succ' := nsmul_succ',
   add_comm := add_comm' }
 
-instance : has_scalar (localization S) (localized_module M S) :=
+instance : has_scalar (localization S) (localized_module S M) :=
 { smul := λ f x, localization.lift_on f (λ r s, lift_on x (λ p, mk (r • p.1) (s * p.2))
     begin
       rintros ⟨m1, t1⟩ ⟨m2, t2⟩ ⟨u, h⟩,
@@ -264,14 +264,14 @@ begin
   rw [localization.lift_on_mk, lift_on_mk],
 end
 
-lemma one_smul' (m : localized_module M S) :
+lemma one_smul' (m : localized_module S M) :
   (1 : localization S) • m = m :=
 begin
   induction m using localized_module.induction_on with m s,
   rw [← localization.mk_one, mk_smul_mk, one_smul, one_mul],
 end
 
-lemma mul_smul' (x y : localization S) (m : localized_module M S) :
+lemma mul_smul' (x y : localization S) (m : localized_module S M) :
   (x * y) • m = x • y • m :=
 begin
   induction x using localization.induction_on with data,
@@ -282,7 +282,7 @@ begin
   rw [localization.mk_mul, mk_smul_mk, mk_smul_mk, mk_smul_mk, mul_smul, mul_assoc],
 end
 
-lemma smul_add' (x : localization S) (y z : localized_module M S) :
+lemma smul_add' (x : localization S) (y z : localized_module S M) :
   x • (y + z) = x • y + x • z :=
 begin
   induction x using localization.induction_on with data,
@@ -306,14 +306,14 @@ begin
 end
 
 lemma smul_zero' (x : localization S) :
-  x • (0 : localized_module M S) = 0 :=
+  x • (0 : localized_module S M) = 0 :=
 begin
   induction x using localization.induction_on with data,
   rcases data with ⟨r, s⟩,
   rw [←zero_mk s, mk_smul_mk, smul_zero, zero_mk, zero_mk],
 end
 
-lemma add_smul' (x y : localization S) (z : localized_module M S) :
+lemma add_smul' (x y : localization S) (z : localized_module S M) :
   (x + y) • z = x • z + y • z :=
 begin
   induction x using localization.induction_on with datax,
@@ -337,14 +337,14 @@ begin
   ... = (s * t * (s' * t)) • ((s : R) * r' + (s' : R) * r) • m : by simp [add_smul]; congr,
 end
 
-lemma zero_smul' (x : localized_module M S) :
+lemma zero_smul' (x : localized_module S M) :
   (0 : localization S) • x = 0 :=
 begin
   induction x using localized_module.induction_on with m s,
   rw [← localization.mk_zero s, mk_smul_mk, zero_smul, zero_mk],
 end
 
-instance is_module : module (localization S) (localized_module M S) :=
+instance is_module : module (localization S) (localized_module S M) :=
 { smul := (•),
   one_smul := one_smul',
   mul_smul := mul_smul',

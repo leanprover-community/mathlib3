@@ -479,18 +479,4 @@ lemma inner_matrix_row_row (A B : matrix (fin n) (fin m) 𝕜) (i j : (fin n)) :
 lemma inner_matrix_col_col (A B : matrix (fin n) (fin m) 𝕜) (i j : (fin m)) :
   ⟪Aᵀ i, Bᵀ j⟫ₙ = (Aᴴ ⬝ B) i j := rfl
 
-variables (i : ι) (j : ι')
-
-lemma euclidean_space.mul_vec_single_apply [decidable_eq ι] (A : matrix ι' ι 𝕜) :
-  A.mul_vec (pi.single i 1) j = Aᵀ i j :=
-matrix.mul_vec_std_basis A j i
-
-@[simp] lemma euclidean_space.mul_vec_single [decidable_eq ι] (A : matrix ι' ι 𝕜) :
-  A.mul_vec (pi.single i 1) = Aᵀ i :=
-by ext; apply euclidean_space.mul_vec_single_apply
-
-@[simp] lemma euclidean_space.vec_mul_single [decidable_eq ι] (A : matrix ι ι' 𝕜) :
-  A.vec_mul (pi.single i 1) j = A i j :=
-matrix.vec_mul_std_basis A i j
-
 end matrix

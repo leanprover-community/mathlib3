@@ -183,6 +183,30 @@ fibers and the model space. -/
   map_add' := λ v w, (e.linear _ hb).map_add v w,
   map_smul' := λ c v, (e.linear _ hb).map_smul c v }
 
+/-- A fiberwise linear inverse to `e`. -/
+protected def symmₗ (e : pretrivialization R F E) (b : B) : F →ₗ[R] E b :=
+if hb : b ∈ e.base_set then (e.linear_equiv_at b hb).symm else 0
+
+lemma symmₗ_def (e : pretrivialization R F E) {b : B} (hb : b ∈ e.base_set) :
+  e.symmₗ b = (e.linear_equiv_at b hb).symm :=
+dif_pos hb
+
+lemma symmₗ_eq_zero (e : pretrivialization R F E) {b : B} (hb : b ∉ e.base_set) :
+  e.symmₗ b = 0 :=
+dif_neg hb
+
+/-- A fiberwise linear map equal to `e` on `e.base_set`. -/
+protected def linear_map_at (e : pretrivialization R F E) (b : B) : E b →ₗ[R] F :=
+if hb : b ∈ e.base_set then e.linear_equiv_at b hb else 0
+
+lemma linear_map_at_def (e : pretrivialization R F E) {b : B} (hb : b ∈ e.base_set) :
+  e.linear_map_at b = e.linear_equiv_at b hb :=
+dif_pos hb
+
+lemma linear_map_at_eq_zero (e : pretrivialization R F E) {b : B} (hb : b ∉ e.base_set) :
+  e.linear_map_at b = 0 :=
+dif_neg hb
+
 end topological_vector_bundle.pretrivialization
 
 variable [topological_space (total_space E)]
@@ -311,6 +335,45 @@ begin
   rw [← e.target_eq],
   exact e.to_local_homeomorph.continuous_on_symm
 end
+
+
+/-- A trivialization for a topological vector bundle defines linear equivalences between the
+fibers and the model space. -/
+def linear_equiv_at (e : trivialization R F E) (b : B) (hb : b ∈ e.base_set) :
+  E b ≃ₗ[R] F :=
+e.to_pretrivialization.linear_equiv_at b hb
+
+@[simp]
+lemma linear_equiv_at_apply (e : trivialization R F E) (b : B) (hb : b ∈ e.base_set) (v : E b) :
+  e.linear_equiv_at b hb v = (e (total_space_mk E b v)).2 := rfl
+
+@[simp]
+lemma linear_equiv_at_symm_apply (e : trivialization R F E) (b : B) (hb : b ∈ e.base_set) (v : F) :
+  (e.linear_equiv_at b hb).symm v = e.symm b v := rfl
+
+/-- A fiberwise linear inverse to `e`. -/
+protected def symmₗ (e : trivialization R F E) (b : B) : F →ₗ[R] E b :=
+if hb : b ∈ e.base_set then (e.linear_equiv_at b hb).symm else 0
+
+lemma symmₗ_def (e : trivialization R F E) {b : B} (hb : b ∈ e.base_set) :
+  e.symmₗ b = (e.linear_equiv_at b hb).symm :=
+dif_pos hb
+
+lemma symmₗ_eq_zero (e : trivialization R F E) {b : B} (hb : b ∉ e.base_set) :
+  e.symmₗ b = 0 :=
+dif_neg hb
+
+/-- A fiberwise linear map equal to `e` on `e.base_set`. -/
+protected def linear_map_at (e : trivialization R F E) (b : B) : E b →ₗ[R] F :=
+if hb : b ∈ e.base_set then e.linear_equiv_at b hb else 0
+
+lemma linear_map_at_def (e : trivialization R F E) {b : B} (hb : b ∈ e.base_set) :
+  e.linear_map_at b = e.linear_equiv_at b hb :=
+dif_pos hb
+
+lemma linear_map_at_eq_zero (e : trivialization R F E) {b : B} (hb : b ∉ e.base_set) :
+  e.linear_map_at b = 0 :=
+dif_neg hb
 
 end topological_vector_bundle.trivialization
 

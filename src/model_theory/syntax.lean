@@ -417,8 +417,8 @@ relations. -/
   λ φ, by simp, λ φ, by simp⟩
 
 /-- Substitutes the variables in a given formula with terms. -/
-@[simp] def subst : ∀ {n : ℕ}, L.bounded_formula α n → (α → L.term β) → L.bounded_formula β n :=
-λ n φ f, φ.map_term_rel (λ _ t, t.subst (sum.elim (term.relabel sum.inl ∘ f) (var ∘ sum.inr))) (λ _, id)
+@[simp] def subst {n : ℕ} (φ : L.bounded_formula α n) (f : α → L.term β) : L.bounded_formula β n :=
+φ.map_term_rel (λ _ t, t.subst (sum.elim (term.relabel sum.inl ∘ f) (var ∘ sum.inr))) (λ _, id)
 
 /-- Turns the extra variables of a bounded formula into free variables. -/
 @[simp] def to_formula : ∀ {n : ℕ}, L.bounded_formula α n → L.formula (α ⊕ fin n)

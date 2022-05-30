@@ -497,7 +497,7 @@ inductive inv_ty (l r : Type u) : bool → Type u
 | right₂ : r → inv_ty tt → inv_ty tt
 
 instance (l r : Type u) [is_empty l] [is_empty r] : is_empty (inv_ty l r tt) :=
-⟨by rintro (_|_|_|a|a); exact is_empty_elim a⟩
+⟨by rintro (_ | _ | _ | a | a); exact is_empty_elim a⟩
 
 instance (l r : Type u) : inhabited (inv_ty l r ff) := ⟨inv_ty.zero⟩
 
@@ -539,7 +539,7 @@ def inv' : pgame → pgame
   ⟨inv_ty l' r ff, inv_ty l' r tt,
     inv_val L' R IHl' IHr, inv_val L' R IHl' IHr⟩
 
-theorem zero_lf_inv' : ∀ {x : pgame}, 0 ⧏ inv' x
+theorem zero_lf_inv' : ∀ (x : pgame), 0 ⧏ inv' x
 | ⟨xl, xr, xL, xR⟩ := by { convert lf_mk _ _ inv_ty.zero, refl }
 
 /-- `inv' 0` has exactly the same moves as `1`. -/

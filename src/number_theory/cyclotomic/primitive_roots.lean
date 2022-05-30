@@ -131,11 +131,12 @@ end
 variables {K}
 
 /-- The equivalence between `L →ₐ[K] A` and `primitive_roots n A` given by a primitive root `ζ`. -/
-@[simps] noncomputable def embeddings_equiv_primitive_roots [is_domain C] [ne_zero ((n : ℕ) : K)]
+@[simps] noncomputable def embeddings_equiv_primitive_roots [is_domain C]
   (hirr : irreducible (cyclotomic n K)) : (L →ₐ[K] C) ≃ primitive_roots n C :=
 ((hζ.power_basis K).lift_equiv).trans
 { to_fun    := λ x,
   begin
+    haveI := is_cyclotomic_extension.ne_zero' n K L,
     haveI hn := ne_zero.of_no_zero_smul_divisors K C n,
     refine ⟨x.1, _⟩,
     cases x,
@@ -145,6 +146,7 @@ variables {K}
   end,
   inv_fun   := λ x,
   begin
+    haveI := is_cyclotomic_extension.ne_zero' n K L,
     haveI hn := ne_zero.of_no_zero_smul_divisors K C n,
     refine ⟨x.1, _⟩,
     cases x,
@@ -211,7 +213,6 @@ end
 lemma norm_eq_one_of_linearly_ordered {K : Type*} [linear_ordered_field K] [algebra K L]
   (hodd : odd (n : ℕ)) : norm K ζ = 1 :=
 begin
-  haveI := ne_zero.of_no_zero_smul_divisors K L n,
   have hz := congr_arg (norm K) ((is_primitive_root.iff_def _ n).1 hζ).1,
   rw [←(algebra_map K L).map_one , algebra.norm_algebra_map, one_pow, map_pow, ←one_pow ↑n] at hz,
   exact strict_mono.injective hodd.strict_mono_pow hz

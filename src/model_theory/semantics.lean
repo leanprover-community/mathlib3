@@ -139,12 +139,14 @@ end
   {t : L[[α]].term β} {v : β → M} :
   t.constants_to_vars.realize (sum.elim (λ a, ↑(L.con a)) v) = t.realize v :=
 begin
-  letI := @language.sum_Structure L _ M _ (constants_on.Structure (v ∘ sum.inl)),
   induction t with _ n f _ ih,
   { simp },
   { cases n,
-    { cases f;
-      simp [ih], },
+    { cases f,
+      { simp only [ih, realize, constants_to_vars],
+        rw ← (Lhom_with_constants L α).map_on_function M f,
+        refl, },
+      { squeeze_simp [ih], }, },
     { cases f,
       { simp [ih] },
       { exact is_empty_elim f } } }
@@ -169,7 +171,6 @@ end
   (constants_vars_equiv_left t).realize (sum.elim (λ a, ↑(L.con a)) v) xs) =
     t.realize (sum.elim v xs) :=
 begin
-  letI := @language.sum_Structure L _ M _ (constants_on.Structure (v ∘ sum.inl)),
   simp only [constants_vars_equiv_left, realize_relabel, realize_constants_to_vars, equiv.coe_trans,
     function.comp_app, constants_vars_equiv_apply, relabel_equiv_symm_apply],
   rcongr,

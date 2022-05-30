@@ -171,8 +171,10 @@ end
     (sum.elim (v ∘ sum.inr) xs) t :=
 begin
   letI := @language.sum_Structure L _ M _ (constants_on.Structure (v ∘ sum.inl)),
-  squeeze_simp [constants_vars_equiv_left, realize_relabel, realize_constants_to_vars],
+  simp only [constants_vars_equiv_left, realize_relabel, realize_constants_to_vars, equiv.coe_trans,
+    function.comp_app, constants_vars_equiv_apply, relabel_equiv_symm_apply],
   rcongr,
+
 end
 
 end term

@@ -191,11 +191,10 @@ end
 lemma Inter_halfspaces_eq (hs₁ : convex ℝ s) (hs₂ : is_closed s) :
   (⋂ (l : E →L[ℝ] ℝ), {x | ∃ y ∈ s, l x ≤ l y}) = s :=
 begin
-  ext,
-  simp only [mem_Inter],
-  refine ⟨λ hx, _, λ hx l, ⟨x, hx, le_rfl⟩⟩,
+  rw set.Inter_set_of,
+  refine set.subset.antisymm (λ x hx, _) (λ x hx l, ⟨x, hx, le_rfl⟩),
   by_contra,
   obtain ⟨l, s, hlA, hl⟩ := geometric_hahn_banach_closed_point hs₁ hs₂ h,
   obtain ⟨y, hy, hxy⟩ := hx l,
-  linarith [hlA y hy],
+  exact ((hxy.trans_lt (hlA y hy)).trans hl).not_le le_rfl,
 end

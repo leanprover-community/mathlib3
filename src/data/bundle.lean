@@ -110,9 +110,6 @@ rfl
   pullback.lift f (total_space_mk x y) = total_space_mk (f x) y :=
 rfl
 
-set_option pp.implicit true
-#check @pullback.lift_mk
-
 lemma pullback_total_space_embedding_snd (f : B' → B) (x : total_space (f *ᵖ E)) :
   (pullback_total_space_embedding f x).2 = pullback.lift f x :=
 rfl

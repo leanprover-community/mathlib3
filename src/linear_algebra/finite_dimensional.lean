@@ -678,8 +678,8 @@ end
 
 lemma finrank_eq_zero_of_basis_imp_not_finite
   (h : ∀ s : set V, basis.{v} (s : set V) K V → ¬ s.finite) : finrank K V = 0 :=
-dif_neg (λ dim_lt,
-  h _ (basis.of_vector_space K V) ((basis.of_vector_space K V).finite_index_of_dim_lt_aleph_0 dim_lt))
+dif_neg (λ dim_lt, h _ (basis.of_vector_space K V)
+  ((basis.of_vector_space K V).finite_index_of_dim_lt_aleph_0 dim_lt))
 
 lemma finrank_eq_zero_of_basis_imp_false
   (h : ∀ s : finset V, basis.{v} (s : set V) K V → false) : finrank K V = 0 :=

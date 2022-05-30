@@ -6,6 +6,7 @@ Authors: Nicolò Cavalleri, Sebastien Gouezel, Heather Macbeth, Patrick Massot
 
 import analysis.normed_space.bounded_linear_maps
 import topology.fiber_bundle
+import topology.continuous_function.basic
 
 /-!
 # Topological vector bundles
@@ -38,7 +39,9 @@ the typeclass `topological_vector_bundle R F E`.
 If `E₁ : B → Type*` and `E₂ : B → Type*` define two topological vector bundles over `R` with fiber
 models `F₁` and `F₂`, denote by `E₁ ×ᵇ E₂` the sigma type of direct sums, with fiber
 `E x := (E₁ x × E₂ x)`. We can endow `bundle.total_space (E₁ ×ᵇ E₂)` with a topological vector
-bundle structure, `bundle.prod.topological_vector_bundle`.
+bundle structure, `bundle.prod.topological_vector_bundle`.  Similarly we construct the pullback
+bundle for a map `f : B' → B` whose fiber map is given simply by `f *ᵖ E = E ∘ f` (the type synonym
+is there for typeclass instance problems).
 
 A similar construction (which is yet to be formalized) can be done for the vector bundle of
 continuous linear maps from `E₁ x` to `E₂ x` with fiber a type synonym
@@ -57,13 +60,15 @@ noncomputable theory
 open bundle set
 open_locale classical
 
-variables (R : Type*) {B : Type*} (F : Type*) (E : B → Type*)
+variables (R 𝕜 : Type*) {B : Type*} (F : Type*) (E : B → Type*)
 
 section topological_vector_space
 variables [semiring R] [∀ x, add_comm_monoid (E x)] [∀ x, module R (E x)]
   [topological_space F] [add_comm_monoid F] [module R F] [topological_space B]
 
-/-- Local pretrivialization for vector prebundles. -/
+/-- A pretrivialization for a (yet to be defined) topological vector bundle `total_space E` is a
+local equiv between sets of the form `proj ⁻¹' base_set` and `base_set × F` which respects the
+first coordinate, and is linear in each fiber. -/
 @[nolint has_inhabited_instance]
 structure topological_vector_bundle.pretrivialization extends to_fiber_bundle_pretrivialization :
   topological_fiber_bundle.pretrivialization F (proj E) :=
@@ -254,7 +259,12 @@ end topological_vector_bundle.pretrivialization
 
 variable [topological_space (total_space E)]
 
-/-- Local trivialization for vector bundles. -/
+/--
+A structure extending local homeomorphisms, defining a local trivialization of the projection
+`proj : total_space E → B` with fiber `F`, as a local homeomorphism between `total_space E`
+and `B × F` defined between two sets of the form `proj ⁻¹' base_set` and `base_set × F`,
+acting trivially on the first coordinate and linear in the fibers.
+-/
 @[nolint has_inhabited_instance]
 structure topological_vector_bundle.trivialization extends to_fiber_bundle_trivialization :
   topological_fiber_bundle.trivialization F (proj E) :=
@@ -290,6 +300,9 @@ lemma mk_proj_snd (ex : x ∈ e.source) : (proj E x, (e x).2) = e x :=
 prod.ext (e.coe_fst ex).symm rfl
 lemma mk_proj_snd' (ex : proj E x ∈ e.base_set) : (proj E x, (e x).2) = e x :=
 prod.ext (e.coe_fst' ex).symm rfl
+
+lemma open_target : is_open e.target :=
+by { rw e.target_eq, exact e.open_base_set.prod is_open_univ }
 
 @[simp, mfld_simps] lemma coe_coe_fst (hb : b ∈ e.base_set) : (e y).1 = b :=
 e.coe_fst (e.mem_source.2 hb)
@@ -875,15 +888,15 @@ end
 section
 variables [nondiscrete_normed_field R] [∀ x, add_comm_monoid (E x)] [∀ x, module R (E x)]
   [normed_group F] [normed_space R F] [topological_space B]
-  [∀ x, topological_space (E x)]
 
 open topological_space
 
 open topological_vector_bundle
 /-- This structure permits to define a vector bundle when trivializations are given as local
-equivalences but there is not yet a topology on the total space. The total space is hence given a
-topology in such a way that there is a fiber bundle structure for which the local equivalences
-are also local homeomorphisms and hence vector bundle trivializations. -/
+equivalences but there is not yet a topology on the total space or the fibers.
+The total space is hence given a topology in such a way that there is a fiber bundle structure for
+which the local equivalences are also local homeomorphisms and hence vector bundle trivializations.
+The topology on the fibers is induced from the one on the total space. -/
 @[nolint has_inhabited_instance]
 structure topological_vector_prebundle :=
 (pretrivialization_atlas : set (pretrivialization R F E))
@@ -897,7 +910,6 @@ structure topological_vector_prebundle :=
 (coord_change_apply : ∀ {e e' : pretrivialization R F E} (he : e ∈ pretrivialization_atlas)
   (he' : e' ∈ pretrivialization_atlas) (b : B) (hb : b ∈ e.base_set ∩ e'.base_set) (v : F),
   coord_change e he e' he' b v = (e' (total_space_mk E b (e.symm b v))).2)
-(total_space_mk_inducing : ∀ (b : B), inducing ((pretrivialization_at b) ∘ (total_space_mk E b)))
 
 namespace topological_vector_prebundle
 
@@ -977,27 +989,19 @@ begin
   exact a.mem_base_pretrivialization_at b,
 end
 
-@[continuity] lemma continuous_total_space_mk (b : B) :
-  @continuous _ _ _ a.total_space_topology (total_space_mk E b) :=
-begin
-  letI := a.total_space_topology,
-  let e := a.trivialization_of_mem_pretrivialization_atlas (a.pretrivialization_mem_atlas b),
-  rw e.to_local_homeomorph.continuous_iff_continuous_comp_left
-    (a.total_space_mk_preimage_source b),
-  exact continuous_iff_le_induced.mpr (le_antisymm_iff.mp (a.total_space_mk_inducing b).induced).1,
-end
+/-- Topology on the fibers `E b` induced by the map `E b → E.total_space`. -/
+def fiber_topology (b : B) : topological_space (E b) :=
+topological_space.induced (total_space_mk E b) a.total_space_topology
 
-lemma inducing_total_space_mk_of_inducing_comp (b : B)
-  (h : inducing ((a.pretrivialization_at b) ∘ (total_space_mk E b))) :
-  @inducing _ _ _ a.total_space_topology (total_space_mk E b) :=
+@[continuity] lemma inducing_total_space_mk (b : B) :
+  @inducing _ _ (a.fiber_topology b) a.total_space_topology (total_space_mk E b) :=
+by { letI := a.total_space_topology, letI := a.fiber_topology b, exact ⟨rfl⟩ }
+
+@[continuity] lemma continuous_total_space_mk (b : B) :
+  @continuous _ _ (a.fiber_topology b) a.total_space_topology (total_space_mk E b) :=
 begin
-  letI := a.total_space_topology,
-  rw ←restrict_comp_cod_restrict (a.mem_trivialization_at_source b) at h,
-  apply inducing.of_cod_restrict (a.mem_trivialization_at_source b),
-  refine inducing_of_inducing_compose _ (continuous_on_iff_continuous_restrict.mp
-    (a.trivialization_of_mem_pretrivialization_atlas
-    (a.pretrivialization_mem_atlas b)).continuous_to_fun) h,
-  exact (a.continuous_total_space_mk b).cod_restrict (a.mem_trivialization_at_source b),
+  letI := a.total_space_topology, letI := a.fiber_topology b,
+  exact (a.inducing_total_space_mk b).continuous
 end
 
 /-- Make a `topological_vector_bundle` from a `topological_vector_prebundle`.  Concretely this means
@@ -1007,9 +1011,8 @@ establishes that for the topology constructed on the sigma-type using
 `topological_vector_prebundle.total_space_topology`, these "pretrivializations" are actually
 "trivializations" (i.e., homeomorphisms with respect to the constructed topology). -/
 def to_topological_vector_bundle :
-  @topological_vector_bundle R _ F E _ _ _ _ _ _ a.total_space_topology _ :=
-{ total_space_mk_inducing := λ b, a.inducing_total_space_mk_of_inducing_comp b
-    (a.total_space_mk_inducing b),
+  @topological_vector_bundle R _ F E _ _ _ _ _ _ a.total_space_topology a.fiber_topology :=
+{ total_space_mk_inducing := a.inducing_total_space_mk,
   trivialization_atlas := {e | ∃ e₀ (he₀ : e₀ ∈ a.pretrivialization_atlas),
     e = a.trivialization_of_mem_pretrivialization_atlas he₀},
   trivialization_at := λ x, a.trivialization_of_mem_pretrivialization_atlas
@@ -1029,6 +1032,146 @@ def to_topological_vector_bundle :
 end topological_vector_prebundle
 
 end
+
+section pullback
+
+/-! ### Pullback of topological vector bundles -/
+
+open topological_space topological_vector_bundle
+
+variables {B' : Type*} (f : B' → B) (E' : B → Type*)
+
+section
+
+local attribute [reducible] pullback
+
+instance [∀ (x : B), topological_space (E' x)] : ∀ (x : B'), topological_space ((f *ᵖ E') x) :=
+by apply_instance
+
+instance [∀ (x : B), add_comm_monoid (E' x)] : ∀ (x : B'), add_comm_monoid ((f *ᵖ E') x) :=
+by apply_instance
+
+instance [semiring R] [∀ (x : B), add_comm_monoid (E' x)] [∀ x, module R (E' x)] :
+  ∀ (x : B'), module R ((f *ᵖ E') x) :=
+by apply_instance
+
+end
+
+variables [topological_space B'] [topological_space (total_space E)]
+
+/-- Definition of `pullback.total_space.topological_space`, which we make irreducible. -/
+@[irreducible] def pullback_topology : topological_space (total_space (f *ᵖ E)) :=
+induced (proj (f *ᵖ E)) ‹topological_space B'› ⊓
+induced (pullback.lift E f) ‹topological_space (total_space E)›
+
+/-- The topology on the total space of a pullback bundle is the coarsest topology for which both
+the projections to the base and the map to the original bundle are continuous. -/
+instance pullback.total_space.topological_space :
+  topological_space (total_space (f *ᵖ E)) :=
+pullback_topology E f
+
+lemma pullback.continuous_proj (f : B' → B) :
+  continuous (bundle.proj (f *ᵖ E)) :=
+begin
+  rw [continuous_iff_le_induced, pullback.total_space.topological_space, pullback_topology],
+  exact inf_le_left,
+end
+
+lemma pullback.continuous_lift (f : B' → B) :
+  continuous (pullback.lift E f) :=
+begin
+  rw [continuous_iff_le_induced, pullback.total_space.topological_space, pullback_topology],
+  exact inf_le_right,
+end
+
+lemma inducing_pullback_total_space_embedding (f : B' → B) :
+  inducing (pullback_total_space_embedding E f) :=
+begin
+  constructor,
+  simp_rw [prod.topological_space, induced_inf, induced_compose,
+    pullback.total_space.topological_space, pullback_topology],
+  refl
+end
+
+variables (F) [nondiscrete_normed_field 𝕜]
+  [normed_group F] [normed_space 𝕜 F] [topological_space B]
+  [∀ x, add_comm_monoid (E x)] [∀ x, module 𝕜 (E x)]
+
+lemma pullback.continuous_total_space_mk [∀ x, topological_space (E x)]
+  [topological_vector_bundle 𝕜 F E] {f : B' → B} {x : B'} :
+  continuous (total_space_mk (f *ᵖ E) x) :=
+begin
+  simp only [continuous_iff_le_induced, pullback.total_space.topological_space, induced_compose,
+    induced_inf, function.comp, total_space_mk, proj, induced_const, top_inf_eq,
+    pullback_topology],
+  exact le_of_eq (topological_vector_bundle.total_space_mk_inducing 𝕜 F E (f x)).induced,
+end
+
+variables {E 𝕜 F} {K : Type*} [continuous_map_class K B' B]
+
+/-- A vector bundle trivialization can be pulled back to a trivialization on the pullback bundle. -/
+def topological_vector_bundle.trivialization.pullback (e : trivialization 𝕜 F E) (f : K) :
+  trivialization 𝕜 F ((f : B' → B) *ᵖ E) :=
+{ to_fun := λ z, (proj (f *ᵖ E) z, (e (pullback.lift E f z)).2),
+  inv_fun := λ y, total_space_mk (f *ᵖ E) y.1 (e.symm (f y.1) y.2),
+  source := pullback.lift E f ⁻¹' e.source,
+  base_set := f ⁻¹' e.base_set,
+  target := (f ⁻¹' e.base_set) ×ˢ (univ : set F),
+  map_source' := λ x h, by { simp_rw [e.source_eq, mem_preimage, pullback.proj_lift] at h,
+    simp_rw [prod_mk_mem_set_prod_eq, mem_univ, and_true, mem_preimage, h] },
+  map_target' := λ y h, by { rw [mem_prod, mem_preimage] at h,
+    simp_rw [e.source_eq, mem_preimage, pullback.proj_lift, h.1] },
+  left_inv' := λ x h, by { simp_rw [mem_preimage, e.mem_source, pullback.proj_lift] at h,
+    simp_rw [pullback.lift, e.symm_apply_apply_mk h, total_space.eta] },
+  right_inv' := λ x h, by { simp_rw [mem_prod, mem_preimage, mem_univ, and_true] at h,
+    simp_rw [total_space.proj_mk, pullback.lift_mk, e.apply_mk_symm h, prod.mk.eta] },
+  open_source := by { simp_rw [e.source_eq, ← preimage_comp], exact ((map_continuous f).comp $
+    pullback.continuous_proj E f).is_open_preimage _ e.open_base_set },
+  open_target := ((map_continuous f).is_open_preimage _ e.open_base_set).prod is_open_univ,
+  open_base_set := (map_continuous f).is_open_preimage _ e.open_base_set,
+  continuous_to_fun := (pullback.continuous_proj E f).continuous_on.prod
+    (continuous_snd.comp_continuous_on $
+    e.continuous_on.comp (pullback.continuous_lift E f).continuous_on subset.rfl),
+  continuous_inv_fun := begin
+    dsimp only,
+    simp_rw [(inducing_pullback_total_space_embedding E f).continuous_on_iff, function.comp,
+      pullback_total_space_embedding, total_space.proj_mk],
+    dsimp only [total_space.proj_mk],
+    refine continuous_on_fst.prod (e.continuous_on_symm.comp
+      ((map_continuous f).prod_map continuous_id).continuous_on subset.rfl)
+  end,
+  source_eq := by { dsimp only, rw e.source_eq, refl, },
+  target_eq := rfl,
+  proj_to_fun := λ y h, rfl,
+  linear' := λ x h, e.linear (f x) h }
+
+instance pullback [∀ x, topological_space (E x)] [topological_vector_bundle 𝕜 F E] (f : K) :
+  topological_vector_bundle 𝕜 F ((f : B' → B) *ᵖ E) :=
+{ total_space_mk_inducing := λ x, inducing_of_inducing_compose
+    (pullback.continuous_total_space_mk 𝕜 F E) (pullback.continuous_lift E f)
+    (total_space_mk_inducing 𝕜 F E (f x)),
+  trivialization_atlas := (λ e : trivialization 𝕜 F E, e.pullback f) '' trivialization_atlas 𝕜 F E,
+  trivialization_at := λ x, (trivialization_at 𝕜 F E (f x)).pullback f,
+  mem_base_set_trivialization_at := λ x, mem_base_set_trivialization_at 𝕜 F E (f x),
+  trivialization_mem_atlas := λ x, mem_image_of_mem _ (trivialization_mem_atlas 𝕜 F E (f x)),
+  continuous_coord_change := begin
+    rintro _ ⟨e, he, rfl⟩ _ ⟨e', he', rfl⟩,
+    refine ⟨f ⁻¹' e.base_set ∩ f ⁻¹' e'.base_set, _, _, _, _, _⟩,
+    { ext ⟨x, y⟩, simp only [topological_vector_bundle.trivialization.pullback, pullback.lift_mk,
+        e'.source_eq] with mfld_simps, },
+    { ext ⟨x, y⟩, simp only [topological_vector_bundle.trivialization.pullback, pullback.lift_mk,
+        e.source_eq, and_comm] with mfld_simps, },
+    { exact λ x, coord_change he he' (f x) },
+    { exact (continuous_on_coord_change he he').comp (map_continuous f).continuous_on subset.rfl },
+    { rintro b hb v,
+      rw [← preimage_inter, mem_preimage] at hb,
+      simp only [topological_vector_bundle.trivialization.pullback, pullback.lift_mk]
+        with mfld_simps,
+      dsimp only,
+      simp_rw [sigma_mk_eq_total_space_mk, e.mk_symm hb.1, trans_eq_coord_change he he' hb v] },
+  end }
+
+end pullback
 
 /-! ### Direct sum of two vector bundles over the same base -/
 

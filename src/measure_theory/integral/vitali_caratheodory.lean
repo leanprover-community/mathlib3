@@ -392,6 +392,15 @@ begin
   ... = ∫⁻ x, g x ∂μ + ε : by rw [add_assoc, ennreal.add_halves]
 end
 
+lemma exists_upper_semicontinuous_of_lintegral_eq_top
+  (f : α → ℝ≥0) (int_f : ∫⁻ x, f x ∂μ = ∞) (L : ℝ≥0) :
+  ∃ g : α → ℝ≥0, (∀ x, g x ≤ f x) ∧ upper_semicontinuous g ∧ ((L : ℝ≥0∞) < ∫⁻ x, g x ∂μ) :=
+begin
+
+end
+
+#exit
+
 /-- Given an integrable function `f` with values in `ℝ≥0`, there exists an upper semicontinuous
 function `g ≤ f` with integral arbitrarily close to that of `f`. Formulation in terms of
 `integral`.

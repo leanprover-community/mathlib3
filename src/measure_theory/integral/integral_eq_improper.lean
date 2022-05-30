@@ -651,6 +651,66 @@ end measure_theory
 
 section FTC_nonneg
 
+
+lemma interval_integral.integral_eq_sub_of_has_deriv_at_of_nonneg_of_le {a b : ℝ} {f f' : ℝ → ℝ}
+  (hderiv : ∀ x ∈ Icc a b, has_deriv_at f (f' x) x) (hnonneg : ∀ x ∈ Icc a b, 0 ≤ f' x)
+  (hab : a ≤ b) :
+  ∫⁻ y in Ioc a b, ennreal.of_real (f' y) ≤ ennreal.of_real ((f b - f a) + (b-a)) :=
+begin
+  set s := {x | ∫⁻ y in Ioc a x, ennreal.of_real (f' y) ≤ ennreal.of_real ((f x - f a) + (x-a))}
+             ∩ Icc a b with hs,
+  have s_closed : is_closed s := sorry,
+  have has : a ∈ s, by simp [s, hab],
+  apply s_closed.mem_of_ge_of_forall_exists_gt (by simp [hab]) hab,
+end
+
+#exit
+
+Then `f x ≤ B x` everywhere on `[a, b]`. -/
+lemma image_le_of_liminf_slope_right_lt_deriv_boundary' {f f' : ℝ → ℝ} {a b : ℝ}
+  (hf : continuous_on f (Icc a b))
+  -- `hf'` actually says `liminf (f z - f x) / (z - x) ≤ f' x`
+  (hf' : ∀ x ∈ Ico a b, ∀ r, f' x < r → ∃ᶠ z in 𝓝[>] x, slope f x z < r)
+  {B B' : ℝ → ℝ} (ha : f a ≤ B a) (hB : continuous_on B (Icc a b))
+  (hB' : ∀ x ∈ Ico a b, has_deriv_within_at B (B' x) (Ici x) x)
+  (bound : ∀ x ∈ Ico a b, f x = B x → f' x < B' x) :
+  ∀ ⦃x⦄, x ∈ Icc a b → f x ≤ B x :=
+begin
+  change Icc a b ⊆ {x | f x ≤ B x},
+  set s := {x | f x ≤ B x} ∩ Icc a b,
+  have A : continuous_on (λ x, (f x, B x)) (Icc a b), from hf.prod hB,
+  have : is_closed s,
+  { simp only [s, inter_comm],
+    exact A.preimage_closed_of_closed is_closed_Icc order_closed_topology.is_closed_le' },
+  apply this.Icc_subset_of_forall_exists_gt ha,
+  rintros x ⟨hxB : f x ≤ B x, xab⟩ y hy,
+  cases hxB.lt_or_eq with hxB hxB,
+  { -- If `f x < B x`, then all we need is continuity of both sides
+    refine nonempty_of_mem (inter_mem _ (Ioc_mem_nhds_within_Ioi ⟨le_rfl, hy⟩)),
+    have : ∀ᶠ x in 𝓝[Icc a b] x, f x < B x,
+      from A x (Ico_subset_Icc_self xab)
+        (is_open.mem_nhds (is_open_lt continuous_fst continuous_snd) hxB),
+    have : ∀ᶠ x in 𝓝[>] x, f x < B x,
+      from nhds_within_le_of_mem (Icc_mem_nhds_within_Ioi xab) this,
+    exact this.mono (λ y, le_of_lt) },
+  { rcases exists_between (bound x xab hxB) with ⟨r, hfr, hrB⟩,
+    specialize hf' x xab r hfr,
+    have HB : ∀ᶠ z in 𝓝[>] x, r < slope B x z,
+      from (has_deriv_within_at_iff_tendsto_slope' $ lt_irrefl x).1
+        (hB' x xab).Ioi_of_Ici (Ioi_mem_nhds hrB),
+    obtain ⟨z, hfz, hzB, hz⟩ :
+      ∃ z, slope f x z < r ∧ r < slope B x z ∧ z ∈ Ioc x y,
+      from (hf'.and_eventually (HB.and (Ioc_mem_nhds_within_Ioi ⟨le_rfl, hy⟩))).exists,
+    refine ⟨z, _, hz⟩,
+    have := (hfz.trans hzB).le,
+    rwa [slope_def_field, slope_def_field, div_le_div_right (sub_pos.2 hz.1), hxB,
+      sub_le_sub_iff_right] at this }
+end
+
+
+#exit
+
+
 /-- Fundamental theorem of calculus-2: If `f : ℝ → ℝ` has a derivative `f' x` for all `x` in
   `(a, b)` and is continuous on `[a, b]`, and `f'` is continuous and non-negative on `(a, b)`, then
   `f'` is integrable on `[a, b]` and `∫ y in a..b, f' y = f(b) - f(a)`.
@@ -660,7 +720,7 @@ section FTC_nonneg
   -/
 lemma interval_integral.integral_eq_sub_of_has_deriv_at_of_nonneg_of_le {a b : ℝ} {f f' : ℝ → ℝ}
   (hderiv : ∀ x ∈ Ioo a b, has_deriv_at f (f' x) x) (hnonneg : ∀ x ∈ Ioo a b, 0 ≤ f' x)
-  (hcontf : continuous_on f $ Icc a b) (hcontf' : continuous_on f' $ Ioo a b) (hab : a ≤ b) :
+  (hcontf : continuous_on f $ Icc a b) (hab : a ≤ b) :
   (integrable_on f' $ Ioc a b) ∧ (∫ y in a..b, f' y = f b - f a) :=
 begin
   suffices : integrable_on f' (Ioc a b),

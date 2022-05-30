@@ -112,9 +112,10 @@ lift_le.1 (trans term.encoding.card_le_card_list (lift_le.2 (mk_list_le_max _)))
 theorem card_sigma : # (Σ n, (L.term (α ⊕ fin n))) = max ℵ₀ (# (α ⊕ Σ i, L.functions i)) :=
 begin
   refine le_antisymm _ _,
-  { rw [mk_sigma],
+  { rw mk_sigma,
     refine (sum_le_sup_lift _).trans _,
-    rw [mk_nat, lift_aleph_0, mul_eq_max_of_aleph_0_le_left le_rfl, max_le_iff, cardinal.sup_le_iff],
+    rw [mk_nat, lift_aleph_0, mul_eq_max_of_aleph_0_le_left le_rfl, max_le_iff,
+      cardinal.sup_le_iff],
     { refine ⟨le_max_left _ _, λ i, card_le.trans _⟩,
       rw max_le_iff,
       refine ⟨le_max_left _ _, _⟩,
@@ -301,7 +302,8 @@ theorem card_le : # (Σ n, L.bounded_formula α n) ≤
   max ℵ₀ (cardinal.lift.{max u v} (#α) + cardinal.lift.{u'} L.card) :=
 begin
   refine lift_le.1 ((bounded_formula.encoding.card_le_card_list).trans _),
-  rw [encoding_Γ, mk_list_eq_max_mk_aleph_0, lift_max',lift_aleph_0, lift_max', lift_aleph_0, max_le_iff],
+  rw [encoding_Γ, mk_list_eq_max_mk_aleph_0, lift_max',lift_aleph_0, lift_max', lift_aleph_0,
+    max_le_iff],
   refine ⟨_, le_max_left _ _⟩,
   rw [mk_sum, term.card_sigma, mk_sum, ← add_eq_max le_rfl, mk_sum, mk_nat],
   simp only [lift_add, lift_lift, lift_aleph_0],

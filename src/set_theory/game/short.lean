@@ -94,7 +94,7 @@ def move_right_short' {xl xr} (xL xR) [S : short (mk xl xr xL xR)] (j : xr) : sh
 by { casesI S with _ _ _ _ _ R _ _, apply R }
 local attribute [instance] move_right_short'
 
-theorem short_birthday : ∀ (x : pgame.{u}) [short x], x.birthday < ordinal.omega
+theorem short_birthday : ∀ (x : pgame.{u}) [short x], x.birthday < ordinal.aleph_0
 | ⟨xl, xr, xL, xR⟩ hs :=
 begin
   haveI := hs,
@@ -102,8 +102,8 @@ begin
   rw [birthday, max_lt_iff],
   split, all_goals
   { rw ←cardinal.ord_aleph_0,
-    refine cardinal.lsub_lt_ord_of_is_regular.{u u} cardinal.is_regular_omega
-      (cardinal.lt_omega_of_fintype _) (λ i, _),
+    refine cardinal.lsub_lt_ord_of_is_regular.{u u} cardinal.is_regular_aleph_0
+      (cardinal.lt_aleph_0_of_fintype _) (λ i, _),
     rw cardinal.ord_aleph_0,
     apply short_birthday _ },
   { exact move_left_short' xL xR i },

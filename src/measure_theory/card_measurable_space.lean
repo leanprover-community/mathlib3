@@ -84,7 +84,8 @@ theorem generate_measurable_rec_subset (s : set (set α)) {i j : ℵ₀₁} (h :
     exact (Union_const x).symm }
 end
 
-/-- At each step of the inductive construction, the cardinality bound `≤ (max (#s) 2) ^ ℵ₀` holds. -/
+/-- At each step of the inductive construction, the cardinality bound `≤ (max (#s) 2) ^ ℵ₀` holds.
+-/
 lemma cardinal_generate_measurable_rec_le (s : set (set α)) (i : ℵ₀₁) :
   #(generate_measurable_rec s i) ≤ (max (#s) 2) ^ aleph_0.{u} :=
 begin

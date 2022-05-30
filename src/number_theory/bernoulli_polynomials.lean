@@ -132,7 +132,7 @@ end
 
 /-- Another version of `bernoulli.sum_range_pow`. -/
 lemma sum_range_pow_eq_bernoulli_sub (n p : ℕ) :
-  (p  + 1 : ℚ) * ∑ k in range n, (k : ℚ) ^ p = (bernoulli p.succ).eval n -
+  (p + 1 : ℚ) * ∑ k in range n, (k : ℚ) ^ p = (bernoulli p.succ).eval n -
   (_root_.bernoulli p.succ) :=
 begin
   rw [sum_range_pow, bernoulli_def, eval_finset_sum, ←sum_div, mul_div_cancel' _ _],

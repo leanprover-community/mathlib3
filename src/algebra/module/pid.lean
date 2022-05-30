@@ -126,7 +126,7 @@ end
 
 end dedekind_domain
 
-variables [is_domain R] [is_principal_ideal_ring R]
+variables [is_principal_ideal_ring R]
 
 theorem is_internal_prime_power_torsion_of_pid [module.finite R M] (hM : module.is_torsion R M) :
   ∃ (ι : Type u) [fintype ι] [decidable_eq ι] (p : ι → R) [∀ i, irreducible $ p i] (e : ι → ℕ),

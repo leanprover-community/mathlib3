@@ -58,9 +58,9 @@ variables {E : Type*} [normed_group E]
 /-- An auxiliary lemma that combines two double exponential estimates into a similar estimate
 on the difference of the functions. -/
 lemma is_O_sub_exp_exp {a : ℝ} {f g : ℂ → E} {l : filter ℂ} {u : ℂ → ℝ}
-  (hBf : ∃ (c < a) B, is_O f (λ z, expR (B * expR (c * |u z|))) l)
-  (hBg : ∃ (c < a) B, is_O g (λ z, expR (B * expR (c * |u z|))) l) :
-  ∃ (c < a) B, is_O (f - g) (λ z, expR (B * expR (c * |u z|))) l :=
+  (hBf : ∃ (c < a) B, f =O[l] (λ z, expR (B * expR (c * |u z|))))
+  (hBg : ∃ (c < a) B, g =O[l] (λ z, expR (B * expR (c * |u z|)))) :
+  ∃ (c < a) B, (f - g) =O[l] (λ z, expR (B * expR (c * |u z|))) :=
 begin
   have : ∀ {c₁ c₂ B₁ B₂}, c₁ ≤ c₂ → 0 ≤ B₂ → B₁ ≤ B₂ → ∀ z,
     ∥expR (B₁ * expR (c₁ * |u z|))∥ ≤ ∥expR (B₂ * expR (c₂ * |u z|))∥,
@@ -78,12 +78,13 @@ end
 /-- An auxiliary lemma that combines two “exponential of a power” estimates into a similar estimate
 on the difference of the functions. -/
 lemma is_O_sub_exp_rpow {a : ℝ} {f g : ℂ → E} {l : filter ℂ}
-  (hBf : ∃ (c < a) B, is_O f (λ z, expR (B * (abs z) ^ c)) (comap abs at_top ⊓ l))
-  (hBg : ∃ (c < a) B, is_O g (λ z, expR (B * (abs z) ^ c)) (comap abs at_top ⊓ l)) :
-  ∃ (c < a) B, is_O (f - g) (λ z, expR (B * (abs z) ^ c)) (comap abs at_top ⊓ l) :=
+  (hBf : ∃ (c < a) B, f =O[comap complex.abs at_top ⊓ l] (λ z, expR (B * (abs z) ^ c)))
+  (hBg : ∃ (c < a) B, g =O[comap complex.abs at_top ⊓ l] (λ z, expR (B * (abs z) ^ c))) :
+  ∃ (c < a) B, (f - g) =O[comap complex.abs at_top ⊓ l] (λ z, expR (B * (abs z) ^ c)) :=
 begin
   have : ∀ {c₁ c₂ B₁ B₂ : ℝ}, c₁ ≤ c₂ → 0 ≤ B₂ → B₁ ≤ B₂ →
-    is_O (λ z : ℂ, expR (B₁ * (abs z) ^ c₁)) (λ z, expR (B₂ * (abs z) ^ c₂)) (comap abs at_top ⊓ l),
+    (λ z : ℂ, expR (B₁ * (abs z) ^ c₁)) =O[comap complex.abs at_top ⊓ l]
+      (λ z, expR (B₂ * (abs z) ^ c₂)),
   { have : ∀ᶠ z : ℂ in comap abs at_top ⊓ l, 1 ≤ abs z,
       from ((eventually_ge_at_top 1).comap _).filter_mono inf_le_left,
     refine λ c₁ c₂ B₁ B₂ hc hB₀ hB, is_O.of_bound 1 (this.mono $ λ z hz, _),
@@ -115,8 +116,8 @@ Then `∥f z∥` is bounded by the same constant on the closed strip
 only for sufficiently large values of `|re z|`.
 -/
 lemma horizontal_strip (hfd : diff_cont_on_cl ℂ f (im ⁻¹' Ioo a b))
-  (hB : ∃ (c < π / (b - a)) B, is_O f (λ z, expR (B * expR (c * |z.re|)))
-    (comap (has_abs.abs ∘ re) at_top ⊓ 𝓟 (im ⁻¹' Ioo a b)))
+  (hB : ∃ (c < π / (b - a)) B, f =O[comap (has_abs.abs ∘ re) at_top ⊓ 𝓟 (im ⁻¹' Ioo a b)]
+    (λ z, expR (B * expR (c * |z.re|))))
   (hle_a : ∀ z : ℂ, im z = a → ∥f z∥ ≤ C) (hle_b : ∀ z, im z = b → ∥f z∥ ≤ C)
   (hza : a ≤ im z) (hzb : im z ≤ b) :
   ∥f z∥ ≤ C :=
@@ -234,8 +235,8 @@ Let `f : ℂ → E` be a function such that
 Then `f` is equal to zero on the closed strip `{z : ℂ | a ≤ im z ≤ b}`.
 -/
 lemma eq_zero_on_horizontal_strip (hd : diff_cont_on_cl ℂ f (im ⁻¹' Ioo a b))
-  (hB : ∃ (c < π / (b - a)) B, is_O f (λ z, expR (B * expR (c * |z.re|)))
-    (comap (has_abs.abs ∘ re) at_top ⊓ 𝓟 (im ⁻¹' Ioo a b)))
+  (hB : ∃ (c < π / (b - a)) B, f =O[comap (has_abs.abs ∘ re) at_top ⊓ 𝓟 (im ⁻¹' Ioo a b)]
+    (λ z, expR (B * expR (c * |z.re|))))
   (ha : ∀ z : ℂ, z.im = a → f z = 0) (hb : ∀ z : ℂ, z.im = b → f z = 0) :
   eq_on f 0 (im ⁻¹' Icc a b) :=
 λ z hz, norm_le_zero_iff.1 $ horizontal_strip hd hB
@@ -252,11 +253,11 @@ Let `f g : ℂ → E` be functions such that
 Then `f` is equal to `g` on the closed strip `{z : ℂ | a ≤ im z ≤ b}`.
 -/
 lemma eq_on_horizontal_strip {g : ℂ → E} (hdf : diff_cont_on_cl ℂ f (im ⁻¹' Ioo a b))
-  (hBf : ∃ (c < π / (b - a)) B, is_O f (λ z, expR (B * expR (c * |z.re|)))
-    (comap (has_abs.abs ∘ re) at_top ⊓ 𝓟 (im ⁻¹' Ioo a b)))
+  (hBf : ∃ (c < π / (b - a)) B, f =O[comap (has_abs.abs ∘ re) at_top ⊓ 𝓟 (im ⁻¹' Ioo a b)]
+    (λ z, expR (B * expR (c * |z.re|))))
   (hdg : diff_cont_on_cl ℂ g (im ⁻¹' Ioo a b))
-  (hBg : ∃ (c < π / (b - a)) B, is_O g (λ z, expR (B * expR (c * |z.re|)))
-    (comap (has_abs.abs ∘ re) at_top ⊓ 𝓟 (im ⁻¹' Ioo a b)))
+  (hBg : ∃ (c < π / (b - a)) B, g =O[comap (has_abs.abs ∘ re) at_top ⊓ 𝓟 (im ⁻¹' Ioo a b)]
+    (λ z, expR (B * expR (c * |z.re|))))
   (ha : ∀ z : ℂ, z.im = a → f z = g z) (hb : ∀ z : ℂ, z.im = b → f z = g z) :
   eq_on f g (im ⁻¹' Icc a b) :=
 λ z hz, sub_eq_zero.1 (eq_zero_on_horizontal_strip (hdf.sub hdg) (is_O_sub_exp_exp hBf hBg)
@@ -278,8 +279,8 @@ Then `∥f z∥` is bounded by the same constant on the closed strip
 only for sufficiently large values of `|im z|`.
 -/
 lemma vertical_strip (hfd : diff_cont_on_cl ℂ f (re ⁻¹' Ioo a b))
-  (hB : ∃ (c < π / (b - a)) B, is_O f (λ z, expR (B * expR (c * |z.im|)))
-    (comap (has_abs.abs ∘ im) at_top ⊓ 𝓟 (re ⁻¹' Ioo a b)))
+  (hB : ∃ (c < π / (b - a)) B, f =O[comap (has_abs.abs ∘ im) at_top ⊓ 𝓟 (re ⁻¹' Ioo a b)]
+    (λ z, expR (B * expR (c * |z.im|))))
   (hle_a : ∀ z : ℂ, re z = a → ∥f z∥ ≤ C) (hle_b : ∀ z, re z = b → ∥f z∥ ≤ C)
   (hza : a ≤ re z) (hzb : re z ≤ b) :
   ∥f z∥ ≤ C :=
@@ -308,8 +309,8 @@ Let `f : ℂ → E` be a function such that
 Then `f` is equal to zero on the closed strip `{z : ℂ | a ≤ re z ≤ b}`.
 -/
 lemma eq_zero_on_vertical_strip (hd : diff_cont_on_cl ℂ f (re ⁻¹' Ioo a b))
-  (hB : ∃ (c < π / (b - a)) B, is_O f (λ z, expR (B * expR (c * |im z|)))
-    (comap (has_abs.abs ∘ im) at_top ⊓ 𝓟 (re ⁻¹' Ioo a b)))
+  (hB : ∃ (c < π / (b - a)) B, f =O[comap (has_abs.abs ∘ im) at_top ⊓ 𝓟 (re ⁻¹' Ioo a b)]
+    (λ z, expR (B * expR (c * |z.im|))))
   (ha : ∀ z : ℂ, re z = a → f z = 0) (hb : ∀ z : ℂ, re z = b → f z = 0) :
   eq_on f 0 (re ⁻¹' Icc a b) :=
 λ z hz, norm_le_zero_iff.1 $ vertical_strip hd hB
@@ -326,11 +327,11 @@ Let `f g : ℂ → E` be functions such that
 Then `f` is equal to `g` on the closed strip `{z : ℂ | a ≤ re z ≤ b}`.
 -/
 lemma eq_on_vertical_strip {g : ℂ → E} (hdf : diff_cont_on_cl ℂ f (re ⁻¹' Ioo a b))
-  (hBf : ∃ (c < π / (b - a)) B, is_O f (λ z, expR (B * expR (c * |im z|)))
-    (comap (has_abs.abs ∘ im) at_top ⊓ 𝓟 (re ⁻¹' Ioo a b)))
+  (hBf : ∃ (c < π / (b - a)) B, f =O[comap (has_abs.abs ∘ im) at_top ⊓ 𝓟 (re ⁻¹' Ioo a b)]
+    (λ z, expR (B * expR (c * |z.im|))))
   (hdg : diff_cont_on_cl ℂ g (re ⁻¹' Ioo a b))
-  (hBg : ∃ (c < π / (b - a)) B, is_O g (λ z, expR (B * expR (c * |im z|)))
-    (comap (has_abs.abs ∘ im) at_top ⊓ 𝓟 (re ⁻¹' Ioo a b)))
+  (hBg : ∃ (c < π / (b - a)) B, g =O[comap (has_abs.abs ∘ im) at_top ⊓ 𝓟 (re ⁻¹' Ioo a b)]
+    (λ z, expR (B * expR (c * |z.im|))))
   (ha : ∀ z : ℂ, re z = a → f z = g z) (hb : ∀ z : ℂ, re z = b → f z = g z) :
   eq_on f g (re ⁻¹' Icc a b) :=
 λ z hz, sub_eq_zero.1 (eq_zero_on_vertical_strip (hdf.sub hdg) (is_O_sub_exp_exp hBf hBg)
@@ -349,8 +350,8 @@ lemma eq_on_vertical_strip {g : ℂ → E} (hdf : diff_cont_on_cl ℂ f (re ⁻�
 
 Then `∥f z∥` is bounded from above by the same constant on the closed first quadrant. -/
 lemma quadrant_I (hd : diff_cont_on_cl ℂ f (Ioi 0 ×ℂ Ioi 0))
-  (hB : ∃ (c < (2 : ℝ)) B, is_O f (λ z, expR (B * (abs z) ^ c))
-    (comap abs at_top ⊓ 𝓟 (Ioi 0 ×ℂ Ioi 0)))
+  (hB : ∃ (c < (2 : ℝ)) B, f =O[comap complex.abs at_top ⊓ 𝓟 (Ioi 0 ×ℂ Ioi 0)]
+    (λ z, expR (B * (abs z) ^ c)))
   (hre : ∀ x : ℝ, 0 ≤ x → ∥f x∥ ≤ C) (him : ∀ x : ℝ, 0 ≤ x → ∥f (x * I)∥ ≤ C)
   (hz_re : 0 ≤ z.re) (hz_im : 0 ≤ z.im) :
   ∥f z∥ ≤ C :=
@@ -419,8 +420,8 @@ end
 
 Then `f` is equal to zero on the closed first quadrant. -/
 lemma eq_zero_on_quadrant_I (hd : diff_cont_on_cl ℂ f (Ioi 0 ×ℂ Ioi 0))
-  (hB : ∃ (c < (2 : ℝ)) B, is_O f (λ z, expR (B * (abs z) ^ c))
-    (comap abs at_top ⊓ 𝓟 (Ioi 0 ×ℂ Ioi 0)))
+  (hB : ∃ (c < (2 : ℝ)) B, f =O[comap complex.abs at_top ⊓ 𝓟 (Ioi 0 ×ℂ Ioi 0)]
+    (λ z, expR (B * (abs z) ^ c)))
   (hre : ∀ x : ℝ, 0 ≤ x → f x = 0) (him : ∀ x : ℝ, 0 ≤ x → f (x * I) = 0) :
   eq_on f 0 {z | 0 ≤ z.re ∧ 0 ≤ z.im} :=
 λ z hz, norm_le_zero_iff.1 $ quadrant_I hd hB (λ x hx, norm_le_zero_iff.2 $ hre x hx)
@@ -435,11 +436,11 @@ lemma eq_zero_on_quadrant_I (hd : diff_cont_on_cl ℂ f (Ioi 0 ×ℂ Ioi 0))
 
 Then `f` is equal to `g` on the closed first quadrant. -/
 lemma eq_on_quadrant_I (hdf : diff_cont_on_cl ℂ f (Ioi 0 ×ℂ Ioi 0))
-  (hBf : ∃ (c < (2 : ℝ)) B, is_O f (λ z, expR (B * (abs z) ^ c))
-    (comap abs at_top ⊓ 𝓟 (Ioi 0 ×ℂ Ioi 0)))
+  (hBf : ∃ (c < (2 : ℝ)) B, f =O[comap complex.abs at_top ⊓ 𝓟 (Ioi 0 ×ℂ Ioi 0)]
+    (λ z, expR (B * (abs z) ^ c)))
   (hdg : diff_cont_on_cl ℂ g (Ioi 0 ×ℂ Ioi 0))
-  (hBg : ∃ (c < (2 : ℝ)) B, is_O g (λ z, expR (B * (abs z) ^ c))
-    (comap abs at_top ⊓ 𝓟 (Ioi 0 ×ℂ Ioi 0)))
+  (hBg : ∃ (c < (2 : ℝ)) B, g =O[comap complex.abs at_top ⊓ 𝓟 (Ioi 0 ×ℂ Ioi 0)]
+    (λ z, expR (B * (abs z) ^ c)))
   (hre : ∀ x : ℝ, 0 ≤ x → f x = g x) (him : ∀ x : ℝ, 0 ≤ x → f (x * I) = g (x * I)) :
   eq_on f g {z | 0 ≤ z.re ∧ 0 ≤ z.im} :=
 λ z hz, sub_eq_zero.1 $ eq_zero_on_quadrant_I (hdf.sub hdg) (is_O_sub_exp_rpow hBf hBg)
@@ -454,8 +455,8 @@ lemma eq_on_quadrant_I (hdf : diff_cont_on_cl ℂ f (Ioi 0 ×ℂ Ioi 0))
 
 Then `∥f z∥` is bounded from above by the same constant on the closed second quadrant. -/
 lemma quadrant_II (hd : diff_cont_on_cl ℂ f (Iio 0 ×ℂ Ioi 0))
-  (hB : ∃ (c < (2 : ℝ)) B, is_O f (λ z, expR (B * (abs z) ^ c))
-    (comap abs at_top ⊓ 𝓟 (Iio 0 ×ℂ Ioi 0)))
+  (hB : ∃ (c < (2 : ℝ)) B, f =O[comap complex.abs at_top ⊓ 𝓟 (Iio 0 ×ℂ Ioi 0)]
+    (λ z, expR (B * (abs z) ^ c)))
   (hre : ∀ x : ℝ, x ≤ 0 → ∥f x∥ ≤ C) (him : ∀ x : ℝ, 0 ≤ x → ∥f (x * I)∥ ≤ C)
   (hz_re : z.re ≤ 0) (hz_im : 0 ≤ z.im) :
   ∥f z∥ ≤ C :=
@@ -483,8 +484,8 @@ end
 
 Then `f` is equal to zero on the closed second quadrant. -/
 lemma eq_zero_on_quadrant_II (hd : diff_cont_on_cl ℂ f (Iio 0 ×ℂ Ioi 0))
-  (hB : ∃ (c < (2 : ℝ)) B, is_O f (λ z, expR (B * (abs z) ^ c))
-    (comap abs at_top ⊓ 𝓟 (Iio 0 ×ℂ Ioi 0)))
+  (hB : ∃ (c < (2 : ℝ)) B, f =O[comap complex.abs at_top ⊓ 𝓟 (Iio 0 ×ℂ Ioi 0)]
+    (λ z, expR (B * (abs z) ^ c)))
   (hre : ∀ x : ℝ, x ≤ 0 → f x = 0) (him : ∀ x : ℝ, 0 ≤ x → f (x * I) = 0) :
   eq_on f 0 {z | z.re ≤ 0 ∧ 0 ≤ z.im} :=
 λ z hz, norm_le_zero_iff.1 $ quadrant_II hd hB (λ x hx, norm_le_zero_iff.2 $ hre x hx)
@@ -499,11 +500,11 @@ lemma eq_zero_on_quadrant_II (hd : diff_cont_on_cl ℂ f (Iio 0 ×ℂ Ioi 0))
 
 Then `f` is equal to `g` on the closed second quadrant. -/
 lemma eq_on_quadrant_II (hdf : diff_cont_on_cl ℂ f (Iio 0 ×ℂ Ioi 0))
-  (hBf : ∃ (c < (2 : ℝ)) B, is_O f (λ z, expR (B * (abs z) ^ c))
-    (comap abs at_top ⊓ 𝓟 (Iio 0 ×ℂ Ioi 0)))
+  (hBf : ∃ (c < (2 : ℝ)) B, f =O[comap complex.abs at_top ⊓ 𝓟 (Iio 0 ×ℂ Ioi 0)]
+    (λ z, expR (B * (abs z) ^ c)))
   (hdg : diff_cont_on_cl ℂ g (Iio 0 ×ℂ Ioi 0))
-  (hBg : ∃ (c < (2 : ℝ)) B, is_O g (λ z, expR (B * (abs z) ^ c))
-    (comap abs at_top ⊓ 𝓟 (Iio 0 ×ℂ Ioi 0)))
+  (hBg : ∃ (c < (2 : ℝ)) B, g =O[comap complex.abs at_top ⊓ 𝓟 (Iio 0 ×ℂ Ioi 0)]
+    (λ z, expR (B * (abs z) ^ c)))
   (hre : ∀ x : ℝ, x ≤ 0 → f x = g x) (him : ∀ x : ℝ, 0 ≤ x → f (x * I) = g (x * I)) :
   eq_on f g {z | z.re ≤ 0 ∧ 0 ≤ z.im} :=
 λ z hz, sub_eq_zero.1 $ eq_zero_on_quadrant_II (hdf.sub hdg) (is_O_sub_exp_rpow hBf hBg)
@@ -518,8 +519,8 @@ lemma eq_on_quadrant_II (hdf : diff_cont_on_cl ℂ f (Iio 0 ×ℂ Ioi 0))
 
 Then `∥f z∥` is bounded from above by the same constant on the closed third quadrant. -/
 lemma quadrant_III (hd : diff_cont_on_cl ℂ f (Iio 0 ×ℂ Iio 0))
-  (hB : ∃ (c < (2 : ℝ)) B, is_O f (λ z, expR (B * (abs z) ^ c))
-    (comap abs at_top ⊓ 𝓟 (Iio 0 ×ℂ Iio 0)))
+  (hB : ∃ (c < (2 : ℝ)) B, f =O[comap complex.abs at_top ⊓ 𝓟 (Iio 0 ×ℂ Iio 0)]
+    (λ z, expR (B * (abs z) ^ c)))
   (hre : ∀ x : ℝ, x ≤ 0 → ∥f x∥ ≤ C) (him : ∀ x : ℝ, x ≤ 0 → ∥f (x * I)∥ ≤ C)
   (hz_re : z.re ≤ 0) (hz_im : z.im ≤ 0) :
   ∥f z∥ ≤ C :=
@@ -550,8 +551,8 @@ end
 
 Then `f` is equal to zero on the closed third quadrant. -/
 lemma eq_zero_on_quadrant_III (hd : diff_cont_on_cl ℂ f (Iio 0 ×ℂ Iio 0))
-  (hB : ∃ (c < (2 : ℝ)) B, is_O f (λ z, expR (B * (abs z) ^ c))
-    (comap abs at_top ⊓ 𝓟 (Iio 0 ×ℂ Iio 0)))
+  (hB : ∃ (c < (2 : ℝ)) B, f =O[comap complex.abs at_top ⊓ 𝓟 (Iio 0 ×ℂ Iio 0)]
+    (λ z, expR (B * (abs z) ^ c)))
   (hre : ∀ x : ℝ, x ≤ 0 → f x = 0) (him : ∀ x : ℝ, x ≤ 0 → f (x * I) = 0) :
   eq_on f 0 {z | z.re ≤ 0 ∧ z.im ≤ 0} :=
 λ z hz, norm_le_zero_iff.1 $ quadrant_III hd hB (λ x hx, norm_le_zero_iff.2 $ hre x hx)
@@ -566,11 +567,11 @@ lemma eq_zero_on_quadrant_III (hd : diff_cont_on_cl ℂ f (Iio 0 ×ℂ Iio 0))
 
 Then `f` is equal to `g` on the closed third quadrant. -/
 lemma eq_on_quadrant_III (hdf : diff_cont_on_cl ℂ f (Iio 0 ×ℂ Iio 0))
-  (hBf : ∃ (c < (2 : ℝ)) B, is_O f (λ z, expR (B * (abs z) ^ c))
-    (comap abs at_top ⊓ 𝓟 (Iio 0 ×ℂ Iio 0)))
+  (hBf : ∃ (c < (2 : ℝ)) B, f =O[comap complex.abs at_top ⊓ 𝓟 (Iio 0 ×ℂ Iio 0)]
+    (λ z, expR (B * (abs z) ^ c)))
   (hdg : diff_cont_on_cl ℂ g (Iio 0 ×ℂ Iio 0))
-  (hBg : ∃ (c < (2 : ℝ)) B, is_O g (λ z, expR (B * (abs z) ^ c))
-    (comap abs at_top ⊓ 𝓟 (Iio 0 ×ℂ Iio 0)))
+  (hBg : ∃ (c < (2 : ℝ)) B, g =O[comap complex.abs at_top ⊓ 𝓟 (Iio 0 ×ℂ Iio 0)]
+    (λ z, expR (B * (abs z) ^ c)))
   (hre : ∀ x : ℝ, x ≤ 0 → f x = g x) (him : ∀ x : ℝ, x ≤ 0 → f (x * I) = g (x * I)) :
   eq_on f g {z | z.re ≤ 0 ∧ z.im ≤ 0} :=
 λ z hz, sub_eq_zero.1 $ eq_zero_on_quadrant_III (hdf.sub hdg) (is_O_sub_exp_rpow hBf hBg)
@@ -585,8 +586,8 @@ lemma eq_on_quadrant_III (hdf : diff_cont_on_cl ℂ f (Iio 0 ×ℂ Iio 0))
 
 Then `∥f z∥` is bounded from above by the same constant on the closed fourth quadrant. -/
 lemma quadrant_IV (hd : diff_cont_on_cl ℂ f (Ioi 0 ×ℂ Iio 0))
-  (hB : ∃ (c < (2 : ℝ)) B, is_O f (λ z, expR (B * (abs z) ^ c))
-    (comap abs at_top ⊓ 𝓟 (Ioi 0 ×ℂ Iio 0)))
+  (hB : ∃ (c < (2 : ℝ)) B, f =O[comap complex.abs at_top ⊓ 𝓟 (Ioi 0 ×ℂ Iio 0)]
+    (λ z, expR (B * (abs z) ^ c)))
   (hre : ∀ x : ℝ, 0 ≤ x → ∥f x∥ ≤ C) (him : ∀ x : ℝ, x ≤ 0 → ∥f (x * I)∥ ≤ C)
   (hz_re : 0 ≤ z.re) (hz_im : z.im ≤ 0) :
   ∥f z∥ ≤ C :=
@@ -617,8 +618,8 @@ end
 
 Then `f` is equal to zero on the closed fourth quadrant. -/
 lemma eq_zero_on_quadrant_IV (hd : diff_cont_on_cl ℂ f (Ioi 0 ×ℂ Iio 0))
-  (hB : ∃ (c < (2 : ℝ)) B, is_O f (λ z, expR (B * (abs z) ^ c))
-    (comap abs at_top ⊓ 𝓟 (Ioi 0 ×ℂ Iio 0)))
+  (hB : ∃ (c < (2 : ℝ)) B, f =O[comap complex.abs at_top ⊓ 𝓟 (Ioi 0 ×ℂ Iio 0)]
+    (λ z, expR (B * (abs z) ^ c)))
   (hre : ∀ x : ℝ, 0 ≤ x → f x = 0) (him : ∀ x : ℝ, x ≤ 0 → f (x * I) = 0) :
   eq_on f 0 {z | 0 ≤ z.re ∧ z.im ≤ 0} :=
 λ z hz, norm_le_zero_iff.1 $ quadrant_IV hd hB (λ x hx, norm_le_zero_iff.2 $ hre x hx)
@@ -633,11 +634,11 @@ lemma eq_zero_on_quadrant_IV (hd : diff_cont_on_cl ℂ f (Ioi 0 ×ℂ Iio 0))
 
 Then `f` is equal to `g` on the closed fourth quadrant. -/
 lemma eq_on_quadrant_IV (hdf : diff_cont_on_cl ℂ f (Ioi 0 ×ℂ Iio 0))
-  (hBf : ∃ (c < (2 : ℝ)) B, is_O f (λ z, expR (B * (abs z) ^ c))
-    (comap abs at_top ⊓ 𝓟 (Ioi 0 ×ℂ Iio 0)))
+  (hBf : ∃ (c < (2 : ℝ)) B, f =O[comap complex.abs at_top ⊓ 𝓟 (Ioi 0 ×ℂ Iio 0)]
+    (λ z, expR (B * (abs z) ^ c)))
   (hdg : diff_cont_on_cl ℂ g (Ioi 0 ×ℂ Iio 0))
-  (hBg : ∃ (c < (2 : ℝ)) B, is_O g (λ z, expR (B * (abs z) ^ c))
-    (comap abs at_top ⊓ 𝓟 (Ioi 0 ×ℂ Iio 0)))
+  (hBg : ∃ (c < (2 : ℝ)) B, g =O[comap complex.abs at_top ⊓ 𝓟 (Ioi 0 ×ℂ Iio 0)]
+    (λ z, expR (B * (abs z) ^ c)))
   (hre : ∀ x : ℝ, 0 ≤ x → f x = g x) (him : ∀ x : ℝ, x ≤ 0 → f (x * I) = g (x * I)) :
   eq_on f g {z | 0 ≤ z.re ∧ z.im ≤ 0} :=
 λ z hz, sub_eq_zero.1 $ eq_zero_on_quadrant_IV (hdf.sub hdg) (is_O_sub_exp_rpow hBf hBg)
@@ -658,8 +659,8 @@ lemma eq_on_quadrant_IV (hdf : diff_cont_on_cl ℂ f (Ioi 0 ×ℂ Iio 0))
 Then `∥f z∥` is bounded from above by the same constant on the closed right half-plane.
 See also `phragmen_lindelof.right_half_plane_of_bounded_on_real` for a stronger version. -/
 lemma right_half_plane_of_tendsto_zero_on_real (hd : diff_cont_on_cl ℂ f {z | 0 < z.re})
-  (hexp : ∃ (c < (2 : ℝ)) B, is_O f (λ z, expR (B * (abs z) ^ c))
-    (comap abs at_top ⊓ 𝓟 {z | 0 < z.re}))
+  (hexp : ∃ (c < (2 : ℝ)) B, f =O[comap complex.abs at_top ⊓ 𝓟 {z | 0 < z.re}]
+    (λ z, expR (B * (abs z) ^ c)))
   (hre : tendsto (λ x : ℝ, f x) at_top (𝓝 0)) (him : ∀ x : ℝ, ∥f (x * I)∥ ≤ C) (hz : 0 ≤ z.re) :
   ∥f z∥ ≤ C :=
 begin
@@ -730,8 +731,8 @@ end
 Then `∥f z∥` is bounded from above by `C` on the closed right half-plane.
 See also `phragmen_lindelof.right_half_plane_of_tendsto_zero_on_real` for a weaker version. -/
 lemma right_half_plane_of_bounded_on_real (hd : diff_cont_on_cl ℂ f {z | 0 < z.re})
-  (hexp : ∃ (c < (2 : ℝ)) B, is_O f (λ z, expR (B * (abs z) ^ c))
-    (comap abs at_top ⊓ 𝓟 {z | 0 < z.re}))
+  (hexp : ∃ (c < (2 : ℝ)) B, f =O[comap complex.abs at_top ⊓ 𝓟 {z | 0 < z.re}]
+    (λ z, expR (B * (abs z) ^ c)))
   (hre : is_bounded_under (≤) at_top (λ x : ℝ, ∥f x∥))
   (him : ∀ x : ℝ, ∥f (x * I)∥ ≤ C) (hz : 0 ≤ z.re) :
   ∥f z∥ ≤ C :=
@@ -775,8 +776,8 @@ end
 Then `f` is equal to zero on the closed right half-plane. -/
 lemma eq_zero_on_right_half_plane_of_superexponential_decay
   (hd : diff_cont_on_cl ℂ f {z | 0 < z.re})
-  (hexp : ∃ (c < (2 : ℝ)) B, is_O f (λ z, expR (B * (abs z) ^ c))
-    (comap abs at_top ⊓ 𝓟 {z | 0 < z.re}))
+  (hexp : ∃ (c < (2 : ℝ)) B, f =O[comap complex.abs at_top ⊓ 𝓟 {z | 0 < z.re}]
+    (λ z, expR (B * (abs z) ^ c)))
   (hre : superpolynomial_decay at_top expR (λ x, ∥f x∥))
   (him : ∃ C, ∀ x : ℝ, ∥f (x * I)∥ ≤ C) :
   eq_on f 0 {z : ℂ | 0 ≤ z.re} :=
@@ -833,10 +834,10 @@ that
 Then `f` is equal to `g` on the closed right half-plane. -/
 lemma eq_on_right_half_plane_of_superexponential_decay {g : ℂ → E}
   (hfd : diff_cont_on_cl ℂ f {z | 0 < z.re}) (hgd : diff_cont_on_cl ℂ g {z | 0 < z.re})
-  (hfexp : ∃ (c < (2 : ℝ)) B, is_O f (λ z, expR (B * (abs z) ^ c))
-    (comap abs at_top ⊓ 𝓟 {z | 0 < z.re}))
-  (hgexp : ∃ (c < (2 : ℝ)) B, is_O g (λ z, expR (B * (abs z) ^ c))
-    (comap abs at_top ⊓ 𝓟 {z | 0 < z.re}))
+  (hfexp : ∃ (c < (2 : ℝ)) B, f =O[comap complex.abs at_top ⊓ 𝓟 {z | 0 < z.re}]
+    (λ z, expR (B * (abs z) ^ c)))
+  (hgexp : ∃ (c < (2 : ℝ)) B, g =O[comap complex.abs at_top ⊓ 𝓟 {z | 0 < z.re}]
+    (λ z, expR (B * (abs z) ^ c)))
   (hre : superpolynomial_decay at_top expR (λ x, ∥f x - g x∥))
   (hfim : ∃ C, ∀ x : ℝ, ∥f (x * I)∥ ≤ C) (hgim : ∃ C, ∀ x : ℝ, ∥g (x * I)∥ ≤ C) :
   eq_on f g {z : ℂ | 0 ≤ z.re} :=
@@ -846,7 +847,7 @@ begin
   refine eq_zero_on_right_half_plane_of_superexponential_decay (hfd.sub hgd) _ hre _,
   { set l : filter ℂ := comap abs at_top ⊓ 𝓟 {z : ℂ | 0 < z.re},
     suffices : ∀ {c₁ c₂ B₁ B₂ : ℝ}, c₁ ≤ c₂ → B₁ ≤ B₂ → 0 ≤ B₂ →
-      is_O (λ z : ℂ, expR (B₁ * abs z ^ c₁)) (λ z, expR (B₂ * abs z ^ c₂)) l,
+      (λ z, expR (B₁ * abs z ^ c₁)) =O[l] (λ z, expR (B₂ * abs z ^ c₂)),
     { rcases hfexp with ⟨cf, hcf, Bf, hOf⟩, rcases hgexp with ⟨cg, hcg, Bg, hOg⟩,
       refine ⟨max cf cg, max_lt hcf hcg, max 0 (max Bf Bg), _⟩,
       refine is_O.sub (hOf.trans $ this _ _ _) (hOg.trans $ this _ _ _); simp },

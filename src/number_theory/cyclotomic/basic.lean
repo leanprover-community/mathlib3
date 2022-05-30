@@ -32,7 +32,8 @@ primitive roots of unity, for all `n ∈ S`.
 ## Main results
 
 * `is_cyclotomic_extension.trans` : if `is_cyclotomic_extension S A B` and
-  `is_cyclotomic_extension T B C`, then `is_cyclotomic_extension (S ∪ T) A C`.
+  `is_cyclotomic_extension T B C`, then `is_cyclotomic_extension (S ∪ T) A C` if
+  `no_zero_smul_divisors B C` and `nontrivial C`.
 * `is_cyclotomic_extension.union_right` : given `is_cyclotomic_extension (S ∪ T) A B`, then
   `is_cyclotomic_extension T (adjoin A { b : B | ∃ a : ℕ+, a ∈ S ∧ b ^ (a : ℕ) = 1 }) B`.
 * `is_cyclotomic_extension.union_right` : given `is_cyclotomic_extension T A B` and `S ⊆ T`, then
@@ -105,16 +106,16 @@ algebra.eq_top_iff.2 (λ x, by simpa [adjoin_singleton_one]
   using ((is_cyclotomic_extension_iff _ _ _).1 h).2 x)
 
 /-- Transitivity of cyclotomic extensions. -/
-lemma trans (C : Type w) [comm_ring C] [algebra A C] [algebra B C]
+lemma trans (C : Type w) [comm_ring C] [nontrivial C] [algebra A C] [algebra B C]
   [is_scalar_tower A B C] [hS : is_cyclotomic_extension S A B]
-  [hT : is_cyclotomic_extension T B C] (hinj : function.injective (algebra_map B C)) :
+  [hT : is_cyclotomic_extension T B C] [no_zero_smul_divisors B C] :
   is_cyclotomic_extension (S ∪ T) A C :=
 begin
   refine ⟨λ n hn, _, λ x, _⟩,
   { cases hn,
     { obtain ⟨b, hb⟩ := ((is_cyclotomic_extension_iff _ _ _).1 hS).1 hn,
       refine ⟨algebra_map B C b, _⟩,
-      exact hb.map_of_injective hinj },
+      exact hb.map_of_injective (no_zero_smul_divisors.algebra_map_injective B C) },
     { exact ((is_cyclotomic_extension_iff _ _ _).1 hT).1 hn } },
   { refine adjoin_induction (((is_cyclotomic_extension_iff _ _ _).1 hT).2 x) (λ c ⟨n, hn⟩,
       subset_adjoin ⟨n, or.inr hn.1, hn.2⟩) (λ b, _) (λ x y hx hy, subalgebra.add_mem _ hx hy)

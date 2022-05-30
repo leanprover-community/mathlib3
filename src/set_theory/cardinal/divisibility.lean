@@ -12,11 +12,12 @@ import set_theory.cardinal.ordinal
 
 We show basic results about divisibility in the cardinal numbers. This relation can be characterised
 in the following simple way: if `a` and `b` are both less than `ℵ₀`, then `a ∣ b` iff they are
-divisible as natural numbers. If `b` is greater than `ℵ₀`, then `a ∣ b` iff `a ≤ b`. This furthermore
-shows that all infinite cardinals are prime; recall that `a * b = max a b` if `ℵ₀ ≤ a * b`; therefore
-`a ∣ b * c = a ∣ max b c` and therefore clearly either `a ∣ b` or `a ∣ c`. Note furthermore that
-no infinite cardinal is irreducible (`cardinal.not_irreducible_of_aleph_0_le`), showing that the
-cardinal numbers do not form a `comm_cancel_monoid_with_zero`.
+divisible as natural numbers. If `b` is greater than `ℵ₀`, then `a ∣ b` iff `a ≤ b`. This
+furthermore shows that all infinite cardinals are prime; recall that `a * b = max a b` if
+`ℵ₀ ≤ a * b`; therefore `a ∣ b * c = a ∣ max b c` and therefore clearly either `a ∣ b` or `a ∣ c`.
+Note furthermore that no infinite cardinal is irreducible
+(`cardinal.not_irreducible_of_aleph_0_le`), showing that the cardinal numbers do not form a
+`comm_cancel_monoid_with_zero`.
 
 ## Main results
 

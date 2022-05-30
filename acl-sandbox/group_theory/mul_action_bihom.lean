@@ -86,7 +86,7 @@ end
 
 variables {M X N Y}
 lemma is_pretransitive_of_bihom
-  (j : mul_action_bihom M X N Y) (hj : function.surjective j.to_fun)
+  {j : mul_action_bihom M X N Y} (hj : function.surjective j.to_fun)
   (h : mul_action.is_pretransitive M X) : mul_action.is_pretransitive N Y :=
 begin
   apply mul_action.is_pretransitive.mk,
@@ -104,6 +104,7 @@ section group
 
 variables (M : Type*) [group M] (X : Type*) [mul_action M X]
 variables (N : Type*) [group N] (Y : Type*) [mul_action N Y]
+
 
 def canonical_bihom : mul_action_bihom M X (equiv.perm X) X := {
   to_fun := λ x, x,
@@ -170,3 +171,48 @@ begin
   refine f.map_smul' _ _,
 end
 -/
+
+variables {M X N Y}
+
+def bihom_of_map (j : mul_action_bihom M X N Y) (M' : subgroup M) :
+  mul_action_bihom M' X (subgroup.map j.to_monoid_hom M') Y := {
+to_fun := j.to_fun,
+to_monoid_hom := (j.to_monoid_hom.restrict M').cod_restrict (subgroup.map j.to_monoid_hom M')
+  (λ ⟨x, hx⟩,
+  begin
+    rw monoid_hom.restrict_apply,
+    exact ⟨x, hx, rfl⟩
+  end),
+  map_smul' := λ ⟨m, hm⟩ x,
+  begin
+    simp only [monoid_hom.restrict_apply, subgroup.coe_mk, monoid_hom.cod_restrict_apply],
+    change (j.to_monoid_hom m) • (j.to_fun x) = _,
+    simp only [j.map_smul'],
+    refl
+  end }
+
+lemma bihom_of_map_to_fun_eq (j : mul_action_bihom M X N Y) (M' : subgroup M) :
+  (bihom_of_map j M').to_fun = j.to_fun := rfl
+
+def bihom_of_comap (j : mul_action_bihom M X N Y) (N' : subgroup N) :
+  mul_action_bihom (subgroup.comap j.to_monoid_hom N') X N' Y := {
+to_fun := j.to_fun,
+to_monoid_hom := (j.to_monoid_hom.restrict (subgroup.comap j.to_monoid_hom N')).cod_restrict N'
+  (λ ⟨x, hx⟩,
+  begin
+    rw subgroup.mem_comap at hx,
+    rw monoid_hom.restrict_apply,
+    exact hx,
+  end),
+  map_smul' := λ ⟨m, hm⟩ x,
+  begin
+    simp only [monoid_hom.restrict_apply, subgroup.coe_mk, monoid_hom.cod_restrict_apply],
+    change (j.to_monoid_hom m) • (j.to_fun x) = _,
+    simp only [j.map_smul'],
+    refl
+  end }
+
+lemma bihom_of_comap_to_fun_eq (j : mul_action_bihom M X N Y) (N' : subgroup N) :
+  (bihom_of_comap j N').to_fun = j.to_fun := rfl
+
+end group

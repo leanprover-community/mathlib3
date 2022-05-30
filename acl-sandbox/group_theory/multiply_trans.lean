@@ -197,6 +197,37 @@ namespace mul_action
 
 section transitivity
 
+section monoid
+
+variables {M α : Type*} [monoid M] [mul_action M α]
+
+lemma is_pretransitive_of_submonoid {K : submonoid M} (h : is_pretransitive K α) :
+  is_pretransitive M α :=
+begin
+  let h_eq := h.exists_smul_eq,
+  apply is_pretransitive.mk,
+  intros x y,
+  obtain  ⟨⟨k, hk⟩, hk'⟩ := h_eq x y,
+  exact ⟨k, hk'⟩
+end
+
+lemma is_pretransitive_of_submonoid_le {G K : submonoid M} (hKG : K ≤ G) (h : is_pretransitive K α) :
+  is_pretransitive G α :=
+begin
+  let h_eq := h.exists_smul_eq,
+  apply is_pretransitive.mk,
+  intros x y,
+  obtain  ⟨⟨k, hk⟩, hk'⟩ := h_eq x y,
+  use ⟨k, hKG hk⟩,
+  exact hk',
+end
+
+
+
+end monoid
+
+section group
+
 variables (M α : Type*) [group M] [mul_action M α]
 
 lemma card_orbit_eq_stabilizer_index {a : α} :
@@ -220,6 +251,8 @@ begin
   { intro x, refl, },
 end
 
+end group
+
 end transitivity
 
 section multiple_transitivity
@@ -232,6 +265,13 @@ def is_multiply_pretransitive (n : ℕ) :=
   is_pretransitive M (fin n ↪ α)
 
 variables {M α}
+
+lemma is_multiply_pretransitive_of_le {n : ℕ} {H K : subgroup M}
+  (hHK : K ≤ H) (h : is_multiply_pretransitive K α n) : is_multiply_pretransitive H α n :=
+begin
+  unfold is_multiply_pretransitive at *,
+  refine is_pretransitive_of_subgroup_le hHK h,
+end
 
 def embedding_bihom_of_bihom_of_injective {N β : Type*} [group N] [mul_action N β]
   (j : mul_action_bihom M α N β) (hj : function.injective j.to_fun) (ι : Type*) :
@@ -372,6 +412,52 @@ begin
   refl, refl,
 end
 
+lemma subgroup_is_multiply_pretransitive_via_bijective_bihom_iff {N β : Type*} [group N] [mul_action N β] {n : ℕ}
+  {j : mul_action_bihom M α N β} (hj : function.bijective j.to_fun)
+  (hj' : function.surjective j.to_monoid_hom.to_fun)
+  {M' : subgroup M}:
+  is_multiply_pretransitive M' α n ↔ is_multiply_pretransitive (subgroup.map j.to_monoid_hom M') β n :=
+begin
+  let N' := subgroup.map j.to_monoid_hom M',
+  let k : mul_action_bihom M' α (subgroup.map j.to_monoid_hom M') β := {
+  to_fun := j.to_fun,
+  to_monoid_hom := (j.to_monoid_hom.restrict M').cod_restrict N' (λ ⟨x, hx⟩,
+  begin
+    rw monoid_hom.restrict_apply,
+    exact subgroup.apply_coe_mem_map j.to_monoid_hom M' ⟨x, hx⟩
+  end),
+  map_smul' := λ ⟨m, hm⟩ x,
+  begin
+    simp only [monoid_hom.restrict_apply, subgroup.coe_mk, monoid_hom.cod_restrict_apply],
+    change (j.to_monoid_hom m) • (j.to_fun x) = _,
+    simp only [j.map_smul'],
+    refl
+  end },
+  have hk : function.bijective k.to_fun := hj,
+  have hk' : function.surjective k.to_monoid_hom.to_fun,
+  { rintro ⟨n, m, hm, hmn⟩,
+    use ⟨m, hm⟩,
+    -- rw ← set_like.coe_eq_coe,
+    simp only [monoid_hom.restrict_apply, subgroup.coe_mk, monoid_hom.to_fun_eq_coe,
+      monoid_hom.cod_restrict_apply, subtype.mk_eq_mk],
+    exact hmn },
+  apply is_multiply_pretransitive_via_bijective_bihom_iff hk hk',
+end
+
+
+lemma subgroup'_is_multiply_pretransitive_via_bijective_bihom_iff {N β : Type*} [group N] [mul_action N β] {n : ℕ}
+  {j : mul_action_bihom M α N β} (hj : function.bijective j.to_fun)
+  (hj' : function.surjective j.to_monoid_hom.to_fun)
+  {N' : subgroup N}:
+  is_multiply_pretransitive (subgroup.comap j.to_monoid_hom N') α n ↔ is_multiply_pretransitive N' β n :=
+begin
+  let M' := subgroup.comap j.to_monoid_hom N',
+  suffices : N' = subgroup.map j.to_monoid_hom (subgroup.comap j.to_monoid_hom N'),
+  conv_rhs { rw this },
+  exact subgroup_is_multiply_pretransitive_via_bijective_bihom_iff hj hj',
+  rw subgroup.map_comap_eq_self_of_surjective hj'
+end
+
 lemma is_pretransitive_iff_image :
   is_pretransitive M α
   ↔ is_pretransitive
@@ -398,7 +484,6 @@ begin
   suffices hj' : function.surjective (canonical_bihom).to_monoid_hom.to_fun,
   --  rintro ⟨f, m, rfl⟩, use m, refl,
 -/
-
 
 lemma is_multiply_pretransitive_iff_image {n : ℕ} :
   is_multiply_pretransitive M α n

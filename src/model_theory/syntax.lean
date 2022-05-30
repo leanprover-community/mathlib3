@@ -22,6 +22,8 @@ This file defines first-order terms, formulas, sentences, and theories in a styl
 * A `first_order.language.Theory` is a set of sentences.
 * The variables of terms and formulas can be relabelled with `first_order.language.term.relabel`,
 `first_order.language.bounded_formula.relabel`, and `first_order.language.formula.relabel`.
+* Given an operation on terms and an operation on relations,
+  `first_order.language.bounded_formula.map_term_rel` gives an operation on formulas.
 * `first_order.language.bounded_formula.cast_le` adds more `fin`-indexed variables.
 * `first_order.language.bounded_formula.lift_at` raises the indexes of the `fin`-indexed variables
 above a particular index.

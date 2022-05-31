@@ -1124,12 +1124,12 @@ by { ext i, simp only [mul_vec, dot_product, finset.smul_sum, pi.smul_apply, mul
 @[simp] lemma mul_vec_single [fintype n] [decidable_eq n] [non_unital_non_assoc_semiring R]
   (M : matrix m n R) (j : n) (x : R) :
   M.mul_vec (pi.single j x) = (λ i, M i j * x) :=
-funext $ λ i, by rw [mul_vec, dot_product_single]
+funext $ λ i, dot_product_single _ _ _
 
 @[simp] lemma single_vec_mul [fintype m] [decidable_eq m] [non_unital_non_assoc_semiring R]
   (M : matrix m n R) (i : m) (x : R) :
   vec_mul (pi.single i x) M = (λ j, x * M i j) :=
-funext $ λ i, by rw [vec_mul, single_dot_product]
+funext $ λ i, single_dot_product _ _ _
 
 @[simp] lemma diagonal_mul_vec_single [fintype n] [decidable_eq n] [non_unital_non_assoc_semiring R]
   (v : n → R) (j : n) (x : R) :

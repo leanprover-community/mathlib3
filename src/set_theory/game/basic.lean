@@ -89,10 +89,10 @@ instance : is_trichotomous game (⧏) :=
 /-! The `add_comm_group` structure on `game` often simplifies many proofs of inequalities on
 `pgame`. -/
 
-theorem le_iff {x y : pgame} : x ≤ y ↔ ⟦x⟧ ≤ ⟦y⟧ := iff.rfl
-theorem lf_iff {x y : pgame} : pgame.lf x y ↔ ⟦x⟧ ⧏ ⟦y⟧ := iff.rfl
-theorem lt_iff {x y : pgame} : x < y ↔ ⟦x⟧ < ⟦y⟧ := iff.rfl
-theorem equiv_iff {x y : pgame} : x ≈ y ↔ ⟦x⟧ = ⟦y⟧ := (@quotient.eq _ _ x y).symm
+theorem _root_.pgame.le_iff_game_le {x y : pgame} : x ≤ y ↔ ⟦x⟧ ≤ ⟦y⟧ := iff.rfl
+theorem _root_.pgame.lf_iff_game_lf {x y : pgame} : pgame.lf x y ↔ ⟦x⟧ ⧏ ⟦y⟧ := iff.rfl
+theorem  _root_.pgame.lt_iff_game_lt {x y : pgame} : x < y ↔ ⟦x⟧ < ⟦y⟧ := iff.rfl
+theorem  _root_.pgame.equiv_iff_game_eq {x y : pgame} : x ≈ y ↔ ⟦x⟧ = ⟦y⟧ := (@quotient.eq _ _ x y).symm
 
 /-- The fuzzy, confused, or incomparable relation on games.
 

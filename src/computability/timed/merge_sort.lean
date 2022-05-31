@@ -8,9 +8,9 @@ import data.nat.log
 import init.data.nat
 import tactic.linarith
 
-import data.list.timed.lemmas
-import data.list.timed.split
-import data.list.timed.merge
+import computability.timed.lemmas
+import computability.timed.split
+import computability.timed.merge
 /-!
 # Timed Merge Sort
   This file defines a new version of Merge Sort that, besides sorting the input list, counts the

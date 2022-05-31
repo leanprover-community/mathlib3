@@ -37,15 +37,11 @@ linear_map.ext $ λ j, mul_vec_diagonal _ _ _
 lemma diagonal_comp_std_basis (w : n → R) (i : n) :
   (diagonal w).to_lin'.comp (linear_map.std_basis R (λ_:n, R) i) =
   (w i) • linear_map.std_basis R (λ_:n, R) i :=
-linear_map.ext $ λ x, begin
-  dsimp [coe_std_basis],
-  simp only [coe_std_basis],
-  rw [diagonal_mul_vec_single, ←smul_eq_mul, ←pi.single_smul'],
-end
+linear_map.ext $ λ x, (diagonal_mul_vec_single w _ _).trans (pi.single_smul' i (w i) _)
 
 lemma diagonal_to_lin' (w : n → R) :
   (diagonal w).to_lin' = linear_map.pi (λi, w i • linear_map.proj i) :=
-by ext v j; simp [mul_vec_diagonal]
+linear_map.ext $ λ v, funext $ λ i, mul_vec_diagonal _ _ _
 
 end comm_ring
 

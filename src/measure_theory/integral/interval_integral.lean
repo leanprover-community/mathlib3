@@ -2086,24 +2086,15 @@ Auxiliary lemma in the proof of `integral_eq_sub_of_has_deriv_right_of_le`. -/
 lemma sub_le_integral_of_has_deriv_right_of_le (hab : a ≤ b) (hcont : continuous_on g (Icc a b))
   (hderiv : ∀ x ∈ Ico a b, has_deriv_within_at g (g' x) (Ioi x) x)
   (g'int : ∀ x ∈ Ico a b, 0 ≤ g' x) :
-  integrable_on g' (Icc a b) :=
+  integrable_on g' (Ico a b) :=
 begin
-  have : ae_measurable g' (volume.restrict (Ico a b)),
+  have meas_g' : ae_measurable g' (volume.restrict (Ico a b)),
   { have A : measurable (λ x, deriv_within g (Ioi x) x), sorry,
     apply A.ae_measurable.congr,
     refine (ae_restrict_mem measurable_set_Ico).mono (λ x hx, _),
-    apply (hderiv x hx).deriv_within,
-    apply unique_diff_within_at_Ici_Iic_univ
-
-
-  },
-  suffices : ∫⁻ x in Icc a b, ∥g' x∥₊ ≤ ennreal.of_real (g b - g a + b - a),
-  { have : ae_measurable g' (volume.restrict (Icc a b)),
-    {
-
-    }
-
-  },
+    exact (hderiv x hx).deriv_within (unique_diff_within_at_Ioi _) },
+  suffices H : ∫⁻ x in Ico a b, ∥g' x∥₊ ≤ ennreal.of_real (g b - g a + b - a),
+    from ⟨meas_g'.ae_strongly_measurable, H.trans_lt ennreal.of_real_lt_top⟩,
 end
 
 #exit

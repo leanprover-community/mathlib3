@@ -1,5 +1,25 @@
+/-
+Copyright (c) 2022 Alexander Bentkamp. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Alexander Bentkamp
+-/
+
 import linear_algebra.matrix.nonsingular_inverse
 import linear_algebra.matrix.block
+/-!
+# Triangular matrices
+
+This file defines lower triangular matrices and their properties. A matrix is lower triangular if
+all entries below the diagonal are zero.
+
+## TODO
+
+Add upper triangular matrices.
+
+## Tags
+
+lower triangular
+-/
 
 namespace matrix
 variables {n R : Type*} (M N : matrix n n R)

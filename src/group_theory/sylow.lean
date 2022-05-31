@@ -74,11 +74,7 @@ instance : subgroup_class (sylow p G) G :=
 
 variables (P : sylow p G) {K : Type*} [group K] (ϕ : K →* G) {N : subgroup G}
 
-<<<<<<< HEAD
-/-- The preimage of a Sylow subgroup under a homomorphism with p-group-kernel is a Sylow subgroup -/
-=======
 /-- The preimage of a Sylow subgroup under a p-group-kernel homomorphism is a Sylow subgroup. -/
->>>>>>> master
 def comap_of_ker_is_p_group (hϕ : is_p_group p ϕ.ker) (h : ↑P ≤ ϕ.range) : sylow p K :=
 { P.1.comap ϕ with
   is_p_group' := P.2.comap_of_ker_is_p_group ϕ hϕ,
@@ -296,25 +292,13 @@ lemma card_sylow_dvd_index [fact p.prime] [fintype (sylow p G)] (P : sylow p G) 
   card (sylow p G) ∣ P.1.index :=
 ((congr_arg _ (card_sylow_eq_index_normalizer P)).mp dvd_rfl).trans (index_dvd_of_le le_normalizer)
 
-lemma comap_le_comap_of_le_range {G N : Type*} [group G] [group N] {f : G →* N}
-  {K L : subgroup N} (hf : K ≤ f.range) : K.comap f ≤ L.comap f ↔ K ≤ L :=
-⟨(map_comap_eq_self hf).ge.trans ∘ map_le_iff_le_comap.mpr, comap_mono⟩
-
-lemma comap_le_comap_of_surjective {G N : Type*} [group G] [group N] {f : G →* N}
-  (hf : function.surjective f) {K L : subgroup N} : K.comap f ≤ L.comap f ↔ K ≤ L :=
-comap_le_comap_of_le_range (le_top.trans (f.range_top_of_surjective hf).ge)
-
-lemma comap_lt_comap_of_surjective {G N : Type*} [group G] [group N] {f : G →* N}
-  (hf : function.surjective f) {K L : subgroup N} : K.comap f < L.comap f ↔ K < L :=
-by simp_rw [lt_iff_le_not_le, comap_le_comap_of_surjective hf]
-
 lemma lema18 [hp : fact p.prime] (P : sylow p G) [P.1.normal]
   (hP : P.1.index ≠ 0) : ¬ p ∣ P.1.index :=
 begin
   intro h,
   haveI : fintype (G ⧸ P.1) := fintype_of_index_ne_zero hP,
   rw index_eq_card at h,
-  obtain ⟨x, hx⟩ := equiv.perm.exists_prime_order_of_dvd_card p h,
+  obtain ⟨x, hx⟩ := exists_prime_order_of_dvd_card p h,
   let Q := (zpowers x).comap (quotient_group.mk' P.1),
   have hx' : is_p_group p (zpowers x),
   { apply is_p_group.of_card,

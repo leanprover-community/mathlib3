@@ -36,58 +36,110 @@ In complete lattices, however, it coincides with the `Inf Sup` definition.
 open filter set
 open_locale filter
 
-variables {α β ι : Type*}
+variables {α β γ ι : Type*}
 namespace filter
 
-section relation
+section bounded_under
 
-/-- `f.is_bounded (≺)`: the filter `f` is eventually bounded w.r.t. the relation `≺`, i.e.
-eventually, it is bounded by some uniform bound.
-`r` will be usually instantiated with `≤` or `≥`. -/
-def is_bounded (r : α → α → Prop) (f : filter α) := ∃ b, ∀ᶠ x in f, r x b
+/-!
+### Definitions
+-/
 
-/-- `f.is_bounded_under (≺) u`: the image of the filter `f` under `u` is eventually bounded w.r.t.
-the relation `≺`, i.e. eventually, it is bounded by some uniform bound. -/
-def is_bounded_under (r : α → α → Prop) (f : filter β) (u : β → α) := (f.map u).is_bounded r
+/-- `filter.is_bounded_under (≺) l u`: the image of the filter `l` under `u` is eventually bounded
+w.r.t. the relation `≺`, i.e. eventually, it is bounded by some uniform bound. -/
+def is_bounded_under (r : β → β → Prop) (l : filter α) (u : α → β) := ∃ b, ∀ᶠ x in l, r (u x) b
 
-variables {r : α → α → Prop} {f g : filter α}
+/-- `is_cobounded_under (≺) l u` states that the image of the filter `l` under the map `u` does not
+tend to infinity w.r.t. `≺`. This is also called frequently bounded. Will be usually instantiated
+with `≤` or `≥`.
 
-/-- `f` is eventually bounded if and only if, there exists an admissible set on which it is
-bounded. -/
-lemma is_bounded_iff : f.is_bounded r ↔ (∃s∈f.sets, ∃b, s ⊆ {x | r x b}) :=
-iff.intro
-  (assume ⟨b, hb⟩, ⟨{a | r a b}, hb, b, subset.refl _⟩)
-  (assume ⟨s, hs, b, hb⟩, ⟨b, mem_of_superset hs hb⟩)
+There is a subtlety in this definition: we want `is_cobounded_under (≤) l u` to hold for any `l` in
+the case of an order with top element. This will be relevant to deduce theorems on complete lattices
+from their versions on conditionally complete lattices with additional assumptions. We have to be
+careful in the edge case of the trivial filter containing the empty set: the other natural
+definition
+```
+¬ ∀ a, ∀ᶠ n in l, u a ≤ n
+```
+would not work as well in this case.
+-/
+def is_cobounded_under (r : β → β → Prop) (l : filter α) (u : α → β) :=
+∃ b, ∀ a, (∀ᶠ x in l, r (u x) a) → r b a
 
-/-- A bounded function `u` is in particular eventually bounded. -/
-lemma is_bounded_under_of {f : filter β} {u : β → α} :
-  (∃b, ∀x, r (u x) b) → f.is_bounded_under r u
-| ⟨b, hb⟩ := ⟨b, show ∀ᶠ x in f, r (u x) b, from eventually_of_forall hb⟩
+variables {r : β → β → Prop} {l l' : filter α} {u v : α → β}
 
-lemma is_bounded_bot : is_bounded r ⊥ ↔ nonempty α :=
-by simp [is_bounded, exists_true_iff_nonempty]
+/-- `l` is eventually bounded under `u` if and only if, there exists an admissible set on which `u`
+is bounded. -/
+lemma is_bounded_under_iff : is_bounded_under r l u ↔ ∃ (s ∈ l) b, s ⊆ {x | r (u x) b} :=
+⟨λ ⟨b, hb⟩, ⟨{a | r (u a) b}, hb, b, subset.rfl⟩, λ ⟨s, hs, b, hb⟩, ⟨b, mem_of_superset hs hb⟩⟩
 
-lemma is_bounded_top : is_bounded r ⊤ ↔ (∃t, ∀x, r x t) :=
-by simp [is_bounded, eq_univ_iff_forall]
+lemma is_bounded_under_le_iff [preorder β] :
+  is_bounded_under (≤) l u ↔ ∃ s ∈ l, bdd_above (u '' s) :=
+is_bounded_under_iff.trans $ exists₃_congr $ λ s hs b, iff.symm ball_image_iff
 
-lemma is_bounded_principal (s : set α) : is_bounded r (𝓟 s) ↔ (∃t, ∀x∈s, r x t) :=
-by simp [is_bounded, subset_def]
+lemma is_bounded_under_ge_iff [preorder β] :
+  is_bounded_under (≥) l u ↔ ∃ s ∈ l, bdd_below (u '' s) :=
+@is_bounded_under_le_iff α βᵒᵈ _ _ _
 
-lemma is_bounded_sup [is_trans α r] (hr : ∀b₁ b₂, ∃b, r b₁ b ∧ r b₂ b) :
-  is_bounded r f → is_bounded r g → is_bounded r (f ⊔ g)
-| ⟨b₁, h₁⟩ ⟨b₂, h₂⟩ := let ⟨b, rb₁b, rb₂b⟩ := hr b₁ b₂ in
-  ⟨b, eventually_sup.mpr ⟨h₁.mono (λ x h, trans h rb₁b), h₂.mono (λ x h, trans h rb₂b)⟩⟩
+lemma is_bounded_under_of_all {b} (hb : ∀ a, r (u a) b) : is_bounded_under r l u :=
+⟨b, eventually_of_forall hb⟩
 
-lemma is_bounded.mono (h : f ≤ g) : is_bounded r g → is_bounded r f
-| ⟨b, hb⟩ := ⟨b, h hb⟩
+protected lemma _root_.bdd_above.is_bounded_under [preorder β] (h : bdd_above (range u)) :
+  is_bounded_under (≤) l u :=
+h.imp $ λ b hb, eventually_of_forall $ forall_range_iff.1 hb
 
-lemma is_bounded_under.mono {f g : filter β} {u : β → α} (h : f ≤ g) :
-  g.is_bounded_under r u → f.is_bounded_under r u :=
-λ hg, hg.mono (map_mono h)
+lemma is_bounded_under_bot_iff : is_bounded_under r ⊥ u ↔ nonempty β :=
+by simp [is_bounded_under, exists_true_iff_nonempty]
 
-lemma is_bounded.is_bounded_under {q : β → β → Prop} {u : α → β}
-  (hf : ∀a₀ a₁, r a₀ a₁ → q (u a₀) (u a₁)) : f.is_bounded r → f.is_bounded_under q u
-| ⟨b, h⟩ := ⟨u b, show ∀ᶠ x in f, q (u x) (u b), from h.mono (λ x, hf x b)⟩
+@[simp] lemma is_bounded_under_bot [nonempty β] : is_bounded_under r ⊥ u :=
+is_bounded_under_bot_iff.2 ‹_›
+
+lemma is_bounded_under_principal {s : set α} :
+  is_bounded_under r (𝓟 s) u ↔ ∃ b, ∀ x ∈ s, r (u x) b :=
+exists_congr $ λ _, eventually_principal
+
+@[simp] lemma is_bounded_under_le_principal [preorder β] {s : set α} :
+  is_bounded_under (≤) (𝓟 s) u ↔ bdd_above (u '' s) :=
+is_bounded_under_principal.trans $ exists_congr $ λ _, iff.symm $ ball_image_iff
+
+lemma is_bounded_under_top : is_bounded_under r ⊤ u ↔ ∃ b, ∀ x, r (u x) b :=
+by simp [is_bounded_under]
+
+@[simp] lemma is_bounded_under_le_top [preorder β] :
+  is_bounded_under (≤) ⊤ u ↔ bdd_above (range u) :=
+is_bounded_under_top.trans $ exists_congr $ λ _, iff.symm $ forall_range_iff
+
+@[simp] lemma is_bounded_under_ge_top [preorder β] :
+  is_bounded_under (≥) ⊤ u ↔ bdd_below (range u) :=
+@is_bounded_under_le_top α βᵒᵈ _ _
+
+lemma is_bounded_under.mono (h : is_bounded_under r l u) (hle : l' ≤ l) :
+  is_bounded_under r l' u :=
+h.imp $ λ b hb, hb.filter_mono hle
+
+lemma is_bounded_under.mono_rel [is_trans β r] (h : is_bounded_under r l u)
+  (hle : ∀ᶠ x in l, r (v x) (u x)) : is_bounded_under r l v :=
+h.imp $ λ b hb, hb.mp $ hle.mono $ λ x, trans
+
+lemma is_bounded_under.mono_le [preorder β] (h : is_bounded_under (≤) l u)
+  (hle : v ≤ᶠ[l] u) : is_bounded_under (≤) l v :=
+h.mono_rel hle
+
+lemma is_bounded_under.mono_ge [preorder β] (h : is_bounded_under (≥) l u)
+  (hle : u ≤ᶠ[l] v) : is_bounded_under (≥) l v :=
+h.mono_rel hle
+
+lemma is_bounded_under.join [is_trans β r] [is_directed β r] (h : is_bounded_under r l u)
+  (h' : is_bounded_under r l' u) : is_bounded_under r (l ⊔ l') u :=
+begin
+  rcases ⟨h, h'⟩ with ⟨⟨b, hb⟩, b', hb'⟩,
+  rcases directed_of r b b' with ⟨c, hc, hc'⟩,
+  exact ⟨c, eventually_sup.mpr ⟨hb.mono $ λ x hx, trans hx hc, hb'.mono $ λ x hx, trans hx hc'⟩⟩
+end
+
+@[simp] lemma is_bounded_under_join [is_trans β r] [is_directed β r] :
+  is_bounded_under r (l ⊔ l') u ↔ is_bounded_under r l u ∧ is_bounded_under r l' u :=
+⟨λ h, ⟨h.mono le_sup_left, h.mono le_sup_right⟩, λ h, h.1.join h.2⟩
 
 lemma not_is_bounded_under_of_tendsto_at_top [preorder β] [no_max_order β] {f : α → β}
   {l : filter α} [l.ne_bot] (hf : tendsto f l at_top) :
@@ -128,22 +180,19 @@ lemma is_bounded_under.bdd_below_range [semilattice_inf β] {f : ℕ → β}
   (hf : is_bounded_under (≥) at_top f) : bdd_below (range f) :=
 @is_bounded_under.bdd_above_range βᵒᵈ _ _ hf
 
-/-- `is_cobounded (≺) f` states that the filter `f` does not tend to infinity w.r.t. `≺`. This is
-also called frequently bounded. Will be usually instantiated with `≤` or `≥`.
+lemma is_bounded_under.sup [semilattice_sup α] {f : filter β} {u v : β → α}
+  (hu : is_bounded_under (≤) f u) (hv : is_bounded_under (≤) f v) :
+  is_bounded_under (≤) f (λ a, u a ⊔ v a) :=
+begin
+  rcases hu.def with ⟨bu, hbu⟩,
+  rcases hv.def with ⟨bv, hbv⟩,
+  exact is_bounded_under_iff.2 ⟨bu ⊔ bv, hbv.mp (hbu.mono $ λ x, sup_le_sup)⟩
+end
 
-There is a subtlety in this definition: we want `f.is_cobounded` to hold for any `f` in the case of
-complete lattices. This will be relevant to deduce theorems on complete lattices from their
-versions on conditionally complete lattices with additional assumptions. We have to be careful in
-the edge case of the trivial filter containing the empty set: the other natural definition
-  `¬ ∀ a, ∀ᶠ n in f, a ≤ n`
-would not work as well in this case.
--/
-def is_cobounded (r : α → α → Prop) (f : filter α) := ∃b, ∀a, (∀ᶠ x in f, r x a) → r b a
-
-/-- `is_cobounded_under (≺) f u` states that the image of the filter `f` under the map `u` does not
-tend to infinity w.r.t. `≺`. This is also called frequently bounded. Will be usually instantiated
-with `≤` or `≥`. -/
-def is_cobounded_under (r : α → α → Prop) (f : filter β) (u : β → α) := (f.map u).is_cobounded r
+lemma is_bounded_under.inf [semilattice_inf α] {f : filter β} {u v : β → α}
+  (hu : is_bounded_under (≥) f u) (hv : is_bounded_under (≥) f v) :
+  is_bounded_under (≥) f (λ a, u a ⊓ v a) :=
+@is_bounded_under.sup αᵒᵈ _ _ _ _ _ hu hv
 
 /-- To check that a filter is frequently bounded, it suffices to have a witness
 which bounds `f` at some point for every admissible set.
@@ -194,6 +243,7 @@ lemma is_bounded_le_of_top [preorder α] [order_top α] {f : filter α} : f.is_b
 
 lemma is_bounded_ge_of_bot [preorder α] [order_bot α] {f : filter α} : f.is_bounded (≥) :=
 ⟨⊥, eventually_of_forall $ λ _, bot_le⟩
+
 
 lemma is_bounded_under_sup [semilattice_sup α] {f : filter β} {u v : β → α} :
   f.is_bounded_under (≤) u → f.is_bounded_under (≤) v → f.is_bounded_under (≤) (λa, u a ⊔ v a)

@@ -5,6 +5,7 @@ Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Sébasti
   Rémy Degenne, David Loeffler
 -/
 import analysis.special_functions.complex.log
+import analysis.asymptotics.theta
 
 /-!
 # Power function on `ℂ`, `ℝ`, `ℝ≥0`, and `ℝ≥0∞`
@@ -405,13 +406,34 @@ lemma abs_cpow_of_ne_zero {z : ℂ} (hz : z ≠ 0) (w : ℂ) :
 by rw [cpow_def_of_ne_zero hz, abs_exp, mul_re, log_re, log_im, real.exp_sub,
   real.rpow_def_of_pos (abs_pos.2 hz)]
 
+lemma abs_cpow_of_imp {z w : ℂ} (h : z = 0 → w.re = 0 → w = 0) :
+  abs (z ^ w) = abs z ^ w.re / real.exp (arg z * im w) :=
+begin
+  rcases ne_or_eq z 0 with hz|rfl; [exact (abs_cpow_of_ne_zero hz w), rw abs_zero],
+  cases eq_or_ne w.re 0 with hw hw,
+  { simp [hw, h rfl hw] },
+  { rw [real.zero_rpow hw, zero_div, zero_cpow, abs_zero],
+    exact ne_of_apply_ne re hw }
+end
+
 lemma abs_cpow_le (z w : ℂ) : abs (z ^ w) ≤ abs z ^ w.re / real.exp (arg z * im w) :=
 begin
-  rcases ne_or_eq z 0 with hz|rfl; [exact (abs_cpow_of_ne_zero hz w).le, rw abs_zero],
-  rcases eq_or_ne w 0 with rfl|hw, { simp },
-  rw [zero_cpow hw, abs_zero],
-  exact div_nonneg (real.rpow_nonneg_of_nonneg le_rfl _) (real.exp_pos _).le
+  by_cases h : z = 0 → w.re = 0 → w = 0,
+  { exact (abs_cpow_of_imp h).le },
+  { push_neg at h,
+    rw [h.1, zero_cpow h.2.2, abs_zero],
+    exact div_nonneg (real.rpow_nonneg_of_nonneg le_rfl _) (real.exp_pos _).le },
 end
+
+lemma is_Theta_exp_arg_mul_im {α : Type*} {l : filter α} {f g : α → ℂ}
+  (hl : is_bounded_under (≤) l (λ x, |(g x).im|)) :
+  (λ x, real.exp (arg (f x) * im (g x))) =Θ[l] (λ x, (1 : ℝ)) :=
+
+
+lemma is_O_cpow_rpow {α : Type*} {l : filter α} (f g : α → ℂ)
+  (hl : is_bounded_under (≤) l (λ x, |(g x).im|)) :
+  (λ x, f x ^ g x) =O[l] (λ x, abs (f x) ^ (g x).re) :=
+
 
 @[simp] lemma abs_cpow_real (x : ℂ) (y : ℝ) : abs (x ^ (y : ℂ)) = x.abs ^ y :=
 by rcases eq_or_ne x 0 with rfl|hx; [rcases eq_or_ne y 0 with rfl|hy, skip];

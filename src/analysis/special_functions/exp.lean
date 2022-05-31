@@ -26,6 +26,8 @@ namespace complex
 
 variables {z y x : ℝ}
 
+#check is_bounded_under
+
 lemma exp_bound_sq (x z : ℂ) (hz : ∥z∥ ≤ 1) :
   ∥exp (x + z) - exp x - z • exp x∥ ≤ ∥exp x∥ * ∥z∥ ^ 2 :=
 calc ∥exp (x + z) - exp x - z * exp x∥

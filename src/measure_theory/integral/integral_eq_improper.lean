@@ -576,6 +576,29 @@ lemma integrable_on_Ioi_of_interval_integral_norm_tendsto (I a : ℝ)
 let ⟨I', hI'⟩ := h.is_bounded_under_le in
   integrable_on_Ioi_of_interval_integral_norm_bounded I' a hfi hb hI'
 
+lemma integrable_on_Ioc_of_interval_integral_norm_bounded {I a₀ b₀ : ℝ}
+  (hfi : ∀ i, integrable_on f $ Ioc (a i) (b i))
+  (ha : tendsto a l $ 𝓝 a₀) (hb : tendsto b l $ 𝓝 b₀)
+  (h : ∀ᶠ i in l, (∫ x in Ioc (a i) (b i), ∥f x∥) ≤ I) : integrable_on f (Ioc a₀ b₀) :=
+begin
+  refine (ae_cover_Ioc_of_Ioc ha hb).integrable_of_integral_norm_bounded I
+    (λ i, (hfi i).restrict measurable_set_Ioc) (eventually.mono h _),
+  intros i hi, simp only [measure.restrict_restrict measurable_set_Ioc],
+  refine le_trans (set_integral_mono_set (hfi i).norm _ _) hi,
+  { apply ae_of_all, simp only [pi.zero_apply, norm_nonneg, forall_const] },
+  { apply ae_of_all, intros c hc, exact hc.1 },
+end
+
+lemma integrable_on_Ioc_of_interval_integral_norm_bounded_left {I a₀ b : ℝ}
+  (hfi : ∀ i, integrable_on f $ Ioc (a i) b) (ha : tendsto a l $ 𝓝 a₀)
+  (h : ∀ᶠ i in l, (∫ x in Ioc (a i) b, ∥f x∥ ) ≤ I) : integrable_on f (Ioc a₀ b) :=
+integrable_on_Ioc_of_interval_integral_norm_bounded hfi ha tendsto_const_nhds h
+
+lemma integrable_on_Ioc_of_interval_integral_norm_bounded_right {I a b₀ : ℝ}
+  (hfi : ∀ i, integrable_on f $ Ioc a (b i)) (hb : tendsto b l $ 𝓝 b₀)
+  (h : ∀ᶠ i in l, (∫ x in Ioc a (b i), ∥f x∥ ) ≤ I) : integrable_on f (Ioc a b₀) :=
+integrable_on_Ioc_of_interval_integral_norm_bounded hfi tendsto_const_nhds hb h
+
 end integrable_of_interval_integral
 
 section integral_of_interval_integral
@@ -625,3 +648,81 @@ end
 end integral_of_interval_integral
 
 end measure_theory
+
+section FTC_nonneg
+
+/-- Fundamental theorem of calculus-2: If `f : ℝ → ℝ` has a derivative `f' x` for all `x` in
+  `(a, b)` and is continuous on `[a, b]`, and `f'` is continuous and non-negative on `(a, b)`, then
+  `f'` is integrable on `[a, b]` and `∫ y in a..b, f' y = f(b) - f(a)`.
+
+  Since integrability is not part of the hypotheses (unlike other versions of FTC-2 in the library),
+  we return a proof of integrability togther with the evaluation of the integral.
+  -/
+lemma interval_integral.integral_eq_sub_of_has_deriv_at_of_nonneg_of_le {a b : ℝ} {f f' : ℝ → ℝ}
+  (hderiv : ∀ x ∈ Ioo a b, has_deriv_at f (f' x) x) (hnonneg : ∀ x ∈ Ioo a b, 0 ≤ f' x)
+  (hcontf : continuous_on f $ Icc a b) (hcontf' : continuous_on f' $ Ioo a b) (hab : a ≤ b) :
+  (integrable_on f' $ Ioc a b) ∧ (∫ y in a..b, f' y = f b - f a) :=
+begin
+  suffices : integrable_on f' (Ioc a b),
+  { exact ⟨this, interval_integral.integral_eq_sub_of_has_deriv_at_of_le hab hcontf hderiv
+    ((interval_integrable_iff_integrable_Ioc_of_le hab).mpr this)⟩ },
+  have f_incr : monotone_on f (Icc a b),
+  { refine convex.monotone_on_of_deriv_nonneg (convex_Icc a b) hcontf _ _,
+    { rw interior_Icc, intros x hx, apply differentiable_at.differentiable_within_at,
+      apply has_deriv_at.differentiable_at, exact hderiv x hx, },
+    { rw interior_Icc, intros x hx,
+      rw has_deriv_at.deriv (hderiv x hx), exact hnonneg x hx,} },
+  let A := λ (n : ℕ), a + 1 / (n + 1),
+  let B := λ (n : ℕ), b - 1 / (n + 1),
+  have t0 : ∀ (n : ℕ), 0 < (1 / (n + 1) : ℝ),
+  { intro n, rw one_div_pos, exact add_pos_of_nonneg_of_pos (nat.cast_nonneg _) zero_lt_one, },
+  have Icc_sub : ∀ (n : ℕ), Icc (A n) (B n) ⊆ Ioo a b,
+  { intro n, apply Icc_subset_Ioo ((lt_add_iff_pos_right _).mpr $ t0 n) (sub_lt_self _ $ t0 n) },
+  have t1 : tendsto A at_top (𝓝 a),
+  { convert tendsto_one_div_add_at_top_nhds_0_nat.const_add a, simp },
+  have t2 : tendsto B at_top (𝓝 b),
+  { convert tendsto_one_div_add_at_top_nhds_0_nat.const_sub b, simp },
+  refine measure_theory.integrable_on_Ioc_of_interval_integral_norm_bounded _ t1 t2
+    (eventually_of_forall _), { exact (f b - f a) },
+  { intro n, exact ((hcontf'.mono $ Icc_sub n).integrable_on_Icc).mono_set Ioc_subset_Icc_self, },
+  { intro n,
+    -- clean up silly case when interval is empty
+    rcases lt_or_le (B n) (A n) with u|u,
+    { rw [Ioc_eq_empty_of_le u.le, integral_empty, sub_nonneg],
+      exact f_incr ⟨le_refl _, hab⟩ ⟨hab, le_refl _⟩ hab },
+    -- now main case
+    have : ∫ (x : ℝ) in Ioc (A n) (B n), ∥f' x∥ = ∫ (x : ℝ) in Ioc (A n) (B n), f' x,
+    { refine set_integral_congr measurable_set_Ioc (λ x hx, _),
+      exact real.norm_of_nonneg (hnonneg _ $ subset_trans Ioc_subset_Icc_self (Icc_sub n) hx),},
+    rw this,
+    rw [←interval_integral.integral_of_le u, interval_integral.integral_eq_sub_of_has_deriv_at],
+    { have t1a : a ≤ A n, { simp only [le_add_iff_nonneg_right], exact (t0 n).le, },
+      have t1b : B n ≤ b, { apply sub_le_self, exact (t0 n).le, },
+      exact sub_le_sub (f_incr ⟨le_trans t1a u, t1b⟩ ⟨hab, le_refl _⟩ t1b)
+         (f_incr ⟨le_refl _, hab⟩ ⟨t1a, le_trans u t1b⟩ t1a), },
+    { intros x hx, rw interval_of_le u at hx, apply hderiv x, apply Icc_sub n, exact hx, },
+    { refine (continuous_on.mono hcontf' _).interval_integrable,
+      rw interval_of_le u, exact Icc_sub n, }, }
+  end
+
+theorem interval_integral.integral_eq_sub_of_has_deriv_at_of_nonneg {a b : ℝ} {f f' : ℝ → ℝ}
+  (hderiv : ∀ x ∈ interior (interval a b), has_deriv_at f (f' x) x)
+  (hnonneg : ∀ x ∈ interior (interval a b), 0 ≤ f' x)
+  (hcontf : continuous_on f $ interval a b)
+  (hcontf' : continuous_on f' $ interior (interval a b)) :
+  (interval_integrable f' volume a b) ∧ (∫ y in a..b, f' y = f b - f a) :=
+begin
+  wlog hab : a ≤ b := le_total a b using [a b, b a] tactic.skip,
+  { rw [interval_of_le hab, interior_Icc] at *,
+    rw interval_integrable_iff_integrable_Ioc_of_le hab,
+    exact interval_integral.integral_eq_sub_of_has_deriv_at_of_nonneg_of_le hderiv hnonneg hcontf
+      hcontf' hab },
+  { intros, rw [interval_of_ge hab, interior_Icc] at *,
+    have u := interval_integral.integral_eq_sub_of_has_deriv_at_of_nonneg_of_le hderiv hnonneg
+      hcontf hcontf' hab,
+    refine ⟨((interval_integrable_iff_integrable_Ioc_of_le hab).mpr u.1).symm, _⟩,
+    rw interval_integral.integral_symm, have v := u.2,
+    apply_fun has_neg.neg at v, rw v, ring }
+end
+
+end FTC_nonneg

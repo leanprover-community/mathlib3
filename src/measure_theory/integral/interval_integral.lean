@@ -191,6 +191,17 @@ variables {f : ℝ → E} {a b : ℝ} {μ : measure ℝ}
 lemma interval_integrable_iff : interval_integrable f μ a b ↔ integrable_on f (Ι a b) μ :=
 by rw [interval_oc_eq_union, integrable_on_union, interval_integrable]
 
+lemma interval_integrable_iff' [is_locally_finite_measure μ] :
+  interval_integrable f μ a b ↔ integrable_on f (interval a b) μ :=
+begin
+  rw interval_integrable_iff,
+  have : (interval a b) = (Ι a b) ∪ { min a b } := by { rw [interval, interval_oc], simp, },
+  rw [this, integrable_on_union, integrable_on_singleton_iff],
+  suffices: μ {min a b} < ⊤, { simp only [this, with_top.zero_lt_top, or_true, and_true], },
+  obtain ⟨t, ⟨t1, t2, t3⟩⟩ := measure.exists_is_open_measure_lt_top μ (min a b),
+  refine lt_of_le_of_lt _ t3, apply measure_mono, simpa using t1,
+end
+
 /-- If a function is interval integrable with respect to a given measure `μ` on `a..b` then
   it is integrable on `interval_oc a b` with respect to `μ`. -/
 lemma interval_integrable.def (h : interval_integrable f μ a b) : integrable_on f (Ι a b) μ :=
@@ -332,6 +343,27 @@ lemma continuous_on_mul {f g : ℝ → ℝ} (hf : interval_integrable f μ a b)
   (hg : continuous_on g [a, b]) :
   interval_integrable (λ x, g x * f x) μ a b :=
 by simpa [mul_comm] using hf.mul_continuous_on hg
+
+lemma comp_mul_left (hf : interval_integrable f volume a b) (c : ℝ) :
+  interval_integrable (λ x, f (c * x)) volume (a / c) (b / c) :=
+begin
+  rcases eq_or_ne c 0 with hc|hc, { rw hc, simp },
+  rw interval_integrable_iff' at hf ⊢,
+  have A : measurable_embedding (λ x, x * c⁻¹) :=
+    (homeomorph.mul_right₀ _ (inv_ne_zero hc)).closed_embedding.measurable_embedding,
+  rw [←real.smul_map_volume_mul_right (inv_ne_zero hc), integrable_on, measure.restrict_smul,
+    integrable_smul_measure (by simpa : ennreal.of_real (|c⁻¹|) ≠ 0) ennreal.of_real_ne_top,
+    ←integrable_on, measurable_embedding.integrable_on_map_iff A],
+  convert hf using 1,
+  { ext, simp only [comp_app], congr' 1, field_simp, ring },
+  { rw preimage_mul_const_interval (inv_ne_zero hc), field_simp [hc] },
+end
+
+lemma iff_comp_neg  :
+  interval_integrable f volume a b ↔ interval_integrable (λ x, f (-x)) volume (-a) (-b) :=
+begin
+  split, all_goals { intro hf, convert comp_mul_left hf (-1), simp, field_simp, field_simp },
+end
 
 end interval_integrable
 

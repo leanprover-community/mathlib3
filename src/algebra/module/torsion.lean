@@ -288,8 +288,8 @@ include hp
 /--If the `p i` are pairwise coprime, a `∏ i, p i`-torsion module is the internal direct sum of
 its `p i`-torsion submodules.-/
 lemma torsion_is_internal (hM : module.is_torsion_by_set R M (⨅ i ∈ S, p i : ideal R)) :
-  direct_sum.submodule_is_internal (λ i : S, torsion_by_set R M $ p i) :=
-direct_sum.submodule_is_internal_of_independent_of_supr_eq_top
+  direct_sum.is_internal (λ i : S, torsion_by_set R M $ p i) :=
+direct_sum.is_internal_submodule_of_independent_of_supr_eq_top
   (complete_lattice.independent_iff_sup_indep.mpr $ sup_indep_torsion_by_ideal hp)
   ((supr_subtype'' ↑S $ λ i, torsion_by_set R M $ p i).trans $
     (supr_torsion_by_ideal_eq_torsion_by_infi hp).trans $

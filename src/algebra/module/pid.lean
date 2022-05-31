@@ -74,7 +74,7 @@ open unique_factorization_monoid
 lemma is_internal_prime_power_torsion_of_is_torsion_by_ideal {I : ideal R} (hI : I ≠ 0)
   (hM : module.is_torsion_by_set R M I) :
   ∃ (P : finset $ ideal R) [decidable_eq P] [∀ p ∈ P, prime p] (e : P → ℕ),
-  by exactI direct_sum.submodule_is_internal (λ p : P, torsion_by_set R M (p ^ e p : ideal R)) :=
+  by exactI direct_sum.is_internal (λ p : P, torsion_by_set R M (p ^ e p : ideal R)) :=
 begin
   classical,
   let P := factors I,
@@ -99,7 +99,7 @@ end
 
 theorem is_internal_prime_power_torsion [module.finite R M] (hM : module.is_torsion R M) :
   ∃ (P : finset $ ideal R) [decidable_eq P] [∀ p ∈ P, prime p] (e : P → ℕ),
-  by exactI direct_sum.submodule_is_internal (λ p : P, torsion_by_set R M (p ^ e p : ideal R)) :=
+  by exactI direct_sum.is_internal (λ p : P, torsion_by_set R M (p ^ e p : ideal R)) :=
 begin
   obtain ⟨I, hI, hM'⟩ := is_torsion_by_ideal_of_finite_of_is_torsion hM,
   exact is_internal_prime_power_torsion_of_is_torsion_by_ideal hI hM'
@@ -111,7 +111,7 @@ variables [is_principal_ideal_ring R]
 
 theorem is_internal_prime_power_torsion_of_pid [module.finite R M] (hM : module.is_torsion R M) :
   ∃ (ι : Type u) [fintype ι] [decidable_eq ι] (p : ι → R) [∀ i, irreducible $ p i] (e : ι → ℕ),
-  by exactI direct_sum.submodule_is_internal (λ i, torsion_by R M $ p i ^ e i) :=
+  by exactI direct_sum.is_internal (λ i, torsion_by R M $ p i ^ e i) :=
 begin
   obtain ⟨P, dec, hP, e, this⟩ := is_internal_prime_power_torsion hM,
   refine ⟨P, infer_instance, dec, λ p, is_principal.generator (p : ideal R), _, e, _⟩,

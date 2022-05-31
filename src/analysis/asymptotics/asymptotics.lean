@@ -748,7 +748,7 @@ theorem is_O_const_const (c : E) {c' : F''} (hc' : c' ≠ 0) (l : filter α) :
   (λ x : α, c) =O[l] (λ x, c') ↔ (c' = 0 → c = 0) :=
 begin
   rcases eq_or_ne c' 0 with rfl|hc',
-  { simp },
+  { simp [eventually_eq] },
   { simp [hc', is_O_const_const _ hc'] }
 end
 

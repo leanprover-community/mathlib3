@@ -90,6 +90,10 @@ lemma lex.le_of_forall_le [linear_order ι] [is_well_order ι (<)] [Π a, linear
   {a b : lex (Π i, β i)} (h : ∀ i, a i ≤ b i) : a ≤ b :=
 le_of_not_lt (λ ⟨i, hi⟩, (h i).not_lt hi.2)
 
+lemma lex.le_of_of_lex_le [linear_order ι] [is_well_order ι (<)] [Π a, linear_order (β a)]
+  {a b : lex (Π i, β i)} (h : of_lex a ≤ of_lex b) : a ≤ b :=
+lex.le_of_forall_le h
+
 lemma to_lex_monotone [linear_order ι] [is_well_order ι (<)] [Π a, linear_order (β a)] :
   monotone (@to_lex (Π i, β i)) :=
 λ _ _, lex.le_of_forall_le
@@ -97,12 +101,12 @@ lemma to_lex_monotone [linear_order ι] [is_well_order ι (<)] [Π a, linear_ord
 instance [linear_order ι] [is_well_order ι (<)] [Π a, linear_order (β a)]
   [Π a, order_bot (β a)] : order_bot (lex (Π a, β a)) :=
 { bot := to_lex ⊥,
-  bot_le := λ f, to_lex_monotone bot_le }
+  bot_le := λ f, lex.le_of_of_lex_le bot_le }
 
 instance [linear_order ι] [is_well_order ι (<)] [Π a, linear_order (β a)]
   [Π a, order_top (β a)] : order_top (lex (Π a, β a)) :=
 { top := to_lex ⊤,
-  le_top := λ f, to_lex_monotone le_top }
+  le_top := λ f, lex.le_of_of_lex_le le_top }
 
 instance [linear_order ι] [is_well_order ι (<)] [Π a, linear_order (β a)]
   [Π a, bounded_order (β a)] : bounded_order (lex (Π a, β a)) :=

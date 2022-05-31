@@ -700,6 +700,12 @@ theorem le_compl_iff_le_compl : y ≤ xᶜ ↔ x ≤ yᶜ :=
 theorem compl_le_iff_compl_le : xᶜ ≤ y ↔ yᶜ ≤ x :=
 ⟨compl_le_of_compl_le, compl_le_of_compl_le⟩
 
+@[simp] lemma le_compl_iff_disjoint : x ≤ yᶜ ↔ disjoint x y := is_compl_compl.le_right_iff
+lemma le_compl_iff_disjoint' : y ≤ xᶜ ↔ disjoint x y := le_compl_iff_disjoint.trans disjoint.comm
+
+alias le_compl_iff_disjoint ↔ _ disjoint.le_compl
+alias le_compl_iff_disjoint' ↔ _ disjoint.le_compl'
+
 namespace boolean_algebra
 
 @[priority 100]

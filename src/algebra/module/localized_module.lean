@@ -104,13 +104,8 @@ end
 
 @[elab_as_eliminator]
 lemma induction_on₂ {β : localized_module S M → localized_module S M → Prop}
-  (h : ∀ (m m' : M) (s s' : S), β (mk m s) (mk m' s')) : ∀ x y, β x y := λ x y,
-begin
-  induction x using quotient.induction_on,
-  induction y using quotient.induction_on,
-  rcases ⟨x, y⟩ with ⟨⟨m, s⟩, ⟨m', s'⟩⟩,
-  convert h m m' s s',
-end
+  (h : ∀ (m m' : M) (s s' : S), β (mk m s) (mk m' s')) : ∀ x y, β x y :=
+by { rintro ⟨⟨m, s⟩⟩ ⟨⟨m', s'⟩⟩, exact h m m' s s' }
 
 /--If `f : M × S → α` respects the equivalence relation `localized_module.r`, then
 `f` descents to a map `localized_module M S → α`.

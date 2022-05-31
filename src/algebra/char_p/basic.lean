@@ -127,7 +127,7 @@ theorem dvd {x : ℕ} (hx : (x : R) = 0) : ring_char R ∣ x :=
 lemma eq_zero [char_zero R] : ring_char R = 0 := eq R 0
 
 @[simp]
-lemma ring_char_cast_eq_zero : (ring_char R : R) = 0 :=
+lemma nat.cast_ring_char : (ring_char R : R) = 0 :=
 by rw ring_char.spec
 
 end ring_char

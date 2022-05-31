@@ -748,7 +748,7 @@ theorem is_O_const_const (c : E) {c' : F''} (hc' : c' ≠ 0) (l : filter α) :
   (λ x : α, c) =O[l] (λ x, c') ↔ (c' = 0 → c = 0) :=
 begin
   rcases eq_or_ne c' 0 with rfl|hc',
-  { simp },
+  { simp [eventually_eq] },
   { simp [hc', is_O_const_const _ hc'] }
 end
 
@@ -1357,7 +1357,7 @@ begin
   refine is_O.of_bound c (hc.mp $ hgf.mono (λ x hx₁ hx₂, _)),
   by_cases hgx : g x = 0,
   { simp [hx₁ hgx, hgx] },
-  { refine (div_le_iff (norm_pos_iff.2 hgx)).mp hx₂ },
+  { exact (div_le_iff (norm_pos_iff.2 hgx)).mp hx₂ },
 end
 
 theorem is_O_of_div_tendsto_nhds {α : Type*} {l : filter α}

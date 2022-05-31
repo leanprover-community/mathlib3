@@ -95,12 +95,8 @@ quotient.eq
 
 @[elab_as_eliminator]
 lemma induction_on {β : localized_module S M → Prop} (h : ∀ (m : M) (s : S), β (mk m s)) :
-  ∀ (x : localized_module S M), β x := λ x,
-begin
-  induction x using quotient.induction_on,
-  rcases x with ⟨m, s⟩,
-  exact h m s,
-end
+  ∀ (x : localized_module S M), β x :=
+by { rintro ⟨⟨m, s⟩⟩, exact h m s }
 
 @[elab_as_eliminator]
 lemma induction_on₂ {β : localized_module S M → localized_module S M → Prop}

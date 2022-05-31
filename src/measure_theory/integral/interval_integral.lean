@@ -2088,7 +2088,26 @@ lemma sub_le_integral_of_has_deriv_right_of_le (hab : a ≤ b) (hcont : continuo
   (g'int : ∀ x ∈ Ico a b, 0 ≤ g' x) :
   integrable_on g' (Icc a b) :=
 begin
-  suffices : ∫⁻ x in Icc a b, ∥g' x∥₊ ∂μ ≤ ennreal.of_real (g b - g a + b - a),
+  have : ae_measurable g' (volume.restrict (Ico a b)),
+  { have A : measurable (λ x, deriv_within g (Ioi x) x), sorry,
+    apply A.ae_measurable.congr,
+    refine (ae_restrict_mem measurable_set_Ico).mono (λ x hx, _),
+    apply (hderiv x hx).deriv_within,
+    apply unique_diff_within_at_Ici_Iic_univ
+
+
+  },
+  suffices : ∫⁻ x in Icc a b, ∥g' x∥₊ ≤ ennreal.of_real (g b - g a + b - a),
+  { have : ae_measurable g' (volume.restrict (Icc a b)),
+    {
+
+    }
+
+  },
+end
+
+#exit
+
   refine le_of_forall_pos_le_add (λ ε εpos, _),
   -- Bound from above `g'` by a lower-semicontinuous function `G'`.
   rcases exists_lt_lower_semicontinuous_integral_lt g' g'int εpos with

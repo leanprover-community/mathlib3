@@ -30,22 +30,10 @@ namespace timed
 | (h :: t) := if a ≼ h then (a :: h :: t, 1)
               else let (l', n) := ordered_insert t in (h :: l', n + 1)
 
-#eval ordered_insert (≤) 2 [5, 3, 1, 4]
--- ([2, 5, 3, 1, 4], 1)
-
-#eval ordered_insert (≤) 9 [1, 0, 8]
--- ([1, 0, 8, 9], 3)
-
 @[simp] def insertion_sort : list α → (list α × ℕ)
 | [] := ([], 0)
 | (h :: t) := let (l', n) := (insertion_sort t), (l'', m) := ordered_insert r h l'
               in (l'', n + m)
-
-#eval insertion_sort (≤) [1, 2, 3, 4, 5]
--- ([1, 2, 3, 4, 5], 4)
-
-#eval insertion_sort (≤) [5, 4, 3, 2, 1]
--- ([1, 2, 3, 4, 5], 10)
 
 theorem ordered_insert_complexity (a : α) :
   ∀ l : list α, (ordered_insert r a l).snd ≤ l.length :=

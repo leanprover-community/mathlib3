@@ -5,7 +5,7 @@ Authors: Simon Hudon, Patrick Massot
 -/
 import tactic.pi_instances
 import algebra.group.pi
-import algebra.ring.basic
+import algebra.hom.ring
 
 /-!
 # Pi instances for ring

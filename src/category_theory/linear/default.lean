@@ -71,15 +71,16 @@ instance preadditive_int_linear : linear ℤ C :=
 
 section End
 
-variables {R : Type w} [comm_ring R] [linear R C]
+variables {R : Type w}
 
-instance (X : C) : module R (End X) := linear.hom_module X X
+instance [semiring R] [linear R C] (X : C) : module R (End X) := linear.hom_module X X
 
 /-- TODO: should we have a `bilinear` class for this? -/
 instance (X : C) [linear Rᵐᵒᵖ C] [is_central_scalar R (X ⟶ X)] : is_central_scalar R (End X) :=
 ‹is_central_scalar R (X ⟶ X)›
 
-instance [linear Rᵐᵒᵖ C] (X : C) [is_central_scalar R (X ⟶ X)] : algebra R (End X) :=
+instance [comm_semiring R] [linear R C] [linear Rᵐᵒᵖ C] (X : C) [is_central_scalar R (X ⟶ X)] :
+  algebra R (End X) :=
 algebra.of_module (λ r f g, comp_smul _ _ _ _ _ _) (λ r f g, smul_comp _ _ _ _ _ _)
 
 end End

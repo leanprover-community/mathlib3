@@ -22,10 +22,7 @@ section order_closed_topology
 variables [semilattice_sup α] [topological_space α] [order_topology α]
 
 lemma is_bounded_le_nhds (a : α) : (𝓝 a).is_bounded (≤) :=
-match forall_le_or_exists_lt_sup a with
-| or.inl h := ⟨a, eventually_of_forall h⟩
-| or.inr ⟨b, hb⟩ := ⟨b, ge_mem_nhds hb⟩
-end
+(is_top_or_exists_gt a).elim (λ h, ⟨a, eventually_of_forall h⟩) (λ ⟨b, hb⟩, ⟨b, ge_mem_nhds hb⟩)
 
 lemma filter.tendsto.is_bounded_under_le {f : filter β} {u : β → α} {a : α}
   (h : tendsto u f (𝓝 a)) : f.is_bounded_under (≤) u :=

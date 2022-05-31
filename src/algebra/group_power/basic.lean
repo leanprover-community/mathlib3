@@ -3,9 +3,8 @@ Copyright (c) 2015 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Robert Y. Lewis
 -/
+import algebra.hom.ring
 import data.nat.basic
-import tactic.monotonicity.basic
-import group_theory.group_action.defs
 
 /-!
 # Power operations on monoids and groups
@@ -31,7 +30,7 @@ We adopt the convention that `0^0 = 1`.
 
 universes u v w x y z u₁ u₂
 
-variables {M : Type u} {N : Type v} {G : Type w} {H : Type x} {A : Type y} {B : Type z}
+variables {α : Type*} {M : Type u} {N : Type v} {G : Type w} {H : Type x} {A : Type y} {B : Type z}
   {R : Type u₁} {S : Type u₂}
 
 /-!
@@ -193,84 +192,84 @@ theorem zpow_neg_coe_of_pos (a : G) : ∀ {n : ℕ}, 0 < n → a ^ -(n:ℤ) = (a
 
 end div_inv_monoid
 
-section group
-variables [group G] [group H] [add_group A] [add_group B]
+section division_monoid
+variables [division_monoid α] {a b : α}
 
-open int
-
-section nat
-
-@[simp, to_additive] theorem inv_pow (a : G) (n : ℕ) : (a⁻¹)^n = (a^n)⁻¹ :=
-begin
-  induction n with n ih,
-  { rw [pow_zero, pow_zero, inv_one] },
-  { rw [pow_succ', pow_succ, ih, mul_inv_rev] }
-end
-
-@[to_additive] -- rename to sub_nsmul?
-theorem pow_sub (a : G) {m n : ℕ} (h : n ≤ m) : a^(m - n) = a^m * (a^n)⁻¹ :=
-have h1 : m - n + n = m, from tsub_add_cancel_of_le h,
-have h2 : a^(m - n) * a^n = a^m, by rw [←pow_add, h1],
-eq_mul_inv_of_mul_eq h2
-
-@[to_additive]
-theorem pow_inv_comm (a : G) (m n : ℕ) : (a⁻¹)^m * a^n = a^n * (a⁻¹)^m :=
-(commute.refl a).inv_left.pow_pow m n
-
-@[to_additive sub_nsmul_neg]
-theorem inv_pow_sub (a : G) {m n : ℕ} (h : n ≤ m) : a⁻¹^(m - n) = (a^m)⁻¹ * a^n :=
-by rw [pow_sub a⁻¹ h, inv_pow, inv_pow, inv_inv]
-
-end nat
+@[simp, to_additive] lemma inv_pow (a : α) : ∀ n : ℕ, (a⁻¹) ^ n = (a ^ n)⁻¹
+| 0       := by rw [pow_zero, pow_zero, inv_one]
+| (n + 1) := by rw [pow_succ', pow_succ, inv_pow, mul_inv_rev]
 
 -- the attributes are intentionally out of order. `smul_zero` proves `zsmul_zero`.
-@[to_additive zsmul_zero, simp]
-theorem one_zpow : ∀ (n : ℤ), (1 : G) ^ n = 1
+@[to_additive zsmul_zero, simp] lemma one_zpow : ∀ (n : ℤ), (1 : α) ^ n = 1
 | (n : ℕ) := by rw [zpow_coe_nat, one_pow]
 | -[1+ n] := by rw [zpow_neg_succ_of_nat, one_pow, inv_one]
 
-@[simp, to_additive neg_zsmul]
-theorem zpow_neg (a : G) : ∀ (n : ℤ), a ^ -n = (a ^ n)⁻¹
+@[simp, to_additive neg_zsmul] lemma zpow_neg (a : α) : ∀ (n : ℤ), a ^ -n = (a ^ n)⁻¹
 | (n+1:ℕ) := div_inv_monoid.zpow_neg' _ _
 | 0       := by { change a ^ (0 : ℤ) = (a ^ (0 : ℤ))⁻¹, simp }
 | -[1+ n] := by { rw [zpow_neg_succ_of_nat, inv_inv, ← zpow_coe_nat], refl }
 
-@[to_additive neg_one_zsmul_add] lemma mul_zpow_neg_one (a b : G) :
-  (a*b)^(-(1:ℤ)) = b^(-(1:ℤ))*a^(-(1:ℤ)) :=
-by simp only [mul_inv_rev, zpow_one, zpow_neg]
+@[to_additive neg_one_zsmul_add]
+lemma mul_zpow_neg_one (a b : α) : (a * b) ^ (-1 : ℤ) = b ^ (-1 : ℤ) * a ^ (-1 : ℤ) :=
+by simp_rw [zpow_neg_one, mul_inv_rev]
 
-@[to_additive zsmul_neg]
-theorem inv_zpow (a : G) : ∀n:ℤ, a⁻¹ ^ n = (a ^ n)⁻¹
+@[to_additive zsmul_neg] lemma inv_zpow (a : α) : ∀ n : ℤ, a⁻¹ ^ n = (a ^ n)⁻¹
 | (n : ℕ) := by rw [zpow_coe_nat, zpow_coe_nat, inv_pow]
 | -[1+ n] := by rw [zpow_neg_succ_of_nat, zpow_neg_succ_of_nat, inv_pow]
 
+@[simp, to_additive zsmul_neg']
+lemma inv_zpow' (a : α) (n : ℤ) : a⁻¹ ^ n = a ^ (-n) := by rw [inv_zpow, zpow_neg]
+
+@[to_additive nsmul_zero_sub]
+lemma one_div_pow (a : α) (n : ℕ) : (1 / a) ^ n = 1 / a ^ n := by simp_rw [one_div, inv_pow]
+
+@[to_additive zsmul_zero_sub]
+lemma one_div_zpow (a : α) (n : ℤ) :  (1 / a) ^ n = 1 / a ^ n := by simp_rw [one_div, inv_zpow]
+
 @[to_additive add_commute.zsmul_add]
-theorem commute.mul_zpow {a b : G} (h : commute a b) : ∀ n : ℤ, (a * b) ^ n = a ^ n * b ^ n
-| (n : ℕ) := by simp [zpow_coe_nat, h.mul_pow n]
-| -[1+n]  := by simp [h.mul_pow, (h.pow_pow n.succ n.succ).inv_inv.symm.eq]
+protected lemma commute.mul_zpow (h : commute a b) : ∀ (i : ℤ), (a * b) ^ i = a ^ i * b ^ i
+| (n : ℕ) := by simp [h.mul_pow n]
+| -[1+n]  := by simp [h.mul_pow, (h.pow_pow _ _).eq, mul_inv_rev]
 
-end group
+end division_monoid
 
-section comm_group
-variables [comm_group G] [add_comm_group A]
+section division_comm_monoid
+variables [division_comm_monoid α]
 
-@[to_additive zsmul_add]
-theorem mul_zpow (a b : G) (n : ℤ) : (a * b)^n = a^n * b^n := (commute.all a b).mul_zpow n
+@[to_additive zsmul_add] lemma mul_zpow (a b : α) : ∀ n : ℤ, (a * b) ^ n = a ^ n * b ^ n :=
+(commute.all a b).mul_zpow
 
-@[to_additive zsmul_sub]
-theorem div_zpow (a b : G) (n : ℤ) : (a / b) ^ n = a ^ n / b ^ n :=
-by rw [div_eq_mul_inv, div_eq_mul_inv, mul_zpow, inv_zpow]
+@[simp, to_additive nsmul_sub] lemma div_pow (a b : α) (n : ℕ) : (a / b) ^ n = a ^ n / b ^ n :=
+by simp only [div_eq_mul_inv, mul_pow, inv_pow]
 
-/-- The `n`th power map (`n` an integer) on a commutative group, considered as a group
+@[simp, to_additive zsmul_sub] lemma div_zpow (a b : α) (n : ℤ) : (a / b) ^ n = a ^ n / b ^ n :=
+by simp only [div_eq_mul_inv, mul_zpow, inv_zpow]
+
+/-- The `n`-th power map (for an integer `n`) on a commutative group, considered as a group
 homomorphism. -/
 @[to_additive "Multiplication by an integer `n` on a commutative additive group, considered as an
 additive group homomorphism.", simps]
-def zpow_group_hom (n : ℤ) : G →* G :=
+def zpow_group_hom (n : ℤ) : α →* α :=
 { to_fun := (^ n),
   map_one' := one_zpow n,
   map_mul' := λ a b, mul_zpow a b n }
 
-end comm_group
+end division_comm_monoid
+
+section group
+variables [group G] [group H] [add_group A] [add_group B]
+
+@[to_additive sub_nsmul] lemma pow_sub (a : G) {m n : ℕ} (h : n ≤ m) : a^(m - n) = a^m * (a^n)⁻¹ :=
+eq_mul_inv_of_mul_eq $ by rw [←pow_add, tsub_add_cancel_of_le h]
+
+@[to_additive] lemma pow_inv_comm (a : G) (m n : ℕ) : (a⁻¹)^m * a^n = a^n * (a⁻¹)^m :=
+(commute.refl a).inv_left.pow_pow _ _
+
+@[to_additive sub_nsmul_neg]
+lemma inv_pow_sub (a : G) {m n : ℕ} (h : n ≤ m) : a⁻¹^(m - n) = (a^m)⁻¹ * a^n :=
+by rw [pow_sub a⁻¹ h, inv_pow, inv_pow, inv_inv]
+
+end group
 
 lemma zero_pow [monoid_with_zero R] : ∀ {n : ℕ}, 0 < n → (0 : R) ^ n = 0
 | (n+1) _ := by rw [pow_succ, zero_mul]

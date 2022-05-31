@@ -451,12 +451,11 @@ sq_eq_sq_iff_eq_or_eq_neg.1
 /- Copies of the above comm_ring lemmas for `units R`. -/
 namespace units
 
-lemma eq_or_eq_neg_of_sq_eq_sq (a b : Rˣ) (h : a ^ 2 = b ^ 2) : a = b ∨ a = -b :=
-begin
-  refine (eq_or_eq_neg_of_sq_eq_sq _ _ _).imp (λ h, units.ext h) (λ h, units.ext h),
-  replace h := congr_arg (coe : Rˣ → R) h,
-  rwa [units.coe_pow, units.coe_pow] at h,
-end
+protected lemma sq_eq_sq_iff_eq_or_eq_neg {a b : Rˣ} : a ^ 2 = b ^ 2 ↔ a = b ∨ a = -b :=
+by simp_rw [ext_iff, coe_pow, sq_eq_sq_iff_eq_or_eq_neg, units.coe_neg]
+
+protected lemma eq_or_eq_neg_of_sq_eq_sq (a b : Rˣ) (h : a ^ 2 = b ^ 2) : a = b ∨ a = -b :=
+units.sq_eq_sq_iff_eq_or_eq_neg.1 h
 
 end units
 

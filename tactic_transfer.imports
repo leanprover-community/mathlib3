@@ -1,0 +1,5 @@
+src/init/data/list/instances.lean
+src/init/meta/mk_dec_eq_instance.lean
+src/logic/basic.lean
+src/logic/relator.lean
+src/tactic/transfer.lean

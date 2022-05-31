@@ -1,0 +1,2 @@
+src/data/bool/basic.lean
+src/tactic/clear.lean

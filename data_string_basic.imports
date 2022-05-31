@@ -1,0 +1,11 @@
+src/data/char.lean
+src/data/list/lex.lean
+src/data/option/defs.lean
+src/data/prod/basic.lean
+src/data/string/basic.lean
+src/data/subtype.lean
+src/logic/basic.lean
+src/logic/function/basic.lean
+src/logic/nonempty.lean
+src/order/basic.lean
+src/order/rel_classes.lean

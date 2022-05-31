@@ -1,0 +1,6 @@
+src/data/fin/fin2.lean
+src/data/option/defs.lean
+src/data/typevec.lean
+src/logic/basic.lean
+src/logic/function/basic.lean
+src/logic/nonempty.lean

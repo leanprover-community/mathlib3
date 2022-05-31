@@ -1,0 +1,3 @@
+src/category_theory/bicategory/basic.lean
+src/category_theory/functor.lean
+src/category_theory/isomorphism.lean

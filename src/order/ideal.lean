@@ -237,7 +237,7 @@ let ⟨z, hz, hx, hy⟩ := s.directed x hx y hy in s.lower (sup_le hx hy) hz
 end semilattice_sup
 
 section semilattice_sup_directed
-variables [semilattice_sup P] [is_directed P (≤)] {x : P} {I J K s t : ideal P}
+variables [semilattice_sup P] [is_directed P (≥)] {x : P} {I J K s t : ideal P}
 
 /-- The infimum of two ideals of a co-directed order is their intersection. -/
 instance : has_inf (ideal P) :=

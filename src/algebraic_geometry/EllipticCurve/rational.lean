@@ -16,9 +16,6 @@ import algebraic_geometry.EllipticCurve.torsion
 noncomputable theory
 open_locale classical
 
-variables {E : EllipticCurve ℚ} {A B : ℤ}
-variables (ha₁ : E.a₁ = 0) (ha₂ : E.a₂ = 0) (ha₃ : E.a₃ = 0) (ha₄ : E.a₄ = A) (ha₆ : E.a₆ = B)
-
 ----------------------------------------------------------------------------------------------------
 /-! ## Lemmas -/
 
@@ -27,8 +24,10 @@ add_nonneg zero_le_two zero_le_one
 
 namespace padic_val_rat
 
-lemma add_of_lt (p : ℕ) [fact p.prime] {q r : ℚ} (hq : q ≠ 0)
-  (hlt : padic_val_rat p q < padic_val_rat p r) : padic_val_rat p (q + r) = padic_val_rat p q :=
+variables (p : ℕ) [fact p.prime] {q r : ℚ}
+
+lemma add_of_lt (hq : q ≠ 0) (hlt : padic_val_rat p q < padic_val_rat p r) :
+  padic_val_rat p (q + r) = padic_val_rat p q :=
 begin
   rw [le_antisymm_iff],
   split,
@@ -43,6 +42,60 @@ begin
     exact le_padic_val_rat_add_of_le p hqr (le_of_lt hlt) },
 end
 
+lemma num_or_denom_eq_zero (q : ℚ) : padic_val_int p q.num = 0 ∨ padic_val_nat p q.denom = 0 :=
+begin
+  simp only [padic_val_int, padic_val_nat, multiplicity, enat.find_get],
+  split_ifs,
+  any_goals { simp only [nat.find_eq_zero, pow_one, eq_self_iff_true, or_true, true_or] },
+  by_cases hdenom : p ∣ q.denom,
+  { exact or.inl
+      (λ hnum, nat.not_coprime_of_dvd_of_dvd (nat.prime.one_lt _inst_1.elim) hnum hdenom q.cop) },
+  { exact or.inr hdenom }
+end
+
+lemma num_and_denom_eq_zero (hq : padic_val_rat p q = 0) :
+  padic_val_int p q.num = 0 ∧ padic_val_nat p q.denom = 0 :=
+begin
+  rw [padic_val_rat, sub_eq_zero, int.coe_nat_inj'] at hq,
+  cases num_or_denom_eq_zero p q,
+  { exact ⟨h, hq ▸ h⟩ },
+  { exact ⟨hq.symm ▸ h, h⟩ }
+end
+
+lemma pos_num (hq : 0 < padic_val_rat p q) : padic_val_rat p q = padic_val_int p q.num :=
+begin
+  rw [padic_val_rat, sub_eq_self, int.coe_nat_eq_zero],
+  cases num_or_denom_eq_zero p q with hnum hdenom,
+  { exact false.elim
+      (nat.not_lt_zero (padic_val_nat p q.denom) $ hnum ▸ int.coe_nat_lt.mp $ lt_of_sub_pos hq) },
+  { exact hdenom }
+end
+
+lemma nonneg_num (hq : 0 ≤ padic_val_rat p q) : padic_val_rat p q = padic_val_int p q.num :=
+begin
+  cases eq_or_lt_of_le hq with hq hq,
+  { symmetry,
+    simpa only [← hq, int.coe_nat_eq_zero] using (num_and_denom_eq_zero p hq.symm).left },
+  { exact pos_num p hq }
+end
+
+lemma neg_denom (hq : padic_val_rat p q < 0) : padic_val_rat p q = -padic_val_nat p q.denom :=
+begin
+  rw [padic_val_rat, sub_eq_neg_self, int.coe_nat_eq_zero],
+  cases num_or_denom_eq_zero p q with hnum hdenom,
+  { exact hnum },
+  { exact false.elim
+      (nat.not_lt_zero (padic_val_int p q.num) $ hdenom ▸ int.coe_nat_lt.mp $ lt_of_sub_neg hq) }
+end
+
+lemma nonpos_denom (hq : padic_val_rat p q ≤ 0) : padic_val_rat p q = -padic_val_nat p q.denom :=
+begin
+  cases eq_or_lt_of_le hq with hq hq,
+  { symmetry,
+    simpa only [hq, neg_eq_zero, int.coe_nat_eq_zero] using (num_and_denom_eq_zero p hq).right },
+  { exact neg_denom p hq }
+end
+
 end padic_val_rat
 
 ----------------------------------------------------------------------------------------------------
@@ -54,8 +107,13 @@ open point
 ----------------------------------------------------------------------------------------------------
 /-! ## p-adic valuations of points -/
 
-lemma padic_val_point_of_x_nonneg {x y : ℚ} {w : y ^ 2 = x ^ 3 + A * x + B} {p : ℕ} [fact p.prime]
-  (hpx : 0 ≤ padic_val_rat p x) : 0 ≤ padic_val_rat p y :=
+section padic_val_point
+
+variables {A B : ℤ} {x y : ℚ} {w : y ^ 2 = x ^ 3 + A * x + B} {p : ℕ} [fact p.prime]
+
+include w
+
+lemma padic_val_point_of_x_nonneg (hpx : 0 ≤ padic_val_rat p x) : 0 ≤ padic_val_rat p y :=
 begin
   by_cases hx3AxB : x ^ 3 + A * x + B = 0,
   { rw [hx3AxB, sq_eq_zero_iff] at w,
@@ -95,9 +153,8 @@ begin
   exact nonneg_of_mul_nonneg_left hpy2 zero_lt_two
 end
 
-lemma padic_val_point_of_x_neg {x y : ℚ} {w : y ^ 2 = x ^ 3 + A * x + B} {p : ℕ} [fact p.prime]
-  (hpx : padic_val_rat p x < 0) :
-  ∃ n : ℕ, padic_val_rat p x = 2 * -n ∧ padic_val_rat p y = 3 * -n :=
+lemma padic_val_point_of_x_neg (hpx : padic_val_rat p x < 0) :
+  ∃ n : ℕ, padic_val_rat p x = -(2 * n) ∧ padic_val_rat p y = -(3 * n) :=
 begin
   have hx : x ≠ 0 := by { intro hx, rw [hx, padic_val_rat.zero] at hpx, exact has_lt.lt.false hpx },
   have hx3Ax : x ^ 3 + A * x ≠ 0 :=
@@ -152,11 +209,19 @@ begin
   rw [hn, ← mul_assoc, mul_comm (3 : ℤ), mul_assoc, mul_right_inj' $ @two_ne_zero ℤ _ _] at w,
   rw [hn] at hpx,
   rcases int.exists_eq_neg_of_nat (le_of_lt $ neg_of_mul_neg_left hpx zero_le_two) with ⟨n, rfl⟩,
+  rw [mul_neg] at hn w,
   exact ⟨n, hn, w⟩
 end
 
+end padic_val_point
+
 ----------------------------------------------------------------------------------------------------
 /-! ## Heights -/
+
+section heights
+
+variables {E : EllipticCurve ℚ} {A B : ℤ}
+variables (ha₁ : E.a₁ = 0) (ha₂ : E.a₂ = 0) (ha₃ : E.a₃ = 0) (ha₄ : E.a₄ = A) (ha₆ : E.a₆ = B)
 
 /-- The logarithmic height of a point on an elliptic curve over the rationals. -/
 def height : E⟮ℚ⟯ → ℝ
@@ -269,5 +334,7 @@ begin
   { sorry },
   { sorry }
 end
+
+end heights
 
 end EllipticCurve

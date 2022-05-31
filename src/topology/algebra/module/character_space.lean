@@ -108,9 +108,7 @@ begin
   ext x,
   refine ⟨λ h, ⟨map_one ⟨x, h⟩, h.2⟩, λ h, ⟨_, h.2⟩⟩,
   rintro rfl,
-  have := h.1,
-  rw [continuous_linear_map.zero_apply] at this,
-  exact zero_ne_one this,
+  simpa using h.1,
 end
 
 lemma is_closed [nontrivial 𝕜] [t2_space 𝕜] [has_continuous_mul 𝕜] :

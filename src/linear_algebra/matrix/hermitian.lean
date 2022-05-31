@@ -165,7 +165,7 @@ begin
     rw h },
   { intro h,
     ext i j,
-    simpa only [matrix.star_single, map_one, vec_mul_single, one_smul,
+    simpa only [pi.star_single, map_one, vec_mul_single, one_smul,
       dot_product_single, mul_one, star_one] using h (pi.single i 1) (pi.single j 1) }
 end
 

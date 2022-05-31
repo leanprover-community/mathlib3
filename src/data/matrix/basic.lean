@@ -1496,10 +1496,6 @@ lemma star_eq_conj_transpose [has_star α] (M : matrix m m α) : star M = Mᴴ :
 @[simp] lemma star_apply [has_star α] (M : matrix n n α) (i j) :
   (star M) i j = star (M j i) := rfl
 
-lemma star_single [add_monoid α] [star_add_monoid α] [decidable_eq n] (i : n) (a : α) :
-  star (pi.single i a) = pi.single i (star a) :=
-by { ext j, by_cases h : j = i; simp [pi.single_apply, h, star_zero] }
-
 instance [has_involutive_star α] : has_involutive_star (matrix n n α) :=
 { star_involutive := conj_transpose_conj_transpose }
 

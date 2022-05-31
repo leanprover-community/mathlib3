@@ -44,4 +44,8 @@ instance {R : Type w}
   star_module R (Π i, f i) :=
 { star_smul := λ r x, funext $ λ i, star_smul r (x i) }
 
+lemma star_single {α : Type*} [add_monoid α] [star_add_monoid α] [decidable_eq I] (i : I) (a : α) :
+  star (pi.single i a) = pi.single i (star a) :=
+by { ext j, by_cases h : j = i; simp [pi.single_apply, h, star_zero] }
+
 end pi

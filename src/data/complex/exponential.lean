@@ -1162,12 +1162,12 @@ lemma exp_pos (x : ℝ) : 0 < exp x :=
 @[simp] lemma abs_exp (x : ℝ) : |exp x| = exp x :=
 abs_of_pos (exp_pos _)
 
-lemma exp_strict_mono : strict_mono exp :=
+@[mono] lemma exp_strict_mono : strict_mono exp :=
 λ x y h, by rw [← sub_add_cancel y x, real.exp_add];
   exact (lt_mul_iff_one_lt_left (exp_pos _)).2
     (lt_of_lt_of_le (by linarith) (add_one_le_exp_of_nonneg (by linarith)))
 
-@[mono] lemma exp_monotone : ∀ {x y : ℝ}, x ≤ y → exp x ≤ exp y := exp_strict_mono.monotone
+@[mono] lemma exp_monotone : monotone exp := exp_strict_mono.monotone
 
 @[simp] lemma exp_lt_exp {x y : ℝ} : exp x < exp y ↔ x < y := exp_strict_mono.lt_iff_lt
 
@@ -1177,8 +1177,7 @@ lemma exp_injective : function.injective exp := exp_strict_mono.injective
 
 @[simp] lemma exp_eq_exp {x y : ℝ} : exp x = exp y ↔ x = y := exp_injective.eq_iff
 
-@[simp] lemma exp_eq_one_iff : exp x = 1 ↔ x = 0 :=
-by rw [← exp_zero, exp_injective.eq_iff]
+@[simp] lemma exp_eq_one_iff : exp x = 1 ↔ x = 0 := exp_injective.eq_iff' exp_zero
 
 @[simp] lemma one_lt_exp_iff {x : ℝ} : 1 < exp x ↔ 0 < x :=
 by rw [← exp_zero, exp_lt_exp]

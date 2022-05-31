@@ -11,7 +11,7 @@ import tactic.linarith
 import data.list.timed.lemmas
 import data.list.timed.split
 import data.list.timed.merge
-/-
+/-!
 # Timed Merge Sort
   This file defines a new version of Merge Sort that, besides sorting the input list, counts the
   number of operations made through the execution of the algorithm. Also, it presents proofs of

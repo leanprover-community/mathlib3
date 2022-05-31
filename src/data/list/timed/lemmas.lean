@@ -5,7 +5,7 @@ Authors: Tomaz Gomes
 -/
 import data.nat.log
 import tactic.linarith
-/-
+/-!
 # lemmas
   This file defines and proves some lemmas about the logarithm function (with base set fixed to 2)
   and other arithmetic relations that will be used to prove merge sort's time complexity.

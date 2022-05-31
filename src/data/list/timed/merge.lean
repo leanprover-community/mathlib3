@@ -7,7 +7,7 @@ import data.list.sort
 import data.nat.log
 import init.data.nat
 import tactic.linarith
-/-
+/-!
 # Timed Merge
   This file defines a new version of Merge that, besides combining the input lists, counts the
   number of operations made through the execution of the algorithm. Also, it presents proofs of

@@ -9,7 +9,7 @@ import init.data.nat
 import tactic.linarith
 
 import data.list.timed.lemmas
-/-
+/-!
 # Timed Split
   This file defines a new version of Split that, besides splitting the input lists into two halves,
   counts the number of operations made through the execution of the algorithm. Also, it presents

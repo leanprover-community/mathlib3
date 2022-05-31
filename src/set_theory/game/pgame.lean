@@ -651,6 +651,12 @@ begin
   { right, right, right, exact ⟨h₂, h₁⟩ }
 end
 
+theorem lt_or_equiv_or_gf (x y : pgame) : x < y ∨ x ≈ y ∨ y ⧏ x :=
+begin
+  rw [lf_iff_lt_or_fuzzy, fuzzy.swap_iff],
+  exact lt_or_equiv_or_gt_or_fuzzy x y
+end
+
 /-- `restricted x y` says that Left always has no more moves in `x` than in `y`,
      and Right always has no more moves in `y` than in `x` -/
 inductive restricted : pgame.{u} → pgame.{u} → Type (u+1)

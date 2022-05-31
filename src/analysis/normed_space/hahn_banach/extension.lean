@@ -8,12 +8,18 @@ import analysis.normed_space.is_R_or_C
 import analysis.normed_space.extend
 
 /-!
-# Hahn-Banach theorem
+# Extension Hahn-Banach theorem
 
-In this file we prove a version of Hahn-Banach theorem for continuous linear
-functions on normed spaces over `ℝ` and `ℂ`.
+In this file we prove the analytic Hahn-Banach theorem. For any continuous linear function on a
+subspace, we can extend it to a function on the entire space without changing its norm.
 
-In order to state and prove its corollaries uniformly, we prove the statements for a field `𝕜`
+We prove
+* `real.exists_extension_norm_eq`: Hahn-Banach theorem for continuous linear functions on normed
+  spaces over `ℝ`.
+* `exists_extension_norm_eq`: Hahn-Banach theorem for continuous linear functions on normed spaces
+  over `ℝ` or `ℂ`.
+
+In order to state and prove the corollaries uniformly, we prove the statements for a field `𝕜`
 satisfying `is_R_or_C 𝕜`.
 
 In this setting, `exists_dual_vector` states that, for any nonzero `x`, there exists a continuous

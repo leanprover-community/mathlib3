@@ -26,7 +26,7 @@ set_option old_structure_cmd true
 open function
 
 universe u
-variable {α : Type u}
+variables {α : Type u} {β : Type*}
 
 /-- An ordered commutative monoid is a commutative monoid
 with a partial order such that `a ≤ b → c * a ≤ c * b` (multiplication is monotone)
@@ -85,13 +85,13 @@ end ordered_instances
 /-- An `ordered_comm_monoid` with one-sided 'division' in the sense that
 if `a ≤ b`, there is some `c` for which `a * c = b`. This is a weaker version
 of the condition on canonical orderings defined by `canonically_ordered_monoid`. -/
-class has_exists_mul_of_le (α : Type u) [ordered_comm_monoid α] : Prop :=
+class has_exists_mul_of_le (α : Type u) [has_mul α] [has_le α] : Prop :=
 (exists_mul_of_le : ∀ {a b : α}, a ≤ b → ∃ (c : α), b = a * c)
 
 /-- An `ordered_add_comm_monoid` with one-sided 'subtraction' in the sense that
 if `a ≤ b`, then there is some `c` for which `a + c = b`. This is a weaker version
 of the condition on canonical orderings defined by `canonically_ordered_add_monoid`. -/
-class has_exists_add_of_le (α : Type u) [ordered_add_comm_monoid α] : Prop :=
+class has_exists_add_of_le (α : Type u) [has_add α] [has_le α] : Prop :=
 (exists_add_of_le : ∀ {a b : α}, a ≤ b → ∃ (c : α), b = a + c)
 
 attribute [to_additive] has_exists_mul_of_le
@@ -770,11 +770,26 @@ namespace prod
 variables {M N : Type*}
 
 @[to_additive]
+instance [ordered_comm_monoid α] [ordered_comm_monoid β] : ordered_comm_monoid (α × β) :=
+{ mul_le_mul_left := λ a b h c, ⟨mul_le_mul_left' h.1 _, mul_le_mul_left' h.2 _⟩,
+  .. prod.comm_monoid, .. prod.partial_order _ _ }
+
+@[to_additive]
 instance [ordered_cancel_comm_monoid M] [ordered_cancel_comm_monoid N] :
   ordered_cancel_comm_monoid (M × N) :=
-{ mul_le_mul_left := λ a b h c, ⟨mul_le_mul_left' h.1 _, mul_le_mul_left' h.2 _⟩,
-  le_of_mul_le_mul_left := λ a b c h, ⟨le_of_mul_le_mul_left' h.1, le_of_mul_le_mul_left' h.2⟩,
- .. prod.cancel_comm_monoid, .. prod.partial_order M N }
+{ le_of_mul_le_mul_left := λ a b c h, ⟨le_of_mul_le_mul_left' h.1, le_of_mul_le_mul_left' h.2⟩,
+  .. prod.cancel_comm_monoid, .. prod.ordered_comm_monoid }
+
+@[to_additive] instance [has_le α] [has_le β] [has_mul α] [has_mul β] [has_exists_mul_of_le α]
+  [has_exists_mul_of_le β] : has_exists_mul_of_le (α × β) :=
+⟨λ a b h, let ⟨c, hc⟩ := exists_mul_of_le h.1, ⟨d, hd⟩ := exists_mul_of_le h.2 in
+  ⟨(c, d), ext hc hd⟩⟩
+
+@[to_additive] instance [canonically_ordered_monoid α] [canonically_ordered_monoid β] :
+  canonically_ordered_monoid (α × β) :=
+{ le_iff_exists_mul := λ a b,
+    ⟨exists_mul_of_le, by { rintro ⟨c, rfl⟩, exact ⟨le_self_mul, le_self_mul⟩ }⟩,
+  .. prod.ordered_comm_monoid, .. prod.order_bot _ _ }
 
 end prod
 
@@ -1182,6 +1197,10 @@ end with_bot
 
 section type_tags
 
+instance : Π [has_le α], has_le (multiplicative α) := id
+instance : Π [has_le α], has_le (additive α) := id
+instance : Π [has_lt α], has_lt (multiplicative α) := id
+instance : Π [has_lt α], has_lt (additive α) := id
 instance : Π [preorder α], preorder (multiplicative α) := id
 instance : Π [preorder α], preorder (additive α) := id
 instance : Π [partial_order α], partial_order (multiplicative α) := id
@@ -1216,6 +1235,13 @@ instance [linear_ordered_add_comm_monoid α] : linear_ordered_comm_monoid (multi
 instance [linear_ordered_comm_monoid α] : linear_ordered_add_comm_monoid (additive α) :=
 { ..additive.linear_order,
   ..additive.ordered_add_comm_monoid }
+
+instance [has_add α] [has_le α]  [has_exists_add_of_le α] :
+  has_exists_mul_of_le (multiplicative α) :=
+⟨@exists_add_of_le α _ _ _⟩
+
+instance [has_mul α] [has_le α]  [has_exists_mul_of_le α] : has_exists_add_of_le (additive α) :=
+⟨@exists_mul_of_le α _ _ _⟩
 
 namespace additive
 

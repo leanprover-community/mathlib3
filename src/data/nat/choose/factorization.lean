@@ -12,16 +12,16 @@ import data.nat.multiplicity
 # Factorization of Binomial Coefficients
 
 This file contains a few results on the arity of primes within certain size
-bounds in binomial coeffcicients, particularly the central binaomial coefficient. These include:
+bounds in binomial coeffcicients. These include:
 
-* `nat.factorization_central_binom_le`: a logarithmic upper bound on the multiplicity of a prime in
+* `nat.factorization_choose_le`: a logarithmic upper bound on the multiplicity of a prime in
   the central binomial coefficient.
-* `nat.factorization_central_binom_of_large_le_one`: Primes above `sqrt (2 * n)` appear at most once
+* `nat.factorization_choose_le_one`: Primes above `sqrt n` appear at most once
   in the factorization of the `n`th central binomial coefficient.
 * `nat.factorization_central_binom_of_two_mul_self_lt_3_mul_prime`: Primes from `2 * n / 3` to `n`
 do not appear in the factorization of the `n`th central binomial coefficient.
-* `nat.factorization_central_binom_eq_zero_of_two_mul_lt_prime`: Primes greater than `2 * n` do not
-  appear in the factorization of the `n`th central binomial coefficient.
+* `nat.factorization_choose_eq_zero_of_lt_prime`: Primes greater than `n` do not
+  appear in the factorization of `n` choose `k`.
 
 These results appear in the [Erdős proof of Bertrand's postulate](aigner1999proofs).
 -/
@@ -144,7 +144,7 @@ begin
       pi.add_apply, hn (lt_of_succ_lt h), add_zero, factorization_eq_zero_of_lt h],
 end
 
-lemma factorization_binom_eq_zero_of_lt_prime (h : n < p) (k : ℕ) :
+lemma factorization_choose_eq_zero_of_lt_prime (h : n < p) (k : ℕ) :
   (choose n k).factorization p = 0 :=
 begin
   by_cases hnk : n < k,
@@ -160,7 +160,7 @@ If a prime `p` has positive multiplicity in the `n`th central binomial coefficie
 -/
 lemma factorization_central_binom_eq_zero_of_two_mul_lt_prime (h : 2 * n < p) :
   ((central_binom n).factorization p) = 0 :=
-factorization_binom_eq_zero_of_lt_prime h n
+factorization_choose_eq_zero_of_lt_prime h n
 
 /--
 Contrapositive form of `nat.factorization_central_binom_eq_zero_of_two_mul_lt_prime`

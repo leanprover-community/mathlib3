@@ -1242,11 +1242,11 @@ instance [linear_ordered_comm_monoid α] : linear_ordered_add_comm_monoid (addit
 { ..additive.linear_order,
   ..additive.ordered_add_comm_monoid }
 
-instance [has_add α] [has_le α]  [has_exists_add_of_le α] :
+instance [has_add α] [has_le α] [has_exists_add_of_le α] :
   has_exists_mul_of_le (multiplicative α) :=
 ⟨@exists_add_of_le α _ _ _⟩
 
-instance [has_mul α] [has_le α]  [has_exists_mul_of_le α] : has_exists_add_of_le (additive α) :=
+instance [has_mul α] [has_le α] [has_exists_mul_of_le α] : has_exists_add_of_le (additive α) :=
 ⟨@exists_mul_of_le α _ _ _⟩
 
 instance [canonically_ordered_add_monoid α] : canonically_ordered_monoid (multiplicative α) :=

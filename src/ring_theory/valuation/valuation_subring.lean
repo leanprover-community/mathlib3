@@ -418,6 +418,14 @@ def unit_group_equiv : A.unit_group ≃* Aˣ :=
   right_inv := λ a, by { ext, refl },
   map_mul' := λ a b, by { ext, refl } }
 
+@[simp]
+lemma coe_unit_group_equiv_apply (a : A.unit_group) :
+  (A.unit_group_equiv a : K) = a := rfl
+
+@[simp]
+lemma coe_unit_group_equiv_symm_apply (a : Aˣ) :
+  (A.unit_group_equiv.symm a : K) = a := rfl
+
   def unit_group_ordered_embedding :
   valuation_subring K ↪o subgroup Kˣ :=
 { to_fun := λ A, A.unit_group,
@@ -427,35 +435,27 @@ def unit_group_equiv : A.unit_group ≃* Aˣ :=
     dsimp,
     split,
     { rintros h x hx,
-      by_cases hh : x = 0, { simp only [hh, zero_mem] },
+      by_cases h_1 : x = 0, { simp only [h_1, zero_mem] },
       rw [← A.valuation_le_one_iff x, le_iff_lt_or_eq] at hx,
       cases hx,
       { have hh : ¬1 + x = 0,
-        { by_contra,
-          rw add_eq_zero_iff_neg_eq at h,
-          apply_fun A.valuation at h,
-          rwa [← h, valuation.map_neg, valuation.map_one, lt_self_iff_false] at hx },
+        { by_contra h_2,
+          rw add_eq_zero_iff_neg_eq at h_2,
+          apply_fun A.valuation at h_2,
+          rwa [← h_2, valuation.map_neg, valuation.map_one, lt_self_iff_false] at hx },
         have := h (show (units.mk0 (1 + x) hh) ∈ A.unit_group,
           by exact A.valuation.map_one_add_of_lt hx),
         have q := set_like.coe_mem ((B.unit_group_equiv ⟨_, this⟩) : B),
         change 1 + x ∈ B at q,
-        simpa using B.add_mem _ _ q (B.neg_mem _ B.one_mem)
+        simpa using B.add_mem _ _ q (B.neg_mem _ B.one_mem),
       },
-      { have := h (show (units.mk0 x hh) ∈ A.unit_group, by exact hx),
+      { have := h (show (units.mk0 x h_1) ∈ A.unit_group, by exact hx),
         refine set_like.coe_mem ((B.unit_group_equiv ⟨_, this⟩) : B) }
     },
     { rintros h x (hx : A.valuation x = 1),
       apply_fun A.map_of_le B h at hx,
       simpa using hx }
   end }
-
-@[simp]
-lemma coe_unit_group_equiv_apply (a : A.unit_group) :
-  (A.unit_group_equiv a : K) = a := rfl
-
-@[simp]
-lemma coe_unit_group_equiv_symm_apply (a : Aˣ) :
-  (A.unit_group_equiv.symm a : K) = a := rfl
 
 def maximal_ideal : subsemigroup K :=
 { carrier := { x | A.valuation x < 1 },
@@ -512,8 +512,8 @@ def principal_unit_group : subgroup Kˣ :=
     refine lt_of_le_of_lt _ (max_lt hb ha),
     have := A.valuation.map_add (a * b - a) (a - 1),
     rw [sub_add_sub_cancel ((a : K) * b) a, sub_eq_add_neg _ (a : K), neg_eq_neg_one_mul,
-        mul_comm _ (a : K), ← left_distrib, ← sub_eq_add_neg, A.valuation.map_mul,
-        ← add_sub_cancel'_right 1 (a : K), A.valuation.map_one_add_of_lt ha, one_mul] at this,
+      mul_comm _ (a : K), ← left_distrib, ← sub_eq_add_neg, A.valuation.map_mul,
+      ← add_sub_cancel'_right 1 (a : K), A.valuation.map_one_add_of_lt ha, one_mul] at this,
     simpa,
   end,
   one_mem' := begin
@@ -525,9 +525,9 @@ def principal_unit_group : subgroup Kˣ :=
     intros a ha,
     have : A.valuation ( ↑a⁻¹ - 1) = A.valuation (↑a⁻¹ - 1) * A.valuation a,
     { rw [← add_sub_cancel'_right 1 (a : K), A.valuation.map_one_add_of_lt ha, mul_one] },
-    rw [← valuation.map_mul, sub_eq_add_neg, right_distrib, neg_mul, one_mul,
-        ← sub_eq_add_neg, ← sub_eq_add_neg, ← neg_sub (a : K) _, A.valuation.map_neg,
-        units.coe_inv', units.inv_mul'] at this,
+    rw [← valuation.map_mul, sub_eq_add_neg, right_distrib, neg_mul, one_mul, ← sub_eq_add_neg,
+      ← sub_eq_add_neg, ← neg_sub (a : K) _, A.valuation.map_neg, units.coe_inv',
+      units.inv_mul'] at this,
     simpa [set.mem_set_of_eq, ← this] using ha,
   end }
 
@@ -557,11 +557,46 @@ def principal_unit_group_ordered_embedding :
     intros A B,
     dsimp,
     split,
-    { sorry},
-    { rintros h x (hx : B.valuation (x - 1) < 1),
-      rw mem_principal_unit_group_iff,
-      have := le_of_lt,
-      have := monotone_map_of_le A B h this,
+    { rintros h x hx,
+      by_cases h_1 : x = 0, { simp only [h_1, zero_mem] },
+      by_contra p,
+      cases lt_or_eq_of_le ((B.valuation_le_one_iff _).2 ((or_iff_right p).1 (B.mem_or_inv_mem _))),
+      { rw ← add_sub_cancel x⁻¹ 1 at h_2,
+        have hh : ¬x⁻¹ + 1 = 0,
+        { by_contra,
+          rwa [h, zero_sub, valuation.map_neg, valuation.map_one, lt_self_iff_false] at h_2 },
+        rw [← units.coe_mk0 hh, ← mem_principal_unit_group_iff] at h_2,
+        have := h h_2,
+        rw [mem_principal_unit_group_iff, units.coe_mk0 hh, add_sub_cancel, valuation.map_inv,
+          ← inv_one, inv_lt_inv₀ (A.valuation.ne_zero_iff.2 h_1) one_ne_zero, ← not_le,
+          valuation_le_one_iff] at this,
+        exact this hx,
+      },
+      { rw [← units.coe_mk0 (inv_ne_zero h_1), ← mem_unit_group_iff] at h_2,
+        have := (set_like.coe_mem ((B.unit_group_equiv ⟨_, B.unit_group.inv_mem h_2⟩) : B)),
+        change x⁻¹⁻¹ ∈ B at this,
+        rw inv_inv at this,
+        exact p this,
+      }
+    },
+    { rintros h x hx,
+      rw ← unit_group_ordered_embedding.map_rel_iff' at h,
+      by_contra h_1,
+      cases lt_or_eq_of_le (le_of_not_lt ((A.mem_principal_unit_group_iff _).not.1 h_1)),
+      {
+        sorry,
+      },
+      {
+        have hh : ¬(x : K) - 1 = 0,
+        { by_contra,
+          rw [mem_principal_unit_group_iff, h, valuation.map_zero, zero_lt_iff, not_ne_iff] at h_1,
+          exact one_ne_zero h_1},
+        symmetry' at h_2,
+        rw [← units.coe_mk0 hh, ← mem_unit_group_iff] at h_2,
+        have : units.mk0 ((x : K) - 1) hh ∈ B.unit_group, by exact h h_2,
+        rw mem_unit_group_iff at this,
+        rwa [mem_principal_unit_group_iff, ← units.coe_mk0 hh, this, lt_self_iff_false] at hx,
+      }
     }
   end }
 

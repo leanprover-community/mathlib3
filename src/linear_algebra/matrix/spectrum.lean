@@ -40,9 +40,10 @@ noncomputable def eigenvalues : n → ℝ :=
 
 /-- A choice of an orthonormal basis of eigenvectors of a hermitian matrix. -/
 noncomputable def eigenvector_basis : basis n 𝕜 (n → 𝕜) :=
-  (@inner_product_space.is_self_adjoint.eigenvector_basis 𝕜 _ _
-  (pi_Lp 2 (λ (_ : n), 𝕜)) _ A.to_lin' (is_hermitian_iff_is_self_adjoint.1 hA) _ (fintype.card n)
-  finrank_euclidean_space).reindex (fintype.equiv_of_card_eq (fintype.card_fin _))
+(@inner_product_space.is_self_adjoint.eigenvector_basis 𝕜 _ _
+    (pi_Lp 2 (λ (_ : n), 𝕜)) _ A.to_lin' (is_hermitian_iff_is_self_adjoint.1 hA) _
+    (fintype.card n) finrank_euclidean_space).reindex
+  (fintype.equiv_of_card_eq (fintype.card_fin _))
 
 /-- A matrix whose columns are an orthonormal basis of eigenvectors of a hermitian matrix. -/
 noncomputable def eigenvector_matrix : matrix n n 𝕜 :=

@@ -83,12 +83,16 @@ begin
   { apply_instance, },
 end
 
+lemma _root_.measure_theory.is_stopping_time.measurable_space_le_of_le {ι} [semilattice_sup ι]
+  {f : filtration ι m} {τ : α → ι} (hτ : is_stopping_time f τ) {n : ι} (hτ_le : ∀ x, τ x ≤ n) :
+  hτ.measurable_space ≤ m :=
+(hτ.measurable_space_le_of_le_const hτ_le).trans (f.le n)
+
 instance sigma_finite_stopping_time_of_le [order_bot ι]
   [sigma_finite_filtration μ ℱ] (hτ : is_stopping_time ℱ τ) {n : ι} (hτ_le : ∀ x, τ x ≤ n) :
-  sigma_finite (μ.trim ((hτ.measurable_space_le_of_le_const hτ_le).trans (ℱ.le n))) :=
+  sigma_finite (μ.trim (hτ.measurable_space_le_of_le hτ_le)) :=
 begin
-
-  refine sigma_finite_trim_mono ((hτ.measurable_space_le_of_le_const hτ_le).trans (ℱ.le n)) _,
+  refine sigma_finite_trim_mono (hτ.measurable_space_le_of_le hτ_le) _,
   { exact ℱ ⊥, },
   { exact hτ.le_measurable_space_of_const_le (λ _, bot_le), },
   { apply_instance, },
@@ -212,7 +216,7 @@ lemma condexp_indicator_todo_of_le_const
   [topological_space ι] [order_topology ι] [first_countable_topology ι]
   [sigma_finite_filtration μ ℱ] {f : ι → α → E} (h : martingale f ℱ μ)
   (hτ : is_stopping_time ℱ τ) {i n : ι} (hτ_le : ∀ x, τ x ≤ n)
-  [sigma_finite (μ.trim ((hτ.measurable_space_le_of_le_const hτ_le).trans (ℱ.le n)))] :
+  [sigma_finite (μ.trim (hτ.measurable_space_le_of_le hτ_le))] :
   f i =ᵐ[μ.restrict {x | τ x = i}] μ[f n | hτ.measurable_space] :=
 begin
   by_cases hin : i ≤ n,
@@ -221,7 +225,7 @@ begin
     refine hfi_eq_restrict.trans _,
     refine condexp_ae_eq_restrict_of_measurable_space_eq_on (ℱ.le i) _
       (hτ.measurable_set_eq i) (λ t, _),
-    { exact (hτ.measurable_space_le_of_le_const hτ_le).trans (ℱ.le _), },
+    { exact hτ.measurable_space_le_of_le hτ_le, },
     { apply_instance, },
     rw [set.inter_comm _ t, is_stopping_time.measurable_set_inter_eq_iff], },
   { suffices : {x : α | τ x = i} = ∅, by simp [this],
@@ -235,7 +239,7 @@ lemma stopped_value_ae_eq_restrict_eq_condexp [topological_space ι] [order_topo
   [first_countable_topology ι] [sigma_finite_filtration μ ℱ] {f : ι → α → E}
   (h : martingale f ℱ μ) (hτ : is_stopping_time ℱ τ) {i n : ι}
   (hτ_le : ∀ x, τ x ≤ n)
-  [sigma_finite (μ.trim ((hτ.measurable_space_le_of_le_const hτ_le).trans (ℱ.le n)))] :
+  [sigma_finite (μ.trim ((hτ.measurable_space_le_of_le hτ_le)))] :
   stopped_value f τ =ᵐ[μ.restrict {x | τ x = i}] μ[f n | hτ.measurable_space] :=
 begin
   refine filter.eventually_eq.trans _ (condexp_indicator_todo_of_le_const h hτ hτ_le),
@@ -249,7 +253,7 @@ lemma martingale.stopped_value_ae_eq_condexp_of_le_const [encodable ι] [topolog
   [order_topology ι] [first_countable_topology ι] [sigma_finite_filtration μ ℱ]
   {f : ι → α → E} (h : martingale f ℱ μ) (hτ : is_stopping_time ℱ τ) {n : ι}
   (hτ_le : ∀ x, τ x ≤ n)
-  [sigma_finite (μ.trim ((hτ.measurable_space_le_of_le_const hτ_le).trans (ℱ.le n)))] :
+  [sigma_finite (μ.trim (hτ.measurable_space_le_of_le hτ_le))] :
   stopped_value f τ =ᵐ[μ] μ[f n | hτ.measurable_space] :=
 begin
   have : set.univ = ⋃ i, {x | τ x = i}, by {ext1 x, simp, },

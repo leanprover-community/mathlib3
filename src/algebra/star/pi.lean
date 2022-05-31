@@ -60,6 +60,6 @@ namespace pi
 lemma single_star [Π i, add_monoid (f i)] [Π i, star_add_monoid (f i)] [decidable_eq I]
   (i : I) (a : f i) :
   pi.single i (star a) = star (pi.single i a) :=
-by rw [pi.single, ←function.update_star, star_zero, pi.single]
+single_op (λ i, @star (f i) _) (λ i, star_zero _) i a
 
 end pi

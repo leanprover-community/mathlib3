@@ -3,7 +3,6 @@ Copyright (c) 2022 Damiano Testa. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Damiano Testa
 -/
-import ring_theory.localization.basic
 import data.polynomial.algebra_map
 import ring_theory.localization.basic
 

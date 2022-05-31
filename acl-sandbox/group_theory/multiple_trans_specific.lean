@@ -2219,10 +2219,6 @@ end
 end Jordan'
 
 
-
-
-
-
 #exit
 
 lemma is_pretransitive_of_full_cycle {G : Type*} [group G] [mul_action G α]

@@ -249,8 +249,8 @@ dim_le $ λ s hs, by simpa only [dim_fun', cardinal.mk_finset, finset.coe_sort_c
     (linear_independent_smul_of_linear_independent G F hs)
 
 instance : finite_dimensional (fixed_points.subfield G F) F :=
-is_noetherian.iff_fg.1 $ is_noetherian.iff_dim_lt_omega.2 $
-lt_of_le_of_lt (dim_le_card G F) (cardinal.nat_lt_omega _)
+is_noetherian.iff_fg.1 $ is_noetherian.iff_dim_lt_aleph_0.2 $
+lt_of_le_of_lt (dim_le_card G F) (cardinal.nat_lt_aleph_0 _)
 
 lemma finrank_le_card : finrank (fixed_points.subfield G F) F ≤ fintype.card G :=
 begin
@@ -280,8 +280,8 @@ noncomputable instance alg_hom.fintype (K : Type u) (V : Type v) (W : Type w)
   [field K] [field V] [algebra K V] [finite_dimensional K V]
             [field W] [algebra K W] [finite_dimensional K W] :
   fintype (V →ₐ[K] W) :=
-classical.choice $ cardinal.lt_omega_iff_fintype.1 $
-lt_of_le_of_lt (cardinal_mk_alg_hom K V W) (cardinal.nat_lt_omega _)
+classical.choice $ cardinal.lt_aleph_0_iff_fintype.1 $
+lt_of_le_of_lt (cardinal_mk_alg_hom K V W) (cardinal.nat_lt_aleph_0 _)
 
 noncomputable instance alg_equiv.fintype (K : Type u) (V : Type v)
   [field K] [field V] [algebra K V] [finite_dimensional K V] :

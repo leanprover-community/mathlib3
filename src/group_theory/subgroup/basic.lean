@@ -3122,6 +3122,14 @@ S.to_submonoid.distrib_mul_action
 instance [monoid α] [mul_distrib_mul_action G α] (S : subgroup G) : mul_distrib_mul_action S α :=
 S.to_submonoid.mul_distrib_mul_action
 
+/-- The center of a group acts commutatively on that group. -/
+instance center.smul_comm_class_left : smul_comm_class (center G) G G :=
+submonoid.center.smul_comm_class_left
+
+/-- The center of a group acts commutatively on that group. -/
+instance center.smul_comm_class_right : smul_comm_class G (center G) G :=
+submonoid.center.smul_comm_class_right
+
 end subgroup
 
 end actions

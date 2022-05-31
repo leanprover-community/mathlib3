@@ -1,8 +1,0 @@
-src/algebra/group/basic.lean
-src/algebra/group/defs.lean
-src/algebra/group/to_additive.lean
-src/data/bracket.lean
-src/data/option/defs.lean
-src/logic/basic.lean
-src/logic/function/basic.lean
-src/logic/nonempty.lean

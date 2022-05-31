@@ -1,2 +1,0 @@
-src/data/int/cast            -- used by clients.lean
-src/tactic/zify.lean

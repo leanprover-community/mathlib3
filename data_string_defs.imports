@@ -1,7 +1,0 @@
-src/data/list/defs.lean
-src/data/option/defs.lean
-src/data/rbmap/basic.lean
-src/data/rbtree/default_lt.lean
-src/data/rbtree/init.lean
-src/data/string/defs.lean
-src/logic/basic.lean

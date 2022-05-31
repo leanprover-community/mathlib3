@@ -1,5 +1,0 @@
-src/category_theory/bicategory/basic.lean
-src/category_theory/bicategory/free.lean
-src/category_theory/bicategory/functor.lean
-src/category_theory/functor.lean
-src/category_theory/isomorphism.lean

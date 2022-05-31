@@ -1,4 +1,0 @@
-src/data/rbmap/basic.lean
-src/data/rbtree/init.lean
-src/logic/basic.lean
-src/tactic/derive_inhabited.lean

@@ -1,6 +1,0 @@
-src/data/fun_like/basic.lean
-src/data/fun_like/embedding.lean
-src/data/option/defs.lean
-src/logic/basic.lean
-src/logic/function/basic.lean
-src/logic/nonempty.lean

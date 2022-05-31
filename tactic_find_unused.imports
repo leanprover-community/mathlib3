@@ -1,9 +1,0 @@
-src/data/bool/basic.lean
-src/data/list/defs.lean
-src/data/option/defs.lean
-src/data/rbmap/basic.lean
-src/data/rbtree/default_lt.lean
-src/data/rbtree/init.lean
-src/logic/basic.lean
-src/meta/rb_map.lean
-src/tactic/find_unused.lean

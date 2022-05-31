@@ -1,6 +1,0 @@
-src/algebra/group/defs.lean
-src/algebra/group/to_additive.lean
-src/control/applicative.lean
-src/control/functor.lean
-src/control/traversable/basic.lean
-src/control/traversable/lemmas.lean

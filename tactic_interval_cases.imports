@@ -1,3 +1,0 @@
-src/data/fin/interval -- These imports aren't required to compile this file,.lean
-src/data/pnat/interval -- (on values of type fin/int/pnat).lean
-src/tactic/interval_cases.lean

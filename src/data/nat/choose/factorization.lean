@@ -15,9 +15,9 @@ This file contains a few results on the arity of primes within certain size
 bounds in binomial coeffcicients. These include:
 
 * `nat.factorization_choose_le`: a logarithmic upper bound on the multiplicity of a prime in
-  the central binomial coefficient.
+  a binomial coefficient.
 * `nat.factorization_choose_le_one`: Primes above `sqrt n` appear at most once
-  in the factorization of the `n`th central binomial coefficient.
+  in the factorization of `n` choose `k`.
 * `nat.factorization_central_binom_of_two_mul_self_lt_3_mul_prime`: Primes from `2 * n / 3` to `n`
 do not appear in the factorization of the `n`th central binomial coefficient.
 * `nat.factorization_choose_eq_zero_of_lt_prime`: Primes greater than `n` do not
@@ -80,7 +80,7 @@ end
 Primes greater than about `2 * n / 3` and less than `n` do not appear in the factorization of
 `central_binom n`.
 -/
-lemma factorization_central_binom_of_two_mul_self_lt_3_mul_prime
+lemma factorization_central_binom_of_two_mul_self_lt_three_mul_prime
   (n_big : 2 < n) (p_le_n : p ≤ n) (big : 2 * n < 3 * p) :
   ((central_binom n).factorization p) = 0 :=
 begin

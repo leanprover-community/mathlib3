@@ -400,8 +400,7 @@ lemma is_localization : is_localization (submonoid.closure ({X} : set R[X])) R[T
       exact ⟨1, rfl⟩ },
     { rintro ⟨⟨h, hX⟩, h⟩,
       rcases submonoid.mem_closure_singleton.mp hX with ⟨n, rfl⟩,
-      rw [mul_comm, mul_comm _ ↑_] at h,
-      exact mul_X_pow_injective n h }
+      exact mul_X_pow_injective n (by simpa only [X_pow_mul] using h) }
   end }
 
 end comm_semiring

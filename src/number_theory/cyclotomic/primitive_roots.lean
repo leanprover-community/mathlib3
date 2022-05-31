@@ -276,6 +276,8 @@ end
 
 omit hζ
 
+variable {A}
+
 lemma minpoly_sub_one_eq_cyclotomic_comp [algebra K A] [is_domain A] {ζ : A}
   [is_cyclotomic_extension {n} K A] (hζ : is_primitive_root ζ n)
   (h : irreducible (polynomial.cyclotomic n K)) :

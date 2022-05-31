@@ -1294,14 +1294,14 @@ mk_Union_le_sum_mk.trans (sum_le_sup _)
 
 lemma mk_sUnion_le {α : Type u} (A : set (set α)) :
   #(⋃₀ A) ≤ #A * cardinal.sup.{u u} (λ s : A, #s) :=
-by { rw [sUnion_eq_Union], apply mk_Union_le }
+by { rw sUnion_eq_Union, apply mk_Union_le }
 
 lemma mk_bUnion_le {ι α : Type u} (A : ι → set α) (s : set ι) :
   #(⋃(x ∈ s), A x) ≤ #s * cardinal.sup.{u u} (λ x : s, #(A x.1)) :=
-by { rw [bUnion_eq_Union], apply mk_Union_le }
+by { rw bUnion_eq_Union, apply mk_Union_le }
 
 lemma finset_card_lt_aleph_0 (s : finset α) : #(↑s : set α) < ℵ₀ :=
-by { rw [lt_aleph_0_iff_fintype], exact ⟨finset.subtype.fintype s⟩ }
+by { rw lt_aleph_0_iff_fintype, exact ⟨finset.subtype.fintype s⟩ }
 
 theorem mk_eq_nat_iff_finset {α} {s : set α} {n : ℕ} :
   #s = n ↔ ∃ t : finset α, (t : set α) = s ∧ t.card = n :=

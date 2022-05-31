@@ -718,15 +718,16 @@ theorem is_o_refl_left : (λ x, f' x - f' x) =o[l] g' :=
 variables {g g' l}
 
 @[simp] theorem is_O_with_zero_right_iff :
-  is_O_with c l f'' (λ x, (0 : F'')) ↔ ∀ᶠ x in l, f'' x = 0 :=
-by simp only [is_O_with, exists_prop, true_and, norm_zero, mul_zero, norm_le_zero_iff]
+  is_O_with c l f'' (λ x, (0 : F')) ↔ f'' =ᶠ[l] 0 :=
+by simp only [is_O_with, exists_prop, true_and, norm_zero, mul_zero, norm_le_zero_iff,
+  eventually_eq, pi.zero_apply]
 
-@[simp] theorem is_O_zero_right_iff : f'' =O[l] (λ x, (0 : F'')) ↔ ∀ᶠ x in l, f'' x = 0 :=
+@[simp] theorem is_O_zero_right_iff : f'' =O[l] (λ x, (0 : F')) ↔ f'' =ᶠ[l] 0 :=
 ⟨λ h, let ⟨c, hc⟩ := h.is_O_with in is_O_with_zero_right_iff.1 hc,
   λ h, (is_O_with_zero_right_iff.2 h : is_O_with 1 _ _ _).is_O⟩
 
 @[simp] theorem is_o_zero_right_iff :
-  f'' =o[l] (λ x, (0 : F'')) ↔ ∀ᶠ x in l, f'' x = 0 :=
+  f'' =o[l] (λ x, (0 : F')) ↔ f'' =ᶠ[l] 0 :=
 ⟨λ h, is_O_zero_right_iff.1 h.is_O, λ h, is_o.of_is_O_with $ λ c hc, is_O_with_zero_right_iff.2 h⟩
 
 theorem is_O_with_const_const (c : E) {c' : F''} (hc' : c' ≠ 0) (l : filter α) :
@@ -747,7 +748,7 @@ theorem is_O_const_const (c : E) {c' : F''} (hc' : c' ≠ 0) (l : filter α) :
   (λ x : α, c) =O[l] (λ x, c') ↔ (c' = 0 → c = 0) :=
 begin
   rcases eq_or_ne c' 0 with rfl|hc',
-  { simp },
+  { simp [eventually_eq] },
   { simp [hc', is_O_const_const _ hc'] }
 end
 
@@ -826,6 +827,23 @@ end
 theorem is_O_const_of_tendsto {y : E''} (h : tendsto f'' l (𝓝 y)) {c : F''} (hc : c ≠ 0) :
   f'' =O[l] (λ x, c) :=
 h.norm.is_bounded_under_le.is_O_const hc
+
+lemma is_O.is_bounded_under_le {c : F} (h : f =O[l] (λ x, c)) :
+  is_bounded_under (≤) l (norm ∘ f) :=
+let ⟨c', hc'⟩ := h.bound in ⟨c' * ∥c∥, eventually_map.2 hc'⟩
+
+theorem is_O_const_of_ne {c : F''} (hc : c ≠ 0) :
+  f =O[l] (λ x, c) ↔ is_bounded_under (≤) l (norm ∘ f) :=
+⟨λ h, h.is_bounded_under_le, λ h, h.is_O_const hc⟩
+
+theorem is_O_const_iff {c : F''} :
+  f'' =O[l] (λ x, c) ↔ (c = 0 → f'' =ᶠ[l] 0) ∧ is_bounded_under (≤) l (norm ∘ f'') :=
+begin
+  refine ⟨λ h, ⟨λ hc, is_O_zero_right_iff.1 (by rwa ← hc), h.is_bounded_under_le⟩, _⟩,
+  rintro ⟨hcf, hf⟩,
+  rcases eq_or_ne c 0 with hc|hc,
+  exacts [(hcf hc).trans_is_O (is_O_zero _ _), hf.is_O_const hc]
+end
 
 section
 

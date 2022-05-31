@@ -1526,10 +1526,25 @@ by { convert bit1_lt_bit0_iff, refl, }
 lemma pos_of_bit0_pos {n : ℕ} (h : 0 < bit0 n) : 0 < n :=
 by { cases n, cases h, apply succ_pos, }
 
-/-- Define a function on `ℕ` depending on parity of the argument. -/
-@[elab_as_eliminator]
-def bit_cases {C : ℕ → Sort u} (H : Π b n, C (bit b n)) (n : ℕ) : C n :=
-eq.rec_on n.bit_decomp (H (bodd n) (div2 n))
+@[simp] lemma bit_cases_on_bit {C : ℕ → Sort u} (H : Π b n, C (bit b n)) (b : bool) (n : ℕ) :
+  bit_cases_on (bit b n) H = H b n :=
+eq_of_heq $ (eq_rec_heq _ _).trans $ by rw [bodd_bit, div2_bit]
+
+@[simp] lemma bit_cases_on_bit0 {C : ℕ → Sort u} (H : Π b n, C (bit b n)) (n : ℕ) :
+  bit_cases_on (bit0 n) H = H ff n :=
+bit_cases_on_bit H ff n
+
+@[simp] lemma bit_cases_on_bit1 {C : ℕ → Sort u} (H : Π b n, C (bit b n)) (n : ℕ) :
+  bit_cases_on (bit1 n) H = H tt n :=
+bit_cases_on_bit H tt n
+
+@[simp] lemma bit_cases_on_inj {C : ℕ → Sort u} (H₁ H₂ : Π b n, C (bit b n)) :
+  (λ n, bit_cases_on n H₁) = (λ n, bit_cases_on n H₂) ↔ H₁ = H₂ :=
+begin
+  refine ⟨λ h, funext $ bool.forall_bool.2 ⟨funext $ λ n, _, funext $ λ n, _⟩, λ h, h ▸ rfl⟩,
+  { simpa only [bit_cases_on_bit0] using congr_fun h (bit0 n) },
+  { simpa only [bit_cases_on_bit1] using congr_fun h (bit1 n) }
+end
 
 /-! ### decidability of predicates -/
 

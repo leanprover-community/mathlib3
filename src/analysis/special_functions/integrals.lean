@@ -202,34 +202,19 @@ end
 lemma integral_cpow {a b : ℝ} {r : ℂ} (ha : 0 < a) (hb : 0 < b) (hr : r ≠ -1):
   ∫ (x : ℝ) in a..b, (x : ℂ) ^ r = (b ^ (r + 1) - a ^ (r + 1)) / (r + 1) :=
 begin
-  -- Proof idea: Identical to cpow, except casts need to be dealt with. We handle this via
-  -- scalar multiplication and the facilities that exist for handle derivatives of scalar multiples
   suffices : ∀ x ∈ set.interval a b, has_deriv_at (λ x : ℝ, (x : ℂ) ^ (r + 1) / (r + 1)) (x ^ r) x,
   { rw sub_div,
-    refine integral_eq_sub_of_has_deriv_at this _ ,
-    refine interval_integrable_cpow ha hb, },
-
+    exact integral_eq_sub_of_has_deriv_at this (interval_integrable_cpow ha hb) },
   intros x hx,
-  apply has_strict_deriv_at.has_deriv_at,
-  have : (λ (x : ℝ), ↑x ^ (r + 1) / (r + 1)) =
-    (λ z : ℂ, z ^ (r + 1) / (r + 1)) ∘ (λ x : ℝ, x • (1 : ℂ)),
-  { simp only [complex.real_smul, mul_one], },
-  rw this,
-  have : (x : ℂ) ^ r = (x : ℂ) ^ r * (1 : ℂ), simp,
-  rw this,
-  apply has_strict_deriv_at.comp,
+  suffices : has_deriv_at (λ z : ℂ, z ^ (r + 1) / (r + 1)) (x ^ r) x,
+  { simpa using has_deriv_at.comp x this complex.of_real_clm.has_deriv_at },
   have hx' : 0 < (x : ℂ).re ∨ (x : ℂ).im ≠ 0,
   { left,
     norm_cast,
     calc 0 < min a b : lt_min ha hb ... ≤ x : hx.left, },
-  convert (complex.has_strict_deriv_at_cpow_const hx').div_const (r + 1),
-  rw [add_sub_cancel, mul_div_cancel_left],
-  rw [ne.def, ← eq_neg_iff_add_eq_zero],
-  exact hr,
-  simp only [complex.real_smul, mul_one],
-  have : (1 : ℂ) = (1 : ℝ) • (1 : ℂ), simp only [complex.real_smul, mul_one, complex.of_real_one],
-  conv { congr, skip, rw this, },
-  exact has_strict_deriv_at.smul_const (has_strict_deriv_at_id x) _,
+  convert ((has_deriv_at_id (x:ℂ)).cpow_const hx').div_const (r + 1),
+  simp only [id.def, add_sub_cancel, mul_one], rw [mul_comm, mul_div_cancel],
+  contrapose! hr, rwa add_eq_zero_iff_eq_neg at hr,
 end
 
 

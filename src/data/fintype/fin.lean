@@ -18,8 +18,7 @@ open fintype
 
 namespace fin
 
-@[simp]
-lemma Ioi_zero_eq_map {n : ℕ} :
+@[simp] lemma Ioi_zero_eq_map {n : ℕ} :
   Ioi (0 : fin n.succ) = univ.map (fin.succ_embedding _).to_embedding :=
 begin
   ext i,
@@ -32,10 +31,8 @@ begin
     exact succ_pos _ },
 end
 
-@[simp]
-lemma univ_filter_succ_lt {n : ℕ} (j : fin n) :
-  (univ : finset (fin n.succ)).filter (λ i, j.succ < i) =
-    (Ioi j).map (fin.succ_embedding _).to_embedding :=
+@[simp] lemma Ioi_succ {n : ℕ} (i : fin n) :
+  Ioi i.succ = (Ioi i).map (fin.succ_embedding _).to_embedding :=
 begin
   ext i,
   simp only [mem_filter, mem_Ioi, mem_map, mem_univ, true_and,

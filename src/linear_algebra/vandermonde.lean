@@ -8,7 +8,6 @@ import algebra.big_operators.fin
 import algebra.geom_sum
 import group_theory.perm.fin
 import linear_algebra.matrix.determinant
-import order.locally_finite
 
 /-!
 # Vandermonde matrix
@@ -98,7 +97,7 @@ begin
   ... = (∏ (i : fin n), (v (fin.succ i) - v 0)) * det (λ (i j : fin n), v (fin.succ i) ^ (j : ℕ)) :
     congr_arg ((*) _) _
   ... = ∏ i : fin n.succ, ∏ j in Ioi i, (v j - v i) :
-    by simp_rw [ih (v ∘ fin.succ), fin.prod_univ_succ, fin.prod_Ioi_zero, fin.prod_filter_succ_lt],
+    by simp_rw [ih (v ∘ fin.succ), fin.prod_univ_succ, fin.prod_Ioi_zero, fin.prod_Ioi_succ],
   { intros i j,
     rw fin.cons_zero,
     refine fin.cases _ (λ i, _) i,

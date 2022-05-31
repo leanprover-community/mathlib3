@@ -103,15 +103,14 @@ lemma prod_const [comm_monoid α] (n : ℕ) (x : α) : ∏ i : fin n, x = x ^ n 
 
 lemma sum_const [add_comm_monoid α] (n : ℕ) (x : α) : ∑ i : fin n, x = n • x := by simp
 
-@[to_additive]
-lemma prod_Ioi_zero {M : Type*} [comm_monoid M] {n : ℕ} {v : fin n.succ → M} :
+@[to_additive] lemma prod_Ioi_zero {M : Type*} [comm_monoid M] {n : ℕ} {v : fin n.succ → M} :
   ∏ i in Ioi 0, v i = ∏ j : fin n, v j.succ :=
 by rw [Ioi_zero_eq_map, finset.prod_map, rel_embedding.coe_fn_to_embedding, coe_succ_embedding]
 
 @[to_additive]
-lemma prod_filter_succ_lt {M : Type*} [comm_monoid M] {n : ℕ} (i : fin n) (v : fin n.succ → M) :
-  ∏ j in univ.filter (λ j, i.succ < j), v j = ∏ j in Ioi i, v j.succ :=
-by rw [univ_filter_succ_lt, finset.prod_map, rel_embedding.coe_fn_to_embedding, coe_succ_embedding]
+lemma prod_Ioi_succ {M : Type*} [comm_monoid M] {n : ℕ} (i : fin n) (v : fin n.succ → M) :
+  ∏ j in Ioi i.succ, v j = ∏ j in Ioi i, v j.succ :=
+by rw [Ioi_succ, finset.prod_map, rel_embedding.coe_fn_to_embedding, coe_succ_embedding]
 
 @[to_additive]
 lemma prod_congr' {M : Type*} [comm_monoid M] {a b : ℕ} (f : fin b → M) (h : a = b) :

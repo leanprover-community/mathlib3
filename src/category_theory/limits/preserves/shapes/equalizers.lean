@@ -183,6 +183,9 @@ begin
   apply_instance
 end
 
+instance map_π_epi : epi (G.map (coequalizer.π f g)) :=
+⟨λ W h k, by { rw ←ι_comp_coequalizer_comparison, apply (cancel_epi _).1, apply epi_comp }⟩
+
 /-- Any functor preserves coequalizers of split pairs. -/
 @[priority 1]
 instance preserves_split_coequalizers (f g : X ⟶ Y) [has_split_coequalizer f g] :

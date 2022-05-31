@@ -13,9 +13,9 @@ import data.list.join
 Theorems and lemmas for dealing with `list.of_fn`, which converts a function on `fin n` to a list
 of length `n`.
 
-## Main Definitions
+## Main Statementss
 
-The main definitions pertain to lists generated using `of_fn`
+The main statements pertain to lists generated using `of_fn`
 
 - `list.length_of_fn`, which tells us the length of such a list
 - `list.nth_of_fn`, which tells us the nth element of such a list

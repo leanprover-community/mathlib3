@@ -72,7 +72,7 @@ first coordinate, and is linear in each fiber. -/
 @[nolint has_inhabited_instance]
 structure topological_vector_bundle.pretrivialization extends to_fiber_bundle_pretrivialization :
   topological_fiber_bundle.pretrivialization F (@total_space.proj B E) :=
-(linear' : ∀ x ∈ base_set, is_linear_map R (λ y : (E x), (to_fun y).2))
+(linear' : ∀ x ∈ base_set, is_linear_map R (λ y : E x, (to_fun (total_space_mk x y)).2))
 
 instance : has_coe_to_fun (topological_vector_bundle.pretrivialization R F E) _ := ⟨λ e, e.to_fun⟩
 
@@ -86,7 +86,9 @@ open topological_vector_bundle
 
 variables {R F E} (e : pretrivialization R F E) {x : total_space E} {b : B} {y : E b}
 
-lemma linear : ∀ x ∈ e.base_set, is_linear_map R (λ y : (E x), (e y).2) := e.linear'
+protected lemma linear (hb : b ∈ e.base_set) :
+  is_linear_map R (λ y : E b, (e (total_space_mk b y)).2) :=
+e.linear' b hb
 
 @[simp, mfld_simps] lemma coe_coe : ⇑e.to_local_equiv = e := rfl
 @[simp, mfld_simps] lemma coe_fst (ex : x ∈ e.source) : (e x).1 = x.proj := e.proj_to_fun x ex
@@ -181,8 +183,8 @@ fibers and the model space. -/
   inv_fun := e.symm b,
   left_inv := e.symm_apply_apply_mk hb,
   right_inv := λ v, by simp_rw [e.apply_mk_symm hb v],
-  map_add' := λ v w, (e.linear _ hb).map_add v w,
-  map_smul' := λ c v, (e.linear _ hb).map_smul c v }
+  map_add' := λ v w, (e.linear hb).map_add v w,
+  map_smul' := λ c v, (e.linear hb).map_smul c v }
 
 end topological_vector_bundle.pretrivialization
 
@@ -197,7 +199,7 @@ acting trivially on the first coordinate and linear in the fibers.
 @[nolint has_inhabited_instance]
 structure topological_vector_bundle.trivialization extends to_fiber_bundle_trivialization :
   topological_fiber_bundle.trivialization F (@total_space.proj B E) :=
-(linear' : ∀ x ∈ base_set, is_linear_map R (λ y : (E x), (to_fun y).2))
+(linear' : ∀ x ∈ base_set, is_linear_map R (λ y : E x, (to_fun (total_space_mk x y)).2))
 
 open topological_vector_bundle
 
@@ -215,7 +217,10 @@ variables {R F E} (e : trivialization R F E) {x : total_space E} {b : B} {y : E 
 def to_pretrivialization (e : trivialization R F E) :
   topological_vector_bundle.pretrivialization R F E := { ..e }
 
-protected lemma linear : ∀ x ∈ e.base_set, is_linear_map R (λ y : (E x), (e y).2) := e.linear'
+protected lemma linear (hb : b ∈ e.base_set) :
+  is_linear_map R (λ y : E b, (e (total_space_mk b y)).2) :=
+e.linear' b hb
+
 protected lemma continuous_on : continuous_on e e.source := e.continuous_to_fun
 
 @[simp, mfld_simps] lemma coe_coe : ⇑e.to_local_homeomorph = e := rfl
@@ -882,7 +887,7 @@ def trivialization_of_mem_pretrivialization_atlas (a : topological_vector_prebun
   @topological_vector_bundle.trivialization R _ F E _ _ _ _ _ _ _ a.total_space_topology :=
 begin
   letI := a.total_space_topology,
-  exact { linear' := e.linear,
+  exact { linear' := λ b, e.linear,
   ..a.to_topological_fiber_prebundle.trivialization_of_mem_pretrivialization_atlas ⟨e, he, rfl⟩ }
 end
 
@@ -1059,7 +1064,7 @@ def topological_vector_bundle.trivialization.pullback (e : trivialization 𝕜 F
   source_eq := by { dsimp only, rw e.source_eq, refl, },
   target_eq := rfl,
   proj_to_fun := λ y h, rfl,
-  linear' := λ x h, e.linear (f x) h }
+  linear' := λ x h, e.linear h }
 
 instance pullback [∀ x, topological_space (E x)] [topological_vector_bundle 𝕜 F E] (f : K) :
   topological_vector_bundle 𝕜 F ((f : B' → B) *ᵖ E) :=
@@ -1126,7 +1131,7 @@ variables {R F₁ E₁ F₂ E₂}
 function for the construction `topological_vector_bundle.trivialization.prod`, the induced
 trivialization for the direct sum of `E₁` and `E₂`. -/
 def prod.to_fun' : total_space (E₁ ×ᵇ E₂) → B × (F₁ × F₂) :=
-λ ⟨x, v₁, v₂⟩, ⟨x, (e₁ ⟨x, v₁⟩).2, (e₂ ⟨x, v₂⟩).2⟩
+λ p, ⟨p.1, (e₁ ⟨p.1, p.2.1⟩).2, (e₂ ⟨p.1, p.2.2⟩).2⟩
 
 variables {e₁ e₂}
 
@@ -1203,8 +1208,8 @@ def prod : trivialization R (F₁ × F₂) (E₁ ×ᵇ E₂) :=
   inv_fun := prod.inv_fun' e₁ e₂,
   source := (@total_space.proj B (E₁ ×ᵇ E₂)) ⁻¹' (e₁.base_set ∩ e₂.base_set),
   target := (e₁.base_set ∩ e₂.base_set) ×ˢ (set.univ : set (F₁ × F₂)),
-  map_source' := λ ⟨x, v₁, v₂⟩ h, ⟨h, set.mem_univ _⟩,
-  map_target' := λ ⟨x, w₁, w₂⟩ h, h.1,
+  map_source' := λ x h, ⟨h, set.mem_univ _⟩,
+  map_target' := λ x h, h.1,
   left_inv' := λ x, prod.left_inv,
   right_inv' := λ x, prod.right_inv,
   open_source := begin
@@ -1219,12 +1224,8 @@ def prod : trivialization R (F₁ × F₂) (E₁ ×ᵇ E₂) :=
   open_base_set := e₁.open_base_set.inter e₂.open_base_set,
   source_eq := rfl,
   target_eq := rfl,
-  proj_to_fun := λ ⟨x, v₁, v₂⟩ h, rfl,
-  linear' := λ x ⟨h₁, h₂⟩,
-  { map_add := λ ⟨v₁, v₂⟩ ⟨v₁', v₂'⟩,
-      congr_arg2 prod.mk ((e₁.linear x h₁).map_add v₁ v₁') ((e₂.linear x h₂).map_add v₂ v₂'),
-    map_smul := λ c ⟨v₁, v₂⟩,
-      congr_arg2 prod.mk ((e₁.linear x h₁).map_smul c v₁) ((e₂.linear x h₂).map_smul c v₂), } }
+  proj_to_fun := λ x h, rfl,
+  linear' := λ x ⟨h₁, h₂⟩, (((e₁.linear h₁).mk' _).prod_map ((e₂.linear h₂).mk' _)).is_linear }
 
 @[simp] lemma base_set_prod : (prod e₁ e₂).base_set = e₁.base_set ∩ e₂.base_set :=
 rfl

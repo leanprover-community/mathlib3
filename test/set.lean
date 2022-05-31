@@ -37,7 +37,7 @@ begin
   trivial
 end
 
-section fivefivefive
+section lean_555 -- https://github.com/leanprover-community/mathlib/pull/14488
 
 inductive foo | bar
 
@@ -50,4 +50,4 @@ begin
   trivial,
 end
 
-end fivefivefive
+end lean_555

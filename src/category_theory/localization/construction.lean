@@ -41,8 +41,6 @@ open category_theory.category
 
 namespace category_theory
 
-namespace arrow_class
-
 variables {C : Type*} [category C] (W : arrow_class C)
 variables {D : Type*} [category D]
 
@@ -83,9 +81,14 @@ inductive relations : hom_rel (paths (loc_quiver W))
 
 end localization
 
+
+namespace arrow_class
+
 /-- The localized category obtained by formally inverting the morphisms in `W : arrow_class C` -/
 @[derive category, nolint has_inhabited_instance]
 def localization := category_theory.quotient (localization.relations W)
+
+end arrow_class
 
 namespace localization
 
@@ -127,9 +130,9 @@ Quiv.lift
       exact inv (G.map g), },
   end, }
 
-/-- The lifting of a functor `C ⥤ D` inverting `W` as a functor `localization W ⥤ D` -/
+/-- The lifting of a functor `C ⥤ D` inverting `W` as a functor `W.localization ⥤ D` -/
 @[simps]
-def lift : localization W ⥤ D :=
+def lift : W.localization ⥤ D :=
 quotient.lift (relations W) (lift_to_path_category G hG)
 begin
   rintro ⟨X⟩ ⟨Y⟩ f₁ f₂ r,
@@ -151,7 +154,7 @@ end
 
 omit G hG
 
-lemma uniq (G₁ G₂ : localization W ⥤ D) (h : Q W ⋙ G₁ = Q W ⋙ G₂) :
+lemma uniq (G₁ G₂ : W.localization ⥤ D) (h : Q W ⋙ G₁ = Q W ⋙ G₂) :
   G₁ = G₂ :=
 begin
   suffices h' : quotient.functor _ ⋙ G₁ = quotient.functor _ ⋙ G₂,
@@ -177,7 +180,5 @@ begin
 end
 
 end localization
-
-end arrow_class
 
 end category_theory

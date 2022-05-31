@@ -96,7 +96,7 @@ namespace lie_module
 protected def ker [module Rᵐᵒᵖ M] [is_central_scalar R M] : lie_ideal R L :=
 (to_endomorphism R L M).ker
 
-@[simp] protected lemma mem_ker  [module Rᵐᵒᵖ M] [is_central_scalar R M] (x : L) :
+@[simp] protected lemma mem_ker [module Rᵐᵒᵖ M] [is_central_scalar R M] (x : L) :
   x ∈ lie_module.ker R L M ↔ ∀ (m : M), ⁅x, m⁆ = 0 :=
 by simp only [lie_module.ker, lie_hom.mem_ker, linear_map.ext_iff, linear_map.zero_apply,
     to_endomorphism_apply_apply]

@@ -6,6 +6,7 @@ Authors: Tomaz Gomes
 import data.list.sort
 import data.nat.log
 import tactic.linarith
+import tactic.lint
 /-!
 # Timed Insertion Sort
   This file defines a new version of Insertion Sort that, besides sorting the input list, counts the
@@ -45,9 +46,7 @@ begin
     { simp only [zero_le, le_add_iff_nonneg_left], },
     { cases (ordered_insert r a l_tl),
       unfold ordered_insert,
-      linarith,
-    }
-  }
+      linarith, } }
 end
 
 theorem ordered_insert_equivalence (a : α) : ∀ l : list α,
@@ -61,9 +60,7 @@ begin
     { cases (ordered_insert r a l_tl),
       unfold ordered_insert,
       simp only [true_and, eq_self_iff_true],
-      exact l_ih,
-    }
-  }
+      exact l_ih, } }
 end
 
 theorem ordered_insert_length (a : α) : ∀ l : list α,
@@ -88,8 +85,7 @@ begin
     cases (ordered_insert r l_hd sorted_tl) with sorted_list _,
     unfold insertion_sort,
     rw ordered_length,
-    rw l_ih,
-  }
+    rw l_ih, }
 end
 
 theorem insertion_sort_complexity :
@@ -107,8 +103,7 @@ begin
       ordered_insert_complexity r l_hd sorted_tl,
     cases (ordered_insert r l_hd sorted_tl),
     unfold insertion_sort,
-    linarith,
-  }
+    linarith, }
 end
 
 theorem insertion_sort_equivalence : ∀ l : list α,
@@ -123,8 +118,7 @@ begin
     unfold insertion_sort,
     rw ← ordered_insert_equivalence r l_hd fst,
     cases ordered_insert r l_hd fst,
-    unfold insertion_sort,
-  }
+    unfold insertion_sort, }
 end
 
 end timed

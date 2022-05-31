@@ -46,9 +46,8 @@ def merge_sort : list α → (list α × ℕ)
   have split_ops := (split (a :: b :: l)).snd.snd,
   exact (merged.fst , split_ops + ms₁.snd + ms₂.snd + merged.snd),
 end
-using_well_founded {
-  rel_tac := λ_ _, `[exact ⟨_, inv_image.wf list.length nat.lt_wf⟩],
-  dec_tac := tactic.assumption }
+using_well_founded { rel_tac := λ_ _, `[exact ⟨_, inv_image.wf list.length nat.lt_wf⟩],
+                     dec_tac := tactic.assumption }
 
 theorem merge_sort_cons_cons_fst {a b n} {l l₁ l₂ : list α}
   (h : split (a :: b :: l) = (l₁, l₂, n)) :

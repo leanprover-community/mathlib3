@@ -78,8 +78,7 @@ begin
        , ← three_eq_one_plus_two
        ],
     refine add_le_add _ (le_refl 3),
-    exact nat.lt_succ_iff.mp (nat.div_lt_self' a 0),
-  },
+    exact nat.lt_succ_iff.mp (nat.div_lt_self' a 0), },
   exact bot_le,
 end
 

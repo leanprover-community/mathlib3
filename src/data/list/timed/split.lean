@@ -161,8 +161,7 @@ lemma split_lengths : ∀ (l l₁ l₂ : list α) {n : ℕ},
                         ],
               intros h₁ h₂ _,
               rw [← h₁, ← h₂],
-              simp,
-            }
+              simp, }
 | [a] := by { intros l₁ l₂ n,
               simp only [ and_imp
                         , prod.mk.inj_iff
@@ -172,8 +171,7 @@ lemma split_lengths : ∀ (l l₁ l₂ : list α) {n : ℕ},
                         ],
               intros h₁ h₂ _,
               rw [← h₁, ← h₂],
-              simp only [list.length],
-            }
+              simp only [list.length], }
 | (a :: b :: t) :=
 begin
   intros l₁ l₂ n h,

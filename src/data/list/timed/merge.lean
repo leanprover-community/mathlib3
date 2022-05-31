@@ -50,15 +50,13 @@ begin
     unfold merge,
     simp only [list.length] at IH,
     simp only [list.length],
-    linarith,
-  },
+    linarith, },
   { have IH := merge_complexity (h₁ :: t₁) t₂,
     cases (merge r (h₁ :: t₁) t₂) with l₁ l₂,
     unfold merge,
     simp only [list.length] at IH,
     simp only [list.length],
-    linarith,
-  }
+    linarith, }
 end
 
 theorem merge_equivalence : ∀ l₁ l₂ : list α,
@@ -76,16 +74,14 @@ begin
 
     unfold list.merge,
     split_ifs,
-    exact ⟨ rfl, IH ⟩,
-  },
+    exact ⟨ rfl, IH ⟩, },
   { have IH := merge_equivalence (h :: t) t',
     cases (merge r (h :: t) t') with l₁ l₂,
     unfold merge,
 
     unfold list.merge,
     split_ifs,
-    exact ⟨ rfl, IH ⟩,
-  }
+    exact ⟨ rfl, IH ⟩, }
 end
 
 end timed

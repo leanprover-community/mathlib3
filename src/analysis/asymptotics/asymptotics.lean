@@ -1323,13 +1323,10 @@ theorem div_is_bounded_under_of_is_O {α : Type*} {l : filter α}
   {f g : α → 𝕜} (h : f =O[l] g) :
   is_bounded_under (≤) l (λ x, ∥f x / g x∥) :=
 begin
-  obtain ⟨c, hc⟩ := is_O_iff.mp h,
-  refine ⟨max c 0, eventually_map.2 (filter.mem_of_superset hc (λ x hx, _))⟩,
-  simp only [mem_set_of_eq, norm_div] at ⊢ hx,
-  by_cases hgx : g x = 0,
-  { rw [hgx, norm_zero, div_zero, le_max_iff],
-    exact or.inr le_rfl },
-  { exact le_max_iff.2 (or.inl ((div_le_iff (norm_pos_iff.2 hgx)).2 hx)) }
+  obtain ⟨c, h₀, hc⟩ := h.exists_nonneg,
+  refine ⟨c, eventually_map.2 (hc.bound.mono (λ x hx, _))⟩,
+  rw [norm_div],
+  exact div_le_of_nonneg_of_le_mul (norm_nonneg _) h₀ hx,
 end
 
 theorem is_O_iff_div_is_bounded_under {α : Type*} {l : filter α}
@@ -1338,12 +1335,11 @@ theorem is_O_iff_div_is_bounded_under {α : Type*} {l : filter α}
 begin
   refine ⟨div_is_bounded_under_of_is_O, λ h, _⟩,
   obtain ⟨c, hc⟩ := h,
-  rw filter.eventually_iff at hgf hc,
-  simp only [mem_set_of_eq, mem_map, norm_div] at hc,
-  refine is_O_iff.2 ⟨c, filter.eventually_of_mem (inter_mem hgf hc) (λ x hx, _)⟩,
+  simp only [eventually_map, norm_div] at hc,
+  refine is_O.of_bound c (hc.mp $ hgf.mono (λ x hx₁ hx₂, _)),
   by_cases hgx : g x = 0,
-  { simp [hx.1 hgx, hgx] },
-  { refine (div_le_iff (norm_pos_iff.2 hgx)).mp hx.2 },
+  { simp [hx₁ hgx, hgx] },
+  { exact (div_le_iff (norm_pos_iff.2 hgx)).mp hx₂ },
 end
 
 theorem is_O_of_div_tendsto_nhds {α : Type*} {l : filter α}

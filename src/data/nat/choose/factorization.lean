@@ -64,32 +64,16 @@ end
 Primes greater than about `sqrt (2 * n)` appear only to multiplicity 0 or 1 in the central binomial
 coefficient.
 -/
-lemma factorization_central_binom_of_large_le_one (p_large : 2 * n < p ^ 2) :
-  (((central_binom n).factorization p)) ≤ 1 :=
+lemma factorization_choose_le_one (p_large : n < p ^ 2) : (choose n k).factorization p ≤ 1 :=
 begin
-  by_cases hp : p.prime,
-
-  have log_weak_bound : log p (2 * n) ≤ 2,
-  { calc log p (2 * n) ≤ log p (p ^ 2) : log_monotone (le_of_lt p_large)
-    ... = 2 : log_pow hp.one_lt 2, },
-
-  have log_bound : log p (2 * n) ≤ 1,
-  { cases le_or_lt (log p (2 * n)) 1 with log_le lt_log,
-    { exact log_le, },
-    { have v : log p (2 * n) = 2 := by linarith,
-      cases le_or_lt p (2 * n) with h h,
-      { exfalso,
-        rw [log_of_one_lt_of_le hp.one_lt h, succ_inj', log_eq_one_iff] at v,
-        have bad : p ^ 2 ≤ 2 * n,
-        { rw pow_two,
-          exact (nat.le_div_iff_mul_le _ _ (prime.pos hp)).1 v.2.2, },
-        exact lt_irrefl _ (lt_of_le_of_lt bad p_large), },
-      { rw log_of_lt h,
-        exact zero_le 1, }, }, },
-
-  exact le_trans (factorization_central_binom_le) log_bound,
-
-  simp [hp],
+  refine factorization_choose_le.trans _,
+  by_cases hn : n = 0,
+  { rw [hn, log_zero_right],
+    exact zero_le' },
+  by_cases hp : p ≤ 1,
+  { rw log_of_left_le_one hp,
+    exact zero_le' },
+  exact le_of_lt_succ ((lt_pow_iff_log_lt (lt_of_not_le hp) (nat.pos_of_ne_zero hn)).mp p_large),
 end
 
 /--

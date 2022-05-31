@@ -5,6 +5,7 @@ Authors: Damiano Testa
 -/
 import ring_theory.localization.basic
 import data.polynomial.algebra_map
+import ring_theory.localization.basic
 
 /-!  # Laurent polynomials
 

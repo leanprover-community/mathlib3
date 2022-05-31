@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Tomaz Gomes
 -/
 import data.nat.log
-import tactic
+import tactic.linarith
 /-
 # lemmas
   This file defines and proves some lemmas about the logarithm function (with base set fixed to 2)

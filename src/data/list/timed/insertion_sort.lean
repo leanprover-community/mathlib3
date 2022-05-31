@@ -5,7 +5,7 @@ Authors: Tomaz Gomes
 -/
 import data.list.sort
 import data.nat.log
-import tactic
+import tactic.linarith
 /-!
 # Timed Insertion Sort
   This file defines a new version of Insertion Sort that, besides sorting the input list, counts the

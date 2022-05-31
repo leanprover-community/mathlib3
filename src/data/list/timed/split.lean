@@ -6,7 +6,7 @@ Authors: Tomaz Gomes
 import data.list.sort
 import data.nat.log
 import init.data.nat
-import tactic
+import tactic.linarith
 
 import data.list.timed.lemmas
 /-

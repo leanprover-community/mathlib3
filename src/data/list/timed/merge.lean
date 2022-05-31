@@ -6,7 +6,7 @@ Authors: Tomaz Gomes
 import data.list.sort
 import data.nat.log
 import init.data.nat
-import tactic
+import tactic.linarith
 /-
 # Timed Merge
   This file defines a new version of Merge that, besides combining the input lists, counts the

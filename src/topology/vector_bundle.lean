@@ -526,20 +526,13 @@ namespace topological_vector_bundle
 
 namespace trivialization
 
-lemma _root_.continuous.if_const' {α β : Type*} [topological_space α] [topological_space β] (p : Prop)
-  {f g : α → β} [decidable p]
-  (hf : p → continuous f) (hg : ¬ p → continuous g) :
-  continuous (λ a, if p then f a else g a) :=
-by { split_ifs, exact hf h, exact hg h }
-
-
 /-- Forward map of `continuous_linear_equiv_at` (only propositionally equal),
   defined everywhere (`0` outside domain). -/
 @[simps apply {fully_applied := ff}]
 def continuous_linear_map_at (e : trivialization R F E) (b : B) :
   E b →L[R] F :=
 { cont := by { dsimp, rw [e.coe_linear_map_at b],
-  refine continuous.if_const' _ (λ hb, _) (λ _, continuous_zero),
+  refine continuous_if_const _ (λ hb, _) (λ _, continuous_zero),
   refine continuous_snd.comp (e.to_local_homeomorph.continuous_on.comp_continuous
     (total_space_mk_inducing R F E b).continuous (λ x, e.mem_source.mpr hb)) },
   .. e.linear_map_at b }

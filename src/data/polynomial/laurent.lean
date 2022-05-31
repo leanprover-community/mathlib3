@@ -354,6 +354,21 @@ begin
     simpa using hn }
 end
 
+instance : module R[X] R[T;T⁻¹] :=
+module.comp_hom _ polynomial.to_laurent
+
+instance (R : Type*) [semiring R] : is_scalar_tower R[X] R[X] R[T;T⁻¹] :=
+{ smul_assoc := λ x y z, by simp only [has_scalar.smul, has_scalar.comp.smul, map_mul, mul_assoc] }
+
 end semiring
+
+section comm_semiring
+
+instance algebra_polynomial (R : Type*) [comm_semiring R] : algebra R[X] R[T;T⁻¹] :=
+{ commutes' := λ f l, by simp [mul_comm],
+  smul_def' := λ f l, rfl,
+  .. polynomial.to_laurent }
+
+end comm_semiring
 
 end laurent_polynomial

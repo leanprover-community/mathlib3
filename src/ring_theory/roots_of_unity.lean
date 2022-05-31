@@ -502,16 +502,16 @@ begin
     lift -l to ℕ using this with l' hl',
     rw [← dvd_neg, ← hl'],
     norm_cast,
-    rw [← h.pow_eq_one_iff_dvd, ← inv_inj, ← zpow_neg₀, ← hl', zpow_coe_nat, inv_one] }
+    rw [← h.pow_eq_one_iff_dvd, ← inv_inj, ← zpow_neg, ← hl', zpow_coe_nat, inv_one] }
 end
 
 lemma inv' (h : is_primitive_root ζ k) : is_primitive_root ζ⁻¹ k :=
-{ pow_eq_one := by simp only [h.pow_eq_one, inv_one, eq_self_iff_true, inv_pow₀],
+{ pow_eq_one := by simp only [h.pow_eq_one, inv_one, eq_self_iff_true, inv_pow],
   dvd_of_pow_eq_one :=
   begin
     intros l hl,
     apply h.dvd_of_pow_eq_one l,
-    rw [← inv_inj, ← inv_pow₀, hl, inv_one]
+    rw [← inv_inj, ← inv_pow, hl, inv_one]
   end }
 
 @[simp] lemma inv_iff' : is_primitive_root ζ⁻¹ k ↔ is_primitive_root ζ k :=
@@ -526,7 +526,7 @@ begin
     exact h.pow_of_coprime i hi },
   have : 0 ≤ -i, { simp only [not_le, neg_nonneg] at h0 ⊢, exact le_of_lt h0 },
   lift -i to ℕ using this with i' hi',
-  rw [← inv_iff', ← zpow_neg₀, ← hi', zpow_coe_nat],
+  rw [← inv_iff', ← zpow_neg, ← hi', zpow_coe_nat],
   apply h.pow_of_coprime,
   rw [int.gcd, ← int.nat_abs_neg, ← hi'] at hi,
   exact hi
@@ -865,12 +865,10 @@ begin
     rw [hd, pow_mul, ha.pow_eq_one, one_pow] },
   { apply le_of_eq,
     rw [h.card_nth_roots_finset, finset.card_bUnion],
-    { rw [← nat.sum_totient n, nat.filter_dvd_eq_divisors (pnat.ne_zero n), sum_congr rfl]
-        { occs := occurrences.pos [1] },
-      simp only [finset.mem_filter, finset.mem_range, nat.mem_divisors],
-      rintro k ⟨H, hk⟩,
-      have hdvd := H,
-      rcases H with ⟨d, hd⟩,
+    { nth_rewrite_lhs 0 ← nat.sum_totient n,
+      refine sum_congr rfl _,
+      simp only [nat.mem_divisors],
+      rintro k ⟨⟨d, hd⟩, -⟩,
       rw mul_comm at hd,
       rw (h.pow n.pos hd).card_primitive_roots },
     { intros i hi j hj hdiff,

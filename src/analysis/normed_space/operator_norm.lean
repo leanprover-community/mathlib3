@@ -524,28 +524,28 @@ variables [ring_hom_isometric σ₁₂]
 
 open asymptotics
 
-theorem is_O_with_id (l : filter E) : is_O_with ∥f∥ f (λ x, x) l :=
+theorem is_O_with_id (l : filter E) : is_O_with ∥f∥ l f (λ x, x) :=
 is_O_with_of_le' _ f.le_op_norm
 
-theorem is_O_id (l : filter E) : is_O f (λ x, x) l :=
+theorem is_O_id (l : filter E) : f =O[l] (λ x, x) :=
 (f.is_O_with_id l).is_O
 
 theorem is_O_with_comp [ring_hom_isometric σ₂₃] {α : Type*} (g : F →SL[σ₂₃] G) (f : α → F)
   (l : filter α) :
-  is_O_with ∥g∥ (λ x', g (f x')) f l :=
+  is_O_with ∥g∥ l (λ x', g (f x')) f :=
 (g.is_O_with_id ⊤).comp_tendsto le_top
 
 theorem is_O_comp [ring_hom_isometric σ₂₃] {α : Type*} (g : F →SL[σ₂₃] G) (f : α → F)
   (l : filter α) :
-  is_O (λ x', g (f x')) f l :=
+  (λ x', g (f x')) =O[l] f :=
 (g.is_O_with_comp f l).is_O
 
 theorem is_O_with_sub (f : E →SL[σ₁₂] F) (l : filter E) (x : E) :
-  is_O_with ∥f∥ (λ x', f (x' - x)) (λ x', x' - x) l :=
+  is_O_with ∥f∥ l (λ x', f (x' - x)) (λ x', x' - x) :=
 f.is_O_with_comp _ l
 
 theorem is_O_sub (f : E →SL[σ₁₂] F) (l : filter E) (x : E) :
-  is_O (λ x', f (x' - x)) (λ x', x' - x) l :=
+  (λ x', f (x' - x)) =O[l] (λ x', x' - x) :=
 f.is_O_comp _ l
 
 end is_O
@@ -1048,12 +1048,10 @@ include σ₂₁
 protected lemma lipschitz : lipschitz_with (∥(e : E →SL[σ₁₂] F)∥₊) e :=
 (e : E →SL[σ₁₂] F).lipschitz
 
-theorem is_O_comp {α : Type*} (f : α → E) (l : filter α) :
-  asymptotics.is_O (λ x', e (f x')) f l :=
+theorem is_O_comp {α : Type*} (f : α → E) (l : filter α) : (λ x', e (f x')) =O[l] f :=
 (e : E →SL[σ₁₂] F).is_O_comp f l
 
-theorem is_O_sub (l : filter E) (x : E) :
-  asymptotics.is_O (λ x', e (x' - x)) (λ x', x' - x) l :=
+theorem is_O_sub (l : filter E) (x : E) : (λ x', e (x' - x)) =O[l] (λ x', x' - x) :=
 (e : E →SL[σ₁₂] F).is_O_sub l x
 
 end
@@ -1081,12 +1079,10 @@ def of_homothety (f : E ≃ₛₗ[σ₁₂] F) (a : ℝ) (ha : 0 < a) (hf : ∀x
 
 variables [ring_hom_isometric σ₂₁] (e : E ≃SL[σ₁₂] F)
 
-theorem is_O_comp_rev {α : Type*} (f : α → E) (l : filter α) :
-  asymptotics.is_O f (λ x', e (f x')) l :=
+theorem is_O_comp_rev {α : Type*} (f : α → E) (l : filter α) : f =O[l] (λ x', e (f x')) :=
 (e.symm.is_O_comp _ l).congr_left $ λ _, e.symm_apply_apply _
 
-theorem is_O_sub_rev (l : filter E) (x : E) :
-  asymptotics.is_O (λ x', x' - x) (λ x', e (x' - x)) l :=
+theorem is_O_sub_rev (l : filter E) (x : E) : (λ x', x' - x) =O[l] (λ x', e (x' - x)) :=
 e.is_O_comp_rev _ _
 
 omit σ₂₁

@@ -12,8 +12,8 @@ In this file we define finite hereditary lists. This is useful for calculations 
 
 We distinguish two kinds of ZFA lists:
 * Atoms. Directly correspond to an element of the original type.
-* Proper ZFA lists. Can thought of (but aren't implemented) as a list of ZFA lists (not necessarily
-  proper).
+* Proper ZFA lists. Can be thought of (but aren't implemented) as a list of ZFA lists (not
+  necessarily proper).
 
 For example, `lists ℕ` contains stuff like `23`, `[]`, `[37]`, `[1, [[2], 3], 4]`.
 

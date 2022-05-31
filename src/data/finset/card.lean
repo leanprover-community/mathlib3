@@ -160,7 +160,7 @@ begin
   exact inj_on_of_nodup_map this,
 end
 
-lemma card_image_eq_iff_inj_on [decidable_eq β] : (s.image f).card = s.card ↔ set.inj_on f s :=
+lemma card_image_iff [decidable_eq β] : (s.image f).card = s.card ↔ set.inj_on f s :=
 ⟨inj_on_of_card_image_eq, card_image_of_inj_on⟩
 
 lemma card_image_of_injective [decidable_eq β] (s : finset α) (H : injective f) :

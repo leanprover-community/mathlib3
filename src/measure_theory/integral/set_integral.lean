@@ -141,6 +141,31 @@ begin
   ... = ∫ x in s, f x ∂μ : by simp
 end
 
+lemma of_real_set_integral_one_of_measure_ne_top {α : Type*} {m : measurable_space α}
+  {μ : measure α} {s : set α} (hs : μ s ≠ ∞) :
+  ennreal.of_real (∫ x in s, (1 : ℝ) ∂μ) = μ s :=
+calc
+ennreal.of_real (∫ x in s, (1 : ℝ) ∂μ)
+    = ennreal.of_real (∫ x in s, ∥(1 : ℝ)∥ ∂μ) : by simp only [norm_one]
+... = ∫⁻ x in s, 1 ∂μ :
+begin
+  rw of_real_integral_norm_eq_lintegral_nnnorm (integrable_on_const.2 (or.inr hs.lt_top)),
+  simp only [nnnorm_one, ennreal.coe_one],
+end
+... = μ s : set_lintegral_one _
+
+lemma of_real_set_integral_one {α : Type*} {m : measurable_space α} (μ : measure α)
+  [is_finite_measure μ] (s : set α) :
+  ennreal.of_real (∫ x in s, (1 : ℝ) ∂μ) = μ s :=
+of_real_set_integral_one_of_measure_ne_top (measure_ne_top μ s)
+
+lemma integral_piecewise [decidable_pred (∈ s)] (hs : measurable_set s)
+  {f g : α → E} (hf : integrable_on f s μ) (hg : integrable_on g sᶜ μ) :
+  ∫ x, s.piecewise f g x ∂μ = ∫ x in s, f x ∂μ + ∫ x in sᶜ, g x ∂μ :=
+by rw [← set.indicator_add_compl_eq_piecewise,
+  integral_add' (hf.indicator hs) (hg.indicator hs.compl),
+  integral_indicator hs, integral_indicator hs.compl]
+
 lemma tendsto_set_integral_of_monotone {ι : Type*} [encodable ι] [semilattice_sup ι]
   {s : ι → set α} {f : α → E} (hsm : ∀ i, measurable_set (s i))
   (h_mono : monotone s) (hfi : integrable_on f (⋃ n, s n) μ) :
@@ -514,7 +539,7 @@ end tendsto_mono
 We prove that for any set `s`, the function `λ f : α →₁[μ] E, ∫ x in s, f x ∂μ` is continuous. -/
 
 section continuous_set_integral
-variables [normed_group E] {𝕜 : Type*} [is_R_or_C 𝕜] [normed_group F] [normed_space 𝕜 F]
+variables [normed_group E] {𝕜 : Type*} [normed_field 𝕜] [normed_group F] [normed_space 𝕜 F]
   {p : ℝ≥0∞} {μ : measure α}
 
 /-- For `f : Lp E p μ`, we can define an element of `Lp E p (μ.restrict s)` by
@@ -614,9 +639,9 @@ lemma filter.tendsto.integral_sub_linear_is_o_ae
   {s : ι → set α} {li : filter ι} (hs : tendsto s li l.small_sets)
   (m : ι → ℝ := λ i, (μ (s i)).to_real)
   (hsμ : (λ i, (μ (s i)).to_real) =ᶠ[li] m . tactic.interactive.refl) :
-  is_o (λ i, ∫ x in s i, f x ∂μ - m i • b) m li :=
+  (λ i, ∫ x in s i, f x ∂μ - m i • b) =o[li] m :=
 begin
-  suffices : is_o (λ s, ∫ x in s, f x ∂μ - (μ s).to_real • b) (λ s, (μ s).to_real) l.small_sets,
+  suffices : (λ s, ∫ x in s, f x ∂μ - (μ s).to_real • b) =o[l.small_sets] (λ s, (μ s).to_real),
     from (this.comp_tendsto hs).congr' (hsμ.mono $ λ a ha, ha ▸ rfl) hsμ,
   refine is_o_iff.2 (λ ε ε₀, _),
   have : ∀ᶠ s in l.small_sets, ∀ᶠ x in μ.ae, x ∈ s → f x ∈ closed_ball b ε :=
@@ -648,7 +673,7 @@ lemma continuous_within_at.integral_sub_linear_is_o_ae
   {s : ι → set α} {li : filter ι} (hs : tendsto s li (𝓝[t] a).small_sets)
   (m : ι → ℝ := λ i, (μ (s i)).to_real)
   (hsμ : (λ i, (μ (s i)).to_real) =ᶠ[li] m . tactic.interactive.refl) :
-  is_o (λ i, ∫ x in s i, f x ∂μ - m i • f a) m li :=
+  (λ i, ∫ x in s i, f x ∂μ - m i • f a) =o[li] m :=
 by haveI : (𝓝[t] a).is_measurably_generated := ht.nhds_within_is_measurably_generated _;
 exact (ha.mono_left inf_le_left).integral_sub_linear_is_o_ae
   hfm (μ.finite_at_nhds_within a t) hs m hsμ
@@ -670,7 +695,7 @@ lemma continuous_at.integral_sub_linear_is_o_ae
   {s : ι → set α} {li : filter ι} (hs : tendsto s li (𝓝 a).small_sets)
   (m : ι → ℝ := λ i, (μ (s i)).to_real)
   (hsμ : (λ i, (μ (s i)).to_real) =ᶠ[li] m . tactic.interactive.refl) :
-  is_o (λ i, ∫ x in s i, f x ∂μ - m i • f a) m li :=
+  (λ i, ∫ x in s i, f x ∂μ - m i • f a) =o[li] m :=
 (ha.mono_left inf_le_left).integral_sub_linear_is_o_ae hfm (μ.finite_at_nhds a) hs m hsμ
 
 /-- Fundamental theorem of calculus for set integrals, `nhds_within` version: if `μ` is a locally
@@ -689,7 +714,7 @@ lemma continuous_on.integral_sub_linear_is_o_ae
   {s : ι → set α} {li : filter ι} (hs : tendsto s li (𝓝[t] a).small_sets)
   (m : ι → ℝ := λ i, (μ (s i)).to_real)
   (hsμ : (λ i, (μ (s i)).to_real) =ᶠ[li] m . tactic.interactive.refl) :
-  is_o (λ i, ∫ x in s i, f x ∂μ - m i • f a) m li :=
+  (λ i, ∫ x in s i, f x ∂μ - m i • f a) =o[li] m :=
 (hft a ha).integral_sub_linear_is_o_ae ht
   ⟨t, self_mem_nhds_within, hft.ae_strongly_measurable ht⟩ hs m hsμ
 

@@ -1092,7 +1092,7 @@ lemma infi_ne_top_subtype (f : ι → α) : (⨅ i : {i // f i ≠ ⊤}, f i) = 
 ### `supr` and `infi` under `ℕ`
 -/
 
-lemma supr_ge_eq_supr_nat_add {u : ℕ → α} (n : ℕ) : (⨆ i ≥ n, u i) = ⨆ i, u (i + n) :=
+lemma supr_ge_eq_supr_nat_add (u : ℕ → α) (n : ℕ) : (⨆ i ≥ n, u i) = ⨆ i, u (i + n) :=
 begin
   apply le_antisymm;
   simp only [supr_le_iff],
@@ -1100,12 +1100,16 @@ begin
   { exact λ i, le_Sup ⟨i + n, supr_pos (nat.le_add_left _ _)⟩ }
 end
 
-lemma infi_ge_eq_infi_nat_add {u : ℕ → α} (n : ℕ) : (⨅ i ≥ n, u i) = ⨅ i, u (i + n) :=
+lemma infi_ge_eq_infi_nat_add (u : ℕ → α) (n : ℕ) : (⨅ i ≥ n, u i) = ⨅ i, u (i + n) :=
 @supr_ge_eq_supr_nat_add αᵒᵈ _ _ _
 
 lemma monotone.supr_nat_add {f : ℕ → α} (hf : monotone f) (k : ℕ) :
   (⨆ n, f (n + k)) = ⨆ n, f n :=
 le_antisymm (supr_le $ λ i, le_supr _ (i + k)) $ supr_mono $ λ i, hf $ nat.le_add_right i k
+
+lemma antitone.infi_nat_add {f : ℕ → α} (hf : antitone f) (k : ℕ) :
+  (⨅ n, f (n + k)) = ⨅ n, f n :=
+hf.dual_right.supr_nat_add k
 
 @[simp] lemma supr_infi_ge_nat_add (f : ℕ → α) (k : ℕ) :
   (⨆ n, ⨅ i ≥ n, f (i + k)) = ⨆ n, ⨅ i ≥ n, f i :=

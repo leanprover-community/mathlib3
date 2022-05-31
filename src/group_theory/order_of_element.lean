@@ -621,8 +621,7 @@ begin
 end
 
 @[to_additive add_order_eq_card_zmultiples]
-lemma order_eq_card_zpowers [decidable_eq G] :
-  order_of x = fintype.card (subgroup.zpowers x : set G) :=
+lemma order_eq_card_zpowers [decidable_eq G] : order_of x = fintype.card (zpowers x) :=
 (fintype.card_fin (order_of x)).symm.trans (fintype.card_eq.2 ⟨fin_equiv_zpowers x⟩)
 
 open quotient_group

@@ -233,6 +233,23 @@ protected lemma measurable_set_lt_of_encodable' [encodable ι] (hτ : is_stoppin
   measurable_set[hτ.measurable_space] {a | τ a < i} :=
 hτ.measurable_set_lt_of_countable' (set.countable_encodable _) i
 
+protected lemma measurable_space_le_of_countable (hτ : is_stopping_time ℱ τ)
+  (h_countable : (set.range τ).countable) :
+  hτ.measurable_space ≤ m :=
+begin
+  intros s hs,
+  change ∀ i, measurable_set[ℱ i] (s ∩ {x | τ x ≤ i}) at hs,
+  rw (_ : s = ⋃ (i ∈ set.range τ), s ∩ {x | τ x ≤ i}),
+  { exact measurable_set.bUnion h_countable (λ i _, ℱ.le i _ (hs i)), },
+  { ext x,
+    split; rw set.mem_Union,
+    { exact λ hx, ⟨τ x, by simpa using hx⟩,},
+    { rintro ⟨i, hx⟩,
+      simp only [set.mem_range, set.Union_exists, set.mem_Union, set.mem_inter_eq,
+        set.mem_set_of_eq, exists_prop, exists_and_distrib_right] at hx,
+      exact hx.1.2, } }
+end
+
 end is_stopping_time
 
 section normed_group
@@ -273,9 +290,25 @@ by { simp_rw ← mem_ℒp_one_iff_integrable at hu ⊢, exact mem_ℒp_stopped_v
 
 end normed_group
 
-
 section condexp
 variables [normed_group E] [normed_space ℝ E] [complete_space E]
+
+lemma condexp_stopping_time_restrict_eq_of_countable [sigma_finite_filtration μ ℱ] {f : α → E}
+  (hτ : is_stopping_time ℱ τ) (h_countable : (set.range τ).countable)
+  [sigma_finite (μ.trim (hτ.measurable_space_le_of_countable h_countable))] {i : ι} :
+  μ[f | hτ.measurable_space] =ᵐ[μ.restrict {x | τ x = i}] μ[f | ℱ i] :=
+begin
+  refine condexp_ae_eq_restrict_of_measurable_space_eq_on
+    (hτ.measurable_space_le_of_countable h_countable) (ℱ.le i)
+    (hτ.measurable_set_eq_of_countable' h_countable i) (λ t, _),
+  rw [set.inter_comm _ t, is_stopping_time.measurable_set_inter_eq_iff],
+end
+
+lemma condexp_stopping_time_restrict_eq_of_encodable [encodable ι] [sigma_finite_filtration μ ℱ]
+  {f : α → E} (hτ : is_stopping_time ℱ τ)
+  [sigma_finite (μ.trim hτ.measurable_space_le_of_encodable)] {i : ι} :
+  μ[f | hτ.measurable_space] =ᵐ[μ.restrict {x | τ x = i}] μ[f | ℱ i] :=
+condexp_stopping_time_restrict_eq_of_countable hτ (set.countable_encodable _)
 
 lemma condexp_stopping_time_restrict_eq [(filter.at_top : filter ι).is_countably_generated]
   [topological_space ι] [order_topology ι] [first_countable_topology ι]
@@ -345,10 +378,9 @@ begin
     exact hin (hτ_le x), },
 end
 
-lemma stopped_value_ae_eq_restrict_eq_condexp [topological_space ι] [order_topology ι]
+lemma stopped_value_ae_eq_restrict_eq [topological_space ι] [order_topology ι]
   [first_countable_topology ι] [sigma_finite_filtration μ ℱ] {f : ι → α → E}
-  (h : martingale f ℱ μ) (hτ : is_stopping_time ℱ τ) {i n : ι}
-  (hτ_le : ∀ x, τ x ≤ n)
+  (h : martingale f ℱ μ) (hτ : is_stopping_time ℱ τ) {i n : ι} (hτ_le : ∀ x, τ x ≤ n)
   [sigma_finite (μ.trim ((hτ.measurable_space_le_of_le hτ_le)))] :
   stopped_value f τ =ᵐ[μ.restrict {x | τ x = i}] μ[f n | hτ.measurable_space] :=
 begin
@@ -373,7 +405,7 @@ begin
       set.mem_Union, set.mem_set_of_eq, exists_apply_eq_apply'], },
   nth_rewrite 0 ← @measure.restrict_univ α _ μ,
   rw [this, ae_restrict_Union_countable_iff _ h_countable_range],
-  exact λ i hi, stopped_value_ae_eq_restrict_eq_condexp h _ hτ_le,
+  exact λ i hi, stopped_value_ae_eq_restrict_eq h _ hτ_le,
 end
 
 lemma martingale.stopped_value_ae_eq_condexp_of_le_const' [order_bot ι]
@@ -414,12 +446,11 @@ begin
       =ᵐ[μ] μ[μ[f n|hτ.measurable_space] | hσ.measurable_space],
     from condexp_congr_ae (h.stopped_value_ae_eq_condexp_of_le_const_of_countable_range hτ hτ_le
       hτ_countable_range),
-  refine (filter.eventually_eq.trans _ (condexp_condexp_of_le _ _).symm).trans this.symm,
+  refine (filter.eventually_eq.trans _ (condexp_condexp_of_le _ hτ.measurable_space_le).symm).trans
+    this.symm,
   { exact h.stopped_value_ae_eq_condexp_of_le_const_of_countable_range hσ
-    (λ x, (hσ_le_τ x).trans (hτ_le x)) hσ_countable_range, },
-  { exact is_stopping_time.measurable_space_mono _ _ hσ_le_τ, },
-  { exact hτ.measurable_space_le, },
-  { apply_instance, },
+      (λ x, (hσ_le_τ x).trans (hτ_le x)) hσ_countable_range, },
+  { exact hσ.measurable_space_mono hτ hσ_le_τ, },
 end
 
 lemma martingale.stopped_value_ae_eq_condexp_of_le'

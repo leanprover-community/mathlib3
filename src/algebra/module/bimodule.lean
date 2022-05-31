@@ -19,7 +19,7 @@ This situation can be set up in Mathlib as:
 variables (R S M : Type*) [ring R] [ring S]
 variables [add_comm_group M] [module R M] [module Sᵐᵒᵖ M] [smul_comm_class R Sᵐᵒᵖ M]
 ```
-The key is fact is:
+The key fact is:
 ```lean
 example : module (R ⊗[ℕ] Sᵐᵒᵖ) M := by apply_instance -- Mathlib knows this
 ```

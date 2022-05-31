@@ -39,6 +39,17 @@ open_locale classical big_operators pointwise
 
 section semiring
 
+namespace submodule
+variables {R : Type u} [semiring R]
+variables {M : Type v} [add_comm_monoid M] [module R M]
+class is_maximal (N : submodule R M) : Prop := (out : is_coatom N)
+
+theorem is_maximal_def {N : submodule R M} : N.is_maximal ↔ is_coatom N := ⟨λ h, h.1, λ h, ⟨h⟩⟩
+
+theorem is_maximal.ne_top {N : submodule R M} (h : N.is_maximal) : N ≠ ⊤ := (is_maximal_def.1 h).1
+
+end submodule
+
 namespace ideal
 variables [semiring α] (I : ideal α) {a b : α}
 
@@ -185,7 +196,8 @@ lemma bot_prime {R : Type*} [ring R] [is_domain R] : (⊥ : ideal R).is_prime :=
  λ x y h, mul_eq_zero.mp (by simpa only [submodule.mem_bot] using h)⟩
 
 /-- An ideal is maximal if it is maximal in the collection of proper ideals. -/
-class is_maximal (I : ideal α) : Prop := (out : is_coatom I)
+@[class]
+def is_maximal (I : ideal α) : Prop := submodule.is_maximal I
 
 theorem is_maximal_def {I : ideal α} : I.is_maximal ↔ is_coatom I := ⟨λ h, h.1, λ h, ⟨h⟩⟩
 

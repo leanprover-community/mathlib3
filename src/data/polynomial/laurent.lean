@@ -46,24 +46,26 @@ Any comments or suggestions for improvements is greatly appreciated!
 
 ##  Future work
 Lots is missing!
-* (Riccardo) add inclusion into Laurent series.
-* (Riccardo) giving a morphism (as `R`-alg, so in the commutative case)
+-- (Riccardo) add inclusion into Laurent series.
+-- (Riccardo) giving a morphism (as `R`-alg, so in the commutative case)
   from `R[T,T⁻¹]` to `S` is the same as choosing a unit of `S`.
-* A "better" definition of `trunc` would be as an `R`-linear map.  This works:
-  ```
-  def trunc : R[T;T⁻¹] →[R] R[X] :=
-  begin
-    refine (_ : add_monoid_algebra R ℕ →[R] R[X]).comp _,
-    { exact ⟨(to_finsupp_iso R).symm, by simp⟩ },
-    { refine ⟨λ r, comap_domain _ r (set.inj_on_of_injective (λ a b ab, int.of_nat.inj ab) _), _⟩,
-      exact λ r f, comap_domain_smul _ _ _ }
-  end
-  ```
-  but it would make sense to bundle the maps better, for a smoother user experience.  I (DT) did not
-  have the strength to embark on this (possibly short!) journey, after getting to this stage of the
-  Laurent process!  This would likely involve adding a `comap_domain` analogue of
-  `add_monoid_algebra.map_domain_alg_hom` and an `R`-linear version of `polynomial.to_finsupp_iso`.
-* Add `degree, int_degree, int_trailing_degree, leading_coeff, trailing_coeff,...`.
+-- A "better" definition of `trunc` would be as an `R`-linear map.  This works:
+--  ```
+--  def trunc : R[T;T⁻¹] →[R] R[X] :=
+--  begin
+--    refine (_ : add_monoid_algebra R ℕ →[R] R[X]).comp _,
+--    { exact ⟨(to_finsupp_iso R).symm, by simp⟩ },
+--    { refine ⟨λ r, comap_domain _ r (set.inj_on_of_injective (λ a b ab, int.of_nat.inj ab) _), _⟩,
+--      exact λ r f, comap_domain_smul _ _ _ }
+--  end
+--  ```
+--  but it would make sense to bundle the maps better, for a smoother user experience.
+--  I (DT) did not have the strength to embark on this (possibly short!) journey, after getting to
+--  this stage of the Laurent process!
+--  This would likely involve adding a `comap_domain` analogue of
+--  `add_monoid_algebra.map_domain_alg_hom` and an `R`-linear version of
+--  `polynomial.to_finsupp_iso`.
+-- Add `degree, int_degree, int_trailing_degree, leading_coeff, trailing_coeff,...`.
 -/
 
 open_locale polynomial big_operators

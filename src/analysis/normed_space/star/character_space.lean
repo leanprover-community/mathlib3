@@ -50,8 +50,7 @@ begin
   have h : character_space 𝕜 A ⊆ to_normed_dual ⁻¹' metric.closed_ball 0 1,
   { intros φ hφ,
     rw [set.mem_preimage, mem_closed_ball_zero_iff],
-    have := le_of_eq (norm_one ⟨φ, ⟨hφ.1, hφ.2⟩⟩),
-    exact this },
+    exact (le_of_eq $ norm_one ⟨φ, ⟨hφ.1, hφ.2⟩⟩ : _), },
   exact compact_of_is_closed_subset (is_compact_closed_ball 𝕜 0 1) is_closed h,
 end
 

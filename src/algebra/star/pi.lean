@@ -57,9 +57,9 @@ end function
 
 namespace pi
 
-lemma star_single [Π i, add_monoid (f i)] [Π i, star_add_monoid (f i)] [decidable_eq I]
+lemma single_star [Π i, add_monoid (f i)] [Π i, star_add_monoid (f i)] [decidable_eq I]
   (i : I) (a : f i) :
-  star (pi.single i a) = pi.single i (star a) :=
+  pi.single i (star a) = star (pi.single i a) :=
 by rw [pi.single, ←function.update_star, star_zero, pi.single]
 
 end pi

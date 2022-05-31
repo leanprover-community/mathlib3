@@ -661,16 +661,19 @@ begin
   simp [division_def, coe_int_eq_mk, mul_def one_ne_zero d0]
 end
 
-lemma mk_div_mk_cancel_left {n d x : ℤ} (hx : x ≠ 0) : (n /. x) / (d /. x) = n /. d :=
+lemma mk_mul_mk_cancel_left {n d x : ℤ} (hx : x ≠ 0) : (n /. x) * (x /. d) = n /. d :=
 begin
-  rw [div_eq_mul_inv, inv_def],
   by_cases hd : d = 0,
   { rw hd,
     simp},
-  { rw mul_def hx hd,
-    nth_rewrite 1 mul_comm,
-    rw div_mk_div_cancel_left hx}
+  rw [mul_def hx hd, mul_comm x, div_mk_div_cancel_left hx],
 end
+
+lemma mk_div_mk_cancel_left {n d x : ℤ} (hx : x ≠ 0) : (n /. x) / (d /. x) = n /. d :=
+by rw [div_eq_mul_inv, inv_def, mk_mul_mk_cancel_left hx]
+
+lemma mk_div_mk_cancel_right {n d x : ℤ} (hx : x ≠ 0) : (x /. n) / (x /. d) = d /. n :=
+by rw [div_eq_mul_inv, inv_def, mul_comm, mk_mul_mk_cancel_left hx]
 
 @[simp] lemma coe_int_div_eq_mk {n d : ℤ} : (n : ℚ) / ↑d = n /. d :=
 begin

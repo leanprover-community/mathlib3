@@ -989,6 +989,7 @@ def map_dart (d : G.dart) : G'.dart := ⟨d.1.map f f, f.map_adj d.2⟩
 @[simp] lemma map_dart_apply (d : G.dart) : f.map_dart d = ⟨d.1.map f f, f.map_adj d.2⟩ := rfl
 
 /-- The induced map for spanning subgraphs, which is the identity on vertices. -/
+@[simps]
 def map_spanning_subgraphs {G G' : simple_graph V} (h : G ≤ G') : G →g G' :=
 { to_fun := λ x, x,
   map_rel' := h }

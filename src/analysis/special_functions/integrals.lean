@@ -52,6 +52,16 @@ lemma interval_integrable_rpow {r : ℝ} (h : 0 ≤ r ∨ (0 : ℝ) ∉ [a, b]) 
   interval_integrable (λ x, x ^ r) μ a b :=
 (continuous_on_id.rpow_const $ λ x hx, h.symm.imp (ne_of_mem_of_not_mem hx) id).interval_integrable
 
+lemma interval_integrable_cpow {a b : ℝ} {r : ℂ} (ha : 0 < a) (hb : 0 < b):
+  interval_integrable (λ x : ℝ, (x : ℂ) ^ r) volume a b :=
+begin
+  refine (complex.continuous_of_real.continuous_on.cpow_const _).interval_integrable,
+  intros c hc,
+  left,
+  norm_cast,
+  calc 0 < min a b : lt_min ha hb ... ≤ c : hc.left,
+end
+
 @[simp]
 lemma interval_integrable_id : interval_integrable (λ x, x) μ a b :=
 continuous_id.interval_integrable a b
@@ -188,6 +198,40 @@ begin
   apply (@zero_lt_one ℝ _ _).not_le,
   simpa using h
 end
+
+lemma integral_cpow {a b : ℝ} {r : ℂ} (ha : 0 < a) (hb : 0 < b) (hr : r ≠ -1):
+  ∫ (x : ℝ) in a..b, (x : ℂ) ^ r = (b ^ (r + 1) - a ^ (r + 1)) / (r + 1) :=
+begin
+  -- Proof idea: Identical to cpow, except casts need to be dealt with. We handle this via
+  -- scalar multiplication and the facilities that exist for handle derivatives of scalar multiples
+  suffices : ∀ x ∈ set.interval a b, has_deriv_at (λ x : ℝ, (x : ℂ) ^ (r + 1) / (r + 1)) (x ^ r) x,
+  { rw sub_div,
+    refine integral_eq_sub_of_has_deriv_at this _ ,
+    refine interval_integrable_cpow ha hb, },
+
+  intros x hx,
+  apply has_strict_deriv_at.has_deriv_at,
+  have : (λ (x : ℝ), ↑x ^ (r + 1) / (r + 1)) =
+    (λ z : ℂ, z ^ (r + 1) / (r + 1)) ∘ (λ x : ℝ, x • (1 : ℂ)),
+  { simp only [complex.real_smul, mul_one], },
+  rw this,
+  have : (x : ℂ) ^ r = (x : ℂ) ^ r * (1 : ℂ), simp,
+  rw this,
+  apply has_strict_deriv_at.comp,
+  have hx' : 0 < (x : ℂ).re ∨ (x : ℂ).im ≠ 0,
+  { left,
+    norm_cast,
+    calc 0 < min a b : lt_min ha hb ... ≤ x : hx.left, },
+  convert (complex.has_strict_deriv_at_cpow_const hx').div_const (r + 1),
+  rw [add_sub_cancel, mul_div_cancel_left],
+  rw [ne.def, ← eq_neg_iff_add_eq_zero],
+  exact hr,
+  simp only [complex.real_smul, mul_one],
+  have : (1 : ℂ) = (1 : ℝ) • (1 : ℂ), simp only [complex.real_smul, mul_one, complex.of_real_one],
+  conv { congr, skip, rw this, },
+  exact has_strict_deriv_at.smul_const (has_strict_deriv_at_id x) _,
+end
+
 
 lemma integral_zpow {n : ℤ} (h : 0 ≤ n ∨ n ≠ -1 ∧ (0 : ℝ) ∉ [a, b]) :
   ∫ x in a..b, x ^ n = (b ^ (n + 1) - a ^ (n + 1)) / (n + 1) :=

@@ -114,7 +114,7 @@ def append_stream : list α → stream α → stream α
 | []              s := s
 | (list.cons a l) s := a :: append_stream l s
 
-infix `++ₛ`:65 := append_stream
+infix ` ++ₛ `:65 := append_stream
 
 /-- `take n s` returns a list of the `n` first elements of stream `s` -/
 def take : ℕ → stream α → list α

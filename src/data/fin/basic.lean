@@ -363,17 +363,10 @@ lemma coe_one' {n : ℕ} : ((1 : fin (n+1)) : ℕ) = 1 % (n+1) := rfl
 instance {n : ℕ} : nontrivial (fin (n + 2)) := ⟨⟨0, 1, dec_trivial⟩⟩
 
 lemma nontrivial_iff_two_le : nontrivial (fin n) ↔ 2 ≤ n :=
-begin
-  refine ⟨λ H, _, λ H, _⟩,
-  { rcases @exists_lt_of_directed_le (fin n) _ _ H with ⟨x, y, hlt⟩,
-    refine nat.succ_le_iff.2 (lt_of_le_of_lt _ y.is_lt),
-    exact nat.succ_le_iff.2 (bot_le.trans_lt hlt) },
-  { rcases le_iff_exists_add'.1 H with ⟨k, rfl⟩,
-    exact fin.nontrivial }
-end
+by rcases n with _|_|n; simp [fin.nontrivial, not_nontrivial, nat.succ_le_iff]
 
 lemma subsingleton_iff_le_one : subsingleton (fin n) ↔ n ≤ 1 :=
-by rw [← not_nontrivial_iff_subsingleton, nontrivial_iff_two_le, not_le, ← nat.lt_succ_iff]
+by rcases n with _|_|n; simp [is_empty.subsingleton, unique.subsingleton, not_subsingleton]
 
 section monoid
 

@@ -152,7 +152,7 @@ begin
   simp [h2.symm]
 end
 
-lemma inverse_one_sub_norm : is_O (λ t, inverse ((1:R) - t)) (λ t, (1:ℝ)) (𝓝 (0:R)) :=
+lemma inverse_one_sub_norm : (λ t : R, inverse (1 - t)) =O[𝓝 0] (λ t, 1 : R → ℝ) :=
 begin
   simp only [is_O, is_O_with, eventually_iff, metric.mem_nhds_iff],
   refine ⟨∥(1:R)∥ + 1, (2:ℝ)⁻¹, by norm_num, _⟩,
@@ -173,7 +173,7 @@ begin
 end
 
 /-- The function `λ t, inverse (x + t)` is O(1) as `t → 0`. -/
-lemma inverse_add_norm (x : Rˣ) : is_O (λ t, inverse (↑x + t)) (λ t, (1:ℝ)) (𝓝 (0:R)) :=
+lemma inverse_add_norm (x : Rˣ) : (λ t : R, inverse (↑x + t)) =O[𝓝 0] (λ t, (1:ℝ)) :=
 begin
   simp only [is_O_iff, norm_one, mul_one],
   cases is_O_iff.mp (@inverse_one_sub_norm R _ _) with C hC,
@@ -193,8 +193,8 @@ end
 `λ t, inverse (x + t) - (∑ i in range n, (- x⁻¹ * t) ^ i) * x⁻¹`
 is `O(t ^ n)` as `t → 0`. -/
 lemma inverse_add_norm_diff_nth_order (x : Rˣ) (n : ℕ) :
-  is_O (λ (t : R), inverse (↑x + t) - (∑ i in range n, (- ↑x⁻¹ * t) ^ i) * ↑x⁻¹)
-  (λ t, ∥t∥ ^ n) (𝓝 (0:R)) :=
+  (λ t : R, inverse (↑x + t) - (∑ i in range n, (- ↑x⁻¹ * t) ^ i) * ↑x⁻¹) =O[𝓝 (0:R)]
+  (λ t, ∥t∥ ^ n) :=
 begin
   by_cases h : n = 0,
   { simpa [h] using inverse_add_norm x },
@@ -228,14 +228,14 @@ end
 
 /-- The function `λ t, inverse (x + t) - x⁻¹` is `O(t)` as `t → 0`. -/
 lemma inverse_add_norm_diff_first_order (x : Rˣ) :
-  is_O (λ t, inverse (↑x + t) - ↑x⁻¹) (λ t, ∥t∥) (𝓝 (0:R)) :=
+  (λ t : R, inverse (↑x + t) - ↑x⁻¹) =O[𝓝 0] (λ t, ∥t∥) :=
 by simpa using inverse_add_norm_diff_nth_order x 1
 
 /-- The function
 `λ t, inverse (x + t) - x⁻¹ + x⁻¹ * t * x⁻¹`
 is `O(t ^ 2)` as `t → 0`. -/
 lemma inverse_add_norm_diff_second_order (x : Rˣ) :
-  is_O (λ t, inverse (↑x + t) - ↑x⁻¹ + ↑x⁻¹ * t * ↑x⁻¹) (λ t, ∥t∥ ^ 2) (𝓝 (0:R)) :=
+  (λ t : R, inverse (↑x + t) - ↑x⁻¹ + ↑x⁻¹ * t * ↑x⁻¹) =O[𝓝 0] (λ t, ∥t∥ ^ 2) :=
 begin
   convert inverse_add_norm_diff_nth_order x 2,
   ext t,
@@ -247,7 +247,7 @@ end
 /-- The function `inverse` is continuous at each unit of `R`. -/
 lemma inverse_continuous_at (x : Rˣ) : continuous_at inverse (x : R) :=
 begin
-  have h_is_o : is_o (λ (t : R), inverse (↑x + t) - ↑x⁻¹) (λ _, 1 : R → ℝ) (𝓝 0) :=
+  have h_is_o : (λ t : R, inverse (↑x + t) - ↑x⁻¹) =o[𝓝 0] (λ _, 1 : R → ℝ) :=
     (inverse_add_norm_diff_first_order x).trans_is_o (is_o.norm_left $ is_o_id_const one_ne_zero),
   have h_lim : tendsto (λ (y:R), y - x) (𝓝 x) (𝓝 0),
   { refine tendsto_zero_iff_norm_tendsto_zero.mpr _,

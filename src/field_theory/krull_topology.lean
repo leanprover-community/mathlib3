@@ -405,15 +405,12 @@ lemma ultrafilter.glued_generators_of_pushforwards_alg_hom_injective
 lemma eq_of_map_le {f : L →ₐ[K] L} (h_findim : finite_dimensional K E) (h_map_le : E.map f ≤ E) :
   E.map f = E :=
 begin
-  have hf_inj : function.injective f := ring_hom.injective f.to_ring_hom,
-  haveI hE_submod_fin : finite_dimensional K E.to_subalgebra.to_submodule,
-  { exact h_findim },
-  have h_finrank_eq : finite_dimensional.finrank K (E.map f) =
-    finite_dimensional.finrank K E,
-  { exact (linear_equiv.finrank_eq (submodule.equiv_map_of_injective (f.to_linear_map)
-    hf_inj E.to_subalgebra.to_submodule)).symm },
+  haveI hE_submod_fin : finite_dimensional K E.to_subalgebra.to_submodule := h_findim,
+  have h_finrank_eq : finite_dimensional.finrank K E = finite_dimensional.finrank K (E.map f),
+  { exact (E.to_subalgebra.to_submodule.equiv_map_of_injective
+      f.to_linear_map f.to_ring_hom.injective).finrank_eq },
   exact intermediate_field.to_subalgebra_eq_iff.mp (subalgebra.to_submodule_injective
-  (finite_dimensional.eq_of_le_of_finrank_eq h_map_le h_finrank_eq)),
+    (finite_dimensional.eq_of_le_of_finrank_eq h_map_le h_finrank_eq.symm)),
 end
 
 lemma ultrafilter.glued_generators_of_pushforwards_alg_hom_surjective (h_int :

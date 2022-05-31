@@ -3,9 +3,9 @@ Copyright (c) 2021 Yakov Pechersky. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yakov Pechersky
 -/
-import group_theory.perm.list
 import data.list.cycle
-import group_theory.perm.cycle_type
+import group_theory.perm.cycle.type
+import group_theory.perm.list
 
 /-!
 

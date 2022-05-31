@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2021 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Johan Commelin, Andrew Yang
+Authors: Johan Commelin, Andrew Yang, Pierre-Alexandre Bazin
 -/
 import algebra.homology.short_exact.preadditive
 import category_theory.abelian.diagram_lemmas.four

@@ -6,9 +6,7 @@ Authors: Pierre-Alexandre Bazin
 import algebra.module.torsion
 import linear_algebra.free_module.pid
 import algebra.module.projective
-import algebra.category.Module.abelian
 import algebra.category.Module.biproducts
-import algebra.homology.short_exact.abelian
 import ring_theory.dedekind_domain.ideal
 
 /-!
@@ -47,23 +45,6 @@ Finitely generated module, principal ideal domain, classification, structure the
 
 universes u v
 open_locale big_operators
-
-section split_exact --pending #14376
-variables {R : Type u} {A M B : Type v} [ring R] [add_comm_group A] [module R A]
-  [add_comm_group B] [module R B] [add_comm_group M] [module R M]
-open Module
-
-/--The isomorphism `A × B ≃ₗ[R] M` coming from a right split exact sequence `0 → A → M → B → 0` of
-modules.-/
-noncomputable def lequiv_prod_of_right_split_exact (j : A →ₗ[R] M) (g : M →ₗ[R] B) (f : B →ₗ[R] M)
-  (hj : function.injective j) (exac : j.range = g.ker) (h : g.comp f = linear_map.id) :
-  (A × B) ≃ₗ[R] M :=
-(({ right_split := ⟨as_hom f, h⟩,
-    mono := (mono_iff_injective $ as_hom j).mpr hj,
-    exact := (exact_iff _ _).mpr exac } : category_theory.right_split _ _).splitting.iso.trans $
-  biprod_iso_prod _ _).to_linear_equiv.symm
-
-end split_exact
 
 variables {R : Type u} [comm_ring R] [is_domain R] {M : Type v} [add_comm_group M] [module R M]
 variables {N : Type (max u v)} [add_comm_group N] [module R N]
@@ -229,7 +210,7 @@ begin
         obtain ⟨x, h0, h1⟩ := exists_smul_eq_zero_and_mk_eq hp hN hj fi, refine ⟨x, h0, _⟩, rw h1,
         simp only [linear_map.coe_comp, f.symm.coe_to_linear_map, f.apply_symm_apply] },
       refine ⟨_, ⟨(((
-        lequiv_prod_of_right_split_exact _
+        @lequiv_prod_of_right_split_exact _ _ _ _ _ _ _ _ _ _ _ _
           ((f.trans ulift.module_equiv.{u u v}.symm).to_linear_map.comp $ mkq _)
           ((direct_sum.to_module _ _ _ $ λ i, (liftq_span_singleton.{u u} (p ^ k i)
             (linear_map.to_span_singleton _ _ _) (this i).some_spec.left : R ⧸ _ →ₗ[R] _)).comp
@@ -301,7 +282,7 @@ begin
   haveI : module.projective R (N ⧸ torsion R N) := module.projective_of_basis ⟨g⟩,
   obtain ⟨f, hf⟩ := module.projective_lifting_property _ linear_map.id (torsion R N).mkq_surjective,
   refine ⟨n, I, fI, p, hp, e,
-    ⟨(lequiv_prod_of_right_split_exact _ _ _ (torsion R N).injective_subtype _ hf).symm.trans $
+    ⟨(lequiv_prod_of_right_split_exact (torsion R N).injective_subtype _ hf).symm.trans $
       (h.prod g).trans $ linear_equiv.prod_comm R _ _⟩⟩,
   rw [range_subtype, ker_mkq]
 end

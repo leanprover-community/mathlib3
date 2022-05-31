@@ -117,7 +117,7 @@ protected def id : α →[M] α :=
 
 #exit
 
-
+/- The rest is the old API -/
 open_locale pointwise
 
 section monoid

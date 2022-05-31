@@ -54,7 +54,7 @@ begin
   induction l with l IH,
   { simpa using ha },
   { rw pow_succ,
-    exact one_lt_mul' ha IH }
+    exact one_lt_mul'' ha IH }
 end
 
 @[to_additive nsmul_neg]

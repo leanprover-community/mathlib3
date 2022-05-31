@@ -481,10 +481,10 @@ subset.antisymm (range_subset_iff.2 cos_mem_Icc) surj_on_cos.subset_range
 subset.antisymm (range_subset_iff.2 sin_mem_Icc) surj_on_sin.subset_range
 
 lemma range_cos_infinite : (range real.cos).infinite :=
-by { rw real.range_cos, exact Icc.infinite (by norm_num) }
+by { rw real.range_cos, exact Icc_infinite (by norm_num) }
 
 lemma range_sin_infinite : (range real.sin).infinite :=
-by { rw real.range_sin, exact Icc.infinite (by norm_num) }
+by { rw real.range_sin, exact Icc_infinite (by norm_num) }
 
 
 section cos_div_sq

@@ -69,7 +69,40 @@ def trivial (B : Type*) (F : Type*) : B → Type* := function.const B F
 instance {F : Type*} [inhabited F] {b : B} : inhabited (bundle.trivial B F b) := ⟨(default : F)⟩
 
 /-- The trivial bundle, unlike other bundles, has a canonical projection on the fiber. -/
-def trivial.proj_snd (B : Type*) (F : Type*) : (total_space (bundle.trivial B F)) → F := sigma.snd
+def trivial.proj_snd (B : Type*) (F : Type*) : total_space (bundle.trivial B F) → F := sigma.snd
+
+section pullback
+
+variable {B' : Type*}
+
+/-- The pullback of a bundle `E` over a base `B` under a map `f : B' → B`, denoted by `pullback f E`
+or `f *ᵖ E`,  is the bundle over `B'` whose fiber over `b'` is `E (f b')`. -/
+@[nolint has_inhabited_instance] def pullback (f : B' → B) (E : B → Type*) := λ x, E (f x)
+
+notation f ` *ᵖ ` E := pullback f E
+
+/-- Natural embedding of the total space of `f *ᵖ E` into `B' × total_space E`. -/
+@[simp] def pullback_total_space_embedding (f : B' → B) :
+  total_space (f *ᵖ E) → B' × total_space E :=
+λ z, (proj (f *ᵖ E) z, total_space_mk E (f (proj (f *ᵖ E) z)) z.2)
+
+/-- The base map `f : B' → B` lifts to a canonical map on the total spaces. -/
+def pullback.lift (f : B' → B) : total_space (f *ᵖ E) → total_space E :=
+λ z, total_space_mk E (f (proj (f *ᵖ E) z)) z.2
+
+@[simp] lemma pullback.proj_lift (f : B' → B) (x : total_space (f *ᵖ E)) :
+  proj E (pullback.lift E f x) = f x.1 :=
+rfl
+
+@[simp] lemma pullback.lift_mk (f : B' → B) (x : B') (y : E (f x)) :
+  pullback.lift E f (total_space_mk (f *ᵖ E) x y) = total_space_mk E (f x) y :=
+rfl
+
+lemma pullback_total_space_embedding_snd (f : B' → B) (x : total_space (f *ᵖ E)) :
+  (pullback_total_space_embedding E f x).2 = pullback.lift E f x :=
+rfl
+
+end pullback
 
 section fiber_structures
 

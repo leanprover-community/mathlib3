@@ -3,9 +3,10 @@ Copyright (c) 2022 Tomaz Gomes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Tomaz Gomes
 -/
-import data.list.sort tactic
+import data.list.sort
 import data.nat.log
 import init.data.nat
+import tactic
 
 import data.list.timed.lemmas
 import data.list.timed.split

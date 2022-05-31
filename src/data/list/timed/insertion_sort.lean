@@ -3,8 +3,9 @@ Copyright (c) 2022 Tomaz Gomes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Tomaz Gomes
 -/
-import data.list.sort tactic
+import data.list.sort
 import data.nat.log
+import tactic
 /-!
 # Timed Insertion Sort
   This file defines a new version of Insertion Sort that, besides sorting the input list, counts the

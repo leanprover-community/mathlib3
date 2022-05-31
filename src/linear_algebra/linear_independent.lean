@@ -1208,6 +1208,16 @@ lemma linear_independent.subset_span_extend (hs : linear_independent K (λ x, x 
   (hst : s ⊆ t) : t ⊆ span K (hs.extend hst) :=
 let ⟨hbt, hsb, htb, hli⟩ := classical.some_spec (exists_linear_independent_extension hs hst) in htb
 
+lemma linear_independent.span_extend_eq {t : submodule K V}
+  (hs : linear_independent K (λ x, x : s → V)) (hst : s ⊆ t) :
+  span K (hs.extend hst) = t :=
+begin
+  apply submodule.span_eq_of_le,
+  { apply linear_independent.extend_subset },
+  { rw [← set_like.coe_subset_coe],
+    refine linear_independent.subset_span_extend _ _ },
+end
+
 lemma linear_independent.linear_independent_extend (hs : linear_independent K (λ x, x : s → V))
   (hst : s ⊆ t) : linear_independent K (coe : hs.extend hst → V) :=
 let ⟨hbt, hsb, htb, hli⟩ := classical.some_spec (exists_linear_independent_extension hs hst) in hli

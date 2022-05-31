@@ -146,6 +146,14 @@ lemma mem_span_repr_support {ι : Type*} (b : basis ι R M) (m : M) :
   m ∈ span R (b '' (b.repr m).support) :=
 (finsupp.mem_span_image_iff_total _).2 ⟨b.repr m, (by simp [finsupp.mem_supported_support])⟩
 
+lemma support_subset_of_mem_span {ι : Type*} (b : basis ι R M) (m : M) (s : set ι):
+  m ∈ span R (b '' s) → b.repr m ∈ finsupp.supported R R s :=
+begin
+  rw [finsupp.mem_span_image_iff_total],
+  rintro ⟨l, h, rfl⟩,
+  rwa [repr_total]
+end
+
 end repr
 
 section coord
@@ -1190,6 +1198,181 @@ lemma exists_basis : ∃ s : set V, nonempty (basis s K V) :=
 end
 
 end exists_basis
+
+namespace strictly_triangular_basis
+/- In this section we construct a basis that triangulates a nilpotent linear map. -/
+
+lemma subset_next_ker_of_span_eq_ker {i : ℕ} {f : V →ₗ[K] V} {s : set V}
+  (hker : span K s = (f ^ i).ker) : s ⊆ (f ^ (i + 1)).ker :=
+begin
+  have h_ker_le_ker : (f ^ i).ker ≤ (f ^ (i + 1)).ker := linear_map.ker_le_ker_comp _ _,
+  show s ⊆ (f ^ (i + 1)).ker,
+  { refine subset_trans (subset_span : s ⊆ span K s) _,
+    rw [hker],
+    exact set_like.coe_subset_coe.2 h_ker_le_ker },
+end
+
+/-- A single step of the triangulation construction: We extend a given basis of `(f ^ i).ker` to a
+basis of `(f ^ (i + 1)).ker`-/
+def basis_step {i : ℕ} {f : V →ₗ[K] V} {s : set V}
+  (hs : linear_independent K (coe : s → V))
+  (hker : span K s = (f ^ i).ker) : set V :=
+hs.extend (subset_next_ker_of_span_eq_ker hker)
+
+lemma linear_independent_basis_step {i : ℕ} {f : V →ₗ[K] V} {s : set V}
+  (hs : linear_independent K (coe : s → V))
+  (hker : span K s = (f ^ i).ker) :
+  linear_independent K (coe : basis_step hs hker → V) :=
+hs.linear_independent_extend (subset_next_ker_of_span_eq_ker hker)
+
+lemma span_basis_step {i : ℕ} {f : V →ₗ[K] V} {s : set V}
+  (hs : linear_independent K (coe : s → V))
+  (hker : span K s = (f ^ i).ker) :
+  span K (basis_step hs hker) = (f ^ (i + 1)).ker :=
+hs.span_extend_eq (subset_next_ker_of_span_eq_ker hker)
+
+lemma subset_basis_step {i : ℕ} {f : V →ₗ[K] V} {s : set V}
+  (hs : linear_independent K (coe : s → V))
+  (hker : span K s = (f ^ i).ker) :
+  s ⊆ basis_step hs hker :=
+hs.subset_extend (subset_next_ker_of_span_eq_ker hker)
+
+/-- This definition recursively constructs a basis of `(f ^ i).ker` triangulating `f`. -/
+def basis_aux (f : V →ₗ[K] V) : Π (i : ℕ),
+  { s : set V // linear_independent K (coe : s → V) ∧ span K s = (f ^ i).ker}
+| 0 := ⟨∅, begin
+    refine ⟨linear_independent_empty _ _, _⟩,
+    simpa using linear_map.ker_id.symm
+  end⟩
+| (i + 1) := ⟨basis_step (basis_aux i).property.1 (basis_aux i).property.2,
+  begin
+    split,
+    { apply linear_independent_basis_step },
+    { apply span_basis_step }
+  end⟩
+
+/-- A basis of `(f ^ i).ker` triangulating `f` as a `set` -/
+def basis_set (f : V →ₗ[K] V) (n : ℕ) : set V :=
+  (basis_aux f n).val
+
+lemma linear_independent_basis_set (f : V →ₗ[K] V) (n : ℕ) :
+  linear_independent K (coe : basis_set f n → V) :=
+(basis_aux f n).property.1
+
+lemma span_basis_set (f : V →ₗ[K] V) (n : ℕ) :
+  span K (basis_set f n) = (f ^ n).ker :=
+(basis_aux f n).property.2
+
+lemma basis_set_subset_add (f : V →ₗ[K] V) {i j : ℕ} :
+  basis_set f i ⊆ basis_set f (i + j) :=
+begin
+  induction j with j hj,
+  { exact subset_refl _ },
+  { refine (subset_trans hj) _,
+    rw [nat.add_succ],
+    exact subset_basis_step
+      (basis_aux f (i + j)).property.1
+      (basis_aux f (i + j)).property.2 }
+end
+
+/-- A basis of `V` triangulating a nilpotent linear map `f`. Due to the nilpotency the main diagonal
+of the matrix representation of `f` under this basis is zero, making it *strictly* triangular. -/
+def strictly_triangular_basis {f : V →ₗ[K] V} {n : ℕ} (hf : f ^ n = 0) :
+  basis (basis_set f n) K V :=
+begin
+  refine basis.mk (basis_aux f n).property.1 _,
+  rw [subtype.range_coe, (basis_aux f n).property.2,
+    hf, linear_map.ker_zero]
+end
+
+lemma basis_set_subset_ker (f : V →ₗ[K] V) (n : ℕ) :
+  basis_set f n ⊆ (f ^ n).ker :=
+begin
+  rw [← (basis_aux f n).property.2],
+  apply subset_span
+end
+
+/-- The smallest exponent `i` of `f` such that `x` is contained in `(f ^ i).ker`. This gives us the
+iteration of the construction in which the vector `x` was added to the basis. -/
+def smallest_ker {f : V →ₗ[K] V} {n : ℕ} {x : V} (hx : x ∈ basis_set f n) : ℕ :=
+nat.find (exists.intro n (basis_set_subset_ker f n hx))
+
+lemma smallest_ker_spec {f : V →ₗ[K] V} {n : ℕ} {x : V} (hx : x ∈ basis_set f n) :
+  x ∈ (f ^ (smallest_ker hx)).ker :=
+nat.find_spec (exists.intro n (basis_set_subset_ker f n hx))
+
+lemma smallest_ker_min {f : V →ₗ[K] V} {n : ℕ} {x : V} (hx : x ∈ basis_set f n) :
+  ∀ i, i < smallest_ker hx → x ∉ (f ^ i).ker :=
+λ i, nat.find_min (exists.intro n (basis_set_subset_ker f n hx))
+
+lemma smallest_ker_le {f : V →ₗ[K] V} {n : ℕ} {x : V} (hx : x ∈ basis_set f n) :
+  smallest_ker hx ≤ n :=
+nat.find_min' (exists.intro n (basis_set_subset_ker f n hx)) (basis_set_subset_ker f n hx)
+
+lemma pos_smallest_ker {f : V →ₗ[K] V} {n : ℕ} {x : V} (hx : x ∈ basis_set f n) :
+  0 < smallest_ker hx :=
+begin
+  have h_x_mem_ker : x ∈ (f ^ (smallest_ker hx)).ker := smallest_ker_spec hx,
+  apply nat.pos_of_ne_zero,
+  intro h,
+  simp [h] at h_x_mem_ker,
+  exact
+    (linear_independent.ne_zero (subtype.mk x hx) (linear_independent_basis_set f n)) h_x_mem_ker
+end
+
+lemma mem_basis_set_pred_smallest_ker {f : V →ₗ[K] V} {n : ℕ}
+  {x : V} (hx : x ∈ basis_set f n) :
+    f x ∈ span K (basis_set f (smallest_ker hx).pred) :=
+begin
+  have h_x_mem_ker : x ∈ (f ^ (smallest_ker hx)).ker := smallest_ker_spec hx,
+  have h_pos_smallest_ker : 0 < smallest_ker hx, by apply pos_smallest_ker,
+  have : x ∈ (f ^ (smallest_ker hx).pred.succ).ker,
+    by rwa [nat.succ_pred_eq_of_pos h_pos_smallest_ker],
+  have : f x ∈ (f ^ (smallest_ker hx).pred).ker,
+    by rwa [linear_map.mem_ker, ←linear_map.comp_apply, ←linear_map.mul_eq_comp, ←pow_succ',
+      ←linear_map.mem_ker],
+  show f x ∈ span K (basis_set f (smallest_ker hx).pred),
+    by rwa [span_basis_set],
+end
+
+lemma coe_strictly_triangular_basis {f : V →ₗ[K] V} {n : ℕ} (hf : f ^ n = 0) :
+  ⇑(strictly_triangular_basis hf) = coe :=
+begin
+  apply funext,
+  apply basis.mk_apply,
+end
+
+/-- If we order the `strictly_triangular_basis` elements by `smallest_ker`, we obtain a strictly
+triangular matrix (i.e., it is triangular and the diagonal is also zero). -/
+theorem repr_strictly_triangular_basis {f : V →ₗ[K] V} {n : ℕ} (hf : f ^ n = 0)
+  {x y : V} (hx : x ∈ basis_set f n) (hy : y ∈ basis_set f n)
+  (h : smallest_ker hx ≤ smallest_ker hy) :
+    (strictly_triangular_basis hf).repr (f x) ⟨y, hy⟩ = 0 :=
+begin
+  have h_mem_span : f x ∈ span K (basis_set f (smallest_ker hx).pred),
+    by apply mem_basis_set_pred_smallest_ker,
+  have h_mem_span': f x ∈ submodule.span K ((strictly_triangular_basis hf) ''
+    (coe ⁻¹' basis_set f (smallest_ker hx).pred)),
+  { rwa [coe_strictly_triangular_basis, image_preimage_eq_of_subset],
+    rw [subtype.range_coe],
+    convert basis_set_subset_add f,
+    rw [nat.add_sub_of_le],
+    exact le_trans (nat.pred_le _) (smallest_ker_le _), },
+  have h_not_mem_ker : y ∉ (f ^ (smallest_ker hx).pred).ker,
+  { apply smallest_ker_min hy _ (lt_of_lt_of_le (nat.pred_lt _) h),
+    intro hx0,
+    have := pos_smallest_ker hx,
+    linarith },
+  have h_not_mem_basis_set : subtype.mk y hy ∉ coe ⁻¹' basis_set f (smallest_ker hx).pred,
+    from λ h, h_not_mem_ker (basis_set_subset_ker f _ (mem_preimage.1 h)),
+  show ((strictly_triangular_basis hf).repr (f x)) ⟨y, hy⟩ = 0,
+  { apply (finsupp.mem_supported' K ((strictly_triangular_basis hf).repr (f x))).1
+      _ _ h_not_mem_basis_set,
+    apply support_subset_of_mem_span (strictly_triangular_basis hf) (f x)
+    (coe ⁻¹' (basis_set f (smallest_ker hx).pred)) h_mem_span' }
+end
+
+end strictly_triangular_basis
 
 end basis
 

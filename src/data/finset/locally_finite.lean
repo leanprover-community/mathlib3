@@ -211,10 +211,6 @@ lemma Ioc_subset_Ioi_self : Ioc a b ⊆ Ioi a := by simpa [←coe_subset] using 
 lemma Ioo_subset_Ioi_self : Ioo a b ⊆ Ioi a := by simpa [←coe_subset] using set.Ioo_subset_Ioi_self
 lemma Ioc_subset_Ici_self : Ioc a b ⊆ Ici a := Ioc_subset_Icc_self.trans Icc_subset_Ici_self
 lemma Ioo_subset_Ici_self : Ioo a b ⊆ Ici a := Ioo_subset_Ico_self.trans Ico_subset_Ici_self
-lemma Ioi_subset_Ici_self : Ioi a ⊆ Ici a := by simpa [←coe_subset] using set.Ioi_subset_Ici_self
-
-lemma _root_.bdd_below.finite {s : set α} (hs : bdd_below s) : s.finite :=
-let ⟨a, ha⟩ := hs in (Ici a).finite_to_set.subset $ λ x hx, mem_Ici.2 $ ha hx
 
 end locally_finite_order_top
 
@@ -227,15 +223,19 @@ lemma Ico_subset_Iio_self : Ico a b ⊆ Iio b := by simpa [←coe_subset] using 
 lemma Ioo_subset_Iio_self : Ioo a b ⊆ Iio b := by simpa [←coe_subset] using set.Ioo_subset_Iio_self
 lemma Ico_subset_Iic_self : Ico a b ⊆ Iic b := Ico_subset_Icc_self.trans Icc_subset_Iic_self
 lemma Ioo_subset_Iic_self : Ioo a b ⊆ Iic b := Ioo_subset_Ioc_self.trans Ioc_subset_Iic_self
-lemma Iio_subset_Iic_self : Iio b ⊆ Iic b := by simpa [←coe_subset] using set.Iio_subset_Iic_self
-
-lemma _root_.bdd_above.finite {s : set α} (hs : bdd_above s) : s.finite := hs.dual.finite
 
 end locally_finite_order_bot
 end locally_finite_order
 
 section locally_finite_order_top
-variables [locally_finite_order_top α] [fintype α] {a : α}
+variables [locally_finite_order_top α] {a : α}
+
+lemma Ioi_subset_Ici_self : Ioi a ⊆ Ici a := by simpa [←coe_subset] using set.Ioi_subset_Ici_self
+
+lemma _root_.bdd_below.finite {s : set α} (hs : bdd_below s) : s.finite :=
+let ⟨a, ha⟩ := hs in (Ici a).finite_to_set.subset $ λ x hx, mem_Ici.2 $ ha hx
+
+variables [fintype α]
 
 lemma filter_lt_eq_Ioi [decidable_pred ((<) a)] : univ.filter ((<) a) = Ioi a := by { ext, simp }
 lemma filter_le_eq_Ici [decidable_pred ((≤) a)] : univ.filter ((≤) a) = Ici a := by { ext, simp }
@@ -243,7 +243,13 @@ lemma filter_le_eq_Ici [decidable_pred ((≤) a)] : univ.filter ((≤) a) = Ici 
 end locally_finite_order_top
 
 section locally_finite_order_bot
-variables [locally_finite_order_bot α] [fintype α] {a : α}
+variables [locally_finite_order_bot α] {a : α}
+
+lemma Iio_subset_Iic_self : Iio a ⊆ Iic a := by simpa [←coe_subset] using set.Iio_subset_Iic_self
+
+lemma _root_.bdd_above.finite {s : set α} (hs : bdd_above s) : s.finite := hs.dual.finite
+
+variables [fintype α]
 
 lemma filter_gt_eq_Iio [decidable_pred (< a)] : univ.filter (< a) = Iio a := by { ext, simp }
 lemma filter_ge_eq_Iic [decidable_pred (≤ a)] : univ.filter (≤ a) = Iic a := by { ext, simp }

@@ -276,26 +276,6 @@ def Ioi (a : α) : finset α := locally_finite_order_top.finset_Ioi a
 
 end locally_finite_order_top
 
-instance [is_empty α] : locally_finite_order_top α :=
-{ finset_Ici := is_empty_elim,
-  finset_Ioi := is_empty_elim,
-  finset_mem_Ici := is_empty_elim,
-  finset_mem_Ioi := is_empty_elim }
-
-section order_top
-variables [locally_finite_order α] [order_top α] {a x : α}
-
-instance locally_finite_order.to_locally_finite_order_top : locally_finite_order_top α :=
-{ finset_Ici := λ b, Icc b ⊤,
-  finset_Ioi := λ b, Ioc b ⊤,
-  finset_mem_Ici := λ a x, by rw [mem_Icc, and_iff_left le_top],
-  finset_mem_Ioi := λ a x, by rw [mem_Ioc, and_iff_left le_top] }
-
-lemma Ici_eq_Icc (a : α) : Ici a = Icc a ⊤ := rfl
-lemma Ioi_eq_Ioc (a : α) : Ioi a = Ioc a ⊤ := rfl
-
-end order_top
-
 section locally_finite_order_bot
 variables [locally_finite_order_bot α] {a x : α}
 
@@ -313,15 +293,39 @@ def Iio (a : α) : finset α := locally_finite_order_bot.finset_Iio a
 
 end locally_finite_order_bot
 
-instance [is_empty α] : locally_finite_order_bot α :=
+@[priority 100] -- See note [lower priority instance]
+instance _root_.is_empty.to_locally_finite_order_top [is_empty α] : locally_finite_order_top α :=
+{ finset_Ici := is_empty_elim,
+  finset_Ioi := is_empty_elim,
+  finset_mem_Ici := is_empty_elim,
+  finset_mem_Ioi := is_empty_elim }
+
+@[priority 100] -- See note [lower priority instance]
+instance _root_.is_empty.to_locally_finite_order_bot [is_empty α] : locally_finite_order_bot α :=
 { finset_Iic := is_empty_elim,
   finset_Iio := is_empty_elim,
   finset_mem_Iic := is_empty_elim,
   finset_mem_Iio := is_empty_elim }
 
-section order_bot
-variables [preorder α] [order_bot α] [locally_finite_order α] {b x : α}
+section order_top
+variables [locally_finite_order α] [order_top α] {a x : α}
 
+@[priority 100] -- See note [lower priority instance]
+instance _root_.locally_finite_order.to_locally_finite_order_top : locally_finite_order_top α :=
+{ finset_Ici := λ b, Icc b ⊤,
+  finset_Ioi := λ b, Ioc b ⊤,
+  finset_mem_Ici := λ a x, by rw [mem_Icc, and_iff_left le_top],
+  finset_mem_Ioi := λ a x, by rw [mem_Ioc, and_iff_left le_top] }
+
+lemma Ici_eq_Icc (a : α) : Ici a = Icc a ⊤ := rfl
+lemma Ioi_eq_Ioc (a : α) : Ioi a = Ioc a ⊤ := rfl
+
+end order_top
+
+section order_bot
+variables [order_bot α] [locally_finite_order α] {b x : α}
+
+@[priority 100] -- See note [lower priority instance]
 instance locally_finite_order.to_locally_finite_order_bot : locally_finite_order_bot α :=
 { finset_Iic := Icc ⊥,
   finset_Iio := Ico ⊥,
@@ -495,6 +499,28 @@ subsingleton.intro (λ h₀ h₁, begin
   { ext a b x, rw [h₀_finset_mem_Ioo, h₁_finset_mem_Ioo] },
   simp_rw [hIcc, hIco, hIoc, hIoo],
 end)
+
+instance : subsingleton (locally_finite_order_top α) :=
+subsingleton.intro $ λ h₀ h₁, begin
+  cases h₀,
+  cases h₁,
+  have hIci : h₀_finset_Ici = h₁_finset_Ici,
+  { ext a b x, rw [h₀_finset_mem_Ici, h₁_finset_mem_Ici] },
+  have hIoi : h₀_finset_Ioi = h₁_finset_Ioi,
+  { ext a b x, rw [h₀_finset_mem_Ioi, h₁_finset_mem_Ioi] },
+  simp_rw [hIci, hIoi],
+end
+
+instance : subsingleton (locally_finite_order_bot α) :=
+subsingleton.intro $ λ h₀ h₁, begin
+  cases h₀,
+  cases h₁,
+  have hIic : h₀_finset_Iic = h₁_finset_Iic,
+  { ext a b x, rw [h₀_finset_mem_Iic, h₁_finset_mem_Iic] },
+  have hIio : h₀_finset_Iio = h₁_finset_Iio,
+  { ext a b x, rw [h₀_finset_mem_Iio, h₁_finset_mem_Iio] },
+  simp_rw [hIic, hIio],
+end
 
 -- Should this be called `locally_finite_order.lift`?
 /-- Given an order embedding `α ↪o β`, pulls back the `locally_finite_order` on `β` to `α`. -/

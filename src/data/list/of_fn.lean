@@ -82,8 +82,7 @@ theorem of_fn_congr {m n : ℕ} (h : m = n) (f : fin m → α) :
   of_fn f = of_fn (λ i : fin n, f (fin.cast h.symm i)) :=
 begin
   subst h,
-  simp_rw fin.cast_refl,
-  refl,
+  simp_rw [fin.cast_refl, order_iso.refl_apply],
 end
 
 /-- `of_fn` on an empty domain is the empty list. -/

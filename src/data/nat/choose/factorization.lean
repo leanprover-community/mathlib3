@@ -47,8 +47,8 @@ begin
   refine (finset.card_filter_le _ _).trans (le_of_eq (nat.card_Ico _ _)),
 end
 
-lemma factorization_central_binom_le :
-  ((central_binom n).factorization p) ≤ log p (2 * n) := factorization_choose_le
+lemma factorization_central_binom_le : (central_binom n).factorization p ≤ log p (2 * n) :=
+factorization_choose_le
 
 /--
 A `pow` form of `nat.factorization_central_binom_le`

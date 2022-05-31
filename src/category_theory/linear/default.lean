@@ -76,7 +76,8 @@ variables {R : Type w}
 instance [semiring R] [linear R C] (X : C) : module R (End X) := linear.hom_module X X
 
 /-- TODO: should we have a `bilinear` class for this? -/
-instance (X : C) [linear Rᵐᵒᵖ C] [is_central_scalar R (X ⟶ X)] : is_central_scalar R (End X) :=
+instance [semiring R] [linear R C] [linear Rᵐᵒᵖ C]  (X : C) [is_central_scalar R (X ⟶ X)] :
+  is_central_scalar R (End X) :=
 ‹is_central_scalar R (X ⟶ X)›
 
 instance [comm_semiring R] [linear R C] [linear Rᵐᵒᵖ C] (X : C) [is_central_scalar R (X ⟶ X)] :

@@ -790,34 +790,54 @@ open topological_vector_bundle
 equivalences but there is not yet a topology on the total space or the fibers.
 The total space is hence given a topology in such a way that there is a fiber bundle structure for
 which the local equivalences are also local homeomorphisms and hence vector bundle trivializations.
-The topology on the fibers is induced from the one on the total space. -/
+The topology on the fibers is induced from the one on the total space.
+
+The field `exists_coord_change` is stated as an existential statement (instead of 3 separate
+fields), since it depends on propositional information (namely `e e' ∈ pretrivialization_atlas`).
+-/
 @[nolint has_inhabited_instance]
 structure topological_vector_prebundle :=
 (pretrivialization_atlas : set (pretrivialization R F E))
 (pretrivialization_at : B → pretrivialization R F E)
 (mem_base_pretrivialization_at : ∀ x : B, x ∈ (pretrivialization_at x).base_set)
 (pretrivialization_mem_atlas : ∀ x : B, pretrivialization_at x ∈ pretrivialization_atlas)
-(coord_change : ∀ (e e' ∈ pretrivialization_atlas) (b : B), F →L[R] F)
-(continuous_on_coord_change : ∀ {e e'} (he : e ∈ pretrivialization_atlas)
-  (he' : e' ∈ pretrivialization_atlas), continuous_on
-  (coord_change e he e' he') (e.base_set ∩ e'.base_set))
-(coord_change_apply : ∀ {e e' : pretrivialization R F E} (he : e ∈ pretrivialization_atlas)
-  (he' : e' ∈ pretrivialization_atlas) (b : B) (hb : b ∈ e.base_set ∩ e'.base_set) (v : F),
-  coord_change e he e' he' b v = (e' (total_space_mk E b (e.symm b v))).2)
+(exists_coord_change : ∀ (e e' ∈ pretrivialization_atlas), ∃ f : B → F →L[R] F,
+  continuous_on f (e.base_set ∩ e'.base_set) ∧
+  ∀ (b : B) (hb : b ∈ e.base_set ∩ e'.base_set) (v : F),
+    f b v = (e' (total_space_mk E b (e.symm b v))).2)
 
 namespace topological_vector_prebundle
 
 variables {R E F}
 
+/-- A randomly chosen coordinate change on a `topological_vector_prebundle`, given by
+  the field `exists_coord_change`. -/
+def coord_change (a : topological_vector_prebundle R F E)
+  {e e' : pretrivialization R F E} (he : e ∈ a.pretrivialization_atlas)
+  (he' : e' ∈ a.pretrivialization_atlas) (b : B) : F →L[R] F :=
+classical.some (a.exists_coord_change e he e' he') b
+
+lemma continuous_on_coord_change (a : topological_vector_prebundle R F E)
+  {e e' : pretrivialization R F E} (he : e ∈ a.pretrivialization_atlas)
+  (he' : e' ∈ a.pretrivialization_atlas) :
+  continuous_on (a.coord_change he he') (e.base_set ∩ e'.base_set) :=
+(classical.some_spec (a.exists_coord_change e he e' he')).1
+
+lemma coord_change_apply (a : topological_vector_prebundle R F E)
+  {e e' : pretrivialization R F E} (he : e ∈ a.pretrivialization_atlas)
+  (he' : e' ∈ a.pretrivialization_atlas) {b : B} (hb : b ∈ e.base_set ∩ e'.base_set) (v : F) :
+  a.coord_change he he' b v = (e' (total_space_mk E b (e.symm b v))).2 :=
+(classical.some_spec (a.exists_coord_change e he e' he')).2 b hb v
+
 lemma mk_coord_change (a : topological_vector_prebundle R F E)
   {e e' : pretrivialization R F E} (he : e ∈ a.pretrivialization_atlas)
   (he' : e' ∈ a.pretrivialization_atlas) {b : B} (hb : b ∈ e.base_set ∩ e'.base_set) (v : F) :
-  (b, a.coord_change e he e' he' b v) = e' (total_space_mk E b (e.symm b v)) :=
+  (b, a.coord_change he he' b v) = e' (total_space_mk E b (e.symm b v)) :=
 begin
   ext,
   { rw [e.mk_symm hb.1 v, e'.coe_fst', e.proj_symm_apply' hb.1],
     rw [e.proj_symm_apply' hb.1], exact hb.2 },
-  { exact a.coord_change_apply he he' b hb v }
+  { exact a.coord_change_apply he he' hb v }
 end
 
 /-- Natural identification of `topological_vector_prebundle` as a `topological_fiber_prebundle`. -/
@@ -918,7 +938,7 @@ def to_topological_vector_bundle :
     refine (a.continuous_on_coord_change he he').congr _,
     intros b hb,
     ext v,
-    rw [a.coord_change_apply he he' b hb v, continuous_linear_equiv.coe_coe,
+    rw [a.coord_change_apply he he' hb v, continuous_linear_equiv.coe_coe,
       trivialization.coord_change_apply],
     exacts [rfl, hb]
   end }

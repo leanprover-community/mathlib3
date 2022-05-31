@@ -1958,6 +1958,15 @@ begin
     (condexp_ae_eq_condexp_L1 hm g).symm),
 end
 
+lemma condexp_of_ae_strongly_measurable' (hm : m ≤ m0) [hμm : sigma_finite (μ.trim hm)]
+  {f : α → F'} (hf : ae_strongly_measurable' m f μ) (hfi : integrable f μ) :
+  μ[f|m] =ᵐ[μ] f :=
+begin
+  refine ((condexp_congr_ae hf.ae_eq_mk).trans _).trans hf.ae_eq_mk.symm,
+  rw condexp_of_strongly_measurable hm hf.strongly_measurable_mk
+    ((integrable_congr hf.ae_eq_mk).mp hfi),
+end
+
 lemma integrable_condexp : integrable (μ[f|m]) μ :=
 begin
   by_cases hm : m ≤ m0,

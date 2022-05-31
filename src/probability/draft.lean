@@ -204,9 +204,7 @@ lemma condexp_stopping_time_restrict_eq_const [(filter.at_top : filter ι).is_co
   {i n : ι} (hin : i ≤ n) :
   μ[f n | hτ.measurable_space] =ᵐ[μ.restrict {x | τ x = i}] f i :=
 begin
-  have hfi_eq_restrict : μ[f n | ℱ i] =ᵐ[μ.restrict {x | τ x = i}] f i,
-    from ae_restrict_of_ae (h.condexp_ae_eq hin),
-  refine filter.eventually_eq.trans _ hfi_eq_restrict,
+  refine filter.eventually_eq.trans _ (ae_restrict_of_ae (h.condexp_ae_eq hin)),
   refine condexp_ae_eq_restrict_of_measurable_space_eq_on hτ.measurable_space_le (ℱ.le i)
     (hτ.measurable_set_eq' i) (λ t, _),
   rw [set.inter_comm _ t, is_stopping_time.measurable_set_inter_eq_iff],
@@ -253,7 +251,7 @@ lemma martingale.stopped_value_ae_eq_condexp_of_le_const [encodable ι] [topolog
   [sigma_finite (μ.trim (hτ.measurable_space_le_of_le hτ_le))] :
   stopped_value f τ =ᵐ[μ] μ[f n | hτ.measurable_space] :=
 begin
-  have : set.univ = ⋃ i, {x | τ x = i}, by {ext1 x, simp, },
+  have : set.univ = ⋃ i, {x | τ x = i}, by { ext1 x, simp, },
   nth_rewrite 0 ← @measure.restrict_univ α _ μ,
   rw [this, ae_restrict_Union_iff],
   exact λ i, stopped_value_ae_eq_restrict_eq_condexp h _ hτ_le,

@@ -525,14 +525,22 @@ begin
   exact add_le_add_left (mul_le_mul_of_nonneg_right hab $ (le_add_iff_nonneg_right _).1 hcd) _,
 end
 
+/-- Binary **rearrangement inequality**. -/
+lemma mul_add_mul_le_mul_add_mul' (hba : b ≤ a) (hdc : d ≤ c) : a • d + b • c ≤ a • c + b • d :=
+by { rw [add_comm (a • d), add_comm (a • c)], exact mul_add_mul_le_mul_add_mul hba hdc }
+
 /-- Binary strict **rearrangement inequality**. -/
-lemma mul_add_mul_lt_mul_add_mul_aux (hab : a < b) (hcd : c < d) : a * d + b * c < a * c + b * d :=
+lemma mul_add_mul_lt_mul_add_mul (hab : a < b) (hcd : c < d) : a * d + b * c < a * c + b * d :=
 begin
   obtain ⟨b, rfl⟩ := exists_add_of_le hab.le,
   obtain ⟨d, rfl⟩ := exists_add_of_le hcd.le,
   rw [mul_add, add_right_comm, mul_add, ←add_assoc],
   exact add_lt_add_left (mul_lt_mul_of_pos_right hab $ (lt_add_iff_pos_right _).1 hcd) _,
 end
+
+/-- Binary **rearrangement inequality**. -/
+lemma mul_add_mul_lt_mul_add_mul' (hba : b < a) (hdc : d < c) : a • d + b • c < a • c + b • d :=
+by { rw [add_comm (a • d), add_comm (a • c)], exact mul_add_mul_lt_mul_add_mul hba hdc }
 
 end has_exists_add_of_le
 end ordered_semiring

@@ -752,6 +752,8 @@ def continuous_linear_equiv.pi_ring (ι : Type*) [fintype ι] [decidable_eq ι] 
   continuous_inv_fun :=
   begin
     simp_rw [linear_equiv.inv_fun_eq_symm, linear_equiv.trans_symm, linear_equiv.symm_symm],
+    change continuous (linear_map.to_continuous_linear_map.to_linear_map.comp
+                      (linear_equiv.pi_ring 𝕜 E ι 𝕜).symm.to_linear_map),
     apply linear_map.continuous_of_bound _ (fintype.card ι : ℝ) (λ g, _),
     rw ← nsmul_eq_mul,
     apply op_norm_le_bound _ (nsmul_nonneg (norm_nonneg g) (fintype.card ι)) (λ t, _),
@@ -873,12 +875,12 @@ end
 
 lemma summable_of_is_O' {ι E F : Type*} [normed_group E] [complete_space E] [normed_group F]
   [normed_space ℝ F] [finite_dimensional ℝ F] {f : ι → E} {g : ι → F}
-  (hg : summable g) (h : is_O f g cofinite) : summable f :=
+  (hg : summable g) (h : f =O[cofinite] g) : summable f :=
 summable_of_is_O (summable_norm_iff.mpr hg) h.norm_right
 
 lemma summable_of_is_O_nat' {E F : Type*} [normed_group E] [complete_space E] [normed_group F]
   [normed_space ℝ F] [finite_dimensional ℝ F] {f : ℕ → E} {g : ℕ → F}
-  (hg : summable g) (h : is_O f g at_top) : summable f :=
+  (hg : summable g) (h : f =O[at_top] g) : summable f :=
 summable_of_is_O_nat (summable_norm_iff.mpr hg) h.norm_right
 
 lemma summable_of_is_equivalent {ι E : Type*} [normed_group E] [normed_space ℝ E]

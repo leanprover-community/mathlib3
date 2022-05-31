@@ -238,13 +238,20 @@ by split; simp
 ⟨(hab.1.union hbc.1).mono_set Ioc_subset_Ioc_union_Ioc,
   (hbc.2.union hab.2).mono_set Ioc_subset_Ioc_union_Ioc⟩
 
+lemma trans_iterate_Ico {a : ℕ → ℝ} {m n : ℕ} (hmn : m ≤ n)
+  (hint : ∀ k ∈ Ico m n, interval_integrable f μ (a k) (a $ k+1)) :
+  interval_integrable f μ (a m) (a n) :=
+begin
+  revert hint,
+  refine nat.le_induction _ _ n hmn,
+  { simp },
+  { assume p hp IH h,
+    exact (IH (λ k hk, h k (Ico_subset_Ico_right p.le_succ hk))).trans (h p (by simp [hp])) }
+end
+
 lemma trans_iterate {a : ℕ → ℝ} {n : ℕ} (hint : ∀ k < n, interval_integrable f μ (a k) (a $ k+1)) :
   interval_integrable f μ (a 0) (a n) :=
-begin
-  induction n with n hn,
-  { simp },
-  { exact (hn (λ k hk, hint k (hk.trans n.lt_succ_self))).trans (hint n n.lt_succ_self) }
-end
+trans_iterate_Ico bot_le (λ k hk, hint k hk.2)
 
 lemma neg (h : interval_integrable f μ a b) : interval_integrable (-f) μ a b :=
 ⟨h.1.neg, h.2.neg⟩
@@ -308,6 +315,10 @@ lemma smul [normed_field 𝕜] [normed_space 𝕜 E]
 @[simp] lemma sub (hf : interval_integrable f μ a b) (hg : interval_integrable g μ a b) :
   interval_integrable (λ x, f x - g x) μ a b :=
 ⟨hf.1.sub hg.1, hf.2.sub hg.2⟩
+
+lemma sum (s : finset ι) {f : ι → ℝ → E} (h : ∀ i ∈ s, interval_integrable (f i) μ a b) :
+  interval_integrable (∑ i in s, f i) μ a b :=
+⟨integrable_finset_sum' s (λ i hi, (h i hi).1), integrable_finset_sum' s (λ i hi, (h i hi).2)⟩
 
 lemma mul_continuous_on {f g : ℝ → ℝ}
   (hf : interval_integrable f μ a b) (hg : continuous_on g [a, b]) :
@@ -755,7 +766,7 @@ lemma integral_add_adjacent_intervals_cancel (hab : interval_integrable f μ a b
   ∫ x in a..b, f x ∂μ + ∫ x in b..c, f x ∂μ + ∫ x in c..a, f x ∂μ = 0 :=
 begin
   have hac := hab.trans hbc,
-  simp only [interval_integral, ← add_sub_comm, sub_eq_zero],
+  simp only [interval_integral, sub_add_sub_comm, sub_eq_zero],
   iterate 4 { rw ← integral_union },
   { suffices : Ioc a b ∪ Ioc b c ∪ Ioc c a = Ioc b a ∪ Ioc c b ∪ Ioc a c, by rw this,
     rw [Ioc_union_Ioc_union_Ioc_cycle, union_right_comm, Ioc_union_Ioc_union_Ioc_cycle,
@@ -769,16 +780,29 @@ lemma integral_add_adjacent_intervals (hab : interval_integrable f μ a b)
   ∫ x in a..b, f x ∂μ + ∫ x in b..c, f x ∂μ = ∫ x in a..c, f x ∂μ :=
 by rw [← add_neg_eq_zero, ← integral_symm, integral_add_adjacent_intervals_cancel hab hbc]
 
+lemma sum_integral_adjacent_intervals_Ico {a : ℕ → ℝ} {m n : ℕ} (hmn : m ≤ n)
+  (hint : ∀ k ∈ Ico m n, interval_integrable f μ (a k) (a $ k+1)) :
+  ∑ (k : ℕ) in finset.Ico m n, ∫ x in (a k)..(a $ k+1), f x ∂μ = ∫ x in (a m)..(a n), f x ∂μ :=
+begin
+  revert hint,
+  refine nat.le_induction _ _ n hmn,
+  { simp },
+  { assume p hmp IH h,
+    rw [finset.sum_Ico_succ_top hmp, IH, integral_add_adjacent_intervals],
+    { apply interval_integrable.trans_iterate_Ico hmp (λ k hk, h k _),
+      exact (Ico_subset_Ico le_rfl (nat.le_succ _)) hk },
+    { apply h,
+      simp [hmp] },
+    { assume k hk,
+      exact h _ (Ico_subset_Ico_right p.le_succ hk) } }
+end
+
 lemma sum_integral_adjacent_intervals {a : ℕ → ℝ} {n : ℕ}
   (hint : ∀ k < n, interval_integrable f μ (a k) (a $ k+1)) :
   ∑ (k : ℕ) in finset.range n, ∫ x in (a k)..(a $ k+1), f x ∂μ = ∫ x in (a 0)..(a n), f x ∂μ :=
 begin
-  induction n with n hn,
-  { simp },
-  { rw [finset.sum_range_succ, hn (λ k hk, hint k (hk.trans n.lt_succ_self))],
-    exact integral_add_adjacent_intervals
-      (interval_integrable.trans_iterate $ λ k hk, hint k (hk.trans n.lt_succ_self))
-      (hint n n.lt_succ_self) }
+  rw ← nat.Ico_zero_eq_range,
+  exact sum_integral_adjacent_intervals_Ico (zero_le n) (λ k hk, hint k hk.2),
 end
 
 lemma integral_interval_sub_left (hab : interval_integrable f μ a b)
@@ -1351,8 +1375,7 @@ lemma measure_integral_sub_linear_is_o_of_tendsto_ae'
   (hfm : strongly_measurable_at_filter f l' μ) (hf : tendsto f (l' ⊓ μ.ae) (𝓝 c))
   (hl : μ.finite_at_filter l')
   (hu : tendsto u lt l) (hv : tendsto v lt l) :
-  is_o (λ t, ∫ x in u t..v t, f x ∂μ - ∫ x in u t..v t, c ∂μ)
-    (λ t, ∫ x in u t..v t, (1:ℝ) ∂μ) lt :=
+  (λ t, ∫ x in u t..v t, f x ∂μ - ∫ x in u t..v t, c ∂μ) =o[lt] (λ t, ∫ x in u t..v t, (1:ℝ) ∂μ) :=
 begin
   have A := hf.integral_sub_linear_is_o_ae hfm hl (hu.Ioc hv),
   have B := hf.integral_sub_linear_is_o_ae hfm hl (hv.Ioc hu),
@@ -1378,8 +1401,8 @@ lemma measure_integral_sub_linear_is_o_of_tendsto_ae_of_le'
   [is_measurably_generated l'] [tendsto_Ixx_class Ioc l l']
   (hfm : strongly_measurable_at_filter f l' μ) (hf : tendsto f (l' ⊓ μ.ae) (𝓝 c))
   (hl : μ.finite_at_filter l') (hu : tendsto u lt l) (hv : tendsto v lt l) (huv : u ≤ᶠ[lt] v) :
-  is_o (λ t, ∫ x in u t..v t, f x ∂μ - (μ (Ioc (u t) (v t))).to_real • c)
-    (λ t, (μ $ Ioc (u t) (v t)).to_real) lt :=
+  (λ t, ∫ x in u t..v t, f x ∂μ - (μ (Ioc (u t) (v t))).to_real • c) =o[lt]
+    (λ t, (μ $ Ioc (u t) (v t)).to_real) :=
 (measure_integral_sub_linear_is_o_of_tendsto_ae' hfm hf hl hu hv).congr'
   (huv.mono $ λ x hx, by simp [integral_const', hx])
   (huv.mono $ λ x hx, by simp [integral_const', hx])
@@ -1398,8 +1421,8 @@ lemma measure_integral_sub_linear_is_o_of_tendsto_ae_of_ge'
   [is_measurably_generated l'] [tendsto_Ixx_class Ioc l l']
   (hfm : strongly_measurable_at_filter f l' μ) (hf : tendsto f (l' ⊓ μ.ae) (𝓝 c))
   (hl : μ.finite_at_filter l') (hu : tendsto u lt l) (hv : tendsto v lt l) (huv : v ≤ᶠ[lt] u) :
-  is_o (λ t, ∫ x in u t..v t, f x ∂μ + (μ (Ioc (v t) (u t))).to_real • c)
-    (λ t, (μ $ Ioc (v t) (u t)).to_real) lt :=
+  (λ t, ∫ x in u t..v t, f x ∂μ + (μ (Ioc (v t) (u t))).to_real • c) =o[lt]
+    (λ t, (μ $ Ioc (v t) (u t)).to_real) :=
 (measure_integral_sub_linear_is_o_of_tendsto_ae_of_le' hfm hf hl hv hu huv).neg_left.congr_left $
   λ t, by simp [integral_symm (u t), add_comm]
 
@@ -1423,8 +1446,7 @@ We use integrals of constants instead of measures because this way it is easier 
 a statement that works in both cases `u ≤ v` and `v ≤ u`. -/
 lemma measure_integral_sub_linear_is_o_of_tendsto_ae (hfm : strongly_measurable_at_filter f l' μ)
   (hf : tendsto f (l' ⊓ μ.ae) (𝓝 c)) (hu : tendsto u lt l) (hv : tendsto v lt l) :
-  is_o (λ t, ∫ x in u t..v t, f x ∂μ - ∫ x in u t..v t, c ∂μ)
-    (λ t, ∫ x in u t..v t, (1:ℝ) ∂μ) lt :=
+  (λ t, ∫ x in u t..v t, f x ∂μ - ∫ x in u t..v t, c ∂μ) =o[lt] (λ t, ∫ x in u t..v t, (1:ℝ) ∂μ) :=
 measure_integral_sub_linear_is_o_of_tendsto_ae' hfm hf (FTC_filter.finite_at_inner l) hu hv
 
 /-- Fundamental theorem of calculus-1, local version for any measure.
@@ -1437,8 +1459,8 @@ e.g., for `l = l' = at_top`. -/
 lemma measure_integral_sub_linear_is_o_of_tendsto_ae_of_le
   (hfm : strongly_measurable_at_filter f l' μ) (hf : tendsto f (l' ⊓ μ.ae) (𝓝 c))
   (hu : tendsto u lt l) (hv : tendsto v lt l) (huv : u ≤ᶠ[lt] v) :
-  is_o (λ t, ∫ x in u t..v t, f x ∂μ - (μ (Ioc (u t) (v t))).to_real • c)
-    (λ t, (μ $ Ioc (u t) (v t)).to_real) lt :=
+  (λ t, ∫ x in u t..v t, f x ∂μ - (μ (Ioc (u t) (v t))).to_real • c) =o[lt]
+    (λ t, (μ $ Ioc (u t) (v t)).to_real) :=
 measure_integral_sub_linear_is_o_of_tendsto_ae_of_le' hfm hf (FTC_filter.finite_at_inner l)
   hu hv huv
 
@@ -1452,8 +1474,8 @@ e.g., for `l = l' = at_top`. -/
 lemma measure_integral_sub_linear_is_o_of_tendsto_ae_of_ge
   (hfm : strongly_measurable_at_filter f l' μ) (hf : tendsto f (l' ⊓ μ.ae) (𝓝 c))
   (hu : tendsto u lt l) (hv : tendsto v lt l) (huv : v ≤ᶠ[lt] u) :
-  is_o (λ t, ∫ x in u t..v t, f x ∂μ + (μ (Ioc (v t) (u t))).to_real • c)
-    (λ t, (μ $ Ioc (v t) (u t)).to_real) lt :=
+  (λ t, ∫ x in u t..v t, f x ∂μ + (μ (Ioc (v t) (u t))).to_real • c) =o[lt]
+    (λ t, (μ $ Ioc (v t) (u t)).to_real) :=
 measure_integral_sub_linear_is_o_of_tendsto_ae_of_ge' hfm hf (FTC_filter.finite_at_inner l)
   hu hv huv
 
@@ -1481,9 +1503,9 @@ lemma measure_integral_sub_integral_sub_linear_is_o_of_tendsto_ae
   (ha_lim : tendsto f (la' ⊓ μ.ae) (𝓝 ca)) (hb_lim : tendsto f (lb' ⊓ μ.ae) (𝓝 cb))
   (hua : tendsto ua lt la) (hva : tendsto va lt la)
   (hub : tendsto ub lt lb) (hvb : tendsto vb lt lb) :
-  is_o (λ t, (∫ x in va t..vb t, f x ∂μ) - (∫ x in ua t..ub t, f x ∂μ) -
-    (∫ x in ub t..vb t, cb ∂μ - ∫ x in ua t..va t, ca ∂μ))
-    (λ t, ∥∫ x in ua t..va t, (1:ℝ) ∂μ∥ + ∥∫ x in ub t..vb t, (1:ℝ) ∂μ∥) lt :=
+  (λ t, (∫ x in va t..vb t, f x ∂μ) - (∫ x in ua t..ub t, f x ∂μ) -
+    (∫ x in ub t..vb t, cb ∂μ - ∫ x in ua t..va t, ca ∂μ)) =o[lt]
+    (λ t, ∥∫ x in ua t..va t, (1:ℝ) ∂μ∥ + ∥∫ x in ub t..vb t, (1:ℝ) ∂μ∥) :=
 begin
   refine
     ((measure_integral_sub_linear_is_o_of_tendsto_ae hmeas_a ha_lim hua hva).neg_left.add_add
@@ -1517,8 +1539,8 @@ as `u` and `v` tend to `lb`.
 lemma measure_integral_sub_integral_sub_linear_is_o_of_tendsto_ae_right
   (hab : interval_integrable f μ a b) (hmeas : strongly_measurable_at_filter f lb' μ)
   (hf : tendsto f (lb' ⊓ μ.ae) (𝓝 c)) (hu : tendsto u lt lb) (hv : tendsto v lt lb) :
-  is_o (λ t, ∫ x in a..v t, f x ∂μ - ∫ x in a..u t, f x ∂μ - ∫ x in u t..v t, c ∂μ)
-    (λ t, ∫ x in u t..v t, (1:ℝ) ∂μ) lt :=
+  (λ t, ∫ x in a..v t, f x ∂μ - ∫ x in a..u t, f x ∂μ - ∫ x in u t..v t, c ∂μ) =o[lt]
+    (λ t, ∫ x in u t..v t, (1:ℝ) ∂μ) :=
 by simpa using measure_integral_sub_integral_sub_linear_is_o_of_tendsto_ae
   hab strongly_measurable_at_bot hmeas ((tendsto_bot : tendsto _ ⊥ (𝓝 0)).mono_left inf_le_left)
   hf (tendsto_const_pure : tendsto _ _ (pure a)) tendsto_const_pure hu hv
@@ -1535,8 +1557,8 @@ as `u` and `v` tend to `la`.
 lemma measure_integral_sub_integral_sub_linear_is_o_of_tendsto_ae_left
   (hab : interval_integrable f μ a b) (hmeas : strongly_measurable_at_filter f la' μ)
   (hf : tendsto f (la' ⊓ μ.ae) (𝓝 c)) (hu : tendsto u lt la) (hv : tendsto v lt la) :
-  is_o (λ t, ∫ x in v t..b, f x ∂μ - ∫ x in u t..b, f x ∂μ + ∫ x in u t..v t, c ∂μ)
-    (λ t, ∫ x in u t..v t, (1:ℝ) ∂μ) lt :=
+  (λ t, ∫ x in v t..b, f x ∂μ - ∫ x in u t..b, f x ∂μ + ∫ x in u t..v t, c ∂μ) =o[lt]
+    (λ t, ∫ x in u t..v t, (1:ℝ) ∂μ) :=
 by simpa using measure_integral_sub_integral_sub_linear_is_o_of_tendsto_ae
   hab hmeas strongly_measurable_at_bot hf ((tendsto_bot : tendsto _ ⊥ (𝓝 0)).mono_left inf_le_left)
   hu hv (tendsto_const_pure : tendsto _ _ (pure b)) tendsto_const_pure
@@ -1568,7 +1590,7 @@ we have no definition of `has_strict_(f)deriv_at_filter` in the library.
 lemma integral_sub_linear_is_o_of_tendsto_ae [FTC_filter a l l']
   (hfm : strongly_measurable_at_filter f l') (hf : tendsto f (l' ⊓ volume.ae) (𝓝 c))
   {u v : ι → ℝ} (hu : tendsto u lt l) (hv : tendsto v lt l) :
-  is_o (λ t, (∫ x in u t..v t, f x) - (v t - u t) • c) (v - u) lt :=
+  (λ t, (∫ x in u t..v t, f x) - (v t - u t) • c) =o[lt] (v - u) :=
 by simpa [integral_const] using measure_integral_sub_linear_is_o_of_tendsto_ae hfm hf hu hv
 
 /-- Fundamental theorem of calculus-1, strict differentiability at filter in both endpoints.
@@ -1586,8 +1608,8 @@ lemma integral_sub_integral_sub_linear_is_o_of_tendsto_ae
   (ha_lim : tendsto f (la' ⊓ volume.ae) (𝓝 ca)) (hb_lim : tendsto f (lb' ⊓ volume.ae) (𝓝 cb))
   (hua : tendsto ua lt la) (hva : tendsto va lt la)
   (hub : tendsto ub lt lb) (hvb : tendsto vb lt lb) :
-  is_o (λ t, (∫ x in va t..vb t, f x) - (∫ x in ua t..ub t, f x) -
-    ((vb t - ub t) • cb - (va t - ua t) • ca)) (λ t, ∥va t - ua t∥ + ∥vb t - ub t∥) lt :=
+  (λ t, (∫ x in va t..vb t, f x) - (∫ x in ua t..ub t, f x) -
+    ((vb t - ub t) • cb - (va t - ua t) • ca)) =o[lt] (λ t, ∥va t - ua t∥ + ∥vb t - ub t∥) :=
 by simpa [integral_const]
   using measure_integral_sub_integral_sub_linear_is_o_of_tendsto_ae hab hmeas_a hmeas_b
     ha_lim hb_lim hua hva hub hvb
@@ -1601,7 +1623,7 @@ This lemma could've been formulated using `has_strict_deriv_at_filter` if we had
 lemma integral_sub_integral_sub_linear_is_o_of_tendsto_ae_right
   (hab : interval_integrable f volume a b) (hmeas : strongly_measurable_at_filter f lb')
   (hf : tendsto f (lb' ⊓ volume.ae) (𝓝 c)) (hu : tendsto u lt lb) (hv : tendsto v lt lb) :
-  is_o (λ t, (∫ x in a..v t, f x) - (∫ x in a..u t, f x) - (v t - u t) • c) (v - u) lt :=
+  (λ t, (∫ x in a..v t, f x) - (∫ x in a..u t, f x) - (v t - u t) • c) =o[lt] (v - u) :=
 by simpa only [integral_const, smul_eq_mul, mul_one] using
   measure_integral_sub_integral_sub_linear_is_o_of_tendsto_ae_right hab hmeas hf hu hv
 
@@ -1614,7 +1636,7 @@ This lemma could've been formulated using `has_strict_deriv_at_filter` if we had
 lemma integral_sub_integral_sub_linear_is_o_of_tendsto_ae_left
   (hab : interval_integrable f volume a b) (hmeas : strongly_measurable_at_filter f la')
   (hf : tendsto f (la' ⊓ volume.ae) (𝓝 c)) (hu : tendsto u lt la) (hv : tendsto v lt la) :
-  is_o (λ t, (∫ x in v t..b, f x) - (∫ x in u t..b, f x) + (v t - u t) • c) (v - u) lt :=
+  (λ t, (∫ x in v t..b, f x) - (∫ x in u t..b, f x) + (v t - u t) • c) =o[lt] (v - u) :=
 by simpa only [integral_const, smul_eq_mul, mul_one] using
   measure_integral_sub_integral_sub_linear_is_o_of_tendsto_ae_left hab hmeas hf hu hv
 

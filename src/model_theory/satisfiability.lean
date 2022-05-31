@@ -20,6 +20,7 @@ every finite subset of `T` is satisfiable.
 models each sentence or its negation.
 * `first_order.language.Theory.semantically_equivalent`: `T.semantically_equivalent φ ψ` indicates
 that `φ` and `ψ` are equivalent formulas or sentences in models of `T`.
+* `cardinal.categorical`: A theory is `κ`-categorical if all models of size `κ` are isomorphic.
 
 ## Main Results
 * The Compactness Theorem, `first_order.language.Theory.is_satisfiable_iff_is_finitely_satisfiable`,
@@ -28,6 +29,9 @@ shows that a theory is satisfiable iff it is finitely satisfiable.
 complete.
 * `first_order.language.Theory.exists_large_model_of_infinite_model` shows that any theory with an
 infinite model has arbitrarily large models.
+* `first_order.language.Theory.exists_elementary_embedding_card_eq`: The Upward Löwenheim–Skolem
+Theorem: If `κ` is a cardinal greater than the cardinalities of `L` and an infinite `L`-structure
+`M`, then `M` has an elementary extension of cardinality `κ`.
 
 ## Implementation Details
 * Satisfiability of an `L.Theory` `T` is defined in the minimal universe containing all the symbols
@@ -37,7 +41,7 @@ of `L`. By Löwenheim-Skolem, this is equivalent to satisfiability in any univer
 
 universes u v w w'
 
-open cardinal
+open cardinal category_theory
 open_locale cardinal first_order
 
 namespace first_order
@@ -150,6 +154,36 @@ begin
   rw [← mk_univ],
   refine (card_le_of_model_distinct_constants_theory L set.univ N).trans (lift_le.1 _),
   rw lift_lift,
+end
+
+/-- The Upward Löwenheim–Skolem Theorem: If `κ` is a cardinal greater than the cardinalities of `L`
+and an infinite `L`-structure `M`, then `M` has an elementary extension of cardinality `κ`. -/
+theorem exists_elementary_embedding_card_eq (M : Type w') [L.Structure M] [iM : infinite M]
+  (κ : cardinal.{w})
+  (h1 : cardinal.lift.{w} L.card ≤ cardinal.lift.{max u v} κ)
+  (h2 : cardinal.lift.{w} (# M) ≤ cardinal.lift.{w'} κ) :
+  ∃ (N : bundled.{max u v w w'} L.Structure),
+    nonempty (M ↪ₑ[L] N) ∧ # N = cardinal.lift.{max u v w'} κ :=
+begin
+  obtain ⟨N0, hN0⟩ := exists_large_model_of_infinite_model (L.elementary_diagram M) κ M,
+  let f0 := elementary_embedding.of_models_elementary_diagram L M N0,
+  rw [← lift_le.{(max w w') (max u v)}, lift_lift, lift_lift] at h2,
+  obtain ⟨N, hN1, hN2⟩ := exists_elementary_substructure_card_eq (L[[M]]) (set.range f0)
+    (cardinal.lift.{max u v w'} κ)
+    (trans _ h2) (trans _ (lift_le.2 h2)) _ _,
+  { letI := (Lhom_with_constants L M).reduct N,
+    refine ⟨bundled.of N, ⟨_⟩, lift_inj.1 hN2⟩,
+    apply elementary_embedding.of_models_elementary_diagram L M N },
+  { exact omega_le_lift.2 (omega_le_mk M) },
+  { rw [lift_id'.{(max w u v w') (max (max u w') v w)}, ← lift_le, lift_lift, lift_lift],
+    exact mk_range_le_lift },
+  { simp only [card_with_constants, lift_add, lift_lift],
+    rw [add_comm, add_eq_max (omega_le_lift.2 (infinite_iff.1 iM)), max_le_iff],
+    rw [← lift_le.{_ w'}, lift_lift, lift_lift] at h1,
+    refine ⟨trans _ h2, trans _ h1⟩;
+    { rw [← lift_le.{_ max (max w u v) w'}, lift_lift, lift_lift] } },
+  { refine trans _ (lift_le.2 hN0),
+    rw [← lift_le.{_ (max (max u w') v w)}, lift_lift, lift_lift, lift_lift, lift_lift] }
 end
 
 variable (T)
@@ -395,3 +429,18 @@ lemma induction_on_exists_not {P : Π {m}, L.bounded_formula α m → Prop} (φ 
 end bounded_formula
 end language
 end first_order
+
+namespace cardinal
+open first_order first_order.language
+
+variables {L : language.{u v}} (κ : cardinal.{w}) (T : L.Theory)
+
+/-- A theory is `κ`-categorical if all models of size `κ` are isomorphic. -/
+def categorical : Prop :=
+∀ (M N : T.Model), # M = κ → # N = κ → nonempty (M ≃[L] N)
+
+theorem empty_Theory_categorical (T : language.empty.Theory) :
+  κ.categorical T :=
+λ M N hM hN, by rw [empty.nonempty_equiv_iff, hM, hN]
+
+end cardinal

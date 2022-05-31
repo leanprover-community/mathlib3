@@ -860,6 +860,8 @@ by induction p; simp [*]
 @[simp] lemma edges_map : (p.map f).edges = p.edges.map (sym2.map f) :=
 by induction p; simp [*]
 
+variables {p f}
+
 lemma map_is_path_of_injective (hinj : function.injective f) (hp : p.is_path) :
   (p.map f).is_path :=
 begin
@@ -871,6 +873,24 @@ begin
     cases hinj hf,
     exact hp.2 hx, },
 end
+
+protected lemma is_path.of_map {f : G →g G'} (hp : (p.map f).is_path) : p.is_path :=
+begin
+  induction p with w u v w huv hvw ih,
+  { simp },
+  { rw [map_cons, walk.cons_is_path_iff, support_map] at hp,
+    rw walk.cons_is_path_iff,
+    cases hp with hp1 hp2,
+    refine ⟨ih hp1, _⟩,
+    contrapose! hp2,
+    exact list.mem_map_of_mem f hp2, }
+end
+
+lemma map_is_path_iff_of_injective (hinj : function.injective f) :
+  (p.map f).is_path ↔ p.is_path :=
+⟨is_path.of_map, map_is_path_of_injective hinj⟩
+
+variables (p f)
 
 lemma map_injective_of_injective {f : G →g G'} (hinj : function.injective f) (u v : V) :
   function.injective (walk.map f : G.walk u v → G'.walk (f u) (f v)) :=
@@ -897,7 +917,7 @@ variables {G G'}
 /-- Given an injective graph homomorphism, map paths to paths. -/
 @[simps] protected def map (f : G →g G') (hinj : function.injective f) {u v : V} (p : G.path u v) :
   G'.path (f u) (f v) :=
-⟨walk.map f p, walk.map_is_path_of_injective f p hinj p.2⟩
+⟨walk.map f p, walk.map_is_path_of_injective hinj p.2⟩
 
 lemma map_injective {f : G →g G'} (hinj : function.injective f) (u v : V) :
   function.injective (path.map f hinj : G.path u v → G'.path (f u) (f v)) :=
@@ -917,6 +937,38 @@ lemma map_embedding_injective (f : G ↪g G') (u v : V) :
 map_injective f.injective u v
 
 end path
+
+/-! ## Deleting edges -/
+
+namespace walk
+variables {G}
+
+/-- Given a walk that avoids a set of edges, produce a walk in the graph
+with those edges deleted. -/
+@[simp]
+def to_delete_edges (s : set (sym2 V)) :
+  Π {v w : V} (p : G.walk v w) (hp : ∀ e, e ∈ p.edges → ¬ e ∈ s), (G.delete_edges s).walk v w
+| _ _ nil _ := nil
+| _ _ (cons' u v w huv p) hp := cons ((G.delete_edges_adj _ _ _).mpr ⟨huv, hp ⟦(u, v)⟧ (by simp)⟩)
+                                (p.to_delete_edges (λ e he, hp e (by simp [he])))
+
+/-- Given a walk that avoids an edge, create a walk in the subgraph with that edge deleted.
+This is an abbreviation for `simple_graph.walk.to_delete_edges`. -/
+abbreviation to_delete_edge {v w : V} (e : sym2 V) (p : G.walk v w) (hp : e ∉ p.edges) :
+  (G.delete_edges {e}).walk v w :=
+p.to_delete_edges {e} (λ e', by { contrapose!, simp [hp] { contextual := tt } })
+
+@[simp]
+lemma map_to_delete_edges_eq (s : set (sym2 V)) {v w : V} {p : G.walk v w} (hp) :
+  walk.map (hom.map_spanning_subgraphs (G.delete_edges_le s)) (p.to_delete_edges s hp) = p :=
+by induction p; simp [*]
+
+lemma is_path.to_delete_edges (s : set (sym2 V))
+  {v w : V} {p : G.walk v w} (h : p.is_path) (hp) :
+  (p.to_delete_edges s hp).is_path :=
+by { rw ← map_to_delete_edges_eq s hp at h, exact h.of_map }
+
+end walk
 
 /-! ## `reachable` and `connected` -/
 
@@ -942,7 +994,8 @@ begin
   exact h.elim (λ q, hp q.to_path),
 end
 
-@[refl] protected lemma reachable.refl {u : V} : G.reachable u u := by { fsplit, refl }
+@[refl] protected lemma reachable.refl (u : V) : G.reachable u u := by { fsplit, refl }
+protected lemma reachable.rfl {u : V} : G.reachable u u := reachable.refl _
 
 @[symm] protected lemma reachable.symm {u v : V} (huv : G.reachable u v) : G.reachable v u :=
 huv.elim (λ p, ⟨p.reverse⟩)
@@ -986,7 +1039,7 @@ of `h.preconnected u v`. -/
 @[protect_proj]
 structure connected : Prop :=
 (preconnected : G.preconnected)
-(nonempty : nonempty V)
+[nonempty : nonempty V]
 
 instance : has_coe_to_fun G.connected (λ _, Π (u v : V), G.reachable u v) :=
 ⟨λ h, h.preconnected⟩

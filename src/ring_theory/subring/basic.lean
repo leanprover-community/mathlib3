@@ -1146,6 +1146,14 @@ S.to_subsemiring.mul_action_with_zero
 instance [add_comm_monoid α] [module R α] (S : subring R) : module S α :=
 S.to_subsemiring.module
 
+/-- The center of a semiring acts commutatively on that semiring. -/
+instance center.smul_comm_class_left : smul_comm_class (center R) R R :=
+subsemiring.center.smul_comm_class_left
+
+/-- The center of a semiring acts commutatively on that semiring. -/
+instance center.smul_comm_class_right : smul_comm_class R (center R) R :=
+subsemiring.center.smul_comm_class_right
+
 end subring
 
 end actions

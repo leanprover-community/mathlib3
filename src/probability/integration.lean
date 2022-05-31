@@ -59,8 +59,8 @@ begin
     have h_measM_f' : measurable f', from h_meas_f'.mono hMf le_rfl,
     have h_measM_g : measurable g, from h_meas_g.mono hMf le_rfl,
     simp_rw [pi.add_apply, right_distrib],
-    rw [lintegral_add (h_mul_indicator _ h_measM_f') (h_mul_indicator _ h_measM_g),
-      lintegral_add h_measM_f' h_measM_g, right_distrib, h_ind_f', h_ind_g] },
+    rw [lintegral_add_left (h_mul_indicator _ h_measM_f'),
+      lintegral_add_left h_measM_f', right_distrib, h_ind_f', h_ind_g] },
   { intros f h_meas_f h_mono_f h_ind_f,
     have h_measM_f : ∀ n, measurable (f n), from λ n, (h_meas_f n).mono hMf le_rfl,
     simp_rw [ennreal.supr_mul],
@@ -93,8 +93,7 @@ begin
     have h_measM_f' : measurable f', from h_measMg_f'.mono hMg le_rfl,
     have h_measM_g : measurable g, from h_measMg_g.mono hMg le_rfl,
     simp_rw [pi.add_apply, left_distrib],
-    rw [lintegral_add h_measM_f' h_measM_g,
-      lintegral_add (h_measM_f.mul h_measM_f') (h_measM_f.mul h_measM_g),
+    rw [lintegral_add_left h_measM_f', lintegral_add_left (h_measM_f.mul h_measM_f'),
       left_distrib, h_ind_f', h_ind_g'] },
   { intros f' h_meas_f' h_mono_f' h_ind_f',
     have h_measM_f' : ∀ n, measurable (f' n), from λ n, (h_meas_f' n).mono hMg le_rfl,
@@ -131,7 +130,7 @@ begin
 end
 
 /-- The product of two independent, integrable, real_valued random variables is integrable. -/
-lemma indep_fun.integrable_mul {β : Type*} {mβ : measurable_space β} {X Y : α → β}
+lemma indep_fun.integrable_mul {β : Type*} [measurable_space β] {X Y : α → β}
   [normed_division_ring β] [borel_space β]
   (hXY : indep_fun X Y μ) (hX : integrable X μ) (hY : integrable Y μ) :
   integrable (X * Y) μ :=
@@ -234,6 +233,11 @@ begin
     hi4.integral_mul_of_nonneg hp2 hp4 hm2 hm4],
   ring
 end
+
+theorem indep_fun.integral_mul_of_integrable' (hXY : indep_fun X Y μ)
+  (hX : integrable X μ) (hY : integrable Y μ) :
+  integral μ (λ x, X x * Y x) = integral μ X * integral μ Y :=
+hXY.integral_mul_of_integrable hX hY
 
 /-- Independence of functions `f` and `g` into arbitrary types is characterized by the relation
   `E[(φ ∘ f) * (ψ ∘ g)] = E[φ ∘ f] * E[ψ ∘ g]` for all measurable `φ` and `ψ` with values in `ℝ`

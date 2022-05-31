@@ -1207,6 +1207,12 @@ instance : Π [partial_order α], partial_order (multiplicative α) := id
 instance : Π [partial_order α], partial_order (additive α) := id
 instance : Π [linear_order α], linear_order (multiplicative α) := id
 instance : Π [linear_order α], linear_order (additive α) := id
+instance [has_le α] : Π [order_bot α], order_bot (multiplicative α) := id
+instance [has_le α] : Π [order_bot α], order_bot (additive α) := id
+instance [has_le α] : Π [order_top α], order_top (multiplicative α) := id
+instance [has_le α] : Π [order_top α], order_top (additive α) := id
+instance [has_le α] : Π [bounded_order α], bounded_order (multiplicative α) := id
+instance [has_le α] : Π [bounded_order α], bounded_order (additive α) := id
 
 instance [ordered_add_comm_monoid α] : ordered_comm_monoid (multiplicative α) :=
 { mul_le_mul_left := @ordered_add_comm_monoid.add_le_add_left α _,
@@ -1242,6 +1248,22 @@ instance [has_add α] [has_le α]  [has_exists_add_of_le α] :
 
 instance [has_mul α] [has_le α]  [has_exists_mul_of_le α] : has_exists_add_of_le (additive α) :=
 ⟨@exists_mul_of_le α _ _ _⟩
+
+instance [canonically_ordered_add_monoid α] : canonically_ordered_monoid (multiplicative α) :=
+{ le_iff_exists_mul := @le_iff_exists_add α _,
+  ..multiplicative.ordered_comm_monoid, ..multiplicative.order_bot }
+
+instance [canonically_ordered_monoid α] : canonically_ordered_add_monoid (additive α) :=
+{ le_iff_exists_add := @le_iff_exists_mul α _,
+  ..additive.ordered_add_comm_monoid, ..additive.order_bot }
+
+instance [canonically_linear_ordered_add_monoid α] :
+  canonically_linear_ordered_monoid (multiplicative α) :=
+{ ..multiplicative.canonically_ordered_monoid, ..multiplicative.linear_order }
+
+instance [canonically_linear_ordered_monoid α] :
+  canonically_linear_ordered_add_monoid (additive α) :=
+{ ..additive.canonically_ordered_add_monoid, ..additive.linear_order }
 
 namespace additive
 

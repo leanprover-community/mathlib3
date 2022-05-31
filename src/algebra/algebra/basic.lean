@@ -372,6 +372,7 @@ instance _root_.ulift.algebra : algebra R (ulift A) :=
 { to_fun := λ r, ulift.up (algebra_map R A r),
   commutes' := λ r x, ulift.down_injective $ algebra.commutes r x.down,
   smul_def' := λ r x, ulift.down_injective $ algebra.smul_def' r x.down,
+  op_smul_def' := λ x r, ulift.down_injective $ algebra.op_smul_def' x.down r,
   .. ulift.module',
   .. (ulift.ring_equiv : ulift A ≃+* A).symm.to_ring_hom.comp (algebra_map R A) }
 

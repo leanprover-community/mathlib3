@@ -205,7 +205,7 @@ chain_complex.of_hom _ _ _ _ _ _
         rw normalized_Moore_complex.obj_X,
         rw ← factor_thru_arrow _ _
           (finset_inf_arrow_factors finset.univ _ j (by simp only [finset.mem_univ])),
-        slice_lhs 2 3 { erw kernel_subobject_arrow_comp (X.δ j.succ), },
+        slice_lhs 2 3 { rw kernel_subobject_arrow_comp (X.δ j.succ), },
         simp only [comp_zero], },
       rw [fintype.sum_eq_zero _ null],
       simp only [add_zero],

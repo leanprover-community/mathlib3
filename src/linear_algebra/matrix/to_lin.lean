@@ -125,12 +125,12 @@ linear_map.to_matrix_right'.symm
 @[simp] lemma matrix.to_linear_map_right'_mul [fintype l] [decidable_eq l] (M : matrix l m R)
   (N : matrix m n R) : matrix.to_linear_map_right' (M ⬝ N) =
   (matrix.to_linear_map_right' N).comp (matrix.to_linear_map_right' M) :=
-by { ext, simp, }
+linear_map.ext $ λ x, (vec_mul_vec_mul _ M N).symm
 
 lemma matrix.to_linear_map_right'_mul_apply [fintype l] [decidable_eq l] (M : matrix l m R)
   (N : matrix m n R) (x) : matrix.to_linear_map_right' (M ⬝ N) x =
     (matrix.to_linear_map_right' N (matrix.to_linear_map_right' M x)) :=
-by rw [matrix.to_linear_map_right'_mul, linear_map.comp_apply]
+(vec_mul_vec_mul _ M N).symm
 
 @[simp] lemma matrix.to_linear_map_right'_one :
   matrix.to_linear_map_right' (1 : matrix m m R) = id :=

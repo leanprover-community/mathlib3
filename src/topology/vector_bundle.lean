@@ -794,7 +794,8 @@ The topology on the fibers is induced from the one on the total space.
 
 The field `exists_coord_change` is stated as an existential statement (instead of 3 separate
 fields), since it depends on propositional information (namely `e e' ∈ pretrivialization_atlas`).
--/
+This makes it inconvenient to explicitly define a `coord_change` function when constructing a
+`topological_vector_prebundle`. -/
 @[nolint has_inhabited_instance]
 structure topological_vector_prebundle :=
 (pretrivialization_atlas : set (pretrivialization R F E))

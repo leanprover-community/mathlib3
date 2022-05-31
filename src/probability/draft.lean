@@ -161,7 +161,7 @@ begin
     ((integrable_congr hf.ae_eq_mk).mp hfi),
 end
 
-lemma condexp_indicator_stopping_time_eq [(filter.at_top : filter ι).is_countably_generated]
+lemma condexp_stopping_time_restrict_eq [(filter.at_top : filter ι).is_countably_generated]
   [topological_space ι] [order_topology ι] [first_countable_topology ι]
   [sigma_finite_filtration μ ℱ] {f : α → E}
   (hτ : is_stopping_time ℱ τ) [sigma_finite (μ.trim hτ.measurable_space_le)] {i : ι} :
@@ -172,61 +172,57 @@ begin
   rw [set.inter_comm _ t, is_stopping_time.measurable_set_inter_eq_iff],
 end
 
-lemma condexp_indicator_stopping_time_le [(filter.at_top : filter ι).is_countably_generated]
+lemma condexp_min_stopping_time_restrict_le [(filter.at_top : filter ι).is_countably_generated]
   [topological_space ι] [measurable_space ι]
   [order_topology ι] [second_countable_topology ι] [borel_space ι] {f : α → E}
   (hτ : is_stopping_time ℱ τ) (hσ : is_stopping_time ℱ σ)
   [sigma_finite (μ.trim hτ.measurable_space_le)]
   [sigma_finite (μ.trim (hτ.min hσ).measurable_space_le)] :
-  μ[f | hτ.measurable_space] =ᵐ[μ.restrict {x | τ x ≤ σ x}] μ[f | (hτ.min hσ).measurable_space] :=
+  μ[f | (hτ.min hσ).measurable_space] =ᵐ[μ.restrict {x | τ x ≤ σ x}] μ[f | hτ.measurable_space] :=
 begin
-  refine condexp_ae_eq_restrict_of_measurable_space_eq_on hτ.measurable_space_le
-    (hτ.min hσ).measurable_space_le (hτ.measurable_set_le_stopping_time hσ) (λ t, _),
+  refine (condexp_ae_eq_restrict_of_measurable_space_eq_on hτ.measurable_space_le
+    (hτ.min hσ).measurable_space_le (hτ.measurable_set_le_stopping_time hσ) (λ t, _)).symm,
   rw [set.inter_comm _ t, is_stopping_time.measurable_set_inter_le_iff],
 end
 
-lemma condexp_indicator_stopping_time_le_const [(filter.at_top : filter ι).is_countably_generated]
-  {f : α → E}
+lemma condexp_min_stopping_time_restrict_le_const
+  [(filter.at_top : filter ι).is_countably_generated] {f : α → E}
   (hτ : is_stopping_time ℱ τ) [sigma_finite (μ.trim hτ.measurable_space_le)]
   [∀ i, sigma_finite (μ.trim (hτ.min_const i).measurable_space_le)] {i : ι} :
-  μ[f | hτ.measurable_space]
-    =ᵐ[μ.restrict {x | τ x ≤ i}] μ[f | (hτ.min_const i).measurable_space] :=
+  μ[f | (hτ.min_const i).measurable_space]
+    =ᵐ[μ.restrict {x | τ x ≤ i}] μ[f | hτ.measurable_space] :=
 begin
-  refine condexp_ae_eq_restrict_of_measurable_space_eq_on hτ.measurable_space_le
-    (hτ.min_const i).measurable_space_le (hτ.measurable_set_le' i) (λ t, _),
+  refine (condexp_ae_eq_restrict_of_measurable_space_eq_on hτ.measurable_space_le
+    (hτ.min_const i).measurable_space_le (hτ.measurable_set_le' i) (λ t, _)).symm,
   rw [set.inter_comm _ t, measurable_set_inter_le_const_iff],
 end
 
-lemma condexp_indicator_todo [(filter.at_top : filter ι).is_countably_generated]
+lemma condexp_stopping_time_restrict_eq_const [(filter.at_top : filter ι).is_countably_generated]
   [topological_space ι] [order_topology ι] [first_countable_topology ι]
   [sigma_finite_filtration μ ℱ] {f : ι → α → E} (h : martingale f ℱ μ)
   (hτ : is_stopping_time ℱ τ) [sigma_finite (μ.trim hτ.measurable_space_le)]
   {i n : ι} (hin : i ≤ n) :
-  f i =ᵐ[μ.restrict {x | τ x = i}] μ[f n | hτ.measurable_space] :=
+  μ[f n | hτ.measurable_space] =ᵐ[μ.restrict {x | τ x = i}] f i :=
 begin
-  have hfi_eq_restrict : f i =ᵐ[μ.restrict {x | τ x = i}] μ[f n | ℱ i],
-    from ae_restrict_of_ae (h.condexp_ae_eq hin).symm,
-  refine hfi_eq_restrict.trans _,
-  refine condexp_ae_eq_restrict_of_measurable_space_eq_on (ℱ.le i) hτ.measurable_space_le
-    (hτ.measurable_set_eq i) (λ t, _),
+  have hfi_eq_restrict : μ[f n | ℱ i] =ᵐ[μ.restrict {x | τ x = i}] f i,
+    from ae_restrict_of_ae (h.condexp_ae_eq hin),
+  refine filter.eventually_eq.trans _ hfi_eq_restrict,
+  refine condexp_ae_eq_restrict_of_measurable_space_eq_on hτ.measurable_space_le (ℱ.le i)
+    (hτ.measurable_set_eq' i) (λ t, _),
   rw [set.inter_comm _ t, is_stopping_time.measurable_set_inter_eq_iff],
 end
 
-lemma condexp_indicator_todo_of_le_const
+lemma condexp_stopping_time_restrict_eq_const_of_le_const
   [topological_space ι] [order_topology ι] [first_countable_topology ι]
   [sigma_finite_filtration μ ℱ] {f : ι → α → E} (h : martingale f ℱ μ)
   (hτ : is_stopping_time ℱ τ) {i n : ι} (hτ_le : ∀ x, τ x ≤ n)
   [sigma_finite (μ.trim (hτ.measurable_space_le_of_le hτ_le))] :
-  f i =ᵐ[μ.restrict {x | τ x = i}] μ[f n | hτ.measurable_space] :=
+  μ[f n | hτ.measurable_space] =ᵐ[μ.restrict {x | τ x = i}] f i :=
 begin
   by_cases hin : i ≤ n,
-  { have hfi_eq_restrict : f i =ᵐ[μ.restrict {x | τ x = i}] μ[f n | ℱ i],
-      from ae_restrict_of_ae (h.condexp_ae_eq hin).symm,
-    refine hfi_eq_restrict.trans _,
-    refine condexp_ae_eq_restrict_of_measurable_space_eq_on (ℱ.le i) _
-      (hτ.measurable_set_eq i) (λ t, _),
-    { exact hτ.measurable_space_le_of_le hτ_le, },
-    { apply_instance, },
+  { refine filter.eventually_eq.trans _ (ae_restrict_of_ae (h.condexp_ae_eq hin)),
+    refine condexp_ae_eq_restrict_of_measurable_space_eq_on (hτ.measurable_space_le_of_le hτ_le)
+      (ℱ.le i) (hτ.measurable_set_eq' i) (λ t, _),
     rw [set.inter_comm _ t, is_stopping_time.measurable_set_inter_eq_iff], },
   { suffices : {x : α | τ x = i} = ∅, by simp [this],
     ext1 x,
@@ -242,7 +238,8 @@ lemma stopped_value_ae_eq_restrict_eq_condexp [topological_space ι] [order_topo
   [sigma_finite (μ.trim ((hτ.measurable_space_le_of_le hτ_le)))] :
   stopped_value f τ =ᵐ[μ.restrict {x | τ x = i}] μ[f n | hτ.measurable_space] :=
 begin
-  refine filter.eventually_eq.trans _ (condexp_indicator_todo_of_le_const h hτ hτ_le),
+  refine filter.eventually_eq.trans _
+    (condexp_stopping_time_restrict_eq_const_of_le_const h hτ hτ_le).symm,
   rw [filter.eventually_eq, ae_restrict_iff' (ℱ.le _ _ (hτ.measurable_set_eq i))],
   refine filter.eventually_of_forall (λ x hx, _),
   rw set.mem_set_of_eq at hx,
@@ -339,7 +336,7 @@ begin
   { convert h_sf_min; { ext1 x, rw min_comm, }, },
   refine (h.stopped_value_ae_eq_condexp_of_le hτ (hσ.min hτ) (λ x, min_le_right _ _) hτ_le).trans _,
   refine ae_of_ae_restrict_of_ae_restrict_compl {x | σ x ≤ τ x} _ _,
-  { refine (condexp_indicator_stopping_time_le hσ hτ).symm, },
+  { exact condexp_min_stopping_time_restrict_le hσ hτ, },
   { suffices : μ[stopped_value f τ|(hσ.min hτ).measurable_space]
       =ᵐ[μ.restrict {x | τ x ≤ σ x}] μ[stopped_value f τ|hσ.measurable_space],
     { rw ae_restrict_iff' (hσ.measurable_space_le _ (hσ.measurable_set_le_stopping_time hτ).compl),
@@ -348,7 +345,7 @@ begin
       filter_upwards [this] with x hx hx_mem,
       simp only [set.mem_compl_eq, set.mem_set_of_eq, not_le] at hx_mem,
       exact hx hx_mem.le, },
-    refine filter.eventually_eq.trans _ ((condexp_indicator_stopping_time_le hτ hσ).symm.trans _),
+    refine filter.eventually_eq.trans _ ((condexp_min_stopping_time_restrict_le hτ hσ).trans _),
     { exact stopped_value f τ, },
     { rw h_min_comm, },
     { have h1 : μ[stopped_value f τ|hτ.measurable_space] = stopped_value f τ,

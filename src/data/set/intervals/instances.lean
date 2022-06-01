@@ -82,8 +82,75 @@ by { rw mem_Icc at *, exact ⟨sub_nonneg.2 ht.2, (sub_le_self_iff _).2 ht.1⟩ 
 lemma mem_iff_one_sub_mem [ordered_ring α] {t : α} : t ∈ Icc (0:α) 1 ↔ 1 - t ∈ Icc (0:α) 1 :=
 ⟨one_sub_mem, λ h, (sub_sub_cancel 1 t) ▸ one_sub_mem h⟩
 
-
 end set.Icc
+
+-- ### The unit interval in the real numbers
+
+namespace unit_interval
+
+lemma div_mem {R : Type*} [linear_ordered_field R] {x y : R} (hx : 0 ≤ x) (hy : 0 ≤ y) (hxy : x ≤ y) : x / y ∈ Icc (0:R) 1 :=
+⟨div_nonneg hx hy, div_le_one_of_le hxy hy⟩
+
+lemma fract_mem (x : ℝ) : int.fract x ∈ Icc (0:ℝ) 1 := ⟨int.fract_nonneg _, (int.fract_lt_one _).le⟩
+
+@[simp] lemma mk_zero (h : (0 : ℝ) ∈ Icc (0 : ℝ) 1) : (⟨0, h⟩ : Icc (0:ℝ) 1) = 0 := rfl
+
+@[simp, norm_cast] lemma coe_eq_zero {x : Icc (0:ℝ) 1} : (x : ℝ) = 0 ↔ x = 0 :=
+by { symmetry, exact subtype.ext_iff }
+
+lemma coe_ne_zero {x : Icc (0:ℝ) 1} : (x : ℝ) ≠ 0 ↔ x ≠ 0 :=
+not_iff_not.mpr coe_eq_zero
+
+@[simp] lemma mk_one (h : (1 : ℝ) ∈ Icc (0 : ℝ) 1) : (⟨1, h⟩ : Icc (0:ℝ) 1) = 1 := rfl
+
+@[simp, norm_cast] lemma coe_eq_one {x : Icc (0:ℝ) 1} : (x : ℝ) = 1 ↔ x = 1 :=
+by { symmetry, exact subtype.ext_iff }
+
+lemma coe_ne_one {x : Icc (0:ℝ) 1} : (x : ℝ) ≠ 1 ↔ x ≠ 1 :=
+not_iff_not.mpr coe_eq_one
+
+@[norm_cast] lemma coe_mul {x y : Icc (0:ℝ) 1} : ((x * y : Icc (0:ℝ) 1) : ℝ) = x * y := rfl
+
+-- todo: we could set up a `linear_ordered_comm_monoid_with_zero Icc (0:ℝ) 1` instance
+
+lemma mul_le_left {x y : Icc (0:ℝ) 1} : x * y ≤ x :=
+subtype.coe_le_coe.mp $ (mul_le_mul_of_nonneg_left y.2.2 x.2.1).trans_eq $ mul_one x
+
+lemma mul_le_right {x y : Icc (0:ℝ) 1} : x * y ≤ y :=
+subtype.coe_le_coe.mp $ (mul_le_mul_of_nonneg_right x.2.2 y.2.1).trans_eq $ one_mul y
+
+lemma nonneg (x : Icc (0:ℝ) 1) : 0 ≤ (x : ℝ) := x.2.1
+lemma one_minus_nonneg (x : Icc (0:ℝ) 1) : 0 ≤ 1 - (x : ℝ) := by simpa using x.2.2
+lemma le_one (x : Icc (0:ℝ) 1) : (x : ℝ) ≤ 1 := x.2.2
+lemma one_minus_le_one (x : Icc (0:ℝ) 1) : 1 - (x : ℝ) ≤ 1 := by simpa using x.2.1
+
+/-- like `unit_interval.nonneg`, but with the inequality in `Icc (0:ℝ) 1`. -/
+lemma nonneg' {t : Icc (0:ℝ) 1} : 0 ≤ t := t.2.1
+/-- like `unit_interval.le_one`, but with the inequality in `Icc (0:ℝ) 1`. -/
+lemma le_one' {t : Icc (0:ℝ) 1} : t ≤ 1 := t.2.2
+
+lemma mul_pos_mem_iff {a t : ℝ} (ha : 0 < a) : a * t ∈ Icc (0:ℝ) 1 ↔ t ∈ set.Icc (0 : ℝ) (1/a) :=
+begin
+  split; rintros ⟨h₁, h₂⟩; split,
+  { exact nonneg_of_mul_nonneg_left h₁ ha },
+  { rwa [le_div_iff ha, mul_comm] },
+  { exact mul_nonneg ha.le h₁ },
+  { rwa [le_div_iff ha, mul_comm] at h₂ }
+end
+
+lemma two_mul_sub_one_mem_iff {t : ℝ} : 2 * t - 1 ∈ Icc (0:ℝ) 1 ↔ t ∈ set.Icc (1/2 : ℝ) 1 :=
+by split; rintros ⟨h₁, h₂⟩; split; linarith
+
+end unit_interval
+
+@[simp] lemma proj_Icc_eq_zero {x : ℝ} : proj_Icc (0 : ℝ) 1 zero_le_one x = 0 ↔ x ≤ 0 :=
+proj_Icc_eq_left zero_lt_one
+
+@[simp] lemma proj_Icc_eq_one {x : ℝ} : proj_Icc (0 : ℝ) 1 zero_le_one x = 1 ↔ 1 ≤ x :=
+proj_Icc_eq_right zero_lt_one
+
+
+
 
 /-! ### Instances for `↥(set.Ico 0 1)` -/
 
@@ -172,68 +239,3 @@ lemma mem_iff_one_sub_mem [ordered_ring α] {t : α} : t ∈ Ioo (0:α) 1 ↔ 1 
 ⟨one_sub_mem, λ h, (sub_sub_cancel 1 t) ▸ one_sub_mem h⟩
 
 end set.Ioo
-
--- ### The unit interval in the real numbers
-
-namespace unit_interval
-
-lemma div_mem {R : Type*} [linear_ordered_field R] {x y : R} (hx : 0 ≤ x) (hy : 0 ≤ y) (hxy : x ≤ y) : x / y ∈ Icc (0:R) 1 :=
-⟨div_nonneg hx hy, div_le_one_of_le hxy hy⟩
-
-lemma fract_mem (x : ℝ) : int.fract x ∈ Icc (0:ℝ) 1 := ⟨int.fract_nonneg _, (int.fract_lt_one _).le⟩
-
-@[simp] lemma mk_zero (h : (0 : ℝ) ∈ Icc (0 : ℝ) 1) : (⟨0, h⟩ : Icc (0:ℝ) 1) = 0 := rfl
-
-@[simp, norm_cast] lemma coe_eq_zero {x : Icc (0:ℝ) 1} : (x : ℝ) = 0 ↔ x = 0 :=
-by { symmetry, exact subtype.ext_iff }
-
-lemma coe_ne_zero {x : Icc (0:ℝ) 1} : (x : ℝ) ≠ 0 ↔ x ≠ 0 :=
-not_iff_not.mpr coe_eq_zero
-
-@[simp] lemma mk_one (h : (1 : ℝ) ∈ Icc (0 : ℝ) 1) : (⟨1, h⟩ : Icc (0:ℝ) 1) = 1 := rfl
-
-@[simp, norm_cast] lemma coe_eq_one {x : Icc (0:ℝ) 1} : (x : ℝ) = 1 ↔ x = 1 :=
-by { symmetry, exact subtype.ext_iff }
-
-lemma coe_ne_one {x : Icc (0:ℝ) 1} : (x : ℝ) ≠ 1 ↔ x ≠ 1 :=
-not_iff_not.mpr coe_eq_one
-
-@[norm_cast] lemma coe_mul {x y : Icc (0:ℝ) 1} : ((x * y : Icc (0:ℝ) 1) : ℝ) = x * y := rfl
-
--- todo: we could set up a `linear_ordered_comm_monoid_with_zero Icc (0:ℝ) 1` instance
-
-lemma mul_le_left {x y : Icc (0:ℝ) 1} : x * y ≤ x :=
-subtype.coe_le_coe.mp $ (mul_le_mul_of_nonneg_left y.2.2 x.2.1).trans_eq $ mul_one x
-
-lemma mul_le_right {x y : Icc (0:ℝ) 1} : x * y ≤ y :=
-subtype.coe_le_coe.mp $ (mul_le_mul_of_nonneg_right x.2.2 y.2.1).trans_eq $ one_mul y
-
-lemma nonneg (x : Icc (0:ℝ) 1) : 0 ≤ (x : ℝ) := x.2.1
-lemma one_minus_nonneg (x : Icc (0:ℝ) 1) : 0 ≤ 1 - (x : ℝ) := by simpa using x.2.2
-lemma le_one (x : Icc (0:ℝ) 1) : (x : ℝ) ≤ 1 := x.2.2
-lemma one_minus_le_one (x : Icc (0:ℝ) 1) : 1 - (x : ℝ) ≤ 1 := by simpa using x.2.1
-
-/-- like `unit_interval.nonneg`, but with the inequality in `Icc (0:ℝ) 1`. -/
-lemma nonneg' {t : Icc (0:ℝ) 1} : 0 ≤ t := t.2.1
-/-- like `unit_interval.le_one`, but with the inequality in `Icc (0:ℝ) 1`. -/
-lemma le_one' {t : Icc (0:ℝ) 1} : t ≤ 1 := t.2.2
-
-lemma mul_pos_mem_iff {a t : ℝ} (ha : 0 < a) : a * t ∈ Icc (0:ℝ) 1 ↔ t ∈ set.Icc (0 : ℝ) (1/a) :=
-begin
-  split; rintros ⟨h₁, h₂⟩; split,
-  { exact nonneg_of_mul_nonneg_left h₁ ha },
-  { rwa [le_div_iff ha, mul_comm] },
-  { exact mul_nonneg ha.le h₁ },
-  { rwa [le_div_iff ha, mul_comm] at h₂ }
-end
-
-lemma two_mul_sub_one_mem_iff {t : ℝ} : 2 * t - 1 ∈ Icc (0:ℝ) 1 ↔ t ∈ set.Icc (1/2 : ℝ) 1 :=
-by split; rintros ⟨h₁, h₂⟩; split; linarith
-
-end unit_interval
-
-@[simp] lemma proj_Icc_eq_zero {x : ℝ} : proj_Icc (0 : ℝ) 1 zero_le_one x = 0 ↔ x ≤ 0 :=
-proj_Icc_eq_left zero_lt_one
-
-@[simp] lemma proj_Icc_eq_one {x : ℝ} : proj_Icc (0 : ℝ) 1 zero_le_one x = 1 ↔ 1 ≤ x :=
-proj_Icc_eq_right zero_lt_one

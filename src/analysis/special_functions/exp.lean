@@ -194,7 +194,7 @@ begin
     (((tendsto_exp_div_pow_at_top n).const_mul_at_top hb).at_top_add
       ((tendsto_pow_neg_at_top hn).mul (@tendsto_const_nhds _ _ _ c _))),
   intros x hx,
-  simp only [zpow_neg₀ x n],
+  simp only [zpow_neg x n],
   ring,
 end
 
@@ -255,7 +255,7 @@ lemma tendsto_comp_exp_at_bot {α : Type*} {l : filter α} {f : ℝ → α} :
   tendsto (λ x, f (exp x)) at_bot l ↔ tendsto f (𝓝[>] 0) l :=
 by rw [← map_exp_at_bot, tendsto_map'_iff]
 
-lemma is_o_pow_exp_at_top {n : ℕ} : is_o (λ x, x^n) real.exp at_top :=
+lemma is_o_pow_exp_at_top {n : ℕ} : (λ x, x^n) =o[at_top] real.exp :=
 by simpa [is_o_iff_tendsto (λ x hx, ((exp_pos x).ne' hx).elim)]
   using tendsto_div_pow_mul_exp_add_at_top 1 0 n zero_ne_one
 

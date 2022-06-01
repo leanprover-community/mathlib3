@@ -41,14 +41,13 @@ begin
   have hkn : k ≤ n,
   { refine le_of_not_lt (λ hnk, h _),
     rw [choose_eq_zero_of_lt hnk, factorization_zero, finsupp.coe_zero, pi.zero_apply] },
-  rw ←@padic_val_nat_eq_factorization p (choose n k) ⟨hp⟩,
-  rw @padic_val_nat_def _ ⟨hp⟩ _ (choose_pos hkn),
-  simp only [nat.prime.multiplicity_choose hp hkn (lt_add_one _), enat.get_coe'],
+  rw [←@padic_val_nat_eq_factorization p _ ⟨hp⟩, @padic_val_nat_def _ ⟨hp⟩ _ (choose_pos hkn)],
+  simp only [hp.multiplicity_choose hkn (lt_add_one _), enat.get_coe'],
   refine (finset.card_filter_le _ _).trans (le_of_eq (nat.card_Ico _ _)),
 end
 
 /--
-A `pow` form of `nat.factorization_central_binom_le`
+A `pow` form of `nat.factorization_choose_le`
 -/
 lemma pow_factorization_choose_le (hn : 0 < n) : p ^ (choose n k).factorization p ≤ n :=
 begin
@@ -58,19 +57,15 @@ begin
 end
 
 /--
-Primes greater than about `sqrt (2 * n)` appear only to multiplicity 0 or 1 in the central binomial
-coefficient.
+Primes greater than about `sqrt n` appear only to multiplicity 0 or 1 in the binomial coefficient.
 -/
 lemma factorization_choose_le_one (p_large : n < p ^ 2) : (choose n k).factorization p ≤ 1 :=
 begin
-  refine factorization_choose_le.trans _,
-  by_cases hn : n = 0,
-  { rw [hn, log_zero_right],
-    exact zero_le' },
-  by_cases hp : p ≤ 1,
-  { rw log_of_left_le_one hp,
-    exact zero_le' },
-  exact le_of_lt_succ ((lt_pow_iff_log_lt (lt_of_not_le hp) (nat.pos_of_ne_zero hn)).mp p_large),
+  apply factorization_choose_le.trans,
+  rw [←not_lt, one_lt_iff_ne_zero_and_ne_one, not_and_distrib, not_not, not_not,
+      log_eq_zero_iff, log_eq_one_iff, ←sq, and_iff_right p_large, and_comm,
+      ←not_lt, ←not_le, ←not_and_distrib, or_comm],
+  exact or_not,
 end
 
 /--
@@ -141,7 +136,7 @@ begin
       pi.add_apply, hn (lt_of_succ_lt h), add_zero, factorization_eq_zero_of_lt h],
 end
 
-lemma factorization_choose_eq_zero_of_lt_prime (h : n < p) (k : ℕ) :
+lemma factorization_choose_eq_zero_of_lt_prime (h : n < p) :
   (choose n k).factorization p = 0 :=
 begin
   by_cases hnk : n < k,
@@ -156,20 +151,14 @@ If a prime `p` has positive multiplicity in the `n`th central binomial coefficie
 `p` is no more than `2 * n`
 -/
 lemma factorization_central_binom_eq_zero_of_two_mul_lt_prime (h : 2 * n < p) :
-  ((central_binom n).factorization p) = 0 :=
-factorization_choose_eq_zero_of_lt_prime h n
+  (central_binom n).factorization p = 0 :=
+factorization_choose_eq_zero_of_lt_prime h
 
 /--
 Contrapositive form of `nat.factorization_central_binom_eq_zero_of_two_mul_lt_prime`
 -/
 lemma prime_le_two_mul_of_factorization_central_binom_pos
-  (h_pos : 0 < ((central_binom n).factorization p)) : p ≤ 2 * n :=
-begin
-  by_contra,
-  rw pos_iff_ne_zero at h_pos,
-  apply h_pos,
-  simp only [not_le] at h,
-  exact factorization_central_binom_eq_zero_of_two_mul_lt_prime h,
-end
+  (h_pos : 0 < (central_binom n).factorization p) : p ≤ 2 * n :=
+le_of_not_lt (pos_iff_ne_zero.mp h_pos ∘ factorization_central_binom_eq_zero_of_two_mul_lt_prime)
 
 end nat

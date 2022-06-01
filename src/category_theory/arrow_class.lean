@@ -27,9 +27,6 @@ variables (C : Type*) [category C] {D : Type*} [category D]
 /-- An `arrow_class C` is a class of arrows in a category `C`. -/
 abbreviation arrow_class := set (arrow C)
 
-instance : has_coe_to_fun (arrow_class C) (λ F, (Π ⦃X Y : C⦄, (X ⟶ Y) → Prop)) :=
-⟨λ F X Y f, arrow.mk f ∈ F⟩
-
 variable {C}
 
 namespace arrow_class

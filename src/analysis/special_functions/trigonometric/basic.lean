@@ -481,44 +481,11 @@ subset.antisymm (range_subset_iff.2 cos_mem_Icc) surj_on_cos.subset_range
 subset.antisymm (range_subset_iff.2 sin_mem_Icc) surj_on_sin.subset_range
 
 lemma range_cos_infinite : (range real.cos).infinite :=
-by { rw real.range_cos, exact Icc.infinite (by norm_num) }
+by { rw real.range_cos, exact Icc_infinite (by norm_num) }
 
 lemma range_sin_infinite : (range real.sin).infinite :=
-by { rw real.range_sin, exact Icc.infinite (by norm_num) }
+by { rw real.range_sin, exact Icc_infinite (by norm_num) }
 
-lemma sin_lt {x : ℝ} (h : 0 < x) : sin x < x :=
-begin
-  cases le_or_gt x 1 with h' h',
-  { have hx : |x| = x := abs_of_nonneg (le_of_lt h),
-    have : |x| ≤ 1, rwa [hx],
-    have := sin_bound this, rw [abs_le] at this,
-    have := this.2, rw [sub_le_iff_le_add', hx] at this,
-    apply lt_of_le_of_lt this, rw [sub_add], apply lt_of_lt_of_le _ (le_of_eq (sub_zero x)),
-    apply sub_lt_sub_left, rw [sub_pos, div_eq_mul_inv (x ^ 3)], apply mul_lt_mul',
-    { rw [pow_succ x 3], refine le_trans _ (le_of_eq (one_mul _)),
-      rw mul_le_mul_right, exact h', apply pow_pos h },
-    norm_num, norm_num, apply pow_pos h },
-  exact lt_of_le_of_lt (sin_le_one x) h'
-end
-
-/- note 1: this inequality is not tight, the tighter inequality is sin x > x - x ^ 3 / 6.
-   note 2: this is also true for x > 1, but it's nontrivial for x just above 1. -/
-lemma sin_gt_sub_cube {x : ℝ} (h : 0 < x) (h' : x ≤ 1) : x - x ^ 3 / 4 < sin x :=
-begin
-  have hx : |x| = x := abs_of_nonneg (le_of_lt h),
-  have : |x| ≤ 1, rwa [hx],
-  have := sin_bound this, rw [abs_le] at this,
-  have := this.1, rw [le_sub_iff_add_le, hx] at this,
-  refine lt_of_lt_of_le _ this,
-  rw [add_comm, sub_add, sub_neg_eq_add], apply sub_lt_sub_left,
-  apply add_lt_of_lt_sub_left,
-  rw (show x ^ 3 / 4 - x ^ 3 / 6 = x ^ 3 * 12⁻¹,
-    by simp [div_eq_mul_inv, ← mul_sub]; norm_num),
-  apply mul_lt_mul',
-  { rw [pow_succ x 3], refine le_trans _ (le_of_eq (one_mul _)),
-    rw mul_le_mul_right, exact h', apply pow_pos h },
-  norm_num, norm_num, apply pow_pos h
-end
 
 section cos_div_sq
 
@@ -1076,5 +1043,24 @@ exp_antiperiodic z
 
 @[simp] lemma exp_sub_pi_mul_I (z : ℂ) : exp (z - π * I) = -exp z :=
 exp_antiperiodic.sub_eq z
+
+/-- A supporting lemma for the **Phragmen-Lindelöf principle** in a horizontal strip. If `z : ℂ`
+belongs to a horizontal strip `|complex.im z| ≤ b`, `b ≤ π / 2`, and `a ≤ 0`, then
+$$\left|exp^{a\left(e^{z}+e^{-z}\right)}\right| \le e^{a\cos b \exp^{|re z|}}.$$
+-/
+lemma abs_exp_mul_exp_add_exp_neg_le_of_abs_im_le {a b : ℝ} (ha : a ≤ 0)
+  {z : ℂ} (hz : |z.im| ≤ b) (hb : b ≤ π / 2) :
+  abs (exp (a * (exp z + exp (-z)))) ≤ real.exp (a * real.cos b * real.exp (|z.re|)) :=
+begin
+  simp only [abs_exp, real.exp_le_exp, of_real_mul_re, add_re, exp_re, neg_im, real.cos_neg,
+    ← add_mul, mul_assoc, mul_comm (real.cos b), neg_re, ← real.cos_abs z.im],
+  have : real.exp (|z.re|) ≤ real.exp z.re + real.exp (-z.re),
+    from apply_abs_le_add_of_nonneg (λ x, (real.exp_pos x).le) z.re,
+  refine mul_le_mul_of_nonpos_left (mul_le_mul this _ _ ((real.exp_pos _).le.trans this)) ha,
+  { exact real.cos_le_cos_of_nonneg_of_le_pi (_root_.abs_nonneg _)
+      (hb.trans $ half_le_self $ real.pi_pos.le) hz },
+  { refine real.cos_nonneg_of_mem_Icc ⟨_, hb⟩,
+    exact (neg_nonpos.2 $ real.pi_div_two_pos.le).trans ((_root_.abs_nonneg _).trans hz) }
+end
 
 end complex

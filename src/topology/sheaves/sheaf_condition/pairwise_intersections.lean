@@ -173,7 +173,7 @@ def cone_equiv_inverse_obj (F : presheaf C X)
         simp only [category.id_comp] at h,
         have h' := h =≫ pi.π _ (i, j),
         rw h',
-        simp,
+        simp only [category.assoc, limit.lift_π, fan.mk_π_app],
         refl, },
       { dsimp, simp only [category.id_comp, category.assoc],
         have h := c.π.naturality (walking_parallel_pair_hom.right),
@@ -201,6 +201,7 @@ def cone_equiv_inverse (F : presheaf C X)
       induction x using opposite.rec,
       rcases x with (⟨i⟩|⟨i,j⟩),
       { dsimp,
+        dunfold fork.ι,
         rw [←(f.w walking_parallel_pair.zero), category.assoc], },
       { dsimp,
         rw [←(f.w walking_parallel_pair.one), category.assoc], },
@@ -251,7 +252,7 @@ nat_iso.of_components (λ c,
     w' :=
     begin
       rintro ⟨_|_⟩,
-      { ext, dsimp, simp only [category.id_comp, limits.fan.mk_π_app, limits.limit.lift_π], },
+      { ext ⟨j⟩, dsimp, simp only [category.id_comp, limits.fan.mk_π_app, limits.limit.lift_π], },
       { ext ⟨i,j⟩, dsimp, simp only [category.id_comp, limits.fan.mk_π_app, limits.limit.lift_π], },
     end },
   inv :=
@@ -259,7 +260,7 @@ nat_iso.of_components (λ c,
     w' :=
     begin
       rintro ⟨_|_⟩,
-      { ext, dsimp, simp only [category.id_comp, limits.fan.mk_π_app, limits.limit.lift_π], },
+      { ext ⟨j⟩, dsimp, simp only [category.id_comp, limits.fan.mk_π_app, limits.limit.lift_π], },
       { ext ⟨i,j⟩, dsimp, simp only [category.id_comp, limits.fan.mk_π_app, limits.limit.lift_π], },
     end, },
   hom_inv_id' := by { ext, dsimp, simp only [category.comp_id], },
@@ -486,7 +487,7 @@ begin
       apply inter_union_pullback_cone_lift_right },
     all_goals
     { dsimp only [functor.op, pairwise.cocone_ι_app, functor.map_cone_π_app,
-        cocone.op, pairwise.cocone_ι_app_2, unop_op, op_comp],
+        cocone.op, pairwise.cocone_ι_app_2, unop_op, op_comp, nat_trans.op],
       simp_rw [F.1.map_comp, ← category.assoc],
       congr' 1,
       simp_rw [category.assoc, ← F.1.map_comp] },

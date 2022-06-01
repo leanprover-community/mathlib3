@@ -52,7 +52,7 @@ end continuous_linear_map
 noncomputable def continuous_linear_equiv.to_nonlinear_right_inverse (f : E ≃L[𝕜] F) :
   continuous_linear_map.nonlinear_right_inverse (f : E →L[𝕜] F) :=
 { to_fun := f.inv_fun,
-  nnnorm := nnnorm (f.symm : F →L[𝕜] E),
+  nnnorm := ∥(f.symm : F →L[𝕜] E)∥₊,
   bound' := λ y, continuous_linear_map.le_op_norm (f.symm : F →L[𝕜] E) _,
   right_inv' := f.apply_symm_apply }
 
@@ -123,7 +123,7 @@ begin
         ∥f (d⁻¹ • x) - y∥ = ∥d⁻¹ • f x - (d⁻¹ * d) • y∥ :
           by rwa [f.map_smul _, inv_mul_cancel, one_smul]
         ... = ∥d⁻¹ • (f x - d • y)∥ : by rw [mul_smul, smul_sub]
-        ... = ∥d∥⁻¹ * ∥f x - d • y∥ : by rw [norm_smul, normed_field.norm_inv]
+        ... = ∥d∥⁻¹ * ∥f x - d • y∥ : by rw [norm_smul, norm_inv]
         ... ≤ ∥d∥⁻¹ * (2 * δ) : begin
             apply mul_le_mul_of_nonneg_left I,
             rw inv_nonneg,
@@ -134,7 +134,7 @@ begin
         ... = (1/2) * ∥y∥ : by ring,
       rw ← dist_eq_norm at J,
       have K : ∥d⁻¹ • x∥ ≤ (ε / 2)⁻¹ * ∥c∥ * 2 * ↑n * ∥y∥ := calc
-        ∥d⁻¹ • x∥ = ∥d∥⁻¹ * ∥x₁ - x₂∥ : by rw [norm_smul, normed_field.norm_inv]
+        ∥d⁻¹ • x∥ = ∥d∥⁻¹ * ∥x₁ - x₂∥ : by rw [norm_smul, norm_inv]
         ... ≤ ((ε / 2)⁻¹ * ∥c∥ * ∥y∥) * (n + n) : begin
             refine mul_le_mul dinv _ (norm_nonneg _) _,
             { exact le_trans (norm_sub_le _ _) (add_le_add (le_of_lt hx₁) (le_of_lt hx₂)) },

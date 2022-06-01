@@ -49,7 +49,7 @@ begin
         { rw [sg, units.neg_smul, one_smul, nat_degree_neg] } }
   ... ≤ ∑ (i : n), nat_degree (((X : α[X]) • A.map C + B.map C) (g i) i) :
     nat_degree_prod_le (finset.univ : finset n) (λ (i : n), (X • A.map C + B.map C) (g i) i)
-  ... ≤ finset.univ.card • 1 : finset.sum_le_of_forall_le _ _ 1 (λ (i : n) _, _)
+  ... ≤ finset.univ.card • 1 : finset.sum_le_card_nsmul _ _ 1 (λ (i : n) _, _)
   ... ≤ fintype.card n : by simpa,
   calc  nat_degree (((X : α[X]) • A.map C + B.map C) (g i) i)
       = nat_degree ((X : α[X]) * C (A (g i) i) + C (B (g i) i)) : by simp
@@ -88,7 +88,8 @@ begin
     simp [coeff_C] },
   { intros p hp,
     refine (nat_degree_add_le _ _).trans _,
-    simpa using (nat_degree_mul_C_le _ _).trans nat_degree_X_le }
+    simpa only [pi.smul_apply, map_apply, algebra.id.smul_eq_mul, X_mul_C, nat_degree_C,
+      max_eq_left, zero_le'] using (nat_degree_C_mul_le _ _).trans nat_degree_X_le }
 end
 
 lemma leading_coeff_det_X_one_add_C (A : matrix n n α) :

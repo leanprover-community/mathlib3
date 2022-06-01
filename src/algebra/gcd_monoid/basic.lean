@@ -557,9 +557,11 @@ begin
       mul_dvd_mul_iff_left h1, mul_dvd_mul_iff_right h2, and_comm] }
 end
 
-lemma dvd_lcm_left [gcd_monoid α] (a b : α) : a ∣ lcm a b := (lcm_dvd_iff.1 dvd_rfl).1
+lemma dvd_lcm_left [gcd_monoid α] (a b : α) : a ∣ lcm a b :=
+(lcm_dvd_iff.1 (dvd_refl (lcm a b))).1
 
-lemma dvd_lcm_right [gcd_monoid α] (a b : α) : b ∣ lcm a b := (lcm_dvd_iff.1 dvd_rfl).2
+lemma dvd_lcm_right [gcd_monoid α] (a b : α) : b ∣ lcm a b :=
+(lcm_dvd_iff.1 (dvd_refl (lcm a b))).2
 
 lemma lcm_dvd [gcd_monoid α] {a b c : α} (hab : a ∣ b) (hcb : c ∣ b) : lcm a c ∣ b :=
 lcm_dvd_iff.2 ⟨hab, hcb⟩
@@ -896,11 +898,11 @@ let exists_gcd := λ a b, lcm_dvd (dvd.intro b rfl) (dvd.intro_left a rfl) in
     classical.some (exists_gcd a b)),
   gcd_mul_lcm := λ a b, by
   { split_ifs,
-    { rw [h, zero_dvd_iff.1 (dvd_lcm_left _ _), mul_zero, zero_mul] },
-    { rw [h_1, zero_dvd_iff.1 (dvd_lcm_right _ _), mul_zero] },
+    { rw [h, eq_zero_of_zero_dvd (dvd_lcm_left _ _), mul_zero, zero_mul] },
+    { rw [h_1, eq_zero_of_zero_dvd (dvd_lcm_right _ _), mul_zero] },
     rw [mul_comm, ←classical.some_spec (exists_gcd a b)] },
-  lcm_zero_left := λ a, zero_dvd_iff.1 (dvd_lcm_left _ _),
-  lcm_zero_right := λ a, zero_dvd_iff.1 (dvd_lcm_right _ _),
+  lcm_zero_left := λ a, eq_zero_of_zero_dvd (dvd_lcm_left _ _),
+  lcm_zero_right := λ a, eq_zero_of_zero_dvd (dvd_lcm_right _ _),
   gcd_dvd_left := λ a b, by
   { split_ifs with h h_1,
     { rw h, apply dvd_zero },
@@ -957,8 +959,8 @@ let exists_gcd := λ a b, dvd_normalize_iff.2 (lcm_dvd (dvd.intro b rfl) (dvd.in
     classical.some (exists_gcd a b)),
   gcd_mul_lcm := λ a b, by
   { split_ifs with h h_1,
-    { rw [h, zero_dvd_iff.1 (dvd_lcm_left _ _), mul_zero, zero_mul] },
-    { rw [h_1, zero_dvd_iff.1 (dvd_lcm_right _ _), mul_zero, mul_zero] },
+    { rw [h, eq_zero_of_zero_dvd (dvd_lcm_left _ _), mul_zero, zero_mul] },
+    { rw [h_1, eq_zero_of_zero_dvd (dvd_lcm_right _ _), mul_zero, mul_zero] },
     rw [mul_comm, ←classical.some_spec (exists_gcd a b)],
     exact normalize_associated (a * b) },
   normalize_lcm := normalize_lcm,
@@ -976,8 +978,8 @@ let exists_gcd := λ a b, dvd_normalize_iff.2 (lcm_dvd (dvd.intro b rfl) (dvd.in
     refine trans _ (classical.some_spec (exists_gcd a b)),
     conv_lhs { congr, rw [← normalize_lcm a b] },
     erw [← normalize.map_mul, ← classical.some_spec (exists_gcd a b), normalize_idem] },
-  lcm_zero_left := λ a, zero_dvd_iff.1 (dvd_lcm_left _ _),
-  lcm_zero_right := λ a, zero_dvd_iff.1 (dvd_lcm_right _ _),
+  lcm_zero_left := λ a, eq_zero_of_zero_dvd (dvd_lcm_left _ _),
+  lcm_zero_right := λ a, eq_zero_of_zero_dvd (dvd_lcm_right _ _),
   gcd_dvd_left := λ a b, by
   { split_ifs,
     { rw h, apply dvd_zero },

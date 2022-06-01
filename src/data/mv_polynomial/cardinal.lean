@@ -84,11 +84,8 @@ calc #(mv_polynomial_fun σ R) = #R + #σ + #(ulift bool) :
 ... ≤ max (max (#R + #σ) (#(ulift bool))) ω : add_le_max _ _
 ... ≤ max (max (max (max (#R) (#σ)) ω) (#(ulift bool))) ω :
   max_le_max (max_le_max (add_le_max _ _) le_rfl) le_rfl
-... ≤ _ : begin
-  have : #(ulift.{u} bool) ≤ ω,
-    from le_of_lt (lt_omega_iff_fintype.2 ⟨infer_instance⟩),
-  simp only [max_comm omega.{u}, max_assoc, max_left_comm omega.{u}, max_self, max_eq_left this],
-end
+... ≤ _ : by simp only [max_comm omega.{u}, max_assoc, max_left_comm omega.{u}, max_self,
+            max_eq_left (lt_omega_of_fintype (ulift.{u} bool)).le]
 
 namespace mv_polynomial
 

@@ -3,7 +3,9 @@ Copyright (c) 2021 Yaël Dillies, Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
+import algebra.hom.freiman
 import analysis.asymptotics.asymptotics
+import analysis.convex.strict_convex_space
 
 /-!
 # Salem-Spencer sets and Roth numbers
@@ -28,18 +30,23 @@ the size of the biggest Salem-Spencer subset of `{0, ..., n - 1}`.
 
 ## TODO
 
-Can `add_salem_spencer_iff_eq_right` be made more general?
+* Can `add_salem_spencer_iff_eq_right` be made more general?
+* Generalize `mul_salem_spencer.image` to Freiman homs
 
 ## Tags
 
 Salem-Spencer, Roth, arithmetic progression, average, three-free
 -/
 
-open finset nat
+open finset function metric nat
+open_locale pointwise
 
-variables {α β : Type*}
+variables {F α β 𝕜 E : Type*}
 
 section salem_spencer
+
+open set
+
 section monoid
 variables [monoid α] [monoid β] (s t : set α)
 
@@ -71,9 +78,9 @@ lemma set.subsingleton.mul_salem_spencer (hs : s.subsingleton) : mul_salem_spenc
 
 @[simp, to_additive]
 lemma mul_salem_spencer_singleton (a : α) : mul_salem_spencer ({a} : set α) :=
-set.subsingleton_singleton.mul_salem_spencer
+subsingleton_singleton.mul_salem_spencer
 
-@[to_additive]
+@[to_additive add_salem_spencer.prod]
 lemma mul_salem_spencer.prod {t : set β} (hs : mul_salem_spencer s) (ht : mul_salem_spencer t) :
   mul_salem_spencer (s ×ˢ t) :=
 λ a b c ha hb hc h,
@@ -82,10 +89,32 @@ lemma mul_salem_spencer.prod {t : set β} (hs : mul_salem_spencer s) (ht : mul_s
 @[to_additive]
 lemma mul_salem_spencer_pi {ι : Type*} {α : ι → Type*} [Π i, monoid (α i)] {s : Π i, set (α i)}
   (hs : ∀ i, mul_salem_spencer (s i)) :
-  mul_salem_spencer ((set.univ : set ι).pi s) :=
+  mul_salem_spencer ((univ : set ι).pi s) :=
 λ a b c ha hb hc h, funext $ λ i, hs i (ha i trivial) (hb i trivial) (hc i trivial) $ congr_fun h i
 
 end monoid
+
+section comm_monoid
+variables [comm_monoid α] [comm_monoid β] {s : set α} {a : α}
+
+@[to_additive]
+lemma mul_salem_spencer.of_image [fun_like F α (λ _, β)] [freiman_hom_class F s β 2] (f : F)
+  (hf : s.inj_on f) (h : mul_salem_spencer (f '' s)) :
+  mul_salem_spencer s :=
+λ a b c ha hb hc habc, hf ha hb $ h (mem_image_of_mem _ ha) (mem_image_of_mem _ hb)
+  (mem_image_of_mem _ hc) $ map_mul_map_eq_map_mul_map f ha hb hc hc habc
+
+-- TODO: Generalize to Freiman homs
+@[to_additive]
+lemma mul_salem_spencer.image [mul_hom_class F α β] (f : F) (hf : (s * s).inj_on f)
+  (h : mul_salem_spencer s) :
+  mul_salem_spencer (f '' s) :=
+begin
+  rintro _ _ _ ⟨a, ha, rfl⟩ ⟨b, hb, rfl⟩ ⟨c, hc, rfl⟩ habc,
+  rw h ha hb hc (hf (mul_mem_mul ha hb) (mul_mem_mul hc hc) $ by rwa [map_mul, map_mul]),
+end
+
+end comm_monoid
 
 section cancel_comm_monoid
 variables [cancel_comm_monoid α] {s : set α} {a : α}
@@ -96,11 +125,11 @@ lemma mul_salem_spencer_insert :
     (∀ ⦃b c⦄, b ∈ s → c ∈ s → a * b = c * c → a = b) ∧
     ∀ ⦃b c⦄, b ∈ s → c ∈ s → b * c = a * a → b = c :=
 begin
-  refine ⟨λ hs, ⟨hs.mono (set.subset_insert _ _),
+  refine ⟨λ hs, ⟨hs.mono (subset_insert _ _),
     λ b c hb hc, hs (or.inl rfl) (or.inr hb) (or.inr hc),
     λ b c hb hc, hs (or.inr hb) (or.inr hc) (or.inl rfl)⟩, _⟩,
   rintro ⟨hs, ha, ha'⟩ b c d hb hc hd h,
-  rw set.mem_insert_iff at hb hc hd,
+  rw mem_insert_iff at hb hc hd,
   obtain rfl | hb := hb;
   obtain rfl | hc := hc,
   { refl },
@@ -142,8 +171,8 @@ end
 
 @[to_additive]
 lemma mul_salem_spencer_mul_left_iff : mul_salem_spencer ((*) a '' s) ↔ mul_salem_spencer s :=
-⟨λ hs b c d hb hc hd h, mul_left_cancel (hs (set.mem_image_of_mem _ hb) (set.mem_image_of_mem _ hc)
-  (set.mem_image_of_mem _ hd) $ by rw [mul_mul_mul_comm, h, mul_mul_mul_comm]),
+⟨λ hs b c d hb hc hd h, mul_left_cancel (hs (mem_image_of_mem _ hb) (mem_image_of_mem _ hc)
+  (mem_image_of_mem _ hd) $ by rw [mul_mul_mul_comm, h, mul_mul_mul_comm]),
   mul_salem_spencer.mul_left⟩
 
 @[to_additive]
@@ -165,7 +194,7 @@ lemma mul_salem_spencer_insert_of_lt (hs : ∀ i ∈ s, i < a) :
 begin
   refine mul_salem_spencer_insert.trans _,
   rw ←and_assoc,
-  exact and_iff_left (λ b c hb hc h, ((mul_lt_mul''' (hs _ hb) (hs _ hc)).ne h).elim),
+  exact and_iff_left (λ b c hb hc h, ((mul_lt_mul_of_lt_of_lt (hs _ hb) (hs _ hc)).ne h).elim),
 end
 
 end ordered_cancel_comm_monoid
@@ -219,7 +248,34 @@ begin
 end
 
 end nat
+
+/-- The frontier of a closed strictly convex set only contains trivial arithmetic progressions.
+The idea is that an arithmetic progression is contained on a line and the frontier of a strictly
+convex set does not contain lines. -/
+lemma add_salem_spencer_frontier [linear_ordered_field 𝕜] [topological_space E] [add_comm_monoid E]
+  [module 𝕜 E] {s : set E} (hs₀ : is_closed s) (hs₁ : strict_convex 𝕜 s) :
+  add_salem_spencer (frontier s) :=
+begin
+  intros a b c ha hb hc habc,
+  obtain rfl : (1 / 2 : 𝕜) • a + (1 / 2 : 𝕜) • b = c,
+  { rwa [←smul_add, one_div, inv_smul_eq_iff₀ (show (2 : 𝕜) ≠ 0, by norm_num), two_smul] },
+  exact hs₁.eq (hs₀.frontier_subset ha) (hs₀.frontier_subset hb) one_half_pos one_half_pos
+    (add_halves _) hc.2,
+end
+
+lemma add_salem_spencer_sphere [normed_group E] [normed_space ℝ E] [strict_convex_space ℝ E] (x : E)
+  (r : ℝ) : add_salem_spencer (sphere x r) :=
+begin
+  obtain rfl | hr := eq_or_ne r 0,
+  { rw sphere_zero,
+    exact add_salem_spencer_singleton _ },
+  { convert add_salem_spencer_frontier is_closed_ball (strict_convex_closed_ball ℝ x r),
+    exact (frontier_closed_ball _ hr).symm }
+end
+
 end salem_spencer
+
+open finset
 
 section roth_number
 variables [decidable_eq α]
@@ -230,7 +286,7 @@ variables [monoid α] [decidable_eq β] [monoid β] (s t : finset α)
 /-- The multiplicative Roth number of a finset is the cardinality of its biggest multiplicative
 Salem-Spencer subset. -/
 @[to_additive "The additive Roth number of a finset is the cardinality of its biggest additive
-Salem-Spencer subset. The usual Roth number corresponds to `roth_number (finset.range n)`, see
+Salem-Spencer subset. The usual Roth number corresponds to `add_roth_number (finset.range n)`, see
 `roth_number_nat`. "]
 def mul_roth_number : finset α →o ℕ :=
 ⟨λ s, nat.find_greatest (λ m, ∃ t ⊆ s, t.card = m ∧ mul_salem_spencer (t : set α)) s.card,
@@ -346,11 +402,11 @@ variables {s : finset ℕ} {k n : ℕ}
 
 /-- The Roth number of a natural `N` is the largest integer `m` for which there is a subset of
 `range N` of size `m` with no arithmetic progression of length 3.
-Trivially, `roth_number N ≤ N`, but Roth's theorem (proved in 1953) shows that
-`roth_number N = o(N)` and the construction by Behrend gives a lower bound of the form
-`N * exp(-C sqrt(log(N))) ≤ roth_number N`.
+Trivially, `roth_number_nat N ≤ N`, but Roth's theorem (proved in 1953) shows that
+`roth_number_nat N = o(N)` and the construction by Behrend gives a lower bound of the form
+`N * exp(-C sqrt(log(N))) ≤ roth_number_nat N`.
 A significant refinement of Roth's theorem by Bloom and Sisask announced in 2020 gives
-`roth_number N = O(N / (log N)^(1+c))` for an absolute constant `c`. -/
+`roth_number_nat N = O(N / (log N)^(1+c))` for an absolute constant `c`. -/
 def roth_number_nat : ℕ →o ℕ :=
 ⟨λ n, add_roth_number (range n), add_roth_number.mono.comp range_mono⟩
 
@@ -371,7 +427,7 @@ lemma add_salem_spencer.le_roth_number_nat (s : finset ℕ) (hs : add_salem_spen
 hsk.ge.trans $ hs.le_add_roth_number $ λ x hx, mem_range.2 $ hsn x hx
 
 /-- The Roth number is a subadditive function. Note that by Fekete's lemma this shows that
-the limit `roth_number N / N` exists, but Roth's theorem gives the stronger result that this
+the limit `roth_number_nat N / N` exists, but Roth's theorem gives the stronger result that this
 limit is actually `0`. -/
 lemma roth_number_nat_add_le (M N : ℕ) :
   roth_number_nat (M + N) ≤ roth_number_nat M + roth_number_nat N :=
@@ -396,12 +452,11 @@ end
 open asymptotics filter
 
 lemma roth_number_nat_is_O_with_id :
-  is_O_with 1 (λ N, (roth_number_nat N : ℝ)) (λ N, (N : ℝ)) at_top :=
-is_O_with.of_bound $ by simpa only [one_mul, real.norm_coe_nat, nat.cast_le]
-  using eventually_of_forall roth_number_nat_le
+  is_O_with 1 at_top (λ N, (roth_number_nat N : ℝ)) (λ N, (N : ℝ)) :=
+is_O_with_of_le _ $ by simpa only [real.norm_coe_nat, nat.cast_le] using roth_number_nat_le
 
-/-- The Roth number has the trivial bound `roth_number N = O(N)`. -/
-lemma roth_number_nat_is_O_id : is_O (λ N, (roth_number_nat N : ℝ)) (λ N, (N : ℝ)) at_top :=
+/-- The Roth number has the trivial bound `roth_number_nat N = O(N)`. -/
+lemma roth_number_nat_is_O_id : (λ N, (roth_number_nat N : ℝ)) =O[at_top] (λ N, (N : ℝ)) :=
 roth_number_nat_is_O_with_id.is_O
 
 end roth_number_nat

@@ -254,7 +254,8 @@ begin
       exact submodule.quotient.nontrivial_of_lt_top _ hK₂.lt_top, },
     haveI : lie_module.is_nilpotent R K (L' ⧸ K.to_lie_submodule),
     { refine hK₁ _ (λ x, _),
-      exact module.End.is_nilpotent.mapq _ (lie_algebra.is_nilpotent_ad_of_is_nilpotent (h x)), },
+      have hx := lie_algebra.is_nilpotent_ad_of_is_nilpotent (h x),
+      exact module.End.is_nilpotent.mapq _ hx, },
     exact nontrivial_max_triv_of_is_nilpotent R K (L' ⧸ K.to_lie_submodule), },
   haveI _i5 : is_noetherian R L' :=
     is_noetherian_of_surjective L _ (linear_map.range_range_restrict (to_endomorphism R L M)),

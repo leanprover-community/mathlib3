@@ -26,7 +26,7 @@ We prove two versions of the lemma:
 normal space, shrinking lemma
 -/
 
-open set zorn function
+open set function
 open_locale classical
 noncomputable theory
 
@@ -90,11 +90,11 @@ instance : partial_order (partial_refinement u s) :=
 
 /-- If two partial refinements `v₁`, `v₂` belong to a chain (hence, they are comparable)
 and `i` belongs to the carriers of both partial refinements, then `v₁ i = v₂ i`. -/
-lemma apply_eq_of_chain {c : set (partial_refinement u s)} (hc : chain (≤) c) {v₁ v₂}
+lemma apply_eq_of_chain {c : set (partial_refinement u s)} (hc : is_chain (≤) c) {v₁ v₂}
   (h₁ : v₁ ∈ c) (h₂ : v₂ ∈ c) {i} (hi₁ : i ∈ v₁.carrier) (hi₂ : i ∈ v₂.carrier) :
   v₁ i = v₂ i :=
 begin
-  wlog hle : v₁ ≤ v₂ := hc.total_of_refl h₁ h₂ using [v₁ v₂, v₂ v₁],
+  wlog hle : v₁ ≤ v₂ := hc.total h₁ h₂ using [v₁ v₂, v₂ v₁],
   exact hle.2 _ hi₁,
 end
 
@@ -126,14 +126,14 @@ begin
     simp only [this] }
 end
 
-lemma find_apply_of_mem {c : set (partial_refinement u s)} (hc : chain (≤) c) (ne : c.nonempty)
+lemma find_apply_of_mem {c : set (partial_refinement u s)} (hc : is_chain (≤) c) (ne : c.nonempty)
   {i v} (hv : v ∈ c) (hi : i ∈ carrier v) :
   find c ne i i = v i :=
 apply_eq_of_chain hc (find_mem _ _) hv
   ((mem_find_carrier_iff _).2 $ mem_Union₂.2 ⟨v, hv, hi⟩) hi
 
 /-- Least upper bound of a nonempty chain of partial refinements. -/
-def chain_Sup (c : set (partial_refinement u s)) (hc : chain (≤) c)
+def chain_Sup (c : set (partial_refinement u s)) (hc : is_chain (≤) c)
   (ne : c.nonempty) (hfin : ∀ x ∈ s, finite {i | x ∈ u i}) (hU : s ⊆ ⋃ i, u i) :
   partial_refinement u s :=
 begin
@@ -154,12 +154,12 @@ begin
     use j,
     have hj' : x ∈ u j := (v i).subset _ hj,
     have : v j ≤ v i,
-      from (hc.total_of_refl (hvc _ hxi) (hvc _ hj')).elim (λ h, (hmax j hj' h).ge) id,
+      from (hc.total (hvc _ hxi) (hvc _ hj')).elim (λ h, (hmax j hj' h).ge) id,
     rwa find_apply_of_mem hc ne (hvc _ hxi) (this.1 $ hiv _ hj') }
 end
 
 /-- `chain_Sup hu c hc ne hfin hU` is an upper bound of the chain `c`. -/
-lemma le_chain_Sup {c : set (partial_refinement u s)} (hc : chain (≤) c)
+lemma le_chain_Sup {c : set (partial_refinement u s)} (hc : is_chain (≤) c)
   (ne : c.nonempty) (hfin : ∀ x ∈ s, finite {i | x ∈ u i}) (hU : s ⊆ ⋃ i, u i)
   {v} (hv : v ∈ c) :
   v ≤ chain_Sup c hc ne hfin hU :=
@@ -212,7 +212,7 @@ lemma exists_subset_Union_closure_subset (hs : is_closed s) (uo : ∀ i, is_open
 begin
   classical,
   haveI : nonempty (partial_refinement u s) := ⟨⟨u, ∅, uo, us, λ _, false.elim, λ _ _, rfl⟩⟩,
-  have : ∀ c : set (partial_refinement u s), chain (≤) c → c.nonempty → ∃ ub, ∀ v ∈ c, v ≤ ub,
+  have : ∀ c : set (partial_refinement u s), is_chain (≤) c → c.nonempty → ∃ ub, ∀ v ∈ c, v ≤ ub,
     from λ c hc ne, ⟨partial_refinement.chain_Sup c hc ne uf us,
       λ v hv, partial_refinement.le_chain_Sup _ _ _ _ hv⟩,
   rcases zorn_nonempty_partial_order this with ⟨v, hv⟩,

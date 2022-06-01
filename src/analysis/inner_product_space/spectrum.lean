@@ -134,9 +134,9 @@ include dec_𝕜
 
 /-- The eigenspaces of a self-adjoint operator on a finite-dimensional inner product space `E` give
 an internal direct sum decomposition of `E`. -/
-lemma direct_sum_submodule_is_internal :
-  direct_sum.submodule_is_internal (λ μ : eigenvalues T, eigenspace T μ) :=
-hT.orthogonal_family_eigenspaces'.submodule_is_internal_iff.mpr
+lemma direct_sum_is_internal :
+  direct_sum.is_internal (λ μ : eigenvalues T, eigenspace T μ) :=
+hT.orthogonal_family_eigenspaces'.is_internal_iff.mpr
   hT.orthogonal_supr_eigenspaces_eq_bot'
 
 section version1
@@ -144,12 +144,12 @@ section version1
 /-- Isometry from an inner product space `E` to the direct sum of the eigenspaces of some
 self-adjoint operator `T` on `E`. -/
 noncomputable def diagonalization : E ≃ₗᵢ[𝕜] pi_Lp 2 (λ μ : eigenvalues T, eigenspace T μ) :=
-hT.direct_sum_submodule_is_internal.isometry_L2_of_orthogonal_family
+hT.direct_sum_is_internal.isometry_L2_of_orthogonal_family
   hT.orthogonal_family_eigenspaces'
 
 @[simp] lemma diagonalization_symm_apply (w : pi_Lp 2 (λ μ : eigenvalues T, eigenspace T μ)) :
   hT.diagonalization.symm w = ∑ μ, w μ :=
-hT.direct_sum_submodule_is_internal.isometry_L2_of_orthogonal_family_symm_apply
+hT.direct_sum_is_internal.isometry_L2_of_orthogonal_family_symm_apply
   hT.orthogonal_family_eigenspaces' w
 
 /-- *Diagonalization theorem*, *spectral theorem*; version 1: A self-adjoint operator `T` on a
@@ -180,10 +180,10 @@ finite-dimensional inner product space `E`.
 TODO Postcompose with a permutation so that these eigenvectors are listed in increasing order of
 eigenvalue. -/
 noncomputable def eigenvector_basis : basis (fin n) 𝕜 E :=
-hT.direct_sum_submodule_is_internal.subordinate_orthonormal_basis hn
+hT.direct_sum_is_internal.subordinate_orthonormal_basis hn
 
 lemma eigenvector_basis_orthonormal : orthonormal 𝕜 (hT.eigenvector_basis hn) :=
-hT.direct_sum_submodule_is_internal.subordinate_orthonormal_basis_orthonormal hn
+hT.direct_sum_is_internal.subordinate_orthonormal_basis_orthonormal hn
   hT.orthogonal_family_eigenspaces'
 
 /-- The sequence of real eigenvalues associated to the standard orthonormal basis of eigenvectors
@@ -191,17 +191,17 @@ for a self-adjoint operator `T` on `E`.
 
 TODO Postcompose with a permutation so that these eigenvalues are listed in increasing order. -/
 noncomputable def eigenvalues (i : fin n) : ℝ :=
-@is_R_or_C.re 𝕜 _ $ hT.direct_sum_submodule_is_internal.subordinate_orthonormal_basis_index hn i
+@is_R_or_C.re 𝕜 _ $ hT.direct_sum_is_internal.subordinate_orthonormal_basis_index hn i
 
 lemma has_eigenvector_eigenvector_basis (i : fin n) :
   has_eigenvector T (hT.eigenvalues hn i) (hT.eigenvector_basis hn i) :=
 begin
   let v : E := hT.eigenvector_basis hn i,
-  let μ : 𝕜 := hT.direct_sum_submodule_is_internal.subordinate_orthonormal_basis_index hn i,
+  let μ : 𝕜 := hT.direct_sum_is_internal.subordinate_orthonormal_basis_index hn i,
   change has_eigenvector T (is_R_or_C.re μ) v,
   have key : has_eigenvector T μ v,
   { have H₁ : v ∈ eigenspace T μ,
-    { exact hT.direct_sum_submodule_is_internal.subordinate_orthonormal_basis_subordinate hn i },
+    { exact hT.direct_sum_is_internal.subordinate_orthonormal_basis_subordinate hn i },
     have H₂ : v ≠ 0 := (hT.eigenvector_basis_orthonormal hn).ne_zero i,
     exact ⟨H₁, H₂⟩ },
   have re_μ : ↑(is_R_or_C.re μ) = μ,
@@ -209,6 +209,9 @@ begin
     exact hT.conj_eigenvalue_eq_self (has_eigenvalue_of_has_eigenvector key) },
   simpa [re_μ] using key,
 end
+
+lemma has_eigenvalue_eigenvalues (i : fin n) : has_eigenvalue T (hT.eigenvalues hn i) :=
+    module.End.has_eigenvalue_of_has_eigenvector (hT.has_eigenvector_eigenvector_basis hn i)
 
 attribute [irreducible] eigenvector_basis eigenvalues
 
@@ -219,7 +222,7 @@ mem_eigenspace_iff.mp (hT.has_eigenvector_eigenvector_basis hn i).1
 /-- An isometry from an inner product space `E` to Euclidean space, induced by a choice of
 orthonormal basis of eigenvectors for a self-adjoint operator `T` on `E`. -/
 noncomputable def diagonalization_basis : E ≃ₗᵢ[𝕜] euclidean_space 𝕜 (fin n) :=
-(hT.eigenvector_basis hn).isometry_euclidean_of_orthonormal (hT.eigenvector_basis_orthonormal hn)
+((hT.eigenvector_basis hn).to_orthonormal_basis (hT.eigenvector_basis_orthonormal hn)).repr
 
 @[simp] lemma diagonalization_basis_symm_apply (w : euclidean_space 𝕜 (fin n)) :
   (hT.diagonalization_basis hn).symm w = ∑ i, w i • hT.eigenvector_basis hn i :=
@@ -244,3 +247,32 @@ end version2
 
 end is_self_adjoint
 end inner_product_space
+
+section nonneg
+
+@[simp]
+lemma inner_product_apply_eigenvector {μ : 𝕜} {v : E} {T : E →ₗ[𝕜] E}
+  (h : v ∈ module.End.eigenspace T μ) : ⟪v, T v⟫ = μ * ∥v∥ ^ 2 :=
+by simp only [mem_eigenspace_iff.mp h, inner_smul_right, inner_self_eq_norm_sq_to_K]
+
+lemma eigenvalue_nonneg_of_nonneg {μ : ℝ} {T : E →ₗ[𝕜] E} (hμ : has_eigenvalue T μ)
+  (hnn : ∀ (x : E), 0 ≤ is_R_or_C.re ⟪x, T x⟫) : 0 ≤ μ :=
+begin
+  obtain ⟨v, hv⟩ := hμ.exists_has_eigenvector,
+  have hpos : 0 < ∥v∥ ^ 2, by simpa only [sq_pos_iff, norm_ne_zero_iff] using hv.2,
+  have : is_R_or_C.re ⟪v, T v⟫ = μ * ∥v∥ ^ 2,
+  { exact_mod_cast congr_arg is_R_or_C.re (inner_product_apply_eigenvector hv.1) },
+  exact (zero_le_mul_right hpos).mp (this ▸ hnn v),
+end
+
+lemma eigenvalue_pos_of_pos {μ : ℝ} {T : E →ₗ[𝕜] E} (hμ : has_eigenvalue T μ)
+  (hnn : ∀ (x : E), 0 < is_R_or_C.re ⟪x, T x⟫) : 0 < μ :=
+begin
+  obtain ⟨v, hv⟩ := hμ.exists_has_eigenvector,
+  have hpos : 0 < ∥v∥ ^ 2, by simpa only [sq_pos_iff, norm_ne_zero_iff] using hv.2,
+  have : is_R_or_C.re ⟪v, T v⟫ = μ * ∥v∥ ^ 2,
+  { exact_mod_cast congr_arg is_R_or_C.re (inner_product_apply_eigenvector hv.1) },
+  exact (zero_lt_mul_right hpos).mp (this ▸ hnn v),
+end
+
+end nonneg

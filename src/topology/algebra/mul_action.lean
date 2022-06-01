@@ -3,10 +3,9 @@ Copyright (c) 2021 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import topology.algebra.monoid
+import topology.algebra.constructions
 import group_theory.group_action.prod
 import group_theory.group_action.basic
-import topology.homeomorph
 import topology.algebra.const_mul_action
 
 /-!
@@ -111,6 +110,10 @@ instance has_continuous_smul.op [has_scalar Mᵐᵒᵖ X] [is_central_scalar M X
   from this.comp (mul_opposite.continuous_unop.prod_map continuous_id),
   by simpa only [op_smul_eq_smul] using (continuous_smul : continuous (λ p : M × X, _)) ⟩
 
+@[to_additive] instance mul_opposite.has_continuous_smul : has_continuous_smul M Xᵐᵒᵖ :=
+⟨mul_opposite.continuous_op.comp $ continuous_smul.comp $
+  continuous_id.prod_map mul_opposite.continuous_unop⟩
+
 end has_scalar
 
 section monoid
@@ -123,12 +126,6 @@ variables [monoid M] [mul_action M X] [has_continuous_smul M X]
     from continuous_smul.comp ((units.continuous_coe.comp continuous_fst).prod_mk continuous_snd) }
 
 end monoid
-
-@[to_additive]
-instance has_continuous_mul.has_continuous_smul {M : Type*} [monoid M]
-  [topological_space M] [has_continuous_mul M] :
-  has_continuous_smul M M :=
-⟨continuous_mul⟩
 
 @[to_additive]
 instance [has_scalar M X] [has_scalar M Y] [has_continuous_smul M X]

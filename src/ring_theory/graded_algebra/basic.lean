@@ -18,7 +18,7 @@ See the docstring of that typeclass for more information.
 ## Main definitions
 
 * `graded_algebra 𝒜`: the typeclass, which is a combination of `set_like.graded_monoid`, and
-  a constructive version of `direct_sum.submodule_is_internal 𝒜`.
+  a constructive version of `direct_sum.is_internal 𝒜`.
 * `graded_algebra.decompose : A ≃ₐ[R] ⨁ i, 𝒜 i`, which breaks apart an element of the algebra into
   its constituent pieces.
 * `graded_algebra.proj 𝒜 i` is the linear map from `A` to its degree `i : ι` component, such that
@@ -42,7 +42,7 @@ open_locale direct_sum big_operators
 section graded_algebra
 
 variables {ι R A : Type*}
-variables [decidable_eq ι] [add_comm_monoid ι] [comm_semiring R] [semiring A] [algebra R A]
+variables [decidable_eq ι] [add_monoid ι] [comm_semiring R] [semiring A] [algebra R A]
 variables (𝒜 : ι → submodule R A)
 
 /-- An internally-graded `R`-algebra `A` is one that can be decomposed into a collection
@@ -57,11 +57,10 @@ algebra structure `direct_sum.galgebra R (λ i, ↥(𝒜 i))`, which in turn mak
 
 class graded_algebra extends set_like.graded_monoid 𝒜 :=
 (decompose' : A → ⨁ i, 𝒜 i)
-(left_inv : function.left_inverse decompose' (direct_sum.submodule_coe 𝒜))
-(right_inv : function.right_inverse decompose' (direct_sum.submodule_coe 𝒜))
+(left_inv : function.left_inverse decompose' (direct_sum.coe_add_monoid_hom 𝒜))
+(right_inv : function.right_inverse decompose' (direct_sum.coe_add_monoid_hom 𝒜))
 
-lemma graded_algebra.is_internal [graded_algebra 𝒜] :
-  direct_sum.submodule_is_internal 𝒜 :=
+protected lemma graded_algebra.is_internal [graded_algebra 𝒜] : direct_sum.is_internal 𝒜 :=
 ⟨graded_algebra.left_inv.injective, graded_algebra.right_inv.surjective⟩
 
 /-- A helper to construct a `graded_algebra` when the `set_like.graded_monoid` structure is already
@@ -71,16 +70,16 @@ condition in a way that allows custom `@[ext]` lemmas to apply.
 See note [reducible non-instances]. -/
 @[reducible]
 def graded_algebra.of_alg_hom [set_like.graded_monoid 𝒜] (decompose : A →ₐ[R] ⨁ i, 𝒜 i)
-  (right_inv : (direct_sum.submodule_coe_alg_hom 𝒜).comp decompose = alg_hom.id R A)
+  (right_inv : (direct_sum.coe_alg_hom 𝒜).comp decompose = alg_hom.id R A)
   (left_inv : ∀ i (x : 𝒜 i), decompose (x : A) = direct_sum.of (λ i, ↥(𝒜 i)) i x) :
   graded_algebra 𝒜 :=
 { decompose' := decompose,
   right_inv := alg_hom.congr_fun right_inv,
   left_inv := begin
-    suffices : decompose.comp (direct_sum.submodule_coe_alg_hom 𝒜) = alg_hom.id _ _,
+    suffices : decompose.comp (direct_sum.coe_alg_hom 𝒜) = alg_hom.id _ _,
     from alg_hom.congr_fun this,
     ext i x : 2,
-    exact (decompose.congr_arg $ direct_sum.submodule_coe_alg_hom_of _ _ _).trans (left_inv i x),
+    exact (decompose.congr_arg $ direct_sum.coe_alg_hom_of _ _ _).trans (left_inv i x),
   end}
 
 variable [graded_algebra 𝒜]
@@ -88,7 +87,7 @@ variable [graded_algebra 𝒜]
 /-- If `A` is graded by `ι` with degree `i` component `𝒜 i`, then it is isomorphic as
 an algebra to a direct sum of components. -/
 def graded_algebra.decompose : A ≃ₐ[R] ⨁ i, 𝒜 i := alg_equiv.symm
-{ to_fun := direct_sum.submodule_coe_alg_hom 𝒜,
+{ to_fun := direct_sum.coe_alg_hom 𝒜,
   inv_fun := graded_algebra.decompose',
   left_inv := graded_algebra.left_inv,
   right_inv := graded_algebra.right_inv,
@@ -101,7 +100,7 @@ def graded_algebra.decompose : A ≃ₐ[R] ⨁ i, 𝒜 i := alg_equiv.symm
 
 @[simp] lemma graded_algebra.decompose_symm_of {i : ι} (x : 𝒜 i) :
   (graded_algebra.decompose 𝒜).symm (direct_sum.of _ i x) = x :=
-direct_sum.submodule_coe_alg_hom_of 𝒜 _ _
+direct_sum.coe_alg_hom_of 𝒜 _ _
 
 /-- The projection maps of graded algebra-/
 def graded_algebra.proj (𝒜 : ι → submodule R A) [graded_algebra 𝒜] (i : ι) : A →ₗ[R] A :=
@@ -138,7 +137,6 @@ lemma graded_algebra.decompose_of_mem_ne {x : A} {i j : ι} (hx : x ∈ 𝒜 i) 
   (graded_algebra.decompose 𝒜 x j : A) = 0 :=
 by rw [graded_algebra.decompose_of_mem _ hx, direct_sum.of_eq_of_ne _ _ _ _ hij, submodule.coe_zero]
 
-
 variable [Π (i : ι) (x : 𝒜 i), decidable (x ≠ 0)]
 
 lemma graded_algebra.mem_support_iff (r : A) (i : ι) :
@@ -158,3 +156,45 @@ begin
 end
 
 end graded_algebra
+
+section canonical_order
+
+open graded_algebra set_like.graded_monoid direct_sum
+
+variables {ι R A : Type*}
+variables [comm_semiring R] [semiring A]
+variables [algebra R A] [decidable_eq ι]
+variables [canonically_ordered_add_monoid ι]
+variables (𝒜 : ι → submodule R A) [graded_algebra 𝒜]
+
+/--
+If `A` is graded by a canonically ordered add monoid, then the projection map `x ↦ x₀` is a ring
+homomorphism.
+-/
+@[simps]
+def graded_algebra.proj_zero_ring_hom : A →+* A :=
+{ to_fun := λ a, decompose 𝒜 a 0,
+  map_one' := decompose_of_mem_same 𝒜 one_mem,
+  map_zero' := by simp only [subtype.ext_iff_val, map_zero, zero_apply, submodule.coe_zero],
+  map_add' := λ _ _, by simp [subtype.ext_iff_val, map_add, add_apply, submodule.coe_add],
+  map_mul' := λ x y,
+    have m : ∀ x, x ∈ supr 𝒜,
+    from λ x, (graded_algebra.is_internal 𝒜).submodule_supr_eq_top.symm ▸ submodule.mem_top,
+    begin
+    refine submodule.supr_induction 𝒜 (m x) (λ i c hc, _) _ _,
+    { refine submodule.supr_induction 𝒜 (m y) (λ j c' hc', _) _ _,
+      { by_cases h : i + j = 0,
+        { rw [decompose_of_mem_same 𝒜 (show c * c' ∈ 𝒜 0, from h ▸ mul_mem hc hc'),
+            decompose_of_mem_same 𝒜 (show c ∈ 𝒜 0, from (add_eq_zero_iff.mp h).1 ▸ hc),
+            decompose_of_mem_same 𝒜 (show c' ∈ 𝒜 0, from (add_eq_zero_iff.mp h).2 ▸ hc')] },
+        { rw [decompose_of_mem_ne 𝒜 (mul_mem hc hc') h],
+          cases (show i ≠ 0 ∨ j ≠ 0, by rwa [add_eq_zero_iff, not_and_distrib] at h) with h' h',
+          { simp only [decompose_of_mem_ne 𝒜 hc h', zero_mul] },
+          { simp only [decompose_of_mem_ne 𝒜 hc' h', mul_zero] } } },
+      { simp only [map_zero, zero_apply, submodule.coe_zero, mul_zero] },
+      { intros _ _ hd he, simp only [mul_add, map_add, add_apply, submodule.coe_add, hd, he] } },
+    { simp only [map_zero, zero_apply, submodule.coe_zero, zero_mul] },
+    { rintros _ _ ha hb, simp only [add_mul, map_add, add_apply, submodule.coe_add, ha, hb] },
+  end }
+
+end canonical_order

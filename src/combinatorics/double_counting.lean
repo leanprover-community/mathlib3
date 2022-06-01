@@ -61,10 +61,10 @@ lemma card_mul_le_card_mul [Π a b, decidable (r a b)]
   (hn : ∀ b ∈ t, (s.bipartite_below r b).card ≤ n) :
   s.card * m ≤ t.card * n :=
 calc
-    _ ≤ ∑ a in s, (t.bipartite_above r a).card : s.le_sum_of_forall_le _ _ hm
+    _ ≤ ∑ a in s, (t.bipartite_above r a).card : s.card_nsmul_le_sum _ _ hm
   ... = ∑ b in t, (s.bipartite_below r b).card
       : sum_card_bipartite_above_eq_sum_card_bipartite_below _
-  ... ≤ _ : t.sum_le_of_forall_le _ _ hn
+  ... ≤ _ : t.sum_le_card_nsmul _ _ hn
 
 lemma card_mul_le_card_mul' [Π a b, decidable (r a b)]
   (hn : ∀ b ∈ t, n ≤ (s.bipartite_below r b).card)

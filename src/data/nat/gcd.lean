@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura
 -/
 import algebra.group_power.order
+import algebra.big_operators.basic
 
 /-!
 # Definitions and properties of `gcd`, `lcm`, and `coprime`
@@ -274,6 +275,8 @@ theorem coprime.symm {m n : ℕ} : coprime n m → coprime m n := (gcd_comm m n)
 
 theorem coprime_comm {m n : ℕ} : coprime n m ↔ coprime m n := ⟨coprime.symm, coprime.symm⟩
 
+theorem coprime.symmetric : symmetric coprime := λ m n, coprime.symm
+
 theorem coprime.dvd_of_dvd_mul_right {m n k : ℕ} (H1 : coprime k n) (H2 : k ∣ m * n) : k ∣ m :=
 let t := dvd_gcd (dvd_mul_left k m) H2 in
 by rwa [gcd_mul_left, H1.gcd_eq_one, mul_one] at t
@@ -434,7 +437,7 @@ theorem coprime.pow_right {m k : ℕ} (n : ℕ) (H1 : coprime k m) : coprime k (
 theorem coprime.pow {k l : ℕ} (m n : ℕ) (H1 : coprime k l) : coprime (k ^ m) (l ^ n) :=
 (H1.pow_left _).pow_right _
 
-lemma coprime_pow_left_iff {n : ℕ} (hn : 0 < n) (a b : ℕ)  :
+@[simp] lemma coprime_pow_left_iff {n : ℕ} (hn : 0 < n) (a b : ℕ)  :
   nat.coprime (a ^ n) b ↔ nat.coprime a b :=
 begin
   obtain ⟨n, rfl⟩ := exists_eq_succ_of_ne_zero hn.ne',
@@ -442,7 +445,7 @@ begin
   exact ⟨and.left, λ hab, ⟨hab, hab.pow_left _⟩⟩
 end
 
-lemma coprime_pow_right_iff {n : ℕ} (hn : 0 < n) (a b : ℕ)  :
+@[simp] lemma coprime_pow_right_iff {n : ℕ} (hn : 0 < n) (a b : ℕ)  :
   nat.coprime a (b ^ n) ↔ nat.coprime a b :=
 by rw [nat.coprime_comm, coprime_pow_left_iff hn, nat.coprime_comm]
 
@@ -466,6 +469,33 @@ by simp [coprime]
 @[simp] theorem coprime_self (n : ℕ) : coprime n n ↔ n = 1 :=
 by simp [coprime]
 
+lemma gcd_mul_of_coprime_of_dvd {a b c : ℕ} (hac : coprime a c) (b_dvd_c : b ∣ c) :
+  gcd (a * b) c = b :=
+begin
+  rcases exists_eq_mul_left_of_dvd b_dvd_c with ⟨d, rfl⟩,
+  rw [gcd_mul_right],
+  convert one_mul b,
+  exact coprime.coprime_mul_right_right hac,
+end
+
+section big_operators
+
+open_locale big_operators
+
+/-- See `is_coprime.prod_left` for the corresponding lemma about `is_coprime` -/
+lemma coprime_prod_left
+  {ι : Type*} {x : ℕ} {s : ι → ℕ} {t : finset ι} :
+  (∀ (i : ι), i ∈ t → coprime (s i) x) → coprime (∏ (i : ι) in t, s i) x :=
+finset.prod_induction s (λ y, y.coprime x) (λ a b, coprime.mul) (by simp)
+
+/-- See `is_coprime.prod_right` for the corresponding lemma about `is_coprime` -/
+lemma coprime_prod_right
+  {ι : Type*} {x : ℕ} {s : ι → ℕ} {t : finset ι} :
+  (∀ (i : ι), i ∈ t → coprime x (s i)) → coprime x (∏ (i : ι) in t, s i) :=
+finset.prod_induction s (λ y, x.coprime y) (λ a b, coprime.mul_right) (by simp)
+
+end big_operators
+
 lemma coprime.eq_of_mul_eq_zero {m n : ℕ} (h : m.coprime n) (hmn : m * n = 0) :
   m = 0 ∧ n = 1 ∨ m = 1 ∧ n = 0 :=
 (nat.eq_zero_of_mul_eq_zero hmn).imp
@@ -478,8 +508,8 @@ def prod_dvd_and_dvd_of_dvd_prod {m n k : ℕ} (H : k ∣ m * n) :
 begin
 cases h0 : (gcd k m),
 case nat.zero
-{ have : k = 0 := eq_zero_of_gcd_eq_zero_left h0, subst this,
-  have : m = 0 := eq_zero_of_gcd_eq_zero_right h0, subst this,
+{ obtain rfl : k = 0 := eq_zero_of_gcd_eq_zero_left h0,
+  obtain rfl : m = 0 := eq_zero_of_gcd_eq_zero_right h0,
   exact ⟨⟨⟨0, dvd_refl 0⟩, ⟨n, dvd_refl n⟩⟩, (zero_mul n).symm⟩ },
 case nat.succ : tmp
 { have hpos : 0 < gcd k m := h0.symm ▸ nat.zero_lt_succ _; clear h0 tmp,
@@ -544,6 +574,19 @@ begin
   have h1 := dvd_gcd hka hkb,
   rw h_ab_coprime at h1,
   exact nat.dvd_one.mp h1,
+end
+
+lemma coprime.mul_add_mul_ne_mul {m n a b : ℕ} (cop : coprime m n) (ha : a ≠ 0) (hb : b ≠ 0) :
+  a * m + b * n ≠ m * n :=
+begin
+  intro h,
+  obtain ⟨x, rfl⟩ : n ∣ a := cop.symm.dvd_of_dvd_mul_right
+    ((nat.dvd_add_iff_left (dvd_mul_left n b)).mpr ((congr_arg _ h).mpr (dvd_mul_left n m))),
+  obtain ⟨y, rfl⟩ : m ∣ b := cop.dvd_of_dvd_mul_right
+    ((nat.dvd_add_iff_right (dvd_mul_left m (n*x))).mpr ((congr_arg _ h).mpr (dvd_mul_right m n))),
+  rw [mul_comm, mul_ne_zero_iff, ←one_le_iff_ne_zero] at ha hb,
+  refine mul_ne_zero hb.2 ha.2 (eq_zero_of_mul_eq_self_left (ne_of_gt (add_le_add ha.1 hb.1)) _),
+  rw [← mul_assoc, ← h, add_mul, add_mul, mul_comm _ n, ←mul_assoc, mul_comm y]
 end
 
 end nat

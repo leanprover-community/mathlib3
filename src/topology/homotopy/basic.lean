@@ -57,19 +57,34 @@ noncomputable theory
 
 universes u v w
 
-variables {X : Type u} {Y : Type v} {Z : Type w}
+variables {F : Type*} {X : Type u} {Y : Type v} {Z : Type w}
 variables [topological_space X] [topological_space Y] [topological_space Z]
 
 open_locale unit_interval
 
 namespace continuous_map
 
-/--
-The type of homotopies between two functions.
--/
+/-- `continuous_map.homotopy f₀ f₁` is the type of homotopies from `f₀` to `f₁`.
+
+When possible, instead of parametrizing results over `(f : homotopy f₀ f₁)`,
+you should parametrize over `{F : Type*} [homotopy_like F f₀ f₁] (f : F)`.
+
+When you extend this structure, make sure to extend `continuous_map.homotopy_like`. -/
 structure homotopy (f₀ f₁ : C(X, Y)) extends C(I × X, Y) :=
-(to_fun_zero : ∀ x, to_fun (0, x) = f₀ x)
-(to_fun_one : ∀ x, to_fun (1, x) = f₁ x)
+(map_zero_left' : ∀ x, to_fun (0, x) = f₀ x)
+(map_one_left' : ∀ x, to_fun (1, x) = f₁ x)
+
+/-- `continuous_map.homotopy_like F f₀ f₁` states that `F` is a type of homotopies between `f₀` and
+`f₁`.
+
+You should extend this class when you extend `continuous_map.homotopy`. -/
+class homotopy_like (F : Type*) (f₀ f₁ : out_param $ C(X, Y))
+  extends continuous_map_class F (I × X) Y :=
+(map_zero_left (f : F) : ∀ x, f (0, x) = f₀ x)
+(map_one_left (f : F) : ∀ x, f (1, x) = f₁ x)
+
+-- `f₀` and `f₁` are `out_param` so this is not dangerous
+attribute [nolint dangerous_instance] homotopy_like.to_continuous_map_class
 
 namespace homotopy
 
@@ -77,17 +92,19 @@ section
 
 variables {f₀ f₁ : C(X, Y)}
 
-instance : has_coe_to_fun (homotopy f₀ f₁) (λ _, I × X → Y) := ⟨λ F, F.to_fun⟩
+instance : homotopy_like (homotopy f₀ f₁) f₀ f₁ :=
+{ coe := λ f, f.to_fun,
+  coe_injective' := λ f g h, by { obtain ⟨⟨_, _⟩, _⟩ := f, obtain ⟨⟨_, _⟩, _⟩ := g, congr' },
+  map_continuous := λ f, f.continuous_to_fun,
+  map_zero_left := λ f, f.map_zero_left',
+  map_one_left := λ f, f.map_one_left' }
 
-lemma coe_fn_injective : @function.injective (homotopy f₀ f₁) (I × X → Y) coe_fn :=
-begin
-  rintros ⟨⟨F, _⟩, _⟩ ⟨⟨G, _⟩, _⟩ h,
-  congr' 2,
-end
+/-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`
+directly. -/
+instance : has_coe_to_fun (homotopy f₀ f₁) (λ _, I × X → Y) := fun_like.has_coe_to_fun
 
 @[ext]
-lemma ext {F G : homotopy f₀ f₁} (h : ∀ x, F x = G x) : F = G :=
-coe_fn_injective $ funext h
+lemma ext {F G : homotopy f₀ f₁} (h : ∀ x, F x = G x) : F = G := fun_like.ext _ _ h
 
 /-- See Note [custom simps projection]. We need to specify this projection explicitly in this case,
 because it is a composition of multiple projections. -/
@@ -95,14 +112,14 @@ def simps.apply (F : homotopy f₀ f₁) : I × X → Y := F
 
 initialize_simps_projections homotopy (to_continuous_map_to_fun -> apply, -to_continuous_map)
 
-@[continuity]
+/-- Deprecated. Use `map_continuous` instead. -/
 protected lemma continuous (F : homotopy f₀ f₁) : continuous F := F.continuous_to_fun
 
 @[simp]
-lemma apply_zero (F : homotopy f₀ f₁) (x : X) : F (0, x) = f₀ x := F.to_fun_zero x
+lemma apply_zero (F : homotopy f₀ f₁) (x : X) : F (0, x) = f₀ x := F.map_zero_left' x
 
 @[simp]
-lemma apply_one (F : homotopy f₀ f₁) (x : X) : F (1, x) = f₁ x := F.to_fun_one x
+lemma apply_one (F : homotopy f₀ f₁) (x : X) : F (1, x) = f₁ x := F.map_one_left' x
 
 @[simp]
 lemma coe_to_continuous_map (F : homotopy f₀ f₁) : ⇑F.to_continuous_map = F := rfl
@@ -157,11 +174,10 @@ Given a continuous function `f`, we can define a `homotopy f f` by `F (t, x) = f
 @[simps]
 def refl (f : C(X, Y)) : homotopy f f :=
 { to_fun := λ x, f x.2,
-  to_fun_zero := λ _, rfl,
-  to_fun_one := λ _, rfl }
+  map_zero_left' := λ _, rfl,
+  map_one_left' := λ _, rfl }
 
-instance : inhabited (homotopy (continuous_map.id : C(X, X)) continuous_map.id) :=
-⟨homotopy.refl continuous_map.id⟩
+instance : inhabited (homotopy (continuous_map.id X) (continuous_map.id X)) := ⟨homotopy.refl _⟩
 
 /--
 Given a `homotopy f₀ f₁`, we can define a `homotopy f₁ f₀` by reversing the homotopy.
@@ -169,8 +185,8 @@ Given a `homotopy f₀ f₁`, we can define a `homotopy f₁ f₀` by reversing 
 @[simps]
 def symm {f₀ f₁ : C(X, Y)} (F : homotopy f₀ f₁) : homotopy f₁ f₀ :=
 { to_fun := λ x, F (σ x.1, x.2),
-  to_fun_zero := by norm_num,
-  to_fun_one := by norm_num }
+  map_zero_left' := by norm_num,
+  map_one_left' := by norm_num }
 
 @[simp]
 lemma symm_symm {f₀ f₁ : C(X, Y)} (F : homotopy f₀ f₁) : F.symm.symm = F :=
@@ -190,8 +206,8 @@ def trans {f₀ f₁ f₂ : C(X, Y)} (F : homotopy f₀ f₁) (G : homotopy f₁
     rintros x hx,
     norm_num [hx],
   end,
-  to_fun_zero := λ x, by norm_num,
-  to_fun_one := λ x, by norm_num }
+  map_zero_left' := λ x, by norm_num,
+  map_one_left' := λ x, by norm_num }
 
 lemma trans_apply {f₀ f₁ f₂ : C(X, Y)} (F : homotopy f₀ f₁) (G : homotopy f₁ f₂)
   (x : I × X) : (F.trans G) x =
@@ -233,8 +249,8 @@ Casting a `homotopy f₀ f₁` to a `homotopy g₀ g₁` where `f₀ = g₀` and
 def cast {f₀ f₁ g₀ g₁ : C(X, Y)} (F : homotopy f₀ f₁) (h₀ : f₀ = g₀) (h₁ : f₁ = g₁) :
   homotopy g₀ g₁ :=
 { to_fun := F,
-  to_fun_zero := by simp [←h₀],
-  to_fun_one := by simp [←h₁] }
+  map_zero_left' := by simp [←h₀],
+  map_one_left' := by simp [←h₁] }
 
 /--
 If we have a `homotopy f₀ f₁` and a `homotopy g₀ g₁`, then we can compose them and get a
@@ -244,8 +260,8 @@ If we have a `homotopy f₀ f₁` and a `homotopy g₀ g₁`, then we can compos
 def hcomp {f₀ f₁ : C(X, Y)} {g₀ g₁ : C(Y, Z)} (F : homotopy f₀ f₁) (G : homotopy g₀ g₁) :
   homotopy (g₀.comp f₀) (g₁.comp f₁) :=
 { to_fun := λ x, G (x.1, F x),
-  to_fun_zero := by simp,
-  to_fun_one := by simp }
+  map_zero_left' := by simp,
+  map_one_left' := by simp }
 
 end homotopy
 
@@ -313,10 +329,10 @@ initialize_simps_projections homotopy_with
 protected lemma continuous (F : homotopy_with f₀ f₁ P) : continuous F := F.continuous_to_fun
 
 @[simp]
-lemma apply_zero (F : homotopy_with f₀ f₁ P) (x : X) : F (0, x) = f₀ x := F.to_fun_zero x
+lemma apply_zero (F : homotopy_with f₀ f₁ P) (x : X) : F (0, x) = f₀ x := F.map_zero_left' x
 
 @[simp]
-lemma apply_one (F : homotopy_with f₀ f₁ P) (x : X) : F (1, x) = f₁ x := F.to_fun_one x
+lemma apply_one (F : homotopy_with f₀ f₁ P) (x : X) : F (1, x) = f₁ x := F.map_one_left' x
 
 @[simp]
 lemma coe_to_continuous_map (F : homotopy_with f₀ f₁ P) : ⇑F.to_continuous_map = F := rfl
@@ -356,7 +372,7 @@ def refl (f : C(X, Y)) (hf : P f) : homotopy_with f f P :=
 { prop' := λ t, by { convert hf, cases f, refl },
   ..homotopy.refl f }
 
-instance : inhabited (homotopy_with (continuous_map.id : C(X, X)) continuous_map.id (λ f, true)) :=
+instance : inhabited (homotopy_with (continuous_map.id X) (continuous_map.id X) (λ f, true)) :=
 ⟨homotopy_with.refl _ trivial⟩
 
 /--

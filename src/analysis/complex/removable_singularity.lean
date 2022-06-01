@@ -20,8 +20,7 @@ open topological_space metric set filter asymptotics function
 open_locale topological_space filter nnreal
 
 universe u
-variables {E : Type u} [normed_group E] [normed_space ℂ E] [measurable_space E] [borel_space E]
-  [second_countable_topology E] [complete_space E]
+variables {E : Type u} [normed_group E] [normed_space ℂ E] [complete_space E]
 
 namespace complex
 
@@ -38,7 +37,7 @@ begin
     rcases eq_or_ne z c with rfl | hne,
     exacts [hc, (hRs ⟨hz, hne⟩).continuous_at] },
   exact (has_fpower_series_on_ball_of_differentiable_off_countable (countable_singleton c) hc
-    (λ z hz, hRs (diff_subset_diff_left ball_subset_closed_ball hz)) hR0).analytic_at 
+    (λ z hz, hRs (diff_subset_diff_left ball_subset_closed_ball hz)) hR0).analytic_at
 end
 
 lemma differentiable_on_compl_singleton_and_continuous_at_iff {f : ℂ → E} {s : set ℂ} {c : ℂ}
@@ -66,7 +65,7 @@ is complex differentiable on `s \ {c}`, and $f(z) - f(c)=o((z-c)^{-1})$, then `f
 equal to `lim (𝓝[≠] c) f` at `c` is complex differentiable on `s`. -/
 lemma differentiable_on_update_lim_of_is_o {f : ℂ → E} {s : set ℂ} {c : ℂ}
   (hc : s ∈ 𝓝 c) (hd : differentiable_on ℂ f (s \ {c}))
-  (ho : is_o (λ z, f z - f c) (λ z, (z - c)⁻¹) (𝓝[≠] c)) :
+  (ho : (λ z, f z - f c) =o[𝓝[≠] c] (λ z, (z - c)⁻¹)) :
   differentiable_on ℂ (update f c (lim (𝓝[≠] c) f)) s :=
 begin
   set F : ℂ → E := λ z, (z - c) • f z with hF,
@@ -89,7 +88,7 @@ end
 be equal to `lim (𝓝[≠] c) f` at `c` is complex differentiable on `{c} ∪ s`. -/
 lemma differentiable_on_update_lim_insert_of_is_o {f : ℂ → E} {s : set ℂ} {c : ℂ}
   (hc : s ∈ 𝓝[≠] c) (hd : differentiable_on ℂ f s)
-  (ho : is_o (λ z, f z - f c) (λ z, (z - c)⁻¹) (𝓝[≠] c)) :
+  (ho : (λ z, f z - f c) =o[𝓝[≠] c] (λ z, (z - c)⁻¹)) :
   differentiable_on ℂ (update f c (lim (𝓝[≠] c) f)) (insert c s) :=
 differentiable_on_update_lim_of_is_o (insert_mem_nhds_iff.2 hc)
   (hd.mono $ λ z hz, hz.1.resolve_left hz.2) ho
@@ -109,7 +108,7 @@ differentiable_on_update_lim_of_is_o hc hd $ is_bounded_under.is_o_sub_self_inv 
 punctured neighborhood of `c` and $f(z) - f(c)=o((z-c)^{-1})$, then `f` has a limit at `c`. -/
 lemma tendsto_lim_of_differentiable_on_punctured_nhds_of_is_o {f : ℂ → E} {c : ℂ}
   (hd : ∀ᶠ z in 𝓝[≠] c, differentiable_at ℂ f z)
-  (ho : is_o (λ z, f z - f c) (λ z, (z - c)⁻¹) (𝓝[≠] c)) :
+  (ho : (λ z, f z - f c) =o[𝓝[≠] c] (λ z, (z - c)⁻¹)) :
   tendsto f (𝓝[≠] c) (𝓝 $ lim (𝓝[≠] c) f) :=
 begin
   rw eventually_nhds_within_iff at hd,

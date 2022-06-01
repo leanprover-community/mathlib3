@@ -9,7 +9,7 @@ import data.nat.totient
 import algebra.periodic
 import data.finset.locally_finite
 import data.nat.count
-
+import data.nat.nth
 
 /-!
 # The Prime Counting Function
@@ -55,6 +55,12 @@ lemma monotone_prime_counting' : monotone prime_counting' := count_monotone prim
 
 lemma monotone_prime_counting : monotone prime_counting :=
 λ a b a_le_b, monotone_prime_counting' (add_le_add_right a_le_b 1)
+
+@[simp] lemma prime_counting'_nth_eq (n : ℕ) : π' (nth prime n) = n :=
+count_nth_of_infinite _ infinite_set_of_prime _
+
+@[simp] lemma prime_nth_prime (n : ℕ) : prime (nth prime n) :=
+nth_mem_of_infinite _ infinite_set_of_prime _
 
 /-- A linear upper bound on the size of the `prime_counting'` function -/
 lemma prime_counting'_add_le {a k : ℕ} (h0 : 0 < a) (h1 : a < k) (n : ℕ) :

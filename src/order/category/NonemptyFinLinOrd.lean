@@ -42,7 +42,7 @@ instance ulift.nonempty_fin_lin_ord (α : Type u) [nonempty_fin_lin_ord α] :
   .. linear_order.lift equiv.ulift (equiv.injective _),
   .. ulift.fintype _ }
 
-instance (α : Type*) [nonempty_fin_lin_ord α] : nonempty_fin_lin_ord (order_dual α) :=
+instance (α : Type*) [nonempty_fin_lin_ord α] : nonempty_fin_lin_ord αᵒᵈ :=
 { ..order_dual.fintype α }
 
 /-- The category of nonempty finite linear orders. -/
@@ -58,6 +58,8 @@ instance : has_coe_to_sort NonemptyFinLinOrd Type* := bundled.has_coe_to_sort
 
 /-- Construct a bundled `NonemptyFinLinOrd` from the underlying type and typeclass. -/
 def of (α : Type*) [nonempty_fin_lin_ord α] : NonemptyFinLinOrd := bundled.of α
+
+@[simp] lemma coe_of (α : Type*) [nonempty_fin_lin_ord α] : ↥(of α) = α := rfl
 
 instance : inhabited NonemptyFinLinOrd := ⟨of punit⟩
 
@@ -75,17 +77,17 @@ between them. -/
   inv_hom_id' := by { ext, exact e.apply_symm_apply x } }
 
 /-- `order_dual` as a functor. -/
-@[simps] def to_dual : NonemptyFinLinOrd ⥤ NonemptyFinLinOrd :=
-{ obj := λ X, of (order_dual X), map := λ X Y, order_hom.dual }
+@[simps] def dual : NonemptyFinLinOrd ⥤ NonemptyFinLinOrd :=
+{ obj := λ X, of Xᵒᵈ, map := λ X Y, order_hom.dual }
 
 /-- The equivalence between `FinPartialOrder` and itself induced by `order_dual` both ways. -/
 @[simps functor inverse] def dual_equiv : NonemptyFinLinOrd ≌ NonemptyFinLinOrd :=
-equivalence.mk to_dual to_dual
+equivalence.mk dual dual
   (nat_iso.of_components (λ X, iso.mk $ order_iso.dual_dual X) $ λ X Y f, rfl)
   (nat_iso.of_components (λ X, iso.mk $ order_iso.dual_dual X) $ λ X Y f, rfl)
 
 end NonemptyFinLinOrd
 
-lemma NonemptyFinLinOrd_dual_equiv_comp_forget_to_LinearOrder :
-  NonemptyFinLinOrd.dual_equiv.functor ⋙ forget₂ NonemptyFinLinOrd LinearOrder
-  = forget₂ NonemptyFinLinOrd LinearOrder ⋙ LinearOrder.dual_equiv.functor := rfl
+lemma NonemptyFinLinOrd_dual_comp_forget_to_LinearOrder :
+  NonemptyFinLinOrd.dual ⋙ forget₂ NonemptyFinLinOrd LinearOrder =
+    forget₂ NonemptyFinLinOrd LinearOrder ⋙ LinearOrder.dual := rfl

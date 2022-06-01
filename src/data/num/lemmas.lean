@@ -51,8 +51,7 @@ theorem add_one (n : pos_num) : n + 1 = succ n := by cases n; refl
 theorem add_to_nat : ∀ m n, ((m + n : pos_num) : ℕ) = m + n
 | 1        b        := by rw [one_add b, succ_to_nat, add_comm]; refl
 | a        1        := by rw [add_one a, succ_to_nat]; refl
-| (bit0 a) (bit0 b) := (congr_arg _root_.bit0 (add_to_nat a b)).trans $
-  show ((a + b) + (a + b) : ℕ) = (a + a) + (b + b), by simp [add_left_comm]
+| (bit0 a) (bit0 b) := (congr_arg _root_.bit0 (add_to_nat a b)).trans $ add_add_add_comm _ _ _ _
 | (bit0 a) (bit1 b) := (congr_arg _root_.bit1 (add_to_nat a b)).trans $
   show ((a + b) + (a + b) + 1 : ℕ) = (a + a) + (b + b + 1), by simp [add_left_comm]
 | (bit1 a) (bit0 b) := (congr_arg _root_.bit1 (add_to_nat a b)).trans $
@@ -1150,7 +1149,7 @@ begin
     cases divmod d n with q r, simp only [divmod] at IH ⊢,
     apply divmod_to_nat_aux; simp,
     { rw [_root_.bit1, _root_.bit1, add_right_comm,
-        bit0_eq_two_mul ↑n, ← IH.1,
+        bit0_eq_two_mul (n : ℕ), ← IH.1,
         mul_add, ← bit0_eq_two_mul,
         mul_left_comm, ← bit0_eq_two_mul] },
     { rw ← bit0_eq_two_mul,
@@ -1158,7 +1157,7 @@ begin
   { unfold divmod,
     cases divmod d n with q r, simp only [divmod] at IH ⊢,
     apply divmod_to_nat_aux; simp,
-    { rw [bit0_eq_two_mul ↑n, ← IH.1,
+    { rw [bit0_eq_two_mul (n : ℕ), ← IH.1,
         mul_add, ← bit0_eq_two_mul,
         mul_left_comm, ← bit0_eq_two_mul] },
     { rw ← bit0_eq_two_mul,

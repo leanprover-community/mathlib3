@@ -17,9 +17,14 @@ This file defines pairwise relations and pairwise disjoint indexed sets.
 * `set.pairwise`: `s.pairwise r` states that `r i j` for all `i ≠ j` with `i, j ∈ s`.
 * `set.pairwise_disjoint`: `s.pairwise_disjoint f` states that images under `f` of distinct elements
   of `s` are either equal or `disjoint`.
+
+## Notes
+
+The spelling `s.pairwise_disjoint id` is preferred over `s.pairwise disjoint` to permit dot notation
+on `set.pairwise_disjoint`, even though the latter unfolds to something nicer.
 -/
 
-open set
+open set function
 
 variables {α ι ι' : Type*} {r p q : α → α → Prop}
 
@@ -55,6 +60,11 @@ lemma pairwise_disjoint.mono [semilattice_inf α] [order_bot α]
   (hs : pairwise (disjoint on f)) (h : g ≤ f) : pairwise (disjoint on g) :=
 hs.mono (λ i j hij, disjoint.mono (h i) (h j) hij)
 
+lemma function.injective_iff_pairwise_ne : injective f ↔ pairwise ((≠) on f) :=
+forall₂_congr $ λ i j, not_imp_not.symm
+
+alias function.injective_iff_pairwise_ne ↔ function.injective.pairwise_ne _
+
 namespace set
 
 /-- The relation `r` holds pairwise on the set `s` if `r x y` for all *distinct* `x y ∈ s`. -/
@@ -89,6 +99,15 @@ subsingleton_empty.pairwise r
 
 @[simp] lemma pairwise_singleton (a : α) (r : α → α → Prop) : set.pairwise {a} r :=
 subsingleton_singleton.pairwise r
+
+lemma pairwise_iff_of_refl [is_refl α r] : s.pairwise r ↔ ∀ ⦃a⦄, a ∈ s → ∀ ⦃b⦄, b ∈ s → r a b :=
+forall₄_congr $ λ a _ b _, or_iff_not_imp_left.symm.trans $ or_iff_right_of_imp of_eq
+
+alias pairwise_iff_of_refl ↔ set.pairwise.of_refl _
+
+lemma _root_.reflexive.set_pairwise_iff (hr : reflexive r) :
+  s.pairwise r ↔ ∀ ⦃a⦄, a ∈ s → ∀ ⦃b⦄, b ∈ s → r a b :=
+forall₄_congr $ λ a _ b _, or_iff_not_imp_left.symm.trans $ or_iff_right_of_imp $ eq.rec $ hr a
 
 lemma nonempty.pairwise_iff_exists_forall [is_equiv α r] {s : set ι} (hs : s.nonempty) :
   (s.pairwise (r on f)) ↔ ∃ z, ∀ x ∈ s, r (f x) z :=
@@ -147,9 +166,18 @@ lemma pairwise_insert :
 by simp only [insert_eq, pairwise_union, pairwise_singleton, true_and,
   mem_singleton_iff, forall_eq]
 
+lemma pairwise.insert (hs : s.pairwise r) (h : ∀ b ∈ s, a ≠ b → r a b ∧ r b a) :
+  (insert a s).pairwise r :=
+pairwise_insert.2 ⟨hs, h⟩
+
 lemma pairwise_insert_of_symmetric (hr : symmetric r) :
   (insert a s).pairwise r ↔ s.pairwise r ∧ ∀ b ∈ s, a ≠ b → r a b :=
 by simp only [pairwise_insert, hr.iff a, and_self]
+
+lemma pairwise.insert_of_symmetric (hs : s.pairwise r) (hr : symmetric r)
+  (h : ∀ b ∈ s, a ≠ b → r a b) :
+  (insert a s).pairwise r :=
+(pairwise_insert_of_symmetric hr).2 ⟨hs, h⟩
 
 lemma pairwise_pair : set.pairwise {a, b} r ↔ (a ≠ b → r a b ∧ r b a) :=
 by simp [pairwise_insert]
@@ -159,6 +187,11 @@ by simp [pairwise_insert_of_symmetric hr]
 
 lemma pairwise_univ : (univ : set α).pairwise r ↔ pairwise r :=
 by simp only [set.pairwise, pairwise, mem_univ, forall_const]
+
+@[simp] lemma pairwise_bot_iff : s.pairwise (⊥ : α → α → Prop) ↔ (s : set α).subsingleton :=
+⟨λ h a ha b hb, h.eq ha hb id, λ h, h.pairwise _⟩
+
+alias pairwise_bot_iff ↔ set.pairwise.subsingleton _
 
 lemma pairwise.on_injective (hs : s.pairwise r) (hf : function.injective f)
   (hfs : ∀ x, f x ∈ s) :
@@ -210,7 +243,11 @@ section semilattice_inf_bot
 variables [semilattice_inf α] [order_bot α] {s t : set ι} {f g : ι → α}
 
 /-- A set is `pairwise_disjoint` under `f`, if the images of any distinct two elements under `f`
-are disjoint. -/
+are disjoint.
+
+`s.pairwise disjoint` is (definitionally) the same as `s.pairwise_disjoint id`. We prefer the latter
+in order to allow dot notation on `set.pairwise_disjoint`, even though the former unfolds more
+nicely. -/
 def pairwise_disjoint (s : set ι) (f : ι → α) : Prop := s.pairwise (disjoint on f)
 
 lemma pairwise_disjoint.subset (ht : t.pairwise_disjoint f) (h : s ⊆ t) : s.pairwise_disjoint f :=
@@ -310,7 +347,7 @@ begin
   obtain ⟨d, hd, hb⟩ := hb,
   obtain hcd | hcd := eq_or_ne (g c) (g d),
   { exact hg d hd (hcd.subst ha) hb hab },
-  { exact (hs hc hd (ne_of_apply_ne _ hcd)).mono (le_bsupr a ha) (le_bsupr b hb) }
+  { exact (hs hc hd $ ne_of_apply_ne _ hcd).mono (le_supr₂ a ha) (le_supr₂ b hb) }
 end
 
 end complete_lattice

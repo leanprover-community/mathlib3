@@ -3,7 +3,7 @@ Copyright (c) 2022 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
-import algebra.group.hom
+import algebra.hom.group
 import algebra.order.with_zero
 import order.hom.basic
 
@@ -176,7 +176,9 @@ instance : order_monoid_hom_class (α →*o β) α β :=
 
 /-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`
 directly. -/
-@[to_additive] instance : has_coe_to_fun (α →*o β) (λ _, α → β) := fun_like.has_coe_to_fun
+@[to_additive "Helper instance for when there's too many metavariables to apply
+`fun_like.has_coe_to_fun` directly."]
+instance : has_coe_to_fun (α →*o β) (λ _, α → β) := fun_like.has_coe_to_fun
 
 -- Other lemmas should be accessed through the `fun_like` API
 @[ext, to_additive] lemma ext (h : ∀ a, f a = g a) : f = g := fun_like.ext f g h

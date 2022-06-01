@@ -3,11 +3,11 @@ Copyright (c) 2018 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis
 -/
-import number_theory.padics.padic_integers
-import topology.metric_space.cau_seq_filter
-import analysis.specific_limits
+import analysis.specific_limits.basic
 import data.polynomial.identities
+import number_theory.padics.padic_integers
 import topology.algebra.polynomial
+import topology.metric_space.cau_seq_filter
 
 /-!
 # Hensel's lemma on ℤ_p
@@ -106,7 +106,7 @@ lt_of_le_of_ne (norm_nonneg _) (ne.symm deriv_norm_ne_zero)
 private lemma deriv_ne_zero : F.derivative.eval a ≠ 0 := mt norm_eq_zero.2 deriv_norm_ne_zero
 
 private lemma T_def : T = ∥F.eval a∥ / ∥F.derivative.eval a∥^2 :=
-calc T = ∥F.eval a∥ / ∥((F.derivative.eval a)^2 : ℚ_[p])∥ : normed_field.norm_div _ _
+calc T = ∥F.eval a∥ / ∥((F.derivative.eval a)^2 : ℚ_[p])∥ : norm_div _ _
    ... = ∥F.eval a∥ / ∥(F.derivative.eval a)^2∥ : by simp [norm, padic_int.norm_def]
    ... = ∥F.eval a∥ / ∥(F.derivative.eval a)∥^2 : by simp
 
@@ -133,7 +133,7 @@ private lemma ih_0 : ih 0 a :=
 private lemma calc_norm_le_one {n : ℕ} {z : ℤ_[p]} (hz : ih n z) :
          ∥(↑(F.eval z) : ℚ_[p]) / ↑(F.derivative.eval z)∥ ≤ 1 :=
 calc ∥(↑(F.eval z) : ℚ_[p]) / ↑(F.derivative.eval z)∥
-    = ∥(↑(F.eval z) : ℚ_[p])∥ / ∥(↑(F.derivative.eval z) : ℚ_[p])∥ : normed_field.norm_div _ _
+    = ∥(↑(F.eval z) : ℚ_[p])∥ / ∥(↑(F.derivative.eval z) : ℚ_[p])∥ : norm_div _ _
 ... = ∥F.eval z∥ / ∥F.derivative.eval a∥ : by simp [hz.1]
 ... ≤ ∥F.derivative.eval a∥^2 * T^(2^n) / ∥F.derivative.eval a∥ :
   (div_le_div_right deriv_norm_pos).2 hz.2
@@ -264,7 +264,7 @@ calc ∥newton_seq (n+2) - newton_seq (n+1)∥
   mul_lt_mul_of_pos_left (pow_lt_pow_of_lt_one T_pos T_lt_one (by norm_num)) deriv_norm_pos
 ... = ∥F.eval a∥ / ∥F.derivative.eval a∥ :
   begin
-    rw [T, sq, pow_one, normed_field.norm_div, ←mul_div_assoc, padic_norm_e.mul],
+    rw [T, sq, pow_one, norm_div, ←mul_div_assoc, padic_norm_e.mul],
     apply mul_div_mul_left,
     apply deriv_norm_ne_zero; assumption
   end
@@ -327,7 +327,7 @@ begin
   intros ε hε,
   cases this (ball 0 ε) (mem_ball_self hε) (is_open_ball) with N hN,
   existsi N, intros n hn,
-  simpa [normed_field.norm_mul, real.norm_eq_abs, abs_of_nonneg (mtn n)] using hN _ hn
+  simpa [norm_mul, real.norm_eq_abs, abs_of_nonneg (mtn n)] using hN _ hn
 end
 
 private lemma bound'_sq : tendsto (λ n : ℕ, ∥F.derivative.eval a∥^2 * T^(2^n)) at_top (𝓝 0) :=
@@ -402,7 +402,7 @@ have (F.derivative.eval soln + q * h) * h = 0, from eq.symm (calc
 have h = 0, from by_contradiction $ λ hne,
   have F.derivative.eval soln + q * h = 0,
     from (eq_zero_or_eq_zero_of_mul_eq_zero this).resolve_right hne,
-  have F.derivative.eval soln = (-q) * h, by simpa using eq_neg_of_add_eq_zero this,
+  have F.derivative.eval soln = (-q) * h, by simpa using eq_neg_of_add_eq_zero_left this,
   lt_irrefl ∥F.derivative.eval soln∥ (calc
   ∥F.derivative.eval soln∥ = ∥(-q) * h∥ : by rw this
 ... ≤ 1 * ∥h∥ :
@@ -427,7 +427,7 @@ have (F.derivative.eval a + q * h) * h = 0, from eq.symm (calc
 have h = 0, from by_contradiction $ λ hne,
   have F.derivative.eval a + q * h = 0,
     from (eq_zero_or_eq_zero_of_mul_eq_zero this).resolve_right hne,
-  have F.derivative.eval a = (-q) * h, by simpa using eq_neg_of_add_eq_zero this,
+  have F.derivative.eval a = (-q) * h, by simpa using eq_neg_of_add_eq_zero_left this,
   lt_irrefl ∥F.derivative.eval a∥ (calc
     ∥F.derivative.eval a∥ = ∥q∥*∥h∥ : by simp [this]
     ... ≤ 1*∥h∥ : mul_le_mul_of_nonneg_right (padic_int.norm_le_one _) (norm_nonneg _)

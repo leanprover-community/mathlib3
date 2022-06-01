@@ -93,6 +93,9 @@ instance has_mul : has_mul (special_linear_group n R) :=
 instance has_one : has_one (special_linear_group n R) :=
 ⟨⟨1, det_one⟩⟩
 
+instance : has_pow (special_linear_group n R) ℕ :=
+{ pow := λ x n, ⟨x ^ n, (det_pow _ _).trans $ x.prop.symm ▸ one_pow _⟩}
+
 instance : inhabited (special_linear_group n R) := ⟨1⟩
 
 section coe_lemmas
@@ -111,6 +114,8 @@ rfl
 
 @[simp] lemma det_coe : det ↑ₘA = 1 := A.2
 
+@[simp] lemma coe_pow (m : ℕ) : ↑ₘ(A ^ m) = ↑ₘA ^ m := rfl
+
 lemma det_ne_zero [nontrivial R] (g : special_linear_group n R) :
   det ↑ₘg ≠ 0 :=
 by { rw g.det_coe, norm_num }
@@ -122,7 +127,7 @@ lemma row_ne_zero [nontrivial R] (g : special_linear_group n R) (i : n):
 end coe_lemmas
 
 instance : monoid (special_linear_group n R) :=
-function.injective.monoid coe subtype.coe_injective coe_one coe_mul
+function.injective.monoid coe subtype.coe_injective coe_one coe_mul coe_pow
 
 instance : group (special_linear_group n R) :=
 { mul_left_inv := λ A, by { ext1, simp [adjugate_mul] },
@@ -190,20 +195,15 @@ variables [fact (even (fintype.card n))]
 each element. -/
 instance : has_neg (special_linear_group n R) :=
 ⟨λ g,
-  ⟨- g, by simpa [nat.neg_one_pow_of_even (fact.out (even (fintype.card n))), g.det_coe] using
+  ⟨- g, by simpa [(fact.out $ even $ fintype.card n).neg_one_pow, g.det_coe] using
   det_smul ↑ₘg (-1)⟩⟩
 
-@[simp] lemma coe_neg (g : special_linear_group n R) :
-  ↑(- g) = - (↑g : matrix n n R) :=
-rfl
+@[simp] lemma coe_neg (g : special_linear_group n R) : ↑(- g) = - (g : matrix n n R) := rfl
 
 instance : has_distrib_neg (special_linear_group n R) :=
-{ neg := has_neg.neg,
-  neg_neg := λ x, subtype.ext $ neg_neg _,
-  neg_mul := λ x y, subtype.ext $ neg_mul _ _,
-  mul_neg := λ x y, subtype.ext $ mul_neg _ _ }
+function.injective.has_distrib_neg _ subtype.coe_injective coe_neg coe_mul
 
-@[simp] lemma coe_int_neg (g : (special_linear_group n ℤ)) :
+@[simp] lemma coe_int_neg (g : special_linear_group n ℤ) :
   ↑(-g) = (-↑g : special_linear_group n R) :=
 subtype.ext $ (@ring_hom.map_matrix n _ _ _ _ _ _ (int.cast_ring_hom R)).map_neg ↑g
 

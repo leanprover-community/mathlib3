@@ -101,7 +101,7 @@ lemma norm_sub_mod_part_aux (r : ℚ) (h : ∥(r : ℚ_[p])∥ ≤ 1) :
   ↑p ∣ r.num - r.num * r.denom.gcd_a p % p * ↑(r.denom) :=
 begin
   rw ← zmod.int_coe_zmod_eq_zero_iff_dvd,
-  simp only [int.cast_coe_nat, zmod.nat_cast_mod p, int.cast_mul, int.cast_sub],
+  simp only [int.cast_coe_nat, zmod.nat_cast_mod, int.cast_mul, int.cast_sub],
   have := congr_arg (coe : ℤ → zmod p) (gcd_eq_gcd_ab r.denom p),
   simp only [int.cast_coe_nat, add_zero, int.cast_add, zmod.nat_cast_self, int.cast_mul, zero_mul]
     at this,
@@ -378,7 +378,7 @@ begin
   { rw zero_pow hc0,
     simp only [sub_zero, zmod.cast_zero, mul_zero],
     rw unit_coeff_spec hc',
-    exact (dvd_pow_self _ hc0.ne').mul_left _ }
+    exact (dvd_pow_self (p : ℤ_[p]) hc0.ne').mul_left _, },
 end
 
 attribute [irreducible] appr
@@ -465,7 +465,7 @@ section lift
 
 open cau_seq padic_seq
 
-variables {R : Type*} [comm_ring R] (f : Π k : ℕ, R →+* zmod (p^k))
+variables {R : Type*} [non_assoc_semiring R] (f : Π k : ℕ, R →+* zmod (p^k))
   (f_compat : ∀ k1 k2 (hk : k1 ≤ k2), (zmod.cast_hom (pow_dvd_pow p hk) _).comp (f k2) = f k1)
 
 omit hp_prime
@@ -687,7 +687,7 @@ begin
   { rintro rfl _, refl }
 end
 
-lemma to_zmod_pow_eq_iff_ext {R : Type*} [comm_ring R] {g g' : R →+* ℤ_[p]} :
+lemma to_zmod_pow_eq_iff_ext {R : Type*} [non_assoc_semiring R] {g g' : R →+* ℤ_[p]} :
   (∀ n, (to_zmod_pow n).comp g = (to_zmod_pow n).comp g') ↔ g = g' :=
 begin
   split,

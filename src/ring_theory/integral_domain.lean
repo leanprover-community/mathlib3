@@ -16,9 +16,12 @@ Assorted theorems about integral domains.
 
 ## Main theorems
 
-* `is_cyclic_of_subgroup_is_domain` : A finite subgroup of the units of an integral domain
-                                            is cyclic.
-* `field_of_is_domain`              : A finite integral domain is a field.
+* `is_cyclic_of_subgroup_is_domain`: A finite subgroup of the units of an integral domain is cyclic.
+* `fintype.field_of_domain`: A finite integral domain is a field.
+
+## TODO
+
+Prove Wedderburn's little theorem, which shows that all finite division rings are actually fields.
 
 ## Tags
 
@@ -41,8 +44,8 @@ lemma mul_left_bijective_of_fintype₀ {a : M} (ha : a ≠ 0) : bijective (λ b,
 fintype.injective_iff_bijective.1 $ mul_left_injective₀ ha
 
 /-- Every finite nontrivial cancel_monoid_with_zero is a group_with_zero. -/
-def group_with_zero_of_fintype (M : Type*) [cancel_monoid_with_zero M] [decidable_eq M] [fintype M]
-  [nontrivial M] : group_with_zero M :=
+def fintype.group_with_zero_of_cancel (M : Type*) [cancel_monoid_with_zero M] [decidable_eq M]
+  [fintype M] [nontrivial M] : group_with_zero M :=
 { inv := λ a, if h : a = 0 then 0 else fintype.bij_inv (mul_right_bijective_of_fintype₀ h) 1,
   mul_inv_cancel := λ a ha,
     by { simp [has_inv.inv, dif_neg ha], exact fintype.right_inverse_bij_inv _ _ },
@@ -62,10 +65,22 @@ variables [ring R] [is_domain R] [fintype R]
 
 TODO: Prove Wedderburn's little theorem,
 which shows a finite domain is in fact commutative, hence a field. -/
-def division_ring_of_is_domain (R : Type*) [ring R] [is_domain R] [decidable_eq R] [fintype R] :
-  division_ring R :=
-{ ..show group_with_zero R, from group_with_zero_of_fintype R,
+def fintype.division_ring_of_is_domain (R : Type*) [ring R] [is_domain R] [decidable_eq R]
+  [fintype R] : division_ring R :=
+{ ..show group_with_zero R, from fintype.group_with_zero_of_cancel R,
   ..‹ring R› }
+
+/-- Every finite commutative domain is a field.
+
+TODO: Prove Wedderburn's little theorem, which shows a finite domain is automatically commutative,
+dropping one assumption from this theorem. -/
+def fintype.field_of_domain (R) [comm_ring R] [is_domain R] [decidable_eq R] [fintype R] :
+  field R :=
+{ .. fintype.group_with_zero_of_cancel R,
+  .. ‹comm_ring R› }
+
+lemma fintype.is_field_of_domain (R) [comm_ring R] [is_domain R] [fintype R] :
+  is_field R := @field.to_is_field R $ @@fintype.field_of_domain R _ _ (classical.dec_eq R) _
 
 end ring
 
@@ -98,10 +113,6 @@ To support `ℤˣ` and other infinite monoids with finite groups of units, this 
 `fintype Rˣ` rather than deducing it from `fintype R`. -/
 instance [fintype Rˣ] : is_cyclic Rˣ :=
 is_cyclic_of_subgroup_is_domain (units.coe_hom R) $ units.ext
-
-/-- Every finite integral domain is a field. -/
-def field_of_is_domain [decidable_eq R] [fintype R] : field R :=
-{ ..division_ring_of_is_domain R, ..‹comm_ring R› }
 
 section
 
@@ -182,7 +193,7 @@ begin
       (λ b hb, let ⟨n, hn⟩ := hx b in ⟨n % order_of x, mem_range.2 (nat.mod_lt _ (order_of_pos _)),
         by rw [← pow_eq_mod_order_of, hn]⟩)
   ... = 0 : _,
-  rw [← mul_left_inj' hx1, zero_mul, ← geom_sum, geom_sum_mul, coe_coe],
+  rw [← mul_left_inj' hx1, zero_mul, geom_sum_mul, coe_coe],
   norm_cast,
   simp [pow_order_of_eq_one],
 end

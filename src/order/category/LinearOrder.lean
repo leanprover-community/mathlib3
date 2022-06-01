@@ -30,6 +30,8 @@ instance : has_coe_to_sort LinearOrder Type* := bundled.has_coe_to_sort
 /-- Construct a bundled `LinearOrder` from the underlying type and typeclass. -/
 def of (α : Type*) [linear_order α] : LinearOrder := bundled.of α
 
+@[simp] lemma coe_of (α : Type*) [linear_order α] : ↥(of α) = α := rfl
+
 instance : inhabited LinearOrder := ⟨of punit⟩
 
 instance (α : LinearOrder) : linear_order α := α.str
@@ -47,7 +49,7 @@ instance has_forget_to_Lattice : has_forget₂ LinearOrder Lattice :=
 
 /-- `order_dual` as a functor. -/
 @[simps] def dual : LinearOrder ⥤ LinearOrder :=
-{ obj := λ X, of (order_dual X), map := λ X Y, order_hom.dual }
+{ obj := λ X, of Xᵒᵈ, map := λ X Y, order_hom.dual }
 
 /-- The equivalence between `LinearOrder` and itself induced by `order_dual` both ways. -/
 @[simps functor inverse] def dual_equiv : LinearOrder ≌ LinearOrder :=

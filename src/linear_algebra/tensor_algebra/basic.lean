@@ -6,6 +6,8 @@ Authors: Adam Topaz
 import algebra.free_algebra
 import algebra.ring_quot
 import algebra.triv_sq_zero_ext
+import algebra.algebra.operations
+import linear_algebra.multilinear.basic
 
 /-!
 # Tensor Algebras
@@ -85,8 +87,10 @@ def lift {A : Type*} [semiring A] [algebra R A] : (M →ₗ[R] A) ≃ (tensor_al
 { to_fun := ring_quot.lift_alg_hom R ∘ λ f,
     ⟨free_algebra.lift R ⇑f, λ x y (h : rel R M x y), by induction h; simp [algebra.smul_def]⟩,
   inv_fun := λ F, F.to_linear_map.comp (ι R),
-  left_inv := λ f, by { ext, simp [ι], },
-  right_inv := λ F, by { ext, simp [ι], } }
+  left_inv := λ f, linear_map.ext $ λ x,
+    (ring_quot.lift_alg_hom_mk_alg_hom_apply _ _ _ _).trans (free_algebra.lift_ι_apply f x),
+  right_inv := λ F, ring_quot.ring_quot_ext' _ _ _ $ free_algebra.hom_ext $ funext $ λ x,
+    (ring_quot.lift_alg_hom_mk_alg_hom_apply _ _ _ _).trans (free_algebra.lift_ι_apply _ _) }
 
 variables {R}
 
@@ -227,6 +231,19 @@ begin
   rw ι_eq_algebra_map_iff x at hx,
   rw [hx.2, ring_hom.map_zero]
 end
+
+variables (R M)
+
+/-- Construct a product of `n` elements of the module within the tensor algebra.
+
+See also `pi_tensor_product.tprod`. -/
+def tprod (n : ℕ) : multilinear_map R (λ i : fin n, M) (tensor_algebra R M) :=
+(multilinear_map.mk_pi_algebra_fin R n (tensor_algebra R M)).comp_linear_map $ λ _, ι R
+
+@[simp] lemma tprod_apply {n : ℕ} (x : fin n → M) :
+  tprod R M n x = (list.of_fn (λ i, ι R (x i))).prod := rfl
+
+variables {R M}
 
 end tensor_algebra
 

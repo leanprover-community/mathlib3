@@ -14,7 +14,7 @@ import data.set.intervals.monotone
 In this file we prove the Divergence theorem for Bochner integral on a box in
 `ℝⁿ⁺¹ = fin (n + 1) → ℝ`. More precisely, we prove the following theorem.
 
-Let `E` be a complete normed space with second countably topology. If `f : ℝⁿ⁺¹ → Eⁿ⁺¹` is
+Let `E` be a complete normed space. If `f : ℝⁿ⁺¹ → Eⁿ⁺¹` is
 continuous on a rectangular box `[a, b] : set ℝⁿ⁺¹`, `a ≤ b`, differentiable on its interior with
 derivative `f' : ℝⁿ⁺¹ → ℝⁿ⁺¹ →L[ℝ] Eⁿ⁺¹`, and the divergence `λ x, ∑ i, f' x eᵢ i` is integrable on
 `[a, b]`, where `eᵢ = pi.single i 1` is the `i`-th basis vector, then its integral is equal to the
@@ -53,8 +53,7 @@ universes u
 
 namespace measure_theory
 
-variables {E : Type u} [normed_group E] [normed_space ℝ E] [measurable_space E] [borel_space E]
-  [second_countable_topology E] [complete_space E]
+variables {E : Type u} [normed_group E] [normed_space ℝ E] [complete_space E]
 
 section
 variables {n : ℕ}
@@ -329,8 +328,7 @@ calc ∫ x in Icc a b, DF x = ∫ x in Icc a b, ∑ i, f' i x (eL.symm $ e i) : 
       ((he_ord _ _).2 hle) (λ i x, f i (eL.symm x))
       (λ i x, f' i (eL.symm x) ∘L (eL.symm : ℝⁿ⁺¹ →L[ℝ] F))
       (eL.symm ⁻¹' s) (hs.preimage eL.symm.injective) _ _ _,
-    { refine λ i, (Hc i).comp eL.symm.continuous_on _,
-      rw hIcc' },
+    { exact λ i, (Hc i).comp eL.symm.continuous_on hIcc'.subset },
     { refine λ x hx i, (Hd (eL.symm x) ⟨_, hx.2⟩ i).comp x eL.symm.has_fderiv_at,
       rw ← hIcc,
       refine preimage_interior_subset_interior_preimage eL.continuous _,
@@ -382,7 +380,7 @@ begin
       refine integral_divergence_of_has_fderiv_within_at_off_countable_of_equiv e _ _
         (λ _, f) (λ _, F') s hs a b hle (λ i, Hc) (λ x hx i, Hd x hx) _ _ _,
       { exact λ x y, (order_iso.fun_unique (fin 1) ℝ).symm.le_iff_le },
-      { exact (volume_preserving_fun_unique (fin 1) ℝ).symm },
+      { exact (volume_preserving_fun_unique (fin 1) ℝ).symm _ },
       { intro x, rw [fin.sum_univ_one, hF', e_symm, pi.single_eq_same, one_smul] },
       { rw [interval_integrable_iff_integrable_Ioc_of_le hle] at Hi,
         exact Hi.congr_set_ae Ioc_ae_eq_Icc.symm }
@@ -444,7 +442,7 @@ calc ∫ x in Icc a b, f' x (1, 0) + g' x (0, 1)
     refine integral_divergence_of_has_fderiv_within_at_off_countable_of_equiv e _ _
       ![f, g] ![f', g'] s hs a b hle _ (λ x hx, _) _ _ Hi,
     { exact λ x y, (order_iso.fin_two_arrow_iso ℝ).symm.le_iff_le },
-    { exact (volume_preserving_fin_two_arrow ℝ).symm },
+    { exact (volume_preserving_fin_two_arrow ℝ).symm _ },
     { exact fin.forall_fin_two.2 ⟨Hcf, Hcg⟩ },
     { rw [Icc_prod_eq, interior_prod_eq, interior_Icc, interior_Icc] at hx,
       exact fin.forall_fin_two.2 ⟨Hdf x hx, Hdg x hx⟩ },
@@ -455,7 +453,7 @@ calc ∫ x in Icc a b, f' x (1, 0) + g' x (0, 1)
   begin
     have : ∀ (a b : ℝ¹) (f : ℝ¹ → E), ∫ x in Icc a b, f x = ∫ x in Icc (a 0) (b 0), f (λ _, x),
     { intros a b f,
-      convert ((volume_preserving_fun_unique (fin 1) ℝ).symm.set_integral_preimage_emb
+      convert (((volume_preserving_fun_unique (fin 1) ℝ).symm _).set_integral_preimage_emb
         (measurable_equiv.measurable_embedding _) _ _).symm,
       exact ((order_iso.fun_unique (fin 1) ℝ).symm.preimage_Icc a b).symm },
     simp only [fin.sum_univ_two, this],

@@ -72,7 +72,7 @@ begin
               one_ne_zero, and_self] },
 end
 
-lemma zero_lt_of_odd (h : odd n) : 0 < n :=
+lemma pos_of_odd (h : odd n) : 0 < n :=
 by { obtain ⟨k, rfl⟩ := h, exact succ_pos' }
 
 @[simp] theorem two_dvd_ne_zero : ¬ 2 ∣ n ↔ n % 2 = 1 :=

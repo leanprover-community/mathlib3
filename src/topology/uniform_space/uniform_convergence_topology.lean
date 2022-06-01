@@ -77,20 +77,43 @@ variables {F : ι → α → β} {f : α → β} {s s' : set α} {x : α} {p : f
 protected def gen (V : set (β × β)) : set ((α → β) × (α → β)) :=
   {uv : (α → β) × (α → β) | ∀ x, (uv.1 x, uv.2 x) ∈ V}
 
-protected lemma is_basis_gen (u : filter_basis $ β × β) :
-  is_basis (λ V : set (β × β), V ∈ u) (uniform_convergence.gen α β) :=
-⟨u.nonempty, λ U V hU hV, let ⟨z, hz, hzUV⟩ := u.inter_sets hU hV in ⟨z, hz, λ uv huv,
+protected lemma is_basis_gen (𝓑 : filter_basis $ β × β) :
+  is_basis (λ V : set (β × β), V ∈ 𝓑) (uniform_convergence.gen α β) :=
+⟨𝓑.nonempty, λ U V hU hV, let ⟨z, hz, hzUV⟩ := 𝓑.inter_sets hU hV in ⟨z, hz, λ uv huv,
   ⟨λ x, inter_subset_left _ _ $ hzUV (huv x), λ x, inter_subset_right _ _ $ hzUV (huv x)⟩⟩⟩
 
 /-- Filter basis for the uniformity of uniform convergence -/
-protected def basis (u : filter_basis $ β × β) : filter_basis ((α → β) × (α → β)) :=
-(uniform_convergence.is_basis_gen α β u).filter_basis
+protected def basis (𝓑 : filter_basis $ β × β) : filter_basis ((α → β) × (α → β)) :=
+(uniform_convergence.is_basis_gen α β 𝓑).filter_basis
+
+/-- Filter basis for the uniformity of uniform convergence -/
+protected def filter (𝓑 : filter_basis $ β × β) : filter ((α → β) × (α → β)) :=
+(uniform_convergence.basis α β 𝓑).filter
+
+protected def lower_adjoint (𝓐 : filter $ (α → β) × (α → β)) : filter (β × β) :=
+(𝓐 ×ᶠ ⊤).map (λ uvx : ((α → β) × (α → β)) × α, (uvx.1.1 uvx.2, uvx.1.2 uvx.2))
+
+protected lemma gc : galois_connection (uniform_convergence.lower_adjoint α β)
+  (λ 𝓑, uniform_convergence.filter α β 𝓑.as_basis) :=
+begin
+  intros 𝓐 𝓑,
+  symmetry,
+  calc 𝓐 ≤ uniform_convergence.filter α β 𝓑.as_basis
+      ↔ (uniform_convergence.basis α β 𝓑.as_basis).sets ⊆ 𝓐.sets :
+        by rw [uniform_convergence.filter, ← filter_basis.generate, sets_iff_generate]
+  ... ↔ ∀ U ∈ 𝓑, uniform_convergence.gen α β U ∈ 𝓐 : image_subset_iff
+  ... ↔ ∀ U ∈ 𝓑, {uv | ∀ x, (uv, x) ∈
+          {t : ((α → β) × (α → β)) × α | (t.1.1 t.2, t.1.2 t.2) ∈ U}} ∈ 𝓐 : iff.rfl
+  ... ↔ ∀ U ∈ 𝓑, {uvx : ((α → β) × (α → β)) × α | (uvx.1.1 uvx.2, uvx.1.2 uvx.2) ∈ U} ∈
+          𝓐 ×ᶠ (⊤ : filter α) : forall₂_congr (λ U hU, mem_prod_top.symm)
+  ... ↔ uniform_convergence.lower_adjoint α β 𝓐 ≤ 𝓑 : iff.rfl,
+end
 
 variables [uniform_space β]
 
 /-- Core of the uniform structure of uniform convergence -/
 protected def uniform_core : uniform_space.core (α → β) :=
-uniform_space.core.mk_of_basis (uniform_convergence.basis α β (𝓤 β).to_filter_basis)
+uniform_space.core.mk_of_basis (uniform_convergence.basis α β (𝓤 β).as_basis)
   (λ U ⟨V, hV, hVU⟩ f, hVU ▸ λ x, refl_mem_uniformity hV)
   (λ U ⟨V, hV, hVU⟩, hVU ▸ ⟨uniform_convergence.gen α β (prod.swap ⁻¹' V),
     ⟨prod.swap ⁻¹' V, tendsto_swap_uniformity hV, rfl⟩, λ uv huv x, huv x⟩)
@@ -105,7 +128,7 @@ uniform_space.of_core (uniform_convergence.uniform_core α β)
 protected lemma has_basis_uniformity :
   (@uniformity (α → β) (uniform_convergence.uniform_space α β)).has_basis (λ V, V ∈ 𝓤 β)
   (uniform_convergence.gen α β) :=
-(uniform_convergence.is_basis_gen α β).has_basis
+(uniform_convergence.is_basis_gen α β (𝓤 β).as_basis).has_basis
 
 /-- Topology of uniform convergence -/
 protected def topological_space : topological_space (α → β) :=

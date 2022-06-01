@@ -352,12 +352,12 @@ congr_arg linear_equiv.to_fun (dif_pos hb)
 
 lemma coord_change_apply (e e' : trivialization R F E) {b : B}
   (hb : b ∈ e.base_set ∩ e'.base_set) (y : F) :
-  coord_change e e' b y = (e' (total_space_mk E b (e.symm b y))).2 :=
+  coord_change e e' b y = (e' (total_space_mk b (e.symm b y))).2 :=
 congr_arg (λ f, linear_equiv.to_fun f y) (dif_pos hb)
 
 lemma mk_coord_change (e e' : trivialization R F E) {b : B}
   (hb : b ∈ e.base_set ∩ e'.base_set) (y : F) :
-  (b, coord_change e e' b y) = e' (total_space_mk E b (e.symm b y)) :=
+  (b, coord_change e e' b y) = e' (total_space_mk b (e.symm b y)) :=
 begin
   ext,
   { rw [e.mk_symm hb.1 y, e'.coe_fst', e.proj_symm_apply' hb.1],
@@ -806,7 +806,7 @@ structure topological_vector_prebundle :=
 (exists_coord_change : ∀ (e e' ∈ pretrivialization_atlas), ∃ f : B → F →L[R] F,
   continuous_on f (e.base_set ∩ e'.base_set) ∧
   ∀ (b : B) (hb : b ∈ e.base_set ∩ e'.base_set) (v : F),
-    f b v = (e' (total_space_mk E b (e.symm b v))).2)
+    f b v = (e' (total_space_mk b (e.symm b v))).2)
 
 namespace topological_vector_prebundle
 
@@ -828,13 +828,13 @@ lemma continuous_on_coord_change (a : topological_vector_prebundle R F E)
 lemma coord_change_apply (a : topological_vector_prebundle R F E)
   {e e' : pretrivialization R F E} (he : e ∈ a.pretrivialization_atlas)
   (he' : e' ∈ a.pretrivialization_atlas) {b : B} (hb : b ∈ e.base_set ∩ e'.base_set) (v : F) :
-  a.coord_change he he' b v = (e' (total_space_mk E b (e.symm b v))).2 :=
+  a.coord_change he he' b v = (e' (total_space_mk b (e.symm b v))).2 :=
 (classical.some_spec (a.exists_coord_change e he e' he')).2 b hb v
 
 lemma mk_coord_change (a : topological_vector_prebundle R F E)
   {e e' : pretrivialization R F E} (he : e ∈ a.pretrivialization_atlas)
   (he' : e' ∈ a.pretrivialization_atlas) {b : B} (hb : b ∈ e.base_set ∩ e'.base_set) (v : F) :
-  (b, a.coord_change he he' b v) = e' (total_space_mk E b (e.symm b v)) :=
+  (b, a.coord_change he he' b v) = e' (total_space_mk b (e.symm b v)) :=
 begin
   ext,
   { rw [e.mk_symm hb.1 v, e'.coe_fst', e.proj_symm_apply' hb.1],
@@ -859,8 +859,8 @@ def to_topological_fiber_prebundle (a : topological_vector_prebundle R F E) :
       (e'.base_set ∩ e.base_set) ×ˢ (univ : set F),
     { rw [e'.target_eq, e.source_eq],
       ext ⟨b, f⟩,
-      simp only [-bundle.proj, and.congr_right_iff, e'.proj_symm_apply', iff_self, implies_true_iff]
-        with mfld_simps {contextual := tt} },
+      simp only [-total_space.proj, and.congr_right_iff, e'.proj_symm_apply', iff_self,
+        implies_true_iff] with mfld_simps {contextual := tt} },
     rw [H],
     refine (continuous_on_fst.prod this).congr _,
     rintros ⟨b, f⟩ ⟨hb, -⟩,

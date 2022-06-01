@@ -50,7 +50,7 @@ lemma factorization_central_binom_le : (central_binom n).factorization p ≤ log
 factorization_choose_le
 
 /--
-A `pow` form of `nat.factorization_central_binom_le`
+A `pow` form of `nat.factorization_choose_le`
 -/
 lemma pow_factorization_choose_le (hn : 0 < n) : p ^ (choose n k).factorization p ≤ n :=
 begin

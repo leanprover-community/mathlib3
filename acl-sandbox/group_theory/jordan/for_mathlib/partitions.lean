@@ -153,8 +153,9 @@ begin
   { intros t ht, apply congr_arg,
     rw set.to_finset_inj, exact (set.univ_inter t).symm,  },
   simp_rw finset.sum_congr rfl this,
-  simpa only [set.to_finset_univ, set.to_finset_card, fintype.card_of_finset]
-    using setoid.is_partition.card_set_eq_sum_parts (set.univ) hP,
+
+  simpa only [set.to_finset_card, fintype.card_of_finset, finset.filter_congr_decidable,
+    set.to_finset_univ] using setoid.is_partition.card_set_eq_sum_parts set.univ hP
 end
 
 /-- The cardinality of a finset is the sum of the cardinalities

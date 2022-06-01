@@ -5,6 +5,7 @@ Authors: Antoine Chambert-Loir
 -/
 
 import algebra.group.defs
+import data.set.pointwise
 import group_theory.group_action.defs
 
 -- import data.finset.pointwise
@@ -23,15 +24,21 @@ We define :
 This means that `φ : M → N` is a map, `has_scalar M α`, `has_scalar N β` and `f : α →[φ] β`
 satisfies `f(m • a) = φ(m) • f(a)`.
 
+* composition of such maps, identies, inverses when possible
+
+* some pointwise lemmas.
+
 We also introduce the notation `α →[M] β` to mean `α → [id M] β`.
 
 * `is_equivariant φ f` is a predicate that says that `f : α → β`
 is equivariant with respect to `φ`.
 
+## TODO
+
+If this is to replace `mul_action_hom`,
+then one has to rewrite the rest of `group_action.lean`
+
 -/
-
-
-variables {M N α β : Type*} {φ : M → N}
 
 /-- Equivariant maps -/
 structure equivariant_map {M N : Type*} (φ : M → N)
@@ -56,19 +63,23 @@ class equivariant_map_class (F : Type*) (α β : out_param $ Type*)
 (map_smul : ∀ (f : F) (m : M) (a : α), f (m • a) = φ(m) • f(a))
 
 /-- Predicate stating that a map is equivariant -/
-theorem is_equivariant [has_scalar M α] [has_scalar N β] (f : α →ₑ[φ] β) :
-  is_equivariant_map φ f.to_fun := ⟨f.map_smul'⟩
+theorem is_equivariant {α β M N : Type*} {φ : M → N} [has_scalar M α] [has_scalar N β]
+  (f : α →ₑ[φ] β) : is_equivariant_map φ f.to_fun := ⟨f.map_smul'⟩
 
 namespace equivariant_map
 
-variables [has_scalar M α] [has_scalar N β]
+section has_scalar
+
+variables {α β M N : Type*} {φ : M → N} [has_scalar M α] [has_scalar N β]
+
+/-- The map on scalars underlying an equivariant map -/
+def to_scalar_map (f : α →ₑ[φ] β) := φ
 
 -- ACL : I copied a few of them from `group_theory.hom.group_action.lean` and `linear_map.lean`
 -- but I don't really know what I'm doing
 
 /-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`
-directly.
--/
+directly. -/
 instance : has_coe_to_fun (α →ₑ[φ] β) (λ _, α → β) := ⟨equivariant_map.to_fun⟩
 
 @[simp] lemma to_fun_eq_coe {f : α →ₑ[φ] β} : f.to_fun = (f : α → β) := rfl
@@ -95,14 +106,23 @@ initialize_simps_projections equivariant_map (to_fun → apply)
 @[simp] lemma coe_mk {φ : M → N} (f : α → β) (h) :
   ((equivariant_map.mk f h : α →ₑ[φ] β) : α → β) = f := rfl
 
-/- This does not work ?
+/- Why does this not work ?
 theorem coe_injective : @injective (α →ₑ[φ] β) (α → β) coe_fn :=
 fun_like.coe_injective
-
 
 protected lemma congr_arg {x x' : α} {f : α →ₑ[φ] β} : x = x' → f x = f x' :=
 fun_like.congr_arg f
 -/
+
+def of_eq {φ' : M → N} (h : φ = φ') (f : α →ₑ[φ] β) : α →ₑ[φ'] β := {
+to_fun := f.to_fun,
+map_smul' := λ m a, h ▸ (f.map_smul' m a) }
+
+@[simp] lemma of_eq_coe {φ' : M → N} (h : φ = φ') (f : α →ₑ[φ] β) :
+  (f.of_eq h).to_fun = f.to_fun := rfl
+
+@[simp] lemma of_eq_apply {φ' : M → N} (h : φ = φ') (f : α →ₑ[φ] β) (a : α) :
+  (f.of_eq h) a = f a := rfl
 
 variables (M)
 
@@ -115,206 +135,202 @@ protected def id : α →[M] α :=
 @[simp, norm_cast] lemma id_coe : ((equivariant_map.id M : α →[M] α) : α → α) = _root_.id := rfl
 
 
-#exit
+variables {M}
 
-/- The rest is the old API -/
+section composition
+
+/-- Composition of two equivariant maps. -/
+variables {P γ : Type*}  [has_scalar P γ] {ψ : N → P}
+
+def comp (g : β →ₑ[ψ] γ) (f : α →ₑ[φ] β) : α →ₑ[ψ ∘ φ] γ :=
+⟨g ∘ f, λ m a, calc
+g (f (m • a)) = g (φ m • f a) : by rw f.map_smul
+          ... = ψ (φ m) • g (f a) : g.map_smul _ _⟩
+
+@[simp] lemma comp_apply (g : β →ₑ[ψ] γ) (f : α →ₑ[φ] β) (a : α) : g.comp f a = g (f a) := rfl
+
+@[simp] lemma id_comp  (f : α →ₑ[φ] β) :
+  ((equivariant_map.id N).comp f).of_eq (function.comp.left_id φ) = f :=
+ext $ λ x, by rw [of_eq_apply, comp_apply, id_apply]
+
+@[simp] lemma comp_id  (f : α →ₑ[φ] β) :
+  (f.comp (equivariant_map.id M)).of_eq (function.comp.right_id φ) = f :=
+ext $ λ x, by rw [of_eq_apply, comp_apply, id_apply]
+
+variables {Q δ : Type*} [has_scalar Q δ] {χ : P → Q}
+@[simp] lemma comp_assoc (h : γ →ₑ[χ] δ) (g : β →ₑ[ψ] γ) (f : α →ₑ[φ] β) :
+  h.comp (g.comp f) = (h.comp g).comp f := ext $ λ x, rfl
+
+end composition
+
+section inverse
+
+variables {ψ : N → M}
+
+/-- The inverse of a bijective equivariant map is equivariant with
+respect to any right inverse of the scalar map -/
+
+@[simps] def inverse
+  (k₂ : function.right_inverse ψ φ)
+  (f : α →ₑ[φ] β) (g : β → α)
+  (h₁ : function.left_inverse g f) (h₂ : function.right_inverse g f) :
+  β →ₑ[ψ] α :=
+{ to_fun    := g,
+  map_smul' := λ n b,
+    calc g (n • b) = g (φ(ψ(n)) • (f (g b))) : by rw [k₂, h₂]
+               ... = g (f (ψ(n) • (g b))) : by rw f.map_smul
+               ... = ψ(n) • g b : by rw h₁, }
+
+/-- Inverse composed with map is identity (if the map on scalars is bijective) -/
+@[simp] lemma inverse_comp
+  (k₁ : function.left_inverse ψ φ) (k₂ : function.right_inverse ψ φ)
+  (f : α →ₑ[φ] β) (g : β → α)
+  (h₁ : function.left_inverse g f) (h₂ : function.right_inverse g f) :
+  ((inverse k₂ f g h₁ h₂).comp f).of_eq (function.left_inverse.id k₁) = equivariant_map.id M :=
+ext $ λ a, by rw [of_eq_apply, comp_apply, inverse_apply, id_coe, id.def, h₁]
+
+/-- Map composed with inverse is identity -/
+@[simp] lemma comp_inverse
+  (k₂ : function.right_inverse ψ φ)
+  (f : α →ₑ[φ] β) (g : β → α)
+  (h₁ : function.left_inverse g f) (h₂ : function.right_inverse g f) :
+  (f.comp (inverse k₂ f g h₁ h₂)).of_eq (function.right_inverse.id k₂) = equivariant_map.id N :=
+ext $ λ a, by rw [of_eq_apply, comp_apply, inverse_apply, id_coe, id.def, h₂]
+
+-- Necessary ?
+@[simp] lemma inverse_inverse
+  (k₁ : function.left_inverse ψ φ) (k₂ : function.right_inverse ψ φ)
+  (f : α →ₑ[φ] β) (g : β → α)
+  (h₁ : function.left_inverse g f) (h₂ : function.right_inverse g f) :
+  inverse k₁ (inverse k₂ f g h₁ h₂) f.to_fun h₂ h₁ = f :=
+ext $ λ b, by simp only [to_fun_eq_coe, inverse_apply]
+
+end inverse
+
+section pointwise
+
 open_locale pointwise
 
-section monoid
+variable {f : α →ₑ[φ] β}
 
-variables (M : Type*) [monoid M] (X : Type*) [mul_action M X]
-variables (N : Type*) [monoid N] (Y : Type*) [mul_action N Y]
-
-structure mul_action_bihom :=
-(to_fun : X → Y)
-(to_monoid_hom : M →* N)
-(map_smul' : ∀ m x, to_monoid_hom (m) • to_fun (x)
-  = to_fun (m • x))
-
-def sub_mul_action_of_leq_bihom {H K : submonoid M} (hHK : H ≤ K)
-  {αH : sub_mul_action H X} {αK : sub_mul_action K X} (hHK' : αH.carrier ≤ αK.carrier) :
-    mul_action_bihom H αH K αK := {
-to_fun := λ x,
-let hx : (coe x : X) ∈ αK.carrier := begin apply hHK', exact x.prop end
-in ⟨x, hx⟩,
-to_monoid_hom := {
-  to_fun := λ m,
-  let hm : (coe m : M) ∈ K := begin apply hHK, exact m.prop end in ⟨m, hm⟩,
-  map_one' := rfl,
-  map_mul' := λm n, rfl },
-map_smul' := λ m x, rfl }
-
-lemma sub_mul_action_of_leq_bihom_def {H K : submonoid M} (hHK : H ≤ K)
-  {αH : sub_mul_action H X} {αK : sub_mul_action K X} (hHK' : αH.carrier ≤ αK.carrier) :
-  ∀ (x : αH), ((sub_mul_action_of_leq_bihom M X hHK hHK').to_fun x : X) = x := λ x, rfl
-
-def sub_mul_action_of_eq_bihom {H K : submonoid M} (hHK : H = K)
-  {αH : sub_mul_action H X} {αK : sub_mul_action K X} (hHK' : αH.carrier = αK.carrier) :=
-  sub_mul_action_of_leq_bihom M X (le_of_eq hHK) (le_of_eq hHK')
-
-lemma sub_mul_action_of_leq_bihom.injective {H K : submonoid M} (hHK : H ≤ K)
-  {αH : sub_mul_action H X} {αK : sub_mul_action K X} (hHK' : αH.carrier ≤ αK.carrier) :
-  function.injective (sub_mul_action_of_leq_bihom M X hHK hHK').to_fun := λ x y hxy,
-  begin simpa only [← set_like.coe_eq_coe] using hxy end
-
-lemma sub_mul_action_of_leq_bihom.injective' {H K : submonoid M} (hHK : H ≤ K)
-  {αH : sub_mul_action H X} {αK : sub_mul_action K X} (hHK' : αH.carrier ≤ αK.carrier) :
-  function.injective (sub_mul_action_of_leq_bihom M X hHK hHK').to_monoid_hom := λ m n hmn,
-  begin simpa only [← set_like.coe_eq_coe] using hmn end
-
-lemma sub_mul_action_of_eq_bihom_def {H K : submonoid M} (hHK : H = K)
-  {αH : sub_mul_action H X} {αK : sub_mul_action K X} (hHK' : αH.carrier = αK.carrier) :
-  ∀ (x : αH), (coe ((sub_mul_action_of_eq_bihom M X hHK hHK').to_fun x) : X) = x := λ x, rfl
-
-lemma sub_mul_action_of_eq_bihom.bijective {H K : submonoid M} (hHK : H = K)
-  {αH : sub_mul_action H X} {αK : sub_mul_action K X} (hHK' : αH.carrier = αK.carrier) :
-  function.bijective (sub_mul_action_of_eq_bihom M X hHK hHK').to_fun :=
+/-- Image of translated set under an action -/
+@[simp] lemma image_smul_setₑ (m : M) (s : set α) :
+  f '' (m • s) = (φ m) • f '' s :=
 begin
-  apply and.intro (sub_mul_action_of_leq_bihom.injective M X (le_of_eq hHK) (le_of_eq hHK')),
-  { intro y, use ↑y,
-    { change ↑y ∈ αH.carrier, rw hHK', exact y.prop },
-    simpa only [← set_like.coe_eq_coe] }
+  change f.to_fun '' ((λ a, m • a) '' s) =
+    (λ b, φ m • b) '' (f.to_fun '' s),
+  simp only [set.image_image],
+  apply set.image_congr,
+  intros a _, rw f.map_smul'
 end
 
-def sub_mul_action_of_eq_bihom.bijective' {H K : submonoid M} (hHK : H = K)
-  {αH : sub_mul_action H X} {αK : sub_mul_action K X} (hHK' : αH.carrier = αK.carrier) :
-  function.bijective (sub_mul_action_of_eq_bihom M X hHK hHK').to_monoid_hom :=
+variables {β₁ : Type*} [has_scalar M β₁] {f₁ : α →[M] β₁}
+
+lemma image_smul_set (m : M) (s : set α) :
+  f₁ '' (m • s) = m • f₁ '' s :=
+by simp
+
+/-- Translation of preimage is contained in preimage of translation -/
+lemma preimage_smul_setₑ_le {m : M} (t : set β) :
+  m • f ⁻¹' t ⊆ f ⁻¹' (φ m • t) :=
 begin
-  apply and.intro (sub_mul_action_of_leq_bihom.injective' M X (le_of_eq hHK) (le_of_eq hHK')),
-  { intro y, use ↑y,
-    { change ↑y ∈ H.carrier, rw hHK, exact y.prop },
-    simpa only [← set_like.coe_eq_coe] }
+  rintros x ⟨y, hy, rfl⟩,
+  refine ⟨f y, hy, by rw map_smul⟩
 end
 
-variables {M X N Y}
-lemma is_pretransitive_of_bihom
-  {j : mul_action_bihom M X N Y} (hj : function.surjective j.to_fun)
-  (h : mul_action.is_pretransitive M X) : mul_action.is_pretransitive N Y :=
+lemma preimage_smul_set_le {m : M} (t : set β₁) :
+  m • f₁ ⁻¹' t ⊆ f₁ ⁻¹' (m • t) := preimage_smul_setₑ_le t
+
+/-- When the action is bijective, preimage of translation equals translation of preimage -/
+lemma preimage_smul_setₑ' {m : M}
+  (hmα : function.bijective (λ a : α, m • a))
+  (hmβ : function.bijective (λ b : β, φ(m) • b))
+  (t : set β) :
+  f ⁻¹' (φ m • t) = m • f ⁻¹' t :=
 begin
-  apply mul_action.is_pretransitive.mk,
-  intros x y, let h_eq := h.exists_smul_eq,
-  obtain ⟨x', rfl⟩ := hj x,
-  obtain ⟨y', rfl⟩ := hj y,
-  obtain ⟨g, hg⟩ := h_eq x' y',
-  use j.to_monoid_hom g,
-  rw [j.map_smul', hg]
+  apply set.subset.antisymm,
+  { rintros x ⟨y, yt, hy⟩,
+    obtain ⟨x', hx' : m • x' = x⟩ := hmα.surjective x,
+    use x', apply and.intro _ hx',
+    simp, simp only [←hx', map_smul] at hy,
+    rw ← hmβ.injective hy, exact yt },
+  exact preimage_smul_setₑ_le t
 end
 
-end monoid
+lemma preimage_smul_set' {m : M}
+  (hmα : function.bijective (λ a : α, m • a))
+  (hmβ : function.bijective (λ b : β₁, m • b))
+  (t : set β₁) :
+  f₁ ⁻¹' (m • t) = m • f₁ ⁻¹' t :=
+preimage_smul_setₑ' hmα hmβ t
+
+
+end pointwise
+
+end has_scalar
 
 section group
 
-variables (M : Type*) [group M] (X : Type*) [mul_action M X]
-variables (N : Type*) [group N] (Y : Type*) [mul_action N Y]
 
+variables {M N : Type*} [group M] [group N] {φ : M → N}
+variables {α β : Type*} [mul_action M α] [mul_action N β]
+variable {f : α →ₑ[φ] β}
 
-def canonical_bihom : mul_action_bihom M X (equiv.perm X) X := {
-  to_fun := λ x, x,
-  to_monoid_hom := mul_action.to_perm_hom M X,
-  map_smul' := λ m x, (by simp) }
+open_locale pointwise
 
-lemma canonical_bihom_bijective : function.bijective (canonical_bihom M X).to_fun :=
-function.bijective_id
+/-- For an equivariant map between group actions,
+preimage of translation equals translation of preimage -/
+lemma preimage_smul_setₑ {m : M} (t : set β) :
+  f ⁻¹' (φ m • t) = m • f ⁻¹' t :=
+preimage_smul_setₑ' (mul_action.bijective m) (mul_action.bijective (φ(m))) t
 
-def subcanonical_bihom : mul_action_bihom M X (monoid_hom.range (mul_action.to_perm_hom M X)) X := {
-  to_fun := λ x, x,
-  to_monoid_hom := {
-    to_fun := λ m, ⟨mul_action.to_perm m,
-    (by simp only [monoid_hom.mem_range, mul_action.to_perm_hom_apply, exists_apply_eq_apply])⟩,
-    map_one' := begin
-      ext, simp only [subgroup.coe_mk, mul_action.to_perm_apply,
-        one_smul, subgroup.coe_one, equiv.perm.coe_one, id.def],
-    end,
-    map_mul' := λ m n, begin
-      ext, simp, rw mul_smul, end },
-  map_smul' := λ m x,  begin simp, refl end }
-
-lemma subcanonical_bihom_bijective : function.bijective (subcanonical_bihom M X).to_fun :=
-function.bijective_id
-
-lemma subcanonical_bihom_monoid_hom_surjective :
-  function.surjective (subcanonical_bihom M X).to_monoid_hom.to_fun :=
-begin
-  rintro ⟨f, m, rfl⟩, use m, refl
-end
-
-lemma mul_of_preimage_eq (f : mul_action_bihom M X N Y) (B : set Y) (m : M) :
-  m • f.to_fun ⁻¹' B = f.to_fun ⁻¹' ((f.to_monoid_hom m) • B) :=
-begin
-  ext,
-  simp only [set.mem_preimage],
-  split,
-  { intro h,
-    obtain ⟨y, hy, rfl⟩ := h,
-    simp only [set.mem_preimage] at hy,
-    rw ← f.map_smul',
-    exact set.smul_mem_smul_set hy },
-  { rintro ⟨b,hb, hbx⟩,
-    use m⁻¹ • x,
-    split,
-    { simp only [set.mem_preimage],
-      rw [← f.map_smul', ← hbx],
-      simp only [map_inv, inv_smul_smul],
-      exact hb },
-    simp only [smul_inv_smul], }
-end
-
-/--/
-lemma is_pretransitive_of_bihom (f : mul_action_bihom M α N β) (hf : function.surjective f.to_fun) :
-  is_pretransitive M α → is_pretransitive N β :=
-begin
-  intro h, let h_eq := h.exists_smul_eq,
-  apply is_pretransitive.mk,
-  intros x' y',
-  obtain ⟨x, rfl⟩ := hf x',
-  obtain ⟨y, rfl⟩ := hf y',
-  obtain ⟨m, rfl⟩ := h_eq x y,
-  use (f.to_monoid_hom m),
-  refine f.map_smul' _ _,
-end
--/
-
-variables {M X N Y}
-
-def bihom_of_map (j : mul_action_bihom M X N Y) (M' : subgroup M) :
-  mul_action_bihom M' X (subgroup.map j.to_monoid_hom M') Y := {
-to_fun := j.to_fun,
-to_monoid_hom := (j.to_monoid_hom.restrict M').cod_restrict (subgroup.map j.to_monoid_hom M')
-  (λ ⟨x, hx⟩,
-  begin
-    rw monoid_hom.restrict_apply,
-    exact ⟨x, hx, rfl⟩
-  end),
-  map_smul' := λ ⟨m, hm⟩ x,
-  begin
-    simp only [monoid_hom.restrict_apply, subgroup.coe_mk, monoid_hom.cod_restrict_apply],
-    change (j.to_monoid_hom m) • (j.to_fun x) = _,
-    simp only [j.map_smul'],
-    refl
-  end }
-
-lemma bihom_of_map_to_fun_eq (j : mul_action_bihom M X N Y) (M' : subgroup M) :
-  (bihom_of_map j M').to_fun = j.to_fun := rfl
-
-def bihom_of_comap (j : mul_action_bihom M X N Y) (N' : subgroup N) :
-  mul_action_bihom (subgroup.comap j.to_monoid_hom N') X N' Y := {
-to_fun := j.to_fun,
-to_monoid_hom := (j.to_monoid_hom.restrict (subgroup.comap j.to_monoid_hom N')).cod_restrict N'
-  (λ ⟨x, hx⟩,
-  begin
-    rw subgroup.mem_comap at hx,
-    rw monoid_hom.restrict_apply,
-    exact hx,
-  end),
-  map_smul' := λ ⟨m, hm⟩ x,
-  begin
-    simp only [monoid_hom.restrict_apply, subgroup.coe_mk, monoid_hom.cod_restrict_apply],
-    change (j.to_monoid_hom m) • (j.to_fun x) = _,
-    simp only [j.map_smul'],
-    refl
-  end }
-
-lemma bihom_of_comap_to_fun_eq (j : mul_action_bihom M X N Y) (N' : subgroup N) :
-  (bihom_of_comap j N').to_fun = j.to_fun := rfl
+variables {β₁ : Type*} [mul_action M β₁] {f₁ : α →[M] β₁}
+lemma preimage_smul_set {m : M}
+  (t : set β₁) :
+  f₁ ⁻¹' (m • t) = m • f₁ ⁻¹' t :=
+preimage_smul_set' (mul_action.bijective m) (mul_action.bijective m) t
 
 end group
+
+end equivariant_map
+
+
+section pretransitivity
+
+open mul_action
+
+variables {M : Type*} [group M] {α : Type*} [mul_action M α]
+variables {N β : Type*} [group N] [mul_action N β]
+
+lemma is_pretransitive_of_surjective_map
+  {φ : M → N} {f : α →ₑ[φ] β} (hf : function.surjective f.to_fun)
+  (h : is_pretransitive M α) : is_pretransitive N β :=
+begin
+  apply mul_action.is_pretransitive.mk,
+  intros x y, let h_eq := h.exists_smul_eq,
+  obtain ⟨x', rfl⟩ := hf x,
+  obtain ⟨y', rfl⟩ := hf y,
+  obtain ⟨g, hg⟩ := h_eq x' y',
+  use φ g,
+  rw [← f.map_smul', hg]
+end
+
+lemma is_pretransitive_of_bijective_map_iff
+  {φ : M → N} {f : α →ₑ[φ] β}
+  (hφ : function.surjective φ)
+  (hf : function.bijective f.to_fun) :
+  is_pretransitive M α ↔ is_pretransitive N β :=
+begin
+  split,
+  apply is_pretransitive_of_surjective_map hf.surjective,
+  intro hN, let hN_heq := hN.exists_smul_eq,
+  apply is_pretransitive.mk,
+  intros x y,
+  obtain ⟨k, hk⟩ := hN_heq (f x) (f y),
+  obtain ⟨g, rfl⟩ := hφ k,
+  use g,
+  apply hf.injective,
+  simp only [equivariant_map.to_fun_eq_coe, f.map_smul', hk],
+end
+
+end pretransitivity

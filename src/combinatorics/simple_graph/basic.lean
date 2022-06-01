@@ -1040,7 +1040,8 @@ map_adj_iff f
   end }
 
 /-- Embeddings of types induce embeddings of complete graphs on those types. -/
-def complete_graph.of_embedding {α β : Type*} (f : α ↪ β) : complete_graph α ↪g complete_graph β :=
+protected def complete_graph {α β : Type*} (f : α ↪ β) :
+  (⊤ : simple_graph α) ↪g (⊤ : simple_graph β) :=
 { to_fun := f,
   inj' := f.inj',
   map_rel_iff' := by simp }

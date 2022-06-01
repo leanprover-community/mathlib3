@@ -64,14 +64,11 @@ Primes greater than about `sqrt n` appear only to multiplicity 0 or 1 in the bin
 -/
 lemma factorization_choose_le_one (p_large : n < p ^ 2) : (choose n k).factorization p ≤ 1 :=
 begin
-  refine factorization_choose_le.trans _,
-  by_cases hn : n = 0,
-  { rw [hn, log_zero_right],
-    exact zero_le' },
-  by_cases hp : p ≤ 1,
-  { rw log_of_left_le_one hp,
-    exact zero_le' },
-  exact le_of_lt_succ ((lt_pow_iff_log_lt (lt_of_not_le hp) (nat.pos_of_ne_zero hn)).mp p_large),
+  apply factorization_choose_le.trans,
+  rw [←not_lt, one_lt_iff_ne_zero_and_ne_one, not_and_distrib, not_not, not_not,
+      log_eq_zero_iff, log_eq_one_iff, ←sq, and_iff_right p_large, and_comm,
+      ←not_lt, ←not_le, ←not_and_distrib, or_comm],
+  exact or_not,
 end
 
 /--

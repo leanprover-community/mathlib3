@@ -707,7 +707,7 @@ end
 begin
   rcases eq_empty_or_nonempty s with rfl | hs,
   { simp },
-  { exact (monotone.map_Inf lift_monotone hs).symm }
+  { exact monotone.map_Inf lift_monotone hs }
 end
 
 theorem lift_down {a : cardinal.{u}} {b : cardinal.{max u v}} :

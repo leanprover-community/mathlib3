@@ -240,18 +240,21 @@ As usual, passing `⊢` refers to acting on the goal as well.
 
 ##  Reporting sub-optimal usage
 
-The tactic could fail to prove the reordering, though I would not know what the cause of this could
-be.  Still, there are three kinds of unwanted use for `move_add`: the tactic does not fail in these
-cases, but flags the unwanted use.
+The tactic could fail to prove the reordering.  One potential cause is when there are multiple
+matches for the rearrangements and an earlier rewrite makes a subsequent one fail.  If that is not
+the case, though, I would not know what the cause of this could be.
+
+There are three kinds of unwanted use for `move_add` that result in errors: the tactic fails
+and flags the unwanted use.
 1. `move_add [vars]? at *` reports globally unused variables and whether *all* goals
    are unchanged, not *each unchanged goal*.
 2. If a target of `move_add [vars]? at targets` is left unchanged by the tactic, then this will be
    flagged (unless we are using `at *`).
 3. If a user-provided expression never unifies, then the variable is flagged.
 
-The tactic does not produce an error, but reports unused inputs and unchanged targets.
+The tactic produces an error, reporting unused inputs and unchanged targets.
 
-For instance, `move_add ← _` always reports an unchanged goal, but never an unused variable.
+For instance, `move_add ← _` always fails reporting an unchanged goal, but never an unused variable.
 
 ##  Comparison with existing tactics
 

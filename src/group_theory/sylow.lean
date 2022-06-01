@@ -302,8 +302,7 @@ begin
   let Q := (zpowers x).comap (quotient_group.mk' P.1),
   have hx' : is_p_group p (zpowers x),
   { apply is_p_group.of_card,
-    rw [pow_one], -- todo: fix order_eq_card_zpowers
-    exact order_eq_card_zpowers.symm.trans hx },
+    rwa [pow_one, ←order_eq_card_zpowers] },
   have hQ : is_p_group p Q,
   { refine hx'.comap_of_ker_is_p_group (quotient_group.mk' P.1) _,
     rw [quotient_group.ker_mk],

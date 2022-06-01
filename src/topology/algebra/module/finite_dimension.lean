@@ -269,11 +269,11 @@ begin
   rw [basis.equiv_fun_symm_apply, basis.sum_repr]
 end
 
-/-- In finite dimension over a nondiscrete complete normed field, the canonical identification
+/-- In finite dimensions over a non-discrete complete normed field, the canonical identification
 (in terms of a basis) with `𝕜^n` (endowed with the product topology) is continuous.
 This is the key fact wich makes all linear maps from a T2 finite dimensional TVS over such a field
 continuous (see `linear_map.continuous_of_finite_dimensional`), which in turn implies that all
-norm are equivalent in finite dimension. -/
+norms are equivalent in finite dimensions. -/
 theorem continuous_equiv_fun_basis [t2_space E] {ι : Type*} [fintype ι] (ξ : basis ι 𝕜 E) :
   continuous ξ.equiv_fun :=
 begin

@@ -5,6 +5,7 @@ Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne
 -/
 import analysis.complex.basic
 import data.complex.exponential
+import analysis.asymptotics.theta
 
 /-!
 # Complex and real exponential
@@ -271,14 +272,17 @@ by simpa [is_o_iff_tendsto (λ x hx, ((exp_pos x).ne' hx).elim)]
 from below under `f`. -/
 @[simp] lemma is_O_one_exp_comp {α : Type*} {l : filter α} {f : α → ℝ} :
   (λ x, 1 : α → ℝ) =O[l] (λ x, exp (f x)) ↔ is_bounded_under (≥) l f :=
-calc (λ x, 1 : α → ℝ) =O[l] (λ x, exp (f x))
-    ↔ ∃ b : ℝ, 0 < b ∧ ∀ᶠ x in l, b ≤ exp (f x) :
-  iff.trans (is_O_const_left_iff_pos_le_norm one_ne_zero) $ by simp only [norm_eq_abs, abs_exp]
-... ↔ is_bounded_under (≥) l (λ x, exp_order_iso (f x)) :
-  by simp only [is_bounded_under, is_bounded, eventually_map, set_coe.exists, ge_iff_le,
-    ← subtype.coe_le_coe, exists_prop, coe_exp_order_iso_apply, subtype.coe_mk, set.mem_Ioi]
-... ↔ is_bounded_under (≥) l f :
-  exp_order_iso.monotone.is_bounded_under_ge_comp exp_order_iso.tendsto_at_bot
+by simp_rw [is_O_const_left_iff_pos_le_norm (@one_ne_zero ℝ _ _),
+  ← exp_order_iso.is_bounded_under_ge_comp, is_bounded_under, is_bounded, eventually_map,
+  set_coe.exists, ge_iff_le, ← subtype.coe_le_coe, coe_exp_order_iso_apply, subtype.coe_mk,
+  exists_prop, set.mem_Ioi, norm_eq_abs, abs_exp]
+
+/-- `real.exp (f x)` is bounded away from zero and infinity along a filter `l` if and only if
+`|f x|` is bounded from above along this filter. -/
+@[simp] lemma is_Theta_exp_comp_one {α : Type*} {l : filter α} {f : α → ℝ} :
+  (λ x, exp (f x)) =Θ[l] (λ x, 1 : α → ℝ) ↔ is_bounded_under (≤) l (λ x, |f x|) :=
+by simp only [is_Theta, is_O_one_exp_comp, is_O_const_of_ne (@one_ne_zero ℝ _ _), (∘), norm_eq_abs,
+  abs_exp, is_bounded_under_le_exp_comp, is_bounded_under_le_abs]
 
 end real
 

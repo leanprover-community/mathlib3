@@ -50,6 +50,8 @@ theorem is_maximal.ne_top {N : submodule R M} (h : N.is_maximal) : N ≠ ⊤ := 
 
 end submodule
 
+open submodule (is_maximal)
+
 namespace ideal
 variables [semiring α] (I : ideal α) {a b : α}
 
@@ -195,24 +197,16 @@ lemma bot_prime {R : Type*} [ring R] [is_domain R] : (⊥ : ideal R).is_prime :=
 ⟨λ h, one_ne_zero (by rwa [ideal.eq_top_iff_one, submodule.mem_bot] at h),
  λ x y h, mul_eq_zero.mp (by simpa only [submodule.mem_bot] using h)⟩
 
-/-- An ideal is maximal if it is maximal in the collection of proper ideals. -/
-@[class]
-def is_maximal (I : ideal α) : Prop := submodule.is_maximal I
-
-theorem is_maximal_def {I : ideal α} : I.is_maximal ↔ is_coatom I := ⟨λ h, h.1, λ h, ⟨h⟩⟩
-
-theorem is_maximal.ne_top {I : ideal α} (h : I.is_maximal) : I ≠ ⊤ := (is_maximal_def.1 h).1
-
 theorem is_maximal_iff {I : ideal α} : I.is_maximal ↔
   (1:α) ∉ I ∧ ∀ (J : ideal α) x, I ≤ J → x ∉ I → x ∈ J → (1:α) ∈ J :=
-is_maximal_def.trans $ and_congr I.ne_top_iff_one $ forall_congr $ λ J,
+submodule.is_maximal_def.trans $ and_congr I.ne_top_iff_one $ forall_congr $ λ J : ideal α,
 by rw [lt_iff_le_not_le]; exact
  ⟨λ H x h hx₁ hx₂, J.eq_top_iff_one.1 $
     H ⟨h, not_subset.2 ⟨_, hx₂, hx₁⟩⟩,
   λ H ⟨h₁, h₂⟩, let ⟨x, xJ, xI⟩ := not_subset.1 h₂ in
    J.eq_top_iff_one.2 $ H x h₁ xI xJ⟩
 
-theorem is_maximal.eq_of_le {I J : ideal α}
+theorem _root_.submodule.is_maximal.eq_of_le {I J : ideal α}
   (hI : I.is_maximal) (hJ : J ≠ ⊤) (IJ : I ≤ J) : I = J :=
 eq_iff_le_not_lt.2 ⟨IJ, λ h, hJ (hI.1.2 _ h)⟩
 
@@ -257,7 +251,7 @@ theorem mem_span_pair {x y z : α} :
   z ∈ span ({x, y} : set α) ↔ ∃ a b, a * x + b * y = z :=
 by simp [mem_span_insert, mem_span_singleton', @eq_comm _ _ z]
 
-theorem is_maximal.exists_inv {I : ideal α}
+theorem _root_.submodule.is_maximal.exists_inv {I : ideal α}
   (hI : I.is_maximal) {x} (hx : x ∉ I) : ∃ y, ∃ i ∈ I, y * x + i = 1 :=
 begin
   cases is_maximal_iff.1 hI with H₁ H₂,
@@ -365,7 +359,7 @@ theorem span_singleton_prime {p : α} (hp : p ≠ 0) :
   is_prime (span ({p} : set α)) ↔ prime p :=
 by simp [is_prime_iff, prime, span_singleton_eq_top, hp, mem_span_singleton]
 
-theorem is_maximal.is_prime {I : ideal α} (H : I.is_maximal) : I.is_prime :=
+theorem _root_.submodule.is_maximal.is_prime {I : ideal α} (H : I.is_maximal) : I.is_prime :=
 ⟨H.1.1, λ x y hxy, or_iff_not_imp_left.2 $ λ hx, begin
   let J : ideal α := submodule.span α (insert x ↑I),
   have IJ : I ≤ J  := (set.subset.trans (subset_insert _ _) subset_span),
@@ -381,7 +375,7 @@ end⟩
 
 @[priority 100] -- see Note [lower instance priority]
 instance is_maximal.is_prime' (I : ideal α) : ∀ [H : I.is_maximal], I.is_prime :=
-is_maximal.is_prime
+submodule.is_maximal.is_prime
 
 lemma span_singleton_lt_span_singleton [comm_ring β] [is_domain β] {x y : β} :
   span ({x} : set β) < span ({y} : set β) ↔ dvd_not_unit y x :=
@@ -497,6 +491,7 @@ end ring
 section division_ring
 variables {K : Type u} [division_ring K] (I : ideal K)
 
+open submodule (is_maximal)
 namespace ideal
 
 /-- All ideals in a division ring are trivial. -/

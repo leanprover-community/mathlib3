@@ -16,9 +16,114 @@ universes v₁ v₂ u₁ u₂
 open category_theory
 open category_theory.monoidal_category
 
-variables (C : Type u₁) [category.{v₁} C] [monoidal_category.{v₁} C]
+variables (C : Type u₁) [category.{v₁} C]
 
 variables {C}
+
+section
+
+open category_theory.limits
+
+variables [has_coequalizers C]
+
+lemma π_colim_map_desc {X Y X' Y' Z : C} (f g : X ⟶ Y) (f' g' : X' ⟶ Y')
+  (p : X ⟶ X') (q : Y ⟶ Y') (wf : f ≫ q = p ≫ f') (wg : g ≫ q = p ≫ g')
+  (h : Y' ⟶ Z) (wh : f' ≫ h = g' ≫ h) :
+  coequalizer.π f g ≫ colim_map (parallel_pair_hom f g f' g' p q wf wg) ≫ coequalizer.desc h wh =
+  q ≫ h :=
+begin
+  slice_lhs 1 2 { rw [ι_colim_map, parallel_pair_hom_app_one] },
+  slice_lhs 2 3 { rw coequalizer.π_desc },
+end
+
+lemma map_π_preserves_coequalizer_inv (G : C ⥤ C) [preserves_colimits G]
+  {X Y : C} (f g : X ⟶ Y) :
+  G.map (coequalizer.π f g) ≫ (preserves_coequalizer.iso G f g).inv =
+  coequalizer.π (G.map f) (G.map g) :=
+begin
+  rw [←ι_comp_coequalizer_comparison, ←preserves_coequalizer.iso_hom, category.assoc,
+      iso.hom_inv_id, category.comp_id],
+end
+
+variables [monoidal_category.{v₁} C]
+
+section
+
+variables [∀ X : C, preserves_colimits (tensor_left X)]
+
+lemma id_tensor_π_comp_preserves_coequalizer_inv_comp_colim_map
+  (X Y Z Y' Z' : C) (f g : Y ⟶ Z) (f' g' : Y' ⟶ Z') (p : X ⊗ Y ⟶ Y') (q : X ⊗ Z ⟶ Z')
+  (wf : (𝟙 X ⊗ f) ≫ q = p ≫ f') (wg : (𝟙 X ⊗ g) ≫ q = p ≫ g') :
+  (𝟙 X ⊗ coequalizer.π f g) ≫ (preserves_coequalizer.iso (tensor_left X) f g).inv ≫
+  colim_map (parallel_pair_hom (𝟙 X ⊗ f) (𝟙 X ⊗ g) f' g' p q wf wg) =
+  q ≫ coequalizer.π f' g' :=
+begin
+  rw [←tensor_left_map, ←ι_comp_coequalizer_comparison, ←preserves_coequalizer.iso_hom,
+      category.assoc, iso.hom_inv_id_assoc, ι_colim_map, parallel_pair_hom_app_one],
+end
+
+lemma id_tensor_π_preserves_coequalizer_inv
+  {X Y Z : C} (f g : X ⟶ Y) :
+  (𝟙 Z ⊗ coequalizer.π f g) ≫ (preserves_coequalizer.iso (tensor_left Z) f g).inv =
+  coequalizer.π (𝟙 Z ⊗ f) (𝟙 Z ⊗ g) :=
+begin
+  rw [←(tensor_left_map _ _ _ (coequalizer.π _ _)),
+      map_π_preserves_coequalizer_inv],
+  dsimp, refl,
+end
+
+lemma id_tensor_π_preserves_coequalizer_inv_desc
+  {W X Y Z : C} (f g : X ⟶ Y)
+  (h : Z ⊗ Y ⟶ W) (wh : (𝟙 Z ⊗ f) ≫ h = (𝟙 Z ⊗ g) ≫ h) :
+  (𝟙 Z ⊗ coequalizer.π f g) ≫ (preserves_coequalizer.iso (tensor_left Z) f g).inv ≫
+    coequalizer.desc h wh = h :=
+begin
+  slice_lhs 1 2 { rw id_tensor_π_preserves_coequalizer_inv },
+  slice_lhs 1 2 { rw coequalizer.π_desc },
+end
+
+end
+
+section
+
+variables [∀ X : C, preserves_colimits (tensor_right X)]
+
+lemma π_tensor_id_comp_preserves_coequalizer_inv_comp_colim_map
+  (X Y Z Y' Z' : C) (f g : Y ⟶ Z) (f' g' : Y' ⟶ Z') (p : Y ⊗ X ⟶ Y') (q : Z ⊗ X ⟶ Z')
+  (wf : (f ⊗ 𝟙 X) ≫ q = p ≫ f') (wg : (g ⊗ 𝟙 X) ≫ q = p ≫ g') :
+  (coequalizer.π f g ⊗ 𝟙 X) ≫ (preserves_coequalizer.iso (tensor_right X) f g).inv ≫
+  colim_map (parallel_pair_hom (f ⊗ 𝟙 X) (g ⊗ 𝟙 X) f' g' p q wf wg) =
+  q ≫ coequalizer.π f' g' :=
+begin
+  rw [←tensor_right_map, ←ι_comp_coequalizer_comparison, ←preserves_coequalizer.iso_hom,
+      category.assoc, iso.hom_inv_id_assoc, ι_colim_map, parallel_pair_hom_app_one],
+end
+
+lemma π_tensor_id_preserves_coequalizer_inv
+  {X Y Z : C} (f g : X ⟶ Y) :
+  (coequalizer.π f g ⊗ 𝟙 Z) ≫ (preserves_coequalizer.iso (tensor_right Z) f g).inv =
+  coequalizer.π (f ⊗ 𝟙 Z) (g ⊗ 𝟙 Z) :=
+begin
+  rw [←(tensor_right_map _ _ _ (coequalizer.π _ _)),
+      map_π_preserves_coequalizer_inv],
+  dsimp, refl,
+end
+
+lemma π_tensor_id_preserves_coequalizer_inv_desc
+  {W X Y Z : C} (f g : X ⟶ Y)
+  (h : Y ⊗ Z ⟶ W) (wh : (f ⊗ 𝟙 Z) ≫ h = (g ⊗ 𝟙 Z) ≫ h) :
+  (coequalizer.π f g ⊗ 𝟙 Z) ≫ (preserves_coequalizer.iso (tensor_right Z) f g).inv ≫
+    coequalizer.desc h wh = h :=
+begin
+  slice_lhs 1 2 { rw π_tensor_id_preserves_coequalizer_inv },
+  slice_lhs 1 2 { rw coequalizer.π_desc },
+end
+
+end
+
+end
+
+variables [monoidal_category.{v₁} C]
 
 /-- A bimodule object for a pair of monoid objects, all internal to some monoidal category. -/
 structure Bimod (A B : Mon_ C) :=
@@ -78,6 +183,39 @@ instance : category (Bimod A B) :=
 @[simp] lemma comp_hom' {M N K : Bimod A B} (f : M ⟶ N) (g : N ⟶ K) :
   (f ≫ g : hom M K).hom = f.hom ≫ g.hom := rfl
 
+/--
+Construct an isomorphism of bimodules by giving an isomorphism between the underlying objects
+and checking compatibility with left and right actions only in the forward direction.
+-/
+@[simps]
+def iso_of_iso {X Y : Mon_ C} {P Q : Bimod X Y}
+  (f : P.X ≅ Q.X)
+  (f_left_act_hom : P.act_left ≫ f.hom = (𝟙 X.X ⊗ f.hom) ≫ Q.act_left)
+  (f_right_act_hom : P.act_right ≫ f.hom = (f.hom ⊗ 𝟙 Y.X) ≫ Q.act_right) :
+  P ≅ Q :=
+{ hom :=
+  { hom := f.hom,
+    left_act_hom' := f_left_act_hom,
+    right_act_hom' := f_right_act_hom },
+  inv :=
+  { hom := f.inv,
+    left_act_hom' := begin
+      rw [←(cancel_mono f.hom), category.assoc, category.assoc, iso.inv_hom_id, category.comp_id,
+          f_left_act_hom, ←category.assoc, ←id_tensor_comp, iso.inv_hom_id,
+          monoidal_category.tensor_id, category.id_comp],
+    end,
+    right_act_hom' := begin
+      rw [←(cancel_mono f.hom), category.assoc, category.assoc, iso.inv_hom_id, category.comp_id,
+          f_right_act_hom, ←category.assoc, ←comp_tensor_id, iso.inv_hom_id,
+          monoidal_category.tensor_id, category.id_comp],
+    end },
+  hom_inv_id' := begin
+    ext, dsimp, rw iso.hom_inv_id,
+  end,
+  inv_hom_id' := begin
+    ext, dsimp, rw iso.inv_hom_id,
+  end }
+
 variables (A)
 
 /-- A monoid object as a bimodule over itself. -/
@@ -97,30 +235,6 @@ def forget : Bimod A B ⥤ C :=
 open category_theory.limits
 
 variables [has_coequalizers C]
-variables [∀ X : C, preserves_colimits (tensor_left X)]
-variables [∀ X : C, preserves_colimits (tensor_right X)]
-
-lemma id_tensor_π_comp_preserves_coequalizer_inv_comp_colim_map
-  (X Y Z Y' Z' : C) (f g : Y ⟶ Z) (f' g' : Y' ⟶ Z') (p : X ⊗ Y ⟶ Y') (q : X ⊗ Z ⟶ Z')
-  (wf : (𝟙 X ⊗ f) ≫ q = p ≫ f') (wg : (𝟙 X ⊗ g) ≫ q = p ≫ g') :
-  (𝟙 X ⊗ coequalizer.π f g) ≫ (preserves_coequalizer.iso (tensor_left X) f g).inv ≫
-  colim_map (parallel_pair_hom (𝟙 X ⊗ f) (𝟙 X ⊗ g) f' g' p q wf wg) =
-  q ≫ coequalizer.π f' g' :=
-begin
-  rw [←tensor_left_map, ←ι_comp_coequalizer_comparison, ←preserves_coequalizer.iso_hom,
-      category.assoc, iso.hom_inv_id_assoc, ι_colim_map, parallel_pair_hom_app_one],
-end
-
-lemma π_tensor_id_comp_preserves_coequalizer_inv_comp_colim_map
-  (X Y Z Y' Z' : C) (f g : Y ⟶ Z) (f' g' : Y' ⟶ Z') (p : Y ⊗ X ⟶ Y') (q : Z ⊗ X ⟶ Z')
-  (wf : (f ⊗ 𝟙 X) ≫ q = p ≫ f') (wg : (g ⊗ 𝟙 X) ≫ q = p ≫ g') :
-  (coequalizer.π f g ⊗ 𝟙 X) ≫ (preserves_coequalizer.iso (tensor_right X) f g).inv ≫
-  colim_map (parallel_pair_hom (f ⊗ 𝟙 X) (g ⊗ 𝟙 X) f' g' p q wf wg) =
-  q ≫ coequalizer.π f' g' :=
-begin
-  rw [←tensor_right_map, ←ι_comp_coequalizer_comparison, ←preserves_coequalizer.iso_hom,
-      category.assoc, iso.hom_inv_id_assoc, ι_colim_map, parallel_pair_hom_app_one],
-end
 
 namespace tensor_Bimod
 variables {R S T : Mon_ C} (P : Bimod R S) (Q : Bimod S T)
@@ -128,6 +242,10 @@ variables {R S T : Mon_ C} (P : Bimod R S) (Q : Bimod S T)
 /-- The underlying object of the tensor product of two bimodules. -/
 noncomputable
 def X : C := coequalizer (P.act_right ⊗ 𝟙 Q.X) ((α_ _ _ _).hom ≫ (𝟙 P.X ⊗ Q.act_left))
+
+section
+
+variables [∀ X : C, preserves_colimits (tensor_left X)]
 
 /-- Left action for the tensor product of two bimodules. -/
 noncomputable
@@ -160,6 +278,41 @@ begin
   rw id_tensor_π_comp_preserves_coequalizer_inv_comp_colim_map,
   simp only [category.assoc],
 end
+
+lemma one_act_left' : (R.one ⊗ 𝟙 _) ≫ act_left P Q = (λ_ _).hom :=
+begin
+  refine (cancel_epi ((tensor_left _).map (coequalizer.π _ _))).1 _,
+  dunfold X, dsimp,
+  slice_lhs 1 2 { rw [id_tensor_comp_tensor_id, ←tensor_id_comp_id_tensor] },
+  slice_lhs 2 3 { rw id_tensor_π_act_left },
+  slice_lhs 1 2 { rw [←monoidal_category.tensor_id, associator_inv_naturality] },
+  slice_lhs 2 3 { rw [←comp_tensor_id, one_act_left] },
+  slice_rhs 1 2 { rw left_unitor_naturality },
+  coherence,
+end
+
+lemma left_assoc' :
+  (R.mul ⊗ 𝟙 _) ≫ act_left P Q =
+  (α_ R.X R.X _).hom ≫ (𝟙 R.X ⊗ act_left P Q) ≫ act_left P Q :=
+begin
+  refine (cancel_epi ((tensor_left _).map (coequalizer.π _ _))).1 _,
+  dunfold X, dsimp,
+  slice_lhs 1 2 { rw [id_tensor_comp_tensor_id, ←tensor_id_comp_id_tensor] },
+  slice_lhs 2 3 { rw id_tensor_π_act_left },
+  slice_lhs 1 2 { rw [←monoidal_category.tensor_id, associator_inv_naturality] },
+  slice_lhs 2 3 { rw [←comp_tensor_id, left_assoc, comp_tensor_id, comp_tensor_id] },
+  slice_rhs 1 2 { rw [←monoidal_category.tensor_id, associator_naturality] },
+  slice_rhs 2 3 { rw [←id_tensor_comp, id_tensor_π_act_left, id_tensor_comp, id_tensor_comp] },
+  slice_rhs 4 5 { rw id_tensor_π_act_left },
+  slice_rhs 3 4 { rw associator_inv_naturality },
+  coherence,
+end
+
+end
+
+section
+
+variables [∀ X : C, preserves_colimits (tensor_right X)]
 
 /-- Right action for the tensor product of two bimodules. -/
 noncomputable
@@ -195,18 +348,6 @@ begin
   simp only [category.assoc],
 end
 
-lemma one_act_left' : (R.one ⊗ 𝟙 _) ≫ act_left P Q = (λ_ _).hom :=
-begin
-  refine (cancel_epi ((tensor_left _).map (coequalizer.π _ _))).1 _,
-  dunfold X, dsimp,
-  slice_lhs 1 2 { rw [id_tensor_comp_tensor_id, ←tensor_id_comp_id_tensor] },
-  slice_lhs 2 3 { rw id_tensor_π_act_left },
-  slice_lhs 1 2 { rw [←monoidal_category.tensor_id, associator_inv_naturality] },
-  slice_lhs 2 3 { rw [←comp_tensor_id, one_act_left] },
-  slice_rhs 1 2 { rw left_unitor_naturality },
-  coherence,
-end
-
 lemma act_right_one' : (𝟙 _ ⊗ T.one) ≫ act_right P Q = (ρ_ _).hom :=
 begin
   refine (cancel_epi ((tensor_right _).map (coequalizer.π _ _))).1 _,
@@ -216,23 +357,6 @@ begin
   slice_lhs 1 2 { rw [←monoidal_category.tensor_id, associator_naturality] },
   slice_lhs 2 3 { rw [←id_tensor_comp, act_right_one] },
   slice_rhs 1 2 { rw right_unitor_naturality },
-  coherence,
-end
-
-lemma left_assoc' :
-  (R.mul ⊗ 𝟙 _) ≫ act_left P Q =
-  (α_ R.X R.X _).hom ≫ (𝟙 R.X ⊗ act_left P Q) ≫ act_left P Q :=
-begin
-  refine (cancel_epi ((tensor_left _).map (coequalizer.π _ _))).1 _,
-  dunfold X, dsimp,
-  slice_lhs 1 2 { rw [id_tensor_comp_tensor_id, ←tensor_id_comp_id_tensor] },
-  slice_lhs 2 3 { rw id_tensor_π_act_left },
-  slice_lhs 1 2 { rw [←monoidal_category.tensor_id, associator_inv_naturality] },
-  slice_lhs 2 3 { rw [←comp_tensor_id, left_assoc, comp_tensor_id, comp_tensor_id] },
-  slice_rhs 1 2 { rw [←monoidal_category.tensor_id, associator_naturality] },
-  slice_rhs 2 3 { rw [←id_tensor_comp, id_tensor_π_act_left, id_tensor_comp, id_tensor_comp] },
-  slice_rhs 4 5 { rw id_tensor_π_act_left },
-  slice_rhs 3 4 { rw associator_inv_naturality },
   coherence,
 end
 
@@ -253,6 +377,13 @@ begin
   coherence,
 end
 
+end
+
+section
+
+variables [∀ X : C, preserves_colimits (tensor_left X)]
+variables [∀ X : C, preserves_colimits (tensor_right X)]
+
 lemma middle_assoc' :
   (act_left P Q ⊗ 𝟙 T.X) ≫ act_right P Q =
   (α_ R.X _ T.X).hom ≫ (𝟙 R.X ⊗ act_right P Q) ≫ act_left P Q :=
@@ -271,7 +402,14 @@ begin
   coherence,
 end
 
+end
+
 end tensor_Bimod
+
+section
+
+variables [∀ X : C, preserves_colimits (tensor_left X)]
+variables [∀ X : C, preserves_colimits (tensor_right X)]
 
 /-- Tensor product of two bimodule objects as a bimodule object. -/
 @[simps]
@@ -285,6 +423,13 @@ def tensor_Bimod {X Y Z : Mon_ C} (M : Bimod X Y) (N : Bimod Y Z) : Bimod X Z :=
   left_assoc' := tensor_Bimod.left_assoc' M N,
   right_assoc' := tensor_Bimod.right_assoc' M N,
   middle_assoc' := tensor_Bimod.middle_assoc' M N, }
+
+end
+
+section
+
+variables [∀ X : C, preserves_colimits (tensor_left X)]
+variables [∀ X : C, preserves_colimits (tensor_right X)]
 
 /-- Tensor product of two morphisms of bimodule objects. -/
 @[simps]
@@ -339,95 +484,13 @@ begin
     category.assoc, ι_colim_map_assoc]
 end
 
-lemma map_π_preserves_coequalizer_inv (G : C ⥤ C) [preserves_colimits G]
-  {X Y : C} (f g : X ⟶ Y) :
-  G.map (coequalizer.π f g) ≫ (preserves_coequalizer.iso G f g).inv =
-  coequalizer.π (G.map f) (G.map g) :=
-begin
-  rw [←ι_comp_coequalizer_comparison, ←preserves_coequalizer.iso_hom, category.assoc,
-      iso.hom_inv_id, category.comp_id],
 end
-
-lemma π_tensor_id_preserves_coequalizer_inv {X Y Z : C} (f g : X ⟶ Y) :
-  (coequalizer.π f g ⊗ 𝟙 Z) ≫ (preserves_coequalizer.iso (tensor_right Z) f g).inv =
-  coequalizer.π (f ⊗ 𝟙 Z) (g ⊗ 𝟙 Z) :=
-begin
-  rw [←(tensor_right_map _ _ _ (coequalizer.π _ _)),
-      map_π_preserves_coequalizer_inv],
-  dsimp, refl,
-end
-
-lemma id_tensor_π_preserves_coequalizer_inv {X Y Z : C} (f g : X ⟶ Y) :
-  (𝟙 Z ⊗ coequalizer.π f g) ≫ (preserves_coequalizer.iso (tensor_left Z) f g).inv =
-  coequalizer.π (𝟙 Z ⊗ f) (𝟙 Z ⊗ g) :=
-begin
-  rw [←(tensor_left_map _ _ _ (coequalizer.π _ _)),
-      map_π_preserves_coequalizer_inv],
-  dsimp, refl,
-end
-
-lemma π_tensor_id_preserves_coequalizer_inv_desc {W X Y Z : C} (f g : X ⟶ Y)
-  (h : Y ⊗ Z ⟶ W) (wh : (f ⊗ 𝟙 Z) ≫ h = (g ⊗ 𝟙 Z) ≫ h) :
-  (coequalizer.π f g ⊗ 𝟙 Z) ≫ (preserves_coequalizer.iso (tensor_right Z) f g).inv ≫
-    coequalizer.desc h wh = h :=
-begin
-  slice_lhs 1 2 { rw π_tensor_id_preserves_coequalizer_inv },
-  slice_lhs 1 2 { rw coequalizer.π_desc },
-end
-
-lemma id_tensor_π_preserves_coequalizer_inv_desc {W X Y Z : C} (f g : X ⟶ Y)
-  (h : Z ⊗ Y ⟶ W) (wh : (𝟙 Z ⊗ f) ≫ h = (𝟙 Z ⊗ g) ≫ h) :
-  (𝟙 Z ⊗ coequalizer.π f g) ≫ (preserves_coequalizer.iso (tensor_left Z) f g).inv ≫
-    coequalizer.desc h wh = h :=
-begin
-  slice_lhs 1 2 { rw id_tensor_π_preserves_coequalizer_inv },
-  slice_lhs 1 2 { rw coequalizer.π_desc },
-end
-
-lemma π_colim_map_desc {X Y X' Y' Z : C} (f g : X ⟶ Y) (f' g' : X' ⟶ Y')
-  (p : X ⟶ X') (q : Y ⟶ Y') (wf : f ≫ q = p ≫ f') (wg : g ≫ q = p ≫ g')
-  (h : Y' ⟶ Z) (wh : f' ≫ h = g' ≫ h) :
-  coequalizer.π f g ≫ colim_map (parallel_pair_hom f g f' g' p q wf wg) ≫ coequalizer.desc h wh =
-  q ≫ h :=
-begin
-  slice_lhs 1 2 { rw [ι_colim_map, parallel_pair_hom_app_one] },
-  slice_lhs 2 3 { rw coequalizer.π_desc },
-end
-
-/--
-Construct an isomorphism of bimodules by giving an isomorphism between the underlying objects
-and checking compatibility with left and right actions only in the forward direction.
--/
-@[simps]
-def iso_of_iso {X Y : Mon_ C} {P Q : Bimod X Y}
-  (f : P.X ≅ Q.X)
-  (f_left_act_hom : P.act_left ≫ f.hom = (𝟙 X.X ⊗ f.hom) ≫ Q.act_left)
-  (f_right_act_hom : P.act_right ≫ f.hom = (f.hom ⊗ 𝟙 Y.X) ≫ Q.act_right) :
-  P ≅ Q :=
-{ hom :=
-  { hom := f.hom,
-    left_act_hom' := f_left_act_hom,
-    right_act_hom' := f_right_act_hom },
-  inv :=
-  { hom := f.inv,
-    left_act_hom' := begin
-      rw [←(cancel_mono f.hom), category.assoc, category.assoc, iso.inv_hom_id, category.comp_id,
-          f_left_act_hom, ←category.assoc, ←id_tensor_comp, iso.inv_hom_id,
-          monoidal_category.tensor_id, category.id_comp],
-    end,
-    right_act_hom' := begin
-      rw [←(cancel_mono f.hom), category.assoc, category.assoc, iso.inv_hom_id, category.comp_id,
-          f_right_act_hom, ←category.assoc, ←comp_tensor_id, iso.inv_hom_id,
-          monoidal_category.tensor_id, category.id_comp],
-    end },
-  hom_inv_id' := begin
-    ext, dsimp, rw iso.hom_inv_id,
-  end,
-  inv_hom_id' := begin
-    ext, dsimp, rw iso.inv_hom_id,
-  end }
 
 namespace associator_Bimod
+
+variables [∀ X : C, preserves_colimits (tensor_left X)]
+variables [∀ X : C, preserves_colimits (tensor_right X)]
+
 variables {R S T U: Mon_ C} (P : Bimod R S) (Q : Bimod S T) (L : Bimod T U)
 
 /-- An auxiliary morphism for the definition of the underlying morphism of the forward component of
@@ -639,18 +702,6 @@ end
 
 end associator_Bimod
 
-/-- The associator as a bimodule isomorphism. -/
-noncomputable
-def associator_Bimod {W X Y Z : Mon_ C} (L : Bimod W X) (M : Bimod X Y) (N : Bimod Y Z) :
-  tensor_Bimod (tensor_Bimod L M) N ≅ tensor_Bimod L (tensor_Bimod M N) :=
-iso_of_iso
-  { hom := associator_Bimod.hom_hom L M N,
-    inv := associator_Bimod.inv_hom L M N,
-    hom_inv_id' := associator_Bimod.hom_hom_inv_hom_id L M N,
-    inv_hom_id' := associator_Bimod.inv_hom_hom_hom_id L M N }
-  (associator_Bimod.hom_left_act_hom' L M N)
-  (associator_Bimod.hom_right_act_hom' L M N)
-
 namespace left_unitor_Bimod
 variables {R S : Mon_ C} (P : Bimod R S)
 
@@ -658,35 +709,9 @@ variables {R S : Mon_ C} (P : Bimod R S)
 noncomputable
 def hom_hom : tensor_Bimod.X (regular R) P ⟶ P.X :=
 begin
-  dsimp, dunfold tensor_Bimod.X, dsimp,
+  dunfold tensor_Bimod.X, dsimp,
   refine coequalizer.desc P.act_left _,
   rw [category.assoc, left_assoc],
-end
-
-lemma hom_left_act_hom' :
-  ((regular R).tensor_Bimod P).act_left ≫ hom_hom P = (𝟙 R.X ⊗ hom_hom P) ≫ P.act_left :=
-begin
-  dsimp, dunfold hom_hom tensor_Bimod.act_left regular, dsimp,
-  refine (cancel_epi ((tensor_left _).map (coequalizer.π _ _))).1 _,
-  dsimp,
-  slice_lhs 1 2 { rw id_tensor_π_preserves_coequalizer_inv },
-  slice_lhs 1 3 { rw π_colim_map_desc },
-  slice_lhs 2 3 { rw left_assoc },
-  slice_rhs 1 2 { rw [←id_tensor_comp, coequalizer.π_desc] },
-  rw iso.inv_hom_id_assoc,
-end
-
-lemma hom_right_act_hom' :
-  ((regular R).tensor_Bimod P).act_right ≫ hom_hom P = (hom_hom P ⊗ 𝟙 S.X) ≫ P.act_right :=
-begin
-  dsimp, dunfold hom_hom tensor_Bimod.act_right regular, dsimp,
-  refine (cancel_epi ((tensor_right _).map (coequalizer.π _ _))).1 _,
-  dsimp,
-  slice_lhs 1 2 { rw π_tensor_id_preserves_coequalizer_inv },
-  slice_lhs 1 3 { rw π_colim_map_desc },
-  slice_rhs 1 2 { rw [←comp_tensor_id, coequalizer.π_desc] },
-  slice_rhs 1 2 { rw middle_assoc },
-  rw category.assoc,
 end
 
 /-- The underlying morphism of the inverse component of the left unitor isomorphism. -/
@@ -716,18 +741,36 @@ begin
   rw [one_act_left, iso.inv_hom_id],
 end
 
-end left_unitor_Bimod
+variables [∀ X : C, preserves_colimits (tensor_left X)]
+variables [∀ X : C, preserves_colimits (tensor_right X)]
 
-/-- The left unitor as a bimodule isomorphism. -/
-noncomputable
-def left_unitor_Bimod {X Y : Mon_ C} (M : Bimod X Y) : tensor_Bimod (regular X) M ≅ M :=
-iso_of_iso
-  { hom := left_unitor_Bimod.hom_hom M,
-    inv := left_unitor_Bimod.inv_hom M,
-    hom_inv_id' := left_unitor_Bimod.hom_hom_inv_hom_id M,
-    inv_hom_id' := left_unitor_Bimod.inv_hom_hom_hom_id M }
-  (left_unitor_Bimod.hom_left_act_hom' M)
-  (left_unitor_Bimod.hom_right_act_hom' M)
+lemma hom_left_act_hom' :
+  ((regular R).tensor_Bimod P).act_left ≫ hom_hom P = (𝟙 R.X ⊗ hom_hom P) ≫ P.act_left :=
+begin
+  dsimp, dunfold hom_hom tensor_Bimod.act_left regular, dsimp,
+  refine (cancel_epi ((tensor_left _).map (coequalizer.π _ _))).1 _,
+  dsimp,
+  slice_lhs 1 2 { rw id_tensor_π_preserves_coequalizer_inv },
+  slice_lhs 1 3 { rw π_colim_map_desc },
+  slice_lhs 2 3 { rw left_assoc },
+  slice_rhs 1 2 { rw [←id_tensor_comp, coequalizer.π_desc] },
+  rw iso.inv_hom_id_assoc,
+end
+
+lemma hom_right_act_hom' :
+  ((regular R).tensor_Bimod P).act_right ≫ hom_hom P = (hom_hom P ⊗ 𝟙 S.X) ≫ P.act_right :=
+begin
+  dsimp, dunfold hom_hom tensor_Bimod.act_right regular, dsimp,
+  refine (cancel_epi ((tensor_right _).map (coequalizer.π _ _))).1 _,
+  dsimp,
+  slice_lhs 1 2 { rw π_tensor_id_preserves_coequalizer_inv },
+  slice_lhs 1 3 { rw π_colim_map_desc },
+  slice_rhs 1 2 { rw [←comp_tensor_id, coequalizer.π_desc] },
+  slice_rhs 1 2 { rw middle_assoc },
+  rw category.assoc,
+end
+
+end left_unitor_Bimod
 
 namespace right_unitor_Bimod
 variables {R S : Mon_ C} (P : Bimod R S)
@@ -736,35 +779,9 @@ variables {R S : Mon_ C} (P : Bimod R S)
 noncomputable
 def hom_hom : tensor_Bimod.X P (regular S) ⟶ P.X :=
 begin
-  dsimp, dunfold tensor_Bimod.X, dsimp,
+  dunfold tensor_Bimod.X, dsimp,
   refine coequalizer.desc P.act_right _,
   rw [category.assoc, right_assoc, iso.hom_inv_id_assoc],
-end
-
-lemma hom_left_act_hom' :
-  (P.tensor_Bimod (regular S)).act_left ≫ hom_hom P = (𝟙 R.X ⊗ hom_hom P) ≫ P.act_left :=
-begin
-  dsimp, dunfold hom_hom tensor_Bimod.act_left regular, dsimp,
-  refine (cancel_epi ((tensor_left _).map (coequalizer.π _ _))).1 _,
-  dsimp,
-  slice_lhs 1 2 { rw id_tensor_π_preserves_coequalizer_inv },
-  slice_lhs 1 3 { rw π_colim_map_desc },
-  slice_lhs 2 3 { rw middle_assoc },
-  slice_rhs 1 2 { rw [←id_tensor_comp, coequalizer.π_desc] },
-  rw iso.inv_hom_id_assoc,
-end
-
-lemma hom_right_act_hom' :
-  (P.tensor_Bimod (regular S)).act_right ≫ hom_hom P = (hom_hom P ⊗ 𝟙 S.X) ≫ P.act_right :=
-begin
-  dsimp, dunfold hom_hom tensor_Bimod.act_right regular, dsimp,
-  refine (cancel_epi ((tensor_right _).map (coequalizer.π _ _))).1 _,
-  dsimp,
-  slice_lhs 1 2 { rw π_tensor_id_preserves_coequalizer_inv },
-  slice_lhs 1 3 { rw π_colim_map_desc },
-  slice_lhs 2 3 { rw right_assoc },
-  slice_rhs 1 2 { rw [←comp_tensor_id, coequalizer.π_desc] },
-  rw iso.hom_inv_id_assoc,
 end
 
 /-- The underlying morphism of the inverse component of the right unitor isomorphism. -/
@@ -793,7 +810,62 @@ begin
   rw [act_right_one, iso.inv_hom_id],
 end
 
+variables [∀ X : C, preserves_colimits (tensor_left X)]
+variables [∀ X : C, preserves_colimits (tensor_right X)]
+
+lemma hom_left_act_hom' :
+  (P.tensor_Bimod (regular S)).act_left ≫ hom_hom P = (𝟙 R.X ⊗ hom_hom P) ≫ P.act_left :=
+begin
+  dsimp, dunfold hom_hom tensor_Bimod.act_left regular, dsimp,
+  refine (cancel_epi ((tensor_left _).map (coequalizer.π _ _))).1 _,
+  dsimp,
+  slice_lhs 1 2 { rw id_tensor_π_preserves_coequalizer_inv },
+  slice_lhs 1 3 { rw π_colim_map_desc },
+  slice_lhs 2 3 { rw middle_assoc },
+  slice_rhs 1 2 { rw [←id_tensor_comp, coequalizer.π_desc] },
+  rw iso.inv_hom_id_assoc,
+end
+
+lemma hom_right_act_hom' :
+  (P.tensor_Bimod (regular S)).act_right ≫ hom_hom P = (hom_hom P ⊗ 𝟙 S.X) ≫ P.act_right :=
+begin
+  dsimp, dunfold hom_hom tensor_Bimod.act_right regular, dsimp,
+  refine (cancel_epi ((tensor_right _).map (coequalizer.π _ _))).1 _,
+  dsimp,
+  slice_lhs 1 2 { rw π_tensor_id_preserves_coequalizer_inv },
+  slice_lhs 1 3 { rw π_colim_map_desc },
+  slice_lhs 2 3 { rw right_assoc },
+  slice_rhs 1 2 { rw [←comp_tensor_id, coequalizer.π_desc] },
+  rw iso.hom_inv_id_assoc,
+end
+
 end right_unitor_Bimod
+
+variables [∀ X : C, preserves_colimits (tensor_left X)]
+variables [∀ X : C, preserves_colimits (tensor_right X)]
+
+/-- The associator as a bimodule isomorphism. -/
+noncomputable
+def associator_Bimod {W X Y Z : Mon_ C} (L : Bimod W X) (M : Bimod X Y) (N : Bimod Y Z) :
+  tensor_Bimod (tensor_Bimod L M) N ≅ tensor_Bimod L (tensor_Bimod M N) :=
+iso_of_iso
+  { hom := associator_Bimod.hom_hom L M N,
+    inv := associator_Bimod.inv_hom L M N,
+    hom_inv_id' := associator_Bimod.hom_hom_inv_hom_id L M N,
+    inv_hom_id' := associator_Bimod.inv_hom_hom_hom_id L M N }
+  (associator_Bimod.hom_left_act_hom' L M N)
+  (associator_Bimod.hom_right_act_hom' L M N)
+
+/-- The left unitor as a bimodule isomorphism. -/
+noncomputable
+def left_unitor_Bimod {X Y : Mon_ C} (M : Bimod X Y) : tensor_Bimod (regular X) M ≅ M :=
+iso_of_iso
+  { hom := left_unitor_Bimod.hom_hom M,
+    inv := left_unitor_Bimod.inv_hom M,
+    hom_inv_id' := left_unitor_Bimod.hom_hom_inv_hom_id M,
+    inv_hom_id' := left_unitor_Bimod.inv_hom_hom_hom_id M }
+  (left_unitor_Bimod.hom_left_act_hom' M)
+  (left_unitor_Bimod.hom_right_act_hom' M)
 
 /-- The right unitor as a bimodule isomorphism. -/
 noncomputable
@@ -1049,4 +1121,3 @@ def Mon_bicategory : bicategory (Mon_ C) :=
   triangle' := λ _ _ _ M N, triangle_Bimod M N }
 
 end Bimod
-#lint

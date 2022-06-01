@@ -24,9 +24,9 @@ add_nonneg zero_le_two zero_le_one
 
 namespace padic_val_rat
 
-variables (p : ℕ) [fact p.prime] {q r : ℚ}
+variables (p : ℕ) [fact p.prime]
 
-lemma add_of_lt (hq : q ≠ 0) (hlt : padic_val_rat p q < padic_val_rat p r) :
+lemma add_of_lt {q r : ℚ} (hq : q ≠ 0) (hlt : padic_val_rat p q < padic_val_rat p r) :
   padic_val_rat p (q + r) = padic_val_rat p q :=
 begin
   rw [le_antisymm_iff],
@@ -53,47 +53,51 @@ begin
   { exact or.inr hdenom }
 end
 
-lemma num_and_denom_eq_zero (hq : padic_val_rat p q = 0) :
-  padic_val_int p q.num = 0 ∧ padic_val_nat p q.denom = 0 :=
+lemma eq_zero (q : ℚ) :
+  padic_val_rat p q = 0 ↔ padic_val_int p q.num = 0 ∧ padic_val_nat p q.denom = 0 :=
 begin
-  rw [padic_val_rat, sub_eq_zero, int.coe_nat_inj'] at hq,
-  cases num_or_denom_eq_zero p q,
-  { exact ⟨h, hq ▸ h⟩ },
-  { exact ⟨hq.symm ▸ h, h⟩ }
+  rw [padic_val_rat, sub_eq_zero, int.coe_nat_inj'],
+  split,
+  { intro hq,
+    cases num_or_denom_eq_zero p q,
+    { exact ⟨h, hq ▸ h⟩ },
+    { exact ⟨hq.symm ▸ h, h⟩ } },
+  { rintro ⟨hnum, hdenom⟩,
+    rw [hnum, hdenom] }
 end
 
-lemma pos_num (hq : 0 < padic_val_rat p q) : padic_val_rat p q = padic_val_int p q.num :=
+lemma eq_num_tfae (q : ℚ) : tfae [padic_val_rat p q = padic_val_int p q.num,
+  padic_val_nat p q.denom = 0, 0 ≤ padic_val_rat p q] :=
 begin
-  rw [padic_val_rat, sub_eq_self, int.coe_nat_eq_zero],
-  cases num_or_denom_eq_zero p q with hnum hdenom,
-  { exact false.elim
-      (nat.not_lt_zero (padic_val_nat p q.denom) $ hnum ▸ int.coe_nat_lt.mp $ lt_of_sub_pos hq) },
-  { exact hdenom }
+  rw [padic_val_rat, sub_eq_self, int.coe_nat_eq_zero, sub_nonneg, int.coe_nat_le],
+  tfae_have : 1 ↔ 2,
+  { refl },
+  tfae_have : 2 → 3,
+  { intro hdenom,
+    simpa only [hdenom] using nat.zero_le (padic_val_int p q.num) },
+  tfae_have : 3 → 2,
+  { intro hq,
+    cases num_or_denom_eq_zero p q with hnum hdenom,
+    { rwa [hnum, nat.le_zero_iff] at hq },
+    { exact hdenom } },
+  tfae_finish
 end
 
-lemma nonneg_num (hq : 0 ≤ padic_val_rat p q) : padic_val_rat p q = padic_val_int p q.num :=
+lemma eq_denom_tfae (q : ℚ) : tfae [padic_val_rat p q = -padic_val_nat p q.denom,
+  padic_val_int p q.num = 0, padic_val_rat p q ≤ 0] :=
 begin
-  cases eq_or_lt_of_le hq with hq hq,
-  { symmetry,
-    simpa only [← hq, int.coe_nat_eq_zero] using (num_and_denom_eq_zero p hq.symm).left },
-  { exact pos_num p hq }
-end
-
-lemma neg_denom (hq : padic_val_rat p q < 0) : padic_val_rat p q = -padic_val_nat p q.denom :=
-begin
-  rw [padic_val_rat, sub_eq_neg_self, int.coe_nat_eq_zero],
-  cases num_or_denom_eq_zero p q with hnum hdenom,
-  { exact hnum },
-  { exact false.elim
-      (nat.not_lt_zero (padic_val_int p q.num) $ hdenom ▸ int.coe_nat_lt.mp $ lt_of_sub_neg hq) }
-end
-
-lemma nonpos_denom (hq : padic_val_rat p q ≤ 0) : padic_val_rat p q = -padic_val_nat p q.denom :=
-begin
-  cases eq_or_lt_of_le hq with hq hq,
-  { symmetry,
-    simpa only [hq, neg_eq_zero, int.coe_nat_eq_zero] using (num_and_denom_eq_zero p hq).right },
-  { exact neg_denom p hq }
+  rw [padic_val_rat, sub_eq_neg_self, int.coe_nat_eq_zero, sub_nonpos, int.coe_nat_le],
+  tfae_have : 1 ↔ 2,
+  { refl },
+  tfae_have : 2 → 3,
+  { intro hnum,
+    simpa only [hnum] using nat.zero_le (padic_val_nat p q.denom) },
+  tfae_have : 3 → 2,
+  { intro hq,
+    cases num_or_denom_eq_zero p q with hnum hdenom,
+    { exact hnum },
+    { rwa [hdenom, nat.le_zero_iff] at hq } },
+  tfae_finish
 end
 
 end padic_val_rat
@@ -109,7 +113,7 @@ open point
 
 section padic_val_point
 
-variables {A B : ℤ} {x y : ℚ} {w : y ^ 2 = x ^ 3 + A * x + B} {p : ℕ} [fact p.prime]
+variables {A B : ℤ} {x y : ℚ} (w : y ^ 2 = x ^ 3 + A * x + B) {p : ℕ} [fact p.prime]
 
 include w
 

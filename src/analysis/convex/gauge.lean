@@ -369,11 +369,8 @@ end
 /-- `gauge s` as a seminorm when `s` is symmetric, convex and absorbent. -/
 @[simps] def gauge_seminorm (hs₀ : ∀ x ∈ s, -x ∈ s) (hs₁ : convex ℝ s) (hs₂ : absorbent ℝ s) :
   seminorm ℝ E :=
-{ to_fun    := gauge s,
-  map_zero' := gauge_zero,
-  nonneg    := gauge_nonneg,
-  smul'     := λ r x, by simp only [gauge_smul hs₀, real.norm_eq_abs, smul_eq_mul]; apply_instance,
-  add       := gauge_add_le hs₁ hs₂ }
+seminorm.of (gauge_add_le hs₁ hs₂)
+  (λ r x, by simp only [gauge_smul hs₀, real.norm_eq_abs, smul_eq_mul]; apply_instance)
 
 section gauge_seminorm
 variables {hs₀ : ∀ x ∈ s, -x ∈ s} {hs₁ : convex ℝ s} {hs₂ : absorbent ℝ s}

@@ -222,21 +222,12 @@ end domain
 
 variables {p q : ℤ[X]}
 
-lemma int.sq_eq_one {x : ℤ} (h1 : x ^ 2 < 4) (h2 : x ≠ 0) : x ^ 2 = 1 :=
-begin
-  let y := |x|,
-  replace h1 : |x| < 2,
-  { contrapose! h1,
-    rw (show (2 : ℤ) = |(2 : ℤ)|, by norm_num) at h1,
-    rw show (4 : ℤ) = (2 : ℤ) ^ 2, by norm_num,
-    exact sq_le_sq h1 },
-  replace h2 : 0 < |x| := abs_pos.mpr h2,
-  interval_cases |x|,
-  rw [←sq_abs x, h, one_pow],
-end
+lemma int.sq_eq_one_of_sq_lt {x : ℤ} (h1 : x ^ 2 < 4) (h2 : x ≠ 0) : x ^ 2 = 1 :=
+sq_eq_one_iff.mpr ((abs_eq (@zero_le_one ℤ _)).mp (le_antisymm (int.lt_add_one_iff.mp
+  (abs_lt_of_sq_lt_sq h1 zero_le_two)) (int.sub_one_lt_iff.mp (abs_pos.mpr h2))))
 
-lemma int.sq_eq_one' {x : ℤ} (h1 : x ^ 2 ≤ 3) (h2 : x ≠ 0) : x ^ 2 = 1 :=
-int.sq_eq_one (lt_of_le_of_lt h1 (int.lt_succ_self 3)) h2
+lemma int.sq_eq_one_of_sq_le {x : ℤ} (h1 : x ^ 2 ≤ 3) (h2 : x ≠ 0) : x ^ 2 = 1 :=
+int.sq_eq_one_of_sq_lt (lt_of_le_of_lt h1 (int.lt_succ_self 3)) h2
 
 lemma is_unit_trinomial_iff' : p.is_unit_trinomial ↔ (p * p.mirror).coeff
   (((p * p.mirror).nat_degree + (p * p.mirror).nat_trailing_degree) / 2) = 3 :=
@@ -251,7 +242,7 @@ begin
       trinomial_coeff_k hkm hmn, trinomial_coeff_m hkm hmn, trinomial_coeff_n hkm hmn],
     simp only [hu, hv, hw, int.is_unit_sq, bit0, bit1, add_assoc] },
   { have key : ∀ k ∈ p.support, (p.coeff k) ^ 2 = 1 :=
-    λ k hk, int.sq_eq_one' ((single_le_sum (λ k hk, sq_nonneg (p.coeff k)) hk).trans hp.le)
+    λ k hk, int.sq_eq_one_of_sq_le ((single_le_sum (λ k hk, sq_nonneg (p.coeff k)) hk).trans hp.le)
         (mem_support_iff.mp hk),
     refine is_unit_trinomial_iff.mpr ⟨_,
       λ k hk, is_unit_of_pow_eq_one (p.coeff k) 2 (key k hk) zero_lt_two⟩,

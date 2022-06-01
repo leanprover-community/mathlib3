@@ -855,14 +855,8 @@ end
 lemma support_map_of_injective [semiring R] [semiring S]
   (p : R[X]) {f : R →+* S} (hf : function.injective f) :
   (map f p).support = p.support :=
-begin
-  apply finset.subset.antisymm,
-  { exact support_map_subset _ _, },
-  intro,
-  simp_rw [mem_support_iff, coeff_map, ← f.map_zero],
-  contrapose!,
-  exact λ h, hf h,
-end
+by simp_rw [finset.ext_iff, mem_support_iff, coeff_map,
+  ←map_zero f, hf.ne_iff, iff_self, forall_const]
 
 variables [comm_semiring R] [comm_semiring S] (f : R →+* S)
 

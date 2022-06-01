@@ -378,7 +378,7 @@ e.to_pretrivialization.linear_equiv_at b hb
 
 @[simp]
 lemma linear_equiv_at_apply (e : trivialization R F E) (b : B) (hb : b ∈ e.base_set) (v : E b) :
-  e.linear_equiv_at b hb v = (e (total_space_mk E b v)).2 := rfl
+  e.linear_equiv_at b hb v = (e (total_space_mk b v)).2 := rfl
 
 @[simp]
 lemma linear_equiv_at_symm_apply (e : trivialization R F E) (b : B) (hb : b ∈ e.base_set) (v : F) :
@@ -396,15 +396,15 @@ protected def linear_map_at (e : trivialization R F E) (b : B) : E b →ₗ[R] F
 e.to_pretrivialization.linear_map_at b
 
 lemma coe_linear_map_at (e : trivialization R F E) (b : B) :
-  ⇑(e.linear_map_at b) = λ y, if b ∈ e.base_set then (e (total_space_mk E b y)).2 else 0 :=
+  ⇑(e.linear_map_at b) = λ y, if b ∈ e.base_set then (e (total_space_mk b y)).2 else 0 :=
 e.to_pretrivialization.coe_linear_map_at b
 
 lemma coe_linear_map_at_of_mem (e : trivialization R F E) {b : B} (hb : b ∈ e.base_set) :
-  ⇑(e.linear_map_at b) = λ y, (e (total_space_mk E b y)).2 :=
+  ⇑(e.linear_map_at b) = λ y, (e (total_space_mk b y)).2 :=
 by simp_rw [coe_linear_map_at, if_pos hb]
 
 lemma linear_map_at_apply (e : trivialization R F E) {b : B} (y : E b) :
-  e.linear_map_at b y = if b ∈ e.base_set then (e (total_space_mk E b y)).2 else 0 :=
+  e.linear_map_at b y = if b ∈ e.base_set then (e (total_space_mk b y)).2 else 0 :=
 by rw [coe_linear_map_at]
 
 lemma linear_map_at_def_of_mem (e : trivialization R F E) {b : B} (hb : b ∈ e.base_set) :

@@ -9,9 +9,9 @@ import analysis.normed_space.weak_dual
 import analysis.normed_space.spectrum
 
 /-!
-# Character space of normed algebras
+# Normed algebras
 
-This file contains basic facts about the character space of normed algebras.
+This file contains basic facts about normed algebras.
 
 ## Main results
 
@@ -23,7 +23,7 @@ This file contains basic facts about the character space of normed algebras.
 
 ## Tags
 
-character space, continuous functional calculus
+normed algebra, character space, continuous functional calculus
 
 -/
 

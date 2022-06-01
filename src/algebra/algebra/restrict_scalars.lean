@@ -108,18 +108,7 @@ This instance is only relevant when `restrict_scalars.module_orig` is available 
 instance [module S M] : is_scalar_tower R S (restrict_scalars R S M) :=
 ⟨λ r S M, by { rw [algebra.smul_def, mul_smul], refl }⟩
 
-
 end
-
-instance restrict_scalars.op_module [module Sᵐᵒᵖ M] : module Rᵐᵒᵖ (restrict_scalars R S M) :=
-begin
-  letI : module Sᵐᵒᵖ (restrict_scalars R S M) := ‹module Sᵐᵒᵖ M›,
-  exact module.comp_hom M (algebra_map R S).op
-end
-
-instance restrict_scalars.is_central_scalar [module S M] [module Sᵐᵒᵖ M] [is_central_scalar S M] :
-  is_central_scalar R (restrict_scalars R S M) :=
-{ op_smul_eq_smul := λ r x, (op_smul_eq_smul (algebra_map R S r) (_ : M) : _)}
 
 /--
 When `M` is a right-module over a ring `S`, and `S` is an algebra over `R`, then `M` inherits a

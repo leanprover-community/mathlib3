@@ -86,7 +86,7 @@ lp.mmap $ λ x : α × pexpr, do
   e ← to_expr x.2 tt ff,
   return (x.1, e)
 
-/--  We combine the previous steps.
+/--  We combine `snd_to_expr` and `move_left_or_right`, and then some:
 1. we convert a list pairs `bool × pexpr` to a list of pairs `bool × expr`,
 2. we use the extra input `sl : list expr` to perform the unification and sorting step
    `move_left_or_right`,

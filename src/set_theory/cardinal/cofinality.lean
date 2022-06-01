@@ -719,11 +719,11 @@ c ≠ 0 ∧ ∀ x < c, 2 ^ x < c
 theorem is_strong_limit.ne_zero {c} (h : is_strong_limit c) : c ≠ 0 :=
 h.1
 
-theorem is_strong_limit.power_lt {x c} (h : is_strong_limit c) : x < c → 2 ^ x < c :=
+theorem is_strong_limit.two_power_lt {x c} (h : is_strong_limit c) : x < c → 2 ^ x < c :=
 h.2 x
 
 theorem is_strong_limit.is_limit {c} (H : is_strong_limit c) : is_limit c :=
-⟨H.1, λ x h, (succ_le_of_lt $ cantor x).trans_lt (H.power_lt h)⟩
+⟨H.1, λ x h, (succ_le_of_lt $ cantor x).trans_lt (H.two_power_lt h)⟩
 
 /-- A cardinal is regular if it is infinite and it equals its own cofinality. -/
 def is_regular (c : cardinal) : Prop :=

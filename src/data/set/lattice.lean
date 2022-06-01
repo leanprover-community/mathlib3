@@ -1658,6 +1658,30 @@ noncomputable def Union_eq_sigma_of_disjoint {t : α → set β}
   (h : ∀ i j, i ≠ j → disjoint (t i) (t j)) : (⋃ i, t i) ≃ (Σ i, t i) :=
 (equiv.of_bijective _ $ sigma_to_Union_bijective t h).symm
 
+lemma Union_ge_eq_Union_nat_add (u : ℕ → set α) (n : ℕ) : (⋃ i ≥ n, u i) = ⋃ i, u (i + n) :=
+supr_ge_eq_supr_nat_add u n
+
+lemma Inter_ge_eq_Inter_nat_add (u : ℕ → set α) (n : ℕ) : (⋂ i ≥ n, u i) = ⋂ i, u (i + n) :=
+infi_ge_eq_infi_nat_add u n
+
+lemma _root_.monotone.Union_nat_add {f : ℕ → set α} (hf : monotone f) (k : ℕ) :
+  (⋃ n, f (n + k)) = ⋃ n, f n :=
+hf.supr_nat_add k
+
+lemma _root_.antitone.Inter_nat_add {f : ℕ → set α} (hf : antitone f) (k : ℕ) :
+  (⋂ n, f (n + k)) = ⋂ n, f n :=
+hf.infi_nat_add k
+
+@[simp] lemma Union_Inter_ge_nat_add (f : ℕ → set α) (k : ℕ) :
+  (⋃ n, ⋂ i ≥ n, f (i + k)) = ⋃ n, ⋂ i ≥ n, f i :=
+supr_infi_ge_nat_add f k
+
+lemma union_Union_nat_succ (u : ℕ → set α) : u 0 ∪ (⋃ i, u (i + 1)) = ⋃ i, u i :=
+sup_supr_nat_succ u
+
+lemma inter_Inter_nat_succ (u : ℕ → set α) : u 0 ∩ (⋂ i, u (i + 1)) = ⋂ i, u i :=
+inf_infi_nat_succ u
+
 end set
 
 open set

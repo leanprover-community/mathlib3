@@ -54,6 +54,9 @@ lemma subtype.is_empty_of_false {p : α → Prop} (hp : ∀ a, ¬(p a)) : is_emp
 instance subtype.is_empty_false : is_empty {a : α // false} :=
 subtype.is_empty_of_false (λ a, id)
 
+instance sigma.is_empty_left {α} [is_empty α] {E : α → Type*} : is_empty (sigma E) :=
+function.is_empty sigma.fst
+
 /- Test that `pi.is_empty` finds this instance. -/
 example [h : nonempty α] [is_empty β] : is_empty (α → β) := by apply_instance
 

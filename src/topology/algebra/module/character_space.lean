@@ -25,11 +25,6 @@ corresponding to any element. We also provide `to_clm` which provides the elemen
 continuous linear map. (Even though `weak_dual 𝕜 A` is a type copy of `A →L[𝕜] 𝕜`, this is
 often more convenient.)
 
-## TODO
-
-* Prove that the character space is a compact subset of the weak dual. This requires the
-  Banach-Alaoglu theorem.
-
 ## Tags
 
 character space, Gelfand transform, functional calculus
@@ -106,6 +101,28 @@ end
     change ((φ : weak_dual 𝕜 A) : A →L[𝕜] 𝕜) (r • 1) = r,
     rw [continuous_linear_map.map_smul, algebra.id.smul_eq_mul, coe_apply, map_one φ, mul_one] },
   ..to_non_unital_alg_hom φ }
+
+lemma eq_set_map_one_map_mul [nontrivial 𝕜] : character_space 𝕜 A =
+  {φ : weak_dual 𝕜 A | (φ 1 = 1) ∧ (∀ (x y : A), φ (x * y) = (φ x) * (φ y))} :=
+begin
+  ext x,
+  refine ⟨λ h, ⟨map_one ⟨x, h⟩, h.2⟩, λ h, ⟨_, h.2⟩⟩,
+  rintro rfl,
+  simpa using h.1,
+end
+
+lemma is_closed [nontrivial 𝕜] [t2_space 𝕜] [has_continuous_mul 𝕜] :
+  is_closed (character_space 𝕜 A) :=
+begin
+  rw [eq_set_map_one_map_mul],
+  refine is_closed.inter (is_closed_eq (eval_continuous _) continuous_const) _,
+  change is_closed {φ : weak_dual 𝕜 A | ∀ x y : A, φ (x * y) = φ x * φ y},
+  rw [set.set_of_forall],
+  refine is_closed_Inter (λ a, _),
+  rw [set.set_of_forall],
+  exact is_closed_Inter (λ _, is_closed_eq (eval_continuous _)
+    ((eval_continuous _).mul (eval_continuous _)))
+end
 
 end unital
 

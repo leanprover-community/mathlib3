@@ -403,9 +403,8 @@ lemma continuous_from_bounded (p : seminorm_family 𝕜 E ι) (q : seminorm_fami
   [uniform_space F] [uniform_add_group F] [with_seminorms q]
   (f : E →ₗ[𝕜] F) (hf : seminorm.is_bounded p q f) : continuous f :=
 begin
-  refine uniform_continuous.continuous _,
-  refine add_monoid_hom.uniform_continuous_of_continuous_at_zero f.to_add_monoid_hom _,
-  rw [f.to_add_monoid_hom_coe, continuous_at_def, f.map_zero, p.with_seminorms_eq],
+  refine continuous_of_continuous_at_zero f _,
+  rw [continuous_at_def, f.map_zero, p.with_seminorms_eq],
   intros U hU,
   rw [q.with_seminorms_eq, add_group_filter_basis.nhds_zero_eq, filter_basis.mem_filter_iff] at hU,
   rcases hU with ⟨V, hV : V ∈ q.basis_sets, hU⟩,

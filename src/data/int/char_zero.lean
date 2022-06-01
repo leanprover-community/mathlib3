@@ -35,8 +35,17 @@ theorem cast_injective [add_group α] [has_one α] [char_zero α] : function.inj
 theorem cast_ne_zero [add_group α] [has_one α] [char_zero α] {n : ℤ} : (n : α) ≠ 0 ↔ n ≠ 0 :=
 not_congr cast_eq_zero
 
+@[simp, norm_cast]
+theorem cast_div_char_zero {k : Type*} [field k] [char_zero k] {m n : ℤ}
+  (n_dvd : n ∣ m) : ((m / n : ℤ) : k) = m / n :=
+begin
+  rcases eq_or_ne n 0 with rfl | hn,
+  { simp [int.div_zero] },
+  { exact cast_div n_dvd (cast_ne_zero.mpr hn), },
+end
+
 end int
 
-lemma ring_hom.injective_int {α : Type*} [ring α] (f : ℤ →+* α) [char_zero α] :
+lemma ring_hom.injective_int {α : Type*} [non_assoc_ring α] (f : ℤ →+* α) [char_zero α] :
   function.injective f :=
 subsingleton.elim (int.cast_ring_hom _) f ▸ int.cast_injective

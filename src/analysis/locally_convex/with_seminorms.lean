@@ -32,7 +32,7 @@ Show that for any locally convex space there exist seminorms that induce the top
 seminorm, locally convex
 -/
 
-open normed_field set seminorm
+open normed_field set seminorm topological_space
 open_locale big_operators nnreal pointwise topological_space
 
 variables {𝕜 E F G ι ι' : Type*}
@@ -172,6 +172,25 @@ protected def module_filter_basis : module_filter_basis 𝕜 E :=
   smul_left' := p.basis_sets_smul_left,
   smul_right' := p.basis_sets_smul_right }
 
+lemma filter_eq_infi (p : seminorm_family 𝕜 E ι) :
+  p.module_filter_basis.to_filter_basis.filter = ⨅ i, (𝓝 0).comap (p i) :=
+begin
+  refine le_antisymm (le_infi $ λ i, _) _,
+  { rw p.module_filter_basis.to_filter_basis.has_basis.le_basis_iff
+      (metric.nhds_basis_ball.comap _),
+    intros ε hε,
+    refine ⟨(p i).ball 0 ε, _, _⟩,
+    { rw ← (finset.sup_singleton : _ = p i),
+      exact p.basis_sets_mem {i} hε, },
+    { rw [id, (p i).ball_zero_eq_preimage_ball] } },
+  { rw p.module_filter_basis.to_filter_basis.has_basis.ge_iff,
+    rintros U (hU : U ∈ p.basis_sets),
+    rcases p.basis_sets_iff.mp hU with ⟨s, r, hr, rfl⟩,
+    rw [id, seminorm.ball_finset_sup_eq_Inter _ _ _ hr, s.Inter_mem_sets],
+    exact λ i hi, filter.mem_infi_of_mem i ⟨metric.ball 0 r, metric.ball_mem_nhds 0 hr,
+      eq.subset ((p i).ball_zero_eq_preimage_ball).symm⟩, },
+end
+
 end seminorm_family
 
 end filter_basis
@@ -282,6 +301,14 @@ lemma seminorm_family.with_seminorms_of_has_basis (p : seminorm_family 𝕜 E ι
 p.with_seminorms_of_nhds $ filter.has_basis.eq_of_same_basis h
   p.add_group_filter_basis.to_filter_basis.has_basis
 
+lemma seminorm_family.with_seminorms_iff_nhds_eq_infi (p : seminorm_family 𝕜 E ι) :
+  with_seminorms p ↔ (𝓝 0 : filter E) = ⨅ i, (𝓝 0).comap (p i) :=
+begin
+  rw ← p.filter_eq_infi,
+  refine ⟨λ h, _, p.with_seminorms_of_nhds⟩,
+  rw h.topology_eq_with_seminorms,
+  exact add_group_filter_basis.nhds_zero_eq _,
+end
 
 end topological_add_group
 
@@ -376,9 +403,8 @@ lemma continuous_from_bounded (p : seminorm_family 𝕜 E ι) (q : seminorm_fami
   [uniform_space F] [uniform_add_group F] [with_seminorms q]
   (f : E →ₗ[𝕜] F) (hf : seminorm.is_bounded p q f) : continuous f :=
 begin
-  refine uniform_continuous.continuous _,
-  refine add_monoid_hom.uniform_continuous_of_continuous_at_zero f.to_add_monoid_hom _,
-  rw [f.to_add_monoid_hom_coe, continuous_at_def, f.map_zero, p.with_seminorms_eq],
+  refine continuous_of_continuous_at_zero f _,
+  rw [continuous_at_def, f.map_zero, p.with_seminorms_eq],
   intros U hU,
   rw [q.with_seminorms_eq, add_group_filter_basis.nhds_zero_eq, filter_basis.mem_filter_iff] at hU,
   rcases hU with ⟨V, hV : V ∈ q.basis_sets, hU⟩,
@@ -456,3 +482,48 @@ instance normed_space.to_locally_convex_space [normed_space ℝ E] :
 normed_space.to_locally_convex_space' ℝ
 
 end normed_space
+
+section topological_constructions
+
+variables [normed_field 𝕜] [add_comm_group F] [module 𝕜 F] [add_comm_group E] [module 𝕜 E]
+
+/-- The family of seminorms obtained by composing each seminorm by a linear map. -/
+def seminorm_family.comp (q : seminorm_family 𝕜 F ι) (f : E →ₗ[𝕜] F) :
+  seminorm_family 𝕜 E ι :=
+λ i, (q i).comp f
+
+lemma seminorm_family.comp_apply (q : seminorm_family 𝕜 F ι) (i : ι) (f : E →ₗ[𝕜] F) :
+  q.comp f i = (q i).comp f :=
+rfl
+
+lemma seminorm_family.finset_sup_comp (q : seminorm_family 𝕜 F ι) (s : finset ι)
+  (f : E →ₗ[𝕜] F) : (s.sup q).comp f = s.sup (q.comp f) :=
+begin
+  ext x,
+  rw [seminorm.comp_apply, seminorm.finset_sup_apply, seminorm.finset_sup_apply],
+  refl
+end
+
+variables [topological_space F] [topological_add_group F]
+
+lemma linear_map.with_seminorms_induced [hι : nonempty ι] {q : seminorm_family 𝕜 F ι}
+  [hq : with_seminorms q] (f : E →ₗ[𝕜] F) :
+  @with_seminorms 𝕜 E ι _ _ _ _ (q.comp f) (induced f infer_instance) :=
+begin
+  letI : topological_space E := induced f infer_instance,
+  letI : topological_add_group E := topological_add_group_induced f,
+  rw [(q.comp f).with_seminorms_iff_nhds_eq_infi, nhds_induced, map_zero,
+      q.with_seminorms_iff_nhds_eq_infi.mp hq, filter.comap_infi],
+  refine infi_congr (λ i, _),
+  exact filter.comap_comap
+end
+
+lemma inducing.with_seminorms [hι : nonempty ι] {q : seminorm_family 𝕜 F ι}
+  [hq : with_seminorms q] [topological_space E] {f : E →ₗ[𝕜] F} (hf : inducing f) :
+  with_seminorms (q.comp f) :=
+begin
+  rw hf.induced,
+  exact f.with_seminorms_induced
+end
+
+end topological_constructions

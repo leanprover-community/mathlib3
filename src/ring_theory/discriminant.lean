@@ -123,16 +123,14 @@ variables [module.finite K L]  [is_alg_closed E]
 /-- Over a field, if `b` is a basis, then `algebra.discr K b ≠ 0`. -/
 lemma discr_not_zero_of_basis [is_separable K L] (b : basis ι K L) : discr K b ≠ 0 :=
 begin
-  by_cases h : nonempty ι,
-  { classical,
-    have := span_eq_top_of_linear_independent_of_card_eq_finrank b.linear_independent
+  casesI is_empty_or_nonempty ι,
+  { simp [discr] },
+  { have := span_eq_top_of_linear_independent_of_card_eq_finrank b.linear_independent
       (finrank_eq_card_basis b).symm,
     rw [discr_def, trace_matrix_def],
     simp_rw [← basis.mk_apply b.linear_independent this],
     rw [← trace_matrix_def, trace_matrix_of_basis, ← bilin_form.nondegenerate_iff_det_ne_zero],
-    exact trace_form_nondegenerate _ _  },
-  letI := not_nonempty_iff.1 h,
-  simp [discr],
+    exact trace_form_nondegenerate _ _ },
 end
 
 /-- Over a field, if `b` is a basis, then `algebra.discr K b` is a unit. -/
@@ -203,7 +201,7 @@ begin
   have hle : 1 ≤ pb.dim,
   { rw [← hn, nat.one_le_iff_ne_zero, ← zero_lt_iff, finite_dimensional.finrank_pos_iff],
     apply_instance },
-  rw [hn, nat.cast_dvd h₂ hne, nat.cast_mul, nat.cast_sub hle],
+  rw [hn, nat.cast_div h₂ hne, nat.cast_mul, nat.cast_sub hle],
   field_simp,
   ring,
 end

@@ -146,7 +146,7 @@ end
 
 /- TODO: Once there is sufficient API for bornology, we should get a nice filter / asymptotics
 version of this, for example: `tendsto (resolvent a) (cobounded 𝕜) (𝓝 0)` or more specifically
-`is_O (resolvent a) (λ z, z⁻¹) (cobounded 𝕜)`. -/
+`(resolvent a) =O[cobounded 𝕜] (λ z, z⁻¹)`. -/
 lemma norm_resolvent_le_forall (a : A) :
   ∀ ε > 0, ∃ R > 0, ∀ z : 𝕜, R ≤ ∥z∥ → ∥resolvent a z∥ ≤ ε :=
 begin
@@ -371,33 +371,33 @@ section exp_mapping
 
 local notation `↑ₐ` := algebra_map 𝕜 A
 
-/-- For `𝕜 = ℝ` or `𝕜 = ℂ`, `exp 𝕜 𝕜` maps the spectrum of `a` into the spectrum of `exp 𝕜 A a`. -/
+/-- For `𝕜 = ℝ` or `𝕜 = ℂ`, `exp 𝕜` maps the spectrum of `a` into the spectrum of `exp 𝕜 a`. -/
 theorem exp_mem_exp [is_R_or_C 𝕜] [normed_ring A] [normed_algebra 𝕜 A] [complete_space A]
-  (a : A) {z : 𝕜} (hz : z ∈ spectrum 𝕜 a) : exp 𝕜 𝕜 z ∈ spectrum 𝕜 (exp 𝕜 A a) :=
+  (a : A) {z : 𝕜} (hz : z ∈ spectrum 𝕜 a) : exp 𝕜 z ∈ spectrum 𝕜 (exp 𝕜 a) :=
 begin
-  have hexpmul : exp 𝕜 A a = exp 𝕜 A (a - ↑ₐ z) * ↑ₐ (exp 𝕜 𝕜 z),
+  have hexpmul : exp 𝕜 a = exp 𝕜 (a - ↑ₐ z) * ↑ₐ (exp 𝕜 z),
   { rw [algebra_map_exp_comm z, ←exp_add_of_commute (algebra.commutes z (a - ↑ₐz)).symm,
       sub_add_cancel] },
-  let b := ∑' n : ℕ, ((1 / (n + 1).factorial) : 𝕜) • (a - ↑ₐz) ^ n,
-  have hb : summable (λ n : ℕ, ((1 / (n + 1).factorial) : 𝕜) • (a - ↑ₐz) ^ n),
+  let b := ∑' n : ℕ, ((n + 1).factorial⁻¹ : 𝕜) • (a - ↑ₐz) ^ n,
+  have hb : summable (λ n : ℕ, ((n + 1).factorial⁻¹ : 𝕜) • (a - ↑ₐz) ^ n),
   { refine summable_of_norm_bounded_eventually _ (real.summable_pow_div_factorial ∥a - ↑ₐz∥) _,
     filter_upwards [filter.eventually_cofinite_ne 0] with n hn,
-    rw [norm_smul, mul_comm, norm_div, norm_one, is_R_or_C.norm_eq_abs, is_R_or_C.abs_cast_nat,
-      ←div_eq_mul_one_div],
+    rw [norm_smul, mul_comm, norm_inv, is_R_or_C.norm_eq_abs, is_R_or_C.abs_cast_nat,
+      ←div_eq_mul_inv],
     exact div_le_div (pow_nonneg (norm_nonneg _) n) (norm_pow_le' (a - ↑ₐz) (zero_lt_iff.mpr hn))
       (by exact_mod_cast nat.factorial_pos n)
       (by exact_mod_cast nat.factorial_le (lt_add_one n).le) },
-  have h₀ : ∑' n : ℕ, ((1 / (n + 1).factorial) : 𝕜) • (a - ↑ₐz) ^ (n + 1) = (a - ↑ₐz) * b,
+  have h₀ : ∑' n : ℕ, ((n + 1).factorial⁻¹ : 𝕜) • (a - ↑ₐz) ^ (n + 1) = (a - ↑ₐz) * b,
     { simpa only [mul_smul_comm, pow_succ] using hb.tsum_mul_left (a - ↑ₐz) },
-  have h₁ : ∑' n : ℕ, ((1 / (n + 1).factorial) : 𝕜) • (a - ↑ₐz) ^ (n + 1) = b * (a - ↑ₐz),
+  have h₁ : ∑' n : ℕ, ((n + 1).factorial⁻¹ : 𝕜) • (a - ↑ₐz) ^ (n + 1) = b * (a - ↑ₐz),
     { simpa only [pow_succ', algebra.smul_mul_assoc] using hb.tsum_mul_right (a - ↑ₐz) },
-  have h₃ : exp 𝕜 A (a - ↑ₐz) = 1 + (a - ↑ₐz) * b,
+  have h₃ : exp 𝕜 (a - ↑ₐz) = 1 + (a - ↑ₐz) * b,
   { rw exp_eq_tsum,
     convert tsum_eq_zero_add (exp_series_summable' (a - ↑ₐz)),
-    simp only [nat.factorial_zero, nat.cast_one, _root_.div_one, pow_zero, one_smul],
+    simp only [nat.factorial_zero, nat.cast_one, inv_one, pow_zero, one_smul],
     exact h₀.symm },
-  rw [spectrum.mem_iff, is_unit.sub_iff, ←one_mul (↑ₐ(exp 𝕜 𝕜 z)), hexpmul, ←_root_.sub_mul,
-    commute.is_unit_mul_iff (algebra.commutes (exp 𝕜 𝕜 z) (exp 𝕜 A (a - ↑ₐz) - 1)).symm,
+  rw [spectrum.mem_iff, is_unit.sub_iff, ←one_mul (↑ₐ(exp 𝕜 z)), hexpmul, ←_root_.sub_mul,
+    commute.is_unit_mul_iff (algebra.commutes (exp 𝕜 z) (exp 𝕜 (a - ↑ₐz) - 1)).symm,
     sub_eq_iff_eq_add'.mpr h₃, commute.is_unit_mul_iff (h₀ ▸ h₁ : (a - ↑ₐz) * b = b * (a - ↑ₐz))],
   exact not_and_of_not_left _ (not_and_of_not_left _ ((not_iff_not.mpr is_unit.sub_iff).mp hz)),
 end

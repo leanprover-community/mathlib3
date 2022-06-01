@@ -45,8 +45,11 @@ instance : has_one (with_one α) := ⟨none⟩
 @[to_additive]
 instance [has_mul α] : has_mul (with_one α) := ⟨option.lift_or_get (*)⟩
 
-@[to_additive]
-instance [has_inv α] : has_inv (with_one α) := ⟨λ a, option.map has_inv.inv a⟩
+@[to_additive] instance [has_inv α] : has_inv (with_one α) := ⟨λ a, option.map has_inv.inv a⟩
+
+@[to_additive] instance [has_involutive_inv α] : has_involutive_inv (with_one α) :=
+{ inv_inv := λ a, (option.map_map _ _ _).trans $ by simp_rw [inv_comp_inv, option.map_id, id],
+  ..with_one.has_inv }
 
 @[to_additive]
 instance : inhabited (with_one α) := ⟨1⟩
@@ -56,6 +59,13 @@ instance [nonempty α] : nontrivial (with_one α) := option.nontrivial
 
 @[to_additive]
 instance : has_coe_t α (with_one α) := ⟨some⟩
+
+/-- Recursor for `with_one` using the preferred forms `1` and `↑a`. -/
+@[elab_as_eliminator,
+  to_additive "Recursor for `with_zero` using the preferred forms `0` and `↑a`."]
+def rec_one_coe {C : with_one α → Sort*} (h₁ : C 1) (h₂ : Π (a : α), C a) :
+  Π (n : with_one α), C n :=
+option.rec h₁ h₂
 
 @[to_additive]
 lemma some_eq_coe {a : α} : (some a : with_one α) = ↑a := rfl
@@ -237,6 +247,9 @@ instance [has_mul α] : mul_zero_class (with_zero α) :=
 @[simp] lemma mul_zero {α : Type u} [has_mul α]
   (a : with_zero α) : a * 0 = 0 := by cases a; refl
 
+instance [has_mul α] : no_zero_divisors (with_zero α) :=
+⟨by { rintro (a|a) (b|b) h, exacts [or.inl rfl, or.inl rfl, or.inr rfl, option.no_confusion h] }⟩
+
 instance [semigroup α] : semigroup_with_zero (with_zero α) :=
 { mul_assoc := λ a b c, match a, b, c with
     | none,   _,      _      := rfl
@@ -296,11 +309,13 @@ instance [comm_monoid α] : comm_monoid_with_zero (with_zero α) :=
   on `with_zero α` sending `0` to `0`-/
 instance [has_inv α] : has_inv (with_zero α) := ⟨λ a, option.map has_inv.inv a⟩
 
-@[simp, norm_cast] lemma coe_inv [has_inv α] (a : α) :
-  ((a⁻¹ : α) : with_zero α) = a⁻¹ := rfl
+@[simp, norm_cast] lemma coe_inv [has_inv α] (a : α) : ((a⁻¹ : α) : with_zero α) = a⁻¹ := rfl
 
-@[simp] lemma inv_zero [has_inv α] :
-  (0 : with_zero α)⁻¹ = 0 := rfl
+@[simp] lemma inv_zero [has_inv α] : (0 : with_zero α)⁻¹ = 0 := rfl
+
+instance [has_involutive_inv α] : has_involutive_inv (with_zero α) :=
+{ inv_inv := λ a, (option.map_map _ _ _).trans $ by simp_rw [inv_comp_inv, option.map_id, id],
+  ..with_zero.has_inv }
 
 instance [has_div α] : has_div (with_zero α) :=
 ⟨λ o₁ o₂, o₁.bind (λ a, option.map (λ b, a / b) o₂)⟩
@@ -341,6 +356,23 @@ instance [div_inv_monoid α] : div_inv_monoid (with_zero α) :=
   .. with_zero.has_inv,
   .. with_zero.monoid_with_zero, }
 
+instance [division_monoid α] : division_monoid (with_zero α) :=
+{ mul_inv_rev := λ a b, match a, b with
+    | none,   none   := rfl
+    | none,   some b := rfl
+    | some a, none   := rfl
+    | some a, some b := congr_arg some $ mul_inv_rev _ _
+    end,
+  inv_eq_of_mul := λ a b, match a, b with
+    | none,   none   := λ _, rfl
+    | none,   some b := by contradiction
+    | some a, none   := by contradiction
+    | some a, some b := λ h, congr_arg some $ inv_eq_of_mul_eq_one_right $ option.some_injective _ h
+    end,
+  .. with_zero.div_inv_monoid, .. with_zero.has_involutive_inv }
+
+instance [division_comm_monoid α] : division_comm_monoid (with_zero α) :=
+{ .. with_zero.division_monoid, .. with_zero.comm_semigroup }
 
 section group
 variables [group α]

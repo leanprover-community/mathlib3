@@ -722,7 +722,7 @@ noncompact_space_of_ne_bot $ by simp only [filter.cocompact_eq_cofinite, filter.
 noncomputable
 def fintype_of_compact_of_discrete [compact_space α] [discrete_topology α] :
   fintype α :=
-fintype_of_univ_finite $ compact_univ.finite_of_discrete
+fintype_of_finite_univ $ compact_univ.finite_of_discrete
 
 lemma finite_cover_nhds_interior [compact_space α] {U : α → set α} (hU : ∀ x, U x ∈ 𝓝 x) :
   ∃ t : finset α, (⋃ x ∈ t, interior (U x)) = univ :=
@@ -754,12 +754,12 @@ finitely many elements, `fintype` version. -/
 noncomputable def locally_finite.fintype_of_compact {ι : Type*} [compact_space α] {f : ι → set α}
   (hf : locally_finite f) (hne : ∀ i, (f i).nonempty) :
   fintype ι :=
-fintype_of_univ_finite (hf.finite_of_compact hne)
+fintype_of_finite_univ (hf.finite_of_compact hne)
 
 /-- The comap of the cocompact filter on `β` by a continuous function `f : α → β` is less than or
 equal to the cocompact filter on `α`.
 This is a reformulation of the fact that images of compact sets are compact. -/
-lemma filter.comap_cocompact {f : α → β} (hf : continuous f) :
+lemma filter.comap_cocompact_le {f : α → β} (hf : continuous f) :
   (filter.cocompact β).comap f ≤ filter.cocompact α :=
 begin
   rw (filter.has_basis_cocompact.comap f).le_basis_iff filter.has_basis_cocompact,
@@ -947,7 +947,7 @@ prod.noncompact_space_iff.2 (or.inr ⟨‹_›, ‹_›⟩)
 section tychonoff
 variables [Π i, topological_space (π i)]
 
-/-- **Tychonoff's theorem** -/
+/-- **Tychonoff's theorem**: product of compact sets is compact. -/
 lemma is_compact_pi_infinite {s : Π i, set (π i)} :
   (∀ i, is_compact (s i)) → is_compact {x : Π i, π i | ∀ i, x i ∈ s i} :=
 begin
@@ -961,7 +961,7 @@ begin
   exact ⟨a, assume i, (ha i).left, assume i, (ha i).right.le_comap⟩
 end
 
-/-- A version of Tychonoff's theorem that uses `set.pi`. -/
+/-- **Tychonoff's theorem** formulated using `set.pi`: product of compact sets is compact. -/
 lemma is_compact_univ_pi {s : Π i, set (π i)} (h : ∀ i, is_compact (s i)) :
   is_compact (pi univ s) :=
 by { convert is_compact_pi_infinite h, simp only [← mem_univ_pi, set_of_mem_eq] }
@@ -969,18 +969,16 @@ by { convert is_compact_pi_infinite h, simp only [← mem_univ_pi, set_of_mem_eq
 instance pi.compact_space [∀ i, compact_space (π i)] : compact_space (Πi, π i) :=
 ⟨by { rw [← pi_univ univ], exact is_compact_univ_pi (λ i, compact_univ) }⟩
 
-/-- Product of compact sets is compact -/
+/-- **Tychonoff's theorem** formulated in terms of filters: `filter.cocompact` on an indexed product
+type `Π d, κ d` the `filter.Coprod` of filters `filter.cocompact` on `κ d`. -/
 lemma filter.Coprod_cocompact {δ : Type*} {κ : δ → Type*} [Π d, topological_space (κ d)] :
   filter.Coprod (λ d, filter.cocompact (κ d)) = filter.cocompact (Π d, κ d) :=
 begin
-  ext S, rcases compl_surjective S with ⟨S, rfl⟩,
-  simp_rw [compl_mem_Coprod_iff, filter.mem_cocompact, compl_subset_compl],
-  split,
-  { rintro ⟨t, H, hSt⟩, choose K hKc htK using H,
-    exact ⟨set.pi univ K, is_compact_univ_pi hKc, hSt.trans $ pi_mono $ λ i _, htK i⟩ },
-  { rintro ⟨K, hKc, hSK⟩,
-    exact ⟨λ i, function.eval i '' K, λ i, ⟨_, hKc.image (continuous_apply i), subset.rfl⟩,
-      hSK.trans $ subset_pi_eval_image _ _⟩ }
+  refine le_antisymm (supr_le $ λ i, filter.comap_cocompact_le (continuous_apply i)) _,
+  refine compl_surjective.forall.2 (λ s H, _),
+  simp only [compl_mem_Coprod, filter.mem_cocompact, compl_subset_compl, image_subset_iff] at H ⊢,
+  choose K hKc htK using H,
+  exact ⟨set.pi univ K, is_compact_univ_pi hKc, λ f hf i hi, htK i hf⟩
 end
 
 end tychonoff

@@ -729,6 +729,19 @@ begin
   rw [sub_add_cancel, ← add_mod_mod, sub_add_cancel, mod_mod]
 end
 
+protected theorem div_mod_unique {a b r q : ℤ} (h : 0 < b) :
+  a / b = q ∧ a % b = r ↔ r + b * q = a ∧ 0 ≤ r ∧ r < b :=
+begin
+  split,
+  { rintro ⟨rfl, rfl⟩,
+    exact ⟨mod_add_div a b, mod_nonneg _ h.ne.symm, mod_lt_of_pos _ h⟩, },
+  { rintro ⟨rfl, hz, hb⟩,
+    split,
+    { rw [int.add_mul_div_left r q (ne_of_gt h), div_eq_zero_of_lt hz hb],
+      simp, },
+    { rw [add_mul_mod_self_left, mod_eq_of_lt hz hb] } },
+end
+
 /-! ### properties of `/` and `%` -/
 
 @[simp] theorem mul_div_mul_of_pos {a : ℤ} (b c : ℤ) (H : 0 < a) : a * b / (a * c) = b / c :=
@@ -912,6 +925,13 @@ end
 
 lemma sub_div_of_dvd_sub {a b c : ℤ} (hcab : c ∣ (a - b)) : (a - b) / c = a / c - b / c :=
 by rw [eq_sub_iff_add_eq, ← int.add_div_of_dvd_left hcab, sub_add_cancel]
+
+@[simp]
+protected lemma div_left_inj {a b d : ℤ} (hda : d ∣ a) (hdb : d ∣ b) : a / d = b / d ↔ a = b :=
+begin
+  refine ⟨λ h, _, congr_arg _⟩,
+  rw [←int.mul_div_cancel' hda, ←int.mul_div_cancel' hdb, h],
+end
 
 lemma nat_abs_sign (z : ℤ) :
   z.sign.nat_abs = if z = 0 then 0 else 1 :=
@@ -1317,11 +1337,20 @@ by rw [is_unit_iff_nat_abs_eq, abs_eq_nat_abs, ←int.coe_nat_one, coe_nat_inj']
 lemma of_nat_is_unit {n : ℕ} : is_unit (n : ℤ) ↔ is_unit n :=
 by rw [nat.is_unit_iff, is_unit_iff_nat_abs_eq, nat_abs_of_nat]
 
-lemma units_inv_eq_self (u : ℤˣ) : u⁻¹ = u :=
-(units_eq_one_or u).elim (λ h, h.symm ▸ rfl) (λ h, h.symm ▸ rfl)
+lemma is_unit_mul_self {a : ℤ} (ha : is_unit a) : a * a = 1 :=
+(is_unit_eq_one_or ha).elim (λ h, h.symm ▸ rfl) (λ h, h.symm ▸ rfl)
+
+lemma is_unit_sq {a : ℤ} (ha : is_unit a) : a ^ 2 = 1 :=
+by rw [sq, is_unit_mul_self ha]
+
+@[simp] lemma units_sq (u : ℤˣ) : u ^ 2 = 1 :=
+by rw [units.ext_iff, units.coe_pow, units.coe_one, is_unit_sq u.is_unit]
 
 @[simp] lemma units_mul_self (u : ℤˣ) : u * u = 1 :=
-(units_eq_one_or u).elim (λ h, h.symm ▸ rfl) (λ h, h.symm ▸ rfl)
+by rw [←sq, units_sq]
+
+@[simp] lemma units_inv_eq_self (u : ℤˣ) : u⁻¹ = u :=
+by rw [inv_eq_iff_mul_eq_one, units_mul_self]
 
 -- `units.coe_mul` is a "wrong turn" for the simplifier, this undoes it and simplifies further
 @[simp] lemma units_coe_mul_self (u : ℤˣ) : (u * u : ℤ) = 1 :=

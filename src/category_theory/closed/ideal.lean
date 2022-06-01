@@ -110,7 +110,7 @@ variables {C : Type u₁} {D : Type u₂} [category.{v₁} C] [category.{v₁} D
 variables (i : D ⥤ C)
 
 lemma reflective_products [has_finite_products C] [reflective i] : has_finite_products D :=
-⟨λ J 𝒥₁ 𝒥₂, by exactI has_limits_of_shape_of_reflective i⟩
+⟨λ J 𝒥, by exactI has_limits_of_shape_of_reflective i⟩
 
 local attribute [instance, priority 10] reflective_products
 

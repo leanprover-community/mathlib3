@@ -194,7 +194,7 @@ begin
     (((tendsto_exp_div_pow_at_top n).const_mul_at_top hb).at_top_add
       ((tendsto_pow_neg_at_top hn).mul (@tendsto_const_nhds _ _ _ c _))),
   intros x hx,
-  simp only [zpow_neg₀ x n],
+  simp only [zpow_neg x n],
   ring,
 end
 
@@ -207,7 +207,7 @@ begin
   { intros b' c' h,
     convert (tendsto_mul_exp_add_div_pow_at_top b' c' n h).inv_tendsto_at_top ,
     ext x,
-    simpa only [pi.inv_apply] using inv_div.symm },
+    simpa only [pi.inv_apply] using (inv_div _ _).symm },
   cases lt_or_gt_of_ne hb,
   { exact H b c h },
   { convert (H (-b) (-c) (neg_pos.mpr h)).neg,
@@ -255,8 +255,25 @@ lemma tendsto_comp_exp_at_bot {α : Type*} {l : filter α} {f : ℝ → α} :
   tendsto (λ x, f (exp x)) at_bot l ↔ tendsto f (𝓝[>] 0) l :=
 by rw [← map_exp_at_bot, tendsto_map'_iff]
 
-lemma is_o_pow_exp_at_top {n : ℕ} : is_o (λ x, x^n) real.exp at_top :=
+lemma is_o_pow_exp_at_top {n : ℕ} : (λ x, x^n) =o[at_top] real.exp :=
 by simpa [is_o_iff_tendsto (λ x hx, ((exp_pos x).ne' hx).elim)]
   using tendsto_div_pow_mul_exp_add_at_top 1 0 n zero_ne_one
 
 end real
+
+namespace complex
+
+/-- `complex.abs (complex.exp z) → ∞` as `complex.re z → ∞`. TODO: use `bornology.cobounded`. -/
+lemma tendsto_exp_comap_re_at_top : tendsto exp (comap re at_top) (comap abs at_top) :=
+by simpa only [tendsto_comap_iff, (∘), abs_exp] using real.tendsto_exp_at_top.comp tendsto_comap
+
+/-- `complex.exp z → 0` as `complex.re z → -∞`.-/
+lemma tendsto_exp_comap_re_at_bot : tendsto exp (comap re at_bot) (𝓝 0) :=
+tendsto_zero_iff_norm_tendsto_zero.2 $
+  by simpa only [norm_eq_abs, abs_exp] using real.tendsto_exp_at_bot.comp tendsto_comap
+
+lemma tendsto_exp_comap_re_at_bot_nhds_within : tendsto exp (comap re at_bot) (𝓝[≠] 0) :=
+tendsto_inf.2 ⟨tendsto_exp_comap_re_at_bot,
+  tendsto_principal.2 $ eventually_of_forall $ exp_ne_zero⟩
+
+end complex

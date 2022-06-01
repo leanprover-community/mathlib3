@@ -582,7 +582,7 @@ namespace submonoid
 /-- The additive closure of a submonoid is a subsemiring. -/
 def subsemiring_closure (M : submonoid R) : subsemiring R :=
 { one_mem' := add_submonoid.mem_closure.mpr (λ y hy, hy M.one_mem),
-  mul_mem' := λ x y, M.mul_mem_add_closure,
+  mul_mem' := λ x y, mul_mem_class.mul_mem_add_closure,
   ..add_submonoid.closure (M : set R)}
 
 lemma subsemiring_closure_coe :
@@ -873,7 +873,7 @@ namespace subsemiring
 open ring_hom
 
 /-- The ring homomorphism associated to an inclusion of subsemirings. -/
-def inclusion {S T : subsemiring R} (h : S ≤ T) : S →* T :=
+def inclusion {S T : subsemiring R} (h : S ≤ T) : S →+* T :=
 S.subtype.cod_srestrict _ (λ x, h x.2)
 
 @[simp] lemma srange_subtype (s : subsemiring R) : s.subtype.srange = s :=
@@ -1005,6 +1005,14 @@ mul_action_with_zero.comp_hom _ S.subtype.to_monoid_with_zero_hom
 /-- The action by a subsemiring is the action by the underlying semiring. -/
 instance [add_comm_monoid α] [module R' α] (S : subsemiring R') : module S α :=
 { smul := (•), .. module.comp_hom _ S.subtype }
+
+/-- The center of a semiring acts commutatively on that semiring. -/
+instance center.smul_comm_class_left : smul_comm_class (center R') R' R' :=
+submonoid.center.smul_comm_class_left
+
+/-- The center of a semiring acts commutatively on that semiring. -/
+instance center.smul_comm_class_right : smul_comm_class R' (center R') R' :=
+submonoid.center.smul_comm_class_right
 
 /-- If all the elements of a set `s` commute, then `closure s` is a commutative monoid. -/
 def closure_comm_semiring_of_comm {s : set R'} (hcomm : ∀ (a ∈ s) (b ∈ s), a * b = b * a) :

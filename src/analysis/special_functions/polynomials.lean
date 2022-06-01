@@ -27,12 +27,8 @@ namespace polynomial
 
 variables {𝕜 : Type*} [normed_linear_ordered_field 𝕜] (P Q : 𝕜[X])
 
-lemma eventually_no_roots (hP : P ≠ 0) : ∀ᶠ x in filter.at_top, ¬ P.is_root x :=
-begin
-  obtain ⟨x₀, hx₀⟩ := exists_max_root P hP,
-  refine filter.eventually_at_top.mpr (⟨x₀ + 1, λ x hx h, _⟩),
-  exact absurd (hx₀ x h) (not_le.mpr (lt_of_lt_of_le (lt_add_one x₀) hx)),
-end
+lemma eventually_no_roots (hP : P ≠ 0) : ∀ᶠ x in at_top, ¬ P.is_root x :=
+at_top_le_cofinite $ (finite_set_of_is_root hP).compl_mem_cofinite
 
 variables [order_topology 𝕜]
 
@@ -141,7 +137,7 @@ begin
   refine (P.is_equivalent_at_top_lead.symm.div
           Q.is_equivalent_at_top_lead.symm).symm.trans
          (eventually_eq.is_equivalent ((eventually_gt_at_top 0).mono $ λ x hx, _)),
-  simp [← div_mul_div_comm₀, hP, hQ, zpow_sub₀ hx.ne.symm]
+  simp [← div_mul_div_comm, hP, hQ, zpow_sub₀ hx.ne.symm]
 end
 
 lemma div_tendsto_zero_of_degree_lt (hdeg : P.degree < Q.degree) :
@@ -237,10 +233,10 @@ end
 end polynomial_div_at_top
 
 theorem is_O_of_degree_le (h : P.degree ≤ Q.degree) :
-  is_O (λ x, eval x P) (λ x, eval x Q) filter.at_top :=
+  (λ x, eval x P) =O[at_top] (λ x, eval x Q) :=
 begin
   by_cases hp : P = 0,
-  { simpa [hp] using is_O_zero (λ x, eval x Q) filter.at_top },
+  { simpa [hp] using is_O_zero (λ x, eval x Q) at_top },
   { have hq : Q ≠ 0 := ne_zero_of_degree_ge_degree h hp,
     have hPQ : ∀ᶠ (x : 𝕜) in at_top, eval x Q = 0 → eval x P = 0 :=
       filter.mem_of_superset (polynomial.eventually_no_roots Q hq) (λ x h h', absurd h' h),

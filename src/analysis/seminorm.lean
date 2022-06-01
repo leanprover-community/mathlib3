@@ -47,8 +47,8 @@ variables {R R' 𝕜 E F G ι : Type*}
 values, and is subadditive. -/
 structure add_monoid_seminorm (G : Type*) [add_monoid G]
   extends zero_hom G ℝ :=
-(nonneg : ∀ r, 0 ≤ to_fun r)
-(add : ∀ r s, to_fun (r + s) ≤ to_fun r + to_fun s)
+(nonneg' : ∀ r, 0 ≤ to_fun r)
+(add_le' : ∀ r s, to_fun (r + s) ≤ to_fun r + to_fun s)
 
 namespace add_monoid_seminorm
 
@@ -67,9 +67,9 @@ fun_like.ext p q h
 
 instance : has_zero (add_monoid_seminorm E) :=
 ⟨{ to_fun   := 0,
-  nonneg    := λ r, le_refl _,
+  nonneg'   := λ r, le_refl _,
   map_zero' := pi.zero_apply _,
-  add       := λ _ _, eq.ge (zero_add _) }⟩
+  add_le'   := λ _ _, eq.ge (zero_add _) }⟩
 
 @[simp] lemma coe_zero : ⇑(0 : add_monoid_seminorm E) = 0 := rfl
 
@@ -79,21 +79,22 @@ instance : inhabited (add_monoid_seminorm E) := ⟨0⟩
 
 variables (p : add_monoid_seminorm E) (x y : E) (r : ℝ)
 
+protected lemma nonneg : 0 ≤ p x := p.nonneg' _
 protected lemma map_zero : p 0 = 0 := p.map_zero'
-protected lemma add_le : p (x + y) ≤ p x + p y := p.add _ _
+protected lemma add_le : p (x + y) ≤ p x + p y := p.add_le' _ _
 
 /-- Any action on `ℝ` which factors through `ℝ≥0` applies to an add_monoid seminorm. -/
 instance [has_scalar R ℝ] [has_scalar R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ] :
   has_scalar R (add_monoid_seminorm E) :=
 { smul := λ r p,
   { to_fun := λ x, r • p x,
-    nonneg    := λ x, begin
+    nonneg' := λ x, begin
       simp only [←smul_one_smul ℝ≥0 r (_ : ℝ), nnreal.smul_def, smul_eq_mul],
       exact mul_nonneg (nnreal.coe_nonneg _) (p.nonneg _)
     end,
     map_zero' := by simp only [←smul_one_smul ℝ≥0 r (_ : ℝ), nnreal.smul_def, smul_eq_mul,
       p.map_zero, mul_zero],
-    add := λ _ _, begin
+    add_le' := λ _ _, begin
       simp only [←smul_one_smul ℝ≥0 r (_ : ℝ), nnreal.smul_def, smul_eq_mul],
       exact (mul_le_mul_of_nonneg_left (p.add_le _ _) (nnreal.coe_nonneg _)).trans_eq
         (mul_add _ _ _),
@@ -114,9 +115,9 @@ lemma coe_smul [has_scalar R ℝ] [has_scalar R ℝ≥0] [is_scalar_tower R ℝ�
 instance : has_add (add_monoid_seminorm E) :=
 { add := λ p q,
   { to_fun    := λ x, p x + q x,
-    nonneg    := λ x, add_nonneg (p.nonneg _) (q.nonneg _),
+    nonneg'   := λ x, add_nonneg (p.nonneg _) (q.nonneg _),
     map_zero' := by rw [p.map_zero, q.map_zero, zero_add],
-    add       := λ _ _, has_le.le.trans_eq (add_le_add (p.add_le _ _) (q.add_le _ _))
+    add_le'   := λ _ _, has_le.le.trans_eq (add_le_add (p.add_le _ _) (q.add_le _ _))
       (add_add_add_comm _ _ _ _) }}
 
 lemma coe_add (p q : add_monoid_seminorm E) : ⇑(p + q) = p + q := rfl
@@ -127,8 +128,8 @@ lemma coe_add (p q : add_monoid_seminorm E) : ⇑(p + q) = p + q := rfl
 -- https://github.com/leanprover-community/mathlib/pull/11329#issuecomment-1008915345
 noncomputable instance : has_sup (add_monoid_seminorm E) :=
 { sup := λ p q,
-  { to_fun := p ⊔ q,
-    nonneg := λ x, begin
+  { to_fun  := p ⊔ q,
+    nonneg' := λ x, begin
       simp only [pi.sup_apply, le_sup_iff],
       exact or.intro_left _ (p.nonneg _),
     end,
@@ -136,7 +137,7 @@ noncomputable instance : has_sup (add_monoid_seminorm E) :=
       simp only [pi.sup_apply],
       rw [← p.map_zero, sup_eq_left, p.map_zero, q.map_zero],
     end,
-    add := λ x y, sup_le
+    add_le' := λ x y, sup_le
       ((p.add_le x y).trans $ add_le_add le_sup_left le_sup_left)
       ((q.add_le x y).trans $ add_le_add le_sup_right le_sup_right) }}
 
@@ -167,6 +168,14 @@ semidefinite, positive homogeneous, and subadditive. -/
 structure seminorm (𝕜 : Type*) (E : Type*) [semi_normed_ring 𝕜] [add_monoid E] [has_scalar 𝕜 E]
   extends add_monoid_seminorm E :=
 (smul' : ∀ (a : 𝕜) (x : E), to_fun (a • x) = ∥a∥ * to_fun x)
+
+--TODO
+/- lemma nonneg : 0 ≤ p x :=
+have h: 0 ≤ 2 * p x, from
+calc 0 = p (x + (- x)) : by rw [add_neg_self, p.zero]
+...    ≤ p x + p (-x)  : p.add_le _ _
+...    = 2 * p x : by rw [p.neg, two_mul],
+nonneg_of_mul_nonneg_left h zero_lt_two -/
 
 namespace seminorm
 
@@ -205,22 +214,23 @@ instance : inhabited (seminorm 𝕜 E) := ⟨0⟩
 
 variables (p : seminorm 𝕜 E) (c : 𝕜) (x y : E) (r : ℝ)
 
-protected lemma zero : p 0 = 0 := p.map_zero'
+protected lemma nonneg : 0 ≤ p x := p.nonneg' _
+protected lemma map_zero : p 0 = 0 := p.map_zero'
 protected lemma smul : p (c • x) = ∥c∥ * p x := p.smul' _ _
-protected lemma add_le : p (x + y) ≤ p x + p y := p.add _ _
+protected lemma add_le : p (x + y) ≤ p x + p y := p.add_le' _ _
 
 /-- Any action on `ℝ` which factors through `ℝ≥0` applies to a seminorm. -/
 instance [has_scalar R ℝ] [has_scalar R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ] :
   has_scalar R (seminorm 𝕜 E) :=
 { smul := λ r p,
-  { to_fun := λ x, r • p x,
-    nonneg    := λ x, begin
+  { to_fun  := λ x, r • p x,
+    nonneg' := λ x, begin
       simp only [←smul_one_smul ℝ≥0 r (_ : ℝ), nnreal.smul_def, smul_eq_mul],
       exact mul_nonneg (nnreal.coe_nonneg _) (p.nonneg _)
     end,
     map_zero' := by simp only [←smul_one_smul ℝ≥0 r (_ : ℝ), nnreal.smul_def, smul_eq_mul,
-      p.zero, mul_zero],
-    add := λ _ _, begin
+      p.map_zero, mul_zero],
+    add_le' := λ _ _, begin
       simp only [←smul_one_smul ℝ≥0 r (_ : ℝ), nnreal.smul_def, smul_eq_mul],
       exact (mul_le_mul_of_nonneg_left (p.add_le _ _) (nnreal.coe_nonneg _)).trans_eq
         (mul_add _ _ _),
@@ -245,10 +255,10 @@ lemma coe_smul [has_scalar R ℝ] [has_scalar R ℝ≥0] [is_scalar_tower R ℝ�
 instance : has_add (seminorm 𝕜 E) :=
 { add := λ p q,
   { to_fun    := λ x, p x + q x,
-    nonneg    := λ x, add_nonneg (p.nonneg _) (q.nonneg _),
-    map_zero' := by rw [p.zero, q.zero, zero_add],
+    nonneg'   := λ x, add_nonneg (p.nonneg _) (q.nonneg _),
+    map_zero' := by rw [p.map_zero, q.map_zero, zero_add],
     smul'     := λ a x, by simp only [p.smul, q.smul, mul_add],
-    add       := λ _ _, has_le.le.trans_eq (add_le_add (p.add_le _ _) (q.add_le _ _))
+    add_le'   := λ _ _, has_le.le.trans_eq (add_le_add (p.add_le _ _) (q.add_le _ _))
       (add_add_add_comm _ _ _ _) }}
 
 lemma coe_add (p q : seminorm 𝕜 E) : ⇑(p + q) = p + q := rfl
@@ -289,16 +299,16 @@ instance [semiring R] [module R ℝ] [has_scalar R ℝ≥0] [is_scalar_tower R �
 -- https://github.com/leanprover-community/mathlib/pull/11329#issuecomment-1008915345
 noncomputable instance : has_sup (seminorm 𝕜 E) :=
 { sup := λ p q,
-  { to_fun := p ⊔ q,
-    nonneg := λ x, begin
+  { to_fun  := p ⊔ q,
+    nonneg' := λ x, begin
       simp only [pi.sup_apply, le_sup_iff],
       exact or.intro_left _ (p.nonneg _),
     end,
     map_zero' := begin
       simp only [pi.sup_apply],
-      rw [← p.zero, sup_eq_left, p.zero, q.zero],
+      rw [← p.map_zero, sup_eq_left, p.map_zero, q.map_zero],
     end,
-    add := λ x y, sup_le
+    add_le' := λ x y, sup_le
       ((p.add_le x y).trans $ add_le_add le_sup_left le_sup_left)
       ((q.add_le x y).trans $ add_le_add le_sup_right le_sup_right),
     smul' := λ x v, (congr_arg2 max (p.smul x v) (q.smul x v)).trans $
@@ -336,10 +346,10 @@ variables [has_scalar R ℝ] [has_scalar R ℝ≥0] [is_scalar_tower R ℝ≥0 �
 /-- Composition of a seminorm with a linear map is a seminorm. -/
 def comp (p : seminorm 𝕜 F) (f : E →ₗ[𝕜] F) : seminorm 𝕜 E :=
 { to_fun    := λ x, p(f x),
-  nonneg    := λ x, p.nonneg _,
-  map_zero' := by rw [f.map_zero, p.zero],
+  nonneg'   := λ x, p.nonneg _,
+  map_zero' := by rw [f.map_zero, p.map_zero],
   smul'     := λ _ _, (congr_arg p (f.map_smul _ _)).trans (p.smul _ _),
-  add       := λ _ _, by apply eq.trans_le (congr_arg p (f.map_add _ _)) (p.add_le _ _) }
+  add_le'   := λ _ _, by apply eq.trans_le (congr_arg p (f.map_add _ _)) (p.add_le _ _) }
 
 lemma coe_comp (p : seminorm 𝕜 F) (f : E →ₗ[𝕜] F) : ⇑(p.comp f) = p ∘ f := rfl
 
@@ -349,7 +359,7 @@ lemma coe_comp (p : seminorm 𝕜 F) (f : E →ₗ[𝕜] F) : ⇑(p.comp f) = p 
 ext $ λ _, rfl
 
 @[simp] lemma comp_zero (p : seminorm 𝕜 F) : p.comp (0 : E →ₗ[𝕜] F) = 0 :=
-ext $ λ _, seminorm.zero _
+ext $ λ _, seminorm.map_zero _
 
 @[simp] lemma zero_comp (f : E →ₗ[𝕜] F) : (0 : seminorm 𝕜 F).comp f = 0 :=
 ext $ λ _, rfl
@@ -389,13 +399,6 @@ calc
   ... ≤ p x + p (-y) : p.add_le x (-y)
   ... = p x + p y : by rw p.neg
 
-lemma nonneg : 0 ≤ p x :=
-have h: 0 ≤ 2 * p x, from
-calc 0 = p (x + (- x)) : by rw [add_neg_self, p.zero]
-...    ≤ p x + p (-x)  : p.add_le _ _
-...    = 2 * p x : by rw [p.neg, two_mul],
-nonneg_of_mul_nonneg_left h zero_lt_two
-
 lemma sub_rev : p (x - y) = p (y - x) := by rw [←neg_sub, p.neg]
 
 /-- The direct path from 0 to y is shorter than the path with x "inserted" in between. -/
@@ -406,7 +409,7 @@ calc p y = p (x - (x - y)) : by rw sub_sub_cancel
 /-- The direct path from 0 to x is shorter than the path with y "inserted" in between. -/
 lemma le_insert' : p x ≤ p y + p (x - y) := by { rw sub_rev, exact le_insert _ _ _ }
 
-instance : order_bot (seminorm 𝕜 E) := ⟨0, nonneg⟩
+instance : order_bot (seminorm 𝕜 E) := ⟨0, seminorm.nonneg⟩
 
 @[simp] lemma coe_bot : ⇑(⊥ : seminorm 𝕜 E) = 0 := rfl
 
@@ -418,11 +421,11 @@ begin
   simp_rw [le_def, pi.le_def, coe_smul],
   intros x,
   simp_rw [pi.smul_apply, nnreal.smul_def, smul_eq_mul],
-  exact mul_le_mul hab (hpq x) (nonneg p x) (nnreal.coe_nonneg b),
+  exact mul_le_mul hab (hpq x) (p.nonneg x) (nnreal.coe_nonneg b),
 end
 
 lemma finset_sup_apply (p : ι → seminorm 𝕜 E) (s : finset ι) (x : E) :
-  s.sup p x = ↑(s.sup (λ i, ⟨p i x, nonneg (p i) x⟩) : ℝ≥0) :=
+  s.sup p x = ↑(s.sup (λ i, ⟨p i x, (p i).nonneg x⟩) : ℝ≥0) :=
 begin
   induction s using finset.cons_induction_on with a s ha ih,
   { rw [finset.sup_empty, finset.sup_empty, coe_bot, _root_.bot_eq_zero, pi.zero_apply,
@@ -484,11 +487,11 @@ by { use 0, rintro _ ⟨x, rfl⟩, exact add_nonneg (p.nonneg _) (q.nonneg _) }
 noncomputable instance : has_inf (seminorm 𝕜 E) :=
 { inf := λ p q,
   { to_fun := λ x, ⨅ u : E, p u + q (x-u),
-    nonneg := λ x, le_cinfi (λ x, add_nonneg (p.nonneg _) (q.nonneg _)),
+    nonneg' := λ x, le_cinfi (λ x, add_nonneg (p.nonneg _) (q.nonneg _)),
     map_zero' := cinfi_eq_of_forall_ge_of_forall_gt_exists_lt
         (λ x, add_nonneg (p.nonneg _) (q.nonneg _))
-        (λ r hr, ⟨0, by simpa [sub_zero, p.zero, q.zero, add_zero] using hr⟩),
-    add := λ x y, begin
+        (λ r hr, ⟨0, by simpa [sub_zero, p.map_zero, q.map_zero, add_zero] using hr⟩),
+    add_le' := λ x y, begin
       refine le_cinfi_add_cinfi (λ u v, _),
       apply cinfi_le_of_le (bdd_below_range_add _ _ _) (v+u), dsimp only,
       convert add_le_add (p.add_le v u) (q.add_le (y-v) (x-u)) using 1,
@@ -500,7 +503,7 @@ noncomputable instance : has_inf (seminorm 𝕜 E) :=
       { simp_rw [norm_zero, zero_mul, zero_smul, zero_sub, seminorm.neg],
         refine cinfi_eq_of_forall_ge_of_forall_gt_exists_lt
           (λ i, add_nonneg (p.nonneg _) (q.nonneg _))
-          (λ x hx, ⟨0, by rwa [p.zero, q.zero, add_zero]⟩) },
+          (λ x hx, ⟨0, by rwa [p.map_zero, q.map_zero, add_zero]⟩) },
       simp_rw [real.mul_infi_of_nonneg (norm_nonneg a), mul_add, ←p.smul, ←q.smul, smul_sub],
       refine function.surjective.infi_congr ((•) a⁻¹ : E → E) (λ u, ⟨a • u, inv_smul_smul₀ ha u⟩)
         (λ u, _),
@@ -513,11 +516,11 @@ noncomputable instance : lattice (seminorm 𝕜 E) :=
 { inf := (⊓),
   inf_le_left := λ p q x, begin
     apply cinfi_le_of_le (bdd_below_range_add _ _ _) x,
-    simp only [sub_self, seminorm.zero, add_zero],
+    simp only [sub_self, seminorm.map_zero, add_zero],
   end,
   inf_le_right := λ p q x, begin
     apply cinfi_le_of_le (bdd_below_range_add _ _ _) (0:E),
-    simp only [sub_self, seminorm.zero, zero_add, sub_zero],
+    simp only [sub_self, seminorm.map_zero, zero_add, sub_zero],
   end,
   le_inf := λ a b c hab hac x,
     le_cinfi $ λ u, le_trans (a.le_insert' _ _) (add_le_add (hab _) (hac _)),
@@ -608,7 +611,7 @@ begin
   simp_rw [ball, mem_preimage, comp_apply, set.mem_set_of_eq, map_sub],
 end
 
-section norm_one_class
+section seminorm
 variables (p : seminorm 𝕜 E)
 
 lemma ball_zero_eq_preimage_ball {r : ℝ} :
@@ -632,7 +635,6 @@ begin
   calc _ ≤ p y : mul_le_of_le_one_left (p.nonneg _) ha
   ...    < r   : by rwa mem_ball_zero at hy,
 end
-
 
 lemma ball_finset_sup_eq_Inter (p : ι → seminorm 𝕜 E) (s : finset ι) (x : E) {r : ℝ} (hr : 0 < r)
   [norm_one_class 𝕜] : ball (s.sup p) x r = ⋂ (i ∈ s), ball (p i) x r :=
@@ -667,7 +669,7 @@ begin
   exact hr.trans (p.nonneg _),
 end
 
-end norm_one_class
+end seminorm
 end module
 end add_comm_group
 end semi_normed_ring

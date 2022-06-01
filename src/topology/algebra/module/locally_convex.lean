@@ -102,30 +102,19 @@ variables {ι : Sort*} {𝕜 E F : Type*} [ordered_semiring 𝕜] [add_comm_mono
   (h₁ : @locally_convex_space 𝕜 E _ _ _ t₁) (h₂ : @locally_convex_space 𝕜 E _ _ _ t₂)
   {t : topological_space F} [locally_convex_space 𝕜 F] {f : E →ₗ[𝕜] F}
 
--- This lemma is private because it has too strong universe assumptions (because we can't have
--- sets of proofs), use `locally_convex_space_infi` instead. However, it is easier to prove it
--- first and then deduce the `Inf` version and the correct `infi` version.
-private lemma locally_convex_space_infi' {ι : Type*} {ts' : ι → topological_space E}
-  (h' : ∀ i, @locally_convex_space 𝕜 E  _ _ _ (ts' i)) :
-  @locally_convex_space 𝕜 E _ _ _ (⨅ i, ts' i) :=
-begin
-  letI : topological_space E := ⨅ i, ts' i,
-  refine locally_convex_space.of_bases 𝕜 E
-    (λ x, λ If : set ι × (ι → set E), ⋂ i ∈ If.1, If.2 i)
-    (λ x, λ If : set ι × (ι → set E), finite If.1 ∧ ∀ i ∈ If.1,
-      ((If.2 i) ∈ @nhds _ (ts' i) x ∧ convex 𝕜 (If.2 i)))
-    (λ x, _) (λ x If hif, convex_Inter $ λ i, convex_Inter $ λ hi, (hif.2 i hi).2),
-  rw nhds_infi,
-  exact has_basis_infi (λ i : ι, (@locally_convex_space_iff 𝕜 E _ _ _ (ts' i)).mp (h' i) x)
-end
-
 include h
 
 lemma locally_convex_space_Inf :
   @locally_convex_space 𝕜 E _ _ _ (Inf ts) :=
 begin
-  rw Inf_eq_infi',
-  exact locally_convex_space_infi' (λ t, h t.1 t.2)
+  letI : topological_space E := Inf ts,
+  refine locally_convex_space.of_bases 𝕜 E
+    (λ x, λ If : set ts × (ts → set E), ⋂ i ∈ If.1, If.2 i)
+    (λ x, λ If : set ts × (ts → set E), finite If.1 ∧ ∀ i ∈ If.1,
+      ((If.2 i) ∈ @nhds _ ↑i x ∧ convex 𝕜 (If.2 i)))
+    (λ x, _) (λ x If hif, convex_Inter $ λ i, convex_Inter $ λ hi, (hif.2 i hi).2),
+  rw [nhds_Inf, ← infi_subtype''],
+  exact has_basis_infi (λ i : ts, (@locally_convex_space_iff 𝕜 E _ _ _ ↑i).mp (h ↑i i.2) x),
 end
 
 omit h

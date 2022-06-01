@@ -32,12 +32,10 @@ lemma lower_triangular.eq_zero [has_lt n] [has_zero R]
   {M : matrix n n R} (hM : M.lower_triangular) :
   ∀ {i} {j}, i < j → M i j = 0 := hM
 
-lemma lower_triangular_zero [has_lt n] [has_zero R]
-  (hM : M.lower_triangular) (hN : N.lower_triangular) :
+lemma lower_triangular_zero [has_lt n] [has_zero R] :
   matrix.lower_triangular (0 : matrix n n R) := λ i j hij, rfl
 
-lemma lower_triangular_one [preorder n] [decidable_eq n] [has_zero R] [has_one R]
-  (hM : M.lower_triangular) (hN : N.lower_triangular):
+lemma lower_triangular_one [preorder n] [decidable_eq n] [has_zero R] [has_one R] :
   matrix.lower_triangular (1 : matrix n n R) := λ i j hij, diagonal_apply_ne _ (ne_of_lt hij)
 
 lemma lower_triangular_add [has_lt n] [add_zero_class R]

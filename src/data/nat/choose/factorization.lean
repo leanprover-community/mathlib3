@@ -139,7 +139,7 @@ begin
       pi.add_apply, hn (lt_of_succ_lt h), add_zero, factorization_eq_zero_of_lt h],
 end
 
-lemma factorization_choose_eq_zero_of_lt_prime (h : n < p) (k : ℕ) :
+lemma factorization_choose_eq_zero_of_lt_prime (h : n < p) :
   (choose n k).factorization p = 0 :=
 begin
   by_cases hnk : n < k,

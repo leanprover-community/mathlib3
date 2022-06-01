@@ -157,34 +157,8 @@ end
 
 variables {β}
 
-lemma t2_space [t2_space β] : t2_space (α → β) :=
-{ t2 :=
-  begin
-    letI : uniform_space (α → β) := uniform_convergence.uniform_space α β,
-    letI : topological_space (α → β) := uniform_convergence.topological_space α β,
-    intros f g h,
-    obtain ⟨x, hx⟩ := not_forall.mp (mt funext h),
-    exact separated_by_continuous (uniform_continuous_eval β x).continuous hx
-  end }
-
-protected lemma le_Pi : uniform_convergence.uniform_space α β ≤ Pi.uniform_space (λ _, β) :=
-begin
-  rw [le_iff_uniform_continuous_id, uniform_continuous_pi],
-  intros x,
-  exact uniform_continuous_eval β x
-end
-
-protected lemma tendsto_iff_tendsto_uniformly :
-  tendsto F p (𝓝 f) ↔
-  tendsto_uniformly F f p :=
-begin
-  letI : uniform_space (α → β) := uniform_convergence.uniform_space α β,
-  rw [(uniform_convergence.has_basis_nhds α β).tendsto_right_iff, tendsto_uniformly],
-  split;
-  { intros h U hU,
-    filter_upwards [h (prod.swap ⁻¹' U) (tendsto_swap_uniformity hU)],
-    exact λ n, id }
-end
+protected lemma mono : monotone (@uniform_convergence.uniform_space α γ) :=
+λ u₁ u₂ hu, (uniform_convergence.gc α γ).monotone_u hu
 
 protected lemma infi_eq {u : ι → uniform_space γ} :
   (@uniform_convergence.uniform_space α γ (⨅ i, u i)) =
@@ -218,7 +192,53 @@ begin
   refl
 end
 
+lemma postcomp_uniform_continuous [uniform_space γ] {f : γ → β} (hf : uniform_continuous f):
+  uniform_continuous ((∘) f : (α → γ) → α → β) :=
+uniform_continuous_iff.mpr $
+calc uniform_convergence.uniform_space α γ
+    ≤ @uniform_convergence.uniform_space α γ (‹uniform_space β›.comap f) :
+      uniform_convergence.mono (uniform_continuous_iff.mp hf)
+... = (uniform_convergence.uniform_space α β).comap ((∘) f : (α → γ) → α → β) :
+      uniform_convergence.comap_eq
 
+lemma precomp_uniform_continuous {f : γ → α} :
+  uniform_continuous (λ g : α → β, g ∘ f) :=
+begin
+  rw uniform_continuous_iff,
+  change 𝓤 (α → β) ≤ (𝓤 (γ → β)).comap (prod.map (λ g : α → β, g ∘ f) (λ g : α → β, g ∘ f)),
+  rw (uniform_convergence.has_basis_uniformity α β).le_basis_iff
+    ((uniform_convergence.has_basis_uniformity γ β).comap _),
+  exact λ U hU, ⟨U, hU, λ uv huv x, huv (f x)⟩
+end
+
+lemma t2_space [t2_space β] : t2_space (α → β) :=
+{ t2 :=
+  begin
+    letI : uniform_space (α → β) := uniform_convergence.uniform_space α β,
+    letI : topological_space (α → β) := uniform_convergence.topological_space α β,
+    intros f g h,
+    obtain ⟨x, hx⟩ := not_forall.mp (mt funext h),
+    exact separated_by_continuous (uniform_continuous_eval β x).continuous hx
+  end }
+
+protected lemma le_Pi : uniform_convergence.uniform_space α β ≤ Pi.uniform_space (λ _, β) :=
+begin
+  rw [le_iff_uniform_continuous_id, uniform_continuous_pi],
+  intros x,
+  exact uniform_continuous_eval β x
+end
+
+protected lemma tendsto_iff_tendsto_uniformly :
+  tendsto F p (𝓝 f) ↔
+  tendsto_uniformly F f p :=
+begin
+  letI : uniform_space (α → β) := uniform_convergence.uniform_space α β,
+  rw [(uniform_convergence.has_basis_nhds α β).tendsto_right_iff, tendsto_uniformly],
+  split;
+  { intros h U hU,
+    filter_upwards [h (prod.swap ⁻¹' U) (tendsto_swap_uniformity hU)],
+    exact λ n, id }
+end
 
 end uniform_convergence
 

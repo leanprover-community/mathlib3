@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2022 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Scott Morrison
+Authors: Scott Morrison, Oleksandr Manzyuk
 -/
 import category_theory.bicategory.basic
 import category_theory.monoidal.Mon_

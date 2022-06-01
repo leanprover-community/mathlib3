@@ -408,7 +408,7 @@ lemma has_basis.inf {ι ι' : Type*} {p : ι → Prop} {s : ι → set α} {p' :
 (hl.inf' hl').to_has_basis (λ i hi, ⟨⟨i.1, i.2⟩, hi, subset.rfl⟩)
   (λ i hi, ⟨⟨i.1, i.2⟩, hi, subset.rfl⟩)
 
-lemma has_basis_infi {ι : Sort*} {ι' : ι → Type*} {l : ι → filter α}
+lemma has_basis_infi {ι : Type*} {ι' : ι → Type*} {l : ι → filter α}
   {p : Π i, ι' i → Prop} {s : Π i, ι' i → set α} (hl : ∀ i, (l i).has_basis (p i) (s i)) :
   (⨅ i, l i).has_basis (λ If : set ι × Π i, ι' i, finite If.1 ∧ ∀ i ∈ If.1, p i (If.2 i))
     (λ If : set ι × Π i, ι' i, ⋂ i ∈ If.1, s i (If.2 i)) :=
@@ -425,6 +425,15 @@ lemma has_basis_infi {ι : Sort*} {ι' : ι → Type*} {l : ι → filter α}
     refine mem_of_superset _ hsub,
     exact (bInter_mem hI₁).mpr (λ i hi, mem_infi_of_mem i $ (hl i).mem_of_mem $ hI₂ _ hi) }
 end⟩
+
+lemma has_basis_Inf {L : set $ filter α} {ι : L → Type*}
+  {p : Π l, ι l → Prop} {s : Π l, ι l → set α} (hl : ∀ (l : L), filter.has_basis ↑l (p l) (s l)) :
+  (Inf L).has_basis (λ If : set L × Π l, ι l, finite If.1 ∧ ∀ l ∈ If.1, p l (If.2 l))
+    (λ If : set L × Π l, ι l, ⋂ i ∈ If.1, s i (If.2 i)) :=
+begin
+  rw Inf_eq_infi',
+  exact has_basis_infi hl
+end
 
 lemma has_basis_principal (t : set α) : (𝓟 t).has_basis (λ i : unit, true) (λ i, t) :=
 ⟨λ U, by simp⟩
@@ -452,6 +461,14 @@ lemma has_basis_supr {ι : Sort*} {ι' : ι → Type*} {l : ι → filter α}
   (⨆ i, l i).has_basis (λ f : Π i, ι' i, ∀ i, p i (f i)) (λ f : Π i, ι' i, ⋃ i, s i (f i)) :=
 has_basis_iff.mpr $ λ t, by simp only [has_basis_iff, (hl _).mem_iff, classical.skolem,
   forall_and_distrib, Union_subset_iff, mem_supr]
+
+lemma has_basis_Sup {L : set $ filter α} {ι : L → Type*}
+  {p : Π l, ι l → Prop} {s : Π l, ι l → set α} (hl : ∀ (l : L), filter.has_basis ↑l (p l) (s l)) :
+  (Sup L).has_basis (λ f : Π l, ι l, ∀ l, p l (f l)) (λ f : Π l, ι l, ⋃ l, s l (f l)) :=
+begin
+  rw Sup_eq_supr',
+  exact has_basis_supr hl
+end
 
 lemma has_basis.sup_principal (hl : l.has_basis p s) (t : set α) :
   (l ⊔ 𝓟 t).has_basis p (λ i, s i ∪ t) :=

@@ -94,6 +94,23 @@ lemma insert_of_symmetric (hs : is_antichain r s) (hr : symmetric r)
   is_antichain r (insert a s) :=
 (is_antichain_insert_of_symmetric hr).2 ⟨hs, h⟩
 
+lemma img_rel_iso (hs : is_antichain r s) (φ : rel_iso r r') :
+  is_antichain r' (φ '' s) :=
+begin
+  intros b hb b' hb' h₁ h₂,
+  rw set.mem_image at hb hb',
+  obtain ⟨⟨a,has,rfl⟩,⟨a',has',rfl⟩⟩ := ⟨hb,hb'⟩,
+  exact hs has has' (λ haa', h₁ (haa'.subst (by refl))) (φ.map_rel_iff.mp h₂),
+end
+
+lemma img_iso [has_le α] [has_le β] (hs : is_antichain (≤) s) (φ : order_iso α β) :
+  is_antichain (≤) (φ '' s) :=
+img_rel_iso hs φ
+
+lemma img_compl [boolean_algebra α] (hs : is_antichain (≤) s) :
+  is_antichain (≤) (compl '' s) :=
+(hs.img_iso (order_iso.compl α)).flip
+
 end is_antichain
 
 lemma is_antichain_singleton (a : α) (r : α → α → Prop) : is_antichain r {a} :=

@@ -85,7 +85,8 @@ See also `monoid.to_opposite_mul_action` and `monoid_with_zero.to_opposite_mul_a
   a • a' = a' * a.unop := rfl
 
 /-- The right regular action of a group on itself is transitive. -/
-@[to_additive] instance mul_action.opposite_regular.is_pretransitive {G : Type*} [group G] :
+@[to_additive "The right regular action of an additive group on itself is transitive."]
+instance mul_action.opposite_regular.is_pretransitive {G : Type*} [group G] :
   mul_action.is_pretransitive Gᵐᵒᵖ G :=
 ⟨λ x y, ⟨op (x⁻¹ * y), mul_inv_cancel_left _ _⟩⟩
 
@@ -106,12 +107,12 @@ instance comm_semigroup.is_central_scalar [comm_semigroup α] : is_central_scala
   one_smul := mul_one,
   mul_smul := λ x y r, (mul_assoc _ _ _).symm }
 
-instance is_scalar_tower.opposite_mid {M N} [monoid N] [has_scalar M N]
+instance is_scalar_tower.opposite_mid {M N} [has_mul N] [has_scalar M N]
   [smul_comm_class M N N] :
   is_scalar_tower M Nᵐᵒᵖ N :=
 ⟨λ x y z, mul_smul_comm _ _ _⟩
 
-instance smul_comm_class.opposite_mid {M N} [monoid N] [has_scalar M N]
+instance smul_comm_class.opposite_mid {M N} [has_mul N] [has_scalar M N]
   [is_scalar_tower M N N] :
   smul_comm_class M Nᵐᵒᵖ N :=
 ⟨λ x y z, by { induction y using mul_opposite.rec, simp [smul_mul_assoc] }⟩

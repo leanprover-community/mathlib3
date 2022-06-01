@@ -76,7 +76,7 @@ them. -/
 
 /-- `order_dual` as a functor. -/
 @[simps] def dual : FinBoolAlg ⥤ FinBoolAlg :=
-{ obj := λ X, of (order_dual X), map := λ X Y, bounded_lattice_hom.dual }
+{ obj := λ X, of Xᵒᵈ, map := λ X Y, bounded_lattice_hom.dual }
 
 /-- The equivalence between `FinBoolAlg` and itself induced by `order_dual` both ways. -/
 @[simps functor inverse] def dual_equiv : FinBoolAlg ≌ FinBoolAlg :=

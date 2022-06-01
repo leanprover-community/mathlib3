@@ -219,7 +219,7 @@ end sub_mul_action
 
 namespace sub_mul_action
 
-variables [division_ring S] [semiring R] [mul_action R M]
+variables [group_with_zero S] [monoid R] [mul_action R M]
 variables [has_scalar S R] [mul_action S M] [is_scalar_tower S R M]
 variables (p : sub_mul_action R M) {s : S} {x y : M}
 

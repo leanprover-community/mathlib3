@@ -3,9 +3,9 @@ Copyright (c) 202 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
+import set_theory.ordinal.basic
 import topology.metric_space.emetric_space
 import topology.paracompact
-import set_theory.ordinal
 
 /-!
 # (Extended) metric spaces are paracompact
@@ -148,8 +148,8 @@ begin
         ennreal.mul_le_mul le_rfl $ add_le_add le_rfl $ hpow_le (add_le_add hm le_rfl)
       ... = 3 * 2⁻¹ ^ m : by rw [mul_add, h2pow, bit1, add_mul, one_mul] },
     -- Finally, we glue `Hgt` and `Hle`
-    have : (⋃ (m ≤ n + k) (i ∈ {i : ι | (D m i ∩ B).nonempty}), {(m, i)}).finite,
-      from (finite_le_nat _).bUnion (λ i hi, (Hle i hi).finite.bUnion (λ _ _, finite_singleton _)),
+    have : (⋃ (m ≤ n + k) (i ∈ {i : ι | (D m i ∩ B).nonempty}), {(m, i)}).finite :=
+      (finite_le_nat _).bUnion' (λ i hi, (Hle i hi).finite.bUnion' (λ _ _, finite_singleton _)),
     refine this.subset (λ I hI, _), simp only [mem_Union],
     refine ⟨I.1, _, I.2, hI, prod.mk.eta.symm⟩,
     exact not_lt.1 (λ hlt, Hgt I.1 hlt I.2 hI.some_spec) }

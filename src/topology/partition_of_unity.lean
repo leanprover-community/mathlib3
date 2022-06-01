@@ -4,11 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import algebra.big_operators.finprod
-import topology.urysohns_lemma
+import set_theory.ordinal.basic
+import topology.continuous_function.algebra
 import topology.paracompact
 import topology.shrinking_lemma
-import topology.continuous_function.algebra
-import set_theory.ordinal
+import topology.urysohns_lemma
 
 /-!
 # Continuous partition of unity
@@ -145,8 +145,16 @@ lemma le_one (i : ι) (x : X) : f i x ≤ 1 :=
 
 /-- A partition of unity `f i` is subordinate to a family of sets `U i` indexed by the same type if
 for each `i` the closure of the support of `f i` is a subset of `U i`. -/
-def is_subordinate (f : partition_of_unity ι X s) (U : ι → set X) : Prop :=
+def is_subordinate (U : ι → set X) : Prop :=
 ∀ i, tsupport (f i) ⊆ U i
+
+variables {f}
+
+lemma exists_finset_nhd_support_subset {U : ι → set X}
+  (hso : f.is_subordinate U) (ho : ∀ i, is_open (U i)) (x : X) :
+  ∃ (is : finset ι) {n : set X} (hn₁ : n ∈ 𝓝 x) (hn₂ : n ⊆ ⋂ i ∈ is, U i), ∀ (z ∈ n),
+    support (λ i, f i z) ⊆ is :=
+f.locally_finite.exists_finset_nhd_support_subset hso ho x
 
 end partition_of_unity
 

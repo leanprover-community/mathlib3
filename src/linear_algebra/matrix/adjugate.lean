@@ -281,6 +281,20 @@ end
 @[simp] lemma adjugate_one : adjugate (1 : matrix n n α) = 1 :=
 by { ext, simp [adjugate_def, matrix.one_apply, pi.single_apply, eq_comm] }
 
+@[simp] lemma adjugate_diagonal (v : n → α) :
+  adjugate (diagonal v) = diagonal (λ i, ∏ j in finset.univ.erase i, v j) :=
+begin
+  ext,
+  simp only [adjugate_def, cramer_apply, diagonal_transpose],
+  obtain rfl | hij := eq_or_ne i j,
+  { rw [diagonal_apply_eq, diagonal_update_column_single, det_diagonal,
+      prod_update_of_mem (finset.mem_univ _), sdiff_singleton_eq_erase, one_mul] },
+  { rw diagonal_apply_ne _ hij,
+    refine det_eq_zero_of_row_eq_zero j (λ k, _),
+    obtain rfl | hjk := eq_or_ne k j,
+    { rw [update_column_self, pi.single_eq_of_ne' hij] },
+    { rw [update_column_ne hjk, diagonal_apply_ne' _ hjk]} },
+end
 
 lemma _root_.ring_hom.map_adjugate {R S : Type*} [comm_ring R] [comm_ring S] (f : R →+* S)
   (M : matrix n n R) : f.map_matrix M.adjugate = matrix.adjugate (f.map_matrix M) :=

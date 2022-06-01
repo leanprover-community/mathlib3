@@ -178,11 +178,12 @@ section real
 variables {E' : Type*} {F' : Type*} [inner_product_space ℝ E'] [inner_product_space ℝ F']
 variables [complete_space E'] [complete_space F']
 
-lemma is_adjoint_pair (A : E' →L[ℝ] F') :
-  bilin_form.is_adjoint_pair (bilin_form_of_real_inner : bilin_form ℝ E')
-  (bilin_form_of_real_inner : bilin_form ℝ F') A (A†) :=
-λ x y, by simp only [adjoint_inner_right, to_linear_map_eq_coe,
-                     bilin_form_of_real_inner_apply, coe_coe]
+-- Todo: Generalize this to `is_R_or_C`.
+lemma is_adjoint_pair_inner (A : E' →L[ℝ] F') :
+  linear_map.is_adjoint_pair (sesq_form_of_inner : E' →ₗ[ℝ] E' →ₗ[ℝ] ℝ)
+  (sesq_form_of_inner : F' →ₗ[ℝ] F' →ₗ[ℝ] ℝ) A (A†) :=
+λ x y, by simp only [sesq_form_of_inner_apply_apply, adjoint_inner_left, to_linear_map_eq_coe,
+  coe_coe]
 
 end real
 
@@ -291,10 +292,11 @@ section real
 variables {E' : Type*} {F' : Type*} [inner_product_space ℝ E'] [inner_product_space ℝ F']
 variables [finite_dimensional ℝ E'] [finite_dimensional ℝ F']
 
-lemma is_adjoint_pair (A : E' →ₗ[ℝ] F') :
-  bilin_form.is_adjoint_pair (bilin_form_of_real_inner : bilin_form ℝ E')
-  (bilin_form_of_real_inner : bilin_form ℝ F') A A.adjoint :=
-λ x y, by simp only [adjoint_inner_right, bilin_form_of_real_inner_apply]
+-- Todo: Generalize this to `is_R_or_C`.
+lemma is_adjoint_pair_inner (A : E' →ₗ[ℝ] F') :
+  is_adjoint_pair (sesq_form_of_inner : E' →ₗ[ℝ] E' →ₗ[ℝ] ℝ)
+  (sesq_form_of_inner : F' →ₗ[ℝ] F' →ₗ[ℝ] ℝ) A A.adjoint :=
+λ x y, by simp only [sesq_form_of_inner_apply_apply, adjoint_inner_left]
 
 end real
 

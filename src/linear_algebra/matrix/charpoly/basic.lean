@@ -15,6 +15,8 @@ import tactic.squeeze
 We define characteristic polynomials of matrices and
 prove the Cayley–Hamilton theorem over arbitrary commutative rings.
 
+See the file `matrix/charpoly/coeff` for corollaries of this theorem.
+
 ## Main definitions
 
 * `matrix.charpoly` is the characteristic polynomial of a matrix.

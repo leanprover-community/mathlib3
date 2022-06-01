@@ -68,6 +68,9 @@ theorem get_of_mem {a : α} : ∀ {o : option α} (h : is_some o), a ∈ o → o
 lemma get_or_else_of_ne_none {x : option α} (hx : x ≠ none) (y : α) : some (x.get_or_else y) = x :=
 by cases x; [contradiction, rw get_or_else_some]
 
+@[simp] lemma coe_get {o : option α} (h : o.is_some) : ((option.get h : α) : option α) = o :=
+option.some_get h
+
 theorem mem_unique {o : option α} {a b : α} (ha : a ∈ o) (hb : b ∈ o) : a = b :=
 option.some.inj $ ha.symm.trans hb
 
@@ -486,5 +489,12 @@ rfl
 
 @[simp] lemma to_list_none (α : Type*) : (none : option α).to_list = [] :=
 rfl
+
+--TODO: Swap arguments to `option.elim` so that it is exactly `option.cons`
+/-- Functions from `option` can be combined similarly to `vector.cons`. -/
+def cons (a : β) (f : α → β) : option α → β := λ o, o.elim a f
+
+@[simp] lemma cons_none_some (f : option α → β) : cons (f none) (f ∘ some) = f :=
+funext $ λ o, by cases o; refl
 
 end option

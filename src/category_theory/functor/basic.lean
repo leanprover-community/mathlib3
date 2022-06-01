@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Tim Baumann, Stephen Morgan, Scott Morrison
 -/
 import tactic.reassoc_axiom
-import tactic.monotonicity
 import category_theory.category.basic
 
 /-!
@@ -13,7 +12,7 @@ import category_theory.category.basic
 Defines a functor between categories, extending a `prefunctor` between quivers.
 
 Introduces notation `C ⥤ D` for the type of all functors from `C` to `D`.
-(Unfortunately the `⇒` arrow (`\functor`) is taken by core, 
+(Unfortunately the `⇒` arrow (`\functor`) is taken by core,
 but in mathlib4 we should switch to this.)
 -/
 
@@ -34,7 +33,7 @@ To apply a functor `F` to an object use `F.obj X`, and to a morphism use `F.map 
 The axiom `map_id` expresses preservation of identities, and
 `map_comp` expresses functoriality.
 
-See https://stacks.math.columbia.edu/tag/001B.
+See <https://stacks.math.columbia.edu/tag/001B>.
 -/
 structure functor (C : Type u₁) [category.{v₁} C] (D : Type u₂) [category.{v₂} D]
   extends prefunctor C D : Type (max v₁ v₂ u₁ u₂) :=

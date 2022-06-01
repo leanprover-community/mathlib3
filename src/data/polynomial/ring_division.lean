@@ -26,7 +26,8 @@ variables {R : Type u} {S : Type v} {T : Type w} {A : Type z} {a b : R} {n : ℕ
 section comm_ring
 variables [comm_ring R] {p q : R[X]}
 
-variables [comm_ring S]
+section
+variables [semiring S]
 
 lemma nat_degree_pos_of_aeval_root [algebra R S] {p : R[X]} (hp : p ≠ 0)
   {z : S} (hz : aeval z p = 0) (inj : ∀ (x : R), algebra_map R S x = 0 → x = 0) :
@@ -37,11 +38,6 @@ lemma degree_pos_of_aeval_root [algebra R S] {p : R[X]} (hp : p ≠ 0)
   {z : S} (hz : aeval z p = 0) (inj : ∀ (x : R), algebra_map R S x = 0 → x = 0) :
   0 < p.degree :=
 nat_degree_pos_iff_degree_pos.mp (nat_degree_pos_of_aeval_root hp hz inj)
-
-lemma aeval_mod_by_monic_eq_self_of_root [algebra R S]
-  {p q : R[X]} (hq : q.monic) {x : S} (hx : aeval x q = 0) :
-  aeval x (p %ₘ q) = aeval x p :=
-eval₂_mod_by_monic_eq_self_of_root hq hx
 
 lemma mod_by_monic_eq_of_dvd_sub (hq : q.monic) {p₁ p₂ : R[X]}
   (h : q ∣ (p₁ - p₂)) :
@@ -83,10 +79,23 @@ def mod_by_monic_hom (q : R[X]) : R[X] →ₗ[R] R[X] :=
   map_add' := add_mod_by_monic,
   map_smul' := smul_mod_by_monic }
 
+end
+
+section
+variables [ring S]
+
+lemma aeval_mod_by_monic_eq_self_of_root [algebra R S]
+  {p q : R[X]} (hq : q.monic) {x : S} (hx : aeval x q = 0) :
+  aeval x (p %ₘ q) = aeval x p :=
+-- `eval₂_mod_by_monic_eq_self_of_root` doesn't work here as it needs commutativity
+by rw [mod_by_monic_eq_sub_mul_div p hq, _root_.map_sub, _root_.map_mul, hx, zero_mul, sub_zero]
+
+end
+
 end comm_ring
 
 section no_zero_divisors
-variables [ring R] [no_zero_divisors R] {p q : R[X]}
+variables [semiring R] [no_zero_divisors R] {p q : R[X]}
 
 instance : no_zero_divisors R[X] :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := λ a b h, begin
@@ -100,6 +109,17 @@ lemma nat_degree_mul (hp : p ≠ 0) (hq : q ≠ 0) : nat_degree (p * q) =
 by rw [← with_bot.coe_eq_coe, ← degree_eq_nat_degree (mul_ne_zero hp hq),
     with_bot.coe_add, ← degree_eq_nat_degree hp,
     ← degree_eq_nat_degree hq, degree_mul]
+
+lemma trailing_degree_mul : (p * q).trailing_degree = p.trailing_degree + q.trailing_degree :=
+begin
+  by_cases hp : p = 0,
+  { rw [hp, zero_mul, trailing_degree_zero, top_add] },
+  by_cases hq : q = 0,
+  { rw [hq, mul_zero, trailing_degree_zero, add_top] },
+  rw [trailing_degree_eq_nat_trailing_degree hp, trailing_degree_eq_nat_trailing_degree hq,
+      trailing_degree_eq_nat_trailing_degree (mul_ne_zero hp hq),
+      nat_trailing_degree_mul hp hq, with_top.coe_add],
+end
 
 @[simp] lemma nat_degree_pow (p : R[X]) (n : ℕ) :
   nat_degree (p ^ n) = n * nat_degree p :=
@@ -135,7 +155,7 @@ end
 end no_zero_divisors
 
 section no_zero_divisors
-variables [comm_ring R] [no_zero_divisors R] {p q : R[X]}
+variables [comm_semiring R] [no_zero_divisors R] {p q : R[X]}
 
 lemma root_mul : is_root (p * q) a ↔ is_root p a ∨ is_root q a :=
 by simp_rw [is_root, eval_mul, mul_eq_zero]
@@ -151,16 +171,6 @@ variables [ring R] [is_domain R] {p q : R[X]}
 instance : is_domain R[X] :=
 { ..polynomial.no_zero_divisors,
   ..polynomial.nontrivial, }
-
-lemma nat_trailing_degree_mul (hp : p ≠ 0) (hq : q ≠ 0) :
-  (p * q).nat_trailing_degree = p.nat_trailing_degree + q.nat_trailing_degree :=
-begin
-  simp only [←tsub_eq_of_eq_add_rev (nat_degree_eq_reverse_nat_degree_add_nat_trailing_degree _)],
-  rw [reverse_mul_of_domain, nat_degree_mul hp hq, nat_degree_mul (mt reverse_eq_zero.mp hp)
-    (mt reverse_eq_zero.mp hq), reverse_nat_degree, reverse_nat_degree, tsub_add_eq_tsub_tsub,
-    nat.add_comm, add_tsub_assoc_of_le (nat.sub_le _ _), add_comm,
-    add_tsub_assoc_of_le (nat.sub_le _ _)],
-end
 
 end ring
 
@@ -364,26 +374,22 @@ theorem card_le_degree_of_subset_roots {p : R[X]} {Z : finset R} (h : Z.val ⊆ 
   Z.card ≤ p.nat_degree :=
 (multiset.card_le_of_le (finset.val_le_iff_val_subset.2 h)).trans (polynomial.card_roots' p)
 
-lemma eq_zero_of_infinite_is_root
-  (p : R[X]) (h : set.infinite {x | is_root p x}) : p = 0 :=
-begin
-  by_contradiction hp,
-  apply h,
-  convert p.roots.to_finset.finite_to_set using 1,
-  ext1 r,
-  simp only [mem_roots hp, multiset.mem_to_finset, set.mem_set_of_eq, finset.mem_coe]
-end
+lemma finite_set_of_is_root {p : R[X]} (hp : p ≠ 0) : set.finite {x | is_root p x} :=
+by simpa only [← finset.set_of_mem, mem_to_finset, mem_roots hp]
+  using p.roots.to_finset.finite_to_set
+
+lemma eq_zero_of_infinite_is_root (p : R[X]) (h : set.infinite {x | is_root p x}) : p = 0 :=
+not_imp_comm.mp finite_set_of_is_root h
 
 lemma exists_max_root [linear_order R] (p : R[X]) (hp : p ≠ 0) :
   ∃ x₀, ∀ x, p.is_root x → x ≤ x₀ :=
-set.exists_upper_bound_image _ _ $ not_not.mp (mt (eq_zero_of_infinite_is_root p) hp)
+set.exists_upper_bound_image _ _ $ finite_set_of_is_root hp
 
 lemma exists_min_root [linear_order R] (p : R[X]) (hp : p ≠ 0) :
   ∃ x₀, ∀ x, p.is_root x → x₀ ≤ x :=
-set.exists_lower_bound_image _ _ $ not_not.mp (mt (eq_zero_of_infinite_is_root p) hp)
+set.exists_lower_bound_image _ _ $ finite_set_of_is_root hp
 
-lemma eq_of_infinite_eval_eq {R : Type*} [comm_ring R] [is_domain R]
-  (p q : R[X]) (h : set.infinite {x | eval x p = eval x q}) : p = q :=
+lemma eq_of_infinite_eval_eq (p q : R[X]) (h : set.infinite {x | eval x p = eval x q}) : p = q :=
 begin
   rw [← sub_eq_zero],
   apply eq_zero_of_infinite_is_root,
@@ -466,8 +472,8 @@ lemma le_root_multiplicity_map {K L : Type*} [comm_ring K]
   [comm_ring L] {p : K[X]} {f : K →+* L} (hf : function.injective f) (a : K) :
   root_multiplicity a p ≤ root_multiplicity (f a) (map f p) :=
 begin
-  by_cases hp0 : p = 0, { simp only [hp0, root_multiplicity_zero, map_zero], },
-  have hmap : map f p ≠ 0, { simpa only [map_zero] using (map_injective f hf).ne hp0, },
+  by_cases hp0 : p = 0, { simp only [hp0, root_multiplicity_zero, polynomial.map_zero], },
+  have hmap : map f p ≠ 0, { simpa only [polynomial.map_zero] using (map_injective f hf).ne hp0, },
   rw [root_multiplicity, root_multiplicity, dif_neg hp0, dif_neg hmap],
   simp only [not_not, nat.lt_find_iff, nat.le_find_iff],
   intros m hm,
@@ -496,8 +502,8 @@ lemma roots_map_of_injective_card_eq_total_degree {K L : Type*} [comm_ring K] [i
   (hroots : p.roots.card = p.nat_degree) :
   multiset.map f p.roots = (map f p).roots :=
 begin
-  by_cases hp0 : p = 0, { simp only [hp0, roots_zero, multiset.map_zero, map_zero], },
-  have hmap : map f p ≠ 0, { simpa only [map_zero] using (map_injective f hf).ne hp0, },
+  by_cases hp0 : p = 0, { simp only [hp0, roots_zero, multiset.map_zero, polynomial.map_zero], },
+  have hmap : map f p ≠ 0, { simpa only [polynomial.map_zero] using (map_injective f hf).ne hp0, },
   apply multiset.eq_of_le_of_card_le,
   { simpa only [multiset.le_iff_count, count_roots] using count_map_roots hf },
   { simpa only [multiset.card_map, hroots] using (card_roots' _).trans (nat_degree_map_le f p) },
@@ -629,7 +635,7 @@ begin
   rw [mem_root_set_iff', ←eval₂_eq_eval_map],
   { refl },
   intro h,
-  rw ←map_zero (algebra_map T S) at h,
+  rw ←polynomial.map_zero (algebra_map T S) at h,
   exact hp (map_injective _ (no_zero_smul_divisors.algebra_map_injective T S) h)
 end
 
@@ -764,7 +770,7 @@ begin
     clear q h_mon,
 
     have h' := congr_arg (map φ) h,
-    simp only [map_mul] at h',
+    simp only [polynomial.map_mul] at h',
     cases h_irr.is_unit_or_is_unit h' with w w,
     { left,
       exact is_unit_of_is_unit_leading_coeff_of_is_unit_map _ _ au w, },

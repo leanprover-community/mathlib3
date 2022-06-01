@@ -5,6 +5,7 @@ Authors: Yaël Dillies
 -/
 import data.finset.pointwise
 import data.finsupp.indicator
+import data.fintype.card
 
 /-!
 # Finitely supported product of finsets

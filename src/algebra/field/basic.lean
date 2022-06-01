@@ -3,7 +3,7 @@ Copyright (c) 2014 Robert Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Lewis, Leonardo de Moura, Johannes Hölzl, Mario Carneiro
 -/
-import algebra.ring.basic
+import algebra.hom.ring
 
 /-!
 # Fields and division rings
@@ -64,15 +64,13 @@ instance division_ring.to_group_with_zero :
 { .. ‹division_ring K›,
   .. (infer_instance : semiring K) }
 
-attribute [field_simps] inv_eq_one_div
-
 local attribute [simp]
   division_def mul_comm mul_assoc
   mul_left_comm mul_inv_cancel inv_mul_cancel
 
 lemma one_div_neg_one_eq_neg_one : (1:K) / (-1) = -1 :=
 have (-1) * (-1) = (1:K), by rw [neg_mul_neg, one_mul],
-eq.symm (eq_one_div_of_mul_eq_one this)
+eq.symm (eq_one_div_of_mul_eq_one_right this)
 
 lemma one_div_neg_eq_neg_one_div (a : K) : 1 / (- a) = - (1 / a) :=
 calc
@@ -307,7 +305,8 @@ lemma map_inv : g x⁻¹ = (g x)⁻¹ := g.to_monoid_with_zero_hom.map_inv x
 
 lemma map_div : g (x / y) = g x / g y := g.to_monoid_with_zero_hom.map_div x y
 
-protected lemma injective : function.injective f := f.injective_iff.2 $ λ x, f.map_eq_zero.1
+protected lemma injective : function.injective f :=
+(injective_iff_map_eq_zero f).2 $ λ x, f.map_eq_zero.1
 
 end
 

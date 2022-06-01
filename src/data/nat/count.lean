@@ -5,7 +5,7 @@ Authors: Yaël Dillies, Vladimir Goryachev, Kyle Miller, Scott Morrison, Eric Ro
 -/
 import data.list.basic
 import data.nat.prime
-import set_theory.fincard
+import set_theory.cardinal.finite
 
 /-!
 # Counting on ℕ

@@ -418,8 +418,8 @@ def completion {_ : measurable_space α} (μ : measure α) :
   trimmed := begin
     refine le_antisymm (λ s, _) (outer_measure.le_trim _),
     rw outer_measure.trim_eq_infi, simp only [to_outer_measure_apply],
-    refine (binfi_le_binfi _).trans_eq (measure_eq_infi _).symm,
-    exact λ t ht, infi_le_infi2 (λ h, ⟨h.null_measurable_set, le_rfl⟩)
+    refine (infi₂_mono _).trans_eq (measure_eq_infi _).symm,
+    exact λ t ht, infi_mono' (λ h, ⟨h.null_measurable_set, le_rfl⟩)
   end }
 
 instance completion.is_complete {m : measurable_space α} (μ : measure α) :

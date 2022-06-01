@@ -52,6 +52,7 @@ instance has_one (I : ideal R) : has_one (R ⧸ I) := ⟨submodule.quotient.mk 1
 instance has_mul (I : ideal R) : has_mul (R ⧸ I) :=
 ⟨λ a b, quotient.lift_on₂' a b (λ a b, submodule.quotient.mk (a * b)) $
  λ a₁ a₂ b₁ b₂ h₁ h₂, quot.sound $ begin
+  rw submodule.quotient_rel_r_def at h₁ h₂ ⊢,
   have F := I.add_mem (I.mul_mem_left a₂ h₁) (I.mul_mem_right b₁ h₂),
   have : a₁ * a₂ - b₁ * b₂ = a₂ * (a₁ - b₁) + (a₂ - b₂) * b₁,
   { rw [mul_sub, sub_mul, sub_add_sub_cancel, mul_comm, mul_comm b₁] },
@@ -96,7 +97,7 @@ protected theorem eq : mk I x = mk I y ↔ x - y ∈ I := submodule.quotient.eq 
 @[simp] theorem mk_eq_mk (x : R) : (submodule.quotient.mk x : R ⧸ I) = mk I x := rfl
 
 lemma eq_zero_iff_mem {I : ideal R} : mk I a = 0 ↔ a ∈ I :=
-by conv {to_rhs, rw ← sub_zero a }; exact quotient.eq'
+submodule.quotient.mk_eq_zero _
 
 theorem zero_eq_one_iff {I : ideal R} : (0 : R ⧸ I) = 1 ↔ I = ⊤ :=
 eq_comm.trans $ eq_zero_iff_mem.trans (eq_top_iff_one _).symm
@@ -151,6 +152,7 @@ begin
   refine ⟨mk _ b, quot.sound _⟩, --quot.sound hb
   rw ← eq_sub_iff_add_eq' at abc,
   rw [abc, ← neg_mem_iff, neg_sub] at hc,
+  rw submodule.quotient_rel_r_def,
   convert hc,
 end
 
@@ -196,12 +198,11 @@ variable [comm_ring S]
 lift it to the quotient by this ideal. -/
 def lift (I : ideal R) (f : R →+* S) (H : ∀ (a : R), a ∈ I → f a = 0) :
   R ⧸ I →+* S :=
-{ to_fun := λ x, quotient.lift_on' x f $ λ (a b) (h : _ ∈ _),
-    eq_of_sub_eq_zero $ by rw [← f.map_sub, H _ h],
-  map_one' := f.map_one,
+{ map_one' := f.map_one,
   map_zero' := f.map_zero,
   map_add' := λ a₁ a₂, quotient.induction_on₂' a₁ a₂ f.map_add,
-  map_mul' := λ a₁ a₂, quotient.induction_on₂' a₁ a₂ f.map_mul }
+  map_mul' := λ a₁ a₂, quotient.induction_on₂' a₁ a₂ f.map_mul,
+  .. quotient_add_group.lift I.to_add_subgroup f.to_add_monoid_hom H }
 
 @[simp] lemma lift_mk (I : ideal R) (f : R →+* S) (H : ∀ (a : R), a ∈ I → f a = 0) :
   lift I f H (mk I a) = f a := rfl
@@ -242,6 +243,7 @@ instance module_pi : module (R ⧸ I) ((ι → R) ⧸ I.pi ι) :=
 { smul := λ c m, quotient.lift_on₂' c m (λ r m, submodule.quotient.mk $ r • m) begin
     intros c₁ m₁ c₂ m₂ hc hm,
     apply ideal.quotient.eq.2,
+    rw submodule.quotient_rel_r_def at hc hm,
     intro i,
     exact I.mul_sub_mul_mem hc (hm i),
   end,
@@ -280,7 +282,7 @@ instance module_pi : module (R ⧸ I) ((ι → R) ⧸ I.pi ι) :=
 /-- `R^n/I^n` is isomorphic to `(R/I)^n` as an `R/I`-module. -/
 noncomputable def pi_quot_equiv : ((ι → R) ⧸ I.pi ι) ≃ₗ[(R ⧸ I)] (ι → (R ⧸ I)) :=
 { to_fun := λ x, quotient.lift_on' x (λ f i, ideal.quotient.mk I (f i)) $
-    λ a b hab, funext (λ i, ideal.quotient.eq.2 (hab i)),
+    λ a b hab, funext (λ i, (submodule.quotient.eq' _).2 (hab i)),
   map_add' := by { rintros ⟨_⟩ ⟨_⟩, refl },
   map_smul' := by { rintros ⟨_⟩ ⟨_⟩, refl },
   inv_fun := λ x, ideal.quotient.mk (I.pi ι) $ λ i, quotient.out' (x i),

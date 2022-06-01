@@ -48,7 +48,7 @@ lemma std_basis_apply (i : ι) (b : φ i) : std_basis R φ i b = update 0 i b :=
 rfl
 
 lemma coe_std_basis (i : ι) : ⇑(std_basis R φ i) = pi.single i :=
-funext $ std_basis_apply R φ i
+rfl
 
 @[simp] lemma std_basis_same (i : ι) (b : φ i) : std_basis R φ i b i = b :=
 by rw [std_basis_apply, update_same]
@@ -101,7 +101,7 @@ begin
     assume hiI,
     rw [std_basis_same],
     exact hb _ ((hu trivial).resolve_left hiI) },
-  exact sum_mem _ (assume i hiI, mem_supr_of_mem i $ mem_supr_of_mem hiI $
+  exact sum_mem (assume i hiI, mem_supr_of_mem i $ mem_supr_of_mem hiI $
     (std_basis R φ i).mem_range_self (b i))
 end
 
@@ -111,7 +111,7 @@ lemma supr_range_std_basis_eq_infi_ker_proj {I J : set ι}
 begin
   refine le_antisymm (supr_range_std_basis_le_infi_ker_proj _ _ _ _ hd) _,
   have : set.univ ⊆ ↑hI.to_finset ∪ J, { rwa [hI.coe_to_finset] },
-  refine le_trans (infi_ker_proj_le_supr_range_std_basis R φ this) (supr_le_supr $ assume i, _),
+  refine le_trans (infi_ker_proj_le_supr_range_std_basis R φ this) (supr_mono $ assume i, _),
   rw [set.finite.mem_to_finset],
   exact le_rfl
 end
@@ -184,7 +184,7 @@ begin
       apply h₀ },
     have h₂ : (⨆ j ∈ J, span R (range (λ (i : ιs j), std_basis R Ms j (v j i)))) ≤
                ⨆ j ∈ J, range (std_basis R (λ (j : η), Ms j) j) :=
-      supr_le_supr (λ i, supr_le_supr (λ H, h₀ i)),
+      supr₂_mono (λ i _, h₀ i),
     have h₃ : disjoint (λ (i : η), i ∈ {j}) J,
     { convert set.disjoint_singleton_left.2 hiJ using 0 },
     exact (disjoint_std_basis_std_basis _ _ _ _ h₃).mono h₁ h₂ }
@@ -262,11 +262,11 @@ end pi
 
 namespace matrix
 
-variables (R : Type*) (n : Type*) (m : Type*) [fintype m] [fintype n] [semiring R]
+variables (R : Type*) (m n : Type*) [fintype m] [fintype n] [semiring R]
 
-/-- The standard basis of `matrix n m R`. -/
-noncomputable def std_basis : basis (n × m) R (matrix n m R) :=
-basis.reindex (pi.basis (λ (i : n), pi.basis_fun R m)) (equiv.sigma_equiv_prod _ _)
+/-- The standard basis of `matrix m n R`. -/
+noncomputable def std_basis : basis (m × n) R (matrix m n R) :=
+basis.reindex (pi.basis (λ (i : m), pi.basis_fun R n)) (equiv.sigma_equiv_prod _ _)
 
 variables {n m}
 

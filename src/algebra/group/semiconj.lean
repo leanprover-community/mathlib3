@@ -70,11 +70,11 @@ section mul_one_class
 variables {M : Type u} [mul_one_class M]
 
 /-- Any element semiconjugates `1` to `1`. -/
-@[simp, to_additive]
+@[simp, to_additive "Any element additively semiconjugates `0` to `0`."]
 lemma one_right (a : M) : semiconj_by a 1 1 := by rw [semiconj_by, mul_one, one_mul]
 
 /-- One semiconjugates any element to itself. -/
-@[simp, to_additive]
+@[simp, to_additive "Zero additively semiconjugates any element to itself."]
 lemma one_left (x : M) : semiconj_by 1 x x := eq.symm $ one_right x
 
 /-- The relation “there exists an element that semiconjugates `a` to `b`” on a monoid (or, more

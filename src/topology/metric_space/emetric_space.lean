@@ -399,8 +399,8 @@ theorem subtype.edist_eq {p : α → Prop} (x y : subtype p) : edist x y = edist
 
 namespace mul_opposite
 
-/-- Pseudoemetric space instance on multiplicative opposites of pseudoemetric spaces -/
-@[to_additive]
+/-- Pseudoemetric space instance on the multiplicative opposite of a pseudoemetric space. -/
+@[to_additive "Pseudoemetric space instance on the additive opposite of a pseudoemetric space."]
 instance {α : Type*} [pseudo_emetric_space α] : pseudo_emetric_space αᵐᵒᵖ :=
 pseudo_emetric_space.induced unop ‹_›
 
@@ -408,6 +408,16 @@ pseudo_emetric_space.induced unop ‹_›
 @[to_additive] theorem edist_op (x y : α) : edist (op x) (op y) = edist x y := rfl
 
 end mul_opposite
+
+section ulift
+
+instance : pseudo_emetric_space (ulift α) :=
+pseudo_emetric_space.induced ulift.down ‹_›
+
+lemma ulift.edist_eq (x y : ulift α) : edist x y = edist x.down y.down := rfl
+@[simp] lemma ulift.edist_up_up (x y : α) : edist (ulift.up x) (ulift.up y) = edist x y := rfl
+
+end ulift
 
 /-- The product of two pseudoemetric spaces, with the max distance, is an extended
 pseudometric spaces. We make sure that the uniform structure thus constructed is the one
@@ -603,6 +613,9 @@ theorem tendsto_at_top [nonempty β] [semilattice_sup β] {u : β → α} {a : �
 (at_top_basis.tendsto_iff nhds_basis_eball).trans $
   by simp only [exists_prop, true_and, mem_Ici, mem_ball]
 
+theorem inseparable_iff : inseparable x y ↔ edist x y = 0 :=
+by simp [inseparable_iff_closure, mem_closure_iff, edist_comm, forall_lt_iff_le']
+
 /-- In a pseudoemetric space, Cauchy sequences are characterized by the fact that, eventually,
 the pseudoedistance between its elements is arbitrarily small -/
 @[nolint ge_or_gt] -- see Note [nolint_ge]
@@ -688,6 +701,7 @@ to avoid a loop with `sigma_compact_space_of_locally_compact_second_countable`. 
 lemma second_countable_of_sigma_compact [sigma_compact_space α] :
   second_countable_topology α :=
 begin
+
   suffices : separable_space α, by exactI uniform_space.second_countable_of_separable α,
   choose T hTsub hTc hsubT
     using λ n, subset_countable_closure_of_compact (is_compact_compact_covering α n),
@@ -873,15 +887,10 @@ instance to_separated : separated_space γ :=
 separated_def.2 $ λ x y h, eq_of_forall_edist_le $
 λ ε ε0, le_of_lt (h _ (edist_mem_uniformity ε0))
 
-/-- If a  `pseudo_emetric_space` is separated, then it is an `emetric_space`. -/
-def emetric_of_t2_pseudo_emetric_space {α : Type*} [pseudo_emetric_space α]
-  (h : separated_space α) : emetric_space α :=
-{ eq_of_edist_eq_zero := λ x y hdist,
-  begin
-    refine separated_def.1 h x y (λ s hs, _),
-    obtain ⟨ε, hε, H⟩ := mem_uniformity_edist.1 hs,
-    exact H (show edist x y < ε, by rwa [hdist])
-  end
+/-- If a `pseudo_emetric_space` is a T₀ space, then it is an `emetric_space`. -/
+def emetric.of_t0_pseudo_emetric_space (α : Type*) [pseudo_emetric_space α] [t0_space α] :
+  emetric_space α :=
+{ eq_of_edist_eq_zero := λ x y hdist, inseparable.eq $ emetric.inseparable_iff.2 hdist,
   ..‹pseudo_emetric_space α› }
 
 /-- Auxiliary function to replace the uniformity on an emetric space with
@@ -925,10 +934,13 @@ def emetric_space.induced {γ β} (f : γ → β) (hf : function.injective f)
 instance {α : Type*} {p : α → Prop} [emetric_space α] : emetric_space (subtype p) :=
 emetric_space.induced coe subtype.coe_injective ‹_›
 
-/-- Emetric space instance on multiplicative opposites of emetric spaces -/
-@[to_additive]
+/-- Emetric space instance on the multiplicative opposite of an emetric space. -/
+@[to_additive "Emetric space instance on the additive opposite of an emetric space."]
 instance {α : Type*} [emetric_space α] : emetric_space αᵐᵒᵖ :=
 emetric_space.induced mul_opposite.unop mul_opposite.unop_injective ‹_›
+
+instance {α : Type*} [emetric_space α] : emetric_space (ulift α) :=
+emetric_space.induced ulift.down ulift.down_injective ‹_›
 
 /-- The product of two emetric spaces, with the max distance, is an extended
 metric spaces. We make sure that the uniform structure thus constructed is the one
@@ -985,12 +997,7 @@ lemma diam_eq_zero_iff : diam s = 0 ↔ s.subsingleton :=
 ⟨λ h x hx y hy, edist_le_zero.1 $ h ▸ edist_le_diam_of_mem hx hy, diam_subsingleton⟩
 
 lemma diam_pos_iff : 0 < diam s ↔ ∃ (x ∈ s) (y ∈ s), x ≠ y :=
-begin
-  have := not_congr (@diam_eq_zero_iff _ _ s),
-  dunfold set.subsingleton at this,
-  push_neg at this,
-  simpa only [pos_iff_ne_zero, exists_prop] using this
-end
+by simp only [pos_iff_ne_zero, ne.def, diam_eq_zero_iff, set.subsingleton, not_forall]
 
 end diam
 

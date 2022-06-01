@@ -67,6 +67,37 @@ instance : set_like (sylow p G) G :=
 { coe := coe,
   coe_injective' := λ P Q h, ext (set_like.coe_injective h) }
 
+instance : subgroup_class (sylow p G) G :=
+{ mul_mem := λ s, s.mul_mem',
+  one_mem := λ s, s.one_mem',
+  inv_mem := λ s, s.inv_mem' }
+
+variables (P : sylow p G) {K : Type*} [group K] (ϕ : K →* G) {N : subgroup G}
+
+/-- The preimage of a Sylow subgroup under a p-group-kernel homomorphism is a Sylow subgroup. -/
+def comap_of_ker_is_p_group (hϕ : is_p_group p ϕ.ker) (h : ↑P ≤ ϕ.range) : sylow p K :=
+{ P.1.comap ϕ with
+  is_p_group' := P.2.comap_of_ker_is_p_group ϕ hϕ,
+  is_maximal' := λ Q hQ hle, by
+  { rw ← P.3 (hQ.map ϕ) (le_trans (ge_of_eq (map_comap_eq_self h)) (map_mono hle)),
+    exact (comap_map_eq_self ((P.1.ker_le_comap ϕ).trans hle)).symm }, }
+
+@[simp] lemma coe_comap_of_ker_is_p_group (hϕ : is_p_group p ϕ.ker) (h : ↑P ≤ ϕ.range) :
+  ↑(P.comap_of_ker_is_p_group ϕ hϕ h) = subgroup.comap ϕ ↑P := rfl
+
+/-- The preimage of a Sylow subgroup under an injective homomorphism is a Sylow subgroup. -/
+def comap_of_injective (hϕ : function.injective ϕ) (h : P.1 ≤ ϕ.range) : sylow p K :=
+P.comap_of_ker_is_p_group ϕ (is_p_group.ker_is_p_group_of_injective hϕ) h
+
+@[simp] lemma coe_comap_of_injective (hϕ : function.injective ϕ) (h : ↑P ≤ ϕ.range) :
+  ↑(P.comap_of_injective ϕ hϕ h) = subgroup.comap ϕ ↑P := rfl
+
+/-- A sylow subgroup of G is also a sylow subgroup of a subgroup of G. -/
+def subtype (h : ↑P ≤ N) : sylow p N :=
+P.comap_of_injective N.subtype subtype.coe_injective (by simp [h])
+
+@[simp] lemma coe_subtype (h : ↑P ≤ N) : ↑(P.subtype h) = subgroup.comap N.subtype ↑P := rfl
+
 end sylow
 
 /-- A generalization of **Sylow's first theorem**.
@@ -212,6 +243,10 @@ begin
   exact (P.2.card_modeq_card_fixed_points (sylow p G)).trans (by rw this),
 end
 
+lemma not_dvd_card_sylow [hp : fact p.prime] [fintype (sylow p G)] : ¬ p ∣ card (sylow p G) :=
+λ h, hp.1.ne_one (nat.dvd_one.mp ((nat.modeq_iff_dvd' zero_le_one).mp
+  ((nat.modeq_zero_iff_dvd.mpr h).symm.trans (card_sylow_modeq_one p G))))
+
 variables {p} {G}
 
 /-- Sylow subgroups are isomorphic -/
@@ -298,7 +333,7 @@ lemma mem_fixed_points_mul_left_cosets_iff_mem_normalizer {H : subgroup G}
   (x : G ⧸ H) ∈ fixed_points H (G ⧸ H) ↔ x ∈ normalizer H :=
 ⟨λ hx, have ha : ∀ {y : G ⧸ H}, y ∈ orbit H (x : G ⧸ H) → y = x,
   from λ _, ((mem_fixed_points' _).1 hx _),
-  (inv_mem_iff _).1 (@mem_normalizer_fintype _ _ _ _inst_2 _ (λ n (hn : n ∈ H),
+  inv_mem_iff.1 (@mem_normalizer_fintype _ _ _ _inst_2 _ (λ n (hn : n ∈ H),
     have (n⁻¹ * x)⁻¹ * x ∈ H := quotient_group.eq.1 (ha (mem_orbit _ ⟨n⁻¹, H.inv_mem hn⟩)),
     show _ ∈ H, by {rw [mul_inv_rev, inv_inv] at this, convert this, rw inv_inv}
     )),
@@ -306,7 +341,7 @@ lemma mem_fixed_points_mul_left_cosets_iff_mem_normalizer {H : subgroup G}
 (mem_fixed_points' _).2 $ λ y, quotient.induction_on' y $ λ y hy, quotient_group.eq.2
   (let ⟨⟨b, hb₁⟩, hb₂⟩ := hy in
   have hb₂ : (b * x)⁻¹ * y ∈ H := quotient_group.eq.1 hb₂,
-  (inv_mem_iff H).1 $ (hx _).2 $ (mul_mem_cancel_left H (H.inv_mem hb₁)).1
+  inv_mem_iff.1 $ (hx _).2 $ (mul_mem_cancel_left (inv_mem hb₁)).1
   $ by rw hx at hb₂;
     simpa [mul_inv_rev, mul_assoc] using hb₂)⟩
 
@@ -508,51 +543,17 @@ end
 
 end pointwise
 
-/-- The preimage of a Sylow subgroup under a homomorphism with p-group-kernel is a Sylow subgroup -/
-def comap_of_ker_is_p_group {p : ℕ} (P : sylow p G)
-  {K : Type*} [group K] (ϕ : K →* G) (hϕ : is_p_group p ϕ.ker) (h : P.1 ≤ ϕ.range) :
-  sylow p K :=
-{ P.1.comap ϕ with
-  is_p_group' := P.2.comap_of_ker_is_p_group ϕ hϕ,
-  is_maximal' := λ Q hQ hle, by
-  { rw ← P.3 (hQ.map ϕ) (le_trans (ge_of_eq (map_comap_eq_self h)) (map_mono hle)),
-    exact (comap_map_eq_self ((P.1.ker_le_comap ϕ).trans hle)).symm }, }
-
-@[simp]
-lemma coe_comap_of_ker_is_p_group {p : ℕ} {P : sylow p G}
-  {K : Type*} [group K] (ϕ : K →* G) (hϕ : is_p_group p ϕ.ker) (h : P.1 ≤ ϕ.range) :
-  ↑(P.comap_of_ker_is_p_group ϕ hϕ h) = subgroup.comap ϕ ↑P := rfl
-
-/-- The preimage of a Sylow subgroup under an injective homomorphism is a Sylow subgroup -/
-def comap_of_injective {p : ℕ} (P : sylow p G)
-  {K : Type*} [group K] (ϕ : K →* G) (hϕ : function.injective ϕ) (h : P.1 ≤ ϕ.range) :
-  sylow p K :=
-P.comap_of_ker_is_p_group ϕ (is_p_group.ker_is_p_group_of_injective hϕ) h
-
-@[simp]
-lemma coe_comap_of_injective {p : ℕ} {P : sylow p G}
-  {K : Type*} [group K] (ϕ : K →* G) (hϕ : function.injective ϕ) (h : P.1 ≤ ϕ.range)  :
-  ↑(P.comap_of_injective ϕ hϕ h) = subgroup.comap ϕ ↑P := rfl
-
-/-- A sylow subgroup in G is also a sylow subgroup in a subgroup of G. -/
-def subtype {p : ℕ} (P : sylow p G) (N : subgroup G) (h : ↑P ≤ N) : sylow p N :=
-P.comap_of_injective N.subtype subtype.coe_injective (by simp [h])
-
-@[simp]
-lemma coe_subtype {p : ℕ} {P : sylow p G} {N : subgroup G} {h : P.1 ≤ N} :
-  ↑(P.subtype N h) = subgroup.comap N.subtype ↑P := rfl
-
 lemma normal_of_normalizer_normal {p : ℕ} [fact p.prime] [fintype (sylow p G)]
   (P : sylow p G) (hn : (↑P : subgroup G).normalizer.normal) :
   (↑P : subgroup G).normal :=
-by rw [←normalizer_eq_top, ←normalizer_sup_eq_top (P.subtype _ le_normalizer), coe_subtype,
+by rw [←normalizer_eq_top, ←normalizer_sup_eq_top (P.subtype le_normalizer), coe_subtype,
   map_comap_eq_self (le_normalizer.trans (ge_of_eq (subtype_range _))), sup_idem]
 
 @[simp] lemma normalizer_normalizer {p : ℕ} [fact p.prime] [fintype (sylow p G)]
  (P : sylow p G) :
  (↑P : subgroup G).normalizer.normalizer = (↑P : subgroup G).normalizer :=
 begin
-  have := normal_of_normalizer_normal (P.subtype _ (le_normalizer.trans le_normalizer)),
+  have := normal_of_normalizer_normal (P.subtype (le_normalizer.trans le_normalizer)),
   simp_rw [←normalizer_eq_top, coe_subtype, ←comap_subtype_normalizer_eq le_normalizer,
     ←comap_subtype_normalizer_eq le_rfl, comap_subtype_self_eq_top] at this,
   rw [←subtype_range (P : subgroup G).normalizer.normalizer, monoid_hom.range_eq_map, ←this rfl],
@@ -568,7 +569,7 @@ normalizer_eq_top.mp begin
   { exact heq },
   { haveI := hnc _ hK,
     have hPK := le_trans le_normalizer hNK,
-    let P' := P.subtype K hPK,
+    let P' := P.subtype hPK,
     exfalso,
     apply hK.1,
     calc K = (↑P : subgroup G).normalizer ⊔ K : by { rw sup_eq_right.mpr, exact hNK }

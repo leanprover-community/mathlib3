@@ -160,7 +160,7 @@ begin
   exact inj_on_of_nodup_map this,
 end
 
-lemma card_image_eq_iff_inj_on [decidable_eq β] : (s.image f).card = s.card ↔ set.inj_on f s :=
+lemma card_image_iff [decidable_eq β] : (s.image f).card = s.card ↔ set.inj_on f s :=
 ⟨inj_on_of_card_image_eq, card_image_of_inj_on⟩
 
 lemma card_image_of_injective [decidable_eq β] (s : finset α) (H : injective f) :
@@ -290,6 +290,9 @@ have hif : injective f',
       (right_inverse_surj_inv _)).injective,
 subtype.ext_iff_val.1 (@hif ⟨a₁, ha₁⟩ ⟨a₂, ha₂⟩ (subtype.eq ha₁a₂))
 
+@[simp] lemma card_disj_union (s t : finset α) (h) : (s.disj_union t h).card = s.card + t.card :=
+multiset.card_add _ _
+
 /-! ### Lattice structure -/
 
 section lattice
@@ -302,10 +305,10 @@ lemma card_union_le (s t : finset α) : (s ∪ t).card ≤ s.card + t.card :=
 card_union_add_card_inter s t ▸ nat.le_add_right _ _
 
 lemma card_union_eq (h : disjoint s t) : (s ∪ t).card = s.card + t.card :=
-by rw [←card_union_add_card_inter, disjoint_iff_inter_eq_empty.1 h, card_empty, add_zero]
+by rw [←disj_union_eq_union s t $ λ x, disjoint_left.mp h, card_disj_union _ _ _]
 
 @[simp] lemma card_disjoint_union (h : disjoint s t) : card (s ∪ t) = s.card + t.card :=
-by rw [←card_union_add_card_inter, disjoint_iff_inter_eq_empty.1 h, card_empty, add_zero]
+card_union_eq h
 
 lemma card_sdiff (h : s ⊆ t) : card (t \ s) = t.card - s.card :=
 suffices card (t \ s) = card ((t \ s) ∪ s) - s.card, by rwa sdiff_union_of_subset h at this,

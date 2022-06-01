@@ -60,8 +60,7 @@ begin
 end
 
 /--
-Primes greater than about `sqrt (2 * n)` appear only to multiplicity 0 or 1 in the central binomial
-coefficient.
+Primes greater than about `sqrt n` appear only to multiplicity 0 or 1 in the binomial coefficient.
 -/
 lemma factorization_choose_le_one (p_large : n < p ^ 2) : (choose n k).factorization p ≤ 1 :=
 begin

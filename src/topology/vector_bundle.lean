@@ -376,6 +376,53 @@ def linear_equiv_at (e : trivialization R F E) (b : B) (hb : b ∈ e.base_set) :
   E b ≃ₗ[R] F :=
 e.to_pretrivialization.linear_equiv_at b hb
 
+@[simp]
+lemma linear_equiv_at_apply (e : trivialization R F E) (b : B) (hb : b ∈ e.base_set) (v : E b) :
+  e.linear_equiv_at b hb v = (e (total_space_mk E b v)).2 := rfl
+
+@[simp]
+lemma linear_equiv_at_symm_apply (e : trivialization R F E) (b : B) (hb : b ∈ e.base_set) (v : F) :
+  (e.linear_equiv_at b hb).symm v = e.symm b v := rfl
+
+/-- A fiberwise linear inverse to `e`. -/
+protected def symmₗ (e : trivialization R F E) (b : B) : F →ₗ[R] E b :=
+e.to_pretrivialization.symmₗ b
+
+lemma coe_symmₗ (e : trivialization R F E) (b : B) : ⇑(e.symmₗ b) = e.symm b :=
+rfl
+
+/-- A fiberwise linear map equal to `e` on `e.base_set`. -/
+protected def linear_map_at (e : trivialization R F E) (b : B) : E b →ₗ[R] F :=
+e.to_pretrivialization.linear_map_at b
+
+lemma coe_linear_map_at (e : trivialization R F E) (b : B) :
+  ⇑(e.linear_map_at b) = λ y, if b ∈ e.base_set then (e (total_space_mk E b y)).2 else 0 :=
+e.to_pretrivialization.coe_linear_map_at b
+
+lemma coe_linear_map_at_of_mem (e : trivialization R F E) {b : B} (hb : b ∈ e.base_set) :
+  ⇑(e.linear_map_at b) = λ y, (e (total_space_mk E b y)).2 :=
+by simp_rw [coe_linear_map_at, if_pos hb]
+
+lemma linear_map_at_apply (e : trivialization R F E) {b : B} (y : E b) :
+  e.linear_map_at b y = if b ∈ e.base_set then (e (total_space_mk E b y)).2 else 0 :=
+by rw [coe_linear_map_at]
+
+lemma linear_map_at_def_of_mem (e : trivialization R F E) {b : B} (hb : b ∈ e.base_set) :
+  e.linear_map_at b = e.linear_equiv_at b hb :=
+dif_pos hb
+
+lemma linear_map_at_def_of_not_mem (e : trivialization R F E) {b : B} (hb : b ∉ e.base_set) :
+  e.linear_map_at b = 0 :=
+dif_neg hb
+
+lemma symmₗ_linear_map_at (e : trivialization R F E) {b : B} (hb : b ∈ e.base_set) (y : E b) :
+  e.symmₗ b (e.linear_map_at b y) = y :=
+e.to_pretrivialization.symmₗ_linear_map_at hb y
+
+lemma linear_map_at_symmₗ (e : trivialization R F E) {b : B} (hb : b ∈ e.base_set) (y : F) :
+  e.linear_map_at b (e.symmₗ b y) = y :=
+e.to_pretrivialization.linear_map_at_symmₗ hb y
+
 /-- A coordinate change function between two trivializations, as a continuous linear equivalence.
   Defined to be the identity when `b` does not lie in the base set of both trivializations. -/
 def coord_change (e e' : trivialization R F E) (b : B) : F ≃L[R] F :=

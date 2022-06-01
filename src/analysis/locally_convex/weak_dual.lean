@@ -50,11 +50,14 @@ variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] [add_comm_group
 /-- Construct a seminorm from a linear form `f : E →ₗ[𝕜] 𝕜` over a normed field `𝕜` by
 `λ x, ∥f x∥` -/
 def to_seminorm (f : E →ₗ[𝕜] 𝕜) : seminorm 𝕜 E :=
-{ to_fun    := λ x, ∥f x∥,
-  map_zero' := by rw [map_zero, norm_zero],
-  nonneg    := λ x, norm_nonneg _,
-  smul'    := λ a x, by simp only [map_smul, ring_hom.id_apply, smul_eq_mul, norm_mul],
-  add := λ x x', by { simp only [map_add, add_apply], exact norm_add_le _ _ } }
+begin
+  set g := λ x, ∥f x∥ with hg,
+  have add_le : ∀ (x y : E), g (x + y)  ≤ g x + g y,
+  { intros x x', rw hg, simp only [map_add, add_apply], exact norm_add_le _ _ },
+  have smul : ∀ (a : 𝕜) (x : E), g (a • x) = ∥a∥ * g x,
+  { intros a x, rw hg, simp only [map_smul, ring_hom.id_apply, smul_eq_mul, norm_mul], },
+  refine seminorm.of add_le smul,
+end
 
 lemma coe_to_seminorm {f : E →ₗ[𝕜] 𝕜} :
   ⇑f.to_seminorm = λ x, ∥f x∥ := rfl

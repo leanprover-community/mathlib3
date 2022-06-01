@@ -142,7 +142,7 @@ by rwa [pow_two, ← quadratic_char_mul, ← pow_two, quadratic_char_sq_one']
 /-- The quadratic character is `1` or `-1` on nonzero arguments. -/
 lemma quadratic_char_dichotomy {a : F} (ha : a ≠ 0) :
   quadratic_char F a = 1 ∨ quadratic_char F a = -1 :=
-(sq_eq_one_iff (quadratic_char F a)).mp (quadratic_char_sq_one ha)
+sq_eq_one_iff.1 $ quadratic_char_sq_one ha
 
 /-- A variant -/
 lemma quadratic_char_eq_neg_one_iff_not_one {a : F} (ha : a ≠ 0) :

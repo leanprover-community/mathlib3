@@ -169,13 +169,36 @@ structure seminorm (𝕜 : Type*) (E : Type*) [semi_normed_ring 𝕜] [add_monoi
   extends add_monoid_seminorm E :=
 (smul' : ∀ (a : 𝕜) (x : E), to_fun (a • x) = ∥a∥ * to_fun x)
 
---TODO
-/- lemma nonneg : 0 ≤ p x :=
-have h: 0 ≤ 2 * p x, from
-calc 0 = p (x + (- x)) : by rw [add_neg_self, p.zero]
-...    ≤ p x + p (-x)  : p.add_le _ _
-...    = 2 * p x : by rw [p.neg, two_mul],
-nonneg_of_mul_nonneg_left h zero_lt_two -/
+lemma map_zero.of_smul {𝕜 : Type*} {E : Type*} [semi_normed_ring 𝕜] [add_monoid E]
+  [smul_with_zero 𝕜 E] {f : E → ℝ} (smul : ∀ (a : 𝕜) (x : E), f (a • x) = ∥a∥ * f x) : f 0 = 0 :=
+calc f 0 = f ((0 : 𝕜) • 0) : by rw zero_smul
+     ... = 0 : by rw [smul, norm_zero, zero_mul]
+
+lemma neg.of_smul {𝕜 : Type*} {E : Type*} [semi_normed_ring 𝕜] [add_comm_group E]
+  [module 𝕜 E] [norm_one_class 𝕜] {f : E → ℝ} (smul : ∀ (a : 𝕜) (x : E), f (a • x) = ∥a∥ * f x)
+  (x : E) : f (-x) = f x :=
+  calc f (-x) = f ((-1 : 𝕜) • x) : by rw neg_one_smul
+          ... = f x : by rw [smul, norm_neg, norm_one, one_mul]
+
+lemma nonneg.of {𝕜 : Type*} {E : Type*} [semi_normed_ring 𝕜] [add_comm_group E] [module 𝕜 E]
+  [norm_one_class 𝕜] {f : E → ℝ} (add_le : ∀ (x y : E), f (x + y) ≤ f x + f y)
+  (smul : ∀ (a : 𝕜) (x : E), f (a • x) = ∥a∥ * f x) (x : E) : 0 ≤ f x :=
+have h: 0 ≤ 2 * f x, from
+calc 0 = f (x + (- x)) : by rw [add_neg_self, map_zero.of_smul smul]
+...    ≤ f x + f (-x)  : add_le _ _
+...    = 2 * f x : by rw [neg.of_smul smul, two_mul],
+nonneg_of_mul_nonneg_left h zero_lt_two
+
+/-- Alternative constructor for a `seminorm` on an `add_comm_group E` over a `semi_norm_ring 𝕜`
+  in which `1` has norm `1`. -/
+def seminorm.of {𝕜 : Type*} {E : Type*} [semi_normed_ring 𝕜] [add_comm_group E] [module 𝕜 E]
+  [norm_one_class 𝕜] {f : E → ℝ} (add_le : ∀ (x y : E), f (x + y) ≤ f x + f y)
+  (smul : ∀ (a : 𝕜) (x : E), f (a • x) = ∥a∥ * f x) : seminorm 𝕜 E :=
+{ to_fun    := f,
+  map_zero' := map_zero.of_smul smul,
+  nonneg'   := nonneg.of add_le smul,
+  add_le'   := add_le,
+  smul'     := smul }
 
 namespace seminorm
 
@@ -345,7 +368,7 @@ variables [has_scalar R ℝ] [has_scalar R ℝ≥0] [is_scalar_tower R ℝ≥0 �
 
 /-- Composition of a seminorm with a linear map is a seminorm. -/
 def comp (p : seminorm 𝕜 F) (f : E →ₗ[𝕜] F) : seminorm 𝕜 E :=
-{ to_fun    := λ x, p(f x),
+{ to_fun    := λ x, p (f x),
   nonneg'   := λ x, p.nonneg _,
   map_zero' := by rw [f.map_zero, p.map_zero],
   smul'     := λ _ _, (congr_arg p (f.map_smul _ _)).trans (p.smul _ _),
@@ -383,31 +406,6 @@ lemma comp_mono {p : seminorm 𝕜 F} {q : seminorm 𝕜 F} (f : E →ₗ[𝕜] 
 /-- The composition as an `add_monoid_hom`. -/
 @[simps] def pullback (f : E →ₗ[𝕜] F) : add_monoid_hom (seminorm 𝕜 F) (seminorm 𝕜 E) :=
 ⟨λ p, p.comp f, zero_comp f, λ p q, add_comp p q f⟩
-
-section norm_one_class
-variables [norm_one_class 𝕜] (p : seminorm 𝕜 E) (x y : E) (r : ℝ)
-
-@[simp]
-protected lemma neg : p (-x) = p x :=
-calc p (-x) = p ((-1 : 𝕜) • x) : by rw neg_one_smul
-...         = p x : by rw [p.smul, norm_neg, norm_one, one_mul]
-
-protected lemma sub_le : p (x - y) ≤ p x + p y :=
-calc
-  p (x - y)
-      = p (x + -y) : by rw sub_eq_add_neg
-  ... ≤ p x + p (-y) : p.add_le x (-y)
-  ... = p x + p y : by rw p.neg
-
-lemma sub_rev : p (x - y) = p (y - x) := by rw [←neg_sub, p.neg]
-
-/-- The direct path from 0 to y is shorter than the path with x "inserted" in between. -/
-lemma le_insert : p y ≤ p x + p (x - y) :=
-calc p y = p (x - (x - y)) : by rw sub_sub_cancel
-... ≤ p x + p (x - y) : p.sub_le _ _
-
-/-- The direct path from 0 to x is shorter than the path with y "inserted" in between. -/
-lemma le_insert' : p x ≤ p y + p (x - y) := by { rw sub_rev, exact le_insert _ _ _ }
 
 instance : order_bot (seminorm 𝕜 E) := ⟨0, seminorm.nonneg⟩
 
@@ -460,6 +458,31 @@ begin
   { exact nnreal.coe_pos.mpr ha },
 end
 
+section norm_one_class
+variables [norm_one_class 𝕜] (p : seminorm 𝕜 E) (x y : E) (r : ℝ)
+
+@[simp]
+protected lemma neg : p (-x) = p x :=
+calc p (-x) = p ((-1 : 𝕜) • x) : by rw neg_one_smul
+...         = p x : by rw [p.smul, norm_neg, norm_one, one_mul]
+
+protected lemma sub_le : p (x - y) ≤ p x + p y :=
+calc
+  p (x - y)
+      = p (x + -y) : by rw sub_eq_add_neg
+  ... ≤ p x + p (-y) : p.add_le x (-y)
+  ... = p x + p y : by rw p.neg
+
+lemma sub_rev : p (x - y) = p (y - x) := by rw [←neg_sub, p.neg]
+
+/-- The direct path from 0 to y is shorter than the path with x "inserted" in between. -/
+lemma le_insert : p y ≤ p x + p (x - y) :=
+calc p y = p (x - (x - y)) : by rw sub_sub_cancel
+... ≤ p x + p (x - y) : p.sub_le _ _
+
+/-- The direct path from 0 to x is shorter than the path with y "inserted" in between. -/
+lemma le_insert' : p x ≤ p y + p (x - y) := by { rw sub_rev, exact le_insert _ _ _ }
+
 end norm_one_class
 end module
 end semi_normed_ring
@@ -486,29 +509,28 @@ by { use 0, rintro _ ⟨x, rfl⟩, exact add_nonneg (p.nonneg _) (q.nonneg _) }
 
 noncomputable instance : has_inf (seminorm 𝕜 E) :=
 { inf := λ p q,
-  { to_fun := λ x, ⨅ u : E, p u + q (x-u),
-    nonneg' := λ x, le_cinfi (λ x, add_nonneg (p.nonneg _) (q.nonneg _)),
-    map_zero' := cinfi_eq_of_forall_ge_of_forall_gt_exists_lt
-        (λ x, add_nonneg (p.nonneg _) (q.nonneg _))
-        (λ r hr, ⟨0, by simpa [sub_zero, p.map_zero, q.map_zero, add_zero] using hr⟩),
-    add_le' := λ x y, begin
+begin
+  set f := λ x, ⨅ u : E, p u + q (x-u) with hf,
+  have add_le : ∀ (x y : E), f (x + y) ≤ f x + f y := λ x y, begin
       refine le_cinfi_add_cinfi (λ u v, _),
       apply cinfi_le_of_le (bdd_below_range_add _ _ _) (v+u), dsimp only,
       convert add_le_add (p.add_le v u) (q.add_le (y-v) (x-u)) using 1,
       { rw show x + y - (v + u) = y - v + (x - u), by abel },
       { abel },
     end,
-    smul' := λ a x, begin
+  have smul : ∀ (a : 𝕜) (x : E), f (a • x) = ∥a∥ * f x := λ a x, begin
       obtain rfl | ha := eq_or_ne a 0,
-      { simp_rw [norm_zero, zero_mul, zero_smul, zero_sub, seminorm.neg],
+      { rw [norm_zero, zero_mul, zero_smul],
         refine cinfi_eq_of_forall_ge_of_forall_gt_exists_lt
           (λ i, add_nonneg (p.nonneg _) (q.nonneg _))
-          (λ x hx, ⟨0, by rwa [p.map_zero, q.map_zero, add_zero]⟩) },
+          (λ x hx, ⟨0, by rwa [sub_zero, p.map_zero, q.map_zero, add_zero]⟩) },
       simp_rw [real.mul_infi_of_nonneg (norm_nonneg a), mul_add, ←p.smul, ←q.smul, smul_sub],
       refine function.surjective.infi_congr ((•) a⁻¹ : E → E) (λ u, ⟨a • u, inv_smul_smul₀ ha u⟩)
         (λ u, _),
       rw smul_inv_smul₀ ha,
-    end } }
+    end,
+  exact seminorm.of add_le smul,
+end }
 
 @[simp] lemma inf_apply (p q : seminorm 𝕜 E) (x : E) : (p ⊓ q) x = ⨅ u : E, p u + q (x-u) := rfl
 
@@ -623,7 +645,7 @@ begin
   exact p.nonneg _,
 end
 
-@[simp] lemma ball_bot {r : ℝ} (x : E) (hr : 0 < r) [norm_one_class 𝕜] :
+@[simp] lemma ball_bot {r : ℝ} (x : E) (hr : 0 < r) :
   ball (⊥ : seminorm 𝕜 E) x r = set.univ :=
 ball_zero' x hr
 
@@ -636,16 +658,16 @@ begin
   ...    < r   : by rwa mem_ball_zero at hy,
 end
 
-lemma ball_finset_sup_eq_Inter (p : ι → seminorm 𝕜 E) (s : finset ι) (x : E) {r : ℝ} (hr : 0 < r)
-  [norm_one_class 𝕜] : ball (s.sup p) x r = ⋂ (i ∈ s), ball (p i) x r :=
+lemma ball_finset_sup_eq_Inter (p : ι → seminorm 𝕜 E) (s : finset ι) (x : E) {r : ℝ} (hr : 0 < r) :
+  ball (s.sup p) x r = ⋂ (i ∈ s), ball (p i) x r :=
 begin
   lift r to nnreal using hr.le,
   simp_rw [ball, Inter_set_of, finset_sup_apply, nnreal.coe_lt_coe,
     finset.sup_lt_iff (show ⊥ < r, from hr), ←nnreal.coe_lt_coe, subtype.coe_mk],
 end
 
-lemma ball_finset_sup (p : ι → seminorm 𝕜 E) (s : finset ι) (x : E) {r : ℝ} (hr : 0 < r)
-  [norm_one_class 𝕜]  : ball (s.sup p) x r = s.inf (λ i, ball (p i) x r) :=
+lemma ball_finset_sup (p : ι → seminorm 𝕜 E) (s : finset ι) (x : E) {r : ℝ} (hr : 0 < r) :
+  ball (s.sup p) x r = s.inf (λ i, ball (p i) x r) :=
 begin
   rw finset.inf_eq_infi,
   exact ball_finset_sup_eq_Inter _ _ _ hr,

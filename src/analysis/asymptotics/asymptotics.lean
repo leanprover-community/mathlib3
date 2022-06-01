@@ -845,6 +845,21 @@ begin
   exacts [(hcf hc).trans_is_O (is_O_zero _ _), hf.is_O_const hc]
 end
 
+/-- `(λ x, c) =O[l] f` if and only if `f` is bounded away from zero. -/
+lemma is_O_const_left_iff_pos_le_norm {c : E''} (hc : c ≠ 0) :
+  (λ x, c) =O[l] f' ↔ ∃ b, 0 < b ∧ ∀ᶠ x in l, b ≤ ∥f' x∥ :=
+begin
+  split,
+  { intro h,
+    rcases h.exists_pos with ⟨C, hC₀, hC⟩,
+    refine ⟨∥c∥ / C, div_pos (norm_pos_iff.2 hc) hC₀, _⟩,
+    exact hC.bound.mono (λ x, (div_le_iff' hC₀).2) },
+  { rintro ⟨b, hb₀, hb⟩,
+    refine is_O.of_bound (∥c∥ / b) (hb.mono $ λ x hx, _),
+    rw [div_mul_eq_mul_div, mul_div_assoc],
+    exact le_mul_of_one_le_right (norm_nonneg _) ((one_le_div hb₀).2 hx) }
+end
+
 section
 
 variable (𝕜)

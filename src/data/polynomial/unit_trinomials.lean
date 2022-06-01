@@ -17,48 +17,6 @@ section semiring
 
 variables {R : Type*} [semiring R] {p q : R[X]}
 
-lemma support_binomial' (k m : ℕ) (x y : R) : (C x * X ^ k + C y * X ^ m).support ⊆ {k, m} :=
-support_add.trans (union_subset ((support_C_mul_X_pow' k x).trans
-  (singleton_subset_iff.mpr (mem_insert_self k {m}))) ((support_C_mul_X_pow' m y).trans
-  (singleton_subset_iff.mpr (mem_insert_of_mem (mem_singleton_self m)))))
-
-lemma support_trinomial' (k m n : ℕ) (x y z : R) :
-  (C x * X ^ k + C y * X ^ m + C z * X ^ n).support ⊆ {k, m, n} :=
-support_add.trans (union_subset (support_add.trans (union_subset ((support_C_mul_X_pow' k x).trans
-  (singleton_subset_iff.mpr (mem_insert_self k {m, n}))) ((support_C_mul_X_pow' m y).trans
-  (singleton_subset_iff.mpr (mem_insert_of_mem (mem_insert_self m {n}))))))
-  ((support_C_mul_X_pow' n z).trans (singleton_subset_iff.mpr
-  (mem_insert_of_mem (mem_insert_of_mem (mem_singleton_self n))))))
-
-lemma support_binomial {k m : ℕ} (hkm : k ≠ m) {x y : R} (hx : x ≠ 0) (hy : y ≠ 0) :
-  (C x * X ^ k + C y * X ^ m).support = {k, m} :=
-begin
-  apply subset_antisymm (support_binomial' k m x y),
-  simp_rw [insert_subset, singleton_subset_iff, mem_support_iff, coeff_add, coeff_C_mul,
-    coeff_X_pow_self, mul_one, coeff_X_pow, if_neg hkm, if_neg hkm.symm,
-    mul_zero, zero_add, add_zero, ne.def, hx, hy, and_self, not_false_iff],
-end
-
-lemma support_trinomial {k m n : ℕ} (hkm : k < m) (hmn : m < n) {x y z : R} (hx : x ≠ 0)
-  (hy : y ≠ 0) (hz : z ≠ 0) : (C x * X ^ k + C y * X ^ m + C z * X ^ n).support = {k, m, n} :=
-begin
-  apply subset_antisymm (support_trinomial' k m n x y z),
-  simp_rw [insert_subset, singleton_subset_iff, mem_support_iff, coeff_add, coeff_C_mul,
-    coeff_X_pow_self, mul_one, coeff_X_pow, if_neg hkm.ne, if_neg hkm.ne', if_neg hmn.ne,
-    if_neg hmn.ne', if_neg (hkm.trans hmn).ne, if_neg (hkm.trans hmn).ne',
-    mul_zero, add_zero, zero_add, ne.def, hx, hy, hz, and_self, not_false_iff],
-end
-
-lemma card_support_binomial {k m : ℕ} (h : k ≠ m) {x y : R} (hx : x ≠ 0) (hy : y ≠ 0) :
-  (C x * X ^ k + C y * X ^ m).support.card = 2 :=
-by rw [support_binomial h hx hy, card_insert_of_not_mem (mt mem_singleton.mp h), card_singleton]
-
-lemma card_support_trinomial {k m n : ℕ} (hkm : k < m) (hmn : m < n) {x y z : R} (hx : x ≠ 0)
-  (hy : y ≠ 0) (hz : z ≠ 0) : (C x * X ^ k + C y * X ^ m + C z * X ^ n).support.card = 3 :=
-by rw [support_trinomial hkm hmn hx hy hz, card_insert_of_not_mem
-  (mt mem_insert.mp (not_or hkm.ne (mt mem_singleton.mp (hkm.trans hmn).ne))),
-  card_insert_of_not_mem (mt mem_singleton.mp hmn.ne), card_singleton]
-
 -- todo: PR to `data/polynomial/basic` with other support lemmas
 lemma card_support_eq_one : p.support.card = 1 ↔ ∃ (k : ℕ) (x : R) (hx : x ≠ 0), p = C x * X ^ k :=
 begin
@@ -522,7 +480,7 @@ lemma irreducible_step6 {m n : ℕ} (hm : 0 < m) (hmn : m < n) {u v w : ℤ}
   (hp : p = C u * X ^ 0 + C v * X ^ m + C w * X ^ n)
   (h : ∀ (n : ℕ) (z : ℂ) (hz : z ^ n = 1), aeval z p ≠ 0) : irreducible p :=
 begin
-
+  sorry,
 end
 
 lemma irreducible21 (hp : is_unit_trinomial p)

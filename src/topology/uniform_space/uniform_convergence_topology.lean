@@ -77,20 +77,20 @@ variables {F : ι → α → β} {f : α → β} {s s' : set α} {x : α} {p : f
 protected def gen (V : set (β × β)) : set ((α → β) × (α → β)) :=
   {uv : (α → β) × (α → β) | ∀ x, (uv.1 x, uv.2 x) ∈ V}
 
-variables [uniform_space β]
-
-protected lemma is_basis_gen :
-  is_basis (λ V : set (β × β), V ∈ 𝓤 β) (uniform_convergence.gen α β) :=
-⟨⟨univ, univ_mem⟩, λ U V hU hV, ⟨U ∩ V, inter_mem hU hV, λ uv huv,
-  ⟨λ x, (huv x).left, λ x, (huv x).right⟩⟩⟩
+protected lemma is_basis_gen (u : filter_basis $ β × β) :
+  is_basis (λ V : set (β × β), V ∈ u) (uniform_convergence.gen α β) :=
+⟨u.nonempty, λ U V hU hV, let ⟨z, hz, hzUV⟩ := u.inter_sets hU hV in ⟨z, hz, λ uv huv,
+  ⟨λ x, inter_subset_left _ _ $ hzUV (huv x), λ x, inter_subset_right _ _ $ hzUV (huv x)⟩⟩⟩
 
 /-- Filter basis for the uniformity of uniform convergence -/
-protected def uniformity_basis : filter_basis ((α → β) × (α → β)) :=
-(uniform_convergence.is_basis_gen α β).filter_basis
+protected def basis (u : filter_basis $ β × β) : filter_basis ((α → β) × (α → β)) :=
+(uniform_convergence.is_basis_gen α β u).filter_basis
+
+variables [uniform_space β]
 
 /-- Core of the uniform structure of uniform convergence -/
 protected def uniform_core : uniform_space.core (α → β) :=
-uniform_space.core.mk_of_basis (uniform_convergence.uniformity_basis α β)
+uniform_space.core.mk_of_basis (uniform_convergence.basis α β (𝓤 β).to_filter_basis)
   (λ U ⟨V, hV, hVU⟩ f, hVU ▸ λ x, refl_mem_uniformity hV)
   (λ U ⟨V, hV, hVU⟩, hVU ▸ ⟨uniform_convergence.gen α β (prod.swap ⁻¹' V),
     ⟨prod.swap ⁻¹' V, tendsto_swap_uniformity hV, rfl⟩, λ uv huv x, huv x⟩)

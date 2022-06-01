@@ -209,6 +209,34 @@ def locally_finite_order_top.of_Iic (α : Type*) [partial_order α] [decidable_e
 
 variables {α β : Type*}
 
+/-- An empty type is locally finite. -/
+protected def _root_.is_empty.to_locally_finite_order [preorder α] [is_empty α] :
+  locally_finite_order α :=
+{ finset_Icc := is_empty_elim,
+  finset_Ico := is_empty_elim,
+  finset_Ioc := is_empty_elim,
+  finset_Ioo := is_empty_elim,
+  finset_mem_Icc := is_empty_elim,
+  finset_mem_Ico := is_empty_elim,
+  finset_mem_Ioc := is_empty_elim,
+  finset_mem_Ioo := is_empty_elim }
+
+/-- An empty type is locally finite. -/
+protected def _root_.is_empty.to_locally_finite_order_top [preorder α] [is_empty α] :
+  locally_finite_order_top α :=
+{ finset_Ici := is_empty_elim,
+  finset_Ioi := is_empty_elim,
+  finset_mem_Ici := is_empty_elim,
+  finset_mem_Ioi := is_empty_elim }
+
+/-- An empty type is locally finite. -/
+protected def _root_.is_empty.to_locally_finite_order_bot [preorder α] [is_empty α] :
+  locally_finite_order_bot α :=
+{ finset_Iic := is_empty_elim,
+  finset_Iio := is_empty_elim,
+  finset_mem_Iic := is_empty_elim,
+  finset_mem_Iio := is_empty_elim }
+
 /-! ### Intervals as finsets -/
 
 namespace finset
@@ -292,20 +320,6 @@ def Iio (a : α) : finset α := locally_finite_order_bot.finset_Iio a
 @[simp, norm_cast] lemma coe_Iio (a : α) : (Iio a : set α) = set.Iio a := set.ext $ λ _, mem_Iio
 
 end locally_finite_order_bot
-
-@[priority 100] -- See note [lower priority instance]
-instance _root_.is_empty.to_locally_finite_order_top [is_empty α] : locally_finite_order_top α :=
-{ finset_Ici := is_empty_elim,
-  finset_Ioi := is_empty_elim,
-  finset_mem_Ici := is_empty_elim,
-  finset_mem_Ioi := is_empty_elim }
-
-@[priority 100] -- See note [lower priority instance]
-instance _root_.is_empty.to_locally_finite_order_bot [is_empty α] : locally_finite_order_bot α :=
-{ finset_Iic := is_empty_elim,
-  finset_Iio := is_empty_elim,
-  finset_mem_Iic := is_empty_elim,
-  finset_mem_Iio := is_empty_elim }
 
 section order_top
 variables [locally_finite_order α] [order_top α] {a x : α}

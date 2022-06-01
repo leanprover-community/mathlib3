@@ -22,7 +22,7 @@ instance : locally_finite_order (fin n) := subtype.locally_finite_order _
 instance : locally_finite_order_bot (fin n) := subtype.locally_finite_order_bot _
 
 instance : Π n, locally_finite_order_top (fin n)
-| 0 := infer_instance
+| 0 := is_empty.to_locally_finite_order_top
 | (n + 1) := infer_instance
 
 namespace fin

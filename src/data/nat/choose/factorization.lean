@@ -154,8 +154,8 @@ If a prime `p` has positive multiplicity in the `n`th central binomial coefficie
 `p` is no more than `2 * n`
 -/
 lemma factorization_central_binom_eq_zero_of_two_mul_lt_prime (h : 2 * n < p) :
-  ((central_binom n).factorization p) = 0 :=
-factorization_choose_eq_zero_of_lt_prime h n
+  (central_binom n).factorization p = 0 :=
+factorization_choose_eq_zero_of_lt_prime h
 
 /--
 Contrapositive form of `nat.factorization_central_binom_eq_zero_of_two_mul_lt_prime`

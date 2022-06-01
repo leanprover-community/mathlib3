@@ -192,7 +192,7 @@ begin
   simp only [category.assoc],
 end
 
-def one_act_left' : (R.one ⊗ 𝟙 _) ≫ act_left P Q = (λ_ _).hom :=
+lemma one_act_left' : (R.one ⊗ 𝟙 _) ≫ act_left P Q = (λ_ _).hom :=
 begin
   refine (cancel_epi ((tensor_left _).map (coequalizer.π _ _))).1 _,
   dunfold X, dsimp,
@@ -204,7 +204,7 @@ begin
   coherence,
 end
 
-def act_right_one' : (𝟙 _ ⊗ T.one) ≫ act_right P Q = (ρ_ _).hom :=
+lemma act_right_one' : (𝟙 _ ⊗ T.one) ≫ act_right P Q = (ρ_ _).hom :=
 begin
   refine (cancel_epi ((tensor_right _).map (coequalizer.π _ _))).1 _,
   dunfold X, dsimp,
@@ -216,7 +216,7 @@ begin
   coherence,
 end
 
-def left_assoc' :
+lemma left_assoc' :
   (R.mul ⊗ 𝟙 _) ≫ act_left P Q =
   (α_ R.X R.X _).hom ≫ (𝟙 R.X ⊗ act_left P Q) ≫ act_left P Q :=
 begin
@@ -233,7 +233,7 @@ begin
   coherence,
 end
 
-def right_assoc' :
+lemma right_assoc' :
   (𝟙 _ ⊗ T.mul) ≫ act_right P Q =
   (α_ _ T.X T.X).inv ≫ (act_right P Q ⊗ 𝟙 T.X) ≫ act_right P Q :=
 begin
@@ -250,7 +250,7 @@ begin
   coherence,
 end
 
-def middle_assoc' :
+lemma middle_assoc' :
   (act_left P Q ⊗ 𝟙 T.X) ≫ act_right P Q =
   (α_ R.X _ T.X).hom ≫ (𝟙 R.X ⊗ act_right P Q) ≫ act_left P Q :=
 begin
@@ -460,7 +460,7 @@ begin
   coherence,
 end
 
-def hom_left_act_hom' :
+lemma hom_left_act_hom' :
   ((P.tensor_Bimod Q).tensor_Bimod L).act_left ≫ hom_hom P Q L =
   (𝟙 R.X ⊗ hom_hom P Q L) ≫ (P.tensor_Bimod (Q.tensor_Bimod L)).act_left :=
 begin
@@ -505,7 +505,7 @@ begin
   coherence,
 end
 
-def hom_right_act_hom' :
+lemma hom_right_act_hom' :
   ((P.tensor_Bimod Q).tensor_Bimod L).act_right ≫ hom_hom P Q L =
   (hom_hom P Q L ⊗ 𝟙 U.X) ≫ (P.tensor_Bimod (Q.tensor_Bimod L)).act_right :=
 begin
@@ -1027,3 +1027,4 @@ def Mon_bicategory : bicategory (Mon_ C) :=
   triangle' := λ _ _ _ M N, triangle_Bimod M N }
 
 end Bimod
+#lint

@@ -402,6 +402,7 @@ lemma eq_empty_of_is_empty [is_empty α] (s : finset α) : s = ∅ :=
 finset.eq_empty_of_forall_not_mem is_empty_elim
 
 /-! ### singleton -/
+
 /--
 `{a} : finset a` is the set `{a}` containing `a` and nothing else.
 
@@ -465,15 +466,11 @@ by rw [coe_singleton, set.singleton_subset_iff]
 singleton_subset_set_iff
 
 @[simp] lemma subset_singleton_iff {s : finset α} {a : α} : s ⊆ {a} ↔ s = ∅ ∨ s = {a} :=
-begin
-  refine ⟨λ hs, s.eq_empty_or_nonempty.imp_right _, _⟩,
-  { rintro ⟨t, ht⟩,
-    apply subset.antisymm hs,
-    rwa [singleton_subset_iff, ←mem_singleton.1 (hs ht)] },
-  rintro (rfl | rfl),
-  { exact empty_subset _ },
-  exact subset.rfl,
-end
+by rw [←coe_subset, coe_singleton, set.subset_singleton_iff_eq, coe_eq_empty, coe_eq_singleton]
+
+protected lemma nonempty.subset_singleton_iff {s : finset α} {a : α} (h : s.nonempty) :
+  s ⊆ {a} ↔ s = {a} :=
+subset_singleton_iff.trans $ or_iff_right h.ne_empty
 
 lemma subset_singleton_iff' {s : finset α} {a : α} : s ⊆ {a} ↔ ∀ b ∈ s, b = a :=
 forall₂_congr $ λ _ _, mem_singleton

@@ -30,7 +30,7 @@ We define cardinal numbers as a quotient of types under the equivalence relation
   (contrast with `ℕ : Type`, which lives in a specific universe).
   In some cases the universe level has to be given explicitly.
 * `cardinal.min (I : nonempty ι) (c : ι → cardinal)` is the minimal cardinal in the range of `c`.
-* `cardinal.succ c` is the successor cardinal, the smallest cardinal larger than `c`.
+* `order.succ c` is the successor cardinal, the smallest cardinal larger than `c`.
 * `cardinal.sum` is the sum of a collection of cardinals.
 * `cardinal.sup` is the supremum of a collection of cardinals.
 * `cardinal.powerlt c₁ c₂` or `c₁ ^< c₂` is defined as `sup_{γ < β} α^γ`.
@@ -65,7 +65,7 @@ cardinal number, cardinal arithmetic, cardinal exponentiation, omega,
 Cantor's theorem, König's theorem, Konig's theorem
 -/
 
-open function set
+open function set order
 open_locale classical
 
 noncomputable theory
@@ -516,13 +516,13 @@ end⟩
 instance : has_well_founded cardinal.{u} := ⟨(<), cardinal.wf⟩
 
 instance : conditionally_complete_linear_order_bot cardinal :=
-cardinal.wf.conditionally_complete_linear_order_with_bot 0 $ le_antisymm (cardinal.zero_le _) $
-  not_lt.1 (cardinal.wf.not_lt_min set.univ ⟨0, mem_univ _⟩ (mem_univ 0))
+cardinal.lt_wf.conditionally_complete_linear_order_with_bot 0 $ le_antisymm (cardinal.zero_le _) $
+  not_lt.1 (cardinal.lt_wf.not_lt_min set.univ ⟨0, mem_univ _⟩ (mem_univ 0))
+
+instance wo : @is_well_order cardinal.{u} (<) := ⟨cardinal.wf⟩
 
 @[simp] theorem Inf_empty : Inf (∅ : set cardinal.{u}) = 0 :=
 dif_neg not_nonempty_empty
-
-instance wo : @is_well_order cardinal.{u} (<) := ⟨cardinal.wf⟩
 
 /-- The set in the definition of `cardinal.succ` is nonempty. -/
 theorem succ_nonempty (c : cardinal) : {c' : cardinal | c < c'}.nonempty := ⟨_, cantor c⟩
@@ -538,17 +538,16 @@ Inf_mem (succ_nonempty c)
 theorem succ_le_iff {a b : cardinal} : succ a ≤ b ↔ a < b :=
 ⟨(lt_succ a).trans_le, λ h, cInf_le' h⟩
 
+/-- Note that the successor of `c` is not the same as `c + 1` except in the case of finite `c`. -/
 instance : succ_order cardinal :=
-succ_order.of_succ_le_iff succ (λ a b, succ_le_iff)
+succ_order.of_succ_le_iff (λ c, Inf {c' | c < c'})
+  (λ a b, ⟨lt_of_lt_of_le $ Inf_mem $ exists_gt a, cInf_le'⟩)
 
-theorem le_succ : ∀ a, a ≤ succ a := order.le_succ
-theorem lt_succ_iff {a b : cardinal} : a < succ b ↔ a ≤ b := order.lt_succ_iff
-theorem succ_le_of_lt {a b : cardinal} : a < b → succ a ≤ b := order.succ_le_of_lt
-theorem le_of_lt_succ {a b : cardinal} : a < succ b → a ≤ b := order.le_of_lt_succ
+theorem succ_def (c : cardinal) : succ c = Inf {c' | c < c'} := rfl
 
 theorem add_one_le_succ (c : cardinal.{u}) : c + 1 ≤ succ c :=
 begin
-  refine (le_cInf_iff'' (succ_nonempty c)).2 (λ b hlt, _),
+  refine (le_cInf_iff'' (exists_gt c)).2 (λ b hlt, _),
   rcases ⟨b, c⟩ with ⟨⟨β⟩, ⟨γ⟩⟩,
   cases le_of_lt hlt with f,
   have : ¬ surjective f := λ hn, (not_le_of_lt hlt) (mk_le_of_surjective hn),
@@ -558,7 +557,7 @@ begin
           ... ≤ #β          : (f.option_elim b hb).cardinal_le
 end
 
-lemma succ_pos (c : cardinal) : 0 < succ c := order.bot_lt_succ c
+lemma succ_pos : ∀ c : cardinal, 0 < succ c := bot_lt_succ
 
 lemma succ_ne_zero (c : cardinal) : succ c ≠ 0 := (succ_pos _).ne'
 
@@ -872,8 +871,7 @@ nat.cast_injective
 @[simp, norm_cast, priority 900] theorem nat_succ (n : ℕ) : (n.succ : cardinal) = succ n :=
 (add_one_le_succ _).antisymm (succ_le_of_lt $ nat_cast_lt.2 $ nat.lt_succ_self _)
 
-@[simp] theorem succ_zero : succ 0 = 1 :=
-by norm_cast
+@[simp] theorem succ_zero : succ (0 : cardinal) = 1 := by norm_cast
 
 theorem card_le_of {α : Type u} {n : ℕ} (H : ∀ s : finset α, s.card ≤ n) :
   # α ≤ n :=
@@ -887,7 +885,7 @@ begin
 end
 
 theorem cantor' (a) {b : cardinal} (hb : 1 < b) : a < b ^ a :=
-by rw [← succ_le_iff, (by norm_cast : succ 1 = 2)] at hb;
+by rw [← succ_le_iff, (by norm_cast : succ (1 : cardinal) = 2)] at hb;
    exact (cantor a).trans_le (power_le_power_right hb)
 
 theorem one_le_iff_pos {c : cardinal} : 1 ≤ c ↔ 0 < c :=
@@ -1030,6 +1028,9 @@ begin
   { rintro ⟨f'⟩, cases embedding.trans f' equiv.ulift.to_embedding with f hf, exact ⟨f, hf⟩ },
   { rintro ⟨f, hf⟩, exact ⟨embedding.trans ⟨f, hf⟩ equiv.ulift.symm.to_embedding⟩ }
 end
+
+@[simp] lemma mk_subtype_le_omega (p : α → Prop) : #{x // p x} ≤ ω ↔ countable {x | p x} :=
+mk_set_le_omega _
 
 @[simp] lemma omega_add_omega : ω + ω = ω := mk_denumerable _
 
@@ -1467,8 +1468,8 @@ end
 lemma three_le {α : Type*} (h : 3 ≤ # α) (x : α) (y : α) :
   ∃ (z : α), z ≠ x ∧ z ≠ y :=
 begin
-  have : ((3:nat) : cardinal) ≤ # α, simpa using h,
-  have : ((2:nat) : cardinal) < # α, rwa [← cardinal.succ_le_iff, ← cardinal.nat_succ],
+  have : ↑(3 : ℕ) ≤ # α, simpa using h,
+  have : ↑(2 : ℕ) < # α, rwa [← succ_le_iff, ← cardinal.nat_succ],
   have := exists_not_mem_of_length_le [x, y] this,
   simpa [not_or_distrib] using this,
 end
@@ -1503,7 +1504,7 @@ end
 lemma powerlt_le_powerlt_left {a b c : cardinal} (h : b ≤ c) : a ^< b ≤ a ^< c :=
 by { rw [powerlt, sup_le_iff], exact λ ⟨s, hs⟩, le_powerlt (lt_of_lt_of_le hs h) }
 
-lemma powerlt_succ {c₁ c₂ : cardinal} (h : c₁ ≠ 0) : c₁ ^< c₂.succ = c₁ ^ c₂ :=
+lemma powerlt_succ {c₁ c₂ : cardinal} (h : c₁ ≠ 0) : c₁ ^< (succ c₂) = c₁ ^ c₂ :=
 begin
   apply le_antisymm,
   { rw powerlt_le, intros c₃ h2, apply power_le_power_left h, rwa [←lt_succ_iff] },

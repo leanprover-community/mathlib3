@@ -546,44 +546,24 @@ begin
   have ihxyn := ihr_neg _ _ (ihr_neg' _ _ ihxy),
   have ihyxn := ihr_neg _ _ (ihr_neg' _ _ ihyx),
   refine ⟨_, _, _⟩,
-  { rintro (⟨i,j⟩|⟨i,j⟩) (⟨k,l⟩|⟨k,l⟩);
-    try { rw mk_mul_move_left_inl };
-    try { rw mk_mul_move_right_inl };
-    try { rw mk_mul_move_left_inr };
-    try { rw mk_mul_move_right_inr },
-    { apply mul_left_lt_right _ _ hx hy, exacts [ihxy, ihyx] },
-    { rw lt_iff,
-      convert lt_iff.1 (mul_left_lt_right _ _ hy hx _ _ j l i k) using 1,
-      repeat { dsimp, rw add_comm, congr' 1, congr' 1, all_goals { rw quot_mul_comm } },
-      exacts [ihyx, ihxy] },
-    { rw lt_iff,
-      convert lt_iff.1 (mul_left_lt_right _ _ hy.neg hx.neg _ _ j l i k) using 1,
-      repeat { dsimp, rw [← neg_def, ← neg_def, add_comm], congr' 1, congr' 1,
-        all_goals { rw [quot_mul_comm, quot_neg_mul_neg] } },
-      exacts [ihyxn, ihxyn] },
-    { rw lt_iff,
-      convert lt_iff.1 (mul_left_lt_right _ _ hx.neg hy.neg _ _ i k j l) using 1,
-      repeat { dsimp, rw [← neg_def, ← neg_def], congr' 1, congr' 1,
-        all_goals { rw quot_neg_mul_neg } },
-      exacts [ihxyn, ihyxn] } },
-  { rintro (⟨i,j⟩|⟨i,j⟩),
-    { rw mk_mul_move_left_inl, apply numeric.sub, apply numeric.add,
-      apply P1x _ _ ih, apply is_option.mk_left,
-      apply P1y _ _ ih, apply is_option.mk_left,
-      apply P1xy _ _ ih, apply is_option.mk_left, apply is_option.mk_left },
-    { rw mk_mul_move_left_inr, apply numeric.sub, apply numeric.add,
-      apply P1x _ _ ih, apply is_option.mk_right,
-      apply P1y _ _ ih, apply is_option.mk_right,
-      apply P1xy _ _ ih, apply is_option.mk_right, apply is_option.mk_right } },
-  { rintro (⟨i,j⟩|⟨i,j⟩),
-    { rw mk_mul_move_right_inl, apply numeric.sub, apply numeric.add,
-      apply P1x _ _ ih, apply is_option.mk_left,
-      apply P1y _ _ ih, apply is_option.mk_right,
-      apply P1xy _ _ ih, apply is_option.mk_left, apply is_option.mk_right },
-    { rw mk_mul_move_right_inr, apply numeric.sub, apply numeric.add,
-      apply P1x _ _ ih, apply is_option.mk_right,
-      apply P1y _ _ ih, apply is_option.mk_left,
-      apply P1xy _ _ ih, apply is_option.mk_right, apply is_option.mk_left } },
+  { rintro (⟨i,j⟩|⟨i,j⟩) (⟨k,l⟩|⟨k,l⟩); simp only
+      [mk_mul_move_left_inl, mk_mul_move_right_inl, mk_mul_move_left_inr, mk_mul_move_right_inr],
+    { apply mul_left_lt_right _ _ hx hy ihxy ihyx },
+    all_goals { rw lt_iff },
+    { convert lt_iff.1 (mul_left_lt_right _ _ hy hx ihyx ihxy j l i k) using 1;
+      { dsimp, rw add_comm, congr' 1, congr' 1, all_goals { rw quot_mul_comm } } },
+    { convert lt_iff.1 (mul_left_lt_right _ _ hy.neg hx.neg ihyxn ihxyn j l i k) using 1;
+      { dsimp, rw [← neg_def, ← neg_def, add_comm], congr' 1, congr' 1,
+        all_goals { rw [quot_mul_comm, quot_neg_mul_neg] } } },
+    { convert lt_iff.1 (mul_left_lt_right _ _ hx.neg hy.neg ihxyn ihyxn i k j l) using 1;
+      { dsimp, rw [← neg_def, ← neg_def], congr' 1, congr' 1,
+        all_goals { rw quot_neg_mul_neg } } } },
+  all_goals { rintro (⟨i,j⟩|⟨i,j⟩) },
+  rw mk_mul_move_left_inl, swap 2, rw mk_mul_move_left_inr,
+  swap 3, rw mk_mul_move_right_inl, swap 4, rw mk_mul_move_right_inr,
+  all_goals { apply numeric.sub, apply numeric.add,
+    apply P1x _ _ ih, swap 2, apply P1y _ _ ih, swap 3, apply P1xy _ _ ih },
+  all_goals { apply is_option.mk_left <|> apply is_option.mk_right },
 end
 
 variable (ih' : ∀ a, ices a (mul_args.P24 x x' y) → hyp a)
@@ -615,3 +595,5 @@ end main
 end numeric
 
 end pgame
+
+/- TODO : move le_of_forall_lt to pgame and remove numeric hypotheses -/

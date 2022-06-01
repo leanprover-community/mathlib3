@@ -430,6 +430,37 @@ lemma deriv_within_of_open (hs : is_open s) (hx : x ∈ s) :
   deriv_within f s x = deriv f x :=
 by { unfold deriv_within, rw fderiv_within_of_open hs hx, refl }
 
+lemma deriv_mem_iff {f : 𝕜 → F} {s : set F} {x : 𝕜} :
+  deriv f x ∈ s ↔ (differentiable_at 𝕜 f x ∧ deriv f x ∈ s) ∨
+    (0 : F) ∈ s ∧ ¬differentiable_at 𝕜 f x :=
+begin
+  split,
+  { intro hfx,
+    by_cases hx : differentiable_at 𝕜 f x,
+    { exact or.inl ⟨hx, hfx⟩ },
+    { rw [fderiv_zero_of_not_differentiable_at hx] at hfx,
+      exact or.inr ⟨hfx, hx⟩ } },
+  { rintro (⟨hf, hf'⟩|⟨h₀, hx⟩),
+    { exact hf' },
+    { rwa [fderiv_zero_of_not_differentiable_at hx] } }
+end
+
+lemma fderiv_within_mem_iff {f : E → F} {t : set E} {s : set (E →L[𝕜] F)} {x : E} :
+  fderiv_within 𝕜 f t x ∈ s ↔ (differentiable_within_at 𝕜 f t x ∧ fderiv_within 𝕜 f t x ∈ s) ∨
+    (0 : E →L[𝕜] F) ∈ s ∧ ¬differentiable_within_at 𝕜 f t x :=
+begin
+  split,
+  { intro hfx,
+    by_cases hx : differentiable_within_at 𝕜 f t x,
+    { exact or.inl ⟨hx, hfx⟩ },
+    { rw [fderiv_within_zero_of_not_differentiable_within_at hx] at hfx,
+      exact or.inr ⟨hfx, hx⟩ } },
+  { rintro (⟨hf, hf'⟩|⟨h₀, hx⟩),
+    { exact hf' },
+    { rwa [fderiv_within_zero_of_not_differentiable_within_at hx] } }
+end
+
+
 section congr
 /-! ### Congruence properties of derivatives -/
 

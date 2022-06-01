@@ -524,20 +524,6 @@ instance wo : @is_well_order cardinal.{u} (<) := ⟨cardinal.wf⟩
 @[simp] theorem Inf_empty : Inf (∅ : set cardinal.{u}) = 0 :=
 dif_neg not_nonempty_empty
 
-/-- The set in the definition of `cardinal.succ` is nonempty. -/
-theorem succ_nonempty (c : cardinal) : {c' : cardinal | c < c'}.nonempty := ⟨_, cantor c⟩
-
-/-- The successor cardinal - the smallest cardinal greater than
-  `c`. This is not the same as `c + 1` except in the case of finite `c`. -/
-def succ (c : cardinal) : cardinal :=
-Inf {c' | c < c'}
-
-theorem lt_succ (c : cardinal) : c < succ c :=
-Inf_mem (succ_nonempty c)
-
-theorem succ_le_iff {a b : cardinal} : succ a ≤ b ↔ a < b :=
-⟨(lt_succ a).trans_le, λ h, cInf_le' h⟩
-
 /-- Note that the successor of `c` is not the same as `c + 1` except in the case of finite `c`. -/
 instance : succ_order cardinal :=
 succ_order.of_succ_le_iff (λ c, Inf {c' | c < c'})

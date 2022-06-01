@@ -227,7 +227,7 @@ sq_eq_one_iff.mpr ((abs_eq (@zero_le_one ℤ _)).mp (le_antisymm (int.lt_add_one
   (abs_lt_of_sq_lt_sq h1 zero_le_two)) (int.sub_one_lt_iff.mp (abs_pos.mpr h2))))
 
 lemma int.sq_eq_one_of_sq_le {x : ℤ} (h1 : x ^ 2 ≤ 3) (h2 : x ≠ 0) : x ^ 2 = 1 :=
-int.sq_eq_one_of_sq_lt (lt_of_le_of_lt h1 (int.lt_succ_self 3)) h2
+int.sq_eq_one_of_sq_lt (lt_of_le_of_lt h1 (lt_add_one 3)) h2
 
 lemma is_unit_trinomial_iff' : p.is_unit_trinomial ↔ (p * p.mirror).coeff
   (((p * p.mirror).nat_degree + (p * p.mirror).nat_trailing_degree) / 2) = 3 :=

@@ -44,4 +44,18 @@ instance {R : Type w}
   star_module R (Π i, f i) :=
 { star_smul := λ r x, funext $ λ i, star_smul r (x i) }
 
+lemma single_star [Π i, add_monoid (f i)] [Π i, star_add_monoid (f i)] [decidable_eq I]
+  (i : I) (a : f i) :
+  pi.single i (star a) = star (pi.single i a) :=
+single_op (λ i, @star (f i) _) (λ i, star_zero _) i a
+
 end pi
+
+namespace function
+
+lemma update_star [Π i, has_star (f i)] [decidable_eq I]
+  (h : Π (i : I), f i) (i : I) (a : f i) :
+  function.update (star h) i (star a) = star (function.update h i a) :=
+funext $ λ j, (apply_update (λ i, star) h i a j).symm
+
+end function

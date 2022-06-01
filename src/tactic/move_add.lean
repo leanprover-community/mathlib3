@@ -243,10 +243,10 @@ As usual, passing `⊢` refers to acting on the goal as well.
 The tactic could fail to prove the reordering, though I would not know what the cause of this could
 be.  Still, there are three kinds of unwanted use for `move_add`: the tactic does not fail in these
 cases, but flags the unwanted use.
-1. `move_add [vars]? at *` reports gloally unused variables and whether *all* goals
+1. `move_add [vars]? at *` reports globally unused variables and whether *all* goals
    are unchanged, not *each unchanged goal*.
-2. If a target of `move_add` is left unchanged by the tactic, then this will be flagged (unless
-   we are using `at *`).
+2. If a target of `move_add [vars]? at targets` is left unchanged by the tactic, then this will be
+   flagged (unless we are using `at *`).
 3. If a user-provided expression never unifies, then the variable is flagged.
 
 The tactic does not produce an error, but reports unused inputs and unchanged targets.

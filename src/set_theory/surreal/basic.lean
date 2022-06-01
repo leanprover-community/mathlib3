@@ -344,7 +344,7 @@ begin
   iterate 2 { apply_instance },
 end
 
-lemma P3.comm (x₁ x₂ y₁ y₂ : pgame) : P3 x₁ x₂ y₁ y₂ ↔ P3 y₁ y₂ x₁ x₂ :=
+lemma P3.comm {x₁ x₂ y₁ y₂} : P3 x₁ x₂ y₁ y₂ ↔ P3 y₁ y₂ x₁ x₂ :=
 begin
   rw [P3, P3, lt_iff, lt_iff], dsimp,
   iterate 2 { rw [quot_mul_comm x₁, quot_mul_comm x₂] },
@@ -448,24 +448,25 @@ end
 end
 
 section main
-variables (x x' y : pgame.{u}) (ih : ∀ a, ices a (mul_args.P1 x y) → hyp a)
 
 /- restricted inductive hypothesis -/
-def ihr : Prop :=
-∀ x₁ x₂ y', is_option x₁ x → is_option x₂ x → (y' = y ∨ is_option y' y) → P24 x₁ x₂ y'
+def ihr (x y) : Prop :=
+∀ ⦃x₁ x₂ y'⦄, is_option x₁ x → is_option x₂ x → (y' = y ∨ is_option y' y) → P24 x₁ x₂ y'
+
+variables {x x' y : pgame.{u}} (ih : ∀ a, ices a (mul_args.P1 x y) → hyp a)
 
 lemma ihr_neg : ihr x y → ihr (-x) y :=
 begin
   rintro h x₁ x₂ y' h₁ h₂ (rfl|hy); rw is_option_neg at h₁ h₂,
-  { exact P24_neg.2 (h _ _ _ h₂ h₁ (or.inl rfl)) },
-  { exact P24_neg.2 (h _ _ _ h₂ h₁ (or.inr hy)) },
+  { exact P24_neg.2 (h h₂ h₁ (or.inl rfl)) },
+  { exact P24_neg.2 (h h₂ h₁ (or.inr hy)) },
 end
 
 lemma ihr_neg' : ihr x y → ihr x (-y) :=
 begin
   rintro h x₁ x₂ y' h₁ h₂ (rfl|hy),
-  { exact P24_neg'.1 (h x₁ x₂ y h₁ h₂ (or.inl rfl)) },
-  { exact P24_neg'.2 (h x₁ x₂ _ h₁ h₂ (or.inr $ is_option_neg.1 hy)) },
+  { exact P24_neg'.1 (h h₁ h₂ $ or.inl rfl) },
+  { exact P24_neg'.2 (h h₁ h₂ $ or.inr $ is_option_neg.1 hy) },
 end
 
 include ih
@@ -485,54 +486,44 @@ ih (mul_args.P1 x' y') $ trans_gen.tail (trans_gen.single $ cut_expand_pair_righ
 
 lemma ihxy_of_ih : ihr x y :=
 begin
-  rintro x₁ x₂ y' h₁ h₂ (rfl|hy); apply P24_of_ih _ _ ih,
-  { exact trans_gen.single (cut_expand_double _ h₁ h₂) },
-  { exact trans_gen.tail (trans_gen.single $ cut_expand_double _ h₁ h₂) (cut_expand_pair_right _ hy) },
+  rintro x₁ x₂ y' h₁ h₂ (rfl|hy); apply P24_of_ih ih,
+  exacts [trans_gen.single (cut_expand_double _ h₁ h₂),
+    trans_gen.tail (trans_gen.single $ cut_expand_double _ h₁ h₂) (cut_expand_pair_right _ hy)],
 end
 
 /- swapped restricted inductive hypothesis -/
-lemma ihyx_of_ih : ihr y x :=
-begin
-  apply ihxy_of_ih, simp_rw ices_symm, exact ih,
-end
+lemma ihyx_of_ih : ihr y x := by { apply ihxy_of_ih, simp_rw ices_symm, exact ih }
 
 omit ih
 
 lemma P3yyxx (hy : numeric y) (ihyx : ihr y x) (i k l) :
   P3 (x.move_left i) x (y.move_left k) (y.move_right l) :=
-begin
-  rw P3.comm, apply P24.L,
-  { exact ihyx _ _ x (is_option.move_left k) (is_option.move_right l) (or.inl rfl) },
-  { exact hy.left_lt_right k l },
-end
+P3.comm.2 $ P24.L
+  (ihyx (is_option.move_left k) (is_option.move_right l) (or.inl rfl)) (hy.left_lt_right k l) i
 
 lemma P24xxy (ihxy : ihr x y) (i j) : P24 (x.move_left i) (x.move_left j) y :=
-ihxy _ _ y (is_option.move_left i) (is_option.move_left j) (or.inl rfl)
+ihxy (is_option.move_left i) (is_option.move_left j) (or.inl rfl)
 
 variables (hx : numeric x) (hy : numeric y) (ihxy : ihr x y) (ihyx : ihr y x)
 include hy ihxy ihyx
 
 lemma mul_left_lt_right_of_lt (i j k l) (h : x.move_left i < x.move_left j) :
   P1' (x.move_left i) x (x.move_left j) y (y.move_left k) (y.move_right l) :=
-begin
-  apply P1'_of_lt,
-  { exact P3yyxx x y hy ihyx j k l },
-  { apply P24.L (P24xxy x y ihxy i j) h },
-end
+P1'_of_lt (P3yyxx hy ihyx j k l) (P24.L (P24xxy ihxy i j) h k)
 
 include hx
 lemma mul_left_lt_right (i j k l) :
   P1' (x.move_left i) x (x.move_left j) y (y.move_left k) (y.move_right l) :=
 begin
   obtain (h|h|h) := trichotomy (hx.move_left i) (hx.move_left j),
-  { exact mul_left_lt_right_of_lt x y hy ihxy ihyx i j k l h },
+  { exact mul_left_lt_right_of_lt hy ihxy ihyx i j k l h },
   { apply P1'_of_equiv h,
-    { exact P24xxy x y ihxy i j },
-    { exact ihxy _ _ _ (is_option.move_left i) (is_option.move_left j) (or.inr $ is_option.move_right l) },
-    { exact P3yyxx x y hy ihyx i k l } },
-  { convert P1'_swap.1 (mul_left_lt_right_of_lt x _ hy.neg _ _ j i (to_left_moves_neg l) (to_right_moves_neg k) h),
+    { exact P24xxy ihxy i j },
+    { exact ihxy (is_option.move_left i) (is_option.move_left j) (or.inr $ is_option.move_right l) },
+    { exact P3yyxx hy ihyx i k l } },
+  { convert P1'_swap.1 (mul_left_lt_right_of_lt hy.neg _ _ j i (to_left_moves_neg l) (to_right_moves_neg k) h),
     { simp }, { apply move_left_neg_symm' }, { apply move_right_neg_symm' },
-    { exact ihr_neg' x y ihxy }, { exact ihr_neg y x ihyx } },
+    exacts [ihr_neg' ihxy, ihr_neg ihyx] },
 end
 
 include ih
@@ -542,27 +533,26 @@ begin
   rw numeric_def,
   obtain ⟨xl, xr, xL, xR⟩ := x,
   obtain ⟨yl, yr, yL, yR⟩ := y,
-  have ihxy := ihxy_of_ih _ _ ih, have ihyx := ihyx_of_ih _ _ ih,
-  have ihxyn := ihr_neg _ _ (ihr_neg' _ _ ihxy),
-  have ihyxn := ihr_neg _ _ (ihr_neg' _ _ ihyx),
+  have ihxy := ihxy_of_ih ih, have ihxyn := ihr_neg (ihr_neg' ihxy),
+  have ihyx := ihyx_of_ih ih, have ihyxn := ihr_neg (ihr_neg' ihyx),
   refine ⟨_, _, _⟩,
   { rintro (⟨i,j⟩|⟨i,j⟩) (⟨k,l⟩|⟨k,l⟩); simp only
       [mk_mul_move_left_inl, mk_mul_move_right_inl, mk_mul_move_left_inr, mk_mul_move_right_inr],
-    { apply mul_left_lt_right _ _ hx hy ihxy ihyx },
+    { apply mul_left_lt_right hx hy ihxy ihyx },
     all_goals { rw lt_iff },
-    { convert lt_iff.1 (mul_left_lt_right _ _ hy hx ihyx ihxy j l i k) using 1;
+    { convert lt_iff.1 (mul_left_lt_right hy hx ihyx ihxy j l i k) using 1;
       { dsimp, rw add_comm, congr' 1, congr' 1, all_goals { rw quot_mul_comm } } },
-    { convert lt_iff.1 (mul_left_lt_right _ _ hy.neg hx.neg ihyxn ihxyn j l i k) using 1;
+    { convert lt_iff.1 (mul_left_lt_right hy.neg hx.neg ihyxn ihxyn j l i k) using 1;
       { dsimp, rw [← neg_def, ← neg_def, add_comm], congr' 1, congr' 1,
         all_goals { rw [quot_mul_comm, quot_neg_mul_neg] } } },
-    { convert lt_iff.1 (mul_left_lt_right _ _ hx.neg hy.neg ihxyn ihyxn i k j l) using 1;
+    { convert lt_iff.1 (mul_left_lt_right hx.neg hy.neg ihxyn ihyxn i k j l) using 1;
       { dsimp, rw [← neg_def, ← neg_def], congr' 1, congr' 1,
         all_goals { rw quot_neg_mul_neg } } } },
   all_goals { rintro (⟨i,j⟩|⟨i,j⟩) },
   rw mk_mul_move_left_inl, swap 2, rw mk_mul_move_left_inr,
   swap 3, rw mk_mul_move_right_inl, swap 4, rw mk_mul_move_right_inr,
   all_goals { apply numeric.sub, apply numeric.add,
-    apply P1x _ _ ih, swap 2, apply P1y _ _ ih, swap 3, apply P1xy _ _ ih },
+    apply P1x ih, swap 2, apply P1y ih, swap 3, apply P1xy ih },
   all_goals { apply is_option.mk_left <|> apply is_option.mk_right },
 end
 
@@ -582,7 +572,7 @@ begin
   replace h : ∀ a', ices a' a → hyp a',
   { intros a' hr, apply h a' hr, exact numeric_dc hr ha },
   cases a with x y x₁ x₂ y,
-  { apply P1_of_hyp _ _ h; apply ha,
+  { apply P1_of_hyp h; apply ha,
     exact multiset.mem_cons_self x {y},
     exact multiset.mem_cons_of_mem (multiset.mem_singleton.2 rfl) },
   { },

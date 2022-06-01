@@ -125,9 +125,11 @@ end
 namespace tensor_Bimod
 variables {R S T : Mon_ C} (P : Bimod R S) (Q : Bimod S T)
 
+/-- The underlying object of the tensor product of two bimodules. -/
 noncomputable
 def X : C := coequalizer (P.act_right ⊗ 𝟙 Q.X) ((α_ _ _ _).hom ≫ (𝟙 P.X ⊗ Q.act_left))
 
+/-- Left action for the tensor product of two bimodules. -/
 noncomputable
 def act_left : R.X ⊗ X P Q ⟶ X P Q :=
 begin
@@ -159,6 +161,7 @@ begin
   simp only [category.assoc],
 end
 
+/-- Right action for the tensor product of two bimodules. -/
 noncomputable
 def act_right : X P Q ⊗ T.X ⟶ X P Q :=
 begin
@@ -270,6 +273,7 @@ end
 
 end tensor_Bimod
 
+/-- Tensor product of two bimodule objects as a bimodule object. -/
 @[simps]
 noncomputable
 def tensor_Bimod {X Y Z : Mon_ C} (M : Bimod X Y) (N : Bimod Y Z) : Bimod X Z :=
@@ -282,6 +286,7 @@ def tensor_Bimod {X Y Z : Mon_ C} (M : Bimod X Y) (N : Bimod Y Z) : Bimod X Z :=
   right_assoc' := tensor_Bimod.right_assoc' M N,
   middle_assoc' := tensor_Bimod.middle_assoc' M N, }
 
+/-- Tensor product of two morphisms of bimodule objects. -/
 @[simps]
 noncomputable
 def tensor_hom {X Y Z : Mon_ C} {M₁ M₂ : Bimod X Y} {N₁ N₂ : Bimod Y Z}
@@ -389,6 +394,10 @@ begin
   slice_lhs 2 3 { rw coequalizer.π_desc },
 end
 
+/--
+Construct an isomorphism of bimodules by giving an isomorphism between the underlying objects
+and checking compatibility with left and right actions only in the forward direction.
+-/
 @[simps]
 def iso_of_iso {X Y : Mon_ C} {P Q : Bimod X Y}
   (f : P.X ≅ Q.X)
@@ -421,6 +430,8 @@ def iso_of_iso {X Y : Mon_ C} {P Q : Bimod X Y}
 namespace associator_Bimod
 variables {R S T U: Mon_ C} (P : Bimod R S) (Q : Bimod S T) (L : Bimod T U)
 
+/-- An auxiliary morphism for the definition of the underlying morphism of the forward component of
+the associator isomorphism. -/
 noncomputable
 def hom_hom_aux : (tensor_Bimod.X P Q) ⊗ L.X ⟶ tensor_Bimod.X P (tensor_Bimod Q L) :=
 begin
@@ -439,6 +450,7 @@ begin
   coherence,
 end
 
+/-- The underlying morphism of the forward component of the associator isomorphism. -/
 noncomputable
 def hom_hom : tensor_Bimod.X (tensor_Bimod P Q) L ⟶ tensor_Bimod.X P (tensor_Bimod Q L) :=
 begin
@@ -551,6 +563,8 @@ begin
   coherence,
 end
 
+/-- An auxiliary morphism for the definition of the underlying morphism of the inverse component of
+the associator isomorphism. -/
 noncomputable
 def inv_hom_aux : P.X ⊗ (tensor_Bimod.X Q L) ⟶ tensor_Bimod.X (tensor_Bimod P Q) L :=
 begin
@@ -570,6 +584,7 @@ begin
   coherence,
 end
 
+/-- The underlying morphism of the inverse component of the associator isomorphism. -/
 noncomputable
 def inv_hom : tensor_Bimod.X P (tensor_Bimod Q L) ⟶ tensor_Bimod.X (tensor_Bimod P Q) L :=
 begin
@@ -624,6 +639,7 @@ end
 
 end associator_Bimod
 
+/-- The associator as a bimodule isomorphism. -/
 noncomputable
 def associator_Bimod {W X Y Z : Mon_ C} (L : Bimod W X) (M : Bimod X Y) (N : Bimod Y Z) :
   tensor_Bimod (tensor_Bimod L M) N ≅ tensor_Bimod L (tensor_Bimod M N) :=
@@ -638,6 +654,7 @@ iso_of_iso
 namespace left_unitor_Bimod
 variables {R S : Mon_ C} (P : Bimod R S)
 
+/-- The underlying morphism of the forward component of the left unitor isomorphism. -/
 noncomputable
 def hom_hom : tensor_Bimod.X (regular R) P ⟶ P.X :=
 begin
@@ -672,6 +689,7 @@ begin
   rw category.assoc,
 end
 
+/-- The underlying morphism of the inverse component of the left unitor isomorphism. -/
 noncomputable
 def inv_hom : P.X ⟶ tensor_Bimod.X (regular R) P :=
 (λ_ P.X).inv ≫ (R.one ⊗ 𝟙 _) ≫ coequalizer.π _ _
@@ -700,6 +718,7 @@ end
 
 end left_unitor_Bimod
 
+/-- The left unitor as a bimodule isomorphism. -/
 noncomputable
 def left_unitor_Bimod {X Y : Mon_ C} (M : Bimod X Y) : tensor_Bimod (regular X) M ≅ M :=
 iso_of_iso
@@ -713,6 +732,7 @@ iso_of_iso
 namespace right_unitor_Bimod
 variables {R S : Mon_ C} (P : Bimod R S)
 
+/-- The underlying morphism of the forward component of the right unitor isomorphism. -/
 noncomputable
 def hom_hom : tensor_Bimod.X P (regular S) ⟶ P.X :=
 begin
@@ -747,6 +767,7 @@ begin
   rw iso.hom_inv_id_assoc,
 end
 
+/-- The underlying morphism of the inverse component of the right unitor isomorphism. -/
 noncomputable
 def inv_hom : P.X ⟶ tensor_Bimod.X P (regular S) :=
 (ρ_ P.X).inv ≫ (𝟙 _ ⊗ S.one) ≫ coequalizer.π _ _
@@ -774,6 +795,7 @@ end
 
 end right_unitor_Bimod
 
+/-- The right unitor as a bimodule isomorphism. -/
 noncomputable
 def right_unitor_Bimod {X Y : Mon_ C} (M : Bimod X Y) : tensor_Bimod M (regular Y) ≅ M :=
 iso_of_iso

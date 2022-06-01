@@ -104,7 +104,7 @@ instance : inhabited (filter_basis ℕ) :=
     exact le_of_max_le_right p_in,
   end }⟩
 
-/-- See a filter as a filter basis. -/
+/-- View a filter as a filter basis. -/
 def filter.as_basis (f : filter α) : filter_basis α :=
 ⟨f.sets, ⟨univ, univ_mem⟩, λ x y hx hy, ⟨x ∩ y, inter_mem hx hy, subset_rfl⟩⟩
 

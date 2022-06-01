@@ -621,8 +621,7 @@ begin
 end
 
 @[to_additive add_order_eq_card_zmultiples]
-lemma order_eq_card_zpowers [decidable_eq G] :
-  order_of x = fintype.card (subgroup.zpowers x : set G) :=
+lemma order_eq_card_zpowers [decidable_eq G] : order_of x = fintype.card (zpowers x) :=
 (fintype.card_fin (order_of x)).symm.trans (fintype.card_eq.2 ⟨fin_equiv_zpowers x⟩)
 
 open quotient_group
@@ -755,7 +754,7 @@ have one_mem : (1 : G) ∈ (S ^ fintype.card G) := by
   rw ← pow_card_eq_one,
   exact set.pow_mem_pow ha (fintype.card G) },
 subgroup_of_idempotent (S ^ (fintype.card G)) ⟨1, one_mem⟩ begin
-  classical,
+  classical!,
   refine (set.eq_of_subset_of_card_le
     (λ b hb, (congr_arg (∈ _) (one_mul b)).mp (set.mul_mem_mul one_mem hb)) (ge_of_eq _)).symm,
   change _ = fintype.card (_ * _ : set G),

@@ -5,6 +5,8 @@ Authors: Kenny Lau, Yury Kudryashov
 -/
 import algebra.module.basic
 import algebra.ring.aut
+import algebra.ring.ulift
+import algebra.module.ulift
 import linear_algebra.span
 import tactic.abel
 
@@ -325,6 +327,23 @@ instance _root_.punit.algebra : algebra R punit :=
 
 end punit
 
+section ulift
+
+instance _root_.ulift.algebra : algebra R (ulift A) :=
+{ to_fun := λ r, ulift.up (algebra_map R A r),
+  commutes' := λ r x, ulift.down_injective $ algebra.commutes r x.down,
+  smul_def' := λ r x, ulift.down_injective $ algebra.smul_def' r x.down,
+  .. ulift.module',
+  .. (ulift.ring_equiv : ulift A ≃+* A).symm.to_ring_hom.comp (algebra_map R A) }
+
+lemma _root_.ulift.algebra_map_eq (r : R) :
+  algebra_map R (ulift A) r = ulift.up (algebra_map R A r) := rfl
+
+@[simp] lemma _root_.ulift.down_algebra_map (r : R) :
+  (algebra_map R (ulift A) r).down = algebra_map R A r := rfl
+
+end ulift
+
 section prod
 variables (R A B)
 
@@ -425,23 +444,19 @@ variables {R A : Type*}
 
 open algebra
 
-section ring
-
-variables [comm_ring R]
-
 /-- If `algebra_map R A` is injective and `A` has no zero divisors,
 `R`-multiples in `A` are zero only if one of the factors is zero.
 
 Cannot be an instance because there is no `injective (algebra_map R A)` typeclass.
 -/
 lemma of_algebra_map_injective
-  [semiring A] [algebra R A] [no_zero_divisors A]
+  [comm_semiring R] [semiring A] [algebra R A] [no_zero_divisors A]
   (h : function.injective (algebra_map R A)) : no_zero_smul_divisors R A :=
 ⟨λ c x hcx, (mul_eq_zero.mp ((smul_def c x).symm.trans hcx)).imp_left
-  ((injective_iff_map_eq_zero (algebra_map R A)).mp h _)⟩
+  (map_eq_zero_iff (algebra_map R A) h).mp⟩
 
 variables (R A)
-lemma algebra_map_injective [ring A] [nontrivial A]
+lemma algebra_map_injective [comm_ring R] [ring A] [nontrivial A]
   [algebra R A] [no_zero_smul_divisors R A] :
   function.injective (algebra_map R A) :=
 suffices function.injective (λ (c : R), c • (1 : A)),
@@ -449,12 +464,10 @@ by { convert this, ext, rw [algebra.smul_def, mul_one] },
 smul_left_injective R one_ne_zero
 
 variables {R A}
-lemma iff_algebra_map_injective [ring A] [is_domain A] [algebra R A] :
+lemma iff_algebra_map_injective [comm_ring R] [ring A] [is_domain A] [algebra R A] :
   no_zero_smul_divisors R A ↔ function.injective (algebra_map R A) :=
 ⟨@@no_zero_smul_divisors.algebra_map_injective R A _ _ _ _,
  no_zero_smul_divisors.of_algebra_map_injective⟩
-
-end ring
 
 section field
 

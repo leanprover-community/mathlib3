@@ -120,9 +120,7 @@ def equivalence_left_to_right (X : simplicial_object.augmented C) (F : arrow C)
 { left :=
   { app := λ x, limits.wide_pullback.lift (X.hom.app _ ≫ G.right)
       (λ i, X.left.map (simplex_category.const x.unop i.down).op ≫ G.left)
-      (λ i, by { dsimp, erw [category.assoc, arrow.w,
-        augmented.to_arrow_obj_hom, nat_trans.naturality_assoc,
-        functor.const.obj_map, category.id_comp] } ),
+      (λ i, by { dsimp, simp, dsimp, simp, } ), -- See note [dsimp, simp].
     naturality' := begin
       intros x y f,
       ext,
@@ -130,10 +128,7 @@ def equivalence_left_to_right (X : simplicial_object.augmented C) (F : arrow C)
         simp only [wide_pullback.lift_π, category.assoc],
         rw [← category.assoc, ← X.left.map_comp],
         refl },
-      { dsimp,
-        simp only [functor.const.obj_map, nat_trans.naturality_assoc,
-          wide_pullback.lift_base, category.assoc],
-        erw category.id_comp }
+      { dsimp, simp, dsimp, simp, }
     end },
   right := G.right,
   w' := by { ext, dsimp, simp } }
@@ -149,7 +144,7 @@ def cech_nerve_equiv (X : simplicial_object.augmented C) (F : arrow C) :
     dsimp,
     ext,
     { dsimp,
-      erw wide_pullback.lift_π,
+      rw wide_pullback.lift_π,
       nth_rewrite 1 ← category.id_comp A.left,
       congr' 1,
       convert X.left.map_id _,
@@ -166,13 +161,15 @@ def cech_nerve_equiv (X : simplicial_object.augmented C) (F : arrow C) :
     ext _ ⟨j⟩,
     { dsimp,
       simp only [arrow.cech_nerve_map, wide_pullback.lift_π, nat_trans.naturality_assoc],
-      erw wide_pullback.lift_π,
+      dsimp,
+      rw wide_pullback.lift_π,
       refl },
     { erw wide_pullback.lift_base,
       have := A.w,
       apply_fun (λ e, e.app x) at this,
       rw nat_trans.comp_app at this,
-      erw this,
+      dsimp at this,
+      rw this,
       refl },
     { refl }
   end }
@@ -298,7 +295,7 @@ def equivalence_right_to_left (F : arrow C) (X : cosimplicial_object.augmented C
       { dsimp,
         simp only [functor.const.obj_map, ←nat_trans.naturality,
           wide_pushout.head_desc_assoc, wide_pushout.head_desc, category.assoc],
-        erw category.id_comp }
+        dsimp, simp, }
     end },
   w' := by { ext, simp } }
 
@@ -320,15 +317,15 @@ def cech_conerve_equiv (F : arrow C) (X : cosimplicial_object.augmented C) :
       have := A.w,
       apply_fun (λ e, e.app x) at this,
       rw nat_trans.comp_app at this,
-      erw this,
-      refl },
+      dsimp at this ⊢,
+      rw this, },
   end,
   right_inv := begin
     intro A,
     ext,
     { refl, },
     { dsimp,
-      erw wide_pushout.ι_desc,
+      rw wide_pushout.ι_desc,
       nth_rewrite 1 ← category.comp_id A.right,
       congr' 1,
       convert X.right.map_id _,

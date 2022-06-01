@@ -9,9 +9,11 @@ import analysis.locally_convex.balanced_core_hull
 # Finite dimensional topological vector spaces over complete fields
 
 Let `𝕜` be a nondiscrete and complete normed field, and `E` a topological vector space (TVS) over
-`𝕜` (i.e we have `[add_comm_group E] [module 𝕜 E]  [topological_space E] [topological_add_group E] [has_continuous_smul 𝕜 E]`).
+`𝕜` (i.e we have `[add_comm_group E] [module 𝕜 E] [topological_space E] [topological_add_group E]`
+and `[has_continuous_smul 𝕜 E]`).
 
-If `E` is finite dimensional and Hausdorff, then all linear maps from `E` to any other TVS are continuous.
+If `E` is finite dimensional and Hausdorff, then all linear maps from `E` to any other TVS are
+continuous.
 
 When `E` is a normed space, this gets us the equivalence of norms in finite dimension.
 
@@ -19,8 +21,8 @@ When `E` is a normed space, this gets us the equivalence of norms in finite dime
 
 * `linear_map.continuous_iff_is_closed_ker` : a linear form is continuous if and only if its kernel
   is closed.
-* `linear_map.continuous_of_finite_dimensional` : a linear map on a finite-dimensional Hausdorff space over a
-  complete field is continuous.
+* `linear_map.continuous_of_finite_dimensional` : a linear map on a finite-dimensional Hausdorff
+  space over a complete field is continuous.
 
 ## TODO
 
@@ -197,13 +199,7 @@ lemma linear_map.continuous_iff_is_closed_ker (l : E →ₗ[𝕜] 𝕜) :
 
 variables [complete_space 𝕜]
 
-/-- In finite dimensions over a non-discrete complete normed field, the canonical identification
-(in terms of a basis) with `𝕜^n` (endowed with the product topology) is continuous.
-This is the key fact wich makes all linear maps from a T2 finite dimensional TVS over such a field
-continuous (see `linear_map.continuous_of_finite_dimensional`), which in turn implies that all
-norm are equivalent in finite dimension.
-
-This version imposes `ι` and `E` to live in the same universe, so you should instead use
+/-- This version imposes `ι` and `E` to live in the same universe, so you should instead use
 `continuous_equiv_fun_basis` which gives the same result without universe restrictions. -/
 private lemma continuous_equiv_fun_basis_aux [ht2 : t2_space E] {ι : Type v} [fintype ι]
   (ξ : basis ι 𝕜 E) : continuous ξ.equiv_fun :=

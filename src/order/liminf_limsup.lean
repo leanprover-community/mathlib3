@@ -36,7 +36,7 @@ In complete lattices, however, it coincides with the `Inf Sup` definition.
 open filter set
 open_locale filter
 
-variables {α β ι : Type*}
+variables {α β γ ι : Type*}
 namespace filter
 
 section relation
@@ -510,7 +510,36 @@ end filter
 section order
 open filter
 
-lemma galois_connection.l_limsup_le {α β γ} [conditionally_complete_lattice β]
+lemma monotone.is_bounded_under_le_comp [nonempty β] [linear_order β] [preorder γ]
+  [no_max_order γ] {g : β → γ} {f : α → β} {l : filter α} (hg : monotone g)
+  (hg' : tendsto g at_top at_top) :
+  is_bounded_under (≤) l (g ∘ f) ↔ is_bounded_under (≤) l f :=
+begin
+  refine ⟨_, λ h, h.is_bounded_under hg⟩,
+  rintro ⟨c, hc⟩, rw eventually_map at hc,
+  obtain ⟨b, hb⟩ : ∃ b, ∀ a ≥ b, c < g a := eventually_at_top.1 (hg'.eventually_gt_at_top c),
+  exact ⟨b, hc.mono $ λ x hx, not_lt.1 (λ h, (hb _ h.le).not_le hx)⟩
+end
+
+lemma monotone.is_bounded_under_ge_comp [nonempty β] [linear_order β] [preorder γ]
+  [no_min_order γ] {g : β → γ} {f : α → β} {l : filter α} (hg : monotone g)
+  (hg' : tendsto g at_bot at_bot) :
+  is_bounded_under (≥) l (g ∘ f) ↔ is_bounded_under (≥) l f :=
+hg.dual.is_bounded_under_le_comp hg'
+
+lemma antitone.is_bounded_under_le_comp [nonempty β] [linear_order β] [preorder γ]
+  [no_max_order γ] {g : β → γ} {f : α → β} {l : filter α} (hg : antitone g)
+  (hg' : tendsto g at_bot at_top) :
+  is_bounded_under (≤) l (g ∘ f) ↔ is_bounded_under (≥) l f :=
+hg.dual_right.is_bounded_under_ge_comp hg'
+
+lemma antitone.is_bounded_under_ge_comp [nonempty β] [linear_order β] [preorder γ]
+  [no_min_order γ] {g : β → γ} {f : α → β} {l : filter α} (hg : antitone g)
+  (hg' : tendsto g at_top at_bot) :
+  is_bounded_under (≥) l (g ∘ f) ↔ is_bounded_under (≤) l f :=
+hg.dual_right.is_bounded_under_le_comp hg'
+
+lemma galois_connection.l_limsup_le [conditionally_complete_lattice β]
   [conditionally_complete_lattice γ] {f : filter α} {v : α → β}
   {l : β → γ} {u : γ → β} (gc : galois_connection l u)
   (hlv : f.is_bounded_under (≤) (λ x, l (v x)) . is_bounded_default)

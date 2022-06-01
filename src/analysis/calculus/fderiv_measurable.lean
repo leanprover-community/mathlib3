@@ -490,26 +490,35 @@ begin
 end
 
 lemma mem_A_of_differentiable {ε : ℝ} (hε : 0 < ε) {x : ℝ}
-  (hx : differentiable_within_at ℝ f (Ioi x) x) :
-  ∃ R > 0, ∀ r ∈ Ioo (0 : ℝ) R, x ∈ A f (deriv_within f (Ioi x) x) r ε :=
+  (hx : differentiable_within_at ℝ f (Ici x) x) :
+  ∃ R > 0, ∀ r ∈ Ioo (0 : ℝ) R, x ∈ A f (deriv_within f (Ici x) x) r ε :=
 begin
   have := hx.has_deriv_within_at,
-  simp only [has_fderiv_at, has_fderiv_at_filter, is_o_iff] at this,
-  rcases eventually_nhds_iff_ball.1 (this (half_pos hε)) with ⟨R, R_pos, hR⟩,
-  refine ⟨R, R_pos, λ r hr, _⟩,
+  simp_rw [has_deriv_within_at_iff_is_o, is_o_iff] at this,
+  rcases mem_nhds_within_Ici_iff_exists_Ico_subset.1 (this (half_pos hε)) with ⟨m, xm, hm⟩,
+  refine ⟨m - x, by linarith [show x < m, from xm], λ r hr, _⟩,
   have : r ∈ Ioc (r/2) r := ⟨half_lt_self hr.1, le_rfl⟩,
   refine ⟨r, this, λ y hy z hz, _⟩,
-  calc  ∥f z - f y - (fderiv 𝕜 f x) (z - y)∥
-      = ∥(f z - f x - (fderiv 𝕜 f x) (z - x)) - (f y - f x - (fderiv 𝕜 f x) (y - x))∥ :
-    by { congr' 1, simp only [continuous_linear_map.map_sub], abel }
-  ... ≤ ∥(f z - f x - (fderiv 𝕜 f x) (z - x))∥ + ∥f y - f x - (fderiv 𝕜 f x) (y - x)∥ :
+  calc  ∥f z - f y - (z - y) • deriv_within f (Ici x) x∥
+      = ∥(f z - f x - (z - x) • deriv_within f (Ici x) x)
+           - (f y - f x - (y - x) • deriv_within f (Ici x) x)∥ :
+    by { congr' 1, simp only [sub_smul], abel }
+  ... ≤ ∥f z - f x - (z - x) • deriv_within f (Ici x) x∥
+         + ∥f y - f x - (y - x) • deriv_within f (Ici x) x∥ :
     norm_sub_le _ _
   ... ≤ ε / 2 * ∥z - x∥ + ε / 2 * ∥y - x∥ :
-    add_le_add (hR _ (lt_trans (mem_ball.1 hz) hr.2)) (hR _ (lt_trans (mem_ball.1 hy) hr.2))
+    add_le_add (hm ⟨hz.1, hz.2.trans_lt (by linarith [hr.2])⟩)
+               (hm ⟨hy.1, hy.2.trans_lt (by linarith [hr.2])⟩)
   ... ≤ ε / 2 * r + ε / 2 * r :
-    add_le_add
-      (mul_le_mul_of_nonneg_left (le_of_lt (mem_ball_iff_norm.1 hz)) (le_of_lt (half_pos hε)))
-      (mul_le_mul_of_nonneg_left (le_of_lt (mem_ball_iff_norm.1 hy)) (le_of_lt (half_pos hε)))
+  begin
+    apply add_le_add,
+    { apply mul_le_mul_of_nonneg_left _ (le_of_lt (half_pos hε)),
+      rw [real.norm_of_nonneg];
+      linarith [hz.1, hz.2] },
+    { apply mul_le_mul_of_nonneg_left _ (le_of_lt (half_pos hε)),
+      rw [real.norm_of_nonneg];
+      linarith [hy.1, hy.2] },
+   end
   ... = ε * r : by ring
 end
 
@@ -517,26 +526,28 @@ lemma norm_sub_le_of_mem_A
   {r ε : ℝ} (hε : 0 < ε) (hr : 0 < r) {x : ℝ} {L₁ L₂ : F}
   (h₁ : x ∈ A f L₁ r ε) (h₂ : x ∈ A f L₂ r ε) : ∥L₁ - L₂∥ ≤ 4 * ε :=
 begin
-  suffices : ∥(r/2) • (L₁ - L₂)∥ ≤ 2 * r * ε, sorry,
-  calc ∥(r/2) • (L₁ - L₂)∥
-        = ∥(f (x + r/2) - f x - (x + r/2 - x) • L₂) - (f (x + r/2) - f x - (x + r/2 - x) • L₁)∥ :
-      by simp [smul_sub]
-    ... ≤ ∥f (x + r/2) - f x - (x + r/2 - x) • L₂∥ + ∥f (x + r/2) - f x - (x + r/2 - x) • L₁∥ :
-      norm_sub_le _ _
-    ... ≤ ε * r + ε * r :
-      begin
-        apply add_le_add,
-        { apply le_of_mem_A h₂;
-          simp [(half_pos hr).le] },
-        { apply le_of_mem_A h₁;
-          simp [(half_pos hr).le] },
-      end
-    ... = 2 * r * ε : by ring
+  suffices H : ∥(r/2) • (L₁ - L₂)∥ ≤ (r / 2) * (4 * ε),
+    by rwa [norm_smul, real.norm_of_nonneg (half_pos hr).le, mul_le_mul_left (half_pos hr)] at H,
+  calc
+  ∥(r/2) • (L₁ - L₂)∥
+      = ∥(f (x + r/2) - f x - (x + r/2 - x) • L₂) - (f (x + r/2) - f x - (x + r/2 - x) • L₁)∥ :
+    by simp [smul_sub]
+  ... ≤ ∥f (x + r/2) - f x - (x + r/2 - x) • L₂∥ + ∥f (x + r/2) - f x - (x + r/2 - x) • L₁∥ :
+    norm_sub_le _ _
+  ... ≤ ε * r + ε * r :
+    begin
+      apply add_le_add,
+      { apply le_of_mem_A h₂;
+        simp [(half_pos hr).le] },
+      { apply le_of_mem_A h₁;
+        simp [(half_pos hr).le] },
+    end
+  ... = (r / 2) * (4 * ε) : by ring
 end
 
 /-- Easy inclusion: a differentiability point with derivative in `K` belongs to `D f K`. -/
 lemma differentiable_set_subset_D :
-  {x | differentiable_within_at ℝ f (Ioi x) x ∧ deriv_within f (Ioi x) x ∈ K} ⊆ D f K :=
+  {x | differentiable_within_at ℝ f (Ici x) x ∧ deriv_within f (Ici x) x ∈ K} ⊆ D f K :=
 begin
   assume x hx,
   rw [D, mem_Inter],
@@ -546,14 +557,14 @@ begin
   obtain ⟨n, hn⟩ : ∃ (n : ℕ), (1/2) ^ n < R :=
     exists_pow_lt_of_lt_one R_pos (by norm_num : (1 : ℝ)/2 < 1),
   simp only [mem_Union, mem_Inter, B, mem_inter_eq],
-  refine ⟨n, λ p hp q hq, ⟨fderiv 𝕜 f x, hx.2, ⟨_, _⟩⟩⟩;
+  refine ⟨n, λ p hp q hq, ⟨deriv_within f (Ici x) x, hx.2, ⟨_, _⟩⟩⟩;
   { refine hR _ ⟨pow_pos (by norm_num) _, lt_of_le_of_lt _ hn⟩,
     exact pow_le_pow_of_le_one (by norm_num) (by norm_num) (by assumption) }
 end
 
 /-- Harder inclusion: at a point in `D f K`, the function `f` has a derivative, in `K`. -/
 lemma D_subset_differentiable_set {K : set F} (hK : is_complete K) :
-  D f K ⊆ {x | differentiable_within_at ℝ f (Ioi x) x ∧ deriv_within f (Ioi x) x ∈ K} :=
+  D f K ⊆ {x | differentiable_within_at ℝ f (Ici x) x ∧ deriv_within f (Ici x) x ∈ K} :=
 begin
   have P : ∀ {n : ℕ}, (0 : ℝ) < (1/2) ^ n := pow_pos (by norm_num),
   assume x hx,
@@ -630,33 +641,30 @@ begin
     rw eventually_at_top,
     exact ⟨e, λ e' he', M _ _ _ _ _ _ le_rfl hp le_rfl le_rfl he'⟩ },
   /- Let us show that `f` has right derivative `f'` at `x`. -/
-  have : has_deriv_within_at f f' (Ioi x) x,
-  { simp only [has_fderiv_at_iff_is_o_nhds_zero, is_o_iff],
+  have : has_deriv_within_at f f' (Ici x) x,
+  { simp only [has_deriv_within_at_iff_is_o, is_o_iff],
     /- to get an approximation with a precision `ε`, we will replace `f` with `L e (n e) m` for
     some large enough `e` (yielding a small error by uniform approximation). As one can vary `m`,
     this makes it possible to cover all scales, and thus to obtain a good linear approximation in
     the whole ball of radius `(1/2)^(n e)`. -/
     assume ε εpos,
-    have pos : 0 < 4 + 12 * ∥c∥ :=
-      add_pos_of_pos_of_nonneg (by norm_num) (mul_nonneg (by norm_num) (norm_nonneg _)),
-    obtain ⟨e, he⟩ : ∃ (e : ℕ), (1 / 2) ^ e < ε / (4 + 12 * ∥c∥) :=
-      exists_pow_lt_of_lt_one (div_pos εpos pos) (by norm_num),
-    rw eventually_nhds_iff_ball,
-    refine ⟨(1/2) ^ (n e + 1), P, λ y hy, _⟩,
-    -- We need to show that `f (x + y) - f x - f' y` is small. For this, we will work at scale
+    obtain ⟨e, he⟩ : ∃ (e : ℕ), (1 / 2) ^ e < ε / 16 :=
+      exists_pow_lt_of_lt_one (div_pos εpos (by norm_num)) (by norm_num),
+    have xmem : x ∈ Ico x (x + (1/2)^(n e + 1)) := sorry,
+    filter_upwards [Icc_mem_nhds_within_Ici xmem] with y hy,
+    -- We need to show that `f y - f x - f' (y - x)` is small. For this, we will work at scale
     -- `k` where `k` is chosen with `∥y∥ ∼ 2 ^ (-k)`.
-    by_cases y_pos : y = 0, {simp [y_pos] },
-    have yzero : 0 < ∥y∥ := norm_pos_iff.mpr y_pos,
-    have y_lt : ∥y∥ < (1/2) ^ (n e + 1), by simpa using mem_ball_iff_norm.1 hy,
-    have yone : ∥y∥ ≤ 1 :=
-      le_trans (y_lt.le) (pow_le_one _ (by norm_num) (by norm_num)),
+    rcases eq_or_lt_of_le hy.1 with rfl|xy, { simp },
+    have yzero : 0 < y - x := sub_pos.2 xy,
+    have y_le : y - x ≤ (1/2) ^ (n e + 1), by linarith [hy.2],
+    have yone : y - x ≤ 1 := le_trans y_le (pow_le_one _ (by norm_num) (by norm_num)),
     -- define the scale `k`.
-    obtain ⟨k, hk, h'k⟩ : ∃ (k : ℕ), (1/2) ^ (k + 1) < ∥y∥ ∧ ∥y∥ ≤ (1/2) ^ k :=
+    obtain ⟨k, hk, h'k⟩ : ∃ (k : ℕ), (1/2) ^ (k + 1) < y - x ∧ y - x ≤ (1/2) ^ k :=
       exists_nat_pow_near_of_lt_one yzero yone (by norm_num : (0 : ℝ) < 1/2)
       (by norm_num : (1 : ℝ)/2 < 1),
     -- the scale is large enough (as `y` is small enough)
     have k_gt : n e < k,
-    { have : ((1:ℝ)/2) ^ (k + 1) < (1/2) ^ (n e + 1) := lt_trans hk y_lt,
+    { have : ((1:ℝ)/2) ^ (k + 1) < (1/2) ^ (n e + 1) := lt_of_lt_of_le hk y_le,
       rw pow_lt_pow_iff_of_lt_one (by norm_num : (0 : ℝ) < 1/2) (by norm_num) at this,
       linarith },
     set m := k - 1 with hl,
@@ -665,10 +673,9 @@ begin
     rw km at hk h'k,
     -- `f` is well approximated by `L e (n e) k` at the relevant scale
     -- (in fact, we use `m = k - 1` instead of `k` because of the precise definition of `A`).
-    have J1 : ∥f (x + y) - f x - L e (n e) m ((x + y) - x)∥ ≤ (1/2) ^ e * (1/2) ^ m,
+    have J1 : ∥f (x + y) - f x - ((x + y) - x) • L e (n e) m ∥ ≤ (1/2) ^ e * (1/2) ^ m,
     { apply le_of_mem_A (hn e (n e) m le_rfl m_ge).2.2,
-      { simp only [mem_closed_ball, dist_self],
-        exact div_nonneg (le_of_lt P) (zero_le_two) },
+      { simp, },
       { simpa only [dist_eq_norm, add_sub_cancel', mem_closed_ball, pow_succ', mul_one_div]
           using h'k } },
     have J2 : ∥f (x + y) - f x - L e (n e) m y∥ ≤ 4 * (1/2) ^ e * ∥y∥ := calc
@@ -695,7 +702,7 @@ begin
 end
 
 theorem differentiable_set_eq_D (hK : is_complete K) :
-  {x | differentiable_within_at ℝ f (Ioi x) x ∧ deriv_within f (Ioi x) x ∈ K} = D f K :=
+  {x | differentiable_within_at ℝ f (Ici x) x ∧ deriv_within f (Ici x) x ∈ K} = D f K :=
 subset.antisymm (differentiable_set_subset_D _) (D_subset_differentiable_set hK)
 
 end right_deriv_measurable_aux
@@ -708,7 +715,7 @@ variables (f)
 is Borel-measurable. -/
 theorem measurable_set_of_differentiable_at_right_of_is_complete
   {K : set F} (hK : is_complete K) :
-  measurable_set {x | differentiable_within_at ℝ f (Ioi x) x ∧ deriv_within f (Ioi x) x ∈ K} :=
+  measurable_set {x | differentiable_within_at ℝ f (Ici x) x ∧ deriv_within f (Ici x) x ∈ K} :=
 by simp [differentiable_set_eq_D K hK, D, measurable_set_B, measurable_set.Inter_Prop,
          measurable_set.Inter, measurable_set.Union]
 
@@ -717,56 +724,36 @@ variable [complete_space F]
 /-- The set of differentiability points of a function taking values in a complete space is
 Borel-measurable. -/
 theorem measurable_set_of_differentiable_at_right :
-  measurable_set {x | differentiable_within_at ℝ f (Ioi x) x} :=
+  measurable_set {x | differentiable_within_at ℝ f (Ici x) x} :=
 begin
   have : is_complete (univ : set F) := complete_univ,
   convert measurable_set_of_differentiable_at_right_of_is_complete f this,
   simp
 end
 
-variables [measurable_space F] [borel_space F]
-
-@[measurability] lemma measurable_fderiv_right : measurable (λ x, deriv_within f (Ioi x) x) :=
+@[measurability] lemma measurable_deriv_right [measurable_space F] [borel_space F] :
+  measurable (λ x, deriv_within f (Ici x) x) :=
 begin
   refine measurable_of_is_closed (λ s hs, _),
-  have : (λ x, deriv_within f (Ioi x) x) ⁻¹' s =
-    {x | differentiable_within_at ℝ f (Ioi x) x ∧ deriv_within f (Ioi x) x ∈ s} ∪
-    {x | (0 : F) ∈ s} ∩ {x | ¬differentiable_within_at ℝ f (Ioi x) x} :=
-  begin
-    ext,
-    have Z := fderiv_mem_iff,
-
-  end,
-
---    set.ext (λ x, mem_preimage.trans fderiv_mem_iff),
+  have : (λ x, deriv_within f (Ici x) x) ⁻¹' s =
+    {x | differentiable_within_at ℝ f (Ici x) x ∧ deriv_within f (Ici x) x ∈ s} ∪
+    {x | (0 : F) ∈ s} ∩ {x | ¬differentiable_within_at ℝ f (Ici x) x} :=
+    set.ext (λ x, mem_preimage.trans deriv_within_mem_iff),
   rw this,
-  exact (measurable_set_of_differentiable_at_of_is_complete _ _ hs.is_complete).union
-    ((measurable_set.const _).inter (measurable_set_of_differentiable_at _ _).compl)
+  exact (measurable_set_of_differentiable_at_right_of_is_complete _ hs.is_complete).union
+    ((measurable_set.const _).inter (measurable_set_of_differentiable_at_right _).compl)
 end
 
-@[measurability] lemma measurable_fderiv_apply_const [measurable_space F] [borel_space F] (y : E) :
-  measurable (λ x, fderiv 𝕜 f x y) :=
-(continuous_linear_map.measurable_apply y).comp (measurable_fderiv 𝕜 f)
+lemma strongly_measurable_deriv_right [second_countable_topology F] :
+  strongly_measurable (λ x, deriv_within f (Ici x) x) :=
+by { borelize F, exact (measurable_deriv_right f).strongly_measurable }
 
-variable {𝕜}
+lemma ae_measurable_deriv_right [measurable_space F] [borel_space F]
+  (μ : measure ℝ) : ae_measurable (λ x, deriv_within f (Ici x) x) μ :=
+(measurable_deriv_right f).ae_measurable
 
-@[measurability] lemma measurable_deriv [measurable_space 𝕜] [opens_measurable_space 𝕜]
-  [measurable_space F] [borel_space F] (f : 𝕜 → F) : measurable (deriv f) :=
-by simpa only [fderiv_deriv] using measurable_fderiv_apply_const 𝕜 f 1
-
-lemma strongly_measurable_deriv [measurable_space 𝕜] [opens_measurable_space 𝕜]
-  [second_countable_topology F] (f : 𝕜 → F) :
-  strongly_measurable (deriv f) :=
-by { borelize F, exact (measurable_deriv f).strongly_measurable }
-
-lemma ae_measurable_deriv [measurable_space 𝕜] [opens_measurable_space 𝕜] [measurable_space F]
-  [borel_space F] (f : 𝕜 → F) (μ : measure 𝕜) : ae_measurable (deriv f) μ :=
-(measurable_deriv f).ae_measurable
-
-lemma ae_strongly_measurable_deriv [measurable_space 𝕜] [opens_measurable_space 𝕜]
-  [second_countable_topology F] (f : 𝕜 → F) (μ : measure 𝕜) :
+lemma ae_strongly_measurable_deriv_right [second_countable_topology F] (μ : measure ℝ) :
   ae_strongly_measurable (deriv f) μ :=
 (strongly_measurable_deriv f).ae_strongly_measurable
-
 
 end right_deriv

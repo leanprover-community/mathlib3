@@ -225,14 +225,27 @@ theorem unique_diff_within_at.eq_deriv (s : set 𝕜) (H : unique_diff_within_at
   (h : has_deriv_within_at f f' s x) (h₁ : has_deriv_within_at f f₁' s x) : f' = f₁' :=
 smul_right_one_eq_iff.mp $ unique_diff_within_at.eq H h h₁
 
+theorem has_deriv_at_filter_iff_is_o :
+  has_deriv_at_filter f f' x L ↔ is_o (λ x' : 𝕜, f x' - f x - (x' - x) • f') (λ x', x' - x) L :=
+iff.rfl
+
 theorem has_deriv_at_filter_iff_tendsto :
   has_deriv_at_filter f f' x L ↔
   tendsto (λ x' : 𝕜, ∥x' - x∥⁻¹ * ∥f x' - f x - (x' - x) • f'∥) L (𝓝 0) :=
 has_fderiv_at_filter_iff_tendsto
 
+theorem has_deriv_within_at_iff_is_o :
+  has_deriv_within_at f f' s x
+    ↔ is_o (λ x' : 𝕜, f x' - f x - (x' - x) • f') (λ x', x' - x) (𝓝[s] x) :=
+iff.rfl
+
 theorem has_deriv_within_at_iff_tendsto : has_deriv_within_at f f' s x ↔
   tendsto (λ x', ∥x' - x∥⁻¹ * ∥f x' - f x - (x' - x) • f'∥) (𝓝[s] x) (𝓝 0) :=
 has_fderiv_at_filter_iff_tendsto
+
+theorem has_deriv_at_iff_is_o :
+  has_deriv_at f f' x ↔ is_o (λ x' : 𝕜, f x' - f x - (x' - x) • f') (λ x', x' - x) (𝓝 x) :=
+iff.rfl
 
 theorem has_deriv_at_iff_tendsto : has_deriv_at f f' x ↔
   tendsto (λ x', ∥x' - x∥⁻¹ * ∥f x' - f x - (x' - x) • f'∥) (𝓝 x) (𝓝 0) :=

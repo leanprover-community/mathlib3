@@ -97,7 +97,7 @@ In `glued_limit_cone`, we verify these obtained sections are indeed compatible, 
 A `X ⟶ 𝒢(U)`. The remaining work is to verify that this is indeed the amalgamation and is unique.
 -/
 variables {C D : Type u} [category.{v} C] [category.{v} D]
-variables {A : Type w} [category.{max u v} A] [has_limits A]
+variables {A : Type w} [category.{max v u} A] [has_limits A]
 variables {J : grothendieck_topology C} {K : grothendieck_topology D}
 
 namespace Ran_is_sheaf_of_cover_lifting
@@ -282,5 +282,39 @@ def sites.pullback_copullback_adjunction {G : C ⥤ D} (Hp : cover_preserving J 
     naturality' := λ _ _ f, Sheaf.hom.ext _ _ $ (Ran.adjunction A G.op).counit.naturality f.val },
   hom_equiv_unit' := λ X Y f, by { ext1, apply (Ran.adjunction A G.op).hom_equiv_unit },
   hom_equiv_counit' := λ X Y f, by { ext1, apply (Ran.adjunction A G.op).hom_equiv_counit } }
+
+namespace sites
+
+variables
+  [concrete_category.{max v u} A]
+  [preserves_limits (forget A)]
+  [reflects_isomorphisms (forget A)]
+  [Π (X : C), preserves_colimits_of_shape (J.cover X)ᵒᵖ (forget A)]
+  [∀ (X : C), has_colimits_of_shape (J.cover X)ᵒᵖ A]
+  [Π (X : D), preserves_colimits_of_shape (K.cover X)ᵒᵖ (forget A)]
+  [∀ (X : D), has_colimits_of_shape (K.cover X)ᵒᵖ A]
+
+/-- The isomorphism exhibiting compatibility between pullback and sheafification. -/
+def whiskering_left_comp_presheaf_to_Sheaf_iso_presheaf_to_Sheaf_comp_pullback
+  {G : C ⥤ D} (Hp : cover_preserving J K G)
+  (Hl : cover_lifting J K G) (Hc : compatible_preserving K G) :
+  (whiskering_left _ _ A).obj G.op ⋙ presheaf_to_Sheaf J A ≅
+  presheaf_to_Sheaf K A ⋙ sites.pullback A Hc Hp :=
+let A1 : (whiskering_left _ _ A).obj G.op ⊣ _ := Ran.adjunction _ _,
+    A2 : presheaf_to_Sheaf J A ⊣ _ := sheafification_adjunction _ _,
+    B1 : presheaf_to_Sheaf K A ⊣ _ := sheafification_adjunction _ _,
+    B2 : sites.pullback A Hc Hp ⊣ _ := sites.pullback_copullback_adjunction _ _ Hl _,
+    A := A1.comp _ _ A2,
+    B := B1.comp _ _ B2 in
+A.left_adjoint_uniq B
+
+lemma whiskering_left_comp_presheaf_to_Sheaf_iso_presheaf_to_Sheaf_comp_pullback_hom_apply_val
+  {G : C ⥤ D} (Hp : cover_preserving J K G)
+  (Hl : cover_lifting J K G) (Hc : compatible_preserving K G) (F) :
+((sites.whiskering_left_comp_presheaf_to_Sheaf_iso_presheaf_to_Sheaf_comp_pullback.{w v u}
+  A Hp Hl Hc).hom.app F).val = J.sheafify_lift
+  (whisker_left _ (K.to_sheafify _)) (Sheaf.cond _) := sorry
+
+end sites
 
 end category_theory

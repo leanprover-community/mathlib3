@@ -162,12 +162,6 @@ Contrapositive form of `nat.factorization_central_binom_eq_zero_of_two_mul_lt_pr
 -/
 lemma prime_le_two_mul_of_factorization_central_binom_pos
   (h_pos : 0 < (central_binom n).factorization p) : p ≤ 2 * n :=
-begin
-  by_contra,
-  rw pos_iff_ne_zero at h_pos,
-  apply h_pos,
-  simp only [not_le] at h,
-  exact factorization_central_binom_eq_zero_of_two_mul_lt_prime h,
-end
+le_of_not_lt (pos_iff_ne_zero.mp h_pos ∘ factorization_central_binom_eq_zero_of_two_mul_lt_prime)
 
 end nat

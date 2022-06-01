@@ -93,6 +93,9 @@ protected def filter (𝓑 : filter_basis $ β × β) : filter ((α → β) × (
 protected def lower_adjoint (𝓐 : filter $ (α → β) × (α → β)) : filter (β × β) :=
 (𝓐 ×ᶠ ⊤).map (λ uvx : ((α → β) × (α → β)) × α, (uvx.1.1 uvx.2, uvx.1.2 uvx.2))
 
+local notation `Φ` :=
+  λ (α β : Type*) (uvx : ((α → β) × (α → β)) × α), (uvx.1.1 uvx.2, uvx.1.2 uvx.2)
+
 protected lemma gc : galois_connection (uniform_convergence.lower_adjoint α β)
   (λ 𝓑, uniform_convergence.filter α β 𝓑.as_basis) :=
 begin
@@ -154,6 +157,39 @@ begin
 end
 
 variables {β}
+
+protected lemma infi_eq {u : ι → uniform_space γ} :
+  (@uniform_convergence.uniform_space α γ (⨅ i, u i)) =
+  ⨅ i, (@uniform_convergence.uniform_space α γ (u i)) :=
+begin
+  ext : 1,
+  change uniform_convergence.filter α γ (@uniformity _ (⨅ i, u i)).as_basis =
+    @uniformity _ (⨅ i, (@uniform_convergence.uniform_space α γ (u i))),
+  rw [infi_uniformity', infi_uniformity'],
+  exact (uniform_convergence.gc α γ).u_infi
+end
+
+
+protected lemma comap_eq {f : γ → β} :
+  (@uniform_convergence.uniform_space α γ (‹uniform_space β›.comap f)) =
+  (uniform_convergence.uniform_space α β).comap ((∘) f) :=
+begin
+  letI : uniform_space γ := ‹uniform_space β›.comap f,
+  ext : 1,
+  change (uniform_convergence.filter α γ (((𝓤 β).comap _).as_basis)) =
+    (uniform_convergence.filter α β ((𝓤 β).as_basis)).comap _,
+  have h₁ := filter.gc_map_comap (prod.map ((∘) f : (α → γ) → α → β) ((∘) f : (α → γ) → α → β)),
+  have h₂ := filter.gc_map_comap (prod.map f f),
+  have h₃ := uniform_convergence.gc α β,
+  have h₄ := uniform_convergence.gc α γ,
+  refine galois_connection.u_comm_of_l_comm h₁ h₂ h₃ h₄ (λ 𝓐, _),
+  have : prod.map f f ∘ (Φ α γ) =
+    (Φ α β) ∘ prod.map (prod.map ((∘) f : (α → γ) → α → β) ((∘) f : (α → γ) → α → β)) id,
+  { ext; refl },
+  rw [uniform_convergence.lower_adjoint, uniform_convergence.lower_adjoint, map_map, this,
+      ← map_map, ← prod_map_map_eq'],
+  refl
+end
 
 lemma t2_space [t2_space β] : @t2_space _ (uniform_convergence.topological_space α β) :=
 { t2 :=

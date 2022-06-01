@@ -5,6 +5,7 @@ Authors: Junyan Xu
 -/
 import data.multiset.basic
 import order.well_founded
+import tactic.abel
 
 /-!
 # Termination of a hydra game
@@ -124,6 +125,24 @@ variable (r : α → α → Prop)
 def cut_expand (s' s : multiset α) : Prop :=
 ∃ (t : multiset α) (a : α), (∀ a' ∈ t, r a' a) ∧ s' + {a} = s + t
 
+lemma cut_expand_pair_right {a b' b} (h' : r b' b) : cut_expand r {a, b'} {a, b} :=
+begin
+  refine ⟨{b'}, b, λ _ h, _, _⟩,
+  { cases mem_singleton.1 h, exact h' },
+  { dsimp [multiset.has_insert], simp only [← singleton_add], abel },
+end
+
+lemma cut_expand_pair_left {a' a b} (h' : r a' a) : cut_expand r {a', b} {a, b} :=
+by { convert cut_expand_pair_right r h' using 1, apply pair_comm, apply pair_comm }
+
+lemma cut_expand_double {a a₁ a₂ b} (h₁ : r a₁ a) (h₂ : r a₂ a) : cut_expand r {a₁, a₂, b} {a, b} :=
+begin
+  refine ⟨{a₁, a₂}, a, λ a' h, _, _⟩,
+  { rw [multiset.has_insert, mem_cons, mem_singleton] at h,
+    obtain (rfl|rfl) := h, exacts [h₁, h₂] },
+  { dsimp [multiset.has_insert], simp only [← singleton_add], abel },
+end
+
 lemma cut_expand_iff [decidable_eq α] {r} (hr : irreflexive r) {s' s : multiset α} :
   cut_expand r s' s ↔ ∃ (t : multiset α) a, (∀ a' ∈ t, r a' a) ∧ a ∈ s ∧ s' = s.erase a + t :=
 begin
@@ -134,6 +153,16 @@ begin
     exacts [⟨ht, h, t.erase_add_left_pos h⟩, (hr a $ ht a h).elim] },
   { rintro ⟨ht, h, rfl⟩,
     exact ⟨ht, mem_add.2 (or.inl h), (t.erase_add_left_pos h).symm⟩ },
+end
+
+lemma cut_expand_preserve {r} (hr : irreflexive r) (p : α → Prop)
+  (h : ∀ {a' a}, r a' a → p a → p a') :
+  ∀ {s' s}, cut_expand r s' s → (∀ a ∈ s, p a) → ∀ a ∈ s', p a :=
+begin
+  intros s' s, classical, rw cut_expand_iff hr,
+  rintro ⟨t, a, hr, ha, rfl⟩ hsp a' h',
+  obtain (h'|h') := mem_add.1 h',
+  exacts [hsp a' (mem_of_mem_erase h'), h (hr a' h') (hsp a ha)],
 end
 
 /-- For any relation `r` on `α`, multiset addition `multiset α × multiset α → multiset α` is a

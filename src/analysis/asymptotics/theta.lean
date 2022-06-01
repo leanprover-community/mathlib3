@@ -1,6 +1,15 @@
+/-
+Copyright (c) 2022 Yury G. Kudryashov. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Yury G. Kudryashov
+-/
 import analysis.asymptotics.asymptotics
 
 /-!
+# Asymptotic equivalence up to a constant
+
+In this file we define `asymptotics.is_Theta l f g` (notation: `f =Θ[l] g`) as
+`f =O[l] g ∧ g =O[l] f`, then prove basic properties of this equivalence relation.
 -/
 
 open filter
@@ -24,6 +33,8 @@ variables {f' : α → E'} {g' : α → F'} {k' : α → G'}
 variables {f'' : α → E''} {g'' : α → F''} {k'' : α → G''}
 variables {l l' : filter α}
 
+/-- We say that `f` is `Θ(g)` along a filter `l` (notation: `f =Θ[l] g`) if `f =O[l] g` and
+`g =O[l] f`. -/
 def is_Theta (l : filter α) (f : α → E) (g : α → F) : Prop := is_O l f g ∧ is_O l g f
 
 notation f ` =Θ[`:100 l `] ` g:100 := is_Theta l f g
@@ -122,5 +133,33 @@ by simp only [is_Theta, is_O_zero, is_O_zero_right_iff, true_and]
 
 @[simp] lemma is_Theta_zero_right : f'' =Θ[l] (λ x, (0 : F')) ↔ f'' =ᶠ[l] 0 :=
 is_Theta_comm.trans is_Theta_zero_left
+
+lemma is_Theta_const_smul_left [normed_space 𝕜 E'] {c : 𝕜} (hc : c ≠ 0) :
+  (λ x, c • f' x) =Θ[l] g ↔ f' =Θ[l] g :=
+and_congr (is_O_const_smul_left hc) (is_O_const_smul_right hc)
+
+alias is_Theta_const_smul_left ↔ asymptotics.is_Theta.of_const_smul_left
+  asymptotics.is_Theta.const_smul_left
+
+lemma is_Theta_const_smul_right [normed_space 𝕜 F'] {c : 𝕜} (hc : c ≠ 0) :
+  f =Θ[l] (λ x, c • g' x) ↔ f =Θ[l] g' :=
+and_congr (is_O_const_smul_right hc) (is_O_const_smul_left hc)
+
+alias is_Theta_const_smul_right ↔ asymptotics.is_Theta.of_const_smul_right
+  asymptotics.is_Theta.const_smul_right
+
+lemma is_Theta_const_mul_left {c : 𝕜} {f : α → 𝕜} (hc : c ≠ 0) :
+  (λ x, c * f x) =Θ[l] g ↔ f =Θ[l] g :=
+by simpa only [← smul_eq_mul] using is_Theta_const_smul_left hc
+
+alias is_Theta_const_mul_left ↔ asymptotics.is_Theta.of_const_mul_left
+  asymptotics.is_Theta.const_mul_left
+
+lemma is_Theta_const_mul_right {c : 𝕜} {g : α → 𝕜} (hc : c ≠ 0) :
+  f =Θ[l] (λ x, c * g x) ↔ f =Θ[l] g :=
+by simpa only [← smul_eq_mul] using is_Theta_const_smul_right hc
+
+alias is_Theta_const_mul_right ↔ asymptotics.is_Theta.of_const_mul_right
+  asymptotics.is_Theta.const_mul_right
 
 end asymptotics

@@ -475,9 +475,6 @@ fintype.card_of_subtype G.edge_finset (mem_edge_finset _)
 @[simp] lemma mem_neighbor_set (v w : V) : w ∈ G.neighbor_set v ↔ G.adj v w :=
 iff.rfl
 
-@[simp] lemma mem_neighbor_set' (v w : V) : G.neighbor_set v w ↔ G.adj v w :=
-iff.rfl
-
 @[simp] lemma mem_incidence_set (v w : V) : ⟦(v, w)⟧ ∈ G.incidence_set v ↔ G.adj v w :=
 by simp [incidence_set]
 

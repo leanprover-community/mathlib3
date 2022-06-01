@@ -157,6 +157,14 @@ lemma tendsto_exp_at_bot : tendsto exp at_bot (𝓝 0) :=
 lemma tendsto_exp_at_bot_nhds_within : tendsto exp at_bot (𝓝[>] 0) :=
 tendsto_inf.2 ⟨tendsto_exp_at_bot, tendsto_principal.2 $ eventually_of_forall exp_pos⟩
 
+@[simp] lemma is_bounded_under_ge_exp_comp {α : Type*} (l : filter α) (f : α → ℝ) :
+  is_bounded_under (≥) l (λ x, exp (f x)) :=
+is_bounded_under_of ⟨0, λ x, (exp_pos _).le⟩
+
+@[simp] lemma is_bounded_under_le_exp_comp {α : Type*} {l : filter α} {f : α → ℝ} :
+  is_bounded_under (≤) l (λ x, exp (f x)) ↔ is_bounded_under (≤) l f :=
+exp_monotone.is_bounded_under_le_comp tendsto_exp_at_top
+
 /-- The function `exp(x)/x^n` tends to `+∞` at `+∞`, for any natural number `n` -/
 lemma tendsto_exp_div_pow_at_top (n : ℕ) : tendsto (λx, exp x / x^n) at_top at_top :=
 begin

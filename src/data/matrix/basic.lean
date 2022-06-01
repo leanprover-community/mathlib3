@@ -1142,9 +1142,33 @@ lemma mul_vec_smul [fintype n] [monoid R] [non_unital_non_assoc_semiring S] [dis
   M.mul_vec (b • v) = b • M.mul_vec v :=
 by { ext i, simp only [mul_vec, dot_product, finset.smul_sum, pi.smul_apply, mul_smul_comm] }
 
-lemma vec_mul_single [fintype m] [decidable_eq m] (A : matrix m n α) (x : α) (i : m) :
-   vec_mul (pi.single i x) A = x • A i :=
-by { ext, simp [vec_mul, pi.single_apply] }
+@[simp] lemma mul_vec_single [fintype n] [decidable_eq n] [non_unital_non_assoc_semiring R]
+  (M : matrix m n R) (j : n) (x : R) :
+  M.mul_vec (pi.single j x) = (λ i, M i j * x) :=
+funext $ λ i, dot_product_single _ _ _
+
+@[simp] lemma single_vec_mul [fintype m] [decidable_eq m] [non_unital_non_assoc_semiring R]
+  (M : matrix m n R) (i : m) (x : R) :
+  vec_mul (pi.single i x) M = (λ j, x * M i j) :=
+funext $ λ i, single_dot_product _ _ _
+
+@[simp] lemma diagonal_mul_vec_single [fintype n] [decidable_eq n] [non_unital_non_assoc_semiring R]
+  (v : n → R) (j : n) (x : R) :
+  (diagonal v).mul_vec (pi.single j x) = pi.single j (v j * x) :=
+begin
+  ext i,
+  rw mul_vec_diagonal,
+  exact pi.apply_single (λ i x, v i * x) (λ i, mul_zero _) j x i,
+end
+
+@[simp] lemma single_vec_mul_diagonal [fintype n] [decidable_eq n] [non_unital_non_assoc_semiring R]
+  (v : n → R) (j : n) (x : R) :
+  vec_mul (pi.single j x) (diagonal v) = pi.single j (x * v j) :=
+begin
+  ext i,
+  rw vec_mul_diagonal,
+  exact pi.apply_single (λ i x, x * v i) (λ i, zero_mul _) j x i,
+end
 
 end non_unital_non_assoc_semiring
 

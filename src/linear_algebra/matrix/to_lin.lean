@@ -125,12 +125,12 @@ linear_map.to_matrix_right'.symm
 @[simp] lemma matrix.to_linear_map_right'_mul [fintype l] [decidable_eq l] (M : matrix l m R)
   (N : matrix m n R) : matrix.to_linear_map_right' (M ⬝ N) =
   (matrix.to_linear_map_right' N).comp (matrix.to_linear_map_right' M) :=
-by { ext, simp }
+linear_map.ext $ λ x, (vec_mul_vec_mul _ M N).symm
 
 lemma matrix.to_linear_map_right'_mul_apply [fintype l] [decidable_eq l] (M : matrix l m R)
   (N : matrix m n R) (x) : matrix.to_linear_map_right' (M ⬝ N) x =
     (matrix.to_linear_map_right' N (matrix.to_linear_map_right' M x)) :=
-by rw [matrix.to_linear_map_right'_mul, linear_map.comp_apply]
+(vec_mul_vec_mul _ M N).symm
 
 @[simp] lemma matrix.to_linear_map_right'_one :
   matrix.to_linear_map_right' (1 : matrix m m R) = id :=
@@ -174,15 +174,7 @@ variables [fintype n] [decidable_eq n]
 
 lemma matrix.mul_vec_std_basis (M : matrix m n R) (i j) :
   M.mul_vec (std_basis R (λ _, R) j 1) i = M i j :=
-begin
-  have : (∑ j', M i j' * if j = j' then 1 else 0) = M i j,
-  { simp_rw [mul_boole, finset.sum_ite_eq, finset.mem_univ, if_true] },
-  convert this,
-  ext,
-  split_ifs with h; simp only [std_basis_apply],
-  { rw [h, function.update_same] },
-  { rw [function.update_noteq (ne.symm h), pi.zero_apply] }
-end
+(congr_fun (matrix.mul_vec_single _ _ (1 : R)) i).trans $ mul_one _
 
 @[simp] lemma matrix.mul_vec_std_basis_apply (M : matrix m n R) (j) :
   M.mul_vec (std_basis R (λ _, R) j 1) = Mᵀ j :=
@@ -246,7 +238,7 @@ by { ext, rw [matrix.one_apply, linear_map.to_matrix'_apply, id_apply] }
 
 @[simp] lemma matrix.to_lin'_mul [fintype m] [decidable_eq m] (M : matrix l m R)
   (N : matrix m n R) : matrix.to_lin' (M ⬝ N) = (matrix.to_lin' M).comp (matrix.to_lin' N) :=
-by { ext, simp, }
+linear_map.ext $ λ x, (mul_vec_mul_vec _ _ _).symm
 
 /-- Shortcut lemma for `matrix.to_lin'_mul` and `linear_map.comp_apply` -/
 lemma matrix.to_lin'_mul_apply [fintype m] [decidable_eq m] (M : matrix l m R)
@@ -321,23 +313,20 @@ by simp [linear_map.to_matrix_alg_equiv']
 
 @[simp] lemma matrix.to_lin_alg_equiv'_one :
   matrix.to_lin_alg_equiv' (1 : matrix n n R) = id :=
-by { ext, simp [matrix.one_apply, std_basis_apply] }
+matrix.to_lin'_one
 
 @[simp] lemma linear_map.to_matrix_alg_equiv'_id :
   (linear_map.to_matrix_alg_equiv' (linear_map.id : (n → R) →ₗ[R] (n → R))) = 1 :=
-by { ext, rw [matrix.one_apply, linear_map.to_matrix_alg_equiv'_apply, id_apply] }
+linear_map.to_matrix'_id
 
 @[simp] lemma matrix.to_lin_alg_equiv'_mul (M N : matrix n n R) :
   matrix.to_lin_alg_equiv' (M ⬝ N) =
     (matrix.to_lin_alg_equiv' M).comp (matrix.to_lin_alg_equiv' N) :=
-by { ext, simp }
+matrix.to_lin'_mul _ _
 
 lemma linear_map.to_matrix_alg_equiv'_comp (f g : (n → R) →ₗ[R] (n → R)) :
   (f.comp g).to_matrix_alg_equiv' = f.to_matrix_alg_equiv' ⬝ g.to_matrix_alg_equiv' :=
-suffices (f.comp g) = (f.to_matrix_alg_equiv' ⬝ g.to_matrix_alg_equiv').to_lin_alg_equiv',
-  by rw [this, linear_map.to_matrix_alg_equiv'_to_lin_alg_equiv'],
-by rw [matrix.to_lin_alg_equiv'_mul, matrix.to_lin_alg_equiv'_to_matrix_alg_equiv',
-       matrix.to_lin_alg_equiv'_to_matrix_alg_equiv']
+linear_map.to_matrix'_comp _ _
 
 lemma linear_map.to_matrix_alg_equiv'_mul
   (f g : (n → R) →ₗ[R] (n → R)) :

@@ -135,7 +135,10 @@ lemma inf_assoc (a b c : α) : a ⊓ b ⊓ c = a ⊓ (b ⊓ c) := by { dsimp onl
 lemma sup_inf_self (a b : α) : a ⊔ a ⊓ b = a :=
 by { dsimp only [(⊔), (⊓)], assoc_rw [mul_self, add_self, add_zero] }
 lemma inf_sup_self (a b : α) : a ⊓ (a ⊔ b) = a :=
-by { dsimp only [(⊔), (⊓)], assoc_rw [mul_add, mul_add, mul_self, mul_self, add_self, add_zero] }
+begin
+  dsimp only [(⊔), (⊓)],
+  rw [mul_add, mul_add, mul_self, ←mul_assoc, mul_self, add_assoc, add_self, add_zero]
+end
 
 lemma le_sup_inf_aux (a b c : α) : (a + b + a * b) * (a + c + a * c) = a + b * c + a * (b * c) :=
 calc (a + b + a * b) * (a + c + a * c) =

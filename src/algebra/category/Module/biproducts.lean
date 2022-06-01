@@ -6,6 +6,7 @@ Authors: Scott Morrison
 import algebra.group.pi
 import category_theory.limits.shapes.biproducts
 import algebra.category.Module.limits
+import algebra.homology.short_exact.abelian
 
 /-!
 # The category of `R`-modules has finite biproducts
@@ -117,15 +118,44 @@ We verify that the biproduct we've just defined is isomorphic to the `Module R` 
 on the dependent function type
 -/
 @[simps hom_apply] noncomputable
-def biproduct_iso_pi [decidable_eq J] [fintype J] (f : J → Module.{v} R) :
+def biproduct_iso_pi [fintype J] (f : J → Module.{v} R) :
   (⨁ f : Module.{v} R) ≅ Module.of R (Π j, f j) :=
 is_limit.cone_point_unique_up_to_iso
   (biproduct.is_limit f)
   (product_limit_cone f).is_limit
 
-@[simp, elementwise] lemma biproduct_iso_pi_inv_comp_π [decidable_eq J] [fintype J]
+@[simp, elementwise] lemma biproduct_iso_pi_inv_comp_π [fintype J]
   (f : J → Module.{v} R) (j : J) :
   (biproduct_iso_pi f).inv ≫ biproduct.π f j = (linear_map.proj j : (Π j, f j) →ₗ[R] f j) :=
 is_limit.cone_point_unique_up_to_iso_inv_comp _ _ (discrete.mk j)
 
 end Module
+
+section split_exact
+
+variables {R : Type u} {A M B : Type v} [ring R] [add_comm_group A] [module R A]
+  [add_comm_group B] [module R B] [add_comm_group M] [module R M]
+variables {j : A →ₗ[R] M} {g : M →ₗ[R] B}
+open Module
+
+/--The isomorphism `A × B ≃ₗ[R] M` coming from a right split exact sequence `0 ⟶ A ⟶ M ⟶ B ⟶ 0`
+of modules.-/
+noncomputable def lequiv_prod_of_right_split_exact {f : B →ₗ[R] M}
+  (hj : function.injective j) (exac : j.range = g.ker) (h : g.comp f = linear_map.id) :
+  (A × B) ≃ₗ[R] M :=
+(({ right_split := ⟨as_hom f, h⟩,
+    mono := (Module.mono_iff_injective $ as_hom j).mpr hj,
+    exact := (exact_iff _ _).mpr exac } : right_split _ _).splitting.iso.trans $
+  biprod_iso_prod _ _).to_linear_equiv.symm
+
+/--The isomorphism `A × B ≃ₗ[R] M` coming from a left split exact sequence `0 ⟶ A ⟶ M ⟶ B ⟶ 0`
+of modules.-/
+noncomputable def lequiv_prod_of_left_split_exact {f : M →ₗ[R] A}
+  (hg : function.surjective g) (exac : j.range = g.ker) (h : f.comp j = linear_map.id) :
+  (A × B) ≃ₗ[R] M :=
+(({ left_split := ⟨as_hom f, h⟩,
+    epi := (Module.epi_iff_surjective $ as_hom g).mpr hg,
+    exact := (exact_iff _ _).mpr exac } : left_split _ _).splitting.iso.trans $
+  biprod_iso_prod _ _).to_linear_equiv.symm
+
+end split_exact

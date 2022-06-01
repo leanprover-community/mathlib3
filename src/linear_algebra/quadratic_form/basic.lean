@@ -102,7 +102,9 @@ structure quadratic_form (R : Type u) (M : Type v) [ring R] [add_comm_group M] [
 
 namespace quadratic_form
 
-variables {Q : quadratic_form R M}
+variables {Q Q' : quadratic_form R M}
+
+section fun_like
 
 instance fun_like : fun_like (quadratic_form R M) M (λ _, R) :=
 { coe := to_fun,
@@ -114,6 +116,22 @@ instance : has_coe_to_fun (quadratic_form R M) (λ _, M → R) := ⟨to_fun⟩
 
 /-- The `simp` normal form for a quadratic form is `coe_fn`, not `to_fun`. -/
 @[simp] lemma to_fun_eq_coe : Q.to_fun = ⇑ Q := rfl
+
+@[ext] lemma ext (H : ∀ (x : M), Q x = Q' x) : Q = Q' := fun_like.ext _ _ H
+
+lemma congr_fun (h : Q = Q') (x : M) : Q x = Q' x := fun_like.congr_fun h _
+
+lemma ext_iff : Q = Q' ↔ (∀ x, Q x = Q' x) := fun_like.ext_iff
+
+/-- Copy of a `quadratic_form` with a new `to_fun` equal to the old one. Useful to fix definitional
+equalities. -/
+protected def copy (Q : quadratic_form R M) (Q' : M → R) (h : Q' = ⇑Q) : quadratic_form R M :=
+{ to_fun := Q',
+  to_fun_smul := h.symm ▸ Q.to_fun_smul,
+  polar_add_left' := h.symm ▸ Q.polar_add_left',
+  polar_smul_left' := h.symm ▸ Q.polar_smul_left' }
+
+end fun_like
 
 lemma map_smul (a : R) (x : M) : Q (a • x) = a * a * Q x := Q.to_fun_smul a x
 
@@ -208,22 +226,6 @@ lemma polar_smul_right_of_tower (a : S) (x y : M) :
 by rw [←is_scalar_tower.algebra_map_smul R a y, polar_smul_right, algebra.smul_def]
 
 end of_tower
-
-variable {Q' : quadratic_form R M}
-
-@[ext] lemma ext (H : ∀ (x : M), Q x = Q' x) : Q = Q' := fun_like.ext _ _ H
-
-lemma congr_fun (h : Q = Q') (x : M) : Q x = Q' x := fun_like.congr_fun h _
-
-lemma ext_iff : Q = Q' ↔ (∀ x, Q x = Q' x) := fun_like.ext_iff
-
-/-- Copy of a `quadratic_form` with a new `to_fun` equal to the old one. Useful to fix definitional
-equalities. -/
-protected def copy (Q : quadratic_form R M) (Q' : M → R) (h : Q' = ⇑Q) : quadratic_form R M :=
-{ to_fun := Q',
-  to_fun_smul := h.symm ▸ Q.to_fun_smul,
-  polar_add_left' := h.symm ▸ Q.polar_add_left',
-  polar_smul_left' := h.symm ▸ Q.polar_smul_left' }
 
 section has_scalar
 
@@ -325,25 +327,16 @@ open_locale big_operators
 
 end sum
 
-section distrib_mul_action
-
-variables [monoid S] [distrib_mul_action S R] [smul_comm_class S R R]
-
-instance : distrib_mul_action S (quadratic_form R M) :=
+instance [monoid S] [distrib_mul_action S R] [smul_comm_class S R R] :
+  distrib_mul_action S (quadratic_form R M) :=
 { mul_smul := λ a b Q, ext (λ x, by simp only [smul_apply, mul_smul]),
   one_smul := λ Q, ext (λ x, by simp only [quadratic_form.smul_apply, one_smul]),
   smul_add := λ a Q Q', by { ext, simp only [add_apply, smul_apply, smul_add] },
   smul_zero := λ a, by { ext, simp only [zero_apply, smul_apply, smul_zero] }, }
 
-end distrib_mul_action
-
-section module
-
 instance [semiring S] [module S R] [smul_comm_class S R R] : module S (quadratic_form R M) :=
 { zero_smul := λ Q, by { ext, simp only [zero_apply, smul_apply, zero_smul] },
   add_smul := λ a b Q, by { ext, simp only [add_apply, smul_apply, add_smul] } }
-
-end module
 
 section comp
 
@@ -482,20 +475,16 @@ no nontrivial distinguished commutative subring, use `associated'`, which gives 
 homomorphism (or more precisely a `ℤ`-linear map.) -/
 def associated_hom : quadratic_form R M →ₗ[S] bilin_form R M :=
 { to_fun := λ Q,
-  { bilin := λ x y, ⅟2 * polar Q x y,
-    bilin_add_left := λ x y z, by rw [← mul_add, polar_add_left],
-    bilin_smul_left := λ x y z, begin
-      have htwo : x * ⅟2 = ⅟2 * x := (commute.one_right x).bit0_right.inv_of_right,
-      simp only [polar_smul_left, ← mul_assoc, htwo]
-    end,
-    bilin_add_right := λ x y z, by rw [← mul_add, polar_add_right],
-    bilin_smul_right := λ x y z, begin
-      have htwo : x * ⅟2 = ⅟2 * x := (commute.one_right x).bit0_right.inv_of_right,
-      simp only [polar_smul_right, ← mul_assoc, htwo]
-    end },
-  map_add' := λ Q Q', by { ext, simp only [bilin_form.add_apply, coe_fn_mk, polar_add, coe_fn_add,
-    mul_add] },
-  map_smul' := λ s Q, by { ext, simp only [ring_hom.id_apply, polar_smul, algebra.mul_smul_comm,
+  ((•) : submonoid.center R → bilin_form R M → bilin_form R M)
+    (⟨⅟2, λ x, (commute.one_right x).bit0_right.inv_of_right⟩)
+    { bilin := polar Q,
+      bilin_add_left := polar_add_left,
+      bilin_smul_left := polar_smul_left,
+      bilin_add_right := polar_add_right,
+      bilin_smul_right := polar_smul_right },
+  map_add' := λ Q Q', by { ext, simp only [bilin_form.add_apply, bilin_form.smul_apply, coe_fn_mk,
+    polar_add, coe_fn_add, smul_add] },
+  map_smul' := λ s Q, by { ext, simp only [ring_hom.id_apply, polar_smul, smul_comm s,
     coe_fn_mk, coe_fn_smul, bilin_form.smul_apply] } }
 
 variables (Q : quadratic_form R M) (S)
@@ -720,71 +709,6 @@ end quadratic_form
 
 namespace quadratic_form
 
-variables {M₁ : Type*} {M₂ : Type*} {M₃ : Type*}
-variables [add_comm_group M₁] [add_comm_group M₂] [add_comm_group M₃]
-variables [module R M₁] [module R M₂] [module R M₃]
-
-/-- An isometry between two quadratic spaces `M₁, Q₁` and `M₂, Q₂` over a ring `R`,
-is a linear equivalence between `M₁` and `M₂` that commutes with the quadratic forms. -/
-@[nolint has_inhabited_instance] structure isometry
-  (Q₁ : quadratic_form R M₁) (Q₂ : quadratic_form R M₂) extends M₁ ≃ₗ[R] M₂ :=
-(map_app' : ∀ m, Q₂ (to_fun m) = Q₁ m)
-
-/-- Two quadratic forms over a ring `R` are equivalent
-if there exists an isometry between them:
-a linear equivalence that transforms one quadratic form into the other. -/
-def equivalent (Q₁ : quadratic_form R M₁) (Q₂ : quadratic_form R M₂) := nonempty (Q₁.isometry Q₂)
-
-namespace isometry
-
-variables {Q₁ : quadratic_form R M₁} {Q₂ : quadratic_form R M₂} {Q₃ : quadratic_form R M₃}
-
-instance : has_coe (Q₁.isometry Q₂) (M₁ ≃ₗ[R] M₂) := ⟨isometry.to_linear_equiv⟩
-
-@[simp] lemma to_linear_equiv_eq_coe (f : Q₁.isometry Q₂) : f.to_linear_equiv = f := rfl
-
-instance : has_coe_to_fun (Q₁.isometry Q₂) (λ _, M₁ → M₂) := ⟨λ f, ⇑(f : M₁ ≃ₗ[R] M₂)⟩
-
-@[simp] lemma coe_to_linear_equiv (f : Q₁.isometry Q₂) : ⇑(f : M₁ ≃ₗ[R] M₂) = f := rfl
-
-@[simp] lemma map_app (f : Q₁.isometry Q₂) (m : M₁) : Q₂ (f m) = Q₁ m := f.map_app' m
-
-/-- The identity isometry from a quadratic form to itself. -/
-@[refl]
-def refl (Q : quadratic_form R M) : Q.isometry Q :=
-{ map_app' := λ m, rfl,
-  .. linear_equiv.refl R M }
-
-/-- The inverse isometry of an isometry between two quadratic forms. -/
-@[symm]
-def symm (f : Q₁.isometry Q₂) : Q₂.isometry Q₁ :=
-{ map_app' := by { intro m, rw ← f.map_app, congr, exact f.to_linear_equiv.apply_symm_apply m },
-  .. (f : M₁ ≃ₗ[R] M₂).symm }
-
-/-- The composition of two isometries between quadratic forms. -/
-@[trans]
-def trans (f : Q₁.isometry Q₂) (g : Q₂.isometry Q₃) : Q₁.isometry Q₃ :=
-{ map_app' := by { intro m, rw [← f.map_app, ← g.map_app], refl },
-  .. (f : M₁ ≃ₗ[R] M₂).trans (g : M₂ ≃ₗ[R] M₃) }
-
-end isometry
-
-namespace equivalent
-
-variables {Q₁ : quadratic_form R M₁} {Q₂ : quadratic_form R M₂} {Q₃ : quadratic_form R M₃}
-
-@[refl]
-lemma refl (Q : quadratic_form R M) : Q.equivalent Q := ⟨isometry.refl Q⟩
-
-@[symm]
-lemma symm (h : Q₁.equivalent Q₂) : Q₂.equivalent Q₁ := h.elim $ λ f, ⟨f.symm⟩
-
-@[trans]
-lemma trans (h : Q₁.equivalent Q₂) (h' : Q₂.equivalent Q₃) : Q₁.equivalent Q₃ :=
-h'.elim $ h.elim $ λ f g, ⟨f.trans g⟩
-
-end equivalent
-
 end quadratic_form
 
 namespace bilin_form
@@ -870,17 +794,6 @@ open finset bilin_form
 variables {M₁ : Type*} [add_comm_group M₁] [module R M₁]
 variables {ι : Type*} [fintype ι] {v : basis ι R M}
 
-/-- A quadratic form composed with a `linear_equiv` is isometric to itself. -/
-def isometry_of_comp_linear_equiv (Q : quadratic_form R M) (f : M₁ ≃ₗ[R] M) :
-  Q.isometry (Q.comp (f : M₁ →ₗ[R] M)) :=
-{ map_app' :=
-  begin
-    intro,
-    simp only [comp_apply, linear_equiv.coe_coe, linear_equiv.to_fun_eq_coe,
-               linear_equiv.apply_symm_apply, f.apply_symm_apply],
-  end,
-  .. f.symm }
-
 /-- Given a quadratic form `Q` and a basis, `basis_repr` is the basis representation of `Q`. -/
 noncomputable def basis_repr (Q : quadratic_form R M) (v : basis ι R M) :
   quadratic_form R (ι → R) :=
@@ -890,11 +803,6 @@ Q.comp v.equiv_fun.symm
 lemma basis_repr_apply (Q : quadratic_form R M) (w : ι → R) :
   Q.basis_repr v w = Q (∑ i : ι, w i • v i) :=
 by { rw ← v.equiv_fun_symm_apply, refl }
-
-/-- A quadratic form is isometric to its bases representations. -/
-noncomputable def isometry_basis_repr (Q : quadratic_form R M) (v : basis ι R M):
-  isometry Q (Q.basis_repr v) :=
-isometry_of_comp_linear_equiv Q v.equiv_fun.symm
 
 section
 
@@ -930,39 +838,6 @@ begin
     rw [smul_left, smul_right,
         show associated_hom R₁ Q (v j) (v i) = 0, from hv₂ j i hij.symm,
         mul_zero, mul_zero] },
-end
-
-variables {V : Type*} {K : Type*} [field K] [invertible (2 : K)]
-variables [add_comm_group V] [module K V]
-
-/-- Given an orthogonal basis, a quadratic form is isometric with a weighted sum of squares. -/
-noncomputable def isometry_weighted_sum_squares (Q : quadratic_form K V)
-  (v : basis (fin (finite_dimensional.finrank K V)) K V)
-  (hv₁ : (associated Q).is_Ortho v):
-  Q.isometry (weighted_sum_squares K (λ i, Q (v i))) :=
-begin
-  let iso := Q.isometry_basis_repr v,
-  refine ⟨iso, λ m, _⟩,
-  convert iso.map_app m,
-  rw basis_repr_eq_of_is_Ortho _ _ hv₁,
-end
-
-variables [finite_dimensional K V]
-
-lemma equivalent_weighted_sum_squares (Q : quadratic_form K V) :
-  ∃ w : fin (finite_dimensional.finrank K V) → K, equivalent Q (weighted_sum_squares K w) :=
-let ⟨v, hv₁⟩ := exists_orthogonal_basis (associated_is_symm _ Q) in
-  ⟨_, ⟨Q.isometry_weighted_sum_squares v hv₁⟩⟩
-
-lemma equivalent_weighted_sum_squares_units_of_nondegenerate'
-  (Q : quadratic_form K V) (hQ : (associated Q).nondegenerate) :
-  ∃ w : fin (finite_dimensional.finrank K V) → Kˣ,
-    equivalent Q (weighted_sum_squares K w) :=
-begin
-  obtain ⟨v, hv₁⟩ := exists_orthogonal_basis (associated_is_symm _ Q),
-  have hv₂ := hv₁.not_is_ortho_basis_self_of_nondegenerate hQ,
-  simp_rw [is_ortho, associated_eq_self_apply] at hv₂,
-  exact ⟨λ i, units.mk0 _ (hv₂ i), ⟨Q.isometry_weighted_sum_squares v hv₁⟩⟩,
 end
 
 end quadratic_form

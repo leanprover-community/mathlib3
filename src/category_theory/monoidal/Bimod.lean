@@ -274,9 +274,8 @@ lemma id_tensor_π_act_left :
   (𝟙 R.X ⊗ coequalizer.π _ _) ≫ act_left P Q =
   (α_ _ _ _).inv ≫ (P.act_left ⊗ 𝟙 Q.X) ≫ coequalizer.π _ _ :=
 begin
-  dunfold act_left, dsimp,
-  rw id_tensor_π_comp_preserves_coequalizer_inv_comp_colim_map,
-  simp only [category.assoc],
+  rw ←category.assoc,
+  apply id_tensor_π_comp_preserves_coequalizer_inv_comp_colim_map,
 end
 
 lemma one_act_left' : (R.one ⊗ 𝟙 _) ≫ act_left P Q = (λ_ _).hom :=
@@ -343,9 +342,8 @@ lemma π_tensor_id_act_right :
   (coequalizer.π _ _ ⊗ 𝟙 T.X) ≫ act_right P Q =
   (α_ _ _ _).hom ≫ (𝟙 P.X ⊗ Q.act_right) ≫ coequalizer.π _ _ :=
 begin
-  dunfold act_right, dsimp,
-  rw π_tensor_id_comp_preserves_coequalizer_inv_comp_colim_map,
-  simp only [category.assoc],
+  rw ←category.assoc,
+  apply π_tensor_id_comp_preserves_coequalizer_inv_comp_colim_map,
 end
 
 lemma act_right_one' : (𝟙 _ ⊗ T.one) ≫ act_right P Q = (ρ_ _).hom :=
@@ -557,7 +555,6 @@ begin
   slice_rhs 1 3 { rw [←id_tensor_comp, ←id_tensor_comp,
                       π_tensor_id_preserves_coequalizer_inv_desc,
                       id_tensor_comp, id_tensor_comp] },
-  -- Why do I need this explicit proof instead of applying tensor_Bimod.id_tensor_π_act_left?
   have :
     (𝟙 R.X ⊗
       coequalizer.π
@@ -568,12 +565,8 @@ begin
             (𝟙 P.X ⊗ tensor_Bimod.act_left Q L))) ≫
     tensor_Bimod.act_left P (Q.tensor_Bimod L) =
     (α_ _ _ _).inv ≫ (P.act_left ⊗ 𝟙 _) ≫ coequalizer.π _ _,
-  { dsimp,
-    dunfold tensor_Bimod.act_left, dsimp,
-    dunfold tensor_Bimod.act_left, dsimp,
-    dunfold tensor_Bimod.X, dsimp,
-    rw id_tensor_π_comp_preserves_coequalizer_inv_comp_colim_map,
-    simp only [category.assoc] },
+  { rw ←category.assoc,
+    apply id_tensor_π_comp_preserves_coequalizer_inv_comp_colim_map },
   slice_rhs 3 4 { rw this }, clear this,
   slice_rhs 2 3 { rw associator_inv_naturality },
   slice_rhs 3 4 { rw [monoidal_category.tensor_id, id_tensor_comp_tensor_id] },
@@ -611,12 +604,8 @@ begin
         𝟙 U.X) ≫
     tensor_Bimod.act_right P (Q.tensor_Bimod L) =
     (α_ _ _ _).hom ≫ (𝟙 P.X ⊗ (Q.tensor_Bimod L).act_right) ≫ coequalizer.π _ _,
-  { dsimp,
-    dunfold tensor_Bimod.act_right, dsimp,
-    dunfold tensor_Bimod.act_right, dsimp,
-    dunfold tensor_Bimod.X, dsimp,
-    rw π_tensor_id_comp_preserves_coequalizer_inv_comp_colim_map,
-    simp only [category.assoc] },
+  { rw ←category.assoc,
+    apply π_tensor_id_comp_preserves_coequalizer_inv_comp_colim_map },
   slice_rhs 3 4 { rw this }, clear this,
   slice_rhs 2 3 { rw associator_naturality },
   dsimp,
@@ -708,11 +697,7 @@ variables {R S : Mon_ C} (P : Bimod R S)
 /-- The underlying morphism of the forward component of the left unitor isomorphism. -/
 noncomputable
 def hom_hom : tensor_Bimod.X (regular R) P ⟶ P.X :=
-begin
-  dunfold tensor_Bimod.X, dsimp,
-  refine coequalizer.desc P.act_left _,
-  rw [category.assoc, left_assoc],
-end
+coequalizer.desc P.act_left (by { dsimp, rw [category.assoc, left_assoc] })
 
 /-- The underlying morphism of the inverse component of the left unitor isomorphism. -/
 noncomputable
@@ -778,11 +763,8 @@ variables {R S : Mon_ C} (P : Bimod R S)
 /-- The underlying morphism of the forward component of the right unitor isomorphism. -/
 noncomputable
 def hom_hom : tensor_Bimod.X P (regular S) ⟶ P.X :=
-begin
-  dunfold tensor_Bimod.X, dsimp,
-  refine coequalizer.desc P.act_right _,
-  rw [category.assoc, right_assoc, iso.hom_inv_id_assoc],
-end
+coequalizer.desc P.act_right
+  (by { dsimp, rw [category.assoc, right_assoc, iso.hom_inv_id_assoc] })
 
 /-- The underlying morphism of the inverse component of the right unitor isomorphism. -/
 noncomputable

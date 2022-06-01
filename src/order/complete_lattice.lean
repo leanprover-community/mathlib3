@@ -551,6 +551,9 @@ le_infi₂ $ λ i j, let ⟨i', j', h⟩ := h i j in infi₂_le_of_le i' j' h
 lemma supr_const_mono (h : ι → ι') : (⨆ i : ι, a) ≤ ⨆ j : ι', a := supr_le $ le_supr _ ∘ h
 lemma infi_const_mono (h : ι' → ι) : (⨅ i : ι, a) ≤ ⨅ j : ι', a := le_infi $ infi_le _ ∘ h
 
+lemma supr_infi_le_infi_supr (f : ι → ι' → α) : (⨆ i, ⨅ j, f i j) ≤ (⨅ j, ⨆ i, f i j) :=
+supr_le $ λ i, infi_mono $ λ j, le_supr _ i
+
 lemma bsupr_mono {p q : ι → Prop} (hpq : ∀ i, p i → q i) :
   (⨆ i (h : p i), f i) ≤ ⨆ i (h : q i), f i :=
 supr_mono $ λ i, supr_const_mono (hpq i)
@@ -1265,6 +1268,12 @@ supr₂_le $ λ i h, inf_le_inf_left _ (le_Sup h)
 /-- This is a weaker version of `Sup_inf_eq` -/
 lemma supr_inf_le_Sup_inf : (⨆ b ∈ s, b ⊓ a) ≤ Sup s ⊓ a :=
 supr₂_le $ λ i h, inf_le_inf_right _ (le_Sup h)
+
+lemma le_supr_inf_supr (f g : ι → α) : (⨆ i, f i ⊓ g i) ≤ (⨆ i, f i) ⊓ (⨆ i, g i) :=
+le_inf (supr_mono $ λ i, inf_le_left) (supr_mono $ λ i, inf_le_right)
+
+lemma infi_sup_infi_le (f g : ι → α) : (⨅ i, f i) ⊔ (⨅ i, g i) ≤ ⨅ i, f i ⊔ g i :=
+@le_supr_inf_supr αᵒᵈ ι _ f g
 
 lemma disjoint_Sup_left {a : set α} {b : α} (d : disjoint (Sup a) b) {i} (hi : i ∈ a) :
   disjoint i b :=

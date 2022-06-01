@@ -9,9 +9,9 @@ import analysis.locally_convex.balanced_core_hull
 # Finite dimensional topological vector spaces over complete fields
 
 Let `𝕜` be a nondiscrete and complete normed field, and `E` a topological vector space (TVS) over
-`𝕜` (i.e we have `[topological_add_group E] [has_continuous_smul 𝕜 E]`).
+`𝕜` (i.e we have `[add_comm_group E] [module 𝕜 E]  [topological_space E] [topological_add_group E] [has_continuous_smul 𝕜 E]`).
 
-If `E` is finite dimensional, then all linear maps from `E` to any other TVS are continuous.
+If `E` is finite dimensional and Hausdorff, then all linear maps from `E` to any other TVS are continuous.
 
 When `E` is a normed space, this gets us the equivalence of norms in finite dimension.
 
@@ -19,7 +19,7 @@ When `E` is a normed space, this gets us the equivalence of norms in finite dime
 
 * `linear_map.continuous_iff_is_closed_ker` : a linear form is continuous if and only if its kernel
   is closed.
-* `linear_map.continuous_of_finite_dimensional` : a linear map on a finite-dimensional space over a
+* `linear_map.continuous_of_finite_dimensional` : a linear map on a finite-dimensional Hausdorff space over a
   complete field is continuous.
 
 ## TODO
@@ -56,7 +56,7 @@ begin
   -- for the proof, write `f` in the standard basis, and use that each coordinate is a continuous
   -- function.
   have : (f : (ι → 𝕜) → F) =
-         (λx, ∑ i : ι, x i • (f (λj, if i = j then 1 else 0))),
+         (λx, ∑ i : ι, x i • (f (λ j, if i = j then 1 else 0))),
     by { ext x, exact f.pi_apply_eq_sum_univ x },
   rw this,
   refine continuous_finset_sum _ (λi hi, _),
@@ -84,22 +84,22 @@ end field
 section normed_field
 
 variables {𝕜 : Type u} [hnorm : nondiscrete_normed_field 𝕜]
-{E : Type v} [add_comm_group E] [module 𝕜 E] [topological_space E]
-[topological_add_group E] [has_continuous_smul 𝕜 E]
-{F : Type w} [add_comm_group F] [module 𝕜 F] [topological_space F]
-[topological_add_group F] [has_continuous_smul 𝕜 F]
-{F' : Type x} [add_comm_group F'] [module 𝕜 F'] [topological_space F']
-[topological_add_group F'] [has_continuous_smul 𝕜 F']
+  {E : Type v} [add_comm_group E] [module 𝕜 E] [topological_space E]
+  [topological_add_group E] [has_continuous_smul 𝕜 E]
+  {F : Type w} [add_comm_group F] [module 𝕜 F] [topological_space F]
+  [topological_add_group F] [has_continuous_smul 𝕜 F]
+  {F' : Type x} [add_comm_group F'] [module 𝕜 F'] [topological_space F']
+  [topological_add_group F'] [has_continuous_smul 𝕜 F']
 
 include hnorm
 
-/-- If `𝕜` is a nondiscrete normed field, any T2 topology on `𝕜` which makes it a topologial vector
+/-- If `𝕜` is a nondiscrete normed field, any T2 topology on `𝕜` which makes it a topological vector
     space over itself (with the norm topology) is *equal* to the norm topology. -/
 lemma unique_topology_of_t2 {t : topological_space 𝕜}
   (h₁ : @topological_add_group 𝕜 t _)
   (h₂ : @has_continuous_smul 𝕜 𝕜 _ hnorm.to_uniform_space.to_topological_space t)
   (h₃ : @t2_space 𝕜 t) :
-t = hnorm.to_uniform_space.to_topological_space :=
+  t = hnorm.to_uniform_space.to_topological_space :=
 begin
   -- Let `𝓣₀` denote the topology on `𝕜` induced by the norm, and `𝓣` be any T2 vector
   -- topology on `𝕜`. To show that `𝓣₀ = 𝓣`, it suffices to show that they have the same
@@ -197,7 +197,7 @@ lemma linear_map.continuous_iff_is_closed_ker (l : E →ₗ[𝕜] 𝕜) :
 
 variables [complete_space 𝕜]
 
-/-- In finite dimension over a nondiscrete complete normed field, the canonical identification
+/-- In finite dimensions over a non-discrete complete normed field, the canonical identification
 (in terms of a basis) with `𝕜^n` (endowed with the product topology) is continuous.
 This is the key fact wich makes all linear maps from a T2 finite dimensional TVS over such a field
 continuous (see `linear_map.continuous_of_finite_dimensional`), which in turn implies that all
@@ -278,7 +278,7 @@ end
 This is the key fact wich makes all linear maps from a T2 finite dimensional TVS over such a field
 continuous (see `linear_map.continuous_of_finite_dimensional`), which in turn implies that all
 norm are equivalent in finite dimension. -/
-theorem continuous_equiv_fun_basis [ht2 : t2_space E] {ι : Type*} [fintype ι] (ξ : basis ι 𝕜 E) :
+theorem continuous_equiv_fun_basis [t2_space E] {ι : Type*} [fintype ι] (ξ : basis ι 𝕜 E) :
   continuous ξ.equiv_fun :=
 begin
   haveI : finite_dimensional 𝕜 E := of_fintype_basis ξ,

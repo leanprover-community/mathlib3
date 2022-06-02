@@ -34,6 +34,7 @@ localized "notation `I` := unit_interval" in unit_interval
 
 namespace unit_interval
 open_locale unit_interval
+open set.Icc
 
 /-- Unit interval central symmetry. -/
 def symm : I → I := λ t, ⟨1 - t, set.Icc.one_sub_mem t.prop⟩

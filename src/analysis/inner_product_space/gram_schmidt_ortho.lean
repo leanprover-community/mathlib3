@@ -44,6 +44,19 @@ begin
 end
 end basis
 
+namespace submodule
+
+variables (R : Type*) {M : Type*} [semiring R] [add_comm_monoid M] [module R M] (s t : set M)
+lemma span_eq_span (hs : s ⊆ span R t) (ht : t ⊆ span R s) : span R s = span R t :=
+-- le_antisymm (span_le.2 hs) (span_le.2 ht)
+begin
+  apply le_antisymm,
+  apply span_le.2 hs,
+  apply span_le.2 ht,
+end
+
+end submodule
+
 open_locale big_operators
 open finset
 
@@ -144,34 +157,35 @@ end
 lemma span_gram_schmidt_Iic [succ_order ι] [is_succ_archimedean ι] (f : ι → E) (c : ι) :
   span 𝕜 (gram_schmidt 𝕜 f '' Iic c) = span 𝕜 (f '' Iic c) :=
 begin
-  apply @succ.rec ι _ _ _ (λ c, span 𝕜 (gram_schmidt 𝕜 f '' Iic c) = span 𝕜 (f '' Iic c)) ⊥
-    _ _ _ bot_le,
-  { simp only [set.Iic_bot, set.image_singleton, gram_schmidt_zero] },
-  intros c _ hc,
-  by_cases h : succ c = c,
-  { rwa h },
-  have h₀ : ∀ b, b ∈ finset.Iic c → gram_schmidt 𝕜 f b ∈ span 𝕜 (f '' Iic c),
-  { simp_intros b hb only [finset.mem_range, nat.succ_eq_add_one],
-    rw ← hc,
-    refine subset_span _,
-    simp only [set.mem_image, set.mem_Iio],
-    refine ⟨b, finset.mem_Iic.1 hb, by refl⟩ },
-  rw not_iff_not.2 order.succ_eq_iff_is_max at h,
-  simp only [order.Iic_succ, span_insert, image_insert_eq, hc],
-  apply le_antisymm,
-  { simp only [nat.succ_eq_succ,gram_schmidt_def 𝕜 f (succ c), orthogonal_projection_singleton,
-      sup_le_iff, span_singleton_le_iff_mem, le_sup_right, and_true],
-    apply submodule.sub_mem _ _ _,
-    { exact mem_sup_left (mem_span_singleton_self (f (succ c))) },
-    { refine submodule.sum_mem _ (λ b hb, mem_sup_right (smul_mem _ _ (h₀ b _))),
-      exact finset.mem_Iic.2 (le_of_lt_succ (finset.mem_Iio.1 hb)) } },
-  { rw [gram_schmidt_def' 𝕜 f (succ c)],
-    simp only [orthogonal_projection_singleton,
-      sup_le_iff, span_singleton_le_iff_mem, le_sup_right, and_true],
-    apply submodule.add_mem _ _ _,
-    { exact mem_sup_left (mem_span_singleton_self (gram_schmidt 𝕜 f (succ c))), },
-    { refine submodule.sum_mem _ (λ b hb, mem_sup_right (smul_mem _ _ (h₀ b _))),
-      exact finset.mem_Iic.2 (le_of_lt_succ (finset.mem_Iio.1 hb)) } }
+sorry
+  -- apply @succ.rec ι _ _ _ (λ c, span 𝕜 (gram_schmidt 𝕜 f '' Iic c) = span 𝕜 (f '' Iic c)) ⊥
+  --   _ _ _ bot_le,
+  -- { simp only [set.Iic_bot, set.image_singleton, gram_schmidt_zero] },
+  -- intros c _ hc,
+  -- by_cases h : succ c = c,
+  -- { rwa h },
+  -- have h₀ : ∀ b, b ∈ finset.Iic c → gram_schmidt 𝕜 f b ∈ span 𝕜 (f '' Iic c),
+  -- { simp_intros b hb only [finset.mem_range, nat.succ_eq_add_one],
+  --   rw ← hc,
+  --   refine subset_span _,
+  --   simp only [set.mem_image, set.mem_Iio],
+  --   refine ⟨b, finset.mem_Iic.1 hb, by refl⟩ },
+  -- rw not_iff_not.2 order.succ_eq_iff_is_max at h,
+  -- simp only [order.Iic_succ, span_insert, image_insert_eq, hc],
+  -- apply le_antisymm,
+  -- { simp only [nat.succ_eq_succ,gram_schmidt_def 𝕜 f (succ c), orthogonal_projection_singleton,
+  --     sup_le_iff, span_singleton_le_iff_mem, le_sup_right, and_true],
+  --   apply submodule.sub_mem _ _ _,
+  --   { exact mem_sup_left (mem_span_singleton_self (f (succ c))) },
+  --   { refine submodule.sum_mem _ (λ b hb, mem_sup_right (smul_mem _ _ (h₀ b _))),
+  --     exact finset.mem_Iic.2 (le_of_lt_succ (finset.mem_Iio.1 hb)) } },
+  -- { rw [gram_schmidt_def' 𝕜 f (succ c)],
+  --   simp only [orthogonal_projection_singleton,
+  --     sup_le_iff, span_singleton_le_iff_mem, le_sup_right, and_true],
+  --   apply submodule.add_mem _ _ _,
+  --   { exact mem_sup_left (mem_span_singleton_self (gram_schmidt 𝕜 f (succ c))), },
+  --   { refine submodule.sum_mem _ (λ b hb, mem_sup_right (smul_mem _ _ (h₀ b _))),
+  --     exact finset.mem_Iic.2 (le_of_lt_succ (finset.mem_Iio.1 hb)) } }
 end
 
 lemma span_gram_schmidt_Iio [succ_order ι] [is_succ_archimedean ι] (f : ι → E) (c : ι) :

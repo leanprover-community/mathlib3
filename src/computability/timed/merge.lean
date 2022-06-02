@@ -28,6 +28,8 @@ namespace timed
 
 include r
 
+/-- `merge l₁ l₂` merges l₁ and l₂ into a sorted list, assuming both are
+  already sorted. It also returns the number of operations performed. -/
 @[simp] def merge : list α → list α → (list α × ℕ)
 | []       l₂        := (l₂, 0)
 | l₁        []       := (l₁,  0)

@@ -24,11 +24,12 @@ import computability.timed.lemmas
       ∀ l : list α, (Timed.split l).fst = list.split l
 -/
 
-variables {α : Type} (r : α → α → Prop) [decidable_rel r]
-local infix ` ≼ ` : 50 := r
+variables {α : Type}
 
 namespace timed
 
+/-- `split l` splits l into two lists, alternating the elements and
+  count the number of recursive calls performed. -/
 @[simp] def split : list α → (list α × list α × ℕ)
 | []       := ([], [], 0)
 | (h :: t) := let (l₁, l₂, n) := split t in (h :: l₂, l₁, n + 1)
@@ -147,8 +148,6 @@ begin
   { rw ← h_1, simp only [list.length], linarith, },
   { rw ← h_3, simp only [list.length], linarith, },
 end
-
-include r
 
 lemma split_lengths : ∀ (l l₁ l₂ : list α) {n : ℕ},
   split l = (l₁, l₂, n) → l₁.length + l₂.length = l.length

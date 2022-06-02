@@ -25,11 +25,16 @@ local infix ` ≼ ` : 50 := r
 
 namespace timed
 
+/-- `ordered_insert a l` inserts `a` into `l` at such that
+  `ordered_insert a l` is sorted if `l` is. It also returns
+  the number of comparisons performed. -/
 @[simp] def ordered_insert (a : α) : list α → (list α × ℕ)
 | []       := ([a], 0)
 | (h :: t) := if a ≼ h then (a :: h :: t, 1)
               else let (l', n) := ordered_insert t in (h :: l', n + 1)
 
+/-- Implementation of the insertion sort algorithm, modified
+  to also return the number of operations performed. -/
 @[simp] def insertion_sort : list α → (list α × ℕ)
 | [] := ([], 0)
 | (h :: t) := let (l', n) := (insertion_sort t), (l'', m) := ordered_insert r h l'

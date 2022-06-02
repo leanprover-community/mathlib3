@@ -33,6 +33,8 @@ namespace timed
 
 include r
 
+/-- Modified version of the merge sort algorithm, that also count
+  the number of operations performed. -/
 def merge_sort : list α → (list α × ℕ)
 | []            := ([],  0)
 | [a]           := ([a], 0)

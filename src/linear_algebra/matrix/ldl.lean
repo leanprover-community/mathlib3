@@ -56,5 +56,17 @@ begin
     exact (LDL.L_inv_orthogonal₁ S hij).symm }
 end
 
+noncomputable def LDL.L := ((LDL.L_inv S)ᴴ)⁻¹
+
 theorem ldl_decomposition :
-  A = hA.ldl_lower ⬝ hA.ldl_diag ⬝ hA.ldl_lowerᴴ := sorry
+  S = LDL.L S ⬝ LDL.diag S ⬝ (LDL.L S)ᴴ :=
+begin
+  haveI : invertible (LDL.L_inv S)ᴴ := sorry,
+  haveI : invertible (LDL.L_inv S) := sorry,
+  have := ldl_decomposition₀ S,
+  have := congr_arg (λ A, LDL.L S ⬝ A) this,
+  have := congr_arg (λ A, A ⬝ (LDL.L S)ᴴ) this,
+  simp [LDL.L, (matrix.mul_assoc _ _ _).symm] at this,
+  simp [(conj_transpose_nonsing_inv (LDL.L_inv S)).symm, matrix.mul_assoc] at this,
+  simp [matrix.mul_assoc, LDL.L, (conj_transpose_nonsing_inv (LDL.L_inv S)).symm, this]
+end

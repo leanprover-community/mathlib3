@@ -51,6 +51,12 @@ begin
   exact ((A 0).smul_mem s set_like.has_graded_one.one_mem),
 end
 
+/-- Lean cannot find this instance in the statement of `submodule.galgebra` unless we copy it here.
+-/
+instance galgebra_op_module_instance [comm_semiring S] [semiring R] [algebra S R]
+  (A : ι → submodule S R) (i : ι) : module Sᵐᵒᵖ ↥(A i) :=
+submodule.module' _
+
 section direct_sum
 variables [decidable_eq ι]
 
@@ -114,12 +120,6 @@ end
 /-! #### From `submodule`s -/
 
 namespace submodule
-
-/-- Lean cannot find this instance in the statement of `submodule.galgebra` unless we copy it here.
--/
-instance galgebra_op_module_instance [add_monoid ι] [comm_semiring S] [semiring R] [algebra S R]
-  (A : ι → submodule S R) (i : ι) : module Sᵐᵒᵖ ↥(A i) :=
-submodule.module' _
 
 /-- Build a `galgebra` instance for a collection of `submodule`s. -/
 instance galgebra [add_monoid ι]

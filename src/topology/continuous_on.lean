@@ -554,7 +554,7 @@ theorem nhds_within_le_comap {x : α} {s : set α} {f : α → β} (ctsf : conti
   𝓝[s] x ≤ comap f (𝓝[f '' s] (f x)) :=
 ctsf.tendsto_nhds_within_image.le_comap
 
-@[simp] lemma comap_nhds_within_range (f : α → β) (y : β) :
+@[simp] lemma comap_nhds_within_range {α} (f : α → β) (y : β) :
   comap f (𝓝[range f] y) = comap f (𝓝 y) :=
 comap_inf_principal_range
 

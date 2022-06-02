@@ -1022,8 +1022,8 @@ by { convert metric.emetric_closed_ball ε.2, simp }
 @[simp] lemma metric.emetric_ball_top (x : α) : emetric.ball x ⊤ = univ :=
 eq_univ_of_forall $ λ y, edist_lt_top _ _
 
-lemma metric.indistinguishable_iff {x y : α} : indistinguishable x y ↔ dist x y = 0 :=
-by rw [emetric.indistinguishable_iff, edist_nndist, dist_nndist, ennreal.coe_eq_zero,
+lemma metric.inseparable_iff {x y : α} : inseparable x y ↔ dist x y = 0 :=
+by rw [emetric.inseparable_iff, edist_nndist, dist_nndist, ennreal.coe_eq_zero,
   nnreal.coe_eq_zero]
 
 /-- Build a new pseudometric space from an old one where the bundled uniform structure is provably
@@ -2516,7 +2516,7 @@ separated_def.2 $ λ x y h, eq_of_forall_dist_le $
 /-- If a `pseudo_metric_space` is a T₀ space, then it is a `metric_space`. -/
 def of_t0_pseudo_metric_space (α : Type*) [pseudo_metric_space α] [t0_space α] :
   metric_space α :=
-{ eq_of_dist_eq_zero := λ x y hdist, indistinguishable.eq $ metric.indistinguishable_iff.2 hdist,
+{ eq_of_dist_eq_zero := λ x y hdist, inseparable.eq $ metric.inseparable_iff.2 hdist,
   ..‹pseudo_metric_space α› }
 
 /-- A metric space induces an emetric space -/

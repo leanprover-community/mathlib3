@@ -40,8 +40,7 @@ begin
     split, { exact right_ne_zero_of_mul f42.1 },
     split, { exact right_ne_zero_of_mul f42.2.1 },
     apply (mul_right_inj' (pow_ne_zero 4 hk0)).mp,
-    have H : (k * a) ^ 4 + (k * b) ^ 4 = (k ^ 2 * c) ^ 2 := f42.2.2,
-    linear_combination H }
+    linear_combination (f42.2.2) }
 end
 
 lemma ne_zero {a b c : ℤ} (h : fermat_42 a b c) : c ≠ 0 :=
@@ -167,8 +166,7 @@ begin
   -- first the formula:
   have ht : pythagorean_triple (a ^ 2) (b ^ 2) c,
   { delta pythagorean_triple,
-    have H := h.1.2.2,
-    linear_combination H },
+    linear_combination (h.1.2.2) },
   -- coprime requirement:
   have h2 : int.gcd (a ^ 2) (b ^ 2) = 1 :=
     int.gcd_eq_one_iff_coprime.mpr (coprime_of_minimal h).pow,
@@ -181,7 +179,7 @@ begin
   -- formula:
   have htt : pythagorean_triple a n m,
   { delta pythagorean_triple,
-    linear_combination ht1 },
+    linear_combination (ht1) },
   -- a and n are coprime, because a ^ 2 = m ^ 2 - n ^ 2 and m and n are coprime.
   have h3 : int.gcd a n = 1,
   { apply int.gcd_eq_one_iff_coprime.mpr,

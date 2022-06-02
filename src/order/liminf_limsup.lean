@@ -93,6 +93,9 @@ lemma is_bounded_under.mono_ge [preorder β] {l : filter α} {u v : α → β}
   (hu : is_bounded_under (≥) l u) (hv : u ≤ᶠ[l] v) : is_bounded_under (≥) l v :=
 @is_bounded_under.mono_le α βᵒᵈ _ _ _ _ hu hv
 
+lemma is_bounded_under_const [is_refl α r] {l : filter β} {a : α} : is_bounded_under r l (λ _, a) :=
+⟨a, eventually_map.2 $ eventually_of_forall $ λ _, refl _⟩
+
 lemma is_bounded.is_bounded_under {q : β → β → Prop} {u : α → β}
   (hf : ∀a₀ a₁, r a₀ a₁ → q (u a₀) (u a₁)) : f.is_bounded r → f.is_bounded_under q u
 | ⟨b, h⟩ := ⟨u b, show ∀ᶠ x in f, q (u x) (u b), from h.mono (λ x, hf x b)⟩

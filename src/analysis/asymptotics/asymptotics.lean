@@ -178,6 +178,22 @@ lemma is_O.exists_mem_basis {ι} {p : ι → Prop} {s : ι → set α} (h : f =O
 flip Exists₂.imp h.exists_pos $ λ c hc h,
   by simpa only [is_O_with_iff, hb.eventually_iff, exists_prop] using h
 
+lemma is_o_iff_nat_mul_le : f =o[l] g' ↔ ∀ n : ℕ, ∀ᶠ x in l, ↑n * ∥f x∥ ≤ ∥g' x∥ :=
+begin
+  split,
+  { rintro H (_|n),
+    { refine eventually_of_forall (λ x, _), simp },
+    { have : (0 : ℝ) < n.succ, from nat.cast_pos.2 n.succ_pos,
+      refine (H.bound $ inv_pos.2 this).mono (λ x hx, _),
+      rwa [← div_eq_inv_mul, le_div_iff' this] at hx } },
+  { refine λ H, is_o_iff.2 (λ ε ε0, _),
+    rcases exists_nat_gt ε⁻¹ with ⟨n, hn⟩,
+    have hn₀ : (0 : ℝ) < n, from (inv_pos.2 ε0).trans hn,
+    refine (H n).mono (λ x hx, _),
+    rw [← le_div_iff' hn₀, div_eq_inv_mul] at hx,
+    exact hx.trans (mul_le_mul_of_nonneg_right (inv_le_of_inv_le ε0 hn.le) $ norm_nonneg _) }
+end
+
 /-! ### Subsingleton -/
 
 @[nontriviality] lemma is_o_of_subsingleton [subsingleton E'] : f' =o[l] g' :=

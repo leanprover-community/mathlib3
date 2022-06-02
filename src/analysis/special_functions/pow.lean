@@ -6,6 +6,7 @@ Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Sébasti
 -/
 import analysis.special_functions.complex.log
 import analysis.asymptotics.theta
+import analysis.asymptotics.superpolynomial_decay
 
 /-!
 # Power function on `ℂ`, `ℝ`, `ℝ≥0`, and `ℝ≥0∞`
@@ -21,7 +22,7 @@ We also prove basic properties of these functions.
 
 noncomputable theory
 
-open_locale classical real topological_space nnreal ennreal filter big_operators
+open_locale classical real topological_space nnreal ennreal filter big_operators asymptotics
 open filter finset set
 
 namespace complex
@@ -425,15 +426,120 @@ begin
     exact div_nonneg (real.rpow_nonneg_of_nonneg le_rfl _) (real.exp_pos _).le },
 end
 
-lemma is_Theta_exp_arg_mul_im {α : Type*} {l : filter α} {f g : α → ℂ}
-  (hl : is_bounded_under (≤) l (λ x, |(g x).im|)) :
+section
+
+variables {α : Type*} {l : filter α} {f g : α → ℂ}
+
+open asymptotics
+
+lemma is_Theta_exp_arg_mul_im (hl : is_bounded_under (≤) l (λ x, |(g x).im|)) :
   (λ x, real.exp (arg (f x) * im (g x))) =Θ[l] (λ x, (1 : ℝ)) :=
+begin
+  rcases hl with ⟨b, hb⟩,
+  refine real.is_Theta_exp_comp_one.2 ⟨π * b, _⟩,
+  rw eventually_map at hb ⊢,
+  refine hb.mono (λ x hx, _),
+  rw [_root_.abs_mul],
+  exact mul_le_mul (abs_arg_le_pi _) hx (_root_.abs_nonneg _) real.pi_pos.le
+end
 
-
-lemma is_O_cpow_rpow {α : Type*} {l : filter α} (f g : α → ℂ)
-  (hl : is_bounded_under (≤) l (λ x, |(g x).im|)) :
+lemma is_O_cpow_rpow (hl : is_bounded_under (≤) l (λ x, |(g x).im|)) :
   (λ x, f x ^ g x) =O[l] (λ x, abs (f x) ^ (g x).re) :=
+calc (λ x, f x ^ g x) =O[l] (λ x, abs (f x) ^ (g x).re / real.exp (arg (f x) * im (g x))) :
+  is_O_of_le _ $ λ x, (abs_cpow_le _ _).trans (le_abs_self _)
+... =Θ[l] (λ x, abs (f x) ^ (g x).re / (1 : ℝ)) :
+  (is_Theta_refl _ _).div (is_Theta_exp_arg_mul_im hl)
+... =ᶠ[l] (λ x, abs (f x) ^ (g x).re) : by simp only [of_real_one, div_one]
 
+lemma is_Theta_cpow_rpow (hl_im : is_bounded_under (≤) l (λ x, |(g x).im|))
+  (hl : ∀ᶠ x in l, f x = 0 → re (g x) = 0 → g x = 0):
+  (λ x, f x ^ g x) =Θ[l] (λ x, abs (f x) ^ (g x).re) :=
+calc (λ x, f x ^ g x) =Θ[l] (λ x, abs (f x) ^ (g x).re / real.exp (arg (f x) * im (g x))) :
+  is_Theta_of_norm_eq' $ hl.mono $ λ x, abs_cpow_of_imp
+... =Θ[l] (λ x, abs (f x) ^ (g x).re / (1 : ℝ)) :
+  (is_Theta_refl _ _).div (is_Theta_exp_arg_mul_im hl_im)
+... =ᶠ[l] (λ x, abs (f x) ^ (g x).re) : by simp only [of_real_one, div_one]
+
+lemma is_Theta_cpow_const_rpow {b : ℂ} (hl : b.re = 0 → b ≠ 0 → ∀ᶠ x in l, f x ≠ 0) :
+  (λ x, f x ^ b) =Θ[l] (λ x, abs (f x) ^ b.re) :=
+is_Theta_cpow_rpow is_bounded_under_const $ by simpa only [eventually_imp_distrib_right, ne.def,
+  ← not_frequently, not_imp_not, imp.swap] using hl
+
+lemma is_o_log_abs_re_of_subexponential_im_re {l : filter ℂ}
+  (hl₁ : tendsto re l at_top) (hl₂ : ∀ n : ℕ, ∀ᶠ z : ℂ in l, z.im ^ n ≤ real.exp z.re) :
+  (λ z, real.log (abs z)) =o[l] re :=
+begin
+  have h2 : 0 < real.sqrt 2, by simp,
+  calc (λ z, real.log (abs z)) =O[l] (λ z, real.log (real.sqrt 2) + real.log (max z.re (|z.im|))) :
+    is_O.of_bound 1 $ (hl₁.eventually_ge_at_top 1).mono $ λ z hz,
+      begin
+        have hz' : 1 ≤ abs z, from hz.trans (re_le_abs z),
+        have hz₀ : 0 < abs z, from one_pos.trans_le hz',
+        have hm₀ : 0 < max z.re (|z.im|), from lt_max_iff.2 (or.inl $ one_pos.trans_le hz),
+        rw [one_mul, real.norm_eq_abs, _root_.abs_of_nonneg (real.log_nonneg hz')],
+        refine le_trans _ (le_abs_self _),
+        rw [← real.log_mul, real.log_le_log,
+          ← _root_.abs_of_nonneg (le_trans (@zero_le_one ℝ _) hz)],
+        exacts [abs_le_sqrt_two_mul_max z, one_pos.trans_le hz', (mul_pos h2 hm₀), h2.ne', hm₀.ne']
+      end
+  ... =o[l] re : is_o.add (is_o_const_left.2 $ or.inr $ tendsto_abs_at_top_at_top.comp hl₁) _,
+  refine is_o_iff.2 (λ ε ε₀, _),
+  obtain ⟨n, hnε, hn₀, hn⟩ : ∃ n : ℕ, ε⁻¹ < n ∧ 0 < n ∧ even n,
+  { rcases exists_nat_gt ε⁻¹ with ⟨n, hn⟩,
+    refine ⟨2 * n, hn.trans_le $ nat.mono_cast _, _, even_two_mul _⟩,
+    exacts [le_mul_of_one_le_left' one_le_two,
+      mul_pos two_pos $ nat.cast_pos.1 $ (inv_pos.2 ε₀).trans hn] },
+  filter_upwards [(real.is_o_log_id_at_top.comp_tendsto hl₁).bound ε₀, hl₂ n,
+    hl₁.eventually_gt_at_top 1] with z hre him h₁,
+  cases le_total (|z.im|) z.re with hle hle,
+  { rwa [max_eq_left hle] },
+  have H : 1 < |z.im|, from h₁.trans_le hle,
+  rw [max_eq_right hle, real.norm_eq_abs, real.norm_eq_abs, abs_of_pos (real.log_pos H),
+    real.log_le_iff_le_exp (one_pos.trans H)],
+  rw [← (@strict_mono_on_pow ℝ _ _ hn₀).le_iff_le (_root_.abs_nonneg z.im) (real.exp_pos _).le],
+  simp only [hn.pow_abs, ← real.exp_nat_mul, ← mul_assoc],
+  refine him.trans (real.exp_le_exp.2 $ (le_abs_self _).trans _),
+  refine le_mul_of_one_le_left (_root_.abs_nonneg _) _,
+  rw [← div_le_iff ε₀, one_div],
+  exact hnε.le
+end
+
+lemma tendsto_cpow_const_mul_exp_const_mul_nhds_zero (a : ℂ) {b : ℝ} {l : filter ℂ}
+  (hl₁ : tendsto re l at_top) (hl₂ : ∀ n : ℕ, ∀ᶠ z : ℂ in l, z.im ^ n ≤ real.exp z.re)
+  (hb : b < 0) :
+  tendsto (λ z, z ^ a * exp (b * z)) l (𝓝 0) :=
+begin
+  suffices : tendsto (λ z, real.exp (a.re * real.log (abs z) + b * re z)) l (𝓝 0),
+  { have h₀ : ∀ᶠ z : ℂ in l, z ≠ 0, from hl₁.eventually_ne_at_top' 0,
+    rw [tendsto_zero_iff_norm_tendsto_zero],
+    simp only [norm_mul],
+    rw [((is_Theta_cpow_const_rpow (λ _ _, h₀)).norm_left.mul is_Theta_rfl).tendsto_zero_iff],
+    refine this.congr' (h₀.mono $ λ x hx, _),
+    rw [norm_eq_abs, abs_exp, of_real_mul_re, real.rpow_def_of_pos (abs_pos.2 hx), real.exp_add,
+      mul_comm a.re] },
+  rw [← tendsto_comap_iff, real.comap_exp_nhds_zero],
+  refine is_equivalent.tendsto_at_bot _ (tendsto_const_nhds.neg_mul_at_top hb hl₁),
+  have : (λ z, real.log (abs z)) =o[l] re,
+    from is_o_log_abs_re_of_subexponential_im_re hl₁ hl₂,
+  exact (((is_O_const_const _ hb.ne _).mul_is_o this).add_is_equivalent is_equivalent.refl).symm
+end
+
+lemma is_o_cpow_const_mul_exp {a₁ a₂ : ℂ} {b₁ b₂ : ℝ} {l : filter ℂ}
+  (hl₁ : tendsto re l at_top) (hl₂ : ∀ n : ℕ, ∀ᶠ z : ℂ in l, z.im ^ n ≤ real.exp z.re)
+  (hb : b₁ < b₂) :
+  (λ z, z ^ a₁ * exp (b₁ * z)) =o[l] (λ z, z ^ a₂ * exp (b₂ * z)) :=
+begin
+  have h₀ : ∀ᶠ z : ℂ in l, z ≠ 0, from (hl₁.eventually_ne_at_top' (0 : ℂ)),
+  refine (is_o_iff_tendsto' (h₀.mono _)).mpr _,
+  { intros x hne h,
+    exfalso,
+    simpa [hne, exp_ne_zero] using h },
+  refine (tendsto_cpow_const_mul_exp_const_mul_nhds_zero (a₁ - a₂) hl₁ hl₂ (sub_neg.2 hb)).congr' _,
+  filter_upwards [h₀] with z hz,
+  rw [mul_div_mul_comm, ← exp_sub, ← sub_mul, ← of_real_sub, cpow_sub _ _ hz]
+end
+
+end
 
 @[simp] lemma abs_cpow_real (x : ℂ) (y : ℝ) : abs (x ^ (y : ℂ)) = x.abs ^ y :=
 by rcases eq_or_ne x 0 with rfl|hx; [rcases eq_or_ne y 0 with rfl|hy, skip];
@@ -1058,20 +1164,12 @@ lemma continuous_at_cpow_zero_of_re_pos {z : ℂ} (hz : 0 < z.re) :
   continuous_at (λ x : ℂ × ℂ, x.1 ^ x.2) (0, z) :=
 begin
   have hz₀ : z ≠ 0, from ne_of_apply_ne re hz.ne',
-  rw [continuous_at, zero_cpow hz₀, tendsto_zero_iff_norm_tendsto_zero],
-  refine squeeze_zero (λ _, norm_nonneg _) (λ _, abs_cpow_le _ _) _,
-  simp only [div_eq_mul_inv, ← real.exp_neg],
-  refine tendsto.zero_mul_is_bounded_under_le _ _,
-  { convert (continuous_fst.norm.tendsto _).rpow ((continuous_re.comp continuous_snd).tendsto _) _;
-      simp [hz, real.zero_rpow hz.ne'] },
-  { simp only [(∘), real.norm_eq_abs, abs_of_pos (real.exp_pos _)],
-    rcases exists_gt (|im z|) with ⟨C, hC⟩,
-    refine ⟨real.exp (π * C), eventually_map.2 _⟩,
-    refine (((continuous_im.comp continuous_snd).abs.tendsto (_, z)).eventually
-      (gt_mem_nhds hC)).mono (λ z hz, real.exp_le_exp.2 $ (neg_le_abs_self _).trans _),
-    rw _root_.abs_mul,
-    exact mul_le_mul (abs_le.2 ⟨(neg_pi_lt_arg _).le, arg_le_pi _⟩) hz.le
-      (_root_.abs_nonneg _) real.pi_pos.le }
+  rw [continuous_at, zero_cpow hz₀, (is_Theta_cpow_rpow _ _ _ _).tendsto_zero_iff],
+  { convert continuous_at_fst.norm.rpow (continuous_re.continuous_at.comp continuous_at_snd) _;
+      simp [hz, hz.ne'] },
+  { exact (continuous_im.comp continuous_snd).abs.continuous_at.is_bounded_under_le },
+  { suffices : ∀ᶠ x : ℂ × ℂ in 𝓝 (0, z), 0 < re x.2, from this.mono (λ x hx _ h, absurd h hx.ne'),
+    exact ((continuous_re.comp continuous_snd).tendsto (0, z)).eventually (eventually_gt_nhds hz) }
 end
 
 /-- See also `complex.continuous_at_cpow` for a version that assumes `p.1 ≠ 0` but makes no

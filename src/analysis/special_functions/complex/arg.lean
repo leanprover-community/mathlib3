@@ -136,6 +136,8 @@ lemma arg_le_pi (x : ℂ) : arg x ≤ π :=
 lemma neg_pi_lt_arg (x : ℂ) : -π < arg x :=
 (arg_mem_Ioc x).1
 
+lemma abs_arg_le_pi (z : ℂ) : |arg z| ≤ π := abs_le.2 ⟨(neg_pi_lt_arg z).le, arg_le_pi z⟩
+
 @[simp] lemma arg_nonneg_iff {z : ℂ} : 0 ≤ arg z ↔ 0 ≤ z.im :=
 begin
   rcases eq_or_ne z 0 with (rfl|h₀), { simp },

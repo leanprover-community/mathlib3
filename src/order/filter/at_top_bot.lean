@@ -149,6 +149,10 @@ lemma tendsto.eventually_ne_at_top [preorder β] [no_max_order β] {f : α → �
   (hf : tendsto f l at_top) (c : β) : ∀ᶠ x in l, f x ≠ c :=
 hf.eventually (eventually_ne_at_top c)
 
+lemma tendsto.eventually_ne_at_top' [preorder β] [no_max_order β] {f : α → β} {l : filter α}
+  (hf : tendsto f l at_top) (c : α) : ∀ᶠ x in l, x ≠ c :=
+(hf.eventually_ne_at_top (f c)).mono $ λ x, ne_of_apply_ne f
+
 lemma eventually_lt_at_bot [preorder α] [no_min_order α] (a : α) :
   ∀ᶠ x in at_bot, x < a :=
 Iio_mem_at_bot a

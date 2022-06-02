@@ -39,19 +39,6 @@ open_locale classical big_operators pointwise
 
 section semiring
 
-namespace submodule
-variables {R : Type u} [semiring R]
-variables {M : Type v} [add_comm_monoid M] [module R M]
-class is_maximal (N : submodule R M) : Prop := (out : is_coatom N)
-
-theorem is_maximal_def {N : submodule R M} : N.is_maximal ↔ is_coatom N := ⟨λ h, h.1, λ h, ⟨h⟩⟩
-
-theorem is_maximal.ne_top {N : submodule R M} (h : N.is_maximal) : N ≠ ⊤ := (is_maximal_def.1 h).1
-
-end submodule
-
-open submodule (is_maximal)
-
 namespace ideal
 variables [semiring α] (I : ideal α) {a b : α}
 
@@ -240,7 +227,7 @@ end
 /-- If P is not properly contained in any maximal ideal then it is not properly contained
   in any proper ideal -/
 lemma maximal_of_no_maximal {R : Type u} [semiring R] {P : ideal R}
-(hmax : ∀ m : ideal R, P < m → ¬is_maximal m) (J : ideal R) (hPJ : P < J) : J = ⊤ :=
+(hmax : ∀ m : ideal R, P < m → ¬m.is_maximal) (J : ideal R) (hPJ : P < J) : J = ⊤ :=
 begin
   by_contradiction hnonmax,
   rcases exists_le_maximal J hnonmax with ⟨M, hM1, hM2⟩,
@@ -491,7 +478,6 @@ end ring
 section division_ring
 variables {K : Type u} [division_ring K] (I : ideal K)
 
-open submodule (is_maximal)
 namespace ideal
 
 /-- All ideals in a division ring are trivial. -/
@@ -510,7 +496,7 @@ end
 lemma eq_bot_of_prime [h : I.is_prime] : I = ⊥ :=
 or_iff_not_imp_right.mp I.eq_bot_or_top h.1
 
-lemma bot_is_maximal : is_maximal (⊥ : ideal K) :=
+lemma bot_is_maximal : (⊥ : ideal K).is_maximal :=
 ⟨⟨λ h, absurd ((eq_top_iff_one (⊤ : ideal K)).mp rfl) (by rw ← h; simp),
 λ I hI, or_iff_not_imp_left.mp (eq_bot_or_top I) (ne_of_gt hI)⟩⟩
 

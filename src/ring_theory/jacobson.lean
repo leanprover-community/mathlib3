@@ -72,7 +72,8 @@ end
  `I` can be written as the infimum of some collection of maximal ideals.
  Allowing ⊤ in the set `M` of maximal ideals is equivalent, but makes some proofs cleaner. -/
 lemma is_jacobson_iff_Inf_maximal : is_jacobson R ↔
-  ∀ {I : ideal R}, I.is_prime → ∃ M : set (ideal R), (∀ J ∈ M, submodule.is_maximal J ∨ J = ⊤) ∧ I = Inf M :=
+  ∀ {I : ideal R}, I.is_prime → ∃ M : set (ideal R),
+  (∀ J ∈ M, submodule.is_maximal J ∨ J = ⊤) ∧ I = Inf M :=
 ⟨λ H I h, eq_jacobson_iff_Inf_maximal.1 (H.out (is_prime.radical h)),
   λ H, is_jacobson_iff_prime_eq.2 (λ P hP, eq_jacobson_iff_Inf_maximal.2 (H hP))⟩
 

@@ -32,4 +32,4 @@ by simp only [← not_le, inv_of_nonneg]
 
 @[simp] lemma inv_of_le_one [invertible a] (h : 1 ≤ a) : ⅟a ≤ 1 :=
 by haveI := @linear_order.decidable_le α _; exact
-mul_inv_of_self a ▸ decidable.le_mul_of_one_le_left (inv_of_nonneg.2 $ le_trans zero_le_one h) h
+mul_inv_of_self a ▸ decidable.le_mul_of_one_le_left (inv_of_nonneg.2 $ zero_le_one.trans h) h

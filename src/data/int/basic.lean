@@ -221,7 +221,7 @@ le_sub_iff_add_le
   λ a0, (abs_eq_zero.mpr a0).le.trans_lt zero_lt_one⟩
 
 lemma abs_le_one_iff {a : ℤ} : |a| ≤ 1 ↔ a = 0 ∨ a = 1 ∨ a = -1 :=
-by rw [le_iff_lt_or_eq, abs_lt_one_iff, abs_eq (@zero_le_one ℤ _)]
+by rw [le_iff_lt_or_eq, abs_lt_one_iff, abs_eq (@zero_le_one ℤ _ _)]
 
 lemma one_le_abs {z : ℤ} (h₀: z ≠ 0) : 1 ≤ |z| :=
 add_one_le_iff.mpr (abs_pos.mpr h₀)

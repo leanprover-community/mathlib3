@@ -110,7 +110,7 @@ end
 /-- An ideal equals its Jacobson radical iff it is the intersection of a set of maximal ideals.
 Allowing the set to include ⊤ is equivalent, and is included only to simplify some proofs. -/
 theorem eq_jacobson_iff_Inf_maximal :
-  I.jacobson = I ↔ ∃ M : set (ideal R), (∀ J ∈ M, J.is_maximal ∨ J = ⊤) ∧ I = Inf M :=
+  I.jacobson = I ↔ ∃ M : set (ideal R), (∀ J ∈ M, submodule.is_maximal J ∨ J = ⊤) ∧ I = Inf M :=
 begin
   use λ hI, ⟨{J : ideal R | I ≤ J ∧ J.is_maximal}, ⟨λ _ hJ, or.inl hJ.right, hI.symm⟩⟩,
   rintros ⟨M, hM, hInf⟩,
@@ -207,7 +207,7 @@ section comm_ring
 variables [comm_ring R] [comm_ring S] {I : ideal R}
 
 lemma radical_le_jacobson : radical I ≤ jacobson I :=
-le_Inf (λ J hJ, (radical_eq_Inf I).symm ▸ Inf_le ⟨hJ.left, is_maximal.is_prime hJ.right⟩)
+le_Inf (λ J hJ, (radical_eq_Inf I).symm ▸ Inf_le ⟨hJ.left, hJ.right.is_prime⟩)
 
 lemma eq_radical_of_eq_jacobson : jacobson I = I → radical I = I :=
 λ h, le_antisymm (le_trans radical_le_jacobson (le_of_eq h)) le_radical

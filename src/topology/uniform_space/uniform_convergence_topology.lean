@@ -71,6 +71,25 @@ local attribute [-instance] Pi.topological_space
 
 open set filter
 
+/-- TODO : move me -/
+lemma uniform_space.comap_infi {ι α γ : Sort*} {u : ι → uniform_space γ} {f : α → γ} :
+  (⨅ i, u i).comap f = ⨅ i, (u i).comap f :=
+begin
+  ext : 1,
+  change (𝓤 _) = (𝓤 _),
+  simp [uniformity_comap rfl, infi_uniformity']
+end
+
+/-- TODO : move me -/
+lemma uniform_space.comap_mono {α γ : Sort*} {f : α → γ} :
+  monotone (λ u : uniform_space γ, u.comap f) :=
+begin
+  intros u₁ u₂ hu,
+  change (𝓤 _) ≤ (𝓤 _),
+  rw uniformity_comap rfl,
+  exact comap_mono hu
+end
+
 namespace uniform_convergence
 
 variables (α β : Type*) {γ ι : Type*}
@@ -181,13 +200,13 @@ begin
   ext : 1,
   change (uniform_convergence.filter α γ (((𝓤 β).comap _).as_basis)) =
     (uniform_convergence.filter α β ((𝓤 β).as_basis)).comap _,
-  have h₁ := filter.gc_map_comap (prod.map ((∘) f : (α → γ) → α → β) ((∘) f : (α → γ) → α → β)),
+  have h₁ := filter.gc_map_comap (prod.map ((∘) f) ((∘) f)),
   have h₂ := filter.gc_map_comap (prod.map f f),
   have h₃ := uniform_convergence.gc α β,
   have h₄ := uniform_convergence.gc α γ,
   refine galois_connection.u_comm_of_l_comm h₁ h₂ h₃ h₄ (λ 𝓐, _),
   have : prod.map f f ∘ (Φ α γ) =
-    (Φ α β) ∘ prod.map (prod.map ((∘) f : (α → γ) → α → β) ((∘) f : (α → γ) → α → β)) id,
+    (Φ α β) ∘ prod.map (prod.map ((∘) f) ((∘) f)) id,
   { ext; refl },
   rw [uniform_convergence.lower_adjoint, uniform_convergence.lower_adjoint, map_map, this,
       ← map_map, ← prod_map_map_eq'],
@@ -201,7 +220,7 @@ uniform_continuous_iff.mpr $
 calc uniform_convergence.uniform_space α γ
     ≤ @uniform_convergence.uniform_space α γ (‹uniform_space β›.comap f) :
       uniform_convergence.mono (uniform_continuous_iff.mp hf)
-... = (uniform_convergence.uniform_space α β).comap ((∘) f : (α → γ) → α → β) :
+... = (uniform_convergence.uniform_space α β).comap ((∘) f) :
       uniform_convergence.comap_eq
 
 protected lemma precomp_uniform_continuous {f : γ → α} :
@@ -243,15 +262,6 @@ begin
     exact λ n, id }
 end
 
-/-- TODO : move me -/
-lemma uniform_space.comap_infi {ι : Sort*} {u : ι → uniform_space γ} {f : α → γ} :
-  (⨅ i, u i).comap f = ⨅ i, (u i).comap f :=
-begin
-  ext : 1,
-  change (𝓤 _) = (𝓤 _),
-  simp [uniformity_comap rfl, infi_uniformity']
-end
-
 variables (α) (δ : ι → Type*) [Π i, uniform_space (δ i)]
 
 local attribute [-instance] uniform_convergence.uniform_space
@@ -271,8 +281,7 @@ begin
   congr,
   rw [Pi.uniform_space, uniform_space.of_core_eq_to_core, Pi.uniform_space,
       uniform_space.of_core_eq_to_core, uniform_space.comap_infi, uniform_convergence.infi_eq],
-  congr,
-  ext i : 1,
+  refine infi_congr (λ i, _),
   rw [← uniform_space.comap_comap, uniform_convergence.comap_eq]
 end
 
@@ -372,7 +381,55 @@ begin
       λ uv huv, huv ⟨x, hxs⟩ ⟩)
 end
 
-variables {β}
+variables {β} {𝔖}
+
+protected lemma mono_uniform_space ⦃u₁ u₂ : uniform_space γ⦄ (hu : u₁ ≤ u₂) :
+  @uniform_convergence_on.uniform_space α γ u₁ 𝔖 ≤
+  @uniform_convergence_on.uniform_space α γ u₂ 𝔖 :=
+infi₂_mono (λ i hi, uniform_space.comap_mono $ uniform_convergence.mono hu)
+
+protected lemma infi_eq {u : ι → uniform_space γ} :
+  (@uniform_convergence_on.uniform_space α γ (⨅ i, u i) 𝔖) =
+  ⨅ i, (@uniform_convergence_on.uniform_space α γ (u i) 𝔖) :=
+begin
+  simp_rw [uniform_convergence_on.uniform_space, uniform_convergence.infi_eq,
+    uniform_space.comap_infi],
+  rw infi_comm,
+  exact infi_congr (λ s, infi_comm)
+end
+
+protected lemma comap_eq {f : γ → β} :
+  (@uniform_convergence_on.uniform_space α γ (‹uniform_space β›.comap f) 𝔖) =
+  (uniform_convergence_on.uniform_space α β 𝔖).comap ((∘) f) :=
+begin
+  simp_rw [uniform_convergence_on.uniform_space, uniform_space.comap_infi,
+            uniform_convergence.comap_eq, ← uniform_space.comap_comap],
+  refl
+end
+
+protected lemma postcomp_uniform_continuous [uniform_space γ] {f : γ → β}
+  (hf : uniform_continuous f):
+  @uniform_continuous (α → γ) (α → β)
+  (uniform_convergence_on.uniform_space α γ 𝔖) (uniform_convergence_on.uniform_space α β 𝔖)
+  ((∘) f) :=
+begin
+  rw uniform_continuous_iff,
+  calc uniform_convergence_on.uniform_space α γ 𝔖
+      ≤ @uniform_convergence_on.uniform_space α γ (‹uniform_space β›.comap f) 𝔖 :
+        uniform_convergence_on.mono_uniform_space (uniform_continuous_iff.mp hf)
+  ... = (uniform_convergence_on.uniform_space α β 𝔖).comap ((∘) f) :
+        uniform_convergence_on.comap_eq
+end
+
+--protected lemma precomp_uniform_continuous {f : γ → α} :
+--  uniform_continuous (λ g : α → β, g ∘ f) :=
+--begin
+--  rw uniform_continuous_iff,
+--  change 𝓤 (α → β) ≤ (𝓤 (γ → β)).comap (prod.map (λ g : α → β, g ∘ f) (λ g : α → β, g ∘ f)),
+--  rw (uniform_convergence.has_basis_uniformity α β).le_basis_iff
+--    ((uniform_convergence.has_basis_uniformity γ β).comap _),
+--  exact λ U hU, ⟨U, hU, λ uv huv x, huv (f x)⟩
+--end
 
 lemma t2_space_of_covering [t2_space β] (h : ⋃₀ 𝔖 = univ) :
   @t2_space _ (uniform_convergence_on.topological_space α β 𝔖) :=

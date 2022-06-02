@@ -575,6 +575,8 @@ begin
     exact ⟨y, hys, rfl⟩ }
 end
 
+lemma fract_mem (x : α) : int.fract x ∈ Icc (0:α) 1 := ⟨int.fract_nonneg _, (int.fract_lt_one _).le⟩
+
 section linear_ordered_field
 
 variables {k : Type*} [linear_ordered_field k] [floor_ring k]

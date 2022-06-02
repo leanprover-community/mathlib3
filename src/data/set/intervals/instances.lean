@@ -94,8 +94,6 @@ lemma div_mem {R : Type*} [linear_ordered_field R] {x y : R} (hx : 0 ≤ x) (hy 
   (hxy : x ≤ y) : x / y ∈ Icc (0:R) 1 :=
 ⟨div_nonneg hx hy, div_le_one_of_le hxy hy⟩
 
-lemma fract_mem (x : ℝ) : int.fract x ∈ Icc (0:ℝ) 1 := ⟨int.fract_nonneg _, (int.fract_lt_one _).le⟩
-
 @[simp] lemma mk_zero (h : (0 : ℝ) ∈ Icc (0 : ℝ) 1) : (⟨0, h⟩ : Icc (0:ℝ) 1) = 0 := rfl
 
 @[simp, norm_cast] lemma coe_eq_zero {x : Icc (0:ℝ) 1} : (x : ℝ) = 0 ↔ x = 0 :=

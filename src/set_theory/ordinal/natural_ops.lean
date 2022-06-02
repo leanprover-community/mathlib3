@@ -156,7 +156,7 @@ begin
   { exact le_rfl }
 end
 
-variables (a b c)
+variables (a b)
 
 theorem nadd_comm : ∀ a b, a ♯ b = b ♯ a
 | a b := begin

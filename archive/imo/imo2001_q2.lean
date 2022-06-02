@@ -58,7 +58,7 @@ theorem imo2001_q2' (ha : 0 < a) (hb : 0 < b) (hc : 0 < c) :
       c ^ 3 / sqrt ((c ^ 3) ^ 2 + 8 * a ^ 3 * b ^ 3) :=
 calc _ ≥ _ : add_le_add (add_le_add (bound ha hb hc) (bound hb hc ha)) (bound hc ha hb)
    ... = 1 : by { move_add [b ^ 4, c ^ 4],
-                  rw [← add_div, ← add_div, div_self $ ne_of_gt $ denom_pos ha hb hc] }
+                  rw [← add_div, ← add_div, div_self (denom_pos ha hb hc).ne'] }
 
 theorem imo2001_q2 (ha : 0 < a) (hb : 0 < b) (hc : 0 < c) :
   1 ≤ a / sqrt (a ^ 2 + 8 * b * c) +

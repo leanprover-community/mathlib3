@@ -36,25 +36,6 @@ and outputs a set of orthogonal vectors which have the same span.
   Construct a version with an orthonormal basis from Gram-Schmidt process.
 -/
 
-namespace basis
-lemma repr_support_of_mem_span {R M : Type*} {ι : Type*} [semiring R]
-[add_comm_monoid M] [module R M]
-  (b : basis ι R M) (s : set ι) (m : M) (hm : m ∈ submodule.span R (b '' s)) : ↑(b.repr m).support ⊆ s :=
-begin
-  rcases (finsupp.mem_span_image_iff_total _).1 hm with ⟨l, hl, hlm⟩,
-  rwa [←hlm, repr_total, ←finsupp.mem_supported R l]
-end
-end basis
-
-namespace submodule
-
-variables (R : Type*) {M : Type*} [semiring R] [add_comm_monoid M] [module R M] (s t : set M)
-
-lemma span_eq_span (hs : s ⊆ span R t) (ht : t ⊆ span R s) : span R s = span R t :=
-le_antisymm (span_le.2 hs) (span_le.2 ht)
-
-end submodule
-
 open_locale big_operators
 open finset
 

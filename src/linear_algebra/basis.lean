@@ -146,6 +146,13 @@ lemma mem_span_repr_support {ι : Type*} (b : basis ι R M) (m : M) :
   m ∈ span R (b '' (b.repr m).support) :=
 (finsupp.mem_span_image_iff_total _).2 ⟨b.repr m, (by simp [finsupp.mem_supported_support])⟩
 
+lemma repr_support_of_mem_span {ι : Type*} (b : basis ι R M) (s : set ι) (m : M)
+  (hm : m ∈ submodule.span R (b '' s)) : ↑(b.repr m).support ⊆ s :=
+begin
+  rcases (finsupp.mem_span_image_iff_total _).1 hm with ⟨l, hl, hlm⟩,
+  rwa [←hlm, repr_total, ←finsupp.mem_supported R l]
+end
+
 end repr
 
 section coord

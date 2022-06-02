@@ -1538,13 +1538,18 @@ bit_cases_on_bit H ff n
   bit_cases_on (bit1 n) H = H tt n :=
 bit_cases_on_bit H tt n
 
-@[simp] lemma bit_cases_on_inj {C : ℕ → Sort u} (H₁ H₂ : Π b n, C (bit b n)) :
-  (λ n, bit_cases_on n H₁) = (λ n, bit_cases_on n H₂) ↔ H₁ = H₂ :=
+lemma bit_cases_on_injective {C : ℕ → Sort u} :
+  function.injective (λ H : Π b n, C (bit b n), λ n, bit_cases_on n H) :=
 begin
-  refine ⟨λ h, funext $ bool.forall_bool.2 ⟨funext $ λ n, _, funext $ λ n, _⟩, λ h, h ▸ rfl⟩,
+  intros H₁ H₂ h,
+  ext1 (_|_); ext1 n,
   { simpa only [bit_cases_on_bit0] using congr_fun h (bit0 n) },
   { simpa only [bit_cases_on_bit1] using congr_fun h (bit1 n) }
 end
+
+@[simp] lemma bit_cases_on_inj {C : ℕ → Sort u} (H₁ H₂ : Π b n, C (bit b n)) :
+  (λ n, bit_cases_on n H₁) = (λ n, bit_cases_on n H₂) ↔ H₁ = H₂ :=
+bit_cases_on_injective.eq_iff
 
 /-! ### decidability of predicates -/
 

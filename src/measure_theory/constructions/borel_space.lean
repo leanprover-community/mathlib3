@@ -1136,6 +1136,55 @@ lemma ae_measurable_restrict_of_antitone_on [linear_order β] [order_closed_topo
   ae_measurable f (μ.restrict s) :=
 @ae_measurable_restrict_of_monotone_on αᵒᵈ β _ _ ‹_› _ _ _ _ _ ‹_› _ _ _ _ hs _ hf
 
+private lemma measurable_set_of_mem_nhds_within_Ioi_aux [densely_ordered α]
+  {s : set α} (h : ∀ x ∈ s, s ∈ 𝓝[>] x) (h' : ∀ x ∈ s, ∃ y, x < y):
+  measurable_set s :=
+begin
+  choose! M hM using h',
+  suffices H : (s \ interior s).countable,
+  { have : s = interior s ∪ (s \ interior s), by rw union_diff_cancel interior_subset,
+    rw this,
+    exact is_open_interior.measurable_set.union H.measurable_set },
+  have A : ∀ x ∈ s, ∃ y ∈ Ioi x, Ioo x y ⊆ s :=
+    λ x hx, (mem_nhds_within_Ioi_iff_exists_Ioo_subset' (hM x hx)).1 (h x hx),
+  choose! y hy h'y using A,
+  have B : set.pairwise_disjoint (s \ interior s) (λ x, Ioo x (y x)),
+  { assume x hx x' hx' hxx',
+    rcases lt_or_gt_of_ne hxx' with h'|h',
+    { apply disjoint_left.2 (λ z hz h'z, _),
+      have : x' ∈ interior s :=
+        mem_interior.2 ⟨Ioo x (y x), h'y _ hx.1, is_open_Ioo, ⟨h', h'z.1.trans hz.2⟩⟩,
+      exact false.elim (hx'.2 this) },
+    { apply disjoint_left.2 (λ z hz h'z, _),
+      have : x ∈ interior s :=
+        mem_interior.2 ⟨Ioo x' (y x'), h'y _ hx'.1, is_open_Ioo, ⟨h', hz.1.trans h'z.2⟩⟩,
+      exact false.elim (hx.2 this) } },
+  apply B.countable_of_is_open (λ x hx, is_open_Ioo) (λ x hx, _),
+  simpa using hy x hx.1
+end
+
+/-- If a set is a right-neighborhood of all of its points, then it is measurable. -/
+lemma measurable_set_of_mem_nhds_within_Ioi_aux [densely_ordered α] {s : set α}
+  (h : ∀ x ∈ s, s ∈ 𝓝[>] x) : measurable_set s :=
+begin
+  by_cases H : ∃ x ∈ s, is_top x,
+  { rcases H with ⟨x₀, x₀s, h₀⟩,
+    have : s = {x₀} ∪ (s \ {x₀}), by rw union_diff_cancel (singleton_subset_iff.2 x₀s),
+    rw this,
+    refine (measurable_set_singleton _).union _,
+    have A : ∀ x ∈ s \ {x₀}, x < x₀ :=
+      λ x hx, lt_of_le_of_ne (h₀ _) (by simpa using hx.2),
+    refine measurable_set_of_mem_nhds_within_Ioi_aux (λ x hx, _) (λ x hx, ⟨x₀, A x hx⟩),
+    obtain ⟨u, hu, us⟩ : ∃ (u : α) (H : u ∈ Ioi x), Ioo x u ⊆ s :=
+      (mem_nhds_within_Ioi_iff_exists_Ioo_subset' (A x hx)).1 (h x hx.1),
+    refine (mem_nhds_within_Ioi_iff_exists_Ioo_subset' (A x hx)).2 ⟨u, hu, λ y hy, ⟨us hy, _⟩⟩,
+    exact ne_of_lt (hy.2.trans_le (h₀ _)) },
+  { apply measurable_set_of_mem_nhds_within_Ioi_aux h,
+    simp only [is_top] at H,
+    push_neg at H,
+    exact H }
+end
+
 end linear_order
 
 @[measurability]
@@ -2078,3 +2127,6 @@ lemma ae_measurable_smul_const {f : α → 𝕜} {μ : measure α} {c : E} (hc :
 (closed_embedding_smul_left hc).measurable_embedding.ae_measurable_comp_iff
 
 end normed_space
+
+instance gliuk : measurable_space ℝ := real.measurable_space
+#print gliuk

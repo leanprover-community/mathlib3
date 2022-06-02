@@ -316,8 +316,6 @@ protected def homeomorph_swap_Pi : @homeomorph (α → Π i, δ i) (Π i, α →
     exact (uniform_convergence.uniform_inducing_Pi_swap α δ).uniform_continuous.continuous
   end }
 
-#exit
-
 end uniform_convergence
 
 namespace uniform_convergence_on

@@ -139,14 +139,9 @@ begin
   apply key,
 end
 
-section center_transfer
-
 lemma transfer_center_eq_pow [fintype (G ⧸ center G)] (g : G) :
   transfer (monoid_hom.id (center G)) g = ⟨g ^ (center G).index, (center G).pow_index_mem g⟩ :=
-begin
-  refine transfer_eq_pow (monoid_hom.id (center G)) g (λ k g₀ hk, _),
-  rw [←mul_right_inj g₀⁻¹, hk, mul_inv_cancel_right],
-end
+transfer_eq_pow (id (center G)) g (λ k _ hk, by rw [←mul_right_inj, hk, mul_inv_cancel_right])
 
 noncomputable def transfer_center_pow [fintype (G ⧸ center G)] : G →* center G :=
 { to_fun := λ g, ⟨g ^ (center G).index, (center G).pow_index_mem g⟩,
@@ -155,12 +150,7 @@ noncomputable def transfer_center_pow [fintype (G ⧸ center G)] : G →* center
     from transfer_center_eq_pow, map_mul] }
 
 noncomputable def transfer_center_pow' (h : (center G).index ≠ 0) : G →* center G :=
-begin
-  haveI : fintype (G ⧸ center G) := fintype_of_index_ne_zero h,
-  exact transfer_center_pow,
-end
-
-end center_transfer
+@transfer_center_pow G _ (fintype_of_index_ne_zero h)
 
 section burnside_transfer
 

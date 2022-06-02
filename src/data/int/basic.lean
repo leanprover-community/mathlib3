@@ -1330,8 +1330,7 @@ end
 theorem is_unit_iff_nat_abs_eq {n : ℤ} : is_unit n ↔ n.nat_abs = 1 :=
 by simp [nat_abs_eq_iff, is_unit_iff]
 
-theorem is_unit_nat_abs {n : ℤ} (hn : is_unit n) : n.nat_abs = 1 :=
-is_unit_iff_nat_abs_eq.mp hn
+alias is_unit_iff_nat_abs_eq ↔ is_unit_nat_abs _
 
 lemma is_unit_iff_abs_eq {x : ℤ} : is_unit x ↔ abs x = 1 :=
 by rw [is_unit_iff_nat_abs_eq, abs_eq_nat_abs, ←int.coe_nat_one, coe_nat_inj']

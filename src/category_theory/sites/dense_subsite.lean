@@ -458,7 +458,7 @@ open category_theory
 variables {C D : Type u} [category.{v} C] [category.{v} D]
 variables {G : C ⥤ D} [full G] [faithful G]
 variables {J : grothendieck_topology C} {K : grothendieck_topology D}
-variables {A : Type w} [category.{max u v} A] [limits.has_limits A]
+variables {A : Type w} [category.{max v u} A] [limits.has_limits A]
 variables (Hd : cover_dense K G) (Hp : cover_preserving J K G) (Hl : cover_lifting J K G)
 
 include Hd Hp Hl

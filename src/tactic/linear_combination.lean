@@ -152,27 +152,27 @@ Given that `l_sum1 = r_sum1`, `l_h1 = r_h1`, ..., `l_hn = r_hn`, and given
     equalities added to the base equation holds
 -/
 meta def make_sum_of_hyps_helper (expected_tp : expr) :
-  option (tactic expr) → list name → list pexpr → tactic expr
+  option (tactic expr) → list expr → list pexpr → tactic expr
 | none [] []                                                             :=
   to_expr ``(rfl : (0 : %%expected_tp) = 0)
 | (some tactic_hcombo) [] []                                             :=
   do tactic_hcombo
-| none (h_equality_nam :: h_eqs_names) (coeff :: coeffs)                 :=
+| none (h_equality :: h_eqs_names) (coeff :: coeffs)                 :=
  do
     -- This is the first equality, and we do not have anything to add to it
-    h_equality ← get_local h_equality_nam,
+    -- h_equality ← get_local h_equality_nam,
     `(@eq %%eqtp _ _) ← infer_type h_equality |
-      fail!"{h_equality_nam} is expected to be a proof of an equality",
+      fail!"{h_equality} is expected to be a proof of an equality",
     is_def_eq eqtp expected_tp <|>
-      fail!("{h_equality_nam} is an equality between terms of type {eqtp}, but is expected to be" ++
+      fail!("{h_equality} is an equality between terms of type {eqtp}, but is expected to be" ++
         " between terms of type {expected_tp}"),
     make_sum_of_hyps_helper
       (some (mul_equality_expr h_equality coeff))
       h_eqs_names
       coeffs
-| (some tactic_hcombo) (h_equality_nam :: h_eqs_names) (coeff :: coeffs) :=
+| (some tactic_hcombo) (h_equality :: h_eqs_names) (coeff :: coeffs) :=
   do
-    h_equality ← get_local h_equality_nam,
+    -- h_equality ← get_local h_equality_nam,
     hcombo ← tactic_hcombo,
     -- We want to add this weighted equality to the current equality in
     --   the hypothesis
@@ -199,7 +199,7 @@ Given a list of names referencing equalities and a list of pexprs representing
 * Output: an `expr`, which proves that the weighted sum of the equalities
     holds
 -/
-meta def make_sum_of_hyps (expected_tp : expr) (h_eqs_names : list name) (coeffs : list pexpr) :
+meta def make_sum_of_hyps (expected_tp : expr) (h_eqs_names : list expr) (coeffs : list pexpr) :
   tactic expr :=
 make_sum_of_hyps_helper expected_tp none h_eqs_names coeffs
 
@@ -306,11 +306,12 @@ Note: The left and right sides of all the equalities should have the same
 
 * Output: N/A
 -/
-meta def linear_combination (h_eqs_names : list name) (coeffs : list pexpr)
+meta def linear_combination (h_eqs_names : list pexpr) (coeffs : list pexpr)
   (config : linear_combination_config := {}) : tactic unit :=
 do
   `(@eq %%ext _ _) ← target | fail "linear_combination can only be used to prove equality goals",
-  hsum ← make_sum_of_hyps ext h_eqs_names coeffs,
+  h_eqs ← h_eqs_names.mmap to_expr,
+  hsum ← make_sum_of_hyps ext h_eqs coeffs,
   hsum_on_left ← move_to_left_side hsum,
   move_target_to_left_side,
   set_goal_to_hleft_eq_tleft hsum_on_left,
@@ -330,9 +331,12 @@ was given a `pexpr ` of ``(1) along with the identifier.
 
 * Output: a `lean.parser (name × pexpr)`
 -/
-meta def parse_name_pexpr_pair : lean.parser (name × pexpr) :=
-(tk "(" *> prod.mk <$> ident <*> (tk "," *> parser.pexpr 0 <* tk ")")) <|>
-((λ id, (id, ``(1))) <$> ident)
+meta def parse_name_pexpr_pair : lean.parser (pexpr × pexpr) :=
+with_desc "(pexpr, pexpr) <|> (pexpr)" $ do
+  tk "(",
+  pe ← parser.pexpr 0,
+  (tk ")" >> return (pe, ``(1))) <|>
+  (do tk ",", cf ← parser.pexpr 0, tk ")", return (pe, cf))
 
 /--
 `linear_combination` attempts to prove the target by creating and applying a
@@ -365,7 +369,7 @@ by linear_combination (h1, 1) (h2, -2)
 
 example (x y : ℤ) (h1 : x*y + 2*x = 1) (h2 : x = y) :
   x*y = -2*y + 1 :=
-by linear_combination h1 (h2, -2)
+by linear_combination (h1) (h2, -2)
 
 example (x y z : ℝ) (ha : x + 2*y - z = 4) (hb : 2*x + y + z = -2)
     (hc : x + 2*y + z = 2) :

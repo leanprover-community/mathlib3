@@ -639,6 +639,14 @@ le_is_glb_iff (is_least_Inf hs).is_glb
 
 lemma Inf_mem (hs : s.nonempty) : Inf s ∈ s := (is_least_Inf hs).1
 
+lemma monotone_on.map_Inf {β : Type*} [conditionally_complete_lattice β] {f : α → β}
+  (hf : monotone_on f s) (hs : s.nonempty) : f (Inf s) = Inf (f '' s) :=
+(hf.map_is_least (is_least_Inf hs)).cInf_eq.symm
+
+lemma monotone.map_Inf {β : Type*} [conditionally_complete_lattice β] {f : α → β} (hf : monotone f)
+  (hs : s.nonempty) : f (Inf s) = Inf (f '' s) :=
+(hf.map_is_least (is_least_Inf hs)).cInf_eq.symm
+
 end conditionally_complete_linear_order
 
 /-!

@@ -76,7 +76,7 @@ instance fact_one_le_two_real : fact ((1:ℝ) ≤ 2) := ⟨one_le_two⟩
 
 namespace pi_Lp
 
-variables (p : ℝ) [fact_one_le_p : fact (1 ≤ p)] (α : ι → Type*) (β : ι → Type*)
+variables (p : ℝ) [fact_one_le_p : fact (1 ≤ p)] (𝕜 : Type*) (α : ι → Type*) (β : ι → Type*)
 
 /-- Canonical bijection between `pi_Lp p α` and the original Pi type. We introduce it to be able
 to compare the `L^p` and `L^∞` distances through it. -/
@@ -285,7 +285,7 @@ subtype.ext $ by { push_cast, exact norm_eq_of_L2 x }
 
 include fact_one_le_p
 
-variables (𝕜 : Type*) [normed_field 𝕜]
+variables [normed_field 𝕜]
 
 /-- The product of finitely many normed spaces is a normed space, with the `L^p` norm. -/
 instance normed_space [Π i, semi_normed_group (β i)] [Π i, normed_space 𝕜 (β i)] :
@@ -351,5 +351,14 @@ lemma nnnorm_equiv_symm_one {β} [semi_normed_group β] [has_one β] :
 lemma norm_equiv_symm_one {β} [semi_normed_group β] [has_one β] :
   ∥(pi_Lp.equiv p (λ _ : ι, β)).symm 1∥ = fintype.card ι ^ (1 / p) * ∥(1 : β)∥ :=
 (norm_equiv_symm_const (1 : β)).trans rfl
+
+variables (𝕜)
+
+/-- `pi_Lp.equiv` as a linear map. -/
+@[simps {fully_applied := ff}]
+protected def linear_equiv : pi_Lp p β ≃ₗ[𝕜] Π i, β i :=
+{ to_fun := pi_Lp.equiv _ _,
+  inv_fun := (pi_Lp.equiv _ _).symm,
+  ..linear_equiv.refl _ _}
 
 end pi_Lp

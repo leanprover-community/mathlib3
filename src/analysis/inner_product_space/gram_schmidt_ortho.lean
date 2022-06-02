@@ -25,6 +25,8 @@ and outputs a set of orthogonal vectors which have the same span.
 - `gram_schmidt_ne_zero` :
   If the input vectors of `gram_schmidt` are linearly independent,
   then the output vectors are non-zero.
+- `gram_schmidt_basis` :
+  The basis produced by the Gram-Schmidt process when given a basis as input.
 - `gram_schmidt_normed` :
   the normalized `gram_schmidt` (i.e each vector in `gram_schmidt_normed` has unit length.)
 - `gram_schmidt_orthornormal` :
@@ -219,6 +221,35 @@ begin
   simp only [set.mem_Iio, lt_self_iff_false, not_false_iff]
 end
 
+/-- `gram_schmidt` produces a triangular matrix of vectors when given a basis. -/
+lemma gram_schmidt_triangular {i j : ι} (hij : i < j) (b : basis ι 𝕜 E) :
+  b.repr (gram_schmidt 𝕜 b i) j = 0 :=
+begin
+  have : gram_schmidt 𝕜 b i ∈ span 𝕜 (gram_schmidt 𝕜 b '' set.Iio j),
+    from subset_span ((set.mem_image _ _ _).2 ⟨i, hij, rfl⟩),
+  have : gram_schmidt 𝕜 b i ∈ span 𝕜 (b '' set.Iio j),
+    by rwa [← span_gram_schmidt_Iio 𝕜 b j],
+  have : ↑(((b.repr) (gram_schmidt 𝕜 b i)).support) ⊆ set.Iio j,
+    from basis.repr_support_of_mem_span b (set.Iio j) (gram_schmidt 𝕜 b i) this,
+  exact (finsupp.mem_supported' _ _).1
+    ((finsupp.mem_supported 𝕜 _).2 this) j (not_mem_Iio.2 (le_refl j)),
+end
+
+/-- `gram_schmidt` produces linearly independent vectors when given linearly independent vectors. -/
+lemma gram_schmidt_linear_independent (f : ι → E) (h₀ : linear_independent 𝕜 f) :
+  linear_independent 𝕜 (gram_schmidt 𝕜 f) :=
+linear_independent_of_ne_zero_of_inner_eq_zero
+    (λ i, gram_schmidt_ne_zero _ _ _ h₀) (λ i j, gram_schmidt_orthogonal 𝕜 f)
+
+/-- When given a basis, `gram_schmidt` produces a basis. -/
+noncomputable def gram_schmidt_basis (b : basis ι 𝕜 E) : basis ι 𝕜 E :=
+basis.mk
+  (gram_schmidt_linear_independent 𝕜 b b.linear_independent)
+  ((span_gram_schmidt 𝕜 b).trans b.span_eq)
+
+lemma coe_gram_schmidt_basis (b : basis ι 𝕜 E) :
+  (gram_schmidt_basis 𝕜 b : ι → E) = gram_schmidt 𝕜 b := basis.coe_mk _ _
+
 /-- the normalized `gram_schmidt`
 (i.e each vector in `gram_schmidt_normed` has unit length.) -/
 noncomputable def gram_schmidt_normed (f : ι → E) (n : ι) : E :=
@@ -243,21 +274,3 @@ begin
     repeat { right },
     exact gram_schmidt_orthogonal 𝕜 f hij }
 end
-
-lemma gram_schmidt_triangular {i j : ι} (hij : i < j) (b : basis ι 𝕜 E) :
-  b.repr (gram_schmidt 𝕜 b i) j = 0 :=
-begin
-  have : gram_schmidt 𝕜 b i ∈ span 𝕜 (gram_schmidt 𝕜 b '' set.Iio j),
-    from subset_span ((set.mem_image _ _ _).2 ⟨i, hij, rfl⟩),
-  have : gram_schmidt 𝕜 b i ∈ span 𝕜 (b '' set.Iio j),
-    by rwa [← span_gram_schmidt_Iio 𝕜 b j],
-  have : ↑(((b.repr) (gram_schmidt 𝕜 b i)).support) ⊆ set.Iio j,
-    from basis.repr_support_of_mem_span b (set.Iio j) (gram_schmidt 𝕜 b i) this,
-  exact (finsupp.mem_supported' _ _).1
-    ((finsupp.mem_supported 𝕜 _).2 this) j (not_mem_Iio.2 (le_refl j)),
-end
-
-
-#check linear_independent_of_ne_zero_of_inner_eq_zero
-#check basis.mk
-#check mem_span_finite_of_mem_span

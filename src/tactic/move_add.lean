@@ -158,68 +158,6 @@ meta def recurse_on_expr (hyp : option name) (ll : list (bool × pexpr)) (e : ex
 do results ← (candidates tt e).mmap (sorted_sum hyp ll),
   return $ results.transpose.map list.band
 
-/-
-/-- Partially traverses an expression in search for a sum of terms.
-When `recurse_on_expr` finds a sum, it sorts it using `sorted_sum`. -/
-meta def recurse_on_expr' (hyp : option name) (ll : list (bool × pexpr)) : bool → expr → tactic (list bool)
-| bo e@`(%%f + %%g)              := do
-  funused ← recurse_on_expr ff f, --trace "funused" *> trace funused,
-  li_unused ← [f,g].mmap (recurse_on_expr ff), --trace li_unused,
-  let fg_unused := li_unused.transpose.map list.band, --trace fg_unused,
-  if bo then
-    do e_unused ← move_add.sorted_sum hyp ll e, --trace "e_unused" *> trace e_unused,
-    return $ fg_unused.zip_with band e_unused
-  else return fg_unused
-| bo (expr.lam _ _ e f)          := do
-  li_unused ← [e,f].mmap (recurse_on_expr tt),
-  return $ li_unused.transpose.map list.band
-| bo (expr.pi  _ _ e f)          := do
-  li_unused ← [e,f].mmap (recurse_on_expr tt),
-  return $ li_unused.transpose.map list.band
-| bo (expr.mvar  _ _ e)          := do
-  li_unused ← [e].mmap (recurse_on_expr tt),
-  return $ li_unused.transpose.map list.band
---| bo (expr.local_const  _ _ _ e) := do
---  li_unused ← [e].mmap (recurse_on_expr tt),
---  return $ li_unused.transpose.map list.band
-| bo (expr.app e f)              := do
-  li_unused ← [e,f].mmap (recurse_on_expr tt),
-  return $ li_unused.transpose.map list.band
-| bo (expr.elet _ e f g)         := do
-  li_unused ← [e,f,g].mmap (recurse_on_expr tt),
-  return $ li_unused.transpose.map list.band
-| bo (expr.local_const _ _ _ _)  := do return [tt]
-| bo e                           := do
-  li_unused ← e.get_app_args.mmap (recurse_on_expr tt),
-  return $ li_unused.transpose.map list.band
--/
-
-/-
-meta def recurse_on_expr (hyp : option name) (ll : list (bool × pexpr)) : expr → tactic (list bool)
-| e@`(%%_ + %%_)              := sorted_sum hyp ll e
-| (expr.lam _ _ e f)          := do
-  li_unused ← (e::f::[]).mmap recurse_on_expr,
-  return $ li_unused.transpose.map list.band
-| (expr.pi  _ _ e f)          := do
-  li_unused ← (e::f::[]).mmap recurse_on_expr,
-  return $ li_unused.transpose.map list.band
-| (expr.mvar  _ _ e)          := do
-  li_unused ← (e::[]).mmap recurse_on_expr,
-  return $ li_unused.transpose.map list.band
-| (expr.local_const  _ _ _ e) := do
-  li_unused ← (e::[]).mmap recurse_on_expr,
-  return $ li_unused.transpose.map list.band
-| (expr.app e f)              := do
-  li_unused ← (e::f::[]).mmap recurse_on_expr,
-  return $ li_unused.transpose.map list.band
-| (expr.elet _ e f g)         := do
-  li_unused ← (e::f::g::[]).mmap recurse_on_expr,
-  return $ li_unused.transpose.map list.band
-| e                           := do
-  li_unused ← e.get_app_args.mmap recurse_on_expr,
-  return $ li_unused.transpose.map list.band
--/
-
 /-- Passes the user input `ll` to `recurse_on_expr` at a single location, that could either be
 `none` (referring to the goal) or `some name` (referring to hypothesis `name`).  Returns a pair
 consisting of a boolean and a further list of booleans.  The single boolean is `tt` iff the tactic

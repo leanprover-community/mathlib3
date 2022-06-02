@@ -308,8 +308,8 @@ calc (p.bind_on_support f).to_outer_measure s
     tsum_congr (λ a, congr_arg (has_mul.mul ↑(p a)) begin
       split_ifs with h h,
       { refine ennreal.tsum_eq_zero.mpr (λ x, _),
-        simp only [g, h, dif_pos, ennreal.coe_zero],
-        exact if_t_t (x ∈ s) 0 },
+        simp only [g, h, dif_pos],
+        apply if_t_t },
       { simp only [to_outer_measure_apply, g, h, set.indicator_apply, not_false_iff, dif_neg] }
     end)
 

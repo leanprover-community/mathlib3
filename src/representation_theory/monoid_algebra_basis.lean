@@ -16,7 +16,9 @@ diagonal action of `G` on `Gⁿ.`
 
 In particular, we define morphisms of `k`-linear `G`-representations between `k[Gⁿ⁺¹]` and
 `k[G] ⊗ₖ k[Gⁿ]` (on which `G` acts by `ρ(g₁)(g₂ ⊗ x) = (g₁ * g₂) ⊗ x`) which we will later show
-define an isomorphism. (Will finish in the morning).
+define an isomorphism. From this we will deduce that `k[Gⁿ⁺¹]` is free over `k[G]`.
+The freeness of these modules means we can use them to build a projective resolution of the
+(trivial) `k[G]`-module `k`, which is useful in group cohomology.
 
 ## Main definitions
 

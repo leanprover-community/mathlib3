@@ -34,6 +34,16 @@ and outputs a set of orthogonal vectors which have the same span.
   Construct a version with an orthonormal basis from Gram-Schmidt process.
 -/
 
+namespace basis
+lemma repr_support_of_mem_span {R M : Type*} {ι : Type*} [semiring R]
+[add_comm_monoid M] [module R M]
+  (b : basis ι R M) (s : set ι) (m : M) (hm : m ∈ submodule.span R (b '' s)) : ↑(b.repr m).support ⊆ s :=
+begin
+  rcases (finsupp.mem_span_image_iff_total _).1 hm with ⟨l, hl, hlm⟩,
+  rwa [←hlm, repr_total, ←finsupp.mem_supported R l]
+end
+end basis
+
 open_locale big_operators
 open finset
 
@@ -181,4 +191,18 @@ begin
       is_R_or_C.conj_of_real, mul_eq_zero, inv_eq_zero, is_R_or_C.of_real_eq_zero, norm_eq_zero],
     repeat { right },
     exact gram_schmidt_orthogonal 𝕜 f hij }
+end
+
+lemma gram_schmidt_triangular [succ_order ι] [is_succ_archimedean ι] {i j : ι}
+  (hij : i < j) (b : basis ι 𝕜 E) :
+  b.repr (gram_schmidt 𝕜 b i) j = 0 :=
+begin
+  have : gram_schmidt 𝕜 b i ∈ span 𝕜 (gram_schmidt 𝕜 b '' set.Iio j),
+    from subset_span ((set.mem_image _ _ _).2 ⟨i, hij, rfl⟩),
+  have : gram_schmidt 𝕜 b i ∈ span 𝕜 (b '' set.Iio j),
+    by rwa [← span_gram_schmidt 𝕜 b j],
+  have : ↑(((b.repr) (gram_schmidt 𝕜 b i)).support) ⊆ set.Iio j,
+    from basis.repr_support_of_mem_span b (set.Iio j) (gram_schmidt 𝕜 b i) this,
+  exact (finsupp.mem_supported' _ _).1
+    ((finsupp.mem_supported 𝕜 _).2 this) j (not_mem_Iio.2 (le_refl j)),
 end

@@ -125,15 +125,14 @@ variable (r : α → α → Prop)
 def cut_expand (s' s : multiset α) : Prop :=
 ∃ (t : multiset α) (a : α), (∀ a' ∈ t, r a' a) ∧ s' + {a} = s + t
 
-lemma cut_expand_pair_right {a b' b} (h' : r b' b) : cut_expand r {a, b'} {a, b} :=
-begin
-  refine ⟨{b'}, b, λ _ h, _, _⟩,
-  { cases mem_singleton.1 h, exact h' },
-  { dsimp [multiset.has_insert], simp only [← singleton_add], abel },
-end
+lemma cut_expand_cons {a' a} (s) (hr : r a' a) : cut_expand r (a' ::ₘ s) (a ::ₘ s) :=
+⟨{a'}, a, λ _ h, (mem_singleton.1 h).symm ▸ hr, by { simp only [← singleton_add], abel }⟩
 
-lemma cut_expand_pair_left {a' a b} (h' : r a' a) : cut_expand r {a', b} {a, b} :=
-by { convert cut_expand_pair_right r h' using 1, apply pair_comm, apply pair_comm }
+lemma cut_expand_pair_left {a' a b} (hr : r a' a) : cut_expand r {a', b} {a, b} :=
+cut_expand_cons r {b} hr
+
+lemma cut_expand_pair_right {a b' b} (hr : r b' b) : cut_expand r {a, b'} {a, b} :=
+by { convert cut_expand_pair_left r hr using 1, apply pair_comm, apply pair_comm }
 
 lemma cut_expand_double {a a₁ a₂ b} (h₁ : r a₁ a) (h₂ : r a₂ a) : cut_expand r {a₁, a₂, b} {a, b} :=
 begin

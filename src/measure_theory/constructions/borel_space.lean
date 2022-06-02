@@ -2127,6 +2127,3 @@ lemma ae_measurable_smul_const {f : α → 𝕜} {μ : measure α} {c : E} (hc :
 (closed_embedding_smul_left hc).measurable_embedding.ae_measurable_comp_iff
 
 end normed_space
-
-instance gliuk : measurable_space ℝ := real.measurable_space
-#print gliuk

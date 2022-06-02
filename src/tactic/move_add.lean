@@ -99,14 +99,16 @@ do
   (l1, l2, l3, is_unused) ← move_left_or_right lp_exp sl [],
   return (l1 ++ l3 ++ l2, is_unused)
 
-/-- Partially traverses an expression in search for a sum of terms.
+/-- Partially traverses an expression in search for a sum of terms and producing a list of them.
 In the intended application, the `bool` input is initially set to `tt`.
 The first time `candidates` finds an expression whose head symbol is `has_add.add`,
 `candidates` adds the expression to the list, and recurses inside the summands as well,
 but with the boolean set to `ff`.  This prevents partial summands of a large sum to
-appear.  Once it finds that the head symbol is not `has_add.add`, then it reverts the
-boolean to `tt`, so that it can isolate further sums later on.
-Thus applying `candidates` to `a + (b + c)*(d + e) + f + g` produces
+appear.  Once `candidates` finds a term whose head symbol is not `has_add.add`,
+it reverts the boolean to `tt`, so that the recursion can isolate further sums later in the
+expression.
+
+For instance, applying `candidates` to `a + (b + c)*(d + e) + f + g` produces
 `[a + (b + c) * (d + e) + f + g, b + c, d + e]`. -/
 meta def candidates : bool → expr → list expr
 | bo e@`(%%a + %%b)              := if bo then [e] ++ candidates ff a ++ candidates ff b
@@ -151,14 +153,14 @@ do
 
 /--  Extracts the "summand expressions" in `e` via `candidates` and, to each one of them, applies
 `sorted_sum`.  Besides the state changes, which involve the reordering of the addends,
-`recurse_on_expr` outputs a list of Booleans, encoding which user input was unused
+`is_unused_and_sort` outputs a list of Booleans, encoding which user input was unused
 (`tt`) and which one was used (`ff`).  This information is used for reporting unused inputs. -/
-meta def recurse_on_expr (hyp : option name) (ll : list (bool × pexpr)) (e : expr) :
+meta def is_unused_and_sort (hyp : option name) (ll : list (bool × pexpr)) (e : expr) :
   tactic (list bool) :=
 do results ← (candidates tt e).mmap (sorted_sum hyp ll),
   return $ results.transpose.map list.band
 
-/-- Passes the user input `ll` to `recurse_on_expr` at a single location, that could either be
+/-- Passes the user input `ll` to `is_unused_and_sort` at a single location, that could either be
 `none` (referring to the goal) or `some name` (referring to hypothesis `name`).  Returns a pair
 consisting of a boolean and a further list of booleans.  The single boolean is `tt` iff the tactic
 did *not* change the goal on which it was acting.  The list of booleans records which variable in
@@ -169,12 +171,12 @@ This definition is useful to streamline error catching. -/
 meta def with_errors (ll : list (bool × pexpr)) : option name → tactic (bool × list bool)
 | (some hyp) := do
   thyp ← get_local hyp >>= infer_type,
-  is_unused ← recurse_on_expr hyp ll thyp,
+  is_unused ← is_unused_and_sort hyp ll thyp,
   nthyp ← get_local hyp >>= infer_type,
   if thyp = nthyp then return (tt, is_unused) else return (ff, is_unused)
 | none       := do
   t ← target,
-  is_unused ← recurse_on_expr none ll t,
+  is_unused ← is_unused_and_sort none ll t,
   tn ← target,
   if t = tn then return (tt, is_unused) else return (ff, is_unused)
 

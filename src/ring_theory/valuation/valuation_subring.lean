@@ -434,23 +434,17 @@ def unit_group_ordered_embedding : valuation_subring K ↪o subgroup Kˣ :=
     dsimp,
     split,
     { rintros h x hx,
-      by_cases h_1 : x = 0, { simp only [h_1, zero_mem] },
       rw [← A.valuation_le_one_iff x, le_iff_lt_or_eq] at hx,
+      by_cases h_1 : x = 0, { simp only [h_1, zero_mem] },
+      by_cases h_2 : 1 + x = 0,
+        { simp only [← add_eq_zero_iff_neg_eq.1 h_2, neg_mem _ _ (one_mem _)] },
       cases hx,
-      { have hh : ¬1 + x = 0,
-        { by_contra h_2,
-          rw add_eq_zero_iff_neg_eq at h_2,
-          apply_fun A.valuation at h_2,
-          rwa [← h_2, valuation.map_neg, valuation.map_one, lt_self_iff_false] at hx },
-        have := h (show (units.mk0 (1 + x) hh) ∈ A.unit_group,
-          by exact A.valuation.map_one_add_of_lt hx),
+      { have := h (show (units.mk0 _ h_2) ∈ A.unit_group, from A.valuation.map_one_add_of_lt hx),
         simpa using B.add_mem _ _
-          (show 1 + x ∈ B, by exact set_like.coe_mem ((B.unit_group_equiv ⟨_, this⟩) : B))
-          (B.neg_mem _ B.one_mem),
-      },
-      { have := h (show (units.mk0 x h_1) ∈ A.unit_group, by exact hx),
-        refine set_like.coe_mem ((B.unit_group_equiv ⟨_, this⟩) : B) }
-    },
+          (show 1 + x ∈ B, from set_like.coe_mem ((B.unit_group_equiv ⟨_, this⟩) : B))
+          (B.neg_mem _ B.one_mem) },
+      { have := h (show (units.mk0 x h_1) ∈ A.unit_group, from hx),
+        refine set_like.coe_mem ((B.unit_group_equiv ⟨_, this⟩) : B) } },
     { rintros h x (hx : A.valuation x = 1),
       apply_fun A.map_of_le B h at hx,
       simpa using hx }
@@ -528,14 +522,15 @@ begin
   { intros h x, apply h },
   { intros h x,
     by_cases hx : x = 0,
-    { simp only [hx, zero_sub, valuation.map_neg, valuation.map_one, lt_self_iff_false], },
+    { simp only [hx, zero_sub, valuation.map_neg, valuation.map_one, lt_self_iff_false] },
     { exact h (units.mk0 x hx) } }
 end
 
-lemma one_lt_valuation_iff_valuation_inv_lt_one (x : K) :
+--- move to basic
+lemma one_lt_val_iff_val_inv_lt_one {x : K} (h : x ≠ 0) :
   1 < A.valuation x ↔ A.valuation x⁻¹ < 1 :=
 begin
-  sorry,
+  simpa using (inv_lt_inv₀ (A.valuation.ne_zero_iff.2 h) one_ne_zero).symm,
 end
 
 def principal_unit_group_ordered_embedding :
@@ -548,61 +543,20 @@ def principal_unit_group_ordered_embedding :
     split,
     { rintros h x hx,
       by_cases h_1 : x = 0, { simp only [h_1, zero_mem] },
-      by_contra h_2,
-      rw [← valuation_le_one_iff, not_le, B.one_lt_valuation_iff_valuation_inv_lt_one x,
-        ← add_sub_cancel x⁻¹ 1] at h_2,
-      have hh : ¬x⁻¹ + 1 = 0,
-      { by_contra,
-        rwa [h, zero_sub, valuation.map_neg, valuation.map_one, lt_self_iff_false] at h_2 },
-      rw [← units.coe_mk0 hh, ← mem_principal_unit_group_iff] at h_2,
-      have := h h_2,
-      rw [mem_principal_unit_group_iff, units.coe_mk0 hh, add_sub_cancel, valuation.map_inv,
-        ← inv_one, inv_lt_inv₀ (A.valuation.ne_zero_iff.2 h_1) one_ne_zero, ← not_le,
-        valuation_le_one_iff] at this,
-      exact this hx,
-    },
+      by_cases h_2 : x⁻¹ + 1 = 0,
+      { rw add_eq_zero_iff_eq_neg at h_2,
+        apply_fun B.valuation at h_2,
+        rw [valuation.map_neg, valuation.map_one, valuation.map_inv, inv_eq_one₀] at h_2,
+        exact (B.valuation_le_one_iff _).1 (le_of_eq h_2) },
+      by_contra h_3,
+      rw [← valuation_le_one_iff, not_le, B.one_lt_val_iff_val_inv_lt_one h_1, ← add_sub_cancel x⁻¹,
+        ← units.coe_mk0 h_2, ← mem_principal_unit_group_iff] at h_3,
+      have := h h_3,
+      rw [mem_principal_unit_group_iff, units.coe_mk0 h_2, add_sub_cancel,
+        ← A.one_lt_val_iff_val_inv_lt_one h_1, ← not_le, valuation_le_one_iff] at this,
+      exact this hx },
     { rintros h x hx,
-      by_contra h_1,
-      cases lt_or_eq_of_le (le_of_not_lt ((A.mem_principal_unit_group_iff _).not.1 h_1)),
-      { have := not_le_of_lt h_2,
-        rw valuation_le_one_iff at this,
-        have p : (x : K) ∉ A,
-        { by_contra h_3,
-          simpa [← sub_eq_add_neg] using A.add_mem _ _ h_3 (A.neg_mem _ A.one_mem) },
-        rw [← valuation_le_one_iff, not_le, A.one_lt_valuation_iff_valuation_inv_lt_one x] at p,
-        have q := A.valuation.map_one_sub_of_lt p,
-        have tdo : 1 - (x : K)⁻¹ ≠ 0,
-        { by_contra,
-          rw sub_eq_zero at h,
-          apply_fun A.valuation at h,
-          rw valuation.map_one at h,
-          rwa [h, lt_self_iff_false] at p,
-        },
-        rw [← units.coe_mk0 tdo, ← mem_unit_group_iff] at q,
-        rw ← unit_group_ordered_embedding.map_rel_iff' at h,
-        have r := h q,
-        change units.mk0 (1 - (↑x)⁻¹) tdo ∈ B.unit_group at r,
-        rw mem_unit_group_iff at r,
-        change B.valuation (1 - x⁻¹) = 1 at r,
-        have s := B.valuation.map_one_add_of_lt hx,
-        rw add_sub_cancel'_right at s,
-        rw [← mul_one (B.valuation (_)), ← r, ← valuation.map_mul, r, mul_sub, mul_one,
-          ← units.coe_inv', units.mul_inv] at s,
-        rwa [mem_principal_unit_group_iff, s, lt_self_iff_false] at hx,
-      },
-      { have hh : ¬(x : K) - 1 = 0,
-        { by_contra,
-          rw [mem_principal_unit_group_iff, h, valuation.map_zero, zero_lt_iff, not_ne_iff] at h_1,
-          exact one_ne_zero h_1},
-        symmetry' at h_2,
-        rw [← units.coe_mk0 hh, ← mem_unit_group_iff] at h_2,
-        have : units.mk0 ((x : K) - 1) hh ∈ B.unit_group,
-        { rw ← unit_group_ordered_embedding.map_rel_iff' at h,
-          exact h h_2 },
-        rw mem_unit_group_iff at this,
-        rwa [mem_principal_unit_group_iff, ← units.coe_mk0 hh, this, lt_self_iff_false] at hx,
-      }
-    }
+      by_contra h_1, from not_lt.2 (monotone_map_of_le _ _ h (not_lt.1 h_1)) hx }
   end }
 
 lemma principal_units_le_units : A.principal_unit_group ≤ A.unit_group :=
@@ -677,49 +631,6 @@ mul_equiv.trans (mul_equiv.trans
   (quotient_group.equiv_quotient_of_eq A.ker_unit_group_to_residue_field_units).symm
   (quotient_group.quotient_ker_equiv_range A.unit_group_to_residue_field_units))
   A.range_unit_group_to_residue_field_units
-
-/-
-begin
-  split,
-  { have a := function.injective.comp
-      (quotient_group.range_ker_lift_injective A.unit_group_to_residue_field_units)
-      (mul_equiv.injective
-      (quotient_group.equiv_quotient_of_eq A.ker_unit_group_to_residue_field_units).symm ),
-    have b := mul_equiv.injective A.range_unit_group_to_residue_field_units,
-    refine function.injective.comp b a,
-  },
-  { have a := function.surjective.comp
-      (quotient_group.range_ker_lift_surjective A.unit_group_to_residue_field_units)
-      (mul_equiv.surjective
-      (quotient_group.equiv_quotient_of_eq A.ker_unit_group_to_residue_field_units).symm ),
-    have b := mul_equiv.surjective A.range_unit_group_to_residue_field_units,
-    refine function.injective.comp b a,
-  }
-end
--/
-
-/-
-def unit_group_mod_to_residue_field_units_two :
-  (A.unit_group ⧸ (A.principal_unit_group.comap A.unit_group.subtype)) →*
-  (local_ring.residue_field A)ˣ :=
-  monoid_hom.comp (A.range_unit_group_to_residue_field_units.to_monoid_hom)
-    ( monoid_hom.comp
-    (quotient_group.range_ker_lift A.unit_group_to_residue_field_units)
-    (quotient_group.equiv_quotient_of_eq A.ker_unit_group_to_residue_field_units).symm )
--/
-
-/-
-lemma mem_residue_field_units_has_unit_rep (x : (local_ring.residue_field A)ˣ) :
-  is_unit (quotient.out' (x : local_ring.residue_field A)) :=
-begin
-  by_contra,
-  rw valuation_eq_one_iff at h,
-  have := valuation_lt_one_or_eq_one _ (quotient.out' (x : local_ring.residue_field A)),
-  rw or_iff_not_imp_right at this,
-  simpa only [units.ne_zero, ← valuation_lt_one_iff, ← ideal.quotient.eq_zero_iff_mem,
-    ← ideal.quotient.mk_eq_mk, ← submodule.quotient.mk'_eq_mk, quotient.out_eq'] using this h,
-end
--/
 
 end unit_group
 

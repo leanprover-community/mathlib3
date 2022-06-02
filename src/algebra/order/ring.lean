@@ -360,7 +360,7 @@ by classical; exact decidable.lt_mul_of_one_lt_right
 protected lemma decidable.lt_mul_of_one_lt_left [@decidable_rel α (≤)]
   (hb : 0 < b) (h : 1 < a) : b < a * b :=
 suffices 1 * b < a * b, by rwa one_mul at this,
-decidable.mul_lt_mul h le_rfl hb (zero_le_one.trans h.le)
+decidable.mul_lt_mul h le_rfl hb (le_trans zero_le_one h.le)
 
 lemma lt_mul_of_one_lt_left : 0 < b → 1 < a → b < a * b :=
 by classical; exact decidable.lt_mul_of_one_lt_left
@@ -372,7 +372,7 @@ lt_mul_of_one_lt_left ha one_lt_two
 protected lemma decidable.add_le_mul_two_add [@decidable_rel α (≤)] {a b : α}
   (a2 : 2 ≤ a) (b0 : 0 ≤ b) : a + (2 + b) ≤ a * (2 + b) :=
 calc a + (2 + b) ≤ a + (a + a * b) :
-      add_le_add_left (add_le_add a2 (decidable.le_mul_of_one_le_left b0 (one_le_two.trans a2))) a
+      add_le_add_left (add_le_add a2 (decidable.le_mul_of_one_le_left b0 (le_trans one_le_two a2))) a
              ... ≤ a * (2 + b) : by rw [mul_add, mul_two, add_assoc]
 
 lemma add_le_mul_two_add {a b : α} : 2 ≤ a → 0 ≤ b → a + (2 + b) ≤ a * (2 + b) :=
@@ -381,7 +381,7 @@ by classical; exact decidable.add_le_mul_two_add
 -- See Note [decidable namespace]
 protected lemma decidable.one_le_mul_of_one_le_of_one_le [@decidable_rel α (≤)]
   {a b : α} (a1 : 1 ≤ a) (b1 : 1 ≤ b) : (1 : α) ≤ a * b :=
-(mul_one (1 : α)).symm.le.trans (decidable.mul_le_mul a1 b1 zero_le_one (zero_le_one.trans a1))
+(mul_one (1 : α)).symm.le.trans (decidable.mul_le_mul a1 b1 zero_le_one (le_trans zero_le_one a1))
 
 lemma one_le_mul_of_one_le_of_one_le {a b : α} : 1 ≤ a → 1 ≤ b → (1 : α) ≤ a * b :=
 by classical; exact decidable.one_le_mul_of_one_le_of_one_le
@@ -468,7 +468,7 @@ protected lemma decidable.one_lt_mul_of_lt_of_le [@decidable_rel α (≤)]
 begin
   nontriviality,
   calc 1 = 1 * 1 : by rw one_mul
-    ... < a * b : decidable.mul_lt_mul ha hb zero_lt_one $ zero_le_one.trans ha.le
+    ... < a * b : decidable.mul_lt_mul ha hb zero_lt_one $ le_trans zero_le_one ha.le
 end
 
 lemma one_lt_mul_of_lt_of_le : 1 < a → 1 ≤ b → 1 < a * b :=

@@ -693,7 +693,7 @@ end
 begin
   rcases eq_empty_or_nonempty s with rfl | hs,
   { simp },
-  { exact monotone.map_Inf lift_monotone hs }
+  { exact lift_monotone.map_Inf hs }
 end
 
 theorem lift_down {a : cardinal.{u}} {b : cardinal.{max u v}} :
@@ -730,14 +730,14 @@ le_antisymm
 by rw [←lift_lift, ←lift_lift, lift_inj]
 
 @[simp] theorem lift_min {a b : cardinal} : lift (min a b) = min (lift a) (lift b) :=
-monotone.map_min lift_monotone
+lift_monotone.map_min
 
 @[simp] theorem lift_max {a b : cardinal} : lift (max a b) = max (lift a) (lift b) :=
-monotone.map_max lift_monotone
+lift_monotone.map_max
 
 protected lemma le_sup_iff {ι : Type v} {f : ι → cardinal.{max v w}} {c : cardinal} :
   (c ≤ sup f) ↔ (∀ b, (∀ i, f i ≤ b) → c ≤ b) :=
-⟨λ h b hb, le_trans h (sup_le hb), λ h, h _ $ le_sup f⟩
+⟨λ h b hb, h.trans (sup_le hb), λ h, h _ $ le_sup f⟩
 
 /-- The lift of a supremum is the supremum of the lifts. -/
 lemma lift_sup {ι : Type v} (f : ι → cardinal.{max v w}) :

@@ -473,6 +473,23 @@ begin
     { rwa [deriv_within_zero_of_not_differentiable_within_at hx] } }
 end
 
+lemma differentiable_within_at_Ioi_iff_Ici [partial_order 𝕜] :
+  differentiable_within_at 𝕜 f (Ioi x) x ↔ differentiable_within_at 𝕜 f (Ici x) x :=
+⟨λ h, h.has_deriv_within_at.Ici_of_Ioi.differentiable_within_at,
+λ h, h.has_deriv_within_at.Ioi_of_Ici.differentiable_within_at⟩
+
+lemma deriv_within_Ioi_eq_Ici {E : Type*} [normed_group E] [normed_space ℝ E] (f : ℝ → E) (x : ℝ) :
+  deriv_within f (Ioi x) x = deriv_within f (Ici x) x :=
+begin
+  by_cases H : differentiable_within_at ℝ f (Ioi x) x,
+  { have A := H.has_deriv_within_at.Ici_of_Ioi,
+    have B := (differentiable_within_at_Ioi_iff_Ici.1 H).has_deriv_within_at,
+    simpa using (unique_diff_on_Ici x).eq le_rfl A B },
+  { rw [deriv_within_zero_of_not_differentiable_within_at H,
+      deriv_within_zero_of_not_differentiable_within_at],
+    rwa differentiable_within_at_Ioi_iff_Ici at H }
+end
+
 section congr
 /-! ### Congruence properties of derivatives -/
 

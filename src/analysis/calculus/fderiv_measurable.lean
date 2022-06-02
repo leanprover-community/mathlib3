@@ -723,8 +723,8 @@ open right_deriv_measurable_aux
 
 variables (f)
 
-/-- The set of differentiability points of a function, with derivative in a given complete set,
-is Borel-measurable. -/
+/-- The set of right differentiability points of a function, with derivative in a given complete
+set, is Borel-measurable. -/
 theorem measurable_set_of_differentiable_within_at_Ici_of_is_complete
   {K : set F} (hK : is_complete K) :
   measurable_set {x | differentiable_within_at ℝ f (Ici x) x ∧ deriv_within f (Ici x) x ∈ K} :=
@@ -767,5 +767,43 @@ lemma ae_measurable_deriv_within_Ici [measurable_space F] [borel_space F]
 lemma ae_strongly_measurable_deriv_within_Ici [second_countable_topology F] (μ : measure ℝ) :
   ae_strongly_measurable (λ x, deriv_within f (Ici x) x) μ :=
 (strongly_measurable_deriv_within_Ici f).ae_strongly_measurable
+
+/-- The set of differentiability points of a function taking values in a complete space is
+Borel-measurable. -/
+theorem measurable_set_of_differentiable_within_at_Ioi :
+  measurable_set {x | differentiable_within_at ℝ f (Ioi x) x} :=
+begin
+  convert measurable_set_of_differentiable_within_at_Ici f,
+  ext x,
+  rw deriv_within_Ici
+end
+
+#exit
+
+@[measurability] lemma measurable_deriv_within_Ici [measurable_space F] [borel_space F] :
+  measurable (λ x, deriv_within f (Ici x) x) :=
+begin
+  refine measurable_of_is_closed (λ s hs, _),
+  have : (λ x, deriv_within f (Ici x) x) ⁻¹' s =
+    {x | differentiable_within_at ℝ f (Ici x) x ∧ deriv_within f (Ici x) x ∈ s} ∪
+    {x | (0 : F) ∈ s} ∩ {x | ¬differentiable_within_at ℝ f (Ici x) x} :=
+    set.ext (λ x, mem_preimage.trans deriv_within_mem_iff),
+  rw this,
+  exact (measurable_set_of_differentiable_within_at_Ici_of_is_complete _ hs.is_complete).union
+    ((measurable_set.const _).inter (measurable_set_of_differentiable_within_at_Ici _).compl)
+end
+
+lemma strongly_measurable_deriv_within_Ici [second_countable_topology F] :
+  strongly_measurable (λ x, deriv_within f (Ici x) x) :=
+by { borelize F, exact (measurable_deriv_within_Ici f).strongly_measurable }
+
+lemma ae_measurable_deriv_within_Ici [measurable_space F] [borel_space F]
+  (μ : measure ℝ) : ae_measurable (λ x, deriv_within f (Ici x) x) μ :=
+(measurable_deriv_within_Ici f).ae_measurable
+
+lemma ae_strongly_measurable_deriv_within_Ici [second_countable_topology F] (μ : measure ℝ) :
+  ae_strongly_measurable (λ x, deriv_within f (Ici x) x) μ :=
+(strongly_measurable_deriv_within_Ici f).ae_strongly_measurable
+
 
 end right_deriv

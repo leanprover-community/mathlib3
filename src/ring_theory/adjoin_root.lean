@@ -198,7 +198,7 @@ section irreducible
 
 variables [field K] {f : K[X]} [irreducible f]
 
-instance is_maximal_span : is_maximal (span {f} : ideal K[X]) :=
+instance is_maximal_span : (span {f} : ideal K[X]).is_maximal :=
 principal_ideal_ring.is_maximal_of_irreducible ‹irreducible f›
 
 noncomputable instance field : field (adjoin_root f) :=

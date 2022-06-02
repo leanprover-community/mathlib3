@@ -269,7 +269,7 @@ begin
   -- We're going to show that `P` is maximal because any (maximal) ideal `M`
   -- that is strictly larger would be `⊤`.
   rintros P P_ne hP,
-  refine ideal.is_maximal_def.mpr ⟨hP.ne_top, λ M hM, _⟩,
+  refine submodule.is_maximal_def.mpr ⟨hP.ne_top, λ M hM, _⟩,
   -- We may assume `P` and `M` (as fractional ideals) are nonzero.
   have P'_ne : (P : fractional_ideal A⁰ (fraction_ring A)) ≠ 0 :=
     (coe_to_fractional_ideal_ne_zero (le_refl (non_zero_divisors A))).mpr P_ne,
@@ -364,7 +364,7 @@ begin
   -- WLOG, let `I` be maximal.
   suffices : ∀ {M : ideal A} (hM : M.is_maximal),
     ∃ x : K, x ∈ (M⁻¹ : fractional_ideal A⁰ K) ∧ x ∉ (1 : fractional_ideal A⁰ K),
-  { obtain ⟨M, hM, hIM⟩ : ∃ (M : ideal A), is_maximal M ∧ I ≤ M := ideal.exists_le_maximal I hI1,
+  { obtain ⟨M, hM, hIM⟩ : ∃ (M : ideal A), M.is_maximal ∧ I ≤ M := ideal.exists_le_maximal I hI1,
     resetI,
     have hM0 := (M.bot_lt_of_maximal hNF).ne',
     obtain ⟨x, hxM, hx1⟩ := this hM,

@@ -51,7 +51,7 @@ variables [ring R] [ring S] {I : ideal R}
 
 /-- The Jacobson radical of `I` is the infimum of all maximal (left) ideals containing `I`. -/
 def jacobson (I : ideal R) : ideal R :=
-Inf {J : ideal R | I ≤ J ∧ is_maximal J}
+Inf {J : ideal R | I ≤ J ∧ J.is_maximal}
 
 lemma le_jacobson : I ≤ jacobson I :=
 λ x hx, mem_Inf.mpr (λ J hJ, hJ.left hx)
@@ -72,11 +72,11 @@ eq_top_iff.2 le_jacobson
 lemma jacobson_eq_bot : jacobson I = ⊥ → I = ⊥ :=
 λ h, eq_bot_iff.mpr (h ▸ le_jacobson)
 
-lemma jacobson_eq_self_of_is_maximal [H : is_maximal I] : I.jacobson = I :=
+lemma jacobson_eq_self_of_is_maximal [H : I.is_maximal] : I.jacobson = I :=
 le_antisymm (Inf_le ⟨le_of_eq rfl, H⟩) le_jacobson
 
 @[priority 100]
-instance jacobson.is_maximal [H : is_maximal I] : is_maximal (jacobson I) :=
+instance jacobson.is_maximal [H : I.is_maximal] : (jacobson I).is_maximal :=
 ⟨⟨λ htop, H.1.1 (jacobson_eq_top_iff.1 htop),
   λ J hJ, H.1.2 _ (lt_of_le_of_lt le_jacobson hJ)⟩⟩
 
@@ -110,7 +110,7 @@ end
 /-- An ideal equals its Jacobson radical iff it is the intersection of a set of maximal ideals.
 Allowing the set to include ⊤ is equivalent, and is included only to simplify some proofs. -/
 theorem eq_jacobson_iff_Inf_maximal :
-  I.jacobson = I ↔ ∃ M : set (ideal R), (∀ J ∈ M, is_maximal J ∨ J = ⊤) ∧ I = Inf M :=
+  I.jacobson = I ↔ ∃ M : set (ideal R), (∀ J ∈ M, J.is_maximal ∨ J = ⊤) ∧ I = Inf M :=
 begin
   use λ hI, ⟨{J : ideal R | I ≤ J ∧ J.is_maximal}, ⟨λ _ hJ, or.inl hJ.right, hI.symm⟩⟩,
   rintros ⟨M, hM, hInf⟩,
@@ -309,16 +309,16 @@ section is_local
 variables [comm_ring R]
 
 /-- An ideal `I` is local iff its Jacobson radical is maximal. -/
-class is_local (I : ideal R) : Prop := (out : is_maximal (jacobson I))
+class is_local (I : ideal R) : Prop := (out : (jacobson I).is_maximal)
 
-theorem is_local_iff {I : ideal R} : is_local I ↔ is_maximal (jacobson I) :=
+theorem is_local_iff {I : ideal R} : is_local I ↔ (jacobson I).is_maximal :=
 ⟨λ h, h.1, λ h, ⟨h⟩⟩
 
-theorem is_local_of_is_maximal_radical {I : ideal R} (hi : is_maximal (radical I)) : is_local I :=
+theorem is_local_of_is_maximal_radical {I : ideal R} (hi : (radical I).is_maximal) : is_local I :=
 ⟨have radical I = jacobson I,
 from le_antisymm (le_Inf $ λ M ⟨him, hm⟩, hm.is_prime.radical_le_iff.2 him)
   (Inf_le ⟨le_radical, hi⟩),
-show is_maximal (jacobson I), from this ▸ hi⟩
+show (jacobson I).is_maximal , from this ▸ hi⟩
 
 theorem is_local.le_jacobson {I J : ideal R} (hi : is_local I) (hij : I ≤ J) (hj : J ≠ ⊤) :
   J ≤ jacobson I :=
@@ -338,7 +338,7 @@ classical.by_cases
 
 end is_local
 
-theorem is_primary_of_is_maximal_radical [comm_ring R] {I : ideal R} (hi : is_maximal (radical I)) :
+theorem is_primary_of_is_maximal_radical [comm_ring R] {I : ideal R} (hi : (radical I).is_maximal) :
   is_primary I :=
 have radical I = jacobson I,
 from le_antisymm (le_Inf $ λ M ⟨him, hm⟩, hm.is_prime.radical_le_iff.2 him)

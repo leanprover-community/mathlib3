@@ -72,7 +72,7 @@ end
  `I` can be written as the infimum of some collection of maximal ideals.
  Allowing ⊤ in the set `M` of maximal ideals is equivalent, but makes some proofs cleaner. -/
 lemma is_jacobson_iff_Inf_maximal : is_jacobson R ↔
-  ∀ {I : ideal R}, I.is_prime → ∃ M : set (ideal R), (∀ J ∈ M, is_maximal J ∨ J = ⊤) ∧ I = Inf M :=
+  ∀ {I : ideal R}, I.is_prime → ∃ M : set (ideal R), (∀ J ∈ M, J.is_maximal ∨ J = ⊤) ∧ I = Inf M :=
 ⟨λ H I h, eq_jacobson_iff_Inf_maximal.1 (H.out (is_prime.radical h)),
   λ H, is_jacobson_iff_prime_eq.2 (λ P hP, eq_jacobson_iff_Inf_maximal.2 (H hP))⟩
 
@@ -443,7 +443,7 @@ variables (P : ideal R[X]) [hP : P.is_maximal]
 include P hP
 
 lemma is_maximal_comap_C_of_is_maximal [nontrivial R] (hP' : ∀ (x : R), C x ∈ P → x = 0) :
-  is_maximal (comap C P : ideal R) :=
+ (comap C P : ideal R).is_maximal :=
 begin
   haveI hp'_prime : (P.comap C : ideal R).is_prime := comap_is_prime C P,
   obtain ⟨m, hm⟩ := submodule.nonzero_mem_of_bot_lt (bot_lt_of_maximal P polynomial_not_is_field),

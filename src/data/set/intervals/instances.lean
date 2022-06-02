@@ -225,6 +225,9 @@ end set.Ioc
 
 namespace set.Ioo
 
+lemma pos (x : Ioo (0:α) 1) : 0 < (x : α) := x.2.1
+lemma lt_one (x : Ioo (0:α) 1) : (x : α) < 1 := x.2.2
+
 instance has_mul : has_mul (Ioo (0:α) 1) := { mul := λ p q, ⟨p.1 * q.1, ⟨mul_pos p.2.1 q.2.1,
   mul_lt_one_of_nonneg_of_lt_one_right p.2.2.le q.2.1.le q.2.2⟩⟩ }
 
@@ -247,5 +250,8 @@ end
 
 lemma mem_iff_one_sub_mem {t : β} : t ∈ Ioo (0:β) 1 ↔ 1 - t ∈ Ioo (0:β) 1 :=
 ⟨one_sub_mem, λ h, (sub_sub_cancel 1 t) ▸ one_sub_mem h⟩
+
+lemma one_minus_pos (x : Ioo (0:β) 1) : 0 < 1 - (x : β) := by simpa using x.2.2
+lemma one_minus_lt_one (x : Ioo (0:β) 1) : 1 - (x : β) < 1 := by simpa using x.2.1
 
 end set.Ioo

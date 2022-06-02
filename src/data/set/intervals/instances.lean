@@ -127,11 +127,6 @@ subtype.coe_le_coe.mp $ (mul_le_mul_of_nonneg_left y.2.2 x.2.1).trans_eq $ mul_o
 lemma mul_le_right {x y : Icc (0:ℝ) 1} : x * y ≤ y :=
 subtype.coe_le_coe.mp $ (mul_le_mul_of_nonneg_right x.2.2 y.2.1).trans_eq $ one_mul y
 
-lemma nonneg (x : Icc (0:ℝ) 1) : 0 ≤ (x : ℝ) := x.2.1
-lemma one_minus_nonneg (x : Icc (0:ℝ) 1) : 0 ≤ 1 - (x : ℝ) := by simpa using x.2.2
-lemma le_one (x : Icc (0:ℝ) 1) : (x : ℝ) ≤ 1 := x.2.2
-lemma one_minus_le_one (x : Icc (0:ℝ) 1) : 1 - (x : ℝ) ≤ 1 := by simpa using x.2.1
-
 /-- like `unit_interval.nonneg`, but with the inequality in `Icc (0:ℝ) 1`. -/
 lemma nonneg' {t : Icc (0:ℝ) 1} : 0 ≤ t := t.2.1
 /-- like `unit_interval.le_one`, but with the inequality in `Icc (0:ℝ) 1`. -/

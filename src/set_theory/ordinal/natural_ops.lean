@@ -69,6 +69,7 @@ instance : has_zero nat_ordinal := ⟨to_nat_ordinal 0⟩
 instance : inhabited nat_ordinal := ⟨0⟩
 instance : has_one nat_ordinal := ⟨to_nat_ordinal 1⟩
 instance : has_well_founded nat_ordinal := ordinal.has_well_founded
+instance : is_well_order nat_ordinal (<) := ordinal.has_lt.lt.is_well_order
 instance : succ_order nat_ordinal := ordinal.succ_order
 
 @[simp] theorem to_ordinal_zero : to_ordinal 0 = 0 := rfl
@@ -160,8 +161,7 @@ variables (a b c)
 theorem nadd_comm : ∀ a b, a ♯ b = b ♯ a
 | a b := begin
   rw [nadd_def, nadd_def, max_comm],
-  congr;
-  ext c hc;
+  congr; ext c hc;
   apply nadd_comm
 end
 using_well_founded { dec_tac := `[solve_by_elim [psigma.lex.left, psigma.lex.right]] }
@@ -171,7 +171,7 @@ theorem blsub_nadd_of_mono {f : Π c < a ♯ b, ordinal.{max u v}}
   (blsub.{u v} a (λ a' ha', f (a' ♯ b) $ nadd_lt_nadd_right ha' b))
   (blsub.{u v} b (λ b' hb', f (a ♯ b') $ nadd_lt_nadd_left hb' a)) :=
 begin
-  apply le_antisymm (blsub_le_iff.2 (λ i h, _)) (max_le _ _),
+  apply (blsub_le_iff.2 (λ i h, _)).antisymm (max_le _ _),
   { rcases lt_nadd_iff.1 h with ⟨a', ha', hi⟩ | ⟨b', hb', hi⟩,
     { exact lt_max_of_lt_left ((hf h (nadd_lt_nadd_right ha' b) hi).trans_lt (lt_blsub _ _ _)) },
     { exact lt_max_of_lt_right ((hf h (nadd_lt_nadd_left hb' a) hi).trans_lt (lt_blsub _ _ _)) } },
@@ -184,8 +184,7 @@ end
 theorem nadd_assoc : ∀ a b c, a ♯ b ♯ c = a ♯ (b ♯ c)
 | a b c := begin
   rw [nadd_def a (b ♯ c), nadd_def, blsub_nadd_of_mono, blsub_nadd_of_mono, max_assoc],
-  { congr;
-    ext d hd;
+  { congr; ext d hd;
     apply nadd_assoc },
   { exact λ i j _ _ h, nadd_le_nadd_left h a },
   { exact λ i j _ _ h, nadd_le_nadd_right h c }

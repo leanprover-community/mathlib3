@@ -21,9 +21,10 @@ begin
   move_add ← a at *,  -- `move_add` closes the goal, since, after rearranging, it tries `assumption`
 end
 
-example : a + p₂ (b + c + a) (p₁ d + e) + f + g = p₂ (c + b + a) (e + p₁ d) + g + f + a :=
+example : a + p₂ (b + c + a) (p₁ (d + e) + e) + f + g =
+  p₂ (c + b + a) (e + p₁ (e + d)) + g + f + a :=
 begin
-  move_add [b, p₁ d, g, f, a],
+  move_add [b, d, g, f, a, e],
 end
 
 example (r : R → R → Prop) (h : r (a + b) (c + b + a)) : r (a + b) (a + b + c) :=

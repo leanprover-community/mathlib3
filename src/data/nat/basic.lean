@@ -1542,9 +1542,8 @@ lemma bit_cases_on_injective {C : ℕ → Sort u} :
   function.injective (λ H : Π b n, C (bit b n), λ n, bit_cases_on n H) :=
 begin
   intros H₁ H₂ h,
-  ext1 (_|_); ext1 n,
-  { simpa only [bit_cases_on_bit0] using congr_fun h (bit0 n) },
-  { simpa only [bit_cases_on_bit1] using congr_fun h (bit1 n) }
+  ext b n,
+  simpa only [bit_cases_on_bit] using congr_fun h (bit b n)
 end
 
 @[simp] lemma bit_cases_on_inj {C : ℕ → Sort u} (H₁ H₂ : Π b n, C (bit b n)) :

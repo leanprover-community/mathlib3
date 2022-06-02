@@ -296,7 +296,7 @@ fintype_card_le_finrank_of_linear_independent $ linear_independent_to_linear_map
 namespace fixed_points
 
 theorem finrank_eq_card (G : Type u) (F : Type v) [group G] [field F]
-  [fintype G] [mul_semiring_action G F] [has_faithful_scalar G F] :
+  [fintype G] [mul_semiring_action G F] [has_faithful_smul G F] :
   finrank (fixed_points.subfield G F) F = fintype.card G :=
 le_antisymm (fixed_points.finrank_le_card G F) $
 calc  fintype.card G
@@ -307,7 +307,7 @@ calc  fintype.card G
 
 /-- `mul_semiring_action.to_alg_hom` is bijective. -/
 theorem to_alg_hom_bijective (G : Type u) (F : Type v) [group G] [field F]
-  [fintype G] [mul_semiring_action G F] [has_faithful_scalar G F] :
+  [fintype G] [mul_semiring_action G F] [has_faithful_smul G F] :
   function.bijective (mul_semiring_action.to_alg_hom _ _ : G → F →ₐ[subfield G F] F) :=
 begin
   rw fintype.bijective_iff_injective_and_card,
@@ -321,7 +321,7 @@ end
 
 /-- Bijection between G and algebra homomorphisms that fix the fixed points -/
 def to_alg_hom_equiv (G : Type u) (F : Type v) [group G] [field F]
-  [fintype G] [mul_semiring_action G F] [has_faithful_scalar G F] :
+  [fintype G] [mul_semiring_action G F] [has_faithful_smul G F] :
     G ≃ (F →ₐ[fixed_points.subfield G F] F) :=
 equiv.of_bijective _ (to_alg_hom_bijective G F)
 

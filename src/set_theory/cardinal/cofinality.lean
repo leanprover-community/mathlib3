@@ -150,12 +150,11 @@ le_cof_type.1 le_rfl S h
 theorem lt_cof_type [is_well_order α r] {S : set α} : #S < cof (type r) → bounded r S :=
 by simpa using not_imp_not.2 cof_type_le
 
-theorem cof_eq (r : α → α → Prop) [is_well_order α r] :
-  ∃ S : set α, unbounded r S ∧ #S = cof (type r) :=
+theorem cof_eq (r : α → α → Prop) [is_well_order α r] : ∃ S, unbounded r S ∧ #S = cof (type r) :=
 Inf_mem (strict_order.cof_nonempty r)
 
 theorem ord_cof_eq (r : α → α → Prop) [is_well_order α r] :
-  ∃ S : set α, unbounded r S ∧ type (subrel r S) = (cof (type r)).ord :=
+  ∃ S, unbounded r S ∧ type (subrel r S) = (cof (type r)).ord :=
 let ⟨S, hS, e⟩ := cof_eq r, ⟨s, _, e'⟩ := cardinal.ord_eq S,
     T : set α := {a | ∃ aS : a ∈ S, ∀ b : S, s b ⟨_, aS⟩ → r b a} in
 begin

@@ -86,7 +86,7 @@ end
 /-- The clifford algebra is graded by the even and odd parts. -/
 instance graded_algebra : graded_algebra (even_odd Q) :=
 graded_algebra.of_alg_hom (even_odd Q)
-  (lift _ $ ⟨graded_algebra.ι Q, graded_algebra.ι_sq_scalar Q⟩)
+  (lift Q $ ⟨graded_algebra.ι Q, graded_algebra.ι_sq_scalar Q⟩)
   -- the proof from here onward is mostly similar to the `tensor_algebra` case, with some extra
   -- handling for the `supr` in `even_odd`.
   (begin
@@ -110,7 +110,7 @@ graded_algebra.of_alg_hom (even_odd Q)
         refine direct_sum.of_eq_of_graded_monoid_eq (sigma.subtype_ext _ _);
           dsimp only [graded_monoid.mk, subtype.coe_mk],
         { rw [nat.succ_eq_add_one, add_comm, nat.cast_add, nat.cast_one] },
-        refl } },
+        { rw [set_like.coe_ghas_mul, subtype.coe_mk, subtype.coe_mk] } } },
     { rw alg_hom.map_zero,
       apply eq.symm,
       apply dfinsupp.single_eq_zero.mpr, refl, },

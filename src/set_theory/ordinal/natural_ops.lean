@@ -166,7 +166,7 @@ theorem nadd_comm : ∀ a b, a ♯ b = b ♯ a
 end
 using_well_founded { dec_tac := `[solve_by_elim [psigma.lex.left, psigma.lex.right]] }
 
-theorem blsub_nadd_of_mono {f : Π c < a ♯ b, nat_ordinal.{max u v}}
+theorem blsub_nadd_of_mono {f : Π c < a ♯ b, ordinal.{max u v}}
   (hf : ∀ {i j} hi hj, i ≤ j → f i hi ≤ f j hj) : blsub _ f = max
   (blsub.{u v} a (λ a' ha', f (a' ♯ b) $ nadd_lt_nadd_right ha' b))
   (blsub.{u v} b (λ b' hb', f (a ♯ b') $ nadd_lt_nadd_left hb' a)) :=

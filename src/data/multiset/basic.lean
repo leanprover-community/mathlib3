@@ -681,6 +681,14 @@ theorem le_cons_erase (s : multiset α) (a : α) : s ≤ a ::ₘ s.erase a :=
 if h : a ∈ s then le_of_eq (cons_erase h).symm
 else by rw erase_of_not_mem h; apply le_cons_self
 
+lemma add_singleton_eq_iff {s t : multiset α} {a : α} :
+  s + {a} = t ↔ a ∈ t ∧ s = t.erase a :=
+begin
+  rw [add_comm, singleton_add], split,
+  { rintro rfl, exact ⟨s.mem_cons_self a, (s.erase_cons_head a).symm⟩ },
+  { rintro ⟨h, rfl⟩, exact cons_erase h },
+end
+
 theorem erase_add_left_pos {a : α} {s : multiset α} (t) : a ∈ s → (s + t).erase a = s.erase a + t :=
 quotient.induction_on₂ s t $ λ l₁ l₂ h, congr_arg coe $ erase_append_left l₂ h
 

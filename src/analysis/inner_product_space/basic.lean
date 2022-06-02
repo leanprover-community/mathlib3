@@ -1989,9 +1989,9 @@ begin
 end
 
 include dec_ι
-lemma direct_sum.submodule_is_internal.collected_basis_orthonormal {V : ι → submodule 𝕜 E}
+lemma direct_sum.is_internal.collected_basis_orthonormal {V : ι → submodule 𝕜 E}
   (hV : @orthogonal_family 𝕜 _ _ _ _ (λ i, V i) _ (λ i, (V i).subtypeₗᵢ))
-  (hV_sum : direct_sum.submodule_is_internal (λ i, V i))
+  (hV_sum : direct_sum.is_internal (λ i, V i))
   {α : ι → Type*}
   {v_family : Π i, basis (α i) 𝕜 (V i)} (hv_family : ∀ i, orthonormal 𝕜 (v_family i)) :
   orthonormal 𝕜 (hV_sum.collected_basis v_family) :=

@@ -74,7 +74,7 @@ open function set
 -/
 
 section sort
-variables {M N : Type*} {α β ι : Sort*} [comm_monoid M] [comm_monoid N]
+variables {G M N : Type*} {α β ι : Sort*} [comm_monoid M] [comm_monoid N]
 
 open_locale big_operators
 
@@ -238,19 +238,15 @@ begin
   exact (smul_add_hom R M c).map_finsum_of_injective (smul_right_injective M hc) _
 end
 
-@[to_additive] lemma finprod_inv_distrib {G : Type*} [comm_group G] (f : α → G) :
+@[to_additive] lemma finprod_inv_distrib [division_comm_monoid G] (f : α → G) :
   ∏ᶠ x, (f x)⁻¹ = (∏ᶠ x, f x)⁻¹ :=
 ((mul_equiv.inv G).map_finprod f).symm
-
-lemma finprod_inv_distrib₀ {G : Type*} [comm_group_with_zero G] (f : α → G) :
-  ∏ᶠ x, (f x)⁻¹ = (∏ᶠ x, f x)⁻¹ :=
-((mul_equiv.inv₀ G).map_finprod f).symm
 
 end sort
 
 section type
 
-variables {α β ι M N : Type*} [comm_monoid M] [comm_monoid N]
+variables {α β ι G M N : Type*} [comm_monoid M] [comm_monoid N]
 
 open_locale big_operators
 
@@ -442,17 +438,11 @@ end
 equals the product of `f i` divided by the product of `g i`. -/
 @[to_additive "If the additive supports of `f` and `g` are finite, then the sum of `f i - g i`
 equals the sum of `f i` minus the sum of `g i`."]
-lemma finprod_div_distrib {G : Type*} [comm_group G] {f g : α → G} (hf : (mul_support f).finite)
+lemma finprod_div_distrib [division_comm_monoid G] {f g : α → G} (hf : (mul_support f).finite)
   (hg : (mul_support g).finite) :
   ∏ᶠ i, f i / g i = (∏ᶠ i, f i) / ∏ᶠ i, g i :=
 by simp only [div_eq_mul_inv, finprod_mul_distrib hf ((mul_support_inv g).symm.rec hg),
               finprod_inv_distrib]
-
-lemma finprod_div_distrib₀ {G : Type*} [comm_group_with_zero G] {f g : α → G}
-  (hf : (mul_support f).finite) (hg : (mul_support g).finite) :
-  ∏ᶠ i, f i / g i = (∏ᶠ i, f i) / ∏ᶠ i, g i :=
-by simp only [div_eq_mul_inv, finprod_mul_distrib hf ((mul_support_inv₀ g).symm.rec hg),
-              finprod_inv_distrib₀]
 
 /-- A more general version of `finprod_mem_mul_distrib` that only requires `s ∩ mul_support f` and
 `s ∩ mul_support g` rather than `s` to be finite. -/
@@ -525,25 +515,17 @@ g.map_finprod_mem' (hs.inter_of_left _)
   (hs : s.finite) : g (∏ᶠ i ∈ s, f i) = ∏ᶠ i ∈ s, g (f i) :=
 g.to_monoid_hom.map_finprod_mem f hs
 
-@[to_additive] lemma finprod_mem_inv_distrib {G : Type*} [comm_group G] (f : α → G)
-  (hs : s.finite) : ∏ᶠ x ∈ s, (f x)⁻¹ = (∏ᶠ x ∈ s, f x)⁻¹ :=
+@[to_additive] lemma finprod_mem_inv_distrib [division_comm_monoid G] (f : α → G) (hs : s.finite) :
+  ∏ᶠ x ∈ s, (f x)⁻¹ = (∏ᶠ x ∈ s, f x)⁻¹ :=
 ((mul_equiv.inv G).map_finprod_mem f hs).symm
-
-lemma finprod_mem_inv_distrib₀ {G : Type*} [comm_group_with_zero G] (f : α → G)
-  (hs : s.finite) : ∏ᶠ x ∈ s, (f x)⁻¹ = (∏ᶠ x ∈ s, f x)⁻¹ :=
-((mul_equiv.inv₀ G).map_finprod_mem f hs).symm
 
 /-- Given a finite set `s`, the product of `f i / g i` over `i ∈ s` equals the product of `f i`
 over `i ∈ s` divided by the product of `g i` over `i ∈ s`. -/
 @[to_additive "Given a finite set `s`, the sum of `f i / g i` over `i ∈ s` equals the sum of `f i`
 over `i ∈ s` minus the sum of `g i` over `i ∈ s`."]
-lemma finprod_mem_div_distrib {G : Type*} [comm_group G] (f g : α → G) (hs : s.finite) :
+lemma finprod_mem_div_distrib [division_comm_monoid G] (f g : α → G) (hs : s.finite) :
   ∏ᶠ i ∈ s, f i / g i = (∏ᶠ i ∈ s, f i) / ∏ᶠ i ∈ s, g i :=
 by simp only [div_eq_mul_inv, finprod_mem_mul_distrib hs, finprod_mem_inv_distrib g hs]
-
-lemma finprod_mem_div_distrib₀ {G : Type*} [comm_group_with_zero G] (f g : α → G)
-  (hs : s.finite) : ∏ᶠ i ∈ s, f i / g i = (∏ᶠ i ∈ s, f i) / ∏ᶠ i ∈ s, g i :=
-by simp only [div_eq_mul_inv, finprod_mem_mul_distrib hs, finprod_mem_inv_distrib₀ g hs]
 
 /-!
 ### `∏ᶠ x ∈ s, f x` and set operations

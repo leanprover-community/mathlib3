@@ -207,7 +207,7 @@ def pseudo_metric_space.of_metrizable {α : Type*} [topological_space α] (dist 
   (dist_comm : ∀ x y : α, dist x y = dist y x)
   (dist_triangle : ∀ x y z : α, dist x z ≤ dist x y + dist y z)
   (H : ∀ s : set α, is_open s ↔ ∀ x ∈ s, ∃ ε > 0, ∀ y, dist x y < ε → y ∈ s) :
-pseudo_metric_space α :=
+  pseudo_metric_space α :=
 { dist := dist,
   dist_self := dist_self,
   dist_comm := dist_comm,
@@ -1022,6 +1022,10 @@ by { convert metric.emetric_closed_ball ε.2, simp }
 @[simp] lemma metric.emetric_ball_top (x : α) : emetric.ball x ⊤ = univ :=
 eq_univ_of_forall $ λ y, edist_lt_top _ _
 
+lemma metric.inseparable_iff {x y : α} : inseparable x y ↔ dist x y = 0 :=
+by rw [emetric.inseparable_iff, edist_nndist, dist_nndist, ennreal.coe_eq_zero,
+  nnreal.coe_eq_zero]
+
 /-- Build a new pseudometric space from an old one where the bundled uniform structure is provably
 (but typically non-definitionaly) equal to some given uniform structure.
 See Note [forgetful inheritance].
@@ -1251,6 +1255,34 @@ uniformity_basis_dist.cauchy_seq_iff
 theorem metric.cauchy_seq_iff' {u : β → α} :
   cauchy_seq u ↔ ∀ε>0, ∃N, ∀n≥N, dist (u n) (u N) < ε :=
 uniformity_basis_dist.cauchy_seq_iff'
+
+/-- In a pseudometric space, unifom Cauchy sequences are characterized by the fact that, eventually,
+the distance between all its elements is uniformly, arbitrarily small -/
+@[nolint ge_or_gt] -- see Note [nolint_ge]
+theorem metric.uniform_cauchy_seq_on_iff {γ : Type*}
+  {F : β → γ → α} {s : set γ} :
+  uniform_cauchy_seq_on F at_top s ↔
+    ∀ ε : ℝ, ε > 0 → ∃ (N : β), ∀ m : β, m ≥ N → ∀ n : β, n ≥ N → ∀ x : γ, x ∈ s →
+    dist (F m x) (F n x) < ε :=
+begin
+  split,
+  { intros h ε hε,
+    let u := { a : α × α | dist a.fst a.snd < ε },
+    have hu : u ∈ 𝓤 α := metric.mem_uniformity_dist.mpr ⟨ε, hε, (λ a b, by simp)⟩,
+    rw ←@filter.eventually_at_top_prod_self' _ _ _
+      (λ m, ∀ x : γ, x ∈ s → dist (F m.fst x) (F m.snd x) < ε),
+    specialize h u hu,
+    rw prod_at_top_at_top_eq at h,
+    exact h.mono (λ n h x hx, set.mem_set_of_eq.mp (h x hx)), },
+  { intros h u hu,
+    rcases (metric.mem_uniformity_dist.mp hu) with ⟨ε, hε, hab⟩,
+    rcases h ε hε with ⟨N, hN⟩,
+    rw [prod_at_top_at_top_eq, eventually_at_top],
+    use (N, N),
+    intros b hb x hx,
+    rcases hb with ⟨hbl, hbr⟩,
+    exact hab (hN b.fst hbl.ge b.snd hbr.ge x hx), },
+end
 
 /-- If the distance between `s n` and `s m`, `n ≤ m` is bounded above by `b n`
 and `b` converges to zero, then `s` is a Cauchy sequence.  -/
@@ -2475,26 +2507,20 @@ begin
 end
 
 @[priority 100] -- see Note [lower instance priority]
-instance metric_space.to_separated : separated_space γ :=
+instance _root_.metric_space.to_separated : separated_space γ :=
 separated_def.2 $ λ x y h, eq_of_forall_dist_le $
   λ ε ε0, le_of_lt (h _ (dist_mem_uniformity ε0))
 
-/-- If a `pseudo_metric_space` is separated, then it is a `metric_space`. -/
-def of_t2_pseudo_metric_space {α : Type*} [pseudo_metric_space α]
-  (h : separated_space α) : metric_space α :=
-{ eq_of_dist_eq_zero := λ x y hdist,
-  begin
-    refine separated_def.1 h x y (λ s hs, _),
-    obtain ⟨ε, hε, H⟩ := mem_uniformity_dist.1 hs,
-    exact H (show dist x y < ε, by rwa [hdist])
-  end
+/-- If a `pseudo_metric_space` is a T₀ space, then it is a `metric_space`. -/
+def of_t0_pseudo_metric_space (α : Type*) [pseudo_metric_space α] [t0_space α] :
+  metric_space α :=
+{ eq_of_dist_eq_zero := λ x y hdist, inseparable.eq $ metric.inseparable_iff.2 hdist,
   ..‹pseudo_metric_space α› }
 
 /-- A metric space induces an emetric space -/
 @[priority 100] -- see Note [lower instance priority]
 instance metric_space.to_emetric_space : emetric_space γ :=
-{ eq_of_edist_eq_zero := assume x y h, by simpa [edist_dist] using h,
-  ..pseudo_metric_space.to_pseudo_emetric_space, }
+emetric.of_t0_pseudo_emetric_space γ
 
 lemma is_closed_of_pairwise_le_dist {s : set γ} {ε : ℝ} (hε : 0 < ε)
   (hs : s.pairwise (λ x y, ε ≤ dist x y)) : is_closed s :=

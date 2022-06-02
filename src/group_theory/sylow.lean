@@ -292,6 +292,31 @@ lemma card_sylow_dvd_index [fact p.prime] [fintype (sylow p G)] (P : sylow p G) 
   card (sylow p G) ∣ P.1.index :=
 ((congr_arg _ (card_sylow_eq_index_normalizer P)).mp dvd_rfl).trans (index_dvd_of_le le_normalizer)
 
+lemma not_dvd_index_sylow' [hp : fact p.prime] (P : sylow p G) [P.1.normal] (hP : P.1.index ≠ 0) :
+  ¬ p ∣ P.1.index :=
+begin
+  intro h,
+  haveI : fintype (G ⧸ P.1) := fintype_of_index_ne_zero hP,
+  rw index_eq_card at h,
+  obtain ⟨x, hx⟩ := exists_prime_order_of_dvd_card p h,
+  have h := is_p_group.of_card ((order_eq_card_zpowers.symm.trans hx).trans (pow_one p).symm),
+  let Q := (zpowers x).comap (quotient_group.mk' P.1),
+  have hQ : is_p_group p Q := h.comap_of_ker_is_p_group _ ((quotient_group.ker_mk P.1).symm ▸ P.2),
+  replace hp := mt order_of_eq_one_iff.mpr (ne_of_eq_of_ne hx hp.1.ne_one),
+  rw [←zpowers_eq_bot, ←ne, ←bot_lt_iff_ne_bot, ←comap_lt_comap_of_surjective
+    (quotient_group.mk'_surjective P.1), monoid_hom.comap_bot, quotient_group.ker_mk] at hp,
+  exact hp.ne' (P.3 hQ hp.le),
+end
+
+lemma not_dvd_index_sylow [hp : fact p.prime] [fintype (sylow p G)] (P : sylow p G)
+  (hP : P.1.relindex P.1.normalizer ≠ 0) : ¬ p ∣ P.1.index :=
+begin
+  rw [←relindex_mul_index le_normalizer, ←card_sylow_eq_index_normalizer],
+  haveI : (P.subtype le_normalizer).to_subgroup.normal := subgroup.normal_in_normalizer,
+  replace hP := not_dvd_index_sylow' (P.subtype le_normalizer) hP,
+  exact hp.1.not_dvd_mul hP (not_dvd_card_sylow p G),
+end
+
 /-- Frattini's Argument: If `N` is a normal subgroup of `G`, and if `P` is a Sylow `p`-subgroup
   of `N`, then `N_G(P) ⊔ N = G`. -/
 lemma sylow.normalizer_sup_eq_top {p : ℕ} [fact p.prime] {N : subgroup G} [N.normal]

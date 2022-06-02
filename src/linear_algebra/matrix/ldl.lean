@@ -3,6 +3,39 @@ import analysis.inner_product_space.gram_schmidt_ortho
 import linear_algebra.matrix.bilinear_form
 -- import linear_algebra.matrix.pos_def
 
+
+namespace basis
+variables {ι : Type*} {R : Type*} {M : Type*} {v : ι → M} [ring R] [add_comm_group M] [module R M]
+
+open submodule
+
+def basis.of_linear_independent
+  (h : linear_independent R v) (h_span : span R (set.range v) = ⊤) :
+  basis ι R M :=
+begin
+  have := (basis.span h).repr,
+  have := (linear_equiv.of_top _ h_span).symm.trans this,
+  exact basis.mk this,
+end
+
+end basis
+
+namespace matrix
+
+
+#check basis.span
+
+variables {n : Type*} [fintype n] [decidable_eq n] [nonempty n] {R : Type*} [field R]
+
+noncomputable lemma xxx (M : matrix n n R) (h : linear_independent R M) : invertible M :=
+begin
+  apply invertible_of_left_inverse,
+  have := h.repr,
+  have := span_eq_top_of_linear_independent_of_card_eq_finrank h,
+end
+
+end matrix
+
 variables {𝕜 : Type*} [is_R_or_C 𝕜] {n : Type*} [linear_order n]
   [is_well_order n (<)] [locally_finite_order n] [order_bot n]
 

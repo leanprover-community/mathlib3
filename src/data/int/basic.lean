@@ -1604,7 +1604,7 @@ begin
   exact lt_of_lt_of_le h2 (le_abs_self m),
 end
 
-lemma sq_eq_one_of_sq_lt {x : ℤ} (h1 : x ^ 2 < 4) (h2 : x ≠ 0) : x ^ 2 = 1 :=
+lemma sq_eq_one_of_sq_lt_four {x : ℤ} (h1 : x ^ 2 < 4) (h2 : x ≠ 0) : x ^ 2 = 1 :=
 sq_eq_one_iff.mpr ((abs_eq (@zero_le_one ℤ _)).mp (le_antisymm (lt_add_one_iff.mp
   (abs_lt_of_sq_lt_sq h1 zero_le_two)) (sub_one_lt_iff.mp (abs_pos.mpr h2))))
 

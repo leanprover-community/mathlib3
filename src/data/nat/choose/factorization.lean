@@ -68,6 +68,33 @@ begin
   exact or_not,
 end
 
+lemma factorization_choose_of_lt_three_mul_prime
+  (hp' : p ≠ 2) (hk : p ≤ k) (hk' : p ≤ n - k) (hn : n < 3 * p) :
+  (choose n k).factorization p = 0 :=
+begin
+  cases em' p.prime with hp hp,
+  { exact factorization_eq_zero_of_non_prime (choose n k) hp },
+  cases lt_or_le n k with hnk hkn,
+  { rw [choose_eq_zero_of_lt hnk, factorization_zero, finsupp.coe_zero, pi.zero_apply] },
+  rw [←@padic_val_nat_eq_factorization p _ ⟨hp⟩, @padic_val_nat_def _ ⟨hp⟩ _ (choose_pos hkn)],
+  simp only [hp.multiplicity_choose hkn (lt_add_one _), enat.get_coe,
+    finset.card_eq_zero, finset.filter_eq_empty_iff, not_le],
+  intros i hi,
+  rcases eq_or_lt_of_le (finset.mem_Ico.mp hi).1 with rfl | hi,
+  { rw [pow_one, ←add_lt_add_iff_left (2 * p), ←succ_mul, two_mul, add_add_add_comm],
+    exact lt_of_le_of_lt (add_le_add
+      (add_le_add_right (le_mul_of_one_le_right' ((one_le_div_iff hp.pos).mpr hk)) (k % p))
+      (add_le_add_right (le_mul_of_one_le_right' ((one_le_div_iff hp.pos).mpr hk')) ((n - k) % p)))
+      (by rwa [div_add_mod, div_add_mod, add_tsub_cancel_of_le hkn]) },
+  { replace hn : n < p ^ i,
+    { calc n < 3 * p : hn
+      ... ≤ p * p : mul_le_mul_right' (lt_of_le_of_ne hp.two_le hp'.symm) p
+      ... = p ^ 2 : (sq p).symm
+      ... ≤ p ^ i : pow_le_pow hp.one_lt.le hi },
+    rwa [mod_eq_of_lt (lt_of_le_of_lt hkn hn), mod_eq_of_lt (lt_of_le_of_lt tsub_le_self hn),
+      add_tsub_cancel_of_le hkn] },
+end
+
 /--
 Primes greater than about `2 * n / 3` and less than `n` do not appear in the factorization of
 `central_binom n`.
@@ -76,52 +103,11 @@ lemma factorization_central_binom_of_two_mul_self_lt_three_mul_prime
   (n_big : 2 < n) (p_le_n : p ≤ n) (big : 2 * n < 3 * p) :
   ((central_binom n).factorization p) = 0 :=
 begin
-  by_cases hp : p.prime,
-  rw ←@padic_val_nat_eq_factorization p (central_binom n) ⟨hp⟩,
-  rw @padic_val_nat_def _ ⟨hp⟩ _ (central_binom_pos n),
-  unfold central_binom,
-  have two_mul_sub : 2 * n - n = n, by rw [two_mul n, nat.add_sub_cancel n n],
-  simp only [nat.prime.multiplicity_choose hp (le_mul_of_pos_left zero_lt_two) (lt_add_one _),
-    two_mul_sub, ←two_mul, finset.card_eq_zero, enat.get_coe', finset.filter_congr_decidable],
-  clear two_mul_sub,
-
-  have three_lt_p : 3 ≤ p := by linarith,
-  have p_pos : 0 < p := nat.prime.pos hp,
-
-  apply finset.filter_false_of_mem,
-  intros i i_in_interval,
-  rw finset.mem_Ico at i_in_interval,
-  refine not_le.mpr _,
-
-  rcases lt_trichotomy 1 i with H|rfl|H,
-  { have two_le_i : 2 ≤ i := nat.succ_le_of_lt H,
-    have two_n_lt_pow_p_i : 2 * n < p ^ i,
-    { calc 2 * n < 3 * p : big
-             ... ≤ p * p : (mul_le_mul_right p_pos).2 three_lt_p
-             ... = p ^ 2 : (sq _).symm
-             ... ≤ p ^ i : nat.pow_le_pow_of_le_right p_pos two_le_i, },
-    have n_mod : n % p ^ i = n,
-    { apply nat.mod_eq_of_lt,
-      calc n ≤ n + n : nat.le.intro rfl
-        ... = 2 * n : (two_mul n).symm
-        ... < p ^ i : two_n_lt_pow_p_i, },
-    rw n_mod,
-    exact two_n_lt_pow_p_i, },
-
-  { rw [pow_one],
-    suffices h : 2 * (p * (n / p)) + 2 * (n % p) < 2 * (p * (n / p)) + p,
-    { exact (add_lt_add_iff_left (2 * (p * (n / p)))).mp h, },
-    have n_big : 1 ≤ (n / p) := (nat.le_div_iff_mul_le' p_pos).2 (trans (one_mul _).le p_le_n),
-    rw [←mul_add, nat.div_add_mod],
-    calc  2 * n < 3 * p : big
-            ... = 2 * p + p : nat.succ_mul _ _
-            ... ≤ 2 * (p * (n / p)) + p : add_le_add_right ((mul_le_mul_left zero_lt_two).mpr
-            $ ((le_mul_iff_one_le_right p_pos).mpr n_big)) _ },
-
-  { have i_zero: i = 0 := nat.le_zero_iff.mp (nat.le_of_lt_succ H),
-    rw [i_zero, pow_zero, nat.mod_one, mul_zero],
-    exact zero_lt_one, },
-  simp [hp],
+  refine factorization_choose_of_lt_three_mul_prime _ p_le_n (p_le_n.trans _) big,
+  { intro h,
+    rw [h, mul_comm, mul_lt_mul_right] at big,
+    all_goals { linarith } },
+  { rw [two_mul, add_tsub_cancel_left] },
 end
 
 lemma factorization_eq_zero_of_lt (h : n < p) : n.factorization p = 0 :=

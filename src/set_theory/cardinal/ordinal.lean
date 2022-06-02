@@ -305,7 +305,7 @@ begin
     (by simpa only [mul_one] using
       mul_le_mul_left' (one_lt_omega.le.trans h) c),
   -- the only nontrivial part is `c * c ≤ c`. We prove it inductively.
-  refine acc.rec_on (cardinal.wf.apply c) (λ c _,
+  refine acc.rec_on (cardinal.lt_wf.apply c) (λ c _,
     quotient.induction_on c $ λ α IH ol, _) h,
   -- consider the minimal well-order `r` on `α` (a type with cardinality `c`).
   rcases ord_eq α with ⟨r, wo, e⟩, resetI,
@@ -697,7 +697,7 @@ calc #(finset α) ≤ #(list α) : mk_le_of_surjective list.to_finset_surjective
 ... = #α : mk_list_eq_mk α
 
 lemma mk_bounded_set_le_of_infinite (α : Type u) [infinite α] (c : cardinal) :
-  #{t : set α // mk t ≤ c} ≤ #α ^ c :=
+  #{t : set α // #t ≤ c} ≤ #α ^ c :=
 begin
   refine le_trans _ (by rw [←add_one_eq (omega_le_mk α)]),
   induction c using cardinal.induction_on with β,

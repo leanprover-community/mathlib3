@@ -576,9 +576,8 @@ end
 (with respect to the truncated expectation) along the sequence
 `c^n`, for any `c > 1`. This follows from `strong_law_aux1` by varying `ε`. -/
 lemma strong_law_aux2 {c : ℝ} (c_one : 1 < c) :
-  ∀ᵐ ω, asymptotics.is_o
-  (λ (n : ℕ), ∑ i in range ⌊c^n⌋₊, truncation (X i) i ω
-              - 𝔼[∑ i in range ⌊c^n⌋₊, truncation (X i) i]) (λ (n : ℕ), (⌊c^n⌋₊ : ℝ)) at_top :=
+  ∀ᵐ ω, (λ (n : ℕ), ∑ i in range ⌊c^n⌋₊, truncation (X i) i ω
+    - 𝔼[∑ i in range ⌊c^n⌋₊, truncation (X i) i]) =o[at_top] (λ (n : ℕ), (⌊c^n⌋₊ : ℝ)) :=
 begin
   obtain ⟨v, -, v_pos, v_lim⟩ :
     ∃ (v : ℕ → ℝ), strict_anti v ∧ (∀ (n : ℕ), 0 < v n) ∧ tendsto v at_top (𝓝 0) :=
@@ -596,8 +595,7 @@ omit hindep hnonneg
 /-- The expectation of the truncated version of `Xᵢ` behaves asymptotically like the whole
 expectation. This follows from convergence and Cesaro averaging. -/
 lemma strong_law_aux3 :
-  asymptotics.is_o (λ n, 𝔼[∑ i in range n, truncation (X i) i] - n * 𝔼[X 0])
-    (λ (n : ℕ), (n : ℝ)) at_top :=
+  (λ n, 𝔼[∑ i in range n, truncation (X i) i] - n * 𝔼[X 0]) =o[at_top] (coe : ℕ → ℝ) :=
 begin
   have A : tendsto (λ i, 𝔼[truncation (X i) i]) at_top (𝓝 (𝔼[X 0])),
   { convert (tendsto_integral_truncation hint).comp tendsto_coe_nat_at_top_at_top,
@@ -616,8 +614,8 @@ include hindep hnonneg
 `c^n`, for any `c > 1`. This follows from the version from the truncated expectation, and the
 fact that the truncated and the original expectations have the same asymptotic behavior. -/
 lemma strong_law_aux4 {c : ℝ} (c_one : 1 < c) :
-  ∀ᵐ ω, asymptotics.is_o (λ (n : ℕ), ∑ i in range ⌊c^n⌋₊, truncation (X i) i ω - ⌊c^n⌋₊ * 𝔼[X 0])
-    (λ (n : ℕ), (⌊c^n⌋₊ : ℝ)) at_top :=
+  ∀ᵐ ω, (λ (n : ℕ), ∑ i in range ⌊c^n⌋₊, truncation (X i) i ω - ⌊c^n⌋₊ * 𝔼[X 0]) =o[at_top]
+    (λ (n : ℕ), (⌊c^n⌋₊ : ℝ)) :=
 begin
   filter_upwards [strong_law_aux2 X hint hindep hident hnonneg c_one] with ω hω,
   have A : tendsto (λ (n : ℕ), ⌊c ^ n⌋₊) at_top at_top :=
@@ -632,8 +630,8 @@ omit hindep
 almost surely coincide at all but finitely many steps. This follows from a probability computation
 and Borel-Cantelli. -/
 lemma strong_law_aux5 :
-  ∀ᵐ ω, asymptotics.is_o (λ (n : ℕ), ∑ i in range n, truncation (X i) i ω - ∑ i in range n, X i ω)
-    (λ (n : ℕ), (n : ℝ)) at_top :=
+  ∀ᵐ ω, (λ (n : ℕ), ∑ i in range n, truncation (X i) i ω - ∑ i in range n, X i ω) =o[at_top]
+    (λ (n : ℕ), (n : ℝ)) :=
 begin
   have A : ∑' (j : ℕ), ℙ {ω | X j ω ∈ set.Ioi (j : ℝ)} < ∞,
   { convert tsum_prob_mem_Ioi_lt_top hint (hnonneg 0),
@@ -671,8 +669,7 @@ begin
   filter_upwards [strong_law_aux4 X hint hindep hident hnonneg c_one,
     strong_law_aux5 X hint hident hnonneg] with ω hω h'ω,
   rw [← tendsto_sub_nhds_zero_iff, ← asymptotics.is_o_one_iff ℝ],
-  have L : asymptotics.is_o (λ (n : ℕ), ∑ i in range ⌊c^n⌋₊, X i ω - ⌊c^n⌋₊ * 𝔼[X 0])
-    (λ (n : ℕ), (⌊c^n⌋₊ : ℝ)) at_top,
+  have L : (λ n : ℕ, ∑ i in range ⌊c^n⌋₊, X i ω - ⌊c^n⌋₊ * 𝔼[X 0]) =o[at_top] (λ n, (⌊c^n⌋₊ : ℝ)),
   { have A : tendsto (λ (n : ℕ), ⌊c ^ n⌋₊) at_top at_top :=
       tendsto_nat_floor_at_top.comp (tendsto_pow_at_top_at_top_of_one_lt c_one),
     convert hω.sub (h'ω.comp_tendsto A),

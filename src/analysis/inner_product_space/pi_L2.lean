@@ -153,11 +153,17 @@ end
 all other coordinates. -/
 def euclidean_space.single [decidable_eq ι] (i : ι) (a : 𝕜) :
   euclidean_space 𝕜 ι :=
-pi.single i a
+(pi_Lp.equiv _ _).symm (pi.single i a)
+
+@[simp] lemma pi_Lp.equiv_single [decidable_eq ι] (i : ι) (a : 𝕜) :
+  pi_Lp.equiv _ _ (euclidean_space.single i a) = pi.single i a := rfl
+
+@[simp] lemma pi_Lp.equiv_symm_single [decidable_eq ι] (i : ι) (a : 𝕜) :
+  (pi_Lp.equiv _ _).symm (pi.single i a) = euclidean_space.single i a := rfl
 
 @[simp] theorem euclidean_space.single_apply [decidable_eq ι] (i : ι) (a : 𝕜) (j : ι) :
   (euclidean_space.single i a) j = ite (j = i) a 0 :=
-by { rw [euclidean_space.single, ← pi.single_apply i a j] }
+by { rw [euclidean_space.single, pi_Lp.equiv_symm_apply, ← pi.single_apply i a j] }
 
 lemma euclidean_space.inner_single_left [decidable_eq ι] (i : ι) (a : 𝕜) (v : euclidean_space 𝕜 ι) :
   ⟪euclidean_space.single i (a : 𝕜), v⟫ = conj a * (v i) :=

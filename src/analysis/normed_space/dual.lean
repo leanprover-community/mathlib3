@@ -3,7 +3,7 @@ Copyright (c) 2020 Heather Macbeth. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Heather Macbeth
 -/
-import analysis.normed_space.hahn_banach
+import analysis.normed_space.hahn_banach.extension
 import analysis.normed_space.is_R_or_C
 import analysis.locally_convex.polar
 
@@ -112,6 +112,7 @@ norm_le_zero_iff.mp (norm_le_dual_bound 𝕜 x le_rfl (λ f, by simp [h f]))
 lemma eq_zero_iff_forall_dual_eq_zero (x : E) : x = 0 ↔ ∀ g : dual 𝕜 E, g x = 0 :=
 ⟨λ hx, by simp [hx], λ h, eq_zero_of_forall_dual_eq_zero 𝕜 h⟩
 
+/-- See also `geometric_hahn_banach_point_point`. -/
 lemma eq_iff_forall_dual_eq {x y : E} :
   x = y ↔ ∀ g : dual 𝕜 E, g x = g y :=
 begin

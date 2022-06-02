@@ -607,6 +607,10 @@ by simp [not_disjoint_iff_nonempty_inter, mem_div, div_eq_one, set.nonempty]
 @[to_additive] lemma not_one_mem_div_iff : (1 : α) ∉ s / t ↔ disjoint s t :=
 one_mem_div_iff.not_left
 
+alias not_one_mem_div_iff ↔ _ disjoint.one_not_mem_div_set
+
+attribute [to_additive] disjoint.one_not_mem_div_set
+
 @[to_additive] lemma nonempty.one_mem_div (h : s.nonempty) : (1 : α) ∈ s / s :=
 let ⟨a, ha⟩ := h in mem_div.2 ⟨a, a, ha, ha, div_self' _⟩
 

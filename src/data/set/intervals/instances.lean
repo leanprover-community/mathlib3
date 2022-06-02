@@ -32,6 +32,7 @@ The strongest typeclass provided on each interval is:
 * algebraic instances for `Ici 1`
 * algebraic instances for `(Ioo (-1) 1)ᶜ`
 * provide `has_distrib_neg` instances where applicable
+* prove versions of `mul_le_{left,right}` for other intervals
 
 -/
 

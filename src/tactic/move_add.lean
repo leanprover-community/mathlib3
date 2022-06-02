@@ -111,14 +111,14 @@ expression.
 For instance, applying `candidates` to `a + (b + c)*(d + e) + f + g` produces
 `[a + (b + c) * (d + e) + f + g, b + c, d + e]`. -/
 meta def candidates : bool → expr → list expr
-| bo e@`(%%a + %%b)              := if bo then [e] ++ candidates ff a ++ candidates ff b
-                                    else candidates ff a ++ candidates ff b
-| bo (expr.lam _ _ e f)          := candidates tt e ++ candidates tt f
-| bo (expr.pi  _ _ e f)          := candidates tt e ++ candidates tt f
-| bo (expr.mvar  _ _ e)          := candidates tt e
-| bo (expr.app e f)              := candidates tt e ++ candidates tt f
-| bo (expr.elet _ e f g)         := candidates tt e ++ candidates tt f ++ candidates tt g
-| bo e := []
+| bo e@`(%%a + %%b)      := if bo then [e] ++ candidates ff a ++ candidates ff b
+                            else candidates ff a ++ candidates ff b
+| bo (expr.lam _ _ e f)  := candidates tt e ++ candidates tt f
+| bo (expr.pi  _ _ e f)  := candidates tt e ++ candidates tt f
+| bo (expr.mvar  _ _ e)  := candidates tt e
+| bo (expr.app e f)      := candidates tt e ++ candidates tt f
+| bo (expr.elet _ e f g) := candidates tt e ++ candidates tt f ++ candidates tt g
+| bo e                   := []
 
 /-- `sorted_sum` takes an optional location name `hyp` for where it will be applied, a list `ll` of
 `bool × pexpr` (arising as the user-provided input to `move_add`) and an expression `e`.

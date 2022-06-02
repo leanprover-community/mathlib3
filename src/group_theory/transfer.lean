@@ -20,23 +20,6 @@ In this file we construct the transfer homomorphism.
 - `transfer ϕ` : The transfer homomorphism induced by `ϕ`.
 -/
 
-section equiv_stuff
-
--- PRed
-lemma orbit_zpowers_equiv_symm_apply' {α β : Type*} [group α] (a : α) [mul_action α β] (b : β)
-  (k : ℤ) :
-  (mul_action.orbit_zpowers_equiv a b).symm k =
-  (⟨a, subgroup.mem_zpowers a⟩ : subgroup.zpowers a) ^ k • ⟨b, mul_action.mem_orbit_self b⟩ :=
-begin
-  conv_rhs { rw ← int.mod_add_div k (function.minimal_period ((•) a) b) },
-  rw [zpow_add, mul_smul, mul_action.orbit_zpowers_equiv_symm_apply, zmod.coe_int_cast, smul_left_cancel_iff,
-      subtype.ext_iff, mul_action.orbit.coe_smul, subtype.coe_mk, eq_comm,
-      mul_action.zpow_smul_eq_iff_minimal_period_dvd],
-  apply dvd_mul_right,
-end
-
-end equiv_stuff
-
 open_locale big_operators
 
 variables {G : Type*} [group G] {H : subgroup G} {A : Type*} [comm_group A] (ϕ : H →* A)
@@ -80,7 +63,7 @@ namespace monoid_hom
 
 variables [fintype (G ⧸ H)]
 
-open subgroup subgroup.left_transversals
+open mul_action subgroup subgroup.left_transversals
 
 /-- Given `ϕ : H →* A` from `H : subgroup G` to a commutative group `A`,
 the transfer homomorphism is `transfer ϕ : G →* A`. -/
@@ -101,50 +84,53 @@ section explicit_computation
 
 variables (H)
 
-open_locale classical
-
-lemma transfer_computation (g : G) : transfer ϕ g =
-  ∏ (q : quotient (mul_action.orbit_rel (zpowers g) (G ⧸ H))),
-    ϕ ⟨q.out'.out'⁻¹ * g ^ (function.minimal_period ((•) g) q.out') * q.out'.out',
-      by rw [mul_assoc, ←quotient_group.eq', ←smul_eq_mul, mul_action.quotient.mk_smul_out',
-        quotient_group.out_eq', eq_comm, mul_action.pow_smul_eq_iff_minimal_period_dvd]⟩ :=
+lemma transfer_eq_prod_quotient_orbit_rel_zpowers_quot
+  (g : G) [fintype (quotient (orbit_rel (zpowers g) (G ⧸ H)))] :
+  transfer ϕ g =
+    ∏ (q : quotient (orbit_rel (zpowers g) (G ⧸ H))),
+      ϕ ⟨q.out'.out'⁻¹ * g ^ (function.minimal_period ((•) g) q.out') * q.out'.out',
+        by rw [mul_assoc, ←quotient_group.eq', ←smul_eq_mul, quotient.mk_smul_out',
+          quotient_group.out_eq', eq_comm, pow_smul_eq_iff_minimal_period_dvd]⟩ :=
 begin
+  classical,
   calc transfer ϕ g = ∏ (q : G ⧸ H), _ : transfer_def ϕ (transfer_transversal H g) g
   ... = _ : ((quotient_equiv_sigma_zmod H g).symm.prod_comp _).symm
   ... = _ : finset.prod_sigma _ _ _
   ... = _ : fintype.prod_congr _ _ (λ q, _),
-  simp only,
-  simp only [quotient_equiv_sigma_zmod_symm_apply, transfer_transversal_apply', transfer_transversal_apply''],
+  simp only [quotient_equiv_sigma_zmod_symm_apply,
+    transfer_transversal_apply', transfer_transversal_apply''],
   rw fintype.prod_eq_single (0 : zmod (function.minimal_period ((•) g) q.out')),
   { simp only [if_pos, zmod.cast_zero, zpow_zero, one_mul, mul_assoc] },
   { intros k hk,
     simp only [if_neg hk, inv_mul_self],
-    exact ϕ.map_one },
+    exact map_one ϕ },
 end
 
-lemma silly_lemma {G α : Type*} [group G] [mul_action G α] (g : G) [fintype α] :
-  ∏ (q : quotient (mul_action.orbit_rel (zpowers g) α)),
+lemma silly_lemma {G α : Type*} [group G] [mul_action G α] (g : G) [fintype α]
+  [fintype (quotient (orbit_rel (zpowers g) α))] :
+  ∏ (q : quotient (orbit_rel (zpowers g) α)),
     (⟨g, mem_zpowers g⟩ : zpowers g) ^ function.minimal_period ((•) g) q.out' =
       (⟨g, mem_zpowers g⟩ : zpowers g) ^ fintype.card α :=
 begin
-  rw [finset.prod_pow_eq_pow_sum],
-  congr,
-  simp only [mul_action.minimal_period_eq_card, ←fintype.card_sigma],
-  convert fintype.card_congr (mul_action.self_equiv_sigma_orbits (zpowers g) α).symm,
+  classical,
+  rw [finset.prod_pow_eq_pow_sum, fintype.card_congr (self_equiv_sigma_orbits (zpowers g) α),
+    fintype.card_sigma],
+  simp only [minimal_period_eq_card],
 end
 
 lemma transfer_eq_pow'_aux (g : G)
   (key : ∀ (k : ℕ) (g₀ : G), g₀⁻¹ * g ^ k * g₀ ∈ H → g₀⁻¹ * g ^ k * g₀ = g ^ k) :
   g ^ H.index ∈ H :=
 begin
+  classical,
   replace key : ∀ (k : ℕ) (g₀ : G), g₀⁻¹ * g ^ k * g₀ ∈ H → g ^ k ∈ H :=
   λ k g₀ hk, (_root_.congr_arg (∈ H) (key k g₀ hk)).mp hk,
   replace key : ∀ q : G ⧸ H, g ^ function.minimal_period ((•) g) q ∈ H :=
   λ q, key (function.minimal_period ((•) g) q) q.out' (by rw [mul_assoc, ←quotient_group.eq',
-    ←smul_eq_mul, mul_action.quotient.mk_smul_out',
-    quotient_group.out_eq', eq_comm, mul_action.pow_smul_eq_iff_minimal_period_dvd]),
+    ←smul_eq_mul, quotient.mk_smul_out',
+    quotient_group.out_eq', eq_comm, pow_smul_eq_iff_minimal_period_dvd]),
   replace key := @subgroup.prod_mem (zpowers g) _ (H.subgroup_of (zpowers g))
-    (quotient (mul_action.orbit_rel (zpowers g) (G ⧸ H))) finset.univ
+    (quotient (orbit_rel (zpowers g) (G ⧸ H))) finset.univ
     (λ q, (⟨g, mem_zpowers g⟩ : zpowers g) ^ function.minimal_period ((•) g) q.out')
     (λ q hq, key q.out'),
   rwa [silly_lemma, ←index_eq_card] at key,
@@ -154,6 +140,7 @@ lemma transfer_eq_pow' (g : G)
   (key : ∀ (k : ℕ) (g₀ : G), g₀⁻¹ * g ^ k * g₀ ∈ H → g₀⁻¹ * g ^ k * g₀ = g ^ k) :
   transfer ϕ g = ϕ ⟨g ^ H.index, transfer_eq_pow'_aux H g key⟩ :=
 begin
+  classical,
   have key : ∀ (k : ℕ) (g₀ : G) (hk : g₀⁻¹ * g ^ k * g₀ ∈ H),
     (⟨g₀⁻¹ * g ^ k * g₀, hk⟩ : H) = (⟨g ^ k, (_root_.congr_arg (∈ H) (key k g₀ hk)).mp hk⟩ : H) :=
   λ k g₀ hg, subtype.ext (key k g₀ hg),

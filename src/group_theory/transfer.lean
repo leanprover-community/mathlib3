@@ -126,23 +126,18 @@ lemma transfer_eq_pow (g : G)
   (key : ∀ (k : ℕ) (g₀ : G), g₀⁻¹ * g ^ k * g₀ ∈ H → g₀⁻¹ * g ^ k * g₀ = g ^ k) :
   transfer ϕ g = ϕ ⟨g ^ H.index, transfer_eq_pow_aux g key⟩ :=
 begin
+  change ∀ (k : ℕ) (g₀ : G) (hk : g₀⁻¹ * g ^ k * g₀ ∈ H),
+    ((⟨g₀⁻¹ * g ^ k * g₀, hk⟩ : H) : G) = coe ((⟨g, mem_zpowers g⟩ : zpowers g) ^ k) at key,
   classical,
-  have key : ∀ (k : ℕ) (g₀ : G) (hk : g₀⁻¹ * g ^ k * g₀ ∈ H),
-    (⟨g₀⁻¹ * g ^ k * g₀, hk⟩ : H) = (⟨g ^ k, (_root_.congr_arg (∈ H) (key k g₀ hk)).mp hk⟩ : H) :=
-  λ k g₀ hg, subtype.ext (key k g₀ hg),
-  rw transfer_eq_prod_quotient_orbit_rel_zpowers_quot,
-  simp only [key],
-  rw [←finset.prod_to_list, list.prod_map_hom],
-  apply congr_arg ϕ,
-  apply (show function.injective H.subtype, from subtype.coe_injective),
-  rw [←list.prod_map_hom],
-  change (list.map (λ q, _) _).prod = _,
-  have key : ∀ (k : ℕ) (hk : g ^ k ∈ H),
-    H.subtype ⟨g ^ k, hk⟩ = (zpowers g).subtype (⟨g, mem_zpowers g⟩ ^ k) := λ k hk, rfl,
-  simp only [key],
-  rw [list.prod_map_hom, finset.prod_to_list],
-  simp only [minimal_period_eq_card, finset.prod_pow_eq_pow_sum, ←fintype.card_sigma,
-   ←fintype.card_congr (self_equiv_sigma_orbits (zpowers g) (G ⧸ H)), ←index_eq_card],
+  rw [transfer_eq_prod_quotient_orbit_rel_zpowers_quot, ←finset.prod_to_list, list.prod_map_hom],
+  refine congr_arg ϕ (subtype.coe_injective _),
+  rw [H.coe_mk, ←(zpowers g).coe_mk g (mem_zpowers g), ←(zpowers g).coe_pow, (zpowers g).coe_mk,
+    index_eq_card, fintype.card_congr (self_equiv_sigma_orbits (zpowers g) (G ⧸ H)),
+    fintype.card_sigma, ←finset.prod_pow_eq_pow_sum, ←finset.prod_to_list],
+  simp only [coe_list_prod, list.map_map, ←minimal_period_eq_card],
+  refine _root_.congr_arg list.prod (_root_.congr_arg
+    (λ f : quotient (orbit_rel (zpowers g) (G ⧸ H)) → G, finset.univ.to_list.map f) _),
+  exact funext (λ q, key _ _ _),
 end
 
 section center_transfer

@@ -70,6 +70,11 @@ not_iff_not.mpr coe_eq_one
 lemma nonneg (x : Icc (0:α) 1) : 0 ≤ (x : α) := x.2.1
 lemma le_one (x : Icc (0:α) 1) : (x : α) ≤ 1 := x.2.2
 
+/-- like `nonneg`, but with the inequality in `Icc (0:α) 1`. -/
+lemma nonneg' {t : Icc (0:α) 1} : 0 ≤ t := t.2.1
+/-- like `le_one`, but with the inequality in `Icc (0:α) 1`. -/
+lemma le_one' {t : Icc (0:α) 1} : t ≤ 1 := t.2.2
+
 instance has_mul : has_mul (Icc (0:α) 1) :=
 { mul := λ p q, ⟨p*q, ⟨mul_nonneg p.2.1 q.2.1, mul_le_one p.2.2 q.2.1 q.2.2⟩⟩ }
 
@@ -124,11 +129,6 @@ end set.Icc
 -- ### The unit interval in the real numbers
 
 namespace unit_interval
-
-/-- like `unit_interval.nonneg`, but with the inequality in `Icc (0:ℝ) 1`. -/
-lemma nonneg' {t : Icc (0:ℝ) 1} : 0 ≤ t := t.2.1
-/-- like `unit_interval.le_one`, but with the inequality in `Icc (0:ℝ) 1`. -/
-lemma le_one' {t : Icc (0:ℝ) 1} : t ≤ 1 := t.2.2
 
 lemma mul_pos_mem_iff {a t : ℝ} (ha : 0 < a) : a * t ∈ Icc (0:ℝ) 1 ↔ t ∈ set.Icc (0 : ℝ) (1/a) :=
 begin

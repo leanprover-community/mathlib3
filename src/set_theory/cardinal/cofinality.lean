@@ -226,7 +226,7 @@ end
 theorem cof_le_card (o) : cof o ≤ card o :=
 by { rw cof_eq_Inf_lsub, exact cInf_le' card_mem_cof }
 
-theorem cof_ord_le (c : cardinal) : cof c.ord ≤ c :=
+theorem cof_ord_le (c : cardinal) : c.ord.cof ≤ c :=
 by simpa using cof_le_card c.ord
 
 theorem ord_cof_le (o : ordinal.{u}) : o.cof.ord ≤ o :=
@@ -721,7 +721,7 @@ lemma is_regular.omega_le {c : cardinal} (H : c.is_regular) : ω ≤ c :=
 H.1
 
 lemma is_regular.cof_eq {c : cardinal} (H : c.is_regular) : c.ord.cof = c :=
-H.2.antisymm' $ by { convert cof_le_card _, exact (card_ord c).symm }
+(cof_ord_le c).antisymm H.2
 
 lemma is_regular.pos {c : cardinal} (H : c.is_regular) : 0 < c :=
 omega_pos.trans_le H.1

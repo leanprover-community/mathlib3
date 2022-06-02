@@ -47,14 +47,18 @@ instance has_zero : has_zero (Icc (0:α) 1) := { zero := ⟨0, left_mem_Icc.2 ze
 
 instance has_one : has_one (Icc (0:α) 1) := { one := ⟨1, right_mem_Icc.2 zero_le_one⟩ }
 
+@[simp, norm_cast] lemma coe_zero : ↑(0 : Icc (0:α) 1) = (0 : α) := rfl
+@[simp, norm_cast] lemma coe_one : ↑(1 : Icc (0:α) 1) = (1 : α) := rfl
+
+lemma nonneg (x : Icc (0:α) 1) : 0 ≤ (x : α) := x.2.1
+lemma le_one (x : Icc (0:α) 1) : (x : α) ≤ 1 := x.2.2
+
 instance has_mul : has_mul (Icc (0:α) 1) :=
 { mul := λ p q, ⟨p*q, ⟨mul_nonneg p.2.1 q.2.1, mul_le_one p.2.2 q.2.1 q.2.2⟩⟩ }
 
 instance has_pow : has_pow (Icc (0:α) 1) ℕ :=
 { pow := λ p n, ⟨p.1 ^ n, ⟨pow_nonneg p.2.1 n, pow_le_one n p.2.1 p.2.2⟩⟩ }
 
-@[simp, norm_cast] lemma coe_zero : ↑(0 : Icc (0:α) 1) = (0 : α) := rfl
-@[simp, norm_cast] lemma coe_one : ↑(1 : Icc (0:α) 1) = (1 : α) := rfl
 @[simp, norm_cast] lemma coe_mul (x y : Icc (0:α) 1) : ↑(x * y) = (x * y : α) := rfl
 @[simp, norm_cast] lemma coe_pow (x : Icc (0:α) 1) (n : ℕ) : ↑(x ^ n) = (x ^ n : α) := rfl
 
@@ -83,6 +87,9 @@ by { rw mem_Icc at *, exact ⟨sub_nonneg.2 ht.2, (sub_le_self_iff _).2 ht.1⟩ 
 
 lemma mem_iff_one_sub_mem {t : β} : t ∈ Icc (0:β) 1 ↔ 1 - t ∈ Icc (0:β) 1 :=
 ⟨one_sub_mem, λ h, (sub_sub_cancel 1 t) ▸ one_sub_mem h⟩
+
+lemma one_minus_nonneg (x : Icc (0:β) 1) : 0 ≤ 1 - (x : β) := by simpa using x.2.2
+lemma one_minus_le_one (x : Icc (0:β) 1) : 1 - (x : β) ≤ 1 := by simpa using x.2.1
 
 end set.Icc
 

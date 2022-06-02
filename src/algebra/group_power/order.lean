@@ -179,7 +179,7 @@ theorem one_le_pow_of_one_le (H : 1 ≤ a) : ∀ (n : ℕ), 1 ≤ a ^ n
 
 lemma pow_mono (h : 1 ≤ a) : monotone (λ n : ℕ, a ^ n) :=
 monotone_nat_of_le_succ $ λ n,
-  by { rw pow_succ, exact le_mul_of_one_le_left (pow_nonneg (le_trans zero_le_one h) _) h }
+  by { rw pow_succ, exact le_mul_of_one_le_left (pow_nonneg (zero_le_one.trans h) _) h }
 
 theorem pow_le_pow (ha : 1 ≤ a) (h : n ≤ m) : a ^ n ≤ a ^ m :=
 pow_mono ha h

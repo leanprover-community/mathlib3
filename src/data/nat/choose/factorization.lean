@@ -42,7 +42,7 @@ begin
   { refine le_of_not_lt (λ hnk, h _),
     rw [choose_eq_zero_of_lt hnk, factorization_zero, finsupp.coe_zero, pi.zero_apply] },
   rw [←@padic_val_nat_eq_factorization p _ ⟨hp⟩, @padic_val_nat_def _ ⟨hp⟩ _ (choose_pos hkn)],
-  simp only [hp.multiplicity_choose hkn (lt_add_one _), enat.get_coe'],
+  simp only [hp.multiplicity_choose hkn (lt_add_one _), enat.get_coe],
   refine (finset.card_filter_le _ _).trans (le_of_eq (nat.card_Ico _ _)),
 end
 

@@ -89,7 +89,7 @@ protected lemma is_basis_gen (𝓑 : filter_basis $ β × β) :
 protected def basis (𝓑 : filter_basis $ β × β) : filter_basis ((α → β) × (α → β)) :=
 (uniform_convergence.is_basis_gen α β 𝓑).filter_basis
 
-/-- Filter basis for the uniformity of uniform convergence -/
+/-- The uniformity of uniform convergence -/
 protected def filter (𝓑 : filter_basis $ β × β) : filter ((α → β) × (α → β)) :=
 (uniform_convergence.basis α β 𝓑).filter
 

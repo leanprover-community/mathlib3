@@ -292,46 +292,29 @@ lemma card_sylow_dvd_index [fact p.prime] [fintype (sylow p G)] (P : sylow p G) 
   card (sylow p G) ∣ P.1.index :=
 ((congr_arg _ (card_sylow_eq_index_normalizer P)).mp dvd_rfl).trans (index_dvd_of_le le_normalizer)
 
-lemma lema18 [hp : fact p.prime] (P : sylow p G) [P.1.normal]
-  (hP : P.1.index ≠ 0) : ¬ p ∣ P.1.index :=
+lemma not_dvd_index_sylow' [hp : fact p.prime] (P : sylow p G) [P.1.normal] (hP : P.1.index ≠ 0) :
+  ¬ p ∣ P.1.index :=
 begin
   intro h,
   haveI : fintype (G ⧸ P.1) := fintype_of_index_ne_zero hP,
   rw index_eq_card at h,
   obtain ⟨x, hx⟩ := exists_prime_order_of_dvd_card p h,
+  have h := is_p_group.of_card ((order_eq_card_zpowers.symm.trans hx).trans (pow_one p).symm),
   let Q := (zpowers x).comap (quotient_group.mk' P.1),
-  have hx' : is_p_group p (zpowers x),
-  { apply is_p_group.of_card,
-    rwa [pow_one, ←order_eq_card_zpowers] },
-  have hQ : is_p_group p Q,
-  { refine hx'.comap_of_ker_is_p_group (quotient_group.mk' P.1) _,
-    rw [quotient_group.ker_mk],
-    exact P.2, },
-  suffices hQ' : P.1 < Q,
-  { exact hQ'.ne' (P.3 hQ hQ'.le) },
-  rw [←quotient_group.ker_mk P.1, ←monoid_hom.comap_bot,
-    comap_lt_comap_of_surjective (quotient_group.mk'_surjective P.1)],
-  rw [bot_lt_iff_ne_bot, ne, zpowers_eq_bot, ←order_of_eq_one_iff, hx],
-  exact hp.1.ne_one,
+  have hQ : is_p_group p Q := h.comap_of_ker_is_p_group _ ((quotient_group.ker_mk P.1).symm ▸ P.2),
+  replace hp := mt order_of_eq_one_iff.mpr (ne_of_eq_of_ne hx hp.1.ne_one),
+  rw [←zpowers_eq_bot, ←ne, ←bot_lt_iff_ne_bot, ←comap_lt_comap_of_surjective
+    (quotient_group.mk'_surjective P.1), monoid_hom.comap_bot, quotient_group.ker_mk] at hp,
+  exact hp.ne' (P.3 hQ hp.le),
 end
 
-lemma lema17 [hp : fact p.prime] [fintype (sylow p G)] (P : sylow p G)
+lemma not_dvd_index_sylow [hp : fact p.prime] [fintype (sylow p G)] (P : sylow p G)
   (hP : P.1.relindex P.1.normalizer ≠ 0) : ¬ p ∣ P.1.index :=
 begin
-  rw ← relindex_mul_index le_normalizer,
-  rw ← card_sylow_eq_index_normalizer,
-  refine hp.1.not_dvd_mul _ (not_dvd_card_sylow p G),
-  haveI : (P.subtype le_normalizer).1.normal,
-  { change (P.1.comap P.1.normalizer.subtype).normal,
-    refine normalizer_eq_top.mp _,
-    rw ← comap_normalizer_eq_of_injective_of_le_range,
-    rw [eq_top_iff, ←map_le_iff_le_comap, ←monoid_hom.range_eq_map, subtype_range],
-    exact le_rfl,
-    exact subtype.coe_injective,
-    rw [subtype_range],
-    exact le_rfl },
-  have key := lema18 (P.subtype le_normalizer) hP,
-  exact key,
+  rw [←relindex_mul_index le_normalizer, ←card_sylow_eq_index_normalizer],
+  haveI : (P.subtype le_normalizer).to_subgroup.normal := subgroup.normal_in_normalizer,
+  replace hP := not_dvd_index_sylow' (P.subtype le_normalizer) hP,
+  exact hp.1.not_dvd_mul hP (not_dvd_card_sylow p G),
 end
 
 /-- Frattini's Argument: If `N` is a normal subgroup of `G`, and if `P` is a Sylow `p`-subgroup
@@ -521,8 +504,8 @@ let ⟨K, hK⟩ := exists_subgroup_card_pow_prime_le p hdvd ⊥ (by simp) n.zero
 
 lemma pow_dvd_card_of_pow_dvd_card [fintype G] {p n : ℕ} [hp : fact p.prime] (P : sylow p G)
   (hdvd : p ^ n ∣ card G) : p ^ n ∣ card P :=
-(hp.1.coprime_pow_of_not_dvd (lema17 P index_ne_zero_of_fintype)).symm.dvd_of_dvd_mul_left
-    ((index_mul_card P.1).symm ▸ hdvd)
+(hp.1.coprime_pow_of_not_dvd (not_dvd_index_sylow P
+  index_ne_zero_of_fintype)).symm.dvd_of_dvd_mul_left ((index_mul_card P.1).symm ▸ hdvd)
 
 lemma dvd_card_of_dvd_card [fintype G] {p : ℕ} [hp : fact p.prime] (P : sylow p G)
   (hdvd : p ∣ card G) : p ∣ card P :=
@@ -538,8 +521,7 @@ begin
   change nat.coprime (card P.1) (index P.1),
   obtain ⟨n, hn⟩ := is_p_group.iff_card.mp P.2,
   rw hn,
-  have key := hp.1.coprime_pow_of_not_dvd (lema17 P index_ne_zero_of_fintype),
-  exact key.symm,
+  exact (hp.1.coprime_pow_of_not_dvd (not_dvd_index_sylow P index_ne_zero_of_fintype)).symm,
 end
 
 lemma ne_bot_of_dvd_card [fintype G] {p : ℕ} [hp : fact p.prime] (P : sylow p G)

@@ -494,6 +494,8 @@ variables
   [Π (X : D), limits.preserves_colimits_of_shape (K.cover X)ᵒᵖ (forget A)]
   [∀ (X : D), limits.has_colimits_of_shape (K.cover X)ᵒᵖ A]
 
+/-- The isomorphism exhibiting the compatibiility of
+`Sheaf_equiv_of_cover_preserving_cover_lifting` with sheafification. -/
 noncomputable
 abbreviation Sheaf_equiv_of_cover_preserving_cover_lifting_sheafification_compatibility :
   (whiskering_left _ _ A).obj G.op ⋙ presheaf_to_Sheaf _ _ ≅

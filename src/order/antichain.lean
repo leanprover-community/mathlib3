@@ -94,7 +94,7 @@ lemma insert_of_symmetric (hs : is_antichain r s) (hr : symmetric r)
   is_antichain r (insert a s) :=
 (is_antichain_insert_of_symmetric hr).2 ⟨hs, h⟩
 
-lemma img_rel_iso (hs : is_antichain r s) (φ : rel_iso r r') :
+lemma image_rel_iso (hs : is_antichain r s) (φ : rel_iso r r') :
   is_antichain r' (φ '' s) :=
 begin
   intros b hb b' hb' h₁ h₂,
@@ -103,13 +103,25 @@ begin
   exact hs has has' (λ haa', h₁ (haa'.subst (by refl))) (φ.map_rel_iff.mp h₂),
 end
 
-lemma img_iso [has_le α] [has_le β] (hs : is_antichain (≤) s) (φ : order_iso α β) :
-  is_antichain (≤) (φ '' s) :=
-img_rel_iso hs φ
+lemma preimage_rel_iso {t : set β} (hs : is_antichain r' t) (φ : rel_iso r r') :
+  is_antichain r (φ ⁻¹' t) :=
+λ a ha a' ha' hne hle, hs ha ha' (λ h, hne (φ.injective h)) (φ.map_rel_iff.mpr hle)
 
-lemma img_compl [boolean_algebra α] (hs : is_antichain (≤) s) :
+lemma image_iso [has_le α] [has_le β] (hs : is_antichain (≤) s) (φ : order_iso α β) :
+  is_antichain (≤) (φ '' s) :=
+hs.image_rel_iso φ
+
+lemma preimage_iso [has_le α] [has_le β] {t : set β} (hs : is_antichain (≤) t) (φ : order_iso α β) :
+  is_antichain (≤) (φ ⁻¹' t) :=
+hs.preimage_rel_iso φ
+
+lemma image_compl [boolean_algebra α] (hs : is_antichain (≤) s) :
   is_antichain (≤) (compl '' s) :=
-(hs.img_iso (order_iso.compl α)).flip
+(hs.image_iso (order_iso.compl α)).flip
+
+lemma preimage_compl [boolean_algebra α] (hs : is_antichain (≤) s) :
+  is_antichain (≤) (compl ⁻¹' s) :=
+λ a ha a' ha' hne hle, hs ha' ha (λ h, hne (compl_inj_iff.mp h.symm)) (compl_le_compl hle)
 
 end is_antichain
 

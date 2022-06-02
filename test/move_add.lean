@@ -1,18 +1,29 @@
 import tactic.move_add
 
 open tactic interactive
-variables {R : Type*} [add_comm_semigroup R] {a b c d e f g h : R}
+variables {R : Type*} [add_comm_semigroup R] {a b c d e f g h : R} (p₁ : R → R) (p₂ : R → R → R)
 
 example (e f g : R) (h : a + b + c = d) : b + (a + c) = d :=
 begin
-  success_if_fail { move_add [d] at * }, -- d is an unused variable
+  success_if_fail_with_msg { move_add [d] at * }
+    ("'d' is an unused variable"),
   move_add at *,
-  success_if_fail { move_add at * },                      -- 'move_add at *' changed nothing
-  success_if_fail { move_add [a, e, f, g] at h a b c ⊢ }, -- '[a, b, c]' did not change
-  success_if_fail { move_add [a, e, f, g] at h ⊢ },       -- '[e, f, g]' are unused variables
-  success_if_fail { move_add at ⊢ h },                    -- '[h]' did not change
-  success_if_fail { move_add at ⊢ },                      -- Goal did not change
+  success_if_fail_with_msg { move_add at * }
+    ("'move_add at *' changed nothing"),
+  success_if_fail_with_msg { move_add [a, e, f, g] at h a b c ⊢ }
+    ("'[a, b, c]' did not change"),
+  success_if_fail_with_msg { move_add [a, e, f, g] at h ⊢ }
+    ("'[e, f, g]' are unused variables"),
+  success_if_fail_with_msg { move_add at ⊢ h }
+    ("'[h]' did not change"),
+  success_if_fail_with_msg { move_add at ⊢ }
+    ("Goal did not change"),
   move_add ← a at *,  -- `move_add` closes the goal, since, after rearranging, it tries `assumption`
+end
+
+example : a + p₂ (b + c + a) (p₁ d + e) + f + g = p₂ (c + b + a) (e + p₁ d) + g + f + a :=
+begin
+  move_add [b, p₁ d, g, f, a],
 end
 
 example (r : R → R → Prop) (h : r (a + b) (c + b + a)) : r (a + b) (a + b + c) :=

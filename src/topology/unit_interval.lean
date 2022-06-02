@@ -34,7 +34,7 @@ namespace unit_interval
 open_locale unit_interval
 
 /-- Unit interval central symmetry. -/
-def symm : I → I := λ t, ⟨1 - t, mem_iff_one_sub_mem.mp t.prop⟩
+def symm : I → I := λ t, ⟨1 - t, set.Icc.one_sub_mem t.prop⟩
 
 localized "notation `σ` := unit_interval.symm" in unit_interval
 

@@ -124,6 +124,12 @@ variables {R : Type*} [linear_ordered_field R]
 lemma div_mem  {x y : R} (hx : 0 ≤ x) (hy : 0 ≤ y) (hxy : x ≤ y) : x / y ∈ Icc (0:R) 1 :=
 ⟨div_nonneg hx hy, div_le_one_of_le hxy hy⟩
 
+@[simp] lemma proj_Icc_eq_zero {x : R} : proj_Icc (0 : R) 1 zero_le_one x = 0 ↔ x ≤ 0 :=
+proj_Icc_eq_left zero_lt_one
+
+@[simp] lemma proj_Icc_eq_one {x : R} : proj_Icc (0 : R) 1 zero_le_one x = 1 ↔ 1 ≤ x :=
+proj_Icc_eq_right zero_lt_one
+
 end set.Icc
 
 -- ### The unit interval in the real numbers
@@ -143,15 +149,6 @@ lemma two_mul_sub_one_mem_iff {t : ℝ} : 2 * t - 1 ∈ Icc (0:ℝ) 1 ↔ t ∈ 
 by split; rintros ⟨h₁, h₂⟩; split; linarith
 
 end unit_interval
-
-@[simp] lemma proj_Icc_eq_zero {x : ℝ} : proj_Icc (0 : ℝ) 1 zero_le_one x = 0 ↔ x ≤ 0 :=
-proj_Icc_eq_left zero_lt_one
-
-@[simp] lemma proj_Icc_eq_one {x : ℝ} : proj_Icc (0 : ℝ) 1 zero_le_one x = 1 ↔ 1 ≤ x :=
-proj_Icc_eq_right zero_lt_one
-
-
-
 
 /-! ### Instances for `↥(set.Ico 0 1)` -/
 

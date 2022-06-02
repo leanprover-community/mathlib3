@@ -500,7 +500,7 @@ induction_on₃ a b c $ λ α β γ ⟨e⟩, ⟨embedding.arrow_congr_right e⟩
 
 end order_properties
 
-protected theorem wf : @well_founded cardinal.{u} (<) :=
+protected theorem lt_wf : @well_founded cardinal.{u} (<) :=
 ⟨λ a, classical.by_contradiction $ λ h, begin
   let ι := {c : cardinal // ¬ acc (<) c},
   let f : ι → cardinal := subtype.val,
@@ -513,13 +513,13 @@ protected theorem wf : @well_founded cardinal.{u} (<) :=
   simpa [mk_out] using this
 end⟩
 
-instance : has_well_founded cardinal.{u} := ⟨(<), cardinal.wf⟩
+instance : has_well_founded cardinal.{u} := ⟨(<), cardinal.lt_wf⟩
 
 instance : conditionally_complete_linear_order_bot cardinal :=
-cardinal.lt_wf.conditionally_complete_linear_order_with_bot 0 $ le_antisymm (cardinal.zero_le _) $
+cardinal.lt_wf.conditionally_complete_linear_order_with_bot 0 $ (cardinal.zero_le _).antisymm $
   not_lt.1 (cardinal.lt_wf.not_lt_min set.univ ⟨0, mem_univ _⟩ (mem_univ 0))
 
-instance wo : @is_well_order cardinal.{u} (<) := ⟨cardinal.wf⟩
+instance wo : @is_well_order cardinal.{u} (<) := ⟨cardinal.lt_wf⟩
 
 @[simp] theorem Inf_empty : Inf (∅ : set cardinal.{u}) = 0 :=
 dif_neg not_nonempty_empty

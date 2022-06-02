@@ -59,18 +59,18 @@ namespace order
 /-- Cofinality of a reflexive order `≼`. This is the smallest cardinality
   of a subset `S : set α` such that `∀ a, ∃ b ∈ S, a ≼ b`. -/
 def cof (r : α → α → Prop) : cardinal :=
-Inf {c | ∃ S, unbounded r S ∧ #S = c}
+Inf {c | ∃ S : set α, (∀ a, ∃ b ∈ S, r a b) ∧ #S = c}
 
 /-- The set in the definition of `order.cof` is nonempty. -/
 theorem cof_nonempty (r : α → α → Prop) [is_refl α r] :
-  {c | ∃ S, unbounded r S ∧ #S = c}.nonempty :=
+  {c | ∃ S : set α, (∀ a, ∃ b ∈ S, r a b) ∧ #S = c}.nonempty :=
 ⟨_, set.univ, λ a, ⟨a, ⟨⟩, refl _⟩, rfl⟩
 
-lemma cof_le (r : α → α → Prop) {S : set α} (h : unbounded r S) : order.cof r ≤ #S :=
+lemma cof_le (r : α → α → Prop) {S : set α} (h : ∀ a, ∃ b ∈ S, r a b) : order.cof r ≤ #S :=
 cInf_le' ⟨S, h, rfl⟩
 
 lemma le_cof {r : α → α → Prop} [is_refl α r] (c : cardinal) :
-  c ≤ order.cof r ↔ ∀ {S : set α}, unbounded r S → c ≤ #S :=
+  c ≤ order.cof r ↔ ∀ {S : set α}, (∀ a, ∃ b ∈ S, r a b) → c ≤ #S :=
 begin
   rw [order.cof, le_cInf_iff'' (cof_nonempty r)],
   use λ H S h, H _ ⟨S, h, rfl⟩,
@@ -91,7 +91,7 @@ begin
   refine ⟨_, ⟨f.symm '' u, λ a, _, rfl⟩,
     lift_mk_eq.{u v (max u v)}.2 ⟨((f.symm).to_equiv.image u).symm⟩⟩,
   rcases H (f a) with ⟨b, hb, hb'⟩,
-  refine ⟨f.symm b,  mem_image_of_mem _ hb, f.map_rel_iff.1 _⟩,
+  refine ⟨f.symm b, mem_image_of_mem _ hb, f.map_rel_iff.1 _⟩,
   rwa [rel_iso.apply_symm_apply]
 end
 
@@ -140,13 +140,11 @@ end
 
 lemma cof_type (r : α → α → Prop) [is_well_order α r] : (type r).cof = strict_order.cof r := rfl
 
-theorem le_cof_type [is_well_order α r] {c} : c ≤ cof (type r) ↔
-  ∀ S : set α, unbounded r S → c ≤ #S :=
+theorem le_cof_type [is_well_order α r] {c} : c ≤ cof (type r) ↔ ∀ S, unbounded r S → c ≤ #S :=
 (le_cInf_iff'' (strict_order.cof_nonempty r)).trans ⟨λ H S h, H _ ⟨S, h, rfl⟩,
   by { rintros H d ⟨S, h, rfl⟩, exact H _ h }⟩
 
-theorem cof_type_le [is_well_order α r] {S : set α} (h : unbounded r S) :
-  cof (type r) ≤ #S :=
+theorem cof_type_le [is_well_order α r] {S : set α} (h : unbounded r S) : cof (type r) ≤ #S :=
 le_cof_type.1 le_rfl S h
 
 theorem lt_cof_type [is_well_order α r] {S : set α} : #S < cof (type r) → bounded r S :=

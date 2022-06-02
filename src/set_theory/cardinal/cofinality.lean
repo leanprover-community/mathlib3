@@ -624,65 +624,63 @@ end
 /-- If the union of s is unbounded and s is smaller than the cofinality,
   then s has an unbounded member -/
 theorem unbounded_of_unbounded_sUnion (r : α → α → Prop) [wo : is_well_order α r] {s : set (set α)}
-  (h₁ : unbounded r $ ⋃₀ s) (h₂ : #s < strict_order.cof r) : ∃(x ∈ s), unbounded r x :=
+  (h₁ : unbounded r $ ⋃₀ s) (h₂ : #s < strict_order.cof r) : ∃ x ∈ s, unbounded r x :=
 begin
-  by_contra h, simp only [not_exists, exists_prop, not_and, not_unbounded_iff] at h,
-  apply not_le_of_lt h₂,
+  by_contra' h,
+  simp_rw not_unbounded_iff at h,
+  apply h₂.not_le,
   let f : s → α := λ x : s, wo.wf.sup x (h x.1 x.2),
-  let t : set α := range f,
-  have : #t ≤ #s, exact mk_range_le, refine le_trans _ this,
-  have : unbounded r t,
-  { intro x, rcases h₁ x with ⟨y, ⟨c, hc, hy⟩, hxy⟩,
-    refine ⟨f ⟨c, hc⟩, mem_range_self _, _⟩, intro hxz, apply hxy,
-    refine trans (wo.wf.lt_sup _ hy) hxz },
-  exact cardinal.min_le _ (subtype.mk t this)
+  refine le_trans (cardinal.min_le _ (subtype.mk (range f) $ λ x, _)) mk_range_le,
+  rcases h₁ x with ⟨y, ⟨c, hc, hy⟩, hxy⟩,
+  exact ⟨f ⟨c, hc⟩, mem_range_self _, λ hxz, hxy (trans (wo.wf.lt_sup _ hy) hxz)⟩
 end
 
 /-- If the union of s is unbounded and s is smaller than the cofinality,
   then s has an unbounded member -/
 theorem unbounded_of_unbounded_Union {α β : Type u} (r : α → α → Prop) [wo : is_well_order α r]
   (s : β → set α)
-  (h₁ : unbounded r $ ⋃x, s x) (h₂ : #β < strict_order.cof r) : ∃x : β, unbounded r (s x) :=
+  (h₁ : unbounded r $ ⋃ x, s x) (h₂ : #β < strict_order.cof r) : ∃ x : β, unbounded r (s x) :=
 begin
-  rw [← sUnion_range] at h₁,
-  have : #(range (λ (i : β), s i)) < strict_order.cof r := lt_of_le_of_lt mk_range_le h₂,
-  rcases unbounded_of_unbounded_sUnion r h₁ this with ⟨_, ⟨x, rfl⟩, u⟩, exact ⟨x, u⟩
+  rw ←sUnion_range at h₁,
+  rcases unbounded_of_unbounded_sUnion r h₁ (mk_range_le.trans_lt h₂) with ⟨_, ⟨x, rfl⟩, u⟩,
+  exact ⟨x, u⟩
 end
 
 /-- The infinite pigeonhole principle -/
 theorem infinite_pigeonhole {β α : Type u} (f : β → α) (h₁ : ω ≤ #β)
-  (h₂ : #α < (#β).ord.cof) : ∃a : α, #(f ⁻¹' {a}) = #β :=
+  (h₂ : #α < (#β).ord.cof) : ∃ a : α, #(f ⁻¹' {a}) = #β :=
 begin
-  have : ¬∀a, #(f ⁻¹' {a}) < #β,
-  { intro h,
-    apply not_lt_of_ge (ge_of_eq $ mk_univ),
-    rw [←@preimage_univ _ _ f, ←Union_of_singleton, preimage_Union],
+  have : ∃ a, #β ≤ #(f ⁻¹' {a}),
+  { by_contra' h,
+    apply mk_univ.not_lt,
+    rw [←preimage_univ, ←Union_of_singleton, preimage_Union],
     exact mk_Union_le_sum_mk.trans_lt ((sum_le_sup _).trans_lt $ mul_lt_of_lt h₁
       (h₂.trans_le $ cof_ord_le _) (sup_lt h₂ h)) },
-  rw [not_forall] at this, cases this with x h,
-  use x, apply le_antisymm _ (le_of_not_gt h),
-  rw [le_mk_iff_exists_set], exact ⟨_, rfl⟩
+  cases this with x h,
+  refine ⟨x, h.antisymm' _⟩,
+  rw le_mk_iff_exists_set,
+  exact ⟨_, rfl⟩
 end
 
-/-- pigeonhole principle for a cardinality below the cardinality of the domain -/
+/-- Pigeonhole principle for a cardinality below the cardinality of the domain -/
 theorem infinite_pigeonhole_card {β α : Type u} (f : β → α) (θ : cardinal) (hθ : θ ≤ #β)
-  (h₁ : ω ≤ θ) (h₂ : #α < θ.ord.cof) : ∃a : α, θ ≤ #(f ⁻¹' {a}) :=
+  (h₁ : ω ≤ θ) (h₂ : #α < θ.ord.cof) : ∃ a : α, θ ≤ #(f ⁻¹' {a}) :=
 begin
   rcases le_mk_iff_exists_set.1 hθ with ⟨s, rfl⟩,
   cases infinite_pigeonhole (f ∘ subtype.val : s → α) h₁ h₂ with a ha,
   use a, rw [←ha, @preimage_comp _ _ _ subtype.val f],
-  apply mk_preimage_of_injective _ _ subtype.val_injective
+  exact mk_preimage_of_injective _ _ subtype.val_injective
 end
 
 theorem infinite_pigeonhole_set {β α : Type u} {s : set β} (f : s → α) (θ : cardinal)
   (hθ : θ ≤ #s) (h₁ : ω ≤ θ) (h₂ : #α < θ.ord.cof) :
-    ∃(a : α) (t : set β) (h : t ⊆ s), θ ≤ #t ∧ ∀{{x}} (hx : x ∈ t), f ⟨x, h hx⟩ = a :=
+    ∃ a t (h : t ⊆ s), θ ≤ #t ∧ ∀ {x} (hx : x ∈ t), f ⟨x, h hx⟩ = a :=
 begin
   cases infinite_pigeonhole_card f θ hθ h₁ h₂ with a ha,
-  refine ⟨a, {x | ∃(h : x ∈ s), f ⟨x, h⟩ = a}, _, _, _⟩,
+  refine ⟨a, {x | ∃ h, f ⟨x, h⟩ = a}, _, _, _⟩,
   { rintro x ⟨hx, hx'⟩, exact hx },
-  { refine le_trans ha _, apply ge_of_eq, apply quotient.sound, constructor,
-    refine equiv.trans _ (equiv.subtype_subtype_equiv_subtype_exists _ _).symm,
+  { refine ha.trans (ge_of_eq $ quotient.sound ⟨equiv.trans _
+      (equiv.subtype_subtype_equiv_subtype_exists _ _).symm⟩),
     simp only [coe_eq_subtype, mem_singleton_iff, mem_preimage, mem_set_of_eq] },
   rintro x ⟨hx, hx'⟩, exact hx'
 end

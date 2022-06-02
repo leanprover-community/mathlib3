@@ -165,8 +165,10 @@ begin
     rw h },
   { intro h,
     ext i j,
-    simpa only [pi.star_single, map_one, vec_mul_single, one_smul,
-      dot_product_single, mul_one, star_one] using h (pi.single i 1) (pi.single j 1) }
+    simpa only [(pi.single_star i 1).symm, ← star_mul_vec, mul_one, dot_product_single,
+      single_vec_mul, star_one, one_mul] using
+        h (@pi.single _ _ _ (λ i, add_zero_class.to_has_zero α) i 1)
+          (@pi.single _ _ _ (λ i, add_zero_class.to_has_zero α) j 1) }
 end
 
 end is_R_or_C

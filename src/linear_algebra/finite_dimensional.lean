@@ -1295,10 +1295,10 @@ protected noncomputable def set.finrank (s : set V) : ℕ := finrank K (span K s
 
 variable {K}
 
-lemma finrank_span_le_card (s : set V) [fin : fintype s] :
+lemma finrank_span_le_card (s : set V) [fintype s] :
   finrank K (span K s) ≤ s.to_finset.card :=
 begin
-  haveI := span_of_finite K ⟨fin⟩,
+  haveI := span_of_finite K (set.finite_of_fintype s),
   have : module.rank K (span K s) ≤ #s := dim_span_le s,
   rw [←finrank_eq_dim, cardinal.mk_fintype, ←set.to_finset_card] at this,
   exact_mod_cast this,
@@ -1319,11 +1319,11 @@ begin
     cardinal.mk_fintype, lift_nat_cast, lift_nat_cast, nat_cast_inj] at this,
 end
 
-lemma finrank_span_set_eq_card (s : set V) [fin : fintype s]
+lemma finrank_span_set_eq_card (s : set V) [fintype s]
   (hs : linear_independent K (coe : s → V)) :
   finrank K (span K s) = s.to_finset.card :=
 begin
-  haveI := span_of_finite K ⟨fin⟩,
+  haveI := span_of_finite K (set.finite_of_fintype s),
   have : module.rank K (span K s) = #s := dim_span_set hs,
   rw [←finrank_eq_dim, cardinal.mk_fintype, ←set.to_finset_card] at this,
   exact_mod_cast this,

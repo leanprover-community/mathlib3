@@ -2131,15 +2131,6 @@ lemma lintegral_dirac [measurable_singleton_class α] (a : α) (f : α → ℝ�
   ∫⁻ a, f a ∂(dirac a) = f a :=
 by simp [lintegral_congr_ae (ae_eq_dirac f)]
 
-lemma lintegral_encodable {α : Type*} {m : measurable_space α} [encodable α]
-  [measurable_singleton_class α] (f : α → ℝ≥0∞) (μ : measure α) :
-  ∫⁻ a, f a ∂μ = ∑' a, f a * μ {a} :=
-begin
-  conv_lhs { rw [← sum_smul_dirac μ, lintegral_sum_measure] },
-  congr' 1 with a : 1,
-  rw [lintegral_smul_measure, lintegral_dirac, mul_comm],
-end
-
 lemma lintegral_count' {f : α → ℝ≥0∞} (hf : measurable f) :
   ∫⁻ a, f a ∂count = ∑' a, f a :=
 begin
@@ -2157,6 +2148,58 @@ begin
 end
 
 end dirac_and_count
+
+section countable
+/-!
+### Lebesgue integral over finite and countable types and sets
+-/
+
+lemma lintegral_encodable [encodable α] [measurable_singleton_class α] (f : α → ℝ≥0∞) :
+  ∫⁻ a, f a ∂μ = ∑' a, f a * μ {a} :=
+begin
+  conv_lhs { rw [← sum_smul_dirac μ, lintegral_sum_measure] },
+  congr' 1 with a : 1,
+  rw [lintegral_smul_measure, lintegral_dirac, mul_comm],
+end
+
+lemma lintegral_singleton' {f : α → ℝ≥0∞} (hf : measurable f) (a : α) :
+  ∫⁻ x in {a}, f x ∂μ = f a * μ {a} :=
+by simp only [restrict_singleton, lintegral_smul_measure, lintegral_dirac' _ hf, mul_comm]
+
+lemma lintegral_singleton [measurable_singleton_class α] (f : α → ℝ≥0∞) (a : α) :
+  ∫⁻ x in {a}, f x ∂μ = f a * μ {a} :=
+by simp only [restrict_singleton, lintegral_smul_measure, lintegral_dirac, mul_comm]
+
+lemma lintegral_countable [measurable_singleton_class α] (f : α → ℝ≥0∞) {s : set α}
+  (hs : countable s) :
+  ∫⁻ a in s, f a ∂μ = ∑' a : s, f a * μ {(a : α)} :=
+calc ∫⁻ a in s, f a ∂μ = ∫⁻ a in ⋃ x ∈ s, {x}, f a ∂μ : by rw [bUnion_of_singleton]
+... = ∑' a : s, ∫⁻ x in {a}, f x ∂μ :
+  lintegral_bUnion hs (λ _ _, measurable_set_singleton _) (pairwise_disjoint_fiber id s) _
+... = ∑' a : s, f a * μ {(a : α)} : by simp only [lintegral_singleton]
+
+lemma lintegral_insert [measurable_singleton_class α]
+  {a : α} {s : set α} (h : a ∉ s) (f : α → ℝ≥0∞) :
+  ∫⁻ x in insert a s, f x ∂μ = f a * μ {a} + ∫⁻ x in s, f x ∂μ :=
+begin
+  rw [← union_singleton, lintegral_union (measurable_set_singleton a), lintegral_singleton,
+    add_comm],
+  rwa disjoint_singleton_right
+end
+
+lemma lintegral_finset [measurable_singleton_class α] (s : finset α) (f : α → ℝ≥0∞) :
+  ∫⁻ x in s, f x ∂μ = ∑ x in s, f x * μ {x} :=
+by simp only [lintegral_countable _ s.countable_to_set, ← s.tsum_subtype']
+
+lemma lintegral_fintype [measurable_singleton_class α] [fintype α] (f : α → ℝ≥0∞) :
+  ∫⁻ x, f x ∂μ = ∑ x, f x * μ {x} :=
+by rw [← lintegral_finset, finset.coe_univ, measure.restrict_univ]
+
+lemma lintegral_unique [unique α] (f : α → ℝ≥0∞) : ∫⁻ x, f x ∂μ = f default * μ univ :=
+calc ∫⁻ x, f x ∂μ = ∫⁻ x, f default ∂μ : lintegral_congr $ unique.forall_iff.2 rfl
+... = f default * μ univ : lintegral_const _
+
+end countable
 
 lemma ae_lt_top {f : α → ℝ≥0∞} (hf : measurable f) (h2f : ∫⁻ x, f x ∂μ ≠ ∞) :
   ∀ᵐ x ∂μ, f x < ∞ :=

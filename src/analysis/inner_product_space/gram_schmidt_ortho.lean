@@ -47,13 +47,9 @@ end basis
 namespace submodule
 
 variables (R : Type*) {M : Type*} [semiring R] [add_comm_monoid M] [module R M] (s t : set M)
+
 lemma span_eq_span (hs : s ⊆ span R t) (ht : t ⊆ span R s) : span R s = span R t :=
--- le_antisymm (span_le.2 hs) (span_le.2 ht)
-begin
-  apply le_antisymm,
-  apply span_le.2 hs,
-  apply span_le.2 ht,
-end
+le_antisymm (span_le.2 hs) (span_le.2 ht)
 
 end submodule
 
@@ -127,84 +123,92 @@ theorem gram_schmidt_pairwise_orthogonal (f : ι → E) :
 
 open submodule set order
 
-lemma mem_span_gram_schmidt (f : ι → E) (c : ι) :
-  f c ∈ span 𝕜 (gram_schmidt 𝕜 f '' Iic c) :=
+lemma mem_span_gram_schmidt (f : ι → E) (i j : ι) (hij : i ≤ j) :
+  f i ∈ span 𝕜 (gram_schmidt 𝕜 f '' Iic j) :=
 begin
-  rw [gram_schmidt_def' 𝕜 f c],
-  refine submodule.add_mem _ (subset_span (mem_image_of_mem _ (le_refl _))) _,
-  apply submodule.sum_mem _ (λ i hi, _),
+  rw [gram_schmidt_def' 𝕜 f i],
+  refine submodule.add_mem _ (subset_span (mem_image_of_mem _ hij)) _,
+  apply submodule.sum_mem _ (λ k hk, _),
   rw [orthogonal_projection_singleton],
-  apply smul_mem (span 𝕜 (gram_schmidt 𝕜 f '' Iic c)) _
+  apply smul_mem (span 𝕜 (gram_schmidt 𝕜 f '' Iic j)) _
     (subset_span (set.mem_image_of_mem (gram_schmidt 𝕜 f) _)),
-  exact le_of_lt (finset.mem_Iio.1 hi),
+  exact (le_of_lt (finset.mem_Iio.1 hk)).trans hij
 end
 
-lemma gram_schmidt_mem_span (f : ι → E) (c : ι) :
-  gram_schmidt 𝕜 f c ∈ span 𝕜 (f '' Iic c) :=
+lemma gram_schmidt_mem_span (f : ι → E) (j : ι) :
+  ∀ i, i ≤ j → gram_schmidt 𝕜 f i ∈ span 𝕜 (f '' Iic j) :=
 begin
-  apply well_founded.induction (@is_well_order.wf ι (<) _) c,
-  intros c ih,
-  rw [gram_schmidt_def 𝕜 f c],
-  refine submodule.sub_mem _ (subset_span (mem_image_of_mem _ (le_refl _))) (submodule.sum_mem _ (λ i hi, _)),
+  apply well_founded.induction (@is_well_order.wf ι (<) _) j,
+  intros j ih i hij,
+  rw [gram_schmidt_def 𝕜 f i],
+  refine submodule.sub_mem _ (subset_span (mem_image_of_mem _ hij))
+    (submodule.sum_mem _ (λ k hk, _)),
   simp only [orthogonal_projection_singleton],
   apply smul_mem _ _ _,
   apply span_mono,
-  apply set.image_subset f (Iic_subset_Iic.2 (le_of_lt (finset.mem_Iio.1 hi))),
-  exact ih i (finset.mem_Iio.1 hi),
+  apply set.image_subset f (Iic_subset_Iic.2 ((le_of_lt (finset.mem_Iio.1 hk)).trans hij)),
+  exact ih k (lt_of_lt_of_le (finset.mem_Iio.1 hk) hij) k (le_refl k),
+end
+
+lemma span_gram_schmidt_Iic (f : ι → E) (c : ι) :
+  span 𝕜 (gram_schmidt 𝕜 f '' Iic c) = span 𝕜 (f '' Iic c) :=
+begin
+  apply span_eq_span,
+  { intros x hx,
+    rw set.mem_image at hx,
+    rcases hx with ⟨i, hi, hix⟩,
+    rw [← hix],
+    exact gram_schmidt_mem_span _ _ c i hi },
+  { intros x hx,
+    rw set.mem_image at hx,
+    rcases hx with ⟨i, hi, hix⟩,
+    rw [← hix],
+    exact mem_span_gram_schmidt _ _ i c hi }
+end
+
+lemma span_gram_schmidt_Iio (f : ι → E) (c : ι) :
+  span 𝕜 (gram_schmidt 𝕜 f '' Iio c) = span 𝕜 (f '' Iio c) :=
+begin
+  apply span_eq_span,
+  { intros x hx,
+    rw set.mem_image at hx,
+    rcases hx with ⟨i, hi, hix⟩,
+    rw [← hix],
+    exact span_mono (set.image_subset f (Iic_subset_Iio.2 hi))
+      (gram_schmidt_mem_span 𝕜 f i i (le_refl i)) },
+  { intros x hx,
+    rw set.mem_image at hx,
+    rcases hx with ⟨i, hi, hix⟩,
+    rw [← hix],
+    exact span_mono (set.image_subset _ (Iic_subset_Iio.2 hi))
+      (mem_span_gram_schmidt 𝕜 f i i (le_refl i)) }
 end
 
 /-- `gram_schmidt` preserves span of vectors. -/
-lemma span_gram_schmidt_Iic [succ_order ι] [is_succ_archimedean ι] (f : ι → E) (c : ι) :
-  span 𝕜 (gram_schmidt 𝕜 f '' Iic c) = span 𝕜 (f '' Iic c) :=
+lemma span_gram_schmidt (f : ι → E) :
+  span 𝕜 (range (gram_schmidt 𝕜 f)) = span 𝕜 (range f) :=
 begin
-sorry
-  -- apply @succ.rec ι _ _ _ (λ c, span 𝕜 (gram_schmidt 𝕜 f '' Iic c) = span 𝕜 (f '' Iic c)) ⊥
-  --   _ _ _ bot_le,
-  -- { simp only [set.Iic_bot, set.image_singleton, gram_schmidt_zero] },
-  -- intros c _ hc,
-  -- by_cases h : succ c = c,
-  -- { rwa h },
-  -- have h₀ : ∀ b, b ∈ finset.Iic c → gram_schmidt 𝕜 f b ∈ span 𝕜 (f '' Iic c),
-  -- { simp_intros b hb only [finset.mem_range, nat.succ_eq_add_one],
-  --   rw ← hc,
-  --   refine subset_span _,
-  --   simp only [set.mem_image, set.mem_Iio],
-  --   refine ⟨b, finset.mem_Iic.1 hb, by refl⟩ },
-  -- rw not_iff_not.2 order.succ_eq_iff_is_max at h,
-  -- simp only [order.Iic_succ, span_insert, image_insert_eq, hc],
-  -- apply le_antisymm,
-  -- { simp only [nat.succ_eq_succ,gram_schmidt_def 𝕜 f (succ c), orthogonal_projection_singleton,
-  --     sup_le_iff, span_singleton_le_iff_mem, le_sup_right, and_true],
-  --   apply submodule.sub_mem _ _ _,
-  --   { exact mem_sup_left (mem_span_singleton_self (f (succ c))) },
-  --   { refine submodule.sum_mem _ (λ b hb, mem_sup_right (smul_mem _ _ (h₀ b _))),
-  --     exact finset.mem_Iic.2 (le_of_lt_succ (finset.mem_Iio.1 hb)) } },
-  -- { rw [gram_schmidt_def' 𝕜 f (succ c)],
-  --   simp only [orthogonal_projection_singleton,
-  --     sup_le_iff, span_singleton_le_iff_mem, le_sup_right, and_true],
-  --   apply submodule.add_mem _ _ _,
-  --   { exact mem_sup_left (mem_span_singleton_self (gram_schmidt 𝕜 f (succ c))), },
-  --   { refine submodule.sum_mem _ (λ b hb, mem_sup_right (smul_mem _ _ (h₀ b _))),
-  --     exact finset.mem_Iic.2 (le_of_lt_succ (finset.mem_Iio.1 hb)) } }
-end
-
-lemma span_gram_schmidt_Iio [succ_order ι] [is_succ_archimedean ι] (f : ι → E) (c : ι) :
-  span 𝕜 (gram_schmidt 𝕜 f '' Iio c) = span 𝕜 (f '' Iio c) :=
-begin
-  by_cases h : is_min c,
-  { simp [is_min_iff_eq_bot.1 h, Iio_bot] },
-  rw Iic_pred_of_not_is_min h,
+  apply span_eq_span,
+  { intros x hx,
+    rw set.mem_range at hx,
+    rcases hx with ⟨i, hix⟩,
+    rw [← hix],
+    exact span_mono (image_subset_range _ (Iic i)) (gram_schmidt_mem_span 𝕜 f i i (le_refl i)) },
+  { intros x hx,
+    rw set.mem_range at hx,
+    rcases hx with ⟨i, hix⟩,
+    rw [← hix],
+    exact span_mono (image_subset_range _ (Iic i)) (mem_span_gram_schmidt 𝕜 f i i (le_refl i)) }
 end
 
 /-- If the input vectors of `gram_schmidt` are linearly independent,
 then the output vectors are non-zero. -/
-lemma gram_schmidt_ne_zero [succ_order ι] [is_succ_archimedean ι]
-    (f : ι → E) (n : ι) (h₀ : linear_independent 𝕜 f) :
+lemma gram_schmidt_ne_zero (f : ι → E) (n : ι) (h₀ : linear_independent 𝕜 f) :
   gram_schmidt 𝕜 f n ≠ 0 :=
 begin
   by_contra h,
   have h₃ : f n ∈ span 𝕜 (f '' Iio n),
-  { rw [← span_gram_schmidt 𝕜 f n, gram_schmidt_def' _ f, h, zero_add],
+  { rw [← span_gram_schmidt_Iio 𝕜 f n, gram_schmidt_def' _ f, h, zero_add],
     apply submodule.sum_mem _ _,
     simp_intros a ha only [finset.mem_Ico],
     simp only [set.mem_image, set.mem_Iio, orthogonal_projection_singleton],
@@ -220,16 +224,14 @@ end
 noncomputable def gram_schmidt_normed (f : ι → E) (n : ι) : E :=
 (∥gram_schmidt 𝕜 f n∥ : 𝕜)⁻¹ • (gram_schmidt 𝕜 f n)
 
-lemma gram_schmidt_normed_unit_length [succ_order ι] [is_succ_archimedean ι]
-    (f : ι → E) (n : ι) (h₀ : linear_independent 𝕜 f) :
+lemma gram_schmidt_normed_unit_length (f : ι → E) (n : ι) (h₀ : linear_independent 𝕜 f) :
   ∥gram_schmidt_normed 𝕜 f n∥ = 1 :=
 by simp only [gram_schmidt_ne_zero 𝕜 f n h₀,
   gram_schmidt_normed, norm_smul_inv_norm, ne.def, not_false_iff]
 
 /-- **Gram-Schmidt Orthonormalization**:
 `gram_schmidt_normed` produces an orthornormal system of vectors. -/
-theorem gram_schmidt_orthonormal [succ_order ι] [is_succ_archimedean ι]
-    (f : ι → E) (h₀ : linear_independent 𝕜 f) :
+theorem gram_schmidt_orthonormal (f : ι → E) (h₀ : linear_independent 𝕜 f) :
   orthonormal 𝕜 (gram_schmidt_normed 𝕜 f) :=
 begin
   unfold orthonormal,
@@ -242,37 +244,20 @@ begin
     exact gram_schmidt_orthogonal 𝕜 f hij }
 end
 
-lemma gram_schmidt_triangular [succ_order ι] [is_succ_archimedean ι] {i j : ι}
-  (hij : i < j) (b : basis ι 𝕜 E) :
+lemma gram_schmidt_triangular {i j : ι} (hij : i < j) (b : basis ι 𝕜 E) :
   b.repr (gram_schmidt 𝕜 b i) j = 0 :=
 begin
   have : gram_schmidt 𝕜 b i ∈ span 𝕜 (gram_schmidt 𝕜 b '' set.Iio j),
     from subset_span ((set.mem_image _ _ _).2 ⟨i, hij, rfl⟩),
   have : gram_schmidt 𝕜 b i ∈ span 𝕜 (b '' set.Iio j),
-    by rwa [← span_gram_schmidt 𝕜 b j],
+    by rwa [← span_gram_schmidt_Iio 𝕜 b j],
   have : ↑(((b.repr) (gram_schmidt 𝕜 b i)).support) ⊆ set.Iio j,
     from basis.repr_support_of_mem_span b (set.Iio j) (gram_schmidt 𝕜 b i) this,
   exact (finsupp.mem_supported' _ _).1
     ((finsupp.mem_supported 𝕜 _).2 this) j (not_mem_Iio.2 (le_refl j)),
 end
 
-lemma span_gram_schmidt' [succ_order ι] [is_succ_archimedean ι] (f : ι → E) :
-  span 𝕜 (range (gram_schmidt 𝕜 f)) = span 𝕜 (range f) :=
-begin
-  apply le_antisymm,
-  rw span_le,
-  intros x hx,
-  rcases set.mem_range.1 hx with ⟨i, hi⟩,
-  rw hi.symm,
-  apply span_mono,
-  apply image_subset_range f (Iio (succ i)),
-  rw ← span_gram_schmidt,
-  apply subset_span,
-  apply set.mem_image_of_mem,
-  apply set.mem_Iio.2,
-  apply lt_succ,
-  simp,
-end
+
 #check linear_independent_of_ne_zero_of_inner_eq_zero
 #check basis.mk
 #check mem_span_finite_of_mem_span

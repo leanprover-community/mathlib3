@@ -59,11 +59,11 @@ namespace order
 /-- Cofinality of a reflexive order `≼`. This is the smallest cardinality
   of a subset `S : set α` such that `∀ a, ∃ b ∈ S, a ≼ b`. -/
 def cof (r : α → α → Prop) : cardinal :=
-Inf {c | ∃ S : set α, (∀ a, ∃ b ∈ S, r a b) ∧ #S = c}
+Inf {c | ∃ S, unbounded r S ∧ #S = c}
 
 /-- The set in the definition of `order.cof` is nonempty. -/
 theorem cof_nonempty (r : α → α → Prop) [is_refl α r] :
-  {c | ∃ S : set α, (∀ a, ∃ b ∈ S, r a b) ∧ #S = c}.nonempty :=
+  {c | ∃ S, unbounded r S ∧ #S = c}.nonempty :=
 ⟨_, set.univ, λ a, ⟨a, ⟨⟩, refl _⟩, rfl⟩
 
 lemma cof_le (r : α → α → Prop) {S : set α} (h : unbounded r S) : order.cof r ≤ #S :=

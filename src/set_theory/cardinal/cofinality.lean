@@ -82,10 +82,10 @@ end order
 
 theorem rel_iso.cof_le_lift {α : Type u} {β : Type v} {r : α → α → Prop} {s}
   [is_refl β s] (f : r ≃r s) :
-  cardinal.lift.{(max u v)} (cof r) ≤ cardinal.lift.{(max u v)} (cof s) :=
+  cardinal.lift.{(max u v)} (order.cof r) ≤ cardinal.lift.{(max u v)} (order.cof s) :=
 begin
-  rw [cof, cof, lift_Inf, lift_Inf,
-    le_cInf_iff'' (nonempty_image_iff.2 (cof_nonempty s))],
+  rw [order.cof, order.cof, lift_Inf, lift_Inf,
+    le_cInf_iff'' (nonempty_image_iff.2 (order.cof_nonempty s))],
   rintros - ⟨-, ⟨u, H, rfl⟩, rfl⟩,
   apply cInf_le',
   refine ⟨_, ⟨f.symm '' u, λ a, _, rfl⟩,
@@ -97,26 +97,26 @@ end
 
 theorem rel_iso.cof_eq_lift {α : Type u} {β : Type v} {r s}
   [is_refl α r] [is_refl β s] (f : r ≃r s) :
-  cardinal.lift.{(max u v)} (cof r) = cardinal.lift.{(max u v)} (cof s) :=
+  cardinal.lift.{(max u v)} (order.cof r) = cardinal.lift.{(max u v)} (order.cof s) :=
 (rel_iso.cof_le_lift f).antisymm (rel_iso.cof_le_lift f.symm)
 
 theorem rel_iso.cof_le {α β : Type u} {r : α → α → Prop} {s} [is_refl β s] (f : r ≃r s) :
-  cof r ≤ cof s :=
+  order.cof r ≤ order.cof s :=
 lift_le.1 (rel_iso.cof_le_lift f)
 
 theorem rel_iso.cof_eq {α β : Type u} {r s} [is_refl α r] [is_refl β s] (f : r ≃r s) :
-  cof r = cof s :=
+  order.cof r = order.cof s :=
 lift_inj.1 (rel_iso.cof_eq_lift f)
 
 /-- Cofinality of a strict order `≺`. This is the smallest cardinality of a set `S : set α` such
 that `∀ a, ∃ b ∈ S, ¬ b ≺ a`. -/
 def strict_order.cof (r : α → α → Prop) : cardinal :=
-cof (swap r)ᶜ
+order.cof (swap r)ᶜ
 
 /-- The set in the definition of `order.strict_order.cof` is nonempty. -/
 theorem strict_order.cof_nonempty (r : α → α → Prop) [is_irrefl α r] :
   {c | ∃ S : set α, unbounded r S ∧ #S = c}.nonempty :=
-@cof_nonempty α _ (is_refl.swap rᶜ)
+@order.cof_nonempty α _ (is_refl.swap rᶜ)
 
 /-! ### Cofinality of ordinals -/
 

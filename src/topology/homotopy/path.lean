@@ -130,9 +130,9 @@ continuous_map.homotopy_rel.trans F G
 lemma trans_apply (F : homotopy p₀ p₁) (G : homotopy p₁ p₂) (x : I × I) :
   (F.trans G) x =
     if h : (x.1 : ℝ) ≤ 1/2 then
-      F (⟨2 * x.1, (unit_interval.mul_pos_mem_iff zero_lt_two).2 ⟨x.1.2.1, h⟩⟩, x.2)
+      F (⟨2 * x.1, (set.Icc.mul_pos_mem_iff zero_lt_two).2 ⟨x.1.2.1, h⟩⟩, x.2)
     else
-      G (⟨2 * x.1 - 1, unit_interval.two_mul_sub_one_mem_iff.2 ⟨(not_le.1 h).le, x.1.2.2⟩⟩, x.2) :=
+      G (⟨2 * x.1 - 1, set.Icc.two_mul_sub_one_mem_iff.2 ⟨(not_le.1 h).le, x.1.2.2⟩⟩, x.2) :=
 continuous_map.homotopy_rel.trans_apply _ _ _
 
 lemma symm_trans (F : homotopy p₀ p₁) (G : homotopy p₁ p₂) :
@@ -187,9 +187,9 @@ def hcomp (F : homotopy p₀ q₀) (G : homotopy p₁ q₁) :
 lemma hcomp_apply (F : homotopy p₀ q₀) (G : homotopy p₁ q₁) (x : I × I) :
   F.hcomp G x =
   if h : (x.2 : ℝ) ≤ 1/2 then
-    F.eval x.1 ⟨2 * x.2, (unit_interval.mul_pos_mem_iff zero_lt_two).2 ⟨x.2.2.1, h⟩⟩
+    F.eval x.1 ⟨2 * x.2, (set.Icc.mul_pos_mem_iff zero_lt_two).2 ⟨x.2.2.1, h⟩⟩
   else
-    G.eval x.1 ⟨2 * x.2 - 1, unit_interval.two_mul_sub_one_mem_iff.2 ⟨(not_le.1 h).le, x.2.2.2⟩⟩ :=
+    G.eval x.1 ⟨2 * x.2 - 1, set.Icc.two_mul_sub_one_mem_iff.2 ⟨(not_le.1 h).le, x.2.2.2⟩⟩ :=
 show ite _ _ _ = _, by split_ifs; exact path.extend_extends _ _
 
 lemma hcomp_half (F : homotopy p₀ q₀) (G : homotopy p₁ q₁) (t : I) :

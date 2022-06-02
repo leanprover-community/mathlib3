@@ -149,18 +149,18 @@ end set.Icc
 namespace unit_interval
 
 -- TODO: Update all uses of this elsewhere
-lemma mul_pos_mem_iff {a t : ℝ} (ha : 0 < a) : a * t ∈ Icc (0:ℝ) 1 ↔ t ∈ set.Icc (0 : ℝ) (1/a) :=
-begin
-  split; rintros ⟨h₁, h₂⟩; split,
-  { exact nonneg_of_mul_nonneg_left h₁ ha },
-  { rwa [le_div_iff ha, mul_comm] },
-  { exact mul_nonneg ha.le h₁ },
-  { rwa [le_div_iff ha, mul_comm] at h₂ }
-end
+-- lemma mul_pos_mem_iff {a t : ℝ} (ha : 0 < a) : a * t ∈ Icc (0:ℝ) 1 ↔ t ∈ set.Icc (0 : ℝ) (1/a) :=
+-- begin
+--   split; rintros ⟨h₁, h₂⟩; split,
+--   { exact nonneg_of_mul_nonneg_left h₁ ha },
+--   { rwa [le_div_iff ha, mul_comm] },
+--   { exact mul_nonneg ha.le h₁ },
+--   { rwa [le_div_iff ha, mul_comm] at h₂ }
+-- end
 
 -- TODO: Update all uses of this elsewhere
-lemma two_mul_sub_one_mem_iff {t : ℝ} : 2 * t - 1 ∈ Icc (0:ℝ) 1 ↔ t ∈ set.Icc (1/2 : ℝ) 1 :=
-by split; rintros ⟨h₁, h₂⟩; split; linarith
+-- lemma two_mul_sub_one_mem_iff {t : ℝ} : 2 * t - 1 ∈ Icc (0:ℝ) 1 ↔ t ∈ set.Icc (1/2 : ℝ) 1 :=
+-- by split; rintros ⟨h₁, h₂⟩; split; linarith
 
 end unit_interval
 

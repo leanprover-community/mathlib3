@@ -90,13 +90,13 @@ def refl_trans_symm (p : path x₀ x₁) : homotopy (path.refl x₀) (p.trans p.
     split_ifs,
     { rw [path.extend, set.Icc_extend_of_mem],
       { norm_num },
-      { rw unit_interval.mul_pos_mem_iff zero_lt_two,
+      { rw set.Icc.mul_pos_mem_iff zero_lt_two,
         exact ⟨unit_interval.nonneg x, h⟩ } },
     { rw [path.symm, path.extend, set.Icc_extend_of_mem],
       { congr' 1,
         ext,
         norm_num [sub_sub_eq_add_sub] },
-      { rw unit_interval.two_mul_sub_one_mem_iff,
+      { rw set.Icc.two_mul_sub_one_mem_iff,
         exact ⟨(not_le.1 h).le, unit_interval.le_one x⟩ } }
   end,
   prop' := λ t x hx, begin

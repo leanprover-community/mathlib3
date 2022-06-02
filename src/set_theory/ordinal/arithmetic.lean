@@ -1986,7 +1986,7 @@ theorem log_of_left_le_one {b : ordinal} (b1 : b ≤ 1) : ∀ x, log b x = 0 :=
 log_of_not_one_lt_left b1.not_lt
 
 @[simp] lemma log_zero_left : ∀ b, log 0 b = 0 :=
-log_of_left_le_one ordinal.zero_le_one
+log_of_left_le_one zero_le_one
 
 @[simp] theorem log_zero_right (b : ordinal) : log b 0 = 0 :=
 if b1 : 1 < b then begin

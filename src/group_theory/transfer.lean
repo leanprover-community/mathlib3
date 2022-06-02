@@ -80,15 +80,12 @@ variables (T : left_transversals (H : set G))
 @[to_additive] lemma transfer_def (g : G) : transfer ϕ g = diff ϕ T (g • T) :=
 by rw [transfer, ←diff_mul_diff, ←smul_diff_smul, mul_comm, diff_mul_diff]; refl
 
-section explicit_computation
-
-variables (H)
-
+/-- Explicit computation of the transfer homomorphism. -/
 lemma transfer_eq_prod_quotient_orbit_rel_zpowers_quot
   (g : G) [fintype (quotient (orbit_rel (zpowers g) (G ⧸ H)))] :
   transfer ϕ g =
     ∏ (q : quotient (orbit_rel (zpowers g) (G ⧸ H))),
-      ϕ ⟨q.out'.out'⁻¹ * g ^ (function.minimal_period ((•) g) q.out') * q.out'.out',
+      ϕ ⟨q.out'.out'⁻¹ * g ^ function.minimal_period ((•) g) q.out' * q.out'.out',
         by rw [mul_assoc, ←quotient_group.eq', ←smul_eq_mul, quotient.mk_smul_out',
           quotient_group.out_eq', eq_comm, pow_smul_eq_iff_minimal_period_dvd]⟩ :=
 begin
@@ -105,6 +102,7 @@ begin
     exact map_one ϕ },
 end
 
+/-- Auxillary lemma in order to state `transfer_eq_pow`. -/
 lemma transfer_eq_pow_aux (g : G)
   (key : ∀ (k : ℕ) (g₀ : G), g₀⁻¹ * g ^ k * g₀ ∈ H → g₀⁻¹ * g ^ k * g₀ = g ^ k) :
   g ^ H.index ∈ H :=
@@ -120,13 +118,13 @@ begin
   λ q, (⟨g, mem_zpowers g⟩ : zpowers g) ^ function.minimal_period ((•) g) q.out',
   have hf : ∀ q, f q ∈ H.subgroup_of (zpowers g) := λ q, key q.out',
   replace key := subgroup.prod_mem (H.subgroup_of (zpowers g)) (λ q (hq : q ∈ finset.univ), hf q),
-  simpa only [minimal_period_eq_card, finset.prod_pow_eq_pow_sum, ←fintype.card_sigma,
-    ←fintype.card_congr (self_equiv_sigma_orbits (zpowers g) (G ⧸ H)), ←index_eq_card] using key,
+  simpa only [minimal_period_eq_card, finset.prod_pow_eq_pow_sum, fintype.card_sigma,
+    fintype.card_congr (self_equiv_sigma_orbits (zpowers g) (G ⧸ H)), index_eq_card] using key,
 end
 
 lemma transfer_eq_pow (g : G)
   (key : ∀ (k : ℕ) (g₀ : G), g₀⁻¹ * g ^ k * g₀ ∈ H → g₀⁻¹ * g ^ k * g₀ = g ^ k) :
-  transfer ϕ g = ϕ ⟨g ^ H.index, transfer_eq_pow_aux H g key⟩ :=
+  transfer ϕ g = ϕ ⟨g ^ H.index, transfer_eq_pow_aux g key⟩ :=
 begin
   classical,
   have key : ∀ (k : ℕ) (g₀ : G) (hk : g₀⁻¹ * g ^ k * g₀ ∈ H),
@@ -139,23 +137,20 @@ begin
   apply (show function.injective H.subtype, from subtype.coe_injective),
   rw [←list.prod_map_hom],
   change (list.map (λ q, _) _).prod = _,
-  have key : ∀ (k : ℕ) (hk : g ^ k ∈ H), H.subtype ⟨g ^ k, hk⟩ = (zpowers g).subtype (⟨g, mem_zpowers g⟩ ^ k),
-  { intros k hk,
-    refl },
+  have key : ∀ (k : ℕ) (hk : g ^ k ∈ H),
+    H.subtype ⟨g ^ k, hk⟩ = (zpowers g).subtype (⟨g, mem_zpowers g⟩ ^ k) := λ k hk, rfl,
   simp only [key],
   rw [list.prod_map_hom, finset.prod_to_list],
   simp only [minimal_period_eq_card, finset.prod_pow_eq_pow_sum, ←fintype.card_sigma,
-    ←fintype.card_congr (self_equiv_sigma_orbits (zpowers g) (G ⧸ H)), ←index_eq_card],
+   ←fintype.card_congr (self_equiv_sigma_orbits (zpowers g) (G ⧸ H)), ←index_eq_card],
 end
-
-end explicit_computation
 
 section center_transfer
 
 lemma transfer_center_eq_pow [fintype (G ⧸ center G)] (g : G) :
   transfer (monoid_hom.id (center G)) g = ⟨g ^ (center G).index, (center G).pow_index_mem g⟩ :=
 begin
-  refine transfer_eq_pow (center G) (monoid_hom.id (center G)) g (λ k g₀ hk, _),
+  refine transfer_eq_pow (monoid_hom.id (center G)) g (λ k g₀ hk, _),
   rw [←mul_right_inj g₀⁻¹, hk, mul_inv_cancel_right],
 end
 
@@ -231,7 +226,7 @@ begin
   classical,
   haveI P_comm : P.1.is_commutative := ⟨⟨λ a b, subtype.ext (hP (le_normalizer b.2) a a.2)⟩⟩,
   refine le_bot_iff.mp (λ g hg, _),
-  have key := transfer_eq_pow P.1 (monoid_hom.id P.1) g (λ k g₀ hk, begin
+  have key := transfer_eq_pow (monoid_hom.id P.1) g (λ k g₀ hk, begin
     obtain ⟨n, hn, key⟩ := key_sylow_lemma' g₀ P P_comm (P.1.pow_mem hg.2 k) hk,
     rw [key, mul_assoc, hP hn (g ^ k) (P.1.pow_mem hg.2 k), inv_mul_cancel_left],
   end),

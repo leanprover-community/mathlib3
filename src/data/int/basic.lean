@@ -1315,6 +1315,13 @@ begin
   { exact is_unit_one.neg }
 end
 
+lemma is_unit_eq_or_eq_neg {a b : ℤ} (ha : is_unit a) (hb : is_unit b) : a = b ∨ a = -b :=
+begin
+  rcases is_unit_eq_one_or hb with rfl | rfl,
+  { exact is_unit_eq_one_or ha },
+  { rwa [or_comm, neg_neg, ←is_unit_iff] },
+end
+
 lemma eq_one_or_neg_one_of_mul_eq_one {z w : ℤ} (h : z * w = 1) : z = 1 ∨ z = -1 :=
 is_unit_iff.mp (is_unit_of_mul_eq_one z w h)
 
@@ -1329,6 +1336,9 @@ end
 
 theorem is_unit_iff_nat_abs_eq {n : ℤ} : is_unit n ↔ n.nat_abs = 1 :=
 by simp [nat_abs_eq_iff, is_unit_iff]
+
+lemma is_unit_nat_abs {n : ℤ} (hn : is_unit n) : nat_abs n = 1 :=
+is_unit_iff_nat_abs_eq.mp hn
 
 lemma is_unit_iff_abs_eq {x : ℤ} : is_unit x ↔ abs x = 1 :=
 by rw [is_unit_iff_nat_abs_eq, abs_eq_nat_abs, ←int.coe_nat_one, coe_nat_inj']
@@ -1358,6 +1368,25 @@ by rw [←units.coe_mul, units_mul_self, units.coe_one]
 
 @[simp] lemma neg_one_pow_ne_zero {n : ℕ} : (-1 : ℤ)^n ≠ 0 :=
 pow_ne_zero _ (abs_pos.mp trivial)
+
+lemma is_unit_add_is_unit_eq_is_unit_add_is_unit {a b c d : ℤ}
+  (ha : is_unit a) (hb : is_unit b) (hc : is_unit c) (hd : is_unit d) :
+  a + b = c + d ↔ a = c ∧ b = d ∨ a = d ∧ b = c :=
+begin
+  refine ⟨λ h, _, _⟩,
+  { rcases eq_or_ne a d with rfl | had,
+    { exact or.inr ⟨rfl, add_left_cancel (h.trans (add_comm c a))⟩ },
+    rcases eq_or_ne b d with rfl | hbd,
+    { exact or.inl ⟨add_right_cancel h, rfl⟩ },
+    rw [←add_neg_eq_iff_eq_add, (is_unit_eq_or_eq_neg ha hd).resolve_left had,
+        (is_unit_eq_or_eq_neg hb hd).resolve_left hbd, ←one_mul (-d), ←add_mul, ←add_mul] at h,
+    replace h := congr_arg nat_abs h,
+    rw [nat_abs_mul, nat_abs_neg, is_unit_nat_abs hc, is_unit_nat_abs hd] at h,
+    exact (one_ne_zero (bit1_eq_one.mp h)).elim },
+  { rintros (⟨rfl, rfl⟩ | ⟨rfl, rfl⟩),
+    { exact rfl },
+    { exact add_comm a b } },
+end
 
 /-! ### bitwise ops -/
 

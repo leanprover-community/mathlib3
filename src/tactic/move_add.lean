@@ -99,6 +99,25 @@ do
   (l1, l2, l3, is_unused) ← move_left_or_right lp_exp sl [],
   return (l1 ++ l3 ++ l2, is_unused)
 
+/-- Partially traverses an expression in search for a sum of terms.
+In the intended application, the `bool` input is initially set to `tt`.
+The first time `candidates` finds an expression whose head symbol is `has_add.add`,
+`candidates` adds the expression to the list, and recurses inside the summands as well,
+but with the boolean set to `ff`.  This prevents partial summands of a large sum to
+appear.  Once it finds that the head symbol is not `has_add.add`, then it reverts the
+boolean to `tt`, so that it can isolate further sums later on.
+Thus applying `candidates` to `a + (b + c)*(d + e) + f + g` produces
+`[a + (b + c) * (d + e) + f + g, b + c, d + e]`. -/
+meta def candidates : bool → expr → list expr
+| bo e@`(%%a + %%b)              := if bo then [e] ++ candidates ff a ++ candidates ff b
+                                    else candidates ff a ++ candidates ff b
+| bo (expr.lam _ _ e f)          := candidates tt e ++ candidates tt f
+| bo (expr.pi  _ _ e f)          := candidates tt e ++ candidates tt f
+| bo (expr.mvar  _ _ e)          := candidates tt e
+| bo (expr.app e f)              := candidates tt e ++ candidates tt f
+| bo (expr.elet _ e f g)         := candidates tt e ++ candidates tt f ++ candidates tt g
+| bo e := []
+
 /-- `sorted_sum` takes an optional location name `hyp` for where it will be applied, a list `ll` of
 `bool × pexpr` (arising as the user-provided input to `move_add`) and an expression `e`.
 
@@ -109,7 +128,7 @@ We use this function for expressions in an additive commutative semigroup. -/
 meta def sorted_sum (hyp : option name) (ll : list (bool × pexpr)) (e : expr) :
   tactic (list bool) :=
 do
-  (sli, is_unused) ← final_sorting ll e.list_summands,
+  (sli, is_unused) ← final_sorting ll (e.list_summands),
   match sli with
   | []       := return is_unused
   | (eₕ::es) := do
@@ -130,8 +149,52 @@ do
     end
   end
 
+/--  Extracts the "summand expressions" in `e` via `candidates` and, to each one of them, applies
+`sorted_sum`.  Besides the state changes, which involve the reordering of the addends,
+`recurse_on_expr` outputs a list of Booleans, encoding which user input was unused
+(`tt`) and which one was used (`ff`).  This information is used for reporting unused inputs. -/
+meta def recurse_on_expr (hyp : option name) (ll : list (bool × pexpr)) (e : expr) :
+  tactic (list bool) :=
+do results ← (candidates tt e).mmap (sorted_sum hyp ll),
+  return $ results.transpose.map list.band
+
+/-
 /-- Partially traverses an expression in search for a sum of terms.
 When `recurse_on_expr` finds a sum, it sorts it using `sorted_sum`. -/
+meta def recurse_on_expr' (hyp : option name) (ll : list (bool × pexpr)) : bool → expr → tactic (list bool)
+| bo e@`(%%f + %%g)              := do
+  funused ← recurse_on_expr ff f, --trace "funused" *> trace funused,
+  li_unused ← [f,g].mmap (recurse_on_expr ff), --trace li_unused,
+  let fg_unused := li_unused.transpose.map list.band, --trace fg_unused,
+  if bo then
+    do e_unused ← move_add.sorted_sum hyp ll e, --trace "e_unused" *> trace e_unused,
+    return $ fg_unused.zip_with band e_unused
+  else return fg_unused
+| bo (expr.lam _ _ e f)          := do
+  li_unused ← [e,f].mmap (recurse_on_expr tt),
+  return $ li_unused.transpose.map list.band
+| bo (expr.pi  _ _ e f)          := do
+  li_unused ← [e,f].mmap (recurse_on_expr tt),
+  return $ li_unused.transpose.map list.band
+| bo (expr.mvar  _ _ e)          := do
+  li_unused ← [e].mmap (recurse_on_expr tt),
+  return $ li_unused.transpose.map list.band
+--| bo (expr.local_const  _ _ _ e) := do
+--  li_unused ← [e].mmap (recurse_on_expr tt),
+--  return $ li_unused.transpose.map list.band
+| bo (expr.app e f)              := do
+  li_unused ← [e,f].mmap (recurse_on_expr tt),
+  return $ li_unused.transpose.map list.band
+| bo (expr.elet _ e f g)         := do
+  li_unused ← [e,f,g].mmap (recurse_on_expr tt),
+  return $ li_unused.transpose.map list.band
+| bo (expr.local_const _ _ _ _)  := do return [tt]
+| bo e                           := do
+  li_unused ← e.get_app_args.mmap (recurse_on_expr tt),
+  return $ li_unused.transpose.map list.band
+-/
+
+/-
 meta def recurse_on_expr (hyp : option name) (ll : list (bool × pexpr)) : expr → tactic (list bool)
 | e@`(%%_ + %%_)              := sorted_sum hyp ll e
 | (expr.lam _ _ e f)          := do
@@ -155,6 +218,7 @@ meta def recurse_on_expr (hyp : option name) (ll : list (bool × pexpr)) : expr 
 | e                           := do
   li_unused ← e.get_app_args.mmap recurse_on_expr,
   return $ li_unused.transpose.map list.band
+-/
 
 /-- Passes the user input `ll` to `recurse_on_expr` at a single location, that could either be
 `none` (referring to the goal) or `some name` (referring to hypothesis `name`).  Returns a pair
@@ -302,8 +366,7 @@ match locat with
   err_rep ← names.mmap $ with_errors args,
   let conds := err_rep.map (λ e, e.1),
   linames ← (return_unused names conds).reduce_option.mmap get_local,
-  if linames ≠ [] then fail
-    format!"'{linames}' did not change" else skip,
+  if linames ≠ [] then fail format!"'{linames}' did not change" else skip,
   if none ∈ return_unused names conds then fail "Goal did not change" else skip,
   let li_unused := (err_rep.map (λ e, e.2)),
   let li_unused_clear := li_unused.filter (≠ []),

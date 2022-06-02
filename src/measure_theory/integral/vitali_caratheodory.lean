@@ -392,23 +392,6 @@ begin
   ... = ∫⁻ x, g x ∂μ + ε : by rw [add_assoc, ennreal.add_halves]
 end
 
-/-- In a sigma-finite measure space, given a function `f` with values in `ℝ≥0` and
-Lebesgue integral `> L`, there exists an upper semicontinuous function `g ≤ f` with
-Lebesgue integral `> L`. -/
-lemma exists_upper_semicontinuous_le_lt_lintegral [sigma_finite μ]
-  {f : α → ℝ≥0} {L : ℝ≥0∞} (hf : L < ∫⁻ x, f x ∂μ) :
-  ∃ g : α → ℝ≥0, (∀ x, g x ≤ f x) ∧ upper_semicontinuous g ∧ (L < ∫⁻ x, g x ∂μ) :=
-begin
-  rcases exists_lt_lintegral_simple_func_of_lt_lintegral hf with ⟨g₀, g₀le, g₀top, Lg₀⟩,
-  obtain ⟨ε, εpos, hε⟩ : ∃ ε : ℝ≥0, 0 < ε ∧ L + ε < ∫⁻ x, g₀ x ∂μ :=
-    ennreal.lt_iff_exists_add_pos_lt.1 Lg₀,
-  have εne : (ε : ℝ≥0∞) ≠ 0, by simp [εpos.ne'],
-  rcases simple_func.exists_upper_semicontinuous_le_lintegral_le g₀ g₀top.ne εne
-    with ⟨g, gle, hg, intg⟩,
-  refine ⟨g, λ x, (gle x).trans (g₀le x), hg, _⟩,
-  exact (ennreal.add_lt_add_iff_right ennreal.coe_ne_top).1 (hε.trans_le intg),
-end
-
 /-- Given an integrable function `f` with values in `ℝ≥0`, there exists an upper semicontinuous
 function `g ≤ f` with integral arbitrarily close to that of `f`. Formulation in terms of
 `integral`.

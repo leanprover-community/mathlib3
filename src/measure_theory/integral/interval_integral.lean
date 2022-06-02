@@ -10,6 +10,7 @@ import analysis.calculus.extend_deriv
 import measure_theory.function.locally_integrable
 import measure_theory.integral.set_integral
 import measure_theory.integral.vitali_caratheodory
+import analysis.calculus.fderiv_measurable
 
 /-!
 # Integral over an interval
@@ -166,7 +167,7 @@ noncomputable theory
 open topological_space (second_countable_topology)
 open measure_theory set classical filter function
 
-open_locale classical topological_space filter ennreal big_operators interval
+open_locale classical topological_space filter ennreal big_operators interval nnreal
 
 variables {ι 𝕜 E F : Type*} [normed_group E]
 
@@ -187,7 +188,7 @@ variables {f : ℝ → E} {a b : ℝ} {μ : measure ℝ}
 
 /-- A function is interval integrable with respect to a given measure `μ` on `a..b` if and
   only if it is integrable on `interval_oc a b` with respect to `μ`. This is an equivalent
-  defintion of `interval_integrable`. -/
+  definition of `interval_integrable`. -/
 lemma interval_integrable_iff : interval_integrable f μ a b ↔ integrable_on f (Ι a b) μ :=
 by rw [interval_oc_eq_union, integrable_on_union, interval_integrable]
 
@@ -781,6 +782,28 @@ lemma integrable_on_Icc_iff_integrable_on_Ioc
   {E : Type*}[normed_group E] [has_no_atoms μ] {f : ℝ → E} {a b : ℝ} :
   integrable_on f (Icc a b) μ ↔ integrable_on f (Ioc a b) μ :=
 integrable_on_Icc_iff_integrable_on_Ioc' (by simp)
+
+lemma integrable_on_Ioc_iff_integrable_on_Ioo'
+  {E : Type*} [normed_group E]
+  {f : ℝ → E} {a b : ℝ} (hb : μ {b} ≠ ∞) :
+  integrable_on f (Ioc a b) μ ↔ integrable_on f (Ioo a b) μ :=
+begin
+  cases lt_or_le a b with hab hab,
+  { have : Ioc a b = Ioo a b ∪ Icc b b := (Ioo_union_Icc_eq_Ioc hab le_rfl).symm,
+    rw [this, integrable_on_union],
+    simp [hb.lt_top] },
+  { simp [hab] },
+end
+
+lemma integrable_on_Ioc_iff_integrable_on_Ioo
+  {E : Type*} [normed_group E] [has_no_atoms μ] {f : ℝ → E} {a b : ℝ} :
+  integrable_on f (Ioc a b) μ ↔ integrable_on f (Ioo a b) μ :=
+integrable_on_Ioc_iff_integrable_on_Ioo' (by simp)
+
+lemma integrable_on_Icc_iff_integrable_on_Ioo
+  {E : Type*} [normed_group E] [has_no_atoms μ] {f : ℝ → E} {a b : ℝ} :
+  integrable_on f (Icc a b) μ ↔ integrable_on f (Ioo a b) μ :=
+by rw [integrable_on_Icc_iff_integrable_on_Ioc, integrable_on_Ioc_iff_integrable_on_Ioo]
 
 lemma interval_integrable_iff_integrable_Icc_of_le {E : Type*} [normed_group E]
   {f : ℝ → E} {a b : ℝ} (hab : a ≤ b) {μ : measure ℝ} [has_no_atoms μ] :
@@ -2077,32 +2100,23 @@ semicontinuity. As  `g' t < G' t`, this gives the conclusion. One can therefore 
 this inequality to the right until the point `b`, where it gives the desired conclusion.
 -/
 
-variables {g' g : ℝ → ℝ}
-
+variables {g' g φ : ℝ → ℝ}
 
 /-- Hard part of FTC-2 for integrable derivatives, real-valued functions: one has
-`g b - g a ≤ ∫ y in a..b, g' y`.
-Auxiliary lemma in the proof of `integral_eq_sub_of_has_deriv_right_of_le`. -/
-lemma sub_le_integral_of_has_deriv_right_of_le (hab : a ≤ b) (hcont : continuous_on g (Icc a b))
+`g b - g a ≤ ∫ y in a..b, g' y` when `g'` is integrable.
+Auxiliary lemma in the proof of `integral_eq_sub_of_has_deriv_right_of_le`.
+We give the slightly more general version that `g b - g a ≤ ∫ y in a..b, φ y` when `g' ≤ φ` and
+`φ` is integrable (even if `g'` is not known to be integrable).
+Version assuming that `g` is differentiable on `[a, b)`. -/
+lemma sub_le_integral_of_has_deriv_right_of_le_Ico (hab : a ≤ b) (hcont : continuous_on g (Icc a b))
   (hderiv : ∀ x ∈ Ico a b, has_deriv_within_at g (g' x) (Ioi x) x)
-  (g'int : ∀ x ∈ Ico a b, 0 ≤ g' x) :
-  integrable_on g' (Ico a b) :=
+  (φint : integrable_on φ (Icc a b)) (hφg : ∀ x ∈ Ico a b, g' x ≤ φ x) :
+  g b - g a ≤ ∫ y in a..b, φ y :=
 begin
-  have meas_g' : ae_measurable g' (volume.restrict (Ico a b)),
-  { have A : measurable (λ x, deriv_within g (Ioi x) x), sorry,
-    apply A.ae_measurable.congr,
-    refine (ae_restrict_mem measurable_set_Ico).mono (λ x hx, _),
-    exact (hderiv x hx).deriv_within (unique_diff_within_at_Ioi _) },
-  suffices H : ∫⁻ x in Ico a b, ∥g' x∥₊ ≤ ennreal.of_real (g b - g a + b - a),
-    from ⟨meas_g'.ae_strongly_measurable, H.trans_lt ennreal.of_real_lt_top⟩,
-end
-
-#exit
-
   refine le_of_forall_pos_le_add (λ ε εpos, _),
   -- Bound from above `g'` by a lower-semicontinuous function `G'`.
-  rcases exists_lt_lower_semicontinuous_integral_lt g' g'int εpos with
-    ⟨G', g'_lt_G', G'cont, G'int, G'lt_top, hG'⟩,
+  rcases exists_lt_lower_semicontinuous_integral_lt φ φint εpos with
+    ⟨G', f_lt_G', G'cont, G'int, G'lt_top, hG'⟩,
   -- we will show by "induction" that `g t - g a ≤ ∫ u in a..t, G' u` for all `t ∈ [a, b]`.
   set s := {t | g t - g a ≤ ∫ u in a..t, (G' u).to_real} ∩ Icc a b,
   -- the set `s` of points where this property holds is closed.
@@ -2119,7 +2133,7 @@ end
     apply s_closed.Icc_subset_of_forall_exists_gt
       (by simp only [integral_same, mem_set_of_eq, sub_self]) (λ t ht v t_lt_v, _),
     obtain ⟨y, g'_lt_y', y_lt_G'⟩ : ∃ (y : ℝ), (g' t : ereal) < y ∧ (y : ereal) < G' t :=
-      ereal.lt_iff_exists_real_btwn.1 (g'_lt_G' t),
+      ereal.lt_iff_exists_real_btwn.1 ((ereal.coe_le_coe_iff.2 (hφg t ht.2)).trans_lt (f_lt_G' t)),
     -- bound from below the increase of `∫ x in a..u, G' x` on the right of `t`, using the lower
     -- semicontinuity of `G'`.
     have I1 : ∀ᶠ u in 𝓝[>] t, (u - t) * y ≤ ∫ w in t..u, (G' w).to_real,
@@ -2149,7 +2163,7 @@ end
           have : x ∈ Ioo m M, by simp only [hm.trans_le hx.left,
             (hx.right.trans_lt hu.right).trans_le (min_le_left M b), mem_Ioo, and_self],
           convert le_of_lt (H this),
-          exact ereal.coe_to_real G'x.ne (ne_bot_of_gt (g'_lt_G' x)) }
+          exact ereal.coe_to_real G'x.ne (ne_bot_of_gt (f_lt_G' x)) }
       end },
     -- bound from above the increase of `g u - g a` on the right of `t`, using the derivative at `t`
     have I2 : ∀ᶠ u in 𝓝[>] t, g u - g t ≤ (u - t) * y,
@@ -2184,7 +2198,7 @@ end
     end },
   -- now that we know that `s` contains `[a, b]`, we get the desired result by applying this to `b`.
   calc g b - g a ≤ ∫ y in a..b, (G' y).to_real : main (right_mem_Icc.2 hab)
-  ... ≤ (∫ y in a..b, g' y) + ε :
+  ... ≤ (∫ y in a..b, φ y) + ε :
     begin
       convert hG'.le;
       { rw interval_integral.integral_of_le hab,
@@ -2192,162 +2206,105 @@ end
     end
 end
 
-
-#exit
-
 /-- Hard part of FTC-2 for integrable derivatives, real-valued functions: one has
-`g b - g a ≤ ∫ y in a..b, g' y`.
-Auxiliary lemma in the proof of `integral_eq_sub_of_has_deriv_right_of_le`. -/
-lemma sub_le_integral_of_has_deriv_right_of_le (hab : a ≤ b) (hcont : continuous_on g (Icc a b))
-  (hderiv : ∀ x ∈ Ico a b, has_deriv_within_at g (g' x) (Ioi x) x)
-  (g'int : integrable_on g' (Icc a b)) :
-  g b - g a ≤ ∫ y in a..b, g' y :=
+`g b - g a ≤ ∫ y in a..b, g' y` when `g'` is integrable.
+Auxiliary lemma in the proof of `integral_eq_sub_of_has_deriv_right_of_le`.
+We give the slightly more general version that `g b - g a ≤ ∫ y in a..b, φ y` when `g' ≤ φ` and
+`φ` is integrable (even if `g'` is not known to be integrable).
+Version assuming that `g` is differentiable on `(a, b)`. -/
+lemma sub_le_integral_of_has_deriv_right_of_le (hab : a ≤ b)
+  (hcont : continuous_on g (Icc a b))
+  (hderiv : ∀ x ∈ Ioo a b, has_deriv_within_at g (g' x) (Ioi x) x)
+  (φint : integrable_on φ (Icc a b)) (hφg : ∀ x ∈ Ioo a b, g' x ≤ φ x) :
+  g b - g a ≤ ∫ y in a..b, φ y :=
 begin
-  refine le_of_forall_pos_le_add (λ ε εpos, _),
-  -- Bound from above `g'` by a lower-semicontinuous function `G'`.
-  rcases exists_lt_lower_semicontinuous_integral_lt g' g'int εpos with
-    ⟨G', g'_lt_G', G'cont, G'int, G'lt_top, hG'⟩,
-  -- we will show by "induction" that `g t - g a ≤ ∫ u in a..t, G' u` for all `t ∈ [a, b]`.
-  set s := {t | g t - g a ≤ ∫ u in a..t, (G' u).to_real} ∩ Icc a b,
-  -- the set `s` of points where this property holds is closed.
+  -- This follows from the version on a closed-open interval (applied to `[t, b)` for `t` close to
+  -- `a`) and a continuity argument.
+  obtain rfl|a_lt_b := hab.eq_or_lt, { simp },
+  set s := {t | g b - g t ≤ ∫ u in t..b, φ u} ∩ Icc a b,
   have s_closed : is_closed s,
-  { have : continuous_on (λ t, (g t - g a, ∫ u in a..t, (G' u).to_real)) (Icc a b),
-    { rw ← interval_of_le hab at G'int ⊢ hcont,
-      exact (hcont.sub continuous_on_const).prod (continuous_on_primitive_interval G'int) },
+  { have : continuous_on (λ t, (g b - g t, ∫ u in t..b, φ u)) (Icc a b),
+    { rw ← interval_of_le hab at ⊢ hcont φint,
+      exact (continuous_on_const.sub hcont).prod (continuous_on_primitive_interval_left φint) },
     simp only [s, inter_comm],
-    exact this.preimage_closed_of_closed is_closed_Icc order_closed_topology.is_closed_le' },
-  have main : Icc a b ⊆ {t | g t - g a ≤ ∫ u in a..t, (G' u).to_real },
-  { -- to show that the set `s` is all `[a, b]`, it suffices to show that any point `t` in `s`
-    -- with `t < b` admits another point in `s` slightly to its right
-    -- (this is a sort of real induction).
-    apply s_closed.Icc_subset_of_forall_exists_gt
-      (by simp only [integral_same, mem_set_of_eq, sub_self]) (λ t ht v t_lt_v, _),
-    obtain ⟨y, g'_lt_y', y_lt_G'⟩ : ∃ (y : ℝ), (g' t : ereal) < y ∧ (y : ereal) < G' t :=
-      ereal.lt_iff_exists_real_btwn.1 (g'_lt_G' t),
-    -- bound from below the increase of `∫ x in a..u, G' x` on the right of `t`, using the lower
-    -- semicontinuity of `G'`.
-    have I1 : ∀ᶠ u in 𝓝[>] t, (u - t) * y ≤ ∫ w in t..u, (G' w).to_real,
-    { have B : ∀ᶠ u in 𝓝 t, (y : ereal) < G' u :=
-        G'cont.lower_semicontinuous_at _ _ y_lt_G',
-      rcases mem_nhds_iff_exists_Ioo_subset.1 B with ⟨m, M, ⟨hm, hM⟩, H⟩,
-      have : Ioo t (min M b) ∈ 𝓝[>] t := mem_nhds_within_Ioi_iff_exists_Ioo_subset.2
-        ⟨min M b, by simp only [hM, ht.right.right, lt_min_iff, mem_Ioi, and_self], subset.refl _⟩,
-      filter_upwards [this] with u hu,
-      have I : Icc t u ⊆ Icc a b := Icc_subset_Icc ht.2.1 (hu.2.le.trans (min_le_right _ _)),
-      calc (u - t) * y = ∫ v in Icc t u, y :
-        by simp only [hu.left.le, measure_theory.integral_const, algebra.id.smul_eq_mul, sub_nonneg,
-                      measurable_set.univ, real.volume_Icc, measure.restrict_apply, univ_inter,
-                      ennreal.to_real_of_real]
-      ... ≤ ∫ w in t..u, (G' w).to_real :
-      begin
-        rw [interval_integral.integral_of_le hu.1.le, ← integral_Icc_eq_integral_Ioc],
-        apply set_integral_mono_ae_restrict,
-        { simp only [integrable_on_const, real.volume_Icc, ennreal.of_real_lt_top, or_true] },
-        { exact integrable_on.mono_set G'int I },
-        { have C1 : ∀ᵐ (x : ℝ) ∂volume.restrict (Icc t u), G' x < ∞ :=
-            ae_mono (measure.restrict_mono I le_rfl) G'lt_top,
-          have C2 : ∀ᵐ (x : ℝ) ∂volume.restrict (Icc t u), x ∈ Icc t u :=
-            ae_restrict_mem measurable_set_Icc,
-          filter_upwards [C1, C2] with x G'x hx,
-          apply ereal.coe_le_coe_iff.1,
-          have : x ∈ Ioo m M, by simp only [hm.trans_le hx.left,
-            (hx.right.trans_lt hu.right).trans_le (min_le_left M b), mem_Ioo, and_self],
-          convert le_of_lt (H this),
-          exact ereal.coe_to_real G'x.ne (ne_bot_of_gt (g'_lt_G' x)) }
-      end },
-    -- bound from above the increase of `g u - g a` on the right of `t`, using the derivative at `t`
-    have I2 : ∀ᶠ u in 𝓝[>] t, g u - g t ≤ (u - t) * y,
-    { have g'_lt_y : g' t < y := ereal.coe_lt_coe_iff.1 g'_lt_y',
-      filter_upwards [(hderiv t ⟨ht.2.1, ht.2.2⟩).limsup_slope_le'
-        (not_mem_Ioi.2 le_rfl) g'_lt_y, self_mem_nhds_within] with u hu t_lt_u,
-      have := mul_le_mul_of_nonneg_left hu.le (sub_pos.2 t_lt_u).le,
-      rwa [← smul_eq_mul, sub_smul_slope] at this },
-    -- combine the previous two bounds to show that `g u - g a` increases less quickly than
-    -- `∫ x in a..u, G' x`.
-    have I3 : ∀ᶠ u in 𝓝[>] t, g u - g t ≤ ∫ w in t..u, (G' w).to_real,
-    { filter_upwards [I1, I2] with u hu1 hu2 using hu2.trans hu1, },
-    have I4 : ∀ᶠ u in 𝓝[>] t, u ∈ Ioc t (min v b),
-    { refine mem_nhds_within_Ioi_iff_exists_Ioc_subset.2 ⟨min v b, _, subset.refl _⟩,
-      simp only [lt_min_iff, mem_Ioi],
-      exact ⟨t_lt_v, ht.2.2⟩ },
-    -- choose a point `x` slightly to the right of `t` which satisfies the above bound
-    rcases (I3.and I4).exists with ⟨x, hx, h'x⟩,
-    -- we check that it belongs to `s`, essentially by construction
-    refine ⟨x, _, Ioc_subset_Ioc le_rfl (min_le_left _ _) h'x⟩,
-    calc g x - g a = (g t - g a) + (g x - g t) : by abel
-    ... ≤ (∫ w in a..t, (G' w).to_real) + ∫ w in t..x, (G' w).to_real : add_le_add ht.1 hx
-    ... = ∫ w in a..x, (G' w).to_real :
-    begin
-      apply integral_add_adjacent_intervals,
-      { rw interval_integrable_iff_integrable_Ioc_of_le ht.2.1,
-        exact integrable_on.mono_set G'int
-          (Ioc_subset_Icc_self.trans (Icc_subset_Icc le_rfl ht.2.2.le)) },
-      { rw interval_integrable_iff_integrable_Ioc_of_le h'x.1.le,
-        apply integrable_on.mono_set G'int,
-        refine Ioc_subset_Icc_self.trans (Icc_subset_Icc ht.2.1 (h'x.2.trans (min_le_right _ _))) }
-    end },
-  -- now that we know that `s` contains `[a, b]`, we get the desired result by applying this to `b`.
-  calc g b - g a ≤ ∫ y in a..b, (G' y).to_real : main (right_mem_Icc.2 hab)
-  ... ≤ (∫ y in a..b, g' y) + ε :
-    begin
-      convert hG'.le;
-      { rw interval_integral.integral_of_le hab,
-        simp only [integral_Icc_eq_integral_Ioc', real.volume_singleton] },
-    end
+    exact this.preimage_closed_of_closed is_closed_Icc is_closed_le_prod, },
+  have A : closure (Ioc a b) ⊆ s,
+  { apply s_closed.closure_subset_iff.2,
+    assume t ht,
+    refine ⟨_, ⟨ht.1.le, ht.2⟩⟩,
+    exact sub_le_integral_of_has_deriv_right_of_le_Ico ht.2
+      (hcont.mono (Icc_subset_Icc ht.1.le le_rfl))
+      (λ x hx, hderiv x ⟨ht.1.trans_le hx.1, hx.2⟩)
+      (φint.mono_set (Icc_subset_Icc ht.1.le le_rfl))
+      (λ x hx, hφg x ⟨ht.1.trans_le hx.1, hx.2⟩) },
+  rw closure_Ioc a_lt_b.ne at A,
+  exact (A (left_mem_Icc.2 hab)).1,
 end
 
 /-- Auxiliary lemma in the proof of `integral_eq_sub_of_has_deriv_right_of_le`. -/
 lemma integral_le_sub_of_has_deriv_right_of_le (hab : a ≤ b)
   (hcont : continuous_on g (Icc a b))
-  (hderiv : ∀ x ∈ Ico a b, has_deriv_within_at g (g' x) (Ioi x) x)
-  (g'int : integrable_on g' (Icc a b)) :
-  ∫ y in a..b, g' y ≤ g b - g a :=
+  (hderiv : ∀ x ∈ Ioo a b, has_deriv_within_at g (g' x) (Ioi x) x)
+  (φint : integrable_on φ (Icc a b)) (hφg : ∀ x ∈ Ioo a b, φ x ≤ g' x) :
+  ∫ y in a..b, φ y ≤ g b - g a :=
 begin
   rw ← neg_le_neg_iff,
   convert sub_le_integral_of_has_deriv_right_of_le hab hcont.neg (λ x hx, (hderiv x hx).neg)
-    g'int.neg,
+    φint.neg (λ x hx, neg_le_neg (hφg x hx)),
   { abel },
-  { simp only [integral_neg] }
+  { simp only [← integral_neg], refl },
 end
 
 /-- Auxiliary lemma in the proof of `integral_eq_sub_of_has_deriv_right_of_le`: real version -/
 lemma integral_eq_sub_of_has_deriv_right_of_le_real (hab : a ≤ b)
   (hcont : continuous_on g (Icc a b))
-  (hderiv : ∀ x ∈ Ico a b, has_deriv_within_at g (g' x) (Ioi x) x)
-  (g'int : integrable_on g' (Icc a b)) :
-  ∫ y in a..b, g' y = g b - g a :=
-le_antisymm
-  (integral_le_sub_of_has_deriv_right_of_le hab hcont hderiv g'int)
-  (sub_le_integral_of_has_deriv_right_of_le hab hcont hderiv g'int)
-
-/-- Auxiliary lemma in the proof of `integral_eq_sub_of_has_deriv_right_of_le`: real version, not
-requiring differentiability at the left endpoint of the interval. Follows from
-`integral_eq_sub_of_has_deriv_right_of_le_real` together with a continuity argument. -/
-lemma integral_eq_sub_of_has_deriv_right_of_le_real' (hab : a ≤ b)
-  (hcont : continuous_on g (Icc a b))
   (hderiv : ∀ x ∈ Ioo a b, has_deriv_within_at g (g' x) (Ioi x) x)
   (g'int : integrable_on g' (Icc a b)) :
   ∫ y in a..b, g' y = g b - g a :=
+le_antisymm
+  (integral_le_sub_of_has_deriv_right_of_le hab hcont hderiv g'int (λ x hx, le_rfl))
+  (sub_le_integral_of_has_deriv_right_of_le hab hcont hderiv g'int (λ x hx, le_rfl))
+
+/-- When the right derivative of a function is nonnegative, then it is automatically integrable. -/
+lemma integrable_on_deriv_right_of_nonneg (hab : a ≤ b) (hcont : continuous_on g (Icc a b))
+  (hderiv : ∀ x ∈ Ioo a b, has_deriv_within_at g (g' x) (Ioi x) x)
+  (g'pos : ∀ x ∈ Ioo a b, 0 ≤ g' x) :
+  integrable_on g' (Ioc a b) :=
 begin
-  obtain rfl|a_lt_b := hab.eq_or_lt, { simp },
-  set s := {t | ∫ u in t..b, g' u = g b - g t} ∩ Icc a b,
-  have s_closed : is_closed s,
-  { have : continuous_on (λ t, (∫ u in t..b, g' u, g b - g t)) (Icc a b),
-    { rw ← interval_of_le hab at ⊢ hcont g'int,
-      exact (continuous_on_primitive_interval_left g'int).prod (continuous_on_const.sub hcont) },
-    simp only [s, inter_comm],
-    exact this.preimage_closed_of_closed is_closed_Icc is_closed_diagonal, },
-  have A : closure (Ioc a b) ⊆ s,
-  { apply s_closed.closure_subset_iff.2,
-    assume t ht,
-    refine ⟨_, ⟨ht.1.le, ht.2⟩⟩,
-    exact integral_eq_sub_of_has_deriv_right_of_le_real ht.2
-      (hcont.mono (Icc_subset_Icc ht.1.le le_rfl))
-      (λ x hx, hderiv x ⟨ht.1.trans_le hx.1, hx.2⟩)
-      (g'int.mono_set (Icc_subset_Icc ht.1.le le_rfl)) },
-  rw closure_Ioc a_lt_b.ne at A,
-  exact (A (left_mem_Icc.2 hab)).1,
+  rw integrable_on_Ioc_iff_integrable_on_Ioo,
+  have meas_g' : ae_measurable g' (volume.restrict (Ioo a b)),
+  { apply (ae_measurable_deriv_within_Ioi g _).congr,
+    refine (ae_restrict_mem measurable_set_Ioo).mono (λ x hx, _),
+    exact (hderiv x hx).deriv_within (unique_diff_within_at_Ioi _) },
+  suffices H : ∫⁻ x in Ioo a b, ∥g' x∥₊ ≤ ennreal.of_real (g b - g a),
+    from ⟨meas_g'.ae_strongly_measurable, H.trans_lt ennreal.of_real_lt_top⟩,
+  by_contra' H,
+  obtain ⟨f, fle, fint, hf⟩ :
+    ∃ (f : simple_func ℝ ℝ≥0), (∀ x, f x ≤ ∥g' x∥₊) ∧ ∫⁻ (x : ℝ) in Ioo a b, f x < ∞
+      ∧ ennreal.of_real (g b - g a) < ∫⁻ (x : ℝ) in Ioo a b, f x :=
+    exists_lt_lintegral_simple_func_of_lt_lintegral H,
+  let F : ℝ → ℝ := coe ∘ f,
+  have intF : integrable_on F (Ioo a b),
+  { refine ⟨f.measurable.coe_nnreal_real.ae_strongly_measurable, _⟩,
+    simpa only [has_finite_integral, nnreal.nnnorm_eq] using fint },
+  have A : ∫⁻ (x : ℝ) in Ioo a b, f x = ennreal.of_real (∫ x in Ioo a b, F x) :=
+    lintegral_coe_eq_integral _ intF,
+  rw A at hf,
+  have B : ∫ (x : ℝ) in Ioo a b, F x ≤ g b - g a,
+  { rw [← integral_Ioc_eq_integral_Ioo, ← interval_integral.integral_of_le hab],
+    apply integral_le_sub_of_has_deriv_right_of_le hab hcont hderiv _ (λ x hx, _),
+    { rwa integrable_on_Icc_iff_integrable_on_Ioo },
+    { convert nnreal.coe_le_coe.2 (fle x),
+      simp only [real.norm_of_nonneg (g'pos x hx), coe_nnnorm] } },
+  exact lt_irrefl _ (hf.trans_le (ennreal.of_real_le_of_real B)),
 end
+
+/-- When the derivative of a function is nonnegative, then it is automatically integrable. -/
+lemma integrable_on_deriv_of_nonneg (hab : a ≤ b) (hcont : continuous_on g (Icc a b))
+  (hderiv : ∀ x ∈ Ioo a b, has_deriv_at g (g' x) x)
+  (g'pos : ∀ x ∈ Ioo a b, 0 ≤ g' x) :
+  integrable_on g' (Ioc a b) :=
+integrable_on_deriv_right_of_nonneg hab hcont (λ x hx, (hderiv x hx).has_deriv_within_at) g'pos
 
 variable {f' : ℝ → E}
 
@@ -2361,7 +2318,7 @@ theorem integral_eq_sub_of_has_deriv_right_of_le (hab : a ≤ b) (hcont : contin
 begin
   refine (normed_space.eq_iff_forall_dual_eq ℝ).2 (λ g, _),
   rw [← g.interval_integral_comp_comm f'int, g.map_sub],
-  exact integral_eq_sub_of_has_deriv_right_of_le_real' hab (g.continuous.comp_continuous_on hcont)
+  exact integral_eq_sub_of_has_deriv_right_of_le_real hab (g.continuous.comp_continuous_on hcont)
     (λ x hx, g.has_fderiv_at.comp_has_deriv_within_at x (hderiv x hx))
     (g.integrable_comp ((interval_integrable_iff_integrable_Icc_of_le hab).1 f'int))
 end
@@ -2622,3 +2579,26 @@ by simpa [mul_comm] using integral_deriv_comp_smul_deriv hf hg hf' hg'
 end mul
 
 end interval_integral
+
+#exit
+
+open_locale nnreal
+
+lemma sub_le_integral_of_has_deriv_right_of_le (hab : a ≤ b) (hcont : continuous_on g (Icc a b))
+  (hderiv : ∀ x ∈ Ioo a b, has_deriv_within_at g (g' x) (Ioi x) x)
+  (g'int : ∀ x ∈ Ico a b, 0 ≤ g' x) :
+  integrable_on g' (Ico a b) :=
+begin
+  have meas_g' : ae_measurable g' (volume.restrict (Ico a b)),
+  { apply (ae_measurable_deriv_within_Ioi g _).congr,
+    refine (ae_restrict_mem measurable_set_Ico).mono (λ x hx, _),
+    exact (hderiv x hx).deriv_within (unique_diff_within_at_Ioi _) },
+  suffices H : ∫⁻ x in Ico a b, ∥g' x∥₊ ≤ ennreal.of_real (g b - g a + b - a),
+    from ⟨meas_g'.ae_strongly_measurable, H.trans_lt ennreal.of_real_lt_top⟩,
+  by_contra' H,
+  obtain ⟨f, fg, hf, int_f, ftop⟩ : ∃ (f : ℝ → ℝ≥0), (∀ x, f x ≤ ∥g' x∥₊) ∧ upper_semicontinuous f
+    ∧ ennreal.of_real (g b - g a + b - a) < ∫⁻ (x : ℝ) in Ico a b, f x
+    ∧ ∫⁻ (x : ℝ) in Ico a b, f x < ∞ := exists_upper_semicontinuous_le_lt_lintegral H,
+end
+
+#exit

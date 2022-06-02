@@ -122,10 +122,9 @@ calc  a + 1 ≤ a + a : add_le_add_left a1 a
 /-- An `ordered_semiring α` is a semiring `α` with a partial order such that
 addition is monotone and multiplication by a positive number is strictly monotone. -/
 @[protect_proj]
-class ordered_semiring (α : Type u)
-  extends semiring α, ordered_cancel_add_comm_monoid α :=
+class ordered_semiring (α : Type u) extends semiring α, ordered_cancel_add_comm_monoid α :=
 (zero_le_one : (0 : α) ≤ 1)
-(mul_lt_mul_of_pos_left :  ∀ a b c : α, a < b → 0 < c → c * a < c * b)
+(mul_lt_mul_of_pos_left  : ∀ a b c : α, a < b → 0 < c → c * a < c * b)
 (mul_lt_mul_of_pos_right : ∀ a b c : α, a < b → 0 < c → a * c < b * c)
 
 @[priority 100] instance ordered_semiring.zero_le_one_class [h : ordered_semiring α] :

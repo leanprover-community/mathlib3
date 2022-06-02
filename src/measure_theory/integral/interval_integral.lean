@@ -2600,26 +2600,3 @@ by simpa [mul_comm] using integral_deriv_comp_smul_deriv hf hg hf' hg'
 end mul
 
 end interval_integral
-
-#exit
-
-open_locale nnreal
-
-lemma sub_le_integral_of_has_deriv_right_of_le (hab : a ≤ b) (hcont : continuous_on g (Icc a b))
-  (hderiv : ∀ x ∈ Ioo a b, has_deriv_within_at g (g' x) (Ioi x) x)
-  (g'int : ∀ x ∈ Ico a b, 0 ≤ g' x) :
-  integrable_on g' (Ico a b) :=
-begin
-  have meas_g' : ae_measurable g' (volume.restrict (Ico a b)),
-  { apply (ae_measurable_deriv_within_Ioi g _).congr,
-    refine (ae_restrict_mem measurable_set_Ico).mono (λ x hx, _),
-    exact (hderiv x hx).deriv_within (unique_diff_within_at_Ioi _) },
-  suffices H : ∫⁻ x in Ico a b, ∥g' x∥₊ ≤ ennreal.of_real (g b - g a + b - a),
-    from ⟨meas_g'.ae_strongly_measurable, H.trans_lt ennreal.of_real_lt_top⟩,
-  by_contra' H,
-  obtain ⟨f, fg, hf, int_f, ftop⟩ : ∃ (f : ℝ → ℝ≥0), (∀ x, f x ≤ ∥g' x∥₊) ∧ upper_semicontinuous f
-    ∧ ennreal.of_real (g b - g a + b - a) < ∫⁻ (x : ℝ) in Ico a b, f x
-    ∧ ∫⁻ (x : ℝ) in Ico a b, f x < ∞ := exists_upper_semicontinuous_le_lt_lintegral H,
-end
-
-#exit

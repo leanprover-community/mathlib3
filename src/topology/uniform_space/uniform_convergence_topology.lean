@@ -5,6 +5,7 @@ Authors: Anatole Dedecker
 -/
 import topology.uniform_space.uniform_convergence
 import topology.uniform_space.pi
+import topology.uniform_space.uniform_embedding
 
 /-!
 # Topology and uniform structure of uniform convergence
@@ -192,7 +193,8 @@ begin
   refl
 end
 
-lemma postcomp_uniform_continuous [uniform_space γ] {f : γ → β} (hf : uniform_continuous f):
+protected lemma postcomp_uniform_continuous [uniform_space γ] {f : γ → β}
+  (hf : uniform_continuous f):
   uniform_continuous ((∘) f : (α → γ) → α → β) :=
 uniform_continuous_iff.mpr $
 calc uniform_convergence.uniform_space α γ
@@ -201,7 +203,7 @@ calc uniform_convergence.uniform_space α γ
 ... = (uniform_convergence.uniform_space α β).comap ((∘) f : (α → γ) → α → β) :
       uniform_convergence.comap_eq
 
-lemma precomp_uniform_continuous {f : γ → α} :
+protected lemma precomp_uniform_continuous {f : γ → α} :
   uniform_continuous (λ g : α → β, g ∘ f) :=
 begin
   rw uniform_continuous_iff,
@@ -239,6 +241,41 @@ begin
     filter_upwards [h (prod.swap ⁻¹' U) (tendsto_swap_uniformity hU)],
     exact λ n, id }
 end
+
+/-- TODO : move me -/
+lemma uniform_space.comap_infi {ι : Sort*} {u : ι → uniform_space γ} {f : α → γ} :
+  (⨅ i, u i).comap f = ⨅ i, (u i).comap f :=
+begin
+  ext : 1,
+  change (𝓤 _) = (𝓤 _),
+  simp [uniformity_comap rfl, infi_uniformity']
+end
+
+variables {δ : ι → Type*} [Π i, uniform_space (δ i)]
+
+local attribute [-instance] uniform_convergence.uniform_space
+
+protected lemma uniform_inducing_swap : @uniform_inducing (α → Π i, δ i) (Π i, α → δ i)
+  (@uniform_convergence.uniform_space α (Π i, δ i) (Pi.uniform_space δ))
+  (@Pi.uniform_space ι (λ i, α → δ i) (λ i, uniform_convergence.uniform_space α (δ i)))
+  function.swap :=
+begin
+  letI : uniform_space (Π i, δ i) := Pi.uniform_space δ,
+  letI : uniform_space (α → Π i, δ i) := uniform_convergence.uniform_space α (Π i, δ i),
+  letI : Π i, uniform_space (α → δ i) := λ i, uniform_convergence.uniform_space α (δ i),
+  letI : uniform_space (Π i, α → δ i) := Pi.uniform_space (λ i, α → δ i),
+  split,
+  change comap (prod.map function.swap function.swap) _ = _,
+  rw ← uniformity_comap rfl,
+  congr,
+  rw [Pi.uniform_space, uniform_space.of_core_eq_to_core, Pi.uniform_space,
+      uniform_space.of_core_eq_to_core, uniform_space.comap_infi, uniform_convergence.infi_eq],
+  congr,
+  ext i : 1,
+  rw [← uniform_space.comap_comap, uniform_convergence.comap_eq]
+end
+
+#exit
 
 end uniform_convergence
 

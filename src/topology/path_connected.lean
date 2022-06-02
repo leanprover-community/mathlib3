@@ -134,7 +134,7 @@ begin
   ext x,
   simp only [mem_range, path.symm, has_coe_to_fun.coe, coe_fn, unit_interval.symm, set_coe.exists,
     comp_app, subtype.coe_mk, subtype.val_eq_coe],
-  split; rintros ⟨y, hy, hxy⟩; refine ⟨1-y, mem_iff_one_sub_mem.mp hy, _⟩; convert hxy,
+  split; rintros ⟨y, hy, hxy⟩; refine ⟨1-y, set.Icc.one_sub_mem hy, _⟩; convert hxy,
   simp
 end
 

@@ -6,6 +6,7 @@ Authors: Anatole Dedecker
 import topology.uniform_space.uniform_convergence
 import topology.uniform_space.pi
 import topology.uniform_space.uniform_embedding
+import topology.homeomorph
 
 /-!
 # Topology and uniform structure of uniform convergence
@@ -251,11 +252,11 @@ begin
   simp [uniformity_comap rfl, infi_uniformity']
 end
 
-variables {δ : ι → Type*} [Π i, uniform_space (δ i)]
+variables (α) (δ : ι → Type*) [Π i, uniform_space (δ i)]
 
 local attribute [-instance] uniform_convergence.uniform_space
 
-protected lemma uniform_inducing_swap : @uniform_inducing (α → Π i, δ i) (Π i, α → δ i)
+protected lemma uniform_inducing_swap_Pi : @uniform_inducing (α → Π i, δ i) (Π i, α → δ i)
   (@uniform_convergence.uniform_space α (Π i, δ i) (Pi.uniform_space δ))
   (@Pi.uniform_space ι (λ i, α → δ i) (λ i, uniform_convergence.uniform_space α (δ i)))
   function.swap :=
@@ -274,6 +275,46 @@ begin
   ext i : 1,
   rw [← uniform_space.comap_comap, uniform_convergence.comap_eq]
 end
+
+protected lemma uniform_inducing_Pi_swap : @uniform_inducing (Π i, α → δ i) (α → Π i, δ i)
+  (@Pi.uniform_space ι (λ i, α → δ i) (λ i, uniform_convergence.uniform_space α (δ i)))
+  (@uniform_convergence.uniform_space α (Π i, δ i) (Pi.uniform_space δ))
+  function.swap :=
+begin
+  letI : uniform_space (Π i, δ i) := Pi.uniform_space δ,
+  letI : uniform_space (α → Π i, δ i) := uniform_convergence.uniform_space α (Π i, δ i),
+  letI : Π i, uniform_space (α → δ i) := λ i, uniform_convergence.uniform_space α (δ i),
+  letI : uniform_space (Π i, α → δ i) := Pi.uniform_space (λ i, α → δ i),
+  split,
+  rw [← (uniform_convergence.uniform_inducing_swap_Pi α δ).comap_uniformity, comap_comap],
+  convert comap_id using 2,
+  ext; refl
+end
+
+/-- TODO : upgrade to a uniform homeomorphism once we have them. -/
+protected def homeomorph_swap_Pi : @homeomorph (α → Π i, δ i) (Π i, α → δ i)
+  (@uniform_convergence.topological_space α (Π i, δ i) (Pi.uniform_space δ))
+  (@Pi.topological_space ι (λ i, α → δ i) (λ i, uniform_convergence.topological_space α (δ i))) :=
+{ to_fun := function.swap,
+  inv_fun := function.swap,
+  left_inv := λ x, rfl,
+  right_inv := λ x, rfl,
+  continuous_to_fun :=
+  begin
+    letI : uniform_space (Π i, δ i) := Pi.uniform_space δ,
+    letI : uniform_space (α → Π i, δ i) := uniform_convergence.uniform_space α (Π i, δ i),
+    letI : Π i, uniform_space (α → δ i) := λ i, uniform_convergence.uniform_space α (δ i),
+    letI : uniform_space (Π i, α → δ i) := Pi.uniform_space (λ i, α → δ i),
+    exact (uniform_convergence.uniform_inducing_swap_Pi α δ).uniform_continuous.continuous
+  end,
+  continuous_inv_fun :=
+  begin
+    letI : uniform_space (Π i, δ i) := Pi.uniform_space δ,
+    letI : uniform_space (α → Π i, δ i) := uniform_convergence.uniform_space α (Π i, δ i),
+    letI : Π i, uniform_space (α → δ i) := λ i, uniform_convergence.uniform_space α (δ i),
+    letI : uniform_space (Π i, α → δ i) := Pi.uniform_space (λ i, α → δ i),
+    exact (uniform_convergence.uniform_inducing_Pi_swap α δ).uniform_continuous.continuous
+  end }
 
 #exit
 

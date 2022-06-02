@@ -1,4 +1,4 @@
-import algebra.group.cohomology.stuff
+
 import field_theory.galois
 import linear_algebra.linear_independent
 universes v u
@@ -20,7 +20,7 @@ instance hjuh : distrib_mul_action (L ≃ₐ[K] L) (additive (Lˣ)) :=
 
 variables (M : Type u) [add_comm_group M] [distrib_mul_action G M]
 
-instance has_zerodsfds : add_comm_group (firstcoh G M) := by apply_instance
+--instance has_zerodsfds : add_comm_group (firstcoh G M) := by apply_instance
 
 open_locale big_operators
 

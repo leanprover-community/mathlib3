@@ -7,11 +7,12 @@ import linear_algebra.finsupp
 import algebra.homology.homotopy_category
 import category_theory.abelian.projective
 import algebra.category.Group.abelian
-
+import representation_theory.basic
 universes v u
-variables (G : Type u) [monoid G] (M : Type v) [add_comm_group M] [distrib_mul_action G M] (n : ℕ)
+variables (R : Type u) [comm_ring R] (G : Type u) [group G] (M : Type v)
+  [add_comm_group M] [module R M] (ρ : representation R G M) (n : ℕ)
 
-variables {G M n}
+variables {R G M n}
 
 def F (j : ℕ) (g : fin (n + 1) → G) (k : fin n) : G :=
 if (k : ℕ) < j then g (fin.cast_lt k (lt_trans k.2 $ lt_add_one _)) else
@@ -71,25 +72,29 @@ begin
         all_goals {dsimp, omega}}}}}
 end.
 
-theorem neg_one_power (n : ℕ) (m : M) : ((-1:ℤ)^n  + (-1:ℤ)^(n+1)) • m = 0 :=
+theorem neg_one_power (n : ℕ) (m : M) : ((-1:R)^n  + (-1:R)^(n+1)) • m = 0 :=
 by simp [pow_succ]
 
 theorem neg_degenerate (j : ℕ) (k : ℕ) (g : fin (n + 2) → G)
   (h : j ≤ k) (v : (fin n → G) → M) :
-  (-1 : ℤ) ^ (j + k + 1) • (v (F j (F (k + 1) g)))
-    + (-1 : ℤ) ^ (j + k) • (v (F k (F j g))) = 0 :=
+  (-1 : R) ^ (j + k + 1) • (v (F j (F (k + 1) g)))
+    + (-1 : R) ^ (j + k) • (v (F k (F j g))) = 0 :=
 begin
   rw [degenerate h, ←add_smul, add_comm, neg_one_power],
 end
 
 open finset
 
+variables (R)
+
 def F_comp (g : fin (n + 2) → G) (v : (fin n → G) → M) : ℕ × ℕ → M :=
-λ j, (-1 : ℤ) ^ (j.1 + j.2) • v (F j.2 (F j.1 g))
+λ j, (-1 : R) ^ (j.1 + j.2) • v (F j.2 (F j.1 g))
+
+variables {R}
 
 theorem F_comp_degenerate {j : ℕ} {k : ℕ} (h : j ≤ k) (g : fin (n + 2) → G)
   (v : (fin n → G) → M) :
-  F_comp g v (k + 1, j) + F_comp g v (j, k) = 0 :=
+  F_comp R g v (k + 1, j) + F_comp R g v (j, k) = 0 :=
 begin
   have := neg_degenerate j k g h v,
   rwa [add_assoc j, add_comm j] at this,
@@ -111,7 +116,7 @@ begin
 end
 
 theorem double_sum_zero1 (n : ℕ) (g : fin (n + 3) → G) (v : (fin (n + 1) → G) → M) :
-(range (n + 3)).sum (λ i, (range (n + 2)).sum (λ j, (F_comp g v (i, j)))) = 0 :=
+(range (n + 3)).sum (λ i, (range (n + 2)).sum (λ j, (F_comp R g v (i, j)))) = 0 :=
 begin
   rw ←sum_product,
   refine sum_involution (λ jk h, invo jk) _ _ _ _,
@@ -145,8 +150,8 @@ begin
 end
 
 def d_to_fun (φ: (fin n → G) → M): (fin (n + 1) → G) → M :=
-λ g, g 0 • φ (λ i, g (fin.add_nat 1 i))
-  + (range (n + 1)).sum (λ j, (-1 : ℤ) ^ (j + 1) • φ (F j g))
+λ g, ρ (g 0) (φ (λ i, g (fin.add_nat 1 i)))
+  + (range (n + 1)).sum (λ j, (-1 : R) ^ (j + 1) • φ (F j g))
 
 lemma cochain_zero_eq (φ : (fin 0 → G) → M) (x y : fin 0 → G) :
   φ x = φ y :=
@@ -178,17 +183,20 @@ begin
 end
 
 theorem d_to_fun_square_zero (φ : (fin n → G) → M) :
-  d_to_fun (d_to_fun φ) = 0 :=
+  d_to_fun ρ (d_to_fun ρ φ) = 0 :=
 begin
   unfold d_to_fun,
   funext,
   dsimp,
-  simp only [smul_add],
+  simp only [map_add],
   cases n with n,
-  { rw [sum_range_succ, sum_range_succ, sum_range_zero],
-    norm_num,
+  { simp only [sum_range_succ, sum_range_zero, zero_add, pow_one, neg_one_smul,
+      neg_one_sq, one_smul],
     rw [F_eq_apply 0 _ 0, F_lt_apply 1 _ 0],
-    { simp only [mul_smul, cochain_zero_eq φ _ default, ←sub_eq_neg_add, ←sub_eq_add_neg],
+    sorry, sorry, sorry
+    },
+  sorry,
+  /-  { simp only [mul_smul, cochain_zero_eq φ _ default, ←sub_eq_neg_add, ←sub_eq_add_neg],
       erw fin.cast_lt_zero,
       simp only [fin.add_nat_one, fin.succ_zero_eq_one, sub_add_sub_cancel', sub_self] },
     { dec_trivial },
@@ -202,7 +210,7 @@ begin
   simp only [smul_sum],
   erw ←sum_add_distrib,
   sorry, refl,
-  }
+  }-/
 
 end
 
@@ -259,12 +267,13 @@ end-/
 
 variables (G M n)
 
-@[simps] def cochain.d : ((fin n → G) → M) →+ ((fin (n + 1) → G) → M) :=
-{ to_fun := d_to_fun,
-  map_zero' := funext $ λ x, by simp only [d_to_fun, add_zero, pi.zero_apply,
-    sum_const_zero, smul_zero],
-  map_add' := λ x y, funext $ λ g, by simp only [d_to_fun, smul_add, sum_add_distrib,
-    pi.add_apply]; abel }
+@[simps] def cochain.d : ((fin n → G) → M) →ₗ[R] ((fin (n + 1) → G) → M) :=
+{ to_fun := d_to_fun ρ,
+  map_add' := λ x y, funext $ λ g, by simp only [d_to_fun, smul_add, map_add, sum_add_distrib,
+    pi.add_apply]; abel,
+  map_smul' := λ r x, funext $ λ g, by {simp only [d_to_fun, pi.smul_apply,
+    (ρ (g 0)).map_smul, smul_add, smul_comm _ r, ←smul_sum], refl
+     }}
 
 variables {G M}
 
@@ -310,3 +319,5 @@ by ext1; exact d_to_fun_square_zero _
 def cochain_cx : cochain_complex Ab ℕ :=
 cochain_complex.of (λ n, AddCommGroup.of $ (fin n → G) → M) (λ n, cochain.d G M n)
   (cochain.d_square_zero G M)
+
+variables {G M}

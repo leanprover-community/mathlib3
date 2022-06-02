@@ -307,9 +307,10 @@ calc (p.bind_on_support f).to_outer_measure s
   ... = ∑' (a : α), ↑(p a) * if h : p a = 0 then 0 else (f a h).to_outer_measure s :
     tsum_congr (λ a, congr_arg (has_mul.mul ↑(p a)) begin
       split_ifs with h h,
-      { exact ennreal.tsum_eq_zero.mpr (λ x,
-          (by simp [g, h] : (0 : ℝ≥0∞) = ↑(g a x)) ▸ (if_t_t (x ∈ s) 0)) },
-      { simp [to_outer_measure_apply, g, h, set.indicator_apply] }
+      { refine ennreal.tsum_eq_zero.mpr (λ x, _),
+        simp only [g, h, dif_pos, ennreal.coe_zero],
+        exact if_t_t (x ∈ s) 0 },
+      { simp only [to_outer_measure_apply, g, h, set.indicator_apply, not_false_iff, dif_neg] }
     end)
 
 /-- The measure of a set under `p.bind_on_support f` is the sum over `a : α`

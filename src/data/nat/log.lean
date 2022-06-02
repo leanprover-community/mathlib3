@@ -96,7 +96,7 @@ begin
   cases x,
   { exact iff_of_true hy (zero_le _) },
   rw log, split_ifs,
-  { have b_pos : 0 < b := zero_le_one.trans_lt hb,
+  { have b_pos : 0 < b := lt_of_le_of_lt zero_le_one hb,
     rw [succ_eq_add_one, add_le_add_iff_right, ←ih (y / b) (div_lt_self hy hb)
       (nat.div_pos h.1 b_pos), le_div_iff_mul_le _ _ b_pos, pow_succ'] },
   { refine iff_of_false (λ hby, h ⟨le_trans _ hby, hb⟩) (not_succ_le_zero _),

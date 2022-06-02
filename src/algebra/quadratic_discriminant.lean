@@ -82,7 +82,7 @@ begin
   field_simp,
   apply or_congr,
   { split; intro h'; linear_combination (h', -1) },
-  { split; intro h'; linear_combination h' },
+  { split; intro h'; linear_combination (h') },
 end
 
 /-- A quadratic has roots if its discriminant has square roots -/

@@ -2265,47 +2265,6 @@ le_antisymm
   (integral_le_sub_of_has_deriv_right_of_le hab hcont hderiv g'int (λ x hx, le_rfl))
   (sub_le_integral_of_has_deriv_right_of_le hab hcont hderiv g'int (λ x hx, le_rfl))
 
-/-- When the right derivative of a function is nonnegative, then it is automatically integrable. -/
-lemma integrable_on_deriv_right_of_nonneg (hab : a ≤ b) (hcont : continuous_on g (Icc a b))
-  (hderiv : ∀ x ∈ Ioo a b, has_deriv_within_at g (g' x) (Ioi x) x)
-  (g'pos : ∀ x ∈ Ioo a b, 0 ≤ g' x) :
-  integrable_on g' (Ioc a b) :=
-begin
-  rw integrable_on_Ioc_iff_integrable_on_Ioo,
-  have meas_g' : ae_measurable g' (volume.restrict (Ioo a b)),
-  { apply (ae_measurable_deriv_within_Ioi g _).congr,
-    refine (ae_restrict_mem measurable_set_Ioo).mono (λ x hx, _),
-    exact (hderiv x hx).deriv_within (unique_diff_within_at_Ioi _) },
-  suffices H : ∫⁻ x in Ioo a b, ∥g' x∥₊ ≤ ennreal.of_real (g b - g a),
-    from ⟨meas_g'.ae_strongly_measurable, H.trans_lt ennreal.of_real_lt_top⟩,
-  by_contra' H,
-  obtain ⟨f, fle, fint, hf⟩ :
-    ∃ (f : simple_func ℝ ℝ≥0), (∀ x, f x ≤ ∥g' x∥₊) ∧ ∫⁻ (x : ℝ) in Ioo a b, f x < ∞
-      ∧ ennreal.of_real (g b - g a) < ∫⁻ (x : ℝ) in Ioo a b, f x :=
-    exists_lt_lintegral_simple_func_of_lt_lintegral H,
-  let F : ℝ → ℝ := coe ∘ f,
-  have intF : integrable_on F (Ioo a b),
-  { refine ⟨f.measurable.coe_nnreal_real.ae_strongly_measurable, _⟩,
-    simpa only [has_finite_integral, nnreal.nnnorm_eq] using fint },
-  have A : ∫⁻ (x : ℝ) in Ioo a b, f x = ennreal.of_real (∫ x in Ioo a b, F x) :=
-    lintegral_coe_eq_integral _ intF,
-  rw A at hf,
-  have B : ∫ (x : ℝ) in Ioo a b, F x ≤ g b - g a,
-  { rw [← integral_Ioc_eq_integral_Ioo, ← interval_integral.integral_of_le hab],
-    apply integral_le_sub_of_has_deriv_right_of_le hab hcont hderiv _ (λ x hx, _),
-    { rwa integrable_on_Icc_iff_integrable_on_Ioo },
-    { convert nnreal.coe_le_coe.2 (fle x),
-      simp only [real.norm_of_nonneg (g'pos x hx), coe_nnnorm] } },
-  exact lt_irrefl _ (hf.trans_le (ennreal.of_real_le_of_real B)),
-end
-
-/-- When the derivative of a function is nonnegative, then it is automatically integrable. -/
-lemma integrable_on_deriv_of_nonneg (hab : a ≤ b) (hcont : continuous_on g (Icc a b))
-  (hderiv : ∀ x ∈ Ioo a b, has_deriv_at g (g' x) x)
-  (g'pos : ∀ x ∈ Ioo a b, 0 ≤ g' x) :
-  integrable_on g' (Ioc a b) :=
-integrable_on_deriv_right_of_nonneg hab hcont (λ x hx, (hderiv x hx).has_deriv_within_at) g'pos
-
 variable {f' : ℝ → E}
 
 /-- **Fundamental theorem of calculus-2**: If `f : ℝ → E` is continuous on `[a, b]` (where `a ≤ b`)
@@ -2393,6 +2352,68 @@ begin
   rw [← hderiv, integral_deriv_eq_sub hdiff],
   rw hderiv,
   exact hcont.interval_integrable
+end
+
+/-!
+### Automatic integrability for nonnegative derivatives
+-/
+
+/-- When the right derivative of a function is nonnegative, then it is automatically integrable. -/
+lemma integrable_on_deriv_right_of_nonneg (hab : a ≤ b) (hcont : continuous_on g (Icc a b))
+  (hderiv : ∀ x ∈ Ioo a b, has_deriv_within_at g (g' x) (Ioi x) x)
+  (g'pos : ∀ x ∈ Ioo a b, 0 ≤ g' x) :
+  integrable_on g' (Ioc a b) :=
+begin
+  rw integrable_on_Ioc_iff_integrable_on_Ioo,
+  have meas_g' : ae_measurable g' (volume.restrict (Ioo a b)),
+  { apply (ae_measurable_deriv_within_Ioi g _).congr,
+    refine (ae_restrict_mem measurable_set_Ioo).mono (λ x hx, _),
+    exact (hderiv x hx).deriv_within (unique_diff_within_at_Ioi _) },
+  suffices H : ∫⁻ x in Ioo a b, ∥g' x∥₊ ≤ ennreal.of_real (g b - g a),
+    from ⟨meas_g'.ae_strongly_measurable, H.trans_lt ennreal.of_real_lt_top⟩,
+  by_contra' H,
+  obtain ⟨f, fle, fint, hf⟩ :
+    ∃ (f : simple_func ℝ ℝ≥0), (∀ x, f x ≤ ∥g' x∥₊) ∧ ∫⁻ (x : ℝ) in Ioo a b, f x < ∞
+      ∧ ennreal.of_real (g b - g a) < ∫⁻ (x : ℝ) in Ioo a b, f x :=
+    exists_lt_lintegral_simple_func_of_lt_lintegral H,
+  let F : ℝ → ℝ := coe ∘ f,
+  have intF : integrable_on F (Ioo a b),
+  { refine ⟨f.measurable.coe_nnreal_real.ae_strongly_measurable, _⟩,
+    simpa only [has_finite_integral, nnreal.nnnorm_eq] using fint },
+  have A : ∫⁻ (x : ℝ) in Ioo a b, f x = ennreal.of_real (∫ x in Ioo a b, F x) :=
+    lintegral_coe_eq_integral _ intF,
+  rw A at hf,
+  have B : ∫ (x : ℝ) in Ioo a b, F x ≤ g b - g a,
+  { rw [← integral_Ioc_eq_integral_Ioo, ← interval_integral.integral_of_le hab],
+    apply integral_le_sub_of_has_deriv_right_of_le hab hcont hderiv _ (λ x hx, _),
+    { rwa integrable_on_Icc_iff_integrable_on_Ioo },
+    { convert nnreal.coe_le_coe.2 (fle x),
+      simp only [real.norm_of_nonneg (g'pos x hx), coe_nnnorm] } },
+  exact lt_irrefl _ (hf.trans_le (ennreal.of_real_le_of_real B)),
+end
+
+/-- When the derivative of a function is nonnegative, then it is automatically integrable,
+Ioc version. -/
+lemma integrable_on_deriv_of_nonneg (hab : a ≤ b) (hcont : continuous_on g (Icc a b))
+  (hderiv : ∀ x ∈ Ioo a b, has_deriv_at g (g' x) x)
+  (g'pos : ∀ x ∈ Ioo a b, 0 ≤ g' x) :
+  integrable_on g' (Ioc a b) :=
+integrable_on_deriv_right_of_nonneg hab hcont (λ x hx, (hderiv x hx).has_deriv_within_at) g'pos
+
+/-- When the derivative of a function is nonnegative, then it is automatically integrable,
+interval version. -/
+theorem interval_integrable_deriv_of_nonneg (hcont : continuous_on g (interval a b))
+  (hderiv : ∀ x ∈ Ioo (min a b) (max a b), has_deriv_at g (g' x) x)
+  (hpos : ∀ x ∈ Ioo (min a b) (max a b), 0 ≤ g' x) :
+  interval_integrable g' volume a b :=
+begin
+  cases le_total a b with hab hab,
+  { simp only [interval_of_le, min_eq_left, max_eq_right, hab, interval_integrable,
+      hab, Ioc_eq_empty_of_le, integrable_on_empty, and_true] at hcont hderiv hpos ⊢,
+    exact integrable_on_deriv_of_nonneg hab hcont hderiv hpos, },
+  { simp only [interval_of_ge, min_eq_right, max_eq_left, hab, interval_integrable,
+      Ioc_eq_empty_of_le, integrable_on_empty, true_and] at hcont hderiv hpos ⊢,
+    exact integrable_on_deriv_of_nonneg hab hcont hderiv hpos }
 end
 
 /-!

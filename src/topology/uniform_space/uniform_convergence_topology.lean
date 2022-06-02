@@ -93,11 +93,11 @@ protected def basis (𝓑 : filter_basis $ β × β) : filter_basis ((α → β)
 protected def filter (𝓑 : filter_basis $ β × β) : filter ((α → β) × (α → β)) :=
 (uniform_convergence.basis α β 𝓑).filter
 
-protected def lower_adjoint (𝓐 : filter $ (α → β) × (α → β)) : filter (β × β) :=
-(𝓐 ×ᶠ ⊤).map (λ uvx : ((α → β) × (α → β)) × α, (uvx.1.1 uvx.2, uvx.1.2 uvx.2))
-
 local notation `Φ` :=
   λ (α β : Type*) (uvx : ((α → β) × (α → β)) × α), (uvx.1.1 uvx.2, uvx.1.2 uvx.2)
+
+protected def lower_adjoint (𝓐 : filter $ (α → β) × (α → β)) : filter (β × β) :=
+(𝓐 ×ᶠ ⊤).map (Φ α β)
 
 protected lemma gc : galois_connection (uniform_convergence.lower_adjoint α β)
   (λ 𝓑, uniform_convergence.filter α β 𝓑.as_basis) :=

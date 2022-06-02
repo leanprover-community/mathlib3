@@ -99,14 +99,13 @@ begin
   ... = _ : fintype.prod_congr _ _ (λ q, _),
   simp only [quotient_equiv_sigma_zmod_symm_apply,
     transfer_transversal_apply', transfer_transversal_apply''],
-  rw fintype.prod_eq_single (0 : zmod (function.minimal_period ((•) g) q.out')),
+  rw fintype.prod_eq_single (0 : zmod (function.minimal_period ((•) g) q.out')) (λ k hk, _),
   { simp only [if_pos, zmod.cast_zero, zpow_zero, one_mul, mul_assoc] },
-  { intros k hk,
-    simp only [if_neg hk, inv_mul_self],
+  { simp only [if_neg hk, inv_mul_self],
     exact map_one ϕ },
 end
 
-lemma transfer_eq_pow'_aux (g : G)
+lemma transfer_eq_pow_aux (g : G)
   (key : ∀ (k : ℕ) (g₀ : G), g₀⁻¹ * g ^ k * g₀ ∈ H → g₀⁻¹ * g ^ k * g₀ = g ^ k) :
   g ^ H.index ∈ H :=
 begin
@@ -125,9 +124,9 @@ begin
     ←fintype.card_congr (self_equiv_sigma_orbits (zpowers g) (G ⧸ H)), ←index_eq_card] using key,
 end
 
-lemma transfer_eq_pow' (g : G)
+lemma transfer_eq_pow (g : G)
   (key : ∀ (k : ℕ) (g₀ : G), g₀⁻¹ * g ^ k * g₀ ∈ H → g₀⁻¹ * g ^ k * g₀ = g ^ k) :
-  transfer ϕ g = ϕ ⟨g ^ H.index, transfer_eq_pow'_aux H g key⟩ :=
+  transfer ϕ g = ϕ ⟨g ^ H.index, transfer_eq_pow_aux H g key⟩ :=
 begin
   classical,
   have key : ∀ (k : ℕ) (g₀ : G) (hk : g₀⁻¹ * g ^ k * g₀ ∈ H),
@@ -153,22 +152,23 @@ end explicit_computation
 
 section center_transfer
 
-lemma transfer_eq_pow [fintype (G ⧸ center G)] (g : G) :
+lemma transfer_center_eq_pow [fintype (G ⧸ center G)] (g : G) :
   transfer (monoid_hom.id (center G)) g = ⟨g ^ (center G).index, (center G).pow_index_mem g⟩ :=
 begin
-  refine transfer_eq_pow' (center G) (monoid_hom.id (center G)) g (λ k g₀ hk, _),
+  refine transfer_eq_pow (center G) (monoid_hom.id (center G)) g (λ k g₀ hk, _),
   rw [←mul_right_inj g₀⁻¹, hk, mul_inv_cancel_right],
 end
 
-noncomputable def transfer_pow [fintype (G ⧸ center G)] : G →* center G :=
+noncomputable def transfer_center_pow [fintype (G ⧸ center G)] : G →* center G :=
 { to_fun := λ g, ⟨g ^ (center G).index, (center G).pow_index_mem g⟩,
   map_one' := subtype.ext (one_pow (center G).index),
-  map_mul' := λ a b, by simp_rw [←show ∀ g, (_ : center G) = _, from transfer_eq_pow, map_mul] }
+  map_mul' := λ a b, by simp_rw [←show ∀ g, (_ : center G) = _,
+    from transfer_center_eq_pow, map_mul] }
 
-noncomputable def transfer_pow' (h : (center G).index ≠ 0) : G →* center G :=
+noncomputable def transfer_center_pow' (h : (center G).index ≠ 0) : G →* center G :=
 begin
   haveI : fintype (G ⧸ center G) := fintype_of_index_ne_zero h,
-  exact transfer_pow,
+  exact transfer_center_pow,
 end
 
 end center_transfer
@@ -231,7 +231,7 @@ begin
   classical,
   haveI P_comm : P.1.is_commutative := ⟨⟨λ a b, subtype.ext (hP (le_normalizer b.2) a a.2)⟩⟩,
   refine le_bot_iff.mp (λ g hg, _),
-  have key := transfer_eq_pow' P.1 (monoid_hom.id P.1) g (λ k g₀ hk, begin
+  have key := transfer_eq_pow P.1 (monoid_hom.id P.1) g (λ k g₀ hk, begin
     obtain ⟨n, hn, key⟩ := key_sylow_lemma' g₀ P P_comm (P.1.pow_mem hg.2 k) hk,
     rw [key, mul_assoc, hP hn (g ^ k) (P.1.pow_mem hg.2 k), inv_mul_cancel_left],
   end),

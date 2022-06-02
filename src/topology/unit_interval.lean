@@ -23,6 +23,8 @@ for discharging `0 ≤ ↑x`, `0 ≤ 1 - ↑x`, `↑x ≤ 1`, and `1 - ↑x ≤ 
 
 Use `open_locale unit_interval` to turn on the notation `I := set.Icc (0 : ℝ) (1 : ℝ)`.
 
+TODO: set up a `linear_ordered_comm_monoid_with_zero Icc (0:ℝ) 1` instance
+
 -/
 
 /-- The unit interval `[0,1]` in ℝ. -/

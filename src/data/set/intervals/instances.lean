@@ -118,9 +118,6 @@ end set.Icc
 
 namespace unit_interval
 
-
--- todo: we could set up a `linear_ordered_comm_monoid_with_zero Icc (0:ℝ) 1` instance
-
 lemma mul_le_left {x y : Icc (0:ℝ) 1} : x * y ≤ x :=
 subtype.coe_le_coe.mp $ (mul_le_mul_of_nonneg_left y.2.2 x.2.1).trans_eq $ mul_one x
 

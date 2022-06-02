@@ -1164,7 +1164,7 @@ begin
 end
 
 /-- If a set is a right-neighborhood of all of its points, then it is measurable. -/
-lemma measurable_set_of_mem_nhds_within_Ioi_aux [densely_ordered α] {s : set α}
+lemma measurable_set_of_mem_nhds_within_Ioi [densely_ordered α] {s : set α}
   (h : ∀ x ∈ s, s ∈ 𝓝[>] x) : measurable_set s :=
 begin
   by_cases H : ∃ x ∈ s, is_top x,

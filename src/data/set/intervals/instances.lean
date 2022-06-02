@@ -118,8 +118,6 @@ by { symmetry, exact subtype.ext_iff }
 lemma coe_ne_one {x : Icc (0:ℝ) 1} : (x : ℝ) ≠ 1 ↔ x ≠ 1 :=
 not_iff_not.mpr coe_eq_one
 
-@[norm_cast] lemma coe_mul {x y : Icc (0:ℝ) 1} : ((x * y : Icc (0:ℝ) 1) : ℝ) = x * y := rfl
-
 -- todo: we could set up a `linear_ordered_comm_monoid_with_zero Icc (0:ℝ) 1` instance
 
 lemma mul_le_left {x y : Icc (0:ℝ) 1} : x * y ≤ x :=

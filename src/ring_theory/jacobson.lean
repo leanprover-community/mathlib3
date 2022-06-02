@@ -179,7 +179,7 @@ begin
     rcases this with ⟨I, hI, hI'⟩,
     convert hI.right,
     by_cases hJ : J = map (algebra_map R S) I,
-    { rw [hJ, comap_map_of_is_prime_disjoint (powers y) S I (hI.right.is_prime)],
+    { rw [hJ, comap_map_of_is_prime_disjoint (powers y) S I hI.right.is_prime],
       rwa disjoint_powers_iff_not_mem y hI.right.is_prime.radical },
     { have hI_p : (map (algebra_map R S) I).is_prime,
       { refine is_prime_of_is_prime_disjoint (powers y) _ I hI.right.is_prime _,
@@ -206,7 +206,7 @@ lemma is_maximal_of_is_maximal_disjoint [is_jacobson R] (I : ideal R) (hI : I.is
   (hy : y ∉ I) : (map (algebra_map R S) I).is_maximal :=
 begin
   rw [is_maximal_iff_is_maximal_disjoint S y,
-    comap_map_of_is_prime_disjoint (powers y) S I (hI.is_prime)
+    comap_map_of_is_prime_disjoint (powers y) S I hI.is_prime
     ((disjoint_powers_iff_not_mem y hI.is_prime.radical).2 hy)],
   exact ⟨hI, hy⟩
 end
@@ -220,7 +220,7 @@ def order_iso_of_maximal [is_jacobson R] :
   inv_fun := λ p,
     ⟨ideal.map (algebra_map R S) p.1, is_maximal_of_is_maximal_disjoint y p.1 p.2.1 p.2.2⟩,
   left_inv := λ J, subtype.eq (map_comap (powers y) S J),
-  right_inv := λ I, subtype.eq (comap_map_of_is_prime_disjoint _ _ I.1 (I.2.1.is_prime)
+  right_inv := λ I, subtype.eq (comap_map_of_is_prime_disjoint _ _ I.1 I.2.1.is_prime
     ((disjoint_powers_iff_not_mem y I.2.1.is_prime.radical).2 I.2.2)),
   map_rel_iff' := λ I I', ⟨λ h, (show I.val ≤ I'.val,
     from (map_comap (powers y) S I.val) ▸ (map_comap (powers y) S I'.val) ▸ (ideal.map_mono h)),

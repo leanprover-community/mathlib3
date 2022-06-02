@@ -233,10 +233,10 @@ end
 end polynomial_div_at_top
 
 theorem is_O_of_degree_le (h : P.degree ≤ Q.degree) :
-  is_O (λ x, eval x P) (λ x, eval x Q) filter.at_top :=
+  (λ x, eval x P) =O[at_top] (λ x, eval x Q) :=
 begin
   by_cases hp : P = 0,
-  { simpa [hp] using is_O_zero (λ x, eval x Q) filter.at_top },
+  { simpa [hp] using is_O_zero (λ x, eval x Q) at_top },
   { have hq : Q ≠ 0 := ne_zero_of_degree_ge_degree h hp,
     have hPQ : ∀ᶠ (x : 𝕜) in at_top, eval x Q = 0 → eval x P = 0 :=
       filter.mem_of_superset (polynomial.eventually_no_roots Q hq) (λ x h h', absurd h' h),

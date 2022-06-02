@@ -252,7 +252,7 @@ nat_iso.of_components (λ c,
     w' :=
     begin
       rintro ⟨_|_⟩,
-      { ext, dsimp, simp only [category.id_comp, limits.fan.mk_π_app, limits.limit.lift_π], },
+      { ext ⟨j⟩, dsimp, simp only [category.id_comp, limits.fan.mk_π_app, limits.limit.lift_π], },
       { ext ⟨i,j⟩, dsimp, simp only [category.id_comp, limits.fan.mk_π_app, limits.limit.lift_π], },
     end },
   inv :=
@@ -260,7 +260,7 @@ nat_iso.of_components (λ c,
     w' :=
     begin
       rintro ⟨_|_⟩,
-      { ext, dsimp, simp only [category.id_comp, limits.fan.mk_π_app, limits.limit.lift_π], },
+      { ext ⟨j⟩, dsimp, simp only [category.id_comp, limits.fan.mk_π_app, limits.limit.lift_π], },
       { ext ⟨i,j⟩, dsimp, simp only [category.id_comp, limits.fan.mk_π_app, limits.limit.lift_π], },
     end, },
   hom_inv_id' := by { ext, dsimp, simp only [category.comp_id], },

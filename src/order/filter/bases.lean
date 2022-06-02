@@ -104,6 +104,10 @@ instance : inhabited (filter_basis ℕ) :=
     exact le_of_max_le_right p_in,
   end }⟩
 
+/-- View a filter as a filter basis. -/
+def filter.as_basis (f : filter α) : filter_basis α :=
+⟨f.sets, ⟨univ, univ_mem⟩, λ x y hx hy, ⟨x ∩ y, inter_mem hx hy, subset_rfl⟩⟩
+
 /-- `is_basis p s` means the image of `s` bounded by `p` is a filter basis. -/
 protected structure filter.is_basis (p : ι → Prop) (s : ι → set α) : Prop :=
 (nonempty : ∃ i, p i)
@@ -330,6 +334,9 @@ by simp only [not_exists, not_and, ← ne_empty_iff_nonempty]
 
 lemma basis_sets (l : filter α) : l.has_basis (λ s : set α, s ∈ l) id :=
 ⟨λ t, exists_mem_subset_iff.symm⟩
+
+lemma as_basis_filter (f : filter α) : f.as_basis.filter = f :=
+by ext t; exact exists_mem_subset_iff
 
 lemma has_basis_self {l : filter α} {P : set α → Prop} :
   has_basis l (λ s, s ∈ l ∧ P s) id ↔ ∀ t ∈ l, ∃ r ∈ l, P r ∧ r ⊆ t :=
@@ -730,7 +737,7 @@ end sort
 
 namespace filter
 
-variables {α β γ ι ι' : Type*}
+variables {α β γ ι : Type*} {ι' : Sort*}
 
 /-- `is_countably_generated f` means `f = generate s` for some countable `s`. -/
 class is_countably_generated (f : filter α) : Prop :=
@@ -812,16 +819,16 @@ enumerated by natural numbers such that all sets have the form `s i`. More preci
 sequence `i n` such that `p (i n)` for all `n` and `s (i n)` is a decreasing sequence of sets which
 forms a basis of `f`-/
 lemma has_basis.exists_antitone_subbasis {f : filter α} [h : f.is_countably_generated]
-  {p : ι → Prop} {s : ι → set α} (hs : f.has_basis p s) :
-  ∃ x : ℕ → ι, (∀ i, p (x i)) ∧ f.has_antitone_basis (λ i, s (x i)) :=
+  {p : ι' → Prop} {s : ι' → set α} (hs : f.has_basis p s) :
+  ∃ x : ℕ → ι', (∀ i, p (x i)) ∧ f.has_antitone_basis (λ i, s (x i)) :=
 begin
   obtain ⟨x', hx'⟩ : ∃ x : ℕ → set α, f = ⨅ i, 𝓟 (x i),
   { unfreezingI { rcases h with ⟨s, hsc, rfl⟩ },
     rw generate_eq_binfi,
     exact countable_binfi_principal_eq_seq_infi hsc },
   have : ∀ i, x' i ∈ f := λ i, hx'.symm ▸ (infi_le (λ i, 𝓟 (x' i)) i) (mem_principal_self _),
-  let x : ℕ → {i : ι // p i} := λ n, nat.rec_on n (hs.index _ $ this 0)
-    (λ n xn, (hs.index _ $ inter_mem (this $ n + 1) (hs.mem_of_mem xn.coe_prop))),
+  let x : ℕ → {i : ι' // p i} := λ n, nat.rec_on n (hs.index _ $ this 0)
+    (λ n xn, (hs.index _ $ inter_mem (this $ n + 1) (hs.mem_of_mem xn.2))),
   have x_mono : antitone (λ i, s (x i)),
   { refine antitone_nat_of_succ_le (λ i, _),
     exact (hs.set_index_subset _).trans (inter_subset_right _ _) },

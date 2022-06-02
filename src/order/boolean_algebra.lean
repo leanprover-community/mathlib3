@@ -812,6 +812,9 @@ instance pi.has_compl {ι : Type u} {α : ι → Type v} [∀ i, has_compl (α i
 lemma pi.compl_def {ι : Type u} {α : ι → Type v} [∀ i, has_compl (α i)] (x : Π i, α i) :
   xᶜ = λ i, (x i)ᶜ := rfl
 
+instance is_irrefl.compl (r) [is_irrefl α r] : is_refl α rᶜ := ⟨@irrefl α r _⟩
+instance is_refl.compl (r) [is_refl α r] : is_irrefl α rᶜ := ⟨λ a, not_not_intro (refl a)⟩
+
 @[simp]
 lemma pi.compl_apply {ι : Type u} {α : ι → Type v} [∀ i, has_compl (α i)] (x : Π i, α i) (i : ι)  :
   xᶜ i = (x i)ᶜ := rfl

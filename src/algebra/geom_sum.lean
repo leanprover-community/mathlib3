@@ -434,7 +434,7 @@ begin
     exact this.trans hx }
 end
 
-lemma geom_sum_pos_of_odd [linear_ordered_ring α] (h : odd n) :
+lemma odd.geom_sum_pos [linear_ordered_ring α] (h : odd n) :
   0 < ∑ i in range n, x ^ i :=
 begin
   rcases n with (_ | _ | k),
@@ -467,7 +467,7 @@ begin
     apply le_of_lt,
     simpa [h] using geom_sum_alternating_of_lt_neg_one hx hn },
   { rintro (hn | hx'),
-    { exact geom_sum_pos_of_odd hn },
+    { exact hn.geom_sum_pos },
     rcases lt_trichotomy x 0 with hx | rfl | hx,
     { exact (geom_sum_pos_and_lt_one hx hx' hn).1 },
     { simp only [(zero_lt_one.trans hn).ne', zero_geom_sum, if_false, zero_lt_one] },

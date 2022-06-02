@@ -39,7 +39,6 @@ around a sum.
 * Revise tests?
 -/
 
-open tactic
 namespace tactic
 
 namespace move_add
@@ -87,7 +86,7 @@ lp.mmap $ λ x : α × pexpr, do
   e ← to_expr x.2 tt ff,
   return (x.1, e)
 
-/--  We combine the previous steps.
+/--  We combine `snd_to_expr` and `move_left_or_right`, and then some:
 1. we convert a list pairs `bool × pexpr` to a list of pairs `bool × expr`,
 2. we use the extra input `sl : list expr` to perform the unification and sorting step
    `move_left_or_right`,
@@ -100,6 +99,27 @@ do
   (l1, l2, l3, is_unused) ← move_left_or_right lp_exp sl [],
   return (l1 ++ l3 ++ l2, is_unused)
 
+/-- Partially traverses an expression in search for a sum of terms and producing a list of them.
+In the intended application, the `bool` input is initially set to `tt`.
+The first time `candidates` finds an expression whose head symbol is `has_add.add`,
+`candidates` adds the expression to the list, and recurses inside the summands as well,
+but with the boolean set to `ff`.  This prevents partial summands of a large sum to
+appear.  Once `candidates` finds a term whose head symbol is not `has_add.add`,
+it reverts the boolean to `tt`, so that the recursion can isolate further sums later in the
+expression.
+
+For instance, applying `candidates` to `a + (b + c)*(d + e) + f + g` produces
+`[a + (b + c) * (d + e) + f + g, b + c, d + e]`. -/
+meta def candidates : bool → expr → list expr
+| bo e@`(%%a + %%b)      := if bo then [e] ++ candidates ff a ++ candidates ff b
+                            else candidates ff a ++ candidates ff b
+| bo (expr.lam _ _ e f)  := candidates tt e ++ candidates tt f
+| bo (expr.pi  _ _ e f)  := candidates tt e ++ candidates tt f
+| bo (expr.mvar  _ _ e)  := candidates tt e
+| bo (expr.app e f)      := candidates tt e ++ candidates tt f
+| bo (expr.elet _ e f g) := candidates tt e ++ candidates tt f ++ candidates tt g
+| bo e                   := []
+
 /-- `sorted_sum` takes an optional location name `hyp` for where it will be applied, a list `ll` of
 `bool × pexpr` (arising as the user-provided input to `move_add`) and an expression `e`.
 
@@ -110,7 +130,7 @@ We use this function for expressions in an additive commutative semigroup. -/
 meta def sorted_sum (hyp : option name) (ll : list (bool × pexpr)) (e : expr) :
   tactic (list bool) :=
 do
-  (sli, is_unused) ← final_sorting ll e.list_summands,
+  (sli, is_unused) ← final_sorting ll (e.list_summands),
   match sli with
   | []       := return is_unused
   | (eₕ::es) := do
@@ -131,17 +151,16 @@ do
     end
   end
 
-/-- Partially traverses an expression in search for a sum of terms.
-When `recurse_on_expr` finds a sum, it sorts it using `sorted_sum`. -/
-meta def recurse_on_expr (hyp : option name) (ll : list (bool × pexpr)) : expr → tactic (list bool)
-| e@`(%%_ + %%_)     := sorted_sum hyp ll e
-| (expr.lam _ _ _ e) := recurse_on_expr e
-| (expr.pi  _ _ _ e) := recurse_on_expr e
-| e                  := do
-  li_unused ← e.get_app_args.mmap recurse_on_expr,
-  return $ li_unused.transpose.map list.band
+/--  Extracts the "summand expressions" in `e` via `candidates` and, to each one of them, applies
+`sorted_sum`.  Besides the state changes, which involve the reordering of the addends,
+`is_unused_and_sort` outputs a list of Booleans, encoding which user input was unused
+(`tt`) and which one was used (`ff`).  This information is used for reporting unused inputs. -/
+meta def is_unused_and_sort (hyp : option name) (ll : list (bool × pexpr)) (e : expr) :
+  tactic (list bool) :=
+do results ← (candidates tt e).mmap (sorted_sum hyp ll),
+  return $ results.transpose.map list.band
 
-/-- Passes the user input `ll` to `recurse_on_expr` at a single location, that could either be
+/-- Passes the user input `ll` to `is_unused_and_sort` at a single location, that could either be
 `none` (referring to the goal) or `some name` (referring to hypothesis `name`).  Returns a pair
 consisting of a boolean and a further list of booleans.  The single boolean is `tt` iff the tactic
 did *not* change the goal on which it was acting.  The list of booleans records which variable in
@@ -152,12 +171,12 @@ This definition is useful to streamline error catching. -/
 meta def with_errors (ll : list (bool × pexpr)) : option name → tactic (bool × list bool)
 | (some hyp) := do
   thyp ← get_local hyp >>= infer_type,
-  is_unused ← recurse_on_expr hyp ll thyp,
+  is_unused ← is_unused_and_sort hyp ll thyp,
   nthyp ← get_local hyp >>= infer_type,
   if thyp = nthyp then return (tt, is_unused) else return (ff, is_unused)
 | none       := do
   t ← target,
-  is_unused ← recurse_on_expr none ll t,
+  is_unused ← is_unused_and_sort none ll t,
   tn ← target,
   if t = tn then return (tt, is_unused) else return (ff, is_unused)
 
@@ -225,18 +244,21 @@ As usual, passing `⊢` refers to acting on the goal as well.
 
 ##  Reporting sub-optimal usage
 
-The tactic could fail to prove the reordering, though I would not know what the cause of this could
-be.  Still, there are three kinds of unwanted use for `move_add`: the tactic does not fail in these
-cases, but flags the unwanted use.
-1. `move_add [vars]? at *` reports gloally unused variables and whether *all* goals
+The tactic could fail to prove the reordering.  One potential cause is when there are multiple
+matches for the rearrangements and an earlier rewrite makes a subsequent one fail.  If that is not
+the case, though, I would not know what the cause of this could be.
+
+There are three kinds of unwanted use for `move_add` that result in errors: the tactic fails
+and flags the unwanted use.
+1. `move_add [vars]? at *` reports globally unused variables and whether *all* goals
    are unchanged, not *each unchanged goal*.
-2. If a target of `move_add` is left unchanged by the tactic, then this will be flagged (unless
-   we are using `at *`).
+2. If a target of `move_add [vars]? at targets` is left unchanged by the tactic, then this will be
+   flagged (unless we are using `at *`).
 3. If a user-provided expression never unifies, then the variable is flagged.
 
-The tactic does not produce an error, but reports unused inputs and unchanged targets.
+The tactic produces an error, reporting unused inputs and unchanged targets.
 
-For instance, `move_add ← _` always reports an unchanged goal, but never an unused variable.
+For instance, `move_add ← _` always fails reporting an unchanged goal, but never an unused variable.
 
 ##  Comparison with existing tactics
 
@@ -270,31 +292,29 @@ match locat with
   err_rep ← ctx.mmap (λ e, with_errors args e.local_pp_name),
   er_t ← with_errors args none,
   if ff ∉ er_t.1::err_rep.map (λ e, e.1) then
-    trace "'move_add at *' changed nothing" else skip,
+    fail "'move_add at *' changed nothing" else skip,
   let li_unused := er_t.2::err_rep.map (λ e, e.2),
   let li_unused_clear := li_unused.filter (≠ []),
   let li_tf_vars := li_unused_clear.transpose.map list.band,
   match (return_unused args li_tf_vars).map (λ e : bool × pexpr, e.2) with
   | []   := skip
-  | [pe] := trace format!"'{pe}' is an unused variable"
-  | pes  := trace format!"'{pes}' are unused variables"
+  | [pe] := fail format!"'{pe}' is an unused variable"
+  | pes  := fail format!"'{pes}' are unused variables"
   end,
   assumption <|> try (tactic.reflexivity reducible)
 | loc.ns names := do
   err_rep ← names.mmap $ with_errors args,
   let conds := err_rep.map (λ e, e.1),
   linames ← (return_unused names conds).reduce_option.mmap get_local,
-  if linames ≠ [] then trace
-    format!"'{linames}' did not change" else skip,
-  if none ∈ return_unused names conds then trace
-    "Goal did not change" else skip,
+  if linames ≠ [] then fail format!"'{linames}' did not change" else skip,
+  if none ∈ return_unused names conds then fail "Goal did not change" else skip,
   let li_unused := (err_rep.map (λ e, e.2)),
   let li_unused_clear := li_unused.filter (≠ []),
   let li_tf_vars := li_unused_clear.transpose.map list.band,
   match (return_unused args li_tf_vars).map (λ e : bool × pexpr, e.2) with
   | []   := skip
-  | [pe] := trace format!"'{pe}' is an unused variable"
-  | pes  := trace format!"'{pes}' are unused variables"
+  | [pe] := fail format!"'{pe}' is an unused variable"
+  | pes  := fail format!"'{pes}' are unused variables"
   end,
   assumption <|> try (tactic.reflexivity reducible)
   end

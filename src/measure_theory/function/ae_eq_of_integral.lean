@@ -182,7 +182,7 @@ begin
     have A : ∫⁻ x in s, g x ∂μ + ε * μ s ≤ ∫⁻ x in s, g x ∂μ + 0 := calc
       ∫⁻ x in s, g x ∂μ + ε * μ s = ∫⁻ x in s, g x ∂μ + ∫⁻ x in s, ε ∂μ :
         by simp only [lintegral_const, set.univ_inter, measurable_set.univ, measure.restrict_apply]
-      ... = ∫⁻ x in s, (g x + ε) ∂μ : (lintegral_add hg measurable_const).symm
+      ... = ∫⁻ x in s, (g x + ε) ∂μ : (lintegral_add_right _ measurable_const).symm
       ... ≤ ∫⁻ x in s, f x ∂μ : set_lintegral_mono (hg.add measurable_const) hf (λ x hx, hx.1.1)
       ... ≤ ∫⁻ x in s, g x ∂μ + 0 : by { rw [add_zero], exact h s s_meas s_lt_top },
     have B : ∫⁻ x in s, g x ∂μ ≠ ∞,

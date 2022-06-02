@@ -5,7 +5,6 @@ Authors: Fox Thomson
 -/
 import set_theory.game.winner
 import tactic.nth_rewrite.default
-import tactic.equiv_rw
 
 /-!
 # Basic definitions about impartial (pre-)games
@@ -78,17 +77,16 @@ instance impartial_add : ∀ (G H : pgame) [G.impartial] [H.impartial], (G + H).
 begin
   introsI hG hH,
   rw impartial_def,
-  split,
-  { apply equiv_trans _ (neg_add_relabelling G H).equiv.symm,
-    exact add_congr (neg_equiv_self _) (neg_equiv_self _) },
-  split,
-  all_goals
-  { intro i,
-    equiv_rw pgame.left_moves_add G H at i <|> equiv_rw pgame.right_moves_add G H at i,
-    cases i },
-  all_goals
-  { simp only [add_move_left_inl, add_move_right_inl, add_move_left_inr, add_move_right_inr],
-    exact impartial_add _ _ }
+  refine ⟨equiv_trans (add_congr (neg_equiv_self _) (neg_equiv_self _))
+    (neg_add_relabelling _ _).equiv.symm, λ i, _, λ i, _⟩,
+  { rcases left_moves_add_cases i with ⟨j, rfl⟩ | ⟨j, rfl⟩,
+    all_goals
+    { simp only [add_move_left_inl, add_move_left_inr],
+      apply impartial_add } },
+  { rcases right_moves_add_cases i with ⟨j, rfl⟩ | ⟨j, rfl⟩,
+    all_goals
+    { simp only [add_move_right_inl, add_move_right_inr],
+      apply impartial_add } }
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 

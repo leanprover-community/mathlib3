@@ -30,7 +30,7 @@ open_locale polynomial
 
 section semiring
 
-variables {R : Type*} [semiring R] (p : R[X])
+variables {R : Type*} [semiring R] (p q : R[X])
 
 /-- mirror of a polynomial: reverses the coefficients while preserving `polynomial.nat_degree` -/
 noncomputable def mirror := p.reverse * X ^ p.nat_trailing_degree
@@ -118,14 +118,27 @@ lemma mirror_mirror : p.mirror.mirror = p :=
 polynomial.ext (λ n, by rw [coeff_mirror, coeff_mirror,
   mirror_nat_degree, mirror_nat_trailing_degree, rev_at_invol])
 
-lemma mirror_eq_zero : p.mirror = 0 ↔ p = 0 :=
+variables {p q}
+
+lemma mirror_involutive : function.involutive (mirror : R[X] → R[X]) :=
+mirror_mirror
+
+lemma mirror_eq_iff : p.mirror = q ↔ p = q.mirror :=
+mirror_involutive.eq_iff
+
+@[simp] lemma mirror_inj : p.mirror = q.mirror ↔ p = q :=
+mirror_involutive.injective.eq_iff
+
+@[simp] lemma mirror_eq_zero : p.mirror = 0 ↔ p = 0 :=
 ⟨λ h, by rw [←p.mirror_mirror, h, mirror_zero], λ h, by rw [h, mirror_zero]⟩
 
-lemma mirror_trailing_coeff : p.mirror.trailing_coeff = p.leading_coeff :=
+variables (p q)
+
+@[simp] lemma mirror_trailing_coeff : p.mirror.trailing_coeff = p.leading_coeff :=
 by rw [leading_coeff, trailing_coeff, mirror_nat_trailing_degree, coeff_mirror,
   rev_at_le (nat.le_add_left _ _), add_tsub_cancel_right]
 
-lemma mirror_leading_coeff : p.mirror.leading_coeff = p.trailing_coeff :=
+@[simp] lemma mirror_leading_coeff : p.mirror.leading_coeff = p.trailing_coeff :=
 by rw [←p.mirror_mirror, mirror_trailing_coeff, p.mirror_mirror]
 
 lemma coeff_mul_mirror :
@@ -138,6 +151,23 @@ begin
   rw [coeff_mirror, ←rev_at_le (finset.mem_range_succ_iff.mp hn), rev_at_invol, ←sq],
 end
 
+variables [no_zero_divisors R]
+
+lemma nat_degree_mul_mirror : (p * p.mirror).nat_degree = 2 * p.nat_degree :=
+begin
+  by_cases hp : p = 0,
+  { rw [hp, zero_mul, nat_degree_zero, mul_zero] },
+  rw [nat_degree_mul hp (mt mirror_eq_zero.mp hp), mirror_nat_degree, two_mul],
+end
+
+lemma nat_trailing_degree_mul_mirror :
+  (p * p.mirror).nat_trailing_degree = 2 * p.nat_trailing_degree :=
+begin
+  by_cases hp : p = 0,
+  { rw [hp, zero_mul, nat_trailing_degree_zero, mul_zero] },
+  rw [nat_trailing_degree_mul hp (mt mirror_eq_zero.mp hp), mirror_nat_trailing_degree, two_mul],
+end
+
 end semiring
 
 section ring
@@ -147,7 +177,7 @@ variables {R : Type*} [ring R] (p q : R[X])
 lemma mirror_neg : (-p).mirror = -(p.mirror) :=
 by rw [mirror, mirror, reverse_neg, nat_trailing_degree_neg, neg_mul_eq_neg_mul]
 
-variables [is_domain R]
+variables [no_zero_divisors R]
 
 lemma mirror_mul_of_domain : (p * q).mirror = p.mirror * q.mirror :=
 begin
@@ -168,7 +198,7 @@ end ring
 
 section comm_ring
 
-variables {R : Type*} [comm_ring R] [is_domain R] {f : R[X]}
+variables {R : Type*} [comm_ring R] [no_zero_divisors R] {f : R[X]}
 
 lemma irreducible_of_mirror (h1 : ¬ is_unit f)
   (h2 : ∀ k, f * f.mirror = k * k.mirror → k = f ∨ k = -f ∨ k = f.mirror ∨ k = -f.mirror)

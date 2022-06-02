@@ -217,8 +217,7 @@ lemma test_against_nn_add (μ : finite_measure α) (f₁ f₂ : α →ᵇ ℝ≥
 begin
   simp only [←ennreal.coe_eq_coe, bounded_continuous_function.coe_add, ennreal.coe_add,
              pi.add_apply, test_against_nn_coe_eq],
-  apply lintegral_add;
-  exact bounded_continuous_function.nnreal.to_ennreal_comp_measurable _,
+  exact lintegral_add_left (bounded_continuous_function.nnreal.to_ennreal_comp_measurable _) _
 end
 
 lemma test_against_nn_smul [is_scalar_tower R ℝ≥0 ℝ≥0] [pseudo_metric_space R] [has_zero R]
@@ -304,7 +303,7 @@ continuous_induced_dom
 depends continuously on the measure. -/
 lemma continuous_test_against_nn_eval (f : α →ᵇ ℝ≥0) :
   continuous (λ (μ : finite_measure α), μ.test_against_nn f) :=
-(by apply (eval_continuous _ _).comp to_weak_dual_bcnn_continuous :
+(by apply (weak_bilin.eval_continuous _ _).comp to_weak_dual_bcnn_continuous :
   continuous ((λ φ : weak_dual ℝ≥0 (α →ᵇ ℝ≥0), φ f) ∘ to_weak_dual_bcnn))
 
 lemma tendsto_iff_weak_star_tendsto {γ : Type*} {F : filter γ}

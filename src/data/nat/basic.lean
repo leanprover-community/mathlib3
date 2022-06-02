@@ -886,6 +886,12 @@ protected theorem eq_mul_of_div_eq_left {a b c : ℕ} (H1 : b ∣ a) (H2 : a / b
   a = c * b :=
 by rw [mul_comm, nat.eq_mul_of_div_eq_right H1 H2]
 
+protected lemma lt_div_iff_mul_lt {n d : ℕ} (hnd : d ∣ n) (a : ℕ) : a < n / d ↔ d * a < n :=
+begin
+  rcases d.eq_zero_or_pos with rfl | hd0, { simp [zero_dvd_iff.mp hnd] },
+  rw [←mul_lt_mul_left hd0, ←nat.eq_mul_of_div_eq_right hnd rfl],
+end
+
 protected theorem mul_div_cancel_left' {a b : ℕ} (Hd :  a ∣ b) : a * (b / a) = b :=
 by rw [mul_comm,nat.div_mul_cancel Hd]
 
@@ -911,6 +917,13 @@ begin
     rw [eq_comm, mul_comm, nat.mul_div_assoc _ hy],
     exact nat.eq_mul_of_div_eq_right hx h },
   { intros h, rw h },
+end
+
+@[simp]
+protected lemma div_left_inj {a b d : ℕ} (hda : d ∣ a) (hdb : d ∣ b) : a / d = b / d ↔ a = b :=
+begin
+  refine ⟨λ h, _, congr_arg _⟩,
+  rw [←nat.mul_div_cancel' hda, ←nat.mul_div_cancel' hdb, h],
 end
 
 /-! ### `mod`, `dvd` -/
@@ -1251,6 +1264,9 @@ lemma dvd_left_iff_eq {m n : ℕ} : (∀ a : ℕ, a ∣ m ↔ a ∣ n) ↔ m = n
 /-- `dvd` is injective in the left argument -/
 lemma dvd_left_injective : function.injective ((∣) : ℕ → ℕ → Prop) :=
 λ m n h, dvd_right_iff_eq.mp $ λ a, iff_of_eq (congr_fun h a)
+
+lemma div_lt_div_of_lt_of_dvd {a b d : ℕ} (hdb : d ∣ b) (h : a < b) : a / d < b / d :=
+by { rw nat.lt_div_iff_mul_lt hdb, exact lt_of_le_of_lt (mul_div_le a d) h }
 
 /-! ### `find` -/
 section find

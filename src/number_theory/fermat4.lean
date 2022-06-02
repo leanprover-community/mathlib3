@@ -179,7 +179,7 @@ begin
   -- formula:
   have htt : pythagorean_triple a n m,
   { delta pythagorean_triple,
-    linear_combination ht1 },
+    linear_combination (ht1) },
   -- a and n are coprime, because a ^ 2 = m ^ 2 - n ^ 2 and m and n are coprime.
   have h3 : int.gcd a n = 1,
   { apply int.gcd_eq_one_iff_coprime.mpr,

@@ -10,7 +10,7 @@ by linear_combination 1*h1
 
 example (x y : ℤ) (h1 : 3*x + 2*y = 10):
   3*x + 2*y = 10 :=
-by linear_combination h1
+by linear_combination (h1)
 
 example (x y : ℤ) (h1 : x + 2 = -3) (h2 : y = 10) :
   2*x + 4 = -6 :=

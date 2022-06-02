@@ -1411,7 +1411,7 @@ begin
 
   -- To show `b i` is a weighted sum of the other `b j`s, we'll rewrite this sum
   -- to have the form of the assumption `dependent`.
-  apply eq_neg_of_add_eq_zero,
+  apply eq_neg_of_add_eq_zero_left,
   calc b i + (g i)⁻¹ • (s.erase i).sum (λ j, g j • b j)
       = (g i)⁻¹ • (g i • b i + (s.erase i).sum (λ j, g j • b j))
     : by rw [smul_add, ←mul_smul, inv_mul_cancel gx_ne_zero, one_smul]

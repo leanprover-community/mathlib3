@@ -18,11 +18,19 @@ import group_theory.group_action.defs
 * `mul_semiring_action_hom M R S`, the type of equivariant ring homomorphisms
   from `R` to `S`, where `M` is a monoid that acts on the rings `R` and `S`.
 
+The above types have corresponding classes:
+* `smul_hom_class F M X Y` states that `F` is a type of bundled `X → Y` homs
+  preserving scalar multiplication by `M`
+* `distrib_mul_action_hom_class F M A B` states that `F` is a type of bundled `A → B` homs
+  preserving the additive monoid structure and scalar multiplication by `M`
+* `mul_semiring_action_hom_class F M R S` states that `F` is a type of bundled `R → S` homs
+  preserving the ring structure and scalar multiplication by `M`
+
 ## Notations
 
 * `X →[M] Y` is `mul_action_hom M X Y`.
-* `A →+[M] B` is `distrib_mul_action_hom M X Y`.
-* `R →+*[M] S` is `mul_semiring_action_hom M X Y`.
+* `A →+[M] B` is `distrib_mul_action_hom M A B`.
+* `R →+*[M] S` is `mul_semiring_action_hom M R S`.
 
 -/
 
@@ -53,22 +61,36 @@ structure mul_action_hom :=
 
 notation X ` →[`:25 M:25 `] `:0 Y:0 := mul_action_hom M X Y
 
+/-- `smul_hom_class F M X Y` states that `F` is a type of morphisms preserving
+scalar multiplication by `M`.
+
+You should extend this class when you extend `mul_action_hom`. -/
+class smul_hom_class (F : Type*) (M X Y : out_param $ Type*) [has_scalar M X] [has_scalar M Y]
+  extends fun_like F X (λ _, Y) :=
+(map_smul : ∀ (f : F) (c : M) (x : X), f (c • x) = c • f x)
+
+-- `M` becomes a metavariable but it's an `out_param` so it's not a problem.
+attribute [nolint dangerous_instance] smul_hom_class.to_fun_like
+
+export smul_hom_class (map_smul)
+attribute [simp] map_smul
+
 namespace mul_action_hom
 
 instance : has_coe_to_fun (X →[M'] Y) (λ _, X → Y) := ⟨mul_action_hom.to_fun⟩
 
+instance : smul_hom_class (X →[M'] Y) M' X Y :=
+{ coe := mul_action_hom.to_fun,
+  coe_injective' := λ f g h, by cases f; cases g; congr',
+  map_smul := mul_action_hom.map_smul' }
+
 variables {M M' X Y}
 
-@[simp] lemma map_smul (f : X →[M'] Y) (m : M') (x : X) : f (m • x) = m • f x :=
-f.map_smul' m x
-
-@[ext] theorem ext : ∀ {f g : X →[M'] Y}, (∀ x, f x = g x) → f = g
-| ⟨f, _⟩ ⟨g, _⟩ H := by { congr' 1 with x, exact H x }
-
-theorem ext_iff {f g : X →[M'] Y} : f = g ↔ ∀ x, f x = g x :=
-⟨λ H x, by rw H, ext⟩
-
-protected lemma congr_fun {f g : X →[M'] Y} (h : f = g) (x : X) : f x = g x := h ▸ rfl
+protected lemma map_smul (f : X →[M'] Y) (m : M') (x : X) : f (m • x) = m • f x := map_smul _ _ _
+@[ext] theorem ext : ∀ {f g : X →[M'] Y}, (∀ x, f x = g x) → f = g := fun_like.ext
+theorem ext_iff {f g : X →[M'] Y} : f = g ↔ ∀ x, f x = g x := fun_like.ext_iff
+protected lemma congr_fun {f g : X →[M'] Y} (h : f = g) (x : X) : f x = g x :=
+fun_like.congr_fun h _
 
 variables (M M') {X}
 
@@ -119,6 +141,17 @@ add_decl_doc distrib_mul_action_hom.to_mul_action_hom
 
 notation A ` →+[`:25 M:25 `] `:0 B:0 := distrib_mul_action_hom M A B
 
+/-- `distrib_mul_action_hom_class F M A B` states that `F` is a type of morphisms preserving
+the additive monoid structure and scalar multiplication by `M`.
+
+You should extend this class when you extend `distrib_mul_action_hom`. -/
+class distrib_mul_action_hom_class (F : Type*) (M A B : out_param $ Type*)
+  [monoid M] [add_monoid A] [add_monoid B] [distrib_mul_action M A] [distrib_mul_action M B]
+  extends smul_hom_class F M A B, add_monoid_hom_class F A B
+
+-- `M` becomes a metavariable but it's an `out_param` so it's not a problem.
+attribute [nolint dangerous_instance] distrib_mul_action_hom_class.to_add_monoid_hom_class
+
 namespace distrib_mul_action_hom
 
 instance has_coe : has_coe (A →+[M] B) (A →+ B) :=
@@ -129,6 +162,13 @@ instance has_coe' : has_coe (A →+[M] B) (A →[M] B) :=
 
 instance : has_coe_to_fun (A →+[M] B) (λ _, A → B) := ⟨to_fun⟩
 
+instance : distrib_mul_action_hom_class (A →+[M] B) M A B :=
+{ coe := distrib_mul_action_hom.to_fun,
+  coe_injective' := λ f g h, by cases f; cases g; congr',
+  map_smul := distrib_mul_action_hom.map_smul',
+  map_zero := distrib_mul_action_hom.map_zero',
+  map_add := distrib_mul_action_hom.map_add' }
+
 variables {M A B}
 
 @[simp] lemma to_fun_eq_coe (f : A →+[M] B) : f.to_fun = ⇑f := rfl
@@ -136,13 +176,10 @@ variables {M A B}
 @[norm_cast] lemma coe_fn_coe (f : A →+[M] B) : ((f : A →+ B) : A → B) = f := rfl
 @[norm_cast] lemma coe_fn_coe' (f : A →+[M] B) : ((f : A →[M] B) : A → B) = f := rfl
 
-@[ext] theorem ext : ∀ {f g : A →+[M] B}, (∀ x, f x = g x) → f = g
-| ⟨f, _, _, _⟩ ⟨g, _, _, _⟩ H := by { congr' 1 with x, exact H x }
-
-theorem ext_iff {f g : A →+[M] B} : f = g ↔ ∀ x, f x = g x :=
-⟨λ H x, by rw H, ext⟩
-
-protected lemma congr_fun {f g : A →+[M] B} (h : f = g) (x : A) : f x = g x := h ▸ rfl
+@[ext] theorem ext : ∀ {f g : A →+[M] B}, (∀ x, f x = g x) → f = g := fun_like.ext
+theorem ext_iff {f g : A →+[M] B} : f = g ↔ ∀ x, f x = g x := fun_like.ext_iff
+protected lemma congr_fun {f g : A →+[M] B} (h : f = g) (x : A) : f x = g x :=
+fun_like.congr_fun h _
 
 lemma to_mul_action_hom_injective {f g : A →+[M] B}
   (h : (f : A →[M] B) = (g : A →[M] B)) : f = g :=
@@ -152,20 +189,11 @@ lemma to_add_monoid_hom_injective {f g : A →+[M] B}
   (h : (f : A →+ B) = (g : A →+ B)) : f = g :=
 by { ext a, exact add_monoid_hom.congr_fun h a, }
 
-@[simp] lemma map_zero (f : A →+[M] B) : f 0 = 0 :=
-f.map_zero'
-
-@[simp] lemma map_add (f : A →+[M] B) (x y : A) : f (x + y) = f x + f y :=
-f.map_add' x y
-
-@[simp] lemma map_neg (f : A' →+[M] B') (x : A') : f (-x) = -f x :=
-(f : A' →+ B').map_neg x
-
-@[simp] lemma map_sub (f : A' →+[M] B') (x y : A') : f (x - y) = f x - f y :=
-(f : A' →+ B').map_sub x y
-
-@[simp] lemma map_smul (f : A →+[M] B) (m : M) (x : A) : f (m • x) = m • f x :=
-f.map_smul' m x
+protected lemma map_zero (f : A →+[M] B) : f 0 = 0 := map_zero _
+protected lemma map_add (f : A →+[M] B) (x y : A) : f (x + y) = f x + f y := map_add _ _ _
+protected lemma map_neg (f : A' →+[M] B') (x : A') : f (-x) = -f x := map_neg _ _
+protected lemma map_sub (f : A' →+[M] B') (x y : A') : f (x - y) = f x - f y := map_sub _ _ _
+protected lemma map_smul (f : A →+[M] B) (m : M) (x : A) : f (m • x) = m • f x := map_smul _ _ _
 
 variables (M) {A}
 
@@ -241,6 +269,17 @@ add_decl_doc mul_semiring_action_hom.to_distrib_mul_action_hom
 
 notation R ` →+*[`:25 M:25 `] `:0 S:0 := mul_semiring_action_hom M R S
 
+/-- `mul_semiring_action_hom_class F M R S` states that `F` is a type of morphisms preserving
+the ring structure and scalar multiplication by `M`.
+
+You should extend this class when you extend `mul_semiring_action_hom`. -/
+class mul_semiring_action_hom_class (F : Type*) (M R S : out_param $ Type*)
+  [monoid M] [semiring R] [semiring S] [distrib_mul_action M R] [distrib_mul_action M S]
+  extends distrib_mul_action_hom_class F M R S, ring_hom_class F R S
+
+-- `M` becomes a metavariable but it's an `out_param` so it's not a problem.
+attribute [nolint dangerous_instance] mul_semiring_action_hom_class.to_ring_hom_class
+
 namespace mul_semiring_action_hom
 
 instance has_coe : has_coe (R →+*[M] S) (R →+* S) :=
@@ -251,37 +290,30 @@ instance has_coe' : has_coe (R →+*[M] S) (R →+[M] S) :=
 
 instance : has_coe_to_fun (R →+*[M] S) (λ _, R → S) := ⟨λ c, c.to_fun⟩
 
+instance : mul_semiring_action_hom_class (R →+*[M] S) M R S :=
+{ coe := mul_semiring_action_hom.to_fun,
+  coe_injective' := λ f g h, by cases f; cases g; congr',
+  map_smul := mul_semiring_action_hom.map_smul',
+  map_zero := mul_semiring_action_hom.map_zero',
+  map_add := mul_semiring_action_hom.map_add',
+  map_one := mul_semiring_action_hom.map_one',
+  map_mul := mul_semiring_action_hom.map_mul' }
+
 variables {M R S}
 
 @[norm_cast] lemma coe_fn_coe (f : R →+*[M] S) : ((f : R →+* S) : R → S) = f := rfl
 @[norm_cast] lemma coe_fn_coe' (f : R →+*[M] S) : ((f : R →+[M] S) : R → S) = f := rfl
 
-@[ext] theorem ext : ∀ {f g : R →+*[M] S}, (∀ x, f x = g x) → f = g
-| ⟨f, _, _, _, _, _⟩ ⟨g, _, _, _, _, _⟩ H := by { congr' 1 with x, exact H x }
+@[ext] theorem ext : ∀ {f g : R →+*[M] S}, (∀ x, f x = g x) → f = g := fun_like.ext
+theorem ext_iff {f g : R →+*[M] S} : f = g ↔ ∀ x, f x = g x := fun_like.ext_iff
 
-theorem ext_iff {f g : R →+*[M] S} : f = g ↔ ∀ x, f x = g x :=
-⟨λ H x, by rw H, ext⟩
-
-@[simp] lemma map_zero (f : R →+*[M] S) : f 0 = 0 :=
-f.map_zero'
-
-@[simp] lemma map_add (f : R →+*[M] S) (x y : R) : f (x + y) = f x + f y :=
-f.map_add' x y
-
-@[simp] lemma map_neg (f : R' →+*[M] S') (x : R') : f (-x) = -f x :=
-(f : R' →+* S').map_neg x
-
-@[simp] lemma map_sub (f : R' →+*[M] S') (x y : R') : f (x - y) = f x - f y :=
-(f : R' →+* S').map_sub x y
-
-@[simp] lemma map_one (f : R →+*[M] S) : f 1 = 1 :=
-f.map_one'
-
-@[simp] lemma map_mul (f : R →+*[M] S) (x y : R) : f (x * y) = f x * f y :=
-f.map_mul' x y
-
-@[simp] lemma map_smul (f : R →+*[M] S) (m : M) (x : R) : f (m • x) = m • f x :=
-f.map_smul' m x
+protected lemma map_zero (f : R →+*[M] S) : f 0 = 0 := map_zero _
+protected lemma map_add (f : R →+*[M] S) (x y : R) : f (x + y) = f x + f y := map_add _ _ _
+protected lemma map_neg (f : R' →+*[M] S') (x : R') : f (-x) = -f x := map_neg _ _
+protected lemma map_sub (f : R' →+*[M] S') (x y : R') : f (x - y) = f x - f y := map_sub _ _ _
+protected lemma map_one (f : R →+*[M] S) : f 1 = 1 := map_one _
+protected lemma map_mul (f : R →+*[M] S) (x y : R) : f (x * y) = f x * f y := map_mul _ _ _
+protected lemma map_smul (f : R →+*[M] S) (m : M) (x : R) : f (m • x) = m • f x := map_smul _ _ _
 
 variables (M) {R}
 

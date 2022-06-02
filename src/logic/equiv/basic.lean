@@ -5,11 +5,11 @@ Authors: Leonardo de Moura, Mario Carneiro
 -/
 import data.fun_like.equiv
 import data.option.basic
-import data.prod
+import data.prod.basic
 import data.quot
 import data.sigma.basic
-import data.sum.basic
 import data.subtype
+import data.sum.basic
 import logic.function.conjugate
 import logic.unique
 import tactic.norm_cast
@@ -1244,6 +1244,14 @@ def sigma_prod_distrib {ι : Type*} (α : ι → Type*) (β : Type*) :
  λ p, by { rcases p with ⟨⟨_, _⟩, _⟩, refl },
  λ p, by { rcases p with ⟨_, ⟨_, _⟩⟩, refl }⟩
 
+/-- An equivalence that separates out the 0th fiber of `(Σ (n : ℕ), f n)`. -/
+def sigma_nat_succ (f : ℕ → Type u) :
+  (Σ n, f n) ≃ f 0 ⊕ Σ n, f (n + 1) :=
+⟨λ x, @sigma.cases_on ℕ f (λ _, f 0 ⊕ Σ n, f (n + 1)) x (λ n, @nat.cases_on (λ i, f i → (f 0 ⊕
+  Σ (n : ℕ), f (n + 1))) n (λ (x : f 0), sum.inl x) (λ (n : ℕ) (x : f n.succ), sum.inr ⟨n, x⟩)),
+  sum.elim (sigma.mk 0) (sigma.map nat.succ (λ _, id)),
+  by { rintro ⟨(n | n), x⟩; refl }, by { rintro (x | ⟨n, x⟩); refl }⟩
+
 /-- The product `bool × α` is equivalent to `α ⊕ α`. -/
 def bool_prod_equiv_sum (α : Type u) : bool × α ≃ α ⊕ α :=
 calc bool × α ≃ (unit ⊕ unit) × α       : prod_congr bool_equiv_punit_sum_punit (equiv.refl _)
@@ -1311,10 +1319,10 @@ at corresponding points, then `{a // p a}` is equivalent to `{b // q b}`.
 For the statement where `α = β`, that is, `e : perm α`, see `perm.subtype_perm`. -/
 def subtype_equiv {p : α → Prop} {q : β → Prop}
   (e : α ≃ β) (h : ∀ a, p a ↔ q (e a)) : {a : α // p a} ≃ {b : β // q b} :=
-⟨λ x, ⟨e x, (h _).1 x.2⟩,
- λ y, ⟨e.symm y, (h _).2 (by { simp, exact y.2 })⟩,
- λ ⟨x, h⟩, subtype.ext_val $ by simp,
- λ ⟨y, h⟩, subtype.ext_val $ by simp⟩
+{ to_fun    := λ a, ⟨e a, (h _).mp a.prop⟩,
+  inv_fun   := λ b, ⟨e.symm b, (h _).mpr ((e.apply_symm_apply b).symm ▸ b.prop)⟩,
+  left_inv  := λ a, subtype.ext $ by simp,
+  right_inv := λ b, subtype.ext $ by simp }
 
 @[simp] lemma subtype_equiv_refl {p : α → Prop}
   (h : ∀ a, p a ↔ p (equiv.refl _ a) := λ a, iff.rfl) :

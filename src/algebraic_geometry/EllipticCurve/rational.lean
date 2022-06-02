@@ -22,6 +22,22 @@ open_locale classical
 lemma zero_le_three {α : Type} [ordered_semiring α] : (0 : α) ≤ 3 :=
 add_nonneg zero_le_two zero_le_one
 
+namespace padic_val_nat
+
+lemma ne_zero.finite (n : ℕ) : {p : ℕ | p.prime ∧ padic_val_nat p n ≠ 0}.finite :=
+begin
+  apply set.finite.subset (set.finite_le_nat n) _,
+  rintro p ⟨hp, hpn⟩,
+  rw [@padic_val_nat_eq_factorization p n ⟨hp⟩, ← finsupp.mem_support_iff,
+      nat.support_factorization, list.mem_to_finset] at hpn,
+  exact nat.le_of_mem_factors hpn
+end
+
+instance ne_zero.fintype (n : ℕ) : fintype {p : ℕ // p.prime ∧ padic_val_nat p n ≠ 0} :=
+set.finite.fintype $ ne_zero.finite n
+
+end padic_val_nat
+
 namespace padic_val_rat
 
 variables (p : ℕ) [fact p.prime]
@@ -53,7 +69,7 @@ begin
   { exact or.inr hdenom }
 end
 
-lemma eq_zero (q : ℚ) :
+lemma eq_zero_iff (q : ℚ) :
   padic_val_rat p q = 0 ↔ padic_val_int p q.num = 0 ∧ padic_val_nat p q.denom = 0 :=
 begin
   rw [padic_val_rat, sub_eq_zero, int.coe_nat_inj'],
@@ -66,7 +82,7 @@ begin
     rw [hnum, hdenom] }
 end
 
-lemma eq_num_tfae (q : ℚ) : tfae [padic_val_rat p q = padic_val_int p q.num,
+lemma eq_num.tfae (q : ℚ) : tfae [padic_val_rat p q = padic_val_int p q.num,
   padic_val_nat p q.denom = 0, 0 ≤ padic_val_rat p q] :=
 begin
   rw [padic_val_rat, sub_eq_self, int.coe_nat_eq_zero, sub_nonneg, int.coe_nat_le],
@@ -83,7 +99,25 @@ begin
   tfae_finish
 end
 
-lemma eq_denom_tfae (q : ℚ) : tfae [padic_val_rat p q = -padic_val_nat p q.denom,
+lemma neg_iff (q : ℚ) : padic_val_rat p q < 0 ↔ padic_val_nat p q.denom ≠ 0 :=
+iff.trans not_le.symm $ not_iff_not_of_iff $ (eq_num.tfae p q).out 2 1
+
+lemma neg_set (q : ℚ) :
+  {p : ℕ | p.prime ∧ padic_val_rat p q < 0} = {p : ℕ | p.prime ∧ padic_val_int p q.denom ≠ 0} :=
+congr_arg _ $ funext $ λ p, propext
+  ⟨λ ⟨hp, hq⟩, ⟨hp, (@neg_iff p ⟨hp⟩ q).mp hq⟩, λ ⟨hp, hq⟩, ⟨hp, (@neg_iff p ⟨hp⟩ q).mpr hq⟩⟩
+
+lemma neg_type (q : ℚ) :
+  {p : ℕ // p.prime ∧ padic_val_rat p q < 0} = {p : ℕ // p.prime ∧ padic_val_int p q.denom ≠ 0} :=
+congr_arg _ $ neg_set q
+
+lemma neg.finite (q : ℚ) : {p : ℕ | p.prime ∧ padic_val_rat p q < 0}.finite :=
+(neg_set q).symm ▸ padic_val_nat.ne_zero.finite q.denom
+
+lemma neg.fintype (q : ℚ) : fintype {p : ℕ // p.prime ∧ padic_val_rat p q < 0} :=
+set.finite.fintype $ neg.finite q
+
+lemma eq_denom.tfae (q : ℚ) : tfae [padic_val_rat p q = -padic_val_nat p q.denom,
   padic_val_int p q.num = 0, padic_val_rat p q ≤ 0] :=
 begin
   rw [padic_val_rat, sub_eq_neg_self, int.coe_nat_eq_zero, sub_nonpos, int.coe_nat_le],
@@ -100,13 +134,25 @@ begin
   tfae_finish
 end
 
+lemma pos_iff (q : ℚ) : 0 < padic_val_rat p q ↔ padic_val_int p q.num ≠ 0 :=
+iff.trans not_le.symm $ not_iff_not_of_iff $ (eq_denom.tfae p q).out 2 1
+
+lemma pos_set (q : ℚ) :
+  {p : ℕ | p.prime ∧ 0 < padic_val_rat p q} = {p : ℕ | p.prime ∧ padic_val_int p q.num ≠ 0} :=
+congr_arg _ $ funext $ λ p, propext
+  ⟨λ ⟨hp, hq⟩, ⟨hp, (@pos_iff p ⟨hp⟩ q).mp hq⟩, λ ⟨hp, hq⟩, ⟨hp, (@pos_iff p ⟨hp⟩ q).mpr hq⟩⟩
+
+lemma pos_type (q : ℚ) :
+  {p : ℕ // p.prime ∧ 0 < padic_val_rat p q} = {p : ℕ // p.prime ∧ padic_val_int p q.num ≠ 0} :=
+congr_arg _ $ pos_set q
+
+lemma pos.finite (q : ℚ) : {p : ℕ | p.prime ∧ 0 < padic_val_rat p q}.finite :=
+(pos_set q).symm ▸ padic_val_nat.ne_zero.finite q.num.nat_abs
+
+lemma pos.fintype (q : ℚ) : fintype {p : ℕ // p.prime ∧ 0 < padic_val_rat p q} :=
+set.finite.fintype $ pos.finite q
+
 end padic_val_rat
-
-----------------------------------------------------------------------------------------------------
-
-namespace EllipticCurve
-
-open point
 
 ----------------------------------------------------------------------------------------------------
 /-! ## p-adic valuations of points -/
@@ -220,6 +266,12 @@ end
 end padic_val_point
 
 ----------------------------------------------------------------------------------------------------
+
+namespace EllipticCurve
+
+open point
+
+----------------------------------------------------------------------------------------------------
 /-! ## Heights -/
 
 section heights
@@ -245,12 +297,12 @@ end
 
 include ha₁ ha₃
 
-def height_le_constant.function {C : ℝ} (hC : 0 ≤ C) : {P : E⟮ℚ⟯ // height P ≤ C}
-  → option (fin (2 * ⌊C.exp⌋₊ + 1) × fin (⌊C.exp⌋₊ + 1) × fin 2)
+def height_le_constant.function {C : ℝ} (hC : 0 ≤ C) :
+  {P : E⟮ℚ⟯ // height P ≤ C} → option (fin (2 * ⌊C.exp⌋₊ + 1) × fin (⌊C.exp⌋₊ + 1) × fin 2)
 | ⟨0         , _⟩ := none
 | ⟨some x y w, h⟩ := some ⟨(x.num + ⌊C.exp⌋).to_nat, x.denom, if y ≤ 0 then 0 else 1⟩
 
-lemma height_le_constant.surjective {C : ℝ} (hC : 0 ≤ C) :
+lemma height_le_constant.injective {C : ℝ} (hC : 0 ≤ C) :
   function.injective $ @height_le_constant.function E ha₁ ha₃ C hC :=
 begin
   rintro ⟨_ | ⟨⟨n, d, hx, _⟩, y, w⟩, hP⟩ ⟨_ | ⟨⟨n', d', hx', _⟩, y', w'⟩, hQ⟩ hPQ,
@@ -301,13 +353,13 @@ begin
     { exact or.inr hx' } }
 end
 
-lemma height_le_constant.fintype (C : ℝ) : fintype {P : E⟮ℚ⟯ // height P ≤ C} :=
+instance height_le_constant.fintype (C : ℝ) : fintype {P : E⟮ℚ⟯ // height P ≤ C} :=
 begin
-  by_cases hC : C < 0,
+  by_cases hC : 0 ≤ C,
+  { exact fintype.of_injective (height_le_constant.function ha₁ ha₃ hC)
+      (height_le_constant.injective ha₁ ha₃ hC) },
   { exact @fintype.of_is_empty {P : E⟮ℚ⟯ // height P ≤ C}
-      ⟨λ ⟨P, hP⟩, not_le_of_lt hC $ le_trans (height_nonneg P) hP⟩ },
-  { exact fintype.of_injective (height_le_constant.function ha₁ ha₃ $ le_of_not_lt hC)
-      (height_le_constant.surjective ha₁ ha₃ $ le_of_not_lt hC) }
+      ⟨λ ⟨P, hP⟩, hC $ le_trans (height_nonneg P) hP⟩ }
 end
 
 include ha₂ ha₄ ha₆

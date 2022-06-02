@@ -195,7 +195,7 @@ begin
     rw l₁s_len_l₁_len,
     rw l₂s_len_l₂_len,
 
-    exact split_lengths r l l₁ l₂ hs,
+    exact split_lengths l l₁ l₂ hs,
   end,
 
   simp only [list.length],

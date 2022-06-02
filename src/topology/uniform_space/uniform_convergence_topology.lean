@@ -421,15 +421,14 @@ begin
         uniform_convergence_on.comap_eq
 end
 
---protected lemma precomp_uniform_continuous {f : γ → α} :
---  uniform_continuous (λ g : α → β, g ∘ f) :=
---begin
---  rw uniform_continuous_iff,
---  change 𝓤 (α → β) ≤ (𝓤 (γ → β)).comap (prod.map (λ g : α → β, g ∘ f) (λ g : α → β, g ∘ f)),
---  rw (uniform_convergence.has_basis_uniformity α β).le_basis_iff
---    ((uniform_convergence.has_basis_uniformity γ β).comap _),
---  exact λ U hU, ⟨U, hU, λ uv huv x, huv (f x)⟩
---end
+protected lemma precomp_uniform_continuous {𝔗 : set (set γ)} {f : γ → α}
+  (hf : 𝔗 ⊆ (image f) ⁻¹' 𝔖) :
+  @uniform_continuous (α → β) (γ → β)
+  (uniform_convergence_on.uniform_space α β 𝔖) (uniform_convergence_on.uniform_space γ β 𝔗)
+  (λ g : α → β, g ∘ f) :=
+begin
+  sorry
+end
 
 lemma t2_space_of_covering [t2_space β] (h : ⋃₀ 𝔖 = univ) :
   @t2_space _ (uniform_convergence_on.topological_space α β 𝔖) :=

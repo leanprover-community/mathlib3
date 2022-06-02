@@ -485,4 +485,19 @@ begin
     functor_unit_iso_comp' := λ ℱ, by convert α.left_triangle_components }
 end
 
+variables
+  [concrete_category.{max v u} A]
+  [limits.preserves_limits (forget A)]
+  [reflects_isomorphisms (forget A)]
+  [Π (X : C), limits.preserves_colimits_of_shape (J.cover X)ᵒᵖ (forget A)]
+  [∀ (X : C), limits.has_colimits_of_shape (J.cover X)ᵒᵖ A]
+  [Π (X : D), limits.preserves_colimits_of_shape (K.cover X)ᵒᵖ (forget A)]
+  [∀ (X : D), limits.has_colimits_of_shape (K.cover X)ᵒᵖ A]
+
+noncomputable
+abbreviation Sheaf_equiv_of_cover_preserving_cover_lifting_sheafification_compatibility :
+  (whiskering_left _ _ A).obj G.op ⋙ presheaf_to_Sheaf _ _ ≅
+  presheaf_to_Sheaf _ _ ⋙ (Sheaf_equiv_of_cover_preserving_cover_lifting Hd Hp Hl).inverse :=
+sites.pullback_sheafification_compatibility _ _ Hl _
+
 end category_theory.cover_dense

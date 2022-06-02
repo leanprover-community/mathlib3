@@ -91,15 +91,16 @@ lemma mem_iff_one_sub_mem {t : β} : t ∈ Icc (0:β) 1 ↔ 1 - t ∈ Icc (0:β)
 lemma one_minus_nonneg (x : Icc (0:β) 1) : 0 ≤ 1 - (x : β) := by simpa using x.2.2
 lemma one_minus_le_one (x : Icc (0:β) 1) : 1 - (x : β) ≤ 1 := by simpa using x.2.1
 
+variables {R : Type*} [linear_ordered_field R]
+
+lemma div_mem  {x y : R} (hx : 0 ≤ x) (hy : 0 ≤ y) (hxy : x ≤ y) : x / y ∈ Icc (0:R) 1 :=
+⟨div_nonneg hx hy, div_le_one_of_le hxy hy⟩
+
 end set.Icc
 
 -- ### The unit interval in the real numbers
 
 namespace unit_interval
-
-lemma div_mem {R : Type*} [linear_ordered_field R] {x y : R} (hx : 0 ≤ x) (hy : 0 ≤ y)
-  (hxy : x ≤ y) : x / y ∈ Icc (0:R) 1 :=
-⟨div_nonneg hx hy, div_le_one_of_le hxy hy⟩
 
 @[simp] lemma mk_zero (h : (0 : ℝ) ∈ Icc (0 : ℝ) 1) : (⟨0, h⟩ : Icc (0:ℝ) 1) = 0 := rfl
 

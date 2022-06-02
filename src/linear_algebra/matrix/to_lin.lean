@@ -354,9 +354,9 @@ end to_matrix'
 
 section to_matrix
 
-variables {R : Type*} [comm_ring R]
+variables {R : Type*} [comm_semiring R]
 variables {l m n : Type*} [fintype n] [fintype m] [decidable_eq n]
-variables {M₁ M₂ : Type*} [add_comm_group M₁] [add_comm_group M₂] [module R M₁] [module R M₂]
+variables {M₁ M₂ : Type*} [add_comm_monoid M₁] [add_comm_monoid M₂] [module R M₁] [module R M₂]
 variables (v₁ : basis n R M₁) (v₂ : basis m R M₂)
 
 /-- Given bases of two modules `M₁` and `M₂` over a commutative ring `R`, we get a linear
@@ -460,7 +460,7 @@ theorem linear_map.to_matrix_reindex_range [decidable_eq M₁] [decidable_eq M�
     linear_map.to_matrix v₁ v₂ f k i :=
 by simp_rw [linear_map.to_matrix_apply, basis.reindex_range_self, basis.reindex_range_repr]
 
-variables {M₃ : Type*} [add_comm_group M₃] [module R M₃] (v₃ : basis l R M₃)
+variables {M₃ : Type*} [add_comm_monoid M₃] [module R M₃] (v₃ : basis l R M₃)
 
 lemma linear_map.to_matrix_comp [fintype l] [decidable_eq m] (f : M₂ →ₗ[R] M₃) (g : M₁ →ₗ[R] M₂) :
   linear_map.to_matrix v₁ v₃ (f.comp g) =

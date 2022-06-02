@@ -135,7 +135,7 @@ instance {P Q : C} [has_zero_morphisms C] [has_binary_biproduct P Q]
   { simp only [category.assoc, biprod.lift_snd, comp_factor_thru] },
 end }
 
-instance {β : Type v} [decidable_eq β] (c : β → C) [has_zero_morphisms C] [has_biproduct c]
+instance {β : Type v} (c : β → C) [has_zero_morphisms C] [has_biproduct c]
   [∀ b, injective (c b)] : injective (⨁ c) :=
 { factors := λ X Y g f mono, begin
   resetI,

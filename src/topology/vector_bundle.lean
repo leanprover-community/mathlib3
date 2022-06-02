@@ -531,10 +531,13 @@ namespace trivialization
 @[simps apply {fully_applied := ff}]
 def continuous_linear_map_at (e : trivialization R F E) (b : B) :
   E b →L[R] F :=
-{ cont := by { dsimp, rw [e.coe_linear_map_at b],
-  refine continuous_if_const _ (λ hb, _) (λ _, continuous_zero),
-  refine continuous_snd.comp (e.to_local_homeomorph.continuous_on.comp_continuous
-    (total_space_mk_inducing R F E b).continuous (λ x, e.mem_source.mpr hb)) },
+{ cont := begin
+    dsimp,
+    rw [e.coe_linear_map_at b],
+    refine continuous_if_const _ (λ hb, _) (λ _, continuous_zero),
+    exact continuous_snd.comp (e.to_local_homeomorph.continuous_on.comp_continuous
+      (total_space_mk_inducing R F E b).continuous (λ x, e.mem_source.mpr hb))
+  end,
   .. e.linear_map_at b }
 
 /-- Backwards map of `continuous_linear_equiv_at`, defined everywhere. -/

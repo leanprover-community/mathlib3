@@ -78,6 +78,12 @@ instance has_pow : has_pow (Icc (0:α) 1) ℕ :=
 @[simp, norm_cast] lemma coe_mul (x y : Icc (0:α) 1) : ↑(x * y) = (x * y : α) := rfl
 @[simp, norm_cast] lemma coe_pow (x : Icc (0:α) 1) (n : ℕ) : ↑(x ^ n) = (x ^ n : α) := rfl
 
+lemma mul_le_left {x y : Icc (0:α) 1} : x * y ≤ x :=
+(mul_le_mul_of_nonneg_left y.2.2 x.2.1).trans_eq (mul_one x)
+
+lemma mul_le_right {x y : Icc (0:α) 1} : x * y ≤ y :=
+(mul_le_mul_of_nonneg_right x.2.2 y.2.1).trans_eq (one_mul y)
+
 instance monoid_with_zero : monoid_with_zero (Icc (0:α) 1) :=
 subtype.coe_injective.monoid_with_zero _ coe_zero coe_one coe_mul coe_pow
 
@@ -117,12 +123,6 @@ end set.Icc
 -- ### The unit interval in the real numbers
 
 namespace unit_interval
-
-lemma mul_le_left {x y : Icc (0:ℝ) 1} : x * y ≤ x :=
-subtype.coe_le_coe.mp $ (mul_le_mul_of_nonneg_left y.2.2 x.2.1).trans_eq $ mul_one x
-
-lemma mul_le_right {x y : Icc (0:ℝ) 1} : x * y ≤ y :=
-subtype.coe_le_coe.mp $ (mul_le_mul_of_nonneg_right x.2.2 y.2.1).trans_eq $ one_mul y
 
 /-- like `unit_interval.nonneg`, but with the inequality in `Icc (0:ℝ) 1`. -/
 lemma nonneg' {t : Icc (0:ℝ) 1} : 0 ≤ t := t.2.1

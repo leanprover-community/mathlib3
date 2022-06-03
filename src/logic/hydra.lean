@@ -125,6 +125,12 @@ variable (r : α → α → Prop)
 def cut_expand (s' s : multiset α) : Prop :=
 ∃ (t : multiset α) (a : α), (∀ a' ∈ t, r a' a) ∧ s' + {a} = s + t
 
+/-lemma trans_gen_cut_expand {s' s} (t' t : multiset α) (hn : t' ≠ 0)
+  (hr : ∀ a' ∈ t, ∃ a ∈ t', r a' a) (he : s' + t' = s + t) : trans_gen (cut_expand r) s' s :=
+begin
+
+end-/
+
 lemma cut_expand_cons {a' a} (s) (hr : r a' a) : cut_expand r (a' ::ₘ s) (a ::ₘ s) :=
 ⟨{a'}, a, λ _ h, (mem_singleton.1 h).symm ▸ hr, by { simp only [← singleton_add], abel }⟩
 

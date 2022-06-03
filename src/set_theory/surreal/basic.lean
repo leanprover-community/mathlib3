@@ -324,6 +324,7 @@ begin
   { apply exists_congr, intro, rw ← neg_eq_iff_neg_eq, exact eq_comm },
 end
 
+lemma le_iff {x y : pgame} : x ≤ y ↔ ⟦x⟧ ≤ ⟦y⟧ := iff.rfl
 lemma lt_iff {x y : pgame} : x < y ↔ ⟦x⟧ < ⟦y⟧ := iff.rfl
 lemma equiv_iff {x y : pgame} : x ≈ y ↔ ⟦x⟧ = ⟦y⟧ := by { symmetry, exact quotient.eq }
 lemma quot_neg_eq_of_quot_eq {x y : pgame} (h : ⟦x⟧ = ⟦y⟧) : ⟦-x⟧ = ⟦-y⟧ := by { dsimp, rw h }
@@ -351,25 +352,37 @@ begin
   rw add_comm, congr' 3; rw quot_mul_comm,
 end
 
+lemma P3_trans {x₁} (x₂) {x₃ y₁ y₂} : P3 x₁ x₂ y₁ y₂ → P3 x₂ x₃ y₁ y₂ → P3 x₁ x₃ y₁ y₂ :=
+λ h₁ h₂, begin
+  rw [P3, lt_iff, ← add_lt_add_iff_left ⟦x₂ * y₁ + x₂ * y₂⟧],
+  convert lt_iff.1 (add_lt_add h₁ h₂); dsimp; abel,
+end
+
+lemma P3_neg {x₁ x₂ y₁ y₂} : P3 x₁ x₂ y₁ y₂ ↔ P3 (-x₂) (-x₁) y₁ y₂ :=
+begin
+  rw [P3, P3, lt_iff, lt_iff], dsimp, simp only [quot_neg_mul],
+  rw ← neg_lt_neg_iff, convert iff.rfl; abel,
+end
+
+lemma P3_neg' {x₁ x₂ y₁ y₂} : P3 x₁ x₂ y₁ y₂ ↔ P3 x₁ x₂ (-y₂) (-y₁) :=
+by rw [P3.comm, P3_neg, P3.comm]
+
 def P24 (x₁ x₂ y : pgame) : Prop :=
 (⟦x₁⟧ = ⟦x₂⟧ → ⟦x₁ * y⟧ = ⟦x₂ * y⟧) ∧
 (x₁ < x₂ → (∀ i, P3 x₁ x₂ (y.move_left i) y) ∧ ∀ j, P3 x₁ x₂ ((-y).move_left j) (-y))
 
-lemma P24_neg {x₁ x₂ y : pgame} : P24 x₁ x₂ y ↔ P24 (-x₂) (-x₁) y :=
+lemma P24_neg {x₁ x₂ y} : P24 x₁ x₂ y ↔ P24 (-x₂) (-x₁) y :=
 begin
-  simp_rw [P24, P3], apply and_congr; apply iff.imp,
-  { rw eq_comm, apply neg_inj.symm },
-  { rw [quot_neg_mul, quot_neg_mul, eq_comm], apply neg_inj.symm },
+  simp_rw P24, apply and_congr; apply iff.imp,
+  { rw eq_comm, exact neg_inj.symm },
+  { rw [quot_neg_mul, quot_neg_mul, eq_comm, neg_inj] },
   { rw neg_lt_iff },
-  { apply and_congr;
-    { apply forall_congr, intro i,
-      rw [lt_iff, lt_iff, ← neg_lt_neg_iff], convert iff.rfl using 2;
-      { rw [quot_add, quot_add, quot_neg_mul, quot_neg_mul], abel } } },
+  { apply and_congr; { apply forall_congr, intro, rw P3_neg } },
 end
 
-lemma P24_neg' {x₁ x₂ y : pgame} : P24 x₁ x₂ y ↔ P24 x₁ x₂ (-y) :=
+lemma P24_neg' {x₁ x₂ y} : P24 x₁ x₂ y ↔ P24 x₁ x₂ (-y) :=
 begin
-  simp_rw [P24, P3], apply and_congr; apply iff.imp,
+  simp_rw P24, apply and_congr; apply iff.imp,
   { refl },
   { rw [quot_mul_neg, quot_mul_neg, neg_inj] },
   { refl },
@@ -379,8 +392,13 @@ end
 lemma P24.L {x₁ x₂ y} (h : P24 x₁ x₂ y) (hl : x₁ < x₂) (i) : P3 x₁ x₂ (y.move_left i) y :=
 (h.2 hl).1 i
 
-lemma P24.R {x₁ x₂ y} (h : P24 x₁ x₂ y) (hl : x₁ < x₂) (j) : P3 x₁ x₂ ((-y).move_left j) (-y) :=
-(h.2 hl).2 j
+lemma P24.R {x₁ x₂ y} (h : P24 x₁ x₂ y) (hl : x₁ < x₂) (j) : P3 x₁ x₂ y (y.move_right j) :=
+by { rw P3_neg', convert (h.2 hl).2 (to_left_moves_neg j), simp }
+
+--lemma P24.eq {x₁ x₂ y} (h : P24 x₁ x₂ y) (he : ⟦x₁⟧ = ⟦x₂⟧) : ⟦x₁ * y⟧ = ⟦x₂ * y⟧ := h.1 he
+
+/-lemma P24.R {x₁ x₂ y} (h : P24 x₁ x₂ y) (hl : x₁ < x₂) (j) : P3 x₁ x₂ ((-y).move_left j) (-y) :=
+(h.2 hl).2 j-/
 
 inductive mul_args : Type (u+1)
 | P1 (x y : pgame.{u}) : mul_args
@@ -485,7 +503,7 @@ P3.comm.2 $ P24.L
 lemma P24xxy (ihxy : ihr x y) (i j) : P24 (x.move_left i) (x.move_left j) y :=
 ihxy (is_option.move_left i) (is_option.move_left j) (or.inl rfl)
 
-lemma P1'_of_equiv {x₁ x₂ x₃ y₁ y₂ y₃} (h₁₃ : ⟦x₁⟧ = ⟦x₃⟧) (h₁ : P24 x₁ x₃ y₁) (h₃ : P24 x₁ x₃ y₃)
+lemma P1'_of_eq {x₁ x₂ x₃ y₁ y₂ y₃} (h₁₃ : ⟦x₁⟧ = ⟦x₃⟧) (h₁ : P24 x₁ x₃ y₁) (h₃ : P24 x₁ x₃ y₃)
   (h3 : P3 x₁ x₂ y₂ y₃) : P1' x₁ x₂ x₃ y₁ y₂ y₃ :=
 begin
   rw [P1', lt_iff], dsimp,
@@ -521,12 +539,11 @@ lemma mul_option_lt_of_lt (i j k l) (h : x.move_left i < x.move_left j) :
 mul_option_lt_iff_P1'.2 $ P1'_of_lt (P3yyxx hy ihyx j k l) (P24.L (P24xxy ihxy i j) h k)
 
 include hx
-lemma mul_option_lt (i j k l) :
-  ⟦mul_option x y i k⟧ < -⟦mul_option x (-y) j l⟧ :=
+lemma mul_option_lt (i j k l) : ⟦mul_option x y i k⟧ < -⟦mul_option x (-y) j l⟧ :=
 begin
   obtain (h|h|h) := trichotomy (hx.move_left i) (hx.move_left j),
   { exact mul_option_lt_of_lt hy ihxy ihyx i j k l h },
-  { rw mul_option_lt_iff_P1', exact P1'_of_equiv h (P24xxy ihxy i j)
+  { rw mul_option_lt_iff_P1', exact P1'_of_eq h (P24xxy ihxy i j)
       (ihxy (is_option.move_left i) (is_option.move_left j) $
         or.inr $ is_option_neg.1 $ is_option.move_left l)
       (P3yyxx hy ihyx i k l) },
@@ -563,6 +580,9 @@ variables {x₁ x₂ x' y' : pgame.{u}} (ih' : ∀ a, ices a (mul_args.P24 x₁ 
 def ihr' (x₁ x₂ y) : Prop :=
 ∀ ⦃z⦄, (is_option z x₁ → P24 z x₂ y) ∧ (is_option z x₂ → P24 x₁ z y) ∧ (is_option z y → P24 x₁ x₂ z)
 
+def ihr'' (x₁ x₂ y : pgame) : Prop :=
+∀ ⦃z w⦄, is_option w y → (is_option z x₁ → P24 z x₂ w) ∧ (is_option z x₂ → P24 x₁ z w)
+
 include ih'
 lemma ihr'_of_ih' : ihr' x₂ x₁ y ∧ ihr' x₁ x₂ y :=
 begin
@@ -573,24 +593,40 @@ begin
   all_goals { dsimp [to_multiset, multiset.has_insert],
     refl <|> { simp only [← multiset.singleton_add], abel } },
 end
+
+lemma ihr''_of_ih' : ihr'' x₁ x₂ y := sorry
+
+lemma numeric_of_ih' : numeric (x₁ * y) ∧ numeric (x₂ * y) := sorry
 omit ih'
 
 lemma ihr'_neg : ihr' x₁ x₂ y → ihr' (-x₂) (-x₁) y :=
 begin
-  rw [ihr', ihr'],
-  refine (λ h z, ⟨_, _, _⟩),
-  { rw [is_option_neg, P24_neg], convert (@h _).2.1, simp },
-  { rw [is_option_neg, P24_neg], convert (@h _).1, simp },
-  { exact P24_neg.1 ∘ (@h _).2.2 },
+  simp_rw [ihr', is_option_neg],
+  refine (λ h z, ⟨_, _, _⟩); rw P24_neg,
+  { convert (@h _).2.1, simp },
+  { convert (@h _).1, simp },
+  { convert (@h _).2.2, simp },
 end
 
 lemma ihr'_neg' : ihr' x₁ x₂ y → ihr' x₁ x₂ (-y) :=
 begin
-  rw [ihr', ihr'],
-  refine (λ h z, ⟨_, _, _⟩),
-  exact P24_neg'.1 ∘ (@h _).1,
-  exact P24_neg'.1 ∘ (@h _).2.1,
-  rw [is_option_neg, P24_neg'], exact (@h _).2.2,
+  simp_rw [ihr', ← P24_neg', is_option_neg],
+  exact λ h z, ⟨(@h _).1, (@h _).2.1, P24_neg'.2 ∘ (@h _).2.2⟩,
+end
+
+lemma ihr''_neg : ihr'' x₁ x₂ y → ihr'' (-x₂) (-x₁) y :=
+begin
+  simp_rw [ihr'', is_option_neg],
+  refine (λ h z w h', ⟨_, _⟩); rw P24_neg,
+  { convert (@h _ _ h').2, simp },
+  { convert (@h _ _ h').1, simp },
+end
+
+lemma ihr''_neg' : ihr'' x₁ x₂ y → ihr'' x₁ x₂ (-y) :=
+begin
+  simp_rw [ihr'', is_option_neg],
+  refine (λ h z w h', ⟨_, _⟩); rw P24_neg',
+  { apply (h h').1 }, { apply (h h').2 },
 end
 
 lemma P2'_of_P24 (h₁ : P24 x₁ x₂ y') (h₂ : P3 x' x₂ y' y) (he : ⟦x₁⟧ = ⟦x₂⟧) :
@@ -618,6 +654,62 @@ end
 
 omit ih'
 
+def mul_option_lt_mul (x y) : Prop := ∀ {i j}, mul_option x y i j < x * y
+
+lemma lt_mul_of_numeric (hn : (x * y).numeric) :
+  (mul_option_lt_mul x y ∧ mul_option_lt_mul (-x) (-y)) ∧
+  mul_option_lt_mul x (-y) ∧ mul_option_lt_mul (-x) y :=
+begin
+  refine ⟨_, _⟩,
+  { have h := hn.move_left_lt, simp_rw lt_iff at h,
+    convert (left_moves_mul_iff (gt _)).1 h, rw ← quot_neg_mul_neg, refl },
+  { have h := hn.lt_move_right, simp_rw [lt_iff, right_moves_mul_iff] at h,
+    refine h.imp _ _; refine forall₂_imp _; intros a b; rw lt_neg,
+    { rw ← quot_mul_neg, exact id }, { rw ← quot_neg_mul, exact id } },
+end
+
+lemma mul_option_lt_iff_P3 {i j} :
+  ⟦mul_option x y i j⟧ < ⟦x * y⟧ ↔ P3 (x.move_left i) x (y.move_left j) y :=
+by { dsimp [mul_option, P3, lt_iff], exact sub_lt_iff_lt_add' }
+
+lemma P3_of_lt_left (h : ihr' x₁ x₂ y) (i j) (hm : mul_option x₂ y i j < x₂ * y)
+  (hl : x₁ < x₂.move_left i) : P3 x₁ x₂ (y.move_left j) y :=
+P3_trans _ (P24.L ((@h _).2.1 (is_option.move_left i)) hl _) (mul_option_lt_iff_P3.1 hm)
+
+lemma P3_of_eq_left (h : ihr' x₁ x₂ y) (h' : ihr'' x₁ x₂ y) (i j)
+  (hm : mul_option x₂ y i j < x₂ * y) (he : ⟦x₁⟧ = ⟦x₂.move_left i⟧) :
+  P3 x₁ x₂ (y.move_left j) y :=
+begin
+  rw [P3, lt_iff], dsimp,
+  rw ((h' $ is_option.move_left j).2 (is_option.move_left i)).1 he,
+  rw ((@h _).2.1 $ is_option.move_left i).1 he,
+  exact mul_option_lt_iff_P3.1 hm,
+end
+
+include ih'
+lemma P3_of_lt (hl : x₁ < x₂) :
+  (∀ j, P3 x₁ x₂ (y.move_left j) y) ∧ (∀ j, P3 x₁ x₂ ((-y).move_left j) (-y)) :=
+begin
+  have h := (ihr'_of_ih' ih').2, have h' := ihr''_of_ih' ih',
+  have hn := ihr'_neg h, have hn' := ihr''_neg h',
+  obtain ⟨hn₁, hn₂⟩ := numeric_of_ih' ih',
+  obtain ⟨⟨_, h₄⟩, _, h₃⟩ := lt_mul_of_numeric hn₁,
+  obtain ⟨⟨h₁, _⟩, h₂, _⟩ := lt_mul_of_numeric hn₂,
+  obtain (⟨i,hi⟩|⟨i,hi⟩) := lf_iff_forall_le.1 (lf_of_lt hl);
+  rw [le_iff, le_iff_lt_or_eq] at hi; obtain (hi|hi) := hi; split; intro j,
+  { exact P3_of_lt_left h i j h₁ hi },
+  { exact P3_of_lt_left (ihr'_neg' h) i j h₂ hi },
+  { exact P3_of_eq_left h h' i j h₁ hi },
+  { exact P3_of_eq_left (ihr'_neg' h) (ihr''_neg' h') i j h₂ hi },
+  all_goals { rw P3_neg },
+  { exact P3_of_lt_left hn _ j h₃ (by {convert neg_lt_neg hi, apply move_left_neg}) },
+  { exact P3_of_lt_left (ihr'_neg' hn) _ j h₄ (by {convert neg_lt_neg hi, apply move_left_neg}) },
+  { exact P3_of_eq_left hn hn' _ j h₃ (by {convert neg_inj.2 hi.symm, rw move_left_neg}) },
+  { exact P3_of_eq_left (ihr'_neg' hn) (ihr''_neg' hn') _ j h₄
+      (by {convert neg_inj.2 hi.symm, rw move_left_neg}) },
+end
+omit ih'
+
 theorem P124 (a : mul_args) : (to_multiset a).numeric → hyp a :=
 begin
   apply ices_wf.induction a,
@@ -631,7 +723,7 @@ begin
       intro he, rw ← equiv_iff, split; apply mul_le_mul_right,
       swap 5, simp_rw ices_symm',
       exacts [h, h, h₁, h₂, he, h₂, h₁, he.symm] },
-    { intro hl,  }, },
+    { intro hl, exact P3_of_lt h hl } },
 end
 
 #check P124

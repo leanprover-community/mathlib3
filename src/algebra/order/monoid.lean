@@ -117,6 +117,15 @@ class zero_le_one_class (α : Type*) [has_zero α] [has_one α] [has_le α] :=
 @[simp] lemma zero_le_one [has_le α] [has_zero α] [has_one α] [zero_le_one_class α] : (0 : α) ≤ 1 :=
 zero_le_one_class.zero_le_one
 
+lemma zero_le_two [preorder α] [has_one α] [add_zero_class α] [zero_le_one_class α]
+  [covariant_class α α (+) (≤)] : (0 : α) ≤ 2 :=
+add_nonneg zero_le_one zero_le_one
+
+lemma one_le_two [has_le α] [has_one α] [add_zero_class α] [zero_le_one_class α]
+  [covariant_class α α (swap (+)) (≤)] : (1 : α) ≤ 2 :=
+calc 1 = 0 + 1 : (zero_add 1).symm
+   ... ≤ 1 + 1 : add_le_add_right zero_le_one _
+
 /-- A linearly ordered commutative monoid with a zero element. -/
 class linear_ordered_comm_monoid_with_zero (α : Type*)
   extends linear_ordered_comm_monoid α, comm_monoid_with_zero α :=

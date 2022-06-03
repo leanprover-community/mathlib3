@@ -199,8 +199,6 @@ begin
   end
 end
 
-local attribute [instance] pi_Lp.pseudo_metric_aux
-
 lemma aux_uniformity_eq :
   𝓤 (pi_Lp p β) = @uniformity _ (Pi.uniform_space _) :=
 begin

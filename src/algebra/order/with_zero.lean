@@ -176,7 +176,7 @@ def function.injective.linear_ordered_comm_monoid_with_zero {β : Type*}
   ..hf.comm_monoid_with_zero f zero one mul npow }
 
 @[simp] lemma zero_le' : 0 ≤ a :=
-by simpa only [mul_zero, mul_one] using mul_le_mul_left' (@zero_le_one α _ _ _ _) a
+by simpa only [mul_zero, mul_one] using mul_le_mul_left' zero_le_one a
 
 @[simp] lemma not_lt_zero' : ¬a < 0 :=
 not_lt_of_le zero_le'

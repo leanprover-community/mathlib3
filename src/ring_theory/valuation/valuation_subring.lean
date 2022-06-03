@@ -396,7 +396,7 @@ begin
 end
 
 /-- `A.unit_group` agrees with the units of `A`. -/
-def unit_group_equiv : A.unit_group ≃* Aˣ :=
+def unit_group_mul_equiv : A.unit_group ≃* Aˣ :=
 { to_fun := λ x,
   ⟨⟨x, (A.valuation_le_one_iff _).1 (le_of_eq x.2)⟩,⟨x⁻¹,
   begin
@@ -417,12 +417,12 @@ def unit_group_equiv : A.unit_group ≃* Aˣ :=
   map_mul' := λ a b, by { ext, refl } }
 
 @[simp]
-lemma coe_unit_group_equiv_apply (a : A.unit_group) :
-  (A.unit_group_equiv a : K) = a := rfl
+lemma coe_unit_group_mul_equiv_apply (a : A.unit_group) :
+  (A.unit_group_mul_equiv a : K) = a := rfl
 
 @[simp]
-lemma coe_unit_group_equiv_symm_apply (a : Aˣ) :
-  (A.unit_group_equiv.symm a : K) = a := rfl
+lemma coe_unit_group_mul_equiv_symm_apply (a : Aˣ) :
+  (A.unit_group_mul_equiv.symm a : K) = a := rfl
 
 def unit_group_ordered_embedding : valuation_subring K ↪o subgroup Kˣ :=
 { to_fun := λ A, A.unit_group,
@@ -439,10 +439,10 @@ def unit_group_ordered_embedding : valuation_subring K ↪o subgroup Kˣ :=
       cases hx,
       { have := h (show (units.mk0 _ h_2) ∈ A.unit_group, from A.valuation.map_one_add_of_lt hx),
         simpa using B.add_mem _ _
-          (show 1 + x ∈ B, from set_like.coe_mem ((B.unit_group_equiv ⟨_, this⟩) : B))
+          (show 1 + x ∈ B, from set_like.coe_mem ((B.unit_group_mul_equiv ⟨_, this⟩) : B))
           (B.neg_mem _ B.one_mem) },
       { have := h (show (units.mk0 x h_1) ∈ A.unit_group, from hx),
-        refine set_like.coe_mem ((B.unit_group_equiv ⟨_, this⟩) : B) } },
+        refine set_like.coe_mem ((B.unit_group_mul_equiv ⟨_, this⟩) : B) } },
     { rintros h x (hx : A.valuation x = 1),
       apply_fun A.map_of_le B h at hx,
       simpa using hx }

@@ -293,7 +293,7 @@ variables {l k}
 variable [order_topology β]
 
 lemma superpolynomial_decay_iff_is_O (hk : tendsto k l at_top) :
-  superpolynomial_decay l k f ↔ ∀ (z : ℤ), is_O f (λ (a : α), (k a) ^ z) l :=
+  superpolynomial_decay l k f ↔ ∀ (z : ℤ), f =O[l] (λ (a : α), (k a) ^ z) :=
 begin
   refine (superpolynomial_decay_iff_zpow_tendsto_zero f hk).trans _,
   have hk0 : ∀ᶠ x in l, k x ≠ 0 := hk.eventually_ne_at_top 0,
@@ -302,8 +302,8 @@ begin
     have : (λ (a : α), k a ^ z)⁻¹ = (λ (a : α), k a ^ (- z)) := funext (λ x, by simp),
     rw [div_eq_mul_inv, mul_comm f, this],
     exact h (-z) },
-  { suffices : is_O (λ (a : α), k a ^ z * f a) (λ (a : α), (k a)⁻¹) l,
-    from is_O.trans_tendsto this hk.inv_tendsto_at_top,
+  { suffices : (λ (a : α), k a ^ z * f a) =O[l] (λ (a : α), (k a)⁻¹),
+      from is_O.trans_tendsto this hk.inv_tendsto_at_top,
     refine ((is_O_refl (λ a, (k a) ^ z) l).mul (h (- (z + 1)))).trans
       (is_O.of_bound 1 $ hk0.mono (λ a ha0, _)),
     simp only [one_mul, neg_add z 1, zpow_add₀ ha0, ← mul_assoc, zpow_neg,
@@ -311,19 +311,17 @@ begin
 end
 
 lemma superpolynomial_decay_iff_is_o (hk : tendsto k l at_top) :
-  superpolynomial_decay l k f ↔ ∀ (z : ℤ), is_o f (λ (a : α), (k a) ^ z) l :=
+  superpolynomial_decay l k f ↔ ∀ (z : ℤ), f =o[l] (λ (a : α), (k a) ^ z) :=
 begin
   refine ⟨λ h z, _, λ h, (superpolynomial_decay_iff_is_O f hk).2 (λ z, (h z).is_O)⟩,
   have hk0 : ∀ᶠ x in l, k x ≠ 0 := hk.eventually_ne_at_top 0,
-  have : is_o (λ (x : α), (1 : β)) k l := is_o_of_tendsto'
+  have : (λ (x : α), (1 : β)) =o[l] k := is_o_of_tendsto'
     (hk0.mono (λ x hkx hkx', absurd hkx' hkx)) (by simpa using hk.inv_tendsto_at_top),
-  have : is_o f (λ (x : α), k x * k x ^ (z - 1)) l,
-  by simpa using this.mul_is_O (((superpolynomial_decay_iff_is_O f hk).1 h) $ z - 1),
+  have : f =o[l] (λ (x : α), k x * k x ^ (z - 1)),
+    by simpa using this.mul_is_O (((superpolynomial_decay_iff_is_O f hk).1 h) $ z - 1),
   refine this.trans_is_O (is_O.of_bound 1 (hk0.mono $ λ x hkx, le_of_eq _)),
   rw [one_mul, zpow_sub_one₀ hkx, mul_comm (k x), mul_assoc, inv_mul_cancel hkx, mul_one],
 end
-
-variable {f}
 
 end normed_linear_ordered_field
 

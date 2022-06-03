@@ -107,9 +107,9 @@ theorem le_iff_forall_lt {x y : pgame} (ox : x.numeric) (oy : y.numeric) :
   x ≤ y ↔ (∀ i, x.move_left i < y) ∧ ∀ j, x < y.move_right j :=
 begin
   rw le_iff_forall_lf,
-  convert iff.rfl;
-  refine propext (forall_congr $ λ i, (lf_iff_lt _ _).symm);
-  apply_rules [numeric.move_left, numeric.move_right]
+  refine and_congr _ _;
+    refine forall_congr (λ i, (lf_iff_lt _ _));
+    apply_rules [numeric.move_left, numeric.move_right]
 end
 
 theorem le_of_forall_lt {x y : pgame} (ox : x.numeric) (oy : y.numeric) :
@@ -131,11 +131,11 @@ theorem lt_def {x y : pgame} (ox : x.numeric) (oy : y.numeric) : x < y ↔
    ∃ j, (∀ i, (x.move_right j).move_left i < y) ∧ ∀ j', x.move_right j < y.move_right j' :=
 begin
   rw [←lf_iff_lt ox oy, lf_def],
-  convert iff.rfl;
-  ext;
-  convert iff.rfl;
-  refine propext (forall_congr $ λ i, lf_iff_lt _ _);
-  apply_rules [numeric.move_left, numeric.move_right]
+  refine or_congr _ _;
+    refine exists_congr (λ x_1, _);
+    refine and_congr _ _;
+    refine (forall_congr $ λ i, lf_iff_lt _ _);
+    apply_rules [numeric.move_left, numeric.move_right]
 end
 
 theorem not_fuzzy {x y : pgame} (ox : numeric x) (oy : numeric y) : ¬ fuzzy x y :=

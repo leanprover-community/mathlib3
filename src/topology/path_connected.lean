@@ -221,9 +221,9 @@ path on `[0, 1/2]` and the second one on `[1/2, 1]`. -/
 
 lemma trans_apply (γ : path x y) (γ' : path y z) (t : I) : (γ.trans γ') t =
   if h : (t : ℝ) ≤ 1/2 then
-    γ ⟨2 * t, (mul_pos_mem_iff zero_lt_two).2 ⟨t.2.1, h⟩⟩
+    γ ⟨2 * t, (@set.Icc.mul_pos_mem_iff ℝ _ 2 _ zero_lt_two).2 ⟨t.2.1, h⟩⟩
   else
-    γ' ⟨2 * t - 1, two_mul_sub_one_mem_iff.2 ⟨(not_le.1 h).le, t.2.2⟩⟩ :=
+    γ' ⟨2 * t - 1, set.Icc.two_mul_sub_one_mem_iff.2 ⟨(not_le.1 h).le, t.2.2⟩⟩ :=
 show ite _ _ _ = _,
 by split_ifs; rw extend_extends
 
@@ -234,14 +234,14 @@ begin
   simp only [trans_apply, ← one_div, symm_apply, not_le, comp_app],
   split_ifs with h h₁ h₂ h₃ h₄; rw [coe_symm_eq] at h,
   { have ht : (t : ℝ) = 1/2,
-    { linarith [unit_interval.nonneg t, unit_interval.le_one t] },
+    { linarith [set.Icc.nonneg t, set.Icc.le_one t] },
     norm_num [ht] },
   { refine congr_arg _ (subtype.ext _),
     norm_num [sub_sub_eq_add_sub, mul_sub] },
   { refine congr_arg _ (subtype.ext _),
     have h : 2 - 2 * (t : ℝ) - 1 = 1 - 2 * t, by linarith,
     norm_num [mul_sub, h] },
-  { exfalso, linarith [unit_interval.nonneg t, unit_interval.le_one t] }
+  { exfalso, linarith [set.Icc.nonneg t, set.Icc.le_one t] }
 end
 
 @[simp] lemma refl_trans_refl {X : Type*} [topological_space X] {a : X} :

@@ -5,6 +5,7 @@ Authors: Patrick Stevens, Bolton Bailey
 -/
 import data.nat.multiplicity
 import data.nat.choose.central
+import data.nat.choose.factorization
 import number_theory.padics.padic_norm
 import data.complex.exponential_bounds
 import number_theory.primorial
@@ -72,47 +73,12 @@ section nat
 
 open nat
 
--- /-- The multiplicity of p in the nth central binomial coefficient-/
--- private def α (n p : ℕ) : ℕ :=
--- padic_val_nat p (central_binom n)
-
 -- TODO very similar to padic_val_nat_central_binom_le in central.lean,
 -- we probably ought to move this there
-lemma pow_padic_val_nat_central_binom_le_two_mul {p n : ℕ} (hp : p.prime) (n_pos : 0 < n) :
-  p ^ (padic_val_nat p (central_binom n)) ≤ 2 * n :=
-trans (pow_le_pow (le_of_lt (hp).one_lt) (padic_val_nat_central_binom_le (hp)))
-  (pow_log_le_self (hp).one_lt (by linarith))
-
--- No analogy in in central.lean, TODO can we move this there?
--- TODO generalize to any binomial coefficient, not just central ones, then prove this from that
--- more general theorem
-/--
-If a prime `p` has positive multiplicity i n the `n`th central binomial coefficient,
-`p` is no more than `2 * n`
--/
-lemma multiplicity_implies_small (p : ℕ) (hp : p.prime) (n : ℕ)
-  (h_pos : 0 < padic_val_nat p (central_binom n)) : p ≤ 2 * n :=
-begin
-  -- unfold α at h_pos,
-  rw central_binom_eq_two_mul_choose at h_pos,
-  rw @padic_val_nat_def p ⟨hp⟩ ((2 * n).choose n) (nat.pos_of_ne_zero (central_binom_ne_zero n)) at
-    h_pos,
-  simp only [prime.multiplicity_choose hp (le_mul_of_pos_left zero_lt_two)
-              (lt_add_one (p.log (2 * n)))]
-    at h_pos,
-  have r : 2 * n - n = n,
-  { calc 2 * n - n = n + n - n : congr_arg (flip (has_sub.sub) n) (two_mul n)
-      ... = n : nat.add_sub_cancel n n, },
-  simp only [r, ←two_mul, gt_iff_lt, enat.get_coe', finset.filter_congr_decidable]
-    at h_pos,
-  rw finset.card_pos at h_pos,
-  cases h_pos with m hm,
-  simp only [finset.mem_Ico, finset.mem_filter] at hm,
-  calc p = p ^ 1 : (pow_one _).symm
-    ... ≤ p ^ m : pow_le_pow_of_le_right (trans zero_lt_one hp.one_lt) hm.left.left
-    ... ≤ 2 * (n % p ^ m) : hm.right
-    ... ≤ 2 * n : nat.mul_le_mul_left _ (mod_le n _),
-end
+lemma pow_factorization_central_binom_le_two_mul {p n : ℕ} (hp : p.prime) (n_pos : 0 < n) :
+  p ^ ((central_binom n).factorization p) ≤ 2 * n :=
+trans (pow_le_pow (le_of_lt hp.one_lt) factorization_choose_le)
+  (pow_log_le_self hp.one_lt (by linarith))
 
 -- < works here too, but this is more golfed and either is loose anyway
 lemma two_n_div_3_le_central_binom (n : ℕ) : 2 * n / 3 ≤ central_binom n :=
@@ -124,9 +90,10 @@ calc 2 * (n) / 3 ≤ 2 * (n)          : nat.div_le_self (2 * n) 3
 -- TODO aesthetically, I think this theorem would be better if the range was 2 * n + 1
 lemma central_binom_factorization (n : ℕ) :
   ∏ p in finset.filter nat.prime (finset.range (central_binom n + 1)),
-    p ^ (padic_val_nat p (central_binom n))
+    p ^ ((central_binom n).factorization p)
   = central_binom n :=
-  prod_pow_prime_padic_val_nat _ (central_binom_ne_zero n) _ (lt_add_one _)
+  sorry
+  --prod_pow_prime_padic_val_nat _ (central_binom_ne_zero n) _ (lt_add_one _)
 
 lemma sq_prime_is_small {p n : ℕ} (hp : nat.prime p) (n_big : 2 < n) (small : p ≤ sqrt (2 * n)) :
   p ^ 2 < 2 * n :=
@@ -407,10 +374,10 @@ factorization of the central binomial coefficent only has factors at most `2 * n
 lemma central_binom_factorization_small (n : nat) (n_large : 2 < n)
   (no_prime: ¬∃ (p : ℕ), p.prime ∧ n < p ∧ p ≤ 2 * n) :
   ∏ p in (finset.range (2 * n / 3 + 1)).filter nat.prime,
-    p ^ (padic_val_nat p (nat.central_binom n))
+    p ^ ((nat.central_binom n).factorization p)
   =
-  ∏ p in (finset.range ((nat.central_binom n + 1))).filter nat.prime,
-    p ^ (padic_val_nat p (nat.central_binom n)) :=
+  ∏ p in (finset.range (nat.central_binom n + 1)).filter nat.prime,
+    p ^ ((nat.central_binom n).factorization p) :=
 begin
   apply finset.prod_subset,
   { apply finset.filter_subset_filter,
@@ -423,13 +390,11 @@ begin
   simp only [hx.right, and_true, not_lt] at h2x,
   by_contradiction,
   have x_le_two_mul_n : x ≤ 2 * n,
-  { apply (@multiplicity_implies_small x hx.right n),
-    -- unfold α,
+  { apply (@nat.prime_le_two_mul_of_factorization_central_binom_pos x n),
     by_contradiction h1,
     rw [not_lt, le_zero_iff] at h1,
     rw h1 at h,
-    rw pow_zero at h,
-    simp only [eq_self_iff_true, not_true] at h,
+    simp at h,
     exact h, },
   apply no_prime,
   use x,
@@ -438,13 +403,12 @@ begin
   { split,
     { by_contradiction neg_n_le_x,
       simp only [not_lt] at neg_n_le_x,
-      rw [nat.add_one, nat.succ_le_iff, nat.div_lt_iff_lt_mul', mul_comm x] at h2x,
-      have claim := @nat.padic_val_nat_central_binom_of_large_eq_zero _ n hx.right (by linarith)
-                      (by linarith) h2x,
-      rw [claim, pow_zero] at h,
-      simp only [eq_self_iff_true, not_true] at h,
-      exact h,
-      dec_trivial, },
+      rw [nat.add_one, nat.succ_le_iff, nat.div_lt_iff_lt_mul' three_pos, mul_comm x] at h2x,
+      have x_non_div :=
+        nat.factorization_central_binom_of_two_mul_self_lt_three_mul_prime n_large neg_n_le_x h2x,
+      rw [x_non_div, pow_zero] at h,
+      simp at h,
+      exact h, },
     exact x_le_two_mul_n, },
 end
 
@@ -464,43 +428,43 @@ lemma bertrand_central_binom_le (n : ℕ) (n_big : 2 < n)
 calc
 nat.central_binom n
     = (∏ p in (finset.range (2 * n / 3 + 1)).filter nat.prime,
-          p ^ (padic_val_nat p (nat.central_binom n))) :
-          by rw [(central_binom_factorization_small n (by linarith) no_prime),
-                  central_binom_factorization]
+          p ^ ((nat.central_binom n).factorization p)) :
+          by rw [central_binom_factorization_small n (by linarith) no_prime,
+                 central_binom_factorization]
 ... = (∏ p in (finset.range (2 * n / 3 + 1)).filter nat.prime,
           if p ≤ nat.sqrt (2 * n)
-          then p ^ (padic_val_nat p (nat.central_binom n))
-          else p ^ (padic_val_nat p (nat.central_binom n))) : by simp only [if_t_t]
+          then p ^ ((nat.central_binom n).factorization p)
+          else p ^ ((nat.central_binom n).factorization p)) : by simp only [if_t_t]
 ... = (∏ p in ((finset.range (2 * n / 3 + 1)).filter nat.prime).filter (≤ nat.sqrt (2 * n)),
-          p ^ (padic_val_nat p (nat.central_binom n)))
+          p ^ ((nat.central_binom n).factorization p))
         *
       (∏ p in ((finset.range (2 * n / 3 + 1)).filter nat.prime).filter (λ p, ¬p ≤ nat.sqrt (2 * n)),
-          p ^ (padic_val_nat p (nat.central_binom n))) : finset.prod_ite _ _
+          p ^ ((nat.central_binom n).factorization p)) : finset.prod_ite _ _
 ... = (∏ p in ((finset.range (2 * n / 3 + 1)).filter nat.prime).filter (≤ nat.sqrt (2 * n)),
-          p ^ (padic_val_nat p (nat.central_binom n)))
+          p ^ ((nat.central_binom n).factorization p))
         *
       (∏ p in ((finset.range (2 * n / 3 + 1)).filter nat.prime).filter (> nat.sqrt (2 * n)),
-          p ^ (padic_val_nat p (nat.central_binom n))) :
+          p ^ ((nat.central_binom n).factorization p)) :
         by simp only [not_le, finset.filter_congr_decidable]
 ... ≤ (∏ p in ((finset.range (2 * n / 3 + 1)).filter nat.prime).filter (≤ nat.sqrt (2 * n)), 2 * n)
         *
       (∏ p in ((finset.range (2 * n / 3 + 1)).filter nat.prime).filter (> nat.sqrt (2 * n)),
-          p ^ (padic_val_nat p (nat.central_binom n))) :
+          p ^ ((nat.central_binom n).factorization p)) :
         begin
           refine (nat.mul_le_mul_right _ _),
           refine finset.prod_le_prod'' _,
           intros i hyp,
           simp only [finset.mem_filter, finset.mem_range] at hyp,
-          exact pow_padic_val_nat_central_binom_le_two_mul (hyp.1.2) (by linarith),
+          exact pow_factorization_central_binom_le_two_mul (hyp.1.2) (by linarith),
         end
 ... = (2 * n) ^ (((finset.range (2 * n / 3 + 1)).filter nat.prime).filter (≤ nat.sqrt (2 * n))).card
       *
       (∏ p in ((finset.range (2 * n / 3 + 1)).filter nat.prime).filter (> nat.sqrt (2 * n)),
-          p ^ (padic_val_nat p (nat.central_binom n))) : by simp only [finset.prod_const]
+          p ^ ((nat.central_binom n).factorization p)) : by simp only [finset.prod_const]
 ... = (2 * n) ^ (((finset.range (2 * n / 3 + 1)).filter nat.prime).filter (λ p, p ^ 2 < 2 * n)).card
       *
       (∏ p in ((finset.range (2 * n / 3 + 1)).filter nat.prime).filter (> nat.sqrt (2 * n)),
-          p ^ (padic_val_nat p (nat.central_binom n))) :
+          p ^ ((nat.central_binom n).factorization p)) :
         begin
           congr' 3,
           ext1,
@@ -513,7 +477,7 @@ nat.central_binom n
 ... ≤ (2 * n) ^ (nat.sqrt (2 * n))
         *
       (∏ p in ((finset.range (2 * n / 3 + 1)).filter nat.prime).filter (> nat.sqrt (2 * n)),
-          p ^ (padic_val_nat p (nat.central_binom n))) :
+          p ^ ((nat.central_binom n).factorization p)) :
         begin
           refine (nat.mul_le_mul_right _ _),
           refine pow_le_pow (by linarith) _,
@@ -548,7 +512,7 @@ nat.central_binom n
               rw i_zero at i_facts,
               exfalso,
               exact nat.not_prime_zero i_facts.2, }, },
-          { apply @nat.padic_val_nat_central_binom_of_large_le_one i n i_facts.2,
+          { apply nat.factorization_choose_le_one,
             exact (@nat.sqrt_lt' (2 * n) i).1 sqrt_two_n_lt_i, }, },
       end
 ... ≤ (2 * n) ^ (nat.sqrt (2 * n))

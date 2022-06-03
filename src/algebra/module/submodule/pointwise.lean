@@ -138,6 +138,7 @@ instance pointwise_add_comm_monoid : add_comm_monoid (submodule R M) :=
 
 instance : canonically_ordered_add_monoid (submodule R M) :=
 { zero := ⊥,
+  bot := ⊥,
   add := (⊔),
   add_le_add_left := λ a b, sup_le_sup_left,
   le_iff_exists_add := λ a b, le_iff_exists_sup,

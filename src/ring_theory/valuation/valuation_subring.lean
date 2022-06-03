@@ -424,6 +424,7 @@ lemma coe_unit_group_mul_equiv_apply (a : A.unit_group) :
 lemma coe_unit_group_mul_equiv_symm_apply (a : Aˣ) :
   (A.unit_group_mul_equiv.symm a : K) = a := rfl
 
+/-- The map on valuation subrings to their unit groups is an order embedding. -/
 def unit_group_order_embedding : valuation_subring K ↪o subgroup Kˣ :=
 { to_fun := λ A, A.unit_group,
   inj' := λ A B h, by rwa eq_iff_unit_group,

@@ -8,7 +8,7 @@ import linear_algebra.quadratic_form.basic
 
 /-! # Positive Definite Matrices
 
-This file defines positive definite matrices and connects this notion to postive definiteness of
+This file defines positive definite matrices and connects this notion to positive definiteness of
 quadratic forms.
 
 ## Main definition

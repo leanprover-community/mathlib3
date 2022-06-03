@@ -9,15 +9,25 @@ import tactic.interactive
 
 namespace tactic
 
+/--
+For each element of `list congr_arg_kind` that is `eq`, add a pair `(g, pat)` to the
+final list.  Otherwise, discard an appropriate number of initial terms from each list
+(possibly none from the first) and repeat.
+
+`pat` is the given pattern-piece at the appropriate location, extracted from the last `list expr`.
+It appears to be the list of arguments of a function application.
+
+`g` is possibly the proof of an equality?  It is extracted from the first `list expr`.
+-/
 private meta def extract_subgoals : list expr → list congr_arg_kind → list expr →
   tactic (list (expr × expr))
-| (_ :: _ :: g :: prf_args) (congr_arg_kind.eq :: kinds) (pat :: pat_args) :=
+| (_ :: _ :: g :: prf_args) (congr_arg_kind.eq :: kinds)             (pat :: pat_args) :=
   (λ rest, (g, pat) :: rest) <$> extract_subgoals prf_args kinds pat_args
-| (_ :: prf_args) (congr_arg_kind.fixed :: kinds) (_ :: pat_args) :=
+| (_ :: prf_args)           (congr_arg_kind.fixed :: kinds)          (_ :: pat_args) :=
   extract_subgoals prf_args kinds pat_args
-| prf_args (congr_arg_kind.fixed_no_param :: kinds) (_ :: pat_args) :=
+| prf_args                  (congr_arg_kind.fixed_no_param :: kinds) (_ :: pat_args) :=
   extract_subgoals prf_args kinds pat_args
-| (_ :: _ :: prf_args) (congr_arg_kind.cast :: kinds) (_ :: pat_args) :=
+| (_ :: _ :: prf_args)      (congr_arg_kind.cast :: kinds)           (_ :: pat_args) :=
   extract_subgoals prf_args kinds pat_args
 | _ _ [] := pure []
 | _ _ _ := fail "unsupported congr lemma"
@@ -76,6 +86,37 @@ end tactic
 namespace tactic.interactive
 open tactic interactive
 setup_tactic_parser
+
+/--
+`congrm e` assumes that the goal is of the form `lhs = rhs` or `lhs ↔ rhs`.
+`congrm e` scans `e, lhs, rhs` in parallel.
+Assuming that the three expressions are successions of function applications, `congrm e`
+uses `e` as a pattern to decide what to do in corresponding places of `lhs` and `rhs`.
+
+If `e` has a meta-variable in a location, then the tactic produces a side-goal with
+the equality of the corresponding locations in `lhs, rhs`.
+
+If `e` is a function application, it applies the automatically generateed congruence lemma
+(like `tactic.congr`).
+
+If `e` is a lambda abstraction, it applies `funext`.  If `e` is a pi, it applies `pi_congr`.
+
+Subexpressions that are defeq or whose type is a subsingleton are skipped.
+
+```
+example {a b : ℕ} (h : a = b) : (λ y : ℕ, ∀ z, a + a = z) = (λ x, ∀ z, b + a = z) :=
+begin
+  congrm λ x, ∀ w, _ + a = w,
+  -- produces one goal for the underscore: ⊢ a = b
+  exact h,
+end
+```
+-/
+meta def congrm (arg : parse texpr) : tactic unit := do
+try $ applyc ``_root_.eq.to_iff,
+`(@eq %%ty _ _) ← target | fail "congrm: goal must be an equality or iff",
+ta ← to_expr ``((%%arg : %%ty)) tt ff,
+equate_with_pattern ta
 
 /--  Scans three `expr`s `e, lhs, rhs` in parallel.
 Currently, `equate_with_pattern_1` has three behaviours at each location:
@@ -146,36 +187,5 @@ do ta ← to_expr arg tt ff,
   equate_with_pattern_1 ta lhs rhs,
   try refl,
   get_goals >>= (λ g, set_goals g.reverse)  -- reverse the order of the goals
-
-/--
-`congrm e` assumes that the goal is of the form `lhs = rhs` or `lhs ↔ rhs`.
-`congrm e` scans `e, lhs, rhs` in parallel.
-Assuming that the three expressions are successions of function applications, `congrm e`
-uses `e` as a pattern to decide what to do in corresponding places of `lhs` and `rhs`.
-
-If `e` has a meta-variable in a location, then the tactic produces a side-goal with
-the equality of the corresponding locations in `lhs, rhs`.
-
-If `e` is a function application, it applies the automatically generateed congruence lemma
-(like `tactic.congr`).
-
-If `e` is a lambda abstraction, it applies `funext`.  If `e` is a pi, it applies `pi_congr`.
-
-Subexpressions that are defeq or whose type is a subsingleton are skipped.
-
-```
-example {a b : ℕ} (h : a = b) : (λ y : ℕ, ∀ z, a + a = z) = (λ x, ∀ z, b + a = z) :=
-begin
-  congrm λ x, ∀ w, _ + a = w,
-  -- produces one goal for the underscore: ⊢ a = b
-  exact h,
-end
-```
--/
-meta def congrm (arg : parse texpr) : tactic unit := do
-try $ applyc ``_root_.eq.to_iff,
-`(@eq %%ty _ _) ← target | fail "congrm: goal must be an equality or iff",
-ta ← to_expr ``((%%arg : %%ty)) tt ff,
-equate_with_pattern ta
 
 end tactic.interactive

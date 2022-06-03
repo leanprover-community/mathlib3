@@ -248,8 +248,7 @@ instance [has_mul α] : mul_zero_class (with_zero α) :=
   (a : with_zero α) : a * 0 = 0 := by cases a; refl
 
 instance [has_mul α] : no_zero_divisors (with_zero α) :=
-⟨λ a b h,
-  by { cases a, { exact or.inl rfl }, { cases b, exacts [or.inr rfl, option.no_confusion h] } } ⟩
+⟨by { rintro (a|a) (b|b) h, exacts [or.inl rfl, or.inl rfl, or.inr rfl, option.no_confusion h] }⟩
 
 instance [semigroup α] : semigroup_with_zero (with_zero α) :=
 { mul_assoc := λ a b c, match a, b, c with

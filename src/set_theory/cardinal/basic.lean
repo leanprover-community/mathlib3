@@ -512,7 +512,7 @@ theorem le_min {ι I} {f : ι → cardinal} {a} : a ≤ cardinal.min I f ↔ ∀
 ⟨λ h i, le_trans h (min_le _ _),
  λ h, let ⟨i, e⟩ := min_eq I f in e.symm ▸ h i⟩
 
-protected theorem wf : @well_founded cardinal.{u} (<) :=
+protected theorem lt_wf : @well_founded cardinal.{u} (<) :=
 ⟨λ a, classical.by_contradiction $ λ h,
   let ι := {c :cardinal // ¬ acc (<) c},
       f : ι → cardinal := subtype.val,
@@ -521,13 +521,13 @@ protected theorem wf : @well_founded cardinal.{u} (<) :=
       classical.by_contradiction $ λ hj, h' $
       by have := min_le f ⟨j, hj⟩; rwa hi at this))⟩
 
-instance has_wf : @has_well_founded cardinal.{u} := ⟨(<), cardinal.wf⟩
+instance has_wf : @has_well_founded cardinal.{u} := ⟨(<), cardinal.lt_wf⟩
 
 instance : conditionally_complete_linear_order_bot cardinal :=
-cardinal.wf.conditionally_complete_linear_order_with_bot 0 $ le_antisymm (cardinal.zero_le _) $
-  not_lt.1 (cardinal.wf.not_lt_min set.univ ⟨0, mem_univ _⟩ (mem_univ 0))
+cardinal.lt_wf.conditionally_complete_linear_order_with_bot 0 $ le_antisymm (cardinal.zero_le _) $
+  not_lt.1 (cardinal.lt_wf.not_lt_min set.univ ⟨0, mem_univ _⟩ (mem_univ 0))
 
-instance wo : @is_well_order cardinal.{u} (<) := ⟨cardinal.wf⟩
+instance wo : @is_well_order cardinal.{u} (<) := ⟨cardinal.lt_wf⟩
 
 /-- Note that the successor of `c` is not the same as `c + 1` except in the case of finite `c`. -/
 instance : succ_order cardinal :=
@@ -906,7 +906,7 @@ theorem lt_omega {c : cardinal.{u}} : c < ω ↔ ∃ n : ℕ, c = n :=
 ⟨λ h, begin
   rcases lt_lift_iff.1 h with ⟨c, rfl, h'⟩,
   rcases le_mk_iff_exists_set.1 h'.1 with ⟨S, rfl⟩,
-  suffices : finite S,
+  suffices : S.finite,
   { lift S to finset ℕ using this,
     simp },
   contrapose! h',
@@ -931,7 +931,7 @@ end, λ ⟨_⟩, by exactI ⟨_, mk_fintype _⟩⟩
 theorem lt_omega_of_fintype (α : Type u) [fintype α] : #α < ω :=
 lt_omega_iff_fintype.2 ⟨infer_instance⟩
 
-theorem lt_omega_iff_finite {α} {S : set α} : #S < ω ↔ finite S :=
+theorem lt_omega_iff_finite {α} {S : set α} : #S < ω ↔ S.finite :=
 lt_omega_iff_fintype.trans finite_def.symm
 
 instance can_lift_cardinal_nat : can_lift cardinal ℕ :=
@@ -1029,6 +1029,9 @@ begin
   { rintro ⟨f'⟩, cases embedding.trans f' equiv.ulift.to_embedding with f hf, exact ⟨f, hf⟩ },
   { rintro ⟨f, hf⟩, exact ⟨embedding.trans ⟨f, hf⟩ equiv.ulift.symm.to_embedding⟩ }
 end
+
+@[simp] lemma mk_subtype_le_omega (p : α → Prop) : #{x // p x} ≤ ω ↔ countable {x | p x} :=
+mk_set_le_omega _
 
 @[simp] lemma omega_add_omega : ω + ω = ω := mk_denumerable _
 

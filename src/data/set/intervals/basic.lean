@@ -155,6 +155,18 @@ nonempty.to_subtype nonempty_Ioi
 instance nonempty_Iio_subtype [no_min_order α] : nonempty (Iio a) :=
 nonempty.to_subtype nonempty_Iio
 
+instance [no_min_order α] : no_min_order (Iio a) :=
+⟨λ a, let ⟨b, hb⟩ := exists_lt (a : α) in ⟨⟨b, lt_trans hb a.2⟩, hb⟩⟩
+
+instance [no_min_order α] : no_min_order (Iic a) :=
+⟨λ a, let ⟨b, hb⟩ := exists_lt (a : α) in ⟨⟨b, hb.le.trans a.2⟩, hb⟩⟩
+
+instance [no_max_order α] : no_max_order (Ioi a) :=
+order_dual.no_max_order (Iio (to_dual a))
+
+instance [no_max_order α] : no_max_order (Ici a) :=
+order_dual.no_max_order (Iic (to_dual a))
+
 @[simp] lemma Icc_eq_empty (h : ¬a ≤ b) : Icc a b = ∅ :=
 eq_empty_iff_forall_not_mem.2 $ λ x ⟨ha, hb⟩, h (ha.trans hb)
 

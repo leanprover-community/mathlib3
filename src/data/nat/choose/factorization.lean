@@ -12,7 +12,7 @@ import data.nat.multiplicity
 # Factorization of Binomial Coefficients
 
 This file contains a few results on the arity of primes within certain size
-bounds in binomial coeffcicients. These include:
+bounds in binomial coefficients. These include:
 
 * `nat.factorization_choose_le`: a logarithmic upper bound on the multiplicity of a prime in
   a binomial coefficient.

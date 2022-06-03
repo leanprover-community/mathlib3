@@ -334,6 +334,8 @@ section is_alg_closed
 
 variables (F K) (E :Type*) [field E] [is_alg_closed E] [algebra K E] [algebra F E] [is_scalar_tower F K E]
 
+/-- If `E/K/F` is a tower of fields with `K/F` normal and E is algebraically closed then
+  we have an equivalence (K →ₐ[F] E) ≃ (K ≃ₐ[F] K). -/
 def is_alg_closed.alg_hom_equiv_aut  [normal F K] : (K →ₐ[F] E) ≃ (K ≃ₐ[F] K) :=
 by refine equiv.mk (λ (σ : K →ₐ[F] E), (alg_hom.restrict_normal' σ K))
   (λ σ, (is_scalar_tower.to_alg_hom F K E).comp σ.to_alg_hom)

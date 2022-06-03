@@ -14,13 +14,30 @@ by { ext, fin_cases x; refl }
 
 /- A finite indexing of size two or three is nonzero iff all but one element being
 mapped to 0 implies the other element is not mapped to zero. -/
-@[simp]
+
 lemma fin_nonzero_iff₂ {a b : K} : ![a, b] ≠ 0 ↔ (a = 0 → b ≠ 0) :=
 by { simp }
 
-@[simp]
 lemma fin_nonzero_iff₃ {a b c : K} : ![a, b, c] ≠ 0 ↔ (a = 0 → b = 0 → c ≠ 0) :=
 by { simp }
+
+/- The order of the values taken by a nonzero indexing of size three does not alter the fact that
+  it is nonzero. -/
+lemma index_cylce₃ {a b c : K} : ![a, b, c] ≠ 0 ↔ ![c, a, b] ≠ 0 :=
+begin
+  simp_rw fin_nonzero_iff₃,
+  split; intro h,
+  { intros hc ha hb, specialize h ha hb, exact h hc },
+  { intros ha hb hc, exact h hc ha hb },
+end
+
+lemma index_12_trans₃ {a b c : K} : ![a, b, c] ≠ 0 ↔ ![b, a, c] ≠ 0 :=
+begin
+  simp_rw fin_nonzero_iff₃,
+  split; intro h,
+  { intros hb ha hc, exact h ha hb hc },
+  { intros ha hb hc, exact h hb ha hc },
+end
 
 /- If an indexing of size 3 is nonzero and the first term is zero, then
   the indexing obtained from the last two elements is nonzero. -/
@@ -187,13 +204,11 @@ lemma linear_independent_iff_mk_rep {ι : Type*} (f : ι → V) (hf : ∀ i : ι
   linear_independent K f ↔ linear_independent K (λ i, (mk K (f i) (hf i)).rep) :=
 begin
   choose a ha using λ (i : ι), exists_smul_eq_mk_rep K (f i) (hf i),
-  split,
-  { intro hf,
-    convert linear_independent.units_smul hf a,
+  split; intro hf,
+  { convert linear_independent.units_smul hf a,
     ext,
     rwa [pi.smul_apply', ha x] },
-  { intro hf,
-    convert linear_independent.units_smul hf (λ i, (a i)⁻¹),
+  { convert linear_independent.units_smul hf (λ i, (a i)⁻¹),
     ext,
     specialize ha x,
     apply_fun (λ (v : V), (a x)⁻¹ • v) at ha,
@@ -221,6 +236,31 @@ begin
   ext, fin_cases x; simp
 end
 
+/- The order of two points does not change whether or not they are independent. -/
+lemma dependent_cycle₂ {u v : ℙ K V} : dependent ![u, v] ↔ dependent ![v, u] :=
+  by { simp_rw pair_dependent_iff_eq, exact comm}
+
+/- Three points are dependent in projective space iff they are dependent when their order
+  is cycled. -/
+lemma dependent_cycle₃ {u v w : ℙ K V} : dependent ![u, v, w] ↔ dependent ![w, u , v] :=
+begin
+  simp_rw dependent_iff_reps_dependent₃, split,
+  { rintros ⟨a, b, c, ⟨hnt, hs⟩⟩,
+    refine ⟨c, a, b, ⟨by { rwa index_cylce₃ at hnt }, by { abel at hs ⊢, exact hs }⟩⟩ },
+  { rintros ⟨a, b, c, ⟨hnt, hs⟩⟩,
+    refine ⟨b, c, a, ⟨by { rwa ← index_cylce₃ at hnt }, by { abel at hs ⊢, exact hs }⟩⟩ },
+end
+
+/- Three points are dependent in projective space iff they are dependent when the first two
+  points are transposed. -/
+lemma dependent_12_trans {u v w : ℙ K V} : dependent ![u, v, w] ↔ dependent ![v, u, w] :=
+begin
+  simp_rw dependent_iff_reps_dependent₃, split,
+  { rintros ⟨a, b, c, ⟨hnt, hs⟩⟩,
+    refine ⟨b, a, c, ⟨by { rwa index_12_trans₃ at hnt } , by { abel at hs ⊢, exact hs }⟩⟩ },
+  { rintros ⟨a, b, c, ⟨hnt, hs⟩⟩,
+    refine ⟨b, a, c, ⟨by { rwa index_12_trans₃ at hnt } , by { abel at hs ⊢, exact hs }⟩⟩ },
+end
 
 /-If three points in a projective geometry are such that zero is a linear combination of their
 representatives, and the scalar associated to one of the representative of the is zero,
@@ -275,13 +315,21 @@ begin
     refine ⟨-c⁻¹*a, -c⁻¹*b, _, _⟩,
       { intro h,
         simp only [matrix.cons_eq_zero_iff, neg_eq_zero, mul_eq_zero, inv_eq_zero,
-        eq_iff_true_of_subsingleton, and_true] at h,
+          eq_iff_true_of_subsingleton, and_true] at h,
         cases h with ha hb,
         exact (neq_scalar_neq_zero₁ hvw hnt hsz) (or.resolve_left ha hc) },
       { apply_fun (λ x, c⁻¹ • x) at hsz,
         simp_rw [smul_zero, smul_add, add_eq_zero_iff_neg_eq, ← mul_smul, inv_mul_cancel hc,
-        one_smul, neg_add, ← neg_smul, ← neg_mul] at hsz,
+          one_smul, neg_add, ← neg_smul, ← neg_mul] at hsz,
         exact hsz.symm } }
 end
+
+variables {W L : Type*} [add_comm_group W] [field L] [module L W]
+variables  {σ : K →+* L} {T : V →ₛₗ[σ] W} {hT : function.injective T}
+
+/- Projection to the quotient and the map induced by an injective semilinear map commute. -/
+lemma sl_map_mk_eq_mk (v : V) (hv : v ≠ 0) : map T hT (mk K v hv) =
+  mk _ (T v) ((map_ne_zero_iff T hT).mpr hv) := rfl
+
 
 end projectivization

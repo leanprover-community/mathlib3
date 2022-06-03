@@ -25,7 +25,7 @@ This file contains basic results on Fourier series.
 ## Main definitions
 
 * `circle_measure`: measure on the circle transported from the measure `1 / (2 * π) • volume` on
-  `(-π, π]` via `exp_map_circle`.
+  `(0, 2 * π]` via `exp_map_circle`.
 * instances `measure_space`, `is_probability_measure` for the circle with respect to this measure.
 * for `n : ℤ`, `fourier n` is the monomial `λ z, z ^ n`, bundled as a continuous map from `circle`
   to `ℂ`
@@ -85,7 +85,7 @@ begin
   { exact (measurable_set_lt measurable_const measurable_arg).compl },
 end
 
-def circle_m_equiv : measurable_equiv (Ioc 0 (2* π)) circle :=
+def circle_m_equiv : measurable_equiv (Ioc 0 (2 * π)) circle :=
 { measurable_inv_fun := by
   { rw circle.circle_equiv, rw circle.arg'_equiv,
     simp only [equiv.inv_fun_as_coe, equiv.symm_symm, equiv.coe_fn_mk, equiv.coe_fn_symm_mk],
@@ -94,6 +94,12 @@ def circle_m_equiv : measurable_equiv (Ioc 0 (2* π)) circle :=
     exact measurable_arg'.comp continuous_subtype_coe.measurable },
   measurable_to_fun := (exp_map_circle.continuous.borel_measurable).comp measurable_subtype_coe,
   .. circle.circle_equiv }
+
+def arg'_m_emb : measurable_embedding (arg' ∘ coe : circle → ℝ) :=
+begin
+  convert (measurable_embedding.subtype_coe measurable_set_Ioc).comp
+    (circle_m_equiv.symm).measurable_embedding using 1,
+end
 
 /-- Measure on the circle, normalized to have total measure 1. -/
 def circle_measure : measure circle :=
@@ -112,33 +118,35 @@ instance : is_probability_measure circle_measure := ⟨circle_measure_univ⟩
 
 instance : measure_space circle := { volume := circle_measure,  .. circle.measurable_space }
 
-lemma integrable_circle_iff (f : circle → ℂ) :
+lemma measure_map_arg' : circle_measure.map (arg' ∘ coe : circle → ℝ) =
+  ennreal.of_real (1 / (2 * π)) • volume.restrict (Ioc 0 (2 * π)) :=
+begin
+  rw [circle_measure, map_map arg'_m_emb.measurable],
+  swap, { exact circle_m_equiv.measurable_to_fun },
+  rw measure_theory.measure.map_smul, congr' 1,
+  have : (arg' ∘ coe) ∘ ⇑circle_m_equiv = coe,
+  { ext1, apply arg'_exp_map_circle, exacts [x.property.1, x.property.2]},
+  rw this, exact map_comap_subtype_coe measurable_set_Ioc _,
+end
+
+end circle_measure
+
+section circle_functions
+
+variables {E : Type*} [normed_group E] (f : circle → E)
+
+lemma integrable_circle_iff :
   integrable f circle_measure ↔ integrable_on (f ∘ exp_map_circle) (Ioc 0 (2 * π)) :=
 begin
-  rw [circle_measure, measure_theory.measure.map_smul,
-    integrable_smul_measure _ ennreal.of_real_ne_top],
-  swap, { rw [ne.def, ennreal.of_real_eq_zero, not_le, one_div_pos], exact two_pi_pos },
-  rw circle_m_equiv.measurable_embedding.integrable_map_iff,
-  have : f ∘ circle_m_equiv = f ∘ exp_map_circle ∘ coe := by { ext1, refl, }, rw this,
-  convert (@measurable_embedding.integrable_map_iff _ _ _ _ _ _ _ _
-    (measurable_embedding.subtype_coe _) (f ∘ exp_map_circle)).symm,
-  rw integrable_on, congr' 1, symmetry,
-  apply map_comap_subtype_coe, all_goals { exact measurable_set_Ioc },
+  have : f = f ∘ exp_map_circle ∘ arg' ∘ coe,
+  { ext1, simp only [function.comp_app], rwa exp_map_circle_arg' },
+  conv begin to_lhs, rw this, end,
+  rw [←@measurable_embedding.integrable_map_iff _ _ _ _ _ _ _ _  arg'_m_emb (f ∘ exp_map_circle),
+    measure_map_arg', integrable_smul_measure],
+  { refl }, { simp [pi_pos] }, { exact ennreal.of_real_ne_top },
 end
 
-lemma integral_circle_eq (f : circle → ℂ) :
-  integral circle_measure f = 1 / (2 * π) * ∫ θ in 0..(2 * π), f (exp_map_circle θ) :=
-begin
-  dsimp only [circle_measure],
-  rw [integral_map_equiv, measure_theory.integral_smul_measure,
-    ennreal.to_real_of_real (one_div_nonneg.mpr two_pi_pos.le),
-    real_smul, of_real_div, of_real_one, of_real_mul, of_real_bit0],
-  congr' 1, symmetry,
-  rw integral_of_le (by linarith [pi_pos] : 0 ≤ 2 * π),
-  exact set_integral_eq_subtype measurable_set_Ioc _,
-end
-
-lemma integrable_circle_iff_circle_integrable (f : ℂ → ℂ) :
+lemma integrable_circle_iff_circle_integrable (f : ℂ → E) :
   integrable (f ∘ coe) circle_measure ↔ (circle_integrable f 0 1) :=
 begin
   rw [circle_integrable, integrable_circle_iff],
@@ -149,18 +157,55 @@ begin
   intros x hx, simp [circle_map]
 end
 
-lemma integral_circle_eq_circle_integral (f : ℂ → ℂ) (hf : circle_integrable f 0 1):
-  circle_integral f 0 1 = (2 * π * I) * integral circle_measure (λ z, z * f z) :=
+lemma ae_strongly_measurable_comp_arg' (f : ℝ → E)
+  (hf : ae_strongly_measurable f $ volume.restrict $ Ioc 0 $ 2 * π) :
+ae_strongly_measurable (f ∘ arg' ∘ coe : circle → E) volume :=
 begin
-  simp_rw [integral_circle_eq, circle_integral, deriv_circle_map, ←mul_assoc,
-    (by ring : 2 * ↑π * I * (1 / (2 * ↑π)) = I * ((2 * π) / (2 * π)))],
-  rw [div_self, mul_one, ←integral_const_mul], swap, { simp [pi_pos.ne'] },
-  apply integral_congr, intros x hx,
-  simp only [circle_map, of_real_one, one_mul, zero_add, id.smul_eq_mul, exp_map_circle_apply],
-  ring,
+  apply ae_strongly_measurable.comp_measurable,
+  { dsimp only [measure_space.volume],
+    rw [circle_measure, map_map],
+    swap, { exact measurable_arg'.comp continuous_subtype_coe.borel_measurable },
+    swap, { exact circle_m_equiv.measurable_to_fun },
+    have : (arg' ∘ coe ∘ circle_m_equiv) = (coe : Ioc 0 (2 * π) → ℝ),
+    { ext1, simp only [function.comp_app], exact arg'_exp_map_circle x.property.1 x.property.2, },
+    rw this, rw measure_theory.measure.map_smul,
+    apply ae_strongly_measurable.smul_measure,
+    convert hf,
+    exact map_comap_subtype_coe measurable_set_Ioc _, },
+  { exact measurable_arg'.comp continuous_subtype_coe.borel_measurable },
 end
 
-end circle_measure
+lemma integral_circle_eq [complete_space E] [normed_space ℝ E] (f : circle → E) :
+  integral circle_measure f = (1 / (2 * π)) • ∫ θ in 0..(2 * π), f (exp_map_circle θ) :=
+begin
+  dsimp only [circle_measure],
+  rw [integral_map_equiv, measure_theory.integral_smul_measure,
+    ennreal.to_real_of_real (one_div_nonneg.mpr two_pi_pos.le)],
+  congr' 1, symmetry,
+  rw integral_of_le (by linarith [pi_pos] : 0 ≤ 2 * π),
+  exact set_integral_eq_subtype measurable_set_Ioc _,
+end
+
+lemma integral_circle_eq_circle_integral [complete_space E] [normed_space ℂ E] (f : ℂ → E)
+  (hf : circle_integrable f 0 1) :
+  circle_integral f 0 1 = (2 * ↑π * I) • integral circle_measure (λ z, z • f z) :=
+begin
+  simp_rw [integral_circle_eq, circle_integral, deriv_circle_map, ←interval_integral.integral_smul],
+  apply integral_congr, intros x hx,
+  simp only [circle_map, exp_map_circle, of_real_one, one_mul, zero_add, continuous_map.coe_mk,
+    set_like.coe_mk],
+  rw [smul_comm, ←smul_assoc, complex.real_smul, smul_comm, ←smul_assoc],
+  have : ↑(1 / (2 * π)) * (2 * ↑π * I) = I,
+  { field_simp, rw [mul_comm, mul_div_cancel],
+    simp only [ne.def, mul_eq_zero, bit0_eq_zero, one_ne_zero, of_real_eq_zero, false_or],
+    exact pi_pos.ne' },
+  rw this, refl,
+end
+
+end circle_functions
+
+
+namespace fourier_circle
 
 /-! ### Monomials on the circle -/
 
@@ -274,11 +319,15 @@ begin
   intros i j,
   rw continuous_map.inner_to_Lp circle_measure (fourier i) (fourier j),
   split_ifs,
-  { simp [h, is_probability_measure.measure_univ, ←fourier_neg, ←fourier_add, -fourier_to_fun] },
-  simp only [← fourier_add, ← fourier_neg],
+  { have : (λ (x : circle), conj ((fourier i) x) * (fourier j) x) = (λ x, 1),
+    { ext1 x, rw [h, ←fourier_neg, ←fourier_add, neg_add_self, fourier_zero], },
+    rw this,
+    simp only [measure_theory.integral_const, measure_univ, ennreal.one_to_real, real_smul,
+      of_real_one, mul_one] },
+  simp only [←fourier_add, ←fourier_neg],
   have hij : -i + j ≠ 0 := by { rw add_comm, exact sub_ne_zero.mpr (ne.symm h) },
   rw [fourier, integral_circle_eq, continuous_map.coe_mk],
-  convert mul_zero _,
+  convert smul_zero _ using 2,
   simp_rw [exp_map_circle_apply, ←exp_int_mul, ←mul_assoc],
   convert integral_exp_mul_complex (_ : I * (-i + j) ≠ 0),
   { ext1 θ, congr' 1, simp only [int.cast_add, int.cast_neg], ring },
@@ -319,21 +368,214 @@ lemma has_sum_fourier_series (f : Lp ℂ 2 circle_measure) :
   has_sum (λ i, fourier_series.repr f i • fourier_Lp 2 i) f :=
 by simpa using hilbert_basis.has_sum_repr fourier_series f
 
-/-- **Parseval's identity**: the sum of the squared norms of the Fourier coefficients equals the
-`L2` norm of the function. -/
-lemma tsum_sq_fourier_series_repr (f : Lp ℂ 2 circle_measure) :
-  ∑' i : ℤ, ∥fourier_series.repr f i∥ ^ 2 = ∫ t : circle, ∥f t∥ ^ 2 ∂ circle_measure :=
+/-- **Parseval's identity**: the sum of the squared norms of the Fourier coefficients is
+convergent, and converges to the `L2` norm of the function. -/
+lemma has_sum_sq_fourier_series_repr (f : Lp ℂ 2 circle_measure) :
+  has_sum (λ i:ℤ, ∥fourier_series.repr f i∥ ^ 2) (∫ t : circle, ∥f t∥ ^ 2) :=
 begin
-  have H₁ : ∥fourier_series.repr f∥ ^ 2 = ∑' i, ∥fourier_series.repr f i∥ ^ 2,
-  { exact_mod_cast lp.norm_rpow_eq_tsum _ (fourier_series.repr f),
+  have H₁ : has_sum (λ i:ℤ, ∥fourier_series.repr f i∥ ^ 2) (∥fourier_series.repr f∥ ^ 2),
+  { exact_mod_cast lp.has_sum_norm _ (fourier_series.repr f),
     norm_num },
   have H₂ : ∥fourier_series.repr f∥ ^ 2 = ∥f∥ ^2 := by simp,
   have H₃ := congr_arg is_R_or_C.re (@L2.inner_def circle ℂ ℂ _ _ _ _ f f),
   rw ← integral_re at H₃,
   { simp only [← norm_sq_eq_inner] at H₃,
-    rw [← H₁, H₂],
-    exact H₃ },
+    rwa [H₂, H₃] at H₁, },
   { exact L2.integrable_inner f f },
 end
 
+/-- **Parseval's identity**: the sum of the squared norms of the Fourier coefficients equals the
+`L2` norm of the function. -/
+lemma tsum_sq_fourier_series_repr (f : Lp ℂ 2 circle_measure) :
+  ∑' i : ℤ, ∥fourier_series.repr f i∥ ^ 2 = ∫ t : circle, ∥f t∥ ^ 2 ∂ circle_measure :=
+(has_sum_sq_fourier_series_repr f).tsum_eq
+
 end fourier
+
+end fourier_circle
+
+namespace fourier_line
+
+/-! We define Fourier theory for functions `ℝ → ℂ` via composition with `arg'`, so we are
+ignoring their values outside the set `(0, 2 * π]`. -/
+
+section fourier_line
+
+variables {E : Type*} [normed_group E] (f : ℝ → E)
+
+abbreviation μ₀ := volume.restrict (Ioc 0 (2 * π))
+
+def to_circle : circle → E := λ z, f (arg' z)
+
+lemma to_circle_mem_ℒ2 (hf : mem_ℒp f 2 μ₀) : mem_ℒp (to_circle f) 2 :=
+begin
+  dsimp only [to_circle],
+  rw mem_ℒp_two_iff_integrable_sq_norm (ae_strongly_measurable_comp_arg' f hf.1),
+  dsimp only [measure_space.volume],
+  rw integrable_circle_iff,
+  rw mem_ℒp_two_iff_integrable_sq_norm at hf, swap,
+  exact hf.ae_strongly_measurable,
+  apply integrable.congr hf,
+  rw filter.eventually_eq,
+  refine (ae_restrict_iff' measurable_set_Ioc).mpr  (ae_of_all _ (λ x hx, _)),
+  congr' 3, symmetry, exact arg'_exp_map_circle hx.1 hx.2,
+end
+
+def fourier_coeff (f : ℝ → ℂ) (hf : mem_ℒp f 2 μ₀) (n : ℤ) : ℂ :=
+  fourier_circle.fourier_series.repr (mem_ℒp.to_Lp _ (to_circle_mem_ℒ2 f hf)) n
+
+lemma fourier_coeff_eq (f : ℝ → ℂ) (hf : mem_ℒp f 2 μ₀) (n : ℤ) :
+fourier_coeff f hf n = 1 / (2 * π) * ∫ x in 0..(2 * π), exp (-n * I * x) * f x :=
+begin
+  rw [fourier_coeff, fourier_circle.fourier_series_repr],
+  have : 1 / (2 * (π:ℂ)) * ∫ x in 0..(2 * π), complex.exp (-(n:ℂ) * I * x) * f x =
+    (1 / (2 * (π:ℝ))) • ∫ x in 0..(2 * π),
+      (λ w, (w : ℂ) ^ (-n) * (f ∘ arg' ∘ coe) w : circle → ℂ) (exp_map_circle x),
+  { rw real_smul, congr' 1, simp,
+    rw interval_integral.integral_congr_ae, apply ae_of_all,
+    intros x hx, rw interval_oc_of_le (by linarith [pi_pos]: 0 ≤ 2 * π) at hx,
+    simp only [function.comp_apply],
+    rw [arg'_exp_map_circle hx.1 hx.2, exp_map_circle_apply, neg_mul, zpow_neg₀,
+      ←complex.exp_int_mul, ←complex.exp_neg],
+    congr' 2, ring, },
+  rw this,
+  rw ←integral_circle_eq,
+  apply measure_theory.integral_congr_ae,
+  have i1 := mem_ℒp.coe_fn_to_Lp (to_circle_mem_ℒ2 f hf),
+  rw filter.eventually_eq at i1,
+  refine filter.eventually.mono i1 (λ x hx, _),
+  dsimp only, rw hx, refl,
+end
+
+lemma norm_comp_arg' (f : ℝ → ℂ) (hf : mem_ℒp f 2 μ₀) :
+∫ t : circle, ∥(mem_ℒp.to_Lp _ (to_circle_mem_ℒ2 f hf) t)∥ ^ 2 =
+  1 / (2 * π) * ∫ x in 0..(2 * π), ∥f x∥ ^ 2 :=
+begin
+  have : 1 / (2 * π) * ∫ x in 0..(2 * π), ∥f x∥ ^ 2 =
+  (1 / (2 * π)) • ∫ x in 0..(2 * π),
+      (λ w, ∥(f ∘ arg' ∘ coe) w∥ ^ 2 : circle → ℝ) (exp_map_circle x),
+  { rw smul_eq_mul, congr' 1,
+    rw interval_integral.integral_congr_ae, apply ae_of_all,
+    intros x hx, rw interval_oc_of_le (by linarith [pi_pos]: 0 ≤ 2 * π) at hx,
+    simp only [function.comp_apply], rw arg'_exp_map_circle hx.1 hx.2 },
+  rw this, rw ←integral_circle_eq,
+  apply measure_theory.integral_congr_ae,
+  have i1 := mem_ℒp.coe_fn_to_Lp (to_circle_mem_ℒ2 f hf),
+  rw filter.eventually_eq at i1,
+  refine filter.eventually.mono i1 (λ x hx, _),
+  dsimp only, rw hx, refl,
+end
+
+lemma parseval_line (f : ℝ → ℂ) (hf : mem_ℒp f 2 μ₀) :
+  has_sum (λ n:ℤ, ∥1 / (2 * (π : ℂ)) * ∫ x in 0..(2 * π), exp (-n * I * x) * f x∥ ^ 2)
+  (1 / (2 * π) * ∫ x in 0..(2 * π), ∥f x∥ ^ 2) :=
+begin
+  simp_rw [←norm_comp_arg' f hf, ←fourier_coeff_eq f hf _],
+  exact fourier_circle.has_sum_sq_fourier_series_repr _,
+end
+
+end fourier_line
+end fourier_line
+
+section baselproblem
+
+/-! ### The Basel problem: evaluating `∑ 1 / n ^ 2` using Parseval's formula -/
+
+def B1 (x : ℝ) : ℂ := x - π
+
+lemma B1_mem_Lp : mem_ℒp B1 2 fourier_line.μ₀ :=
+begin
+  have : continuous B1,
+  { rw continuous_iff_continuous_at,
+    intro x, refine continuous_at.sub _ continuous_at_const,
+    exact complex.continuous_of_real.continuous_at },
+  rw [mem_ℒp_two_iff_integrable_sq_norm, ←integrable_on, ←integrable_on_Icc_iff_integrable_on_Ioc],
+  apply continuous.integrable_on_Icc,
+  exact (continuous_norm.comp this).pow 2,
+  exact this.ae_strongly_measurable,
+end
+
+lemma norm_B1 : 1 / (2 * π) * ∫ x in 0..(2 * π), ∥B1 x∥ ^ 2 = π ^ 2 / 3 :=
+begin
+  dsimp only [B1],
+  simp_rw [complex.norm_eq_abs, ←of_real_sub, abs_of_real, _root_.sq_abs, sub_sq],
+  rw interval_integral.integral_add,
+  rw interval_integral.integral_sub,
+  simp only [integral_pow, zero_pow', ne.def, nat.succ_ne_zero, not_false_iff,
+    sub_zero, nat.cast_bit0, nat.cast_one, integral_mul_const, integral_const_mul, integral_id,
+    interval_integral.integral_const, id.smul_eq_mul],
+  norm_num, field_simp [two_pi_pos.ne'], ring,
+  all_goals { apply continuous.interval_integrable, continuity },
+end
+
+lemma coeff_B1 (n : ℤ) : 1 / (2 * (π : ℂ)) * ∫ x in 0..(2 * π), exp (-n * I * x) * B1 x = I / n :=
+begin
+  dsimp only [B1],
+  rcases eq_or_ne n 0 with hn|hn,
+  { rw hn,
+    simp only [one_div, mul_inv_rev, int.cast_zero, neg_zero', zero_mul, complex.exp_zero, one_mul,
+      div_zero, mul_eq_zero, inv_eq_zero, of_real_eq_zero, bit0_eq_zero, one_ne_zero, or_false],
+    right,
+    have : ∫ (x : ℝ) in 0..2 * π, x - π = 0 := by { simp, ring, },
+    simp_rw ←of_real_sub,
+    rw integral_of_le (by linarith [pi_pos] : 0 ≤ 2 * π) at this ⊢,
+    rw integral_of_real, rw this, refl },
+  { have d1a: ∀ x:ℂ, has_deriv_at (λ x, x - π : ℂ → ℂ) (1 : ℂ) x,
+    { intro x, exact (has_deriv_at_id x).sub_const _, },
+    have d1 : ∀ x:ℝ, has_deriv_at (λ y, y - π : ℝ → ℂ) ((1 : ℝ → ℂ) x) x,
+    { intro x, simpa using has_deriv_at.comp x (d1a x) of_real_clm.has_deriv_at },
+    have d2a : ∀ x:ℂ, has_deriv_at (λ y, I / n * exp (-n * I * y) : ℂ → ℂ) (exp (-n * I * x)) x,
+    { intro x,
+      suffices : has_deriv_at (λ y, exp (-n * I * y) : ℂ → ℂ) (exp (-n * I * x) * (-n * I)) x,
+      { convert has_deriv_at.const_mul (I / n) this, ring_nf,
+        rw mul_inv_cancel, rw I_sq, ring, exact int.cast_ne_zero.mpr hn },
+      refine has_deriv_at.comp x (complex.has_deriv_at_exp (-n * I * x)) _,
+      simpa using (has_deriv_at_const x (-↑n * I)).mul (has_deriv_at_id x), },
+    have d2 : ∀ x:ℝ, has_deriv_at (λ y, I / n * exp (-n * I * y) : ℝ → ℂ)
+      (exp (-n * I * x)) x,
+    { intro x, simpa using has_deriv_at.comp x (d2a x) of_real_clm.has_deriv_at },
+    have d := λ x (hx : x ∈ interval 0 (2 * π)), (d2 x).mul (d1 x),
+    have int_ev := integral_eq_sub_of_has_deriv_at d _,
+    rw interval_integral.integral_add at int_ev,
+    rw eq_sub_of_add_eq int_ev, clear int_ev,
+    simp only [of_real_mul, of_real_bit0, of_real_one, of_real_zero, mul_zero,
+      complex.exp_zero, mul_one, zero_sub, sub_neg_eq_add, pi.one_apply,
+      integral_const_mul],
+    have : (-↑n * I * (2 * ↑π)) = ↑(-n) * (2 * π * I) := by { simp, ring, },
+    rw [this, exp_int_mul_two_pi_mul_I, integral_exp_mul_complex],
+    have : (-↑n * I * ↑(2 * π)) = ↑(-n) * (2 * π * I) := by { simp, ring, },
+    rw [this, exp_int_mul_two_pi_mul_I],
+    norm_num, field_simp [of_real_ne_zero.mpr pi_pos.ne', int.cast_ne_zero.mpr hn], ring,
+    { refine mul_ne_zero _ I_ne_zero, rwa [neg_ne_zero, int.cast_ne_zero], },
+    { apply continuous.interval_integrable, continuity },
+    all_goals { apply continuous.interval_integrable, simp only [pi.one_apply], continuity } },
+end
+
+
+lemma basel_sum_Z : has_sum (λ n:ℤ, 1 / (n : ℝ) ^ 2) (π ^ 2 / 3) :=
+begin
+  have t := fourier_line.parseval_line B1 B1_mem_Lp,
+  simp_rw [norm_B1, coeff_B1] at t,
+  have : ∀ (n : ℤ), ∥I / n∥ ^ 2 = 1 / n ^ 2,
+  { intro n,
+    simp only [complex.norm_eq_abs, complex.abs_div, abs_I, one_div, inv_pow₀, inv_inj],
+    norm_cast, simp },
+  simp_rw this at t,
+  exact t,
+end
+
+lemma basel_sum : has_sum (λ n:ℕ, 1 / ((n + 1) : ℝ) ^ 2) (π ^ 2 / 6) :=
+begin
+  have := basel_sum_Z.sum_ℕ_of_sum_ℤ,
+  simp only [int.cast_add, int.cast_coe_nat, int.cast_one, int.cast_sub, int.cast_neg,
+  int.cast_zero, zero_pow', ne.def, bit0_eq_zero, nat.one_ne_zero, not_false_iff,
+  div_zero, sub_zero] at this,
+  have aux : ∀ (n:ℕ), (-(n:ℝ) - 1) ^ 2 = ((n:ℝ) + 1) ^ 2,
+  { intro n, rw [neg_sub_left, neg_sq, add_comm],},
+  simp_rw [aux, ←mul_two] at this,
+  convert (has_sum.div_const this 2) using 1,
+  { ext1, simp, },
+  { field_simp, norm_num, }
+end
+
+end baselproblem

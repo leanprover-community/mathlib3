@@ -343,14 +343,12 @@ by refine equiv.mk (λ (σ : K →ₐ[F] E), (alg_hom.restrict_normal' σ K))
   begin
     intro σ,
     ext,
-    unfold alg_hom.restrict_normal',
-    simp,
+    simp[alg_hom.restrict_normal'],
   end
   begin
     intro σ,
     ext,
-    unfold alg_hom.restrict_normal',
-    simp only [alg_equiv.to_alg_hom_eq_coe, alg_equiv.coe_of_bijective],
+    simp only [alg_hom.restrict_normal', alg_equiv.to_alg_hom_eq_coe, alg_equiv.coe_of_bijective],
     apply no_zero_smul_divisors.algebra_map_injective K E,
     rw alg_hom.restrict_normal_commutes,
     simp,

@@ -361,4 +361,92 @@ variables {K} (A : valuation_subring K)
 lemma valuation_subring_valuation : A.valuation.valuation_subring = A :=
 by { ext, rw ← A.valuation_le_one_iff, refl }
 
+section unit_group
+
+/-- The unit group of a valuation subring, as a subgroup of `Kˣ`. -/
+def unit_group : subgroup Kˣ :=
+{ carrier := { x | A.valuation x = 1 },
+  mul_mem' := begin
+    intros a b ha hb,
+    dsimp at *,
+    rw [A.valuation.map_mul, ha, hb, one_mul],
+  end,
+  one_mem' := A.valuation.map_one,
+  inv_mem' := begin
+    intros a ha,
+    dsimp at *,
+    push_cast,
+    rw [A.valuation.map_inv, ha, inv_one],
+  end }
+
+lemma mem_unit_group_iff (x : Kˣ) : x ∈ A.unit_group ↔ A.valuation x = 1 := iff.refl _
+
+lemma eq_iff_unit_group (A B : valuation_subring K) :
+  A = B ↔ A.unit_group = B.unit_group :=
+begin
+  rw [← A.valuation_subring_valuation, ← B.valuation_subring_valuation,
+    ← valuation.is_equiv_iff_valuation_subring,
+    A.valuation_subring_valuation, B.valuation_subring_valuation,
+    valuation.is_equiv_iff_val_eq_one, set_like.ext_iff],
+  split,
+  { intros h x, apply h },
+  { intros h x,
+    by_cases hx : x = 0, { simp only [hx, valuation.map_zero, zero_ne_one] },
+    exact h (units.mk0 x hx) }
+end
+
+/-- `A.unit_group` agrees with the units of `A`. -/
+def unit_group_mul_equiv : A.unit_group ≃* Aˣ :=
+{ to_fun := λ x,
+  ⟨⟨x, (A.valuation_le_one_iff _).1 (le_of_eq x.2)⟩,⟨x⁻¹,
+  begin
+    rw ← A.valuation_le_one_iff,
+    apply le_of_eq,
+    rw [A.valuation.map_inv, inv_eq_one],
+    exact x.2,
+  end⟩,
+    by { ext, exact mul_inv_cancel x.1.ne_zero },
+    by { ext, exact inv_mul_cancel x.1.ne_zero }⟩,
+  inv_fun := λ x, ⟨⟨x, (x : K)⁻¹,
+    mul_inv_cancel ((units.map A.subtype.to_monoid_hom x).ne_zero),
+    inv_mul_cancel ((units.map A.subtype.to_monoid_hom x).ne_zero)⟩, begin
+      rw mem_unit_group_iff, simpa using A.valuation_unit x,
+    end⟩,
+  left_inv := λ a, by { ext, refl },
+  right_inv := λ a, by { ext, refl },
+  map_mul' := λ a b, by { ext, refl } }
+
+@[simp]
+lemma coe_unit_group_mul_equiv_apply (a : A.unit_group) :
+  (A.unit_group_mul_equiv a : K) = a := rfl
+
+@[simp]
+lemma coe_unit_group_mul_equiv_symm_apply (a : Aˣ) :
+  (A.unit_group_mul_equiv.symm a : K) = a := rfl
+
+def unit_group_order_embedding : valuation_subring K ↪o subgroup Kˣ :=
+{ to_fun := λ A, A.unit_group,
+  inj' := λ A B h, by rwa eq_iff_unit_group,
+  map_rel_iff' := begin
+    intros A B,
+    split,
+    { rintros h x hx,
+      rw [← A.valuation_le_one_iff x, le_iff_lt_or_eq] at hx,
+      by_cases h_1 : x = 0, { simp only [h_1, zero_mem] },
+      by_cases h_2 : 1 + x = 0,
+        { simp only [← add_eq_zero_iff_neg_eq.1 h_2, neg_mem _ _ (one_mem _)] },
+      cases hx,
+      { have := h (show (units.mk0 _ h_2) ∈ A.unit_group, from A.valuation.map_one_add_of_lt hx),
+        simpa using B.add_mem _ _
+          (show 1 + x ∈ B, from set_like.coe_mem ((B.unit_group_mul_equiv ⟨_, this⟩) : B))
+          (B.neg_mem _ B.one_mem) },
+      { have := h (show (units.mk0 x h_1) ∈ A.unit_group, from hx),
+        refine set_like.coe_mem ((B.unit_group_mul_equiv ⟨_, this⟩) : B) } },
+    { rintros h x (hx : A.valuation x = 1),
+      apply_fun A.map_of_le B h at hx,
+      simpa using hx }
+  end }
+
+end unit_group
+
 end valuation_subring

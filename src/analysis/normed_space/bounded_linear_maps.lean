@@ -515,13 +515,13 @@ end
 
 end bilinear_map
 
-lemma continuous.clm_comp {X} [topological_space X] {f : X → E →L[𝕜] F} {g : X → F →L[𝕜] G}
-  (hf : continuous f) (hg : continuous g) :
+lemma continuous.clm_comp {X} [topological_space X] {g : X → F →L[𝕜] G} {f : X → E →L[𝕜] F}
+  (hg : continuous g) (hf : continuous f) :
   continuous (λ x, (g x).comp (f x)) :=
 (compL 𝕜 E F G).continuous₂.comp₂ hg hf
 
-lemma continuous_on.clm_comp {X} [topological_space X] {f : X → E →L[𝕜] F} {g : X → F →L[𝕜] G}
-  {s : set X} (hf : continuous_on f s) (hg : continuous_on g s) :
+lemma continuous_on.clm_comp {X} [topological_space X] {g : X → F →L[𝕜] G} {f : X → E →L[𝕜] F}
+  {s : set X} (hg : continuous_on g s) (hf : continuous_on f s) :
   continuous_on (λ x, (g x).comp (f x)) s :=
 (compL 𝕜 E F G).continuous₂.comp_continuous_on (hg.prod hf)
 

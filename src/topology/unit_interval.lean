@@ -34,10 +34,14 @@ localized "notation `I` := unit_interval" in unit_interval
 
 namespace unit_interval
 open_locale unit_interval
-open set.Icc
+open set set.Icc
+
+-- This specific instance occurs often enough to be worth having as a named lemma
+lemma double_mem {t : ℝ} (ht : t ∈ Icc (0 : ℝ) (1/2)) : 2 * t ∈ Icc (0:ℝ) 1 :=
+(@mul_pos_mem_iff ℝ _ 2 t zero_lt_two).2 ht
 
 /-- Unit interval central symmetry. -/
-def symm : I → I := λ t, ⟨1 - t, set.Icc.one_sub_mem t.prop⟩
+def symm : I → I := λ t, ⟨1 - t, one_sub_mem t.prop⟩
 
 localized "notation `σ` := unit_interval.symm" in unit_interval
 

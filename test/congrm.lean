@@ -78,9 +78,17 @@ begin
   { exact H' },
 end
 
+example (H : a = b) (H' : c + (f a) = c + (f d)) (H'' : d = b) :
+  f (f a) * (f d + (c + f a)) = f (f a) * (f b + (c + f d)) :=
+begin
+  congrm_1 j₂ (j₁ (j₁ w)) (j₂ (j₁ _) _),
+  { exact H'' },
+  { exact H' },
+end
+
 example (h1 : 5 = 3) (h2 : 7 = 1) : nat.succ 5 + nat.pred 7 = nat.pred 3 * nat.succ 1 :=
 begin
   congrm_1 j₂ (j₁ _) (j₁ _);
- -- the main goal becomes `nat.succ 1 + nat.pred 3 = nat.succ 1 * nat.pred 3` and `refl` closes it!
+ -- the main goal becomes `3.succ + 1.pred = 3.pred * 1.succ` and `refl` closes it!
   exact h1 <|> exact h2,
 end

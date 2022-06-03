@@ -624,6 +624,21 @@ begin
     { rwa [fderiv_zero_of_not_differentiable_at hx] } }
 end
 
+lemma fderiv_within_mem_iff {f : E → F} {t : set E} {s : set (E →L[𝕜] F)} {x : E} :
+  fderiv_within 𝕜 f t x ∈ s ↔ (differentiable_within_at 𝕜 f t x ∧ fderiv_within 𝕜 f t x ∈ s) ∨
+    (0 : E →L[𝕜] F) ∈ s ∧ ¬differentiable_within_at 𝕜 f t x :=
+begin
+  split,
+  { intro hfx,
+    by_cases hx : differentiable_within_at 𝕜 f t x,
+    { exact or.inl ⟨hx, hfx⟩ },
+    { rw [fderiv_within_zero_of_not_differentiable_within_at hx] at hfx,
+      exact or.inr ⟨hfx, hx⟩ } },
+  { rintro (⟨hf, hf'⟩|⟨h₀, hx⟩),
+    { exact hf' },
+    { rwa [fderiv_within_zero_of_not_differentiable_within_at hx] } }
+end
+
 end fderiv_properties
 
 section continuous

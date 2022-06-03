@@ -43,12 +43,6 @@ begin
   exact h,
 end
 
-variables {A : Type*} (w : A)
-
-def j₁ : A → A | _ := w
-def j₂ : A → A → A | _ _ := w
-def w : A := w
-
 example (h : 5 = 3) : (⟨5 + 1, dec_trivial⟩ : fin 10) = ⟨3 + 1, dec_trivial⟩ :=
 begin
   congrm ⟨_ + 1, _⟩,

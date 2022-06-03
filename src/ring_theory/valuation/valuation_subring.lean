@@ -395,7 +395,7 @@ begin
     exact h (units.mk0 x hx) }
 end
 
-/-- `A.unit_group` agrees with the units of `A`. -/
+/-- For a valuation subring `A`, `A.unit_group` agrees with the units of `A`. -/
 def unit_group_mul_equiv : A.unit_group ≃* Aˣ :=
 { to_fun := λ x,
   ⟨⟨x, (A.valuation_le_one_iff _).1 (le_of_eq x.2)⟩,⟨x⁻¹,

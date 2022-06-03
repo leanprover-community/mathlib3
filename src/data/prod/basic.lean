@@ -87,7 +87,7 @@ funext (λ p, ext (map_fst f g p) (map_snd f g p))
 lemma id_prod : (λ (p : α × α), (p.1, p.2)) = id :=
 funext $ λ ⟨a, b⟩, rfl
 
-lemma map_id : (prod.map (@id α) (@id α)) = id :=
+lemma map_id : (prod.map (@id α) (@id β)) = id :=
 id_prod
 
 lemma fst_surjective [h : nonempty β] : function.surjective (@fst α β) :=

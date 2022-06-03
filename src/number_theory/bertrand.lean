@@ -113,9 +113,7 @@ end nat
 section real_inequalities
 open real
 
-lemma one_lt_four : (1 : ℝ) < 4 := by linarith
-
-lemma log_four_pos : 0 < log 4 := log_pos one_lt_four
+lemma log_four_pos : 0 < log 4 := log_pos (by linarith)
 
 lemma log_four_nonzero : log 4 ≠ 0 := by linarith [log_four_pos]
 
@@ -208,7 +206,7 @@ calc log x / (x * log 4) = (log x / x) / log 4 : by field_simp
 lemma inequality2 {x : ℝ} (n_large : 313 ≤ x) : sqrt 2 * sqrt x * log 2 / (x * log 4) ≤ 0.04 :=
 begin
   have x_pos : 0 < x := by linarith,
-  rw div_le_iff (mul_pos x_pos (log_pos one_lt_four)),
+  rw div_le_iff (mul_pos x_pos log_four_pos),
   rw [←mul_assoc, four_eq_two_rpow_two, log_rpow two_pos, ←mul_assoc,
     mul_le_mul_right (log_pos one_lt_two)],
   rw [←le_div_iff (sqrt_pos.mpr x_pos), mul_comm _ x, mul_assoc, mul_comm x, mul_div_assoc],
@@ -390,7 +388,7 @@ begin
   simp only [hx.right, and_true, not_lt] at h2x,
   by_contradiction,
   have x_le_two_mul_n : x ≤ 2 * n,
-  { apply (@nat.prime_le_two_mul_of_factorization_central_binom_pos x n),
+  { apply nat.prime_le_two_mul_of_factorization_central_binom_pos,
     by_contradiction h1,
     rw [not_lt, le_zero_iff] at h1,
     rw h1 at h,

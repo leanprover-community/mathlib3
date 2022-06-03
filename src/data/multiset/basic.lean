@@ -848,7 +848,7 @@ begin
     simp }
 end
 
-lemma map_eq_cons' [decidable_eq α] (f : α → β) {s : multiset α} {t : multiset β} (b : β) :
+lemma map_eq_cons [decidable_eq α] (f : α → β) (s : multiset α) (t : multiset β) (b : β) :
   (∃ a ∈ s, f a = b ∧ (s.erase a).map f = t) ↔ s.map f = b ::ₘ t :=
 begin
   split,

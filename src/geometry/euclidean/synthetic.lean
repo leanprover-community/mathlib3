@@ -86,8 +86,8 @@ class incidence_geometry :=
 (center_circle_unique : ∀ {a b : point}, ∀ {α : circle}, center_circle a α → center_circle b α →
   a = b)
   --center_circle_unique should be proven?
-(G3 : ∀ {a : point}, ∀ {α : circle}, center_circle a α → inside_circle a α)
-(G4 : ∀ {a : point}, ∀ {α : circle}, inside_circle a α → ¬oncircle a α)
+(inside_circle_of_center : ∀ {a : point}, ∀ {α : circle}, center_circle a α → inside_circle a α)
+(not_oncircle_of_inside : ∀ {a : point}, ∀ {α : circle}, inside_circle a α → ¬oncircle a α)
 
 (B1 : ∀ {a b c : point}, B a b c → B c b a ∧ a ≠ b ∧ a ≠ c ∧ b ≠ c ∧ ¬B b a c)
   -- B1 slightly modified, hope no issue?
@@ -219,14 +219,11 @@ instance incidence_geometry_ℝ_ℝ : incidence_geometry :=
     intros p1 p2 p1_ne_p2,
     use ((1:ℝ) / 2) • (p1+p2),
     split,
-    {
-      intro h,
-      have : 2 • p1 = p1 + p2,
-      {
-        sorry,
-      } ,
-      sorry,
-    },
+    { intro h,
+      have hh := congr_arg (λ p : ℝ×ℝ, (2:ℝ) • p) h,
+      simp only [one_div, smul_inv_smul₀, ne.def, bit0_eq_zero, one_ne_zero, not_false_iff] at hh,
+      rw (two_smul ℝ p1) at hh,
+      exact p1_ne_p2 ((add_right_inj p1).mp hh), },
     split,
     { sorry, },
     refine ⟨1, by norm_num, _⟩,
@@ -246,9 +243,44 @@ instance incidence_geometry_ℝ_ℝ : incidence_geometry :=
   pt_sameside_of_circle_circle_inter := sorry,
   line_unique_of_pts := sorry,
   center_circle_unique := sorry,
-  G3 := sorry,
-  G4 := sorry,
-  B1 := sorry,
+  inside_circle_of_center := sorry,
+  not_oncircle_of_inside := sorry,
+  B1 := begin
+    intros a b c Babc,
+    obtain ⟨μ, hμ₁, hμ₂⟩ := Babc.2.2,
+    split,
+    { refine ⟨Babc.2.1.symm, Babc.1.symm, _⟩,
+      use 1/μ,
+      refine ⟨one_div_pos.mpr hμ₁, _⟩,
+      convert (congr_arg (λ x : ℝ × ℝ, ((-1 : ℝ) / μ) • x) hμ₂).symm using 1,
+      { rw [smul_smul, ← neg_sub a b, ← neg_one_smul _ (a-b), smul_smul],
+        convert (one_smul _ (a-b)).symm,
+        field_simp [hμ₁.ne.symm], },
+      { rw [← neg_sub, ← neg_one_smul _ (c-b), smul_smul],
+        apply congr_arg (λ x : ℝ, x • (c-b)),
+        field_simp [hμ₁.ne.symm], }, },
+    refine ⟨Babc.1, _⟩,
+    split,
+    { intros hac,
+      rw hac at hμ₂,
+      rw ← neg_sub b c at hμ₂,
+      rw ← neg_one_smul ℝ (b-c) at hμ₂,
+      have : b-c ≠ 0 := λ  hbc, Babc.2.1 (sub_eq_zero.mp hbc),
+      have : -1 = μ,
+      {
+        sorry,
+      },
+      linarith,
+    },
+    refine ⟨Babc.2.1, _⟩,
+    push_neg,
+    intros _ _ μ' hμ' hμ'',
+    have : μ' = -(1+μ),
+    {
+      sorry,
+    },
+    linarith,
+  end,
   B2 := sorry,
   B3 := sorry,
   B4 := sorry,
@@ -299,6 +331,8 @@ instance incidence_geometry_ℝ_ℝ : incidence_geometry :=
   S := sorry }
 
 ----------------------
+
+#exit
 
 variables[AxA: incidence_geometry]
 
@@ -464,7 +498,7 @@ theorem Leneasy {a b c : point} (ac : a ≠ c) (len : dist a b = dist b c) : a �
 theorem ceneqon {a b : point} {α : circle} (acen : center_circle a α) (bcirc : oncircle b α) : a ≠ b :=
 begin
   intro ab,
-  have := G4 (G3 acen),
+  have := not_oncircle_of_inside (inside_circle_of_center acen),
   rw ab at this,
   exact this bcirc,
 end
@@ -561,10 +595,10 @@ begin
   have := abs_lt.mp cenbig,
   have ab : a ≠ b := mt M1.mpr (by linarith : dist a b ≠ 0),
   rcases line_of_ne ab with ⟨L, aL, bL⟩,
-  rcases pts_of_line_circle_inter (Int3 (G3 acen) aL) with ⟨c1, c2, c1L, c2L, c1circ, c2circ, c1c2⟩,
-  rcases pts_of_line_circle_inter (Int3 (G3 bcen) bL) with ⟨d1, d2, d1L, d2L, d1circ, d2circ, d1d2⟩,
-  have Bc1ac2 := C1 aL c1L c2L (G3 acen) c1circ c2circ c1c2,
-  have Bd1bd2 := C1 bL d1L d2L (G3 bcen) d1circ d2circ d1d2,
+  rcases pts_of_line_circle_inter (Int3 (inside_circle_of_center acen) aL) with ⟨c1, c2, c1L, c2L, c1circ, c2circ, c1c2⟩,
+  rcases pts_of_line_circle_inter (Int3 (inside_circle_of_center bcen) bL) with ⟨d1, d2, d1L, d2L, d1circ, d2circ, d1d2⟩,
+  have Bc1ac2 := C1 aL c1L c2L (inside_circle_of_center acen) c1circ c2circ c1c2,
+  have Bd1bd2 := C1 bL d1L d2L (inside_circle_of_center bcen) d1circ d2circ d1d2,
   have clen1 := (DS3 acen ccirc).mpr c1circ,
   have clen2 := (DS3 acen ccirc).mpr c2circ,
   have dlen1 := (DS3 bcen dcirc).mpr d1circ,
@@ -701,7 +735,7 @@ theorem makeeqtri {a b : point} (hab : a ≠ b) : ∃ (c : point), iseqtri a b c
 begin
   rcases circle_of_ne hab with ⟨α, acen, bcirc⟩,
   rcases circle_of_ne (ne.symm hab) with ⟨β, bcen, acirc⟩,
-  rcases pts_of_circle_circle_inter (Int5 (G3 acen) bcirc (G3 bcen) acirc) with ⟨c, -, cona, conb, -, -, -⟩,
+  rcases pts_of_circle_circle_inter (Int5 (inside_circle_of_center acen) bcirc (inside_circle_of_center bcen) acirc) with ⟨c, -, cona, conb, -, -, -⟩,
   have abeqac := (DS3 acen bcirc).2 cona,
   have bceqba := (DS3 bcen conb).mpr acirc,
   have caeqcb : dist c a = dist c b :=
@@ -714,7 +748,7 @@ theorem makeeqtri1 {a b : point} (hab : a ≠ b) : ∃ (c d : point), iseqtri a 
 begin
   rcases circle_of_ne hab with ⟨α, acen, bcirc⟩,
   rcases circle_of_ne (ne.symm hab) with ⟨β, bcen, acirc⟩,
-  rcases pts_of_circle_circle_inter (Int5 (G3 acen) bcirc (G3 bcen) acirc) with ⟨c, d, cona, conb, dona, donb, cd⟩,
+  rcases pts_of_circle_circle_inter (Int5 (inside_circle_of_center acen) bcirc (inside_circle_of_center bcen) acirc) with ⟨c, d, cona, conb, dona, donb, cd⟩,
   have abeqac := (DS3 acen bcirc).2 cona,
   have abeqad := (DS3 acen bcirc).2 dona,
   have bceqba := (DS3 bcen conb).mpr acirc,
@@ -731,8 +765,8 @@ begin
   rcases line_of_ne hab with ⟨L, aL, bL⟩,
   rcases circle_of_ne hab with ⟨α, acen, bcirc⟩,
   rcases circle_of_ne (ne.symm hab) with ⟨β, bcen, acirc⟩,
-  rcases pts_of_circle_circle_inter (Int5 (G3 acen) bcirc (G3 bcen) acirc) with ⟨c, d, cona, conb, dona, donb, cd⟩,
-  have nss := C4 (difcendifcirc acen bcen hab) cd (Int5 (G3 acen) bcirc (G3 bcen) acirc) cona conb
+  rcases pts_of_circle_circle_inter (Int5 (inside_circle_of_center acen) bcirc (inside_circle_of_center bcen) acirc) with ⟨c, d, cona, conb, dona, donb, cd⟩,
+  have nss := C4 (difcendifcirc acen bcen hab) cd (Int5 (inside_circle_of_center acen) bcirc (inside_circle_of_center bcen) acirc) cona conb
     dona donb acen bcen aL bL,
   have abeqac := (DS3 acen bcirc).2 cona,
   have abeqad := (DS3 acen bcirc).2 dona,
@@ -750,8 +784,8 @@ begin
   rcases line_of_ne hab with ⟨L, aL, bL⟩,
   rcases circle_of_ne hab with ⟨α, acen, bcirc⟩,
   rcases circle_of_ne (ne.symm hab) with ⟨β, bcen, acirc⟩,
-  rcases pts_of_circle_circle_inter (Int5 (G3 acen) bcirc (G3 bcen) acirc) with ⟨c, d, cona, conb, dona, donb, cd⟩,
-  have nss := C4 (difcendifcirc acen bcen hab) cd (Int5 (G3 acen) bcirc (G3 bcen) acirc) cona conb
+  rcases pts_of_circle_circle_inter (Int5 (inside_circle_of_center acen) bcirc (inside_circle_of_center bcen) acirc) with ⟨c, d, cona, conb, dona, donb, cd⟩,
+  have nss := C4 (difcendifcirc acen bcen hab) cd (Int5 (inside_circle_of_center acen) bcirc (inside_circle_of_center bcen) acirc) cona conb
     dona donb acen bcen aL bL,
   have abeqac := (DS3 acen bcirc).2 cona,
   have abeqad := (DS3 acen bcirc).2 dona,
@@ -813,14 +847,14 @@ theorem ex {a b c : point} {L : line} (hbc : b ≠ c) (aL : online a L) : ∃ (d
 begin
     by_cases hab : a = b,
     { rcases circle_of_ne hbc with ⟨α, bcen, ccirc⟩,
-      rcases pts_of_line_circle_inter (Int3 (G3 bcen) (by rwa hab at aL)) with
+      rcases pts_of_line_circle_inter (Int3 (inside_circle_of_center bcen) (by rwa hab at aL)) with
         ⟨d, -, dL, -, dalpha, -, -⟩,
       refine ⟨d, dL, by rwa hab; linarith [(DS3 bcen dalpha).mpr ccirc]⟩, },
     rcases makeeqtri hab with ⟨d, len1, len2, len3, hab, hbd, hda⟩,
     rcases line_of_ne hda with ⟨M, dM, aM⟩,
     rcases line_of_ne hbd.symm with ⟨N, dN, bN⟩,
     rcases circle_of_ne hbc with ⟨α, bcen, ccirc⟩,
-    rcases pt_oncircle_of_inside_ne (G3 bcen) hbd.symm with ⟨g, gcirc, Bgbd⟩,
+    rcases pt_oncircle_of_inside_ne (inside_circle_of_center bcen) hbd.symm with ⟨g, gcirc, Bgbd⟩,
     have hyp : dist d g = dist b a + dist b g := by linarith [DS1 (B1 Bgbd).1, M2 d b],
     have hyp2 : dist d a < dist d g,
     { by_contra  h, -- by_contra and then push_neg?
@@ -830,7 +864,7 @@ begin
     have key : dist b c = dist f a := by linarith [DS1 Bfad, (DS3 dcen fcirc).2 gcirc2, M2 d f,
       flipboth len3, (DS3 bcen ccirc).2 gcirc],
     rcases circle_of_ne (ne.symm (B1 Bfad).2.1) with ⟨γ, acen2, fcirc3⟩,
-    rcases pts_of_line_circle_inter (Int3 (G3 acen2) aL) with ⟨h, -, hL, -, hcirc, -, -⟩,
+    rcases pts_of_line_circle_inter (Int3 (inside_circle_of_center acen2) aL) with ⟨h, -, hL, -, hcirc, -, -⟩,
     refine ⟨h, hL, by linarith [M2 a f, (DS3 acen2 fcirc3).2 hcirc]⟩,
 end
 
@@ -839,7 +873,7 @@ theorem excor {a b c : point} (hab : a ≠ b) (hbc : b ≠ c) :
 begin
   rcases line_of_ne hab with ⟨L, aL, bL⟩,
   rcases circle_of_ne hbc with ⟨α, bcirc, ccirc⟩,
-  rcases pt_oncircle_of_inside_ne (G3 bcirc) hab with ⟨p, pcirc, Bpba⟩,
+  rcases pt_oncircle_of_inside_ne (inside_circle_of_center bcirc) hab with ⟨p, pcirc, Bpba⟩,
   refine ⟨p, (B1 Bpba).1, by rwa [M2 c b, ((DS3 bcirc pcirc).2 ccirc)]⟩,
 end
 
@@ -851,14 +885,14 @@ begin
   by_cases b = p1, { exfalso, refine hcd (M1.mp (eq.trans (M1.mpr h).symm len).symm), },
   by_cases hap1 : a = p1,
   { rcases circle_of_ne (ne.symm hab) with ⟨α, bcen, acirc⟩,
-    rcases pts_of_line_circle_inter (Int3 (G3 bcen) bL) with ⟨e, f, eL, fL, ecirc, fcirc, hef⟩,
+    rcases pts_of_line_circle_inter (Int3 (inside_circle_of_center bcen) bL) with ⟨e, f, eL, fL, ecirc, fcirc, hef⟩,
     by_cases hyp : a = e,
     { use f, split,
       { -- refine later
-        exact C1 bL aL fL (G3 bcen) acirc fcirc (λ haf, hef (eq.trans hyp.symm haf)), },--again
+        exact C1 bL aL fL (inside_circle_of_center bcen) acirc fcirc (λ haf, hef (eq.trans hyp.symm haf)), },--again
       rw ← hap1 at len,
       linarith [(DS3 bcen acirc).2 fcirc], },
-    refine ⟨e, C1 bL aL eL (G3 bcen) acirc ecirc hyp, _⟩,
+    refine ⟨e, C1 bL aL eL (inside_circle_of_center bcen) acirc ecirc hyp, _⟩,
     rw ← ((DS3 bcen acirc).2 ecirc),
     rwa ← hap1 at len, }, --again
     rcases excor hab h with ⟨p, hypp⟩,
@@ -876,7 +910,7 @@ begin
     rw ← ad at big,
     have noin := mt (DS4 acen ccirc).mpr (by linarith [M2 a c] : ¬(dist a b < dist a c)),
     have := mt (DS3 acen ccirc).mpr ((by linarith [M2 a c]) : dist a c ≠ dist a b),
-    rcases pt_oncircle_of_inside_outside (G3 acen) noin this with ⟨p, pcirc, Bapb⟩,
+    rcases pt_oncircle_of_inside_outside (inside_circle_of_center acen) noin this with ⟨p, pcirc, Bapb⟩,
     have := (DS3 acen ccirc).mpr pcirc,
     rw ← ad, --optimize?
     refine ⟨p, Bapb, by linarith [M2 a c]⟩, },
@@ -1097,7 +1131,7 @@ theorem perppointnon { c : point} {O : line} (cO : ¬online c O) : ∃ (e h g : 
 begin
   rcases opp_side_of_not_online cO with ⟨d, dO, dcO⟩,
   rcases circle_of_ne (λ cd, (by rwa cd at dcO : ¬sameside d d O) (S1 dO) : c ≠ d) with ⟨α, ccen, dcirc⟩,
-  rcases pts_of_line_circle_inter (Int2 (by right; exact dcirc) (by left; exact (G3 ccen)) dcO) with
+  rcases pts_of_line_circle_inter (Int2 (by right; exact dcirc) (by left; exact (inside_circle_of_center ccen)) dcO) with
     ⟨e, g, eO, gO, ecirc, gcirc, eg⟩,
   rcases bisline eg with ⟨h, Behg, len⟩,
   have := (sss ((DS3 ccen ecirc).mpr gcirc) (flip2 len) rfl).2.2,
@@ -1929,11 +1963,11 @@ begin
   have bM : ¬online b M,-- := λ bM, (S3 cgL) (by rw (line_unique_of_pts ab aL bL (B3 Bcad cM dM) bM) at cM; exact cM),--why is this not a proof?
   { intro bM, have := line_unique_of_pts ab aL bL (B3 Bcad cM dM) bM, rw ← this at cM; exact  (S3 cgL) cM, },
   have eex : ∃ (e : point), online e N ∧ sameside b e M ∧ oncircle e α ∧ d ≠ e,
-  { rcases pts_of_line_circle_inter (Int3 (G3 dcen) par1.2.1) with ⟨e2, e3, e2N, e3N, e2circ, e3circ, e2e3⟩,
+  { rcases pts_of_line_circle_inter (Int3 (inside_circle_of_center dcen) par1.2.1) with ⟨e2, e3, e2N, e3N, e2circ, e3circ, e2e3⟩,
     have Be2de3 : B e2 d e3,
     { have same := (DS3 dcen e2circ).mpr e3circ,
-      cases B6 e2N par1.2.1 e3N (λ e2d, (G4 (G3 dcen)) (by rwa e2d at e2circ)) e2e3
-        (λ e3d, (G4 (G3 dcen)) (by rwa ← e3d at e3circ)),
+      cases B6 e2N par1.2.1 e3N (λ e2d, (not_oncircle_of_inside (inside_circle_of_center dcen)) (by rwa e2d at e2circ)) e2e3
+        (λ e3d, (not_oncircle_of_inside (inside_circle_of_center dcen)) (by rwa ← e3d at e3circ)),
       --- *** BAD to use junk `h` autogenerated
       exact h,
       cases h,

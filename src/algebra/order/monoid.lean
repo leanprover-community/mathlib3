@@ -112,10 +112,10 @@ class linear_ordered_comm_monoid (α : Type*)
 
 /-- Typeclass for expressing that the `0` of a type is less or equal to its `1`. -/
 @[ancestor has_zero has_one]
-class zero_le_one_class (α : Type*) [has_le α] extends has_zero α, has_one α :=
+class zero_le_one_class (α : Type*) [has_zero α] [has_one α] [has_le α] :=
 (zero_le_one : (0 : α) ≤ 1)
 
-@[simp] lemma zero_le_one [has_le α] [zero_le_one_class α] : (0 : α) ≤ 1 :=
+@[simp] lemma zero_le_one [has_le α] [has_zero α] [has_one α] [zero_le_one_class α] : (0 : α) ≤ 1 :=
 zero_le_one_class.zero_le_one
 
 /-- A linearly ordered commutative monoid with a zero element. -/

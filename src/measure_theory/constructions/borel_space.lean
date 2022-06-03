@@ -1136,8 +1136,8 @@ lemma ae_measurable_restrict_of_antitone_on [linear_order β] [order_closed_topo
   ae_measurable f (μ.restrict s) :=
 @ae_measurable_restrict_of_monotone_on αᵒᵈ β _ _ ‹_› _ _ _ _ _ ‹_› _ _ _ _ hs _ hf
 
-private lemma measurable_set_of_mem_nhds_within_Ioi_aux [densely_ordered α]
-  {s : set α} (h : ∀ x ∈ s, s ∈ 𝓝[>] x) (h' : ∀ x ∈ s, ∃ y, x < y):
+lemma measurable_set_of_mem_nhds_within_Ioi_aux [densely_ordered α]
+  {s : set α} (h : ∀ x ∈ s, s ∈ 𝓝[>] x) (h' : ∀ x ∈ s, ∃ y, x < y) :
   measurable_set s :=
 begin
   choose! M hM using h',

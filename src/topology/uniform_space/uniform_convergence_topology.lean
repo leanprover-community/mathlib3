@@ -71,24 +71,7 @@ local attribute [-instance] Pi.topological_space
 
 open set filter
 
-/-- TODO : move me -/
-lemma uniform_space.comap_infi {ι α γ : Sort*} {u : ι → uniform_space γ} {f : α → γ} :
-  (⨅ i, u i).comap f = ⨅ i, (u i).comap f :=
-begin
-  ext : 1,
-  change (𝓤 _) = (𝓤 _),
-  simp [uniformity_comap rfl, infi_uniformity']
-end
-
-/-- TODO : move me -/
-lemma uniform_space.comap_mono {α γ : Sort*} {f : α → γ} :
-  monotone (λ u : uniform_space γ, u.comap f) :=
-begin
-  intros u₁ u₂ hu,
-  change (𝓤 _) ≤ (𝓤 _),
-  rw uniformity_comap rfl,
-  exact comap_mono hu
-end
+#check uniform_space.comap_comap
 
 namespace uniform_convergence
 
@@ -529,3 +512,5 @@ protected def homeomorph_swap_Pi : @homeomorph (α → Π i, δ i) (Π i, α →
   end }
 
 end uniform_convergence_on
+
+#lint

@@ -539,7 +539,7 @@ end
 
 lemma tendsto_nat_floor_div_at_top :
   tendsto (λ x, (⌊x⌋₊ : R) / x) at_top (𝓝 1) :=
-by simpa using tendsto_nat_floor_mul_div_at_top (@zero_le_one R _ _)
+by simpa using tendsto_nat_floor_mul_div_at_top (@zero_le_one R _ _ _ _)
 
 lemma tendsto_nat_ceil_mul_div_at_top {a : R} (ha : 0 ≤ a) :
   tendsto (λ x, (⌈a * x⌉₊ : R) / x) at_top (𝓝 a) :=
@@ -558,6 +558,6 @@ end
 
 lemma tendsto_nat_ceil_div_at_top :
   tendsto (λ x, (⌈x⌉₊ : R) / x) at_top (𝓝 1) :=
-by simpa using tendsto_nat_ceil_mul_div_at_top (@zero_le_one R _ _)
+by simpa using tendsto_nat_ceil_mul_div_at_top (@zero_le_one R _ _ _ _)
 
 end

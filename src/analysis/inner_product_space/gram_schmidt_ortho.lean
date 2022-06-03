@@ -6,6 +6,7 @@ Authors: Jiale Miao, Kevin Buzzard
 
 import analysis.inner_product_space.projection
 import order.well_founded_set
+import analysis.inner_product_space.pi_L2
 
 /-!
 # Gram-Schmidt Orthogonalization and Orthonormalization
@@ -255,3 +256,41 @@ begin
     repeat { right },
     exact gram_schmidt_orthogonal 𝕜 f hij }
 end
+
+lemma span_gram_schmidt_normed (f : ι → E) (s : set ι):
+  span 𝕜 (gram_schmidt_normed 𝕜 f '' s) = span 𝕜 (gram_schmidt 𝕜 f '' s) :=
+begin
+  apply span_eq_span,
+  { intros x hx,
+    rw set.mem_image at hx,
+    rcases hx with ⟨i, hi, hix⟩,
+    rw [← hix],
+    exact smul_mem (span 𝕜 _) ((↑∥gram_schmidt 𝕜 f i∥)⁻¹)
+      (subset_span (set.mem_image_of_mem _ hi)) },
+  { intros x hx,
+    rw set.mem_image at hx,
+    rcases hx with ⟨i, hi, hix⟩,
+    rw [← hix],
+    refine span_mono (image_subset _ (singleton_subset_set_iff.2 hi)) _,
+    simp only [coe_singleton, set.image_singleton],
+    by_cases h : gram_schmidt 𝕜 f i = 0,
+    { simp [h] },
+    haveI : invertible (∥gram_schmidt 𝕜 f i∥ : 𝕜),
+    { apply invertible_of_nonzero,
+      simpa using h },
+    haveI : invertible (∥gram_schmidt 𝕜 f i∥ : 𝕜)⁻¹ := invertible_inv,
+    rw [gram_schmidt_normed, span_singleton_smul_eq],
+    { apply mem_span_singleton_self },
+    { apply is_unit_of_invertible } }
+end
+
+lemma span_gram_schmidt_normed_range (f : ι → E) :
+  span 𝕜 (range (gram_schmidt_normed 𝕜 f)) = span 𝕜 (range (gram_schmidt 𝕜 f)) :=
+by simpa only [image_univ.symm] using span_gram_schmidt_normed 𝕜 f univ
+
+/-- When given a basis, `gram_schmidt_normed` produces an orthonormal basis. -/
+noncomputable def gram_schmidt_orthonormal_basis [fintype ι] (b : basis ι 𝕜 E) :
+  orthonormal_basis ι 𝕜 E :=
+orthonormal_basis.mk
+  (gram_schmidt_orthonormal 𝕜 b b.linear_independent)
+  (((span_gram_schmidt_normed_range 𝕜 b).trans (span_gram_schmidt 𝕜 b)).trans b.span_eq)

@@ -111,7 +111,6 @@ class linear_ordered_comm_monoid (α : Type*)
   extends linear_order α, ordered_comm_monoid α.
 
 /-- Typeclass for expressing that the `0` of a type is less or equal to its `1`. -/
-@[ancestor has_zero has_one]
 class zero_le_one_class (α : Type*) [has_zero α] [has_one α] [has_le α] :=
 (zero_le_one : (0 : α) ≤ 1)
 

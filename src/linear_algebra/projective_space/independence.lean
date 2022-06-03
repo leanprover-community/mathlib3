@@ -5,7 +5,32 @@ Authors: Michael Blyth
 -/
 
 import linear_algebra.projective_space.basic
-import tactic
+
+/-!
+# Independence in Projective Space
+
+In this file we define independence and dependence of families of elements in projective space.
+
+## Implementation Details
+
+We use an inductive definition to define that a family of vectors is independent where the only
+constructor assumes an independent family of vectors from the ambient vector space.
+Similarly for the definition of dependence.
+
+## Results
+
+- A family of elements is dependent iff it is not independent.
+- Two elements are dependent iff they are equal.
+
+# Future Work
+
+- Define collinearity in projective space.
+- Prove the axioms of a projective geometry are satisfied by the dependece relation.
+- Define projective linear subspaces.
+
+-/
+
+
 variables {K V : Type*} [field K] [add_comm_group V] [module K V]
 
 namespace projectivization

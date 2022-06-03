@@ -547,8 +547,9 @@ begin
     exact mul_option_lt_of_lt hy.neg (ihr_neg' ihxy) (ihr_neg ihyx) j i l _ h },
 end
 
-include ih
 omit ihxy ihyx
+include ih
+
 theorem P1_of_hyp : (x * y).numeric :=
 begin
   have ihxy := ihxy_of_ih ih, have ihxyn := ihr_neg (ihr_neg' ihxy),
@@ -636,7 +637,7 @@ lemma ihr''_neg' : ihr'' x₁ x₂ y → ihr'' x₁ x₂ (-y) :=
 begin
   simp_rw [ihr'', is_option_neg],
   refine (λ h z w h', ⟨_, _⟩); rw P24_neg',
-  { apply (h h').1 }, { apply (h h').2 },
+  exacts [(h h').1, (h h').2],
 end
 
 lemma P2'_of_P24 (h₁ : P24 x₁ x₂ y') (h₂ : P3 x' x₂ y' y) (he : ⟦x₁⟧ = ⟦x₂⟧) :
@@ -666,7 +667,7 @@ lemma lt_mul_of_numeric (hn : (x * y).numeric) :
   (mul_option_lt_mul x y ∧ mul_option_lt_mul (-x) (-y)) ∧
   mul_option_lt_mul x (-y) ∧ mul_option_lt_mul (-x) y :=
 begin
-  refine ⟨_, _⟩,
+  split,
   { have h := hn.move_left_lt, simp_rw lt_iff at h,
     convert (left_moves_mul_iff (gt _)).1 h, rw ← quot_neg_mul_neg, refl },
   { have h := hn.lt_move_right, simp_rw [lt_iff, right_moves_mul_iff] at h,
@@ -723,11 +724,10 @@ begin
   replace ih : ∀ a', ices a' a → hyp a' := λ a' hr, ih a' hr (numeric_dc hr ha),
   cases a with x y x₁ x₂ y,
   { exact P1_of_hyp ih (ha x P1_mem.1) (ha y P1_mem.2) },
-  { refine ⟨_, P3_of_lt ih⟩,
+  { refine ⟨λ he, equiv_iff.1 _, P3_of_lt ih⟩,
     have h₁ := ha x₁ P24_mem.1, have h₂ := ha x₂ P24_mem.2.1,
     have h₁₂ := ih₁₂_of_ih' ih, have h₂₁ := ih₂₁_of_ih' ih,
-    intro he, rw ← equiv_iff, split; apply mul_le_mul_right,
-    exacts [h₁, h₂, h₁₂, h₂₁, he, h₂, h₁, h₂₁, h₁₂, he.symm] },
+    exact ⟨mul_le_mul_right h₁ h₂ h₁₂ h₂₁ he, mul_le_mul_right h₂ h₁ h₂₁ h₁₂ he.symm⟩ },
 end
 
 #check P124

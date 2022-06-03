@@ -84,7 +84,7 @@ ext_iff.2 ⟨h₁, h₂⟩
 lemma map_def {f : α → γ} {g : β → δ} : prod.map f g = λ (p : α × β), (f p.1, g p.2) :=
 funext (λ p, ext (map_fst f g p) (map_snd f g p))
 
-lemma id_prod : (λ (p : α × α), (p.1, p.2)) = id :=
+lemma id_prod : (λ (p : α × β), (p.1, p.2)) = id :=
 funext $ λ ⟨a, b⟩, rfl
 
 lemma map_id : (prod.map (@id α) (@id β)) = id :=

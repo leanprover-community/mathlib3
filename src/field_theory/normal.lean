@@ -332,7 +332,8 @@ end lift
 
 section is_alg_closed
 
-variables (F K) (E :Type*) [field E] [is_alg_closed E] [algebra K E] [algebra F E] [is_scalar_tower F K E]
+variables (F K) (E :Type*) [field E] [is_alg_closed E] [algebra K E] [algebra F E]
+  [is_scalar_tower F K E]
 
 /-- If `E/K/F` is a tower of fields with `K/F` normal and E is algebraically closed then
   we have an equivalence (K →ₐ[F] E) ≃ (K ≃ₐ[F] K). -/

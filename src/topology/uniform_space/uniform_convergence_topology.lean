@@ -71,8 +71,6 @@ local attribute [-instance] Pi.topological_space
 
 open set filter
 
-#check uniform_space.comap_comap
-
 namespace uniform_convergence
 
 variables (α β : Type*) {γ ι : Type*}
@@ -91,13 +89,16 @@ protected lemma is_basis_gen (𝓑 : filter_basis $ β × β) :
 protected def basis (𝓑 : filter_basis $ β × β) : filter_basis ((α → β) × (α → β)) :=
 (uniform_convergence.is_basis_gen α β 𝓑).filter_basis
 
-/-- The uniformity of uniform convergence -/
+/-- Uuniformity of uniform convergence -/
 protected def filter (𝓑 : filter_basis $ β × β) : filter ((α → β) × (α → β)) :=
 (uniform_convergence.basis α β 𝓑).filter
 
 local notation `Φ` :=
   λ (α β : Type*) (uvx : ((α → β) × (α → β)) × α), (uvx.1.1 uvx.2, uvx.1.2 uvx.2)
 
+/-- This is a lower adjoint to `uniform_convergence.filter` (see `uniform_convergence.gc`).
+The exact definition is not really interesting, but this allows us to prove many properties of
+the uniform structure of uniform convergence using only results about Galois connections. -/
 protected def lower_adjoint (𝓐 : filter $ (α → β) × (α → β)) : filter (β × β) :=
 (𝓐 ×ᶠ ⊤).map (Φ α β)
 
@@ -279,7 +280,11 @@ begin
   ext; refl
 end
 
-/-- TODO : upgrade to a uniform homeomorphism once we have them. -/
+/-- If `α → Π i, δ i` and each `α → δ i` are equipped with the topologies of uniform
+convergence, then "swapping the arguments" is an homeomorphism between `α → Π i, δ i` and
+`Π i, α → δ i`.
+
+TODO : upgrade to a uniform homeomorphism once we have them. -/
 protected def homeomorph_swap_Pi : @homeomorph (α → Π i, δ i) (Π i, α → δ i)
   (@uniform_convergence.topological_space α (Π i, δ i) (Pi.uniform_space δ))
   (@Pi.topological_space ι (λ i, α → δ i) (λ i, uniform_convergence.topological_space α (δ i))) :=
@@ -485,7 +490,10 @@ begin
   ext; refl
 end
 
-/-- TODO : upgrade to a uniform homeomorphism once we have them. -/
+/-- If `α → Π i, δ i` and each `α → δ i` are equipped with the topologies of `𝔖`-convergence,
+then "swapping the arguments" is an homeomorphism between `α → Π i, δ i` and `Π i, α → δ i`.
+
+TODO : upgrade to a uniform homeomorphism once we have them. -/
 protected def homeomorph_swap_Pi : @homeomorph (α → Π i, δ i) (Π i, α → δ i)
   (@uniform_convergence_on.topological_space α (Π i, δ i) (Pi.uniform_space δ) 𝔖)
   (@Pi.topological_space ι (λ i, α → δ i)
@@ -512,5 +520,3 @@ protected def homeomorph_swap_Pi : @homeomorph (α → Π i, δ i) (Π i, α →
   end }
 
 end uniform_convergence_on
-
-#lint

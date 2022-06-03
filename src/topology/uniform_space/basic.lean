@@ -1232,6 +1232,10 @@ lemma uniform_continuous_subtype_val {p : α → Prop} [uniform_space α] :
   uniform_continuous (subtype.val : {a : α // p a} → α) :=
 uniform_continuous_comap
 
+lemma uniform_continuous_subtype_coe {p : α → Prop} [uniform_space α] :
+  uniform_continuous (coe : {a : α // p a} → α) :=
+uniform_continuous_subtype_val
+
 lemma uniform_continuous_subtype_mk {p : α → Prop} [uniform_space α] [uniform_space β]
   {f : β → α} (hf : uniform_continuous f) (h : ∀x, p (f x)) :
   uniform_continuous (λx, ⟨f x, h x⟩ : β → subtype p) :=

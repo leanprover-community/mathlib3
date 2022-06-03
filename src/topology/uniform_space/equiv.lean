@@ -9,26 +9,20 @@ import topology.uniform_space.uniform_embedding
 import topology.uniform_space.pi
 
 /-!
-# Homeomorphisms
+# Uniform isomorphisms
 
-This file defines homeomorphisms between two topological spaces. They are bijections with both
-directions continuous. We denote homeomorphisms with the notation `≃ᵤ`.
+This file defines uniform isomorphisms between two uniform spaces. They are bijections with both
+directions uniformly continuous. We denote uniform isomorphisms with the notation `≃ᵤ`.
 
 # Main definitions
 
-* `homeomorph α β`: The type of homeomorphisms from `α` to `β`.
+* `uniform_equiv α β`: The type of uniform isomorphisms from `α` to `β`.
   This type can be denoted using the following notation: `α ≃ᵤ β`.
-
-# Main results
-
-* Pretty much every topological property is preserved under homeomorphisms.
-* `homeomorph.homeomorph_of_continuous_open`: A continuous bijection that is
-  an open map is a homeomorphism.
 
 -/
 
 open set filter
-open_locale topological_space
+open_locale
 
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 
@@ -50,7 +44,7 @@ instance : has_coe_to_fun (α ≃ᵤ β) (λ _, α → β) := ⟨λe, e.to_equiv
   ((uniform_equiv.mk a b c) : α → β) = a :=
 rfl
 
-/-- Inverse of a homeomorphism. -/
+/-- Inverse of a uniform isomorphism. -/
 protected def symm (h : α ≃ᵤ β) : β ≃ᵤ α :=
 { uniform_continuous_to_fun  := h.uniform_continuous_inv_fun,
   uniform_continuous_inv_fun := h.uniform_continuous_to_fun,
@@ -74,14 +68,14 @@ lemma to_equiv_injective : function.injective (to_equiv : α ≃ᵤ β → α �
 @[ext] lemma ext {h h' : α ≃ᵤ β} (H : ∀ x, h x = h' x) : h = h' :=
 to_equiv_injective $ equiv.ext H
 
-/-- Identity map as a homeomorphism. -/
+/-- Identity map as a uniform isomorphism. -/
 @[simps apply {fully_applied := ff}]
 protected def refl (α : Type*) [uniform_space α] : α ≃ᵤ α :=
 { uniform_continuous_to_fun := uniform_continuous_id,
   uniform_continuous_inv_fun := uniform_continuous_id,
   to_equiv := equiv.refl α }
 
-/-- Composition of two homeomorphisms. -/
+/-- Composition of two uniform isomorphisms. -/
 protected def trans (h₁ : α ≃ᵤ β) (h₂ : β ≃ᵤ γ) : α ≃ᵤ γ :=
 { uniform_continuous_to_fun  := h₂.uniform_continuous_to_fun.comp h₁.uniform_continuous_to_fun,
   uniform_continuous_inv_fun := h₁.uniform_continuous_inv_fun.comp h₂.uniform_continuous_inv_fun,
@@ -109,7 +103,7 @@ h.uniform_continuous_inv_fun
 protected lemma continuous_symm (h : α ≃ᵤ β) : continuous (h.symm) :=
 h.uniform_continuous_symm.continuous
 
-/-- Identity map as a homeomorphism. -/
+/-- A uniform isomorphism as a homeomorphism. -/
 @[simps]
 protected def to_homeomorph {α : Type*} [uniform_space α] (e : α ≃ᵤ α) : α ≃ₜ α :=
 { continuous_to_fun := e.continuous,
@@ -183,7 +177,7 @@ def set_congr {s t : set α} (h : s = t) : s ≃ᵤ t :=
   uniform_continuous_inv_fun := uniform_continuous_subtype_mk uniform_continuous_subtype_val _,
   to_equiv := equiv.set_congr h }
 
-/-- Product of two homeomorphisms. -/
+/-- Product of two uniform isomorphisms. -/
 def prod_congr (h₁ : α ≃ᵤ β) (h₂ : γ ≃ᵤ δ) : α × γ ≃ᵤ β × δ :=
 { uniform_continuous_to_fun  := (h₁.uniform_continuous.comp uniform_continuous_fst).prod_mk
     (h₂.uniform_continuous.comp uniform_continuous_snd),
@@ -240,7 +234,7 @@ def fun_unique (ι α : Type*) [unique ι] [uniform_space α] : (ι → α) ≃�
   uniform_continuous_to_fun := Pi.uniform_continuous_proj _ _,
   uniform_continuous_inv_fun := uniform_continuous_pi.mpr (λ _, uniform_continuous_id) }
 
-/-- Homeomorphism between dependent functions `Π i : fin 2, α i` and `α 0 × α 1`. -/
+/-- Uniform isomorphism between dependent functions `Π i : fin 2, α i` and `α 0 × α 1`. -/
 @[simps { fully_applied := ff }]
 def {u} pi_fin_two (α : fin 2 → Type u) [Π i, uniform_space (α i)] : (Π i, α i) ≃ᵤ α 0 × α 1 :=
 { to_equiv := pi_fin_two_equiv α,
@@ -249,12 +243,12 @@ def {u} pi_fin_two (α : fin 2 → Type u) [Π i, uniform_space (α i)] : (Π i,
   uniform_continuous_inv_fun := uniform_continuous_pi.mpr $
     fin.forall_fin_two.2 ⟨uniform_continuous_fst, uniform_continuous_snd⟩ }
 
-/-- Homeomorphism between `α² = fin 2 → α` and `α × α`. -/
+/-- Uniform isomorphism between `α² = fin 2 → α` and `α × α`. -/
 @[simps { fully_applied := ff }] def fin_two_arrow : (fin 2 → α) ≃ᵤ α × α :=
 { to_equiv := fin_two_arrow_equiv α, ..  pi_fin_two (λ _, α) }
 
 /--
-A subset of a topological space is homeomorphic to its image under a homeomorphism.
+A subset of a uniform space is uniformly isomorphic to its image under a uniform isomorphism.
 -/
 def image (e : α ≃ᵤ β) (s : set α) : s ≃ᵤ e '' s :=
 { uniform_continuous_to_fun := uniform_continuous_subtype_mk
@@ -266,9 +260,9 @@ def image (e : α ≃ᵤ β) (s : set α) : s ≃ᵤ e '' s :=
 
 end uniform_equiv
 
-/-- An inducing equiv between topological spaces is a homeomorphism. -/
-@[simps] def equiv.to_uniform_equiv_of_uniform_inducing [uniform_space α] [uniform_space β] (f : α ≃ β)
-  (hf : uniform_inducing f) :
+/-- A uniform inducing equiv between uniform spaces is a uniform isomorphism. -/
+@[simps] def equiv.to_uniform_equiv_of_uniform_inducing [uniform_space α] [uniform_space β]
+  (f : α ≃ β) (hf : uniform_inducing f) :
   α ≃ᵤ β :=
 { uniform_continuous_to_fun := hf.uniform_continuous,
   uniform_continuous_inv_fun := hf.uniform_continuous_iff.2 $ by simpa using uniform_continuous_id,

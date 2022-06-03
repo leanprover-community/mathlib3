@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Yury Kudryashov, Sébastien Gouëzel, Chris Hughes
 -/
 import data.fin.basic
-import order.pilex
+import data.pi.lex
+
 /-!
 # Operation on tuples
 
@@ -166,7 +167,7 @@ forall_fin_succ.trans $ and_congr iff.rfl $ forall_congr $ λ j, by simp [tail]
 
 lemma cons_le [Π i, preorder (α i)] {x : α 0} {q : Π i, α i} {p : Π i : fin n, α i.succ} :
   cons x p ≤ q ↔ x ≤ q 0 ∧ p ≤ tail q :=
-@le_cons  _ (λ i, order_dual (α i)) _ x q p
+@le_cons  _ (λ i, (α i)ᵒᵈ) _ x q p
 
 lemma cons_le_cons [Π i, preorder (α i)] {x₀ y₀ : α 0} {x y : Π i : fin n, α (i.succ)} :
   cons x₀ x ≤ cons y₀ y ↔ x₀ ≤ y₀ ∧ x ≤ y :=

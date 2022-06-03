@@ -52,7 +52,7 @@ open associates nat
 theorem of_wf_dvd_monoid_associates (h : wf_dvd_monoid (associates α)): wf_dvd_monoid α :=
 ⟨begin
   haveI := h,
-  refine (surjective.well_founded_iff mk_surjective _).2 wf_dvd_monoid.well_founded_dvd_not_unit,
+  refine (surjective.well_founded_iff mk_surjective _).2 well_founded_dvd_not_unit,
   intros, rw mk_dvd_not_unit_mk_iff
 end⟩
 
@@ -60,52 +60,56 @@ variables [wf_dvd_monoid α]
 
 instance wf_dvd_monoid_associates : wf_dvd_monoid (associates α) :=
 ⟨begin
-  refine (surjective.well_founded_iff mk_surjective _).1 wf_dvd_monoid.well_founded_dvd_not_unit,
+  refine (surjective.well_founded_iff mk_surjective _).1 well_founded_dvd_not_unit,
   intros, rw mk_dvd_not_unit_mk_iff
 end⟩
 
 theorem well_founded_associates : well_founded ((<) : associates α → associates α → Prop) :=
-subrelation.wf (λ x y, dvd_not_unit_of_lt) wf_dvd_monoid.well_founded_dvd_not_unit
+subrelation.wf (λ x y, dvd_not_unit_of_lt) well_founded_dvd_not_unit
 
 local attribute [elab_as_eliminator] well_founded.fix
 
 lemma exists_irreducible_factor {a : α} (ha : ¬ is_unit a) (ha0 : a ≠ 0) :
   ∃ i, irreducible i ∧ i ∣ a :=
-(irreducible_or_factor a ha).elim (λ hai, ⟨a, hai, dvd_rfl⟩)
-  (well_founded.fix
-    wf_dvd_monoid.well_founded_dvd_not_unit
-    (λ a ih ha ha0 ⟨x, y, hx, hy, hxy⟩,
-      have hx0 : x ≠ 0, from λ hx0, ha0 (by rw [← hxy, hx0, zero_mul]),
-      (irreducible_or_factor x hx).elim
-        (λ hxi, ⟨x, hxi, hxy ▸ by simp⟩)
-        (λ hxf, let ⟨i, hi⟩ := ih x ⟨hx0, y, hy, hxy.symm⟩ hx hx0 hxf in
-          ⟨i, hi.1, hi.2.trans (hxy ▸ by simp)⟩)) a ha ha0)
+let ⟨b, hs, hr⟩ := well_founded_dvd_not_unit.has_min {b | b ∣ a ∧ ¬ is_unit b} ⟨a, dvd_rfl, ha⟩ in
+⟨b, ⟨hs.2, λ c d he, let h := dvd_trans ⟨d, he⟩ hs.1 in or_iff_not_imp_left.2 $
+  λ hc, of_not_not $ λ hd, hr c ⟨h, hc⟩ ⟨ne_zero_of_dvd_ne_zero ha0 h, d, hd, he⟩⟩, hs.1⟩
 
 @[elab_as_eliminator] lemma induction_on_irreducible {P : α → Prop} (a : α)
   (h0 : P 0) (hu : ∀ u : α, is_unit u → P u)
   (hi : ∀ a i : α, a ≠ 0 → irreducible i → P a → P (i * a)) :
   P a :=
 by haveI := classical.dec; exact
-well_founded.fix wf_dvd_monoid.well_founded_dvd_not_unit
-  (λ a ih, if ha0 : a = 0 then ha0.symm ▸ h0
+well_founded_dvd_not_unit.fix
+  (λ a ih, if ha0 : a = 0 then ha0.substr h0
     else if hau : is_unit a then hu a hau
-    else let ⟨i, hii, ⟨b, hb⟩⟩ := exists_irreducible_factor hau ha0 in
-      have hb0 : b ≠ 0, from λ hb0, by simp * at *,
-      hb.symm ▸ hi _ _ hb0 hii (ih _ ⟨hb0, i,
-        hii.1, by rw [hb, mul_comm]⟩))
+    else let ⟨i, hii, b, hb⟩ := exists_irreducible_factor hau ha0,
+      hb0 : b ≠ 0 := ne_zero_of_dvd_ne_zero ha0 ⟨i, mul_comm i b ▸ hb⟩ in
+      hb.symm ▸ hi b i hb0 hii $ ih b ⟨hb0, i, hii.1, mul_comm i b ▸ hb⟩)
   a
 
 lemma exists_factors (a : α) : a ≠ 0 →
-  ∃f : multiset α, (∀b ∈ f, irreducible b) ∧ associated f.prod a :=
-wf_dvd_monoid.induction_on_irreducible a
+  ∃ f : multiset α, (∀ b ∈ f, irreducible b) ∧ associated f.prod a :=
+induction_on_irreducible a
   (λ h, (h rfl).elim)
-  (λ u hu _, ⟨0, ⟨by simp [hu], associated.symm (by simp [hu, associated_one_iff_is_unit])⟩⟩)
-  (λ a i ha0 hii ih hia0,
+  (λ u hu _, ⟨0, λ _ h, h.elim, hu.unit, one_mul _⟩)
+  (λ a i ha0 hi ih _,
     let ⟨s, hs⟩ := ih ha0 in
-    ⟨i ::ₘ s, ⟨by clear _let_match;
-    { intros b H, cases (multiset.mem_cons.mp H), { convert hii }, { exact hs.1 b h } },
-      by { rw multiset.prod_cons,
-           exact hs.2.mul_left _ }⟩⟩)
+    ⟨i ::ₘ s, λ b H, (multiset.mem_cons.1 H).elim (λ h, h.symm ▸ hi) (hs.1 b),
+      by { rw s.prod_cons i, exact hs.2.mul_left i }⟩)
+
+lemma not_unit_iff_exists_factors_eq (a : α) (hn0 : a ≠ 0) :
+  ¬ is_unit a ↔ ∃ f : multiset α, (∀ b ∈ f, irreducible b) ∧ f.prod = a ∧ f ≠ ∅ :=
+⟨λ hnu, begin
+  obtain ⟨f, hi, u, rfl⟩ := exists_factors a hn0,
+  obtain ⟨b, h⟩ := multiset.exists_mem_of_ne_zero (λ h : f = 0, hnu $ by simp [h]),
+  classical, refine ⟨(f.erase b).cons (b * u), λ a ha, _, _, multiset.cons_ne_zero⟩,
+  { obtain (rfl|ha) := multiset.mem_cons.1 ha,
+    exacts [associated.irreducible ⟨u,rfl⟩ (hi b h), hi a (multiset.mem_of_mem_erase ha)] },
+  { rw [multiset.prod_cons, mul_comm b, mul_assoc, multiset.prod_erase h, mul_comm] },
+end,
+λ ⟨f, hi, he, hne⟩, let ⟨b, h⟩ := multiset.exists_mem_of_ne_zero hne in
+  not_is_unit_of_not_is_unit_dvd (hi b h).not_unit $ he ▸ multiset.dvd_prod h⟩
 
 end wf_dvd_monoid
 
@@ -227,7 +231,7 @@ by haveI := classical.dec_eq α; exact
 /-- If an irreducible has a prime factorization,
   then it is an associate of one of its prime factors. -/
 lemma prime_factors_irreducible [cancel_comm_monoid_with_zero α] {a : α} {f : multiset α}
-  (ha : irreducible a) (pfa : (∀b ∈ f, prime b) ∧ f.prod ~ᵤ a) :
+  (ha : irreducible a) (pfa : (∀ b ∈ f, prime b) ∧ f.prod ~ᵤ a) :
   ∃ p, a ~ᵤ p ∧ f = {p} :=
 begin
   haveI := classical.dec_eq α,
@@ -424,6 +428,16 @@ have multiset.rel associated (p ::ₘ factors b) (factors a),
       ... ~ᵤ multiset.prod (p ::ₘ factors b) :
         by rw multiset.prod_cons; exact (factors_prod hb0).symm.mul_left _),
 multiset.exists_mem_of_rel_of_mem this (by simp)
+
+lemma ne_zero_of_mem_factors {p a : α} (h : p ∈ factors a) : a ≠ 0 :=
+begin
+  intro ha,
+  rw [factors, dif_pos ha] at h,
+  exact multiset.not_mem_zero _ h
+end
+
+lemma dvd_of_mem_factors {p a : α} (h : p ∈ factors a) : p ∣ a :=
+dvd_trans (multiset.dvd_prod h) (associated.dvd (factors_prod (ne_zero_of_mem_factors h)))
 
 end unique_factorization_monoid
 

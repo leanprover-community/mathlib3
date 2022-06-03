@@ -282,7 +282,7 @@ lemma lt_iff_exists_real_btwn {a b : ereal} :
  λ ⟨x, ax, xb⟩, ax.trans xb⟩
 
 /-- The set of numbers in `ereal` that are not equal to `±∞` is equivalent to `ℝ`. -/
-def ne_top_bot_equiv_real : ({⊥, ⊤} : set ereal).compl ≃ ℝ :=
+def ne_top_bot_equiv_real : ({⊥, ⊤}ᶜ : set ereal) ≃ ℝ :=
 { to_fun := λ x, ereal.to_real x,
   inv_fun := λ x, ⟨x, by simp⟩,
   left_inv := λ ⟨x, hx⟩, subtype.eq $ begin
@@ -415,7 +415,7 @@ by conv_lhs { rw [ereal.neg_le, neg_neg] }
 @[simp, norm_cast] lemma coe_neg (x : ℝ) : ((- x : ℝ) : ereal) = - (x : ereal) := rfl
 
 /-- Negation as an order reversing isomorphism on `ereal`. -/
-def neg_order_iso : ereal ≃o (order_dual ereal) :=
+def neg_order_iso : ereal ≃o erealᵒᵈ :=
 { to_fun := λ x, order_dual.to_dual (-x),
   inv_fun := λ x, -x.of_dual,
   map_rel_iff' := λ x y, neg_le_neg_iff,

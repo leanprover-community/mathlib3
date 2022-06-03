@@ -5,7 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 -/
 
 import algebra.indicator_function
-import data.tprod
+import data.prod.tprod
 import group_theory.coset
 import logic.equiv.fin
 import measure_theory.measurable_space_def
@@ -458,7 +458,7 @@ lemma measurable.dite [∀ x, decidable (x ∈ s)] {f : s → β} (hf : measurab
 measurable_of_restrict_of_restrict_compl hs (by simpa) (by simpa)
 
 lemma measurable_of_measurable_on_compl_finite [measurable_singleton_class α]
-  {f : α → β} (s : set α) (hs : finite s) (hf : measurable (sᶜ.restrict f)) :
+  {f : α → β} (s : set α) (hs : s.finite) (hf : measurable (sᶜ.restrict f)) :
   measurable f :=
 begin
   letI : fintype s := finite.fintype hs,
@@ -484,11 +484,11 @@ m₁.comap prod.fst ⊔ m₂.comap prod.snd
 instance {α β} [m₁ : measurable_space α] [m₂ : measurable_space β] : measurable_space (α × β) :=
 m₁.prod m₂
 
-@[measurability] lemma measurable_fst [measurable_space α] [measurable_space β] :
+@[measurability] lemma measurable_fst {ma : measurable_space α} {mb : measurable_space β} :
   measurable (prod.fst : α × β → α) :=
 measurable.of_comap_le le_sup_left
 
-@[measurability] lemma measurable_snd [measurable_space α] [measurable_space β] :
+@[measurability] lemma measurable_snd {ma : measurable_space α} {mb : measurable_space β} :
   measurable (prod.snd : α × β → β) :=
 measurable.of_comap_le le_sup_right
 
@@ -561,8 +561,8 @@ lemma measurable_set_prod_of_nonempty {s : set α} {t : set β} (h : (s ×ˢ t :
 begin
   rcases h with ⟨⟨x, y⟩, hx, hy⟩,
   refine ⟨λ hst, _, λ h, h.1.prod h.2⟩,
-  have : measurable_set ((λ x, (x, y)) ⁻¹' s ×ˢ t) := measurable_id.prod_mk measurable_const hst,
-  have : measurable_set (prod.mk x ⁻¹' s ×ˢ t) := measurable_const.prod_mk measurable_id hst,
+  have : measurable_set ((λ x, (x, y)) ⁻¹' s ×ˢ t) := measurable_prod_mk_right hst,
+  have : measurable_set (prod.mk x ⁻¹' s ×ˢ t) := measurable_prod_mk_left hst,
   simp * at *
 end
 

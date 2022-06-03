@@ -126,6 +126,9 @@ instance non_unital_normed_ring.to_normed_group [β : non_unital_normed_ring α]
 instance non_unital_semi_normed_ring.to_semi_normed_group [β : non_unital_semi_normed_ring α] :
   semi_normed_group α := { ..β }
 
+instance [semi_normed_group α] [has_one α] [norm_one_class α] : norm_one_class (ulift α) :=
+⟨by simp [ulift.norm_def]⟩
+
 instance prod.norm_one_class [semi_normed_group α] [has_one α] [norm_one_class α]
   [semi_normed_group β] [has_one β] [norm_one_class β] :
   norm_one_class (α × β) :=
@@ -172,6 +175,10 @@ norm_mul_le x
 lemma mul_right_bound (x : α) :
   ∀ (y:α), ∥add_monoid_hom.mul_right x y∥ ≤ ∥x∥ * ∥y∥ :=
 λ y, by {rw mul_comm, convert norm_mul_le y x}
+
+instance : non_unital_semi_normed_ring (ulift α) :=
+{ norm_mul := λ x y, (norm_mul_le x.down y.down : _),
+  .. ulift.semi_normed_group }
 
 /-- Non-unital seminormed ring structure on the product of two non-unital seminormed rings,
   using the sup norm. -/
@@ -294,6 +301,10 @@ nat.rec_on n (by simp only [pow_zero, norm_one]) (λ n hn, norm_pow_le' a n.succ
 lemma eventually_norm_pow_le (a : α) : ∀ᶠ (n:ℕ) in at_top, ∥a ^ n∥ ≤ ∥a∥ ^ n :=
 eventually_at_top.mpr ⟨1, λ b h, norm_pow_le' a (nat.succ_le_iff.mp h)⟩
 
+instance : semi_normed_ring (ulift α) :=
+{ .. ulift.non_unital_semi_normed_ring,
+  .. ulift.semi_normed_group }
+
 /-- Seminormed ring structure on the product of two seminormed rings,
   using the sup norm. -/
 instance prod.semi_normed_ring [semi_normed_ring β] :
@@ -312,6 +323,10 @@ end semi_normed_ring
 
 section non_unital_normed_ring
 variables [non_unital_normed_ring α]
+
+instance : non_unital_normed_ring (ulift α) :=
+{ .. ulift.non_unital_semi_normed_ring,
+  .. ulift.semi_normed_group }
 
 /-- Non-unital normed ring structure on the product of two non-unital normed rings,
 using the sup norm. -/
@@ -338,16 +353,20 @@ norm_pos_iff.mpr (units.ne_zero x)
 lemma units.nnnorm_pos [nontrivial α] (x : αˣ) : 0 < ∥(x:α)∥₊ :=
 x.norm_pos
 
+instance : normed_ring (ulift α) :=
+{ .. ulift.semi_normed_ring,
+  .. ulift.normed_group }
+
 /-- Normed ring structure on the product of two normed rings, using the sup norm. -/
 instance prod.normed_ring [normed_ring β] : normed_ring (α × β) :=
 { norm_mul := norm_mul_le,
-  ..prod.semi_normed_group }
+  ..prod.normed_group }
 
 /-- Normed ring structure on the product of finitely many normed rings, using the sup norm. -/
 instance pi.normed_ring {π : ι → Type*} [fintype ι] [Π i, normed_ring (π i)] :
   normed_ring (Π i, π i) :=
 { norm_mul := norm_mul_le,
-  ..pi.semi_normed_group }
+  ..pi.normed_group }
 
 end normed_ring
 
@@ -385,8 +404,6 @@ instance normed_division_ring.to_norm_one_class : norm_one_class α :=
 ⟨mul_left_cancel₀ (mt norm_eq_zero.1 (@one_ne_zero α _ _)) $
   by rw [← norm_mul, mul_one, mul_one]⟩
 
-export norm_one_class (norm_one)
-
 @[simp] lemma nnnorm_mul (a b : α) : ∥a * b∥₊ = ∥a∥₊ * ∥b∥₊ :=
 nnreal.eq $ norm_mul a b
 
@@ -421,6 +438,20 @@ nnreal.eq $ by simp
 
 @[simp] lemma nnnorm_zpow : ∀ (a : α) (n : ℤ), ∥a ^ n∥₊ = ∥a∥₊ ^ n :=
 (nnnorm_hom : α →*₀ ℝ≥0).map_zpow
+
+/-- Multiplication on the left by a nonzero element of a normed division ring tends to infinity at
+infinity. TODO: use `bornology.cobounded` instead of `filter.comap has_norm.norm filter.at_top`. -/
+lemma filter.tendsto_mul_left_cobounded {a : α} (ha : a ≠ 0) :
+  tendsto ((*) a) (comap norm at_top) (comap norm at_top) :=
+by simpa only [tendsto_comap_iff, (∘), norm_mul]
+  using tendsto_const_nhds.mul_at_top (norm_pos_iff.2 ha) tendsto_comap
+
+/-- Multiplication on the right by a nonzero element of a normed division ring tends to infinity at
+infinity. TODO: use `bornology.cobounded` instead of `filter.comap has_norm.norm filter.at_top`. -/
+lemma filter.tendsto_mul_right_cobounded {a : α} (ha : a ≠ 0) :
+  tendsto (λ x, x * a) (comap norm at_top) (comap norm at_top) :=
+by simpa only [tendsto_comap_iff, (∘), norm_mul]
+  using tendsto_comap.at_top_mul (norm_pos_iff.2 ha) tendsto_const_nhds
 
 @[priority 100] -- see Note [lower instance priority]
 instance normed_division_ring.to_has_continuous_inv₀ : has_continuous_inv₀ α :=

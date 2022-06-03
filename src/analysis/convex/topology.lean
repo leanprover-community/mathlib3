@@ -1,9 +1,10 @@
 /-
 Copyright (c) 2020 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Alexander Bentkamp, Yury Kudriashov
+Authors: Alexander Bentkamp, Yury Kudryashov
 -/
 import analysis.convex.jensen
+import analysis.normed.group.pointwise
 import analysis.normed_space.finite_dimension
 import analysis.normed_space.ray
 import topology.path_connected
@@ -18,7 +19,10 @@ We prove the following facts:
 * `convex.closure` : closure of a convex set is convex;
 * `set.finite.compact_convex_hull` : convex hull of a finite set is compact;
 * `set.finite.is_closed_convex_hull` : convex hull of a finite set is closed;
-* `convex_on_dist` : distance to a fixed point is convex on any convex set;
+* `convex_on_norm`, `convex_on_dist` : norm and distance to a fixed point is convex on any convex
+  set;
+* `convex_on_univ_norm`, `convex_on_univ_dist` : norm and distance to a fixed point is convex on
+  the whole space;
 * `convex_hull_ediam`, `convex_hull_diam` : convex hull of a set has the same (e)metric diameter
   as the original set;
 * `bounded_convex_hull` : convex hull of a set is bounded if and only if the original set
@@ -29,7 +33,7 @@ We prove the following facts:
 
 variables {ι : Type*} {E : Type*}
 
-open set
+open metric set
 open_locale pointwise convex
 
 lemma real.convex_iff_is_preconnected {s : set ℝ} : convex ℝ s ↔ is_preconnected s :=
@@ -209,7 +213,7 @@ variables [add_comm_group E] [module ℝ E] [topological_space E]
   [topological_add_group E] [has_continuous_smul ℝ E]
 
 /-- Convex hull of a finite set is compact. -/
-lemma set.finite.compact_convex_hull {s : set E} (hs : finite s) :
+lemma set.finite.compact_convex_hull {s : set E} (hs : s.finite) :
   is_compact (convex_hull ℝ s) :=
 begin
   rw [hs.convex_hull_eq_image],
@@ -219,7 +223,7 @@ begin
 end
 
 /-- Convex hull of a finite set is closed. -/
-lemma set.finite.is_closed_convex_hull [t2_space E] {s : set E} (hs : finite s) :
+lemma set.finite.is_closed_convex_hull [t2_space E] {s : set E} (hs : s.finite) :
   is_closed (convex_hull ℝ s) :=
 hs.compact_convex_hull.is_closed
 
@@ -285,34 +289,60 @@ end has_continuous_smul
 /-! ### Normed vector space -/
 
 section normed_space
-variables [normed_group E] [normed_space ℝ E]
+variables [semi_normed_group E] [normed_space ℝ E] {s t : set E}
 
-lemma convex_on_dist (z : E) (s : set E) (hs : convex ℝ s) :
-  convex_on ℝ s (λz', dist z' z) :=
-and.intro hs $
-assume x y hx hy a b ha hb hab,
-calc
-  dist (a • x + b • y) z = ∥ (a • x + b • y) - (a + b) • z ∥ :
-    by rw [hab, one_smul, normed_group.dist_eq]
-  ... = ∥a • (x - z) + b • (y - z)∥ :
-    by rw [add_smul, smul_sub, smul_sub, sub_eq_add_neg, sub_eq_add_neg, sub_eq_add_neg, neg_add,
-           ←add_assoc, add_assoc (a • x), add_comm (b • y)]; simp only [add_assoc]
-  ... ≤ ∥a • (x - z)∥ + ∥b • (y - z)∥ :
-    norm_add_le (a • (x - z)) (b • (y - z))
-  ... = a * dist x z + b * dist y z :
-    by simp [norm_smul, normed_group.dist_eq, real.norm_eq_abs, abs_of_nonneg ha, abs_of_nonneg hb]
+/-- The norm on a real normed space is convex on any convex set. See also `seminorm.convex_on`
+and `convex_on_univ_norm`. -/
+lemma convex_on_norm (hs : convex ℝ s) : convex_on ℝ s norm :=
+⟨hs, λ x y hx hy a b ha hb hab,
+  calc ∥a • x + b • y∥ ≤ ∥a • x∥ + ∥b • y∥ : norm_add_le _ _
+    ... = a * ∥x∥ + b * ∥y∥
+        : by rw [norm_smul, norm_smul, real.norm_of_nonneg ha, real.norm_of_nonneg hb]⟩
+
+/-- The norm on a real normed space is convex on the whole space. See also `seminorm.convex_on`
+and `convex_on_norm`. -/
+lemma convex_on_univ_norm : convex_on ℝ univ (norm : E → ℝ) := convex_on_norm convex_univ
+
+lemma convex_on_dist (z : E) (hs : convex ℝ s) : convex_on ℝ s (λ z', dist z' z) :=
+by simpa [dist_eq_norm, preimage_preimage]
+  using (convex_on_norm (hs.translate (-z))).comp_affine_map
+    (affine_map.id ℝ E - affine_map.const ℝ E z)
+
+lemma convex_on_univ_dist (z : E) : convex_on ℝ univ (λz', dist z' z) :=
+convex_on_dist z convex_univ
 
 lemma convex_ball (a : E) (r : ℝ) : convex ℝ (metric.ball a r) :=
-by simpa only [metric.ball, sep_univ] using (convex_on_dist a _ convex_univ).convex_lt r
+by simpa only [metric.ball, sep_univ] using (convex_on_univ_dist a).convex_lt r
 
 lemma convex_closed_ball (a : E) (r : ℝ) : convex ℝ (metric.closed_ball a r) :=
-by simpa only [metric.closed_ball, sep_univ] using (convex_on_dist a _ convex_univ).convex_le r
+by simpa only [metric.closed_ball, sep_univ] using (convex_on_univ_dist a).convex_le r
+
+lemma convex.thickening (hs : convex ℝ s) (δ : ℝ) : convex ℝ (thickening δ s) :=
+by { rw ←add_ball_zero, exact hs.add (convex_ball 0 _) }
+
+lemma convex.cthickening (hs : convex ℝ s) (δ : ℝ) : convex ℝ (cthickening δ s) :=
+begin
+  obtain hδ | hδ := le_total 0 δ,
+  { rw cthickening_eq_Inter_thickening hδ,
+    exact convex_Inter₂ (λ _ _, hs.thickening _) },
+  { rw cthickening_of_nonpos hδ,
+    exact hs.closure }
+end
+
+/-- If `s`, `t` are disjoint convex sets, `s` is compact and `t` is closed then we can find open
+disjoint convex sets containing them. -/
+lemma disjoint.exists_open_convexes (disj : disjoint s t) (hs₁ : convex ℝ s) (hs₂ : is_compact s)
+  (ht₁ : convex ℝ t) (ht₂ : is_closed t) :
+  ∃ u v, is_open u ∧ is_open v ∧ convex ℝ u ∧ convex ℝ v ∧ s ⊆ u ∧ t ⊆ v ∧ disjoint u v :=
+let ⟨δ, hδ, hst⟩ := disj.exists_thickenings hs₂ ht₂ in
+  ⟨_, _, is_open_thickening, is_open_thickening, hs₁.thickening _, ht₁.thickening _,
+    self_subset_thickening hδ _, self_subset_thickening hδ _, hst⟩
 
 /-- Given a point `x` in the convex hull of `s` and a point `y`, there exists a point
 of `s` at distance at least `dist x y` from `y`. -/
 lemma convex_hull_exists_dist_ge {s : set E} {x : E} (hx : x ∈ convex_hull ℝ s) (y : E) :
   ∃ x' ∈ s, dist x y ≤ dist x' y :=
-(convex_on_dist y _ (convex_convex_hull ℝ _)).exists_ge_of_mem_convex_hull hx
+(convex_on_dist y (convex_convex_hull ℝ _)).exists_ge_of_mem_convex_hull hx
 
 /-- Given a point `x` in the convex hull of `s` and a point `y` in the convex hull of `t`,
 there exist points `x' ∈ s` and `y' ∈ t` at distance at least `dist x y`. -/

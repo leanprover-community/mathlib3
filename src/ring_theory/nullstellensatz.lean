@@ -76,7 +76,7 @@ lemma zero_locus_vanishing_ideal_le (V : set (σ → k)) :
 λ V hV p hp, hp V hV
 
 theorem zero_locus_vanishing_ideal_galois_connection :
-  @galois_connection (ideal (mv_polynomial σ k)) (order_dual (set (σ → k))) _ _
+  @galois_connection (ideal (mv_polynomial σ k)) (set (σ → k))ᵒᵈ _ _
     zero_locus vanishing_ideal :=
 λ I V, ⟨λ h, le_trans (le_vanishing_ideal_zero_locus I) (vanishing_ideal_anti_mono h),
   λ h, le_trans (zero_locus_anti_mono h) (zero_locus_vanishing_ideal_le V)⟩

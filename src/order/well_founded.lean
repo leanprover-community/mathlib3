@@ -20,6 +20,25 @@ and provide a few new definitions: `well_founded.min`, `well_founded.sup`, and `
 variables {α : Type*}
 
 namespace well_founded
+
+theorem not_gt_of_lt {α : Sort*} {r : α → α → Prop} (h : well_founded r) :
+  ∀ ⦃a b⦄, r a b → ¬ r b a
+| a := λ b hab hba, not_gt_of_lt hba hab
+using_well_founded { rel_tac := λ _ _, `[exact ⟨_, h⟩],
+                     dec_tac := tactic.assumption }
+
+protected theorem is_asymm {α : Sort*} {r : α → α → Prop} (h : well_founded r) : is_asymm α r :=
+⟨h.not_gt_of_lt⟩
+
+instance {α : Sort*} [has_well_founded α] : is_asymm α has_well_founded.r :=
+has_well_founded.wf.is_asymm
+
+protected theorem is_irrefl {α : Sort*} {r : α → α → Prop} (h : well_founded r) : is_irrefl α r :=
+(@is_asymm.is_irrefl α r h.is_asymm)
+
+instance {α : Sort*} [has_well_founded α] : is_irrefl α has_well_founded.r :=
+is_asymm.is_irrefl
+
 /-- If `r` is a well-founded relation, then any nonempty set has a minimal element
 with respect to `r`. -/
 theorem has_min {α} {r : α → α → Prop} (H : well_founded r)
@@ -75,7 +94,7 @@ by simp only [eq_iff_not_lt_of_le, well_founded_iff_has_min]
 
 theorem well_founded_iff_has_min' [partial_order α] : (well_founded (has_lt.lt : α → α → Prop)) ↔
   ∀ (p : set α), p.nonempty → ∃ m ∈ p, ∀ x ∈ p, x ≤ m → x = m :=
-@well_founded_iff_has_max' (order_dual α) _
+@well_founded_iff_has_max' αᵒᵈ _
 
 open set
 /-- The supremum of a bounded, well-founded order -/

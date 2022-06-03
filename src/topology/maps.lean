@@ -17,7 +17,7 @@ This file introduces the following properties of a map `f : X → Y` between top
 
 * `inducing f` means the topology on `X` is the one induced via `f` from the topology on `Y`.
   These behave like embeddings except they need not be injective. Instead, points of `X` which
-  are identified by `f` are also indistinguishable in the topology on `X`.
+  are identified by `f` are also inseparable in the topology on `X`.
 * `embedding f` means `f` is inducing and also injective. Equivalently, `f` identifies `X` with
   a subspace of `Y`.
 * `open_embedding f` means `f` is an embedding with open image, so it identifies `X` with an
@@ -120,6 +120,10 @@ by { ext x, rw [set.mem_preimage, ← closure_induced, hf.induced] }
 lemma inducing.is_closed_iff {f : α → β} (hf : inducing f) {s : set α} :
   is_closed s ↔ ∃ t, is_closed t ∧ f ⁻¹' t = s :=
 by rw [hf.induced, is_closed_induced_iff]
+
+lemma inducing.is_closed_iff' {f : α → β} (hf : inducing f) {s : set α} :
+  is_closed s ↔ ∀ x, f x ∈ closure (f '' s) → x ∈ s :=
+by rw [hf.induced, is_closed_induced_iff']
 
 lemma inducing.is_open_iff {f : α → β} (hf : inducing f) {s : set α} :
   is_open s ↔ ∃ t, is_open t ∧ f ⁻¹' t = s :=

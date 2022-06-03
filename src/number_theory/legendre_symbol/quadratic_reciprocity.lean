@@ -21,8 +21,8 @@ interpretations in terms of existence of square roots depending on the congruenc
 `exists_sq_eq_prime_iff_of_mod_four_eq_three`.
 
 Also proven are conditions for `-1` and `2` to be a square modulo a prime,
-`exists_sq_eq_neg_one_iff` and
-`exists_sq_eq_two_iff`
+`legende_sym_neg_one` and `exists_sq_eq_neg_one_iff` for `-1`, and
+`exists_sq_eq_two_iff` for `2`
 
 ## Implementation notes
 
@@ -52,40 +52,28 @@ end
 
 /-- Euler's Criterion: a nonzero `a : zmod p` is a square if and only if `x ^ (p / 2) = 1`. -/
 lemma euler_criterion {a : zmod p} (ha : a ≠ 0) :
-  (∃ y : zmod p, y ^ 2 = a) ↔ a ^ (p / 2) = 1 :=
+  is_square (a : zmod p) ↔ a ^ (p / 2) = 1 :=
 begin
   apply (iff_congr _ (by simp [units.ext_iff])).mp (euler_criterion_units p (units.mk0 a ha)),
   simp only [units.ext_iff, sq, units.coe_mk0, units.coe_mul],
-  split, { rintro ⟨y, hy⟩, exact ⟨y, hy⟩ },
+  split, { rintro ⟨y, hy⟩, exact ⟨y, hy.symm⟩ },
   { rintro ⟨y, rfl⟩,
     have hy : y ≠ 0, { rintro rfl, simpa [zero_pow] using ha, },
     refine ⟨units.mk0 y hy, _⟩, simp, }
 end
 
-lemma exists_sq_eq_neg_one_iff :
-  (∃ y : zmod p, y ^ 2 = -1) ↔ p % 4 ≠ 3 :=
+lemma exists_sq_eq_neg_one_iff : is_square (-1 : zmod p) ↔ p % 4 ≠ 3 :=
 begin
-  cases nat.prime.eq_two_or_odd (fact.out p.prime) with hp2 hp_odd,
-  { substI p, exact dec_trivial },
-  haveI := fact.mk hp_odd,
-  have neg_one_ne_zero : (-1 : zmod p) ≠ 0, from mt neg_eq_zero.1 one_ne_zero,
-  rw [euler_criterion p neg_one_ne_zero, neg_one_pow_eq_pow_mod_two],
-  cases mod_two_eq_zero_or_one (p / 2) with p_half_even p_half_odd,
-  { rw [p_half_even, pow_zero, eq_self_iff_true, true_iff],
-    contrapose! p_half_even with hp,
-    rw [← nat.mod_mul_right_div_self, show 2 * 2 = 4, from rfl, hp],
-    exact dec_trivial },
-  { rw [p_half_odd, pow_one,
-        iff_false_intro (ne_neg_self p one_ne_zero).symm, false_iff, not_not],
-    rw [← nat.mod_mul_right_div_self, show 2 * 2 = 4, from rfl] at p_half_odd,
-    rw [← nat.mod_mul_left_mod _ 2, show 2 * 2 = 4, from rfl] at hp_odd,
-    have hp : p % 4 < 4, from nat.mod_lt _ dec_trivial,
-    revert hp hp_odd p_half_odd,
-    generalize : p % 4 = k, dec_trivial! }
+  have h := @is_square_neg_one_iff (zmod p) _ _,
+  rw card p at h,
+  exact h,
 end
 
 lemma mod_four_ne_three_of_sq_eq_neg_one {y : zmod p} (hy : y ^ 2 = -1) : p % 4 ≠ 3 :=
-(exists_sq_eq_neg_one_iff p).1 ⟨y, hy⟩
+begin
+  rw pow_two at hy,
+  exact (exists_sq_eq_neg_one_iff p).1 ⟨y, hy.symm⟩
+end
 
 lemma mod_four_ne_three_of_sq_eq_neg_sq' {x y : zmod p} (hy : y ≠ 0) (hxy : x ^ 2 = - y ^ 2) :
   p % 4 ≠ 3 :=
@@ -147,6 +135,10 @@ end
 lemma legendre_sym_eq_one_or_neg_one (p : ℕ) [fact p.prime] (a : ℤ) (ha : (a : zmod p) ≠ 0) :
   legendre_sym p a = 1 ∨ legendre_sym p a = -1 :=
 quadratic_char_dichotomy ha
+
+lemma legendre_sym_eq_neg_one_iff_not_one {a : ℤ} (ha : (a : zmod p) ≠ 0) :
+  legendre_sym p a = -1 ↔ ¬ legendre_sym p a = 1 :=
+quadratic_char_eq_neg_one_iff_not_one ha
 
 /-- The Legendre symbol of `p` and `a` is zero iff `p ∣ a`. -/
 lemma legendre_sym_eq_zero_iff (p : ℕ) [fact p.prime] (a : ℤ) :
@@ -221,6 +213,28 @@ end
 lemma legendre_sym_eq_one_iff {a : ℤ} (ha0 : (a : zmod p) ≠ 0) :
   legendre_sym p a = 1 ↔ is_square (a : zmod p) :=
 quadratic_char_one_iff_is_square ha0
+
+/-- `legendre_sym p a = -1` iff`a` is a nonsquare mod `p`. -/
+lemma legendre_sym_eq_neg_one_iff {a : ℤ} :
+  legendre_sym p a = -1 ↔ ¬ is_square (a : zmod p) :=
+quadratic_char_neg_one_iff_not_is_square
+
+/-- The number of square roots of `a` modulo `p` is determined by the Legendre symbol. -/
+lemma legendre_sym_card_sqrts (hp : p ≠ 2) (a : ℤ) :
+  ↑{x : zmod p | x^2 = a}.to_finset.card = legendre_sym p a + 1 :=
+begin
+  have h : ring_char (zmod p) ≠ 2 := by { rw ring_char_zmod_n, exact hp, },
+  exact quadratic_char_card_sqrts h a,
+end
+
+/-- `legendre_sym p (-1)` is given by `χ₄ p`. -/
+lemma legendre_sym_neg_one (hp : p ≠ 2) : legendre_sym p (-1) = χ₄ p :=
+begin
+  have h : ring_char (zmod p) ≠ 2 := by { rw ring_char_zmod_n, exact hp, },
+  have h₁ := quadratic_char_neg_one h,
+  rw card p at h₁,
+  exact_mod_cast h₁,
+end
 
 open_locale big_operators
 

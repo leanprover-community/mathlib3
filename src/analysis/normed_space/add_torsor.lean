@@ -123,6 +123,8 @@ lemma antilipschitz_with_line_map {p₁ p₂ : Q} (h : p₁ ≠ p₂) :
 antilipschitz_with.of_le_mul_dist $ λ c₁ c₂, by rw [dist_line_map_line_map, nnreal.coe_inv,
   ← dist_nndist, mul_left_comm, inv_mul_cancel (dist_ne_zero.2 h), mul_one]
 
+variables (𝕜)
+
 lemma eventually_homothety_mem_of_mem_interior (x : Q) {s : set Q} {y : Q} (hy : y ∈ interior s) :
   ∀ᶠ δ in 𝓝 (1 : 𝕜), homothety x δ y ∈ s :=
 begin
@@ -144,7 +146,7 @@ begin
   { simp_rw set.image_subset_iff,
     exact (filter.eventually_all_finite ht).mpr this, },
   intros y hy,
-  exact eventually_homothety_mem_of_mem_interior x (h hy),
+  exact eventually_homothety_mem_of_mem_interior 𝕜 x (h hy),
 end
 
 end normed_space

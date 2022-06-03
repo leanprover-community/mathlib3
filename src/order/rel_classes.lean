@@ -458,10 +458,10 @@ lemma transitive_lt [preorder α] : transitive (@has_lt.lt α _) := transitive_o
 lemma transitive_ge [preorder α] : transitive (@ge α _) := transitive_of_trans _
 lemma transitive_gt [preorder α] : transitive (@gt α _) := transitive_of_trans _
 
-instance order_dual.is_total_le [has_le α] [is_total α (≤)] : is_total (order_dual α) (≤) :=
+instance order_dual.is_total_le [has_le α] [is_total α (≤)] : is_total αᵒᵈ (≤) :=
 @is_total.swap α _ _
 
 instance nat.lt.is_well_order : is_well_order ℕ (<) := ⟨nat.lt_wf⟩
 
-instance [linear_order α] [h : is_well_order α (<)] : is_well_order (order_dual α) (>) := h
-instance [linear_order α] [h : is_well_order α (>)] : is_well_order (order_dual α) (<) := h
+instance [linear_order α] [h : is_well_order α (<)] : is_well_order αᵒᵈ (>) := h
+instance [linear_order α] [h : is_well_order α (>)] : is_well_order αᵒᵈ (<) := h

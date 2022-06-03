@@ -405,19 +405,27 @@ let ⟨z, zb₁, zb₂⟩ := hd b₁ b₂,
 ⟨x, ⟨z, xf⟩, xa₁, xa₂⟩
 
 lemma Union_inter_subset {ι α} {s t : ι → set α} : (⋃ i, s i ∩ t i) ⊆ (⋃ i, s i) ∩ (⋃ i, t i) :=
-by { rintro x ⟨_, ⟨i, rfl⟩, xs, xt⟩, exact ⟨⟨_, ⟨i, rfl⟩, xs⟩, _, ⟨i, rfl⟩, xt⟩ }
+le_supr_inf_supr s t
 
-lemma Union_inter_of_monotone {ι α} [semilattice_sup ι] {s t : ι → set α}
+lemma Union_inter_of_monotone {ι α} [preorder ι] [is_directed ι (≤)] {s t : ι → set α}
   (hs : monotone s) (ht : monotone t) : (⋃ i, s i ∩ t i) = (⋃ i, s i) ∩ (⋃ i, t i) :=
-begin
-  ext x, refine ⟨λ hx, Union_inter_subset hx, _⟩,
-  rintro ⟨⟨_, ⟨i, rfl⟩, xs⟩, _, ⟨j, rfl⟩, xt⟩,
-  exact ⟨_, ⟨i ⊔ j, rfl⟩, hs le_sup_left xs, ht le_sup_right xt⟩
-end
+supr_inf_of_monotone hs ht
+
+lemma Union_inter_of_antitone {ι α} [preorder ι] [is_directed ι (swap (≤))] {s t : ι → set α}
+  (hs : antitone s) (ht : antitone t) : (⋃ i, s i ∩ t i) = (⋃ i, s i) ∩ (⋃ i, t i) :=
+supr_inf_of_antitone hs ht
+
+lemma Inter_union_of_monotone {ι α} [preorder ι] [is_directed ι (swap (≤))] {s t : ι → set α}
+  (hs : monotone s) (ht : monotone t) : (⋂ i, s i ∪ t i) = (⋂ i, s i) ∪ (⋂ i, t i) :=
+infi_sup_of_monotone hs ht
+
+lemma Inter_union_of_antitone {ι α} [preorder ι] [is_directed ι (≤)] {s t : ι → set α}
+  (hs : antitone s) (ht : antitone t) : (⋂ i, s i ∪ t i) = (⋂ i, s i) ∪ (⋂ i, t i) :=
+infi_sup_of_antitone hs ht
 
 /-- An equality version of this lemma is `Union_Inter_of_monotone` in `data.set.finite`. -/
 lemma Union_Inter_subset {s : ι → ι' → set α} : (⋃ j, ⋂ i, s i j) ⊆ ⋂ i, ⋃ j, s i j :=
-by { rintro x ⟨_, ⟨i, rfl⟩, hx⟩ _ ⟨j, rfl⟩, exact ⟨_, ⟨i, rfl⟩, hx _ ⟨j, rfl⟩⟩ }
+supr_infi_le_infi_supr (flip s)
 
 lemma Union_option {ι} (s : option ι → set α) : (⋃ o, s o) = s none ∪ ⋃ i, s (some i) :=
 supr_option s
@@ -790,6 +798,12 @@ Sup_insert
 
 @[simp] theorem sInter_insert (s : set α) (T : set (set α)) : ⋂₀ (insert s T) = s ∩ ⋂₀ T :=
 Inf_insert
+
+@[simp] lemma sUnion_diff_singleton_empty (s : set (set α)) : ⋃₀ (s \ {∅}) = ⋃₀ s :=
+Sup_diff_singleton_bot s
+
+@[simp] lemma sInter_diff_singleton_univ (s : set (set α)) : ⋂₀ (s \ {univ}) = ⋂₀ s :=
+Inf_diff_singleton_top s
 
 theorem sUnion_pair (s t : set α) : ⋃₀ {s, t} = s ∪ t :=
 Sup_pair
@@ -1320,6 +1334,10 @@ lemma image2_Inter₂_subset_right (s : set α) (t : Π i, κ i → set β) :
   image2 f s (⋂ i j, t i j) ⊆ ⋂ i j, image2 f s (t i j) :=
 by { simp_rw [image2_subset_iff, mem_Inter], exact λ x hx y hy i j, mem_image2_of_mem hx (hy _ _) }
 
+/-- The `set.image2` version of `set.image_eq_Union` -/
+lemma image2_eq_Union (s : set α) (t : set β) : image2 f s t = ⋃ (i ∈ s) (j ∈ t), {f i j} :=
+by simp_rw [←image_eq_Union, Union_image_left]
+
 end image2
 
 section seq
@@ -1648,6 +1666,30 @@ noncomputable def Union_eq_sigma_of_disjoint {t : α → set β}
   (h : ∀ i j, i ≠ j → disjoint (t i) (t j)) : (⋃ i, t i) ≃ (Σ i, t i) :=
 (equiv.of_bijective _ $ sigma_to_Union_bijective t h).symm
 
+lemma Union_ge_eq_Union_nat_add (u : ℕ → set α) (n : ℕ) : (⋃ i ≥ n, u i) = ⋃ i, u (i + n) :=
+supr_ge_eq_supr_nat_add u n
+
+lemma Inter_ge_eq_Inter_nat_add (u : ℕ → set α) (n : ℕ) : (⋂ i ≥ n, u i) = ⋂ i, u (i + n) :=
+infi_ge_eq_infi_nat_add u n
+
+lemma _root_.monotone.Union_nat_add {f : ℕ → set α} (hf : monotone f) (k : ℕ) :
+  (⋃ n, f (n + k)) = ⋃ n, f n :=
+hf.supr_nat_add k
+
+lemma _root_.antitone.Inter_nat_add {f : ℕ → set α} (hf : antitone f) (k : ℕ) :
+  (⋂ n, f (n + k)) = ⋂ n, f n :=
+hf.infi_nat_add k
+
+@[simp] lemma Union_Inter_ge_nat_add (f : ℕ → set α) (k : ℕ) :
+  (⋃ n, ⋂ i ≥ n, f (i + k)) = ⋃ n, ⋂ i ≥ n, f i :=
+supr_infi_ge_nat_add f k
+
+lemma union_Union_nat_succ (u : ℕ → set α) : u 0 ∪ (⋃ i, u (i + 1)) = ⋃ i, u i :=
+sup_supr_nat_succ u
+
+lemma inter_Inter_nat_succ (u : ℕ → set α) : u 0 ∩ (⋂ i, u (i + 1)) = ⋂ i, u i :=
+inf_infi_nat_succ u
+
 end set
 
 open set
@@ -1658,4 +1700,9 @@ lemma supr_Union (s : ι → set α) (f : α → β) : (⨆ a ∈ (⋃ i, s i), 
 by { rw supr_comm, simp_rw [mem_Union, supr_exists] }
 
 lemma infi_Union (s : ι → set α) (f : α → β) : (⨅ a ∈ (⋃ i, s i), f a) = ⨅ i (a ∈ s i), f a :=
-by { rw infi_comm, simp_rw [mem_Union, infi_exists] }
+@supr_Union α βᵒᵈ _ _ s f
+
+lemma Sup_sUnion (s : set (set β)) : Sup (⋃₀ s) = ⨆ t ∈ s, Sup t :=
+by simp only [sUnion_eq_bUnion, Sup_eq_supr, supr_Union]
+
+lemma Inf_sUnion (s : set (set β)) : Inf (⋃₀ s) = ⨅ t ∈ s, Inf t := @Sup_sUnion βᵒᵈ _ _

@@ -173,6 +173,10 @@ by refine_struct
     zsmul := λ n z, ⟨n • z.re - 0 * z.im, n • z.im + 0 * z.re⟩ };
 intros; try { refl }; apply ext_iff.2; split; simp; {ring1 <|> ring_nf}
 
+/-- This shortcut instance ensures we do not find `add_comm_group` via the noncomputable
+`complex.normed_group` instance. -/
+instance : add_comm_group ℂ := by apply_instance
+
 /-- This shortcut instance ensures we do not find `ring` via the noncomputable `complex.field`
 instance. -/
 instance : ring ℂ := by apply_instance
@@ -717,12 +721,20 @@ lim_eq_of_equiv_const (λ ε ε0,
 let ⟨i, hi⟩ := equiv_lim f ε ε0 in
 ⟨i, λ j hj, lt_of_le_of_lt (abs_abs_sub_le_abs_sub _ _) (hi j hj)⟩)
 
-@[simp, norm_cast] lemma of_real_prod {α : Type*} (s : finset α) (f : α → ℝ) :
+variables {α : Type*} (s : finset α)
+
+@[simp, norm_cast] lemma of_real_prod (f : α → ℝ) :
   ((∏ i in s, f i : ℝ) : ℂ) = ∏ i in s, (f i : ℂ) :=
 ring_hom.map_prod of_real _ _
 
-@[simp, norm_cast] lemma of_real_sum {α : Type*} (s : finset α) (f : α → ℝ) :
+@[simp, norm_cast] lemma of_real_sum (f : α → ℝ) :
   ((∑ i in s, f i : ℝ) : ℂ) = ∑ i in s, (f i : ℂ) :=
 ring_hom.map_sum of_real _ _
+
+@[simp] lemma re_sum (f : α → ℂ) : (∑ i in s, f i).re = ∑ i in s, (f i).re :=
+re_add_group_hom.map_sum f s
+
+@[simp] lemma im_sum (f : α → ℂ) : (∑ i in s, f i).im = ∑ i in s, (f i).im :=
+im_add_group_hom.map_sum f s
 
 end complex

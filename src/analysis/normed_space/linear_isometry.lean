@@ -102,7 +102,7 @@ f.to_linear_map.map_smul c x
 
 @[simp] lemma norm_map (x : E) : ∥f x∥ = ∥x∥ := f.norm_map' x
 
-@[simp] lemma nnnorm_map (x : E) : nnnorm (f x) = nnnorm x := nnreal.eq $ f.norm_map x
+@[simp] lemma nnnorm_map (x : E) : ∥f x∥₊ = ∥x∥₊ := nnreal.eq $ f.norm_map x
 
 protected lemma isometry : isometry f :=
 f.to_linear_map.to_add_monoid_hom.isometry_of_norm f.norm_map
@@ -493,7 +493,7 @@ omit σ₂₁
 @[simp] lemma map_smul [module R E₂] {e : E ≃ₗᵢ[R] E₂} (c : R) (x : E) : e (c • x) = c • e x :=
 e.1.map_smul c x
 
-@[simp] lemma nnnorm_map (x : E) : nnnorm (e x) = nnnorm x := e.to_linear_isometry.nnnorm_map x
+@[simp] lemma nnnorm_map (x : E) : ∥e x∥₊ = ∥x∥₊ := e.to_linear_isometry.nnnorm_map x
 
 @[simp] lemma dist_map (x y : E) : dist (e x) (e y) = dist x y :=
 e.to_linear_isometry.dist_map x y

@@ -217,11 +217,11 @@ star_eq_zero.not
   star (r - s) = star r - star s :=
 (star_add_equiv : R ≃+ R).map_sub _ _
 
-@[simp] lemma star_nsmul [add_comm_monoid R] [star_add_monoid R] (x : R) (n : ℕ) :
+@[simp] lemma star_nsmul [add_monoid R] [star_add_monoid R] (x : R) (n : ℕ) :
   star (n • x) = n • star x :=
 (star_add_equiv : R ≃+ R).to_add_monoid_hom.map_nsmul _ _
 
-@[simp] lemma star_zsmul [add_comm_group R] [star_add_monoid R] (x : R) (n : ℤ) :
+@[simp] lemma star_zsmul [add_group R] [star_add_monoid R] (x : R) (n : ℤ) :
   star (n • x) = n • star x :=
 (star_add_equiv : R ≃+ R).to_add_monoid_hom.map_zsmul _ _
 

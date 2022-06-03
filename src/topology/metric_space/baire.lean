@@ -35,25 +35,33 @@ section Baire_theorem
 open emetric ennreal
 
 
-/-- A `Baire space` is a topological space with the Baire property: any countable intersection of open dense subsets is dense.
-Formulated here when the source space is ℕ (and subsumed below by `dense_Inter_of_open` working with any encodable source space).-/
-class Baire_space (α : Type*) extends topological_space α :=
-  ( Baire_property : ∀ {f : ℕ → set α} (ho : ∀n, is_open (f n)) (hd : ∀n, dense (f n)), dense (⋂n, f n) )
+/-- The property `baire_space α` means that the topological space `α` has the Baire property:
+any countable intersection of open dense subsets is dense.
+Formulated here when the source space is ℕ (and subsumed below by `dense_Inter_of_open` working
+with any encodable source space).-/
+class baire_space (α : Type*) [topological_space α] : Prop :=
+  (baire_property : ∀ {f : ℕ → set α} (ho : ∀n, is_open (f n)) (hd : ∀n, dense (f n)),
+  dense (⋂n, f n))
 
 
-theorem dense_Inter_of_open_nat {α : Type*} [Baire_space α] {f : ℕ → set α} (ho : ∀ n, is_open (f n)) (hd : ∀ n, dense (f n)) :
+/-- Definition of a Baire space. -/
+theorem dense_Inter_of_open_nat {α : Type*} [topological_space α] [baire_space α] {f : ℕ → set α}
+  (ho : ∀ n, is_open (f n)) (hd : ∀ n, dense (f n)) :
   dense (⋂ n, f n) :=
 begin
-  apply _inst_1.Baire_property,
+  apply _inst_2.baire_property,
   { exact ho },
   { exact hd },
 end
 
 
-/-- Baire theorems asserts that various topological spaces have the Baire property. Two versions of these theorems are given.
+/-- Baire theorems asserts that various topological spaces have the Baire property.
+Two versions of these theorems are given.
 The first states that complete pseudo_emetric spaces are Baire. -/
-instance Baire_category_theorem_emetric_complete [pseudo_emetric_space α] [complete_space α] : Baire_space α :=
-{ Baire_property :=
+@[priority 100]
+instance baire_category_theorem_emetric_complete [pseudo_emetric_space α] [complete_space α] :
+  baire_space α :=
+{ baire_property :=
   begin
     intros f ho hd,
     let B : ℕ → ℝ≥0∞ := λn, 1/2^n,
@@ -86,11 +94,11 @@ instance Baire_category_theorem_emetric_complete [pseudo_emetric_space α] [comp
         ... ≤ r : le_trans (min_le_left _ _) (min_le_right _ _)) },
     choose! center radius Hpos HB Hball using this,
     refine λ x, (mem_closure_iff_nhds_basis nhds_basis_closed_eball).2 (λ ε εpos, _),
-    /- `ε` is positive. We have to find a point in the ball of radius `ε` around `x` belonging to all
-    `f n`. For this, we construct inductively a sequence `F n = (c n, r n)` such that the closed ball
-    `closed_ball (c n) (r n)` is included in the previous ball and in `f n`, and such that
-    `r n` is small enough to ensure that `c n` is a Cauchy sequence. Then `c n` converges to a
-    limit which belongs to all the `f n`. -/
+    /- `ε` is positive. We have to find a point in the ball of radius `ε` around `x` belonging
+    to all `f n`. For this, we construct inductively a sequence `F n = (c n, r n)` such that the
+    closed ball `closed_ball (c n) (r n)` is included in the previous ball and in `f n`,
+    and such that `r n` is small enough to ensure that `c n` is a Cauchy sequence.
+    Then `c n` converges to a limit which belongs to all the `f n`. -/
     let F : ℕ → (α × ℝ≥0∞) := λn, nat.rec_on n (prod.mk x (min ε (B 0)))
                                 (λn p, prod.mk (center n p.1 p.2) (radius n p.1 p.2)),
     let c : ℕ → α := λn, (F n).1,
@@ -138,69 +146,91 @@ instance Baire_category_theorem_emetric_complete [pseudo_emetric_space α] [comp
     split,
     show ∀n, y ∈ f n,
     { assume n,
-      have : closed_ball (c (n+1)) (r (n+1)) ⊆ f n := subset.trans (incl n) (inter_subset_right _ _),
+      have : closed_ball (c (n+1)) (r (n+1)) ⊆ f n :=
+        subset.trans (incl n) (inter_subset_right _ _),
       exact this (yball (n+1)) },
     show edist y x ≤ ε, from le_trans (yball 0) (min_le_left _ _),
   end }
 
 
 /-- The second theorem states that locally compact spaces are Baire. -/
-instance Baire_category_theorem_locally_compact [topological_space α] [t2_space α] [locally_compact_space α] : Baire_space α :=
-{ Baire_property :=
+@[priority 100]
+instance baire_category_theorem_locally_compact [topological_space α] [t2_space α]
+  [locally_compact_space α] :
+  baire_space α :=
+{ baire_property :=
   begin
     intros f ho hd,
-    /- We later use the axiom of choice to give construct a choice function which, to any given nonempty open subset associates a compact subset
-    with nonempty interior. In order to apply AoC, we explicitely construct three subtypes: open neighbourhoods `open_nhds`,
-    open dense subsets `open_dense_nhds`, and compact neighbourhoods `compact_nhds`. -/
-    let open_nhds:= { V : set α | is_open V ∧ V.nonempty },
-    let open_dense_nhds:= { V : set α | is_open V ∧ dense V },
-    let compact_nhds := { F : set α | is_compact F ∧ (interior F).nonempty },
-    /- Define three functions. `open_nhds_inter` defines the intersection of a open neighbourhood with an open dense subset,
-    `compact_to_open_nhds` the interior of a compact neighbourhood, and `open_to_compact_nhds` chooses a compact neighbourhood
-    inside any open neighbourhood. -/
-    let open_nhds_inter : open_nhds → open_dense_nhds → open_nhds := λ (U : open_nhds) (V : open_dense_nhds), ⟨U.1 ∩ V.1, is_open.inter U.2.1 V.2.1, dense.inter_open_nonempty V.2.2 U.1 U.2.1 U.2.2⟩,
-    let compact_to_open_nhds : compact_nhds → open_nhds := λ (F : compact_nhds), ⟨interior (F.1), is_open_interior, F.2.2 ⟩,
-    have open_nhds_has_compact_nhds : ∀ (V : open_nhds), ∃ (F : compact_nhds), F.1 ⊆ V.1 :=
+    /- Define a choice function which, to any nonempty open set,
+    associates a nonempty compact subset.-/
+    have nonempty_open_has_compact : ∀ (V : set α), is_open V → V.nonempty →
+      ∃ (F : set α), is_compact F ∧ (interior F).nonempty ∧ F ⊆ V :=
     begin
-      intro V,
-      cases V.2.2 with x x_in_V,
-      rcases (exists_compact_subset V.2.1 x_in_V) with ⟨K, ⟨K_compact, x_in_K, K_sub_V ⟩ ⟩,
-      use ⟨K, K_compact, set.nonempty_of_mem x_in_K⟩,
-      exact K_sub_V,
+      intros V V_open V_nonempty,
+      cases V_nonempty with x x_in_V,
+      rcases (exists_compact_subset V_open x_in_V) with ⟨K, ⟨K_compact, x_in_K, K_sub_V ⟩ ⟩,
+      use [K, K_compact],
+      split, swap, exact K_sub_V,
+      apply set.nonempty_def.2,
+      use [x, x_in_K],
     end,
-    cases (classical.axiom_of_choice open_nhds_has_compact_nhds) with compact_choice h_compact_choice,
-    let open_to_compact_nhds : open_nhds → compact_nhds := λ (U : open_nhds), compact_choice U,
-    /- To prove that an intersection of open dense subsets is dense, prove that its intersection with any open neighbourhood `U` is dense.
-    Define recursively a decreasing sequence `compact_seq` of compact neighbourhoods: start with some compact neighbourhood inside `U`,
-    then at each step, take its interior, intersect with `f n`, then choose a compact neighbourhood inside the intersection. -/
+    choose! open_to_compact h using nonempty_open_has_compact,
+    /- To prove that an intersection of open dense subsets is dense, prove that its intersection
+    with any open neighbourhood `U` is dense. Define recursively a decreasing sequence
+    `compact_seq` of compact neighbourhoods: start with some compact neighbourhood inside `U`,
+    then at each step, take its interior, intersect with `f n`, then choose a compact neighbourhood
+    inside the intersection.-/
     apply dense_iff_inter_open.2,
     intros U U_open U_nonempty,
-    letI compact_seq : ℕ → compact_nhds := λ (n : ℕ), nat.rec_on n (open_to_compact_nhds ⟨U, U_open, U_nonempty⟩) (λ (n : ℕ) (F : compact_nhds), open_to_compact_nhds (open_nhds_inter (compact_to_open_nhds F) ⟨f n, ho n, hd n⟩)),
-    apply @set.nonempty.mono α (⋂ (n : ℕ), (compact_seq n).1) _ _ _,
-    /- .Prove that ̀`⋂ (n : ℕ), (compact_seq n).1` (the .1 designate the underlying subset, recall that `(compact_seq n)`
-    is a compact neighbourhood, and thus has additional structure) is inside `⋂ (n : ℕ), (f n)`...-/
+    letI compact_seq : ℕ → set α := λ (n : ℕ), nat.rec_on n (open_to_compact U)
+      (λ (n : ℕ) (F : set α), open_to_compact ((interior F) ∩ (f n))),
+    /- This is an actual sequence of compact sets with nonempty interior.-/
+    have compact_seq_is_compact_nonempty :
+      ∀ (n : ℕ), is_compact (compact_seq n) ∧ (interior (compact_seq n)).nonempty :=
+    begin
+      intro n, induction n with n h_n,
+      { specialize h U U_open U_nonempty,
+        exact ⟨h.1, h.2.1⟩ },
+      { simp [compact_seq],
+        specialize h ((interior (compact_seq n)) ∩ (f n))
+          (is_open.inter is_open_interior (ho n))
+          (dense_iff_inter_open.1 (hd n) (interior (compact_seq n)) is_open_interior h_n.2),
+        exact ⟨h.1, h.2.1⟩ },
+    end,
+    /- This is also a decreasing sequence contained in suitable open sets `f n`.-/
+    have compact_seq_is_decreasing :
+      ∀ (n : ℕ), (compact_seq n.succ) ⊆ (compact_seq n) ∩ (f n) :=
+    begin
+      intro n,
+      specialize h ((interior (compact_seq n)) ∩ (f n))
+        (is_open.inter is_open_interior (ho n))
+        (dense_iff_inter_open.1 (hd n) (interior (compact_seq n))
+          is_open_interior (compact_seq_is_compact_nonempty n).2),
+      replace h := h.2.2,
+      simp at h,
+      exact set.subset_inter_iff.2 ⟨set.subset.trans h.1 interior_subset, h.2⟩,
+    end,
+    apply @set.nonempty.mono α (⋂ (n : ℕ), (compact_seq n)) _ _ _,
+    /- Prove that ̀`⋂ (n : ℕ), (compact_seq n)` is inside `⋂ (n : ℕ), (f n)`...-/
     { simp, split,
-      { apply set.subset.trans (set.Inter_subset (λ (n : ℕ), (compact_seq n).1) 0) (h_compact_choice ⟨U, U_open, U_nonempty⟩) },
+      { exact set.subset.trans (set.Inter_subset compact_seq 0) (h U U_open U_nonempty).2.2 },
       { intro n,
-        apply @set.subset.trans α _ _ (f n) (set.Inter_subset (λ (n : ℕ), (compact_seq n).1) n.succ),
-        change (open_to_compact_nhds (open_nhds_inter (compact_to_open_nhds (compact_seq n)) ⟨f n, ho n, hd n⟩)).1 ⊆ f n,
-        exact set.subset.trans (h_compact_choice (open_nhds_inter (compact_to_open_nhds (compact_seq n)) ⟨f n, ho n, hd n⟩)) (set.inter_subset_right (compact_to_open_nhds (compact_seq n)).1 (f n)) } },
-    /- ...and is actually not empty as an intersection of a decreasing sequence of nonempty compact subsets.-/
+        apply @set.subset.trans α _ _ (f n) (set.Inter_subset compact_seq n.succ),
+        exact (set.subset_inter_iff.1 (compact_seq_is_decreasing n)).2 } },
+    /- ...and is actually not empty, as an intersection of a decreasing sequence
+    of nonempty compact subsets.-/
     { apply is_compact.nonempty_Inter_of_sequence_nonempty_compact_closed,
       { intro n,
-        apply @set.subset.trans α _ _ (compact_seq n).1 (h_compact_choice (open_nhds_inter (compact_to_open_nhds (compact_seq n)) ⟨f n, ho n, hd n⟩)),
-        change (compact_to_open_nhds (compact_seq n)).1 ∩ (f n) ⊆ (compact_seq n).1,
-        apply @set.subset.trans α _ _ (compact_seq n).1 (set.inter_subset_left (compact_to_open_nhds (compact_seq n)).1 (f n)),
-        exact interior_subset },
+        exact (set.subset_inter_iff.1 (compact_seq_is_decreasing n)).1 },
       { intro n,
-        exact set.nonempty.mono interior_subset (compact_seq n).2.2 },
-      { exact (compact_seq 0).2.1 },
+        exact set.nonempty.mono interior_subset (compact_seq_is_compact_nonempty n).2 },
+      { exact (compact_seq_is_compact_nonempty 0).1 },
       { intro n,
-        exact is_compact.is_closed (compact_seq n).2.1 } },
+        exact is_compact.is_closed (compact_seq_is_compact_nonempty n).1 } },
   end }
 
 
-variable [Baire_space α]
+variables [topological_space α] [baire_space α]
 
 
 /-- Baire theorem: a countable intersection of dense open sets is dense. Formulated here with ⋂₀. -/
@@ -301,7 +331,7 @@ calc (∀ᶠ x in residual α, p x) ↔
 /-- A set is residual (comeagre) if and only if it includes a dense `Gδ` set. -/
 lemma mem_residual {s : set α} :
   s ∈ residual α ↔ ∃ t ⊆ s, is_Gδ t ∧ dense t :=
-(@eventually_residual α _ (λ x, x ∈ s)).trans $ exists_congr $
+(@eventually_residual α _ _ (λ x, x ∈ s)).trans $ exists_congr $
 λ t, by rw [exists_prop, and_comm (t ⊆ s), subset_def, and_assoc]
 
 lemma dense_of_mem_residual {s : set α} (hs : s ∈ residual α) :

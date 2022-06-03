@@ -118,4 +118,10 @@ try $ applyc ``_root_.eq.to_iff,
 ta ← to_expr ``((%%arg : %%ty)) tt ff,
 equate_with_pattern ta
 
+add_tactic_doc
+{ name := "congrm",
+  category := doc_category.tactic,
+  decl_names := [`tactic.interactive.congrm],
+  tags := ["congruence"] }
+
 end tactic.interactive

@@ -358,8 +358,6 @@ begin
     exact is_separable.separable K _ }
 end
 
-variables {L}
-
 lemma trace_eq_sum_automorphisms (x : L) [finite_dimensional K L] [is_galois K L] :
   algebra_map K L (algebra.trace K L x) = ∑ (σ : L ≃ₐ[K] L), σ x :=
 begin

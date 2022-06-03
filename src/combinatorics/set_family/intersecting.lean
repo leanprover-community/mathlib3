@@ -35,7 +35,7 @@ variables [generalized_boolean_algebra α] {s t : set α} {a b c : α}
 /-- A set family is intersecting if every pair of elements is non-disjoint. -/
 def intersecting (s : set α) : Prop := ∀ ⦃a⦄, a ∈ s → ∀ ⦃b⦄, b ∈ s → ¬ disjoint a b
 
-lemma intersecting.mono (hs : s.intersecting) (h : t ⊆ s) : t.intersecting :=
+@[mono] lemma intersecting.mono (h : t ⊆ s) (hs : s.intersecting) : t.intersecting :=
 λ a ha b hb, hs (h ha) (h hb)
 
 lemma intersecting.not_bot_mem (hs : s.intersecting) : ⊥ ∉ s := λ h, hs h h disjoint_bot_left
@@ -46,6 +46,15 @@ ne_of_mem_of_not_mem ha hs.not_bot_mem
 lemma intersecting_empty : (∅ : set α).intersecting := λ _, false.elim
 
 @[simp] lemma intersecting_singleton : ({a} : set α).intersecting ↔ a ≠ ⊥ := by simp [intersecting]
+
+protected lemma subsingleton.intersecting (hs : s.subsingleton) : s.intersecting ↔ s ≠ {⊥} :=
+begin
+  refine ⟨_, λ h a ha b hb hab, h $ hs.eq_singleton_of_mem _⟩,
+  { rintro h rfl,
+    exact intersecting_singleton.1 h rfl },
+  { rw [hs ha hb, disjoint_self] at hab,
+    rwa ←hab }
+end
 
 lemma intersecting.insert (hs : s.intersecting) (ha : a ≠ ⊥) (h : ∀ b ∈ s, ¬ disjoint a b) :
   (insert a s).intersecting :=
@@ -61,6 +70,19 @@ lemma intersecting_insert :
   (insert a s).intersecting ↔ s.intersecting ∧ a ≠ ⊥ ∧ ∀ b ∈ s, ¬ disjoint a b :=
 ⟨λ h, ⟨h.mono $ subset_insert _ _, h.ne_bot $ mem_insert _ _,
   λ b hb, h (mem_insert _ _) $ mem_insert_of_mem _ hb⟩, λ h, h.1.insert h.2.1 h.2.2⟩
+
+lemma intersecting_iff_pairwise_not_disjoint :
+  s.intersecting ↔ s.pairwise (λ a b, ¬ disjoint a b) ∧ s ≠ {⊥} :=
+begin
+  refine ⟨λ h, ⟨λ a ha b hb _, h ha hb, _⟩, λ h a ha b hb hab, _⟩,
+  { rintro rfl,
+    exact intersecting_singleton.1 h rfl },
+  { have := h.1.eq ha hb (not_not.2 hab),
+    rw [this, disjoint_self] at hab,
+    rw hab at hb,
+    exact h.2 (eq_singleton_iff_unique_mem.2
+      ⟨hb, λ c hc, not_ne_iff.1 $ λ H, h.1 hb hc H.symm disjoint_bot_left⟩) }
+end
 
 /-- Maximal intersecting families are upper sets. -/
 protected lemma intersecting.is_upper_set (hs : s.intersecting)
@@ -90,6 +112,14 @@ begin
 end
 
 end generalized_boolean_algebra
+
+lemma intersecting.exists_mem_set {𝒜 : set (set α)} (h𝒜 : 𝒜.intersecting) {s t : set α}
+  (hs : s ∈ 𝒜) (ht : t ∈ 𝒜) : ∃ a, a ∈ s ∧ a ∈ t :=
+not_disjoint_iff.1 $ h𝒜 hs ht
+
+lemma intersecting.exists_mem_finset [decidable_eq α] {𝒜 : set (finset α)} (h𝒜 : 𝒜.intersecting)
+  {s t : finset α} (hs : s ∈ 𝒜) (ht : t ∈ 𝒜) : ∃ a, a ∈ s ∧ a ∈ t :=
+not_disjoint_iff.1 $ disjoint_iff_disjoint_coe.not.1 $ h𝒜 hs ht
 
 variables [boolean_algebra α]
 

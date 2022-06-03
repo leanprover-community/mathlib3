@@ -35,18 +35,8 @@ atlas the transition function considered as a map from `B` into `F →L[R] F` is
 `e.base_set ∩ e'.base_set` with respect to the operator norm topology on `F →L[R] F`, we register
 the typeclass `topological_vector_bundle R F E`.
 
-If `E₁ : B → Type*` and `E₂ : B → Type*` define two topological vector bundles over `R` with fiber
-models `F₁` and `F₂`, denote by `E₁ ×ᵇ E₂` the sigma type of direct sums, with fiber
-`E x := (E₁ x × E₂ x)`. We can endow `bundle.total_space (E₁ ×ᵇ E₂)` with a topological vector
-bundle structure, `bundle.prod.topological_vector_bundle`.
-
-A similar construction (which is yet to be formalized) can be done for the vector bundle of
-continuous linear maps from `E₁ x` to `E₂ x` with fiber a type synonym
-`vector_bundle_continuous_linear_map R F₁ E₁ F₂ E₂ x := (E₁ x →L[R] E₂ x)` (and with the
-topology inherited from the norm-topology on `F₁ →L[R] F₂`, without the need to define the strong
-topology on continuous linear maps between general topological vector spaces).  Likewise for tensor
-products of topological vector bundles, exterior algebras, and so on, where the topology can be
-defined using a norm on the fiber model if this helps.
+We define constructions on vector bundles like pullbacks and direct sums in other files.
+Only the trivial bundle is defined in this file.
 
 ## Tags
 Vector bundle

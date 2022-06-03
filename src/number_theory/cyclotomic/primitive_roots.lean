@@ -82,14 +82,14 @@ noncomputable def zeta : B :=
 @[simp] lemma zeta_spec : is_primitive_root (zeta n A B) n :=
 classical.some_spec (exists_prim_root A (set.mem_singleton n) : ∃ r : B, is_primitive_root r n)
 
-lemma aeval_zeta [is_domain B] [_root_.ne_zero ((n : ℕ) : B)] :
+lemma aeval_zeta [is_domain B] [ne_zero ((n : ℕ) : B)] :
   aeval (zeta n A B) (cyclotomic n A) = 0 :=
 begin
   rw [aeval_def,  ← eval_map, ← is_root.def, map_cyclotomic, is_root_cyclotomic_iff],
   exact zeta_spec n A B
 end
 
-lemma zeta_is_root [is_domain B] [_root_.ne_zero ((n : ℕ) : B)] :
+lemma zeta_is_root [is_domain B] [ne_zero ((n : ℕ) : B)] :
   is_root (cyclotomic n B) (zeta n A B) :=
 by { convert aeval_zeta n A B, rw [is_root.def, aeval_def, eval₂_eq_eval_map, map_cyclotomic] }
 

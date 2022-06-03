@@ -166,13 +166,15 @@ begin
     norm_cast }
 end
 
+@[protected]
 lemma ne_zero [h : is_cyclotomic_extension {n} A B] [is_domain B] : ne_zero ((n : ℕ) : B) :=
 begin
   obtain ⟨⟨r, hr⟩, -⟩ := (iff_singleton n A B).1 h,
   exact hr.ne_zero'
 end
 
-lemma ne_zero' [is_cyclotomic_extension {n} A B] [is_domain B] : _root_.ne_zero ((n : ℕ) : A) :=
+@[protected]
+lemma ne_zero' [is_cyclotomic_extension {n} A B] [is_domain B] : ne_zero ((n : ℕ) : A) :=
 begin
   apply ne_zero.nat_of_ne_zero (algebra_map A B),
   exact ne_zero n A B,

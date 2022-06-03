@@ -212,7 +212,7 @@ def trans {f₀ f₁ f₂ : C(X, Y)} (F : homotopy f₀ f₁) (G : homotopy f₁
 lemma trans_apply {f₀ f₁ f₂ : C(X, Y)} (F : homotopy f₀ f₁) (G : homotopy f₁ f₂)
   (x : I × X) : (F.trans G) x =
   if h : (x.1 : ℝ) ≤ 1/2 then
-    F (⟨2 * x.1, (set.Icc.mul_pos_mem_iff zero_lt_two).2 ⟨x.1.2.1, h⟩⟩, x.2)
+    F (⟨2 * x.1, unit_interval.double_mem ⟨x.1.2.1, h⟩⟩, x.2)
   else
     G (⟨2 * x.1 - 1, set.Icc.two_mul_sub_one_mem_iff.2 ⟨(not_le.1 h).le, x.1.2.2⟩⟩, x.2) :=
 show ite _ _ _ = _,
@@ -405,7 +405,7 @@ def trans {f₀ f₁ f₂ : C(X, Y)} (F : homotopy_with f₀ f₁ P) (G : homoto
 lemma trans_apply {f₀ f₁ f₂ : C(X, Y)} (F : homotopy_with f₀ f₁ P) (G : homotopy_with f₁ f₂ P)
   (x : I × X) : (F.trans G) x =
   if h : (x.1 : ℝ) ≤ 1/2 then
-    F (⟨2 * x.1, (set.Icc.mul_pos_mem_iff zero_lt_two).2 ⟨x.1.2.1, h⟩⟩, x.2)
+    F (⟨2 * x.1, unit_interval.double_mem ⟨x.1.2.1, h⟩⟩, x.2)
   else
     G (⟨2 * x.1 - 1, set.Icc.two_mul_sub_one_mem_iff.2 ⟨(not_le.1 h).le, x.1.2.2⟩⟩, x.2) :=
 homotopy.trans_apply _ _ _
@@ -514,7 +514,7 @@ def trans (F : homotopy_rel f₀ f₁ S) (G : homotopy_rel f₁ f₂ S) : homoto
 lemma trans_apply (F : homotopy_rel f₀ f₁ S) (G : homotopy_rel f₁ f₂ S)
   (x : I × X) : (F.trans G) x =
   if h : (x.1 : ℝ) ≤ 1/2 then
-    F (⟨2 * x.1, (set.Icc.mul_pos_mem_iff zero_lt_two).2 ⟨x.1.2.1, h⟩⟩, x.2)
+    F (⟨2 * x.1, unit_interval.double_mem ⟨x.1.2.1, h⟩⟩, x.2)
   else
     G (⟨2 * x.1 - 1, set.Icc.two_mul_sub_one_mem_iff.2 ⟨(not_le.1 h).le, x.1.2.2⟩⟩, x.2) :=
 homotopy.trans_apply _ _ _

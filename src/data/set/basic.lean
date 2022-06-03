@@ -126,8 +126,9 @@ section set_coe
 
 variables {α : Type u}
 
-theorem set.set_coe_eq_subtype (s : set α) :
-  coe_sort.{(u+1) (u+2)} s = {x // x ∈ s} := rfl
+theorem set.coe_eq_subtype (s : set α) : ↥s = {x // x ∈ s} := rfl
+
+@[simp] theorem set.coe_set_of (p : α → Prop) : ↥{x | p x} = {x // p x} := rfl
 
 @[simp] theorem set_coe.forall {s : set α} {p : s → Prop} :
   (∀ x : s, p x) ↔ (∀ x (h : x ∈ s), p ⟨x, h⟩) :=
@@ -2242,6 +2243,8 @@ def inclusion (h : s ⊆ t) : s → t :=
 λ x : s, (⟨x, h x.2⟩ : t)
 
 @[simp] lemma inclusion_self (x : s) : inclusion subset.rfl x = x := by { cases x, refl }
+
+lemma inclusion_eq_id (h : s ⊆ s) : inclusion h = id := funext inclusion_self
 
 @[simp] lemma inclusion_mk {h : s ⊆ t} (a : α) (ha : a ∈ s) : inclusion h ⟨a, ha⟩ = ⟨a, h ha⟩ := rfl
 

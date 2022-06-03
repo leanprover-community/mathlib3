@@ -54,7 +54,7 @@ begin
   induction l with l IH,
   { simpa using ha },
   { rw pow_succ,
-    exact one_lt_mul' ha IH }
+    exact one_lt_mul'' ha IH }
 end
 
 @[to_additive nsmul_neg]
@@ -380,12 +380,6 @@ abs_le.mp $ abs_le_of_sq_le_sq h hy
 lemma sq_eq_sq_iff_abs_eq_abs (x y : R) : x^2 = y^2 ↔ |x| = |y| :=
 ⟨λ h, (abs_le_abs_of_sq_le_sq h.le).antisymm (abs_le_abs_of_sq_le_sq h.ge),
  λ h, by rw [←sq_abs, h, sq_abs]⟩
-
-@[simp] lemma sq_eq_one_iff (x : R) : x^2 = 1 ↔ x = 1 ∨ x = -1 :=
-by rw [←abs_eq_abs, ←sq_eq_sq_iff_abs_eq_abs, one_pow]
-
-lemma sq_ne_one_iff (x : R) : x^2 ≠ 1 ↔ x ≠ 1 ∧ x ≠ -1 :=
-(not_iff_not.2 (sq_eq_one_iff _)).trans not_or_distrib
 
 @[simp] lemma sq_le_one_iff_abs_le_one (x : R) : x^2 ≤ 1 ↔ |x| ≤ 1 :=
 have t : x^2 ≤ 1^2 ↔ |x| ≤ |1| := ⟨abs_le_abs_of_sq_le_sq, sq_le_sq⟩, by simpa using t

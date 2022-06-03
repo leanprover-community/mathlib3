@@ -904,7 +904,7 @@ end
 lemma associates.is_atom_iff [cancel_comm_monoid_with_zero α] {p : associates α} (h₁ : p ≠ 0) :
   is_atom p ↔ irreducible p :=
 ⟨λ hp, ⟨by simpa only [associates.is_unit_iff_eq_one] using hp.1,
-        λ a b h, (eq_bot_or_eq_of_le_atom hp ⟨_, h⟩).cases_on
+        λ a b h, (hp.le_iff.mp ⟨_, h⟩).cases_on
           (λ ha, or.inl (a.is_unit_iff_eq_one.mpr ha))
           (λ ha, or.inr (show is_unit b, by {rw ha at h, apply is_unit_of_associated_mul
           (show associated (p * b) p, by conv_rhs {rw h}) h₁ }))⟩,

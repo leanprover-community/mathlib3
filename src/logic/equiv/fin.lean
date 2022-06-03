@@ -247,6 +247,10 @@ fin_sum_fin_equiv.symm_apply_apply (sum.inl x)
   fin_sum_fin_equiv.symm (fin.nat_add m x) = sum.inr x :=
 fin_sum_fin_equiv.symm_apply_apply (sum.inr x)
 
+@[simp] lemma fin_sum_fin_equiv_symm_last :
+  fin_sum_fin_equiv.symm (fin.last n) = sum.inr 0 :=
+fin_sum_fin_equiv_symm_apply_nat_add 0
+
 /-- The equivalence between `fin (m + n)` and `fin (n + m)` which rotates by `n`. -/
 def fin_add_flip : fin (m + n) ≃ fin (n + m) :=
 (fin_sum_fin_equiv.symm.trans (equiv.sum_comm _ _)).trans fin_sum_fin_equiv

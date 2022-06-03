@@ -102,24 +102,32 @@ begin
     exact map_one ϕ },
 end
 
+/-- Auxillary lemma in order to prove `transfer_eq_pow`. -/
+lemma transfer_eq_pow_aux' (g : G) [fintype (quotient (orbit_rel (zpowers g) (G ⧸ H)))]
+  (key : ∀ (k : ℕ) (g₀ : G), g₀⁻¹ * g ^ k * g₀ ∈ H → g₀⁻¹ * g ^ k * g₀ = g ^ k) :
+  ↑(finset.univ.to_list.map (λ (q : quotient (orbit_rel (zpowers g) (G ⧸ H))),
+    (⟨q.out'.out'⁻¹ * g ^ function.minimal_period ((•) g) q.out' * q.out'.out', by rw [mul_assoc,
+    ←quotient_group.eq', ←smul_eq_mul, quotient.mk_smul_out', quotient_group.out_eq', eq_comm,
+    pow_smul_eq_iff_minimal_period_dvd]⟩ : H))).prod = g ^ H.index :=
+begin
+  classical,
+  change ∀ k g₀ (hk : g₀⁻¹ * g ^ k * g₀ ∈ H), ↑(⟨g₀⁻¹ * g ^ k * g₀, hk⟩ : H) = g ^ k at key,
+  conv_rhs { rw [←(zpowers g).coe_mk g (mem_zpowers g), ←(zpowers g).coe_pow,
+      index_eq_card, fintype.card_congr (self_equiv_sigma_orbits (zpowers g) (G ⧸ H)),
+      fintype.card_sigma, ←finset.prod_pow_eq_pow_sum, ←finset.prod_to_list] },
+  simp only [coe_list_prod, list.map_map, ←minimal_period_eq_card],
+  congr' 2,
+  ext,
+  apply key,
+end
+
 /-- Auxillary lemma in order to state `transfer_eq_pow`. -/
 lemma transfer_eq_pow_aux (g : G)
   (key : ∀ (k : ℕ) (g₀ : G), g₀⁻¹ * g ^ k * g₀ ∈ H → g₀⁻¹ * g ^ k * g₀ = g ^ k) :
   g ^ H.index ∈ H :=
 begin
   classical,
-  replace key : ∀ (k : ℕ) (g₀ : G), g₀⁻¹ * g ^ k * g₀ ∈ H → g ^ k ∈ H :=
-  λ k g₀ hk, (_root_.congr_arg (∈ H) (key k g₀ hk)).mp hk,
-  replace key : ∀ q : G ⧸ H, g ^ function.minimal_period ((•) g) q ∈ H :=
-  λ q, key (function.minimal_period ((•) g) q) q.out' (by rw [mul_assoc, ←quotient_group.eq',
-    ←smul_eq_mul, quotient.mk_smul_out',
-    quotient_group.out_eq', eq_comm, pow_smul_eq_iff_minimal_period_dvd]),
-  let f : quotient (orbit_rel (zpowers g) (G ⧸ H)) → zpowers g :=
-  λ q, (⟨g, mem_zpowers g⟩ : zpowers g) ^ function.minimal_period ((•) g) q.out',
-  have hf : ∀ q, f q ∈ H.subgroup_of (zpowers g) := λ q, key q.out',
-  replace key := subgroup.prod_mem (H.subgroup_of (zpowers g)) (λ q (hq : q ∈ finset.univ), hf q),
-  simpa only [minimal_period_eq_card, finset.prod_pow_eq_pow_sum, fintype.card_sigma,
-    fintype.card_congr (self_equiv_sigma_orbits (zpowers g) (G ⧸ H)), index_eq_card] using key,
+  exact (_root_.congr_arg (∈ H) (transfer_eq_pow_aux' g key)).mp (subtype.prop _),
 end
 
 lemma transfer_eq_pow (g : G)
@@ -127,16 +135,8 @@ lemma transfer_eq_pow (g : G)
   transfer ϕ g = ϕ ⟨g ^ H.index, transfer_eq_pow_aux g key⟩ :=
 begin
   classical,
-  change ∀ k g₀ (hk : g₀⁻¹ * g ^ k * g₀ ∈ H), ↑(⟨g₀⁻¹ * g ^ k * g₀, hk⟩ : H) = g ^ k at key,
   rw [transfer_eq_prod_quotient_orbit_rel_zpowers_quot, ←finset.prod_to_list, list.prod_map_hom],
-  refine congr_arg ϕ (subtype.coe_injective _),
-  rw [H.coe_mk, ←(zpowers g).coe_mk g (mem_zpowers g), ←(zpowers g).coe_pow, (zpowers g).coe_mk,
-      index_eq_card, fintype.card_congr (self_equiv_sigma_orbits (zpowers g) (G ⧸ H)),
-      fintype.card_sigma, ←finset.prod_pow_eq_pow_sum, ←finset.prod_to_list],
-  simp only [coe_list_prod, list.map_map, ←minimal_period_eq_card],
-  congr' 2,
-  ext,
-  apply key,
+  exact congr_arg ϕ (by rw [subtype.ext_iff, transfer_eq_pow_aux' g key, H.coe_mk]),
 end
 
 lemma transfer_center_eq_pow [fintype (G ⧸ center G)] (g : G) :

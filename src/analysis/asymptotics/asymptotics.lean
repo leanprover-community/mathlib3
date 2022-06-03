@@ -1130,29 +1130,29 @@ end smul_const
 
 section smul
 
-variables [normed_space 𝕜 E'] [normed_space 𝕜 F']
+variables [normed_space 𝕜 E'] [normed_space 𝕜' F'] {k₁ : α → 𝕜} {k₂ : α → 𝕜'}
 
-theorem is_O_with.smul {k₁ k₂ : α → 𝕜} (h₁ : is_O_with c l k₁ k₂) (h₂ : is_O_with c' l f' g') :
+theorem is_O_with.smul (h₁ : is_O_with c l k₁ k₂) (h₂ : is_O_with c' l f' g') :
   is_O_with (c * c') l (λ x, k₁ x • f' x) (λ x, k₂ x • g' x) :=
 by refine ((h₁.norm_norm.mul h₂.norm_norm).congr rfl _ _).of_norm_norm;
   by intros; simp only [norm_smul]
 
-theorem is_O.smul {k₁ k₂ : α → 𝕜} (h₁ : k₁ =O[l] k₂) (h₂ : f' =O[l] g') :
+theorem is_O.smul (h₁ : k₁ =O[l] k₂) (h₂ : f' =O[l] g') :
   (λ x, k₁ x • f' x) =O[l] (λ x, k₂ x • g' x) :=
 by refine ((h₁.norm_norm.mul h₂.norm_norm).congr _ _).of_norm_norm;
   by intros; simp only [norm_smul]
 
-theorem is_O.smul_is_o {k₁ k₂ : α → 𝕜} (h₁ : k₁ =O[l] k₂) (h₂ : f' =o[l] g') :
+theorem is_O.smul_is_o (h₁ : k₁ =O[l] k₂) (h₂ : f' =o[l] g') :
   (λ x, k₁ x • f' x) =o[l] (λ x, k₂ x • g' x) :=
 by refine ((h₁.norm_norm.mul_is_o h₂.norm_norm).congr _ _).of_norm_norm;
   by intros; simp only [norm_smul]
 
-theorem is_o.smul_is_O {k₁ k₂ : α → 𝕜} (h₁ : k₁ =o[l] k₂) (h₂ : f' =O[l] g') :
+theorem is_o.smul_is_O (h₁ : k₁ =o[l] k₂) (h₂ : f' =O[l] g') :
   (λ x, k₁ x • f' x) =o[l] (λ x, k₂ x • g' x) :=
 by refine ((h₁.norm_norm.mul_is_O h₂.norm_norm).congr _ _).of_norm_norm;
   by intros; simp only [norm_smul]
 
-theorem is_o.smul {k₁ k₂ : α → 𝕜} (h₁ : k₁ =o[l] k₂) (h₂ : f' =o[l] g') :
+theorem is_o.smul (h₁ : k₁ =o[l] k₂) (h₂ : f' =o[l] g') :
   (λ x, k₁ x • f' x) =o[l] (λ x, k₂ x • g' x) :=
 by refine ((h₁.norm_norm.mul h₂.norm_norm).congr _ _).of_norm_norm;
   by intros; simp only [norm_smul]

@@ -66,12 +66,12 @@ begin
     λ h U hU, not_imp_not.mp (h _ (is_open_compl_iff.mpr hU))⟩,
 end
 
-lemma indistinguishable_iff_specializes_and (x y : α) :
-  indistinguishable x y ↔ x ⤳ y ∧ y ⤳ x :=
-(indistinguishable_iff_closure x y).trans (and_comm _ _)
+lemma inseparable_iff_specializes_and (x y : α) :
+  inseparable x y ↔ x ⤳ y ∧ y ⤳ x :=
+(inseparable_iff_closure x y).trans (and_comm _ _)
 
 lemma specializes_antisymm [t0_space α] (x y : α) : x ⤳ y → y ⤳ x → x = y :=
-λ h₁ h₂, ((indistinguishable_iff_specializes_and _ _).mpr ⟨h₁, h₂⟩).eq
+λ h₁ h₂, ((inseparable_iff_specializes_and _ _).mpr ⟨h₁, h₂⟩).eq
 
 lemma specializes.map {x y : α} (h : x ⤳ y) {f : α → β} (hf : continuous f) : f x ⤳ f y :=
 begin

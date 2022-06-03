@@ -142,12 +142,14 @@ lemma transfer_center_eq_pow [fintype (G ⧸ center G)] (g : G) :
   transfer (monoid_hom.id (center G)) g = ⟨g ^ (center G).index, (center G).pow_index_mem g⟩ :=
 transfer_eq_pow (id (center G)) g (λ k _ hk, by rw [←mul_right_inj, hk, mul_inv_cancel_right])
 
+/-- The transfer homomorphism `G →* center G`. -/
 noncomputable def transfer_center_pow [fintype (G ⧸ center G)] : G →* center G :=
 { to_fun := λ g, ⟨g ^ (center G).index, (center G).pow_index_mem g⟩,
   map_one' := subtype.ext (one_pow (center G).index),
   map_mul' := λ a b, by simp_rw [←show ∀ g, (_ : center G) = _,
     from transfer_center_eq_pow, map_mul] }
 
+/-- The transfer homomorphism `G →* center G`. -/
 noncomputable def transfer_center_pow' (h : (center G).index ≠ 0) : G →* center G :=
 @transfer_center_pow G _ (fintype_of_index_ne_zero h)
 

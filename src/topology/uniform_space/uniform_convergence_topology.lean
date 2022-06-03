@@ -427,7 +427,16 @@ protected lemma precomp_uniform_continuous {𝔗 : set (set γ)} {f : γ → α}
   (uniform_convergence_on.uniform_space α β 𝔖) (uniform_convergence_on.uniform_space γ β 𝔗)
   (λ g : α → β, g ∘ f) :=
 begin
-  sorry
+  simp_rw [uniform_continuous_iff, uniform_convergence_on.uniform_space, uniform_space.comap_infi],
+  refine le_infi₂ (λ t ht, infi_le_of_le (f '' t) $ infi_le_of_le (hf ht) _),
+  rw ← uniform_space.comap_comap,
+  let f' : t → f '' t := (maps_to_image f t).restrict f t (f '' t),
+  have : restrict t ∘ (λ g : α → β, g ∘ f) = (λ g : (f '' t) → β, g ∘ f') ∘ restrict (f '' t) :=
+    rfl,
+  rw [this, @uniform_space.comap_comap (α → β) ((f '' t) → β)],
+  refine uniform_space.comap_mono _,
+  rw ← uniform_continuous_iff,
+  exact uniform_convergence.precomp_uniform_continuous
 end
 
 lemma t2_space_of_covering [t2_space β] (h : ⋃₀ 𝔖 = univ) :

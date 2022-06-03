@@ -53,6 +53,12 @@ lemma is_lower_set_univ : is_lower_set (univ : set α) := λ _ _ _, id
 lemma is_upper_set.compl (hs : is_upper_set s) : is_lower_set sᶜ := λ a b h hb ha, hb $ hs h ha
 lemma is_lower_set.compl (hs : is_lower_set s) : is_upper_set sᶜ := λ a b h hb ha, hb $ hs h ha
 
+@[simp] lemma is_upper_set_compl : is_upper_set sᶜ ↔ is_lower_set s :=
+⟨λ h, by { convert h.compl, rw compl_compl }, is_lower_set.compl⟩
+
+@[simp] lemma is_lower_set_compl : is_lower_set sᶜ ↔ is_upper_set s :=
+⟨λ h, by { convert h.compl, rw compl_compl }, is_upper_set.compl⟩
+
 lemma is_upper_set.union (hs : is_upper_set s) (ht : is_upper_set t) : is_upper_set (s ∪ t) :=
 λ a b h, or.imp (hs h) (ht h)
 

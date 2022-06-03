@@ -43,12 +43,6 @@ begin
   exact h,
 end
 
-variables {A : Type*} (w : A)
-
-def j₁ : A → A | _ := w
-def j₂ : A → A → A | _ _ := w
-def w : A := w
-
 example (h : 5 = 3) : (⟨5 + 1, dec_trivial⟩ : fin 10) = ⟨3 + 1, dec_trivial⟩ :=
 begin
   congrm ⟨_ + 1, _⟩,
@@ -60,6 +54,12 @@ begin
   congrm _ ∧ _,
   exact (true_and true).symm,
 end
+
+variables {A : Type*} (w : A)
+
+def j₁ : A → A | _ := w
+def j₂ : A → A → A | _ _ := w
+def w : A := w
 
 example (H : a = b) (H' : c + (f a) = c + (f d)) (H'' : f d = f b) :
   f (f a) * (f d + (c + f a)) = f (f b) * (f b + (c + f d)) :=

@@ -43,12 +43,21 @@ section continuity
 variables [topological_space X] [topological_space R]
 
 instance [has_scalar α R] [has_continuous_const_smul α R] :
-  has_continuous_const_smul α (matrix n n R) :=
+  has_continuous_const_smul α (matrix m n R) :=
 pi.has_continuous_const_smul
 
 instance [topological_space α] [has_scalar α R] [has_continuous_smul α R] :
-  has_continuous_smul α (matrix n n R) :=
+  has_continuous_smul α (matrix m n R) :=
 pi.has_continuous_smul
+
+instance [has_add R] [has_continuous_add R] : has_continuous_add (matrix m n R) :=
+pi.has_continuous_add
+
+instance [has_neg R] [has_continuous_neg R] : has_continuous_neg (matrix m n R) :=
+pi.has_continuous_neg
+
+instance [add_group R] [topological_add_group R] : topological_add_group (matrix m n R) :=
+pi.topological_add_group
 
 /-- To show a function into matrices is continuous it suffices to show the coefficients of the
 resulting matrix are continuous -/
@@ -114,11 +123,11 @@ instance [fintype n] [has_mul R] [add_comm_monoid R] [has_continuous_add R]
 
 instance [fintype n] [non_unital_non_assoc_semiring R] [topological_semiring R] :
   topological_semiring (matrix n n R) :=
-{ ..pi.has_continuous_add }
+{}
 
 instance [fintype n] [non_unital_non_assoc_ring R] [topological_ring R] :
   topological_ring (matrix n n R) :=
-{ ..pi.has_continuous_neg, ..pi.has_continuous_add }
+{}
 
 @[continuity]
 lemma continuous.matrix_vec_mul_vec [has_mul R] [has_continuous_mul R]

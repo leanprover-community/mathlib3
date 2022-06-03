@@ -527,39 +527,56 @@ by { apply tendsto.mul_const hm, simp [ha] }
 protected lemma tendsto_inv_nat_nhds_zero : tendsto (λ n : ℕ, (n : ℝ≥0∞)⁻¹) at_top (𝓝 0) :=
 ennreal.inv_top ▸ ennreal.tendsto_inv_iff.2 tendsto_nat_nhds_top
 
+lemma supr_add {ι : Sort*} {s : ι → ℝ≥0∞} [h : nonempty ι] : supr s + a = ⨆b, s b + a :=
+map_supr_of_continuous_at_of_monotone' (continuous_at_id.add continuous_at_const) $
+  monotone_id.add monotone_const
+
+lemma bsupr_add' {ι : Sort*} {p : ι → Prop} (h : ∃ i, p i) {f : ι → ℝ≥0∞} :
+  (⨆ i (hi : p i), f i) + a = ⨆ i (hi : p i), f i + a :=
+by { haveI : nonempty {i // p i} := nonempty_subtype.2 h, simp only [supr_subtype', supr_add] }
+
+lemma add_bsupr' {ι : Sort*} {p : ι → Prop} (h : ∃ i, p i) {f : ι → ℝ≥0∞} :
+  a + (⨆ i (hi : p i), f i) = ⨆ i (hi : p i), a + f i :=
+by simp only [add_comm a, bsupr_add' h]
+
 lemma bsupr_add {ι} {s : set ι} (hs : s.nonempty) {f : ι → ℝ≥0∞} :
   (⨆ i ∈ s, f i) + a = ⨆ i ∈ s, f i + a :=
-begin
-  simp only [← Sup_image], symmetry,
-  rw [image_comp (+ a)],
-  refine is_lub.Sup_eq ((is_lub_Sup $ f '' s).is_lub_of_tendsto _ (hs.image _) _),
-  exacts [λ x _ y _ hxy, add_le_add hxy le_rfl,
-    tendsto.add (tendsto_id' inf_le_left) tendsto_const_nhds]
-end
+bsupr_add' hs
+
+lemma add_bsupr {ι} {s : set ι} (hs : s.nonempty) {f : ι → ℝ≥0∞} :
+  a + (⨆ i ∈ s, f i) = ⨆ i ∈ s, a + f i :=
+add_bsupr' hs
 
 lemma Sup_add {s : set ℝ≥0∞} (hs : s.nonempty) : Sup s + a = ⨆b∈s, b + a :=
 by rw [Sup_eq_supr, bsupr_add hs]
 
-lemma supr_add {ι : Sort*} {s : ι → ℝ≥0∞} [h : nonempty ι] : supr s + a = ⨆b, s b + a :=
-let ⟨x⟩ := h in
-calc supr s + a = Sup (range s) + a : by rw Sup_range
-  ... = (⨆b∈range s, b + a) : Sup_add ⟨s x, x, rfl⟩
-  ... = _ : supr_range
-
-lemma add_supr {ι : Sort*} {s : ι → ℝ≥0∞} [h : nonempty ι] : a + supr s = ⨆b, a + s b :=
+lemma add_supr {ι : Sort*} {s : ι → ℝ≥0∞} [nonempty ι] : a + supr s = ⨆b, a + s b :=
 by rw [add_comm, supr_add]; simp [add_comm]
+
+lemma supr_add_supr_le {ι ι' : Sort*} [nonempty ι] [nonempty ι']
+  {f : ι → ℝ≥0∞} {g : ι' → ℝ≥0∞} {a : ℝ≥0∞} (h : ∀ i j, f i + g j ≤ a) :
+  supr f + supr g ≤ a :=
+by simpa only [add_supr, supr_add] using supr₂_le h
+
+lemma bsupr_add_bsupr_le' {ι ι'} {p : ι → Prop} {q : ι' → Prop} (hp : ∃ i, p i) (hq : ∃ j, q j)
+  {f : ι → ℝ≥0∞} {g : ι' → ℝ≥0∞} {a : ℝ≥0∞} (h : ∀ i (hi : p i) j (hj : q j), f i + g j ≤ a) :
+  (⨆ i (hi : p i), f i) + (⨆ j (hj : q j), g j) ≤ a :=
+by { simp_rw [bsupr_add' hp, add_bsupr' hq], exact supr₂_le (λ i hi, supr₂_le (h i hi)) }
+
+lemma bsupr_add_bsupr_le {ι ι'} {s : set ι} {t : set ι'} (hs : s.nonempty) (ht : t.nonempty)
+  {f : ι → ℝ≥0∞} {g : ι' → ℝ≥0∞} {a : ℝ≥0∞} (h : ∀ (i ∈ s) (j ∈ t), f i + g j ≤ a) :
+  (⨆ i ∈ s, f i) + (⨆ j ∈ t, g j) ≤ a :=
+bsupr_add_bsupr_le' hs ht h
 
 lemma supr_add_supr {ι : Sort*} {f g : ι → ℝ≥0∞} (h : ∀i j, ∃k, f i + g j ≤ f k + g k) :
   supr f + supr g = (⨆ a, f a + g a) :=
 begin
-  by_cases hι : nonempty ι,
-  { letI := hι,
-    refine le_antisymm _ (supr_le $ λ a, add_le_add (le_supr _ _) (le_supr _ _)),
-    simpa [add_supr, supr_add] using
-      λ i j:ι, show f i + g j ≤ ⨆ a, f a + g a, from
-      let ⟨k, hk⟩ := h i j in le_supr_of_le k hk },
-  { have : ∀f:ι → ℝ≥0∞, (⨆i, f i) = 0 := λ f, supr_eq_zero.mpr (λ i, (hι ⟨i⟩).elim),
-    rw [this, this, this, zero_add] }
+  casesI is_empty_or_nonempty ι,
+  { simp only [supr_of_empty, bot_eq_zero, zero_add] },
+  { refine le_antisymm _ (supr_le $ λ a, add_le_add (le_supr _ _) (le_supr _ _)),
+    refine supr_add_supr_le (λ i j, _),
+    rcases h i j with ⟨k, hk⟩,
+    exact le_supr_of_le k hk }
 end
 
 lemma supr_add_supr_of_monotone {ι : Sort*} [semilattice_sup ι]
@@ -580,27 +597,18 @@ begin
     exact (finset.sum_le_sum $ assume a ha, hf a h) }
 end
 
-lemma mul_Sup {s : set ℝ≥0∞} {a : ℝ≥0∞} : a * Sup s = ⨆i∈s, a * i :=
+lemma mul_supr {ι : Sort*} {f : ι → ℝ≥0∞} {a : ℝ≥0∞} : a * supr f = ⨆i, a * f i :=
 begin
-  by_cases hs : ∀x∈s, x = (0:ℝ≥0∞),
-  { have h₁ : Sup s = 0 := (bot_unique $ Sup_le $ assume a ha, (hs a ha).symm ▸ le_refl 0),
-    have h₂ : (⨆i ∈ s, a * i) = 0 :=
-      (bot_unique $ supr_le $ assume a, supr_le $ assume ha, by simp [hs a ha]),
-    rw [h₁, h₂, mul_zero] },
-  { simp only [not_forall] at hs,
-    rcases hs with ⟨x, hx, hx0⟩,
-    have s₁ : Sup s ≠ 0 :=
-      pos_iff_ne_zero.1 (lt_of_lt_of_le (pos_iff_ne_zero.2 hx0) (le_Sup hx)),
-    have : Sup ((λb, a * b) '' s) = a * Sup s :=
-      is_lub.Sup_eq ((is_lub_Sup s).is_lub_of_tendsto
-        (assume x _ y _ h, mul_le_mul_left' h _)
-        ⟨x, hx⟩
-        (ennreal.tendsto.const_mul (tendsto_id' inf_le_left) (or.inl s₁))),
-    rw [this.symm, Sup_image] }
+  by_cases hf : ∀ i, f i = 0,
+  { obtain rfl : f = (λ _, 0), from funext hf,
+    simp only [supr_zero_eq_zero, mul_zero] },
+  { refine map_supr_of_continuous_at_of_monotone _ (monotone_id.const_mul' _) (mul_zero a),
+    refine ennreal.tendsto.const_mul tendsto_id (or.inl _),
+    exact mt supr_eq_zero.1 hf }
 end
 
-lemma mul_supr {ι : Sort*} {f : ι → ℝ≥0∞} {a : ℝ≥0∞} : a * supr f = ⨆i, a * f i :=
-by rw [← Sup_range, mul_Sup, supr_range]
+lemma mul_Sup {s : set ℝ≥0∞} {a : ℝ≥0∞} : a * Sup s = ⨆i∈s, a * i :=
+by simp only [Sup_eq_supr, mul_supr]
 
 lemma supr_mul {ι : Sort*} {f : ι → ℝ≥0∞} {a : ℝ≥0∞} : supr f * a = ⨆i, f i * a :=
 by rw [mul_comm, mul_supr]; congr; funext; rw [mul_comm]

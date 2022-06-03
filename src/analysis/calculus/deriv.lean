@@ -310,7 +310,7 @@ alias has_deriv_within_at.Ioi_iff_Ioo ↔
   has_deriv_within_at.Ioi_of_Ioo has_deriv_within_at.Ioo_of_Ioi
 
 theorem has_deriv_at_iff_is_o_nhds_zero : has_deriv_at f f' x ↔
-  is_o (λh, f (x + h) - f x - h • f') (λh, h) (𝓝 0) :=
+  (λh, f (x + h) - f x - h • f') =o[𝓝 0] (λh, h) :=
 has_fderiv_at_iff_is_o_nhds_zero
 
 theorem has_deriv_at_filter.mono (h : has_deriv_at_filter f f' x L₂) (hst : L₁ ≤ L₂) :
@@ -939,11 +939,11 @@ lemma deriv_within_sub (hxs : unique_diff_within_at 𝕜 s x)
 (hf.has_deriv_at.sub hg.has_deriv_at).deriv
 
 theorem has_deriv_at_filter.is_O_sub (h : has_deriv_at_filter f f' x L) :
-  is_O (λ x', f x' - f x) (λ x', x' - x) L :=
+  (λ x', f x' - f x) =O[L] (λ x', x' - x) :=
 has_fderiv_at_filter.is_O_sub h
 
 theorem has_deriv_at_filter.is_O_sub_rev (hf : has_deriv_at_filter f f' x L) (hf' : f' ≠ 0) :
-  is_O (λ x', x' - x) (λ x', f x' - f x) L :=
+  (λ x', x' - x) =O[L] (λ x', f x' - f x) :=
 suffices antilipschitz_with ∥f'∥₊⁻¹ (smul_right (1 : 𝕜 →L[𝕜] 𝕜) f'), from hf.is_O_sub_rev this,
 (smul_right (1 : 𝕜 →L[𝕜] 𝕜) f').to_linear_map.antilipschitz_of_bound $
   λ x, by simp [norm_smul, ← div_eq_inv_mul, mul_div_cancel _ (mt norm_eq_zero.1 hf')]
@@ -1109,32 +1109,37 @@ lemma deriv.scomp
 
 /-! ### Derivative of the composition of a scalar and vector functions -/
 
-theorem has_deriv_at_filter.comp_has_fderiv_at_filter {f : E → 𝕜} {f' : E →L[𝕜] 𝕜} (x)
-  {L' : filter E} (hh₁ : has_deriv_at_filter h₁ h₁' (f x) L)
-  (hf : has_fderiv_at_filter f f' x L') (hL : tendsto f L' L) :
-  has_fderiv_at_filter (h₁ ∘ f) (h₁' • f') x L' :=
-by { convert hh₁.comp  x hf hL, ext x, simp [mul_comm] }
+theorem has_deriv_at_filter.comp_has_fderiv_at_filter {f : E → 𝕜'} {f' : E →L[𝕜] 𝕜'} (x)
+  {L'' : filter E} (hh₂ : has_deriv_at_filter h₂ h₂' (f x) L')
+  (hf : has_fderiv_at_filter f f' x L'') (hL : tendsto f L'' L') :
+  has_fderiv_at_filter (h₂ ∘ f) (h₂' • f') x L'' :=
+by { convert (hh₂.restrict_scalars 𝕜).comp x hf hL, ext x, simp [mul_comm] }
 
-theorem has_strict_deriv_at.comp_has_strict_fderiv_at {f : E → 𝕜} {f' : E →L[𝕜] 𝕜} (x)
-  (hh₁ : has_strict_deriv_at h₁ h₁' (f x)) (hf : has_strict_fderiv_at f f' x) :
-  has_strict_fderiv_at (h₁ ∘ f) (h₁' • f') x :=
-by { rw has_strict_deriv_at at hh₁, convert hh₁.comp x hf, ext x, simp [mul_comm] }
+theorem has_strict_deriv_at.comp_has_strict_fderiv_at {f : E → 𝕜'} {f' : E →L[𝕜] 𝕜'} (x)
+  (hh : has_strict_deriv_at h₂ h₂' (f x)) (hf : has_strict_fderiv_at f f' x) :
+  has_strict_fderiv_at (h₂ ∘ f) (h₂' • f') x :=
+begin
+  rw has_strict_deriv_at at hh,
+  convert (hh.restrict_scalars 𝕜).comp x hf,
+  ext x,
+  simp [mul_comm]
+end
 
-theorem has_deriv_at.comp_has_fderiv_at {f : E → 𝕜} {f' : E →L[𝕜] 𝕜} (x)
-  (hh₁ : has_deriv_at h₁ h₁' (f x)) (hf : has_fderiv_at f f' x) :
-  has_fderiv_at (h₁ ∘ f) (h₁' • f') x :=
-hh₁.comp_has_fderiv_at_filter x hf hf.continuous_at
+theorem has_deriv_at.comp_has_fderiv_at {f : E → 𝕜'} {f' : E →L[𝕜] 𝕜'} (x)
+  (hh : has_deriv_at h₂ h₂' (f x)) (hf : has_fderiv_at f f' x) :
+  has_fderiv_at (h₂ ∘ f) (h₂' • f') x :=
+hh.comp_has_fderiv_at_filter x hf hf.continuous_at
 
-theorem has_deriv_at.comp_has_fderiv_within_at {f : E → 𝕜} {f' : E →L[𝕜] 𝕜} {s} (x)
-  (hh₁ : has_deriv_at h₁ h₁' (f x)) (hf : has_fderiv_within_at f f' s x) :
-  has_fderiv_within_at (h₁ ∘ f) (h₁' • f') s x :=
-hh₁.comp_has_fderiv_at_filter x hf hf.continuous_within_at
+theorem has_deriv_at.comp_has_fderiv_within_at {f : E → 𝕜'} {f' : E →L[𝕜] 𝕜'} {s} (x)
+  (hh : has_deriv_at h₂ h₂' (f x)) (hf : has_fderiv_within_at f f' s x) :
+  has_fderiv_within_at (h₂ ∘ f) (h₂' • f') s x :=
+hh.comp_has_fderiv_at_filter x hf hf.continuous_within_at
 
-theorem has_deriv_within_at.comp_has_fderiv_within_at {f : E → 𝕜} {f' : E →L[𝕜] 𝕜} {s t} (x)
-  (hh₁ : has_deriv_within_at h₁ h₁' t (f x)) (hf : has_fderiv_within_at f f' s x)
+theorem has_deriv_within_at.comp_has_fderiv_within_at {f : E → 𝕜'} {f' : E →L[𝕜] 𝕜'} {s t} (x)
+  (hh : has_deriv_within_at h₂ h₂' t (f x)) (hf : has_fderiv_within_at f f' s x)
   (hst : maps_to f s t) :
-  has_fderiv_within_at (h₁ ∘ f) (h₁' • f') s x :=
-hh₁.comp_has_fderiv_at_filter x hf $ hf.continuous_within_at.tendsto_nhds_within hst
+  has_fderiv_within_at (h₂ ∘ f) (h₂' • f') s x :=
+hh.comp_has_fderiv_at_filter x hf $ hf.continuous_within_at.tendsto_nhds_within hst
 
 /-! ### Derivative of the composition of two scalar functions -/
 
@@ -1392,8 +1397,8 @@ section inverse
 
 theorem has_strict_deriv_at_inv (hx : x ≠ 0) : has_strict_deriv_at has_inv.inv (-(x^2)⁻¹) x :=
 begin
-  suffices : is_o (λ p : 𝕜 × 𝕜, (p.1 - p.2) * ((x * x)⁻¹ - (p.1 * p.2)⁻¹))
-    (λ (p : 𝕜 × 𝕜), (p.1 - p.2) * 1) (𝓝 (x, x)),
+  suffices : (λ p : 𝕜 × 𝕜, (p.1 - p.2) * ((x * x)⁻¹ - (p.1 * p.2)⁻¹)) =o[𝓝 (x, x)]
+    (λ p, (p.1 - p.2) * 1),
   { refine this.congr' _ (eventually_of_forall $ λ _, mul_one _),
     refine eventually.mono (is_open.mem_nhds (is_open_ne.prod is_open_ne) ⟨hx, hx⟩) _,
     rintro ⟨y, z⟩ ⟨hy, hz⟩,
@@ -1938,9 +1943,9 @@ begin
   { have hx : x ≠ 0, from h.resolve_right hm.not_le,
     have := (has_strict_deriv_at_inv _).scomp _ (this (-m) (neg_pos.2 hm));
       [skip, exact zpow_ne_zero_of_ne_zero hx _],
-    simp only [(∘), zpow_neg₀, one_div, inv_inv, smul_eq_mul] at this,
+    simp only [(∘), zpow_neg, one_div, inv_inv, smul_eq_mul] at this,
     convert this using 1,
-    rw [sq, mul_inv₀, inv_inv, int.cast_neg, neg_mul, neg_mul_neg,
+    rw [sq, mul_inv, inv_inv, int.cast_neg, neg_mul, neg_mul_neg,
       ← zpow_add₀ hx, mul_assoc, ← zpow_add₀ hx], congr, abel },
   { simp only [hm, zpow_zero, int.cast_zero, zero_mul, has_strict_deriv_at_const] },
   { exact this m hm }

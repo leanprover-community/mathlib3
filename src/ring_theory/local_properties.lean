@@ -231,7 +231,7 @@ lemma localization_finite : ring_hom.localization_preserves @ring_hom.finite :=
 begin
   introv R hf,
   -- Setting up the `algebra` and `is_scalar_tower` instances needed
-  classical,
+  resetI,
   letI := f.to_algebra,
   letI := ((algebra_map S S').comp f).to_algebra,
   let f' : R' →+* S' := is_localization.map S' f (submonoid.le_comap_map M),
@@ -323,7 +323,6 @@ lemma multiple_mem_span_of_mem_localization_span [algebra R' S] [algebra R S]
   (s : set S) (x : S) (hx : x ∈ submodule.span R' s) :
     ∃ t : M, t • x ∈ submodule.span R s :=
 begin
-  classical,
   obtain ⟨s', hss', hs'⟩ := submodule.mem_span_finite_of_mem_span hx,
   suffices : ∃ t : M, t • x ∈ submodule.span R (s' : set S),
   { obtain ⟨t, ht⟩ := this,
@@ -364,7 +363,7 @@ begin
   rw ring_hom.of_localization_span_iff_finite,
   introv R hs H,
   -- We first setup the instances
-  classical,
+  resetI,
   letI := f.to_algebra,
   letI := λ (r : s), (localization.away_map f r).to_algebra,
   haveI : ∀ r : s, is_localization ((submonoid.powers (r : R)).map (algebra_map R S : R →* S))
@@ -414,7 +413,7 @@ lemma localization_finite_type : ring_hom.localization_preserves @ring_hom.finit
 begin
   introv R hf,
   -- mirrors the proof of `localization_map_finite`
-  classical,
+  resetI,
   letI := f.to_algebra,
   letI := ((algebra_map S S').comp f).to_algebra,
   let f' : R' →+* S' := is_localization.map S' f (submonoid.le_comap_map M),
@@ -493,7 +492,7 @@ begin
   rw ring_hom.of_localization_span_iff_finite,
   introv R hs H,
   -- mirrors the proof of `finite_of_localization_span`
-  classical,
+  resetI,
   letI := f.to_algebra,
   letI := λ (r : s), (localization.away_map f r).to_algebra,
   haveI : ∀ r : s, is_localization ((submonoid.powers (r : R)).map (algebra_map R S : R →* S))

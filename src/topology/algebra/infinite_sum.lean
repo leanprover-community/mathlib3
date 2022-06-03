@@ -119,6 +119,10 @@ lemma has_sum_subtype_iff_indicator {s : set β} :
 by rw [← set.indicator_range_comp, subtype.range_coe,
   has_sum_subtype_iff_of_support_subset set.support_indicator_subset]
 
+lemma summable_subtype_iff_indicator {s : set β} :
+  summable (f ∘ coe : s → α) ↔ summable (s.indicator f) :=
+exists_congr (λ _, has_sum_subtype_iff_indicator)
+
 @[simp] lemma has_sum_subtype_support : has_sum (f ∘ coe : support f → α) a ↔ has_sum f a :=
 has_sum_subtype_iff_of_support_subset $ set.subset.refl _
 
@@ -245,6 +249,56 @@ lemma function.surjective.summable_iff_of_has_sum_iff {α' : Type*} [add_comm_mo
   (he : ∀ {a}, has_sum f (e a) ↔ has_sum g a) :
   summable f ↔ summable g :=
 hes.exists.trans $ exists_congr $ @he
+
+section mul_opposite
+open mul_opposite
+
+lemma has_sum.op (hf : has_sum f a) : has_sum (λ a, op (f a)) (op a) :=
+(hf.map (@op_add_equiv α _) continuous_op : _)
+
+lemma summable.op (hf : summable f) : summable (op ∘ f) := hf.has_sum.op.summable
+
+lemma has_sum.unop {f : β → αᵐᵒᵖ} {a : αᵐᵒᵖ} (hf : has_sum f a) :
+  has_sum (λ a, unop (f a)) (unop a) :=
+(hf.map (@op_add_equiv α _).symm continuous_unop : _)
+
+lemma summable.unop {f : β → αᵐᵒᵖ} (hf : summable f) : summable (unop ∘ f) :=
+hf.has_sum.unop.summable
+
+@[simp] lemma has_sum_op : has_sum (λ a, op (f a)) (op a) ↔ has_sum f a :=
+⟨has_sum.unop, has_sum.op⟩
+
+@[simp] lemma has_sum_unop {f : β → αᵐᵒᵖ} {a : αᵐᵒᵖ} :
+  has_sum (λ a, unop (f a)) (unop a) ↔ has_sum f a :=
+⟨has_sum.op, has_sum.unop⟩
+
+@[simp] lemma summable_op : summable (λ a, op (f a)) ↔ summable f :=
+⟨summable.unop, summable.op⟩
+
+@[simp] lemma summable_unop {f : β → αᵐᵒᵖ} : summable (λ a, unop (f a)) ↔ summable f :=
+⟨summable.op, summable.unop⟩
+
+end mul_opposite
+
+section has_continuous_star
+variables [star_add_monoid α] [has_continuous_star α]
+
+lemma has_sum.star (h : has_sum f a) : has_sum (λ b, star (f b)) (star a) :=
+by simpa only using h.map (star_add_equiv : α ≃+ α) continuous_star
+
+lemma summable.star (hf : summable f) : summable (λ b, star (f b)) :=
+hf.has_sum.star.summable
+
+lemma summable.of_star (hf : summable (λ b, star (f b))) : summable f :=
+by simpa only [star_star] using hf.star
+
+@[simp] lemma summable_star_iff : summable (λ b, star (f b)) ↔ summable f :=
+⟨summable.of_star, summable.star⟩
+
+@[simp] lemma summable_star_iff' : summable (star f) ↔ summable f :=
+summable_star_iff
+
+end has_continuous_star
 
 variable [has_continuous_add α]
 
@@ -444,6 +498,17 @@ lemma tsum_subtype (s : set β) (f : β → α) :
   ∑' x:s, f x = ∑' x, s.indicator f x :=
 tsum_eq_tsum_of_has_sum_iff_has_sum $ λ _, has_sum_subtype_iff_indicator
 
+lemma tsum_op : ∑' x, mul_opposite.op (f x) = mul_opposite.op (∑' x, f x) :=
+begin
+  by_cases h : summable f,
+  { exact h.has_sum.op.tsum_eq, },
+  { have ho := summable_op.not.mpr h,
+    rw [tsum_eq_zero_of_not_summable h, tsum_eq_zero_of_not_summable ho, mul_opposite.op_zero] },
+end
+
+lemma tsum_unop {f : β → αᵐᵒᵖ} : ∑' x, mul_opposite.unop (f x) = mul_opposite.unop (∑' x, f x) :=
+mul_opposite.op_injective tsum_op.symm
+
 section has_continuous_add
 variable [has_continuous_add α]
 
@@ -473,6 +538,19 @@ begin
 end
 
 end has_continuous_add
+
+section has_continuous_star
+variables [star_add_monoid α] [has_continuous_star α]
+
+lemma tsum_star : star (∑' b, f b) = ∑' b, star (f b) :=
+begin
+  by_cases hf : summable f,
+  { exact hf.has_sum.star.tsum_eq.symm, },
+  { rw [tsum_eq_zero_of_not_summable hf, tsum_eq_zero_of_not_summable (mt summable.of_star hf),
+        star_zero] },
+end
+
+end has_continuous_star
 
 section encodable
 open encodable

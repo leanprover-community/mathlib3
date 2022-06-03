@@ -980,8 +980,27 @@ lemma tendsto_nhds_bot_mono' [topological_space β] [partial_order β] [order_bo
 tendsto_nhds_bot_mono hf (eventually_of_forall hg)
 
 section linear_order
+variables [topological_space α] [linear_order α]
 
-variables [topological_space α] [linear_order α] [order_topology α]
+section order_closed_topology
+variables [order_closed_topology α] {a b : α}
+
+lemma eventually_le_nhds (hab : a < b) : ∀ᶠ x in 𝓝 a, x ≤ b :=
+eventually_iff.mpr (mem_nhds_iff.mpr ⟨Iio b, Iio_subset_Iic_self, is_open_Iio, hab⟩)
+
+lemma eventually_lt_nhds (hab : a < b) : ∀ᶠ x in 𝓝 a, x < b :=
+eventually_iff.mpr (mem_nhds_iff.mpr ⟨Iio b, rfl.subset, is_open_Iio, hab⟩)
+
+lemma eventually_ge_nhds (hab : b < a) : ∀ᶠ x in 𝓝 a, b ≤ x :=
+eventually_iff.mpr (mem_nhds_iff.mpr ⟨Ioi b, Ioi_subset_Ici_self, is_open_Ioi, hab⟩)
+
+lemma eventually_gt_nhds (hab : b < a) : ∀ᶠ x in 𝓝 a, b < x :=
+eventually_iff.mpr (mem_nhds_iff.mpr ⟨Ioi b, rfl.subset, is_open_Ioi, hab⟩)
+
+end order_closed_topology
+
+section order_topology
+variables [order_topology α]
 
 lemma exists_Ioc_subset_of_mem_nhds' {a : α} {s : set α} (hs : s ∈ 𝓝 a) {l : α} (hl : l < a) :
   ∃ l' ∈ Ico l a, Ioc l' a ⊆ s :=
@@ -1497,6 +1516,8 @@ begin
     exact ⟨l, la, subset.trans Ioc_subset_Icc_self as⟩ }
 end
 
+end order_topology
+
 end linear_order
 
 section linear_ordered_add_comm_group
@@ -1547,7 +1568,7 @@ instance linear_ordered_add_comm_group.topological_add_group : topological_add_g
         filter_upwards [prod_is_open.mem_nhds (eventually_abs_sub_lt a δ0)
           (eventually_abs_sub_lt b (sub_pos.2 δε))],
         rintros ⟨x, y⟩ ⟨hx : |x - a| < δ, hy : |y - b| < ε - δ⟩,
-        rw [add_sub_comm],
+        rw [add_sub_add_comm],
         calc |x - a + (y - b)| ≤ |x - a| + |y - b| : abs_add _ _
         ... < δ + (ε - δ) : add_lt_add hx hy
         ... = ε : add_sub_cancel'_right _ _ },
@@ -1893,7 +1914,7 @@ tendsto_inv_zero_at_top.comp h
 /-- The function `x^(-n)` tends to `0` at `+∞` for any positive natural `n`.
 A version for positive real powers exists as `tendsto_rpow_neg_at_top`. -/
 lemma tendsto_pow_neg_at_top {n : ℕ} (hn : 1 ≤ n) : tendsto (λ x : α, x ^ (-(n:ℤ))) at_top (𝓝 0) :=
-tendsto.congr (λ x, (zpow_neg₀ x n).symm)
+tendsto.congr (λ x, (zpow_neg x n).symm)
   (filter.tendsto.inv_tendsto_at_top (by simpa [zpow_coe_nat] using tendsto_pow_at_top hn))
 
 lemma tendsto_zpow_at_top_zero {n : ℤ} (hn : n < 0) :

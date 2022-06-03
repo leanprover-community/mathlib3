@@ -251,7 +251,7 @@ begin
   ... = (v.L * |t - v.t₀|) ^ (n + 1) / (n + 1)! * d : _,
   simp_rw [mul_pow, div_eq_mul_inv, mul_assoc, measure_theory.integral_mul_left,
     measure_theory.integral_mul_right, integral_pow_abs_sub_interval_oc, div_eq_mul_inv,
-    pow_succ (v.L : ℝ), nat.factorial_succ, nat.cast_mul, nat.cast_succ, mul_inv₀, mul_assoc]
+    pow_succ (v.L : ℝ), nat.factorial_succ, nat.cast_mul, nat.cast_succ, mul_inv, mul_assoc]
 end
 
 lemma dist_iterate_next_apply_le (f₁ f₂ : fun_space v) (n : ℕ) (t : Icc v.t_min v.t_max) :

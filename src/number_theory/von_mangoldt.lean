@@ -78,6 +78,18 @@ by simp only [von_mangoldt_apply, is_prime_pow_pow_iff hk, pow_min_fac hk]
 lemma von_mangoldt_apply_prime {p : ℕ} (hp : p.prime) : Λ p = real.log p :=
 by rw [von_mangoldt_apply, prime.min_fac_eq hp, if_pos (nat.prime_iff.1 hp).is_prime_pow]
 
+lemma von_mangoldt_ne_zero_iff {n : ℕ} : Λ n ≠ 0 ↔ is_prime_pow n :=
+begin
+  rcases eq_or_ne n 1 with rfl | hn, { simp [not_is_prime_pow_one] },
+  exact (real.log_pos (one_lt_cast.2 (min_fac_prime hn).one_lt)).ne'.ite_ne_right_iff
+end
+
+lemma von_mangoldt_pos_iff {n : ℕ} : 0 < Λ n ↔ is_prime_pow n :=
+von_mangoldt_nonneg.lt_iff_ne.trans (ne_comm.trans von_mangoldt_ne_zero_iff)
+
+lemma von_mangoldt_eq_zero_iff {n : ℕ} : Λ n = 0 ↔ ¬is_prime_pow n :=
+von_mangoldt_ne_zero_iff.not_right
+
 open_locale big_operators
 
 lemma von_mangoldt_sum {n : ℕ} :
@@ -93,8 +105,7 @@ begin
   simp only [von_mangoldt_apply, ←sum_filter] at ha hb ⊢,
   rw [mul_divisors_filter_prime_pow hab, filter_union,
     sum_union (disjoint_divisors_filter_prime_pow hab), ha, hb, nat.cast_mul,
-    real.log_mul (nat.cast_ne_zero.2 (pos_of_gt ha').ne')
-      (nat.cast_ne_zero.2 (pos_of_gt hb').ne')],
+    real.log_mul (cast_ne_zero.2 (pos_of_gt ha').ne') (cast_ne_zero.2 (pos_of_gt hb').ne')],
 end
 
 @[simp] lemma von_mangoldt_mul_zeta : Λ * ζ = log :=
@@ -130,6 +141,14 @@ begin
   rcases eq_or_ne n 1 with hn | hn;
   simp [hn],
 end
+
+lemma von_mangoldt_le_log : ∀ {n : ℕ}, Λ n ≤ real.log (n : ℝ)
+| 0 := by simp
+| (n+1) :=
+  begin
+    rw ←von_mangoldt_sum,
+    exact single_le_sum (λ _ _, von_mangoldt_nonneg) (mem_divisors_self _ n.succ_ne_zero),
+  end
 
 end arithmetic_function
 end nat

@@ -218,7 +218,7 @@ protected def division_monoid [division_monoid M₂] (f : M₁ → M₂) (hf : i
   (zpow : ∀ x (n : ℤ), f (x ^ n) = f x ^ n) :
   division_monoid M₁ :=
 { mul_inv_rev := λ x y, hf $ by erw [inv, mul, mul_inv_rev, mul, inv, inv],
-  inv_eq_of_mul := λ x y h, hf $ by erw [inv, inv_eq_of_mul_eq_one (by erw [←mul, h, one])],
+  inv_eq_of_mul := λ x y h, hf $ by erw [inv, inv_eq_of_mul_eq_one_right (by erw [←mul, h, one])],
   ..hf.div_inv_monoid f one mul inv div npow zpow, ..hf.has_involutive_inv f inv  }
 
 /-- A type endowed with `1`, `*`, `⁻¹`, and `/` is a `division_comm_monoid`

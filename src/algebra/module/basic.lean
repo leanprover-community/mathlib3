@@ -234,7 +234,7 @@ section module
 variables [ring R] [add_comm_group M] [module R M] (r s : R) (x y : M)
 
 @[simp] theorem neg_smul : -r • x = - (r • x) :=
-eq_neg_of_add_eq_zero (by rw [← add_smul, add_left_neg, zero_smul])
+eq_neg_of_add_eq_zero_left $ by rw [← add_smul, add_left_neg, zero_smul]
 
 @[simp] lemma neg_smul_neg : -r • -x = r • x :=
 by rw [neg_smul, smul_neg, neg_neg]

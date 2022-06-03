@@ -268,7 +268,7 @@ lemma tendsto_in_measure.ae_measurable
   ae_measurable g μ :=
 begin
   obtain ⟨ns, hns⟩ := h_tendsto.exists_seq_tendsto_ae',
-  exact ae_measurable_of_tendsto_metric_ae at_top (λ n, hf (ns n)) hns,
+  exact ae_measurable_of_tendsto_metrizable_ae at_top (λ n, hf (ns n)) hns,
 end
 
 end ae_measurable_of

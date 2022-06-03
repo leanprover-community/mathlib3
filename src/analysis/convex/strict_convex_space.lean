@@ -117,7 +117,7 @@ begin
     exact add_le_add_right hca _ },
   have h₁ : 0 < c / a := div_pos hc ha,
   have h₂ : 0 ≤ d - c / a * b,
-  { rw [sub_nonneg, mul_comm_div', ←le_div_iff' hc],
+  { rw [sub_nonneg, mul_comm_div, ←le_div_iff' hc],
     exact div_le_div hd.le hbd hc hca },
   calc ∥c • x + d • y∥ = ∥(c / a) • (a • x + b • y) + (d - c / a * b) • y∥
         : by rw [smul_add, ←mul_smul, ←mul_smul, div_mul_cancel _ ha.ne', sub_smul,

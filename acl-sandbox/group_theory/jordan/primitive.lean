@@ -140,7 +140,7 @@ open_locale classical big_operators pointwise
 
 theorem is_primitive_of_large_image
   [fintype β] [decidable_eq β] (htβ : is_pretransitive N β)
-  {φ : M → N} {f : α →ₑ[φ] β} (hf : function.injective f)
+  {φ : M → N} {f : α →ₑ[φ] β}
   (hM : is_preprimitive M α)
   (hf' : 2 * fintype.card (set.range f) > fintype.card β) : is_preprimitive N β :=
 begin
@@ -180,7 +180,7 @@ begin
   rw ← ht,
   rw set.to_finset_card,
 
- -- Since f is injective, it suffices to prove that the preimage is subsingleton
+ -- It suffices to prove that the preimage is subsingleton
   rw [fintype.card_le_one_iff_subsingleton, set.inter_comm, ← set.image_preimage_eq_inter_range,
     set.subsingleton_coe],
   apply set.subsingleton.image ,

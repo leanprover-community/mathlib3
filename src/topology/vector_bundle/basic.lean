@@ -617,7 +617,6 @@ by { ext v, rw [coord_change_apply e e' hb], refl }
 end trivialization
 
 section
-local attribute [reducible] bundle.trivial
 
 instance {B : Type*} {F : Type*} [add_comm_monoid F] (b : B) :
   add_comm_monoid (bundle.trivial B F b) := ‹add_comm_monoid F›
@@ -781,19 +780,14 @@ typeclass inference -/
 @[nolint unused_arguments has_inhabited_instance]
 def fiber (x : B) := F
 
-section fiber_instances
-
-local attribute [reducible] fiber --just to record instances
-
-instance topological_space_fiber (x : B) : topological_space (Z.fiber x) := by apply_instance
-instance add_comm_monoid_fiber : ∀ (x : B), add_comm_monoid (Z.fiber x) := λ x, by apply_instance
-instance module_fiber : ∀ (x : B), module R (Z.fiber x) := λ x, by apply_instance
-
-variable [add_comm_group F]
-
-instance add_comm_group_fiber : ∀ (x : B), add_comm_group (Z.fiber x) := λ x, by apply_instance
-
-end fiber_instances
+instance topological_space_fiber (x : B) : topological_space (Z.fiber x) :=
+by delta_instance topological_vector_bundle_core.fiber
+instance add_comm_monoid_fiber : ∀ (x : B), add_comm_monoid (Z.fiber x) :=
+by delta_instance topological_vector_bundle_core.fiber
+instance module_fiber : ∀ (x : B), module R (Z.fiber x) :=
+by delta_instance topological_vector_bundle_core.fiber
+instance add_comm_group_fiber [add_comm_group F] : ∀ (x : B), add_comm_group (Z.fiber x) :=
+by delta_instance topological_vector_bundle_core.fiber
 
 /-- The projection from the total space of a topological fiber bundle core, on its base. -/
 @[reducible, simp, mfld_simps] def proj : total_space Z.fiber → B := total_space.proj

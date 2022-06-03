@@ -16,10 +16,9 @@ it is always a subgroup, and if the `n`th cyclotomic polynomial is irreducible, 
 ## Main results
 
 * `is_primitive_root.aut_to_pow_injective`: `is_primitive_root.aut_to_pow` is injective
-  in the case that it's considered over a cyclotomic field extension, where `n` does not divide
-  the characteristic of K.
-* `is_cyclotomic_extension.aut_equiv_pow`: If, additionally, the `n`th cyclotomic polynomial is
-  irreducible in K, then `aut_to_pow` is a `mul_equiv` (for example, in `ℚ` and certain `𝔽ₚ`).
+  in the case that it's considered over a cyclotomic field extension.
+* `is_cyclotomic_extension.aut_equiv_pow`: If the `n`th cyclotomic polynomial is irreducible
+  in `K`, then `aut_to_pow` is a `mul_equiv` (for example, in `ℚ` and certain `𝔽ₚ`).
 * `gal_X_pow_equiv_units_zmod`, `gal_cyclotomic_equiv_units_zmod`: Repackage `aut_equiv_pow` in
   terms of `polynomial.gal`.
 * `is_cyclotomic_extension.aut.comm_group`: Cyclotomic extensions are abelian.
@@ -50,7 +49,7 @@ open_locale cyclotomic
 namespace is_primitive_root
 
 /-- `is_primitive_root.aut_to_pow` is injective in the case that it's considered over a cyclotomic
-field extension, where `n` does not divide the characteristic of K. -/
+field extension. -/
 lemma aut_to_pow_injective : function.injective $ hμ.aut_to_pow K :=
 begin
   intros f g hfg,
@@ -95,7 +94,7 @@ let hζ := zeta_spec n K L,
     hμ := λ t, hζ.pow_of_coprime _ (zmod.val_coe_unit_coprime t) in
 { inv_fun := λ t, (hζ.power_basis K).equiv_of_minpoly ((hμ t).power_basis K)
   begin
-    haveI := ne_zero' n K L,
+    haveI := is_cyclotomic_extension.ne_zero' n K L,
     simp only [is_primitive_root.power_basis_gen],
     have hr := is_primitive_root.minpoly_eq_cyclotomic_of_irreducible
                ((zeta_spec n K L).pow_of_coprime _ (zmod.val_coe_unit_coprime t)) h,
@@ -154,16 +153,16 @@ section gal
 variables (h : irreducible (cyclotomic n K)) {K}
 
 /-- `is_cyclotomic_extension.aut_equiv_pow` repackaged in terms of `gal`. Asserts that the
-Galois group of `cyclotomic n K` is equivalent to `(zmod n)ˣ` if `n` does not divide the
-characteristic of `K`, and `cyclotomic n K` is irreducible in the base field. -/
+Galois group of `cyclotomic n K` is equivalent to `(zmod n)ˣ` if `cyclotomic n K` is irreducible in
+the base field. -/
 noncomputable def gal_cyclotomic_equiv_units_zmod :
   (cyclotomic n K).gal ≃* (zmod n)ˣ :=
 (alg_equiv.aut_congr (is_splitting_field.alg_equiv _ _)).symm.trans
 (is_cyclotomic_extension.aut_equiv_pow L h)
 
 /-- `is_cyclotomic_extension.aut_equiv_pow` repackaged in terms of `gal`. Asserts that the
-Galois group of `X ^ n - 1` is equivalent to `(zmod n)ˣ` if `n` does not divide the characteristic
-of `K`, and `cyclotomic n K` is irreducible in the base field. -/
+Galois group of `X ^ n - 1` is equivalent to `(zmod n)ˣ` if `cyclotomic n K` is irreducible in the
+base field. -/
 noncomputable def gal_X_pow_equiv_units_zmod :
   (X ^ (n : ℕ) - 1).gal ≃* (zmod n)ˣ :=
 (alg_equiv.aut_congr (is_splitting_field.alg_equiv _ _)).symm.trans

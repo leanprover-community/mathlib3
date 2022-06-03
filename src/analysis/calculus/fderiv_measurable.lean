@@ -535,7 +535,7 @@ begin
 end
 
 lemma norm_sub_le_of_mem_A
-  {r ε : ℝ} (hε : 0 < ε) (hr : 0 < r) {x : ℝ} {L₁ L₂ : F}
+  {r x : ℝ} (hr : 0 < r) (ε : ℝ) {L₁ L₂ : F}
   (h₁ : x ∈ A f L₁ r ε) (h₂ : x ∈ A f L₂ r ε) : ∥L₁ - L₂∥ ≤ 4 * ε :=
 begin
   suffices H : ∥(r/2) • (L₁ - L₂)∥ ≤ (r / 2) * (4 * ε),
@@ -608,19 +608,19 @@ begin
         (hn e p q hp hq).2.1,
       have I2 : x ∈ A f (L e p r) ((1 / 2) ^ p) ((1/2)^e) :=
         (hn e p r hp (le_max_left _ _)).2.1,
-      exact norm_sub_le_of_mem_A P P I1 I2 },
+      exact norm_sub_le_of_mem_A P _ I1 I2 },
     have J2 : ∥L e p r - L e' p' r∥ ≤ 4 * (1/2)^e,
     { have I1 : x ∈ A f (L e p r) ((1 / 2) ^ r) ((1/2)^e) :=
         (hn e p r hp (le_max_left _ _)).2.2,
       have I2 : x ∈ A f (L e' p' r) ((1 / 2) ^ r) ((1/2)^e') :=
         (hn e' p' r hp' (le_max_right _ _)).2.2,
-      exact norm_sub_le_of_mem_A P P I1 (A_mono _ _ I I2) },
+      exact norm_sub_le_of_mem_A P _ I1 (A_mono _ _ I I2) },
     have J3 : ∥L e' p' r - L e' p' q'∥ ≤ 4 * (1/2)^e,
     { have I1 : x ∈ A f (L e' p' r) ((1 / 2) ^ p') ((1/2)^e') :=
         (hn e' p' r hp' (le_max_right _ _)).2.1,
       have I2 : x ∈ A f (L e' p' q') ((1 / 2) ^ p') ((1/2)^e') :=
         (hn e' p' q' hp' hq').2.1,
-      exact norm_sub_le_of_mem_A P P (A_mono _ _ I I1) (A_mono _ _ I I2) },
+      exact norm_sub_le_of_mem_A P _ (A_mono _ _ I I1) (A_mono _ _ I I2) },
     calc ∥L e p q - L e' p' q'∥
           = ∥(L e p q - L e p r) + (L e p r - L e' p' r) + (L e' p' r - L e' p' q')∥ :
         by { congr' 1, abel }

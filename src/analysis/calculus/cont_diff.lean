@@ -1628,7 +1628,7 @@ lemma has_ftaylor_series_up_to_on.continuous_linear_map_comp (g : F →L[𝕜] G
   has_ftaylor_series_up_to_on n (g ∘ f) (λ x k, g.comp_continuous_multilinear_map (p x k)) s :=
 begin
   set L : Π m : ℕ, (E [×m]→L[𝕜] F) →L[𝕜] (E [×m]→L[𝕜] G) :=
-    λ m, continuous_linear_map.comp_continuous_multilinear_mapL g,
+    λ m, continuous_linear_map.comp_continuous_multilinear_mapL 𝕜 F G E g,
   split,
   { exact λ x hx, congr_arg g (hf.zero_eq x hx) },
   { intros m hm x hx,

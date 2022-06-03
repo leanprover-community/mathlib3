@@ -31,10 +31,8 @@ lemma uniform_inducing.mk' {f : α → β} (h : ∀ s, s ∈ 𝓤 α ↔
     ∃ t ∈ 𝓤 β, ∀ x y : α, (f x, f y) ∈ t → (x, y) ∈ s) : uniform_inducing f :=
 ⟨by simp [eq_comm, filter.ext_iff, subset_def, h]⟩
 
-#check prod.map_comp_map
-
 lemma uniform_inducing_id : uniform_inducing (@id α) :=
-⟨by rw [← prod.map_def]⟩
+⟨by rw [← prod.map_def, prod.map_id, comap_id]⟩
 
 lemma uniform_inducing.comp {g : β → γ} (hg : uniform_inducing g)
   {f : α → β} (hf : uniform_inducing f) : uniform_inducing (g ∘ f) :=

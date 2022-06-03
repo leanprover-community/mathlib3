@@ -70,6 +70,11 @@ end unit_interval
 
 namespace tactic.interactive
 
+lemma nonneg (x : I) : 0 ≤ (x : ℝ) := x.2.1
+lemma le_one (x : I) : (x : ℝ) ≤ 1 := x.2.2
+lemma one_minus_nonneg (x : I) : 0 ≤ 1 - (x : ℝ) := by simpa using x.2.2
+lemma one_minus_le_one (x : I) : 1 - (x : ℝ) ≤ 1 := by simpa using x.2.1
+
 /-- A tactic that solves `0 ≤ ↑x`, `0 ≤ 1 - ↑x`, `↑x ≤ 1`, and `1 - ↑x ≤ 1` for `x : I`. -/
 meta def unit_interval : tactic unit :=
 `[apply unit_interval.nonneg] <|> `[apply unit_interval.one_minus_nonneg] <|>

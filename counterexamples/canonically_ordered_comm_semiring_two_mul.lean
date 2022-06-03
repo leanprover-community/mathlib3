@@ -124,7 +124,8 @@ begin
   { exact or.inr (by simpa using bc) }
 end
 
-lemma zero_le_one : (0 : ℕ × zmod 2) ≤ 1 := dec_trivial
+instance : zero_le_one_class (ℕ × zmod 2) :=
+⟨0, 1, dec_trivial⟩ 
 
 lemma mul_lt_mul_of_pos_left : ∀ (a b c : ℕ × zmod 2), a < b → 0 < c → c * a < c * b :=
 λ a b c ab c0, lt_def.mpr ((mul_lt_mul_left (lt_def.mp c0)).mpr (lt_def.mp ab))

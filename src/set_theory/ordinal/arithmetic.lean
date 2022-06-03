@@ -170,10 +170,10 @@ instance : nontrivial ordinal.{u} :=
 ⟨⟨1, 0, ordinal.one_ne_zero⟩⟩
 
 @[simp] theorem zero_lt_one : (0 : ordinal) < 1 :=
-lt_iff_le_and_ne.2 ⟨ordinal.zero_le _, ne.symm $ ordinal.one_ne_zero⟩
+lt_iff_le_and_ne.2 ⟨ordinal.zero_le _, ordinal.one_ne_zero.symm⟩
 
-@[simp] theorem zero_le_one : (0 : ordinal) ≤ 1 :=
-zero_lt_one.le
+instance : zero_le_one_class ordinal :=
+⟨0, 1, zero_lt_one.le⟩
 
 instance unique_out_one : unique (1 : ordinal).out.α :=
 { default := enum (<) 0 (by simp),
@@ -1986,7 +1986,7 @@ theorem log_of_left_le_one {b : ordinal} (b1 : b ≤ 1) : ∀ x, log b x = 0 :=
 log_of_not_one_lt_left b1.not_lt
 
 @[simp] lemma log_zero_left : ∀ b, log 0 b = 0 :=
-log_of_left_le_one ordinal.zero_le_one
+log_of_left_le_one zero_le_one
 
 @[simp] theorem log_zero_right (b : ordinal) : log b 0 = 0 :=
 if b1 : 1 < b then begin

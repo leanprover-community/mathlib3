@@ -436,7 +436,7 @@ by { cases h, apply hx.move_left, apply hx.move_right }
 /- being numeric is downward closed under `ices` -/
 lemma numeric_dc {a' a} (h : ices a' a) (ha : (to_multiset a).numeric) : (to_multiset a').numeric :=
 begin
-  have := @cut_expand_preserve _ is_option wf_is_option.is_irrefl.1 _ @numeric.is_option,
+  have := @cut_expand_dc _ is_option wf_is_option.is_irrefl.1 _ @numeric.is_option,
   apply @trans_gen.head_induction_on _ _ _ (λ a _, multiset.numeric a) _ h,
   exacts [λ s hc, this hc ha, λ s' s hc _ hs, this hc hs],
 end
@@ -449,7 +449,7 @@ by { dsimp [ices, inv_image, to_multiset], convert iff.rfl using 2, apply pair_c
 
 lemma ices_symm' (a x₁ x₂ y) : ices a (mul_args.P24 x₁ x₂ y) ↔ ices a (mul_args.P24 x₂ x₁ y) :=
 by { dsimp [ices, inv_image, to_multiset],
-  convert iff.rfl using 2, simp only [← singleton_add], abel }
+  convert iff.rfl using 2, simp only [← singleton_add], rw add_left_comm }
 
 end
 
@@ -469,27 +469,23 @@ lemma ihr_neg' : ihr x y → ihr x (-y) :=
 
 include ih
 
-lemma P24_of_ih (x₁ x₂ y') : ices (mul_args.P24 x₁ x₂ y') (mul_args.P1 x y) → P24 x₁ x₂ y' :=
-ih (mul_args.P24 x₁ x₂ y')
-
 lemma P1x {x'} (h : is_option x' x) : (x' * y).numeric :=
-ih (mul_args.P1 x' y) $ trans_gen.single $ cut_expand_pair_left _ h
+ih (mul_args.P1 x' y) $ trans_gen.single $ cut_expand_pair_left h
 
 lemma P1y {y'} (h : is_option y' y) : (x * y').numeric :=
-ih (mul_args.P1 x y') $ trans_gen.single $ cut_expand_pair_right _ h
+ih (mul_args.P1 x y') $ trans_gen.single $ cut_expand_pair_right h
 
 lemma P1xy {x' y'} (hx : is_option x' x) (hy : is_option y' y) : (x' * y').numeric :=
-ih (mul_args.P1 x' y') $ trans_gen.tail (trans_gen.single $ cut_expand_pair_right _ hy) $
-  cut_expand_pair_left _ hx
+ih (mul_args.P1 x' y') $ trans_gen.tail (trans_gen.single $ cut_expand_pair_right hy) $
+  cut_expand_pair_left hx
 
 lemma ihxy_of_ih : ihr x y :=
 begin
-  rintro x₁ x₂ y' h₁ h₂ (rfl|hy); apply P24_of_ih ih,
-  exacts [trans_gen.single (cut_expand_double _ h₁ h₂),
-    trans_gen.tail (trans_gen.single $ cut_expand_double _ h₁ h₂) (cut_expand_pair_right _ hy)],
+  rintro x₁ x₂ y' h₁ h₂ (rfl|hy); apply ih (mul_args.P24 _ _ _),
+  swap 2, refine trans_gen.tail _ (cut_expand_pair_right hy),
+  all_goals { exact trans_gen.single (cut_expand_double_left h₁ h₂) },
 end
 
-/- swapped restricted inductive hypothesis -/
 lemma ihyx_of_ih : ihr y x := ihxy_of_ih $ by { simp_rw ices_symm, exact ih }
 
 omit ih
@@ -560,7 +556,7 @@ begin
   rw numeric_def,
   refine ⟨_, _, _⟩,
   { simp_rw lt_iff, intro i', rw right_moves_mul_iff, split; intros j l;
-    revert i'; rw left_moves_mul_iff (gt _); dsimp [gt]; split; intros i k,
+    revert i'; rw left_moves_mul_iff (gt _); split; intros i k,
     { apply mul_option_lt hx hy ihxy ihyx },
     { simp only [← mul_option_symm (-y)], rw mul_option_neg_neg x,
       apply mul_option_lt hy.neg hx.neg ihyxn ihxyn },
@@ -584,19 +580,33 @@ def ihr'' (x₁ x₂ y : pgame) : Prop :=
 ∀ ⦃z w⦄, is_option w y → (is_option z x₁ → P24 z x₂ w) ∧ (is_option z x₂ → P24 x₁ z w)
 
 include ih'
-lemma ihr'_of_ih' : ihr' x₂ x₁ y ∧ ihr' x₁ x₂ y :=
+lemma ih₁₂_of_ih' : ihr' x₁ x₂ y :=
 begin
-  rw ihr', simp_rw and.left_comm, split,
-  all_goals { refine (λ z, ⟨_, _, _⟩); intro h;
-    apply ih' (mul_args.P24 _ _ _); apply trans_gen.single; convert cut_expand_cons _ _ h,
-    swap 3, exact {x₂, y}, swap 5, exact {x₁, y}, swap 7, exact {x₁, x₂} },
-  all_goals { dsimp [to_multiset, multiset.has_insert],
-    refl <|> { simp only [← multiset.singleton_add], abel } },
+  refine (λ z, ⟨_, _, _⟩);
+  refine λ h, ih' (mul_args.P24 _ _ _) (trans_gen.single _),
+  { exact (cut_expand_add_right {y}).2 (cut_expand_pair_left h) },
+  { exact (cut_expand_add_left {x₁}).2 (cut_expand_pair_left h) },
+  { exact (cut_expand_add_left {x₁}).2 (cut_expand_pair_right h) },
 end
 
-lemma ihr''_of_ih' : ihr'' x₁ x₂ y := sorry
+lemma ih₂₁_of_ih' : ihr' x₂ x₁ y := ih₁₂_of_ih' $ by { simp_rw ices_symm', exact ih' }
 
-lemma numeric_of_ih' : numeric (x₁ * y) ∧ numeric (x₂ * y) := sorry
+lemma ihr''_of_ih' : ihr'' x₁ x₂ y :=
+begin
+  refine (λ z w h, ⟨_, _⟩);
+  refine λ h', ih' (mul_args.P24 _ _ _) (trans_gen.tail (trans_gen.single _) $
+    (cut_expand_add_left {x₁}).2 $ cut_expand_pair_right h),
+  { exact (cut_expand_add_right {w}).2 (cut_expand_pair_left h') },
+  { exact (cut_expand_add_right {w}).2 (cut_expand_pair_right h') },
+end
+
+lemma numeric_of_ih' : (x₁ * y).numeric ∧ (x₂ * y).numeric :=
+begin
+  split; refine ih' (mul_args.P1 _ _) (trans_gen.single _),
+  exact (cut_expand_add_right {y}).2 ((cut_expand_add_left {x₁}).2 cut_expand_zero),
+  exact (cut_expand_add_right {x₂, y}).2 cut_expand_zero,
+end
+
 omit ih'
 
 lemma ihr'_neg : ihr' x₁ x₂ y → ihr' (-x₂) (-x₁) y :=
@@ -638,21 +648,17 @@ lemma left_lt_mul_aux (hn : x₁.numeric) (h : ihr' x₁ x₂ y) (he : ⟦x₁�
 P2'_of_P24 ((@h _).2.2 $ is_option.move_left j) (P24.L ((@h _).1 $ is_option.move_left i)
   (by {rw [lt_iff, ← he, ← lt_iff], apply hn.move_left_lt}) j) he
 
-include ih'
-
-lemma mul_le_mul_right (h₁ : x₁.numeric) (h₂ : x₂.numeric) (he : ⟦x₁⟧ = ⟦x₂⟧) : x₁ * y ≤ x₂ * y :=
+lemma mul_le_mul_right (h₁ : x₁.numeric) (h₂ : x₂.numeric)
+  (h₁₂ : ihr' x₁ x₂ y) (h₂₁ : ihr' x₂ x₁ y) (he : ⟦x₁⟧ = ⟦x₂⟧) : x₁ * y ≤ x₂ * y :=
 le_of_forall_lt begin
-  have he' := quot_neg_eq_of_quot_eq he,
-  obtain ⟨h21, h12⟩ := ihr'_of_ih' ih', split; simp_rw lt_iff,
+  have he' := quot_neg_eq_of_quot_eq he, split; simp_rw lt_iff,
   { rw left_moves_mul_iff (gt _), split,
-    { exact left_lt_mul_aux h₁ h12 he },
-    { rw ← quot_neg_mul_neg, exact left_lt_mul_aux h₁.neg (ihr'_neg $ ihr'_neg' h21) he' } },
+    { exact left_lt_mul_aux h₁ h₁₂ he },
+    { rw ← quot_neg_mul_neg, exact left_lt_mul_aux h₁.neg (ihr'_neg $ ihr'_neg' h₂₁) he' } },
   { rw right_moves_mul_iff, split; intros; rw lt_neg,
-    { rw ← quot_mul_neg, apply left_lt_mul_aux h₂ (ihr'_neg' h21) he.symm },
-    { rw ← quot_neg_mul, apply left_lt_mul_aux h₂.neg (ihr'_neg h12) he'.symm } },
+    { rw ← quot_mul_neg, apply left_lt_mul_aux h₂ (ihr'_neg' h₂₁) he.symm },
+    { rw ← quot_neg_mul, apply left_lt_mul_aux h₂.neg (ihr'_neg h₁₂) he'.symm } },
 end
-
-omit ih'
 
 def mul_option_lt_mul (x y) : Prop := ∀ {i j}, mul_option x y i j < x * y
 
@@ -690,11 +696,11 @@ include ih'
 lemma P3_of_lt (hl : x₁ < x₂) :
   (∀ j, P3 x₁ x₂ (y.move_left j) y) ∧ (∀ j, P3 x₁ x₂ ((-y).move_left j) (-y)) :=
 begin
-  have h := (ihr'_of_ih' ih').2, have h' := ihr''_of_ih' ih',
+  have h := ih₁₂_of_ih' ih', have h' := ihr''_of_ih' ih',
   have hn := ihr'_neg h, have hn' := ihr''_neg h',
   obtain ⟨hn₁, hn₂⟩ := numeric_of_ih' ih',
-  obtain ⟨⟨_, h₄⟩, _, h₃⟩ := lt_mul_of_numeric hn₁,
   obtain ⟨⟨h₁, _⟩, h₂, _⟩ := lt_mul_of_numeric hn₂,
+  obtain ⟨⟨_, h₄⟩, _, h₃⟩ := lt_mul_of_numeric hn₁,
   obtain (⟨i,hi⟩|⟨i,hi⟩) := lf_iff_forall_le.1 (lf_of_lt hl);
   rw [le_iff, le_iff_lt_or_eq] at hi; obtain (hi|hi) := hi; split; intro j,
   { exact P3_of_lt_left h i j h₁ hi },
@@ -713,17 +719,15 @@ omit ih'
 theorem P124 (a : mul_args) : (to_multiset a).numeric → hyp a :=
 begin
   apply ices_wf.induction a,
-  intros a h ha,
-  replace h : ∀ a', ices a' a → hyp a',
-  { intros a' hr, apply h a' hr, exact numeric_dc hr ha },
+  intros a ih ha,
+  replace ih : ∀ a', ices a' a → hyp a' := λ a' hr, ih a' hr (numeric_dc hr ha),
   cases a with x y x₁ x₂ y,
-  { exact P1_of_hyp h (ha _ P1_mem.1) (ha _ P1_mem.2) },
-  { split,
-    { have h₁ := ha _ P24_mem.1, have h₂ := ha _ P24_mem.2.1,
-      intro he, rw ← equiv_iff, split; apply mul_le_mul_right,
-      swap 5, simp_rw ices_symm',
-      exacts [h, h, h₁, h₂, he, h₂, h₁, he.symm] },
-    { intro hl, exact P3_of_lt h hl } },
+  { exact P1_of_hyp ih (ha x P1_mem.1) (ha y P1_mem.2) },
+  { refine ⟨_, P3_of_lt ih⟩,
+    have h₁ := ha x₁ P24_mem.1, have h₂ := ha x₂ P24_mem.2.1,
+    have h₁₂ := ih₁₂_of_ih' ih, have h₂₁ := ih₂₁_of_ih' ih,
+    intro he, rw ← equiv_iff, split; apply mul_le_mul_right,
+    exacts [h₁, h₂, h₁₂, h₂₁, he, h₂, h₁, h₂₁, h₁₂, he.symm] },
 end
 
 #check P124
@@ -736,6 +740,3 @@ end pgame
 
 /- TODO : move le_of_forall_lt to pgame -/
 /- make quot_neg_mul a relabelling?  -/
-
-/- ∀ a' ∈ t, ∃ a ∈ s, ... -> s' + t = s + t' ... -> trans_gen (cut_expand r) .. -/
-/- to_multiset: just write as sum of singletons  .. -/

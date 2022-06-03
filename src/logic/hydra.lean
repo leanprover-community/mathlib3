@@ -125,30 +125,35 @@ variable (r : α → α → Prop)
 def cut_expand (s' s : multiset α) : Prop :=
 ∃ (t : multiset α) (a : α), (∀ a' ∈ t, r a' a) ∧ s' + {a} = s + t
 
-/-lemma trans_gen_cut_expand {s' s} (t' t : multiset α) (hn : t' ≠ 0)
-  (hr : ∀ a' ∈ t, ∃ a ∈ t', r a' a) (he : s' + t' = s + t) : trans_gen (cut_expand r) s' s :=
-begin
+variable {r}
 
-end-/
+lemma cut_expand_singleton {s x} (h : ∀ x' ∈ s, r x' x) : cut_expand r s {x} :=
+⟨s, x, h, add_comm s _⟩
 
-lemma cut_expand_cons {a' a} (s) (hr : r a' a) : cut_expand r (a' ::ₘ s) (a ::ₘ s) :=
-⟨{a'}, a, λ _ h, (mem_singleton.1 h).symm ▸ hr, by { simp only [← singleton_add], abel }⟩
+lemma cut_expand_zero {x} : cut_expand r 0 {x} := ⟨0, x, λ _, false.elim, add_comm 0 _⟩
+
+lemma cut_expand_singleton_singleton {x' x} (hr : r x' x) : cut_expand r {x'} {x} :=
+cut_expand_singleton $ λ a h, by rwa mem_singleton.1 h
+
+lemma cut_expand_double {a a₁ a₂} (h₁ : r a₁ a) (h₂ : r a₂ a) : cut_expand r {a₁, a₂} {a} :=
+cut_expand_singleton $ by rintro _ (rfl|rfl|⟨⟨⟩⟩); assumption
+
+lemma cut_expand_add_left {s' s} (t) : cut_expand r (t + s') (t + s) ↔ cut_expand r s' s :=
+exists₂_congr $ λ _ _, and_congr iff.rfl $ by rw [add_assoc, add_assoc, add_left_cancel_iff]
+
+lemma cut_expand_add_right {s' s} (t) : cut_expand r (s' + t) (s + t) ↔ cut_expand r s' s :=
+by convert cut_expand_add_left t using 2; apply add_comm
 
 lemma cut_expand_pair_left {a' a b} (hr : r a' a) : cut_expand r {a', b} {a, b} :=
-cut_expand_cons r {b} hr
+(cut_expand_add_right {b}).2 $ cut_expand_singleton_singleton hr
 
 lemma cut_expand_pair_right {a b' b} (hr : r b' b) : cut_expand r {a, b'} {a, b} :=
-by { convert cut_expand_pair_left r hr using 1, apply pair_comm, apply pair_comm }
+(cut_expand_add_left {a}).2 $ cut_expand_singleton_singleton hr
 
-lemma cut_expand_double {a a₁ a₂ b} (h₁ : r a₁ a) (h₂ : r a₂ a) : cut_expand r {a₁, a₂, b} {a, b} :=
-begin
-  refine ⟨{a₁, a₂}, a, λ a' h, _, _⟩,
-  { rw [multiset.has_insert, mem_cons, mem_singleton] at h,
-    obtain (rfl|rfl) := h, exacts [h₁, h₂] },
-  { dsimp [multiset.has_insert], simp only [← singleton_add], abel },
-end
+lemma cut_expand_double_left {a a₁ a₂ b} (h₁ : r a₁ a) (h₂ : r a₂ a) :
+  cut_expand r {a₁, a₂, b} {a, b} := (cut_expand_add_right {b}).2 $ cut_expand_double h₁ h₂
 
-lemma cut_expand_iff [decidable_eq α] {r} (hr : irreflexive r) {s' s : multiset α} :
+lemma cut_expand_iff [decidable_eq α] (hr : irreflexive r) {s' s : multiset α} :
   cut_expand r s' s ↔ ∃ (t : multiset α) a, (∀ a' ∈ t, r a' a) ∧ a ∈ s ∧ s' = s.erase a + t :=
 begin
   simp_rw [cut_expand, add_singleton_eq_iff],
@@ -160,7 +165,8 @@ begin
     exact ⟨ht, mem_add.2 (or.inl h), (t.erase_add_left_pos h).symm⟩ },
 end
 
-lemma cut_expand_preserve {r} (hr : irreflexive r) (p : α → Prop)
+/-- `cut_expand` preserves downward-closedness. -/
+lemma cut_expand_dc (hr : irreflexive r) (p : α → Prop)
   (h : ∀ {a' a}, r a' a → p a → p a') :
   ∀ {s' s}, cut_expand r s' s → (∀ a ∈ s, p a) → ∀ a ∈ s', p a :=
 begin
@@ -197,7 +203,7 @@ begin
   { exact λ _, acc.intro 0 $ λ s, by { rw cut_expand_iff hi, rintro ⟨_, _, _, ⟨⟩, _⟩ } },
   { intros a s ih hacc, rw ← s.singleton_add a,
     exact ((hacc a $ s.mem_cons_self a).game_add $ ih $ λ a ha,
-      hacc a $ mem_cons_of_mem ha).of_fibration _ (cut_expand_fibration r) },
+      hacc a $ mem_cons_of_mem ha).of_fibration _ cut_expand_fibration },
 end
 
 /-- A singleton `{a}` is accessible under `cut_expand r` if `a` is accessible under `r`,

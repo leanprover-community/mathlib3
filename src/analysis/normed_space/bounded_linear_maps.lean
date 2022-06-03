@@ -402,7 +402,6 @@ lemma is_bounded_bilinear_map.is_bounded_linear_map_right
                       le_of_lt C_pos]
   end }
 
--- set_option pp.implicit true
 lemma is_bounded_bilinear_map_smul {𝕜' : Type*} [normed_field 𝕜']
   [normed_algebra 𝕜 𝕜'] {E : Type*} [normed_group E] [normed_space 𝕜 E] [normed_space 𝕜' E]
   [is_scalar_tower 𝕜 𝕜' E] :

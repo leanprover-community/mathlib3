@@ -23,10 +23,8 @@ variables {B' : Type*} (f : B' → B)
 
 instance [∀ (x : B), topological_space (E' x)] : ∀ (x : B'), topological_space ((f *ᵖ E') x) :=
 by delta_instance bundle.pullback
-
 instance [∀ (x : B), add_comm_monoid (E' x)] : ∀ (x : B'), add_comm_monoid ((f *ᵖ E') x) :=
 by delta_instance bundle.pullback
-
 instance [semiring R] [∀ (x : B), add_comm_monoid (E' x)] [∀ x, module R (E' x)] :
   ∀ (x : B'), module R ((f *ᵖ E') x) :=
 by delta_instance bundle.pullback
@@ -119,8 +117,8 @@ def topological_vector_bundle.trivialization.pullback (e : trivialization 𝕜 F
   proj_to_fun := λ y h, rfl,
   linear' := λ x h, e.linear h }
 
-instance topological_vector_bundle.pullback [∀ x, topological_space (E x)] [topological_vector_bundle 𝕜 F E] (f : K) :
-  topological_vector_bundle 𝕜 F ((f : B' → B) *ᵖ E) :=
+instance topological_vector_bundle.pullback [∀ x, topological_space (E x)]
+  [topological_vector_bundle 𝕜 F E] (f : K) : topological_vector_bundle 𝕜 F ((f : B' → B) *ᵖ E) :=
 { total_space_mk_inducing := λ x, inducing_of_inducing_compose
     (pullback.continuous_total_space_mk 𝕜 F E) (pullback.continuous_lift E f)
     (total_space_mk_inducing 𝕜 F E (f x)),

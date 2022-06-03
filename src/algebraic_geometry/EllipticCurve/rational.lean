@@ -14,7 +14,7 @@ import algebraic_geometry.EllipticCurve.torsion
 -/
 
 noncomputable theory
-open_locale classical
+open_locale big_operators classical
 
 ----------------------------------------------------------------------------------------------------
 /-! ## Lemmas -/
@@ -24,23 +24,50 @@ add_nonneg zero_le_two zero_le_one
 
 namespace padic_val_nat
 
-lemma ne_zero.finite (n : ℕ) : {p : ℕ | p.prime ∧ padic_val_nat p n ≠ 0}.finite :=
-begin
-  apply set.finite.subset (set.finite_le_nat n) _,
-  rintro p ⟨hp, hpn⟩,
-  rw [@padic_val_nat_eq_factorization p n ⟨hp⟩, ← finsupp.mem_support_iff,
-      nat.support_factorization, list.mem_to_finset] at hpn,
-  exact nat.le_of_mem_factors hpn
-end
+variables (n : ℕ)
 
-instance ne_zero.fintype (n : ℕ) : fintype {p : ℕ // p.prime ∧ padic_val_nat p n ≠ 0} :=
-set.finite.fintype $ ne_zero.finite n
+def ne_zero_of_factorization :
+  n.factorization.support → {p : ℕ // p.prime ∧ padic_val_nat p n ≠ 0} :=
+λ ⟨p, hp⟩, ⟨p, let hp' := nat.prime_of_mem_factorization hp in
+  ⟨hp', (@padic_val_nat_eq_factorization p n ⟨hp'⟩).symm ▸ finsupp.mem_support_iff.mp hp⟩⟩
+
+lemma ne_zero_of_factorization.bijective : function.bijective $ ne_zero_of_factorization n :=
+⟨λ ⟨_, _⟩ ⟨_, _⟩ hp, subtype.mk_eq_mk.mpr $ subtype.mk.inj_arrow hp id, λ ⟨p, ⟨hp, hpn⟩⟩,
+  ⟨⟨p, finsupp.mem_support_iff.mpr ((@padic_val_nat_eq_factorization p n ⟨hp⟩) ▸ hpn)⟩, rfl⟩⟩
+
+instance ne_zero.fintype : fintype {p : ℕ // p.prime ∧ padic_val_nat p n ≠ 0} :=
+fintype.of_bijective (ne_zero_of_factorization n) (ne_zero_of_factorization.bijective n)
+
+@[simp] lemma finprod_of_ne_zero {n : ℕ} (hn : n ≠ 0) :
+  ∏ p : {p : ℕ // p.prime ∧ padic_val_nat p n ≠ 0}, (p : ℕ) ^ padic_val_nat p n = n :=
+begin
+  symmetry,
+  nth_rewrite_lhs 0 [← nat.factorization_prod_pow_eq_self hn],
+  rw [finsupp.prod, ← finset.prod_coe_sort],
+  apply fintype.prod_bijective (ne_zero_of_factorization n) (ne_zero_of_factorization.bijective n),
+  rintro ⟨p, hp⟩,
+  rw [subtype.coe_mk, ← @padic_val_nat_eq_factorization p n ⟨nat.prime_of_mem_factorization hp⟩],
+  refl
+end
 
 end padic_val_nat
 
+namespace padic_val_int
+
+variables (z : ℤ)
+
+instance ne_zero.fintype : fintype {p : ℕ // p.prime ∧ padic_val_int p z ≠ 0} :=
+by { simp_rw [padic_val_int], exact padic_val_nat.ne_zero.fintype z.nat_abs }
+
+@[simp] lemma finprod_of_ne_zero {n : ℤ} (hn : n ≠ 0) :
+  ∏ p : {p : ℕ // p.prime ∧ padic_val_int p n ≠ 0}, (p : ℕ) ^ padic_val_int p n = n.nat_abs :=
+padic_val_nat.finprod_of_ne_zero $ int.nat_abs_ne_zero_of_ne_zero hn
+
+end padic_val_int
+
 namespace padic_val_rat
 
-variables (p : ℕ) [fact p.prime]
+variables (p : ℕ) [fact p.prime] (q : ℚ)
 
 lemma add_of_lt {q r : ℚ} (hq : q ≠ 0) (hlt : padic_val_rat p q < padic_val_rat p r) :
   padic_val_rat p (q + r) = padic_val_rat p q :=
@@ -58,7 +85,7 @@ begin
     exact le_padic_val_rat_add_of_le p hqr (le_of_lt hlt) },
 end
 
-lemma num_or_denom_eq_zero (q : ℚ) : padic_val_int p q.num = 0 ∨ padic_val_nat p q.denom = 0 :=
+lemma num_or_denom_eq_zero : padic_val_int p q.num = 0 ∨ padic_val_nat p q.denom = 0 :=
 begin
   simp only [padic_val_int, padic_val_nat, multiplicity, enat.find_get],
   split_ifs,
@@ -69,7 +96,7 @@ begin
   { exact or.inr hdenom }
 end
 
-lemma eq_zero_iff (q : ℚ) :
+lemma eq_zero_iff :
   padic_val_rat p q = 0 ↔ padic_val_int p q.num = 0 ∧ padic_val_nat p q.denom = 0 :=
 begin
   rw [padic_val_rat, sub_eq_zero, int.coe_nat_inj'],
@@ -82,7 +109,7 @@ begin
     rw [hnum, hdenom] }
 end
 
-lemma eq_num.tfae (q : ℚ) : tfae [padic_val_rat p q = padic_val_int p q.num,
+lemma eq_num.tfae : tfae [padic_val_rat p q = padic_val_int p q.num,
   padic_val_nat p q.denom = 0, 0 ≤ padic_val_rat p q] :=
 begin
   rw [padic_val_rat, sub_eq_self, int.coe_nat_eq_zero, sub_nonneg, int.coe_nat_le],
@@ -99,25 +126,33 @@ begin
   tfae_finish
 end
 
-lemma neg_iff (q : ℚ) : padic_val_rat p q < 0 ↔ padic_val_nat p q.denom ≠ 0 :=
+lemma neg_iff : padic_val_rat p q < 0 ↔ padic_val_nat p q.denom ≠ 0 :=
 iff.trans not_le.symm $ not_iff_not_of_iff $ (eq_num.tfae p q).out 2 1
 
-lemma neg_set (q : ℚ) :
-  {p : ℕ | p.prime ∧ padic_val_rat p q < 0} = {p : ℕ | p.prime ∧ padic_val_int p q.denom ≠ 0} :=
-congr_arg _ $ funext $ λ p, propext
-  ⟨λ ⟨hp, hq⟩, ⟨hp, (@neg_iff p ⟨hp⟩ q).mp hq⟩, λ ⟨hp, hq⟩, ⟨hp, (@neg_iff p ⟨hp⟩ q).mpr hq⟩⟩
+lemma neg_iff' (p : ℕ) (q : ℚ) :
+  p.prime ∧ padic_val_rat p q < 0 ↔ p.prime ∧ padic_val_nat p q.denom ≠ 0 :=
+⟨λ ⟨hp, hpq⟩, ⟨hp, (@neg_iff p ⟨hp⟩ q).mp hpq⟩, λ ⟨hp, hpq⟩, ⟨hp, (@neg_iff p ⟨hp⟩ q).mpr hpq⟩⟩
 
-lemma neg_type (q : ℚ) :
-  {p : ℕ // p.prime ∧ padic_val_rat p q < 0} = {p : ℕ // p.prime ∧ padic_val_int p q.denom ≠ 0} :=
-congr_arg _ $ neg_set q
+def neg_of_denom_ne_zero :
+  {p : ℕ // p.prime ∧ padic_val_nat p q.denom ≠ 0} → {p : ℕ // p.prime ∧ padic_val_rat p q < 0} :=
+λ ⟨p, hp⟩, ⟨p, (neg_iff' p q).mpr hp⟩
 
-lemma neg.finite (q : ℚ) : {p : ℕ | p.prime ∧ padic_val_rat p q < 0}.finite :=
-(neg_set q).symm ▸ padic_val_nat.ne_zero.finite q.denom
+lemma neg_of_denom_ne_zero.bijective : function.bijective $ neg_of_denom_ne_zero q :=
+⟨λ ⟨_, _⟩ ⟨_, _⟩ h, subtype.mk_eq_mk.mpr $ subtype.mk.inj_arrow h id,
+  λ ⟨p, hp⟩, ⟨⟨p, (@neg_iff' p q).mp hp⟩, rfl⟩⟩
 
-lemma neg.fintype (q : ℚ) : fintype {p : ℕ // p.prime ∧ padic_val_rat p q < 0} :=
-set.finite.fintype $ neg.finite q
+instance neg.fintype : fintype {p : ℕ // p.prime ∧ padic_val_rat p q < 0} :=
+fintype.of_bijective (neg_of_denom_ne_zero q) (neg_of_denom_ne_zero.bijective q)
 
-lemma eq_denom.tfae (q : ℚ) : tfae [padic_val_rat p q = -padic_val_nat p q.denom,
+@[simp] lemma finprod_of_neg {q : ℚ} :
+  ∏ p : {p : ℕ // p.prime ∧ padic_val_rat p q < 0}, (p : ℕ) ^ padic_val_nat p q.denom = q.denom :=
+begin
+  nth_rewrite_rhs 0 [← padic_val_nat.finprod_of_ne_zero $ ne_zero_of_lt q.pos],
+  rw [fintype.prod_bijective (neg_of_denom_ne_zero q) (neg_of_denom_ne_zero.bijective q)],
+  exact λ ⟨_, _⟩, rfl
+end
+
+lemma eq_denom.tfae : tfae [padic_val_rat p q = -padic_val_nat p q.denom,
   padic_val_int p q.num = 0, padic_val_rat p q ≤ 0] :=
 begin
   rw [padic_val_rat, sub_eq_neg_self, int.coe_nat_eq_zero, sub_nonpos, int.coe_nat_le],
@@ -134,36 +169,45 @@ begin
   tfae_finish
 end
 
-lemma pos_iff (q : ℚ) : 0 < padic_val_rat p q ↔ padic_val_int p q.num ≠ 0 :=
+lemma pos_iff : 0 < padic_val_rat p q ↔ padic_val_int p q.num ≠ 0 :=
 iff.trans not_le.symm $ not_iff_not_of_iff $ (eq_denom.tfae p q).out 2 1
 
-lemma pos_set (q : ℚ) :
-  {p : ℕ | p.prime ∧ 0 < padic_val_rat p q} = {p : ℕ | p.prime ∧ padic_val_int p q.num ≠ 0} :=
-congr_arg _ $ funext $ λ p, propext
-  ⟨λ ⟨hp, hq⟩, ⟨hp, (@pos_iff p ⟨hp⟩ q).mp hq⟩, λ ⟨hp, hq⟩, ⟨hp, (@pos_iff p ⟨hp⟩ q).mpr hq⟩⟩
+lemma pos_iff' (p : ℕ) (q : ℚ) :
+  p.prime ∧ 0 < padic_val_rat p q ↔ p.prime ∧ padic_val_int p q.num ≠ 0 :=
+⟨λ ⟨hp, hpq⟩, ⟨hp, (@pos_iff p ⟨hp⟩ q).mp hpq⟩, λ ⟨hp, hpq⟩, ⟨hp, (@pos_iff p ⟨hp⟩ q).mpr hpq⟩⟩
 
-lemma pos_type (q : ℚ) :
-  {p : ℕ // p.prime ∧ 0 < padic_val_rat p q} = {p : ℕ // p.prime ∧ padic_val_int p q.num ≠ 0} :=
-congr_arg _ $ pos_set q
+def pos_of_num_ne_zero :
+  {p : ℕ // p.prime ∧ padic_val_int p q.num ≠ 0} → {p : ℕ // p.prime ∧ 0 < padic_val_rat p q} :=
+λ ⟨p, hp⟩, ⟨p, (pos_iff' p q).mpr hp⟩
 
-lemma pos.finite (q : ℚ) : {p : ℕ | p.prime ∧ 0 < padic_val_rat p q}.finite :=
-(pos_set q).symm ▸ padic_val_nat.ne_zero.finite q.num.nat_abs
+lemma pos_of_num_ne_zero.bijective : function.bijective $ pos_of_num_ne_zero q :=
+⟨λ ⟨_, _⟩ ⟨_, _⟩ h, subtype.mk_eq_mk.mpr $ subtype.mk.inj_arrow h id,
+  λ ⟨p, hp⟩, ⟨⟨p, (@pos_iff' p q).mp hp⟩, rfl⟩⟩
 
-lemma pos.fintype (q : ℚ) : fintype {p : ℕ // p.prime ∧ 0 < padic_val_rat p q} :=
-set.finite.fintype $ pos.finite q
+instance pos.fintype : fintype {p : ℕ // p.prime ∧ 0 < padic_val_rat p q} :=
+fintype.of_bijective (pos_of_num_ne_zero q) (pos_of_num_ne_zero.bijective q)
+
+@[simp] lemma finprod_of_pos {q : ℚ} (hq : q ≠ 0) :
+  ∏ p : {p : ℕ // p.prime ∧ 0 < padic_val_rat p q}, (p : ℕ) ^ padic_val_int p q.num
+    = q.num.nat_abs :=
+begin
+  rw [← padic_val_int.finprod_of_ne_zero $ rat.num_ne_zero_of_ne_zero hq,
+      fintype.prod_bijective (pos_of_num_ne_zero q) (pos_of_num_ne_zero.bijective q)],
+  exact λ ⟨_, _⟩, rfl
+end
 
 end padic_val_rat
 
 ----------------------------------------------------------------------------------------------------
 /-! ## p-adic valuations of points -/
 
-section padic_val_point
+namespace padic_val_point
 
 variables {A B : ℤ} {x y : ℚ} (w : y ^ 2 = x ^ 3 + A * x + B) {p : ℕ} [fact p.prime]
 
 include w
 
-lemma padic_val_point_of_x_nonneg (hpx : 0 ≤ padic_val_rat p x) : 0 ≤ padic_val_rat p y :=
+lemma y_of_x_nonneg (hpx : 0 ≤ padic_val_rat p x) : 0 ≤ padic_val_rat p y :=
 begin
   by_cases hx3AxB : x ^ 3 + A * x + B = 0,
   { rw [hx3AxB, sq_eq_zero_iff] at w,
@@ -203,7 +247,7 @@ begin
   exact nonneg_of_mul_nonneg_left hpy2 zero_lt_two
 end
 
-lemma padic_val_point_of_x_neg (hpx : padic_val_rat p x < 0) :
+lemma point_of_x_neg (hpx : padic_val_rat p x < 0) :
   ∃ n : ℕ, padic_val_rat p x = -(2 * n) ∧ padic_val_rat p y = -(3 * n) :=
 begin
   have hx : x ≠ 0 := by { intro hx, rw [hx, padic_val_rat.zero] at hpx, exact has_lt.lt.false hpx },
@@ -262,6 +306,30 @@ begin
   rw [mul_neg] at hn w,
   exact ⟨n, hn, w⟩
 end
+
+lemma y_of_x_neg (hpx : padic_val_rat p x < 0) : padic_val_rat p y < 0 :=
+begin
+  rcases point_of_x_neg w hpx with ⟨_, ⟨hx, hy⟩⟩,
+  rw [hx, neg_neg_iff_pos] at hpx,
+  rw [hy, neg_neg_iff_pos],
+  exact mul_pos zero_lt_three ((pos_iff_pos_of_mul_pos hpx).mp zero_lt_two),
+end
+
+lemma x_neg_iff_y_neg : padic_val_rat p x < 0 ↔ padic_val_rat p y < 0 :=
+⟨y_of_x_neg w, imp_of_not_imp_not _ _ $ not_lt_of_le ∘ y_of_x_nonneg w ∘ le_of_not_lt⟩
+
+lemma x_neg_iff_y_neg' {p : ℕ} :
+  p.prime ∧ padic_val_rat p x < 0 ↔ p.prime ∧ padic_val_rat p y < 0 :=
+⟨λ ⟨hp, hpx⟩, ⟨hp, (@x_neg_iff_y_neg A B x y w p ⟨hp⟩).mp hpx⟩,
+  λ ⟨hp, hpy⟩, ⟨hp, (@x_neg_iff_y_neg A B x y w p ⟨hp⟩).mpr hpy⟩⟩
+
+def y_neg_of_x_neg :
+  {p : ℕ // p.prime ∧ padic_val_rat p x < 0} → {p : ℕ // p.prime ∧ padic_val_rat p y < 0} :=
+λ ⟨p, hp⟩, ⟨p, (x_neg_iff_y_neg' w).mp hp⟩
+
+lemma y_neg_of_x_neg.bijective : function.bijective $ y_neg_of_x_neg w :=
+⟨λ ⟨_, _⟩ ⟨_, _⟩ h, subtype.mk_eq_mk.mpr $ subtype.mk.inj_arrow h id,
+  λ ⟨p, hp⟩, ⟨⟨p, (x_neg_iff_y_neg' w).mpr hp⟩, rfl⟩⟩
 
 end padic_val_point
 

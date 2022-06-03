@@ -68,9 +68,11 @@ variables {a b c : nat_ordinal.{u}}
 instance : has_zero nat_ordinal := ⟨to_nat_ordinal 0⟩
 instance : inhabited nat_ordinal := ⟨0⟩
 instance : has_one nat_ordinal := ⟨to_nat_ordinal 1⟩
+instance : succ_order nat_ordinal := ordinal.succ_order
+
+theorem lt_wf : @well_founded nat_ordinal (<) := ordinal.lt_wf
 instance : has_well_founded nat_ordinal := ordinal.has_well_founded
 instance : is_well_order nat_ordinal (<) := ordinal.has_lt.lt.is_well_order
-instance : succ_order nat_ordinal := ordinal.succ_order
 
 @[simp] theorem to_ordinal_zero : to_ordinal 0 = 0 := rfl
 @[simp] theorem to_ordinal_one : to_ordinal 1 = 1 := rfl

@@ -278,6 +278,9 @@ by simpa using integral_pow 1
 lemma integral_one : ∫ x in a..b, (1 : ℝ) = b - a :=
 by simp only [mul_one, smul_eq_mul, integral_const]
 
+lemma integral_const_on_unit_interval : ∫ x in a..(a + 1), b = b :=
+by simp
+
 @[simp]
 lemma integral_inv (h : (0:ℝ) ∉ [a, b]) : ∫ x in a..b, x⁻¹ = log (b / a) :=
 begin

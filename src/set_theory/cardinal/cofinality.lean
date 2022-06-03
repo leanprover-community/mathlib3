@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Mario Carneiro, Floris van Doorn
+Authors: Mario Carneiro, Floris van Doorn, Violeta Hernández Palacios
 -/
 
 import set_theory.cardinal.ordinal
@@ -46,7 +46,7 @@ infinite pigeonhole principle
 
 noncomputable theory
 
-open function cardinal set
+open function cardinal set order
 open_locale classical cardinal
 
 universes u v w
@@ -62,13 +62,12 @@ def cof (r : α → α → Prop) [is_refl α r] : cardinal :=
   ⟨⟨set.univ, λ a, ⟨a, ⟨⟩, refl _⟩⟩⟩
   (λ S, #S)
 
-lemma cof_le (r : α → α → Prop) [is_refl α r] {S : set α} (h : ∀a, ∃(b ∈ S), r a b) :
-  order.cof r ≤ #S :=
+lemma cof_le (r : α → α → Prop) [is_refl α r] {S : set α} (h : ∀a, ∃(b ∈ S), r a b) : cof r ≤ #S :=
 le_trans (cardinal.min_le _ ⟨S, h⟩) le_rfl
 
 lemma le_cof {r : α → α → Prop} [is_refl α r] (c : cardinal) :
-  c ≤ order.cof r ↔ ∀ {S : set α} (h : ∀a, ∃(b ∈ S), r a b) , c ≤ #S :=
-by { rw [order.cof, cardinal.le_min], exact ⟨λ H S h, H ⟨S, h⟩, λ H ⟨S, h⟩, H h ⟩ }
+  c ≤ cof r ↔ ∀ {S : set α} (h : ∀a, ∃(b ∈ S), r a b) , c ≤ #S :=
+by { rw [cof, cardinal.le_min], exact ⟨λ H S h, H ⟨S, h⟩, λ H ⟨S, h⟩, H h ⟩ }
 
 end order
 
@@ -119,21 +118,17 @@ end
 
 lemma cof_type (r : α → α → Prop) [is_well_order α r] : (type r).cof = strict_order.cof r := rfl
 
-theorem le_cof_type [is_well_order α r] {c} : c ≤ cof (type r) ↔
-  ∀ S : set α, (∀ a, ∃ b ∈ S, ¬ r b a) → c ≤ #S :=
+theorem le_cof_type [is_well_order α r] {c} : c ≤ cof (type r) ↔ ∀ S, unbounded r S → c ≤ #S :=
 by dsimp [cof, strict_order.cof, order.cof, type, quotient.mk, quot.lift_on];
    rw [cardinal.le_min, subtype.forall]; refl
 
-theorem cof_type_le [is_well_order α r] {S : set α} (h : ∀ a, ∃ b ∈ S, ¬ r b a) :
-  cof (type r) ≤ #S :=
+theorem cof_type_le [is_well_order α r] {S : set α} (h : unbounded r S) : cof (type r) ≤ #S :=
 le_cof_type.1 le_rfl S h
 
-theorem lt_cof_type [is_well_order α r] {S : set α} (hl : #S < cof (type r)) :
-  ∃ a, ∀ b ∈ S, r b a :=
-not_forall_not.1 $ λ h, not_le_of_lt hl $ cof_type_le (λ a, not_ball.1 (h a))
+theorem lt_cof_type [is_well_order α r] {S : set α} : #S < cof (type r) → bounded r S :=
+by simpa using not_imp_not.2 cof_type_le
 
-theorem cof_eq (r : α → α → Prop) [is_well_order α r] :
-  ∃ S : set α, (∀ a, ∃ b ∈ S, ¬ r b a) ∧ #S = cof (type r) :=
+theorem cof_eq (r : α → α → Prop) [is_well_order α r] : ∃ S, unbounded r S ∧ #S = cof (type r) :=
 begin
   have : ∃ i, cof (type r) = _,
   { dsimp [cof, order.cof, type, quotient.mk, quot.lift_on],
@@ -142,7 +137,7 @@ begin
 end
 
 theorem ord_cof_eq (r : α → α → Prop) [is_well_order α r] :
-  ∃ S : set α, (∀ a, ∃ b ∈ S, ¬ r b a) ∧ type (subrel r S) = (cof (type r)).ord :=
+  ∃ S, unbounded r S ∧ type (subrel r S) = (cof (type r)).ord :=
 let ⟨S, hS, e⟩ := cof_eq r, ⟨s, _, e'⟩ := cardinal.ord_eq S,
     T : set α := {a | ∃ aS : a ∈ S, ∀ b : S, s b ⟨_, aS⟩ → r b a} in
 begin
@@ -388,7 +383,7 @@ begin
     { refine λ a, ⟨sum.inr punit.star, set.mem_singleton _, _⟩,
       rcases a with a|⟨⟨⟨⟩⟩⟩; simp [empty_relation] },
     { rw [cardinal.mk_fintype, set.card_singleton], simp } },
-  { rw [← cardinal.succ_zero, cardinal.succ_le_iff],
+  { rw [← cardinal.succ_zero, succ_le_iff],
     simpa [lt_iff_le_and_ne, cardinal.zero_le] using
       λ h, succ_ne_zero o (cof_eq_zero.1 (eq.symm h)) }
 end
@@ -445,7 +440,7 @@ protected theorem zero {f : Π b < (0 : ordinal), ordinal} :
   is_fundamental_sequence 0 0 f :=
 ⟨by rw [cof_zero, ord_zero], λ i j hi, (ordinal.not_lt_zero i hi).elim, blsub_zero f⟩
 
-protected theorem succ : is_fundamental_sequence o.succ 1 (λ _ _, o) :=
+protected theorem succ : is_fundamental_sequence (succ o) 1 (λ _ _, o) :=
 begin
   refine ⟨_, λ i j hi hj h, _, blsub_const ordinal.one_ne_zero o⟩,
   { rw [cof_succ, ord_one] },
@@ -602,7 +597,7 @@ let ⟨S, H, e⟩ := cof_eq r in
   let a' := enum r _ (h.2 _ (typein_lt_type r a)) in
   let ⟨b, h, ab⟩ := H a' in
   ⟨b, h, (is_order_connected.conn a b a' $ (typein_lt_typein r).1
-    (by rw typein_enum; apply ordinal.lt_succ_self)).resolve_right ab⟩,
+    (by { rw typein_enum, exact lt_succ (typein _ _) })).resolve_right ab⟩,
 e⟩
 
 @[simp] theorem cof_univ : cof univ.{u v} = cardinal.univ :=
@@ -619,7 +614,7 @@ le_antisymm (cof_le_card _) begin
   let g := λ a, (f a).1,
   let o := succ (sup.{u u} g),
   rcases H o with ⟨b, h, l⟩,
-  refine l (lt_succ.2 _),
+  refine l (lt_succ_iff.2 _),
   rw ← show g (f.symm ⟨b, h⟩) = b, by dsimp [g]; simp,
   apply le_sup
 end
@@ -688,7 +683,7 @@ begin
   { rintro x ⟨hx, hx'⟩, exact hx },
   { refine le_trans ha _, apply ge_of_eq, apply quotient.sound, constructor,
     refine equiv.trans _ (equiv.subtype_subtype_equiv_subtype_exists _ _).symm,
-    simp only [set_coe_eq_subtype, mem_singleton_iff, mem_preimage, mem_set_of_eq] },
+    simp only [coe_eq_subtype, mem_singleton_iff, mem_preimage, mem_set_of_eq] },
   rintro x ⟨hx, hx'⟩, exact hx'
 end
 
@@ -739,7 +734,7 @@ theorem is_regular_omega : is_regular ω :=
 theorem is_regular_succ {c : cardinal.{u}} (h : ω ≤ c) : is_regular (succ c) :=
 ⟨h.trans (lt_succ c).le, begin
   refine (cof_ord_le _).antisymm (succ_le_of_lt _),
-  cases quotient.exists_rep (succ c) with α αe, simp at αe,
+  cases quotient.exists_rep (@succ cardinal _ _ c) with α αe, simp at αe,
   rcases ord_eq α with ⟨r, wo, re⟩, resetI,
   have := ord_is_limit (h.trans (lt_succ _).le),
   rw [← αe, re] at this ⊢,
@@ -761,10 +756,11 @@ end⟩
 theorem is_regular_aleph_one : is_regular (aleph 1) :=
 by { rw ← succ_omega, exact is_regular_succ le_rfl }
 
-theorem is_regular_aleph'_succ {o : ordinal} (h : ordinal.omega ≤ o) : is_regular (aleph' o.succ) :=
+theorem is_regular_aleph'_succ {o : ordinal} (h : ordinal.omega ≤ o) :
+  is_regular (aleph' (succ o)) :=
 by { rw aleph'_succ, exact is_regular_succ (omega_le_aleph'.2 h) }
 
-theorem is_regular_aleph_succ (o : ordinal) : is_regular (aleph o.succ) :=
+theorem is_regular_aleph_succ (o : ordinal) : is_regular (aleph (succ o)) :=
 by { rw aleph_succ, exact is_regular_succ (omega_le_aleph o) }
 
 /--
@@ -776,7 +772,7 @@ theorem infinite_pigeonhole_card_lt {β α : Type u} (f : β → α)
   ∃ a : α, #α < #(f ⁻¹' {a}) :=
 begin
   simp_rw [← succ_le_iff],
-  exact ordinal.infinite_pigeonhole_card f (#α).succ (succ_le_of_lt w)
+  exact ordinal.infinite_pigeonhole_card f (succ (#α)) (succ_le_of_lt w)
     (w'.trans (lt_succ _).le)
     ((lt_succ _).trans_le (is_regular_succ w').2.ge),
 end
@@ -905,7 +901,7 @@ begin
   { intros b hb hb',
     rw deriv_family_succ,
     exact nfp_family_lt_ord_lift hω (by rwa hc.2) hf
-      ((ord_is_limit hc.1).2 _ (hb ((ordinal.lt_succ_self b).trans hb'))) },
+      ((ord_is_limit hc.1).2 _ (hb ((lt_succ b).trans hb'))) },
   { intros b hb H hb',
     rw deriv_family_limit f hb,
     exact bsup_lt_ord_of_is_regular hc (ord_lt_ord.1 ((ord_card_le b).trans_lt hb'))

@@ -25,7 +25,7 @@ open_locale cardinal
 namespace algebraic
 
 theorem omega_le_cardinal_mk_of_char_zero (R A : Type*) [comm_ring R] [is_domain R]
-  [ring A] [algebra R A] [char_zero A] : ω ≤ #{x : A | is_algebraic R x} :=
+  [ring A] [algebra R A] [char_zero A] : ω ≤ #{x : A // is_algebraic R x} :=
 @mk_le_of_injective (ulift ℕ) {x : A | is_algebraic R x} (λ n, ⟨_, is_algebraic_nat n.down⟩)
   (λ m n hmn, by simpa using hmn)
 
@@ -35,7 +35,7 @@ variables (R : Type u) (A : Type v) [comm_ring R] [comm_ring A] [is_domain A] [a
   [no_zero_smul_divisors R A]
 
 theorem cardinal_mk_lift_le_mul :
-  cardinal.lift.{u v} (#{x : A | is_algebraic R x}) ≤ cardinal.lift.{v u} (#(polynomial R)) * ω :=
+  cardinal.lift.{u v} (#{x : A // is_algebraic R x}) ≤ cardinal.lift.{v u} (#(polynomial R)) * ω :=
 begin
   rw [←mk_ulift, ←mk_ulift],
   let g : ulift.{u} {x : A | is_algebraic R x} → ulift.{v} (polynomial R) :=
@@ -61,12 +61,12 @@ begin
 end
 
 theorem cardinal_mk_lift_le_max :
-  cardinal.lift.{u v} (#{x : A | is_algebraic R x}) ≤ max (cardinal.lift.{v u} (#R)) ω :=
+  cardinal.lift.{u v} (#{x : A // is_algebraic R x}) ≤ max (cardinal.lift.{v u} (#R)) ω :=
 (cardinal_mk_lift_le_mul R A).trans $
   (mul_le_mul_right' (lift_le.2 cardinal_mk_le_max) _).trans $ by simp [le_total]
 
 theorem cardinal_mk_lift_le_of_infinite [infinite R] :
-  cardinal.lift.{u v} (#{x : A | is_algebraic R x}) ≤ cardinal.lift.{v u} (#R) :=
+  cardinal.lift.{u v} (#{x : A // is_algebraic R x}) ≤ cardinal.lift.{v u} (#R) :=
 (cardinal_mk_lift_le_max R A).trans $ by simp
 
 variable [encodable R]
@@ -79,7 +79,7 @@ begin
 end
 
 @[simp] theorem cardinal_mk_of_encodable_of_char_zero [char_zero A] [is_domain R] :
-  #{x : A | is_algebraic R x} = ω :=
+  #{x : A // is_algebraic R x} = ω :=
 le_antisymm (by simp) (omega_le_cardinal_mk_of_char_zero R A)
 
 end lift
@@ -89,13 +89,13 @@ section non_lift
 variables (R A : Type u) [comm_ring R] [comm_ring A] [is_domain A] [algebra R A]
   [no_zero_smul_divisors R A]
 
-theorem cardinal_mk_le_mul : #{x : A | is_algebraic R x} ≤ #(polynomial R) * ω :=
+theorem cardinal_mk_le_mul : #{x : A // is_algebraic R x} ≤ #(polynomial R) * ω :=
 by { rw [←lift_id (#_), ←lift_id (#(polynomial R))], exact cardinal_mk_lift_le_mul R A }
 
-theorem cardinal_mk_le_max : #{x : A | is_algebraic R x} ≤ max (#R) ω :=
+theorem cardinal_mk_le_max : #{x : A // is_algebraic R x} ≤ max (#R) ω :=
 by { rw [←lift_id (#_), ←lift_id (#R)], exact cardinal_mk_lift_le_max R A }
 
-theorem cardinal_mk_le_of_infinite [infinite R] : #{x : A | is_algebraic R x} ≤ #R :=
+theorem cardinal_mk_le_of_infinite [infinite R] : #{x : A // is_algebraic R x} ≤ #R :=
 (cardinal_mk_le_max R A).trans $ by simp
 
 end non_lift

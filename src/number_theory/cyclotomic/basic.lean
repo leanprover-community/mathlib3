@@ -8,7 +8,6 @@ import ring_theory.polynomial.cyclotomic.basic
 import number_theory.number_field
 import algebra.char_p.algebra
 import field_theory.galois
-import analysis.complex.polynomial
 
 /-!
 # Cyclotomic extensions
@@ -555,10 +554,14 @@ end cyclotomic_ring
 
 end is_domain
 
+section is_alg_closed
+
+variables [field K] [is_alg_closed K]
+
 /-- Algebraically closed fields are `S`-cyclotomic extensions over themselves if
 `ne_zero ((a : ℕ) : K))` for all `a ∈ S`. -/
-lemma is_alg_closed.is_cyclotomic_extension (K) [field K] [is_alg_closed K]
-  (h : ∀ a ∈ S, ne_zero ((a : ℕ) : K)) : is_cyclotomic_extension S K K :=
+lemma is_alg_closed.is_cyclotomic_extension (h : ∀ a ∈ S, ne_zero ((a : ℕ) : K)) :
+  is_cyclotomic_extension S K K :=
 begin
   refine ⟨λ a ha, _,  algebra.eq_top_iff.mp $ subsingleton.elim _ _ ⟩,
   obtain ⟨r, hr⟩ := is_alg_closed.exists_aeval_eq_zero K _ (degree_cyclotomic_pos a K a.pos).ne',
@@ -567,5 +570,8 @@ begin
   rwa [coe_aeval_eq_eval, ← is_root.def, is_root_cyclotomic_iff] at hr,
 end
 
-instance : ∀ S, is_cyclotomic_extension S ℂ ℂ :=
-λ S, is_alg_closed.is_cyclotomic_extension S ℂ (λ a ha, infer_instance)
+instance is_alg_closed_of_char_zero.is_cyclotomic_extension [char_zero K] :
+  ∀ S, is_cyclotomic_extension S K K :=
+λ S, is_alg_closed.is_cyclotomic_extension S K (λ a ha, infer_instance)
+
+end is_alg_closed

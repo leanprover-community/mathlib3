@@ -378,6 +378,12 @@ instance : add_comm_monoid (lie_subalgebra R L) :=
   add_zero  := λ _, sup_bot_eq,
   add_comm  := λ _ _, sup_comm, }
 
+instance : canonically_ordered_add_monoid (lie_subalgebra R L) :=
+{ add_le_add_left := λ a b, sup_le_sup_left,
+  le_iff_exists_add := λ a b, le_iff_exists_sup,
+  ..lie_subalgebra.add_comm_monoid,
+  ..lie_subalgebra.complete_lattice }
+
 @[simp] lemma add_eq_sup : K + K' = K ⊔ K' := rfl
 
 @[norm_cast, simp] lemma inf_coe_to_submodule :

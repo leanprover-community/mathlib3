@@ -174,48 +174,48 @@ equiv.cast (left_moves_mul x y).symm
 
 Even though these types are the same (not definitionally so), this is the preferred way to convert
 between them. -/
-def to_right_moves_mul {x y : pgame} : x.left_moves × y.right_moves ⊕ x.right_moves × y.left_moves
-  ≃ (x * y).right_moves :=
+def to_right_moves_mul {x y : pgame} :
+  x.left_moves × y.right_moves ⊕ x.right_moves × y.left_moves ≃ (x * y).right_moves :=
 equiv.cast (right_moves_mul x y).symm
 
 @[simp] lemma mk_mul_move_left_inl {xl xr yl yr} {xL xR yL yR} {i j} :
-  (mk xl xr xL xR * mk yl yr yL yR).move_left (sum.inl (i, j))
-  = xL i * (mk yl yr yL yR) + (mk xl xr xL xR) * yL j - xL i * yL j :=
+  (mk xl xr xL xR * mk yl yr yL yR).move_left (sum.inl (i, j)) =
+  xL i * (mk yl yr yL yR) + (mk xl xr xL xR) * yL j - xL i * yL j :=
 rfl
 
 @[simp] lemma mul_move_left_inl {x y : pgame} {i j} :
-   (x * y).move_left (to_left_moves_mul (sum.inl (i, j)))
-   = x.move_left i * y + x * y.move_left j - x.move_left i * y.move_left j :=
+  (x * y).move_left (to_left_moves_mul (sum.inl (i, j))) =
+  x.move_left i * y + x * y.move_left j - x.move_left i * y.move_left j :=
 by { cases x, cases y, refl }
 
 @[simp] lemma mk_mul_move_left_inr {xl xr yl yr} {xL xR yL yR} {i j} :
-  (mk xl xr xL xR * mk yl yr yL yR).move_left (sum.inr (i, j))
-  = xR i * (mk yl yr yL yR) + (mk xl xr xL xR) * yR j - xR i * yR j :=
+  (mk xl xr xL xR * mk yl yr yL yR).move_left (sum.inr (i, j)) =
+  xR i * (mk yl yr yL yR) + (mk xl xr xL xR) * yR j - xR i * yR j :=
 rfl
 
 @[simp] lemma mul_move_left_inr {x y : pgame} {i j} :
-   (x * y).move_left (to_left_moves_mul (sum.inr (i, j)))
-   = x.move_right i * y + x * y.move_right j - x.move_right i * y.move_right j :=
+  (x * y).move_left (to_left_moves_mul (sum.inr (i, j))) =
+  x.move_right i * y + x * y.move_right j - x.move_right i * y.move_right j :=
 by { cases x, cases y, refl }
 
 @[simp] lemma mk_mul_move_right_inl {xl xr yl yr} {xL xR yL yR} {i j} :
-  (mk xl xr xL xR * mk yl yr yL yR).move_right (sum.inl (i, j))
-  = xL i * (mk yl yr yL yR) + (mk xl xr xL xR) * yR j - xL i * yR j :=
+  (mk xl xr xL xR * mk yl yr yL yR).move_right (sum.inl (i, j)) =
+  xL i * (mk yl yr yL yR) + (mk xl xr xL xR) * yR j - xL i * yR j :=
 rfl
 
 @[simp] lemma mul_move_right_inl {x y : pgame} {i j} :
-   (x * y).move_right (to_right_moves_mul (sum.inl (i, j)))
-   = x.move_left i * y + x * y.move_right j - x.move_left i * y.move_right j :=
+  (x * y).move_right (to_right_moves_mul (sum.inl (i, j))) =
+  x.move_left i * y + x * y.move_right j - x.move_left i * y.move_right j :=
 by { cases x, cases y, refl }
 
 @[simp] lemma mk_mul_move_right_inr {xl xr yl yr} {xL xR yL yR} {i j} :
-  (mk xl xr xL xR * mk yl yr yL yR).move_right (sum.inr (i,j))
-  = xR i * (mk yl yr yL yR) + (mk xl xr xL xR) * yL j - xR i * yL j :=
+  (mk xl xr xL xR * mk yl yr yL yR).move_right (sum.inr (i,j)) =
+  xR i * (mk yl yr yL yR) + (mk xl xr xL xR) * yL j - xR i * yL j :=
 rfl
 
 @[simp] lemma mul_move_right_inr {x y : pgame} {i j} :
-   (x * y).move_right (to_right_moves_mul (sum.inr (i, j)))
-   = x.move_right i * y + x * y.move_left j - x.move_right i * y.move_left j :=
+  (x * y).move_right (to_right_moves_mul (sum.inr (i, j))) =
+  x.move_right i * y + x * y.move_left j - x.move_right i * y.move_left j :=
 by { cases x, cases y, refl }
 
 lemma left_moves_mul_cases {x y : pgame} (k : (x * y).left_moves) :
@@ -315,6 +315,48 @@ using_well_founded { dec_tac := pgame_wf_tac }
 
 @[simp] theorem quot_mul_neg (x y : pgame) : ⟦x * -y⟧ = -⟦x * y⟧ :=
 by rw [quot_mul_comm, quot_neg_mul, quot_mul_comm]
+
+@[simp] lemma quot_neg_mul_neg (x y : pgame) : ⟦-x * -y⟧ = ⟦x * y⟧ := by simp
+
+def mul_option (x y : pgame) (i j) : pgame :=
+x.move_left i * y + x * y.move_left j - x.move_left i * y.move_left j
+
+lemma left_moves_mul_iff {x y : pgame} {P : game → Prop} :
+  (∀ k, P ⟦(x * y).move_left k⟧) ↔
+  (∀ i j, P ⟦mul_option x y i j⟧) ∧ (∀ i j, P ⟦mul_option (-x) (-y) i j⟧) :=
+begin
+  obtain ⟨⟨xl, xr, xL, xR⟩, yl, yr, yL, yR⟩ := ⟨x, y⟩,
+  split; intro h,
+  work_on_goal 1 { split; intros i j,
+    exact h (sum.inl (i,j)),
+    convert h (sum.inr (i,j)) using 1 },
+  work_on_goal 2 { rintro (⟨i,j⟩|⟨i,j⟩),
+    exact h.1 i j,
+    convert h.2 i j using 1 },
+  all_goals { dsimp [mul_option],
+    rw [← neg_def, ← neg_def],
+    congr' 1, congr' 1,
+    all_goals { rw quot_neg_mul_neg } },
+end
+
+lemma right_moves_mul_iff {x y : pgame} {P : game → Prop} :
+  (∀ k, P ⟦(x * y).move_right k⟧) ↔
+  (∀ i j, P (-⟦mul_option x (-y) i j⟧)) ∧ (∀ i j, P (-⟦mul_option (-x) y i j⟧)) :=
+begin
+  obtain ⟨⟨xl, xr, xL, xR⟩, yl, yr, yL, yR⟩ := ⟨x, y⟩,
+  split; intro h,
+  work_on_goal 1 { split; intros i j,
+    convert h (sum.inl (i,j)), swap 2,
+    convert h (sum.inr (i,j)) },
+  work_on_goal 3 { rintro (⟨i,j⟩|⟨i,j⟩),
+    convert h.1 i j using 1, swap 2,
+    convert h.2 i j using 1 },
+  swap 3, all_goals { dsimp [mul_option],
+    rw [neg_sub', neg_add, ← neg_def],
+    congr' 1, congr' 1 },
+  iterate 6 { rw [quot_neg_mul, neg_neg] },
+  iterate 6 { rw [quot_mul_neg, neg_neg] },
+end
 
 @[simp] theorem quot_left_distrib : Π (x y z : pgame), ⟦x * (y + z)⟧ = ⟦x * y⟧ + ⟦x * z⟧
 | (mk xl xr xL xR) (mk yl yr yL yR) (mk zl zr zL zR) :=

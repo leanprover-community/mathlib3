@@ -330,8 +330,6 @@ lemma quot_neg_eq_of_quot_eq {x y : pgame} (h : ⟦x⟧ = ⟦y⟧) : ⟦-x⟧ = 
 
 namespace numeric
 
-@[simp] lemma quot_neg_mul_neg (x y : pgame) : ⟦-x * -y⟧ = ⟦x * y⟧ := by simp
-
 lemma trichotomy {x y : pgame} (hx : x.numeric) (hy : y.numeric) :
   x < y ∨ ⟦x⟧ = ⟦y⟧ ∨ y < x :=
 by { obtain (h|h|h|h) := lt_or_equiv_or_gt_or_fuzzy x y,
@@ -381,27 +379,6 @@ begin
       rw [← neg_def, lt_iff, lt_iff, ← neg_lt_neg_iff],
       convert iff.rfl using 2;
       { rw [quot_add, quot_add, quot_mul_neg, quot_mul_neg], abel } } },
-end
-
-lemma P1'_of_equiv {x₁ x₂ x₃ y₁ y₂ y₃} (h₁₃ : ⟦x₁⟧ = ⟦x₃⟧) (h₁ : P24 x₁ x₃ y₁) (h₃ : P24 x₁ x₃ y₃)
-  (h3 : P3 x₁ x₂ y₂ y₃) : P1' x₁ x₂ x₃ y₁ y₂ y₃ :=
-begin
-  rw [P1', lt_iff], dsimp,
-  rw ← h₁.1 h₁₃,
-  rw ← h₃.1 h₁₃,
-  rw sub_lt_sub_iff,
-  convert add_lt_add_left (lt_iff.1 h3) ⟦x₁ * y₁⟧ using 1; abel,
-end
-
-lemma P1'_of_lt {x₁ x₂ x₃ y₁ y₂ y₃} (h₁ : P3 x₃ x₂ y₂ y₃) (h₂ : P3 x₁ x₃ y₂ y₁) :
-  P1' x₁ x₂ x₃ y₁ y₂ y₃ :=
-begin
-  rw P1', rw P3 at h₁ h₂,
-  rw lt_iff at h₁ h₂ ⊢,
-  dsimp at h₁ h₂ ⊢,
-  rw sub_lt_sub_iff,
-  rw ← add_lt_add_iff_left ⟦x₃ * y₂⟧,
-  convert (add_lt_add h₁ h₂) using 1; abel,
 end
 
 lemma P24.L {x₁ x₂ y} (h : P24 x₁ x₂ y) (hl : x₁ < x₂) (i) : P3 x₁ x₂ (y.move_left i) y :=
@@ -512,6 +489,27 @@ P3.comm.2 $ P24.L
 lemma P24xxy (ihxy : ihr x y) (i j) : P24 (x.move_left i) (x.move_left j) y :=
 ihxy (is_option.move_left i) (is_option.move_left j) (or.inl rfl)
 
+lemma P1'_of_equiv {x₁ x₂ x₃ y₁ y₂ y₃} (h₁₃ : ⟦x₁⟧ = ⟦x₃⟧) (h₁ : P24 x₁ x₃ y₁) (h₃ : P24 x₁ x₃ y₃)
+  (h3 : P3 x₁ x₂ y₂ y₃) : P1' x₁ x₂ x₃ y₁ y₂ y₃ :=
+begin
+  rw [P1', lt_iff], dsimp,
+  rw ← h₁.1 h₁₃,
+  rw ← h₃.1 h₁₃,
+  rw sub_lt_sub_iff,
+  convert add_lt_add_left (lt_iff.1 h3) ⟦x₁ * y₁⟧ using 1; abel,
+end
+
+lemma P1'_of_lt {x₁ x₂ x₃ y₁ y₂ y₃} (h₁ : P3 x₃ x₂ y₂ y₃) (h₂ : P3 x₁ x₃ y₂ y₁) :
+  P1' x₁ x₂ x₃ y₁ y₂ y₃ :=
+begin
+  rw P1', rw P3 at h₁ h₂,
+  rw lt_iff at h₁ h₂ ⊢,
+  dsimp at h₁ h₂ ⊢,
+  rw sub_lt_sub_iff,
+  rw ← add_lt_add_iff_left ⟦x₃ * y₂⟧,
+  convert (add_lt_add h₁ h₂) using 1; abel,
+end
+
 variables (hx : numeric x) (hy : numeric y) (ihxy : ihr x y) (ihyx : ihr y x)
 include hy ihxy ihyx
 
@@ -608,6 +606,7 @@ P2'_of_P24 ((@h _).2.2 $ is_option.move_left j) (P24.L ((@h _).1 $ is_option.mov
   (by {rw [lt_iff, ← he, ← lt_iff], apply hn.move_left_lt}) j) he
 
 include ih'
+
 lemma mul_le_mul_right (h₁ : x₁.numeric) (h₂ : x₂.numeric) (he : ⟦x₁⟧ = ⟦x₂⟧) : x₁ * y ≤ x₂ * y :=
 le_of_forall_lt begin
   obtain ⟨h21, h12⟩ := ihr'_of_ih' ih',
@@ -615,16 +614,16 @@ le_of_forall_lt begin
   obtain ⟨xl, xr, xL, xR⟩ := x₁, swap, obtain ⟨xl, xr, xL, xR⟩ := x₂,
   all_goals { rintro (⟨i,j⟩|⟨i,j⟩); simp only
     [mk_mul_move_left_inl, mk_mul_move_right_inl, mk_mul_move_left_inr, mk_mul_move_right_inr] },
-  swap 3, { apply left_lt_mul_aux h₁ @h12 he },
+  swap 3, { apply left_lt_mul_aux h₁ h12 he },
   all_goals { rw lt_iff }, swap 3,
-  { convert lt_iff.1 (left_lt_mul_aux
-      h₁.neg (ihr'_neg (ihr'_neg' h21)) (quot_neg_eq_of_quot_eq he) i j) using 1,
+  { convert lt_iff.1 (left_lt_mul_aux h₁.neg
+      (ihr'_neg $ ihr'_neg' h21) (quot_neg_eq_of_quot_eq he) i j) using 1,
     dsimp, rw [← neg_def, ← neg_def], congr' 1, congr' 1, all_goals { rw quot_neg_mul_neg } },
   all_goals { rw ← neg_lt_neg_iff },
   { convert lt_iff.1 (left_lt_mul_aux h₂ (ihr'_neg' h21) he.symm i j) using 1,
     dsimp, rw [neg_sub', neg_add, ← neg_def], congr' 1, congr' 1, all_goals { rw quot_mul_neg } },
-  { convert lt_iff.1 (left_lt_mul_aux
-      h₂.neg (ihr'_neg h12) (quot_neg_eq_of_quot_eq he).symm i j) using 1,
+  { convert lt_iff.1 (left_lt_mul_aux h₂.neg
+      (ihr'_neg h12) (quot_neg_eq_of_quot_eq he).symm i j) using 1,
     dsimp, rw [neg_sub', neg_add, ← neg_def], congr' 1, congr' 1, all_goals { rw quot_neg_mul } },
 end
 
@@ -654,4 +653,8 @@ end numeric
 
 end pgame
 
-/- TODO : move le_of_forall_lt to pgame and remove numeric hypotheses -/
+/- TODO : move le_of_forall_lt to pgame -/
+/- make quot_neg_mul a relabelling?  -/
+
+/- ∀ a' ∈ t, ∃ a ∈ s, ... -> s' + t = s + t' ... -> trans_gen (cut_expand r) .. -/
+/- to_multiset: just write as sum of singletons  .. -/

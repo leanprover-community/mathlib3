@@ -36,6 +36,12 @@ namespace unit_interval
 open_locale unit_interval
 open set set.Icc
 
+-- For use in the tactic below
+lemma nonneg (x : I) : 0 ≤ (x : ℝ) := x.2.1
+lemma le_one (x : I) : (x : ℝ) ≤ 1 := x.2.2
+lemma one_minus_nonneg (x : I) : 0 ≤ 1 - (x : ℝ) := by simpa using x.2.2
+lemma one_minus_le_one (x : I) : 1 - (x : ℝ) ≤ 1 := by simpa using x.2.1
+
 -- This specific instance occurs often enough to be worth having as a named lemma
 lemma double_mem {t : ℝ} (ht : t ∈ Icc (0 : ℝ) (1/2)) : 2 * t ∈ Icc (0:ℝ) 1 :=
 (@mul_pos_mem_iff ℝ _ 2 t zero_lt_two).2 ht
@@ -69,11 +75,6 @@ example : compact_space I := by apply_instance
 end unit_interval
 
 namespace tactic.interactive
-
-lemma nonneg (x : I) : 0 ≤ (x : ℝ) := x.2.1
-lemma le_one (x : I) : (x : ℝ) ≤ 1 := x.2.2
-lemma one_minus_nonneg (x : I) : 0 ≤ 1 - (x : ℝ) := by simpa using x.2.2
-lemma one_minus_le_one (x : I) : 1 - (x : ℝ) ≤ 1 := by simpa using x.2.1
 
 /-- A tactic that solves `0 ≤ ↑x`, `0 ≤ 1 - ↑x`, `↑x ≤ 1`, and `1 - ↑x ≤ 1` for `x : I`. -/
 meta def unit_interval : tactic unit :=

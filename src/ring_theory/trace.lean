@@ -359,31 +359,20 @@ begin
 end
 
 variables [algebra L E] [is_scalar_tower K L E] [finite_dimensional K L] [is_galois K L] {L}
-lemma trace_eq_sum_automorphisms_aux
-  (x : L) : (algebra_map L E) (∑ (σ : L ≃ₐ[K] L), σ x) = ∑ (σ : L →ₐ[K] E), σ x :=
-begin
-  suffices h : ∑ (σ : L →ₐ[K] E), σ x = ∑ (σ : L ≃ₐ[K] L),
-    ((is_scalar_tower.to_alg_hom K L E).comp σ.to_alg_hom) x,
-  { rw [h, map_sum (algebra_map L E)],
-    congr },
-  apply fintype.sum_equiv (is_alg_closed.alg_hom_equiv_aut K L E),
-  intro σ,
-  simp only [is_alg_closed.alg_hom_equiv_aut, alg_hom.restrict_normal', alg_equiv.to_alg_hom_eq_coe,
-             equiv.coe_fn_mk, alg_hom.coe_comp, is_scalar_tower.coe_to_alg_hom',
-             alg_equiv.coe_alg_hom, alg_equiv.coe_of_bijective,function.comp_app,
-             alg_hom.restrict_normal_commutes, id.map_eq_id, ring_hom.id_apply],
-end
 
 lemma trace_eq_sum_automorphisms (x : L) :
   algebra_map K L (algebra.trace K L x) = ∑ (σ : L ≃ₐ[K] L), σ x :=
 begin
   apply no_zero_smul_divisors.algebra_map_injective L (algebraic_closure L),
-  rw trace_eq_sum_automorphisms_aux (algebraic_closure L) x,
+  rw map_sum (algebra_map L (algebraic_closure L)),
+  rw ← fintype.sum_equiv (is_alg_closed.alg_hom_equiv_aut K L (algebraic_closure L)),
   { rw ←trace_eq_sum_embeddings (algebraic_closure L),
     { simp only [algebra_map_eq_smul_one, smul_one_smul] },
     { exact is_galois.to_is_separable } },
-  { exact algebraic_closure.is_scalar_tower L },
-  { exact _inst_23 },
+  { intro σ,
+    simp only [is_alg_closed.alg_hom_equiv_aut, alg_hom.restrict_normal', equiv.coe_fn_mk,
+               alg_equiv.coe_of_bijective, alg_hom.restrict_normal_commutes, id.map_eq_id,
+               ring_hom.id_apply] },
 end
 
 end eq_sum_embeddings

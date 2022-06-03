@@ -139,10 +139,10 @@ theorem nadd_le_iff : b ♯ c ≤ a ↔ (∀ b' < b, b' ♯ c < a) ∧ ∀ c' < 
 by { rw nadd_def, simp [blsub_le_iff] }
 
 theorem nadd_lt_nadd_left (h : b < c) (a) : a ♯ b < a ♯ c :=
-by { rw nadd_def a c, exact lt_max_of_lt_right (lt_blsub.{u u} _ b h) }
+lt_nadd_iff.2 (or.inr ⟨b, h, le_rfl⟩)
 
 theorem nadd_lt_nadd_right (h : b < c) (a) : b ♯ a < c ♯ a :=
-by { rw nadd_def c, exact lt_max_of_lt_left (lt_blsub.{u u} _ b h) }
+lt_nadd_iff.2 (or.inl ⟨b, h, le_rfl⟩)
 
 theorem nadd_le_nadd_left (h : b ≤ c) (a) : a ♯ b ≤ a ♯ c :=
 begin

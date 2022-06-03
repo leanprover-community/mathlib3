@@ -95,11 +95,11 @@ lemma iff_singleton : is_cyclotomic_extension {n} A B ↔
  (∀ x, x ∈ adjoin A { b : B | b ^ (n : ℕ) = 1 }) :=
 by simp [is_cyclotomic_extension_iff]
 
-/-- If `is_cyclotomic_extension ∅ A B`, then `A = B`. -/
+/-- If `is_cyclotomic_extension ∅ A B`, then the image of `A` in `B` equals `B`. -/
 lemma empty [h : is_cyclotomic_extension ∅ A B] : (⊥ : subalgebra A B) = ⊤ :=
 by simpa [algebra.eq_top_iff, is_cyclotomic_extension_iff] using h
 
-/-- If `is_cyclotomic_extension {1} A B`, then `A = B`. -/
+/-- If `is_cyclotomic_extension {1} A B`, then the image of `A` in `B` equals `B`. -/
 lemma singleton_one [h : is_cyclotomic_extension {1} A B] : (⊥ : subalgebra A B) = ⊤ :=
 algebra.eq_top_iff.2 (λ x, by simpa [adjoin_singleton_one]
   using ((is_cyclotomic_extension_iff _ _ _).1 h).2 x)
@@ -126,6 +126,22 @@ begin
       refine adjoin_mono (λ y hy, _) hb,
       obtain ⟨b₁, ⟨⟨n, hn⟩, h₁⟩⟩ := hy,
       exact ⟨n, ⟨mem_union_left T hn.1, by rw [← h₁, ← alg_hom.map_pow, hn.2, alg_hom.map_one]⟩⟩ } }
+end
+
+@[nontriviality] lemma subsingleton_iff [subsingleton B] :
+  is_cyclotomic_extension S A B ↔ S = {} ∨ S = {1} :=
+begin
+  split,
+  { rintro ⟨hprim, -⟩,
+    rw ←subset_singleton_iff_eq,
+    intros t ht,
+    obtain ⟨ζ, hζ⟩ := hprim ht,
+    rw [mem_singleton_iff, ←pnat.coe_eq_one_iff],
+    exact_mod_cast hζ.unique (is_primitive_root.of_subsingleton ζ) },
+  { rintro (rfl|rfl),
+    { refine ⟨λ _ h, h.elim, λ x, by convert subalgebra.zero_mem _⟩ },
+    { rw iff_singleton,
+      refine ⟨⟨0, is_primitive_root.of_subsingleton 0⟩, λ x, by convert subalgebra.zero_mem _⟩ } }
 end
 
 /-- If `B` is a cyclotomic extension of `A` given by roots of unity of order in `S ∪ T`, then `B`

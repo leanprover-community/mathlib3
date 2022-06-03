@@ -323,14 +323,14 @@ lemma is_pretransitive_of_bijective_map_iff
 begin
   split,
   apply is_pretransitive_of_surjective_map hf.surjective,
-  intro hN, let hN_heq := hN.exists_smul_eq,
-  apply is_pretransitive.mk,
-  intros x y,
-  obtain ⟨k, hk⟩ := hN_heq (f x) (f y),
-  obtain ⟨g, rfl⟩ := hφ k,
-  use g,
-  apply hf.injective,
-  simp only [equivariant_map.to_fun_eq_coe, f.map_smul', hk],
+  { intro hN, let hN_heq := hN.exists_smul_eq,
+    apply is_pretransitive.mk,
+    intros x y,
+    obtain ⟨k, hk⟩ := hN_heq (f x) (f y),
+    obtain ⟨g, rfl⟩ := hφ k,
+    use g,
+    apply hf.injective,
+    simp only [equivariant_map.to_fun_eq_coe, f.map_smul', hk] }
 end
 
 end pretransitivity

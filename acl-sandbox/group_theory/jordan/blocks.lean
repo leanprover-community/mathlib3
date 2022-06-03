@@ -4,19 +4,22 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Antoine Chambert-Loir
 -/
 
-import data.setoid.partition
-import group_theory.group_action.basic
-import group_theory.group_action.sub_mul_action
-import group_theory.subgroup.pointwise
-import data.set.pointwise
-import data.nat.prime
-import algebra.big_operators.order
 import .for_mathlib.stabilizer
 import .for_mathlib.pretransitive
+import .for_mathlib.partitions
+import .for_mathlib.set
+-- import data.setoid.partition
 import .equivariant_map
 import .sub_mul_action
-import .for_mathlib.partitions
 import .maximal_subgroups
+
+-- import group_theory.group_action.basic
+-- import group_theory.group_action.sub_mul_action
+-- import group_theory.subgroup.pointwise
+-- import data.set.pointwise
+-- import data.nat.prime
+-- import algebra.big_operators.order
+
 
 /-! # Blocks
 
@@ -26,11 +29,6 @@ Given `has_scalar G X`, an action of a group `G` on a type `X`, we define
 which means that the sets `g • B`, for `g ∈ G` form a partition of `X`.
 
 - a bunch of lemmas that gives example of “trivial” blocks : ⊥, ⊤, singletons, orbits…
-
-- the structure `is_preprimitive G X` that says that the action is preprimitive,
-namely, the only blocks are ⊤ and subsingletons.
-
-The definition is essentially important for `mul_action G X`.
 
 -/
 
@@ -49,19 +47,10 @@ def is_fixed_block (B : set X) := ∀ (g : G), g • B = B
 /-- An invariant block is a set which is stable under has_scalar -/
 def is_invariant_block (B : set X) := ∀ (g : G), g • B ≤ B
 
-def is_trivial_block (B : set X) := subsingleton B ∨ B = ⊤
+def is_trivial_block (B : set X) := B.subsingleton ∨ B = ⊤
 
 /-- A block is a set which is either fixed or moved to a disjoint subset -/
 def is_block (B : set X) := (set.range (λ g : G, g • B)).pairwise_disjoint id
-
-variable (X)
-
--- Note : if the action is degenerate, singletons may not be blocks.#check
-/-- An action is preprimitive if it is pretransitive and
-the only blocks are the trivial ones -/
-structure is_preprimitive
-extends is_pretransitive G X : Prop :=
-(has_trivial_blocks : ∀ {B : set X}, (is_block G B) → subsingleton B ∨  B = ⊤)
 
 variables {G X}
 
@@ -261,7 +250,7 @@ end
 
 variable {G}
 lemma is_block_preimage {H Y: Type*} [group H] [mul_action H Y]
-  {φ : H →* G} (j : Y →ₑ[φ] X)
+  {φ : H → G} (j : Y →ₑ[φ] X)
   {B : set X} (hB : is_block G B) :
   is_block H (j ⁻¹' B) :=
 begin
@@ -536,29 +525,6 @@ begin
     exact orbit.is_block_of_normal nN a},
 end
 
-/-- In a preprimitive action,
-  any normal subgroup that acts nontrivially is pretransitive
-  (Wielandt, th. 7.1)-/
-theorem transitive_of_normal_of_preprimitive (N : subgroup G) [nN : subgroup.normal N]
-  (hGX : mul_action.is_preprimitive G X) (hNX : mul_action.fixed_points N X ≠ ⊤) :
-  mul_action.is_pretransitive N X :=
-begin
-    have : ∃ (x : X), x ∉ fixed_points N X,
-    { rw [← set.ne_univ_iff_exists_not_mem, ← set.top_eq_univ],
-      exact hNX },
-    obtain ⟨a, ha⟩ := this,
-    rw ← mul_action.orbit.is_pretransitive_iff N a,
-    apply or.resolve_left (hGX.has_trivial_blocks (orbit.is_block_of_normal nN a)),
-    intro h,
-    apply ha, simp only [mem_fixed_points], intro x,
-      rw ← set.mem_singleton_iff,
-      suffices : orbit N a = {a},
-      { rw ← this, use x, },
-      ext b,
-      rw set.subsingleton.eq_singleton_of_mem ((orbit ↥N a).subsingleton_coe.mp h)
-          (mul_action.mem_orbit_self a)
-end
-
 end normal
 
 section stabilizer
@@ -690,102 +656,6 @@ split,
   simp_rw [set.smul_mem_smul_set_iff], exact ha },
 end }
 
-/- Couldn't use in a straightforward way the order equivalence
-for proving the next theorem — what a pity ! -/
-instance block.has_top (a : X) : order_top {B // a ∈ B ∧ is_block G B} :=
-let ha : a ∈ (⊤ : set X) := trivial in
-let htop : is_block G (⊤ : set X) := top_is_block X in
-{ top := ⟨(⊤ : set X), ha, top_is_block X⟩,
-    le_top := λ ⟨B, ha, hB⟩,
-    by simp only [set.top_eq_univ, subtype.mk_le_mk, set.le_eq_subset, set.subset_univ] }
-
-/-- An pretransitive action is preprimitive
-  iff the stabilizer of any point is a maximal subgroup (Wielandt, th. 7.5) -/
-theorem maximal_stabilizer_iff_primitive [hnX : nontrivial X] [htGX : is_pretransitive G X]
-  (a : X) : (stabilizer G a).is_maximal ↔ is_preprimitive G X :=
-begin
-  let htGX_exists := htGX.exists_smul_eq,
-  split,
-  { intro ha,
-    apply is_preprimitive.mk htGX,
-    intros B hB,
-    rw or_iff_not_imp_left, intro hB',
---    rw [← not_nontrivial_iff_subsingleton, not_not] at hB',
-
-    suffices this : ∃ (k : G), a ∈ k • B,
-    { obtain ⟨k, hk⟩ := this,
-      have hkB : is_block G (k • B) := is_block_of_block k hB,
-      cases lt_or_eq_of_le (stabilizer_of_block hkB hk),
-      { -- k • B = ⊤
---        apply or.intro_right,
-        have : stabilizer G (k • B) = ⊤ := (subgroup.is_maximal_def.mp ha).right _ h,
-        have H : ∀ (g : G) (x : X), x ∈ k • B → g • x ∈ k • B,
-        { intros g x hx,
-          suffices hg : g ∈ stabilizer G (k • B),
-          { rw mem_stabilizer_iff at hg, rw ← hg,
-            simp only [set.smul_mem_smul_set_iff],  exact hx },
-          rw subgroup.is_maximal_def at ha,
-          rw ha.right _ h,
-          simp only [subgroup.mem_top] },
-
-        rw eq_top_iff, intros b _,
-        obtain ⟨h, h'⟩ := htGX_exists a b,
-        apply set.smul_mem_smul_set_iff.mp,
-        apply H k b ,
-        rw ← h', exact H h a hk },
-
-      -- k • B = {a}
-      exfalso,
-      apply hB',
-      rw set.subsingleton_coe,
-      refine set.subsingleton_of_image (mul_action.injective k) _ _,
-      change (k • B).subsingleton,
-      suffices : k • B = { a },
-      { rw this, simp only [set.subsingleton_singleton] },
-
-      rw ← block_of_stabilizer_of_block htGX (singleton_is_block a) (set.mem_singleton a),
-      rw ← block_of_stabilizer_of_block htGX hkB hk,
-      rw ← h,
-      suffices : stabilizer G ({a} : set X) = stabilizer G a, rw ← this,
-
-      ext,
-      simp only [mem_stabilizer_iff, set.smul_set_singleton, set.singleton_eq_singleton_iff] },
-
-    rw [← not_nontrivial_iff_subsingleton, not_not] at hB',
-    obtain ⟨b, _, _⟩ := hB',
-    obtain ⟨k, hk⟩ := htGX_exists b a,
-    use k, rw ← hk, simp only [set.smul_mem_smul_set_iff],
-    exact subtype.mem b },
-
-  intro hGX,
-  refine {out := _},
-  split,
-  { obtain ⟨b, hb⟩ := (nontrivial_iff_exists_ne a).mp hnX,
-    obtain ⟨g, rfl⟩ := htGX_exists a b,
-    suffices : g ∉ stabilizer G a,
-    { intro h, apply this, rw h, exact subgroup.mem_top g },
-    rw mem_stabilizer_iff, exact hb },
-  { intros H hH,
-    rw ← stabilizer_of_block_of_stabilizer htGX (le_of_lt hH),
-    suffices : orbit H a = (⊤ : set X),
-    { rw this,
-      rw eq_top_iff,
-      intros g _,
-      rw mem_stabilizer_iff,
-      simp only [set.top_eq_univ, set.smul_set_univ] },
-
-    cases hGX.has_trivial_blocks (is_block_of_suborbit htGX (le_of_lt hH)) with hyp hyp,
-    { exfalso,
-      rw set.subsingleton_coe at hyp,
-      apply not_le_of_gt hH,
-      intros h hH,
-      rw mem_stabilizer_iff,
-      refine hyp _ _,
-      { use h, exact hH,  simp, refl, },
-      exact mem_orbit_self a },
-    exact hyp },
-end
-
 end stabilizer
 
 
@@ -798,17 +668,18 @@ open_locale classical
   by the cardinality of the set of iterates of that block -/
 lemma card_of_block_mul_card_of_orbit_of [hfX : fintype X] (hGX : is_pretransitive G X)
   {B : set X} (hB : is_block G B) (hB_ne : B.nonempty) :
-  (set.range (λ (g : G), g • B)).to_finset.card * fintype.card B = fintype.card X :=
+  fintype.card B * fintype.card (set.range (λ (g : G), g • B)) = fintype.card X :=
 begin
   rw setoid.is_partition.card_eq_sum_parts (is_block_system.of_block hGX hB hB_ne).left,
-  rw [finset.sum_congr rfl _, finset.sum_const (fintype.card ↥B), nsmul_eq_mul, nat.cast_id],
-  intros s hs,
-  simp only [set.mem_to_finset, set.mem_range] at hs,
-  obtain ⟨g, rfl⟩ := hs,
-  simp only [← set.to_finset_card],
-  rw ← finset.card_image_of_injective B.to_finset (mul_action.injective g),
-  refine congr_arg _ _,
-  simp only [← finset.coe_inj, set.coe_to_finset, finset.coe_image, set.image_smul],
+  rw [finset.sum_congr rfl _, finset.sum_const (fintype.card ↥B),
+    nsmul_eq_mul, nat.cast_id, mul_comm],
+  { rw ← set.to_finset_card },
+  { intros s hs,
+    simp only [set.mem_to_finset, set.mem_range] at hs,
+    obtain ⟨g, rfl⟩ := hs,
+    simp only [set.to_finset_card],
+    { refine eq.trans _ (eq.trans (set.smul_set_card_eq g B) _),
+      all_goals { apply fintype.card_congr', refl } } }
 end
 
 /-- The cardinality of a block divides the cardinality of the ambient type -/
@@ -817,27 +688,66 @@ lemma card_of_block_divides [hfX : fintype X] (hGX : is_pretransitive G X)
   fintype.card B ∣ fintype.card X :=
 begin
   rw ← card_of_block_mul_card_of_orbit_of hGX hB hB_ne,
-  simp only [dvd_mul_left],
+  simp only [dvd_mul_right],
 end
 
-lemma is_preprimitive_of_prime [fintype X] (hGX : is_pretransitive G X)
-  (hp : nat.prime (fintype.card X)) : is_preprimitive G X :=
+/-- A too large block is equal to ⊤ -/
+lemma is_top_of_large_block [hfX : fintype X] (hGX : is_pretransitive G X)
+  {B : set X} (hB : is_block G B) (hB' : 2 * fintype.card B > fintype.card X) :
+  B = ⊤ :=
 begin
-  apply is_preprimitive.mk,
-  exact hGX,
-  intros B hB,
-  cases subsingleton_or_nontrivial B with hB' hB',
-  { apply or.intro_left, exact hB' },
-  apply or.intro_right,
-  have : B.nonempty, rw ← set.nonempty_coe_sort, exact @nontrivial.to_nonempty _ hB',
-  cases (nat.dvd_prime hp).mp (card_of_block_divides hGX hB this),
+  cases nat.eq_zero_or_pos (fintype.card B),
+  { exfalso, rw h at hB', simpa using hB', },
+  rw [set.top_eq_univ, ← set.to_finset_inj, set.to_finset_univ,
+    ← finset.card_eq_iff_eq_univ, set.to_finset_card],
+  have : B.nonempty,
+  { rw [← set.nonempty_coe_sort, ← fintype.card_pos_iff],
+    exact h },
+  obtain ⟨k, h⟩ := card_of_block_divides hGX hB this,
+  cases nat.lt_or_ge k 2 with hk hk,
+  rw nat.lt_succ_iff at hk,
+  cases lt_or_eq_of_le hk with hk hk,
+  { rw [nat.lt_succ_iff, nat.le_zero_iff] at hk,
+    rw [hk, mul_zero] at h,
+    apply le_antisymm (set_fintype_card_le_univ B),
+    rw h, apply nat.zero_le },
+  { rw [hk, mul_one] at h, exact h.symm, },
   { exfalso,
-    rw ← fintype.one_lt_card_iff_nontrivial at hB',
-    exact ne_of_lt hB' h.symm },
-  rw [set.top_eq_univ, ← set.coe_to_finset B, ← set.coe_to_finset set.univ, finset.coe_inj],
-  rw [set.to_finset_univ, ← finset.card_eq_iff_eq_univ, ← h],
-  simp only [set.to_finset_card],
-  exact set_fintype set.univ,
+    rw [gt_iff_lt, lt_iff_not_ge] at hB', apply hB',
+    rw [mul_comm, h],
+    refine nat.mul_le_mul_left _ hk }
+end
+
+/-- If a block has too much translates, it is a singleton  -/
+lemma is_top_of_small_block [hfX : fintype X] (hGX : is_pretransitive G X)
+  {B : set X} (hB : is_block G B)
+  (hX : nontrivial X)
+  (hB' : 2 * fintype.card (set.range (λ g : G, (g • B : set X))) > fintype.card X) :
+  B.subsingleton :=
+begin
+  rw [← set.subsingleton_coe, ← fintype.card_le_one_iff_subsingleton],
+  cases set.eq_empty_or_nonempty B,
+  { exfalso,
+    rw ← fintype.one_lt_card_iff_nontrivial at hX,
+    rw lt_iff_not_le at hX,
+    apply hX, rw ← nat.lt_succ_iff,
+    rw ← mul_one (1 : ℕ).succ,
+    apply lt_of_lt_of_le hB',
+    apply mul_le_mul_left',
+    rw fintype.card_le_one_iff ,
+    have : ∀ (x : set.range (λ (g : G), g • B)), ↑x = (∅ : set X),
+    { rintro ⟨x, hx⟩,
+      simp_rw [h, set.smul_set_empty] at hx,
+      simp only [subtype.coe_mk],
+      apply set.range_const_subset hx },
+    intros s t, rw ← subtype.coe_inj,
+    simp only [this] },
+  let hk := card_of_block_mul_card_of_orbit_of  hGX hB h,
+  cases nat.lt_or_ge (fintype.card B) 2 with hb hb,
+  rwa nat.lt_succ_iff at hb,
+  exfalso,
+  rw [← hk, gt_iff_lt, lt_iff_not_ge] at hB', apply hB',
+  refine nat.mul_le_mul_right _ hb
 end
 
 -- TODO : Is the assumption B.finite necessary ?

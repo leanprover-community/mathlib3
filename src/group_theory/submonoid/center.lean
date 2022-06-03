@@ -53,6 +53,18 @@ instance : comm_monoid (center M) :=
 { mul_comm := λ a b, subtype.ext $ b.prop _,
   .. (center M).to_monoid }
 
+/-- The center of a monoid acts commutatively on that monoid. -/
+instance center.smul_comm_class_left : smul_comm_class (center M) M M :=
+{ smul_comm := λ m x y, (commute.left_comm (m.prop x) y).symm }
+
+/-- The center of a monoid acts commutatively on that monoid. -/
+instance center.smul_comm_class_right : smul_comm_class M (center M) M :=
+smul_comm_class.symm _ _ _
+
+/-! Note that `smul_comm_class (center M) (center M) M` is already implied by
+`submonoid.smul_comm_class_right` -/
+example : smul_comm_class (center M) (center M) M := by apply_instance
+
 end
 
 section

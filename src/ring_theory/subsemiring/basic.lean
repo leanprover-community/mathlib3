@@ -1006,6 +1006,14 @@ mul_action_with_zero.comp_hom _ S.subtype.to_monoid_with_zero_hom
 instance [add_comm_monoid α] [module R' α] (S : subsemiring R') : module S α :=
 { smul := (•), .. module.comp_hom _ S.subtype }
 
+/-- The center of a semiring acts commutatively on that semiring. -/
+instance center.smul_comm_class_left : smul_comm_class (center R') R' R' :=
+submonoid.center.smul_comm_class_left
+
+/-- The center of a semiring acts commutatively on that semiring. -/
+instance center.smul_comm_class_right : smul_comm_class R' (center R') R' :=
+submonoid.center.smul_comm_class_right
+
 /-- If all the elements of a set `s` commute, then `closure s` is a commutative monoid. -/
 def closure_comm_semiring_of_comm {s : set R'} (hcomm : ∀ (a ∈ s) (b ∈ s), a * b = b * a) :
   comm_semiring (closure s) :=

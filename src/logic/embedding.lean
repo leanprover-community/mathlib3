@@ -183,6 +183,11 @@ def option_embedding_equiv (α β) : (option α ↪ β) ≃ Σ f : α ↪ β, �
   left_inv := λ f, ext $ by { rintro (_|_); simp [option.coe_def] },
   right_inv := λ ⟨f, y, hy⟩, by { ext; simp [option.coe_def] } }
 
+/-- A version of `option.map` for `function.embedding`s. -/
+@[simps { fully_applied := ff }]
+def option_map {α β} (f : α ↪ β) : option α ↪ option β :=
+⟨option.map f, option.map_injective f.injective⟩
+
 /-- Embedding of a `subtype`. -/
 def subtype {α} (p : α → Prop) : subtype p ↪ α :=
 ⟨coe, λ _ _, subtype.ext_val⟩

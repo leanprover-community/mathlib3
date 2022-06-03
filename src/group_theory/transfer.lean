@@ -154,6 +154,31 @@ noncomputable def transfer_center_pow' (h : (center G).index ≠ 0) : G →* cen
 
 section burnside_transfer
 
+lemma _root_.sylow.smul_le {p : ℕ} {G : Type*} [group G] (P : sylow p G) {H : subgroup G}
+   (hP : ↑P ≤ H) (h : H) : ↑(h • P) ≤ H :=
+begin
+  rintro - ⟨b, c, rfl⟩,
+  change _ * _ ∈ H,
+  refine H.mul_mem (H.mul_mem h.2 (hP c)) (H.inv_mem h.2),
+end
+
+lemma sylow.smul_subtype {p : ℕ} {G : Type*} [group G] (P : sylow p G) {H : subgroup G}
+   (hP : ↑P ≤ H) (h : H) :
+    h • P.subtype hP = (h • P).subtype (P.smul_le hP h) :=
+begin
+  rw [eq_comm, sylow.ext_iff],
+  apply (h • P.subtype hP).3 ((h • P).subtype (P.smul_le hP h)).2,
+  rintro - ⟨a, b, rfl⟩,
+  exact ⟨(⟨a, b⟩ : P), b, rfl⟩,
+end
+
+lemma key_lema {p : ℕ} [fact p.prime] {G : Type*} [group G] (H : subgroup G) (h : H) [fintype (sylow p G)]
+  (P : sylow p G) (hP : ↑P ≤ H) :
+    ↑(h • (P.subtype hP)) = comap H.subtype (((h : G) • P) : sylow p G) :=
+begin
+  rw [sylow.smul_subtype, sylow.coe_subtype, smul_def],
+end
+
 lemma key_sylow_lemma {p : ℕ} [fact p.prime] {G : Type*} [group G] (g : G) [fintype (sylow p G)] (P : sylow p G)
   {x : G} (hx : x ∈ P.1.centralizer) (hy : g⁻¹ * x * g ∈ (P : subgroup G).centralizer) :
   ∃ n ∈ (P : subgroup G).normalizer, g⁻¹ * x * g = n⁻¹ * x * n :=
@@ -168,8 +193,16 @@ begin
   { refine ⟨h * g, _, _⟩,
     { rw ← sylow.smul_eq_iff_mem_normalizer,
       rw mul_smul,
-      simp only [sylow.ext_iff, sylow.coe_subgroup_smul, sylow.coe_subtype] at hh ⊢,
-      sorry },
+      refine sylow.ext (P.3 (h • g • P).2 _),
+      have key0 : P.1 ≤ H.subtype.range,
+      { rwa [subtype_range, key], },
+      rw ← comap_le_comap_of_le_range key0,
+      rw [sylow.ext_iff] at hh,
+      simp only [sylow.coe_subtype] at hh ⊢,
+      change _ = P.1.comap H.subtype at hh,
+      rw ← hh,
+      rw key_lema,
+      exact le_rfl },
     { rw [←mul_assoc, mul_assoc, mul_assoc _ x, h.prop x (mem_zpowers x)],
       group } },
   { rw key,

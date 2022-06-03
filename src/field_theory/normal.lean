@@ -8,6 +8,7 @@ import field_theory.adjoin
 import field_theory.tower
 import group_theory.solvable
 import ring_theory.power_basis
+import field_theory.is_alg_closed.basic
 
 /-!
 # Normal field extensions
@@ -328,3 +329,28 @@ begin
 end
 
 end lift
+
+section is_alg_closed
+
+variables (F K) (E :Type*) [field E] [is_alg_closed E] [algebra K E] [algebra F E] [is_scalar_tower F K E]
+
+def is_alg_closed.alg_hom_equiv_aut  [normal F K] : (K →ₐ[F] E) ≃ (K ≃ₐ[F] K) :=
+by refine equiv.mk (λ (σ : K →ₐ[F] E), (alg_hom.restrict_normal' σ K))
+  (λ σ, (is_scalar_tower.to_alg_hom F K E).comp σ.to_alg_hom)
+  begin
+    intro σ,
+    ext,
+    unfold alg_hom.restrict_normal',
+    simp,
+  end
+  begin
+    intro σ,
+    ext,
+    unfold alg_hom.restrict_normal',
+    simp only [alg_equiv.to_alg_hom_eq_coe, alg_equiv.coe_of_bijective],
+    apply no_zero_smul_divisors.algebra_map_injective K E,
+    rw alg_hom.restrict_normal_commutes,
+    simp,
+  end
+
+end is_alg_closed

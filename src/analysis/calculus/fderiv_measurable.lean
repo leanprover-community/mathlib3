@@ -432,21 +432,20 @@ end fderiv
 
 section right_deriv
 
-
 variables {F : Type*} [normed_group F] [normed_space ℝ F]
 variables {f : ℝ → F} (K : set F)
 
 namespace right_deriv_measurable_aux
 
 /-- The set `A f L r ε` is the set of points `x` around which the function `f` is well approximated
-at scale `r` by the linear map `L`, up to an error `ε`. We tweak the definition to make sure that
-this is an open set.-/
+at scale `r` by the linear map `h ↦ h • L`, up to an error `ε`. We tweak the definition to
+make sure that this is open on the right. -/
 def A (f : ℝ → F) (L : F) (r ε : ℝ) : set ℝ :=
 {x | ∃ r' ∈ Ioc (r/2) r, ∀ y z ∈ Icc x (x + r'), ∥f z - f y - (z-y) • L∥ ≤ ε * r}
 
-/-- The set `B f K r s ε` is the set of points `x` around which there exists a continuous linear map
-`L` belonging to `K` (a given set of continuous linear maps) that approximates well the
-function `f` (up to an error `ε`), simultaneously at scales `r` and `s`. -/
+/-- The set `B f K r s ε` is the set of points `x` around which there exists a vector
+`L` belonging to `K` (a given set of vectors) such that `h • L` approximates well `f (x + h)`
+(up to an error `ε`), simultaneously at scales `r` and `s`. -/
 def B (f : ℝ → F) (K : set F) (r s ε : ℝ) : set ℝ :=
 ⋃ (L ∈ K), (A f L r ε) ∩ (A f L s ε)
 
@@ -658,7 +657,7 @@ begin
     /- to get an approximation with a precision `ε`, we will replace `f` with `L e (n e) m` for
     some large enough `e` (yielding a small error by uniform approximation). As one can vary `m`,
     this makes it possible to cover all scales, and thus to obtain a good linear approximation in
-    the whole ball of radius `(1/2)^(n e)`. -/
+    the whole interval of length `(1/2)^(n e)`. -/
     assume ε εpos,
     obtain ⟨e, he⟩ : ∃ (e : ℕ), (1 / 2) ^ e < ε / 16 :=
       exists_pow_lt_of_lt_one (div_pos εpos (by norm_num)) (by norm_num),
@@ -667,7 +666,7 @@ begin
         zero_lt_one],
     filter_upwards [Icc_mem_nhds_within_Ici xmem] with y hy,
     -- We need to show that `f y - f x - f' (y - x)` is small. For this, we will work at scale
-    -- `k` where `k` is chosen with `∥y∥ ∼ 2 ^ (-k)`.
+    -- `k` where `k` is chosen with `∥y - x∥ ∼ 2 ^ (-k)`.
     rcases eq_or_lt_of_le hy.1 with rfl|xy,
     { simp only [sub_self, zero_smul, norm_zero, mul_zero]},
     have yzero : 0 < y - x := sub_pos.2 xy,
@@ -677,7 +676,7 @@ begin
     obtain ⟨k, hk, h'k⟩ : ∃ (k : ℕ), (1/2) ^ (k + 1) < y - x ∧ y - x ≤ (1/2) ^ k :=
       exists_nat_pow_near_of_lt_one yzero yone (by norm_num : (0 : ℝ) < 1/2)
       (by norm_num : (1 : ℝ)/2 < 1),
-    -- the scale is large enough (as `y` is small enough)
+    -- the scale is large enough (as `y - x` is small enough)
     have k_gt : n e < k,
     { have : ((1:ℝ)/2) ^ (k + 1) < (1/2) ^ (n e + 1) := lt_of_lt_of_le hk y_le,
       rw pow_lt_pow_iff_of_lt_one (by norm_num : (0 : ℝ) < 1/2) (by norm_num) at this,

@@ -6,8 +6,6 @@ Authors: Rohan Mitta, Kevin Buzzard, Alistair Tucker, Johannes Hölzl, Yury Kudr
 import logic.function.iterate
 import data.set.intervals.proj_Icc
 import topology.metric_space.basic
-import category_theory.endomorphism
-import category_theory.types
 
 /-!
 # Lipschitz continuous functions
@@ -238,21 +236,21 @@ begin
   simpa only [ennreal.coe_pow] using (hf.iterate n) x (f x)
 end
 
-open category_theory
-
-protected lemma mul {f g : End α} {Kf Kg} (hf : lipschitz_with Kf f) (hg : lipschitz_with Kg g) :
-  lipschitz_with (Kf * Kg) (f * g : End α) :=
+protected lemma mul {f g : function.End α} {Kf Kg} (hf : lipschitz_with Kf f)
+  (hg : lipschitz_with Kg g) :
+  lipschitz_with (Kf * Kg) (f * g : function.End α) :=
 hf.comp hg
 
 /-- The product of a list of Lipschitz continuous endomorphisms is a Lipschitz continuous
 endomorphism. -/
-protected lemma list_prod (f : ι → End α) (K : ι → ℝ≥0) (h : ∀ i, lipschitz_with (K i) (f i)) :
+protected lemma list_prod (f : ι → function.End α) (K : ι → ℝ≥0)
+  (h : ∀ i, lipschitz_with (K i) (f i)) :
   ∀ l : list ι, lipschitz_with (l.map K).prod (l.map f).prod
-| [] := by simp [types_id, lipschitz_with.id]
+| [] := by simpa using lipschitz_with.id
 | (i :: l) := by { simp only [list.map_cons, list.prod_cons], exact (h i).mul (list_prod l) }
 
-protected lemma pow {f : End α} {K} (h : lipschitz_with K f) :
-  ∀ n : ℕ, lipschitz_with (K^n) (f^n : End α)
+protected lemma pow {f : function.End α} {K} (h : lipschitz_with K f) :
+  ∀ n : ℕ, lipschitz_with (K^n) (f^n : function.End α)
 | 0       := lipschitz_with.id
 | (n + 1) := by { rw [pow_succ, pow_succ], exact h.mul (pow n) }
 

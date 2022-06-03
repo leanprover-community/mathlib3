@@ -445,33 +445,14 @@ by { unfold deriv_within, rw fderiv_within_of_open hs hx, refl }
 
 lemma deriv_mem_iff {f : 𝕜 → F} {s : set F} {x : 𝕜} :
   deriv f x ∈ s ↔ (differentiable_at 𝕜 f x ∧ deriv f x ∈ s) ∨
-    (0 : F) ∈ s ∧ ¬differentiable_at 𝕜 f x :=
-begin
-  split,
-  { intro hfx,
-    by_cases hx : differentiable_at 𝕜 f x,
-    { exact or.inl ⟨hx, hfx⟩ },
-    { rw [deriv_zero_of_not_differentiable_at hx] at hfx,
-      exact or.inr ⟨hfx, hx⟩ } },
-  { rintro (⟨hf, hf'⟩|⟨h₀, hx⟩),
-    { exact hf' },
-    { rwa [deriv_zero_of_not_differentiable_at hx] } }
-end
+    (¬differentiable_at 𝕜 f x ∧ (0 : F) ∈ s) :=
+by by_cases hx : differentiable_at 𝕜 f x; simp [deriv_zero_of_not_differentiable_at, *]
 
 lemma deriv_within_mem_iff {f : 𝕜 → F} {t : set 𝕜} {s : set F} {x : 𝕜} :
   deriv_within f t x ∈ s ↔ (differentiable_within_at 𝕜 f t x ∧ deriv_within f t x ∈ s) ∨
-    (0 : F) ∈ s ∧ ¬differentiable_within_at 𝕜 f t x :=
-begin
-  split,
-  { intro hfx,
-    by_cases hx : differentiable_within_at 𝕜 f t x,
-    { exact or.inl ⟨hx, hfx⟩ },
-    { rw [deriv_within_zero_of_not_differentiable_within_at hx] at hfx,
-      exact or.inr ⟨hfx, hx⟩ } },
-  { rintro (⟨hf, hf'⟩|⟨h₀, hx⟩),
-    { exact hf' },
-    { rwa [deriv_within_zero_of_not_differentiable_within_at hx] } }
-end
+    (¬differentiable_within_at 𝕜 f t x ∧ (0 : F) ∈ s) :=
+by by_cases hx : differentiable_within_at 𝕜 f t x;
+  simp [deriv_within_zero_of_not_differentiable_within_at, *]
 
 lemma differentiable_within_at_Ioi_iff_Ici [partial_order 𝕜] :
   differentiable_within_at 𝕜 f (Ioi x) x ↔ differentiable_within_at 𝕜 f (Ici x) x :=

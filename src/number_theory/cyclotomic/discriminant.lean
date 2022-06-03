@@ -35,13 +35,14 @@ discriminant of the power basis given by `ζ - 1`. -/
 lemma discr_zeta_eq_discr_zeta_sub_one (hζ : is_primitive_root ζ n) :
   discr ℚ (hζ.power_basis ℚ).basis = discr ℚ (hζ.sub_one_power_basis ℚ).basis :=
 begin
+  haveI : number_field K := number_field.mk,
   have H₁ : (aeval (hζ.power_basis ℚ).gen) (X - 1 : ℤ[X]) = (hζ.sub_one_power_basis ℚ).gen :=
     by simp,
   have H₂ : (aeval (hζ.sub_one_power_basis ℚ).gen) (X + 1 : ℤ[X]) = (hζ.power_basis ℚ).gen :=
     by simp,
   refine discr_eq_discr_of_to_matrix_coeff_is_integral _
-    (λ i j, to_matrix_is_integral H₁ _  _ _ _)
-    (λ i j, to_matrix_is_integral H₂ _  _ _ _),
+    (λ i j, to_matrix_is_integral H₁ _ _ _ _)
+    (λ i j, to_matrix_is_integral H₂ _ _ _ _),
   { exact hζ.is_integral n.pos },
   { refine minpoly.gcd_domain_eq_field_fractions _ (hζ.is_integral n.pos) },
   { exact is_integral_sub (hζ.is_integral n.pos) is_integral_one },
@@ -65,7 +66,7 @@ lemma discr_prime_pow_ne_two [is_cyclotomic_extension {p ^ (k + 1)} K L] [hp : f
   discr K (hζ.power_basis K).basis =
   (-1) ^ (((p ^ (k + 1) : ℕ).totient) / 2) * p ^ ((p : ℕ) ^ k * ((p - 1) * (k + 1) - 1)) :=
 begin
-  haveI hne := ne_zero' (p ^ (k + 1)) K L,
+  haveI hne := is_cyclotomic_extension.ne_zero' (p ^ (k + 1)) K L,
   have hp2 : p = 2 → 1 ≤ k,
   { intro hp,
     refine one_le_iff_ne_zero.2 (λ h, _),

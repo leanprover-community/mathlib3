@@ -411,6 +411,9 @@ def cyclotomic_field : Type w := (cyclotomic n K).splitting_field
 
 namespace cyclotomic_field
 
+instance [char_zero K] : char_zero (cyclotomic_field n K) :=
+char_zero_of_injective_algebra_map ((algebra_map K _).injective)
+
 instance is_cyclotomic_extension [ne_zero ((n : ℕ) : K)] :
   is_cyclotomic_extension {n} K (cyclotomic_field n K) :=
 { exists_prim_root := λ a han,

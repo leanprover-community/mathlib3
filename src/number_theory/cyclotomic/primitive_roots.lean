@@ -168,7 +168,7 @@ cyclotomic extension is `n.totient`. -/
 lemma finrank (hirr : irreducible (cyclotomic n K)) :
   finrank K L = (n : ℕ).totient :=
 begin
-  haveI := ne_zero' n K L,
+  haveI := is_cyclotomic_extension.ne_zero' n K L,
   rw [((zeta_spec n K L).power_basis K).finrank, is_primitive_root.power_basis_dim,
       ←(zeta_spec n K L).minpoly_eq_cyclotomic_of_irreducible hirr, nat_degree_cyclotomic]
 end

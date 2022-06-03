@@ -2811,7 +2811,7 @@ lemma lintegral_le_of_forall_fin_meas_le [measurable_space α] {μ : measure α}
 local infixr ` →ₛ `:25 := simple_func
 
 lemma simple_func.exists_lt_lintegral_simple_func_of_lt_lintegral
-  [measurable_space α] {μ : measure α} [sigma_finite μ] {f : α →ₛ ℝ≥0}
+  {m : measurable_space α} {μ : measure α} [sigma_finite μ] {f : α →ₛ ℝ≥0}
   {L : ℝ≥0∞} (hL : L < ∫⁻ x, f x ∂μ) :
   ∃ g : α →ₛ ℝ≥0, (∀ x, g x ≤ f x) ∧ (∫⁻ x, g x ∂μ < ∞) ∧ (L < ∫⁻ x, g x ∂μ) :=
 begin
@@ -2840,7 +2840,7 @@ begin
        { simp only [c_ne_zero, ne.def, coe_eq_zero, not_false_iff, true_or] },
       { simp only [ne.def, coe_ne_top, not_false_iff, true_or] } } },
   { replace hL : L < ∫⁻ x, f₁ x ∂μ + ∫⁻ x, f₂ x ∂μ,
-      by rwa ← lintegral_add f₁.measurable.coe_nnreal_ennreal f₂.measurable.coe_nnreal_ennreal,
+      by rwa ← lintegral_add_left f₁.measurable.coe_nnreal_ennreal,
     by_cases hf₁ : ∫⁻ x, f₁ x ∂μ = 0,
     { simp only [hf₁, zero_add] at hL,
       rcases h₂ hL with ⟨g, g_le, g_top, gL⟩,
@@ -2858,15 +2858,15 @@ begin
     rcases h₂ hL₂ with ⟨g₂, g₂_le, g₂_top, hg₂⟩,
     refine ⟨g₁ + g₂, λ x, add_le_add (g₁_le x) (g₂_le x), _, _⟩,
     { apply lt_of_le_of_lt _ (add_lt_top.2 ⟨g₁_top, g₂_top⟩),
-      rw ← lintegral_add g₁.measurable.coe_nnreal_ennreal g₂.measurable.coe_nnreal_ennreal,
+      rw ← lintegral_add_left g₁.measurable.coe_nnreal_ennreal,
       exact le_rfl },
     { apply hL.trans ((ennreal.add_lt_add hg₁ hg₂).trans_le _),
-      rw ← lintegral_add g₁.measurable.coe_nnreal_ennreal g₂.measurable.coe_nnreal_ennreal,
+      rw ← lintegral_add_left g₁.measurable.coe_nnreal_ennreal,
       exact le_rfl } }
 end
 
 lemma exists_lt_lintegral_simple_func_of_lt_lintegral
-  [measurable_space α] {μ : measure α} [sigma_finite μ] {f : α → ℝ≥0}
+  {m : measurable_space α} {μ : measure α} [sigma_finite μ] {f : α → ℝ≥0}
   {L : ℝ≥0∞} (hL : L < ∫⁻ x, f x ∂μ) :
   ∃ g : α →ₛ ℝ≥0, (∀ x, g x ≤ f x) ∧ (∫⁻ x, g x ∂μ < ∞) ∧ (L < ∫⁻ x, g x ∂μ) :=
 begin

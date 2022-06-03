@@ -158,7 +158,6 @@ lemma _root_.sylow.smul_le {p : ℕ} {G : Type*} [group G] (P : sylow p G) {H : 
    (hP : ↑P ≤ H) (h : H) : ↑(h • P) ≤ H :=
 begin
   rintro - ⟨b, c, rfl⟩,
-  change _ * _ ∈ H,
   refine H.mul_mem (H.mul_mem h.2 (hP c)) (H.inv_mem h.2),
 end
 
@@ -170,13 +169,6 @@ begin
   apply (h • P.subtype hP).3 ((h • P).subtype (P.smul_le hP h)).2,
   rintro - ⟨a, b, rfl⟩,
   exact ⟨(⟨a, b⟩ : P), b, rfl⟩,
-end
-
-lemma key_lema {p : ℕ} [fact p.prime] {G : Type*} [group G] (H : subgroup G) (h : H) [fintype (sylow p G)]
-  (P : sylow p G) (hP : ↑P ≤ H) :
-    ↑(h • (P.subtype hP)) = comap H.subtype (((h : G) • P) : sylow p G) :=
-begin
-  rw [sylow.smul_subtype, sylow.coe_subtype, smul_def],
 end
 
 lemma key_sylow_lemma {p : ℕ} [fact p.prime] {G : Type*} [group G] (g : G) [fintype (sylow p G)] (P : sylow p G)
@@ -191,18 +183,14 @@ begin
   obtain ⟨h, hh⟩ := mul_action.exists_smul_eq H ((g • P).subtype (show _ ≤ H, from _))
     (P.subtype (show _ ≤ H, from _)),
   { refine ⟨h * g, _, _⟩,
-    { rw ← sylow.smul_eq_iff_mem_normalizer,
+    { rw [sylow.smul_subtype, sylow.ext_iff, sylow.coe_subtype, sylow.coe_subtype] at hh,
+      rw ← sylow.smul_eq_iff_mem_normalizer,
       rw mul_smul,
       refine sylow.ext (P.3 (h • g • P).2 _),
       have key0 : P.1 ≤ H.subtype.range,
       { rwa [subtype_range, key], },
       rw ← comap_le_comap_of_le_range key0,
-      rw [sylow.ext_iff] at hh,
-      simp only [sylow.coe_subtype] at hh ⊢,
-      change _ = P.1.comap H.subtype at hh,
-      rw ← hh,
-      rw key_lema,
-      exact le_rfl },
+      exact hh.ge },
     { rw [←mul_assoc, mul_assoc, mul_assoc _ x, h.prop x (mem_zpowers x)],
       group } },
   { rw key,
@@ -210,8 +198,7 @@ begin
     simp only [mul_distrib_mul_action.to_monoid_End_apply,
       mul_distrib_mul_action.to_monoid_hom_apply, mul_aut.smul_def,
       mul_aut.conj_apply],
-    have key := hy z hz,
-    rw [←mul_assoc, eq_mul_inv_iff_mul_eq, mul_assoc, mul_assoc, mul_assoc, ←mul_assoc g⁻¹, key,
+    rw [←mul_assoc, eq_mul_inv_iff_mul_eq, mul_assoc, mul_assoc, mul_assoc, ←mul_assoc g⁻¹, hy z hz,
         mul_assoc, mul_assoc, mul_inv_cancel_left] },
   { rwa [key] },
 end

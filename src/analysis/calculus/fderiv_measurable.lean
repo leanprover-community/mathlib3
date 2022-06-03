@@ -397,11 +397,11 @@ end
 begin
   refine measurable_of_is_closed (λ s hs, _),
   have : fderiv 𝕜 f ⁻¹' s = {x | differentiable_at 𝕜 f x ∧ fderiv 𝕜 f x ∈ s} ∪
-    {x | (0 : E →L[𝕜] F) ∈ s} ∩ {x | ¬differentiable_at 𝕜 f x} :=
+    ({x | ¬differentiable_at 𝕜 f x} ∩ {x | (0 : E →L[𝕜] F) ∈ s}) :=
     set.ext (λ x, mem_preimage.trans fderiv_mem_iff),
   rw this,
   exact (measurable_set_of_differentiable_at_of_is_complete _ _ hs.is_complete).union
-    ((measurable_set.const _).inter (measurable_set_of_differentiable_at _ _).compl)
+    ((measurable_set_of_differentiable_at _ _).compl.inter (measurable_set.const _))
 end
 
 @[measurability] lemma measurable_fderiv_apply_const [measurable_space F] [borel_space F] (y : E) :
@@ -749,11 +749,11 @@ begin
   refine measurable_of_is_closed (λ s hs, _),
   have : (λ x, deriv_within f (Ici x) x) ⁻¹' s =
     {x | differentiable_within_at ℝ f (Ici x) x ∧ deriv_within f (Ici x) x ∈ s} ∪
-    {x | (0 : F) ∈ s} ∩ {x | ¬differentiable_within_at ℝ f (Ici x) x} :=
+    ({x | ¬differentiable_within_at ℝ f (Ici x) x} ∩ {x | (0 : F) ∈ s}) :=
     set.ext (λ x, mem_preimage.trans deriv_within_mem_iff),
   rw this,
   exact (measurable_set_of_differentiable_within_at_Ici_of_is_complete _ hs.is_complete).union
-    ((measurable_set.const _).inter (measurable_set_of_differentiable_within_at_Ici _).compl)
+    ((measurable_set_of_differentiable_within_at_Ici _).compl.inter (measurable_set.const _))
 end
 
 lemma strongly_measurable_deriv_within_Ici [second_countable_topology F] :

@@ -1826,19 +1826,26 @@ variables [ring_hom_isometric σ₄₃] [ring_hom_isometric σ₂₄]
 variables [ring_hom_isometric σ₁₃] [ring_hom_isometric σ₁₂]
 variables [ring_hom_isometric σ₃₄]
 
+set_option profiler true
 include σ₂₁ σ₃₄ σ₁₃ σ₂₄
+
 /-- A pair of continuous (semi)linear equivalences generates an continuous (semi)linear equivalence
 between the spaces of continuous (semi)linear maps. -/
+@[simps apply symm_apply]
 def arrow_congrSL (e₁₂ : E ≃SL[σ₁₂] F) (e₄₃ : H ≃SL[σ₄₃] G) :
   (E →SL[σ₁₄] H) ≃SL[σ₄₃] (F →SL[σ₂₃] G) :=
-{ map_add' := λ f g, by simp only [equiv.to_fun_as_coe, add_comp, comp_add,
-    continuous_linear_equiv.arrow_congr_equiv_apply],
-  map_smul' := λ t f, by simp only [equiv.to_fun_as_coe, smul_comp, comp_smulₛₗ,
-    continuous_linear_equiv.arrow_congr_equiv_apply],
+{ -- given explicitly to help `simps`
+  to_fun := λ L, (e₄₃ : H →SL[σ₄₃] G).comp (L.comp (e₁₂.symm : F →SL[σ₂₁] E)),
+  -- given explicitly to help `simps`
+  inv_fun := λ L, (e₄₃.symm : G →SL[σ₃₄] H).comp (L.comp (e₁₂ : E →SL[σ₁₂] F)),
+  map_add' := λ f g, by rw [add_comp, comp_add],
+  map_smul' := λ t f, by rw [smul_comp, comp_smulₛₗ],
   continuous_to_fun := (compSL F H G σ₂₄ σ₄₃ e₄₃).continuous.comp
-    (continuous_linear_map.flip (compSL F E H σ₂₁ σ₁₄) e₁₂.symm).continuous,
+    (@continuous_linear_map.flip _ _ _ _ _ (F →SL[σ₂₄] H) _ _ _ _ _ _ _ _ _ _ _ _ _
+      (compSL F E H σ₂₁ σ₁₄) e₁₂.symm).continuous, -- implicit argument speeds up elaboration
   continuous_inv_fun := (compSL E G H σ₁₃ σ₃₄ e₄₃.symm).continuous.comp
-    (continuous_linear_map.flip (compSL E F G σ₁₂ σ₂₃) e₁₂).continuous,
+    (@continuous_linear_map.flip _ _ _ _ _ (E →SL[σ₁₃] G) _ _ _ _ _ _ _ _ _ _ _ _ _
+      (compSL E F G σ₁₂ σ₂₃) e₁₂).continuous, -- implicit argument speeds up elaboration
   .. e₁₂.arrow_congr_equiv e₄₃, }
 
 omit σ₂₁ σ₃₄ σ₁₃ σ₂₄

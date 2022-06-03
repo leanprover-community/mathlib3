@@ -575,7 +575,7 @@ end is_domain
 
 section is_alg_closed
 
-variables [field K] [is_alg_closed K]
+variables [is_alg_closed K]
 
 /-- Algebraically closed fields are `S`-cyclotomic extensions over themselves if
 `ne_zero ((a : ℕ) : K))` for all `a ∈ S`. -/

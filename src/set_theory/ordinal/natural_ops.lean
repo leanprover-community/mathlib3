@@ -216,8 +216,11 @@ end
 @[simp] theorem one_nadd : 1 ♯ a = succ a :=
 by rw [nadd_comm, nadd_one]
 
-theorem nadd_succ : a ♯ (succ b) = succ (a ♯ b) :=
+theorem nadd_succ : a ♯ succ b = succ (a ♯ b) :=
 by rw [←nadd_one (a ♯ b), nadd_assoc, nadd_one]
+
+theorem succ_nadd : succ a ♯ b = succ (a ♯ b) :=
+by rw [←one_nadd (a ♯ b), ←nadd_assoc, one_nadd]
 
 @[simp] theorem nadd_nat (n : ℕ) : a ♯ n = a + n :=
 begin

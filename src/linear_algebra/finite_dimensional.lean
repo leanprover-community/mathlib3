@@ -1570,12 +1570,11 @@ If every vector is a multiple of some `v : V`, then `V` has dimension at most on
 lemma finrank_le_one (v : V) (h : ∀ w : V, ∃ c : K, c • v = w) :
   finrank K V ≤ 1 :=
 begin
-  by_cases n : v = 0,
-  { subst n,
-    convert zero_le_one,
-    haveI := subsingleton_of_forall_eq (0 : V) (λ w, by { obtain ⟨c, rfl⟩ := h w, simp, }),
-    exact finrank_zero_of_subsingleton, },
-  { exact (finrank_eq_one v n h).le, }
+  rcases eq_or_ne v 0 with rfl | hn,
+  { haveI := subsingleton_of_forall_eq (0 : V) (λ w, by { obtain ⟨c, rfl⟩ := h w, simp }),
+    rw finrank_zero_of_subsingleton,
+    exact zero_le_one },
+  { exact (finrank_eq_one v hn h).le }
 end
 
 /--

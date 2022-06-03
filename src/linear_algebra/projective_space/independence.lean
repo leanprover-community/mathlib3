@@ -27,7 +27,6 @@ Similarly for the definition of dependence.
 - Define collinearity in projective space.
 - Prove the axioms of a projective geometry are satisfied by the dependece relation.
 - Define projective linear subspaces.
-
 -/
 
 

@@ -9,26 +9,63 @@ import set_theory.cardinal.finite
 # Finite types
 
 This module defines a finiteness predicate on types called `finite`.
+A type is `finite` if it is equivalent to `fin n` for some `n`, and
+otherwise it is `infinite` (see `finite_or_infinite`). This predicate is
+a `class`, and finiteness proofs are given as instances.
 
-The `fintype` class also represents finiteness of a type, but a key
+The `finite` predicate has no computational relevance and, being
+`Prop`-valued, gets to enjoy proof irrelevance -- it represents the mere fact
+that the type is finite.
+While the `fintype` class also represents finiteness of a type, a key
 difference is that a `fintype` instance represents finiteness in a
-computable way: it provides an algorithm to produce a `finset` whose
-elements enumerate the terms of the given type. A `finite` instance is
-instead a mere proposition, and as such it gets to take advantage of
-proof irrelevance.
+computable way: it gives a concrete algorithm to produce a `finset` whose
+elements enumerate the terms of the given type. As such, one generally
+relies on congruence lemmas when rewriting expressions involving
+`fintype` instances.
 
-One should prefer defining `finite` instances rather than noncomputable
-`fintype` instances to preserve the property that `fintype` instances
-can be used for computation.
+Every `fintype` instance automatically gives a `finite` instance, but not
+vice versa. Every `fintype` instance should be computable since they are meant
+for computation. If it's not possible to write a computable `fintype` instance,
+one should prefer writing a `finite` instance instead.
 
-The cardinality of a finite type `α` is given by `nat.card α`.
+The cardinality of a finite type `α` is given by `nat.card α`. This function has
+the "junk value" of `0` for infinite types, but to ensure the function has valid
+output, one just needs to know that it's possible to produce a `finite` instance
+for the type. (Note: we could have defined a `finite.card` that required you to
+supply a `finite` instance, but (a) the function would be `noncomputable` anyway
+so there is no need to supply the instance and (b) the function would have a more
+complicated dependent type that easily leads to "motive not type correct" errors.)
 
 ## Main definitions
 
 * `finite α` denotes that `α` is a finite type.
-* `finite.of_fintype` creates a `finite` from a `fintype.
-* `fintype.of_finite` noncomputably creates a `fintype` from a `finite`.
+* `finite.of_fintype` creates a `finite` instance from a `fintype` instance.
+* `fintype.of_finite` noncomputably creates a `fintype` instance from a `finite` instance.
 * `finite_or_infinite` is that every type is either `finite` or `infinite`.
+
+## Implementation notes
+
+The definition of `finite α` is not just `nonempty (fintype α)` since `fintype` requires
+that `α : Type*`, and the definition in this module allows for `α : Sort*`. This means
+we can write the instance `finite.prop`.
+
+There is an apparent duplication of many `fintype` instances in this module,
+however they follow a pattern: if a `fintype` instance depends on `decidable`
+instances or other `fintype` instances, then we need to "lower" the instance
+to be a `finite` instance by removing the `decidable` instances and switching
+the `fintype` instances to `finite` instances. These are precisely the ones
+that cannot be inferred using `finite.of_fintype'`. (However, when using
+`open_locale classical` or the `classical` tactic the instances relying only
+on `decidable` instances will give `finite` instances.) In the future we might
+consider writing automation to create these "lowered" instances.
+
+Theorems about `nat.card` are sometimes incidentally true for both finite and infinite
+types. If removing a finiteness constraint results in no loss in legibility, we remove
+it. We generally put such theorems into the `set_theory.cardinal.finite` module.
+
+## Tags
+
+finiteness, finite types
 
 -/
 
@@ -99,7 +136,7 @@ lemma not_infinite_iff_finite {α : Type*} : ¬ infinite α ↔ finite α :=
 lemma not_finite_iff_infinite {α : Type*} : ¬ finite α ↔ infinite α :=
 not_infinite_iff_finite.not_right.symm
 
-lemma _root_.nat.card_eq (α : Type*) :
+lemma nat.card_eq (α : Type*) :
   nat.card α = if h : finite α then by exactI @fintype.card α (fintype.of_finite α) else 0 :=
 begin
   casesI finite_or_infinite α,
@@ -119,12 +156,9 @@ end
 
 @[nolint instance_priority]
 instance finite.prop (p : Prop) : finite p :=
-begin
-  classical,
-  refine if h : p then _ else _,
-  { exact ⟨(equiv.prop_equiv_punit h).trans (by simpa using fintype.equiv_fin punit)⟩ },
-  { exact ⟨(equiv.prop_equiv_pempty h).trans (by simpa using fintype.equiv_fin pempty)⟩ }
-end
+if h : p
+then ⟨(equiv.prop_equiv_punit h).trans (by simpa using fintype.equiv_fin punit)⟩
+else ⟨(equiv.prop_equiv_pempty h).trans (by simpa using fintype.equiv_fin pempty)⟩
 
 namespace finite
 
@@ -220,6 +254,9 @@ by { haveI := fintype.of_finite α, haveI := λ a, fintype.of_finite (β a), app
 
 instance vector.finite {α : Type*} [finite α] {n : ℕ} : finite (vector α n) :=
 by { haveI := fintype.of_finite α, apply_instance }
+
+instance quot.finite [finite α] (r : α → α → Prop) : finite (quot r) :=
+finite.of_surjective _ (surjective_quot_mk r)
 
 instance quotient.finite [finite α] (s : setoid α) : finite (quotient s) :=
 by { haveI := fintype.of_finite α, apply_instance }

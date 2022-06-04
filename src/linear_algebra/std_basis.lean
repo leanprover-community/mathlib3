@@ -141,7 +141,7 @@ end
 
 lemma std_basis_eq_single {a : R} :
   (λ (i : ι), (std_basis R (λ _ : ι, R) i) a) = λ (i : ι), (finsupp.single i a) :=
-funext $ λ i, (@finsupp.single_eq_pi_single _ _ _ i a _).symm
+funext $ λ i, (finsupp.single_eq_pi_single i a).symm
 
 end linear_map
 

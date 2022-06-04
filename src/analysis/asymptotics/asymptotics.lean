@@ -845,6 +845,21 @@ begin
   exacts [(hcf hc).trans_is_O (is_O_zero _ _), hf.is_O_const hc]
 end
 
+/-- `(λ x, c) =O[l] f` if and only if `f` is bounded away from zero. -/
+lemma is_O_const_left_iff_pos_le_norm {c : E''} (hc : c ≠ 0) :
+  (λ x, c) =O[l] f' ↔ ∃ b, 0 < b ∧ ∀ᶠ x in l, b ≤ ∥f' x∥ :=
+begin
+  split,
+  { intro h,
+    rcases h.exists_pos with ⟨C, hC₀, hC⟩,
+    refine ⟨∥c∥ / C, div_pos (norm_pos_iff.2 hc) hC₀, _⟩,
+    exact hC.bound.mono (λ x, (div_le_iff' hC₀).2) },
+  { rintro ⟨b, hb₀, hb⟩,
+    refine is_O.of_bound (∥c∥ / b) (hb.mono $ λ x hx, _),
+    rw [div_mul_eq_mul_div, mul_div_assoc],
+    exact le_mul_of_one_le_right (norm_nonneg _) ((one_le_div hb₀).2 hx) }
+end
+
 section
 
 variable (𝕜)
@@ -1044,22 +1059,22 @@ end
 /-! ### Inverse -/
 
 theorem is_O_with.inv_rev {f : α → 𝕜} {g : α → 𝕜'} (h : is_O_with c l f g)
-  (h₀ : ∀ᶠ x in l, f x ≠ 0) : is_O_with c l (λ x, (g x)⁻¹) (λ x, (f x)⁻¹) :=
+  (h₀ : ∀ᶠ x in l, f x = 0 → g x = 0) : is_O_with c l (λ x, (g x)⁻¹) (λ x, (f x)⁻¹) :=
 begin
   refine is_O_with.of_bound (h.bound.mp (h₀.mono $ λ x h₀ hle, _)),
-  cases le_or_lt c 0 with hc hc,
-  { refine (h₀ $ norm_le_zero_iff.1 _).elim,
-    exact hle.trans (mul_nonpos_of_nonpos_of_nonneg hc $ norm_nonneg _) },
-  { replace hle := inv_le_inv_of_le (norm_pos_iff.2 h₀) hle,
+  cases eq_or_ne (f x) 0 with hx hx,
+  { simp only [hx, h₀ hx, inv_zero, norm_zero, mul_zero] },
+  { have hc : 0 < c, from pos_of_mul_pos_right ((norm_pos_iff.2 hx).trans_le hle) (norm_nonneg _),
+    replace hle := inv_le_inv_of_le (norm_pos_iff.2 hx) hle,
     simpa only [norm_inv, mul_inv, ← div_eq_inv_mul, div_le_iff hc] using hle }
 end
 
 theorem is_O.inv_rev {f : α → 𝕜} {g : α → 𝕜'} (h : f =O[l] g)
-  (h₀ : ∀ᶠ x in l, f x ≠ 0) : (λ x, (g x)⁻¹) =O[l] (λ x, (f x)⁻¹) :=
+  (h₀ : ∀ᶠ x in l, f x = 0 → g x = 0) : (λ x, (g x)⁻¹) =O[l] (λ x, (f x)⁻¹) :=
 let ⟨c, hc⟩ := h.is_O_with in (hc.inv_rev h₀).is_O
 
 theorem is_o.inv_rev {f : α → 𝕜} {g : α → 𝕜'} (h : f =o[l] g)
-  (h₀ : ∀ᶠ x in l, f x ≠ 0) : (λ x, (g x)⁻¹) =o[l] (λ x, (f x)⁻¹) :=
+  (h₀ : ∀ᶠ x in l, f x = 0 → g x = 0) : (λ x, (g x)⁻¹) =o[l] (λ x, (f x)⁻¹) :=
 is_o.of_is_O_with $ λ c hc, (h.def' hc).inv_rev h₀
 
 /-! ### Scalar multiplication -/

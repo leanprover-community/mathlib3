@@ -238,7 +238,7 @@ begin
     cases h' with i hi,
     use to_left_moves_add (sum.inl i),
     rw [add_move_left_inl, move_left_mk],
-    apply equiv_trans (add_congr_left (equiv_nim_grundy_value (G.move_left i))),
+    apply (add_congr_left (equiv_nim_grundy_value (G.move_left i))).trans,
     simpa only [hi] using impartial.add_self (nim (grundy_value (G.move_left i))) }
 end
 using_well_founded { dec_tac := pgame_wf_tac }

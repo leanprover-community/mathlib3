@@ -879,7 +879,7 @@ end
 
 theorem cantor' (a) {b : cardinal} (hb : 1 < b) : a < b ^ a :=
 begin
-  rw [←succ_le_iff, (by norm_cast : succ (1 : cardinal) = 2)] at hb,
+  rw [←succ_le_iff, by norm_cast : succ (1 : cardinal) = 2] at hb,
   exact (cantor a).trans_le (power_le_power_right hb)
 end
 

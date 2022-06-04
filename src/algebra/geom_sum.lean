@@ -419,7 +419,7 @@ end
 lemma geom_sum_alternating_of_lt_neg_one [ordered_ring α] (hx : x + 1 < 0) (hn : 1 < n) :
   if even n then ∑ i in range n, x ^ i < 0 else 1 < ∑ i in range n, x ^ i  :=
 begin
-  have hx0 : x < 0, from ((le_add_iff_nonneg_right _).2 (@zero_le_one α _ _ _ _)).trans_lt hx,
+  have hx0 : x < 0, from ((le_add_iff_nonneg_right _).2 zero_le_one).trans_lt hx,
   refine nat.le_induction _ _ n (show 2 ≤ n, from hn),
   { simp only [geom_sum_two, hx, true_or, even_bit0, if_true_left_eq_or] },
   clear hn n,

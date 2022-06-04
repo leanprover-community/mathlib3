@@ -122,6 +122,11 @@ lemma zero_le_two [preorder α] [has_one α] [add_zero_class α] [zero_le_one_cl
 add_nonneg zero_le_one zero_le_one
 
 lemma one_le_two [has_le α] [has_one α] [add_zero_class α] [zero_le_one_class α]
+  [covariant_class α α (+) (≤)] : (1 : α) ≤ 2 :=
+calc 1 = 1 + 0 : (add_zero 1).symm
+   ... ≤ 1 + 1 : add_le_add_left zero_le_one _
+
+lemma one_le_two' [has_le α] [has_one α] [add_zero_class α] [zero_le_one_class α]
   [covariant_class α α (swap (+)) (≤)] : (1 : α) ≤ 2 :=
 calc 1 = 0 + 1 : (zero_add 1).symm
    ... ≤ 1 + 1 : add_le_add_right zero_le_one _

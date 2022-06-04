@@ -187,7 +187,7 @@ begin
   exact ⟨f, by linarith [hs x rfl, ht y rfl]⟩,
 end
 
-/-- **Eidelheit's Theorem** -/
+/-- A closed convex set is the intersection of the halfspaces containing it. -/
 lemma Inter_halfspaces_eq (hs₁ : convex ℝ s) (hs₂ : is_closed s) :
   (⋂ (l : E →L[ℝ] ℝ), {x | ∃ y ∈ s, l x ≤ l y}) = s :=
 begin

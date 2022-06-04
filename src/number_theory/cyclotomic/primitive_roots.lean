@@ -102,30 +102,32 @@ end zeta
 section no_order
 
 variables [field K] [field L] [comm_ring C] [algebra K L] [algebra K C]
-          [is_cyclotomic_extension {n} K L]
-          {ζ : L} (hζ : is_primitive_root ζ n)
+          [is_cyclotomic_extension {n} K L] [is_cyclotomic_extension {n} K C]
+          {ζ : L} (hζ : is_primitive_root ζ n) {η : C} (hη : is_primitive_root η n)
 
 namespace is_primitive_root
 
-/-- The `power_basis` given by a primitive root `ζ`. -/
-@[simps] noncomputable def power_basis : power_basis K L :=
-power_basis.map (algebra.adjoin.power_basis $ integral {n} K L ζ) $
-  (subalgebra.equiv_of_eq _ _ (is_cyclotomic_extension.adjoin_primitive_root_eq_top n _ hζ)).trans
+variable {C}
+
+/-- The `power_basis` given by a primitive root `η`. -/
+@[simps] noncomputable def power_basis [is_domain C] : power_basis K C :=
+power_basis.map (algebra.adjoin.power_basis $ integral {n} K C η) $
+  (subalgebra.equiv_of_eq _ _ (is_cyclotomic_extension.adjoin_primitive_root_eq_top n _ hη)).trans
   subalgebra.top_equiv
 
-lemma power_basis_gen_mem_adjoin_zeta_sub_one :
-  (power_basis K hζ).gen ∈ adjoin K ({ζ - 1} : set L) :=
+lemma power_basis_gen_mem_adjoin_zeta_sub_one [is_domain C] :
+  (power_basis K hη).gen ∈ adjoin K ({η - 1} : set C) :=
 begin
   rw [power_basis_gen, adjoin_singleton_eq_range_aeval, alg_hom.mem_range],
   exact ⟨X + 1, by simp⟩
 end
 
-/-- The `power_basis` given by `ζ - 1`. -/
-@[simps] noncomputable def sub_one_power_basis (hζ : is_primitive_root ζ n) :
-  _root_.power_basis K L :=
-  (hζ.power_basis K).of_gen_mem_adjoin
-    (is_integral_sub (is_cyclotomic_extension.integral {n} K L ζ) is_integral_one)
-    (hζ.power_basis_gen_mem_adjoin_zeta_sub_one _)
+/-- The `power_basis` given by `η - 1`. -/
+@[simps] noncomputable def sub_one_power_basis [is_domain C] (hη : is_primitive_root η n) :
+  _root_.power_basis K C :=
+  (hη.power_basis K).of_gen_mem_adjoin
+    (is_integral_sub (is_cyclotomic_extension.integral {n} K C η) is_integral_one)
+    (hη.power_basis_gen_mem_adjoin_zeta_sub_one _)
 
 variables {K}
 
@@ -158,16 +160,16 @@ end is_primitive_root
 
 namespace is_cyclotomic_extension
 
-variables {K} (L)
+variables {K} (L) (C)
 
 /-- If `irreducible (cyclotomic n K)` (in particular for `K = ℚ`), then the `finrank` of a
 cyclotomic extension is `n.totient`. -/
-lemma finrank (hirr : irreducible (cyclotomic n K)) [ne_zero ((n : ℕ) : K)] :
-  finrank K L = (n : ℕ).totient :=
+lemma finrank (hirr : irreducible (cyclotomic n K)) [is_domain C] [ne_zero ((n : ℕ) : K)] :
+  finrank K C = (n : ℕ).totient :=
 begin
-  haveI := ne_zero.of_no_zero_smul_divisors K L n,
-  rw [((zeta_primitive_root n K L).power_basis K).finrank, is_primitive_root.power_basis_dim,
-      ←(zeta_primitive_root n K L).minpoly_eq_cyclotomic_of_irreducible hirr, nat_degree_cyclotomic]
+  haveI := ne_zero.of_no_zero_smul_divisors K C n,
+  rw [((zeta_primitive_root n K C).power_basis K).finrank, is_primitive_root.power_basis_dim,
+      ←(zeta_primitive_root n K C).minpoly_eq_cyclotomic_of_irreducible hirr, nat_degree_cyclotomic]
 end
 
 end is_cyclotomic_extension

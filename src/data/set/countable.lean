@@ -184,7 +184,7 @@ by simp only [insert_eq, countable_union, countable_singleton, true_and]
 lemma countable.insert {s : set α} (a : α) (h : countable s) : countable (insert a s) :=
 countable_insert.2 h
 
-lemma finite.countable {s : set α} : finite s → countable s
+lemma finite.countable {s : set α} : s.finite → countable s
 | ⟨h⟩ := trunc.nonempty (by exactI fintype.trunc_encodable s)
 
 lemma subsingleton.countable {s : set α} (hs : s.subsingleton) : countable s :=
@@ -198,7 +198,7 @@ lemma countable_is_bot (α : Type*) [partial_order α] : countable {x : α | is_
 
 /-- The set of finite subsets of a countable set is countable. -/
 lemma countable_set_of_finite_subset {s : set α} : countable s →
-  countable {t | finite t ∧ t ⊆ s} | ⟨h⟩ :=
+  countable {t | set.finite t ∧ t ⊆ s} | ⟨h⟩ :=
 begin
   resetI,
   refine countable.mono _ (countable_range

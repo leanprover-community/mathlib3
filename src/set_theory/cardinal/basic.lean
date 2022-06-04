@@ -8,7 +8,7 @@ import data.set.countable
 import logic.small
 import order.conditionally_complete_lattice
 import order.succ_pred.basic
-import set_theory.schroeder_bernstein
+import set_theory.cardinal.schroeder_bernstein
 
 /-!
 # Cardinal Numbers
@@ -906,7 +906,7 @@ theorem lt_omega {c : cardinal.{u}} : c < ω ↔ ∃ n : ℕ, c = n :=
 ⟨λ h, begin
   rcases lt_lift_iff.1 h with ⟨c, rfl, h'⟩,
   rcases le_mk_iff_exists_set.1 h'.1 with ⟨S, rfl⟩,
-  suffices : finite S,
+  suffices : S.finite,
   { lift S to finset ℕ using this,
     simp },
   contrapose! h',
@@ -931,7 +931,7 @@ end, λ ⟨_⟩, by exactI ⟨_, mk_fintype _⟩⟩
 theorem lt_omega_of_fintype (α : Type u) [fintype α] : #α < ω :=
 lt_omega_iff_fintype.2 ⟨infer_instance⟩
 
-theorem lt_omega_iff_finite {α} {S : set α} : #S < ω ↔ finite S :=
+theorem lt_omega_iff_finite {α} {S : set α} : #S < ω ↔ S.finite :=
 lt_omega_iff_fintype.trans finite_def.symm
 
 instance can_lift_cardinal_nat : can_lift cardinal ℕ :=

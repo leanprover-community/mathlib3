@@ -23,7 +23,7 @@ The map to surreals is defined in `ordinal.to_surreal`.
 
 universe u
 
-open nat_ordinal pgame
+open pgame
 
 local infix ` ≈ ` := equiv
 local infix ` ⧏ `:50 := lf

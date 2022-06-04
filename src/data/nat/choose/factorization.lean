@@ -12,15 +12,15 @@ import data.nat.multiplicity
 # Factorization of Binomial Coefficients
 
 This file contains a few results on the arity of primes within certain size
-bounds in binomial coeffcicients. These include:
+bounds in binomial coefficients. These include:
 
 * `nat.factorization_choose_le`: a logarithmic upper bound on the multiplicity of a prime in
   a binomial coefficient.
 * `nat.factorization_choose_le_one`: Primes above `sqrt n` appear at most once
   in the factorization of `n` choose `k`.
-* `nat.factorization_central_binom_of_two_mul_self_lt_3_mul_prime`: Primes from `2 * n / 3` to `n`
+* `nat.factorization_central_binom_of_two_mul_self_lt_3_mul`: Primes from `2 * n / 3` to `n`
 do not appear in the factorization of the `n`th central binomial coefficient.
-* `nat.factorization_choose_eq_zero_of_lt_prime`: Primes greater than `n` do not
+* `nat.factorization_choose_eq_zero_of_lt`: Primes greater than `n` do not
   appear in the factorization of `n` choose `k`.
 
 These results appear in the [Erdős proof of Bertrand's postulate](aigner1999proofs).
@@ -68,7 +68,7 @@ begin
   exact or_not,
 end
 
-lemma factorization_choose_of_lt_three_mul_prime
+lemma factorization_choose_of_lt_three_mul
   (hp' : p ≠ 2) (hk : p ≤ k) (hk' : p ≤ n - k) (hn : n < 3 * p) :
   (choose n k).factorization p = 0 :=
 begin
@@ -99,11 +99,11 @@ end
 Primes greater than about `2 * n / 3` and less than `n` do not appear in the factorization of
 `central_binom n`.
 -/
-lemma factorization_central_binom_of_two_mul_self_lt_three_mul_prime
+lemma factorization_central_binom_of_two_mul_self_lt_three_mul
   (n_big : 2 < n) (p_le_n : p ≤ n) (big : 2 * n < 3 * p) :
   ((central_binom n).factorization p) = 0 :=
 begin
-  refine factorization_choose_of_lt_three_mul_prime _ p_le_n (p_le_n.trans _) big,
+  refine factorization_choose_of_lt_three_mul _ p_le_n (p_le_n.trans _) big,
   { intro h,
     rw [h, mul_comm, mul_lt_mul_right] at big,
     all_goals { linarith } },
@@ -113,7 +113,7 @@ end
 lemma factorization_eq_zero_of_lt (h : n < p) : n.factorization p = 0 :=
 finsupp.not_mem_support_iff.mp (mt le_of_mem_factorization (not_le_of_lt h))
 
-lemma factorization_factorial_eq_zero_of_lt_prime (h : n < p) :
+lemma factorization_factorial_eq_zero_of_lt (h : n < p) :
   (factorial n).factorization p = 0 :=
 begin
   induction n with n hn,
@@ -122,29 +122,29 @@ begin
       pi.add_apply, hn (lt_of_succ_lt h), add_zero, factorization_eq_zero_of_lt h],
 end
 
-lemma factorization_choose_eq_zero_of_lt_prime (h : n < p) :
+lemma factorization_choose_eq_zero_of_lt (h : n < p) :
   (choose n k).factorization p = 0 :=
 begin
   by_cases hnk : n < k,
   { rw [choose_eq_zero_of_lt hnk, factorization_zero, finsupp.coe_zero, pi.zero_apply] },
   rw [choose_eq_factorial_div_factorial (le_of_not_lt hnk),
       factorization_div (factorial_mul_factorial_dvd_factorial (le_of_not_lt hnk)),
-      finsupp.coe_tsub, pi.sub_apply, factorization_factorial_eq_zero_of_lt_prime h, zero_tsub],
+      finsupp.coe_tsub, pi.sub_apply, factorization_factorial_eq_zero_of_lt h, zero_tsub],
 end
 
 /--
 If a prime `p` has positive multiplicity in the `n`th central binomial coefficient,
 `p` is no more than `2 * n`
 -/
-lemma factorization_central_binom_eq_zero_of_two_mul_lt_prime (h : 2 * n < p) :
+lemma factorization_central_binom_eq_zero_of_two_mul_lt (h : 2 * n < p) :
   (central_binom n).factorization p = 0 :=
-factorization_choose_eq_zero_of_lt_prime h
+factorization_choose_eq_zero_of_lt h
 
 /--
-Contrapositive form of `nat.factorization_central_binom_eq_zero_of_two_mul_lt_prime`
+Contrapositive form of `nat.factorization_central_binom_eq_zero_of_two_mul_lt`
 -/
-lemma prime_le_two_mul_of_factorization_central_binom_pos
+lemma le_two_mul_of_factorization_central_binom_pos
   (h_pos : 0 < (central_binom n).factorization p) : p ≤ 2 * n :=
-le_of_not_lt (pos_iff_ne_zero.mp h_pos ∘ factorization_central_binom_eq_zero_of_two_mul_lt_prime)
+le_of_not_lt (pos_iff_ne_zero.mp h_pos ∘ factorization_central_binom_eq_zero_of_two_mul_lt)
 
 end nat

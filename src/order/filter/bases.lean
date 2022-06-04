@@ -204,7 +204,7 @@ variables {l l' : filter α} {p : ι → Prop} {s : ι → set α} {t : set α} 
   {p' : ι' → Prop} {s' : ι' → set α} {i' : ι'}
 
 lemma has_basis_generate (s : set (set α)) :
-  (generate s).has_basis (λ t, finite t ∧ t ⊆ s) (λ t, ⋂₀ t) :=
+  (generate s).has_basis (λ t, set.finite t ∧ t ⊆ s) (λ t, ⋂₀ t) :=
 ⟨begin
   intro U,
   rw mem_generate_iff,
@@ -214,7 +214,7 @@ end⟩
 
 /-- The smallest filter basis containing a given collection of sets. -/
 def filter_basis.of_sets (s : set (set α)) : filter_basis α :=
-{ sets := sInter '' { t | finite t ∧ t ⊆ s},
+{ sets := sInter '' { t | set.finite t ∧ t ⊆ s},
   nonempty := ⟨univ, ∅, ⟨⟨finite_empty, empty_subset s⟩, sInter_empty⟩⟩,
   inter_sets := begin
     rintros _ _ ⟨a, ⟨fina, suba⟩, rfl⟩ ⟨b, ⟨finb, subb⟩, rfl⟩,
@@ -276,7 +276,7 @@ lemma has_basis.eq_generate (h : l.has_basis p s) : l = generate { U | ∃ i, p 
 by rw [← h.is_basis.filter_eq_generate, h.filter_eq]
 
 lemma generate_eq_generate_inter (s : set (set α)) :
-  generate s = generate (sInter '' { t | finite t ∧ t ⊆ s}) :=
+  generate s = generate (sInter '' { t | set.finite t ∧ t ⊆ s}) :=
 by erw [(filter_basis.of_sets s).generate, ← (has_basis_generate s).filter_eq] ; refl
 
 lemma of_sets_filter_eq_generate (s : set (set α)) : (filter_basis.of_sets s).filter = generate s :=
@@ -417,7 +417,7 @@ lemma has_basis.inf {ι ι' : Type*} {p : ι → Prop} {s : ι → set α} {p' :
 
 lemma has_basis_infi {ι : Sort*} {ι' : ι → Type*} {l : ι → filter α}
   {p : Π i, ι' i → Prop} {s : Π i, ι' i → set α} (hl : ∀ i, (l i).has_basis (p i) (s i)) :
-  (⨅ i, l i).has_basis (λ If : set ι × Π i, ι' i, finite If.1 ∧ ∀ i ∈ If.1, p i (If.2 i))
+  (⨅ i, l i).has_basis (λ If : set ι × Π i, ι' i, If.1.finite ∧ ∀ i ∈ If.1, p i (If.2 i))
     (λ If : set ι × Π i, ι' i, ⋂ i ∈ If.1, s i (If.2 i)) :=
 ⟨begin
   intro t,
@@ -560,7 +560,7 @@ end⟩
 /-- If `s : ι → set α` is an indexed family of sets, then finite intersections of `s i` form a basis
 of `⨅ i, 𝓟 (s i)`.  -/
 lemma has_basis_infi_principal_finite {ι : Type*} (s : ι → set α) :
-  (⨅ i, 𝓟 (s i)).has_basis (λ t : set ι, finite t) (λ t, ⋂ i ∈ t, s i) :=
+  (⨅ i, 𝓟 (s i)).has_basis (λ t : set ι, t.finite) (λ t, ⋂ i ∈ t, s i) :=
 begin
   refine ⟨λ U, (mem_infi_finite _).trans _⟩,
   simp only [infi_principal_finset, mem_Union, mem_principal, exists_prop,

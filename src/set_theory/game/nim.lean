@@ -71,15 +71,15 @@ noncomputable instance : unique (nim 1).right_moves :=
 by { rw nim_def, exact ordinal.unique_out_one }
 
 /-- `nim 0` has exactly the same moves as `0`. -/
-def nim_zero_relabelling : relabelling (nim 0) 0 := relabelling.is_empty _
+def nim_zero_relabelling : nim 0 ≡r 0 := relabelling.is_empty _
 
 @[simp] theorem nim_zero_equiv : nim 0 ≈ 0 := equiv.is_empty _
 
 /-- `nim 1` has exactly the same moves as `star`. -/
-noncomputable def nim_one_relabelling : relabelling (nim 1) star :=
+noncomputable def nim_one_relabelling : nim 1 ≡r star :=
 begin
   rw nim_def,
-  refine ⟨_, _, λ i,  _, λ j, _⟩,
+  refine ⟨_, _, λ i, _, λ j, _⟩,
   any_goals { dsimp, apply equiv_of_unique_of_unique },
   all_goals { simp, exact nim_zero_relabelling }
 end

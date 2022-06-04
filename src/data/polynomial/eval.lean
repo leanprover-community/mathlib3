@@ -862,13 +862,19 @@ section map
 lemma map_dvd {R S} [semiring R] [comm_semiring S] (f : R →+* S) {x y : R[X]} :
   x ∣ y → x.map f ∣ y.map f := eval₂_dvd _ _
 
-lemma support_map_subset [semiring R] [comm_semiring S] (f : R →+* S) (p : R[X]) :
+lemma support_map_subset [semiring R] [semiring S] (f : R →+* S) (p : R[X]) :
   (map f p).support ⊆ p.support :=
 begin
   intros x,
   contrapose!,
   simp { contextual := tt },
 end
+
+lemma support_map_of_injective [semiring R] [semiring S]
+  (p : R[X]) {f : R →+* S} (hf : function.injective f) :
+  (map f p).support = p.support :=
+by simp_rw [finset.ext_iff, mem_support_iff, coeff_map,
+  ←map_zero f, hf.ne_iff, iff_self, forall_const]
 
 variables [comm_semiring R] [comm_semiring S] (f : R →+* S)
 

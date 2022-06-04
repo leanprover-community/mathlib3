@@ -148,8 +148,8 @@ begin
         ennreal.mul_le_mul le_rfl $ add_le_add le_rfl $ hpow_le (add_le_add hm le_rfl)
       ... = 3 * 2⁻¹ ^ m : by rw [mul_add, h2pow, bit1, add_mul, one_mul] },
     -- Finally, we glue `Hgt` and `Hle`
-    have : (⋃ (m ≤ n + k) (i ∈ {i : ι | (D m i ∩ B).nonempty}), {(m, i)}).finite,
-      from (finite_le_nat _).bUnion (λ i hi, (Hle i hi).finite.bUnion (λ _ _, finite_singleton _)),
+    have : (⋃ (m ≤ n + k) (i ∈ {i : ι | (D m i ∩ B).nonempty}), {(m, i)}).finite :=
+      (finite_le_nat _).bUnion' (λ i hi, (Hle i hi).finite.bUnion' (λ _ _, finite_singleton _)),
     refine this.subset (λ I hI, _), simp only [mem_Union],
     refine ⟨I.1, _, I.2, hI, prod.mk.eta.symm⟩,
     exact not_lt.1 (λ hlt, Hgt I.1 hlt I.2 hI.some_spec) }

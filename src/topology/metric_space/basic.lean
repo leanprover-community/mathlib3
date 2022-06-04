@@ -715,7 +715,7 @@ begin
 end
 
 theorem totally_bounded_iff {s : set α} :
-  totally_bounded s ↔ ∀ ε > 0, ∃t : set α, finite t ∧ s ⊆ ⋃y∈t, ball y ε :=
+  totally_bounded s ↔ ∀ ε > 0, ∃t : set α, t.finite ∧ s ⊆ ⋃y∈t, ball y ε :=
 ⟨λ H ε ε0, H _ (dist_mem_uniformity ε0),
  λ H r ru, let ⟨ε, ε0, hε⟩ := mem_uniformity_dist.1 ru,
                ⟨t, ft, h⟩ := H ε ε0 in
@@ -744,7 +744,7 @@ begin
 end
 
 theorem finite_approx_of_totally_bounded {s : set α} (hs : totally_bounded s) :
-  ∀ ε > 0, ∃ t ⊆ s, finite t ∧ s ⊆ ⋃y∈t, ball y ε :=
+  ∀ ε > 0, ∃ t ⊆ s, set.finite t ∧ s ⊆ ⋃y∈t, ball y ε :=
 begin
   intros ε ε_pos,
   rw totally_bounded_iff_subset at hs,
@@ -1022,8 +1022,8 @@ by { convert metric.emetric_closed_ball ε.2, simp }
 @[simp] lemma metric.emetric_ball_top (x : α) : emetric.ball x ⊤ = univ :=
 eq_univ_of_forall $ λ y, edist_lt_top _ _
 
-lemma metric.indistinguishable_iff {x y : α} : indistinguishable x y ↔ dist x y = 0 :=
-by rw [emetric.indistinguishable_iff, edist_nndist, dist_nndist, ennreal.coe_eq_zero,
+lemma metric.inseparable_iff {x y : α} : inseparable x y ↔ dist x y = 0 :=
+by rw [emetric.inseparable_iff, edist_nndist, dist_nndist, ennreal.coe_eq_zero,
   nnreal.coe_eq_zero]
 
 /-- Build a new pseudometric space from an old one where the bundled uniform structure is provably
@@ -1255,6 +1255,34 @@ uniformity_basis_dist.cauchy_seq_iff
 theorem metric.cauchy_seq_iff' {u : β → α} :
   cauchy_seq u ↔ ∀ε>0, ∃N, ∀n≥N, dist (u n) (u N) < ε :=
 uniformity_basis_dist.cauchy_seq_iff'
+
+/-- In a pseudometric space, unifom Cauchy sequences are characterized by the fact that, eventually,
+the distance between all its elements is uniformly, arbitrarily small -/
+@[nolint ge_or_gt] -- see Note [nolint_ge]
+theorem metric.uniform_cauchy_seq_on_iff {γ : Type*}
+  {F : β → γ → α} {s : set γ} :
+  uniform_cauchy_seq_on F at_top s ↔
+    ∀ ε : ℝ, ε > 0 → ∃ (N : β), ∀ m : β, m ≥ N → ∀ n : β, n ≥ N → ∀ x : γ, x ∈ s →
+    dist (F m x) (F n x) < ε :=
+begin
+  split,
+  { intros h ε hε,
+    let u := { a : α × α | dist a.fst a.snd < ε },
+    have hu : u ∈ 𝓤 α := metric.mem_uniformity_dist.mpr ⟨ε, hε, (λ a b, by simp)⟩,
+    rw ←@filter.eventually_at_top_prod_self' _ _ _
+      (λ m, ∀ x : γ, x ∈ s → dist (F m.fst x) (F m.snd x) < ε),
+    specialize h u hu,
+    rw prod_at_top_at_top_eq at h,
+    exact h.mono (λ n h x hx, set.mem_set_of_eq.mp (h x hx)), },
+  { intros h u hu,
+    rcases (metric.mem_uniformity_dist.mp hu) with ⟨ε, hε, hab⟩,
+    rcases h ε hε with ⟨N, hN⟩,
+    rw [prod_at_top_at_top_eq, eventually_at_top],
+    use (N, N),
+    intros b hb x hx,
+    rcases hb with ⟨hbl, hbr⟩,
+    exact hab (hN b.fst hbl.ge b.snd hbr.ge x hx), },
+end
 
 /-- If the distance between `s n` and `s m`, `n ≤ m` is bounded above by `b n`
 and `b` converges to zero, then `s` is a Cauchy sequence.  -/
@@ -1754,7 +1782,7 @@ section compact
 positive radius -/
 lemma finite_cover_balls_of_compact {α : Type u} [pseudo_metric_space α] {s : set α}
   (hs : is_compact s) {e : ℝ} (he : 0 < e) :
-  ∃t ⊆ s, finite t ∧ s ⊆ ⋃x∈t, ball x e :=
+  ∃t ⊆ s, set.finite t ∧ s ⊆ ⋃x∈t, ball x e :=
 begin
   apply hs.elim_finite_subcover_image,
   { simp [is_open_ball] },
@@ -2026,7 +2054,7 @@ end
 ⟨λ h, ⟨h.mono (by simp), h.mono (by simp)⟩, λ h, h.1.union h.2⟩
 
 /-- A finite union of bounded sets is bounded -/
-lemma bounded_bUnion {I : set β} {s : β → set α} (H : finite I) :
+lemma bounded_bUnion {I : set β} {s : β → set α} (H : I.finite) :
   bounded (⋃i∈I, s i) ↔ ∀i ∈ I, bounded (s i) :=
 finite.induction_on H (by simp) $ λ x I _ _ IH,
 by simp [or_imp_distrib, forall_and_distrib, IH]
@@ -2057,7 +2085,7 @@ lemma _root_.is_compact.bounded {s : set α} (h : is_compact s) : bounded s :=
 h.totally_bounded.bounded
 
 /-- A finite set is bounded -/
-lemma bounded_of_finite {s : set α} (h : finite s) : bounded s :=
+lemma bounded_of_finite {s : set α} (h : s.finite) : bounded s :=
 h.is_compact.bounded
 
 alias bounded_of_finite ← set.finite.bounded
@@ -2370,7 +2398,7 @@ lemma tendsto_coe_cofinite : tendsto (coe : ℤ → ℝ) cofinite (cocompact ℝ
 begin
   refine tendsto_cocompact_of_tendsto_dist_comp_at_top (0 : ℝ) _,
   simp only [filter.tendsto_at_top, eventually_cofinite, not_le, ← mem_ball],
-  change ∀ r : ℝ, finite (coe ⁻¹' (ball (0 : ℝ) r)),
+  change ∀ r : ℝ, (coe ⁻¹' (ball (0 : ℝ) r)).finite,
   simp [real.ball_eq_Ioo, set.finite_Ioo],
 end
 
@@ -2486,7 +2514,7 @@ separated_def.2 $ λ x y h, eq_of_forall_dist_le $
 /-- If a `pseudo_metric_space` is a T₀ space, then it is a `metric_space`. -/
 def of_t0_pseudo_metric_space (α : Type*) [pseudo_metric_space α] [t0_space α] :
   metric_space α :=
-{ eq_of_dist_eq_zero := λ x y hdist, indistinguishable.eq $ metric.indistinguishable_iff.2 hdist,
+{ eq_of_dist_eq_zero := λ x y hdist, inseparable.eq $ metric.inseparable_iff.2 hdist,
   ..‹pseudo_metric_space α› }
 
 /-- A metric space induces an emetric space -/

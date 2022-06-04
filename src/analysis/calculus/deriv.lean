@@ -367,10 +367,7 @@ has_fderiv_within_at_inter h
 lemma has_deriv_within_at.union (hs : has_deriv_within_at f f' s x)
   (ht : has_deriv_within_at f f' t x) :
   has_deriv_within_at f f' (s ∪ t) x :=
-begin
-  simp only [has_deriv_within_at, nhds_within_union],
-  exact hs.join ht,
-end
+hs.has_fderiv_within_at.union ht.has_fderiv_within_at
 
 lemma has_deriv_within_at.nhds_within (h : has_deriv_within_at f f' s x)
   (ht : s ∈ 𝓝[t] x) : has_deriv_within_at f f' t x :=

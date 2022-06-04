@@ -74,6 +74,20 @@ theorem nodup.nth_le_inj_iff {α : Type*} {l : list α} (h : nodup l)
   l.nth_le i hi = l.nth_le j hj ↔ i = j :=
 ⟨nodup_iff_nth_le_inj.mp h _ _ _ _, by simp {contextual := tt}⟩
 
+lemma nodup_iff_nth_ne_nth {α : Type} {l : list α} :
+  l.nodup ↔ ∀ (i j : ℕ), i < j → j < l.length → l.nth i ≠ l.nth j :=
+begin
+  rw nodup_iff_nth_le_inj,
+  simp only [nth_le_eq_iff, some_nth_le_eq],
+  split; rintro h i j h₁ h₂,
+  { exact mt (h i j (h₁.trans h₂) h₂) (ne_of_lt h₁) },
+  { intro h₃,
+    by_contra h₄,
+    cases lt_or_gt_of_ne h₄ with h₅ h₅,
+    { exact h i j h₅ h₂ h₃ },
+    { exact h j i h₅ h₁ h₃.symm }},
+end
+
 lemma nodup.ne_singleton_iff {l : list α} (h : nodup l) (x : α) :
   l ≠ [x] ↔ l = [] ∨ ∃ y ∈ l, y ≠ x :=
 begin
@@ -329,20 +343,6 @@ end
 lemma nodup.pairwise_of_set_pairwise {l : list α} {r : α → α → Prop}
   (hl : l.nodup) (h : {x | x ∈ l}.pairwise r) : l.pairwise r :=
 hl.pairwise_of_forall_ne h
-
-lemma nodup_iff {α : Type} {l : list α} :
-  l.nodup ↔ ∀ (i j : ℕ), i < j → j < l.length → l.nth i ≠ l.nth j :=
-begin
-  rw nodup_iff_nth_le_inj,
-  simp only [nth_le_eq_iff, some_nth_le_eq],
-  split; rintro h i j h₁ h₂,
-  { exact mt (h i j (h₁.trans h₂) h₂) (ne_of_lt h₁) },
-  { intro h₃,
-    by_contra h₄,
-    cases lt_or_gt_of_ne h₄ with h₅ h₅,
-    { exact h i j h₅ h₂ h₃ },
-    { exact h j i h₅ h₁ h₃.symm }},
-end
 
 end list
 

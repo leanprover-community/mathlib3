@@ -359,7 +359,7 @@ by { rw [mul_comm], exact self_le_mul_right a b }
 @[simp, to_additive zero_le] lemma one_le (a : α) : 1 ≤ a :=
 le_iff_exists_mul.mpr ⟨a, (one_mul _).symm⟩
 
-@[simp, to_additive] lemma bot_eq_one : (⊥ : α) = 1 :=
+@[to_additive] lemma bot_eq_one : (⊥ : α) = 1 :=
 le_antisymm bot_le (one_le ⊥)
 
 @[simp, to_additive] lemma mul_eq_one_iff : a * b = 1 ↔ a = 1 ∧ b = 1 :=
@@ -490,6 +490,12 @@ min_eq_left (one_le a)
 @[simp, to_additive]
 lemma min_one (a : α) : min a 1 = 1 :=
 min_eq_right (one_le a)
+
+/-- In a linearly ordered monoid, we are happy for `bot_eq_one` to be a `@[simp]` lemma. -/
+@[simp, to_additive
+  "In a linearly ordered monoid, we are happy for `bot_eq_zero` to be a `@[simp]` lemma"]
+lemma bot_eq_one' [canonically_linear_ordered_monoid α] : (⊥ : α) = 1 :=
+bot_eq_one
 
 end canonically_linear_ordered_monoid
 

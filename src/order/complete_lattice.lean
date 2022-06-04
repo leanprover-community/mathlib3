@@ -1047,11 +1047,11 @@ eq_of_forall_le_iff $ λ c, by simp only [le_infi_iff, prod.forall]
 theorem supr_prod {f : β × γ → α} : (⨆ x, f x) = (⨆ i j, f (i, j)) :=
 @infi_prod αᵒᵈ _ _ _ _
 
-lemma bsupr_prod {s : set α} {t : set β} {f : α × β → γ} :
+lemma bsupr_prod {f : β × γ → α} {s : set β} {t : set γ} :
   (⨆ x ∈ s ×ˢ t, f x) = ⨆ (a ∈ s) (b ∈ t), f (a, b) :=
 by { simp_rw [supr_prod, mem_prod, supr_and], exact supr_congr (λ _, supr_comm) }
 
-lemma binfi_prod {s : set α} {t : set β} {f : α × β → γ} :
+lemma binfi_prod {f : β × γ → α} {s : set β} {t : set γ} :
   (⨅ x ∈ s ×ˢ t, f x) = ⨅ (a ∈ s) (b ∈ t), f (a, b) :=
 by { simp_rw [infi_prod, mem_prod, infi_and], exact infi_congr (λ _, infi_comm) }
 
@@ -1099,10 +1099,12 @@ dropped, without changing the result. -/
 lemma infi_ne_top_subtype (f : ι → α) : (⨅ i : {i // f i ≠ ⊤}, f i) = ⨅ i, f i :=
 @supr_ne_bot_subtype αᵒᵈ ι _ f
 
-lemma Sup_image2 : Sup (image2 f s t) = ⨆ (a ∈ s) (b ∈ t), f a b :=
+lemma Sup_image2 {f : β → γ → α} {s : set β} {t : set γ} :
+  Sup (image2 f s t) = ⨆ (a ∈ s) (b ∈ t), f a b :=
 by rw [←image_prod, Sup_image, bsupr_prod]
 
-lemma Inf_image2 : Inf (image2 f s t) = ⨅ (a ∈ s) (b ∈ t), f a b :=
+lemma Inf_image2 {f : β → γ → α} {s : set β} {t : set γ} :
+  Inf (image2 f s t) = ⨅ (a ∈ s) (b ∈ t), f a b :=
 by rw [←image_prod, Inf_image, binfi_prod]
 
 /-!

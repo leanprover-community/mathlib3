@@ -612,8 +612,8 @@ local infix ` ⨳ `:70 := nmul
 
 theorem nmul_nadd_one : ∀ a b, a ⨳ (b ♯ 1) = a ⨳ b ♯ a := @mul_add_one nat_ordinal _ _ _
 theorem nadd_one_nmul : ∀ a b, (a ♯ 1) ⨳ b = a ⨳ b ♯ b := @add_one_mul nat_ordinal _ _ _
-theorem nmul_succ (a b) : a ⨳ (succ b) = a ⨳ b ♯ a := by rw [←nadd_one, nmul_nadd_one]
-theorem succ_nmul (a b) : (succ a) ⨳ b = a ⨳ b ♯ b := by rw [←nadd_one, nadd_one_nmul]
+theorem nmul_succ (a b) : a ⨳ succ b = a ⨳ b ♯ a := by rw [←nadd_one, nmul_nadd_one]
+theorem succ_nmul (a b) : succ a ⨳ b = a ⨳ b ♯ b := by rw [←nadd_one, nadd_one_nmul]
 theorem nmul_add_one : ∀ a b, a ⨳ (b + 1) = a ⨳ b ♯ a := nmul_succ
 theorem add_one_nmul : ∀ a b, (a + 1) ⨳ b = a ⨳ b ♯ b := succ_nmul
 

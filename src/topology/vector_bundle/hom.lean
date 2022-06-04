@@ -27,31 +27,7 @@ defined using a norm on the fiber model if this helps.
 noncomputable theory
 
 open bundle set continuous_linear_map
-section move
 
-lemma continuous.clm_comp {X} [topological_space X]
-{𝕜₁} [nondiscrete_normed_field 𝕜₁]
-{F₁} [normed_group F₁] [normed_space 𝕜₁ F₁]
-{F₂} [normed_group F₂] [normed_space 𝕜₁ F₂]
-{F₃} [normed_group F₃] [normed_space 𝕜₁ F₃] {f : X → F₁ →L[𝕜₁] F₂}
-  {g : X → F₂ →L[𝕜₁] F₃} (hf : continuous f)
-  (hg : continuous g) :
-  continuous (λ x, (g x).comp (f x)) :=
-(compL 𝕜₁ F₁ F₂ F₃).continuous₂.comp₂ hg hf
-
-lemma continuous_on.clm_comp {X} [topological_space X]
-{𝕜₁} [nondiscrete_normed_field 𝕜₁]
-{F₁} [normed_group F₁] [normed_space 𝕜₁ F₁]
-{F₂} [normed_group F₂] [normed_space 𝕜₁ F₂]
-{F₃} [normed_group F₃] [normed_space 𝕜₁ F₃] {f : X → F₁ →L[𝕜₁] F₂}
-  {g : X → F₂ →L[𝕜₁] F₃} {s : set X}
-  (hg : continuous_on g s) (hf : continuous_on f s) :
-  continuous_on (λ x, (g x).comp (f x)) s :=
-(compL 𝕜₁ F₁ F₂ F₃).continuous₂.comp_continuous_on (hg.prod hf)
-
-attribute [simps apply symm_apply {simp_rhs := tt}] continuous_linear_equiv.arrow_congrSL
-
-end move
 section defs
 variables {𝕜₁ 𝕜₂ : Type*} [normed_field 𝕜₁] [normed_field 𝕜₂]
 variables (σ : 𝕜₁ →+* 𝕜₂)

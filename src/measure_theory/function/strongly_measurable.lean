@@ -768,6 +768,67 @@ begin
   exact (hf.prod_mk hg).measurable is_closed_le_prod.measurable_set
 end
 
+lemma strongly_measurable_in_set {m : measurable_space α} [topological_space β] [has_zero β]
+  {s : set α} {f : α → β}
+  (hs : measurable_set s) (hf : strongly_measurable f) (hf_zero : ∀ x ∉ s, f x = 0) :
+  ∃ fs : ℕ → α →ₛ β, (∀ x, tendsto (λ n, fs n x) at_top (𝓝 (f x))) ∧ (∀ (x ∉ s) n, fs n x = 0) :=
+begin
+  let g_seq_s : ℕ → @simple_func α m β := λ n, (hf.approx n).restrict s,
+  have hg_eq : ∀ x ∈ s, ∀ n, g_seq_s n x = hf.approx n x,
+  { intros x hx n,
+    rw [simple_func.coe_restrict _ hs, set.indicator_of_mem hx], },
+  have hg_zero : ∀ x ∉ s, ∀ n, g_seq_s n x = 0,
+  { intros x hx n,
+    rw [simple_func.coe_restrict _ hs, set.indicator_of_not_mem hx], },
+  refine ⟨g_seq_s, λ x, _, hg_zero⟩,
+  by_cases hx : x ∈ s,
+  { simp_rw hg_eq x hx,
+    exact hf.tendsto_approx x, },
+  { simp_rw [hg_zero x hx, hf_zero x hx],
+    exact tendsto_const_nhds, },
+end
+
+/-- If the restriction to a set `s` of a σ-algebra `m` is included in the restriction to `s` of
+another σ-algebra `m₂` (hypothesis `hs`), the set `s` is `m` measurable and a function `f` supported
+on `s` is `m`-strongly-measurable, then `f` is also `m₂`-strongly-measurable. -/
+lemma strongly_measurable_of_measurable_space_le_on {α E} {m m₂ : measurable_space α}
+  [topological_space E] [has_zero E] {s : set α} {f : α → E}
+  (hs_m : measurable_set[m] s) (hs : ∀ t, measurable_set[m] (s ∩ t) → measurable_set[m₂] (s ∩ t))
+  (hf : strongly_measurable[m] f) (hf_zero : ∀ x ∉ s, f x = 0) :
+  strongly_measurable[m₂] f :=
+begin
+  have hs_m₂ : measurable_set[m₂] s,
+  { rw ← set.inter_univ s,
+    refine hs set.univ _,
+    rwa [set.inter_univ], },
+  obtain ⟨g_seq_s, hg_seq_tendsto, hg_seq_zero⟩ := strongly_measurable_in_set hs_m hf hf_zero,
+  let g_seq_s₂ : ℕ → @simple_func α m₂ E := λ n,
+  { to_fun := g_seq_s n,
+    measurable_set_fiber' := λ x, begin
+      rw [← set.inter_univ ((g_seq_s n) ⁻¹' {x}), ← set.union_compl_self s,
+        set.inter_union_distrib_left, set.inter_comm ((g_seq_s n) ⁻¹' {x})],
+      refine measurable_set.union (hs _ (hs_m.inter _)) _,
+      { exact @simple_func.measurable_set_fiber _ _ m _ _, },
+      by_cases hx : x = 0,
+      { suffices : (g_seq_s n) ⁻¹' {x} ∩ sᶜ = sᶜ, by { rw this, exact hs_m₂.compl, },
+        ext1 y,
+        rw [hx, set.mem_inter_iff, set.mem_preimage, set.mem_singleton_iff],
+        exact ⟨λ h, h.2, λ h, ⟨hg_seq_zero y h n, h⟩⟩, },
+      { suffices : (g_seq_s n) ⁻¹' {x} ∩ sᶜ = ∅, by { rw this, exact measurable_set.empty, },
+        ext1 y,
+        simp only [mem_inter_eq, mem_preimage, mem_singleton_iff, mem_compl_eq, mem_empty_eq,
+          iff_false, not_and, not_not_mem],
+        refine imp_of_not_imp_not _ _ (λ hys, _),
+        rw hg_seq_zero y hys n,
+        exact ne.symm hx, },
+    end,
+    finite_range' := @simple_func.finite_range _ _ m (g_seq_s n), },
+  have hg_eq : ∀ x n, g_seq_s₂ n x = g_seq_s n x := λ x n, rfl,
+  refine ⟨g_seq_s₂, λ x, _⟩,
+  simp_rw hg_eq,
+  exact hg_seq_tendsto x,
+end
+
 end strongly_measurable
 
 /-! ## Finitely strongly measurable functions -/

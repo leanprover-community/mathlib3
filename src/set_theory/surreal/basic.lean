@@ -3,7 +3,7 @@ Copyright (c) 2019 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Scott Morrison
 -/
-import set_theory.game.pgame
+import set_theory.game.ordinal
 
 /-!
 # Surreal numbers
@@ -107,9 +107,9 @@ theorem le_iff_forall_lt {x y : pgame} (ox : x.numeric) (oy : y.numeric) :
   x ≤ y ↔ (∀ i, x.move_left i < y) ∧ ∀ j, x < y.move_right j :=
 begin
   rw le_iff_forall_lf,
-  convert iff.rfl;
-  refine propext (forall_congr $ λ i, (lf_iff_lt _ _).symm);
-  apply_rules [numeric.move_left, numeric.move_right]
+  refine and_congr _ _;
+    refine forall_congr (λ i, (lf_iff_lt _ _));
+    apply_rules [numeric.move_left, numeric.move_right]
 end
 
 theorem le_of_forall_lt {x y : pgame} (ox : x.numeric) (oy : y.numeric) :
@@ -131,11 +131,11 @@ theorem lt_def {x y : pgame} (ox : x.numeric) (oy : y.numeric) : x < y ↔
    ∃ j, (∀ i, (x.move_right j).move_left i < y) ∧ ∀ j', x.move_right j < y.move_right j' :=
 begin
   rw [←lf_iff_lt ox oy, lf_def],
-  convert iff.rfl;
-  ext;
-  convert iff.rfl;
-  refine propext (forall_congr $ λ i, lf_iff_lt _ _);
-  apply_rules [numeric.move_left, numeric.move_right]
+  refine or_congr _ _;
+    refine exists_congr (λ x_1, _);
+    refine and_congr _ _;
+    refine (forall_congr $ λ i, lf_iff_lt _ _);
+    apply_rules [numeric.move_left, numeric.move_right]
 end
 
 theorem not_fuzzy {x y : pgame} (ox : numeric x) (oy : numeric y) : ¬ fuzzy x y :=
@@ -197,6 +197,16 @@ begin
   split; rintro ⟨ ⟩,
   { exact numeric_zero },
   { exact numeric_one }
+end
+
+/-- Ordinal games are numeric. -/
+theorem numeric_to_pgame (o : ordinal) : o.to_pgame.numeric :=
+begin
+  induction o using ordinal.induction with o IH,
+  rw numeric_def,
+  refine ⟨λ i, is_empty_elim, λ i, _, is_empty_elim⟩,
+  rw ordinal.to_pgame_move_left',
+  exact IH _ (ordinal.to_left_moves_to_pgame_symm_lt i)
 end
 
 end pgame
@@ -284,9 +294,21 @@ noncomputable instance : linear_ordered_add_comm_group surreal :=
   decidable_le := classical.dec_rel _,
   ..surreal.ordered_add_comm_group }
 
+end surreal
+
+open surreal
+
+namespace ordinal
+
+/-- Converts an ordinal into the corresponding surreal. -/
+noncomputable def to_surreal : ordinal ↪o surreal :=
+{ to_fun := λ o, mk _ (numeric_to_pgame o),
+  inj' := λ a b h, to_pgame_equiv_iff.1 (quotient.exact h),
+  map_rel_iff' := @to_pgame_le_iff }
+
+end ordinal
+
 -- We conclude with some ideas for further work on surreals; these would make fun projects.
 
 -- TODO define the inclusion of groups `surreal → game`
 -- TODO define the field structure on the surreals
-
-end surreal

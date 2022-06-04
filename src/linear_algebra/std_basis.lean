@@ -41,44 +41,27 @@ namespace linear_map
 variables (R : Type*) {ι : Type*} [semiring R] (φ : ι → Type*)
   [Π i, add_comm_monoid (φ i)] [Π i, module R (φ i)] [decidable_eq ι]
 
-/-- The standard basis of the product of `φ`. -/
-def std_basis : Π (i : ι), φ i →ₗ[R] (Πi, φ i) := single
-
-lemma std_basis_apply (i : ι) (b : φ i) : std_basis R φ i b = update 0 i b :=
-rfl
-
-lemma coe_std_basis (i : ι) : ⇑(std_basis R φ i) = pi.single i :=
-rfl
-
-@[simp] lemma std_basis_same (i : ι) (b : φ i) : std_basis R φ i b i = b :=
-by rw [std_basis_apply, update_same]
-
-lemma std_basis_ne (i j : ι) (h : j ≠ i) (b : φ i) : std_basis R φ i b j = 0 :=
-by rw [std_basis_apply, update_noteq h]; refl
-
-lemma std_basis_eq_pi_diag (i : ι) : std_basis R φ i = pi (diag i) :=
+lemma std_basis_eq_pi_diag (i : ι) : (single i : φ i →ₗ[R] _) = pi (diag i) :=
 begin
   ext x j,
   convert (update_apply 0 x i j _).symm,
   refl,
 end
 
-lemma ker_std_basis (i : ι) : ker (std_basis R φ i) = ⊥ :=
-ker_eq_bot_of_injective $ assume f g hfg,
-  have std_basis R φ i f i = std_basis R φ i g i := hfg ▸ rfl,
-  by simpa only [std_basis_same]
+lemma ker_single (i : ι) : ker (single i : φ i →ₗ[R] _) = ⊥ :=
+ker_eq_bot_of_injective $ pi.single_injective _ _
 
-lemma proj_comp_std_basis (i j : ι) : (proj i).comp (std_basis R φ j) = diag j i :=
+lemma proj_comp_std_basis (i j : ι) : (proj i).comp (single j : φ j →ₗ[R] _) = diag j i :=
 by rw [std_basis_eq_pi_diag, proj_pi]
 
-lemma proj_std_basis_same (i : ι) : (proj i).comp (std_basis R φ i) = id :=
+lemma proj_std_basis_same (i : ι) : (proj i).comp (single i : φ i →ₗ[R] _) = id :=
 by ext b; simp
 
-lemma proj_std_basis_ne (i j : ι) (h : i ≠ j) : (proj i).comp (std_basis R φ j) = 0 :=
-by ext b; simp [std_basis_ne R φ _ _ h]
+lemma proj_std_basis_ne (i j : ι) (h : i ≠ j) : (proj i).comp (single j : φ j →ₗ[R] _) = 0 :=
+by ext b; simp [pi.single_eq_of_ne h]
 
 lemma supr_range_std_basis_le_infi_ker_proj (I J : set ι) (h : disjoint I J) :
-  (⨆i∈I, range (std_basis R φ i)) ≤ (⨅i∈J, ker (proj i)) :=
+  (⨆i∈I, range (single i : φ i →ₗ[R] _)) ≤ (⨅i∈J, ker (proj i)) :=
 begin
   refine (supr_le $ λ i, supr_le $ λ hi, range_le_iff_comap.2 _),
   simp only [(ker_comp _ _).symm, eq_top_iff, set_like.le_def, mem_ker, comap_infi, mem_infi],
@@ -89,25 +72,25 @@ begin
 end
 
 lemma infi_ker_proj_le_supr_range_std_basis {I : finset ι} {J : set ι} (hu : set.univ ⊆ ↑I ∪ J) :
-  (⨅ i∈J, ker (proj i)) ≤ (⨆i∈I, range (std_basis R φ i)) :=
+  (⨅ i∈J, ker (proj i)) ≤ (⨆i∈I, range (single i : φ i →ₗ[R] _)) :=
 set_like.le_def.2
 begin
   assume b hb,
   simp only [mem_infi, mem_ker, proj_apply] at hb,
-  rw ← show ∑ i in I, std_basis R φ i (b i) = b,
+  rw ← show ∑ i in I, pi.single i (b i) = b,
   { ext i,
-    rw [finset.sum_apply, ← std_basis_same R φ i (b i)],
-    refine finset.sum_eq_single i (assume j hjI ne, std_basis_ne _ _ _ _ ne.symm _) _,
+    rw [finset.sum_apply, ← pi.single_eq_same i (b i)],
+    refine finset.sum_eq_single i (assume j hjI ne, pi.single_eq_of_ne ne.symm _) _,
     assume hiI,
-    rw [std_basis_same],
+    rw [pi.single_eq_same],
     exact hb _ ((hu trivial).resolve_left hiI) },
   exact sum_mem (assume i hiI, mem_supr_of_mem i $ mem_supr_of_mem hiI $
-    (std_basis R φ i).mem_range_self (b i))
+    (single i).mem_range_self (b i))
 end
 
 lemma supr_range_std_basis_eq_infi_ker_proj {I J : set ι}
   (hd : disjoint I J) (hu : set.univ ⊆ I ∪ J) (hI : set.finite I) :
-  (⨆i∈I, range (std_basis R φ i)) = (⨅i∈J, ker (proj i)) :=
+  (⨆i∈I, range (single i : φ i →ₗ[R] _)) = (⨅i∈J, ker (proj i)) :=
 begin
   refine le_antisymm (supr_range_std_basis_le_infi_ker_proj _ _ _ _ hd) _,
   have : set.univ ⊆ ↑hI.to_finset ∪ J, { rwa [hI.coe_to_finset] },
@@ -116,17 +99,17 @@ begin
   exact le_rfl
 end
 
-lemma supr_range_std_basis [fintype ι] : (⨆i:ι, range (std_basis R φ i)) = ⊤ :=
+lemma supr_range_std_basis [fintype ι] : (⨆i:ι, range ((single i : φ i →ₗ[R] _))) = ⊤ :=
 have (set.univ : set ι) ⊆ ↑(finset.univ : finset ι) ∪ ∅ := by rw [finset.coe_univ, set.union_empty],
 begin
   apply top_unique,
   convert (infi_ker_proj_le_supr_range_std_basis R φ this),
   exact infi_emptyset.symm,
-  exact (funext $ λi, (@supr_pos _ _ _ (λh, range (std_basis R φ i)) $ finset.mem_univ i).symm)
+  exact (funext $ λi, (@supr_pos _ _ _ (λh, range ((single i : φ i →ₗ[R] _))) $ finset.mem_univ i).symm)
 end
 
 lemma disjoint_std_basis_std_basis (I J : set ι) (h : disjoint I J) :
-  disjoint (⨆i∈I, range (std_basis R φ i)) (⨆i∈J, range (std_basis R φ i)) :=
+  disjoint (⨆i∈I, range ((single i : φ i →ₗ[R] _))) (⨆i∈J, range ((single i : φ i →ₗ[R] _))) :=
 begin
   refine disjoint.mono
     (supr_range_std_basis_le_infi_ker_proj _ _ _ _ $ disjoint_compl_right)
@@ -143,14 +126,8 @@ begin
 end
 
 lemma std_basis_eq_single {a : R} :
-  (λ (i : ι), (std_basis R (λ _ : ι, R) i) a) = λ (i : ι), (finsupp.single i a) :=
-begin
-  ext i j,
-  rw [std_basis_apply, finsupp.single_apply],
-  split_ifs,
-  { rw [h, function.update_same] },
-  { rw [function.update_noteq (ne.symm h)], refl },
-end
+  (λ (i : ι), (single i : R →ₗ[R] _) a) = λ (i : ι), (finsupp.single i a) :=
+funext $ λ i, (@finsupp.single_eq_pi_single _ _ _ i a _).symm
 
 end linear_map
 
@@ -165,29 +142,30 @@ variables {η : Type*} {ιs : η → Type*} {Ms : η → Type*}
 
 lemma linear_independent_std_basis [ring R] [∀i, add_comm_group (Ms i)] [∀i, module R (Ms i)]
   [decidable_eq η] (v : Πj, ιs j → (Ms j)) (hs : ∀i, linear_independent R (v i)) :
-  linear_independent R (λ (ji : Σ j, ιs j), std_basis R Ms ji.1 (v ji.1 ji.2)) :=
+  linear_independent R (λ (ji : Σ j, ιs j), single ji.1 (v ji.1 ji.2)) :=
 begin
-  have hs' : ∀j : η, linear_independent R (λ i : ιs j, std_basis R Ms j (v j i)),
+  have hs' : ∀j : η, linear_independent R (λ i : ιs j, single j (v j i)),
   { intro j,
-    exact (hs j).map' _ (ker_std_basis _ _ _) },
+    exact (hs j).map' _ (ker_single _ _ _) },
   apply linear_independent_Union_finite hs',
   { assume j J _ hiJ,
     simp [(set.Union.equations._eqn_1 _).symm, submodule.span_image, submodule.span_Union],
-    have h₀ : ∀ j, span R (range (λ (i : ιs j), std_basis R Ms j (v j i)))
+    have h₀ : ∀ j, span R (range (λ (i : ιs j), single j (v j i)))
         ≤ range (std_basis R Ms j),
     { intro j,
       rw [span_le, linear_map.range_coe],
       apply range_comp_subset_range },
-    have h₁ : span R (range (λ (i : ιs j), std_basis R Ms j (v j i)))
-        ≤ ⨆ i ∈ {j}, range (std_basis R Ms i),
-    { rw @supr_singleton _ _ _ (λ i, linear_map.range (std_basis R (λ (j : η), Ms j) i)),
-      apply h₀ },
-    have h₂ : (⨆ j ∈ J, span R (range (λ (i : ιs j), std_basis R Ms j (v j i)))) ≤
-               ⨆ j ∈ J, range (std_basis R (λ (j : η), Ms j) j) :=
-      supr₂_mono (λ i _, h₀ i),
-    have h₃ : disjoint (λ (i : η), i ∈ {j}) J,
-    { convert set.disjoint_singleton_left.2 hiJ using 0 },
-    exact (disjoint_std_basis_std_basis _ _ _ _ h₃).mono h₁ h₂ }
+    -- have h₁ : span R (range (λ (i : ιs j), std_basis R Ms j (v j i)))
+    --     ≤ ⨆ i ∈ {j}, range (std_basis R Ms i),
+    -- { rw @supr_singleton _ _ _ (λ i, linear_map.range (std_basis R (λ (j : η), Ms j) i)),
+    --   apply h₀ },
+    -- have h₂ : (⨆ j ∈ J, span R (range (λ (i : ιs j), std_basis R Ms j (v j i)))) ≤
+    --            ⨆ j ∈ J, range (std_basis R (λ (j : η), Ms j) j) :=
+    --   supr₂_mono (λ i _, h₀ i),
+    -- have h₃ : disjoint (λ (i : η), i ∈ {j}) J,
+    -- { convert set.disjoint_singleton_left.2 hiJ using 0 },
+    -- exact (disjoint_std_basis_std_basis _ _ _ _ h₃).mono h₁ h₂
+    }
 end
 
 variables [semiring R] [∀i, add_comm_monoid (Ms i)] [∀i, module R (Ms i)]

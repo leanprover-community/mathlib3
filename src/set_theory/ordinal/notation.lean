@@ -582,7 +582,7 @@ theorem NF_repr_split' : ∀ {o o' m} [NF o], split' o = (o', m) → NF o' ∧ r
     cases NF_repr_split' h' with IH₁ IH₂,
     simp [IH₂, split'],
     intros, substs o' m,
-    have : ordinal.omega.{0} ^ repr e = ω ^ (1 : ordinal.{0}) * ω ^ (repr e - 1),
+    have : (ω : ordinal.{0}) ^ repr e = ω ^ (1 : ordinal.{0}) * ω ^ (repr e - 1),
     { have := mt repr_inj.1 e0,
       rw [← opow_add, ordinal.add_sub_cancel_of_le (one_le_iff_ne_zero.2 this)] },
     refine ⟨NF.oadd (by apply_instance) _ _, _⟩,
@@ -671,9 +671,9 @@ theorem scale_opow_aux (e a0 a : onote) [NF e] [NF a0] [NF a] :
 | (k+1) m := by by_cases m = 0; simp [h, opow_aux, mul_add, opow_add, mul_assoc, scale_opow_aux]
 
 theorem repr_opow_aux₁ {e a} [Ne : NF e] [Na : NF a] {a' : ordinal} (e0 : repr e ≠ 0)
-  (h : a' < ordinal.omega.{0} ^ repr e) (aa : repr a = a') (n : ℕ+) :
-  (ordinal.omega.{0} ^ repr e * (n:ℕ) + a') ^ ordinal.omega.{0} =
-  (ω ^ repr e) ^ ordinal.omega.{0} :=
+  (h : a' < (ω : ordinal.{0}) ^ repr e) (aa : repr a = a') (n : ℕ+) :
+  ((ω : ordinal.{0}) ^ repr e * (n:ℕ) + a') ^ (ω : ordinal.{0}) =
+  (ω ^ repr e) ^ (ω : ordinal.{0}) :=
 begin
   subst aa,
   have No := Ne.oadd n (Na.below_of_lt' h),
@@ -788,7 +788,7 @@ begin
     { simp [opow, r₂, opow_mul, repr_opow_aux₁ a00 al aa, add_assoc] },
     { simp [opow, r₂, opow_add, opow_mul, mul_assoc, add_assoc],
       rw [repr_opow_aux₁ a00 al aa, scale_opow_aux], simp [opow_mul],
-      rw [← mul_add, ← add_assoc (ordinal.omega.{0} ^ repr a0 * (n:ℕ))], congr' 1,
+      rw [← mul_add, ← add_assoc ((ω : ordinal.{0}) ^ repr a0 * (n:ℕ))], congr' 1,
       rw [← opow_succ],
       exact (repr_opow_aux₂ _ ad a00 al _ _).2 } }
 end

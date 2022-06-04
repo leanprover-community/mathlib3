@@ -26,6 +26,7 @@ namespace padic_val_nat
 
 variables (n : ℕ)
 
+/-- A factor is a prime of non-zero valuation. -/
 def ne_zero_of_factorization :
   n.factorization.support → {p : ℕ // p.prime ∧ padic_val_nat p n ≠ 0} :=
 λ ⟨p, hp⟩, ⟨p, let hp' := nat.prime_of_mem_factorization hp in
@@ -133,6 +134,7 @@ lemma neg_iff' (p : ℕ) (q : ℚ) :
   p.prime ∧ padic_val_rat p q < 0 ↔ p.prime ∧ padic_val_nat p q.denom ≠ 0 :=
 ⟨λ ⟨hp, hpq⟩, ⟨hp, (@neg_iff p ⟨hp⟩ q).mp hpq⟩, λ ⟨hp, hpq⟩, ⟨hp, (@neg_iff p ⟨hp⟩ q).mpr hpq⟩⟩
 
+/-- A prime of non-zero denominator valuation has negative valuation. -/
 def neg_of_denom_ne_zero :
   {p : ℕ // p.prime ∧ padic_val_nat p q.denom ≠ 0} → {p : ℕ // p.prime ∧ padic_val_rat p q < 0} :=
 λ ⟨p, hp⟩, ⟨p, (neg_iff' p q).mpr hp⟩
@@ -176,6 +178,7 @@ lemma pos_iff' (p : ℕ) (q : ℚ) :
   p.prime ∧ 0 < padic_val_rat p q ↔ p.prime ∧ padic_val_int p q.num ≠ 0 :=
 ⟨λ ⟨hp, hpq⟩, ⟨hp, (@pos_iff p ⟨hp⟩ q).mp hpq⟩, λ ⟨hp, hpq⟩, ⟨hp, (@pos_iff p ⟨hp⟩ q).mpr hpq⟩⟩
 
+/-- A prime of non-zero numerator valuation has positive valuation. -/
 def pos_of_num_ne_zero :
   {p : ℕ // p.prime ∧ padic_val_int p q.num ≠ 0} → {p : ℕ // p.prime ∧ 0 < padic_val_rat p q} :=
 λ ⟨p, hp⟩, ⟨p, (pos_iff' p q).mpr hp⟩
@@ -247,7 +250,7 @@ begin
   exact nonneg_of_mul_nonneg_left hpy2 zero_lt_two
 end
 
-lemma point_of_x_neg (hpx : padic_val_rat p x < 0) :
+lemma of_x_neg (hpx : padic_val_rat p x < 0) :
   ∃ n : ℕ, padic_val_rat p x = -(2 * n) ∧ padic_val_rat p y = -(3 * n) :=
 begin
   have hx : x ≠ 0 := by { intro hx, rw [hx, padic_val_rat.zero] at hpx, exact has_lt.lt.false hpx },
@@ -309,7 +312,7 @@ end
 
 lemma y_of_x_neg (hpx : padic_val_rat p x < 0) : padic_val_rat p y < 0 :=
 begin
-  rcases point_of_x_neg w hpx with ⟨_, ⟨hx, hy⟩⟩,
+  rcases of_x_neg w hpx with ⟨_, ⟨hx, hy⟩⟩,
   rw [hx, neg_neg_iff_pos] at hpx,
   rw [hy, neg_neg_iff_pos],
   exact mul_pos zero_lt_three ((pos_iff_pos_of_mul_pos hpx).mp zero_lt_two),
@@ -323,6 +326,7 @@ lemma x_neg_iff_y_neg' {p : ℕ} :
 ⟨λ ⟨hp, hpx⟩, ⟨hp, (@x_neg_iff_y_neg A B x y w p ⟨hp⟩).mp hpx⟩,
   λ ⟨hp, hpy⟩, ⟨hp, (@x_neg_iff_y_neg A B x y w p ⟨hp⟩).mpr hpy⟩⟩
 
+/-- A prime of negative x valuation has negative y valuation. -/
 def y_neg_of_x_neg :
   {p : ℕ // p.prime ∧ padic_val_rat p x < 0} → {p : ℕ // p.prime ∧ padic_val_rat p y < 0} :=
 λ ⟨p, hp⟩, ⟨p, (x_neg_iff_y_neg' w).mp hp⟩
@@ -330,6 +334,55 @@ def y_neg_of_x_neg :
 lemma y_neg_of_x_neg.bijective : function.bijective $ y_neg_of_x_neg w :=
 ⟨λ ⟨_, _⟩ ⟨_, _⟩ h, subtype.mk_eq_mk.mpr $ subtype.mk.inj_arrow h id,
   λ ⟨p, hp⟩, ⟨⟨p, (x_neg_iff_y_neg' w).mpr hp⟩, rfl⟩⟩
+
+lemma x_denom_of_x_neg :
+  (∀ p : {p : ℕ // p.prime ∧ padic_val_rat p x < 0},
+    padic_val_rat p x = -(2 * (@of_x_neg A B x y w p ⟨p.property.1⟩ p.property.2).some))
+    → x.denom = ∏ p : {p : ℕ // p.prime ∧ padic_val_rat p x < 0},
+                  (p : ℕ) ^ (2 * (@of_x_neg A B x y w p ⟨p.property.1⟩ p.property.2).some) :=
+begin
+  intros hn,
+  rw [← padic_val_rat.finprod_of_neg],
+  apply fintype.prod_congr,
+  rintro ⟨p, ⟨hp, hpx⟩⟩,
+  congr' 1,
+  change padic_val_nat p x.denom = _,
+  rw [← int.coe_nat_inj', ← neg_inj, ← ((@padic_val_rat.eq_denom.tfae p ⟨hp⟩ x).out 2 0).mp $
+        le_of_lt hpx],
+  exact hn ⟨p, ⟨hp, hpx⟩⟩
+end
+
+lemma y_denom_of_x_neg :
+  (∀ p : {p : ℕ // p.prime ∧ padic_val_rat p x < 0},
+    padic_val_rat p y = -(3 * (@of_x_neg A B x y w p ⟨p.property.1⟩ p.property.2).some))
+    → y.denom = ∏ p : {p : ℕ // p.prime ∧ padic_val_rat p x < 0},
+                  (p : ℕ) ^ (3 * (@of_x_neg A B x y w p ⟨p.property.1⟩ p.property.2).some) :=
+begin
+  intros hn,
+  rw [← padic_val_rat.finprod_of_neg],
+  symmetry,
+  apply fintype.prod_bijective (y_neg_of_x_neg w) (y_neg_of_x_neg.bijective w),
+  rintro ⟨p, ⟨hp, hpx⟩⟩,
+  symmetry,
+  congr' 1,
+  change padic_val_nat p y.denom = _,
+  rw [← int.coe_nat_inj', ← neg_inj, ← ((@padic_val_rat.eq_denom.tfae p ⟨hp⟩ y).out 2 0).mp $
+        le_of_lt $ (@x_neg_iff_y_neg A B x y w p ⟨hp⟩).mp hpx],
+  exact hn ⟨p, ⟨hp, hpx⟩⟩
+end
+
+lemma denom_of_x_neg :
+  x.denom = ∏ p : {p : ℕ // p.prime ∧ padic_val_rat p x < 0},
+              (p : ℕ) ^ (2 * (@of_x_neg A B x y w p ⟨p.property.1⟩ p.property.2).some)
+  ∧ y.denom = ∏ p : {p : ℕ // p.prime ∧ padic_val_rat p x < 0},
+                (p : ℕ) ^ (3 * (@of_x_neg A B x y w p ⟨p.property.1⟩ p.property.2).some) :=
+and.imp (x_denom_of_x_neg w) (y_denom_of_x_neg w) $ forall_and_distrib.mp $ λ ⟨p, ⟨hp, hpx⟩⟩,
+  (@of_x_neg A B x y w p ⟨hp⟩ hpx).some_spec
+
+lemma denom : ∃ n : ℕ, x.denom = n ^ 2 ∧ y.denom = n ^ 3 :=
+⟨∏ p : {p : ℕ // p.prime ∧ padic_val_rat p x < 0},
+  (p : ℕ) ^ (@of_x_neg A B x y w p ⟨p.property.1⟩ p.property.2).some,
+  by simpa only [← finset.prod_pow, ← pow_mul'] using denom_of_x_neg w⟩
 
 end padic_val_point
 
@@ -351,6 +404,12 @@ variables (ha₁ : E.a₁ = 0) (ha₂ : E.a₂ = 0) (ha₃ : E.a₃ = 0) (ha₄ 
 def height : E⟮ℚ⟯ → ℝ
 | 0            := 0
 | (some x _ _) := (max (|x.num|) (|x.denom|) : ℝ).log
+
+@[simp] lemma height_zero : height (0 : E⟮ℚ⟯) = 0 := rfl
+
+@[simp] lemma height_some {x y w} :
+  height (some x y w : E⟮ℚ⟯) = (max (|x.num|) (|x.denom|) : ℝ).log :=
+rfl
 
 lemma height_nonneg (P : E⟮ℚ⟯) : 0 ≤ height P :=
 begin
@@ -376,7 +435,7 @@ begin
   rintro ⟨_ | ⟨⟨n, d, hx, _⟩, y, w⟩, hP⟩ ⟨_ | ⟨⟨n', d', hx', _⟩, y', w'⟩, hQ⟩ hPQ,
   any_goals { contradiction },
   { refl },
-  { rw [height, real.log_le_iff_le_exp, max_le_iff, abs_le'] at hP hQ,
+  { rw [height_some, real.log_le_iff_le_exp, max_le_iff, abs_le'] at hP hQ,
     have hn : n ≤ ⌊C.exp⌋ ∧ n' ≤ ⌊C.exp⌋ := by { simp only [int.le_floor], exact ⟨hP.1.1, hQ.1.1⟩ },
     have hn' : 0 ≤ n + ⌊C.exp⌋ ∧ 0 ≤ n' + ⌊C.exp⌋ :=
     by { simp only [← neg_le_iff_add_nonneg', int.le_floor, int.cast_neg], exact ⟨hP.1.2, hQ.1.2⟩ },
@@ -438,25 +497,58 @@ begin
   cases Q with x' y' w',
   { exact ⟨0, λ P, by simpa only [EllipticCurve.zero_def, add_zero, two_mul]
                       using le_add_of_nonneg_left (height_nonneg P)⟩ },
-  { existsi [sorry],
+  { let hQ : ℝ := height (some x' y' w'),
+    let h2Q : ℝ := height (EllipticCurve.dbl $ some x' y' w'),
+    -- let C₁ : ℝ := (1 + |A| + |B| : ℝ).sqrt,
+    -- let C₂ : ℝ := 1 + |x'|,
+    -- let C₃ : ℝ := (|A| + |x'|) * C₂ + 2 * (|B| + |y'| * C₁),
+    existsi [max 0 $ max hQ h2Q],
     rintro (_ | ⟨x, y, w⟩),
-    { sorry },
-    { sorry } }
+    { rw [EllipticCurve.zero_def, zero_add, height_zero, mul_zero, zero_add],
+      exact le_max_of_le_right (le_max_left hQ h2Q) },
+    { unfold has_add.add,
+      unfold EllipticCurve.add,
+      simp only [ha₁, ha₂, ha₃, ha₄, ha₆, algebra_map_rat_rat, ring_hom.id_apply, zero_mul,
+                 add_zero] at w w',
+      simp only [ha₁, ha₂, ha₃, ha₄, ha₆, algebra_map_rat_rat, ring_hom.id_apply, mul_zero,
+                 zero_mul, add_zero, sub_zero] at *,
+      split_ifs with hx hy,
+      { sorry },
+      { rw [not_ne_iff, eq_comm] at hx,
+        subst hx,
+        rw [← w', sq_eq_sq_iff_abs_eq_abs, abs_eq_abs,
+            or_iff_left $ (not_iff_not_of_iff add_eq_zero_iff_eq_neg).mp hy, eq_comm] at w,
+        subst w,
+        exact le_add_of_nonneg_of_le (mul_nonneg zero_le_two $ height_nonneg _)
+          (le_max_of_le_right $ le_max_right hQ h2Q) },
+      all_goals { exact add_nonneg (mul_nonneg zero_le_two $ height_nonneg _)
+                    (le_max_of_le_left $ le_refl 0) } } }
 end
 
 lemma exists_constant_four_mul_height_le_height_two_smul_add_constant :
-  ∃ C : ℝ, ∀ P : E⟮ℚ⟯, 4 * height P ≤ height (2 • P) + C :=
+  ∃ C : ℝ, ∀ P : E⟮ℚ⟯, 4 * height P ≤ height (EllipticCurve.dbl P) + C :=
 begin
-  let C₁ : ℝ := (max 12 $ 16 * |A|),
-  let C₂ : ℝ := (max 3 $ max (5 * |A|) $ 27 * |B|),
-  let C₃ : ℝ := (max (16 * |A| ^ 3 + 108 * B ^ 2) $ max (4 * A ^ 2 * |B|) $
-                 max (12 * A ^ 4 + 88 * |A| * B ^ 2) $ 12 * |A| ^ 3 * |B| + 96 * |B| ^ 3),
-  let C₄ : ℝ := (max (A ^ 2 * |B|) $ max (5 * A ^ 4 + 32 * |A| * B ^ 2) $
-                 max (26 * |A| ^ 3 * |B| + 192 * |B| ^ 3) $ 3 * |A| ^ 5 + 24 * A ^ 2 * B ^ 2),
-  existsi [(8 * max C₁ $ max C₂ $ max C₃ C₄).log],
+  let h2 : ℝ := 4 * finset.max'
+    (finset.image (λ p : E⟮ℚ⟯[2], height p.val) (set.finite.of_fintype set.univ).to_finset)
+    (by simp only [finset.nonempty.image_iff, set.finite.to_finset.nonempty, set.univ_nonempty]),
+  -- let C₁ : ℝ := (max 12 $ 16 * |A|),
+  -- let C₂ : ℝ := (max 3 $ max (5 * |A|) $ 27 * |B|),
+  -- let C₃ : ℝ := (max (16 * |A| ^ 3 + 108 * B ^ 2) $ max (4 * A ^ 2 * |B|) $
+  --                max (12 * A ^ 4 + 88 * |A| * B ^ 2) $ 12 * |A| ^ 3 * |B| + 96 * |B| ^ 3),
+  -- let C₄ : ℝ := (max (A ^ 2 * |B|) $ max (5 * A ^ 4 + 32 * |A| * B ^ 2) $
+  --                max (26 * |A| ^ 3 * |B| + 192 * |B| ^ 3) $ 3 * |A| ^ 5 + 24 * A ^ 2 * B ^ 2),
+  existsi [max 0 h2],
   rintro (_ | ⟨x, y, w⟩),
-  { sorry },
-  { sorry }
+  { rw [EllipticCurve.zero_def, EllipticCurve.dbl_zero, height_zero, mul_zero, zero_add],
+    exact le_max_of_le_left (le_refl 0) },
+  { unfold EllipticCurve.dbl,
+    simp only [ha₁, ha₂, ha₃, ha₄, ha₆, algebra_map_rat_rat, ring_hom.id_apply, zero_mul, add_zero]
+      at w,
+    simp only [ha₁, ha₂, ha₃, ha₄, ha₆, algebra_map_rat_rat, ring_hom.id_apply, mul_zero, zero_mul,
+               add_zero, sub_zero] at *,
+    split_ifs with hy,
+    { sorry },
+    { sorry } }
 end
 
 end heights

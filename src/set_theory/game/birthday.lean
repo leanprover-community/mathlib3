@@ -171,7 +171,7 @@ begin
   induction n with n hn,
   { exact birthday_zero },
   { convert birthday_add_one n,
-    rwa hn, refl }
+    rw hn, refl }
 end
 
 theorem birthday_add_nat (a : pgame) (n : ℕ) : (a + n).birthday = a.birthday + n := by simp

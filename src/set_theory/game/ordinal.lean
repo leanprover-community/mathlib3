@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Violeta Hernández Palacios
 -/
 
-import set_theory.game.pgame
+import set_theory.game.basic
 import set_theory.ordinal.natural_ops
 
 /-!
@@ -134,5 +134,9 @@ theorem to_pgame_add : ∀ a b : ordinal.{u}, a.to_pgame + b.to_pgame ≈ (a ♯
       rwa to_pgame_lf_iff } }
 end
 using_well_founded { dec_tac := `[solve_by_elim [psigma.lex.left, psigma.lex.right]] }
+
+@[simp] theorem to_pgame_add_mk (a b : ordinal) :
+  ⟦a.to_pgame⟧ + ⟦b.to_pgame⟧ = ⟦(a ♯ b).to_pgame⟧ :=
+quot.sound (to_pgame_add a b)
 
 end ordinal

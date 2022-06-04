@@ -87,15 +87,51 @@ calc 2 * (n) / 3 ≤ 2 * (n)          : nat.div_le_self (2 * n) 3
     ... ≤ (2 * n).choose(2 * n / 2) : choose_le_middle 1 (2 * (n))
     ... = (2 * n).choose(n)         : by {congr, rw [nat.mul_div_right], norm_num, }
 
+lemma factorization_support_subset_filter_prime_range (n : ℕ) :
+  n.factorization.support ⊆ finset.filter nat.prime (finset.range (n + 1)) :=
+begin
+  rw [nat.support_factorization, finset.subset_iff],
+  simp only [list.mem_to_finset, finset.mem_filter, finset.mem_range],
+  intros p p_factor,
+  cases le_or_gt n 0 with n_le_0 n_pos,
+  { rw nat.le_zero_iff at n_le_0,
+    subst n_le_0,
+    simp only [factors_zero, list.not_mem_nil] at p_factor,
+    exfalso, exact p_factor, },
+  { split,
+    { linarith [le_of_dvd n_pos (dvd_of_mem_factors p_factor)], },
+    { exact prime_of_mem_factors p_factor, }, },
+end
+
+lemma factorization_support' (n : ℕ) : finset.filter nat.prime (finset.range ((central_binom n) + 1)) ⊆ n.central_binom.factorization.support :=
+begin
+  rw nat.support_factorization,
+  rw finset.subset_iff,
+  simp,
+  intros p p_small p_prime,
+  rw mem_factors_iff_dvd (central_binom_ne_zero _) p_prime,
+  sorry,
+end
+
+lemma fooo (n : ℕ) :
+  (finset.range ((central_binom n) + 1)).filter nat.prime = (central_binom n).factorization.support :=
+begin
+  refine finset.subset.antisymm (factorization_support' n) _,
+  exact factorization_support_subset_filter_prime_range (central_binom n),
+end
+
 -- TODO aesthetically, I think this theorem would be better if the range was 2 * n + 1
 lemma central_binom_factorization (n : ℕ) :
   ∏ p in finset.filter nat.prime (finset.range (central_binom n + 1)),
     p ^ ((central_binom n).factorization p)
   = central_binom n :=
-  sorry
-  --prod_pow_prime_padic_val_nat _ (central_binom_ne_zero n) _ (lt_add_one _)
+begin
+  calc ∏ (p : ℕ) in finset.filter nat.prime (finset.range (n.central_binom + 1)), p ^ (n.central_binom.factorization p)
+      = ∏ (p : ℕ) in (central_binom n).factorization.support, p ^ (n.central_binom.factorization p) : by simp [fooo n]
+  ... = central_binom n : factorization_prod_pow_eq_self (central_binom_ne_zero _),
+end
 
-lemma sq_prime_is_small {p n : ℕ} (hp : nat.prime p) (n_big : 2 < n) (small : p ≤ sqrt (2 * n)) :
+lemma sq_prime_is_small' {p n : ℕ} (hp : nat.prime p) (n_big : 2 < n) (small : p ≤ sqrt (2 * n)) :
   p ^ 2 < 2 * n :=
 begin
   cases lt_or_ge (p ^ 2) (2 * n),
@@ -107,6 +143,31 @@ begin
     rw [←p_even, sq],
     exact (mul_lt_mul_left zero_lt_two).mpr n_big, },
 end
+
+lemma sq_prime_is_small {p : ℕ} (hp : nat.prime p) :
+  ∀ {n : ℕ} (p_small : p ≤ sqrt (2 * n)), ((p = 2 ∧ n = 2) ∨ (p ^ 2 < 2 * n))
+| 0 p_small :=
+  begin
+    norm_num at p_small,
+    linarith [prime.two_le hp],
+  end
+| 1 p_small :=
+  begin
+    norm_num at p_small,
+    linarith [prime.two_le hp],
+  end
+| 2 p_small :=
+  begin
+    left,
+    norm_num at p_small,
+    exact ⟨by linarith [prime.two_le hp], rfl⟩,
+  end
+| (n + 3) p_small :=
+  begin
+    right,
+    have r : 2 < n + 3 := by linarith,
+    linarith [sq_prime_is_small' hp r p_small],
+  end
 
 end nat
 
@@ -388,7 +449,7 @@ begin
   simp only [hx.right, and_true, not_lt] at h2x,
   by_contradiction,
   have x_le_two_mul_n : x ≤ 2 * n,
-  { apply nat.prime_le_two_mul_of_factorization_central_binom_pos,
+  { apply nat.le_two_mul_of_factorization_central_binom_pos,
     by_contradiction h1,
     rw [not_lt, le_zero_iff] at h1,
     rw h1 at h,
@@ -403,7 +464,7 @@ begin
       simp only [not_lt] at neg_n_le_x,
       rw [nat.add_one, nat.succ_le_iff, nat.div_lt_iff_lt_mul' three_pos, mul_comm x] at h2x,
       have x_non_div :=
-        nat.factorization_central_binom_of_two_mul_self_lt_three_mul_prime n_large neg_n_le_x h2x,
+        nat.factorization_central_binom_of_two_mul_self_lt_three_mul n_large neg_n_le_x h2x,
       rw [x_non_div, pow_zero] at h,
       simp at h,
       exact h, },
@@ -467,9 +528,12 @@ nat.central_binom n
           congr' 3,
           ext1,
           simp only [and_imp, finset.mem_filter, finset.mem_range, and.congr_right_iff],
-          intros h pa,
+          intros h a_prime,
           split,
-          { exact sq_prime_is_small pa (by linarith), },
+          { intros a_small,
+            rcases sq_prime_is_small a_prime a_small with bad | good,
+            { linarith, },
+            { exact good, }, },
           { rw nat.le_sqrt', exact le_of_lt, },
         end
 ... ≤ (2 * n) ^ (nat.sqrt (2 * n))

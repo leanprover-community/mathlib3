@@ -141,12 +141,26 @@ let h := le_birthday (-x) in by rwa [neg_birthday, ←neg_le_iff, neg_neg] at h
 theorem birthday_add_comm (a b : pgame) : (a + b).birthday = (b + a).birthday :=
 (add_comm_relabelling a b).birthday_congr
 
-@[simp] theorem birthday_add : ∀ a b : pgame, (a + b).birthday = a.birthday ♯ b.birthday
-| a b := begin
-  rw [birthday_def, add_def, of_nat_ordinal_max],
-  simp only [nat_ordinal.blsub, of_nat_ordinal_to_nat_ordinal],
-  sorry
+@[simp] theorem birthday_add : ∀ x y : pgame.{u}, (x + y).birthday = x.birthday ♯ y.birthday
+| ⟨xl, xr, xL, xR⟩ ⟨yl, yr, yL, yR⟩ := begin
+  rw [birthday_def, nadd_def],
+  simp only [birthday_add, lsub_sum, mk_add_move_left_inl, move_left_mk, mk_add_move_left_inr,
+    mk_add_move_right_inl, move_right_mk, mk_add_move_right_inr],
+  rw [max_assoc, ←max_assoc (lsub (λ b : yl, _)), max_comm (lsub (λ b : yl, _)), max_assoc,
+    ←max_assoc],
+  congr; apply le_antisymm,
+  any_goals
+  { exact max_le_iff.2 ⟨lsub_le_iff.2 (λ i, lt_blsub _ _ (birthday_move_left_lt i)),
+      lsub_le_iff.2 (λ i, lt_blsub _ _ (birthday_move_right_lt i))⟩ },
+  all_goals
+  { apply blsub_le_iff.2 (λ i hi, _),
+    rcases lt_birthday_iff.1 hi with ⟨j, hj⟩ | ⟨j, hj⟩ },
+  { exact lt_max_of_lt_left ((nadd_le_nadd_right hj _).trans_lt (lt_lsub _ _)) },
+  { exact lt_max_of_lt_right ((nadd_le_nadd_right hj _).trans_lt (lt_lsub _ _)) },
+  { exact lt_max_of_lt_left ((nadd_le_nadd_left hj _).trans_lt (lt_lsub _ _)) },
+  { exact lt_max_of_lt_right ((nadd_le_nadd_left hj _).trans_lt (lt_lsub _ _)) }
 end
+using_well_founded { dec_tac := pgame_wf_tac }
 
 theorem birthday_add_one (a : pgame) : (a + 1).birthday = a.birthday + 1 :=
 by simp
@@ -158,7 +172,8 @@ by simp
 begin
   induction n with n hn,
   { exact birthday_zero },
-  { simp [hn] }
+  { change birthday (n + 1) = _,
+    rw [birthday_add_one, hn, nat.cast_succ] }
 end
 
 theorem birthday_add_nat (a : pgame) (n : ℕ) : (a + n).birthday = a.birthday + n :=

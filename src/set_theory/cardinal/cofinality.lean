@@ -701,6 +701,14 @@ local infixr ^ := @pow cardinal.{u} cardinal cardinal.has_pow
 def is_limit (c : cardinal) : Prop :=
 c ≠ 0 ∧ ∀ x < c, succ x < c
 
+theorem is_limit.omega_le {c} (h : is_limit c) : ω ≤ c :=
+begin
+  by_contra' h',
+  rcases lt_omega.1 h' with ⟨_ | n, rfl⟩,
+  { exact h.1.irrefl },
+  { simpa using h.2 n }
+end
+
 /-- A cardinal is a strong limit if it is not zero and it is
   closed under powersets. Note that `ω` is a strong limit by this definition. -/
 def is_strong_limit (c : cardinal) : Prop :=

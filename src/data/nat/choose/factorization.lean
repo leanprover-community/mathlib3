@@ -143,7 +143,7 @@ factorization_choose_eq_zero_of_lt h
 /--
 Contrapositive form of `nat.factorization_central_binom_eq_zero_of_two_mul_lt`
 -/
-lemma prime_le_two_mul_of_factorization_central_binom_pos
+lemma le_two_mul_of_factorization_central_binom_pos
   (h_pos : 0 < (central_binom n).factorization p) : p ≤ 2 * n :=
 le_of_not_lt (pos_iff_ne_zero.mp h_pos ∘ factorization_central_binom_eq_zero_of_two_mul_lt)
 

@@ -534,8 +534,10 @@ linear_map.to_add_monoid_hom_injective $ add_hom_ext $ λ n, linear_map.congr_fu
 lemma eq_zero_of_eq_zero (h : (0 : R) = (1 : R)) (p : R[X]) : p = 0 :=
 by rw [←one_smul R p, ←h, zero_smul]
 
+section fewnomials
+
 lemma support_monomial (n) {a : R} (H : a ≠ 0) : (monomial n a).support = singleton n :=
-by rw [←of_finsupp_single, support, finsupp.support_single_ne_zero H]
+by rw [←of_finsupp_single, support, finsupp.support_single_ne_zero _ H]
 
 lemma support_monomial' (n) (a : R) : (monomial n a).support ⊆ singleton n :=
 by { rw [←of_finsupp_single, support], exact finsupp.support_single_subset }
@@ -548,6 +550,23 @@ begin
   rw ← monomial_eq_C_mul_X,
   exact support_monomial' n c,
 end
+
+open finset
+
+lemma support_binomial' (k m : ℕ) (x y : R) : (C x * X ^ k + C y * X ^ m).support ⊆ {k, m} :=
+support_add.trans (union_subset ((support_C_mul_X_pow' k x).trans
+  (singleton_subset_iff.mpr (mem_insert_self k {m}))) ((support_C_mul_X_pow' m y).trans
+  (singleton_subset_iff.mpr (mem_insert_of_mem (mem_singleton_self m)))))
+
+lemma support_trinomial' (k m n : ℕ) (x y z : R) :
+  (C x * X ^ k + C y * X ^ m + C z * X ^ n).support ⊆ {k, m, n} :=
+support_add.trans (union_subset (support_add.trans (union_subset ((support_C_mul_X_pow' k x).trans
+  (singleton_subset_iff.mpr (mem_insert_self k {m, n}))) ((support_C_mul_X_pow' m y).trans
+  (singleton_subset_iff.mpr (mem_insert_of_mem (mem_insert_self m {n}))))))
+  ((support_C_mul_X_pow' n z).trans (singleton_subset_iff.mpr
+  (mem_insert_of_mem (mem_insert_of_mem (mem_singleton_self n))))))
+
+end fewnomials
 
 lemma X_pow_eq_monomial (n) : X ^ n = monomial n (1:R) :=
 begin

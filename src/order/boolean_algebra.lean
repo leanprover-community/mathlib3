@@ -82,7 +82,7 @@ export has_sdiff (sdiff)
 
 /-- A generalized Boolean algebra is a distributive lattice with `⊥` and a relative complement
 operation `\` (called `sdiff`, after "set difference") satisfying `(a ⊓ b) ⊔ (a \ b) = a` and
-`(a ⊓ b) ⊓ (a \ b) = b`, i.e. `a \ b` is the complement of `b` in `a`.
+`(a ⊓ b) ⊓ (a \ b) = ⊥`, i.e. `a \ b` is the complement of `b` in `a`.
 
 This is a generalization of Boolean algebras which applies to `finset α` for arbitrary
 (not-necessarily-`fintype`) `α`. -/
@@ -636,6 +636,12 @@ theorem eq_compl_iff_is_compl : x = yᶜ ↔ is_compl x y :=
 
 theorem compl_eq_iff_is_compl : xᶜ = y ↔ is_compl x y :=
 ⟨λ h, by { rw ←h, exact is_compl_compl }, is_compl.compl_eq⟩
+
+theorem compl_eq_comm : xᶜ = y ↔ yᶜ = x :=
+by rw [eq_comm, compl_eq_iff_is_compl, eq_compl_iff_is_compl]
+
+theorem eq_compl_comm : x = yᶜ ↔ y = xᶜ :=
+by rw [eq_comm, compl_eq_iff_is_compl, eq_compl_iff_is_compl]
 
 theorem disjoint_compl_right : disjoint x xᶜ := is_compl_compl.disjoint
 theorem disjoint_compl_left : disjoint xᶜ x := disjoint_compl_right.symm

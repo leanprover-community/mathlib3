@@ -1648,7 +1648,7 @@ calc count (↑s : set α) = ∑' i : (↑s : set α), 1 : count_apply s.measura
                     ... = ∑ i in s, 1 : s.tsum_subtype 1
                     ... = s.card : by simp
 
-lemma count_apply_finite [measurable_singleton_class α] (s : set α) (hs : finite s) :
+lemma count_apply_finite [measurable_singleton_class α] (s : set α) (hs : s.finite) :
   count s = hs.to_finset.card :=
 by rw [← count_apply_finset, finite.coe_to_finset]
 

@@ -2307,8 +2307,23 @@ lemma map_comap_eq_self_of_surjective {f : G →* N} (h : function.surjective f)
 map_comap_eq_self ((range_top_of_surjective _ h).symm ▸ le_top)
 
 @[to_additive]
+lemma comap_le_comap_of_le_range {f : G →* N} {K L : subgroup N} (hf : K ≤ f.range) :
+  K.comap f ≤ L.comap f ↔ K ≤ L :=
+⟨(map_comap_eq_self hf).ge.trans ∘ map_le_iff_le_comap.mpr, comap_mono⟩
+
+@[to_additive]
+lemma comap_le_comap_of_surjective {f : G →* N} {K L : subgroup N} (hf : function.surjective f) :
+  K.comap f ≤ L.comap f ↔ K ≤ L :=
+comap_le_comap_of_le_range (le_top.trans (f.range_top_of_surjective hf).ge)
+
+@[to_additive]
+lemma comap_lt_comap_of_surjective {f : G →* N} {K L : subgroup N} (hf : function.surjective f) :
+  K.comap f < L.comap f ↔ K < L :=
+by simp_rw [lt_iff_le_not_le, comap_le_comap_of_surjective hf]
+
+@[to_additive]
 lemma comap_injective {f : G →* N} (h : function.surjective f) : function.injective (comap f) :=
-λ K L hKL, by { apply_fun map f at hKL, simpa [map_comap_eq_self_of_surjective h] using hKL }
+λ K L, by simp only [le_antisymm_iff, comap_le_comap_of_surjective h, imp_self]
 
 @[to_additive]
 lemma comap_map_eq_self {f : G →* N} {H : subgroup G} (h : f.ker ≤ H) :

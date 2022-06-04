@@ -1,6 +1,14 @@
+/-
+Copyright (c) 2022 Yury G. Kudryashov. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Yury G. Kudryashov
+-/
 import data.fin.vec_notation
 
 /-!
+# Monotone finite sequences
+
+In this file we prove `simp` lemmas that allow to simplify propositions like `monotone ![a, b, c]`.
 -/
 
 open set fin matrix function
@@ -41,23 +49,4 @@ lemma antitone.vec_cons (hf : antitone f) (ha : f 0 ≤ a) :
   antitone (vec_cons a f) :=
 antitone_vec_cons.2 ⟨ha, hf⟩
 
-variables (α)
-
-lemma fin.exists_strict_mono_of_no_min [nonempty α] [no_min_order α] :
-  ∀ n, ∃ f : fin n → α, strict_mono f
-| 0 := ⟨fin.elim0, fin.elim0⟩
-| 1 := let ⟨x⟩ := ‹nonempty α› in ⟨const _ x, subsingleton.strict_mono _⟩
-| (n + 2) := let ⟨f, hf⟩ := fin.exists_strict_mono_of_no_min (n + 1), ⟨a, ha⟩ := exists_lt (f 0)
-  in ⟨vec_cons a f, hf.vec_cons ha⟩
-
-lemma fin.exists_strict_anti_of_no_max [nonempty α] [no_max_order α] (n : ℕ) :
-  ∃ f : fin n → α, strict_anti f :=
-fin.exists_strict_mono_of_no_min αᵒᵈ n
-
-lemma fin.exists_strict_mono_of_no_max [nonempty α] [no_max_order α] (n : ℕ) :
-  ∃ f : fin n → α, strict_mono f :=
-let ⟨f, hf⟩ := fin.exists_strict_anti_of_no_max α n in ⟨f ∘ reverse, hf.comp strict_anti_reverse⟩
-
-lemma fin.exists_strict_anti_of_no_min [nonempty α] [no_min_order α] (n : ℕ) :
-  ∃ f : fin n → α, strict_anti f :=
-fin.exists_strict_mono_of_no_max αᵒᵈ n
+example : monotone ![1, 2, 2, 3] := by simp [subsingleton.monotone]

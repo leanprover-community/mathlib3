@@ -273,6 +273,8 @@ instance : has_neg surreal  :=
   (λ x ox, ⟦⟨-x, ox.neg⟩⟧)
   (λ _ _ _ _ a, quotient.sound (neg_congr a))⟩
 
+def to_game : surreal → game := surreal.lift (λ x _, ⟦x⟧) (λ _ _ _ _ h, quotient.sound h)
+
 instance : ordered_add_comm_group surreal :=
 { add               := (+),
   add_assoc         := by { rintros ⟨_⟩ ⟨_⟩ ⟨_⟩, exact quotient.sound add_assoc_equiv },
@@ -352,7 +354,7 @@ begin
   rw add_comm, congr' 3; rw quot_mul_comm,
 end
 
-lemma P3_trans {x₁} (x₂) {x₃ y₁ y₂} : P3 x₁ x₂ y₁ y₂ → P3 x₂ x₃ y₁ y₂ → P3 x₁ x₃ y₁ y₂ :=
+lemma P3.trans {x₁} (x₂) {x₃ y₁ y₂} : P3 x₁ x₂ y₁ y₂ → P3 x₂ x₃ y₁ y₂ → P3 x₁ x₃ y₁ y₂ :=
 λ h₁ h₂, begin
   rw [P3, lt_iff, ← add_lt_add_iff_left ⟦x₂ * y₁ + x₂ * y₂⟧],
   convert lt_iff.1 (add_lt_add h₁ h₂); dsimp; abel,
@@ -394,11 +396,6 @@ lemma P24.L {x₁ x₂ y} (h : P24 x₁ x₂ y) (hl : x₁ < x₂) (i) : P3 x₁
 
 lemma P24.R {x₁ x₂ y} (h : P24 x₁ x₂ y) (hl : x₁ < x₂) (j) : P3 x₁ x₂ y (y.move_right j) :=
 by { rw P3_neg', convert (h.2 hl).2 (to_left_moves_neg j), simp }
-
---lemma P24.eq {x₁ x₂ y} (h : P24 x₁ x₂ y) (he : ⟦x₁⟧ = ⟦x₂⟧) : ⟦x₁ * y⟧ = ⟦x₂ * y⟧ := h.1 he
-
-/-lemma P24.R {x₁ x₂ y} (h : P24 x₁ x₂ y) (hl : x₁ < x₂) (j) : P3 x₁ x₂ ((-y).move_left j) (-y) :=
-(h.2 hl).2 j-/
 
 inductive mul_args : Type (u+1)
 | P1 (x y : pgame.{u}) : mul_args
@@ -539,10 +536,9 @@ lemma mul_option_lt (i j k l) : ⟦mul_option x y i k⟧ < -⟦mul_option x (-y)
 begin
   obtain (h|h|h) := trichotomy (hx.move_left i) (hx.move_left j),
   { exact mul_option_lt_of_lt hy ihxy ihyx i j k l h },
-  { rw mul_option_lt_iff_P1', exact P1'_of_eq h (P24xxy ihxy i j)
-      (ihxy (is_option.move_left i) (is_option.move_left j) $
-        or.inr $ is_option_neg.1 $ is_option.move_left l)
-      (P3yyxx hy ihyx i k l) },
+  { have ml := @is_option.move_left,
+    exact mul_option_lt_iff_P1'.2 (P1'_of_eq h (P24xxy ihxy i j)
+      (ihxy (ml i) (ml j) $ or.inr $ is_option_neg.1 $ ml l) $ P3yyxx hy ihyx i k l) },
   { rw [mul_option_neg_neg, lt_neg],
     exact mul_option_lt_of_lt hy.neg (ihr_neg' ihxy) (ihr_neg ihyx) j i l _ h },
 end
@@ -572,7 +568,6 @@ begin
 end
 
 omit ih hx hy
-variables {x₁ x₂ x' y' : pgame.{u}} (ih' : ∀ a, ices a (mul_args.P24 x₁ x₂ y) → hyp a)
 
 def ihr' (x₁ x₂ y) : Prop :=
 ∀ ⦃z⦄, (is_option z x₁ → P24 z x₂ y) ∧ (is_option z x₂ → P24 x₁ z y) ∧ (is_option z y → P24 x₁ x₂ z)
@@ -580,7 +575,9 @@ def ihr' (x₁ x₂ y) : Prop :=
 def ihr'' (x₁ x₂ y : pgame) : Prop :=
 ∀ ⦃z w⦄, is_option w y → (is_option z x₁ → P24 z x₂ w) ∧ (is_option z x₂ → P24 x₁ z w)
 
+variables {x₁ x₂ x' y' : pgame.{u}} (ih' : ∀ a, ices a (mul_args.P24 x₁ x₂ y) → hyp a)
 include ih'
+
 lemma ih₁₂_of_ih' : ihr' x₁ x₂ y :=
 begin
   refine (λ z, ⟨_, _, _⟩);
@@ -661,7 +658,7 @@ le_of_forall_lt begin
     { rw ← quot_neg_mul, apply left_lt_mul_aux h₂.neg (ihr'_neg h₁₂) he'.symm } },
 end
 
-def mul_option_lt_mul (x y) : Prop := ∀ {i j}, mul_option x y i j < x * y
+def mul_option_lt_mul (x y) : Prop := ∀ {i j}, ⟦mul_option x y i j⟧ < ⟦x * y⟧
 
 lemma lt_mul_of_numeric (hn : (x * y).numeric) :
   (mul_option_lt_mul x y ∧ mul_option_lt_mul (-x) (-y)) ∧
@@ -679,43 +676,30 @@ lemma mul_option_lt_iff_P3 {i j} :
   ⟦mul_option x y i j⟧ < ⟦x * y⟧ ↔ P3 (x.move_left i) x (y.move_left j) y :=
 by { dsimp [mul_option, P3, lt_iff], exact sub_lt_iff_lt_add' }
 
-lemma P3_of_lt_left (h : ihr' x₁ x₂ y) (i j) (hm : mul_option x₂ y i j < x₂ * y)
-  (hl : x₁ < x₂.move_left i) : P3 x₁ x₂ (y.move_left j) y :=
-P3_trans _ (P24.L ((@h _).2.1 (is_option.move_left i)) hl _) (mul_option_lt_iff_P3.1 hm)
+def P3_cond (x₁ x' x₂ y₁ y₂) : Prop :=
+P24 x₁ x' y₁ ∧ P24 x₁ x' y₂ ∧ P3 x' x₂ y₁ y₂ ∧ (x₁ < x' → P3 x₁ x' y₁ y₂)
 
-lemma P3_of_eq_left (h : ihr' x₁ x₂ y) (h' : ihr'' x₁ x₂ y) (i j)
-  (hm : mul_option x₂ y i j < x₂ * y) (he : ⟦x₁⟧ = ⟦x₂.move_left i⟧) :
-  P3 x₁ x₂ (y.move_left j) y :=
+lemma P3_cond_of_ih' (h : ihr' x₁ x₂ y) (h' : ihr'' x₁ x₂ y) (hl : mul_option_lt_mul x₂ y)
+  (i j) : P3_cond x₁ (x₂.move_left i) x₂ (y.move_left j) y :=
+let ml := @is_option.move_left, h24 := (@h _).2.1 (ml i) in
+⟨(h' $ ml j).2 (ml i), h24, mul_option_lt_iff_P3.1 hl, λ l, h24.L l _⟩
+
+lemma P3_of_le_left {y₁ y₂} (i) (h : P3_cond x₁ (x₂.move_left i) x₂ y₁ y₂)
+  (hl : x₁ ≤ x₂.move_left i) : P3 x₁ x₂ y₁ y₂ :=
 begin
-  rw [P3, lt_iff], dsimp,
-  rw ((h' $ is_option.move_left j).2 (is_option.move_left i)).1 he,
-  rw ((@h _).2.1 $ is_option.move_left i).1 he,
-  exact mul_option_lt_iff_P3.1 hm,
+  have ml := @is_option.move_left,
+  rw [le_iff, le_iff_lt_or_eq] at hl, cases hl,
+  { exact (h.2.2.2 hl).trans _ h.2.2.1 },
+  { rw [P3, lt_iff], dsimp, rw [h.1.1 hl, h.2.1.1 hl], exact h.2.2.1 },
 end
 
-include ih'
-lemma P3_of_lt (hl : x₁ < x₂) :
-  (∀ j, P3 x₁ x₂ (y.move_left j) y) ∧ (∀ j, P3 x₁ x₂ ((-y).move_left j) (-y)) :=
+lemma P3_of_lt {y₁ y₂} (h : ∀ i, P3_cond x₁ (x₂.move_left i) x₂ y₁ y₂)
+  (hs : ∀ i, P3_cond (-x₂) ((-x₁).move_left i) (-x₁) y₁ y₂) (hl : x₁ < x₂) : P3 x₁ x₂ y₁ y₂ :=
 begin
-  have h := ih₁₂_of_ih' ih', have h' := ihr''_of_ih' ih',
-  have hn := ihr'_neg h, have hn' := ihr''_neg h',
-  obtain ⟨hn₁, hn₂⟩ := numeric_of_ih' ih',
-  obtain ⟨⟨h₁, _⟩, h₂, _⟩ := lt_mul_of_numeric hn₂,
-  obtain ⟨⟨_, h₄⟩, _, h₃⟩ := lt_mul_of_numeric hn₁,
-  obtain (⟨i,hi⟩|⟨i,hi⟩) := lf_iff_forall_le.1 (lf_of_lt hl);
-  rw [le_iff, le_iff_lt_or_eq] at hi; obtain (hi|hi) := hi; split; intro j,
-  { exact P3_of_lt_left h i j h₁ hi },
-  { exact P3_of_lt_left (ihr'_neg' h) i j h₂ hi },
-  { exact P3_of_eq_left h h' i j h₁ hi },
-  { exact P3_of_eq_left (ihr'_neg' h) (ihr''_neg' h') i j h₂ hi },
-  all_goals { rw P3_neg },
-  { exact P3_of_lt_left hn _ j h₃ (by {convert neg_lt_neg hi, apply move_left_neg}) },
-  { exact P3_of_lt_left (ihr'_neg' hn) _ j h₄ (by {convert neg_lt_neg hi, apply move_left_neg}) },
-  { exact P3_of_eq_left hn hn' _ j h₃ (by {convert neg_inj.2 hi.symm, rw move_left_neg}) },
-  { exact P3_of_eq_left (ihr'_neg' hn) (ihr''_neg' hn') _ j h₄
-      (by {convert neg_inj.2 hi.symm, rw move_left_neg}) },
+  obtain (⟨i,hi⟩|⟨i,hi⟩) := lf_iff_forall_le.1 (lf_of_lt hl),
+  exacts [P3_of_le_left i (h i) hi, P3_neg.2 $
+    P3_of_le_left _ (hs _) $ by { convert neg_le_neg (le_iff.1 hi), rw move_left_neg }],
 end
-omit ih'
 
 theorem P124 (a : mul_args) : (to_multiset a).numeric → hyp a :=
 begin
@@ -724,19 +708,100 @@ begin
   replace ih : ∀ a', ices a' a → hyp a' := λ a' hr, ih a' hr (numeric_dc hr ha),
   cases a with x y x₁ x₂ y,
   { exact P1_of_hyp ih (ha x P1_mem.1) (ha y P1_mem.2) },
-  { refine ⟨λ he, equiv_iff.1 _, P3_of_lt ih⟩,
-    have h₁ := ha x₁ P24_mem.1, have h₂ := ha x₂ P24_mem.2.1,
-    have h₁₂ := ih₁₂_of_ih' ih, have h₂₁ := ih₂₁_of_ih' ih,
-    exact ⟨mul_le_mul_right h₁ h₂ h₁₂ h₂₁ he, mul_le_mul_right h₂ h₁ h₂₁ h₁₂ he.symm⟩ },
+  obtain ⟨h, hs, h'⟩ := ⟨ih₁₂_of_ih' ih, ih₂₁_of_ih' ih, ihr''_of_ih' ih⟩,
+  obtain ⟨hn, hn'⟩ := ⟨ihr'_neg' h, ihr''_neg' h'⟩,
+  refine ⟨λ he, equiv_iff.1 _, λ hl, _⟩,
+  { obtain ⟨h₁, h₂⟩ := ⟨ha x₁ P24_mem.1, ha x₂ P24_mem.2.1⟩,
+    exact ⟨mul_le_mul_right h₁ h₂ h hs he, mul_le_mul_right h₂ h₁ hs h he.symm⟩ },
+  obtain ⟨hn₁, hn₂⟩ := numeric_of_ih' ih,
+  obtain ⟨⟨h₁, -⟩, h₂, -⟩ := lt_mul_of_numeric hn₂,
+  obtain ⟨⟨-, h₃⟩, -, h₄⟩ := lt_mul_of_numeric hn₁,
+  split; intro j; refine P3_of_lt _ _ hl; intro i; apply P3_cond_of_ih',
+  exacts [h, h', @h₁, ihr'_neg h, ihr''_neg h', @h₄, hn, hn', @h₂, ihr'_neg hn, ihr''_neg hn', @h₃],
 end
 
-#check P124
+include hx hy
+
+theorem mul : numeric (x * y) :=
+P124 (mul_args.P1 x y) $ by rintro _ (rfl|rfl|⟨⟨⟩⟩); assumption
+
+omit hx
+variables (h₁ : numeric x₁) (h₂ : numeric x₂)
+include h₁ h₂
+
+theorem P24_out (hy : numeric y) : P24 x₁ x₂ y :=
+P124 (mul_args.P24 x₁ x₂ y) $ by rintro _ (rfl|rfl|rfl|⟨⟨⟩⟩); assumption
+
+theorem mul_congr_left (hy : numeric y) (he : x₁ ≈ x₂) : x₁ * y ≈ x₂ * y :=
+equiv_iff.2 $ (P24_out h₁ h₂ hy).1 $ equiv_iff.1 he
+
+theorem mul_congr_right (he : x₁ ≈ x₂) : y * x₁ ≈ y * x₂ :=
+equiv_trans (mul_comm_equiv _ _) $ equiv_trans (mul_congr_left h₁ h₂ hy he) $ mul_comm_equiv _ _
+
+omit hy
+variables {y₁ y₂ : pgame.{u}} (hy₁ : numeric y₁) (hy₂ : numeric y₂)
+include hy₁ hy₂
+
+theorem mul_congr (hx : x₁ ≈ x₂) (hy : y₁ ≈ y₂) : x₁ * y₁ ≈ x₂ * y₂ :=
+equiv_trans (mul_congr_left h₁ h₂ hy₁ hx) (mul_congr_right h₂ hy₁ hy₂ hy)
+
+lemma P3_of_lt_of_lt (hx : x₁ < x₂) (hy : y₁ < y₂) : P3 x₁ x₂ y₁ y₂ :=
+begin
+  revert x₁ x₂, rw ← prod.forall',
+  refine λ t, (wf_is_option.game_add wf_is_option).induction t _,
+  rintro ⟨x₁, x₂⟩ ih h₁ h₂ hx, refine P3_of_lt _ _ hx; intro i,
+  { have hi := h₂.move_left i,
+    refine ⟨_, _, _, _⟩,
+    exact P24_out h₁ hi hy₁,
+    exact P24_out h₁ hi hy₂,
+    exact P3.comm.2 (((P24_out hy₁ hy₂ h₂).2 hy).1 _),
+    exact ih _ (game_add.snd $ is_option.move_left i) h₁ hi },
+  { have hi := h₁.neg.move_left i,
+    refine ⟨_, _, _, _⟩,
+    exact P24_out h₂.neg hi hy₁,
+    exact P24_out h₂.neg hi hy₂,
+    exact P3.comm.2 (((P24_out hy₁ hy₂ h₁).2 hy).2 _),
+    { rw [move_left_neg', ← P3_neg, neg_lt_iff],
+      exact ih _ (game_add.fst $ is_option.move_right _) (h₁.move_right _) h₂ } },
+end
+
+omit hy₁ hy₂
+
+lemma mul_pos (hp₁ : 0 < x₁) (hp₂ : 0 < x₂) : 0 < x₁ * x₂ :=
+begin
+  rw lt_iff,
+  convert lt_iff.1 (P3_of_lt_of_lt numeric_zero h₁ numeric_zero h₂ hp₁ hp₂) using 1;
+  simpa,
+end
 
 end main
 
 end numeric
 
 end pgame
+
+namespace surreal
+
+def mul : surreal → surreal → surreal :=
+surreal.lift₂
+  (λ x y ox oy, ⟦⟨x * y, ox.mul oy⟩⟧)
+  (λ _ _ _ _ ox₁ oy₁ ox₂ oy₂ hx hy, quotient.sound $ ox₁.mul_congr ox₂ oy₁ oy₂ hx hy)
+
+noncomputable instance : linear_ordered_comm_ring surreal :=
+{ mul := mul,
+  mul_assoc := by { rintro ⟨x⟩ ⟨y⟩ ⟨z⟩, exact quotient.sound (mul_assoc_equiv x.1 y.1 z.1) },
+  one := 1,
+  one_mul := by { rintro ⟨x⟩, exact quotient.sound (one_mul_equiv x) },
+  mul_one := by { rintro ⟨x⟩, exact quotient.sound (mul_one_equiv x) },
+  left_distrib := by { rintro ⟨x⟩ ⟨y⟩ ⟨z⟩, exact quotient.sound (left_distrib_equiv x y z) },
+  right_distrib := by { rintro ⟨x⟩ ⟨y⟩ ⟨z⟩, exact quotient.sound (right_distrib_equiv x y z) },
+  zero_le_one := zero_le_one,
+  mul_pos := by { rintro ⟨x⟩ ⟨y⟩, exact x.2.mul_pos y.2 },
+  exists_pair_ne := ⟨0, 1, ne_of_lt zero_lt_one⟩,
+  mul_comm := by { rintro ⟨x⟩ ⟨y⟩, exact quotient.sound (mul_comm_equiv x y) },
+  .. surreal.linear_ordered_add_comm_group }
+
+end surreal
 
 /- TODO : move le_of_forall_lt to pgame -/
 /- make quot_neg_mul a relabelling?  -/

@@ -1380,7 +1380,7 @@ begin
     rw [←add_neg_eq_iff_eq_add, (is_unit_eq_or_eq_neg ha hd).resolve_left had,
         (is_unit_eq_or_eq_neg hb hd).resolve_left hbd, ←one_mul (-d), ←add_mul, ←add_mul] at h,
     replace h := congr_arg nat_abs h,
-    rw [nat_abs_mul, nat_abs_neg, is_unit_nat_abs hc, is_unit_nat_abs hd] at h,
+    rw [nat_abs_mul, nat_abs_neg, hc.nat_abs_eq, hd.nat_abs_eq] at h,
     exact (one_ne_zero (bit1_eq_one.mp h)).elim },
   { rintros (⟨rfl, rfl⟩ | ⟨rfl, rfl⟩),
     { exact rfl },

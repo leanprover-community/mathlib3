@@ -186,8 +186,12 @@ add_tactic_doc
   decl_names := [`tactic.interactive.replace],
   tags       := ["context management"] }
 
-/-- Make every proposition in the context decidable. -/
-meta def classical := tactic.classical
+/-- Make every proposition in the context decidable.
+
+`classical!` does this more aggressively, such that even if a decidable instance is already
+available for a specific proposition, the noncomputable one will be used instead. -/
+meta def classical (bang : parse $ (tk "!")?) :=
+tactic.classical bang.is_some
 
 add_tactic_doc
 { name       := "classical",

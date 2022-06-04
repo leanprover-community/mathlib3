@@ -166,7 +166,8 @@ end
 ((dual_pairing 𝕜 E).flip.polar_antitone subset_closure).antisymm $
   (dual_pairing 𝕜 E).flip.polar_gc.l_le $
   closure_minimal ((dual_pairing 𝕜 E).flip.polar_gc.le_u_l s) $
-  (is_closed_polar _ _).preimage (inclusion_in_double_dual 𝕜 E).continuous
+  by simpa [linear_map.flip_flip]
+    using (is_closed_polar _ _).preimage (inclusion_in_double_dual 𝕜 E).continuous
 
 variables {𝕜}
 

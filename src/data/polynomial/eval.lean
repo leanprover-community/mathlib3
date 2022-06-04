@@ -830,8 +830,9 @@ lemma eval_eq_zero_of_dvd_of_eval_eq_zero : p ∣ q → eval x p = 0 → eval x 
 eval₂_eq_zero_of_dvd_of_eval₂_eq_zero _ _
 
 @[simp]
-lemma eval_geom_sum {R} [comm_semiring R] {n : ℕ} {x : R} : eval x (geom_sum X n) = geom_sum x n :=
-by simp [geom_sum_def, eval_finset_sum]
+lemma eval_geom_sum {R} [comm_semiring R] {n : ℕ} {x : R} :
+  eval x (∑ i in range n, X ^ i) = ∑ i in range n, x ^ i :=
+by simp [eval_finset_sum]
 
 end
 

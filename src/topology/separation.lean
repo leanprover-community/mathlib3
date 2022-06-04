@@ -158,6 +158,10 @@ end separated
 class t0_space (α : Type u) [topological_space α] : Prop :=
 (t0 : ∀ x y, x ≠ y → ∃ U:set α, is_open U ∧ (xor (x ∈ U) (y ∈ U)))
 
+lemma exists_is_open_xor_mem [t0_space α] {x y : α} (h : x ≠ y) :
+  ∃ U:set α, is_open U ∧ xor (x ∈ U) (y ∈ U) :=
+t0_space.t0 x y h
+
 lemma t0_space_def (α : Type u) [topological_space α] :
   t0_space α ↔ ∀ x y, x ≠ y → ∃ U:set α, is_open U ∧ (xor (x ∈ U) (y ∈ U)) :=
 by { split, apply @t0_space.t0, apply t0_space.mk }
@@ -165,6 +169,12 @@ by { split, apply @t0_space.t0, apply t0_space.mk }
 /-- Two points are topologically indistinguishable if no open set separates them. -/
 def indistinguishable {α : Type u} [topological_space α] (x y : α) : Prop :=
 ∀ (U : set α) (hU : is_open U), x ∈ U ↔ y ∈ U
+
+lemma indistinguishable_iff_nhds_eq {x y : α} : indistinguishable x y ↔ 𝓝 x = 𝓝 y :=
+⟨λ h, by simp only [nhds_def', h _] { contextual := tt },
+  λ h U hU, by simp only [← hU.mem_nhds_iff, h]⟩
+
+alias indistinguishable_iff_nhds_eq ↔ indistinguishable.nhds_eq _
 
 lemma t0_space_iff_distinguishable (α : Type u) [topological_space α] :
   t0_space α ↔ ∀ (x y : α), x ≠ y → ¬ indistinguishable x y :=
@@ -175,11 +185,18 @@ begin
   simp_rw xor_iff_not_iff,
 end
 
-lemma indistinguishable_iff_closed {α : Type u} [topological_space α] (x y : α) :
+@[simp] lemma nhds_eq_nhds_iff [t0_space α] {a b : α} : 𝓝 a = 𝓝 b ↔ a = b :=
+function.injective.eq_iff $ λ x y h, of_not_not $
+  λ hne, (t0_space_iff_distinguishable α).mp ‹_› x y hne (indistinguishable_iff_nhds_eq.mpr h)
+
+lemma indistinguishable.eq [t0_space α] {x y : α} (h : indistinguishable x y) : x = y :=
+nhds_eq_nhds_iff.mp h.nhds_eq
+
+lemma indistinguishable_iff_closed {x y : α} :
   indistinguishable x y ↔ ∀ (U : set α) (hU : is_closed U), x ∈ U ↔ y ∈ U :=
 ⟨λ h U hU, not_iff_not.mp (h _ hU.1), λ h U hU, not_iff_not.mp (h _ (is_closed_compl_iff.mpr hU))⟩
 
-lemma indistinguishable_iff_closure {α : Type u} [topological_space α] (x y : α) :
+lemma indistinguishable_iff_closure (x y : α) :
   indistinguishable x y ↔ x ∈ closure ({y} : set α) ∧ y ∈ closure ({x} : set α) :=
 begin
   rw indistinguishable_iff_closed,
@@ -193,8 +210,21 @@ lemma subtype_indistinguishable_iff {α : Type u} [topological_space α] {U : se
   indistinguishable x y ↔ indistinguishable (x : α) y :=
 by { simp_rw [indistinguishable_iff_closure, closure_subtype, image_singleton] }
 
-lemma indistinguishable.eq [hα : t0_space α] {x y : α} (h : indistinguishable x y) : x = y :=
-not_imp_not.mp ((t0_space_iff_distinguishable _).mp hα x y) h
+theorem minimal_nonempty_closed_subsingleton [t0_space α] {s : set α} (hs : is_closed s)
+  (hmin : ∀ t ⊆ s, t.nonempty → is_closed t → t = s) :
+  s.subsingleton :=
+begin
+  refine λ x hx y hy, of_not_not (λ hxy, _),
+  rcases exists_is_open_xor_mem hxy with ⟨U, hUo, hU⟩,
+  wlog h : x ∈ U ∧ y ∉ U := hU using [x y, y x], cases h with hxU hyU,
+  have : s \ U = s := hmin (s \ U) (diff_subset _ _) ⟨y, hy, hyU⟩ (hs.sdiff hUo),
+  exact (this.symm.subset hx).2 hxU
+end
+
+theorem minimal_nonempty_closed_eq_singleton [t0_space α] {s : set α} (hs : is_closed s)
+  (hne : s.nonempty) (hmin : ∀ t ⊆ s, t.nonempty → is_closed t → t = s) :
+  ∃ x, s = {x} :=
+exists_eq_singleton_iff_nonempty_subsingleton.2 ⟨hne, minimal_nonempty_closed_subsingleton hs hmin⟩
 
 /-- Given a closed set `S` in a compact T₀ space,
 there is some `x ∈ S` such that `{x}` is closed. -/
@@ -203,64 +233,47 @@ theorem is_closed.exists_closed_singleton {α : Type*} [topological_space α]
   ∃ (x : α), x ∈ S ∧ is_closed ({x} : set α) :=
 begin
   obtain ⟨V, Vsub, Vne, Vcls, hV⟩ := hS.exists_minimal_nonempty_closed_subset hne,
-  by_cases hnt : ∃ (x y : α) (hx : x ∈ V) (hy : y ∈ V), x ≠ y,
-  { exfalso,
-    obtain ⟨x, y, hx, hy, hne⟩ := hnt,
-    obtain ⟨U, hU, hsep⟩ := t0_space.t0 _ _ hne,
-    have : ∀ (z w : α) (hz : z ∈ V) (hw : w ∈ V) (hz' : z ∈ U) (hw' : ¬ w ∈ U), false,
-    { intros z w hz hw hz' hw',
-      have uvne : (V ∩ Uᶜ).nonempty,
-      { use w, simp only [hw, hw', set.mem_inter_eq, not_false_iff, and_self, set.mem_compl_eq], },
-      specialize hV (V ∩ Uᶜ) (set.inter_subset_left _ _) uvne
-        (is_closed.inter Vcls (is_closed_compl_iff.mpr hU)),
-      have : V ⊆ Uᶜ,
-      { rw ←hV, exact set.inter_subset_right _ _ },
-      exact this hz hz', },
-    cases hsep,
-    { exact this x y hx hy hsep.1 hsep.2 },
-    { exact this y x hy hx hsep.1 hsep.2 } },
-  { push_neg at hnt,
-    obtain ⟨z, hz⟩ := Vne,
-    refine ⟨z, Vsub hz, _⟩,
-    convert Vcls,
-    ext,
-    simp only [set.mem_singleton_iff, set.mem_compl_eq],
-    split,
-    { rintro rfl, exact hz, },
-    { exact λ hx, hnt x z hx hz, }, },
+  rcases minimal_nonempty_closed_eq_singleton Vcls Vne hV with ⟨x, rfl⟩,
+  exact ⟨x, Vsub (mem_singleton x), Vcls⟩
 end
 
-/-- Given an open `finset` `S` in a T₀ space, there is some `x ∈ S` such that `{x}` is open. -/
-theorem exists_open_singleton_of_open_finset [t0_space α] (s : finset α) (sne : s.nonempty)
-  (hso : is_open (s : set α)) :
-  ∃ x ∈ s, is_open ({x} : set α):=
+theorem minimal_nonempty_open_subsingleton [t0_space α] {s : set α} (hs : is_open s)
+  (hmin : ∀ t ⊆ s, t.nonempty → is_open t → t = s) :
+  s.subsingleton :=
 begin
+  refine λ x hx y hy, of_not_not (λ hxy, _),
+  rcases exists_is_open_xor_mem hxy with ⟨U, hUo, hU⟩,
+  wlog h : x ∈ U ∧ y ∉ U := hU using [x y, y x], cases h with hxU hyU,
+  have : s ∩ U = s := hmin (s ∩ U) (inter_subset_left _ _) ⟨x, hx, hxU⟩ (hs.inter hUo),
+  exact hyU (this.symm.subset hy).2
+end
+
+theorem minimal_nonempty_open_eq_singleton [t0_space α] {s : set α} (hs : is_open s)
+  (hne : s.nonempty) (hmin : ∀ t ⊆ s, t.nonempty → is_open t → t = s) :
+  ∃ x, s = {x} :=
+exists_eq_singleton_iff_nonempty_subsingleton.2 ⟨hne, minimal_nonempty_open_subsingleton hs hmin⟩
+
+/-- Given an open finite set `S` in a T₀ space, there is some `x ∈ S` such that `{x}` is open. -/
+theorem exists_open_singleton_of_open_finite [t0_space α] {s : set α} (hfin : s.finite)
+  (hne : s.nonempty) (ho : is_open s) :
+  ∃ x ∈ s, is_open ({x} : set α) :=
+begin
+  lift s to finset α using hfin,
   induction s using finset.strong_induction_on with s ihs,
-  by_cases hs : set.subsingleton (s : set α),
-  { rcases sne with ⟨x, hx⟩,
-    refine ⟨x, hx, _⟩,
-    have : (s : set α) = {x}, from hs.eq_singleton_of_mem hx,
-    rwa this at hso },
-  { dunfold set.subsingleton at hs,
-    push_neg at hs,
-    rcases hs with ⟨x, hx, y, hy, hxy⟩,
-    rcases t0_space.t0 x y hxy with ⟨U, hU, hxyU⟩,
-    wlog H : x ∈ U ∧ y ∉ U := hxyU using [x y, y x],
-    obtain ⟨z, hzs, hz⟩ : ∃ z ∈ s.filter (λ z, z ∈ U), is_open ({z} : set α),
-    { refine ihs _ (finset.filter_ssubset.2 ⟨y, hy, H.2⟩) ⟨x, finset.mem_filter.2 ⟨hx, H.1⟩⟩ _,
-      rw [finset.coe_filter],
-      exact is_open.inter hso hU },
-    exact ⟨z, (finset.mem_filter.1 hzs).1, hz⟩ }
+  rcases em (∃ t ⊂ s, t.nonempty ∧ is_open (t : set α)) with ⟨t, hts, htne, hto⟩|ht,
+  { rcases ihs t hts htne hto with ⟨x, hxt, hxo⟩,
+    exact ⟨x, hts.1 hxt, hxo⟩ },
+  { rcases minimal_nonempty_open_eq_singleton ho hne _ with ⟨x, hx⟩,
+    { exact ⟨x, hx.symm ▸ rfl, hx ▸ ho⟩ },
+    refine λ t hts htne hto, of_not_not (λ hts', ht _),
+    lift t to finset α using s.finite_to_set.subset hts,
+    exact ⟨t, ssubset_iff_subset_ne.2 ⟨hts, mt finset.coe_inj.2 hts'⟩, htne, hto⟩ }
 end
 
-theorem exists_open_singleton_of_fintype [t0_space α] [f : fintype α] [ha : nonempty α] :
-  ∃ x:α, is_open ({x}:set α) :=
-begin
-  refine ha.elim (λ x, _),
-  have : is_open ((finset.univ : finset α) : set α), { simp },
-  rcases exists_open_singleton_of_open_finset _ ⟨x, finset.mem_univ x⟩ this with ⟨x, _, hx⟩,
-  exact ⟨x, hx⟩
-end
+theorem exists_open_singleton_of_fintype [t0_space α] [fintype α] [nonempty α] :
+  ∃ x : α, is_open ({x} : set α) :=
+let ⟨x, _, h⟩ := exists_open_singleton_of_open_finite (finite.of_fintype _) univ_nonempty
+  is_open_univ in ⟨x, h⟩
 
 lemma t0_space_of_injective_of_continuous [topological_space β] {f : α → β}
   (hf : function.injective f) (hf' : continuous f) [t0_space β] : t0_space α :=
@@ -512,9 +525,6 @@ end
 
 @[simp] lemma nhds_le_nhds_iff [t1_space α] {a b : α} : 𝓝 a ≤ 𝓝 b ↔ a = b :=
 ⟨λ h, pure_le_nhds_iff.mp $ (pure_le_nhds a).trans h, λ h, h ▸ le_rfl⟩
-
-@[simp] lemma nhds_eq_nhds_iff [t1_space α] {a b : α} : 𝓝 a = 𝓝 b ↔ a = b :=
-⟨λ h, nhds_le_nhds_iff.mp h.le, λ h, h ▸ rfl⟩
 
 @[simp] lemma compl_singleton_mem_nhds_set_iff [t1_space α] {x : α} {s : set α} :
   {x}ᶜ ∈ 𝓝ˢ s ↔ x ∉ s :=

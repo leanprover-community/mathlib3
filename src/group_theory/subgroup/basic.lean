@@ -2667,9 +2667,12 @@ instance zpowers_is_commutative (g : G) : (zpowers g).is_commutative :=
 ⟨⟨λ ⟨_, _, h₁⟩ ⟨_, _, h₂⟩, by rw [subtype.ext_iff, coe_mul, coe_mul,
   subtype.coe_mk, subtype.coe_mk, ←h₁, ←h₂, zpow_mul_comm]⟩⟩
 
-@[simp, to_additive zmultiples_le, simp]
+@[simp, to_additive zmultiples_le]
 lemma zpowers_le {g : G} {H : subgroup G} : zpowers g ≤ H ↔ g ∈ H :=
 by rw [zpowers_eq_closure, closure_le, set.singleton_subset_iff, set_like.mem_coe]
+
+@[simp, to_additive zmultiples_eq_bot] lemma zpowers_eq_bot {g : G} : zpowers g = ⊥ ↔ g = 1 :=
+by rw [eq_bot_iff, zpowers_le, mem_bot]
 
 end subgroup
 

@@ -368,7 +368,7 @@ theorem add_NF_below {b} : ∀ {o₁ o₂}, NF_below o₁ b → NF_below o₂ b 
 end
 
 instance add_NF (o₁ o₂) : ∀ [NF o₁] [NF o₂], NF (o₁ + o₂)
-| ⟨⟨b₁, h₁⟩⟩ ⟨⟨b₂, h₂⟩⟩ := ⟨(b₁.le_total b₂).elim
+| ⟨⟨b₁, h₁⟩⟩ ⟨⟨b₂, h₂⟩⟩ := ⟨(le_total b₁ b₂).elim
   (λ h, ⟨b₂, add_NF_below (h₁.mono h) h₂⟩)
   (λ h, ⟨b₁, add_NF_below h₁ (h₂.mono h)⟩)⟩
 
@@ -893,7 +893,7 @@ onote.repr_mul a.1 b.1
 /-- Exponentiation of ordinal notations -/
 def opow (x y : nonote) := mk (x.1.opow y.1)
 
-theorem repr_opow (a b) : repr (opow a b) = (repr a).opow (repr b) :=
+theorem repr_opow (a b) : repr (opow a b) = repr a ^ repr b :=
 onote.repr_opow a.1 b.1
 
 end nonote

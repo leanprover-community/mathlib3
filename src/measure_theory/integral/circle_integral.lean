@@ -132,7 +132,7 @@ mt circle_map_eq_center_iff.1 hR
 lemma has_deriv_at_circle_map (c : ℂ) (R : ℝ) (θ : ℝ) :
   has_deriv_at (circle_map c R) (circle_map 0 R θ * I) θ :=
 by simpa only [mul_assoc, one_mul, of_real_clm_apply, circle_map, of_real_one, zero_add]
- using ((of_real_clm.has_deriv_at.mul_const I).cexp_real.const_mul (R : ℂ)).const_add c
+ using ((of_real_clm.has_deriv_at.mul_const I).cexp.const_mul (R : ℂ)).const_add c
 
 /- TODO: prove `cont_diff ℝ (circle_map c R)`. This needs a version of `cont_diff.mul`
 for multiplication in a normed algebra over the base field. -/
@@ -487,7 +487,7 @@ begin
   { rw [hR, mul_zero],
     exact mul_nonneg (inv_nonneg.2 real.two_pi_pos.le)
       (interval_integral.integral_nonneg real.two_pi_pos.le (λ _ _, norm_nonneg _)) },
-  { rw [inv_pow₀, inv_mul_cancel_right₀ hR] }
+  { rw [inv_pow, inv_mul_cancel_right₀ hR] }
 end
 
 /-- For any circle integrable function `f`, the power series `cauchy_power_series f c R` multiplied
@@ -574,7 +574,7 @@ begin
   refine this ▸ has_sum_single _ (λ n hn, _),
   simp only [div_eq_mul_inv, mul_pow, integral_const_mul, mul_assoc],
   rw [(integral_congr hR.le (λ z hz, _)).trans (H n hn), mul_zero],
-  rw [← pow_succ', ← zpow_coe_nat, inv_zpow₀, ← zpow_neg₀, int.coe_nat_succ, neg_add,
+  rw [← pow_succ', ← zpow_coe_nat, inv_zpow, ← zpow_neg, int.coe_nat_succ, neg_add,
     sub_eq_add_neg _ (1 : ℤ)]
 end
 

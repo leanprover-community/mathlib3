@@ -1386,3 +1386,47 @@ lemma one_le_inv_of_le_one :  a ≤ 1 → 1 ≤ a⁻¹ :=
 one_le_inv'.mpr
 
 end norm_num_lemmas
+
+section
+
+variables {β : Type*}
+[group α] [preorder α] [covariant_class α α (*) (≤)] [covariant_class α α (swap (*)) (≤)]
+[preorder β] {f : β → α} {s : set β}
+
+@[to_additive] lemma monotone.inv (hf : monotone f) : antitone (λ x, (f x)⁻¹) :=
+λ x y hxy, inv_le_inv_iff.2 (hf hxy)
+
+@[to_additive] lemma antitone.inv (hf : antitone f) : monotone (λ x, (f x)⁻¹) :=
+λ x y hxy, inv_le_inv_iff.2 (hf hxy)
+
+@[to_additive] lemma monotone_on.inv (hf : monotone_on f s) :
+  antitone_on (λ x, (f x)⁻¹) s :=
+λ x hx y hy hxy, inv_le_inv_iff.2 (hf hx hy hxy)
+
+@[to_additive] lemma antitone_on.inv (hf : antitone_on f s) :
+  monotone_on (λ x, (f x)⁻¹) s :=
+λ x hx y hy hxy, inv_le_inv_iff.2 (hf hx hy hxy)
+
+end
+
+section
+
+variables {β : Type*}
+[group α] [preorder α] [covariant_class α α (*) (<)] [covariant_class α α (swap (*)) (<)]
+[preorder β] {f : β → α} {s : set β}
+
+@[to_additive] lemma strict_mono.inv (hf : strict_mono f) : strict_anti (λ x, (f x)⁻¹) :=
+λ x y hxy, inv_lt_inv_iff.2 (hf hxy)
+
+@[to_additive] lemma strict_anti.inv (hf : strict_anti f) : strict_mono (λ x, (f x)⁻¹) :=
+λ x y hxy, inv_lt_inv_iff.2 (hf hxy)
+
+@[to_additive] lemma strict_mono_on.inv (hf : strict_mono_on f s) :
+  strict_anti_on (λ x, (f x)⁻¹) s :=
+λ x hx y hy hxy, inv_lt_inv_iff.2 (hf hx hy hxy)
+
+@[to_additive] lemma strict_anti_on.inv (hf : strict_anti_on f s) :
+  strict_mono_on (λ x, (f x)⁻¹) s :=
+λ x hx y hy hxy, inv_lt_inv_iff.2 (hf hx hy hxy)
+
+end

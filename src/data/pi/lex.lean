@@ -7,33 +7,49 @@ import order.well_founded
 import algebra.group.pi
 import order.min_max
 
-
 /-!
 # Lexicographic order on Pi types
 
-This file defines the lexicographic relation for Pi types of partial orders and linear orders. We
-also provide a `pilex` analog of `pi.ordered_comm_group` (see `algebra.order.pi`).
+This file defines the lexicographic order for Pi types. `a` is less than `b` if `a i = b i` for all
+`i` up to some point `k`, and `a k < b k`.
+
+## Notation
+
+* `Πₗ i, α i`: Pi type equipped with the lexicographic order. Type synonym of `Π i, α i`.
+
+## See also
+
+Related files are:
+* `data.finset.colex`: Colexicographic order on finite sets.
+* `data.list.lex`: Lexicographic order on lists.
+* `data.sigma.order`: Lexicographic order on `Σₗ i, α i`.
+* `data.psigma.order`: Lexicographic order on `Σₗ' i, α i`.
+* `data.prod.lex`: Lexicographic order on `α × β`.
 -/
 
 variables {ι : Type*} {β : ι → Type*} (r : ι → ι → Prop)
   (s : Π {i}, β i → β i → Prop)
 
+namespace pi
+
+instance {α : Type*} : Π [inhabited α], inhabited (lex α) := id
+
 /-- The lexicographic relation on `Π i : ι, β i`, where `ι` is ordered by `r`,
   and each `β i` is ordered by `s`. -/
-def pi.lex (x y : Π i, β i) : Prop :=
+protected def lex (x y : Π i, β i) : Prop :=
 ∃ i, (∀ j, r j i → x j = y j) ∧ s (x i) (y i)
 
-/-- The cartesian product of an indexed family, equipped with the lexicographic order. -/
-def pilex (α : Type*) (β : α → Type*) : Type* := Π a, β a
+/- This unfortunately results in a type that isn't delta-reduced, so we keep the notation out of the
+basic API, just in case -/
+notation `Πₗ` binders `, ` r:(scoped p, lex (Π i, p i)) := r
 
-instance [has_lt ι] [∀ a, has_lt (β a)] : has_lt (pilex ι β) :=
-{ lt := pi.lex (<) (λ _, (<)) }
+@[simp] lemma to_lex_apply (x : Π i, β i) (i : ι) : to_lex x i = x i := rfl
+@[simp] lemma of_lex_apply (x : lex (Π i, β i)) (i : ι) : of_lex x i = x i := rfl
 
-instance [∀ a, inhabited (β a)] : inhabited (pilex ι β) :=
-by unfold pilex; apply_instance
+instance [has_lt ι] [Π a, has_lt (β a)] : has_lt (lex (Π i, β i)) := ⟨pi.lex (<) (λ _, (<))⟩
 
-instance pilex.is_strict_order [linear_order ι] [∀ a, partial_order (β a)] :
-  is_strict_order (pilex ι β) (<) :=
+instance lex.is_strict_order [linear_order ι] [∀ a, partial_order (β a)] :
+  is_strict_order (lex (Π i, β i)) (<) :=
 { irrefl := λ a ⟨k, hk₁, hk₂⟩, lt_irrefl (a k) hk₂,
   trans :=
     begin
@@ -44,12 +60,12 @@ instance pilex.is_strict_order [linear_order ι] [∀ a, partial_order (β a)] :
         ⟨N₂, λ j hj, (lt_N₁ _ (hj.trans H)).trans (lt_N₂ _ hj), (lt_N₁ _ H).symm ▸ b_lt_c⟩]
     end }
 
-instance [linear_order ι] [∀ a, partial_order (β a)] : partial_order (pilex ι β) :=
+instance [linear_order ι] [Π a, partial_order (β a)] : partial_order (lex (Π i, β i)) :=
 partial_order_of_SO (<)
 
-protected lemma pilex.is_strict_total_order' [linear_order ι]
+protected lemma lex.is_strict_total_order' [linear_order ι]
   (wf : well_founded ((<) : ι → ι → Prop)) [∀ a, linear_order (β a)] :
-  is_strict_total_order' (pilex ι β) (<) :=
+  is_strict_total_order' (lex (Π i, β i)) (<) :=
 { trichotomous := λ a b,
     begin
       by_cases h : ∃ i, a i ≠ b i,
@@ -63,30 +79,32 @@ protected lemma pilex.is_strict_total_order' [linear_order ι]
       { push_neg at h, exact or.inr (or.inl (funext h)) }
     end }
 
-/-- `pilex` is a linear order if the original order is well-founded.
+/-- `Πₗ i, α i` is a linear order if the original order is well-founded.
 This cannot be an instance, since it depends on the well-foundedness of `<`. -/
-protected noncomputable def pilex.linear_order [linear_order ι]
+protected noncomputable def lex.linear_order [linear_order ι]
   (wf : well_founded ((<) : ι → ι → Prop)) [∀ a, linear_order (β a)] :
-  linear_order (pilex ι β) :=
-@linear_order_of_STO' (pilex ι β) (<) (pilex.is_strict_total_order' wf) (classical.dec_rel _)
+  linear_order (lex (Π i, β i)) :=
+@linear_order_of_STO' (Πₗ i, β i) (<) (pi.lex.is_strict_total_order' wf) (classical.dec_rel _)
 
-lemma pilex.le_of_forall_le [linear_order ι]
-  (wf : well_founded ((<) : ι → ι → Prop)) [∀ a, linear_order (β a)] {a b : pilex ι β}
+lemma lex.le_of_forall_le [linear_order ι]
+  (wf : well_founded ((<) : ι → ι → Prop)) [Π a, linear_order (β a)] {a b : lex (Π i, β i)}
   (h : ∀ i, a i ≤ b i) : a ≤ b :=
 begin
-  letI : linear_order (pilex ι β) := pilex.linear_order wf,
+  letI : linear_order (Πₗ i, β i) := lex.linear_order wf,
   exact le_of_not_lt (λ ⟨i, hi⟩, (h i).not_lt hi.2)
 end
 
 --we might want the analog of `pi.ordered_cancel_comm_monoid` as well in the future
 @[to_additive]
-instance [linear_order ι] [∀ a, ordered_comm_group (β a)] :
-  ordered_comm_group (pilex ι β) :=
+instance lex.ordered_comm_group [linear_order ι] [∀ a, ordered_comm_group (β a)] :
+  ordered_comm_group (lex (Π i, β i)) :=
 { mul_le_mul_left := λ x y hxy z,
     hxy.elim
       (λ hxyz, hxyz ▸ le_rfl)
       (λ ⟨i, hi⟩,
         or.inr ⟨i, λ j hji, show z j * x j = z j * y j, by rw hi.1 j hji,
           mul_lt_mul_left' hi.2 _⟩),
-  ..pilex.partial_order,
+  ..pi.lex.partial_order,
   ..pi.comm_group }
+
+end pi

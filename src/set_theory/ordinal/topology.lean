@@ -29,39 +29,40 @@ open cardinal
 
 namespace ordinal
 
+variables {s : set ordinal.{u}} {a : ordinal.{u}}
+
 instance : topological_space ordinal.{u} :=
 preorder.topology ordinal.{u}
 
 instance : order_topology ordinal.{u} :=
 ⟨rfl⟩
 
-theorem is_open_singleton_iff {o : ordinal} : is_open ({o} : set ordinal) ↔ ¬ is_limit o :=
+theorem is_open_singleton_iff : is_open ({a} : set ordinal) ↔ ¬ is_limit a :=
 begin
-  refine ⟨λ h ho, _, λ ho, _⟩,
-  { obtain ⟨a, b, hab, hab'⟩ := (mem_nhds_iff_exists_Ioo_subset'
-      ⟨0, ordinal.pos_iff_ne_zero.2 ho.1⟩ ⟨_, lt_succ_self o⟩).1 (h.mem_nhds rfl),
-    have hao := ho.2 a hab.1,
-    exact hao.ne (hab' ⟨lt_succ_self a, hao.trans hab.2⟩) },
-  { rcases zero_or_succ_or_limit o with rfl | ⟨a, ha⟩ | ho',
+  refine ⟨λ h ha, _, λ ha, _⟩,
+  { obtain ⟨b, c, hbc, hbc'⟩ := (mem_nhds_iff_exists_Ioo_subset'
+      ⟨0, ordinal.pos_iff_ne_zero.2 ha.1⟩ ⟨_, lt_succ_self a⟩).1 (h.mem_nhds rfl),
+    have hba := ha.2 b hbc.1,
+    exact hba.ne (hbc' ⟨lt_succ_self b, hba.trans hbc.2⟩) },
+  { rcases zero_or_succ_or_limit a with rfl | ⟨b, hb⟩ | ha',
     { convert is_open_gt' (1 : ordinal),
       ext,
       exact ordinal.lt_one_iff_zero.symm },
-    { convert @is_open_Ioo _ _ _ _ a (o + 1),
-      ext b,
-      refine ⟨λ hb, _, _⟩,
-      { rw set.mem_singleton_iff.1 hb,
-        refine ⟨_, lt_succ_self o⟩,
-        rw ha,
-        exact lt_succ_self a },
-      { rintro ⟨hb, hb'⟩,
-        apply le_antisymm (lt_succ.1 hb'),
-        rw ha,
-        exact ordinal.succ_le.2 hb } },
-    { exact (ho ho').elim } }
+    { convert @is_open_Ioo _ _ _ _ b (a + 1),
+      ext c,
+      refine ⟨λ hc, _, _⟩,
+      { rw set.mem_singleton_iff.1 hc,
+        refine ⟨_, lt_succ_self a⟩,
+        rw hb,
+        exact lt_succ_self b },
+      { rintro ⟨hc, hc'⟩,
+        apply le_antisymm (lt_succ.1 hc'),
+        rw hb,
+        exact ordinal.succ_le.2 hc } },
+    { exact (ha ha').elim } }
 end
 
-theorem is_open_iff (s : set ordinal) :
-  is_open s ↔ (∀ o ∈ s, is_limit o → ∃ a < o, set.Ioo a o ⊆ s) :=
+theorem is_open_iff : is_open s ↔ ∀ o ∈ s, is_limit o → ∃ a < o, set.Ioo a o ⊆ s :=
 begin
   classical,
   refine ⟨_, λ h, _⟩,
@@ -110,8 +111,7 @@ begin
       { convert a.prop } } }
 end
 
-theorem mem_closure_iff_sup {s : set ordinal.{u}} {a : ordinal.{u}} :
-  a ∈ closure s ↔ ∃ {ι : Type u} [nonempty ι] (f : ι → ordinal.{u}),
+theorem mem_closure_iff_sup : a ∈ closure s ↔ ∃ {ι : Type u} [nonempty ι] (f : ι → ordinal),
   (∀ i, f i ∈ s) ∧ sup.{u u} f = a :=
 begin
   refine mem_closure_iff.trans ⟨λ h, _, _⟩,
@@ -149,13 +149,13 @@ begin
     exact ⟨_, hbct ⟨hi, (le_sup.{u u} f i).trans_lt hac⟩, hf i⟩ }
 end
 
-theorem mem_closed_iff_sup {s : set ordinal.{u}} {a : ordinal.{u}} (hs : is_closed s) :
-  a ∈ s ↔ ∃ {ι : Type u} (hι : nonempty ι) (f : ι → ordinal.{u}),
+theorem mem_closed_iff_sup (hs : is_closed s) :
+  a ∈ s ↔ ∃ {ι : Type u} (hι : nonempty ι) (f : ι → ordinal),
   (∀ i, f i ∈ s) ∧ sup.{u u} f = a :=
 by rw [←mem_closure_iff_sup, hs.closure_eq]
 
-theorem mem_closure_iff_bsup {s : set ordinal.{u}} {a : ordinal.{u}} :
-  a ∈ closure s ↔ ∃ {o : ordinal} (ho : o ≠ 0) (f : Π a < o, ordinal.{u}),
+theorem mem_closure_iff_bsup :
+  a ∈ closure s ↔ ∃ {o : ordinal} (ho : o ≠ 0) (f : Π a < o, ordinal),
   (∀ i hi, f i hi ∈ s) ∧ bsup.{u u} o f = a :=
 mem_closure_iff_sup.trans ⟨
   λ ⟨ι, ⟨i⟩, f, hf, ha⟩, ⟨_, λ h, (type_eq_zero_iff_is_empty.1 h).elim i, bfamily_of_family f,
@@ -163,13 +163,13 @@ mem_closure_iff_sup.trans ⟨
   λ ⟨o, ho, f, hf, ha⟩, ⟨_, out_nonempty_iff_ne_zero.2 ho, family_of_bfamily o f,
     λ i, hf _ _, by rwa sup_eq_bsup⟩⟩
 
-theorem mem_closed_iff_bsup {s : set ordinal.{u}} {a : ordinal.{u}} (hs : is_closed s) :
-  a ∈ s ↔ ∃ {o : ordinal} (ho : o ≠ 0) (f : Π a < o, ordinal.{u}),
+theorem mem_closed_iff_bsup (hs : is_closed s) :
+  a ∈ s ↔ ∃ {o : ordinal} (ho : o ≠ 0) (f : Π a < o, ordinal),
   (∀ i hi, f i hi ∈ s) ∧ bsup.{u u} o f = a :=
 by rw [←mem_closure_iff_bsup, hs.closure_eq]
 
-theorem is_closed_iff_sup {s : set ordinal.{u}} :
-  is_closed s ↔ ∀ {ι : Type u} (hι : nonempty ι) (f : ι → ordinal.{u}),
+theorem is_closed_iff_sup :
+  is_closed s ↔ ∀ {ι : Type u} (hι : nonempty ι) (f : ι → ordinal),
   (∀ i, f i ∈ s) → sup.{u u} f ∈ s :=
 begin
   use λ hs ι hι f hf, (mem_closed_iff_sup hs).2 ⟨ι, hι, f, hf, rfl⟩,
@@ -179,8 +179,8 @@ begin
   exact h hι f hf
 end
 
-theorem is_closed_iff_bsup {s : set ordinal.{u}} :
-  is_closed s ↔ ∀ {o : ordinal.{u}} (ho : o ≠ 0) (f : Π a < o, ordinal.{u}),
+theorem is_closed_iff_bsup :
+  is_closed s ↔ ∀ {o : ordinal} (ho : o ≠ 0) (f : Π a < o, ordinal),
   (∀ i hi, f i hi ∈ s) → bsup.{u u} o f ∈ s :=
 begin
   rw is_closed_iff_sup,
@@ -191,21 +191,20 @@ begin
     exact λ i hi, hf _ }
 end
 
-theorem is_limit_of_mem_frontier {s : set ordinal} {o : ordinal} (ho : o ∈ frontier s) :
-  is_limit o :=
+theorem is_limit_of_mem_frontier (ha : a ∈ frontier s) : is_limit a :=
 begin
-  simp only [frontier_eq_closure_inter_closure, set.mem_inter_iff, mem_closure_iff] at ho,
+  simp only [frontier_eq_closure_inter_closure, set.mem_inter_iff, mem_closure_iff] at ha,
   by_contra h,
   rw ←is_open_singleton_iff at h,
-  rcases ho.1 _ h rfl with ⟨a, ha, ha'⟩,
-  rcases ho.2 _ h rfl with ⟨b, hb, hb'⟩,
+  rcases ha.1 _ h rfl with ⟨b, hb, hb'⟩,
+  rcases ha.2 _ h rfl with ⟨c, hc, hc'⟩,
   rw set.mem_singleton_iff at *,
-  subst ha, subst hb,
-  exact hb' ha'
+  subst hb, subst hc,
+  exact hc' hb'
 end
 
 theorem is_normal_iff_strict_mono_and_continuous (f : ordinal.{u} → ordinal.{u}) :
-  is_normal f ↔ (strict_mono f ∧ continuous f) :=
+  is_normal f ↔ strict_mono f ∧ continuous f :=
 begin
   refine ⟨λ h, ⟨h.strict_mono, _⟩, _⟩,
   { rw continuous_def,
@@ -226,27 +225,27 @@ begin
       λ i, h _ (typein_lt_self i), sup_typein_limit ho.2⟩ }
 end
 
-theorem enum_ord_is_normal_iff_is_closed {S : set ordinal.{u}} (hS : S.unbounded (<)) :
-  is_normal (enum_ord S) ↔ is_closed S :=
+theorem enum_ord_is_normal_iff_is_closed (hs : s.unbounded (<)) :
+  is_normal (enum_ord s) ↔ is_closed s :=
 begin
-  have HS := enum_ord_strict_mono hS,
+  have Hs := enum_ord_strict_mono hs,
   refine ⟨λ h, is_closed_iff_sup.2 (λ ι hι f hf, _),
-    λ h, (is_normal_iff_strict_mono_limit _).2 ⟨HS, λ a ha o H, _⟩⟩,
-  { let g : ι → ordinal.{u} := λ i, (enum_ord_order_iso hS).symm ⟨_, hf i⟩,
-    suffices : enum_ord S (sup.{u u} g) = sup.{u u} f,
-    { rw ←this, exact enum_ord_mem hS _ },
+    λ h, (is_normal_iff_strict_mono_limit _).2 ⟨Hs, λ a ha o H, _⟩⟩,
+  { let g : ι → ordinal.{u} := λ i, (enum_ord_order_iso hs).symm ⟨_, hf i⟩,
+    suffices : enum_ord s (sup.{u u} g) = sup.{u u} f,
+    { rw ←this, exact enum_ord_mem hs _ },
     rw is_normal.sup.{u u u} h g hι,
     congr, ext,
-    change ((enum_ord_order_iso hS) _).val = f x,
+    change ((enum_ord_order_iso hs) _).val = f x,
     rw order_iso.apply_symm_apply },
   { rw is_closed_iff_bsup at h,
-    suffices : enum_ord S a ≤ bsup.{u u} a (λ b < a, enum_ord S b), from this.trans (bsup_le H),
-    cases enum_ord_surjective hS _ (h ha.1 (λ b hb, enum_ord S b) (λ b hb, enum_ord_mem hS b))
+    suffices : enum_ord s a ≤ bsup.{u u} a (λ b < a, enum_ord s b), from this.trans (bsup_le H),
+    cases enum_ord_surjective hs _ (h ha.1 (λ b hb, enum_ord s b) (λ b hb, enum_ord_mem hs b))
       with b hb,
     rw ←hb,
-    apply HS.monotone,
+    apply Hs.monotone,
     by_contra' hba,
-    apply (HS (lt_succ_self b)).not_le,
+    apply (Hs (lt_succ_self b)).not_le,
     rw hb,
     exact le_bsup.{u u} _ _ (ha.2 _ hba) }
 end

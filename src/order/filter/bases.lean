@@ -3,9 +3,9 @@ Copyright (c) 2020 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov, Johannes Hölzl, Mario Carneiro, Patrick Massot
 -/
-import order.filter.basic
+import data.prod.pprod
 import data.set.countable
-import data.pprod
+import order.filter.basic
 
 /-!
 # Filter bases
@@ -611,18 +611,18 @@ end⟩
 lemma mem_prod_self_iff {s} : s ∈ l ×ᶠ l ↔ ∃ t ∈ l, t ×ˢ t ⊆ s :=
 l.basis_sets.prod_self.mem_iff
 
+lemma has_basis.forall_mem_mem (h : has_basis l p s) {x : α} :
+  (∀ t ∈ l, x ∈ t) ↔ ∀ i, p i → x ∈ s i :=
+begin
+  simp only [h.mem_iff, exists_imp_distrib],
+  exact ⟨λ h i hi, h (s i) i hi subset.rfl, λ h t i hi ht, ht (h i hi)⟩
+end
+
 lemma has_basis.sInter_sets (h : has_basis l p s) :
   ⋂₀ l.sets = ⋂ i (hi : p i), s i :=
 begin
   ext x,
-  suffices : (∀ t ∈ l, x ∈ t) ↔ ∀ i, p i → x ∈ s i,
-    by simpa only [mem_Inter, mem_set_of_eq, mem_sInter],
-  simp_rw h.mem_iff,
-  split,
-  { intros h i hi,
-    exact h (s i) ⟨i, hi, subset.refl _⟩ },
-  { rintros h _ ⟨i, hi, sub⟩,
-    exact sub (h i hi) },
+  simp only [mem_Inter, mem_sInter, filter.mem_sets, h.forall_mem_mem],
 end
 
 variables {ι'' : Type*} [preorder ι''] (l) (s'' : ι'' → set α)
@@ -730,7 +730,7 @@ end sort
 
 namespace filter
 
-variables {α β γ ι ι' : Type*}
+variables {α β γ ι : Type*} {ι' : Sort*}
 
 /-- `is_countably_generated f` means `f = generate s` for some countable `s`. -/
 class is_countably_generated (f : filter α) : Prop :=
@@ -812,16 +812,16 @@ enumerated by natural numbers such that all sets have the form `s i`. More preci
 sequence `i n` such that `p (i n)` for all `n` and `s (i n)` is a decreasing sequence of sets which
 forms a basis of `f`-/
 lemma has_basis.exists_antitone_subbasis {f : filter α} [h : f.is_countably_generated]
-  {p : ι → Prop} {s : ι → set α} (hs : f.has_basis p s) :
-  ∃ x : ℕ → ι, (∀ i, p (x i)) ∧ f.has_antitone_basis (λ i, s (x i)) :=
+  {p : ι' → Prop} {s : ι' → set α} (hs : f.has_basis p s) :
+  ∃ x : ℕ → ι', (∀ i, p (x i)) ∧ f.has_antitone_basis (λ i, s (x i)) :=
 begin
   obtain ⟨x', hx'⟩ : ∃ x : ℕ → set α, f = ⨅ i, 𝓟 (x i),
   { unfreezingI { rcases h with ⟨s, hsc, rfl⟩ },
     rw generate_eq_binfi,
     exact countable_binfi_principal_eq_seq_infi hsc },
   have : ∀ i, x' i ∈ f := λ i, hx'.symm ▸ (infi_le (λ i, 𝓟 (x' i)) i) (mem_principal_self _),
-  let x : ℕ → {i : ι // p i} := λ n, nat.rec_on n (hs.index _ $ this 0)
-    (λ n xn, (hs.index _ $ inter_mem (this $ n + 1) (hs.mem_of_mem xn.coe_prop))),
+  let x : ℕ → {i : ι' // p i} := λ n, nat.rec_on n (hs.index _ $ this 0)
+    (λ n xn, (hs.index _ $ inter_mem (this $ n + 1) (hs.mem_of_mem xn.2))),
   have x_mono : antitone (λ i, s (x i)),
   { refine antitone_nat_of_succ_le (λ i, _),
     exact (hs.set_index_subset _).trans (inter_subset_right _ _) },

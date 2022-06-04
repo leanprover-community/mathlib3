@@ -5,6 +5,8 @@ Authors: Kenny Lau, Yury Kudryashov
 -/
 import algebra.module.basic
 import algebra.ring.aut
+import algebra.ring.ulift
+import algebra.module.ulift
 import linear_algebra.span
 import tactic.abel
 
@@ -324,6 +326,23 @@ instance _root_.punit.algebra : algebra R punit :=
 @[simp] lemma algebra_map_punit (r : R) : algebra_map R punit r = punit.star := rfl
 
 end punit
+
+section ulift
+
+instance _root_.ulift.algebra : algebra R (ulift A) :=
+{ to_fun := λ r, ulift.up (algebra_map R A r),
+  commutes' := λ r x, ulift.down_injective $ algebra.commutes r x.down,
+  smul_def' := λ r x, ulift.down_injective $ algebra.smul_def' r x.down,
+  .. ulift.module',
+  .. (ulift.ring_equiv : ulift A ≃+* A).symm.to_ring_hom.comp (algebra_map R A) }
+
+lemma _root_.ulift.algebra_map_eq (r : R) :
+  algebra_map R (ulift A) r = ulift.up (algebra_map R A r) := rfl
+
+@[simp] lemma _root_.ulift.down_algebra_map (r : R) :
+  (algebra_map R (ulift A) r).down = algebra_map R A r := rfl
+
+end ulift
 
 section prod
 variables (R A B)

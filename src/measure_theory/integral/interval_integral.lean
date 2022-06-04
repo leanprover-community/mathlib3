@@ -192,17 +192,6 @@ variables {f : ℝ → E} {a b : ℝ} {μ : measure ℝ}
 lemma interval_integrable_iff : interval_integrable f μ a b ↔ integrable_on f (Ι a b) μ :=
 by rw [interval_oc_eq_union, integrable_on_union, interval_integrable]
 
-lemma interval_integrable_iff' [is_locally_finite_measure μ] :
-  interval_integrable f μ a b ↔ integrable_on f (interval a b) μ :=
-begin
-  rw interval_integrable_iff,
-  have : (interval a b) = (Ι a b) ∪ { min a b } := by { rw [interval, interval_oc], simp, },
-  rw [this, integrable_on_union, integrable_on_singleton_iff],
-  suffices: μ {min a b} < ⊤, { simp only [this, with_top.zero_lt_top, or_true, and_true], },
-  obtain ⟨t, ⟨t1, t2, t3⟩⟩ := measure.exists_is_open_measure_lt_top μ (min a b),
-  refine lt_of_le_of_lt _ t3, apply measure_mono, simpa using t1,
-end
-
 /-- If a function is interval integrable with respect to a given measure `μ` on `a..b` then
   it is integrable on `interval_oc a b` with respect to `μ`. -/
 lemma interval_integrable.def (h : interval_integrable f μ a b) : integrable_on f (Ι a b) μ :=

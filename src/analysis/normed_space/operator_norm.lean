@@ -524,28 +524,28 @@ variables [ring_hom_isometric σ₁₂]
 
 open asymptotics
 
-theorem is_O_with_id (l : filter E) : is_O_with ∥f∥ f (λ x, x) l :=
+theorem is_O_with_id (l : filter E) : is_O_with ∥f∥ l f (λ x, x) :=
 is_O_with_of_le' _ f.le_op_norm
 
-theorem is_O_id (l : filter E) : is_O f (λ x, x) l :=
+theorem is_O_id (l : filter E) : f =O[l] (λ x, x) :=
 (f.is_O_with_id l).is_O
 
 theorem is_O_with_comp [ring_hom_isometric σ₂₃] {α : Type*} (g : F →SL[σ₂₃] G) (f : α → F)
   (l : filter α) :
-  is_O_with ∥g∥ (λ x', g (f x')) f l :=
+  is_O_with ∥g∥ l (λ x', g (f x')) f :=
 (g.is_O_with_id ⊤).comp_tendsto le_top
 
 theorem is_O_comp [ring_hom_isometric σ₂₃] {α : Type*} (g : F →SL[σ₂₃] G) (f : α → F)
   (l : filter α) :
-  is_O (λ x', g (f x')) f l :=
+  (λ x', g (f x')) =O[l] f :=
 (g.is_O_with_comp f l).is_O
 
 theorem is_O_with_sub (f : E →SL[σ₁₂] F) (l : filter E) (x : E) :
-  is_O_with ∥f∥ (λ x', f (x' - x)) (λ x', x' - x) l :=
+  is_O_with ∥f∥ l (λ x', f (x' - x)) (λ x', x' - x) :=
 f.is_O_with_comp _ l
 
 theorem is_O_sub (f : E →SL[σ₁₂] F) (l : filter E) (x : E) :
-  is_O (λ x', f (x' - x)) (λ x', x' - x) l :=
+  (λ x', f (x' - x)) =O[l] (λ x', x' - x) :=
 f.is_O_comp _ l
 
 end is_O
@@ -1048,12 +1048,10 @@ include σ₂₁
 protected lemma lipschitz : lipschitz_with (∥(e : E →SL[σ₁₂] F)∥₊) e :=
 (e : E →SL[σ₁₂] F).lipschitz
 
-theorem is_O_comp {α : Type*} (f : α → E) (l : filter α) :
-  asymptotics.is_O (λ x', e (f x')) f l :=
+theorem is_O_comp {α : Type*} (f : α → E) (l : filter α) : (λ x', e (f x')) =O[l] f :=
 (e : E →SL[σ₁₂] F).is_O_comp f l
 
-theorem is_O_sub (l : filter E) (x : E) :
-  asymptotics.is_O (λ x', e (x' - x)) (λ x', x' - x) l :=
+theorem is_O_sub (l : filter E) (x : E) : (λ x', e (x' - x)) =O[l] (λ x', x' - x) :=
 (e : E →SL[σ₁₂] F).is_O_sub l x
 
 end
@@ -1081,12 +1079,10 @@ def of_homothety (f : E ≃ₛₗ[σ₁₂] F) (a : ℝ) (ha : 0 < a) (hf : ∀x
 
 variables [ring_hom_isometric σ₂₁] (e : E ≃SL[σ₁₂] F)
 
-theorem is_O_comp_rev {α : Type*} (f : α → E) (l : filter α) :
-  asymptotics.is_O f (λ x', e (f x')) l :=
+theorem is_O_comp_rev {α : Type*} (f : α → E) (l : filter α) : f =O[l] (λ x', e (f x')) :=
 (e.symm.is_O_comp _ l).congr_left $ λ _, e.symm_apply_apply _
 
-theorem is_O_sub_rev (l : filter E) (x : E) :
-  asymptotics.is_O (λ x', x' - x) (λ x', e (x' - x)) l :=
+theorem is_O_sub_rev (l : filter E) (x : E) : (λ x', x' - x) =O[l] (λ x', e (x' - x)) :=
 e.is_O_comp_rev _ _
 
 omit σ₂₁
@@ -1158,66 +1154,6 @@ section normed
 variables [normed_group E] [normed_group F] [normed_group G] [normed_group Fₗ]
 
 open metric continuous_linear_map
-
-section normed_field
-
-variables [normed_field 𝕜] [normed_space 𝕜 E] [normed_space 𝕜 F] (f : E →ₗ[𝕜] F)
-
-lemma linear_map.continuous_iff_is_closed_ker {f : E →ₗ[𝕜] 𝕜} :
-  continuous f ↔ is_closed (f.ker : set E) :=
-begin
-  -- the continuity of f obviously implies that its kernel is closed
-  refine ⟨λh, (t1_space.t1 (0 : 𝕜)).preimage h, λh, _⟩,
-  -- for the other direction, we assume that the kernel is closed
-  by_cases hf : ∀x, x ∈ f.ker,
-  { -- if `f = 0`, its continuity is obvious
-    have : (f : E → 𝕜) = (λx, 0), by { ext x, simpa using hf x },
-    rw this,
-    exact continuous_const },
-  { /- if `f` is not zero, we use an element `x₀ ∉ ker f` such that `∥x₀∥ ≤ 2 ∥x₀ - y∥` for all
-    `y ∈ ker f`, given by Riesz's lemma, and prove that `2 ∥f x₀∥ / ∥x₀∥` gives a bound on the
-    operator norm of `f`. For this, start from an arbitrary `x` and note that
-    `y = x₀ - (f x₀ / f x) x` belongs to the kernel of `f`. Applying the above inequality to `x₀`
-    and `y` readily gives the conclusion. -/
-    push_neg at hf,
-    let r : ℝ := (2 : ℝ)⁻¹,
-    have : 0 ≤ r, by norm_num [r],
-    have : r < 1, by norm_num [r],
-    obtain ⟨x₀, x₀ker, h₀⟩ : ∃ (x₀ : E), x₀ ∉ f.ker ∧ ∀ y ∈ linear_map.ker f,
-      r * ∥x₀∥ ≤ ∥x₀ - y∥, from riesz_lemma h hf this,
-    have : x₀ ≠ 0,
-    { assume h,
-      have : x₀ ∈ f.ker, by { rw h, exact (linear_map.ker f).zero_mem },
-      exact x₀ker this },
-    have rx₀_ne_zero : r * ∥x₀∥ ≠ 0, by { simp [norm_eq_zero, this], },
-    have : ∀x, ∥f x∥ ≤ (((r * ∥x₀∥)⁻¹) * ∥f x₀∥) * ∥x∥,
-    { assume x,
-      by_cases hx : f x = 0,
-      { rw [hx, norm_zero],
-        apply_rules [mul_nonneg, norm_nonneg, inv_nonneg.2] },
-      { let y := x₀ - (f x₀ * (f x)⁻¹ ) • x,
-        have fy_zero : f y = 0, by calc
-          f y = f x₀ - (f x₀ * (f x)⁻¹ ) * f x : by simp [y]
-          ... = 0 :
-            by { rw [mul_assoc, inv_mul_cancel hx, mul_one, sub_eq_zero_of_eq], refl },
-        have A : r * ∥x₀∥ ≤ ∥f x₀∥ * ∥f x∥⁻¹ * ∥x∥, from calc
-          r * ∥x₀∥ ≤ ∥x₀ - y∥ : h₀ _ (linear_map.mem_ker.2 fy_zero)
-          ... = ∥(f x₀ * (f x)⁻¹ ) • x∥ : by { dsimp [y], congr, abel }
-          ... = ∥f x₀∥ * ∥f x∥⁻¹ * ∥x∥ :
-            by rw [norm_smul, norm_mul, norm_inv],
-        calc
-          ∥f x∥ = (r * ∥x₀∥)⁻¹ * (r * ∥x₀∥) * ∥f x∥ : by rwa [inv_mul_cancel, one_mul]
-          ... ≤ (r * ∥x₀∥)⁻¹ * (∥f x₀∥ * ∥f x∥⁻¹ * ∥x∥) * ∥f x∥ : begin
-            apply mul_le_mul_of_nonneg_right (mul_le_mul_of_nonneg_left A _) (norm_nonneg _),
-            exact inv_nonneg.2 (mul_nonneg (by norm_num) (norm_nonneg _))
-          end
-          ... = (∥f x∥ ⁻¹ * ∥f x∥) * (((r * ∥x₀∥)⁻¹) * ∥f x₀∥) * ∥x∥ : by ring
-          ... = (((r * ∥x₀∥)⁻¹) * ∥f x₀∥) * ∥x∥ :
-            by { rw [inv_mul_cancel, one_mul], simp [norm_eq_zero, hx] } } },
-    exact linear_map.continuous_of_bound f _ this }
-end
-
-end normed_field
 
 section
 variables [nondiscrete_normed_field 𝕜] [nondiscrete_normed_field 𝕜₂] [nondiscrete_normed_field 𝕜₃]

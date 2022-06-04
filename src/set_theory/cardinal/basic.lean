@@ -928,7 +928,7 @@ end, λ ⟨_⟩, by exactI ⟨_, mk_fintype _⟩⟩
 theorem lt_aleph_0_of_fintype (α : Type u) [fintype α] : #α < ℵ₀ :=
 lt_aleph_0_iff_fintype.2 ⟨infer_instance⟩
 
-theorem lt_aleph_0_iff_finite {α} {S : set α} : #S < ℵ₀ ↔ finite S :=
+theorem lt_aleph_0_iff_finite {α} {S : set α} : #S < ℵ₀ ↔ S.finite :=
 lt_aleph_0_iff_fintype.trans finite_def.symm
 
 instance can_lift_cardinal_nat : can_lift cardinal ℕ :=

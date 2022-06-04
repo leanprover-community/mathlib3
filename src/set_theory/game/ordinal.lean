@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Violeta Hernández Palacios
 -/
 
-import set_theory.game.pgame
+import set_theory.game.basic
 import set_theory.ordinal.natural_ops
 
 /-!
@@ -27,6 +27,7 @@ open nat_ordinal pgame
 
 local infix ` ≈ ` := equiv
 local infix ` ⧏ `:50 := lf
+local infix ` ♯ `:65 := ordinal.nadd
 
 namespace ordinal
 
@@ -113,22 +114,19 @@ end
   inj' := to_pgame_injective,
   map_rel_iff' := @to_pgame_le_iff }
 
-theorem to_pgame_add : ∀ a b : ordinal.{u},
-  a.to_pgame + b.to_pgame ≈ (of_nat_ordinal (to_nat_ordinal a + to_nat_ordinal b)).to_pgame
+/-- The sum of ordinals as games corresponds to natural addition of ordinals. -/
+theorem to_pgame_add : ∀ a b : ordinal.{u}, a.to_pgame + b.to_pgame ≈ (a ♯ b).to_pgame
 | a b := begin
   refine ⟨le_iff_forall_lf.2 ⟨λ i, _, is_empty_elim⟩, le_iff_forall_lf.2 ⟨λ i, _, is_empty_elim⟩⟩,
   { rcases left_moves_add_cases i with ⟨i, rfl⟩ | ⟨i, rfl⟩;
     let wf := to_left_moves_to_pgame_symm_lt i;
     try { rw add_move_left_inl }; try { rw add_move_left_inr };
-    rw [to_pgame_move_left', lf_congr_left (to_pgame_add _ _), to_pgame_lf_iff,
-      of_nat_ordinal_lt_iff],
-    { exact add_lt_add_right wf _ },
-    { exact add_lt_add_left wf _ } },
+    rw [to_pgame_move_left', lf_congr_left (to_pgame_add _ _), to_pgame_lf_iff],
+    { exact nadd_lt_nadd_right wf _ },
+    { exact nadd_lt_nadd_left wf _ } },
   { rw to_pgame_move_left',
-    rcases lt_add_iff.1 (lt_of_nat_ordinal_iff.1 (to_left_moves_to_pgame_symm_lt i))
-      with ⟨c, hc, hc'⟩ | ⟨c, hc, hc'⟩;
-    rw [←to_nat_ordinal_of_nat_ordinal c, ←le_of_nat_ordinal_iff, ←to_pgame_le_iff,
-      ←le_congr_right (to_pgame_add _ _)] at hc';
+    rcases lt_nadd_iff.1 (to_left_moves_to_pgame_symm_lt i) with ⟨c, hc, hc'⟩ | ⟨c, hc, hc'⟩;
+    rw [←to_pgame_le_iff, ←le_congr_right (to_pgame_add _ _)] at hc';
     apply lf_of_le_of_lf hc',
     { apply add_lf_add_right,
       rwa to_pgame_lf_iff },
@@ -136,5 +134,9 @@ theorem to_pgame_add : ∀ a b : ordinal.{u},
       rwa to_pgame_lf_iff } }
 end
 using_well_founded { dec_tac := `[solve_by_elim [psigma.lex.left, psigma.lex.right]] }
+
+@[simp] theorem to_pgame_add_mk (a b : ordinal) :
+  ⟦a.to_pgame⟧ + ⟦b.to_pgame⟧ = ⟦(a ♯ b).to_pgame⟧ :=
+quot.sound (to_pgame_add a b)
 
 end ordinal

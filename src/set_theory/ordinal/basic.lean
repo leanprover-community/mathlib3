@@ -1376,7 +1376,7 @@ begin
   rw lt_univ',
   split,
   { rintro ⟨β, e⟩,
-    exact ⟨#β, (lift_mk_eq.{u _ (v + 1)}.2 e)⟩ },
+    exact ⟨#β, lift_mk_eq.{u _ (v + 1)}.2 e⟩ },
   { rintro ⟨c, hc⟩,
     exact ⟨⟨c.out, lift_mk_eq.{u _ (v + 1)}.1 (hc.trans (congr rfl c.mk_out.symm))⟩⟩ }
 end

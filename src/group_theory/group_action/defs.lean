@@ -57,7 +57,7 @@ class has_faithful_vadd (G : Type*) (P : Type*) [has_vadd G P] : Prop :=
 (eq_of_vadd_eq_vadd : ∀ {g₁ g₂ : G}, (∀ p : P, g₁ +ᵥ p = g₂ +ᵥ p) → g₁ = g₂)
 
 /-- Typeclass for faithful actions. -/
-@[to_additive has_faithful_vadd]
+@[to_additive]
 class has_faithful_smul (M : Type*) (α : Type*) [has_scalar M α] : Prop :=
 (eq_of_smul_eq_smul : ∀ {m₁ m₂ : M}, (∀ a : α, m₁ • a = m₂ • a) → m₁ = m₂)
 

@@ -27,6 +27,8 @@ universe u
 
 open ordinal
 
+local infix ` ♯ `:65 := nadd
+
 namespace pgame
 
 /-- The birthday of a pre-game is inductively defined as the least strict upper bound of the
@@ -135,5 +137,34 @@ le_def.2 ⟨λ i, or.inl ⟨to_left_moves_to_pgame ⟨_, birthday_move_left_lt i
 
 theorem neg_birthday_le (x : pgame) : -x.birthday.to_pgame ≤ x :=
 let h := le_birthday (-x) in by rwa [neg_birthday, ←neg_le_iff, neg_neg] at h
+
+theorem birthday_add_comm (a b : pgame) : (a + b).birthday = (b + a).birthday :=
+(add_comm_relabelling a b).birthday_congr
+
+@[simp] theorem birthday_add : ∀ a b : pgame, (a + b).birthday = a.birthday ♯ b.birthday
+| a b := begin
+  rw [birthday_def, add_def, of_nat_ordinal_max],
+  simp only [nat_ordinal.blsub, of_nat_ordinal_to_nat_ordinal],
+  sorry
+end
+
+theorem birthday_add_one (a : pgame) : (a + 1).birthday = a.birthday + 1 :=
+by simp
+
+theorem birthday_one_add (a : pgame) : (1 + a).birthday = a.birthday + 1 :=
+by simp
+
+@[simp] theorem birthday_nat (n : ℕ) : (n : pgame).birthday = n :=
+begin
+  induction n with n hn,
+  { exact birthday_zero },
+  { simp [hn] }
+end
+
+theorem birthday_add_nat (a : pgame) (n : ℕ) : (a + n).birthday = a.birthday + n :=
+by simp
+
+theorem birthday_nat_add (a : pgame) (n : ℕ) : (↑n + a).birthday = a.birthday + n :=
+by simp
 
 end pgame

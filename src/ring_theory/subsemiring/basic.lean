@@ -808,7 +808,7 @@ open subsemiring
 /-- Restriction of a ring homomorphism to a subsemiring of the domain. -/
 def restrict (f : R →+* S) (s : σR) : s →+* S := f.comp $ subsemiring_class.subtype s
 
-@[simp] lemma srestrict_apply (f : R →+* S) {s : σR} (x : s) : f.restrict s x = f x := rfl
+@[simp] lemma restrict_apply (f : R →+* S) {s : σR} (x : s) : f.restrict s x = f x := rfl
 
 /-- Restriction of a ring homomorphism to a subsemiring of the codomain. -/
 def cod_restrict (f : R →+* S) (s : σS) (h : ∀ x, f x ∈ s) : R →+* s :=

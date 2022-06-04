@@ -55,6 +55,10 @@ begin
   exact submodule.map_id _,
 end
 
+lemma pointwise_vadd_span (v : V) {s : set P} :
+  v +ᵥ affine_span k s = affine_span k (v +ᵥ s) :=
+map_span _ s
+
 variables {V₁ P₁ V₂ P₂ V₃ P₃ : Type*}
 variables [add_comm_group V₁] [module k V₁] [add_torsor V₁ P₁]
 variables [add_comm_group V₂] [module k V₂] [add_torsor V₂ P₂]

@@ -8,7 +8,7 @@ import data.set.countable
 import logic.small
 import order.conditionally_complete_lattice
 import order.succ_pred.basic
-import set_theory.schroeder_bernstein
+import set_theory.cardinal.schroeder_bernstein
 
 /-!
 # Cardinal Numbers

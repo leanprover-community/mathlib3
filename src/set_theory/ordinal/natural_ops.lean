@@ -9,11 +9,12 @@ import set_theory.ordinal.arithmetic
 /-!
 # Natural operations on ordinals
 
-The goal of this file is to define natural addition and multiplication on ordinals, and provide a
-basic API. The natural addition of two ordinals `a ♯ b` is recursively defined as the least ordinal
-greater than `a' ♯ b` and `a ♯ b'` for `a' < a` and `b' < b`. The natural multiplication `a ⨳ b` is
-likewise recursively defined as the least ordinal such that `a ⨳ b ♯ a' ⨳ b'` is greater than
-`a' ⨳ b ♯ a ⨳ b'` for any `a' < a` and `b' < b`.
+The goal of this file is to define natural addition and multiplication on ordinals, also known as
+the Hessenberg sum and product, and provide a basic API. The natural addition of two ordinals
+`a ♯ b` is recursively defined as the least ordinal greater than `a' ♯ b` and `a ♯ b'` for `a' < a`
+and `b' < b`. The natural multiplication `a ⨳ b` is likewise recursively defined as the least
+ordinal such that `a ⨳ b ♯ a' ⨳ b'` is greater than `a' ⨳ b ♯ a ⨳ b'` for any `a' < a` and
+`b' < b`.
 
 These operations form a rich algebraic structure: they're commutative, associative, preserve order,
 have the usual `0` and `1` from ordinals, and distribute over one another.
@@ -113,9 +114,9 @@ variables {a b c : ordinal.{u}}
 @[simp] theorem to_nat_ordinal_min :
   (linear_order.min a b).to_nat_ordinal = linear_order.min a.to_nat_ordinal b.to_nat_ordinal := rfl
 
-/-- Natural addition on ordinals `a ♯ b` is recursively defined as the least ordinal greater than
-`a' ♯ b` and `a ♯ b'` for all `a' < a` and `b' < b`. In contrast to normal ordinal addition, it is
-commutative.
+/-- Natural addition on ordinals `a ♯ b`, also known as the Hessenberg sum, is recursively defined
+as the least ordinal greater than `a' ♯ b` and `a ♯ b'` for all `a' < a` and `b' < b`. In contrast
+to normal ordinal addition, it is commutative.
 
 Natural addition can equivalently be characterized as the ordinal resulting from adding up
 corresponding coefficients in the Cantor normal forms of `a` and `b`. -/

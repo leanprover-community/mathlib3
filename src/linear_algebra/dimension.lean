@@ -599,7 +599,7 @@ begin
       rw hJ at this,
       replace : v.repr (v i) ∈ (finsupp.supported R R (⋃ j, S j)) := this trivial,
       rw [v.repr_self, finsupp.mem_supported,
-        finsupp.support_single_ne_zero one_ne_zero] at this,
+        finsupp.support_single_ne_zero _ one_ne_zero] at this,
       { subst b,
         rcases mem_Union.1 (this (finset.mem_singleton_self _)) with ⟨j, hj⟩,
         exact mem_Union.2 ⟨j, (mem_image _ _ _).2 ⟨i, hj, rfl⟩⟩ },

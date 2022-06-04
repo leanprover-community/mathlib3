@@ -674,7 +674,7 @@ end
 
 theorem infinite_pigeonhole_set {β α : Type u} {s : set β} (f : s → α) (θ : cardinal)
   (hθ : θ ≤ #s) (h₁ : ω ≤ θ) (h₂ : #α < θ.ord.cof) :
-    ∃ a t (h : t ⊆ s), θ ≤ #t ∧ ∀ {x} (hx : x ∈ t), f ⟨x, h hx⟩ = a :=
+    ∃ (a : α) (t : set β) (h : t ⊆ s), θ ≤ #t ∧ ∀ {{x}} (hx : x ∈ t), f ⟨x, h hx⟩ = a :=
 begin
   cases infinite_pigeonhole_card f θ hθ h₁ h₂ with a ha,
   refine ⟨a, {x | ∃ h, f ⟨x, h⟩ = a}, _, _, _⟩,

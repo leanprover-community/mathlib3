@@ -5,6 +5,7 @@ Authors: Violeta Hernández Palacios
 -/
 
 import set_theory.game.ordinal
+import set_theory.ordinal.natural_ops
 
 /-!
 # Birthdays of games
@@ -162,11 +163,8 @@ theorem birthday_add_comm (a b : pgame) : (a + b).birthday = (b + a).birthday :=
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 
-theorem birthday_add_one (a : pgame) : (a + 1).birthday = a.birthday + 1 :=
-by simp
-
-theorem birthday_one_add (a : pgame) : (1 + a).birthday = a.birthday + 1 :=
-by simp
+theorem birthday_add_one (a : pgame) : (a + 1).birthday = a.birthday + 1 := by simp
+theorem birthday_one_add (a : pgame) : (1 + a).birthday = a.birthday + 1 := by simp
 
 @[simp] theorem birthday_nat (n : ℕ) : (n : pgame).birthday = n :=
 begin
@@ -176,10 +174,7 @@ begin
     rw [birthday_add_one, hn, nat.cast_succ] }
 end
 
-theorem birthday_add_nat (a : pgame) (n : ℕ) : (a + n).birthday = a.birthday + n :=
-by simp
-
-theorem birthday_nat_add (a : pgame) (n : ℕ) : (↑n + a).birthday = a.birthday + n :=
-by simp
+theorem birthday_add_nat (a : pgame) (n : ℕ) : (a + n).birthday = a.birthday + n := by simp
+theorem birthday_nat_add (a : pgame) (n : ℕ) : (↑n + a).birthday = a.birthday + n := by simp
 
 end pgame

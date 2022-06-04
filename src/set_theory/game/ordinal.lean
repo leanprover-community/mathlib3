@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Violeta Hernández Palacios
 -/
 
-import set_theory.game.basic
-import set_theory.ordinal.natural_ops
+import set_theory.game.pgame
+import set_theory.ordinal.basic
 
 /-!
 # Ordinals as games
@@ -27,7 +27,6 @@ open pgame
 
 local infix ` ≈ ` := equiv
 local infix ` ⧏ `:50 := lf
-local infix ` ♯ `:65 := ordinal.nadd
 
 namespace ordinal
 

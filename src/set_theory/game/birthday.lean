@@ -170,8 +170,8 @@ theorem birthday_one_add (a : pgame) : (1 + a).birthday = a.birthday + 1 := by s
 begin
   induction n with n hn,
   { exact birthday_zero },
-  { change birthday (n + 1) = _,
-    rw [birthday_add_one, hn, nat.cast_succ] }
+  { convert birthday_add_one n,
+    rwa hn, refl }
 end
 
 theorem birthday_add_nat (a : pgame) (n : ℕ) : (a + n).birthday = a.birthday + n := by simp

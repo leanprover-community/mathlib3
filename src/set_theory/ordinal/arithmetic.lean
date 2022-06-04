@@ -521,6 +521,9 @@ protected theorem add_sub_cancel_of_le {a b : ordinal} (h : b ≤ a) : b + (a - 
   { exact (add_le_of_limit l).2 (λ c l, (lt_sub.1 l).le) }
 end
 
+instance : has_exists_add_of_le ordinal :=
+⟨λ a b h, ⟨_, (ordinal.add_sub_cancel_of_le h).symm⟩⟩
+
 @[simp] theorem sub_zero (a : ordinal) : a - 0 = a :=
 by simpa only [zero_add] using add_sub_cancel 0 a
 

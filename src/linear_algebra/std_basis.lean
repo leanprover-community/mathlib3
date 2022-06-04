@@ -144,13 +144,7 @@ end
 
 lemma std_basis_eq_single {a : R} :
   (λ (i : ι), (std_basis R (λ _ : ι, R) i) a) = λ (i : ι), (finsupp.single i a) :=
-begin
-  ext i j,
-  rw [std_basis_apply, finsupp.single_apply],
-  split_ifs,
-  { rw [h, function.update_same] },
-  { rw [function.update_noteq (ne.symm h)], refl },
-end
+funext $ λ i, (finsupp.single_eq_pi_single i a).symm
 
 end linear_map
 

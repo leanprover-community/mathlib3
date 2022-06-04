@@ -1422,7 +1422,6 @@ lemma preimage_compl_eq_image_compl [boolean_algebra α] (S : set α) :
 set.ext (λ x, ⟨λ h, ⟨xᶜ,h, compl_compl x⟩,
   λ h, exists.elim h (λ y hy, (compl_eq_comm.mp hy.2).symm.subst hy.1)⟩)
 
--- TODO(Jeremy): there is an issue with - t unfolding to compl t
 theorem mem_compl_image [boolean_algebra α] (t : α) (S : set α) :
   t ∈ compl '' S ↔ tᶜ ∈ S :=
 by simp [←preimage_compl_eq_image_compl]

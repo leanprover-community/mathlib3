@@ -355,9 +355,9 @@ theorem nadd_right_comm : ∀ a b c, a ♯ b ♯ c = a ♯ c ♯ b :=
 
 variables {a b c d : ordinal.{u}}
 
-/-- Natural multiplication on ordinals `a ⨳ b` is recursively defined as the least ordinal such that
-`a ⨳ b + a' ⨳ b'` is greater than `a' ⨳ b + a ⨳ b'` for all `a' < a` and `b < b'`. In contrast to
-normal ordinal multiplication, it is commutative.
+/-- Natural multiplication on ordinals `a ⨳ b`, also known as the Hessenberg product, is recursively
+defined as the least ordinal such that `a ⨳ b + a' ⨳ b'` is greater than `a' ⨳ b + a ⨳ b'` for all
+`a' < a` and `b < b'`. In contrast to normal ordinal multiplication, it is commutative.
 
 Natural multiplication can equivalently be characterized as the ordinal resulting from multiplying
 the Cantor normal forms of `a` and `b` as if they were polynomials in `ω`. -/

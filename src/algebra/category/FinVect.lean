@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jakob von Raumer
 -/
 import category_theory.monoidal.rigid.basic
+import category_theory.monoidal.subcategory
 import linear_algebra.tensor_product_basis
 import linear_algebra.coevaluation
 import algebra.category.Module.monoidal
@@ -12,14 +13,9 @@ import algebra.category.Module.monoidal
 # The category of finite dimensional vector spaces
 
 This introduces `FinVect K`, the category of finite dimensional vector spaces over a field `K`.
-It is implemented as a full subcategory on a subtype of `Module K`.
-We first create the instance as a category, then as a monoidal category and then as a rigid monoidal
-category.
-
-## Future work
-
-* Show that `FinVect K` is a symmetric monoidal category.
-
+It is implemented as a full subcategory on a subtype of `Module K`, which inherits monoidal and
+symmetric structure as `finite_dimensional K` is a monoidal predicate.
+We also provide a right rigid monoidal category instance.
 -/
 noncomputable theory
 
@@ -30,8 +26,14 @@ universes u
 
 variables (K : Type u) [field K]
 
+instance monoidal_predicate_finite_dimensional :
+  monoidal_category.monoidal_predicate (λ V : Module.{u} K, finite_dimensional K V) :=
+{ prop_id' := finite_dimensional.finite_dimensional_self K,
+  prop_tensor' := λ X Y hX hY, by exactI module.finite.tensor_product K X Y }
+
 /-- Define `FinVect` as the subtype of `Module.{u} K` of finite dimensional vector spaces. -/
-@[derive [large_category, λ α, has_coe_to_sort α (Sort*), concrete_category]]
+@[derive [large_category, λ α, has_coe_to_sort α (Sort*), concrete_category, monoidal_category,
+  symmetric_category]]
 def FinVect := { V : Module.{u} K // finite_dimensional K V }
 
 namespace FinVect
@@ -54,12 +56,6 @@ by { dsimp [FinVect], apply_instance, }
 
 instance : full (forget₂ (FinVect K) (Module.{u} K)) :=
 { preimage := λ X Y f, f, }
-
-instance monoidal_category : monoidal_category (FinVect K) :=
-monoidal_category.full_monoidal_subcategory
-  (λ V, finite_dimensional K V)
-  (finite_dimensional.finite_dimensional_self K)
-  (λ X Y hX hY, by exactI module.finite.tensor_product K X Y)
 
 variables (V : FinVect K)
 

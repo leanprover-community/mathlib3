@@ -1935,9 +1935,8 @@ begin
     have : ∀ i, 0 ≤ ∥f i∥ ^ 2 := λ i : ι, sq_nonneg _,
     simp only [finset.abs_sum_of_nonneg' this],
     have : ∑ i in s₁ \ s₂, ∥f i∥ ^ 2 + ∑ i in s₂ \ s₁, ∥f i∥ ^ 2 < (sqrt ε) ^ 2,
-    { rw ← hV.norm_sq_diff_sum,
-      apply sq_lt_sq,
-      rw [_root_.abs_of_nonneg (sqrt_nonneg _), _root_.abs_of_nonneg (norm_nonneg _)],
+    { rw [← hV.norm_sq_diff_sum, sq_lt_sq,
+        _root_.abs_of_nonneg (sqrt_nonneg _), _root_.abs_of_nonneg (norm_nonneg _)],
       exact H s₁ hs₁ s₂ hs₂ },
     have hη := sq_sqrt (le_of_lt hε),
     linarith },
@@ -1989,9 +1988,9 @@ begin
 end
 
 include dec_ι
-lemma direct_sum.submodule_is_internal.collected_basis_orthonormal {V : ι → submodule 𝕜 E}
+lemma direct_sum.is_internal.collected_basis_orthonormal {V : ι → submodule 𝕜 E}
   (hV : @orthogonal_family 𝕜 _ _ _ _ (λ i, V i) _ (λ i, (V i).subtypeₗᵢ))
-  (hV_sum : direct_sum.submodule_is_internal (λ i, V i))
+  (hV_sum : direct_sum.is_internal (λ i, V i))
   {α : ι → Type*}
   {v_family : Π i, basis (α i) 𝕜 (V i)} (hv_family : ∀ i, orthonormal 𝕜 (v_family i)) :
   orthonormal 𝕜 (hV_sum.collected_basis v_family) :=

@@ -646,6 +646,36 @@ nat.rel_of_forall_rel_succ_of_lt (<) hf
 lemma strict_anti_nat_of_succ_lt {f : ℕ → α} (hf : ∀ n, f (n + 1) < f n) : strict_anti f :=
 @strict_mono_nat_of_lt_succ αᵒᵈ _ f hf
 
+namespace nat
+
+/-- If `α` is a preorder with no maximal elements, then there exists a strictly monotone function
+`ℕ → α` with any prescribed value of `f 0`. -/
+lemma exists_strict_mono' [no_max_order α] (a : α) : ∃ f : ℕ → α, strict_mono f ∧ f 0 = a :=
+begin
+  have := (λ x : α, exists_gt x),
+  choose g hg,
+  exact ⟨λ n, nat.rec_on n a (λ _, g), strict_mono_nat_of_lt_succ $ λ n, hg _, rfl⟩
+end
+
+/-- If `α` is a preorder with no maximal elements, then there exists a strictly antitone function
+`ℕ → α` with any prescribed value of `f 0`. -/
+lemma exists_strict_anti' [no_min_order α] (a : α) : ∃ f : ℕ → α, strict_anti f ∧ f 0 = a :=
+exists_strict_mono' (order_dual.to_dual a)
+
+variable (α)
+
+/-- If `α` is a nonempty preorder with no maximal elements, then there exists a strictly monotone
+function `ℕ → α`. -/
+lemma exists_strict_mono [nonempty α] [no_max_order α] : ∃ f : ℕ → α, strict_mono f :=
+let ⟨a⟩ := ‹nonempty α›, ⟨f, hf, hfa⟩ := exists_strict_mono' a in ⟨f, hf⟩
+
+/-- If `α` is a nonempty preorder with no minimal elements, then there exists a strictly antitone
+function `ℕ → α`. -/
+lemma exists_strict_anti [nonempty α] [no_min_order α] : ∃ f : ℕ → α, strict_anti f :=
+exists_strict_mono αᵒᵈ
+
+end nat
+
 lemma int.rel_of_forall_rel_succ_of_lt (r : β → β → Prop) [is_trans β r]
   {f : ℤ → β} (h : ∀ n, r (f n) (f (n + 1))) ⦃a b : ℤ⦄ (hab : a < b) : r (f a) (f b) :=
 begin
@@ -671,6 +701,32 @@ int.rel_of_forall_rel_succ_of_lt (<) hf
 
 lemma strict_anti_int_of_succ_lt {f : ℤ → α} (hf : ∀ n, f (n + 1) < f n) : strict_anti f :=
 int.rel_of_forall_rel_succ_of_lt (>) hf
+
+namespace int
+
+variables (α) [nonempty α] [no_min_order α] [no_max_order α]
+
+/-- If `α` is a nonempty preorder with no minimal or maximal elements, then there exists a strictly
+monotone function `f : ℤ → α`. -/
+lemma exists_strict_mono : ∃ f : ℤ → α, strict_mono f :=
+begin
+  inhabit α,
+  rcases nat.exists_strict_mono' (default : α) with ⟨f, hf, hf₀⟩,
+  rcases nat.exists_strict_anti' (default : α) with ⟨g, hg, hg₀⟩,
+  refine ⟨λ n, int.cases_on n f (λ n, g (n + 1)), strict_mono_int_of_lt_succ _⟩,
+  rintro (n|_|n),
+  { exact hf n.lt_succ_self },
+  { show g 1 < f 0,
+    rw [hf₀, ← hg₀],
+    exact hg nat.zero_lt_one },
+  { exact hg (nat.lt_succ_self _) }
+end
+
+/-- If `α` is a nonempty preorder with no minimal or maximal elements, then there exists a strictly
+antitone function `f : ℤ → α`. -/
+lemma exists_strict_anti : ∃ f : ℤ → α, strict_anti f := exists_strict_mono αᵒᵈ
+
+end int
 
 -- TODO@Yael: Generalize the following four to succ orders
 /-- If `f` is a monotone function from `ℕ` to a preorder such that `x` lies between `f n` and

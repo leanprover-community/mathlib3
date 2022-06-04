@@ -715,7 +715,7 @@ begin
 end
 
 theorem totally_bounded_iff {s : set α} :
-  totally_bounded s ↔ ∀ ε > 0, ∃t : set α, finite t ∧ s ⊆ ⋃y∈t, ball y ε :=
+  totally_bounded s ↔ ∀ ε > 0, ∃t : set α, t.finite ∧ s ⊆ ⋃y∈t, ball y ε :=
 ⟨λ H ε ε0, H _ (dist_mem_uniformity ε0),
  λ H r ru, let ⟨ε, ε0, hε⟩ := mem_uniformity_dist.1 ru,
                ⟨t, ft, h⟩ := H ε ε0 in
@@ -744,7 +744,7 @@ begin
 end
 
 theorem finite_approx_of_totally_bounded {s : set α} (hs : totally_bounded s) :
-  ∀ ε > 0, ∃ t ⊆ s, finite t ∧ s ⊆ ⋃y∈t, ball y ε :=
+  ∀ ε > 0, ∃ t ⊆ s, set.finite t ∧ s ⊆ ⋃y∈t, ball y ε :=
 begin
   intros ε ε_pos,
   rw totally_bounded_iff_subset at hs,
@@ -1022,8 +1022,8 @@ by { convert metric.emetric_closed_ball ε.2, simp }
 @[simp] lemma metric.emetric_ball_top (x : α) : emetric.ball x ⊤ = univ :=
 eq_univ_of_forall $ λ y, edist_lt_top _ _
 
-lemma metric.indistinguishable_iff {x y : α} : indistinguishable x y ↔ dist x y = 0 :=
-by rw [emetric.indistinguishable_iff, edist_nndist, dist_nndist, ennreal.coe_eq_zero,
+lemma metric.inseparable_iff {x y : α} : inseparable x y ↔ dist x y = 0 :=
+by rw [emetric.inseparable_iff, edist_nndist, dist_nndist, ennreal.coe_eq_zero,
   nnreal.coe_eq_zero]
 
 /-- Build a new pseudometric space from an old one where the bundled uniform structure is provably
@@ -1782,7 +1782,7 @@ section compact
 positive radius -/
 lemma finite_cover_balls_of_compact {α : Type u} [pseudo_metric_space α] {s : set α}
   (hs : is_compact s) {e : ℝ} (he : 0 < e) :
-  ∃t ⊆ s, finite t ∧ s ⊆ ⋃x∈t, ball x e :=
+  ∃t ⊆ s, set.finite t ∧ s ⊆ ⋃x∈t, ball x e :=
 begin
   apply hs.elim_finite_subcover_image,
   { simp [is_open_ball] },
@@ -2054,7 +2054,7 @@ end
 ⟨λ h, ⟨h.mono (by simp), h.mono (by simp)⟩, λ h, h.1.union h.2⟩
 
 /-- A finite union of bounded sets is bounded -/
-lemma bounded_bUnion {I : set β} {s : β → set α} (H : finite I) :
+lemma bounded_bUnion {I : set β} {s : β → set α} (H : I.finite) :
   bounded (⋃i∈I, s i) ↔ ∀i ∈ I, bounded (s i) :=
 finite.induction_on H (by simp) $ λ x I _ _ IH,
 by simp [or_imp_distrib, forall_and_distrib, IH]
@@ -2085,7 +2085,7 @@ lemma _root_.is_compact.bounded {s : set α} (h : is_compact s) : bounded s :=
 h.totally_bounded.bounded
 
 /-- A finite set is bounded -/
-lemma bounded_of_finite {s : set α} (h : finite s) : bounded s :=
+lemma bounded_of_finite {s : set α} (h : s.finite) : bounded s :=
 h.is_compact.bounded
 
 alias bounded_of_finite ← set.finite.bounded
@@ -2398,7 +2398,7 @@ lemma tendsto_coe_cofinite : tendsto (coe : ℤ → ℝ) cofinite (cocompact ℝ
 begin
   refine tendsto_cocompact_of_tendsto_dist_comp_at_top (0 : ℝ) _,
   simp only [filter.tendsto_at_top, eventually_cofinite, not_le, ← mem_ball],
-  change ∀ r : ℝ, finite (coe ⁻¹' (ball (0 : ℝ) r)),
+  change ∀ r : ℝ, (coe ⁻¹' (ball (0 : ℝ) r)).finite,
   simp [real.ball_eq_Ioo, set.finite_Ioo],
 end
 
@@ -2514,7 +2514,7 @@ separated_def.2 $ λ x y h, eq_of_forall_dist_le $
 /-- If a `pseudo_metric_space` is a T₀ space, then it is a `metric_space`. -/
 def of_t0_pseudo_metric_space (α : Type*) [pseudo_metric_space α] [t0_space α] :
   metric_space α :=
-{ eq_of_dist_eq_zero := λ x y hdist, indistinguishable.eq $ metric.indistinguishable_iff.2 hdist,
+{ eq_of_dist_eq_zero := λ x y hdist, inseparable.eq $ metric.inseparable_iff.2 hdist,
   ..‹pseudo_metric_space α› }
 
 /-- A metric space induces an emetric space -/

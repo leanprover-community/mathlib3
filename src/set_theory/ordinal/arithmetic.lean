@@ -1205,10 +1205,6 @@ theorem bsup_succ_of_mono {o : ordinal} {f : Π a < succ o, ordinal}
   (hf : ∀ {i j} hi hj, i ≤ j → f i hi ≤ f j hj) : bsup _ f = f o (lt_succ o) :=
 le_antisymm (bsup_le $ λ i hi, hf _ _ $ le_of_lt_succ hi) (le_bsup _ _ _)
 
-theorem bsup_succ_of_mono {o : ordinal} {f : Π a < succ o, ordinal}
-  (hf : ∀ {i j} hi hj, i ≤ j → f i hi ≤ f j hj) : bsup _ f = f o (lt_succ_self o) :=
-le_antisymm (bsup_le (λ i hi, hf _ _ (lt_succ.1 hi))) (le_bsup _ _ _)
-
 @[simp] theorem bsup_zero (f : Π a < (0 : ordinal), ordinal) : bsup 0 f = 0 :=
 bsup_eq_zero_iff.2 (λ i hi, (ordinal.not_lt_zero i hi).elim)
 

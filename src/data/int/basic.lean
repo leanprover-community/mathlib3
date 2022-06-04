@@ -1337,8 +1337,7 @@ end
 theorem is_unit_iff_nat_abs_eq {n : ℤ} : is_unit n ↔ n.nat_abs = 1 :=
 by simp [nat_abs_eq_iff, is_unit_iff]
 
-lemma is_unit_nat_abs {n : ℤ} (hn : is_unit n) : nat_abs n = 1 :=
-is_unit_iff_nat_abs_eq.mp hn
+alias is_unit_iff_nat_abs_eq ↔ is_unit.nat_abs_eq _
 
 lemma is_unit_iff_abs_eq {x : ℤ} : is_unit x ↔ abs x = 1 :=
 by rw [is_unit_iff_nat_abs_eq, abs_eq_nat_abs, ←int.coe_nat_one, coe_nat_inj']
@@ -1632,6 +1631,13 @@ begin
   rw [←abs_lt_one_iff, ←mul_lt_iff_lt_one_right (abs_pos.mpr hm), ←abs_mul],
   exact lt_of_lt_of_le h2 (le_abs_self m),
 end
+
+lemma sq_eq_one_of_sq_lt_four {x : ℤ} (h1 : x ^ 2 < 4) (h2 : x ≠ 0) : x ^ 2 = 1 :=
+sq_eq_one_iff.mpr ((abs_eq (@zero_le_one ℤ _)).mp (le_antisymm (lt_add_one_iff.mp
+  (abs_lt_of_sq_lt_sq h1 zero_le_two)) (sub_one_lt_iff.mp (abs_pos.mpr h2))))
+
+lemma sq_eq_one_of_sq_le_three {x : ℤ} (h1 : x ^ 2 ≤ 3) (h2 : x ≠ 0) : x ^ 2 = 1 :=
+sq_eq_one_of_sq_lt_four (lt_of_le_of_lt h1 (lt_add_one 3)) h2
 
 end int
 

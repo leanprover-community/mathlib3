@@ -318,6 +318,9 @@ by rw [supr, supr, coe_Sup, set.range_comp]
 eq.symm $ @subset_Inf_of_within ℝ (set.Ici 0) _ ⟨(0 : ℝ≥0)⟩ s $
   real.Inf_nonneg _ $ λ y ⟨x, _, hy⟩, hy ▸ x.2
 
+@[simp] lemma Inf_empty : Inf (∅ : set ℝ≥0) = 0 :=
+by rw [← nnreal.coe_eq_zero, coe_Inf, set.image_empty, real.Inf_empty]
+
 @[norm_cast] lemma coe_infi {ι : Sort*} (s : ι → ℝ≥0) : (↑(⨅ i, s i) : ℝ) = ⨅ i, (s i) :=
 by rw [infi, infi, coe_Inf, set.range_comp]
 

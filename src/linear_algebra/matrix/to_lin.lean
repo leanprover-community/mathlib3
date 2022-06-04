@@ -172,9 +172,13 @@ variables {l m n : Type*}
 
 variables [fintype n] [decidable_eq n]
 
-@[simp] lemma matrix.mul_vec_std_basis (M : matrix m n R) (i j) :
+lemma matrix.mul_vec_std_basis (M : matrix m n R) (i j) :
   M.mul_vec (std_basis R (λ _, R) j 1) i = M i j :=
 (congr_fun (matrix.mul_vec_single _ _ (1 : R)) i).trans $ mul_one _
+
+@[simp] lemma matrix.mul_vec_std_basis_apply (M : matrix m n R) (j) :
+  M.mul_vec (std_basis R (λ _, R) j 1) = Mᵀ j :=
+funext $ λ i, matrix.mul_vec_std_basis M i j
 
 /-- Linear maps `(n → R) →ₗ[R] (m → R)` are linearly equivalent to `matrix m n R`. -/
 def linear_map.to_matrix' : ((n → R) →ₗ[R] (m → R)) ≃ₗ[R] matrix m n R :=

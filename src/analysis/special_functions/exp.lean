@@ -270,6 +270,19 @@ lemma is_o_pow_exp_at_top {n : ℕ} : (λ x, x^n) =o[at_top] real.exp :=
 by simpa [is_o_iff_tendsto (λ x hx, ((exp_pos x).ne' hx).elim)]
   using tendsto_div_pow_mul_exp_add_at_top 1 0 n zero_ne_one
 
+/-- `real.exp (f x)` is bounded away from zero along a filter if and only if this filter is bounded
+from below under `f`. -/
+@[simp] lemma is_O_one_exp_comp {α : Type*} {l : filter α} {f : α → ℝ} :
+  (λ x, 1 : α → ℝ) =O[l] (λ x, exp (f x)) ↔ is_bounded_under (≥) l f :=
+calc (λ x, 1 : α → ℝ) =O[l] (λ x, exp (f x))
+    ↔ ∃ b : ℝ, 0 < b ∧ ∀ᶠ x in l, b ≤ exp (f x) :
+  iff.trans (is_O_const_left_iff_pos_le_norm one_ne_zero) $ by simp only [norm_eq_abs, abs_exp]
+... ↔ is_bounded_under (≥) l (λ x, exp_order_iso (f x)) :
+  by simp only [is_bounded_under, is_bounded, eventually_map, set_coe.exists, ge_iff_le,
+    ← subtype.coe_le_coe, exists_prop, coe_exp_order_iso_apply, subtype.coe_mk, set.mem_Ioi]
+... ↔ is_bounded_under (≥) l f :
+  exp_order_iso.monotone.is_bounded_under_ge_comp exp_order_iso.tendsto_at_bot
+
 end real
 
 namespace complex

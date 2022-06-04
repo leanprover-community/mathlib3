@@ -586,7 +586,7 @@ aleph'_is_normal.cof_eq ho
 aleph_is_normal.cof_eq ho
 
 @[simp] theorem cof_omega : cof ω = ℵ₀ :=
-(aleph_0_le_cof.2 omega_is_limit).antisymm' $  by { rw ←card_omega, apply cof_le_card }
+(aleph_0_le_cof.2 omega_is_limit).antisymm' $ by { rw ←card_omega, apply cof_le_card }
 
 theorem cof_eq' (r : α → α → Prop) [is_well_order α r] (h : is_limit (type r)) :
   ∃ S : set α, (∀ a, ∃ b ∈ S, r a b) ∧ #S = cof (type r) :=
@@ -699,10 +699,10 @@ local infixr ^ := @pow cardinal.{u} cardinal cardinal.has_pow
 def is_limit (c : cardinal) : Prop :=
 c ≠ 0 ∧ ∀ x < c, succ x < c
 
-theorem is_limit.omega_le {c} (h : is_limit c) : ω ≤ c :=
+theorem is_limit.aleph_0_le {c} (h : is_limit c) : ℵ₀ ≤ c :=
 begin
   by_contra' h',
-  rcases lt_omega.1 h' with ⟨_ | n, rfl⟩,
+  rcases lt_aleph_0.1 h' with ⟨_ | n, rfl⟩,
   { exact h.1.irrefl },
   { simpa using h.2 n }
 end
@@ -712,17 +712,17 @@ end
 def is_strong_limit (c : cardinal) : Prop :=
 c ≠ 0 ∧ ∀ x < c, 2 ^ x < c
 
-theorem is_strong_limit_omega : is_strong_limit ω :=
-⟨omega_ne_zero, λ x hx, begin
-  rcases lt_omega.1 hx with ⟨n, rfl⟩,
-  exact_mod_cast nat_lt_omega (pow 2 n)
+theorem is_strong_limit_aleph_0 : is_strong_limit ℵ₀ :=
+⟨aleph_0_ne_zero, λ x hx, begin
+  rcases lt_aleph_0.1 hx with ⟨n, rfl⟩,
+  exact_mod_cast nat_lt_aleph_0 (pow 2 n)
 end⟩
 
 theorem is_strong_limit.is_limit {c} (H : is_strong_limit c) : is_limit c :=
 ⟨H.1, λ x h, (succ_le_of_lt $ cantor x).trans_lt (H.2 _ h)⟩
 
-theorem is_limit_omega : is_limit ω :=
-is_strong_limit_omega.is_limit
+theorem is_limit_aleph_0 : is_limit ℵ₀ :=
+is_strong_limit_aleph_0.is_limit
 
 /-- A cardinal is regular if it is infinite and it equals its own cofinality. -/
 def is_regular (c : cardinal) : Prop :=

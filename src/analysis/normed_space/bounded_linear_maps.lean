@@ -166,15 +166,15 @@ section
 open asymptotics filter
 
 theorem is_O_id {f : E → F} (h : is_bounded_linear_map 𝕜 f) (l : filter E) :
-  is_O f (λ x, x) l :=
+  f =O[l] (λ x, x) :=
 let ⟨M, hMp, hM⟩ := h.bound in is_O.of_bound _ (mem_of_superset univ_mem (λ x _, hM x))
 
 theorem is_O_comp {E : Type*} {g : F → G} (hg : is_bounded_linear_map 𝕜 g)
-  {f : E → F} (l : filter E) : is_O (λ x', g (f x')) f l :=
+  {f : E → F} (l : filter E) : (λ x', g (f x')) =O[l] f :=
 (hg.is_O_id ⊤).comp_tendsto le_top
 
 theorem is_O_sub {f : E → F} (h : is_bounded_linear_map 𝕜 f)
-  (l : filter E) (x : E) : is_O (λ x', f (x' - x)) (λ x', x' - x) l :=
+  (l : filter E) (x : E) : (λ x', f (x' - x)) =O[l] (λ x', x' - x) :=
 is_O_comp h l
 
 end
@@ -303,17 +303,17 @@ lemma continuous_linear_map.is_bounded_bilinear_map (f : E →L[𝕜] F →L[�
       by apply_rules [mul_le_mul_of_nonneg_right, norm_nonneg, le_max_left]⟩ }
 
 protected lemma is_bounded_bilinear_map.is_O (h : is_bounded_bilinear_map 𝕜 f) :
-  asymptotics.is_O f (λ p : E × F, ∥p.1∥ * ∥p.2∥) ⊤ :=
+  f =O[⊤] (λ p : E × F, ∥p.1∥ * ∥p.2∥) :=
 let ⟨C, Cpos, hC⟩ := h.bound in asymptotics.is_O.of_bound _ $
 filter.eventually_of_forall $ λ ⟨x, y⟩, by simpa [mul_assoc] using hC x y
 
 lemma is_bounded_bilinear_map.is_O_comp {α : Type*} (H : is_bounded_bilinear_map 𝕜 f)
   {g : α → E} {h : α → F} {l : filter α} :
-  asymptotics.is_O (λ x, f (g x, h x)) (λ x, ∥g x∥ * ∥h x∥) l :=
+  (λ x, f (g x, h x)) =O[l] (λ x, ∥g x∥ * ∥h x∥) :=
 H.is_O.comp_tendsto le_top
 
 protected lemma is_bounded_bilinear_map.is_O' (h : is_bounded_bilinear_map 𝕜 f) :
-  asymptotics.is_O f (λ p : E × F, ∥p∥ * ∥p∥) ⊤ :=
+  f =O[⊤] (λ p : E × F, ∥p∥ * ∥p∥) :=
 h.is_O.trans (asymptotics.is_O_fst_prod'.norm_norm.mul asymptotics.is_O_snd_prod'.norm_norm)
 
 lemma is_bounded_bilinear_map.map_sub_left (h : is_bounded_bilinear_map 𝕜 f) {x y : E} {z : F} :
@@ -339,13 +339,13 @@ begin
   have H : ∀ (a:E) (b:F), ∥f (a, b)∥ ≤ C * ∥∥a∥ * ∥b∥∥,
   { intros a b,
     simpa [mul_assoc] using hC a b },
-  have h₁ : asymptotics.is_o (λ e : E × F, f (e.1 - x.1, e.2)) (λ e, (1:ℝ)) (𝓝 x),
+  have h₁ : (λ e : E × F, f (e.1 - x.1, e.2)) =o[𝓝 x] (λ e, (1:ℝ)),
   { refine (asymptotics.is_O_of_le' (𝓝 x) (λ e, H (e.1 - x.1) e.2)).trans_is_o _,
     rw asymptotics.is_o_const_iff one_ne,
     convert ((continuous_fst.sub continuous_const).norm.mul continuous_snd.norm).continuous_at,
     { simp },
     apply_instance },
-  have h₂ : asymptotics.is_o (λ e : E × F, f (x.1, e.2 - x.2)) (λ e, (1:ℝ)) (𝓝 x),
+  have h₂ : (λ e : E × F, f (x.1, e.2 - x.2)) =o[𝓝 x] (λ e, (1:ℝ)),
   { refine (asymptotics.is_O_of_le' (𝓝 x) (λ e, H x.1 (e.2 - x.2))).trans_is_o _,
     rw asymptotics.is_o_const_iff one_ne,
     convert (continuous_const.mul (continuous_snd.sub continuous_const).norm).continuous_at,

@@ -8,7 +8,6 @@ import field_theory.adjoin
 import field_theory.tower
 import group_theory.solvable
 import ring_theory.power_basis
-import field_theory.is_alg_closed.basic
 
 /-!
 # Normal field extensions

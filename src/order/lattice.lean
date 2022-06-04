@@ -777,6 +777,14 @@ lemma map_inf_le [semilattice_inf α] [semilattice_inf β]
   f (x ⊓ y) ≤ f x ⊓ f y :=
 le_inf (h inf_le_left) (h inf_le_right)
 
+lemma of_map_inf [semilattice_inf α] [semilattice_inf β] {f : α → β}
+  (h : ∀ x y, f (x ⊓ y) = f x ⊓ f y) : monotone f :=
+λ x y hxy, inf_eq_left.1 $ by rw [← h, inf_eq_left.2 hxy]
+
+lemma of_map_sup [semilattice_sup α] [semilattice_sup β] {f : α → β}
+  (h : ∀ x y, f (x ⊔ y) = f x ⊔ f y) : monotone f :=
+(@of_map_inf (order_dual α) (order_dual β) _ _ _ h).dual
+
 variables [linear_order α]
 
 lemma map_sup [semilattice_sup β] {f : α → β} (hf : monotone f) (x y : α) : f (x ⊔ y) = f x ⊔ f y :=

@@ -46,6 +46,6 @@ end
 
 end int
 
-lemma ring_hom.injective_int {α : Type*} [ring α] (f : ℤ →+* α) [char_zero α] :
+lemma ring_hom.injective_int {α : Type*} [non_assoc_ring α] (f : ℤ →+* α) [char_zero α] :
   function.injective f :=
 subsingleton.elim (int.cast_ring_hom _) f ▸ int.cast_injective

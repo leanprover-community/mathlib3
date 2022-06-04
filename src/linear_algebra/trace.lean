@@ -36,7 +36,7 @@ open finite_dimensional
 open_locale tensor_product
 
 section
-variables (R : Type u) [comm_ring R] {M : Type v} [add_comm_group M] [module R M]
+variables (R : Type u) [comm_semiring R] {M : Type v} [add_comm_monoid M] [module R M]
 variables {ι : Type w} [decidable_eq ι] [fintype ι]
 variables {κ : Type*} [decidable_eq κ] [fintype κ]
 variables (b : basis ι R M) (c : basis κ R M)
@@ -171,6 +171,14 @@ end
 @[simp] theorem trace_id : trace R M id = (finrank R M : R) :=
 by rw [←one_eq_id, trace_one]
 
+@[simp] theorem trace_transpose : trace R (module.dual R M) ∘ₗ module.dual.transpose = trace R M :=
+begin
+  let e := dual_tensor_hom_equiv R M M,
+  have h : function.surjective e.to_linear_map := e.surjective,
+  refine (cancel_right h).1 _,
+  ext f m, simp [e],
+end
+
 theorem trace_prod_map :
   trace R (M × N) ∘ₗ prod_map_linear R M N M N R =
   (coprod id id : R × R →ₗ[R] R) ∘ₗ prod_map (trace R M) (trace R N) :=
@@ -235,6 +243,10 @@ begin
 end
 
 variables {R M N}
+
+@[simp]
+theorem trace_transpose' (f : M →ₗ[R] M) : trace R _ (module.dual.transpose f) = trace R M f :=
+by { rw [←comp_apply, trace_transpose] }
 
 theorem trace_tensor_product' (f : M →ₗ[R] M) (g : N →ₗ[R] N) :
   trace R (M ⊗ N) (map f g) = trace R M f * trace R N g :=

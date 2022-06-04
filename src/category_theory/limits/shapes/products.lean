@@ -237,7 +237,7 @@ def limit_cone_of_unique : limit_cone (discrete.functor f) :=
     fac' := λ s j, begin
       have w := (s.π.naturality (eq_to_hom (unique.default_eq _))).symm,
       dsimp at w,
-      simpa using w,
+      simpa [eq_to_hom_map] using w,
     end,
     uniq' := λ s m w, begin
       specialize w default,
@@ -264,7 +264,7 @@ def colimit_cocone_of_unique : colimit_cocone (discrete.functor f) :=
     fac' := λ s j, begin
       have w := (s.ι.naturality (eq_to_hom (unique.eq_default _))),
       dsimp at w,
-      simpa using w,
+      simpa [eq_to_hom_map] using w,
     end,
     uniq' := λ s m w, begin
       specialize w default,
@@ -301,7 +301,8 @@ begin
     equivalence.equivalence_mk'_counit, discrete.equivalence_counit_iso, discrete.nat_iso_hom_app,
     eq_to_iso.hom, eq_to_hom_map],
   dsimp,
-  simpa using limit.w (discrete.functor (f ∘ ε)) (discrete.eq_to_hom' (ε.symm_apply_apply b)),
+  simpa [eq_to_hom_map] using
+    limit.w (discrete.functor (f ∘ ε)) (discrete.eq_to_hom' (ε.symm_apply_apply b)),
 end
 
 @[simp, reassoc]
@@ -325,7 +326,8 @@ begin
     discrete.equivalence_unit_iso, discrete.nat_iso_hom_app, eq_to_iso.hom, eq_to_hom_map,
     discrete.nat_iso_inv_app],
   dsimp,
-  simp [←colimit.w (discrete.functor f) (discrete.eq_to_hom' (ε.apply_symm_apply (ε b)))],
+  simp [eq_to_hom_map,
+    ←colimit.w (discrete.functor f) (discrete.eq_to_hom' (ε.apply_symm_apply (ε b)))],
 end
 
 @[simp, reassoc]

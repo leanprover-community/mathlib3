@@ -75,7 +75,7 @@ lemma finite_colimit_eq_finset_univ_sup [semilattice_sup α] [order_bot α] (F :
 /--
 A finite product in the category of a `semilattice_inf` with `order_top` is the same as the infimum.
 -/
-lemma finite_product_eq_finset_inf [semilattice_inf α] [order_top α] {ι : Type u} [decidable_eq ι]
+lemma finite_product_eq_finset_inf [semilattice_inf α] [order_top α] {ι : Type u}
   [fintype ι] (f : ι → α) : (∏ f) = (fintype.elems ι).inf f :=
 begin
   transitivity,
@@ -90,7 +90,7 @@ end
 A finite coproduct in the category of a `semilattice_sup` with `order_bot` is the same as the
 supremum.
 -/
-lemma finite_coproduct_eq_finset_sup [semilattice_sup α] [order_bot α] {ι : Type u} [decidable_eq ι]
+lemma finite_coproduct_eq_finset_sup [semilattice_sup α] [order_bot α] {ι : Type u}
   [fintype ι] (f : ι → α) : (∐ f) = (fintype.elems ι).sup f :=
 begin
   transitivity,

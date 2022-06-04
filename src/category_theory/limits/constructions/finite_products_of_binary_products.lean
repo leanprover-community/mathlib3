@@ -133,7 +133,7 @@ end }
 
 /-- If `C` has a terminal object and binary products, then it has finite products. -/
 lemma has_finite_products_of_has_binary_and_terminal : has_finite_products C :=
-⟨λ J 𝒥₁ 𝒥₂, begin
+⟨λ J 𝒥, begin
   resetI,
   let e := fintype.equiv_fin J,
   apply has_limits_of_shape_of_equivalence (discrete.equivalence (e.trans equiv.ulift.symm)).symm,
@@ -313,7 +313,7 @@ end }
 
 /-- If `C` has an initial object and binary coproducts, then it has finite coproducts. -/
 lemma has_finite_coproducts_of_has_binary_and_terminal : has_finite_coproducts C :=
-⟨λ J 𝒥₁ 𝒥₂, begin
+⟨λ J 𝒥, begin
   resetI,
   let e := fintype.equiv_fin J,
   apply has_colimits_of_shape_of_equivalence (discrete.equivalence (e.trans equiv.ulift.symm)).symm,

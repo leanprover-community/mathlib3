@@ -237,13 +237,13 @@ lemma nhds_within_prod {α : Type*} [topological_space α] {β : Type*} [topolog
 by { rw nhds_within_prod_eq, exact prod_mem_prod hu hv, }
 
 lemma nhds_within_pi_eq' {ι : Type*} {α : ι → Type*} [Π i, topological_space (α i)]
-  {I : set ι} (hI : finite I) (s : Π i, set (α i)) (x : Π i, α i) :
+  {I : set ι} (hI : I.finite) (s : Π i, set (α i)) (x : Π i, α i) :
   𝓝[pi I s] x = ⨅ i, comap (λ x, x i) (𝓝 (x i) ⊓ ⨅ (hi : i ∈ I), 𝓟 (s i)) :=
 by simp only [nhds_within, nhds_pi, filter.pi, comap_inf, comap_infi, pi_def, comap_principal,
   ← infi_principal_finite hI, ← infi_inf_eq]
 
 lemma nhds_within_pi_eq {ι : Type*} {α : ι → Type*} [Π i, topological_space (α i)]
-  {I : set ι} (hI : finite I) (s : Π i, set (α i)) (x : Π i, α i) :
+  {I : set ι} (hI : I.finite) (s : Π i, set (α i)) (x : Π i, α i) :
   𝓝[pi I s] x = (⨅ i ∈ I, comap (λ x, x i) (𝓝[s i] (x i))) ⊓
     ⨅ (i ∉ I), comap (λ x, x i) (𝓝 (x i)) :=
 begin

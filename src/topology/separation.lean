@@ -584,7 +584,7 @@ end
 /-- Removing a finite set from a dense set in a space without isolated points, one still
 obtains a dense set. -/
 lemma dense.diff_finite [t1_space α] [∀ (x : α), ne_bot (𝓝[≠] x)]
-  {s : set α} (hs : dense s) {t : set α} (ht : finite t) :
+  {s : set α} (hs : dense s) {t : set α} (ht : t.finite) :
   dense (s \ t) :=
 begin
   convert hs.diff_finset ht.to_finset,

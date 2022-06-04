@@ -6,12 +6,9 @@ Authors: Floris van Doorn
 import analysis.specific_limits.basic
 import data.rat.denumerable
 import data.set.intervals.image_preimage
-<<<<<<< HEAD
 import data.real.binary_fraction
-||||||| e68fcf8ded
-=======
 import set_theory.cardinal.continuum
->>>>>>> master
+
 
 /-!
 # The cardinality of the reals

@@ -667,6 +667,8 @@ by rw [supr_of_empty', cSup_empty]
 
 @[simp] lemma csupr_false (f : false → α) : (⨆ i, f i) = ⊥ := csupr_of_empty f
 
+@[simp] lemma cInf_univ : Inf (univ : set α) = ⊥ := is_least_univ.cInf_eq
+
 lemma is_lub_cSup' {s : set α} (hs : bdd_above s) : is_lub s (Sup s) :=
 begin
   rcases eq_empty_or_nonempty s with (rfl|hne),

@@ -711,14 +711,14 @@ inductive relabelling : pgame.{u} → pgame.{u} → Type (u+1)
 
 local infix ` ≡r `:50 := relabelling
 
--- It's not the case that `restricted x y → restricted y x → relabelling x y`,
--- but if we insisted that the maps in a restriction were injective, then one
--- could use Schröder-Bernstein for do this.
-
 /-- If `x` is a relabelling of `y`, then `x` is a restriction of  `y`. -/
 def relabelling.restricted : Π {x y : pgame} (r : x ≡r y), restricted x y
 | ⟨xl, xr, xL, xR⟩ ⟨yl, yr, yL, yR⟩ ⟨L, R, hL, hR⟩ :=
 ⟨L, R.symm, λ i, (hL i).restricted, λ j, (hR j).restricted⟩
+
+-- It's not the case that `restricted x y → restricted y x → relabelling x y`,
+-- but if we insisted that the maps in a restriction were injective, then one
+-- could use Schröder-Bernstein for do this.
 
 /-- The identity relabelling. -/
 @[refl] def relabelling.refl : Π (x : pgame), x ≡r x

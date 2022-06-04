@@ -50,19 +50,20 @@ lemma is_trichotomous_lex [∀ i, is_trichotomous (β i) s] (wf : well_founded r
   is_trichotomous (Π i, β i) (pi.lex r @s) :=
 { trichotomous := λ a b,
     begin
-      by_cases h : ∃ i, a i ≠ b i,
-      { let i := wf.min _ h,
+      cases eq_or_ne a b with hab hab,
+      { exact or.inr (or.inl hab) },
+      { rw function.ne_iff at hab,
+        let i := wf.min _ hab,
         have hri : ∀ j, r j i → a j = b j,
         { intro j, rw ← not_imp_not,
           exact λ h', wf.not_lt_min _ _ h' },
-        have hne : a i ≠ b i, from wf.min_mem _ h,
+        have hne : a i ≠ b i, from wf.min_mem _ hab,
         cases (trichotomous (a i) (b i) : s (a i) (b i) ∨ a i = b i ∨ s (b i) (a i)) with hi hi,
         exacts [or.inl ⟨i, hri, hi⟩,
           or.inr $ or.inr $ ⟨i, λ j hj, (hri j hj).symm, hi.resolve_left hne⟩] },
-      { push_neg at h, exact or.inr (or.inl (funext h)) }
     end }
 
-instance [has_lt ι] [Π a, has_lt (β a)] : has_lt (Πₗ i, β i) := ⟨pi.lex (<) (λ _, (<))⟩
+instance [has_lt ι] [Π a, has_lt (β a)] : has_lt (lex (Π i, β i)) := ⟨pi.lex (<) (λ _, (<))⟩
 
 instance lex.is_strict_order [linear_order ι] [∀ a, partial_order (β a)] :
   is_strict_order (Πₗ i, β i) (<) :=
@@ -79,29 +80,36 @@ instance lex.is_strict_order [linear_order ι] [∀ a, partial_order (β a)] :
 instance [linear_order ι] [Π a, partial_order (β a)] : partial_order (Πₗ i, β i) :=
 partial_order_of_SO (<)
 
-/-- `Πₗ i, α i` is a linear order if the original order is well-founded.
-This cannot be an instance, since it depends on the well-foundedness of `<`. -/
+/-- `Πₗ i, α i` is a linear order if the original order is well-founded. -/
 noncomputable instance [linear_order ι] [is_well_order ι (<)] [∀ a, linear_order (β a)] :
-  linear_order (Πₗ i, β i) :=
+  linear_order (lex (Π i, β i)) :=
 @linear_order_of_STO' (Πₗ i, β i) (<)
   { to_is_trichotomous := is_trichotomous_lex _ _ is_well_order.wf } (classical.dec_rel _)
 
 lemma lex.le_of_forall_le [linear_order ι] [is_well_order ι (<)] [Π a, linear_order (β a)]
-  {a b : Πₗ i, β i} (h : ∀ i, a i ≤ b i) : a ≤ b :=
+  {a b : lex (Π i, β i)} (h : ∀ i, a i ≤ b i) : a ≤ b :=
 le_of_not_lt (λ ⟨i, hi⟩, (h i).not_lt hi.2)
 
-instance [linear_order ι] [is_well_order ι (<)] [Π a, linear_order (β a)]
-  [Π a, order_bot (β a)] : order_bot (Πₗ a, β a) :=
-{ bot := λ _, ⊥,
-  bot_le := λ f, lex.le_of_forall_le $ λ a, bot_le }
+lemma lex.le_of_of_lex_le [linear_order ι] [is_well_order ι (<)] [Π a, linear_order (β a)]
+  {a b : lex (Π i, β i)} (h : of_lex a ≤ of_lex b) : a ≤ b :=
+lex.le_of_forall_le h
+
+lemma to_lex_monotone [linear_order ι] [is_well_order ι (<)] [Π a, linear_order (β a)] :
+  monotone (@to_lex (Π i, β i)) :=
+λ _ _, lex.le_of_forall_le
 
 instance [linear_order ι] [is_well_order ι (<)] [Π a, linear_order (β a)]
-  [Π a, order_top (β a)] : order_top (Πₗ a, β a) :=
-{ top := λ _, ⊤,
-  le_top := λ f, lex.le_of_forall_le $ λ a, le_top }
+  [Π a, order_bot (β a)] : order_bot (lex (Π a, β a)) :=
+{ bot := to_lex ⊥,
+  bot_le := λ f, lex.le_of_of_lex_le bot_le }
 
 instance [linear_order ι] [is_well_order ι (<)] [Π a, linear_order (β a)]
-  [Π a, bounded_order (β a)] : bounded_order (Πₗ a, β a) :=
+  [Π a, order_top (β a)] : order_top (lex (Π a, β a)) :=
+{ top := to_lex ⊤,
+  le_top := λ f, lex.le_of_of_lex_le le_top }
+
+instance [linear_order ι] [is_well_order ι (<)] [Π a, linear_order (β a)]
+  [Π a, bounded_order (β a)] : bounded_order (lex (Π a, β a)) :=
 { .. pi.lex.order_bot, .. pi.lex.order_top }
 
 --we might want the analog of `pi.ordered_cancel_comm_monoid` as well in the future

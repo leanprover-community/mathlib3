@@ -92,15 +92,7 @@ theorem relabelling.birthday_congr : ∀ {x y : pgame.{u}}, relabelling x y → 
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 
-variables (a b x : pgame.{u})
-
-@[simp] theorem birthday_add_zero : birthday (x + 0) = birthday x :=
-(add_zero_relabelling x).birthday_congr
-
-@[simp] theorem birthday_zero_add : birthday (0 + x) = birthday x :=
-(zero_add_relabelling x).birthday_congr
-
-@[simp] theorem birthday_eq_zero :
+@[simp] theorem birthday_eq_zero {x : pgame} :
   birthday x = 0 ↔ is_empty x.left_moves ∧ is_empty x.right_moves :=
 by rw [birthday_def, max_eq_zero, lsub_eq_zero_iff, lsub_eq_zero_iff]
 
@@ -138,11 +130,10 @@ theorem le_birthday : ∀ x : pgame, x ≤ x.birthday.to_pgame
 le_def.2 ⟨λ i, or.inl ⟨to_left_moves_to_pgame ⟨_, birthday_move_left_lt i⟩,
   by simp [le_birthday (xL i)]⟩, is_empty_elim⟩
 
+variables (a b x : pgame.{u})
+
 theorem neg_birthday_le : -x.birthday.to_pgame ≤ x :=
 let h := le_birthday (-x) in by rwa [neg_birthday, ←neg_le_iff, neg_neg] at h
-
-theorem birthday_add_comm : (a + b).birthday = (b + a).birthday :=
-(add_comm_relabelling a b).birthday_congr
 
 @[simp] theorem birthday_add : ∀ x y : pgame.{u}, (x + y).birthday = x.birthday ♯ y.birthday
 | ⟨xl, xr, xL, xR⟩ ⟨yl, yr, yL, yR⟩ := begin

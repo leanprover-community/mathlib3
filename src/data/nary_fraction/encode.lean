@@ -103,8 +103,8 @@ of_seq' (λ I, (f I).trans (order_embedding.subtype _)) (λ I, (f I 0).2.1) (λ 
 
 instance [densely_ordered α] : nonempty (encoding N α) :=
 begin
-  choose f hf using λ I : nontrivial_interval α, fin.exists_strict_mono_of_no_max I.Ioo (N + 1),
-  refine ⟨of_seq $ λ I, _⟩,
+  choose f hf using λ I : nontrivial_interval α, nat.exists_strict_mono I.Ioo,
+  refine ⟨of_seq $ λ I, (fin.coe_embedding _).trans _⟩,
   exact order_embedding.of_strict_mono (λ i, inclusion Ioo_subset_Icc_self (f I i)) (hf I)
 end
 

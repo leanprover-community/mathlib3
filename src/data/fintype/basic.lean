@@ -641,6 +641,13 @@ by simp [to_finset]
 @[simp] theorem mem_to_finset_val {s : set α} [fintype s] {a : α} : a ∈ s.to_finset.1 ↔ a ∈ s :=
 mem_to_finset
 
+/-- Membership of a set with a `fintype` instance is decidable.
+
+Using this as an instance leads to potential loops with `subtype.fintype` under certain decidability
+assumptions, so it should only be declared a local instance. -/
+def decidable_mem_of_fintype [decidable_eq α] (s : set α) [fintype s] (a) : decidable (a ∈ s) :=
+decidable_of_iff _ mem_to_finset
+
 -- We use an arbitrary `[fintype s]` instance here,
 -- not necessarily coming from a `[fintype α]`.
 @[simp]
@@ -667,9 +674,46 @@ by simp only [finset.ssubset_def, to_finset_mono, ssubset_def]
   disjoint s.to_finset t.to_finset ↔ disjoint s t :=
 by simp only [disjoint_iff_disjoint_coe, coe_to_finset]
 
+lemma to_finset_inter {α : Type*} [decidable_eq α] (s t : set α) [fintype (s ∩ t : set α)]
+  [fintype s] [fintype t] : (s ∩ t).to_finset = s.to_finset ∩ t.to_finset :=
+by { ext, simp }
+
+lemma to_finset_union {α : Type*} [decidable_eq α] (s t : set α) [fintype (s ∪ t : set α)]
+  [fintype s] [fintype t] : (s ∪ t).to_finset = s.to_finset ∪ t.to_finset :=
+by { ext, simp }
+
+lemma to_finset_diff {α : Type*} [decidable_eq α] (s t : set α) [fintype s] [fintype t]
+  [fintype (s \ t : set α)] : (s \ t).to_finset = s.to_finset \ t.to_finset :=
+by { ext, simp }
+
+lemma to_finset_ne_eq_erase {α : Type*} [decidable_eq α] [fintype α] (a : α)
+  [fintype {x : α | x ≠ a}] : {x : α | x ≠ a}.to_finset = finset.univ.erase a :=
+by { ext, simp }
+
 theorem to_finset_compl [decidable_eq α] [fintype α] (s : set α) [fintype s] [fintype ↥sᶜ] :
   (sᶜ).to_finset = s.to_finsetᶜ :=
-by { ext a, simp }
+by { ext, simp }
+
+/- TODO Without the coercion arrow (`↥`) there is an elaboration bug;
+it essentially infers `fintype.{v} (set.univ.{u} : set α)` with `v` and `u` distinct.
+Reported in leanprover-community/lean#672 -/
+@[simp] lemma to_finset_univ [fintype ↥(set.univ : set α)] [fintype α] :
+  (set.univ : set α).to_finset = finset.univ :=
+by { ext, simp }
+
+@[simp] lemma to_finset_range [decidable_eq α] [fintype β] (f : β → α) [fintype (set.range f)] :
+  (set.range f).to_finset = finset.univ.image f :=
+by { ext, simp }
+
+/- TODO The `↥` circumvents an elaboration bug. See comment on `set.to_finset_univ`. -/
+lemma to_finset_singleton (a : α) [fintype ↥({a} : set α)] : ({a} : set α).to_finset = {a} :=
+by { ext, simp }
+
+/- TODO The `↥` circumvents an elaboration bug. See comment on `set.to_finset_univ`. -/
+@[simp] lemma to_finset_insert [decidable_eq α] {a : α} {s : set α}
+  [fintype ↥(insert a s : set α)] [fintype s] :
+  (insert a s).to_finset = insert a s.to_finset :=
+by { ext, simp }
 
 lemma filter_mem_univ_eq_to_finset [fintype α] (s : set α) [fintype s] [decidable_pred (∈ s)] :
   finset.univ.filter (∈ s) = s.to_finset :=
@@ -758,21 +802,26 @@ by rw [← fin.succ_above_zero, fin.image_succ_above_univ]
   (univ : finset (fin n)).image fin.cast_succ = {fin.last n}ᶜ :=
 by rw [← fin.succ_above_last, fin.image_succ_above_univ]
 
+/- The following three lemmas use `finset.cons` instead of `insert` and `finset.map` instead of
+`finset.image` to reduce proof obligations downstream. -/
+
 /-- Embed `fin n` into `fin (n + 1)` by prepending zero to the `univ` -/
 lemma fin.univ_succ (n : ℕ) :
-  (univ : finset (fin (n + 1))) = insert 0 (univ.image fin.succ) :=
-by simp
+  (univ : finset (fin (n + 1))) =
+    cons 0 (univ.map ⟨fin.succ, fin.succ_injective _⟩) (by simp [map_eq_image]) :=
+by simp [map_eq_image]
 
 /-- Embed `fin n` into `fin (n + 1)` by appending a new `fin.last n` to the `univ` -/
 lemma fin.univ_cast_succ (n : ℕ) :
-  (univ : finset (fin (n + 1))) = insert (fin.last n) (univ.image fin.cast_succ) :=
-by simp
+  (univ : finset (fin (n + 1))) =
+    cons (fin.last n) (univ.map fin.cast_succ.to_embedding) (by simp [map_eq_image]) :=
+by simp [map_eq_image]
 
 /-- Embed `fin n` into `fin (n + 1)` by inserting
 around a specified pivot `p : fin (n + 1)` into the `univ` -/
 lemma fin.univ_succ_above (n : ℕ) (p : fin (n + 1)) :
-  (univ : finset (fin (n + 1))) = insert p (univ.image (fin.succ_above p)) :=
-by simp
+  (univ : finset (fin (n + 1))) = cons p (univ.map $ (fin.succ_above p).to_embedding) (by simp) :=
+by simp [map_eq_image]
 
 @[instance, priority 10] def unique.fintype {α : Type*} [unique α] : fintype α :=
 fintype.of_subsingleton default
@@ -1163,22 +1212,11 @@ instance Prop.fintype : fintype Prop :=
 instance subtype.fintype (p : α → Prop) [decidable_pred p] [fintype α] : fintype {x // p x} :=
 fintype.subtype (univ.filter p) (by simp)
 
-/- TODO Without the coercion arrow (`↥`) there is an elaboration bug;
-it essentially infers `fintype.{v} (set.univ.{u} : set α)` with `v` and `u` distinct.
-Reported in leanprover-community/lean#672 -/
-@[simp] lemma set.to_finset_univ [fintype ↥(set.univ : set α)] [fintype α] :
-  (set.univ : set α).to_finset = finset.univ :=
-by { ext, simp only [set.mem_univ, mem_univ, set.mem_to_finset] }
-
 @[simp] lemma set.to_finset_eq_empty_iff {s : set α} [fintype s] : s.to_finset = ∅ ↔ s = ∅ :=
-by simp [ext_iff, set.ext_iff]
+by simp only [ext_iff, set.ext_iff, set.mem_to_finset, not_mem_empty, set.mem_empty_eq]
 
 @[simp] lemma set.to_finset_empty : (∅ : set α).to_finset = ∅ :=
 set.to_finset_eq_empty_iff.mpr rfl
-
-@[simp] lemma set.to_finset_range [decidable_eq α] [fintype β] (f : β → α) [fintype (set.range f)] :
-  (set.range f).to_finset = finset.univ.image f :=
-by simp [ext_iff]
 
 /-- A set on a fintype, when coerced to a type, is a fintype. -/
 def set_fintype [fintype α] (s : set α) [decidable_pred (∈ s)] : fintype s :=
@@ -1406,6 +1444,26 @@ begin
   convert fintype.card_congr (subtype_or_equiv p q h),
   simp
 end
+
+@[simp]
+lemma fintype.card_subtype_compl [fintype α]
+  (p : α → Prop) [fintype {x // p x}] [fintype {x // ¬ p x}] :
+  fintype.card {x // ¬ p x} = fintype.card α - fintype.card {x // p x} :=
+begin
+  classical,
+  rw [fintype.card_of_subtype (set.to_finset pᶜ), set.to_finset_compl p, finset.card_compl,
+      fintype.card_of_subtype (set.to_finset p)];
+  intro; simp only [set.mem_to_finset, set.mem_compl_eq]; refl,
+end
+
+/-- If two subtypes of a fintype have equal cardinality, so do their complements. -/
+lemma fintype.card_compl_eq_card_compl [fintype α]
+  (p q : α → Prop)
+  [fintype {x // p x}] [fintype {x // ¬ p x}]
+  [fintype {x // q x}] [fintype {x // ¬ q x}]
+  (h : fintype.card {x // p x} = fintype.card {x // q x}) :
+  fintype.card {x // ¬ p x} = fintype.card {x // ¬ q x} :=
+by simp only [fintype.card_subtype_compl, h]
 
 theorem fintype.card_quotient_le [fintype α] (s : setoid α) [decidable_rel ((≈) : α → α → Prop)] :
   fintype.card (quotient s) ≤ fintype.card α :=
@@ -1940,13 +1998,7 @@ instance function.embedding.is_empty {α β} [infinite α] [fintype β] : is_emp
 
 @[priority 100]
 noncomputable instance function.embedding.fintype' {α β : Type*} [fintype β] : fintype (α ↪ β) :=
-begin
-  by_cases h : infinite α,
-  { resetI, apply_instance },
-  { have := fintype_of_not_infinite h, classical, apply_instance }
-  -- the `classical` generates `decidable_eq α/β` instances, and resets instance cache
-end
-
+by casesI fintype_or_infinite α; apply_instance
 /--
 The strong pigeonhole principle for infinitely many pigeons in
 finitely many pigeonholes.  If there are infinitely many pigeons in

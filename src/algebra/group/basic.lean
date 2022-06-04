@@ -287,6 +287,8 @@ by simp only [mul_assoc, mul_inv_rev, div_eq_mul_inv]
 
 end division_monoid
 
+lemma bit0_neg [subtraction_monoid α] (a : α) : bit0 (-a) = -bit0 a := (neg_add_rev _ _).symm
+
 section division_comm_monoid
 variables [division_comm_monoid α] (a b c d : α)
 

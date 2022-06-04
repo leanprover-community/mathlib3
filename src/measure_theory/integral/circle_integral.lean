@@ -487,7 +487,7 @@ begin
   { rw [hR, mul_zero],
     exact mul_nonneg (inv_nonneg.2 real.two_pi_pos.le)
       (interval_integral.integral_nonneg real.two_pi_pos.le (λ _ _, norm_nonneg _)) },
-  { rw [inv_pow₀, inv_mul_cancel_right₀ hR] }
+  { rw [inv_pow, inv_mul_cancel_right₀ hR] }
 end
 
 /-- For any circle integrable function `f`, the power series `cauchy_power_series f c R` multiplied
@@ -574,7 +574,7 @@ begin
   refine this ▸ has_sum_single _ (λ n hn, _),
   simp only [div_eq_mul_inv, mul_pow, integral_const_mul, mul_assoc],
   rw [(integral_congr hR.le (λ z hz, _)).trans (H n hn), mul_zero],
-  rw [← pow_succ', ← zpow_coe_nat, inv_zpow₀, ← zpow_neg₀, int.coe_nat_succ, neg_add,
+  rw [← pow_succ', ← zpow_coe_nat, inv_zpow, ← zpow_neg, int.coe_nat_succ, neg_add,
     sub_eq_add_neg _ (1 : ℤ)]
 end
 

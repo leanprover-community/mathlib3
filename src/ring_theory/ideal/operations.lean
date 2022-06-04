@@ -441,6 +441,51 @@ let ⟨s, hsi, t, htj, hst⟩ := submodule.mem_sup.1 ((eq_top_iff_one _).1 h) in
 mul_one r ▸ hst ▸ (mul_add r s t).symm ▸ ideal.add_mem (I * J) (mul_mem_mul_rev hsi hrj)
   (mul_mem_mul hri htj)
 
+lemma sup_mul_eq_of_coprime_left (h : I ⊔ J = ⊤) : I ⊔ (J * K) = I ⊔ K :=
+le_antisymm (sup_le_sup_left mul_le_left _) $ λ i hi,
+begin
+  rw eq_top_iff_one at h, rw submodule.mem_sup at h hi ⊢,
+  obtain ⟨i1, hi1, j, hj, h⟩ := h, obtain ⟨i', hi', k, hk, hi⟩ := hi,
+  refine ⟨_, add_mem hi' (mul_mem_right k _ hi1), _, mul_mem_mul hj hk, _⟩,
+  rw [add_assoc, ← add_mul, h, one_mul, hi]
+end
+
+lemma sup_mul_eq_of_coprime_right (h : I ⊔ K = ⊤) : I ⊔ (J * K) = I ⊔ J :=
+by { rw mul_comm, exact sup_mul_eq_of_coprime_left h }
+
+lemma mul_sup_eq_of_coprime_left (h : I ⊔ J = ⊤) : (I * K) ⊔ J = K ⊔ J :=
+by { rw sup_comm at h, rw [sup_comm, sup_mul_eq_of_coprime_left h, sup_comm] }
+
+lemma mul_sup_eq_of_coprime_right (h : K ⊔ J = ⊤) : (I * K) ⊔ J = I ⊔ J :=
+by { rw sup_comm at h, rw [sup_comm, sup_mul_eq_of_coprime_right h, sup_comm] }
+
+lemma sup_prod_eq_top {s : finset ι} {J : ι → ideal R} (h : ∀ i, i ∈ s → I ⊔ J i = ⊤) :
+  I ⊔ ∏ i in s, J i = ⊤ :=
+finset.prod_induction _ (λ J, I ⊔ J = ⊤) (λ J K hJ hK, (sup_mul_eq_of_coprime_left hJ).trans hK)
+(by rw [one_eq_top, sup_top_eq]) h
+
+lemma sup_infi_eq_top {s : finset ι} {J : ι → ideal R} (h : ∀ i, i ∈ s → I ⊔ J i = ⊤) :
+  I ⊔ (⨅ i ∈ s, J i) = ⊤ :=
+eq_top_iff.mpr $ le_of_eq_of_le (sup_prod_eq_top h).symm $ sup_le_sup_left
+  (le_of_le_of_eq prod_le_inf $ finset.inf_eq_infi _ _) _
+
+lemma prod_sup_eq_top {s : finset ι} {J : ι → ideal R} (h : ∀ i, i ∈ s → J i ⊔ I = ⊤) :
+  (∏ i in s, J i) ⊔ I = ⊤ :=
+sup_comm.trans (sup_prod_eq_top $ λ i hi, sup_comm.trans $ h i hi)
+
+lemma infi_sup_eq_top {s : finset ι} {J : ι → ideal R} (h : ∀ i, i ∈ s → J i ⊔ I = ⊤) :
+  (⨅ i ∈ s, J i) ⊔ I = ⊤ :=
+sup_comm.trans (sup_infi_eq_top $ λ i hi, sup_comm.trans $ h i hi)
+
+lemma sup_pow_eq_top {n : ℕ} (h : I ⊔ J = ⊤) : I ⊔ (J ^ n) = ⊤ :=
+by { rw [← finset.card_range n, ← finset.prod_const], exact sup_prod_eq_top (λ _ _, h) }
+
+lemma pow_sup_eq_top {n : ℕ} (h : I ⊔ J = ⊤) : (I ^ n) ⊔ J = ⊤ :=
+by { rw [← finset.card_range n, ← finset.prod_const], exact prod_sup_eq_top (λ _ _, h) }
+
+lemma pow_sup_pow_eq_top {m n : ℕ} (h : I ⊔ J = ⊤) : (I ^ m) ⊔ (J ^ n) = ⊤ :=
+sup_pow_eq_top (pow_sup_eq_top h)
+
 variables (I)
 @[simp] theorem mul_bot : I * ⊥ = ⊥ :=
 submodule.smul_bot I

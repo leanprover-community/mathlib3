@@ -500,20 +500,45 @@ begin
     exact support_pow_le _ n hx }
 end
 
-lemma is_cycle.pow_eq_one_iff [fintype α] {f : perm α} (hf : is_cycle f) {n : ℕ} :
-  f ^ n = 1 ↔ ∃ (x ∈ f.support), (f ^ n) x = x :=
+lemma is_cycle.pow_eq_one_iff [fintype β] {f : perm β} (hf : is_cycle f) {n : ℕ} :
+  f ^ n = 1 ↔ ∃ x, f x ≠ x ∧ (f ^ n) x = x :=
 begin
+  classical,
   split,
   { intro h,
     obtain ⟨x, hx, -⟩ := id hf,
-    exact ⟨x, mem_support.mpr hx, by simp [h]⟩ },
+    exact ⟨x, hx, by simp [h]⟩ },
   { rintro ⟨x, hx, hx'⟩,
     by_cases h : support (f ^ n) = support f,
-    { rw [←h, mem_support] at hx,
+    { rw [← mem_support, ← h, mem_support] at hx,
       contradiction },
     { rw [hf.support_pow_eq_iff, not_not] at h,
       obtain ⟨k, rfl⟩ := h,
       rw [pow_mul, pow_order_of_eq_one, one_pow] } }
+end
+
+lemma is_cycle.pow_eq_pow_iff [fintype β] {f : perm β} (hf : is_cycle f) {a b : ℕ} :
+  f ^ a = f ^ b ↔ ∃ x, f x ≠ x ∧ (f ^ a) x = (f ^ b) x :=
+begin
+  classical,
+  split,
+  { intro h,
+    obtain ⟨x, hx, -⟩ := id hf,
+    exact ⟨x, hx, by simp [h]⟩ },
+  { rintro ⟨x, hx, hx'⟩,
+    wlog hab : a ≤ b,
+    suffices : f ^ (b - a) = 1,
+    { rw [pow_sub _ hab, mul_inv_eq_one] at this,
+      rw this },
+    rw hf.pow_eq_one_iff,
+    by_cases hfa : (f ^ a) x ∈ f.support,
+    { refine ⟨(f ^ a) x, mem_support.mp hfa, _⟩,
+      simp only [pow_sub _ hab, equiv.perm.coe_mul, function.comp_app,
+        inv_apply_self, ← hx'] },
+    { have h := @equiv.perm.zpow_apply_comm _ f 1 a x,
+      simp only [zpow_one, zpow_coe_nat] at h,
+      rw [not_mem_support, h, function.injective.eq_iff (f ^ a).injective] at hfa,
+      contradiction }}
 end
 
 lemma is_cycle.mem_support_pos_pow_iff_of_lt_order_of [fintype α] {f : perm α} (hf : is_cycle f)

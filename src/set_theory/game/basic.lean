@@ -9,18 +9,19 @@ import tactic.abel
 /-!
 # Combinatorial games.
 
-In this file we define the quotient of pre-games by the equivalence relation `p ≈ q ↔ p ≤ q ∧ q ≤
-p`, and construct an instance `add_comm_group game`, as well as an instance `partial_order game`.
+In this file we define the quotient of pre-games by the equivalence relation
+`p ≈ q ↔ p ≤ q ∧ q ≤ p` (its `antisymmetrization`), and construct an instance `add_comm_group game`,
+as well as an instance `partial_order game`.
 
 ## Multiplication on pre-games
 
 We define the operations of multiplication and inverse on pre-games, and prove a few basic theorems
-about them. Multiplication is not well-behaved under equivalence of pre-games i.e. `x.equiv y` does
-not imply `(x*z).equiv (y*z)`. Hence, multiplication is not a well-defined operation on games.
-Nevertheless, the abelian group structure on games allows us to simplify many proofs for pre-games.
+about them. Multiplication is not well-behaved under equivalence of pre-games i.e. `x ≈ y` does not
+imply `x * z ≈ y * z`. Hence, multiplication is not a well-defined operation on games. Nevertheless,
+the abelian group structure on games allows us to simplify many proofs for pre-games.
 -/
 
-open function
+open function pgame
 
 universes u
 
@@ -38,8 +39,6 @@ antisymm_rel.setoid pgame (≤)
   A combinatorial game is then constructed by quotienting by the equivalence
   `x ≈ y ↔ x ≤ y ∧ y ≤ x`. -/
 abbreviation game := quotient pgame.setoid
-
-open pgame
 
 namespace game
 
@@ -213,6 +212,26 @@ rfl
    (x * y).move_right (to_right_moves_mul (sum.inr (i, j)))
    = x.move_right i * y + x * y.move_left j - x.move_right i * y.move_left j :=
 by { cases x, cases y, refl }
+
+lemma left_moves_mul_cases {x y : pgame} (k : (x * y).left_moves) :
+  (∃ ix iy, k = to_left_moves_mul (sum.inl ⟨ix, iy⟩)) ∨
+  ∃ jx jy, k = to_left_moves_mul (sum.inr ⟨jx, jy⟩) :=
+begin
+  rw ←to_left_moves_mul.apply_symm_apply k,
+  rcases to_left_moves_mul.symm k with ⟨ix, iy⟩ | ⟨jx, jy⟩,
+  { exact or.inl ⟨ix, iy, rfl⟩ },
+  { exact or.inr ⟨jx, jy, rfl⟩ }
+end
+
+lemma right_moves_mul_cases {x y : pgame} (k : (x * y).right_moves) :
+  (∃ ix jy, k = to_right_moves_mul (sum.inl ⟨ix, jy⟩)) ∨
+  ∃ jx iy, k = to_right_moves_mul (sum.inr ⟨jx, iy⟩) :=
+begin
+  rw ←to_right_moves_mul.apply_symm_apply k,
+  rcases to_right_moves_mul.symm k with ⟨ix, jy⟩ | ⟨jx, iy⟩,
+  { exact or.inl ⟨ix, jy, rfl⟩ },
+  { exact or.inr ⟨jx, iy, rfl⟩ }
+end
 
 theorem quot_mul_comm : Π (x y : pgame.{u}), ⟦x * y⟧ = ⟦y * x⟧
 | (mk xl xr xL xR) (mk yl yr yL yR) :=

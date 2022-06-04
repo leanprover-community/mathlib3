@@ -336,6 +336,19 @@ begin
   simp_rw [set.mem_set_of_eq, pi.sub_apply, sub_eq_zero],
 end
 
+lemma measurable_set_eq_fun_of_encodable {m : measurable_space α} {E} [measurable_space E]
+  [measurable_singleton_class E] [encodable E] {f g : α → E}
+  (hf : measurable f) (hg : measurable g) :
+  measurable_set {x | f x = g x} :=
+begin
+  have : {x | f x = g x} = ⋃ j, {x | f x = j} ∩ {x | g x = j},
+  { ext1 x, simp only [set.mem_set_of_eq, set.mem_Union, set.mem_inter_eq, exists_eq_right'], },
+  rw this,
+  refine measurable_set.Union (λ j, measurable_set.inter _ _),
+  { exact hf (measurable_set_singleton j), },
+  { exact hg (measurable_set_singleton j), },
+end
+
 lemma ae_eq_trim_of_measurable {α E} {m m0 : measurable_space α} {μ : measure α}
   [measurable_space E] [add_group E] [measurable_singleton_class E] [has_measurable_sub₂ E]
   (hm : m ≤ m0) {f g : α → E} (hf : measurable[m] f) (hg : measurable[m] g)

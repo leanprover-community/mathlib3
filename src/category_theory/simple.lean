@@ -220,7 +220,7 @@ nontrivial_of_not_is_zero (simple.not_is_zero X)
 
 instance {X : C} [simple X] : is_simple_order (subobject X) :=
 { eq_bot_or_eq_top := begin
-  rintro ⟨⟨⟨(Y : C), ⟨⟩, (f : Y ⟶ X)⟩, (m : mono f)⟩⟩, resetI,
+  rintro ⟨⟨⟨(Y : C), ⟨⟨⟩⟩, (f : Y ⟶ X)⟩, (m : mono f)⟩⟩, resetI,
   change mk f = ⊥ ∨ mk f = ⊤,
   by_cases h : f = 0,
   { exact or.inl (mk_eq_bot_iff_zero.mpr h), },

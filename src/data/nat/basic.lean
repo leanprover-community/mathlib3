@@ -90,8 +90,8 @@ instance nat.order_bot : order_bot ℕ :=
 { bot := 0, bot_le := nat.zero_le }
 
 instance : canonically_ordered_comm_semiring ℕ :=
-{ le_iff_exists_add := λ a b, ⟨λ h, let ⟨c, hc⟩ := nat.le.dest h in ⟨c, hc.symm⟩,
-                               λ ⟨c, hc⟩, hc.symm ▸ nat.le_add_right _ _⟩,
+{ exists_add_of_le := λ a b h, (nat.le.dest h).imp $ λ _, eq.symm,
+  le_add := nat.le_add_right,
   eq_zero_or_eq_zero_of_mul_eq_zero   := λ a b, nat.eq_zero_of_mul_eq_zero,
   .. nat.nontrivial,
   .. nat.order_bot,

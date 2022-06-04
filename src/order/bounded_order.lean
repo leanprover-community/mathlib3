@@ -897,7 +897,7 @@ instance [order_bot α] : order_bot (with_top α) :=
 instance [order_bot α] : bounded_order (with_top α) :=
 { ..with_top.order_top, ..with_top.order_bot }
 
-lemma not_top_le_coe (a : α) : ¬ (⊤ : with_top α) ≤ ↑a := with_bot.not_coe_le_bot a
+lemma not_top_le_coe (a : α) : ¬ (⊤ : with_top α) ≤ ↑a := with_bot.not_coe_le_bot (to_dual a)
 
 lemma le_coe : ∀ {o : option α}, a ∈ o → (@has_le.le (with_top α) _ o b ↔ a ≤ b) | _ rfl :=
 coe_le_coe
@@ -959,7 +959,7 @@ instance [semilattice_sup α] : semilattice_sup (with_top α) := order_dual.semi
 instance [lattice α] : lattice (with_top α) := order_dual.lattice _
 
 instance is_total_le [has_le α] [is_total α (≤)] : is_total (with_top α) (≤) :=
-order_dual.is_total_le
+@order_dual.is_total_le (with_bot αᵒᵈ) _ _
 
 instance [linear_order α] : linear_order (with_top α) := order_dual.linear_order _
 
@@ -976,17 +976,17 @@ lemma well_founded_gt [preorder α] (h : @well_founded α (>)) : @well_founded (
 with_bot.well_founded_lt h
 
 instance [has_lt α] [densely_ordered α] [no_max_order α] : densely_ordered (with_top α) :=
-order_dual.densely_ordered _
+order_dual.densely_ordered (with_bot αᵒᵈ)
 
 lemma lt_iff_exists_coe_btwn [preorder α] [densely_ordered α] [no_max_order α] {a b : with_top α} :
   a < b ↔ ∃ x : α, a < ↑x ∧ ↑x < b :=
 with_bot.lt_iff_exists_coe_btwn.trans $ exists_congr $ λ _, and_comm _ _
 
 instance [has_le α] [no_bot_order α] [nonempty α] : no_bot_order (with_top α) :=
-order_dual.no_bot_order _
+order_dual.no_bot_order (with_bot αᵒᵈ)
 
 instance [has_lt α] [no_min_order α] [nonempty α] : no_min_order (with_top α) :=
-order_dual.no_min_order _
+order_dual.no_min_order (with_bot αᵒᵈ)
 
 end with_top
 

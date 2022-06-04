@@ -38,11 +38,11 @@ end
 namespace real
 
 /-- Asymptotic bound for the `Γ` function integrand. -/
-lemma Gamma_integrand_is_O (s : ℝ) : is_O (λ x:ℝ, exp (-x) * x ^ s)
-  (λ x:ℝ, exp (-(1/2) * x)) at_top :=
+lemma Gamma_integrand_is_o (s : ℝ) :
+  (λ x:ℝ, exp (-x) * x ^ s) =o[at_top] (λ x:ℝ, exp (-(1/2) * x)) :=
 begin
-  refine is_o.is_O (is_o_of_tendsto _ _),
-  { intros x hx, exfalso, exact (exp_pos (-(1 / 2) * x)).ne' hx },
+  refine is_o_of_tendsto (λ x hx, _) _,
+  { exfalso, exact (exp_pos (-(1 / 2) * x)).ne' hx },
   have : (λ (x:ℝ), exp (-x) * x ^ s / exp (-(1 / 2) * x)) = (λ (x:ℝ), exp ((1 / 2) * x) / x ^ s )⁻¹,
   { ext1 x,
     field_simp [exp_ne_zero, exp_neg, ← real.exp_add],
@@ -65,7 +65,7 @@ results currently in the library. -/
 lemma Gamma_integral_convergent {s : ℝ} (h : 1 ≤ s) :
   integrable_on (λ x:ℝ, exp (-x) * x ^ (s - 1)) (Ioi 0) :=
 begin
-  refine integrable_of_is_O_exp_neg one_half_pos _ (Gamma_integrand_is_O _ ),
+  refine integrable_of_is_O_exp_neg one_half_pos _ (Gamma_integrand_is_o _ ).is_O,
   refine continuous_on_id.neg.exp.mul (continuous_on_id.rpow_const _),
   intros x hx, right, simpa only [sub_nonneg] using h,
 end
@@ -347,11 +347,11 @@ def dGamma_integrand (s : ℂ) (x : ℝ) : ℂ := exp (-x) * log x * x ^ (s - 1)
 /-- Integrand for the absolute value of the derivative of the `Γ` function -/
 def dGamma_integrand_real (s x : ℝ) : ℝ := |exp (-x) * log x * x ^ (s - 1)|
 
-lemma dGamma_integrand_is_O_at_top (s : ℝ) : is_O (λ x:ℝ, exp (-x) * log x * x ^ (s - 1))
-  (λ x:ℝ, exp (-(1/2) * x)) at_top :=
+lemma dGamma_integrand_is_o_at_top (s : ℝ) :
+  (λ x : ℝ, exp (-x) * log x * x ^ (s - 1)) =o[at_top] (λ x, exp (-(1/2) * x)) :=
 begin
-  refine is_o.is_O (is_o_of_tendsto _ _),
-  { intros x hx, exfalso, exact (-(1/2) * x).exp_pos.ne' hx, },
+  refine is_o_of_tendsto (λ x hx, _) _,
+  { exfalso, exact (-(1/2) * x).exp_pos.ne' hx, },
   have : eventually_eq at_top (λ (x : ℝ), exp (-x) * log x * x ^ (s - 1) / exp (-(1 / 2) * x))
     (λ (x : ℝ),  (λ z:ℝ, exp (1 / 2 * z) / z ^ s) x * (λ z:ℝ, z / log z) x)⁻¹,
   { refine eventually_of_mem (Ioi_mem_at_top 1) _,
@@ -387,7 +387,7 @@ begin
     refine mul_le_mul _ _ (by apply abs_nonneg) zero_le_one,
     { rw [abs_of_pos (exp_pos(-x)), exp_le_one_iff, neg_le, neg_zero], exact hx.1.le },
     { apply le_of_lt, refine abs_log_mul_self_rpow_lt x (s-1) hx.1 hx.2 (by linarith), }, },
-  { have := is_O.norm_left (dGamma_integrand_is_O_at_top s),
+  { have := (dGamma_integrand_is_o_at_top s).is_O.norm_left,
     refine integrable_of_is_O_exp_neg one_half_pos (continuous_on.mul _ _).norm this,
     { refine (continuous_exp.comp continuous_neg).continuous_on.mul (continuous_on_log.mono _),
       simp, },

@@ -13,19 +13,19 @@ In this file we define independence and dependence of families of elements in pr
 
 ## Implementation Details
 
-We use an inductive definition to define that a family of vectors is independent where the only
-constructor assumes an independent family of vectors from the ambient vector space.
-Similarly for the definition of dependence.
+We use an inductive definition to define the independence of points in projective
+space, where the only constructor assumes an independent family of vectors from the
+ambient vector space. Similarly for the definition of dependence.
 
 ## Results
 
-- A family of elements is dependent iff it is not independent.
-- Two elements are dependent iff they are equal.
+- A family of elements is dependent if and only if it is not independent.
+- Two elements are dependent if and only if they are equal.
 
 # Future Work
 
 - Define collinearity in projective space.
-- Prove the axioms of a projective geometry are satisfied by the dependece relation.
+- Prove the axioms of a projective geometry are satisfied by the dependence relation.
 - Define projective linear subspaces.
 -/
 
@@ -40,7 +40,7 @@ inductive independent {ι : Type*} : (ι → ℙ K V) → Prop
 | mk (f : ι → V) (hf : ∀ i : ι, f i ≠ 0) (hl : linear_independent K f) :
     independent (λ i, mk K (f i) (hf i))
 
-/- A family of points in a projective space are independent iff their
+/- A family of points in a projective space are independent if and only if their
 representatives are linearly independent. -/
 lemma independent_iff (ι : Type*) (f : ι → (ℙ K V)) : independent f ↔
   linear_independent K (projectivization.rep ∘ f) :=
@@ -62,7 +62,7 @@ inductive dependent {ι : Type*} : (ι → ℙ K V) → Prop
 | mk (f : ι → V) (hf : ∀ i : ι, f i ≠ 0) (h : ¬linear_independent K f) :
     dependent (λ i, mk K (f i) (hf i))
 
-/- A family of points in a projective space is dependent iff their
+/- A family of points in a projective space is dependent if and only if their
 representatives are linearly dependent. -/
 lemma dependent_iff (ι : Type*) (f : ι → (ℙ K V)) : dependent f ↔
   ¬ linear_independent K (projectivization.rep ∘ f) :=
@@ -91,7 +91,7 @@ lemma independent_iff_not_dependent {ι : Type*} (f : ι → ℙ K V) :
 by { rw [dependent_iff, independent_iff, not_not] }
 
 
-/- Two points in a projective space are dependent iff they are equal. -/
+/- Two points in a projective space are dependent if and only if they are equal. -/
 @[simp] lemma pair_dependent_iff_eq (u v : ℙ K V) : dependent ![u, v] ↔ u = v :=
 begin
   simp_rw [dependent_iff_not_independent, independent_iff, linear_independent_fin2,
@@ -102,7 +102,7 @@ begin
   exact or.inl (rep_nonzero v),
 end
 
-/- Two points in a projective space are independent iff the points are not equal. -/
+/- Two points in a projective space are independent if and only if the points are not equal. -/
 @[simp] lemma pair_independent_iff_neq (u v : ℙ K V) : (independent ![u, v]) ↔ u ≠ v :=
 by { rw [independent_iff_not_dependent, pair_dependent_iff_eq u v] }
 

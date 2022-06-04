@@ -92,10 +92,10 @@ lemma mk_eq_mk_iff (v w : V) (hv : v ≠ 0) (hw : w ≠ 0) :
   mk K v hv = mk K w hw ↔ ∃ (a : Kˣ), a • w = v :=
 quotient.eq'
 
-/-Two nonzero vectors go to the same point in projective space iff one is in
-the span of the other. -/
-lemma mk_eq_mk_iff' (v w: V) (hv : v ≠ 0) (hw : w ≠ 0) : mk K v hv = mk K w hw ↔
-  ∃ a : K, a • w = v :=
+/-Two nonzero vectors go to the same point in projective space if and only if one is
+a scalar multiple of the other . -/
+lemma mk_eq_mk_iff' (v w : V) (hv : v ≠ 0) (hw : w ≠ 0) : mk K v hv = mk K w hw ↔
+  ∃ (a : K), a • w = v :=
 begin
   rw mk_eq_mk_iff K v w hv hw,
   split,

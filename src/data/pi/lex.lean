@@ -58,7 +58,7 @@ lemma is_trichotomous_lex [∀ i, is_trichotomous (β i) s] (wf : well_founded r
         { intro j, rw ← not_imp_not,
           exact λ h', wf.not_lt_min _ _ h' },
         have hne : a i ≠ b i, from wf.min_mem _ hab,
-        cases (trichotomous (a i) (b i) : s (a i) (b i) ∨ a i = b i ∨ s (b i) (a i)) with hi hi,
+        cases trichotomous_of s (a i) (b i) with hi hi,
         exacts [or.inl ⟨i, hri, hi⟩,
           or.inr $ or.inr $ ⟨i, λ j hj, (hri j hj).symm, hi.resolve_left hne⟩] },
     end }

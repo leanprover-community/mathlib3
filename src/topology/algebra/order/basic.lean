@@ -1157,6 +1157,31 @@ lemma filter.eventually.exists_Ioo_subset [no_max_order α] [no_min_order α] {a
   ∃ l u, a ∈ Ioo l u ∧ Ioo l u ⊆ {x | p x} :=
 mem_nhds_iff_exists_Ioo_subset.1 hp
 
+/-- The set of points which are isolated on their right is countable when the space is
+second-countable. -/
+lemma countable_of_isolated_right [second_countable_topology α]:
+  set.countable {x : α | ∃ y > x, Ioo x y = ∅} :=
+begin
+  rcases is_empty_or_nonempty α,
+  { resetI,
+    have : {x : α | ∃ y > x, Ioo x y = ∅} = ∅,
+    { letI : unique (α → Prop) := by apply_instance,
+      apply subsingleton.elim,
+
+    }
+
+  },
+  let b := countable_basis α,
+  let s := {x : α | ∃ y > x, Ioo x y = ∅},
+  have : ∀ x ∈ s, ∃ y,
+  by_contra' H,
+  simp at
+
+end
+
+
+#exit
+
 section pi
 
 /-!

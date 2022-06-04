@@ -148,6 +148,10 @@ instance pi.unique_of_is_empty [is_empty α] (β : Π a : α, Sort v) :
 { default := is_empty_elim,
   uniq := λ f, funext is_empty_elim }
 
+instance set.unique_of_is_empty [is_empty α] :
+  unique (set α) :=
+pi.unique_of_is_empty _
+
 namespace function
 
 variable {f : α → β}

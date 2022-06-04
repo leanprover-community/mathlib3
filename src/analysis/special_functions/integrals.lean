@@ -199,7 +199,7 @@ open interval_integral
 
 /-! ### Integrals of simple functions -/
 
-lemma integral_rpow {r : ℝ} (h : (-1 < r) ∨ (r ≠ -1 ∧ (0 : ℝ) ∉ [a, b])) :
+lemma integral_rpow {r : ℝ} (h : -1 < r ∨ (r ≠ -1 ∧ (0 : ℝ) ∉ [a, b])) :
   ∫ x in a..b, x ^ r = (b ^ (r + 1) - a ^ (r + 1)) / (r + 1) :=
 begin
   rw sub_div,

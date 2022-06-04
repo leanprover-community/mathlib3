@@ -192,17 +192,6 @@ variables {f : ℝ → E} {a b : ℝ} {μ : measure ℝ}
 lemma interval_integrable_iff : interval_integrable f μ a b ↔ integrable_on f (Ι a b) μ :=
 by rw [interval_oc_eq_union, integrable_on_union, interval_integrable]
 
-lemma interval_integrable_iff' [is_locally_finite_measure μ] :
-  interval_integrable f μ a b ↔ integrable_on f (interval a b) μ :=
-begin
-  rw interval_integrable_iff,
-  have : (interval a b) = (Ι a b) ∪ { min a b } := by { rw [interval, interval_oc], simp, },
-  rw [this, integrable_on_union, integrable_on_singleton_iff],
-  suffices: μ {min a b} < ⊤, { simp only [this, with_top.zero_lt_top, or_true, and_true], },
-  obtain ⟨t, ⟨t1, t2, t3⟩⟩ := measure.exists_is_open_measure_lt_top μ (min a b),
-  refine lt_of_le_of_lt _ t3, apply measure_mono, simpa using t1,
-end
-
 /-- If a function is interval integrable with respect to a given measure `μ` on `a..b` then
   it is integrable on `interval_oc a b` with respect to `μ`. -/
 lemma interval_integrable.def (h : interval_integrable f μ a b) : integrable_on f (Ι a b) μ :=
@@ -211,6 +200,53 @@ interval_integrable_iff.mp h
 lemma interval_integrable_iff_integrable_Ioc_of_le (hab : a ≤ b) :
   interval_integrable f μ a b ↔ integrable_on f (Ioc a b) μ :=
 by rw [interval_integrable_iff, interval_oc_of_le hab]
+
+lemma integrable_on_Icc_iff_integrable_on_Ioc'
+  {E : Type*} [normed_group E] {f : ℝ → E} (ha : μ {a} ≠ ∞) :
+  integrable_on f (Icc a b) μ ↔ integrable_on f (Ioc a b) μ :=
+begin
+  cases le_or_lt a b with hab hab,
+  { have : Icc a b = Icc a a ∪ Ioc a b := (Icc_union_Ioc_eq_Icc le_rfl hab).symm,
+    rw [this, integrable_on_union],
+    simp [ha.lt_top] },
+  { simp [hab, hab.le] },
+end
+
+lemma integrable_on_Icc_iff_integrable_on_Ioc
+  {E : Type*}[normed_group E] [has_no_atoms μ] {f : ℝ → E} {a b : ℝ} :
+  integrable_on f (Icc a b) μ ↔ integrable_on f (Ioc a b) μ :=
+integrable_on_Icc_iff_integrable_on_Ioc' (by simp)
+
+lemma integrable_on_Ioc_iff_integrable_on_Ioo'
+  {E : Type*} [normed_group E]
+  {f : ℝ → E} {a b : ℝ} (hb : μ {b} ≠ ∞) :
+  integrable_on f (Ioc a b) μ ↔ integrable_on f (Ioo a b) μ :=
+begin
+  cases lt_or_le a b with hab hab,
+  { have : Ioc a b = Ioo a b ∪ Icc b b := (Ioo_union_Icc_eq_Ioc hab le_rfl).symm,
+    rw [this, integrable_on_union],
+    simp [hb.lt_top] },
+  { simp [hab] },
+end
+
+lemma integrable_on_Ioc_iff_integrable_on_Ioo
+  {E : Type*} [normed_group E] [has_no_atoms μ] {f : ℝ → E} {a b : ℝ} :
+  integrable_on f (Ioc a b) μ ↔ integrable_on f (Ioo a b) μ :=
+integrable_on_Ioc_iff_integrable_on_Ioo' (by simp)
+
+lemma integrable_on_Icc_iff_integrable_on_Ioo
+  {E : Type*} [normed_group E] [has_no_atoms μ] {f : ℝ → E} {a b : ℝ} :
+  integrable_on f (Icc a b) μ ↔ integrable_on f (Ioo a b) μ :=
+by rw [integrable_on_Icc_iff_integrable_on_Ioc, integrable_on_Ioc_iff_integrable_on_Ioo]
+
+lemma interval_integrable_iff' [has_no_atoms μ] :
+  interval_integrable f μ a b ↔ integrable_on f (interval a b) μ :=
+by rw [interval_integrable_iff, interval, interval_oc, integrable_on_Icc_iff_integrable_on_Ioc]
+
+lemma interval_integrable_iff_integrable_Icc_of_le {E : Type*} [normed_group E]
+  {f : ℝ → E} {a b : ℝ} (hab : a ≤ b) {μ : measure ℝ} [has_no_atoms μ] :
+  interval_integrable f μ a b ↔ integrable_on f (Icc a b) μ :=
+by rw [interval_integrable_iff_integrable_Ioc_of_le hab, integrable_on_Icc_iff_integrable_on_Ioc]
 
 /-- If a function is integrable with respect to a given measure `μ` then it is interval integrable
   with respect to `μ` on `interval a b`. -/
@@ -765,50 +801,6 @@ as well as a few other identities trivially equivalent to this one. We also prov
 section order_closed_topology
 
 variables {a b c d : ℝ} {f g : ℝ → E} {μ : measure ℝ}
-
-lemma integrable_on_Icc_iff_integrable_on_Ioc'
-  {E : Type*} [normed_group E]
-  {f : ℝ → E} {a b : ℝ} (ha : μ {a} ≠ ∞) :
-  integrable_on f (Icc a b) μ ↔ integrable_on f (Ioc a b) μ :=
-begin
-  cases le_or_lt a b with hab hab,
-  { have : Icc a b = Icc a a ∪ Ioc a b := (Icc_union_Ioc_eq_Icc le_rfl hab).symm,
-    rw [this, integrable_on_union],
-    simp [ha.lt_top] },
-  { simp [hab, hab.le] },
-end
-
-lemma integrable_on_Icc_iff_integrable_on_Ioc
-  {E : Type*}[normed_group E] [has_no_atoms μ] {f : ℝ → E} {a b : ℝ} :
-  integrable_on f (Icc a b) μ ↔ integrable_on f (Ioc a b) μ :=
-integrable_on_Icc_iff_integrable_on_Ioc' (by simp)
-
-lemma integrable_on_Ioc_iff_integrable_on_Ioo'
-  {E : Type*} [normed_group E]
-  {f : ℝ → E} {a b : ℝ} (hb : μ {b} ≠ ∞) :
-  integrable_on f (Ioc a b) μ ↔ integrable_on f (Ioo a b) μ :=
-begin
-  cases lt_or_le a b with hab hab,
-  { have : Ioc a b = Ioo a b ∪ Icc b b := (Ioo_union_Icc_eq_Ioc hab le_rfl).symm,
-    rw [this, integrable_on_union],
-    simp [hb.lt_top] },
-  { simp [hab] },
-end
-
-lemma integrable_on_Ioc_iff_integrable_on_Ioo
-  {E : Type*} [normed_group E] [has_no_atoms μ] {f : ℝ → E} {a b : ℝ} :
-  integrable_on f (Ioc a b) μ ↔ integrable_on f (Ioo a b) μ :=
-integrable_on_Ioc_iff_integrable_on_Ioo' (by simp)
-
-lemma integrable_on_Icc_iff_integrable_on_Ioo
-  {E : Type*} [normed_group E] [has_no_atoms μ] {f : ℝ → E} {a b : ℝ} :
-  integrable_on f (Icc a b) μ ↔ integrable_on f (Ioo a b) μ :=
-by rw [integrable_on_Icc_iff_integrable_on_Ioc, integrable_on_Ioc_iff_integrable_on_Ioo]
-
-lemma interval_integrable_iff_integrable_Icc_of_le {E : Type*} [normed_group E]
-  {f : ℝ → E} {a b : ℝ} (hab : a ≤ b) {μ : measure ℝ} [has_no_atoms μ] :
-  interval_integrable f μ a b ↔ integrable_on f (Icc a b) μ :=
-by rw [interval_integrable_iff_integrable_Ioc_of_le hab, integrable_on_Icc_iff_integrable_on_Ioc]
 
 /-- If two functions are equal in the relevant interval, their interval integrals are also equal. -/
 lemma integral_congr {a b : ℝ} (h : eq_on f g [a, b]) :

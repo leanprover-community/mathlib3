@@ -903,7 +903,7 @@ theorem lt_aleph_0 {c : cardinal} : c < ℵ₀ ↔ ∃ n : ℕ, c = n :=
 ⟨λ h, begin
   rcases lt_lift_iff.1 h with ⟨c, rfl, h'⟩,
   rcases le_mk_iff_exists_set.1 h'.1 with ⟨S, rfl⟩,
-  suffices : finite S,
+  suffices : S.finite,
   { lift S to finset ℕ using this,
     simp },
   contrapose! h',

@@ -593,12 +593,12 @@ begin
   refine second_countable_of_countable_discretization (λ δ δpos, _),
   let ε := (2/5) * δ,
   have εpos : 0 < ε := mul_pos (by norm_num) δpos,
-  have : ∀ p:GH_space, ∃ s : set p.rep, finite s ∧ (univ ⊆ (⋃x∈s, ball x ε)) :=
+  have : ∀ p:GH_space, ∃ s : set p.rep, s.finite ∧ (univ ⊆ (⋃x∈s, ball x ε)) :=
     λ p, by simpa using finite_cover_balls_of_compact (@compact_univ p.rep _ _) εpos,
   -- for each `p`, `s p` is a finite `ε`-dense subset of `p` (or rather the metric space
   -- `p.rep` representing `p`)
   choose s hs using this,
-  have : ∀ p:GH_space, ∀ t:set p.rep, finite t → ∃ n:ℕ, ∃ e:equiv t (fin n), true,
+  have : ∀ p:GH_space, ∀ t:set p.rep, t.finite → ∃ n:ℕ, ∃ e:equiv t (fin n), true,
   { assume p t ht,
     letI : fintype t := finite.fintype ht,
     exact ⟨fintype.card t, fintype.equiv_fin t, trivial⟩ },

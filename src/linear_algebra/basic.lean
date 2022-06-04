@@ -119,15 +119,10 @@ by { ext, simp [linear_equiv_fun_on_fintype], }
 
 end finsupp
 
-section
-open_locale classical
-
 /-- decomposing `x : ι → R` as a sum along the canonical basis -/
-lemma pi_eq_sum_univ {ι : Type*} [fintype ι] {R : Type*} [semiring R] (x : ι → R) :
+lemma pi_eq_sum_univ {ι : Type*} [fintype ι] [decidable_eq ι] {R : Type*} [semiring R] (x : ι → R) :
   x = ∑ i, x i • (λj, if i = j then 1 else 0) :=
 by { ext, simp }
-
-end
 
 /-! ### Properties of linear maps -/
 namespace linear_map
@@ -317,19 +312,14 @@ end
 
 end
 
-section
-open_locale classical
-
 /-- A linear map `f` applied to `x : ι → R` can be computed using the image under `f` of elements
 of the canonical basis. -/
-lemma pi_apply_eq_sum_univ [fintype ι] (f : (ι → R) →ₗ[R] M) (x : ι → R) :
+lemma pi_apply_eq_sum_univ [fintype ι] [decidable_eq ι] (f : (ι → R) →ₗ[R] M) (x : ι → R) :
   f x = ∑ i, x i • (f (λj, if i = j then 1 else 0)) :=
 begin
   conv_lhs { rw [pi_eq_sum_univ x, f.map_sum] },
   apply finset.sum_congr rfl (λl hl, _),
   rw map_smul
-end
-
 end
 
 end add_comm_monoid
@@ -418,12 +408,6 @@ def dom_restrict'
 @[simp] lemma dom_restrict'_apply (f : M →ₗ[R] M₂) (p : submodule R M) (x : p) :
   dom_restrict' p f x = f x := rfl
 
-end comm_semiring
-
-section comm_ring
-variables [comm_ring R] [add_comm_group M] [add_comm_group M₂] [add_comm_group M₃]
-variables [module R M] [module R M₂] [module R M₃]
-
 /--
 The family of linear maps `M₂ → M` parameterised by `f ∈ M₂ → R`, `x ∈ M`, is linear in `f`, `x`.
 -/
@@ -438,7 +422,7 @@ def smul_rightₗ : (M₂ →ₗ[R] R) →ₗ[R] M →ₗ[R] M₂ →ₗ[R] M :=
 @[simp] lemma smul_rightₗ_apply (f : M₂ →ₗ[R] R) (x : M) (c : M₂) :
   (smul_rightₗ : (M₂ →ₗ[R] R) →ₗ[R] M →ₗ[R] M₂ →ₗ[R] M) f x c = (f c) • x := rfl
 
-end comm_ring
+end comm_semiring
 
 end linear_map
 

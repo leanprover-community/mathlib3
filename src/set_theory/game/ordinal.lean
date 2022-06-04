@@ -13,20 +13,20 @@ import set_theory.ordinal.basic
 We define the canonical map `ordinal → pgame`, where every ordinal is mapped to the game whose left
 set consists of all previous ordinals.
 
+The map to surreals is defined in `ordinal.to_surreal`.
+
 # Main declarations
 
 - `ordinal.to_pgame`: The canonical map between ordinals and pre-games.
 - `ordinal.to_pgame_embedding`: The order embedding version of the previous map.
-
-# Todo
-
-- Extend this map to `game` and `surreal`.
 -/
 
-local infix ` ≈ ` := pgame.equiv
-local infix ` ⧏ `:50 := pgame.lf
-
 universe u
+
+open pgame
+
+local infix ` ≈ ` := equiv
+local infix ` ⧏ `:50 := lf
 
 namespace ordinal
 
@@ -41,10 +41,10 @@ theorem to_pgame_def (o : ordinal) :
 by rw to_pgame
 
 @[simp] theorem to_pgame_left_moves (o : ordinal) : o.to_pgame.left_moves = o.out.α :=
-by rw [to_pgame, pgame.left_moves]
+by rw [to_pgame, left_moves]
 
 @[simp] theorem to_pgame_right_moves (o : ordinal) : o.to_pgame.right_moves = pempty :=
-by rw [to_pgame, pgame.right_moves]
+by rw [to_pgame, right_moves]
 
 instance : is_empty (to_pgame 0).left_moves :=
 by { rw to_pgame_left_moves, apply_instance }
@@ -74,18 +74,20 @@ theorem to_pgame_move_left {o : ordinal} (i) :
 by simp
 
 theorem to_pgame_lf {a b : ordinal} (h : a < b) : a.to_pgame ⧏ b.to_pgame :=
-by { convert pgame.move_left_lf (to_left_moves_to_pgame ⟨a, h⟩), rw to_pgame_move_left }
+by { convert move_left_lf (to_left_moves_to_pgame ⟨a, h⟩), rw to_pgame_move_left }
 
 theorem to_pgame_le {a b : ordinal} (h : a ≤ b) : a.to_pgame ≤ b.to_pgame :=
-pgame.le_def.2 ⟨λ i, or.inl ⟨to_left_moves_to_pgame
-  ⟨(to_left_moves_to_pgame.symm i).val, (to_left_moves_to_pgame_symm_lt i).trans_le h⟩, by simp⟩,
-  is_empty_elim⟩
+begin
+  refine le_iff_forall_lf.2 ⟨λ i, _, is_empty_elim⟩,
+  rw to_pgame_move_left',
+  exact to_pgame_lf ((to_left_moves_to_pgame_symm_lt i).trans_le h)
+end
 
 theorem to_pgame_lt {a b : ordinal} (h : a < b) : a.to_pgame < b.to_pgame :=
-pgame.lt_of_le_of_lf (to_pgame_le h.le) (to_pgame_lf h)
+lt_of_le_of_lf (to_pgame_le h.le) (to_pgame_lf h)
 
 @[simp] theorem to_pgame_lf_iff {a b : ordinal} : a.to_pgame ⧏ b.to_pgame ↔ a < b :=
-⟨by { contrapose, rw [not_lt, pgame.not_lf], exact to_pgame_le }, to_pgame_lf⟩
+⟨by { contrapose, rw [not_lt, not_lf], exact to_pgame_le }, to_pgame_lf⟩
 
 @[simp] theorem to_pgame_le_iff {a b : ordinal} : a.to_pgame ≤ b.to_pgame ↔ a ≤ b :=
 ⟨by { contrapose, rw [not_le, pgame.not_le], exact to_pgame_lf }, to_pgame_le⟩

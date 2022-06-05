@@ -253,34 +253,13 @@ local attribute [-instance] uniform_convergence.uniform_space
 /-- If `α → Π i, δ i` and each `α → δ i` are equipped with the uniform structures of uniform
 convergence, then "swapping the arguments" is a uniform isomorphism between `α → Π i, δ i` and
 `Π i, α → δ i`. -/
-protected def uniform_equiv_swap_Pi : @uniform_equiv (α → Π i, δ i) (Π i, α → δ i)
+protected def uniform_equiv_Pi_comm : @uniform_equiv (α → Π i, δ i) (Π i, α → δ i)
   (@uniform_convergence.uniform_space α (Π i, δ i) (Pi.uniform_space δ))
   (@Pi.uniform_space ι (λ i, α → δ i) (λ i, uniform_convergence.uniform_space α (δ i))) :=
-{ to_fun := function.swap,
-  inv_fun := function.swap,
-  left_inv := λ x, rfl,
-  right_inv := λ x, rfl,
-  uniform_continuous_to_fun :=
-  begin
-    letI : uniform_space (Π i, δ i) := Pi.uniform_space δ,
-    letI : uniform_space (α → Π i, δ i) := uniform_convergence.uniform_space α (Π i, δ i),
-    letI : Π i, uniform_space (α → δ i) := λ i, uniform_convergence.uniform_space α (δ i),
-    letI : uniform_space (Π i, α → δ i) := Pi.uniform_space (λ i, α → δ i),
-    exact (uniform_convergence.uniform_inducing_swap_Pi α δ).uniform_continuous.continuous
-  end,
-  uniform_continuous_inv_fun :=
-  begin
-    letI : uniform_space (Π i, δ i) := Pi.uniform_space δ,
-    letI : uniform_space (α → Π i, δ i) := uniform_convergence.uniform_space α (Π i, δ i),
-    letI : Π i, uniform_space (α → δ i) := λ i, uniform_convergence.uniform_space α (δ i),
-    letI : uniform_space (Π i, α → δ i) := Pi.uniform_space (λ i, α → δ i),
-    exact (uniform_convergence.uniform_inducing_Pi_swap α δ).uniform_continuous.continuous
-  end }
-
-protected lemma uniform_inducing_swap_Pi : @uniform_inducing (α → Π i, δ i) (Π i, α → δ i)
+@equiv.to_uniform_equiv_of_uniform_inducing _ _
   (@uniform_convergence.uniform_space α (Π i, δ i) (Pi.uniform_space δ))
   (@Pi.uniform_space ι (λ i, α → δ i) (λ i, uniform_convergence.uniform_space α (δ i)))
-  function.swap :=
+  equiv.Pi_comm
 begin
   split,
   change comap (prod.map function.swap function.swap) _ = _,
@@ -291,50 +270,6 @@ begin
   refine infi_congr (λ i, _),
   rw [← uniform_space.comap_comap, uniform_convergence.comap_eq]
 end
-
-protected lemma uniform_inducing_Pi_swap : @uniform_inducing (Π i, α → δ i) (α → Π i, δ i)
-  (@Pi.uniform_space ι (λ i, α → δ i) (λ i, uniform_convergence.uniform_space α (δ i)))
-  (@uniform_convergence.uniform_space α (Π i, δ i) (Pi.uniform_space δ))
-  function.swap :=
-begin
-  letI : uniform_space (Π i, δ i) := Pi.uniform_space δ,
-  letI : uniform_space (α → Π i, δ i) := uniform_convergence.uniform_space α (Π i, δ i),
-  letI : Π i, uniform_space (α → δ i) := λ i, uniform_convergence.uniform_space α (δ i),
-  letI : uniform_space (Π i, α → δ i) := Pi.uniform_space (λ i, α → δ i),
-  split,
-  rw [← (uniform_convergence.uniform_inducing_swap_Pi α δ).comap_uniformity, comap_comap],
-  convert comap_id using 2,
-  ext; refl
-end
-
-/-- If `α → Π i, δ i` and each `α → δ i` are equipped with the topologies of uniform
-convergence, then "swapping the arguments" is an homeomorphism between `α → Π i, δ i` and
-`Π i, α → δ i`.
-
-TODO : upgrade to a uniform homeomorphism once we have them. -/
-protected def homeomorph_swap_Pi : @homeomorph (α → Π i, δ i) (Π i, α → δ i)
-  (@uniform_convergence.topological_space α (Π i, δ i) (Pi.uniform_space δ))
-  (@Pi.topological_space ι (λ i, α → δ i) (λ i, uniform_convergence.topological_space α (δ i))) :=
-{ to_fun := function.swap,
-  inv_fun := function.swap,
-  left_inv := λ x, rfl,
-  right_inv := λ x, rfl,
-  continuous_to_fun :=
-  begin
-    letI : uniform_space (Π i, δ i) := Pi.uniform_space δ,
-    letI : uniform_space (α → Π i, δ i) := uniform_convergence.uniform_space α (Π i, δ i),
-    letI : Π i, uniform_space (α → δ i) := λ i, uniform_convergence.uniform_space α (δ i),
-    letI : uniform_space (Π i, α → δ i) := Pi.uniform_space (λ i, α → δ i),
-    exact (uniform_convergence.uniform_inducing_swap_Pi α δ).uniform_continuous.continuous
-  end,
-  continuous_inv_fun :=
-  begin
-    letI : uniform_space (Π i, δ i) := Pi.uniform_space δ,
-    letI : uniform_space (α → Π i, δ i) := uniform_convergence.uniform_space α (Π i, δ i),
-    letI : Π i, uniform_space (α → δ i) := λ i, uniform_convergence.uniform_space α (δ i),
-    letI : uniform_space (Π i, α → δ i) := Pi.uniform_space (λ i, α → δ i),
-    exact (uniform_convergence.uniform_inducing_Pi_swap α δ).uniform_continuous.continuous
-  end }
 
 end uniform_convergence
 
@@ -487,10 +422,16 @@ end
 
 variables (𝔖) (δ : ι → Type*) [Π i, uniform_space (δ i)]
 
-protected lemma uniform_inducing_swap_Pi : @uniform_inducing (α → Π i, δ i) (Π i, α → δ i)
+/-- If `α → Π i, δ i` and each `α → δ i` are equipped with the uniform structures of
+`𝔖`-convergence, then "swapping the arguments" is a uniform isomorphism between `α → Π i, δ i` and
+`Π i, α → δ i`. -/
+protected def uniform_equiv_Pi_comm : @uniform_equiv (α → Π i, δ i) (Π i, α → δ i)
+  (@uniform_convergence_on.uniform_space α (Π i, δ i) (Pi.uniform_space δ) 𝔖)
+  (@Pi.uniform_space ι (λ i, α → δ i) (λ i, uniform_convergence_on.uniform_space α (δ i) 𝔖)) :=
+@equiv.to_uniform_equiv_of_uniform_inducing _ _
   (@uniform_convergence_on.uniform_space α (Π i, δ i) (Pi.uniform_space δ) 𝔖)
   (@Pi.uniform_space ι (λ i, α → δ i) (λ i, uniform_convergence_on.uniform_space α (δ i) 𝔖))
-  function.swap :=
+  equiv.Pi_comm
 begin
   split,
   change comap (prod.map function.swap function.swap) _ = _,
@@ -501,49 +442,5 @@ begin
   refine infi_congr (λ i, _),
   rw [← uniform_space.comap_comap, uniform_convergence_on.comap_eq]
 end
-
-protected lemma uniform_inducing_Pi_swap : @uniform_inducing (Π i, α → δ i) (α → Π i, δ i)
-  (@Pi.uniform_space ι (λ i, α → δ i) (λ i, uniform_convergence_on.uniform_space α (δ i) 𝔖))
-  (@uniform_convergence_on.uniform_space α (Π i, δ i) (Pi.uniform_space δ) 𝔖)
-  function.swap :=
-begin
-  letI : uniform_space (Π i, δ i) := Pi.uniform_space δ,
-  letI : uniform_space (α → Π i, δ i) := uniform_convergence_on.uniform_space α (Π i, δ i) 𝔖,
-  letI : Π i, uniform_space (α → δ i) := λ i, uniform_convergence_on.uniform_space α (δ i) 𝔖,
-  letI : uniform_space (Π i, α → δ i) := Pi.uniform_space (λ i, α → δ i),
-  split,
-  rw [← (uniform_convergence_on.uniform_inducing_swap_Pi 𝔖 δ).comap_uniformity, comap_comap],
-  convert comap_id using 2,
-  ext; refl
-end
-
-/-- If `α → Π i, δ i` and each `α → δ i` are equipped with the topologies of `𝔖`-convergence,
-then "swapping the arguments" is an homeomorphism between `α → Π i, δ i` and `Π i, α → δ i`.
-
-TODO : upgrade to a uniform homeomorphism once we have them. -/
-protected def homeomorph_swap_Pi : @homeomorph (α → Π i, δ i) (Π i, α → δ i)
-  (@uniform_convergence_on.topological_space α (Π i, δ i) (Pi.uniform_space δ) 𝔖)
-  (@Pi.topological_space ι (λ i, α → δ i)
-    (λ i, uniform_convergence_on.topological_space α (δ i) 𝔖)) :=
-{ to_fun := function.swap,
-  inv_fun := function.swap,
-  left_inv := λ x, rfl,
-  right_inv := λ x, rfl,
-  continuous_to_fun :=
-  begin
-    letI : uniform_space (Π i, δ i) := Pi.uniform_space δ,
-    letI : uniform_space (α → Π i, δ i) := uniform_convergence_on.uniform_space α (Π i, δ i) 𝔖,
-    letI : Π i, uniform_space (α → δ i) := λ i, uniform_convergence_on.uniform_space α (δ i) 𝔖,
-    letI : uniform_space (Π i, α → δ i) := Pi.uniform_space (λ i, α → δ i),
-    exact (uniform_convergence_on.uniform_inducing_swap_Pi 𝔖 δ).uniform_continuous.continuous
-  end,
-  continuous_inv_fun :=
-  begin
-    letI : uniform_space (Π i, δ i) := Pi.uniform_space δ,
-    letI : uniform_space (α → Π i, δ i) := uniform_convergence_on.uniform_space α (Π i, δ i) 𝔖,
-    letI : Π i, uniform_space (α → δ i) := λ i, uniform_convergence_on.uniform_space α (δ i) 𝔖,
-    letI : uniform_space (Π i, α → δ i) := Pi.uniform_space (λ i, α → δ i),
-    exact (uniform_convergence_on.uniform_inducing_Pi_swap 𝔖 δ).uniform_continuous.continuous
-  end }
 
 end uniform_convergence_on

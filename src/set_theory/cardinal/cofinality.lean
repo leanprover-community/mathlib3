@@ -752,7 +752,7 @@ begin
     convert mk_Union_le_sum_mk.trans ((sum_le_sup _).trans (mul_le_max_of_aleph_0_le_left ha)),
     apply (max_eq_left $ sup_le $ λ i, _).symm,
     rw mk_powerset,
-    apply (h'.power_lt _).le,
+    apply (h'.two_power_lt _).le,
     rw [coe_set_of, card_typein, ←lt_ord, hr],
     apply typein_lt_type },
   { refine @mk_le_of_injective α _ (λ x, subtype.mk {x} _) _,

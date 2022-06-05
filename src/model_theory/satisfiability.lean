@@ -133,8 +133,8 @@ theorem is_satisfiable_union_distinct_constants_theory_of_infinite (T : L.Theory
 begin
   classical,
   rw [distinct_constants_theory_eq_Union, set.union_Union, is_satisfiable_directed_union_iff],
-  { exact λ t, is_satisfiable_union_distinct_constants_theory_of_card_le T _ M ((lift_le_omega.2
-      (le_of_lt (finset_card_lt_omega _))).trans (omega_le_lift.2 (omega_le_mk M))), },
+  { exact λ t, is_satisfiable_union_distinct_constants_theory_of_card_le T _ M ((lift_le_aleph_0.2
+      ((finset_card_lt_aleph_0 _).le)).trans (aleph_0_le_lift.2 (aleph_0_le_mk M))) },
   { refine (monotone_const.union (monotone_distinct_constants_theory.comp _)).directed_le,
     simp only [finset.coe_map, function.embedding.coe_subtype],
     exact set.monotone_image.comp (λ _ _, finset.coe_subset.2) }
@@ -174,11 +174,11 @@ begin
   { letI := (Lhom_with_constants L M).reduct N,
     refine ⟨bundled.of N, ⟨_⟩, lift_inj.1 hN2⟩,
     apply elementary_embedding.of_models_elementary_diagram L M N },
-  { exact omega_le_lift.2 (omega_le_mk M) },
+  { exact aleph_0_le_lift.2 (aleph_0_le_mk M) },
   { rw [lift_id'.{(max w u v w') (max (max u w') v w)}, ← lift_le, lift_lift, lift_lift],
     exact mk_range_le_lift },
   { simp only [card_with_constants, lift_add, lift_lift],
-    rw [add_comm, add_eq_max (omega_le_lift.2 (infinite_iff.1 iM)), max_le_iff],
+    rw [add_comm, add_eq_max (aleph_0_le_lift.2 (infinite_iff.1 iM)), max_le_iff],
     rw [← lift_le.{_ w'}, lift_lift, lift_lift] at h1,
     refine ⟨trans _ h2, trans _ h1⟩;
     { rw [← lift_le.{_ max (max w u v) w'}, lift_lift, lift_lift] } },

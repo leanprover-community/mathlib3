@@ -17,9 +17,6 @@ stated via `[quasi_sober α] [t0_space α]`.
 
 ## Main definition
 
-* `specializes` : `specializes x y` (`x ⤳ y`) means that `x` specializes to `y`, i.e.
-  `y` is in the closure of `x`.
-* `specialization_preorder` : specialization gives a preorder on a topological space.
 * `specialization_order` : specialization gives a partial order on a T0 space.
 * `is_generic_point` : `x` is the generic point of `S` if `S` is the closure of `x`.
 * `quasi_sober` : A space is quasi-sober if every irreducible closed subset has a generic point.
@@ -27,89 +24,6 @@ stated via `[quasi_sober α] [t0_space α]`.
 -/
 
 variables {α β : Type*} [topological_space α] [topological_space β]
-
-section specialize_order
-
-/-- `x` specializes to `y` if `y` is in the closure of `x`. The notation used is `x ⤳ y`. -/
-def specializes (x y : α) : Prop := y ∈ closure ({x} : set α)
-
-infix ` ⤳ `:300 := specializes
-
-lemma specializes_def (x y : α) : x ⤳ y ↔ y ∈ closure ({x} : set α) := iff.rfl
-
-lemma specializes_iff_closure_subset {x y : α} :
-  x ⤳ y ↔ closure ({y} : set α) ⊆ closure ({x} : set α) :=
-is_closed_closure.mem_iff_closure_subset
-
-lemma specializes_rfl {x : α} : x ⤳ x := subset_closure (set.mem_singleton x)
-
-lemma specializes_refl (x : α) : x ⤳ x := specializes_rfl
-
-lemma specializes.trans {x y z : α} : x ⤳ y → y ⤳ z → x ⤳ z :=
-by { simp_rw specializes_iff_closure_subset, exact λ a b, b.trans a }
-
-lemma specializes_iff_forall_closed {x y : α} :
-  x ⤳ y ↔ ∀ (Z : set α) (h : is_closed Z), x ∈ Z → y ∈ Z :=
-begin
-  split,
-  { intros h Z hZ,
-    rw [hZ.mem_iff_closure_subset, hZ.mem_iff_closure_subset],
-    exact (specializes_iff_closure_subset.mp h).trans },
-  { intro h, exact h _ is_closed_closure (subset_closure $ set.mem_singleton x) }
-end
-
-lemma specializes_iff_forall_open {x y : α} :
-  x ⤳ y ↔ ∀ (U : set α) (h : is_open U), y ∈ U → x ∈ U :=
-begin
-  rw specializes_iff_forall_closed,
-  exact ⟨λ h U hU, not_imp_not.mp (h _ (is_closed_compl_iff.mpr hU)),
-    λ h U hU, not_imp_not.mp (h _ (is_open_compl_iff.mpr hU))⟩,
-end
-
-lemma inseparable_iff_specializes_and (x y : α) :
-  inseparable x y ↔ x ⤳ y ∧ y ⤳ x :=
-(inseparable_iff_closure x y).trans (and_comm _ _)
-
-lemma specializes_antisymm [t0_space α] (x y : α) : x ⤳ y → y ⤳ x → x = y :=
-λ h₁ h₂, ((inseparable_iff_specializes_and _ _).mpr ⟨h₁, h₂⟩).eq
-
-lemma specializes.map {x y : α} (h : x ⤳ y) {f : α → β} (hf : continuous f) : f x ⤳ f y :=
-begin
-  rw [specializes_def, ← set.image_singleton],
-  exact image_closure_subset_closure_image hf ⟨_, h, rfl⟩,
-end
-
-lemma continuous_map.map_specialization {x y : α} (h : x ⤳ y) (f : C(α, β)) : f x ⤳ f y :=
-h.map f.2
-
-lemma specializes.eq [t1_space α] {x y : α} (h : x ⤳ y) : x = y :=
-(set.mem_singleton_iff.mp
-  ((specializes_iff_forall_closed.mp h) _ (t1_space.t1 _) (set.mem_singleton _))).symm
-
-@[simp] lemma specializes_iff_eq [t1_space α] {x y : α} : x ⤳ y ↔ x = y :=
-⟨specializes.eq, λ h, h ▸ specializes_refl _⟩
-
-variable (α)
-
-/-- Specialization forms a preorder on the topological space. -/
-def specialization_preorder : preorder α :=
-{ le := λ x y, y ⤳ x,
-  le_refl := λ x, specializes_refl x,
-  le_trans := λ _ _ _ h₁ h₂, specializes.trans h₂ h₁ }
-
-local attribute [instance] specialization_preorder
-
-/-- Specialization forms a partial order on a t0 topological space. -/
-def specialization_order [t0_space α] : partial_order α :=
-{ le_antisymm := λ _ _ h₁ h₂, specializes_antisymm _ _ h₂ h₁,
-  .. specialization_preorder α }
-
-variable {α}
-
-lemma specialization_order.monotone_of_continuous (f : α → β) (hf : continuous f) : monotone f :=
-λ x y h, specializes.map h hf
-
-end specialize_order
 
 section generic_point
 

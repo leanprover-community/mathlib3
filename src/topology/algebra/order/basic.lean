@@ -1157,30 +1157,98 @@ lemma filter.eventually.exists_Ioo_subset [no_max_order α] [no_min_order α] {a
   ∃ l u, a ∈ Ioo l u ∧ Ioo l u ⊆ {x | p x} :=
 mem_nhds_iff_exists_Ioo_subset.1 hp
 
-/-- The set of points which are isolated on their right is countable when the space is
+/-- The set of points which are isolated on the right is countable when the space is
 second-countable. -/
-lemma countable_of_isolated_right [second_countable_topology α]:
-  set.countable {x : α | ∃ y > x, Ioo x y = ∅} :=
+lemma countable_of_isolated_right [second_countable_topology α] :
+  set.countable {x : α | ∃ y, x < y ∧ Ioo x y = ∅} :=
 begin
-  rcases is_empty_or_nonempty α,
-  { resetI,
-    have : {x : α | ∃ y > x, Ioo x y = ∅} = ∅,
-    { letI : unique (α → Prop) := by apply_instance,
-      apply subsingleton.elim,
-
-    }
-
-  },
+  casesI is_empty_or_nonempty α,
+  { have : {x : α | ∃ y, x < y ∧ Ioo x y = ∅} = ∅, from subsingleton.elim _ _,
+    rw this,
+    simp only [countable_empty] },
   let b := countable_basis α,
-  let s := {x : α | ∃ y > x, Ioo x y = ∅},
-  have : ∀ x ∈ s, ∃ y,
-  by_contra' H,
-  simp at
-
+  let s := {x : α | ∃ y, x < y ∧ Ioo x y = ∅},
+  have : ∀ x ∈ s, ∃ y, x < y ∧ Ioo x y = ∅,
+  { rintros x ⟨y, hy, h'y⟩, exact ⟨y, hy, h'y⟩ },
+  choose! y hy h'y using this,
+  have Hy : ∀ x z, x ∈ s → z < y x → z ≤ x,
+  { assume x z xs hz,
+    have A : Ioo x (y x) = ∅ := h'y _ xs,
+    contrapose! A,
+    exact ne_empty_iff_nonempty.2 ⟨z, A, hz⟩ },
+  suffices H : ∀ (a : set α), is_open a → set.countable {x | x ∈ s ∧ x ∈ a ∧ y x ∉ a},
+  { have : s ⊆ ⋃ (a ∈ b), {x | x ∈ s ∧ x ∈ a ∧ y x ∉ a},
+    { assume x hx,
+      rcases (is_basis_countable_basis α).exists_mem_of_ne (hy x hx).ne with ⟨a, ab, xa, ya⟩,
+      simp only [mem_set_of_eq, mem_Union],
+      exact ⟨a, ab, hx, xa, ya⟩ },
+    apply countable.mono this,
+    refine countable.bUnion (countable_countable_basis α) (λ a ha, H _ _),
+    exact is_open_of_mem_countable_basis ha },
+  assume a ha,
+  suffices H : set.countable {x | x ∈ s ∧ x ∈ a ∧ y x ∉ a ∧ ¬(is_bot x)},
+  { have : {x | x ∈ s ∧ x ∈ a ∧ y x ∉ a} ⊆
+      {x | x ∈ s ∧ x ∈ a ∧ y x ∉ a ∧ ¬(is_bot x)} ∪ {x | is_bot x},
+    { assume x hx,
+      by_cases h'x : is_bot x,
+      { simp only [h'x, mem_set_of_eq, mem_union_eq, not_true, and_false, false_or] },
+      { simpa only [h'x, hx.2.1, hx.2.2, mem_set_of_eq, mem_union_eq,
+          not_false_iff, and_true, or_false] using hx.left } },
+    exact countable.mono this (H.union (subsingleton_is_bot α).countable) },
+  let t := {x | x ∈ s ∧ x ∈ a ∧ y x ∉ a ∧ ¬(is_bot x)},
+  have : ∀ x ∈ t, ∃ z < x, Ioc z x ⊆ a,
+  { assume x hx,
+    apply exists_Ioc_subset_of_mem_nhds (ha.mem_nhds hx.2.1),
+    simpa only [is_bot, not_forall, not_le] using hx.right.right.right },
+  choose! z hz h'z using this,
+  have : pairwise_disjoint t (λ x, Ioc (z x) x),
+  { assume x xt x' x't hxx',
+    rcases lt_or_gt_of_ne hxx' with h'|h',
+    { refine disjoint_left.2 (λ u ux ux', xt.2.2.1 _),
+      refine h'z x' x't ⟨ux'.1.trans_le (ux.2.trans (hy x xt.1).le), _⟩,
+      by_contra' H,
+      exact false.elim (lt_irrefl _ ((Hy _ _ xt.1 H).trans_lt h')) },
+    { refine disjoint_left.2 (λ u ux ux', x't.2.2.1 _),
+      refine h'z x xt ⟨ux.1.trans_le (ux'.2.trans (hy x' x't.1).le), _⟩,
+      by_contra' H,
+      exact false.elim (lt_irrefl _ ((Hy _ _ x't.1 H).trans_lt h')) } },
+  refine this.countable_of_is_open (λ x hx, _) (λ x hx, ⟨x, hz x hx, le_rfl⟩),
+  suffices H : Ioc (z x) x = Ioo (z x) (y x),
+  { rw H, exact is_open_Ioo },
+  exact subset.antisymm (Ioc_subset_Ioo_right (hy x hx.1)) (λ u hu, ⟨hu.1, Hy _ _ hx.1 hu.2⟩),
 end
 
+/-- The set of points which are isolated on the left is countable when the space is
+second-countable. -/
+lemma countable_of_isolated_left [second_countable_topology α] :
+  set.countable {x : α | ∃ y, y < x ∧ Ioo y x = ∅} :=
+begin
+  convert @countable_of_isolated_right (order_dual α) _ _ _ _,
+  have : ∀ (x y : α), Ioo x y = {z | z < y ∧ x < z},
+  { simp_rw [and_comm, Ioo], simp only [eq_self_iff_true, forall_2_true_iff] },
+  simp_rw [this],
+  refl
+end
 
-#exit
+/-- Consider a disjoint family of intervals `(x, y)` with `x < y` in a second-countable space.
+Then it is countable.
+This is not a straightforward consequence of second-countability as some of these intervals might be
+empty (but in fact this can happen only for countably many of them). -/
+lemma pairwise_disjoint.countable_of_Ioo [second_countable_topology α]
+  {y : α → α} {s : set α} (h : pairwise_disjoint s (λ x, Ioo x (y x))) (h' : ∀ x ∈ s, x < y x) :
+  countable s :=
+begin
+  let t := {x | x ∈ s ∧ (Ioo x (y x)).nonempty},
+  have t_count : countable t,
+  { have : t ⊆ s := λ x hx, hx.1,
+    exact (h.subset this).countable_of_is_open (λ x hx, is_open_Ioo) (λ x hx, hx.2) },
+  have : s ⊆ t ∪ {x : α | ∃ x', x < x' ∧ Ioo x x' = ∅},
+  { assume x hx,
+    by_cases h'x : (Ioo x (y x)).nonempty,
+    { exact or.inl ⟨hx, h'x⟩ },
+    { exact or.inr ⟨y x, h' x hx, not_nonempty_iff_eq_empty.1 h'x⟩ } },
+  exact countable.mono this (t_count.union countable_of_isolated_right),
+end
 
 section pi
 

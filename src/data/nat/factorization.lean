@@ -105,6 +105,26 @@ by rwa [←factors_count_eq, count_pos, mem_factors_iff_dvd hn hp]
 lemma factorization_eq_zero_iff (n : ℕ) : n.factorization = 0 ↔ n = 0 ∨ n = 1 :=
 by simp [factorization, add_equiv.map_eq_zero_iff, multiset.coe_eq_zero]
 
+lemma factorization_eq_zero_iff' (n p : ℕ) :
+  n.factorization p = 0 ↔ ((¬ nat.prime p) ∨ (¬ p ∣ n) ∨ n = 0) :=
+begin
+  split,
+  { intros fact_zero,
+    by_contradiction,
+    push_neg at h,
+    linarith [prime.factorization_pos_of_dvd h.1 h.2.2 h.2.1], },
+  { intros hyp,
+    by_cases n = 0,
+    { subst h,
+      simp, },
+    { cases hyp with not_prime not_dvd,
+      { exact factorization_eq_zero_of_non_prime _ not_prime, },
+      { simp only [h, or_false] at not_dvd,
+        contrapose not_dvd,
+        push_neg,
+        exact dvd_of_factorization_pos not_dvd, }, }, },
+end
+
 /-- For nonzero `a` and `b`, the power of `p` in `a * b` is the sum of the powers in `a` and `b` -/
 @[simp] lemma factorization_mul {a b : ℕ} (ha : a ≠ 0) (hb : b ≠ 0) :
   (a * b).factorization = a.factorization + b.factorization :=

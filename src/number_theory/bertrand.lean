@@ -103,21 +103,23 @@ begin
     { exact prime_of_mem_factors p_factor, }, },
 end
 
-lemma factorization_support' (n : ℕ) : finset.filter nat.prime (finset.range ((central_binom n) + 1)) ⊆ n.central_binom.factorization.support :=
+lemma prod_subset' {f : ℕ → ℕ} {S T : finset ℕ} (sub : T ⊆ S) (prop : ∀ i ∈ S, ¬(i ∈ T) → f i = 1):
+  (∏ p in S, f p) = (∏ p in T, f p) :=
 begin
-  rw nat.support_factorization,
-  rw finset.subset_iff,
-  simp,
-  intros p p_small p_prime,
-  rw mem_factors_iff_dvd (central_binom_ne_zero _) p_prime,
-  sorry,
+  sorry
 end
 
-lemma fooo (n : ℕ) :
-  (finset.range ((central_binom n) + 1)).filter nat.prime = (central_binom n).factorization.support :=
+lemma fooo (n : ℕ) : ∏ p in finset.filter nat.prime (finset.range (n + 1)), p ^ (n.factorization p)
+  = ∏ p in n.factorization.support, p ^ (n.factorization p) :=
 begin
-  refine finset.subset.antisymm (factorization_support' n) _,
-  exact factorization_support_subset_filter_prime_range (central_binom n),
+  refine prod_subset' (factorization_support_subset_filter_prime_range n) _,
+  intros i i_in i_not,
+  simp at i_not,
+  have r : n.factorization i = 0,
+  {
+    rw factorization_eq_zero_iff',
+  },
+  rw [←pow_zero i, r],
 end
 
 -- TODO aesthetically, I think this theorem would be better if the range was 2 * n + 1
@@ -126,8 +128,9 @@ lemma central_binom_factorization (n : ℕ) :
     p ^ ((central_binom n).factorization p)
   = central_binom n :=
 begin
-  calc ∏ (p : ℕ) in finset.filter nat.prime (finset.range (n.central_binom + 1)), p ^ (n.central_binom.factorization p)
-      = ∏ (p : ℕ) in (central_binom n).factorization.support, p ^ (n.central_binom.factorization p) : by simp [fooo n]
+  calc ∏ p in finset.filter nat.prime (finset.range (n.central_binom + 1)), p ^ (n.central_binom.factorization p)
+    = ∏ p in (central_binom n).factorization.support, p ^ (n.central_binom.factorization p) :
+      fooo _
   ... = central_binom n : factorization_prod_pow_eq_self (central_binom_ne_zero _),
 end
 
@@ -200,20 +203,11 @@ lemma sqrt_361 : sqrt 361 = 19 :=
 calc sqrt 361 = sqrt (19 ^ 2) : by norm_num
   ... = 19 : sqrt_sq (by norm_num)
 
--- open tactic.interactive
--- meta def collapse_log : tactic unit :=
--- do
---   tactic.repeat { tactic.interactive.rw [``(real.log_rpow), ``(real.log_mul)], }
-  --tactic.repeat tactic.norm_num,
-
 lemma log_722 : log 722 = log 2 + 2 * log 19 :=
 begin
   repeat { rw ←log_rpow, rw ←log_mul, },
   repeat { norm_num, },
 end
---calc log 722 = log (2 * 19 ^ (2 : ℝ)) : by norm_num
---  ... = log 2 + log (19 ^ (2 : ℝ)) : log_mul (by norm_num) (by norm_num)
---  ... = log 2 + 2 * log 19 : by rw @log_rpow 19 (by norm_num)
 
 lemma inequality : log 521284 / log 2 ≤ 19 :=
 begin
@@ -674,7 +668,7 @@ begin
   cases lt_or_le 721 n,
   -- If `n` is large, apply the lemma derived from the inequalities on the central binomial
   -- coefficient.
-  { exact bertrand_eventually n h },
+  { exact bertrand_eventually n h, },
   -- For small `n`, supply a list of primes to cover the initial cases.
   apply bertrand_initial n n_pos [727, 631, 317, 163, 83, 43, 23, 13, 7, 5, 3],
   -- Prove the list has the properties needed:
@@ -687,7 +681,7 @@ begin
     simp only [list.zip_nil_right, list.mem_cons_iff, list.cons_append, prod.mk.inj_iff,
                list.zip_cons_cons, list.tail, list.mem_singleton, list.singleton_append,
                list.tail_cons] at hab,
-    iterate {cases hab <|> rw [hab.left, hab.right] <|> linarith}, },
+    iterate { cases hab <|> rw [hab.left, hab.right] <|> linarith, }, },
   { -- The first element of the list is large enough.
     simp only [list.head, list.cons_append],
     linarith, },

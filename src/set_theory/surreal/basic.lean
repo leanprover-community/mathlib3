@@ -325,18 +325,15 @@ begin
   cases y, apply or_congr;
   { apply exists_congr, intro, rw ← neg_eq_iff_neg_eq, exact eq_comm },
 end
-
-lemma le_iff {x y : pgame} : x ≤ y ↔ ⟦x⟧ ≤ ⟦y⟧ := iff.rfl
-lemma lt_iff {x y : pgame} : x < y ↔ ⟦x⟧ < ⟦y⟧ := iff.rfl
-lemma equiv_iff {x y : pgame} : x ≈ y ↔ ⟦x⟧ = ⟦y⟧ := by { symmetry, exact quotient.eq }
 lemma quot_neg_eq_of_quot_eq {x y : pgame} (h : ⟦x⟧ = ⟦y⟧) : ⟦-x⟧ = ⟦-y⟧ := by { dsimp, rw h }
 
 namespace numeric
 
 lemma trichotomy {x y : pgame} (hx : x.numeric) (hy : y.numeric) :
   x < y ∨ ⟦x⟧ = ⟦y⟧ ∨ y < x :=
+by { have := lt_or_equiv_or_gt hx hy, }
 by { obtain (h|h|h|h) := lt_or_equiv_or_gt_or_fuzzy x y,
-  exacts [or.inl h, or.inr $ or.inl $ equiv_iff.1 h, or.inr $ or.inr h, (not_fuzzy hx hy h).elim] }
+  exacts [or.inl h, or.inr $ or.inl $ equiv_iff_game_eq.1 h, or.inr $ or.inr h, (not_fuzzy hx hy h).elim] }
 
 def P3 (x₁ x₂ y₁ y₂ : pgame) := x₁ * y₂ + x₂ * y₁ < x₁ * y₁ + x₂ * y₂
 def P1' (x₁ x₂ x₃ y₁ y₂ y₃ : pgame) := x₁ * y₁ + x₂ * y₂ - x₁ * y₂ < x₃ * y₁ + x₂ * y₃ - x₃ * y₃
@@ -804,6 +801,7 @@ end surreal
 
 /- mem_subsingleton etc. directly rintro -/
 
+
 /- inline all instances before linear_ordered_add_comm_group into one ..? -/
 
 /- conditionally_complete_linear_order , complete_space ? order_topology .. -/
@@ -826,9 +824,20 @@ end surreal
   numeric hypothesis part handled at once .. -/
 /- utilize symmetry .. to minimize calculation .. -/
 
+/- clean up + docstrings .. -/
+/-! The main inductive argument to show that being numeric is closed under multiplication,
+  that multiplying a number by equivalent numbers results in equivalent numbers, and
+  that the product of two positive numbers is positive
+  (Theorem 8 in [conway], Theorem 3.8 in [schleicher_stoll]).
+
+  We follow the proof in [schleicher_stoll], except that we use the well-foundedness of
+  the hydra relation `cut_expand` on `multiset pgame` instead of the argument based
+  on a depth function in the paper.  -/
 
 
 /- `arg_ty` .. ? `arg_rel` .. in `inuction` namespace .. -/
+/- ihr' -> ih24, ihr'' -> ih4, ihr -> ih1 -/
+
 /- `iitgceio` or `itco` .. `inv_image trans_gen cut_expand is_option` -/
 
 /- star is infinitesimal .. `up` is smaller than all positive numbers ? -/

@@ -86,6 +86,12 @@ class inductive finite (α : Sort*) : Prop
 lemma finite.exists_equiv_fin (α : Sort*) [h : finite α] : ∃ (n : ℕ), nonempty (α ≃ fin n) :=
 by { casesI h with n f, exact ⟨n, ⟨f⟩⟩ }
 
+lemma finite.of_equiv (α : Sort*) {β : Sort*} [h : finite α] (f : α ≃ β) : finite β :=
+by { casesI h with n e, exact finite.intro (f.symm.trans e) }
+
+lemma finite_iff_of_equiv {α β : Sort*} (f : α ≃ β) : finite α ↔ finite β :=
+⟨λ _, by exactI finite.of_equiv _ f, λ _, by exactI finite.of_equiv _ f.symm⟩
+
 lemma finite.of_fintype {α : Type*} (h : fintype α) : finite α := ⟨fintype.equiv_fin α⟩
 
 /-- For efficiency reasons, we want `finite` instances to have higher
@@ -170,22 +176,34 @@ lemma exists_min [finite α] [nonempty α] [linear_order β] (f : α → β) :
   ∃ x₀ : α, ∀ x, f x₀ ≤ f x :=
 by { haveI := fintype.of_finite α, exact fintype.exists_min f }
 
-lemma of_bijective [finite α] (f : α → β) (H : function.bijective f) : finite β :=
-by { haveI := fintype.of_finite α, haveI := fintype.of_bijective f H, apply_instance }
+instance {α : Sort*} [finite α] : finite (plift α) := finite.of_equiv _ equiv.plift.symm
 
-lemma of_surjective [finite α] (f : α → β) (H : function.surjective f) : finite β :=
-by { haveI := fintype.of_finite α, haveI := fintype.of_surjective f H, apply_instance }
+lemma of_bijective {α β : Sort*} [finite α] (f : α → β) (H : function.bijective f) : finite β :=
+finite.of_equiv _ (equiv.of_bijective _ H)
 
-lemma of_injective [finite β] (f : α → β) (H : function.injective f) : finite α :=
-by { haveI := fintype.of_finite β, haveI := fintype.of_injective f H, apply_instance }
+lemma of_surjective {α β : Sort*} [finite α] (f : α → β) (H : function.surjective f) : finite β :=
+begin
+  haveI := fintype.of_finite (plift α),
+  rw [← equiv.surjective_comp equiv.plift f, ← equiv.comp_surjective _ equiv.plift.symm] at H,
+  haveI := fintype.of_surjective _ H,
+  exact finite.of_equiv _ equiv.plift,
+end
 
-lemma of_equiv (α : Type*) [finite α] (f : α ≃ β) : finite β := of_bijective _ f.bijective
+lemma of_injective {α β : Sort*} [finite β] (f : α → β) (H : function.injective f) : finite α :=
+begin
+  haveI := fintype.of_finite (plift β),
+  rw [← equiv.injective_comp equiv.plift f, ← equiv.comp_injective _ equiv.plift.symm] at H,
+  haveI := fintype.of_injective _ H,
+  exact finite.of_equiv _ equiv.plift,
+end
 
 lemma card_eq [finite α] [finite β] : nat.card α = nat.card β ↔ nonempty (α ≃ β) :=
 by { haveI := fintype.of_finite α, haveI := fintype.of_finite β, simp [fintype.card_eq] }
 
-lemma of_subsingleton [subsingleton α] : finite α :=
-by { haveI := fintype.of_subsingleton' α, apply_instance }
+lemma of_subsingleton {α : Sort*} [subsingleton α] : finite α := finite.of_equiv _ equiv.plift
+
+@[priority 100] -- see Note [lower instance priority]
+instance of_is_empty {α : Sort*} [is_empty α] : finite α := finite.of_equiv _ equiv.plift
 
 lemma card_le_one_iff_subsingleton [finite α] : nat.card α ≤ 1 ↔ subsingleton α :=
 by { haveI := fintype.of_finite α, simp [fintype.card_le_one_iff_subsingleton] }
@@ -200,10 +218,10 @@ one_lt_card_iff_nontrivial.mpr h
 by { haveI := fintype.of_finite α, simp }
 
 lemma prod_left (β) [finite (α × β)] [nonempty β] : finite α :=
-by { haveI := fintype.of_finite (α × β), apply finite.of_fintype, apply @fintype.prod_left α β }
+of_surjective (prod.fst : α × β → α) prod.fst_surjective
 
 lemma prod_right (α) [finite (α × β)] [nonempty α] : finite β :=
-by { haveI := fintype.of_finite (α × β), apply finite.of_fintype, apply @fintype.prod_right α β }
+of_surjective (prod.snd : α × β → β) prod.snd_surjective
 
 instance [finite α] : finite (ulift α) :=
 by { haveI := fintype.of_finite α, apply_instance }
@@ -238,8 +256,11 @@ by { haveI := fintype.of_finite α, simp [fintype.card_eq_zero_iff] }
 
 end finite
 
-instance subtype.finite [finite α] {p : α → Prop} : finite {x // p x} :=
-by { haveI := fintype.of_finite α, apply_instance }
+instance subtype.finite {α : Sort*} [finite α] {p : α → Prop} : finite {x // p x} :=
+begin
+  haveI := fintype.of_finite (plift α),
+  exact finite.of_equiv _ (equiv.subtype_equiv_of_subtype equiv.plift),
+end
 
 theorem finite.card_subtype_le [finite α] (p : α → Prop) :
   nat.card {x // p x} ≤ nat.card α :=
@@ -249,20 +270,40 @@ theorem finite.card_subtype_lt [finite α] {p : α → Prop} {x : α} (hx : ¬ p
   nat.card {x // p x} < nat.card α :=
 by { haveI := fintype.of_finite α, simpa using fintype.card_subtype_lt hx }
 
-instance pi.finite {α : Type*} {β : α → Type*} [finite α] [∀ a, finite (β a)] : finite (Π a, β a) :=
-by { haveI := fintype.of_finite α, haveI := λ a, fintype.of_finite (β a), apply_instance }
+instance pi.finite {α : Sort*} {β : α → Sort*} [finite α] [∀ a, finite (β a)] : finite (Π a, β a) :=
+begin
+  haveI := fintype.of_finite (plift α),
+  haveI := λ a, fintype.of_finite (plift (β a)),
+  exact finite.of_equiv (Π (a : plift α), plift (β (equiv.plift a)))
+    (equiv.Pi_congr equiv.plift (λ _, equiv.plift)),
+end
 
 instance vector.finite {α : Type*} [finite α] {n : ℕ} : finite (vector α n) :=
 by { haveI := fintype.of_finite α, apply_instance }
 
-instance quot.finite [finite α] (r : α → α → Prop) : finite (quot r) :=
+instance quot.finite {α : Sort*} [finite α] (r : α → α → Prop) : finite (quot r) :=
 finite.of_surjective _ (surjective_quot_mk r)
 
-instance quotient.finite [finite α] (s : setoid α) : finite (quotient s) :=
-by { haveI := fintype.of_finite α, apply_instance }
+instance quotient.finite {α : Sort*} [finite α] (s : setoid α) : finite (quotient s) :=
+quot.finite _
 
-instance function.embedding.finite {α β} [finite α] [finite β]: finite (α ↪ β) :=
-by { haveI := fintype.of_finite α, haveI := fintype.of_finite β, apply_instance }
+instance equiv.finite {α β : Sort*} [finite α] [finite β] : finite (α ≃ β) :=
+begin
+  haveI := fintype.of_finite (plift α),
+  haveI := fintype.of_finite (plift β),
+  exact finite.of_equiv _ (equiv.equiv_congr equiv.plift equiv.plift),
+end
+
+instance function.embedding.finite {α β : Sort*} [finite β] : finite (α ↪ β) :=
+begin
+  casesI is_empty_or_nonempty (α ↪ β) with _ h,
+  { apply_instance, },
+  { refine h.elim (λ f, _),
+    haveI := finite.of_injective _ f.injective,
+    haveI := fintype.of_finite (plift α),
+    haveI := fintype.of_finite (plift β),
+    exact finite.of_equiv _ (equiv.embedding_congr equiv.plift equiv.plift), },
+end
 
 instance [finite α] {n : ℕ} : finite (sym α n) :=
 by { haveI := fintype.of_finite α, apply_instance }

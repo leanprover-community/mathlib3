@@ -287,12 +287,19 @@ finite.of_surjective _ (surjective_quot_mk r)
 instance quotient.finite {α : Sort*} [finite α] (s : setoid α) : finite (quotient s) :=
 quot.finite _
 
-instance equiv.finite {α β : Sort*} [finite α] [finite β] : finite (α ≃ β) :=
+instance equiv.finite_left {α β : Sort*} [finite α] : finite (α ≃ β) :=
 begin
-  haveI := fintype.of_finite (plift α),
-  haveI := fintype.of_finite (plift β),
-  exact finite.of_equiv _ (equiv.equiv_congr equiv.plift equiv.plift),
+  casesI is_empty_or_nonempty (α ≃ β) with _ h,
+  { apply_instance },
+  { refine h.elim (λ f, _),
+    haveI := finite.of_equiv _ f,
+    haveI := fintype.of_finite (plift α),
+    haveI := fintype.of_finite (plift β),
+    exact finite.of_equiv _ (equiv.equiv_congr equiv.plift equiv.plift), },
 end
+
+instance equiv.finite_right {α β : Sort*} [finite β] : finite (α ≃ β) :=
+finite.of_equiv _ ⟨equiv.symm, equiv.symm, equiv.symm_symm, equiv.symm_symm⟩
 
 instance function.embedding.finite {α β : Sort*} [finite β] : finite (α ↪ β) :=
 begin

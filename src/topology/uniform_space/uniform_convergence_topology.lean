@@ -5,7 +5,7 @@ Authors: Anatole Dedecker
 -/
 import topology.uniform_space.uniform_convergence
 import topology.uniform_space.pi
-import topology.uniform_space.uniform_embedding
+import topology.uniform_space.equiv
 import topology.homeomorph
 
 /-!
@@ -249,6 +249,33 @@ end
 variables (α) (δ : ι → Type*) [Π i, uniform_space (δ i)]
 
 local attribute [-instance] uniform_convergence.uniform_space
+
+/-- If `α → Π i, δ i` and each `α → δ i` are equipped with the uniform structures of uniform
+convergence, then "swapping the arguments" is a uniform isomorphism between `α → Π i, δ i` and
+`Π i, α → δ i`. -/
+protected def uniform_equiv_swap_Pi : @uniform_equiv (α → Π i, δ i) (Π i, α → δ i)
+  (@uniform_convergence.uniform_space α (Π i, δ i) (Pi.uniform_space δ))
+  (@Pi.uniform_space ι (λ i, α → δ i) (λ i, uniform_convergence.uniform_space α (δ i))) :=
+{ to_fun := function.swap,
+  inv_fun := function.swap,
+  left_inv := λ x, rfl,
+  right_inv := λ x, rfl,
+  uniform_continuous_to_fun :=
+  begin
+    letI : uniform_space (Π i, δ i) := Pi.uniform_space δ,
+    letI : uniform_space (α → Π i, δ i) := uniform_convergence.uniform_space α (Π i, δ i),
+    letI : Π i, uniform_space (α → δ i) := λ i, uniform_convergence.uniform_space α (δ i),
+    letI : uniform_space (Π i, α → δ i) := Pi.uniform_space (λ i, α → δ i),
+    exact (uniform_convergence.uniform_inducing_swap_Pi α δ).uniform_continuous.continuous
+  end,
+  uniform_continuous_inv_fun :=
+  begin
+    letI : uniform_space (Π i, δ i) := Pi.uniform_space δ,
+    letI : uniform_space (α → Π i, δ i) := uniform_convergence.uniform_space α (Π i, δ i),
+    letI : Π i, uniform_space (α → δ i) := λ i, uniform_convergence.uniform_space α (δ i),
+    letI : uniform_space (Π i, α → δ i) := Pi.uniform_space (λ i, α → δ i),
+    exact (uniform_convergence.uniform_inducing_Pi_swap α δ).uniform_continuous.continuous
+  end }
 
 protected lemma uniform_inducing_swap_Pi : @uniform_inducing (α → Π i, δ i) (Π i, α → δ i)
   (@uniform_convergence.uniform_space α (Π i, δ i) (Pi.uniform_space δ))

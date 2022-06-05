@@ -560,7 +560,7 @@ end
 theorem mul_eq_right_iff_opow_omega_dvd {a b : ordinal} : a * b = b ↔ a ^ omega ∣ b :=
 begin
   cases eq_zero_or_pos a with ha ha,
-  { rw [ha, zero_mul, zero_opow omega_ne_zero, zero_dvd],
+  { rw [ha, zero_mul, zero_opow omega_ne_zero, zero_dvd_iff],
     exact eq_comm },
   refine ⟨λ hab, _, λ h, _⟩,
   { rw dvd_iff_mod_eq_zero,

@@ -23,6 +23,8 @@ noncomputable theory
 
 universe u
 
+open order
+
 namespace ordinal
 
 /-- Proving properties of ordinals by induction over their Cantor normal form. -/

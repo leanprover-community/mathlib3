@@ -745,7 +745,7 @@ begin
     rintro ⟨s, hs⟩,
     exact (not_unbounded_iff s).2 hs (unbounded_of_is_empty s) },
   have h' : is_strong_limit (#α) := ⟨ha, h⟩,
-  have ha := h'.is_limit.omega_le,
+  have ha := h'.is_limit.aleph_0_le,
   apply le_antisymm,
   { have : {s : set α | bounded r s} = ⋃ i, 𝒫 {j | r j i} := set_of_exists _,
     rw [←coe_set_of, this],

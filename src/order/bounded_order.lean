@@ -1277,7 +1277,7 @@ variables {c}
 @[simp] lemma codisjoint_self : codisjoint a a ↔ a = ⊤ := by simp [codisjoint]
 
 /- TODO: Rename `codisjoint.eq_top` to `codisjoint.sup_eq` and `codisjoint.eq_top_of_self` to
-`disjoint.eq_bot` -/
+`codisjoint.eq_top` -/
 alias codisjoint_self ↔ codisjoint.eq_top_of_self _
 
 lemma codisjoint.ne (ha : a ≠ ⊤) (hab : codisjoint a b) : a ≠ b :=

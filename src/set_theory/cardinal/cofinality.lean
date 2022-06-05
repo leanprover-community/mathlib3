@@ -749,7 +749,7 @@ begin
   apply le_antisymm,
   { have : {s : set α | bounded r s} = ⋃ i, 𝒫 {j | r j i} := set_of_exists _,
     rw [←coe_set_of, this],
-    convert mk_Union_le_sum_mk.trans ((sum_le_sup _).trans (mul_le_max_of_omega_le_left ha)),
+    convert mk_Union_le_sum_mk.trans ((sum_le_sup _).trans (mul_le_max_of_aleph_0_le_left ha)),
     apply (max_eq_left $ sup_le $ λ i, _).symm,
     rw mk_powerset,
     apply (h'.power_lt _).le,
@@ -779,7 +779,7 @@ begin
     exact lt_cof_type hs },
   { refine @mk_le_of_injective α _ (λ x, subtype.mk {x} _) _,
     { rw mk_singleton,
-      exact one_lt_omega.trans_le (omega_le_cof.2 (ord_is_limit h'.is_limit.omega_le)) },
+      exact one_lt_aleph_0.trans_le (aleph_0_le_cof.2 (ord_is_limit h'.is_limit.aleph_0_le)) },
     { intros a b hab,
       simpa only [singleton_eq_singleton_iff] using hab } }
 end

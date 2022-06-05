@@ -13,14 +13,12 @@ import set_theory.ordinal.basic
 We define the canonical map `ordinal → pgame`, where every ordinal is mapped to the game whose left
 set consists of all previous ordinals.
 
+The map to surreals is defined in `ordinal.to_surreal`.
+
 # Main declarations
 
 - `ordinal.to_pgame`: The canonical map between ordinals and pre-games.
 - `ordinal.to_pgame_embedding`: The order embedding version of the previous map.
-
-# Todo
-
-- Extend this map to `game` and `surreal`.
 -/
 
 universe u

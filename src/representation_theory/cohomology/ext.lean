@@ -3,11 +3,12 @@ Copyright (c) 2021 Amelia Livingston. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Amelia Livingston
 -/
-import algebra.group.cohomology.std_resn
-import algebra.group.cohomology.cochain_succ
+#exit
+import representation_theory.cohomology.std_resn
+import representation_theory.cohomology.cochain_succ
 import category_theory.abelian.ext
 import algebra.category.Module.projective
-import algebra.group.cohomology.op_complex
+import representation_theory.cohomology.op_complex
 /-!
 
 # Ext

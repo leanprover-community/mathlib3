@@ -77,7 +77,7 @@ variables (ρ : representation k G V)
 /--
 The subspace of invariants, consisting of the vectors fixed by all elements of `G`.
 -/
-def invariants : submodule k V :=
+@[simps] def invariants : submodule k V :=
 { carrier := set_of (λ v, ∀ (g : G), ρ g v = v),
   zero_mem' := λ g, by simp only [map_zero],
   add_mem' := λ v w hv hw g, by simp only [hv g, hw g, map_add],

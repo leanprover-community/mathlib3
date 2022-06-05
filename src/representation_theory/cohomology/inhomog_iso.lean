@@ -1,8 +1,8 @@
-import algebra.group.cohomology.std_resn
-import algebra.group.cohomology.ext
+import representation_theory.cohomology.std_resn
+import representation_theory.cohomology.ext
 import linear_algebra.tensor_product
 import ring_theory.tensor_product
-import algebra.group.cohomology.shenyang
+import representation_theory.cohomology.shenyang
 universes v u
 noncomputable theory
 
@@ -47,6 +47,7 @@ end
 
 variables (G n)
 
+#exit
 def to_tensor_aux (x : fin (n + 1) → G) (m : ℤ) : group_ring G ⊗[ℤ] ((fin n → G) →₀ ℤ) :=
 finsupp.single (x 0) m ⊗ₜ[ℤ] finsupp.single (λ i, (x i)⁻¹ * x i.succ) 1
 

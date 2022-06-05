@@ -3,7 +3,7 @@ import group_theory.group_action.basic
 import group_theory.group_action.sub_mul_action
 import algebra.homology.exact
 import algebra.module.pi
-import algebra.group.cohomology.distrib_mul_action_equiv
+import representation_theory.cohomology.distrib_mul_action_equiv
 import group_theory.quotient_group
 
 universes v u w u₁ u₂ u₃

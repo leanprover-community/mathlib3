@@ -1,6 +1,6 @@
-import algebra.group.cohomology.morestuff
-import algebra.group.cohomology.sles
-import algebra.group.cohomology.hmmmm
+import representation_theory.cohomology.morestuff
+import representation_theory.cohomology.sles
+import representation_theory.cohomology.hmmmm
 import field_theory.is_alg_closed.algebraic_closure
 import field_theory.krull_topology
 import ring_theory.roots_of_unity

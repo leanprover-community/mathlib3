@@ -1,15 +1,14 @@
 import tactic.linarith
 import tactic.omega
 import tactic.fin_cases
-import algebra.group.cohomology.lemmas
+import representation_theory.cohomology.lemmas
 import group_theory.quotient_group
 import linear_algebra.finsupp
 import algebra.homology.homotopy_category
-import category_theory.abelian.projective
-import algebra.category.Group.abelian
+import algebra.category.Module.basic
 import representation_theory.basic
 universes v u
-variables (R : Type u) [comm_ring R] (G : Type u) [group G] (M : Type v)
+variables (R : Type*) [comm_ring R] (G : Type*) [group G] (M : Type*)
   [add_comm_group M] [module R M] (ρ : representation R G M) (n : ℕ)
 
 variables {R G M n}
@@ -265,7 +264,7 @@ begin
   }
 end-/
 
-variables (G M n)
+variables {R G M} (ρ n)
 
 @[simps] def cochain.d : ((fin n → G) → M) →ₗ[R] ((fin (n + 1) → G) → M) :=
 { to_fun := d_to_fun ρ,
@@ -275,22 +274,22 @@ variables (G M n)
     (ρ (g 0)).map_smul, smul_add, smul_comm _ r, ←smul_sum], refl
      }}
 
-variables {G M}
+variables {ρ n}
 
 lemma cochain.d_zero_apply (x : (fin 0 → G) → M) (g : fin 1 → G) :
-  cochain.d G M 0 x g = g 0 • x default - x default :=
+  cochain.d ρ 0 x g = ρ (g 0) (x default) - x default :=
 begin
   dsimp [cochain.d, d_to_fun],
-  simp only [pow_one, one_zsmul, sum_singleton, neg_smul],
+  simp only [pow_one, one_smul, sum_singleton, neg_smul],
   rw [unique.eq_default (λ i, g (fin.add_nat 1 i)), unique.eq_default (F 0 g), sub_eq_add_neg],
 end
 
 lemma cochain.d_one_apply (x : (fin 1 → G) → M) (g : fin 2 → G) :
-  cochain.d G M 1 x g = g 0 • x (λ i, g 1) - x (λ i, g 0 * g 1) + x (λ i, g 0) :=
+  cochain.d ρ 1 x g = ρ (g 0) (x (λ i, g 1)) - x (λ i, g 0 * g 1) + x (λ i, g 0) :=
 begin
   dsimp [cochain.d, d_to_fun],
   rw [finset.range_succ', finset.sum_insert],
-  simp only [pow_one, image_singleton, one_zsmul,
+  simp only [pow_one, image_singleton, one_smul,
     sum_singleton, neg_one_sq, neg_smul, range_one],
   rw [←add_assoc, sub_eq_add_neg],
   congr,
@@ -306,18 +305,16 @@ begin
 end
 
 lemma cochain.d_one_apply' (x : (fin 1 → G) → M) (g h : G) :
-  cochain.d G M 1 x (fin.cons g (λ i, h)) = g • x (λ i, h) - x (λ i, g * h) + x (λ i, g) :=
+  cochain.d ρ 1 x (fin.cons g (λ i, h)) = (ρ g) (x (λ i, h)) - x (λ i, g * h) + x (λ i, g) :=
 begin
   convert cochain.d_one_apply x (fin.cons g (λ i, h)),
 end
 
-variables (G M)
+variables (ρ n)
 
-theorem cochain.d_square_zero : (cochain.d G M (n + 1)).comp (cochain.d G M n) = 0 :=
-by ext1; exact d_to_fun_square_zero _
+theorem cochain.d_square_zero : (cochain.d ρ (n + 1)).comp (cochain.d ρ n) = 0 :=
+by ext1; exact d_to_fun_square_zero _ _
 
-def cochain_cx : cochain_complex Ab ℕ :=
-cochain_complex.of (λ n, AddCommGroup.of $ (fin n → G) → M) (λ n, cochain.d G M n)
-  (cochain.d_square_zero G M)
-
-variables {G M}
+def cochain_cx : cochain_complex (Module R) ℕ :=
+cochain_complex.of (λ n, Module.of R $ (fin n → G) → M) (λ n, cochain.d ρ n)
+  (cochain.d_square_zero ρ)

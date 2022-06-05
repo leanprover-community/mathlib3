@@ -3,78 +3,87 @@ Copyright (c) 2021 Amelia Livingston. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Amelia Livingston
 -/
-import algebra.group.cohomology.group_ring
+import representation_theory.cohomology.group_ring
 import algebra.category.Module.projective
 import category_theory.preadditive.projective_resolution
 import algebra.module.ulift
 import algebra.category.Group.abelian
+import data.fin_simplicial_complex
 import algebra.homology.augment
+import representation_theory.cohomology.lemmas
 
 /-! Showing `... → ℤ[G²] → ℤ[G]` is a projective resolution of the trivial `ℤ[G]`-module `ℤ`. -/
 
-universes u
-variables (G : Type u) [group G]
+universes v u
+variables (R : Type u) [comm_ring R] (G : Type u) [group G]
 
 noncomputable theory
 open_locale classical
 
-namespace group_ring
+namespace Rep
 
 /-- Helper function; sends `g ∈ Gⁱ, n ∈ ℤ` to `∑ (-1)ᵏn • (g₁, ..., ĝₖ, ..., gⱼ)`. -/
-def d_aux {i j : ℕ} (hj : i = j + 1) (g : fin i → G) : ℤ →+ (group_ring (fin j → G)) :=
-{ to_fun := λ n, (finset.range i).sum (λ p, finsupp.single
-    (λ k, g $ fin.delta hj p k) ((-1 : ℤ) ^ p * n)),
-  map_zero' := by simp only [finsupp.single_zero, finset.sum_const_zero, mul_zero],
-  map_add' := λ v w, by simp only [mul_add, finsupp.single_add, finset.sum_add_distrib] }
+def d_aux {i j : ℕ} (hj : i = j + 1) (g : fin i → G) : monoid_algebra R (fin j → G) :=
+(finset.range i).sum (λ p, finsupp.single (λ k, g $ fin.delta hj p k) ((-1 : R) ^ p))
 
-/-- Sends `g ∈ Gⁱ` to `∑ (-1)ᵏ • (g₁, ..., ĝₖ, ..., gⱼ)`. -/
-def d_add_hom {i j : ℕ} (hj : i = j + 1) :
-  group_ring (fin i → G) →+ group_ring (fin j → G) :=
-finsupp.lift_add_hom (d_aux G hj)
+open category_theory
+variables {i j : ℕ} (hj : i = j + 1) (g : G) (a : fin i → G)
+
+lemma d_comm {i j : ℕ} (hj : i = j + 1) (g : G) (a : fin i → G) :
+  finsupp.lift _ R (fin i → G) (d_aux R G hj) (representation.of_mul_action R G (fin i → G) g (finsupp.single a 1)) =
+    representation.of_mul_action R G (fin j → G) g (finsupp.lift _ R (fin i → G) (d_aux R G hj) (finsupp.single a 1)) :=
+begin
+  dsimp,
+  simp only [finsupp.map_domain_single, finsupp.sum_single_index, zero_smul, one_smul],
+  unfold finsupp.map_domain,
+  unfold d_aux finsupp.sum,
+  refine finset.sum_bij _ _ _ _ _,
+  use (λ p hp k, a $ fin.delta hj p k),
+  intros p hp,
+  rw finsupp.mem_support_iff,
+  intro h0,
+  sorry,sorry, sorry, sorry
+end
 
 /-- Sends `g ∈ Gⁱ` to `∑ (-1)ᵏ • (g₁, ..., ĝₖ, ..., gⱼ)`. -/
 def d {i j : ℕ} (hj : i = j + 1) :
-  group_ring (fin i → G) →ₗ[group_ring G] group_ring (fin j → G) :=
-{ map_smul' := λ g x,
+  of_mul_action R G (fin i → G) ⟶ of_mul_action R G (fin j → G) :=
+{ comm' := λ g,
   begin
-    refine map_smul_of_map_smul_of (finsupp.lift_add_hom (d_aux G hj)) (λ g x, _) _ _,
-    dsimp,
-    show finsupp.sum _ (λ _ _, _) = _ • finsupp.sum _ (λ _ _, _),
-    erw of_smul_of,
-    simp only [finset.smul_sum, mul_one, finsupp.single_zero, smul_eq_mul,
-      finset.sum_const_zero, of_apply, pi.smul_apply, mul_zero, finsupp.sum_single_index],
-    congr,
-    ext1 p,
-    simpa only [←zsmul_single_one, smul_algebra_smul_comm, one_smul, of_smul_of],
+    sorry
   end,
-  ..finsupp.lift_add_hom (d_aux G hj) }
+  hom := finsupp.lift _ R (fin i → G) (d_aux R G hj) }
 
 variables {G}
 
-lemma d_single {i j : ℕ} (hj : i = j + 1) (c : fin i → G) (n : ℤ) :
-  d G hj (finsupp.single c n) = (finset.range i).sum (λ p, finsupp.single
-    (λ k, c $ fin.delta hj p k) ((-1 : ℤ) ^ p * n)) :=
+lemma d_single {i j : ℕ} (hj : i = j + 1) (c : fin i → G) (n : R) :
+  (d R G hj).hom (finsupp.single c n) = (finset.range i).sum (λ p, finsupp.single
+    (λ k, c $ fin.delta hj p k) ((-1 : R) ^ p * n)) :=
 begin
-  erw finsupp.lift_add_hom_apply_single,
-  show (finset.range i).sum _ = _,
-  congr,
+  erw finsupp.lift_apply,
+  rw finsupp.sum_single_index,
+  unfold d_aux,
+  rw finset.smul_sum,
+  simp only [finsupp.smul_single, smul_eq_mul, mul_comm],
+  rw zero_smul
 end
 
 lemma d_of {i j : ℕ} (hj : i = j + 1) (c : fin i → G) :
-  d G hj (of _ c) = (finset.range i).sum (λ p, finsupp.single
-    (λ k, c $ fin.delta hj p k) ((-1 : ℤ) ^ p)) :=
+  (d R G hj).hom (monoid_algebra.of _ _  c) = (finset.range i).sum (λ p, finsupp.single
+    (λ k, c $ fin.delta hj p k) ((-1 : R) ^ p)) :=
 begin
-  simp only [of_apply, d_single, mul_one],
+  simp only [monoid_algebra.of_apply, d_single, mul_one],
 end
 
 theorem d_squared_of {i j k : ℕ} (hj : i = j + 1) (hk : j = k + 1) (c : fin i → G) :
-  (d G hk (d G hj $ of _ c)) = 0 :=
+  ((d R G hk).hom ((d R G hj).hom $ monoid_algebra.of _ _ c)) = 0 :=
 begin
   ext g,
-  simp only [d_of, linear_map.map_sum, ←zsmul_single_one, linear_map.map_smul_of_tower,
+  simp only [d_of, linear_map.map_sum, linear_map.map_smul_of_tower,
     finset.smul_sum, ←finset.sum_product'],
   congr,
-  refine finset.sum_involution (λ pq h, invo pq) _ _ _ _,
+  sorry
+  /-refine finset.sum_involution (λ pq h, invo pq) _ _ _ _,
   { intros pq hpq,
     unfold invo,
     split_ifs,
@@ -104,14 +113,14 @@ begin
         { exact false.elim (h (zero_le _))},
         { exact ⟨lt_trans hpqrange.2 (nat.lt_succ_self _), (add_lt_add_iff_right 1).1 hpqrange.1⟩}}},
   { intros,
-    exact invo_invo _ },
+    exact invo_invo _ },-/
 end
 
-theorem d_squared {i j k : ℕ} (hj : i = j + 1) (hk : j = k + 1) (c : group_ring (fin i → G)) :
-  (d G hk (d G hj c)) = 0 :=
+theorem d_squared {i j k : ℕ} (hj : i = j + 1) (hk : j = k + 1) (c : of_mul_action R G (fin i → G)) :
+  ((d R G hk).hom ((d R G hj).hom c)) = 0 :=
 begin
-  refine c.induction_on _ _ _,
-  { exact d_squared_of hj hk },
+  refine @monoid_algebra.induction_on R (fin i → G) _ _ _ c _ _ _,
+  { exact d_squared_of R hj hk },
   { intros a b ha hb,
     simp only [linear_map.map_add, ha, hb, zero_add] },
   { intros r a ha,
@@ -119,94 +128,83 @@ begin
 end
 
 variables (G)
-
-def trivial_action : distrib_mul_action G ℤ :=
-by refine { smul := λ g n, n, .. }; {intros, refl}
-
 /-- Don't want a `ℤ[G]`-module instance on `(ulift) ℤ` I don't think, so here's `ulift ℤ`
   with the trivial action as a `Module`. -/
 
-
-def trivial : Module (group_ring G) :=
-{ carrier := (ulift ℤ : Type u),
-  is_add_comm_group := ulift.add_comm_group,
-  is_module := @ulift.module' _ _ _ _ $
-    @group_ring.to_module _ _ _ _ (trivial_action G) }
+abbreviation Trivial : Rep R G :=
+Rep.of representation.trivial
 
 open category_theory
 
 /-- The chain complex `... → ℤ[Gⁿ] → ... → ℤ[G]`. -/
-def std_resn_complex : chain_complex (Module (group_ring G)) ℕ :=
-chain_complex.of (λ n, Module.of (group_ring G) (group_ring (fin (n + 1) → G)))
-(λ n, d G rfl) (λ n, by ext1; exact d_squared _ _ _)
+def std_resn_complex : chain_complex (Rep R G) ℕ :=
+chain_complex.of (λ n, of_mul_action R G (fin (n + 1) → G))
+(λ n, d R G rfl) (λ n, by sorry)
 
 /-- The hom `ℤ[G] → ℤ` sending `∑ nᵢgᵢ ↦ ∑ nᵢ`. -/
-def coeff_sum : group_ring G →ₗ[group_ring G] trivial G :=
-{ map_smul' := λ g x, by
-  { refine map_smul_of_map_smul_of (finsupp.total G (trivial G) ℤ
-      (λ g, ulift.up 1)).to_add_monoid_hom (λ g x, _) _ _,
-    dsimp,
-    erw monoid_algebra.single_mul_single,
-    simp only [mul_one, one_zsmul, finsupp.total_single, of_apply],
-    ext,
-    show _ = finsupp.total _ _ _ _ _,
-    rw [finsupp.total_single, one_smul],
-    refl },
- .. (finsupp.total G (trivial G) ℤ (λ g, ulift.up 1))}
+def coeff_sum : of_mul_action R G G ⟶ Trivial R G :=
+{ comm' := λ g, by
+  { refine linear_map.ext (λ x, _),
+    dunfold of_mul_action Trivial,
+    simp only [Rep.of_ρ, category_theory.comp_apply],
+    rw [representation.of_mul_action_apply, finsupp.lmap_domain_apply],
+    sorry,
+     },
+ hom := (finsupp.total G (Trivial R G) R (λ g, (1 : R)))}
 
 variables {G}
 
-lemma coeff_sum_single {x : G} {n : ℤ} : coeff_sum G (finsupp.single x n) = ulift.up n :=
+lemma coeff_sum_single {x : G} {n : R} : (coeff_sum R G).hom (finsupp.single x n) = n :=
 begin
   erw finsupp.total_single,
-  ext,
   exact mul_one _,
 end
 
 lemma range_coeff_sum_eq_top :
-  (coeff_sum G).range = ⊤ :=
+  (coeff_sum R G).hom.range = ⊤ :=
 linear_map.range_eq_top.2 $
 begin
   intro n,
-  use finsupp.single 1 n.down,
+  use finsupp.single 1 n,
   erw finsupp.total_single,
-  ext,
   exact mul_one _,
 end
 
-lemma coeff_sum_dom_one_equiv_apply {g : group_ring (fin 1 → G)} :
-  coeff_sum G (dom_one_equiv G g) = finsupp.total (fin 1 → G)
-    (trivial G) ℤ (λ g, ulift.up 1) g :=
+lemma coeff_sum_dom_one_equiv_apply {g : of_mul_action R G (fin 1 → G)} :
+  (coeff_sum R G).hom (finsupp.dom_congr (fin.dom_one_equiv G) g) = finsupp.total (fin 1 → G)
+    (Trivial R G) R (λ g, (1 : R)) g :=
 begin
-  refine ext ((coeff_sum G).comp (dom_one_equiv G).to_linear_map).to_add_monoid_hom
-    (finsupp.total _ _ _ _).to_add_monoid_hom _,
-  intros g,
+  refine add_monoid_hom.ext_iff.1 (@finsupp.add_hom_ext (fin 1 → G) R _ _ _
+    ((coeff_sum R G).hom.to_add_monoid_hom.comp (@finsupp.dom_congr _ _ R _
+    (fin.dom_one_equiv G)).to_add_monoid_hom) (finsupp.total (fin 1 → G)
+    ↥(Trivial R G) R (λ (g : fin 1 → G), (1 : R))).to_add_monoid_hom _) g,
+  intros x y,
   dsimp,
-  rw [dom_one_equiv_single, coeff_sum_single, finsupp.total_single, one_smul],
+  simp only [coeff_sum_single, finsupp.equiv_map_domain_single, finsupp.total_single,
+    algebra.id.smul_eq_mul, mul_one],
 end
 
-lemma coeff_sum_d {x : group_ring (fin 2 → G)} :
-  coeff_sum G (dom_one_equiv G $ d G rfl x) = 0 :=
+lemma coeff_sum_d {x : of_mul_action R G (fin 2 → G)} :
+  (coeff_sum R G).hom (finsupp.dom_congr (fin.dom_one_equiv G) $ (d R G rfl).hom x) = 0 :=
 begin
-  refine ext ((coeff_sum G).comp ((dom_one_equiv G).to_linear_map.comp
-    (d G rfl))).to_add_monoid_hom 0 _,
-  intro g,
+  refine linear_map.ext_iff.1 (@finsupp.lhom_ext _ _ _ _ _ _ _ _ _
+  ((coeff_sum R G).hom.comp ((@finsupp.dom_lcongr _ R _ _ _ _ _  $ fin.dom_one_equiv G).to_linear_map.comp
+    (d R G rfl).hom)) 0 _) x,
+  intros g b,
   dsimp,
-  rw [d_single, linear_equiv.map_sum, linear_map.map_sum],
-  show finset.sum _ (λ i, coeff_sum G (finsupp.equiv_map_domain _ _)) = _,
+  rw [d_single, ←finsupp.dom_congr_apply, add_equiv.map_sum, linear_map.map_sum],
   simp only [mul_one, finsupp.dom_congr_apply, finsupp.equiv_map_domain_single, coeff_sum_single],
   rw [finset.range_add_one, finset.sum_insert (@finset.not_mem_range_self 1)],
-  ext,
-  simp only [ulift.zero_down, pow_one, add_left_neg, finset.sum_singleton,
-    finset.range_one, pow_zero, ulift.add_down],
+  simp only [pow_one, neg_mul, finset.range_one, finset.sum_singleton, pow_zero, add_left_neg],
 end
 
 variables (G)
+
 /-- The hom `... → ℤ[G²] → ℤ[G]` → `... → 0 → ℤ → 0 → ...` which is `coeff_sum` at 0
   and 0 everywhere else. -/
-def std_resn_π : std_resn_complex G ⟶ ((chain_complex.single₀
-  (Module (group_ring G))).obj (trivial G)) :=
-{ f := λ n, nat.rec_on n ((coeff_sum G).comp (dom_one_equiv G).to_linear_map)
+def std_resn_π : std_resn_complex R G ⟶ ((chain_complex.single₀
+  (Rep R G)).obj (Trivial R G)) :=
+{ f := λ n, nat.rec_on n ((coeff_sum R G).hom.comp (@finsupp.dom_lcongr _ R _ _ _ _ _ $ fin.dom_one_equiv G).to_linear_map)
     (λ n hn, 0),
   comm' := λ i j hij, by
   { induction j with j hj,

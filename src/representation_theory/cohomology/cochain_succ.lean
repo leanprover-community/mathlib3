@@ -8,8 +8,8 @@ import data.fin_simplicial_complex
 import group_theory.free_abelian_group
 import algebra.big_operators.finsupp
 import algebra.monoid_algebra.basic
-import algebra.group.cohomology.lemmas
-import algebra.group.cohomology.std_resn
+import representation_theory.cohomology.lemmas
+import representation_theory.cohomology.std_resn
 
 /-!
 # Group cohomology
@@ -146,7 +146,7 @@ def d {i j : ℕ} (hj : j = i + 1) : cochain_succ G M i →+ cochain_succ G M j 
 lemma d_eval {i j : ℕ} (hj : j = i + 1) (c : cochain_succ G M i) (g : fin j → G) :
   d hj c g = (finset.range j).sum (λ p, (-1 : ℤ)^p • c $ λ t, g $ fin.delta hj p t) := rfl
 variables {i j : ℕ} (hj : j = i + 1) (c : cochain_succ G M i) (g : fin j → G)
-
+#exit
 theorem total_d_eq_d :
   finsupp.total (fin i → G) M ℤ c (group_ring.d G hj (group_ring.of _ g)) = d hj c g :=
 begin

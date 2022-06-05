@@ -84,10 +84,25 @@ lemma as_algebra_hom_of (g : G):
 by simp only [monoid_algebra.of_apply, as_algebra_hom_single]
 
 /--
+If `ρ : representation k G V`, then `ρ.as_module` is a type synonym for `V`,
+which we equip with an instance `module (monoid_algebra k G) ρ.as_module`.
+You should use `as_module_equiv : ρ.as_module ≃+ V` to translate terms.
+-/
+@[nolint unused_arguments, derive add_comm_monoid]
+def as_module (ρ : representation k G V) := V
+
+instance : inhabited ρ.as_module := ⟨0⟩
+
+instance {V : Type*} [add_comm_group V] [module k V] (ρ : representation k G V) :
+  add_comm_group ρ.as_module := by dunfold as_module; apply_instance
+
+instance : module k ρ.as_module := by dunfold as_module; apply_instance
+
+/--
 A `k`-linear representation of `G` on `V` can be thought of as
 a module over `monoid_algebra k G`.
 -/
-noncomputable def as_module : module (monoid_algebra k G) V :=
+noncomputable def as_module_module : module (monoid_algebra k G) V :=
   module.comp_hom V (as_algebra_hom ρ).to_ring_hom
 
 end monoid_algebra

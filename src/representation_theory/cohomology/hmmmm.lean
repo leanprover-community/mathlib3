@@ -1,10 +1,11 @@
 import topology.category.Profinite.as_limit
 import representation_theory.cohomology.sles
+
 universes v u
 
 namespace stuff
-variables {k : Type*} [comm_ring k] {G : Type*} [topological_space G] [group G] [topological_group G]
-  {V : Type*} [topological_space V] [discrete_topology V] [add_comm_group V] [module k V]
+variables {k : Type*} [comm_ring k] {G : Type u} [topological_space G] [group G] [topological_group G]
+  {V : Type v} [topological_space V] [discrete_topology V] [add_comm_group V] [module k V]
   (ρ : representation k G V) (h : ∀ v : V, continuous (λ g : G, ρ g v))
 
 variables (k G V)
@@ -53,8 +54,8 @@ cochain_complex.of (λ n, Module.of k $ cts_cochain k G V n) (λ n, d_of_cts ρ 
 
 noncomputable abbreviation cts_coh (n : ℕ) := (cts_cochain_cx ρ).homology n
 
-variables {H : Type*} [topological_space H] [group H] [topological_group H]
-  {W : Type*} [topological_space W] [discrete_topology W] [add_comm_group W]
+variables {H : Type u} [topological_space H] [group H] [topological_group H]
+  {W : Type v} [topological_space W] [discrete_topology W] [add_comm_group W]
   [module k W] (τ : representation k H W) (hW : ∀ w : W, continuous (λ g : H, τ g w))
 
 lemma pair_chain_map_aux_cts (f : G →* H) (hf : continuous f) (φ : W →ₗ[k] V) (n : ℕ)
@@ -63,7 +64,7 @@ lemma pair_chain_map_aux_cts (f : G →* H) (hf : continuous f) (φ : W →ₗ[k
 continuous.comp continuous_of_discrete_topology $ continuous.comp x.2 (continuous_pi
 (λ i, continuous.comp hf (continuous_apply _)))
 
-@[simps] def cts_pair_chain_map_aux (f : G →* H) (hf : continuous f) (φ : W →ₗ[k] V) (n : ℕ) :
+def cts_pair_chain_map_aux (f : G →* H) (hf : continuous f) (φ : W →ₗ[k] V) (n : ℕ) :
   (cts_cochain k H W n) →ₗ[k] (cts_cochain k G V n) :=
 ((pair_chain_map_aux ρ τ f φ n).comp (cts_cochain k H W n).subtype).cod_restrict _
   (pair_chain_map_aux_cts ρ τ f hf φ n)
@@ -76,8 +77,8 @@ begin
   ext1, ext1,
   exact linear_map.ext_iff.1 (pair_chain_map_aux_comm ρ τ f φ hp n) x,
 end
+.
 
-#exit
 def cts_pair_chain_map (f : G →* H) (hf : continuous f) (φ : W →ₗ[k] V) (hp : pair ρ τ f φ) :
   cts_cochain_cx τ ⟶ cts_cochain_cx ρ :=
 { f := λ i, cts_pair_chain_map_aux ρ τ f hf φ i,
@@ -86,6 +87,8 @@ def cts_pair_chain_map (f : G →* H) (hf : continuous f) (φ : W →ₗ[k] V) (
     dsimp,
     erw [cochain_complex.of_d, cochain_complex.of_d],
     convert cts_pair_chain_map_aux_comm f hf φ hp i }}
+
+#exit
 
 noncomputable def cts_pair_homology_map (f : G →* H) (hf : continuous f) (φ : B →+ A)
   (hp : pair f φ) (n : ℕ) : (cts_cochain_cx H B).homology n →+ (cts_cochain_cx G A).homology n :=

@@ -1522,7 +1522,7 @@ end
 
 theorem map_is_prime_of_equiv (f : R ≃+* S) {I : ideal R} [is_prime I] :
   is_prime (map (f : R →+* S) I) :=
-map_is_prime_of_surjective f.surjective $ by simp
+map_is_prime_of_surjective f.surjective $ by simp only [ring_hom.ker_coe_equiv, bot_le]
 
 end ring
 

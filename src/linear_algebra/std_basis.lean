@@ -48,7 +48,7 @@ lemma std_basis_apply (i : ι) (b : φ i) : std_basis R φ i b = update 0 i b :=
 rfl
 
 lemma coe_std_basis (i : ι) : ⇑(std_basis R φ i) = pi.single i :=
-funext $ std_basis_apply R φ i
+rfl
 
 @[simp] lemma std_basis_same (i : ι) (b : φ i) : std_basis R φ i b i = b :=
 by rw [std_basis_apply, update_same]
@@ -144,13 +144,7 @@ end
 
 lemma std_basis_eq_single {a : R} :
   (λ (i : ι), (std_basis R (λ _ : ι, R) i) a) = λ (i : ι), (finsupp.single i a) :=
-begin
-  ext i j,
-  rw [std_basis_apply, finsupp.single_apply],
-  split_ifs,
-  { rw [h, function.update_same] },
-  { rw [function.update_noteq (ne.symm h)], refl },
-end
+funext $ λ i, (finsupp.single_eq_pi_single i a).symm
 
 end linear_map
 

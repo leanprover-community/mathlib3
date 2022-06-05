@@ -699,6 +699,12 @@ local infixr ^ := @pow cardinal.{u} cardinal cardinal.has_pow
 def is_limit (c : cardinal) : Prop :=
 c ≠ 0 ∧ ∀ x < c, succ x < c
 
+theorem is_limit.ne_zero {c} (h : is_limit c) : c ≠ 0 :=
+h.1
+
+theorem is_limit.succ_lt {x c} (h : is_limit c) : x < c → succ x < c :=
+h.2 x
+
 theorem is_limit.aleph_0_le {c} (h : is_limit c) : ℵ₀ ≤ c :=
 begin
   by_contra' h',
@@ -711,6 +717,12 @@ end
   closed under powersets. Note that `ℵ₀` is a strong limit by this definition. -/
 def is_strong_limit (c : cardinal) : Prop :=
 c ≠ 0 ∧ ∀ x < c, 2 ^ x < c
+
+theorem is_strong_limit.ne_zero {c} (h : is_strong_limit c) : c ≠ 0 :=
+h.1
+
+theorem is_strong_limit.two_power_lt {x c} (h : is_strong_limit c) : x < c → 2 ^ x < c :=
+h.2 x
 
 theorem is_strong_limit_aleph_0 : is_strong_limit ℵ₀ :=
 ⟨aleph_0_ne_zero, λ x hx, begin

@@ -22,6 +22,9 @@ open_locale big_operators classical
 lemma zero_le_three {α : Type} [ordered_semiring α] : (0 : α) ≤ 3 :=
 add_nonneg zero_le_two zero_le_one
 
+lemma zero_le_four {α : Type} [ordered_semiring α] : (0 : α) ≤ 4 :=
+add_nonneg zero_le_two zero_le_two
+
 namespace padic_val_nat
 
 variables (n : ℕ)
@@ -506,19 +509,53 @@ begin
     rintro (_ | ⟨x, y, w⟩),
     { rw [EllipticCurve.zero_def, zero_add, height_zero, mul_zero, zero_add],
       exact le_max_of_le_right (le_max_left hQ h2Q) },
-    { unfold has_add.add,
+    { have sw := w,
+      have sw' := w',
+      unfold has_add.add,
       unfold EllipticCurve.add,
-      simp only [ha₁, ha₂, ha₃, ha₄, ha₆, algebra_map_rat_rat, ring_hom.id_apply, zero_mul,
-                 add_zero] at w w',
       simp only [ha₁, ha₂, ha₃, ha₄, ha₆, algebra_map_rat_rat, ring_hom.id_apply, mul_zero,
-                 zero_mul, add_zero, sub_zero] at *,
+                 zero_mul, add_zero, sub_zero] at sw sw' ⊢,
       split_ifs with hx hy,
-      { sorry },
+      { rcases padic_val_point.denom sw with ⟨d, hxd, hyd⟩,
+        rcases padic_val_point.denom sw' with ⟨d', hxd', hyd'⟩,
+        have hd : (d : ℚ) ≠ 0 :=
+        by { rw [nat.cast_ne_zero], rintro rfl, exact ne_zero_of_lt x.pos hxd },
+        have hd' : (d' : ℚ) ≠ 0 :=
+        by { rw [nat.cast_ne_zero], rintro rfl, exact ne_zero_of_lt x'.pos hxd' },
+        have add_rw :
+          ((y - y') * (x - x')⁻¹) ^ 2 - x - x'
+          = (((x.num * x'.num + A * d ^ 2 * d' ^ 2) * (x.num * d' ^ 2 + x'.num * d ^ 2)
+              + 2 * B * d ^ 4 * d' ^ 4 - 2 * y.num * d * y'.num * d' : ℤ) : ℚ)
+            / (((x.num * d' ^ 2 - x'.num * d ^ 2) ^ 2 : ℤ) : ℚ) :=
+        calc ((y - y') * (x - x')⁻¹) ^ 2 - x - x'
+              = (y - y') ^ 2 / (x - x') ^ 2 - (x + x') * ((x - x') ^ 2 / (x - x') ^ 2) :
+                by rw [← div_eq_mul_inv, div_pow, sub_sub,
+                       div_self $ pow_ne_zero 2 $ sub_ne_zero_of_ne hx, mul_one]
+          ... = ((x * x' + A) * (x + x') + 2 * B - 2 * y * y') / (x - x') ^ 2 :
+                by { rw [sub_sq, sw, sw'], ring1 }
+          ... = (((x.num / d ^ 2) * (x'.num / d' ^ 2) + A) * (x.num / d ^ 2 + x'.num / d' ^ 2)
+                  + 2 * B - 2 * (y.num / d ^ 3) * (y'.num / d' ^ 3))
+                / (x.num / d ^ 2 - x'.num / d' ^ 2) ^ 2 :
+                by simp only [← nat.cast_pow, ← hxd, ← hyd, ← hxd', ← hyd', rat.num_div_denom]
+          ... = ((x.num * (d ^ 2 / d ^ 2) * x'.num * (d' ^ 2 / d' ^ 2) + A * d ^ 2 * d' ^ 2)
+                  * (x.num * d' ^ 2 + x'.num * d ^ 2) * (d ^ 2 / d ^ 2) * (d' ^ 2 / d' ^ 2)
+                  + 2 * B * d ^ 4 * d' ^ 4
+                  - 2 * y.num * d * y'.num * d' * (d ^ 3 / d ^ 3) * (d' ^ 3 / d' ^ 3))
+                / (x.num * d' ^ 2 - d ^ 2 * x'.num) ^ 2 :
+                by { rw [div_add_div _ _ (pow_ne_zero 2 hd) (pow_ne_zero 2 hd'), div_mul_eq_div_div,
+                         div_sub_div _ _ (pow_ne_zero 2 hd) (pow_ne_zero 2 hd'), div_pow,
+                         ← div_mul], ring1 }
+          ... = (((x.num * x'.num + A * d ^ 2 * d' ^ 2) * (x.num * d' ^ 2 + x'.num * d ^ 2)
+                  + 2 * B * d ^ 4 * d' ^ 4 - 2 * y.num * d * y'.num * d' : ℤ) : ℚ)
+                / (((x.num * d' ^ 2 - x'.num * d ^ 2) ^ 2 : ℤ) : ℚ) :
+                by { simp only [div_self (pow_ne_zero _ hd), div_self (pow_ne_zero _ hd'), mul_one],
+                     rw [mul_comm (d ^ 2 : ℚ)], push_cast },
+        sorry },
       { rw [not_ne_iff, eq_comm] at hx,
         subst hx,
-        rw [← w', sq_eq_sq_iff_abs_eq_abs, abs_eq_abs,
-            or_iff_left $ (not_iff_not_of_iff add_eq_zero_iff_eq_neg).mp hy, eq_comm] at w,
-        subst w,
+        rw [← sw', sq_eq_sq_iff_abs_eq_abs, abs_eq_abs,
+            or_iff_left $ (not_iff_not_of_iff add_eq_zero_iff_eq_neg).mp hy, eq_comm] at sw,
+        subst sw,
         exact le_add_of_nonneg_of_le (mul_nonneg zero_le_two $ height_nonneg _)
           (le_max_of_le_right $ le_max_right hQ h2Q) },
       all_goals { exact add_nonneg (mul_nonneg zero_le_two $ height_nonneg _)
@@ -541,14 +578,23 @@ begin
   rintro (_ | ⟨x, y, w⟩),
   { rw [EllipticCurve.zero_def, EllipticCurve.dbl_zero, height_zero, mul_zero, zero_add],
     exact le_max_of_le_left (le_refl 0) },
-  { unfold EllipticCurve.dbl,
-    simp only [ha₁, ha₂, ha₃, ha₄, ha₆, algebra_map_rat_rat, ring_hom.id_apply, zero_mul, add_zero]
-      at w,
-    simp only [ha₁, ha₂, ha₃, ha₄, ha₆, algebra_map_rat_rat, ring_hom.id_apply, mul_zero, zero_mul,
-               add_zero, sub_zero] at *,
+  { have sw := w,
+    have E₂_y : y = 0 → some x y w ∈ E⟮ℚ⟯[2],
+    any_goals { rintro rfl,
+                rw [E₂_y, eq_inv_mul_iff_mul_eq₀ $ @two_ne_zero ℚ _ _, mul_zero, zero_eq_neg] },
+    any_goals { unfold EllipticCurve.dbl },
+    all_goals { simp only [ha₁, ha₂, ha₃, ha₄, ha₆, algebra_map_rat_rat, ring_hom.id_apply,
+                           mul_zero, zero_mul, add_zero, sub_zero] at sw ⊢ },
     split_ifs with hy,
     { sorry },
-    { sorry } }
+    { rw [not_ne_iff, two_mul, add_self_eq_zero] at hy,
+      subst hy,
+      rw [height_zero, zero_add],
+      apply le_max_of_le_right,
+      apply mul_le_mul_of_nonneg_left _ zero_le_four,
+      apply finset.le_max',
+      rw [finset.mem_image],
+      exact ⟨⟨some x 0 w, E₂_y rfl⟩, (set.finite.mem_to_finset _).mpr $ set.mem_univ _, rfl⟩ } }
 end
 
 end heights

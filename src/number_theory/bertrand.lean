@@ -106,7 +106,20 @@ end
 lemma prod_subset' {f : ℕ → ℕ} {S T : finset ℕ} (sub : T ⊆ S) (prop : ∀ i ∈ S, ¬(i ∈ T) → f i = 1):
   (∏ p in S, f p) = (∏ p in T, f p) :=
 begin
-  sorry
+  rw <-finset.prod_filter_mul_prod_filter_not S (λ i, i ∈ T) f,
+  rw [finset.filter_mem_eq_inter, (finset.inter_eq_right_iff_subset _ _).2 sub],
+  rw finset.prod_filter,
+  simp only [ite_not],
+  have r : ∀ (x ∈ S), ite (x ∈ T) 1 (f x) = 1,
+  { intros x,
+    by_cases x ∈ T,
+    { simp only [ite_eq_left_iff],
+      intros _ bad, exfalso, exact bad h, },
+    { simp,
+      intros x_in_s _,
+      exact prop x x_in_s h, }, },
+  rw finset.prod_congr rfl r,
+  simp,
 end
 
 lemma fooo (n : ℕ) : ∏ p in finset.filter nat.prime (finset.range (n + 1)), p ^ (n.factorization p)
@@ -116,9 +129,11 @@ begin
   intros i i_in i_not,
   simp at i_not,
   have r : n.factorization i = 0,
-  {
-    rw factorization_eq_zero_iff',
-  },
+  { rw factorization_eq_zero_iff',
+    by_contradiction,
+    push_neg at h,
+    refine i_not _,
+    exact (mem_factors_iff_dvd h.2.2 h.1).2 h.2.1, },
   rw [←pow_zero i, r],
 end
 

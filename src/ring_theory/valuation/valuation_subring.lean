@@ -369,19 +369,20 @@ def unit_group : subgroup Kˣ :=
 
 lemma mem_unit_group_iff (x : Kˣ) : x ∈ A.unit_group ↔ A.valuation x = 1 := iff.refl _
 
-lemma eq_iff_unit_group (A B : valuation_subring K) :
-  A = B ↔ A.unit_group = B.unit_group :=
-begin
+lemma unit_group_injective : function.injective (unit_group : valuation_subring K → subgroup _) :=
+λ A B, begin
   rw [← A.valuation_subring_valuation, ← B.valuation_subring_valuation,
     ← valuation.is_equiv_iff_valuation_subring,
     A.valuation_subring_valuation, B.valuation_subring_valuation,
     valuation.is_equiv_iff_val_eq_one, set_like.ext_iff],
-  split,
-  { intros h x, apply h },
-  { intros h x,
-    by_cases hx : x = 0, { simp only [hx, valuation.map_zero, zero_ne_one] },
-    exact h (units.mk0 x hx) }
+  intros h x,
+  by_cases hx : x = 0, { simp only [hx, valuation.map_zero, zero_ne_one] },
+  exact h (units.mk0 x hx)
 end
+
+lemma eq_iff_unit_group {A B : valuation_subring K} :
+  A = B ↔ A.unit_group = B.unit_group :=
+unit_group_injective.eq_iff.symm
 
 /-- For a valuation subring `A`, `A.unit_group` agrees with the units of `A`. -/
 def unit_group_mul_equiv : A.unit_group ≃* Aˣ :=

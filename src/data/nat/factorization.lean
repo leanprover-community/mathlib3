@@ -105,7 +105,7 @@ lemma factorization_eq_zero_iff (n : ℕ) : n.factorization = 0 ↔ n = 0 ∨ n 
 by simp [factorization, add_equiv.map_eq_zero_iff, multiset.coe_eq_zero]
 
 lemma factorization_eq_zero_iff' (n p : ℕ) :
-  n.factorization p = 0 ↔ ((¬ nat.prime p) ∨ (¬ p ∣ n) ∨ n = 0) :=
+  n.factorization p = 0 ↔ ¬p.prime ∨ ¬p ∣ n ∨ n = 0 :=
 begin
   split,
   { intros fact_zero,

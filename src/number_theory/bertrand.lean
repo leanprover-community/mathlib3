@@ -103,7 +103,7 @@ begin
     { exact prime_of_mem_factors p_factor, }, },
 end
 
-lemma prod_subset' {f : ℕ → ℕ} {S T : finset ℕ} (sub : T ⊆ S) (prop : ∀ i ∈ S, ¬(i ∈ T) → f i = 1):
+lemma prod_subset' {f : ℕ → ℕ} {S T : finset ℕ} (sub : T ⊆ S) (prop : ∀ i ∈ S, ¬(i ∈ T) → f i = 1) :
   (∏ p in S, f p) = (∏ p in T, f p) :=
 begin
   rw <-finset.prod_filter_mul_prod_filter_not S (λ i, i ∈ T) f,
@@ -143,7 +143,8 @@ lemma central_binom_factorization (n : ℕ) :
     p ^ ((central_binom n).factorization p)
   = central_binom n :=
 begin
-  calc ∏ p in finset.filter nat.prime (finset.range (n.central_binom + 1)), p ^ (n.central_binom.factorization p)
+  calc ∏ p in finset.filter nat.prime (finset.range (n.central_binom + 1)),
+          p ^ (n.central_binom.factorization p)
     = ∏ p in (central_binom n).factorization.support, p ^ (n.central_binom.factorization p) :
       fooo _
   ... = central_binom n : factorization_prod_pow_eq_self (central_binom_ne_zero _),

@@ -410,12 +410,11 @@ def to_multiset : mul_args → multiset pgame
 section
 open multiset
 lemma P1_mem {x y} : x ∈ to_multiset (mul_args.P1 x y) ∧ y ∈ to_multiset (mul_args.P1 x y) :=
-⟨mem_cons_self x {y}, mem_cons_of_mem $ mem_singleton.2 rfl⟩
+⟨or.inl rfl, or.inr $ or.inl rfl⟩
 
 lemma P24_mem {x₁ x₂ y} : x₁ ∈ to_multiset (mul_args.P24 x₁ x₂ y) ∧
   x₂ ∈ to_multiset (mul_args.P24 x₁ x₂ y) ∧ y ∈ to_multiset (mul_args.P24 x₁ x₂ y) :=
-⟨mem_cons_self x₁ {x₂, y}, mem_cons_of_mem $ mem_cons_self x₂ {y},
- mem_cons_of_mem $ mem_cons_of_mem $ mem_singleton.2 rfl⟩
+⟨or.inl rfl, or.inr $ or.inl rfl, or.inr $ or.inr $ or.inl rfl⟩
 end
 
 def hyp : mul_args → Prop
@@ -782,13 +781,10 @@ end pgame
 
 namespace surreal
 
-def mul : surreal → surreal → surreal :=
-surreal.lift₂
-  (λ x y ox oy, ⟦⟨x * y, ox.mul oy⟩⟧)
-  (λ _ _ _ _ ox₁ oy₁ ox₂ oy₂ hx hy, quotient.sound $ ox₁.mul_congr ox₂ oy₁ oy₂ hx hy)
-
 noncomputable instance : linear_ordered_comm_ring surreal :=
-{ mul := mul,
+{ mul := surreal.lift₂
+    (λ x y ox oy, ⟦⟨x * y, ox.mul oy⟩⟧)
+    (λ _ _ _ _ ox₁ oy₁ ox₂ oy₂ hx hy, quotient.sound $ ox₁.mul_congr ox₂ oy₁ oy₂ hx hy),
   mul_assoc := by { rintro ⟨x⟩ ⟨y⟩ ⟨z⟩, exact quotient.sound (mul_assoc_equiv x.1 y.1 z.1) },
   one := 1,
   one_mul := by { rintro ⟨x⟩, exact quotient.sound (one_mul_equiv x) },
@@ -805,3 +801,42 @@ end surreal
 
 /- TODO : move le_of_forall_lt to pgame -/
 /- make quot_neg_mul a relabelling?  -/
+
+/- mem_subsingleton etc. directly rintro -/
+
+/- inline all instances before linear_ordered_add_comm_group into one ..? -/
+
+/- conditionally_complete_linear_order , complete_space ? order_topology .. -/
+/- where is least upper bound ? always infinitesimals in between? hyperreals .. ? -/
+/- nonstandard reals, superreal .. -/
+/- obviously not Dedekind complete .. -/
+
+/- I think the surreals is complete only in the uniform space sense
+  (with order topology / uniform structure from group structure)
+  complete_space in mathlib .. BUT, only restricted to set-sized Cauchy filters ..?
+  Any set of surreals has an upper bound (just take the set as left options),
+  but it has a least upper bound iff it has a maximal element. -/
+
+/- order/ring embedding from the reals .. can use only rationals as options?
+ rationals are "simpler" than general surreals ..? embedding unique? -/
+
+/- docstrings explaining the proof .. -/
+/- clear separation of calculation part vs. inductive hypothesis application part /
+  cut_expand relation verification part /
+  numeric hypothesis part handled at once .. -/
+/- utilize symmetry .. to minimize calculation .. -/
+
+
+
+/- `arg_ty` .. ? `arg_rel` .. in `inuction` namespace .. -/
+/- `iitgceio` or `itco` .. `inv_image trans_gen cut_expand is_option` -/
+
+/- star is infinitesimal .. `up` is smaller than all positive numbers ? -/
+
+/- real algebraically closed .. -/
+
+
+/- ordinals are exactly surreals without right options (recursively) -/
+
+/-  theorem mul_lt_iff_lt_one_left {α : Type u} [linear_ordered_semiring α] {a b : α} (hb : 0 < b) :
+a * b < b ↔ a < 1 -/

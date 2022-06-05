@@ -1231,10 +1231,10 @@ begin
 end
 
 /-- Consider a disjoint family of intervals `(x, y)` with `x < y` in a second-countable space.
-Then it is countable.
+Then the family is countable.
 This is not a straightforward consequence of second-countability as some of these intervals might be
 empty (but in fact this can happen only for countably many of them). -/
-lemma pairwise_disjoint.countable_of_Ioo [second_countable_topology α]
+lemma set.pairwise_disjoint.countable_of_Ioo [second_countable_topology α]
   {y : α → α} {s : set α} (h : pairwise_disjoint s (λ x, Ioo x (y x))) (h' : ∀ x ∈ s, x < y x) :
   countable s :=
 begin

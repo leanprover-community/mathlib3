@@ -1159,8 +1159,7 @@ begin
       have : x ∈ interior s :=
         mem_interior.2 ⟨Ioo x' (y x'), h'y _ hx'.1, is_open_Ioo, ⟨h', hz.1.trans h'z.2⟩⟩,
       exact false.elim (hx.2 this) } },
-  apply B.countable_of_Ioo (λ x hx, _),
-  simpa using hy x hx.1
+  exact B.countable_of_Ioo (λ x hx, hy x hx.1),
 end
 
 /-- If a set is a right-neighborhood of all of its points, then it is measurable. -/

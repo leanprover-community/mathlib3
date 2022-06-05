@@ -302,11 +302,11 @@ instance : ordered_add_comm_monoid enat :=
   ..enat.add_comm_monoid }
 
 instance : canonically_ordered_add_monoid enat :=
-{ le_add := λ a b, enat.cases_on b le_top $ λ b, enat.cases_on a (not_le_of_gt $ coe_lt_top _) $
-    λ a, coe_le_coe.2 le_self_add,
-  exists_add_of_le := λ a b, enat.cases_on b ⟨⊤, (add_top _).symm⟩ $ λ b, enat.cases_on a $ λ h,
-      (h.not_lt $ coe_lt_top _).elim $ λ a h, ⟨(b - a : ℕ),
-        by rw [← nat.cast_add, coe_inj, add_comm, tsub_add_cancel_of_le (coe_le_coe.1 h)]⟩,
+{ le_add := λ a b, enat.cases_on b (le_top.trans_eq (add_top _).symm) $ λ b, enat.cases_on a
+    (top_add _).ge $ λ a, (coe_le_coe.2 le_self_add).trans_eq (nat.cast_add _ _),
+  exists_add_of_le := λ a b, enat.cases_on b (λ _, ⟨⊤, (add_top _).symm⟩) $ λ b, enat.cases_on a
+    (λ h, ((coe_lt_top _).not_le h).elim) $ λ a h, ⟨(b - a : ℕ),
+        by rw [←nat.cast_add, coe_inj, add_comm, tsub_add_cancel_of_le (coe_le_coe.1 h)]⟩,
   ..enat.semilattice_sup,
   ..enat.order_bot,
   ..enat.ordered_add_comm_monoid }

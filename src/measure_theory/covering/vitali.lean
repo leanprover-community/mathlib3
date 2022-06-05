@@ -72,7 +72,7 @@ begin
     ∧ ∀ a ∈ t, ∀ b ∈ u, set.nonempty (a ∩ b) → ∃ c ∈ u, (a ∩ c).nonempty ∧ δ a ≤ τ * δ c},
   -- By Zorn, choose a maximal family in the good set `T` of disjoint families.
   obtain ⟨u, uT, hu⟩ : ∃ u ∈ T, ∀ v ∈ T, u ⊆ v → v = u,
-  { refine zorn.zorn_subset _ (λ U UT hU, _),
+  { refine zorn_subset _ (λ U UT hU, _),
     refine ⟨⋃₀ U, _, λ s hs, subset_sUnion_of_mem hs⟩,
     simp only [set.sUnion_subset_iff, and_imp, exists_prop, forall_exists_index,
                 set.mem_set_of_eq],

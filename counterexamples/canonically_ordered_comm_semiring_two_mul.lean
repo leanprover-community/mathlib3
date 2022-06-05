@@ -151,12 +151,6 @@ open Nxzmod_2 subtype
 /-- Initially, `L` was defined as the subsemiring closure of `(1,0)`. -/
 def L : Type := { l : (ℕ × zmod 2) // l ≠ (0, 1) }
 
-instance zero : has_zero L := ⟨⟨(0, 0), dec_trivial⟩⟩
-
-instance one : has_one L := ⟨⟨(1, 1), dec_trivial⟩⟩
-
-instance inhabited : inhabited L := ⟨1⟩
-
 lemma add_L {a b : ℕ × zmod 2} (ha : a ≠ (0, 1)) (hb : b ≠ (0, 1)) :
   a + b ≠ (0, 1) :=
 begin
@@ -191,20 +185,18 @@ begin
   { simp [mul_ne_zero _ _, nat.succ_ne_zero _] }
 end
 
-instance has_add_L : has_add L :=
-{ add := λ ⟨a, ha⟩ ⟨b, hb⟩, ⟨a + b, add_L ha hb⟩ }
-
-instance : has_mul L :=
-{ mul := λ ⟨a, ha⟩ ⟨b, hb⟩, ⟨a * b, mul_L ha hb⟩ }
+/-- The subsemiring corresponding to the elements of `L`, used to transfer instances. -/
+def L_subsemiring : subsemiring (ℕ × zmod 2) :=
+{ carrier := { l | l ≠ (0, 1) },
+  zero_mem' := dec_trivial,
+  one_mem' := dec_trivial,
+  add_mem' := λ _ _, add_L,
+  mul_mem' := λ _ _, mul_L }
 
 instance : ordered_comm_semiring L :=
-begin
-  refine function.injective.ordered_comm_semiring _ subtype.coe_injective rfl rfl _ _;
-  { refine λ x y, _,
-    cases x,
-    cases y,
-    refl }
-end
+L_subsemiring.to_ordered_comm_semiring
+
+instance inhabited : inhabited L := ⟨1⟩
 
 lemma bot_le : ∀ (a : L), 0 ≤ a :=
 begin

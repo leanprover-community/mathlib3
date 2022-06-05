@@ -214,7 +214,7 @@ lemma measure_Union_fintype_le [fintype β] (f : β → set α) :
   μ (⋃ b, f b) ≤ ∑ p, μ (f p) :=
 by { convert measure_bUnion_finset_le finset.univ f, simp }
 
-lemma measure_bUnion_lt_top {s : set β} {f : β → set α} (hs : finite s)
+lemma measure_bUnion_lt_top {s : set β} {f : β → set α} (hs : s.finite)
   (hfin : ∀ i ∈ s, μ (f i) ≠ ∞) : μ (⋃ i ∈ s, f i) < ∞ :=
 begin
   convert (measure_bUnion_finset_le hs.to_finset f).trans_lt _,
@@ -393,13 +393,7 @@ h.inter h'
 @[to_additive]
 lemma _root_.set.mul_indicator_ae_eq_one {M : Type*} [has_one M] {f : α → M} {s : set α}
   (h : s.mul_indicator f =ᵐ[μ] 1) : μ (s ∩ function.mul_support f) = 0 :=
-begin
-  rw [filter.eventually_eq, ae_iff] at h,
-  convert h,
-  ext a,
-  rw ← set.mul_indicator_eq_one_iff,
-  refl
-end
+by simpa [filter.eventually_eq, ae_iff] using h
 
 /-- If `s ⊆ t` modulo a set of measure `0`, then `μ s ≤ μ t`. -/
 @[mono] lemma measure_mono_ae (H : s ≤ᵐ[μ] t) : μ s ≤ μ t :=

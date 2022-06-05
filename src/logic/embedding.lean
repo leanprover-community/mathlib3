@@ -3,11 +3,11 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
-import data.equiv.basic
 import data.fun_like.embedding
-import data.pprod
+import data.prod.pprod
 import data.set.basic
 import data.sigma.basic
+import logic.equiv.basic
 
 /-!
 # Injective functions
@@ -33,6 +33,11 @@ instance {α : Sort u} {β : Sort v} : embedding_like (α ↪ β) α β :=
 { coe := embedding.to_fun,
   injective' := embedding.inj',
   coe_injective' := λ f g h, by { cases f, cases g, congr' } }
+
+instance {α β : Sort*} : can_lift (α → β) (α ↪ β) :=
+{ coe := coe_fn,
+  cond := injective,
+  prf := λ f hf, ⟨⟨f, hf⟩, rfl⟩ }
 
 end function
 
@@ -170,6 +175,19 @@ def coe_with_top {α} : α ↪ with_top α := { to_fun := coe, ..embedding.some}
   option α ↪ β :=
 ⟨λ o, o.elim x f, option.injective_iff.2 ⟨f.2, h⟩⟩
 
+/-- Equivalence between embeddings of `option α` and a sigma type over the embeddings of `α`. -/
+@[simps]
+def option_embedding_equiv (α β) : (option α ↪ β) ≃ Σ f : α ↪ β, ↥(set.range f)ᶜ :=
+{ to_fun := λ f, ⟨coe_option.trans f, f none, λ ⟨x, hx⟩, option.some_ne_none x $ f.injective hx⟩,
+  inv_fun := λ f, f.1.option_elim f.2 f.2.2,
+  left_inv := λ f, ext $ by { rintro (_|_); simp [option.coe_def] },
+  right_inv := λ ⟨f, y, hy⟩, by { ext; simp [option.coe_def] } }
+
+/-- A version of `option.map` for `function.embedding`s. -/
+@[simps { fully_applied := ff }]
+def option_map {α β} (f : α ↪ β) : option α ↪ option β :=
+⟨option.map f, option.map_injective f.injective⟩
+
 /-- Embedding of a `subtype`. -/
 def subtype {α} (p : α → Prop) : subtype p ↪ α :=
 ⟨coe, λ _ _, subtype.ext_val⟩
@@ -181,11 +199,11 @@ def punit {β : Sort*} (b : β) : punit ↪ β :=
 ⟨λ _, b, by { rintros ⟨⟩ ⟨⟩ _, refl, }⟩
 
 /-- Fixing an element `b : β` gives an embedding `α ↪ α × β`. -/
-def sectl (α : Sort*) {β : Sort*} (b : β) : α ↪ α × β :=
+@[simps] def sectl (α : Sort*) {β : Sort*} (b : β) : α ↪ α × β :=
 ⟨λ a, (a, b), λ a a' h, congr_arg prod.fst h⟩
 
 /-- Fixing an element `a : α` gives an embedding `β ↪ α × β`. -/
-def sectr {α : Sort*} (a : α) (β : Sort*): β ↪ α × β :=
+@[simps] def sectr {α : Sort*} (a : α) (β : Sort*): β ↪ α × β :=
 ⟨λ b, (a, b), λ b b' h, congr_arg prod.snd h⟩
 
 /-- Restrict the codomain of an embedding. -/

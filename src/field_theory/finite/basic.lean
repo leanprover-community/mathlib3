@@ -4,12 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Joey van Langen, Casper Putz
 -/
 import tactic.apply_fun
-import data.equiv.ring
+import algebra.ring.equiv
 import data.zmod.algebra
 import linear_algebra.finite_dimensional
 import ring_theory.integral_domain
 import field_theory.separable
-import field_theory.splitting_field
 
 /-!
 # Finite fields
@@ -20,7 +19,7 @@ and `q` is notation for the cardinality of `K`.
 
 See `ring_theory.integral_domain` for the fact that the unit group of a finite field is a
 cyclic group, as well as the fact that every finite integral domain is a field
-(`field_of_is_domain`).
+(`fintype.field_of_domain`).
 
 ## Main results
 
@@ -104,7 +103,7 @@ begin
   have : (∏ x in (@univ Kˣ _).erase (-1), x) = 1,
   from prod_involution (λ x _, x⁻¹) (by simp)
     (λ a, by simp [units.inv_eq_self_iff] {contextual := tt})
-    (λ a, by simp [@inv_eq_iff_inv_eq _ _ a, eq_comm] {contextual := tt})
+    (λ a, by simp [@inv_eq_iff_inv_eq _ _ a, eq_comm])
     (by simp),
   rw [← insert_erase (mem_univ (-1 : Kˣ)), prod_insert (not_mem_erase _ _),
       this, mul_one]
@@ -140,7 +139,7 @@ variables (K) [field K] [fintype K]
 theorem card (p : ℕ) [char_p K p] : ∃ (n : ℕ+), nat.prime p ∧ q = p^(n : ℕ) :=
 begin
   haveI hp : fact p.prime := ⟨char_p.char_is_prime K p⟩,
-  letI : module (zmod p) K := { .. (zmod.cast_hom dvd_rfl K).to_module },
+  letI : module (zmod p) K := { .. (zmod.cast_hom dvd_rfl K : zmod p →+* _).to_module },
   obtain ⟨n, h⟩ := vector_space.card_fintype (zmod p) K,
   rw zmod.card at h,
   refine ⟨⟨n, _⟩, hp.1, h⟩,
@@ -253,7 +252,7 @@ X_pow_card_sub_X_ne_zero K' $ nat.one_lt_pow _ _ (nat.pos_of_ne_zero hn) hp
 
 end
 
-variables (p : ℕ) [fact p.prime] [char_p K p]
+variables (p : ℕ) [fact p.prime] [algebra (zmod p) K]
 lemma roots_X_pow_card_sub_X : roots (X^q - X : K[X]) = finset.univ.val :=
 begin
   classical,
@@ -263,15 +262,15 @@ begin
     intro x,
     rw [multiset.mem_to_finset, mem_roots aux, is_root.def, eval_sub, eval_pow, eval_X, sub_eq_zero,
       pow_card] },
-  rw [←this, multiset.to_finset_val, eq_comm, multiset.erase_dup_eq_self],
+  rw [←this, multiset.to_finset_val, eq_comm, multiset.dedup_eq_self],
   apply nodup_roots,
   rw separable_def,
-  convert is_coprime_one_right.neg_right,
-  rw [derivative_sub, derivative_X, derivative_X_pow, ←C_eq_nat_cast,
-    C_eq_zero.mpr (char_p.cast_card_eq_zero K), zero_mul, zero_sub],
-end
+  convert is_coprime_one_right.neg_right using 1,
+  { rw [derivative_sub, derivative_X, derivative_X_pow, ←C_eq_nat_cast,
+    C_eq_zero.mpr (char_p.cast_card_eq_zero K), zero_mul, zero_sub], },
+  end
 
-instance : is_splitting_field (zmod p) K (X^q - X) :=
+instance (F : Type*) [field F] [algebra F K] : is_splitting_field F K (X^q - X) :=
 { splits :=
   begin
     have h : (X^q - X : K[X]).nat_degree = q :=
@@ -282,8 +281,8 @@ instance : is_splitting_field (zmod p) K (X^q - X) :=
   adjoin_roots :=
   begin
     classical,
-    transitivity algebra.adjoin (zmod p) ((roots (X^q - X : K[X])).to_finset : set K),
-    { simp only [polynomial.map_pow, map_X, polynomial.map_sub], convert rfl },
+    transitivity algebra.adjoin F ((roots (X^q - X : K[X])).to_finset : set K),
+    { simp only [polynomial.map_pow, map_X, polynomial.map_sub], },
     { rw [roots_X_pow_card_sub_X, val_to_finset, coe_univ, algebra.adjoin_univ], }
   end }
 

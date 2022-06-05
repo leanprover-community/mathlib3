@@ -9,6 +9,7 @@ import measure_theory.integral.circle_integral
 import analysis.calculus.dslope
 import analysis.analytic.basic
 import analysis.complex.re_im_topology
+import analysis.calculus.diff_on_int_cont
 import data.real.cardinality
 
 /-!
@@ -65,6 +66,10 @@ differentiability at all but countably many points of the set mentioned below.
 * `differentiable_on.analytic_at`, `differentiable.analytic_at`: If `f : ℂ → E` is differentiable
   on a neighborhood of a point, then it is analytic at this point. In particular, if `f : ℂ → E`
   is differentiable on the whole `ℂ`, then it is analytic at every point `z : ℂ`.
+
+* `differentiable.has_power_series_on_ball`: If `f : ℂ → E` is differentiable everywhere then the
+  `cauchy_power_series f z R` is a formal power series representing `f` at `z` with infinite
+  radius of convergence (this holds for any choice of `0 < R`).
 
 ## Implementation details
 
@@ -144,8 +149,7 @@ noncomputable theory
 
 universes u
 
-variables {E : Type u} [normed_group E] [normed_space ℂ E] [measurable_space E] [borel_space E]
-  [second_countable_topology E] [complete_space E]
+variables {E : Type u} [normed_group E] [normed_space ℂ E] [complete_space E]
 
 namespace complex
 
@@ -184,8 +188,8 @@ begin
     ← interval_integral.integral_neg, ← hF'],
   refine (integral2_divergence_prod_of_has_fderiv_within_at_off_countable
       (λ p, -(I • F p)) F (λ p, - (I • F' p)) F' z.re w.im w.re z.im t (hs.preimage e.injective)
-      (continuous_on_const.smul htc).neg htc (λ p hp, ((htd p hp).const_smul I).neg) htd _).symm,
-  rw [← volume_preserving_equiv_real_prod.symm.integrable_on_comp_preimage
+      (htc.const_smul _).neg htc (λ p hp, ((htd p hp).const_smul I).neg) htd _).symm,
+  rw [← (volume_preserving_equiv_real_prod.symm _).integrable_on_comp_preimage
     (measurable_equiv.measurable_embedding _)] at Hi,
   simpa only [hF'] using Hi.neg
 end
@@ -371,7 +375,7 @@ begin
       refine circle_integral.norm_integral_le_of_norm_le_const hr0.le (λ z hz, _),
       specialize hzne z hz,
       rw [mem_sphere, dist_eq_norm] at hz,
-      rw [norm_smul, normed_field.norm_inv, hz, ← dist_eq_norm],
+      rw [norm_smul, norm_inv, hz, ← dist_eq_norm],
       refine mul_le_mul_of_nonneg_left (hδ _ ⟨_, hzne⟩).le (inv_nonneg.2 hr0.le),
       rwa [mem_closed_ball_iff_norm, hz]
     end
@@ -489,24 +493,21 @@ lemma circle_integral_sub_inv_smul_of_differentiable_on_off_countable
 by { rw [← two_pi_I_inv_smul_circle_integral_sub_inv_smul_of_differentiable_on_off_countable
   hs hw hc hd, smul_inv_smul₀], simp [real.pi_ne_zero, I_ne_zero] }
 
-/-- **Cauchy integral formula**: if `f : ℂ → E` is continuous on a closed disc of radius `R` and is
-complex differentiable on its interior, then for any `w` in this interior we have
-$\oint_{|z-c|=R}(z-w)^{-1}f(z)\,dz=2πif(w)$.
--/
-lemma circle_integral_sub_inv_smul_of_continuous_on_of_differentiable_on
-  {R : ℝ} {c w : ℂ} {f : ℂ → E} (hw : w ∈ ball c R)
-  (hc : continuous_on f (closed_ball c R)) (hd : differentiable_on ℂ f (ball c R)) :
+/-- **Cauchy integral formula**: if `f : ℂ → E` is complex differentiable on an open disc and is
+continuous on its closure, then for any `w` in this open ball we have
+$\oint_{|z-c|=R}(z-w)^{-1}f(z)\,dz=2πif(w)$. -/
+lemma _root_.diff_cont_on_cl.circle_integral_sub_inv_smul {R : ℝ} {c w : ℂ} {f : ℂ → E}
+  (h : diff_cont_on_cl ℂ f (ball c R)) (hw : w ∈ ball c R) :
   ∮ z in C(c, R), (z - w)⁻¹ • f z = (2 * π * I : ℂ) • f w :=
-circle_integral_sub_inv_smul_of_differentiable_on_off_countable countable_empty hw hc $ λ z hz,
-  hd.differentiable_at (is_open_ball.mem_nhds hz.1)
+circle_integral_sub_inv_smul_of_differentiable_on_off_countable countable_empty hw
+  h.continuous_on_ball $ λ x hx, h.differentiable_at is_open_ball hx.1
 
 /-- **Cauchy integral formula**: if `f : ℂ → E` is complex differentiable on a closed disc of radius
 `R`, then for any `w` in its interior we have $\oint_{|z-c|=R}(z-w)^{-1}f(z)\,dz=2πif(w)$. -/
-lemma circle_integral_sub_inv_smul_of_differentiable_on
-  {R : ℝ} {c w : ℂ} {f : ℂ → E} (hw : w ∈ ball c R) (hd : differentiable_on ℂ f (closed_ball c R)) :
+lemma _root_.differentiable_on.circle_integral_sub_inv_smul {R : ℝ} {c w : ℂ} {f : ℂ → E}
+  (hd : differentiable_on ℂ f (closed_ball c R)) (hw : w ∈ ball c R)  :
   ∮ z in C(c, R), (z - w)⁻¹ • f z = (2 * π * I : ℂ) • f w :=
-circle_integral_sub_inv_smul_of_continuous_on_of_differentiable_on hw hd.continuous_on $
-  hd.mono $ ball_subset_closed_ball
+(hd.mono closure_ball_subset_closed_ball).diff_cont_on_cl.circle_integral_sub_inv_smul hw
 
 /-- **Cauchy integral formula**: if `f : ℂ → ℂ` is continuous on a closed disc of radius `R` and is
 complex differentiable at all but countably many points of its interior, then for any `w` in this
@@ -539,14 +540,14 @@ lemma has_fpower_series_on_ball_of_differentiable_off_countable {R : ℝ≥0} {c
         ((hc.mono sphere_subset_closed_ball).circle_integrable R.2) hR).has_sum hw
     end }
 
-/-- If `f : ℂ → E` is continuous on a closed ball of positive radius and is complex differentiable
-on its interior, then it is analytic on the open ball with coefficients of the power series given by
+/-- If `f : ℂ → E` is complex differentiable on an open disc of positive radius and is continuous
+on its closure, then it is analytic on the open disc with coefficients of the power series given by
 Cauchy integral formulas. -/
-lemma has_fpower_series_on_ball_of_continuous_on_of_differentiable_on {R : ℝ≥0} {c : ℂ} {f : ℂ → E}
-  (hc : continuous_on f (closed_ball c R)) (hd : differentiable_on ℂ f (ball c R)) (hR : 0 < R) :
+lemma _root_.diff_cont_on_cl.has_fpower_series_on_ball {R : ℝ≥0} {c : ℂ} {f : ℂ → E}
+  (hf : diff_cont_on_cl ℂ f (ball c R)) (hR : 0 < R) :
   has_fpower_series_on_ball f (cauchy_power_series f c R) c R :=
-has_fpower_series_on_ball_of_differentiable_off_countable countable_empty hc
-  (λ z hz, hd.differentiable_at $ is_open_ball.mem_nhds hz.1) hR
+has_fpower_series_on_ball_of_differentiable_off_countable countable_empty hf.continuous_on_ball
+  (λ z hz, hf.differentiable_at is_open_ball hz.1) hR
 
 /-- If `f : ℂ → E` is complex differentiable on a closed disc of positive radius, then it is
 analytic on the corresponding open disc, and the coefficients of the power series are given by
@@ -556,8 +557,7 @@ weaker assumptions. -/
 protected lemma _root_.differentiable_on.has_fpower_series_on_ball {R : ℝ≥0} {c : ℂ} {f : ℂ → E}
   (hd : differentiable_on ℂ f (closed_ball c R)) (hR : 0 < R) :
   has_fpower_series_on_ball f (cauchy_power_series f c R) c R :=
-has_fpower_series_on_ball_of_continuous_on_of_differentiable_on hd.continuous_on
-  (hd.mono ball_subset_closed_ball) hR
+(hd.mono closure_ball_subset_closed_ball).diff_cont_on_cl.has_fpower_series_on_ball hR
 
 /-- If `f : ℂ → E` is complex differentiable on some set `s`, then it is analytic at any point `z`
 such that `s ∈ 𝓝 z` (equivalently, `z ∈ interior s`). -/
@@ -573,5 +573,13 @@ end
 protected lemma _root_.differentiable.analytic_at {f : ℂ → E} (hf : differentiable ℂ f) (z : ℂ) :
   analytic_at ℂ f z :=
 hf.differentiable_on.analytic_at univ_mem
+
+/-- When `f : ℂ → E` is differentiable, the `cauchy_power_series f z R` represents `f` as a power
+series centered at `z` in the entirety of `ℂ`, regardless of `R : ℝ≥0`, with  `0 < R`. -/
+protected lemma _root_.differentiable.has_fpower_series_on_ball {f : ℂ → E}
+  (h : differentiable ℂ f) (z : ℂ) {R : ℝ≥0} (hR : 0 < R) :
+  has_fpower_series_on_ball f (cauchy_power_series f z R) z ∞ :=
+(h.differentiable_on.has_fpower_series_on_ball hR).r_eq_top_of_exists $ λ r hr,
+  ⟨_, h.differentiable_on.has_fpower_series_on_ball hr⟩
 
 end complex

@@ -3,8 +3,8 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Jeremy Avigad, Simon Hudon
 -/
-import data.equiv.basic
 import data.set.basic
+import logic.equiv.basic
 
 /-!
 # Partial values of a type
@@ -110,6 +110,8 @@ instance : inhabited (part α) := ⟨none⟩
   function returns `a`. -/
 def some (a : α) : part α := ⟨true, λ_, a⟩
 
+@[simp] lemma some_dom (a : α) : (some a).dom := trivial
+
 theorem mem_unique : ∀ {a b : α} {o : part α}, a ∈ o → b ∈ o → a = b
 | _ _ ⟨p, f⟩ ⟨h₁, rfl⟩ ⟨h₂, rfl⟩ := rfl
 
@@ -138,6 +140,8 @@ theorem eq_none_iff {o : part α} : o = none ↔ ∀ a, a ∉ o :=
 
 theorem eq_none_iff' {o : part α} : o = none ↔ ¬ o.dom :=
 ⟨λ e, e.symm ▸ id, λ h, eq_none_iff.2 (λ a h', h h'.fst)⟩
+
+@[simp] lemma not_none_dom : ¬ (none : part α).dom := id
 
 @[simp] lemma some_ne_none (x : α) : some x ≠ none :=
 by { intro h, change none.dom, rw [← h], trivial }
@@ -193,12 +197,17 @@ otherwise. -/
 def get_or_else (a : part α) [decidable a.dom] (d : α) :=
 if ha : a.dom then a.get ha else d
 
+lemma get_or_else_of_dom (a : part α) (h : a.dom) [decidable a.dom] (d : α) :
+  get_or_else a d = a.get h := dif_pos h
+
+lemma get_or_else_of_not_dom (a : part α) (h : ¬ a.dom) [decidable a.dom] (d : α) :
+  get_or_else a d = d := dif_neg h
+
 @[simp] lemma get_or_else_none (d : α) [decidable (none : part α).dom] : get_or_else none d = d :=
-dif_neg id
+none.get_or_else_of_not_dom not_none_dom d
 
 @[simp] lemma get_or_else_some (a : α) (d : α) [decidable (some a).dom] :
-  get_or_else (some a) d = a :=
-dif_pos trivial
+  get_or_else (some a) d = a := (some a).get_or_else_of_dom (some_dom a) d
 
 @[simp] theorem mem_to_option {o : part α} [decidable o.dom] {a : α} :
   a ∈ to_option o ↔ a ∈ o :=
@@ -488,19 +497,144 @@ section instances
 
 /- We define several instances for constants and operations on `part α` inherited from `α`. -/
 
-instance [has_zero α] : has_zero (part α) := { zero := pure 0 }
-instance [has_one α] : has_one (part α) := { one := pure 1 }
-instance [has_add α] : has_add (part α) := { add := λ a b, (+) <$> a <*> b }
-instance [has_mul α] : has_mul (part α) := { mul := λ a b, (*) <$> a <*> b }
-instance [has_inv α] : has_inv (part α) := { inv := map has_inv.inv }
-instance [has_neg α] : has_neg (part α) := { neg := map has_neg.neg }
-instance [has_sub α] : has_sub (part α) := { sub := λ a b, (λ x y, x - y) <$> a <*> b }
-instance [has_div α] : has_div (part α) := { div := λ a b, (/) <$> a <*> b }
+@[to_additive] instance [has_one α] : has_one (part α) := { one := pure 1 }
+@[to_additive] instance [has_mul α] : has_mul (part α) := { mul := λ a b, (*) <$> a <*> b }
+@[to_additive] instance [has_inv α] : has_inv (part α) := { inv := map has_inv.inv }
+@[to_additive] instance [has_div α] : has_div (part α) := { div := λ a b, (/) <$> a <*> b }
 instance [has_mod α] : has_mod (part α) := { mod := λ a b, (%) <$> a <*> b }
 instance [has_append α] : has_append (part α) := { append := λ a b, (++) <$> a <*> b }
 instance [has_inter α] : has_inter (part α) := { inter := λ a b, (∩) <$> a <*> b }
 instance [has_union α] : has_union (part α) := { union := λ a b, (∪) <$> a <*> b }
 instance [has_sdiff α] : has_sdiff (part α) := { sdiff := λ a b, (\) <$> a <*> b }
+
+@[to_additive]
+lemma one_mem_one [has_one α] : (1 : α) ∈ (1 : part α) := ⟨trivial, rfl⟩
+
+@[to_additive]
+lemma mul_mem_mul [has_mul α] (a b : part α) (ma mb : α) (ha : ma ∈ a) (hb : mb ∈ b) :
+  ma * mb ∈ a * b := by tidy
+
+@[to_additive]
+lemma left_dom_of_mul_dom [has_mul α] {a b : part α} (hab : dom (a * b)) :
+  a.dom := by tidy
+
+@[to_additive]
+lemma right_dom_of_mul_dom [has_mul α] {a b : part α} (hab : dom (a * b)) :
+  b.dom := by tidy
+
+@[simp, to_additive]
+lemma mul_get_eq [has_mul α] (a b : part α) (hab : dom (a * b)) :
+  (a * b).get hab = a.get (left_dom_of_mul_dom hab) * b.get (right_dom_of_mul_dom hab) :=
+by tidy
+
+@[to_additive]
+lemma some_mul_some [has_mul α] (a b : α) : some a * some b = some (a * b) := by tidy
+
+@[to_additive]
+lemma inv_mem_inv [has_inv α] (a : part α) (ma : α) (ha : ma ∈ a) : ma⁻¹ ∈ a⁻¹ := by tidy
+
+@[to_additive]
+lemma inv_some [has_inv α] (a : α) : (some a)⁻¹ = some (a⁻¹) := rfl
+
+@[to_additive]
+lemma div_mem_div [has_div α] (a b : part α) (ma mb : α) (ha : ma ∈ a) (hb : mb ∈ b) :
+  ma / mb ∈ a / b := by tidy
+
+@[to_additive]
+lemma left_dom_of_div_dom [has_div α] {a b : part α} (hab : dom (a / b)) :
+  a.dom := by tidy
+
+@[to_additive]
+lemma right_dom_of_div_dom [has_div α] {a b : part α} (hab : dom (a / b)) :
+  b.dom := by tidy
+
+@[simp, to_additive]
+lemma div_get_eq [has_div α] (a b : part α) (hab : dom (a / b)) :
+  (a / b).get hab = a.get (left_dom_of_div_dom hab) / b.get (right_dom_of_div_dom hab) :=
+by tidy
+
+@[to_additive]
+lemma some_div_some [has_div α] (a b : α) : some a / some b = some (a / b) := by tidy
+
+lemma mod_mem_mod [has_mod α] (a b : part α) (ma mb : α) (ha : ma ∈ a) (hb : mb ∈ b) :
+  ma % mb ∈ a % b := by tidy
+
+lemma left_dom_of_mod_dom [has_mod α] {a b : part α} (hab : dom (a % b)) :
+  a.dom := by tidy
+
+lemma right_dom_of_mod_dom [has_mod α] {a b : part α} (hab : dom (a % b)) :
+  b.dom := by tidy
+
+@[simp]
+lemma mod_get_eq [has_mod α] (a b : part α) (hab : dom (a % b)) :
+  (a % b).get hab = a.get (left_dom_of_mod_dom hab) % b.get (right_dom_of_mod_dom hab) :=
+by tidy
+
+lemma some_mod_some [has_mod α] (a b : α) : some a % some b = some (a % b) := by tidy
+
+lemma append_mem_append [has_append α] (a b : part α) (ma mb : α) (ha : ma ∈ a) (hb : mb ∈ b) :
+  ma ++ mb ∈ a ++ b := by tidy
+
+lemma left_dom_of_append_dom [has_append α] {a b : part α} (hab : dom (a ++ b)) :
+  a.dom := by tidy
+
+lemma right_dom_of_append_dom [has_append α] {a b : part α} (hab : dom (a ++ b)) :
+  b.dom := by tidy
+
+@[simp]
+lemma append_get_eq [has_append α] (a b : part α) (hab : dom (a ++ b)) :
+  (a ++ b).get hab = a.get (left_dom_of_append_dom hab) ++ b.get (right_dom_of_append_dom hab) :=
+by tidy
+
+lemma some_append_some [has_append α] (a b : α) : some a ++ some b = some (a ++ b) := by tidy
+
+lemma inter_mem_inter [has_inter α] (a b : part α) (ma mb : α) (ha : ma ∈ a) (hb : mb ∈ b) :
+  ma ∩ mb ∈ a ∩ b := by tidy
+
+lemma left_dom_of_inter_dom [has_inter α] {a b : part α} (hab : dom (a ∩ b)) :
+  a.dom := by tidy
+
+lemma right_dom_of_inter_dom [has_inter α] {a b : part α} (hab : dom (a ∩ b)) :
+  b.dom := by tidy
+
+@[simp]
+lemma inter_get_eq [has_inter α] (a b : part α) (hab : dom (a ∩ b)) :
+  (a ∩ b).get hab = a.get (left_dom_of_inter_dom hab) ∩ b.get (right_dom_of_inter_dom hab) :=
+by tidy
+
+lemma some_inter_some [has_inter α] (a b : α) : some a ∩ some b = some (a ∩ b) := by tidy
+
+lemma union_mem_union [has_union α] (a b : part α) (ma mb : α) (ha : ma ∈ a) (hb : mb ∈ b) :
+  ma ∪ mb ∈ a ∪ b := by tidy
+
+lemma left_dom_of_union_dom [has_union α] {a b : part α} (hab : dom (a ∪ b)) :
+  a.dom := by tidy
+
+lemma right_dom_of_union_dom [has_union α] {a b : part α} (hab : dom (a ∪ b)) :
+  b.dom := by tidy
+
+@[simp]
+lemma union_get_eq [has_union α] (a b : part α) (hab : dom (a ∪ b)) :
+  (a ∪ b).get hab = a.get (left_dom_of_union_dom hab) ∪ b.get (right_dom_of_union_dom hab) :=
+by tidy
+
+lemma some_union_some [has_union α] (a b : α) : some a ∪ some b = some (a ∪ b) := by tidy
+
+lemma sdiff_mem_sdiff [has_sdiff α] (a b : part α) (ma mb : α) (ha : ma ∈ a) (hb : mb ∈ b) :
+  ma \ mb ∈ a \ b := by tidy
+
+lemma left_dom_of_sdiff_dom [has_sdiff α] {a b : part α} (hab : dom (a \ b)) :
+  a.dom := by tidy
+
+lemma right_dom_of_sdiff_dom [has_sdiff α] {a b : part α} (hab : dom (a \ b)) :
+  b.dom := by tidy
+
+@[simp]
+lemma sdiff_get_eq [has_sdiff α] (a b : part α) (hab : dom (a \ b)) :
+  (a \ b).get hab = a.get (left_dom_of_sdiff_dom hab) \ b.get (right_dom_of_sdiff_dom hab) :=
+by tidy
+
+lemma some_sdiff_some [has_sdiff α] (a b : α) : some a \ some b = some (a \ b) := by tidy
 
 end instances
 

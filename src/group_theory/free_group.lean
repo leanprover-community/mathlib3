@@ -456,31 +456,22 @@ lift.symm.injective $ funext h
 theorem lift.of_eq (x : free_group α) : lift of x = x :=
 monoid_hom.congr_fun (lift.apply_symm_apply (monoid_hom.id _)) x
 
-theorem lift.range_subset {s : subgroup β} (H : set.range f ⊆ s) :
-  set.range (lift f) ⊆ s :=
+theorem lift.range_le {s : subgroup β} (H : set.range f ⊆ s) :
+  (lift f).range ≤ s :=
 by rintros _ ⟨⟨L⟩, rfl⟩; exact list.rec_on L s.one_mem
 (λ ⟨x, b⟩ tl ih, bool.rec_on b
     (by simp at ih ⊢; from s.mul_mem
       (s.inv_mem $ H ⟨x, rfl⟩) ih)
     (by simp at ih ⊢; from s.mul_mem (H ⟨x, rfl⟩) ih))
 
-theorem closure_subset {G : Type*} [group G] {s : set G} {t : subgroup G}
-  (h : s ⊆ t) : subgroup.closure s ≤ t :=
-begin
-  simp only [h, subgroup.closure_le],
-end
-
 theorem lift.range_eq_closure :
-  set.range (lift f) = subgroup.closure (set.range f) :=
-set.subset.antisymm
-  (lift.range_subset subgroup.subset_closure)
-  begin
-    suffices : (subgroup.closure (set.range f)) ≤ monoid_hom.range (lift f),
-      simpa,
-    rw subgroup.closure_le,
-    rintros y ⟨x, hx⟩,
-    exact ⟨of x, by simpa⟩
-  end
+  (lift f).range = subgroup.closure (set.range f) :=
+begin
+  apply le_antisymm (lift.range_le subgroup.subset_closure),
+  rw subgroup.closure_le,
+  rintros _ ⟨a, rfl⟩,
+  exact ⟨of a, by simp only [lift.of]⟩,
+end
 
 end lift
 
@@ -612,7 +603,7 @@ prod.of
 (@prod (multiplicative _) _).map_one
 
 @[simp] lemma sum.map_inv : sum x⁻¹ = -sum x :=
-(@prod (multiplicative _) _).map_inv _
+(prod : free_group (multiplicative α) →* multiplicative α).map_inv _
 
 end sum
 

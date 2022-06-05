@@ -233,19 +233,49 @@ theorem mem_fix_iff {f : α →. β ⊕ α} {a : α} {b : β} :
       rw well_founded.fix_F_eq, simp [h₁, h₂, h₄] } }
 end⟩
 
+/-- If advancing one step from `a` leads to `b : β`, then `f.fix a = b` -/
+theorem fix_stop {f : α →. β ⊕ α} (a : α) {b : β} (hb : sum.inl b ∈ f a) : b ∈ f.fix a :=
+by { rw [pfun.mem_fix_iff], exact or.inl hb, }
+
+/-- If advancing one step from `a` on `f` leads to `a' : α`, then `f.fix a = f.fix a'` -/
+theorem fix_fwd {f : α →. β ⊕ α} (a a' : α) (ha' : sum.inr a' ∈ f a) :
+  f.fix a = f.fix a' :=
+begin
+  ext b, split,
+  { intro h, obtain h' | ⟨a, h', e'⟩ := mem_fix_iff.1 h; cases part.mem_unique ha' h', exact e', },
+  { intro h, rw pfun.mem_fix_iff, right, use a', exact ⟨ha', h⟩, }
+end
+
 /-- A recursion principle for `pfun.fix`. -/
 @[elab_as_eliminator] def fix_induction
   {f : α →. β ⊕ α} {b : β} {C : α → Sort*} {a : α} (h : b ∈ f.fix a)
-  (H : ∀ a, b ∈ f.fix a →
-    (∀ a', b ∈ f.fix a' → sum.inr a' ∈ f a → C a') → C a) : C a :=
+  (H : ∀ a', b ∈ f.fix a' →
+    (∀ a'', sum.inr a'' ∈ f a' → C a'') → C a') : C a :=
 begin
   replace h := part.mem_assert_iff.1 h,
   have := h.snd, revert this,
   induction h.fst with a ha IH, intro h₂,
-  refine H a (part.mem_assert_iff.2 ⟨⟨_, ha⟩, h₂⟩)
-    (λ a' ha' fa', _),
-  have := (part.mem_assert_iff.1 ha').snd,
-  exact IH _ fa' ⟨ha _ fa', this⟩ this
+  have fb : b ∈ f.fix a := (part.mem_assert_iff.2 ⟨⟨_, ha⟩, h₂⟩),
+  refine H a fb (λ a'' fa'', _),
+  have ha'' : b ∈ f.fix a'' := by rwa fix_fwd _ _ fa'' at fb,
+  have := (part.mem_assert_iff.1 ha'').snd,
+  exact IH _ fa'' ⟨ha _ fa'', this⟩ this,
+end
+
+/--
+Another induction lemma for `b ∈ f.fix a` which allows one to prove a predicate `P` holds for
+`a` given that `f a` inherits `P` from `a` and `P` holds for preimages of `b`.
+-/
+@[elab_as_eliminator]
+def fix_induction'
+  (f : α →. β ⊕ α) (b : β) {C : α → Sort*} {a : α} (h : b ∈ f.fix a)
+  (hbase : ∀ a_final : α, sum.inl b ∈ f a_final → C a_final)
+  (hind : ∀ a₀ a₁ : α, b ∈ f.fix a₁ → sum.inr a₁ ∈ f a₀ → C a₁ → C a₀) : C a :=
+begin
+  refine fix_induction h (λ a' h ih, _),
+  cases e : (f a').get (dom_of_mem_fix h) with b' a''; replace e : _ ∈ f a' := ⟨_, e⟩,
+  { apply hbase, convert e, exact part.mem_unique h (fix_stop _ e), },
+  { refine hind _ _ _ e (ih _ e), rwa fix_fwd _ _ e at h, },
 end
 
 variables (f : α →. β)

@@ -52,10 +52,8 @@ begin
       simp only [supr_singleton],
       rw range_coe,
       apply range_comp_subset_range },
-    { refine supr_le_supr (λ i, supr_le_supr _),
-      intros hi,
-      rw span_le,
-      rw range_coe,
+    { refine supr₂_mono (λ i hi, _),
+      rw [span_le, range_coe],
       apply range_comp_subset_range } }
 end
 
@@ -201,7 +199,7 @@ lemma cardinal_lt_omega_of_finite_dimensional [fintype K] [finite_dimensional K 
 begin
   letI : is_noetherian K V := is_noetherian.iff_fg.2 infer_instance,
   rw cardinal_mk_eq_cardinal_mk_field_pow_dim K V,
-  exact cardinal.power_lt_omega (cardinal.lt_omega_iff_fintype.2 ⟨infer_instance⟩)
+  exact cardinal.power_lt_omega (cardinal.lt_omega_of_fintype K)
     (is_noetherian.dim_lt_omega K V),
 end
 

@@ -4,18 +4,18 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Rodriguez
 -/
 
-import number_theory.cyclotomic.zeta
+import number_theory.cyclotomic.primitive_roots
 import field_theory.polynomial_galois_group
 
 /-!
 # Galois group of cyclotomic extensions
 
-In this file, we show the relationship between the Galois group of`K(ζₙ)` and `(zmod n)ˣ`;
+In this file, we show the relationship between the Galois group of `K(ζₙ)` and `(zmod n)ˣ`;
 it is always a subgroup, and if the `n`th cyclotomic polynomial is irreducible, they are isomorphic.
 
 ## Main results
 
-* `is_cyclotomic_extension.aut_to_pow_injective`: `is_primitive_root.aut_to_pow` is injective
+* `is_primitive_root.aut_to_pow_injective`: `is_primitive_root.aut_to_pow` is injective
   in the case that it's considered over a cyclotomic field extension, where `n` does not divide
   the characteristic of K.
 * `is_cyclotomic_extension.aut_equiv_pow`: If, additionally, the `n`th cyclotomic polynomial is
@@ -30,29 +30,28 @@ it is always a subgroup, and if the `n`th cyclotomic polynomial is irreducible, 
 
 ## TODO
 
-* `zeta_pow_power_basis` is not sufficiently general; the correct solution is some
-  `power_basis.map_conjugate`, but figuring out the exact correct assumptions + proof for this is
-  mathematically nontrivial. (Current thoughts: the ideal of polynomials with α as a root is equal
-  to the ideal of polynomials with β as a root, which, in an integrally closed domain, reduces
-  to the usual condition that they are the roots of each others' minimal polynomials.)
+* We currently can get away with the fact that the power of a primitive root is a primitive root,
+  but the correct long-term solution for computing other explicit Galois groups is creating
+  `power_basis.map_conjugate`; but figuring out the exact correct assumptions + proof for this is
+  mathematically nontrivial. (Current thoughts: the correct condition is that the annihilating
+  ideal of both elements is equal. This may not hold in an ID, and definitely holds in an ICD.)
 
 -/
 
 local attribute [instance] pnat.fact_pos
 
-variables (n : ℕ+) (K : Type*) [field K] (L : Type*) [field L] {μ : L} (hμ : is_primitive_root μ n)
+variables {n : ℕ+} (K : Type*) [field K] {L : Type*} [field L] {μ : L} (hμ : is_primitive_root μ n)
           [algebra K L] [is_cyclotomic_extension {n} K L]
 
-local notation `ζ` := is_cyclotomic_extension.zeta n K L
+open polynomial ne_zero is_cyclotomic_extension
 
-open polynomial ne_zero
+open_locale cyclotomic
 
-namespace is_cyclotomic_extension
+namespace is_primitive_root
 
 /-- `is_primitive_root.aut_to_pow` is injective in the case that it's considered over a cyclotomic
 field extension, where `n` does not divide the characteristic of K. -/
-lemma aut_to_pow_injective [ne_zero ((n : ℕ) : K)] : function.injective $
-    (@zeta_primitive_root n K L _ _ _ _ _ $ of_no_zero_smul_divisors K L n).aut_to_pow K :=
+lemma aut_to_pow_injective : function.injective $ hμ.aut_to_pow K :=
 begin
   intros f g hfg,
   apply_fun units.val at hfg,
@@ -61,9 +60,9 @@ begin
   have hf := hf'.some_spec,
   have hg := hg'.some_spec,
   generalize_proofs hζ at hf hg,
-  suffices : f hζ.to_roots_of_unity = g hζ.to_roots_of_unity,
+  suffices : f hμ.to_roots_of_unity = g hμ.to_roots_of_unity,
   { apply alg_equiv.coe_alg_hom_injective,
-    apply (zeta.power_basis n K L).alg_hom_ext,
+    apply (hμ.power_basis K).alg_hom_ext,
     exact this },
   rw zmod.eq_iff_modeq_nat at hfg,
   refine (hf.trans _).trans hg.symm,
@@ -71,36 +70,35 @@ begin
   congr' 1,
   rw [pow_eq_pow_iff_modeq],
   convert hfg,
-  rw [hζ.eq_order_of],
-  rw [←hζ.coe_to_roots_of_unity_coe] {occs := occurrences.pos [2]},
+  rw [hμ.eq_order_of],
+  rw [←hμ.coe_to_roots_of_unity_coe] {occs := occurrences.pos [2]},
   rw [order_of_units, order_of_subgroup]
 end
 
+end is_primitive_root
+
+namespace is_cyclotomic_extension
+
 /-- Cyclotomic extensions are abelian. -/
 noncomputable def aut.comm_group [ne_zero ((n : ℕ) : K)] : comm_group (L ≃ₐ[K] L) :=
-(aut_to_pow_injective n K L).comm_group _ (map_one _) (map_mul _) (map_inv _) (map_div _)
+let _ := of_no_zero_smul_divisors K L n in by exactI
+((zeta_primitive_root n K L).aut_to_pow_injective K).comm_group _
+  (map_one _) (map_mul _) (map_inv _) (map_div _) (map_pow _) (map_zpow _)
 
-/-- The power basis given by `ζ ^ t`. -/
-@[simps] noncomputable def zeta_pow_power_basis [ne_zero ((n : ℕ) : K)] (t : (zmod n)ˣ) :
-  power_basis K L :=
-begin
-  haveI := of_no_zero_smul_divisors K L n,
-  refine power_basis.map (algebra.adjoin.power_basis $ integral {n} K L $ ζ ^ (t : zmod n).val) _,
-  refine (subalgebra.equiv_of_eq _ _ (adjoin_primitive_root_eq_top n _ _)).trans algebra.top_equiv,
-  exact (zeta_primitive_root n K L).pow_of_coprime _ (zmod.val_coe_unit_coprime t),
-end
-
-variables (h : irreducible (cyclotomic n K)) {K}
+variables (h : irreducible (cyclotomic n K)) {K} (L)
 
 include h
 
-/-- The `mul_equiv` that takes an automorphism to the power of μ that μ gets mapped to under it.
-    A stronger version of `is_primitive_root.aut_to_pow`. -/
+/-- The `mul_equiv` that takes an automorphism `f` to the element `k : (zmod n)ˣ` such that
+  `f μ = μ ^ k`. A stronger version of `is_primitive_root.aut_to_pow`. -/
 @[simps] noncomputable def aut_equiv_pow [ne_zero ((n : ℕ) : K)] : (L ≃ₐ[K] L) ≃* (zmod n)ˣ :=
-let hn := of_no_zero_smul_divisors K L n in by exactI
-{ inv_fun := λ t, (zeta.power_basis n K L).equiv_of_minpoly (zeta_pow_power_basis n K L t)
+let hn := of_no_zero_smul_divisors K L n in
+by exactI
+let hζ := zeta_primitive_root n K L,
+    hμ := λ t, hζ.pow_of_coprime _ (zmod.val_coe_unit_coprime t) in
+{ inv_fun := λ t, (hζ.power_basis K).equiv_of_minpoly ((hμ t).power_basis K)
   begin
-    simp only [zeta.power_basis_gen, zeta_pow_power_basis_gen],
+    simp only [is_primitive_root.power_basis_gen],
     have hr := is_primitive_root.minpoly_eq_cyclotomic_of_irreducible
                ((zeta_primitive_root n K L).pow_of_coprime _ (zmod.val_coe_unit_coprime t)) h,
     exact ((zeta_primitive_root n K L).minpoly_eq_cyclotomic_of_irreducible h).symm.trans hr
@@ -108,20 +106,20 @@ let hn := of_no_zero_smul_divisors K L n in by exactI
   left_inv := λ f, begin
     simp only [monoid_hom.to_fun_eq_coe],
     apply alg_equiv.coe_alg_hom_injective,
-    apply (zeta.power_basis n K L).alg_hom_ext,
+    apply (hζ.power_basis K).alg_hom_ext,
     simp only [alg_equiv.coe_alg_hom, alg_equiv.map_pow],
     rw power_basis.equiv_of_minpoly_gen,
-    simp only [zeta_pow_power_basis_gen, zeta.power_basis_gen, is_primitive_root.aut_to_pow_spec],
+    simp only [is_primitive_root.power_basis_gen, is_primitive_root.aut_to_pow_spec],
   end,
   right_inv := λ x, begin
     simp only [monoid_hom.to_fun_eq_coe],
-    generalize_proofs _ hζ _ h,
-    have key := hζ.aut_to_pow_spec K ((zeta.power_basis n K L).equiv_of_minpoly
-                                      (zeta_pow_power_basis n K L x) h),
-    have := (zeta.power_basis n K L).equiv_of_minpoly_gen,
-    rw zeta.power_basis_gen at this {occs := occurrences.pos [2]},
-    rw [this, zeta_pow_power_basis_gen] at key,
-    rw ← hζ.coe_to_roots_of_unity_coe at key {occs := occurrences.pos [1, 3]},
+    generalize_proofs _ _ _ h,
+    have key := hζ.aut_to_pow_spec K ((hζ.power_basis K).equiv_of_minpoly
+                                      ((hμ x).power_basis K) h),
+    have := (hζ.power_basis K).equiv_of_minpoly_gen ((hμ x).power_basis K) h,
+    rw hζ.power_basis_gen K at this,
+    rw [this, is_primitive_root.power_basis_gen] at key,
+    rw ← hζ.coe_to_roots_of_unity_coe at key {occs := occurrences.pos [1, 5]},
     simp only [←coe_coe, ←roots_of_unity.coe_pow] at key,
     replace key := roots_of_unity.coe_injective key,
     rw [pow_eq_pow_iff_modeq, ←order_of_subgroup, ←order_of_units, hζ.coe_to_roots_of_unity_coe,
@@ -131,39 +129,32 @@ let hn := of_no_zero_smul_divisors K L n in by exactI
   end,
   .. (zeta_primitive_root n K L).aut_to_pow K }
 
-end is_cyclotomic_extension
+include hμ
 
-open is_cyclotomic_extension
-
-namespace is_primitive_root
-
-variables (h : irreducible (cyclotomic n K)) {K L}
-
-include h hμ
+variables {L}
 
 /-- Maps `μ` to the `alg_equiv` that sends `is_cyclotomic_extension.zeta` to `μ`. -/
 noncomputable def from_zeta_aut [ne_zero ((n : ℕ) : K)] : L ≃ₐ[K] L :=
 have _ := of_no_zero_smul_divisors K L n, by exactI
 let hζ := (zeta_primitive_root n K L).eq_pow_of_pow_eq_one hμ.pow_eq_one n.pos in
-(aut_equiv_pow n L h).symm $ zmod.unit_of_coprime hζ.some $
+(aut_equiv_pow L h).symm $ zmod.unit_of_coprime hζ.some $
 ((zeta_primitive_root n K L).pow_iff_coprime n.pos hζ.some).mp $ hζ.some_spec.some_spec.symm ▸ hμ
 
-lemma from_zeta_aut_spec [ne_zero ((n : ℕ) : K)] : from_zeta_aut n hμ h ζ = μ :=
+lemma from_zeta_aut_spec [ne_zero ((n : ℕ) : K)] : from_zeta_aut hμ h (zeta n K L) = μ :=
 begin
-  simp only [from_zeta_aut, exists_prop, aut_equiv_pow_symm_apply, ←zeta.power_basis_gen,
-             power_basis.equiv_of_minpoly_gen, zeta_pow_power_basis_gen, zmod.coe_unit_of_coprime],
-  generalize_proofs hζ,
-  convert hζ.some_spec.2,
-  exact zmod.val_cast_of_lt hζ.some_spec.1
+  simp_rw [from_zeta_aut, aut_equiv_pow_symm_apply],
+  generalize_proofs _ hζ h _ hμ _,
+  rw [←hζ.power_basis_gen K] {occs := occurrences.pos [4]},
+  rw [power_basis.equiv_of_minpoly_gen, hμ.power_basis_gen K],
+  convert h.some_spec.some_spec,
+  exact zmod.val_cast_of_lt h.some_spec.some
 end
 
-end is_primitive_root
+end is_cyclotomic_extension
 
 section gal
 
 variables (h : irreducible (cyclotomic n K)) {K}
-
-local attribute [instance] splitting_field_X_pow_sub_one splitting_field_cyclotomic
 
 /-- `is_cyclotomic_extension.aut_equiv_pow` repackaged in terms of `gal`. Asserts that the
 Galois group of `cyclotomic n K` is equivalent to `(zmod n)ˣ` if `n` does not divide the
@@ -171,7 +162,7 @@ characteristic of `K`, and `cyclotomic n K` is irreducible in the base field. -/
 noncomputable def gal_cyclotomic_equiv_units_zmod [ne_zero ((n : ℕ) : K)] :
   (cyclotomic n K).gal ≃* (zmod n)ˣ :=
 (alg_equiv.aut_congr (is_splitting_field.alg_equiv _ _)).symm.trans
-(is_cyclotomic_extension.aut_equiv_pow n L h)
+(is_cyclotomic_extension.aut_equiv_pow L h)
 
 /-- `is_cyclotomic_extension.aut_equiv_pow` repackaged in terms of `gal`. Asserts that the
 Galois group of `X ^ n - 1` is equivalent to `(zmod n)ˣ` if `n` does not divide the characteristic
@@ -179,6 +170,6 @@ of `K`, and `cyclotomic n K` is irreducible in the base field. -/
 noncomputable def gal_X_pow_equiv_units_zmod [ne_zero ((n : ℕ) : K)] :
   (X ^ (n : ℕ) - 1).gal ≃* (zmod n)ˣ :=
 (alg_equiv.aut_congr (is_splitting_field.alg_equiv _ _)).symm.trans
-(is_cyclotomic_extension.aut_equiv_pow n L h)
+(is_cyclotomic_extension.aut_equiv_pow L h)
 
 end gal

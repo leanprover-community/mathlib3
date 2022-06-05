@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Yury Kudryashov
 -/
 import algebra.char_p.basic
-import data.equiv.ring
 import algebra.group_with_zero.power
-import algebra.iterate_hom
+import algebra.hom.iterate
+import algebra.ring.equiv
 
 /-!
 # The perfect closure of a field
@@ -361,7 +361,7 @@ variables [field K] (p : ℕ) [fact p.prime] [char_p K p]
 
 instance : has_inv (perfect_closure K p) :=
 ⟨quot.lift (λ x:ℕ×K, quot.mk (r K p) (x.1, x.2⁻¹)) (λ x y (H : r K p x y), match x, y, H with
-| _, _, r.intro n x := quot.sound $ by { simp only [frobenius_def], rw ← inv_pow₀, apply r.intro }
+| _, _, r.intro n x := quot.sound $ by { simp only [frobenius_def], rw ← inv_pow, apply r.intro }
 end)⟩
 
 instance : field (perfect_closure K p) :=
@@ -426,3 +426,11 @@ end
 end field
 
 end perfect_closure
+
+/-- A reduced ring with prime characteristic and surjective frobenius map is perfect. -/
+noncomputable def perfect_ring.of_surjective (k : Type*) [comm_ring k] [is_reduced k] (p : ℕ)
+  [fact p.prime] [char_p k p] (h : function.surjective $ frobenius k p) :
+  perfect_ring k p :=
+{ pth_root' := function.surj_inv h,
+  frobenius_pth_root' := function.surj_inv_eq h,
+  pth_root_frobenius' := λ x, frobenius_inj _ _ $ function.surj_inv_eq h _ }

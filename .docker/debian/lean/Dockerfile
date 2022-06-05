@@ -49,7 +49,7 @@ ENTRYPOINT ["/bin/bash", "-l"]
 ENV PATH="/home/lean/.elan/bin:/home/lean/.local/bin:$PATH"
 
 # install elan
-RUN curl https://raw.githubusercontent.com/Kha/elan/master/elan-init.sh -sSf | sh -s -- -y --default-toolchain none && \
+RUN curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh -s -- -y --default-toolchain none && \
     . ~/.profile && \
     elan toolchain install $(curl https://raw.githubusercontent.com/leanprover-community/mathlib/master/leanpkg.toml | grep lean_version | awk -F'"' '{print $2}')
 # install leanproject

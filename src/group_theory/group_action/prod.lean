@@ -32,6 +32,7 @@ variables [has_scalar M α] [has_scalar M β] [has_scalar N α] [has_scalar N β
 @[simp, to_additive] theorem smul_snd : (a • x).2 = a • x.2 := rfl
 @[simp, to_additive] theorem smul_mk (a : M) (b : α) (c : β) : a • (b, c) = (a • b, a • c) := rfl
 @[to_additive] theorem smul_def (a : M) (x : α × β) : a • x = (a • x.1, a • x.2) := rfl
+@[simp, to_additive] theorem smul_swap : (a • x).swap = a • x.swap := rfl
 
 instance [has_scalar M N] [is_scalar_tower M N α] [is_scalar_tower M N β] :
   is_scalar_tower M N (α × β) :=
@@ -58,12 +59,12 @@ instance has_faithful_scalar_right [nonempty α] [has_faithful_scalar M β] :
 end
 
 @[to_additive]
-instance smul_comm_class_both [monoid N] [monoid P] [has_scalar M N] [has_scalar M P]
+instance smul_comm_class_both [has_mul N] [has_mul P] [has_scalar M N] [has_scalar M P]
   [smul_comm_class M N N] [smul_comm_class M P P] :
   smul_comm_class M (N × P) (N × P) :=
 ⟨λ c x y, by simp [smul_def, mul_def, mul_smul_comm]⟩
 
-instance is_scalar_tower_both [monoid N] [monoid P] [has_scalar M N] [has_scalar M P]
+instance is_scalar_tower_both [has_mul N] [has_mul P] [has_scalar M N] [has_scalar M P]
   [is_scalar_tower M N N] [is_scalar_tower M P P] :
   is_scalar_tower M (N × P) (N × P) :=
 ⟨λ c x y, by simp [smul_def, mul_def, smul_mul_assoc]⟩
@@ -92,7 +93,7 @@ section bundled_smul
 @[simps]
 def smul_mul_hom [monoid α] [has_mul β] [mul_action α β] [is_scalar_tower α β β]
   [smul_comm_class α β β] :
-  mul_hom (α × β) β :=
+  (α × β) →ₙ* β :=
 { to_fun := λ a, a.1 • a.2,
   map_mul' := λ a b, (smul_mul_smul _ _ _ _).symm }
 

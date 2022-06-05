@@ -35,17 +35,17 @@ open finset
 lemma tedious (m : ℕ) (k : fin (m+1)) : m - (m + (m + 1 - ↑k)) % (m + 1) = ↑k  :=
 begin
   cases k with k hk,
-  rw [nat.lt_succ_iff,le_iff_exists_add] at hk,
+  rw [nat.lt_succ_iff, le_iff_exists_add] at hk,
   rcases hk with ⟨c, rfl⟩,
   have : k + c + (k + c + 1 - k) = c + (k + c + 1),
-  { simp only [add_assoc, add_tsub_cancel_left], ring_nf, },
+  { simp only [add_assoc, add_tsub_cancel_left, add_left_comm] },
   rw [fin.coe_mk, this, nat.add_mod_right, nat.mod_eq_of_lt, nat.add_sub_cancel],
   linarith
 end
 
 theorem imo1994_q1 (n : ℕ) (m : ℕ) (A : finset ℕ) (hm : A.card = m + 1)
   (hrange : ∀ a ∈ A, 0 < a ∧ a ≤ n) (hadd : ∀ (a b ∈ A), a + b ≤ n → a + b ∈ A) :
-  (m+1)*(n+1) ≤ 2*(∑ x in A, x) :=
+  (m + 1) * (n + 1) ≤ 2 * ∑ x in A, x :=
 begin
   set a := order_emb_of_fin A hm,  -- We sort the elements of `A`
   have ha : ∀ i, a i ∈ A := λ i, order_emb_of_fin_mem A hm i,
@@ -64,7 +64,7 @@ begin
   ... = ∑ i : fin (m+1), a i + ∑ i : fin (m+1), a (rev i) : by rw equiv.sum_comp rev
   ... = ∑ i : fin (m+1), (a i + a (rev i))                : sum_add_distrib.symm
   ... ≥ ∑ i : fin (m+1), (n+1)                            : sum_le_sum hpair
-  ... = (m+1) * (n+1)                                     : by simp,
+  ... = (m+1) * (n+1) : by rw [sum_const, card_fin, nat.nsmul_eq_mul],
 
   -- It remains to prove the key inequality, by contradiction
   rintros k -,
@@ -81,20 +81,19 @@ begin
   -- Proof that the `f i` are greater than `a (rev k)` for `i ≤ k`
   have hf : map f (Icc 0 k) ⊆ map a.to_embedding (Ioc (rev k) (fin.last m)),
   { intros x hx,
-    simp at h hx ⊢,
+    simp only [equiv.sub_left_apply] at h,
+    simp only [mem_map, f, mem_Icc, mem_Ioc, fin.zero_le, true_and, equiv.sub_left_apply,
+      function.embedding.coe_fn_mk, exists_prop, rel_embedding.coe_fn_to_embedding] at hx ⊢,
     rcases hx with ⟨i, ⟨hi, rfl⟩⟩,
     have h1 : a i + a (fin.last m - k) ≤ n,
-    { linarith only [h, a.monotone hi.2] },
+    { linarith only [h, a.monotone hi] },
     have h2 : a i + a (fin.last m - k) ∈ A := hadd _ (ha _) _ (ha _) h1,
     rw [←mem_coe, ←range_order_emb_of_fin A hm, set.mem_range] at h2,
     cases h2 with j hj,
-    use j,
-    refine ⟨⟨_, fin.le_last j⟩, hj⟩,
+    refine ⟨j, ⟨_, fin.le_last j⟩, hj⟩,
     rw [← a.strict_mono.lt_iff_lt, hj],
     simpa using (hrange (a i) (ha i)).1 },
 
   -- A set of size `k+1` embed in one of size `k`, which yields a contradiction
-  have ineq := card_le_of_subset hf,
-  simp [fin.coe_sub, tedious] at ineq,
-  contradiction ,
+  simpa [fin.coe_sub, tedious] using card_le_of_subset hf,
 end

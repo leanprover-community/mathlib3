@@ -293,11 +293,24 @@ lemma has_limit.iso_of_nat_iso_hom_π {F G : J ⥤ C} [has_limit F] [has_limit G
 is_limit.cone_points_iso_of_nat_iso_hom_comp _ _ _ _
 
 @[simp, reassoc]
+lemma has_limit.iso_of_nat_iso_inv_π {F G : J ⥤ C} [has_limit F] [has_limit G]
+  (w : F ≅ G) (j : J) :
+  (has_limit.iso_of_nat_iso w).inv ≫ limit.π F j = limit.π G j ≫ w.inv.app j :=
+is_limit.cone_points_iso_of_nat_iso_inv_comp _ _ _ _
+
+@[simp, reassoc]
 lemma has_limit.lift_iso_of_nat_iso_hom {F G : J ⥤ C} [has_limit F] [has_limit G] (t : cone F)
   (w : F ≅ G) :
   limit.lift F t ≫ (has_limit.iso_of_nat_iso w).hom =
     limit.lift G ((cones.postcompose w.hom).obj _) :=
 is_limit.lift_comp_cone_points_iso_of_nat_iso_hom _ _ _
+
+@[simp, reassoc]
+lemma has_limit.lift_iso_of_nat_iso_inv {F G : J ⥤ C} [has_limit F] [has_limit G] (t : cone G)
+  (w : F ≅ G) :
+  limit.lift G t ≫ (has_limit.iso_of_nat_iso w).inv =
+    limit.lift F ((cones.postcompose w.inv).obj _) :=
+is_limit.lift_comp_cone_points_iso_of_nat_iso_inv _ _ _
 
 /--
 The limits of `F : J ⥤ C` and `G : K ⥤ C` are isomorphic,
@@ -487,7 +500,7 @@ by { constructor, intro F, apply has_limit_of_equivalence_comp e, apply_instance
 variable (C)
 
 /--
-`has_limits_of_size.{v u} C` tries to obtain `has_limits_of_size.{v u} C`
+`has_limits_of_size_shrink.{v u} C` tries to obtain `has_limits_of_size.{v u} C`
 from some other `has_limits_of_size C`.
 -/
 lemma has_limits_of_size_shrink [has_limits_of_size.{(max v₁ v₂) (max u₁ u₂)} C] :
@@ -743,11 +756,24 @@ lemma has_colimit.iso_of_nat_iso_ι_hom {F G : J ⥤ C} [has_colimit F] [has_col
 is_colimit.comp_cocone_points_iso_of_nat_iso_hom _ _ _ _
 
 @[simp, reassoc]
+lemma has_colimit.iso_of_nat_iso_ι_inv {F G : J ⥤ C} [has_colimit F] [has_colimit G]
+  (w : F ≅ G) (j : J) :
+  colimit.ι G j ≫ (has_colimit.iso_of_nat_iso w).inv = w.inv.app j ≫ colimit.ι F j :=
+is_colimit.comp_cocone_points_iso_of_nat_iso_inv _ _ _ _
+
+@[simp, reassoc]
 lemma has_colimit.iso_of_nat_iso_hom_desc {F G : J ⥤ C} [has_colimit F] [has_colimit G]
   (t : cocone G) (w : F ≅ G) :
   (has_colimit.iso_of_nat_iso w).hom ≫ colimit.desc G t =
     colimit.desc F ((cocones.precompose w.hom).obj _) :=
 is_colimit.cocone_points_iso_of_nat_iso_hom_desc _ _ _
+
+@[simp, reassoc]
+lemma has_colimit.iso_of_nat_iso_inv_desc {F G : J ⥤ C} [has_colimit F] [has_colimit G]
+  (t : cocone F) (w : F ≅ G) :
+  (has_colimit.iso_of_nat_iso w).inv ≫ colimit.desc F t =
+    colimit.desc G ((cocones.precompose w.inv).obj _) :=
+is_colimit.cocone_points_iso_of_nat_iso_inv_desc _ _ _
 
 /--
 The colimits of `F : J ⥤ C` and `G : K ⥤ C` are isomorphic,
@@ -957,7 +983,7 @@ by { constructor, intro F, apply has_colimit_of_equivalence_comp e, apply_instan
 variable (C)
 
 /--
-`has_colimits_of_size.{v u} C` tries to obtain `has_colimits_of_size.{v u} C`
+`has_colimits_of_size_shrink.{v u} C` tries to obtain `has_colimits_of_size.{v u} C`
 from some other `has_colimits_of_size C`.
 -/
 lemma has_colimits_of_size_shrink [has_colimits_of_size.{(max v₁ v₂) (max u₁ u₂)} C] :

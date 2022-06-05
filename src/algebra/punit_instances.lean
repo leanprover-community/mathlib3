@@ -6,6 +6,7 @@ Authors: Kenny Lau
 
 import algebra.module.basic
 import algebra.gcd_monoid.basic
+import algebra.group_ring_action
 import group_theory.group_action.defs
 
 /-!
@@ -34,8 +35,10 @@ intros; exact subsingleton.elim _ _
 
 @[simp, to_additive] lemma one_eq : (1 : punit) = star := rfl
 @[simp, to_additive] lemma mul_eq : x * y = star := rfl
-@[simp, to_additive] lemma div_eq : x / y = star := rfl
-@[simp, to_additive] lemma inv_eq : x⁻¹ = star := rfl
+-- `sub_eq` simplifies `punit.sub_eq`, but the latter is eligible for `dsimp`
+@[simp, nolint simp_nf, to_additive] lemma div_eq : x / y = star := rfl
+-- `neg_eq` simplifies `punit.neg_eq`, but the latter is eligible for `dsimp`
+@[simp, nolint simp_nf, to_additive] lemma inv_eq : x⁻¹ = star := rfl
 
 instance : comm_ring punit :=
 by refine
@@ -136,8 +139,8 @@ instance [monoid R] : mul_distrib_mul_action R punit :=
 by refine { ..punit.mul_action, .. };
 intros; exact subsingleton.elim _ _
 
-/-! TODO: provide `mul_semiring_action R punit` -/
--- importing it here currently causes timeouts elsewhere due to the import order changing
+instance [semiring R] : mul_semiring_action R punit :=
+{ ..punit.distrib_mul_action, ..punit.mul_distrib_mul_action }
 
 instance [monoid_with_zero R] : mul_action_with_zero R punit :=
 { .. punit.mul_action, .. punit.smul_with_zero }

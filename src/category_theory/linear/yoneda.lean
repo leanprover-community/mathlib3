@@ -37,7 +37,9 @@ def linear_yoneda : C ⥤ Cᵒᵖ ⥤ Module R :=
     map := λ Y Y' f, linear.left_comp R _ f.unop,
     map_comp' := λ _ _ _ f g, begin ext, dsimp, erw [category.assoc] end,
     map_id' := λ Y, begin ext, dsimp, erw [category.id_comp] end },
-  map := λ X X' f, { app := λ Y, linear.right_comp R _ f } }.
+  map := λ X X' f, { app := λ Y, linear.right_comp R _ f },
+  map_id' := λ X, by { ext, simp }, -- `obviously` provides these, but slowly
+  map_comp' := λ _ _ _ f g, by { ext, simp } }
 
 /-- The Yoneda embedding for `R`-linear categories `C`,
 sending an object `Y : Cᵒᵖ` to the `Module R`-valued copresheaf on `C`,
@@ -49,7 +51,9 @@ def linear_coyoneda : Cᵒᵖ ⥤ C ⥤ Module R :=
     map := λ Y Y', linear.right_comp _ _,
     map_id' := λ Y, by { ext, exact category.comp_id _ },
     map_comp' := λ _ _ _ f g, by { ext, exact eq.symm (category.assoc _ _ _) } },
-  map := λ Y Y' f, { app := λ X, linear.left_comp _ _ f.unop } }
+  map := λ Y Y' f, { app := λ X, linear.left_comp _ _ f.unop },
+  map_id' := λ X, by { ext, simp }, -- `obviously` provides these, but slowly
+  map_comp' := λ _ _ _ f g, by { ext, simp } }
 
 instance linear_yoneda_obj_additive (X : C) : ((linear_yoneda R C).obj X).additive := {}
 instance linear_coyoneda_obj_additive (Y : Cᵒᵖ) : ((linear_coyoneda R C).obj Y).additive := {}

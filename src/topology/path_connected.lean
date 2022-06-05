@@ -3,9 +3,9 @@ Copyright (c) 2020 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot
 -/
-import topology.unit_interval
-import topology.algebra.ordered.proj_Icc
+import topology.algebra.order.proj_Icc
 import topology.continuous_function.basic
+import topology.unit_interval
 
 /-!
 # Path connectedness
@@ -237,7 +237,7 @@ begin
     { linarith [unit_interval.nonneg t, unit_interval.le_one t] },
     norm_num [ht] },
   { refine congr_arg _ (subtype.ext _),
-    norm_num [sub_sub_assoc_swap, mul_sub] },
+    norm_num [sub_sub_eq_add_sub, mul_sub] },
   { refine congr_arg _ (subtype.ext _),
     have h : 2 - 2 * (t : ℝ) - 1 = 1 - 2 * t, by linarith,
     norm_num [mul_sub, h] },

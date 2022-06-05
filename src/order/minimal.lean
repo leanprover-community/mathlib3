@@ -141,13 +141,6 @@ begin
   exact hxy.antisymm (this.symm.subst hby),
 end
 
-lemma is_antichain.min_upper_set_of (hS : is_antichain (≤) s) :
+lemma is_antichain.min_upper_set_of (hs : is_antichain (≤) s) :
   minimals (≤) {x | ∃ y ∈ s, y ≤ x} = s :=
-begin
-  ext x,
-  simp only [minimals, exists_prop, mem_set_of_eq, forall_exists_index, and_imp, sep_set_of],
-  refine ⟨λ h, exists.elim h.1 (λ y hy, ((h.2 _ hy.1 rfl.le hy.2).symm.subst hy.1)),
-    λ h, ⟨⟨x,h,rfl.le⟩,λ b y hy hby hxy, _⟩⟩,
-  have : y = x := by_contra (λ h_eq, hS hy h h_eq (hby.trans hxy)),
-  exact (this.subst hby).antisymm hxy,
-end
+hs.to_dual.max_lower_set_of

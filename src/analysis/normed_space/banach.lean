@@ -424,7 +424,7 @@ end
 /-- A useful form of the **closed graph theorem** : let `f` be a linear map between two Banach
 spaces. To show that `f` is continuous, it suffices to show that for any convergent sequence
 `uₙ ⟶ x`, if `f(uₙ) ⟶ y` then `y = f(x)`. -/
-theorem linear_map.continuous_of_seq_graph
+theorem linear_map.continuous_of_seq_closed_graph
   (hg : ∀ (u : ℕ → E) x y, tendsto u at_top (𝓝 x) → tendsto (g ∘ u) at_top (𝓝 y) → y = g x) :
   continuous g :=
 begin
@@ -456,19 +456,19 @@ lemma coe_of_is_closed_graph (hg : is_closed (g.graph : set $ E × F)) :
 
 /-- Upgrade a `linear_map` to a `continuous_linear_map` using a variation on the
 **closed graph theorem**. -/
-def of_seq_graph
+def of_seq_closed_graph
   (hg : ∀ (u : ℕ → E) x y, tendsto u at_top (𝓝 x) → tendsto (g ∘ u) at_top (𝓝 y) → y = g x) :
   E →L[𝕜] F :=
 { to_linear_map := g,
-  cont := g.continuous_of_seq_graph hg }
+  cont := g.continuous_of_seq_closed_graph hg }
 
-@[simp] lemma coe_fn_of_seq_graph
+@[simp] lemma coe_fn_of_seq_closed_graph
   (hg : ∀ (u : ℕ → E) x y, tendsto u at_top (𝓝 x) → tendsto (g ∘ u) at_top (𝓝 y) → y = g x) :
-  ⇑(continuous_linear_map.of_seq_graph hg) = g := rfl
+  ⇑(continuous_linear_map.of_seq_closed_graph hg) = g := rfl
 
-lemma coe_of_seq_graph
+lemma coe_of_seq_closed_graph
   (hg : ∀ (u : ℕ → E) x y, tendsto u at_top (𝓝 x) → tendsto (g ∘ u) at_top (𝓝 y) → y = g x) :
-  ↑(continuous_linear_map.of_seq_graph hg) = g := by { ext, refl }
+  ↑(continuous_linear_map.of_seq_closed_graph hg) = g := by { ext, refl }
 
 end continuous_linear_map
 

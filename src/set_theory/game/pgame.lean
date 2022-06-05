@@ -423,6 +423,10 @@ lt_iff_le_and_lf.2 ⟨h₁, h₂⟩
 theorem lf_of_lt {x y : pgame} (h : x < y) : x ⧏ y := (lt_iff_le_and_lf.1 h).2
 alias lf_of_lt ← has_lt.lt.lf
 
+theorem le_of_forall_lt {x y : pgame} :
+  ((∀ i, x.move_left i < y) ∧ ∀ j, x < y.move_right j) → x ≤ y :=
+by { rw le_iff_forall_lf, apply and.imp; apply forall_imp; intro; exact lf_of_lt }
+
 /-- The definition of `x ≤ y` on pre-games, in terms of `≤` two moves later. -/
 theorem le_def {x y : pgame} : x ≤ y ↔
   (∀ i, (∃ i', x.move_left i ≤ y.move_left i')  ∨ ∃ j, (x.move_left i).move_right j ≤ y) ∧
@@ -518,6 +522,7 @@ theorem equiv.ge {x y : pgame} (h : x ≈ y) : y ≤ x := h.2
 @[refl, simp] theorem equiv_rfl {x} : x ≈ x := refl x
 theorem equiv_refl (x) : x ≈ x := refl x
 @[symm] protected theorem equiv.symm {x y} : x ≈ y → y ≈ x := symm
+theorem equiv_comm {x y} : x ≈ y ↔ y ≈ x := comm
 @[trans] protected theorem equiv.trans {x y z} : x ≈ y → y ≈ z → x ≈ z := trans
 
 @[trans] theorem le_of_le_of_equiv {x y z} (h₁ : x ≤ y) (h₂ : y ≈ z) : x ≤ z := h₁.trans h₂.1
@@ -563,8 +568,11 @@ lt_congr hx equiv_rfl
 theorem lt_congr_right {x y₁ y₂} (hy : y₁ ≈ y₂) : x < y₁ ↔ x < y₂ :=
 lt_congr equiv_rfl hy
 
+theorem lt_or_equiv_of_le {x y : pgame} (h : x ≤ y) : x < y ∨ x ≈ y :=
+by { by_cases h' : y ≤ x, exacts [or.inr ⟨h, h'⟩, or.inl ⟨h, h'⟩] }
+
 theorem lf_or_equiv_of_le {x y : pgame} (h : x ≤ y) : x ⧏ y ∨ x ≈ y :=
-or_iff_not_imp_left.2 $ λ h', ⟨h, pgame.not_lf.1 h'⟩
+(lt_or_equiv_of_le h).imp lf_of_lt id
 
 theorem lf_or_equiv_or_gf (x y : pgame) : x ⧏ y ∨ x ≈ y ∨ y ⧏ x :=
 begin
@@ -825,6 +833,13 @@ begin
   congr; funext i; cases i
 end
 
+theorem is_option_neg {x y : pgame} : is_option x (-y) ↔ is_option (-x) y :=
+begin
+  rw [is_option_iff, is_option_iff, or_comm],
+  cases y, apply or_congr;
+  { apply exists_congr, intro, rw ← neg_eq_iff_neg_eq, exact eq_comm },
+end
+
 @[simp] lemma neg_of_lists (L R : list pgame) :
   -of_lists L R = of_lists (R.map (λ x, -x)) (L.map (λ x, -x)) :=
 begin
@@ -925,8 +940,10 @@ begin
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 
-theorem neg_congr {x y : pgame} (h : x ≈ y) : -x ≈ -y :=
-⟨neg_le_iff.2 h.2, neg_le_iff.2 h.1⟩
+theorem neg_equiv_iff {x y : pgame} : -x ≈ -y ↔ x ≈ y :=
+⟨λ h, ⟨neg_le_iff.1 h.2, neg_le_iff.1 h.1⟩, λ h, ⟨neg_le_iff.2 h.2, neg_le_iff.2 h.1⟩⟩
+
+theorem neg_congr {x y : pgame} (h : x ≈ y) : -x ≈ -y := neg_equiv_iff.2 h
 
 @[simp] theorem neg_lf_iff {x y : pgame} : -y ⧏ -x ↔ x ⧏ y :=
 by rw [←pgame.not_le, ←pgame.not_le, not_iff_not, neg_le_iff]

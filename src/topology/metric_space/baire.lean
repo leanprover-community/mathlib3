@@ -26,7 +26,7 @@ noncomputable theory
 
 open_locale classical topological_space filter ennreal
 
-open filter encodable set
+open filter encodable set topological_space
 
 variables {α : Type*} {β : Type*} {γ : Type*} {ι : Type*}
 
@@ -141,76 +141,39 @@ end
 instance baire_category_theorem_locally_compact [topological_space α] [t2_space α]
   [locally_compact_space α] :
   baire_space α :=
-{ baire_property :=
-  begin
-    intros f ho hd,
-    /- Define a choice function which, to any nonempty open set,
-    associates a nonempty compact subset.-/
-    have nonempty_open_has_compact : ∀ (V : set α), is_open V → V.nonempty →
-      ∃ (F : set α), is_compact F ∧ (interior F).nonempty ∧ F ⊆ V :=
-    begin
-      intros V V_open V_nonempty,
-      cases V_nonempty with x x_in_V,
-      rcases (exists_compact_subset V_open x_in_V) with ⟨K, ⟨K_compact, x_in_K, K_sub_V ⟩ ⟩,
-      use [K, K_compact],
-      split, swap, exact K_sub_V,
-      apply set.nonempty_def.2,
-      use [x, x_in_K],
-    end,
-    choose! open_to_compact h using nonempty_open_has_compact,
-    /- To prove that an intersection of open dense subsets is dense, prove that its intersection
-    with any open neighbourhood `U` is dense. Define recursively a decreasing sequence
-    `compact_seq` of compact neighbourhoods: start with some compact neighbourhood inside `U`,
-    then at each step, take its interior, intersect with `f n`, then choose a compact neighbourhood
-    inside the intersection.-/
-    apply dense_iff_inter_open.2,
-    intros U U_open U_nonempty,
-    letI compact_seq : ℕ → set α := λ (n : ℕ), nat.rec_on n (open_to_compact U)
-      (λ (n : ℕ) (F : set α), open_to_compact ((interior F) ∩ (f n))),
-    /- This is an actual sequence of compact sets with nonempty interior.-/
-    have compact_seq_is_compact_nonempty :
-      ∀ (n : ℕ), is_compact (compact_seq n) ∧ (interior (compact_seq n)).nonempty :=
-    begin
-      intro n, induction n with n h_n,
-      { specialize h U U_open U_nonempty,
-        exact ⟨h.1, h.2.1⟩ },
-      { simp [compact_seq],
-        specialize h ((interior (compact_seq n)) ∩ (f n))
-          (is_open.inter is_open_interior (ho n))
-          (dense_iff_inter_open.1 (hd n) (interior (compact_seq n)) is_open_interior h_n.2),
-        exact ⟨h.1, h.2.1⟩ },
-    end,
-    /- This is also a decreasing sequence contained in suitable open sets `f n`.-/
-    have compact_seq_is_decreasing :
-      ∀ (n : ℕ), (compact_seq n.succ) ⊆ (compact_seq n) ∩ (f n) :=
-    begin
-      intro n,
-      specialize h ((interior (compact_seq n)) ∩ (f n))
-        (is_open.inter is_open_interior (ho n))
-        (dense_iff_inter_open.1 (hd n) (interior (compact_seq n))
-          is_open_interior (compact_seq_is_compact_nonempty n).2),
-      replace h := h.2.2,
-      simp at h,
-      exact set.subset_inter_iff.2 ⟨set.subset.trans h.1 interior_subset, h.2⟩,
-    end,
-    apply @set.nonempty.mono α (⋂ (n : ℕ), (compact_seq n)) _ _ _,
-    /- Prove that ̀`⋂ (n : ℕ), (compact_seq n)` is inside `⋂ (n : ℕ), (f n)`...-/
-    { simp, split,
-      { exact set.subset.trans (set.Inter_subset compact_seq 0) (h U U_open U_nonempty).2.2 },
-      { intro n,
-        apply @set.subset.trans α _ _ (f n) (set.Inter_subset compact_seq n.succ),
-        exact (set.subset_inter_iff.1 (compact_seq_is_decreasing n)).2 } },
-    /- ...and is actually not empty, as an intersection of a decreasing sequence
-    of nonempty compact subsets.-/
-    { apply is_compact.nonempty_Inter_of_sequence_nonempty_compact_closed,
-      { intro n,
-        exact (set.subset_inter_iff.1 (compact_seq_is_decreasing n)).1 },
-      { intro n,
-        exact set.nonempty.mono interior_subset (compact_seq_is_compact_nonempty n).2 },
-      { exact (compact_seq_is_compact_nonempty 0).1 },
-      { intro n,
-        exact is_compact.is_closed (compact_seq_is_compact_nonempty n).1 } },
-  end }
+begin
+  constructor,
+  intros f ho hd,
+  /- To prove that an intersection of open dense subsets is dense, prove that its intersection
+  with any open neighbourhood `U` is dense. Define recursively a decreasing sequence `K` of
+  compact neighbourhoods: start with some compact neighbourhood inside `U`, then at each step,
+  take its interior, intersect with `f n`, then choose a compact neighbourhood inside the
+  intersection.-/
+  apply dense_iff_inter_open.2,
+  intros U U_open U_nonempty,
+  rcases exists_positive_compacts_subset U_open U_nonempty with ⟨K₀, hK₀⟩,
+  have : ∀ n (K : positive_compacts α), ∃ K' : positive_compacts α, ↑K' ⊆ f n ∩ interior K,
+  { refine λ n K, exists_positive_compacts_subset ((ho n).inter is_open_interior) _,
+    rw inter_comm,
+    exact (hd n).inter_open_nonempty _ is_open_interior K.interior_nonempty },
+  choose K_next hK_next,
+  let K : ℕ → positive_compacts α := λ n, nat.rec_on n K₀ K_next,
+  /- This is a decreasing sequence of positive compacts contained in suitable open sets `f n`.-/
+  have hK_decreasing : ∀ (n : ℕ), ↑(K (n + 1)) ⊆ f n ∩ K n,
+    from λ n, (hK_next n (K n)).trans $ inter_subset_inter_right _ interior_subset,
+  /- Prove that ̀`⋂ n : ℕ, K n` is inside `U ∩ ⋂ n : ℕ, (f n)`. -/
+  have hK_subset : (⋂ n, K n : set α) ⊆ U ∩ (⋂ n, f n),
+  { intros x hx,
+    simp only [mem_inter_eq, mem_Inter] at hx ⊢,
+    exact ⟨hK₀ $ hx 0, λ n, (hK_decreasing n (hx (n + 1))).1⟩ },
+  /- Prove that `⋂ n : ℕ, K n` is not empty, as an intersection of a decreasing sequence
+  of nonempty compact subsets.-/
+  have hK_nonempty : (⋂ n, K n : set α).nonempty,
+    from is_compact.nonempty_Inter_of_sequence_nonempty_compact_closed _
+      (λ n, (hK_decreasing n).trans (inter_subset_right _ _))
+      (λ n, (K n).nonempty) (K 0).compact (λ n, (K n).compact.is_closed),
+  exact hK_nonempty.mono hK_subset
+end
 
 variables [topological_space α] [baire_space α]
 

@@ -62,7 +62,7 @@ The sheaf condition for a `F : presheaf C X` requires that the morphism
 is the equalizer of the two morphisms
 `∏ F.obj (U i) ⟶ ∏ F.obj (U i) ⊓ (U j)`.
 -/
-def is_sheaf (F : presheaf C X) : Prop :=
+def is_sheaf (F : presheaf.{w v u} C X) : Prop :=
 ∀ ⦃ι : Type v⦄ (U : ι → opens X), nonempty (is_limit (sheaf_condition_equalizer_products.fork F U))
 
 /--
@@ -91,7 +91,7 @@ A `sheaf C X` is a presheaf of objects from `C` over a (bundled) topological spa
 satisfying the sheaf condition.
 -/
 @[derive category]
-def sheaf : Type (max u v) := { F : presheaf C X // F.is_sheaf }
+def sheaf : Type (max u v w) := { F : presheaf C X // F.is_sheaf }
 
 -- Let's construct a trivial example, to keep the inhabited linter happy.
 instance sheaf_inhabited : inhabited (sheaf (category_theory.discrete punit) X) :=

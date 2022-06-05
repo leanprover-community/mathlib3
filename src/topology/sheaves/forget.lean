@@ -109,7 +109,7 @@ variables [reflects_isomorphisms G]
 variables [has_limits C] [has_limits D] [preserves_limits G]
 
 variables {X : Top.{v}} (F : presheaf C X)
-
+set_option pp.universes true
 /--
 If `G : C ⥤ D` is a functor which reflects isomorphisms and preserves limits
 (we assume all limits exist in both `C` and `D`),
@@ -134,6 +134,7 @@ begin
     -- We have that the sheaf condition fork for `F` is a limit fork,
     obtain ⟨t₁⟩ := S U,
     -- and since `G` preserves limits, the image under `G` of this fork is a limit fork too.
+    letI := preserves_smallest_limits_of_preserve_limits G,
     have t₂ := @preserves_limit.preserves _ _ _ _ _ _ _ G _ _ t₁,
     -- As we established above, that image is just the sheaf condition fork
     -- for `F ⋙ G` postcomposed with some natural isomorphism,

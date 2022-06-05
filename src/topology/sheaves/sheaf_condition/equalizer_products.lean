@@ -19,7 +19,7 @@ in terms of an equalizer diagram where the two objects are
 
 -/
 
-universes v u
+universes v' v u
 
 noncomputable theory
 
@@ -32,7 +32,7 @@ open topological_space.opens
 namespace Top
 
 variables {C : Type u} [category.{v} C] [has_products.{v} C]
-variables {X : Top.{v}} (F : presheaf C X) {ι : Type v} (U : ι → opens X)
+variables {X : Top.{v'}} (F : presheaf C X) {ι : Type v} (U : ι → opens X)
 
 namespace presheaf
 
@@ -149,7 +149,7 @@ end
 
 section open_embedding
 
-variables {V : Top.{v}} {j : V ⟶ X} (oe : open_embedding j)
+variables {V : Top.{v'}} {j : V ⟶ X} (oe : open_embedding j)
 variables (𝒰 : ι → opens V)
 
 /--

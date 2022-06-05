@@ -55,7 +55,7 @@ lemma has_finite_limits_shrink [has_finite_limits.{(max w w')} C] : has_finite_l
 ⟨λ J _ _, by exactI has_limits_of_shape_of_equivalence
   (ulift_hom_ulift_category.equiv.{w' w' w} J).symm ⟩
 
-instance has_smallest_finite_limits_of_has_finite_limits [has_finite_limits.{w} C] :
+lemma has_smallest_finite_limits_of_has_finite_limits [has_finite_limits.{w} C] :
   has_finite_limits.{0} C := has_finite_limits_shrink C
 
 /--
@@ -88,7 +88,7 @@ lemma has_finite_colimits_shrink [has_finite_colimits.{(max w w')} C] :
 ⟨λ J _ _, by exactI has_colimits_of_shape_of_equivalence
   (ulift_hom_ulift_category.equiv.{w' w' w} J).symm ⟩
 
-instance has_smallest_finite_colimits_of_has_finite_colimits [has_finite_colimits.{w} C] :
+lemma has_smallest_finite_colimits_of_has_finite_colimits [has_finite_colimits.{w} C] :
   has_finite_colimits.{0} C := has_finite_colimits_shrink C
 
 section

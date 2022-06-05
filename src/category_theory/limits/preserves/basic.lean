@@ -242,7 +242,7 @@ lemma preserves_limits_of_size_shrink (F : C ⥤ D)
   (ulift_hom_ulift_category.equiv.{w₂ w₂'} J).symm F⟩
 
 lemma preserves_smallest_limits_of_preserve_limits
-  (F : C ⥤ D) [preserves_limits_of_size.{v₂ u₂} F] : preserves_limits_of_size.{0 0} F :=
+  (F : C ⥤ D) [preserves_limits_of_size.{v₃ u₃} F] : preserves_limits_of_size.{0 0} F :=
 preserves_limits_of_size_shrink F
 
 /-- If F preserves one colimit cocone for the diagram K,

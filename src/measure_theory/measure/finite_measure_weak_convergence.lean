@@ -344,7 +344,7 @@ This formulation assumes:
  * the functions tend to a limit along a countably generated filter;
  * the limit is in the almost everywhere sense;
  * boundedness holds almost everywhere;
- * integration is `lintegral`, i.e., the functions and their integral are `ℝ≥0∞`-valued.
+ * integration is `lintegral`, i.e., the functions and their integrals are `ℝ≥0∞`-valued.
 -/
 lemma tendsto_lintegral_nn_filter_of_le_const {ι : Type*} {L : filter ι} [L.is_countably_generated]
   (μ : finite_measure α) {fs : ι → (α →ᵇ ℝ≥0)} {c : ℝ≥0}
@@ -364,7 +364,7 @@ If a sequence of bounded continuous non-negative functions are uniformly bounded
 and tend pointwise to a limit, then their integrals (`lintegral`) against the finite measure tend
 to the integral of the limit.
 
-A similar result with more general assumptions is `tendsto_lintegral_nn_filter_of_le_const`.
+A related result with more general assumptions is `tendsto_lintegral_nn_filter_of_le_const`.
 -/
 lemma tendsto_lintegral_nn_of_le_const (μ : finite_measure α) {fs : ℕ → (α →ᵇ ℝ≥0)} {c : ℝ≥0}
   (fs_le_const : ∀ n a, fs n a ≤ c) {f : α → ℝ≥0}
@@ -381,6 +381,8 @@ This formulation assumes:
  * the limit is in the almost everywhere sense;
  * boundedness holds almost everywhere;
  * integration is the pairing against non-negative continuous test functions (`test_against_nn`).
+
+A related result using `lintegral` for integration is `tendsto_lintegral_nn_filter_of_le_const`.
 -/
 lemma tendsto_test_against_nn_filter_of_le_const {ι : Type*} {L : filter ι}
   [L.is_countably_generated] {μ : finite_measure α} {fs : ι → (α →ᵇ ℝ≥0)} {c : ℝ≥0}
@@ -398,7 +400,9 @@ If a sequence of bounded continuous non-negative functions are uniformly bounded
 and tend pointwise to a limit, then their integrals (`test_against_nn`) against the finite measure
 tend to the integral of the limit.
 
-A similar result with more general assumptions is `tendsto_test_against_nn_filter_of_le_const`.
+Related results:
+ * `tendsto_test_against_nn_filter_of_le_const`: more general assumptions
+ * `tendsto_lintegral_nn_of_le_const`: using `lintegral` for integration.
 -/
 lemma tendsto_test_against_nn_of_le_const {μ : finite_measure α}
   {fs : ℕ → (α →ᵇ ℝ≥0)} {c : ℝ≥0} (fs_le_const : ∀ n a, fs n a ≤ c) {f : α →ᵇ ℝ≥0}

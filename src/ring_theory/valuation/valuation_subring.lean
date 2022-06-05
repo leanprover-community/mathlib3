@@ -387,20 +387,11 @@ unit_group_injective.eq_iff.symm
 /-- For a valuation subring `A`, `A.unit_group` agrees with the units of `A`. -/
 def unit_group_mul_equiv : A.unit_group ≃* Aˣ :=
 { to_fun := λ x,
-  ⟨⟨x, (A.valuation_le_one_iff _).1 (le_of_eq x.2)⟩,⟨x⁻¹,
-  begin
-    rw ← A.valuation_le_one_iff,
-    apply le_of_eq,
-    rw [A.valuation.map_inv, inv_eq_one],
-    exact x.2,
-  end⟩,
-    by { ext, exact mul_inv_cancel x.1.ne_zero },
-    by { ext, exact inv_mul_cancel x.1.ne_zero }⟩,
-  inv_fun := λ x, ⟨⟨x, (x : K)⁻¹,
-    mul_inv_cancel ((units.map A.subtype.to_monoid_hom x).ne_zero),
-    inv_mul_cancel ((units.map A.subtype.to_monoid_hom x).ne_zero)⟩, begin
-      rw mem_unit_group_iff, simpa using A.valuation_unit x,
-    end⟩,
+  { val := ⟨x, mem_of_valuation_le_one A _ x.prop.le⟩,
+    inv := ⟨↑(x⁻¹), mem_of_valuation_le_one _ _ (x⁻¹).prop.le⟩,
+    val_inv := subtype.ext (units.mul_inv x),
+    inv_val := subtype.ext (units.inv_mul x) },
+  inv_fun := λ x, ⟨units.map A.subtype.to_monoid_hom x, A.valuation_unit x⟩,
   left_inv := λ a, by { ext, refl },
   right_inv := λ a, by { ext, refl },
   map_mul' := λ a b, by { ext, refl } }

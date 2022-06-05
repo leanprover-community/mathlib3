@@ -191,8 +191,8 @@ instance {S} [monoid S] [distrib_mul_action S R] : distrib_mul_action S R[X] :=
 function.injective.distrib_mul_action
   ⟨to_finsupp, to_finsupp_zero, to_finsupp_add⟩ to_finsupp_injective to_finsupp_smul
 
-instance {S} [monoid S] [distrib_mul_action S R] [has_faithful_scalar S R] :
-  has_faithful_scalar S R[X] :=
+instance {S} [monoid S] [distrib_mul_action S R] [has_faithful_smul S R] :
+  has_faithful_smul S R[X] :=
 { eq_of_smul_eq_smul := λ s₁ s₂ h, eq_of_smul_eq_smul $ λ a : ℕ →₀ R, congr_arg to_finsupp (h ⟨a⟩) }
 
 instance {S} [semiring S] [module S R] : module S R[X] :=

@@ -206,11 +206,6 @@ end
 
 lemma four_eq_two_rpow_two : (4 : ℝ) = 2 ^ (2 : ℝ) := by norm_num
 
--- TODO this ought to be generalized to all comm_group_with_zero and moved,
--- probably somewhere near mul_div_mul_left
-lemma real.div_mul_eq_div_div {a b c : ℝ} (hb : b ≠ 0) (hc : c ≠ 0) : a / (b * c) = (a / b) / c :=
-by field_simp
-
 lemma log_four : log 4 = 2 * log 2 :=
 calc log 4 = log (2 ^ (2 : ℝ)) : by norm_num
   ... = 2 * log 2 : by rw log_rpow two_pos
@@ -323,24 +318,22 @@ begin
             norm_num,
             field_simp [sqrt_361],
             cancel_denoms,
-            rw real.div_mul_eq_div_div,
-            { cancel_denoms,
-              rw mul_div,
-              rw log_722,
-              rw log_four,
-              have nineteen_pos : (0 : ℝ) < 19 := by norm_num,
-              calc 4 * (log 2 + 2 * log 19) / (2 * log 2)
-                    = 2 * (2 * (log 2 + 2 * log 19)) / (2 * log 2) : by ring
-                ... = 2 * (log 2 + 2 * log 19) / log 2 : mul_div_mul_left _ _ (by norm_num)
-                ... = (2 * log 2 + 4 * log 19) / log 2 : by ring
-                ... = (log 4 + 4 * log 19) / log 2 : by rw log_four
-                ... = (log 4 + log (19 ^ (4 : ℝ))) / log 2 : by rw log_rpow nineteen_pos 4
-                ... = (log 4 + log 130321) / log 2 : by norm_num
-                ... = log (4 * 130321) / log 2 : by rw @log_mul 4 130321 (by norm_num) (by norm_num)
-                ... = log 521284 / log 2 : by norm_num
-                ... ≤ 19 : inequality, },
-            { norm_num, },
-            { norm_num, },
+            rw div_mul_eq_div_div,
+            cancel_denoms,
+            rw mul_div,
+            rw log_722,
+            rw log_four,
+            have nineteen_pos : (0 : ℝ) < 19 := by norm_num,
+            calc 4 * (log 2 + 2 * log 19) / (2 * log 2)
+                  = 2 * (2 * (log 2 + 2 * log 19)) / (2 * log 2) : by ring
+              ... = 2 * (log 2 + 2 * log 19) / log 2 : mul_div_mul_left _ _ (by norm_num)
+              ... = (2 * log 2 + 4 * log 19) / log 2 : by ring
+              ... = (log 4 + 4 * log 19) / log 2 : by rw log_four
+              ... = (log 4 + log (19 ^ (4 : ℝ))) / log 2 : by rw log_rpow nineteen_pos 4
+              ... = (log 4 + log 130321) / log 2 : by norm_num
+              ... = log (4 * 130321) / log 2 : by rw @log_mul 4 130321 (by norm_num) (by norm_num)
+              ... = log 521284 / log 2 : by norm_num
+              ... ≤ 19 : inequality,
           end,
 
 end

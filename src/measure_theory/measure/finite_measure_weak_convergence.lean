@@ -225,8 +225,7 @@ lemma test_against_nn_add (μ : finite_measure α) (f₁ f₂ : α →ᵇ ℝ≥
 begin
   simp only [←ennreal.coe_eq_coe, bounded_continuous_function.coe_add, ennreal.coe_add,
              pi.add_apply, test_against_nn_coe_eq],
-  apply lintegral_add;
-  exact bounded_continuous_function.nnreal.to_ennreal_comp_measurable _,
+  exact lintegral_add_left (bounded_continuous_function.nnreal.to_ennreal_comp_measurable _) _
 end
 
 lemma test_against_nn_smul [is_scalar_tower R ℝ≥0 ℝ≥0] [pseudo_metric_space R] [has_zero R]

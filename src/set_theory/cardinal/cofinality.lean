@@ -958,7 +958,7 @@ def is_inaccessible (c : cardinal) :=
 
 theorem is_inaccessible.mk {c} (h₁ : ℵ₀ < c) (h₂ : c ≤ c.ord.cof) (h₃ : ∀ x < c, 2 ^ x < c) :
   is_inaccessible c :=
-⟨h₁, ⟨h₁.le, h₂⟩, (omega_pos.trans h₁).ne', h₃⟩
+⟨h₁, ⟨h₁.le, h₂⟩, (aleph_0_pos.trans h₁).ne', h₃⟩
 
 /- Lean's foundations prove the existence of ℵ₀ many inaccessible cardinals -/
 theorem univ_inaccessible : is_inaccessible (univ.{u v}) :=

@@ -497,20 +497,6 @@ variables (H) [topological_space H] [topological_space M] [charted_space H M]
 lemma mem_chart_target (x : M) : chart_at H x x ∈ (chart_at H x).target :=
 (chart_at H x).map_source (mem_chart_source _ _)
 
-open topological_space
-
-lemma charted_space.second_countable_of_countable_cover [second_countable_topology H]
-  {s : set M} (hs : (⋃ x (hx : x ∈ s), (chart_at H x).source) = univ)
-  (hsc : countable s) :
-  second_countable_topology M :=
-begin
-  haveI : ∀ x : M, second_countable_topology (chart_at H x).source :=
-    λ x, (chart_at H x).second_countable_topology_source,
-  haveI := hsc.to_encodable,
-  rw bUnion_eq_Union at hs,
-  exact second_countable_topology_of_countable_cover (λ x : s, (chart_at H (x : M)).open_source) hs
-end
-
 variable (M)
 
 /-- If a topological space admits an atlas with locally compact charts, then the space itself
@@ -527,6 +513,20 @@ begin
   refine locally_compact_space_of_has_basis this _,
   rintro x s ⟨h₁, h₂, h₃⟩,
   exact h₂.image_of_continuous_on ((chart_at H x).continuous_on_symm.mono h₃)
+end
+
+open topological_space
+
+lemma charted_space.second_countable_of_countable_cover [second_countable_topology H]
+  {s : set M} (hs : (⋃ x (hx : x ∈ s), (chart_at H x).source) = univ)
+  (hsc : countable s) :
+  second_countable_topology M :=
+begin
+  haveI : ∀ x : M, second_countable_topology (chart_at H x).source :=
+    λ x, (chart_at H x).second_countable_topology_source,
+  haveI := hsc.to_encodable,
+  rw bUnion_eq_Union at hs,
+  exact second_countable_topology_of_countable_cover (λ x : s, (chart_at H (x : M)).open_source) hs
 end
 
 lemma charted_space.second_countable_of_lindelof [second_countable_topology H] [lindelof_space M] :

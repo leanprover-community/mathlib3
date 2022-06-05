@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ashvni Narayanan
 -/
 import data.polynomial.algebra_map
+import data.polynomial.derivative
 import data.nat.choose.cast
 import number_theory.bernoulli
 
@@ -90,6 +91,23 @@ begin
 end
 
 end examples
+
+lemma deriv_bernoulli (k : ℕ) (hk : 1 ≤ k) : (bernoulli k).derivative = k * bernoulli (k - 1) :=
+begin
+  simp_rw [bernoulli, derivative_sum, nat.sub_add_cancel hk, derivative_monomial],
+  -- LHS sum has an extra term, but the coefficient is zero:
+  rw [range_add_one, sum_insert not_mem_range_self, tsub_self, cast_zero, mul_zero, map_zero,
+    zero_add, mul_sum],
+  -- the rest of the sum is termwise equal:
+  refine sum_congr (by refl) (λ m hm, _),
+  rw [←C_eq_nat_cast, C_mul_monomial, nat.sub_sub, nat.sub_sub, add_comm],
+  congr' 1,
+  rw ←mul_assoc, conv { to_rhs, congr, rw mul_comm }, rw [mul_assoc, mul_assoc],
+  congr' 1, norm_cast,
+  convert (choose_mul_succ_eq (k - 1) m).symm using 1,
+  { rw nat.sub_add_cancel hk,},
+  { rw [mul_comm, nat.sub_add_cancel hk], },
+end
 
 @[simp] theorem sum_bernoulli (n : ℕ) :
   ∑ k in range (n + 1), ((n + 1).choose k : ℚ) • bernoulli k =

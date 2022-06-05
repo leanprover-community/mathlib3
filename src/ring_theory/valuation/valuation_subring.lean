@@ -365,19 +365,7 @@ section unit_group
 
 /-- The unit group of a valuation subring, as a subgroup of `Kˣ`. -/
 def unit_group : subgroup Kˣ :=
-{ carrier := { x | A.valuation x = 1 },
-  mul_mem' := begin
-    intros a b ha hb,
-    dsimp at *,
-    rw [A.valuation.map_mul, ha, hb, one_mul],
-  end,
-  one_mem' := A.valuation.map_one,
-  inv_mem' := begin
-    intros a ha,
-    dsimp at *,
-    push_cast,
-    rw [A.valuation.map_inv, ha, inv_one],
-  end }
+(A.valuation.to_monoid_with_zero_hom.to_monoid_hom.comp (units.coe_hom K)).ker
 
 lemma mem_unit_group_iff (x : Kˣ) : x ∈ A.unit_group ↔ A.valuation x = 1 := iff.refl _
 

@@ -22,8 +22,6 @@ relation is `G.adj` for `G : simple_graph α`, this corresponds to independent s
 
 open function set
 
-universes u v
-
 variables {α β : Type*} {r r₁ r₂ : α → α → Prop} {r' : β → β → Prop} {s t : set α} {a : α}
 
 protected lemma symmetric.compl (h : symmetric r) : symmetric rᶜ := λ x y hr hr', hr $ h hr'

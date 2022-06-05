@@ -131,7 +131,7 @@ begin
         Union_mem_generate_measurable_rec (λ n, ⟨I n, _, hI n⟩)⟩,
       { rw ordinal.type_lt,
         refine ordinal.lsub_lt_ord_lift _ (λ i, ordinal.typein_lt_self _),
-        rw [mk_denumerable, lift_aleph_0, is_regular_aleph_one.2],
+        rw [mk_denumerable, lift_aleph_0, is_regular_aleph_one.cof_eq],
         exact aleph_0_lt_aleph_one },
       { rw [←ordinal.typein_lt_typein (<), ordinal.typein_enum],
         apply ordinal.lt_lsub (λ n : ℕ, _) } } },

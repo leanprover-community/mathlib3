@@ -338,6 +338,13 @@ le_trans (Sup_le_Sup h) (le_of_eq (trans Sup_insert bot_sup_eq))
 theorem Inf_le_Inf_of_subset_insert_top (h : s ⊆ insert ⊤ t) : Inf t ≤ Inf s :=
 le_trans (le_of_eq (trans top_inf_eq.symm Inf_insert.symm)) (Inf_le_Inf h)
 
+@[simp] theorem Sup_diff_singleton_bot (s : set α) : Sup (s \ {⊥}) = Sup s :=
+(Sup_le_Sup (diff_subset _ _)).antisymm $ Sup_le_Sup_of_subset_insert_bot $
+  subset_insert_diff_singleton _ _
+
+@[simp] theorem Inf_diff_singleton_top (s : set α) : Inf (s \ {⊤}) = Inf s :=
+@Sup_diff_singleton_bot αᵒᵈ _ s
+
 theorem Sup_pair {a b : α} : Sup {a, b} = a ⊔ b :=
 (@is_lub_pair α _ a b).Sup_eq
 
@@ -544,6 +551,9 @@ le_infi₂ $ λ i j, let ⟨i', j', h⟩ := h i j in infi₂_le_of_le i' j' h
 lemma supr_const_mono (h : ι → ι') : (⨆ i : ι, a) ≤ ⨆ j : ι', a := supr_le $ le_supr _ ∘ h
 lemma infi_const_mono (h : ι' → ι) : (⨅ i : ι, a) ≤ ⨅ j : ι', a := le_infi $ infi_le _ ∘ h
 
+lemma supr_infi_le_infi_supr (f : ι → ι' → α) : (⨆ i, ⨅ j, f i j) ≤ (⨅ j, ⨆ i, f i j) :=
+supr_le $ λ i, infi_mono $ λ j, le_supr _ i
+
 lemma bsupr_mono {p q : ι → Prop} (hpq : ∀ i, p i → q i) :
   (⨆ i (h : p i), f i) ≤ ⨆ i (h : q i), f i :=
 supr_mono $ λ i, supr_const_mono (hpq i)
@@ -575,28 +585,13 @@ le_antisymm (Sup_le le_supr₂) (supr₂_le $ λ b, le_Sup)
 
 lemma Inf_eq_infi {s : set α} : Inf s = ⨅ a ∈ s, a := @Sup_eq_supr αᵒᵈ _ _
 
-lemma Sup_sUnion (s : set (set α)) :  Sup (⋃₀ s) = ⨆ t ∈ s, Sup t :=
-begin
-  apply le_antisymm,
-  { apply Sup_le (λ b hb, _),
-    rcases hb with ⟨t, ts, bt⟩,
-    apply le_trans _ (le_supr _ t),
-    exact le_trans (le_Sup bt) (le_supr _ ts), },
-  { apply supr_le (λ t, _),
-    exact supr_le (λ ts, Sup_le_Sup (λ x xt, ⟨t, ts, xt⟩)) }
-end
-
-lemma Inf_sUnion (s : set (set α)) : Inf (⋃₀ s) = ⨅ t ∈ s, Inf t := @Sup_sUnion αᵒᵈ _ _
-
 lemma monotone.le_map_supr [complete_lattice β] {f : α → β} (hf : monotone f) :
   (⨆ i, f (s i)) ≤ f (supr s) :=
 supr_le $ λ i, hf $ le_supr _ _
 
 lemma monotone.le_map_supr₂ [complete_lattice β] {f : α → β} (hf : monotone f) (s : Π i, κ i → α) :
   (⨆ i j, f (s i j)) ≤ f (⨆ i j, s i j) :=
-calc (⨆ i j, f (s i j)) ≤ (⨆ i, f (⨆ j, s i j)) :
-  supr_mono $ λ i, hf.le_map_supr
-... ≤ f (⨆ i j, s i j) : hf.le_map_supr
+supr₂_le $ λ i j, hf $ le_supr₂ _ _
 
 lemma monotone.le_map_Sup [complete_lattice β] {s : set α} {f : α → β} (hf : monotone f) :
   (⨆ a ∈ s, f a) ≤ f (Sup s) :=
@@ -1100,7 +1095,7 @@ lemma infi_ne_top_subtype (f : ι → α) : (⨅ i : {i // f i ≠ ⊤}, f i) = 
 ### `supr` and `infi` under `ℕ`
 -/
 
-lemma supr_ge_eq_supr_nat_add {u : ℕ → α} (n : ℕ) : (⨆ i ≥ n, u i) = ⨆ i, u (i + n) :=
+lemma supr_ge_eq_supr_nat_add (u : ℕ → α) (n : ℕ) : (⨆ i ≥ n, u i) = ⨆ i, u (i + n) :=
 begin
   apply le_antisymm;
   simp only [supr_le_iff],
@@ -1108,12 +1103,16 @@ begin
   { exact λ i, le_Sup ⟨i + n, supr_pos (nat.le_add_left _ _)⟩ }
 end
 
-lemma infi_ge_eq_infi_nat_add {u : ℕ → α} (n : ℕ) : (⨅ i ≥ n, u i) = ⨅ i, u (i + n) :=
+lemma infi_ge_eq_infi_nat_add (u : ℕ → α) (n : ℕ) : (⨅ i ≥ n, u i) = ⨅ i, u (i + n) :=
 @supr_ge_eq_supr_nat_add αᵒᵈ _ _ _
 
 lemma monotone.supr_nat_add {f : ℕ → α} (hf : monotone f) (k : ℕ) :
   (⨆ n, f (n + k)) = ⨆ n, f n :=
 le_antisymm (supr_le $ λ i, le_supr _ (i + k)) $ supr_mono $ λ i, hf $ nat.le_add_right i k
+
+lemma antitone.infi_nat_add {f : ℕ → α} (hf : antitone f) (k : ℕ) :
+  (⨅ n, f (n + k)) = ⨅ n, f n :=
+hf.dual_right.supr_nat_add k
 
 @[simp] lemma supr_infi_ge_nat_add (f : ℕ → α) (k : ℕ) :
   (⨆ n, ⨅ i ≥ n, f (i + k)) = ⨆ n, ⨅ i ≥ n, f i :=
@@ -1269,6 +1268,12 @@ supr₂_le $ λ i h, inf_le_inf_left _ (le_Sup h)
 /-- This is a weaker version of `Sup_inf_eq` -/
 lemma supr_inf_le_Sup_inf : (⨆ b ∈ s, b ⊓ a) ≤ Sup s ⊓ a :=
 supr₂_le $ λ i h, inf_le_inf_right _ (le_Sup h)
+
+lemma le_supr_inf_supr (f g : ι → α) : (⨆ i, f i ⊓ g i) ≤ (⨆ i, f i) ⊓ (⨆ i, g i) :=
+le_inf (supr_mono $ λ i, inf_le_left) (supr_mono $ λ i, inf_le_right)
+
+lemma infi_sup_infi_le (f g : ι → α) : (⨅ i, f i) ⊔ (⨅ i, g i) ≤ ⨅ i, f i ⊔ g i :=
+@le_supr_inf_supr αᵒᵈ ι _ f g
 
 lemma disjoint_Sup_left {a : set α} {b : α} (d : disjoint (Sup a) b) {i} (hi : i ∈ a) :
   disjoint i b :=

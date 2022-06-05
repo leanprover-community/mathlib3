@@ -84,9 +84,9 @@ lemma is_unit_or_is_unit_of_is_unit_add {a b : R} (h : is_unit (a + b)) :
   is_unit a ∨ is_unit b :=
 begin
   rcases h with ⟨u, hu⟩,
-  replace hu : ↑u⁻¹ * a + ↑u⁻¹ * b = 1, from by rw [←mul_add, ←hu, units.inv_mul],
-  cases is_unit_or_is_unit_of_add_one hu; [left, right];
-    exact (is_unit_of_mul_is_unit_right (by assumption))
+  rw [units.eq_iff_inv_mul, mul_add] at hu,
+  apply or.imp _ _ (is_unit_or_is_unit_of_add_one hu);
+    exact is_unit_of_mul_is_unit_right,
 end
 
 lemma nonunits_add {a b : R} (ha : a ∈ nonunits R) (hb : b ∈ nonunits R) : a + b ∈ nonunits R:=
@@ -240,7 +240,7 @@ lemma is_local_ring_hom_of_iso {R S : CommRing} (f : R ≅ S) : is_local_ring_ho
 { map_nonunit := λ a ha,
   begin
     convert f.inv.is_unit_map ha,
-    rw category_theory.coe_hom_inv_id,
+    rw category_theory.iso.hom_inv_id_apply,
   end }
 
 @[priority 100] -- see Note [lower instance priority]
@@ -302,7 +302,7 @@ begin
   intros a b hab,
   obtain ⟨a, rfl⟩ := hf a,
   obtain ⟨b, rfl⟩ := hf b,
-  replace hab : is_unit (f (a + b)), from by simpa only [map_add] using hab,
+  rw ←map_add at hab,
   exact (is_unit_or_is_unit_of_is_unit_add $ is_local_ring_hom.map_nonunit _ hab).imp
     f.is_unit_map f.is_unit_map
 end

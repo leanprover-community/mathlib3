@@ -6,7 +6,7 @@ Authors: Thomas Browning
 
 import algebra.gcd_monoid.multiset
 import combinatorics.partition
-import group_theory.perm.cycles
+import group_theory.perm.cycle.basic
 import ring_theory.int.basic
 import tactic.linarith
 
@@ -26,8 +26,8 @@ In this file we define the cycle type of a permutation.
 - `lcm_cycle_type` : The lcm of `σ.cycle_type` equals `order_of σ`
 - `is_conj_iff_cycle_type_eq` : Two permutations are conjugate if and only if they have the same
   cycle type.
-* `exists_prime_order_of_dvd_card`: For every prime `p` dividing the order of a finite group `G`
-  there exists an element of order `p` in `G`. This is known as Cauchy`s theorem.
+- `exists_prime_order_of_dvd_card`: For every prime `p` dividing the order of a finite group `G`
+  there exists an element of order `p` in `G`. This is known as Cauchy's theorem.
 -/
 
 namespace equiv.perm
@@ -426,7 +426,7 @@ by appending the inverse of the product of `v`. -/
     by rw [mem_iff, vector.to_list_cons, list.prod_cons, inv_mul_self]⟩,
   inv_fun := λ v, v.1.tail,
   left_inv := λ v, v.tail_cons v.to_list.prod⁻¹,
-  right_inv := λ v, subtype.ext ((congr_arg2 vector.cons (eq_inv_of_mul_eq_one (by
+  right_inv := λ v, subtype.ext ((congr_arg2 vector.cons (eq_inv_of_mul_eq_one_left (by
   { rw [←list.prod_cons, ←vector.to_list_cons, v.1.cons_head_tail],
     exact v.2 })).symm rfl).trans v.1.cons_head_tail) }
 
@@ -461,8 +461,10 @@ subtype.ext (subtype.ext ((congr_arg _ v.1.2.symm).trans v.1.1.rotate_length))
 
 end vectors_prod_eq_one
 
-lemma exists_prime_order_of_dvd_card {G : Type*} [group G] [fintype G] (p : ℕ) [hp : fact p.prime]
-  (hdvd : p ∣ fintype.card G) : ∃ x : G, order_of x = p :=
+/-- For every prime `p` dividing the order of a finite group `G` there exists an element of order
+`p` in `G`. This is known as Cauchy's theorem. -/
+lemma _root_.exists_prime_order_of_dvd_card {G : Type*} [group G] [fintype G] (p : ℕ)
+  [hp : fact p.prime] (hdvd : p ∣ fintype.card G) : ∃ x : G, order_of x = p :=
 begin
   have hp' : p - 1 ≠ 0 := mt tsub_eq_zero_iff_le.mp (not_le_of_lt hp.out.one_lt),
   have Scard := calc p ∣ fintype.card G ^ (p - 1) : hdvd.trans (dvd_pow (dvd_refl _) hp')
@@ -488,6 +490,14 @@ begin
   { rw [subtype.ext_iff_val, subtype.ext_iff_val, hg, hg', v.1.2],
     refl },
 end
+
+/-- For every prime `p` dividing the order of a finite additive group `G` there exists an element of
+order `p` in `G`. This is the additive version of Cauchy's theorem. -/
+lemma _root_.exists_prime_add_order_of_dvd_card {G : Type*} [add_group G] [fintype G] (p : ℕ)
+  [hp : fact p.prime] (hdvd : p ∣ fintype.card G) : ∃ x : G, add_order_of x = p :=
+@exists_prime_order_of_dvd_card (multiplicative G) _ _ _ _ hdvd
+
+attribute [to_additive exists_prime_add_order_of_dvd_card] exists_prime_order_of_dvd_card
 
 end cauchy
 

@@ -110,7 +110,7 @@ lemma pred_true_of_cond_count_eq_one (h : cond_count s t = 1) :
 begin
   have hsf := finite_of_cond_count_ne_zero (by { rw h, exact one_ne_zero }),
   rw [cond_count, cond_apply _ hsf.measurable_set, mul_comm] at h,
-  replace h := ennreal.eq_inv_of_mul_eq_one h,
+  replace h := ennreal.eq_inv_of_mul_eq_one_left h,
   rw [inv_inv, measure.count_apply_finite _ hsf,
     measure.count_apply_finite _ (hsf.inter_of_left _), nat.cast_inj] at h,
   suffices : s ∩ t = s,

@@ -205,7 +205,13 @@ begin
   exact tendsto.comp h tendsto_comap
 end
 
-@[to_additive] lemma uniform_continuous_of_continuous_at_one {hom : Type*}
+/-- A group homomorphism (a bundled morphism of a type that implements `monoid_hom_class`) between
+two uniform groups is uniformly continuous provided that it is continuous at one. See also
+`continuous_of_continuous_at_one`. -/
+@[to_additive "An additive group homomorphism (a bundled morphism of a type that implements
+`add_monoid_hom_class`) between two uniform additive groups is uniformly continuous provided that it
+is continuous at zero. See also `continuous_of_continuous_at_zero`."]
+lemma uniform_continuous_of_continuous_at_one {hom : Type*}
   [uniform_space β] [group β] [uniform_group β] [monoid_hom_class hom α β]
   (f : hom) (hf : continuous_at f 1) :
   uniform_continuous f :=
@@ -383,7 +389,7 @@ begin
   { apply subset.antisymm,
     { intros x x_in,
       have := group_separation_rel x 1,
-      rw div_one' at this,
+      rw div_one at this,
       rw [← this, h] at x_in,
       change x = 1 at x_in,
       simp [x_in] },

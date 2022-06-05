@@ -458,21 +458,21 @@ instance decidable_mem_incidence_set [decidable_eq V] [decidable_rel G.adj] (v :
 /--
 The `edge_set` of the graph as a `finset`.
 -/
-def edge_finset [decidable_eq V] [fintype V] [decidable_rel G.adj] : finset (sym2 V) :=
+@[reducible] def edge_finset [fintype G.edge_set] : finset (sym2 V) :=
 set.to_finset G.edge_set
 
-@[simp] lemma mem_edge_finset [decidable_eq V] [fintype V] [decidable_rel G.adj] (e : sym2 V) :
+@[simp] lemma mem_edge_finset [fintype G.edge_set] (e : sym2 V) :
   e ∈ G.edge_finset ↔ e ∈ G.edge_set :=
 set.mem_to_finset
 
-@[simp] lemma edge_set_univ_card [decidable_eq V] [fintype V] [decidable_rel G.adj] :
+lemma edge_finset_card [fintype G.edge_set] : G.edge_finset.card = fintype.card G.edge_set :=
+set.to_finset_card _
+
+@[simp] lemma edge_set_univ_card [fintype G.edge_set] :
   (univ : finset G.edge_set).card = G.edge_finset.card :=
 fintype.card_of_subtype G.edge_finset (mem_edge_finset _)
 
 @[simp] lemma mem_neighbor_set (v w : V) : w ∈ G.neighbor_set v ↔ G.adj v w :=
-iff.rfl
-
-@[simp] lemma mem_neighbor_set' (v w : V) : G.neighbor_set v w ↔ G.adj v w :=
 iff.rfl
 
 @[simp] lemma mem_incidence_set (v w : V) : ⟦(v, w)⟧ ∈ G.incidence_set v ↔ G.adj v w :=
@@ -752,7 +752,7 @@ by { ext, simp }
 
 lemma neighbor_finset_compl [decidable_eq V] [decidable_rel G.adj] (v : V) :
   Gᶜ.neighbor_finset v = (G.neighbor_finset v)ᶜ \ {v} :=
-by simp only [neighbor_finset, neighbor_set_compl, set.to_finset_sdiff, set.to_finset_compl,
+by simp only [neighbor_finset, neighbor_set_compl, set.to_finset_diff, set.to_finset_compl,
     set.to_finset_singleton]
 
 @[simp]
@@ -914,17 +914,17 @@ begin
   { rw finset.insert_subset,
     split,
     { simpa, },
-    { rw [neighbor_finset, ← set.subset_iff_to_finset_subset],
+    { rw [neighbor_finset, set.to_finset_mono],
       exact G.common_neighbors_subset_neighbor_set_left _ _ } }
 end
 
 lemma card_common_neighbors_top [decidable_eq V] {v w : V} (h : v ≠ w) :
   fintype.card ((⊤ : simple_graph V).common_neighbors v w) = fintype.card V - 2 :=
 begin
-  simp only [common_neighbors_top_eq, ← set.to_finset_card, set.to_finset_sdiff],
+  simp only [common_neighbors_top_eq, ← set.to_finset_card, set.to_finset_diff],
   rw finset.card_sdiff,
   { simp [finset.card_univ, h], },
-  { simp only [←set.subset_iff_to_finset_subset, set.subset_univ] },
+  { simp only [set.to_finset_mono, set.subset_univ] },
 end
 
 end finite
@@ -986,6 +986,7 @@ def map_dart (d : G.dart) : G'.dart := ⟨d.1.map f f, f.map_adj d.2⟩
 @[simp] lemma map_dart_apply (d : G.dart) : f.map_dart d = ⟨d.1.map f f, f.map_adj d.2⟩ := rfl
 
 /-- The induced map for spanning subgraphs, which is the identity on vertices. -/
+@[simps]
 def map_spanning_subgraphs {G G' : simple_graph V} (h : G ≤ G') : G →g G' :=
 { to_fun := λ x, x,
   map_rel' := h }
@@ -1039,7 +1040,8 @@ map_adj_iff f
   end }
 
 /-- Embeddings of types induce embeddings of complete graphs on those types. -/
-def complete_graph.of_embedding {α β : Type*} (f : α ↪ β) : complete_graph α ↪g complete_graph β :=
+protected def complete_graph {α β : Type*} (f : α ↪ β) :
+  (⊤ : simple_graph α) ↪g (⊤ : simple_graph β) :=
 { to_fun := f,
   inj' := f.inj',
   map_rel_iff' := by simp }

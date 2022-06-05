@@ -729,6 +729,19 @@ begin
   rw [sub_add_cancel, ← add_mod_mod, sub_add_cancel, mod_mod]
 end
 
+protected theorem div_mod_unique {a b r q : ℤ} (h : 0 < b) :
+  a / b = q ∧ a % b = r ↔ r + b * q = a ∧ 0 ≤ r ∧ r < b :=
+begin
+  split,
+  { rintro ⟨rfl, rfl⟩,
+    exact ⟨mod_add_div a b, mod_nonneg _ h.ne.symm, mod_lt_of_pos _ h⟩, },
+  { rintro ⟨rfl, hz, hb⟩,
+    split,
+    { rw [int.add_mul_div_left r q (ne_of_gt h), div_eq_zero_of_lt hz hb],
+      simp, },
+    { rw [add_mul_mod_self_left, mod_eq_of_lt hz hb] } },
+end
+
 /-! ### properties of `/` and `%` -/
 
 @[simp] theorem mul_div_mul_of_pos {a : ℤ} (b c : ℤ) (H : 0 < a) : a * b / (a * c) = b / c :=
@@ -912,6 +925,13 @@ end
 
 lemma sub_div_of_dvd_sub {a b c : ℤ} (hcab : c ∣ (a - b)) : (a - b) / c = a / c - b / c :=
 by rw [eq_sub_iff_add_eq, ← int.add_div_of_dvd_left hcab, sub_add_cancel]
+
+@[simp]
+protected lemma div_left_inj {a b d : ℤ} (hda : d ∣ a) (hdb : d ∣ b) : a / d = b / d ↔ a = b :=
+begin
+  refine ⟨λ h, _, congr_arg _⟩,
+  rw [←int.mul_div_cancel' hda, ←int.mul_div_cancel' hdb, h],
+end
 
 lemma nat_abs_sign (z : ℤ) :
   z.sign.nat_abs = if z = 0 then 0 else 1 :=
@@ -1295,6 +1315,13 @@ begin
   { exact is_unit_one.neg }
 end
 
+lemma is_unit_eq_or_eq_neg {a b : ℤ} (ha : is_unit a) (hb : is_unit b) : a = b ∨ a = -b :=
+begin
+  rcases is_unit_eq_one_or hb with rfl | rfl,
+  { exact is_unit_eq_one_or ha },
+  { rwa [or_comm, neg_neg, ←is_unit_iff] },
+end
+
 lemma eq_one_or_neg_one_of_mul_eq_one {z w : ℤ} (h : z * w = 1) : z = 1 ∨ z = -1 :=
 is_unit_iff.mp (is_unit_of_mul_eq_one z w h)
 
@@ -1309,6 +1336,8 @@ end
 
 theorem is_unit_iff_nat_abs_eq {n : ℤ} : is_unit n ↔ n.nat_abs = 1 :=
 by simp [nat_abs_eq_iff, is_unit_iff]
+
+alias is_unit_iff_nat_abs_eq ↔ is_unit.nat_abs_eq _
 
 lemma is_unit_iff_abs_eq {x : ℤ} : is_unit x ↔ abs x = 1 :=
 by rw [is_unit_iff_nat_abs_eq, abs_eq_nat_abs, ←int.coe_nat_one, coe_nat_inj']
@@ -1583,6 +1612,13 @@ begin
   rw [←abs_lt_one_iff, ←mul_lt_iff_lt_one_right (abs_pos.mpr hm), ←abs_mul],
   exact lt_of_lt_of_le h2 (le_abs_self m),
 end
+
+lemma sq_eq_one_of_sq_lt_four {x : ℤ} (h1 : x ^ 2 < 4) (h2 : x ≠ 0) : x ^ 2 = 1 :=
+sq_eq_one_iff.mpr ((abs_eq (@zero_le_one ℤ _)).mp (le_antisymm (lt_add_one_iff.mp
+  (abs_lt_of_sq_lt_sq h1 zero_le_two)) (sub_one_lt_iff.mp (abs_pos.mpr h2))))
+
+lemma sq_eq_one_of_sq_le_three {x : ℤ} (h1 : x ^ 2 ≤ 3) (h2 : x ≠ 0) : x ^ 2 = 1 :=
+sq_eq_one_of_sq_lt_four (lt_of_le_of_lt h1 (lt_add_one 3)) h2
 
 end int
 

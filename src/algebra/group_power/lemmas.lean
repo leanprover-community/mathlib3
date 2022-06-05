@@ -105,6 +105,36 @@ lemma zsmul_one [has_one A] (n : ℤ) : n • (1 : A) = n := by cases n; simp
 
 end sub_neg_monoid
 
+section division_monoid
+variables [division_monoid α]
+
+-- Note that `mul_zsmul` and `zpow_mul` have the primes swapped since their argument order,
+-- and therefore the more "natural" choice of lemma, is reversed.
+@[to_additive mul_zsmul'] lemma zpow_mul (a : α) : ∀ m n : ℤ, a ^ (m * n) = (a ^ m) ^ n
+| (m : ℕ) (n : ℕ) := by { rw [zpow_coe_nat, zpow_coe_nat, ← pow_mul, ← zpow_coe_nat], refl }
+| (m : ℕ) -[1+ n] := by { rw [zpow_coe_nat, zpow_neg_succ_of_nat, ← pow_mul, coe_nat_mul_neg_succ,
+    zpow_neg, inv_inj, ← zpow_coe_nat], refl }
+| -[1+ m] (n : ℕ) := by { rw [zpow_coe_nat, zpow_neg_succ_of_nat, ← inv_pow, ← pow_mul,
+    neg_succ_mul_coe_nat, zpow_neg, inv_pow, inv_inj, ← zpow_coe_nat], refl }
+| -[1+ m] -[1+ n] := by { rw [zpow_neg_succ_of_nat, zpow_neg_succ_of_nat, neg_succ_mul_neg_succ,
+    inv_pow, inv_inv, ← pow_mul, ← zpow_coe_nat], refl }
+
+@[to_additive mul_zsmul] lemma zpow_mul' (a : α) (m n : ℤ) : a ^ (m * n) = (a ^ n) ^ m :=
+by rw [mul_comm, zpow_mul]
+
+@[to_additive bit0_zsmul] lemma zpow_bit0 (a : α) : ∀ n : ℤ, a ^ bit0 n = a ^ n * a ^ n
+| (n : ℕ) := by simp only [zpow_coe_nat, ←int.coe_nat_bit0, pow_bit0]
+| -[1+n]  := by { simp [←mul_inv_rev, ←pow_bit0], rw [neg_succ_of_nat_eq, bit0_neg, zpow_neg],
+  norm_cast }
+
+@[to_additive bit0_zsmul'] lemma zpow_bit0' (a : α) (n : ℤ) : a ^ bit0 n = (a * a) ^ n :=
+(zpow_bit0 a n).trans ((commute.refl a).mul_zpow n).symm
+
+@[simp] lemma zpow_bit0_neg [has_distrib_neg α] (x : α) (n : ℤ) : (-x) ^ (bit0 n) = x ^ bit0 n :=
+by rw [zpow_bit0', zpow_bit0', neg_mul_neg]
+
+end division_monoid
+
 section group
 variables [group G]
 
@@ -145,23 +175,8 @@ by rw [sub_eq_add_neg, zpow_add, zpow_neg]
 theorem zpow_one_add (a : G) (i : ℤ) : a ^ (1 + i) = a * a ^ i :=
 by rw [zpow_add, zpow_one]
 
-@[to_additive]
-theorem zpow_mul_comm (a : G) (i j : ℤ) : a ^ i * a ^ j = a ^ j * a ^ i :=
-by rw [← zpow_add, ← zpow_add, add_comm]
-
--- note that `mul_zsmul` and `zpow_mul` have the primes swapped since their argument order
--- and therefore the more "natural" choice of lemma is reversed.
-@[to_additive mul_zsmul']
-theorem zpow_mul (a : G) (m n : ℤ) : a ^ (m * n) = (a ^ m) ^ n :=
-int.induction_on n (by simp) (λ n ihn, by simp [mul_add, zpow_add, ihn])
-  (λ n ihn, by simp only [mul_sub, zpow_sub, ihn, mul_one, zpow_one])
-
-@[to_additive mul_zsmul]
-theorem zpow_mul' (a : G) (m n : ℤ) : a ^ (m * n) = (a ^ n) ^ m :=
-by rw [mul_comm, zpow_mul]
-
-@[to_additive bit0_zsmul]
-theorem zpow_bit0 (a : G) (n : ℤ) : a ^ bit0 n = a ^ n * a ^ n := zpow_add _ _ _
+@[to_additive] lemma zpow_mul_comm (a : G) (i j : ℤ) : a ^ i * a ^ j = a ^ j * a ^ i :=
+(commute.refl _).zpow_zpow _ _
 
 @[to_additive bit1_zsmul]
 theorem zpow_bit1 (a : G) (n : ℤ) : a ^ bit1 n = a ^ n * a ^ n * a :=

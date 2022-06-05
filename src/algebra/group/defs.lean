@@ -688,9 +688,6 @@ division_monoid.mul_inv_rev _ _
 @[to_additive]
 lemma inv_eq_of_mul_eq_one_right : a * b = 1 → a⁻¹ = b := division_monoid.inv_eq_of_mul _ _
 
-@[simp, to_additive]
-lemma inv_eq_of_mul_eq_one : a * b = 1 → a⁻¹ = b := division_monoid.inv_eq_of_mul _ _
-
 end division_monoid
 
 /-- Commutative `subtraction_monoid`. -/

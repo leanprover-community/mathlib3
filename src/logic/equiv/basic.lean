@@ -1186,6 +1186,14 @@ def arrow_prod_equiv_prod_arrow (α β γ : Type*) : (γ → α × β) ≃ (γ �
  λ f, funext $ λ c, prod.mk.eta,
  λ p, by { cases p, refl }⟩
 
+/-- The type of functions to a product `Π i, α i` is equivalent to the product `Π i, γ → α i`. -/
+def arrow_Pi_equiv_Pi_arrow {ι : Sort*} (α : ι → Sort*) (γ : Sort*) :
+  (γ → Π i, α i) ≃ Π i, γ → α i :=
+⟨function.swap,
+ function.swap,
+ λ x, rfl,
+ λ y, rfl⟩
+
 open sum
 /-- The type of functions on a sum type `α ⊕ β` is equivalent to the type of pairs of functions
 on `α` and on `β`. -/

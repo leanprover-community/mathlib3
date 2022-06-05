@@ -33,7 +33,7 @@ noncomputable theory
 
 namespace complex
 
-open_locale complex_conjugate
+open_locale complex_conjugate topological_space
 
 instance : has_norm ℂ := ⟨abs⟩
 
@@ -76,6 +76,8 @@ by simp only [dist_eq, sub_conj, of_real_mul, of_real_bit0, of_real_one, abs_mul
 
 lemma dist_conj_self (z : ℂ) : dist (conj z) z = 2 * |z.im| :=
 by rw [dist_comm, dist_self_conj]
+
+@[simp] lemma comap_abs_nhds_zero : filter.comap abs (𝓝 0) = 𝓝 0 := comap_norm_nhds_zero
 
 @[simp] lemma norm_real (r : ℝ) : ∥(r : ℂ)∥ = ∥r∥ := abs_of_real _
 

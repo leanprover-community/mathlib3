@@ -921,6 +921,14 @@ def Pi_congr_right {α} {β₁ β₂ : α → Sort*} (F : Π a, β₁ a ≃ β�
 ⟨λ H a, F a (H a), λ H a, (F a).symm (H a),
  λ H, funext $ by simp, λ H, funext $ by simp⟩
 
+/-- Given `φ : α → β → Sort*`, we have an equivalence between `Π a b, φ a b` and `Π b a, φ a b`.
+This is `function.swap` as an `equiv`. -/
+def Pi_comm {α β} {φ : α → β → Sort*} : (Π a b, φ a b) ≃ (Π b a, φ a b) :=
+⟨function.swap,
+ function.swap,
+ λ x, rfl,
+ λ y, rfl⟩
+
 /-- Dependent `curry` equivalence: the type of dependent functions on `Σ i, β i` is equivalent
 to the type of dependent functions of two arguments (i.e., functions to the space of functions).
 
@@ -1185,14 +1193,6 @@ def arrow_prod_equiv_prod_arrow (α β γ : Type*) : (γ → α × β) ≃ (γ �
  λ p c, (p.1 c, p.2 c),
  λ f, funext $ λ c, prod.mk.eta,
  λ p, by { cases p, refl }⟩
-
-/-- The type of functions to a product `Π i, α i` is equivalent to the product `Π i, γ → α i`. -/
-def arrow_Pi_equiv_Pi_arrow {ι : Sort*} (α : ι → Sort*) (γ : Sort*) :
-  (γ → Π i, α i) ≃ Π i, γ → α i :=
-⟨function.swap,
- function.swap,
- λ x, rfl,
- λ y, rfl⟩
 
 open sum
 /-- The type of functions on a sum type `α ⊕ β` is equivalent to the type of pairs of functions

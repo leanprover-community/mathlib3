@@ -27,27 +27,15 @@ See also `add_monoid_hom.to_rat_linear_map`. -/
 lemma add_monoid_hom.is_linear_map_rat (f : ℝ →+ ℝ) : is_linear_map ℚ f :=
 ⟨map_add f, map_rat_cast_smul f ℝ ℝ⟩
 
--- should this one get generalised?
-lemma exists_real_preimage_ball_pos_volume (f : ℝ → ℝ) : ∃ r z : ℝ, 0 < volume (f⁻¹' (ball z r)) :=
-begin
-  have : measure_space.volume (f ⁻¹' univ) = ⊤ := real.volume_univ,
-  by_contra' hf,
-  simp only [nonpos_iff_eq_zero] at hf,
-  have hrat : (⋃ (q : ℚ), ball (0 : ℝ) q) = univ,
-  { exact eq_univ_of_forall (λ x, mem_Union.2 $ (exists_rat_gt _).imp $ λ _, mem_ball_zero_iff.2)},
-  simp only [←hrat, preimage_Union] at this,
-  have htop : ⊤ ≤ ∑' (i : ℚ), measure_space.volume ((λ (q : ℚ), f ⁻¹' ball 0 ↑q) i),
-  { rw ←this,
-    exact measure_Union_le (λ q : ℚ, f⁻¹' (ball (0 : ℝ) q)) },
-  simp only [hf, tsum_zero, nonpos_iff_eq_zero, ennreal.top_ne_zero] at htop,
-  exact htop
-end
+lemma measure_theory.measure.ne_zero {X : Type*} [nonempty X] [topological_space X]
+  {m : measurable_space X} (μ : measure X) [μ.is_open_pos_measure] : μ ≠ 0 :=
+λ h, is_open_univ.measure_ne_zero μ univ_nonempty $ by rw [h, coe_zero, pi.zero_apply]
 
 lemma exists_zero_nhds_bounded (f : ℝ →+ ℝ) (h : measurable f) :
   ∃ s, s ∈ 𝓝 (0 : ℝ) ∧ bounded (f '' s) :=
 begin
-  obtain ⟨r, z, hfr⟩ := exists_real_preimage_ball_pos_volume f,
-  refine ⟨_, sub_mem_nhds_zero_of_add_haar_pos volume (f⁻¹' ball z r) (h $ measurable_set_ball) hfr,
+  obtain ⟨r, hr⟩ := exists_pos_preimage_ball f (0 : ℝ) volume.ne_zero,
+  refine ⟨_, sub_mem_nhds_zero_of_add_haar_pos volume (f ⁻¹' ball 0 r) (h $ measurable_set_ball) hr,
     _⟩,
   rw image_sub,
   exact (bounded_ball.mono $ image_preimage_subset _ _).sub

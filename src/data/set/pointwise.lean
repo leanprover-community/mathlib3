@@ -769,14 +769,14 @@ end big_operators
 section smul
 
 /-- The dilation of set `x • s` is defined as `{x • y | y ∈ s}` in locale `pointwise`. -/
-@[to_additive has_vadd_set "The translation of set `x +ᵥ s` is defined as `{x +ᵥ y | y ∈ s}` in
+@[to_additive "The translation of set `x +ᵥ s` is defined as `{x +ᵥ y | y ∈ s}` in
 locale `pointwise`."]
 protected def has_smul_set [has_smul α β] : has_smul α (set β) :=
 ⟨λ a, image (has_smul.smul a)⟩
 
 /-- The pointwise scalar multiplication of sets `s • t` is defined as `{x • y | x ∈ s, y ∈ t}` in
 locale `pointwise`. -/
-@[to_additive has_vadd "The pointwise scalar addition of sets `s +ᵥ t` is defined as
+@[to_additive "The pointwise scalar addition of sets `s +ᵥ t` is defined as
 `{x +ᵥ y | x ∈ s, y ∈ t}` in locale `pointwise`."]
 protected def has_smul [has_smul α β] : has_smul (set α) (set β) :=
 ⟨image2 has_smul.smul⟩

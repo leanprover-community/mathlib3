@@ -162,7 +162,7 @@ namespace function
 
 /-- Non-dependent version of `pi.has_smul`. Lean gets confused by the dependent instance if this
 is not present. -/
-@[to_additive has_vadd]
+@[to_additive]
 instance has_smul {ι R M : Type*} [has_smul R M] :
   has_smul R (ι → M) :=
 pi.has_smul

@@ -92,7 +92,7 @@ section has_smul
 
 variable [has_smul M X]
 
-@[to_additive has_vadd] instance : has_smul M (completion X) :=
+@[to_additive] instance : has_smul M (completion X) :=
 ⟨λ c, completion.map ((•) c)⟩
 
 @[to_additive] instance : has_uniform_continuous_const_smul M (completion X) :=

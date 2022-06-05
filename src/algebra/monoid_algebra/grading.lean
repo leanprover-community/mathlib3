@@ -95,7 +95,7 @@ instance grade_by.graded_monoid [add_monoid M] [add_monoid ι] [comm_semiring R]
     { rw [H , finsupp.single_zero] at h,
       exfalso,
       exact h },
-    { rw [finsupp.support_single_ne_zero H, finset.mem_singleton] at h,
+    { rw [finsupp.support_single_ne_zero _ H, finset.mem_singleton] at h,
       rw [h, add_monoid_hom.map_zero] }
   end,
   mul_mem := λ i j a b ha hb c hc, begin
@@ -156,12 +156,12 @@ begin
     exact add_monoid_hom.map_zero _ },
   { intros m b y hmy hb ih hmby,
     have : disjoint (finsupp.single m b).support y.support,
-    { simpa only [finsupp.support_single_ne_zero hb, finset.disjoint_singleton_left] },
+    { simpa only [finsupp.support_single_ne_zero _ hb, finset.disjoint_singleton_left] },
     rw [mem_grade_by_iff, finsupp.support_add_eq this, finset.coe_union,
       set.union_subset_iff] at hmby,
     cases hmby with h1 h2,
     have : f m = i,
-    { rwa [finsupp.support_single_ne_zero hb, finset.coe_singleton,
+    { rwa [finsupp.support_single_ne_zero _ hb, finset.coe_singleton,
         set.singleton_subset_iff] at h1 },
     subst this,
     simp only [alg_hom.map_add, submodule.coe_mk, decompose_aux_single f m],

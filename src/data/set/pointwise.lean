@@ -137,7 +137,7 @@ inv_involutive.surjective.nonempty_preimage
 
 @[to_additive] lemma nonempty.inv (h : s.nonempty) : s⁻¹.nonempty := nonempty_inv.2 h
 
-@[to_additive] lemma finite.inv (hs : finite s) : finite s⁻¹ :=
+@[to_additive] lemma finite.inv (hs : s.finite) : s⁻¹.finite :=
 hs.preimage $ inv_injective.inj_on _
 
 @[simp, to_additive]
@@ -257,7 +257,7 @@ lemma mul_Inter₂_subset (s : set α) (t : Π i, κ i → set α) :
   s * (⋂ i j, t i j) ⊆ ⋂ i j, s * t i j :=
 image2_Inter₂_subset_right _ _ _
 
-@[to_additive] lemma finite.mul : finite s → finite t → finite (s * t) := finite.image2 _
+@[to_additive] lemma finite.mul : s.finite → t.finite → (s * t).finite := finite.image2 _
 
 /-- Multiplication preserves finiteness. -/
 @[to_additive "Addition preserves finiteness."]
@@ -607,6 +607,10 @@ by simp [not_disjoint_iff_nonempty_inter, mem_div, div_eq_one, set.nonempty]
 @[to_additive] lemma not_one_mem_div_iff : (1 : α) ∉ s / t ↔ disjoint s t :=
 one_mem_div_iff.not_left
 
+alias not_one_mem_div_iff ↔ _ disjoint.one_not_mem_div_set
+
+attribute [to_additive] disjoint.one_not_mem_div_set
+
 @[to_additive] lemma nonempty.one_mem_div (h : s.nonempty) : (1 : α) ∈ s / s :=
 let ⟨a, ha⟩ := h in mem_div.2 ⟨a, a, ha, ha, div_self' _⟩
 
@@ -857,7 +861,7 @@ lemma smul_Inter₂_subset (s : set α) (t : Π i, κ i → set β) :
   s • (⋂ i j, t i j) ⊆ ⋂ i j, s • t i j :=
 image2_Inter₂_subset_right _ _ _
 
-@[to_additive] lemma finite.smul : finite s → finite t → finite (s • t) := finite.image2 _
+@[to_additive] lemma finite.smul : s.finite → t.finite → (s • t).finite := finite.image2 _
 
 end has_scalar
 
@@ -900,7 +904,7 @@ lemma smul_set_Inter₂_subset (a : α) (t : Π i, κ i → set β) :
 image_Inter₂_subset _ _
 
 @[to_additive] lemma nonempty.smul_set : s.nonempty → (a • s).nonempty := nonempty.image _
-@[to_additive] lemma finite.smul_set : finite s → finite (a • s) := finite.image _
+@[to_additive] lemma finite.smul_set : s.finite → (a • s).finite := finite.image _
 
 end has_scalar_set
 
@@ -1070,7 +1074,7 @@ lemma vsub_Inter₂_subset (s : set β) (t : Π i, κ i → set β) :
   s -ᵥ (⋂ i j, t i j) ⊆ ⋂ i j, s -ᵥ t i j :=
 image2_Inter₂_subset_right _ _ _
 
-lemma finite.vsub (hs : finite s) (ht : finite t) : finite (s -ᵥ t) := hs.image2 _ ht
+lemma finite.vsub (hs : s.finite) (ht : t.finite) : set.finite (s -ᵥ t) := hs.image2 _ ht
 
 end vsub
 

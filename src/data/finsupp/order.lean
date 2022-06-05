@@ -137,7 +137,7 @@ instance : has_ordered_sub (ι →₀ α) := ⟨λ n m k, forall_congr $ λ x, t
 
 instance : canonically_ordered_add_monoid (ι →₀ α) :=
 { exists_add_of_le := λ f g h, ⟨g - f, funext $ λ x, (add_tsub_cancel_of_le $ h x).symm⟩
-  le_add := λ f g x, le_self_add,
+  le_self_add := λ f g x, le_self_add,
  .. finsupp.order_bot,
  .. finsupp.ordered_add_comm_monoid }
 

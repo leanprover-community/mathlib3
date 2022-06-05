@@ -94,7 +94,7 @@ instance [comm_semigroup α] : non_unital_comm_semiring (set_semiring α) :=
 instance [comm_monoid α] : canonically_ordered_comm_semiring (set_semiring α) :=
 { add_le_add_left := λ a b, add_le_add_left,
   exists_add_of_le := λ a b ab, ⟨b, (union_eq_right_iff_subset.2 ab).symm⟩,
-  le_add := subset_union_left _ _,
+  le_self_add := subset_union_left,
   ..set_semiring.semiring, ..set.comm_monoid, ..set_semiring.partial_order _,
   ..set_semiring.order_bot _, ..set_semiring.no_zero_divisors }
 

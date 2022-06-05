@@ -179,7 +179,7 @@ instance : has_ordered_sub (Π₀ i, α i) :=
 instance : canonically_ordered_add_monoid (Π₀ i, α i) :=
 { exists_add_of_le := λ f g h, ⟨g - f,
     by { ext i, rw [add_apply, tsub_apply], exact (add_tsub_cancel_of_le $ h i).symm }⟩,
-  le_add := λ f g i, by { rw add_apply, exact le_self_add },
+  le_self_add := λ f g i, by { rw add_apply, exact le_self_add },
  .. dfinsupp.order_bot α,
  .. dfinsupp.ordered_add_comm_monoid α }
 

@@ -302,7 +302,7 @@ instance : ordered_add_comm_monoid enat :=
   ..enat.add_comm_monoid }
 
 instance : canonically_ordered_add_monoid enat :=
-{ le_add := λ a b, enat.cases_on b (le_top.trans_eq (add_top _).symm) $ λ b, enat.cases_on a
+{ le_self_add := λ a b, enat.cases_on b (le_top.trans_eq (add_top _).symm) $ λ b, enat.cases_on a
     (top_add _).ge $ λ a, (coe_le_coe.2 le_self_add).trans_eq (nat.cast_add _ _),
   exists_add_of_le := λ a b, enat.cases_on b (λ _, ⟨⊤, (add_top _).symm⟩) $ λ b, enat.cases_on a
     (λ h, ((coe_lt_top _).not_le h).elim) $ λ a h, ⟨(b - a : ℕ),

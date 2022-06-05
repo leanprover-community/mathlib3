@@ -431,7 +431,7 @@ instance : order_bot (multiset α) :=
   bot_le                := multiset.zero_le }
 
 instance : canonically_ordered_add_monoid (multiset α) :=
-{ le_add := le_add_right,
+{ le_self_add := le_add_right,
   exists_add_of_le := λ a b h, le_induction_on h $ λ l₁ l₂ s,
     let ⟨l, p⟩ := s.exists_perm_append in ⟨l, quot.sound p⟩,
   ..multiset.order_bot,

@@ -424,7 +424,7 @@ instance with_zero.has_exists_add_of_le {α} [has_add α] [preorder α] [has_exi
 /-- Adding a new zero to a canonically ordered additive monoid produces another one. -/
 instance with_zero.canonically_ordered_add_monoid {α : Type u} [canonically_ordered_add_monoid α] :
   canonically_ordered_add_monoid (with_zero α) :=
-{ le_add := λ a b, begin
+{ le_self_add := λ a b, begin
     apply with_zero.cases_on a,
     { exact bot_le },
     apply with_zero.cases_on b,
@@ -1023,7 +1023,7 @@ instance [has_le α] [has_add α] [has_exists_add_of_le α] : has_exists_add_of_
   end⟩
 
 instance [canonically_ordered_add_monoid α] : canonically_ordered_add_monoid (with_top α) :=
-{ le_add := λ a b, match a, b with
+{ le_self_add := λ a b, match a, b with
   | ⊤, ⊤ := le_rfl
   | (a : α), ⊤ := le_top
   | (a : α), (b : α) := with_top.coe_le_coe.2 le_self_add
@@ -1251,7 +1251,7 @@ instance [canonically_ordered_add_monoid α] : canonically_ordered_monoid (multi
   ..multiplicative.has_exists_mul_of_le }
 
 instance [canonically_ordered_monoid α] : canonically_ordered_add_monoid (additive α) :=
-{ le_add := @le_self_mul α _,
+{ le_self_add := @le_self_mul α _,
   ..additive.ordered_add_comm_monoid, ..additive.order_bot, ..additive.has_exists_add_of_le }
 
 instance [canonically_linear_ordered_add_monoid α] :

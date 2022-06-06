@@ -38,7 +38,7 @@ One can also map all the ordinals into the surreals!
 The proof that multiplication lifts to surreal numbers is surprisingly difficult and relies on an
 intricate inductive argument, where three theorems `P1`, `P2` and `P4` with different numbers of
 arguments (either 2 or 3) needs to be shown simultaneously. We define a single type
-`pgame.numeric.args_ty` that encompasses both types of arguments. The proof is carried out with
+`pgame.thm8.args` that encompasses both types of arguments. The proof is carried out with
 auxiliary definitions and lemmas under `namespace thm8`.
 
 ## References
@@ -70,6 +70,8 @@ lemma numeric.move_left {x : pgame} (o : numeric x) (i : x.left_moves) :
   numeric (x.move_left i) := by { cases x, exact o.2.1 i }
 lemma numeric.move_right {x : pgame} (o : numeric x) (j : x.right_moves) :
   numeric (x.move_right j) := by { cases x, exact o.2.2 j }
+lemma numeric.is_option {x' x} (h : is_option x' x) (hx : numeric x) : numeric x' :=
+by { cases h, apply hx.move_left, apply hx.move_right }
 
 @[elab_as_eliminator]
 theorem numeric_rec {C : pgame → Prop}
@@ -211,6 +213,465 @@ begin
   simpa using λ i, IH _ (ordinal.to_left_moves_to_pgame_symm_lt i)
 end
 
+/-!
+## Surreal multiplication
+
+This section carries out the main inductive argument that proves the following three main theorems:
+* P1: being numeric is closed under multiplication,
+* P2: multiplying a numeric pregame by equivalent numeric pregames results in equivalent pregames,
+* P3: the product of two positive numeric pregames is positive (`mul_pos`).
+
+This is Theorem 8 in [conway2001], or Theorem 3.8 in [schleicher_stoll]. P1 allows us to define
+multiplication as an operation on numeric pregames, P2 says that this is well-defined as an
+operation on the quotient by `pgame.equiv`, namely the surreal numbers, and P3 is an axiom that
+needs to be satisfied for the surreals to be a `ordered_ring`.
+
+We follow the proof in [schleicher_stoll], except that we use the well-foundedness of
+the hydra relation `cut_expand` on `multiset pgame` instead of the argument based
+on a depth function in the paper.
+
+In the argument, P3 is stated with four variables `x₁, x₂, y₁, y₂` satisfying `x₁ < x₂` and
+`y₁ < y₂`, and says that `x₁ * y₂ + x₂ * x₁ < x₁ * y₁ + x₂ * y₂`, which is equivalent to
+`0 < x₂ - x₁ → 0 < y₂ - y₁ → 0 < (x₂ - x₁) * (y₂ - y₁)`, i.e.
+`@mul_pos pgame _ (x₂ - x₁) (y₂ - y₁)`. It has to be stated in this form and not in terms of
+`mul_pos` because we needs show P1, P2 and (a specialized form of) P3 simultaneously, and for
+example `P1 x y` will be deduced from P3 with variables taking values simpler than `x` or `y`
+(among other induction hypotheses), but if you subtract two pregames simpler than `x` or `y`,
+the result may no longer be simpler.
+
+The specialized version of P3 is called P4, which takes only three arguments `x₁, x₂, y` and
+requires that `y₂ = y` or `-y` and that `y₁` is a left option of `y₂`. After P1, P2 and P4 are
+shown, a further inductive argument (this time using the `game_add` relation) proves P3 in full.
+
+Our proof features a clear separation of
+* calculation (e.g. ...),
+* application of indution hypothesis,
+* symmetry verification,
+* verification of `cut_expand` relations,
+* `numeric` hypotheses.
+and we utilize symmetry to minimize calculation.
+
+  strategy: extract specialized versions of the induction hypothesis that easier to apply
+  (example: `ih1`, ...),
+  show they are invariant under certain symmetries (permutation and negation of variables),
+  and that the induction hypothesis indeed implies the restricted versions.
+  (Actually the induction hypotheses themselves already have those symmetries ...)
+
+  add the numeric hypothesis only at the last moment ..
+  -/
+
+/- ihr' -> ih24, ihr'' -> ih4, ihr -> ih1, hyp -> P124, P3cond -> ih3 -/
+/- specialization of induction hypothesis -/
+
+namespace thm8
+
+/-- The nontrivial part of P1 says that the left options of `x * y` are less than the right options,
+  and this is the general form of these statements. -/
+def P1 (x₁ x₂ x₃ y₁ y₂ y₃ : pgame) :=
+⟦x₁ * y₁⟧ + ⟦x₂ * y₂⟧ - ⟦x₁ * y₂⟧ < ⟦x₃ * y₁⟧ + ⟦x₂ * y₃⟧ - ⟦x₃ * y₃⟧
+
+/-- The proposition P2, without numeric assumptions. -/
+def P2 (x₁ x₂ y : pgame) := x₁ ≈ x₂ → ⟦x₁ * y⟧ = ⟦x₂ * y⟧
+
+/-- The proposition P3, without the `x₁ < x₂` and `y₁ < y₂` assumptions. -/
+def P3 (x₁ x₂ y₁ y₂ : pgame) := ⟦x₁ * y₂⟧ + ⟦x₂ * y₁⟧ < ⟦x₁ * y₁⟧ + ⟦x₂ * y₂⟧
+
+/-- The proposition P4, without numeric assumptions. -/
+def P4 (x₁ x₂ y : pgame) :=
+x₁ < x₂ → (∀ i, P3 x₁ x₂ (y.move_left i) y) ∧ ∀ j, P3 x₁ x₂ ((-y).move_left j) (-y)
+
+/-- The conjunction of P2 and P4. -/
+def P24 (x₁ x₂ y : pgame) : Prop := P2 x₁ x₂ y ∧ P4 x₁ x₂ y
+
+variables {x x₁ x₂ x₃ x' y y₁ y₂ y' : pgame.{u}}
+
+/-! ## Symmetry properties of P1, P2, P3, and P4. -/
+
+lemma P3_comm : P3 x₁ x₂ y₁ y₂ ↔ P3 y₁ y₂ x₁ x₂ :=
+by { rw [P3, P3, add_comm], congr' 3; rw quot_mul_comm }
+
+lemma P3.trans (h₁ : P3 x₁ x₂ y₁ y₂) (h₂ : P3 x₂ x₃ y₁ y₂) : P3 x₁ x₃ y₁ y₂ :=
+begin
+  rw P3 at h₁ h₂, rw [P3, ← add_lt_add_iff_left (⟦x₂ * y₁⟧ + ⟦x₂ * y₂⟧)],
+  convert add_lt_add h₁ h₂ using 1; abel,
+end
+
+lemma P3_neg : P3 x₁ x₂ y₁ y₂ ↔ P3 (-x₂) (-x₁) y₁ y₂ :=
+by { simp only [P3, quot_neg_mul], rw ← neg_lt_neg_iff, convert iff.rfl; abel }
+
+lemma P2_negx : P2 x₁ x₂ y ↔ P2 (-x₂) (-x₁) y :=
+iff.imp (by rw [equiv_comm, neg_equiv_iff]) (by rw [quot_neg_mul, quot_neg_mul, eq_comm, neg_inj])
+
+lemma P2_negy : P2 x₁ x₂ y ↔ P2 x₁ x₂ (-y) :=
+iff.rfl.imp $ by rw [quot_mul_neg, quot_mul_neg, neg_inj]
+
+lemma P4_negx : P4 x₁ x₂ y ↔ P4 (-x₂) (-x₁) y :=
+iff.imp (by rw neg_lt_iff) $ and_congr (forall_congr $ λ _, P3_neg) (forall_congr $ λ _, P3_neg)
+
+lemma P4_negy : P4 x₁ x₂ y ↔ P4 x₁ x₂ (-y) := iff.rfl.imp $ by rw [neg_neg, and_comm]
+
+lemma P24_negx : P24 x₁ x₂ y ↔ P24 (-x₂) (-x₁) y := by rw [P24, P24, P2_negx, P4_negx]
+lemma P24_negy : P24 x₁ x₂ y ↔ P24 x₁ x₂ (-y) := by rw [P24, P24, P2_negy, P4_negy]
+
+/-! ## Explicit calculations necessary for the main proof -/
+
+lemma mul_option_lt_iff_P1 {i j k l} :
+  ⟦mul_option x y i k⟧ < -⟦mul_option x (-y) j l⟧ ↔
+  P1 (x.move_left i) x (x.move_left j) y (y.move_left k) (-(-y).move_left l) :=
+begin
+  dsimp [mul_option, P1], convert iff.rfl using 2,
+  simp only [neg_sub', neg_add, quot_mul_neg, neg_neg],
+end
+
+lemma mul_option_lt_mul_iff_P3 {i j} :
+  ⟦mul_option x y i j⟧ < ⟦x * y⟧ ↔ P3 (x.move_left i) x (y.move_left j) y :=
+by { dsimp [mul_option], exact sub_lt_iff_lt_add' }
+
+lemma P1_of_eq {x₁ x₂ x₃ y₁ y₂ y₃} (h₁₃ : x₁ ≈ x₃) (h₁ : P2 x₁ x₃ y₁) (h₃ : P2 x₁ x₃ y₃)
+  (h3 : P3 x₁ x₂ y₂ y₃) : P1 x₁ x₂ x₃ y₁ y₂ y₃ :=
+begin
+  rw [P1, ← h₁ h₁₃, ← h₃ h₁₃, sub_lt_sub_iff],
+  convert add_lt_add_left h3 ⟦x₁ * y₁⟧ using 1; abel,
+end
+
+lemma P1_of_lt {x₁ x₂ x₃ y₁ y₂ y₃} (h₁ : P3 x₃ x₂ y₂ y₃) (h₂ : P3 x₁ x₃ y₂ y₁) :
+  P1 x₁ x₂ x₃ y₁ y₂ y₃ :=
+begin
+  rw [P1, sub_lt_sub_iff, ← add_lt_add_iff_left ⟦x₃ * y₂⟧],
+  convert (add_lt_add h₁ h₂) using 1; abel,
+end
+
+/-- The type of lists of arguments for P1, P2, and P4. -/
+inductive args : Type (u+1)
+| P1 (x y : pgame.{u}) : args
+| P24 (x₁ x₂ y : pgame.{u}) : args
+
+/-- The multiset associated to a list of arguments. -/
+def args.to_multiset : args → multiset pgame
+| (args.P1 x y) := {x, y}
+| (args.P24 x₁ x₂ y) := {x₁, x₂, y}
+
+def args.numeric (a : args) := ∀ x ∈ a.to_multiset, numeric x
+
+open relation
+
+/-- The relation specifying when a list of (pregame) arguments is considered simpler than another:
+  `args_rel a₁ a₂` is true if `a₁`, considered as a multiset, can be obtained from `a₂` by
+  repeatedly removing a pregame from `a₂` and adding back one or two options of the pregame.  -/
+def args_rel := inv_image (trans_gen $ cut_expand is_option) args.to_multiset
+
+/-- `args_rel` is well-founded. -/
+lemma args_rel_wf : well_founded args_rel := inv_image.wf _ wf_is_option.cut_expand.trans_gen
+
+/-- The statement that we will be shown by induction using the well-founded relation `args_rel`. -/
+def P124 : args → Prop
+| (args.P1 x y) := numeric (x * y)
+| (args.P24 x₁ x₂ y) := P24 x₁ x₂ y
+
+/-
+lemma P1_mem {x y} : x ∈ to_multiset (args.P1 x y) ∧ y ∈ to_multiset (args.P1 x y) :=
+⟨or.inl rfl, or.inr $ or.inl rfl⟩
+
+lemma P24_mem {x₁ x₂ y} : x₁ ∈ to_multiset (args.P24 x₁ x₂ y) ∧
+  x₂ ∈ to_multiset (args.P24 x₁ x₂ y) ∧ y ∈ to_multiset (args.P24 x₁ x₂ y) :=
+⟨or.inl rfl, or.inr $ or.inl rfl, or.inr $ or.inr $ or.inl rfl⟩
+-/
+
+/-- The property that all arguments are numeric is leftward-closed under `arg_rel`. -/
+lemma args_rel.numeric_closed {a' a} : args_rel a' a → a.numeric → a'.numeric :=
+closed.trans_gen $ @cut_expand_closed _ is_option wf_is_option.is_irrefl.1 _ @numeric.is_option
+
+/-- A specialized induction hypothesis used to prove P1. -/
+def ih1 (x y) : Prop :=
+∀ ⦃x₁ x₂ y'⦄, is_option x₁ x → is_option x₂ x → (y' = y ∨ is_option y' y) → P24 x₁ x₂ y'
+
+lemma ih1_negx : ih1 x y → ih1 (-x) y :=
+λ h x₁ x₂ y' h₁ h₂ hy, by { rw is_option_neg at h₁ h₂, exact P24_negx.2 (h h₂ h₁ hy) }
+
+lemma ih1_negy : ih1 x y → ih1 x (-y) :=
+λ h x₁ x₂ y', by { rw [eq_neg_iff_eq_neg, eq_comm, is_option_neg, P24_negy], apply h }
+
+/-! Show that all the specialized induction hypotheses we will need to prove P1 follow from
+  the induction hypotheses `ih`. -/
+
+variable (ih : ∀ a, args_rel a (args.P1 x y) → P124 a)
+include ih
+
+lemma ihnx {x'} (h : is_option x' x) : (x' * y).numeric :=
+ih (args.P1 x' y) $ trans_gen.single $ cut_expand_pair_left h
+
+lemma ihny {y'} (h : is_option y' y) : (x * y').numeric :=
+ih (args.P1 x y') $ trans_gen.single $ cut_expand_pair_right h
+
+lemma ihnxy {x' y'} (hx : is_option x' x) (hy : is_option y' y) : (x' * y').numeric :=
+ih (args.P1 x' y') $ trans_gen.tail (trans_gen.single $ cut_expand_pair_right hy) $
+  cut_expand_pair_left hx
+
+lemma ih1xy : ih1 x y :=
+begin
+  rintro x₁ x₂ y' h₁ h₂ (rfl|hy); apply ih (args.P24 _ _ _),
+  swap 2, refine trans_gen.tail _ (cut_expand_pair_right hy),
+  all_goals { exact trans_gen.single (cut_expand_double_left h₁ h₂) },
+end
+
+lemma ih1yx : ih1 y x :=
+ih1xy $ by { convert ih, simp_rw [args_rel, inv_image, args.to_multiset, multiset.pair_comm] }
+
+omit ih
+
+lemma P3_of_ih (hy : numeric y) (ihyx : ih1 y x) (i k l) :
+  P3 (x.move_left i) x (y.move_left k) (-(-y).move_left l) :=
+P3_comm.2 $ ((ihyx (is_option.move_left k) (is_option_neg.1 $ is_option.move_left l) (or.inl rfl)).2
+  (by {rw ← move_right_neg_symm, apply hy.left_lt_right})).1 i
+
+lemma P24_of_ih (ihxy : ih1 x y) (i j) : P24 (x.move_left i) (x.move_left j) y :=
+ihxy (is_option.move_left i) (is_option.move_left j) (or.inl rfl)
+
+variables (hx : numeric x) (hy : numeric y) (ihxy : ih1 x y) (ihyx : ih1 y x)
+include hy ihxy ihyx
+
+lemma mul_option_lt_of_lt (i j k l) (h : x.move_left i < x.move_left j) :
+  ⟦mul_option x y i k⟧ < -⟦mul_option x (-y) j l⟧ :=
+mul_option_lt_iff_P1.2 $ P1_of_lt (P3_of_ih hy ihyx j k l) $ ((P24_of_ih ihxy i j).2 h).1 k
+
+include hx
+lemma mul_option_lt (i j k l) : ⟦mul_option x y i k⟧ < -⟦mul_option x (-y) j l⟧ :=
+begin
+  obtain (h|h|h) := lt_or_equiv_or_gt (hx.move_left i) (hx.move_left j),
+  { exact mul_option_lt_of_lt hy ihxy ihyx i j k l h },
+  { have ml := @is_option.move_left,
+    exact mul_option_lt_iff_P1.2 (P1_of_eq h (P24_of_ih ihxy i j).1
+      (ihxy (ml i) (ml j) $ or.inr $ is_option_neg.1 $ ml l).1 $ P3_of_ih hy ihyx i k l) },
+  { rw [mul_option_neg_neg, lt_neg],
+    exact mul_option_lt_of_lt hy.neg (ih1_negy ihxy) (ih1_negx ihyx) j i l _ h },
+end
+
+omit ihxy ihyx
+include ih
+
+theorem P1_of_hyp : (x * y).numeric :=
+begin
+  obtain ⟨ihxy, ihyx⟩ := ⟨ih1xy ih, ih1yx ih⟩,
+  obtain ⟨ihxyn, ihyxn⟩ := ⟨ih1_negx (ih1_negy ihxy), ih1_negx (ih1_negy ihyx)⟩,
+  refine (numeric_def _).2 ⟨_, _, _⟩,
+  { simp_rw lt_iff_game_lt, intro i, rw right_moves_mul_iff, split;
+    intros j l; revert i; rw left_moves_mul_iff (gt _); split; intros i k,
+    { apply mul_option_lt hx hy ihxy ihyx },
+    { simp only [← mul_option_symm (-y)], rw mul_option_neg_neg x,
+      apply mul_option_lt hy.neg hx.neg ihyxn ihxyn },
+    { simp only [← mul_option_symm y], apply mul_option_lt hy hx ihyx ihxy },
+    { rw mul_option_neg_neg y, apply mul_option_lt hx.neg hy.neg ihxyn ihyxn } },
+  all_goals { cases x, cases y, rintro (⟨i,j⟩|⟨i,j⟩) },
+  rw mk_mul_move_left_inl, swap 2, rw mk_mul_move_left_inr,
+  swap 3, rw mk_mul_move_right_inl, swap 4, rw mk_mul_move_right_inr,
+  all_goals { apply numeric.sub, apply numeric.add,
+    apply ihnx ih, swap 2, apply ihny ih, swap 3, apply ihnxy ih },
+  all_goals { apply is_option.mk_left <|> apply is_option.mk_right },
+end
+
+omit ih hx hy
+
+/-- A specialized induction hypothesis used to prove P2 and P4. -/
+def ih24 (x₁ x₂ y) : Prop :=
+∀ ⦃z⦄, (is_option z x₁ → P24 z x₂ y) ∧ (is_option z x₂ → P24 x₁ z y) ∧ (is_option z y → P24 x₁ x₂ z)
+
+/-- A specialized induction hypothesis used to prove P4. -/
+def ih4 (x₁ x₂ y : pgame) : Prop :=
+∀ ⦃z w⦄, is_option w y → (is_option z x₁ → P24 z x₂ w) ∧ (is_option z x₂ → P24 x₁ z w)
+
+variable (ih' : ∀ a, args_rel a (args.P24 x₁ x₂ y) → P124 a)
+include ih'
+
+lemma ih₁₂ : ih24 x₁ x₂ y :=
+begin
+  refine (λ z, ⟨_, _, _⟩);
+  refine λ h, ih' (args.P24 _ _ _) (trans_gen.single _),
+  exacts [(cut_expand_add_right {y}).2 (cut_expand_pair_left h),
+    (cut_expand_add_left {x₁}).2 (cut_expand_pair_left h),
+    (cut_expand_add_left {x₁}).2 (cut_expand_pair_right h)],
+end
+
+lemma ih₂₁ : ih24 x₂ x₁ y :=
+ih₁₂ begin
+  convert ih', simp_rw [args_rel, inv_image, args.to_multiset],
+  dsimp [← multiset.singleton_add], abel,
+end
+
+lemma ih4_of_ih : ih4 x₁ x₂ y :=
+begin
+  refine (λ z w h, ⟨_, _⟩);
+  refine λ h', ih' (args.P24 _ _ _) (trans_gen.tail (trans_gen.single _) $
+    (cut_expand_add_left {x₁}).2 $ cut_expand_pair_right h),
+  exacts [(cut_expand_add_right {w}).2 (cut_expand_pair_left h'),
+    (cut_expand_add_right {w}).2 (cut_expand_pair_right h')],
+end
+
+lemma numeric_of_ih : (x₁ * y).numeric ∧ (x₂ * y).numeric :=
+begin
+  split; refine ih' (args.P1 _ _) (trans_gen.single _),
+  exacts [(cut_expand_add_right {y}).2 ((cut_expand_add_left {x₁}).2 cut_expand_zero),
+    (cut_expand_add_right {x₂, y}).2 cut_expand_zero],
+end
+
+omit ih'
+
+/-! ## Symmetry properties of `ih24` and `ih4` -/
+
+lemma ih24_neg : ih24 x₁ x₂ y → ih24 (-x₂) (-x₁) y ∧ ih24 x₁ x₂ (-y) :=
+begin
+  simp_rw [ih24, ← P24_negy, is_option_neg],
+  refine (λ h, ⟨λ z, ⟨_, _, _⟩, λ z, ⟨(@h z).1, (@h z).2.1, P24_negy.2 ∘ (@h $ -z).2.2⟩⟩);
+  rw P24_negx; simp only [neg_neg], exacts [(@h $ -z).2.1, (@h $ -z).1, (@h z).2.2],
+end
+
+lemma ih4_neg : ih4 x₁ x₂ y → ih4 (-x₂) (-x₁) y ∧ ih4 x₁ x₂ (-y) :=
+begin
+  simp_rw [ih4, is_option_neg],
+  refine (λ h, ⟨λ z w h', _, λ z w h', _⟩),
+  { convert (h h').symm; rw [P24_negx, neg_neg] },
+  { convert h h'; rw P24_negy },
+end
+
+/-- better name, move to calculation .. -/
+lemma P2'_of_P24 (h₁ : P2 x₁ x₂ y') (h₂ : P3 x' x₂ y' y) (he : x₁ ≈ x₂) :
+  ⟦x' * y⟧ + ⟦x₁ * y'⟧ - ⟦x' * y'⟧ < ⟦x₂ * y⟧ :=
+by { rw [h₁ he, sub_lt_iff_lt_add'], exact h₂ }
+
+/-- better name -/
+lemma left_lt_mul_aux (hn : x₁.numeric) (h : ih24 x₁ x₂ y) (he : x₁ ≈ x₂) (i j) :
+  mul_option x₁ y i j < x₂ * y :=
+P2'_of_P24 ((@h _).2.2 $ is_option.move_left j).1 ((((@h _).1 $ is_option.move_left i).2
+  (by {rw ← lt_congr_right he, apply hn.move_left_lt})).1 j) he
+
+lemma mul_right_le_of_equiv (h₁ : x₁.numeric) (h₂ : x₂.numeric)
+  (h₁₂ : ih24 x₁ x₂ y) (h₂₁ : ih24 x₂ x₁ y) (he : x₁ ≈ x₂) : x₁ * y ≤ x₂ * y :=
+le_of_forall_lt begin
+  have he' := neg_congr he, simp_rw lt_iff_game_lt,
+  rw [left_moves_mul_iff (gt _), right_moves_mul_iff],
+  refine ⟨⟨left_lt_mul_aux h₁ h₁₂ he, _⟩, _⟩,
+  { rw ← quot_neg_mul_neg, exact left_lt_mul_aux h₁.neg (ih24_neg $ (ih24_neg h₂₁).1).2 he' },
+  { split; intros; rw lt_neg,
+    { rw ← quot_mul_neg, apply left_lt_mul_aux h₂ (ih24_neg h₂₁).2 he.symm },
+    { rw ← quot_neg_mul, apply left_lt_mul_aux h₂.neg (ih24_neg h₁₂).1 he'.symm } },
+end
+
+/-- docstring .. move up ?? -/
+def mul_option_lt_mul (x y) : Prop := ∀ {i j}, ⟦mul_option x y i j⟧ < ⟦x * y⟧
+
+lemma lt_mul_of_numeric (hn : (x * y).numeric) :
+  (mul_option_lt_mul x y ∧ mul_option_lt_mul (-x) (-y)) ∧
+  mul_option_lt_mul x (-y) ∧ mul_option_lt_mul (-x) y :=
+begin
+  split,
+  { have h := hn.move_left_lt, simp_rw lt_iff_game_lt at h,
+    convert (left_moves_mul_iff (gt _)).1 h, rw ← quot_neg_mul_neg, refl },
+  { have h := hn.lt_move_right, simp_rw [lt_iff_game_lt, right_moves_mul_iff] at h,
+    refine h.imp _ _; refine forall₂_imp _; intros a b; rw lt_neg,
+    { rw ← quot_mul_neg, exact id }, { rw ← quot_neg_mul, exact id } },
+end
+
+/-- docstring .. -/
+def P3_cond (x₁ x' x₂ y₁ y₂) : Prop :=
+P24 x₁ x' y₁ ∧ P24 x₁ x' y₂ ∧ P3 x' x₂ y₁ y₂ ∧ (x₁ < x' → P3 x₁ x' y₁ y₂)
+
+/-- better name .. -/
+lemma P3_cond_of_ih' (h : ih24 x₁ x₂ y) (h' : ih4 x₁ x₂ y) (hl : mul_option_lt_mul x₂ y)
+  (i j) : P3_cond x₁ (x₂.move_left i) x₂ (y.move_left j) y :=
+let ml := @is_option.move_left, h24 := (@h _).2.1 (ml i) in
+⟨(h' $ ml j).2 (ml i), h24, mul_option_lt_mul_iff_P3.1 hl, λ l, (h24.2 l).1 _⟩
+
+lemma P3_of_le_left {y₁ y₂} (i) (h : P3_cond x₁ (x₂.move_left i) x₂ y₁ y₂)
+  (hl : x₁ ≤ x₂.move_left i) : P3 x₁ x₂ y₁ y₂ :=
+begin
+  obtain (hl|he) := lt_or_equiv_of_le hl,
+  { exact (h.2.2.2 hl).trans h.2.2.1 },
+  { rw [P3, h.1.1 he, h.2.1.1 he], exact h.2.2.1 },
+end
+
+lemma P3_of_lt {y₁ y₂} (h : ∀ i, P3_cond x₁ (x₂.move_left i) x₂ y₁ y₂)
+  (hs : ∀ i, P3_cond (-x₂) ((-x₁).move_left i) (-x₁) y₁ y₂) (hl : x₁ < x₂) : P3 x₁ x₂ y₁ y₂ :=
+begin
+  obtain (⟨i,hi⟩|⟨i,hi⟩) := lf_iff_forall_le.1 (lf_of_lt hl),
+  exacts [P3_of_le_left i (h i) hi, P3_neg.2 $
+    P3_of_le_left _ (hs _) $ by { convert neg_le_neg (le_iff_game_le.1 hi), rw move_left_neg }],
+end
+
+/-- Theorem 8 in [conway2001], Theorem 3.8 in [schleicher_stoll]. -/
+theorem main (a : args) : a.numeric → P124 a :=
+begin
+  apply args_rel_wf.induction a,
+  intros a ih ha,
+  replace ih : ∀ a', args_rel a' a → P124 a' := λ a' hr, ih a' hr (hr.numeric_closed ha),
+  cases a with x y x₁ x₂ y,
+  { exact P1_of_hyp ih (ha x $ or.inl rfl) (ha y $ or.inr $ or.inl rfl) },
+  obtain ⟨h, hs, h'⟩ := ⟨ih₁₂ ih, ih₂₁ ih, ih4_of_ih ih⟩,
+  obtain ⟨⟨hnx, hny⟩, h'nx, h'ny⟩ := ⟨ih24_neg h, ih4_neg h'⟩,
+  refine ⟨λ he, equiv_iff_game_eq.1 _, λ hl, _⟩,
+  { obtain ⟨h₁, h₂⟩ := ⟨ha x₁ $ or.inl rfl, ha x₂ $ or.inr $ or.inl rfl⟩,
+    exact ⟨mul_right_le_of_equiv h₁ h₂ h hs he, mul_right_le_of_equiv h₂ h₁ hs h he.symm⟩ },
+  obtain ⟨hn₁, hn₂⟩ := numeric_of_ih ih,
+  obtain ⟨⟨h₁, -⟩, h₂, -⟩ := lt_mul_of_numeric hn₂,
+  obtain ⟨⟨-, h₃⟩, -, h₄⟩ := lt_mul_of_numeric hn₁,
+  split; intro j; refine P3_of_lt _ _ hl; intro i; apply P3_cond_of_ih',
+  exacts [h, h', @h₁, hnx, h'nx, @h₄, hny, h'ny, @h₂, (ih24_neg hny).1, (ih4_neg h'ny).1, @h₃],
+end
+
+end thm8
+
+namespace numeric
+open thm8
+
+variables {x x₁ x₂ y y₁ y₂ : pgame.{u}}
+  (hx : x.numeric) (hx₁ : x₁.numeric) (hx₂ : x₂.numeric)
+  (hy : y.numeric) (hy₁ : y₁.numeric) (hy₂ : y₂.numeric)
+
+include hx hy
+theorem mul : numeric (x * y) := main (args.P1 x y) $ by rintro _ (rfl|rfl|⟨⟨⟩⟩); assumption
+omit hx
+
+include hx₁ hx₂
+theorem P24 : P24 x₁ x₂ y :=
+main (args.P24 x₁ x₂ y) $ by rintro _ (rfl|rfl|rfl|⟨⟨⟩⟩); assumption
+omit hx₁ hx₂ hy
+
+theorem mul_congr_left (he : x₁ ≈ x₂) : x₁ * y ≈ x₂ * y :=
+equiv_iff_game_eq.2 $ (P24 hx₁ hx₂ hy).1 he
+
+theorem mul_congr_right (he : y₁ ≈ y₂) : x * y₁ ≈ x * y₂ :=
+(mul_comm_equiv _ _).trans $ (mul_congr_left hy₁ hy₂ hx he).trans $ mul_comm_equiv _ _
+
+theorem mul_congr (hx : x₁ ≈ x₂) (hy : y₁ ≈ y₂) : x₁ * y₁ ≈ x₂ * y₂ :=
+(mul_congr_left hx₁ hx₂ hy₁ hx).trans (mul_congr_right hx₂ hy₁ hy₂ hy)
+
+open relation.game_add
+
+include hx₁ hx₂ hy₁ hy₂
+lemma P3_of_lt_of_lt (hx : x₁ < x₂) (hy : y₁ < y₂) : P3 x₁ x₂ y₁ y₂ :=
+begin
+  revert x₁ x₂, rw ← prod.forall',
+  refine λ t, (wf_is_option.game_add wf_is_option).induction t _,
+  rintro ⟨x₁, x₂⟩ ih hx₁ hx₂ hx, refine P3_of_lt _ _ hx; intro i,
+  { have hi := hx₂.move_left i,
+    exact ⟨P24 hx₁ hi hy₁, P24 hx₁ hi hy₂,
+      P3_comm.2 (((P24 hy₁ hy₂ hx₂).2 hy).1 _),
+      ih _ (snd $ is_option.move_left i) hx₁ hi⟩ },
+  { have hi := hx₁.neg.move_left i,
+    exact ⟨P24 hx₂.neg hi hy₁, P24 hx₂.neg hi hy₂,
+      P3_comm.2 (((P24 hy₁ hy₂ hx₁).2 hy).2 _),
+      by { rw [move_left_neg', ← P3_neg, neg_lt_iff],
+        exact ih _ (fst $ is_option.move_right _) (hx₁.move_right _) hx₂ }⟩ },
+end
+omit hy₁ hy₂
+
+lemma mul_pos (hp₁ : 0 < x₁) (hp₂ : 0 < x₂) : 0 < x₁ * x₂ :=
+begin
+  rw lt_iff_game_lt,
+  convert lt_iff_game_lt.1 (P3_of_lt_of_lt numeric_zero hx₁ numeric_zero hx₂ hp₁ hp₂) using 1;
+  simpa,
+end
+
+end numeric
+
 end pgame
 
 /-- The equivalence on numeric pre-games. -/
@@ -295,466 +756,6 @@ noncomputable instance : linear_ordered_add_comm_group surreal :=
   decidable_le := classical.dec_rel _,
   ..surreal.ordered_add_comm_group }
 
-end surreal
-
-open surreal
-
-namespace ordinal
-
-/-- Converts an ordinal into the corresponding surreal. -/
-noncomputable def to_surreal : ordinal ↪o surreal :=
-{ to_fun := λ o, mk _ (numeric_to_pgame o),
-  inj' := λ a b h, to_pgame_equiv_iff.1 (quotient.exact h),
-  map_rel_iff' := @to_pgame_le_iff }
-
-end ordinal
-
-namespace pgame
-
-namespace numeric
-
-def P3 (x₁ x₂ y₁ y₂ : pgame) := x₁ * y₂ + x₂ * y₁ < x₁ * y₁ + x₂ * y₂
-def P1' (x₁ x₂ x₃ y₁ y₂ y₃ : pgame) := x₁ * y₁ + x₂ * y₂ - x₁ * y₂ < x₃ * y₁ + x₂ * y₃ - x₃ * y₃
-
-lemma P1'_swap {x₁ x₂ x₃ y₁ y₂ y₃} : P1' x₁ x₂ x₃ y₁ y₂ y₃ ↔ P1' x₃ x₂ x₁ (-y₁) (-y₃) (-y₂) :=
-begin
-  simp only [P1', lt_iff_game_lt], convert neg_lt_neg_iff,
-  iterate 2 { dsimp, simp only [quot_mul_neg], abel },
-  iterate 2 { apply_instance },
-end
-
-lemma P3.comm {x₁ x₂ y₁ y₂} : P3 x₁ x₂ y₁ y₂ ↔ P3 y₁ y₂ x₁ x₂ :=
-begin
-  simp only [P3, lt_iff_game_lt], dsimp,
-  rw add_comm, congr' 3; rw quot_mul_comm,
-end
-
-lemma P3.trans {x₁} (x₂) {x₃ y₁ y₂} : P3 x₁ x₂ y₁ y₂ → P3 x₂ x₃ y₁ y₂ → P3 x₁ x₃ y₁ y₂ :=
-λ h₁ h₂, begin
-  rw [P3, lt_iff_game_lt, ← add_lt_add_iff_left ⟦x₂ * y₁ + x₂ * y₂⟧],
-  convert lt_iff_game_lt.1 (add_lt_add h₁ h₂); dsimp; abel,
-end
-
-lemma P3_neg {x₁ x₂ y₁ y₂} : P3 x₁ x₂ y₁ y₂ ↔ P3 (-x₂) (-x₁) y₁ y₂ :=
-begin
-  simp only [P3, lt_iff_game_lt],  dsimp, simp only [quot_neg_mul],
-  rw ← neg_lt_neg_iff, convert iff.rfl; abel,
-end
-
-lemma P3_neg' {x₁ x₂ y₁ y₂} : P3 x₁ x₂ y₁ y₂ ↔ P3 x₁ x₂ (-y₂) (-y₁) :=
-by rw [P3.comm, P3_neg, P3.comm]
-
-def P24 (x₁ x₂ y : pgame) : Prop :=
-(x₁ ≈ x₂ → ⟦x₁ * y⟧ = ⟦x₂ * y⟧) ∧
-(x₁ < x₂ → (∀ i, P3 x₁ x₂ (y.move_left i) y) ∧ ∀ j, P3 x₁ x₂ ((-y).move_left j) (-y))
-
-lemma P24_neg {x₁ x₂ y} : P24 x₁ x₂ y ↔ P24 (-x₂) (-x₁) y :=
-begin
-  simp_rw P24, apply and_congr; apply iff.imp,
-  { rw [equiv_comm, neg_equiv_iff] },
-  { rw [quot_neg_mul, quot_neg_mul, eq_comm, neg_inj] },
-  { rw neg_lt_iff },
-  { apply and_congr; { apply forall_congr, intro, rw P3_neg } },
-end
-
-lemma P24_neg' {x₁ x₂ y} : P24 x₁ x₂ y ↔ P24 x₁ x₂ (-y) :=
-begin
-  simp_rw P24, apply and_congr; apply iff.imp,
-  { refl },
-  { rw [quot_mul_neg, quot_mul_neg, neg_inj] },
-  { refl },
-  { rw neg_neg, apply and_comm },
-end
-
-lemma P24.L {x₁ x₂ y} (h : P24 x₁ x₂ y) (hl : x₁ < x₂) (i) : P3 x₁ x₂ (y.move_left i) y :=
-(h.2 hl).1 i
-
-lemma P24.R {x₁ x₂ y} (h : P24 x₁ x₂ y) (hl : x₁ < x₂) (j) : P3 x₁ x₂ y (y.move_right j) :=
-by { rw P3_neg', convert (h.2 hl).2 (to_left_moves_neg j), simp }
-
-inductive mul_args : Type (u+1)
-| P1 (x y : pgame.{u}) : mul_args
-| P24 (x₁ x₂ y : pgame.{u}) : mul_args
-
-def _root_.multiset.numeric : set (multiset pgame) := λ s, ∀ x ∈ s, numeric x
-
-def to_multiset : mul_args → multiset pgame
-| (mul_args.P1 x y) := {x, y}
-| (mul_args.P24 x₁ x₂ y) := {x₁, x₂, y}
-
-section
-open multiset
-lemma P1_mem {x y} : x ∈ to_multiset (mul_args.P1 x y) ∧ y ∈ to_multiset (mul_args.P1 x y) :=
-⟨or.inl rfl, or.inr $ or.inl rfl⟩
-
-lemma P24_mem {x₁ x₂ y} : x₁ ∈ to_multiset (mul_args.P24 x₁ x₂ y) ∧
-  x₂ ∈ to_multiset (mul_args.P24 x₁ x₂ y) ∧ y ∈ to_multiset (mul_args.P24 x₁ x₂ y) :=
-⟨or.inl rfl, or.inr $ or.inl rfl, or.inr $ or.inr $ or.inl rfl⟩
-end
-
-def hyp : mul_args → Prop
-| (mul_args.P1 x y) := numeric (x * y)
-| (mul_args.P24 x₁ x₂ y) := P24 x₁ x₂ y
-
-open relation
-def ices := inv_image (trans_gen $ cut_expand is_option) to_multiset
-
-lemma ices_wf : well_founded ices := inv_image.wf _ wf_is_option.cut_expand.trans_gen
-
-lemma numeric.is_option {x' x} (h : is_option x' x) (hx : numeric x) : numeric x' :=
-by { cases h, apply hx.move_left, apply hx.move_right }
-
-/- being numeric is downward closed under `ices` -/
-lemma numeric_dc {a' a} (h : ices a' a) (ha : (to_multiset a).numeric) : (to_multiset a').numeric :=
-begin
-  have := @cut_expand_dc _ is_option wf_is_option.is_irrefl.1 _ @numeric.is_option,
-  apply @trans_gen.head_induction_on _ _ _ (λ a _, multiset.numeric a) _ h,
-  exacts [λ s hc, this hc ha, λ s' s hc _ hs, this hc hs],
-end
-
-section
-open multiset
-
-lemma ices_symm (a x y) : ices a (mul_args.P1 x y) ↔ ices a (mul_args.P1 y x) :=
-by { dsimp [ices, inv_image, to_multiset], convert iff.rfl using 2, apply pair_comm }
-
-lemma ices_symm' (a x₁ x₂ y) : ices a (mul_args.P24 x₁ x₂ y) ↔ ices a (mul_args.P24 x₂ x₁ y) :=
-by { dsimp [ices, inv_image, to_multiset],
-  convert iff.rfl using 2, simp only [← singleton_add], rw add_left_comm }
-
-end
-
-section main
-
-/- restricted inductive hypothesis -/
-def ihr (x y) : Prop :=
-∀ ⦃x₁ x₂ y'⦄, is_option x₁ x → is_option x₂ x → (y' = y ∨ is_option y' y) → P24 x₁ x₂ y'
-
-variables {x y : pgame.{u}} (ih : ∀ a, ices a (mul_args.P1 x y) → hyp a)
-
-lemma ihr_neg : ihr x y → ihr (-x) y :=
-λ h x₁ x₂ y' h₁ h₂ hy, by { rw is_option_neg at h₁ h₂, exact P24_neg.2 (h h₂ h₁ hy) }
-
-lemma ihr_neg' : ihr x y → ihr x (-y) :=
-λ h x₁ x₂ y', by { rw [eq_neg_iff_eq_neg, eq_comm, is_option_neg, P24_neg'], apply h }
-
-include ih
-
-lemma P1x {x'} (h : is_option x' x) : (x' * y).numeric :=
-ih (mul_args.P1 x' y) $ trans_gen.single $ cut_expand_pair_left h
-
-lemma P1y {y'} (h : is_option y' y) : (x * y').numeric :=
-ih (mul_args.P1 x y') $ trans_gen.single $ cut_expand_pair_right h
-
-lemma P1xy {x' y'} (hx : is_option x' x) (hy : is_option y' y) : (x' * y').numeric :=
-ih (mul_args.P1 x' y') $ trans_gen.tail (trans_gen.single $ cut_expand_pair_right hy) $
-  cut_expand_pair_left hx
-
-lemma ihxy_of_ih : ihr x y :=
-begin
-  rintro x₁ x₂ y' h₁ h₂ (rfl|hy); apply ih (mul_args.P24 _ _ _),
-  swap 2, refine trans_gen.tail _ (cut_expand_pair_right hy),
-  all_goals { exact trans_gen.single (cut_expand_double_left h₁ h₂) },
-end
-
-lemma ihyx_of_ih : ihr y x := ihxy_of_ih $ by { simp_rw ices_symm, exact ih }
-
-omit ih
-
-lemma P3yyxx (hy : numeric y) (ihyx : ihr y x) (i k l) :
-  P3 (x.move_left i) x (y.move_left k) (-(-y).move_left l) :=
-P3.comm.2 $ P24.L
-  (ihyx (is_option.move_left k) (is_option_neg.1 $ is_option.move_left l) (or.inl rfl))
-  (by { rw ← move_right_neg_symm, apply hy.left_lt_right }) i
-
-lemma P24xxy (ihxy : ihr x y) (i j) : P24 (x.move_left i) (x.move_left j) y :=
-ihxy (is_option.move_left i) (is_option.move_left j) (or.inl rfl)
-
-lemma P1'_of_eq {x₁ x₂ x₃ y₁ y₂ y₃} (h₁₃ : x₁ ≈ x₃) (h₁ : P24 x₁ x₃ y₁) (h₃ : P24 x₁ x₃ y₃)
-  (h3 : P3 x₁ x₂ y₂ y₃) : P1' x₁ x₂ x₃ y₁ y₂ y₃ :=
-begin
-  rw [P1', lt_iff_game_lt], dsimp,
-  rw [← h₁.1 h₁₃, ← h₃.1 h₁₃, sub_lt_sub_iff],
-  convert add_lt_add_left (lt_iff_game_lt.1 h3) ⟦x₁ * y₁⟧ using 1; abel,
-end
-
-lemma P1'_of_lt {x₁ x₂ x₃ y₁ y₂ y₃} (h₁ : P3 x₃ x₂ y₂ y₃) (h₂ : P3 x₁ x₃ y₂ y₁) :
-  P1' x₁ x₂ x₃ y₁ y₂ y₃ :=
-begin
-  rw P1', rw P3 at h₁ h₂,
-  rw lt_iff_game_lt at h₁ h₂ ⊢,
-  dsimp at h₁ h₂ ⊢,
-  rw sub_lt_sub_iff,
-  rw ← add_lt_add_iff_left ⟦x₃ * y₂⟧,
-  convert (add_lt_add h₁ h₂) using 1; abel,
-end
-
-lemma mul_option_lt_iff_P1' {i j k l} :
-  ⟦mul_option x y i k⟧ < -⟦mul_option x (-y) j l⟧ ↔
-  P1' (x.move_left i) x (x.move_left j) y (y.move_left k) (-(-y).move_left l) :=
-begin
-  dsimp [mul_option, P1'], rw lt_iff_game_lt, convert iff.rfl using 2,
-  dsimp, rw [neg_sub', neg_add], congr' 1, congr' 1,
-  all_goals { rw quot_mul_neg }, rw neg_neg,
-end
-
-variables (hx : numeric x) (hy : numeric y) (ihxy : ihr x y) (ihyx : ihr y x)
-include hy ihxy ihyx
-
-lemma mul_option_lt_of_lt (i j k l) (h : x.move_left i < x.move_left j) :
-  ⟦mul_option x y i k⟧ < -⟦mul_option x (-y) j l⟧ :=
-mul_option_lt_iff_P1'.2 $ P1'_of_lt (P3yyxx hy ihyx j k l) (P24.L (P24xxy ihxy i j) h k)
-
-include hx
-lemma mul_option_lt (i j k l) : ⟦mul_option x y i k⟧ < -⟦mul_option x (-y) j l⟧ :=
-begin
-  obtain (h|h|h) := lt_or_equiv_or_gt (hx.move_left i) (hx.move_left j),
-  { exact mul_option_lt_of_lt hy ihxy ihyx i j k l h },
-  { have ml := @is_option.move_left,
-    exact mul_option_lt_iff_P1'.2 (P1'_of_eq h (P24xxy ihxy i j)
-      (ihxy (ml i) (ml j) $ or.inr $ is_option_neg.1 $ ml l) $ P3yyxx hy ihyx i k l) },
-  { rw [mul_option_neg_neg, lt_neg],
-    exact mul_option_lt_of_lt hy.neg (ihr_neg' ihxy) (ihr_neg ihyx) j i l _ h },
-end
-
-omit ihxy ihyx
-include ih
-
-theorem P1_of_hyp : (x * y).numeric :=
-begin
-  have ihxy := ihxy_of_ih ih, have ihxyn := ihr_neg (ihr_neg' ihxy),
-  have ihyx := ihyx_of_ih ih, have ihyxn := ihr_neg (ihr_neg' ihyx),
-  rw numeric_def,
-  refine ⟨_, _, _⟩,
-  { simp_rw lt_iff_game_lt, intro i', rw right_moves_mul_iff, split; intros j l;
-    revert i'; rw left_moves_mul_iff (gt _); split; intros i k,
-    { apply mul_option_lt hx hy ihxy ihyx },
-    { simp only [← mul_option_symm (-y)], rw mul_option_neg_neg x,
-      apply mul_option_lt hy.neg hx.neg ihyxn ihxyn },
-    { simp only [← mul_option_symm y], apply mul_option_lt hy hx ihyx ihxy },
-    { rw mul_option_neg_neg y, apply mul_option_lt hx.neg hy.neg ihxyn ihyxn } },
-  all_goals { cases x, cases y, rintro (⟨i,j⟩|⟨i,j⟩) },
-  rw mk_mul_move_left_inl, swap 2, rw mk_mul_move_left_inr,
-  swap 3, rw mk_mul_move_right_inl, swap 4, rw mk_mul_move_right_inr,
-  all_goals { apply numeric.sub, apply numeric.add,
-    apply P1x ih, swap 2, apply P1y ih, swap 3, apply P1xy ih },
-  all_goals { apply is_option.mk_left <|> apply is_option.mk_right },
-end
-
-omit ih hx hy
-
-def ihr' (x₁ x₂ y) : Prop :=
-∀ ⦃z⦄, (is_option z x₁ → P24 z x₂ y) ∧ (is_option z x₂ → P24 x₁ z y) ∧ (is_option z y → P24 x₁ x₂ z)
-
-def ihr'' (x₁ x₂ y : pgame) : Prop :=
-∀ ⦃z w⦄, is_option w y → (is_option z x₁ → P24 z x₂ w) ∧ (is_option z x₂ → P24 x₁ z w)
-
-variables {x₁ x₂ x' y' : pgame.{u}} (ih' : ∀ a, ices a (mul_args.P24 x₁ x₂ y) → hyp a)
-include ih'
-
-lemma ih₁₂_of_ih' : ihr' x₁ x₂ y :=
-begin
-  refine (λ z, ⟨_, _, _⟩);
-  refine λ h, ih' (mul_args.P24 _ _ _) (trans_gen.single _),
-  { exact (cut_expand_add_right {y}).2 (cut_expand_pair_left h) },
-  { exact (cut_expand_add_left {x₁}).2 (cut_expand_pair_left h) },
-  { exact (cut_expand_add_left {x₁}).2 (cut_expand_pair_right h) },
-end
-
-lemma ih₂₁_of_ih' : ihr' x₂ x₁ y := ih₁₂_of_ih' $ by { simp_rw ices_symm', exact ih' }
-
-lemma ihr''_of_ih' : ihr'' x₁ x₂ y :=
-begin
-  refine (λ z w h, ⟨_, _⟩);
-  refine λ h', ih' (mul_args.P24 _ _ _) (trans_gen.tail (trans_gen.single _) $
-    (cut_expand_add_left {x₁}).2 $ cut_expand_pair_right h),
-  { exact (cut_expand_add_right {w}).2 (cut_expand_pair_left h') },
-  { exact (cut_expand_add_right {w}).2 (cut_expand_pair_right h') },
-end
-
-lemma numeric_of_ih' : (x₁ * y).numeric ∧ (x₂ * y).numeric :=
-begin
-  split; refine ih' (mul_args.P1 _ _) (trans_gen.single _),
-  exact (cut_expand_add_right {y}).2 ((cut_expand_add_left {x₁}).2 cut_expand_zero),
-  exact (cut_expand_add_right {x₂, y}).2 cut_expand_zero,
-end
-
-omit ih'
-
-lemma ihr'_neg : ihr' x₁ x₂ y → ihr' (-x₂) (-x₁) y :=
-begin
-  simp_rw [ihr', is_option_neg],
-  refine (λ h z, ⟨_, _, _⟩); rw P24_neg,
-  { convert (@h _).2.1, simp },
-  { convert (@h _).1, simp },
-  { convert (@h _).2.2, simp },
-end
-
-lemma ihr'_neg' : ihr' x₁ x₂ y → ihr' x₁ x₂ (-y) :=
-begin
-  simp_rw [ihr', ← P24_neg', is_option_neg],
-  exact λ h z, ⟨(@h _).1, (@h _).2.1, P24_neg'.2 ∘ (@h _).2.2⟩,
-end
-
-lemma ihr''_neg : ihr'' x₁ x₂ y → ihr'' (-x₂) (-x₁) y :=
-begin
-  simp_rw [ihr'', is_option_neg],
-  refine (λ h z w h', ⟨_, _⟩); rw P24_neg,
-  { convert (@h _ _ h').2, simp },
-  { convert (@h _ _ h').1, simp },
-end
-
-lemma ihr''_neg' : ihr'' x₁ x₂ y → ihr'' x₁ x₂ (-y) :=
-begin
-  simp_rw [ihr'', is_option_neg],
-  refine (λ h z w h', ⟨_, _⟩); rw P24_neg',
-  exacts [(h h').1, (h h').2],
-end
-
-lemma P2'_of_P24 (h₁ : P24 x₁ x₂ y') (h₂ : P3 x' x₂ y' y) (he : x₁ ≈ x₂) :
-  x' * y + x₁ * y' - x' * y' < x₂ * y :=
-by { rw lt_iff_game_lt, dsimp, rw [h₁.1 he, sub_lt_iff_lt_add'], exact lt_iff_game_lt.1 h₂ }
-
-lemma left_lt_mul_aux (hn : x₁.numeric) (h : ihr' x₁ x₂ y) (he : x₁ ≈ x₂) (i j) :
-  mul_option x₁ y i j < x₂ * y :=
-P2'_of_P24 ((@h _).2.2 $ is_option.move_left j) (P24.L ((@h _).1 $ is_option.move_left i)
-  (by {rw ← lt_congr_right he, apply hn.move_left_lt}) j) he
-
-lemma mul_le_mul_right (h₁ : x₁.numeric) (h₂ : x₂.numeric)
-  (h₁₂ : ihr' x₁ x₂ y) (h₂₁ : ihr' x₂ x₁ y) (he : x₁ ≈ x₂) : x₁ * y ≤ x₂ * y :=
-le_of_forall_lt begin
-  have he' := neg_congr he, split; simp_rw lt_iff_game_lt,
-  { rw left_moves_mul_iff (gt _), split,
-    { exact left_lt_mul_aux h₁ h₁₂ he },
-    { rw ← quot_neg_mul_neg, exact left_lt_mul_aux h₁.neg (ihr'_neg $ ihr'_neg' h₂₁) he' } },
-  { rw right_moves_mul_iff, split; intros; rw lt_neg,
-    { rw ← quot_mul_neg, apply left_lt_mul_aux h₂ (ihr'_neg' h₂₁) he.symm },
-    { rw ← quot_neg_mul, apply left_lt_mul_aux h₂.neg (ihr'_neg h₁₂) he'.symm } },
-end
-
-def mul_option_lt_mul (x y) : Prop := ∀ {i j}, ⟦mul_option x y i j⟧ < ⟦x * y⟧
-
-lemma lt_mul_of_numeric (hn : (x * y).numeric) :
-  (mul_option_lt_mul x y ∧ mul_option_lt_mul (-x) (-y)) ∧
-  mul_option_lt_mul x (-y) ∧ mul_option_lt_mul (-x) y :=
-begin
-  split,
-  { have h := hn.move_left_lt, simp_rw lt_iff_game_lt at h,
-    convert (left_moves_mul_iff (gt _)).1 h, rw ← quot_neg_mul_neg, refl },
-  { have h := hn.lt_move_right, simp_rw [lt_iff_game_lt, right_moves_mul_iff] at h,
-    refine h.imp _ _; refine forall₂_imp _; intros a b; rw lt_neg,
-    { rw ← quot_mul_neg, exact id }, { rw ← quot_neg_mul, exact id } },
-end
-
-lemma mul_option_lt_iff_P3 {i j} :
-  ⟦mul_option x y i j⟧ < ⟦x * y⟧ ↔ P3 (x.move_left i) x (y.move_left j) y :=
-by { dsimp [mul_option, P3, lt_iff_game_lt], exact sub_lt_iff_lt_add' }
-
-def P3_cond (x₁ x' x₂ y₁ y₂) : Prop :=
-P24 x₁ x' y₁ ∧ P24 x₁ x' y₂ ∧ P3 x' x₂ y₁ y₂ ∧ (x₁ < x' → P3 x₁ x' y₁ y₂)
-
-lemma P3_cond_of_ih' (h : ihr' x₁ x₂ y) (h' : ihr'' x₁ x₂ y) (hl : mul_option_lt_mul x₂ y)
-  (i j) : P3_cond x₁ (x₂.move_left i) x₂ (y.move_left j) y :=
-let ml := @is_option.move_left, h24 := (@h _).2.1 (ml i) in
-⟨(h' $ ml j).2 (ml i), h24, mul_option_lt_iff_P3.1 hl, λ l, h24.L l _⟩
-
-lemma P3_of_le_left {y₁ y₂} (i) (h : P3_cond x₁ (x₂.move_left i) x₂ y₁ y₂)
-  (hl : x₁ ≤ x₂.move_left i) : P3 x₁ x₂ y₁ y₂ :=
-begin
-  obtain (hl|he) := lt_or_equiv_of_le hl,
-  { exact (h.2.2.2 hl).trans _ h.2.2.1 },
-  { rw [P3, lt_iff_game_lt], dsimp, rw [h.1.1 he, h.2.1.1 he], exact h.2.2.1 },
-end
-
-lemma P3_of_lt {y₁ y₂} (h : ∀ i, P3_cond x₁ (x₂.move_left i) x₂ y₁ y₂)
-  (hs : ∀ i, P3_cond (-x₂) ((-x₁).move_left i) (-x₁) y₁ y₂) (hl : x₁ < x₂) : P3 x₁ x₂ y₁ y₂ :=
-begin
-  obtain (⟨i,hi⟩|⟨i,hi⟩) := lf_iff_forall_le.1 (lf_of_lt hl),
-  exacts [P3_of_le_left i (h i) hi, P3_neg.2 $
-    P3_of_le_left _ (hs _) $ by { convert neg_le_neg (le_iff_game_le.1 hi), rw move_left_neg }],
-end
-
-theorem P124 (a : mul_args) : (to_multiset a).numeric → hyp a :=
-begin
-  apply ices_wf.induction a,
-  intros a ih ha,
-  replace ih : ∀ a', ices a' a → hyp a' := λ a' hr, ih a' hr (numeric_dc hr ha),
-  cases a with x y x₁ x₂ y,
-  { exact P1_of_hyp ih (ha x P1_mem.1) (ha y P1_mem.2) },
-  obtain ⟨h, hs, h'⟩ := ⟨ih₁₂_of_ih' ih, ih₂₁_of_ih' ih, ihr''_of_ih' ih⟩,
-  obtain ⟨hn, hn'⟩ := ⟨ihr'_neg' h, ihr''_neg' h'⟩,
-  refine ⟨λ he, equiv_iff_game_eq.1 _, λ hl, _⟩,
-  { obtain ⟨h₁, h₂⟩ := ⟨ha x₁ P24_mem.1, ha x₂ P24_mem.2.1⟩,
-    exact ⟨mul_le_mul_right h₁ h₂ h hs he, mul_le_mul_right h₂ h₁ hs h he.symm⟩ },
-  obtain ⟨hn₁, hn₂⟩ := numeric_of_ih' ih,
-  obtain ⟨⟨h₁, -⟩, h₂, -⟩ := lt_mul_of_numeric hn₂,
-  obtain ⟨⟨-, h₃⟩, -, h₄⟩ := lt_mul_of_numeric hn₁,
-  split; intro j; refine P3_of_lt _ _ hl; intro i; apply P3_cond_of_ih',
-  exacts [h, h', @h₁, ihr'_neg h, ihr''_neg h', @h₄, hn, hn', @h₂, ihr'_neg hn, ihr''_neg hn', @h₃],
-end
-
-include hx hy
-
-theorem mul : numeric (x * y) :=
-P124 (mul_args.P1 x y) $ by rintro _ (rfl|rfl|⟨⟨⟩⟩); assumption
-
-omit hx
-variables (h₁ : numeric x₁) (h₂ : numeric x₂)
-include h₁ h₂
-
-theorem P24_out (hy : numeric y) : P24 x₁ x₂ y :=
-P124 (mul_args.P24 x₁ x₂ y) $ by rintro _ (rfl|rfl|rfl|⟨⟨⟩⟩); assumption
-
-theorem mul_congr_left (hy : numeric y) (he : x₁ ≈ x₂) : x₁ * y ≈ x₂ * y :=
-equiv_iff_game_eq.2 $ (P24_out h₁ h₂ hy).1 he
-
-theorem mul_congr_right (he : x₁ ≈ x₂) : y * x₁ ≈ y * x₂ :=
-(mul_comm_equiv _ _).trans $ (mul_congr_left h₁ h₂ hy he).trans $ mul_comm_equiv _ _
-
-omit hy
-variables {y₁ y₂ : pgame.{u}} (hy₁ : numeric y₁) (hy₂ : numeric y₂)
-include hy₁ hy₂
-
-theorem mul_congr (hx : x₁ ≈ x₂) (hy : y₁ ≈ y₂) : x₁ * y₁ ≈ x₂ * y₂ :=
-(mul_congr_left h₁ h₂ hy₁ hx).trans (mul_congr_right h₂ hy₁ hy₂ hy)
-
-lemma P3_of_lt_of_lt (hx : x₁ < x₂) (hy : y₁ < y₂) : P3 x₁ x₂ y₁ y₂ :=
-begin
-  revert x₁ x₂, rw ← prod.forall',
-  refine λ t, (wf_is_option.game_add wf_is_option).induction t _,
-  rintro ⟨x₁, x₂⟩ ih h₁ h₂ hx, refine P3_of_lt _ _ hx; intro i,
-  { have hi := h₂.move_left i,
-    refine ⟨_, _, _, _⟩,
-    exact P24_out h₁ hi hy₁,
-    exact P24_out h₁ hi hy₂,
-    exact P3.comm.2 (((P24_out hy₁ hy₂ h₂).2 hy).1 _),
-    exact ih _ (game_add.snd $ is_option.move_left i) h₁ hi },
-  { have hi := h₁.neg.move_left i,
-    refine ⟨_, _, _, _⟩,
-    exact P24_out h₂.neg hi hy₁,
-    exact P24_out h₂.neg hi hy₂,
-    exact P3.comm.2 (((P24_out hy₁ hy₂ h₁).2 hy).2 _),
-    { rw [move_left_neg', ← P3_neg, neg_lt_iff],
-      exact ih _ (game_add.fst $ is_option.move_right _) (h₁.move_right _) h₂ } },
-end
-
-omit hy₁ hy₂
-
-lemma mul_pos (hp₁ : 0 < x₁) (hp₂ : 0 < x₂) : 0 < x₁ * x₂ :=
-begin
-  rw lt_iff_game_lt,
-  convert lt_iff_game_lt.1 (P3_of_lt_of_lt numeric_zero h₁ numeric_zero h₂ hp₁ hp₂) using 1;
-  simpa,
-end
-
-end main
-
-end numeric
-
-end pgame
-
-namespace surreal
-
 noncomputable instance : linear_ordered_comm_ring surreal :=
 { mul := surreal.lift₂
     (λ x y ox oy, ⟦⟨x * y, ox.mul oy⟩⟧)
@@ -773,52 +774,32 @@ noncomputable instance : linear_ordered_comm_ring surreal :=
 
 end surreal
 
+open surreal
+
+namespace ordinal
+
+/-- Converts an ordinal into the corresponding surreal. -/
+noncomputable def to_surreal : ordinal ↪o surreal :=
+{ to_fun := λ o, mk _ (numeric_to_pgame o),
+  inj' := λ a b h, to_pgame_equiv_iff.1 (quotient.exact h),
+  map_rel_iff' := @to_pgame_le_iff }
+
+end ordinal
+
 
 -- We conclude with some ideas for further work on surreals; these would make fun projects.
 
 -- TODO define the inclusion of groups `surreal → game`
 -- TODO define the inverse on the surreals
 
-/- make quot_neg_mul a relabelling?  -/
 
-/- mem_subsingleton etc. directly rintro -/
 /- inline all instances before linear_ordered_add_comm_group into one ..? -/
 
 /- Any set of surreals has an upper bound (just take the set as left options),
   but it has a least upper bound iff it has a maximal element. -/
 
 /- order/ring embedding from the reals .. can use only rationals as options?
- rationals are "simpler" than general surreals ..? embedding unique? -/
+  rationals are "simpler" than general surreals ..? embedding unique?
+  dyadics should suffice ... -/
 
-/- docstrings explaining the proof .. -/
-/- clear separation of calculation part vs. inductive hypothesis application part /
-  cut_expand relation verification part /
-  numeric hypothesis part handled at once .. -/
-/- utilize symmetry .. to minimize calculation .. -/
-
-/- clean up + docstrings .. -/
-/-! The main inductive argument to show that being numeric is closed under multiplication,
-  that multiplying a number by equivalent numbers results in equivalent numbers, and
-  that the product of two positive numbers is positive
-  (Theorem 8 in [conway], Theorem 3.8 in [schleicher_stoll]).
-
-  We follow the proof in [schleicher_stoll], except that we use the well-foundedness of
-  the hydra relation `cut_expand` on `multiset pgame` instead of the argument based
-  on a depth function in the paper.  -/
-
-
-/- `arg_ty` .. ? `arg_rel` .. in `inuction` namespace .. -/
-/- ihr' -> ih24, ihr'' -> ih4, ihr -> ih1, hyp -> P124, P3cond -> ih3 -/
-/- specialization of induction hypothesis -/
-
-
-/- `iitgceio` or `itco` .. `inv_image trans_gen cut_expand is_option` -/
-
-
-/- real algebraically closed .. -/
-
-
-/- ordinals are exactly surreals without right options (recursively) -/
-
-/-  theorem mul_lt_iff_lt_one_left {α : Type u} [linear_ordered_semiring α] {a b : α} (hb : 0 < b) :
-a * b < b ↔ a < 1 -/
+/- make quot_neg_mul a relabelling?  -/

@@ -373,6 +373,10 @@ end
 
 end trans_gen
 
+lemma closed.trans_gen {P : α → Prop} (dc : ∀ {a b}, r a b → P b → P a)
+  {a b : α} (h : trans_gen r a b) : P b → P a :=
+by { apply h.head_induction_on, exacts [λ _, dc, λ _ _ hr _ hi, dc hr ∘ hi] }
+
 lemma _root_.acc.trans_gen {α} {r : α → α → Prop} {a : α} (h : acc r a) : acc (trans_gen r) a :=
 begin
   induction h with x _ H,

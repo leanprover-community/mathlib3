@@ -57,9 +57,16 @@ begin
   exact ih a' hr',
 end
 
-lemma _root_.acc.of_downward_closed (dc : ∀ {a b}, rβ b (f a) → b ∈ set.range f)
+/-- The image of `f : α → β` is leftward-closed under the relation `rβ` iff `f` is a fibration
+  between inverse image of `rβ` and `rβ` itself. -/
+lemma image_closed_iff_fibration_inv_image :
+  (∀ {a b}, rβ b (f a) → b ∈ set.range f) ↔ fibration (inv_image rβ f) rβ f :=
+⟨λ hc a b h, let ⟨a', he⟩ := hc h in ⟨a', he.substr h, he⟩,
+ λ hf a b h, let ⟨a', _, he⟩ := hf h in ⟨a', he⟩⟩
+
+lemma _root_.acc.of_closed (hc : ∀ ⦃a b⦄, rβ b (f a) → b ∈ set.range f)
   (a : α) (ha : acc (inv_image rβ f) a) : acc rβ (f a) :=
-ha.of_fibration f (λ a b h, let ⟨a', he⟩ := dc h in ⟨a', he.substr h, he⟩)
+ha.of_fibration f $ (image_closed_iff_fibration_inv_image f).1 hc
 
 variables (rα rβ)
 
@@ -165,8 +172,8 @@ begin
     exact ⟨ht, mem_add.2 (or.inl h), (t.erase_add_left_pos h).symm⟩ },
 end
 
-/-- `cut_expand` preserves downward-closedness. -/
-lemma cut_expand_dc (hr : irreflexive r) (p : α → Prop)
+/-- `cut_expand` preserves leftward-closedness under a relation. -/
+lemma cut_expand_closed (hr : irreflexive r) (p : α → Prop)
   (h : ∀ {a' a}, r a' a → p a → p a') :
   ∀ {s' s}, cut_expand r s' s → (∀ a ∈ s, p a) → ∀ a ∈ s', p a :=
 begin

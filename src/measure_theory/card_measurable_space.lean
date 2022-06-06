@@ -95,7 +95,7 @@ begin
   have B : aleph 1 ≤ (max (#s) 2) ^ aleph_0.{u} :=
     aleph_one_le_continuum.trans (power_le_power_right (le_max_right _ _)),
   have C : ℵ₀ ≤ (max (#s) 2) ^ aleph_0.{u} := A.trans B,
-  have J : #(⋃ (j : Iio i), generate_measurable_rec s j.1) ≤ (max (#s) 2) ^ aleph_0.{u},
+  have J : #(⋃ j : Iio i, generate_measurable_rec s j.1) ≤ (max (#s) 2) ^ aleph_0.{u},
   { apply (mk_Union_le _).trans,
     have D : (⨆ j : Iio i, #(generate_measurable_rec s j)) ≤ _ := csupr_le' (λ ⟨j, hj⟩, IH j hj),
     apply (mul_le_mul' ((mk_subtype_le _).trans (aleph 1).mk_ord_out.le) D).trans,

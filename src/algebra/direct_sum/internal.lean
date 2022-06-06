@@ -94,8 +94,8 @@ def direct_sum.coe_ring_hom [add_monoid ι] [semiring R] [set_like σ R]
 direct_sum.to_semiring (λ i, add_submonoid_class.subtype (A i)) rfl (λ _ _ _ _, rfl)
 
 /-- The canonical ring isomorphism between `⨁ i, A i` and `R`-/
-@[simp] lemma direct_sum.coe_ring_hom_of [add_monoid ι] [semiring R]
-  (A : ι → add_submonoid R) [set_like.graded_monoid A] (i : ι) (x : A i) :
+@[simp] lemma direct_sum.coe_ring_hom_of [add_monoid ι] [semiring R] [set_like σ R]
+  [add_submonoid_class σ R] (A : ι → σ) [set_like.graded_monoid A] (i : ι) (x : A i) :
   direct_sum.coe_ring_hom A (direct_sum.of (λ i, A i) i x) = x :=
 direct_sum.to_semiring_of _ _ _ _ _
 

@@ -37,7 +37,7 @@ homogeneous, radical
 open graded_ring set_like finset
 open_locale big_operators
 
-variables {ι σ R A : Type*}
+variables {ι σ A : Type*}
 variables [comm_ring A]
 variables [linear_ordered_cancel_add_comm_monoid ι]
 variables [set_like σ A] [add_submonoid_class σ A] {𝒜 : ι → σ} [graded_ring 𝒜]

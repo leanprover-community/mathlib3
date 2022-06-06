@@ -203,10 +203,10 @@ decompose_aux_single _ _ _
 
 /-- `add_monoid_algebra.gradesby` describe an internally graded algebra -/
 lemma grade_by.is_internal : direct_sum.is_internal (grade_by R f) :=
-graded_algebra.is_internal _
+graded_ring.is_internal _
 
 /-- `add_monoid_algebra.grades` describe an internally graded algebra -/
 lemma grade.is_internal : direct_sum.is_internal (grade R : ι → submodule R _) :=
-graded_algebra.is_internal _
+graded_ring.is_internal _
 
 end add_monoid_algebra

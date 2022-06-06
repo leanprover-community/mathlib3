@@ -706,8 +706,8 @@ cSup_le' $ forall_range_iff.2 h
 lemma exists_lt_of_lt_csupr' {f : ι → α} {a : α} (h : a < ⨆ i, f i) : ∃ i, a < f i :=
 by { contrapose! h, exact csupr_le' h }
 
-lemma csupr_mono' {ι'} {f : ι → α} {g : ι' → α} (hf : bdd_above (range f))
-  (hg : bdd_above (range g)) (h : ∀ i, ∃ i', f i ≤ g i') : supr f ≤ supr g :=
+lemma csupr_mono' {ι'} {f : ι → α} {g : ι' → α} (hg : bdd_above (range g))
+  (h : ∀ i, ∃ i', f i ≤ g i') : supr f ≤ supr g :=
 csupr_le' $ λ i, exists.elim (h i) (le_csupr_of_le hg)
 
 end conditionally_complete_linear_order_bot

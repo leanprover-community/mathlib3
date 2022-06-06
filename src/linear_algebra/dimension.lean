@@ -121,7 +121,7 @@ begin
   dsimp [module.rank],
   rw [cardinal.lift_supr (cardinal.bdd_above_range.{v' v'} _),
     cardinal.lift_supr (cardinal.bdd_above_range.{v v} _)],
-  apply csupr_mono' (cardinal.bdd_above_range.{v v'} _) (cardinal.bdd_above_range.{v' v} _),
+  apply csupr_mono' (cardinal.bdd_above_range.{v' v} _),
   rintro ⟨s, li⟩,
   refine ⟨⟨f '' s, _⟩, cardinal.lift_mk_le'.mpr ⟨(equiv.set.image f s i).to_embedding⟩⟩,
   convert (li.map' f (linear_map.ker_eq_bot.mpr i)).comp

@@ -115,8 +115,6 @@ variables {M : Type v} [add_comm_group M] [module R M]
 variables {M' : Type v'} [add_comm_group M'] [module R M']
 variables {M₁ : Type v} [add_comm_group M₁] [module R M₁]
 
-set_option pp.universes true
-
 theorem linear_map.lift_dim_le_of_injective (f : M →ₗ[R] M') (i : injective f) :
   cardinal.lift.{v'} (module.rank R M) ≤ cardinal.lift.{v} (module.rank R M') :=
 begin

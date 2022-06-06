@@ -36,6 +36,7 @@ end
 -- Auxiliary stuff for monoids
 
 /-- If `x ^ n = 1`, then `x ^ m` is the same as `x ^ (m % n)` -/
+@[to_additive]
 lemma pow_eq_pow_mod {M : Type*} [monoid M] {x : M} (m n : ℕ) (h : x ^ n = 1) :
   x ^ m = x ^ (m % n) :=
 begin

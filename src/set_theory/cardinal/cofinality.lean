@@ -289,8 +289,6 @@ theorem sup_lt_ord {ι} {f : ι → ordinal} {c : ordinal} (hι : #ι < c.cof) :
   (∀ i, f i < c) → sup.{u u} f < c :=
 sup_lt_ord_lift (by rwa (#ι).lift_id)
 
-set_option pp.universes true
-
 theorem supr_lt_lift {ι} {f : ι → cardinal} {c : cardinal} (hι : cardinal.lift (#ι) < c.ord.cof)
   (hf : ∀ i, f i < c) : supr f < c :=
 begin

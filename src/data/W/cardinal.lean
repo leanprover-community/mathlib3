@@ -62,14 +62,12 @@ lemma cardinal_mk_le_max_aleph_0_of_fintype [Π a, fintype (β a)] : #(W_type β
 let m := max (#α) ℵ₀ in
 cardinal_mk_le_of_le $
 calc cardinal.sum (λ a : α, m ^ #(β a))
-    ≤ #α * cardinal.sup.{u u}
-      (λ a : α, m ^ cardinal.mk (β a)) :
-  cardinal.sum_le_sup _
-... ≤ m * cardinal.sup.{u u}
-      (λ a : α, m ^ #(β a)) :
+    ≤ #α * ⨆ a : α, m ^ cardinal.mk (β a) :
+  cardinal.sum_le_supr _
+... ≤ m * ⨆ a : α, m ^ #(β a) :
   mul_le_mul' (le_max_left _ _) le_rfl
 ... = m : mul_eq_left.{u} (le_max_right _ _)
-  (cardinal.sup_le (λ i, begin
+  (csupr_le' (λ i, begin
     cases lt_aleph_0.1 (lt_aleph_0_of_fintype (β i)) with n hn,
     rw [hn],
     exact power_nat_le (le_max_right _ _)
@@ -78,7 +76,7 @@ calc cardinal.sum (λ a : α, m ^ #(β a))
     begin
       rw [succ_zero],
       obtain ⟨a⟩ : nonempty α, from hn,
-      refine le_trans _ (le_sup _ a),
+      refine le_trans _ (le_csupr (bdd_above_range.{u u} _) a),
       rw [← @power_zero m],
       exact power_le_power_left (pos_iff_ne_zero.1
         (lt_of_lt_of_le aleph_0_pos (le_max_right _ _))) (zero_le _)

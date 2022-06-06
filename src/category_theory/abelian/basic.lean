@@ -753,5 +753,3 @@ def abelian : abelian C :=
   ..non_preadditive_abelian.preadditive }
 
 end category_theory.non_preadditive_abelian
-
-#lint

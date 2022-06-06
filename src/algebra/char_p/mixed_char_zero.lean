@@ -85,5 +85,5 @@ i.e. if there exists an ideal `I` such that `R/I` has positive characteristic.
 -/
 class mixed_char_zero (R : Type*) [comm_ring R] (p : ℕ) : Prop :=
   (char_zero : char_zero R)
-  (hp : p ≠ 0)
+  (p_pos : p ≠ 0)
   (residue_char_p : ∃(I : ideal R), (I ≠ ⊤) ∧ char_p (R⧸I) p)

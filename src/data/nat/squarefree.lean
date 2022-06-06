@@ -3,9 +3,7 @@ Copyright (c) 2020 Aaron Anderson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
-import ring_theory.unique_factorization_domain
 import ring_theory.int.basic
-import number_theory.divisors
 import algebra.is_prime_pow
 import algebra.squarefree
 

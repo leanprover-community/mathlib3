@@ -34,6 +34,11 @@ variables (𝓐 : ι → submodule R A) [graded_algebra 𝓐]
 variables {M : Type*} [add_comm_monoid M] [module A M]
 variables (𝓜 : ι → add_submonoid M)
 
+/--
+Given a graded `R`-algebra `A` graded by `𝓐 : ι → submodule R A` and a decomposition of `A`-module
+`M` into `𝓜 : ι → add_submonoid M`, we say that `M` is graded by `𝓜` if and only if the
+decomposition map `M → ⨁ i, 𝓜 i` is inverse to the canonical map `⨁ i, 𝓜 i → M`.
+-/
 class graded_module :=
 (decompose' : M → ⨁ i, 𝓜 i)
 (left_inv : function.left_inverse decompose' (direct_sum.coe_add_monoid_hom 𝓜))
@@ -48,6 +53,9 @@ protected lemma is_internal : direct_sum.is_internal 𝓜 :=
 { left := (@graded_module.left_inv ι R A _ _ _ _ _ 𝓐 _ M _ _ 𝓜 _).injective,
   right := (@graded_module.right_inv ι R A _ _ _ _ _ 𝓐 _ M _ _ 𝓜 _).surjective }
 
+/--
+If `M` is graded by `𝓜`, then `M` is isomorphic to `⨁ i, 𝓜 i` as `add_comm_monoid`.
+-/
 def decompose : M ≃+ ⨁ i, 𝓜 i := add_equiv.symm
 { to_fun := direct_sum.coe_add_monoid_hom 𝓜,
   inv_fun := graded_module.decompose' 𝓐,
@@ -75,9 +83,13 @@ graded_module.decompose_coe _ _ ⟨x, hx⟩
 
 lemma decompose_of_mem_ne {x : M} {i j : ι} (hx : x ∈ 𝓜 i) (hij : i ≠ j):
   (graded_module.decompose 𝓐 𝓜 x j : M) = 0 :=
-by rw [graded_module.decompose_of_mem _ _ hx, direct_sum.of_eq_of_ne _ _ _ _ hij, add_submonoid.coe_zero]
+by rw [decompose_of_mem _ _ hx, direct_sum.of_eq_of_ne _ _ _ _ hij, add_submonoid.coe_zero]
 
-instance is_module : module A (⨁ i, 𝓜 i) :=
+/--
+`⨁ i, 𝓜 i` is also an `A`-module, via `a • z = decompose (a • redecompose z)` where `decompose` and
+`recompose` are the cannonical homomorphism `M → ⨁ i, 𝓜 i` and `⨁ i, 𝓜 i → M`.
+-/
+def is_module : module A (⨁ i, 𝓜 i) :=
 { smul := λ a z, graded_module.decompose 𝓐 𝓜 (a • (graded_module.decompose 𝓐 𝓜).symm z),
   one_smul := λ b, begin
     change graded_module.decompose 𝓐 𝓜 _ = _,
@@ -122,3 +134,5 @@ instance is_module : module A (⨁ i, 𝓜 i) :=
   end }
 
 end graded_module
+
+#lint

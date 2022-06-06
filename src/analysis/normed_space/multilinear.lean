@@ -817,6 +817,7 @@ continuous_multilinear_map.op_norm_le_bound _ (mul_nonneg (norm_nonneg _) (norm_
 calc ∥g (f m)∥ ≤ ∥g∥ * (∥f∥ * ∏ i, ∥m i∥) : g.le_op_norm_of_le $ f.le_op_norm _
            ... = _                        : (mul_assoc _ _ _).symm
 
+variables (𝕜 E G G')
 /-- `continuous_linear_map.comp_continuous_multilinear_map` as a bundled continuous bilinear map. -/
 def comp_continuous_multilinear_mapL :
   (G →L[𝕜] G') →L[𝕜] continuous_multilinear_map 𝕜 E G →L[𝕜] continuous_multilinear_map 𝕜 E G' :=
@@ -824,6 +825,8 @@ linear_map.mk_continuous₂
   (linear_map.mk₂ 𝕜 comp_continuous_multilinear_map (λ f₁ f₂ g, rfl) (λ c f g, rfl)
     (λ f g₁ g₂, by { ext1, apply f.map_add }) (λ c f g, by { ext1, simp }))
   1 $ λ f g, by { rw one_mul, exact f.norm_comp_continuous_multilinear_map_le g }
+
+variables {𝕜 E G G'}
 
 /-- Flip arguments in `f : G →L[𝕜] continuous_multilinear_map 𝕜 E G'` to get
 `continuous_multilinear_map 𝕜 E (G →L[𝕜] G')` -/

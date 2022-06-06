@@ -105,7 +105,7 @@ The definition is marked as protected to avoid conflicts with `_root_.rank`,
 the rank of a linear map.
 -/
 protected def module.rank : cardinal :=
-cardinal.sup.{v v} (λ ι : {s : set V // linear_independent K (coe : s → V)}, #ι.1)
+⨆ ι : {s : set V // linear_independent K (coe : s → V)}, #ι.1
 
 end
 
@@ -116,9 +116,11 @@ variables {M' : Type v'} [add_comm_group M'] [module R M']
 variables {M₁ : Type v} [add_comm_group M₁] [module R M₁]
 
 theorem linear_map.lift_dim_le_of_injective (f : M →ₗ[R] M') (i : injective f) :
-  cardinal.lift.{v'} (module.rank R M) ≤ cardinal.lift.{ v} (module.rank R M') :=
+  cardinal.lift.{v'} (module.rank R M) ≤ cardinal.lift.{v} (module.rank R M') :=
 begin
   dsimp [module.rank],
+  rw [cardinal.lift_supr, cardinal.lift_supr],
+  apply csupr_mono',
   fapply cardinal.lift_sup_le_lift_sup',
   { rintro ⟨s, li⟩,
     use f '' s,

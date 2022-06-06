@@ -804,7 +804,7 @@ by rw [←lift_aleph_0, lift_le]
 
 /-! ### Properties about the cast from `ℕ` -/
 
-@[simp] theorem mk_fin (n : ℕ) : #(fin n) = n := by simp
+theorem mk_fin (n : ℕ) : #(fin n) = n := by simp
 
 @[simp] theorem lift_nat_cast (n : ℕ) : lift.{u} (n : cardinal.{v}) = n :=
 by induction n; simp *

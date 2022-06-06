@@ -118,7 +118,7 @@ graded_algebra.of_alg_hom (even_odd Q)
 
 lemma supr_ι_range_eq_top : (⨆ i : ℕ, (ι Q).range ^ i) = ⊤ :=
 begin
-  rw [← (graded_algebra.is_internal $ λ i, even_odd Q i).submodule_supr_eq_top, eq_comm],
+  rw [← (graded_ring.is_internal $ λ i, even_odd Q i).submodule_supr_eq_top, eq_comm],
   dunfold even_odd,
   calc    (⨆ (i : zmod 2) (j : {n // ↑n = i}), (ι Q).range ^ ↑j)
         = (⨆ (i : Σ i : zmod 2, {n : ℕ // ↑n = i}), (ι Q).range ^ (i.2 : ℕ)) : by rw supr_sigma
@@ -127,7 +127,7 @@ begin
 end
 
 lemma even_odd_is_compl : is_compl (even_odd Q 0) (even_odd Q 1) :=
-(graded_algebra.is_internal (even_odd Q)).is_compl zero_ne_one $ begin
+(graded_ring.is_internal (even_odd Q)).is_compl zero_ne_one $ begin
   have : (finset.univ : finset (zmod 2)) = {0, 1} := rfl,
   simpa using congr_arg (coe : finset (zmod 2) → set (zmod 2)) this,
 end

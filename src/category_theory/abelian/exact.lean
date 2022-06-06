@@ -306,4 +306,49 @@ instance reflects_exact_sequences_of_preserves_zero_morphisms_of_faithful (F : C
 
 end functor
 
+section abelian
+
+open limits abelian
+
+universes u v
+
+variables {𝓐 𝓑 : Type u} [category.{v} 𝓐] [category.{v} 𝓑]
+variables [abelian 𝓐] [abelian 𝓑]
+variables (L : 𝓐 ⥤ 𝓑) [preserves_finite_limits L] [preserves_finite_colimits L]
+
+lemma exact_of_exact_functor {X Y Z : 𝓐} (f : X ⟶ Y) (g : Y ⟶ Z) (e1 : exact f g) :
+  exact (L.map f) (L.map g) :=
+have H : is_iso (image_to_kernel f g e1.w) := is_iso_of_mono_of_epi _,
+begin
+  rw abelian.exact_iff_image_eq_kernel,
+  ext,
+  work_on_goal 2
+  { refine (preserves_image.iso L f) ≪≫ _ ≪≫ (preserves_kernel.iso _ _),
+    exact
+    { hom := L.map $ (image_subobject_iso _).inv ≫ image_to_kernel f g e1.w ≫
+        (kernel_subobject_iso _).hom,
+      inv := L.map $ (kernel_subobject_iso _).inv ≫
+        (@as_iso _ _ _ _ (image_to_kernel _ _ e1.w) H).inv ≫ (image_subobject_iso _).hom,
+      hom_inv_id' := begin
+        simp only [←L.map_comp, category.assoc],
+        have h1 := (kernel_subobject_iso g).hom_inv_id,
+        reassoc h1,
+        rw [h1, ←category.assoc _ _ (image_subobject_iso _).hom, as_iso_inv,
+          is_iso.hom_inv_id, category.id_comp, iso.inv_hom_id, L.map_id],
+      end,
+      inv_hom_id' := begin
+        simp only [←L.map_comp, category.assoc],
+        have h1 := (image_subobject_iso f).hom_inv_id,
+        reassoc h1,
+        rw [h1, ←category.assoc _ _ (kernel_subobject_iso _).hom, as_iso_inv,
+          is_iso.inv_hom_id, category.id_comp, iso.inv_hom_id, L.map_id],
+      end } },
+  { simp only [functor.map_comp, category.assoc, iso.trans_hom, preserves_kernel.iso_hom,
+      kernel_comparison_comp_ι, limits.image.fac],
+    simp only [←L.map_comp, kernel_subobject_arrow, image_to_kernel_arrow, image_subobject_arrow'],
+    rw [←category.assoc, preserves_image.precomp_factor_thru_image, ←L.map_comp, limits.image.fac] }
+end
+
+end abelian
+
 end category_theory

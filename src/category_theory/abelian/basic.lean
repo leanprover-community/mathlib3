@@ -8,6 +8,7 @@ import category_theory.limits.constructions.pullbacks
 import category_theory.limits.shapes.biproducts
 import category_theory.limits.shapes.images
 import category_theory.limits.constructions.limits_of_products_and_equalizers
+import category_theory.limits.constructions.epi_mono
 import category_theory.abelian.non_preadditive
 
 /-!
@@ -385,6 +386,34 @@ is_image.iso_ext (coimage_strong_epi_mono_factorisation f).to_mono_is_image
     morphism. -/
 abbreviation image_iso_image : abelian.image f ≅ image f :=
 is_image.iso_ext (image_strong_epi_mono_factorisation f).to_mono_is_image (image.is_image f)
+
+namespace preserves_image
+
+variables {𝓐 𝓑 : Type u} [category.{v} 𝓐] [category.{v} 𝓑]
+variables [abelian 𝓐] [abelian 𝓑]
+variables (L : 𝓐 ⥤ 𝓑) [preserves_finite_limits L] [preserves_finite_colimits L]
+
+
+def iso {X Y : 𝓐} (f : X ⟶ Y) : image (L.map f) ≅ L.obj (image f) :=
+have aux1 : strong_epi_mono_factorisation (L.map f) :=
+{ I := L.obj (limits.image f),
+  m := L.map $ limits.image.ι _,
+  m_mono := by apply_instance,
+  e := L.map $ factor_thru_image _,
+  e_strong_epi := strong_epi_of_epi _,
+  fac' := by rw [←L.map_comp, limits.image.fac] },
+is_image.iso_ext (image.is_image (L.map f)) aux1.to_mono_is_image
+
+lemma precomp_factor_thru_image {X Y : 𝓐} (f : X ⟶ Y) :
+  factor_thru_image  (L.map f) ≫ (iso L f).hom =
+  L.map (factor_thru_image f) :=
+begin
+  dunfold iso,
+  simp only [is_image.iso_ext_hom],
+  erw image.fac_lift,
+end
+
+end preserves_image
 
 end images
 

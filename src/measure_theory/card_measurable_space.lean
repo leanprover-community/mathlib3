@@ -41,7 +41,7 @@ this will be enough to generate all sets in the sigma-algebra.
 
 This construction is very similar to that of the Borel hierarchy. -/
 def generate_measurable_rec (s : set (set α)) : ω₁ → set (set α)
-| i := let S := ⋃ j : {j // j < i}, generate_measurable_rec j.1 in
+| i := let S := ⋃ j : Iio i, generate_measurable_rec j.1 in
     s ∪ {∅} ∪ compl '' S ∪ set.range (λ (f : ℕ → S), ⋃ n, (f n).1)
 using_well_founded {dec_tac := `[exact j.2]}
 
@@ -95,7 +95,7 @@ begin
   have B : aleph 1 ≤ (max (#s) 2) ^ aleph_0.{u} :=
     aleph_one_le_continuum.trans (power_le_power_right (le_max_right _ _)),
   have C : ℵ₀ ≤ (max (#s) 2) ^ aleph_0.{u} := A.trans B,
-  have J : #(⋃ (j : {j // j < i}), generate_measurable_rec s j.1) ≤ (max (#s) 2) ^ aleph_0.{u},
+  have J : #(⋃ (j : Iio i), generate_measurable_rec s j.1) ≤ (max (#s) 2) ^ aleph_0.{u},
   { apply (mk_Union_le _).trans,
     have D : (⨆ j : Iio i, #(generate_measurable_rec s j)) ≤ _ := csupr_le' (λ ⟨j, hj⟩, IH j hj),
     apply (mul_le_mul' ((mk_subtype_le _).trans (aleph 1).mk_ord_out.le) D).trans,

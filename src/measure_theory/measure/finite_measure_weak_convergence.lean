@@ -108,6 +108,19 @@ end
 
 namespace measure_theory
 
+section finite_measure
+/-! ### Finite measures
+
+In this section we define the `Type` of `finite_measure α`, when `α` measurable space. Finite
+measures on `α` are a module over `ℝ≥0`.
+
+If `α` is moreover a topological space and the sigma algebra on `α` is finer than the Borel sigma
+algebra (i.e. `[opens_measurable_space α]`), then `finite_measure α` is equipped with the topology
+of weak convergence of measures. This is implemented by defining a pairing of finite measures `μ`
+on `α` with continuous bounded nonnegative functions `f : α →ᵇ ℝ≥0` via integration, and using the
+associated weak topology.
+-/
+
 variables {α : Type*} [measurable_space α]
 
 /-- Finite measures are defined as the subtype of measures that have the property of being finite
@@ -351,6 +364,20 @@ begin
            ennreal.tendsto_coe, ennreal.to_nnreal_coe],
 end
 
+end finite_measure -- namespace
+
+end finite_measure -- section
+
+section finite_measure_bounded_convergence
+/-! ### Bounded convergence results for finite measures
+
+This section is about bounded convergence theorems for finite measures.
+-/
+
+namespace finite_measure
+
+variables {α : Type*} [measurable_space α] [topological_space α] [opens_measurable_space α]
+
 /-- A bounded convergence theorem for a finite measure:
 If bounded continuous non-negative functions are uniformly bounded by a constant and tend to a
 limit, then their integrals against the finite measure tend to the integral of the limit.
@@ -424,6 +451,21 @@ lemma tendsto_test_against_nn_of_le_const {μ : finite_measure α}
   tendsto (λ n, μ.test_against_nn (fs n)) at_top (𝓝 (μ.test_against_nn f)) :=
 tendsto_test_against_nn_filter_of_le_const
   (eventually_of_forall (λ n, eventually_of_forall (fs_le_const n))) (eventually_of_forall fs_lim)
+
+end finite_measure -- namespace
+
+end finite_measure_bounded_convergence -- section
+
+section finite_measure_convergence_by_bounded_continuous_functions
+/-! ### Weak convergence of finite measures with bounded continuous real-valued functions
+
+In this section we characterize the weak convergence of finite measures by the most common
+(defining) condition of convergence of integrals of all bounded continuous real-valued functions.
+-/
+
+namespace finite_measure
+
+variables {α : Type*} [measurable_space α] [topological_space α] [opens_measurable_space α]
 
 @[simps] def _root_.bounded_continuous_function.nnreal_part (f : α →ᵇ ℝ) : α →ᵇ ℝ≥0 :=
 bounded_continuous_function.comp _
@@ -543,7 +585,21 @@ begin
   exact tendsto.sub tends_pos tends_neg,
 end
 
-end finite_measure
+end finite_measure -- namespace
+
+end finite_measure_convergence_by_bounded_continuous_functions -- section
+
+section probability_measure
+/-! ### Probability measures
+
+In this section we define the `Type*` of probability measures on a measurable space `α`, denoted by
+`probability_measure α`. TODO: Probability measures form a convex space.
+
+If `α` is moreover a topological space and the sigma algebra on `α` is finer than the Borel sigma
+algebra (i.e. `[opens_measurable_space α]`), then `probability_measure α` is equipped with the
+topology of weak convergence of measures. Since every probability measure is a finite measure, this
+is implemented as the induced topology from the coercion `probability_measure.to_finite_measure`.
+-/
 
 /-- Probability measures are defined as the subtype of measures that have the property of being
 probability measures (i.e., their total mass is one). -/
@@ -551,6 +607,8 @@ def probability_measure (α : Type*) [measurable_space α] : Type* :=
 {μ : measure α // is_probability_measure μ}
 
 namespace probability_measure
+
+variables {α : Type*} [measurable_space α]
 
 instance [inhabited α] : inhabited (probability_measure α) :=
 ⟨⟨measure.dirac default, measure.dirac.is_probability_measure⟩⟩
@@ -660,9 +718,20 @@ begin
   exact finite_measure.tendsto_iff_forall_lintegral_tendsto,
 end
 
-end probability_measure
+end probability_measure -- namespace
+
+end probability_measure -- section
 
 section convergence_implies_limsup_closed_le
+/-! ### Portmanteau implication: weak convergence implies a limsup condition for closed sets
+
+In this section we prove, under the assumption that the underlying topological space `α` is
+pseudo-emetrizable, that the weak convergence of measures on `finite_measure α` implies that for
+any closed set `F` in `α` the limsup of the measures of `F` is at most the limit measure of `F`.
+This is one implication of the portmanteau theorem characterizing weak convergence of measures.
+-/
+
+variables {α : Type*} [measurable_space α]
 
 /-- If bounded continuous functions tend to the indicator of a measurable set and are
 uniformly bounded, then their integrals against a finite measure tend to the measure of the set.
@@ -768,6 +837,6 @@ begin
   simp only [add_assoc, ennreal.add_halves, le_refl],
 end
 
-end convergence_implies_limsup_closed_le
+end convergence_implies_limsup_closed_le --section
 
-end measure_theory
+end measure_theory --namespace

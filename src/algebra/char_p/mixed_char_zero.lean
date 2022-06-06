@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2022 Jon Eugster.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Jon Eugster.
+Authors: Jon Eugster
 -/
 import algebra.char_p.basic
 import ring_theory.ideal.quotient

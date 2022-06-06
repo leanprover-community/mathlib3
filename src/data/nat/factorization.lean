@@ -303,6 +303,10 @@ begin
   simp [hp.factorization],
 end
 
+lemma coprime_of_div_pow_factorization (a p : ℕ) (ha : a ≠ 0) (pp : prime p) :
+  coprime p (a / p^(a.factorization p)) :=
+(or_iff_left (not_dvd_div_pow_factorization pp ha)).mp (coprime_or_dvd_of_prime pp _)
+
 lemma dvd_iff_div_factorization_eq_tsub {d n : ℕ} (hd : d ≠ 0) (hdn : d ≤ n) :
   d ∣ n ↔ (n / d).factorization = n.factorization - d.factorization :=
 begin

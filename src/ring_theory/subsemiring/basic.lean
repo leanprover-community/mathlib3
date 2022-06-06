@@ -973,9 +973,9 @@ instance [has_scalar α β] [has_scalar R' α] [has_scalar R' β] [is_scalar_tow
   is_scalar_tower S α β :=
 S.to_submonoid.is_scalar_tower
 
-instance [has_scalar R' α] [has_faithful_scalar R' α] (S : subsemiring R') :
-  has_faithful_scalar S α :=
-S.to_submonoid.has_faithful_scalar
+instance [has_scalar R' α] [has_faithful_smul R' α] (S : subsemiring R') :
+  has_faithful_smul S α :=
+S.to_submonoid.has_faithful_smul
 
 /-- The action by a subsemiring is the action by the underlying semiring. -/
 instance [has_zero α] [smul_with_zero R' α] (S : subsemiring R') : smul_with_zero S α :=
@@ -1005,6 +1005,14 @@ mul_action_with_zero.comp_hom _ S.subtype.to_monoid_with_zero_hom
 /-- The action by a subsemiring is the action by the underlying semiring. -/
 instance [add_comm_monoid α] [module R' α] (S : subsemiring R') : module S α :=
 { smul := (•), .. module.comp_hom _ S.subtype }
+
+/-- The center of a semiring acts commutatively on that semiring. -/
+instance center.smul_comm_class_left : smul_comm_class (center R') R' R' :=
+submonoid.center.smul_comm_class_left
+
+/-- The center of a semiring acts commutatively on that semiring. -/
+instance center.smul_comm_class_right : smul_comm_class R' (center R') R' :=
+submonoid.center.smul_comm_class_right
 
 /-- If all the elements of a set `s` commute, then `closure s` is a commutative monoid. -/
 def closure_comm_semiring_of_comm {s : set R'} (hcomm : ∀ (a ∈ s) (b ∈ s), a * b = b * a) :

@@ -64,7 +64,8 @@ end⟩
 namespace equal_char_zero
 
 /-- Equal characteristics zero implies `char(R) = 0`. -/
-instance char_zero (R : Type*) [comm_ring R] [nontrivial R] [equal_char_zero R] : char_zero R :=
+@[priority 100] instance char_zero (R : Type*) [comm_ring R] [nontrivial R] [equal_char_zero R] :
+  char_zero R :=
 ⟨begin
   intros x y h,
   apply (equal_char_zero.residue_char_zero (⊥:ideal R) bot_ne_top).cast_injective,

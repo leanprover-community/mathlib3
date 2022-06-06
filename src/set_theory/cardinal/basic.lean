@@ -615,7 +615,7 @@ theorem bdd_above_iff_small {s : set cardinal.{u}} : bdd_above s ↔ small.{u} s
   { simp_rw [subtype.val_eq_coe, equiv.symm_apply_apply], refl }
 end⟩
 
-theorem bdd_above_apply (f : cardinal.{u} → cardinal.{max u v}) {s : set cardinal.{u}}
+theorem bdd_above_image (f : cardinal.{u} → cardinal.{max u v}) {s : set cardinal.{u}}
   (hs : bdd_above s) : bdd_above (f '' s) :=
 begin
   rw bdd_above_iff_small at hs ⊢,
@@ -729,7 +729,7 @@ lift_monotone.map_max
 /-- The lift of a supremum is the supremum of the lifts. -/
 lemma lift_Sup {s : set cardinal} (hs : bdd_above s) : lift.{u} (Sup s) = Sup (lift.{u} '' s) :=
 begin
-  apply ((le_cSup_iff' (bdd_above_apply _ hs)).2 (λ c hc, _)).antisymm (cSup_le' _),
+  apply ((le_cSup_iff' (bdd_above_image _ hs)).2 (λ c hc, _)).antisymm (cSup_le' _),
   { by_contra h,
     obtain ⟨d, rfl⟩ := cardinal.lift_down (not_le.1 h).le,
     simp_rw lift_le at h hc,
@@ -1408,7 +1408,7 @@ begin
   rw powerlt,
   apply @le_csupr _ _ _ (λ y : Iio b, a ^ y) _ ⟨c, h⟩,
   rw ←image_eq_range,
-  exact bdd_above_apply.{u u} _ bdd_above_Iio
+  exact bdd_above_image.{u u} _ bdd_above_Iio
 end
 
 lemma powerlt_le {a b c : cardinal.{u}} : a ^< b ≤ c ↔ ∀ x < b, a ^ x ≤ c :=
@@ -1416,7 +1416,7 @@ begin
   rw [powerlt, csupr_le_iff'],
   { simp },
   { rw ←image_eq_range,
-    exact bdd_above_apply.{u u} _ bdd_above_Iio }
+    exact bdd_above_image.{u u} _ bdd_above_Iio }
 end
 
 lemma powerlt_le_powerlt_left {a b c : cardinal} (h : b ≤ c) : a ^< b ≤ a ^< c :=

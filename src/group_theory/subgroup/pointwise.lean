@@ -241,3 +241,26 @@ subset_set_smul_iff₀ ha
 end group_with_zero
 
 end add_subgroup
+
+namespace subgroup
+
+open_locale pointwise
+
+lemma conj_smul_le_of_le {P H : subgroup G} (hP : P ≤ H) (h : H) :
+  mul_aut.conj (h : G) • P ≤ H :=
+begin
+  rintro - ⟨g, hg, rfl⟩,
+  exact H.mul_mem (H.mul_mem h.2 (hP hg)) (H.inv_mem h.2),
+end
+
+lemma conj_smul_eq {P H : subgroup G} (hP : P ≤ H) (h : H) :
+  mul_aut.conj h • P.comap H.subtype = (mul_aut.conj (h : G) • P).comap H.subtype :=
+begin
+  refine le_antisymm _ _,
+  { rintro - ⟨g, hg, rfl⟩,
+    exact ⟨g, hg, rfl⟩ },
+  { rintro p ⟨g, hg, hp⟩,
+    exact ⟨⟨g, hP hg⟩, hg, subtype.ext hp⟩ },
+end
+
+end subgroup

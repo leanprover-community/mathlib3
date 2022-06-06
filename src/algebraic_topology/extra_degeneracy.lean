@@ -21,7 +21,8 @@ It consists of a series of maps `π₀ X → X _[0]` and `X _[n] → X _[n+1]` w
 behaves formally like an extra degeneracy `σ (-1)`. It can be thought as a datum
 associated to the augmented simplicial set `X → π₀ X`.
 
-In this file, we adapt this definition to case of augmented simplicial objects in any category.
+In this file, we adapt this definition to the case of augmented
+simplicial objects in any category.
 
 ## Main definitions
 
@@ -32,7 +33,7 @@ functor `C ⥤ D` (`extra_degeneracy.map`)
 extra degeneracy `extra_degeneracy.for_cech_nerve_of_split_epi`
 - when the category `C` is preadditive and has a zero object and
 `X : simplicial_object.augmented C` has an extra degeneracy,
-then the augmentation `alternating_face_map_complex.ε.app X` is an homotopy
+then the augmentation `alternating_face_map_complex.ε.app X` is a homotopy
 equivalence of chain complexes (`extra_degeneracy.preadditive.homotopy_equivalence`)
 
 ## References

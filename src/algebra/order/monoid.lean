@@ -494,7 +494,7 @@ min_eq_right (one_le a)
 /-- In a linearly ordered monoid, we are happy for `bot_eq_one` to be a `@[simp]` lemma. -/
 @[simp, to_additive
   "In a linearly ordered monoid, we are happy for `bot_eq_zero` to be a `@[simp]` lemma"]
-lemma bot_eq_one' [canonically_linear_ordered_monoid α] : (⊥ : α) = 1 :=
+lemma bot_eq_one' : (⊥ : α) = 1 :=
 bot_eq_one
 
 end canonically_linear_ordered_monoid

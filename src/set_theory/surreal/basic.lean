@@ -24,12 +24,12 @@ besides!) but we do not yet have a complete development.
 
 ## Order properties
 
-Surreal numbers inherit the relations `≤` and `<` from games (`surreal.has_le` and
-`surreal.has_lt`), and these relations satisfy the axioms of a linear order.
+Surreal numbers inherit the relations `≤` and `<` from games, and these relations satisfy the
+axioms of a linear order.
 
 ## Algebraic operations
 
-We show that the surreals form a linear ordered commutative group.
+We show that the surreals form a linear ordered commutative ring.
 
 One can also map all the ordinals into the surreals!
 
@@ -234,8 +234,8 @@ In the argument, P3 is stated with four variables `x₁, x₂, y₁, y₂` satis
 `y₁ < y₂`, and says that `x₁ * y₂ + x₂ * x₁ < x₁ * y₁ + x₂ * y₂`, which is equivalent to
 `0 < x₂ - x₁ → 0 < y₂ - y₁ → 0 < (x₂ - x₁) * (y₂ - y₁)`, i.e.
 `@mul_pos pgame _ (x₂ - x₁) (y₂ - y₁)`. It has to be stated in this form and not in terms of
-`mul_pos` because we needs show P1, P2 and (a specialized form of) P3 simultaneously, and for
-example `P1 x y` will be deduced from P3 with variables taking values simpler than `x` or `y`
+`mul_pos` because we need to show show P1, P2 and (a specialized form of) P3 simultaneously, and
+for example `P1 x y` will be deduced from P3 with variables taking values simpler than `x` or `y`
 (among other induction hypotheses), but if you subtract two pregames simpler than `x` or `y`,
 the result may no longer be simpler.
 
@@ -245,17 +245,20 @@ shown, a further inductive argument (this time using the `game_add` relation) pr
 
 Our proof features a clear separation of
 * calculation (e.g. ...),
-* application of indution hypothesis,
+* specialize induction hypothesis to a form easier to apply
+  (that direct takes in `is_option` arguments),
+* application of specialized indution hypothesis,
 * symmetry verification,
 * verification of `cut_expand` relations,
-* `numeric` hypotheses.
-and we utilize symmetry (permutation and negation) to minimize calculation.
+* `numeric`ity of options (filled in at the last moment ).
+and we utilize symmetry (permutation and negation of arguments) to minimize calculation.
 
   strategy: extract specialized versions of the induction hypothesis that easier to apply
   (example: `ih1`, ...),
   show they are invariant under certain symmetries (permutation and negation of variables),
-  and that the induction hypothesis indeed implies the restricted versions.
-  (Actually the induction hypotheses themselves already have those symmetries ...)
+  and that the induction hypothesis indeed implies the specialized versions.
+  (Actually the induction hypotheses themselves already have those symmetries ..? No, not usually
+  the negation symmetries).
 
   add the numeric hypothesis only at the last moment ..
   -/
@@ -713,7 +716,7 @@ lift (λ x ox, lift (λ y oy, f x y ox oy) (λ y₁ y₂ oy₁ oy₂, H _ _ _ _ 
   (λ x₁ x₂ ox₁ ox₂ h, funext $ quotient.ind $ by exact λ ⟨y, oy⟩, H _ _ _ _ h equiv_rfl)
 
 noncomputable instance : linear_ordered_comm_ring surreal :=
-{ add := lift₂ (λ (x y : pgame) (ox) (oy), ⟦⟨x + y, ox.add oy⟩⟧)
+{ add := lift₂ (λ x y ox oy, ⟦⟨x + y, ox.add oy⟩⟧)
     (λ x₁ y₁ x₂ y₂ _ _ _ _ hx hy, quotient.sound $ add_congr hx hy),
   add_assoc := by { rintros ⟨_⟩ ⟨_⟩ ⟨_⟩, exact quotient.sound add_assoc_equiv },
   zero := 0,
@@ -726,11 +729,10 @@ noncomputable instance : linear_ordered_comm_ring surreal :=
   lt := lift₂ (λ x y _ _, x < y) (λ x₁ y₁ x₂ y₂ _ _ _ _ hx hy, propext $ lt_congr hx hy),
   le_refl := by { rintros ⟨_⟩, apply @le_rfl pgame },
   le_trans := by { rintros ⟨_⟩ ⟨_⟩ ⟨_⟩, apply @le_trans pgame },
-  lt_iff_le_not_le := by { rintros ⟨_, ox⟩ ⟨_, oy⟩, exact lt_iff_le_not_le },
+  lt_iff_le_not_le := by { rintros ⟨_⟩ ⟨_⟩, exact lt_iff_le_not_le },
   le_antisymm := by { rintros ⟨_⟩ ⟨_⟩ h₁ h₂, exact quotient.sound ⟨h₁, h₂⟩ },
   add_le_add_left := by { rintros ⟨_⟩ ⟨_⟩ hx ⟨_⟩, exact @add_le_add_left pgame _ _ _ _ _ hx _ },
-  le_total := by rintro ⟨⟨x, ox⟩⟩ ⟨⟨y, oy⟩⟩; classical; exact
-    or_iff_not_imp_left.2 (λ h, (pgame.not_le.1 h).le oy ox),
+  le_total := by { rintro ⟨x⟩ ⟨y⟩, exact (le_or_gf x.1 y.1).imp id (λ h, h.le y.2 x.2) },
   decidable_le := classical.dec_rel _,
   mul := lift₂ (λ x y ox oy, ⟦⟨x * y, ox.mul oy⟩⟧)
     (λ _ _ _ _ ox₁ oy₁ ox₂ oy₂ hx hy, quotient.sound $ ox₁.mul_congr ox₂ oy₁ oy₂ hx hy),
@@ -742,7 +744,7 @@ noncomputable instance : linear_ordered_comm_ring surreal :=
   right_distrib := by { rintro ⟨x⟩ ⟨y⟩ ⟨z⟩, exact quotient.sound (right_distrib_equiv x y z) },
   zero_le_one := zero_le_one,
   mul_pos := by { rintro ⟨x⟩ ⟨y⟩, exact x.2.mul_pos y.2 },
-  exists_pair_ne := ⟨0, 1, pgame.zero_lt_one.lf.not_equiv ∘ quotient.exact⟩,
+  exists_pair_ne := ⟨0, 1, zero_lf_one.not_equiv ∘ quotient.exact⟩,
   mul_comm := by { rintro ⟨x⟩ ⟨y⟩, exact quotient.sound (mul_comm_equiv x y) } }
 
 end surreal

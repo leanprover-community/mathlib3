@@ -5,7 +5,6 @@ Authors: Junyan Xu
 -/
 import data.multiset.basic
 import order.well_founded
-import tactic.abel
 
 /-!
 # Termination of a hydra game

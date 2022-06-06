@@ -343,14 +343,13 @@ end
 lemma mul_option_symm (x y) {i j} : ⟦mul_option x y i j⟧ = ⟦mul_option y x j i⟧ :=
 by { dsimp [mul_option], rw add_comm, congr' 1, congr' 1, all_goals { rw quot_mul_comm } }
 
-/-- The left options of `x * y` are either of the first kind, or are the left options of
-  `(-x) * (-y)` of the first kind up to equivalence. -/
+/-- The left options of `x * y` of the second kind are the left options of `(-x) * (-y)` of the
+  first kind, up to equivalence. -/
 lemma left_moves_mul_iff {x y : pgame} (P : game → Prop) :
   (∀ k, P ⟦(x * y).move_left k⟧) ↔
   (∀ i j, P ⟦mul_option x y i j⟧) ∧ (∀ i j, P ⟦mul_option (-x) (-y) i j⟧) :=
 begin
-  obtain ⟨⟨xl, xr, xL, xR⟩, yl, yr, yL, yR⟩ := ⟨x, y⟩,
-  split; intro h,
+  cases x, cases y, split; intro h,
   work_on_goal 1 { split; intros i j,
     exact h (sum.inl (i,j)),
     convert h (sum.inr (i,j)) using 1 },
@@ -363,14 +362,13 @@ begin
     all_goals { rw quot_neg_mul_neg } },
 end
 
-/-- The right options of `x * y` are the left options of `x * (-y)` and of `(-x) * y`,
-  up to equivalence. -/
+/-- The right options of `x * y` are the left options of `x * (-y)` and of `(-x) * y` of the first
+  kind, up to equivalence. -/
 lemma right_moves_mul_iff {x y : pgame} (P : game → Prop) :
   (∀ k, P ⟦(x * y).move_right k⟧) ↔
   (∀ i j, P (-⟦mul_option x (-y) i j⟧)) ∧ (∀ i j, P (-⟦mul_option (-x) y i j⟧)) :=
 begin
-  obtain ⟨⟨xl, xr, xL, xR⟩, yl, yr, yL, yR⟩ := ⟨x, y⟩,
-  split; intro h,
+  cases x, cases y, split; intro h,
   work_on_goal 1 { split; intros i j,
     convert h (sum.inl (i,j)), swap 2,
     convert h (sum.inr (i,j)) },

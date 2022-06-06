@@ -425,7 +425,7 @@ alias lf_of_lt ← has_lt.lt.lf
 
 theorem le_of_forall_lt {x y : pgame} :
   ((∀ i, x.move_left i < y) ∧ ∀ j, x < y.move_right j) → x ≤ y :=
-by { rw le_iff_forall_lf, apply and.imp; apply forall_imp; intro; exact lf_of_lt }
+by { rw le_iff_forall_lf, apply and.imp; exact forall_imp (λ _, lf_of_lt) }
 
 /-- The definition of `x ≤ y` on pre-games, in terms of `≤` two moves later. -/
 theorem le_def {x y : pgame} : x ≤ y ↔

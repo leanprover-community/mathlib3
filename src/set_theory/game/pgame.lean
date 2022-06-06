@@ -1353,8 +1353,7 @@ by simp [star]
 @[simp] theorem zero_lt_one : (0 : pgame) < 1 :=
 lt_of_le_of_lf (zero_le_of_is_empty_right_moves 1) (zero_lf_le.2 ⟨default, le_rfl⟩)
 
-@[simp] theorem zero_le_one : (0 : pgame) ≤ 1 :=
-zero_lt_one.le
+instance : zero_le_one_class pgame := ⟨zero_lt_one.le⟩
 
 @[simp] theorem zero_lf_one : (0 : pgame) ⧏ 1 :=
 zero_lt_one.lf

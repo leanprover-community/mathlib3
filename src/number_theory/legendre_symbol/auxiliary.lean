@@ -37,7 +37,7 @@ end
 
 /-- If `x ^ n = 1`, then `x ^ m` is the same as `x ^ (m % n)` -/
 @[to_additive]
-lemma pow_eq_pow_mod {M : Type*} [monoid M] {x : M} (m n : ℕ) (h : x ^ n = 1) :
+lemma pow_eq_pow_mod {M : Type*} [monoid M] {x : M} (m : ℕ) {n : ℕ} (h : x ^ n = 1) :
   x ^ m = x ^ (m % n) :=
 begin
   nth_rewrite 0 [← nat.div_add_mod m n],

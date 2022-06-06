@@ -211,7 +211,7 @@ protected lemma set.countable.is_lindelof (hs : countable s) : is_lindelof s :=
 is_lindelof_iff_countable_cover_nhds.mpr $ λ t ht,
   ⟨s, subset.rfl, hs, λ x hx, mem_Union₂.2 ⟨x, hx, mem_of_mem_nhds (ht x hx)⟩⟩
 
-protected lemma set.finite.is_lindelof (hs : finite s) : is_lindelof s :=
+protected lemma set.finite.is_lindelof (hs : s.finite) : is_lindelof s :=
 hs.countable.is_lindelof
 
 protected lemma set.subsingleton.is_lindelof (hs : s.subsingleton) : is_lindelof s :=

@@ -326,9 +326,12 @@ by rw [quot_mul_comm, quot_neg_mul, quot_mul_comm]
 
 @[simp] theorem quot_neg_mul_neg (x y : pgame) : ⟦-x * -y⟧ = ⟦x * y⟧ := by simp
 
+/-- The left options of `x * y` of the first kind, i.e. of the form `xL * y + x * yL - xL * yL`. -/
 def mul_option (x y : pgame) (i j) : pgame :=
 x.move_left i * y + x * y.move_left j - x.move_left i * y.move_left j
 
+/-- Any left option of `x * y` of the first kind is also a left option of `x * -(-y)` of
+  the first kind. -/
 lemma mul_option_neg_neg {x} (y) {i j} :
   mul_option x y i j = mul_option x (-(-y)) i (to_left_moves_neg $ to_right_moves_neg j) :=
 begin
@@ -336,9 +339,12 @@ begin
   iterate 2 { rw [move_left_neg, move_right_neg, neg_neg] },
 end
 
+/-- The left options of `x * y` agree with that of `y * x` up to equivalence. -/
 lemma mul_option_symm (x y) {i j} : ⟦mul_option x y i j⟧ = ⟦mul_option y x j i⟧ :=
 by { dsimp [mul_option], rw add_comm, congr' 1, congr' 1, all_goals { rw quot_mul_comm } }
 
+/-- The left options of `x * y` are either of the first kind, or are the left options of
+  `(-x) * (-y)` of the first kind up to equivalence. -/
 lemma left_moves_mul_iff {x y : pgame} (P : game → Prop) :
   (∀ k, P ⟦(x * y).move_left k⟧) ↔
   (∀ i j, P ⟦mul_option x y i j⟧) ∧ (∀ i j, P ⟦mul_option (-x) (-y) i j⟧) :=
@@ -357,6 +363,8 @@ begin
     all_goals { rw quot_neg_mul_neg } },
 end
 
+/-- The right options of `x * y` are the left options of `x * (-y)` and of `(-x) * y`,
+  up to equivalence. -/
 lemma right_moves_mul_iff {x y : pgame} (P : game → Prop) :
   (∀ k, P ⟦(x * y).move_right k⟧) ↔
   (∀ i j, P (-⟦mul_option x (-y) i j⟧)) ∧ (∀ i j, P (-⟦mul_option (-x) y i j⟧)) :=

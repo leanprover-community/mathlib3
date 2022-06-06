@@ -201,6 +201,15 @@ def to_single₀_equiv (C : chain_complex V ℕ) (X : V) :
   end,
   right_inv := by tidy, }
 
+lemma to_single₀_ext {C : chain_complex V ℕ} {X : V}
+  (f g : (C ⟶ (single₀ V).obj X)) (h : f.f 0 = g.f 0) : f=g :=
+begin
+  rw [← (to_single₀_equiv C X).left_inv f, ← (to_single₀_equiv C X).left_inv g],
+  congr' 1,
+  ext,
+  exact h,
+end
+
 /--
 Morphisms from a single object chain complex with `X` concentrated in degree 0
 to a `ℕ`-indexed chain complex `C` are the same as morphisms `f : X → C.X`.

@@ -22,6 +22,12 @@ namespace algebraic_topology
 
 variables {C : Type*} [category C]
 
+/-- The datum of an extra degeneracy is a technical condition on
+augmented simplicial objects. The morphisms `s'` and `s n` of the
+structure formally behave like extra degeneracies `σ (-1)`. In
+the case of augmented simplicial sets, the existence of an extra
+degeneray implies the augmentation is an homotopy equivalence. -/
+@[nolint has_inhabited_instance]
 structure extra_degeneracy (X : simplicial_object.augmented C) :=
 (s' : point.obj X ⟶ (drop.obj X) _[0])
 (s : Π (n : ℕ), (drop.obj X) _[n] ⟶ (drop.obj X) _[n+1])
@@ -35,6 +41,9 @@ structure extra_degeneracy (X : simplicial_object.augmented C) :=
 
 namespace extra_degeneracy
 
+/-- If `ed` is an extra degeneracy for `X : simplicial_object.augmented C` and
+`F : C ⥤ D` is a functor, then `ed.map F` is an extra degeneracy for
+augmented simplical objects in `D` obtained by applying `F` to `X`. -/
 def map {D : Type*} [category D]
   {X : simplicial_object.augmented C} (ed : extra_degeneracy X) (F : C ⥤ D) :
   extra_degeneracy (((whiskering _ _).obj F).obj X) :=
@@ -46,6 +55,8 @@ def map {D : Type*} [category D]
   ds := λ n i, by { dsimp, erw [← F.map_comp, ← F.map_comp, ed.ds], refl, },
   ss := λ n i, by { dsimp, erw [← F.map_comp, ← F.map_comp, ed.ss], refl, }, }
 
+/-- If `X` and `Y` are isomorphism augmented simplicial objects, then an extra
+degeneracy for `X` gives also an extra degeneracy for `Y` -/
 def of_iso {X Y : simplicial_object.augmented C} (e : X ≅ Y) (ed : extra_degeneracy X) :
   extra_degeneracy Y :=
 { s' := (point.map_iso e).inv ≫ ed.s' ≫ (drop.map_iso e).hom.app (op [0]),
@@ -82,20 +93,14 @@ def of_iso {X Y : simplicial_object.augmented C} (e : X ≅ Y) (ed : extra_degen
     simpa only [assoc],
   end, }
 
-def homotopy_equivalence [preadditive C] [limits.has_zero_object C] {X : simplicial_object.augmented C} (ed : extra_degeneracy X) :
+/-- In the (pre)additive case, if an augmented simplicial object `X` has an extra
+degeneracy, then the augmentation `alternating_face_map_complex.ε.app X` is a
+homotopy equivalence of chain complexes. -/
+def homotopy_equivalence [preadditive C] [limits.has_zero_object C]
+  {X : simplicial_object.augmented C} (ed : extra_degeneracy X) :
   homotopy_equiv (algebraic_topology.alternating_face_map_complex.obj (drop.obj X))
     ((chain_complex.single₀ C).obj (point.obj X)) :=
-{ hom := begin
-    equiv_rw chain_complex.to_single₀_equiv _ _,
-    refine ⟨X.hom.app (op [0]), _⟩,
-    erw chain_complex.of_d,
-    dsimp,
-    simp only [fin.sum_univ_two, fin.coe_zero,
-      fin.coe_one, pow_zero, pow_one, one_zsmul, preadditive.add_comp,
-      preadditive.neg_comp, neg_smul],
-    erw [X.hom.naturality, X.hom.naturality],
-    simp only [functor.const.obj_map, add_right_neg],
-  end,
+{ hom := alternating_face_map_complex.ε.app X,
   inv := begin
     equiv_rw chain_complex.from_single₀_equiv _ _,
     exact ed.s',
@@ -155,6 +160,7 @@ def homotopy_equivalence [preadditive C] [limits.has_zero_object C] {X : simplic
     { tidy, },
   end, }
 
+/-- The augmented Čech nerve associated to a split epimorphism has an extra degeneracy. -/
 def for_cech_nerve_of_split_epi (f : arrow C)
   [∀ n : ℕ, has_wide_pullback f.right (λ i : ulift (fin (n+1)), f.left) (λ i, f.hom)]
   [split_epi f.hom] :

@@ -7,6 +7,7 @@ Authors: Joël Riou, Adam Topaz, Johan Commelin
 import algebra.homology.additive
 import algebraic_topology.Moore_complex
 import algebra.big_operators.fin
+import tactic.equiv_rw
 
 /-!
 
@@ -173,6 +174,29 @@ begin
     ext,
     apply functor.map_zsmul, },
 end
+
+namespace alternating_face_map_complex
+
+/-- The natural transformation which gives the augmentation of the alternating face map
+complex attached to an augmented simplicial object. -/
+@[simps]
+def ε [limits.has_zero_object C] :
+  simplicial_object.augmented.drop ⋙ algebraic_topology.alternating_face_map_complex C ⟶
+  simplicial_object.augmented.point ⋙ chain_complex.single₀ C :=
+{ app := λ X, begin
+    equiv_rw chain_complex.to_single₀_equiv _ _,
+    refine ⟨X.hom.app (op [0]), _⟩,
+    erw chain_complex.of_d,
+    dsimp,
+    simp only [fin.sum_univ_two, fin.coe_zero,
+      fin.coe_one, pow_zero, pow_one, one_zsmul, preadditive.add_comp,
+      preadditive.neg_comp, neg_smul],
+    erw [X.hom.naturality, X.hom.naturality],
+    simp only [functor.const.obj_map, add_right_neg],
+  end,
+  naturality' := λ X Y f, chain_complex.to_single₀_ext _ _ (congr_app f.w (op [0])), }
+
+end alternating_face_map_complex
 
 /-!
 ## Construction of the natural inclusion of the normalized Moore complex

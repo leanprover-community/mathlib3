@@ -405,7 +405,7 @@ section closed_graph_thm
 
 variables [complete_space E] (g : E →ₗ[𝕜] F)
 
-/-- The **closed graph theorem** : a linear map between to Banach spaces whose graph is closed
+/-- The **closed graph theorem** : a linear map between two Banach spaces whose graph is closed
 is continuous. -/
 theorem linear_map.continuous_of_is_closed_graph (hg : is_closed (g.graph : set $ E × F)) :
   continuous g :=

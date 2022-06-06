@@ -250,8 +250,8 @@ homomorphism.
 def graded_ring.proj_zero_ring_hom : A →+* A :=
 { to_fun := λ a, decompose 𝒜 a 0,
   map_one' := decompose_of_mem_same 𝒜 one_mem,
-  map_zero' := by simp only [subtype.ext_iff_val, map_zero, zero_apply, add_submonoid_class.coe_zero],
-  map_add' := λ _ _, by simp [subtype.ext_iff_val, map_add, add_apply, add_mem_class.coe_add],
+  map_zero' := by simp only [subtype.ext_iff, map_zero, zero_apply, add_submonoid_class.coe_zero],
+  map_add' := λ _ _, by simp [subtype.ext_iff, map_add, add_apply, add_mem_class.coe_add],
   map_mul' := λ x y, begin
     -- Convert the abstract add_submonoid into a concrete one. This is necessary as there is no
     -- lattice structure on the abstract ones.

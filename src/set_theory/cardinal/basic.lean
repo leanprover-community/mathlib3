@@ -524,8 +524,7 @@ protected theorem lt_wf : @well_founded cardinal.{u} (<) :=
 instance has_wf : @has_well_founded cardinal.{u} := ⟨(<), cardinal.lt_wf⟩
 
 instance : conditionally_complete_linear_order_bot cardinal :=
-cardinal.lt_wf.conditionally_complete_linear_order_with_bot 0 $ le_antisymm (cardinal.zero_le _) $
-  not_lt.1 (cardinal.lt_wf.not_lt_min set.univ ⟨0, mem_univ _⟩ (mem_univ 0))
+cardinal.lt_wf.conditionally_complete_linear_order_with_bot
 
 instance wo : @is_well_order cardinal.{u} (<) := ⟨cardinal.lt_wf⟩
 

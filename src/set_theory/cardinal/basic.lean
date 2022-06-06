@@ -1405,7 +1405,6 @@ infix ` ^< `:80 := powerlt
 
 lemma le_powerlt {b c : cardinal.{u}} (a) (h : c < b) : a ^ c ≤ a ^< b :=
 begin
-  rw powerlt,
   apply @le_csupr _ _ _ (λ y : Iio b, a ^ y) _ ⟨c, h⟩,
   rw ←image_eq_range,
   exact bdd_above_image.{u u} _ bdd_above_Iio

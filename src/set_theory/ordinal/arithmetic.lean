@@ -1024,8 +1024,8 @@ supr f
 @[simp] theorem Sup_eq_sup {ι : Type u} (f : ι → ordinal.{max u v}) : Sup (set.range f) = sup f :=
 rfl
 
-/-- The range of any family of ordinals is bounded above. See also `ordinal.lsub_not_mem_range` for
-an explicit bound. -/
+/-- The range of an indexed ordinal function, whose outputs live in a higher universe than the
+    inputs, is always bounded above. See `ordinal.lsub` for an explicit bound. -/
 theorem bdd_above_range {ι : Type u} (f : ι → ordinal.{max u v}) : bdd_above (set.range f) :=
 ⟨(supr (succ ∘ card ∘ f)).ord, begin
   rintros a ⟨i, rfl⟩,
@@ -1114,11 +1114,9 @@ let hs' := bdd_above_iff_small.2 hs in
 
 theorem Sup_ord {s : set cardinal.{u}} (hs : bdd_above s) : Sup (ord '' s) = (Sup s).ord :=
 eq_of_forall_ge_iff $ λ a, begin
-  rw [cSup_le_iff', ord_le, cSup_le_iff' hs],
-  { simp [ord_le] },
-  { rw bdd_above_iff_small,
-    haveI := cardinal.bdd_above_iff_small.1 hs,
-    exact small_image _ s }
+  rw [cSup_le_iff' (bdd_above_iff_small.2 (@small_image _ _ _ s
+    (cardinal.bdd_above_iff_small.1 hs))), ord_le, cSup_le_iff' hs],
+  simp [ord_le]
 end
 
 theorem supr_ord {ι} {f : ι → cardinal} (hf : bdd_above (range f)) :

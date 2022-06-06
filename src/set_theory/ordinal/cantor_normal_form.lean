@@ -68,7 +68,7 @@ if hb : b = 0 then dif_pos hb else (dif_neg hb).trans $ CNF_rec_zero _
 /-- Recursive definition for the Cantor normal form. -/
 theorem CNF_ne_zero (hb : b ≠ 0) (ho : o ≠ 0) :
   CNF b o = (log b o, o / b ^ log b o) :: CNF b (o % b ^ log b o) :=
-by unfold CNF; rw [dif_neg hb, dif_neg hb, CNF_rec_ne_zero hb ho]
+by { unfold CNF, rw [dif_neg hb, dif_neg hb, CNF_rec_ne_zero hb ho] }
 
 theorem one_CNF (ho : o ≠ 0) : CNF 1 o = [(0, o)] :=
 by rw [CNF_ne_zero ordinal.one_ne_zero ho, log_of_not_one_lt_left (irrefl _), opow_zero, mod_one,

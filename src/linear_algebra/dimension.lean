@@ -115,21 +115,21 @@ variables {M : Type v} [add_comm_group M] [module R M]
 variables {M' : Type v'} [add_comm_group M'] [module R M']
 variables {M₁ : Type v} [add_comm_group M₁] [module R M₁]
 
+set_option pp.universes true
+
 theorem linear_map.lift_dim_le_of_injective (f : M →ₗ[R] M') (i : injective f) :
   cardinal.lift.{v'} (module.rank R M) ≤ cardinal.lift.{v} (module.rank R M') :=
 begin
   dsimp [module.rank],
-  rw [cardinal.lift_supr, cardinal.lift_supr],
-  apply csupr_mono',
-  fapply cardinal.lift_sup_le_lift_sup',
-  { rintro ⟨s, li⟩,
-    use f '' s,
-    convert (li.map' f (linear_map.ker_eq_bot.mpr i)).comp
-      (equiv.set.image ⇑f s i).symm (equiv.injective _),
-    ext ⟨-, ⟨x, ⟨h, rfl⟩⟩⟩,
-    simp, },
-  { rintro ⟨s, li⟩,
-    exact cardinal.lift_mk_le'.mpr ⟨(equiv.set.image f s i).to_embedding⟩, }
+  rw [cardinal.lift_supr (cardinal.bdd_above_range.{v' v'} _),
+    cardinal.lift_supr (cardinal.bdd_above_range.{v v} _)],
+  apply csupr_mono' (cardinal.bdd_above_range.{v v'} _) (cardinal.bdd_above_range.{v' v} _),
+  rintro ⟨s, li⟩,
+  refine ⟨⟨f '' s, _⟩, cardinal.lift_mk_le'.mpr ⟨(equiv.set.image f s i).to_embedding⟩⟩,
+  convert (li.map' f (linear_map.ker_eq_bot.mpr i)).comp
+    (equiv.set.image ⇑f s i).symm (equiv.injective _),
+  ext ⟨-, ⟨x, ⟨h, rfl⟩⟩⟩,
+  simp
 end
 
 theorem linear_map.dim_le_of_injective (f : M →ₗ[R] M₁) (i : injective f) :
@@ -140,7 +140,7 @@ theorem dim_le {n : ℕ}
   (H : ∀ s : finset M, linear_independent R (λ i : s, (i : M)) → s.card ≤ n) :
   module.rank R M ≤ n :=
 begin
-  apply cardinal.sup_le,
+  apply csupr_le',
   rintro ⟨s, li⟩,
   exact linear_independent_bounded_of_finset_linear_independent_bounded H _ li,
 end
@@ -149,12 +149,13 @@ lemma lift_dim_range_le (f : M →ₗ[R] M') :
   cardinal.lift.{v} (module.rank R f.range) ≤ cardinal.lift.{v'} (module.rank R M) :=
 begin
   dsimp [module.rank],
-  apply cardinal.lift_sup_le,
+  rw [cardinal.lift_supr (cardinal.bdd_above_range.{v' v'} _)],
+  apply csupr_le',
   rintro ⟨s, li⟩,
   apply le_trans,
   swap 2,
   apply cardinal.lift_le.mpr,
-  refine (cardinal.le_sup _ ⟨range_splitting f '' s, _⟩),
+  refine (le_csupr (cardinal.bdd_above_range.{v v} _) ⟨range_splitting f '' s, _⟩),
   { apply linear_independent.of_comp f.range_restrict,
     convert li.comp (equiv.set.range_splitting_image_equiv f s) (equiv.injective _) using 1, },
   { exact (cardinal.lift_mk_eq'.mpr ⟨equiv.set.range_splitting_image_equiv f s⟩).ge, },
@@ -245,7 +246,7 @@ begin
   { simp only [cardinal.lift_le],
     apply le_trans,
     swap,
-    exact cardinal.le_sup _ ⟨range v, hv.coe_range⟩,
+    exact le_csupr (cardinal.bdd_above_range.{v v} _) ⟨range v, hv.coe_range⟩,
     exact le_rfl, },
 end
 
@@ -269,7 +270,7 @@ variables (R M)
 @[simp] lemma dim_punit : module.rank R punit = 0 :=
 begin
   apply le_bot_iff.mp,
-  apply cardinal.sup_le,
+  apply csupr_le',
   rintro ⟨s, li⟩,
   apply le_bot_iff.mpr,
   apply cardinal.mk_emptyc_iff.mpr,
@@ -791,10 +792,10 @@ begin
   apply le_antisymm,
   { transitivity,
     swap,
-    apply cardinal.le_sup,
+    apply le_csupr (cardinal.bdd_above_range.{v v} _),
     exact ⟨set.range v, by { convert v.reindex_range.linear_independent, ext, simp }⟩,
     exact (cardinal.mk_range_eq v v.injective).ge, },
-  { apply cardinal.sup_le,
+  { apply csupr_le',
     rintro ⟨s, li⟩,
     apply linear_independent_le_basis v _ li, },
 end

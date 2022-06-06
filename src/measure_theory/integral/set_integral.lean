@@ -970,7 +970,7 @@ variables [pseudo_emetric_space α]
 
 lemma measure_le_lintegral_thickened_indicator_aux
   (μ : measure α) {E : set α} (E_mble : measurable_set E) (δ : ℝ) :
-  μ E ≤ lintegral μ (λ a, (thickened_indicator_aux δ E a : ℝ≥0∞)) :=
+  μ E ≤ ∫⁻ a, (thickened_indicator_aux δ E a : ℝ≥0∞) ∂μ :=
 begin
   convert_to lintegral μ (E.indicator (λ _, (1 : ℝ≥0∞)))
               ≤ lintegral μ (thickened_indicator_aux δ E),
@@ -982,7 +982,7 @@ end
 
 lemma measure_le_lintegral_thickened_indicator
   (μ : measure α) {E : set α} (E_mble : measurable_set E) {δ : ℝ} (δ_pos : 0 < δ) :
-  μ E ≤ lintegral μ (λ a, (thickened_indicator δ_pos E a : ℝ≥0∞)) :=
+  μ E ≤ ∫⁻ a, (thickened_indicator δ_pos E a : ℝ≥0∞) ∂μ :=
 begin
   convert measure_le_lintegral_thickened_indicator_aux μ E_mble δ,
   dsimp,

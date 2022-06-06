@@ -27,14 +27,14 @@ simplicial objects in any category.
 ## Main definitions
 
 - the structure `extra_degeneracy X` for any `X : simplicial_object.augmented C`
-- extra degeneracies are preserved by the application of any
-functor `C ⥤ D` (`extra_degeneracy.map`)
-- the augmented Čech nerve of a split epimorphism has an
-extra degeneracy `extra_degeneracy.for_cech_nerve_of_split_epi`
-- when the category `C` is preadditive and has a zero object and
-`X : simplicial_object.augmented C` has an extra degeneracy,
-then the augmentation `alternating_face_map_complex.ε.app X` is a homotopy
-equivalence of chain complexes (`extra_degeneracy.preadditive.homotopy_equivalence`)
+- `extra_degeneracy.map`: extra degeneracies are preserved by the application of any
+functor `C ⥤ D`
+- `extra_degeneracy.for_cech_nerve_of_split_epi`: the augmented Čech nerve of a split
+epimorphism has an extra degeneracy
+- `extra_degeneracy.preadditive.homotopy_equivalence`: when the category `C` is
+preadditive and has a zero object, and `X : simplicial_object.augmented C` has an extra
+degeneracy, then the augmentation `alternating_face_map_complex.ε.app X` is a homotopy
+equivalence of chain complexes
 
 ## References
 * [Paul G. Goerss, John F. Jardine, *Simplical Homotopy Theory*][goerss-jardine-2009]

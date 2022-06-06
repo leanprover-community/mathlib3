@@ -145,7 +145,7 @@ lemma preimage_iso [has_le α] [has_le β] {t : set β} (ht : is_antichain (≤)
 preimage_rel_embedding ht _
 
 lemma preimage_iso_iff [has_le α] [has_le β] {t : set β} {φ : α ≃o β} :
-  is_antichain (≤) (φ ⁻¹' t) ↔  is_antichain (≤) t :=
+  is_antichain (≤) (φ ⁻¹' t) ↔ is_antichain (≤) t :=
 ⟨λ h, (φ.image_preimage t).subst (h.image_iso φ), λ h, h.preimage_iso _⟩
 
 lemma to_dual [has_le α] (hs : is_antichain (≤) s) : @is_antichain αᵒᵈ (≤) s :=

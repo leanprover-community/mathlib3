@@ -13,6 +13,8 @@ import algebra.is_prime_pow
 An element of a monoid is squarefree when it is not divisible by any squares
 except the squares of units.
 
+Results about squarefree natural numbers are proved in `data/nat/squarefree`.
+
 ## Main Definitions
  - `squarefree r` indicates that `r` is only divisible by `x * x` if `x` is a unit.
 
@@ -21,8 +23,7 @@ except the squares of units.
   `multiplicity y x ≤ 1` or `is_unit y`.
  - `unique_factorization_monoid.squarefree_iff_nodup_factors`: A nonzero element `x` of a unique
  factorization monoid is squarefree iff `factors x` has no duplicate factors.
- - `nat.squarefree_iff_nodup_factors`: A positive natural number `x` is squarefree iff
-  the list `factors x` has no duplicate factors.
+
 ## Tags
 squarefree, multiplicity
 

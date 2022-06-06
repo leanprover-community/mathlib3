@@ -303,7 +303,7 @@ begin
   simp [hp.factorization],
 end
 
-lemma coprime_of_div_pow_factorization (a p : ℕ) (ha : a ≠ 0) (pp : prime p) :
+lemma coprime_of_div_pow_factorization {a p : ℕ} (ha : a ≠ 0) (pp : prime p) :
   coprime p (a / p^(a.factorization p)) :=
 (or_iff_left (not_dvd_div_pow_factorization pp ha)).mp (coprime_or_dvd_of_prime pp _)
 

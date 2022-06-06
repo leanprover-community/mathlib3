@@ -134,5 +134,3 @@ def is_module : module A (⨁ i, 𝓜 i) :=
   end }
 
 end graded_module
-
-#lint

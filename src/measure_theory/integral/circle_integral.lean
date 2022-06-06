@@ -255,7 +255,7 @@ begin
         mem_nhds_within_of_mem_nhds (ball_mem_nhds _ zero_lt_one)],
       simp [dist_eq, sub_eq_zero] { contextual := tt } },
     refine ((((has_deriv_at_circle_map c R θ).is_O_sub).mono inf_le_left).inv_rev
-      (this.mono (λ θ', and.right))).trans _,
+      (this.mono (λ θ' h₁ h₂, absurd h₂ h₁.2))).trans _,
     refine is_O.of_bound (|R|)⁻¹ (this.mono $ λ θ' hθ', _),
     set x := abs (f θ'),
     suffices : x⁻¹ ≤ x ^ n, by simpa [inv_mul_cancel_left₀, mt _root_.abs_eq_zero.1 hR],

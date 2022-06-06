@@ -9,16 +9,16 @@ import ring_theory.ideal.quotient
 /-!
 # Equal and mixed characteristics
 
-A commutative ring of characteristics zero can either be of equal characteristics zero
-or of mixed characteristics. 'Equal characteristics zero' means that all the quotient
-rings `R⧸I` have characteristics zero for all proper ideals `I ⊆ R`.
+A commutative ring of characteristic zero can either be of 'equal characteristic zero'
+or of 'mixed characteristic'. 'Equal characteristic zero' means that the quotient
+ring `R⧸I` has characteristic zero for all proper ideals `I ⊆ R`.
 Equivalently, `R` has equal characteristics zero if there is an injective
 ring homomorphism `ℚ → R`, i.e. `R` contains a copy of `ℚ`.
 
 Mixed characteristics `(0,p)` means `R` has characteristics `0` but there
 exists an ideal such that `R⧸I` has characteristics `p`. Note that a ring
 can be of different mixed characteristics simultaneously, e.g. `ℤ` has mixed
-characteristics `(0,p)` for any prime number `p`.
+characteristics `(0,p)` for any `p ≠ 0`.
 
 In this document we define equal characteristics zero and provide a theorem to split
 into cases by characteristics.
@@ -42,10 +42,10 @@ into cases by characteristics.
 
 /-- A ring has equal characteristic zero if `char(R⧸I) = 0` for all proper ideals `I ⊂ R`. -/
 class equal_char_zero (R : Type*) [comm_ring R] : Prop :=
-  (residue_char_zero: ∀(I: ideal R), I ≠ ⊤ → char_zero (R ⧸ I))
+  (residue_char_zero : ∀(I : ideal R), I ≠ ⊤ → char_zero (R ⧸ I))
 
 /-- This definition is trivial if `R` is a field. -/
-lemma field.equal_char_zero (K : Type*) [field K] [h_char: char_zero K] :
+lemma field.equal_char_zero (K : Type*) [field K] [h_char : char_zero K] :
   equal_char_zero K :=
 ⟨begin
   intros I hI',
@@ -83,7 +83,7 @@ end equal_char_zero
 A ring `R` of `char_zero` is of mixed characteristics if it is not of `equal_char_zero`.
 i.e. if there exists an ideal `I` such that `R/I` has positive characteristic.
 -/
-class mixed_char_zero (R : Type*) [comm_ring R] (p:ℕ) : Prop :=
-  (char_zero: char_zero R)
-  (hp: p ≠ 0)
-  (residue_char_p: ∃(I: ideal R), (I ≠ ⊤) ∧ char_p (R⧸I) p)
+class mixed_char_zero (R : Type*) [comm_ring R] (p : ℕ) : Prop :=
+  (char_zero : char_zero R)
+  (hp : p ≠ 0)
+  (residue_char_p : ∃(I : ideal R), (I ≠ ⊤) ∧ char_p (R⧸I) p)

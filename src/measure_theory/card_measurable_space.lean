@@ -97,8 +97,7 @@ begin
   have C : ℵ₀ ≤ (max (#s) 2) ^ aleph_0.{u} := A.trans B,
   have J : #(⋃ (j : {j // j < i}), generate_measurable_rec s j.1) ≤ (max (#s) 2) ^ aleph_0.{u},
   { apply (mk_Union_le _).trans,
-    have D : cardinal.sup.{u u} (λ (j : {j // j < i}), #(generate_measurable_rec s j.1)) ≤ _ :=
-      cardinal.sup_le (λ ⟨j, hj⟩, IH j hj),
+    have D : (⨆ j : Iio i, #(generate_measurable_rec s j)) ≤ _ := csupr_le' (λ ⟨j, hj⟩, IH j hj),
     apply (mul_le_mul' ((mk_subtype_le _).trans (aleph 1).mk_ord_out.le) D).trans,
     rw mul_eq_max A C,
     exact max_le B le_rfl },
@@ -158,7 +157,7 @@ begin
   apply (mk_Union_le _).trans,
   rw (aleph 1).mk_ord_out,
   refine le_trans (mul_le_mul' aleph_one_le_continuum
-    (cardinal.sup_le (λ i, cardinal_generate_measurable_rec_le s i))) _,
+    (csupr_le' (λ i, cardinal_generate_measurable_rec_le s i))) _,
   have := power_le_power_right (le_max_right (#s) 2),
   rw mul_eq_max aleph_0_le_continuum (aleph_0_le_continuum.trans this),
   exact max_le this le_rfl

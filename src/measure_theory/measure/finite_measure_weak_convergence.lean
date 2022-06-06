@@ -18,8 +18,6 @@ for every bounded continuous `ℝ≥0`-valued function `f`, the integration of `
 measure is continuous.
 
 TODOs:
-* Prove that an equivalent definition of the topologies is obtained requiring continuity of
-  integration of bounded continuous `ℝ`-valued functions instead.
 * Include the portmanteau theorem on characterizations of weak convergence of (Borel) probability
   measures.
 
@@ -92,19 +90,6 @@ open set
 open filter
 open bounded_continuous_function
 open_locale topological_space ennreal nnreal bounded_continuous_function
-
--- TODO: Move to algebra.order.ring
-lemma max_zero_add_max_neg_zero_eq_abs_self {R : Type*} [linear_ordered_ring R] (x : R) :
-  max x 0 + max (-x) 0 = |x| :=
-begin
-  by_cases sign_x : 0 ≤ x,
-  { simp only [sign_x, max_eq_left, max_eq_right,
-               right.neg_nonpos_iff, add_zero, abs_eq_self.mpr sign_x], },
-  { rw not_le at sign_x,
-    have aux : x ≤ 0, from sign_x.le,
-    simp only [aux, max_eq_right, max_eq_left,
-               right.nonneg_neg_iff, zero_add, abs_eq_neg_self.mpr aux], },
-end
 
 namespace measure_theory
 

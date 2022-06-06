@@ -132,6 +132,13 @@ by { ext : 2, dsimp, apply subsingleton.elim }
 
 end
 
+namespace hom
+
+lemma congr_eval {a b : simplex_category} {f g : a ⟶ b} (eq : f = g)
+  (x : fin (a.len+1)) : f.to_order_hom x = g.to_order_hom x := by rw eq
+
+end hom
+
 open_locale simplicial
 
 section generators
@@ -303,6 +310,10 @@ begin
   -- Deal with the rest automatically.
   all_goals { simp at *; linarith, },
 end
+
+lemma nonzero_as_δ₀ {n : ℕ} {j : fin (n+2)} (hj : j ≠ 0) :
+  ∃ (k : fin (n+1)), (simplex_category.δ 0).to_order_hom k = j :=
+⟨j.pred hj, j.succ_pred hj⟩
 
 end generators
 

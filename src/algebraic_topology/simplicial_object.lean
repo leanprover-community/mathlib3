@@ -195,6 +195,13 @@ def to_arrow : augmented C ⥤ arrow C :=
       refl,
     end } }
 
+/-- The compatibility of a morphism with the augmentation, on 0-simplices -/
+lemma w₀ {X Y : augmented C} (f : X ⟶ Y) :
+  (augmented.drop.map f).app (op (simplex_category.mk 0)) ≫
+    Y.hom.app (op (simplex_category.mk 0)) =
+  X.hom.app (op (simplex_category.mk 0)) ≫ augmented.point.map f :=
+by convert congr_app f.w (op (simplex_category.mk 0))
+
 variable (C)
 
 /-- Functor composition induces a functor on augmented simplicial objects. -/

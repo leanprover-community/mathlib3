@@ -47,7 +47,7 @@ nonempty.some (classical.some_spec (@small.equiv_small α _))
 
 @[priority 100]
 instance small_self (α : Type v) : small.{v} α :=
-small.mk' (equiv.refl _)
+small.mk' (equiv.refl α)
 
 theorem small_lift (α : Type u) [small.{v} α] : small.{max v w} α :=
 small.mk' ((equiv_shrink α).trans equiv.ulift.symm)

@@ -20,6 +20,7 @@ They will be moved to appropriate places eventually.
 section general
 
 /-- A natural number is odd iff it has residue `1` or `3` mod `4`-/
+-- SUGGESTION: move this to `data.nat.modeq`, right after `nat.odd_of_mod_four_eq_three`
 lemma nat.odd_mod_four_iff {n : ℕ} : n % 2 = 1 ↔ n % 4 = 1 ∨ n % 4 = 3 :=
 begin
   split,
@@ -36,7 +37,8 @@ end
 -- Auxiliary stuff for monoids
 
 /-- If `x ^ n = 1`, then `x ^ m` is the same as `x ^ (m % n)` -/
-@[to_additive "If `n • x = 0`, then `m • x` is the same as `(m % n) • x`"]
+-- SUGGESTION: move this to `algebra.group_power.basic`, right after `pow_sub_mul_pow`
+@[to_additive nsmul_eq_mod_nsmul "If `n • x = 0`, then `m • x` is the same as `(m % n) • x`"]
 lemma pow_eq_pow_mod {M : Type*} [monoid M] {x : M} (m : ℕ) {n : ℕ} (h : x ^ n = 1) :
   x ^ m = x ^ (m % n) :=
 begin
@@ -46,36 +48,24 @@ end
 
 /-- We define the inverse as a `monoid_with_zero_hom` by extending the inverse map by zero
 on non-units. -/
+-- This exists for groups with zero (`inv_monoid_with_zero_hom`)
+-- SUGGESTION: put the following two definitions in `algebra.group_with_zero.basic`,
+-- before `inv_monoid_with_zero_hom`
 noncomputable
 def comm_monoid_with_zero.inv_hom {M : Type*} [comm_monoid_with_zero M] [nontrivial M] :
   M →*₀ M :=
-{ to_fun := by {classical,
-                exact λ m, if hm : is_unit m then (is_unit.invertible hm).inv_of else 0},
-  map_zero' := by simp only [is_unit_zero_iff, zero_ne_one, not_false_iff, dif_neg],
-  map_one' := by simp only [is_unit_one, inv_of_one, dite_eq_ite, if_true],
-  map_mul' :=
-  begin
-    intros x y,
-    simp only [is_unit.mul_iff],
-    by_cases hx : is_unit x,
-    { haveI hxi : invertible x := is_unit.invertible hx,
-      simp only [hx, true_and, dif_pos],
-      by_cases hy : is_unit y,
-      { haveI hyi : invertible y := is_unit.invertible hy,
-        simp only [hy, dif_pos],
-        rw [inv_of_mul, mul_comm],
-        congr, },
-      { simp only [hy, not_false_iff, dif_neg, mul_zero], }, },
-    { simp only [hx, false_and, not_false_iff, dif_neg, zero_mul], }
-  end }
+{ to_fun := ring.inverse,
+  map_zero' := ring.inverse_zero _,
+  map_one' := ring.inverse_one _,
+  map_mul' := λ x y, (ring.mul_inverse_rev x y).trans (mul_comm _ _) }
 
 /-- We define `x ↦ x^n` (for positive `n : ℕ`) as a `monoid_with_zero_hom` -/
 def comm_monoid_with_zero.pow_hom {M : Type*} [comm_monoid_with_zero M] {n : ℕ} (hn : 0 < n) :
   M →*₀ M :=
 { to_fun := (λ m, m ^ n),
-  map_zero' := by rw zero_pow hn,
-  map_one' := by rw one_pow,
-  map_mul' := by { intros x y, rw mul_pow } }
+  map_zero' := zero_pow hn,
+  map_one' := one_pow n,
+  map_mul' := λ x y, mul_pow x y n }
 
 end general
 
@@ -83,9 +73,11 @@ end general
 
 section ring
 
+/-- We have `2 ≠ 0` in a nontrivial ring whose characteristic is not `2`. -/
 -- Note: there is `two_ne_zero` (assuming `[ordered_semiring]`)
 -- and `two_ne_zero'`(assuming `[char_zero]`), which both don't fit the needs here.
-/-- We have `2 ≠ 0` in a nontrivial ring whose characteristic is not `2`. -/
+-- SUGGESTION: move this and the next three lemmas to `algebra.char_p.basic`,
+-- before `char_p.neg_one_ne_one`.
 @[protected]
 lemma ring.two_ne_zero {R : Type*} [non_assoc_semiring R] [nontrivial R] (hR : ring_char R ≠ 2) :
   (2 : R) ≠ 0 :=
@@ -96,6 +88,8 @@ begin
 end
 
 /-- Characteristic `≠ 2` and nontrivial implies that `-1 ≠ 1`. -/
+-- We have `char_p.neg_one_ne_one`, which assumes `[ring R] (p : ℕ) [char_p R p] [fact (2 < p)]`.
+-- This is a version using `ring_char` instead.
 lemma ring.neg_one_ne_one_of_char_ne_two {R : Type*} [non_assoc_ring R] [nontrivial R]
  (hR : ring_char R ≠ 2) :
   (-1 : R) ≠ 1 :=
@@ -142,6 +136,8 @@ end
 
 /-- If `ring_char R = 2`, where `R` is a finite reduced commutative ring,
 then every `a : R` is a square. -/
+-- SUGGESTION: move this to `algebra.char_p.basic`, after `frobenius_inj`
+-- ALTERNATIVE: move to `algebra.char_p.two` (and renane to `char_two.is_square`?)
 lemma is_square_of_char_two' {R : Type*} [fintype R] [comm_ring R] [is_reduced R] [char_p R 2]
  (a : R) : is_square a :=
 exists_imp_exists (λ b h, pow_two b ▸ eq.symm h) $
@@ -149,6 +145,13 @@ exists_imp_exists (λ b h, pow_two b ▸ eq.symm h) $
 
 /-- A prime `p` is a unit in a finite commutative ring `R`
 iff it does not divide the characteristic. -/
+-- The following three lemmas depend on `is_unit` (from `algebra.group.units`)
+-- and `ring_char` (from `algebra.char_p.basic`).
+-- It seems that neither of these files imports the other. So:
+-- ALTERNATIVE 1: move them to `algebra.group.units` and add the import there
+--                con: this file talks about monoids, not rings
+-- ALTERNATIVE 2: move them to `algebra.char_p.basic` and add the import there
+-- ALTERNATIVE 3: leave them here for the time being
 lemma is_unit_iff_not_dvd_char (R : Type*) [comm_ring R] [fintype R] (p : ℕ) [fact p.prime] :
   is_unit (p : R) ↔ ¬ p ∣ ring_char R :=
 begin
@@ -217,6 +220,8 @@ namespace finite_field
 variables {F : Type*} [field F] [fintype F]
 
 /-- In a finite field of characteristic `2`, all elements are squares. -/
+-- SUGGESTION: move the following lemmas (up to and incluiding `exists_nonsquare`)
+-- to the end of `field_theory.finite.basic`
 lemma is_square_of_char_two (hF : ring_char F = 2) (a : F) : is_square a :=
 begin
   haveI hF' : char_p F 2 := ring_char.of_eq hF,
@@ -320,6 +325,9 @@ begin
 end
 
 /-- The trace map from a finite field of characteristic `p` to `zmod p` -/
+-- These two lemmas depend on `ring_theory.trace` and finite fields.
+-- SUGGESTION: move them to the end of `ring_theory.trace` (this would likely
+-- require adding `import field_theory.finite.basic` to it)
 noncomputable
 def trace_to_zmod (F : Type*) [field F] :
  F →ₗ[zmod (ring_char F)] zmod (ring_char F) :=

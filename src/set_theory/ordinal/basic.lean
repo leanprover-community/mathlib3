@@ -35,7 +35,9 @@ initial segment (or, equivalently, in any way). This total order is well founded
   `ordinal.lift.initial_seg`.
   For a version regiserting that it is a principal segment embedding if `u < v`, see
   `ordinal.lift.principal_seg`.
-* `ordinal.omega` is the first infinite ordinal. It is the order type of `ℕ`.
+* `ordinal.omega` or `ω` is the order type of `ℕ`. This definition is universe polymorphic:
+  `ordinal.omega.{u} : ordinal.{u}` (contrast with `ℕ : Type`, which lives in a specific
+  universe). In some cases the universe level has to be given explicitly.
 
 * `o₁ + o₂` is the order on the disjoint union of `o₁` and `o₂` obtained by declaring that
   every element of `o₁` is smaller than every element of `o₂`. The main properties of addition
@@ -427,7 +429,7 @@ parameter {σ : Type u}
 open function
 
 theorem nonempty_embedding_to_cardinal : nonempty (σ ↪ cardinal.{u}) :=
-embedding.total.resolve_left $ λ ⟨⟨f, hf⟩⟩,
+(embedding.total _ _).resolve_left $ λ ⟨⟨f, hf⟩⟩,
   let g : σ → cardinal.{u} := inv_fun f in
   let ⟨x, (hx : g x = 2 ^ sum g)⟩ := inv_fun_surjective hf (2 ^ sum g) in
   have g x ≤ sum g, from le_sum.{u u} g x,
@@ -918,11 +920,11 @@ def lift.initial_seg : @initial_seg ordinal.{u} ordinal.{max u v} (<) (<) :=
 /-- `ω` is the first infinite ordinal, defined as the order type of `ℕ`. -/
 def omega : ordinal.{u} := lift $ @type ℕ (<) _
 
-localized "notation `ω` := ordinal.omega.{0}" in ordinal
+localized "notation `ω` := ordinal.omega" in ordinal
 
-theorem card_omega : card omega = cardinal.omega := rfl
+@[simp] theorem card_omega : card ω = ℵ₀ := rfl
 
-@[simp] theorem lift_omega : lift omega = omega := lift_lift _
+@[simp] theorem lift_omega : lift ω = ω := lift_lift _
 
 /-!
 ### Definition and first properties of addition on ordinals
@@ -1100,7 +1102,7 @@ end, λ h, by simp_rw h⟩
   map_rel_iff' := by { rintros ⟨a, _⟩ ⟨b, _⟩, apply enum_lt_enum } }
 
 /-- The order isomorphism between ordinals less than `o` and `o.out.α`. -/
-@[simps] noncomputable def enum_iso_out (o : ordinal.{u}) : set.Iio o ≃o o.out.α :=
+@[simps] noncomputable def enum_iso_out (o : ordinal) : set.Iio o ≃o o.out.α :=
 { to_fun := λ ⟨o', h⟩, enum (<) o' (by rwa type_lt),
   inv_fun := λ x, ⟨typein (<) x, typein_lt_self x⟩,
   left_inv := λ ⟨o', h⟩, subtype.ext_val (typein_enum _ _),
@@ -1118,9 +1120,9 @@ rfl
 /-- `univ.{u v}` is the order type of the ordinals of `Type u` as a member
   of `ordinal.{v}` (when `u < v`). It is an inaccessible cardinal. -/
 @[nolint check_univs] -- intended to be used with explicit universe parameters
-def univ : ordinal.{max (u + 1) v} := lift.{v (u+1)} (@type ordinal.{u} (<) _)
+def univ : ordinal.{max (u + 1) v} := lift.{v (u+1)} (@type ordinal (<) _)
 
-theorem univ_id : univ.{u (u+1)} = @type ordinal.{u} (<) _ := lift_id _
+theorem univ_id : univ.{u (u+1)} = @type ordinal (<) _ := lift_id _
 
 @[simp] theorem lift_univ : lift.{w} univ.{u v} = univ.{u (max v w)} := lift_lift _
 
@@ -1156,7 +1158,7 @@ end⟩
 @[simp] theorem lift.principal_seg_top : lift.principal_seg.top = univ := rfl
 
 theorem lift.principal_seg_top' :
-  lift.principal_seg.{u (u+1)}.top = @type ordinal.{u} (<) _ :=
+  lift.principal_seg.{u (u+1)}.top = @type ordinal (<) _ :=
 by simp only [lift.principal_seg_top, univ_id]
 
 /-! ### Minimum -/
@@ -1206,7 +1208,7 @@ end ordinal
 namespace cardinal
 open ordinal
 
-@[simp] theorem mk_ordinal_out (o : ordinal.{u}) : #(o.out.α) = o.card :=
+@[simp] theorem mk_ordinal_out (o : ordinal) : #(o.out.α) = o.card :=
 by { convert (ordinal.card_type (<)).symm, exact (ordinal.type_lt o).symm }
 
 /-- The ordinal corresponding to a cardinal `c` is the least ordinal
@@ -1368,13 +1370,12 @@ theorem lt_univ' {c} : c < univ.{u v} ↔ ∃ c', c = lift.{(max (u+1) v) u} c' 
 end, λ ⟨c', e⟩, e.symm ▸ lift_lt_univ' _⟩
 
 theorem small_iff_lift_mk_lt_univ {α : Type u} :
-  small.{v} α ↔
-  (cardinal.lift (# α : cardinal.{u}) < univ.{v (max u (v + 1))}) :=
+  small.{v} α ↔ cardinal.lift (#α) < univ.{v (max u (v + 1))} :=
 begin
   rw lt_univ',
   split,
   { rintro ⟨β, e⟩,
-    exact ⟨# β, (lift_mk_eq.{u _ (v + 1)}.2 e)⟩ },
+    exact ⟨#β, lift_mk_eq.{u _ (v + 1)}.2 e⟩ },
   { rintro ⟨c, hc⟩,
     exact ⟨⟨c.out, lift_mk_eq.{u _ (v + 1)}.1 (hc.trans (congr rfl c.mk_out.symm))⟩⟩ }
 end

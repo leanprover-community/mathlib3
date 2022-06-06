@@ -3125,9 +3125,9 @@ instance
   is_scalar_tower S α β :=
 S.to_submonoid.is_scalar_tower
 
-instance [mul_action G α] [has_faithful_scalar G α] (S : subgroup G) :
-  has_faithful_scalar S α :=
-S.to_submonoid.has_faithful_scalar
+instance [mul_action G α] [has_faithful_smul G α] (S : subgroup G) :
+  has_faithful_smul S α :=
+S.to_submonoid.has_faithful_smul
 
 /-- The action by a subgroup is the action by the underlying group. -/
 instance [add_monoid α] [distrib_mul_action G α] (S : subgroup G) : distrib_mul_action S α :=

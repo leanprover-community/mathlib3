@@ -74,8 +74,7 @@ def comm_monoid_with_zero.pow_hom {M : Type*} [comm_monoid_with_zero M] {n : ℕ
 { to_fun := (λ m, m ^ n),
   map_zero' := by rw zero_pow hn,
   map_one' := by rw one_pow,
-  map_mul' := by { intros x y, rw mul_pow }
-}
+  map_mul' := by { intros x y, rw mul_pow } }
 
 end general
 
@@ -83,6 +82,8 @@ end general
 
 section ring
 
+-- Note: there is `two_ne_zero` (assuming `[ordered_semiring]`)
+-- and `two_ne_zero'`(assuming `[char_zero]`), which both don't fit the needs here.
 /-- We have `2 ≠ 0` in a nontrivial ring whose characteristic is not `2`. -/
 @[protected]
 lemma ring.two_ne_zero {R : Type*} [non_assoc_semiring R] [nontrivial R] (hR : ring_char R ≠ 2) :

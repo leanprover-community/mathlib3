@@ -2811,11 +2811,11 @@ omit m0
 
 @[priority 100] -- see Note [lower instance priority]
 instance sigma_finite_of_locally_finite [topological_space α]
-  [second_countable_topology α] [is_locally_finite_measure μ] :
+  [lindelof_space α] [is_locally_finite_measure μ] :
   sigma_finite μ :=
 begin
   choose s hsx hsμ using μ.finite_at_nhds,
-  rcases topological_space.countable_cover_nhds hsx with ⟨t, htc, htU⟩,
+  rcases countable_cover_nhds hsx with ⟨t, htc, htU⟩,
   refine measure.sigma_finite_of_countable (htc.image s) (ball_image_iff.2 $ λ x hx, hsμ x) _,
   rwa sUnion_image
 end
@@ -2830,6 +2830,11 @@ lemma is_locally_finite_measure_of_is_finite_measure_on_compacts [topological_sp
   rcases exists_compact_mem_nhds x with ⟨K, K_compact, K_mem⟩,
   exact ⟨K, K_mem, K_compact.measure_lt_top⟩,
 end⟩
+
+lemma _root_.is_lindelof.measure_null_of_locally_null [topological_space α]
+  {s : set α} (hs : is_lindelof s) (hsμ : ∀ x ∈ s, ∃ u ∈ 𝓝[s] x, μ u = 0) :
+  μ s = 0 :=
+hs.outer_measure_null_of_locally_null μ.to_outer_measure hsμ
 
 lemma exists_pos_measure_of_cover [encodable ι] {U : ι → set α} (hU : (⋃ i, U i) = univ)
   (hμ : μ ≠ 0) : ∃ i, 0 < μ (U i) :=
@@ -2849,7 +2854,7 @@ exists_pos_preimage_ball id x hμ
 
 /-- If a set has zero measure in a neighborhood of each of its points, then it has zero measure
 in a second-countable space. -/
-lemma null_of_locally_null [topological_space α] [second_countable_topology α]
+lemma null_of_locally_null [topological_space α] [strongly_lindelof_space α]
   (s : set α) (hs : ∀ x ∈ s, ∃ u ∈ 𝓝[s] x, μ u = 0) :
   μ s = 0 :=
 μ.to_outer_measure.null_of_locally_null s hs

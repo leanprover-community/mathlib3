@@ -497,6 +497,8 @@ variables (H) [topological_space H] [topological_space M] [charted_space H M]
 lemma mem_chart_target (x : M) : chart_at H x x ∈ (chart_at H x).target :=
 (chart_at H x).map_source (mem_chart_source _ _)
 
+variable (M)
+
 /-- If a topological space admits an atlas with locally compact charts, then the space itself
 is locally compact. -/
 lemma charted_space.locally_compact [locally_compact_space H] : locally_compact_space M :=
@@ -527,14 +529,19 @@ begin
   exact second_countable_topology_of_countable_cover (λ x : s, (chart_at H (x : M)).open_source) hs
 end
 
-lemma charted_space.second_countable_of_sigma_compact [second_countable_topology H]
-  [sigma_compact_space M] :
+lemma charted_space.second_countable_of_lindelof [second_countable_topology H] [lindelof_space M] :
   second_countable_topology M :=
 begin
   obtain ⟨s, hsc, hsU⟩ : ∃ s, countable s ∧ (⋃ x (hx : x ∈ s), (chart_at H x).source) = univ :=
-    countable_cover_nhds_of_sigma_compact
-      (λ x : M, is_open.mem_nhds (chart_at H x).open_source (mem_chart_source H x)),
+    countable_cover_nhds (λ x : M, (chart_at H x).open_source.mem_nhds (mem_chart_source H x)),
   exact charted_space.second_countable_of_countable_cover H hsU hsc
+end
+
+lemma charted_space.sigma_compact_of_lindelof [locally_compact_space H] [lindelof_space M] :
+  sigma_compact_space M :=
+begin
+  haveI := charted_space.locally_compact H M,
+  exact sigma_compact_space_of_locally_compact_lindelof M
 end
 
 end

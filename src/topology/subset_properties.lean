@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Yury Kudryashov
 -/
 import order.filter.pi
-import topology.bases
+import topology.lindelof
 import data.finset.order
 import data.set.accumulate
 import tactic.tfae
@@ -60,6 +60,10 @@ section compact
 /-- A set `s` is compact if for every nontrivial filter `f` that contains `s`,
     there exists `a ∈ s` such that every set of `f` meets every neighborhood of `a`. -/
 def is_compact (s : set α) := ∀ ⦃f⦄ [ne_bot f], f ≤ 𝓟 s → ∃ a ∈ s, cluster_pt a f
+
+/-- A compact set is a Lindelöf set. -/
+protected lemma is_compact.is_lindelof (h : is_compact s) : is_lindelof s :=
+is_lindelof_iff_exists_cluster_pt.mpr $ λ f hne _ hsf, @h f hne (le_principal_iff.2 hsf)
 
 /-- The complement to a compact set belongs to a filter `f` if it belongs to each filter
 `𝓝 a ⊓ f`, `a ∈ s`. -/
@@ -1141,9 +1145,13 @@ lemma sigma_compact_space.of_countable (S : set (set α)) (Hc : countable S)
   (Hcomp : ∀ s ∈ S, is_compact s) (HU : ⋃₀ S = univ) : sigma_compact_space α :=
 ⟨(exists_seq_cover_iff_countable ⟨_, is_compact_empty⟩).2 ⟨S, Hc, Hcomp, HU⟩⟩
 
-@[priority 100] -- see Note [lower instance priority]
-instance sigma_compact_space_of_locally_compact_second_countable [locally_compact_space α]
-  [second_countable_topology α] : sigma_compact_space α :=
+variable (α)
+
+/-- A locally compact Lindelöf space is a σ-compact space. This is not an instance to avoid a loop
+with `sigma_compact_space.lindelof_space`. A corollary of this lemma,
+`sigma_compact_space_of_locally_compact_second_countable`, is registered as an instance. -/
+lemma sigma_compact_space_of_locally_compact_lindelof [locally_compact_space α]
+  [lindelof_space α] : sigma_compact_space α :=
 begin
   choose K hKc hxK using λ x : α, exists_compact_mem_nhds x,
   rcases countable_cover_nhds hxK with ⟨s, hsc, hsU⟩,
@@ -1151,7 +1159,12 @@ begin
   rwa sUnion_image
 end
 
-variables (α) [sigma_compact_space α]
+@[priority 100] -- see Note [lower instance priority]
+instance sigma_compact_space_of_locally_compact_second_countable [locally_compact_space α]
+  [second_countable_topology α] : sigma_compact_space α :=
+sigma_compact_space_of_locally_compact_lindelof α
+
+variables [sigma_compact_space α]
 open sigma_compact_space
 
 /-- A choice of compact covering for a `σ`-compact space, chosen to be monotone. -/
@@ -1171,57 +1184,15 @@ end
   compact_covering α m ⊆ compact_covering α n :=
 monotone_accumulate h
 
+/-- A `σ`-compact topological space is a Lindelöf space. -/
+@[priority 100] -- see Note [lower instance priority]
+instance sigma_compact_space.lindelof_space : lindelof_space α :=
+⟨Union_compact_covering α ▸ is_lindelof_Union $ λ k, (is_compact_compact_covering α k).is_lindelof⟩
+
 variable {α}
 
 lemma exists_mem_compact_covering (x : α) : ∃ n, x ∈ compact_covering α n :=
 Union_eq_univ_iff.mp (Union_compact_covering α) x
-
-/-- If `α` is a `σ`-compact space, then a locally finite family of nonempty sets of `α` can have
-only countably many elements, `set.countable` version. -/
-protected lemma locally_finite.countable_univ {ι : Type*} {f : ι → set α} (hf : locally_finite f)
-  (hne : ∀ i, (f i).nonempty) :
-  countable (univ : set ι) :=
-begin
-  have := λ n, hf.finite_nonempty_inter_compact (is_compact_compact_covering α n),
-  refine (countable_Union (λ n, (this n).countable)).mono (λ i hi, _),
-  rcases hne i with ⟨x, hx⟩,
-  rcases Union_eq_univ_iff.1 (Union_compact_covering α) x with ⟨n, hn⟩,
-  exact mem_Union.2 ⟨n, x, hx, hn⟩
-end
-
-/-- If `f : ι → set α` is a locally finite covering of a σ-compact topological space by nonempty
-sets, then the index type `ι` is encodable. -/
-protected noncomputable def locally_finite.encodable {ι : Type*} {f : ι → set α}
-  (hf : locally_finite f) (hne : ∀ i, (f i).nonempty) : encodable ι :=
-@encodable.of_equiv _ _ (hf.countable_univ hne).to_encodable (equiv.set.univ _).symm
-
-/-- In a topological space with sigma compact topology, if `f` is a function that sends each point
-`x` of a closed set `s` to a neighborhood of `x` within `s`, then for some countable set `t ⊆ s`,
-the neighborhoods `f x`, `x ∈ t`, cover the whole set `s`. -/
-lemma countable_cover_nhds_within_of_sigma_compact {f : α → set α} {s : set α} (hs : is_closed s)
-  (hf : ∀ x ∈ s, f x ∈ 𝓝[s] x) : ∃ t ⊆ s, countable t ∧ s ⊆ ⋃ x ∈ t, f x :=
-begin
-  simp only [nhds_within, mem_inf_principal] at hf,
-  choose t ht hsub using λ n, ((is_compact_compact_covering α n).inter_right hs).elim_nhds_subcover
-    _ (λ x hx, hf x hx.right),
-  refine ⟨⋃ n, (t n : set α), Union_subset $ λ n x hx, (ht n x hx).2,
-    countable_Union $ λ n, (t n).countable_to_set, λ x hx, mem_Union₂.2 _⟩,
-  rcases exists_mem_compact_covering x with ⟨n, hn⟩,
-  rcases mem_Union₂.1 (hsub n ⟨hn, hx⟩) with ⟨y, hyt : y ∈ t n, hyf : x ∈ s → x ∈ f y⟩,
-  exact ⟨y, mem_Union.2 ⟨n, hyt⟩, hyf hx⟩
-end
-
-/-- In a topological space with sigma compact topology, if `f` is a function that sends each
-point `x` to a neighborhood of `x`, then for some countable set `s`, the neighborhoods `f x`,
-`x ∈ s`, cover the whole space. -/
-lemma countable_cover_nhds_of_sigma_compact {f : α → set α}
-  (hf : ∀ x, f x ∈ 𝓝 x) : ∃ s : set α, countable s ∧ (⋃ x ∈ s, f x) = univ :=
-begin
-  simp only [← nhds_within_univ] at hf,
-  rcases countable_cover_nhds_within_of_sigma_compact is_closed_univ (λ x _, hf x)
-    with ⟨s, -, hsc, hsU⟩,
-  exact ⟨s, hsc, univ_subset_iff.1 hsU⟩
-end
 
 end compact
 

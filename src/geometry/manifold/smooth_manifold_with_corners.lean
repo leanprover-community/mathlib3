@@ -263,6 +263,10 @@ protected lemma second_countable_topology [second_countable_topology E]
   (I : model_with_corners 𝕜 E H) : second_countable_topology H :=
 I.closed_embedding.to_embedding.second_countable_topology
 
+protected lemma lindelof_space [lindelof_space E]
+  (I : model_with_corners 𝕜 E H) : lindelof_space H :=
+I.closed_embedding.lindelof_space
+
 end model_with_corners
 
 section

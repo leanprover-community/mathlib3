@@ -115,18 +115,23 @@ protected lemma union (m : outer_measure α) (s₁ s₂ : set α) :
   m (s₁ ∪ s₂) ≤ m s₁ + m s₂ :=
 rel_sup_add m m.empty (≤) m.Union_nat s₁ s₂
 
-/-- If a set has zero measure in a neighborhood of each of its points, then it has zero measure
-in a second-countable space. -/
-lemma null_of_locally_null [topological_space α] [second_countable_topology α] (m : outer_measure α)
-  (s : set α) (hs : ∀ x ∈ s, ∃ u ∈ 𝓝[s] x, m u = 0) :
+lemma _root_.is_lindelof.outer_measure_null_of_locally_null [topological_space α]
+  {s : set α} (hs : is_lindelof s) (m : outer_measure α) (hsm : ∀ x ∈ s, ∃ u ∈ 𝓝[s] x, m u = 0) :
   m s = 0 :=
 begin
-  choose! u hxu hu₀ using hs,
+  choose! u hxu hu₀ using hsm,
   obtain ⟨t, ts, t_count, ht⟩ : ∃ t ⊆ s, t.countable ∧ s ⊆ ⋃ x ∈ t, u x :=
-    topological_space.countable_cover_nhds_within hxu,
+    hs.countable_cover_nhds_within hxu,
   apply m.mono_null ht,
   exact (m.bUnion_null_iff t_count).2 (λ x hx, hu₀ x (ts hx))
 end
+
+/-- If a set has zero measure in a neighborhood of each of its points, then it has zero measure
+in a second-countable space. -/
+lemma null_of_locally_null [topological_space α] [strongly_lindelof_space α] (m : outer_measure α)
+  (s : set α) (hs : ∀ x ∈ s, ∃ u ∈ 𝓝[s] x, m u = 0) :
+  m s = 0 :=
+s.is_lindelof.outer_measure_null_of_locally_null m hs
 
 /-- If `m s ≠ 0`, then for some point `x ∈ s` and any `t ∈ 𝓝[s] x` we have `0 < m t`. -/
 lemma exists_mem_forall_mem_nhds_within_pos [topological_space α] [second_countable_topology α]

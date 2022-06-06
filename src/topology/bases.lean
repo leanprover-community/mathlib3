@@ -21,20 +21,20 @@ conditions are equivalent in this case).
 
 ## Main definitions
 
-* `is_topological_basis s`: The topological space `t` has basis `s`.
-* `separable_space α`: The topological space `t` has a countable, dense subset.
-* `is_separable s`: The set `s` is contained in the closure of a countable set.
-* `first_countable_topology α`: A topology in which `𝓝 x` is countably generated for every `x`.
-* `second_countable_topology α`: A topology which has a topological basis which is countable.
+* `topological_space.is_topological_basis s`: The topological space `t` has basis `s`.
+* `topological_space.separable_space α`: The topological space `t` has a countable, dense subset.
+* `topological_space.is_separable s`: The set `s` is contained in the closure of a countable set.
+* `topological_space.first_countable_topology α`: A topology in which `𝓝 x` is countably generated
+  for every `x`.
+* `topological_space.second_countable_topology α`: A topology which has a topological basis which is
+  countable.
 
 ## Main results
 
-* `first_countable_topology.tendsto_subseq`: In a first-countable space,
+* `topological_space.first_countable_topology.tendsto_subseq`: In a first-countable space,
   cluster points are limits of subsequences.
-* `second_countable_topology.is_open_Union_countable`: In a second-countable space, the union of
+* `topological_space.is_open_Union_countable`: In a second-countable space, the union of
   arbitrarily-many open sets is equal to a sub-union of only countably many of these sets.
-* `second_countable_topology.countable_cover_nhds`: Consider `f : α → set α` with the property that
-  `f x ∈ 𝓝 x` for all `x`. Then there is some countable set `s` whose image covers the space.
 
 ## Implementation Notes
 For our applications we are interested that there exists a countable basis, but we do not need the
@@ -671,52 +671,6 @@ begin
     from is_topological_basis_of_cover Uo hc (λ i, is_basis_countable_basis (U i)),
   exact this.second_countable_topology
     (countable_Union $ λ i, (countable_countable_basis _).image _)
-end
-
-/-- In a second-countable space, an open set, given as a union of open sets,
-is equal to the union of countably many of those sets. -/
-lemma is_open_Union_countable [second_countable_topology α]
-  {ι} (s : ι → set α) (H : ∀ i, is_open (s i)) :
-  ∃ T : set ι, countable T ∧ (⋃ i ∈ T, s i) = ⋃ i, s i :=
-begin
-  let B := {b ∈ countable_basis α | ∃ i, b ⊆ s i},
-  choose f hf using λ b : B, b.2.2,
-  haveI : encodable B := ((countable_countable_basis α).mono (sep_subset _ _)).to_encodable,
-  refine ⟨_, countable_range f, (Union₂_subset_Union _ _).antisymm (sUnion_subset _)⟩,
-  rintro _ ⟨i, rfl⟩ x xs,
-  rcases (is_basis_countable_basis α).exists_subset_of_mem_open xs (H _) with ⟨b, hb, xb, bs⟩,
-  exact ⟨_, ⟨_, rfl⟩, _, ⟨⟨⟨_, hb, _, bs⟩, rfl⟩, rfl⟩, hf _ (by exact xb)⟩
-end
-
-lemma is_open_sUnion_countable [second_countable_topology α]
-  (S : set (set α)) (H : ∀ s ∈ S, is_open s) :
-  ∃ T : set (set α), countable T ∧ T ⊆ S ∧ ⋃₀ T = ⋃₀ S :=
-let ⟨T, cT, hT⟩ := is_open_Union_countable (λ s:S, s.1) (λ s, H s.1 s.2) in
-⟨subtype.val '' T, cT.image _,
-  image_subset_iff.2 $ λ ⟨x, xs⟩ xt, xs,
-  by rwa [sUnion_image, sUnion_eq_Union]⟩
-
-/-- In a topological space with second countable topology, if `f` is a function that sends each
-point `x` to a neighborhood of `x`, then for some countable set `s`, the neighborhoods `f x`,
-`x ∈ s`, cover the whole space. -/
-lemma countable_cover_nhds [second_countable_topology α] {f : α → set α}
-  (hf : ∀ x, f x ∈ 𝓝 x) : ∃ s : set α, countable s ∧ (⋃ x ∈ s, f x) = univ :=
-begin
-  rcases is_open_Union_countable (λ x, interior (f x)) (λ x, is_open_interior) with ⟨s, hsc, hsU⟩,
-  suffices : (⋃ x ∈ s, interior (f x)) = univ,
-    from ⟨s, hsc, flip eq_univ_of_subset this $ Union₂_mono $ λ _ _, interior_subset⟩,
-  simp only [hsU, eq_univ_iff_forall, mem_Union],
-  exact λ x, ⟨x, mem_interior_iff_mem_nhds.2 (hf x)⟩
-end
-
-lemma countable_cover_nhds_within [second_countable_topology α] {f : α → set α} {s : set α}
-  (hf : ∀ x ∈ s, f x ∈ 𝓝[s] x) : ∃ t ⊆ s, countable t ∧ s ⊆ (⋃ x ∈ t, f x) :=
-begin
-  have : ∀ x : s, coe ⁻¹' (f x) ∈ 𝓝 x, from λ x, preimage_coe_mem_nhds_subtype.2 (hf x x.2),
-  rcases countable_cover_nhds this with ⟨t, htc, htU⟩,
-  refine ⟨coe '' t, subtype.coe_image_subset _ _, htc.image _, λ x hx, _⟩,
-  simp only [bUnion_image, eq_univ_iff_forall, ← preimage_Union, mem_preimage] at htU ⊢,
-  exact htU ⟨x, hx⟩
 end
 
 section sigma

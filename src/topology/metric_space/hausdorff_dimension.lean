@@ -208,46 +208,66 @@ alias dimH_coe_finset ← finset.dimH_zero
 
 section
 
-variables [second_countable_topology X]
-
-/-- If `r` is less than the Hausdorff dimension of a set `s` in an (extended) metric space with
-second countable topology, then there exists a point `x ∈ s` such that every neighborhood
-`t` of `x` within `s` has Hausdorff dimension greater than `r`. -/
-lemma exists_mem_nhds_within_lt_dimH_of_lt_dimH {s : set X} {r : ℝ≥0∞} (h : r < dimH s) :
+/-- If `r` is less than the Hausdorff dimension of a Lindelöf set `s` in an (extended) metric space,
+then there exists a point `x ∈ s` such that every neighborhood `t` of `x` within `s` has Hausdorff
+dimension greater than `r`. -/
+lemma is_lindelof.exists_mem_nhds_within_lt_dimH_of_lt_dimH {s : set X}
+  (hs : is_lindelof s) {r : ℝ≥0∞} (h : r < dimH s) :
   ∃ x ∈ s, ∀ t ∈ 𝓝[s] x, r < dimH t :=
 begin
   contrapose! h, choose! t htx htr using h,
-  rcases countable_cover_nhds_within htx with ⟨S, hSs, hSc, hSU⟩,
+  rcases hs.countable_cover_nhds_within htx with ⟨S, hSs, hSc, hSU⟩,
   calc dimH s ≤ dimH (⋃ x ∈ S, t x) : dimH_mono hSU
   ... = ⨆ x ∈ S, dimH (t x) : dimH_bUnion hSc _
   ... ≤ r : supr₂_le (λ x hx, htr x $ hSs hx)
 end
 
-/-- In an (extended) metric space with second countable topology, the Hausdorff dimension
-of a set `s` is the supremum over `x ∈ s` of the limit superiors of `dimH t` along
-`(𝓝[s] x).small_sets`. -/
-lemma bsupr_limsup_dimH (s : set X) : (⨆ x ∈ s, limsup (𝓝[s] x).small_sets dimH) = dimH s :=
+/-- If `r` is less than the Hausdorff dimension of a set `s` in an (extended) metric space with
+second countable topology, then there exists a point `x ∈ s` such that every neighborhood
+`t` of `x` within `s` has Hausdorff dimension greater than `r`. -/
+lemma exists_mem_nhds_within_lt_dimH_of_lt_dimH [second_countable_topology X] {s : set X} {r : ℝ≥0∞}
+  (h : r < dimH s) : ∃ x ∈ s, ∀ t ∈ 𝓝[s] x, r < dimH t :=
+s.is_lindelof.exists_mem_nhds_within_lt_dimH_of_lt_dimH h
+
+/-- In an (extended) metric space, the Hausdorff dimension of a Lindelöf set `s` is the supremum
+over `x ∈ s` of the limit superiors of `dimH t` along `(𝓝[s] x).lift' powerset`. -/
+lemma is_lindelof.bsupr_limsup_dimH {s : set X} (hs : is_lindelof s) :
+  (⨆ x ∈ s, limsup ((𝓝[s] x).lift' powerset) dimH) = dimH s :=
 begin
   refine le_antisymm (supr₂_le $ λ x hx, _) _,
   { refine Limsup_le_of_le (by apply_auto_param) (eventually_map.2 _),
     exact eventually_small_sets.2 ⟨s, self_mem_nhds_within, λ t, dimH_mono⟩ },
   { refine le_of_forall_ge_of_dense (λ r hr, _),
-    rcases exists_mem_nhds_within_lt_dimH_of_lt_dimH hr with ⟨x, hxs, hxr⟩,
-    refine le_supr₂_of_le x hxs _, rw limsup_eq, refine le_Inf (λ b hb, _),
-    rcases eventually_small_sets.1 hb with ⟨t, htx, ht⟩,
+    rcases hs.exists_mem_nhds_within_lt_dimH_of_lt_dimH hr with ⟨x, hxs, hxr⟩,
+    refine le_bsupr_of_le x hxs _, rw limsup_eq, refine le_Inf (λ b hb, _),
+    rcases eventually_lift'_powerset.1 hb with ⟨t, htx, ht⟩,
     exact (hxr t htx).le.trans (ht t subset.rfl) }
 end
 
 /-- In an (extended) metric space with second countable topology, the Hausdorff dimension
-of a set `s` is the supremum over all `x` of the limit superiors of `dimH t` along
-`(𝓝[s] x).small_sets`. -/
-lemma supr_limsup_dimH (s : set X) : (⨆ x, limsup (𝓝[s] x).small_sets dimH) = dimH s :=
+of a set `s` is the supremum over `x ∈ s` of the limit superiors of `dimH t` along
+`(𝓝[s] x).lift' powerset`. -/
+lemma bsupr_limsup_dimH [second_countable_topology X] (s : set X) :
+  (⨆ x ∈ s, limsup ((𝓝[s] x).lift' powerset) dimH) = dimH s :=
+s.is_lindelof.bsupr_limsup_dimH
+
+/-- In an (extended) metric space, the Hausdorff dimension of a Lindelöf set `s` is the supremum
+over all `x` of the limit superiors of `dimH t` along `(𝓝[s] x).lift' powerset`. -/
+lemma is_lindelof.supr_limsup_dimH {s : set X} (hs : is_lindelof s) :
+  (⨆ x, limsup ((𝓝[s] x).lift' powerset) dimH) = dimH s :=
 begin
   refine le_antisymm (supr_le $ λ x, _) _,
   { refine Limsup_le_of_le (by apply_auto_param) (eventually_map.2 _),
-    exact eventually_small_sets.2 ⟨s, self_mem_nhds_within, λ t, dimH_mono⟩ },
-  { rw ← bsupr_limsup_dimH, exact supr₂_le_supr _ _ }
+    exact eventually_lift'_powerset.2 ⟨s, self_mem_nhds_within, λ t, dimH_mono⟩ },
+  { rw ← hs.bsupr_limsup_dimH, exact bsupr_le_supr _ _ }
 end
+
+/-- In an (extended) metric space with second countable topology, the Hausdorff dimension
+of a set `s` is the supremum over all `x` of the limit superiors of `dimH t` along
+`(𝓝[s] x).lift' powerset`. -/
+lemma supr_limsup_dimH [second_countable_topology X] (s : set X) :
+  (⨆ x, limsup ((𝓝[s] x).lift' powerset) dimH) = dimH s :=
+s.is_lindelof.supr_limsup_dimH
 
 end
 
@@ -288,6 +308,22 @@ lemma dimH_range_le (h : holder_with C r f) (hr : 0 < r) :
 
 end holder_with
 
+/-- If `s` is a Lindelöf set in an (extended) metric space `X` and `f : X → Y` is Hölder
+continuous in a neighborhood within `s` of every point `x ∈ s` with the same positive exponent `r`
+but possibly different coefficients, then the Hausdorff dimension of the image `f '' s` is at most
+the Hausdorff dimension of `s` divided by `r`. -/
+lemma is_lindelof.dimH_image_le_of_locally_holder_on {r : ℝ≥0} {f : X → Y} {s : set X}
+  (hs : is_lindelof s) (hr : 0 < r)
+  (hf : ∀ x ∈ s, ∃ (C : ℝ≥0) (t ∈ 𝓝[s] x), holder_on_with C r f t) :
+  dimH (f '' s) ≤ dimH s / r :=
+begin
+  choose! C t htn hC using hf,
+  rcases hs.countable_cover_nhds_within htn with ⟨u, hus, huc, huU⟩,
+  replace huU := inter_eq_self_of_subset_left huU, rw inter_Union₂ at huU,
+  rw [← huU, image_Union₂, dimH_bUnion huc, dimH_bUnion huc], simp only [ennreal.supr_div],
+  exact bsupr_le_bsupr (λ x hx, ((hC x (hus hx)).mono (inter_subset_right _ _)).dimH_image_le hr)
+end
+
 /-- If `s` is a set in a space `X` with second countable topology and `f : X → Y` is Hölder
 continuous in a neighborhood within `s` of every point `x ∈ s` with the same positive exponent `r`
 but possibly different coefficients, then the Hausdorff dimension of the image `f '' s` is at most
@@ -295,23 +331,22 @@ the Hausdorff dimension of `s` divided by `r`. -/
 lemma dimH_image_le_of_locally_holder_on [second_countable_topology X] {r : ℝ≥0} {f : X → Y}
   (hr : 0 < r) {s : set X} (hf : ∀ x ∈ s, ∃ (C : ℝ≥0) (t ∈ 𝓝[s] x), holder_on_with C r f t) :
   dimH (f '' s) ≤ dimH s / r :=
-begin
-  choose! C t htn hC using hf,
-  rcases countable_cover_nhds_within htn with ⟨u, hus, huc, huU⟩,
-  replace huU := inter_eq_self_of_subset_left huU, rw inter_Union₂ at huU,
-  rw [← huU, image_Union₂, dimH_bUnion huc, dimH_bUnion huc], simp only [ennreal.supr_div],
-  exact supr₂_mono (λ x hx, ((hC x (hus hx)).mono (inter_subset_right _ _)).dimH_image_le hr)
-end
+s.is_lindelof.dimH_image_le_of_locally_holder_on hr hf
 
-/-- If `f : X → Y` is Hölder continuous in a neighborhood of every point `x : X` with the same
-positive exponent `r` but possibly different coefficients, then the Hausdorff dimension of the range
-of `f` is at most the Hausdorff dimension of `X` divided by `r`. -/
-lemma dimH_range_le_of_locally_holder_on [second_countable_topology X] {r : ℝ≥0} {f : X → Y}
+/-- If `f : X → Y` is Hölder continuous in a neighborhood of every point `x : X` of a second
+countable (extended) metric space with the same positive exponent `r` but possibly different
+coefficients, then the Hausdorff dimension of the range of `f` is at most the Hausdorff dimension of
+`X` divided by `r`.
+
+We assume that `X` is a Lindelöf space instead of a space with second countable topology. While
+these assumptions are equivalent, in this case lemma applies without an extra `haveI` whenever
+one has either `[topological_space.second_countable_topology X]` or `[sigma_compact_space X]`. -/
+lemma dimH_range_le_of_locally_holder_on [lindelof_space X] {r : ℝ≥0} {f : X → Y}
   (hr : 0 < r) (hf : ∀ x : X, ∃ (C : ℝ≥0) (s ∈ 𝓝 x), holder_on_with C r f s) :
   dimH (range f) ≤ dimH (univ : set X) / r :=
 begin
   rw ← image_univ,
-  refine dimH_image_le_of_locally_holder_on hr (λ x _, _),
+  refine (is_lindelof_univ X).dimH_image_le_of_locally_holder_on hr (λ x _, _),
   simpa only [exists_prop, nhds_within_univ] using hf x
 end
 
@@ -336,27 +371,40 @@ lemma dimH_range_le (h : lipschitz_with K f) : dimH (range f) ≤ dimH (univ : s
 
 end lipschitz_with
 
+/-- If `s` is a Lindelöf set in an extended metric space `X` and `f : X → Y` is Lipschitz in a
+neighborhood within `s` of every point `x ∈ s`, then the Hausdorff dimension of the image `f '' s`
+is at most the Hausdorff dimension of `s`. -/
+lemma is_lindelof.dimH_image_le_of_locally_lipschitz_on {f : X → Y} {s : set X} (hs : is_lindelof s)
+  (hf : ∀ x ∈ s, ∃ (C : ℝ≥0) (t ∈ 𝓝[s] x), lipschitz_on_with C f t) :
+  dimH (f '' s) ≤ dimH s :=
+begin
+  have : ∀ x ∈ s, ∃ (C : ℝ≥0) (t ∈ 𝓝[s] x), holder_on_with C 1 f t,
+    by simpa only [holder_on_with_one] using hf,
+  simpa only [ennreal.coe_one, ennreal.div_one]
+    using hs.dimH_image_le_of_locally_holder_on zero_lt_one this
+end
+
 /-- If `s` is a set in an extended metric space `X` with second countable topology and `f : X → Y`
 is Lipschitz in a neighborhood within `s` of every point `x ∈ s`, then the Hausdorff dimension of
 the image `f '' s` is at most the Hausdorff dimension of `s`. -/
 lemma dimH_image_le_of_locally_lipschitz_on [second_countable_topology X] {f : X → Y}
   {s : set X} (hf : ∀ x ∈ s, ∃ (C : ℝ≥0) (t ∈ 𝓝[s] x), lipschitz_on_with C f t) :
   dimH (f '' s) ≤ dimH s :=
-begin
-  have : ∀ x ∈ s, ∃ (C : ℝ≥0) (t ∈ 𝓝[s] x), holder_on_with C 1 f t,
-    by simpa only [holder_on_with_one] using hf,
-  simpa only [ennreal.coe_one, ennreal.div_one]
-    using dimH_image_le_of_locally_holder_on zero_lt_one this
-end
+s.is_lindelof.dimH_image_le_of_locally_lipschitz_on hf
 
-/-- If `f : X → Y` is Lipschitz in a neighborhood of each point `x : X`, then the Hausdorff
-dimension of `range f` is at most the Hausdorff dimension of `X`. -/
-lemma dimH_range_le_of_locally_lipschitz_on [second_countable_topology X] {f : X → Y}
+/-- If `f : X → Y` is Lipschitz in a neighborhood of each point `x : X` of an extended metric space
+with second countable topology, then the Hausdorff dimension of `range f` is at most the Hausdorff
+dimension of `X`.
+
+We assume that `X` is a Lindelöf space instead of a space with second countable topology. While
+these assumptions are equivalent, in this case lemma applies without an extra `haveI` whenever
+one has either `[topological_space.second_countable_topology X]` or `[sigma_compact_space X]`. -/
+lemma dimH_range_le_of_locally_lipschitz_on [lindelof_space X] {f : X → Y}
   (hf : ∀ x : X, ∃ (C : ℝ≥0) (s ∈ 𝓝 x), lipschitz_on_with C f s) :
   dimH (range f) ≤ dimH (univ : set X) :=
 begin
   rw ← image_univ,
-  refine dimH_image_le_of_locally_lipschitz_on (λ x _, _),
+  refine (is_lindelof_univ X).dimH_image_le_of_locally_lipschitz_on (λ x _, _),
   simpa only [exists_prop, nhds_within_univ] using hf x
 end
 

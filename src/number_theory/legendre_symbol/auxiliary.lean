@@ -52,7 +52,7 @@ on non-units. -/
 -- SUGGESTION: put the following two definitions in `algebra.group_with_zero.basic`,
 -- before `inv_monoid_with_zero_hom`
 noncomputable
-def comm_monoid_with_zero.inv_hom {M : Type*} [comm_monoid_with_zero M] [nontrivial M] :
+def comm_monoid_with_zero.inv_hom {M : Type*} [comm_monoid_with_zero M] :
   M →*₀ M :=
 { to_fun := ring.inverse,
   map_zero' := ring.inverse_zero _,

@@ -393,7 +393,9 @@ variables {𝓐 𝓑 : Type u} [category.{v} 𝓐] [category.{v} 𝓑]
 variables [abelian 𝓐] [abelian 𝓑]
 variables (L : 𝓐 ⥤ 𝓑) [preserves_finite_limits L] [preserves_finite_colimits L]
 
-
+/-
+If a functor preserves both finite limits and colimits, then it preserves images.
+-/
 def iso {X Y : 𝓐} (f : X ⟶ Y) : image (L.map f) ≅ L.obj (image f) :=
 have aux1 : strong_epi_mono_factorisation (L.map f) :=
 { I := L.obj (limits.image f),
@@ -751,3 +753,5 @@ def abelian : abelian C :=
   ..non_preadditive_abelian.preadditive }
 
 end category_theory.non_preadditive_abelian
+
+#lint

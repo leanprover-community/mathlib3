@@ -93,6 +93,19 @@ open filter
 open bounded_continuous_function
 open_locale topological_space ennreal nnreal bounded_continuous_function
 
+-- TODO: Move to algebra.order.ring
+lemma max_zero_add_max_neg_zero_eq_abs_self {R : Type*} [linear_ordered_ring R] (x : R) :
+  max x 0 + max (-x) 0 = |x| :=
+begin
+  by_cases sign_x : 0 ≤ x,
+  { simp only [sign_x, max_eq_left, max_eq_right,
+               right.neg_nonpos_iff, add_zero, abs_eq_self.mpr sign_x], },
+  { rw not_le at sign_x,
+    have aux : x ≤ 0, from sign_x.le,
+    simp only [aux, max_eq_right, max_eq_left,
+               right.nonneg_neg_iff, zero_add, abs_eq_neg_self.mpr aux], },
+end
+
 namespace measure_theory
 
 variables {α : Type*} [measurable_space α]
@@ -325,6 +338,8 @@ theorem tendsto_iff_forall_test_against_nn_tendsto {γ : Type*} {F : filter γ}
   ∀ (f : α →ᵇ ℝ≥0), tendsto (λ i, (μs(i)).to_weak_dual_bcnn f) F (𝓝 (μ.to_weak_dual_bcnn f)) :=
 by { rw [tendsto_iff_weak_star_tendsto, tendsto_iff_forall_eval_tendsto_top_dual_pairing], refl, }
 
+/-- A characterization of weak convergence in terms of integrals of bounded continuous
+nonnegative functions. -/
 theorem tendsto_iff_forall_lintegral_tendsto {γ : Type*} {F : filter γ}
   {μs : γ → finite_measure α} {μ : finite_measure α} :
   tendsto μs F (𝓝 μ) ↔
@@ -409,6 +424,124 @@ lemma tendsto_test_against_nn_of_le_const {μ : finite_measure α}
   tendsto (λ n, μ.test_against_nn (fs n)) at_top (𝓝 (μ.test_against_nn f)) :=
 tendsto_test_against_nn_filter_of_le_const
   (eventually_of_forall (λ n, eventually_of_forall (fs_le_const n))) (eventually_of_forall fs_lim)
+
+@[simps] def _root_.bounded_continuous_function.nnreal_part (f : α →ᵇ ℝ) : α →ᵇ ℝ≥0 :=
+bounded_continuous_function.comp _
+  (show lipschitz_with 1 real.to_nnreal, from lipschitz_with_pos) f
+
+@[simps] def _root_.bounded_continuous_function.nnnorm (f : α →ᵇ ℝ) : α →ᵇ ℝ≥0 :=
+bounded_continuous_function.comp _
+  (show lipschitz_with 1 (λ (x : ℝ), ∥x∥₊), from lipschitz_with_one_norm) f
+
+open order real nnreal ennreal
+
+/-- Decompose a bounded continuous function to its positive and negative parts. -/
+lemma _root_.bounded_continuous_function.self_eq_nnreal_part_sub_nnreal_part_neg (f : α →ᵇ ℝ) :
+  ⇑f = coe ∘ f.nnreal_part - coe ∘ (-f).nnreal_part :=
+by { funext x, dsimp, simp only [max_zero_sub_max_neg_zero_eq_self], }
+
+/-- Express the absolute value of a bounded continuous function in terms of its
+positive and negative parts. -/
+lemma _root_.bounded_continuous_function.abs_self_eq_nnreal_part_add_nnreal_part_neg (f : α →ᵇ ℝ) :
+  abs ∘ ⇑f = coe ∘ f.nnreal_part + coe ∘ (-f).nnreal_part :=
+by { funext x, dsimp, simp only [max_zero_add_max_neg_zero_eq_abs_self], }
+
+lemma integrable_of_bounded_continuous_to_nnreal (μ : finite_measure α) (f : α →ᵇ ℝ≥0) :
+  integrable ((coe : ℝ≥0 → ℝ) ∘ ⇑f) (μ : measure α) :=
+begin
+  refine ⟨(nnreal.continuous_coe.comp f.continuous).measurable.ae_strongly_measurable, _⟩,
+  simp only [has_finite_integral, nnreal.nnnorm_eq],
+  exact μ.lintegral_lt_top_of_bounded_continuous_to_nnreal f,
+end
+
+lemma integrable_of_bounded_continuous_to_real (μ : finite_measure α) (f : α →ᵇ ℝ) :
+  integrable ⇑f (μ : measure α) :=
+begin
+  refine ⟨f.continuous.measurable.ae_strongly_measurable, _⟩,
+  have aux : (coe : ℝ≥0 → ℝ) ∘ ⇑f.nnnorm = (λ x, ∥f x∥),
+  { ext x, simp only [function.comp_app, bounded_continuous_function.nnnorm_apply_coe], },
+  apply (has_finite_integral_iff_norm ⇑f).mpr,
+  rw ← of_real_integral_eq_lintegral_of_real,
+  { exact ennreal.of_real_lt_top, },
+  { exact aux ▸ integrable_of_bounded_continuous_to_nnreal μ f.nnnorm, },
+  { exact eventually_of_forall (λ x, norm_nonneg (f x)), },
+end
+
+lemma bounded_continuous_function.integral_eq_integral_nnreal_part_sub
+  (μ : finite_measure α) (f : α →ᵇ ℝ) :
+  ∫ x, f x ∂(μ : measure α) =
+      ∫ x, f.nnreal_part x ∂(μ : measure α)
+    - ∫ x, (-f).nnreal_part x ∂(μ : measure α) :=
+by simp only [f.self_eq_nnreal_part_sub_nnreal_part_neg,
+              pi.sub_apply, integral_sub, integrable_of_bounded_continuous_to_nnreal]
+
+lemma lintegral_lt_top_of_bounded_continuous_to_real (μ : finite_measure α) (f : α →ᵇ ℝ) :
+  ∫⁻ x, ennreal.of_real (f x) ∂(μ : measure α) < ∞ :=
+μ.lintegral_lt_top_of_bounded_continuous_to_nnreal f.nnreal_part
+
+theorem tendsto_if_forall_integral_tendsto {γ : Type*} {F : filter γ}
+  {μs : γ → finite_measure α} {μ : finite_measure α} :
+  ((∀ (f : α →ᵇ ℝ),
+    tendsto (λ i, (∫ x, (f x) ∂(μs(i) : measure α))) F (𝓝 ((∫ x, (f x) ∂(μ : measure α))))))
+  → tendsto μs F (𝓝 μ) :=
+begin
+  intro h,
+  apply (@finite_measure.tendsto_iff_forall_lintegral_tendsto α _ _ _ γ F μs μ).mpr,
+  intro f,
+  have key := @ennreal.tendsto_to_real_iff _ F
+              _ (λ i, ((μs i).lintegral_lt_top_of_bounded_continuous_to_nnreal f).ne)
+              _ (μ.lintegral_lt_top_of_bounded_continuous_to_nnreal f).ne,
+  simp only [ennreal.of_real_coe_nnreal] at key,
+  apply key.mp,
+  have lip : lipschitz_with 1 (coe : ℝ≥0 → ℝ), from isometry_subtype_coe.lipschitz,
+  set f₀ := bounded_continuous_function.comp _ lip f with def_f₀,
+  have f₀_eq : ⇑f₀ = (coe : ℝ≥0 → ℝ) ∘ ⇑f, by refl,
+  have f₀_nn : 0 ≤ ⇑f₀, from λ _, by simp only [f₀_eq, pi.zero_apply, nnreal.zero_le_coe],
+  have f₀_ae_nn : 0 ≤ᵐ[(μ : measure α)] ⇑f₀, from eventually_of_forall f₀_nn,
+  have f₀_ae_nns : ∀ i, 0 ≤ᵐ[(μs(i) : measure α)] ⇑f₀, from λ i, eventually_of_forall f₀_nn,
+  have aux := integral_eq_lintegral_of_nonneg_ae f₀_ae_nn
+              f₀.continuous.measurable.ae_strongly_measurable,
+  have auxs := λ i, integral_eq_lintegral_of_nonneg_ae (f₀_ae_nns i)
+              f₀.continuous.measurable.ae_strongly_measurable,
+  simp only [f₀_eq, ennreal.of_real_coe_nnreal] at aux auxs,
+  simpa only [←aux, ←auxs] using h f₀,
+end
+
+lemma bounded_continuous_function.nnreal.to_real_lintegral_eq_integral
+  {μ : finite_measure α} (f : α →ᵇ ℝ≥0) :
+  (∫⁻ x, (f x : ℝ≥0∞) ∂(μ : measure α)).to_real = (∫ x, (f x) ∂(μ : measure α)) :=
+begin
+  rw integral_eq_lintegral_of_nonneg_ae _
+     (nnreal.continuous_coe.comp f.continuous).measurable.ae_strongly_measurable,
+  { simp only [ennreal.of_real_coe_nnreal], },
+  { apply eventually_of_forall,
+    simp only [pi.zero_apply, nnreal.zero_le_coe, implies_true_iff], },
+end
+
+/-- A characterization of weak convergence in terms of integrals of bounded continuous
+real-valued functions. -/
+theorem tendsto_iff_forall_integral_tendsto {γ : Type*} {F : filter γ}
+  {μs : γ → finite_measure α} {μ : finite_measure α} :
+  tendsto μs F (𝓝 μ) ↔
+  ∀ (f : α →ᵇ ℝ),
+    tendsto (λ i, (∫ x, (f x) ∂(μs(i) : measure α))) F (𝓝 ((∫ x, (f x) ∂(μ : measure α)))) :=
+begin
+  refine ⟨_, tendsto_if_forall_integral_tendsto⟩,
+  rw finite_measure.tendsto_iff_forall_lintegral_tendsto,
+  intros h f,
+  simp_rw bounded_continuous_function.integral_eq_integral_nnreal_part_sub,
+  set f_pos := f.nnreal_part with def_f_pos,
+  set f_neg := (-f).nnreal_part with def_f_neg,
+  have tends_pos := (ennreal.tendsto_to_real
+          ((μ.lintegral_lt_top_of_bounded_continuous_to_nnreal f_pos).ne)).comp (h f_pos),
+  have tends_neg := (ennreal.tendsto_to_real
+          ((μ.lintegral_lt_top_of_bounded_continuous_to_nnreal f_neg).ne)).comp (h f_neg),
+  have aux : ∀ (g : α →ᵇ ℝ≥0), ennreal.to_real ∘ (λ (i : γ), ∫⁻ (x : α), ↑(g x) ∂(μs i : measure α))
+         = λ (i : γ), (∫⁻ (x : α), ↑(g x) ∂(μs i : measure α)).to_real, from λ _, rfl,
+  simp_rw [aux, bounded_continuous_function.nnreal.to_real_lintegral_eq_integral]
+          at tends_pos tends_neg,
+  exact tendsto.sub tends_pos tends_neg,
+end
 
 end finite_measure
 

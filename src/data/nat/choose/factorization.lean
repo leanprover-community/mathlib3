@@ -72,7 +72,7 @@ begin
   cases em' p.prime with hp hp,
   { exact factorization_eq_zero_of_non_prime (choose n k) hp },
   cases lt_or_le n k with hnk hkn,
-  { rw [choose_eq_zero_of_lt hnk, factorization_zero, finsupp.coe_zero, pi.zero_apply] },
+  { simp [choose_eq_zero_of_lt hnk] }
   rw [←@padic_val_nat_eq_factorization p _ ⟨hp⟩, @padic_val_nat_def _ ⟨hp⟩ _ (choose_pos hkn)],
   simp only [hp.multiplicity_choose hkn (lt_add_one _), enat.get_coe,
     finset.card_eq_zero, finset.filter_eq_empty_iff, not_le],

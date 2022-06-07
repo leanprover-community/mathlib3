@@ -129,7 +129,9 @@ begin
       { replace h := pow_eq_zero h,
         rw [coe_coe] at h,
         exact ne_zero.ne _ h } },
+    { apply_instance },
     { apply_instance } },
+  { apply_instance },
   { apply_instance }
 end
 
@@ -164,7 +166,8 @@ begin
     simp only [trace_matrix, map_one, one_pow, matrix.det_unique, trace_form_apply, mul_one],
     rw [← (algebra_map K L).map_one, trace_algebra_map, finrank _ hirr],
     { simp },
-    { simpa using hcycl } },
+    { apply_instance },
+    { exact hcycl } },
   { by_cases hk : p ^ (k + 1) = 2,
     { haveI : ne_zero ((↑(p ^ (k + 1)) : ℕ) : K),
       { refine ⟨λ hzero, _⟩,
@@ -189,7 +192,8 @@ begin
         pow_zero, trace_form_apply, mul_one],
       rw [← (algebra_map K L).map_one, trace_algebra_map, finrank _ hirr, hp, hk],
       { simp },
-      { apply_instance } },
+      { apply_instance },
+      { exact hcycl } },
     { exact discr_prime_pow_ne_two hζ hirr hk } }
 end
 

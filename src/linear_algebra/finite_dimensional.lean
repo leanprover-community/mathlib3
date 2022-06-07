@@ -272,7 +272,7 @@ noncomputable def basis_unique (ι : Type*) [unique ι] (h : finrank K V = 1) :
   basis ι K V :=
 begin
   haveI := finite_dimensional_of_finrank (_root_.zero_lt_one.trans_le h.symm.le),
-  exact (fin_basis_of_finrank_eq K V h).reindex equiv_of_unique_of_unique
+  exact (fin_basis_of_finrank_eq K V h).reindex (unique_equiv_unique _ _)
 end
 
 @[simp]

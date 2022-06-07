@@ -200,6 +200,8 @@ theorem antitone_lam {f : α → β → γ} (hf : ∀ b, antitone (λ a, f a b))
 theorem antitone_app (f : β → α → γ) (b : β) (hf : antitone (λ a b, f b a)) : antitone (f b) :=
 λ a a' h, hf h b
 
+lemma compl_antitone [has_precompl α] : antitone (compl : α → α) := λ a b, compl_le
+
 end preorder
 
 lemma function.monotone_eval {ι : Type u} {α : ι → Type v} [∀ i, preorder (α i)] (i : ι) :

@@ -542,17 +542,6 @@ begin
   injection SS; injection II; congr'
 end
 
-lemma compl_inf [has_precompl α] {x y : α} : (x ⊓ y)ᶜ = xᶜ ⊔ yᶜ :=
-begin
-  refine le_antisymm _ (sup_le
-    (by simp [compl_le_compl_iff_le]) (by simp [compl_le_compl_iff_le])),
-  rw [compl_le_comm, le_inf_iff, compl_le_comm, @compl_le_comm _ _ _ _ y],
-  exact ⟨le_sup_left, le_sup_right⟩,
-end
-
-lemma compl_sup [has_precompl α] {x y : α} : (x ⊔ y)ᶜ = xᶜ ⊓ yᶜ :=
-by rw [compl_eq_comm, compl_inf, compl_compl, compl_compl]
-
 end lattice
 
 /-!
@@ -857,6 +846,19 @@ lemma map_inf [semilattice_sup β] {f : α → β} (hf : antitone f) (x y : α) 
 hf.dual_right.map_inf x y
 
 end antitone
+
+section has_precompl
+
+variables [lattice α] [has_precompl α] {x y : α}
+
+lemma compl_inf : (x ⊓ y)ᶜ = xᶜ ⊔ yᶜ :=
+le_antisymm (by {rw [compl_le_comm, le_inf_iff, compl_le_comm, @compl_le_comm _ _ _ _ y],
+  exact ⟨le_sup_left, le_sup_right⟩})
+  (antitone.le_map_inf (compl_antitone) _ _)
+
+lemma compl_sup : (x ⊔ y)ᶜ = xᶜ ⊓ yᶜ := by rw [compl_eq_comm, compl_inf, compl_compl, compl_compl]
+
+end has_precompl
 
 /-!
 ### Products of (semi-)lattices

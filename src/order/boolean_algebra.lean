@@ -26,7 +26,6 @@ intervals.)
 
 ## Main declarations
 
-* `has_compl`: a type class for the complement operator
 * `generalized_boolean_algebra`: a type class for generalized Boolean algebras
 * `boolean_algebra.core`: a type class with the minimal assumptions for a Boolean algebras
 * `boolean_algebra`: the main type class for Boolean algebras; it extends both

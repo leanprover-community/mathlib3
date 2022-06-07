@@ -10,18 +10,22 @@ import tactic.interactive
 namespace tactic
 
 /--  A generic function with one argument.  It is the "function underscore" input to `congrm`. -/
+@[nolint unused_argument]
 def congrm_fun1 {α ρ} {r : ρ} : α → ρ := λ _, r
 notation `_₁` := congrm_fun1
 
 /--  A generic function with two arguments.  It is the "function underscore" input to `congrm`. -/
+@[nolint unused_argument]
 def congrm_fun2 {α β ρ} {r : ρ} : α → β → ρ := λ _ _, r
 notation `_₂` := congrm_fun2
 
 /--  A generic function with three arguments.  It is the "function underscore" input to `congrm`. -/
+@[nolint unused_argument]
 def congrm_fun3 {α β γ ρ} {r : ρ} : α → β → γ → ρ := λ _ _ _, r
 notation `_₃` := congrm_fun3
 
 /--  A generic function with four arguments.  It is the "function underscore" input to `congrm`. -/
+@[nolint unused_argument]
 def congrm_fun4 {α β γ δ ρ} {r : ρ} : α → β → γ → δ → ρ := λ _ _ _ _, r
 notation `_₄` := congrm_fun4
 

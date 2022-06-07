@@ -145,16 +145,21 @@ map ulift (λ α β e, equiv.ulift.trans $ e.trans equiv.ulift.symm) c
 
 @[simp] theorem mk_ulift (α) : #(ulift.{v u} α) = lift.{v} (#α) := rfl
 
+/-- `lift.{(max u v) u}` equals `lift.{v u}`. -/
 theorem lift_umax : lift.{(max u v) u} = lift.{v u} :=
 funext $ λ a, induction_on a $ λ α, (equiv.ulift.trans equiv.ulift.symm).cardinal_eq
 
+/-- `lift.{(max v u) u}` equals `lift.{v u}`. -/
 theorem lift_umax' : lift.{(max v u) u} = lift.{v u} := lift_umax
 
-theorem lift_id' (a : cardinal.{max u v}) : lift.{u} a = a :=
+/-- A cardinal lifted to its own universe equals itself. -/
+@[simp] theorem lift_id' (a : cardinal.{max u v}) : lift.{u} a = a :=
 induction_on a $ λ α, mk_congr equiv.ulift
 
+/-- A cardinal lifted to the same universe equals itself. -/
 @[simp] theorem lift_id (a : cardinal) : lift.{u u} a = a := lift_id'.{u u} a
-@[simp] theorem lift_uzero (a : cardinal.{u}) : lift.{0} a = a := lift_id'.{0 u} a
+
+theorem lift_uzero (a : cardinal.{u}) : lift.{0} a = a := lift_id'.{0 u} a
 
 @[simp] theorem lift_lift (a : cardinal) :
   lift.{w} (lift.{v} a) = lift.{(max v w)} a :=

@@ -747,7 +747,7 @@ instance : has_zero ordinal :=
 
 instance : inhabited ordinal := ⟨0⟩
 
-theorem zero_eq_type_empty : 0 = @type empty empty_relation _ :=
+@[simp] theorem type_of_empty [is_empty α] (r : α → α → Prop) : type r = 0 :=
 quotient.sound ⟨⟨empty_equiv_pempty.symm, λ _ _, iff.rfl⟩⟩
 
 @[simp] theorem card_zero : card 0 = 0 := rfl
@@ -863,9 +863,6 @@ by simp only [lt_iff_le_not_le, lift_le]
 @[simp] theorem lift_zero : lift 0 = 0 :=
 quotient.sound ⟨(rel_iso.preimage equiv.ulift _).trans
  ⟨pempty_equiv_pempty, λ a b, iff.rfl⟩⟩
-
-theorem zero_eq_lift_type_empty : 0 = lift.{u} (@type empty empty_relation _) :=
-by rw [← zero_eq_type_empty, lift_zero]
 
 @[simp] theorem lift_one : lift 1 = 1 :=
 quotient.sound ⟨(rel_iso.preimage equiv.ulift _).trans

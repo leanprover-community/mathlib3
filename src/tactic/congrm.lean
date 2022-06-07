@@ -65,7 +65,7 @@ if pat.get_app_fn.const_name = ``tactic.congrm_fun1 then
     [ta] ← arg_list.mmap infer_type,
   att ← to_expr ``((λ (x : %%ta), %%mr x)) tt ff,
   return $ att.app_of_list $ pat.get_app_args.drop $ arg_list.length + 2
-  | _ := fail "not a single function application"
+  | e := fail "not a single function application"
   end
 else
 return pat

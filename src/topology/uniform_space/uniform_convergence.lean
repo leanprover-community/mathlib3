@@ -112,6 +112,15 @@ lemma tendsto_uniformly_on.mono {s' : set α}
   (h : tendsto_uniformly_on F f p s) (h' : s' ⊆ s) : tendsto_uniformly_on F f p s' :=
 λ u hu, (h u hu).mono (λ n hn x hx, hn x (h' hx))
 
+lemma tendsto_uniformly_on.congr_fun {F' : ι → α → β}
+  (hf : tendsto_uniformly_on F f p s) (hff' : ∀ᶠ n in p, set.eq_on (F n) (F' n) s) :
+  tendsto_uniformly_on F' f p s :=
+begin
+  refine (λ u hu, ((hf u hu).and hff').mono (λ n h x hx, _)),
+  rw ← h.right hx,
+  exact h.left x hx,
+end
+
 protected lemma tendsto_uniformly.tendsto_uniformly_on
   (h : tendsto_uniformly F f p) : tendsto_uniformly_on F f p s :=
 (tendsto_uniformly_on_univ.2 h).mono (subset_univ s)
@@ -178,6 +187,52 @@ calc tendsto ↿F (p ×ᶠ ⊤) (𝓝 c)
 ... ↔ map (j ∘ ↿F) (p ×ᶠ ⊤) ≤ 𝓤 β : by rw map_map
 ... ↔ ∀ V ∈ 𝓤 β, {x | (c, ↿F x) ∈ V} ∈ p ×ᶠ (⊤ : filter α) : iff.rfl
 ... ↔ ∀ V ∈ 𝓤 β, {i | ∀ a, (c, F i a) ∈ V} ∈ p : by simpa [mem_prod_top]
+
+/-- Uniform convergence on the empty set is vacuously true -/
+lemma tendsto_uniformly_on_of_empty :
+  tendsto_uniformly_on F f p ∅ :=
+λ u hu, by simp
+
+/-- Uniform convergence on a singleton is equivalent to regular convergence -/
+lemma tendsto_uniformly_on_singleton_iff_tendsto :
+  tendsto_uniformly_on F f p {x} ↔ tendsto (λ n : ι, F n x) p (𝓝 (f x)) :=
+begin
+  rw uniform.tendsto_nhds_right,
+  unfold tendsto,
+  rw filter.le_def,
+  simp_rw filter.mem_map',
+
+  split,
+  exact (λ h u hu, by simpa using eventually_iff.mp (h u hu)),
+  exact (λ h u hu, by simpa using eventually_iff.mp (h u hu)),
+end
+
+lemma filter.tendsto.tendsto_uniformly_on_const
+  {g : ι → β} {b : β} (hg : tendsto g p (𝓝 b)) (s : set α) :
+  tendsto_uniformly_on (λ n : ι, λ a : α, g n) (λ a : α, b) p s :=
+begin
+  by_cases hs : s = ∅,
+  { rw hs, exact tendsto_uniformly_on_of_empty, },
+  have hs : s.nonempty,
+  { by_contradiction H,
+    rw set.not_nonempty_iff_eq_empty at H,
+    exact hs H, },
+
+  intros u hu,
+  rw tendsto_iff_eventually at hg,
+  simp,
+  let p := (λ c, ∀ y : α, y ∈ s → (b, c) ∈ u),
+  have hhp : ∀ c, ( ∀ y : α, y ∈ s → (b, c) ∈ u) = p c,
+  { intros c, simp [p], },
+  have hhp' : ∀ c, ((b, c) ∈ u) = p c,
+  { cases hs with x hx,
+    intros c, simp [p],
+    exact ⟨λ h y hy, h, λ h, h x hx⟩, },
+  conv { congr, funext, rw [hhp (g n), ←hhp' (g n)], },
+  apply @hg (λ c, (b, c) ∈ u),
+  rw eventually_iff,
+  exact mem_nhds_left b hu,
+end
 
 lemma uniform_continuous_on.tendsto_uniformly [uniform_space α] [uniform_space γ]
   {x : α} {U : set α} (hU : U ∈ 𝓝 x)
@@ -249,6 +304,40 @@ begin
 
   -- Finish the proof
   exact ⟨F m x, ⟨hm', htsymm (hm x hx)⟩⟩,
+end
+
+lemma uniform_cauchy_seq_on.mono {s' : set α} (hf : uniform_cauchy_seq_on F p s) (hss' : s' ⊆ s) :
+  uniform_cauchy_seq_on F p s' :=
+λ u hu, (hf u hu).mono (λ x hx y hy, hx y (hss' hy))
+
+/-- Composing on the right by a function preserves uniform convergence -/
+lemma uniform_cauchy_seq_on.comp {γ : Type*} (hf : uniform_cauchy_seq_on F p s) (g : γ → α) :
+  uniform_cauchy_seq_on (λ n, F n ∘ g) p (g ⁻¹' s) :=
+λ u hu, (hf u hu).mono (λ x hx y hy, hx (g y) hy)
+
+/-- Composing on the left by a uniformly continuous function preserves
+uniform convergence -/
+lemma uniform_cauchy_seq_on.comp' [uniform_space γ] {g : β → γ} (hf : uniform_cauchy_seq_on F p s)
+  (hg : uniform_continuous g) :
+  uniform_cauchy_seq_on (λ n, g ∘ (F n)) p s :=
+λ u hu, hf _ (hg hu)
+
+lemma uniform_cauchy_seq_on.prod' {β' : Type*} [uniform_space β'] {F' : ι → α → β'}
+  (h : uniform_cauchy_seq_on F p s) (h' : uniform_cauchy_seq_on F' p s) :
+  uniform_cauchy_seq_on (λ (i : ι) a, (F i a, F' i a)) p s :=
+begin
+  intros u hu,
+  rw [uniformity_prod_eq_prod, filter.mem_map, mem_prod_iff] at hu,
+  obtain ⟨t, ht, t', ht', htt'⟩ := hu,
+  apply (filter.eventually_diag_of_eventually_prod ((h t ht).prod_mk (h' t' ht'))).mono,
+  intros x hx y hy,
+  cases hx with hxt hxt',
+  specialize hxt y hy,
+  specialize hxt' y hy,
+  simp only at hxt hxt' ⊢,
+  have := calc ((F x.fst y, F x.snd y), (F' x.fst y, F' x.snd y)) ∈ t ×ˢ t' : by simp [hxt, hxt']
+    ... ⊆ (λ (p : (β × β) × β' × β'), ((p.fst.fst, p.snd.fst), p.fst.snd, p.snd.snd)) ⁻¹' u : htt',
+  simpa using this,
 end
 
 section seq_tendsto

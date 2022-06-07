@@ -4,10 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
 import analysis.convex.combination
-import linear_algebra.affine_space.affine_subspace
 
 /-!
 # Convex join
+
+This file defines the convex join of two sets. The convex join of `s` and `t` is the union of the
+segments with one end in `s` and the other in `t`. This is notably a useful gadget to deal with
+convex hulls of finite sets.
 -/
 
 lemma exists₂_comm {ι₁ ι₂ : Sort*} {κ₁ : ι₁ → Sort*} {κ₂ : ι₂ → Sort*}
@@ -16,7 +19,15 @@ lemma exists₂_comm {ι₁ ι₂ : Sort*} {κ₁ : ι₁ → Sort*} {κ₂ : ι
 by simp only [@exists_comm (κ₁ _), @exists_comm ι₁]
 
 namespace set
-variables {α : Type*}
+variables {α : Type*} {ι₁ ι₂ : Sort*} {κ₁ : ι₁ → Sort*} {κ₂ : ι₂ → Sort*}
+
+lemma Union₂_comm (s : Π i₁, κ₁ i₁ → Π i₂, κ₂ i₂ → set α) :
+  (⋃ i₁ j₁ i₂ j₂, s i₁ j₁ i₂ j₂) = ⋃ i₂ j₂ i₁ j₁, s i₁ j₁ i₂ j₂ :=
+ext $ λ _, by { simp_rw mem_Union₂, exact exists₂_comm }
+
+lemma Inter₂_comm (s : Π i₁, κ₁ i₁ → Π i₂, κ₂ i₂ → set α) :
+  (⋂ i₁ j₁ i₂ j₂, s i₁ j₁ i₂ j₂) = ⋂ i₂ j₂ i₁ j₁, s i₁ j₁ i₂ j₂ :=
+ext $ λ _, by { simp_rw mem_Inter₂, exact forall₂_swap }
 
 @[simp] lemma insert_singleton (a : α) : insert a ({a} : set α) = {a} :=
 insert_eq_of_mem $ mem_singleton _
@@ -24,7 +35,8 @@ insert_eq_of_mem $ mem_singleton _
 @[simp] lemma insert_idem (a : α) (s : set α) : insert a (insert a s) = insert a s :=
 insert_eq_of_mem $ mem_insert _ _
 
-@[simp] lemma finite.to_finset_singleton {a : α} (ha : ({a} : set α).finite) : ha.to_finset = {a} :=
+@[simp] lemma finite.to_finset_singleton {a : α} (ha : ({a} : set α).finite := finite_singleton _) :
+  ha.to_finset = {a} :=
 finset.ext $ by simp
 
 variables [decidable_eq α] {a : α} {s : set α}
@@ -38,26 +50,6 @@ end set
 open set
 open_locale big_operators
 
-section
-variables {𝕜 E ι : Type*} [ordered_semiring 𝕜] [add_comm_monoid E] [module 𝕜 E] {s X Y : set E}
-
--- can be proven from the stuff about closure operators
-lemma convex_hull_convex_hull_union :
-  convex_hull 𝕜 (convex_hull 𝕜 X ∪ Y) = convex_hull 𝕜 (X ∪ Y) :=
-subset.antisymm (convex_hull_min (union_subset (convex_hull_mono (subset_union_left X Y))
-  (subset.trans (subset_convex_hull 𝕜 Y) (convex_hull_mono (subset_union_right X Y))))
-  (convex_convex_hull 𝕜 _)) (convex_hull_mono (union_subset_union_left _ (subset_convex_hull 𝕜 _)))
-
--- can be proven from the stuff about closure operators
-lemma convex_hull_self_union_convex_hull :
-  convex_hull 𝕜 (X ∪ convex_hull 𝕜 Y) = convex_hull 𝕜 (X ∪ Y) :=
-begin
-  rw [union_comm, union_comm X Y],
-  exact convex_hull_convex_hull_union,
-end
-
-end
-
 variables {ι : Sort*} {𝕜 E : Type*}
 
 section ordered_semiring
@@ -66,6 +58,14 @@ variables [ordered_semiring 𝕜] [add_comm_monoid E] [module 𝕜 E] {s t s₁ 
 
 lemma segment_subset_convex_hull (hx : x ∈ s) (hy : y ∈ s) : segment 𝕜 x y ⊆ convex_hull 𝕜 s :=
 (convex_convex_hull _ _).segment_subset (subset_convex_hull _ _ hx) (subset_convex_hull _ _ hy)
+
+lemma convex_hull_convex_hull_union_left (s t : set E) :
+  convex_hull 𝕜 (convex_hull 𝕜 s ∪ t) = convex_hull 𝕜 (s ∪ t) :=
+closure_operator.closure_sup_closure_left _ _ _
+
+lemma convex_hull_convex_hull_union_right (s t : set E) :
+  convex_hull 𝕜 (s ∪ convex_hull 𝕜 t) = convex_hull 𝕜 (s ∪ t) :=
+closure_operator.closure_sup_closure_right _ _ _
 
 @[simp] lemma convex_hull_pair (x y : E) : convex_hull 𝕜 {x, y} = segment 𝕜 x y :=
 begin
@@ -87,7 +87,7 @@ lemma mem_convex_join : x ∈ convex_join 𝕜 s t ↔ ∃ (a ∈ s) (b ∈ t), 
 by simp [convex_join]
 
 lemma convex_join_comm (s t : set E) : convex_join 𝕜 s t = convex_join 𝕜 t s :=
-by { ext x, rw [mem_convex_join, mem_convex_join, exists₂_comm], simp_rw segment_symm }
+(Union₂_comm _).trans $ by simp_rw [convex_join, segment_symm]
 
 lemma convex_join_mono (hs : s₁ ⊆ s₂) (ht : t₁ ⊆ t₂) : convex_join 𝕜 s₁ t₁ ⊆ convex_join 𝕜 s₂ t₂ :=
 bUnion_mono hs $ λ x hx, bUnion_mono ht $ λ y hy, subset.rfl
@@ -192,8 +192,8 @@ lemma convex_hull_insert (hs : s.nonempty) :
   convex_hull 𝕜 (insert x s) = convex_join 𝕜 {x} (convex_hull 𝕜 s) :=
 begin
   classical,
-  refine (convex_join_subset ((singleton_subset_iff.2 $ mem_insert _ _).trans $ subset_convex_hull _
-    _) (convex_hull_mono $ subset_insert _ _) $ convex_convex_hull _ _).antisymm' (λ x hx, _),
+  refine (convex_join_subset ((singleton_subset_iff.2 $ mem_insert _ _).trans $ subset_convex_hull
+    _ _) (convex_hull_mono $ subset_insert _ _) $ convex_convex_hull _ _).antisymm' (λ x hx, _),
   rw convex_hull_eq at hx,
   obtain ⟨ι, t, w, z, hw₀, hw₁, hz, rfl⟩ := hx,
   have : (∑ i in t.filter (λ i, z i = x), w i) • x + ∑ i in t.filter (λ i, z i ≠ x), w i • z i = t.center_mass w z,
@@ -254,7 +254,7 @@ protected lemma convex.convex_hull_union (hs : convex 𝕜 s) (ht : convex 𝕜 
 lemma convex_hull_union (hs : s.nonempty) (ht : t.nonempty) :
   convex_hull 𝕜 (s ∪ t) = convex_join 𝕜 (convex_hull 𝕜 s) (convex_hull 𝕜 t) :=
 begin
-  rw [←convex_hull_convex_hull_union, ←convex_hull_self_union_convex_hull],
+  rw [←convex_hull_convex_hull_union_left, ←convex_hull_convex_hull_union_right],
   exact (convex_convex_hull 𝕜 s).convex_hull_union (convex_convex_hull 𝕜 t)
     hs.convex_hull ht.convex_hull,
 end

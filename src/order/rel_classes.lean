@@ -234,6 +234,7 @@ instance empty_relation.is_well_order [subsingleton α] : is_well_order α empty
   trans        := λ a b c, false.elim,
   wf           := ⟨λ a, ⟨_, λ y, false.elim⟩⟩ }
 
+@[priority 100]
 instance is_empty.is_well_order [is_empty α] (r : α → α → Prop) : is_well_order α r :=
 { trichotomous := is_empty_elim,
   irrefl       := is_empty_elim,

@@ -266,27 +266,26 @@ uniform_continuous_inv.comp_cauchy_seq h
 (𝓝 (1 : α)).basis_sets.uniformity_of_nhds_one_inv_mul_swapped.totally_bounded_iff.trans $
   by simp [← preimage_smul_inv, preimage]
 
-@[to_additive] lemma tendsto_uniformly_on.mul {ι β : Type*} {l : filter ι} {f f' : ι → β → α}
-  {g g' : β → α} {s : set β} (hf : tendsto_uniformly_on f g l s)
+section uniform_convergence
+variables {ι : Type*} {l : filter ι} {f f' : ι → β → α} {g g' : β → α} {s : set β}
+
+@[to_additive] lemma tendsto_uniformly_on.mul (hf : tendsto_uniformly_on f g l s)
   (hf' : tendsto_uniformly_on f' g' l s) : tendsto_uniformly_on (f * f') (g * g') l s :=
 λ u hu, (((hf.prod hf').comp' uniform_continuous_mul) u hu).diag_of_prod
 
-@[to_additive] lemma tendsto_uniformly_on.div {ι β : Type*} {l : filter ι} {f f' : ι → β → α}
-  {g g' : β → α} {s : set β} (hf : tendsto_uniformly_on f g l s)
+@[to_additive] lemma tendsto_uniformly_on.div (hf : tendsto_uniformly_on f g l s)
   (hf' : tendsto_uniformly_on f' g' l s) : tendsto_uniformly_on (f / f') (g / g') l s :=
 λ u hu, (((hf.prod hf').comp' uniform_continuous_div) u hu).diag_of_prod
 
-@[to_additive] lemma uniform_cauchy_seq_on.mul {ι β : Type*} {l : filter ι} {f f' : ι → β → α}
-  {s : set β} (hf : uniform_cauchy_seq_on f l s)
+@[to_additive] lemma uniform_cauchy_seq_on.mul (hf : uniform_cauchy_seq_on f l s)
   (hf' : uniform_cauchy_seq_on f' l s) : uniform_cauchy_seq_on (f * f') l s :=
 λ u hu, by simpa using (((hf.prod' hf').comp' uniform_continuous_mul) u hu)
 
-@[to_additive] lemma uniform_cauchy_seq_on.div {ι β : Type*} {l : filter ι} {f f' : ι → β → α}
-  {s : set β} (hf : uniform_cauchy_seq_on f l s)
+@[to_additive] lemma uniform_cauchy_seq_on.div (hf : uniform_cauchy_seq_on f l s)
   (hf' : uniform_cauchy_seq_on f' l s) : uniform_cauchy_seq_on (f / f') l s :=
 λ u hu, by simpa using (((hf.prod' hf').comp' uniform_continuous_div) u hu)
 
-
+end uniform_convergence
 end uniform_group
 
 section topological_comm_group

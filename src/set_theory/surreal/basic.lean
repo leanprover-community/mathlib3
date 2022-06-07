@@ -568,7 +568,7 @@ lemma mul_options_lt_mul_of_numeric (hn : (x * y).numeric) :
       convert (left_moves_mul_iff (gt _)).1 h, rw ← quot_neg_mul_neg, refl },
  by { have h := hn.lt_move_right, simp_rw [lt_iff_game_lt, right_moves_mul_iff] at h,
       refine h.imp _ _; { refine forall₂_imp (λ a b, _),
-      rw lt_neg, rw quot_mul_neg <|> rw quot_neg_mul, exact id } }⟩
+        rw lt_neg, rw quot_mul_neg <|> rw quot_neg_mul, exact id } }⟩
 
 /-- A condition just enough to deduce P3, which will always be used with `x'` being a left
   option of `x₂`. When `y₁` is a left option of `y₂`, it can be deduced from induction hypotheses

@@ -320,6 +320,7 @@ begin
       simp, abel } },
 end
 using_well_founded { dec_tac := pgame_wf_tac }
+-- TODO could this be made a relabelling?
 
 @[simp] theorem quot_mul_neg (x y : pgame) : ⟦x * -y⟧ = -⟦x * y⟧ :=
 by rw [quot_mul_comm, quot_neg_mul, quot_mul_comm]

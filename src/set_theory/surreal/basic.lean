@@ -38,8 +38,8 @@ One can also map all the ordinals into the surreals!
 The proof that multiplication lifts to surreal numbers is surprisingly difficult and relies on an
 intricate inductive argument, where three theorems `P1`, `P2` and `P4` with different numbers of
 arguments (either 2 or 3) needs to be shown simultaneously. We define a single type
-`pgame.thm8.args` that encompasses both types of arguments. The proof is carried out with
-auxiliary definitions and lemmas under `namespace thm8`.
+`pgame.surreal_mul.args` that encompasses both types of arguments. The proof is carried out with
+auxiliary definitions and lemmas under `namespace surreal_mul`.
 
 ## References
 
@@ -265,7 +265,7 @@ and we utilize symmetry (permutation and negation of arguments) to minimize calc
 
 /- specialization of induction hypothesis -/
 
-namespace thm8
+namespace surreal_mul
 
 /-- The nontrivial part of P1 says that the left options of `x * y` are less than the right options,
   and this is the general form of these statements. -/
@@ -621,10 +621,10 @@ begin
   exacts [h₁₂, h4, h₁, h₁₂x, h4x, h₄, h₁₂y, h4y, h₂, (ih24_neg h₁₂y).1, (ih4_neg h4y).1, h₃],
 end
 
-end thm8
+end surreal_mul
 
 namespace numeric
-open thm8
+open surreal_mul
 
 variables {x x₁ x₂ y y₁ y₂ : pgame.{u}}
   (hx : x.numeric) (hx₁ : x₁.numeric) (hx₂ : x₂.numeric)
@@ -679,10 +679,11 @@ end numeric
 
 end pgame
 
-/-- The equivalence on numeric pre-games. -/
-def surreal.equiv (x y : pgame.numeric) : Prop := x.1.equiv y.1
-
 open pgame
+
+/-- The equivalence on numeric pre-games. -/
+def surreal.equiv (x y : numeric) : Prop := x.1 ≈ y.1
+/- What is this good for? Removing it causes no problems. -/
 
 instance surreal.setoid : setoid numeric :=
 ⟨λ x y, x.1 ≈ y.1,
@@ -715,6 +716,8 @@ def lift₂ {α} (f : ∀ x y, numeric x → numeric y → α)
 lift (λ x ox, lift (λ y oy, f x y ox oy) (λ y₁ y₂ oy₁ oy₂, H _ _ _ _ equiv_rfl))
   (λ x₁ x₂ ox₁ ox₂ h, funext $ quotient.ind $ by exact λ ⟨y, oy⟩, H _ _ _ _ h equiv_rfl)
 
+/-- All the surreal operations (`+`, `-`, `*`) and relations (`≤`, `<`) are inherited from
+  `pgame`. -/
 noncomputable instance : linear_ordered_comm_ring surreal :=
 { add := lift₂ (λ x y ox oy, ⟦⟨x + y, ox.add oy⟩⟧)
     (λ x₁ y₁ x₂ y₂ _ _ _ _ hx hy, quotient.sound $ add_congr hx hy),
@@ -736,7 +739,7 @@ noncomputable instance : linear_ordered_comm_ring surreal :=
   decidable_le := classical.dec_rel _,
   mul := lift₂ (λ x y ox oy, ⟦⟨x * y, ox.mul oy⟩⟧)
     (λ _ _ _ _ ox₁ oy₁ ox₂ oy₂ hx hy, quotient.sound $ ox₁.mul_congr ox₂ oy₁ oy₂ hx hy),
-  mul_assoc := by { rintro ⟨x⟩ ⟨y⟩ ⟨z⟩, exact quotient.sound (mul_assoc_equiv x.1 y.1 z.1) },
+  mul_assoc := by { rintro ⟨x⟩ ⟨y⟩ ⟨z⟩, exact quotient.sound (mul_assoc_equiv x y z) },
   one := 1,
   one_mul := by { rintro ⟨x⟩, exact quotient.sound (one_mul_equiv x) },
   mul_one := by { rintro ⟨x⟩, exact quotient.sound (mul_one_equiv x) },
@@ -758,25 +761,25 @@ noncomputable def to_surreal : ordinal ↪o surreal :=
 { to_fun := λ o, mk _ (numeric_to_pgame o),
   inj' := λ a b h, to_pgame_equiv_iff.1 (quotient.exact h),
   map_rel_iff' := @to_pgame_le_iff }
+-- TODO simplicity theorem; surreals without right options are equivalent to ordinals
 
 end ordinal
 
 
 -- We conclude with some ideas for further work on surreals; these would make fun projects.
 
--- TODO define the inclusion of groups `surreal → game`
+-- TODO define the inclusion of ordered_comm_groups `surreal → game`
 -- def to_game : surreal → game := surreal.lift (λ x _, ⟦x⟧) (λ _ _ _ _ h, quotient.sound h)
 
--- TODO define the inverse on the surreals
+-- TODO show that the inverse of numeric pgame is numeric, so the surreals form a field.
 
+-- TODO define the extension of `linear_ordered_field`s `real → surreal`
 
-/- inline all instances before linear_ordered_add_comm_group into one ..? -/
+-- TODO show the surreals form a real closed field.
 
-/- Any set of surreals has an upper bound (just take the set as left options),
+/- Easy: any set of surreals (i.e. indexed by `α : Type u`) has an upper bound
+  (just take the surreal with the set as left options and no right options),
   but it has a least upper bound iff it has a maximal element. -/
 
-/- order/ring embedding from the reals .. can use only rationals as options?
-  rationals are "simpler" than general surreals ..? embedding unique?
-  dyadics should suffice ... -/
-
-/- make quot_neg_mul a relabelling?  -/
+/- Any Cauchy net indexed by a directed type `α : Type u` is eventually constant.
+  Cauchy sequences indexed by `ordinal.{u}`, theory of gaps, analysis on surreals, etc. -/

@@ -450,15 +450,28 @@ In this section we characterize the weak convergence of finite measures by the m
 
 namespace finite_measure
 
-variables {α : Type*} [measurable_space α] [topological_space α] [opens_measurable_space α]
+variables {α : Type*} [measurable_space α] [topological_space α]
 
-@[simps] def _root_.bounded_continuous_function.nnreal_part (f : α →ᵇ ℝ) : α →ᵇ ℝ≥0 :=
+/-- The nonnegative part of a bounded continuous `ℝ`-valued function as a bounded
+continuous `ℝ≥0`-valued function. -/
+def _root_.bounded_continuous_function.nnreal_part (f : α →ᵇ ℝ) : α →ᵇ ℝ≥0 :=
 bounded_continuous_function.comp _
   (show lipschitz_with 1 real.to_nnreal, from lipschitz_with_pos) f
 
-@[simps] def _root_.bounded_continuous_function.nnnorm (f : α →ᵇ ℝ) : α →ᵇ ℝ≥0 :=
+@[simp] lemma _root_.bounded_continuous_function.nnreal_part_coe_fun_eq (f : α →ᵇ ℝ) :
+  ⇑(f.nnreal_part) = real.to_nnreal ∘ ⇑f := rfl
+
+/-- The absolute value of a bounded continuous `ℝ`-valued function as a bounded
+continuous `ℝ≥0`-valued function. -/
+def _root_.bounded_continuous_function.nnnorm (f : α →ᵇ ℝ) : α →ᵇ ℝ≥0 :=
 bounded_continuous_function.comp _
   (show lipschitz_with 1 (λ (x : ℝ), ∥x∥₊), from lipschitz_with_one_norm) f
+
+@[simp] lemma _root_.bounded_continuous_function.nnnorm_coe_fun_eq (f : α →ᵇ ℝ) :
+  ⇑(f.nnnorm) = nnnorm ∘ ⇑f := rfl
+
+@[simp] lemma _root_.bounded_continuous_function.nnnorm_apply_coe (f : α →ᵇ ℝ) (a : α) :
+  (f.nnnorm a : ℝ) = |f a| := rfl
 
 open order real nnreal ennreal
 
@@ -473,6 +486,8 @@ lemma _root_.bounded_continuous_function.abs_self_eq_nnreal_part_add_nnreal_part
   abs ∘ ⇑f = coe ∘ f.nnreal_part + coe ∘ (-f).nnreal_part :=
 by { funext x, dsimp, simp only [max_zero_add_max_neg_zero_eq_abs_self], }
 
+variables [opens_measurable_space α]
+
 lemma integrable_of_bounded_continuous_to_nnreal (μ : finite_measure α) (f : α →ᵇ ℝ≥0) :
   integrable ((coe : ℝ≥0 → ℝ) ∘ ⇑f) (μ : measure α) :=
 begin
@@ -486,7 +501,8 @@ lemma integrable_of_bounded_continuous_to_real (μ : finite_measure α) (f : α 
 begin
   refine ⟨f.continuous.measurable.ae_strongly_measurable, _⟩,
   have aux : (coe : ℝ≥0 → ℝ) ∘ ⇑f.nnnorm = (λ x, ∥f x∥),
-  { ext x, simp only [function.comp_app, bounded_continuous_function.nnnorm_apply_coe], },
+  { ext x,
+    simp only [function.comp_app, bounded_continuous_function.nnnorm_coe_fun_eq, coe_nnnorm], },
   apply (has_finite_integral_iff_norm ⇑f).mpr,
   rw ← of_real_integral_eq_lintegral_of_real,
   { exact ennreal.of_real_lt_top, },
@@ -762,7 +778,7 @@ begin
       (eventually_of_forall (λ n, eventually_of_forall (fs_bdd n))) (eventually_of_forall fs_lim'),
 end
 
-/-- The integrals of thickenined indicators of a closed set against a finite measure tend to the
+/-- The integrals of thickened indicators of a closed set against a finite measure tend to the
 measure of the closed set if the thickening radii tend to zero.
 -/
 lemma tendsto_lintegral_thickened_indicator_of_is_closed

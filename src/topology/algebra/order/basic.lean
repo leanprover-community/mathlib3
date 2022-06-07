@@ -1162,9 +1162,7 @@ second-countable. -/
 lemma countable_of_isolated_right [second_countable_topology α] :
   set.countable {x : α | ∃ y, x < y ∧ Ioo x y = ∅} :=
 begin
-  casesI is_empty_or_nonempty α,
-  { have h : {x : α | ∃ y, x < y ∧ Ioo x y = ∅} = ∅, from subsingleton.elim _ _,
-    simpa only [h] using countable_empty },
+  nontriviality α,
   let s := {x : α | ∃ y, x < y ∧ Ioo x y = ∅},
   have : ∀ x ∈ s, ∃ y, x < y ∧ Ioo x y = ∅ := λ x, id,
   choose! y hy h'y using this,
@@ -1220,7 +1218,7 @@ second-countable. -/
 lemma countable_of_isolated_left [second_countable_topology α] :
   set.countable {x : α | ∃ y, y < x ∧ Ioo y x = ∅} :=
 begin
-  convert @countable_of_isolated_right (order_dual α) _ _ _ _,
+  convert @countable_of_isolated_right αᵒᵈ _ _ _ _,
   have : ∀ (x y : α), Ioo x y = {z | z < y ∧ x < z},
   { simp_rw [and_comm, Ioo], simp only [eq_self_iff_true, forall_2_true_iff] },
   simp_rw [this],

@@ -1,5 +1,4 @@
 import tactic.congrm
-import data.nat.basic
 
 variables {X : Type*} [has_add X] [has_mul X] (a b c d : X) (f : X → X)
 
@@ -137,23 +136,15 @@ begin
 -/
 end
 
-example {W X Y Z : Type} (w w' : W) (y y' : Y) (r : X → Y → Z) (s : W → X)
+example {W X Y Z : Type*} (w w' : W) (y y' : Y) (r : X → Y → Z) (s : W → X)
   (hw : w = w') (hy : y = y') :
   r (s w) y = r (s w') y' :=
-begin
-  congrm_1 _₂ (_₁ _) _,
-  { exact hw },
-  { exact hy },
-end
+by congrm _₂ (_₁ _) _; assumption
 
-example {W X Y : Type} (w w' : W) (y y' : Y) (r : X → Y → ℕ) (s : W → X)
+example {W X Y : Type*} (w w' : W) (y y' : Y) (r : X → Y → ℕ) (s : W → X)
   (hw : w = w') (hy : y = y') :
   (2 + 2) + r (s w) y = 2 * 2 + r (s w') y' :=
-begin
-  congrm _₂ (_₂ _ _) (_₂ (_₁ _) _),
-  { exact hw },
-  { exact hy },
-end
+by congrm _₂ (_₂ _ _) (_₂ (_₁ _) _); assumption
 
 example (h1 : 5 = 1) (h2 : 7 = 3) : nat.succ 5 + nat.pred 7 = nat.pred 3 * nat.succ 1 :=
 begin

@@ -6,6 +6,7 @@ Authors: Yaël Dillies, Bhavik Mehta
 import analysis.convex.star
 import analysis.normed_space.pointwise
 import analysis.seminorm
+import tactic.congrm
 
 /-!
 # The Minkowksi functional
@@ -56,9 +57,7 @@ lemma gauge_def : gauge s x = Inf {r ∈ set.Ioi 0 | x ∈ r • s} := rfl
 the set. -/
 lemma gauge_def' : gauge s x = Inf {r ∈ set.Ioi 0 | r⁻¹ • x ∈ s} :=
 begin
-  unfold gauge,
-  congr' 1,
-  ext r,
+  congrm Inf (λ r, _),
   exact and_congr_right (λ hr, mem_smul_set_iff_inv_smul_mem₀ hr.ne' _ _),
 end
 

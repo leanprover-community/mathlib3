@@ -504,6 +504,10 @@ theorem type_eq {α β} {r : α → α → Prop} {s : β → β → Prop}
   [is_well_order α r] [is_well_order β s] :
   type r = type s ↔ nonempty (r ≃r s) := quotient.eq
 
+theorem rel_iso.type_eq {α β} {r : α → α → Prop} {s : β → β → Prop}
+ [is_well_order α r] [is_well_order β s] (h : r ≃r s) :
+  type r = type s := type_eq.2 ⟨h⟩
+
 @[simp] theorem type_lt (o : ordinal) : type ((<) : o.out.α → o.out.α → Prop) = o :=
 begin
   change type o.out.r = _,
@@ -747,8 +751,13 @@ instance : has_zero ordinal :=
 
 instance : inhabited ordinal := ⟨0⟩
 
-@[simp] theorem type_of_empty [is_empty α] (r : α → α → Prop) : type r = 0 :=
-quotient.sound ⟨⟨empty_equiv_pempty.symm, λ _ _, iff.rfl⟩⟩
+@[simp] theorem type_eq_zero_of_empty [is_empty α] : type r = 0 :=
+begin
+  apply rel_iso.type_eq,
+end
+
+@[simp] theorem type_eq_zero_iff_is_empty [is_well_order α r] : type r = 0 ↔ is_empty α :=
+(@card_eq_zero (type r)).symm.trans mk_eq_zero_iff
 
 @[simp] theorem card_zero : card 0 = 0 := rfl
 

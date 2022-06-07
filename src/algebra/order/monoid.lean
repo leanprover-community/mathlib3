@@ -114,11 +114,11 @@ class linear_ordered_comm_monoid (α : Type*)
 class zero_le_one_class (α : Type*) [has_zero α] [has_one α] [has_le α] :=
 (zero_le_one : (0 : α) ≤ 1)
 
-@[simp] lemma zero_le_one [has_le α] [has_zero α] [has_one α] [zero_le_one_class α] : (0 : α) ≤ 1 :=
+@[simp] lemma zero_le_one [has_zero α] [has_one α] [has_le α] [zero_le_one_class α] : (0 : α) ≤ 1 :=
 zero_le_one_class.zero_le_one
 
 /- `zero_le_one` with an explicit type argument. -/
-lemma zero_le_one' (α : Type*) [has_le α] [has_zero α] [has_one α] [zero_le_one_class α] :
+lemma zero_le_one' (α : Type*) [has_zero α] [has_one α] [has_le α] [zero_le_one_class α] :
   (0 : α) ≤ 1 :=
 zero_le_one
 

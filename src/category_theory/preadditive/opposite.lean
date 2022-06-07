@@ -42,6 +42,7 @@ instance module_End_left {X : Cᵒᵖ} {Y : C} : module (End X) (unop X ⟶ Y) :
 
 variable {C}
 
+/-- `unop` induces morphisms of monoids on hom groups of a preadditive category -/
 @[simps] def unop_hom (X Y : Cᵒᵖ) : (X ⟶ Y) →+ (opposite.unop Y ⟶ opposite.unop X) :=
 add_monoid_hom.mk' (λ f, f.unop) $ λ f g, unop_add _ f g
 
@@ -49,8 +50,8 @@ add_monoid_hom.mk' (λ f, f.unop) $ λ f g, unop_add _ f g
   (s.sum f).unop = s.sum (λ i, (f i).unop) :=
 (unop_hom X Y).map_sum _ _
 
-@[simps]
-def op_hom (X Y : C) : (X ⟶ Y) →+ (opposite.op Y ⟶ opposite.op X) :=
+/-- `op` induces morphisms of monoids on hom groups of a preadditive category -/
+@[simps] def op_hom (X Y : C) : (X ⟶ Y) →+ (opposite.op Y ⟶ opposite.op X) :=
 add_monoid_hom.mk' (λ f, f.op) $ λ f g, op_add _ f g
 
 @[simp] lemma op_sum (X Y : C) {ι : Type*} (s : finset ι) (f : ι → (X ⟶ Y)) :

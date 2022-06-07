@@ -49,7 +49,10 @@ nonempty.some (classical.some_spec (@small.equiv_small α _))
 instance small_self (α : Type v) : small.{v} α :=
 small.mk' $ equiv.refl α
 
-theorem small_lift (α : Type u) [small.{v} α] : small.{max v w} α :=
+theorem small_map {α : Type*} {β : Type*} [hβ : small.{w} β] (e : α ≃ β) : small.{w} α :=
+let ⟨γ, ⟨f⟩⟩ := hβ.equiv_small in small.mk' (e.trans f)
+
+theorem small_lift (α : Type u) [hα : small.{v} α] : small.{max v w} α :=
 small.mk' $ (equiv_shrink α).trans equiv.ulift.symm
 
 @[priority 100]
@@ -57,15 +60,12 @@ instance small_max (α : Type v) : small.{max w v} α :=
 small_lift.{v w} α
 
 instance small_ulift (α : Type u) [small.{v} α] : small.{v} (ulift.{w} α) :=
-small.mk' $ equiv.ulift.trans $ equiv_shrink α
+small_map equiv.ulift
 
 theorem small_type : small.{max (u+1) v} (Type u) := small_max.{max (u+1) v} _
 
 section
 open_locale classical
-
-theorem small_map {α : Type*} {β : Type*} [hβ : small.{w} β] (e : α ≃ β) : small.{w} α :=
-let ⟨γ, ⟨f⟩⟩ := hβ.equiv_small in small.mk' (e.trans f)
 
 theorem small_congr {α : Type*} {β : Type*} (e : α ≃ β) : small.{w} α ↔ small.{w} β :=
 ⟨λ h, @small_map _ _ h e.symm, λ h, @small_map _ _ h e⟩

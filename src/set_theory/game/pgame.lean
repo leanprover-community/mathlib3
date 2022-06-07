@@ -1085,22 +1085,24 @@ rfl
   (x + y).move_right (to_right_moves_add (sum.inr i)) = x + y.move_right i :=
 by { cases x, cases y, refl }
 
-lemma left_moves_add_cases {x y : pgame} (i : (x + y).left_moves) :
-  (∃ j, i = to_left_moves_add (sum.inl j)) ∨ ∃ j, i = to_left_moves_add (sum.inr j) :=
+lemma left_moves_add_cases {x y : pgame} (k) {P : (x + y).left_moves -> Prop}
+  (hl : ∀ i, P $ to_left_moves_add (sum.inl i))
+  (hr : ∀ i, P $ to_left_moves_add (sum.inr i)) : P k :=
 begin
-  rw ←to_left_moves_add.apply_symm_apply i,
-  cases to_left_moves_add.symm i with j j,
-  { exact or.inl ⟨j, rfl⟩ },
-  { exact or.inr ⟨j, rfl⟩ }
+  rw ←to_left_moves_add.apply_symm_apply k,
+  cases to_left_moves_add.symm k with i i,
+  { exact hl i },
+  { exact hr i }
 end
 
-lemma right_moves_add_cases {x y : pgame} (i : (x + y).right_moves) :
-  (∃ j, i = to_right_moves_add (sum.inl j)) ∨ ∃ j, i = to_right_moves_add (sum.inr j) :=
+lemma right_moves_add_cases {x y : pgame} (k) {P : (x + y).right_moves -> Prop}
+  (hl : ∀ j, P $ to_right_moves_add (sum.inl j))
+  (hr : ∀ j, P $ to_right_moves_add (sum.inr j)) : P k :=
 begin
-  rw ←to_right_moves_add.apply_symm_apply i,
-  cases to_right_moves_add.symm i with j j,
-  { exact or.inl ⟨j, rfl⟩ },
-  { exact or.inr ⟨j, rfl⟩ }
+  rw ←to_right_moves_add.apply_symm_apply k,
+  cases to_right_moves_add.symm k with i i,
+  { exact hl i },
+  { exact hr i }
 end
 
 instance is_empty_nat_right_moves : ∀ n : ℕ, is_empty (right_moves n)
@@ -1370,8 +1372,7 @@ by simp [star]
 @[simp] theorem zero_lt_one : (0 : pgame) < 1 :=
 lt_of_le_of_lf (zero_le_of_is_empty_right_moves 1) (zero_lf_le.2 ⟨default, le_rfl⟩)
 
-@[simp] theorem zero_le_one : (0 : pgame) ≤ 1 :=
-zero_lt_one.le
+instance : zero_le_one_class pgame := ⟨zero_lt_one.le⟩
 
 @[simp] theorem zero_lf_one : (0 : pgame) ⧏ 1 :=
 zero_lt_one.lf

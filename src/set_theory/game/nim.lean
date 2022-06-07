@@ -215,8 +215,9 @@ begin
   introI hG,
   rw [impartial.equiv_iff_sum_first_loses, ←impartial.no_good_left_moves_iff_first_loses],
   intro i,
-  rcases left_moves_add_cases i with ⟨i₁, rfl⟩ | ⟨i₂, rfl⟩,
-  { rw add_move_left_inl,
+  apply left_moves_add_cases i,
+  { intro i₁,
+    rw add_move_left_inl,
     apply first_wins_of_equiv (add_congr_left (equiv_nim_grundy_value (G.move_left i₁)).symm),
     rw nim.sum_first_wins_iff_neq,
     intro heq,
@@ -224,7 +225,8 @@ begin
     have h := ordinal.ne_mex _,
     rw heq at h,
     exact (h i₁).irrefl },
-  { rw [add_move_left_inr, ←impartial.good_left_move_iff_first_wins],
+  { intro i₂,
+    rw [add_move_left_inr, ←impartial.good_left_move_iff_first_wins],
     revert i₂,
     rw nim.nim_def,
     intro i₂,
@@ -283,10 +285,11 @@ begin
     intro i,
 
     -- The move operates either on the left pile or on the right pile.
-    rcases left_moves_add_cases i with ⟨a, rfl⟩ | ⟨a, rfl⟩,
+    apply left_moves_add_cases i,
 
     all_goals
     { -- One of the piles is reduced to `k` stones, with `k < n` or `k < m`.
+      intro a,
       obtain ⟨ok, hk, hk'⟩ := nim.exists_ordinal_move_left_eq a,
       obtain ⟨k, rfl⟩ := ordinal.lt_omega.1 (lt_trans hk (ordinal.nat_lt_omega _)),
       replace hk := ordinal.nat_cast_lt.1 hk,

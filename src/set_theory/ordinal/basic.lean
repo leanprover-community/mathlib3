@@ -429,7 +429,7 @@ parameter {σ : Type u}
 open function
 
 theorem nonempty_embedding_to_cardinal : nonempty (σ ↪ cardinal.{u}) :=
-embedding.total.resolve_left $ λ ⟨⟨f, hf⟩⟩,
+(embedding.total _ _).resolve_left $ λ ⟨⟨f, hf⟩⟩,
   let g : σ → cardinal.{u} := inv_fun f in
   let ⟨x, (hx : g x = 2 ^ sum g)⟩ := inv_fun_surjective hf (2 ^ sum g) in
   have g x ≤ sum g, from le_sum.{u u} g x,

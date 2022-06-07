@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Scott Morrison
 -/
 import set_theory.game.ordinal
+import set_theory.game.basic
 
 /-!
 # Surreal numbers
@@ -48,7 +49,6 @@ The branch `surreal_mul` contains some progress on this proof.
 
 universes u
 
-local infix ` ≈ ` := pgame.equiv
 local infix ` ⧏ `:50 := pgame.lf
 
 namespace pgame
@@ -211,16 +211,10 @@ end
 
 end pgame
 
-/-- The equivalence on numeric pre-games. -/
-def surreal.equiv (x y : pgame.numeric) : Prop := x.1.equiv y.1
-
 open pgame
 
-instance surreal.setoid : setoid numeric :=
-⟨λ x y, x.1 ≈ y.1,
- λ x, equiv_refl x.1,
- λ x y, equiv_symm,
- λ x y z, equiv_trans⟩
+/-- The equivalence on numeric pre-games. -/
+instance surreal.setoid : setoid numeric := by apply_instance
 
 /-- The type of surreal numbers. These are the numeric pre-games quotiented
 by the equivalence relation `x ≈ y ↔ x ≤ y ∧ y ≤ x`. In the quotient,

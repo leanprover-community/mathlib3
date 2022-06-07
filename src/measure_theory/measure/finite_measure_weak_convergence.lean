@@ -213,11 +213,6 @@ begin
   rwa eq at key,
 end
 
-/- lemma lintegral_lt_top_of_bounded_continuous_to_nnreal (μ : finite_measure α) (f : α →ᵇ ℝ≥0) :
-  ∫⁻ x, f x ∂(μ : measure α) < ∞ :=
-lintegral_lt_top_of_bounded_continuous_to_nnreal _ _
- -/
-
 @[simp] lemma test_against_nn_coe_eq {μ : finite_measure α} {f : α →ᵇ ℝ≥0} :
   (μ.test_against_nn f : ℝ≥0∞) = ∫⁻ x, f x ∂(μ : measure α) :=
 ennreal.coe_to_nnreal (lintegral_lt_top_of_bounded_continuous_to_nnreal _ f).ne
@@ -629,14 +624,7 @@ by { rw [← coe_fn_comp_to_finite_measure_eq_coe_fn,
 @[simp] lemma mass_to_finite_measure (μ : probability_measure α) :
   μ.to_finite_measure.mass = 1 := μ.coe_fn_univ
 
-variables [topological_space α]
-
-/- lemma lintegral_lt_top_of_bounded_continuous_to_nnreal (μ : probability_measure α) (f : α →ᵇ ℝ≥0) :
-  ∫⁻ x, f x ∂(μ : measure α) < ∞ :=
-lintegral_lt_top_of_bounded_continuous_to_nnreal _ f
- -/
-
-variables [opens_measurable_space α]
+variables [topological_space α] [opens_measurable_space α]
 
 lemma test_against_nn_lipschitz (μ : probability_measure α) :
   lipschitz_with 1 (λ (f : α →ᵇ ℝ≥0), μ.to_finite_measure.test_against_nn f) :=

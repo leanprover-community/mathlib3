@@ -74,7 +74,7 @@ begin
 end
 
 @[simp] lemma realize_lift_at {n n' m : ℕ} {t : L.term (α ⊕ fin n)}
-  {v : (α ⊕ fin (n + n')) → M} :
+  {v : α ⊕ fin (n + n') → M} :
   (t.lift_at n' m).realize v = t.realize (v ∘
     (sum.map id (λ i, if ↑i < m then fin.cast_add n' i else fin.add_nat n' i))) :=
 realize_relabel
@@ -287,9 +287,9 @@ begin
 end
 
 lemma realize_relabel {m n : ℕ}
-  {φ : L.bounded_formula α n} {g : α → (β ⊕ fin m)} {v : β → M} {xs : fin (m + n) → M} :
+  {φ : L.bounded_formula α n} {g : α → β ⊕ fin m} {v : β → M} {xs : fin (m + n) → M} :
   (φ.relabel g).realize v xs ↔
-    φ.realize (sum.elim v (xs ∘ (fin.cast_add n)) ∘ g) (xs ∘ (fin.nat_add m)) :=
+    φ.realize (sum.elim v (xs ∘ fin.cast_add n) ∘ g) (xs ∘ fin.nat_add m) :=
 begin
   induction φ with _ _ _ _ _ _ _ _ _ _ _ ih1 ih2 n' _ ih3,
   { refl },
@@ -701,6 +701,33 @@ begin
       exact ⟨_, _, h⟩ } }
 end
 
+@[simp] lemma realize_to_formula (φ : L.bounded_formula α n) (v : α ⊕ fin n → M) :
+  φ.to_formula.realize v ↔ φ.realize (v ∘ sum.inl) (v ∘ sum.inr) :=
+begin
+  induction φ with _ _ _ _ _ _ _ _ _ _ _ ih1 ih2 _ _ ih3 a8 a9 a0,
+  { refl },
+  { simp [bounded_formula.realize] },
+  { simp [bounded_formula.realize] },
+  { rw [to_formula, formula.realize, realize_imp, ← formula.realize, ih1, ← formula.realize, ih2,
+      realize_imp], },
+  { rw [to_formula, formula.realize, realize_all, realize_all],
+    refine forall_congr (λ a, _),
+    have h := ih3 (sum.elim (v ∘ sum.inl) (snoc (v ∘ sum.inr) a)),
+    simp only [sum.elim_comp_inl, sum.elim_comp_inr] at h,
+    rw [← h, realize_relabel, formula.realize],
+    rcongr,
+    { cases x,
+      { simp },
+      { refine fin.last_cases _ (λ i, _) x,
+        { rw [sum.elim_inr, snoc_last, function.comp_app, sum.elim_inr, function.comp_app,
+            fin_sum_fin_equiv_symm_last, sum.map_inr, sum.elim_inr, function.comp_app],
+          exact (congr rfl (subsingleton.elim _ _)).trans (snoc_last _ _) },
+        { simp only [cast_succ, function.comp_app, sum.elim_inr,
+            fin_sum_fin_equiv_symm_apply_cast_add, sum.map_inl, sum.elim_inl],
+          rw [← cast_succ, snoc_cast_succ] } } },
+    { exact subsingleton.elim _ _ } }
+end
+
 end bounded_formula
 
 namespace equiv
@@ -802,7 +829,7 @@ begin
 end
 
 @[simp] lemma model_infinite_theory_iff : M ⊨ L.infinite_theory ↔ infinite M :=
-by simp [infinite_theory, infinite_iff, omega_le]
+by simp [infinite_theory, infinite_iff, aleph_0_le]
 
 instance model_infinite_theory [h : infinite M] :
   M ⊨ L.infinite_theory :=

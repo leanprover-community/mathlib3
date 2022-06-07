@@ -482,6 +482,10 @@ def embed_product (α : Type*) [monoid α] : αˣ →* α × αᵐᵒᵖ :=
     and_self],
   map_mul' := λ x y, by simp only [mul_inv_rev, op_mul, units.coe_mul, prod.mk_mul_mk] }
 
+@[to_additive]
+lemma embed_product_injective (α : Type*) [monoid α] : function.injective (embed_product α) :=
+λ a₁ a₂ h, units.ext $ (congr_arg prod.fst h : _)
+
 end units
 
 /-! ### Multiplication and division as homomorphisms -/

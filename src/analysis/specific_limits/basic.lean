@@ -498,7 +498,7 @@ tendsto_of_tendsto_of_tendsto_of_le_of_le'
     refine (eventually_gt_at_top 0).mono (λ n hn, _),
     rcases nat.exists_eq_succ_of_ne_zero hn.ne.symm with ⟨k, rfl⟩,
     rw [← prod_range_add_one_eq_factorial, pow_eq_prod_const, div_eq_mul_inv, ← inv_eq_one_div,
-      prod_nat_cast, nat.cast_succ, ← prod_inv_distrib', ← prod_mul_distrib,
+      prod_nat_cast, nat.cast_succ, ← prod_inv_distrib, ← prod_mul_distrib,
       finset.prod_range_succ'],
     simp only [prod_range_succ', one_mul, nat.cast_add, zero_add, nat.cast_one],
     refine mul_le_of_le_one_left (inv_nonneg.mpr $ by exact_mod_cast hn.le) (prod_le_one _ _);
@@ -539,7 +539,7 @@ end
 
 lemma tendsto_nat_floor_div_at_top :
   tendsto (λ x, (⌊x⌋₊ : R) / x) at_top (𝓝 1) :=
-by simpa using tendsto_nat_floor_mul_div_at_top (@zero_le_one R _)
+by simpa using tendsto_nat_floor_mul_div_at_top (@zero_le_one R _ _ _ _)
 
 lemma tendsto_nat_ceil_mul_div_at_top {a : R} (ha : 0 ≤ a) :
   tendsto (λ x, (⌈a * x⌉₊ : R) / x) at_top (𝓝 a) :=
@@ -558,6 +558,6 @@ end
 
 lemma tendsto_nat_ceil_div_at_top :
   tendsto (λ x, (⌈x⌉₊ : R) / x) at_top (𝓝 1) :=
-by simpa using tendsto_nat_ceil_mul_div_at_top (@zero_le_one R _)
+by simpa using tendsto_nat_ceil_mul_div_at_top (@zero_le_one R _ _ _ _)
 
 end

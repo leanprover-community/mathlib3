@@ -1118,9 +1118,9 @@ instance
   is_scalar_tower S α β :=
 S.to_subsemiring.is_scalar_tower
 
-instance [has_scalar R α] [has_faithful_scalar R α] (S : subring R) :
-  has_faithful_scalar S α :=
-S.to_subsemiring.has_faithful_scalar
+instance [has_scalar R α] [has_faithful_smul R α] (S : subring R) :
+  has_faithful_smul S α :=
+S.to_subsemiring.has_faithful_smul
 
 /-- The action by a subring is the action by the underlying ring. -/
 instance [mul_action R α] (S : subring R) : mul_action S α :=
@@ -1145,6 +1145,14 @@ S.to_subsemiring.mul_action_with_zero
 /-- The action by a subring is the action by the underlying ring. -/
 instance [add_comm_monoid α] [module R α] (S : subring R) : module S α :=
 S.to_subsemiring.module
+
+/-- The center of a semiring acts commutatively on that semiring. -/
+instance center.smul_comm_class_left : smul_comm_class (center R) R R :=
+subsemiring.center.smul_comm_class_left
+
+/-- The center of a semiring acts commutatively on that semiring. -/
+instance center.smul_comm_class_right : smul_comm_class R (center R) R :=
+subsemiring.center.smul_comm_class_right
 
 end subring
 

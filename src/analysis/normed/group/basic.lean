@@ -181,6 +181,9 @@ lemma norm_add_le_of_le {g₁ g₂ : E} {n₁ n₂ : ℝ} (H₁ : ∥g₁∥ ≤
   ∥g₁ + g₂∥ ≤ n₁ + n₂ :=
 le_trans (norm_add_le g₁ g₂) (add_le_add H₁ H₂)
 
+lemma norm_add₃_le (x y z : E) : ∥x + y + z∥ ≤ ∥x∥ + ∥y∥ + ∥z∥ :=
+norm_add_le_of_le (norm_add_le _ _) le_rfl
+
 lemma dist_add_add_le (g₁ g₂ h₁ h₂ : E) :
   dist (g₁ + g₂) (h₁ + h₂) ≤ dist g₁ h₁ + dist g₂ h₂ :=
 by simpa only [dist_add_left, dist_add_right] using dist_triangle (g₁ + g₂) (h₁ + g₂) (h₁ + h₂)
@@ -872,6 +875,9 @@ lemma tendsto_zero_iff_norm_tendsto_zero {f : α → E} {a : filter α} :
   tendsto f a (𝓝 0) ↔ tendsto (λ e, ∥f e∥) a (𝓝 0) :=
 by { rw [tendsto_iff_norm_tendsto_zero], simp only [sub_zero] }
 
+lemma comap_norm_nhds_zero : comap norm (𝓝 0) = 𝓝 (0 : E) :=
+by simpa only [dist_zero_right] using nhds_comap_dist (0 : E)
+
 /-- Special case of the sandwich theorem: if the norm of `f` is eventually bounded by a real
 function `g` which tends to `0`, then `f` tends to `0`.
 In this pair of lemmas (`squeeze_zero_norm'` and `squeeze_zero_norm`), following a convention of
@@ -1025,18 +1031,18 @@ lemma semi_normed_group.mem_closure_iff {s : set E} {x : E} :
   x ∈ closure s ↔ ∀ ε > 0, ∃ y ∈ s, ∥x - y∥ < ε :=
 by simp [metric.mem_closure_iff, dist_eq_norm]
 
-lemma norm_le_zero_iff' [separated_space E] {g : E} :
+lemma norm_le_zero_iff' [t0_space E] {g : E} :
   ∥g∥ ≤ 0 ↔ g = 0 :=
 begin
-  letI : normed_group E := { to_metric_space := of_t2_pseudo_metric_space ‹_›,
+  letI : normed_group E := { to_metric_space := metric.of_t0_pseudo_metric_space E,
     .. ‹semi_normed_group E› },
   rw [← dist_zero_right], exact dist_le_zero
 end
 
-lemma norm_eq_zero_iff' [separated_space E] {g : E} : ∥g∥ = 0 ↔ g = 0 :=
+lemma norm_eq_zero_iff' [t0_space E] {g : E} : ∥g∥ = 0 ↔ g = 0 :=
 (norm_nonneg g).le_iff_eq.symm.trans norm_le_zero_iff'
 
-lemma norm_pos_iff' [separated_space E] {g : E} : 0 < ∥g∥ ↔ g ≠ 0 :=
+lemma norm_pos_iff' [t0_space E] {g : E} : 0 < ∥g∥ ↔ g ≠ 0 :=
 by rw [← not_le, norm_le_zero_iff']
 
 lemma cauchy_seq_sum_of_eventually_eq {u v : ℕ → E} {N : ℕ} (huv : ∀ n ≥ N, u n = v n)
@@ -1093,7 +1099,7 @@ def normed_group.of_core (E : Type*) [add_comm_group E] [has_norm E]
   end
   ..semi_normed_group.of_core E (normed_group.core.to_semi_normed_group.core C) }
 
-variables [normed_group E] [normed_group F]
+variables [normed_group E] [normed_group F] {x y : E}
 
 @[simp] lemma norm_eq_zero {g : E} : ∥g∥ = 0 ↔ g = 0 := norm_eq_zero_iff'
 
@@ -1105,6 +1111,9 @@ lemma norm_ne_zero_iff {g : E} : ∥g∥ ≠ 0 ↔ g ≠ 0 := not_congr norm_eq_
 
 lemma norm_sub_eq_zero_iff {u v : E} : ∥u - v∥ = 0 ↔ u = v :=
 by rw [norm_eq_zero, sub_eq_zero]
+
+lemma norm_sub_pos_iff : 0 < ∥x - y∥ ↔ x ≠ y :=
+by { rw [(norm_nonneg _).lt_iff_ne, ne_comm], exact norm_sub_eq_zero_iff.not }
 
 lemma eq_of_norm_sub_le_zero {g h : E} (a : ∥g - h∥ ≤ 0) : g = h :=
 by rwa [← sub_eq_zero, ← norm_le_zero_iff]

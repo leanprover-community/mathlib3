@@ -105,6 +105,8 @@ lemma coe_injective : @function.injective (C(α, β)) (α → β) coe_fn :=
 @[simp] lemma coe_mk (f : α → β) (h : continuous f) :
   ⇑(⟨f, h⟩ : C(α, β)) = f := rfl
 
+lemma map_specializes (f : C(α, β)) {x y : α} (h : x ⤳ y) : f x ⤳ f y := h.map f.2
+
 section
 variables (α β)
 

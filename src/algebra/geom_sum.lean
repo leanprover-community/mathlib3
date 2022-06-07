@@ -373,7 +373,7 @@ lemma nat.geom_sum_Ico_le {b : ℕ} (hb : 2 ≤ b) (a n : ℕ) :
   ∑ i in Ico 1 n, a/b^i ≤ a/(b - 1) :=
 begin
   cases n,
-  { rw [Ico_eq_empty_of_le zero_le_one, sum_empty],
+  { rw [Ico_eq_empty_of_le (@zero_le_one ℕ _ _ _ _), sum_empty],
     exact nat.zero_le _ },
   rw ←add_le_add_iff_left a,
   calc
@@ -419,7 +419,7 @@ end
 lemma geom_sum_alternating_of_lt_neg_one [ordered_ring α] (hx : x + 1 < 0) (hn : 1 < n) :
   if even n then ∑ i in range n, x ^ i < 0 else 1 < ∑ i in range n, x ^ i  :=
 begin
-  have hx0 : x < 0, from ((le_add_iff_nonneg_right _).2 (@zero_le_one α _)).trans_lt hx,
+  have hx0 : x < 0, from ((le_add_iff_nonneg_right _).2 zero_le_one).trans_lt hx,
   refine nat.le_induction _ _ n (show 2 ≤ n, from hn),
   { simp only [geom_sum_two, hx, true_or, even_bit0, if_true_left_eq_or] },
   clear hn n,
@@ -434,7 +434,7 @@ begin
     exact this.trans hx }
 end
 
-lemma geom_sum_pos_of_odd [linear_ordered_ring α] (h : odd n) :
+lemma odd.geom_sum_pos [linear_ordered_ring α] (h : odd n) :
   0 < ∑ i in range n, x ^ i :=
 begin
   rcases n with (_ | _ | k),
@@ -467,7 +467,7 @@ begin
     apply le_of_lt,
     simpa [h] using geom_sum_alternating_of_lt_neg_one hx hn },
   { rintro (hn | hx'),
-    { exact geom_sum_pos_of_odd hn },
+    { exact hn.geom_sum_pos },
     rcases lt_trichotomy x 0 with hx | rfl | hx,
     { exact (geom_sum_pos_and_lt_one hx hx' hn).1 },
     { simp only [(zero_lt_one.trans hn).ne', zero_geom_sum, if_false, zero_lt_one] },

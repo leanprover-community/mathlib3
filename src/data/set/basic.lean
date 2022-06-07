@@ -126,8 +126,9 @@ section set_coe
 
 variables {α : Type u}
 
-theorem set.set_coe_eq_subtype (s : set α) :
-  coe_sort.{(u+1) (u+2)} s = {x // x ∈ s} := rfl
+theorem set.coe_eq_subtype (s : set α) : ↥s = {x // x ∈ s} := rfl
+
+@[simp] theorem set.coe_set_of (p : α → Prop) : ↥{x | p x} = {x // p x} := rfl
 
 @[simp] theorem set_coe.forall {s : set α} {p : s → Prop} :
   (∀ x : s, p x) ↔ (∀ x (h : x ∈ s), p ⟨x, h⟩) :=
@@ -1417,22 +1418,23 @@ ext $ λ x, ⟨λ ⟨y, _, h⟩, h ▸ mem_singleton _,
 by { simp only [eq_empty_iff_forall_not_mem],
      exact ⟨λ H a ha, H _ ⟨_, ha, rfl⟩, λ H b ⟨_, ha, _⟩, H _ ha⟩ }
 
--- TODO(Jeremy): there is an issue with - t unfolding to compl t
-theorem mem_compl_image (t : set α) (S : set (set α)) :
+lemma preimage_compl_eq_image_compl [boolean_algebra α] (S : set α) :
+  compl ⁻¹' S = compl '' S :=
+set.ext (λ x, ⟨λ h, ⟨xᶜ,h, compl_compl x⟩,
+  λ h, exists.elim h (λ y hy, (compl_eq_comm.mp hy.2).symm.subst hy.1)⟩)
+
+theorem mem_compl_image [boolean_algebra α] (t : α) (S : set α) :
   t ∈ compl '' S ↔ tᶜ ∈ S :=
-begin
-  suffices : ∀ x, xᶜ = t ↔ tᶜ = x, { simp [this] },
-  intro x, split; { rintro rfl, simp }
-end
+by simp [←preimage_compl_eq_image_compl]
 
 /-- A variant of `image_id` -/
 @[simp] lemma image_id' (s : set α) : (λx, x) '' s = s := by { ext, simp }
 
 theorem image_id (s : set α) : id '' s = s := by simp
 
-theorem compl_compl_image (S : set (set α)) :
+theorem compl_compl_image [boolean_algebra α] {S : set α} :
   compl '' (compl '' S) = S :=
-by rw [← image_comp, compl_comp_compl, image_id]
+by {ext, simp}
 
 theorem image_insert_eq {f : α → β} {a : α} {s : set α} :
   f '' (insert a s) = insert (f a) (f '' s) :=
@@ -2243,6 +2245,8 @@ def inclusion (h : s ⊆ t) : s → t :=
 λ x : s, (⟨x, h x.2⟩ : t)
 
 @[simp] lemma inclusion_self (x : s) : inclusion subset.rfl x = x := by { cases x, refl }
+
+lemma inclusion_eq_id (h : s ⊆ s) : inclusion h = id := funext inclusion_self
 
 @[simp] lemma inclusion_mk {h : s ⊆ t} (a : α) (ha : a ∈ s) : inclusion h ⟨a, ha⟩ = ⟨a, h ha⟩ := rfl
 

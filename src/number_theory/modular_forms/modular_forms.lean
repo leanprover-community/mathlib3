@@ -308,8 +308,7 @@ def space_of_mod_forms_of_weight_and_level (k : ℤ) (Γ : subgroup SL(2,ℤ)) :
     exact (weakly_modular_submodule k Γ).add_mem' ha.transf hb.transf,
     intro A, rw slash_k_add,
     exact (bounded_at_infty_submodule.add_mem' (ha.infinity A) (hb.infinity A)) },
-  smul_mem' := by
-  { intros c f hf,
+  smul_mem' := by { intros c f hf,
     split,
     exact mdifferentiable_smul _ _ hf.hol,
     exact (weakly_modular_submodule k Γ).smul_mem' _ hf.transf,
@@ -329,8 +328,7 @@ def space_of_cusp_forms_of_weight_and_level (k : ℤ) (Γ : subgroup SL(2,ℤ)) 
     exact (weakly_modular_submodule k Γ).add_mem' ha.transf hb.transf,
     intro A, rw slash_k_add,
     apply (zero_at_infty_submodule.add_mem' (ha.infinity A) (hb.infinity A)) },
-  smul_mem' := by
-  { intros c f hf, split,
+  smul_mem' := by { intros c f hf, split,
     exact mdifferentiable_smul _ _ hf.hol,
     exact (weakly_modular_submodule k Γ).smul_mem' _ hf.transf,
     intro A,

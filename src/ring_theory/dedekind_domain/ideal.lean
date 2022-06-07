@@ -906,7 +906,7 @@ count_normalized_factors_eq ((ideal.prime_iff_is_prime hp0).mpr hp).irreducible
   (by { haveI : unique (ideal R)ˣ := ideal.unique_units, apply normalize_eq })
   (by convert ideal.dvd_iff_le.mpr hle) (by convert mt ideal.le_of_dvd hlt)
 /- Warning: even though a pure term-mode proof typechecks (the `by convert` can simply be
-  removed), it's slower and has caused timeout. -/
+  removed), it's slower to the point of a possible timeout. -/
 
 end
 

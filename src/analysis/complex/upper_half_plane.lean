@@ -28,6 +28,10 @@ open matrix matrix.special_linear_group
 
 open_locale classical big_operators matrix_groups
 
+/- Disable this instances as it is not the simp-normal form, and having them disabled ensures
+we state lemmas in this file without spurious `coe_fn` terms. -/
+local attribute [-instance] matrix.special_linear_group.has_coe_to_fun
+
 local attribute [instance] fintype.card_fin_even
 
 local prefix `↑ₘ`:1024 := @coe _ (matrix (fin 2) (fin 2) _) _

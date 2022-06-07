@@ -112,7 +112,7 @@ lemma tendsto_uniformly_on.mono {s' : set α}
   (h : tendsto_uniformly_on F f p s) (h' : s' ⊆ s) : tendsto_uniformly_on F f p s' :=
 λ u hu, (h u hu).mono (λ n hn x hx, hn x (h' hx))
 
-lemma tendsto_uniformly_on.congr_fun {F' : ι → α → β}
+lemma tendsto_uniformly_on.congr {F' : ι → α → β}
   (hf : tendsto_uniformly_on F f p s) (hff' : ∀ᶠ n in p, set.eq_on (F n) (F' n) s) :
   tendsto_uniformly_on F' f p s :=
 begin
@@ -189,7 +189,7 @@ calc tendsto ↿F (p ×ᶠ ⊤) (𝓝 c)
 ... ↔ ∀ V ∈ 𝓤 β, {i | ∀ a, (c, F i a) ∈ V} ∈ p : by simpa [mem_prod_top]
 
 /-- Uniform convergence on the empty set is vacuously true -/
-lemma tendsto_uniformly_on_of_empty :
+lemma tendsto_uniformly_on_empty :
   tendsto_uniformly_on F f p ∅ :=
 λ u hu, by simp
 
@@ -204,7 +204,7 @@ lemma filter.tendsto.tendsto_uniformly_on_const
   tendsto_uniformly_on (λ n : ι, λ a : α, g n) (λ a : α, b) p s :=
 begin
   by_cases hs : s = ∅,
-  { rw hs, exact tendsto_uniformly_on_of_empty, },
+  { rw hs, exact tendsto_uniformly_on_empty, },
   have hs : s.nonempty,
   { by_contradiction H,
     rw set.not_nonempty_iff_eq_empty at H,
@@ -321,7 +321,7 @@ begin
   intros u hu,
   rw [uniformity_prod_eq_prod, filter.mem_map, mem_prod_iff] at hu,
   obtain ⟨t, ht, t', ht', htt'⟩ := hu,
-  apply (filter.eventually_diag_of_eventually_prod ((h t ht).prod_mk (h' t' ht'))).mono,
+  apply ((h t ht).prod_mk (h' t' ht')).diag_of_prod.mono,
   intros x hx y hy,
   cases hx with hxt hxt',
   specialize hxt y hy,

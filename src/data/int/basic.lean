@@ -1372,19 +1372,10 @@ lemma is_unit_add_is_unit_eq_is_unit_add_is_unit {a b c d : ℤ}
   (ha : is_unit a) (hb : is_unit b) (hc : is_unit c) (hd : is_unit d) :
   a + b = c + d ↔ a = c ∧ b = d ∨ a = d ∧ b = c :=
 begin
-  refine ⟨λ h, _, _⟩,
-  { rcases eq_or_ne a d with rfl | had,
-    { exact or.inr ⟨rfl, add_left_cancel (h.trans (add_comm c a))⟩ },
-    rcases eq_or_ne b d with rfl | hbd,
-    { exact or.inl ⟨add_right_cancel h, rfl⟩ },
-    rw [←add_neg_eq_iff_eq_add, (is_unit_eq_or_eq_neg ha hd).resolve_left had,
-        (is_unit_eq_or_eq_neg hb hd).resolve_left hbd, ←one_mul (-d), ←add_mul, ←add_mul] at h,
-    replace h := congr_arg nat_abs h,
-    rw [nat_abs_mul, nat_abs_neg, hc.nat_abs_eq, hd.nat_abs_eq] at h,
-    exact (one_ne_zero (bit1_eq_one.mp h)).elim },
-  { rintros (⟨rfl, rfl⟩ | ⟨rfl, rfl⟩),
-    { exact rfl },
-    { exact add_comm a b } },
+  rw is_unit_iff at ha hb hc hd,
+  cases ha; cases hb; cases hc; cases hd;
+  subst ha; subst hb; subst hc; subst hd;
+  tidy,
 end
 
 /-! ### bitwise ops -/

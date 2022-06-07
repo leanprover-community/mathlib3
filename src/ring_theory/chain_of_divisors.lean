@@ -217,7 +217,7 @@ lemma is_unit.factor_order_iso_map_iff {m u : associates M} {n : associates N}
   (hu' : u ≤ m) (d : {l : associates M // l ≤ m} ≃o {l : associates N // l ≤ n}) :
   is_unit u ↔ is_unit (d ⟨u, hu'⟩ : associates N) :=
 ⟨λ hu, hu.factor_order_iso_map  hu' d, λ hu, by
-  { rw (show u = ↑(d.symm ⟨↑(d ⟨u, hu'⟩), (d ⟨u, hu'⟩).prop⟩), from by simp only [subtype.coe_eta,
+  { rw (show u = ↑(d.symm ⟨↑(d ⟨u, hu'⟩), (d ⟨u, hu'⟩).prop⟩), by simp only [subtype.coe_eta,
       order_iso.symm_apply_apply, subtype.coe_mk]),
     exact hu.factor_order_iso_map _ d.symm }⟩
 
@@ -381,11 +381,11 @@ begin
       rw mk_monoid_equiv_apply ; exact mk_le_mk_of_dvd (dvd_of_mem_normalized_factors hp) ⟩),
   { rw mk_factor_order_iso_of_factor_dvd_equiv_apply_coe, refl },
   rw [ ← associates.prime_mk, this],
-  classical,
+  letI := classical.dec_eq (associates M),
   refine map_prime_of_monotone_equiv (mk_ne_zero.mpr hn) _ _,
   obtain ⟨q, hq, hq'⟩ := exists_mem_normalized_factors_of_dvd (mk_ne_zero.mpr hm)
     ((prime_mk p).mpr (prime_of_normalized_factor p (by convert hp))).irreducible
-      (mk_le_mk_of_dvd (dvd_of_mem_normalized_factors (by convert hp))),
+      (mk_le_mk_of_dvd (dvd_of_mem_normalized_factors hp)),
   rwa [mk_monoid_equiv_apply, associated_iff_eq.mp hq'],
 end
 
@@ -399,9 +399,9 @@ begin
   suffices : multiplicity (associates.mk p) (associates.mk m) = multiplicity (associates.mk
     ↑(d ⟨mk_monoid_equiv.symm (mk_monoid_equiv p), by simp [dvd_of_mem_normalized_factors hp]⟩))
     (associates.mk n),
-  { simp only [mk_monoid_equiv_apply, mk_monoid_equiv_apply_symm_mk,
-     ← multiplicity_eq_multiplicity_mk] at this,
-    exact this },
+  {  simp only [mk_monoid_equiv_apply, mk_monoid_equiv_apply_symm_mk,
+      multiplicity_mk_eq_multiplicity] at this,
+      exact this, },
   have : associates.mk ↑(d ⟨mk_monoid_equiv.symm (mk_monoid_equiv p), by simp only
     [dvd_of_mem_normalized_factors hp, mk_monoid_equiv_apply, mk_monoid_equiv_apply_symm_mk]⟩)
       = ↑(mk_factor_order_iso_of_factor_dvd_equiv d hd ⟨(mk_monoid_equiv p), by
@@ -414,5 +414,5 @@ begin
   obtain ⟨q, hq, hq'⟩ := exists_mem_normalized_factors_of_dvd (mk_ne_zero.mpr hm)
     ((prime_mk p).mpr (prime_of_normalized_factor p hp)).irreducible
       (mk_le_mk_of_dvd (dvd_of_mem_normalized_factors hp)),
-  rwa associated_iff_eq.mp hq'
+  rwa associated_iff_eq.mp hq',
 end

@@ -126,8 +126,9 @@ section set_coe
 
 variables {α : Type u}
 
-theorem set.set_coe_eq_subtype (s : set α) :
-  coe_sort.{(u+1) (u+2)} s = {x // x ∈ s} := rfl
+theorem set.coe_eq_subtype (s : set α) : ↥s = {x // x ∈ s} := rfl
+
+@[simp] theorem set.coe_set_of (p : α → Prop) : ↥{x | p x} = {x // p x} := rfl
 
 @[simp] theorem set_coe.forall {s : set α} {p : s → Prop} :
   (∀ x : s, p x) ↔ (∀ x (h : x ∈ s), p ⟨x, h⟩) :=
@@ -1416,22 +1417,23 @@ ext $ λ x, ⟨λ ⟨y, _, h⟩, h ▸ mem_singleton _,
 by { simp only [eq_empty_iff_forall_not_mem],
      exact ⟨λ H a ha, H _ ⟨_, ha, rfl⟩, λ H b ⟨_, ha, _⟩, H _ ha⟩ }
 
--- TODO(Jeremy): there is an issue with - t unfolding to compl t
-theorem mem_compl_image (t : set α) (S : set (set α)) :
+lemma preimage_compl_eq_image_compl [boolean_algebra α] (S : set α) :
+  compl ⁻¹' S = compl '' S :=
+set.ext (λ x, ⟨λ h, ⟨xᶜ,h, compl_compl x⟩,
+  λ h, exists.elim h (λ y hy, (compl_eq_comm.mp hy.2).symm.subst hy.1)⟩)
+
+theorem mem_compl_image [boolean_algebra α] (t : α) (S : set α) :
   t ∈ compl '' S ↔ tᶜ ∈ S :=
-begin
-  suffices : ∀ x, xᶜ = t ↔ tᶜ = x, { simp [this] },
-  intro x, split; { rintro rfl, simp }
-end
+by simp [←preimage_compl_eq_image_compl]
 
 /-- A variant of `image_id` -/
 @[simp] lemma image_id' (s : set α) : (λx, x) '' s = s := by { ext, simp }
 
 theorem image_id (s : set α) : id '' s = s := by simp
 
-theorem compl_compl_image (S : set (set α)) :
+theorem compl_compl_image [boolean_algebra α] {S : set α} :
   compl '' (compl '' S) = S :=
-by rw [← image_comp, compl_comp_compl, image_id]
+by {ext, simp}
 
 theorem image_insert_eq {f : α → β} {a : α} {s : set α} :
   f '' (insert a s) = insert (f a) (f '' s) :=
@@ -1685,8 +1687,7 @@ begin
   refine ⟨_, λ h, _⟩,
   { rintros ⟨a, rfl⟩,
     exact ⟨singleton_nonempty a, subsingleton_singleton⟩ },
-  { obtain ⟨a, ha⟩ := h.1,
-    exact ⟨a, eq_singleton_iff_unique_mem.mpr ⟨ha, λ b hb, h.2 hb ha⟩⟩ },
+  { exact h.2.eq_empty_or_singleton.resolve_left h.1.ne_empty },
 end
 
 /-- `s`, coerced to a type, is a subsingleton type if and only if `s`
@@ -1814,6 +1815,13 @@ by rw [image_preimage_eq_inter_range, inter_eq_self_of_subset_left hs]
 lemma image_preimage_eq_iff {f : α → β} {s : set β} : f '' (f ⁻¹' s) = s ↔ s ⊆ range f :=
 ⟨by { intro h, rw [← h], apply image_subset_range }, image_preimage_eq_of_subset⟩
 
+lemma subset_range_iff_exists_image_eq {f : α → β} {s : set β} :
+  s ⊆ range f ↔ ∃ t, f '' t = s :=
+⟨λ h, ⟨_, image_preimage_eq_iff.2 h⟩, λ ⟨t, ht⟩, ht ▸ image_subset_range _ _⟩
+
+lemma range_image (f : α → β) : range (image f) = 𝒫 (range f) :=
+ext $ λ s, subset_range_iff_exists_image_eq.symm
+
 lemma preimage_subset_preimage_iff {s t : set α} {f : β → α} (hs : s ⊆ range f) :
   f ⁻¹' s ⊆ f ⁻¹' t ↔ s ⊆ t :=
 begin
@@ -1892,11 +1900,10 @@ is_compl_range_inl_range_inr.symm.compl_eq
 @[simp] theorem range_quot_mk (r : α → α → Prop) : range (quot.mk r) = univ :=
 (surjective_quot_mk r).range_eq
 
-instance set.can_lift [can_lift α β] : can_lift (set α) (set β) :=
+instance can_lift [can_lift α β] : can_lift (set α) (set β) :=
 { coe := λ s, can_lift.coe '' s,
   cond := λ s, ∀ x ∈ s, can_lift.cond β x,
-  prf := λ s hs, ⟨can_lift.coe ⁻¹' s, image_preimage_eq_of_subset $
-    λ x hx, can_lift.prf _ (hs x hx)⟩ }
+  prf := λ s hs, subset_range_iff_exists_image_eq.mp (λ x hx, can_lift.prf _ (hs x hx)) }
 
 @[simp] theorem quot_mk_range_eq [setoid α] : range (λx : α, ⟦x⟧) = univ :=
 range_iff_surjective.2 quot.exists_rep
@@ -2238,6 +2245,8 @@ def inclusion (h : s ⊆ t) : s → t :=
 
 @[simp] lemma inclusion_self (x : s) : inclusion subset.rfl x = x := by { cases x, refl }
 
+lemma inclusion_eq_id (h : s ⊆ s) : inclusion h = id := funext inclusion_self
+
 @[simp] lemma inclusion_mk {h : s ⊆ t} (a : α) (ha : a ∈ s) : inclusion h ⟨a, ha⟩ = ⟨a, h ha⟩ := rfl
 
 lemma inclusion_right (h : s ⊆ t) (x : t) (m : (x : α) ∈ s) : inclusion h ⟨x, m⟩ = x :=
@@ -2246,6 +2255,10 @@ by { cases x, refl }
 @[simp] lemma inclusion_inclusion (hst : s ⊆ t) (htu : t ⊆ u) (x : s) :
   inclusion htu (inclusion hst x) = inclusion (hst.trans htu) x :=
 by { cases x, refl }
+
+@[simp] lemma inclusion_comp_inclusion {α} {s t u : set α} (hst : s ⊆ t) (htu : t ⊆ u) :
+  inclusion htu ∘ inclusion hst = inclusion (hst.trans htu) :=
+funext (inclusion_inclusion hst htu)
 
 @[simp] lemma coe_inclusion (h : s ⊆ t) (x : s) : (inclusion h x : α) = (x : α) := rfl
 
@@ -2533,6 +2546,26 @@ lemma image_image2_right_comm {f : α → β' → γ} {g : β → β'} {f' : α 
   (h_right_comm : ∀ a b, f a (g b) = g' (f' a b)) :
   image2 f s (t.image g) = (image2 f' s t).image g' :=
 (image_image2_distrib_right $ λ a b, (h_right_comm a b).symm).symm
+
+/-- The other direction does not hold because of the `s`-`s` cross terms on the RHS. -/
+lemma image2_distrib_subset_left {f : α → δ → ε} {g : β → γ → δ} {f₁ : α → β → β'} {f₂ : α → γ → γ'}
+  {g' : β' → γ' → ε} (h_distrib : ∀ a b c, f a (g b c) = g' (f₁ a b) (f₂ a c)) :
+  image2 f s (image2 g t u) ⊆ image2 g' (image2 f₁ s t) (image2 f₂ s u) :=
+begin
+  rintro _ ⟨a, _, ha, ⟨b, c, hb, hc, rfl⟩, rfl⟩,
+  rw h_distrib,
+  exact mem_image2_of_mem (mem_image2_of_mem ha hb) (mem_image2_of_mem ha hc),
+end
+
+/-- The other direction does not hold because of the `u`-`u` cross terms on the RHS. -/
+lemma image2_distrib_subset_right {f : δ → γ → ε} {g : α → β → δ} {f₁ : α → γ → α'}
+  {f₂ : β → γ → β'} {g' : α' → β' → ε} (h_distrib : ∀ a b c, f (g a b) c = g' (f₁ a c) (f₂ b c)) :
+  image2 f (image2 g s t) u ⊆ image2 g' (image2 f₁ s u) (image2 f₂ t u) :=
+begin
+  rintro _ ⟨_, c, ⟨a, b, ha, hb, rfl⟩, hc, rfl⟩,
+  rw h_distrib,
+  exact mem_image2_of_mem (mem_image2_of_mem ha hc) (mem_image2_of_mem hb hc),
+end
 
 lemma image_image2_antidistrib {g : γ → δ} {f' : β' → α' → δ} {g₁ : β → β'} {g₂ : α → α'}
   (h_antidistrib : ∀ a b, g (f a b) = f' (g₁ b) (g₂ a)) :

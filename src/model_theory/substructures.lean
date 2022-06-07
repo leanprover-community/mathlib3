@@ -263,7 +263,7 @@ begin
 end
 
 theorem lift_card_closure_le : cardinal.lift.{(max u w) w} (# (closure L s)) ≤
-  max ω (cardinal.lift.{(max u w) w} (#s) + cardinal.lift.{(max u w) u} (#(Σ i, L.functions i))) :=
+  max ℵ₀ (cardinal.lift.{(max u w) w} (#s) + cardinal.lift.{(max u w) u} (#(Σ i, L.functions i))) :=
 begin
   refine lift_card_closure_le_card_term.trans (term.card_le.trans _),
   rw [mk_sum, lift_umax', lift_umax],
@@ -276,8 +276,8 @@ lemma _root_.set.countable.substructure_closure
   nonempty (encodable (closure L s)) :=
 begin
   haveI : nonempty (encodable s) := h,
-  rw [encodable_iff, ← lift_le_omega],
-  exact lift_card_closure_le_card_term.trans term.card_le_omega,
+  rw [encodable_iff, ← lift_le_aleph_0],
+  exact lift_card_closure_le_card_term.trans term.card_le_aleph_0,
 end
 
 variables {L} (S)
@@ -603,7 +603,7 @@ def with_constants (S : L.substructure M) {A : set M} (h : A ⊆ S) : L[[A]].sub
     { exact S.fun_mem f },
     { cases n,
       { exact λ _ _, h f.2 },
-      { exact pempty.elim f } }
+      { exact is_empty_elim f } }
   end }
 
 variables {A : set M} {s : set M} (h : A ⊆ S)

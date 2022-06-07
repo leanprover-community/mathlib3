@@ -886,6 +886,12 @@ protected theorem eq_mul_of_div_eq_left {a b c : ℕ} (H1 : b ∣ a) (H2 : a / b
   a = c * b :=
 by rw [mul_comm, nat.eq_mul_of_div_eq_right H1 H2]
 
+protected lemma lt_div_iff_mul_lt {n d : ℕ} (hnd : d ∣ n) (a : ℕ) : a < n / d ↔ d * a < n :=
+begin
+  rcases d.eq_zero_or_pos with rfl | hd0, { simp [zero_dvd_iff.mp hnd] },
+  rw [←mul_lt_mul_left hd0, ←nat.eq_mul_of_div_eq_right hnd rfl],
+end
+
 protected theorem mul_div_cancel_left' {a b : ℕ} (Hd :  a ∣ b) : a * (b / a) = b :=
 by rw [mul_comm,nat.div_mul_cancel Hd]
 
@@ -911,6 +917,13 @@ begin
     rw [eq_comm, mul_comm, nat.mul_div_assoc _ hy],
     exact nat.eq_mul_of_div_eq_right hx h },
   { intros h, rw h },
+end
+
+@[simp]
+protected lemma div_left_inj {a b d : ℕ} (hda : d ∣ a) (hdb : d ∣ b) : a / d = b / d ↔ a = b :=
+begin
+  refine ⟨λ h, _, congr_arg _⟩,
+  rw [←nat.mul_div_cancel' hda, ←nat.mul_div_cancel' hdb, h],
 end
 
 /-! ### `mod`, `dvd` -/
@@ -1252,6 +1265,9 @@ lemma dvd_left_iff_eq {m n : ℕ} : (∀ a : ℕ, a ∣ m ↔ a ∣ n) ↔ m = n
 lemma dvd_left_injective : function.injective ((∣) : ℕ → ℕ → Prop) :=
 λ m n h, dvd_right_iff_eq.mp $ λ a, iff_of_eq (congr_fun h a)
 
+lemma div_lt_div_of_lt_of_dvd {a b d : ℕ} (hdb : d ∣ b) (h : a < b) : a / d < b / d :=
+by { rw nat.lt_div_iff_mul_lt hdb, exact lt_of_le_of_lt (mul_div_le a d) h }
+
 /-! ### `find` -/
 section find
 
@@ -1510,10 +1526,29 @@ by { convert bit1_lt_bit0_iff, refl, }
 lemma pos_of_bit0_pos {n : ℕ} (h : 0 < bit0 n) : 0 < n :=
 by { cases n, cases h, apply succ_pos, }
 
-/-- Define a function on `ℕ` depending on parity of the argument. -/
-@[elab_as_eliminator]
-def bit_cases {C : ℕ → Sort u} (H : Π b n, C (bit b n)) (n : ℕ) : C n :=
-eq.rec_on n.bit_decomp (H (bodd n) (div2 n))
+@[simp] lemma bit_cases_on_bit {C : ℕ → Sort u} (H : Π b n, C (bit b n)) (b : bool) (n : ℕ) :
+  bit_cases_on (bit b n) H = H b n :=
+eq_of_heq $ (eq_rec_heq _ _).trans $ by rw [bodd_bit, div2_bit]
+
+@[simp] lemma bit_cases_on_bit0 {C : ℕ → Sort u} (H : Π b n, C (bit b n)) (n : ℕ) :
+  bit_cases_on (bit0 n) H = H ff n :=
+bit_cases_on_bit H ff n
+
+@[simp] lemma bit_cases_on_bit1 {C : ℕ → Sort u} (H : Π b n, C (bit b n)) (n : ℕ) :
+  bit_cases_on (bit1 n) H = H tt n :=
+bit_cases_on_bit H tt n
+
+lemma bit_cases_on_injective {C : ℕ → Sort u} :
+  function.injective (λ H : Π b n, C (bit b n), λ n, bit_cases_on n H) :=
+begin
+  intros H₁ H₂ h,
+  ext b n,
+  simpa only [bit_cases_on_bit] using congr_fun h (bit b n)
+end
+
+@[simp] lemma bit_cases_on_inj {C : ℕ → Sort u} (H₁ H₂ : Π b n, C (bit b n)) :
+  (λ n, bit_cases_on n H₁) = (λ n, bit_cases_on n H₂) ↔ H₁ = H₂ :=
+bit_cases_on_injective.eq_iff
 
 /-! ### decidability of predicates -/
 

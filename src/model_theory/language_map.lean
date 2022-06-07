@@ -31,7 +31,8 @@ universes u v u' v' w
 
 namespace first_order
 namespace language
-open Structure
+open Structure cardinal
+open_locale cardinal
 
 variables (L : language.{u v}) (L' : language.{u' v'}) {M : Type w} [L.Structure M]
 
@@ -257,36 +258,36 @@ end Lequiv
 section constants_on
 variables (α : Type u')
 
-/-- The function symbols of a language with constants indexed by a type. -/
-def constants_on_functions : ℕ → Type u'
-| 0 := α
-| _ := pempty
-
-instance [h : inhabited α] : inhabited (constants_on_functions α 0) := h
-
 /-- A language with constants indexed by a type. -/
-def constants_on : language.{u' 0} := ⟨constants_on_functions α, λ _, empty⟩
+@[simp] def constants_on : language.{u' 0} :=
+  language.mk₂ α pempty pempty pempty pempty
 
 variables {α}
 
-@[simp] lemma constants_on_constants : (constants_on α).constants = α := rfl
+lemma constants_on_constants : (constants_on α).constants = α := rfl
 
 instance is_algebraic_constants_on : is_algebraic (constants_on α) :=
-language.is_algebraic_of_empty_relations
+language.is_algebraic_mk₂
 
 instance is_relational_constants_on [ie : is_empty α] : is_relational (constants_on α) :=
-⟨λ n, nat.cases_on n ie (λ _, pempty.is_empty)⟩
+language.is_relational_mk₂
+
+instance is_empty_functions_constants_on_succ {n : ℕ} :
+  is_empty ((constants_on α).functions (n + 1)) :=
+nat.cases_on n pempty.is_empty (λ n, nat.cases_on n pempty.is_empty (λ _, pempty.is_empty))
+
+lemma card_constants_on : (constants_on α).card = # α :=
+by simp
 
 /-- Gives a `constants_on α` structure to a type by assigning each constant a value. -/
 def constants_on.Structure (f : α → M) : (constants_on α).Structure M :=
-{ fun_map := λ n, nat.cases_on n (λ a _, f a) (λ _, pempty.elim),
-  rel_map := λ _, empty.elim }
+Structure.mk₂ f pempty.elim pempty.elim pempty.elim pempty.elim
 
 variables {β : Type v'}
 
 /-- A map between index types induces a map between constant languages. -/
 def Lhom.constants_on_map (f : α → β) : (constants_on α) →ᴸ (constants_on β) :=
-⟨λ n, nat.cases_on n f (λ _, pempty.elim), λ n, empty.elim⟩
+Lhom.mk₂ f pempty.elim pempty.elim pempty.elim pempty.elim
 
 lemma constants_on_map_is_expansion_on {f : α → β} {fα : α → M} {fβ : β → M}
   (h : fβ ∘ f = fα) :
@@ -295,8 +296,8 @@ lemma constants_on_map_is_expansion_on {f : α → β} {fα : α → M} {fβ : �
 begin
   letI := constants_on.Structure fα,
   letI := constants_on.Structure fβ,
-  exact ⟨λ n, nat.cases_on n (λ F x, (congr_fun h F : _)) (λ n F, pempty.elim F),
-    λ _ R, empty.elim R⟩,
+  exact ⟨λ n, nat.cases_on n (λ F x, (congr_fun h F : _)) (λ n F, is_empty_elim F),
+    λ _ R, is_empty_elim R⟩
 end
 
 end constants_on
@@ -312,6 +313,10 @@ variables (α : Type w)
 def with_constants : language.{(max u w) v} := L.sum (constants_on α)
 
 localized "notation L`[[`:95 α`]]`:90 := L.with_constants α" in first_order
+
+@[simp] lemma card_with_constants :
+  (L[[α]]).card = cardinal.lift.{w} L.card + cardinal.lift.{max u v} (# α) :=
+by rw [with_constants, card_sum, card_constants_on]
 
 /-- The language map adding constants.  -/
 @[simps] def Lhom_with_constants : L →ᴸ L[[α]] := Lhom.sum_inl

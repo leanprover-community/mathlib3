@@ -33,6 +33,14 @@ def center : submonoid M :=
 
 @[to_additive] lemma coe_center : ↑(center M) = set.center M := rfl
 
+@[simp]
+lemma center_to_subsemigroup : (center M).to_subsemigroup = subsemigroup.center M := rfl
+
+lemma _root_.add_submonoid.center_to_add_subsemigroup (M) [add_monoid M] :
+  (add_submonoid.center M).to_add_subsemigroup = add_subsemigroup.center M := rfl
+
+attribute [to_additive add_submonoid.center_to_add_subsemigroup] submonoid.center_to_subsemigroup
+
 variables {M}
 
 @[to_additive] lemma mem_center_iff {z : M} : z ∈ center M ↔ ∀ g, g * z = z * g := iff.rfl
@@ -44,6 +52,18 @@ instance decidable_mem_center [decidable_eq M] [fintype M] : decidable_pred (∈
 instance : comm_monoid (center M) :=
 { mul_comm := λ a b, subtype.ext $ b.prop _,
   .. (center M).to_monoid }
+
+/-- The center of a monoid acts commutatively on that monoid. -/
+instance center.smul_comm_class_left : smul_comm_class (center M) M M :=
+{ smul_comm := λ m x y, (commute.left_comm (m.prop x) y).symm }
+
+/-- The center of a monoid acts commutatively on that monoid. -/
+instance center.smul_comm_class_right : smul_comm_class M (center M) M :=
+smul_comm_class.symm _ _ _
+
+/-! Note that `smul_comm_class (center M) (center M) M` is already implied by
+`submonoid.smul_comm_class_right` -/
+example : smul_comm_class (center M) (center M) M := by apply_instance
 
 end
 

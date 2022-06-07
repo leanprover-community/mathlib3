@@ -38,7 +38,7 @@ instance : has_one (language α) := ⟨{[]}⟩
 instance : inhabited (language α) := ⟨0⟩
 
 /-- The sum of two languages is their union. -/
-instance : has_add (language α) := ⟨set.union⟩
+instance : has_add (language α) := ⟨(∪)⟩
 
 /-- The product of two languages `l` and `m` is the language made of the strings `x ++ y` where
 `x ∈ l` and `y ∈ m`. -/

@@ -341,13 +341,13 @@ by { ext, simp }
 
 end perm_congr
 
-/-- If `α` is an empty type, then it is equivalent to the `empty` type. -/
-def equiv_empty (α : Sort u) [is_empty α] : α ≃ empty :=
-⟨is_empty_elim, λ e, e.rec _, is_empty_elim, λ e, e.rec _⟩
-
 /-- Two empty types are equivalent. -/
 def empty_equiv_empty (α β : Sort*) [is_empty α] [is_empty β] : α ≃ β :=
-(equiv_empty α).trans (equiv_empty β).symm
+⟨is_empty_elim, is_empty_elim, is_empty_elim, is_empty_elim⟩
+
+/-- If `α` is an empty type, then it is equivalent to the `empty` type. -/
+def equiv_empty (α : Sort u) [is_empty α] : α ≃ empty :=
+empty_equiv_empty α _
 
 /-- If `α` is an empty type, then it is equivalent to the `pempty` type in any universe. -/
 def equiv_pempty (α : Sort v) [is_empty α] : α ≃ pempty.{u} :=

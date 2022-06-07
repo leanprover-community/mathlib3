@@ -201,11 +201,11 @@ begin
   { rw [degree_mul, degree_C (inv_ne_zero (sub_ne_zero.2 hxy.symm)), zero_add],
     refine lt_of_le_of_lt (degree_add_le _ _) (max_lt _ _),
     { rw [degree_mul, degree_X_sub_C],
-      convert (with_bot.add_lt_add_iff_left (with_bot.coe_ne_bot _)).2
+      convert (with_bot.add_lt_add_iff_left with_bot.coe_ne_bot).2
         (degree_interpolate_erase s f hx),
       simp [nat.one_add, nat.sub_one, nat.succ_pred_eq_of_pos (finset.card_pos.2 ⟨x, hx⟩)] },
     { rw [degree_mul, ←neg_sub, degree_neg, degree_X_sub_C],
-      convert (with_bot.add_lt_add_iff_left (with_bot.coe_ne_bot _)).2
+      convert (with_bot.add_lt_add_iff_left with_bot.coe_ne_bot).2
         (degree_interpolate_erase s f hy),
       simp [nat.one_add, nat.sub_one, nat.succ_pred_eq_of_pos (finset.card_pos.2 ⟨y, hy⟩)] } },
   { by_cases hzx : z = x,

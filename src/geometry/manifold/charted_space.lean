@@ -497,22 +497,6 @@ variables (H) [topological_space H] [topological_space M] [charted_space H M]
 lemma mem_chart_target (x : M) : chart_at H x x ∈ (chart_at H x).target :=
 (chart_at H x).map_source (mem_chart_source _ _)
 
-/-- If a topological space admits an atlas with locally compact charts, then the space itself
-is locally compact. -/
-lemma charted_space.locally_compact [locally_compact_space H] : locally_compact_space M :=
-begin
-  have : ∀ (x : M), (𝓝 x).has_basis
-      (λ s, s ∈ 𝓝 (chart_at H x x) ∧ is_compact s ∧ s ⊆ (chart_at H x).target)
-      (λ s, (chart_at H x).symm '' s),
-  { intro x,
-    rw [← (chart_at H x).symm_map_nhds_eq (mem_chart_source H x)],
-    exact ((compact_basis_nhds (chart_at H x x)).has_basis_self_subset
-      (is_open.mem_nhds (chart_at H x).open_target (mem_chart_target H x))).map _ },
-  refine locally_compact_space_of_has_basis this _,
-  rintro x s ⟨h₁, h₂, h₃⟩,
-  exact h₂.image_of_continuous_on ((chart_at H x).continuous_on_symm.mono h₃)
-end
-
 open topological_space
 
 lemma charted_space.second_countable_of_countable_cover [second_countable_topology H]
@@ -535,6 +519,24 @@ begin
     countable_cover_nhds_of_sigma_compact
       (λ x : M, is_open.mem_nhds (chart_at H x).open_source (mem_chart_source H x)),
   exact charted_space.second_countable_of_countable_cover H hsU hsc
+end
+
+variable (M)
+
+/-- If a topological space admits an atlas with locally compact charts, then the space itself
+is locally compact. -/
+lemma charted_space.locally_compact [locally_compact_space H] : locally_compact_space M :=
+begin
+  have : ∀ (x : M), (𝓝 x).has_basis
+      (λ s, s ∈ 𝓝 (chart_at H x x) ∧ is_compact s ∧ s ⊆ (chart_at H x).target)
+      (λ s, (chart_at H x).symm '' s),
+  { intro x,
+    rw [← (chart_at H x).symm_map_nhds_eq (mem_chart_source H x)],
+    exact ((compact_basis_nhds (chart_at H x x)).has_basis_self_subset
+      (is_open.mem_nhds (chart_at H x).open_target (mem_chart_target H x))).map _ },
+  refine locally_compact_space_of_has_basis this _,
+  rintro x s ⟨h₁, h₂, h₃⟩,
+  exact h₂.image_of_continuous_on ((chart_at H x).continuous_on_symm.mono h₃)
 end
 
 end

@@ -17,7 +17,7 @@ function belong to some (finite or infinite, open or closed) interval, then the 
 chosen so that it takes values in the same interval. In particular, if the original function is a
 bounded function, then there exists a bounded extension of the same norm.
 
-The proof mostly follows https://ncatlab.org/nlab/show/Tietze+extension+theorem. We patch a small
+The proof mostly follows <https://ncatlab.org/nlab/show/Tietze+extension+theorem>. We patch a small
 gap in the proof for unbounded functions, see
 `exists_extension_forall_exists_le_ge_of_closed_embedding`.
 

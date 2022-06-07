@@ -6,7 +6,7 @@ Authors: Anne Baanen
 
 import field_theory.primitive_element
 import linear_algebra.determinant
-import linear_algebra.matrix.charpoly.coeff
+import linear_algebra.matrix.charpoly.minpoly
 import linear_algebra.matrix.to_linear_equiv
 import field_theory.is_alg_closed.algebraic_closure
 
@@ -39,7 +39,7 @@ See also `algebra.trace`, which is defined similarly as the trace of
 
 universes u v w
 
-variables {R S T : Type*} [comm_ring R] [is_domain R] [comm_ring S]
+variables {R S T : Type*} [comm_ring R] [comm_ring S]
 variables [algebra R S]
 variables {K L F : Type*} [field K] [field L] [field F]
 variables [algebra K L] [algebra K F]
@@ -89,7 +89,7 @@ end
 (If `L` is not finite-dimensional over `K`, then `norm = 1 = x ^ 0 = x ^ (finrank L K)`.)
 -/
 @[simp]
-lemma norm_algebra_map (x : K) : norm K (algebra_map K L x) = x ^ finrank K L :=
+protected lemma norm_algebra_map (x : K) : norm K (algebra_map K L x) = x ^ finrank K L :=
 begin
   by_cases H : ∃ (s : finset L), nonempty (basis s K L),
   { rw [norm_algebra_map_of_basis H.some_spec.some, finrank_eq_card_basis H.some_spec.some] },
@@ -118,7 +118,7 @@ lemma power_basis.norm_gen_eq_prod_roots [algebra K S] (pb : power_basis K S)
 begin
   rw [power_basis.norm_gen_eq_coeff_zero_minpoly, ← pb.nat_degree_minpoly, ring_hom.map_mul,
     ← coeff_map, prod_roots_eq_coeff_zero_of_monic_of_split
-      (monic_map _ (minpoly.monic (power_basis.is_integral_gen _)))
+      ((minpoly.monic (power_basis.is_integral_gen _)).map _)
       ((splits_id_iff_splits _).2 hf), nat_degree_map, map_pow, ← mul_assoc, ← mul_pow],
   simp
 end
@@ -127,7 +127,7 @@ end eq_prod_roots
 
 section eq_zero_iff
 
-lemma norm_eq_zero_iff_of_basis [is_domain S] (b : basis ι R S) {x : S} :
+lemma norm_eq_zero_iff_of_basis [is_domain R] [is_domain S] (b : basis ι R S) {x : S} :
   algebra.norm R x = 0 ↔ x = 0 :=
 begin
   have hι : nonempty ι := b.index_nonempty,
@@ -147,7 +147,7 @@ begin
     rw [alg_hom.map_zero, matrix.det_zero hι] },
 end
 
-lemma norm_ne_zero_iff_of_basis [is_domain S] (b : basis ι R S) {x : S} :
+lemma norm_ne_zero_iff_of_basis [is_domain R] [is_domain S] (b : basis ι R S) {x : S} :
   algebra.norm R x ≠ 0 ↔ x ≠ 0 :=
 not_iff_not.mpr (algebra.norm_eq_zero_iff_of_basis b)
 
@@ -202,7 +202,7 @@ lemma _root_.intermediate_field.adjoin_simple.norm_gen_eq_prod_roots (x : L)
   (algebra_map K F) (norm K (adjoin_simple.gen K x)) =
     ((minpoly K x).map (algebra_map K F)).roots.prod :=
 begin
-  have injKxL : function.injective (algebra_map K⟮x⟯ L) := ring_hom.injective _,
+  have injKxL := (algebra_map K⟮x⟯ L).injective,
   by_cases hx : _root_.is_integral K x, swap,
   { simp [minpoly.eq_zero hx, intermediate_field.adjoin_simple.norm_gen_eq_one hx] },
   have hx' : _root_.is_integral K (adjoin_simple.gen K x),

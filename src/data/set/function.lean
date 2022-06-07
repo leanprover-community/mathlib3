@@ -32,7 +32,7 @@ import logic.function.conjugate
 -/
 universes u v w x y
 
-variables {α : Type u} {β : Type v} {γ : Type w} {ι : Sort x}
+variables {α : Type u} {β : Type v} {π : α → Type v} {γ : Type w} {ι : Sort x}
 
 open function
 
@@ -42,49 +42,49 @@ namespace set
 
 /-- Restrict domain of a function `f` to a set `s`. Same as `subtype.restrict` but this version
 takes an argument `↥s` instead of `subtype s`. -/
-def restrict (f : α → β) (s : set α) : s → β := λ x, f x
+def restrict (s : set α) (f : Π a : α, π a) : Π a : s, π a := λ x, f x
 
 lemma restrict_eq (f : α → β) (s : set α) : s.restrict f = f ∘ coe := rfl
 
-@[simp] lemma restrict_apply (f : α → β) (s : set α) (x : s) : restrict f s x = f x := rfl
+@[simp] lemma restrict_apply (f : α → β) (s : set α) (x : s) : s.restrict f x = f x := rfl
 
-@[simp] lemma range_restrict (f : α → β) (s : set α) : set.range (restrict f s) = f '' s :=
+@[simp] lemma range_restrict (f : α → β) (s : set α) : set.range (s.restrict f) = f '' s :=
 (range_comp _ _).trans $ congr_arg (('') f) subtype.range_coe
 
 lemma image_restrict (f : α → β) (s t : set α) : s.restrict f '' (coe ⁻¹' t) = f '' (t ∩ s) :=
 by rw [restrict, image_comp, image_preimage_eq_inter_range, subtype.range_coe]
 
 @[simp] lemma restrict_dite {s : set α} [∀ x, decidable (x ∈ s)] (f : Π a ∈ s, β) (g : Π a ∉ s, β) :
-  restrict (λ a, if h : a ∈ s then f a h else g a h) s = λ a, f a a.2 :=
+  s.restrict (λ a, if h : a ∈ s then f a h else g a h) = λ a, f a a.2 :=
 funext $ λ a, dif_pos a.2
 
 @[simp] lemma restrict_dite_compl {s : set α} [∀ x, decidable (x ∈ s)] (f : Π a ∈ s, β)
   (g : Π a ∉ s, β) :
-  restrict (λ a, if h : a ∈ s then f a h else g a h) sᶜ = λ a, g a a.2 :=
+  sᶜ.restrict (λ a, if h : a ∈ s then f a h else g a h) = λ a, g a a.2 :=
 funext $ λ a, dif_neg a.2
 
 @[simp] lemma restrict_ite (f g : α → β) (s : set α) [∀ x, decidable (x ∈ s)] :
-  restrict (λ a, if a ∈ s then f a else g a) s = restrict f s :=
+  s.restrict (λ a, if a ∈ s then f a else g a) = s.restrict f :=
 restrict_dite _ _
 
 @[simp] lemma restrict_ite_compl (f g : α → β) (s : set α) [∀ x, decidable (x ∈ s)] :
-  restrict (λ a, if a ∈ s then f a else g a) sᶜ = restrict g sᶜ :=
+  sᶜ.restrict (λ a, if a ∈ s then f a else g a) = sᶜ.restrict g :=
 restrict_dite_compl _ _
 
 @[simp] lemma restrict_piecewise (f g : α → β) (s : set α) [∀ x, decidable (x ∈ s)] :
-  restrict (piecewise s f g) s = restrict f s :=
+  s.restrict (piecewise s f g) = s.restrict f :=
 restrict_ite _ _ _
 
 @[simp] lemma restrict_piecewise_compl (f g : α → β) (s : set α) [∀ x, decidable (x ∈ s)] :
-  restrict (piecewise s f g) sᶜ = restrict g sᶜ :=
+  sᶜ.restrict (piecewise s f g) = sᶜ.restrict g :=
 restrict_ite_compl _ _ _
 
 lemma restrict_extend_range (f : α → β) (g : α → γ) (g' : β → γ) :
-  restrict (extend f g g') (range f) = λ x, g x.coe_prop.some :=
+  (range f).restrict (extend f g g') = λ x, g x.coe_prop.some :=
 by convert restrict_dite _ _
 
 @[simp] lemma restrict_extend_compl_range (f : α → β) (g : α → γ) (g' : β → γ) :
-  restrict (extend f g g') (range f)ᶜ = g' ∘ coe :=
+  (range f)ᶜ.restrict (extend f g g')  = g' ∘ coe :=
 by convert restrict_dite_compl _ _
 
 lemma range_extend_subset (f : α → β) (g : α → γ) (g' : β → γ) :
@@ -201,6 +201,40 @@ lemma eq_on.congr_strict_anti_on (h : s.eq_on f₁ f₂) : strict_anti_on f₁ s
 ⟨λ h₁, h₁.congr h, λ h₂, h₂.congr h.symm⟩
 
 end order
+
+/-! ### Mono lemmas-/
+
+section mono
+
+variables [preorder α] [preorder β]
+
+lemma _root_.monotone_on.mono (h : monotone_on f s) (h' : s₂ ⊆ s) : monotone_on f s₂ :=
+λ x hx y hy, h (h' hx) (h' hy)
+
+lemma _root_.antitone_on.mono (h : antitone_on f s) (h' : s₂ ⊆ s) : antitone_on f s₂ :=
+λ x hx y hy, h (h' hx) (h' hy)
+
+lemma _root_.strict_mono_on.mono (h : strict_mono_on f s) (h' : s₂ ⊆ s) : strict_mono_on f s₂ :=
+λ x hx y hy, h (h' hx) (h' hy)
+
+lemma _root_.strict_anti_on.mono (h : strict_anti_on f s) (h' : s₂ ⊆ s) : strict_anti_on f s₂ :=
+λ x hx y hy, h (h' hx) (h' hy)
+
+protected lemma _root_.monotone_on.monotone (h : monotone_on f s) : monotone (f ∘ coe : s → β) :=
+λ x y hle, h x.coe_prop y.coe_prop hle
+
+protected lemma _root_.antitone_on.monotone (h : antitone_on f s) : antitone (f ∘ coe : s → β) :=
+λ x y hle, h x.coe_prop y.coe_prop hle
+
+protected lemma _root_.strict_mono_on.strict_mono (h : strict_mono_on f s) :
+  strict_mono (f ∘ coe : s → β) :=
+λ x y hlt, h x.coe_prop y.coe_prop hlt
+
+protected lemma _root_.strict_anti_on.strict_anti (h : strict_anti_on f s) :
+  strict_anti (f ∘ coe : s → β) :=
+λ x y hlt, h x.coe_prop y.coe_prop hlt
+
+end mono
 
 /-! ### maps to -/
 
@@ -380,7 +414,7 @@ theorem inj_on.comp (hg : inj_on g t) (hf: inj_on f s) (h : maps_to f s t) :
   inj_on (g ∘ f) s :=
 λ x hx y hy heq, hf hx hy $ hg (h hx) (h hy) heq
 
-lemma inj_on_iff_injective : inj_on f s ↔ injective (restrict f s) :=
+lemma inj_on_iff_injective : inj_on f s ↔ injective (s.restrict f) :=
 ⟨λ H a b h, subtype.eq $ H a.2 b.2 h,
  λ H a as b bs h, congr_arg subtype.val $ @H ⟨a, as⟩ ⟨b, bs⟩ h⟩
 
@@ -455,8 +489,7 @@ begin
   intros y hy,
   rcases h₁ hy.1 with ⟨x₁, hx₁, rfl⟩,
   rcases h₂ hy.2 with ⟨x₂, hx₂, heq⟩,
-  have : x₁ = x₂, from h (or.inl hx₁) (or.inr hx₂) heq.symm,
-  subst x₂,
+  obtain rfl : x₁ = x₂ := h (or.inl hx₁) (or.inr hx₂) heq.symm,
   exact mem_image_of_mem f ⟨hx₁, hx₂⟩
 end
 
@@ -470,7 +503,7 @@ subset.trans hg $ subset.trans (image_subset g hf) $ (image_comp g f s) ▸ subs
 lemma surjective_iff_surj_on_univ : surjective f ↔ surj_on f univ univ :=
 by simp [surjective, surj_on, subset_def]
 
-lemma surj_on_iff_surjective : surj_on f s univ ↔ surjective (restrict f s) :=
+lemma surj_on_iff_surjective : surj_on f s univ ↔ surjective (s.restrict f) :=
 ⟨λ H b, let ⟨a, as, e⟩ := @H b trivial in ⟨⟨a, as⟩, e⟩,
  λ H b _, let ⟨⟨a, as⟩, e⟩ := H b in ⟨a, as, e⟩⟩
 
@@ -876,7 +909,7 @@ lemma piecewise_le {δ : α → Type*} [Π i, preorder (δ i)] {s : set α} [Π 
 lemma le_piecewise {δ : α → Type*} [Π i, preorder (δ i)] {s : set α} [Π j, decidable (j ∈ s)]
   {f₁ f₂ g : Π i, δ i} (h₁ : ∀ i ∈ s, g i ≤ f₁ i) (h₂ : ∀ i ∉ s, g i ≤ f₂ i) :
   g ≤ s.piecewise f₁ f₂ :=
-@piecewise_le α (λ i, order_dual (δ i)) _ s _ _ _ _ h₁ h₂
+@piecewise_le α (λ i, (δ i)ᵒᵈ) _ s _ _ _ _ h₁ h₂
 
 lemma piecewise_le_piecewise {δ : α → Type*} [Π i, preorder (δ i)] {s : set α}
   [Π j, decidable (j ∈ s)] {f₁ f₂ g₁ g₂ : Π i, δ i} (h₁ : ∀ i ∈ s, f₁ i ≤ g₁ i)
@@ -996,7 +1029,7 @@ lemma strict_mono_on.inj_on [linear_order α] [preorder β] {f : α → β} {s :
 lemma strict_anti_on.inj_on [linear_order α] [preorder β] {f : α → β} {s : set α}
   (H : strict_anti_on f s) :
   s.inj_on f :=
-@strict_mono_on.inj_on α (order_dual β) _ _ f s H
+@strict_mono_on.inj_on α βᵒᵈ _ _ f s H
 
 lemma strict_mono_on.comp [preorder α] [preorder β] [preorder γ]
   {g : β → γ} {f : α → β} {s : set α} {t : set β} (hg : strict_mono_on g t)

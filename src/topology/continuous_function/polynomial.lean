@@ -29,7 +29,7 @@ namespace polynomial
 
 
 section
-variables [semiring R] [topological_space R] [topological_ring R]
+variables [semiring R] [topological_space R] [topological_semiring R]
 
 /--
 Every polynomial with coefficients in a topological semiring gives a (bundled) continuous function.
@@ -54,7 +54,7 @@ end
 
 section
 variables {α : Type*} [topological_space α]
-  [comm_semiring R] [topological_space R] [topological_ring R]
+  [comm_semiring R] [topological_space R] [topological_semiring R]
 
 @[simp] lemma aeval_continuous_map_apply (g : R[X]) (f : C(α, R)) (x : α) :
   ((polynomial.aeval f) g) x = g.eval (f x) :=
@@ -71,7 +71,7 @@ section
 
 noncomputable theory
 
-variables [comm_semiring R] [topological_space R] [topological_ring R]
+variables [comm_semiring R] [topological_space R] [topological_semiring R]
 
 /--
 The algebra map from `polynomial R` to continuous functions `C(R, R)`.
@@ -102,10 +102,11 @@ end
 end polynomial
 
 section
-variables [comm_semiring R] [topological_space R] [topological_ring R]
+variables [comm_semiring R] [topological_space R] [topological_semiring R]
 
 /--
-The subalgebra of polynomial functions in `C(X, R)`, for `X` a subset of some topological ring `R`.
+The subalgebra of polynomial functions in `C(X, R)`, for `X` a subset of some topological semiring
+`R`.
 -/
 def polynomial_functions (X : set R) : subalgebra R C(X, R) :=
 (⊤ : subalgebra R R[X]).map (polynomial.to_continuous_map_on_alg_hom X)
@@ -152,7 +153,7 @@ begin
       simp only [neg_mul,
         ring_hom.map_neg, ring_hom.map_mul, alg_hom.coe_to_ring_hom,
         polynomial.eval_X, polynomial.eval_neg, polynomial.eval_C, polynomial.eval_smul,
-        polynomial.eval_mul, polynomial.eval_add, polynomial.coe_aeval_eq_eval,
+        smul_eq_mul, polynomial.eval_mul, polynomial.eval_add, polynomial.coe_aeval_eq_eval,
         polynomial.eval_comp, polynomial.to_continuous_map_on_alg_hom_apply,
         polynomial.to_continuous_map_on_to_fun, polynomial.to_continuous_map_to_fun],
       convert w ⟨_, _⟩; clear w,

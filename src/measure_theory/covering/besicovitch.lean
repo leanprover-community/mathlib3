@@ -7,7 +7,7 @@ import measure_theory.covering.differentiation
 import measure_theory.covering.vitali_family
 import measure_theory.integral.lebesgue
 import measure_theory.measure.regular
-import set_theory.ordinal_arithmetic
+import set_theory.ordinal.arithmetic
 import topology.metric_space.basic
 
 /-!

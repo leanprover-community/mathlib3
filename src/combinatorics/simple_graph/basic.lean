@@ -33,9 +33,9 @@ finitely many vertices.
    if `incidence_set` is finite
 
 * `simple_graph.dart` is an ordered pair of adjacent vertices, thought of as being an
-  orientated edge.
+  orientated edge. These are also known as "half-edges" or "bonds."
 
-* `simple_graph.homo`, `simple_graph.embedding`, and `simple_graph.iso` for graph
+* `simple_graph.hom`, `simple_graph.embedding`, and `simple_graph.iso` for graph
   homomorphisms, graph embeddings, and
   graph isomorphisms. Note that a graph embedding is a stronger notion than an
   injective graph homomorphism, since its image is an induced subgraph.
@@ -88,6 +88,9 @@ structure simple_graph (V : Type u) :=
 (symm : symmetric adj . obviously)
 (loopless : irreflexive adj . obviously)
 
+noncomputable instance {V : Type u} [fintype V] : fintype (simple_graph V) :=
+by { classical, exact fintype.of_injective simple_graph.adj simple_graph.ext }
+
 /--
 Construct the simple graph induced by the given relation. It
 symmetrizes the relation and makes it irreflexive.
@@ -96,9 +99,6 @@ def simple_graph.from_rel {V : Type u} (r : V → V → Prop) : simple_graph V :
 { adj := λ a b, (a ≠ b) ∧ (r a b ∨ r b a),
   symm := λ a b ⟨hn, hr⟩, ⟨hn.symm, hr.symm⟩,
   loopless := λ a ⟨hn, _⟩, hn rfl }
-
-noncomputable instance {V : Type u} [fintype V] : fintype (simple_graph V) :=
-by { classical, exact fintype.of_injective simple_graph.adj simple_graph.ext }
 
 @[simp]
 lemma simple_graph.from_rel_adj {V : Type u} (r : V → V → Prop) (v w : V) :
@@ -137,7 +137,7 @@ namespace simple_graph
 variables {V : Type u} {W : Type v} {X : Type w} (G : simple_graph V) (G' : simple_graph W)
   {a b c u v w : V} {e : sym2 V}
 
-@[simp] lemma irrefl {v : V} : ¬G.adj v v := G.loopless v
+@[simp] protected lemma irrefl {v : V} : ¬G.adj v v := G.loopless v
 
 lemma adj_comm (u v : V) : G.adj u v ↔ G.adj v u := ⟨λ x, G.symm x, λ x, G.symm x⟩
 
@@ -321,7 +321,9 @@ instance edges_fintype [decidable_eq V] [fintype V] [decidable_rel G.adj] :
 
 /-! ## Darts -/
 
-/-- A `dart` is an oriented edge, implemented as an ordered pair of adjacent vertices. -/
+/-- A `dart` is an oriented edge, implemented as an ordered pair of adjacent vertices.
+This terminology comes from combinatorial maps, and they are also known as "half-edges"
+or "bonds." -/
 @[ext, derive decidable_eq]
 structure dart extends V × V :=
 (is_adj : G.adj fst snd)
@@ -428,7 +430,7 @@ lemma incidence_set_inter_incidence_set_subset (h : a ≠ b) :
   G.incidence_set a ∩ G.incidence_set b ⊆ {⟦(a, b)⟧} :=
 λ e he, (sym2.mem_and_mem_iff h).1 ⟨he.1.2, he.2.2⟩
 
-lemma incidence_set_inter_incidence_set (h : G.adj a b) :
+lemma incidence_set_inter_incidence_set_of_adj (h : G.adj a b) :
   G.incidence_set a ∩ G.incidence_set b = {⟦(a, b)⟧} :=
 begin
   refine (G.incidence_set_inter_incidence_set_subset $ h.ne).antisymm _,
@@ -442,27 +444,35 @@ lemma adj_of_mem_incidence_set (h : a ≠ b) (ha : e ∈ G.incidence_set a)
 by rwa [←mk_mem_incidence_set_left_iff,
   ←set.mem_singleton_iff.1 $ G.incidence_set_inter_incidence_set_subset h ⟨ha, hb⟩]
 
+lemma incidence_set_inter_incidence_set_of_not_adj (h : ¬ G.adj a b) (hn : a ≠ b) :
+  G.incidence_set a ∩ G.incidence_set b = ∅ :=
+begin
+  simp_rw [set.eq_empty_iff_forall_not_mem, set.mem_inter_eq, not_and],
+  intros u ha hb,
+  exact h (G.adj_of_mem_incidence_set hn ha hb),
+end
+
 instance decidable_mem_incidence_set [decidable_eq V] [decidable_rel G.adj] (v : V) :
   decidable_pred (∈ G.incidence_set v) := λ e, and.decidable
 
 /--
 The `edge_set` of the graph as a `finset`.
 -/
-def edge_finset [decidable_eq V] [fintype V] [decidable_rel G.adj] : finset (sym2 V) :=
+@[reducible] def edge_finset [fintype G.edge_set] : finset (sym2 V) :=
 set.to_finset G.edge_set
 
-@[simp] lemma mem_edge_finset [decidable_eq V] [fintype V] [decidable_rel G.adj] (e : sym2 V) :
+@[simp] lemma mem_edge_finset [fintype G.edge_set] (e : sym2 V) :
   e ∈ G.edge_finset ↔ e ∈ G.edge_set :=
 set.mem_to_finset
 
-@[simp] lemma edge_set_univ_card [decidable_eq V] [fintype V] [decidable_rel G.adj] :
+lemma edge_finset_card [fintype G.edge_set] : G.edge_finset.card = fintype.card G.edge_set :=
+set.to_finset_card _
+
+@[simp] lemma edge_set_univ_card [fintype G.edge_set] :
   (univ : finset G.edge_set).card = G.edge_finset.card :=
 fintype.card_of_subtype G.edge_finset (mem_edge_finset _)
 
 @[simp] lemma mem_neighbor_set (v w : V) : w ∈ G.neighbor_set v ↔ G.adj v w :=
-iff.rfl
-
-@[simp] lemma mem_neighbor_set' (v w : V) : G.neighbor_set v w ↔ G.adj v w :=
 iff.rfl
 
 @[simp] lemma mem_incidence_set (v w : V) : ⟦(v, w)⟧ ∈ G.incidence_set v ↔ G.adj v w :=
@@ -587,8 +597,10 @@ end incidence
 
 /-! ## Edge deletion -/
 
-/-- Given a set of vertex pairs, remove all of the corresponding edges from the edge set.
-It is fine to delete edges outside the edge set. -/
+/-- Given a set of vertex pairs, remove all of the corresponding edges from the
+graph's edge set, if present.
+
+See also: `simple_graph.subgraph.delete_edges`. -/
 def delete_edges (s : set (sym2 V)) : simple_graph V :=
 { adj := G.adj \ sym2.to_rel s,
   symm := λ a b, by simp [adj_comm, sym2.eq_swap] }
@@ -688,6 +700,11 @@ lemma card_incidence_set_eq_degree [decidable_eq V] :
 by { rw fintype.card_congr (G.incidence_set_equiv_neighbor_set v), simp }
 
 @[simp]
+lemma card_incidence_finset_eq_degree [decidable_eq V] :
+  (G.incidence_finset v).card = G.degree v :=
+by { rw ← G.card_incidence_set_eq_degree, apply set.to_finset_card }
+
+@[simp]
 lemma mem_incidence_finset [decidable_eq V] (e : sym2 V) :
   e ∈ G.incidence_finset v ↔ e ∈ G.incidence_set v :=
 set.mem_to_finset
@@ -735,7 +752,7 @@ by { ext, simp }
 
 lemma neighbor_finset_compl [decidable_eq V] [decidable_rel G.adj] (v : V) :
   Gᶜ.neighbor_finset v = (G.neighbor_finset v)ᶜ \ {v} :=
-by simp only [neighbor_finset, neighbor_set_compl, set.to_finset_sdiff, set.to_finset_compl,
+by simp only [neighbor_finset, neighbor_set_compl, set.to_finset_diff, set.to_finset_compl,
     set.to_finset_singleton]
 
 @[simp]
@@ -897,17 +914,17 @@ begin
   { rw finset.insert_subset,
     split,
     { simpa, },
-    { rw [neighbor_finset, ← set.subset_iff_to_finset_subset],
+    { rw [neighbor_finset, set.to_finset_mono],
       exact G.common_neighbors_subset_neighbor_set_left _ _ } }
 end
 
 lemma card_common_neighbors_top [decidable_eq V] {v w : V} (h : v ≠ w) :
   fintype.card ((⊤ : simple_graph V).common_neighbors v w) = fintype.card V - 2 :=
 begin
-  simp only [common_neighbors_top_eq, ← set.to_finset_card, set.to_finset_sdiff],
+  simp only [common_neighbors_top_eq, ← set.to_finset_card, set.to_finset_diff],
   rw finset.card_sdiff,
   { simp [finset.card_univ, h], },
-  { simp only [←set.subset_iff_to_finset_subset, set.subset_univ] },
+  { simp only [set.to_finset_mono, set.subset_univ] },
 end
 
 end finite
@@ -963,7 +980,13 @@ The underlying map on edges is given by `sym2.map`. -/
 @[simps] def map_neighbor_set (v : V) (w : G.neighbor_set v) : G'.neighbor_set (f v) :=
 ⟨f w, f.apply_mem_neighbor_set w.property⟩
 
+/-- The map between darts induced by a homomorphism. -/
+def map_dart (d : G.dart) : G'.dart := ⟨d.1.map f f, f.map_adj d.2⟩
+
+@[simp] lemma map_dart_apply (d : G.dart) : f.map_dart d = ⟨d.1.map f f, f.map_adj d.2⟩ := rfl
+
 /-- The induced map for spanning subgraphs, which is the identity on vertices. -/
+@[simps]
 def map_spanning_subgraphs {G G' : simple_graph V} (h : G ≤ G') : G →g G' :=
 { to_fun := λ x, x,
   map_rel' := h }
@@ -1017,7 +1040,8 @@ map_adj_iff f
   end }
 
 /-- Embeddings of types induce embeddings of complete graphs on those types. -/
-def complete_graph.of_embedding {α β : Type*} (f : α ↪ β) : complete_graph α ↪g complete_graph β :=
+protected def complete_graph {α β : Type*} (f : α ↪ β) :
+  (⊤ : simple_graph α) ↪g (⊤ : simple_graph β) :=
 { to_fun := f,
   inj' := f.inj',
   map_rel_iff' := by simp }

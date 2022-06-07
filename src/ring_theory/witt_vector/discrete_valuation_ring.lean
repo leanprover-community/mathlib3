@@ -64,7 +64,7 @@ units.mk_of_mul_eq_one A (witt_vector.mk p (inverse_coeff a A))
     let H_coeff := A.coeff (n + 1) * ↑(a⁻¹ ^ p ^ (n + 1))
       + nth_remainder p n (truncate_fun (n + 1) A) (λ (i : fin (n + 1)), inverse_coeff a A i),
     have H := units.mul_inv (a ^ p ^ (n + 1)),
-    linear_combination (H, -H_coeff) { normalize := ff },
+    linear_combination -H_coeff*H with { normalize := ff },
     have ha : (a:k) ^ (p ^ (n + 1)) = ↑(a ^ (p ^ (n + 1))) := by norm_cast,
     have ha_inv : (↑(a⁻¹):k) ^ (p ^ (n + 1)) = ↑(a ^ (p ^ (n + 1)))⁻¹ :=
       by exact_mod_cast inv_pow _ _,
@@ -147,7 +147,17 @@ begin
   exact ⟨m, mk_unit hb₀, h₂⟩,
 end
 
-instance : discrete_valuation_ring (𝕎 k) :=
+/-
+Note: The following lemma should be an instance, but it seems to cause some
+exponential blowups in certain typeclass resolution problems.
+See the following Lean4 issue as well as the zulip discussion linked there:
+https://github.com/leanprover/lean4/issues/1102
+-/
+
+/--
+The ring of Witt Vectors of a perfect field of positive characteristic is a DVR.
+-/
+lemma discrete_valuation_ring : discrete_valuation_ring (𝕎 k) :=
 discrete_valuation_ring.of_has_unit_mul_pow_irreducible_factorization
 begin
   refine ⟨p, irreducible p, λ x hx, _⟩,

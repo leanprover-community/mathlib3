@@ -41,6 +41,8 @@ instance : has_coe_to_sort PartialFun Type* := ⟨id⟩
 /-- Turns a type into a `PartialFun`. -/
 @[nolint has_inhabited_instance] def of : Type* → PartialFun := id
 
+@[simp] lemma coe_of (X : Type*) : ↥(of X) = X := rfl
+
 instance : inhabited PartialFun := ⟨Type*⟩
 
 instance large_category : large_category.{u} PartialFun :=
@@ -116,8 +118,7 @@ equivalence.mk PartialFun_to_Pointed Pointed_to_PartialFun
         dsimp,
         simp_rw [part.mem_some_iff, subtype.mk_eq_mk, exists_prop, some_inj, exists_eq_right'],
         refine part.mem_to_option.symm.trans _,
-        convert eq_comm,
-        convert rfl,
+        exact eq_comm,
       end)
   (nat_iso.of_components (λ X, Pointed.iso.mk
     { to_fun := λ a, a.elim X.point subtype.val,

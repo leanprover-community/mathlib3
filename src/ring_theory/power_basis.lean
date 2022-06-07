@@ -209,7 +209,7 @@ nat_degree_eq_of_degree_eq_some pb.degree_minpoly_gen
 
 lemma minpoly_gen_monic (pb : power_basis A S) : monic (minpoly_gen pb) :=
 begin
-  apply monic_sub_of_left (monic_pow (monic_X) _),
+  apply (monic_X_pow _).sub_of_left _,
   rw degree_X_pow,
   exact degree_sum_fin_lt _
 end

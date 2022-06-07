@@ -54,7 +54,7 @@ by { delta minpoly, rw dif_pos hx, exact (well_founded.min_mem degree_lt_wf _ hx
 
 /-- A minimal polynomial is nonzero. -/
 lemma ne_zero [nontrivial A] (hx : is_integral A x) : minpoly A x ≠ 0 :=
-ne_zero_of_monic (monic hx)
+(monic hx).ne_zero
 
 lemma eq_zero (hx : ¬ is_integral A x) : minpoly A x = 0 :=
 dif_neg hx
@@ -154,10 +154,11 @@ nat_degree_pos_iff_degree_pos.mp (nat_degree_pos hx)
 
 /-- If `B/A` is an injective ring extension, and `a` is an element of `A`,
 then the minimal polynomial of `algebra_map A B a` is `X - C a`. -/
-lemma eq_X_sub_C_of_algebra_map_inj [nontrivial A]
+lemma eq_X_sub_C_of_algebra_map_inj
   (a : A) (hf : function.injective (algebra_map A B)) :
   minpoly A (algebra_map A B a) = X - C a :=
 begin
+  nontriviality A,
   have hdegle : (minpoly A (algebra_map A B a)).nat_degree ≤ 1,
   { apply with_bot.coe_le_coe.1,
     rw [←degree_eq_nat_degree (ne_zero (@is_integral_algebra_map A B _ _ _ a)),
@@ -174,7 +175,7 @@ begin
   { have hroot := aeval A (algebra_map A B a),
     rw [hrw, add_comm] at hroot,
     simp only [aeval_C, aeval_X, aeval_add] at hroot,
-    replace hroot := eq_neg_of_add_eq_zero hroot,
+    replace hroot := eq_neg_of_add_eq_zero_left hroot,
     rw [←ring_hom.map_neg _ a] at hroot,
     exact (hf hroot) },
   rw hrw,
@@ -270,6 +271,9 @@ calc degree (minpoly A x) ≤ degree (p * C (leading_coeff p)⁻¹) :
     min A x (monic_mul_leading_coeff_inv pnz) (by simp [hp])
   ... = degree p : degree_mul_leading_coeff_inv p pnz
 
+lemma ne_zero_of_finite_field_extension (e : B) [finite_dimensional A B] : minpoly A e ≠ 0 :=
+minpoly.ne_zero $ is_integral_of_noetherian (is_noetherian.iff_fg.2 infer_instance) _
+
 /-- The minimal polynomial of an element `x` is uniquely characterized by its defining property:
 if there is another monic polynomial of minimal degree that has `x` as a root,
 then this polynomial is equal to the minimal polynomial of `x`. -/
@@ -359,7 +363,7 @@ minpoly.unique _ _ (minpoly.monic hx)
     (is_scalar_tower.aeval_eq_zero_of_aeval_algebra_map_eq_zero K S T hST
       (h ▸ root_q : polynomial.aeval (algebra_map S T x) q = 0)))
 
-lemma minpoly_add_algebra_map {B : Type*} [comm_ring B] [algebra A B] {x : B}
+lemma add_algebra_map {B : Type*} [comm_ring B] [algebra A B] {x : B}
   (hx : is_integral A x) (a : A) :
   minpoly A (x + (algebra_map A B a)) = (minpoly A x).comp (X - C a) :=
 begin
@@ -375,10 +379,10 @@ begin
       nat_degree_X_add_C, mul_one] at H }
 end
 
-lemma minpoly_sub_algebra_map {B : Type*} [comm_ring B] [algebra A B] {x : B}
+lemma sub_algebra_map {B : Type*} [comm_ring B] [algebra A B] {x : B}
   (hx : is_integral A x) (a : A) :
   minpoly A (x - (algebra_map A B a)) = (minpoly A x).comp (X + C a) :=
-by simpa [sub_eq_add_neg] using minpoly_add_algebra_map hx (-a)
+by simpa [sub_eq_add_neg] using add_algebra_map hx (-a)
 
 section gcd_domain
 
@@ -396,7 +400,7 @@ begin
       (polynomial.monic.is_primitive (monic hx))).1 (irreducible hx) },
   { have htower := is_scalar_tower.aeval_apply A K R x (minpoly A x),
     rwa [aeval, eq_comm] at htower },
-  { exact monic_map _ (monic hx) }
+  { exact (monic hx).map _ }
 end
 
 /-- For GCD domains, the minimal polynomial divides any primitive polynomial that has the integral

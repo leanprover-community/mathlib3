@@ -3,6 +3,7 @@ Copyright (c) 2022 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
+import analysis.normed_space.basic
 import topology.metric_space.pi_nat
 import topology.metric_space.isometry
 import topology.metric_space.gluing
@@ -19,7 +20,7 @@ In this file, we establish the basic properties of Polish spaces.
 * `polish_space α` is a mixin typeclass on a topological space, requiring that the topology is
   second-countable and compatible with a complete metric. To endow the space with such a metric,
   use in a proof `letI := upgrade_polish_space α`.
-  We register an instance from complete second-countable metric spaces to polish spaces, not the
+  We register an instance from complete second-countable metric spaces to Polish spaces, not the
   other way around.
 * We register that countable products and sums of Polish spaces are Polish.
 * `is_closed.polish_space`: a closed subset of a Polish space is Polish.

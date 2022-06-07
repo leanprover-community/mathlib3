@@ -30,6 +30,8 @@ instance (X : DistribLattice) : distrib_lattice X := X.str
 /-- Construct a bundled `DistribLattice` from a `distrib_lattice` underlying type and typeclass. -/
 def of (α : Type*) [distrib_lattice α] : DistribLattice := bundled.of α
 
+@[simp] lemma coe_of (α : Type*) [distrib_lattice α] : ↥(of α) = α := rfl
+
 instance : inhabited DistribLattice := ⟨of punit⟩
 
 instance : bundled_hom.parent_projection @distrib_lattice.to_lattice := ⟨⟩
@@ -48,7 +50,7 @@ instance has_forget_to_Lattice : has_forget₂ DistribLattice Lattice := bundled
 
 /-- `order_dual` as a functor. -/
 @[simps] def dual : DistribLattice ⥤ DistribLattice :=
-{ obj := λ X, of (order_dual X), map := λ X Y, lattice_hom.dual }
+{ obj := λ X, of Xᵒᵈ, map := λ X Y, lattice_hom.dual }
 
 /-- The equivalence between `DistribLattice` and itself induced by `order_dual` both ways. -/
 @[simps functor inverse] def dual_equiv : DistribLattice ≌ DistribLattice :=

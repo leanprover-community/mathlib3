@@ -1133,33 +1133,33 @@ end const
 section arithmetic
 /-! #### Arithmetic -/
 
-variables {S: topological_space.opens 𝕜 }
+variables {S: topological_space.opens 𝕜}
 
 lemma mdifferentiable_add (f g : S → 𝕜)
-(hf : mdifferentiable 𝓘(𝕜) 𝓘(𝕜) f) (hf'' : mdifferentiable 𝓘(𝕜) 𝓘(𝕜) g) :
+(hf : mdifferentiable 𝓘(𝕜) 𝓘(𝕜) f) (hg : mdifferentiable 𝓘(𝕜) 𝓘(𝕜) g) :
 mdifferentiable 𝓘(𝕜) 𝓘(𝕜) (f + g) :=
 begin
   simp_rw mdifferentiable at *,
   simp only [mdifferentiable_at, differentiable_within_at_univ] at *,
   intro x,
   split,
-  { apply continuous_at.add (hf x).1 (hf'' x).1 },
-  { convert (differentiable_within_at.add (hf x).2 (hf'' x).2) },
+  { apply continuous_at.add (hf x).1 (hg x).1 },
+  { convert (differentiable_within_at.add (hf x).2 (hg x).2) },
 end
 
 lemma mdifferentiable_mul (f g : S → 𝕜)
-(hf : mdifferentiable 𝓘(𝕜) 𝓘(𝕜) f) (hf'' : mdifferentiable 𝓘(𝕜) 𝓘(𝕜) g) :
+(hf : mdifferentiable 𝓘(𝕜) 𝓘(𝕜) f) (hg : mdifferentiable 𝓘(𝕜) 𝓘(𝕜) g) :
 mdifferentiable 𝓘(𝕜) 𝓘(𝕜) (f * g) :=
 begin
   simp_rw mdifferentiable at *,
   simp only [mdifferentiable_at, differentiable_within_at_univ] at *,
   intro x,
   split,
-  apply continuous_at.mul (hf x).1 (hf'' x).1,
-  convert (differentiable_within_at.mul (hf x).2 (hf'' x).2),
+  apply continuous_at.mul (hf x).1 (hg x).1,
+  convert (differentiable_within_at.mul (hf x).2 (hg x).2),
 end
 
-lemma mdifferentiable_smul (f : S → 𝕜) (s : 𝕜) (hf : mdifferentiable 𝓘(𝕜) 𝓘(𝕜) f ) :
+lemma mdifferentiable_smul (f : S → 𝕜) (s : 𝕜) (hf : mdifferentiable 𝓘(𝕜) 𝓘(𝕜) f) :
   mdifferentiable 𝓘(𝕜) 𝓘(𝕜) (s • f) :=
 begin
   simp_rw mdifferentiable at *,

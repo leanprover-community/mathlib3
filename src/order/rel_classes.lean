@@ -237,12 +237,16 @@ noncomputable def is_well_order.linear_order (r : α → α → Prop) [is_well_o
   linear_order α :=
 by { letI := λ x y, classical.dec (¬r x y), exact linear_order_of_STO' r }
 
-instance subsingleton.is_well_order [subsingleton α] (r : α → α → Prop) [hr : is_irrefl α r] :
+-- This isn't made into an instance as it loops with `is_irrefl α r`.
+theorem subsingleton.is_well_order [subsingleton α] (r : α → α → Prop) [hr : is_irrefl α r] :
   is_well_order α r :=
 { trichotomous := λ a b, or.inr $ or.inl $ subsingleton.elim a b,
   trans        := λ a b c h, (not_rel r a b h).elim,
   wf           := ⟨λ a, ⟨_, λ y h, (not_rel r y a h).elim⟩⟩,
   ..hr }
+
+instance empty_relation.is_well_order [subsingleton α] : is_well_order α empty_relation :=
+subsingleton.is_well_order _
 
 instance prod.lex.is_well_order [is_well_order α r] [is_well_order β s] :
   is_well_order (α × β) (prod.lex r s) :=

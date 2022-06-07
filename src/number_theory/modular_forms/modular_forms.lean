@@ -58,7 +58,7 @@ lemma slash_k_right_action (k : ℤ) (A B : GL(2, ℝ)⁺) (f : ℍ → ℂ) :
 begin
   ext1,
   simp_rw [slash_k,(upper_half_plane.denom_cocycle A B x)],
-  have e3 : (A * B) • x = A • B • x , by {convert (upper_half_plane.mul_smul' A B x),} ,
+  have e3 : (A * B) • x = A • B • x , by { convert (upper_half_plane.mul_smul' A B x), } ,
   rw e3,
   simp only [upper_half_plane.num, upper_half_plane.denom, of_real_mul, subgroup.coe_mul, coe_coe,
     upper_half_plane.coe_smul, units.coe_mul, matrix.mul_eq_mul, matrix.det_mul,
@@ -112,7 +112,7 @@ begin
   all_goals { norm_cast, apply (matrix.GL_pos.det_ne_zero A), }, },
   have h22 : (upper_half_plane.denom A x)^(-(k1+k2)) = (upper_half_plane.denom A x)^(-k1) *
     (upper_half_plane.denom A x)^(-k2),
-  by {rw [int.neg_add, zpow_add₀], exact upper_half_plane.denom_ne_zero A x,},
+  by { rw [int.neg_add, zpow_add₀], exact upper_half_plane.denom_ne_zero A x, },
   rw [h1,h22],
   simp only [upper_half_plane.denom, pi.mul_apply, coe_coe, zpow_neg, algebra.smul_mul_assoc,
     pi.smul_apply, real_smul],

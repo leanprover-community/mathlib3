@@ -5,8 +5,8 @@ Authors: Chris Hughes
 -/
 import order.lattice
 import data.list.sort
-import data.equiv.fin
-import data.equiv.functor
+import logic.equiv.fin
+import logic.equiv.functor
 /-!
 # Jordan-Hölder Theorem
 
@@ -163,7 +163,7 @@ theorem lt_succ (s : composition_series X) (i : fin s.length) :
 lt_of_is_maximal (s.step _)
 
 protected theorem strict_mono (s : composition_series X) : strict_mono s :=
-fin.strict_mono_iff_lt_succ.2 (λ i h, s.lt_succ ⟨i, nat.lt_of_succ_lt_succ h⟩)
+fin.strict_mono_iff_lt_succ.2 s.lt_succ
 
 protected theorem injective (s : composition_series X) : function.injective s :=
 s.strict_mono.injective

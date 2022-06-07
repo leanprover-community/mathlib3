@@ -224,11 +224,10 @@ instance : has_sub ℕ+ := ⟨λ a b, to_pnat' (a - b : ℕ)⟩
 
 theorem sub_coe (a b : ℕ+) : ((a - b : ℕ+) : ℕ) = ite (b < a) (a - b : ℕ) 1 :=
 begin
-  change ((to_pnat' ((a : ℕ) - (b :  ℕ)) : ℕ)) =
-    ite ((a : ℕ) > (b : ℕ)) ((a : ℕ) - (b : ℕ)) 1,
+  change (to_pnat' _ : ℕ) = ite _ _ _,
   split_ifs with h,
   { exact to_pnat'_coe (tsub_pos_of_lt h) },
-  { rw [tsub_eq_zero_iff_le.mpr (le_of_not_gt h)], refl }
+  { rw tsub_eq_zero_iff_le.mpr (le_of_not_gt h : (a : ℕ) ≤ b), refl }
 end
 
 theorem add_sub_of_lt {a b : ℕ+} : a < b → a + (b - a) = b :=

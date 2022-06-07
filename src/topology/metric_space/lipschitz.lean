@@ -6,8 +6,6 @@ Authors: Rohan Mitta, Kevin Buzzard, Alistair Tucker, Johannes Hölzl, Yury Kudr
 import logic.function.iterate
 import data.set.intervals.proj_Icc
 import topology.metric_space.basic
-import category_theory.endomorphism
-import category_theory.types
 
 /-!
 # Lipschitz continuous functions
@@ -238,21 +236,21 @@ begin
   simpa only [ennreal.coe_pow] using (hf.iterate n) x (f x)
 end
 
-open category_theory
-
-protected lemma mul {f g : End α} {Kf Kg} (hf : lipschitz_with Kf f) (hg : lipschitz_with Kg g) :
-  lipschitz_with (Kf * Kg) (f * g : End α) :=
+protected lemma mul {f g : function.End α} {Kf Kg} (hf : lipschitz_with Kf f)
+  (hg : lipschitz_with Kg g) :
+  lipschitz_with (Kf * Kg) (f * g : function.End α) :=
 hf.comp hg
 
 /-- The product of a list of Lipschitz continuous endomorphisms is a Lipschitz continuous
 endomorphism. -/
-protected lemma list_prod (f : ι → End α) (K : ι → ℝ≥0) (h : ∀ i, lipschitz_with (K i) (f i)) :
+protected lemma list_prod (f : ι → function.End α) (K : ι → ℝ≥0)
+  (h : ∀ i, lipschitz_with (K i) (f i)) :
   ∀ l : list ι, lipschitz_with (l.map K).prod (l.map f).prod
-| [] := by simp [types_id, lipschitz_with.id]
+| [] := by simpa using lipschitz_with.id
 | (i :: l) := by { simp only [list.map_cons, list.prod_cons], exact (h i).mul (list_prod l) }
 
-protected lemma pow {f : End α} {K} (h : lipschitz_with K f) :
-  ∀ n : ℕ, lipschitz_with (K^n) (f^n : End α)
+protected lemma pow {f : function.End α} {K} (h : lipschitz_with K f) :
+  ∀ n : ℕ, lipschitz_with (K^n) (f^n : function.End α)
 | 0       := lipschitz_with.id
 | (n + 1) := by { rw [pow_succ, pow_succ], exact h.mul (pow n) }
 
@@ -388,6 +386,29 @@ protected lemma proj_Icc {a b : ℝ} (h : a ≤ b) :
 ((lipschitz_with.id.const_min _).const_max _).subtype_mk _
 
 end lipschitz_with
+
+namespace metric
+
+variables [pseudo_metric_space α] [pseudo_metric_space β] {s : set α} {t : set β}
+
+lemma bounded.left_of_prod (h : bounded (s ×ˢ t)) (ht : t.nonempty) : bounded s :=
+by simpa only [fst_image_prod s ht] using (@lipschitz_with.prod_fst α β _ _).bounded_image h
+
+lemma bounded.right_of_prod (h : bounded (s ×ˢ t)) (hs : s.nonempty) : bounded t :=
+by simpa only [snd_image_prod hs t] using (@lipschitz_with.prod_snd α β _ _).bounded_image h
+
+lemma bounded_prod_of_nonempty (hs : s.nonempty) (ht : t.nonempty) :
+  bounded (s ×ˢ t) ↔ bounded s ∧ bounded t :=
+⟨λ h, ⟨h.left_of_prod ht, h.right_of_prod hs⟩, λ h, h.1.prod h.2⟩
+
+lemma bounded_prod : bounded (s ×ˢ t) ↔ s = ∅ ∨ t = ∅ ∨ bounded s ∧ bounded t :=
+begin
+  rcases s.eq_empty_or_nonempty with rfl|hs, { simp },
+  rcases t.eq_empty_or_nonempty with rfl|ht, { simp },
+  simp only [bounded_prod_of_nonempty hs ht, hs.ne_empty, ht.ne_empty, false_or]
+end
+
+end metric
 
 namespace lipschitz_on_with
 

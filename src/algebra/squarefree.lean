@@ -6,6 +6,7 @@ Authors: Aaron Anderson
 import ring_theory.unique_factorization_domain
 import ring_theory.int.basic
 import number_theory.divisors
+import algebra.is_prime_pow
 
 /-!
 # Squarefree elements of monoids
@@ -49,6 +50,13 @@ begin
   exact ⟨0, by simp⟩,
 end
 
+lemma squarefree.ne_zero [monoid_with_zero R] [nontrivial R] {m : R}
+  (hm : squarefree (m : R)) : m ≠ 0 :=
+begin
+  rintro rfl,
+  exact not_squarefree_zero hm,
+end
+
 @[simp]
 lemma irreducible.squarefree [comm_monoid R] {x : R} (h : irreducible x) :
   squarefree x :=
@@ -64,6 +72,12 @@ end
 lemma prime.squarefree [cancel_comm_monoid_with_zero R] {x : R} (h : prime x) :
   squarefree x :=
 h.irreducible.squarefree
+
+lemma squarefree.of_mul_left [comm_monoid R] {m n : R} (hmn : squarefree (m * n)) : squarefree m :=
+(λ p hp, hmn p (dvd_mul_of_dvd_left hp n))
+
+lemma squarefree.of_mul_right [comm_monoid R] {m n : R} (hmn : squarefree (m * n)) : squarefree n :=
+(λ p hp, hmn p (dvd_mul_of_dvd_right hp m))
 
 lemma squarefree_of_dvd_of_squarefree [comm_monoid R]
   {x y : R} (hdvd : x ∣ y) (hsq : squarefree y) :
@@ -213,6 +227,75 @@ end
 theorem squarefree_iff_prime_squarefree {n : ℕ} : squarefree n ↔ ∀ x, prime x → ¬ x * x ∣ n :=
 squarefree_iff_irreducible_sq_not_dvd_of_exists_irreducible ⟨_, prime_two⟩
 
+lemma squarefree.factorization_le_one {n : ℕ} (p : ℕ) (hn : squarefree n) :
+  n.factorization p ≤ 1 :=
+begin
+  rcases eq_or_ne n 0 with rfl | hn',
+  { simp },
+  rw [multiplicity.squarefree_iff_multiplicity_le_one] at hn,
+  by_cases hp : p.prime,
+  { have := hn p,
+    simp only [multiplicity_eq_factorization hp hn', nat.is_unit_iff, hp.ne_one, or_false] at this,
+    exact_mod_cast this },
+  { rw factorization_eq_zero_of_non_prime _ hp,
+    exact zero_le_one }
+end
+
+lemma squarefree_of_factorization_le_one {n : ℕ} (hn : n ≠ 0) (hn' : ∀ p, n.factorization p ≤ 1) :
+  squarefree n :=
+begin
+  rw [squarefree_iff_nodup_factors hn, list.nodup_iff_count_le_one],
+  intro a,
+  rw factors_count_eq,
+  apply hn',
+end
+
+lemma squarefree_iff_factorization_le_one {n : ℕ} (hn : n ≠ 0) :
+  squarefree n ↔ ∀ p, n.factorization p ≤ 1 :=
+⟨λ p hn, squarefree.factorization_le_one hn p, squarefree_of_factorization_le_one hn⟩
+
+lemma squarefree.ext_iff {n m : ℕ} (hn : squarefree n) (hm : squarefree m) :
+  n = m ↔ ∀ p, prime p → (p ∣ n ↔ p ∣ m) :=
+begin
+  refine ⟨by { rintro rfl, simp }, λ h, eq_of_factorization_eq hn.ne_zero hm.ne_zero (λ p, _)⟩,
+  by_cases hp : p.prime,
+  { have h₁ := h _ hp,
+    rw [←not_iff_not, hp.dvd_iff_one_le_factorization hn.ne_zero, not_le, lt_one_iff,
+      hp.dvd_iff_one_le_factorization hm.ne_zero, not_le, lt_one_iff] at h₁,
+    have h₂ := squarefree.factorization_le_one p hn,
+    have h₃ := squarefree.factorization_le_one p hm,
+    rw [nat.le_add_one_iff, le_zero_iff] at h₂ h₃,
+    cases h₂,
+    { rwa [h₂, eq_comm, ←h₁] },
+    { rw [h₂, h₃.resolve_left],
+      rw [←h₁, h₂],
+      simp only [nat.one_ne_zero, not_false_iff] } },
+  rw [factorization_eq_zero_of_non_prime _ hp, factorization_eq_zero_of_non_prime _ hp],
+end
+
+lemma squarefree_pow_iff {n k : ℕ} (hn : n ≠ 1) (hk : k ≠ 0) :
+  squarefree (n ^ k) ↔ squarefree n ∧ k = 1 :=
+begin
+  refine ⟨λ h, _, by { rintro ⟨hn, rfl⟩, simpa }⟩,
+  rcases eq_or_ne n 0 with rfl | hn₀,
+  { simpa [zero_pow hk.bot_lt] using h },
+  refine ⟨squarefree_of_dvd_of_squarefree (dvd_pow_self _ hk) h, by_contradiction $ λ h₁, _⟩,
+  have : 2 ≤ k := k.two_le_iff.mpr ⟨hk, h₁⟩,
+  apply hn (nat.is_unit_iff.1 (h _ _)),
+  rw ←sq,
+  exact pow_dvd_pow _ this
+end
+
+lemma squarefree_and_prime_pow_iff_prime {n : ℕ} :
+  squarefree n ∧ is_prime_pow n ↔ prime n :=
+begin
+  refine iff.symm ⟨λ hn, ⟨hn.squarefree, hn.is_prime_pow⟩, _⟩,
+  rw is_prime_pow_nat_iff,
+  rintro ⟨h, p, k, hp, hk, rfl⟩,
+  rw squarefree_pow_iff hp.ne_one hk.ne' at h,
+  rwa [h.2, pow_one],
+end
+
 /-- Assuming that `n` has no factors less than `k`, returns the smallest prime `p` such that
   `p^2 ∣ n`. -/
 def min_sq_fac_aux : ℕ → ℕ → option ℕ
@@ -349,7 +432,7 @@ lemma divisors_filter_squarefree {n : ℕ} (h0 : n ≠ 0) :
     (unique_factorization_monoid.normalized_factors n).to_finset.powerset.val.map
       (λ x, x.val.prod) :=
 begin
-  rw multiset.nodup_ext (finset.nodup _) (multiset.nodup_map_on _ (finset.nodup _)),
+  rw (finset.nodup _).ext ((finset.nodup _).map_on _),
   { intro a,
     simp only [multiset.mem_filter, id.def, multiset.mem_map, finset.filter_val, ← finset.mem_def,
       mem_divisors],
@@ -445,10 +528,16 @@ begin
     exact ⟨a, b, h₁, h₂⟩ },
 end
 
-lemma squarefree_iff_prime_sq_not_dvd (n : ℕ) :
-  squarefree n ↔ ∀ x : ℕ, x.prime → ¬ x * x ∣ n :=
-squarefree_iff_irreducible_sq_not_dvd_of_exists_irreducible
-  ⟨2, (irreducible_iff_nat_prime _).2 prime_two⟩
+/-- `squarefree` is multiplicative. Note that the → direction does not require `hmn`
+and generalizes to arbitrary commutative monoids. See `squarefree.of_mul_left` and
+`squarefree.of_mul_right` above for auxiliary lemmas. -/
+lemma squarefree_mul {m n : ℕ} (hmn : m.coprime n) :
+  squarefree (m * n) ↔ squarefree m ∧ squarefree n :=
+begin
+  simp only [squarefree_iff_prime_squarefree, ←sq, ←forall_and_distrib],
+  refine ball_congr (λ p hp, _),
+  simp only [hmn.is_prime_pow_dvd_mul (hp.is_prime_pow.pow two_ne_zero), not_or_distrib],
+end
 
 end nat
 

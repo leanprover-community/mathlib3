@@ -9,6 +9,7 @@ import data.nat.gcd
 import data.nat.sqrt_norm_num
 import data.set.finite
 import tactic.wlog
+import algebra.parity
 
 /-!
 # Prime numbers
@@ -24,8 +25,8 @@ This file deals with prime numbers: natural numbers `p ≥ 2` whose only divisor
   This also appears as `nat.not_bdd_above_set_of_prime` and `nat.infinite_set_of_prime`.
 - `nat.factors n`: the prime factorization of `n`
 - `nat.factors_unique`: uniqueness of the prime factorisation
-* `nat.prime_iff`: `nat.prime` coincides with the general definition of `prime`
-* `nat.irreducible_iff_prime`: a non-unit natural number is only divisible by `1` iff it is prime
+- `nat.prime_iff`: `nat.prime` coincides with the general definition of `prime`
+- `nat.irreducible_iff_prime`: a non-unit natural number is only divisible by `1` iff it is prime
 
 -/
 
@@ -62,12 +63,6 @@ instance prime.one_lt' (p : ℕ) [hp : _root_.fact p.prime] : _root_.fact (1 < p
 
 lemma prime.ne_one {p : ℕ} (hp : p.prime) : p ≠ 1 :=
 hp.one_lt.ne'
-
-lemma two_le_iff (n : ℕ) : 2 ≤ n ↔ n ≠ 0 ∧ ¬is_unit n :=
-begin
-  rw nat.is_unit_iff,
-  rcases n with _|_|m; norm_num [one_lt_succ_succ, succ_le_iff]
-end
 
 lemma prime.eq_one_or_self_of_dvd {p : ℕ} (pp : p.prime) (m : ℕ) (hm : m ∣ p) : m = 1 ∨ m = p :=
 begin
@@ -178,8 +173,7 @@ by { rw ← h, exact not_prime_mul h₁ h₂ }
 
 lemma prime_mul_iff {a b : ℕ} :
   nat.prime (a * b) ↔ (a.prime ∧ b = 1) ∨ (b.prime ∧ a = 1) :=
-by cases a; cases b; try { cases a; cases b };
-  simp [not_prime_zero, not_prime_one, not_prime_mul]
+by simp only [iff_self, irreducible_mul_iff, ←irreducible_iff_nat_prime, nat.is_unit_iff]
 
 lemma prime.dvd_iff_eq {p a : ℕ} (hp : p.prime) (a1 : a ≠ 1) : a ∣ p ↔ p = a :=
 begin
@@ -428,6 +422,14 @@ p.mod_two_eq_zero_or_one.imp_left
 
 lemma prime.eq_two_or_odd' {p : ℕ} (hp : prime p) : p = 2 ∨ odd p :=
 or.imp_right (λ h, ⟨p / 2, (div_add_mod p 2).symm.trans (congr_arg _ h)⟩) hp.eq_two_or_odd
+
+/-- A prime `p` satisfies `p % 2 = 1` if and only if `p ≠ 2`. -/
+lemma prime.mod_two_eq_one_iff_ne_two {p : ℕ} [fact p.prime] : p % 2 = 1 ↔ p ≠ 2 :=
+begin
+  refine ⟨λ h hf, _, (nat.prime.eq_two_or_odd $ fact.out p.prime).resolve_left⟩,
+  rw hf at h,
+  simpa using h,
+end
 
 theorem coprime_of_dvd {m n : ℕ} (H : ∀ k, prime k → k ∣ m → ¬ k ∣ n) : coprime m n :=
 begin

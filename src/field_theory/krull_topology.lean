@@ -9,7 +9,6 @@ import topology.algebra.filter_basis
 import topology.algebra.open_subgroup
 import tactic.by_contra
 
-
 /-!
 # Krull topology
 
@@ -117,7 +116,7 @@ lemma finite_dimensional_sup {K L: Type*} [field K] [field L] [algebra K L]
 by exactI intermediate_field.finite_dimensional_sup E1 E2
 
 /-- An element of `L ≃ₐ[K] L` is in `Gal(L/E)` if and only if it fixes every element of `E`-/
-lemma mem_fixing_subgroup_iff {K L : Type*} [field K] [field L] [algebra K L]
+lemma intermediate_field.mem_fixing_subgroup_iff {K L : Type*} [field K] [field L] [algebra K L]
   (E : intermediate_field K L) (σ : (L ≃ₐ[K] L)) :
   σ ∈ E.fixing_subgroup ↔∀ (x : L), x ∈ E → σ x = x :=
 ⟨λ hσ x hx, hσ ⟨x, hx⟩, λ h ⟨x, hx⟩, h x hx⟩
@@ -175,12 +174,12 @@ def gal_group_basis (K L : Type*) [field K] [field L] [algebra K L] :
     { apply im_finite_dimensional σ.symm,
       exact hE },
     change σ * g * σ⁻¹ ∈ E.fixing_subgroup,
-    rw mem_fixing_subgroup_iff,
+    rw intermediate_field.mem_fixing_subgroup_iff,
     intros x hx,
     change σ(g(σ⁻¹ x)) = x,
     have h_in_F : σ⁻¹ x ∈ F := ⟨x, hx, by {dsimp, rw ← alg_equiv.inv_fun_eq_symm, refl }⟩,
     have h_g_fix : g (σ⁻¹ x) = (σ⁻¹ x),
-    { rw [subgroup.mem_carrier, mem_fixing_subgroup_iff F g] at hg,
+    { rw [subgroup.mem_carrier, intermediate_field.mem_fixing_subgroup_iff F g] at hg,
       exact hg (σ⁻¹ x) h_in_F },
     rw h_g_fix,
     change σ(σ⁻¹ x) = x,
@@ -255,7 +254,7 @@ lemma krull_topology_t2 {K L : Type*} [field K] [field L] [algebra K L]
     have h_in_H : w1 * w2⁻¹ ∈ H := H.mul_mem (hWH hw1) (H.inv_mem (hWH hw2)),
     rw h at h_in_H,
     change φ ∈ E.fixing_subgroup at h_in_H,
-    rw mem_fixing_subgroup_iff at h_in_H,
+    rw intermediate_field.mem_fixing_subgroup_iff at h_in_H,
     specialize h_in_H x,
     have hxE : x ∈ E,
     { apply intermediate_field.subset_adjoin,
@@ -282,7 +281,8 @@ begin
   refine ⟨left_coset σ E.fixing_subgroup,
     ⟨E.fixing_subgroup_is_open.left_coset σ, E.fixing_subgroup_is_closed.left_coset σ⟩,
     ⟨1, E.fixing_subgroup.one_mem', by simp⟩, _⟩,
-  simp only [mem_left_coset_iff, set_like.mem_coe, mem_fixing_subgroup_iff, not_forall],
+  simp only [mem_left_coset_iff, set_like.mem_coe, intermediate_field.mem_fixing_subgroup_iff,
+    not_forall],
   exact ⟨x, intermediate_field.mem_adjoin_simple_self K x, hx⟩,
 end
 

@@ -52,7 +52,7 @@ that this holds for _all_ `m' ∈ N`. -/
 /- Thus `m * m = m` as desired. -/
     rw ←absorbing_eq_self at hm,
     exact hm.2, },
-  apply zorn.zorn_superset,
+  apply zorn_superset,
   intros c hcs hc,
   refine ⟨⋂₀ c, ⟨is_closed_sInter $ λ t ht, (hcs ht).1, _, _⟩, _⟩,
   { obtain rfl | hcnemp := c.eq_empty_or_nonempty,
@@ -60,7 +60,7 @@ that this holds for _all_ `m' ∈ N`. -/
     convert @is_compact.nonempty_Inter_of_directed_nonempty_compact_closed _ _ _
       (c.nonempty_coe_sort.mpr hcnemp) (coe : c → set M) _ _ _ _,
     { simp only [subtype.range_coe_subtype, set.set_of_mem_eq] } ,
-    { refine directed_on_iff_directed.mp (zorn.chain.directed_on _), exact hc.symm, },
+    { refine directed_on.directed_coe (is_chain.directed_on hc.symm) },
     { intro i, exact (hcs i.property).2.1, },
     { intro i, exact (hcs i.property).1.is_compact, },
     { intro i, exact (hcs i.property).1, }, },

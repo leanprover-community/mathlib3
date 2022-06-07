@@ -45,6 +45,8 @@ variables {n : ℕ+} (K : Type*) [field K] {L : Type*} [field L] {μ : L} (hμ :
 
 open polynomial ne_zero is_cyclotomic_extension
 
+open_locale cyclotomic
+
 namespace is_primitive_root
 
 /-- `is_primitive_root.aut_to_pow` is injective in the case that it's considered over a cyclotomic
@@ -153,8 +155,6 @@ end is_cyclotomic_extension
 section gal
 
 variables (h : irreducible (cyclotomic n K)) {K}
-
-local attribute [instance] splitting_field_X_pow_sub_one splitting_field_cyclotomic
 
 /-- `is_cyclotomic_extension.aut_equiv_pow` repackaged in terms of `gal`. Asserts that the
 Galois group of `cyclotomic n K` is equivalent to `(zmod n)ˣ` if `n` does not divide the

@@ -75,6 +75,8 @@ instance punit.unique : unique punit.{u} :=
 { default := punit.star,
   uniq := λ x, punit_eq x _ }
 
+@[simp] lemma punit.default_eq_star : (default : punit) = punit.star := rfl
+
 /-- Every provable proposition is unique, as all proofs are equal. -/
 def unique_prop {p : Prop} (h : p) : unique p :=
 { default := h, uniq := λ x, rfl }

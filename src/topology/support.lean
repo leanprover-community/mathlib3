@@ -59,6 +59,17 @@ by rw [mul_tsupport, closure_empty_iff, mul_support_eq_empty_iff]
 lemma image_eq_zero_of_nmem_mul_tsupport {f : X → α} {x : X} (hx : x ∉ mul_tsupport f) : f x = 1 :=
 mul_support_subset_iff'.mp (subset_mul_tsupport f) x hx
 
+@[to_additive]
+lemma range_subset_insert_image_mul_tsupport (f : X → α) :
+  range f ⊆ insert 1 (f '' mul_tsupport f) :=
+(range_subset_insert_image_mul_support f).trans $
+  insert_subset_insert $ image_subset _ subset_closure
+
+@[to_additive]
+lemma range_eq_image_mul_tsupport_or (f : X → α) :
+  range f = f '' mul_tsupport f ∨ range f = insert 1 (f '' mul_tsupport f) :=
+(wcovby_insert _ _).eq_or_eq (image_subset_range _ _) (range_subset_insert_image_mul_tsupport f)
+
 end one
 
 section
@@ -110,6 +121,14 @@ lemma has_compact_mul_support_iff_eventually_eq :
     λ x, not_imp_comm.mpr $ λ hx, subset_mul_tsupport f hx⟩,
   λ h, let ⟨C, hC⟩ := mem_coclosed_compact'.mp h in
     compact_of_is_closed_subset hC.2.1 (is_closed_mul_tsupport _) (closure_minimal hC.2.2 hC.1)⟩
+
+@[to_additive]
+lemma has_compact_mul_support.is_compact_range [topological_space β]
+  (h : has_compact_mul_support f) (hf : continuous f) : is_compact (range f) :=
+begin
+  cases range_eq_image_mul_tsupport_or f with h2 h2; rw [h2],
+  exacts [h.image hf, (h.image hf).insert 1]
+end
 
 @[to_additive]
 lemma has_compact_mul_support.mono' {f' : α → γ} (hf : has_compact_mul_support f)
@@ -214,3 +233,46 @@ begin
 end
 
 end mul_zero_class
+
+namespace locally_finite
+
+variables {ι : Type*} {U : ι → set X} [topological_space X] [has_one R]
+
+/-- If a family of functions `f` has locally-finite multiplicative support, subordinate to a family
+of open sets, then for any point we can find a neighbourhood on which only finitely-many members of
+`f` are not equal to 1. -/
+@[to_additive
+/-" If a family of functions `f` has locally-finite support, subordinate to a family of open sets,
+then for any point we can find a neighbourhood on which only finitely-many members of `f` are
+non-zero. "-/]
+lemma exists_finset_nhd_mul_support_subset
+  {f : ι → X → R} (hlf : locally_finite (λ i, mul_support (f i)))
+  (hso : ∀ i, mul_tsupport (f i) ⊆ U i) (ho : ∀ i, is_open (U i)) (x : X) :
+  ∃ (is : finset ι) {n : set X} (hn₁ : n ∈ 𝓝 x) (hn₂ : n ⊆ ⋂ i ∈ is, U i), ∀ (z ∈ n),
+    mul_support (λ i, f i z) ⊆ is :=
+begin
+  obtain ⟨n, hn, hnf⟩ := hlf x,
+  classical,
+  let is := hnf.to_finset.filter (λ i, x ∈ U i),
+  let js := hnf.to_finset.filter (λ j, x ∉ U j),
+  refine ⟨is, n ∩ (⋂ j ∈ js, (mul_tsupport (f j))ᶜ) ∩ (⋂ i ∈ is, U i),
+    inter_mem (inter_mem hn _) _, inter_subset_right _ _, λ z hz, _⟩,
+  { exact (bInter_finset_mem js).mpr (λ j hj, is_closed.compl_mem_nhds
+      (is_closed_mul_tsupport _) (set.not_mem_subset (hso j) (finset.mem_filter.mp hj).2)), },
+  { exact (bInter_finset_mem is).mpr (λ i hi, (ho i).mem_nhds (finset.mem_filter.mp hi).2) },
+  { have hzn : z ∈ n,
+    { rw inter_assoc at hz,
+      exact mem_of_mem_inter_left hz, },
+    replace hz := mem_of_mem_inter_right (mem_of_mem_inter_left hz),
+    simp only [finset.mem_filter, finite.mem_to_finset, mem_set_of_eq, mem_Inter, and_imp] at hz,
+    suffices : mul_support (λ i, f i z) ⊆ hnf.to_finset,
+    { refine hnf.to_finset.subset_coe_filter_of_subset_forall _ this (λ i hi, _),
+      specialize hz i ⟨z, ⟨hi, hzn⟩⟩,
+      contrapose hz,
+      simp [hz, subset_mul_tsupport (f i) hi], },
+    intros i hi,
+    simp only [finite.coe_to_finset, mem_set_of_eq],
+    exact ⟨z, ⟨hi, hzn⟩⟩, },
+end
+
+end locally_finite

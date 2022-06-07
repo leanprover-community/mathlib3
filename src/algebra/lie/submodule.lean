@@ -53,6 +53,11 @@ instance : set_like (lie_submodule R L M) M :=
 { coe := carrier,
   coe_injective' := λ N O h, by cases N; cases O; congr' }
 
+instance : add_subgroup_class (lie_submodule R L M) M :=
+{ add_mem := λ N, N.add_mem',
+  zero_mem := λ N, N.zero_mem',
+  neg_mem := λ N x hx, show -x ∈ N.to_submodule, from neg_mem hx }
+
 /-- The zero module is a Lie submodule of any Lie module. -/
 instance : has_zero (lie_submodule R L M) :=
 ⟨{ lie_mem := λ x m h, by { rw ((submodule.mem_bot R).1 h), apply lie_zero, },
@@ -78,7 +83,7 @@ iff.rfl
 
 lemma mem_coe {x : M} : x ∈ (N : set M) ↔ x ∈ N := iff.rfl
 
-@[simp] lemma zero_mem : (0 : M) ∈ N := (N : submodule R M).zero_mem
+@[simp] protected lemma zero_mem : (0 : M) ∈ N := zero_mem N
 
 @[simp] lemma mk_eq_zero {x} (h : x ∈ N) : (⟨x, h⟩ : N) = 0 ↔ x = 0 := subtype.ext_iff_val
 

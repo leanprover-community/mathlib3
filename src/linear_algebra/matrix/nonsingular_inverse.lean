@@ -155,13 +155,7 @@ def unit_of_det_invertible [invertible A.det] : (matrix n n α)ˣ :=
 
 /-- When lowered to a prop, `matrix.invertible_equiv_det_invertible` forms an `iff`. -/
 lemma is_unit_iff_is_unit_det : is_unit A ↔ is_unit A.det :=
-begin
-  split; rintros ⟨x, hx⟩; refine @is_unit_of_invertible _ _ _ (id _),
-  { haveI : invertible A := hx.rec x.invertible,
-    apply det_invertible_of_invertible, },
-  { haveI : invertible A.det := hx.rec x.invertible,
-    apply invertible_of_det_invertible, },
-end
+by simp only [← nonempty_invertible_iff_is_unit, (invertible_equiv_det_invertible A).nonempty_congr]
 
 /-! #### Variants of the statements above with `is_unit`-/
 
@@ -210,6 +204,15 @@ by rw [inv_def, ←ring.inverse_unit h.unit, is_unit.unit_spec]
 begin
   letI := det_invertible_of_invertible A,
   rw [inv_def, ring.inverse_invertible, inv_of_eq],
+end
+
+/-- Coercing the result of `units.has_inv` is the same as coercing first and applying the
+nonsingular inverse. -/
+@[simp, norm_cast] lemma coe_units_inv (A : (matrix n n α)ˣ) :
+  ↑(A⁻¹) = (A⁻¹ : matrix n n α) :=
+begin
+  letI := A.invertible,
+  rw [←inv_of_eq_nonsing_inv, inv_of_units],
 end
 
 /-- The nonsingular inverse is the same as the general `ring.inverse`. -/
@@ -371,6 +374,59 @@ begin
   rw [smul_mul, mul_adjugate, units.smul_def, smul_smul, h.coe_inv_mul, one_smul]
 end
 
+/-- `diagonal v` is invertible if `v` is -/
+def diagonal_invertible {α} [non_assoc_semiring α] (v : n → α) [invertible v] :
+  invertible (diagonal v) :=
+invertible.map (diagonal_ring_hom n α) v
+
+lemma inv_of_diagonal_eq {α} [semiring α] (v : n → α) [invertible v] [invertible (diagonal v)] :
+  ⅟(diagonal v) = diagonal (⅟v) :=
+by { letI := diagonal_invertible v, convert (rfl : ⅟(diagonal v) = _) }
+
+/-- `v` is invertible if `diagonal v` is -/
+def invertible_of_diagonal_invertible (v : n → α) [invertible (diagonal v)] : invertible v :=
+{ inv_of := diag (⅟(diagonal v)),
+  inv_of_mul_self := funext $ λ i, begin
+    letI : invertible (diagonal v).det := det_invertible_of_invertible _,
+    rw [inv_of_eq, diag_smul, adjugate_diagonal, diag_diagonal],
+    dsimp,
+    rw [mul_assoc, prod_erase_mul _ _ (finset.mem_univ _), ←det_diagonal],
+    exact mul_inv_of_self _,
+  end,
+  mul_inv_of_self := funext $ λ i, begin
+    letI : invertible (diagonal v).det := det_invertible_of_invertible _,
+    rw [inv_of_eq, diag_smul, adjugate_diagonal, diag_diagonal],
+    dsimp,
+    rw [mul_left_comm, mul_prod_erase _ _ (finset.mem_univ _), ←det_diagonal],
+    exact mul_inv_of_self _,
+  end }
+
+/-- Together `matrix.diagonal_invertible` and `matrix.invertible_of_diagonal_invertible` form an
+equivalence, although both sides of the equiv are subsingleton anyway. -/
+@[simps]
+def diagonal_invertible_equiv_invertible (v : n → α) : invertible (diagonal v) ≃ invertible v :=
+{ to_fun := @invertible_of_diagonal_invertible _ _ _ _ _ _,
+  inv_fun := @diagonal_invertible _ _ _ _ _ _,
+  left_inv := λ _, subsingleton.elim _ _,
+  right_inv := λ _, subsingleton.elim _ _ }
+
+/-- When lowered to a prop, `matrix.diagonal_invertible_equiv_invertible` forms an `iff`. -/
+@[simp] lemma is_unit_diagonal {v : n → α} : is_unit (diagonal v) ↔ is_unit v :=
+by simp only [← nonempty_invertible_iff_is_unit,
+  (diagonal_invertible_equiv_invertible v).nonempty_congr]
+
+lemma inv_diagonal (v : n → α) : (diagonal v)⁻¹ = diagonal (ring.inverse v) :=
+begin
+  rw nonsing_inv_eq_ring_inverse,
+  by_cases h : is_unit v,
+  { have := is_unit_diagonal.mpr h,
+    casesI this.nonempty_invertible,
+    casesI h.nonempty_invertible,
+    rw [ring.inverse_invertible, ring.inverse_invertible, inv_of_diagonal_eq], },
+  { have := is_unit_diagonal.not.mpr h,
+    rw [ring.inverse_non_unit _ h, pi.zero_def, diagonal_zero, ring.inverse_non_unit _ this] }
+end
+
 @[simp] lemma inv_inv_inv (A : matrix n n α) : A⁻¹⁻¹⁻¹ = A⁻¹ :=
 begin
   by_cases h : is_unit A.det,
@@ -407,6 +463,16 @@ by rw [← (A⁻¹).transpose_transpose, vec_mul_transpose, transpose_nonsing_in
     Aᵀ.det_smul_inv_mul_vec_eq_cramer _ (is_unit_det_transpose A h)]
 
 /-! ### More results about determinants -/
+
+/-- A variant of `matrix.det_units_conj`. -/
+lemma det_conj {M : matrix m m α} (h : is_unit M) (N : matrix m m α) :
+  det (M ⬝ N ⬝ M⁻¹) = det N :=
+by rw [←h.unit_spec, ←coe_units_inv, det_units_conj]
+
+/-- A variant of `matrix.det_units_conj'`. -/
+lemma det_conj' {M : matrix m m α} (h : is_unit M) (N : matrix m m α) :
+  det (M⁻¹ ⬝ N ⬝ M) = det N :=
+by rw [←h.unit_spec, ←coe_units_inv, det_units_conj']
 
 /-- Determinant of a 2×2 block matrix, expanded around an invertible top left element in terms of
 the Schur complement. -/

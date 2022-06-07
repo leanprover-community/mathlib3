@@ -29,7 +29,7 @@ by simp only [forall_const, eq_self_iff_true, add_mod_right, periodic]
 
 lemma _root_.function.periodic.map_mod_nat {α : Type*} {f : ℕ → α} {a : ℕ} (hf : periodic f a) :
   ∀ n, f (n % a) = f n :=
-λ n, by conv_rhs { rw [← nat.mod_add_div n a, mul_comm, ← nsmul_eq_mul, hf.nsmul] }
+λ n, by conv_rhs { rw [← nat.mod_add_div n a, mul_comm, ← nat.nsmul_eq_mul, hf.nsmul] }
 
 section multiset
 open multiset

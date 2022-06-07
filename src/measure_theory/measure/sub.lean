@@ -31,16 +31,21 @@ Specifically, note that if you have `α = {1,2}`, and  `μ {1} = 2`, `μ {2} = 0
 noncomputable instance has_sub {α : Type*} [measurable_space α] : has_sub (measure α) :=
 ⟨λ μ ν, Inf {τ | μ ≤ τ + ν} ⟩
 
-variables {α : Type*} {m : measurable_space α} {μ ν : measure α} {s t : set α}
+variables {α : Type*} {m : measurable_space α} {μ ν : measure α} {s : set α}
 
 lemma sub_def : μ - ν = Inf {d | μ ≤ d + ν} := rfl
 
+lemma sub_le_of_le_add {d} (h : μ ≤ d + ν) : μ - ν ≤ d := Inf_le h
+
 lemma sub_eq_zero_of_le (h : μ ≤ ν) : μ - ν = 0 :=
-begin
-  rw [← nonpos_iff_eq_zero', measure.sub_def],
-  apply @Inf_le (measure α) _ _,
-  simp [h],
-end
+nonpos_iff_eq_zero'.1 $ sub_le_of_le_add $ by rwa zero_add
+
+lemma sub_le : μ - ν ≤ μ :=
+sub_le_of_le_add $ measure.le_add_right le_rfl
+
+@[simp] lemma sub_top : μ - ⊤ = 0 := sub_eq_zero_of_le le_top
+@[simp] lemma zero_sub : 0 - μ = 0 := sub_eq_zero_of_le μ.zero_le
+@[simp] lemma sub_self : μ - μ = 0 := sub_eq_zero_of_le le_rfl
 
 /-- This application lemma only works in special circumstances. Given knowledge of
 when `μ ≤ ν` and `ν ≤ μ`, a more general application lemma can be written. -/
@@ -83,58 +88,36 @@ begin
   rw [add_apply, sub_apply h_s_meas h₁, tsub_add_cancel_of_le (h₁ s h_s_meas)],
 end
 
-lemma sub_le : μ - ν ≤ μ :=
-Inf_le (measure.le_add_right le_rfl)
-
 lemma restrict_sub_eq_restrict_sub_restrict (h_meas_s : measurable_set s) :
   (μ - ν).restrict s = (μ.restrict s) - (ν.restrict s) :=
 begin
   repeat {rw sub_def},
-  have h_nonempty : {d | μ ≤ d + ν}.nonempty,
-  { apply @set.nonempty_of_mem _ _ μ, rw mem_set_of_eq, intros t h_meas,
-    exact le_self_add },
+  have h_nonempty : {d | μ ≤ d + ν}.nonempty, from ⟨μ, measure.le_add_right le_rfl⟩,
   rw restrict_Inf_eq_Inf_restrict h_nonempty h_meas_s,
   apply le_antisymm,
-  { apply @Inf_le_Inf_of_forall_exists_le (measure α) _,
-    intros ν' h_ν'_in, rw mem_set_of_eq at h_ν'_in, apply exists.intro (ν'.restrict s),
-    split,
-    { rw mem_image, apply exists.intro (ν' + (⊤ : measure_theory.measure α).restrict sᶜ),
-      rw mem_set_of_eq,
-      split,
-      { rw [add_assoc, add_comm _ ν, ← add_assoc, measure_theory.measure.le_iff],
-        intros t h_meas_t,
-        have h_inter_inter_eq_inter : ∀ t' : set α , t ∩ t' ∩ t' = t ∩ t',
-        { intro t', rw set.inter_eq_self_of_subset_left, apply set.inter_subset_right t t' },
-        have h_meas_t_inter_s : measurable_set (t ∩ s) :=
-           h_meas_t.inter h_meas_s,
-        repeat { rw ← measure_inter_add_diff t h_meas_s, rw set.diff_eq },
-        refine add_le_add _ _,
-        { rw add_apply,
-          apply le_add_right _,
-          rw add_apply,
-          rw [← restrict_eq_self μ (set.inter_subset_right _ _),
-            ← restrict_eq_self ν (set.inter_subset_right _ _)],
-          apply h_ν'_in _ h_meas_t_inter_s },
-        { rw add_apply,
-          have h_meas_inter_compl :=
-            h_meas_t.inter (measurable_set.compl h_meas_s),
-          rw [restrict_apply h_meas_inter_compl, h_inter_inter_eq_inter sᶜ],
-          have h_mu_le_add_top : μ ≤ ν' + ν + ⊤,
-          { rw add_comm,
-            have h_le_top : μ ≤ ⊤ := le_top,
-            apply (λ t₂ h_meas, le_add_right (h_le_top t₂ h_meas)) },
-          apply h_mu_le_add_top _ h_meas_inter_compl } },
-      { ext1 t h_meas_t,
-        simp [restrict_apply h_meas_t,
-              restrict_apply (h_meas_t.inter h_meas_s),
-              set.inter_assoc] } },
-    { apply restrict_le_self } },
-  { apply @Inf_le_Inf_of_forall_exists_le (measure α) _,
-    intros s h_s_in, cases h_s_in with t h_t, cases h_t with h_t_in h_t_eq, subst s,
-    apply exists.intro (t.restrict s), split,
-    { rw [set.mem_set_of_eq, ← restrict_add],
-      apply restrict_mono (set.subset.refl _) h_t_in },
-    { exact le_rfl } },
+  { refine Inf_le_Inf_of_forall_exists_le _,
+    intros ν' h_ν'_in, rw mem_set_of_eq at h_ν'_in,
+    refine ⟨ν'.restrict s, _, restrict_le_self⟩,
+    refine ⟨ν' + (⊤ : measure α).restrict sᶜ, _, _⟩,
+    { rw [mem_set_of_eq, add_right_comm, measure.le_iff],
+      intros t h_meas_t,
+      repeat { rw ← measure_inter_add_diff t h_meas_s },
+      refine add_le_add _ _,
+      { rw [add_apply, add_apply],
+        apply le_add_right _,
+        rw [← restrict_eq_self μ (inter_subset_right _ _),
+          ← restrict_eq_self ν (inter_subset_right _ _)],
+        apply h_ν'_in _ (h_meas_t.inter h_meas_s) },
+      { rw [add_apply, restrict_apply (h_meas_t.diff h_meas_s), diff_eq, inter_assoc,
+          inter_self, ← add_apply],
+        have h_mu_le_add_top : μ ≤ ν' + ν + ⊤, by simp only [add_top, le_top],
+        exact measure.le_iff'.1 h_mu_le_add_top _ } },
+    { ext1 t h_meas_t,
+      simp [restrict_apply h_meas_t, restrict_apply (h_meas_t.inter h_meas_s), inter_assoc] } },
+  { refine Inf_le_Inf_of_forall_exists_le _,
+    refine ball_image_iff.2 (λ t h_t_in, ⟨t.restrict s, _, le_rfl⟩),
+    rw [set.mem_set_of_eq, ← restrict_add],
+    exact restrict_mono subset.rfl h_t_in }
 end
 
 lemma sub_apply_eq_zero_of_restrict_le_restrict

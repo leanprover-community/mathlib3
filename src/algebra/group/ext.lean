@@ -3,7 +3,7 @@ Copyright (c) 2021 Bryan Gin-ge Chen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bryan Gin-ge Chen, Yury Kudryashov
 -/
-import algebra.group.hom
+import algebra.hom.group
 
 /-!
 # Extensionality lemmas for monoid and group structures
@@ -114,7 +114,7 @@ begin
     exact @monoid_hom.map_zpow' M M m₁ m₂ f (congr_fun h_inv) x m },
   have hdiv : m₁.div = m₂.div,
   { ext a b,
-    exact @monoid_hom.map_div' M M m₁ m₂ f (congr_fun h_inv) a b },
+    exact @map_div' M M _ m₁ m₂ _ f (congr_fun h_inv) a b },
   unfreezingI { cases m₁, cases m₂ },
   congr, exacts [h_mul, h₁, hpow, h_inv, hdiv, hzpow]
 end
@@ -125,7 +125,7 @@ begin
   set f := @monoid_hom.mk' G G (by letI := g₁; apply_instance) g₂ id
     (λ a b, congr_fun (congr_fun h_mul a) b),
   exact group.to_div_inv_monoid_injective (div_inv_monoid.ext h_mul
-    (funext $ @monoid_hom.map_inv G G g₁ g₂ f))
+    (funext $ @monoid_hom.map_inv G G g₁ (@group.to_division_monoid _ g₂) f))
 end
 
 @[ext, to_additive]

@@ -3,9 +3,9 @@ Copyright (c) 2020 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov, Johannes Hölzl, Mario Carneiro, Patrick Massot
 -/
-import order.filter.basic
+import data.prod.pprod
 import data.set.countable
-import data.pprod
+import order.filter.basic
 
 /-!
 # Filter bases
@@ -104,6 +104,10 @@ instance : inhabited (filter_basis ℕ) :=
     exact le_of_max_le_right p_in,
   end }⟩
 
+/-- View a filter as a filter basis. -/
+def filter.as_basis (f : filter α) : filter_basis α :=
+⟨f.sets, ⟨univ, univ_mem⟩, λ x y hx hy, ⟨x ∩ y, inter_mem hx hy, subset_rfl⟩⟩
+
 /-- `is_basis p s` means the image of `s` bounded by `p` is a filter basis. -/
 protected structure filter.is_basis (p : ι → Prop) (s : ι → set α) : Prop :=
 (nonempty : ∃ i, p i)
@@ -200,7 +204,7 @@ variables {l l' : filter α} {p : ι → Prop} {s : ι → set α} {t : set α} 
   {p' : ι' → Prop} {s' : ι' → set α} {i' : ι'}
 
 lemma has_basis_generate (s : set (set α)) :
-  (generate s).has_basis (λ t, finite t ∧ t ⊆ s) (λ t, ⋂₀ t) :=
+  (generate s).has_basis (λ t, set.finite t ∧ t ⊆ s) (λ t, ⋂₀ t) :=
 ⟨begin
   intro U,
   rw mem_generate_iff,
@@ -210,7 +214,7 @@ end⟩
 
 /-- The smallest filter basis containing a given collection of sets. -/
 def filter_basis.of_sets (s : set (set α)) : filter_basis α :=
-{ sets := sInter '' { t | finite t ∧ t ⊆ s},
+{ sets := sInter '' { t | set.finite t ∧ t ⊆ s},
   nonempty := ⟨univ, ∅, ⟨⟨finite_empty, empty_subset s⟩, sInter_empty⟩⟩,
   inter_sets := begin
     rintros _ _ ⟨a, ⟨fina, suba⟩, rfl⟩ ⟨b, ⟨finb, subb⟩, rfl⟩,
@@ -272,7 +276,7 @@ lemma has_basis.eq_generate (h : l.has_basis p s) : l = generate { U | ∃ i, p 
 by rw [← h.is_basis.filter_eq_generate, h.filter_eq]
 
 lemma generate_eq_generate_inter (s : set (set α)) :
-  generate s = generate (sInter '' { t | finite t ∧ t ⊆ s}) :=
+  generate s = generate (sInter '' { t | set.finite t ∧ t ⊆ s}) :=
 by erw [(filter_basis.of_sets s).generate, ← (has_basis_generate s).filter_eq] ; refl
 
 lemma of_sets_filter_eq_generate (s : set (set α)) : (filter_basis.of_sets s).filter = generate s :=
@@ -331,12 +335,22 @@ by simp only [not_exists, not_and, ← ne_empty_iff_nonempty]
 lemma basis_sets (l : filter α) : l.has_basis (λ s : set α, s ∈ l) id :=
 ⟨λ t, exists_mem_subset_iff.symm⟩
 
+lemma as_basis_filter (f : filter α) : f.as_basis.filter = f :=
+by ext t; exact exists_mem_subset_iff
+
 lemma has_basis_self {l : filter α} {P : set α → Prop} :
   has_basis l (λ s, s ∈ l ∧ P s) id ↔ ∀ t ∈ l, ∃ r ∈ l, P r ∧ r ⊆ t :=
 begin
   simp only [has_basis_iff, exists_prop, id, and_assoc],
   exact forall_congr (λ s, ⟨λ h, h.1, λ h, ⟨h, λ ⟨t, hl, hP, hts⟩, mem_of_superset hl hts⟩⟩)
 end
+
+lemma has_basis.comp_of_surjective (h : l.has_basis p s) {g : ι' → ι} (hg : function.surjective g) :
+  l.has_basis (p ∘ g) (s ∘ g) :=
+⟨λ t, h.mem_iff.trans hg.exists⟩
+
+lemma has_basis.comp_equiv (h : l.has_basis p s) (e : ι' ≃ ι) : l.has_basis (p ∘ e) (s ∘ e) :=
+h.comp_of_surjective e.surjective
 
 /-- If `{s i | p i}` is a basis of a filter `l` and each `s i` includes `s j` such that
 `p j ∧ q j`, then `{s j | p j ∧ q j}` is a basis of `l`. -/
@@ -400,6 +414,24 @@ lemma has_basis.inf {ι ι' : Type*} {p : ι → Prop} {s : ι → set α} {p' :
   (l ⊓ l').has_basis (λ i : ι × ι', p i.1 ∧ p' i.2) (λ i, s i.1 ∩ s' i.2) :=
 (hl.inf' hl').to_has_basis (λ i hi, ⟨⟨i.1, i.2⟩, hi, subset.rfl⟩)
   (λ i hi, ⟨⟨i.1, i.2⟩, hi, subset.rfl⟩)
+
+lemma has_basis_infi {ι : Sort*} {ι' : ι → Type*} {l : ι → filter α}
+  {p : Π i, ι' i → Prop} {s : Π i, ι' i → set α} (hl : ∀ i, (l i).has_basis (p i) (s i)) :
+  (⨅ i, l i).has_basis (λ If : set ι × Π i, ι' i, If.1.finite ∧ ∀ i ∈ If.1, p i (If.2 i))
+    (λ If : set ι × Π i, ι' i, ⋂ i ∈ If.1, s i (If.2 i)) :=
+⟨begin
+  intro t,
+  split,
+  { simp only [mem_infi', (hl _).mem_iff],
+    rintros ⟨I, hI, V, hV, -, hVt, -⟩,
+    choose u hu using hV,
+    refine ⟨⟨I, u⟩, ⟨hI, λ i _, (hu i).1⟩, _⟩,
+    rw hVt,
+    exact Inter_mono (λ i, Inter_mono $ λ hi, (hu i).2) },
+  { rintros ⟨⟨I, f⟩, ⟨hI₁, hI₂⟩, hsub⟩,
+    refine mem_of_superset _ hsub,
+    exact (bInter_mem hI₁).mpr (λ i hi, mem_infi_of_mem i $ (hl i).mem_of_mem $ hI₂ _ hi) }
+end⟩
 
 lemma has_basis_principal (t : set α) : (𝓟 t).has_basis (λ i : unit, true) (λ i, t) :=
 ⟨λ U, by simp⟩
@@ -532,7 +564,7 @@ end⟩
 /-- If `s : ι → set α` is an indexed family of sets, then finite intersections of `s i` form a basis
 of `⨅ i, 𝓟 (s i)`.  -/
 lemma has_basis_infi_principal_finite {ι : Type*} (s : ι → set α) :
-  (⨅ i, 𝓟 (s i)).has_basis (λ t : set ι, finite t) (λ t, ⋂ i ∈ t, s i) :=
+  (⨅ i, 𝓟 (s i)).has_basis (λ t : set ι, t.finite) (λ t, ⋂ i ∈ t, s i) :=
 begin
   refine ⟨λ U, (mem_infi_finite _).trans _⟩,
   simp only [infi_principal_finset, mem_Union, mem_principal, exists_prop,
@@ -590,18 +622,18 @@ end⟩
 lemma mem_prod_self_iff {s} : s ∈ l ×ᶠ l ↔ ∃ t ∈ l, t ×ˢ t ⊆ s :=
 l.basis_sets.prod_self.mem_iff
 
+lemma has_basis.forall_mem_mem (h : has_basis l p s) {x : α} :
+  (∀ t ∈ l, x ∈ t) ↔ ∀ i, p i → x ∈ s i :=
+begin
+  simp only [h.mem_iff, exists_imp_distrib],
+  exact ⟨λ h i hi, h (s i) i hi subset.rfl, λ h t i hi ht, ht (h i hi)⟩
+end
+
 lemma has_basis.sInter_sets (h : has_basis l p s) :
   ⋂₀ l.sets = ⋂ i (hi : p i), s i :=
 begin
   ext x,
-  suffices : (∀ t ∈ l, x ∈ t) ↔ ∀ i, p i → x ∈ s i,
-    by simpa only [mem_Inter, mem_set_of_eq, mem_sInter],
-  simp_rw h.mem_iff,
-  split,
-  { intros h i hi,
-    exact h (s i) ⟨i, hi, subset.refl _⟩ },
-  { rintros h _ ⟨i, hi, sub⟩,
-    exact sub (h i hi) },
+  simp only [mem_Inter, mem_sInter, filter.mem_sets, h.forall_mem_mem],
 end
 
 variables {ι'' : Type*} [preorder ι''] (l) (s'' : ι'' → set α)
@@ -672,7 +704,36 @@ begin
     exact ⟨⟨i, i⟩, ⟨hi, hi⟩, h⟩ },
 end
 
+lemma has_antitone_basis.prod {f : filter α} {g : filter β}
+  {s : ℕ → set α} {t : ℕ → set β} (hf : has_antitone_basis f s) (hg : has_antitone_basis g t) :
+  has_antitone_basis (f ×ᶠ g) (λ n, s n ×ˢ t n) :=
+begin
+  have h : has_basis (f ×ᶠ g) _ _ := has_basis.prod' hf.to_has_basis hg.to_has_basis _,
+  swap,
+  { intros i j,
+    simp only [true_and, forall_true_left],
+    exact ⟨max i j, hf.antitone (le_max_left _ _), hg.antitone (le_max_right _ _)⟩, },
+  refine ⟨h, λ n m hn_le_m, set.prod_mono _ _⟩,
+  exacts [hf.antitone hn_le_m, hg.antitone hn_le_m]
+end
+
+lemma has_basis.coprod {ι ι' : Type*} {pa : ι → Prop} {sa : ι → set α} {pb : ι' → Prop}
+  {sb : ι' → set β} (hla : la.has_basis pa sa) (hlb : lb.has_basis pb sb) :
+  (la.coprod lb).has_basis (λ i : ι × ι', pa i.1 ∧ pb i.2)
+    (λ i, prod.fst ⁻¹' sa i.1 ∪ prod.snd ⁻¹' sb i.2) :=
+(hla.comap prod.fst).sup (hlb.comap prod.snd)
+
 end two_types
+
+open equiv
+
+lemma prod_assoc (f : filter α) (g : filter β) (h : filter γ) :
+  map (prod_assoc α β γ) ((f ×ᶠ g) ×ᶠ h) = f ×ᶠ (g ×ᶠ h) :=
+begin
+  apply ((((basis_sets f).prod $ basis_sets g).prod $ basis_sets h).map _).eq_of_same_basis,
+  simpa only [prod_assoc_image, function.comp, and_assoc] using
+    ((basis_sets f).prod $ (basis_sets g).prod $ basis_sets h).comp_equiv (prod_assoc _ _ _)
+end
 
 end filter
 
@@ -680,7 +741,7 @@ end sort
 
 namespace filter
 
-variables {α β γ ι ι' : Type*}
+variables {α β γ ι : Type*} {ι' : Sort*}
 
 /-- `is_countably_generated f` means `f = generate s` for some countable `s`. -/
 class is_countably_generated (f : filter α) : Prop :=
@@ -720,7 +781,7 @@ begin
   { exact λ i j hij, bInter_mono (Iic_subset_Iic.2 hij) (λ n hn, subset.refl _) },
   apply le_antisymm; rw le_infi_iff; intro i,
   { rw le_principal_iff, refine (bInter_mem (finite_le_nat _)).2 (λ j hji, _),
-    rw ← le_principal_iff, apply infi_le_of_le j _, apply le_refl _ },
+    rw ← le_principal_iff, apply infi_le_of_le j _, exact le_rfl },
   { apply infi_le_of_le i _, rw principal_mono, intro a, simp, intro h, apply h, refl },
 end
 
@@ -732,7 +793,7 @@ begin
   rcases Bcbl with ⟨g, gsurj⟩,
   rw infi_subtype',
   use (λ n, g n), apply le_antisymm; rw le_infi_iff,
-  { intro i, apply infi_le_of_le (g i) _, apply le_refl _ },
+  { intro i, apply infi_le_of_le (g i) _, apply le_rfl },
   { intros a, rcases gsurj a with ⟨i, rfl⟩, apply infi_le }
 end
 
@@ -753,21 +814,25 @@ countable_binfi_eq_infi_seq' Bcbl 𝓟 principal_univ
 
 section is_countably_generated
 
+protected lemma has_antitone_basis.mem [preorder ι] {l : filter α} {s : ι → set α}
+  (hs : l.has_antitone_basis s) (i : ι) : s i ∈ l :=
+hs.to_has_basis.mem_of_mem trivial
+
 /-- If `f` is countably generated and `f.has_basis p s`, then `f` admits a decreasing basis
 enumerated by natural numbers such that all sets have the form `s i`. More precisely, there is a
 sequence `i n` such that `p (i n)` for all `n` and `s (i n)` is a decreasing sequence of sets which
 forms a basis of `f`-/
 lemma has_basis.exists_antitone_subbasis {f : filter α} [h : f.is_countably_generated]
-  {p : ι → Prop} {s : ι → set α} (hs : f.has_basis p s) :
-  ∃ x : ℕ → ι, (∀ i, p (x i)) ∧ f.has_antitone_basis (λ i, s (x i)) :=
+  {p : ι' → Prop} {s : ι' → set α} (hs : f.has_basis p s) :
+  ∃ x : ℕ → ι', (∀ i, p (x i)) ∧ f.has_antitone_basis (λ i, s (x i)) :=
 begin
   obtain ⟨x', hx'⟩ : ∃ x : ℕ → set α, f = ⨅ i, 𝓟 (x i),
   { unfreezingI { rcases h with ⟨s, hsc, rfl⟩ },
     rw generate_eq_binfi,
     exact countable_binfi_principal_eq_seq_infi hsc },
   have : ∀ i, x' i ∈ f := λ i, hx'.symm ▸ (infi_le (λ i, 𝓟 (x' i)) i) (mem_principal_self _),
-  let x : ℕ → {i : ι // p i} := λ n, nat.rec_on n (hs.index _ $ this 0)
-    (λ n xn, (hs.index _ $ inter_mem (this $ n + 1) (hs.mem_of_mem xn.coe_prop))),
+  let x : ℕ → {i : ι' // p i} := λ n, nat.rec_on n (hs.index _ $ this 0)
+    (λ n xn, (hs.index _ $ inter_mem (this $ n + 1) (hs.mem_of_mem xn.2))),
   have x_mono : antitone (λ i, s (x i)),
   { refine antitone_nat_of_succ_le (λ i, _),
     exact (hs.set_index_subset _).trans (inter_subset_right _ _) },
@@ -848,10 +913,23 @@ end
 @[instance] lemma is_countably_generated_principal (s : set α) : is_countably_generated (𝓟 s) :=
 is_countably_generated_of_seq ⟨λ _, s, infi_const.symm⟩
 
+@[instance] lemma is_countably_generated_pure (a : α) : is_countably_generated (pure a) :=
+by { rw ← principal_singleton, exact is_countably_generated_principal _, }
+
 @[instance] lemma is_countably_generated_bot : is_countably_generated (⊥ : filter α) :=
 @principal_empty α ▸ is_countably_generated_principal _
 
 @[instance] lemma is_countably_generated_top : is_countably_generated (⊤ : filter α) :=
 @principal_univ α ▸ is_countably_generated_principal _
+
+instance is_countably_generated.prod {f : filter α} {g : filter β}
+  [hf : f.is_countably_generated] [hg : g.is_countably_generated] :
+  is_countably_generated (f ×ᶠ g) :=
+begin
+  simp_rw is_countably_generated_iff_exists_antitone_basis at hf hg ⊢,
+  rcases hf with ⟨s, hs⟩,
+  rcases hg with ⟨t, ht⟩,
+  refine ⟨_, hs.prod ht⟩,
+end
 
 end filter

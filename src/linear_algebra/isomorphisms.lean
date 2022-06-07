@@ -31,7 +31,7 @@ section isomorphism_laws
 /-- The first isomorphism law for modules. The quotient of `M` by the kernel of `f` is linearly
 equivalent to the range of `f`. -/
 noncomputable def quot_ker_equiv_range : (M ⧸ f.ker) ≃ₗ[R] f.range :=
-(linear_equiv.of_injective (f.ker.liftq f $ le_refl _) $
+(linear_equiv.of_injective (f.ker.liftq f $ le_rfl) $
   ker_eq_bot.mp $ submodule.ker_liftq_eq_bot _ _ _ (le_refl f.ker)).trans
   (linear_equiv.of_eq _ _ $ submodule.range_liftq _ _ _)
 

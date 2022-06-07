@@ -20,10 +20,11 @@ cardinality of the class group of its ring of integers
 -/
 
 namespace function_field
+open_locale polynomial
 
 variables (Fq F : Type) [field Fq] [fintype Fq] [field F]
-variables [algebra (polynomial Fq) F] [algebra (ratfunc Fq) F]
-variables [is_scalar_tower (polynomial Fq) (ratfunc Fq) F]
+variables [algebra Fq[X] F] [algebra (ratfunc Fq) F]
+variables [is_scalar_tower Fq[X] (ratfunc Fq) F]
 variables [function_field Fq F] [is_separable (ratfunc Fq) F]
 
 open_locale classical
@@ -35,7 +36,7 @@ open function_field
 noncomputable instance  : fintype (class_group (ring_of_integers Fq F) F) :=
 class_group.fintype_of_admissible_of_finite (ratfunc Fq) F
   (polynomial.card_pow_degree_is_admissible : absolute_value.is_admissible
-    (polynomial.card_pow_degree : absolute_value (polynomial Fq) ℤ))
+    (polynomial.card_pow_degree : absolute_value Fq[X] ℤ))
 
 end ring_of_integers
 

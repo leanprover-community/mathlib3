@@ -7,7 +7,9 @@ import algebra.big_operators.basic
 import data.nat.prime
 import data.zmod.basic
 import ring_theory.multiplicity
+import data.nat.periodic
 import algebra.char_p.two
+import number_theory.divisors
 
 /-!
 # Euler's totient function
@@ -26,7 +28,7 @@ namespace nat
 
 /-- Euler's totient function. This counts the number of naturals strictly less than `n` which are
 coprime with `n`. -/
-def totient (n : ℕ) : ℕ := ((range n).filter (nat.coprime n)).card
+def totient (n : ℕ) : ℕ := ((range n).filter n.coprime).card
 
 localized "notation `φ` := nat.totient" in nat
 
@@ -35,27 +37,56 @@ localized "notation `φ` := nat.totient" in nat
 @[simp] theorem totient_one : φ 1 = 1 :=
 by simp [totient]
 
-lemma totient_eq_card_coprime (n : ℕ) : φ n = ((range n).filter (nat.coprime n)).card := rfl
+lemma totient_eq_card_coprime (n : ℕ) : φ n = ((range n).filter n.coprime).card := rfl
 
 lemma totient_le (n : ℕ) : φ n ≤ n :=
-calc totient n ≤ (range n).card : card_filter_le _ _
-           ... = n              : card_range _
+((range n).card_filter_le _).trans_eq (card_range n)
 
 lemma totient_lt (n : ℕ) (hn : 1 < n) : φ n < n :=
-calc totient n ≤ ((range n).filter (≠ 0)).card :
-  begin
-    apply card_le_of_subset (monotone_filter_right _ _),
-    intros n1 hn1 hn1',
-    simpa only [hn1', coprime_zero_right, hn.ne'] using hn1,
-  end
-... = n - 1 : by simp only [filter_ne' (range n) 0, card_erase_of_mem, n.pred_eq_sub_one,
-                card_range, pos_of_gt hn, mem_range]
-... < n : nat.sub_lt (pos_of_gt hn) zero_lt_one
+(card_lt_card (filter_ssubset.2 ⟨0, by simp [hn.ne', pos_of_gt hn]⟩)).trans_eq (card_range n)
 
 lemma totient_pos : ∀ {n : ℕ}, 0 < n → 0 < φ n
 | 0 := dec_trivial
 | 1 := by simp [totient]
 | (n+2) := λ h, card_pos.2 ⟨1, mem_filter.2 ⟨mem_range.2 dec_trivial, coprime_one_right _⟩⟩
+
+lemma filter_coprime_Ico_eq_totient (a n : ℕ) :
+  ((Ico n (n+a)).filter (coprime a)).card = totient a :=
+begin
+  rw [totient, filter_Ico_card_eq_of_periodic, count_eq_card_filter_range],
+  exact periodic_coprime a,
+end
+
+lemma Ico_filter_coprime_le {a : ℕ} (k n : ℕ) (a_pos : 0 < a) :
+  ((Ico k (k + n)).filter (coprime a)).card ≤ totient a * (n / a + 1) :=
+begin
+  conv_lhs { rw ←nat.mod_add_div n a },
+  induction n / a with i ih,
+  { rw ←filter_coprime_Ico_eq_totient a k,
+    simp only [add_zero, mul_one, mul_zero, le_of_lt (mod_lt n a_pos)],
+    mono,
+    refine monotone_filter_left a.coprime _,
+    simp only [finset.le_eq_subset],
+    exact Ico_subset_Ico rfl.le (add_le_add_left (le_of_lt (mod_lt n a_pos)) k), },
+  simp only [mul_succ],
+  simp_rw ←add_assoc at ih ⊢,
+  calc (filter a.coprime (Ico k (k + n % a + a * i + a))).card
+      = (filter a.coprime (Ico k (k + n % a + a * i)
+                            ∪ Ico (k + n % a + a * i) (k + n % a + a * i + a))).card :
+        begin
+          congr,
+          rw Ico_union_Ico_eq_Ico,
+          rw add_assoc,
+          exact le_self_add,
+          exact le_self_add,
+        end
+  ... ≤ (filter a.coprime (Ico k (k + n % a + a * i))).card + a.totient :
+        begin
+          rw [filter_union, ←filter_coprime_Ico_eq_totient a (k + n % a + a * i)],
+          apply card_union_le,
+        end
+  ... ≤ a.totient * i + a.totient + a.totient : add_le_add_right ih (totient a),
+end
 
 open zmod
 
@@ -96,59 +127,50 @@ if hmn0 : m * n = 0
     haveI : fact (0 < (m * n)) := ⟨nat.pos_of_ne_zero hmn0⟩,
     haveI : fact (0 < m) := ⟨nat.pos_of_ne_zero $ left_ne_zero_of_mul hmn0⟩,
     haveI : fact (0 < n) := ⟨nat.pos_of_ne_zero $ right_ne_zero_of_mul hmn0⟩,
-    rw [← zmod.card_units_eq_totient, ← zmod.card_units_eq_totient,
-      ← zmod.card_units_eq_totient, fintype.card_congr
-      (units.map_equiv (zmod.chinese_remainder h).to_mul_equiv).to_equiv,
+    simp only [← zmod.card_units_eq_totient],
+    rw [fintype.card_congr (units.map_equiv (zmod.chinese_remainder h).to_mul_equiv).to_equiv,
       fintype.card_congr (@mul_equiv.prod_units (zmod m) (zmod n) _ _).to_equiv,
       fintype.card_prod]
   end
 
-lemma sum_totient (n : ℕ) : ∑ m in (range n.succ).filter (∣ n), φ m = n :=
-if hn0 : n = 0 then by simp [hn0]
-else
-calc ∑ m in (range n.succ).filter (∣ n), φ m
-    = ∑ d in (range n.succ).filter (∣ n), ((range (n / d)).filter (λ m, gcd (n / d) m = 1)).card :
-  eq.symm $ sum_bij (λ d _, n / d)
-    (λ d hd, mem_filter.2 ⟨mem_range.2 $ lt_succ_of_le $ nat.div_le_self _ _,
-      by conv {to_rhs, rw ← nat.mul_div_cancel' (mem_filter.1 hd).2}; simp⟩)
-    (λ _ _, rfl)
-    (λ a b ha hb h,
-      have ha : a * (n / a) = n, from nat.mul_div_cancel' (mem_filter.1 ha).2,
-      have 0 < (n / a), from nat.pos_of_ne_zero (λ h, by simp [*, lt_irrefl] at *),
-      by rw [← nat.mul_left_inj this, ha, h, nat.mul_div_cancel' (mem_filter.1 hb).2])
-    (λ b hb,
-      have hb : b < n.succ ∧ b ∣ n, by simpa [-range_succ] using hb,
-      have hbn : (n / b) ∣ n, from ⟨b, by rw nat.div_mul_cancel hb.2⟩,
-      have hnb0 : (n / b) ≠ 0, from λ h, by simpa [h, ne.symm hn0] using nat.div_mul_cancel hbn,
-      ⟨n / b, mem_filter.2 ⟨mem_range.2 $ lt_succ_of_le $ nat.div_le_self _ _, hbn⟩,
-        by rw [← nat.mul_left_inj (nat.pos_of_ne_zero hnb0),
-          nat.mul_div_cancel' hb.2, nat.div_mul_cancel hbn]⟩)
-... = ∑ d in (range n.succ).filter (∣ n), ((range n).filter (λ m, gcd n m = d)).card :
-  sum_congr rfl (λ d hd,
-    have hd : d ∣ n, from (mem_filter.1 hd).2,
-    have hd0 : 0 < d, from nat.pos_of_ne_zero (λ h, hn0 (eq_zero_of_zero_dvd $ h ▸ hd)),
-    card_congr (λ m hm, d * m)
-      (λ m hm, have hm : m < n / d ∧ gcd (n / d) m = 1, by simpa using hm,
-        mem_filter.2 ⟨mem_range.2 $ nat.mul_div_cancel' hd ▸
-          (mul_lt_mul_left hd0).2 hm.1,
-          by rw [← nat.mul_div_cancel' hd, gcd_mul_left, hm.2, mul_one]⟩)
-      (λ a b ha hb h, (nat.mul_right_inj hd0).1 h)
-      (λ b hb, have hb : b < n ∧ gcd n b = d, by simpa using hb,
-        ⟨b / d, mem_filter.2 ⟨mem_range.2
-            ((mul_lt_mul_left (show 0 < d, from hb.2 ▸ hb.2.symm ▸ hd0)).1
-              (by rw [← hb.2, nat.mul_div_cancel' (gcd_dvd_left _ _),
-                nat.mul_div_cancel' (gcd_dvd_right _ _)]; exact hb.1)),
-            hb.2 ▸ coprime_div_gcd_div_gcd (hb.2.symm ▸ hd0)⟩,
-          hb.2 ▸ nat.mul_div_cancel' (gcd_dvd_right _ _)⟩))
-... = ((filter (∣ n) (range n.succ)).bUnion (λ d, (range n).filter (λ m, gcd n m = d))).card :
-  (card_bUnion (by intros; apply disjoint_filter.2; cc)).symm
-... = (range n).card :
-  congr_arg card (finset.ext (λ m, ⟨by simp,
-    λ hm, have h : m < n, from mem_range.1 hm,
-      mem_bUnion.2 ⟨gcd n m, mem_filter.2
-        ⟨mem_range.2 (lt_succ_of_le (le_of_dvd (lt_of_le_of_lt (zero_le _) h)
-          (gcd_dvd_left _ _))), gcd_dvd_left _ _⟩, mem_filter.2 ⟨hm, rfl⟩⟩⟩))
-... = n : card_range _
+/-- For `d ∣ n`, the totient of `n/d` equals the number of values `k < n` such that `gcd n k = d` -/
+lemma totient_div_of_dvd {n d : ℕ} (hnd : d ∣ n) :
+  φ (n/d) = (filter (λ (k : ℕ), n.gcd k = d) (range n)).card :=
+begin
+  rcases d.eq_zero_or_pos with rfl | hd0, { simp [eq_zero_of_zero_dvd hnd] },
+  rcases hnd with ⟨x, rfl⟩,
+  rw nat.mul_div_cancel_left x hd0,
+  apply card_congr (λ k _, d * k),
+  { simp only [mem_filter, mem_range, and_imp, coprime],
+    refine λ a ha1 ha2, ⟨(mul_lt_mul_left hd0).2 ha1, _⟩,
+    rw [gcd_mul_left, ha2, mul_one] },
+  { simp [hd0.ne'] },
+  { simp only [mem_filter, mem_range, exists_prop, and_imp],
+    refine λ b hb1 hb2, _,
+    have : d ∣ b, { rw ←hb2, apply gcd_dvd_right },
+    rcases this with ⟨q, rfl⟩,
+    refine ⟨q, ⟨⟨(mul_lt_mul_left hd0).1 hb1, _⟩, rfl⟩⟩,
+    rwa [gcd_mul_left, mul_right_eq_self_iff hd0] at hb2 },
+end
+
+lemma sum_totient (n : ℕ) : n.divisors.sum φ = n :=
+begin
+  rcases n.eq_zero_or_pos with rfl | hn, { simp },
+  rw ←sum_div_divisors n φ,
+  have : n = ∑ (d : ℕ) in n.divisors, (filter (λ (k : ℕ), n.gcd k = d) (range n)).card,
+  { nth_rewrite_lhs 0 ←card_range n,
+    refine card_eq_sum_card_fiberwise (λ x hx, mem_divisors.2 ⟨_, hn.ne'⟩),
+    apply gcd_dvd_left },
+  nth_rewrite_rhs 0 this,
+  exact sum_congr rfl (λ x hx, totient_div_of_dvd (dvd_of_mem_divisors hx)),
+end
+
+lemma sum_totient' (n : ℕ) : ∑ m in (range n.succ).filter (∣ n), φ m = n :=
+begin
+  convert sum_totient _ using 1,
+  simp only [nat.divisors, sum_filter, range_eq_Ico],
+  rw sum_eq_sum_Ico_succ_bot; simp
+end
 
 /-- When `p` is prime, then the totient of `p ^ (n + 1)` is `p ^ n * (p - 1)` -/
 lemma totient_prime_pow_succ {p : ℕ} (hp : p.prime) (n : ℕ) :
@@ -247,6 +269,70 @@ begin
 end
 
 @[simp] lemma totient_two : φ 2 = 1 :=
-(totient_prime prime_two).trans (by norm_num)
+(totient_prime prime_two).trans rfl
+
+lemma totient_eq_one_iff : ∀ {n : ℕ}, n.totient = 1 ↔ n = 1 ∨ n = 2
+| 0 := by simp
+| 1 := by simp
+| 2 := by simp
+| (n+3) :=
+begin
+  have : 3 ≤ n + 3 := le_add_self,
+  simp only [succ_succ_ne_one, false_or],
+  exact ⟨λ h, not_even_one.elim $ h ▸ totient_even this, by rintro ⟨⟩⟩,
+end
+
+/-! ### Euler's product formula for the totient function
+
+We prove several different statements of this formula. -/
+
+/-- Euler's product formula for the totient function. -/
+theorem totient_eq_prod_factorization {n : ℕ} (hn : n ≠ 0) :
+  φ n = n.factorization.prod (λ p k, p ^ (k - 1) * (p - 1)) :=
+begin
+  rw multiplicative_factorization φ @totient_mul totient_one hn,
+  apply finsupp.prod_congr (λ p hp, _),
+  have h := zero_lt_iff.mpr (finsupp.mem_support_iff.mp hp),
+  rw [totient_prime_pow (prime_of_mem_factorization hp) h],
+end
+
+/-- Euler's product formula for the totient function. -/
+theorem totient_mul_prod_factors (n : ℕ) :
+  φ n * ∏ p in n.factors.to_finset, p = n * ∏ p in n.factors.to_finset, (p - 1) :=
+begin
+  by_cases hn : n = 0, { simp [hn] },
+  rw totient_eq_prod_factorization hn,
+  nth_rewrite 2 ←factorization_prod_pow_eq_self hn,
+  simp only [←prod_factorization_eq_prod_factors, ←finsupp.prod_mul],
+  refine finsupp.prod_congr (λ p hp, _),
+  rw [finsupp.mem_support_iff, ← zero_lt_iff] at hp,
+  rw [mul_comm, ←mul_assoc, ←pow_succ, nat.sub_add_cancel hp],
+end
+
+/-- Euler's product formula for the totient function. -/
+theorem totient_eq_div_factors_mul (n : ℕ) :
+  φ n = n / (∏ p in n.factors.to_finset, p) * (∏ p in n.factors.to_finset, (p - 1)) :=
+begin
+  rw [← mul_div_left n.totient, totient_mul_prod_factors, mul_comm,
+      nat.mul_div_assoc _ (prod_prime_factors_dvd n), mul_comm],
+  simpa [prod_factorization_eq_prod_factors] using prod_pos (λ p, pos_of_mem_factorization),
+end
+
+/-- Euler's product formula for the totient function. -/
+theorem totient_eq_mul_prod_factors (n : ℕ) :
+  (φ n : ℚ) = n * ∏ p in n.factors.to_finset, (1 - p⁻¹) :=
+begin
+  by_cases hn : n = 0, { simp [hn] },
+  have hn' : (n : ℚ) ≠ 0, { simp [hn] },
+  have hpQ : ∏ p in n.factors.to_finset, (p : ℚ) ≠ 0,
+  { rw [←cast_prod, cast_ne_zero, ←zero_lt_iff, ←prod_factorization_eq_prod_factors],
+    exact prod_pos (λ p hp, pos_of_mem_factorization hp) },
+  simp only [totient_eq_div_factors_mul n, prod_prime_factors_dvd n, cast_mul, cast_prod,
+      cast_div_char_zero, mul_comm_div, mul_right_inj' hn', div_eq_iff hpQ, ←prod_mul_distrib],
+  refine prod_congr rfl (λ p hp, _),
+  have hp := pos_of_mem_factors (list.mem_to_finset.mp hp),
+  have hp' : (p : ℚ) ≠ 0 := cast_ne_zero.mpr hp.ne.symm,
+  rw [sub_mul, one_mul, mul_comm, mul_inv_cancel hp', cast_pred hp],
+end
 
 end nat

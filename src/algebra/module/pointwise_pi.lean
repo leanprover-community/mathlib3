@@ -3,8 +3,8 @@ Copyright (c) 2021 Alex J. Best. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alex J. Best
 -/
-import algebra.pointwise
-import algebra.module.pi
+import data.set.pointwise
+import group_theory.group_action.pi
 
 /-!
 # Pointwise actions on sets in Pi types

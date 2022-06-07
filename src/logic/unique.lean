@@ -49,9 +49,17 @@ This is implemented as a type, rather than a `Prop`-valued predicate,
 for good definitional properties of the default term. -/
 @[ext]
 structure unique (α : Sort u) extends inhabited α :=
-(uniq : ∀ a:α, a = default)
+(uniq : ∀ a : α, a = default)
 
 attribute [class] unique
+
+lemma unique_iff_exists_unique (α : Sort u) : nonempty (unique α) ↔ ∃! a : α, true :=
+⟨λ ⟨u⟩, ⟨u.default, trivial, λ a _, u.uniq a⟩, λ ⟨a,_,h⟩, ⟨⟨⟨a⟩, λ _, h _ trivial⟩⟩⟩
+
+lemma unique_subtype_iff_exists_unique {α} (p : α → Prop) :
+  nonempty (unique (subtype p)) ↔ ∃! a, p a :=
+⟨λ ⟨u⟩, ⟨u.default.1, u.default.2, λ a h, congr_arg subtype.val (u.uniq ⟨a,h⟩)⟩,
+ λ ⟨a,ha,he⟩, ⟨⟨⟨⟨a,ha⟩⟩, λ ⟨b,hb⟩, by { congr, exact he b hb }⟩⟩⟩
 
 /-- Given an explicit `a : α` with `[subsingleton α]`, we can construct
 a `[unique α]` instance. This is a def because the typeclass search cannot
@@ -66,6 +74,8 @@ See note [reducible non-instances]. -/
 instance punit.unique : unique punit.{u} :=
 { default := punit.star,
   uniq := λ x, punit_eq x _ }
+
+@[simp] lemma punit.default_eq_star : (default : punit) = punit.star := rfl
 
 /-- Every provable proposition is unique, as all proofs are equal. -/
 def unique_prop {p : Prop} (h : p) : unique p :=
@@ -158,7 +168,18 @@ protected lemma injective.subsingleton (hf : injective f) [subsingleton β] :
 protected def injective.unique [inhabited α] [subsingleton β] (hf : injective f) : unique α :=
 @unique.mk' _ _ hf.subsingleton
 
+/-- If a constant function is surjective, then the codomain is a singleton. -/
+def surjective.unique_of_surjective_const (α : Type*) {β : Type*} (b : β)
+  (h : function.surjective (function.const α b)) : unique β :=
+@unique_of_subsingleton _ (subsingleton_of_forall_eq b $ h.forall.mpr (λ _, rfl)) b
+
 end function
+
+lemma unique.bijective {A B} [unique A] [unique B] {f : A → B} : function.bijective f :=
+begin
+  rw function.bijective_iff_has_inverse,
+  refine ⟨λ x, default, _, _⟩; intro x; simp
+end
 
 namespace option
 

@@ -26,9 +26,9 @@ meta def noncomm_ring :=
              -- Replace multiplication by numerals with `zsmul`.
              bit0_mul, mul_bit0, bit1_mul, mul_bit1, one_mul, mul_one, zero_mul, mul_zero,
              -- Pull `zsmul n` out the front so `abel` can see them.
-             ←mul_zsmul_assoc, ←mul_zsmul_left,
+             mul_smul_comm, smul_mul_assoc,
              -- Pull out negations.
-             neg_mul_eq_neg_mul_symm, mul_neg_eq_neg_mul_symm] {fail_if_unchanged := ff};
+             neg_mul, mul_neg] {fail_if_unchanged := ff};
   abel]
 
 add_tactic_doc

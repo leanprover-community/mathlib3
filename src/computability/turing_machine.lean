@@ -71,7 +71,7 @@ def blank_extends {Γ} [inhabited Γ] (l₁ l₂ : list Γ) : Prop :=
 
 @[trans] theorem blank_extends.trans {Γ} [inhabited Γ] {l₁ l₂ l₃ : list Γ} :
   blank_extends l₁ l₂ → blank_extends l₂ l₃ → blank_extends l₁ l₃ :=
-by rintro ⟨i, rfl⟩ ⟨j, rfl⟩; exact ⟨i+j, by simp [list.repeat_add]⟩
+by { rintro ⟨i, rfl⟩ ⟨j, rfl⟩, exact ⟨i+j, by simp [list.repeat_add]⟩ }
 
 theorem blank_extends.below_of_le {Γ} [inhabited Γ] {l l₁ l₂ : list Γ} :
   blank_extends l l₁ → blank_extends l l₂ →
@@ -663,8 +663,8 @@ holds of any point where `eval f a` evaluates to `b`. This formalizes the notion
 @[elab_as_eliminator] def eval_induction {σ}
   {f : σ → option σ} {b : σ} {C : σ → Sort*} {a : σ} (h : b ∈ eval f a)
   (H : ∀ a, b ∈ eval f a →
-    (∀ a', b ∈ eval f a' → f a = some a' → C a') → C a) : C a :=
-pfun.fix_induction h (λ a' ha' h', H _ ha' $ λ b' hb' e, h' _ hb' $
+    (∀ a', f a = some a' → C a') → C a) : C a :=
+pfun.fix_induction h (λ a' ha' h', H _ ha' $ λ b' e, h' _ $
   part.mem_some_iff.2 $ by rw e; refl)
 
 theorem mem_eval {σ} {f : σ → option σ} {a b} :
@@ -675,9 +675,9 @@ theorem mem_eval {σ} {f : σ → option σ} {a b} :
   { rw part.mem_unique h (pfun.mem_fix_iff.2 $ or.inl $
       part.mem_some_iff.2 $ by rw e; refl),
     exact ⟨refl_trans_gen.refl, e⟩ },
-  { rcases pfun.mem_fix_iff.1 h with h | ⟨_, h, h'⟩;
+  { rcases pfun.mem_fix_iff.1 h with h | ⟨_, h, _⟩;
       rw e at h; cases part.mem_some_iff.1 h,
-    cases IH a' h' (by rwa e) with h₁ h₂,
+    cases IH a' (by rwa e) with h₁ h₂,
     exact ⟨refl_trans_gen.head e h₁, h₂⟩ }
 end, λ ⟨h₁, h₂⟩, begin
   refine refl_trans_gen.head_induction_on h₁ _ (λ a a' h _ IH, _),
@@ -2315,7 +2315,7 @@ theorem tr_respects_aux {q v T k} {S : Π k, list (Γ k)}
       v (tape.mk' ∅ (add_bottom T))) b :=
 begin
   simp only [tr_normal_run, step_run],
-  have hgo := tr_respects_aux₁ M o q v (hT k) _ (le_refl _),
+  have hgo := tr_respects_aux₁ M o q v (hT k) _ le_rfl,
   obtain ⟨T', hT', hrun⟩ := tr_respects_aux₂ hT o,
   have hret := tr_respects_aux₃ M _,
   have := hgo.tail' rfl,

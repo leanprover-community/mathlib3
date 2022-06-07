@@ -53,6 +53,11 @@ instance : set_like (lie_submodule R L M) M :=
 { coe := carrier,
   coe_injective' := λ N O h, by cases N; cases O; congr' }
 
+instance : add_subgroup_class (lie_submodule R L M) M :=
+{ add_mem := λ N, N.add_mem',
+  zero_mem := λ N, N.zero_mem',
+  neg_mem := λ N x hx, show -x ∈ N.to_submodule, from neg_mem hx }
+
 /-- The zero module is a Lie submodule of any Lie module. -/
 instance : has_zero (lie_submodule R L M) :=
 ⟨{ lie_mem := λ x m h, by { rw ((submodule.mem_bot R).1 h), apply lie_zero, },
@@ -78,7 +83,7 @@ iff.rfl
 
 lemma mem_coe {x : M} : x ∈ (N : set M) ↔ x ∈ N := iff.rfl
 
-@[simp] lemma zero_mem : (0 : M) ∈ N := (N : submodule R M).zero_mem
+@[simp] protected lemma zero_mem : (0 : M) ∈ N := zero_mem N
 
 @[simp] lemma mk_eq_zero {x} (h : x ∈ N) : (⟨x, h⟩ : N) = 0 ↔ x = 0 := subtype.ext_iff_val
 
@@ -604,11 +609,11 @@ variables {f}
 (gc_map_comap f).l_sup
 
 lemma map_comap_le : map f (comap f J) ≤ J :=
-by { rw map_le_iff_le_comap, apply le_refl _, }
+by { rw map_le_iff_le_comap, exact le_rfl, }
 
 /-- See also `lie_ideal.map_comap_eq`. -/
 lemma comap_map_le : I ≤ comap f (map f I) :=
-by { rw ← map_le_iff_le_comap, apply le_refl _, }
+by { rw ← map_le_iff_le_comap, exact le_rfl, }
 
 @[mono] lemma map_mono : monotone (map f) :=
 λ I₁ I₂ h,
@@ -928,26 +933,30 @@ by simp [← lie_submodule.coe_to_submodule_eq_iff]
 
 end lie_submodule
 
-section top_equiv_self
+section top_equiv
 
 variables {R : Type u} {L : Type v}
 variables [comm_ring R] [lie_ring L] [lie_algebra R L]
 
-/-- The natural equivalence between the 'top' Lie subalgebra and the enclosing Lie algebra. -/
-def lie_subalgebra.top_equiv_self : (⊤ : lie_subalgebra R L) ≃ₗ⁅R⁆ L :=
+/-- The natural equivalence between the 'top' Lie subalgebra and the enclosing Lie algebra.
+
+This is the Lie subalgebra version of `submodule.top_equiv`. -/
+def lie_subalgebra.top_equiv : (⊤ : lie_subalgebra R L) ≃ₗ⁅R⁆ L :=
 { inv_fun   := λ x, ⟨x, set.mem_univ x⟩,
   left_inv  := λ x, by { ext, refl, },
   right_inv := λ x, rfl,
   ..(⊤ : lie_subalgebra R L).incl, }
 
-@[simp] lemma lie_subalgebra.top_equiv_self_apply (x : (⊤ : lie_subalgebra R L)) :
-  lie_subalgebra.top_equiv_self x = x := rfl
+@[simp] lemma lie_subalgebra.top_equiv_apply (x : (⊤ : lie_subalgebra R L)) :
+  lie_subalgebra.top_equiv x = x := rfl
 
-/-- The natural equivalence between the 'top' Lie ideal and the enclosing Lie algebra. -/
-def lie_ideal.top_equiv_self : (⊤ : lie_ideal R L) ≃ₗ⁅R⁆ L :=
-lie_subalgebra.top_equiv_self
+/-- The natural equivalence between the 'top' Lie ideal and the enclosing Lie algebra.
 
-@[simp] lemma lie_ideal.top_equiv_self_apply (x : (⊤ : lie_ideal R L)) :
-  lie_ideal.top_equiv_self x = x := rfl
+This is the Lie ideal version of `submodule.top_equiv`. -/
+def lie_ideal.top_equiv : (⊤ : lie_ideal R L) ≃ₗ⁅R⁆ L :=
+lie_subalgebra.top_equiv
 
-end top_equiv_self
+@[simp] lemma lie_ideal.top_equiv_apply (x : (⊤ : lie_ideal R L)) :
+  lie_ideal.top_equiv x = x := rfl
+
+end top_equiv

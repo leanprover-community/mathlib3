@@ -13,7 +13,7 @@ import data.nat.multiplicity
 
 Find all pairs `(k, n)` of positive integers such that
 ```
-  k! = (2 ^ n − 1)(2 ^ n − 2)(2 ^ n − 4)···(2 ^ n − 2 ^ (n − 1))
+  k! = (2 ^ n - 1)(2 ^ n - 2)(2 ^ n - 4)···(2 ^ n - 2 ^ (n - 1))
 ```
 We show in this file that this property holds iff `(k, n) = (1, 1) ∨ (k, n) = (3, 2)`.
 

@@ -237,13 +237,13 @@ lemma nhds_within_prod {α : Type*} [topological_space α] {β : Type*} [topolog
 by { rw nhds_within_prod_eq, exact prod_mem_prod hu hv, }
 
 lemma nhds_within_pi_eq' {ι : Type*} {α : ι → Type*} [Π i, topological_space (α i)]
-  {I : set ι} (hI : finite I) (s : Π i, set (α i)) (x : Π i, α i) :
+  {I : set ι} (hI : I.finite) (s : Π i, set (α i)) (x : Π i, α i) :
   𝓝[pi I s] x = ⨅ i, comap (λ x, x i) (𝓝 (x i) ⊓ ⨅ (hi : i ∈ I), 𝓟 (s i)) :=
 by simp only [nhds_within, nhds_pi, filter.pi, comap_inf, comap_infi, pi_def, comap_principal,
   ← infi_principal_finite hI, ← infi_inf_eq]
 
 lemma nhds_within_pi_eq {ι : Type*} {α : ι → Type*} [Π i, topological_space (α i)]
-  {I : set ι} (hI : finite I) (s : Π i, set (α i)) (x : Π i, α i) :
+  {I : set ι} (hI : I.finite) (s : Π i, set (α i)) (x : Π i, α i) :
   𝓝[pi I s] x = (⨅ i ∈ I, comap (λ x, x i) (𝓝[s i] (x i))) ⊓
     ⨅ (i ∉ I), comap (λ x, x i) (𝓝 (x i)) :=
 begin
@@ -501,6 +501,29 @@ have ∀ t, is_open (s.restrict f ⁻¹' t) ↔ ∃ (u : set α), is_open u ∧ 
   end,
 by rw [continuous_on_iff_continuous_restrict, continuous_def]; simp only [this]
 
+/-- If a function is continuous on a set for some topologies, then it is
+continuous on the same set with respect to any finer topology on the source space. -/
+lemma continuous_on.mono_dom {α β : Type*} {t₁ t₂ : topological_space α} {t₃ : topological_space β}
+  (h₁ : t₂ ≤ t₁) {s : set α} {f : α → β} (h₂ : @continuous_on α β t₁ t₃ f s) :
+  @continuous_on α β t₂ t₃ f s :=
+begin
+  rw continuous_on_iff' at h₂ ⊢,
+  assume t ht,
+  rcases h₂ t ht with ⟨u, hu, h'u⟩,
+  exact ⟨u, h₁ u hu, h'u⟩
+end
+
+/-- If a function is continuous on a set for some topologies, then it is
+continuous on the same set with respect to any coarser topology on the target space. -/
+lemma continuous_on.mono_rng {α β : Type*} {t₁ : topological_space α} {t₂ t₃ : topological_space β}
+  (h₁ : t₂ ≤ t₃) {s : set α} {f : α → β} (h₂ : @continuous_on α β t₁ t₂ f s) :
+  @continuous_on α β t₁ t₃ f s :=
+begin
+  rw continuous_on_iff' at h₂ ⊢,
+  assume t ht,
+  exact h₂ t (h₁ t ht)
+end
+
 theorem continuous_on_iff_is_closed {f : α → β} {s : set α} :
   continuous_on f s ↔ ∀ t : set β, is_closed t → ∃ u, is_closed u ∧ f ⁻¹' t ∩ s = u ∩ s :=
 have ∀ t, is_closed (s.restrict f ⁻¹' t) ↔ ∃ (u : set α), is_closed u ∧ f ⁻¹' t ∩ s = u ∩ s,
@@ -519,9 +542,21 @@ lemma continuous_on.prod_map {f : α → γ} {g : β → δ} {s : set α} {t : s
 lemma continuous_on_empty (f : α → β) : continuous_on f ∅ :=
 λ x, false.elim
 
+lemma continuous_on_singleton (f : α → β) (a : α) : continuous_on f {a} :=
+forall_eq.2 $ by simpa only [continuous_within_at, nhds_within_singleton, tendsto_pure_left]
+  using λ s, mem_of_mem_nhds
+
+lemma set.subsingleton.continuous_on {s : set α} (hs : s.subsingleton) (f : α → β) :
+  continuous_on f s :=
+hs.induction_on (continuous_on_empty f) (continuous_on_singleton f)
+
 theorem nhds_within_le_comap {x : α} {s : set α} {f : α → β} (ctsf : continuous_within_at f s x) :
   𝓝[s] x ≤ comap f (𝓝[f '' s] (f x)) :=
-map_le_iff_le_comap.1 ctsf.tendsto_nhds_within_image
+ctsf.tendsto_nhds_within_image.le_comap
+
+@[simp] lemma comap_nhds_within_range {α} (f : α → β) (y : β) :
+  comap f (𝓝[range f] y) = comap f (𝓝 y) :=
+comap_inf_principal_range
 
 theorem continuous_within_at_iff_ptendsto_res (f : α → β) {x : α} {s : set α} :
   continuous_within_at f s x ↔ ptendsto (pfun.res f s) (𝓝 x) (𝓝 (f x)) :=
@@ -563,16 +598,23 @@ exact (mem_closure_of_tendsto h $
   mem_of_superset self_mem_nhds_within (subset_preimage_image f s))
 
 lemma continuous_within_at.mem_closure {f : α → β} {s : set α} {x : α} {A : set β}
-  (h : continuous_within_at f s x) (hx : x ∈ closure s) (hA : s ⊆ f⁻¹' A) : f x ∈ closure A :=
+  (h : continuous_within_at f s x) (hx : x ∈ closure s) (hA : maps_to f s A) : f x ∈ closure A :=
 closure_mono (image_subset_iff.2 hA) (h.mem_closure_image hx)
+
+lemma set.maps_to.closure_of_continuous_within_at {f : α → β} {s : set α} {t : set β}
+  (h : maps_to f s t) (hc : ∀ x ∈ closure s, continuous_within_at f s x) :
+  maps_to f (closure s) (closure t) :=
+λ x hx, (hc x hx).mem_closure hx h
+
+lemma set.maps_to.closure_of_continuous_on {f : α → β} {s : set α} {t : set β}
+  (h : maps_to f s t) (hc : continuous_on f (closure s)) :
+  maps_to f (closure s) (closure t) :=
+h.closure_of_continuous_within_at $ λ x hx, (hc x hx).mono subset_closure
 
 lemma continuous_within_at.image_closure {f : α → β} {s : set α}
   (hf : ∀ x ∈ closure s, continuous_within_at f s x) :
   f '' (closure s) ⊆ closure (f '' s) :=
-begin
-  rintros _ ⟨x, hx, rfl⟩,
-  exact (hf x hx).mem_closure_image hx
-end
+maps_to'.1 $ (maps_to_image f s).closure_of_continuous_within_at hf
 
 lemma continuous_on.image_closure {f : α → β} {s : set α} (hf : continuous_on f (closure s)) :
   f '' (closure s) ⊆ closure (f '' s) :=
@@ -673,7 +715,7 @@ lemma continuous_at.continuous_on {f : α → β} {s : set α} (hcont : ∀ x �
 λ x hx, (hcont x hx).continuous_within_at
 
 lemma continuous_within_at.comp {g : β → γ} {f : α → β} {s : set α} {t : set β} {x : α}
-  (hg : continuous_within_at g t (f x)) (hf : continuous_within_at f s x) (h : s ⊆ f ⁻¹' t) :
+  (hg : continuous_within_at g t (f x)) (hf : continuous_within_at f s x) (h : maps_to f s t) :
   continuous_within_at (g ∘ f) s x :=
 hg.tendsto.comp (hf.tendsto_nhds_within h)
 
@@ -685,16 +727,19 @@ hg.comp (hf.mono (inter_subset_left _ _)) (inter_subset_right _ _)
 lemma continuous_at.comp_continuous_within_at {g : β → γ} {f : α → β} {s : set α} {x : α}
   (hg : continuous_at g (f x)) (hf : continuous_within_at f s x) :
   continuous_within_at (g ∘ f) s x :=
-hg.continuous_within_at.comp hf subset_preimage_univ
+hg.continuous_within_at.comp hf (maps_to_univ _ _)
 
 lemma continuous_on.comp {g : β → γ} {f : α → β} {s : set α} {t : set β}
-  (hg : continuous_on g t) (hf : continuous_on f s) (h : s ⊆ f ⁻¹' t) :
+  (hg : continuous_on g t) (hf : continuous_on f s) (h : maps_to f s t) :
   continuous_on (g ∘ f) s :=
 λx hx, continuous_within_at.comp (hg _ (h hx)) (hf x hx) h
 
 lemma continuous_on.mono {f : α → β} {s t : set α} (hf : continuous_on f s) (h : t ⊆ s)  :
   continuous_on f t :=
 λx hx, (hf x (h hx)).mono_left (nhds_within_mono _ h)
+
+lemma antitone_continuous_on {f : α → β} : antitone (continuous_on f) :=
+λ s t hst hf, hf.mono hst
 
 lemma continuous_on.comp' {g : β → γ} {f : α → β} {s : set α} {t : set β}
   (hg : continuous_on g t) (hf : continuous_on f s) :
@@ -715,7 +760,7 @@ h.continuous_at.continuous_within_at
 lemma continuous.comp_continuous_on {g : β → γ} {f : α → β} {s : set α}
   (hg : continuous g) (hf : continuous_on f s) :
   continuous_on (g ∘ f) s :=
-hg.continuous_on.comp hf subset_preimage_univ
+hg.continuous_on.comp hf (maps_to_univ _ _)
 
 lemma continuous_on.comp_continuous {g : β → γ} {f : α → β} {s : set β}
   (hg : continuous_on g s) (hf : continuous f) (hs : ∀ x, f x ∈ s) : continuous (g ∘ f) :=
@@ -985,6 +1030,16 @@ lemma continuous.if {p : α → Prop} {f g : α → β} [∀ a, decidable (p a)]
   continuous (λ a, if p a then f a else g a) :=
 continuous_if hp hf.continuous_on hg.continuous_on
 
+lemma continuous_if_const (p : Prop) {f g : α → β} [decidable p]
+  (hf : p → continuous f) (hg : ¬ p → continuous g) :
+  continuous (λ a, if p then f a else g a) :=
+by { split_ifs, exact hf h, exact hg h }
+
+lemma continuous.if_const (p : Prop) {f g : α → β} [decidable p]
+  (hf : continuous f) (hg : continuous g) :
+  continuous (λ a, if p then f a else g a) :=
+continuous_if_const p (λ _, hf) (λ _, hg)
+
 lemma continuous_piecewise {s : set α} {f g : α → β} [∀ a, decidable (a ∈ s)]
   (hs : ∀ a ∈ frontier s, f a = g a) (hf : continuous_on f (closure s))
   (hg : continuous_on g (closure sᶜ)) :
@@ -1039,6 +1094,12 @@ lemma continuous_on_piecewise_ite {s s' t : set α} {f f' : α → β} [∀ x, d
   continuous_on (t.piecewise f f') (t.ite s s') :=
 continuous_on_piecewise_ite' (h.mono (inter_subset_left _ _)) (h'.mono (inter_subset_left _ _))
   H Heq
+
+lemma frontier_inter_open_inter {s t : set α} (ht : is_open t) :
+  frontier (s ∩ t) ∩ t = frontier s ∩ t :=
+by simp only [← subtype.preimage_coe_eq_preimage_coe_iff,
+  ht.is_open_map_subtype_coe.preimage_frontier_eq_frontier_preimage continuous_subtype_coe,
+  subtype.preimage_coe_inter_self]
 
 lemma continuous_on_fst {s : set (α × β)} : continuous_on prod.fst s :=
 continuous_fst.continuous_on

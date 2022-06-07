@@ -146,7 +146,7 @@ lemma mem_nilradical : x ∈ nilradical R ↔ is_nilpotent x := iff.rfl
 
 lemma nilradical_eq_Inf (R : Type*) [comm_semiring R] :
   nilradical R = Inf { J : ideal R | J.is_prime } :=
-by { convert ideal.radical_eq_Inf 0, simp }
+(ideal.radical_eq_Inf ⊥).trans $ by simp_rw and_iff_right bot_le
 
 lemma nilpotent_iff_mem_prime : is_nilpotent x ↔ ∀ (J : ideal R), J.is_prime → x ∈ J :=
 by { rw [← mem_nilradical, nilradical_eq_Inf, submodule.mem_Inf], refl }
@@ -180,3 +180,17 @@ begin
 end
 
 end algebra
+
+namespace module.End
+
+variables {M : Type v} [ring R] [add_comm_group M] [module R M]
+variables {f : module.End R M} {p : submodule R M} (hp : p ≤ p.comap f)
+
+lemma is_nilpotent.mapq (hnp : is_nilpotent f) : is_nilpotent (p.mapq p f hp) :=
+begin
+  obtain ⟨k, hk⟩ := hnp,
+  use k,
+  simp [← p.mapq_pow, hk],
+end
+
+end module.End

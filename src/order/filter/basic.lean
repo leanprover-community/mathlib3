@@ -2592,25 +2592,11 @@ end
 
 /-- A fact that is eventually true about all pairs `l ×ᶠ l` is eventually true about
 all diagonal pairs `(i, i)` -/
-lemma eventually_diag_of_eventually_prod {f : filter α} {p : α × α → Prop}
+lemma eventually.diag_of_prod {f : filter α} {p : α × α → Prop}
   (h : ∀ᶠ i in (f.prod f), p i) : (∀ᶠ i in f, p (i, i)) :=
 begin
-  rw eventually_iff,
-  rw [eventually_iff, mem_prod_iff] at h,
-  obtain ⟨t, ht, s, hs, hst⟩ := h,
-  have ht_in_f : t ∩ s ∈ f, simp [hs, ht],
-  refine f.sets_of_superset ht_in_f _,
-  rw set.subset_def,
-  intros x hx,
-  have := calc (x, x) ∈ (t ∩ s) ×ˢ (t ∩ s) : by simpa using hx
-    ... ⊆ t ×ˢ s : begin
-      rw set.subset_def,
-      intros y hy,
-      simp at hy,
-      simp [hy],
-    end
-    ... ⊆ {x : α × α | p x} : hst,
-  simpa using this,
+  obtain ⟨t, ht, s, hs, hst⟩ := eventually_prod_iff.1 h,
+  apply (ht.and hs).mono (λ x hx, hst hx.1 hx.2),
 end
 
 lemma prod_infi_left [nonempty ι] {f : ι → filter α} {g : filter β}:

@@ -83,6 +83,9 @@ instance is_total.to_is_refl (r) [is_total α r] : is_refl α r :=
 lemma ne_of_irrefl {r} [is_irrefl α r] : ∀ {x y : α}, r x y → x ≠ y | _ _ h rfl := irrefl _ h
 lemma ne_of_irrefl' {r} [is_irrefl α r] : ∀ {x y : α}, r x y → y ≠ x | _ _ h rfl := irrefl _ h
 
+lemma not_rel (r x y) [is_irrefl α r] [subsingleton α] : ¬ r x y :=
+by { rw subsingleton.elim x y, apply irrefl }
+
 lemma trans_trichotomous_left [is_trans α r] [is_trichotomous α r] {a b c : α} :
   ¬r b a → r b c → r a c :=
 begin
@@ -227,11 +230,12 @@ noncomputable def is_well_order.linear_order (r : α → α → Prop) [is_well_o
   linear_order α :=
 by { letI := λ x y, classical.dec (¬r x y), exact linear_order_of_STO' r }
 
-instance empty_relation.is_well_order [subsingleton α] : is_well_order α empty_relation :=
-{ trichotomous := λ a b, or.inr $ or.inl $ subsingleton.elim _ _,
-  irrefl       := λ a, id,
-  trans        := λ a b c, false.elim,
-  wf           := ⟨λ a, ⟨_, λ y, false.elim⟩⟩ }
+instance subsingleton.is_well_order [subsingleton α] (r : α → α → Prop) [hr : is_irrefl α r] :
+  is_well_order α r :=
+{ trichotomous := λ a b, or.inr $ or.inl $ subsingleton.elim a b,
+  trans        := λ a b c h, (not_rel r a b h).elim,
+  wf           := ⟨λ a, ⟨_, λ y h, (not_rel r y a h).elim⟩⟩,
+  ..hr }
 
 instance prod.lex.is_well_order [is_well_order α r] [is_well_order β s] :
   is_well_order (α × β) (prod.lex r s) :=

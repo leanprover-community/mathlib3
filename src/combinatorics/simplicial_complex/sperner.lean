@@ -12,29 +12,23 @@ import data.nat.parity
 
 namespace geometry
 
-open_locale affine big_operators classical
 open set
+open_locale affine big_operators classical
 variables {𝕜 : Type*} [ordered_ring 𝕜] {m n : ℕ}
 local notation `E` := fin m → 𝕜
 variables {S : simplicial_complex 𝕜 E} {f : E → fin m}
 
-def is_sperner_coloring (S : simplicial_complex 𝕜 E)
-  (f : E → fin m) : Prop :=
+def is_sperner_coloring (S : simplicial_complex 𝕜 E) (f : E → fin m) : Prop :=
 ∀ (x : E) i, x ∈ S.vertices → x i = 0 → f x ≠ i
 
-def panchromatic (f : (fin n → 𝕜) → fin m) (X : finset (fin n → 𝕜)) :=
-  X.image f = finset.univ
+def panchromatic (f : (fin n → 𝕜) → fin m) (X : finset (fin n → 𝕜)) := X.image f = finset.univ
 
-lemma panchromatic_iff (f : E → fin m) (X : finset E) :
-  panchromatic f X ↔ (X.image f).card = m :=
+lemma panchromatic_iff (f : E → fin m) (X : finset E) : panchromatic f X ↔ (X.image f).card = m :=
 begin
   rw panchromatic,
-  split,
-  { intro h,
-    simp [h] },
-  { intro h,
-    refine finset.eq_of_subset_of_card_le (finset.image f X).subset_univ _,
-    simp [h] }
+  refine ⟨λ h, _, λ h, finset.eq_of_subset_of_card_le (finset.image f X).subset_univ _⟩,
+  { simp [h] },
+  { simp [h] }
 end
 
 lemma std_simplex_one :
@@ -197,13 +191,12 @@ noncomputable def simplicial_complex.dimension_drop (S : simplicial_complex (fin
         simpa },
       apply hX₂ _ hx },
     rw finset.image_image,
-    refine ⟨_, _⟩,
-    { convert finset.image_id,
-      { ext x,
-        dsimp,
-        simp, },
-      { exact classical.dec_eq E } },
-    simp,
+    refine ⟨_, by simp⟩,
+    convert finset.image_id,
+    { ext x,
+      dsimp,
+      simp },
+    { exact classical.dec_eq E }
   end,
   indep :=
   begin
@@ -229,8 +222,7 @@ noncomputable def simplicial_complex.dimension_drop (S : simplicial_complex (fin
     { convert affine_independent_embedding_of_affine_independent ⟨f, hf⟩ this,
       ext p,
       dsimp,
-      simp
-      },
+      simp },
     rintro ⟨i, hi⟩,
     apply hX₂ _ hi,
   end,
@@ -240,7 +232,6 @@ noncomputable def simplicial_complex.dimension_drop (S : simplicial_complex (fin
     simp only [finset.coe_image],
     rw ← is_linear_map.image_convex_hull,
     rw ← is_linear_map.image_convex_hull,
-
     rw set.image_inter_on,
     refine set.subset.trans (set.image_subset matrix.vec_tail (S.disjoint hX₁ hY₁)) _,
     rw is_linear_map.image_convex_hull,
@@ -257,7 +248,7 @@ noncomputable def simplicial_complex.dimension_drop (S : simplicial_complex (fin
       apply convex_hull_affine _ hx,
       apply hY₂,
       apply convex_hull_affine _ hy,
-      apply hX₂, },
+      apply hX₂ },
     apply is_linear_map_matrix_vec_tail,
     apply is_linear_map_matrix_vec_tail,
   end }

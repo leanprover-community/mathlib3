@@ -27,14 +27,14 @@ K₁.space = K₂.space ∧
 end ordered_ring
 
 section semi_normed_group
-variables [semi_normed_group E] [t2_space E] [semi_normed_space ℝ E] {s t : finset E} {m : ℕ}
+variables [semi_normed_group E] [t2_space E] [normed_space ℝ E] {s t : finset E} {m : ℕ}
   {K₁ K₂ : simplicial_complex ℝ E}
 
 lemma subdivision_iff_combi_interiors_subset_combi_interiors :
   K₁.subdivides K₂ ↔ K₂.space ⊆ K₁.space ∧
   ∀ s₁ ∈ K₁, ∃ s₂ ∈ K₂, combi_interior ℝ s₁ ⊆ combi_interior ℝ s₂ :=
 begin
-  refine ⟨λ h, ⟨h.1.symm.subset, λ s hs, _⟩, λ h, ⟨set.subset.antisymm (λ x hx, _) h.1, λ s₁ hs₁, _⟩⟩,
+  refine ⟨λ h, ⟨h.1.symm.subset, λ s hs, _⟩, λ h, ⟨h.1.antisymm' $ λ x hx, _, λ s₁ hs₁, _⟩⟩,
   { obtain ⟨t, ht, hst⟩ := h.2 hs,
     obtain ⟨u, hut, hu, hsu⟩ := simplex_combi_interiors_split_interiors_nonempty (K₁.nonempty hs)
       (K₂.indep ht) hst,

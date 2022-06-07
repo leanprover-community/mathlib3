@@ -64,7 +64,7 @@ end
 end linear_ordered_field
 
 section normed_linear_ordered_field
-variables [normed_linear_ordered_field 𝕜] [semi_normed_group E] [normed_space 𝕜 E] {s t : set E} {X Y : finset E}
+variables [normed_linear_ordered_field 𝕜] [semi_normed_group E] [normed_space 𝕜 E] {s t : set E}
   {x : E}
 
 -- beurk
@@ -172,25 +172,25 @@ end
 
 
 
-lemma convex_independent.subset_of_convex_hull_eq_convex_hull {X Y : finset E}
-  (hX : convex_independent 𝕜 (λ p, p : (X : set E) → E))
-  (h : convex_hull 𝕜 ↑X = convex_hull 𝕜 (Y : set E)) :
-  X ⊆ Y :=
+lemma convex_independent.subset_of_convex_hull_eq_convex_hull {s t : finset E}
+  (hs : convex_independent 𝕜 (λ p, p : (s : set E) → E))
+  (h : convex_hull 𝕜 ↑s = convex_hull 𝕜 (t : set E)) :
+  s ⊆ t :=
 begin
   rintro x hx,
-  have hxextreme := (extreme_points_convex_hull_eq_iff_convex_independent.2 hX).symm.subset hx,
+  have hxextreme := (extreme_points_convex_hull_eq_iff_convex_independent.2 hs).symm.subset hx,
   rw h at hxextreme,
   exact_mod_cast extreme_points_convex_hull_subset hxextreme,
 end
 
 lemma convex_independent.eq_of_convex_hull_eq_convex_hull
-  {X Y : finset E}
-  (hX : convex_independent 𝕜 (λ p, p : (X : set E) → E))
-  (hY : convex_independent 𝕜 (λ p, p : (Y : set E) → E))
-  (h : convex_hull 𝕜 (X : set E) = convex_hull 𝕜 (Y : set E)) :
-  X = Y :=
-(hX.subset_of_convex_hull_eq_convex_hull h).antisymm $
-  hY.subset_of_convex_hull_eq_convex_hull h.symm
+  {s t : finset E}
+  (hs : convex_independent 𝕜 (λ p, p : (s : set E) → E))
+  (ht : convex_independent 𝕜 (λ p, p : (t : set E) → E))
+  (h : convex_hull 𝕜 (s : set E) = convex_hull 𝕜 (t : set E)) :
+  s = t :=
+(hs.subset_of_convex_hull_eq_convex_hull h).antisymm $
+  ht.subset_of_convex_hull_eq_convex_hull h.symm
 
 /- deprecated because generalised by `extreme_points_convex_hull_eq_iff_convex_independent`
 lemma extreme_to_convex_hull_of_affine_independent {s : finset E} (hx : x ∈ s)

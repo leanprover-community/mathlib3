@@ -3,7 +3,6 @@ Copyright (c) 2021 Yaël Dillies, Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
-import combinatorics.simplicial_complex.convex_join
 import combinatorics.simplicial_complex.exposed
 
 /-!
@@ -107,8 +106,7 @@ protected noncomputable def std_simplex [fintype ι] : polyhedron (ι → 𝕜) 
 variables {𝕜 ι}
 
 protected lemma std_simplex_eq (ι : Type*) [fintype ι] :
-  (polyhedron.std_simplex 𝕜 ι : set (ι → 𝕜)) = std_simplex 𝕜 ι :=
-rfl
+  (polyhedron.std_simplex 𝕜 ι : set (ι → 𝕜)) = std_simplex 𝕜 ι := rfl
 
 def faces (P : polyhedron 𝕜 E) : set (polyhedron 𝕜 E) :=
 {Q | (Q : set E).nonempty → ∃ s ⊆ P.Hrepr, (Q : set E) = {x ∈ P | ∀ l ∈ s, (l.1 x : 𝕜) ≤ l.2}}
@@ -408,15 +406,15 @@ instance lattice_polytopes : lattice (polytope 𝕜 E) :=
   le_trans := λ X Y Z, subset.trans,
   le_antisymm := λ X Y hXY hYX, polytope.ext (subset.antisymm (hXY : _ ⊆ _) (hYX : _ ⊆ _)),
 
-  sup := λ X Y, { carrier := convex_join X Y,
-    hcarrier := begin
+  sup := λ X Y, { carrier := convex_hull (X ∪ Y),
+    hcarrier := ⟨X.Vrepr ∪ Y.Vrepr, begin
       use X.Vrepr ∪ Y.Vrepr,
-      rw [X.eq_convex_hull_Vrepr, Y.eq_convex_hull_Vrepr, ←convex_hull_union],
+      rw [X.eq_convex_hull_Vrepr, Y.eq_convex_hull_Vrepr],
       norm_cast,
-    end },
-  le_sup_left := λ X Y, subset_convex_join_left X Y,
-  le_sup_right := λ X Y, subset_convex_join_right X Y,
-  sup_le := λ X Y Z hXZ hYZ, convex_join_min hXZ hYZ Z.convex,
+    end⟩ }⟩,
+  le_sup_left := λ X Y, (subset_convex_hull _ _).trans $ subset_union_left _ _,
+  le_sup_right := λ X Y, (subset_convex_hull _ _).trans $ subset_union_right _ _,
+  sup_le := λ X Y Z hXZ hYZ, convex_hull_min hXZ hYZ Z.convex,
 
   inf := λ X Y, { carrier := X ∩ Y,
     hcarrier := begin

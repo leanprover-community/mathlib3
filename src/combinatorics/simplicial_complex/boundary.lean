@@ -70,8 +70,7 @@ begin
     have := htunique hu ⟨subset.trans hsV (subset.trans hVW hWu.1),
       λ hus, hWu.2 (subset.trans hus (subset.trans hsV hVW))⟩,
     subst this,
-    exact hWu.2 hVW,
-  }
+    exact hWu.2 hVW }
 end
 
 lemma boundary_facet_iff' :
@@ -80,14 +79,10 @@ begin
   rw boundary_facet_iff,
   split,
   { rintro ⟨t, ht, hst, htunique⟩,
-    have ht' : t ∈ K.facets,
-    { use ht,
-      rintro t' ht' htt',
-      exact htunique ht' (finset.ssubset_of_ssubset_of_subset hst htt'),
-    },
-    exact ⟨t, ht', hst, (λ t', htunique)⟩ },
+    refine ⟨t, _, hst, λ t', htunique⟩
+    exact ⟨ht, λ t' ht' htt', htunique ht' $ finset.ssubset_of_ssubset_of_subset hst htt'⟩ },
   { rintro ⟨t, ht, hst, htunique⟩,
-    exact ⟨t, ht.1, hst, (λ t', htunique)⟩ }
+    exact ⟨t, ht.1, hst, λ t', htunique⟩ }
 end
 
 lemma pure_boundary_of_pure (hK : K.pure n) : K.boundary.pure (n - 1) :=
@@ -128,8 +123,7 @@ begin
   ext V,
   split,
   { rintro ⟨hVdisj, W, s, hW, ⟨t, u, ht, hu, hst, htu, huunique⟩, hVs, hWs⟩,
-    use V,
-    split,
+    refine ⟨V, _, _⟩,
     { sorry
       /-split,
       exact (λ U hU, hVdisj hU),
@@ -145,11 +139,9 @@ begin
         (λ huV, htu.2 (finset.subset.trans huV (finset.subset.trans hVs hst)))⟩,
       rintro U ⟨hUdisj, T, R, hT, hR, hUR, hTR⟩ hVU,
       apply huunique (K.down_closed hR hUR),-/
-      sorry
-    }
+      sorry }
   },
-  { sorry
-  }
+  { sorry }
 end
 
 lemma boundary_boundary [finite_dimensional 𝕜 E] (hK : K.pure_of n) (hK' : ∀ {s}, s ∈ K.faces →

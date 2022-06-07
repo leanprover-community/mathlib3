@@ -35,8 +35,7 @@ A logarithmic upper bound on the multiplicity of a prime in a binomial coefficie
 -/
 lemma factorization_choose_le : (choose n k).factorization p ≤ log p n :=
 begin
-  by_cases h : (choose n k).factorization p = 0,
-  { exact (le_of_eq h).trans zero_le' },
+by_cases h : (choose n k).factorization p = 0, { simp [h] },
   have hp : p.prime := not.imp_symm (choose n k).factorization_eq_zero_of_non_prime h,
   have hkn : k ≤ n,
   { refine le_of_not_lt (λ hnk, h _),

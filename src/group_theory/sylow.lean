@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Thomas Browning
 -/
 
-import data.nat.factorization
+import data.nat.factorization.basic
 import data.set_like.fintype
 import group_theory.group_action.conj_act
 import group_theory.p_group

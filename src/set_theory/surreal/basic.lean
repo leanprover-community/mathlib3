@@ -716,9 +716,11 @@ def lift₂ {α} (f : ∀ x y, numeric x → numeric y → α)
 lift (λ x ox, lift (λ y oy, f x y ox oy) (λ y₁ y₂ oy₁ oy₂, H _ _ _ _ equiv_rfl))
   (λ x₁ x₂ ox₁ ox₂ h, funext $ quotient.ind $ by exact λ ⟨y, oy⟩, H _ _ _ _ h equiv_rfl)
 
+-- need to split off ordered_comm_group to make computability in `dyadic_map` work ..!
+
 /-- All the surreal operations (`+`, `-`, `*`) and relations (`≤`, `<`) are inherited from
   `pgame`. -/
-noncomputable instance : linear_ordered_comm_ring surreal :=
+instance : ordered_comm_ring surreal :=
 { add := lift₂ (λ x y ox oy, ⟦⟨x + y, ox.add oy⟩⟧)
     (λ x₁ y₁ x₂ y₂ _ _ _ _ hx hy, quotient.sound $ add_congr hx hy),
   add_assoc := by { rintros ⟨_⟩ ⟨_⟩ ⟨_⟩, exact quotient.sound add_assoc_equiv },
@@ -735,8 +737,6 @@ noncomputable instance : linear_ordered_comm_ring surreal :=
   lt_iff_le_not_le := by { rintros ⟨_⟩ ⟨_⟩, exact lt_iff_le_not_le },
   le_antisymm := by { rintros ⟨_⟩ ⟨_⟩ h₁ h₂, exact quotient.sound ⟨h₁, h₂⟩ },
   add_le_add_left := by { rintros ⟨_⟩ ⟨_⟩ hx ⟨_⟩, exact @add_le_add_left pgame _ _ _ _ _ hx _ },
-  le_total := by { rintro ⟨x⟩ ⟨y⟩, exact (le_or_gf x.1 y.1).imp id (λ h, h.le y.2 x.2) },
-  decidable_le := classical.dec_rel _,
   mul := lift₂ (λ x y ox oy, ⟦⟨x * y, ox.mul oy⟩⟧)
     (λ _ _ _ _ ox₁ oy₁ ox₂ oy₂ hx hy, quotient.sound $ ox₁.mul_congr ox₂ oy₁ oy₂ hx hy),
   mul_assoc := by { rintro ⟨x⟩ ⟨y⟩ ⟨z⟩, exact quotient.sound (mul_assoc_equiv x y z) },
@@ -747,8 +747,13 @@ noncomputable instance : linear_ordered_comm_ring surreal :=
   right_distrib := by { rintro ⟨x⟩ ⟨y⟩ ⟨z⟩, exact quotient.sound (right_distrib_equiv x y z) },
   zero_le_one := zero_le_one,
   mul_pos := by { rintro ⟨x⟩ ⟨y⟩, exact x.2.mul_pos y.2 },
-  exists_pair_ne := ⟨0, 1, zero_lf_one.not_equiv ∘ quotient.exact⟩,
   mul_comm := by { rintro ⟨x⟩ ⟨y⟩, exact quotient.sound (mul_comm_equiv x y) } }
+
+noncomputable instance : linear_ordered_comm_ring surreal :=
+{ exists_pair_ne := ⟨0, 1, ne_of_lt zero_lt_one⟩,
+  le_total := by { rintro ⟨x⟩ ⟨y⟩, exact (le_or_gf x.1 y.1).imp id (λ h, h.le y.2 x.2) },
+  decidable_le := classical.dec_rel _,
+  .. surreal.ordered_comm_ring }
 
 end surreal
 

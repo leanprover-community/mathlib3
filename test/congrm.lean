@@ -152,3 +152,7 @@ begin
  -- the main goal becomes `3.succ + 1.pred = 3.pred * 1.succ` and `refl` closes it!
   exact h1 <|> exact h2,
 end
+
+example {a b c d e f g h : ℕ} (ae : a = e) (bf : b = f) (cg : c = g)  (dh : d = h) :
+  (a + b) * (c - d.succ) = (e + f) * (g - h.succ) :=
+by congrm _₂ (_₂ _ _) (_₂ _ (_₁ _)); assumption

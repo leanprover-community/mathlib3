@@ -9,8 +9,7 @@ import analysis.normed_space.hahn_banach.separation
 /-!
 # The Krein-Milman theorem
 
-This file proves the Krein-Milman lemma and the Krein-Milman theorem in locally convex topological
-vector spaces (LCTVS for short).
+This file proves the Krein-Milman lemma and the Krein-Milman theorem.
 
 ## The lemma
 
@@ -50,8 +49,8 @@ See chapter 8 of [Barry Simon, *Convexity*][simon2011]
 
 ## TODO
 
-* Both theorems are currently stated for normed `ℝ`-spaces due our version of geometric Hahn-Banach.
-  They are more generally true in a LCTVS without changes to the proofs.
+* Both theorems are currently stated for normed `ℝ`-spaces due to our version of geometric
+  Hahn-Banach. They are more generally true in a LCTVS without changes to the proofs.
 -/
 
 open set

@@ -130,6 +130,8 @@ variables {a : ℕ → E}
 lemma has_sum_at_zero (a : ℕ → E) : has_sum (λ n, (0:𝕜) ^ n • a n) (a 0) :=
 by convert has_sum_single 0 (λ b h, _); simp [nat.pos_of_ne_zero h] <|> simp
 
+/-- A variant of the `has_sum` predicate that states a property of the sum rather than its value.
+`has_sum_in f {s}` is equivalent to `has_sum f s`. -/
 def has_sum_in (a : ℕ → E) (S : set E) : Prop := ∃ s ∈ S, has_sum a s
 
 lemma factor (hs : has_sum (λ m, z ^ m • a m) s) (ha : ∀ k < n, a k = 0) :

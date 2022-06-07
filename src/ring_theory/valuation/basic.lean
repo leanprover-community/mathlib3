@@ -286,6 +286,13 @@ begin
   simpa only [v.map_one, v.map_neg] using v.map_add_eq_of_lt_left h
 end
 
+lemma one_lt_val_iff
+  {K : Type*} [division_ring K] (v : valuation K Γ₀) {x : K} (h : x ≠ 0) :
+  1 < v x ↔ v x⁻¹ < 1 :=
+begin
+  simpa using (inv_lt_inv₀ (v.ne_zero_iff.2 h) one_ne_zero).symm,
+end
+
 /-- The subgroup of elements whose valuation is less than a certain unit.-/
 def lt_add_subgroup (v : valuation R Γ₀) (γ : Γ₀ˣ) : add_subgroup R :=
 { carrier   := {x | v x < γ},
@@ -421,35 +428,24 @@ lemma is_equiv_iff_val_lt_one
 begin
   split,
   { intros h x,
-    simp_rw [lt_iff_le_and_ne, and_congr ((is_equiv_iff_val_le_one v v').1 h)
-      ((is_equiv_iff_val_eq_one v v').1 h).not],
-  },
+    simp only [lt_iff_le_and_ne, and_congr ((is_equiv_iff_val_le_one _ _).1 h)
+      ((is_equiv_iff_val_eq_one _ _).1 h).not] },
   { rw is_equiv_iff_val_eq_one,
     intros h x,
-    by_cases hhx : x = 0,
-    { simp_rw [(zero_iff _).2 hhx, zero_ne_one] },
-    { split,
-      { intro hh,
-        by_contra,
-        rw [← ne.def, ne_iff_lt_or_gt] at h,
-        cases h,
-        { exfalso,
-          simpa [hh, lt_self_iff_false] using h.2 h_1 },
-        { have := (inv_lt_inv₀ ((zero_iff v').not.2 hhx) one_ne_zero).2 h_1,
-          rw [inv_one, ← map_inv] at this,
-          rw [← inv_one, eq_inv_iff_eq_inv, ← map_inv] at hh,
-          simpa [hh, lt_self_iff_false] using h.2 this } },
-      { intro hh,
-        by_contra,
-        rw [← ne.def, ne_iff_lt_or_gt] at h,
-        cases h,
-        { exfalso,
-          simpa [hh, lt_self_iff_false] using h.1 h_1 },
-        { have := (inv_lt_inv₀ ((zero_iff v).not.2 hhx) one_ne_zero).2 h_1,
-          rw [inv_one, ← map_inv] at this,
-          rw [← inv_one, eq_inv_iff_eq_inv, ← map_inv] at hh,
-          simpa [hh, lt_self_iff_false] using h.1 this } } }
-  }
+    by_cases hx : x = 0, { simp only [(zero_iff _).2 hx, zero_ne_one] },
+    split,
+    { intro hh,
+      by_contra h_1,
+      cases ne_iff_lt_or_gt.1 h_1,
+      { simpa [hh, lt_self_iff_false] using h.2 h_2 },
+      { rw [← inv_one, eq_inv_iff_eq_inv, ← map_inv] at hh,
+        exact hh.le.not_lt (h.2 ((one_lt_val_iff v' hx).1 h_2)) } },
+    { intro hh,
+      by_contra h_1,
+      cases ne_iff_lt_or_gt.1 h_1,
+      { simpa [hh, lt_self_iff_false] using h.1 h_2 },
+      { rw [← inv_one, eq_inv_iff_eq_inv, ← map_inv] at hh,
+        exact hh.le.not_lt (h.1 ((one_lt_val_iff v hx).1 h_2)) } } }
 end
 
 lemma is_equiv_iff_val_sub_one_lt_one

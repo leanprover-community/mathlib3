@@ -526,13 +526,6 @@ begin
     { exact h (units.mk0 x hx) } }
 end
 
---- move to basic
-lemma one_lt_val_iff_val_inv_lt_one {x : K} (h : x ≠ 0) :
-  1 < A.valuation x ↔ A.valuation x⁻¹ < 1 :=
-begin
-  simpa using (inv_lt_inv₀ (A.valuation.ne_zero_iff.2 h) one_ne_zero).symm,
-end
-
 def principal_unit_group_ordered_embedding :
   valuation_subring K ↪o (subgroup Kˣ)ᵒᵈ :=
 { to_fun := λ A, A.principal_unit_group,
@@ -549,11 +542,11 @@ def principal_unit_group_ordered_embedding :
         rw [valuation.map_neg, valuation.map_one, valuation.map_inv, inv_eq_one₀] at h_2,
         exact (B.valuation_le_one_iff _).1 (le_of_eq h_2) },
       by_contra h_3,
-      rw [← valuation_le_one_iff, not_le, B.one_lt_val_iff_val_inv_lt_one h_1, ← add_sub_cancel x⁻¹,
+      rw [← valuation_le_one_iff, not_le, B.valuation.one_lt_val_iff h_1, ← add_sub_cancel x⁻¹,
         ← units.coe_mk0 h_2, ← mem_principal_unit_group_iff] at h_3,
       have := h h_3,
       rw [mem_principal_unit_group_iff, units.coe_mk0 h_2, add_sub_cancel,
-        ← A.one_lt_val_iff_val_inv_lt_one h_1, ← not_le, valuation_le_one_iff] at this,
+        ← A.valuation.one_lt_val_iff h_1, ← not_le, valuation_le_one_iff] at this,
       exact this hx },
     { rintros h x hx,
       by_contra h_1, from not_lt.2 (monotone_map_of_le _ _ h (not_lt.1 h_1)) hx }
@@ -584,7 +577,44 @@ lemma unit_group_mod_to_residue_field_units_apply (x : A.unit_group) :
     (quotient_group.mk x) : local_ring.residue_field A) =
     (ideal.quotient.mk _ (A.unit_group_equiv x : A)) := rfl
 
---- added by jack
+lemma mem_residue_field_units_has_unit_rep (x : (local_ring.residue_field A)ˣ) :
+  is_unit (quotient.out' (x : local_ring.residue_field A)) :=
+begin
+  by_contra,
+  rw valuation_eq_one_iff at h,
+  have := valuation_lt_one_or_eq_one _ (quotient.out' (x : local_ring.residue_field A)),
+  rw or_iff_not_imp_right at this,
+  simpa only [units.ne_zero, ← valuation_lt_one_iff, ← ideal.quotient.eq_zero_iff_mem,
+    ← ideal.quotient.mk_eq_mk, ← submodule.quotient.mk'_eq_mk, quotient.out_eq'] using this h,
+end
+
+def units_residue_field_equiv :
+  (A.unit_group ⧸ (A.principal_unit_group.comap A.unit_group.subtype)) ≃*
+  (local_ring.residue_field A)ˣ :=
+mul_equiv.of_bijective A.unit_group_mod_to_residue_field_units
+begin
+  split,
+  {
+    rintros ⟨x,hx⟩ ⟨y,hy⟩ h,
+    rw unit_group_mod_to_residue_field_units at h,
+    rw units.ext_iff at h,
+    dsimp at h,
+    rw [← sub_eq_zero, ← map_sub, ideal.quotient.eq_zero_iff_mem, valuation_lt_one_iff] at h,
+    change A.valuation (x - y) < 1 at h,
+    have : A.valuation ↑y⁻¹ = 1, from (A.mem_unit_group_iff _).1(A.unit_group.inv_mem hy),
+    rw [← mul_one (A.valuation (_)), ← this, ← valuation.map_mul, this] at h,
+    by_cases tdo : (x * y⁻¹ : K) = 0,
+    { sorry },
+    rw [sub_mul, units.mul_inv, units.coe_inv', ← units.coe_mk0 tdo,
+      ← mem_principal_unit_group_iff, units.mk0_mul, units.mk0_coe,
+      ← quotient_group.eq_one_iff, quotient_group.coe_mul, mul_eq_one_iff_eq_inv] at h,
+    rw ← quotient_group.coe_inv at h,
+
+  sorry },
+  { sorry }
+end
+
+/-
 def unit_group_to_residue_field_units :
   A.unit_group →* (local_ring.residue_field A)ˣ :=
 (monoid_hom.comp (units.map $ (ideal.quotient.mk (local_ring.maximal_ideal A)).to_monoid_hom)
@@ -606,23 +636,11 @@ begin
   refine ⟨λ h, h, λ h, h⟩,
 end
 
-lemma mem_residue_field_units_has_unit_rep (x : (local_ring.residue_field A)ˣ) :
-  is_unit (quotient.out' (x : local_ring.residue_field A)) :=
-begin
-  by_contra,
-  rw valuation_eq_one_iff at h,
-  have := valuation_lt_one_or_eq_one _ (quotient.out' (x : local_ring.residue_field A)),
-  rw or_iff_not_imp_right at this,
-  simpa only [units.ne_zero, ← valuation_lt_one_iff, ← ideal.quotient.eq_zero_iff_mem,
-    ← ideal.quotient.mk_eq_mk, ← submodule.quotient.mk'_eq_mk, quotient.out_eq'] using this h,
-end
-
 def range_unit_group_to_residue_field_units :
   A.unit_group_to_residue_field_units.range ≃* (local_ring.residue_field A)ˣ :=
 begin
   sorry,
 end
---- end of added by jack
 
 def units_residue_field_equiv :
   (A.unit_group ⧸ (A.principal_unit_group.comap A.unit_group.subtype)) ≃*
@@ -631,9 +649,8 @@ mul_equiv.trans (mul_equiv.trans
   (quotient_group.equiv_quotient_of_eq A.ker_unit_group_to_residue_field_units).symm
   (quotient_group.quotient_ker_equiv_range A.unit_group_to_residue_field_units))
   A.range_unit_group_to_residue_field_units
+-/
 
 end unit_group
 
 end valuation_subring
-
-#lint

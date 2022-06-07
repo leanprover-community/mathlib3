@@ -677,6 +677,8 @@ noncomputable instance as_linear_order.linear_order {α} [partial_order α] [is_
   decidable_le := classical.dec_rel _,
   .. (_ : partial_order α) }
 
+
+
 section precompl
 /-- Set / lattice complement -/
 @[notation_class] class has_compl (α : Type*) := (compl : α → α)
@@ -685,27 +687,35 @@ export has_compl (compl)
 
 postfix `ᶜ`:(max+1) := compl
 
+/-- The `precompl` typeclass applies to types with a `preorder` that admit an order-reversing
+involution. Such an involution is more general than a `boolean_algebra` complement, but
+retains many of its properties, which are proved here. For convenience, we adopt the `ᶜ` notation.
+Other than a boolean algebra, an example is the subspace lattice of a vector space `V` over a field
+`𝕂` of nonzero characteristic, where for each subspace `W` we have
+`compl W = {x ∈ V | ∀ w ∈ W, wᵀx = 0}`; this is not orthogonality in the stronger sense because
+`compl W` can intersect `W`.    -/
+
 class has_precompl (α : Type*) [preorder α]  :=
-(f : α → α)
-(f_antitone : ∀ (x y : α), x ≤ y → f y ≤ f x)
-(f_involutive : function.involutive f)
+(compl : α → α)
+(compl_antitone' : ∀ (x y : α), x ≤ y → compl y ≤ compl x)
+(compl_involutive' : function.involutive compl)
 
 variables [preorder α] [has_precompl α] {x y z : α}
 
-instance to_has_compl : has_compl α := ⟨has_precompl.f⟩
+instance to_has_compl : has_compl α := ⟨has_precompl.compl⟩
 
-@[simp] lemma compl_compl (x : α) : xᶜᶜ = x :=  has_precompl.f_involutive x
+@[simp] lemma compl_compl (x : α) : xᶜᶜ = x :=  has_precompl.compl_involutive' x
 lemma compl_eq_comm : xᶜ = y ↔ yᶜ = x :=
-  by {rw [eq_comm], exact has_precompl.f_involutive.eq_iff.symm}
+  by {rw [eq_comm], exact has_precompl.compl_involutive'.eq_iff.symm}
 lemma eq_compl_comm : x = yᶜ ↔ y = xᶜ :=
 by rw [← compl_compl x, compl_eq_comm, compl_compl, compl_compl]
-lemma compl_le (hxy : x ≤ y) : yᶜ ≤ xᶜ := has_precompl.f_antitone _ _ hxy
+lemma compl_le (hxy : x ≤ y) : yᶜ ≤ xᶜ := has_precompl.compl_antitone' _ _ hxy
 lemma le_of_compl_le (hx : xᶜ ≤ yᶜ) : y ≤ x :=
 by {rw [←compl_compl x, ←compl_compl y], exact compl_le hx,}
 lemma compl_le_compl_iff_le : xᶜ ≤ yᶜ ↔ y ≤ x := ⟨le_of_compl_le, compl_le⟩
 lemma le_compl_comm : x ≤ yᶜ ↔ y ≤ xᶜ := by rw [←compl_le_compl_iff_le, compl_compl]
 lemma compl_le_comm : xᶜ ≤ y ↔ yᶜ ≤ x := by rw [←compl_le_compl_iff_le, compl_compl]
-lemma compl_inj {x y : α} (h : xᶜ = yᶜ) : x = y := has_precompl.f_involutive.injective h
+lemma compl_inj {x y : α} (h : xᶜ = yᶜ) : x = y := has_precompl.compl_involutive'.injective h
 lemma compl_lt_iff : xᶜ < yᶜ ↔ y < x := by simp [lt_iff_le_not_le, compl_le_compl_iff_le]
 lemma lt_compl_comm : x < yᶜ ↔ y < xᶜ := by rw [←compl_lt_iff, compl_compl]
 lemma compl_lt_comm : xᶜ < y ↔ yᶜ < x := by rw [←compl_lt_iff, compl_compl]
@@ -724,5 +734,7 @@ lemma compl_injective : function.injective (compl : α → α) :=
 compl_involutive.injective
 
 @[simp] lemma compl_inj_iff : xᶜ = yᶜ ↔ x = y := compl_injective.eq_iff
+
+lemma compl_comp_compl : compl ∘ compl = @id α := funext compl_compl
 
 end precompl

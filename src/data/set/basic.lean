@@ -913,11 +913,9 @@ ext $ λ x, and_iff_not_or_not
 
 @[simp] theorem compl_union_self (s : set α) : sᶜ ∪ s = univ := by rw [union_comm, union_compl_self]
 
-theorem compl_comp_compl : compl ∘ compl = @id (set α) := funext compl_compl
+theorem compl_subset_comm {s t : set α} : sᶜ ⊆ t ↔ tᶜ ⊆ s := @compl_le_comm _ _ _ s t
 
-theorem compl_subset_comm {s t : set α} : sᶜ ⊆ t ↔ tᶜ ⊆ s := @compl_le_iff_compl_le _ s t _
-
-@[simp] lemma compl_subset_compl {s t : set α} : sᶜ ⊆ tᶜ ↔ t ⊆ s := @compl_le_compl_iff_le _ t s _
+@[simp] lemma compl_subset_compl {s t : set α} : sᶜ ⊆ tᶜ ↔ t ⊆ s := @compl_le_compl_iff_le _ _ _ s t
 
 theorem subset_union_compl_iff_inter_subset {s t u : set α} : s ⊆ t ∪ uᶜ ↔ s ∩ u ⊆ t :=
 (@is_compl_compl _ u _).le_sup_right_iff_inf_left_le
@@ -1417,12 +1415,12 @@ ext $ λ x, ⟨λ ⟨y, _, h⟩, h ▸ mem_singleton _,
 by { simp only [eq_empty_iff_forall_not_mem],
      exact ⟨λ H a ha, H _ ⟨_, ha, rfl⟩, λ H b ⟨_, ha, _⟩, H _ ha⟩ }
 
-lemma preimage_compl_eq_image_compl [boolean_algebra α] (S : set α) :
+lemma preimage_compl_eq_image_compl [preorder α] [has_precompl α] (S : set α) :
   compl ⁻¹' S = compl '' S :=
 set.ext (λ x, ⟨λ h, ⟨xᶜ,h, compl_compl x⟩,
   λ h, exists.elim h (λ y hy, (compl_eq_comm.mp hy.2).symm.subst hy.1)⟩)
 
-theorem mem_compl_image [boolean_algebra α] (t : α) (S : set α) :
+theorem mem_compl_image [preorder α] [has_precompl α] (t : α) (S : set α) :
   t ∈ compl '' S ↔ tᶜ ∈ S :=
 by simp [←preimage_compl_eq_image_compl]
 
@@ -1431,7 +1429,7 @@ by simp [←preimage_compl_eq_image_compl]
 
 theorem image_id (s : set α) : id '' s = s := by simp
 
-theorem compl_compl_image [boolean_algebra α] {S : set α} :
+theorem compl_compl_image [preorder α] [has_precompl α] {S : set α} :
   compl '' (compl '' S) = S :=
 by {ext, simp}
 
@@ -1550,10 +1548,10 @@ by rw [←image_inter_preimage, nonempty_image_iff]
 lemma image_diff_preimage {f : α → β} {s : set α} {t : set β} : f '' (s \ f ⁻¹' t) = f '' s \ t :=
 by simp_rw [diff_eq, ← preimage_compl, image_inter_preimage]
 
-theorem compl_image : image (compl : set α → set α) = preimage compl :=
+theorem compl_image [preorder α] [has_precompl α]: image (compl : α → α) = preimage compl :=
 image_eq_preimage_of_inverse compl_compl compl_compl
 
-theorem compl_image_set_of {p : set α → Prop} :
+theorem compl_image_set_of [preorder α] [has_precompl α] {p : α → Prop} :
   compl '' {s | p s} = {s | p sᶜ} :=
 congr_fun compl_image p
 

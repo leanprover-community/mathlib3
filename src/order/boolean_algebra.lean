@@ -605,29 +605,29 @@ variables [boolean_algebra.core α]
 @[simp] theorem inf_compl_eq_bot : x ⊓ xᶜ = ⊥ :=
 bot_unique $ boolean_algebra.core.inf_compl_le_bot x
 
-@[simp] theorem compl_inf_eq_bot : xᶜ ⊓ x = ⊥ :=
-eq.trans inf_comm inf_compl_eq_bot
-
 @[simp] theorem sup_compl_eq_top : x ⊔ xᶜ = ⊤ :=
 top_unique $ boolean_algebra.core.top_le_sup_compl x
 
-@[simp] theorem compl_sup_eq_top : xᶜ ⊔ x = ⊤ :=
-eq.trans sup_comm sup_compl_eq_top
-
 theorem is_compl_compl : is_compl x xᶜ :=
 is_compl.of_eq inf_compl_eq_bot sup_compl_eq_top
-
-theorem is_compl.eq_compl (h : is_compl x y) : x = yᶜ :=
-h.left_unique is_compl_compl.symm
 
 theorem is_compl.compl_eq (h : is_compl x y) : xᶜ = y :=
 (h.right_unique is_compl_compl).symm
 
 instance boolean_algebra.core.to_has_precompl : has_precompl α :=   {
-  f := compl,
-  f_antitone := λ _ _, is_compl_compl.antitone is_compl_compl,
-  f_involutive := λ x, is_compl_compl.symm.compl_eq,
+  compl := compl,
+  compl_antitone' := λ _ _, is_compl_compl.antitone is_compl_compl,
+  compl_involutive' := λ x, is_compl_compl.symm.compl_eq,
   .. (_ : preorder α) }
+
+@[simp] theorem compl_inf_eq_bot : xᶜ ⊓ x = ⊥ :=
+eq.trans inf_comm inf_compl_eq_bot
+
+@[simp] theorem compl_sup_eq_top : xᶜ ⊔ x = ⊤ :=
+eq.trans sup_comm sup_compl_eq_top
+
+theorem is_compl.eq_compl (h : is_compl x y) : x = yᶜ :=
+h.left_unique is_compl_compl.symm
 
 theorem eq_compl_iff_is_compl : x = yᶜ ↔ is_compl x y :=
 ⟨λ h, by { rw h, exact is_compl_compl.symm }, is_compl.eq_compl⟩
@@ -636,6 +636,7 @@ theorem compl_eq_iff_is_compl : xᶜ = y ↔ is_compl x y :=
 ⟨λ h, by { rw ←h, exact is_compl_compl }, is_compl.compl_eq⟩
 
 theorem disjoint_compl_right : disjoint x xᶜ := is_compl_compl.disjoint
+
 theorem disjoint_compl_left : disjoint xᶜ x := disjoint_compl_right.symm
 
 theorem compl_unique (i : x ⊓ y = ⊥) (s : x ⊔ y = ⊤) : xᶜ = y :=
@@ -684,7 +685,6 @@ class boolean_algebra (α : Type u) extends generalized_boolean_algebra α, bool
 -- TODO: is there a way to automatically fill in the proofs of sup_inf_sdiff and inf_inf_sdiff given
 -- everything in `boolean_algebra.core` and `sdiff_eq`? The following doesn't work:
 -- (sup_inf_sdiff := λ a b, by rw [sdiff_eq, ←inf_sup_left, sup_compl_eq_top, inf_top_eq])
-
 
 section of_core
 

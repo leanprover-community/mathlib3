@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
 import ring_theory.int.basic
-import data.nat.prime_pow_factorization
+import data.nat.factorization.prime_pow
 import algebra.squarefree
 
 /-!

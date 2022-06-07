@@ -83,8 +83,13 @@ instance is_total.to_is_refl (r) [is_total α r] : is_refl α r :=
 lemma ne_of_irrefl {r} [is_irrefl α r] : ∀ {x y : α}, r x y → x ≠ y | _ _ h rfl := irrefl _ h
 lemma ne_of_irrefl' {r} [is_irrefl α r] : ∀ {x y : α}, r x y → y ≠ x | _ _ h rfl := irrefl _ h
 
-lemma not_rel (r x y) [is_irrefl α r] [subsingleton α] : ¬ r x y :=
+lemma not_rel (r) [is_irrefl α r] [subsingleton α] (x y) : ¬ r x y :=
 by { rw subsingleton.elim x y, apply irrefl }
+
+@[simp] lemma empty_relation_apply (a b : α) : empty_relation a b = false := rfl
+
+lemma eq_empty_relation (r) [is_irrefl α r] [subsingleton α] : r = empty_relation :=
+funext₂ $ by simpa using not_rel r
 
 instance : is_irrefl α empty_relation := ⟨λ a, id⟩
 

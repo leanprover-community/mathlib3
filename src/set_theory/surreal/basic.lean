@@ -701,9 +701,6 @@ namespace surreal
 /-- Construct a surreal number from a numeric pre-game. -/
 def mk (x : pgame) (h : x.numeric) : surreal := ⟦⟨x, h⟩⟧
 
-instance : has_zero surreal := ⟨mk 0 numeric_zero⟩
-instance : has_one surreal := ⟨mk 1 numeric_one⟩
-
 /-- Lift an equivalence-respecting function on pre-games to surreals. -/
 def lift {α} (f : ∀ x, numeric x → α)
   (H : ∀ {x y} (hx : numeric x) (hy : numeric y), x.equiv y → f x hx = f y hy) : surreal → α :=
@@ -724,7 +721,7 @@ instance : ordered_comm_ring surreal :=
 { add := lift₂ (λ x y ox oy, ⟦⟨x + y, ox.add oy⟩⟧)
     (λ x₁ y₁ x₂ y₂ _ _ _ _ hx hy, quotient.sound $ add_congr hx hy),
   add_assoc := by { rintros ⟨_⟩ ⟨_⟩ ⟨_⟩, exact quotient.sound add_assoc_equiv },
-  zero := 0,
+  zero := mk 0 numeric_zero,
   zero_add := by { rintros ⟨a⟩, exact quotient.sound (zero_add_equiv a) },
   add_zero := by { rintros ⟨a⟩, exact quotient.sound (add_zero_equiv a) },
   neg := lift (λ x ox, ⟦⟨-x, ox.neg⟩⟧) (λ _ _ _ _ a, quotient.sound $ neg_congr a),
@@ -740,7 +737,7 @@ instance : ordered_comm_ring surreal :=
   mul := lift₂ (λ x y ox oy, ⟦⟨x * y, ox.mul oy⟩⟧)
     (λ _ _ _ _ ox₁ oy₁ ox₂ oy₂ hx hy, quotient.sound $ ox₁.mul_congr ox₂ oy₁ oy₂ hx hy),
   mul_assoc := by { rintro ⟨x⟩ ⟨y⟩ ⟨z⟩, exact quotient.sound (mul_assoc_equiv x y z) },
-  one := 1,
+  one := mk 1 numeric_one,
   one_mul := by { rintro ⟨x⟩, exact quotient.sound (one_mul_equiv x) },
   mul_one := by { rintro ⟨x⟩, exact quotient.sound (mul_one_equiv x) },
   left_distrib := by { rintro ⟨x⟩ ⟨y⟩ ⟨z⟩, exact quotient.sound (left_distrib_equiv x y z) },

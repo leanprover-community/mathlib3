@@ -542,6 +542,19 @@ begin
   injection SS; injection II; congr'
 end
 
+lemma compl_inf [has_precompl α] (x y : α) : (x ⊓ y)ᶜ = xᶜ ⊔ yᶜ :=
+begin
+  refine le_antisymm _ (sup_le (by simp [compl_le_iff]) (by simp [compl_le_iff])),
+  rw [compl_le_comm, le_inf_iff, compl_le_comm, @compl_le_comm _ _ _ _ y],
+  exact ⟨le_sup_left, le_sup_right⟩,
+end
+
+lemma compl_sup [has_precompl α] (x y : α) : (x ⊔ y)ᶜ = xᶜ ⊓ yᶜ :=
+by rw [compl_eq_comm, compl_inf, compl_compl, compl_compl]
+
+
+
+
 end lattice
 
 /-!

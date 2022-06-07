@@ -882,17 +882,18 @@ theorem order_iso.is_complemented_iff :
 end bounded_order
 end lattice_isos
 
-section boolean_algebra
-variables (α) [boolean_algebra α]
+section precompl
+
+variables (α) [preorder α] [has_precompl α]
 
 /-- Taking complements as an order isomorphism to the order dual. -/
 @[simps]
 def order_iso.compl : α ≃o αᵒᵈ :=
 { to_fun := order_dual.to_dual ∘ compl,
   inv_fun := compl ∘ order_dual.of_dual,
-  left_inv := compl_compl,
-  right_inv := compl_compl,
-  map_rel_iff' := λ x y, compl_le_compl_iff_le }
+  left_inv := has_precompl.compl_compl,
+  right_inv := has_precompl.compl_compl,
+  map_rel_iff' := λ x y, has_precompl.compl_le_iff }
 
 theorem compl_strict_anti : strict_anti (compl : α → α) :=
 (order_iso.compl α).strict_mono
@@ -900,4 +901,4 @@ theorem compl_strict_anti : strict_anti (compl : α → α) :=
 theorem compl_antitone : antitone (compl : α → α) :=
 (order_iso.compl α).monotone
 
-end boolean_algebra
+end precompl

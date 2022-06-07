@@ -580,14 +580,6 @@ end generalized_boolean_algebra
 ### Boolean algebras
 -/
 
-
-/-- Set / lattice complement -/
-@[notation_class] class has_compl (α : Type*) := (compl : α → α)
-
-export has_compl (compl)
-
-postfix `ᶜ`:(max+1) := compl
-
 /-- This class contains the core axioms of a Boolean algebra. The `boolean_algebra` class extends
 both this class and `generalized_boolean_algebra`, see Note [forgetful inheritance].
 
@@ -631,17 +623,17 @@ h.left_unique is_compl_compl.symm
 theorem is_compl.compl_eq (h : is_compl x y) : xᶜ = y :=
 (h.right_unique is_compl_compl).symm
 
+instance boolean_algebra.core.to_has_precompl : has_precompl α :=   {
+  f := compl,
+  f_antitone := λ _ _, is_compl_compl.antitone is_compl_compl,
+  f_involutive := λ x, is_compl_compl.symm.compl_eq,
+  .. (_ : preorder α) }
+
 theorem eq_compl_iff_is_compl : x = yᶜ ↔ is_compl x y :=
 ⟨λ h, by { rw h, exact is_compl_compl.symm }, is_compl.eq_compl⟩
 
 theorem compl_eq_iff_is_compl : xᶜ = y ↔ is_compl x y :=
 ⟨λ h, by { rw ←h, exact is_compl_compl }, is_compl.compl_eq⟩
-
-theorem compl_eq_comm : xᶜ = y ↔ yᶜ = x :=
-by rw [eq_comm, compl_eq_iff_is_compl, eq_compl_iff_is_compl]
-
-theorem eq_compl_comm : x = yᶜ ↔ y = xᶜ :=
-by rw [eq_comm, compl_eq_iff_is_compl, eq_compl_iff_is_compl]
 
 theorem disjoint_compl_right : disjoint x xᶜ := is_compl_compl.disjoint
 theorem disjoint_compl_left : disjoint xᶜ x := disjoint_compl_right.symm
@@ -655,23 +647,6 @@ is_compl_top_bot.compl_eq
 @[simp] theorem compl_bot : ⊥ᶜ = (⊤:α) :=
 is_compl_bot_top.compl_eq
 
-@[simp] theorem compl_compl (x : α) : xᶜᶜ = x :=
-is_compl_compl.symm.compl_eq
-
-@[simp] theorem compl_involutive : function.involutive (compl : α → α) := compl_compl
-
-theorem compl_bijective : function.bijective (compl : α → α) :=
-compl_involutive.bijective
-
-theorem compl_surjective : function.surjective (compl : α → α) :=
-compl_involutive.surjective
-
-theorem compl_injective : function.injective (compl : α → α) :=
-compl_involutive.injective
-
-@[simp] theorem compl_inj_iff : xᶜ = yᶜ ↔ x = y :=
-compl_injective.eq_iff
-
 theorem is_compl.compl_eq_iff (h : is_compl x y) : zᶜ = y ↔ z = x :=
 h.compl_eq ▸ compl_inj_iff
 
@@ -680,31 +655,6 @@ is_compl_bot_top.compl_eq_iff
 
 @[simp] theorem compl_eq_bot : xᶜ = ⊥ ↔ x = ⊤ :=
 is_compl_top_bot.compl_eq_iff
-
-@[simp] theorem compl_inf : (x ⊓ y)ᶜ = xᶜ ⊔ yᶜ :=
-(is_compl_compl.inf_sup is_compl_compl).compl_eq
-
-@[simp] theorem compl_sup : (x ⊔ y)ᶜ = xᶜ ⊓ yᶜ :=
-(is_compl_compl.sup_inf is_compl_compl).compl_eq
-
-theorem compl_le_compl (h : y ≤ x) : xᶜ ≤ yᶜ :=
-is_compl_compl.antitone is_compl_compl h
-
-@[simp] theorem compl_le_compl_iff_le : yᶜ ≤ xᶜ ↔ x ≤ y :=
-⟨assume h, by have h := compl_le_compl h; simp at h; assumption,
-  compl_le_compl⟩
-
-theorem le_compl_of_le_compl (h : y ≤ xᶜ) : x ≤ yᶜ :=
-by simpa only [compl_compl] using compl_le_compl h
-
-theorem compl_le_of_compl_le (h : yᶜ ≤ x) : xᶜ ≤ y :=
-by simpa only [compl_compl] using compl_le_compl h
-
-theorem le_compl_iff_le_compl : y ≤ xᶜ ↔ x ≤ yᶜ :=
-⟨le_compl_of_le_compl, le_compl_of_le_compl⟩
-
-theorem compl_le_iff_compl_le : xᶜ ≤ y ↔ yᶜ ≤ x :=
-⟨compl_le_of_compl_le, compl_le_of_compl_le⟩
 
 theorem disjoint_iff_le_compl_right : disjoint x y ↔ x ≤ yᶜ :=
 by {rw is_compl.disjoint_left_iff is_compl_compl}

@@ -111,8 +111,7 @@ finsupp.not_mem_support_iff.mp (mt le_of_mem_factorization (not_le_of_lt h))
 lemma factorization_factorial_eq_zero_of_lt (h : n < p) :
   (factorial n).factorization p = 0 :=
 begin
-  induction n with n hn,
-  { rw [factorial_zero, factorization_one, finsupp.coe_zero, pi.zero_apply] },
+  induction n with n hn, { simp },
   rw [factorial_succ, factorization_mul n.succ_ne_zero n.factorial_ne_zero, finsupp.coe_add,
       pi.add_apply, hn (lt_of_succ_lt h), add_zero, factorization_eq_zero_of_lt h],
 end

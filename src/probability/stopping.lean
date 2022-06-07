@@ -1291,4 +1291,23 @@ by { ext x, rw stopped_value, by_cases hx : x ∈ s; simp [hx] }
 
 end piecewise_const
 
+section hitting
+
+/-! Hitting time -/
+
+def hitting [has_Inf ι] (u : ι → α → β) (s : set β) : α → ι :=
+λ x, Inf { i : ι | u i x ∈ s}
+
+variables [conditionally_complete_linear_order_bot ι] [measurable_space β]
+  {u : ι → α → β} {s : set β} {f : filtration ι m}
+
+lemma hitting_is_stopping_time (hs : measurable_set s) : is_stopping_time f (hitting u s) :=
+begin
+  intro i,
+  rw hitting,
+  simp_rw cInf_le_iff,
+end
+
+end hitting
+
 end measure_theory

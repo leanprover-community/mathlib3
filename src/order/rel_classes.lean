@@ -84,7 +84,7 @@ lemma ne_of_irrefl {r} [is_irrefl α r] : ∀ {x y : α}, r x y → x ≠ y | _ 
 lemma ne_of_irrefl' {r} [is_irrefl α r] : ∀ {x y : α}, r x y → y ≠ x | _ _ h rfl := irrefl _ h
 
 lemma not_rel (r) [is_irrefl α r] [subsingleton α] (x y) : ¬ r x y :=
-by { rw subsingleton.elim x y, apply irrefl }
+subsingleton.elim x y ▸ irrefl x
 
 @[simp] lemma empty_relation_apply (a b : α) : empty_relation a b = false := rfl
 

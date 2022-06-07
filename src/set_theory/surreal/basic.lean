@@ -682,14 +682,7 @@ end pgame
 open pgame
 
 /-- The equivalence on numeric pre-games. -/
-def surreal.equiv (x y : numeric) : Prop := x.1 ≈ y.1
-/- What is this good for? Removing it causes no problems. -/
-
-instance surreal.setoid : setoid numeric :=
-⟨λ x y, x.1 ≈ y.1,
- λ x, equiv_rfl,
- λ x y, pgame.equiv.symm,
- λ x y z, pgame.equiv.trans⟩
+instance surreal.setoid : setoid numeric := by apply_instance
 
 /-- The type of surreal numbers. These are the numeric pre-games quotiented
 by the equivalence relation `x ≈ y ↔ x ≤ y ∧ y ≤ x`. In the quotient,
@@ -712,8 +705,6 @@ def lift₂ {α} (f : ∀ x y, numeric x → numeric y → α)
     x₁.equiv x₂ → y₁.equiv y₂ → f x₁ y₁ ox₁ oy₁ = f x₂ y₂ ox₂ oy₂) : surreal → surreal → α :=
 lift (λ x ox, lift (λ y oy, f x y ox oy) (λ y₁ y₂ oy₁ oy₂, H _ _ _ _ equiv_rfl))
   (λ x₁ x₂ ox₁ ox₂ h, funext $ quotient.ind $ by exact λ ⟨y, oy⟩, H _ _ _ _ h equiv_rfl)
-
--- need to split off ordered_comm_group to make computability in `dyadic_map` work ..!
 
 /-- All the surreal operations (`+`, `-`, `*`) and relations (`≤`, `<`) are inherited from
   `pgame`. -/
@@ -742,7 +733,7 @@ instance : ordered_comm_ring surreal :=
   mul_one := by { rintro ⟨x⟩, exact quotient.sound (mul_one_equiv x) },
   left_distrib := by { rintro ⟨x⟩ ⟨y⟩ ⟨z⟩, exact quotient.sound (left_distrib_equiv x y z) },
   right_distrib := by { rintro ⟨x⟩ ⟨y⟩ ⟨z⟩, exact quotient.sound (right_distrib_equiv x y z) },
-  zero_le_one := zero_le_one,
+  zero_le_one := pgame.zero_le_one_class.zero_le_one,
   mul_pos := by { rintro ⟨x⟩ ⟨y⟩, exact x.2.mul_pos y.2 },
   mul_comm := by { rintro ⟨x⟩ ⟨y⟩, exact quotient.sound (mul_comm_equiv x y) } }
 

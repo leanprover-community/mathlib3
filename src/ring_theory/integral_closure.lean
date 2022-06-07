@@ -876,7 +876,7 @@ begin
   exact ⟨y, subtype.ext_iff.mp hy⟩,
 end
 
-lemma is_integral.is_field_iff_is_field
+lemma algebra.is_integral.is_field_iff_is_field
   {R S : Type*} [comm_ring R] [nontrivial R] [comm_ring S] [is_domain S] [algebra R S]
   (H : algebra.is_integral R S) (hRS : function.injective (algebra_map R S)) :
   is_field R ↔ is_field S :=

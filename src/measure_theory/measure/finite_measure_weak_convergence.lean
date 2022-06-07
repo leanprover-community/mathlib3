@@ -198,7 +198,8 @@ lemma _root_.bounded_continuous_function.nnreal.to_ennreal_comp_measurable {α :
   measurable (λ x, (f x : ℝ≥0∞)) :=
 measurable_coe_nnreal_ennreal.comp f.continuous.measurable
 
-lemma lintegral_lt_top_of_bounded_continuous_to_nnreal (μ : finite_measure α) (f : α →ᵇ ℝ≥0) :
+lemma _root_.measure_theory.lintegral_lt_top_of_bounded_continuous_to_nnreal
+  (μ : measure α) [is_finite_measure μ] (f : α →ᵇ ℝ≥0) :
   ∫⁻ x, f x ∂(μ : measure α) < ∞ :=
 begin
   apply is_finite_measure.lintegral_lt_top_of_bounded_to_ennreal,
@@ -212,9 +213,14 @@ begin
   rwa eq at key,
 end
 
+/- lemma lintegral_lt_top_of_bounded_continuous_to_nnreal (μ : finite_measure α) (f : α →ᵇ ℝ≥0) :
+  ∫⁻ x, f x ∂(μ : measure α) < ∞ :=
+lintegral_lt_top_of_bounded_continuous_to_nnreal _ _
+ -/
+
 @[simp] lemma test_against_nn_coe_eq {μ : finite_measure α} {f : α →ᵇ ℝ≥0} :
   (μ.test_against_nn f : ℝ≥0∞) = ∫⁻ x, f x ∂(μ : measure α) :=
-ennreal.coe_to_nnreal (lintegral_lt_top_of_bounded_continuous_to_nnreal μ f).ne
+ennreal.coe_to_nnreal (lintegral_lt_top_of_bounded_continuous_to_nnreal _ f).ne
 
 lemma test_against_nn_const (μ : finite_measure α) (c : ℝ≥0) :
   μ.test_against_nn (bounded_continuous_function.const α c) = c * μ.mass :=
@@ -417,7 +423,7 @@ lemma tendsto_test_against_nn_filter_of_le_const {ι : Type*} {L : filter ι}
   tendsto (λ i, μ.test_against_nn (fs i)) L (𝓝 (μ.test_against_nn f)) :=
 begin
   apply (ennreal.tendsto_to_nnreal
-         (μ.lintegral_lt_top_of_bounded_continuous_to_nnreal f).ne).comp,
+         (lintegral_lt_top_of_bounded_continuous_to_nnreal (μ : measure α) f).ne).comp,
   exact finite_measure.tendsto_lintegral_nn_filter_of_le_const μ fs_le_const fs_lim,
 end
 
@@ -452,12 +458,21 @@ namespace finite_measure
 
 variables {α : Type*} [measurable_space α] [topological_space α] [opens_measurable_space α]
 
-lemma integrable_of_bounded_continuous_to_nnreal (μ : finite_measure α) (f : α →ᵇ ℝ≥0) :
+lemma integrable_of_bounded_continuous_to_nnreal
+  (μ : measure α) [is_finite_measure μ] (f : α →ᵇ ℝ≥0) :
   integrable ((coe : ℝ≥0 → ℝ) ∘ ⇑f) (μ : measure α) :=
 begin
   refine ⟨(nnreal.continuous_coe.comp f.continuous).measurable.ae_strongly_measurable, _⟩,
   simp only [has_finite_integral, nnreal.nnnorm_eq],
-  exact μ.lintegral_lt_top_of_bounded_continuous_to_nnreal f,
+  exact lintegral_lt_top_of_bounded_continuous_to_nnreal _ f,
+end
+
+lemma integrable_of_bounded_continuous_to_nnreal' (μ : finite_measure α) (f : α →ᵇ ℝ≥0) :
+  integrable ((coe : ℝ≥0 → ℝ) ∘ ⇑f) (μ : measure α) :=
+begin
+  refine ⟨(nnreal.continuous_coe.comp f.continuous).measurable.ae_strongly_measurable, _⟩,
+  simp only [has_finite_integral, nnreal.nnnorm_eq],
+  exact lintegral_lt_top_of_bounded_continuous_to_nnreal _ f,
 end
 
 lemma integrable_of_bounded_continuous_to_real (μ : finite_measure α) (f : α →ᵇ ℝ) :
@@ -484,7 +499,7 @@ by simp only [f.self_eq_nnreal_part_sub_nnreal_part_neg,
 
 lemma lintegral_lt_top_of_bounded_continuous_to_real (μ : finite_measure α) (f : α →ᵇ ℝ) :
   ∫⁻ x, ennreal.of_real (f x) ∂(μ : measure α) < ∞ :=
-μ.lintegral_lt_top_of_bounded_continuous_to_nnreal f.nnreal_part
+lintegral_lt_top_of_bounded_continuous_to_nnreal _ f.nnreal_part
 
 theorem tendsto_if_forall_integral_tendsto {γ : Type*} {F : filter γ}
   {μs : γ → finite_measure α} {μ : finite_measure α} :
@@ -496,8 +511,8 @@ begin
   apply (@finite_measure.tendsto_iff_forall_lintegral_tendsto α _ _ _ γ F μs μ).mpr,
   intro f,
   have key := @ennreal.tendsto_to_real_iff _ F
-              _ (λ i, ((μs i).lintegral_lt_top_of_bounded_continuous_to_nnreal f).ne)
-              _ (μ.lintegral_lt_top_of_bounded_continuous_to_nnreal f).ne,
+              _ (λ i, (lintegral_lt_top_of_bounded_continuous_to_nnreal (μs i : measure α) f).ne)
+              _ (lintegral_lt_top_of_bounded_continuous_to_nnreal (μ : measure α) f).ne,
   simp only [ennreal.of_real_coe_nnreal] at key,
   apply key.mp,
   have lip : lipschitz_with 1 (coe : ℝ≥0 → ℝ), from isometry_subtype_coe.lipschitz,
@@ -540,9 +555,9 @@ begin
   set f_pos := f.nnreal_part with def_f_pos,
   set f_neg := (-f).nnreal_part with def_f_neg,
   have tends_pos := (ennreal.tendsto_to_real
-          ((μ.lintegral_lt_top_of_bounded_continuous_to_nnreal f_pos).ne)).comp (h f_pos),
+    ((lintegral_lt_top_of_bounded_continuous_to_nnreal (μ : measure α) f_pos).ne)).comp (h f_pos),
   have tends_neg := (ennreal.tendsto_to_real
-          ((μ.lintegral_lt_top_of_bounded_continuous_to_nnreal f_neg).ne)).comp (h f_neg),
+    ((lintegral_lt_top_of_bounded_continuous_to_nnreal (μ : measure α) f_neg).ne)).comp (h f_neg),
   have aux : ∀ (g : α →ᵇ ℝ≥0), ennreal.to_real ∘ (λ (i : γ), ∫⁻ (x : α), ↑(g x) ∂(μs i : measure α))
          = λ (i : γ), (∫⁻ (x : α), ↑(g x) ∂(μs i : measure α)).to_real, from λ _, rfl,
   simp_rw [aux, bounded_continuous_function.nnreal.to_real_lintegral_eq_integral]
@@ -616,9 +631,10 @@ by { rw [← coe_fn_comp_to_finite_measure_eq_coe_fn,
 
 variables [topological_space α]
 
-lemma lintegral_lt_top_of_bounded_continuous_to_nnreal (μ : probability_measure α) (f : α →ᵇ ℝ≥0) :
+/- lemma lintegral_lt_top_of_bounded_continuous_to_nnreal (μ : probability_measure α) (f : α →ᵇ ℝ≥0) :
   ∫⁻ x, f x ∂(μ : measure α) < ∞ :=
-μ.to_finite_measure.lintegral_lt_top_of_bounded_continuous_to_nnreal f
+lintegral_lt_top_of_bounded_continuous_to_nnreal _ f
+ -/
 
 variables [opens_measurable_space α]
 
@@ -788,7 +804,7 @@ begin
   have room₂ : lintegral (μ : measure α) (λ a, thickened_indicator (δs_pos M) F a)
                 < lintegral (μ : measure α) (λ a, thickened_indicator (δs_pos M) F a) + ε / 2,
   { apply ennreal.lt_add_right
-          (finite_measure.lintegral_lt_top_of_bounded_continuous_to_nnreal μ _).ne
+          (lintegral_lt_top_of_bounded_continuous_to_nnreal (μ : measure α) _).ne
           ((ennreal.div_pos_iff.mpr
               ⟨(ennreal.coe_pos.mpr ε_pos).ne.symm, ennreal.two_ne_top⟩).ne.symm), },
   have ev_near := eventually.mono (eventually_lt_of_tendsto_lt room₂ key₂) (λ n, le_of_lt),

@@ -145,20 +145,23 @@ map ulift (λ α β e, equiv.ulift.trans $ e.trans equiv.ulift.symm) c
 
 @[simp] theorem mk_ulift (α) : #(ulift.{v u} α) = lift.{v} (#α) := rfl
 
-/-- `lift.{(max u v) u}` equals `lift.{v u}`. -/
-theorem lift_umax : lift.{(max u v) u} = lift.{v u} :=
+/-- `lift.{(max u v) u}` equals `lift.{v u}`. Using `set_option pp.universes true` will make it much
+    easier to understand what's happening when using this lemma. -/
+@[simp] theorem lift_umax : lift.{(max u v) u} = lift.{v u} :=
 funext $ λ a, induction_on a $ λ α, (equiv.ulift.trans equiv.ulift.symm).cardinal_eq
 
-/-- `lift.{(max v u) u}` equals `lift.{v u}`. -/
-theorem lift_umax' : lift.{(max v u) u} = lift.{v u} := lift_umax
+/-- `lift.{(max v u) u}` equals `lift.{v u}`. Using `set_option pp.universes true` will make it much
+    easier to understand what's happening when using this lemma. -/
+@[simp] theorem lift_umax' : lift.{(max v u) u} = lift.{v u} := lift_umax
 
-/-- A cardinal lifted to its own universe equals itself. -/
+/-- A cardinal lifted to a lower or equal universe equals itself. -/
 @[simp] theorem lift_id' (a : cardinal.{max u v}) : lift.{u} a = a :=
 induction_on a $ λ α, mk_congr equiv.ulift
 
 /-- A cardinal lifted to the same universe equals itself. -/
 @[simp] theorem lift_id (a : cardinal) : lift.{u u} a = a := lift_id'.{u u} a
 
+/-- A cardinal lifted to the zero universe equals itself. -/
 theorem lift_uzero (a : cardinal.{u}) : lift.{0} a = a := lift_id'.{0 u} a
 
 @[simp] theorem lift_lift (a : cardinal) :

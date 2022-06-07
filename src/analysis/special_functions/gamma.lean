@@ -61,7 +61,7 @@ def Gamma_integral (s : ℝ) : ℝ := ∫ x in Ioi (0:ℝ), exp (-x) * x ^ (s - 
 lemma Gamma_integral_convergent {s : ℝ} (h : 0 < s) :
   integrable_on (λ x:ℝ, exp (-x) * x ^ (s - 1)) (Ioi 0) :=
 begin
-  rw [←Ioc_union_Ioi_eq_Ioi (@zero_le_one ℝ _), integrable_on_union],
+  rw [←Ioc_union_Ioi_eq_Ioi (@zero_le_one ℝ _ _ _ _), integrable_on_union],
   split,
   { rw ←integrable_on_Icc_iff_integrable_on_Ioc,
     refine integrable_on.continuous_on_mul continuous_on_id.neg.exp _ is_compact_Icc,
@@ -379,7 +379,7 @@ end
 lemma dGamma_integral_abs_convergent (s : ℝ) (hs : 1 < s) :
   integrable_on (λ x:ℝ, ∥exp (-x) * log x * x ^ (s-1)∥) (Ioi 0) :=
 begin
-  rw [←Ioc_union_Ioi_eq_Ioi (@zero_le_one ℝ _), integrable_on_union],
+  rw [←Ioc_union_Ioi_eq_Ioi (@zero_le_one ℝ _ _ _ _), integrable_on_union],
   refine ⟨⟨_, _⟩, _⟩,
   { refine continuous_on.ae_strongly_measurable (continuous_on.mul _ _).norm measurable_set_Ioc,
     { refine (continuous_exp.comp continuous_neg).continuous_on.mul (continuous_on_log.mono _),
@@ -389,7 +389,7 @@ begin
     swap, { exact 1 / (s - 1), },
     refine (ae_restrict_iff' measurable_set_Ioc).mpr (ae_of_all _ (λ x hx, _)),
     rw [norm_norm, norm_eq_abs, mul_assoc, abs_mul],
-    have : 1/(s-1) = 1 * (1 / (s-1)) := by ring, rw this,
+    have : 1 / (s - 1) = 1 * (1 / (s - 1)) := by ring, rw this,
     refine mul_le_mul _ _ (by apply abs_nonneg) zero_le_one,
     { rw [abs_of_pos (exp_pos(-x)), exp_le_one_iff, neg_le, neg_zero], exact hx.1.le },
     { apply le_of_lt, refine abs_log_mul_self_rpow_lt x (s-1) hx.1 hx.2 (by linarith), }, },

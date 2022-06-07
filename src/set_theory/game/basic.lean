@@ -565,7 +565,7 @@ theorem inv'_one_equiv : inv' 1 ≈ 1 := inv'_one.equiv
 
 /-- The inverse of a pre-game in terms of the inverse on positive pre-games. -/
 noncomputable instance : has_inv pgame :=
-⟨by { classical, exact λ x, if x ≈ 0 then 0 else if 0 < x then inv' x else inv' (-x) }⟩
+⟨by { classical, exact λ x, if x ≈ 0 then 0 else if 0 < x then inv' x else -inv' (-x) }⟩
 
 noncomputable instance : has_div pgame := ⟨λ x y, x * y⁻¹⟩
 
@@ -583,7 +583,7 @@ begin
   { exact h₂.not_equiv' }
 end
 
-theorem inv_eq_of_lf_zero {x : pgame} (h : x ⧏ 0) : x⁻¹ = inv' (-x) :=
+theorem inv_eq_of_lf_zero {x : pgame} (h : x ⧏ 0) : x⁻¹ = -inv' (-x) :=
 begin
   convert if_neg _,
   { apply eq.symm (if_neg _), exact h.not_lt },

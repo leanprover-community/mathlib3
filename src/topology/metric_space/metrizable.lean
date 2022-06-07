@@ -203,8 +203,9 @@ begin
     exacts [hy _ hle, (real.dist_le_of_mem_Icc (hf0ε _ _) (hf0ε _ _)).trans (by rwa sub_zero)] }
 end
 
-/-- A regular topological space with second countable topology `X` is metrizable: there exists a
-metric space structure that generates the same topology. -/
+/-- *Urysohn's metrization theorem* (Tychonoff's version): a regular topological space with second
+countable topology `X` is metrizable, i.e., there exists a metric space structure that generates the
+same topology. -/
 lemma metrizable_space_of_regular_second_countable : metrizable_space X :=
 let ⟨f, hf⟩ := exists_embedding_l_infty X in hf.metrizable_space
 

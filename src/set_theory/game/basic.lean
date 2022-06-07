@@ -246,6 +246,7 @@ begin
   { apply hr }
 end
 
+/- TODO: upgrade to relabelling -/
 theorem quot_mul_comm : Π (x y : pgame.{u}), ⟦x * y⟧ = ⟦y * x⟧
 | (mk xl xr xL xR) (mk yl yr yL yR) :=
 begin
@@ -294,6 +295,7 @@ theorem zero_mul_equiv (x : pgame) : 0 * x ≈ 0 :=
 @[simp] theorem quot_zero_mul (x : pgame) : ⟦0 * x⟧ = ⟦0⟧ :=
 @quotient.sound _ _ (0 * x) _ x.zero_mul_equiv
 
+/- TODO: upgrade to relabelling -/
 @[simp] theorem quot_neg_mul : Π (x y : pgame), ⟦-x * y⟧ = -⟦x * y⟧
 | (mk xl xr xL xR) (mk yl yr yL yR) :=
 begin
@@ -320,7 +322,6 @@ begin
       simp, abel } },
 end
 using_well_founded { dec_tac := pgame_wf_tac }
--- TODO could this be made a relabelling?
 
 @[simp] theorem quot_mul_neg (x y : pgame) : ⟦x * -y⟧ = -⟦x * y⟧ :=
 by rw [quot_mul_comm, quot_neg_mul, quot_mul_comm]
@@ -383,6 +384,7 @@ begin
   iterate 6 { rw [quot_mul_neg, neg_neg] },
 end
 
+/- Not upgradable to relabelling (invokes ⟦x + -x⟧ = 0) -/
 @[simp] theorem quot_left_distrib : Π (x y z : pgame), ⟦x * (y + z)⟧ = ⟦x * y⟧ + ⟦x * z⟧
 | (mk xl xr xL xR) (mk yl yr yL yR) (mk zl zr zL zR) :=
 begin
@@ -450,6 +452,7 @@ quotient.exact $ quot_right_distrib _ _ _
 @[simp] theorem quot_right_distrib_sub (x y z : pgame) : ⟦(y - z) * x⟧ = ⟦y * x⟧ - ⟦z * x⟧ :=
 by { change ⟦(y + -z) * x⟧ = ⟦y * x⟧ + -⟦z * x⟧, rw [quot_right_distrib, quot_neg_mul] }
 
+/- TODO: upgrade to relabelling -/
 @[simp] theorem quot_mul_one : Π (x : pgame), ⟦x * 1⟧ = ⟦x⟧
 | (mk xl xr xL xR) :=
 begin
@@ -482,6 +485,7 @@ by rw [quot_mul_comm, quot_mul_one x]
 /-- `1 * x` is equivalent to `x`. -/
 theorem one_mul_equiv (x : pgame) : 1 * x ≈ x := quotient.exact $ quot_one_mul _
 
+/- depends on `quot_left_distrib` and hence not upgradable to relabelling -/
 theorem quot_mul_assoc : Π (x y z : pgame), ⟦x * y * z⟧ = ⟦x * (y * z)⟧
 | (mk xl xr xL xR) (mk yl yr yL yR) (mk zl zr zL zR) :=
 begin

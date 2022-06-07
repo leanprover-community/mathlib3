@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Mario Carneiro, Scott Morrison
+Authors: Mario Carneiro, Scott Morrison, Violeta Hernández Palacios, Junyan Xu
 -/
 import set_theory.game.ordinal
 import set_theory.game.basic
@@ -464,7 +464,7 @@ begin
   swap 3, rw mk_mul_move_right_inl, swap 4, rw mk_mul_move_right_inr,
   all_goals { apply numeric.sub, apply numeric.add,
     apply ihnx ih, swap 2, apply ihny ih, swap 3, apply ihnxy ih },
-  all_goals { apply is_option.mk_left <|> apply is_option.mk_right },
+  all_goals { solve_by_elim [is_option.mk_left, is_option.mk_right] },
 end
 
 omit ih hx hy
@@ -567,8 +567,8 @@ lemma mul_options_lt_mul_of_numeric (hn : (x * y).numeric) :
 ⟨by { have h := hn.move_left_lt, simp_rw lt_iff_game_lt at h,
       convert (left_moves_mul_iff (gt _)).1 h, rw ← quot_neg_mul_neg, refl },
  by { have h := hn.lt_move_right, simp_rw [lt_iff_game_lt, right_moves_mul_iff] at h,
-      refine h.imp _ _; { refine forall₂_imp (λ a b, _),
-        rw lt_neg, rw quot_mul_neg <|> rw quot_neg_mul, exact id } }⟩
+      refine h.imp _ _; refine forall₂_imp (λ a b, _);
+      rw lt_neg; [rw quot_mul_neg, rw quot_neg_mul]; exact id }⟩
 
 /-- A condition just enough to deduce P3, which will always be used with `x'` being a left
   option of `x₂`. When `y₁` is a left option of `y₂`, it can be deduced from induction hypotheses

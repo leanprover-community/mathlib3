@@ -101,9 +101,7 @@ lemma factorization_central_binom_of_two_mul_self_lt_three_mul
   ((central_binom n).factorization p) = 0 :=
 begin
   refine factorization_choose_of_lt_three_mul _ p_le_n (p_le_n.trans _) big,
-  { intro h,
-    rw [h, mul_comm, mul_lt_mul_right] at big,
-    all_goals { linarith } },
+  { rintro rfl, linarith },
   { rw [two_mul, add_tsub_cancel_left] },
 end
 

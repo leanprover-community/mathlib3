@@ -1313,6 +1313,8 @@ end preimage
 
 section image
 
+/-- The image of `s : set α` by `f : α → β`, written `f '' s`,
+  is the set of `y : β` such that `f x = y` for some `x ∈ s`. -/
 def image (f : α → β) (s : set α) : set β := {y | ∃ x, x ∈ s ∧ f x = y}
 
 infix ` '' `:80 := image

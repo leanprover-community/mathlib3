@@ -174,7 +174,7 @@ begin
   induction hacc with a h ih,
   refine acc.intro _ (λ s, _),
   classical, rw cut_expand_iff hi,
-  rintro ⟨t, a, hr, (rfl|⟨⟨⟩⟩), rfl⟩,
+  rintro ⟨t, a, hr, rfl|⟨⟨⟩⟩, rfl⟩,
   refine acc_of_singleton hi (λ a', _),
   rw [erase_singleton, zero_add],
   exact ih a' ∘ hr a',

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Mario Carneiro, Yury G. Kudryashov
 -/
 import order.basic
+import logic.is_empty
 
 /-!
 # Unbundled relation classes
@@ -232,6 +233,12 @@ instance empty_relation.is_well_order [subsingleton α] : is_well_order α empty
   irrefl       := λ a, id,
   trans        := λ a b c, false.elim,
   wf           := ⟨λ a, ⟨_, λ y, false.elim⟩⟩ }
+
+instance is_empty.is_well_order [is_empty α] (r : α → α → Prop) : is_well_order α r :=
+{ trichotomous := λ a, is_empty_elim,
+  irrefl       := is_empty_elim,
+  trans        := λ a, is_empty_elim,
+  wf           := ⟨is_empty_elim⟩ }
 
 instance prod.lex.is_well_order [is_well_order α r] [is_well_order β s] :
   is_well_order (α × β) (prod.lex r s) :=

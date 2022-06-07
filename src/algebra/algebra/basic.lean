@@ -1157,7 +1157,7 @@ instance apply_mul_semiring_action : mul_semiring_action (A₁ ≃ₐ[R] A₁) A
 
 @[simp] protected lemma smul_def (f : A₁ ≃ₐ[R] A₁) (a : A₁) : f • a = f a := rfl
 
-instance apply_has_faithful_scalar : has_faithful_scalar (A₁ ≃ₐ[R] A₁) A₁ :=
+instance apply_has_faithful_smul : has_faithful_smul (A₁ ≃ₐ[R] A₁) A₁ :=
 ⟨λ _ _, alg_equiv.ext⟩
 
 instance apply_smul_comm_class : smul_comm_class R (A₁ ≃ₐ[R] A₁) A₁ :=
@@ -1228,7 +1228,7 @@ This is a stronger version of `mul_semiring_action.to_ring_hom` and
 def to_alg_hom (m : M) : A →ₐ[R] A :=
 alg_hom.mk' (mul_semiring_action.to_ring_hom _ _ m) (smul_comm _)
 
-theorem to_alg_hom_injective [has_faithful_scalar M A] :
+theorem to_alg_hom_injective [has_faithful_smul M A] :
   function.injective (mul_semiring_action.to_alg_hom R A : M → A →ₐ[R] A) :=
 λ m₁ m₂ h, eq_of_smul_eq_smul $ λ r, alg_hom.ext_iff.1 h r
 
@@ -1246,7 +1246,7 @@ def to_alg_equiv (g : G) : A ≃ₐ[R] A :=
 { .. mul_semiring_action.to_ring_equiv _ _ g,
   .. mul_semiring_action.to_alg_hom R A g }
 
-theorem to_alg_equiv_injective [has_faithful_scalar G A] :
+theorem to_alg_equiv_injective [has_faithful_smul G A] :
   function.injective (mul_semiring_action.to_alg_equiv R A : G → A ≃ₐ[R] A) :=
 λ m₁ m₂ h, eq_of_smul_eq_smul $ λ r, alg_equiv.ext_iff.1 h r
 

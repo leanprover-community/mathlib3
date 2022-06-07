@@ -413,7 +413,7 @@ lemma has_fderiv_within_at.union (hs : has_fderiv_within_at f f' s x)
   has_fderiv_within_at f f' (s ∪ t) x :=
 begin
   simp only [has_fderiv_within_at, nhds_within_union],
-  exact hs.join ht,
+  exact hs.sup ht,
 end
 
 lemma has_fderiv_within_at.nhds_within (h : has_fderiv_within_at f f' s x)
@@ -611,18 +611,14 @@ end
 
 lemma fderiv_mem_iff {f : E → F} {s : set (E →L[𝕜] F)} {x : E} :
   fderiv 𝕜 f x ∈ s ↔ (differentiable_at 𝕜 f x ∧ fderiv 𝕜 f x ∈ s) ∨
-    (0 : E →L[𝕜] F) ∈ s ∧ ¬differentiable_at 𝕜 f x :=
-begin
-  split,
-  { intro hfx,
-    by_cases hx : differentiable_at 𝕜 f x,
-    { exact or.inl ⟨hx, hfx⟩ },
-    { rw [fderiv_zero_of_not_differentiable_at hx] at hfx,
-      exact or.inr ⟨hfx, hx⟩ } },
-  { rintro (⟨hf, hf'⟩|⟨h₀, hx⟩),
-    { exact hf' },
-    { rwa [fderiv_zero_of_not_differentiable_at hx] } }
-end
+    (¬differentiable_at 𝕜 f x ∧ (0 : E →L[𝕜] F) ∈ s) :=
+by by_cases hx : differentiable_at 𝕜 f x; simp [fderiv_zero_of_not_differentiable_at, *]
+
+lemma fderiv_within_mem_iff {f : E → F} {t : set E} {s : set (E →L[𝕜] F)} {x : E} :
+  fderiv_within 𝕜 f t x ∈ s ↔ (differentiable_within_at 𝕜 f t x ∧ fderiv_within 𝕜 f t x ∈ s) ∨
+    (¬differentiable_within_at 𝕜 f t x ∧ (0 : E →L[𝕜] F) ∈ s) :=
+by by_cases hx : differentiable_within_at 𝕜 f t x;
+  simp [fderiv_within_zero_of_not_differentiable_within_at, *]
 
 end fderiv_properties
 

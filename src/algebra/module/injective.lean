@@ -84,8 +84,6 @@ def module.Baer : Prop := ∀ (I : ideal R) (g : I →ₗ[R] Q), ∃ (g' : R →
 
 namespace Baer
 
-open zorn
-
 variables {R} {M N : Type (max u v)} [add_comm_group M] [add_comm_group N]
 variables [module R M] [module R N] {i : M →ₗ[R] N} (hi : function.injective i) (f : M →ₗ[R] Q)
 variable {Q}
@@ -161,10 +159,10 @@ instance : partial_order (extension_of hi f) :=
     ⟨le_trans le_ab le_bc, λ z, by rw [← hab z, ← hbc ⟨z, le_ab z.2⟩]; refl⟩ }
 
 variables {R i hi f}
-lemma directed_on' {c : set (extension_of hi f)} (hchain : chain (≤) c) :
-  directed_on (≤) c := directed_on_iff_directed.mpr $ directed_of_chain hchain
+lemma directed_on' {c : set (extension_of hi f)} (hchain : is_chain (≤) c) :
+  directed_on (≤) c := directed_on_iff_directed.mpr $ is_chain.directed hchain
 
-lemma exists3 {c : set (extension_of hi f)} (hchain : chain (≤) c) {α β γ}
+lemma exists3 {c : set (extension_of hi f)} (hchain : is_chain (≤) c) {α β γ}
   (mem1 : α ∈ c) (mem2 : β ∈ c) (mem3 : γ ∈ c) :
   ∃ (z) (mem4 : z ∈ c), α ≤ z ∧ β ≤ z ∧ γ ≤ z :=
 begin
@@ -174,8 +172,8 @@ begin
 end
 
 lemma chain_submodule_of_chain_extension_of
-  {c : set (extension_of hi f)} (hchain : chain (≤) c) :
-  (chain (≤) $ (λ x : extension_of hi f, x.to_submodule) '' c) :=
+  {c : set (extension_of hi f)} (hchain : is_chain (≤) c) :
+  (is_chain (≤) $ (λ x : extension_of hi f, x.to_submodule) '' c) :=
 begin
   rintro _ ⟨a, a_mem, rfl⟩ _ ⟨b, b_mem, rfl⟩ (neq : a.to_submodule ≠ b.to_submodule),
   rcases hchain a_mem b_mem (λ r, neq $ r ▸ rfl) with ⟨⟨le1, -⟩⟩ | ⟨⟨le1, -⟩⟩;
@@ -185,7 +183,7 @@ end
 lemma submodule_le_of_extension_of_le {a b : extension_of hi f} (le1 : a ≤ b) :
   a.to_submodule ≤ b.to_submodule := le1.some.1
 
-lemma directed_on_of_chain {c : set (extension_of hi f)} (hchain : chain (≤) c) :
+lemma directed_on_of_chain {c : set (extension_of hi f)} (hchain : is_chain (≤) c) :
   directed_on (≤) $ (λ x : extension_of hi f, x.to_submodule) '' c :=
 begin
   rw directed_on_iff_directed,
@@ -204,13 +202,13 @@ lemma nonempty_of_extension_of {c : set (extension_of hi f)} (hnonempty : c.none
 /--For a nonempty chain of extensions of `f`, if `y` is in the supremum of underlying submodules of
 the extensions in chain, then `y` is at least one of the underlying submodule in that chain.
 `pick_submodule` picks that submodule-/
-def pick_submodule {c : set (extension_of hi f)} (hchain : chain (≤) c)
+def pick_submodule {c : set (extension_of hi f)} (hchain : is_chain (≤) c)
   (hnonempty : c.nonempty) (y : Sup ((λ x : extension_of hi f, x.to_submodule) '' c)) :
   submodule R N :=
 ((submodule.mem_Sup_of_directed (nonempty_of_extension_of hnonempty)
   (directed_on_of_chain hchain)).mp y.2).some
 
-lemma pick_submodule_mem_image {c : set (extension_of hi f)} (hchain : chain (≤) c)
+lemma pick_submodule_mem_image {c : set (extension_of hi f)} (hchain : is_chain (≤) c)
   (hnonempty : c.nonempty) (y : Sup ((λ x : extension_of hi f, x.to_submodule) '' c)) :
   pick_submodule hchain hnonempty y ∈ ((λ x : extension_of hi f, x.to_submodule) '' c) :=
 ((submodule.mem_Sup_of_directed (nonempty_of_extension_of hnonempty)
@@ -219,20 +217,20 @@ lemma pick_submodule_mem_image {c : set (extension_of hi f)} (hchain : chain (�
 /--The submodule picked by `pick_submodule` is the underlying submodule of an element in the chain,
 i.e. underlying submodule of some `extension_of f`, `pick_extension_of` picks that extension.
 -/
-def pick_extension_of {c : set (extension_of hi f)} (hchain : chain (≤) c)
+def pick_extension_of {c : set (extension_of hi f)} (hchain : is_chain (≤) c)
   (hnonempty : c.nonempty) (y : Sup ((λ x : extension_of hi f, x.to_submodule) '' c)) :
   extension_of hi f :=
 ((submodule.mem_Sup_of_directed (nonempty_of_extension_of hnonempty)
   (directed_on_of_chain hchain)).mp y.2).some_spec.some.some
 
-lemma pick_extension_of_mem {c : set (extension_of hi f)} (hchain : chain (≤) c)
+lemma pick_extension_of_mem {c : set (extension_of hi f)} (hchain : is_chain (≤) c)
   (hnonempty : c.nonempty) (y : Sup ((λ x : extension_of hi f, x.to_submodule) '' c)) :
   pick_extension_of hchain hnonempty y ∈ c :=
 ((submodule.mem_Sup_of_directed (nonempty_of_extension_of hnonempty)
   (directed_on_of_chain hchain)).mp y.2).some_spec.some.some_spec.1
 
 lemma pick_extension_of_to_submodule_mem
-  {c : set (extension_of hi f)} (hchain : chain (≤) c)
+  {c : set (extension_of hi f)} (hchain : is_chain (≤) c)
   (hnonempty : c.nonempty) (y : Sup ((λ x : extension_of hi f, x.to_submodule) '' c)) :
   y.1 ∈ (pick_extension_of hchain hnonempty y).to_submodule :=
 begin
@@ -242,7 +240,7 @@ begin
   exact mem1.some_spec.2,
 end
 
-lemma pick_submodule_mem {c : set (extension_of hi f)} (hchain : chain (≤) c)
+lemma pick_submodule_mem {c : set (extension_of hi f)} (hchain : is_chain (≤) c)
   (hnonempty : c.nonempty) (y : Sup ((λ x : extension_of hi f, x.to_submodule) '' c)) :
   y.1 ∈ pick_submodule hchain hnonempty y :=
 ((submodule.mem_Sup_of_directed (nonempty_of_extension_of hnonempty)
@@ -253,13 +251,13 @@ all underlying submodule is submodule of `M'` and `f'` extends all functions. `m
 this maximal function, it is defined by taking union of all functions in the chain.
 -/
 def extension_of.max_extension {c : set (extension_of hi f)}
-  (hchain : chain (≤) c) (hnonempty : c.nonempty) :
+  (hchain : is_chain (≤) c) (hnonempty : c.nonempty) :
   Sup ((λ x : extension_of hi f, x.to_submodule) '' c) → Q :=
 λ y, (pick_extension_of hchain hnonempty y).extension
   ⟨y.1, by apply pick_extension_of_to_submodule_mem⟩
 
 lemma extension_of.max_extension_property {c : set (extension_of hi f)}
-  (hchain : chain (≤) c) (hnonempty : c.nonempty)
+  (hchain : is_chain (≤) c) (hnonempty : c.nonempty)
   (x : Sup ((λ x : extension_of hi f, x.to_submodule) '' c))
   {γ : extension_of hi f} (mem1 : γ ∈ c)
   (mem2 : x.1 ∈ γ.to_submodule) :
@@ -277,7 +275,7 @@ begin
 end
 
 lemma extension_of.max_extension.map_add {c : set (extension_of hi f)}
-  (hchain : chain (≤) c) (hnonempty : c.nonempty) (y1 y2):
+  (hchain : is_chain (≤) c) (hnonempty : c.nonempty) (y1 y2):
   extension_of.max_extension hchain hnonempty (y1 + y2) =
   extension_of.max_extension hchain hnonempty y1 +
   extension_of.max_extension hchain hnonempty y2 :=
@@ -299,7 +297,7 @@ begin
 end
 
 lemma extension_of.max_extension.map_smul {c : set (extension_of hi f)}
-  (hchain : chain (≤) c) (hnonempty : c.nonempty) (r : R) (y):
+  (hchain : is_chain (≤) c) (hnonempty : c.nonempty) (r : R) (y):
   extension_of.max_extension hchain hnonempty (r • y) =
   r • extension_of.max_extension hchain hnonempty y :=
 begin
@@ -317,7 +315,7 @@ begin
 end
 
 /--The maximal element of every nonempty chain of `extension_of` f-/
-def extension_of.max {c : set (extension_of hi f)} (hchain : chain (≤) c)
+def extension_of.max {c : set (extension_of hi f)} (hchain : is_chain (≤) c)
   (hnonempty : c.nonempty) :
   extension_of hi f :=
 { to_submodule := Sup ((λ x : extension_of hi f, x.to_submodule) '' c),
@@ -338,7 +336,7 @@ def extension_of.max {c : set (extension_of hi f)} (hchain : chain (≤) c)
     congr,
   end }
 
-lemma extension_of.le_max {c : set (extension_of hi f)} (hchain : chain (≤) c)
+lemma extension_of.le_max {c : set (extension_of hi f)} (hchain : is_chain (≤) c)
   (hnonempty : c.nonempty) (a : extension_of hi f) (ha : a ∈ c) :
   a ≤ extension_of.max hchain hnonempty :=
 begin
@@ -358,7 +356,7 @@ begin
 end
 
 lemma extension_of.aux1 : ∀ (c : set (extension_of hi f)),
-  chain has_le.le c →
+  is_chain has_le.le c →
   c.nonempty →
   (∃ (ub : extension_of hi f), ∀ (a : extension_of hi f), a ∈ c → a ≤ ub) :=
 λ c hchain hnonempty,

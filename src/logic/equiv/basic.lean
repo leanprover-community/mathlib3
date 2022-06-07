@@ -2005,7 +2005,7 @@ lemma function.injective.swap_comp [decidable_eq α] [decidable_eq β] {f : α �
   equiv.swap (f x) (f y) ∘ f = f ∘ equiv.swap x y :=
 funext $ λ z, hf.swap_apply _ _ _
 
-/-- If both `α` and `β` have an unique element, then `α ≃ β`. -/
+/-- If both `α` and `β` have a unique element, then `α ≃ β`. -/
 def unique_equiv_unique (α β : Sort*) [unique α] [unique β] : α ≃ β :=
 { to_fun := λ _, default,
   inv_fun := λ _, default,

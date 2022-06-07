@@ -492,12 +492,12 @@ inductive inv_ty (l r : Type u) : bool → Type u
 | right₂ : r → inv_ty tt → inv_ty tt
 
 instance (l r : Type u) [is_empty l] [is_empty r] : is_empty (inv_ty l r tt) :=
-⟨by rintro (_ | _ | _ | a | a); exact is_empty_elim a⟩
+⟨by rintro (_|_|_|a|a); exact is_empty_elim a⟩
 
 instance (l r : Type u) : inhabited (inv_ty l r ff) := ⟨inv_ty.zero⟩
 
 instance unique_inv_ty (l r : Type u) [is_empty l] [is_empty r] : unique (inv_ty l r ff) :=
-{ uniq := by { rintro (a | a | a), refl, all_goals { exact is_empty_elim a } },
+{ uniq := by { rintro (a|a|a), refl, all_goals { exact is_empty_elim a } },
   ..inv_ty.inhabited l r }
 
 /-- Because the two halves of the definition of `inv` produce more elements
@@ -541,10 +541,10 @@ theorem zero_lf_inv' : ∀ (x : pgame), 0 ⧏ inv' x
 def inv'_zero : relabelling (inv' 0) 1 :=
 begin
   change relabelling (mk _ _ _ _) 1,
-  refine ⟨_, _, λ i, _, is_empty_elim⟩;
-  simp,
-  { apply equiv_punit_of_unique },
-  { apply equiv.equiv_pempty }
+  refine ⟨_, _, λ i, _, is_empty_elim⟩; dsimp,
+  { exact equiv_punit_of_unique },
+  { exact equiv.equiv_pempty _ },
+  { simp }
 end
 
 theorem inv'_zero_equiv : inv' 0 ≈ 1 := inv'_zero.equiv
@@ -569,26 +569,16 @@ noncomputable instance : has_inv pgame :=
 
 noncomputable instance : has_div pgame := ⟨λ x y, x * y⁻¹⟩
 
-theorem inv_eq_of_equiv_zero {x : pgame} (h : x ≈ 0) : x⁻¹ = 0 :=
-by { apply if_pos, exact h }
+theorem inv_eq_of_equiv_zero {x : pgame} (h : x ≈ 0) : x⁻¹ = 0 := if_pos h
 
 @[simp] theorem inv_zero : (0 : pgame)⁻¹ = 0 :=
 inv_eq_of_equiv_zero (equiv_refl _)
 
 theorem inv_eq_of_pos {x : pgame} (h : 0 < x) : x⁻¹ = inv' x :=
-begin
-  cases lt_iff_le_and_lf.1 h with h₁ h₂,
-  convert if_neg _,
-  { apply eq.symm (if_pos _), exact h },
-  { exact h₂.not_equiv' }
-end
+(if_neg h.lf.not_equiv').trans (if_pos h)
 
 theorem inv_eq_of_lf_zero {x : pgame} (h : x ⧏ 0) : x⁻¹ = -inv' (-x) :=
-begin
-  convert if_neg _,
-  { apply eq.symm (if_neg _), exact h.not_lt },
-  { exact λ h', not_lf.2 h'.2 h }
-end
+(if_neg h.not_equiv).trans (if_neg h.not_lt)
 
 /-- `1⁻¹` has exactly the same moves as `1`. -/
 def inv_one : relabelling (1 : pgame)⁻¹ 1 :=

@@ -177,16 +177,20 @@ lemma tendsto_uniformly.prod {ι' β' : Type*} [uniform_space β'] {F' : ι' →
   tendsto_uniformly (λ (i : ι × ι') a, (F i.1 a, F' i.2 a)) (λ a, (f a, f' a)) (p.prod p') :=
 (h.prod_map h').comp (λ a, (a, a))
 
+/-- Uniform convergence on a set `s` to a constant function is equivalent to convergence in
+`p ×ᶠ 𝓟 s`. -/
+lemma tendsto_prod_principal_iff {c : β} :
+  tendsto ↿F (p ×ᶠ 𝓟 s) (𝓝 c) ↔ tendsto_uniformly_on F (λ _, c) p s :=
+begin
+  unfold tendsto,
+  simp_rw [nhds_eq_comap_uniformity, map_le_iff_le_comap.symm, map_map, le_def, mem_map,
+    mem_prod_principal],
+  simpa,
+end
+
 /-- Uniform convergence to a constant function is equivalent to convergence in `p ×ᶠ ⊤`. -/
 lemma tendsto_prod_top_iff {c : β} : tendsto ↿F (p ×ᶠ ⊤) (𝓝 c) ↔ tendsto_uniformly F (λ _, c) p :=
-let j : β → β × β := prod.mk c in
-calc tendsto ↿F (p ×ᶠ ⊤) (𝓝 c)
-    ↔ map ↿F (p ×ᶠ ⊤) ≤ (𝓝 c) : iff.rfl
-... ↔ map ↿F (p ×ᶠ ⊤) ≤ comap j (𝓤 β) : by rw nhds_eq_comap_uniformity
-... ↔ map j (map ↿F (p ×ᶠ ⊤)) ≤ 𝓤 β : map_le_iff_le_comap.symm
-... ↔ map (j ∘ ↿F) (p ×ᶠ ⊤) ≤ 𝓤 β : by rw map_map
-... ↔ ∀ V ∈ 𝓤 β, {x | (c, ↿F x) ∈ V} ∈ p ×ᶠ (⊤ : filter α) : iff.rfl
-... ↔ ∀ V ∈ 𝓤 β, {i | ∀ a, (c, F i a) ∈ V} ∈ p : by simpa [mem_prod_top]
+by rw [←principal_univ, ←tendsto_uniformly_on_univ, ←tendsto_prod_principal_iff]
 
 /-- Uniform convergence on the empty set is vacuously true -/
 lemma tendsto_uniformly_on_empty :
@@ -199,6 +203,8 @@ lemma tendsto_uniformly_on_singleton_iff_tendsto :
 by simp_rw [uniform.tendsto_nhds_right, tendsto_uniformly_on, mem_singleton_iff, forall_eq,
   tendsto_def, preimage, filter.eventually]
 
+/-- If a sequence `g` converges to some `b`, then the sequence of constant functions
+`λ n, λ a, g n` converges to the constant function `λ a, b` on any set `s` -/
 lemma filter.tendsto.tendsto_uniformly_on_const
   {g : ι → β} {b : β} (hg : tendsto g p (𝓝 b)) (s : set α) :
   tendsto_uniformly_on (λ n : ι, λ a : α, g n) (λ a : α, b) p s :=

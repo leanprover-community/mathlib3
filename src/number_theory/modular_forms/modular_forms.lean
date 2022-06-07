@@ -302,8 +302,8 @@ end
 def space_of_mod_forms_of_weight_and_level (k : ℤ) (Γ : subgroup SL(2,ℤ)) : submodule ℂ (ℍ → ℂ) :=
 { carrier := { f : ℍ → ℂ | is_modular_form_of_weight_and_level k Γ f},
   zero_mem':= by { simp only [set.mem_set_of_eq], apply zero_mod_form, },
-  add_mem' := by
-  { intros a b ha hb, split,
+  add_mem' := by { intros a b ha hb,
+    split,
     exact mdifferentiable_add _ _ ha.hol hb.hol,
     exact (weakly_modular_submodule k Γ).add_mem' ha.transf hb.transf,
     intro A, rw slash_k_add,
@@ -367,7 +367,7 @@ begin
   have : (((↑ₘ(A : GL(2,ℝ)⁺)).det) : ℝ) = 1,
   { simp only [coe_coe,
       matrix.special_linear_group.coe_GL_pos_coe_GL_coe_matrix,
-      matrix.special_linear_group.det_coe],},
+      matrix.special_linear_group.det_coe], },
   rw [zero_sub, this],
   simp only [pi.one_apply, of_real_one, one_zpow, mul_one, neg_zero', zpow_zero],
   refl,

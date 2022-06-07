@@ -1346,8 +1346,6 @@ bounded_continuous_function.comp _
 
 @[simp] lemma nnnorm_coe_fun_eq (f : α →ᵇ ℝ) : ⇑(f.nnnorm) = has_nnnorm.nnnorm ∘ ⇑f := rfl
 
-@[simp] lemma nnnorm_apply_coe (f : α →ᵇ ℝ) (a : α) : (f.nnnorm a : ℝ) = |f a| := rfl
-
 /-- Decompose a bounded continuous function to its positive and negative parts. -/
 lemma self_eq_nnreal_part_sub_nnreal_part_neg (f : α →ᵇ ℝ) :
   ⇑f = coe ∘ f.nnreal_part - coe ∘ (-f).nnreal_part :=

@@ -25,7 +25,7 @@ equiv.equiv_pempty _
 
 /-- Equivalence between `fin 1` and `unit`. -/
 def fin_one_equiv : fin 1 ≃ unit :=
-equiv_punit_of_unique
+equiv.equiv_punit
 
 /-- Equivalence between `fin 2` and `bool`. -/
 def fin_two_equiv : fin 2 ≃ bool :=

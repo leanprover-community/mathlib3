@@ -373,6 +373,21 @@ equiv_pempty _
 def prop_equiv_pempty {p : Prop} (h : ¬p) : p ≃ pempty :=
 ⟨λ x, absurd x h, λ x, by cases x, λ x, absurd x h, λ x, by cases x⟩
 
+/-- If both `α` and `β` have a unique element, then `α ≃ β`. -/
+def unique_equiv_unique (α β : Sort*) [unique α] [unique β] : α ≃ β :=
+{ to_fun := λ _, default,
+  inv_fun := λ _, default,
+  left_inv := λ _, subsingleton.elim _ _,
+  right_inv := λ _, subsingleton.elim _ _ }
+
+/-- If `α` has a unique element, then it is equivalent to any `punit`. -/
+def equiv_punit (α : Sort*) [unique α] : α ≃ punit.{v} :=
+unique_equiv_unique α _
+
+/-- The `Sort` of proofs of a true proposition is equivalent to `punit`. -/
+def prop_equiv_punit {p : Prop} (h : p) : p ≃ punit :=
+@equiv_punit p $ unique_prop h
+
 /-- `ulift α` is equivalent to `α`. -/
 @[simps apply symm_apply {fully_applied := ff}]
 protected def ulift {α : Type v} : ulift.{u} α ≃ α :=
@@ -2004,21 +2019,6 @@ lemma function.injective.swap_comp [decidable_eq α] [decidable_eq β] {f : α �
   (hf : function.injective f) (x y : α) :
   equiv.swap (f x) (f y) ∘ f = f ∘ equiv.swap x y :=
 funext $ λ z, hf.swap_apply _ _ _
-
-/-- If both `α` and `β` have a unique element, then `α ≃ β`. -/
-def unique_equiv_unique (α β : Sort*) [unique α] [unique β] : α ≃ β :=
-{ to_fun := λ _, default,
-  inv_fun := λ _, default,
-  left_inv := λ _, subsingleton.elim _ _,
-  right_inv := λ _, subsingleton.elim _ _ }
-
-/-- If `α` has a unique element, then it is equivalent to any `punit`. -/
-def equiv_punit (α : Sort*) [unique α] : α ≃ punit.{v} :=
-unique_equiv_unique α _
-
-/-- The `Sort` of proofs of a true proposition is equivalent to `punit`. -/
-def prop_equiv_punit {p : Prop} (h : p) : p ≃ punit :=
-@equiv_punit p $ unique_prop h
 
 /-- If `α` is a subsingleton, then it is equivalent to `α × α`. -/
 def subsingleton_prod_self_equiv {α : Type*} [subsingleton α] : α × α ≃ α :=

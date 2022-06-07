@@ -17,7 +17,7 @@ import geometry.manifold.mfderiv
 This file defines modular forms and proves some basic properties about them.
 
 We begin by defining the `slash_k` operator on the space of functions `ℍ → ℂ` and from this
-define the notion of weakly modular form.#check
+define the notion of weakly modular form.
 
 We then define `bounded_at_infinity` and `zero_at_infinity`. Finally we construct the vector
 space of modular forms and prove that the product of two modular forms is a modular form
@@ -32,14 +32,14 @@ open_locale topological_space manifold upper_half_plane
 
 noncomputable theory
 
-local notation `ℍ'`:=(⟨upper_half_plane.upper_half_space ,
+local notation `ℍ'` := (⟨upper_half_plane.upper_half_space ,
  upper_half_plane.upper_half_plane_is_open⟩: topological_space.opens ℂ)
 
 local prefix `↑ₘ`:1024 := @coe _ (matrix (fin 2) (fin 2) _) _
 
-local notation `GL(` n `, ` R `)`⁺:= matrix.GL_pos (fin n) R
+local notation `GL(` n `, ` R `)`⁺ := matrix.GL_pos (fin n) R
 
-local notation `SL(` n `, ` R `)`:= matrix.special_linear_group (fin n) R
+local notation `SL(` n `, ` R `)` := matrix.special_linear_group (fin n) R
 
 variable (M : GL(2, ℝ)⁺)
 

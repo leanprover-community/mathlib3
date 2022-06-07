@@ -8,6 +8,7 @@ import linear_algebra.special_linear_group
 import analysis.complex.basic
 import group_theory.group_action.defs
 import linear_algebra.general_linear_group
+import geometry.manifold.charted_space
 
 /-!
 # The upper half plane and its automorphisms
@@ -228,38 +229,6 @@ begin
 simp only [coe_GL_pos_neg, sl_moeb, coe_coe, coe_int_neg, neg_smul],
 end
 
-variable (Γ : subgroup SL(2,ℤ))
-
-@[simp]lemma sl_moeb (A: SL(2,ℤ)) (z : ℍ) : A • z = (A : (GL(2, ℝ)⁺)) • z := rfl
-lemma subgroup_moeb (A: Γ) (z : ℍ) : A • z = (A : (GL(2, ℝ)⁺)) • z := rfl
-@[simp]lemma subgroup_to_sl_moeb (A : Γ) (z : ℍ) : A • z = (A : SL(2,ℤ)) • z := rfl
-
-@[simp] lemma SL_neg_smul (g : SL(2,ℤ)) (z : ℍ) : -g • z = g • z :=
-begin
-simp only [coe_GL_pos_neg, sl_moeb, coe_coe, coe_int_neg, neg_smul],
-end
-
-section upper_half_plane_manifold
-
-open_locale topological_space manifold
-
-/--The upper half space as a subset of `ℂ` which is convenient sometimes.-/
-def upper_half_space := {z : ℂ | 0 <  z.im}
-
-lemma upper_half_plane_is_open: is_open upper_half_space  :=
-begin
-  have : upper_half_space = complex.im⁻¹' set.Ioi 0 :=
-    set.ext (λ z, iff.intro (λ hz, set.mem_preimage.mp hz) $ λ hz, hz),
-  exact is_open.preimage complex.continuous_im is_open_Ioi,
-end
-
-local notation `ℍ'`:=(⟨upper_half_space , upper_half_plane_is_open⟩: topological_space.opens ℂ)
-
-instance : charted_space ℂ ℂ := infer_instance
-
-instance : charted_space ℂ ℍ' := infer_instance
-
-end upper_half_plane_manifold
 lemma c_mul_im_sq_le_norm_sq_denom (z : ℍ) (g : SL(2, ℝ)) :
   ((↑ₘg 1 0 : ℝ) * (z.im))^2 ≤ complex.norm_sq (denom g z) :=
 begin
@@ -281,5 +250,30 @@ lemma denom_apply (g : SL(2, ℤ)) (z : ℍ) : denom g z = (↑g : matrix (fin 2
   (↑g : matrix (fin 2) (fin 2) ℤ) 1 1 := by simp
 
 end SL_modular_action
+
+section upper_half_plane_manifold
+
+/--The upper half space as a subset of `ℂ` which is convenient sometimes.-/
+def upper_half_space := {z : ℂ | 0 <  z.im}
+
+lemma upper_half_plane_is_open: is_open upper_half_space  :=
+begin
+  have : upper_half_space = complex.im⁻¹' set.Ioi 0 :=
+    set.ext (λ z, iff.intro (λ hz, set.mem_preimage.mp hz) $ λ hz, hz),
+  exact is_open.preimage complex.continuous_im is_open_Ioi,
+end
+
+local notation `ℍ'`:= (⟨upper_half_space , upper_half_plane_is_open⟩: topological_space.opens ℂ)
+
+instance : charted_space ℂ ℂ := infer_instance
+
+instance : charted_space ℂ ℍ' := infer_instance
+
+/--The extension of a function from `ℍ` to `ℍ'`-/
+def hol_extn (f : ℍ → ℂ) : ℍ' → ℂ := λ (z : ℍ'), (f (z : ℍ))
+
+instance : has_coe (ℍ → ℂ) (ℍ' → ℂ) := ⟨λ f, hol_extn f ⟩
+
+end upper_half_plane_manifold
 
 end upper_half_plane

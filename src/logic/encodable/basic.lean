@@ -299,7 +299,7 @@ by cases a; refl
 end subtype
 
 instance _root_.fin.encodable (n) : encodable (fin n) :=
-of_equiv _ (equiv.fin_equiv_subtype _)
+of_equiv _ (equiv.refl _)
 
 instance _root_.int.encodable : encodable ℤ :=
 of_equiv _ equiv.int_equiv_nat

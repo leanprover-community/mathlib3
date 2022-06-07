@@ -1293,10 +1293,6 @@ def list_equiv_of_equiv {α β : Type*} (e : α ≃ β) : list α ≃ list β :=
   left_inv := λ l, by rw [list.map_map, e.symm_comp_self, list.map_id],
   right_inv := λ l, by rw [list.map_map, e.self_comp_symm, list.map_id] }
 
-/-- `fin n` is equivalent to `{m // m < n}`. -/
-def fin_equiv_subtype (n : ℕ) : fin n ≃ {m // m < n} :=
-⟨λ x, ⟨x.1, x.2⟩, λ x, ⟨x.1, x.2⟩, λ ⟨a, b⟩, rfl,λ ⟨a, b⟩, rfl⟩
-
 /-- If `α` is equivalent to `β`, then `unique α` is equivalent to `unique β`. -/
 def unique_congr (e : α ≃ β) : unique α ≃ unique β :=
 { to_fun := λ h, @equiv.unique _ _ h e.symm,

@@ -149,6 +149,16 @@ end limits
 
 section colimits
 
+-- We don't mark this as an `@[ext]` lemma as we don't always want to work elementwise.
+lemma cokernel_funext {C : Type*} [category C] [has_zero_morphisms C] [concrete_category C]
+  {M N K : C} {f : M ⟶ N} [has_cokernel f] {g h : cokernel f ⟶ K}
+  (w : ∀ (n : N), g (cokernel.π f n) = h (cokernel.π f n)) : g = h :=
+begin
+  apply coequalizer.hom_ext,
+  apply concrete_category.hom_ext _ _,
+  simpa using w,
+end
+
 variables {C : Type u} [category.{v} C] [concrete_category.{v} C]
   {J : Type v} [small_category J] (F : J ⥤ C) [preserves_colimit F (forget C)]
 

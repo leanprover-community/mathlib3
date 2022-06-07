@@ -698,12 +698,12 @@ continuous_norm.comp_strongly_measurable hf
 
 protected lemma nnnorm {m : measurable_space α} {β : Type*} [normed_group β] {f : α → β}
   (hf : strongly_measurable f) :
-  strongly_measurable (λ x, nnnorm (f x)) :=
+  strongly_measurable (λ x, ∥f x∥₊) :=
 continuous_nnnorm.comp_strongly_measurable hf
 
 protected lemma ennnorm {m : measurable_space α} {β : Type*} [normed_group β] {f : α → β}
   (hf : strongly_measurable f) :
-  measurable (λ a, (nnnorm (f a) : ℝ≥0∞)) :=
+  measurable (λ a, (∥f a∥₊ : ℝ≥0∞)) :=
 (ennreal.continuous_coe.comp_strongly_measurable hf.nnnorm).measurable
 
 protected lemma real_to_nnreal {m : measurable_space α} {f : α → ℝ}
@@ -1227,11 +1227,11 @@ protected lemma norm {β : Type*} [normed_group β] {f : α → β} (hf : ae_str
 continuous_norm.comp_ae_strongly_measurable hf
 
 protected lemma nnnorm {β : Type*} [normed_group β] {f : α → β} (hf : ae_strongly_measurable f μ) :
-  ae_strongly_measurable (λ x, nnnorm (f x)) μ :=
+  ae_strongly_measurable (λ x, ∥f x∥₊) μ :=
 continuous_nnnorm.comp_ae_strongly_measurable hf
 
 protected lemma ennnorm {β : Type*} [normed_group β] {f : α → β} (hf : ae_strongly_measurable f μ) :
-  ae_measurable (λ a, (nnnorm (f a) : ℝ≥0∞)) μ :=
+  ae_measurable (λ a, (∥f a∥₊ : ℝ≥0∞)) μ :=
 (ennreal.continuous_coe.comp_ae_strongly_measurable hf.nnnorm).ae_measurable
 
 protected lemma edist {β : Type*} [normed_group β] {f g : α → β}
@@ -1298,6 +1298,11 @@ lemma comp_measurable {γ : Type*} {mγ : measurable_space γ} {mα : measurable
   {μ : measure γ} (hg : ae_strongly_measurable g (measure.map f μ)) (hf : measurable f) :
   ae_strongly_measurable (g ∘ f) μ :=
 hg.comp_ae_measurable hf.ae_measurable
+
+lemma comp_measurable' {γ : Type*} {mγ : measurable_space γ} {mα : measurable_space α} {f : γ → α}
+  {μ : measure γ} {ν : measure α} (hg : ae_strongly_measurable g ν) (hf : measurable f)
+  (h : μ.map f ≪ ν) : ae_strongly_measurable (g ∘ f) μ :=
+(hg.mono' h).comp_measurable hf
 
 lemma is_separable_ae_range (hf : ae_strongly_measurable f μ) :
   ∃ (t : set β), is_separable t ∧ ∀ᵐ x ∂μ, f x ∈ t :=
@@ -1501,6 +1506,7 @@ section continuous_linear_map_nondiscrete_normed_field
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
 variables {F : Type*} [normed_group F] [normed_space 𝕜 F]
+variables {G : Type*} [normed_group G] [normed_space 𝕜 G]
 
 lemma _root_.strongly_measurable.apply_continuous_linear_map
   {m : measurable_space α} {φ : α → F →L[𝕜] E} (hφ : strongly_measurable φ) (v : F) :
@@ -1511,6 +1517,12 @@ lemma apply_continuous_linear_map {φ : α → F →L[𝕜] E}
   (hφ : ae_strongly_measurable φ μ) (v : F) :
   ae_strongly_measurable (λ a, φ a v) μ :=
 (continuous_linear_map.apply 𝕜 E v).continuous.comp_ae_strongly_measurable hφ
+
+lemma _root_.continuous_linear_map.ae_strongly_measurable_comp₂ (L : E →L[𝕜] F →L[𝕜] G)
+  {f : α → E} {g : α → F}
+  (hf : ae_strongly_measurable f μ) (hg : ae_strongly_measurable g μ) :
+  ae_strongly_measurable (λ x, L (f x) (g x)) μ :=
+L.continuous₂.comp_ae_strongly_measurable $ hf.prod_mk hg
 
 end continuous_linear_map_nondiscrete_normed_field
 

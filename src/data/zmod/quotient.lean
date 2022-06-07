@@ -63,3 +63,31 @@ def quotient_span_equiv_zmod (a : ℤ) :
   (quotient_span_nat_equiv_zmod a.nat_abs)
 
 end int
+
+namespace add_action
+
+open add_subgroup add_monoid_hom add_equiv function
+
+variables {α β : Type*} [add_group α] (a : α) [add_action α β] (b : β)
+
+/-- The quotient `(ℤ ∙ a) ⧸ (stabilizer b)` is cyclic of order `minimal_period ((+ᵥ) a) b`. -/
+noncomputable def zmultiples_quotient_stabilizer_equiv :
+  zmultiples a ⧸ stabilizer (zmultiples a) b ≃+ zmod (minimal_period ((+ᵥ) a) b) :=
+(of_bijective (map _ (stabilizer (zmultiples a) b)
+  (zmultiples_hom (zmultiples a) ⟨a, mem_zmultiples a⟩) (by
+  { rw [zmultiples_le, mem_comap, mem_stabilizer_iff,
+        zmultiples_hom_apply, coe_nat_zsmul, ←vadd_iterate],
+    exact is_periodic_pt_minimal_period ((+ᵥ) a) b })) ⟨by
+  { rw [←ker_eq_bot_iff, eq_bot_iff],
+    refine λ q, induction_on' q (λ n hn, _),
+    rw [mem_bot, eq_zero_iff, int.mem_zmultiples_iff, ←zsmul_vadd_eq_iff_minimal_period_dvd],
+    exact (eq_zero_iff _).mp hn },
+  λ q, induction_on' q (λ ⟨_, n, rfl⟩, ⟨n, rfl⟩)⟩).symm.trans
+  (int.quotient_zmultiples_nat_equiv_zmod (minimal_period ((+ᵥ) a) b))
+
+lemma zmultiples_quotient_stabilizer_equiv_symm_apply (n : zmod (minimal_period ((+ᵥ) a) b)) :
+  (zmultiples_quotient_stabilizer_equiv a b).symm n =
+    (n : ℤ) • (⟨a, mem_zmultiples a⟩ : zmultiples a) :=
+rfl
+
+end add_action

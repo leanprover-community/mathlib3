@@ -365,6 +365,13 @@ iff.rfl
   dist x y ≤ c ↔ nndist x y ≤ c :=
 iff.rfl
 
+@[simp] lemma edist_lt_of_real {x y : α} {r : ℝ} : edist x y < ennreal.of_real r ↔ dist x y < r :=
+by rw [edist_dist, ennreal.of_real_lt_of_real_iff_of_nonneg dist_nonneg]
+
+@[simp] lemma edist_le_of_real {x y : α} {r : ℝ} (hr : 0 ≤ r) :
+  edist x y ≤ ennreal.of_real r ↔ dist x y ≤ r :=
+by rw [edist_dist, ennreal.of_real_le_of_real_iff hr]
+
 /--Express `nndist` in terms of `dist`-/
 lemma nndist_dist (x y : α) : nndist x y = real.to_nnreal (dist x y) :=
 by rw [dist_nndist, real.to_nnreal_coe]
@@ -1079,17 +1086,8 @@ theorem metric.complete_of_convergent_controlled_sequences (B : ℕ → real) (h
   (H : ∀u : ℕ → α, (∀N n m : ℕ, N ≤ n → N ≤ m → dist (u n) (u m) < B N) →
     ∃x, tendsto u at_top (𝓝 x)) :
   complete_space α :=
-begin
-  -- this follows from the same criterion in emetric spaces. We just need to translate
-  -- the convergence assumption from `dist` to `edist`
-  apply emetric.complete_of_convergent_controlled_sequences (λn, ennreal.of_real (B n)),
-  { simp [hB] },
-  { assume u Hu,
-    apply H,
-    assume N n m hn hm,
-    rw [← ennreal.of_real_lt_of_real_iff (hB N), ← edist_dist],
-    exact Hu N n m hn hm }
-end
+uniform_space.complete_of_convergent_controlled_sequences
+  (λ n, {p:α×α | dist p.1 p.2 < B n}) (λ n, dist_mem_uniformity $ hB n) H
 
 theorem metric.complete_of_cauchy_seq_tendsto :
   (∀ u : ℕ → α, cauchy_seq u → ∃a, tendsto u at_top (𝓝 a)) → complete_space α :=
@@ -1359,20 +1357,19 @@ end mul_opposite
 
 section nnreal
 
-noncomputable instance : pseudo_metric_space ℝ≥0 := by unfold nnreal; apply_instance
+noncomputable instance : pseudo_metric_space ℝ≥0 := subtype.pseudo_metric_space
 
 lemma nnreal.dist_eq (a b : ℝ≥0) : dist a b = |(a:ℝ) - b| := rfl
 
 lemma nnreal.nndist_eq (a b : ℝ≥0) :
   nndist a b = max (a - b) (b - a) :=
 begin
-  wlog h : a ≤ b,
-  { apply nnreal.coe_eq.1,
-    rw [tsub_eq_zero_iff_le.2 h, max_eq_right (zero_le $ b - a), ← dist_nndist, nnreal.dist_eq,
-      nnreal.coe_sub h, abs_eq_max_neg, neg_sub],
-    apply max_eq_right,
-    linarith [nnreal.coe_le_coe.2 h] },
-  rwa [nndist_comm, max_comm]
+  /- WLOG, `b ≤ a`. `wlog h : b ≤ a` works too but it is much slower because Lean tries to prove one
+  case from the other and fails; `tactic.skip` tells Lean not to try. -/
+  wlog h : b ≤ a := le_total b a using [a b, b a] tactic.skip,
+  { rw [← nnreal.coe_eq, ← dist_nndist, nnreal.dist_eq, tsub_eq_zero_iff_le.2 h,
+      max_eq_left (zero_le $ a - b), ← nnreal.coe_sub h, abs_of_nonneg (a - b).coe_nonneg] },
+  { rwa [nndist_comm, max_comm] }
 end
 
 @[simp] lemma nnreal.nndist_zero_eq_val (z : ℝ≥0) : nndist 0 z = z :=
@@ -1395,25 +1392,11 @@ variables [pseudo_metric_space β]
 
 noncomputable instance prod.pseudo_metric_space_max :
   pseudo_metric_space (α × β) :=
-{ dist := λ x y, max (dist x.1 y.1) (dist x.2 y.2),
-  dist_self := λ x, by simp,
-  dist_comm := λ x y, by simp [dist_comm],
-  dist_triangle := λ x y z, max_le
-    (le_trans (dist_triangle _ _ _) (add_le_add (le_max_left _ _) (le_max_left _ _)))
-    (le_trans (dist_triangle _ _ _) (add_le_add (le_max_right _ _) (le_max_right _ _))),
-  edist := λ x y, max (edist x.1 y.1) (edist x.2 y.2),
-  edist_dist := assume x y, begin
-    have : monotone ennreal.of_real := assume x y h, ennreal.of_real_le_of_real h,
-    rw [edist_dist, edist_dist, ← this.map_max]
-  end,
-  uniformity_dist := begin
-    refine uniformity_prod.trans _,
-    simp only [uniformity_basis_dist.eq_binfi, comap_infi],
-    rw ← infi_inf_eq, congr, funext,
-    rw ← infi_inf_eq, congr, funext,
-    simp [inf_principal, ext_iff, max_lt_iff]
-  end,
-  to_uniform_space := prod.uniform_space }
+pseudo_emetric_space.to_pseudo_metric_space_of_dist
+  (λ x y : α × β, max (dist x.1 y.1) (dist x.2 y.2))
+  (λ x y, (max_lt (edist_lt_top _ _) (edist_lt_top _ _)).ne) $
+  λ x y, by rw [dist_edist, dist_edist, prod.edist_eq,
+    ← ennreal.to_real_max (edist_ne_top _ _) (edist_ne_top _ _)]
 
 lemma prod.dist_eq {x y : α × β} :
   dist x y = max (dist x.1 y.1) (dist x.2 y.2) := rfl
@@ -1551,23 +1534,12 @@ subset.antisymm
 
 lemma dense_iff {s : set α} :
   dense s ↔ ∀ x, ∀ r > 0, (ball x r ∩ s).nonempty :=
-begin
-  apply forall_congr (λ x, _),
-  rw mem_closure_iff,
-  refine forall_congr (λ ε, forall_congr (λ h, exists_congr (λ y, _))),
-  rw [mem_inter_iff, mem_ball', exists_prop, and_comm]
-end
+forall_congr $ λ x, by simp only [mem_closure_iff, set.nonempty, exists_prop, mem_inter_eq,
+  mem_ball', and_comm]
 
 lemma dense_range_iff {f : β → α} :
   dense_range f ↔ ∀ x, ∀ r > 0, ∃ y, dist x (f y) < r :=
-begin
-  rw [dense_range, metric.dense_iff],
-  refine forall_congr (λ x, forall_congr (λ r, forall_congr (λ rpos, ⟨_, _⟩))),
-  { rintros ⟨-, hz, ⟨z, rfl⟩⟩,
-    exact ⟨z, metric.mem_ball'.1 hz⟩ },
-  { rintros ⟨z, hz⟩,
-    exact ⟨f z, metric.mem_ball'.1 hz, mem_range_self _⟩ }
-end
+forall_congr $ λ x, by simp only [mem_closure_iff, exists_range_iff]
 
 /-- If a set `s` is separable, then the corresponding subtype is separable in a metric space.
 This is not obvious, as the countable set whose closure covers `s` does not need in general to
@@ -1650,21 +1622,15 @@ begin
   the uniformity is the same as the product uniformity, but we register nevertheless a nice formula
   for the distance -/
   refine pseudo_emetric_space.to_pseudo_metric_space_of_dist
-    (λf g, ((sup univ (λb, nndist (f b) (g b)) : ℝ≥0) : ℝ)) _ _,
-  show ∀ (x y : Π (b : β), π b), edist x y ≠ ⊤,
-  { assume x y,
-    rw ← lt_top_iff_ne_top,
-    have : (⊥ : ℝ≥0∞) < ⊤ := ennreal.coe_lt_top,
-    simp [edist_pi_def, finset.sup_lt_iff this, edist_lt_top] },
-  show ∀ (x y : Π (b : β), π b), ↑(sup univ (λ (b : β), nndist (x b) (y b))) =
-    ennreal.to_real (sup univ (λ (b : β), edist (x b) (y b))),
-  { assume x y,
-    simp only [edist_nndist],
-    norm_cast }
+    (λf g, ((sup univ (λb, nndist (f b) (g b)) : ℝ≥0) : ℝ)) (λ f g, _) (λ f g, _),
+  show edist f g ≠ ⊤,
+    from ne_of_lt ((finset.sup_lt_iff bot_lt_top).2 $ λ b hb, edist_lt_top _ _),
+  show ↑(sup univ (λ b, nndist (f b) (g b))) = (sup univ (λ b, edist (f b) (g b))).to_real,
+    by simp only [edist_nndist, ← ennreal.coe_finset_sup, ennreal.coe_to_real]
 end
 
 lemma nndist_pi_def (f g : Πb, π b) : nndist f g = sup univ (λb, nndist (f b) (g b)) :=
-subtype.eta _ _
+nnreal.eq rfl
 
 lemma dist_pi_def (f g : Πb, π b) :
   dist f g = (sup univ (λb, nndist (f b) (g b)) : ℝ≥0) := rfl

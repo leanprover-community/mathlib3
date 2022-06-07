@@ -33,7 +33,7 @@ lemma p_lemma (p : ℕ) (hpp : nat.prime p) (hp_mod_4_eq_1 : p ≡ 1 [MOD 4]) (h
 begin
   haveI := fact.mk hpp,
   have hp_mod_4_ne_3 : p % 4 ≠ 3, { linarith [(show p % 4 = 1, by exact hp_mod_4_eq_1)] },
-  obtain ⟨y, hy⟩ := (zmod.exists_sq_eq_neg_one_iff_mod_four_ne_three p).mpr hp_mod_4_ne_3,
+  obtain ⟨y, hy⟩ := (zmod.exists_sq_eq_neg_one_iff p).mpr hp_mod_4_ne_3,
 
   let m := zmod.val_min_abs y,
   let n := int.nat_abs m,
@@ -81,7 +81,7 @@ theorem imo2008_q3 : ∀ N : ℕ, ∃ n : ℕ, n ≥ N ∧
   ∃ p : ℕ, nat.prime p ∧ p ∣ n ^ 2 + 1 ∧ (p : ℝ) > 2 * n + sqrt(2 * n) :=
 begin
   intro N,
-  obtain ⟨p, hpp, hineq₁, hpmod4⟩ := nat.exists_prime_ge_modeq_one 4 (N ^ 2 + 21) zero_lt_four,
+  obtain ⟨p, hpp, hineq₁, hpmod4⟩ := nat.exists_prime_ge_modeq_one (N ^ 2 + 21) zero_lt_four,
   obtain ⟨n, hnat, hreal⟩ := p_lemma p hpp hpmod4 (by linarith [hineq₁, nat.zero_le (N ^ 2)]),
 
   have hineq₂  : n ^ 2 + 1 ≥ p := nat.le_of_dvd (n ^ 2).succ_pos hnat,

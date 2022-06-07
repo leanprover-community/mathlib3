@@ -46,7 +46,7 @@ end
 
 lemma ne_zero {a b c : ℤ} (h : fermat_42 a b c) : c ≠ 0 :=
 begin
-  apply ne_zero_pow (dec_trivial : 2 ≠ 0), apply ne_of_gt,
+  apply ne_zero_pow two_ne_zero _, apply ne_of_gt,
   rw [← h.2.2, (by ring : a ^ 4 + b ^ 4 = (a ^ 2) ^ 2 + (b ^ 2) ^ 2)],
   exact add_pos (sq_pos_of_ne_zero _ (pow_ne_zero 2 h.1))
       (sq_pos_of_ne_zero _ (pow_ne_zero 2 h.2.1))
@@ -85,15 +85,14 @@ begin
   obtain ⟨a1, rfl⟩ := (int.coe_nat_dvd_left.mpr hpa),
   obtain ⟨b1, rfl⟩ := (int.coe_nat_dvd_left.mpr hpb),
   have hpc : (p : ℤ) ^ 2 ∣ c,
-  { apply (int.pow_dvd_pow_iff (dec_trivial : 0 < 2)).mp,
-    rw ← h.1.2.2,
+  { rw [←int.pow_dvd_pow_iff zero_lt_two, ←h.1.2.2],
     apply dvd.intro (a1 ^ 4 + b1 ^ 4), ring },
   obtain ⟨c1, rfl⟩ := hpc,
   have hf : fermat_42 a1 b1 c1,
     exact (fermat_42.mul (int.coe_nat_ne_zero.mpr (nat.prime.ne_zero hp))).mpr h.1,
   apply nat.le_lt_antisymm (h.2 _ _ _ hf),
   rw [int.nat_abs_mul, lt_mul_iff_one_lt_left, int.nat_abs_pow, int.nat_abs_of_nat],
-  { exact nat.one_lt_pow _ _ (show 0 < 2, from dec_trivial) (nat.prime.one_lt hp) },
+  { exact nat.one_lt_pow _ _ zero_lt_two (nat.prime.one_lt hp) },
   { exact (nat.pos_of_ne_zero (int.nat_abs_ne_zero_of_ne_zero (ne_zero hf))) },
 end
 
@@ -217,7 +216,7 @@ begin
     revert hb20, rw [ht2, htt2, mul_assoc, @mul_assoc _ _ _ r s, hrsz],
     simp },
   have h2b0 : b' ≠ 0,
-  { apply ne_zero_pow (dec_trivial : 2 ≠ 0),
+  { apply ne_zero_pow two_ne_zero,
     rw hs, apply mul_ne_zero, { exact ne_of_gt h4}, { exact hrsz } },
   obtain ⟨i, hi⟩ := int.sq_of_gcd_eq_one hcp hs.symm,
   -- use m is positive to exclude m = - i ^ 2
@@ -244,14 +243,14 @@ begin
   -- r = +/- j ^ 2
   obtain ⟨j, hj⟩ := int.sq_of_gcd_eq_one htt4 hd,
   have hj0 : j ≠ 0,
-  { intro h0, rw [h0, zero_pow (dec_trivial : 0 < 2), neg_zero, or_self] at hj,
+  { intro h0, rw [h0, zero_pow zero_lt_two, neg_zero, or_self] at hj,
     apply left_ne_zero_of_mul hrsz hj },
   rw mul_comm at hd,
   rw [int.gcd_comm] at htt4,
   -- s = +/- k ^ 2
   obtain ⟨k, hk⟩ := int.sq_of_gcd_eq_one htt4 hd,
   have hk0 : k ≠ 0,
-  { intro h0, rw [h0, zero_pow (dec_trivial : 0 < 2), neg_zero, or_self] at hk,
+  { intro h0, rw [h0, zero_pow zero_lt_two, neg_zero, or_self] at hk,
     apply right_ne_zero_of_mul hrsz hk },
   have hj2 : r ^ 2 = j ^ 4, { cases hj with hjp hjp; { rw hjp, ring } },
   have hk2 : s ^ 2 = k ^ 4, { cases hk with hkp hkp; { rw hkp, ring } },

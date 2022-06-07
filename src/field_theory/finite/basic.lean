@@ -9,7 +9,6 @@ import data.zmod.algebra
 import linear_algebra.finite_dimensional
 import ring_theory.integral_domain
 import field_theory.separable
-import field_theory.splitting_field
 
 /-!
 # Finite fields

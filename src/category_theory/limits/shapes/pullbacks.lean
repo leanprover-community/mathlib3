@@ -2138,7 +2138,7 @@ variables (C)
 /--
 `has_pullbacks` represents a choice of pullback for every pair of morphisms
 
-See https://stacks.math.columbia.edu/tag/001W
+See <https://stacks.math.columbia.edu/tag/001W>
 -/
 abbreviation has_pullbacks := has_limits_of_shape walking_cospan.{v} C
 
@@ -2156,5 +2156,13 @@ lemma has_pushouts_of_has_colimit_span
   [Π {X Y Z : C} {f : X ⟶ Y} {g : X ⟶ Z}, has_colimit (span f g)] :
   has_pushouts C :=
 { has_colimit := λ F, has_colimit_of_iso (diagram_iso_span F) }
+
+/-- The duality equivalence `walking_spanᵒᵖ ≌ walking_cospan` -/
+def walking_span_op_equiv : walking_spanᵒᵖ ≌ walking_cospan :=
+wide_pushout_shape_op_equiv _
+
+/-- The duality equivalence `walking_cospanᵒᵖ ≌ walking_span` -/
+def walking_cospan_op_equiv : walking_cospanᵒᵖ ≌ walking_span :=
+wide_pullback_shape_op_equiv _
 
 end category_theory.limits

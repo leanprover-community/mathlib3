@@ -637,17 +637,14 @@ lemma monotone_nat_of_le_succ {f : ℕ → α} (hf : ∀ n, f n ≤ f (n + 1)) :
   monotone f :=
 nat.rel_of_forall_rel_succ_of_le (≤) hf
 
-lemma antitone_nat_of_succ_le {f : ℕ → α} (hf : ∀ n, f (n + 1) ≤ f n) :
-  antitone f :=
-@monotone_nat_of_le_succ (order_dual α) _ _ hf
+lemma antitone_nat_of_succ_le {f : ℕ → α} (hf : ∀ n, f (n + 1) ≤ f n) : antitone f :=
+@monotone_nat_of_le_succ αᵒᵈ _ _ hf
 
-lemma strict_mono_nat_of_lt_succ {f : ℕ → α} (hf : ∀ n, f n < f (n + 1)) :
-  strict_mono f :=
+lemma strict_mono_nat_of_lt_succ {f : ℕ → α} (hf : ∀ n, f n < f (n + 1)) : strict_mono f :=
 nat.rel_of_forall_rel_succ_of_lt (<) hf
 
-lemma strict_anti_nat_of_succ_lt {f : ℕ → α} (hf : ∀ n, f (n + 1) < f n) :
-  strict_anti f :=
-@strict_mono_nat_of_lt_succ (order_dual α) _ f hf
+lemma strict_anti_nat_of_succ_lt {f : ℕ → α} (hf : ∀ n, f (n + 1) < f n) : strict_anti f :=
+@strict_mono_nat_of_lt_succ αᵒᵈ _ f hf
 
 lemma int.rel_of_forall_rel_succ_of_lt (r : β → β → Prop) [is_trans β r]
   {f : ℤ → β} (h : ∀ n, r (f n) (f (n + 1))) ⦃a b : ℤ⦄ (hab : a < b) : r (f a) (f b) :=

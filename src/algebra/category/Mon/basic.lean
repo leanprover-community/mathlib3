@@ -118,6 +118,9 @@ instance (M : CommMon) : comm_monoid M := M.str
 @[to_additive has_forget_to_AddMon]
 instance has_forget_to_Mon : has_forget₂ CommMon Mon := bundled_hom.forget₂ _ _
 
+@[to_additive] instance : has_coe CommMon.{u} Mon.{u} :=
+{ coe := (forget₂ CommMon Mon).obj, }
+
 end CommMon
 
 -- We verify that the coercions of morphisms to functions work correctly:

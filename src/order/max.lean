@@ -59,20 +59,16 @@ nonempty_subtype.2 (exists_lt a)
 instance nonempty_gt [has_lt α] [no_max_order α] (a : α) : nonempty {x // a < x} :=
 nonempty_subtype.2 (exists_gt a)
 
-instance order_dual.no_bot_order (α : Type*) [has_le α] [no_top_order α] :
-  no_bot_order (order_dual α) :=
+instance order_dual.no_bot_order (α : Type*) [has_le α] [no_top_order α] : no_bot_order αᵒᵈ :=
 ⟨λ a, @exists_not_le α _ _ a⟩
 
-instance order_dual.no_top_order (α : Type*) [has_le α] [no_bot_order α] :
-  no_top_order (order_dual α) :=
+instance order_dual.no_top_order (α : Type*) [has_le α] [no_bot_order α] : no_top_order αᵒᵈ :=
 ⟨λ a, @exists_not_ge α _ _ a⟩
 
-instance order_dual.no_min_order (α : Type*) [has_lt α] [no_max_order α] :
-  no_min_order (order_dual α) :=
+instance order_dual.no_min_order (α : Type*) [has_lt α] [no_max_order α] : no_min_order αᵒᵈ :=
 ⟨λ a, @exists_gt α _ _ a⟩
 
-instance order_dual.no_max_order (α : Type*) [has_lt α] [no_min_order α] :
-  no_max_order (order_dual α) :=
+instance order_dual.no_max_order (α : Type*) [has_lt α] [no_min_order α] : no_max_order αᵒᵈ :=
 ⟨λ a, @exists_lt α _ _ a⟩
 
 @[priority 100] -- See note [lower instance priority]
@@ -121,10 +117,10 @@ protected lemma is_top.is_max (h : is_top a) : is_max a := λ b _, h b
 @[simp] lemma is_top_to_dual_iff : is_top (to_dual a) ↔ is_bot a := iff.rfl
 @[simp] lemma is_min_to_dual_iff : is_min (to_dual a) ↔ is_max a := iff.rfl
 @[simp] lemma is_max_to_dual_iff : is_max (to_dual a) ↔ is_min a := iff.rfl
-@[simp] lemma is_bot_of_dual_iff {a : order_dual α} : is_bot (of_dual a) ↔ is_top a := iff.rfl
-@[simp] lemma is_top_of_dual_iff {a : order_dual α} : is_top (of_dual a) ↔ is_bot a := iff.rfl
-@[simp] lemma is_min_of_dual_iff {a : order_dual α} : is_min (of_dual a) ↔ is_max a := iff.rfl
-@[simp] lemma is_max_of_dual_iff {a : order_dual α} : is_max (of_dual a) ↔ is_min a := iff.rfl
+@[simp] lemma is_bot_of_dual_iff {a : αᵒᵈ} : is_bot (of_dual a) ↔ is_top a := iff.rfl
+@[simp] lemma is_top_of_dual_iff {a : αᵒᵈ} : is_top (of_dual a) ↔ is_bot a := iff.rfl
+@[simp] lemma is_min_of_dual_iff {a : αᵒᵈ} : is_min (of_dual a) ↔ is_max a := iff.rfl
+@[simp] lemma is_max_of_dual_iff {a : αᵒᵈ} : is_max (of_dual a) ↔ is_min a := iff.rfl
 
 alias is_bot_to_dual_iff ↔ _ is_top.to_dual
 alias is_top_to_dual_iff ↔ _ is_bot.to_dual
@@ -196,6 +192,6 @@ variables [linear_order α]
 lemma is_top_or_exists_gt (a : α) : is_top a ∨ ∃ b, a < b :=
 by simpa only [or_iff_not_imp_left, is_top, not_forall, not_le] using id
 
-lemma is_bot_or_exists_lt (a : α) : is_bot a ∨ ∃ b, b < a := @is_top_or_exists_gt (order_dual α) _ a
+lemma is_bot_or_exists_lt (a : α) : is_bot a ∨ ∃ b, b < a := @is_top_or_exists_gt αᵒᵈ _ a
 
 end linear_order

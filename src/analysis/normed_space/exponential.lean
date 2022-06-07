@@ -66,12 +66,12 @@ open_locale nat topological_space big_operators ennreal
 section topological_algebra
 
 variables (𝕂 𝔸 : Type*) [field 𝕂] [ring 𝔸] [algebra 𝕂 𝔸] [topological_space 𝔸]
-  [topological_ring 𝔸] [has_continuous_const_smul 𝕂 𝔸]
+  [topological_ring 𝔸]
 
 /-- `exp_series 𝕂 𝔸` is the `formal_multilinear_series` whose `n`-th term is the map
 `(xᵢ) : 𝔸ⁿ ↦ (1/n! : 𝕂) • ∏ xᵢ`. Its sum is the exponential map `exp 𝕂 𝔸 : 𝔸 → 𝔸`. -/
 def exp_series : formal_multilinear_series 𝕂 𝔸 𝔸 :=
-λ n, (1/n! : 𝕂) • continuous_multilinear_map.mk_pi_algebra_fin 𝕂 n 𝔸
+λ n, (n!⁻¹ : 𝕂) • continuous_multilinear_map.mk_pi_algebra_fin 𝕂 n 𝔸
 
 /-- `exp 𝕂 𝔸 : 𝔸 → 𝔸` is the exponential map determined by the action of `𝕂` on `𝔸`.
 It is defined as the sum of the `formal_multilinear_series` `exp_series 𝕂 𝔸`. -/
@@ -79,17 +79,17 @@ noncomputable def exp (x : 𝔸) : 𝔸 := (exp_series 𝕂 𝔸).sum x
 
 variables {𝕂 𝔸}
 
-lemma exp_series_apply_eq (x : 𝔸) (n : ℕ) : exp_series 𝕂 𝔸 n (λ _, x) = (1 / n! : 𝕂) • x^n :=
+lemma exp_series_apply_eq (x : 𝔸) (n : ℕ) : exp_series 𝕂 𝔸 n (λ _, x) = (n!⁻¹ : 𝕂) • x^n :=
 by simp [exp_series]
 
 lemma exp_series_apply_eq' (x : 𝔸) :
-  (λ n, exp_series 𝕂 𝔸 n (λ _, x)) = (λ n, (1 / n! : 𝕂) • x^n) :=
+  (λ n, exp_series 𝕂 𝔸 n (λ _, x)) = (λ n, (n!⁻¹ : 𝕂) • x^n) :=
 funext (exp_series_apply_eq x)
 
 lemma exp_series_apply_eq_field [topological_space 𝕂] [topological_ring 𝕂] (x : 𝕂) (n : ℕ) :
   exp_series 𝕂 𝕂 n (λ _, x) = x^n / n! :=
 begin
-  rw [div_eq_inv_mul, ←smul_eq_mul, inv_eq_one_div],
+  rw [div_eq_inv_mul, ←smul_eq_mul],
   exact exp_series_apply_eq x n,
 end
 
@@ -97,14 +97,14 @@ lemma exp_series_apply_eq_field' [topological_space 𝕂] [topological_ring 𝕂
   (λ n, exp_series 𝕂 𝕂 n (λ _, x)) = (λ n, x^n / n!) :=
 funext (exp_series_apply_eq_field x)
 
-lemma exp_series_sum_eq (x : 𝔸) : (exp_series 𝕂 𝔸).sum x = ∑' (n : ℕ), (1 / n! : 𝕂) • x^n :=
+lemma exp_series_sum_eq (x : 𝔸) : (exp_series 𝕂 𝔸).sum x = ∑' (n : ℕ), (n!⁻¹ : 𝕂) • x^n :=
 tsum_congr (λ n, exp_series_apply_eq x n)
 
 lemma exp_series_sum_eq_field [topological_space 𝕂] [topological_ring 𝕂] (x : 𝕂) :
   (exp_series 𝕂 𝕂).sum x = ∑' (n : ℕ), x^n / n! :=
 tsum_congr (λ n, exp_series_apply_eq_field x n)
 
-lemma exp_eq_tsum : exp 𝕂 𝔸 = (λ x : 𝔸, ∑' (n : ℕ), (1 / n! : 𝕂) • x^n) :=
+lemma exp_eq_tsum : exp 𝕂 𝔸 = (λ x : 𝔸, ∑' (n : ℕ), (n!⁻¹ : 𝕂) • x^n) :=
 funext exp_series_sum_eq
 
 lemma exp_eq_tsum_field [topological_space 𝕂] [topological_ring 𝕂] :
@@ -113,7 +113,7 @@ funext exp_series_sum_eq_field
 
 @[simp] lemma exp_zero [t2_space 𝔸] : exp 𝕂 𝔸 0 = 1 :=
 begin
-  suffices : (λ x : 𝔸, ∑' (n : ℕ), (1 / n! : 𝕂) • x^n) 0 = ∑' (n : ℕ), if n = 0 then 1 else 0,
+  suffices : (λ x : 𝔸, ∑' (n : ℕ), (n!⁻¹ : 𝕂) • x^n) 0 = ∑' (n : ℕ), if n = 0 then 1 else 0,
   { have key : ∀ n ∉ ({0} : finset ℕ), (if n = 0 then (1 : 𝔸) else 0) = 0,
       from λ n hn, if_neg (finset.not_mem_singleton.mp hn),
     rw [exp_eq_tsum, this, tsum_eq_sum key, finset.sum_singleton],
@@ -122,6 +122,20 @@ begin
   split_ifs with h h;
   simp [h]
 end
+
+variables (𝕂)
+
+lemma commute.exp_right [t2_space 𝔸] {x y : 𝔸} (h : commute x y) : commute x (exp 𝕂 𝔸 y) :=
+begin
+  rw exp_eq_tsum,
+  exact commute.tsum_right x (λ n, (h.pow_right n).smul_right _),
+end
+
+lemma commute.exp_left [t2_space 𝔸] {x y : 𝔸} (h : commute x y) : commute (exp 𝕂 𝔸 x) y :=
+(h.symm.exp_right 𝕂).symm
+
+lemma commute.exp [t2_space 𝔸] {x y : 𝔸} (h : commute x y) : commute (exp 𝕂 𝔸 x) (exp 𝕂 𝔸 y) :=
+(h.exp_left _).exp_right _
 
 end topological_algebra
 
@@ -139,7 +153,7 @@ lemma norm_exp_series_summable_of_mem_ball (x : 𝔸)
 
 lemma norm_exp_series_summable_of_mem_ball' (x : 𝔸)
   (hx : x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius) :
-  summable (λ n, ∥(1 / n! : 𝕂) • x^n∥) :=
+  summable (λ n, ∥(n!⁻¹ : 𝕂) • x^n∥) :=
 begin
   change summable (norm ∘ _),
   rw ← exp_series_apply_eq',
@@ -166,7 +180,7 @@ summable_of_summable_norm (norm_exp_series_summable_of_mem_ball x hx)
 
 lemma exp_series_summable_of_mem_ball' (x : 𝔸)
   (hx : x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius) :
-  summable (λ n, (1 / n! : 𝕂) • x^n) :=
+  summable (λ n, (n!⁻¹ : 𝕂) • x^n) :=
 summable_of_summable_norm (norm_exp_series_summable_of_mem_ball' x hx)
 
 lemma exp_series_field_summable_of_mem_ball [complete_space 𝕂] (x : 𝕂)
@@ -180,7 +194,7 @@ formal_multilinear_series.has_sum (exp_series 𝕂 𝔸) hx
 
 lemma exp_series_has_sum_exp_of_mem_ball' (x : 𝔸)
   (hx : x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius) :
-  has_sum (λ n, (1 / n! : 𝕂) • x^n) (exp 𝕂 𝔸 x):=
+  has_sum (λ n, (n!⁻¹ : 𝕂) • x^n) (exp 𝕂 𝔸 x):=
 begin
   rw ← exp_series_apply_eq',
   exact exp_series_has_sum_exp_of_mem_ball x hx
@@ -325,8 +339,8 @@ begin
   refine (exp_series 𝕂 𝔸).radius_eq_top_of_summable_norm (λ r, _),
   refine summable_of_norm_bounded_eventually _ (real.summable_pow_div_factorial r) _,
   filter_upwards [eventually_cofinite_ne 0] with n hn,
-  rw [norm_mul, norm_norm (exp_series 𝕂 𝔸 n), exp_series, norm_smul, norm_div, norm_one, norm_pow,
-      nnreal.norm_eq, norm_eq_abs, abs_cast_nat, mul_comm, ←mul_assoc, ←mul_div_assoc, mul_one],
+  rw [norm_mul, norm_norm (exp_series 𝕂 𝔸 n), exp_series, norm_smul, norm_inv, norm_pow,
+      nnreal.norm_eq, norm_eq_abs, abs_cast_nat, mul_comm, ←mul_assoc, ←div_eq_mul_inv],
   have : ∥continuous_multilinear_map.mk_pi_algebra_fin 𝕂 n 𝔸∥ ≤ 1 :=
     norm_mk_pi_algebra_fin_le_of_pos (nat.pos_of_ne_zero hn),
   exact mul_le_of_le_one_right (div_nonneg (pow_nonneg r.coe_nonneg n) n!.cast_nonneg) this
@@ -345,7 +359,7 @@ section complete_algebra
 lemma norm_exp_series_summable (x : 𝔸) : summable (λ n, ∥exp_series 𝕂 𝔸 n (λ _, x)∥) :=
 norm_exp_series_summable_of_mem_ball x ((exp_series_radius_eq_top 𝕂 𝔸).symm ▸ edist_lt_top _ _)
 
-lemma norm_exp_series_summable' (x : 𝔸) : summable (λ n, ∥(1 / n! : 𝕂) • x^n∥) :=
+lemma norm_exp_series_summable' (x : 𝔸) : summable (λ n, ∥(n!⁻¹ : 𝕂) • x^n∥) :=
 norm_exp_series_summable_of_mem_ball' x ((exp_series_radius_eq_top 𝕂 𝔸).symm ▸ edist_lt_top _ _)
 
 lemma norm_exp_series_field_summable (x : 𝕂) : summable (λ n, ∥x^n / n!∥) :=
@@ -357,7 +371,7 @@ variables [complete_space 𝔸]
 lemma exp_series_summable (x : 𝔸) : summable (λ n, exp_series 𝕂 𝔸 n (λ _, x)) :=
 summable_of_summable_norm (norm_exp_series_summable x)
 
-lemma exp_series_summable' (x : 𝔸) : summable (λ n, (1 / n! : 𝕂) • x^n) :=
+lemma exp_series_summable' (x : 𝔸) : summable (λ n, (n!⁻¹ : 𝕂) • x^n) :=
 summable_of_summable_norm (norm_exp_series_summable' x)
 
 lemma exp_series_field_summable (x : 𝕂) : summable (λ n, x^n / n!) :=
@@ -366,7 +380,7 @@ summable_of_summable_norm (norm_exp_series_field_summable x)
 lemma exp_series_has_sum_exp (x : 𝔸) : has_sum (λ n, exp_series 𝕂 𝔸 n (λ _, x)) (exp 𝕂 𝔸 x) :=
 exp_series_has_sum_exp_of_mem_ball x ((exp_series_radius_eq_top 𝕂 𝔸).symm ▸ edist_lt_top _ _)
 
-lemma exp_series_has_sum_exp' (x : 𝔸) : has_sum (λ n, (1 / n! : 𝕂) • x^n) (exp 𝕂 𝔸 x):=
+lemma exp_series_has_sum_exp' (x : 𝔸) : has_sum (λ n, (n!⁻¹ : 𝕂) • x^n) (exp 𝕂 𝔸 x):=
 exp_series_has_sum_exp_of_mem_ball' x ((exp_series_radius_eq_top 𝕂 𝔸).symm ▸ edist_lt_top _ _)
 
 lemma exp_series_field_has_sum_exp (x : 𝕂) : has_sum (λ n, x^n / n!) (exp 𝕂 𝕂 x):=
@@ -421,10 +435,6 @@ begin
   exact ring.inverse_invertible _,
 end
 
-lemma commute.exp {x y : 𝔸} (h : commute x y) :
-  commute (exp 𝕂 𝔸 x) (exp 𝕂 𝔸 y) :=
-(exp_add_of_commute h).symm.trans $ (congr_arg _ $ add_comm _ _).trans (exp_add_of_commute h.symm)
-
 end
 
 /-- In a Banach-algebra `𝔸` over `𝕂 = ℝ` or `𝕂 = ℂ`, if a family of elements `f i` mutually
@@ -477,6 +487,32 @@ map_exp _ (ring_hom.fst 𝔸 𝔹) continuous_fst x
 
 @[simp] lemma prod.snd_exp [complete_space 𝔹] (x : 𝔸 × 𝔹) : (exp 𝕂 (𝔸 × 𝔹) x).snd = exp 𝕂 𝔹 x.snd :=
 map_exp _ (ring_hom.snd 𝔸 𝔹) continuous_snd x
+
+@[simp] lemma pi.exp_apply {ι : Type*} {𝔸 : ι → Type*} [fintype ι]
+  [Π i, normed_ring (𝔸 i)] [Π i, normed_algebra 𝕂 (𝔸 i)] [Π i, complete_space (𝔸 i)]
+  (x : Π i, 𝔸 i) (i : ι) :
+  exp 𝕂 (Π i, 𝔸 i) x i = exp 𝕂 (𝔸 i) (x i) :=
+begin
+  -- Lean struggles to infer this instance due to it wanting `[Π i, semi_normed_ring (𝔸 i)]`
+  letI : normed_algebra 𝕂 (Π i, 𝔸 i) := pi.normed_algebra _,
+  exact map_exp _ (pi.eval_ring_hom 𝔸 i) (continuous_apply _) x
+end
+
+lemma pi.exp_def {ι : Type*} {𝔸 : ι → Type*} [fintype ι]
+  [Π i, normed_ring (𝔸 i)] [Π i, normed_algebra 𝕂 (𝔸 i)] [Π i, complete_space (𝔸 i)]
+  (x : Π i, 𝔸 i) :
+  exp 𝕂 (Π i, 𝔸 i) x = λ i, exp 𝕂 (𝔸 i) (x i) :=
+funext $ pi.exp_apply 𝕂 x
+
+lemma function.update_exp {ι : Type*} {𝔸 : ι → Type*} [fintype ι] [decidable_eq ι]
+  [Π i, normed_ring (𝔸 i)] [Π i, normed_algebra 𝕂 (𝔸 i)] [Π i, complete_space (𝔸 i)]
+  (x : Π i, 𝔸 i) (j : ι) (xj : 𝔸 j) :
+  function.update (exp 𝕂 (Π i, 𝔸 i) x) j (exp 𝕂 (𝔸 j) xj) = exp 𝕂 _ (function.update x j xj) :=
+begin
+  ext i,
+  simp_rw [pi.exp_def],
+  exact (function.apply_update (λ i, exp 𝕂 (𝔸 i)) x j xj i).symm,
+end
 
 end complete_algebra
 
@@ -540,16 +576,12 @@ section scalar_tower
 
 variables (𝕂 𝕂' 𝔸 : Type*) [field 𝕂] [field 𝕂'] [ring 𝔸] [algebra 𝕂 𝔸] [algebra 𝕂' 𝔸]
   [topological_space 𝔸] [topological_ring 𝔸]
-  [has_continuous_const_smul 𝕂 𝔸] [has_continuous_const_smul 𝕂' 𝔸]
 
 /-- If a normed ring `𝔸` is a normed algebra over two fields, then they define the same
 `exp_series` on `𝔸`. -/
 lemma exp_series_eq_exp_series (n : ℕ) (x : 𝔸) :
   (exp_series 𝕂 𝔸 n (λ _, x)) = (exp_series 𝕂' 𝔸 n (λ _, x)) :=
-by rw [exp_series, exp_series,
-       smul_apply, mk_pi_algebra_fin_apply, list.of_fn_const, list.prod_repeat,
-       smul_apply, mk_pi_algebra_fin_apply, list.of_fn_const, list.prod_repeat,
-       one_div, one_div, inv_nat_cast_smul_eq 𝕂 𝕂']
+by rw [exp_series_apply_eq, exp_series_apply_eq, inv_nat_cast_smul_eq 𝕂 𝕂']
 
 /-- If a normed ring `𝔸` is a normed algebra over two fields, then they define the same
 exponential function on `𝔸`. -/

@@ -552,14 +552,14 @@ variables (C)
 /--
 `has_binary_products` represents a choice of product for every pair of objects.
 
-See https://stacks.math.columbia.edu/tag/001T.
+See <https://stacks.math.columbia.edu/tag/001T>.
 -/
 abbreviation has_binary_products := has_limits_of_shape (discrete walking_pair.{v}) C
 
 /--
 `has_binary_coproducts` represents a choice of coproduct for every pair of objects.
 
-See https://stacks.math.columbia.edu/tag/04AP.
+See <https://stacks.math.columbia.edu/tag/04AP>.
 -/
 abbreviation has_binary_coproducts := has_colimits_of_shape (discrete walking_pair.{v}) C
 

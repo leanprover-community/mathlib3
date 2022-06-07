@@ -198,36 +198,36 @@ mem_left_transversals_iff_exists_unique_quotient_mk'_eq.trans
 mem_right_transversals_iff_exists_unique_quotient_mk'_eq.trans
   (function.bijective_iff_exists_unique (S.restrict quotient.mk')).symm
 
+@[to_additive] lemma range_mem_left_transversals {f : G ⧸ H → G} (hf : ∀ q, ↑(f q) = q) :
+  set.range f ∈ left_transversals (H : set G) :=
+mem_left_transversals_iff_bijective.mpr ⟨by rintros ⟨-, q₁, rfl⟩ ⟨-, q₂, rfl⟩ h;
+  exact congr_arg _ (((hf q₁).symm.trans h).trans (hf q₂)), λ q, ⟨⟨f q, q, rfl⟩, hf q⟩⟩
+
+@[to_additive] lemma range_mem_right_transversals {f : quotient (quotient_group.right_rel H) → G}
+  (hf : ∀ q, quotient.mk' (f q) = q) : set.range f ∈ right_transversals (H : set G) :=
+mem_right_transversals_iff_bijective.mpr ⟨by rintros ⟨-, q₁, rfl⟩ ⟨-, q₂, rfl⟩ h;
+  exact congr_arg _ (((hf q₁).symm.trans h).trans (hf q₂)), λ q, ⟨⟨f q, q, rfl⟩, hf q⟩⟩
+
 @[to_additive] lemma exists_left_transversal (g : G) :
   ∃ S ∈ left_transversals (H : set G), g ∈ S :=
 begin
   classical,
-  let f : G ⧸ H → G := function.update quotient.out' g g,
-  have hf : ∀ q, ↑(f q) = q,
-  { intro q,
-    by_cases hq : q = g,
-    { exact hq.symm ▸ congr_arg _ (function.update_same g g quotient.out') },
-    { exact eq.trans (congr_arg _ (function.update_noteq hq g quotient.out')) q.out_eq' } },
-  refine ⟨set.range f, mem_left_transversals_iff_bijective.mpr ⟨_, λ q, ⟨⟨f q, q, rfl⟩, hf q⟩⟩,
-    ⟨g, function.update_same g g quotient.out'⟩⟩,
-  rintros ⟨-, q₁, rfl⟩ ⟨-, q₂, rfl⟩ hg,
-  exact congr_arg _ (((hf q₁).symm.trans hg).trans (hf q₂)),
+  refine ⟨set.range (function.update quotient.out' ↑g g), range_mem_left_transversals (λ q, _),
+    g, function.update_same g g quotient.out'⟩,
+  by_cases hq : q = g,
+  { exact hq.symm ▸ congr_arg _ (function.update_same g g quotient.out') },
+  { exact eq.trans (congr_arg _ (function.update_noteq hq g quotient.out')) q.out_eq' },
 end
 
 @[to_additive] lemma exists_right_transversal (g : G) :
   ∃ S ∈ right_transversals (H : set G), g ∈ S :=
 begin
   classical,
-  let f : _ → G := function.update quotient.out' (quotient.mk' g) g,
-  have hf : ∀ q : quotient (quotient_group.right_rel H), quotient.mk' (f q) = q,
-  { intro q,
-    by_cases hq : q = quotient.mk' g,
-    { exact hq.symm ▸ congr_arg _ (function.update_same (quotient.mk' g) g quotient.out') },
-    { exact eq.trans (congr_arg _ (function.update_noteq hq g quotient.out')) q.out_eq' } },
-  refine ⟨set.range f, mem_right_transversals_iff_bijective.mpr ⟨_, λ q, ⟨⟨_, q, rfl⟩, hf q⟩⟩,
-    ⟨quotient.mk' g, function.update_same (quotient.mk' g) g quotient.out'⟩⟩,
-  rintros ⟨-, q₁, rfl⟩ ⟨-, q₂, rfl⟩ hg,
-  exact congr_arg _ (((hf q₁).symm.trans hg).trans (hf q₂)),
+  refine ⟨set.range (function.update quotient.out' _ g), range_mem_right_transversals (λ q, _),
+    quotient.mk' g, function.update_same (quotient.mk' g) g quotient.out'⟩,
+  by_cases hq : q = quotient.mk' g,
+  { exact hq.symm ▸ congr_arg _ (function.update_same (quotient.mk' g) g quotient.out') },
+  { exact eq.trans (congr_arg _ (function.update_noteq hq g quotient.out')) q.out_eq' },
 end
 
 namespace mem_left_transversals
@@ -240,6 +240,13 @@ noncomputable def to_equiv (hS : S ∈ subgroup.left_transversals (H : set G)) :
 @[to_additive] lemma mk'_to_equiv (hS : S ∈ subgroup.left_transversals (H : set G)) (q : G ⧸ H) :
   quotient.mk' (to_equiv hS q : G) = q :=
 (to_equiv hS).symm_apply_apply q
+
+@[to_additive] lemma to_equiv_apply {f : G ⧸ H → G} (hf : ∀ q, (f q : G ⧸ H) = q) (q : G ⧸ H) :
+  (to_equiv (range_mem_left_transversals hf) q : G) = f q :=
+begin
+  refine (subtype.ext_iff.mp _).trans (subtype.coe_mk (f q) ⟨q, rfl⟩),
+  exact (to_equiv (range_mem_left_transversals hf)).apply_eq_iff_eq_symm_apply.mpr (hf q).symm,
+end
 
 /-- A left transversal can be viewed as a function mapping each element of the group
   to the chosen representative from that left coset. -/
@@ -269,6 +276,14 @@ noncomputable def to_equiv (hS : S ∈ subgroup.right_transversals (H : set G)) 
 @[to_additive] lemma mk'_to_equiv (hS : S ∈ subgroup.right_transversals (H : set G))
   (q : quotient (quotient_group.right_rel H)) : quotient.mk' (to_equiv hS q : G) = q :=
 (to_equiv hS).symm_apply_apply q
+
+@[to_additive] lemma to_equiv_apply {f : quotient (quotient_group.right_rel H) → G}
+  (hf : ∀ q, quotient.mk' (f q) = q) (q : quotient (quotient_group.right_rel H)) :
+  (to_equiv (range_mem_right_transversals hf) q : G) = f q :=
+begin
+  refine (subtype.ext_iff.mp _).trans (subtype.coe_mk (f q) ⟨q, rfl⟩),
+  exact (to_equiv (range_mem_right_transversals hf)).apply_eq_iff_eq_symm_apply.mpr (hf q).symm,
+end
 
 /-- A right transversal can be viewed as a function mapping each element of the group
   to the chosen representative from that right coset. -/
@@ -326,14 +341,10 @@ by rw [smul_to_equiv, smul_inv_smul]
 end action
 
 @[to_additive] instance : inhabited (left_transversals (H : set G)) :=
-⟨⟨set.range quotient.out', mem_left_transversals_iff_bijective.mpr ⟨by
-{ rintros ⟨_, q₁, rfl⟩ ⟨_, q₂, rfl⟩ hg,
-  rw (q₁.out_eq'.symm.trans hg).trans q₂.out_eq' }, λ q, ⟨⟨q.out', q, rfl⟩, quotient.out_eq' q⟩⟩⟩⟩
+⟨⟨set.range quotient.out', range_mem_left_transversals quotient.out_eq'⟩⟩
 
 @[to_additive] instance : inhabited (right_transversals (H : set G)) :=
-⟨⟨set.range quotient.out', mem_right_transversals_iff_bijective.mpr ⟨by
-{ rintros ⟨_, q₁, rfl⟩ ⟨_, q₂, rfl⟩ hg,
-  rw (q₁.out_eq'.symm.trans hg).trans q₂.out_eq' }, λ q, ⟨⟨q.out', q, rfl⟩, quotient.out_eq' q⟩⟩⟩⟩
+⟨⟨set.range quotient.out', range_mem_right_transversals quotient.out_eq'⟩⟩
 
 lemma is_complement'.is_compl (h : is_complement' H K) : is_compl H K :=
 begin

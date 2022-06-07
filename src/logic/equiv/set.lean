@@ -512,6 +512,23 @@ begin
   by_cases hi : p i; simp [hi]
 end
 
+/-- `sigma_fiber_equiv f` for `f : α → β` is the natural equivalence between
+the type of all preimages of points under `f` and the total space `α`. -/
+-- See also `equiv.sigma_fiber_equiv`.
+@[simps] def sigma_preimage_equiv {α β} (f : α → β) : (Σ b, f ⁻¹' {b}) ≃ α :=
+sigma_fiber_equiv f
+
+/-- A family of equivalences between preimages of points gives an equivalence between domains. -/
+-- See also `equiv.of_fiber_equiv`.
+@[simps]
+def of_preimage_equiv {α β γ} {f : α → γ} {g : β → γ} (e : Π c, (f ⁻¹' {c}) ≃ (g ⁻¹' {c})) :
+  α ≃ β :=
+equiv.of_fiber_equiv e
+
+lemma of_preimage_equiv_map {α β γ} {f : α → γ} {g : β → γ}
+  (e : Π c, (f ⁻¹' {c}) ≃ (g ⁻¹' {c})) (a : α) : g (of_preimage_equiv e a) = f a :=
+equiv.of_fiber_equiv_map e a
+
 end equiv
 
 /-- If a function is a bijection between two sets `s` and `t`, then it induces an

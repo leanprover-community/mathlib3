@@ -408,10 +408,10 @@ by simpa only [fintype.card_fin]
 
 /-- The fundamental property of the operator norm of a continuous multilinear map:
 `∥f m∥` is bounded by `∥f∥` times the product of the `∥m i∥`, `nnnorm` version. -/
-theorem le_op_nnnorm : nnnorm (f m) ≤ nnnorm f * ∏ i, nnnorm (m i) :=
+theorem le_op_nnnorm : ∥f m∥₊ ≤ ∥f∥₊ * ∏ i, ∥m i∥₊ :=
 nnreal.coe_le_coe.1 $ by { push_cast, exact f.le_op_norm m }
 
-theorem le_of_op_nnnorm_le {C : ℝ≥0} (h : nnnorm f ≤ C) : nnnorm (f m) ≤ C * ∏ i, nnnorm (m i) :=
+theorem le_of_op_nnnorm_le {C : ℝ≥0} (h : ∥f∥₊ ≤ C) : ∥f m∥₊ ≤ C * ∏ i, ∥m i∥₊ :=
 (f.le_op_nnnorm m).trans $ mul_le_mul' h le_rfl
 
 lemma op_norm_prod (f : continuous_multilinear_map 𝕜 E G) (g : continuous_multilinear_map 𝕜 E G') :

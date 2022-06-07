@@ -894,6 +894,15 @@ lemma is_open_map_div_right (a : G) : is_open_map (λ x, x / a) :=
 lemma is_closed_map_div_right (a : G) : is_closed_map (λ x, x / a) :=
 (homeomorph.div_right a).is_closed_map
 
+@[to_additive]
+lemma tendsto_div_nhds_one_iff
+  {α : Type*} {l : filter α} {x : G} {u : α → G} :
+  tendsto (λ n, u n / x) l (𝓝 1) ↔ tendsto u l (𝓝 x) :=
+begin
+  have A : tendsto (λ (n : α), x) l (𝓝 x) := tendsto_const_nhds,
+  exact ⟨λ h, by simpa using h.mul A, λ h, by simpa using h.div' A⟩
+end
+
 end div_in_topological_group
 
 @[to_additive]
@@ -940,10 +949,21 @@ lemma topological_group.regular_space [t1_space G] : regular_space G :=
    contradiction
  end⟩
 
-local attribute [instance] topological_group.regular_space
+@[to_additive]
+lemma topological_group.t2_space [t1_space G] : t2_space G :=
+@regular_space.t2_space G _ (topological_group.regular_space G)
+
+variables {G} (S : subgroup G) [subgroup.normal S] [is_closed (S : set G)]
 
 @[to_additive]
-lemma topological_group.t2_space [t1_space G] : t2_space G := regular_space.t2_space G
+instance subgroup.regular_quotient_of_is_closed
+  (S : subgroup G) [subgroup.normal S] [is_closed (S : set G)] : regular_space (G ⧸ S) :=
+begin
+  suffices : t1_space (G ⧸ S), { exact @topological_group.regular_space _ _ _ _ this, },
+  have hS : is_closed (S : set G) := infer_instance,
+  rw ← quotient_group.ker_mk S at hS,
+  exact topological_group.t1_space (G ⧸ S) ((quotient_map_quotient_mk.is_closed_preimage).mp hS),
+end
 
 end
 

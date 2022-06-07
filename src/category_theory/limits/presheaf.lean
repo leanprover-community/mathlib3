@@ -186,7 +186,7 @@ def is_initial (A : C) : is_initial (elements.initial A) :=
 property (up to isomorphism).
 
 The first part of [MM92], Chapter I, Section 5, Corollary 4.
-See Property 1 of https://ncatlab.org/nlab/show/Yoneda+extension#properties.
+See Property 1 of <https://ncatlab.org/nlab/show/Yoneda+extension#properties>.
 -/
 def is_extension_along_yoneda : (yoneda : C ⥤ Cᵒᵖ ⥤ Type u₁) ⋙ extend_along_yoneda A ≅ A :=
 nat_iso.of_components

@@ -65,11 +65,11 @@ section semiring
 variables (R M) [semiring R] [add_comm_monoid M] [module R M] [module.free R M]
 variables [add_comm_monoid N] [module R N]
 
-/-- If `[finite_free R M]` then `choose_basis_index R M` is the `ι` which indexes the basis
+/-- If `module.free R M` then `choose_basis_index R M` is the `ι` which indexes the basis
   `ι → M`. -/
 @[nolint has_inhabited_instance] def choose_basis_index := (exists_basis R M).some.1
 
-/-- If `[finite_free R M]` then `choose_basis : ι → M` is the basis.
+/-- If `module.free R M` then `choose_basis : ι → M` is the basis.
 Here `ι = choose_basis_index R M`. -/
 noncomputable def choose_basis : basis (choose_basis_index R M) R M := (exists_basis R M).some.2
 

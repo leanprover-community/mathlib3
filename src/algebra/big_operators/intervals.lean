@@ -72,6 +72,20 @@ lemma prod_Ico_consecutive (f : ℕ → β) {m n k : ℕ} (hmn : m ≤ n) (hnk :
 Ico_union_Ico_eq_Ico hmn hnk ▸ eq.symm $ prod_union $ Ico_disjoint_Ico_consecutive m n k
 
 @[to_additive]
+lemma prod_Ioc_consecutive (f : ℕ → β) {m n k : ℕ} (hmn : m ≤ n) (hnk : n ≤ k) :
+  (∏ i in Ioc m n, f i) * (∏ i in Ioc n k, f i) = (∏ i in Ioc m k, f i) :=
+begin
+  rw [← Ioc_union_Ioc_eq_Ioc hmn hnk, prod_union],
+  apply disjoint_left.2 (λ x hx h'x, _),
+  exact lt_irrefl _ ((mem_Ioc.1 h'x).1.trans_le (mem_Ioc.1 hx).2),
+end
+
+@[to_additive]
+lemma prod_Ioc_succ_top {a b : ℕ} (hab : a ≤ b) (f : ℕ → β) :
+  (∏ k in Ioc a (b + 1), f k) = (∏ k in Ioc a b, f k) * f (b + 1) :=
+by rw [← prod_Ioc_consecutive _ hab (nat.le_succ b), nat.Ioc_succ_singleton, prod_singleton]
+
+@[to_additive]
 lemma prod_range_mul_prod_Ico (f : ℕ → β) {m n : ℕ} (h : m ≤ n) :
   (∏ k in range m, f k) * (∏ k in Ico m n, f k) = (∏ k in range n, f k) :=
 nat.Ico_zero_eq_range ▸ nat.Ico_zero_eq_range ▸ prod_Ico_consecutive f m.zero_le h

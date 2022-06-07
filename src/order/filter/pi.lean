@@ -153,13 +153,9 @@ lemma mem_Coprod_iff {s : set (Π i, α i)} :
   (s ∈ filter.Coprod f) ↔ (∀ i : ι, (∃ t₁ ∈ f i, eval i ⁻¹' t₁ ⊆ s)) :=
 by simp [filter.Coprod]
 
-lemma compl_mem_Coprod_iff {s : set (Π i, α i)} :
-  sᶜ ∈ filter.Coprod f ↔ ∃ t : Π i, set (α i), (∀ i, (t i)ᶜ ∈ f i) ∧ s ⊆ set.pi univ (λ i, t i) :=
-begin
-  rw [(surjective_pi_map (λ i, @compl_surjective (set (α i)) _)).exists],
-  simp_rw [mem_Coprod_iff, classical.skolem, exists_prop, @subset_compl_comm _ _ s,
-    ← preimage_compl, ← subset_Inter_iff, ← univ_pi_eq_Inter, compl_compl]
-end
+lemma compl_mem_Coprod {s : set (Π i, α i)} :
+  sᶜ ∈ filter.Coprod f ↔ ∀ i, (eval i '' s)ᶜ ∈ f i :=
+by simp only [filter.Coprod, mem_supr, compl_mem_comap]
 
 lemma Coprod_ne_bot_iff' :
   ne_bot (filter.Coprod f) ↔ (∀ i, nonempty (α i)) ∧ ∃ d, ne_bot (f d) :=
@@ -168,6 +164,17 @@ by simp only [filter.Coprod, supr_ne_bot, ← exists_and_distrib_left, ← comap
 @[simp] lemma Coprod_ne_bot_iff [∀ i, nonempty (α i)] :
   ne_bot (filter.Coprod f) ↔ ∃ d, ne_bot (f d) :=
 by simp [Coprod_ne_bot_iff', *]
+
+lemma Coprod_eq_bot_iff' : filter.Coprod f = ⊥ ↔ (∃ i, is_empty (α i)) ∨ f = ⊥ :=
+by simpa [not_and_distrib, funext_iff] using not_congr Coprod_ne_bot_iff'
+
+@[simp] lemma Coprod_eq_bot_iff [∀ i, nonempty (α i)] : filter.Coprod f = ⊥ ↔ f = ⊥ :=
+by simpa [funext_iff] using not_congr Coprod_ne_bot_iff
+
+@[simp] lemma Coprod_bot' : filter.Coprod (⊥ : Π i, filter (α i)) = ⊥ :=
+Coprod_eq_bot_iff'.2 (or.inr rfl)
+
+@[simp] lemma Coprod_bot : filter.Coprod (λ _, ⊥ : Π i, filter (α i)) = ⊥ := Coprod_bot'
 
 lemma ne_bot.Coprod [∀ i, nonempty (α i)] {i : ι} (h : ne_bot (f i)) :
   ne_bot (filter.Coprod f) :=

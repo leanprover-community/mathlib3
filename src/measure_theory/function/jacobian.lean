@@ -297,7 +297,7 @@ begin
       (𝓝[>] 0) (𝓝 (μ (A '' (closed_ball 0 1)))),
     { apply L0.congr' _,
       filter_upwards [self_mem_nhds_within] with r hr,
-      rw [HC.cthickening_eq_add_closed_ball (le_of_lt hr), add_comm] },
+      rw [←HC.add_closed_ball_zero (le_of_lt hr), add_comm] },
     have L2 : tendsto (λ ε, μ (closed_ball 0 ε + A '' (closed_ball 0 1)))
       (𝓝[>] 0) (𝓝 (d * μ (closed_ball 0 1))),
     { convert L1,

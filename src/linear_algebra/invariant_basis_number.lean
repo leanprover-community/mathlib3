@@ -240,6 +240,7 @@ private def induced_map (I : ideal R) (e : (ι → R) →ₗ[R] (ι' → R)) :
 λ x, quotient.lift_on' x (λ y, ideal.quotient.mk _ (e y))
 begin
   refine λ a b hab, ideal.quotient.eq.2 (λ h, _),
+  rw submodule.quotient_rel_r_def at hab,
   rw ←linear_map.map_sub,
   exact ideal.map_pi _ _ hab e h,
 end

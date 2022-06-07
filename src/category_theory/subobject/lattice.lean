@@ -297,6 +297,11 @@ zero_of_source_iso_zero _ bot_coe_iso_zero
 lemma bot_factors_iff_zero {A B : C} (f : A ⟶ B) : (⊥ : subobject B).factors f ↔ f = 0 :=
 ⟨by { rintro ⟨h, rfl⟩, simp }, by { rintro rfl, exact ⟨0, by simp⟩, }⟩
 
+lemma mk_eq_bot_iff_zero {f : X ⟶ Y} [mono f] : subobject.mk f = ⊥ ↔ f = 0 :=
+⟨λ h, by simpa [h, bot_factors_iff_zero] using mk_factors_self f,
+  λ h, mk_eq_mk_of_comm _ _ ((iso_zero_of_mono_eq_zero h).trans has_zero_object.zero_iso_initial)
+    (by simp [h])⟩
+
 end zero_order_bot
 
 section functor

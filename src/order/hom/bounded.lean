@@ -436,7 +436,7 @@ namespace top_hom
 variables [has_le α] [order_top α] [has_le β] [order_top β] [has_le γ] [order_top γ]
 
 /-- Reinterpret a top homomorphism as a bot homomorphism between the dual lattices. -/
-@[simps] protected def dual : top_hom α β ≃ bot_hom (order_dual α) (order_dual β) :=
+@[simps] protected def dual : top_hom α β ≃ bot_hom αᵒᵈ βᵒᵈ :=
 { to_fun := λ f, ⟨f, f.map_top'⟩,
   inv_fun := λ f, ⟨f, f.map_bot'⟩,
   left_inv := λ f, top_hom.ext $ λ _, rfl,
@@ -447,8 +447,7 @@ variables [has_le α] [order_top α] [has_le β] [order_top β] [has_le γ] [ord
   (g.comp f).dual = g.dual.comp f.dual := rfl
 
 @[simp] lemma symm_dual_id : top_hom.dual.symm (bot_hom.id _) = top_hom.id α := rfl
-@[simp] lemma symm_dual_comp (g : bot_hom (order_dual β) (order_dual γ))
-  (f : bot_hom (order_dual α) (order_dual β)) :
+@[simp] lemma symm_dual_comp (g : bot_hom βᵒᵈ γᵒᵈ) (f : bot_hom αᵒᵈ βᵒᵈ) :
   top_hom.dual.symm (g.comp f) = (top_hom.dual.symm g).comp (top_hom.dual.symm f) := rfl
 
 end top_hom
@@ -457,7 +456,7 @@ namespace bot_hom
 variables [has_le α] [order_bot α] [has_le β] [order_bot β] [has_le γ] [order_bot γ]
 
 /-- Reinterpret a bot homomorphism as a top homomorphism between the dual lattices. -/
-@[simps] protected def dual : bot_hom α β ≃ top_hom (order_dual α) (order_dual β) :=
+@[simps] protected def dual : bot_hom α β ≃ top_hom αᵒᵈ βᵒᵈ :=
 { to_fun := λ f, ⟨f, f.map_bot'⟩,
   inv_fun := λ f, ⟨f, f.map_top'⟩,
   left_inv := λ f, bot_hom.ext $ λ _, rfl,
@@ -468,8 +467,7 @@ variables [has_le α] [order_bot α] [has_le β] [order_bot β] [has_le γ] [ord
   (g.comp f).dual = g.dual.comp f.dual := rfl
 
 @[simp] lemma symm_dual_id : bot_hom.dual.symm (top_hom.id _) = bot_hom.id α := rfl
-@[simp] lemma symm_dual_comp (g : top_hom (order_dual β) (order_dual γ))
-  (f : top_hom (order_dual α) (order_dual β)) :
+@[simp] lemma symm_dual_comp (g : top_hom βᵒᵈ γᵒᵈ) (f : top_hom αᵒᵈ βᵒᵈ) :
   bot_hom.dual.symm (g.comp f) = (bot_hom.dual.symm g).comp (bot_hom.dual.symm f) := rfl
 
 end bot_hom
@@ -480,8 +478,7 @@ variables [preorder α] [bounded_order α] [preorder β] [bounded_order β] [pre
 
 /-- Reinterpret a bounded order homomorphism as a bounded order homomorphism between the dual
 orders. -/
-@[simps] protected def dual :
-   bounded_order_hom α β ≃ bounded_order_hom (order_dual α) (order_dual β) :=
+@[simps] protected def dual : bounded_order_hom α β ≃ bounded_order_hom αᵒᵈ βᵒᵈ :=
 { to_fun := λ f, ⟨f.to_order_hom.dual, f.map_bot', f.map_top'⟩,
   inv_fun := λ f, ⟨order_hom.dual.symm f.to_order_hom, f.map_bot', f.map_top'⟩,
   left_inv := λ f, ext $ λ a, rfl,
@@ -493,8 +490,7 @@ orders. -/
 
 @[simp] lemma symm_dual_id :
   bounded_order_hom.dual.symm (bounded_order_hom.id _) = bounded_order_hom.id α := rfl
-@[simp] lemma symm_dual_comp (g : bounded_order_hom (order_dual β) (order_dual γ))
-  (f : bounded_order_hom (order_dual α) (order_dual β)) :
+@[simp] lemma symm_dual_comp (g : bounded_order_hom βᵒᵈ γᵒᵈ) (f : bounded_order_hom αᵒᵈ βᵒᵈ) :
   bounded_order_hom.dual.symm (g.comp f) =
     (bounded_order_hom.dual.symm g).comp (bounded_order_hom.dual.symm f) := rfl
 

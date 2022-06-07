@@ -100,6 +100,15 @@ subsingleton_empty.pairwise r
 @[simp] lemma pairwise_singleton (a : α) (r : α → α → Prop) : set.pairwise {a} r :=
 subsingleton_singleton.pairwise r
 
+lemma pairwise_iff_of_refl [is_refl α r] : s.pairwise r ↔ ∀ ⦃a⦄, a ∈ s → ∀ ⦃b⦄, b ∈ s → r a b :=
+forall₄_congr $ λ a _ b _, or_iff_not_imp_left.symm.trans $ or_iff_right_of_imp of_eq
+
+alias pairwise_iff_of_refl ↔ set.pairwise.of_refl _
+
+lemma _root_.reflexive.set_pairwise_iff (hr : reflexive r) :
+  s.pairwise r ↔ ∀ ⦃a⦄, a ∈ s → ∀ ⦃b⦄, b ∈ s → r a b :=
+forall₄_congr $ λ a _ b _, or_iff_not_imp_left.symm.trans $ or_iff_right_of_imp $ eq.rec $ hr a
+
 lemma nonempty.pairwise_iff_exists_forall [is_equiv α r] {s : set ι} (hs : s.nonempty) :
   (s.pairwise (r on f)) ↔ ∃ z, ∀ x ∈ s, r (f x) z :=
 begin

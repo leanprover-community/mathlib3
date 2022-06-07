@@ -7,7 +7,7 @@ import algebra.hom.iterate
 import data.nat.modeq
 import data.set.pointwise
 import dynamics.periodic_pts
-import group_theory.quotient_group
+import group_theory.index
 
 /-!
 # Order of an element
@@ -317,25 +317,10 @@ end monoid_add_monoid
 section cancel_monoid
 variables [left_cancel_monoid G] (x y)
 
-@[to_additive]
-lemma pow_injective_aux (h : n ≤ m)
-  (hm : m < order_of x) (eq : x ^ n = x ^ m) : n = m :=
-by_contradiction $ assume ne : n ≠ m,
-  have h₁ : m - n > 0, from nat.pos_of_ne_zero (by simp [tsub_eq_iff_eq_add_of_le h, ne.symm]),
-  have h₂ : m = n + (m - n) := (add_tsub_cancel_of_le h).symm,
-  have h₃ : x ^ (m - n) = 1,
-    by { rw [h₂, pow_add] at eq, apply mul_left_cancel, convert eq.symm, exact mul_one (x ^ n) },
-  have le : order_of x ≤ m - n, from order_of_le_of_pow_eq_one h₁ h₃,
-  have lt : m - n < order_of x,
-    from (tsub_lt_iff_left h).mpr $ nat.lt_add_left _ _ _ hm,
-  lt_irrefl _ (le.trans_lt lt)
-
 @[to_additive nsmul_injective_of_lt_add_order_of]
 lemma pow_injective_of_lt_order_of
   (hn : n < order_of x) (hm : m < order_of x) (eq : x ^ n = x ^ m) : n = m :=
-(le_total n m).elim
-  (assume h, pow_injective_aux x h hm eq)
-  (assume h, (pow_injective_aux x h hn eq.symm).symm)
+iterate_injective_of_lt_minimal_period hn hm (by simpa only [mul_left_iterate, mul_one])
 
 @[to_additive mem_multiples_iff_mem_range_add_order_of']
 lemma mem_powers_iff_mem_range_order_of' [decidable_eq G] (hx : 0 < order_of x) :
@@ -670,6 +655,10 @@ end
 @[simp, to_additive card_nsmul_eq_zero] lemma pow_card_eq_one : x ^ fintype.card G = 1 :=
 let ⟨m, hm⟩ := @order_of_dvd_card_univ _ x _ _ in
 by simp [hm, pow_mul, pow_order_of_eq_one]
+
+@[to_additive] lemma subgroup.pow_index_mem {G : Type*} [group G] (H : subgroup G)
+  [fintype (G ⧸ H)] [normal H] (g : G) : g ^ index H ∈ H :=
+by rw [←eq_one_iff, quotient_group.coe_pow H, index_eq_card, pow_card_eq_one]
 
 @[to_additive] lemma pow_eq_mod_card (n : ℕ) :
   x ^ n = x ^ (n % fintype.card G) :=

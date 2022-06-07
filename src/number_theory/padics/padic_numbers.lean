@@ -543,21 +543,18 @@ lemma defn (f : padic_seq p) {ε : ℚ} (hε : 0 < ε) : ∃ N, ∀ i ≥ N, pad
 begin
   simp only [padic.cast_eq_of_rat],
   change ∃ N, ∀ i ≥ N, (f - const _ (f i)).norm < ε,
-  by_contradiction h,
+  by_contra' h,
   cases cauchy₂ f hε with N hN,
-  have : ∀ N, ∃ i ≥ N, ε ≤ (f - const _ (f i)).norm,
-    by simpa only [not_forall, not_exists, not_lt] using h,
-  rcases this N with ⟨i, hi, hge⟩,
+  rcases h N with ⟨i, hi, hge⟩,
   have hne : ¬ (f - const (padic_norm p) (f i)) ≈ 0,
   { intro h, unfold padic_seq.norm at hge; split_ifs at hge, exact not_lt_of_ge hge hε },
   unfold padic_seq.norm at hge; split_ifs at hge,
   apply not_le_of_gt _ hge,
-  cases decidable.em (N ≤ stationary_point hne) with hgen hngen,
-  { apply hN; assumption },
+  cases em (N ≤ stationary_point hne) with hgen hngen,
+  { apply hN _ hgen _ hi },
   { have := stationary_point_spec hne le_rfl (le_of_not_le hngen),
     rw ←this,
-    apply hN,
-    exact le_rfl, assumption },
+    exact hN _ le_rfl _ hi },
 end
 
 protected lemma nonneg (q : ℚ_[p]) : 0 ≤ padic_norm_e q :=
@@ -651,8 +648,7 @@ quotient.induction_on q $ λ q',
         { have := eq.symm (this le_rfl hle),
           simp only [const_apply, sub_apply, padic_norm.zero, sub_self] at this,
           simpa only [this] },
-        { apply hN,
-          apply le_of_lt, apply lt_of_not_ge, apply hle, exact le_rfl }}
+        { exact hN _ (lt_of_not_ge hle).le _ le_rfl } }
     end⟩
 
 variables {p : ℕ} [fact p.prime] (f : cau_seq _ (@padic_norm_e p _))
@@ -705,9 +701,7 @@ begin
           { rw [padic_norm_e.sub_rev],
             apply_mod_cast hN,
             exact le_of_max_le_left hj },
-          { apply hN2,
-            exact le_of_max_le_right hj,
-            apply le_max_right }}},
+          { exact hN2 _ (le_of_max_le_right hj) _ (le_max_right _ _) } } },
       { apply_mod_cast hN,
         apply le_max_left }}}
 end

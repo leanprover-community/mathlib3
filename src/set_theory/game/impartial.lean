@@ -24,20 +24,12 @@ local infix ` ≈ ` := equiv
 
 /-- The definition for a impartial game, defined using Conway induction -/
 def impartial_aux : pgame → Prop
-| G := G ≈ -G ∧ (∀ i, impartial_aux (G.move_left i)) ∧ (∀ j, impartial_aux (G.move_right j))
+| G := G ≈ -G ∧ (∀ i, impartial_aux (G.move_left i)) ∧ ∀ j, impartial_aux (G.move_right j)
 using_well_founded { dec_tac := pgame_wf_tac }
 
 lemma impartial_aux_def {G : pgame} : G.impartial_aux ↔ G ≈ -G ∧
-  (∀ i, impartial_aux (G.move_left i)) ∧ (∀ j, impartial_aux (G.move_right j)) :=
-begin
-  split,
-  { intro hi,
-    unfold1 impartial_aux at hi,
-    exact hi },
-  { intro hi,
-    unfold1 impartial_aux,
-    exact hi }
-end
+  (∀ i, impartial_aux (G.move_left i)) ∧ ∀ j, impartial_aux (G.move_right j) :=
+by rw impartial_aux
 
 /-- A typeclass on impartial games. -/
 class impartial (G : pgame) : Prop := (out : impartial_aux G)
@@ -46,13 +38,16 @@ lemma impartial_iff_aux {G : pgame} : G.impartial ↔ G.impartial_aux :=
 ⟨λ h, h.1, λ h, ⟨h⟩⟩
 
 lemma impartial_def {G : pgame} : G.impartial ↔ G ≈ -G ∧
-  (∀ i, impartial (G.move_left i)) ∧ (∀ j, impartial (G.move_right j)) :=
+  (∀ i, impartial (G.move_left i)) ∧ ∀ j, impartial (G.move_right j) :=
 by simpa only [impartial_iff_aux] using impartial_aux_def
 
 namespace impartial
 
 instance impartial_zero : impartial 0 :=
 by { rw impartial_def, dsimp, simp }
+
+instance impartial_star : impartial star :=
+by { rw impartial_def, simpa using impartial.impartial_zero }
 
 lemma neg_equiv_self (G : pgame) [h : G.impartial] : G ≈ -G := (impartial_def.1 h).1
 
@@ -63,6 +58,19 @@ instance move_left_impartial {G : pgame} [h : G.impartial] (i : G.left_moves) :
 instance move_right_impartial {G : pgame} [h : G.impartial] (j : G.right_moves) :
   (G.move_right j).impartial :=
 (impartial_def.1 h).2.2 j
+
+theorem impartial_congr : ∀ {G H : pgame} (e : relabelling G H) [G.impartial], H.impartial
+| G H e := begin
+  introI h,
+  rw impartial_def,
+  refine ⟨equiv_trans e.symm.equiv (equiv_trans (neg_equiv_self G) (neg_congr e.equiv)),
+    λ i, _, λ j, _⟩;
+  cases e with _ _ L R hL hR,
+  { convert impartial_congr (hL (L.symm i)),
+    rw equiv.apply_symm_apply },
+  { exact impartial_congr (hR j) }
+end
+using_well_founded { dec_tac := pgame_wf_tac }
 
 instance impartial_add : ∀ (G H : pgame) [G.impartial] [H.impartial], (G + H).impartial
 | G H :=
@@ -88,16 +96,13 @@ instance impartial_neg : ∀ (G : pgame) [G.impartial], (-G).impartial
 begin
   introI hG,
   rw impartial_def,
-  split,
+  refine ⟨_, λ i, _, λ i, _⟩,
   { rw neg_neg,
-    symmetry,
-    exact neg_equiv_self G },
-  split,
-  all_goals
-  { intro i,
-    equiv_rw G.left_moves_neg at i <|> equiv_rw G.right_moves_neg at i,
-    simp only [move_left_left_moves_neg_symm, move_right_right_moves_neg_symm],
-    exact impartial_neg _ }
+    exact (neg_equiv_self G).symm },
+  { rw move_left_neg',
+    apply impartial_neg },
+  { rw move_right_neg',
+    apply impartial_neg }
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 
@@ -129,7 +134,7 @@ iff.symm $ iff_not_comm.1 $ iff.symm $ not_first_wins G
 
 lemma add_self (G : pgame) [G.impartial] : (G + G).first_loses :=
   first_loses_is_zero.2 $ equiv_trans (add_congr (neg_equiv_self G) G.equiv_refl)
-  add_left_neg_equiv
+  (add_left_neg_equiv G)
 
 lemma equiv_iff_sum_first_loses (G H : pgame) [G.impartial] [H.impartial] :
   G ≈ H ↔ (G + H).first_loses :=
@@ -188,10 +193,12 @@ lemma no_good_right_moves_iff_first_loses (G : pgame) [G.impartial] :
 begin
   rw [first_loses_of_equiv_iff (neg_equiv_self G), ←no_good_left_moves_iff_first_loses],
   refine ⟨λ h i, _, λ h i, _⟩,
-  { simpa [first_wins_of_equiv_iff (neg_equiv_self ((-G).move_left i))]
-    using h (left_moves_neg _ i) },
-  { simpa [first_wins_of_equiv_iff (neg_equiv_self (G.move_right i))]
-      using h ((left_moves_neg _).symm i) }
+  { rw [move_left_neg',
+      ←first_wins_of_equiv_iff (neg_equiv_self (G.move_right (to_left_moves_neg.symm i)))],
+    apply h },
+  { rw [move_right_neg_symm',
+      ←first_wins_of_equiv_iff (neg_equiv_self ((-G).move_left (to_left_moves_neg i)))],
+    apply h }
 end
 
 lemma good_left_move_iff_first_wins (G : pgame) [G.impartial] :

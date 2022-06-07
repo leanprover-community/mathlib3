@@ -62,8 +62,7 @@ section unbounded_above
 
 variables [no_max_order α]
 
-lemma Ioi.infinite {a : α} : infinite (Ioi a) :=
-by apply @Iio.infinite (order_dual α)
+lemma Ioi.infinite {a : α} : infinite (Ioi a) := @Iio.infinite αᵒᵈ _ _ _
 
 lemma Ici.infinite {a : α} : infinite (Ici a) :=
 Ioi.infinite.mono Ioi_subset_Ici_self

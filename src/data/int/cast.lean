@@ -111,6 +111,14 @@ by simp [sub_eq_add_neg]
 | -[1+ m] -[1+ n] := show (((m + 1) * (n + 1) : ℕ) : α) = -(m + 1) * -(n + 1),
   by rw [nat.cast_mul, nat.cast_add_one, nat.cast_add_one, neg_mul_neg]
 
+@[simp] theorem cast_div [field α] {m n : ℤ} (n_dvd : n ∣ m) (n_nonzero : (n : α) ≠ 0) :
+  ((m / n : ℤ) : α) = m / n :=
+begin
+  rcases n_dvd with ⟨k, rfl⟩,
+  have : n ≠ 0, { rintro rfl, simpa using n_nonzero },
+  rw [int.mul_div_cancel_left _ this, int.cast_mul, mul_div_cancel_left _ n_nonzero],
+end
+
 /-- `coe : ℤ → α` as an `add_monoid_hom`. -/
 def cast_add_hom (α : Type*) [add_group α] [has_one α] : ℤ →+ α := ⟨coe, cast_zero, cast_add⟩
 

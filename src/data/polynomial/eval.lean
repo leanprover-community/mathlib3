@@ -560,8 +560,8 @@ end
 /-- If `R` and `S` are isomorphic, then so are their polynomial rings. -/
 @[simps] def map_equiv (e : R ≃+* S) : R[X] ≃+* S[X] :=
 ring_equiv.of_hom_inv
-  (map_ring_hom e)
-  (map_ring_hom e.symm)
+  (map_ring_hom (e : R →+* S))
+  (map_ring_hom (e.symm : S →+* R))
   (by ext; simp)
   (by ext; simp)
 

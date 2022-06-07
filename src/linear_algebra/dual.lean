@@ -6,6 +6,8 @@ Authors: Johan Commelin, Fabian Glöckle
 import linear_algebra.finite_dimensional
 import linear_algebra.projection
 import linear_algebra.sesquilinear_form
+import ring_theory.finiteness
+import linear_algebra.free_module.finite.rank
 
 /-!
 # Dual vector spaces
@@ -276,6 +278,18 @@ linear_equiv.of_bijective (eval R M)
 
 @[simp] lemma eval_equiv_to_linear_map {ι : Type*} [fintype ι] (b : basis ι R M) :
   (b.eval_equiv).to_linear_map = dual.eval R M := rfl
+
+section
+
+open_locale classical
+
+variables [finite R M] [free R M] [nontrivial R]
+
+instance dual_free : free R (dual R M) := free.of_basis (free.choose_basis R M).dual_basis
+
+instance dual_finite : finite R (dual R M) := finite.of_basis (free.choose_basis R M).dual_basis
+
+end
 
 end comm_ring
 
@@ -565,7 +579,7 @@ open finite_dimensional
 variables {V₁ : Type*} [add_comm_group V₁] [module K V₁]
 
 instance [H : finite_dimensional K V] : finite_dimensional K (module.dual K V) :=
-linear_equiv.finite_dimensional (basis.of_vector_space K V).to_dual_equiv
+by apply_instance
 
 variables [finite_dimensional K V] [finite_dimensional K V₁]
 

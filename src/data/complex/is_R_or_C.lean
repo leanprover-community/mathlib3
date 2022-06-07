@@ -442,7 +442,7 @@ by rw [← of_real_int_cast, of_real_im]
 
 @[simp, is_R_or_C_simps, norm_cast, priority 900] theorem of_real_rat_cast (n : ℚ) :
   ((n : ℝ) : K) = n :=
-(@is_R_or_C.of_real_hom K _).map_rat_cast n
+map_rat_cast (@is_R_or_C.of_real_hom K _) n
 
 @[simp, is_R_or_C_simps, norm_cast] lemma rat_cast_re (q : ℚ) : re (q : K) = q :=
 by rw [← of_real_rat_cast, of_real_re]
@@ -846,7 +846,10 @@ noncomputable def conj_cle : K ≃L[ℝ] K := @conj_lie K _
 @[simp, is_R_or_C_simps] lemma conj_cle_norm : ∥(@conj_cle K _ : K →L[ℝ] K)∥ = 1 :=
 (@conj_lie K _).to_linear_isometry.norm_to_continuous_linear_map
 
-@[continuity] lemma continuous_conj : continuous (conj : K → K) := conj_lie.continuous
+@[priority 100]
+instance : has_continuous_star K := ⟨conj_lie.continuous⟩
+
+@[continuity] lemma continuous_conj : continuous (conj : K → K) := continuous_star
 
 /-- The `ℝ → K` coercion, as a linear map -/
 noncomputable def of_real_am : ℝ →ₐ[ℝ] K := algebra.of_id ℝ K

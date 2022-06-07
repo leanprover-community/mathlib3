@@ -853,6 +853,7 @@ begin
   { refine lintegral_congr_ae (ae_restrict_of_ae _),
     refine (@indicator_const_Lp_coe_fn _ _ _ 2 _ _ _ hs hμs (1 : ℝ)).mono (λ x hx, _),
     rw hx,
+    classical,
     simp_rw set.indicator_apply,
     split_ifs; simp, },
   rw [h_eq, lintegral_indicator _ hs, lintegral_const, measure.restrict_restrict hs],
@@ -1205,7 +1206,7 @@ begin
     of_real_integral_norm_eq_lintegral_nnnorm],
   swap, { rw [← mem_ℒp_one_iff_integrable], exact Lp.mem_ℒp _, },
   have h_eq : ∫⁻ a, ∥condexp_ind_L1_fin hm hs hμs x a∥₊ ∂μ
-    = ∫⁻ a, nnnorm (condexp_ind_smul hm hs hμs x a) ∂μ,
+    = ∫⁻ a, ∥condexp_ind_smul hm hs hμs x a∥₊ ∂μ,
   { refine lintegral_congr_ae _,
     refine (condexp_ind_L1_fin_ae_eq_condexp_ind_smul hm hs hμs x).mono (λ z hz, _),
     dsimp only,

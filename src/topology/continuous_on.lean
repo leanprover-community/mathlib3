@@ -1086,6 +1086,12 @@ lemma continuous_on_piecewise_ite {s s' t : set α} {f f' : α → β} [∀ x, d
 continuous_on_piecewise_ite' (h.mono (inter_subset_left _ _)) (h'.mono (inter_subset_left _ _))
   H Heq
 
+lemma frontier_inter_open_inter {s t : set α} (ht : is_open t) :
+  frontier (s ∩ t) ∩ t = frontier s ∩ t :=
+by simp only [← subtype.preimage_coe_eq_preimage_coe_iff,
+  ht.is_open_map_subtype_coe.preimage_frontier_eq_frontier_preimage continuous_subtype_coe,
+  subtype.preimage_coe_inter_self]
+
 lemma continuous_on_fst {s : set (α × β)} : continuous_on prod.fst s :=
 continuous_fst.continuous_on
 

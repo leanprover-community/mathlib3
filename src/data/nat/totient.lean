@@ -39,19 +39,10 @@ by simp [totient]
 lemma totient_eq_card_coprime (n : ℕ) : φ n = ((range n).filter n.coprime).card := rfl
 
 lemma totient_le (n : ℕ) : φ n ≤ n :=
-calc totient n ≤ (range n).card : card_filter_le _ _
-           ... = n              : card_range _
+((range n).card_filter_le _).trans_eq (card_range n)
 
 lemma totient_lt (n : ℕ) (hn : 1 < n) : φ n < n :=
-calc totient n ≤ ((range n).filter (≠ 0)).card :
-  begin
-    apply card_le_of_subset (monotone_filter_right _ _),
-    intros n1 hn1 hn1',
-    simpa only [hn1', coprime_zero_right, hn.ne'] using hn1,
-  end
-... = n - 1
-    : by simp only [filter_ne' (range n) 0, card_erase_of_mem, card_range, pos_of_gt hn, mem_range]
-... < n : nat.sub_lt (pos_of_gt hn) zero_lt_one
+(card_lt_card (filter_ssubset.2 ⟨0, by simp [hn.ne', pos_of_gt hn]⟩)).trans_eq (card_range n)
 
 lemma totient_pos : ∀ {n : ℕ}, 0 < n → 0 < φ n
 | 0 := dec_trivial
@@ -135,9 +126,8 @@ if hmn0 : m * n = 0
     haveI : fact (0 < (m * n)) := ⟨nat.pos_of_ne_zero hmn0⟩,
     haveI : fact (0 < m) := ⟨nat.pos_of_ne_zero $ left_ne_zero_of_mul hmn0⟩,
     haveI : fact (0 < n) := ⟨nat.pos_of_ne_zero $ right_ne_zero_of_mul hmn0⟩,
-    rw [← zmod.card_units_eq_totient, ← zmod.card_units_eq_totient,
-      ← zmod.card_units_eq_totient, fintype.card_congr
-      (units.map_equiv (zmod.chinese_remainder h).to_mul_equiv).to_equiv,
+    simp only [← zmod.card_units_eq_totient],
+    rw [fintype.card_congr (units.map_equiv (zmod.chinese_remainder h).to_mul_equiv).to_equiv,
       fintype.card_congr (@mul_equiv.prod_units (zmod m) (zmod n) _ _).to_equiv,
       fintype.card_prod]
   end
@@ -286,7 +276,18 @@ begin
 end
 
 @[simp] lemma totient_two : φ 2 = 1 :=
-(totient_prime prime_two).trans (by norm_num)
+(totient_prime prime_two).trans rfl
+
+lemma totient_eq_one_iff : ∀ {n : ℕ}, n.totient = 1 ↔ n = 1 ∨ n = 2
+| 0 := by simp
+| 1 := by simp
+| 2 := by simp
+| (n+3) :=
+begin
+  have : 3 ≤ n + 3 := le_add_self,
+  simp only [succ_succ_ne_one, false_or],
+  exact ⟨λ h, not_even_one.elim $ h ▸ totient_even this, by rintro ⟨⟩⟩,
+end
 
 /-! ### Euler's product formula for the totient function
 
@@ -334,7 +335,7 @@ begin
   { rw [←cast_prod, cast_ne_zero, ←zero_lt_iff, ←prod_factorization_eq_prod_factors],
     exact prod_pos (λ p hp, pos_of_mem_factorization hp) },
   simp only [totient_eq_div_factors_mul n, prod_prime_factors_dvd n, cast_mul, cast_prod,
-      cast_dvd_char_zero, mul_comm_div', mul_right_inj' hn', div_eq_iff hpQ, ←prod_mul_distrib],
+      cast_div_char_zero, mul_comm_div', mul_right_inj' hn', div_eq_iff hpQ, ←prod_mul_distrib],
   refine prod_congr rfl (λ p hp, _),
   have hp := pos_of_mem_factors (list.mem_to_finset.mp hp),
   have hp' : (p : ℚ) ≠ 0 := cast_ne_zero.mpr hp.ne.symm,

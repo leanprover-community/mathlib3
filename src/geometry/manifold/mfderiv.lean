@@ -1223,6 +1223,17 @@ apply continuous_zero.continuous_at,
 apply differentiable_at_const (0 : 𝕜),
 end
 
+lemma mdifferentiable_one :
+mdifferentiable 𝓘(𝕜) 𝓘(𝕜) (1 : S → 𝕜)  :=
+begin
+intro x,
+rw  mdifferentiable_at,
+simp  [mdifferentiable_at, differentiable_within_at_univ] at *,
+split,
+apply continuous_const.continuous_at,
+apply differentiable_at_const (1 : 𝕜),
+end
+
 end arithmetic
 
 namespace model_with_corners

@@ -1329,7 +1329,8 @@ begin
     begin
       rw [← simple_func.add_lintegral, ← simple_func.map_add @ennreal.coe_add],
       refine simple_func.lintegral_mono (λ x, _) le_rfl,
-      simp [-ennreal.coe_add, add_tsub_eq_max, le_max_right]
+      simp only [add_tsub_eq_max, le_max_right, coe_map, function.comp_app, simple_func.coe_add,
+        simple_func.coe_sub, pi.add_apply, pi.sub_apply, with_top.coe_max]
     end
   ... ≤ (map coe φ).lintegral (μ.restrict s) + ε₁ :
     begin
@@ -1337,9 +1338,11 @@ begin
       exact simple_func.lintegral_mono le_rfl measure.restrict_le_self
     end
   ... ≤ (simple_func.const α (C : ℝ≥0∞)).lintegral (μ.restrict s) + ε₁ :
-    by { mono*, exacts [λ x, coe_le_coe.2 (hC x), le_rfl, le_rfl] }
-  ... = C * μ s + ε₁ : by simp [← simple_func.lintegral_eq_lintegral]
-  ... ≤ C * ((ε₂ - ε₁) / C) + ε₁ : by { mono*, exacts [le_rfl, hs.le, le_rfl] }
+    add_le_add (simple_func.lintegral_mono (λ x, coe_le_coe.2 (hC x)) le_rfl) le_rfl
+  ... = C * μ s + ε₁ : by simp only [←simple_func.lintegral_eq_lintegral, coe_const,
+    lintegral_const, measure.restrict_apply, measurable_set.univ, univ_inter]
+  ... ≤ C * ((ε₂ - ε₁) / C) + ε₁ :
+    add_le_add_right (ennreal.mul_le_mul le_rfl hs.le) _
   ... ≤ (ε₂ - ε₁) + ε₁ : add_le_add mul_div_le le_rfl
   ... = ε₂ : tsub_add_cancel_of_le hε₁₂.le,
 end

@@ -479,7 +479,7 @@ instance (o : ordinal) : has_well_founded o.out.α := ⟨o.out.r, o.out.wo.wf⟩
 instance (o : ordinal) : linear_order o.out.α :=
 is_well_order.linear_order o.out.r
 
-instance (o : ordinal) : is_well_order o.out.α (<) :=
+instance ordinal.is_well_order_lt (o : ordinal) : is_well_order o.out.α (<) :=
 o.out.wo
 
 namespace ordinal
@@ -680,6 +680,13 @@ enum_type (principal_seg.of_element r a)
   {o} (h : o < type r) : typein r (enum r o h) = o :=
 let ⟨a, e⟩ := typein_surj r h in
 by clear _let_match; subst e; rw enum_typein
+
+/-- The equivalence between ordinals less than `o` and `o.out.α`. -/
+@[simps] noncomputable def out_equiv_lt (o : ordinal) : {o' : ordinal // o' < o} ≃ o.out.α :=
+{ to_fun := λ ⟨o', h⟩, enum (<) o' (by rwa type_lt),
+  inv_fun := λ x, ⟨typein (<) x, typein_lt_self x⟩,
+  left_inv := λ ⟨o', h⟩, subtype.ext_val (typein_enum _ _),
+  right_inv := λ h, enum_typein _ _ }
 
 /-- A well order `r` is order isomorphic to the set of ordinals strictly smaller than the
 ordinal version of `r`. -/
@@ -1202,6 +1209,10 @@ wf.conditionally_complete_linear_order_with_bot 0 $ le_antisymm (ordinal.zero_le
   not_lt.1 (wf.not_lt_min set.univ ⟨0, mem_univ _⟩ (mem_univ 0))
 
 @[simp] lemma bot_eq_zero : (⊥ : ordinal) = 0 := rfl
+
+@[simp] lemma max_zero_left : ∀ a : ordinal, max 0 a = a := max_bot_left
+@[simp] lemma max_zero_right : ∀ a : ordinal, max a 0 = a := max_bot_right
+@[simp] lemma max_eq_zero {a b : ordinal} : max a b = 0 ↔ a = 0 ∧ b = 0 := max_eq_bot
 
 protected theorem not_lt_zero (o : ordinal) : ¬ o < 0 :=
 not_lt_bot

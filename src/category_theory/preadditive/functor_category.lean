@@ -21,7 +21,7 @@ open category_theory.limits preadditive
 
 variables {C D : Type*} [category C] [category D] [preadditive D]
 
-instance : preadditive (C ⥤ D) :=
+instance functor_category_preadditive : preadditive (C ⥤ D) :=
 { hom_group := λ F G,
   { add := λ α β,
     { app := λ X, α.app X + β.app X,

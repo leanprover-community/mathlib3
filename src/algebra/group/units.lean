@@ -379,6 +379,10 @@ an additive monoid which is an additive unit."]
 noncomputable def is_unit.unit [monoid M] {a : M} (h : is_unit a) : Mˣ :=
 (classical.some h).copy a (classical.some_spec h).symm _ rfl
 
+@[simp, to_additive]
+lemma is_unit.unit_of_coe_units [monoid M] {a : Mˣ} (h : is_unit (a : M)) : h.unit = a :=
+units.ext $ rfl
+
 @[to_additive]
 lemma is_unit.unit_spec [monoid M] {a : M} (h : is_unit a) : ↑h.unit = a :=
 rfl

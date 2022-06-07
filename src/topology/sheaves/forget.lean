@@ -123,7 +123,7 @@ Then to check the sheaf condition it suffices to check it on the underlying shea
 
 Another useful example is the forgetful functor `TopCommRing ⥤ Top`.
 
-See https://stacks.math.columbia.edu/tag/0073.
+See <https://stacks.math.columbia.edu/tag/0073>.
 In fact we prove a stronger version with arbitrary complete target category.
 -/
 lemma is_sheaf_iff_is_sheaf_comp :

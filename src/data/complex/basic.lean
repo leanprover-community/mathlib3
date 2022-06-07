@@ -173,6 +173,10 @@ by refine_struct
     zsmul := λ n z, ⟨n • z.re - 0 * z.im, n • z.im + 0 * z.re⟩ };
 intros; try { refl }; apply ext_iff.2; split; simp; {ring1 <|> ring_nf}
 
+/-- This shortcut instance ensures we do not find `add_comm_group` via the noncomputable
+`complex.normed_group` instance. -/
+instance : add_comm_group ℂ := by apply_instance
+
 /-- This shortcut instance ensures we do not find `ring` via the noncomputable `complex.field`
 instance. -/
 instance : ring ℂ := by apply_instance
@@ -400,8 +404,7 @@ by rw [← of_real_int_cast, of_real_re]
 @[simp, norm_cast] lemma int_cast_im (n : ℤ) : (n : ℂ).im = 0 :=
 by rw [← of_real_int_cast, of_real_im]
 
-@[simp, norm_cast] theorem of_real_rat_cast (n : ℚ) : ((n : ℝ) : ℂ) = n :=
-of_real.map_rat_cast n
+@[simp, norm_cast] theorem of_real_rat_cast (n : ℚ) : ((n : ℝ) : ℂ) = n := map_rat_cast of_real n
 
 @[simp, norm_cast] lemma rat_cast_re (q : ℚ) : (q : ℂ).re = q :=
 by rw [← of_real_rat_cast, of_real_re]

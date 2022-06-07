@@ -1066,12 +1066,12 @@ def iso_restrict {X Y : LocallyRingedSpace} {f : X ⟶ Y}
   (H : LocallyRingedSpace.is_open_immersion f) : X ≅ Y.restrict H.base_open :=
 begin
   apply LocallyRingedSpace.iso_of_SheafedSpace_iso,
-  apply @preimage_iso _ _ _ _ SheafedSpace.forget_to_PresheafedSpace,
+  refine SheafedSpace.forget_to_PresheafedSpace.preimage_iso _,
   exact H.iso_restrict
 end
 
 /-- To show that a locally ringed space is a scheme, it suffices to show that it has a jointly
-sujective family of open immersions from affine schemes. -/
+surjective family of open immersions from affine schemes. -/
 protected def Scheme (X : LocallyRingedSpace)
   (h : ∀ (x : X), ∃ (R : CommRing) (f : Spec.to_LocallyRingedSpace.obj (op R) ⟶ X),
     (x ∈ set.range f.1.base : _) ∧ LocallyRingedSpace.is_open_immersion f) : Scheme :=
@@ -1082,7 +1082,7 @@ protected def Scheme (X : LocallyRingedSpace)
     obtain ⟨R, f, h₁, h₂⟩ := h x,
     refine ⟨⟨⟨_, h₂.base_open.open_range⟩, h₁⟩, R, ⟨_⟩⟩,
     apply LocallyRingedSpace.iso_of_SheafedSpace_iso,
-    apply @preimage_iso _ _ _ _ SheafedSpace.forget_to_PresheafedSpace,
+    refine SheafedSpace.forget_to_PresheafedSpace.preimage_iso _,
     resetI,
     apply PresheafedSpace.is_open_immersion.iso_of_range_eq (PresheafedSpace.of_restrict _ _) f.1,
     { exact subtype.range_coe_subtype },

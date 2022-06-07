@@ -696,7 +696,7 @@ lemma norm_eq_sum_mul (f : α →₁ₛ[μ] G) :
   ∥f∥ = ∑ x in (to_simple_func f).range, (μ ((to_simple_func f) ⁻¹' {x})).to_real * ∥x∥ :=
 begin
   rw [norm_to_simple_func, snorm_one_eq_lintegral_nnnorm],
-  have h_eq := simple_func.map_apply (λ x, (nnnorm x : ℝ≥0∞)) (to_simple_func f),
+  have h_eq := simple_func.map_apply (λ x, (∥x∥₊ : ℝ≥0∞)) (to_simple_func f),
   dsimp only at h_eq,
   simp_rw ← h_eq,
   rw [simple_func.lintegral_eq_lintegral, simple_func.map_lintegral, ennreal.to_real_sum],

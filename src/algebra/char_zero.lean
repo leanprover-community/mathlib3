@@ -101,13 +101,12 @@ lemma cast_add_one_ne_zero (n : ℕ) : (n + 1 : R) ≠ 0 :=
 by exact_mod_cast n.succ_ne_zero
 
 @[simp, norm_cast]
-theorem cast_dvd_char_zero {k : Type*} [field k] [char_zero k] {m n : ℕ}
+theorem cast_div_char_zero {k : Type*} [field k] [char_zero k] {m n : ℕ}
   (n_dvd : n ∣ m) : ((m / n : ℕ) : k) = m / n :=
 begin
-  by_cases hn : n = 0,
-  { subst hn,
-    simp },
-  { exact cast_dvd n_dvd (cast_ne_zero.mpr hn), },
+  rcases eq_or_ne n 0 with rfl | hn,
+  { simp },
+  { exact cast_div n_dvd (cast_ne_zero.2 hn), },
 end
 
 end nat

@@ -40,16 +40,14 @@ lemma forall₂.flip : ∀ {a b}, forall₂ (flip r) b a → forall₂ r a b
 | _ _                 forall₂.nil          := forall₂.nil
 | (a :: as) (b :: bs) (forall₂.cons h₁ h₂) := forall₂.cons h₁ h₂.flip
 
-lemma forall₂_same {r : α → α → Prop} : ∀ {l}, (∀ x∈l, r x x) → forall₂ r l l
-| []        _ := forall₂.nil
-| (a :: as) h := forall₂.cons
-    (h _ (mem_cons_self _ _))
-    (forall₂_same $ λ a ha, h a $ mem_cons_of_mem _ ha)
+@[simp] lemma forall₂_same {r : α → α → Prop} : ∀ {l : list α}, forall₂ r l l ↔ ∀ x ∈ l, r x x
+| [] := by simp
+| (a :: l) := by simp [@forall₂_same l]
 
 lemma forall₂_refl {r} [is_refl α r] (l : list α) : forall₂ r l l :=
-forall₂_same $ λ a h, is_refl.refl _
+forall₂_same.2 $ λ a h, refl _
 
-lemma forall₂_eq_eq_eq : forall₂ ((=) : α → α → Prop) = (=) :=
+@[simp] lemma forall₂_eq_eq_eq : forall₂ ((=) : α → α → Prop) = (=) :=
 begin
   funext a b, apply propext,
   split,

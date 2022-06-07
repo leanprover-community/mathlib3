@@ -520,9 +520,6 @@ theorem nat.cast_le_pow_div_sub {K : Type*} [linear_ordered_field K] {a : K} (H 
 
 namespace int
 
-lemma units_sq (u : ℤˣ) : u ^ 2 = 1 :=
-(sq u).symm ▸ units_mul_self u
-
 alias int.units_sq ← int.units_pow_two
 
 lemma units_pow_eq_pow_mod_two (u : ℤˣ) (n : ℕ) : u ^ n = u ^ (n % 2) :=

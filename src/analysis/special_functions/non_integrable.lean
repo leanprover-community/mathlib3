@@ -60,7 +60,7 @@ begin
   { rcases hfg.exists_nonneg with ⟨C, C₀, hC⟩,
     have h : ∀ᶠ x : ℝ × ℝ in l.prod l, ∀ y ∈ [x.1, x.2], (differentiable_at ℝ f y ∧
       ∥deriv f y∥ ≤ C * ∥g y∥) ∧ y ∈ [a, b],
-      from (tendsto_fst.interval tendsto_snd).eventually ((hd.and hC.bound).and hl).lift'_powerset,
+      from (tendsto_fst.interval tendsto_snd).eventually ((hd.and hC.bound).and hl).small_sets,
     rcases mem_prod_self_iff.1 h with ⟨s, hsl, hs⟩,
     simp only [prod_subset_iff, mem_set_of_eq] at hs,
     exact ⟨C, C₀, s, hsl, λ x hx y hy z hz, (hs x hx y hy z hz).2,

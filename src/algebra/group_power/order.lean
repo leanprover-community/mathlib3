@@ -34,8 +34,7 @@ theorem one_le_pow_of_one_le' {a : M} (H : 1 ≤ a) : ∀ n : ℕ, 1 ≤ a ^ n
 | (k + 1) := by { rw pow_succ, exact one_le_mul H (one_le_pow_of_one_le' k) }
 
 @[to_additive nsmul_nonpos]
-theorem pow_le_one' {a : M} (H : a ≤ 1) (n : ℕ) : a ^ n ≤ 1 :=
-@one_le_pow_of_one_le' (order_dual M) _ _ _ _ H n
+lemma pow_le_one' {a : M} (H : a ≤ 1) (n : ℕ) : a ^ n ≤ 1 := @one_le_pow_of_one_le' Mᵒᵈ _ _ _ _ H n
 
 @[to_additive nsmul_le_nsmul]
 theorem pow_le_pow' {a : M} {n m : ℕ} (ha : 1 ≤ a) (h : n ≤ m) : a ^ n ≤ a ^ m :=
@@ -45,7 +44,7 @@ calc a ^ n ≤ a ^ n * a ^ k : le_mul_of_one_le_right' (one_le_pow_of_one_le' ha
 
 @[to_additive nsmul_le_nsmul_of_nonpos]
 theorem pow_le_pow_of_le_one' {a : M} {n m : ℕ} (ha : a ≤ 1) (h : n ≤ m) : a ^ m ≤ a ^ n :=
-@pow_le_pow' (order_dual M) _ _ _ _ _ _  ha h
+@pow_le_pow' Mᵒᵈ _ _ _ _ _ _  ha h
 
 @[to_additive nsmul_pos]
 theorem one_lt_pow' {a : M} (ha : 1 < a) {k : ℕ} (hk : k ≠ 0) : 1 < a ^ k :=
@@ -59,8 +58,8 @@ begin
 end
 
 @[to_additive nsmul_neg]
-theorem pow_lt_one' {a : M} (ha : a < 1) {k : ℕ} (hk : k ≠ 0) : a ^ k < 1 :=
-@one_lt_pow' (order_dual M) _ _ _ _ ha k hk
+lemma pow_lt_one' {a : M} (ha : a < 1) {k : ℕ} (hk : k ≠ 0) : a ^ k < 1 :=
+@one_lt_pow' Mᵒᵈ _ _ _ _ ha k hk
 
 @[to_additive nsmul_lt_nsmul]
 theorem pow_lt_pow' [covariant_class M M (*) (<)] {a : M} {n m : ℕ} (ha : 1 < a) (h : n < m) :
@@ -88,7 +87,7 @@ lemma one_le_pow_iff {x : M} {n : ℕ} (hn : n ≠ 0) : 1 ≤ x ^ n ↔ 1 ≤ x 
 
 @[to_additive]
 lemma pow_le_one_iff {x : M} {n : ℕ} (hn : n ≠ 0) : x ^ n ≤ 1 ↔ x ≤ 1 :=
-@one_le_pow_iff (order_dual M) _ _ _ _ _ hn
+@one_le_pow_iff Mᵒᵈ _ _ _ _ _ hn
 
 @[to_additive nsmul_pos_iff]
 lemma one_lt_pow_iff {x : M} {n : ℕ} (hn : n ≠ 0) : 1 < x ^ n ↔ 1 < x :=

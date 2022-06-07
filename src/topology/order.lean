@@ -330,8 +330,7 @@ lemma is_closed_induced_iff [t : topological_space β] {s : set α} {f : α → 
   @is_closed α (t.induced f) s ↔ (∃t, is_closed t ∧ f ⁻¹' t = s) :=
 begin
   simp only [← is_open_compl_iff, is_open_induced_iff],
-  exact ⟨λ ⟨t, ht, heq⟩, ⟨tᶜ, by rwa compl_compl, by simp [preimage_compl, heq, compl_compl]⟩,
-         λ ⟨t, ht, heq⟩, ⟨tᶜ, ht, by simp only [preimage_compl, heq.symm]⟩⟩
+  exact compl_surjective.exists.trans (by simp only [preimage_compl, compl_inj_iff])
 end
 
 /-- Given `f : α → β` and a topology on `α`, the coinduced topology on `β` is defined
@@ -780,6 +779,10 @@ lemma closure_induced [t : topological_space β] {f : α → β} {a : α} {s : s
   a ∈ @closure α (topological_space.induced f t) s ↔ f a ∈ closure (f '' s) :=
 by simp only [mem_closure_iff_frequently, nhds_induced, frequently_comap, mem_image, and_comm]
 
+lemma is_closed_induced_iff' [t : topological_space β] {f : α → β} {s : set α} :
+  @is_closed α (t.induced f) s ↔ ∀ a, f a ∈ closure (f '' s) → a ∈ s :=
+by simp only [← closure_subset_iff_is_closed, subset_def, closure_induced]
+
 end induced
 
 section sierpinski
@@ -808,56 +811,54 @@ variables {α : Type u} {ι : Sort v}
 lemma generate_from_union (a₁ a₂ : set (set α)) :
   topological_space.generate_from (a₁ ∪ a₂) =
     topological_space.generate_from a₁ ⊓ topological_space.generate_from a₂ :=
-@galois_connection.l_sup _ (order_dual (topological_space α)) a₁ a₂ _ _ _ _
+@galois_connection.l_sup _ (topological_space α)ᵒᵈ a₁ a₂ _ _ _ _
   (λ g t, generate_from_le_iff_subset_is_open)
 
 lemma set_of_is_open_sup (t₁ t₂ : topological_space α) :
   {s | (t₁ ⊔ t₂).is_open s} = {s | t₁.is_open s} ∩ {s | t₂.is_open s} :=
-@galois_connection.u_inf _ (order_dual (topological_space α)) t₁ t₂ _ _ _ _
+@galois_connection.u_inf _ (topological_space α)ᵒᵈ t₁ t₂ _ _ _ _
   (λ g t, generate_from_le_iff_subset_is_open)
 
 lemma generate_from_Union {f : ι → set (set α)} :
   topological_space.generate_from (⋃ i, f i) = (⨅ i, topological_space.generate_from (f i)) :=
-@galois_connection.l_supr _ (order_dual (topological_space α)) _ _ _ _ _
+@galois_connection.l_supr _ (topological_space α)ᵒᵈ _ _ _ _ _
   (λ g t, generate_from_le_iff_subset_is_open) f
 
 lemma set_of_is_open_supr {t : ι → topological_space α} :
   {s | (⨆ i, t i).is_open s} = ⋂ i, {s | (t i).is_open s} :=
-@galois_connection.u_infi _ (order_dual (topological_space α)) _ _ _ _ _
+@galois_connection.u_infi _ (topological_space α)ᵒᵈ _ _ _ _ _
   (λ g t, generate_from_le_iff_subset_is_open) t
 
 lemma generate_from_sUnion {S : set (set (set α))} :
   topological_space.generate_from (⋃₀ S) = (⨅ s ∈ S, topological_space.generate_from s) :=
-@galois_connection.l_Sup _ (order_dual (topological_space α)) _ _ _ _
+@galois_connection.l_Sup _ (topological_space α)ᵒᵈ _ _ _ _
   (λ g t, generate_from_le_iff_subset_is_open) S
 
 lemma set_of_is_open_Sup {T : set (topological_space α)} :
   {s | (Sup T).is_open s} = ⋂ t ∈ T, {s | (t : topological_space α).is_open s} :=
-@galois_connection.u_Inf _ (order_dual (topological_space α)) _ _ _ _
+@galois_connection.u_Inf _ (topological_space α)ᵒᵈ _ _ _ _
   (λ g t, generate_from_le_iff_subset_is_open) T
 
 lemma generate_from_union_is_open (a b : topological_space α) :
   topological_space.generate_from ({s | a.is_open s} ∪ {s | b.is_open s}) = a ⊓ b :=
-@galois_insertion.l_sup_u _ (order_dual (topological_space α)) _ _ _ _ (gi_generate_from α) a b
+@galois_insertion.l_sup_u _ (topological_space α)ᵒᵈ _ _ _ _ (gi_generate_from α) a b
 
 lemma generate_from_Union_is_open (f : ι → topological_space α) :
   topological_space.generate_from (⋃ i, {s | (f i).is_open s}) = ⨅ i, (f i) :=
-@galois_insertion.l_supr_u _ (order_dual (topological_space α)) _ _ _ _ (gi_generate_from α) _ f
+@galois_insertion.l_supr_u _ (topological_space α)ᵒᵈ _ _ _ _ (gi_generate_from α) _ f
 
 lemma generate_from_inter (a b : topological_space α) :
   topological_space.generate_from ({s | a.is_open s} ∩ {s | b.is_open s}) = a ⊔ b :=
-@galois_insertion.l_inf_u _ (order_dual (topological_space α)) _ _ _ _
-  (gi_generate_from α) a b
+@galois_insertion.l_inf_u _ (topological_space α)ᵒᵈ _ _ _ _ (gi_generate_from α) a b
 
 lemma generate_from_Inter (f : ι → topological_space α) :
   topological_space.generate_from (⋂ i, {s | (f i).is_open s}) = ⨆ i, (f i) :=
-@galois_insertion.l_infi_u _ (order_dual (topological_space α)) _ _ _ _ (gi_generate_from α) _ f
+@galois_insertion.l_infi_u _ (topological_space α)ᵒᵈ _ _ _ _ (gi_generate_from α) _ f
 
 lemma generate_from_Inter_of_generate_from_eq_self (f : ι → set (set α))
   (hf : ∀ i, {s | (topological_space.generate_from (f i)).is_open s} = f i) :
   topological_space.generate_from (⋂ i, (f i)) = ⨆ i, topological_space.generate_from (f i) :=
-@galois_insertion.l_infi_of_ul_eq_self _ (order_dual (topological_space α)) _ _ _ _
-  (gi_generate_from α) _ f hf
+@galois_insertion.l_infi_of_ul_eq_self _ (topological_space α)ᵒᵈ _ _ _ _ (gi_generate_from α) _ f hf
 
 variables {t : ι → topological_space α}
 

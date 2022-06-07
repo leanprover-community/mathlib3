@@ -87,7 +87,7 @@ lemma is_pi_system_Iio : is_pi_system (range Iio : set (set α)) :=
 @image_univ α _ Iio ▸ is_pi_system_image_Iio univ
 
 lemma is_pi_system_image_Ioi (s : set α) : is_pi_system (Ioi '' s) :=
-@is_pi_system_image_Iio (order_dual α) _ s
+@is_pi_system_image_Iio αᵒᵈ _ s
 
 lemma is_pi_system_Ioi : is_pi_system (range Ioi : set (set α)) :=
 @image_univ α _ Ioi ▸ is_pi_system_image_Ioi univ

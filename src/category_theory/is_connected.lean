@@ -66,7 +66,7 @@ component'.
 
 This allows us to show that the functor X ⨯ - preserves connected limits.
 
-See https://stacks.math.columbia.edu/tag/002S
+See <https://stacks.math.columbia.edu/tag/002S>
 -/
 class is_connected (J : Type u₁) [category.{v₁} J] extends is_preconnected J : Prop :=
 [is_nonempty : nonempty J]

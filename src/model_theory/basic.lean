@@ -117,9 +117,9 @@ countable_functions.card_functions_le_omega'
 variables {L} {L' : language.{u' v'}}
 
 lemma card_eq_card_functions_add_card_relations :
-  L.card = cardinal.lift.{v} (# (Σl, L.functions l)) +
-    cardinal.lift.{u} (# (Σl, L.relations l)) :=
-by rw [card, symbols, mk_sum]
+  L.card = cardinal.sum (λ l, (cardinal.lift.{v} (#(L.functions l)))) +
+    cardinal.sum (λ l, cardinal.lift.{u} (#(L.relations l))) :=
+by simp [card, symbols]
 
 instance [L.is_relational] {n : ℕ} : is_empty (L.functions n) := is_relational.empty_functions n
 
@@ -169,12 +169,11 @@ lemma encodable.countable [h : encodable L.symbols] :
   L.countable :=
 ⟨cardinal.encodable_iff.1 ⟨h⟩⟩
 
+@[simp] lemma empty_card : language.empty.card = 0 :=
+by simp [card_eq_card_functions_add_card_relations]
+
 instance countable_empty : language.empty.countable :=
-⟨begin
-  rw [card_eq_card_functions_add_card_relations, add_le_omega, lift_le_omega, lift_le_omega,
-    ← cardinal.encodable_iff, ← cardinal.encodable_iff],
-  exact ⟨⟨sigma.encodable⟩, ⟨sigma.encodable⟩⟩,
-end⟩
+⟨by simp⟩
 
 @[priority 100] instance countable.countable_functions [L.countable] :
   L.countable_functions :=
@@ -191,6 +190,23 @@ lemma encodable.countable_functions [h : encodable (Σl, L.functions l)] :
 @[priority 100] instance is_relational.countable_functions [L.is_relational] :
   L.countable_functions :=
 encodable.countable_functions
+
+@[simp] lemma card_functions_sum (i : ℕ) :
+  #((L.sum L').functions i) = (#(L.functions i)).lift + cardinal.lift.{u} (#(L'.functions i)) :=
+by simp [language.sum]
+
+@[simp] lemma card_relations_sum (i : ℕ) :
+  #((L.sum L').relations i) = (#(L.relations i)).lift + cardinal.lift.{v} (#(L'.relations i)) :=
+by simp [language.sum]
+
+@[simp] lemma card_sum :
+  (L.sum L').card = cardinal.lift.{max u' v'} L.card + cardinal.lift.{max u v} L'.card :=
+begin
+  simp only [card_eq_card_functions_add_card_relations, card_functions_sum, card_relations_sum,
+    sum_add_distrib', lift_add, lift_sum, lift_lift],
+  rw [add_assoc, ←add_assoc (cardinal.sum (λ i, (# (L'.functions i)).lift)),
+    add_comm (cardinal.sum (λ i, (# (L'.functions i)).lift)), add_assoc, add_assoc]
+end
 
 variables (L) (M : Type w)
 

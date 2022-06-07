@@ -21,17 +21,14 @@ imply `x * z ≈ y * z`. Hence, multiplication is not a well-defined operation o
 the abelian group structure on games allows us to simplify many proofs for pre-games.
 -/
 
-open function
+open function pgame
 
 universes u
 
 local infix ` ≈ ` := pgame.equiv
 
 instance pgame.setoid : setoid pgame :=
-⟨λ x y, x ≈ y,
- λ x, pgame.equiv_refl _,
- λ x y, pgame.equiv_symm,
- λ x y z, pgame.equiv_trans⟩
+⟨(≈), equiv_refl, @pgame.equiv.symm, @pgame.equiv.trans⟩
 
 /-- The type of combinatorial games. In ZFC, a combinatorial game is constructed from
   two sets of combinatorial games that have been constructed at an earlier
@@ -42,8 +39,6 @@ instance pgame.setoid : setoid pgame :=
   A combinatorial game is then constructed by quotienting by the equivalence
   `x ≈ y ↔ x ≤ y ∧ y ≤ x`. -/
 abbreviation game := quotient pgame.setoid
-
-open pgame
 
 namespace game
 
@@ -218,24 +213,24 @@ rfl
    = x.move_right i * y + x * y.move_left j - x.move_right i * y.move_left j :=
 by { cases x, cases y, refl }
 
-lemma left_moves_mul_cases {x y : pgame} (k : (x * y).left_moves) :
-  (∃ ix iy, k = to_left_moves_mul (sum.inl ⟨ix, iy⟩)) ∨
-  ∃ jx jy, k = to_left_moves_mul (sum.inr ⟨jx, jy⟩) :=
+lemma left_moves_mul_cases {x y : pgame} (k) {P : (x * y).left_moves → Prop}
+  (hl : ∀ ix iy, P $ to_left_moves_mul (sum.inl ⟨ix, iy⟩))
+  (hr : ∀ jx jy, P $ to_left_moves_mul (sum.inr ⟨jx, jy⟩)) : P k :=
 begin
   rw ←to_left_moves_mul.apply_symm_apply k,
   rcases to_left_moves_mul.symm k with ⟨ix, iy⟩ | ⟨jx, jy⟩,
-  { exact or.inl ⟨ix, iy, rfl⟩ },
-  { exact or.inr ⟨jx, jy, rfl⟩ }
+  { apply hl },
+  { apply hr }
 end
 
-lemma right_moves_mul_cases {x y : pgame} (k : (x * y).right_moves) :
-  (∃ ix jy, k = to_right_moves_mul (sum.inl ⟨ix, jy⟩)) ∨
-  ∃ jx iy, k = to_right_moves_mul (sum.inr ⟨jx, iy⟩) :=
+lemma right_moves_mul_cases {x y : pgame} (k) {P : (x * y).right_moves → Prop}
+  (hl : ∀ ix jy, P $ to_right_moves_mul (sum.inl ⟨ix, jy⟩))
+  (hr : ∀ jx iy, P $ to_right_moves_mul (sum.inr ⟨jx, iy⟩)) : P k :=
 begin
   rw ←to_right_moves_mul.apply_symm_apply k,
-  rcases to_right_moves_mul.symm k with ⟨ix, jy⟩ | ⟨jx, iy⟩,
-  { exact or.inl ⟨ix, jy, rfl⟩ },
-  { exact or.inr ⟨jx, iy, rfl⟩ }
+  rcases to_right_moves_mul.symm k with ⟨ix, iy⟩ | ⟨jx, jy⟩,
+  { apply hl },
+  { apply hr }
 end
 
 theorem quot_mul_comm : Π (x y : pgame.{u}), ⟦x * y⟧ = ⟦y * x⟧

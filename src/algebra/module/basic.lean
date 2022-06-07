@@ -297,7 +297,7 @@ instance ring_hom.apply_distrib_mul_action [semiring R] : distrib_mul_action (R 
   f • a = f a := rfl
 
 /-- `ring_hom.apply_distrib_mul_action` is faithful. -/
-instance ring_hom.apply_has_faithful_scalar [semiring R] : has_faithful_scalar (R →+* R) R :=
+instance ring_hom.apply_has_faithful_smul [semiring R] : has_faithful_smul (R →+* R) R :=
 ⟨ring_hom.ext⟩
 
 section add_comm_monoid

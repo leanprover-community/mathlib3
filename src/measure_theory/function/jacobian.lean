@@ -891,10 +891,7 @@ begin
       rw ← this,
     end
   ... = ∫⁻ x in s, ennreal.of_real (|(f' x).det|) ∂μ + 2 * ε * μ s :
-    begin
-      rw lintegral_add' (ae_measurable_of_real_abs_det_fderiv_within μ hs hf') ae_measurable_const,
-      simp only [lintegral_const, measurable_set.univ, measure.restrict_apply, univ_inter],
-    end
+    by simp only [lintegral_add_right' _ ae_measurable_const, set_lintegral_const]
 end
 
 lemma add_haar_image_le_lintegral_abs_det_fderiv_aux2 (hs : measurable_set s) (h's : μ s ≠ ∞)
@@ -1034,11 +1031,10 @@ begin
                       ennreal.of_real_coe_nnreal]
     end
   ... = ∑' n, (ennreal.of_real (|(A n).det|) * μ (s ∩ t n) + ε * μ (s ∩ t n)) :
-    by simp only [measurable_const, lintegral_const, lintegral_add, measurable_set.univ,
-                  eq_self_iff_true, measure.restrict_apply, univ_inter]
+    by simp only [set_lintegral_const, lintegral_add_right _ measurable_const]
   ... ≤ ∑' n, ((μ (f '' (s ∩ t n)) + ε * μ (s ∩ t n)) + ε * μ (s ∩ t n)) :
     begin
-      refine ennreal.tsum_le_tsum (λ n, add_le_add _ le_rfl),
+      refine ennreal.tsum_le_tsum (λ n, add_le_add_right _ _),
       exact (hδ (A n)).2.2 _ _ (ht n),
     end
   ... = μ (f '' s) + 2 * ε * μ s :

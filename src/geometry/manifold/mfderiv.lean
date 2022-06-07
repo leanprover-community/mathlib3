@@ -1169,7 +1169,7 @@ begin
   { apply continuous_at.const_smul (hf x).1,
   exact has_continuous_smul.has_continuous_const_smul },
   apply differentiable_within_at.congr (differentiable_within_at.const_smul (hf x).2 s),
-  {intro x, simp },
+  { intro x, simp },
   { refl },
 end
 

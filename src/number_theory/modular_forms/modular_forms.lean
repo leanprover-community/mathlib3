@@ -90,7 +90,7 @@ begin
  simp,
 end
 
-lemma smul_slash_k (k : ℤ) (A : GL(2, ℝ)⁺) (f : ℍ → ℂ) (c : ℂ) : (c • f) ∣[k] A = c • (f ∣[k] A):=
+lemma smul_slash_k (k : ℤ) (A : GL(2, ℝ)⁺) (f : ℍ → ℂ) (c : ℂ) : (c • f) ∣[k] A = c • (f ∣[k] A) :=
 begin
   ext1,
   simp_rw slash_k,
@@ -122,7 +122,7 @@ end
 lemma slash_k_mul_SL2 (k1 k2 : ℤ) (A : SL(2,ℤ)) (f g : ℍ → ℂ) :
   (f * g) ∣[k1 + k2] A = (f ∣[k1] A) * (g ∣[k2] A) :=
 begin
-  have : (((↑ₘ(A : GL(2,ℝ)⁺)).det): ℝ) = 1,
+  have : (((↑ₘ(A : GL(2,ℝ)⁺)).det) : ℝ) = 1,
   { simp only [coe_coe,matrix.special_linear_group.coe_GL_pos_coe_GL_coe_matrix,
     matrix.special_linear_group.det_coe], },
   simp_rw [slash_k_mul, this, one_smul],
@@ -146,7 +146,7 @@ lemma wmodular_mem (k : ℤ) (Γ : subgroup SL(2,ℤ)) (f : ℍ → ℂ) :
 lemma slash_k_mul_subgroup (k1 k2 : ℤ) (Γ : subgroup SL(2,ℤ)) (A : Γ) (f g : ℍ → ℂ) :
   (f * g) ∣[k1+k2] A = (f ∣[k1] A) * (g ∣[k2] A) :=
 begin
-  have : (((↑ₘ(A : GL(2,ℝ)⁺)).det): ℝ) = 1,
+  have : (((↑ₘ(A : GL(2,ℝ)⁺)).det) : ℝ) = 1,
   by { simp only [coe_coe,matrix.special_linear_group.coe_GL_pos_coe_GL_coe_matrix,
     matrix.special_linear_group.det_coe], },
   simp_rw [slash_k_mul, this, one_smul],
@@ -323,8 +323,8 @@ localized "notation `M(`k`, `Γ`)`:= space_of_mod_forms_of_weight_and_level k Γ
 def space_of_cusp_forms_of_weight_and_level (k : ℤ) (Γ : subgroup SL(2,ℤ)) : submodule ℂ (ℍ → ℂ) :=
 { carrier := is_cusp_form_of_lvl_and_weight k Γ,
   zero_mem' := by apply zero_cusp_form,
-  add_mem' := by
-  { intros a b ha hb, split,
+  add_mem' := by { intros a b ha hb,
+    split,
     exact mdifferentiable_add _ _ ha.hol hb.hol,
     exact (weakly_modular_submodule k Γ).add_mem' ha.transf hb.transf,
     intro A, rw slash_k_add,
@@ -364,7 +364,7 @@ lemma const_one_form_is_invar (A : SL(2,ℤ)) : const_one_form ∣[0] A = const_
 begin
   rw [slash_k, const_one_form],
   dsimp only,
-  have : (((↑ₘ(A : GL(2,ℝ)⁺)).det): ℝ) = 1,
+  have : (((↑ₘ(A : GL(2,ℝ)⁺)).det) : ℝ) = 1,
   { simp only [coe_coe,
       matrix.special_linear_group.coe_GL_pos_coe_GL_coe_matrix,
       matrix.special_linear_group.det_coe],},

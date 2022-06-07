@@ -85,8 +85,8 @@ end
 variables {rα rβ}
 
 /-- If `a` is accessible under `rα` and `b` is accessible under `rβ`, then `(a, b)` is
-  accessible under `relation.game_add rα rβ`. Notice that `prod.lex_accessible` requires the stronger
-  condition `∀ b, acc rβ b`. -/
+  accessible under `relation.game_add rα rβ`. Notice that `prod.lex_accessible` requires the
+  stronger condition `∀ b, acc rβ b`. -/
 lemma _root_.acc.game_add {a b} (ha : acc rα a) (hb : acc rβ b) : acc (game_add rα rβ) (a, b) :=
 begin
   induction ha with a ha iha generalizing b,

@@ -119,8 +119,7 @@ end
 lemma factorization_choose_eq_zero_of_lt (h : n < p) :
   (choose n k).factorization p = 0 :=
 begin
-  by_cases hnk : n < k,
-  { rw [choose_eq_zero_of_lt hnk, factorization_zero, finsupp.coe_zero, pi.zero_apply] },
+  by_cases hnk : n < k, { simp [choose_eq_zero_of_lt hnk] },
   rw [choose_eq_factorial_div_factorial (le_of_not_lt hnk),
       factorization_div (factorial_mul_factorial_dvd_factorial (le_of_not_lt hnk)),
       finsupp.coe_tsub, pi.sub_apply, factorization_factorial_eq_zero_of_lt h, zero_tsub],

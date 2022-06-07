@@ -323,7 +323,7 @@ fun_like.congr_fun h x
 def mul_equiv_of_unique_of_unique {M N}
   [unique M] [unique N] [has_mul M] [has_mul N] : M ≃* N :=
 { map_mul' := λ _ _, subsingleton.elim _ _,
-  ..unique_equiv_unique M N }
+  ..equiv.unique_equiv_unique M N }
 
 /-- There is a unique monoid homomorphism between two monoids with a unique element. -/
 @[to_additive

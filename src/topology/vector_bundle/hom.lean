@@ -46,7 +46,8 @@ include F₁ F₂
 /-- The bundle of continuous `σ`-semilinear maps between the topological vector bundles `E₁` and
 `E₂`. This is a type synonym for `λ x, E₁ x →SL[σ] E₂ x`.
 
-We intentionally add `F₁` and `F₂` as arguments to this type, so that instances on this type (that depend on `F₁` and `F₂`) actually refer to `F₁` and `F₂`. -/
+We intentionally add `F₁` and `F₂` as arguments to this type, so that instances on this type
+(that depend on `F₁` and `F₂`) actually refer to `F₁` and `F₂`. -/
 @[derive inhabited, nolint unused_arguments]
 def bundle.continuous_linear_map (x : B) : Type* :=
 E₁ x →SL[σ] E₂ x

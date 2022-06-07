@@ -70,10 +70,7 @@ begin
   { refine integrable_of_is_O_exp_neg one_half_pos _ (Gamma_integrand_is_o _ ).is_O,
     refine continuous_on_id.neg.exp.mul (continuous_on_id.rpow_const _),
     intros x hx,
-    left,
-    rw mem_Ici at hx,
-    simp,
-    linarith, }
+    exact or.inl ((zero_lt_one : (0 : ℝ) < 1).trans_le hx).ne' }
 end
 
 lemma Gamma_integral_one : Gamma_integral 1 = 1 :=
@@ -178,7 +175,7 @@ begin
     apply continuous_at_cpow_const, rw of_real_re, exact or.inl hx.1, },
   rw ←has_finite_integral_norm_iff,
   simp_rw [norm_eq_abs, complex.abs_mul],
- refine (((real.Gamma_integral_convergent hs).mono_set
+  refine (((real.Gamma_integral_convergent hs).mono_set
     Ioc_subset_Ioi_self).has_finite_integral.congr _).const_mul _,
   rw [eventually_eq, ae_restrict_iff'],
   { apply ae_of_all, intros x hx,

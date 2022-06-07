@@ -269,12 +269,12 @@ uniform_continuous_inv.comp_cauchy_seq h
 @[to_additive] lemma tendsto_uniformly_on.mul {ι β : Type*} {l : filter ι} {f f' : ι → β → α}
   {g g' : β → α} {s : set β} (hf : tendsto_uniformly_on f g l s)
   (hf' : tendsto_uniformly_on f' g' l s) : tendsto_uniformly_on (f * f') (g * g') l s :=
-λ u hu, eventually_diag_of_eventually_prod (((hf.prod hf').comp' uniform_continuous_mul) u hu)
+λ u hu, (((hf.prod hf').comp' uniform_continuous_mul) u hu).diag_of_prod
 
 @[to_additive] lemma tendsto_uniformly_on.div {ι β : Type*} {l : filter ι} {f f' : ι → β → α}
   {g g' : β → α} {s : set β} (hf : tendsto_uniformly_on f g l s)
   (hf' : tendsto_uniformly_on f' g' l s) : tendsto_uniformly_on (f / f') (g / g') l s :=
-λ u hu, eventually_diag_of_eventually_prod (((hf.prod hf').comp' uniform_continuous_div) u hu)
+λ u hu, (((hf.prod hf').comp' uniform_continuous_div) u hu).diag_of_prod
 
 @[to_additive] lemma uniform_cauchy_seq_on.mul {ι β : Type*} {l : filter ι} {f f' : ι → β → α}
   {s : set β} (hf : uniform_cauchy_seq_on f l s)

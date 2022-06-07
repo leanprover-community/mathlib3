@@ -101,10 +101,10 @@ begin
   unfreezingI { rcases hs with ⟨_, _, _, _, sL, sR, hl, hr⟩ },
   rw [birthday, max_lt_iff],
   split, all_goals
-  { rw ←cardinal.ord_omega,
-    refine cardinal.lsub_lt_ord_of_is_regular.{u u} cardinal.is_regular_omega
-      (cardinal.lt_omega_of_fintype _) (λ i, _),
-    rw cardinal.ord_omega,
+  { rw ←cardinal.ord_aleph_0,
+    refine cardinal.lsub_lt_ord_of_is_regular.{u u} cardinal.is_regular_aleph_0
+      (cardinal.lt_aleph_0_of_fintype _) (λ i, _),
+    rw cardinal.ord_aleph_0,
     apply short_birthday _ },
   { exact move_left_short' xL xR i },
   { exact move_right_short' xL xR i }

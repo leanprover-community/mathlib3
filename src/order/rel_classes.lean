@@ -86,6 +86,8 @@ lemma ne_of_irrefl' {r} [is_irrefl α r] : ∀ {x y : α}, r x y → y ≠ x | _
 lemma not_rel (r x y) [is_irrefl α r] [subsingleton α] : ¬ r x y :=
 by { rw subsingleton.elim x y, apply irrefl }
 
+instance : is_irrefl α empty_relation := ⟨λ a, id⟩
+
 lemma trans_trichotomous_left [is_trans α r] [is_trichotomous α r] {a b c : α} :
   ¬r b a → r b c → r a c :=
 begin

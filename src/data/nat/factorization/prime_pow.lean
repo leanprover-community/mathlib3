@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
 import algebra.is_prime_pow
-import data.nat.factorization
+import data.nat.factorization.basic
 
 /-!
 # Prime powers and factorizations

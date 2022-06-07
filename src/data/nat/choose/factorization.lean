@@ -72,7 +72,7 @@ begin
   cases em' p.prime with hp hp,
   { exact factorization_eq_zero_of_non_prime (choose n k) hp },
   cases lt_or_le n k with hnk hkn,
-  { simp [choose_eq_zero_of_lt hnk] }
+  { simp [choose_eq_zero_of_lt hnk] },
   rw [←@padic_val_nat_eq_factorization p _ ⟨hp⟩, @padic_val_nat_def _ ⟨hp⟩ _ (choose_pos hkn)],
   simp only [hp.multiplicity_choose hkn (lt_add_one _), enat.get_coe,
     finset.card_eq_zero, finset.filter_eq_empty_iff, not_le],
@@ -104,9 +104,6 @@ begin
   { rintro rfl, linarith },
   { rw [two_mul, add_tsub_cancel_left] },
 end
-
-lemma factorization_eq_zero_of_lt (h : n < p) : n.factorization p = 0 :=
-finsupp.not_mem_support_iff.mp (mt le_of_mem_factorization (not_le_of_lt h))
 
 lemma factorization_factorial_eq_zero_of_lt (h : n < p) :
   (factorial n).factorization p = 0 :=

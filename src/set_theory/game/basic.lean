@@ -70,11 +70,11 @@ quotient.lift₂ lf (λ x₁ y₁ x₂ y₂ hx hy, propext (lf_congr hx hy))
 
 local infix ` ⧏ `:50 := lf
 
-/-- On `pgame`, simp-normal inequalities should use as few negations as possible. -/
+/-- On `game`, simp-normal inequalities should use as few negations as possible. -/
 @[simp] theorem not_le : ∀ {x y : game}, ¬ x ≤ y ↔ y ⧏ x :=
 by { rintro ⟨x⟩ ⟨y⟩, exact pgame.not_le }
 
-/-- On `pgame`, simp-normal inequalities should use as few negations as possible. -/
+/-- On `game`, simp-normal inequalities should use as few negations as possible. -/
 @[simp] theorem not_lf : ∀ {x y : game}, ¬ x ⧏ y ↔ y ≤ x :=
 by { rintro ⟨x⟩ ⟨y⟩, exact pgame.not_lf }
 
@@ -161,16 +161,16 @@ theorem right_moves_mul : ∀ (x y : pgame.{u}), (x * y).right_moves
 
 Even though these types are the same (not definitionally so), this is the preferred way to convert
 between them. -/
-def to_left_moves_mul {x y : pgame} : x.left_moves × y.left_moves ⊕ x.right_moves × y.right_moves
-  ≃ (x * y).left_moves :=
+def to_left_moves_mul {x y : pgame} :
+  x.left_moves × y.left_moves ⊕ x.right_moves × y.right_moves ≃ (x * y).left_moves :=
 equiv.cast (left_moves_mul x y).symm
 
 /-- Turns a left and a right move for `x` and `y` into a right move for `x * y` and vice versa.
 
 Even though these types are the same (not definitionally so), this is the preferred way to convert
 between them. -/
-def to_right_moves_mul {x y : pgame} : x.left_moves × y.right_moves ⊕ x.right_moves × y.left_moves
-  ≃ (x * y).right_moves :=
+def to_right_moves_mul {x y : pgame} :
+  x.left_moves × y.right_moves ⊕ x.right_moves × y.left_moves ≃ (x * y).right_moves :=
 equiv.cast (right_moves_mul x y).symm
 
 @[simp] lemma mk_mul_move_left_inl {xl xr yl yr} {xL xR yL yR} {i j} :
@@ -204,7 +204,7 @@ rfl
 by { cases x, cases y, refl }
 
 @[simp] lemma mk_mul_move_right_inr {xl xr yl yr} {xL xR yL yR} {i j} :
-  (mk xl xr xL xR * mk yl yr yL yR).move_right (sum.inr (i,j))
+  (mk xl xr xL xR * mk yl yr yL yR).move_right (sum.inr (i, j))
   = xR i * (mk yl yr yL yR) + (mk xl xr xL xR) * yL j - xR i * yL j :=
 rfl
 

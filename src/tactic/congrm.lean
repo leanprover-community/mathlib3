@@ -91,7 +91,7 @@ private meta def extract_subgoals : list expr → list congr_arg_kind → list e
 | (_ :: _ :: prf_args)      (congr_arg_kind.cast :: kinds)           (_ :: pat_args) :=
   extract_subgoals prf_args kinds pat_args
 | _ _ [] := pure []
-| cl ck pat := trace cl >> trace ck >> trace pat >> fail "unsupported congr lemma"
+| _ _ _ := fail "unsupported congr lemma"
 
 /--
 `equate_with_pattern_core pat` solves a single goal of the form `lhs = rhs`
@@ -114,6 +114,7 @@ else if pat.is_app then do
   [prf] ← get_goals,
   apply H_congr_lemma <|> fail "could not apply congr_lemma",
   all_goals' $ try $ clear H_congr_lemma,  -- given the `set_goals []` that follows, is this needed?
+  set_goals [],
   prf ← instantiate_mvars prf,
   subgoals ← extract_subgoals prf.get_app_args cl.arg_kinds pat.get_app_args,
   subgoals ← subgoals.mmap (λ ⟨subgoal, subpat⟩, do
@@ -129,7 +130,6 @@ else if pat.is_pi then do
   x ← intro pat.binding_name,
   equate_with_pattern_core $ pat.pi_codomain.instantiate_var x
 else do
-  infer_type pat >>= trace,
   pat ← pp pat,
   fail $ to_fmt "unsupported pattern:\n" ++ pat
 
@@ -179,7 +179,6 @@ meta def congrm (arg : parse texpr) : tactic unit := do
 try $ applyc ``_root_.eq.to_iff,
 `(@eq %%ty _ _) ← target | fail "congrm: goal must be an equality or iff",
 ta ← to_expr ``((%%arg : %%ty)) tt ff,
-pp_ta ← pp ta,
 equate_with_pattern ta
 
 add_tactic_doc

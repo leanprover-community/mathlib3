@@ -624,15 +624,15 @@ end
 theorem supr_le_sum {ι} (f : ι → cardinal) : supr f ≤ sum f :=
 csupr_le' $ le_sum _
 
-theorem sum_le_supr {ι : Type u} (f : ι → cardinal.{u}) : sum f ≤ #ι * supr f :=
-by { rw ←sum_const', exact sum_le_sum _ _ (le_csupr $ bdd_above_range.{u u} f) }
-
 theorem sum_le_supr_lift {ι : Type u} (f : ι → cardinal.{max u v}) :
   sum f ≤ (#ι).lift * supr f :=
 begin
   rw [←(supr f).lift_id, ←lift_umax, lift_umax.{(max u v) u}, ←sum_const],
   exact sum_le_sum _ _ (le_csupr $ bdd_above_range.{u v} f)
 end
+
+theorem sum_le_supr {ι : Type u} (f : ι → cardinal.{u}) : sum f ≤ #ι * supr f :=
+by { rw ←lift_id (#ι), exact sum_le_supr_lift f }
 
 theorem sum_nat_eq_add_sum_succ (f : ℕ → cardinal.{u}) :
   cardinal.sum f = f 0 + cardinal.sum (λ i, f (i + 1)) :=

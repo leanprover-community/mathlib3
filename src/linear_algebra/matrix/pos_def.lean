@@ -13,21 +13,21 @@ quadratic forms.
 
 ## Main definition
 
- * `matrix.pos_def` : a matrix `M : matrix n n 𝕜` is positive definite if it is hermitian
+ * `matrix.pos_def` : a matrix `M : matrix n n R` is positive definite if it is hermitian
    and `xᴴMx` is greater than zero for all nonzero `x`.
 
 -/
 
 namespace matrix
 
-variables {𝕜 : Type*} [is_R_or_C 𝕜] {n : Type*} [fintype n]
+variables {R : Type*} [ordered_semiring R] [star_ring R] {n : Type*} [fintype n]
 
-local notation `⟪`x`, `y`⟫` := @inner 𝕜 (pi_Lp 2 (λ (_ : n), 𝕜)) _ x y
+open_locale matrix
 
-/-- A matrix `M : matrix n n 𝕜` is positive definite if it is hermitian
+/-- A matrix `M : matrix n n R` is positive definite if it is hermitian
    and `xᴴMx` is greater than zero for all nonzero `x`. -/
-def pos_def (M : matrix n n 𝕜) :=
-M.is_hermitian ∧ ∀ x : n → 𝕜, x ≠ 0 → (0 : ℝ) < is_R_or_C.re ⟪x, M.mul_vec x⟫
+def pos_def (M : matrix n n R) :=
+M.is_hermitian ∧ ∀ x : n → R, x ≠ 0 → 0 < dot_product (star x) (M.mul_vec x)
 
 lemma pos_def_of_to_quadratic_form' [decidable_eq n] {M : matrix n n ℝ}
   (hM : M.is_symm) (hMq : M.to_quadratic_form'.pos_def) :

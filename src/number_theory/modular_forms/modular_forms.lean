@@ -152,7 +152,7 @@ begin
   simp_rw [slash_k_mul, this, one_smul],
 end
 
-/--A function `f : ℍ → ℂ` is modular, of level `Γ` and weight `k ∈ ℤ`, if for every matrix in
+/--A function `f : ℍ → ℂ` is modular, of  weight `k ∈ ℤ` and level `Γ`, if for every matrix in
  `γ ∈ Γ` we have `f(γ • z)= (c*z+d)^k f(z)` where `γ= ![![a, b], ![c, d]]`,
  and it acts on `ℍ` via Moebius trainsformations. -/
 @[simp]
@@ -205,7 +205,7 @@ begin
   ring,
 end
 
-/--Fileter for approaching `i∞`-/
+/--Filter for approaching `i∞`-/
 def at_I_inf := filter.at_top.comap upper_half_plane.im
 
 lemma at_I_inf_mem (S : set ℍ) : S ∈ at_I_inf ↔ (∃ A : ℝ, ∀ z : ℍ, A ≤ im z → z ∈ S) :=
@@ -261,14 +261,14 @@ begin
   simp [is_bound_at_inf, asymptotics.is_O_iff, filter.eventually, at_I_inf_mem],
 end
 
-/-- A function `f : ℍ → ℂ` is a modular form of level `Γ` and weight `k ∈ ℤ` if it is holomorphic,
+/-- A function `f : ℍ → ℂ` is a modular form weight `k ∈ ℤ` and of level `Γ`  if it is holomorphic,
  weakly modular and bounded at infinity -/
 structure is_modular_form_of_weight_and_level (k : ℤ) (Γ : subgroup SL(2,ℤ)) (f : ℍ → ℂ) : Prop :=
   (hol : mdifferentiable 𝓘(ℂ) 𝓘(ℂ) (↑f : ℍ' → ℂ))
   (transf : f ∈ weakly_modular_submodule k Γ)
   (infinity : ∀ (A : SL(2,ℤ)), is_bound_at_inf (f ∣[k] A))
 
-/-- A function `f : ℍ → ℂ` is a cusp form of level one and weight `k ∈ ℤ` if it is holomorphic,
+/-- A function `f : ℍ → ℂ` is a cusp form of weight `k ∈ ℤ`  and of level `Γ` if it is holomorphic,
  weakly modular, and zero at infinity -/
 structure is_cusp_form_of_lvl_and_weight (k : ℤ) (Γ : subgroup SL(2,ℤ)) (f : ℍ → ℂ) : Prop :=
   (hol : mdifferentiable 𝓘(ℂ) 𝓘(ℂ) (↑f : ℍ' → ℂ))

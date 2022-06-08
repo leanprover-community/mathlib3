@@ -404,9 +404,10 @@ lemma coe_unit_group_mul_equiv_symm_apply (a : Aˣ) :
   (A.unit_group_mul_equiv.symm a : K) = a := rfl
 
 lemma unit_group_le_unit_group {A B : valuation_subring K} :
-  A.unit_group ≤ B.unit_group → A ≤ B :=
+  A.unit_group ≤ B.unit_group ↔ A ≤ B :=
 begin
-  rintros h x hx,
+  split,
+  { rintros h x hx,
     rw [← A.valuation_le_one_iff x, le_iff_lt_or_eq] at hx,
     by_cases h_1 : x = 0, { simp only [h_1, zero_mem] },
     by_cases h_2 : 1 + x = 0,
@@ -417,21 +418,17 @@ begin
         (show 1 + x ∈ B, from set_like.coe_mem ((B.unit_group_mul_equiv ⟨_, this⟩) : B))
         (B.neg_mem _ B.one_mem) },
     { have := h (show (units.mk0 x h_1) ∈ A.unit_group, from hx),
-      refine set_like.coe_mem ((B.unit_group_mul_equiv ⟨_, this⟩) : B) }
+      refine set_like.coe_mem ((B.unit_group_mul_equiv ⟨_, this⟩) : B) } },
+  { rintros h x (hx : A.valuation x = 1),
+    apply_fun A.map_of_le B h at hx,
+    simpa using hx }
 end
 
 /-- The map on valuation subrings to their unit groups is an order embedding. -/
 def unit_group_order_embedding : valuation_subring K ↪o subgroup Kˣ :=
 { to_fun := λ A, A.unit_group,
   inj' := unit_group_injective,
-  map_rel_iff' := begin
-    intros A B,
-    split,
-    { exact unit_group_le_unit_group },
-    { rintros h x (hx : A.valuation x = 1),
-      apply_fun A.map_of_le B h at hx,
-      simpa using hx }
-  end }
+  map_rel_iff' := λ A B, unit_group_le_unit_group }
 
 lemma unit_group_strict_mono : strict_mono (unit_group : valuation_subring K → subgroup _) :=
 unit_group_order_embedding.strict_mono

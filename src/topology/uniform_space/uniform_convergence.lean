@@ -209,12 +209,8 @@ lemma filter.tendsto.tendsto_uniformly_on_const
   {g : ι → β} {b : β} (hg : tendsto g p (𝓝 b)) (s : set α) :
   tendsto_uniformly_on (λ n : ι, λ a : α, g n) (λ a : α, b) p s :=
 begin
-  by_cases hs : s = ∅,
-  { rw hs, exact tendsto_uniformly_on_empty, },
-  have hs : s.nonempty,
-  { by_contradiction H,
-    rw set.not_nonempty_iff_eq_empty at H,
-    exact hs H, },
+  rcases set.eq_empty_or_nonempty s with rfl | hs,
+  { exact tendsto_uniformly_on_empty, },
 
   intros u hu,
   rw tendsto_iff_eventually at hg,

@@ -338,6 +338,13 @@ le_trans (Sup_le_Sup h) (le_of_eq (trans Sup_insert bot_sup_eq))
 theorem Inf_le_Inf_of_subset_insert_top (h : s ⊆ insert ⊤ t) : Inf t ≤ Inf s :=
 le_trans (le_of_eq (trans top_inf_eq.symm Inf_insert.symm)) (Inf_le_Inf h)
 
+@[simp] theorem Sup_diff_singleton_bot (s : set α) : Sup (s \ {⊥}) = Sup s :=
+(Sup_le_Sup (diff_subset _ _)).antisymm $ Sup_le_Sup_of_subset_insert_bot $
+  subset_insert_diff_singleton _ _
+
+@[simp] theorem Inf_diff_singleton_top (s : set α) : Inf (s \ {⊤}) = Inf s :=
+@Sup_diff_singleton_bot αᵒᵈ _ s
+
 theorem Sup_pair {a b : α} : Sup {a, b} = a ⊔ b :=
 (@is_lub_pair α _ a b).Sup_eq
 
@@ -543,6 +550,9 @@ le_infi₂ $ λ i j, let ⟨i', j', h⟩ := h i j in infi₂_le_of_le i' j' h
 
 lemma supr_const_mono (h : ι → ι') : (⨆ i : ι, a) ≤ ⨆ j : ι', a := supr_le $ le_supr _ ∘ h
 lemma infi_const_mono (h : ι' → ι) : (⨅ i : ι, a) ≤ ⨅ j : ι', a := le_infi $ infi_le _ ∘ h
+
+lemma supr_infi_le_infi_supr (f : ι → ι' → α) : (⨆ i, ⨅ j, f i j) ≤ (⨅ j, ⨆ i, f i j) :=
+supr_le $ λ i, infi_mono $ λ j, le_supr _ i
 
 lemma bsupr_mono {p q : ι → Prop} (hpq : ∀ i, p i → q i) :
   (⨆ i (h : p i), f i) ≤ ⨆ i (h : q i), f i :=
@@ -1085,7 +1095,7 @@ lemma infi_ne_top_subtype (f : ι → α) : (⨅ i : {i // f i ≠ ⊤}, f i) = 
 ### `supr` and `infi` under `ℕ`
 -/
 
-lemma supr_ge_eq_supr_nat_add {u : ℕ → α} (n : ℕ) : (⨆ i ≥ n, u i) = ⨆ i, u (i + n) :=
+lemma supr_ge_eq_supr_nat_add (u : ℕ → α) (n : ℕ) : (⨆ i ≥ n, u i) = ⨆ i, u (i + n) :=
 begin
   apply le_antisymm;
   simp only [supr_le_iff],
@@ -1093,12 +1103,16 @@ begin
   { exact λ i, le_Sup ⟨i + n, supr_pos (nat.le_add_left _ _)⟩ }
 end
 
-lemma infi_ge_eq_infi_nat_add {u : ℕ → α} (n : ℕ) : (⨅ i ≥ n, u i) = ⨅ i, u (i + n) :=
+lemma infi_ge_eq_infi_nat_add (u : ℕ → α) (n : ℕ) : (⨅ i ≥ n, u i) = ⨅ i, u (i + n) :=
 @supr_ge_eq_supr_nat_add αᵒᵈ _ _ _
 
 lemma monotone.supr_nat_add {f : ℕ → α} (hf : monotone f) (k : ℕ) :
   (⨆ n, f (n + k)) = ⨆ n, f n :=
 le_antisymm (supr_le $ λ i, le_supr _ (i + k)) $ supr_mono $ λ i, hf $ nat.le_add_right i k
+
+lemma antitone.infi_nat_add {f : ℕ → α} (hf : antitone f) (k : ℕ) :
+  (⨅ n, f (n + k)) = ⨅ n, f n :=
+hf.dual_right.supr_nat_add k
 
 @[simp] lemma supr_infi_ge_nat_add (f : ℕ → α) (k : ℕ) :
   (⨆ n, ⨅ i ≥ n, f (i + k)) = ⨆ n, ⨅ i ≥ n, f i :=
@@ -1254,6 +1268,12 @@ supr₂_le $ λ i h, inf_le_inf_left _ (le_Sup h)
 /-- This is a weaker version of `Sup_inf_eq` -/
 lemma supr_inf_le_Sup_inf : (⨆ b ∈ s, b ⊓ a) ≤ Sup s ⊓ a :=
 supr₂_le $ λ i h, inf_le_inf_right _ (le_Sup h)
+
+lemma le_supr_inf_supr (f g : ι → α) : (⨆ i, f i ⊓ g i) ≤ (⨆ i, f i) ⊓ (⨆ i, g i) :=
+le_inf (supr_mono $ λ i, inf_le_left) (supr_mono $ λ i, inf_le_right)
+
+lemma infi_sup_infi_le (f g : ι → α) : (⨅ i, f i) ⊔ (⨅ i, g i) ≤ ⨅ i, f i ⊔ g i :=
+@le_supr_inf_supr αᵒᵈ ι _ f g
 
 lemma disjoint_Sup_left {a : set α} {b : α} (d : disjoint (Sup a) b) {i} (hi : i ∈ a) :
   disjoint i b :=

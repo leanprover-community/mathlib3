@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import linear_algebra.basic
-import linear_algebra.matrix.to_lin
 import algebra.algebra.basic
 import algebra.big_operators.order
 import algebra.big_operators.ring
@@ -1286,29 +1285,5 @@ def range [nonempty ι] (f : multilinear_map R M₁ M₂) : sub_mul_action R M�
 f.map (λ i, ⊤)
 
 end submodule
-
-section finite_dimensional
-
-variables [fintype ι] [field R] [add_comm_group M₂] [module R M₂] [finite_dimensional R M₂]
-variables [∀ i, add_comm_group (M₁ i)] [∀ i, module R (M₁ i)] [∀ i, finite_dimensional R (M₁ i)]
-
-instance : finite_dimensional R (multilinear_map R M₁ M₂) :=
-begin
-  suffices : ∀ n (N : fin n → Type*) [∀ i, add_comm_group (N i)],
-    by exactI ∀ [∀ i, module R (N i)], by exactI ∀ [∀ i, finite_dimensional R (N i)],
-    finite_dimensional R (multilinear_map R N M₂),
-  { haveI := this _ (M₁ ∘ (fintype.equiv_fin ι).symm),
-    have e := dom_dom_congr_linear_equiv' R M₁ M₂ (fintype.equiv_fin ι),
-    exact e.symm.finite_dimensional, },
-  intros,
-  induction n with n ih,
-  { exactI (const_linear_equiv_of_is_empty R N M₂ : _).finite_dimensional, },
-  { resetI,
-    suffices : finite_dimensional R (N 0 →ₗ[R] multilinear_map R (λ (i : fin n), N i.succ) M₂),
-    { exact (multilinear_curry_left_equiv R N M₂).finite_dimensional, },
-    apply linear_map.finite_dimensional, },
-end
-
-end finite_dimensional
 
 end multilinear_map

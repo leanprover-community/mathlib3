@@ -3,8 +3,8 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
-import algebra.ring.basic
 import algebra.group.opposite
+import algebra.hom.ring
 
 /-!
 # Ring structures on the multiplicative opposite
@@ -91,8 +91,8 @@ end mul_opposite
 namespace add_opposite
 
 instance [distrib α] : distrib αᵃᵒᵖ :=
-{ left_distrib := λ x y z, unop_injective $ mul_add x _ _,
-  right_distrib := λ x y z, unop_injective $ add_mul _ _ z,
+{ left_distrib := λ x y z, unop_injective $ @mul_add α _ _ _ x z y,
+  right_distrib := λ x y z, unop_injective $ @add_mul α _ _ _ y x z,
   .. add_opposite.has_add α, .. @add_opposite.has_mul α _}
 
 instance [mul_zero_class α] : mul_zero_class αᵃᵒᵖ :=

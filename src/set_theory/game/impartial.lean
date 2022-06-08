@@ -5,7 +5,6 @@ Authors: Fox Thomson
 -/
 import set_theory.game.winner
 import tactic.nth_rewrite.default
-import tactic.equiv_rw
 
 /-!
 # Basic definitions about impartial (pre-)games
@@ -64,7 +63,7 @@ theorem impartial_congr : ∀ {G H : pgame} (e : relabelling G H) [G.impartial],
 | G H e := begin
   introI h,
   rw impartial_def,
-  refine ⟨equiv_trans e.symm.equiv (equiv_trans (neg_equiv_self G) (neg_congr e.equiv)),
+  refine ⟨e.symm.equiv.trans ((neg_equiv_self G).trans (neg_congr e.equiv)),
     λ i, _, λ j, _⟩;
   cases e with _ _ L R hL hR,
   { convert impartial_congr (hL (L.symm i)),
@@ -78,17 +77,16 @@ instance impartial_add : ∀ (G H : pgame) [G.impartial] [H.impartial], (G + H).
 begin
   introsI hG hH,
   rw impartial_def,
-  split,
-  { apply equiv_trans _ (neg_add_relabelling G H).equiv.symm,
-    exact add_congr (neg_equiv_self _) (neg_equiv_self _) },
-  split,
-  all_goals
-  { intro i,
-    equiv_rw pgame.left_moves_add G H at i <|> equiv_rw pgame.right_moves_add G H at i,
-    cases i },
-  all_goals
-  { simp only [add_move_left_inl, add_move_right_inl, add_move_left_inr, add_move_right_inr],
-    exact impartial_add _ _ }
+  refine ⟨(add_congr (neg_equiv_self _) (neg_equiv_self _)).trans
+    (neg_add_relabelling _ _).equiv.symm, λ k, _, λ k, _⟩,
+  { apply left_moves_add_cases k,
+    all_goals
+    { intro i, simp only [add_move_left_inl, add_move_left_inr],
+      apply impartial_add } },
+  { apply right_moves_add_cases k,
+    all_goals
+    { intro i, simp only [add_move_right_inl, add_move_right_inr],
+      apply impartial_add } }
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 
@@ -110,14 +108,14 @@ using_well_founded { dec_tac := pgame_wf_tac }
 lemma nonpos (G : pgame) [G.impartial] : ¬ 0 < G :=
 λ h, begin
   have h' := neg_lt_iff.2 h,
-  rw [pgame.neg_zero, lt_congr_left (equiv_symm (neg_equiv_self G))] at h',
+  rw [pgame.neg_zero, lt_congr_left (neg_equiv_self G).symm] at h',
   exact (h.trans h').false
 end
 
 lemma nonneg (G : pgame) [G.impartial] : ¬ G < 0 :=
 λ h, begin
   have h' := neg_lt_iff.2 h,
-  rw [pgame.neg_zero, lt_congr_right (equiv_symm (neg_equiv_self G))] at h',
+  rw [pgame.neg_zero, lt_congr_right (neg_equiv_self G).symm] at h',
   exact (h.trans h').false
 end
 
@@ -140,7 +138,7 @@ lemma not_first_loses (G : pgame) [G.impartial] : ¬G.first_loses ↔ G.first_wi
 iff.symm $ iff_not_comm.1 $ iff.symm $ not_first_wins G
 
 lemma add_self (G : pgame) [G.impartial] : (G + G).first_loses :=
-first_loses_is_zero.2 $ equiv_trans (add_congr_left (neg_equiv_self G)) (add_left_neg_equiv G)
+first_loses_is_zero.2 $ (add_congr_left (neg_equiv_self G)).trans (add_left_neg_equiv G)
 
 lemma equiv_iff_sum_first_loses (G H : pgame) [G.impartial] [H.impartial] :
   G ≈ H ↔ (G + H).first_loses :=
@@ -180,10 +178,10 @@ lemma no_good_left_moves_iff_first_loses (G : pgame) [G.impartial] :
   (∀ (i : G.left_moves), (G.move_left i).first_wins) ↔ G.first_loses :=
 begin
   refine ⟨λ hb, _, λ hp i, _⟩,
-  { rw [first_loses_symm G, le_def_lf],
+  { rw [first_loses_symm G, le_iff_forall_lf],
     exact ⟨λ i, (hb i).1, is_empty_elim⟩ },
   { rw first_wins_symm,
-    exact (le_def_lf.1 $ (first_loses_symm G).1 hp).1 i }
+    exact (le_iff_forall_lf.1 $ (first_loses_symm G).1 hp).1 i }
 end
 
 lemma no_good_right_moves_iff_first_loses (G : pgame) [G.impartial] :
@@ -202,8 +200,8 @@ end
 lemma good_left_move_iff_first_wins (G : pgame) [G.impartial] :
   (∃ (i : G.left_moves), (G.move_left i).first_loses) ↔ G.first_wins :=
 begin
-  refine ⟨λ ⟨i, hi⟩, (first_wins_symm' G).2 (lf_def_le.2 $ or.inl ⟨i, hi.2⟩), λ hn, _⟩,
-  rw [first_wins_symm' G, lf_def_le] at hn,
+  refine ⟨λ ⟨i, hi⟩, (first_wins_symm' G).2 (lf_of_forall_le $ or.inl ⟨i, hi.2⟩), λ hn, _⟩,
+  rw [first_wins_symm' G, lf_iff_forall_le] at hn,
   rcases hn with ⟨i, hi⟩ | ⟨j, _⟩,
   { exact ⟨i, (first_loses_symm' _).2 hi⟩ },
   { exact pempty.elim j }
@@ -212,8 +210,8 @@ end
 lemma good_right_move_iff_first_wins (G : pgame) [G.impartial] :
   (∃ j : G.right_moves, (G.move_right j).first_loses) ↔ G.first_wins :=
 begin
-  refine ⟨λ ⟨j, hj⟩, (first_wins_symm G).2 (lf_def_le.2 $ or.inr ⟨j, hj.1⟩), λ hn, _⟩,
-  rw [first_wins_symm G, lf_def_le] at hn,
+  refine ⟨λ ⟨j, hj⟩, (first_wins_symm G).2 (lf_of_forall_le $ or.inr ⟨j, hj.1⟩), λ hn, _⟩,
+  rw [first_wins_symm G, lf_iff_forall_le] at hn,
   rcases hn with ⟨i, _⟩ | ⟨j, hj⟩,
   { exact pempty.elim i },
   { exact ⟨j, (first_loses_symm _).2 hj⟩ }

@@ -5,7 +5,13 @@ Authors: Gabriel Ebner, Damiano Testa
 -/
 import tactic.interactive
 
-/-!  `congrm`: `congr` with pattern-matching -/
+/-! `congrm`: `congr` with pattern-matching
+
+`congrm e` gives to the use the functionality of using `congr` with an expression `e` "guiding"
+`congr` through the matching.  This allows more flexibility than `congr' n`, which enters uniformly
+through `n` iterations.  Instead, we can guide the matching deeper on some parts of the expression
+and stop earlier on other parts.
+-/
 
 namespace tactic
 
@@ -49,8 +55,8 @@ else if pat.is_app then do
   cl ← mk_specialized_congr_lemma pat,
   H_congr_lemma ← assertv `H_congr_lemma cl.type cl.proof,
   [prf] ← get_goals,
-  apply H_congr_lemma,
-  all_goals' $ try $ clear H_congr_lemma,
+  apply H_congr_lemma <|> fail "could not apply congr_lemma",
+  all_goals' $ try $ clear H_congr_lemma,  -- given the `set_goals []` that follows, is this needed?
   set_goals [],
   prf ← instantiate_mvars prf,
   subgoals ← extract_subgoals prf.get_app_args cl.arg_kinds pat.get_app_args,
@@ -90,16 +96,17 @@ setup_tactic_parser
 /--
 `congrm e` assumes that the goal is of the form `lhs = rhs` or `lhs ↔ rhs`.
 `congrm e` scans `e, lhs, rhs` in parallel.
-Assuming that the three expressions are successions of function applications, `congrm e`
-uses `e` as a pattern to decide what to do in corresponding places of `lhs` and `rhs`.
+Assuming that the three expressions are successions of function applications, lambdas or pis,
+`congrm e` uses `e` as a pattern to decide what to do in corresponding places of `lhs` and `rhs`.
 
 If `e` has a meta-variable in a location, then the tactic produces a side-goal with
 the equality of the corresponding locations in `lhs, rhs`.
 
-If `e` is a function application, it applies the automatically generateed congruence lemma
+If `e` is a function application, `congrm` applies the automatically generated congruence lemma
 (like `tactic.congr`).
 
-If `e` is a lambda abstraction, it applies `funext`.  If `e` is a pi, it applies `pi_congr`.
+If `e` is a lambda abstraction, `congrm` applies `funext`.
+If `e` is a pi, `congrm` applies `pi_congr`.
 
 Subexpressions that are defeq or whose type is a subsingleton are skipped.
 

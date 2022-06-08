@@ -26,7 +26,7 @@ open_locale big_operators
 
 @[simp] lemma eval_one_cyclotomic_prime {R : Type*} [comm_ring R] {p : ℕ} [hn : fact p.prime] :
   eval 1 (cyclotomic p R) = p :=
-by simp only [cyclotomic_eq_geom_sum hn.out, geom_sum_def, eval_X, one_pow, sum_const, eval_pow,
+by simp only [cyclotomic_eq_geom_sum hn.out, eval_X, one_pow, sum_const, eval_pow,
               eval_finset_sum, card_range, smul_one_eq_coe]
 
 @[simp] lemma eval₂_one_cyclotomic_prime {R S : Type*} [comm_ring R] [semiring S] (f : R →+* S)
@@ -35,7 +35,7 @@ by simp
 
 @[simp] lemma eval_one_cyclotomic_prime_pow {R : Type*} [comm_ring R] {p : ℕ} (k : ℕ)
   [hn : fact p.prime] : eval 1 (cyclotomic (p ^ (k + 1)) R) = p :=
-by simp only [cyclotomic_prime_pow_eq_geom_sum hn.out, geom_sum_def, eval_X, one_pow, sum_const,
+by simp only [cyclotomic_prime_pow_eq_geom_sum hn.out, eval_X, one_pow, sum_const,
               eval_pow, eval_finset_sum, card_range, smul_one_eq_coe]
 
 @[simp] lemma eval₂_one_cyclotomic_prime_pow {R S : Type*} [comm_ring R] [semiring S] (f : R →+* S)
@@ -77,7 +77,7 @@ begin
   { simp only [lt_self_iff_false, mem_sdiff, not_false_iff, mem_proper_divisors, and_false,
       false_and]},
   { simpa only [mem_singleton] using hn''.ne' },
-  rcases lt_trichotomy 0 (geom_sum x n) with h | h | h,
+  rcases lt_trichotomy 0 (∑ i in range n, x ^ i) with h | h | h,
   { apply pos_of_mul_pos_right,
     { rwa this },
     rw eval_prod,

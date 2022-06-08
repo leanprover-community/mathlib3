@@ -119,7 +119,7 @@ end
 lemma gauge_le_of_mem (ha : 0 ≤ a) (hx : x ∈ a • s) : gauge s x ≤ a :=
 begin
   obtain rfl | ha' := ha.eq_or_lt,
-  { rw [mem_singleton_iff.1 (zero_smul_subset _ hx), gauge_zero] },
+  { rw [mem_singleton_iff.1 (zero_smul_set_subset _ hx), gauge_zero] },
   { exact cInf_le gauge_set_bdd_below ⟨ha', hx⟩ }
 end
 
@@ -256,7 +256,7 @@ lemma gauge_smul_left_of_nonneg [mul_action_with_zero α E] [smul_comm_class α 
   gauge (a • s) = a⁻¹ • gauge s :=
 begin
   obtain rfl | ha' := ha.eq_or_lt,
-  { rw [inv_zero, zero_smul, gauge_of_subset_zero (zero_smul_subset _)] },
+  { rw [inv_zero, zero_smul, gauge_of_subset_zero (zero_smul_set_subset _)] },
   ext,
   rw [gauge_def', pi.smul_apply, gauge_def', ←real.Inf_smul_of_nonneg (inv_nonneg.2 ha)],
   congr' 1,
@@ -432,7 +432,7 @@ begin
     (absorbent_ball_zero zero_lt_one).absorbs (λ h, _),
   obtain hx' | hx' := eq_or_ne (∥x∥) 0,
   { rw hx' at h,
-    exact hx (zero_smul_subset _ h) },
+    exact hx (zero_smul_set_subset _ h) },
   { rw [mem_smul_set_iff_inv_smul_mem₀ hx', mem_ball_zero_iff, norm_smul, norm_inv, norm_norm,
       inv_mul_cancel hx'] at h,
     exact lt_irrefl _ h }

@@ -366,21 +366,25 @@ lemma ucs_le_of_centralizer_eq_self (h : N₁.centralizer = N₁) (k : ℕ) :
   (⊥ : lie_submodule R L M).ucs k ≤ N₁ :=
 by { rw ← ucs_eq_self_of_centralizer_eq_self h k, mono, simp, }
 
-lemma lcs_le_ucs_iff (l k : ℕ) :
-  N₁.lcs l ≤ N₂.ucs k ↔ N₁.lcs (l + k) ≤ N₂ :=
+lemma lcs_add_le_iff (l k : ℕ) :
+  N₁.lcs (l + k) ≤ N₂ ↔ N₁.lcs l ≤ N₂.ucs k :=
 begin
   revert l,
   induction k with k ih, { simp, },
   intros l,
-  rw [(by abel : l + (k + 1) = l + 1 + k), ← ih, ucs_succ, lcs_succ, top_lie_le_iff_le_centralizer],
+  rw [(by abel : l + (k + 1) = l + 1 + k), ih, ucs_succ, lcs_succ, top_lie_le_iff_le_centralizer],
 end
 
-lemma lcs_le_ucs_iff' (k : ℕ) :
-  N₁ ≤ N₂.ucs k ↔ N₁.lcs k ≤ N₂ :=
-by { convert lcs_le_ucs_iff 0 k, rw zero_add, }
+lemma lcs_le_iff (k : ℕ) :
+  N₁.lcs k ≤ N₂ ↔ N₁ ≤ N₂.ucs k :=
+by { convert lcs_add_le_iff 0 k, rw zero_add, }
+
+lemma gc_lcs_ucs (k : ℕ):
+  galois_connection (λ (N : lie_submodule R L M), N.lcs k) (λ (N : lie_submodule R L M), N.ucs k) :=
+λ N₁ N₂, lcs_le_iff k
 
 lemma ucs_eq_top_iff (k : ℕ) : N.ucs k = ⊤ ↔ lie_module.lower_central_series R L M k ≤ N :=
-by { rw eq_top_iff, apply lcs_le_ucs_iff', }
+by { rw [eq_top_iff, ← lcs_le_iff], refl, }
 
 lemma _root_.lie_module.is_nilpotent_iff_exists_ucs_eq_top :
   lie_module.is_nilpotent R L M ↔ ∃ k, (⊥ : lie_submodule R L M).ucs k = ⊤ :=

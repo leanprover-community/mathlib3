@@ -8,7 +8,8 @@ import linear_algebra.affine_space.affine_subspace
 
 /-! # Pointwise instances on `affine_subspace`s
 
-This file provides the additive action `affine_subspace.pointwise_add_action`
+This file provides the additive action `affine_subspace.pointwise_add_action` in the
+`pointwise` locale.
 
 -/
 

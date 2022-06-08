@@ -504,7 +504,7 @@ theorem type_eq {α β} {r : α → α → Prop} {s : β → β → Prop}
   [is_well_order α r] [is_well_order β s] :
   type r = type s ↔ nonempty (r ≃r s) := quotient.eq
 
-theorem rel_iso.type_eq {α β} {r : α → α → Prop} {s : β → β → Prop}
+theorem _root_.rel_iso.type_eq {α β} {r : α → α → Prop} {s : β → β → Prop}
  [is_well_order α r] [is_well_order β s] (h : r ≃r s) :
   type r = type s := type_eq.2 ⟨h⟩
 

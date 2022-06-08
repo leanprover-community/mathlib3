@@ -13,17 +13,14 @@ This file provides the additive action `affine_subspace.pointwise_add_action` in
 
 -/
 
-
-noncomputable theory
-open_locale big_operators classical affine pointwise
+open_locale affine pointwise
 
 open set
-
 
 namespace affine_subspace
 
 variables {k : Type*} [ring k]
-variables {V P V₁ P₁ V₂ P₂: Type*}
+variables {V P V₁ P₁ V₂ P₂ : Type*}
 
 variables [add_comm_group V] [module k V] [affine_space V P]
 variables [add_comm_group V₁] [module k V₁] [add_torsor V₁ P₁]

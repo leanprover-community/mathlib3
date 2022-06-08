@@ -762,6 +762,12 @@ end lattice
 
 If `β` has a continuous star operation, we put a star structure on `C(α, β)` by using the
 star operation pointwise.
+
+If `β` is a ⋆-ring, then `C(α, β)` inherits a ⋆-ring structure.
+
+If `β` is a ⋆-ring and a ⋆-module over `R`, then the space of continuous functions from `α` to `β`
+is a ⋆-module over `R`.
+
 -/
 
 section star_structure

@@ -434,13 +434,6 @@ end weierstrass
 In this section, if `β` is a normed ⋆-group, then so is the space of
 continuous functions from `α` to `β`, by using the star operation pointwise.
 
-If `𝕜` is normed field and a ⋆-ring over which `β` is a normed algebra and a
-star module, then the space of continuous functions from `α` to `β`
-is a star module.
-
-If `β` is a ⋆-ring in addition to being a normed ⋆-group, then `C(α, β)`
-inherits a ⋆-ring structure.
-
 Furthermore, if `α` is compact and `β` is a C⋆-ring, then `C(α, β)` is a C⋆-ring.  -/
 
 section normed_space

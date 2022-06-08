@@ -435,7 +435,7 @@ begin
     rw interval_integral.integral_congr_ae, apply ae_of_all,
     intros x hx, rw interval_oc_of_le (by linarith [pi_pos]: 0 ≤ 2 * π) at hx,
     simp only [function.comp_apply],
-    rw [arg'_exp_map_circle hx.1 hx.2, exp_map_circle_apply, neg_mul, zpow_neg₀,
+    rw [arg'_exp_map_circle hx.1 hx.2, exp_map_circle_apply, neg_mul, zpow_neg,
       ←complex.exp_int_mul, ←complex.exp_neg],
     congr' 2, ring, },
   rw this,

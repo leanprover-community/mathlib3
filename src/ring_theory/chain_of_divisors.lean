@@ -376,11 +376,12 @@ begin
       (d ⟨p, by apply dvd_of_mem_normalized_factors ; convert hp⟩).prop,
     rwa associated_iff_eq.mp hq' },
   have : associates.mk ↑(d ⟨associates_equiv_of_unique_units
-    (associates_equiv_of_unique_units.symm p), by simp only [dvd_of_mem_normalized_factors hp, associates_equiv_of_unique_units_apply, out_mk, normalize_eq,
-  associates_equiv_of_unique_units_symm_apply] ⟩)
-      = ↑(mk_factor_order_iso_of_factor_dvd_equiv d hd ⟨( associates_equiv_of_unique_units.symm p),
-        by simp only [associates_equiv_of_unique_units_symm_apply] ;
-          exact mk_dvd_mk.mpr (dvd_of_mem_normalized_factors hp) ⟩),
+    (associates_equiv_of_unique_units.symm p), by simp only [dvd_of_mem_normalized_factors hp,
+      associates_equiv_of_unique_units_apply, out_mk, normalize_eq,
+      associates_equiv_of_unique_units_symm_apply] ⟩)
+    = ↑(mk_factor_order_iso_of_factor_dvd_equiv d hd ⟨( associates_equiv_of_unique_units.symm p),
+      by simp only [associates_equiv_of_unique_units_symm_apply] ;
+        exact mk_dvd_mk.mpr (dvd_of_mem_normalized_factors hp) ⟩),
   { rw mk_factor_order_iso_of_factor_dvd_equiv_apply_coe,
     simp only [subtype.coe_mk] },
   rw [ ← associates.prime_mk, this],

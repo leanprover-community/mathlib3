@@ -739,8 +739,8 @@ lemma le_iff_specializes (x y : prime_spectrum R) :
 le_iff_mem_closure x y
 
 instance : t0_space (prime_spectrum R) :=
-⟨λ x y h, le_antisymm ((le_iff_specializes _ _).2 h.specializes)
-  ((le_iff_specializes _ _).2 h.specializes')⟩
+by { simp [t0_space_iff_or_not_mem_closure, ← le_iff_mem_closure,
+  ← not_and_distrib, ← le_antisymm_iff, eq_comm] }
 
 end order
 

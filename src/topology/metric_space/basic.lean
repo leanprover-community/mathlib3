@@ -2590,13 +2590,13 @@ end metric
 See Note [forgetful inheritance].
 -/
 def metric_space.replace_uniformity {γ} [U : uniform_space γ] (m : metric_space γ)
-  (H : @uniformity _ U = @uniformity _ emetric_space.to_uniform_space') :
+  (H : @uniformity _ U = @uniformity _ pseudo_emetric_space.to_uniform_space) :
   metric_space γ :=
 { eq_of_dist_eq_zero := @eq_of_dist_eq_zero _ _,
   ..pseudo_metric_space.replace_uniformity m.to_pseudo_metric_space H, }
 
 lemma metric_space.replace_uniformity_eq {γ} [U : uniform_space γ] (m : metric_space γ)
-  (H : @uniformity _ U = @uniformity _ emetric_space.to_uniform_space') :
+  (H : @uniformity _ U = @uniformity _ pseudo_emetric_space.to_uniform_space) :
   m.replace_uniformity H = m :=
 by { ext, refl }
 

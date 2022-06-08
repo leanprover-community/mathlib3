@@ -86,14 +86,14 @@ theorem add_pow_half_succ_self_eq_pow_half {n} : pow_half (n + 1) + pow_half (n 
 begin
   induction n with n hn,
   { exact half_add_half_equiv_one },
-  { split; rw le_def_lf; split,
+  { split; rw le_iff_forall_lf; split,
     { rintro (⟨⟨ ⟩⟩ | ⟨⟨ ⟩⟩); apply lf_of_lt,
       { calc 0 + pow_half (n.succ + 1) ≈ pow_half (n.succ + 1) : zero_add_equiv _
                                    ... < pow_half n.succ       : pow_half_succ_lt_pow_half },
       { calc pow_half (n.succ + 1) + 0 ≈ pow_half (n.succ + 1) : add_zero_equiv _
                                    ... < pow_half n.succ       : pow_half_succ_lt_pow_half } },
     { rintro ⟨ ⟩,
-      rw lf_def_le,
+      rw lf_iff_forall_le,
       right,
       use sum.inl punit.star,
       calc pow_half (n.succ) + pow_half (n.succ + 1)

@@ -5,7 +5,7 @@ Authors: Gabriel Ebner, Damiano Testa
 -/
 import tactic.interactive
 
-/-!  `congrm`: `congr` with pattern-matching
+/-! `congrm`: `congr` with pattern-matching
 
 `congrm e` gives to the use the functionality of using `congr` with an expression `e` "guiding"
 `congr` through the matching.  This allows more flexibility than `congr' n`, which enters uniformly

@@ -103,6 +103,9 @@ lemma subsingleton_iff : subsingleton α ↔ ∀ (x y : α), x = y :=
 lemma not_nontrivial_iff_subsingleton : ¬(nontrivial α) ↔ subsingleton α :=
 by { rw [nontrivial_iff, subsingleton_iff], push_neg, refl }
 
+lemma not_nontrivial (α) [subsingleton α] : ¬nontrivial α :=
+λ ⟨⟨x, y, h⟩⟩, h $ subsingleton.elim x y
+
 lemma not_subsingleton (α) [h : nontrivial α] : ¬subsingleton α :=
 let ⟨⟨x, y, hxy⟩⟩ := h in λ ⟨h'⟩, hxy $ h' x y
 

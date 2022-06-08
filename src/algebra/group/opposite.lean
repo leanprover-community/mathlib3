@@ -234,7 +234,7 @@ open mul_opposite
 `mul_equiv.inv`. -/
 @[to_additive "Negation on an additive group is an `add_equiv` to the opposite group. When `G`
 is commutative, there is `add_equiv.inv`.", simps { fully_applied := ff, simp_rhs := tt }]
-def mul_equiv.inv' (G : Type*) [group G] : G ≃* Gᵐᵒᵖ :=
+def mul_equiv.inv' (G : Type*) [division_monoid G] : G ≃* Gᵐᵒᵖ :=
 { map_mul' := λ x y, unop_injective $ mul_inv_rev x y,
   .. (equiv.inv G).trans op_equiv }
 

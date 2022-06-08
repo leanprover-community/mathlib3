@@ -685,6 +685,14 @@ variables (R M N P Q)
 def map_bilinear : (M →ₗ[R] P) →ₗ[R] (N →ₗ[R] Q) →ₗ[R] (M ⊗[R] N →ₗ[R] P ⊗[R] Q) :=
 linear_map.mk₂ R map map_add_left map_smul_left map_add_right map_smul_right
 
+/-- The canonical linear map from `P ⊗[R] (M →ₗ[R] Q)` to `(M →ₗ[R] P ⊗[R] Q)` -/
+def ltensor_hom_to_hom_ltensor : P ⊗[R] (M →ₗ[R] Q) →ₗ[R] (M →ₗ[R] P ⊗[R] Q) :=
+tensor_product.lift (llcomp R M Q _ ∘ₗ mk R P Q)
+
+/-- The canonical linear map from `(M →ₗ[R] P) ⊗[R] Q` to `(M →ₗ[R] P ⊗[R] Q)` -/
+def rtensor_hom_to_hom_rtensor : (M →ₗ[R] P) ⊗[R] Q →ₗ[R] (M →ₗ[R] P ⊗[R] Q) :=
+tensor_product.lift (llcomp R M P _ ∘ₗ (mk R P Q).flip).flip
+
 /-- The linear map from `(M →ₗ P) ⊗ (N →ₗ Q)` to `(M ⊗ N →ₗ P ⊗ Q)` sending `f ⊗ₜ g` to
 the `tensor_product.map f g`, the tensor product of the two maps. -/
 def hom_tensor_hom_map : (M →ₗ[R] P) ⊗[R] (N →ₗ[R] Q) →ₗ[R] (M ⊗[R] N →ₗ[R] P ⊗[R] Q) :=
@@ -695,6 +703,14 @@ variables {R M N P Q}
 @[simp]
 lemma map_bilinear_apply (f : M →ₗ[R] P) (g : N →ₗ[R] Q) :
   map_bilinear R M N P Q f g = map f g := rfl
+
+@[simp]
+lemma ltensor_hom_to_hom_ltensor_apply (p : P) (f : M →ₗ[R] Q) (m : M) :
+  ltensor_hom_to_hom_ltensor R M P Q (p ⊗ₜ f) m = p ⊗ₜ f m := rfl
+
+@[simp]
+lemma rtensor_hom_to_hom_rtensor_apply (f : M →ₗ[R] P) (q : Q) (m : M) :
+  rtensor_hom_to_hom_rtensor R M P Q (f ⊗ₜ q) m = f m ⊗ₜ q := rfl
 
 @[simp]
 lemma hom_tensor_hom_map_apply (f : M →ₗ[R] P) (g : N →ₗ[R] Q) :

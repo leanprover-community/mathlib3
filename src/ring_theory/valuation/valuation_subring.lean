@@ -6,6 +6,7 @@ Authors: Adam Topaz, Junyan Xu
 import ring_theory.valuation.valuation_ring
 import ring_theory.localization.as_subring
 import algebraic_geometry.prime_spectrum.basic
+import algebra.group_with_zero.basic
 
 /-!
 
@@ -122,8 +123,9 @@ lemma valuation_le_iff (x y : K) : A.valuation x ≤ A.valuation y ↔
 
 lemma valuation_surjective : function.surjective A.valuation := surjective_quot_mk _
 
+@[simp]
 lemma valuation_unit (a : Aˣ) : A.valuation a = 1 :=
-by { rw [← A.valuation.map_one, valuation_eq_iff], use a, simp }
+ by { rw [← A.valuation.map_one, valuation_eq_iff], use a, simp }
 
 lemma valuation_eq_one_iff (a : A) : is_unit a ↔ A.valuation a = 1 :=
 ⟨ λ h, A.valuation_unit h.unit,
@@ -360,5 +362,297 @@ variables {K} (A : valuation_subring K)
 @[simp]
 lemma valuation_subring_valuation : A.valuation.valuation_subring = A :=
 by { ext, rw ← A.valuation_le_one_iff, refl }
+
+section unit_group
+
+/-- The unit group of a valuation subring, as a subgroup of `Kˣ`. -/
+def unit_group : subgroup Kˣ :=
+{ carrier := { x | A.valuation x = 1 },
+  mul_mem' := begin
+    intros a b ha hb,
+    dsimp at *,
+    rw [A.valuation.map_mul, ha, hb, one_mul],
+  end,
+  one_mem' := A.valuation.map_one,
+  inv_mem' := begin
+    intros a ha,
+    dsimp at *,
+    push_cast,
+    rw [A.valuation.map_inv, ha, inv_one],
+  end }
+
+lemma mem_unit_group_iff (x : Kˣ) : x ∈ A.unit_group ↔ A.valuation x = 1 := iff.refl _
+
+lemma eq_iff_unit_group (A B : valuation_subring K) :
+  A = B ↔ A.unit_group = B.unit_group :=
+begin
+  rw [← A.valuation_subring_valuation, ← B.valuation_subring_valuation,
+    ← valuation.is_equiv_iff_valuation_subring,
+    A.valuation_subring_valuation, B.valuation_subring_valuation,
+    valuation.is_equiv_iff_val_eq_one, set_like.ext_iff],
+  split,
+  { intros h x, apply h },
+  { intros h x,
+    by_cases hx : x = 0, { simp only [hx, valuation.map_zero, zero_ne_one] },
+    exact h (units.mk0 x hx) }
+end
+
+/-- `A.unit_group` agrees with the units of `A`. -/
+def unit_group_equiv : A.unit_group ≃* Aˣ :=
+{ to_fun := λ x,
+  ⟨⟨x, (A.valuation_le_one_iff _).1 (le_of_eq x.2)⟩,⟨x⁻¹,
+  begin
+    rw ← A.valuation_le_one_iff,
+    apply le_of_eq,
+    rw [A.valuation.map_inv, inv_eq_one₀],
+    exact x.2,
+  end⟩,
+    by { ext, exact mul_inv_cancel x.1.ne_zero },
+    by { ext, exact inv_mul_cancel x.1.ne_zero }⟩,
+  inv_fun := λ x, ⟨⟨x, (x : K)⁻¹,
+    mul_inv_cancel ((units.map A.subtype.to_monoid_hom x).ne_zero),
+    inv_mul_cancel ((units.map A.subtype.to_monoid_hom x).ne_zero)⟩, begin
+      rw mem_unit_group_iff, simpa using A.valuation_unit x,
+    end⟩,
+  left_inv := λ a, by { ext, refl },
+  right_inv := λ a, by { ext, refl },
+  map_mul' := λ a b, by { ext, refl } }
+
+@[simp]
+lemma coe_unit_group_equiv_apply (a : A.unit_group) :
+  (A.unit_group_equiv a : K) = a := rfl
+
+@[simp]
+lemma coe_unit_group_equiv_symm_apply (a : Aˣ) :
+  (A.unit_group_equiv.symm a : K) = a := rfl
+
+def unit_group_ordered_embedding : valuation_subring K ↪o subgroup Kˣ :=
+{ to_fun := λ A, A.unit_group,
+  inj' := λ A B h, by rwa eq_iff_unit_group,
+  map_rel_iff' := begin
+    intros A B,
+    dsimp,
+    split,
+    { rintros h x hx,
+      rw [← A.valuation_le_one_iff x, le_iff_lt_or_eq] at hx,
+      by_cases h_1 : x = 0, { simp only [h_1, zero_mem] },
+      by_cases h_2 : 1 + x = 0,
+        { simp only [← add_eq_zero_iff_neg_eq.1 h_2, neg_mem _ _ (one_mem _)] },
+      cases hx,
+      { have := h (show (units.mk0 _ h_2) ∈ A.unit_group, from A.valuation.map_one_add_of_lt hx),
+        simpa using B.add_mem _ _
+          (show 1 + x ∈ B, from set_like.coe_mem ((B.unit_group_equiv ⟨_, this⟩) : B))
+          (B.neg_mem _ B.one_mem) },
+      { have := h (show (units.mk0 x h_1) ∈ A.unit_group, from hx),
+        refine set_like.coe_mem ((B.unit_group_equiv ⟨_, this⟩) : B) } },
+    { rintros h x (hx : A.valuation x = 1),
+      apply_fun A.map_of_le B h at hx,
+      simpa using hx }
+  end }
+
+def maximal_ideal : subsemigroup K :=
+{ carrier := { x | A.valuation x < 1 },
+  mul_mem' := λ a b ha hb, by { simpa using mul_lt_mul₀ ha hb } }
+
+lemma mem_maximal_ideal_iff (x : K) : x ∈ A.maximal_ideal ↔ A.valuation x < 1 := iff.refl _
+
+lemma eq_iff_maximal_ideal (A B : valuation_subring K) :
+  A = B ↔ A.maximal_ideal = B.maximal_ideal :=
+begin
+  simp_rw [← A.valuation_subring_valuation, ← B.valuation_subring_valuation,
+    ← valuation.is_equiv_iff_valuation_subring,
+    A.valuation_subring_valuation, B.valuation_subring_valuation,
+    valuation.is_equiv_iff_val_lt_one, set_like.ext_iff, mem_maximal_ideal_iff],
+end
+
+/-- `A.maximal_ideal` agrees with the maximal ideal of `A`. -/
+def maximal_ideal_equiv : A.maximal_ideal ≃ local_ring.maximal_ideal A :=
+{ to_fun := λ a, ⟨⟨a,(A.valuation_le_one_iff _).1 (le_of_lt a.2)⟩,(A.valuation_lt_one_iff _).2 a.2⟩,
+  inv_fun := λ a, ⟨a,(A.valuation_lt_one_iff _).1 a.2⟩,
+  left_inv := λ a, by { ext, refl },
+  right_inv := λ a, by { ext, refl } }
+
+@[simp]
+lemma coe_maximal_ideal_equiv_apply (a : A.maximal_ideal) :
+  (A.maximal_ideal_equiv a : K) = a := rfl
+
+@[simp]
+lemma coe_maximal_ideal_equiv_symm_apply (a : local_ring.maximal_ideal A) :
+  (A.maximal_ideal_equiv.symm a : K) = a := rfl
+
+@[simp]
+lemma maximal_ideal_equiv_map_mul (a b : A.maximal_ideal) :
+  A.maximal_ideal_equiv (a * b) = (A.maximal_ideal_equiv a : A) • A.maximal_ideal_equiv b := rfl
+
+@[simp]
+lemma maximal_ideal_equiv_symm_map_smul (a b : local_ring.maximal_ideal A) :
+  A.maximal_ideal_equiv.symm ((a : A) • b) =
+  A.maximal_ideal_equiv.symm a * A.maximal_ideal_equiv.symm b := rfl
+
+/-- The principal unit group of a valuation subring, as a subgroup of `Kˣ`. -/
+def principal_unit_group : subgroup Kˣ :=
+{ carrier := { x | A.valuation (x - 1) < 1 },
+  mul_mem' := begin
+    intros a b ha hb,
+    refine lt_of_le_of_lt _ (max_lt hb ha),
+    rw [← one_mul (A.valuation (b - 1)), ← A.valuation.map_one_add_of_lt ha, add_sub_cancel'_right,
+      ← valuation.map_mul, mul_sub_one, ← sub_add_sub_cancel],
+    exact A.valuation.map_add _ _,
+  end,
+  one_mem' := by { simpa using zero_lt_one₀ },
+  inv_mem' := begin
+    rintros a ha,
+    rwa [set.mem_set_of_eq, ← mul_one (A.valuation (_)), ← A.valuation.map_one_add_of_lt ha,
+      add_sub_cancel'_right, ← valuation.map_mul, sub_mul, units.inv_mul, one_mul,
+      ← neg_sub (a : K), valuation.map_neg, ← add_sub_cancel'_right _ (a : K),
+      A.valuation.map_one_add_of_lt ha, add_sub_cancel'],
+  end }
+
+lemma mem_principal_unit_group_iff (x : Kˣ) :
+  x ∈ A.principal_unit_group ↔ A.valuation ((x : K) - 1) < 1 := iff.refl _
+
+lemma eq_iff_principal_unit_group (A B : valuation_subring K) :
+  A = B ↔ A.principal_unit_group = B.principal_unit_group :=
+begin
+  simp_rw [← A.valuation_subring_valuation, ← B.valuation_subring_valuation,
+    ← valuation.is_equiv_iff_valuation_subring,
+    A.valuation_subring_valuation, B.valuation_subring_valuation,
+    valuation.is_equiv_iff_val_sub_one_lt_one, set_like.ext_iff],
+  split,
+  { intros h x, apply h },
+  { intros h x,
+    by_cases hx : x = 0,
+    { simp only [hx, zero_sub, valuation.map_neg, valuation.map_one, lt_self_iff_false] },
+    { exact h (units.mk0 x hx) } }
+end
+
+def principal_unit_group_ordered_embedding :
+  valuation_subring K ↪o (subgroup Kˣ)ᵒᵈ :=
+{ to_fun := λ A, A.principal_unit_group,
+  inj' := λ A B h, by rwa eq_iff_principal_unit_group,
+  map_rel_iff' := begin
+    intros A B,
+    dsimp,
+    split,
+    { rintros h x hx,
+      by_cases h_1 : x = 0, { simp only [h_1, zero_mem] },
+      by_cases h_2 : x⁻¹ + 1 = 0,
+      { rw add_eq_zero_iff_eq_neg at h_2,
+        apply_fun B.valuation at h_2,
+        rw [valuation.map_neg, valuation.map_one, valuation.map_inv, inv_eq_one₀] at h_2,
+        exact (B.valuation_le_one_iff _).1 (le_of_eq h_2) },
+      by_contra h_3,
+      rw [← valuation_le_one_iff, not_le, B.valuation.one_lt_val_iff h_1, ← add_sub_cancel x⁻¹,
+        ← units.coe_mk0 h_2, ← mem_principal_unit_group_iff] at h_3,
+      have := h h_3,
+      rw [mem_principal_unit_group_iff, units.coe_mk0 h_2, add_sub_cancel,
+        ← A.valuation.one_lt_val_iff h_1, ← not_le, valuation_le_one_iff] at this,
+      exact this hx },
+    { rintros h x hx,
+      by_contra h_1, from not_lt.2 (monotone_map_of_le _ _ h (not_lt.1 h_1)) hx }
+  end }
+
+lemma principal_units_le_units : A.principal_unit_group ≤ A.unit_group :=
+λ a h, by {simpa using A.valuation.map_one_add_of_lt h}
+
+def unit_group_mod_to_residue_field_units :
+  (A.unit_group ⧸ (A.principal_unit_group.comap A.unit_group.subtype)) →*
+  (local_ring.residue_field A)ˣ :=
+quotient_group.lift _
+(monoid_hom.comp (units.map $ (ideal.quotient.mk _).to_monoid_hom)
+  A.unit_group_equiv.to_monoid_hom)
+begin
+  rintros ⟨a, ha⟩ h,
+  simp only [ring_hom.to_monoid_hom_eq_coe, monoid_hom.coe_comp, mul_equiv.coe_to_monoid_hom,
+    function.comp_app, subgroup.mem_comap, subgroup.coe_subtype, subgroup.coe_mk] at h ⊢,
+  apply units.ext,
+  dsimp,
+  let π := ideal.quotient.mk (local_ring.maximal_ideal ↥A), change π _ = _,
+  rwa [← π.map_one, ← sub_eq_zero, ← π.map_sub, ideal.quotient.eq_zero_iff_mem,
+    valuation_lt_one_iff],
+end
+
+lemma unit_group_mod_to_residue_field_units_apply (x : A.unit_group) :
+  (A.unit_group_mod_to_residue_field_units
+    (quotient_group.mk x) : local_ring.residue_field A) =
+    (ideal.quotient.mk _ (A.unit_group_equiv x : A)) := rfl
+
+lemma mem_residue_field_units_has_unit_rep (x : (local_ring.residue_field A)ˣ) :
+  is_unit (quotient.out' (x : local_ring.residue_field A)) :=
+begin
+  by_contra,
+  rw valuation_eq_one_iff at h,
+  have := valuation_lt_one_or_eq_one _ (quotient.out' (x : local_ring.residue_field A)),
+  rw or_iff_not_imp_right at this,
+  simpa only [units.ne_zero, ← valuation_lt_one_iff, ← ideal.quotient.eq_zero_iff_mem,
+    ← ideal.quotient.mk_eq_mk, ← submodule.quotient.mk'_eq_mk, quotient.out_eq'] using this h,
+end
+
+def units_residue_field_equiv :
+  (A.unit_group ⧸ (A.principal_unit_group.comap A.unit_group.subtype)) ≃*
+  (local_ring.residue_field A)ˣ :=
+mul_equiv.of_bijective A.unit_group_mod_to_residue_field_units
+begin
+  split,
+  {
+    rintros ⟨x,hx⟩ ⟨y,hy⟩ h,
+    by_cases h_1 : (x : K) = 0, { sorry },
+    by_cases h_2 : (y : K) = 0, { sorry },
+    rw unit_group_mod_to_residue_field_units at h,
+    rw units.ext_iff at h,
+    dsimp at h,
+    rw [← sub_eq_zero, ← map_sub, ideal.quotient.eq_zero_iff_mem, valuation_lt_one_iff] at h,
+    change A.valuation (x - y) < 1 at h,
+    have : A.valuation ↑y⁻¹ = 1, from (A.mem_unit_group_iff _).1(A.unit_group.inv_mem hy),
+    rw [← mul_one (A.valuation (_)), ← this, ← valuation.map_mul, this] at h,
+    have tdo : (x * y⁻¹ : K) ≠ 0, from mul_ne_zero h_1 (inv_ne_zero h_2),
+    rw [sub_mul, units.mul_inv, units.coe_inv', ← units.coe_mk0 tdo,
+      ← mem_principal_unit_group_iff, units.mk0_mul, units.mk0_coe,
+      ← quotient_group.eq_one_iff, quotient_group.coe_mul, mul_eq_one_iff_eq_inv] at h,
+    rw ← quotient_group.coe_inv at h,
+
+
+  sorry },
+  { sorry }
+end
+
+/-
+def unit_group_to_residue_field_units :
+  A.unit_group →* (local_ring.residue_field A)ˣ :=
+(monoid_hom.comp (units.map $ (ideal.quotient.mk (local_ring.maximal_ideal A)).to_monoid_hom)
+  A.unit_group_equiv.to_monoid_hom)
+
+lemma ker_unit_group_to_residue_field_units :
+  A.unit_group_to_residue_field_units.ker =
+    subgroup.comap A.unit_group.subtype A.principal_unit_group :=
+begin
+  rw set_like.ext_iff,
+  rintros ⟨x, hx⟩,
+  rw [unit_group_to_residue_field_units, monoid_hom.mem_ker, ring_hom.to_monoid_hom_eq_coe,
+    monoid_hom.coe_comp, mul_equiv.coe_to_monoid_hom, function.comp_app, subgroup.mem_comap,
+    subgroup.coe_subtype, units.ext_iff],
+  dsimp,
+  let π := ideal.quotient.mk (local_ring.maximal_ideal ↥A), change π _ = _ ↔ _,
+  rw [← π.map_one, ← sub_eq_zero, ← π.map_sub, ideal.quotient.eq_zero_iff_mem,
+      valuation_lt_one_iff, mem_principal_unit_group_iff],
+  refine ⟨λ h, h, λ h, h⟩,
+end
+
+def range_unit_group_to_residue_field_units :
+  A.unit_group_to_residue_field_units.range ≃* (local_ring.residue_field A)ˣ :=
+begin
+  sorry,
+end
+
+def units_residue_field_equiv :
+  (A.unit_group ⧸ (A.principal_unit_group.comap A.unit_group.subtype)) ≃*
+  (local_ring.residue_field A)ˣ :=
+mul_equiv.trans (mul_equiv.trans
+  (quotient_group.equiv_quotient_of_eq A.ker_unit_group_to_residue_field_units).symm
+  (quotient_group.quotient_ker_equiv_range A.unit_group_to_residue_field_units))
+  A.range_unit_group_to_residue_field_units
+-/
+
+end unit_group
 
 end valuation_subring

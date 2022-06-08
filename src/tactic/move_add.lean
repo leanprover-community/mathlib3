@@ -39,6 +39,13 @@ around a sum.
 * Revise tests?
 -/
 
+--  Contained in PR #14617, in the file `meta.expr`.  It is currently here to minimize
+--  CI cycles: I will delete this definition if the other PR gets merged.
+/--  Takes an `expr` and returns a list of its summands. -/
+meta def expr.list_summands : expr → list expr
+| `(has_add.add %%a %%b) := a.list_summands ++ b.list_summands
+| a                      := [a]
+
 namespace tactic
 
 namespace move_add

@@ -9,7 +9,6 @@ import algebra.monoid_algebra.basic
 import linear_algebra.trace
 import linear_algebra.dual
 import linear_algebra.free_module.basic
-import representation_theory.fdRep
 
 /-!
 # Monoid representations
@@ -178,33 +177,5 @@ def dual : representation k G (module.dual k V) :=
 lemma dual_apply (g : G) : (dual ρV) g = module.dual.transpose (ρV g⁻¹) := rfl
 
 end linear_hom
-
-section
-
-variables {k G V W : Type u} [field k] [group G]
-variables [add_comm_group V] [module k V] [add_comm_group W] [module k W]
-variables [finite_dimensional k V] [finite_dimensional k W]
-variables (ρV : representation k G V) (ρW : representation k G W)
-
-local attribute tensor_product.ext
-
-/-- When `V` and `W` are finite dimensional representations of a group `G`, the isomorphism
-`dual_tensor_hom_equiv k V W` of vector spaces induces an isomorphism of representations.  -/
-noncomputable
-def dual_tensor_iso_lin_hom : (fdRep.of ρV.dual) ⊗ (fdRep.of ρW) ≅ fdRep.of (lin_hom ρV ρW) :=
-begin
-  refine Action.mk_iso (dual_tensor_hom_equiv k V W).to_FinVect_iso _,
-  intro g, ext f w v,
-  simp only [linear_equiv.to_FinVect_iso_hom, tensor_product.curry_apply, fdRep.of_ρ,
-  module.dual.transpose_apply, dual_tensor_hom_apply, dual_tensor_hom_equiv_of_basis_to_linear_map,
-  category_theory.comp_apply, Action.tensor_rho, dual_tensor_hom_equiv.equations._eqn_1,
-  id.def, ring_hom.id_apply, eq_self_iff_true, function.comp_app,
-  category_theory.monoidal_category.full_monoidal_subcategory_tensor_hom, linear_map.coe_comp,
-  representation.dual_apply, representation.lin_hom_apply, Module.monoidal_category.hom_apply,
-  linear_map.map_smulₛₗ, tensor_product.algebra_tensor_module.curry_apply, linear_map.to_fun_eq_coe,
-  linear_map.coe_restrict_scalars_eq_coe],
-end
-
-end
 
 end representation

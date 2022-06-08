@@ -5,6 +5,7 @@ Authors: Scott Morrison
 -/
 import representation_theory.Rep
 import algebra.category.FinVect
+import representation_theory.basic
 
 /-!
 # `fdRep k G` is the category of finite dimensional `k`-linear representations of `G`.
@@ -71,7 +72,7 @@ example (V : fdRep k G) : G →* (V →ₗ[k] V) := V.ρ
 /-- Lift an unbundled representation to `fdRep`. -/
 @[simps ρ]
 def of {V : Type u} [add_comm_group V] [module k V] [finite_dimensional k V]
-  (ρ : G →* (V →ₗ[k] V)) : fdRep k G :=
+  (ρ : representation k G V) : fdRep k G :=
 ⟨FinVect.of k V, ρ⟩
 
 instance : has_forget₂ (fdRep k G) (Rep k G) :=
@@ -88,5 +89,42 @@ variables {k G : Type u} [field k] [group G]
 -- Verify that the rigid structure is available when the monoid is a group.
 noncomputable instance : right_rigid_category (fdRep k G) :=
 by { change right_rigid_category (Action (FinVect k) (Group.of G)), apply_instance, }
+
+end fdRep
+
+namespace fdRep
+
+open representation
+
+variables {k G V W : Type u} [field k] [group G]
+variables [add_comm_group V] [module k V] [add_comm_group W] [module k W]
+variables [finite_dimensional k V] [finite_dimensional k W]
+variables (ρV : representation k G V) (ρW : representation k G W)
+
+local attribute tensor_product.ext
+
+lemma dual_tensor_hom_comm (g : G) :
+  (dual_tensor_hom k V W) ∘ₗ (tensor_product.map (ρV.dual g) (ρW g)) =
+  (lin_hom ρV ρW) g ∘ₗ (dual_tensor_hom k V W) :=
+begin
+  ext, simp [module.dual.transpose_apply],
+end
+
+/-- Auxiliary definition for `fdRep.dual_tensor_iso_lin_hom`. -/
+noncomputable def dual_tensor_iso_lin_hom_aux :
+  ((fdRep.of ρV.dual) ⊗ (fdRep.of ρW)).V ≅ (fdRep.of (lin_hom ρV ρW)).V :=
+(dual_tensor_hom_equiv k V W).to_FinVect_iso
+
+/-- When `V` and `W` are finite dimensional representations of a group `G`, the isomorphism
+`dual_tensor_hom_equiv k V W` of vector spaces induces an isomorphism of representations. -/
+noncomputable def dual_tensor_iso_lin_hom :
+  (fdRep.of ρV.dual) ⊗ (fdRep.of ρW) ≅ fdRep.of (lin_hom ρV ρW) :=
+begin
+  apply Action.mk_iso (dual_tensor_iso_lin_hom_aux ρV ρW),
+  convert (dual_tensor_hom_comm ρV ρW),
+end
+
+@[simp] lemma dual_tensor_iso_lin_hom_hom_hom :
+  (dual_tensor_iso_lin_hom ρV ρW).hom.hom = dual_tensor_hom k V W := rfl
 
 end fdRep

@@ -580,6 +580,11 @@ meta def to_implicit_binder : expr → expr
 | (pi n _ d b) := pi n binder_info.implicit d b
 | e  := e
 
+/--  Takes an `expr` and returns a list of its summands. -/
+meta def list_summands : expr → list expr
+| `(has_add.add %%a %%b) := a.list_summands ++ b.list_summands
+| a                      := [a]
+
 /-- Returns a list of all local constants in an expression (without duplicates). -/
 meta def list_local_consts (e : expr) : list expr :=
 e.fold [] (λ e' _ es, if e'.is_local_constant then insert e' es else es)

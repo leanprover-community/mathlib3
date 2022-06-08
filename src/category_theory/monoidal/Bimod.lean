@@ -185,10 +185,7 @@ def iso_of_iso {X Y : Mon_ C} {P Q : Bimod X Y}
   (f_left_act_hom : P.act_left ≫ f.hom = (𝟙 X.X ⊗ f.hom) ≫ Q.act_left)
   (f_right_act_hom : P.act_right ≫ f.hom = (f.hom ⊗ 𝟙 Y.X) ≫ Q.act_right) :
   P ≅ Q :=
-{ hom :=
-  { hom := f.hom,
-    left_act_hom' := f_left_act_hom,
-    right_act_hom' := f_right_act_hom },
+{ hom := ⟨f.hom⟩,
   inv :=
   { hom := f.inv,
     left_act_hom' := begin

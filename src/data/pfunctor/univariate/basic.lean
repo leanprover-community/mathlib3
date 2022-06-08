@@ -41,8 +41,7 @@ def obj (α : Type*) := Σ x : P.A, P.B x → α
 def map {α β : Type*} (f : α → β) : P.obj α → P.obj β :=
 λ ⟨a, g⟩, ⟨a, f ∘ g⟩
 
-instance obj.inhabited [inhabited P.A] [inhabited α] : inhabited (P.obj α) :=
-⟨ ⟨ default, λ _, default ⟩ ⟩
+instance obj.inhabited [inhabited P.A] [inhabited α] : inhabited (P.obj α) := ⟨⟨default, default⟩⟩
 instance : functor P.obj := {map := @map P}
 
 protected theorem map_eq {α β : Type*} (f : α → β) (a : P.A) (g : P.B a → α) :

@@ -110,6 +110,9 @@ noncomputable instance {Q : Type*} [linear_order Q] : linear_order (dedekind_cut
   ..set_like.partial_order }
 
 -- Step 3
+/-- Dedekind cuts have the least-upper-bound property, where a Sup of a non-empty, bounded above
+set of cuts can be constructed. See `le_cSup` and `is_lub_cSup` for the resulting bound
+properties. -/
 def cSup (A : set (dedekind_cut Q)) (hA : A.nonempty) (hA' : bdd_above A) : dedekind_cut Q :=
 { carrier := Sup (coe '' A),
   nonempty' := begin
@@ -233,8 +236,16 @@ section
 
 variables {α β : dedekind_cut Q} {p q : Q}
 
+instance : covariant_class (dedekind_cut Q) (dedekind_cut Q) (+) (≤) :=
+⟨λ α β γ h, begin
+  intro p,
+  simp_rw mem_add_iff,
+  rintro ⟨r, s, hr, hs, rfl⟩,
+  exact ⟨r, s, hr, h hs, rfl⟩
+end⟩
+
 -- Step 4, construction
-instance : has_coe Q (dedekind_cut Q) :=
+instance : has_coe_t Q (dedekind_cut Q) :=
 ⟨λ p, { carrier := set_of (< p),
    nonempty' := ⟨p - 1, by simp⟩,
    ne_top' := begin
@@ -255,6 +266,8 @@ instance : has_coe Q (dedekind_cut Q) :=
 @[simp] lemma mem_coe_iff : p ∈ (q : dedekind_cut Q) ↔ p < q := iff.rfl
 
 instance : has_zero (dedekind_cut Q) := ⟨(0 : Q)⟩
+
+instance : inhabited (dedekind_cut Q) := ⟨0⟩
 
 @[simp] lemma mem_zero_iff : p ∈ (0 : dedekind_cut Q) ↔ p < 0 := iff.rfl
 
@@ -380,14 +393,6 @@ instance : add_comm_group (dedekind_cut Q) :=
     convert dedekind_cut.add_left_neg α,
   end,
   add_comm := dedekind_cut.add_comm }
-
-instance : covariant_class (dedekind_cut Q) (dedekind_cut Q) (+) (≤) :=
-⟨λ α β γ h, begin
-  intro p,
-  simp_rw mem_add_iff,
-  rintro ⟨r, s, hr, hs, rfl⟩,
-  exact ⟨r, s, hr, h hs, rfl⟩
-end⟩
 
 -- Step 5
 instance : covariant_class (dedekind_cut Q) (dedekind_cut Q) (+) (<) :=

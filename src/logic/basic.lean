@@ -50,8 +50,8 @@ instance subsingleton.prod {α β : Type*} [subsingleton α] [subsingleton β] :
 
 instance : decidable_eq empty := λa, a.elim
 
-instance sort.inhabited : inhabited (Sort*) := ⟨punit⟩
-instance sort.inhabited' : inhabited (default) := ⟨punit.star⟩
+instance sort.inhabited : inhabited Sort* := ⟨punit⟩
+instance sort.inhabited' : inhabited default := ⟨punit.star⟩
 
 instance psum.inhabited_left {α β} [inhabited α] : inhabited (psum α β) := ⟨psum.inl default⟩
 instance psum.inhabited_right {α β} [inhabited β] : inhabited (psum α β) := ⟨psum.inr default⟩

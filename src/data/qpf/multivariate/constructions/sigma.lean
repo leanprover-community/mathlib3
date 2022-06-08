@@ -30,10 +30,10 @@ def pi (v : typevec.{u} n) : Type.{u} :=
 Π α : A, F α v
 
 instance sigma.inhabited {α} [inhabited A] [inhabited (F default α)] : inhabited (sigma F α) :=
-⟨ ⟨default, default⟩ ⟩
+⟨⟨default, default⟩⟩
 
 instance pi.inhabited {α} [Π a, inhabited (F a α)] : inhabited (pi F α) :=
-⟨ λ a, default ⟩
+⟨λ a, default⟩
 
 variables [Π α, mvfunctor $ F α]
 

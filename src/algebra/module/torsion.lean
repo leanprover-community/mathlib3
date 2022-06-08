@@ -249,9 +249,6 @@ include hp
 
 lemma supr_torsion_by_ideal_eq_torsion_by_infi :
   (⨆ i ∈ S, torsion_by_set R M $ p i) = torsion_by_set R M ↑(⨅ i ∈ S, p i) :=
--- Pure algebraic proof of torsion_by_le_supr : quotient M ⧸ ⨆, then a ∏-torsion element of M
--- becomes a (∏ with one term missing)-torsion for all missing terms. Thus it's 1-torsion as the
--- (∏ with one term missing) generate R, thus it's 0 in M ⧸ ⨆ and thus in ⨆.
 begin
   cases S.eq_empty_or_nonempty with h h,
   { rw h, convert supr_emptyset, convert torsion_by_univ, convert top_coe, exact infi_emptyset },
@@ -297,7 +294,7 @@ variables {ι : Type*} [decidable_eq ι] {p : ι → ideal R} {S : finset ι}
 variables (hp : (S : set ι).pairwise $ λ i j, p i ⊔ p j = ⊤)
 include hp
 
-/--If the `p i` are pairwise coprime, a `∏ i, p i`-torsion module is the internal direct sum of
+/--If the `p i` are pairwise coprime, a `⨅ i, p i`-torsion module is the internal direct sum of
 its `p i`-torsion submodules.-/
 lemma torsion_is_internal (hM : module.is_torsion_by_set R M (⨅ i ∈ S, p i : ideal R)) :
   direct_sum.is_internal (λ i : S, torsion_by_set R M $ p i) :=

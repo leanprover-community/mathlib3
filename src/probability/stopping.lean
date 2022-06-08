@@ -1299,9 +1299,9 @@ section hitting
 `u` is in `s` before `n` (if `u` does not hit `s` before `n` then the hitting time is simply `n`).
 
 The hitting time is a stopping time if the process is adapted and discrete. -/
-noncomputable def hitting [preorder ι] [has_Inf ι] (u : ι → α → β) (s : set β) (default : ι) :
+noncomputable def hitting [preorder ι] [has_Inf ι] (u : ι → α → β) (s : set β) (n : ι) :
   α → ι :=
-λ x, if ∃ j ≤ default, u j x ∈ s then Inf { i : ι | u i x ∈ s } else default
+λ x, if ∃ j ≤ n, u j x ∈ s then Inf { i : ι | u i x ∈ s } else n
 
 section complete_linear_order
 

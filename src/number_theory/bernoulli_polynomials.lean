@@ -34,7 +34,7 @@ Bernoulli polynomials are defined using `bernoulli`, the Bernoulli numbers.
 
 ## TODO
 
-- `bernoulli_eval_one_neg` : $$ B_n(1 - x) = (-1)^n*B_n(x) $$
+- `bernoulli_eval_one_neg` : $$ B_n(1 - x) = (-1)^n B_n(x) $$
 
 -/
 
@@ -92,8 +92,10 @@ end
 
 end examples
 
-lemma deriv_bernoulli (k : ℕ) (hk : 1 ≤ k) : (bernoulli k).derivative = k * bernoulli (k - 1) :=
+lemma deriv_bernoulli (k : ℕ) : (bernoulli k).derivative = k * bernoulli (k - 1) :=
 begin
+  rcases nat.eq_zero_or_pos k with hk|hk,
+  { rw [hk, nat.cast_zero, zero_mul, bernoulli_zero, derivative_one], },
   simp_rw [bernoulli, derivative_sum, nat.sub_add_cancel hk, derivative_monomial],
   -- LHS sum has an extra term, but the coefficient is zero:
   rw [range_add_one, sum_insert not_mem_range_self, tsub_self, cast_zero, mul_zero, map_zero,

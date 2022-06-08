@@ -43,11 +43,11 @@ section bernoulli_fun_props
 def bernoulli_fun0 (k : ℕ) (x : ℝ) : ℝ :=
 (polynomial.map (algebra_map ℚ ℝ) (polynomial.bernoulli k)).eval x
 
-lemma has_deriv_at_bernoulli_fun0 {k : ℕ} (hk : 1 ≤ k) (x : ℝ) :
+lemma has_deriv_at_bernoulli_fun0 (k : ℕ) (x : ℝ) :
   has_deriv_at (bernoulli_fun0 k) (k * bernoulli_fun0 (k - 1) x) x :=
 begin
   have t := polynomial.has_deriv_at (polynomial.map (algebra_map ℚ ℝ) (polynomial.bernoulli k)) x,
-  rw [polynomial.derivative_map, polynomial.deriv_bernoulli k hk] at t,
+  rw [polynomial.derivative_map, polynomial.deriv_bernoulli k] at t,
   convert t,
   simp only [polynomial.map_mul, polynomial.map_nat_cast, polynomial.eval_mul,
     polynomial.eval_nat_cast, mul_eq_mul_left_iff, nat.cast_eq_zero],
@@ -84,17 +84,16 @@ begin
   refl,
 end
 
-lemma has_deriv_at_bernoulli_fun {k : ℕ} (hk : 1 ≤ k) (x : ℝ) : has_deriv_at (bernoulli_fun k)
+lemma has_deriv_at_bernoulli_fun (k : ℕ) (x : ℝ) : has_deriv_at (bernoulli_fun k)
   (k * bernoulli_fun (k - 1) x) x :=
 begin
   have t : has_deriv_at (λ y:ℝ, y / (2 * π)) (1 / (2 * π)) x := (has_deriv_at_id x).div_const _,
-  replace t := ((has_deriv_at_bernoulli_fun0 hk _).comp _ t).const_mul ((2 * π) ^ k),
-  convert t using 1,
+  convert ((has_deriv_at_bernoulli_fun0 k _).comp _ t).const_mul ((2 * π) ^ k) using 1,
+  rcases nat.eq_zero_or_pos k with hk|hk,
+  { rw hk, simp,},
   rw bernoulli_fun, ring_nf, congr' 1,
   rw mul_comm, congr' 1, field_simp [two_pi_pos.ne'],
-  have : (2 * π) = (2 * π) ^ 1 := by simp,
-  conv begin to_lhs, congr, skip, rw this, end,
-  rw [←pow_add, nat.sub_add_cancel hk],
+  rw [←pow_succ', nat.sub_add_cancel hk],
 end
 
 lemma continuous_bernoulli_fun (k : ℕ) : continuous (bernoulli_fun k) :=
@@ -104,7 +103,7 @@ begin
   { rw h, convert continuous_at_const,
     ext1, dsimp only [bernoulli_fun, bernoulli_fun0],
     rw [polynomial.bernoulli_zero, pow_zero, polynomial.map_one, polynomial.eval_one, mul_one], },
-  refine (has_deriv_at_bernoulli_fun _ x).continuous_at, linarith,
+  { exact (has_deriv_at_bernoulli_fun k x).continuous_at },
 end
 
 lemma continuous_bernoulli_fun' (k : ℕ) : continuous (λ x, bernoulli_fun k x : ℝ → ℂ) :=
@@ -113,10 +112,9 @@ continuous_of_real.comp (continuous_bernoulli_fun k)
 lemma integral_bernoulli_fun_eq_zero (k : ℕ) (hk : 1 ≤ k) :
   ∫ (x : ℝ) in 0..(2 * π), bernoulli_fun k x = 0 :=
 begin
-  have hk' : 1 ≤ (k + 1) := by linarith,
   have : ∀ x:ℝ, x ∈ interval 0 (2 * π) → has_deriv_at (λ y:ℝ, bernoulli_fun (k + 1) y / (k + 1))
     (bernoulli_fun k x) x,
-  { intros x hx, convert (has_deriv_at_bernoulli_fun hk' x).div_const (k + 1),
+  { intros x hx, convert (has_deriv_at_bernoulli_fun _ x).div_const (k + 1),
     simp only [nat.cast_add, nat.cast_one, nat.add_succ_sub_one, add_zero],
     rw [mul_comm, mul_div_assoc, div_self, mul_one],
     { rw [←nat.cast_one, ←nat.cast_add, nat.cast_ne_zero], exact nat.succ_ne_zero k },},
@@ -141,12 +139,12 @@ begin
   rw [bernoulli_fourier_coeff],
   have d1 : ∀ (x:ℝ), has_deriv_at (λ x, bernoulli_fun k x : ℝ → ℂ) (k * bernoulli_fun (k - 1) x) x,
   { intro x, simpa using has_deriv_at.scomp x (of_real_clm.has_deriv_at)
-      (has_deriv_at_bernoulli_fun hk x) },
+      (has_deriv_at_bernoulli_fun k x) },
   have d2 : ∀ x:ℂ, has_deriv_at (λ y, I / n * exp (-n * I * y) : ℂ → ℂ) (exp (-n * I * x)) x,
   { intro x,
     suffices : has_deriv_at (λ y, exp (-n * I * y) : ℂ → ℂ) (exp (-n * I * x) * (-n * I)) x,
     { convert has_deriv_at.const_mul (I / n) this, ring_nf,
-      rw mul_inv_cancel, rw I_sq, ring, exact int.cast_ne_zero.mpr hn },
+      rw [mul_inv_cancel (int.cast_ne_zero.mpr hn : (n : ℂ) ≠ 0), I_sq], ring, },
     refine has_deriv_at.comp x (complex.has_deriv_at_exp (-n * I * x)) _,
     simpa using (has_deriv_at_const x (-↑n * I)).mul (has_deriv_at_id x), },
   replace d2 : ∀ x:ℝ, has_deriv_at (λ y, I / n * exp (-n * I * y) : ℝ → ℂ)
@@ -193,11 +191,10 @@ begin
   simp only [one_div, mul_inv_rev, pow_zero, polynomial.map_one, polynomial.eval_one,
     mul_one, of_real_one, mul_eq_zero, inv_eq_zero, of_real_eq_zero, bit0_eq_zero, one_ne_zero,
     or_false, pi_ne_zero, false_or],
-  rw integral_exp_mul_complex,
-  have : -↑n * I * ↑(2 * π) = ↑(-n) * (2 * π * I) := by { simp, ring, }, rw this,
-  rw exp_int_mul_two_pi_mul_I,
-  simp only [of_real_zero, mul_zero, complex.exp_zero, sub_self, zero_div],
-  { refine mul_ne_zero _ I_ne_zero, rw [neg_ne_zero, int.cast_ne_zero], exact hn, },
+  rw integral_exp_mul_complex (mul_ne_zero (neg_ne_zero.mpr (int.cast_ne_zero.mpr hn)) I_ne_zero),
+  have : -↑n * I * ↑(2 * π) = ↑(-n) * (2 * π * I),
+  { rw [int.cast_neg, of_real_mul, of_real_bit0, of_real_one], ring, },
+  rw [this, exp_int_mul_two_pi_mul_I, of_real_zero, mul_zero, complex.exp_zero, sub_self, zero_div]
 end
 
 lemma bernoulli_fourier_coeff_eq (k : ℕ) (hk : 1 ≤ k) (n : ℤ) :
@@ -211,7 +208,7 @@ begin
     simp only [div_zero, mul_eq_zero, inv_eq_zero, of_real_eq_zero, bit0_eq_zero,
       one_ne_zero, or_false], right,
     -- this step is more awkward than it should be since there is no `interval_integral.of_real`
-    rw interval_integral_eq_integral_interval_oc, rw integral_of_real,
+    rw [interval_integral_eq_integral_interval_oc, integral_of_real],
     have := integral_bernoulli_fun_eq_zero k hk,
     rw interval_integral_eq_integral_interval_oc at this,
     simp only [two_pi_pos.le, if_true, id.smul_eq_mul, one_mul] at this,
@@ -243,25 +240,25 @@ case we deduce the `L²` norm of `Bₖ`.  -/
 lemma bernoulli_prod_recurrence (i : ℕ) (hi : i ≠ 0) (j : ℕ) (hj : 1 ≤ j)  :
   ∫ x:ℝ in 0..(2 * π), bernoulli_fun i x * bernoulli_fun j x =
   ite (j = 1) (2 * π * bernoulli_fun (i + 1) 0 / (i + 1)) 0
-  -j / (i + 1) * ∫ x:ℝ in 0..(2 * π), bernoulli_fun (i+1) x * bernoulli_fun (j-1) x :=
+  - j / (i + 1) * ∫ x:ℝ in 0..(2 * π), bernoulli_fun (i+1) x * bernoulli_fun (j-1) x :=
 begin
   have t : ∀ x:ℝ, x ∈ interval 0 (2 * π) → has_deriv_at (λ y, bernoulli_fun (i+1) y / (i + 1) )
     (bernoulli_fun i x) x,
-  { intros x hx, have t := (has_deriv_at_bernoulli_fun _ x).div_const (i + 1),
+  { intros x hx, have t := (has_deriv_at_bernoulli_fun (i + 1) x).div_const (i + 1),
     convert t,
     rw [mul_comm, nat.cast_add, nat.cast_one, mul_div_cancel, nat.add_sub_cancel],
-    rw [←nat.cast_one, ←nat.cast_add, nat.cast_ne_zero], exact i.add_one_ne_zero,
-    linarith },
-  replace t := integral_mul_deriv_eq_deriv_mul (λ x hx, has_deriv_at_bernoulli_fun hj x) t _ _,
+    rw [←nat.cast_one, ←nat.cast_add, nat.cast_ne_zero], exact i.add_one_ne_zero, },
+  replace t := integral_mul_deriv_eq_deriv_mul (λ x hx, @has_deriv_at_bernoulli_fun j x) t _ _,
   swap, { exact (continuous_const.mul $ continuous_bernoulli_fun $ j - 1).interval_integrable _ _ },
   swap, { exact (continuous_bernoulli_fun _).interval_integrable _ _ },
   have : (λ x:ℝ, bernoulli_fun j x * bernoulli_fun i x)
     = (λ x:ℝ, bernoulli_fun i x * bernoulli_fun j x) := by { ext1 x, ring },
-  dsimp at t, rw this at t, rw t,
-  rw [bernoulli_fun_eval_two_pi, bernoulli_fun_eval_two_pi], simp,
+  dsimp at t, rw this at t,
+  rw [t, bernoulli_fun_eval_two_pi, bernoulli_fun_eval_two_pi],
+  simp only [add_left_eq_self],
   split_ifs,
   { -- j = 1 case
-    rw ←integral_const_mul, rw add_zero, rw add_mul, rw add_sub_cancel', rw h,
+    rw [←integral_const_mul, add_zero, add_mul, add_sub_cancel', h],
     congr' 1, { ring }, congr' 1, { ext1 x, ring, } },
   { -- j ≠ 1 case
     rw [←integral_const_mul, add_zero, add_zero, sub_self, zero_sub, zero_sub, neg_inj],
@@ -273,46 +270,46 @@ lemma bernoulli_prod (m : ℕ) (j : ℕ) (hj1 : 1 ≤ j) (hj2 : j + 1 ≤ m):
   ∫ x:ℝ in 0..(2 * π), bernoulli_fun (m - j) x * bernoulli_fun j x =
   (-1) ^ (j - 1) * (2 * π) ^ (m + 1) * bernoulli m / nat.choose m j :=
 begin
-  -- This proof is a bit painful. Firstly, it is induction on j but starting with j = 1.
-  -- Secondly, there are lots of fiddly inequalities with `nat`s, where subtraction is defined
-  -- weirdly.
+  -- This proof is a bit painful. Firstly, it is induction on `j` but with a hypothesis `1 ≤ j`;
+  -- so the "base case" `j = 0` is a trivial exfalso, and the actual base case `j = 1` appears later
+  -- as an `rcases` construct. Secondly, there are lots of inequalities with `nat`s, where
+  -- subtraction behaves in counterintuitive ways.
   induction j with j hj,
   { exfalso, linarith },
   { simp_rw nat.succ_eq_add_one at *,
     rw bernoulli_prod_recurrence (m - (j + 1)) _ (j + 1) hj1,
-    swap, { contrapose! hj2, simp at hj2, linarith },
+    swap, { contrapose! hj2, simp only [tsub_eq_zero_iff_le] at hj2, linarith },
     have w : m - (j + 1) + 1 = m - j,
-    { rw ←nat.sub_sub, rw nat.sub_add_cancel,
+    { rw [←nat.sub_sub, nat.sub_add_cancel],
       replace hj2 := nat.le_of_succ_le hj2,
-      rw add_comm at hj2, rwa nat.add_le_to_le_sub at hj2,
+      rwa [add_comm, nat.add_le_to_le_sub] at hj2,
       linarith,},
-    simp_rw w,
-    have : j + 1 - 1 = j := by ring, simp_rw this,
+    simp_rw [w, (by ring: j + 1 - 1 = j)],
     rcases nat.eq_zero_or_pos j,
     { -- j=0 case
-      simp_rw h, simp only [zero_add, eq_self_iff_true, tsub_zero, if_true, nat.cast_one,
-        pow_zero, one_mul, nat.choose_one_right],
+      simp_rw h,
+      simp only [zero_add, eq_self_iff_true, tsub_zero, if_true, nat.cast_one, pow_zero, one_mul,
+        nat.choose_one_right],
       simp_rw [bernoulli_fun_zero, mul_one],
-      rw integral_bernoulli_fun_eq_zero, rw mul_zero,
-      rw bernoulli_fun_eval_zero,
+      rw [integral_bernoulli_fun_eq_zero, mul_zero, bernoulli_fun_eval_zero],
+      swap, { rw h at hj2, linarith },
       have : (((m - 1) : ℕ): ℝ) + 1 = m := by { rw nat.cast_sub, simp, linarith },
-      rw this, rw pow_add, ring,
-      { rw h at hj2, linarith }, },
-    { replace : 1 ≤ j := by linarith, replace hj := hj this,
-      replace : j + 1 ≤ m := by linarith, replace hj := hj this,
-      rw hj,
+      rw [this, pow_add],
+      ring },
+    { rw hj (by linarith) (by linarith),
       split_ifs, { exfalso, linarith },
-      rw nat.cast_sub this, rw nat.cast_add, rw nat.cast_one, rw zero_sub,
+      rw [nat.cast_sub (by linarith : j + 1 ≤ m), nat.cast_add, nat.cast_one, zero_sub],
       have : (-1 : ℝ) ^ j = - (-1) ^ (j - 1),
       { have : j = (j - 1) + 1 := by { rw nat.sub_add_cancel, linarith,},
         conv_lhs { rw this }, rw pow_add, simp },
-      rw this, rw sub_add, rw add_sub_cancel,
+      rw [this, sub_add, add_sub_cancel],
+      -- prepare `≠ 0` statements for `field_simp`
       have a : ((m.choose j) : ℝ) ≠ 0,
       { rw [nat.cast_ne_zero, ne.def, nat.choose_eq_zero_iff], linarith, },
       have b : ((m.choose (j + 1)) : ℝ) ≠ 0,
       { rw [nat.cast_ne_zero, ne.def, nat.choose_eq_zero_iff], linarith, },
       have c : (↑m - ↑j : ℝ) ≠ 0,
-      { rw sub_ne_zero, rw ne.def, rw nat.cast_inj, linarith },
+      { rw [sub_ne_zero, ne.def, nat.cast_inj], linarith },
       field_simp,
       have : ((j:ℝ) + 1) * ((-1) ^ (j - 1) * (2 * π) ^ (m + 1) * (bernoulli m))
         * (m.choose (j + 1)) = ((j:ℝ) + 1) * ↑(m.choose (j + 1)) * (-1) ^ (j - 1)
@@ -321,9 +318,8 @@ begin
         ((m:ℝ) - ↑j) * ↑(m.choose j) * (-1) ^ (j - 1) * (2 * π) ^ (m + 1) * ↑(bernoulli m) :=
       by ring, rw this,
       congr' 3,
-      rw [←nat.cast_one, ←nat.cast_add, ←nat.cast_mul],
-      rw [←nat.cast_sub, ←nat.cast_mul],
-      rw [nat.cast_inj], conv_lhs { rw mul_comm}, conv_rhs {rw mul_comm },
+      rw [←nat.cast_one, ←nat.cast_add, ←nat.cast_mul, ←nat.cast_sub, ←nat.cast_mul, nat.cast_inj],
+      conv_lhs { rw mul_comm }, conv_rhs { rw mul_comm },
       rw nat.choose_succ_right_eq,
       linarith } },
 end
@@ -345,14 +341,16 @@ lemma zeta_ℤ (k : ℕ) (hk : 1 ≤ k) : has_sum (λ (n : ℤ), 1 / (n : ℝ) ^
   ((-1) ^ (k - 1) * 2 ^ (2 * k) * π ^ (2 * k) * bernoulli (2 * k) / ((2 * k).factorial)) :=
 begin
   have t := fourier_line.parseval_line (λ x, bernoulli_fun k x) _,
+  swap, { rw mem_ℒp_two_iff_integrable_sq_norm,
+    exact ((continuous_norm.comp (continuous_bernoulli_fun' k)).pow 2).integrable_on_Ioc,
+    exact (continuous_bernoulli_fun' k).ae_strongly_measurable },
   have s := bernoulli_fourier_coeff_eq k hk,
-  dsimp only [bernoulli_fourier_coeff] at s,
-  dsimp only at t, simp_rw s at t,
-  simp_rw [complex.norm_eq_abs, abs_of_real, _root_.sq_abs] at t,
+  dsimp only [bernoulli_fourier_coeff] at s t,
+  simp_rw [s, complex.norm_eq_abs, abs_of_real, _root_.sq_abs] at t,
   have : 1 / (2 * π) * ∫ (x : ℝ) in 0..2 * π, bernoulli_fun k x ^ 2 =
     (-1) ^ (k - 1) * (2 * π) ^ (2 * k) * bernoulli (2 * k) / nat.choose (2 * k) k,
-  { rw [bernoulli_norm k hk, pow_add, pow_one],
-    rw mul_div, congr' 1, field_simp [two_pi_pos.ne'], ring,  },
+  { rw [bernoulli_norm k hk, pow_add, pow_one, mul_div],
+    congr' 1, field_simp [two_pi_pos.ne'], ring, },
   rw this at t,
   simp_rw [complex.abs_div, complex.abs_neg, mul_pow, complex.abs_mul,
     complex.abs_pow, abs_I, one_pow, one_mul, div_pow] at t,
@@ -363,28 +361,20 @@ begin
   have : ∀ (n : ℤ), complex.abs ( (n : ℂ) ) = |(n : ℝ)|,
   { intro n, have : (n : ℂ) = ((n : ℝ) : ℂ) := by simp,
     rw [this, complex.abs_of_real],  },
-  simp_rw [this] at t,
-  simp_rw ←pow_mul at t,
-  simp_rw (by ring : k * 2 = 2 * k) at t,
-  simp_rw [pow_mul, _root_.sq_abs, ←pow_mul] at t,
+  simp_rw [this,  ←pow_mul, mul_comm k 2, pow_mul, _root_.sq_abs, ←pow_mul] at t,
   replace t := has_sum.div_const t ((k.factorial) ^ 2),
-  dsimp at t,
   have : (λ (n : ℤ), ↑(k.factorial) ^ 2 / (n : ℝ) ^ (2 * k) / ↑(k.factorial) ^ 2) =
     (λ (n : ℤ), 1 / (n : ℝ) ^ (2 * k)),
   { ext1 n, rw [div_eq_mul_inv, div_eq_mul_inv, mul_comm, ←mul_assoc, inv_mul_cancel],
     field_simp, rw [ne.def, sq_eq_zero_iff, ←ne.def, nat.cast_ne_zero],
     exact nat.factorial_ne_zero k },
-  rw this at t,
-  rw div_div at t, rw sq at t,
+  rw [this, div_div, sq] at t,
   have : (((2 * k).choose k) : ℝ) * (↑(k.factorial) * ↑(k.factorial)) = ( (2 * k).factorial ),
-  { rw ←nat.cast_mul, rw ←nat.cast_mul, rw ←mul_assoc, congr' 1,
+  { rw [←nat.cast_mul, ←nat.cast_mul, ←mul_assoc], congr' 1,
     convert nat.choose_mul_factorial_mul_factorial (by linarith : k ≤ 2 * k),
-    rw two_mul, rw nat.add_sub_cancel, },
-  rw this at t, rw ←mul_assoc at t, exact t,
-  { rw mem_ℒp_two_iff_integrable_sq_norm,
-    apply continuous.integrable_on_Ioc,
-    exact (continuous_norm.comp (continuous_bernoulli_fun' k)).pow 2,
-    exact (continuous_bernoulli_fun' k).ae_strongly_measurable }
+    rw [two_mul, nat.add_sub_cancel], },
+  rwa [this, ←mul_assoc] at t
+
 end
 
 lemma zeta_value (k : ℕ) (hk : 1 ≤ k) : has_sum (λ n:ℕ, 1 / ((n + 1) : ℝ) ^ (2 * k))
@@ -392,19 +382,18 @@ lemma zeta_value (k : ℕ) (hk : 1 ≤ k) : has_sum (λ n:ℕ, 1 / ((n + 1) : �
 begin
   have := (zeta_ℤ k hk).sum_ℕ_of_sum_ℤ,
   simp only [int.cast_add, int.cast_coe_nat, int.cast_one, int.cast_sub, int.cast_neg,
-  int.cast_zero] at this,
+    int.cast_zero] at this,
   have aux : ∀ (n:ℕ), (-(n:ℝ) - 1) ^ (2 * k) = ((n:ℝ) + 1) ^ (2 * k),
-  { intro n,
-    rw [pow_mul, pow_mul, neg_sub_left, neg_sq, add_comm],},
+  { intro n, rw [pow_mul, pow_mul, neg_sub_left, neg_sq, add_comm],},
   simp_rw [aux, ←mul_two] at this,
-  convert (has_sum.div_const this 2) using 1,
+  convert (this.div_const 2) using 1,
   { ext1, simp, },
   { field_simp,
     have : (-1) ^ (k - 1) * 2 ^ (2 * k - 1) * π ^ (2 * k) * ↑(bernoulli (2 * k)) * 2 =
     (-1) ^ (k - 1) * (2 ^ (2 * k - 1) * 2 ^ 1) * π ^ (2 * k) * ↑(bernoulli (2 * k)),
     { rw pow_one, ring, },
-    rw this, rw ←pow_add, rw nat.sub_add_cancel,
-    rw [zero_pow, div_zero, sub_zero], linarith, linarith },
+    rw [this, ←pow_add, nat.sub_add_cancel (by linarith : 1 ≤ 2 * k),
+      zero_pow (by linarith : 0 < 2 * k), div_zero, sub_zero], },
 end
 
 end main_proof

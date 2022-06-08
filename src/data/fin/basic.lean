@@ -850,6 +850,11 @@ ext $ add_comm _ _
   cast (add_comm _ _) (add_nat m i) = nat_add m i :=
 ext $ add_comm _ _
 
+@[simp] lemma nat_add_last {m n : ℕ} : (nat_add n) (last m) = last (n + m) := rfl
+
+lemma nat_add_cast_succ {m n : ℕ} {i : fin m} :
+  (nat_add n) (cast_succ i) = cast_succ (nat_add n i) := rfl
+
 end succ
 
 section pred

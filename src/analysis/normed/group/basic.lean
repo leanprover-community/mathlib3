@@ -1136,6 +1136,27 @@ def normed_group.induced {E} [add_comm_group E]
 { .. semi_normed_group.induced f,
   .. metric_space.induced f h normed_group.to_metric_space, }
 
+/-- The constant norm that is `c` everywhere except at `dist x x = 0`.
+
+See note [reducible non-instances]-/
+@[reducible]
+def normed_group.discrete {E} [decidable_eq E] [add_comm_group E] (c : ℝ) (hc : 0 < c) :
+  normed_group E :=
+{ norm := λ x, if x = 0 then 0 else c,
+  dist_eq := λ x y, if_congr sub_eq_zero.symm rfl rfl,
+  to_metric_space := metric_space.discrete ⟨c, hc.le⟩ $ (nonneg.mk_eq_zero _).not.mpr hc.ne' }
+
+lemma discrete_norm_eq {E} [decidable_eq E] [add_comm_group E] (c : ℝ) (hc : 0 < c)
+  (x : E) :
+  (by haveI : normed_group E := normed_group.discrete c hc; exact ∥x∥) = if x = 0 then 0 else c :=
+rfl
+
+lemma discrete_nnnorm_eq {E} [decidable_eq E] [add_comm_group E] (c : ℝ) (hc : 0 < c)
+  (x : E) :
+  (by haveI : normed_group E := normed_group.discrete c hc; exact ∥x∥₊) =
+    if x = 0 then (0 : ℝ≥0) else ⟨c, hc.le⟩ :=
+subtype.ext $ eq.symm $ apply_ite _ _ _ _
+
 /-- A subgroup of a normed group is also a normed group, with the restriction of the norm. -/
 instance add_subgroup.normed_group (s : add_subgroup E) : normed_group s :=
 normed_group.induced s.subtype subtype.coe_injective

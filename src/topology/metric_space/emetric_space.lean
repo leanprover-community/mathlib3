@@ -930,6 +930,39 @@ def emetric_space.induced {γ β} (f : γ → β) (hf : function.injective f)
       exact ⟨_, edist_mem_uniformity ε0, λ ⟨a, b⟩, hε⟩ }
   end }
 
+/-- The constant emetric that is `c` everywhere except at `edist x x = 0`.
+
+See note [reducible non-instances]-/
+@[reducible]
+def emetric_space.discrete {α} [decidable_eq α] (c : ℝ≥0∞) (hc : c ≠ 0) : emetric_space α :=
+{ edist := λ a b, if a = b then 0 else c,
+  edist_self := λ a, if_pos rfl,
+  edist_comm := λ a b, if_congr eq_comm rfl rfl,
+  edist_triangle := λ a b c, begin
+    dsimp; split_ifs with hac hab hbc hbc hab hbc hbc,
+    iterate 4 { exact zero_le _ },
+    { exact false.elim (hac $ hab.trans hbc) },
+    { rw zero_add, exact le_rfl },
+    { rw add_zero, exact le_rfl },
+    { exact le_self_add },
+  end,
+  eq_of_edist_eq_zero := λ x y, hc.symm.ite_eq_left_iff.mp,
+  to_uniform_space := ⊥,
+  uniformity_edist := uniformity_dist_of_mem_uniformity _ _ $ λ s, begin
+    dsimp only [edist],
+    split,
+    { rintro hs,
+      refine ⟨c, lt_of_le_of_ne (zero_le _) hc.symm, λ a b h, _⟩,
+      obtain rfl | hab := eq_or_ne a b,
+      { exact hs (mem_id_rel.2 rfl) },
+      { rw if_neg hab at h,
+        exact false.elim (lt_irrefl _ h) } },
+    { rintro ⟨c, hc, h⟩ ⟨a, b⟩ hab,
+      refine h _,
+      rw if_pos (mem_id_rel.1 hab),
+      exact hc },
+  end }
+
 /-- Emetric space instance on subsets of emetric spaces -/
 instance {α : Type*} {p : α → Prop} [emetric_space α] : emetric_space (subtype p) :=
 emetric_space.induced coe subtype.coe_injective ‹_›

@@ -2665,6 +2665,16 @@ begin
   exact uniform_embedding.comap_metric_space f (h.to_uniform_embedding f),
 end
 
+/-- The constant metric that is `c` everywhere except at `dist x x = 0`.
+
+See note [reducible non-instances]-/
+@[reducible]
+def metric_space.discrete {α} [decidable_eq α] (c : ℝ≥0) (hc : c ≠ 0) : metric_space α :=
+@emetric_space.to_metric_space_of_dist α (emetric_space.discrete c $ ennreal.coe_ne_zero.2 hc)
+  (λ a b, if a = b then 0 else c)
+  (λ a b h, ((ite_eq_iff.1 h).imp and.right and.right).elim ennreal.zero_ne_top ennreal.coe_ne_top)
+  (λ a b, eq.trans (by simp) (apply_ite _ _ _ _).symm)
+
 instance subtype.metric_space {α : Type*} {p : α → Prop} [metric_space α] :
   metric_space (subtype p) :=
 metric_space.induced coe subtype.coe_injective ‹_›

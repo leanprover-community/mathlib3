@@ -672,8 +672,7 @@ protected lemma monoid_with_zero_hom.map_mul [mul_zero_one_class M] [mul_zero_on
 add_decl_doc add_monoid_hom.map_add
 
 namespace monoid_hom
-variables {mM : mul_one_class M} {mN : mul_one_class N} {mP : mul_one_class P}
-variables [group G] [comm_group H] [monoid_hom_class F M N]
+variables {mM : mul_one_class M} {mN : mul_one_class N} [monoid_hom_class F M N]
 
 include mM mN
 
@@ -696,13 +695,21 @@ let ⟨y, hy⟩ := hx in ⟨f y, map_mul_eq_one f hy⟩
 
 end monoid_hom
 
+section division_comm_monoid
+variables [division_comm_monoid α]
+
 /-- Inversion on a commutative group, considered as a monoid homomorphism. -/
-@[to_additive "Inversion on a commutative additive group, considered as an additive
-monoid homomorphism."]
-def comm_group.inv_monoid_hom {G : Type*} [comm_group G] : G →* G :=
+@[to_additive "Negation on a commutative additive group, considered as an additive monoid
+homomorphism."]
+def inv_monoid_hom : α →* α :=
 { to_fun := has_inv.inv,
   map_one' := inv_one,
   map_mul' := mul_inv }
+
+@[simp] lemma coe_inv_monoid_hom : (inv_monoid_hom : α → α) = has_inv.inv := rfl
+@[simp] lemma inv_monoid_hom_apply (a : α) : inv_monoid_hom a = a⁻¹ := rfl
+
+end division_comm_monoid
 
 /-- The identity map from a type with 1 to itself. -/
 @[to_additive, simps]

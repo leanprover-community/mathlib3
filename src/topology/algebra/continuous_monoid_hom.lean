@@ -170,7 +170,7 @@ mk' mul_monoid_hom continuous_mul
 /-- The continuous homomorphism given by inversion. -/
 @[to_additive "The continuous homomorphism given by negation.", simps]
 def inv : continuous_monoid_hom E E :=
-mk' comm_group.inv_monoid_hom continuous_inv
+mk' inv_monoid_hom continuous_inv
 
 variables {A B C D E}
 

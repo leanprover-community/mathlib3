@@ -746,7 +746,7 @@ lemma snorm_add_lt_top_of_one_le {f g : α → E} (hf : mem_ℒp f p μ) (hg : m
 lt_of_le_of_lt (snorm_add_le hf.1 hg.1 hq1) (ennreal.add_lt_top.mpr ⟨hf.2, hg.2⟩)
 
 lemma snorm'_add_lt_top_of_le_one
-  {f g : α → E} (hf : ae_strongly_measurable f μ) (hg : ae_strongly_measurable g μ)
+  {f g : α → E} (hf : ae_strongly_measurable f μ)
   (hf_snorm : snorm' f q μ < ∞) (hg_snorm : snorm' g q μ < ∞) (hq_pos : 0 < q) (hq1 : q ≤ 1) :
   snorm' (f + g) q μ < ∞ :=
 calc (∫⁻ a, ↑∥(f + g) a∥₊ ^ q ∂μ) ^ (1 / q)
@@ -765,11 +765,9 @@ end
 ... < ∞ :
 begin
   refine ennreal.rpow_lt_top_of_nonneg (by simp [hq_pos.le] : 0 ≤ 1 / q) _,
-  rw [lintegral_add' (hf.ennnorm.pow_const q)
-    (hg.ennnorm.pow_const q), ennreal.add_ne_top, ←lt_top_iff_ne_top,
-    ←lt_top_iff_ne_top],
-  exact ⟨lintegral_rpow_nnnorm_lt_top_of_snorm'_lt_top hq_pos hf_snorm,
-    lintegral_rpow_nnnorm_lt_top_of_snorm'_lt_top hq_pos hg_snorm⟩,
+  rw [lintegral_add_left' (hf.ennnorm.pow_const q), ennreal.add_ne_top],
+  exact ⟨(lintegral_rpow_nnnorm_lt_top_of_snorm'_lt_top hq_pos hf_snorm).ne,
+    (lintegral_rpow_nnnorm_lt_top_of_snorm'_lt_top hq_pos hg_snorm).ne⟩,
 end
 
 lemma snorm_add_lt_top {f g : α → E} (hf : mem_ℒp f p μ) (hg : mem_ℒp g p μ) :
@@ -788,7 +786,7 @@ begin
   { rwa [← ennreal.one_to_real, @ennreal.to_real_le_to_real p 1 hp_top ennreal.coe_ne_top], },
   rw snorm_eq_snorm' h0 hp_top,
   rw [mem_ℒp, snorm_eq_snorm' h0 hp_top] at hf hg,
-  exact snorm'_add_lt_top_of_le_one hf.1 hg.1 hf.2 hg.2 hp_pos hp1_real,
+  exact snorm'_add_lt_top_of_le_one hf.1 hf.2 hg.2 hp_pos hp1_real,
 end
 
 section map_measure

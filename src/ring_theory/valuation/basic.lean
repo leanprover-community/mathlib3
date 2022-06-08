@@ -49,6 +49,13 @@ on R / J = `ideal.quotient J` is `on_quot v h`.
 
 `add_valuation R Γ₀` is implemented as `valuation R (multiplicative Γ₀)ᵒᵈ`.
 
+## Notation
+
+In the `discrete_valuation` locale:
+
+ * `ℕₘ₀` is a shorthand for `with_zero (multiplicative ℕ)`
+ * `ℤₘ₀` is a shorthand for `with_zero (multiplicative ℤ)`
+
 ## TODO
 
 If ever someone extends `valuation`, we should fully comply to the `fun_like` by migrating the
@@ -743,3 +750,10 @@ end supp -- end of section
 attribute [irreducible] add_valuation
 
 end add_valuation
+
+section valuation_notation
+
+localized "notation `ℕₘ₀` := with_zero (multiplicative ℕ)" in discrete_valuation
+localized "notation `ℤₘ₀` := with_zero (multiplicative ℤ)" in discrete_valuation
+
+end valuation_notation

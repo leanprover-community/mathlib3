@@ -39,7 +39,7 @@ section map
 variables (F : C ⥤ D) [preserves_zero_morphisms F]
 
 section bicone
-variables {J : Type v} [decidable_eq J]
+variables {J : Type v}
 
 /-- The image of a bicone under a functor. -/
 @[simps]
@@ -80,7 +80,7 @@ open category_theory.functor
 namespace limits
 
 section bicone
-variables {J : Type v} [decidable_eq J]
+variables {J : Type v}
 
 /-- A functor `F` preserves biproducts of `f` if `F` maps every bilimit bicone over `f` to a
     bilimit bicone over `F.obj ∘ f`. -/
@@ -107,20 +107,20 @@ end bicone
 /-- A functor `F` preserves finite biproducts if it preserves biproducts of shape `J` whenever
     `J` is a fintype. -/
 class preserves_finite_biproducts (F : C ⥤ D) [preserves_zero_morphisms F] :=
-(preserves : Π {J : Type v} [decidable_eq J] [fintype J], preserves_biproducts_of_shape J F)
+(preserves : Π {J : Type v} [fintype J], preserves_biproducts_of_shape J F)
 
 attribute [instance, priority 100] preserves_finite_biproducts.preserves
 
 /-- A functor `F` preserves biproducts if it preserves biproducts of any (small) shape `J`. -/
 class preserves_biproducts (F : C ⥤ D) [preserves_zero_morphisms F] :=
-(preserves : Π {J : Type v} [decidable_eq J], preserves_biproducts_of_shape J F)
+(preserves : Π {J : Type v}, preserves_biproducts_of_shape J F)
 
 attribute [instance, priority 100] preserves_biproducts.preserves
 
 @[priority 100]
 instance preserves_finite_biproducts_of_preserves_biproducts (F : C ⥤ D)
   [preserves_zero_morphisms F] [preserves_biproducts F] : preserves_finite_biproducts F :=
-{ preserves := λ J _ _, infer_instance }
+{ preserves := λ J _, infer_instance }
 
 /-- A functor `F` preserves binary biproducts of `X` and `Y` if `F` maps every bilimit bicone over
     `X` and `Y` to a bilimit bicone over `F.obj X` and `F.obj Y`. -/
@@ -141,20 +141,20 @@ class preserves_binary_biproducts (F : C ⥤ D) [preserves_zero_morphisms F] :=
 
 /-- A functor that preserves biproducts of a pair preserves binary biproducts. -/
 def preserves_binary_biproduct_of_preserves_biproduct (F : C ⥤ D) [preserves_zero_morphisms F]
-  (X Y : C) [preserves_biproduct (pair X Y).obj F] : preserves_binary_biproduct X Y F :=
+  (X Y : C) [preserves_biproduct (pair_function X Y) F] : preserves_binary_biproduct X Y F :=
 { preserves := λ b hb,
   { is_limit := is_limit.of_iso_limit
       ((is_limit.postcompose_hom_equiv (by exact diagram_iso_pair _) _).symm
         ((is_bilimit_of_preserves F (b.to_bicone_is_bilimit.symm hb)).is_limit)) $
-      cones.ext (iso.refl _) (λ j, by { cases j, tidy }),
+      cones.ext (iso.refl _) (λ j, by { rcases j with ⟨⟨⟩⟩, tidy, }),
     is_colimit := is_colimit.of_iso_colimit
       ((is_colimit.precompose_inv_equiv (by exact diagram_iso_pair _ ) _).symm
         ((is_bilimit_of_preserves F (b.to_bicone_is_bilimit.symm hb)).is_colimit)) $
-      cocones.ext (iso.refl _) (λ j, by { cases j, tidy }) } }
+      cocones.ext (iso.refl _) (λ j, by { rcases j with ⟨⟨⟩⟩, tidy, }) } }
 
 /-- A functor that preserves biproducts of a pair preserves binary biproducts. -/
 def preserves_binary_biproducts_of_preserves_biproducts (F : C ⥤ D)
-  [preserves_zero_morphisms F] [preserves_biproducts_of_shape (discrete walking_pair.{v}) F] :
+  [preserves_zero_morphisms F] [preserves_biproducts_of_shape walking_pair.{v} F] :
   preserves_binary_biproducts F :=
 { preserves := λ X Y, preserves_binary_biproduct_of_preserves_biproduct F X Y }
 
@@ -167,7 +167,7 @@ open category_theory.limits
 namespace functor
 
 section bicone
-variables {J : Type v} [decidable_eq J] (F : C ⥤ D) [preserves_zero_morphisms F] (f : J → C)
+variables {J : Type v} (F : C ⥤ D) [preserves_zero_morphisms F] (f : J → C)
   [has_biproduct f] [preserves_biproduct f F]
 
 instance has_biproduct_of_preserves : has_biproduct (F.obj ∘ f) :=
@@ -216,7 +216,7 @@ namespace limits
 variables (F : C ⥤ D) [preserves_zero_morphisms F]
 
 section bicone
-variables {J : Type v} [decidable_eq J] (f : J → C) [has_biproduct f] [preserves_biproduct f F]
+variables {J : Type v} (f : J → C) [has_biproduct f] [preserves_biproduct f F]
   {W : C}
 
 lemma biproduct.map_lift_map_biprod (g : Π j, W ⟶ f j) :
@@ -266,7 +266,9 @@ variables [preadditive C] [preadditive D] (F : C ⥤ D) [preserves_zero_morphism
 namespace limits
 
 section fintype
-variables {J : Type v} [decidable_eq J] [fintype J]
+variables {J : Type v} [fintype J]
+
+local attribute [tidy] tactic.discrete_cases
 
 /-- A functor between preadditive categories that preserves (zero morphisms and) finite biproducts
     preserves finite products. -/
@@ -349,7 +351,7 @@ def preserves_binary_product_of_preserves_binary_biproduct {X Y : C}
     ((is_limit.postcompose_inv_equiv (by exact diagram_iso_pair _) _).symm
       (is_binary_bilimit_of_preserves F
         (binary_bicone_is_bilimit_of_limit_cone_of_is_limit hc)).is_limit) $
-    cones.ext (iso.refl _) (λ j, by { cases j, tidy }) }
+    cones.ext (iso.refl _) (λ j, by { rcases j with ⟨⟨⟩⟩, tidy }) }
 
 section
 local attribute [instance] preserves_binary_product_of_preserves_binary_biproduct
@@ -369,7 +371,7 @@ def preserves_binary_biproduct_of_preserves_binary_product {X Y : C}
 { preserves := λ b hb, is_binary_bilimit_of_is_limit _ $
     is_limit.of_iso_limit ((is_limit.postcompose_hom_equiv (by exact diagram_iso_pair _)
       (F.map_cone b.to_cone)).symm (is_limit_of_preserves F hb.is_limit)) $
-        cones.ext (iso.refl _) (λ j, by { cases j, tidy }) }
+        cones.ext (iso.refl _) (λ j, by { rcases j with ⟨⟨⟩⟩, tidy }) }
 
 /-- A functor between preadditive categories that preserves (zero morphisms and) binary products
     preserves binary biproducts. -/
@@ -385,7 +387,7 @@ def preserves_binary_coproduct_of_preserves_binary_biproduct {X Y : C}
     ((is_colimit.precompose_hom_equiv (by exact diagram_iso_pair _) _).symm
       (is_binary_bilimit_of_preserves F
         (binary_bicone_is_bilimit_of_colimit_cocone_of_is_colimit hc)).is_colimit) $
-      cocones.ext (iso.refl _) (λ j, by { cases j, tidy }) }
+      cocones.ext (iso.refl _) (λ j, by { rcases j with ⟨⟨⟩⟩, tidy }) }
 
 section
 local attribute [instance] preserves_binary_coproduct_of_preserves_binary_biproduct
@@ -405,7 +407,7 @@ def preserves_binary_biproduct_of_preserves_binary_coproduct {X Y : C}
 { preserves := λ b hb, is_binary_bilimit_of_is_colimit _ $
     is_colimit.of_iso_colimit ((is_colimit.precompose_inv_equiv (by exact diagram_iso_pair _)
       (F.map_cocone b.to_cocone)).symm (is_colimit_of_preserves F hb.is_colimit)) $
-        cocones.ext (iso.refl _) (λ j, by { cases j, tidy }) }
+        cocones.ext (iso.refl _) (λ j, by { rcases j with ⟨⟨⟩⟩, tidy }) }
 
 /-- A functor between preadditive categories that preserves (zero morphisms and) binary coproducts
     preserves binary biproducts. -/

@@ -32,7 +32,7 @@ def specializes (x y : X) : Prop := y ∈ closure ({x} : set X)
 
 infix ` ⤳ `:300 := specializes
 
-lemma specializes_def (x y : X) : x ⤳ y ↔ y ∈ closure ({x} : set X) := iff.rfl
+lemma specializes_iff_mem_closure {x y : X} : x ⤳ y ↔ y ∈ closure ({x} : set X) := iff.rfl
 
 lemma specializes_iff_closure_subset : x ⤳ y ↔ closure ({y} : set X) ⊆ closure ({x} : set X) :=
 is_closed_closure.mem_iff_closure_subset
@@ -62,9 +62,12 @@ begin
     λ h U hU, not_imp_not.mp (h _ (is_open_compl_iff.mpr hU))⟩,
 end
 
+lemma specializes.mem_open (h : x ⤳ y) {U : set X} (hU : is_open U) (hy : y ∈ U) : x ∈ U :=
+specializes_iff_forall_open.1 h U hU hy
+
 lemma specializes.map (h : x ⤳ y) {f : X → Y} (hf : continuous f) : f x ⤳ f y :=
 begin
-  rw [specializes_def, ← set.image_singleton],
+  rw [specializes, ← set.image_singleton],
   exact image_closure_subset_closure_image hf ⟨_, h, rfl⟩,
 end
 
@@ -104,7 +107,7 @@ lemma inseparable_iff_closed :
   inseparable x y ↔ ∀ (U : set X) (hU : is_closed U), x ∈ U ↔ y ∈ U :=
 ⟨λ h U hU, not_iff_not.mp (h _ hU.1), λ h U hU, not_iff_not.mp (h _ (is_closed_compl_iff.mpr hU))⟩
 
-lemma inseparable_iff_closure (x y : X) :
+lemma inseparable_iff_mem_closure (x y : X) :
   inseparable x y ↔ x ∈ closure ({y} : set X) ∧ y ∈ closure ({x} : set X) :=
 begin
   rw inseparable_iff_closed,
@@ -116,8 +119,13 @@ end
 
 lemma inseparable_iff_specializes_and (x y : X) :
   inseparable x y ↔ x ⤳ y ∧ y ⤳ x :=
-(inseparable_iff_closure x y).trans (and_comm _ _)
+(inseparable_iff_mem_closure x y).trans (and_comm _ _)
+
+lemma inseparable_iff_closure_eq {x y : X} :
+  inseparable x y ↔ (closure {x} : set X) = closure {y} :=
+by simp only [inseparable_iff_specializes_and, specializes_iff_closure_subset,
+  subset_antisymm_iff, and.comm]
 
 lemma subtype_inseparable_iff {U : set X} (x y : U) :
   inseparable x y ↔ inseparable (x : X) y :=
-by { simp_rw [inseparable_iff_closure, closure_subtype, image_singleton] }
+by { simp_rw [inseparable_iff_mem_closure, closure_subtype, image_singleton] }

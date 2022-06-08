@@ -25,6 +25,9 @@ stated via `[quasi_sober α] [t0_space α]`.
 
 variables {α β : Type*} [topological_space α] [topological_space β]
 
+open set
+open_locale topological_space
+
 section generic_point
 
 /-- `x` is a generic point of `S` if `S` is the closure of `x`. -/
@@ -38,61 +41,52 @@ lemma is_generic_point.def {x : α} {S : set α} (h : is_generic_point x S) :
 
 lemma is_generic_point_closure {x : α} : is_generic_point x (closure ({x} : set α)) := refl _
 
-variables {x : α} {S : set α} (h : is_generic_point x S)
-
-include h
-
-lemma is_generic_point.specializes {y : α} (h' : y ∈ S) :
-  x ⤳ y := by rwa ← h.def at h'
-
-lemma is_generic_point.mem : x ∈ S :=
-h.def ▸ subset_closure (set.mem_singleton x)
-
-lemma is_generic_point.is_closed : is_closed S :=
-h.def ▸ is_closed_closure
-
-lemma is_generic_point.is_irreducible : is_irreducible S :=
-h.def ▸ is_irreducible_singleton.closure
-
-lemma is_generic_point.eq [t0_space α] {y : α} (h' : is_generic_point y S) : x = y :=
-specializes_antisymm _ _ (h.specializes h'.mem) (h'.specializes h.mem)
-
-lemma is_generic_point.mem_open_set_iff
-  {U : set α} (hU : is_open U) : x ∈ U ↔ (S ∩ U).nonempty :=
-⟨λ h', ⟨x, h.mem, h'⟩,
-    λ h', specializes_iff_forall_open.mp (h.specializes h'.some_spec.1) U hU h'.some_spec.2⟩
-
-lemma is_generic_point.disjoint_iff
-  {U : set α} (hU : is_open U) : disjoint S U ↔ x ∉ U :=
-by rw [h.mem_open_set_iff hU, ← set.ne_empty_iff_nonempty, not_not, set.disjoint_iff_inter_eq_empty]
-
-lemma is_generic_point.mem_closed_set_iff
-  {Z : set α} (hZ : is_closed Z) : x ∈ Z ↔ S ⊆ Z :=
-by rw [← is_generic_point_def.mp h, hZ.closure_subset_iff, set.singleton_subset_iff]
-
-lemma is_generic_point.image {f : α → β} (hf : continuous f) :
-  is_generic_point (f x) (closure (f '' S)) :=
-begin
-  rw [is_generic_point_def, ← is_generic_point_def.mp h],
-  apply le_antisymm,
-  { exact closure_mono
-      (set.singleton_subset_iff.mpr ⟨_, subset_closure $ set.mem_singleton x, rfl⟩) },
-  { convert is_closed_closure.closure_subset_iff.mpr (image_closure_subset_closure_image hf),
-    rw set.image_singleton }
-end
-
-omit h
+variables {x y : α} {S : set α}
 
 lemma is_generic_point_iff_forall_closed {x : α} {S : set α} (hS : is_closed S) (hxS : x ∈ S) :
-  is_generic_point x S ↔ ∀ (Z : set α) (hZ : is_closed Z) (hxZ : x ∈ Z), S ⊆ Z :=
+  is_generic_point x S ↔ ∀ Z : set α, is_closed Z → x ∈ Z → S ⊆ Z :=
+have closure {x} ⊆ S, from closure_minimal (set.singleton_subset_iff.2 hxS) hS,
+by simp_rw [is_generic_point, subset_antisymm_iff, this, true_and, closure, subset_sInter_iff,
+  mem_set_of_eq, and_imp, singleton_subset_iff]
+
+namespace is_generic_point
+
+lemma specializes (h : is_generic_point x S) (h' : y ∈ S) : x ⤳ y :=
+specializes_iff_mem_closure.2 $ by rwa h.def
+
+lemma mem (h : is_generic_point x S) : x ∈ S :=
+h.def ▸ subset_closure (mem_singleton x)
+
+protected lemma is_closed (h : is_generic_point x S) : is_closed S :=
+h.def ▸ is_closed_closure
+
+protected lemma is_irreducible (h : is_generic_point x S) : is_irreducible S :=
+h.def ▸ is_irreducible_singleton.closure
+
+protected lemma eq [t0_space α] (h : is_generic_point x S) (h' : is_generic_point y S) : x = y :=
+(inseparable_iff_closure_eq.2 $ h.def.trans h'.def.symm).eq
+
+lemma mem_open_set_iff (h : is_generic_point x S) {U : set α} (hU : is_open U) :
+  x ∈ U ↔ (S ∩ U).nonempty :=
+⟨λ h', ⟨x, h.mem, h'⟩, λ ⟨y, hyS, hyU⟩, (h.specializes hyS).mem_open hU hyU⟩
+
+lemma disjoint_iff (h : is_generic_point x S) {U : set α} (hU : is_open U) :
+  disjoint S U ↔ x ∉ U :=
+by rw [h.mem_open_set_iff hU, ← ne_empty_iff_nonempty, not_not, disjoint_iff_inter_eq_empty]
+
+lemma mem_closed_set_iff (h : is_generic_point x S) {Z : set α} (hZ : is_closed Z) :
+  x ∈ Z ↔ S ⊆ Z :=
+by rw [← h.def, hZ.closure_subset_iff, singleton_subset_iff]
+
+protected lemma image (h : is_generic_point x S) {f : α → β} (hf : continuous f) :
+  is_generic_point (f x) (closure (f '' S)) :=
 begin
-  split,
-  { intros h Z hZ hxZ, exact (h.mem_closed_set_iff hZ).mp hxZ },
-  { intro h,
-    apply le_antisymm,
-    { rwa [set.le_eq_subset, hS.closure_subset_iff, set.singleton_subset_iff] },
-    { exact h _ is_closed_closure (subset_closure $ set.mem_singleton x) } }
+  rw [is_generic_point_def, ← h.def, ← image_singleton],
+  exact subset.antisymm (closure_mono (image_subset _ subset_closure))
+    (closure_minimal (image_closure_subset_closure_image hf) is_closed_closure)
 end
+
+end is_generic_point
 
 end generic_point
 

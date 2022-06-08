@@ -275,7 +275,7 @@ embedding_subtype_coe.t0_space
 
 theorem t0_space_iff_or_not_mem_closure (α : Type u) [topological_space α] :
   t0_space α ↔ (∀ a b : α, a ≠ b → (a ∉ closure ({b} : set α) ∨ b ∉ closure ({a} : set α))) :=
-by simp only [t0_space_iff_not_inseparable, inseparable_iff_closure, not_and_distrib]
+by simp only [t0_space_iff_not_inseparable, inseparable_iff_mem_closure, not_and_distrib]
 
 instance [topological_space β] [t0_space α] [t0_space β] : t0_space (α × β) :=
 (t0_space_iff_inseparable _).2 $

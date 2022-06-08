@@ -16,10 +16,7 @@ localized "infix ` ⬝ᵛ `:74 := mul_vec" in matrix
 @[simp] lemma elim_dot_product_elim : (x ⊕ᵥ y) ⬝ᵥ (u ⊕ᵥ v) = x ⬝ᵥ u + y ⬝ᵥ v :=
 by simp [dot_product]
 
-lemma mul_vec_vec_mul : (A ⬝ᵛ x) ᵛ⬝ B = x ᵛ⬝ (Aᵀ ⬝ B) :=
-by rw [← vec_mul_vec_mul, vec_mul_transpose]
-
-@[simp] lemma from_blocks_mul_vec_elim : (from_blocks A B C D) ⬝ᵛ (x ⊕ᵥ y) =
+lemma from_blocks_mul_vec_elim : (from_blocks A B C D) ⬝ᵛ (x ⊕ᵥ y) =
   (A ⬝ᵛ x + B ⬝ᵛ y) ⊕ᵥ
   (C ⬝ᵛ x + D ⬝ᵛ y) :=
 begin
@@ -29,7 +26,7 @@ begin
   simp [mul_vec, dot_product],
 end
 
-@[simp] lemma elim_vec_mul_from_blocks : (x ⊕ᵥ y) ᵛ⬝ (from_blocks A B C D) =
+lemma elim_vec_mul_from_blocks : (x ⊕ᵥ y) ᵛ⬝ (from_blocks A B C D) =
   (x ᵛ⬝ A + y ᵛ⬝ C) ⊕ᵥ
   (x ᵛ⬝ B + y ᵛ⬝ D) :=
 begin
@@ -39,36 +36,12 @@ begin
   simp [vec_mul, dot_product],
 end
 
-@[simp] protected lemma matrix.inv_mul [invertible A] : ⅟A ⬝ A = 1 :=
-by rw [←mul_eq_mul, inv_of_mul_self]
-
-@[simp] protected lemma matrix.mul_inv [invertible A] : A ⬝ ⅟A = 1 :=
-by rw [←mul_eq_mul, mul_inv_of_self]
-
-@[simp] lemma matrix.mul_inv_cancel_right [invertible A] : C ⬝ A ⬝ ⅟A = C :=
-by rw [matrix.mul_assoc, matrix.mul_inv, matrix.mul_one]
-
-@[simp] lemma matrix.mul_inv_cancel_right' [invertible A] : C ⬝ A ⬝ A⁻¹ = C :=
-by rw [←inv_of_eq_nonsing_inv, matrix.mul_inv_cancel_right]
-
-@[simp] lemma matrix.inv_mul_cancel_right [invertible A] : C ⬝ ⅟A ⬝ A = C :=
-by rw [matrix.mul_assoc, matrix.inv_mul, matrix.mul_one]
-
-@[simp] lemma matrix.inv_mul_cancel_right' [invertible A] : C ⬝ A⁻¹ ⬝ A = C :=
-by rw [←inv_of_eq_nonsing_inv, matrix.inv_mul_cancel_right]
-
-@[simp] lemma sub_mul_vec : (A - B) ⬝ᵛ x = A ⬝ᵛ x - B ⬝ᵛ x :=
-by simp [sub_eq_add_neg, add_mul_vec, neg_mul_vec]
-
-@[simp] lemma vec_mul_sub : x ᵛ⬝ (A - B) = x ᵛ⬝ A - x ᵛ⬝ B :=
-by simp [sub_eq_add_neg, vec_mul_add, vec_mul_neg]
-
 lemma schur_complement_eq {A : matrix n n R} (hA : A.is_symm) [invertible A] :
 (x ⊕ᵥ y) ᵛ⬝ from_blocks A B Bᵀ D ⬝ᵥ (x ⊕ᵥ y) =
   (x + ⅟A ⬝ B ⬝ᵛ y) ᵛ⬝ A ⬝ᵥ (x + ⅟A ⬝ B ⬝ᵛ y) + y ᵛ⬝ (D - Bᵀ ⬝ ⅟A ⬝ B) ⬝ᵥ y :=
 begin
-  simp [-inv_of_eq_inv, from_blocks_mul_vec_elim, mul_vec_add, add_vec_mul, dot_product_mul_vec,
-    ←matrix.mul_assoc, mul_vec_vec_mul, hA.eq, transpose_nonsing_inv],
+  simp [from_blocks_mul_vec_elim, elim_vec_mul_from_blocks, add_vec_mul, dot_product_mul_vec,
+    vec_mul_sub, matrix.mul_assoc, vec_mul_mul_vec, hA.eq, transpose_nonsing_inv],
   abel
 end
 

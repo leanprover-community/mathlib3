@@ -1229,6 +1229,14 @@ by { ext, apply neg_dot_product }
 lemma mul_vec_neg [fintype n] (v : n → α) (A : matrix m n α) : mul_vec A (-v) = - mul_vec A v :=
 by { ext, apply dot_product_neg }
 
+lemma sub_mul_vec [fintype n] (A B : matrix m n α) (x : n → α) :
+  mul_vec (A - B) x = mul_vec A x - mul_vec B x :=
+by simp [sub_eq_add_neg, add_mul_vec, neg_mul_vec]
+
+lemma vec_mul_sub [fintype m] (A B : matrix m n α) (x : m → α) :
+  vec_mul x (A - B) = vec_mul x A - vec_mul x B :=
+by simp [sub_eq_add_neg, vec_mul_add, vec_mul_neg]
+
 end non_unital_non_assoc_ring
 
 section non_unital_comm_semiring
@@ -1242,6 +1250,14 @@ by { ext, apply dot_product_comm }
 lemma vec_mul_transpose [fintype n] (A : matrix m n α) (x : n → α) :
   vec_mul x Aᵀ = mul_vec A x :=
 by { ext, apply dot_product_comm }
+
+lemma mul_vec_vec_mul [fintype n] [fintype o] (A : matrix m n α) (B : matrix o n α) (x : o → α) :
+  mul_vec A (vec_mul x B) = mul_vec (A ⬝ Bᵀ) x :=
+by rw [← mul_vec_mul_vec, mul_vec_transpose]
+
+lemma vec_mul_mul_vec [fintype m] [fintype n] (A : matrix m n α) (B : matrix m o α) (x : n → α) :
+  vec_mul (mul_vec A x) B = vec_mul x (Aᵀ ⬝ B) :=
+by rw [← vec_mul_vec_mul, vec_mul_transpose]
 
 end non_unital_comm_semiring
 

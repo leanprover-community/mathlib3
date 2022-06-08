@@ -16,9 +16,7 @@ universes v₁ v₂ u₁ u₂
 open category_theory
 open category_theory.monoidal_category
 
-variables (C : Type u₁) [category.{v₁} C]
-
-variables {C}
+variables {C : Type u₁} [category.{v₁} C] [monoidal_category.{v₁} C]
 
 section
 
@@ -26,41 +24,9 @@ open category_theory.limits
 
 variables [has_coequalizers C]
 
-lemma π_colim_map_desc {X Y X' Y' Z : C} (f g : X ⟶ Y) (f' g' : X' ⟶ Y')
-  (p : X ⟶ X') (q : Y ⟶ Y') (wf : f ≫ q = p ≫ f') (wg : g ≫ q = p ≫ g')
-  (h : Y' ⟶ Z) (wh : f' ≫ h = g' ≫ h) :
-  coequalizer.π f g ≫ colim_map (parallel_pair_hom f g f' g' p q wf wg) ≫ coequalizer.desc h wh =
-  q ≫ h :=
-begin
-  slice_lhs 1 2 { rw [ι_colim_map, parallel_pair_hom_app_one] },
-  slice_lhs 2 3 { rw coequalizer.π_desc },
-end
-
-lemma map_π_preserves_coequalizer_inv (G : C ⥤ C) [preserves_colimits G]
-  {X Y : C} (f g : X ⟶ Y) :
-  G.map (coequalizer.π f g) ≫ (preserves_coequalizer.iso G f g).inv =
-  coequalizer.π (G.map f) (G.map g) :=
-begin
-  rw [←ι_comp_coequalizer_comparison, ←preserves_coequalizer.iso_hom, category.assoc,
-      iso.hom_inv_id, category.comp_id],
-end
-
-variables [monoidal_category.{v₁} C]
-
 section
 
 variables [∀ X : C, preserves_colimits (tensor_left X)]
-
-lemma id_tensor_π_comp_preserves_coequalizer_inv_comp_colim_map
-  (X Y Z Y' Z' : C) (f g : Y ⟶ Z) (f' g' : Y' ⟶ Z') (p : X ⊗ Y ⟶ Y') (q : X ⊗ Z ⟶ Z')
-  (wf : (𝟙 X ⊗ f) ≫ q = p ≫ f') (wg : (𝟙 X ⊗ g) ≫ q = p ≫ g') :
-  (𝟙 X ⊗ coequalizer.π f g) ≫ (preserves_coequalizer.iso (tensor_left X) f g).inv ≫
-  colim_map (parallel_pair_hom (𝟙 X ⊗ f) (𝟙 X ⊗ g) f' g' p q wf wg) =
-  q ≫ coequalizer.π f' g' :=
-begin
-  rw [←tensor_left_map, ←ι_comp_coequalizer_comparison, ←preserves_coequalizer.iso_hom,
-      category.assoc, iso.hom_inv_id_assoc, ι_colim_map, parallel_pair_hom_app_one],
-end
 
 lemma id_tensor_π_preserves_coequalizer_inv
   {X Y Z : C} (f g : X ⟶ Y) :
@@ -84,17 +50,6 @@ section
 
 variables [∀ X : C, preserves_colimits (tensor_right X)]
 
-lemma π_tensor_id_comp_preserves_coequalizer_inv_comp_colim_map
-  (X Y Z Y' Z' : C) (f g : Y ⟶ Z) (f' g' : Y' ⟶ Z') (p : Y ⊗ X ⟶ Y') (q : Z ⊗ X ⟶ Z')
-  (wf : (f ⊗ 𝟙 X) ≫ q = p ≫ f') (wg : (g ⊗ 𝟙 X) ≫ q = p ≫ g') :
-  (coequalizer.π f g ⊗ 𝟙 X) ≫ (preserves_coequalizer.iso (tensor_right X) f g).inv ≫
-  colim_map (parallel_pair_hom (f ⊗ 𝟙 X) (g ⊗ 𝟙 X) f' g' p q wf wg) =
-  q ≫ coequalizer.π f' g' :=
-begin
-  rw [←tensor_right_map, ←ι_comp_coequalizer_comparison, ←preserves_coequalizer.iso_hom,
-      category.assoc, iso.hom_inv_id_assoc, ι_colim_map, parallel_pair_hom_app_one],
-end
-
 lemma π_tensor_id_preserves_coequalizer_inv
   {X Y Z : C} (f g : X ⟶ Y) :
   (coequalizer.π f g ⊗ 𝟙 Z) ≫ (preserves_coequalizer.iso (tensor_right Z) f g).inv =
@@ -114,8 +69,6 @@ end
 end
 
 end
-
-variables [monoidal_category.{v₁} C]
 
 /-- A bimodule object for a pair of monoid objects, all internal to some monoidal category. -/
 structure Bimod (A B : Mon_ C) :=
@@ -263,8 +216,8 @@ lemma id_tensor_π_act_left :
   (𝟙 R.X ⊗ coequalizer.π _ _) ≫ act_left P Q =
   (α_ _ _ _).inv ≫ (P.act_left ⊗ 𝟙 Q.X) ≫ coequalizer.π _ _ :=
 begin
-  rw ←category.assoc,
-  apply id_tensor_π_comp_preserves_coequalizer_inv_comp_colim_map,
+  rw [←category.assoc, ←(tensor_left_map _ _ _ (coequalizer.π _ _))],
+  apply map_π_preserves_coequalizer_inv_colim_map,
 end
 
 lemma one_act_left' : (R.one ⊗ 𝟙 _) ≫ act_left P Q = (λ_ _).hom :=
@@ -331,8 +284,8 @@ lemma π_tensor_id_act_right :
   (coequalizer.π _ _ ⊗ 𝟙 T.X) ≫ act_right P Q =
   (α_ _ _ _).hom ≫ (𝟙 P.X ⊗ Q.act_right) ≫ coequalizer.π _ _ :=
 begin
-  rw ←category.assoc,
-  apply π_tensor_id_comp_preserves_coequalizer_inv_comp_colim_map,
+  rw [←category.assoc, ←(tensor_right_map _ _ _ (coequalizer.π _ _))],
+  apply map_π_preserves_coequalizer_inv_colim_map,
 end
 
 lemma act_right_one' : (𝟙 _ ⊗ T.one) ≫ act_right P Q = (ρ_ _).hom :=
@@ -701,7 +654,7 @@ begin
   refine (cancel_epi ((tensor_left _).map (coequalizer.π _ _))).1 _,
   dsimp,
   slice_lhs 1 2 { rw id_tensor_π_preserves_coequalizer_inv },
-  slice_lhs 1 3 { rw π_colim_map_desc },
+  slice_lhs 1 3 { rw coequalizer.π_colim_map_desc },
   slice_lhs 2 3 { rw left_assoc },
   slice_rhs 1 2 { rw [←id_tensor_comp, coequalizer.π_desc] },
   rw iso.inv_hom_id_assoc,
@@ -714,7 +667,7 @@ begin
   refine (cancel_epi ((tensor_right _).map (coequalizer.π _ _))).1 _,
   dsimp,
   slice_lhs 1 2 { rw π_tensor_id_preserves_coequalizer_inv },
-  slice_lhs 1 3 { rw π_colim_map_desc },
+  slice_lhs 1 3 { rw coequalizer.π_colim_map_desc },
   slice_rhs 1 2 { rw [←comp_tensor_id, coequalizer.π_desc] },
   slice_rhs 1 2 { rw middle_assoc },
   rw category.assoc,
@@ -767,7 +720,7 @@ begin
   refine (cancel_epi ((tensor_left _).map (coequalizer.π _ _))).1 _,
   dsimp,
   slice_lhs 1 2 { rw id_tensor_π_preserves_coequalizer_inv },
-  slice_lhs 1 3 { rw π_colim_map_desc },
+  slice_lhs 1 3 { rw coequalizer.π_colim_map_desc },
   slice_lhs 2 3 { rw middle_assoc },
   slice_rhs 1 2 { rw [←id_tensor_comp, coequalizer.π_desc] },
   rw iso.inv_hom_id_assoc,
@@ -780,7 +733,7 @@ begin
   refine (cancel_epi ((tensor_right _).map (coequalizer.π _ _))).1 _,
   dsimp,
   slice_lhs 1 2 { rw π_tensor_id_preserves_coequalizer_inv },
-  slice_lhs 1 3 { rw π_colim_map_desc },
+  slice_lhs 1 3 { rw coequalizer.π_colim_map_desc },
   slice_lhs 2 3 { rw right_assoc },
   slice_rhs 1 2 { rw [←comp_tensor_id, coequalizer.π_desc] },
   rw iso.hom_inv_id_assoc,

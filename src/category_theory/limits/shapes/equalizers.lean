@@ -730,6 +730,16 @@ lemma coequalizer.π_desc {W : C} (k : Y ⟶ W) (h : f ≫ k = g ≫ k) :
   coequalizer.π f g ≫ coequalizer.desc k h = k :=
 colimit.ι_desc _ _
 
+lemma coequalizer.π_colim_map_desc {X' Y' Z : C} (f' g' : X' ⟶ Y') [has_coequalizer f' g']
+  (p : X ⟶ X') (q : Y ⟶ Y') (wf : f ≫ q = p ≫ f') (wg : g ≫ q = p ≫ g')
+  (h : Y' ⟶ Z) (wh : f' ≫ h = g' ≫ h) :
+  coequalizer.π f g ≫ colim_map (parallel_pair_hom f g f' g' p q wf wg) ≫ coequalizer.desc h wh =
+  q ≫ h :=
+begin
+  slice_lhs 1 2 { rw [ι_colim_map, parallel_pair_hom_app_one] },
+  slice_lhs 2 3 { rw coequalizer.π_desc },
+end
+
 /-- Any morphism `k : Y ⟶ W` satisfying `f ≫ k = g ≫ k` induces a morphism
     `l : coequalizer f g ⟶ W` satisfying `coequalizer.π ≫ g = l`. -/
 def coequalizer.desc' {W : C} (k : Y ⟶ W) (h : f ≫ k = g ≫ k) :
@@ -1018,7 +1028,7 @@ def split_epi_of_idempotent_of_is_colimit_cofork {X : C} {f : X ⟶ X} (hf : f �
   id' :=
   begin
     letI := epi_of_is_colimit_cofork i,
-    rw [← cancel_epi_id c.π, ← category.assoc, cofork.is_colimit.π_comp_desc, 
+    rw [← cancel_epi_id c.π, ← category.assoc, cofork.is_colimit.π_comp_desc,
       cofork.π_of_π, ← c.condition],
     exact category.id_comp _,
   end }

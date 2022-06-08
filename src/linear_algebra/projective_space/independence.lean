@@ -34,8 +34,8 @@ variables {K V : Type*} [field K] [add_comm_group V] [module K V]
 
 namespace projectivization
 
-/- A linearly independent familty of nonzero vectors gives an independent family of points
-in the projective space. -/
+/-- A linearly independent familty of nonzero vectors gives an independent family of points
+in the projective space. --/
 inductive independent {ι : Type*} : (ι → ℙ K V) → Prop
 | mk (f : ι → V) (hf : ∀ i : ι, f i ≠ 0) (hl : linear_independent K f) :
     independent (λ i, mk K (f i) (hf i))
@@ -56,8 +56,8 @@ begin
     { intro i, apply rep_nonzero } }
 end
 
-/- A linearly dependent family of nonzero vectors gives a dependent family of points
-in the projective space. -/
+/-- A linearly dependent family of nonzero vectors gives a dependent family of points
+in the projective space. --/
 inductive dependent {ι : Type*} : (ι → ℙ K V) → Prop
 | mk (f : ι → V) (hf : ∀ i : ι, f i ≠ 0) (h : ¬linear_independent K f) :
     dependent (λ i, mk K (f i) (hf i))

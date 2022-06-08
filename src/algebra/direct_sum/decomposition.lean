@@ -45,7 +45,6 @@ class decomposition :=
 (right_inv : function.right_inverse (direct_sum.coe_add_monoid_hom ℳ) decompose')
 
 include M
-variables [decomposition ℳ]
 
 /-- `direct_sum.decomposition` instances, while carrying data, are always equal. -/
 instance : subsingleton (decomposition ℳ) :=
@@ -56,12 +55,14 @@ instance : subsingleton (decomposition ℳ) :=
   exact function.left_inverse.eq_right_inverse xr yl,
 end⟩
 
+variables [decomposition ℳ]
+
 protected lemma decomposition.is_internal : direct_sum.is_internal ℳ :=
 ⟨decomposition.right_inv.injective, decomposition.left_inv.surjective⟩
 
 /-- If `M` is graded by `ι` with degree `i` component `ℳ i`, then it is isomorphic as
 to a direct sum of components. This is the canonical spelling of the `decompose'` field. -/
-def decompose [decomposition ℳ] : M ≃ ⨁ i, ℳ i :=
+def decompose : M ≃ ⨁ i, ℳ i :=
 { to_fun := decomposition.decompose',
   inv_fun := direct_sum.coe_add_monoid_hom ℳ,
   left_inv := decomposition.left_inv,
@@ -116,15 +117,15 @@ map_sum (decompose_add_equiv ℳ).symm f s
 
 end add_comm_monoid
 
+-- the `-` in the statements below doesn't resolve without this line
+instance add_comm_group_set_like [add_comm_group M] [set_like σ M] [add_subgroup_class σ M]
+  (ℳ : ι → σ) : add_comm_group (⨁ i, ℳ i) := by apply_instance
+
 section add_comm_group
 variables [decidable_eq ι] [add_comm_group M]
 variables [set_like σ M] [add_subgroup_class σ M] (ℳ : ι → σ)
-
-include M
 variables [decomposition ℳ]
-
--- the `-` in the statements below doesn't resolve without this line
-instance add_comm_group_set_like : add_comm_group (⨁ i, ℳ i) := by apply_instance
+include M
 
 @[simp] lemma decompose_neg (x : M) : decompose ℳ (-x) = -decompose ℳ x :=
 map_neg (decompose_add_equiv ℳ) x
@@ -143,9 +144,8 @@ end add_comm_group
 section module
 variables [decidable_eq ι] [semiring R] [add_comm_monoid M] [module R M]
 variables (ℳ : ι → submodule R M)
-
-include M
 variables [decomposition ℳ]
+include M
 
 /-- If `M` is graded by `ι` with degree `i` component `ℳ i`, then it is isomorphic as
 a module to a direct sum of components. -/

@@ -1340,19 +1340,15 @@ lemma iff_algebra_map_injective [comm_ring R] [ring A] [is_domain A] [algebra R 
 ⟨@@no_zero_smul_divisors.algebra_map_injective R A _ _ _ _,
  no_zero_smul_divisors.of_algebra_map_injective⟩
 
-section char_zero_domain
-
-variables [ring R] [is_domain R] [char_zero R]
+@[priority 100] -- see note [lower instance priority]
+instance char_zero.no_zero_smul_divisors_nat [semiring R] [no_zero_divisors R] [char_zero R] :
+  no_zero_smul_divisors ℕ R :=
+no_zero_smul_divisors.of_algebra_map_injective $ (algebra_map ℕ R).injective_nat
 
 @[priority 100] -- see note [lower instance priority]
-instance char_zero.no_zero_smul_divisors_int : no_zero_smul_divisors ℤ R :=
+instance char_zero.no_zero_smul_divisors_int [ring R] [no_zero_divisors R] [char_zero R] :
+  no_zero_smul_divisors ℤ R :=
 no_zero_smul_divisors.of_algebra_map_injective $ (algebra_map ℤ R).injective_int
-
-@[priority 100] -- see note [lower instance priority]
-instance char_zero.no_zero_smul_divisors_nat : no_zero_smul_divisors ℕ R :=
-nat.no_zero_smul_divisors ℤ R
-
-end char_zero_domain
 
 section field
 

@@ -370,12 +370,11 @@ def unit_group : subgroup Kˣ :=
 lemma mem_unit_group_iff (x : Kˣ) : x ∈ A.unit_group ↔ A.valuation x = 1 := iff.refl _
 
 lemma unit_group_injective : function.injective (unit_group : valuation_subring K → subgroup _) :=
-λ A B, begin
+λ A B h, begin
   rw [← A.valuation_subring_valuation, ← B.valuation_subring_valuation,
-    ← valuation.is_equiv_iff_valuation_subring,
-    A.valuation_subring_valuation, B.valuation_subring_valuation,
-    valuation.is_equiv_iff_val_eq_one, set_like.ext_iff],
-  intros h x,
+    ← valuation.is_equiv_iff_valuation_subring, valuation.is_equiv_iff_val_eq_one],
+  rw set_like.ext_iff at h,
+  intros x,
   by_cases hx : x = 0, { simp only [hx, valuation.map_zero, zero_ne_one] },
   exact h (units.mk0 x hx)
 end
@@ -427,6 +426,9 @@ def unit_group_order_embedding : valuation_subring K ↪o subgroup Kˣ :=
       apply_fun A.map_of_le B h at hx,
       simpa using hx }
   end }
+
+lemma unit_group_strict_mono : strict_mono (unit_group : valuation_subring K → subgroup _) :=
+unit_group_order_embedding.strict_mono
 
 end unit_group
 

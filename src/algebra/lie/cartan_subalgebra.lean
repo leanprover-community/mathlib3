@@ -36,7 +36,7 @@ class is_cartan_subalgebra : Prop :=
 instance [is_cartan_subalgebra H] : lie_algebra.is_nilpotent R H := is_cartan_subalgebra.nilpotent
 
 @[simp] lemma centralizer_eq_self_of_is_cartan_subalgebra
-  (H : lie_subalgebra R L) [lie_subalgebra.is_cartan_subalgebra H] :
+  (H : lie_subalgebra R L) [H.is_cartan_subalgebra] :
   H.to_lie_submodule.centralizer = H.to_lie_submodule :=
 by rw [← lie_submodule.coe_to_submodule_eq_iff, lie_subalgebra.coe_centralizer_eq_normalizer,
   lie_subalgebra.is_cartan_subalgebra.self_normalizing, lie_subalgebra.coe_to_lie_submodule]

@@ -1301,18 +1301,18 @@ section hitting
 The hitting time is a stopping time if the process is adapted and discrete. -/
 noncomputable def hitting [preorder ι] [has_Inf ι] (u : ι → α → β) (s : set β) (n : ι) :
   α → ι :=
-λ x, if ∃ j ≤ n, u j x ∈ s then Inf { i : ι | u i x ∈ s } else n
+λ x, if ∃ j ≤ n, u j x ∈ s then Inf {i : ι | u i x ∈ s} else n
 
 section complete_linear_order
 
 variables [complete_linear_order ι] {u : ι → α → β} {s : set β} {f : filtration ι m}
 
 @[simp]
-lemma hitting_eq_Inf (x : α) : hitting u s ⊤ x = Inf { i : ι | u i x ∈ s } :=
+lemma hitting_eq_Inf (x : α) : hitting u s ⊤ x = Inf {i : ι | u i x ∈ s} :=
 begin
   simp only [hitting, ite_eq_left_iff],
   intro h,
-  have : { i : ι | u i x ∈ s } = ∅,
+  have : {i : ι | u i x ∈ s} = ∅,
   { push_neg at h,
     simp only [le_top, forall_true_left] at h,
     rwa set.eq_empty_iff_forall_not_mem },
@@ -1320,7 +1320,7 @@ begin
 end
 
 lemma hitting_lt_eq_Union (i : ι) :
-  { x | hitting u s ⊤ x < i } = ⋃ j < i, u j ⁻¹' s :=
+  {x | hitting u s ⊤ x < i} = ⋃ j < i, u j ⁻¹' s :=
 begin
   ext x,
   simp only [hitting_eq_Inf, set.mem_set_of_eq, set.mem_Union, set.mem_preimage,
@@ -1328,7 +1328,7 @@ begin
 end
 
 lemma hitting_le_eq_Union [is_well_order ι (<)] {i : ι} (hi : i ≠ ⊤) :
-  { x | hitting u s ⊤ x ≤ i } = ⋃ j ≤ i, u j ⁻¹' s :=
+  {x | hitting u s ⊤ x ≤ i} = ⋃ j ≤ i, u j ⁻¹' s :=
 begin
   ext x,
   simp only [le_iff_eq_or_lt, set.Union_Union_eq_or_left, ← hitting_lt_eq_Union i,
@@ -1380,7 +1380,7 @@ begin
 end
 
 lemma hitting_le_eq_Union_nat_of_lt {i n : ℕ} (hin : i < n) :
-  { x | hitting u s n x ≤ i } = ⋃ j ≤ i, u j ⁻¹' s :=
+  {x | hitting u s n x ≤ i} = ⋃ j ≤ i, u j ⁻¹' s :=
 begin
   ext x,
   by_cases hj : ∃ j, j ≤ n ∧ u j x ∈ s,
@@ -1396,7 +1396,7 @@ begin
 end
 
 lemma hitting_le_eq_Union_nat_of_le {i n : ℕ} (hin : n ≤ i) :
-  { x | hitting u s n x ≤ i } = { x | ∀ j ≤ n, u j x ∉ s } ∪ ⋃ j ≤ i, u j ⁻¹' s :=
+  {x | hitting u s n x ≤ i} = {x | ∀ j ≤ n, u j x ∉ s} ∪ ⋃ j ≤ i, u j ⁻¹' s :=
 begin
   ext x,
   by_cases hj : ∃ j, j ≤ n ∧ u j x ∈ s,
@@ -1424,7 +1424,7 @@ begin
     exact measurable_set.Union (λ j, measurable_set.Union_Prop $
       λ hj, f.mono hj _ ((hu j).measurable hs)) },
   { rw [hitting_le_eq_Union_nat_of_le (not_lt.1 hin),
-      (by { ext, simp } : { x | ∀ j, j ≤ n → u j x ∉ s } = ⋂ j ≤ n, { x | u j x ∉ s })],
+      (by { ext, simp } : {x | ∀ j, j ≤ n → u j x ∉ s} = ⋂ j ≤ n, {x | u j x ∉ s})],
     exact measurable_set.union
       (measurable_set.Inter (λ j, measurable_set.Inter_Prop $
         λ hj, f.mono (le_trans hj (not_lt.1 hin)) _ ((hu j).measurable hs).compl))

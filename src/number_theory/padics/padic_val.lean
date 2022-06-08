@@ -217,7 +217,7 @@ begin
     apply h ⟨(hp.out).ne_one, hn⟩, }
 end
 
-lemma padic_val_nat_def' {n p : ℕ} (hn : 0 < n) (hp : p ≠ 1) :
+lemma padic_val_nat_def' {n p : ℕ} (hp : p ≠ 1) (hn : 0 < n) :
   ↑(padic_val_nat p n) = multiplicity p n :=
 by simp [padic_val_nat, hp, hn]
 

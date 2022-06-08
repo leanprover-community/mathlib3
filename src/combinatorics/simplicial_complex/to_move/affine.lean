@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
 import analysis.convex.combination
-import combinatorics.simplicial_complex.to_move.convex
 import linear_algebra.affine_space.finite_dimensional
 
 /-!

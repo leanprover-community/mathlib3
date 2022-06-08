@@ -39,8 +39,7 @@ lemma convex.open_segment_subset_intrinsic_interior_of_mem_left (hA : convex �
 begin
   rintro z hz,
   split,
-  { sorry -- hA
-  },
+  { sorry -- hA },
   dsimp,
   --obtain ⟨x₁, x₂, hx₁, hx₂, x, ⟨hxA, ι, t, hw₀, hw₁, hyA, hy⟩, hx⟩ := sorry,
   sorry

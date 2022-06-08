@@ -344,32 +344,6 @@ begin
     exact hmn.le.trans (nat.le_add_right n k) },
 end
 
-lemma int.is_unit_eq_or_eq_neg {a b : ℤ} (ha : is_unit a) (hb : is_unit b) : a = b ∨ a = -b :=
-begin
-  rcases int.is_unit_eq_one_or hb with rfl | rfl,
-  { exact int.is_unit_eq_one_or ha },
-  { rwa [or_comm, neg_neg, ←int.is_unit_iff] },
-end
-
-lemma int.is_unit_add_is_unit {a b c d : ℤ}
-  (ha : is_unit a) (hb : is_unit b) (hc : is_unit c) (hd : is_unit d) :
-  a + b = c + d ↔ a = c ∧ b = d ∨ a = d ∧ b = c :=
-begin
-  refine ⟨λ h, _, _⟩,
-  { rcases eq_or_ne a d with rfl | had,
-    { exact or.inr ⟨rfl, add_left_cancel (h.trans (add_comm c a))⟩ },
-    rcases eq_or_ne b d with rfl | hbd,
-    { exact or.inl ⟨add_right_cancel h, rfl⟩ },
-    rw [←add_neg_eq_iff_eq_add, (int.is_unit_eq_or_eq_neg ha hd).resolve_left had,
-        (int.is_unit_eq_or_eq_neg hb hd).resolve_left hbd, ←one_mul (-d), ←add_mul, ←add_mul] at h,
-    replace h := sq_eq_sq_iff_eq_or_eq_neg.mpr (or.inl h),
-    rw [mul_pow, neg_sq, int.is_unit_sq hc, int.is_unit_sq hd] at h,
-    norm_num at h },
-  { rintros (⟨rfl, rfl⟩ | ⟨rfl, rfl⟩),
-    { exact rfl },
-    { exact add_comm a b } },
-end
-
 lemma irreducible_step2 {k m m' n : ℕ} {u v w x z : ℤ}
   (hkm : k < m) (hmn : m < n) (hkm' : k < m') (hmn' : m' < n)
   (hu : is_unit u) (hv : is_unit v) (hw : is_unit w) (hx : is_unit x) (hz : is_unit z)
@@ -392,7 +366,8 @@ begin
   rw [mul_assoc, hmul, ←mul_assoc, add_right_inj,
       mul_right_inj' (show 2 * v ≠ 0, from mul_ne_zero two_ne_zero hv.ne_zero)] at hadd,
 
-  rcases (int.is_unit_add_is_unit hw hu hz hx).mp hadd with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩,
+  rcases (int.is_unit_add_is_unit_eq_is_unit_add_is_unit hw hu hz hx).mp hadd with
+    ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩,
   { exact irreducible_step1 hkm hmn hkm' hmn' hu hv hw hp hq h },
   { rw [←mirror_inj, trinomial_mirror hkm' hmn' hw.ne_zero hu.ne_zero] at hq,
     rw [mul_comm q, ←q.mirror_mirror, q.mirror.mirror_mirror] at h,

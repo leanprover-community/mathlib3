@@ -134,7 +134,7 @@ begin
   refine ⟨h1, (mk_union_le _ _).trans _, (lift_le.2 card_functions_sum_skolem₁_le).trans _⟩,
   { rw [← lift_le, lift_add, h, add_comm, add_eq_max h1],
     exact max_le le_rfl h2 },
-  { rw [lift_max', lift_aleph_0, max_le_iff, aleph_0_le_lift, and_comm,
+  { rw [lift_max, lift_aleph_0, max_le_iff, aleph_0_le_lift, and_comm,
       ← lift_le.{_ w'}, lift_lift, lift_lift, ← aleph_0_le_lift, h],
     refine ⟨_, h1⟩,
     simp only [← lift_lift, lift_umax, lift_umax'],

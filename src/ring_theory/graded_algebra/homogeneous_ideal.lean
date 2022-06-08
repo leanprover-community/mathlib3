@@ -53,7 +53,7 @@ variable (I : ideal A)
 /--An `I : ideal A` is homogeneous if for every `r ∈ I`, all homogeneous components
   of `r` are in `I`.-/
 def ideal.is_homogeneous : Prop :=
-∀ (i : ι) ⦃r : A⦄, r ∈ I → (graded_algebra.decompose 𝒜 r i : A) ∈ I
+∀ (i : ι) ⦃r : A⦄, r ∈ I → (direct_sum.decompose 𝒜 r i : A) ∈ I
 
 /-- For any `semiring A`, we collect the homogeneous ideals of `A` into a type. -/
 structure homogeneous_ideal extends submodule A A :=
@@ -125,9 +125,9 @@ begin
   apply ideal.sum_mem,
   intros k hk,
   obtain ⟨i, hi⟩ := hx₁,
-  have mem₁ : (graded_algebra.decompose 𝒜 r k : A) * x ∈ 𝒜 (k + i) := graded_monoid.mul_mem
+  have mem₁ : (direct_sum.decompose 𝒜 r k : A) * x ∈ 𝒜 (k + i) := graded_monoid.mul_mem
     (submodule.coe_mem _) hi,
-  erw [graded_algebra.proj_apply, graded_algebra.decompose_of_mem 𝒜 mem₁,
+  erw [graded_algebra.proj_apply, direct_sum.decompose_of_mem 𝒜 mem₁,
     coe_of_apply, submodule.coe_mk],
   split_ifs,
   { exact I.mul_mem_left _ hx₂ },
@@ -216,7 +216,7 @@ namespace ideal.is_homogeneous
 lemma bot : ideal.is_homogeneous 𝒜 ⊥ := λ i r hr,
 begin
   simp only [ideal.mem_bot] at hr,
-  rw [hr, alg_equiv.map_zero, zero_apply],
+  rw [hr, decompose_zero, zero_apply],
   apply ideal.zero_mem
 end
 
@@ -438,7 +438,7 @@ variable (I : ideal A)
 /--For any `I : ideal A`, not necessarily homogeneous, `I.homogeneous_hull 𝒜` is
 the smallest homogeneous ideal containing `I`. -/
 def ideal.homogeneous_hull : homogeneous_ideal 𝒜 :=
-⟨ideal.span {r : A | ∃ (i : ι) (x : I), (graded_algebra.decompose 𝒜 x i : A) = r}, begin
+⟨ideal.span {r : A | ∃ (i : ι) (x : I), (direct_sum.decompose 𝒜 (x : A) i : A) = r}, begin
   refine ideal.is_homogeneous_span _ _ (λ x hx, _),
   obtain ⟨i, x, rfl⟩ := hx,
   apply set_like.is_homogeneous_coe
@@ -545,9 +545,9 @@ with `0` as i-th coordinate for all `i ≤ 0`, i.e. `{a | ∀ (i : ι), i ≤ 0 
 -/
 def homogeneous_ideal.irrelevant : homogeneous_ideal 𝒜 :=
 ⟨(graded_algebra.proj_zero_ring_hom 𝒜).ker, λ i r (hr : (decompose 𝒜 r 0 : A) = 0), begin
-  change (decompose 𝒜 (decompose 𝒜 r _) 0 : A) = 0,
+  change (decompose 𝒜 (decompose 𝒜 r _ : A) 0 : A) = 0,
   by_cases h : i = 0,
-  { rw [h, hr, map_zero, zero_apply, submodule.coe_zero] },
+  { rw [h, hr, decompose_zero, zero_apply, submodule.coe_zero] },
   { rw [decompose_of_mem_ne 𝒜 (submodule.coe_mem _) h] }
 end⟩
 

@@ -403,6 +403,23 @@ lemma coe_unit_group_mul_equiv_apply (a : A.unit_group) :
 lemma coe_unit_group_mul_equiv_symm_apply (a : Aˣ) :
   (A.unit_group_mul_equiv.symm a : K) = a := rfl
 
+lemma unit_group_le_unit_group {A B : valuation_subring K} :
+  A.unit_group ≤ B.unit_group → A ≤ B :=
+begin
+  rintros h x hx,
+    rw [← A.valuation_le_one_iff x, le_iff_lt_or_eq] at hx,
+    by_cases h_1 : x = 0, { simp only [h_1, zero_mem] },
+    by_cases h_2 : 1 + x = 0,
+      { simp only [← add_eq_zero_iff_neg_eq.1 h_2, neg_mem _ _ (one_mem _)] },
+    cases hx,
+    { have := h (show (units.mk0 _ h_2) ∈ A.unit_group, from A.valuation.map_one_add_of_lt hx),
+      simpa using B.add_mem _ _
+        (show 1 + x ∈ B, from set_like.coe_mem ((B.unit_group_mul_equiv ⟨_, this⟩) : B))
+        (B.neg_mem _ B.one_mem) },
+    { have := h (show (units.mk0 x h_1) ∈ A.unit_group, from hx),
+      refine set_like.coe_mem ((B.unit_group_mul_equiv ⟨_, this⟩) : B) }
+end
+
 /-- The map on valuation subrings to their unit groups is an order embedding. -/
 def unit_group_order_embedding : valuation_subring K ↪o subgroup Kˣ :=
 { to_fun := λ A, A.unit_group,
@@ -410,18 +427,7 @@ def unit_group_order_embedding : valuation_subring K ↪o subgroup Kˣ :=
   map_rel_iff' := begin
     intros A B,
     split,
-    { rintros h x hx,
-      rw [← A.valuation_le_one_iff x, le_iff_lt_or_eq] at hx,
-      by_cases h_1 : x = 0, { simp only [h_1, zero_mem] },
-      by_cases h_2 : 1 + x = 0,
-        { simp only [← add_eq_zero_iff_neg_eq.1 h_2, neg_mem _ _ (one_mem _)] },
-      cases hx,
-      { have := h (show (units.mk0 _ h_2) ∈ A.unit_group, from A.valuation.map_one_add_of_lt hx),
-        simpa using B.add_mem _ _
-          (show 1 + x ∈ B, from set_like.coe_mem ((B.unit_group_mul_equiv ⟨_, this⟩) : B))
-          (B.neg_mem _ B.one_mem) },
-      { have := h (show (units.mk0 x h_1) ∈ A.unit_group, from hx),
-        refine set_like.coe_mem ((B.unit_group_mul_equiv ⟨_, this⟩) : B) } },
+    { exact unit_group_le_unit_group },
     { rintros h x (hx : A.valuation x = 1),
       apply_fun A.map_of_le B h at hx,
       simpa using hx }

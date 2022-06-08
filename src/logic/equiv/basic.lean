@@ -375,8 +375,8 @@ def prop_equiv_pempty {p : Prop} (h : ¬p) : p ≃ pempty :=
 
 /-- If both `α` and `β` have a unique element, then `α ≃ β`. -/
 def unique_equiv_unique (α β : Sort*) [unique α] [unique β] : α ≃ β :=
-{ to_fun := λ _, default,
-  inv_fun := λ _, default,
+{ to_fun := default,
+  inv_fun := default,
   left_inv := λ _, subsingleton.elim _ _,
   right_inv := λ _, subsingleton.elim _ _ }
 

@@ -66,11 +66,7 @@ lemma id_tensor_π_preserves_coequalizer_inv
   {X Y Z : C} (f g : X ⟶ Y) :
   (𝟙 Z ⊗ coequalizer.π f g) ≫ (preserves_coequalizer.iso (tensor_left Z) f g).inv =
   coequalizer.π (𝟙 Z ⊗ f) (𝟙 Z ⊗ g) :=
-begin
-  rw [←(tensor_left_map _ _ _ (coequalizer.π _ _)),
-      map_π_preserves_coequalizer_inv],
-  dsimp, refl,
-end
+map_π_preserves_coequalizer_inv (tensor_left Z) f g
 
 lemma id_tensor_π_preserves_coequalizer_inv_desc
   {W X Y Z : C} (f g : X ⟶ Y)
@@ -103,11 +99,7 @@ lemma π_tensor_id_preserves_coequalizer_inv
   {X Y Z : C} (f g : X ⟶ Y) :
   (coequalizer.π f g ⊗ 𝟙 Z) ≫ (preserves_coequalizer.iso (tensor_right Z) f g).inv =
   coequalizer.π (f ⊗ 𝟙 Z) (g ⊗ 𝟙 Z) :=
-begin
-  rw [←(tensor_right_map _ _ _ (coequalizer.π _ _)),
-      map_π_preserves_coequalizer_inv],
-  dsimp, refl,
-end
+map_π_preserves_coequalizer_inv (tensor_right Z) f g
 
 lemma π_tensor_id_preserves_coequalizer_inv_desc
   {W X Y Z : C} (f g : X ⟶ Y)

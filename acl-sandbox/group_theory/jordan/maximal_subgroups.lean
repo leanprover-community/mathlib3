@@ -60,3 +60,4 @@ theorem is_maximal.eq_of_le {K H: subgroup G} (hK : K.is_maximal) (hH : H ≠ �
 eq_iff_le_not_lt.2 ⟨KH, λ h, hH (hK.1.2 _ h)⟩
 
 end subgroup
+#lint

@@ -114,6 +114,7 @@ protected lemma congr_arg {x x' : α} {f : α →ₑ[φ] β} : x = x' → f x = 
 fun_like.congr_arg f
 -/
 
+/-- Two equal maps on scalars give rise to an equivariant map for identity -/
 def of_eq {φ' : M → N} (h : φ = φ') (f : α →ₑ[φ] β) : α →ₑ[φ'] β := {
 to_fun := f.to_fun,
 map_smul' := λ m a, h ▸ (f.map_smul' m a) }
@@ -142,6 +143,7 @@ section composition
 /-- Composition of two equivariant maps. -/
 variables {P γ : Type*}  [has_scalar P γ] {ψ : N → P}
 
+/-- Composition of equivariant maps -/
 def comp (g : β →ₑ[ψ] γ) (f : α →ₑ[φ] β) : α →ₑ[ψ ∘ φ] γ :=
 ⟨g ∘ f, λ m a, calc
 g (f (m • a)) = g (φ m • f a) : by rw f.map_smul
@@ -202,7 +204,7 @@ ext $ λ a, by rw [of_eq_apply, comp_apply, inverse_apply, id_coe, id.def, h₂]
   (k₁ : function.left_inverse ψ φ) (k₂ : function.right_inverse ψ φ)
   (f : α →ₑ[φ] β) (g : β → α)
   (h₁ : function.left_inverse g f) (h₂ : function.right_inverse g f) :
-  inverse k₁ (inverse k₂ f g h₁ h₂) f.to_fun h₂ h₁ = f :=
+  inverse k₁ (inverse k₂ f g h₁ h₂) ⇑f h₂ h₁ = f :=
 ext $ λ b, by simp only [to_fun_eq_coe, inverse_apply]
 
 end inverse
@@ -334,3 +336,5 @@ begin
 end
 
 end pretransitivity
+
+#lint

@@ -47,6 +47,7 @@ def is_fixed_block (B : set X) := ∀ (g : G), g • B = B
 /-- An invariant block is a set which is stable under has_scalar -/
 def is_invariant_block (B : set X) := ∀ (g : G), g • B ≤ B
 
+/-- A trivial block is a subsingleton or ⊤ (it is not necessarily a block…)-/
 def is_trivial_block (B : set X) := B.subsingleton ∨ B = ⊤
 
 /-- A block is a set which is either fixed or moved to a disjoint subset -/
@@ -693,7 +694,7 @@ end
 
 /-- A too large block is equal to ⊤ -/
 lemma is_top_of_large_block [hfX : fintype X] (hGX : is_pretransitive G X)
-  {B : set X} (hB : is_block G B) (hB' : 2 * fintype.card B > fintype.card X) :
+  {B : set X} (hB : is_block G B) (hB' : fintype.card X < 2 * fintype.card B) :
   B = ⊤ :=
 begin
   cases nat.eq_zero_or_pos (fintype.card B),
@@ -713,7 +714,7 @@ begin
     rw h, apply nat.zero_le },
   { rw [hk, mul_one] at h, exact h.symm, },
   { exfalso,
-    rw [gt_iff_lt, lt_iff_not_ge] at hB', apply hB',
+    rw [lt_iff_not_ge] at hB', apply hB',
     rw [mul_comm, h],
     refine nat.mul_le_mul_left _ hk }
 end
@@ -722,7 +723,7 @@ end
 lemma is_top_of_small_block [hfX : fintype X] (hGX : is_pretransitive G X)
   {B : set X} (hB : is_block G B)
   (hX : nontrivial X)
-  (hB' : 2 * fintype.card (set.range (λ g : G, (g • B : set X))) > fintype.card X) :
+  (hB' :  fintype.card X < 2 * fintype.card (set.range (λ g : G, (g • B : set X)))) :
   B.subsingleton :=
 begin
   rw [← set.subsingleton_coe, ← fintype.card_le_one_iff_subsingleton],
@@ -746,7 +747,7 @@ begin
   cases nat.lt_or_ge (fintype.card B) 2 with hb hb,
   rwa nat.lt_succ_iff at hb,
   exfalso,
-  rw [← hk, gt_iff_lt, lt_iff_not_ge] at hB', apply hB',
+  rw [← hk, lt_iff_not_ge] at hB', apply hB',
   refine nat.mul_le_mul_right _ hb
 end
 
@@ -832,3 +833,6 @@ end finite
 end group
 
 end mul_action
+
+
+#lint

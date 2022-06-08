@@ -50,8 +50,8 @@ instance subsingleton.prod {α β : Type*} [subsingleton α] [subsingleton β] :
 
 instance : decidable_eq empty := λa, a.elim
 
-instance sort.inhabited : inhabited (Sort*) := ⟨punit⟩
-instance sort.inhabited' : inhabited (default) := ⟨punit.star⟩
+instance sort.inhabited : inhabited Sort* := ⟨punit⟩
+instance sort.inhabited' : inhabited default := ⟨punit.star⟩
 
 instance psum.inhabited_left {α β} [inhabited α] : inhabited (psum α β) := ⟨psum.inl default⟩
 instance psum.inhabited_right {α β} [inhabited β] : inhabited (psum α β) := ⟨psum.inr default⟩
@@ -934,7 +934,7 @@ variables {β : α → Sort*} {γ : Π a, β a → Sort*} {δ : Π a b, γ a b �
   {ε : Π a b c, δ a b c → Sort*}
 
 lemma pi_congr {β' : α → Sort*} (h : ∀ a, β a = β' a) : (Π a, β a) = Π a, β' a :=
-by rw show β = β', from funext h
+(funext h : β = β') ▸ rfl
 
 lemma forall₂_congr {p q : Π a, β a → Prop} (h : ∀ a b, p a b ↔ q a b) :
   (∀ a b, p a b) ↔ ∀ a b, q a b :=

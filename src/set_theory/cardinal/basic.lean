@@ -272,7 +272,7 @@ instance : has_one cardinal.{u} := ⟨#punit⟩
 instance : nontrivial cardinal.{u} := ⟨⟨1, 0, mk_ne_zero _⟩⟩
 
 lemma mk_eq_one (α : Type u) [unique α] : #α = 1 :=
-equiv.equiv_punit.cardinal_eq
+(equiv.equiv_punit α).cardinal_eq
 
 theorem le_one_iff_subsingleton {α : Type u} : #α ≤ 1 ↔ subsingleton α :=
 ⟨λ ⟨f⟩, ⟨λ a b, f.injective (subsingleton.elim _ _)⟩,

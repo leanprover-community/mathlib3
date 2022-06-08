@@ -37,6 +37,13 @@ begin
   exact h,
 end
 
+example {p q} [decidable p] [decidable q] (h : p ↔ q) :
+  ite p 0 1 = ite q 0 1 :=
+begin
+  congrm ite _ 0 1,
+  exact h,
+end
+
 example {a b : ℕ} (h : a = b) : (λ y : ℕ, ∀ z, a + a = z) = (λ x, ∀ z, b + a = z) :=
 begin
   congrm λ x, ∀ w, _ + a = w,

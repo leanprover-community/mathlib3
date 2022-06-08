@@ -494,27 +494,22 @@ def type (r : α → α → Prop) [wo : is_well_order α r] : ordinal :=
 def typein (r : α → α → Prop) [is_well_order α r] (a : α) : ordinal :=
 type (subrel r {b | r b a})
 
-theorem type_def (r : α → α → Prop) [wo : is_well_order α r] :
-  @eq ordinal ⟦⟨α, r, wo⟩⟧ (type r) := rfl
+@[simp] theorem type_def' (w : Well_order) : ⟦w⟧ = type w.r :=
+by { cases w, refl }
 
-@[simp] theorem type_def' (r : α → α → Prop) [is_well_order α r] {wo} :
-  @eq ordinal ⟦⟨α, r, wo⟩⟧ (type r) := rfl
+@[simp] theorem type_def (r) [wo : is_well_order α r] : (⟦⟨α, r, wo⟩⟧ : ordinal) = type r :=
+rfl
 
 theorem type_eq {α β} {r : α → α → Prop} {s : β → β → Prop}
-  [is_well_order α r] [is_well_order β s] :
-  type r = type s ↔ nonempty (r ≃r s) := quotient.eq
+  [is_well_order α r] [is_well_order β s] : type r = type s ↔ nonempty (r ≃r s) :=
+quotient.eq
 
 theorem _root_.rel_iso.ordinal_type_eq {α β} {r : α → α → Prop} {s : β → β → Prop}
   [is_well_order α r] [is_well_order β s] (h : r ≃r s) :
   type r = type s := type_eq.2 ⟨h⟩
 
 @[simp] theorem type_lt (o : ordinal) : type ((<) : o.out.α → o.out.α → Prop) = o :=
-begin
-  change type o.out.r = _,
-  refine eq.trans _ (quotient.out_eq o),
-  cases quotient.out o,
-  refl
-end
+(type_def' _).symm.trans $ quotient.out_eq o
 
 @[elab_as_eliminator] theorem induction_on {C : ordinal → Prop}
   (o : ordinal) (H : ∀ α r [is_well_order α r], by exactI C (type r)) : C o :=

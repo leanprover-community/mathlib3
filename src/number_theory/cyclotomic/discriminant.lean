@@ -129,10 +129,8 @@ begin
       { replace h := pow_eq_zero h,
         rw [coe_coe] at h,
         exact ne_zero.ne _ h } },
-    { apply_instance },
-    { apply_instance } },
-  { apply_instance },
-  { apply_instance }
+    all_goals { apply_instance } },
+  all_goals { apply_instance }
 end
 
 /-- If `p` is a prime and `is_cyclotomic_extension {p ^ (k + 1)} K L`, then the discriminant of

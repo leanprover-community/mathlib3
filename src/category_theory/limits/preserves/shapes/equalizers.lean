@@ -194,6 +194,13 @@ begin
       iso.hom_inv_id, category.comp_id],
 end
 
+lemma map_π_preserves_coequalizer_inv_desc
+  {W : D} (k : G.obj Y ⟶ W) (wk : G.map f ≫ k = G.map g ≫ k) :
+  G.map (coequalizer.π f g) ≫ (preserves_coequalizer.iso G f g).inv ≫ coequalizer.desc k wk = k :=
+begin
+  rw [←category.assoc, map_π_preserves_coequalizer_inv, coequalizer.π_desc],
+end
+
 lemma map_π_preserves_coequalizer_inv_colim_map
   (X' Y' : D) (f' g' : X' ⟶ Y') [has_coequalizer f' g'] (p : G.obj X ⟶ X') (q : G.obj Y ⟶ Y')
   (wf : (G.map f) ≫ q = p ≫ f') (wg : (G.map g) ≫ q = p ≫ g') :

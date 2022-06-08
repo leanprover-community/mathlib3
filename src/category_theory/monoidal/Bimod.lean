@@ -422,7 +422,7 @@ variables [∀ X : C, preserves_colimits (tensor_right X)]
 @[simps]
 noncomputable
 def tensor_hom {X Y Z : Mon_ C} {M₁ M₂ : Bimod X Y} {N₁ N₂ : Bimod Y Z}
-  (f : M₁ ⟶ M₂) (g : N₁ ⟶ N₂) : tensor_Bimod M₁ N₁ ⟶ tensor_Bimod M₂ N₂ :=
+  (f : M₁ ⟶ M₂) (g : N₁ ⟶ N₂) : M₁.tensor_Bimod N₁ ⟶ M₂.tensor_Bimod N₂ :=
 { hom := begin
     refine colim_map (parallel_pair_hom _ _ _ _ ((f.hom ⊗ 𝟙 Y.X) ⊗ g.hom) (f.hom ⊗ g.hom) _ _),
     { rw [←tensor_comp, ←tensor_comp, hom.right_act_hom, category.id_comp, category.comp_id] },
@@ -454,7 +454,7 @@ def tensor_hom {X Y Z : Mon_ C} {M₁ M₂ : Bimod X Y} {N₁ N₂ : Bimod Y Z}
   end }
 
 lemma tensor_id {X Y Z : Mon_ C} {M : Bimod X Y} {N : Bimod Y Z} :
-  tensor_hom (𝟙 M) (𝟙 N) = 𝟙 (tensor_Bimod M N) :=
+  tensor_hom (𝟙 M) (𝟙 N) = 𝟙 (M.tensor_Bimod N) :=
 begin
   ext,
   simp only [id_hom', tensor_id, tensor_hom_hom, ι_colim_map, parallel_pair_hom_app_one],
@@ -794,7 +794,7 @@ variables [∀ X : C, preserves_colimits (tensor_right X)]
 /-- The associator as a bimodule isomorphism. -/
 noncomputable
 def associator_Bimod {W X Y Z : Mon_ C} (L : Bimod W X) (M : Bimod X Y) (N : Bimod Y Z) :
-  tensor_Bimod (tensor_Bimod L M) N ≅ tensor_Bimod L (tensor_Bimod M N) :=
+   (L.tensor_Bimod M).tensor_Bimod N ≅ L.tensor_Bimod (M.tensor_Bimod N) :=
 iso_of_iso
   { hom := associator_Bimod.hom L M N,
     inv := associator_Bimod.inv L M N,
@@ -805,7 +805,7 @@ iso_of_iso
 
 /-- The left unitor as a bimodule isomorphism. -/
 noncomputable
-def left_unitor_Bimod {X Y : Mon_ C} (M : Bimod X Y) : tensor_Bimod (regular X) M ≅ M :=
+def left_unitor_Bimod {X Y : Mon_ C} (M : Bimod X Y) : (regular X).tensor_Bimod M ≅ M :=
 iso_of_iso
   { hom := left_unitor_Bimod.hom M,
     inv := left_unitor_Bimod.inv M,
@@ -816,7 +816,7 @@ iso_of_iso
 
 /-- The right unitor as a bimodule isomorphism. -/
 noncomputable
-def right_unitor_Bimod {X Y : Mon_ C} (M : Bimod X Y) : tensor_Bimod M (regular Y) ≅ M :=
+def right_unitor_Bimod {X Y : Mon_ C} (M : Bimod X Y) : M.tensor_Bimod (regular Y) ≅ M :=
 iso_of_iso
   { hom := right_unitor_Bimod.hom M,
     inv := right_unitor_Bimod.inv M,
@@ -857,7 +857,7 @@ end
 
 lemma comp_whisker_left_Bimod {W X Y Z : Mon_ C}
   (M : Bimod W X) (N : Bimod X Y) {P P' : Bimod Y Z} (f : P ⟶ P') :
-  tensor_hom (𝟙 (tensor_Bimod M N)) f =
+  tensor_hom (𝟙 (M.tensor_Bimod N)) f =
   (associator_Bimod M N P).hom ≫ tensor_hom (𝟙 M) (tensor_hom (𝟙 N) f) ≫
     (associator_Bimod M N P').inv :=
 begin
@@ -914,7 +914,7 @@ end
 
 lemma whisker_right_comp_Bimod {W X Y Z : Mon_ C}
   {M M' : Bimod W X} (f : M ⟶ M') (N : Bimod X Y) (P : Bimod Y Z) :
-  tensor_hom f (𝟙 (tensor_Bimod N P)) =
+  tensor_hom f (𝟙 (N.tensor_Bimod P)) =
   (associator_Bimod M N P).inv ≫ tensor_hom (tensor_hom f (𝟙 N)) (𝟙 P) ≫
     (associator_Bimod M' N P).hom :=
 begin
@@ -984,9 +984,9 @@ end
 
 lemma pentagon_Bimod {V W X Y Z : Mon_ C}
   (M : Bimod V W) (N : Bimod W X) (P : Bimod X Y) (Q : Bimod Y Z) :
-  tensor_hom (associator_Bimod M N P).hom (𝟙 Q) ≫ (associator_Bimod M (tensor_Bimod N P) Q).hom ≫
+  tensor_hom (associator_Bimod M N P).hom (𝟙 Q) ≫ (associator_Bimod M (N.tensor_Bimod P) Q).hom ≫
     tensor_hom (𝟙 M) (associator_Bimod N P Q).hom =
-  (associator_Bimod (tensor_Bimod M N) P Q).hom ≫ (associator_Bimod M N (tensor_Bimod P Q)).hom :=
+  (associator_Bimod (M.tensor_Bimod N) P Q).hom ≫ (associator_Bimod M N (P.tensor_Bimod Q)).hom :=
 begin
   dunfold tensor_hom associator_Bimod, dsimp, ext, dsimp,
   dunfold associator_Bimod.hom,

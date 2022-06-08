@@ -125,7 +125,7 @@ if pat.is_mvar || pat.get_delayed_abstraction_locals.is_some then do
   try $ applyc ``_root_.propext,
   get_goals <* set_goals []
 else if pat.is_app then do
-  `(%%lhs = %%rhs) ← target,
+  `(%%lhs = %%_) ← target,
   pat ← convert_to_explicit pat lhs,
   cl ← mk_specialized_congr_lemma pat,
   H_congr_lemma ← assertv `H_congr_lemma cl.type cl.proof,

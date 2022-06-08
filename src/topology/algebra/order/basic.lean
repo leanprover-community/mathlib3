@@ -1074,6 +1074,19 @@ instance order_topology.to_order_closed_topology : order_closed_topology α :=
       let ⟨u, v, hu, hv, ha₁, ha₂, h⟩ := order_separated h in
       ⟨v, u, hv, hu, ha₂, ha₁, assume ⟨b₁, b₂⟩ ⟨h₁, h₂⟩, not_le_of_gt $ h b₂ h₂ b₁ h₁⟩ }
 
+lemma dense_of_exists_between [nontrivial α] {s : set α}
+  (h : ∀ ⦃a b⦄, a < b → ∃ c ∈ s, a < c ∧ c < b) : dense s :=
+begin
+  apply dense_iff_inter_open.2 (λ U U_open U_nonempty, _),
+  obtain ⟨a, b, hab, H⟩ : ∃ (a b : α), a < b ∧ Ioo a b ⊆ U := U_open.exists_Ioo_subset U_nonempty,
+  obtain ⟨x, xs, hx⟩ : ∃ (x : α) (H : x ∈ s), a < x ∧ x < b := h hab,
+  exact ⟨x, ⟨H hx, xs⟩⟩
+end
+
+lemma dense_iff_exists_between [densely_ordered α] [nontrivial α] {s : set α} :
+  dense s ↔ ∀ a b, a < b → ∃ c ∈ s, a < c ∧ c < b :=
+⟨λ h a b hab, h.exists_between hab, dense_of_exists_between⟩
+
 lemma order_topology.t2_space : t2_space α := by apply_instance
 
 @[priority 100] -- see Note [lower instance priority]
@@ -2565,21 +2578,6 @@ by rw [← comap_coe_Ioi_nhds_within_Ioi, tendsto_comap_iff]
 @[simp] lemma tendsto_Iio_at_top {f : β → Iio a} :
   tendsto f l at_top ↔ tendsto (λ x, (f x : α)) l (𝓝[<] a) :=
 by rw [← comap_coe_Iio_nhds_within_Iio, tendsto_comap_iff]
-
-lemma dense_iff_forall_lt_exists_mem [nontrivial α] {s : set α} :
-  dense s ↔ ∀ a b, a < b → ∃ c ∈ s, a < c ∧ c < b :=
-begin
-  split,
-  { assume h a b hab,
-    obtain ⟨c, ⟨hc, cs⟩⟩ : ((Ioo a b) ∩ s).nonempty :=
-      dense_iff_inter_open.1 h (Ioo a b) is_open_Ioo (nonempty_Ioo.2 hab),
-    exact ⟨c, cs, hc⟩ },
-  { assume h,
-    apply dense_iff_inter_open.2 (λ U U_open U_nonempty, _),
-    obtain ⟨a, b, hab, H⟩ : ∃ (a b : α), a < b ∧ Ioo a b ⊆ U := U_open.exists_Ioo_subset U_nonempty,
-    obtain ⟨x, xs, hx⟩ : ∃ (x : α) (H : x ∈ s), a < x ∧ x < b := h a b hab,
-    exact ⟨x, ⟨H hx, xs⟩⟩ }
-end
 
 instance (x : α) [nontrivial α] : ne_bot (𝓝[≠] x) :=
 begin

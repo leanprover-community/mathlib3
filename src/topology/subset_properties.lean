@@ -1348,6 +1348,10 @@ theorem is_clopen.compl {s : set α} (hs : is_clopen s) : is_clopen sᶜ :=
 theorem is_clopen.diff {s t : set α} (hs : is_clopen s) (ht : is_clopen t) : is_clopen (s \ t) :=
 hs.inter ht.compl
 
+lemma is_clopen.prod {s : set α} {t : set β} (hs : is_clopen s) (ht : is_clopen t) :
+  is_clopen (s ×ˢ t) :=
+⟨hs.1.prod ht.1, hs.2.prod ht.2⟩
+
 lemma is_clopen_Union {β : Type*} [fintype β] {s : β → set α}
   (h : ∀ i, is_clopen (s i)) : is_clopen (⋃ i, s i) :=
 ⟨is_open_Union (forall_and_distrib.1 h).1, is_closed_Union (forall_and_distrib.1 h).2⟩

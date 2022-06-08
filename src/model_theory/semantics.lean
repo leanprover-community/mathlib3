@@ -48,39 +48,6 @@ the continuum hypothesis*][flypitch_itp]
 
 universes u v w u' v'
 
-namespace fin
-
-@[simp] lemma nat_add_last {m n : ℕ} : (nat_add n) (last m) = last (n + m) := rfl
-
-lemma nat_add_cast_succ {m n : ℕ} {i : fin m} :
-  (nat_add n) (cast_succ i) = cast_succ (nat_add n i) := rfl
-
-@[simp] lemma snoc_comp_nat_add {n m : ℕ} {α : Sort*} {a : α} {f : fin (m + n) → α} :
-  (snoc f a : fin _ → α) ∘ (nat_add m : fin (n + 1) → fin (m + n + 1)) = snoc (f ∘ nat_add m) a :=
-begin
-  ext i,
-  refine fin.last_cases _ (λ i, _) i,
-  { simp only [function.comp_app],
-    rw [snoc_last, nat_add_last, snoc_last] },
-  { simp only [function.comp_app],
-    rw [snoc_cast_succ, nat_add_cast_succ, snoc_cast_succ] }
-end
-
-@[simp] lemma snoc_cast_add {n m : ℕ} {α : Sort*} {a : α} {f : fin (n + m) → α} {i : fin n} :
-  (snoc f a : fin _ → α) (cast_add (m + 1) i) = f (cast_add m i) :=
-begin
-  have h : (cast_add (m + 1) i).val < n + m := lt_of_lt_of_le (fin.is_lt i) le_self_add,
-  rw [snoc, dif_pos h, cast_eq],
-  refine congr rfl (fin.ext _),
-  simp,
-end
-
-@[simp] lemma snoc_comp_cast_add {n m : ℕ} {α : Sort*} {a : α} {f : fin (n + m) → α} :
-  (snoc f a : fin _ → α) ∘ cast_add (m + 1) = f ∘ (cast_add m) :=
-funext (λ _, snoc_cast_add)
-
-end fin
-
 namespace first_order
 namespace language
 

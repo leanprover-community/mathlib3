@@ -141,7 +141,9 @@ bornology coincide with the product ones. Therefore, we do not register it as an
 this as a temporary pseudoemetric space instance, we will show that the uniform structure is equal
 (but not defeq) to the product one, and then register an instance in which we replace the uniform
 structure and the bornology by the product ones using this pseudometric space,
-`pseudo_metric_space.replace_uniformity`, and `pseudo_metric_space.replace_bornology`. -/
+`pseudo_metric_space.replace_uniformity`, and `pseudo_metric_space.replace_bornology`.
+
+See note [reducible non-instances] -/
 @[reducible] def pseudo_metric_aux : pseudo_metric_space (pi_Lp p α) :=
 pseudo_emetric_space.to_pseudo_metric_space_of_dist
   (λ f g, (∑ i, dist (f i) (g i) ^ p) ^ (1/p))

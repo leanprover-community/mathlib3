@@ -205,8 +205,7 @@ lemma is_unit.factor_order_iso_map {m u : associates M} {n : associates N}
 begin
   rw [associates.is_unit_iff_eq_one, ← associates.bot_eq_one],
   suffices : d ⟨u, hu'⟩ = ⟨⊥, bot_le⟩,
-  { rw [subtype.ext_iff, subtype.coe_mk] at this,
-    exact this },
+  { rwa [subtype.ext_iff, subtype.coe_mk] at this },
   haveI : order_bot {l : associates M // l ≤ m} := subtype.order_bot bot_le,
   haveI : order_bot {l : associates N // l ≤ n} := subtype.order_bot bot_le,
   rwa [subtype.mk_bot, map_eq_bot_iff d, subtype.mk_eq_bot_iff, associates.bot_eq_one,
@@ -404,8 +403,8 @@ begin
     ↑(d ⟨associates_equiv_of_unique_units (associates_equiv_of_unique_units.symm p),
       by simp [dvd_of_mem_normalized_factors hp]⟩))
     (associates.mk n),
-  {  simp only [multiplicity_mk_eq_multiplicity, associates_equiv_of_unique_units_symm_apply,
-    associates_equiv_of_unique_units_apply, out_mk, normalize_eq] at this,
+  { simp only [multiplicity_mk_eq_multiplicity, associates_equiv_of_unique_units_symm_apply,
+      associates_equiv_of_unique_units_apply, out_mk, normalize_eq] at this,
       exact this },
   have : associates.mk ↑(d ⟨associates_equiv_of_unique_units
     (associates_equiv_of_unique_units.symm p), by simp only [dvd_of_mem_normalized_factors hp,

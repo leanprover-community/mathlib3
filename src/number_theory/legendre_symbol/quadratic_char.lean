@@ -190,9 +190,10 @@ begin
         { exact eq_or_eq_neg_of_sq_eq_sq _ _, },
         { rintro (h₂ | h₂); rw h₂,
           simp only [neg_sq], }, },
-      simp only [h₁, finset.card_doubleton (ring.neg_ne_self_of_char_ne_two hF h₀),
-                 list.to_finset_cons, list.to_finset_nil, insert_emptyc_eq, int.coe_nat_succ,
-                 int.coe_nat_zero, zero_add], },
+      norm_cast,
+      rw  [h₁, list.to_finset_cons, list.to_finset_cons, list.to_finset_nil],
+      exact finset.card_doubleton
+              (ne.symm (mt (ring.eq_self_iff_eq_zero_of_char_ne_two hF).mp h₀)), },
     { rw quadratic_char_neg_one_iff_not_is_square.mpr h,
       simp only [int.coe_nat_eq_zero, finset.card_eq_zero, set.to_finset_card,
                  fintype.card_of_finset, set.mem_set_of_eq, add_left_neg],

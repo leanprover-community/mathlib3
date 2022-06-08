@@ -20,24 +20,19 @@ They will be moved to appropriate places eventually.
 section general
 
 /-- A natural number is odd iff it has residue `1` or `3` mod `4`-/
--- SUGGESTION: move this to `data.nat.modeq`, right after `nat.odd_of_mod_four_eq_three`
+-- TODO: move this to `data.nat.modeq`, right after `nat.odd_of_mod_four_eq_three`
 lemma nat.odd_mod_four_iff {n : ℕ} : n % 2 = 1 ↔ n % 4 = 1 ∨ n % 4 = 3 :=
 begin
-  split,
-  { have help : ∀ (m : ℕ), 0 ≤ m → m < 4 → m % 2 = 1 → m = 1 ∨ m = 3 := dec_trivial,
-    intro hn,
-    rw [← nat.mod_mod_of_dvd n (by norm_num : 2 ∣ 4)] at hn,
-    exact help (n % 4) zero_le' (nat.mod_lt n (by norm_num)) hn, },
-  { intro h,
-    cases h with h h,
-    { exact nat.odd_of_mod_four_eq_one h, },
-    { exact nat.odd_of_mod_four_eq_three h }, },
+  refine ⟨_, λ h, or.dcases_on h nat.odd_of_mod_four_eq_one nat.odd_of_mod_four_eq_three⟩,
+  have help : ∀ (m : ℕ), 0 ≤ m → m < 4 → m % 2 = 1 → m = 1 ∨ m = 3 := dec_trivial,
+  exact λ hn, help (n % 4) zero_le' (nat.mod_lt n (by norm_num))
+               ((nat.mod_mod_of_dvd n (by norm_num : 2 ∣ 4)).trans hn),
 end
 
 -- Auxiliary stuff for monoids
 
 /-- If `x ^ n = 1`, then `x ^ m` is the same as `x ^ (m % n)` -/
--- SUGGESTION: move this to `algebra.group_power.basic`, right after `pow_sub_mul_pow`
+-- TODO: move this to `algebra.group_power.basic`, right after `pow_sub_mul_pow`
 @[to_additive nsmul_eq_mod_nsmul "If `n • x = 0`, then `m • x` is the same as `(m % n) • x`"]
 lemma pow_eq_pow_mod {M : Type*} [monoid M] {x : M} (m : ℕ) {n : ℕ} (h : x ^ n = 1) :
   x ^ m = x ^ (m % n) :=
@@ -49,10 +44,10 @@ end
 /-- We define the inverse as a `monoid_with_zero_hom` by extending the inverse map by zero
 on non-units. -/
 -- This exists for groups with zero (`inv_monoid_with_zero_hom`)
--- SUGGESTION: put the following two definitions in `algebra.group_with_zero.basic`,
+-- TODO: put the following two definitions in `algebra.group_with_zero.basic`,
 -- before `inv_monoid_with_zero_hom`
 noncomputable
-def comm_monoid_with_zero.inv_hom {M : Type*} [comm_monoid_with_zero M] :
+def monoid_with_zero.inverse {M : Type*} [comm_monoid_with_zero M] :
   M →*₀ M :=
 { to_fun := ring.inverse,
   map_zero' := ring.inverse_zero _,
@@ -60,12 +55,10 @@ def comm_monoid_with_zero.inv_hom {M : Type*} [comm_monoid_with_zero M] :
   map_mul' := λ x y, (ring.mul_inverse_rev x y).trans (mul_comm _ _) }
 
 /-- We define `x ↦ x^n` (for positive `n : ℕ`) as a `monoid_with_zero_hom` -/
-def comm_monoid_with_zero.pow_hom {M : Type*} [comm_monoid_with_zero M] {n : ℕ} (hn : 0 < n) :
+def pow_monoid_with_zero_hom {M : Type*} [comm_monoid_with_zero M] {n : ℕ} (hn : 0 < n) :
   M →*₀ M :=
-{ to_fun := (λ m, m ^ n),
-  map_zero' := zero_pow hn,
-  map_one' := one_pow n,
-  map_mul' := λ x y, mul_pow x y n }
+{ map_zero' := zero_pow hn,
+  ..pow_monoid_hom n }
 
 end general
 
@@ -76,14 +69,13 @@ section ring
 /-- We have `2 ≠ 0` in a nontrivial ring whose characteristic is not `2`. -/
 -- Note: there is `two_ne_zero` (assuming `[ordered_semiring]`)
 -- and `two_ne_zero'`(assuming `[char_zero]`), which both don't fit the needs here.
--- SUGGESTION: move this and the next three lemmas to `algebra.char_p.basic`,
+-- TODO: move this and the next three lemmas to `algebra.char_p.basic`,
 -- before `char_p.neg_one_ne_one`.
 @[protected]
 lemma ring.two_ne_zero {R : Type*} [non_assoc_semiring R] [nontrivial R] (hR : ring_char R ≠ 2) :
   (2 : R) ≠ 0 :=
 begin
-  change ¬ (2 : R) = 0,
-  rw [(by norm_cast : (2 : R) = (2 : ℕ)), ring_char.spec, nat.dvd_prime nat.prime_two],
+  rw [ne.def, (by norm_cast : (2 : R) = (2 : ℕ)), ring_char.spec, nat.dvd_prime nat.prime_two],
   exact mt (or_iff_left hR).mp char_p.ring_char_ne_one,
 end
 
@@ -93,33 +85,27 @@ end
 lemma ring.neg_one_ne_one_of_char_ne_two {R : Type*} [non_assoc_ring R] [nontrivial R]
  (hR : ring_char R ≠ 2) :
   (-1 : R) ≠ 1 :=
-begin
-  intro hf,
-  rw [neg_eq_iff_add_eq_zero] at hf,
-  exact ring.two_ne_zero hR hf,
-end
+λ h, ring.two_ne_zero hR (neg_eq_iff_add_eq_zero.mp h)
 
-/-- Characteristic `≠ 2` in a domain implies that `-a ≠ a` when `a ≠ 0`. -/
-lemma ring.neg_ne_self_of_char_ne_two {R : Type*} [non_assoc_ring R] [nontrivial R]
- [no_zero_divisors R] (hR : ring_char R ≠ 2) {a : R} (ha : a ≠ 0) :
-  a ≠ -a :=
-begin
-  intro hf,
-  apply (ring.neg_one_ne_one_of_char_ne_two hR).symm,
-  rw [eq_neg_iff_add_eq_zero, ←two_mul, mul_one],
-  rw [eq_neg_iff_add_eq_zero, ←two_mul, mul_eq_zero] at hf,
-  exact hf.resolve_right ha,
-end
+/-- Characteristic `≠ 2` in a domain implies that `-a = a` iff `a = 0`. -/
+lemma ring.eq_self_iff_eq_zero_of_char_ne_two {R : Type*} [non_assoc_ring R] [nontrivial R]
+ [no_zero_divisors R] (hR : ring_char R ≠ 2) {a : R} :
+  -a = a ↔ a = 0 :=
+⟨λ h, (mul_eq_zero.mp $ (two_mul a).trans $ neg_eq_iff_add_eq_zero.mp h).resolve_left
+         (ring.two_ne_zero hR),
+ λ h, ((congr_arg (λ x, - x) h).trans neg_zero).trans h.symm⟩
 
 /-- If two integers from `{0, 1, -1}` result in equal elements in a ring `R`
 that is nontrivial and of characteristic not `2`, then they are equal. -/
-lemma ring.int_sign_eq_of_coe_eq
- {R : Type*} [non_assoc_ring R] [nontrivial R] (hR : ring_char R ≠ 2)
- {a b : ℤ} (ha : a = 0 ∨ a = 1 ∨ a = -1) (hb : b = 0 ∨ b = 1 ∨ b = -1) (h : (a : R) = b) :
-  a = b :=
+lemma int.cast_inj_on_of_ring_char_ne_two {R : Type*} [non_assoc_ring R] [nontrivial R]
+  (hR : ring_char R ≠ 2) :
+  ({0, 1, -1} : set ℤ).inj_on (coe : ℤ → R) :=
 begin
+  intros a ha b hb h,
   apply eq_of_sub_eq_zero,
   by_contra hf,
+  change a = 0 ∨ a = 1 ∨ a = -1 at ha,
+  change b = 0 ∨ b = 1 ∨ b = -1 at hb,
   have hh : a - b = 1 ∨ b - a = 1 ∨ a - b = 2 ∨ b - a = 2 := by
   { rcases ha with ha | ha | ha; rcases hb with hb | hb | hb,
     swap 5, swap 9, -- move goals with `a = b` to the front
@@ -137,7 +123,7 @@ end
 /-- If `ring_char R = 2`, where `R` is a finite reduced commutative ring,
 then every `a : R` is a square. -/
 -- SUGGESTION: move this to `algebra.char_p.basic`, after `frobenius_inj`
--- ALTERNATIVE: move to `algebra.char_p.two` (and renane to `char_two.is_square`?)
+-- ALTERNATIVE: move to `algebra.char_p.two` (and rename to `char_two.is_square`?)
 lemma is_square_of_char_two' {R : Type*} [fintype R] [comm_ring R] [is_reduced R] [char_p R 2]
  (a : R) : is_square a :=
 exists_imp_exists (λ b h, pow_two b ▸ eq.symm h) $
@@ -145,21 +131,14 @@ exists_imp_exists (λ b h, pow_two b ▸ eq.symm h) $
 
 /-- A prime `p` is a unit in a finite commutative ring `R`
 iff it does not divide the characteristic. -/
--- The following three lemmas depend on `is_unit` (from `algebra.group.units`)
--- and `ring_char` (from `algebra.char_p.basic`).
--- It seems that neither of these files imports the other. So:
--- ALTERNATIVE 1: move them to `algebra.group.units` and add the import there
---                con: this file talks about monoids, not rings
--- ALTERNATIVE 2: move them to `algebra.char_p.basic` and add the import there
--- ALTERNATIVE 3: leave them here for the time being
+-- TODO: move the following three lemmas to `algebra.char_p.basic`
 lemma is_unit_iff_not_dvd_char (R : Type*) [comm_ring R] [fintype R] (p : ℕ) [fact p.prime] :
   is_unit (p : R) ↔ ¬ p ∣ ring_char R :=
 begin
   have hch := char_p.cast_eq_zero R (ring_char R),
   split,
-  { intros h₁ h₂,
+  { rintros h₁ ⟨q, hq⟩,
     rcases is_unit.exists_left_inv h₁ with ⟨a, ha⟩,
-    rcases h₂ with ⟨q, hq⟩,
     have h₃ : ¬ ring_char R ∣ q :=
     begin
       rintro ⟨r, hr⟩,
@@ -188,19 +167,17 @@ the prime divisors of its cardinality. -/
 lemma prime_dvd_char_iff_dvd_card {R : Type*} [comm_ring R] [fintype R] (p : ℕ) [fact p.prime] :
   p ∣ ring_char R ↔ p ∣ fintype.card R :=
 begin
-  split,
-  { exact λ h, nat.dvd_trans h (int.coe_nat_dvd.mp ((char_p.int_cast_eq_zero_iff R (ring_char R)
-                (fintype.card R)).mp (char_p.cast_card_eq_zero R))), },
-  { intro h,
-    by_contra h₀,
-    rcases exists_prime_add_order_of_dvd_card p h with ⟨r, hr⟩,
-    have hr₁ : (p : R) * r = 0 :=
-    by { have h₀ := add_order_of_nsmul_eq_zero r, rw [hr, nsmul_eq_mul] at h₀, exact h₀, },
-    rcases is_unit.exists_left_inv ((is_unit_iff_not_dvd_char R p).mpr h₀) with ⟨u, hu⟩,
-    apply_fun ((*) u) at hr₁,
-    rw [mul_zero, ← mul_assoc, hu, one_mul] at hr₁,
-    exact mt add_monoid.order_of_eq_one_iff.mpr
-                 (ne_of_eq_of_ne hr (nat.prime.ne_one (fact.out p.prime))) hr₁, },
+  refine ⟨λ h, h.trans $ int.coe_nat_dvd.mp $ (char_p.int_cast_eq_zero_iff R (ring_char R)
+    (fintype.card R)).mp $ char_p.cast_card_eq_zero R, λ h, _⟩,
+  by_contra h₀,
+  rcases exists_prime_add_order_of_dvd_card p h with ⟨r, hr⟩,
+  have hr₁ := add_order_of_nsmul_eq_zero r,
+  rw [hr, nsmul_eq_mul] at hr₁,
+  rcases is_unit.exists_left_inv ((is_unit_iff_not_dvd_char R p).mpr h₀) with ⟨u, hu⟩,
+  apply_fun ((*) u) at hr₁,
+  rw [mul_zero, ← mul_assoc, hu, one_mul] at hr₁,
+  exact mt add_monoid.order_of_eq_one_iff.mpr
+          (ne_of_eq_of_ne hr (nat.prime.ne_one (fact.out p.prime))) hr₁,
 end
 
 /-- A prime that does not divide the cardinality of a finite commutative ring `R`
@@ -220,7 +197,7 @@ namespace finite_field
 variables {F : Type*} [field F] [fintype F]
 
 /-- In a finite field of characteristic `2`, all elements are squares. -/
--- SUGGESTION: move the following lemmas (up to and incluiding `exists_nonsquare`)
+-- TODO: move the following lemmas (up to and incluiding `exists_nonsquare`)
 -- to the end of `field_theory.finite.basic`
 lemma is_square_of_char_two (hF : ring_char F = 2) (a : F) : is_square a :=
 begin
@@ -240,9 +217,7 @@ begin
   { rw [← nat.even_iff, nat.even_pow],
     rintros ⟨hev, hnz⟩,
     rw [nat.even_iff, nat.mod_mod] at hev,
-    cases (nat.prime.eq_two_or_odd hp) with h₁ h₁,
-    { exact h₁, },
-    { exact false.rec (ring_char F = 2) (one_ne_zero ((eq.symm h₁).trans hev)), }, },
+    exact (nat.prime.eq_two_or_odd hp).resolve_right (ne_of_eq_of_ne hev zero_ne_one), },
 end
 
 lemma even_card_of_char_two (hF : ring_char F = 2) : fintype.card F % 2 = 0 :=
@@ -253,13 +228,11 @@ nat.mod_two_ne_zero.mp (mt even_card_iff_char_two.mpr hF)
 
 /-- If `F` has odd characteristic, then for nonzero `a : F`, we have that `a ^ (#F / 2) = ±1`. -/
 lemma pow_dichotomy (hF : ring_char F ≠ 2) {a : F} (ha : a ≠ 0) :
-  a^(fintype.card F / 2) = 1 ∨ a^(fintype.card F / 2) = -1 :=
+  a ^ (fintype.card F / 2) = 1 ∨ a ^ (fintype.card F / 2) = -1 :=
 begin
   have h₁ := finite_field.pow_card_sub_one_eq_one a ha,
-  set q := fintype.card F with hq,
-  have hq : q % 2 = 1 := finite_field.odd_card_of_char_ne_two hF,
-  have h₂ := nat.two_mul_odd_div_two hq,
-  rw [← h₂, mul_comm, pow_mul, pow_two] at h₁,
+  rw [← nat.two_mul_odd_div_two (finite_field.odd_card_of_char_ne_two hF),
+      mul_comm, pow_mul, pow_two] at h₁,
   exact mul_self_eq_one_iff.mp h₁,
 end
 
@@ -275,10 +248,9 @@ begin
   split,
   { rintro ⟨y, rfl⟩,
     rw [← pow_two, ← pow_mul, hodd],
-    apply_fun (@coe Fˣ F _),
+    apply_fun (@coe Fˣ F _) using units.ext,
     { push_cast,
-      exact finite_field.pow_card_sub_one_eq_one (y : F) (units.ne_zero y), },
-    { exact units.ext, }, },
+      exact finite_field.pow_card_sub_one_eq_one (y : F) (units.ne_zero y), }, },
   { subst a, assume h,
     have key : 2 * (fintype.card F / 2) ∣ n * (fintype.card F / 2),
     { rw [← pow_mul] at h,
@@ -297,7 +269,8 @@ begin
   apply (iff_congr _ (by simp [units.ext_iff])).mp
         (finite_field.unit_is_square_iff hF (units.mk0 a ha)),
   simp only [is_square, units.ext_iff, units.coe_mk0, units.coe_mul],
-  split, { rintro ⟨y, hy⟩, exact ⟨y, hy⟩ },
+  split,
+  { rintro ⟨y, hy⟩, exact ⟨y, hy⟩ },
   { rintro ⟨y, rfl⟩,
     have hy : y ≠ 0, { rintro rfl, simpa [zero_pow] using ha, },
     refine ⟨units.mk0 y hy, _⟩, simp, }
@@ -307,7 +280,7 @@ end
 lemma exists_nonsquare (hF : ring_char F ≠ 2) : ∃ (a : F), ¬ is_square a :=
 begin
   -- idea: the squaring map on `F` is not injetive, hence not surjective
-  let sq : F → F := λ x, x^2,
+  let sq : F → F := λ x, x ^ 2,
   have h : ¬ function.injective sq,
   { simp only [function.injective, not_forall, exists_prop],
     use [-1, 1],
@@ -321,13 +294,14 @@ begin
   simp only [is_square, sq, not_exists, ne.def] at h₁ ⊢,
   intros b hb,
   rw ← pow_two at hb,
-  exact (h₁ b hb.symm),
+  exact h₁ b hb.symm,
 end
 
 /-- The trace map from a finite field of characteristic `p` to `zmod p` -/
 -- These two lemmas depend on `ring_theory.trace` and finite fields.
--- SUGGESTION: move them to the end of `ring_theory.trace` (this would likely
+-- SUGGESTION: move them to the end of `ring_theory.trace` (this would
 -- require adding `import field_theory.finite.basic` to it)
+-- ALTERNATIVE: add a new file `field_theory.finite.trace` for them.
 noncomputable
 def trace_to_zmod (F : Type*) [field F] :
  F →ₗ[zmod (ring_char F)] zmod (ring_char F) :=

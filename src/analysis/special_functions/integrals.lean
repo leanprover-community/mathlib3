@@ -271,16 +271,13 @@ lemma integral_exp_mul_complex {c : ℂ} (hc : c ≠ 0) :
 begin
   have D : ∀ (x : ℝ), has_deriv_at (λ (y : ℝ), complex.exp (c * y) / c) (complex.exp (c * x)) x,
   { intro x,
-    conv begin congr, skip, rw ←@mul_div_cancel _ _ (complex.exp (c * x)) c hc, end,
+    conv begin congr, skip, rw ←mul_div_cancel (complex.exp (c * x)) hc, end,
     apply has_deriv_at.div_const,
-    convert has_deriv_at.comp x (complex.has_deriv_at_exp (c * x)) _ using 1,
-    have t := complex.of_real_clm.has_deriv_at.mul_const c,
-    simp only [complex.of_real_clm_apply, complex.of_real_one, one_mul] at t,
-    convert t, ext1, ring,},
-  rw integral_deriv_eq_sub' (λ x : ℝ, complex.exp (c * x) / c),
+    convert has_deriv_at.comp x (complex.has_deriv_at_exp _) _ using 1,
+    simpa only [complex.of_real_clm_apply, complex.of_real_one, one_mul, mul_one, mul_comm] using
+      complex.of_real_clm.has_deriv_at.mul_const c },
+  rw integral_deriv_eq_sub' _ (funext (λ x, (D x).deriv)) (λ x hx, (D x).differentiable_at),
   { ring_nf },
-  { ext1 x, exact (D x).deriv,},
-  { intros x hx, exact (D x).differentiable_at },
   { apply continuous.continuous_on, continuity,}
 end
 

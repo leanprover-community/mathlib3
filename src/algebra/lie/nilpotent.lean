@@ -46,7 +46,7 @@ expression of the fact that the terms of the Lie submodule's lower central serie
 submodules of the enclosing Lie module.
 
 See also `lie_module.lower_central_series_eq_lcs_comap` and
-`lie_module.lower_central_series_map_eq_lcs` below. -/
+`lie_module.lower_central_series_map_eq_lcs` below, as well as `lie_submodule.ucs`. -/
 def lcs : lie_submodule R L M → lie_submodule R L M := (λ N, ⁅(⊤ : lie_ideal R L), N⁆)^[k]
 
 @[simp] lemma lcs_zero (N : lie_submodule R L M) : N.lcs 0 = N := rfl
@@ -333,7 +333,9 @@ namespace lie_submodule
 
 variables {N₁ N₂ : lie_submodule R L M}
 
-/-- The upper (aka ascending) central series. -/
+/-- The upper (aka ascending) central series.
+
+See also `lie_submodule.lcs`. -/
 def ucs (k : ℕ) : lie_submodule R L M → lie_submodule R L M :=
 centralizer^[k]
 

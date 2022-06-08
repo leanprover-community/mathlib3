@@ -141,7 +141,7 @@ begin
   { rintro ⟨⟨t, ht, hst⟩, hs⟩,
     by_cases s ∈ 𝒜,
     { exact or.inl ⟨h, hs⟩ },
-    obtain ⟨a, ha, hst⟩ := ssubset_iff_exists_insert_subset.1
+    obtain ⟨a, ha, hst⟩ := ssubset_iff.1
       (ssubset_of_subset_of_ne hst (ht.ne_of_not_mem h).symm),
     refine or.inr ⟨insert a s, ⟨⟨t, ht, hst⟩, _⟩, a, mem_insert_self _ _, erase_insert ha⟩,
     rw [card_insert_of_not_mem ha, hs] }

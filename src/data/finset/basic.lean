@@ -402,6 +402,7 @@ lemma eq_empty_of_is_empty [is_empty α] (s : finset α) : s = ∅ :=
 finset.eq_empty_of_forall_not_mem is_empty_elim
 
 /-! ### singleton -/
+
 /--
 `{a} : finset a` is the set `{a}` containing `a` and nothing else.
 
@@ -465,15 +466,11 @@ by rw [coe_singleton, set.singleton_subset_iff]
 singleton_subset_set_iff
 
 @[simp] lemma subset_singleton_iff {s : finset α} {a : α} : s ⊆ {a} ↔ s = ∅ ∨ s = {a} :=
-begin
-  refine ⟨λ hs, s.eq_empty_or_nonempty.imp_right _, _⟩,
-  { rintro ⟨t, ht⟩,
-    apply subset.antisymm hs,
-    rwa [singleton_subset_iff, ←mem_singleton.1 (hs ht)] },
-  rintro (rfl | rfl),
-  { exact empty_subset _ },
-  exact subset.rfl,
-end
+by rw [←coe_subset, coe_singleton, set.subset_singleton_iff_eq, coe_eq_empty, coe_eq_singleton]
+
+protected lemma nonempty.subset_singleton_iff {s : finset α} {a : α} (h : s.nonempty) :
+  s ⊆ {a} ↔ s = {a} :=
+subset_singleton_iff.trans $ or_iff_right h.ne_empty
 
 lemma subset_singleton_iff' {s : finset α} {a : α} : s ⊆ {a} ↔ ∀ b ∈ s, b = a :=
 forall₂_congr $ λ _ _, mem_singleton
@@ -582,17 +579,14 @@ instance : is_lawful_singleton α (finset α) := ⟨λ a, by { ext, simp }⟩
 
 @[simp] lemma insert_eq_of_mem (h : a ∈ s) : insert a s = s := eq_of_veq $ ndinsert_of_mem h
 
-@[simp] theorem insert_singleton_self_eq (a : α) : ({a, a} : finset α) = {a} :=
+@[simp] theorem pair_self_eq (a : α) : ({a, a} : finset α) = {a} :=
 insert_eq_of_mem $ mem_singleton_self _
 
 theorem insert.comm (a b : α) (s : finset α) : insert a (insert b s) = insert b (insert a s) :=
 ext $ λ x, by simp only [mem_insert, or.left_comm]
 
-theorem insert_singleton_comm (a b : α) : ({a, b} : finset α) = {b, a} :=
-begin
-  ext,
-  simp [or.comm]
-end
+theorem pair_comm (a b : α) : ({a, b} : finset α) = {b, a} :=
+insert.comm a b ∅
 
 @[simp] theorem insert_idem (a : α) (s : finset α) : insert a (insert a s) = insert a s :=
 ext $ λ x, by simp only [mem_insert, or.assoc.symm, or_self]
@@ -632,9 +626,6 @@ lemma ssubset_iff : s ⊂ t ↔ ∃ a ∉ s, insert a s ⊆ t :=
 by exact_mod_cast @set.ssubset_iff_insert α s t
 
 lemma ssubset_insert (h : a ∉ s) : s ⊂ insert a s := ssubset_iff.mpr ⟨a, h, subset.rfl⟩
-
-lemma ssubset_iff_exists_insert_subset {s t : finset α} : s ⊂ t ↔ ∃ a ∉ s, insert a s ⊆ t :=
-by simp_rw [ssubset_iff_exists_cons_subset, cons_eq_insert]
 
 @[elab_as_eliminator]
 lemma cons_induction {α : Type*} {p : finset α → Prop}
@@ -2597,7 +2588,7 @@ def sigma_equiv_option_of_inhabited (α : Type u) [inhabited α] [decidable_eq �
   Σ (β : Type u), α ≃ option β :=
 ⟨{x : α // x ≠ default},
 { to_fun := λ (x : α), if h : x = default then none else some ⟨x, h⟩,
-  inv_fun := λ o, option.elim o (default) coe,
+  inv_fun := λ o, option.elim o default coe,
   left_inv := λ x, by { dsimp only, split_ifs; simp [*] },
   right_inv := begin
     rintro (_|⟨x,h⟩),

@@ -266,6 +266,9 @@ rfl
   x ⊗ₜ (r • y) = r • (x ⊗ₜ[R] y) :=
 (smul_tmul _ _ _).symm
 
+lemma smul_tmul_smul (r s : R) (m : M) (n : N) : (r • m) ⊗ₜ[R] (s • n) = (r * s) • (m ⊗ₜ[R] n) :=
+by simp only [tmul_smul, smul_tmul, mul_smul]
+
 instance left_module : module R'' (M ⊗[R] N) :=
 { smul := (•),
   add_smul := tensor_product.add_smul,
@@ -663,6 +666,56 @@ begin
   { simp only [pow_zero, map_one], },
   { simp only [pow_succ', ih, map_mul], },
 end
+
+lemma map_add_left (f₁ f₂ : M →ₗ[R] P) (g : N →ₗ[R] Q) : map (f₁ + f₂) g = map f₁ g + map f₂ g :=
+by {ext, simp only [add_tmul, compr₂_apply, mk_apply, map_tmul, add_apply]}
+
+lemma map_add_right (f : M →ₗ[R] P) (g₁ g₂ : N →ₗ[R] Q) : map f (g₁ + g₂) = map f g₁ + map f g₂ :=
+by {ext, simp only [tmul_add, compr₂_apply, mk_apply, map_tmul, add_apply]}
+
+lemma map_smul_left (r : R) (f : M →ₗ[R] P) (g : N →ₗ[R] Q) : map (r • f) g = r • map f g :=
+by {ext, simp only [smul_tmul, compr₂_apply, mk_apply, map_tmul, smul_apply, tmul_smul]}
+
+lemma map_smul_right (r : R) (f : M →ₗ[R] P) (g : N →ₗ[R] Q) : map f (r • g) = r • map f g :=
+by {ext, simp only [smul_tmul, compr₂_apply, mk_apply, map_tmul, smul_apply, tmul_smul]}
+
+variables (R M N P Q)
+
+/-- The tensor product of a pair of linear maps between modules, bilinear in both maps. -/
+def map_bilinear : (M →ₗ[R] P) →ₗ[R] (N →ₗ[R] Q) →ₗ[R] (M ⊗[R] N →ₗ[R] P ⊗[R] Q) :=
+linear_map.mk₂ R map map_add_left map_smul_left map_add_right map_smul_right
+
+/-- The canonical linear map from `P ⊗[R] (M →ₗ[R] Q)` to `(M →ₗ[R] P ⊗[R] Q)` -/
+def ltensor_hom_to_hom_ltensor : P ⊗[R] (M →ₗ[R] Q) →ₗ[R] (M →ₗ[R] P ⊗[R] Q) :=
+tensor_product.lift (llcomp R M Q _ ∘ₗ mk R P Q)
+
+/-- The canonical linear map from `(M →ₗ[R] P) ⊗[R] Q` to `(M →ₗ[R] P ⊗[R] Q)` -/
+def rtensor_hom_to_hom_rtensor : (M →ₗ[R] P) ⊗[R] Q →ₗ[R] (M →ₗ[R] P ⊗[R] Q) :=
+tensor_product.lift (llcomp R M P _ ∘ₗ (mk R P Q).flip).flip
+
+/-- The linear map from `(M →ₗ P) ⊗ (N →ₗ Q)` to `(M ⊗ N →ₗ P ⊗ Q)` sending `f ⊗ₜ g` to
+the `tensor_product.map f g`, the tensor product of the two maps. -/
+def hom_tensor_hom_map : (M →ₗ[R] P) ⊗[R] (N →ₗ[R] Q) →ₗ[R] (M ⊗[R] N →ₗ[R] P ⊗[R] Q) :=
+lift (map_bilinear R M N P Q)
+
+variables {R M N P Q}
+
+@[simp]
+lemma map_bilinear_apply (f : M →ₗ[R] P) (g : N →ₗ[R] Q) :
+  map_bilinear R M N P Q f g = map f g := rfl
+
+@[simp]
+lemma ltensor_hom_to_hom_ltensor_apply (p : P) (f : M →ₗ[R] Q) (m : M) :
+  ltensor_hom_to_hom_ltensor R M P Q (p ⊗ₜ f) m = p ⊗ₜ f m := rfl
+
+@[simp]
+lemma rtensor_hom_to_hom_rtensor_apply (f : M →ₗ[R] P) (q : Q) (m : M) :
+  rtensor_hom_to_hom_rtensor R M P Q (f ⊗ₜ q) m = f m ⊗ₜ q := rfl
+
+@[simp]
+lemma hom_tensor_hom_map_apply (f : M →ₗ[R] P) (g : N →ₗ[R] Q) :
+  hom_tensor_hom_map R M N P Q (f ⊗ₜ g) = map f g :=
+by simp only [hom_tensor_hom_map, lift.tmul, map_bilinear_apply]
 
 end
 

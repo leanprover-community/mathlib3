@@ -22,7 +22,7 @@ Then we prove some basic properties of these functions.
 We define `nnreal.sqrt` as the noncomputable inverse to the function `x ↦ x * x`. We use general
 theory of inverses of strictly monotone functions to prove that `nnreal.sqrt x` exists. As a side
 effect, `nnreal.sqrt` is a bundled `order_iso`, so for `nnreal` numbers we get continuity as well as
-theorems like `sqrt x ≤ y ↔ x * x ≤ y` for free.
+theorems like `sqrt x ≤ y ↔ x ≤ y * y` for free.
 
 Then we define `real.sqrt x` to be `nnreal.sqrt (real.to_nnreal x)`. We also define a Cauchy
 sequence `real.sqrt_aux (f : cau_seq ℚ abs)` which converges to `sqrt (mk f)` but do not prove (yet)

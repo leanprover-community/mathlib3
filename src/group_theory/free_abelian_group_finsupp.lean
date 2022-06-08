@@ -156,7 +156,7 @@ by { rw [support, finsupp.not_mem_support_iff], exact iff.rfl }
 by simp only [support, finsupp.support_zero, add_monoid_hom.map_zero]
 
 @[simp] lemma support_of (x : X) : support (of x) = {x} :=
-by simp only [support, to_finsupp_of, finsupp.support_single_ne_zero (one_ne_zero)]
+by simp only [support, to_finsupp_of, finsupp.support_single_ne_zero _ one_ne_zero]
 
 @[simp] lemma support_neg (a : free_abelian_group X) : support (-a) = support a :=
 by simp only [support, add_monoid_hom.map_neg, finsupp.support_neg]

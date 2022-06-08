@@ -49,7 +49,7 @@ def slash_k : ℤ → GL(2, ℝ)⁺ → (ℍ → ℂ) → (ℍ → ℂ) := λ k 
 
 namespace modular_forms
 
-variables (Γ : subgroup SL(2,ℤ)) (k: ℤ) (f : (ℍ → ℂ))
+variables {Γ : subgroup SL(2,ℤ)} {k: ℤ} (f : (ℍ → ℂ))
 
 localized "notation f ` ∣[`:100 k `]`:0 γ :100 := slash_k k γ f" in modular_form
 
@@ -88,6 +88,15 @@ begin
  simp_rw slash_k,
  ext1,
  simp,
+end
+
+--Need to make the API better because of this
+lemma slash_k_mul_one_SL2 (k : ℤ) (f : ℍ → ℂ) : (f ∣[k] (1 : SL(2, ℤ))) = f :=
+begin
+  have : ((1 : SL(2, ℤ)) :  GL(2, ℝ)⁺) = (1 : GL(2, ℝ)⁺),
+    by { ext, simp, },
+  rw this,
+  apply slash_k_mul_one,
 end
 
 lemma smul_slash_k (k : ℤ) (A : GL(2, ℝ)⁺) (f : ℍ → ℂ) (c : ℂ) : (c • f) ∣[k] A = c • (f ∣[k] A) :=
@@ -270,13 +279,13 @@ structure is_modular_form_of_weight_and_level (k : ℤ) (Γ : subgroup SL(2,ℤ)
 
 /-- A function `f : ℍ → ℂ` is a cusp form of weight `k ∈ ℤ`  and of level `Γ` if it is holomorphic,
  weakly modular, and zero at infinity -/
-structure is_cusp_form_of_lvl_and_weight (k : ℤ) (Γ : subgroup SL(2,ℤ)) (f : ℍ → ℂ) : Prop :=
+structure is_cusp_form_of_weight_and_level (k : ℤ) (Γ : subgroup SL(2,ℤ)) (f : ℍ → ℂ) : Prop :=
   (hol : mdifferentiable 𝓘(ℂ) 𝓘(ℂ) (↑f : ℍ' → ℂ))
   (transf : f ∈ weakly_modular_submodule k Γ)
   (infinity : ∀ (A : SL(2,ℤ)), is_zero_at_inf (f ∣[k] A))
 
 /-- The zero modular form is a cusp form-/
-lemma zero_cusp_form : is_cusp_form_of_lvl_and_weight k Γ 0 :=
+lemma zero_cusp_form : is_cusp_form_of_weight_and_level k Γ 0 :=
 { hol := by {apply mdifferentiable_zero,},
   transf := (weakly_modular_submodule k Γ).zero_mem',
   infinity := by { intro A,
@@ -285,8 +294,8 @@ lemma zero_cusp_form : is_cusp_form_of_lvl_and_weight k Γ 0 :=
     simp only [pi.zero_apply, zero_mul],
     refl, } }
 
-lemma is_modular_form_of_weight_and_level_of_is_cusp_form_of_lvl_and_weight (f : ℍ → ℂ)
-  (h : is_cusp_form_of_lvl_and_weight k Γ f) : is_modular_form_of_weight_and_level k Γ f :=
+lemma is_modular_form_of_weight_and_level_of_is_cusp_form_of_weight_and_level {f : ℍ → ℂ}
+  (h : is_cusp_form_of_weight_and_level k Γ f) : is_modular_form_of_weight_and_level k Γ f :=
 { hol := h.1,
   transf := h.2,
   infinity := λ (A : SL(2,ℤ)), is_zero_at_inf_is_bound _ (h.3 A), }
@@ -294,7 +303,7 @@ lemma is_modular_form_of_weight_and_level_of_is_cusp_form_of_lvl_and_weight (f :
  /-- The zero modular form is a modular form-/
 lemma zero_mod_form : is_modular_form_of_weight_and_level k Γ 0 :=
 begin
-  apply_rules [is_modular_form_of_weight_and_level_of_is_cusp_form_of_lvl_and_weight,
+  apply_rules [is_modular_form_of_weight_and_level_of_is_cusp_form_of_weight_and_level,
     zero_cusp_form],
 end
 
@@ -320,7 +329,7 @@ localized "notation `M(`k`, `Γ`)`:= space_of_mod_forms_of_weight_and_level k Γ
 
 /-- This is the space of cuspforms of weigth `k` and level `Γ` -/
 def space_of_cusp_forms_of_weight_and_level (k : ℤ) (Γ : subgroup SL(2,ℤ)) : submodule ℂ (ℍ → ℂ) :=
-{ carrier := is_cusp_form_of_lvl_and_weight k Γ,
+{ carrier := is_cusp_form_of_weight_and_level k Γ,
   zero_mem' := by apply zero_cusp_form,
   add_mem' := by { intros a b ha hb,
     split,

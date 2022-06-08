@@ -1113,7 +1113,7 @@ instance apply_mul_semiring_action : mul_semiring_action (A₁ ≃ₐ[R] A₁) A
 
 @[simp] protected lemma smul_def (f : A₁ ≃ₐ[R] A₁) (a : A₁) : f • a = f a := rfl
 
-instance apply_has_faithful_scalar : has_faithful_scalar (A₁ ≃ₐ[R] A₁) A₁ :=
+instance apply_has_faithful_smul : has_faithful_smul (A₁ ≃ₐ[R] A₁) A₁ :=
 ⟨λ _ _, alg_equiv.ext⟩
 
 instance apply_smul_comm_class : smul_comm_class R (A₁ ≃ₐ[R] A₁) A₁ :=
@@ -1184,7 +1184,7 @@ This is a stronger version of `mul_semiring_action.to_ring_hom` and
 def to_alg_hom (m : M) : A →ₐ[R] A :=
 alg_hom.mk' (mul_semiring_action.to_ring_hom _ _ m) (smul_comm _)
 
-theorem to_alg_hom_injective [has_faithful_scalar M A] :
+theorem to_alg_hom_injective [has_faithful_smul M A] :
   function.injective (mul_semiring_action.to_alg_hom R A : M → A →ₐ[R] A) :=
 λ m₁ m₂ h, eq_of_smul_eq_smul $ λ r, alg_hom.ext_iff.1 h r
 
@@ -1202,7 +1202,7 @@ def to_alg_equiv (g : G) : A ≃ₐ[R] A :=
 { .. mul_semiring_action.to_ring_equiv _ _ g,
   .. mul_semiring_action.to_alg_hom R A g }
 
-theorem to_alg_equiv_injective [has_faithful_scalar G A] :
+theorem to_alg_equiv_injective [has_faithful_smul G A] :
   function.injective (mul_semiring_action.to_alg_equiv R A : G → A ≃ₐ[R] A) :=
 λ m₁ m₂ h, eq_of_smul_eq_smul $ λ r, alg_equiv.ext_iff.1 h r
 
@@ -1315,23 +1315,19 @@ variables {R A : Type*}
 
 open algebra
 
-section ring
-
-variables [comm_ring R]
-
 /-- If `algebra_map R A` is injective and `A` has no zero divisors,
 `R`-multiples in `A` are zero only if one of the factors is zero.
 
 Cannot be an instance because there is no `injective (algebra_map R A)` typeclass.
 -/
 lemma of_algebra_map_injective
-  [semiring A] [algebra R A] [no_zero_divisors A]
+  [comm_semiring R] [semiring A] [algebra R A] [no_zero_divisors A]
   (h : function.injective (algebra_map R A)) : no_zero_smul_divisors R A :=
 ⟨λ c x hcx, (mul_eq_zero.mp ((smul_def c x).symm.trans hcx)).imp_left
-  ((injective_iff_map_eq_zero (algebra_map R A)).mp h _)⟩
+  (map_eq_zero_iff (algebra_map R A) h).mp⟩
 
 variables (R A)
-lemma algebra_map_injective [ring A] [nontrivial A]
+lemma algebra_map_injective [comm_ring R] [ring A] [nontrivial A]
   [algebra R A] [no_zero_smul_divisors R A] :
   function.injective (algebra_map R A) :=
 suffices function.injective (λ (c : R), c • (1 : A)),
@@ -1339,12 +1335,10 @@ by { convert this, ext, rw [algebra.smul_def, mul_one] },
 smul_left_injective R one_ne_zero
 
 variables {R A}
-lemma iff_algebra_map_injective [ring A] [is_domain A] [algebra R A] :
+lemma iff_algebra_map_injective [comm_ring R] [ring A] [is_domain A] [algebra R A] :
   no_zero_smul_divisors R A ↔ function.injective (algebra_map R A) :=
 ⟨@@no_zero_smul_divisors.algebra_map_injective R A _ _ _ _,
  no_zero_smul_divisors.of_algebra_map_injective⟩
-
-end ring
 
 section char_zero_domain
 

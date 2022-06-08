@@ -217,6 +217,10 @@ begin
     apply h ⟨(hp.out).ne_one, hn⟩, }
 end
 
+lemma padic_val_nat_def' {n p : ℕ} (hn : 0 < n) (hp : p ≠ 1) :
+  ↑(padic_val_nat p n) = multiplicity p n :=
+by simp [padic_val_nat, hp, hn]
+
 @[simp] lemma padic_val_nat_self (p : ℕ) [fact p.prime] : padic_val_nat p p = 1 :=
 by simp [padic_val_nat_def (fact.out p.prime).pos]
 

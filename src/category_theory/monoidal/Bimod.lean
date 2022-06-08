@@ -1083,7 +1083,6 @@ def Mon_bicategory : bicategory (Mon_ C) :=
 { hom := λ X Y, Bimod X Y,
   id := λ X, regular X,
   comp := λ _ _ _ M N, tensor_Bimod M N,
-  hom_category := λ X Y, infer_instance,
   whisker_left := λ _ _ _ L _ _ f, tensor_hom (𝟙 L) f,
   whisker_right := λ _ _ _ _ _ f N, tensor_hom f (𝟙 N),
   associator := λ _ _ _ _ L M N, associator_Bimod L M N,

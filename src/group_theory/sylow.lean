@@ -626,7 +626,7 @@ begin
   set ps := (fintype.card G).factorization.support,
 
   -- “The” sylow group for p
-  let P : Π p, sylow p G := λ _, default,
+  let P : Π p, sylow p G := default,
 
   have hcomm : pairwise (λ (p₁ p₂ : ps), ∀ (x y : G), x ∈ P p₁ → y ∈ P p₂ → commute x y),
   { rintros ⟨p₁, hp₁⟩ ⟨p₂, hp₂⟩ hne,

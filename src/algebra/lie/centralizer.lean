@@ -32,9 +32,10 @@ consider the centralizer. This turns out to be a Lie subalgebra and is known as 
 lie algebra, centralizer, normalizer
 -/
 
-variables {R L M : Type*}
+variables {R L M M' : Type*}
 variables [comm_ring R] [lie_ring L] [lie_algebra R L]
 variables [add_comm_group M] [module R M] [lie_ring_module L M] [lie_module R L M]
+variables [add_comm_group M'] [module R M'] [lie_ring_module L M'] [lie_module R L M']
 
 namespace lie_submodule
 
@@ -60,26 +61,20 @@ begin
 end
 
 lemma centralizer_inf :
-   (N₁ ⊓ N₂).centralizer = N₁.centralizer ⊓ N₂.centralizer :=
+  (N₁ ⊓ N₂).centralizer = N₁.centralizer ⊓ N₂.centralizer :=
 by { ext, simp [← forall_and_distrib], }
 
-@[mono] lemma centalizer_mono (h : N₁ ≤ N₂) :
-  N₁.centralizer ≤ N₂.centralizer :=
+@[mono] lemma monotone_centalizer :
+  monotone (centralizer : lie_submodule R L M → lie_submodule R L M) :=
 begin
-  intros m hm,
+  intros N₁ N₂ h m hm,
   rw mem_centralizer at hm ⊢,
   exact λ x, h (hm x),
 end
 
-@[simp] lemma comap_centralizer
-  {M' : Type*} [add_comm_group M'] [module R M'] [lie_ring_module L M'] [lie_module R L M']
-  (f : M' →ₗ⁅R,L⁆ M) :
+@[simp] lemma comap_centralizer (f : M' →ₗ⁅R,L⁆ M) :
   N.centralizer.comap f = (N.comap f).centralizer :=
 by { ext, simp, }
-
-lemma centralizer_bot_eq_max_triv_submodule :
-  (⊥ : lie_submodule R L M).centralizer = lie_module.max_triv_submodule R L M :=
-rfl
 
 lemma top_lie_le_iff_le_centralizer (N' : lie_submodule R L M) :
   ⁅(⊤ : lie_ideal R L), N⁆ ≤ N' ↔ N ≤ N'.centralizer :=
@@ -88,6 +83,12 @@ by { rw lie_le_iff, tauto, }
 lemma gc_top_lie_centralizer :
   galois_connection (λ N : lie_submodule R L M, ⁅(⊤ : lie_ideal R L), N⁆) centralizer :=
 top_lie_le_iff_le_centralizer
+
+variables (R L M)
+
+lemma centralizer_bot_eq_max_triv_submodule :
+  (⊥ : lie_submodule R L M).centralizer = lie_module.max_triv_submodule R L M :=
+rfl
 
 end lie_submodule
 

@@ -76,7 +76,7 @@ theorem adj_matrix_sq_of_ne {v w : V} (hvw : v ≠ w) :
   ((G.adj_matrix R) ^ 2) v w = 1 :=
 begin
   rw [sq, ← nat.cast_one, ← hG hvw],
-  simp [common_neighbors, neighbor_finset_eq_filter, finset.filter_filter, finset.filter_inter,
+  simp [common_neighbors, neighbor_finset_eq_filter, finset.filter_filter,
     and_comm, ← neighbor_finset_def],
 end
 

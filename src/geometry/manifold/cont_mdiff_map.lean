@@ -96,7 +96,7 @@ def comp (f : C^n⟮I', M'; I'', M''⟯) (g : C^n⟮I, M; I', M'⟯) : C^n⟮I, 
   f.comp g x = f (g x) := rfl
 
 instance [inhabited M'] : inhabited C^n⟮I, M; I', M'⟯ :=
-⟨⟨default, cont_mdiff_const⟩⟩
+⟨⟨λ _, default, cont_mdiff_const⟩⟩
 
 /-- Constant map as a smooth map -/
 def const (y : M') : C^n⟮I, M; I', M'⟯ := ⟨λ x, y, cont_mdiff_const⟩

@@ -742,7 +742,7 @@ begin
   unfold is_O_with,
   apply univ_mem',
   intro x,
-  rw [mem_set_of_eq, div_mul_cancel],
+  rw [mem_set_of, div_mul_cancel],
   rwa [ne.def, norm_eq_zero]
 end
 
@@ -1424,7 +1424,7 @@ theorem is_O_with.right_le_sub_of_lt_1 {f₁ f₂ : α → E'} (h : is_O_with c 
   is_O_with (1 / (1 - c)) l f₂ (λx, f₂ x - f₁ x) :=
 is_O_with.of_bound $ mem_of_superset h.bound $ λ x hx,
 begin
-  simp only [mem_set_of_eq] at hx ⊢,
+  simp only [mem_set_of] at hx ⊢,
   rw [mul_comm, one_div, ← div_eq_mul_inv, le_div_iff, mul_sub, mul_one, mul_comm],
   { exact le_trans (sub_le_sub_left hx _) (norm_sub_norm_le _ _) },
   { exact sub_pos.2 hc }

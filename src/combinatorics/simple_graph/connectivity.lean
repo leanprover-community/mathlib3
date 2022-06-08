@@ -1127,7 +1127,7 @@ lemma set_walk_length_zero_eq_of_ne {u v : V} (h : u ≠ v) :
   {p : G.walk u v | p.length = 0} = ∅ :=
 begin
   ext p,
-  simp only [set.mem_set_of_eq, set.mem_empty_eq, iff_false],
+  simp only [set.mem_set_of, set.mem_empty_eq, iff_false],
   exact λ h', absurd (walk.eq_of_length_eq_zero h') h,
 end
 
@@ -1138,7 +1138,7 @@ begin
   ext p,
   cases p with _ _ w _ huw pwv,
   { simp [eq_comm], },
-  { simp only [nat.succ_eq_add_one, set.mem_set_of_eq, walk.length_cons, add_left_inj,
+  { simp only [nat.succ_eq_add_one, set.mem_set_of, walk.length_cons, add_left_inj,
       set.mem_Union, set.mem_image, exists_prop],
     split,
     { rintro rfl,
@@ -1173,10 +1173,10 @@ begin
   { simp only [finset_walk_length, set_walk_length_succ_eq,
       finset.coe_bUnion, finset.mem_coe, finset.mem_univ, set.Union_true],
     ext p,
-    simp only [set.mem_Union, finset.mem_coe, set.mem_image, set.mem_set_of_eq],
+    simp only [set.mem_Union, finset.mem_coe, set.mem_image, set.mem_set_of],
     congr' 2,
     ext w,
-    simp only [set.ext_iff, finset.mem_coe, set.mem_set_of_eq] at ih,
+    simp only [set.ext_iff, finset.mem_coe, set.mem_set_of] at ih,
     split_ifs with huw; simp [huw, ih], },
 end
 

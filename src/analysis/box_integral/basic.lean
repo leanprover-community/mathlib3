@@ -207,7 +207,7 @@ begin
     (l.has_basis_to_filter_Union_top _).prod_self.tendsto_iff uniformity_basis_dist_le],
   refine forall₂_congr (λ ε ε0, exists_congr $ λ r, _),
   simp only [exists_prop, prod.forall, set.mem_Union, exists_imp_distrib,
-    prod_mk_mem_set_prod_eq, and_imp, mem_inter_eq, mem_set_of_eq],
+    prod_mk_mem_set_prod_eq, and_imp, mem_inter_eq, mem_set_of],
   exact and_congr iff.rfl ⟨λ H c₁ c₂ π₁ π₂ h₁ hU₁ h₂ hU₂, H π₁ π₂ c₁ h₁ hU₁ c₂ h₂ hU₂,
     λ H π₁ π₂ c₁ h₁ hU₁ c₂ h₂ hU₂, H c₁ c₂ π₁ π₂ h₁ hU₁ h₂ hU₂⟩
 end
@@ -593,7 +593,7 @@ lemma tendsto_integral_sum_sum_integral (h : integrable I l f vol) (π₀ : prep
 begin
   refine ((l.has_basis_to_filter_Union I π₀).tendsto_iff nhds_basis_closed_ball).2 (λ ε ε0, _),
   refine ⟨h.convergence_r ε, h.convergence_r_cond ε, _⟩,
-  simp only [mem_inter_eq, set.mem_Union, mem_set_of_eq],
+  simp only [mem_inter_eq, set.mem_Union, mem_set_of],
   rintro π ⟨c, hc, hU⟩,
   exact h.dist_integral_sum_sum_integral_le_of_mem_base_set_of_Union_eq ε0 hc hU
 end
@@ -707,7 +707,7 @@ begin
   rcases exists_pos_mul_lt ε0' (B I) with ⟨ε', ε'0, hεI⟩,
   set δ : ℝ≥0 → ℝⁿ → Ioi (0 : ℝ) := λ c x, if x ∈ s then δ₁ c x (εs x) else (δ₂ c) x ε',
   refine ⟨δ, λ c, l.r_cond_of_bRiemann_eq_ff hl, _⟩,
-  simp only [set.mem_Union, mem_inter_eq, mem_set_of_eq],
+  simp only [set.mem_Union, mem_inter_eq, mem_set_of],
   rintro π ⟨c, hπδ, hπp⟩,
   /- Now we split the sum into two parts based on whether `π.tag J` belongs to `s` or not. -/
   rw [← g.sum_partition_boxes le_rfl hπp, mem_closed_ball, integral_sum,

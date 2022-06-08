@@ -443,7 +443,7 @@ open submonoid
 @[to_additive "The additive submonoid of elements `x : M` such that `f x = g x`"]
 def eq_mlocus (f g : M →* N) : submonoid M :=
 { carrier := {x | f x = g x},
-  one_mem' := by rw [set.mem_set_of_eq, f.map_one, g.map_one],
+  one_mem' := by rw [set.mem_set_of, f.map_one, g.map_one],
   mul_mem' := λ x y (hx : _ = _) (hy : _ = _), by simp [*] }
 
 /-- If two monoid homomorphisms are equal on a set, then they are equal on its submonoid closure. -/
@@ -477,15 +477,15 @@ section is_unit
 @[to_additive "The additive submonoid consisting of the additive units of an additive monoid"]
 def is_unit.submonoid (M : Type*) [monoid M] : submonoid M :=
 { carrier := set_of is_unit,
-  one_mem' := by simp only [is_unit_one, set.mem_set_of_eq],
-  mul_mem' := by { intros a b ha hb, rw set.mem_set_of_eq at *, exact is_unit.mul ha hb } }
+  one_mem' := by simp only [is_unit_one, set.mem_set_of],
+  mul_mem' := by { intros a b ha hb, rw set.mem_set_of at *, exact is_unit.mul ha hb } }
 
 @[to_additive]
 lemma is_unit.mem_submonoid_iff {M : Type*} [monoid M] (a : M) :
   a ∈ is_unit.submonoid M ↔ is_unit a :=
 begin
   change a ∈ set_of is_unit ↔ is_unit a,
-  rw set.mem_set_of_eq
+  rw set.mem_set_of
 end
 
 end is_unit

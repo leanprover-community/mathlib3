@@ -30,11 +30,11 @@ namespace filter
 /-- The cofinite filter is the filter of subsets whose complements are finite. -/
 def cofinite : filter α :=
 { sets             := {s | sᶜ.finite},
-  univ_sets        := by simp only [compl_univ, finite_empty, mem_set_of_eq],
+  univ_sets        := by simp only [compl_univ, finite_empty, mem_set_of],
   sets_of_superset := assume s t (hs : sᶜ.finite) (st: s ⊆ t),
     hs.subset $ compl_subset_compl.2 st,
   inter_sets       := assume s t (hs : sᶜ.finite) (ht : tᶜ.finite),
-    by simp only [compl_inter, finite.union, ht, hs, mem_set_of_eq] }
+    by simp only [compl_inter, finite.union, ht, hs, mem_set_of] }
 
 @[simp] lemma mem_cofinite {s : set α} : s ∈ (@cofinite α) ↔ sᶜ.finite := iff.rfl
 

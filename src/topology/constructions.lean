@@ -487,7 +487,7 @@ begin
   rcases x with ⟨x, y⟩,
   rw [mem_map, nhds_within, mem_inf_principal, mem_nhds_prod_iff] at hs,
   rcases hs with ⟨u, hu, v, hv, H⟩,
-  simp only [prod_subset_iff, mem_singleton_iff, mem_set_of_eq, mem_preimage] at H,
+  simp only [prod_subset_iff, mem_singleton_iff, mem_set_of, mem_preimage] at H,
   exact mem_of_superset hu (λ z hz, H _ hz _ (mem_of_mem_nhds hv) rfl)
 end
 
@@ -506,7 +506,7 @@ begin
   rcases x with ⟨x, y⟩,
   rw [mem_map, nhds_within, mem_inf_principal, mem_nhds_prod_iff] at hs,
   rcases hs with ⟨u, hu, v, hv, H⟩,
-  simp only [prod_subset_iff, mem_singleton_iff, mem_set_of_eq, mem_preimage] at H,
+  simp only [prod_subset_iff, mem_singleton_iff, mem_set_of, mem_preimage] at H,
   exact mem_of_superset hv (λ z hz, H _ (mem_of_mem_nhds hu) _ hz rfl)
 end
 
@@ -1052,7 +1052,7 @@ instance Pi.discrete_topology : discrete_topology (Π i, π i) :=
 singletons_open_iff_discrete.mp (λ x,
 begin
   rw show {x} = ⋂ i, {y : Π i, π i | y i = x i},
-  { ext, simp only [function.funext_iff, set.mem_singleton_iff, set.mem_Inter, set.mem_set_of_eq] },
+  { ext, simp only [function.funext_iff, set.mem_singleton_iff, set.mem_Inter, set.mem_set_of] },
   exact is_open_Inter (λ i, (continuous_apply i).is_open_preimage {x i} (is_open_discrete {x i}))
 end)
 

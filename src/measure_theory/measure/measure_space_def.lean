@@ -291,7 +291,7 @@ measure_mono_null (inter_subset_left S T) h
 def measure.ae {α} {m : measurable_space α} (μ : measure α) : filter α :=
 { sets := {s | μ sᶜ = 0},
   univ_sets := by simp,
-  inter_sets := λ s t hs ht, by simp only [compl_inter, mem_set_of_eq];
+  inter_sets := λ s t hs ht, by simp only [compl_inter, mem_set_of];
     exact measure_union_null hs ht,
   sets_of_superset := λ s t hs hst, measure_mono_null (set.compl_subset_compl.2 hst) hs }
 

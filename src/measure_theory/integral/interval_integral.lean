@@ -2121,7 +2121,7 @@ begin
     -- with `t < b` admits another point in `s` slightly to its right
     -- (this is a sort of real induction).
     apply s_closed.Icc_subset_of_forall_exists_gt
-      (by simp only [integral_same, mem_set_of_eq, sub_self]) (λ t ht v t_lt_v, _),
+      (by simp only [integral_same, mem_set_of, sub_self]) (λ t ht v t_lt_v, _),
     obtain ⟨y, g'_lt_y', y_lt_G'⟩ : ∃ (y : ℝ), (g' t : ereal) < y ∧ (y : ereal) < G' t :=
       ereal.lt_iff_exists_real_btwn.1 ((ereal.coe_le_coe_iff.2 (hφg t ht.2)).trans_lt (f_lt_G' t)),
     -- bound from below the increase of `∫ x in a..u, G' x` on the right of `t`, using the lower

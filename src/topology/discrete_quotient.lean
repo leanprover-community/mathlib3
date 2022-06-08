@@ -106,7 +106,7 @@ lemma fiber_eq (x : X) : S.proj ⁻¹' {S.proj x} = set_of (S.rel x) :=
 begin
   ext1 y,
   simp only [set.mem_preimage, set.mem_singleton_iff, quotient.eq',
-    discrete_quotient.proj.equations._eqn_1, set.mem_set_of_eq],
+    discrete_quotient.proj.equations._eqn_1, set.mem_set_of],
   exact ⟨λ h, S.symm _ _ h, λ h, S.symm _ _ h⟩,
 end
 

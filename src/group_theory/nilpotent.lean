@@ -144,7 +144,7 @@ instance (n : ℕ) : normal (upper_central_series G n) := (upper_central_series_
 begin
   ext,
   simp only [upper_central_series, upper_central_series_aux, upper_central_series_step, center,
-    set.center, mem_mk, mem_bot, set.mem_set_of_eq],
+    set.center, mem_mk, mem_bot, set.mem_set_of],
   exact forall_congr (λ y, by rw [mul_inv_eq_one, mul_inv_eq_iff_eq_mul, eq_comm]),
 end
 

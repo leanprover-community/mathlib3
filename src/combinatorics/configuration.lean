@@ -124,7 +124,7 @@ begin
   have hs₂ : (s.bUnion t)ᶜ.card ≤ 1, -- At most one line through two points of `s`
   { refine finset.card_le_one_iff.mpr (λ p₁ p₂ hp₁ hp₂, _),
     simp_rw [finset.mem_compl, finset.mem_bUnion, exists_prop, not_exists, not_and,
-      set.mem_to_finset, set.mem_set_of_eq, not_not] at hp₁ hp₂,
+      set.mem_to_finset, set.mem_set_of, not_not] at hp₁ hp₂,
     obtain ⟨l₁, l₂, hl₁, hl₂, hl₃⟩ :=
     finset.one_lt_card_iff.mp (nat.one_lt_iff_ne_zero_and_ne_one.mpr ⟨hs₀, hs₁⟩),
     exact (eq_or_eq (hp₁ l₁ hl₁) (hp₂ l₁ hl₁) (hp₁ l₂ hl₂) (hp₂ l₂ hl₂)).resolve_right hl₃ },

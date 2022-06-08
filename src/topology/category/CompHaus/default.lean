@@ -175,7 +175,7 @@ def limit_cone {J : Type v} [small_category J] (F : J ⥤ CompHaus.{max v u}) :
       apply is_closed.is_compact,
       have : {u : Π j, F.obj j | ∀ {i j : J} (f : i ⟶ j), F.map f (u i) = u j} =
         ⋂ (i j : J) (f : i ⟶ j), {u | F.map f (u i) = u j},
-      { ext1, simp only [set.mem_Inter, set.mem_set_of_eq], },
+      { ext1, simp only [set.mem_Inter, set.mem_set_of], },
       rw this,
       apply is_closed_Inter, intros i,
       apply is_closed_Inter, intros j,

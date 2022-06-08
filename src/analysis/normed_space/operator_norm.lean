@@ -400,7 +400,7 @@ lemma nnnorm_def (f : E →SL[σ₁₂] F) : ∥f∥₊ = Inf {c | ∀ x, ∥f x
 begin
   ext,
   rw [nnreal.coe_Inf, coe_nnnorm, norm_def, nnreal.coe_image],
-  simp_rw [← nnreal.coe_le_coe, nnreal.coe_mul, coe_nnnorm, mem_set_of_eq, subtype.coe_mk,
+  simp_rw [← nnreal.coe_le_coe, nnreal.coe_mul, coe_nnnorm, mem_set_of, subtype.coe_mk,
     exists_prop],
 end
 

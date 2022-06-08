@@ -709,7 +709,7 @@ begin
       -- move to a lemma?
       intros z hz,
       rw [mem_ball, dist_zero_left, dist_eq, norm_eq_abs, complex.abs_of_nonneg hx₀] at hz,
-      rw mem_set_of_eq,
+      rw mem_set_of,
       contrapose! hz,
       calc x₀ ≤ x₀ - z.re : (le_sub_self_iff _).2 hz
       ... ≤ |x₀ - z.re| : le_abs_self _

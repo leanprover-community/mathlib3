@@ -65,7 +65,7 @@ begin
   have hW_sub_S : W ⊆ rational_solutions,
   { intros s hs_in_W,
     rw rational_solutions,
-    simp only [set.mem_set_of_eq] at hs_in_W ⊢,
+    simp only [set.mem_set_of] at hs_in_W ⊢,
     rcases hs_in_W with ⟨x, y, z, h₁, t, ht_gt_zero, hx_t, hy_t, hz_t⟩,
     use [x, y, z],
 
@@ -108,7 +108,7 @@ begin
 
         simp only [set.mem_image, prod.exists],
         use [x, y, z], split,
-        simp only [set.mem_set_of_eq],
+        simp only [set.mem_set_of],
         { use [x, y, z], split,
           refl,
           { use t, split,

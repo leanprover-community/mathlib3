@@ -285,7 +285,7 @@ def lt_add_subgroup (v : valuation R Γ₀) (γ : Γ₀ˣ) : add_subgroup R :=
 { carrier   := {x | v x < γ},
   zero_mem' := by { have h := units.ne_zero γ, contrapose! h, simpa using h },
   add_mem'  := λ x y x_in y_in, lt_of_le_of_lt (v.map_add x y) (max_lt x_in y_in),
-  neg_mem'  := λ x x_in, by rwa [set.mem_set_of_eq, map_neg] }
+  neg_mem'  := λ x x_in, by rwa [set.mem_set_of, map_neg] }
 
 end group
 end basic -- end of section

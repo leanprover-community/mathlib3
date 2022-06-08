@@ -106,7 +106,7 @@ def basic_open {U : opens X} (f : X.presheaf.obj (op U)) : opens X :=
     refine ⟨_, V.2, hxV⟩,
     intros y hy,
     use (⟨y, i.le hy⟩ : U),
-    rw set.mem_set_of_eq,
+    rw set.mem_set_of,
     split,
     { convert ring_hom.is_unit_map (X.presheaf.germ ⟨y, hy⟩) hf,
       exact (X.presheaf.germ_res_apply i ⟨y, hy⟩ f).symm },

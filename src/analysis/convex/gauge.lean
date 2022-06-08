@@ -128,7 +128,7 @@ lemma gauge_le_eq (hs₁ : convex ℝ s) (hs₀ : (0 : E) ∈ s) (hs₂ : absorb
   {x | gauge s x ≤ a} = ⋂ (r : ℝ) (H : a < r), r • s :=
 begin
   ext,
-  simp_rw [set.mem_Inter, set.mem_set_of_eq],
+  simp_rw [set.mem_Inter, set.mem_set_of],
   refine ⟨λ h r hr, _, λ h, le_of_forall_pos_lt_add (λ ε hε, _)⟩,
   { have hr' := ha.trans_lt hr,
     rw mem_smul_set_iff_inv_smul_mem₀ hr'.ne',
@@ -149,7 +149,7 @@ lemma gauge_lt_eq' (absorbs : absorbent ℝ s) (a : ℝ) :
   {x | gauge s x < a} = ⋃ (r : ℝ) (H : 0 < r) (H : r < a), r • s :=
 begin
   ext,
-  simp_rw [mem_set_of_eq, mem_Union, exists_prop],
+  simp_rw [mem_set_of, mem_Union, exists_prop],
   exact ⟨exists_lt_of_gauge_lt absorbs,
     λ ⟨r, hr₀, hr₁, hx⟩, (gauge_le_of_mem hr₀.le hx).trans_lt hr₁⟩,
 end
@@ -158,7 +158,7 @@ lemma gauge_lt_eq (absorbs : absorbent ℝ s) (a : ℝ) :
   {x | gauge s x < a} = ⋃ (r ∈ set.Ioo 0 (a : ℝ)), r • s :=
 begin
   ext,
-  simp_rw [mem_set_of_eq, mem_Union, exists_prop, mem_Ioo, and_assoc],
+  simp_rw [mem_set_of, mem_Union, exists_prop, mem_Ioo, and_assoc],
   exact ⟨exists_lt_of_gauge_lt absorbs,
     λ ⟨r, hr₀, hr₁, hx⟩, (gauge_le_of_mem hr₀.le hx).trans_lt hr₁⟩,
 end

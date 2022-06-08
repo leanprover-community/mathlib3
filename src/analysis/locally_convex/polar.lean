@@ -64,7 +64,7 @@ lemma polar_mem (s : set E) (y : F) (hy : y ∈ B.polar s) :
 
 lemma polar_eq_Inter {s : set E} :
   B.polar s = ⋂ x ∈ s, {y : F | ∥B x y∥ ≤ 1} :=
-by { ext, simp only [polar_mem_iff, set.mem_Inter, set.mem_set_of_eq] }
+by { ext, simp only [polar_mem_iff, set.mem_Inter, set.mem_set_of] }
 
 /-- The map `B.polar : set E → set F` forms an order-reversing Galois connection with
 `B.flip.polar : set F → set E`. We use `order_dual.to_dual` and `order_dual.of_dual` to express

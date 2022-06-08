@@ -108,7 +108,7 @@ begin
        ∥∫ a, ∥x - x₀∥⁻¹ • (F x a - F x₀ a  - F' a (x - x₀)) ∂μ∥,
   { apply mem_of_superset (ball_mem_nhds _ ε_pos),
     intros x x_in,
-    rw [set.mem_set_of_eq, ← norm_smul_of_nonneg (nneg _), integral_smul,
+    rw [set.mem_set_of, ← norm_smul_of_nonneg (nneg _), integral_smul,
         integral_sub, integral_sub, ← continuous_linear_map.integral_apply hF'_int],
     exacts [hF_int' x x_in, hF_int, (hF_int' x x_in).sub hF_int,
             hF'_int.apply_continuous_linear_map _] },

@@ -243,7 +243,7 @@ lemma set_integral_neg_eq_set_integral_nonpos [linear_order E] [order_closed_top
   ∫ x in {x | f x < 0}, f x ∂μ = ∫ x in {x | f x ≤ 0}, f x ∂μ :=
 begin
   have h_union : {x | f x ≤ 0} = {x | f x < 0} ∪ {x | f x = 0},
-    by { ext, simp_rw [set.mem_union_eq, set.mem_set_of_eq], exact le_iff_lt_or_eq, },
+    by { ext, simp_rw [set.mem_union_eq, set.mem_set_of], exact le_iff_lt_or_eq, },
   rw h_union,
   exact (set_integral_union_eq_left hf hfi (hf.measurable_set_lt strongly_measurable_const)
     (λ x hx, hx)).symm,
@@ -270,7 +270,7 @@ begin
   refine set_integral_congr h_meas.compl (λ x hx, _),
   dsimp only,
   rw [real.norm_eq_abs, abs_eq_neg_self.mpr _],
-  rw [set.mem_compl_iff, set.nmem_set_of_eq] at hx,
+  rw [set.mem_compl_iff, set.nmem_set_of] at hx,
   linarith,
 end
 ... = ∫ x in {x | 0 ≤ f x}, f x ∂μ - ∫ x in {x | f x ≤ 0}, f x ∂μ :

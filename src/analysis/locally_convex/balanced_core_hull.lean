@@ -68,7 +68,7 @@ variables {𝕜}
 lemma balanced_core_subset (s : set E) : balanced_core 𝕜 s ⊆ s :=
 begin
   refine sUnion_subset (λ t ht, _),
-  simp only [mem_set_of_eq] at ht,
+  simp only [mem_set_of] at ht,
   exact ht.2,
 end
 
@@ -77,7 +77,7 @@ set.eq_empty_of_subset_empty (balanced_core_subset _)
 
 lemma balanced_core_mem_iff {s : set E} {x : E} : x ∈ balanced_core 𝕜 s ↔
   ∃ t : set E, balanced 𝕜 t ∧ t ⊆ s ∧ x ∈ t :=
-by simp_rw [balanced_core, mem_sUnion, mem_set_of_eq, exists_prop, and_assoc]
+by simp_rw [balanced_core, mem_sUnion, mem_set_of, exists_prop, and_assoc]
 
 lemma smul_balanced_core_subset (s : set E) {a : 𝕜} (ha : ∥a∥ ≤ 1) :
   a • balanced_core 𝕜 s ⊆ balanced_core 𝕜 s :=
@@ -90,7 +90,7 @@ begin
   rcases hy with ⟨t, ht1, ht2, hy⟩,
   rw ←hx,
   refine ⟨t, _, ht1 a ha (smul_mem_smul_set hy)⟩,
-  rw mem_set_of_eq,
+  rw mem_set_of,
   exact ⟨ht1, ht2⟩,
 end
 
@@ -103,7 +103,7 @@ lemma balanced.subset_core_of_subset {s t : set E} (hs : balanced 𝕜 s) (h : s
   s ⊆ balanced_core 𝕜 t :=
 begin
   refine subset_sUnion_of_mem _,
-  rw [mem_set_of_eq],
+  rw [mem_set_of],
   exact ⟨hs, h⟩,
 end
 

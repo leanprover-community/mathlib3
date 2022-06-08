@@ -78,7 +78,7 @@ lemma is_closed (a : A) : is_closed (σ a) :=
 lemma mem_resolvent_of_norm_lt [norm_one_class A] {a : A} {k : 𝕜} (h : ∥a∥ < ∥k∥) :
   k ∈ ρ a :=
 begin
-  rw [resolvent_set, set.mem_set_of_eq, algebra.algebra_map_eq_smul_one],
+  rw [resolvent_set, set.mem_set_of, algebra.algebra_map_eq_smul_one],
   have hk : k ≠ 0 := ne_zero_of_norm_ne_zero (by linarith [norm_nonneg a]),
   let ku := units.map (↑ₐ).to_monoid_hom (units.mk0 k hk),
   have hku : ∥-a∥ < ∥(↑ku⁻¹:A)∥⁻¹ := by simpa [ku, algebra_map_isometry] using h,

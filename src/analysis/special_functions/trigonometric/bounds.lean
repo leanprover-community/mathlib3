@@ -95,7 +95,7 @@ begin
   have tan_cts_U : continuous_on tan U,
   { apply continuous_on.mono continuous_on_tan,
     intros z hz,
-    simp only [mem_set_of_eq],
+    simp only [mem_set_of],
     exact (cos_pos hz).ne' },
 
   have tan_minus_id_cts : continuous_on (λ y : ℝ, tan y - y) U :=

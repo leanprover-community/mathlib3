@@ -214,7 +214,7 @@ ring_equiv_of_ring_equiv K L h
 begin
   ext b,
   show b ∈ h.to_equiv '' _ ↔ _,
-  erw [h.to_equiv.image_eq_preimage, set.preimage, set.mem_set_of_eq,
+  erw [h.to_equiv.image_eq_preimage, set.preimage, set.mem_set_of,
        mem_non_zero_divisors_iff_ne_zero, mem_non_zero_divisors_iff_ne_zero],
   exact h.symm.map_ne_zero_iff
 end

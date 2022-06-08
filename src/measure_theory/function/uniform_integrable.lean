@@ -144,7 +144,7 @@ lemma tendsto_indicator_ge (f : α → β) (x : α):
 begin
   refine @tendsto_at_top_of_eventually_const _ _ _ _ _ _ _ (nat.ceil (∥f x∥₊ : ℝ) + 1) (λ n hn, _),
   rw indicator_of_not_mem,
-  simp only [not_le, mem_set_of_eq],
+  simp only [not_le, mem_set_of],
   refine lt_of_le_of_lt (nat.le_ceil _) _,
   refine lt_of_lt_of_le (lt_add_one _) _,
   norm_cast,
@@ -210,7 +210,7 @@ begin
   refine ⟨M, hM_pos, (le_of_eq _).trans hfM⟩,
   refine lintegral_congr_ae _,
   filter_upwards [hf.1.ae_eq_mk] with x hx,
-  simp only [indicator_apply, coe_nnnorm, mem_set_of_eq, ennreal.coe_eq_coe, hx.symm],
+  simp only [indicator_apply, coe_nnnorm, mem_set_of, ennreal.coe_eq_coe, hx.symm],
 end
 
 lemma mem_ℒp.snorm_ess_sup_indicator_norm_ge_eq_zero
@@ -225,7 +225,7 @@ begin
     have : {x : α | (snorm_ess_sup f μ + 1).to_real ≤ ∥f x∥} ⊆
       {x : α | snorm_ess_sup f μ < ∥f x∥₊},
     { intros x hx,
-      rw [mem_set_of_eq, ← ennreal.to_real_lt_to_real hbdd.ne ennreal.coe_lt_top.ne,
+      rw [mem_set_of, ← ennreal.to_real_lt_to_real hbdd.ne ennreal.coe_lt_top.ne,
           ennreal.coe_to_real, coe_nnnorm],
       refine lt_of_lt_of_le _ hx,
       rw ennreal.to_real_lt_to_real hbdd.ne,

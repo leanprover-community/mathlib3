@@ -443,7 +443,7 @@ lemma set_of_is_preconnected_eq_of_ordered :
 begin
   refine subset.antisymm set_of_is_preconnected_subset_of_ordered _,
   simp only [subset_def, -mem_range, forall_range_iff, uncurry, or_imp_distrib, forall_and_distrib,
-    mem_union, mem_set_of_eq, insert_eq, mem_singleton_iff, forall_eq, forall_true_iff, and_true,
+    mem_union, mem_set_of, insert_eq, mem_singleton_iff, forall_eq, forall_true_iff, and_true,
     is_preconnected_Icc, is_preconnected_Ico, is_preconnected_Ioc,
     is_preconnected_Ioo, is_preconnected_Ioi, is_preconnected_Iio, is_preconnected_Ici,
     is_preconnected_Iic, is_preconnected_univ, is_preconnected_empty],

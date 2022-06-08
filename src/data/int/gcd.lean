@@ -349,8 +349,8 @@ theorem gcd_least_linear {a b : ℤ} (ha : a ≠ 0) :
 begin
   simp_rw ←gcd_dvd_iff,
   split,
-  { simpa [and_true, dvd_refl, set.mem_set_of_eq] using gcd_pos_of_non_zero_left b ha },
-  { simp only [lower_bounds, and_imp, set.mem_set_of_eq],
+  { simpa [and_true, dvd_refl, set.mem_set_of] using gcd_pos_of_non_zero_left b ha },
+  { simp only [lower_bounds, and_imp, set.mem_set_of],
     exact λ n hn_pos hn, nat.le_of_dvd hn_pos hn },
 end
 

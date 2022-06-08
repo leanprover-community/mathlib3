@@ -1838,7 +1838,7 @@ end quasi_measure_preserving
 def cofinite {m0 : measurable_space α} (μ : measure α) : filter α :=
 { sets := {s | μ sᶜ < ∞},
   univ_sets := by simp,
-  inter_sets := λ s t hs ht, by { simp only [compl_inter, mem_set_of_eq],
+  inter_sets := λ s t hs ht, by { simp only [compl_inter, mem_set_of],
     calc μ (sᶜ ∪ tᶜ) ≤ μ sᶜ + μ tᶜ : measure_union_le _ _
                 ... < ∞ : ennreal.add_lt_top.2 ⟨hs, ht⟩ },
   sets_of_superset := λ s t hs hst, lt_of_le_of_lt (measure_mono $ compl_subset_compl.2 hst) hs }

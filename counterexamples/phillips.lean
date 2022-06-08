@@ -456,7 +456,7 @@ begin
   refine ⟨λ x, {y | r x y}, λ x, _, λ y, _⟩,
   { have : univ \ {y | r x y} = {y | r y x} ∪ {x},
     { ext y,
-      simp only [true_and, mem_univ, mem_set_of_eq, mem_insert_iff, union_singleton, mem_diff],
+      simp only [true_and, mem_univ, mem_set_of, mem_insert_iff, union_singleton, mem_diff],
       rcases trichotomous_of r x y with h|rfl|h,
       { simp only [h, not_or_distrib, false_iff, not_true],
         split,
@@ -522,14 +522,14 @@ begin
     ⊆ {x | φ.to_bounded_additive_measure.discrete_support ∩ spf Hcont x ≠ ∅},
   { assume x hx,
     contrapose! hx,
-    simp only [not_not, mem_set_of_eq] at hx,
+    simp only [not_not, mem_set_of] at hx,
     simp [apply_f_eq_continuous_part Hcont φ x hx], },
   have B : {x | φ.to_bounded_additive_measure.discrete_support ∩ spf Hcont x ≠ ∅}
     ⊆ ⋃ y ∈ φ.to_bounded_additive_measure.discrete_support, {x | y ∈ spf Hcont x},
   { assume x hx,
     dsimp at hx,
     rw [← ne.def, ne_empty_iff_nonempty] at hx,
-    simp only [exists_prop, mem_Union, mem_set_of_eq],
+    simp only [exists_prop, mem_Union, mem_set_of],
     exact hx },
   apply countable.mono (subset.trans A B),
   exact countable.bUnion (countable_discrete_support _) (λ a ha, countable_spf_mem Hcont a),
@@ -542,7 +542,7 @@ begin
   apply ae_restrict_of_ae,
   refine measure_mono_null _ ((countable_ne Hcont φ).measure_zero _),
   assume x,
-  simp only [imp_self, mem_set_of_eq, mem_compl_eq],
+  simp only [imp_self, mem_set_of, mem_compl_eq],
 end
 
 lemma integrable_comp (Hcont : #ℝ = aleph 1) (φ : (discrete_copy ℝ →ᵇ ℝ) →L[ℝ] ℝ) :

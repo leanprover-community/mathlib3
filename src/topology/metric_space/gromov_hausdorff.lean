@@ -268,7 +268,7 @@ begin
     -- check that the induced "distance" is a candidate
     have Fgood : F ∈ candidates X Y,
     { simp only [candidates, forall_const, and_true, add_comm, eq_self_iff_true, dist_eq_zero,
-                 and_self, set.mem_set_of_eq],
+                 and_self, set.mem_set_of],
       repeat {split},
       { exact λ x y, calc
         F (inl x, inl y) = dist (Φ x) (Φ y) : rfl

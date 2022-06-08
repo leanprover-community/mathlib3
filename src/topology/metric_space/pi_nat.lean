@@ -385,7 +385,7 @@ begin
           (λ i, {p : (Π (n : ℕ), E n) × Π (n : ℕ), E n | p.fst i = p.snd i}),
         { simp only [mem_principal, set_of_subset_set_of, imp_self, implies_true_iff] },
         { rintros ⟨x, y⟩ hxy,
-          simp only [finset.mem_coe, finset.mem_range, Inter_coe_set, mem_Inter, mem_set_of_eq]
+          simp only [finset.mem_coe, finset.mem_range, Inter_coe_set, mem_Inter, mem_set_of]
             at hxy,
           apply lt_of_le_of_lt _ hn,
           rw [← mem_cylinder_iff_dist_le, mem_cylinder_iff],
@@ -872,7 +872,7 @@ protected def metric_space : metric_space (Π i, F i) :=
         refine mem_infi_of_mem δ (mem_infi_of_mem δpos _),
         simp only [prod.forall, imp_self, mem_principal] },
       { rintros ⟨x, y⟩ hxy,
-        simp only [mem_Inter, mem_set_of_eq, set_coe.forall, finset.mem_range, finset.mem_coe]
+        simp only [mem_Inter, mem_set_of, set_coe.forall, finset.mem_range, finset.mem_coe]
           at hxy,
         calc dist x y = ∑' (i : ι), min ((1/2)^(encode i)) (dist (x i) (y i)) : rfl
         ... = ∑ i in K, min ((1/2)^(encode i)) (dist (x i) (y i))

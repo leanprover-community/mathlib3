@@ -61,7 +61,7 @@ continuous_on_iff_continuous_restrict.1 continuous_on_tan
 lemma continuous_on_tan_Ioo : continuous_on tan (Ioo (-(π/2)) (π/2)) :=
 begin
   refine continuous_on.mono continuous_on_tan (λ x, _),
-  simp only [and_imp, mem_Ioo, mem_set_of_eq, ne.def],
+  simp only [and_imp, mem_Ioo, mem_set_of, ne.def],
   rw cos_eq_zero_iff,
   rintros hx_gt hx_lt ⟨r, hxr_eq⟩,
   cases le_or_lt 0 r,

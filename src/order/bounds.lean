@@ -605,7 +605,7 @@ by simp [bdd_above]
 -/
 
 @[simp] lemma upper_bounds_empty : upper_bounds (∅ : set α) = univ :=
-by simp only [upper_bounds, eq_univ_iff_forall, mem_set_of_eq, ball_empty_iff, forall_true_iff]
+by simp only [upper_bounds, eq_univ_iff_forall, mem_set_of, ball_empty_iff, forall_true_iff]
 
 @[simp] lemma lower_bounds_empty : lower_bounds (∅ : set α) = univ := @upper_bounds_empty αᵒᵈ _
 

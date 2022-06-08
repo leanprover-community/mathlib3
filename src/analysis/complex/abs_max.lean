@@ -195,7 +195,7 @@ begin
   cases hwU, rotate, { exact ⟨w, hwU, hle⟩ },
   have : interior U ≠ univ, from ne_top_of_le_ne_top hc.ne_univ interior_subset_closure,
   rcases exists_mem_frontier_inf_dist_compl_eq_dist hwU this with ⟨z, hzU, hzw⟩,
-  refine ⟨z, frontier_interior_subset hzU, λ x hx, (mem_set_of_eq.mp $ hle hx).trans_eq _⟩,
+  refine ⟨z, frontier_interior_subset hzU, λ x hx, (mem_set_of.mp $ hle hx).trans_eq _⟩,
   refine (norm_eq_norm_of_is_max_on_of_ball_subset hd (hle.on_subset subset_closure) _).symm,
   rw [dist_comm, ← hzw],
   exact ball_inf_dist_compl_subset.trans interior_subset

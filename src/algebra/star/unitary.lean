@@ -26,7 +26,7 @@ In a *-monoid, `unitary R` is the submonoid consisting of all the elements `U` o
 -/
 def unitary (R : Type*) [monoid R] [star_semigroup R] : submonoid R :=
 { carrier := {U | star U * U = 1 ∧ U * star U = 1},
-  one_mem' := by simp only [mul_one, and_self, set.mem_set_of_eq, star_one],
+  one_mem' := by simp only [mul_one, and_self, set.mem_set_of, star_one],
   mul_mem' := λ U B ⟨hA₁, hA₂⟩ ⟨hB₁, hB₂⟩,
   begin
     refine ⟨_, _⟩,

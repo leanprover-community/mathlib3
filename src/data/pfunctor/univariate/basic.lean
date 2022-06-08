@@ -193,7 +193,7 @@ open set
 theorem supp_eq {α : Type u} (a : P.A) (f : P.B a → α) :
   @supp.{u} P.obj _ α  (⟨a,f⟩ : P.obj α) = f '' univ :=
 begin
-  ext, simp only [supp, image_univ, mem_range, mem_set_of_eq],
+  ext, simp only [supp, image_univ, mem_range, mem_set_of],
   split; intro h,
   { apply @h (λ x, ∃ (y : P.B a), f y = x),
     rw liftp_iff', intro, refine ⟨_,rfl⟩ },

@@ -298,13 +298,13 @@ def topology_of_closure_operator
   top_mem' := λ X, top_unique ((c X).le_closure _),
   pullback_stable' := λ X Y S f hS,
   begin
-    rw set.mem_set_of_eq at hS,
-    rw [set.mem_set_of_eq, hc, hS, sieve.pullback_top],
+    rw set.mem_set_of at hS,
+    rw [set.mem_set_of, hc, hS, sieve.pullback_top],
   end,
   transitive' := λ X S hS R hR,
   begin
-    rw set.mem_set_of_eq at hS,
-    rw [set.mem_set_of_eq, ←(c X).idempotent, eq_top_iff, ←hS],
+    rw set.mem_set_of at hS,
+    rw [set.mem_set_of, ←(c X).idempotent, eq_top_iff, ←hS],
     apply (c X).monotone (λ Y f hf, _),
     rw [sieve.pullback_eq_top_iff_mem, ←hc],
     apply hR hf,

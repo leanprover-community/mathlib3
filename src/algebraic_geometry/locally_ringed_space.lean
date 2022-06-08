@@ -254,7 +254,7 @@ end
 begin
   ext,
   simp only [set.mem_empty_eq, topological_space.opens.empty_eq, topological_space.opens.mem_coe,
-    opens.coe_bot, iff_false, RingedSpace.basic_open, is_unit_zero_iff, set.mem_set_of_eq,
+    opens.coe_bot, iff_false, RingedSpace.basic_open, is_unit_zero_iff, set.mem_set_of,
     map_zero],
   rintro ⟨⟨y, _⟩, h, e⟩,
   exact @zero_ne_one (X.presheaf.stalk y) _ _ h,

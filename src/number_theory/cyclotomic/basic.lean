@@ -193,7 +193,7 @@ begin
       set.ext (λ x, ⟨λ h, by simpa using h, λ h, by simpa using h⟩),
     rw [this],
     exact (nth_roots ↑n 1).to_finset.finite_to_set },
-  { simp only [mem_singleton_iff, exists_eq_left, mem_set_of_eq] at hb,
+  { simp only [mem_singleton_iff, exists_eq_left, mem_set_of] at hb,
     refine ⟨X ^ (n : ℕ) - 1, ⟨monic_X_pow_sub_C _ n.pos.ne.symm, by simp [hb]⟩⟩ }
 end
 
@@ -253,10 +253,10 @@ begin
   refine le_antisymm (adjoin_mono (λ x hx, _)) (adjoin_le (λ x hx, _)),
   { simp only [multiset.mem_to_finset, finset.mem_coe,
                map_cyclotomic, mem_roots (cyclotomic_ne_zero n B)] at hx,
-    simp only [mem_singleton_iff, exists_eq_left, mem_set_of_eq],
+    simp only [mem_singleton_iff, exists_eq_left, mem_set_of],
     rw is_root_of_unity_iff n.pos,
     exact ⟨n, nat.mem_divisors_self n n.ne_zero, hx⟩ },
-  { simp only [mem_singleton_iff, exists_eq_left, mem_set_of_eq] at hx,
+  { simp only [mem_singleton_iff, exists_eq_left, mem_set_of] at hx,
     obtain ⟨i, hin, rfl⟩ := hζ.eq_pow_of_pow_eq_one hx n.pos,
     refine set_like.mem_coe.2 (subalgebra.pow_mem _ (subset_adjoin _) _),
     rwa [finset.mem_coe, multiset.mem_to_finset, mem_roots $ cyclotomic_ne_zero n B],
@@ -275,7 +275,7 @@ begin
     refine ⟨n, nat.mem_divisors_self n n.ne_zero, _⟩,
     rwa [finset.mem_coe, multiset.mem_to_finset,
          map_cyclotomic, mem_roots $ cyclotomic_ne_zero n B] at hx },
-  { simp only [mem_singleton_iff, exists_eq_left, mem_set_of_eq] at hx,
+  { simp only [mem_singleton_iff, exists_eq_left, mem_set_of] at hx,
     simpa only [hx, multiset.mem_to_finset, finset.mem_coe, map_cyclotomic,
                 mem_roots (cyclotomic_ne_zero n B)] using hζ.is_root_cyclotomic n.pos }
 end
@@ -306,7 +306,7 @@ lemma _root_.is_primitive_root.adjoin_is_cyclotomic_extension [is_domain B] {ζ 
     refine adjoin_induction' (λ b hb, _) (λ a, _) (λ b₁ b₂ hb₁ hb₂, _) (λ b₁ b₂ hb₁ hb₂, _) x,
     { rw [set.mem_singleton_iff] at hb,
       refine subset_adjoin _,
-      simp only [mem_singleton_iff, exists_eq_left, mem_set_of_eq, hb],
+      simp only [mem_singleton_iff, exists_eq_left, mem_set_of, hb],
       rw [← subalgebra.coe_eq_one, subalgebra.coe_pow, set_like.coe_mk],
       exact ((is_primitive_root.iff_def ζ n).1 h).1 },
     { exact subalgebra.algebra_map_mem _ _ },
@@ -356,7 +356,7 @@ lemma splitting_field_X_pow_sub_one : is_splitting_field K L (X ^ (n : ℕ) - 1)
     congr,
     refine set.ext (λ x, _),
     simp only [polynomial.map_pow, mem_singleton_iff, multiset.mem_to_finset, exists_eq_left,
-      mem_set_of_eq, polynomial.map_X, polynomial.map_one, finset.mem_coe, polynomial.map_sub],
+      mem_set_of, polynomial.map_X, polynomial.map_one, finset.mem_coe, polynomial.map_sub],
     rwa [← ring_hom.map_one C, mem_roots (@X_pow_sub_C_ne_zero _ _ (field.to_nontrivial L) _
       n.pos _), is_root.def, eval_sub, eval_pow, eval_C, eval_X, sub_eq_zero]
   end }
@@ -503,7 +503,7 @@ instance is_cyclotomic_extension [ne_zero ((n : ℕ) : A)] :
   begin
     refine adjoin_induction' (λ y hy, _) (λ a, _) (λ y z hy hz, _) (λ y z hy hz, _) x,
     { refine subset_adjoin _,
-      simp only [mem_singleton_iff, exists_eq_left, mem_set_of_eq],
+      simp only [mem_singleton_iff, exists_eq_left, mem_set_of],
       rwa [← subalgebra.coe_eq_one, subalgebra.coe_pow, subtype.coe_mk] },
     { exact subalgebra.algebra_map_mem _ a },
     { exact subalgebra.add_mem _ hy hz },

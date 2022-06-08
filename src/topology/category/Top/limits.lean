@@ -434,7 +434,7 @@ begin
   ext x,
   split,
   { rintros ⟨y, rfl⟩,
-    simp only [←comp_apply, set.mem_set_of_eq],
+    simp only [←comp_apply, set.mem_set_of],
     congr' 1,
     simp [pullback.condition] },
   { intro h,
@@ -903,7 +903,7 @@ begin
   have : partial_sections F H =
     ⋂ {f : finite_diagram_arrow G} (hf : f ∈ H), { u | F.map f.2.2.2.2 (u f.1) = u f.2.1 },
   { ext1,
-    simp only [set.mem_Inter, set.mem_set_of_eq],
+    simp only [set.mem_Inter, set.mem_set_of],
     refl, },
   rw this,
   apply is_closed_bInter,

@@ -211,7 +211,7 @@ begin
   have N : 0 < n + 2, by dec_trivial,
   refine sum_congr rfl (λ c hc, p.congr rfl (λ j hj1 hj2, _)),
   have : ∀ k, c.blocks_fun k < n + 2,
-  { simp only [set.mem_to_finset, set.mem_set_of_eq] at hc,
+  { simp only [set.mem_to_finset, set.mem_set_of] at hc,
     simp [← composition.ne_single_iff N, composition.eq_single_iff_length, ne_of_gt hc] },
   simp [apply_composition, this],
 end
@@ -370,7 +370,7 @@ begin
   refine sum_le_sum_of_subset_of_nonneg _ (λ x hx1 hx2,
     prod_nonneg (λ j hj, mul_nonneg hr (mul_nonneg (pow_nonneg ha _) (hp _)))),
   rintros ⟨k, c⟩ hd,
-  simp only [set.mem_to_finset, mem_Ico, mem_sigma, set.mem_set_of_eq] at hd,
+  simp only [set.mem_to_finset, mem_Ico, mem_sigma, set.mem_set_of] at hd,
   simp only [mem_comp_partial_sum_target_iff],
   refine ⟨hd.2, c.length_le.trans_lt hd.1.2, λ j, _⟩,
   have : c ≠ composition.single k (zero_lt_two.trans_le hd.1.1),

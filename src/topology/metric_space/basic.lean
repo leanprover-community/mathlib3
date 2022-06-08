@@ -1273,7 +1273,7 @@ begin
       (λ m, ∀ x : γ, x ∈ s → dist (F m.fst x) (F m.snd x) < ε),
     specialize h u hu,
     rw prod_at_top_at_top_eq at h,
-    exact h.mono (λ n h x hx, set.mem_set_of_eq.mp (h x hx)), },
+    exact h.mono (λ n h x hx, set.mem_set_of.mp (h x hx)), },
   { intros h u hu,
     rcases (metric.mem_uniformity_dist.mp hu) with ⟨ε, hε, hab⟩,
     rcases h ε hε with ⟨N, hN⟩,

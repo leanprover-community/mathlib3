@@ -210,7 +210,7 @@ begin
   rcases p.trichotomy with rfl | rfl | hp,
   { apply mem_ℓp_zero,
     refine (hf.finite_dsupport.union hg.finite_dsupport).subset (λ i, _),
-    simp only [pi.add_apply, ne.def, set.mem_union_eq, set.mem_set_of_eq],
+    simp only [pi.add_apply, ne.def, set.mem_union_eq, set.mem_set_of],
     contrapose!,
     rintros ⟨hf', hg'⟩,
     simp [hf', hg'] },
@@ -640,7 +640,7 @@ protected def single (p) (i : α) (a : E i) : lp E p :=
     refine (set.finite_singleton i).subset _,
     intros j,
     simp only [forall_exists_index, set.mem_singleton_iff, ne.def, dite_eq_right_iff,
-      set.mem_set_of_eq, not_forall],
+      set.mem_set_of, not_forall],
     rintros rfl,
     simp,
   end ⟩

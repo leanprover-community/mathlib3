@@ -195,7 +195,7 @@ lemma polar_ball_subset_closed_ball_div {c : 𝕜} (hc : 1 < ∥c∥) {r : ℝ} 
 begin
   intros x' hx',
   rw mem_polar_iff at hx',
-  simp only [polar, mem_set_of_eq, mem_closed_ball_zero_iff, mem_ball_zero_iff] at *,
+  simp only [polar, mem_set_of, mem_closed_ball_zero_iff, mem_ball_zero_iff] at *,
   have hcr : 0 < ∥c∥ / r, from div_pos (zero_lt_one.trans hc) hr,
   refine continuous_linear_map.op_norm_le_of_shell hr hcr.le hc (λ x h₁ h₂, _),
   calc ∥x' x∥ ≤ 1 : hx' _ h₂

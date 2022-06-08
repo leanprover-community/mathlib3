@@ -47,7 +47,7 @@ that this holds for _all_ `m' ∈ N`. -/
         { rw ←scaling_eq_self at hm, exact hm },
         { rintros m'' ⟨mem'', eq'' : _ = m⟩ m' ⟨mem', eq' : _ = m⟩,
           refine ⟨N_mul _ mem'' _ mem', _⟩,
-          rw [set.mem_set_of_eq, mul_assoc, eq', eq''], }, },
+          rw [set.mem_set_of, mul_assoc, eq', eq''], }, },
       apply set.inter_subset_left, },
 /- Thus `m * m = m` as desired. -/
     rw ←absorbing_eq_self at hm,

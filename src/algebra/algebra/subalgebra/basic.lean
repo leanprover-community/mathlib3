@@ -457,11 +457,11 @@ f.cod_restrict f.range f.mem_range_self
 def equalizer (ϕ ψ : A →ₐ[R] B) : subalgebra R A :=
 { carrier := {a | ϕ a = ψ a},
   add_mem' := λ x y (hx : ϕ x = ψ x) (hy : ϕ y = ψ y),
-    by rw [set.mem_set_of_eq, ϕ.map_add, ψ.map_add, hx, hy],
+    by rw [set.mem_set_of, ϕ.map_add, ψ.map_add, hx, hy],
   mul_mem' := λ x y (hx : ϕ x = ψ x) (hy : ϕ y = ψ y),
-    by rw [set.mem_set_of_eq, ϕ.map_mul, ψ.map_mul, hx, hy],
+    by rw [set.mem_set_of, ϕ.map_mul, ψ.map_mul, hx, hy],
   algebra_map_mem' := λ x,
-    by rw [set.mem_set_of_eq, alg_hom.commutes, alg_hom.commutes] }
+    by rw [set.mem_set_of, alg_hom.commutes, alg_hom.commutes] }
 
 @[simp] lemma mem_equalizer (ϕ ψ : A →ₐ[R] B) (x : A) :
   x ∈ ϕ.equalizer ψ ↔ ϕ x = ψ x := iff.rfl

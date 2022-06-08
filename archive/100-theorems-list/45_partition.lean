@@ -274,7 +274,7 @@ begin
       split_ifs,
       { suffices :
         ((nat.antidiagonal n.succ).filter (λ (a : ℕ × ℕ), i + 1 ∣ a.fst ∧ a.snd = i + 1)).card = 1,
-        { simp only [set.mem_set_of_eq], rw this, norm_cast },
+        { simp only [set.mem_set_of], rw this, norm_cast },
         rw card_eq_one,
         cases h with p hp,
         refine ⟨((i+1) * (p-1), i+1), _⟩,
@@ -291,7 +291,7 @@ begin
           simp [nat.succ_eq_add_one, mul_add] } },
       { suffices :
         (filter (λ (a : ℕ × ℕ), i + 1 ∣ a.fst ∧ a.snd = i + 1) (nat.antidiagonal n.succ)).card = 0,
-        { simp only [set.mem_set_of_eq], rw this, norm_cast },
+        { simp only [set.mem_set_of], rw this, norm_cast },
         rw card_eq_zero,
         apply eq_empty_of_forall_not_mem,
         simp only [prod.forall, mem_filter, not_and, nat.mem_antidiagonal],

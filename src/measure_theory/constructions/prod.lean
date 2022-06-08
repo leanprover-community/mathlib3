@@ -278,7 +278,7 @@ begin
         apply eventually_of_forall, intro y,
         simp_rw [s', simple_func.coe_comp], exact simple_func.norm_approx_on_zero_le _ _ (x, y) n },
       simp only [f', hfx, simple_func.integral_eq_integral _ (this _), indicator_of_mem,
-        mem_set_of_eq],
+        mem_set_of],
       refine tendsto_integral_of_dominated_convergence (λ y, ∥f x y∥ + ∥f x y∥)
         (λ n, (s' n x).ae_strongly_measurable) (hfx.norm.add hfx.norm) _ _,
       { exact λ n, eventually_of_forall (λ y, simple_func.norm_approx_on_zero_le _ _ (x, y) n) },
@@ -478,7 +478,7 @@ begin
   refine (prod_eq_generate_from generate_from_measurable_set generate_from_prod
     is_pi_system_measurable_set is_pi_system_prod μ.to_finite_spanning_sets_in
     (ν.to_finite_spanning_sets_in.prod τ.to_finite_spanning_sets_in) _).symm,
-  rintro s hs _ ⟨t, u, ht, hu, rfl⟩, rw [mem_set_of_eq] at hs ht hu,
+  rintro s hs _ ⟨t, u, ht, hu, rfl⟩, rw [mem_set_of] at hs ht hu,
   simp_rw [map_apply (measurable_equiv.measurable _) (hs.prod (ht.prod hu)),
     measurable_equiv.prod_assoc, measurable_equiv.coe_mk, equiv.prod_assoc_preimage,
     prod_prod, mul_assoc]

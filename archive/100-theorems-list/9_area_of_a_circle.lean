@@ -58,7 +58,7 @@ lemma disc_eq_region_between :
   disc r = region_between (λ x, -sqrt (r^2 - x^2)) (λ x, sqrt (r^2 - x^2)) (Ioc (-r) r) :=
 begin
   ext p,
-  simp only [disc, region_between, mem_set_of_eq, mem_Ioo, mem_Ioc, pi.neg_apply],
+  simp only [disc, region_between, mem_set_of, mem_Ioo, mem_Ioc, pi.neg_apply],
   split;
   intro h,
   { cases abs_lt_of_sq_lt_sq' (lt_of_add_lt_of_nonneg_left h (sq_nonneg p.2)) r.2,

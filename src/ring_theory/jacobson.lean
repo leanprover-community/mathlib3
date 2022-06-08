@@ -62,7 +62,7 @@ begin
   refine λ h I hI, le_antisymm (λ x hx, _) (λ x hx, mem_Inf.mpr (λ _ hJ, hJ.left hx)),
   rw [← hI, radical_eq_Inf I, mem_Inf],
   intros P hP,
-  rw set.mem_set_of_eq at hP,
+  rw set.mem_set_of at hP,
   erw mem_Inf at hx,
   erw [← h P hP.right, mem_Inf],
   exact λ J hJ, hx ⟨le_trans hP.left hJ.left, hJ.right⟩
@@ -130,7 +130,7 @@ begin
     rw [eq_bot_iff, ← jacobson_eq_iff_jacobson_quotient_eq_bot.1 ((is_jacobson_iff_prime_eq.1 hR)
       (comap (algebra_map R S) P) (comap_is_prime _ _)), comap_jacobson],
     refine Inf_le_Inf (λ J hJ, _),
-    simp only [true_and, set.mem_image, bot_le, set.mem_set_of_eq],
+    simp only [true_and, set.mem_image, bot_le, set.mem_set_of],
     haveI : J.is_maximal, { simpa using hJ },
     exact exists_ideal_over_maximal_of_is_integral (is_integral_quotient_of_is_integral hRS) J
       (comap_bot_le_of_injective _ algebra_map_quotient_injective) }
@@ -306,7 +306,7 @@ begin
     { refine hy.symm ▸ (φ.is_integral_elem_localization_at_leading_coeff ((quotient.mk P) X)
         (pX.map (quotient.mk P')) _ M ⟨1, pow_one _⟩),
       rwa [eval₂_map, hφ', ← hom_eval₂, quotient.eq_zero_iff_mem, eval₂_C_X] },
-    { rw [set.mem_set_of_eq, degree_le_zero_iff] at hy,
+    { rw [set.mem_set_of, degree_le_zero_iff] at hy,
       refine hy.symm ▸ ⟨X - C (algebra_map _ _ ((quotient.mk P') (p.coeff 0))), monic_X_sub_C _, _⟩,
       simp only [eval₂_sub, eval₂_C, eval₂_X],
       rw [sub_eq_zero, ← φ'.comp_apply, is_localization.map_comp],

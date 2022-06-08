@@ -129,7 +129,7 @@ begin
     have h : ∀ (n : ℕ), ∃ (n' : ℕ), n < n' ∧ r (f (n + m)) (f (n' + m)),
     { intro n,
       have h := hm _ (le_add_of_nonneg_left n.zero_le),
-      simp only [exists_prop, not_not, set.mem_set_of_eq, not_forall] at h,
+      simp only [exists_prop, not_not, set.mem_set_of, not_forall] at h,
       obtain ⟨n', hn1, hn2⟩ := h,
       obtain ⟨x, hpos, rfl⟩ := exists_pos_add_of_lt hn1,
       refine ⟨n + x, add_lt_add_left hpos n, _⟩,

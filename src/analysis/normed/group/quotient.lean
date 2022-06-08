@@ -119,7 +119,7 @@ begin
   split,
   { rintros ⟨m, rfl : mk' S m = x, rfl⟩,
     rw ← norm_neg,
-    exact ⟨-m, by simp only [(mk' S).map_neg, set.mem_set_of_eq], rfl⟩ },
+    exact ⟨-m, by simp only [(mk' S).map_neg, set.mem_set_of], rfl⟩ },
   { rintros ⟨m, hm : mk' S m = -x, rfl⟩,
     exact ⟨-m, by simpa [eq_comm] using eq_neg_iff_eq_neg.mp ((mk'_apply _ _).symm.trans hm)⟩ }
 end
@@ -136,7 +136,7 @@ begin
   { rintros _ ⟨n, h, rfl⟩,
     apply norm_nonneg },
   { apply set.mem_image_of_mem,
-    rw set.mem_set_of_eq }
+    rw set.mem_set_of }
 end
 
 /-- The norm of the projection is smaller or equal to the norm of the original element. -/

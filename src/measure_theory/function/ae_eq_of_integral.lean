@@ -151,7 +151,7 @@ begin
     H.exists_seq_strict_mono_tendsto_of_not_mem (lt_irrefl c) h,
   have h_Union : {x | f x < c} = ⋃ (n : ℕ), {x | f x ≤ u n},
   { ext1 x,
-    simp_rw [set.mem_Union, set.mem_set_of_eq],
+    simp_rw [set.mem_Union, set.mem_set_of],
     split; intro h,
     { obtain ⟨n, hn⟩ := ((tendsto_order.1 u_lim).1 _ h).exists, exact ⟨n, hn.le⟩ },
     { obtain ⟨n, hn⟩ := h, exact hn.trans_lt (u_lt _), }, },

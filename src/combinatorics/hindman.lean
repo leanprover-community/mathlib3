@@ -121,7 +121,7 @@ begin
   { intros U hU V hV,
     rw set.mem_Inter at *,
     intro n,
-    rw [set.mem_set_of_eq, ultrafilter.eventually_mul],
+    rw [set.mem_set_of, ultrafilter.eventually_mul],
     apply eventually.mono (hU n),
     intros m hm,
     obtain ⟨n', hn⟩ := FP.mul hm,

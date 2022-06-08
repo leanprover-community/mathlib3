@@ -146,7 +146,7 @@ begin
     convert adjoin_mono _ y.2,
     { simp only [eq_iff_true_of_subsingleton] },
     { simp only [eq_iff_true_of_subsingleton] },
-    { simp only [pnat.pow_coe, set.singleton_subset_iff, set.mem_set_of_eq],
+    { simp only [pnat.pow_coe, set.singleton_subset_iff, set.mem_set_of],
       exact hζ.pow_eq_one } },
   { haveI : is_cyclotomic_extension {p ^ k} ℤ (cyclotomic_ring (p ^ k) ℤ ℚ),
     { convert cyclotomic_ring.is_cyclotomic_extension _ ℤ ℚ,

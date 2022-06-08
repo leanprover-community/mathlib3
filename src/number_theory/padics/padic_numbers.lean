@@ -971,7 +971,7 @@ begin
   refine ⟨c.lim, λ s h, _⟩,
   rcases metric.mem_nhds_iff.1 h with ⟨ε, ε0, hε⟩,
   have := c.equiv_lim ε ε0,
-  simp only [mem_map, mem_at_top_sets, mem_set_of_eq],
+  simp only [mem_map, mem_at_top_sets, mem_set_of],
   exact this.imp (λ N hN n hn, hε (hN n hn))
 end
 

@@ -167,8 +167,8 @@ begin
         { simp only [finset.coe_insert, set.mem_insert_iff, finset.mem_coe, to_finset_cons,
                      mem_to_finset] at hm ⊢,
           simp [hm] } },
-      { simp only [not_not, set.mem_set_of_eq] at h,
-        simp only [h, set.mem_set_of_eq] at hx,
+      { simp only [not_not, set.mem_set_of] at h,
+        simp only [h, set.mem_set_of] at hx,
         rw swap_apply_ne_self_iff at hx,
         rcases hx with ⟨hyz, rfl|rfl⟩;
         simp } } }
@@ -234,7 +234,7 @@ begin
   { intros x hx,
     simp only [finset.mem_coe, mem_to_finset] at hx,
     obtain ⟨n, hn, rfl⟩ := nth_le_of_mem hx,
-    rw [set.mem_set_of_eq, form_perm_apply_nth_le _ h],
+    rw [set.mem_set_of, form_perm_apply_nth_le _ h],
     intro H,
     rw nodup_iff_nth_le_inj at h,
     specialize h _ _ _ _ H,
@@ -338,7 +338,7 @@ begin
   rw equiv.perm.ext_iff at h,
   have hx : x' ∈ (x :: y :: l),
   { have : x' ∈ {z | form_perm (x :: y :: l) z ≠ z},
-    { rw [set.mem_set_of_eq, h x', form_perm_apply_head _ _ _ hd'],
+    { rw [set.mem_set_of, h x', form_perm_apply_head _ _ _ hd'],
       simp only [mem_cons_iff, nodup_cons] at hd',
       push_neg at hd',
       exact hd'.left.left.symm },

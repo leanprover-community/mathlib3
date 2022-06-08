@@ -951,7 +951,7 @@ variables [Π i, topological_space (π i)]
 lemma is_compact_pi_infinite {s : Π i, set (π i)} :
   (∀ i, is_compact (s i)) → is_compact {x : Π i, π i | ∀ i, x i ∈ s i} :=
 begin
-  simp only [is_compact_iff_ultrafilter_le_nhds, nhds_pi, filter.pi, exists_prop, mem_set_of_eq,
+  simp only [is_compact_iff_ultrafilter_le_nhds, nhds_pi, filter.pi, exists_prop, mem_set_of,
     le_infi_iff, le_principal_iff],
   intros h f hfs,
   have : ∀ i:ι, ∃ a, a ∈ s i ∧ tendsto (λx:Πi:ι, π i, x i) f (𝓝 a),
@@ -1104,7 +1104,7 @@ begin
       { convert_to (⋂(U : {U // U ∈ c}), U.1ᶜ).nonempty,
         { ext,
           simp only [not_exists, exists_prop, not_and, set.mem_Inter, subtype.forall,
-            set.mem_set_of_eq, set.mem_compl_eq, subtype.val_eq_coe],
+            set.mem_set_of, set.mem_compl_eq, subtype.val_eq_coe],
           refl, },
         apply is_compact.nonempty_Inter_of_directed_nonempty_compact_closed,
         { rintros ⟨U, hU⟩ ⟨U', hU'⟩,

@@ -343,7 +343,7 @@ by rwa [eq', mul_inv_rev, inv_mul_cancel_right, s.inv_mem_iff]
 lemma eq_class_eq_left_coset (s : subgroup α) (g : α) :
   {x : α | (x : α ⧸ s) = g} = left_coset g s :=
 set.ext $ λ z,
-  by rw [mem_left_coset_iff, set.mem_set_of_eq, eq_comm, quotient_group.eq, set_like.mem_coe]
+  by rw [mem_left_coset_iff, set.mem_set_of, eq_comm, quotient_group.eq, set_like.mem_coe]
 
 @[to_additive]
 lemma preimage_image_coe (N : subgroup α) (s : set α) :

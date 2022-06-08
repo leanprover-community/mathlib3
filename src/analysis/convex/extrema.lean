@@ -30,7 +30,7 @@ lemma is_min_on.of_is_local_min_on_of_convex_on_Icc {f : ℝ → β} {a b : ℝ}
   (h_local_min : is_local_min_on f (Icc a b) a) (h_conv : convex_on ℝ (Icc a b) f) :
   is_min_on f (Icc a b) a :=
 begin
-  rintro c hc, dsimp only [mem_set_of_eq],
+  rintro c hc, dsimp only [mem_set_of],
   rw [is_local_min_on, nhds_within_Icc_eq_nhds_within_Ici a_lt_b] at h_local_min,
   rcases hc.1.eq_or_lt with rfl|a_lt_c, { exact le_rfl },
   have H₁ : ∀ᶠ y in 𝓝[>] a, f a ≤ f y,
@@ -67,7 +67,7 @@ begin
   have fg_min_on : is_min_on (f ∘ g) (Icc 0 1 : set ℝ) 0,
   { refine is_min_on.of_is_local_min_on_of_convex_on_Icc one_pos fg_local_min_on _,
     exact (h_conv.comp_affine_map g).subset h_maps (convex_Icc 0 1) },
-  simpa only [hg0, hg1, comp_app, mem_set_of_eq] using fg_min_on (right_mem_Icc.2 zero_le_one)
+  simpa only [hg0, hg1, comp_app, mem_set_of] using fg_min_on (right_mem_Icc.2 zero_le_one)
 end
 
 /-- A local maximum of a concave function is a global maximum, restricted to a set `s`. -/

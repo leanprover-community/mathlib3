@@ -140,7 +140,7 @@ by { ext, simp [mem_decode₂, eq_comm] }
 
 theorem decode₂_ne_none_iff [encodable α] {n : ℕ} :
   decode₂ α n ≠ none ↔ n ∈ set.range (encode : α → ℕ) :=
-by simp_rw [set.range, set.mem_set_of_eq, ne.def, option.eq_none_iff_forall_not_mem,
+by simp_rw [set.range, set.mem_set_of, ne.def, option.eq_none_iff_forall_not_mem,
   encodable.mem_decode₂, not_forall, not_not]
 
 theorem decode₂_is_partial_inv [encodable α] : is_partial_inv encode (decode₂ α) :=

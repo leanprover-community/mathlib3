@@ -144,7 +144,7 @@ begin
   { apply quot.sound, simp [foo.R, qpf.abs, prod.qpf._match_1] },
   { simp! only [set.range, set.ext_iff],
     simp only [not_exists, false_iff, bool.forall_bool, eq_self_iff_true, exists_false, not_true,
-      and_self, set.mem_set_of_eq, iff_false],
+      and_self, set.mem_set_of, iff_false],
     exact λ h, h () }
 end
 

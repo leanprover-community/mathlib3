@@ -75,7 +75,7 @@ begin
   { refine zorn_subset _ (λ U UT hU, _),
     refine ⟨⋃₀ U, _, λ s hs, subset_sUnion_of_mem hs⟩,
     simp only [set.sUnion_subset_iff, and_imp, exists_prop, forall_exists_index,
-                set.mem_set_of_eq],
+                set.mem_set_of],
     refine ⟨λ u hu, (UT hu).1, (pairwise_disjoint_sUnion hU.directed_on).2 (λ u hu, (UT hu).2.1),
       λ a hat b u uU hbu hab, _⟩,
     obtain ⟨c, cu, ac, hc⟩ : ∃ (c : set α) (H : c ∈ u), (a ∩ c).nonempty ∧ δ a ≤ τ * δ c :=

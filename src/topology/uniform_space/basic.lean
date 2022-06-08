@@ -767,7 +767,7 @@ lemma closure_eq_uniformity (s : set $ α × α) :
 begin
   ext ⟨x, y⟩,
   simp_rw [mem_closure_iff_nhds_basis (uniform_space.has_basis_nhds_prod x y),
-           mem_Inter, mem_set_of_eq],
+           mem_Inter, mem_set_of],
   refine forall₂_congr (λ V, _),
   rintros ⟨V_in, V_symm⟩,
   simp_rw [mem_comp_comp V_symm, inter_comm, exists_prop],

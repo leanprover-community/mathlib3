@@ -146,7 +146,7 @@ end
 
 lemma mem_vanishing_ideal (t : set (prime_spectrum R)) (f : R) :
   f ∈ vanishing_ideal t ↔ ∀ x : prime_spectrum R, x ∈ t → f ∈ x.as_ideal :=
-by rw [← set_like.mem_coe, coe_vanishing_ideal, set.mem_set_of_eq]
+by rw [← set_like.mem_coe, coe_vanishing_ideal, set.mem_set_of]
 
 @[simp] lemma vanishing_ideal_singleton (x : prime_spectrum R) :
   vanishing_ideal ({x} : set (prime_spectrum R)) = x.as_ideal :=
@@ -689,7 +689,7 @@ lemma localization_away_comap_range (S : Type v) [comm_ring S] [algebra R S] (r 
 begin
   rw localization_comap_range S (submonoid.powers r),
   ext,
-  simp only [mem_zero_locus, basic_open_eq_zero_locus_compl, set_like.mem_coe, set.mem_set_of_eq,
+  simp only [mem_zero_locus, basic_open_eq_zero_locus_compl, set_like.mem_coe, set.mem_set_of,
     set.singleton_subset_iff, set.mem_compl_eq],
   split,
   { intros h₁ h₂,

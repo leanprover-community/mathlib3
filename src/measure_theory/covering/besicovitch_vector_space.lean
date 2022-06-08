@@ -194,7 +194,7 @@ begin
   { refine ⟨5 ^ (finrank ℝ E), _⟩,
     rintros _ ⟨s, ⟨rfl, h⟩⟩,
     exact besicovitch.card_le_of_separated s h.1 h.2 },
-  { simp only [mem_set_of_eq, ne.def],
+  { simp only [mem_set_of, ne.def],
     exact ⟨s, rfl, hs, h's⟩ }
 end
 

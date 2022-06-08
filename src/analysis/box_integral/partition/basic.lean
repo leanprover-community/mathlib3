@@ -139,7 +139,7 @@ begin
   { choose y hy₁ hy₂,
     exact π.eq_of_mem_of_mem h₁ h₂ hy₁ hy₂ },
   intro i,
-  simp only [set.ext_iff, mem_set_of_eq] at H,
+  simp only [set.ext_iff, mem_set_of] at H,
   cases (hx₁.1 i).eq_or_lt with hi₁ hi₁,
   { have hi₂ : J₂.lower i = x i, from (H _).1 hi₁,
     have H₁ : x i < J₁.upper i, by simpa only [hi₁] using J₁.lower_lt_upper i,

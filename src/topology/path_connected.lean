@@ -841,7 +841,7 @@ lemma is_path_connected.exists_path_through_family'
 begin
   rcases h.exists_path_through_family p hp with ⟨γ, hγ⟩,
   rcases hγ with ⟨h₁, h₂⟩,
-  simp only [range, mem_set_of_eq] at h₂,
+  simp only [range, mem_set_of] at h₂,
   rw range_subset_iff at h₁,
   choose! t ht using h₂,
   exact ⟨γ, t, h₁, ht⟩

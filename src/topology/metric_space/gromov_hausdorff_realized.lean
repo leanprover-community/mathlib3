@@ -204,7 +204,7 @@ lemma candidates_b_of_candidates_mem (f : prod_space_fun X Y) (fA : f ∈ candid
 private lemma dist_mem_candidates : (λp : (X ⊕ Y) × (X ⊕ Y), dist p.1 p.2) ∈ candidates X Y :=
 begin
   simp only [candidates, dist_comm, forall_const, and_true, add_comm, eq_self_iff_true,
-             and_self, sum.forall, set.mem_set_of_eq, dist_self],
+             and_self, sum.forall, set.mem_set_of, dist_self],
   repeat { split
     <|> exact (λa y z, dist_triangle_left _ _ _)
     <|> exact (λx y, by refl)
@@ -244,7 +244,7 @@ begin
                ∩ (⋂x y z, {f : Cb X Y | f (x, z) ≤ f (x, y) + f (y, z)})
                ∩ (⋂x, {f : Cb X Y | f (x, x) = 0})
                ∩ (⋂x y, {f : Cb X Y | f (x, y) ≤ max_var X Y}),
-  { ext, simp only [candidates_b, candidates, mem_inter_eq, mem_Inter, mem_set_of_eq] },
+  { ext, simp only [candidates_b, candidates, mem_inter_eq, mem_Inter, mem_set_of] },
   rw this,
   repeat { apply is_closed.inter _ _
        <|> apply is_closed_Inter _

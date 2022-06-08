@@ -143,7 +143,7 @@ is_complement_top_right.trans coe_eq_singleton
 @[to_additive] lemma mem_left_transversals_iff_exists_unique_inv_mul_mem :
   S ∈ left_transversals T ↔ ∀ g : G, ∃! s : S, (s : G)⁻¹ * g ∈ T :=
 begin
-  rw [left_transversals, set.mem_set_of_eq, is_complement_iff_exists_unique],
+  rw [left_transversals, set.mem_set_of, is_complement_iff_exists_unique],
   refine ⟨λ h g, _, λ h g, _⟩,
   { obtain ⟨x, h1, h2⟩ := h g,
     exact ⟨x.1, (congr_arg (∈ T) (eq_inv_mul_of_mul_eq h1)).mp x.2.2, λ y hy,
@@ -157,7 +157,7 @@ end
 @[to_additive] lemma mem_right_transversals_iff_exists_unique_mul_inv_mem :
   S ∈ right_transversals T ↔ ∀ g : G, ∃! s : S, g * (s : G)⁻¹ ∈ T :=
 begin
-  rw [right_transversals, set.mem_set_of_eq, is_complement_iff_exists_unique],
+  rw [right_transversals, set.mem_set_of, is_complement_iff_exists_unique],
   refine ⟨λ h g, _, λ h g, _⟩,
   { obtain ⟨x, h1, h2⟩ := h g,
     exact ⟨x.2, (congr_arg (∈ T) (eq_mul_inv_of_mul_eq h1)).mp x.1.2, λ y hy,

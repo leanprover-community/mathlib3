@@ -742,7 +742,7 @@ begin
     rw mem_compl_iff at hxs,
     have hx' : x ∉ {a : α | ¬0 ≤ simple_func.to_simple_func f a},
       from λ h, hxs (subset_to_measurable μ _ h),
-    rwa [set.nmem_set_of_eq, not_not] at hx', },
+    rwa [set.nmem_set_of, not_not] at hx', },
   let f' := simple_func.piecewise s (measurable_set_to_measurable μ _).compl
     (simple_func.to_simple_func f) (simple_func.const α (0 : G)),
   refine ⟨f', λ x, _, _⟩,
@@ -775,7 +775,7 @@ begin
   rw mem_closure_iff_seq_limit,
   have hg_mem_ℒp : mem_ℒp g p μ := Lp.mem_ℒp g,
   have zero_mem : (0 : G) ∈ (range g ∪ {0} : set G) ∩ {y | 0 ≤ y}, by simp only [union_singleton,
-    mem_inter_eq, mem_insert_iff, eq_self_iff_true, true_or, mem_set_of_eq, le_refl, and_self],
+    mem_inter_eq, mem_insert_iff, eq_self_iff_true, true_or, mem_set_of, le_refl, and_self],
   haveI : separable_space (((range g ∪ {0}) ∩ {y | 0 ≤ y}) : set G),
   { apply is_separable.separable_space,
     apply is_separable.mono _ (set.inter_subset_left _ _),

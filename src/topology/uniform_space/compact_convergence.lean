@@ -244,7 +244,7 @@ begin
           λ i, is_open_ball _ hW₄,
           by simp [compact_open.gen, hfC],
           λ g hg x hx, hW₃ (mem_comp_rel.mpr _)⟩,
-  simp only [mem_Inter, compact_open.gen, mem_set_of_eq, image_subset_iff] at hg,
+  simp only [mem_Inter, compact_open.gen, mem_set_of, image_subset_iff] at hg,
   obtain ⟨y, hy⟩ := mem_Union.mp (hC hx),
   exact ⟨f y, (mem_ball_symmetry hW₂).mp (hfC y hy), mem_preimage.mp (hg y hy)⟩,
 end
@@ -303,12 +303,12 @@ instance compact_convergence_uniform_space : uniform_space C(α, β) :=
   refl :=
     begin
       simp only [compact_convergence_uniformity, and_imp, filter.le_principal_iff, prod.forall,
-        filter.mem_principal, mem_set_of_eq, le_infi_iff, id_rel_subset],
+        filter.mem_principal, mem_set_of, le_infi_iff, id_rel_subset],
       exact λ K V hK hV f x hx, refl_mem_uniformity hV,
     end,
   symm :=
     begin
-      simp only [compact_convergence_uniformity, and_imp, prod.forall, mem_set_of_eq, prod.fst_swap,
+      simp only [compact_convergence_uniformity, and_imp, prod.forall, mem_set_of, prod.fst_swap,
         filter.tendsto_principal, prod.snd_swap, filter.tendsto_infi],
       intros K V hK hV,
       obtain ⟨V', hV', hsymm, hsub⟩ := symm_of_uniformity hV,

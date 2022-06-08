@@ -587,7 +587,7 @@ lemma comp_partial_sum_target_subset_image_comp_partial_sum_source
 begin
   rcases i with ⟨n, c⟩,
   refine ⟨⟨c.length, c.blocks_fun⟩, _, _⟩,
-  { simp only [comp_partial_sum_target_set, set.mem_set_of_eq] at hi,
+  { simp only [comp_partial_sum_target_set, set.mem_set_of] at hi,
     simp only [mem_comp_partial_sum_source_iff, hi.left, hi.right, true_and, and_true],
     exact λ a, c.one_le_blocks' _ },
   { dsimp [comp_change_of_variables],

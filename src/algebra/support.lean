@@ -149,7 +149,7 @@ rfl
 
 @[to_additive support_prod_mk] lemma mul_support_prod_mk (f : α → M) (g : α → N) :
   mul_support (λ x, (f x, g x)) = mul_support f ∪ mul_support g :=
-set.ext $ λ x, by simp only [mul_support, not_and_distrib, mem_union_eq, mem_set_of_eq,
+set.ext $ λ x, by simp only [mul_support, not_and_distrib, mem_union_eq, mem_set_of,
   prod.mk_eq_one, ne.def]
 
 @[to_additive support_prod_mk'] lemma mul_support_prod_mk' (f : α → M × N) :
@@ -254,7 +254,7 @@ lemma support_prod [comm_monoid_with_zero A] [no_zero_divisors A] [nontrivial A]
   (s : finset α) (f : α → β → A) :
   support (λ x, ∏ i in s, f i x) = ⋂ i ∈ s, support (f i) :=
 set.ext $ λ x, by
-  simp only [support, ne.def, finset.prod_eq_zero_iff, mem_set_of_eq, set.mem_Inter, not_exists]
+  simp only [support, ne.def, finset.prod_eq_zero_iff, mem_set_of, set.mem_Inter, not_exists]
 
 lemma mul_support_one_add [has_one R] [add_left_cancel_monoid R] (f : α → R) :
   mul_support (λ x, 1 + f x) = support f :=

@@ -388,7 +388,7 @@ begin
   induction b,
   { simp_rw [mem_support_iff, bernoulli_apply, bool.cond_ff, ne.def, tsub_eq_zero_iff_le, not_le],
     exact ⟨ne_of_lt, lt_of_le_of_ne h⟩ },
-  { simp only [mem_support_iff, bernoulli_apply, bool.cond_tt, set.mem_set_of_eq], }
+  { simp only [mem_support_iff, bernoulli_apply, bool.cond_tt, set.mem_set_of], }
 end
 
 lemma mem_support_bernoulli_iff : b ∈ (bernoulli p h).support ↔ cond b (p ≠ 0) (p ≠ 1) := by simp

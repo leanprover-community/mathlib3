@@ -407,7 +407,7 @@ lemma measurable_set_region_between
   (hf : measurable f) (hg : measurable g) (hs : measurable_set s) :
   measurable_set (region_between f g s) :=
 begin
-  dsimp only [region_between, Ioo, mem_set_of_eq, set_of_and],
+  dsimp only [region_between, Ioo, mem_set_of, set_of_and],
   refine measurable_set.inter _ ((measurable_set_lt (hf.comp measurable_fst) measurable_snd).inter
     (measurable_set_lt measurable_snd (hg.comp measurable_fst))),
   exact measurable_fst hs

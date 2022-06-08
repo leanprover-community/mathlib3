@@ -471,7 +471,7 @@ by simp only [← principal_singleton, hl.sup_principal]
 
 lemma has_basis.inf_principal (hl : l.has_basis p s) (s' : set α) :
   (l ⊓ 𝓟 s').has_basis p (λ i, s i ∩ s') :=
-⟨λ t, by simp only [mem_inf_principal, hl.mem_iff, subset_def, mem_set_of_eq,
+⟨λ t, by simp only [mem_inf_principal, hl.mem_iff, subset_def, mem_set_of,
   mem_inter_iff, and_imp]⟩
 
 lemma has_basis.inf_basis_ne_bot_iff (hl : l.has_basis p s) (hl' : l'.has_basis p' s') :

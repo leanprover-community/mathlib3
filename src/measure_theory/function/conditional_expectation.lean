@@ -267,12 +267,12 @@ variables
 lemma mem_Lp_meas_subgroup_iff_ae_strongly_measurable' {m m0 : measurable_space α} {μ : measure α}
   {f : Lp F p μ} :
   f ∈ Lp_meas_subgroup F m p μ ↔ ae_strongly_measurable' m f μ :=
-by rw [← add_subgroup.mem_carrier, Lp_meas_subgroup, set.mem_set_of_eq]
+by rw [← add_subgroup.mem_carrier, Lp_meas_subgroup, set.mem_set_of]
 
 lemma mem_Lp_meas_iff_ae_strongly_measurable'
   {m m0 : measurable_space α} {μ : measure α} {f : Lp F p μ} :
   f ∈ Lp_meas F 𝕜 m p μ ↔ ae_strongly_measurable' m f μ :=
-by rw [← set_like.mem_coe, ← submodule.mem_carrier, Lp_meas, set.mem_set_of_eq]
+by rw [← set_like.mem_coe, ← submodule.mem_carrier, Lp_meas, set.mem_set_of]
 
 lemma Lp_meas.ae_strongly_measurable'
   {m m0 : measurable_space α} {μ : measure α} (f : Lp_meas F 𝕜 m p μ) :

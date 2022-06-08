@@ -66,7 +66,7 @@ begin
   { obtain ⟨x, hx⟩ : bdd_above (↑(finset.image (λ i, u i - i * w) (finset.range n))) :=
       finset.bdd_above _,
     refine ⟨x, λ i hi, _⟩,
-    simp only [upper_bounds, mem_image, and_imp, forall_exists_index, mem_set_of_eq,
+    simp only [upper_bounds, mem_image, and_imp, forall_exists_index, mem_set_of,
       forall_apply_eq_imp_iff₂, finset.mem_range, finset.mem_coe, finset.coe_image] at hx,
     exact hx _ hi },
   have A : ∀ (p : ℕ), u p ≤ p * w + x,

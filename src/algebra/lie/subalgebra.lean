@@ -330,7 +330,7 @@ instance : has_inf (lie_subalgebra R L) :=
 
 instance : has_Inf (lie_subalgebra R L) :=
 ⟨λ S, { lie_mem' := λ x y hx hy, by
-        { simp only [submodule.mem_carrier, mem_Inter, submodule.Inf_coe, mem_set_of_eq,
+        { simp only [submodule.mem_carrier, mem_Inter, submodule.Inf_coe, mem_set_of,
             forall_apply_eq_imp_iff₂, exists_imp_distrib] at *,
           intros K hK, exact K.lie_mem (hx K hK) (hy K hK), },
         ..Inf {(s : submodule R L) | s ∈ S} }⟩
@@ -344,7 +344,7 @@ instance : has_Inf (lie_subalgebra R L) :=
 begin
   rw [← coe_to_submodule, Inf_coe_to_submodule, submodule.Inf_coe],
   ext x,
-  simpa only [mem_Inter, mem_set_of_eq, forall_apply_eq_imp_iff₂, exists_imp_distrib],
+  simpa only [mem_Inter, mem_set_of, forall_apply_eq_imp_iff₂, exists_imp_distrib],
 end
 
 lemma Inf_glb (S : set (lie_subalgebra R L)) : is_glb S (Inf S) :=

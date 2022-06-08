@@ -64,7 +64,7 @@ begin
   set τ : perm ι := σ.trans (swap a (σ a)) with hτ,
   have hτs : {x | τ x ≠ x} ⊆ s,
   { intros x hx,
-    simp only [ne.def, set.mem_set_of_eq, equiv.coe_trans, equiv.swap_comp_apply] at hx,
+    simp only [ne.def, set.mem_set_of, equiv.coe_trans, equiv.swap_comp_apply] at hx,
     split_ifs at hx with h₁ h₂ h₃,
     { obtain rfl | hax := eq_or_ne x a,
       { contradiction },

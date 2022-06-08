@@ -186,7 +186,7 @@ instance {α β} [topological_space α] [metric_space β] : metric_space (α →
 lemma nndist_eq : nndist f g = Inf {C | ∀ x : α, nndist (f x) (g x) ≤ C} :=
 subtype.ext $ dist_eq.trans $ begin
   rw [nnreal.coe_Inf, nnreal.coe_image],
-  simp_rw [mem_set_of_eq, ←nnreal.coe_le_coe, subtype.coe_mk, exists_prop, coe_nndist],
+  simp_rw [mem_set_of, ←nnreal.coe_le_coe, subtype.coe_mk, exists_prop, coe_nndist],
 end
 
 lemma nndist_set_exists : ∃ C, ∀ x : α, nndist (f x) (g x) ≤ C :=

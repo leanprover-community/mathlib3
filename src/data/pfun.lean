@@ -373,7 +373,7 @@ lemma preimage_as_subtype (f : α →. β) (s : set β) :
   f.as_subtype ⁻¹' s = subtype.val ⁻¹' f.preimage s :=
 begin
   ext x,
-  simp only [set.mem_preimage, set.mem_set_of_eq, pfun.as_subtype, pfun.mem_preimage],
+  simp only [set.mem_preimage, set.mem_set_of, pfun.as_subtype, pfun.mem_preimage],
   show f.fn (x.val) _ ∈ s ↔ ∃ y ∈ s, y ∈ f (x.val),
   exact iff.intro
     (λ h, ⟨_, h, part.get_mem _⟩)

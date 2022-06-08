@@ -74,7 +74,7 @@ begin
     ext,
     simp only [this, interior_Inter_of_fintype, ← is_open_map.preimage_interior_eq_interior_preimage
       (is_open_map_barycentric_coord b _) (continuous_barycentric_coord b _),
-      interior_Ici, mem_Inter, mem_set_of_eq, mem_Ioi, mem_preimage], },
+      interior_Ici, mem_Inter, mem_set_of, mem_Ioi, mem_preimage], },
 end
 
 variables {V P : Type*} [normed_group V] [normed_space ℝ V] [metric_space P] [normed_add_torsor V P]

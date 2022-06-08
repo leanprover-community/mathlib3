@@ -737,7 +737,7 @@ end
 theorem mem_nhds_induced [T : topological_space α] (f : β → α) (a : β) (s : set β) :
   s ∈ @nhds β (topological_space.induced f T) a ↔ ∃ u ∈ 𝓝 (f a), f ⁻¹' u ⊆ s :=
 begin
-  simp only [mem_nhds_iff, is_open_induced_iff, exists_prop, set.mem_set_of_eq],
+  simp only [mem_nhds_iff, is_open_induced_iff, exists_prop, set.mem_set_of],
   split,
   { rintros ⟨u, usub, ⟨v, openv, ueq⟩, au⟩,
     exact ⟨v, ⟨v, set.subset.refl v, openv, by rwa ←ueq at au⟩, by rw ueq; exact usub⟩ },

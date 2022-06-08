@@ -153,7 +153,7 @@ begin
     (λ s, ⟦⟨closure L s, infer_instance⟩⟧)),
   rw forall_quotient_iff,
   intro N,
-  simp only [subset_univ, and_true, mem_image, mem_set_of_eq, quotient.eq],
+  simp only [subset_univ, and_true, mem_image, mem_set_of, quotient.eq],
   split,
   { rintro ⟨s, hs1, hs2⟩,
     use bundled.of ↥(closure L s),

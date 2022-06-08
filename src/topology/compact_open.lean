@@ -66,7 +66,7 @@ topological_space.generate_from
 
 protected lemma is_open_gen {s : set α} (hs : is_compact s) {u : set β} (hu : is_open u) :
   is_open (compact_open.gen s u) :=
-topological_space.generate_open.basic _ (by dsimp [mem_set_of_eq]; tauto)
+topological_space.generate_open.basic _ (by dsimp [mem_set_of]; tauto)
 
 section functorial
 
@@ -127,11 +127,11 @@ instance [t2_space β] : t2_space C(α, β) :=
     obtain ⟨u, v, hu, hv, hxu, hxv, huv⟩ := t2_separation hx,
     refine ⟨compact_open.gen {x} u, compact_open.gen {x} v, continuous_map.is_open_gen
       is_compact_singleton hu, continuous_map.is_open_gen is_compact_singleton hv, _, _, _⟩,
-    { rwa [compact_open.gen, mem_set_of_eq, image_singleton, singleton_subset_iff] },
-    { rwa [compact_open.gen, mem_set_of_eq, image_singleton, singleton_subset_iff] },
+    { rwa [compact_open.gen, mem_set_of, image_singleton, singleton_subset_iff] },
+    { rwa [compact_open.gen, mem_set_of, image_singleton, singleton_subset_iff] },
     { rw [←continuous_map.gen_inter, huv],
       refine subset_empty_iff.mp (λ f, _),
-      rw [compact_open.gen, mem_set_of_eq, image_singleton, singleton_subset_iff],
+      rw [compact_open.gen, mem_set_of, image_singleton, singleton_subset_iff],
       exact id },
   end ⟩
 
@@ -148,7 +148,7 @@ begin
   rintros b ⟨a, ⟨c, hc, u, hu, rfl⟩, rfl⟩,
   refine ⟨coe '' c, hc.image continuous_subtype_coe, u, hu, _⟩,
   ext f,
-  simp only [compact_open.gen, mem_set_of_eq, mem_preimage, continuous_map.coe_restrict],
+  simp only [compact_open.gen, mem_set_of, mem_preimage, continuous_map.coe_restrict],
   rw image_comp f (coe : s → α),
 end
 
@@ -169,7 +169,7 @@ begin
   rw mem_Union₂,
   refine ⟨s, hs, _, ⟨univ, is_compact_iff_is_compact_univ.mp hs, u, hu, rfl⟩, _⟩,
   ext f,
-  simp only [compact_open.gen, mem_set_of_eq, mem_preimage, continuous_map.coe_restrict],
+  simp only [compact_open.gen, mem_set_of, mem_preimage, continuous_map.coe_restrict],
   rw image_comp f (coe : s → α),
   simp
 end

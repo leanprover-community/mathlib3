@@ -510,11 +510,11 @@ begin
   { rw mem_nhds_iff, use S,
     refine ⟨by refl, _, hn⟩,
     have: S = re⁻¹' Ioi (1 - n : ℝ),
-    { ext, rw [preimage,Ioi, mem_set_of_eq, mem_set_of_eq, mem_set_of_eq], exact sub_lt },
+    { ext, rw [preimage,Ioi, mem_set_of, mem_set_of, mem_set_of], exact sub_lt },
     rw this,
     refine continuous.is_open_preimage continuous_re _ is_open_Ioi, },
   apply eventually_eq_of_mem this,
-  intros t ht, rw mem_set_of_eq at ht,
+  intros t ht, rw mem_set_of at ht,
   apply Gamma_eq_Gamma_aux, linarith,
 end
 

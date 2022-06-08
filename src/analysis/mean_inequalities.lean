@@ -440,7 +440,7 @@ begin
       have B : ∀ y : ℝ≥0, y * y^p / y = y^p,
       { refine λ y, mul_div_cancel_left_of_imp (λ h, _),
         simpa [h, hpq.ne_zero] },
-      simp only [set.mem_set_of_eq, div_rpow, ← sum_div, ← rpow_mul,
+      simp only [set.mem_set_of, div_rpow, ← sum_div, ← rpow_mul,
         div_mul_cancel _ hpq.symm.ne_zero, rpow_one, div_le_iff hf, one_mul, hpq.mul_eq_add,
         ← rpow_sub' _ A, _root_.add_sub_cancel, le_refl, true_and, ← mul_div_assoc, B],
       rw [div_eq_iff, ← rpow_add hf, hpq.inv_add_inv_conj, rpow_one],

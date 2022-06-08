@@ -134,7 +134,7 @@ lemma is_antichain.max_lower_set_of (hs : is_antichain (≤) s) :
   maximals (≤) {x | ∃ y ∈ s, x ≤ y} = s :=
 begin
   ext x,
-  simp only [maximals, exists_prop, mem_set_of_eq, forall_exists_index, and_imp, sep_set_of],
+  simp only [maximals, exists_prop, mem_set_of, forall_exists_index, and_imp, sep_set_of],
   refine ⟨λ h, exists.elim h.1 (λ y hy, ((h.2 _ hy.1 rfl.le hy.2).symm.subst hy.1)),
     λ h, ⟨⟨x,h,rfl.le⟩,λ b y hy hby hxy, _⟩⟩,
   have : x = y := by_contra (λ h_eq, (hs h hy h_eq (hxy.trans hby)).elim),

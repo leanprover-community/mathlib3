@@ -115,7 +115,7 @@ end
 lemma mem_vanishing_ideal (t : set (projective_spectrum 𝒜)) (f : A) :
   f ∈ vanishing_ideal t ↔
   ∀ x : projective_spectrum 𝒜, x ∈ t → f ∈ x.as_homogeneous_ideal :=
-by rw [← set_like.mem_coe, coe_vanishing_ideal, set.mem_set_of_eq]
+by rw [← set_like.mem_coe, coe_vanishing_ideal, set.mem_set_of]
 
 @[simp] lemma vanishing_ideal_singleton (x : projective_spectrum 𝒜) :
   vanishing_ideal ({x} : set (projective_spectrum 𝒜)) = x.as_homogeneous_ideal :=

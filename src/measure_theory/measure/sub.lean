@@ -75,7 +75,7 @@ begin
       { apply @Inf_le (measure α) measure.complete_semilattice_Inf,
         simp [le_refl, add_comm, h_measure_sub_add] },
       apply @le_Inf (measure α) measure.complete_semilattice_Inf,
-      intros d h_d, rw [← h_measure_sub_add, mem_set_of_eq, add_comm d] at h_d,
+      intros d h_d, rw [← h_measure_sub_add, mem_set_of, add_comm d] at h_d,
       apply measure.le_of_add_le_add_left h_d },
     rw h_measure_sub_eq,
     apply measure.of_measurable_apply _ h₁,
@@ -96,10 +96,10 @@ begin
   rw restrict_Inf_eq_Inf_restrict h_nonempty h_meas_s,
   apply le_antisymm,
   { refine Inf_le_Inf_of_forall_exists_le _,
-    intros ν' h_ν'_in, rw mem_set_of_eq at h_ν'_in,
+    intros ν' h_ν'_in, rw mem_set_of at h_ν'_in,
     refine ⟨ν'.restrict s, _, restrict_le_self⟩,
     refine ⟨ν' + (⊤ : measure α).restrict sᶜ, _, _⟩,
-    { rw [mem_set_of_eq, add_right_comm, measure.le_iff],
+    { rw [mem_set_of, add_right_comm, measure.le_iff],
       intros t h_meas_t,
       repeat { rw ← measure_inter_add_diff t h_meas_s },
       refine add_le_add _ _,
@@ -116,7 +116,7 @@ begin
       simp [restrict_apply h_meas_t, restrict_apply (h_meas_t.inter h_meas_s), inter_assoc] } },
   { refine Inf_le_Inf_of_forall_exists_le _,
     refine ball_image_iff.2 (λ t h_t_in, ⟨t.restrict s, _, le_rfl⟩),
-    rw [set.mem_set_of_eq, ← restrict_add],
+    rw [set.mem_set_of, ← restrict_add],
     exact restrict_mono subset.rfl h_t_in }
 end
 

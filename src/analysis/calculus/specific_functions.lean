@@ -370,7 +370,7 @@ begin
       have := continuous_at.eventually_lt (hg.continuous_at.dist hc.continuous_at) hr.continuous_at
         this,
       exact eventually_of_mem this
-        (λ x hx, (f x).one_of_mem_closed_ball (mem_set_of_eq.mp hx).le) },
+        (λ x hx, (f x).one_of_mem_closed_ball (mem_set_of.mp hx).le) },
     exact cont_diff_at_const.congr_of_eventually_eq this },
   { refine real.smooth_transition.cont_diff_at.comp x _,
     refine ((hR.sub $ hg.dist hc hx).div (hR.sub hr) (sub_pos.mpr (f x).r_lt_R).ne') }

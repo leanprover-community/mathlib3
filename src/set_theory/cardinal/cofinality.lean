@@ -695,7 +695,7 @@ begin
   { rintro x ⟨hx, hx'⟩, exact hx },
   { refine ha.trans (ge_of_eq $ quotient.sound ⟨equiv.trans _
       (equiv.subtype_subtype_equiv_subtype_exists _ _).symm⟩),
-    simp only [coe_eq_subtype, mem_singleton_iff, mem_preimage, mem_set_of_eq] },
+    simp only [coe_eq_subtype, mem_singleton_iff, mem_preimage, mem_set_of] },
   rintro x ⟨hx, hx'⟩, exact hx'
 end
 

@@ -464,7 +464,7 @@ lemma ball_comp (p : seminorm 𝕜 F) (f : E →ₗ[𝕜] F) (x : E) (r : ℝ) :
   (p.comp f).ball x r = f ⁻¹' (p.ball (f x) r) :=
 begin
   ext,
-  simp_rw [ball, mem_preimage, comp_apply, set.mem_set_of_eq, map_sub],
+  simp_rw [ball, mem_preimage, comp_apply, set.mem_set_of, map_sub],
 end
 
 section norm_one_class

@@ -525,7 +525,7 @@ begin
   apply sum_subset_zero_on_sdiff (add_antidiagonal_mono_right hys) _ (λ _ _, rfl),
   intros b hb,
   simp only [not_and, not_not, mem_sdiff, mem_add_antidiagonal,
-      ne.def, set.mem_set_of_eq, mem_support] at hb,
+      ne.def, set.mem_set_of, mem_support] at hb,
   rw [(hb.2 hb.1.1 hb.1.2.1), mul_zero]
 end
 
@@ -538,7 +538,7 @@ begin
   apply sum_subset_zero_on_sdiff (add_antidiagonal_mono_left hxs) _ (λ _ _, rfl),
   intros b hb,
   simp only [not_and, not_not, mem_sdiff, mem_add_antidiagonal,
-      ne.def, set.mem_set_of_eq, mem_support] at hb,
+      ne.def, set.mem_set_of, mem_support] at hb,
   rw [not_not.1 (λ con, hb.1.2.2 (hb.2 hb.1.1 con)), zero_mul],
 end
 
@@ -550,7 +550,7 @@ instance [non_unital_non_assoc_semiring R] : distrib (hahn_series Γ R) :=
       mul_coeff_right' hwf (set.subset_union_left _ _)],
     { simp only [add_coeff, mul_add, sum_add_distrib] },
     { intro b,
-      simp only [add_coeff, ne.def, set.mem_union_eq, set.mem_set_of_eq, mem_support],
+      simp only [add_coeff, ne.def, set.mem_union_eq, set.mem_set_of, mem_support],
       contrapose!,
       intro h,
       rw [h.1, h.2, add_zero], }
@@ -562,7 +562,7 @@ instance [non_unital_non_assoc_semiring R] : distrib (hahn_series Γ R) :=
       mul_coeff_left' hwf (set.subset_union_left _ _)],
     { simp only [add_coeff, add_mul, sum_add_distrib] },
     { intro b,
-      simp only [add_coeff, ne.def, set.mem_union_eq, set.mem_set_of_eq, mem_support],
+      simp only [add_coeff, ne.def, set.mem_union_eq, set.mem_set_of, mem_support],
       contrapose!,
       intro h,
       rw [h.1, h.2, add_zero], },
@@ -582,7 +582,7 @@ begin
     rw [sum_congr _ (λ _ _, rfl), sum_empty],
     ext ⟨a1, a2⟩,
     simp only [not_mem_empty, not_and, set.mem_singleton_iff, not_not,
-      mem_add_antidiagonal, set.mem_set_of_eq, iff_false],
+      mem_add_antidiagonal, set.mem_set_of, iff_false],
     rintro h1 rfl h2,
     rw add_comm at h1,
     rw ← add_right_cancel h1 at hx,
@@ -591,7 +591,7 @@ begin
   { apply sum_congr _ (λ _ _, rfl),
     ext ⟨a1, a2⟩,
     simp only [set.mem_singleton_iff, prod.mk.inj_iff, mem_add_antidiagonal,
-      mem_singleton, set.mem_set_of_eq],
+      mem_singleton, set.mem_set_of],
     split,
     { rintro ⟨h1, rfl, h2⟩,
       rw add_comm at h1,
@@ -614,7 +614,7 @@ begin
     rw [sum_congr _ (λ _ _, rfl), sum_empty],
     ext ⟨a1, a2⟩,
     simp only [not_mem_empty, not_and, set.mem_singleton_iff, not_not,
-      mem_add_antidiagonal, set.mem_set_of_eq, iff_false],
+      mem_add_antidiagonal, set.mem_set_of, iff_false],
     rintro h1 h2 rfl,
     rw ← add_right_cancel h1 at hx,
     exact h2 hx, },
@@ -622,7 +622,7 @@ begin
   { apply sum_congr _ (λ _ _, rfl),
     ext ⟨a1, a2⟩,
     simp only [set.mem_singleton_iff, prod.mk.inj_iff, mem_add_antidiagonal,
-      mem_singleton, set.mem_set_of_eq],
+      mem_singleton, set.mem_set_of],
     split,
     { rintro ⟨h1, h2, rfl⟩,
       refine ⟨add_right_cancel h1, rfl⟩ },
@@ -654,7 +654,7 @@ begin
   { exact x.is_pwo_support },
   { exact y.is_pwo_support },
   contrapose! hx,
-  simp only [not_nonempty_iff_eq_empty, ne.def, set.mem_set_of_eq] at hx,
+  simp only [not_nonempty_iff_eq_empty, ne.def, set.mem_set_of] at hx,
   simp [hx],
 end
 
@@ -679,18 +679,18 @@ begin
   refine sum_bij_ne_zero (λ a has ha0, ⟨⟨a.2.1, a.2.2 + a.1.2⟩, ⟨a.2.2, a.1.2⟩⟩) _ _ _ _,
   { rintros ⟨⟨i,j⟩, ⟨k,l⟩⟩ H1 H2,
     simp only [true_and, set.image2_add, eq_self_iff_true, mem_add_antidiagonal, ne.def,
-      set.image_prod, mem_sigma, set.mem_set_of_eq] at H1 H2 ⊢,
+      set.image_prod, mem_sigma, set.mem_set_of] at H1 H2 ⊢,
     obtain ⟨⟨rfl, ⟨H3, nz⟩⟩, ⟨rfl, nx, ny⟩⟩ := H1,
     refine ⟨⟨(add_assoc _ _ _).symm, nx, set.add_mem_add ny nz⟩, ny, nz⟩ },
   { rintros ⟨⟨i1,j1⟩, ⟨k1,l1⟩⟩ ⟨⟨i2,j2⟩, ⟨k2,l2⟩⟩ H1 H2 H3 H4 H5,
     simp only [set.image2_add, prod.mk.inj_iff, mem_add_antidiagonal, ne.def,
-      set.image_prod, mem_sigma, set.mem_set_of_eq, heq_iff_eq] at H1 H3 H5,
+      set.image_prod, mem_sigma, set.mem_set_of, heq_iff_eq] at H1 H3 H5,
     obtain ⟨⟨rfl, H⟩, rfl, rfl⟩ := H5,
     simp only [and_true, prod.mk.inj_iff, eq_self_iff_true, heq_iff_eq],
     exact add_right_cancel (H1.1.1.trans H3.1.1.symm) },
   { rintros ⟨⟨i,j⟩, ⟨k,l⟩⟩ H1 H2,
     simp only [exists_prop, set.image2_add, prod.mk.inj_iff, mem_add_antidiagonal,
-      sigma.exists, ne.def, set.image_prod, mem_sigma, set.mem_set_of_eq, heq_iff_eq,
+      sigma.exists, ne.def, set.image_prod, mem_sigma, set.mem_set_of, heq_iff_eq,
       prod.exists] at H1 H2 ⊢,
     obtain ⟨⟨rfl, nx, H⟩, rfl, ny, nz⟩ := H1,
     exact ⟨i + k, l, i, k, ⟨⟨add_assoc _ _ _, set.add_mem_add nx ny, nz⟩, rfl, nx, ny⟩,
@@ -738,7 +738,7 @@ instance [non_unital_comm_semiring R] : non_unital_comm_semiring (hahn_series Γ
     simp_rw [mul_coeff, mul_comm],
     refine sum_bij (λ a ha, ⟨a.2, a.1⟩) _ (λ a ha, by simp) _ _,
     { intros a ha,
-      simp only [mem_add_antidiagonal, ne.def, set.mem_set_of_eq] at ha ⊢,
+      simp only [mem_add_antidiagonal, ne.def, set.mem_set_of] at ha ⊢,
       obtain ⟨h1, h2, h3⟩ := ha,
       refine ⟨_, h3, h2⟩,
       rw [add_comm, h1], },
@@ -748,7 +748,7 @@ instance [non_unital_comm_semiring R] : non_unital_comm_semiring (hahn_series Γ
     { intros a ha,
       refine ⟨a.swap, _, by simp⟩,
       simp only [prod.fst_swap, mem_add_antidiagonal, prod.snd_swap,
-        ne.def, set.mem_set_of_eq] at ha ⊢,
+        ne.def, set.mem_set_of] at ha ⊢,
       exact ⟨(add_comm _ _).trans ha.1, ha.2.2, ha.2.1⟩ }
   end,
   .. hahn_series.non_unital_semiring }
@@ -1521,10 +1521,10 @@ def emb_domain (s : summable_family Γ R α) (f : α ↪ β) : summable_family �
   finite_co_support' := λ g, ((s.finite_co_support g).image f).subset begin
     intros b h,
     by_cases hb : b ∈ set.range f,
-    { simp only [ne.def, set.mem_set_of_eq, dif_pos hb] at h,
+    { simp only [ne.def, set.mem_set_of, dif_pos hb] at h,
       exact ⟨classical.some hb, h, classical.some_spec hb⟩ },
     { contrapose! h,
-      simp only [ne.def, set.mem_set_of_eq, dif_neg hb, not_not, zero_coeff] }
+      simp only [ne.def, set.mem_set_of, dif_neg hb, not_not, zero_coeff] }
   end }
 
 variables (s : summable_family Γ R α) (f : α ↪ β) {a : α} {b : β}
@@ -1579,7 +1579,7 @@ def powers (x : hahn_series Γ R) (hx : 0 < add_val Γ R x) :
       { obtain ⟨i, j, hi, hj, rfl⟩ := support_mul_subset_add_support hn,
         refine set.mem_union_left _ ⟨n, set.mem_Union.2 ⟨⟨i, j⟩, set.mem_Union.2 ⟨_, hj⟩⟩, rfl⟩,
         simp only [true_and, set.mem_Union, mem_add_antidiagonal, mem_coe, eq_self_iff_true,
-          ne.def, mem_support, set.mem_set_of_eq],
+          ne.def, mem_support, set.mem_set_of],
         exact ⟨hi, ⟨n, hj⟩⟩ } }
   end }
 

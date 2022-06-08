@@ -239,7 +239,7 @@ def id_groupoid (H : Type u) [topological_space H] : structure_groupoid H :=
         have : s = univ, by rwa [open_s.interior_eq, univ_subset_iff] at this,
         simpa only [this, restr_univ] using hs },
       { exfalso,
-        rw mem_set_of_eq at hs,
+        rw mem_set_of at hs,
         rwa hs at x's } },
   end,
   eq_on_source' := λe e' he he'e, begin
@@ -251,7 +251,7 @@ def id_groupoid (H : Type u) [topological_space H] : structure_groupoid H :=
       rwa ← this },
     { right,
       change (e.to_local_equiv).source = ∅ at he,
-      rwa [set.mem_set_of_eq, he'e.source_eq] }
+      rwa [set.mem_set_of, he'e.source_eq] }
   end }
 
 /-- Every structure groupoid contains the identity groupoid -/
@@ -260,7 +260,7 @@ instance : order_bot (structure_groupoid H) :=
   bot_le := begin
     assume u f hf,
     change f ∈ {local_homeomorph.refl H} ∪ {e : local_homeomorph H H | e.source = ∅} at hf,
-    simp only [singleton_union, mem_set_of_eq, mem_insert_iff] at hf,
+    simp only [singleton_union, mem_set_of, mem_insert_iff] at hf,
     cases hf,
     { rw hf,
       apply u.id_mem },

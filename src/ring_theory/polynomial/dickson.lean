@@ -199,7 +199,7 @@ begin
   -- The two polynomials agree on all `x` of the form `x = y + y⁻¹`.
   apply @set.infinite.mono _ {x : K | ∃ y, x = y + y⁻¹ ∧ y ≠ 0},
   { rintro _ ⟨x, rfl, hx⟩,
-    simp only [eval_X, eval_pow, set.mem_set_of_eq, @add_pow_char K _ p,
+    simp only [eval_X, eval_pow, set.mem_set_of, @add_pow_char K _ p,
       dickson_one_one_eval_add_inv _ _ (mul_inv_cancel hx), inv_pow, zmod.cast_hom_apply,
       zmod.cast_one'] },
   -- Now we need to show that the set of such `x` is infinite.
@@ -225,7 +225,7 @@ begin
       classical,
       convert (φ.roots ∪ {0}).to_finset.finite_to_set using 1,
       ext1 y,
-      simp only [multiset.mem_to_finset, set.mem_set_of_eq, finset.mem_coe, multiset.mem_union,
+      simp only [multiset.mem_to_finset, set.mem_set_of, finset.mem_coe, multiset.mem_union,
         mem_roots hφ, is_root, eval_add, eval_sub, eval_pow, eval_mul, eval_X, eval_C, eval_one,
         multiset.mem_singleton],
       by_cases hy : y = 0,
@@ -237,7 +237,7 @@ begin
     -- Finally, we prove the claim that our finite union of finite sets covers all of `K`.
     { apply (set.eq_univ_of_forall _).symm,
       intro x,
-      simp only [exists_prop, set.mem_Union, set.bind_def, ne.def, set.mem_set_of_eq],
+      simp only [exists_prop, set.mem_Union, set.bind_def, ne.def, set.mem_set_of],
       by_cases hx : x = 0,
       { simp only [hx, and_true, eq_self_iff_true, inv_zero, or_true],
         exact ⟨_, 1, rfl, one_ne_zero⟩ },

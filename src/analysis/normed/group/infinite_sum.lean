@@ -37,7 +37,7 @@ lemma cauchy_seq_finset_iff_vanishing_norm {f : ι → E} :
     ∀ε > (0 : ℝ), ∃s:finset ι, ∀t, disjoint t s → ∥ ∑ i in t, f i ∥ < ε :=
 begin
   rw [cauchy_seq_finset_iff_vanishing, nhds_basis_ball.forall_iff],
-  { simp only [ball_zero_eq, set.mem_set_of_eq] },
+  { simp only [ball_zero_eq, set.mem_set_of] },
   { rintros s t hst ⟨s', hs'⟩,
     exact ⟨s', λ t' ht', hst $ hs' _ ht'⟩ }
 end

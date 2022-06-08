@@ -413,7 +413,7 @@ begin
   by_cases hi_min : is_min i,
   { suffices : {x : α | τ x < i} = ∅, by { rw this, exact @measurable_set.empty _ (f i), },
     ext1 x,
-    simp only [set.mem_set_of_eq, set.mem_empty_eq, iff_false],
+    simp only [set.mem_set_of, set.mem_empty_eq, iff_false],
     rw is_min_iff_forall_not_lt at hi_min,
     exact hi_min (τ x), },
   have : {x : α | τ x < i} = τ ⁻¹' (set.Iio i) := rfl,
@@ -430,7 +430,7 @@ lemma is_stopping_time.measurable_set_gt (hτ : is_stopping_time f τ) (i : ι) 
   measurable_set[f i] {x | i < τ x} :=
 begin
   have : {x | i < τ x} = {x | τ x ≤ i}ᶜ,
-  { ext1 x, simp only [set.mem_set_of_eq, set.mem_compl_eq, not_le], },
+  { ext1 x, simp only [set.mem_set_of, set.mem_compl_eq, not_le], },
   rw this,
   exact (hτ.measurable_set_le i).compl,
 end
@@ -445,14 +445,14 @@ begin
   by_cases hi_min : is_min i,
   { suffices : {x : α | τ x < i} = ∅, by { rw this, exact @measurable_set.empty _ (f i), },
     ext1 x,
-    simp only [set.mem_set_of_eq, set.mem_empty_eq, iff_false],
+    simp only [set.mem_set_of, set.mem_empty_eq, iff_false],
     exact is_min_iff_forall_not_lt.mp hi_min (τ x), },
   obtain ⟨seq, -, -, h_tendsto, h_bound⟩ : ∃ seq : ℕ → ι,
       monotone seq ∧ (∀ j, seq j ≤ i) ∧ tendsto seq at_top (𝓝 i) ∧ (∀ j, seq j < i),
     from h_lub.exists_seq_monotone_tendsto (not_is_min_iff.mp hi_min),
   have h_Ioi_eq_Union : set.Iio i = ⋃ j, { k | k ≤ seq j},
   { ext1 k,
-    simp only [set.mem_Iio, set.mem_Union, set.mem_set_of_eq],
+    simp only [set.mem_Iio, set.mem_Union, set.mem_set_of],
     refine ⟨λ hk_lt_i, _, λ h_exists_k_le_seq, _⟩,
     { rw tendsto_at_top' at h_tendsto,
       have h_nhds : set.Ici k ∈ 𝓝 i,
@@ -462,7 +462,7 @@ begin
     { obtain ⟨j, hk_seq_j⟩ := h_exists_k_le_seq,
       exact hk_seq_j.trans_lt (h_bound j), }, },
   have h_lt_eq_preimage : {x : α | τ x < i} = τ ⁻¹' (set.Iio i),
-  { ext1 x, simp only [set.mem_set_of_eq, set.mem_preimage, set.mem_Iio], },
+  { ext1 x, simp only [set.mem_set_of, set.mem_preimage, set.mem_Iio], },
   rw [h_lt_eq_preimage, h_Ioi_eq_Union],
   simp only [set.preimage_Union, set.preimage_set_of_eq],
   exact measurable_set.Union
@@ -485,7 +485,7 @@ lemma is_stopping_time.measurable_set_ge (hτ : is_stopping_time f τ) (i : ι) 
   measurable_set[f i] {x | i ≤ τ x} :=
 begin
   have : {x | i ≤ τ x} = {x | τ x < i}ᶜ,
-  { ext1 x, simp only [set.mem_set_of_eq, set.mem_compl_eq, not_lt], },
+  { ext1 x, simp only [set.mem_set_of, set.mem_compl_eq, not_lt], },
   rw this,
   exact (hτ.measurable_set_lt i).compl,
 end
@@ -494,7 +494,7 @@ lemma is_stopping_time.measurable_set_eq (hτ : is_stopping_time f τ) (i : ι) 
   measurable_set[f i] {x | τ x = i} :=
 begin
   have : {x | τ x = i} = {x | τ x ≤ i} ∩ {x | τ x ≥ i},
-  { ext1 x, simp only [set.mem_set_of_eq, ge_iff_le, set.mem_inter_eq, le_antisymm_iff], },
+  { ext1 x, simp only [set.mem_set_of, ge_iff_le, set.mem_inter_eq, le_antisymm_iff], },
   rw this,
   exact (hτ.measurable_set_le i).inter (hτ.measurable_set_ge i),
 end
@@ -591,7 +591,7 @@ begin
   { exact measurable_set.Union (λ k, measurable_set.Union_Prop
       (λ hk, (hπ.measurable_set_eq_le hk).inter (hτ.add_const_nat i))) },
   ext,
-  simp only [pi.add_apply, set.mem_set_of_eq, set.mem_Union, set.mem_inter_eq, exists_prop],
+  simp only [pi.add_apply, set.mem_set_of, set.mem_Union, set.mem_inter_eq, exists_prop],
   refine ⟨λ h, ⟨π x, by linarith, rfl, h⟩, _⟩,
   rintro ⟨j, hj, rfl, h⟩,
   assumption
@@ -636,7 +636,7 @@ begin
   rw (_ : s ∩ {x | π x ≤ i} = s ∩ {x | τ x ≤ i} ∩ {x | π x ≤ i}),
   { exact (hs i).inter (hπ i) },
   { ext,
-    simp only [set.mem_inter_eq, iff_self_and, and.congr_left_iff, set.mem_set_of_eq],
+    simp only [set.mem_inter_eq, iff_self_and, and.congr_left_iff, set.mem_set_of],
     intros hle' _,
     exact le_trans (hle _) hle' },
 end
@@ -715,7 +715,7 @@ begin
   have : ∀ j, ({x : α | τ x = i} ∩ {x : α | τ x ≤ j}) = {x : α | τ x = i} ∩ {x | i ≤ j},
   { intro j,
     ext1 x,
-    simp only [set.mem_inter_eq, set.mem_set_of_eq, and.congr_right_iff],
+    simp only [set.mem_inter_eq, set.mem_set_of, and.congr_right_iff],
     intro hxi,
     rw hxi, },
   split; intro h,
@@ -748,7 +748,7 @@ protected lemma measurable_set_le' (hτ : is_stopping_time f τ) (i : ι) :
 begin
   intro j,
   have : {x : α | τ x ≤ i} ∩ {x : α | τ x ≤ j} = {x : α | τ x ≤ min i j},
-  { ext1 x, simp only [set.mem_inter_eq, set.mem_set_of_eq, le_min_iff], },
+  { ext1 x, simp only [set.mem_inter_eq, set.mem_set_of, le_min_iff], },
   rw this,
   exact f.mono (min_le_right i j) _ (hτ _),
 end
@@ -777,7 +777,7 @@ protected lemma measurable_set_ge' [topological_space ι] [order_topology ι]
 begin
   have : {x | i ≤ τ x} = {x | τ x = i} ∪ {x | i < τ x},
   { ext1 x,
-    simp only [le_iff_lt_or_eq, set.mem_set_of_eq, set.mem_union_eq],
+    simp only [le_iff_lt_or_eq, set.mem_set_of, set.mem_union_eq],
     rw [@eq_comm _ i, or_comm], },
   rw this,
   exact (hτ.measurable_set_eq' i).union (hτ.measurable_set_gt' i),
@@ -790,7 +790,7 @@ protected lemma measurable_set_lt' [topological_space ι] [order_topology ι]
 begin
   have : {x | τ x < i} = {x | τ x ≤ i} \ {x | τ x = i},
   { ext1 x,
-    simp only [lt_iff_le_and_ne, set.mem_set_of_eq, set.mem_diff], },
+    simp only [lt_iff_le_and_ne, set.mem_set_of, set.mem_diff], },
   rw this,
   exact (hτ.measurable_set_le' i).diff (hτ.measurable_set_eq' i),
 end
@@ -849,7 +849,7 @@ begin
   have : (s ∩ {x | τ x ≤ π x} ∩ {x | min (τ x) (π x) ≤ i})
     = (s ∩ {x | τ x ≤ i}) ∩ {x | min (τ x) (π x) ≤ i} ∩ {x | min (τ x) i ≤ min (min (τ x) (π x)) i},
   { ext1 x,
-    simp only [min_le_iff, set.mem_inter_eq, set.mem_set_of_eq, le_min_iff, le_refl, true_and,
+    simp only [min_le_iff, set.mem_inter_eq, set.mem_set_of, le_min_iff, le_refl, true_and,
       and_true, true_or, or_true],
     by_cases hτi : τ x ≤ i,
     { simp only [hτi, true_or, and_true, and.congr_right_iff],
@@ -895,7 +895,7 @@ begin
   intro j,
   have : {x | τ x ≤ π x} ∩ {x | τ x ≤ j} = {x | min (τ x) j ≤ min (π x) j} ∩ {x | τ x ≤ j},
   { ext1 x,
-    simp only [set.mem_inter_eq, set.mem_set_of_eq, min_le_iff, le_min_iff, le_refl, and_true,
+    simp only [set.mem_inter_eq, set.mem_set_of, min_le_iff, le_min_iff, le_refl, and_true,
       and.congr_left_iff],
     intro h,
     simp only [h, or_self, and_true],
@@ -931,7 +931,7 @@ begin
   have : {x | τ x = π x} ∩ {x | τ x ≤ j}
     = {x | min (τ x) j = min (π x) j} ∩ {x | τ x ≤ j} ∩ {x | π x ≤ j},
   { ext1 x,
-    simp only [set.mem_inter_eq, set.mem_set_of_eq],
+    simp only [set.mem_inter_eq, set.mem_set_of],
     refine ⟨λ h, ⟨⟨_, h.2⟩, _⟩, λ h, ⟨_, h.1.2⟩⟩,
     { rw h.1, },
     { rw ← h.1, exact h.2, },
@@ -957,7 +957,7 @@ begin
   have : {x | τ x = π x} ∩ {x | τ x ≤ j}
     = {x | min (τ x) j = min (π x) j} ∩ {x | τ x ≤ j} ∩ {x | π x ≤ j},
   { ext1 x,
-    simp only [set.mem_inter_eq, set.mem_set_of_eq],
+    simp only [set.mem_inter_eq, set.mem_set_of],
     refine ⟨λ h, ⟨⟨_, h.2⟩, _⟩, λ h, ⟨_, h.1.2⟩⟩,
     { rw h.1, },
     { rw ← h.1, exact h.2, },
@@ -1031,7 +1031,7 @@ begin
     have h_set_eq : (λ x : s, τ (x : set.Iic i × α).snd) ⁻¹' set.Iic j
       = (λ x : s, (x : set.Iic i × α).snd) ⁻¹' {x | τ x ≤ min i j},
     { ext1 x,
-      simp only [set.mem_preimage, set.mem_Iic, iff_and_self, le_min_iff, set.mem_set_of_eq],
+      simp only [set.mem_preimage, set.mem_Iic, iff_and_self, le_min_iff, set.mem_set_of],
       exact λ _, x.prop, },
     rw h_set_eq,
     suffices h_meas : @measurable _ _ (m_set s) (f i) (λ x : s, (x : set.Iic i × α).snd),
@@ -1046,7 +1046,7 @@ begin
     have hx_fst_le : ↑(x : set.Iic i × α).fst ≤ i, from (x : set.Iic i × α).fst.prop,
     refine hx_fst_le.trans (le_of_lt _),
     convert x.prop,
-    simp only [not_le, set.mem_compl_eq, set.mem_set_of_eq], },
+    simp only [not_le, set.mem_compl_eq, set.mem_set_of], },
 end
 
 lemma prog_measurable.stopped_process [metrizable_space ι]
@@ -1087,7 +1087,7 @@ begin
       = stopped_value u (λ x, min (τ x) i) ⁻¹' t ∩ {x : α | τ x ≤ i},
     by { rw this, exact ((h_str_meas i).measurable ht).inter (hτ.measurable_set_le i), },
   ext1 x,
-  simp only [stopped_value, set.mem_inter_eq, set.mem_preimage, set.mem_set_of_eq,
+  simp only [stopped_value, set.mem_inter_eq, set.mem_preimage, set.mem_set_of,
     and.congr_left_iff],
   intro h,
   rw min_eq_left h,
@@ -1123,7 +1123,7 @@ begin
   simp only [finset.sum_apply, finset.sum_indicator_eq_sum_filter],
   refine finset.sum_congr _ (λ _ _, rfl),
   ext i,
-  simp only [finset.mem_filter, set.mem_set_of_eq, finset.mem_range, finset.mem_Ico],
+  simp only [finset.mem_filter, set.mem_set_of, finset.mem_range, finset.mem_Ico],
   exact ⟨λ h, ⟨lt_trans h.2 (nat.lt_succ_iff.2 $ hbdd _), h⟩, λ h, h.2⟩
 end
 
@@ -1265,7 +1265,7 @@ begin
   have : {x | s.piecewise τ η x ≤ n}
     = (s ∩ {x | τ x ≤ n}) ∪ (sᶜ ∩ {x | η x ≤ n}),
   { ext1 x,
-    simp only [set.piecewise, set.mem_inter_eq, set.mem_set_of_eq, and.congr_right_iff],
+    simp only [set.piecewise, set.mem_inter_eq, set.mem_set_of, and.congr_right_iff],
     by_cases hx : x ∈ s; simp [hx], },
   rw this,
   by_cases hin : i ≤ n,

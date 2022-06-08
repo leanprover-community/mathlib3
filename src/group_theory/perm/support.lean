@@ -204,7 +204,7 @@ lemma set_support_inv_eq :
   {x | p⁻¹ x ≠ x} = {x | p x ≠ x} :=
 begin
   ext x,
-  simp only [set.mem_set_of_eq, ne.def],
+  simp only [set.mem_set_of, ne.def],
   rw [inv_def, symm_apply_eq, eq_comm]
 end
 
@@ -216,7 +216,7 @@ lemma set_support_zpow_subset (n : ℤ) :
   {x | (p ^ n) x ≠ x} ⊆ {x | p x ≠ x} :=
 begin
   intros x,
-  simp only [set.mem_set_of_eq, ne.def],
+  simp only [set.mem_set_of, ne.def],
   intros hx H,
   simpa [zpow_apply_eq_self_of_apply_eq_self H] using hx
 end
@@ -225,7 +225,7 @@ lemma set_support_mul_subset :
   {x | (p * q) x ≠ x} ⊆ {x | p x ≠ x} ∪ {x | q x ≠ x} :=
 begin
   intro x,
-  simp only [perm.coe_mul, function.comp_app, ne.def, set.mem_union_eq, set.mem_set_of_eq],
+  simp only [perm.coe_mul, function.comp_app, ne.def, set.mem_union_eq, set.mem_set_of],
   by_cases hq : q x = x;
   simp [hq]
 end

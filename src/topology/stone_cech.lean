@@ -68,7 +68,7 @@ begin
   rw [eq_comm, ← ultrafilter.coe_le_coe],
   change ↑u ≤ 𝓝 x ↔ ∀ s ∈ x, {v : ultrafilter α | s ∈ v} ∈ u,
   simp only [topological_space.nhds_generate_from, le_infi_iff, ultrafilter_basis,
-    le_principal_iff, mem_set_of_eq],
+    le_principal_iff, mem_set_of],
   split,
   { intros h a ha, exact h _ ⟨ha, a, rfl⟩ },
   { rintros h a ⟨xi, a, rfl⟩, exact h _ xi }

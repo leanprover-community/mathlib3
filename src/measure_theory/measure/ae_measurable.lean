@@ -171,7 +171,7 @@ begin
     { simp only [g, hx, piecewise_eq_of_not_mem, not_false_iff],
       contrapose! hx,
       apply subset_to_measurable,
-      simp only [hx, mem_compl_eq, mem_set_of_eq, not_and, not_false_iff, implies_true_iff]
+      simp only [hx, mem_compl_eq, mem_set_of, not_and, not_false_iff, implies_true_iff]
         {contextual := tt} } },
   { have A : μ (to_measurable μ {x | f x = H.mk f x ∧ f x ∈ t}ᶜ) = 0,
     { rw [measure_to_measurable, ← compl_mem_ae_iff, compl_compl],
@@ -181,7 +181,7 @@ begin
     simp only [g, hx, piecewise_eq_of_not_mem, not_false_iff],
     contrapose! hx,
     apply subset_to_measurable,
-    simp only [hx, mem_compl_eq, mem_set_of_eq, false_and, not_false_iff] }
+    simp only [hx, mem_compl_eq, mem_set_of, false_and, not_false_iff] }
 end
 
 lemma subtype_mk (h : ae_measurable f μ) {s : set β} {hfs : ∀ x, f x ∈ s} :

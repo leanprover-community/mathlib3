@@ -147,7 +147,7 @@ def ne_top_homeomorph_nnreal : {a | a ≠ ∞} ≃ₜ ℝ≥0 :=
 /-- The set of finite `ℝ≥0∞` numbers is homeomorphic to `ℝ≥0`. -/
 def lt_top_homeomorph_nnreal : {a | a < ∞} ≃ₜ ℝ≥0 :=
 by refine (homeomorph.set_congr $ set.ext $ λ x, _).trans ne_top_homeomorph_nnreal;
-  simp only [mem_set_of_eq, lt_top_iff_ne_top]
+  simp only [mem_set_of, lt_top_iff_ne_top]
 
 lemma nhds_top : 𝓝 ∞ = ⨅ a ≠ ∞, 𝓟 (Ioi a) :=
 nhds_top_order.trans $ by simp [lt_top_iff_ne_top, Ioi]
@@ -244,7 +244,7 @@ end
 
 protected lemma tendsto_at_top [nonempty β] [semilattice_sup β] {f : β → ℝ≥0∞} {a : ℝ≥0∞}
   (ha : a ≠ ⊤) : tendsto f at_top (𝓝 a) ↔ ∀ε>0, ∃N, ∀n≥N, (f n) ∈ Icc (a - ε) (a + ε) :=
-by simp only [ennreal.tendsto_nhds ha, mem_at_top_sets, mem_set_of_eq, filter.eventually]
+by simp only [ennreal.tendsto_nhds ha, mem_at_top_sets, mem_set_of, filter.eventually]
 
 instance : has_continuous_add ℝ≥0∞ :=
 begin
@@ -400,7 +400,7 @@ lemma continuous_on_sub :
 begin
   rw continuous_on,
   rintros ⟨x, y⟩ hp,
-  simp only [ne.def, set.mem_set_of_eq, prod.mk.inj_iff] at hp,
+  simp only [ne.def, set.mem_set_of, prod.mk.inj_iff] at hp,
   refine tendsto_nhds_within_of_tendsto_nhds (tendsto_sub (not_and_distrib.mp hp)),
 end
 
@@ -410,7 +410,7 @@ begin
   rw (show (λ x, a - x) = (λ p : ℝ≥0∞ × ℝ≥0∞, p.fst - p.snd) ∘ (λ x, ⟨a, x⟩), by refl),
   apply continuous_on.comp_continuous continuous_on_sub (continuous.prod.mk a),
   intro x,
-  simp only [a_ne_top, ne.def, mem_set_of_eq, prod.mk.inj_iff, false_and, not_false_iff],
+  simp only [a_ne_top, ne.def, mem_set_of, prod.mk.inj_iff, false_and, not_false_iff],
 end
 
 lemma continuous_nnreal_sub {a : ℝ≥0} :
@@ -435,7 +435,7 @@ begin
     apply continuous_on.comp_continuous
       continuous_on_sub (continuous_id'.prod_mk continuous_const),
     intro x,
-    simp only [a_infty, ne.def, mem_set_of_eq, prod.mk.inj_iff, and_false, not_false_iff], },
+    simp only [a_infty, ne.def, mem_set_of, prod.mk.inj_iff, and_false, not_false_iff], },
 end
 
 protected lemma tendsto.pow {f : filter α} {m : α → ℝ≥0∞} {a : ℝ≥0∞} {n : ℕ}
@@ -1228,7 +1228,7 @@ lemma emetric.cauchy_seq_iff_le_tendsto_0 [nonempty β] [semilattice_sup β] {s 
   have C : ∀ n m N, N ≤ n → N ≤ m → edist (s n) (s m) ≤ b N,
   { refine λm n N hm hn, le_Sup _,
     use (prod.mk m n),
-    simp only [and_true, eq_self_iff_true, set.mem_set_of_eq],
+    simp only [and_true, eq_self_iff_true, set.mem_set_of],
     exact ⟨hm, hn⟩ },
   --Prove that it tends to `0`, by using the Cauchy property of `s`
   have D : tendsto b at_top (𝓝 0),
@@ -1237,7 +1237,7 @@ lemma emetric.cauchy_seq_iff_le_tendsto_0 [nonempty β] [semilattice_sup β] {s 
     rcases hs δ δpos with ⟨N, hN⟩,
     refine filter.mem_at_top_sets.2 ⟨N, λn hn, _⟩,
     have : b n ≤ δ := Sup_le begin
-      simp only [and_imp, set.mem_image, set.mem_set_of_eq, exists_imp_distrib, prod.exists],
+      simp only [and_imp, set.mem_image, set.mem_set_of, exists_imp_distrib, prod.exists],
       intros d p q hp hq hd,
       rw ← hd,
       exact le_of_lt (hN p (le_trans hn hp) q (le_trans hn hq))

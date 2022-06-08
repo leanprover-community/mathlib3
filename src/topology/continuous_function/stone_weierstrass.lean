@@ -202,7 +202,7 @@ begin
   { intros x y,
     refine is_open.mem_nhds _ _,
     { apply is_open_lt; continuity, },
-    { rw [set.mem_set_of_eq, w₂],
+    { rw [set.mem_set_of, w₂],
       exact sub_lt_self _ pos, }, },
 
   -- Fixing `x` for a moment, we have a family of functions `λ y, g x y`
@@ -242,7 +242,7 @@ begin
   { intros x,
     refine is_open.mem_nhds _ _,
     { apply is_open_lt; continuity, },
-    { dsimp only [W, set.mem_set_of_eq],
+    { dsimp only [W, set.mem_set_of],
       rw h_eq,
       exact lt_add_of_pos_right _ pos}, },
 

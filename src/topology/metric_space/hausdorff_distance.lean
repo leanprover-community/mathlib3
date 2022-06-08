@@ -972,7 +972,7 @@ lemma cthickening_subset_thickening' {δ₁ δ₂ : ℝ} (δ₂_pos : 0 < δ₂)
 with the same radius. -/
 lemma thickening_subset_cthickening (δ : ℝ) (E : set α) :
   thickening δ E ⊆ cthickening δ E :=
-by { intros x hx, rw [thickening, mem_set_of_eq] at hx, exact hx.le, }
+by { intros x hx, rw [thickening, mem_set_of] at hx, exact hx.le, }
 
 lemma thickening_subset_cthickening_of_le {δ₁ δ₂ : ℝ} (hle : δ₁ ≤ δ₂) (E : set α) :
   thickening δ₁ E ⊆ cthickening δ₂ E :=
@@ -1073,7 +1073,7 @@ begin
   { exact subset_Inter₂ (λ _ hε, cthickening_mono (le_of_lt (hsδ hε)) E), },
   { unfold thickening cthickening,
     intros x hx,
-    simp only [mem_Inter, mem_set_of_eq] at *,
+    simp only [mem_Inter, mem_set_of] at *,
     apply ennreal.le_of_forall_pos_le_add,
     intros η η_pos _,
     rcases hs (δ + η) (lt_add_of_pos_right _ (nnreal.coe_pos.mpr η_pos)) with ⟨ε, ⟨hsε, hε⟩⟩,

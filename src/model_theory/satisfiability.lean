@@ -305,7 +305,7 @@ Theory.model.is_satisfiable M
 
 lemma mem_or_not_mem (φ : L.sentence) :
   φ ∈ L.complete_theory M ∨ φ.not ∈ L.complete_theory M :=
-by simp_rw [complete_theory, set.mem_set_of_eq, sentence.realize, formula.realize_not, or_not]
+by simp_rw [complete_theory, set.mem_set_of, sentence.realize, formula.realize_not, or_not]
 
 lemma is_complete [nonempty M] : (L.complete_theory M).is_complete :=
 ⟨is_satisfiable L M,

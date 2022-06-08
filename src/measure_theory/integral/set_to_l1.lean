@@ -390,7 +390,7 @@ begin
   refine λ x y hxy, h_zero _ ((measurable_set_fiber f x).inter (measurable_set_fiber g y)) _,
   rw [eventually_eq, ae_iff] at h,
   refine measure_mono_null (λ z, _) h,
-  simp_rw [set.mem_inter_iff, set.mem_set_of_eq, set.mem_preimage, set.mem_singleton_iff],
+  simp_rw [set.mem_inter_iff, set.mem_set_of, set.mem_preimage, set.mem_singleton_iff],
   intro h,
   rwa [h.1, h.2],
 end

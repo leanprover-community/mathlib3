@@ -187,7 +187,7 @@ begin
   suffices : {x : E | 0 ≤ x} = has_neg_part.neg ⁻¹' {(0 : E)},
   by { rw this, exact is_closed.preimage continuous_neg' is_closed_singleton, },
   ext1 x,
-  simp only [set.mem_preimage, set.mem_singleton_iff, set.mem_set_of_eq, neg_eq_zero_iff],
+  simp only [set.mem_preimage, set.mem_singleton_iff, set.mem_set_of, neg_eq_zero_iff],
 end
 
 lemma is_closed_le_of_is_closed_nonneg {G} [ordered_add_comm_group G] [topological_space G]

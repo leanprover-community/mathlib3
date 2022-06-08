@@ -1084,7 +1084,7 @@ begin
     simp only [ge_iff_le, principal_mono, Ici_subset_Ici, ← subtype.coe_le_coe, subtype.coe_mk],
     exact ⟨le_sup_left.trans le_sup_left, le_sup_right.trans le_sup_left⟩ },
   haveI : nonempty s := ⟨⟨a, h le_rfl⟩⟩,
-  simp only [le_antisymm_iff, at_top, le_infi_iff, le_principal_iff, mem_map, mem_set_of_eq,
+  simp only [le_antisymm_iff, at_top, le_infi_iff, le_principal_iff, mem_map, mem_set_of,
     map_infi_eq this, map_principal],
   split,
   { intro x,

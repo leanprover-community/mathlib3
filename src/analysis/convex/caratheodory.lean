@@ -50,7 +50,7 @@ lemma mem_convex_hull_erase [decidable_eq E] {t : finset E}
   (h : ¬ affine_independent 𝕜 (coe : t → E)) {x : E} (m : x ∈ convex_hull 𝕜 (↑t : set E)) :
   ∃ (y : (↑t : set E)), x ∈ convex_hull 𝕜 (↑(t.erase y) : set E) :=
 begin
-  simp only [finset.convex_hull_eq, mem_set_of_eq] at m ⊢,
+  simp only [finset.convex_hull_eq, mem_set_of] at m ⊢,
   obtain ⟨f, fpos, fsum, rfl⟩ := m,
   obtain ⟨g, gcombo, gsum, gpos⟩ := exists_nontrivial_relation_sum_zero_of_not_affine_ind h,
   replace gpos := exists_pos_of_sum_zero_of_exists_nonzero g gsum gpos,
@@ -164,7 +164,7 @@ begin
   rw convex_hull_eq_union at hx,
   simp only [exists_prop, set.mem_Union] at hx,
   obtain ⟨t, ht₁, ht₂, ht₃⟩ := hx,
-  simp only [t.convex_hull_eq, exists_prop, set.mem_set_of_eq] at ht₃,
+  simp only [t.convex_hull_eq, exists_prop, set.mem_set_of] at ht₃,
   obtain ⟨w, hw₁, hw₂, hw₃⟩ := ht₃,
   let t' := t.filter (λ i, w i ≠ 0),
   refine ⟨t', t'.fintype_coe_sort, (coe : t' → E), w ∘ (coe : t' → E), _, _, _, _, _⟩,

@@ -79,7 +79,7 @@ enough.
 
 -- register in the simpset `mfld_simps` several lemmas that are often useful when dealing
 -- with manifolds
-attribute [mfld_simps] id.def function.comp.left_id set.mem_set_of_eq set.image_eq_empty
+attribute [mfld_simps] id.def function.comp.left_id set.mem_set_of set.image_eq_empty
 set.univ_inter set.preimage_univ set.prod_mk_mem_set_prod_eq and_true set.mem_univ
 set.mem_image_of_mem true_and set.mem_inter_eq set.mem_preimage function.comp_app
 set.inter_subset_left set.mem_prod set.range_id set.range_prod_map and_self set.mem_range_self

@@ -1235,7 +1235,7 @@ begin
     intros t ht, exact ⟨t, ht, rfl⟩ },
   have hseg' : Icc 0 1 ⊆ g ⁻¹' s,
   { rw ← image_subset_iff, unfold image, change ∀ _, _,
-    intros z Hz, rw mem_set_of_eq at Hz, rcases Hz with ⟨t, Ht, hgt⟩,
+    intros z Hz, rw mem_set_of at Hz, rcases Hz with ⟨t, Ht, hgt⟩,
     rw ← hgt, exact hs.segment_subset xs ys (hseg t Ht) },
 -- derivative of pullback of f under parametrization
   have hfg: ∀ t ∈ Icc (0:ℝ) 1, has_deriv_within_at (f ∘ g)

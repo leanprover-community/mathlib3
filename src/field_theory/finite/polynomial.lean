@@ -170,7 +170,7 @@ variables [comm_ring K]
 
 noncomputable instance decidable_restrict_degree (m : ℕ) :
   decidable_pred (∈ {n : σ →₀ ℕ | ∀i, n i ≤ m }) :=
-by simp only [set.mem_set_of_eq]; apply_instance
+by simp only [set.mem_set_of]; apply_instance
 
 end comm_ring
 

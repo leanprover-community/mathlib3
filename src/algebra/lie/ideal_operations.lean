@@ -287,7 +287,7 @@ begin
     lie_submodule.sup_coe_to_submodule, f.ker_coe_submodule, ← submodule.comap_map_eq,
     lie_submodule.lie_ideal_oper_eq_linear_span, lie_submodule.lie_ideal_oper_eq_linear_span,
     linear_map.map_span],
-  congr, simp only [lie_hom.coe_to_linear_map, set.mem_set_of_eq], ext y,
+  congr, simp only [lie_hom.coe_to_linear_map, set.mem_set_of], ext y,
   split,
   { rintros ⟨⟨x₁, hx₁⟩, ⟨x₂, hx₂⟩, hy⟩, rw ← hy,
     erw [lie_submodule.mem_inf, f.mem_ideal_range_iff h] at hx₁ hx₂,

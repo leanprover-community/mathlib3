@@ -71,11 +71,11 @@ by rw [commensurable_conj, inv_smul_smul]
 such that `commensurable (g • H) H` -/
 def commensurator' (H : subgroup G) : subgroup (conj_act G) :=
 { carrier := {g : conj_act G | commensurable (g • H) H},
-  one_mem' := by rw [set.mem_set_of_eq, one_smul],
+  one_mem' := by rw [set.mem_set_of, one_smul],
   mul_mem' := λ a b ha hb, by
-  { rw [set.mem_set_of_eq, mul_smul],
+  { rw [set.mem_set_of, mul_smul],
     exact trans ((commensurable_conj a).mp hb) ha },
-  inv_mem' := λ a ha, by rwa [set.mem_set_of_eq, comm, ←commensurable_inv] }
+  inv_mem' := λ a ha, by rwa [set.mem_set_of, comm, ←commensurable_inv] }
 
 /-- For `H` a subgroup of `G`, this is the subgroup of all elements `g : G`
 such that `commensurable (g H g⁻¹) H` -/

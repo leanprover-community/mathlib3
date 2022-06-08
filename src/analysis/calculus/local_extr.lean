@@ -288,7 +288,7 @@ begin
       rcases exists_between hab with ⟨c', hc'⟩,
       refine ⟨c', hc', or.inl _⟩,
       assume x hx,
-      rw [mem_set_of_eq, this x hx, ← hC],
+      rw [mem_set_of, this x hx, ← hC],
       exact Cge c' ⟨le_of_lt hc'.1, le_of_lt hc'.2⟩ },
     { refine ⟨C, ⟨lt_of_le_of_ne Cmem.1 $ mt _ hC, lt_of_le_of_ne Cmem.2 $ mt _ hC⟩, or.inr Cge⟩,
       exacts [λ h, by rw h, λ h, by rw [h, hfI]] } },

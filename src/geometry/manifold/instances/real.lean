@@ -140,13 +140,13 @@ def Icc_left_chart (x y : ℝ) [fact (x < y)] :
   target      := {z : euclidean_half_space 1 | z.val 0 < y - x},
   to_fun      := λ(z : Icc x y), ⟨λi, z.val - x, sub_nonneg.mpr z.property.1⟩,
   inv_fun     := λz, ⟨min (z.val 0 + x) y, by simp [le_refl, z.prop, le_of_lt (fact.out (x < y))]⟩,
-  map_source' := by simp only [imp_self, sub_lt_sub_iff_right, mem_set_of_eq, forall_true_iff],
+  map_source' := by simp only [imp_self, sub_lt_sub_iff_right, mem_set_of, forall_true_iff],
   map_target' :=
-    by { simp only [min_lt_iff, mem_set_of_eq], assume z hz, left,
+    by { simp only [min_lt_iff, mem_set_of], assume z hz, left,
          dsimp [-subtype.val_eq_coe] at hz, linarith },
   left_inv'   := begin
     rintros ⟨z, hz⟩ h'z,
-    simp only [mem_set_of_eq, mem_Icc] at hz h'z,
+    simp only [mem_set_of, mem_Icc] at hz h'z,
     simp only [hz, min_eq_left, sub_add_cancel]
   end,
   right_inv'  := begin
@@ -195,13 +195,13 @@ def Icc_right_chart (x y : ℝ) [fact (x < y)] :
   to_fun      := λ(z : Icc x y), ⟨λi, y - z.val, sub_nonneg.mpr z.property.2⟩,
   inv_fun     := λz,
     ⟨max (y - z.val 0) x, by simp [le_refl, z.prop, le_of_lt (fact.out (x < y)), sub_eq_add_neg]⟩,
-  map_source' := by simp only [imp_self, mem_set_of_eq, sub_lt_sub_iff_left, forall_true_iff],
+  map_source' := by simp only [imp_self, mem_set_of, sub_lt_sub_iff_left, forall_true_iff],
   map_target' :=
-    by { simp only [lt_max_iff, mem_set_of_eq], assume z hz, left,
+    by { simp only [lt_max_iff, mem_set_of], assume z hz, left,
          dsimp [-subtype.val_eq_coe] at hz, linarith },
   left_inv'   := begin
     rintros ⟨z, hz⟩ h'z,
-    simp only [mem_set_of_eq, mem_Icc] at hz h'z,
+    simp only [mem_set_of, mem_Icc] at hz h'z,
     simp only [hz, sub_eq_add_neg, max_eq_left, add_add_neg_cancel'_right, neg_add_rev, neg_neg]
   end,
   right_inv'  := begin

@@ -69,7 +69,7 @@ variable [complete_lattice β]
 
 @[simp] lemma ess_sup_measure_zero {m : measurable_space α} {f : α → β} :
   ess_sup f (0 : measure α) = ⊥ :=
-le_bot_iff.mp (Inf_le (by simp [set.mem_set_of_eq, eventually_le, ae_iff]))
+le_bot_iff.mp (Inf_le (by simp [set.mem_set_of, eventually_le, ae_iff]))
 
 @[simp] lemma ess_inf_measure_zero {m : measurable_space α} {f : α → β} :
   ess_inf f (0 : measure α) = ⊤ :=

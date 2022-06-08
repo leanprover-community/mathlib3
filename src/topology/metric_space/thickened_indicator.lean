@@ -86,7 +86,7 @@ lemma thickened_indicator_aux_zero
   {δ : ℝ} (δ_pos : 0 < δ) (E : set α) {x : α} (x_out : x ∉ thickening δ E) :
   thickened_indicator_aux δ E x = 0 :=
 begin
-  rw [thickening, mem_set_of_eq, not_lt] at x_out,
+  rw [thickening, mem_set_of, not_lt] at x_out,
   unfold thickened_indicator_aux,
   apply le_antisymm _ bot_le,
   have key := tsub_le_tsub (@rfl _ (1 : ℝ≥0∞)).le (ennreal.div_le_div x_out rfl.le),
@@ -146,7 +146,7 @@ begin
     rcases δseq_lim with ⟨N, hN⟩,
     apply @tendsto_at_top_of_eventually_const _ _ _ _ _ _ _ N,
     intros n n_large,
-    have key : x ∉ thickening ε E, by rwa [thickening, mem_set_of_eq, not_lt],
+    have key : x ∉ thickening ε E, by rwa [thickening, mem_set_of, not_lt],
     refine le_antisymm _ bot_le,
     apply (thickened_indicator_aux_mono (lt_of_abs_lt (hN n n_large)).le E x).trans,
     exact (thickened_indicator_aux_zero ε_pos E key).le, },

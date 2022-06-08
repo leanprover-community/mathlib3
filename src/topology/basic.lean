@@ -233,7 +233,7 @@ def interior (s : set α) : set α := ⋃₀ {t | is_open t ∧ t ⊆ s}
 
 lemma mem_interior {s : set α} {x : α} :
   x ∈ interior s ↔ ∃ t ⊆ s, is_open t ∧ x ∈ t :=
-by simp only [interior, mem_set_of_eq, exists_prop, and_assoc, and.left_comm]
+by simp only [interior, mem_set_of, exists_prop, and_assoc, and.left_comm]
 
 @[simp] lemma is_open_interior {s : set α} : is_open (interior s) :=
 is_open_sUnion $ assume t ⟨h₁, h₂⟩, h₁
@@ -645,7 +645,7 @@ localized "notation `𝓝[<] ` x:100 := nhds_within x (set.Iio x)" in topologica
 lemma nhds_def (a : α) : 𝓝 a = (⨅ s ∈ {s : set α | a ∈ s ∧ is_open s}, 𝓟 s) := by rw nhds
 
 lemma nhds_def' (a : α) : 𝓝 a = ⨅ (s : set α) (hs : is_open s) (ha : a ∈ s), 𝓟 s :=
-by simp only [nhds_def, mem_set_of_eq, and_comm (a ∈ _), infi_and]
+by simp only [nhds_def, mem_set_of, and_comm (a ∈ _), infi_and]
 
 /-- The open sets containing `a` are a basis for the neighborhood filter. See `nhds_basis_opens'`
 for a variant using open neighborhoods instead. -/
@@ -680,7 +680,7 @@ lemma mem_nhds_iff {a : α} {s : set α} :
 containing `a`. -/
 lemma eventually_nhds_iff {a : α} {p : α → Prop} :
   (∀ᶠ x in 𝓝 a, p x) ↔ ∃ (t : set α), (∀ x ∈ t, p x) ∧ is_open t ∧ a ∈ t :=
-mem_nhds_iff.trans $ by simp only [subset_def, exists_prop, mem_set_of_eq]
+mem_nhds_iff.trans $ by simp only [subset_def, exists_prop, mem_set_of]
 
 lemma map_nhds {a : α} {f : α → β} :
   map f (𝓝 a) = (⨅ s ∈ {s : set α | a ∈ s ∧ is_open s}, 𝓟 (image f s)) :=
@@ -915,14 +915,14 @@ end
 -/
 
 lemma interior_eq_nhds' {s : set α} : interior s = {a | s ∈ 𝓝 a} :=
-set.ext $ λ x, by simp only [mem_interior, mem_nhds_iff, mem_set_of_eq]
+set.ext $ λ x, by simp only [mem_interior, mem_nhds_iff, mem_set_of]
 
 lemma interior_eq_nhds {s : set α} : interior s = {a | 𝓝 a ≤ 𝓟 s} :=
 interior_eq_nhds'.trans $ by simp only [le_principal_iff]
 
 lemma mem_interior_iff_mem_nhds {s : set α} {a : α} :
   a ∈ interior s ↔ s ∈ 𝓝 a :=
-by rw [interior_eq_nhds', mem_set_of_eq]
+by rw [interior_eq_nhds', mem_set_of]
 
 @[simp] lemma interior_mem_nhds {s : set α} {a : α} :
   interior s ∈ 𝓝 a ↔ s ∈ 𝓝 a :=

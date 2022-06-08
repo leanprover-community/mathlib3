@@ -35,7 +35,7 @@ local_homeomorph.of_continuous_open
       obtain rfl : y = 0,
       { rw exp_im at hz,
         simpa [(real.exp_pos _).ne', real.sin_eq_zero_iff_of_lt_of_lt h₁ h₂] using hz },
-      rw [mem_set_of_eq, ← of_real_def, exp_of_real_re],
+      rw [mem_set_of, ← of_real_def, exp_of_real_re],
       exact real.exp_pos x
     end,
   map_target' := λ z h,

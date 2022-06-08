@@ -272,7 +272,7 @@ instance : has_inf (lie_submodule R L M) :=
 
 instance : has_Inf (lie_submodule R L M) :=
 ⟨λ S, { lie_mem := λ x m h, by
-        { simp only [submodule.mem_carrier, mem_Inter, submodule.Inf_coe, mem_set_of_eq,
+        { simp only [submodule.mem_carrier, mem_Inter, submodule.Inf_coe, mem_set_of,
             forall_apply_eq_imp_iff₂, exists_imp_distrib] at *,
           intros N hN, apply N.lie_mem (h N hN), },
         ..Inf {(s : submodule R M) | s ∈ S} }⟩
@@ -286,7 +286,7 @@ instance : has_Inf (lie_submodule R L M) :=
 begin
   rw [← lie_submodule.coe_to_submodule, Inf_coe_to_submodule, submodule.Inf_coe],
   ext m,
-  simpa only [mem_Inter, mem_set_of_eq, forall_apply_eq_imp_iff₂, exists_imp_distrib],
+  simpa only [mem_Inter, mem_set_of, forall_apply_eq_imp_iff₂, exists_imp_distrib],
 end
 
 lemma Inf_glb (S : set (lie_submodule R L M)) : is_glb S (Inf S) :=
@@ -333,7 +333,7 @@ begin
     rintro x m ⟨y, hy, z, hz, rfl⟩,
     refine ⟨⁅x, y⁆, N.lie_mem hy, ⁅x, z⁆, N'.lie_mem hz, (lie_add _ _ _).symm⟩ },
   refine le_antisymm (Inf_le ⟨{ lie_mem := aux, ..(N ⊔ N' : submodule R M) }, _⟩) _,
-  { simp only [exists_prop, and_true, mem_set_of_eq, eq_self_iff_true, coe_to_submodule_mk,
+  { simp only [exists_prop, and_true, mem_set_of, eq_self_iff_true, coe_to_submodule_mk,
       ← coe_submodule_le_coe_submodule, and_self, le_sup_left, le_sup_right] },
   { simp, },
 end

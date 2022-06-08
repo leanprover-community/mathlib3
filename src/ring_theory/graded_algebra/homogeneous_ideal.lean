@@ -418,7 +418,7 @@ begin
   have coe_mono : monotone (to_ideal : homogeneous_ideal 𝒜 → ideal A) := λ x y, id,
   convert coe_mono.map_is_greatest (ideal.homogeneous_core.gc 𝒜).is_greatest_u using 1,
   ext,
-  rw [mem_image, mem_set_of_eq],
+  rw [mem_image, mem_set_of],
   refine ⟨λ hI, ⟨⟨x, hI.1⟩, ⟨hI.2, rfl⟩⟩, by rintro ⟨x, ⟨hx, rfl⟩⟩; exact ⟨x.is_homogeneous, hx⟩⟩,
 end
 
@@ -484,7 +484,7 @@ begin
   rw ←ideal.span_Union,
   apply congr_arg ideal.span _,
   ext1,
-  simp only [set.mem_Union, set.mem_image, mem_set_of_eq, graded_algebra.proj_apply,
+  simp only [set.mem_Union, set.mem_image, mem_set_of, graded_algebra.proj_apply,
     set_like.exists, exists_prop, subtype.coe_mk, set_like.mem_coe],
 end
 

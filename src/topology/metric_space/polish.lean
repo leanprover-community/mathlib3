@@ -217,7 +217,7 @@ begin
   { ext x,
     split,
     { rintros ⟨y, rfl⟩,
-      exact mem_Inter.2 (λ n, by simp only [mem_set_of_eq]) },
+      exact mem_Inter.2 (λ n, by simp only [mem_set_of]) },
     { assume hx,
       refine ⟨x default, _⟩,
       ext1 n,

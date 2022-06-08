@@ -52,7 +52,7 @@ begin
   obtain ⟨ψ, rfl⟩ := h,
   refine ⟨(φ.add_constants A).on_formula ψ, _⟩,
   ext x,
-  simp only [mem_set_of_eq, Lhom.realize_on_formula],
+  simp only [mem_set_of, Lhom.realize_on_formula],
 end
 
 lemma empty_definable_iff :
@@ -100,8 +100,8 @@ begin
   rcases hg with ⟨θ, hθ⟩,
   refine ⟨φ ⊔ θ, _⟩,
   ext,
-  rw [hφ, hθ, mem_set_of_eq, formula.realize_sup, mem_union_eq, mem_set_of_eq,
-    mem_set_of_eq],
+  rw [hφ, hθ, mem_set_of, formula.realize_sup, mem_union_eq, mem_set_of,
+    mem_set_of],
 end
 
 lemma definable_finset_inf {ι : Type*} {f : Π (i : ι), set (α → M)}
@@ -163,7 +163,7 @@ begin
   obtain ⟨φ, rfl⟩ := h,
   refine ⟨(φ.relabel f), _⟩,
   ext,
-  simp only [set.preimage_set_of_eq, mem_set_of_eq, formula.realize_relabel],
+  simp only [set.preimage_set_of_eq, mem_set_of, formula.realize_relabel],
 end
 
 lemma definable.image_comp_equiv {s : set (β → M)}
@@ -191,7 +191,7 @@ begin
   obtain ⟨φ, rfl⟩ := h,
   refine ⟨(bounded_formula.relabel id φ).exs, _⟩,
   ext x,
-  simp only [set.mem_image, mem_set_of_eq, bounded_formula.realize_exs,
+  simp only [set.mem_image, mem_set_of, bounded_formula.realize_exs,
     bounded_formula.realize_relabel, function.comp.right_id, fin.coe_cast_add_zero],
   split,
   { rintro ⟨y, hy, rfl⟩,
@@ -234,7 +234,7 @@ begin
     simp },
   refine (congr rfl (ext (λ x, _))).mp (h.inter h'),
   simp only [equiv.coe_trans, mem_inter_eq, mem_preimage, mem_image,
-    exists_exists_and_eq_and, mem_set_of_eq],
+    exists_exists_and_eq_and, mem_set_of],
   split,
   { rintro ⟨⟨y, ys, hy⟩, hx⟩,
     refine ⟨y, ys, _⟩,

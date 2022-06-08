@@ -82,7 +82,7 @@ Inf $ finset.card '' {t : finset G | K ⊆ ⋃ g ∈ t, (λ h, g * h) ⁻¹' V }
 lemma index_empty {V : set G} : index ∅ V = 0 :=
 begin
   simp only [index, nat.Inf_eq_zero], left, use ∅,
-  simp only [finset.card_empty, empty_subset, mem_set_of_eq, eq_self_iff_true, and_self],
+  simp only [finset.card_empty, empty_subset, mem_set_of, eq_self_iff_true, and_self],
 end
 
 variables [topological_space G]
@@ -113,7 +113,7 @@ pi univ (λ K, Icc 0 $ index (K : set G) K₀)
 @[simp, to_additive]
 lemma mem_prehaar_empty {K₀ : set G} {f : compacts G → ℝ} :
   f ∈ haar_product K₀ ↔ ∀ K : compacts G, f K ∈ Icc (0 : ℝ) (index (K : set G) K₀) :=
-by simp only [haar_product, pi, forall_prop_of_true, mem_univ, mem_set_of_eq]
+by simp only [haar_product, pi, forall_prop_of_true, mem_univ, mem_set_of]
 
 /-- The closure of the collection of elements of the form `prehaar K₀ U`,
   for `U` open neighbourhoods of `1`, contained in `V`. The closure is taken in the space
@@ -151,7 +151,7 @@ begin
   obtain ⟨t, h1t, h2t⟩ := index_elim K₀.compact hV,
   rw [← h2s, ← h2t, mul_comm],
   refine le_trans _ finset.card_mul_le,
-  apply nat.Inf_le, refine ⟨_, _, rfl⟩, rw [mem_set_of_eq], refine subset.trans h1s _,
+  apply nat.Inf_le, refine ⟨_, _, rfl⟩, rw [mem_set_of], refine subset.trans h1s _,
   apply Union₂_subset, intros g₁ hg₁, rw preimage_subset_iff, intros g₂ hg₂,
   have := h1t hg₂,
   rcases this with ⟨_, ⟨g₃, rfl⟩, A, ⟨hg₃, rfl⟩, h2V⟩, rw [mem_preimage, ← mul_assoc] at h2V,
@@ -185,7 +185,7 @@ begin
   rcases index_elim K₂.2 hV with ⟨t, h1t, h2t⟩,
   rw [← h2s, ← h2t],
   refine le_trans _ (finset.card_union_le _ _),
-  apply nat.Inf_le, refine ⟨_, _, rfl⟩, rw [mem_set_of_eq],
+  apply nat.Inf_le, refine ⟨_, _, rfl⟩, rw [mem_set_of],
   apply union_subset; refine subset.trans (by assumption) _; apply bUnion_subset_bUnion_left;
     intros g hg; simp only [mem_def] at hg;
     simp only [mem_def, multiset.mem_union, finset.union_val, hg, or_true, true_or]
@@ -200,7 +200,7 @@ begin
   rcases index_elim (K₁.2.union K₂.2) hV with ⟨s, h1s, h2s⟩, rw [← h2s],
   have : ∀ (K : set G) , K ⊆ (⋃ g ∈ s, (λ h, g * h) ⁻¹' V) →
     index K V ≤ (s.filter (λ g, ((λ (h : G), g * h) ⁻¹' V ∩ K).nonempty)).card,
-  { intros K hK, apply nat.Inf_le, refine ⟨_, _, rfl⟩, rw [mem_set_of_eq],
+  { intros K hK, apply nat.Inf_le, refine ⟨_, _, rfl⟩, rw [mem_set_of],
     intros g hg, rcases hK hg with ⟨_, ⟨g₀, rfl⟩, _, ⟨h1g₀, rfl⟩, h2g₀⟩,
     simp only [mem_preimage] at h2g₀,
     simp only [mem_Union], use g₀, split,
@@ -229,7 +229,7 @@ begin
   rcases index_elim hK hV with ⟨s, h1s, h2s⟩, rw [← h2s],
   apply nat.Inf_le, rw [mem_image],
   refine ⟨s.map (equiv.mul_right g⁻¹).to_embedding, _, finset.card_map _⟩,
-  { simp only [mem_set_of_eq], refine subset.trans (image_subset _ h1s) _,
+  { simp only [mem_set_of], refine subset.trans (image_subset _ h1s) _,
     rintro _ ⟨g₁, ⟨_, ⟨g₂, rfl⟩, ⟨_, ⟨hg₂, rfl⟩, hg₁⟩⟩, rfl⟩,
     simp only [mem_preimage] at hg₁, simp only [exists_prop, mem_Union, finset.mem_map,
       equiv.coe_mul_right, exists_exists_and_eq_and, mem_preimage, equiv.to_embedding_apply],
@@ -323,7 +323,7 @@ begin
   split,
   { apply prehaar_mem_haar_product K₀, use 1, rwa h1V₀.interior_eq },
   { simp only [mem_Inter], rintro ⟨V, hV⟩ h2V, apply subset_closure,
-    apply mem_image_of_mem, rw [mem_set_of_eq],
+    apply mem_image_of_mem, rw [mem_set_of],
     exact ⟨subset.trans (Inter_subset _ ⟨V, hV⟩) (Inter_subset _ h2V), h1V₀, h2V₀⟩ },
 end
 

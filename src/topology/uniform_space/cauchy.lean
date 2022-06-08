@@ -268,7 +268,7 @@ begin
   rw [cauchy_seq_iff_tendsto, ← prod_at_top_at_top_eq],
   refine (at_top_basis.prod_self.tendsto_iff h).trans _,
   simp only [exists_prop, true_and, maps_to, preimage, subset_def, prod.forall,
-    mem_prod_eq, mem_set_of_eq, mem_Ici, and_imp, prod.map, ge_iff_le, @forall_swap (_ ≤ _) β]
+    mem_prod_eq, mem_set_of, mem_Ici, and_imp, prod.map, ge_iff_le, @forall_swap (_ ≤ _) β]
 end
 
 lemma filter.has_basis.cauchy_seq_iff' {γ} [nonempty β] [semilattice_sup β] {u : β → α}

@@ -63,7 +63,7 @@ begin
   let S : set ℕ := { n | ∃ (s : ℤ × ℤ × ℤ), fermat_42 s.1 s.2.1 s.2.2 ∧ n = int.nat_abs s.2.2},
   have S_nonempty : S.nonempty,
   { use int.nat_abs c,
-    rw set.mem_set_of_eq,
+    rw set.mem_set_of,
     use ⟨a, ⟨b, c⟩⟩, tauto },
   let m : ℕ := nat.find S_nonempty,
   have m_mem : m ∈ S := nat.find_spec S_nonempty,

@@ -320,7 +320,7 @@ begin
   intros γ,
   ext x,
   rw mem_smul_set_iff_inv_smul_mem,
-  simp only [mem_set_of_eq, hf (γ⁻¹) x],
+  simp only [mem_set_of, hf (γ⁻¹) x],
 end
 
 end is_fundamental_domain

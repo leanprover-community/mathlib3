@@ -1575,7 +1575,7 @@ begin
       at hn hm,
     simp [hn, hm] },
   { intros n hn m hm h,
-    simp only [length, set.mem_set_of_eq] at hn hm,
+    simp only [length, set.mem_set_of] at hn hm,
     simp only [mem_cons_iff, not_or_distrib] at hx,
     cases n;
     cases m,

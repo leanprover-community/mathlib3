@@ -174,7 +174,7 @@ begin
     rw [span_le_span_iff hs (this b) (this a),
       set.image_subset_image_iff (subtype.coe_injective.comp f.injective),
       set.subset_def],
-    simp only [set.mem_set_of_eq],
+    simp only [set.mem_set_of],
     exact ⟨λ hab x, le_trans hab, λ h, (h _ le_rfl)⟩ },
   exact ⟨⟨λ n, span R ((coe ∘ f) '' {m | n ≤ m}),
       λ x y, by simp [le_antisymm_iff, (this _ _).symm] {contextual := tt}⟩,

@@ -393,7 +393,7 @@ begin
     exact eq_empty_iff_forall_not_mem.mp (u_v_disjoint γ) (γ • x)
       ⟨(mem_Inter₂.mp x_in_U₀₀ γ H : _), mem_Inter₂.mp h γ H⟩ },
   { rintros ⟨-, h'⟩,
-    simp only [image_smul, not_not, mem_set_of_eq, ne.def] at H,
+    simp only [image_smul, not_not, mem_set_of, ne.def] at H,
     exact eq_empty_iff_forall_not_mem.mp H (γ • x) ⟨mem_image_of_mem _ x_in_K₀, h'⟩ },
 end
 

@@ -443,7 +443,7 @@ begin
   refine ((l.has_basis_to_filter_distortion_Union I c ⊤).tendsto_iff
     (l.has_basis_to_filter_distortion_Union J _ _)).2 (λ r hr, _),
   refine ⟨r, hr, λ π hπ, _⟩,
-  rw [mem_set_of_eq, prepartition.Union_top] at hπ,
+  rw [mem_set_of, prepartition.Union_top] at hπ,
   refine ⟨⟨hπ.1.1, hπ.1.2, λ hD, le_trans (hπ.1.3 hD) (le_max_left _ _), λ hD, _⟩, _⟩,
   { refine ⟨_, π₀.Union_compl.trans _, le_max_right _ _⟩, congr' 1,
     exact (prepartition.Union_single h).trans hπ.2.symm },

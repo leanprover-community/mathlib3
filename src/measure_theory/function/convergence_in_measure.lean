@@ -115,7 +115,7 @@ begin
   suffices : {x : α | ε ≤ dist (f n x) (g x)} ⊆ t, from (measure_mono this).trans ht,
   rw ← set.compl_subset_compl,
   intros x hx,
-  rw [set.mem_compl_eq, set.nmem_set_of_eq, dist_comm, not_le],
+  rw [set.mem_compl_eq, set.nmem_set_of, dist_comm, not_le],
   exact hN n hn x hx,
 end
 
@@ -217,7 +217,7 @@ begin
   { refine λ x hx, metric.tendsto_at_top.mpr (λ ε hε, _),
     rw [hs, limsup_eq_infi_supr_of_nat] at hx,
     simp only [set.supr_eq_Union, set.infi_eq_Inter, set.compl_Inter, set.compl_Union,
-      set.mem_Union, set.mem_Inter, set.mem_compl_eq, set.mem_set_of_eq, not_le] at hx,
+      set.mem_Union, set.mem_Inter, set.mem_compl_eq, set.mem_set_of, not_le] at hx,
     obtain ⟨N, hNx⟩ := hx,
     obtain ⟨k, hk_lt_ε⟩ := h_lt_ε_real ε hε,
     refine ⟨max N (k - 1), λ n hn_ge, lt_of_le_of_lt _ hk_lt_ε⟩,
@@ -232,7 +232,7 @@ begin
     exact le_trans hNx.le h_inv_n_le_k },
   rw ae_iff,
   refine ⟨exists_seq_tendsto_ae.seq_tendsto_ae_seq_strict_mono hfg, measure_mono_null (λ x, _) hμs⟩,
-  rw [set.mem_set_of_eq, ← @not_not (x ∈ s), not_imp_not],
+  rw [set.mem_set_of, ← @not_not (x ∈ s), not_imp_not],
   exact h_tendsto x,
 end
 
@@ -345,7 +345,7 @@ begin
   refine ((le_of_eq _).trans (ae_lt_of_ess_sup_lt this).le).trans hε.le,
   congr' with x,
   simp only [ennreal.of_real_le_iff_le_to_real ennreal.coe_lt_top.ne, ennreal.coe_to_real,
-    not_lt, coe_nnnorm, set.mem_set_of_eq, set.mem_compl_eq],
+    not_lt, coe_nnnorm, set.mem_set_of, set.mem_compl_eq],
   rw ← dist_eq_norm (f n x) (g x),
   refl
 end

@@ -61,12 +61,12 @@ localized "notation `[` x ` -[` 𝕜 `] ` y `]` := segment 𝕜 x y" in convex
 
 lemma segment_eq_image₂ (x y : E) :
   [x -[𝕜] y] = (λ p : 𝕜 × 𝕜, p.1 • x + p.2 • y) '' {p | 0 ≤ p.1 ∧ 0 ≤ p.2 ∧ p.1 + p.2 = 1} :=
-by simp only [segment, image, prod.exists, mem_set_of_eq, exists_prop, and_assoc]
+by simp only [segment, image, prod.exists, mem_set_of, exists_prop, and_assoc]
 
 lemma open_segment_eq_image₂ (x y : E) :
   open_segment 𝕜 x y =
     (λ p : 𝕜 × 𝕜, p.1 • x + p.2 • y) '' {p | 0 < p.1 ∧ 0 < p.2 ∧ p.1 + p.2 = 1} :=
-by simp only [open_segment, image, prod.exists, mem_set_of_eq, exists_prop, and_assoc]
+by simp only [open_segment, image, prod.exists, mem_set_of, exists_prop, and_assoc]
 
 lemma segment_symm (x y : E) : [x -[𝕜] y] = [y -[𝕜] x] :=
 set.ext $ λ z,
@@ -1075,7 +1075,7 @@ def std_simplex : set (ι → 𝕜) :=
 
 lemma std_simplex_eq_inter :
   std_simplex 𝕜 ι = (⋂ x, {f | 0 ≤ f x}) ∩ {f | ∑ x, f x = 1} :=
-by { ext f, simp only [std_simplex, set.mem_inter_eq, set.mem_Inter, set.mem_set_of_eq] }
+by { ext f, simp only [std_simplex, set.mem_inter_eq, set.mem_Inter, set.mem_set_of] }
 
 lemma convex_std_simplex : convex 𝕜 (std_simplex 𝕜 ι) :=
 begin

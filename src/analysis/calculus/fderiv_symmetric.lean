@@ -156,7 +156,7 @@ begin
       { refine ⟨_, xt_mem t ⟨ht.1, ht.2.le⟩⟩,
         rw [add_assoc, add_mem_ball_iff_norm],
         exact I.trans_lt hδ },
-      simpa only [mem_set_of_eq, add_assoc x, add_sub_cancel'] using sδ H,
+      simpa only [mem_set_of, add_assoc x, add_sub_cancel'] using sδ H,
     end
     ... ≤ (ε * (∥h • v∥ + ∥h • w∥)) * (∥h • w∥) :
     begin

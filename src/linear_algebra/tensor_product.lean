@@ -624,7 +624,7 @@ lemma map_range_eq_span_tmul (f : M →ₗ[R] P) (g : N →ₗ[R] Q) :
   (map f g).range = submodule.span R { t | ∃ m n, (f m) ⊗ₜ (g n) = t } :=
 begin
   simp only [← submodule.map_top, ← span_tmul_eq_top, submodule.map_span, set.mem_image,
-    set.mem_set_of_eq],
+    set.mem_set_of],
   congr, ext t,
   split,
   { rintros ⟨_, ⟨⟨m, n, rfl⟩, rfl⟩⟩, use [m, n], simp only [map_tmul], },

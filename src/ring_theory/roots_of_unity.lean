@@ -78,8 +78,8 @@ variables {k l : ℕ+}
 def roots_of_unity (k : ℕ+) (M : Type*) [comm_monoid M] : subgroup Mˣ :=
 { carrier := { ζ | ζ ^ (k : ℕ) = 1 },
   one_mem' := one_pow _,
-  mul_mem' := λ ζ ξ hζ hξ, by simp only [*, set.mem_set_of_eq, mul_pow, one_mul] at *,
-  inv_mem' := λ ζ hζ, by simp only [*, set.mem_set_of_eq, inv_pow, inv_one] at * }
+  mul_mem' := λ ζ ξ hζ hξ, by simp only [*, set.mem_set_of, mul_pow, one_mul] at *,
+  inv_mem' := λ ζ hζ, by simp only [*, set.mem_set_of, inv_pow, inv_one] at * }
 
 @[simp] lemma mem_roots_of_unity (k : ℕ+) (ζ : Mˣ) :
   ζ ∈ roots_of_unity k M ↔ ζ ^ (k : ℕ) = 1 := iff.rfl

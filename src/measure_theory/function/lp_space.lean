@@ -868,7 +868,7 @@ begin
     by rw h_set_eq,
   ext1 a,
   suffices h_meas_eq : ν {x | ¬ f x ≤ a} = ν.trim hm {x | ¬ f x ≤ a},
-    by simp_rw [set.mem_set_of_eq, ae_iff, h_meas_eq],
+    by simp_rw [set.mem_set_of, ae_iff, h_meas_eq],
   refine (trim_measurable_set_eq hm _).symm,
   refine @measurable_set.compl _ _ m (@measurable_set_le ℝ≥0∞ _ _ _ _ m _ _ _ _ _ hf _),
   exact @measurable_const _ _ _ m _,
@@ -1346,7 +1346,7 @@ def Lp {α} (E : Type*) {m : measurable_space α} [normed_group E]
   add_mem' := λ f g hf hg, by simp [snorm_congr_ae (ae_eq_fun.coe_fn_add _ _),
     snorm_add_lt_top ⟨f.ae_strongly_measurable, hf⟩ ⟨g.ae_strongly_measurable, hg⟩],
   neg_mem' := λ f hf,
-    by rwa [set.mem_set_of_eq, snorm_congr_ae (ae_eq_fun.coe_fn_neg _), snorm_neg] }
+    by rwa [set.mem_set_of, snorm_congr_ae (ae_eq_fun.coe_fn_neg _), snorm_neg] }
 
 localized "notation α ` →₁[`:25 μ `] ` E := measure_theory.Lp E 1 μ" in measure_theory
 localized "notation α ` →₂[`:25 μ `] ` E := measure_theory.Lp E 2 μ" in measure_theory
@@ -1663,7 +1663,7 @@ begin
   have h' := ae_iff.mp (ae_lt_of_ess_sup_lt h),
   push_neg at h',
   refine hμs (measure_mono_null (λ x hx_mem, _) h'),
-  rw [set.mem_set_of_eq, set.indicator_of_mem hx_mem],
+  rw [set.mem_set_of, set.indicator_of_mem hx_mem],
   exact le_rfl,
 end
 

@@ -504,7 +504,7 @@ theorem exists_top (p : linear_pmap ℝ E ℝ)
   (hp_dense : ∀ y, ∃ x : p.domain, (x : E) + y ∈ s) :
   ∃ q ≥ p, q.domain = ⊤ ∧ ∀ x : q.domain, (x : E) ∈ s → 0 ≤ q x :=
 begin
-  replace hp_nonneg : p ∈ { p | _ }, by { rw mem_set_of_eq, exact hp_nonneg },
+  replace hp_nonneg : p ∈ { p | _ }, by { rw mem_set_of, exact hp_nonneg },
   obtain ⟨q, hqs, hpq, hq⟩ := zorn_nonempty_partial_order₀ _ _ _ hp_nonneg,
   { refine ⟨q, hpq, _, hqs⟩,
     contrapose! hq,
@@ -577,7 +577,7 @@ begin
   { exact λ x hx, le_trans (hf _) hx },
   { rintros ⟨x, y⟩,
     refine ⟨⟨(0, N x - y), ⟨f.domain.zero_mem, trivial⟩⟩, _⟩,
-    simp only [convex_cone.mem_mk, mem_set_of_eq, subtype.coe_mk, prod.fst_add, prod.snd_add,
+    simp only [convex_cone.mem_mk, mem_set_of, subtype.coe_mk, prod.fst_add, prod.snd_add,
       zero_add, sub_add_cancel] }
 end
 

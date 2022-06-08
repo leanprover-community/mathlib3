@@ -216,7 +216,7 @@ meta def filter_upwards
 do
   (s.get_or_else []).reverse.mmap (λ e, eapplyc `filter.mp_mem >> eapply e),
   eapplyc `filter.univ_mem',
-  `[dsimp only [set.mem_set_of_eq]],
+  `[dsimp only [set.mem_set_of]],
   let wth := wth.get_or_else [],
   if ¬wth.empty then intros wth else skip,
   match tgt with
@@ -262,7 +262,7 @@ section join
 /-- The join of a filter of filters is defined by the relation `s ∈ join f ↔ {t | s ∈ t} ∈ f`. -/
 def join (f : filter (filter α)) : filter α :=
 { sets             := {s | {t : filter α | s ∈ t} ∈ f},
-  univ_sets        := by simp only [mem_set_of_eq, univ_sets, ← filter.mem_sets, set_of_true],
+  univ_sets        := by simp only [mem_set_of, univ_sets, ← filter.mem_sets, set_of_true],
   sets_of_superset := λ x y hx xy,
     mem_of_superset hx $ λ f h, mem_of_superset h xy,
   inter_sets       := λ x y hx hy,
@@ -1534,7 +1534,7 @@ mem_comap'
 by simp only [filter.frequently, eventually_comap, not_exists, not_and]
 
 lemma mem_comap_iff_compl : s ∈ comap f l ↔ (f '' sᶜ)ᶜ ∈ l :=
-by simp only [mem_comap', compl_def, mem_image, mem_set_of_eq, not_exists, not_and', not_not]
+by simp only [mem_comap', compl_def, mem_image, mem_set_of, not_exists, not_and', not_not]
 
 lemma compl_mem_comap : sᶜ ∈ comap f l ↔ (f '' s)ᶜ ∈ l :=
 by rw [mem_comap_iff_compl, compl_compl]
@@ -1603,7 +1603,7 @@ protected lemma is_lawful_monad : is_lawful_monad filter :=
   pure_bind  := λ α β, pure_bind,
   bind_assoc := λ α β γ f m₁ m₂, filter_eq rfl,
   bind_pure_comp_eq_map := λ α β f x, filter.ext $ λ s,
-    by simp only [has_bind.bind, bind, functor.map, mem_map', mem_join, mem_set_of_eq,
+    by simp only [has_bind.bind, bind, functor.map, mem_map', mem_join, mem_set_of,
       comp, mem_pure] }
 end
 
@@ -2434,7 +2434,7 @@ iff.rfl
 
 @[simp] lemma map_inf_principal_preimage {f : α → β} {s : set β} {l : filter α} :
   map f (l ⊓ 𝓟 (f ⁻¹' s)) = map f l ⊓ 𝓟 s :=
-filter.ext $ λ t, by simp only [mem_map', mem_inf_principal, mem_set_of_eq, mem_preimage]
+filter.ext $ λ t, by simp only [mem_map', mem_inf_principal, mem_set_of, mem_preimage]
 
 /-- If two filters are disjoint, then a function cannot tend to both of them along a non-trivial
 filter. -/

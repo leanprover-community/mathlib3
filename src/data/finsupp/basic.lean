@@ -2012,10 +2012,10 @@ lemma filter_eq_indicator : ⇑(f.filter p) = set.indicator {x | p x} f := rfl
 
 lemma filter_eq_zero_iff : f.filter p = 0 ↔ ∀ x, p x → f x = 0 :=
 by simp only [fun_like.ext_iff, filter_eq_indicator, zero_apply, set.indicator_apply_eq_zero,
-  set.mem_set_of_eq]
+  set.mem_set_of]
 
 lemma filter_eq_self_iff : f.filter p = f ↔ ∀ x, f x ≠ 0 → p x :=
-by simp only [fun_like.ext_iff, filter_eq_indicator, set.indicator_apply_eq_self, set.mem_set_of_eq,
+by simp only [fun_like.ext_iff, filter_eq_indicator, set.indicator_apply_eq_self, set.mem_set_of,
   not_imp_comm]
 
 @[simp] lemma filter_apply_pos {a : α} (h : p a) : f.filter p a = f a :=

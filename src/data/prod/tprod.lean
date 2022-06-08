@@ -133,7 +133,7 @@ lemma mk_preimage_tprod : ∀ (l : list ι) (t : Π i, set (α i)),
   change tprod.mk l f ∈ set.tprod l t ↔ ∀ (i : ι), i ∈ l → f i ∈ t i at this,
   /- `simp [set.tprod, tprod.mk, this]` can close this goal but is slow. -/
   rw [set.tprod, tprod.mk, mem_preimage, mem_pi, prod_mk_mem_set_prod_eq],
-  simp_rw [mem_set_of_eq, mem_cons_iff],
+  simp_rw [mem_set_of, mem_cons_iff],
   rw [forall_eq_or_imp, and.congr_right_iff],
   exact λ _, this
 end

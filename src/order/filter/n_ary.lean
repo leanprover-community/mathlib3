@@ -39,7 +39,7 @@ def map₂ (m : α → β → γ) (f : filter α) (g : filter β) : filter γ :=
     Exists₂.imp (λ u v, and.imp_right $ and.imp_right $ λ h, subset.trans h hst) hs,
   inter_sets := λ s t,
   begin
-    simp only [exists_prop, mem_set_of_eq, subset_inter_iff],
+    simp only [exists_prop, mem_set_of, subset_inter_iff],
     rintro ⟨s₁, s₂, hs₁, hs₂, hs⟩ ⟨t₁, t₂, ht₁, ht₂, ht⟩,
     exact ⟨s₁ ∩ t₁, s₂ ∩ t₂, inter_sets f hs₁ ht₁, inter_sets g hs₂ ht₂,
       (image2_subset (inter_subset_left _ _) $ inter_subset_left _ _).trans hs,
@@ -188,7 +188,7 @@ def map₃ (m : α → β → γ → δ) (f : filter α) (g : filter β) (h : fi
     (λ u v w, and.imp_right $ and.imp_right $ and.imp_right $ λ h, subset.trans h hst) hs,
   inter_sets := λ s t,
   begin
-    simp only [exists_prop, mem_set_of_eq, subset_inter_iff],
+    simp only [exists_prop, mem_set_of, subset_inter_iff],
     rintro ⟨s₁, s₂, s₃, hs₁, hs₂, hs₃, hs⟩ ⟨t₁, t₂, t₃, ht₁, ht₂, ht₃, ht⟩,
     exact ⟨s₁ ∩ t₁, s₂ ∩ t₂, s₃ ∩ t₃, inter_mem hs₁ ht₁, inter_mem hs₂ ht₂, inter_mem hs₃ ht₃,
       (image3_mono (inter_subset_left _ _) (inter_subset_left _ _) $ inter_subset_left _ _).trans

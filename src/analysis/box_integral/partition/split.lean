@@ -58,7 +58,7 @@ mk' I.lower (update I.upper i (min x (I.upper i)))
 begin
   rw [split_lower, coe_mk'],
   ext y,
-  simp only [mem_univ_pi, mem_Ioc, mem_inter_eq, mem_coe, mem_set_of_eq, forall_and_distrib,
+  simp only [mem_univ_pi, mem_Ioc, mem_inter_eq, mem_coe, mem_set_of, forall_and_distrib,
     ← pi.le_def, le_update_iff, le_min_iff, and_assoc, and_forall_ne i, mem_def],
   rw [and_comm (y i ≤ x), pi.le_def]
 end
@@ -91,7 +91,7 @@ mk' (update I.lower i (max x (I.lower i))) I.upper
 begin
   rw [split_upper, coe_mk'],
   ext y,
-  simp only [mem_univ_pi, mem_Ioc, mem_inter_eq, mem_coe, mem_set_of_eq, forall_and_distrib,
+  simp only [mem_univ_pi, mem_Ioc, mem_inter_eq, mem_coe, mem_set_of, forall_and_distrib,
     forall_update_iff I.lower (λ j z, z < y j), max_lt_iff, and_assoc (x < y i),
     and_forall_ne i, mem_def],
   exact and_comm _ _

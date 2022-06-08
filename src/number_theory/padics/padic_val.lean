@@ -449,15 +449,12 @@ begin
   exact lt_irrefl 0 (lt_of_lt_of_le zero_lt_one hp),
 end
 
-lemma pow_padic_val_nat_dvd {p n : ℕ} [fact (nat.prime p)] : p ^ (padic_val_nat p n) ∣ n :=
+lemma pow_padic_val_nat_dvd {p n : ℕ} : p ^ (padic_val_nat p n) ∣ n :=
 begin
-  cases nat.eq_zero_or_pos n with hn hn,
-  { rw hn, exact dvd_zero (p ^ padic_val_nat p 0) },
-  { rw multiplicity.pow_dvd_iff_le_multiplicity,
-    apply le_of_eq,
-    rw padic_val_nat_def hn,
-    { apply enat.coe_get },
-    { apply_instance } }
+  rcases n.eq_zero_or_pos with rfl | hn, { simp },
+  rcases eq_or_ne p 1 with rfl | hp, { simp },
+  rw multiplicity.pow_dvd_iff_le_multiplicity,
+  simp [le_of_eq, padic_val_nat, hp, hn],
 end
 
 lemma pow_succ_padic_val_nat_not_dvd {p n : ℕ} [hp : fact (nat.prime p)] (hn : 0 < n) :

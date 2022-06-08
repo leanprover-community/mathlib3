@@ -1379,7 +1379,7 @@ begin
   exact le_trans (nat.Inf_le hk₂) hk₁
 end
 
-lemma hitting_le_eq_Union_nat_of_lt_default {i n : ℕ} (hin : i < n) :
+lemma hitting_le_eq_Union_nat_of_lt {i n : ℕ} (hin : i < n) :
   { x | hitting u s n x ≤ i } = ⋃ j ≤ i, u j ⁻¹' s :=
 begin
   ext x,
@@ -1395,7 +1395,7 @@ begin
       exact false.elim (hj j (le_trans hj₁ hin.le) hj₂) } }
 end
 
-lemma hitting_le_eq_Union_nat_of_default_le {i n : ℕ} (hin : n ≤ i) :
+lemma hitting_le_eq_Union_nat_of_le {i n : ℕ} (hin : n ≤ i) :
   { x | hitting u s n x ≤ i } = { x | ∀ j ≤ n, u j x ∉ s } ∪ ⋃ j ≤ i, u j ⁻¹' s :=
 begin
   ext x,
@@ -1420,10 +1420,10 @@ lemma hitting_is_stopping_time_nat
 begin
   intro i,
   by_cases hin : i < n,
-  { rw hitting_le_eq_Union_nat_of_lt_default hin,
+  { rw hitting_le_eq_Union_nat_of_lt hin,
     exact measurable_set.Union (λ j, measurable_set.Union_Prop $
       λ hj, f.mono hj _ ((hu j).measurable hs)) },
-  { rw [hitting_le_eq_Union_nat_of_default_le (not_lt.1 hin),
+  { rw [hitting_le_eq_Union_nat_of_le (not_lt.1 hin),
       (by { ext, simp } : { x | ∀ j, j ≤ n → u j x ∉ s } = ⋂ j ≤ n, { x | u j x ∉ s })],
     exact measurable_set.union
       (measurable_set.Inter (λ j, measurable_set.Inter_Prop $

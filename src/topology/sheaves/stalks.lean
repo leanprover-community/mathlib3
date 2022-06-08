@@ -315,7 +315,7 @@ by { ext, delta stalk_functor, simpa [stalk_specializes] }
 
 @[simp, reassoc, elementwise]
 lemma stalk_specializes_stalk_pushforward (f : X ⟶ Y) (F : X.presheaf C) {x y : X} (h : x ⤳ y) :
-  (f _* F).stalk_specializes (f.map_specialization h) ≫ F.stalk_pushforward _ f x =
+  (f _* F).stalk_specializes (f.map_specializes h) ≫ F.stalk_pushforward _ f x =
     F.stalk_pushforward _ f y ≫ F.stalk_specializes h :=
 by { ext, delta stalk_pushforward, simpa [stalk_specializes] }
 

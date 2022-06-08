@@ -1295,25 +1295,38 @@ section hitting
 
 /-- Hitting time: given a stochastic process `u` and a set `s`, `hitting u s` is the first time
 `u` is in `s`. The hitting time is a stopping time if the process is adapted and discrete. -/
-def hitting [has_Inf ι] (u : ι → α → β) (s : set β) : α → ι :=
-λ x, Inf { i : ι | u i x ∈ s }
+noncomputable def hitting [has_Inf ι] (u : ι → α → β) (s : set β) (default : ι) : α → ι :=
+λ x, if ∃ j, u j x ∈ s then Inf { i : ι | u i x ∈ s } else default
+
+section
 
 variables [complete_linear_order ι] {u : ι → α → β} {s : set β} {f : filtration ι m}
 
+@[simp]
+lemma hitting_eq_Inf (x : α) : hitting u s ⊤ x = Inf { i : ι | u i x ∈ s } :=
+begin
+  simp only [hitting, ite_eq_left_iff],
+  intro h,
+  have : {i : ι | u i x ∈ s} = ∅,
+  { push_neg at h,
+    rwa set.eq_empty_iff_forall_not_mem },
+  exact this.symm ▸ Inf_empty.symm
+end
+
 lemma hitting_lt_eq_Union (i : ι) :
-  { x | hitting u s x < i } = ⋃ j < i, u j ⁻¹' s :=
+  { x | hitting u s ⊤ x < i } = ⋃ j < i, u j ⁻¹' s :=
 begin
   ext x,
-  simp only [hitting, set.mem_set_of_eq, set.mem_Union, set.mem_preimage,
+  simp only [hitting_eq_Inf, set.mem_set_of_eq, set.mem_Union, set.mem_preimage,
     exists_prop, Inf_lt_iff, and_comm]
 end
 
-lemma hitting_le_eq_Union [nontrivial ι] [is_well_order ι (<)] {i : ι} (hi : i ≠ ⊤):
-  { x | hitting u s x ≤ i } = ⋃ j ≤ i, u j ⁻¹' s :=
+lemma hitting_le_eq_Union [nontrivial ι] [is_well_order ι (<)] {i : ι} (hi : i ≠ ⊤) :
+  { x | hitting u s ⊤ x ≤ i } = ⋃ j ≤ i, u j ⁻¹' s :=
 begin
   ext x,
-  simp only [le_iff_eq_or_lt, set.Union_Union_eq_or_left, ←hitting_lt_eq_Union i,
-    hitting, set.mem_set_of_eq, set.mem_union_eq, set.mem_preimage],
+  simp only [le_iff_eq_or_lt, set.Union_Union_eq_or_left, ← hitting_lt_eq_Union i,
+    hitting_eq_Inf, set.mem_set_of_eq, set.mem_union_eq, set.mem_preimage],
   split,
   { rintro (rfl | h),
     { by_cases hemp : {i : ι | u i x ∈ s}.nonempty,
@@ -1332,7 +1345,7 @@ end
 lemma hitting_is_stopping_time [nontrivial ι] [is_well_order ι (<)] [encodable ι]
   [topological_space β] [pseudo_metrizable_space β] [measurable_space β] [borel_space β]
   (hu : adapted f u) (hs : measurable_set s) :
-  is_stopping_time f (hitting u s) :=
+  is_stopping_time f (hitting u s ⊤) :=
 begin
   intro i,
   by_cases hi : i = ⊤,
@@ -1341,6 +1354,58 @@ begin
     exact measurable_set.Union (λ j, measurable_set.Union_Prop $
       λ hj, f.mono hj _ ((hu j).measurable hs)) }
 end
+
+end
+
+section nat
+
+variables {u : ℕ → α → β} {s : set β} {f : filtration ℕ m}
+
+lemma hitting_le_eq_Union_nat_of_lt_default {i n : ℕ} (hin : i < n) :
+  { x | hitting u s n x ≤ i } = ⋃ j ≤ i, u j ⁻¹' s :=
+begin
+  ext x,
+  by_cases hj : ∃ j, u j x ∈ s,
+  { simp only [hitting, set.mem_set_of_eq, set.mem_Union, set.mem_preimage,
+      exists_prop, if_pos hj],
+    obtain ⟨j, hj⟩ := hj,
+    have hj' : { i | u i x ∈ s }.nonempty := set.nonempty_of_mem hj,
+    refine ⟨λ h, ⟨Inf {i : ℕ | u i x ∈ s}, h, nat.Inf_mem hj'⟩, λ h, _⟩,
+    obtain ⟨k, hk₁, hk₂⟩ := h,
+    exact le_trans (nat.Inf_le hk₂) hk₁ },
+  { simp only [hitting, if_neg hj, set.mem_set_of_eq, set.mem_Union,
+      set.mem_preimage, exists_prop],
+    split,
+    { intro h,
+      linarith },
+    { push_neg at hj,
+      rintro ⟨j, -, hj'⟩,
+      exact false.elim (hj j hj') } }
+end
+
+-- lemma hitting_le_eq_Union_nat_of_default_le {i n : ℕ} (hin : n ≤ i)
+--   (x : α) :
+--   { x | hitting u s n x ≤ i } = ⋃ j ≤ i, u j ⁻¹' s :=
+-- begin
+
+-- end
+
+lemma hitting_is_stopping_time_nat
+  [topological_space β] [pseudo_metrizable_space β] [measurable_space β] [borel_space β]
+  {f : filtration ℕ m} {u : ℕ → α → β} (hu : adapted f u) (hs : measurable_set s) (n : ℕ) :
+  is_stopping_time f (hitting u s n) :=
+begin
+  intro i,
+  by_cases hin : i < n,
+  { rw hitting_le_eq_Union_nat_of_lt_default hin,
+    exact measurable_set.Union (λ j, measurable_set.Union_Prop $
+      λ hj, f.mono hj _ ((hu j).measurable hs)) },
+  { sorry
+
+  }
+end
+
+end nat
 
 end hitting
 

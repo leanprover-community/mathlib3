@@ -1368,6 +1368,16 @@ by rw [←units.coe_mul, units_mul_self, units.coe_one]
 @[simp] lemma neg_one_pow_ne_zero {n : ℕ} : (-1 : ℤ)^n ≠ 0 :=
 pow_ne_zero _ (abs_pos.mp trivial)
 
+lemma is_unit_add_is_unit_eq_is_unit_add_is_unit {a b c d : ℤ}
+  (ha : is_unit a) (hb : is_unit b) (hc : is_unit c) (hd : is_unit d) :
+  a + b = c + d ↔ a = c ∧ b = d ∨ a = d ∧ b = c :=
+begin
+  rw is_unit_iff at ha hb hc hd,
+  cases ha; cases hb; cases hc; cases hd;
+  subst ha; subst hb; subst hc; subst hd;
+  tidy,
+end
+
 /-! ### bitwise ops -/
 
 @[simp] lemma bodd_zero : bodd 0 = ff := rfl

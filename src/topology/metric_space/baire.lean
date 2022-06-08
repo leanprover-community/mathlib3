@@ -299,59 +299,67 @@ instance : countable_Inter_filter (residual α) :=
   { exact dense_bInter_of_Gδ (λ s hs, (hT s hs).1) hSc (λ s hs, (hT s hs).2) }
 end⟩
 
+/-- If a countable family of closed sets cover a dense `Gδ` set, then the union of their interiors
+is dense. Formulated here with `⋃`. -/
+lemma is_Gδ.dense_Union_interior_of_closed [encodable ι] {s : set α} (hs : is_Gδ s)
+  (hd : dense s) {f : ι → set α} (hc : ∀ i, is_closed (f i)) (hU : s ⊆ ⋃ i, f i) :
+  dense (⋃ i, interior (f i)) :=
+begin
+  let g := λ i, (frontier (f i))ᶜ,
+  have hgo : ∀ i, is_open (g i), from λ i, is_closed_frontier.is_open_compl,
+  have hgd : dense (⋂ i, g i),
+  { refine dense_Inter_of_open hgo (λ i x, _),
+    rw [closure_compl, interior_frontier (hc _)],
+    exact id },
+  refine (hd.inter_of_Gδ hs (is_Gδ_Inter $ λ i, (hgo i).is_Gδ) hgd).mono _,
+  rintro x ⟨hxs, hxg⟩,
+  rw [mem_Inter] at hxg,
+  rcases mem_Union.1 (hU hxs) with ⟨i, hi⟩,
+  exact mem_Union.2 ⟨i, self_diff_frontier (f i) ▸ ⟨hi, hxg _⟩⟩,
+end
+
+/-- If a countable family of closed sets cover a dense `Gδ` set, then the union of their interiors
+is dense. Formulated here with a union over a countable set in any type. -/
+lemma is_Gδ.dense_bUnion_interior_of_closed {t : set ι} {s : set α} (hs : is_Gδ s)
+  (hd : dense s) (ht : countable t) {f : ι → set α} (hc : ∀ i ∈ t, is_closed (f i))
+  (hU : s ⊆ ⋃ i ∈ t, f i) :
+  dense (⋃ i ∈ t, interior (f i)) :=
+begin
+  haveI := ht.to_encodable,
+  simp only [bUnion_eq_Union, set_coe.forall'] at *,
+  exact hs.dense_Union_interior_of_closed hd hc hU
+end
+
+/-- If a countable family of closed sets cover a dense `Gδ` set, then the union of their interiors
+is dense. Formulated here with `⋃₀`. -/
+lemma is_Gδ.dense_sUnion_interior_of_closed {T : set (set α)} {s : set α} (hs : is_Gδ s)
+  (hd : dense s) (hc : countable T) (hc' : ∀ t ∈ T, is_closed t) (hU : s ⊆ ⋃₀ T) :
+  dense (⋃ t ∈ T, interior t) :=
+hs.dense_bUnion_interior_of_closed hd hc hc' $ by rwa [← sUnion_eq_bUnion]
+
 /-- Baire theorem: if countably many closed sets cover the whole space, then their interiors
 are dense. Formulated here with an index set which is a countable set in any type. -/
 theorem dense_bUnion_interior_of_closed {S : set β} {f : β → set α} (hc : ∀s∈S, is_closed (f s))
   (hS : countable S) (hU : (⋃s∈S, f s) = univ) : dense (⋃s∈S, interior (f s)) :=
-begin
-  let g := λs, (frontier (f s))ᶜ,
-  have : dense (⋂s∈S, g s),
-  { refine dense_bInter_of_open (λs hs, _) hS (λs hs, _),
-    show is_open (g s), from is_open_compl_iff.2 is_closed_frontier,
-    show dense (g s),
-    { intro x,
-      simp [interior_frontier (hc s hs)] }},
-  refine this.mono _,
-  show (⋂s∈S, g s) ⊆ (⋃s∈S, interior (f s)),
-  assume x hx,
-  have : x ∈ ⋃s∈S, f s, { have := mem_univ x, rwa ← hU at this },
-  rcases mem_Union₂.1 this with ⟨s, hs, xs⟩,
-  have : x ∈ g s := mem_Inter₂.1 hx s hs,
-  have : x ∈ interior (f s),
-  { have : x ∈ f s \ (frontier (f s)) := mem_inter xs this,
-    simpa [frontier, xs, (hc s hs).closure_eq] using this },
-  exact mem_Union₂.2 ⟨s, ⟨hs, this⟩⟩
-end
+is_Gδ_univ.dense_bUnion_interior_of_closed dense_univ hS hc hU.ge
 
 /-- Baire theorem: if countably many closed sets cover the whole space, then their interiors
 are dense. Formulated here with `⋃₀`. -/
 theorem dense_sUnion_interior_of_closed {S : set (set α)} (hc : ∀s∈S, is_closed s)
   (hS : countable S) (hU : (⋃₀ S) = univ) : dense (⋃s∈S, interior s) :=
-by rw sUnion_eq_bUnion at hU; exact dense_bUnion_interior_of_closed hc hS hU
+is_Gδ_univ.dense_sUnion_interior_of_closed dense_univ hS hc hU.ge
 
 /-- Baire theorem: if countably many closed sets cover the whole space, then their interiors
 are dense. Formulated here with an index set which is an encodable type. -/
 theorem dense_Union_interior_of_closed [encodable β] {f : β → set α} (hc : ∀s, is_closed (f s))
   (hU : (⋃s, f s) = univ) : dense (⋃s, interior (f s)) :=
-begin
-  rw ← bUnion_univ,
-  apply dense_bUnion_interior_of_closed,
-  { simp [hc] },
-  { apply countable_encodable },
-  { rwa ← bUnion_univ at hU }
-end
+is_Gδ_univ.dense_Union_interior_of_closed dense_univ hc hU.ge
 
 /-- One of the most useful consequences of Baire theorem: if a countable union of closed sets
 covers the space, then one of the sets has nonempty interior. -/
 theorem nonempty_interior_of_Union_of_closed [nonempty α] [encodable β] {f : β → set α}
   (hc : ∀s, is_closed (f s)) (hU : (⋃s, f s) = univ) :
   ∃s, (interior $ f s).nonempty :=
-begin
-  by_contradiction h,
-  simp only [not_exists, not_nonempty_iff_eq_empty] at h,
-  have := calc ∅ = closure (⋃s, interior (f s)) : by simp [h]
-             ... = univ : (dense_Union_interior_of_closed hc hU).closure_eq,
-  exact univ_nonempty.ne_empty this.symm
-end
+by simpa using (dense_Union_interior_of_closed hc hU).nonempty
 
 end Baire_theorem

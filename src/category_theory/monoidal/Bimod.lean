@@ -555,21 +555,9 @@ begin
   slice_rhs 1 3 { rw [←id_tensor_comp, ←id_tensor_comp,
                       π_tensor_id_preserves_coequalizer_inv_desc,
                       id_tensor_comp, id_tensor_comp] },
-  have :
-    (𝟙 R.X ⊗
-      coequalizer.π
-        (P.act_right ⊗
-          𝟙 (coequalizer (Q.act_right ⊗ 𝟙 L.X) ((α_ Q.X T.X L.X).hom ≫ (𝟙 Q.X ⊗ L.act_left))))
-        ((α_ P.X S.X
-          (coequalizer (Q.act_right ⊗ 𝟙 L.X) ((α_ Q.X T.X L.X).hom ≫ (𝟙 Q.X ⊗ L.act_left)))).hom ≫
-            (𝟙 P.X ⊗ tensor_Bimod.act_left Q L))) ≫
-    tensor_Bimod.act_left P (Q.tensor_Bimod L) =
-    (α_ _ _ _).inv ≫ (P.act_left ⊗ 𝟙 _) ≫ coequalizer.π _ _,
-  { rw ←category.assoc,
-    apply id_tensor_π_comp_preserves_coequalizer_inv_comp_colim_map },
-  slice_rhs 3 4 { rw this }, clear this,
-  slice_rhs 2 3 { rw associator_inv_naturality },
-  slice_rhs 3 4 { rw [monoidal_category.tensor_id, id_tensor_comp_tensor_id] },
+  slice_rhs 3 4 { erw id_tensor_π_comp_preserves_coequalizer_inv_comp_colim_map },
+  slice_rhs 2 3 { erw associator_inv_naturality },
+  slice_rhs 3 4 { erw [monoidal_category.tensor_id, id_tensor_comp_tensor_id] },
   coherence,
 end
 
@@ -594,20 +582,8 @@ begin
   slice_rhs 1 3 { rw [←comp_tensor_id, ←comp_tensor_id,
                       π_tensor_id_preserves_coequalizer_inv_desc,
                       comp_tensor_id, comp_tensor_id] },
-  have :
-    (coequalizer.π
-      (P.act_right ⊗
-        𝟙 (coequalizer (Q.act_right ⊗ 𝟙 L.X) ((α_ Q.X T.X L.X).hom ≫ (𝟙 Q.X ⊗ L.act_left))))
-      ((α_ P.X S.X
-        (coequalizer (Q.act_right ⊗ 𝟙 L.X) ((α_ Q.X T.X L.X).hom ≫ (𝟙 Q.X ⊗ L.act_left)))).hom ≫
-          (𝟙 P.X ⊗ tensor_Bimod.act_left Q L)) ⊗
-        𝟙 U.X) ≫
-    tensor_Bimod.act_right P (Q.tensor_Bimod L) =
-    (α_ _ _ _).hom ≫ (𝟙 P.X ⊗ (Q.tensor_Bimod L).act_right) ≫ coequalizer.π _ _,
-  { rw ←category.assoc,
-    apply π_tensor_id_comp_preserves_coequalizer_inv_comp_colim_map },
-  slice_rhs 3 4 { rw this }, clear this,
-  slice_rhs 2 3 { rw associator_naturality },
+  slice_rhs 3 4 { erw π_tensor_id_comp_preserves_coequalizer_inv_comp_colim_map },
+  slice_rhs 2 3 { erw associator_naturality },
   dsimp,
   slice_rhs 3 4 { rw [←id_tensor_comp,
                       tensor_Bimod.π_tensor_id_act_right,

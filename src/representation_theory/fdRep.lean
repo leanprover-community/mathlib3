@@ -101,15 +101,6 @@ variables [add_comm_group V] [module k V] [add_comm_group W] [module k W]
 variables [finite_dimensional k V] [finite_dimensional k W]
 variables (ρV : representation k G V) (ρW : representation k G W)
 
-local attribute tensor_product.ext
-
-lemma dual_tensor_hom_comm (g : G) :
-  (dual_tensor_hom k V W) ∘ₗ (tensor_product.map (ρV.dual g) (ρW g)) =
-  (lin_hom ρV ρW) g ∘ₗ (dual_tensor_hom k V W) :=
-begin
-  ext, simp [module.dual.transpose_apply],
-end
-
 /-- Auxiliary definition for `fdRep.dual_tensor_iso_lin_hom`. -/
 noncomputable def dual_tensor_iso_lin_hom_aux :
   ((fdRep.of ρV.dual) ⊗ (fdRep.of ρW)).V ≅ (fdRep.of (lin_hom ρV ρW)).V :=

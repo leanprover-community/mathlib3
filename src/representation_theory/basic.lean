@@ -174,6 +174,13 @@ def dual : representation k G (module.dual k V) :=
 @[simp]
 lemma dual_apply (g : G) : (dual ρV) g = module.dual.transpose (ρV g⁻¹) := rfl
 
+lemma dual_tensor_hom_comm (g : G) :
+  (dual_tensor_hom k V W) ∘ₗ (tensor_product.map (ρV.dual g) (ρW g)) =
+  (lin_hom ρV ρW) g ∘ₗ (dual_tensor_hom k V W) :=
+begin
+  ext, simp [module.dual.transpose_apply],
+end
+
 end linear_hom
 
 end representation

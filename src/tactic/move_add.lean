@@ -42,13 +42,37 @@ around a sum.
 --  Contained in PR #14617, in the file `meta.expr`.  It is currently here to minimize
 --  CI cycles: I will delete this definition if the other PR gets merged.
 /--  Takes an `expr` and returns a list of its summands. -/
-meta def expr.list_summands : expr → list expr
-| `(has_add.add %%a %%b) := a.list_summands ++ b.list_summands
+meta def expr.list_summands1 : expr → list expr
+| `(has_add.add %%a %%b) := a.list_summands1 ++ b.list_summands1
 | a                      := [a]
 
 namespace tactic
 
 namespace move_add
+
+/--  An auxilliary function to `list_binary_operands`:
+it takes an input `expr`, rather than a `pexpr`. -/
+meta def list_binary_operands_aux (f : expr) : expr → tactic (list expr)
+| x@(expr.app (expr.app g a) b) := do
+  some _ ← try_core (unify f g) | pure [x],
+  as ← list_binary_operands_aux a,
+  bs ← list_binary_operands_aux b,
+  pure (as ++ bs)
+| a                      := pure [a]
+
+/-- `list_binary_operands f x` produces a list of all the operands in `x`, ignoring associativity.
+The binary operation is the input `f`. -/
+meta def list_binary_operands (f : pexpr) (x : expr) : tactic (list expr) :=
+do
+  t ← infer_type x,
+  fe ← to_expr ``(%%f : %%t → %%t → %%t ),
+  list_binary_operands_aux fe x
+
+#eval list_binary_operands ``((++)) `([1, 2] ++ [3] ++ []) >>= tactic.trace
+#eval list_binary_operands ``((*)) `(1 * 2 * 3) >>= tactic.trace
+
+meta def _root_.expr.list_summands (e : expr) : tactic (list expr) :=
+list_binary_operands ``((+)) e
 
 /--  Given a list `un` of `α`s and a list `bo` of `bool`s, return the sublist of `un`
 consisting of the entries of `un` whose corresponding entry in `bo` is `tt`.
@@ -105,7 +129,7 @@ do
   lp_exp : list (bool × expr) ← snd_to_expr lp,
   (l1, l2, l3, is_unused) ← move_left_or_right lp_exp sl [],
   return (l1 ++ l3 ++ l2, is_unused)
-
+#eval ((``(has_add.add)).const_name = `has_add.add : bool)
 /-- Partially traverses an expression in search for a sum of terms and producing a list of them.
 In the intended application, the `bool` input is initially set to `tt`.
 The first time `candidates` finds an expression whose head symbol is `has_add.add`,
@@ -117,16 +141,36 @@ expression.
 
 For instance, applying `candidates` to `a + (b + c)*(d + e) + f + g` produces
 `[a + (b + c) * (d + e) + f + g, b + c, d + e]`. -/
-meta def candidates : bool → expr → list expr
-| bo e@`(%%a + %%b)      := if bo then [e] ++ candidates ff a ++ candidates ff b
+meta def candidates : pexpr → bool → expr → tactic (list expr)
+--| f bo e@`(%%g %%a %%b)      := if bo then [e] ++ candidates ff a ++ candidates ff b
+--                            else candidates ff a ++ candidates ff b
+| op bo (expr.app (expr.app f a) b)      := do
+  nop ← to_expr ``(%%op) tt ff,
+  uni ← succeeds $ unify f nop,
+  if uni then
+    if bo then
+          ac ← candidates op ff a,
+          bc ← candidates op ff b,
+          return $ [e] ++ ac ++ bc
                             else candidates ff a ++ candidates ff b
-| bo (expr.lam _ _ e f)  := candidates tt e ++ candidates tt f
-| bo (expr.pi  _ _ e f)  := candidates tt e ++ candidates tt f
-| bo (expr.mvar  _ _ e)  := candidates tt e
-| bo (expr.app e f)      := candidates tt e ++ candidates tt f
-| bo (expr.elet _ e f g) := candidates tt e ++ candidates tt f ++ candidates tt g
-| bo e                   := []
+  else (do
+    fc ← candidates op tt f,
+    ac ← candidates op tt a,
+    bc ← candidates op tt b,
+    let fac := fc ++ ac ++ bc,
+    return fc
+ ),
+  trace "sì unif!",
+  if (f.const_name = `nop : bool) then return [] else return []
 
+--candidates op tt e ++ candidates op tt f
+--| op bo (expr.app e f )     := candidates op tt e ++ candidates op tt f
+--| op bo (expr.lam _ _ e f)  := candidates op tt e ++ candidates op tt f
+--| op bo (expr.pi  _ _ e f)  := candidates op tt e ++ candidates op tt f
+--| op bo (expr.mvar  _ _ e)  := candidates op tt e
+--| op bo (expr.elet _ e f g) := candidates op tt e ++ candidates op tt f ++ candidates op tt g
+| op bo e                   := return []
+#eval candidates ``((+)) tt `((3 + 5))
 /-- `sorted_sum` takes an optional location name `hyp` for where it will be applied, a list `ll` of
 `bool × pexpr` (arising as the user-provided input to `move_add`) and an expression `e`.
 
@@ -134,19 +178,23 @@ meta def candidates : bool → expr → list expr
 determined using the `final_sorting` applied to `ll` and `e`.
 
 We use this function for expressions in an additive commutative semigroup. -/
-meta def sorted_sum (hyp : option name) (ll : list (bool × pexpr)) (e : expr) :
+meta def sorted_sum (hyp : option name) (ll : list (bool × pexpr)) (f : pexpr) (e : expr) :
   tactic (list bool) :=
 do
-  (sli, is_unused) ← final_sorting ll (e.list_summands),
+  lisu ← list_binary_operands f e,
+  (sli, is_unused) ← final_sorting ll lisu,
   match sli with
   | []       := return is_unused
   | (eₕ::es) := do
+  newf ← to_expr ``(%%f) tt ff,trace newf,
+   infer_type newf >>= trace,
     e' ← es.mfoldl (λ eₗ eᵣ, mk_app `has_add.add [eₗ, eᵣ]) eₕ,
     e_eq ← mk_app `eq [e, e'],
     e_eq_fmt ← pp e_eq,
     h ← solve_aux e_eq $
       reflexivity <|>
-      `[{ simp only [add_comm, add_assoc, add_left_comm], done, }] |
+      `[{ simp only [add_comm, add_assoc, add_left_comm], done, }] <|>
+      `[{ simp only [mul_comm, mul_assoc, mul_left_comm], done, }] |
       fail format!"failed to prove:\n\n{e_eq_fmt}",
     match hyp with
     | some loc := do
@@ -162,9 +210,9 @@ do
 `sorted_sum`.  Besides the state changes, which involve the reordering of the addends,
 `is_unused_and_sort` outputs a list of Booleans, encoding which user input was unused
 (`tt`) and which one was used (`ff`).  This information is used for reporting unused inputs. -/
-meta def is_unused_and_sort (hyp : option name) (ll : list (bool × pexpr)) (e : expr) :
+meta def is_unused_and_sort (hyp : option name) (ll : list (bool × pexpr)) (e : expr) (f : pexpr) :
   tactic (list bool) :=
-do results ← (candidates tt e).mmap (sorted_sum hyp ll),
+do results ← (candidates tt e).mmap (sorted_sum hyp ll f),
   return $ results.transpose.map list.band
 
 /-- Passes the user input `ll` to `is_unused_and_sort` at a single location, that could either be
@@ -175,15 +223,16 @@ did *not* change the goal on which it was acting.  The list of booleans records 
 unified.
 
 This definition is useful to streamline error catching. -/
-meta def with_errors (ll : list (bool × pexpr)) : option name → tactic (bool × list bool)
+meta def with_errors (f : pexpr) (ll : list (bool × pexpr)) :
+  option name → tactic (bool × list bool)
 | (some hyp) := do
   thyp ← get_local hyp >>= infer_type,
-  is_unused ← is_unused_and_sort hyp ll thyp,
+  is_unused ← is_unused_and_sort hyp ll thyp f,
   nthyp ← get_local hyp >>= infer_type,
   if thyp = nthyp then return (tt, is_unused) else return (ff, is_unused)
 | none       := do
   t ← target,
-  is_unused ← is_unused_and_sort none ll t,
+  is_unused ← is_unused_and_sort none ll t f,
   tn ← target,
   if t = tn then return (tt, is_unused) else return (ff, is_unused)
 
@@ -199,6 +248,41 @@ prod.mk <$> (option.is_some <$> (tk "<-")?) <*> parser.pexpr prec
 `move_add_arg`. -/
 meta def move_pexpr_list_or_texpr : parser (list (bool × pexpr)) :=
 list_of (move_add_arg 0) <|> list.ret <$> move_add_arg tac_rbp <|> return []
+
+meta def move_oper (args : parse move_pexpr_list_or_texpr) (locat : parse location) (f : pexpr) :
+  tactic unit :=
+match locat with
+| loc.wildcard := do
+  ctx ← local_context,
+  err_rep ← ctx.mmap (λ e, with_errors f args e.local_pp_name),
+  er_t ← with_errors f args none,
+  if ff ∉ er_t.1::err_rep.map (λ e, e.1) then
+    fail "'move_add at *' changed nothing" else skip,
+  let li_unused := er_t.2::err_rep.map (λ e, e.2),
+  let li_unused_clear := li_unused.filter (≠ []),
+  let li_tf_vars := li_unused_clear.transpose.map list.band,
+  match (return_unused args li_tf_vars).map (λ e : bool × pexpr, e.2) with
+  | []   := skip
+  | [pe] := fail format!"'{pe}' is an unused variable"
+  | pes  := fail format!"'{pes}' are unused variables"
+  end,
+  assumption <|> try (tactic.reflexivity reducible)
+| loc.ns names := do
+  err_rep ← names.mmap $ with_errors f args,
+  let conds := err_rep.map (λ e, e.1),
+  linames ← (return_unused names conds).reduce_option.mmap get_local,
+  if linames ≠ [] then fail format!"'{linames}' did not change" else skip,
+  if none ∈ return_unused names conds then fail "Goal did not change" else skip,
+  let li_unused := (err_rep.map (λ e, e.2)),
+  let li_unused_clear := li_unused.filter (≠ []),
+  let li_tf_vars := li_unused_clear.transpose.map list.band,
+  match (return_unused args li_tf_vars).map (λ e : bool × pexpr, e.2) with
+  | []   := skip
+  | [pe] := fail format!"'{pe}' is an unused variable"
+  | pes  := fail format!"'{pes}' are unused variables"
+  end,
+  assumption <|> try (tactic.reflexivity reducible)
+  end
 
 end parsing_arguments_for_move_add
 
@@ -293,38 +377,11 @@ same effect and changes the goal to `b + a = 0`.  These are all valid uses of `m
 -/
 meta def move_add (args : parse move_pexpr_list_or_texpr) (locat : parse location) :
   tactic unit :=
-match locat with
-| loc.wildcard := do
-  ctx ← local_context,
-  err_rep ← ctx.mmap (λ e, with_errors args e.local_pp_name),
-  er_t ← with_errors args none,
-  if ff ∉ er_t.1::err_rep.map (λ e, e.1) then
-    fail "'move_add at *' changed nothing" else skip,
-  let li_unused := er_t.2::err_rep.map (λ e, e.2),
-  let li_unused_clear := li_unused.filter (≠ []),
-  let li_tf_vars := li_unused_clear.transpose.map list.band,
-  match (return_unused args li_tf_vars).map (λ e : bool × pexpr, e.2) with
-  | []   := skip
-  | [pe] := fail format!"'{pe}' is an unused variable"
-  | pes  := fail format!"'{pes}' are unused variables"
-  end,
-  assumption <|> try (tactic.reflexivity reducible)
-| loc.ns names := do
-  err_rep ← names.mmap $ with_errors args,
-  let conds := err_rep.map (λ e, e.1),
-  linames ← (return_unused names conds).reduce_option.mmap get_local,
-  if linames ≠ [] then fail format!"'{linames}' did not change" else skip,
-  if none ∈ return_unused names conds then fail "Goal did not change" else skip,
-  let li_unused := (err_rep.map (λ e, e.2)),
-  let li_unused_clear := li_unused.filter (≠ []),
-  let li_tf_vars := li_unused_clear.transpose.map list.band,
-  match (return_unused args li_tf_vars).map (λ e : bool × pexpr, e.2) with
-  | []   := skip
-  | [pe] := fail format!"'{pe}' is an unused variable"
-  | pes  := fail format!"'{pes}' are unused variables"
-  end,
-  assumption <|> try (tactic.reflexivity reducible)
-  end
+move_oper args locat ``((+))
+
+meta def move_mul (args : parse move_pexpr_list_or_texpr) (locat : parse location) :
+  tactic unit :=
+move_oper args locat ``((has_mul.mul))
 
 add_tactic_doc
 { name := "move_add",

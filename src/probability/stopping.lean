@@ -1293,19 +1293,53 @@ end piecewise_const
 
 section hitting
 
-/-! Hitting time -/
-
+/-- Hitting time: given a stochastic process `u` and a set `s`, `hitting u s` is the first time
+`u` is in `s`. The hitting time is a stopping time if the process is adapted and discrete. -/
 def hitting [has_Inf ι] (u : ι → α → β) (s : set β) : α → ι :=
-λ x, Inf { i : ι | u i x ∈ s}
+λ x, Inf { i : ι | u i x ∈ s }
 
-variables [conditionally_complete_linear_order_bot ι] [measurable_space β]
-  {u : ι → α → β} {s : set β} {f : filtration ι m}
+variables [complete_linear_order ι] {u : ι → α → β} {s : set β} {f : filtration ι m}
 
-lemma hitting_is_stopping_time (hs : measurable_set s) : is_stopping_time f (hitting u s) :=
+lemma hitting_lt_eq_Union (i : ι) :
+  { x | hitting u s x < i } = ⋃ j < i, u j ⁻¹' s :=
+begin
+  ext x,
+  simp only [hitting, set.mem_set_of_eq, set.mem_Union, set.mem_preimage,
+    exists_prop, Inf_lt_iff, and_comm]
+end
+
+lemma hitting_le_eq_Union [nontrivial ι] [is_well_order ι (<)] {i : ι} (hi : i ≠ ⊤):
+  { x | hitting u s x ≤ i } = ⋃ j ≤ i, u j ⁻¹' s :=
+begin
+  ext x,
+  simp only [le_iff_eq_or_lt, set.Union_Union_eq_or_left, ←hitting_lt_eq_Union i,
+    hitting, set.mem_set_of_eq, set.mem_union_eq, set.mem_preimage],
+  split,
+  { rintro (rfl | h),
+    { by_cases hemp : {i : ι | u i x ∈ s}.nonempty,
+      { exact or.inl (Inf_mem hemp) },
+      { rw set.not_nonempty_iff_eq_empty at hemp,
+        rw [hemp, Inf_empty, ne.def, eq_self_iff_true, not_true] at hi,
+        exact false.elim hi } },
+    exact or.inr h },
+  { rintro (h | h),
+    { rw ← le_iff_eq_or_lt,
+      exact Inf_le h },
+    exact or.inr h }
+end
+
+/-- The discrete hitting time is a stopping time. -/
+lemma hitting_is_stopping_time [nontrivial ι] [is_well_order ι (<)] [encodable ι]
+  [topological_space β] [pseudo_metrizable_space β] [measurable_space β] [borel_space β]
+  (hu : adapted f u) (hs : measurable_set s) :
+  is_stopping_time f (hitting u s) :=
 begin
   intro i,
-  rw hitting,
-  simp_rw cInf_le_iff,
+  by_cases hi : i = ⊤,
+  { simp [hi] },
+  { rw hitting_le_eq_Union hi,
+    exact measurable_set.Union (λ j, measurable_set.Union_Prop $
+      λ hj, f.mono hj _ ((hu j).measurable hs)) }
 end
 
 end hitting

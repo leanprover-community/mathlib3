@@ -239,7 +239,7 @@ instance is_empty.is_well_order [is_empty α] (r : α → α → Prop) : is_well
 { trichotomous := is_empty_elim,
   irrefl       := is_empty_elim,
   trans        := is_empty_elim,
-  wf           := ⟨is_empty_elim⟩ }
+  wf           := well_founded_of_empty r }
 
 instance prod.lex.is_well_order [is_well_order α r] [is_well_order β s] :
   is_well_order (α × β) (prod.lex r s) :=

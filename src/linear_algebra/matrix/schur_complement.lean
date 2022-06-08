@@ -11,10 +11,6 @@ variables (A B C D : matrix n n R) (x y u v: n → R)
 localized "infix ` ⊕ᵥ `:65 := sum.elim" in matrix
 localized "infix ` ᵛ⬝ `:73 := vec_mul" in matrix
 localized "infix ` ⬝ᵛ `:74 := mul_vec" in matrix
--- lemma xxxxx : (sum.elim x y)
-
-@[simp] lemma elim_dot_product_elim : (x ⊕ᵥ y) ⬝ᵥ (u ⊕ᵥ v) = x ⬝ᵥ u + y ⬝ᵥ v :=
-by simp [dot_product]
 
 lemma from_blocks_mul_vec_elim : (from_blocks A B C D) ⬝ᵛ (x ⊕ᵥ y) =
   (A ⬝ᵛ x + B ⬝ᵛ y) ⊕ᵥ
@@ -38,7 +34,7 @@ end
 
 lemma schur_complement_eq {A : matrix n n R} (hA : A.is_symm) [invertible A] :
 (x ⊕ᵥ y) ᵛ⬝ from_blocks A B Bᵀ D ⬝ᵥ (x ⊕ᵥ y) =
-  (x + ⅟A ⬝ B ⬝ᵛ y) ᵛ⬝ A ⬝ᵥ (x + ⅟A ⬝ B ⬝ᵛ y) + y ᵛ⬝ (D - Bᵀ ⬝ ⅟A ⬝ B) ⬝ᵥ y :=
+  (x + A⁻¹ ⬝ B ⬝ᵛ y) ᵛ⬝ A ⬝ᵥ (x + A⁻¹ ⬝ B ⬝ᵛ y) + y ᵛ⬝ (D - Bᵀ ⬝ A⁻¹ ⬝ B) ⬝ᵥ y :=
 begin
   simp [from_blocks_mul_vec_elim, elim_vec_mul_from_blocks, add_vec_mul, dot_product_mul_vec,
     vec_mul_sub, matrix.mul_assoc, vec_mul_mul_vec, hA.eq, transpose_nonsing_inv],

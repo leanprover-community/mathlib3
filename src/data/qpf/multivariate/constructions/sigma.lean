@@ -33,7 +33,7 @@ instance sigma.inhabited {α} [inhabited A] [inhabited (F default α)] : inhabit
 ⟨⟨default, default⟩⟩
 
 instance pi.inhabited {α} [Π a, inhabited (F a α)] : inhabited (pi F α) :=
-⟨λ _, default⟩
+⟨λ a, default⟩
 
 variables [Π α, mvfunctor $ F α]
 

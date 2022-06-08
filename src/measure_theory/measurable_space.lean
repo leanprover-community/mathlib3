@@ -1059,7 +1059,7 @@ iff.intro
 /-- Any two types with unique elements are measurably equivalent. -/
 def of_unique_of_unique (α β : Type*) [measurable_space α] [measurable_space β]
   [unique α] [unique β] : α ≃ᵐ β :=
-{ to_equiv := unique_equiv_unique α β,
+{ to_equiv := equiv_of_unique α β,
   measurable_to_fun := subsingleton.measurable,
   measurable_inv_fun := subsingleton.measurable }
 

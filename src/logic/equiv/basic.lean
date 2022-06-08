@@ -374,7 +374,7 @@ def prop_equiv_pempty {p : Prop} (h : ¬p) : p ≃ pempty :=
 ⟨λ x, absurd x h, λ x, by cases x, λ x, absurd x h, λ x, by cases x⟩
 
 /-- If both `α` and `β` have a unique element, then `α ≃ β`. -/
-def unique_equiv_unique (α β : Sort*) [unique α] [unique β] : α ≃ β :=
+def equiv_of_unique (α β : Sort*) [unique α] [unique β] : α ≃ β :=
 { to_fun := default,
   inv_fun := default,
   left_inv := λ _, subsingleton.elim _ _,
@@ -382,7 +382,7 @@ def unique_equiv_unique (α β : Sort*) [unique α] [unique β] : α ≃ β :=
 
 /-- If `α` has a unique element, then it is equivalent to any `punit`. -/
 def equiv_punit (α : Sort*) [unique α] : α ≃ punit.{v} :=
-unique_equiv_unique α _
+equiv_of_unique α _
 
 /-- The `Sort` of proofs of a true proposition is equivalent to `punit`. -/
 def prop_equiv_punit {p : Prop} (h : p) : p ≃ punit :=

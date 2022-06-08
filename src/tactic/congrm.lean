@@ -102,7 +102,7 @@ Assuming that the three expressions are successions of function applications, la
 If `e` has a meta-variable in a location, then the tactic produces a side-goal with
 the equality of the corresponding locations in `lhs, rhs`.
 
-If `e` is a function application, it applies the automatically generated congruence lemma
+If `e` is a function application, `congrm` applies the automatically generated congruence lemma
 (like `tactic.congr`).
 
 If `e` is a lambda abstraction, `congrm` applies `funext`.

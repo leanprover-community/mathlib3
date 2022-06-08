@@ -32,54 +32,26 @@ notation `_₃` := congrm_fun3
 @[nolint unused_arguments]
 def congrm_fun4 {α β γ δ ρ} {r : ρ} : α → β → γ → δ → ρ := λ _ _ _ _, r
 notation `_₄` := congrm_fun4
-#check get_fun_info
 
-/-
-meta def replace_explicit_args : expr → list expr → list expr → tactic expr
-| e _ [] := return e
-| (expr.app f a) (ne :: li) := do
-  prev ← replace_explicit_args f li,
-  return mk_app
-  failed
-| e _ := return e
-
-meta def replace_explicit_args : expr → list expr → tactic expr
-| e [] := return e
-| (expr.app f a) (ne :: li) := do
-  prev ← replace_explicit_args f li,
-  return mk_app
-  failed
-| e _ := return e
--/
-
+/--  Given a starting list `li`, a list `bo` of booleans and a replacement list `new`,
+read the items in `li` in succession and either replace them with the next element of `new` or
+not, using the list of booleans. -/
 def list.replace_if {α} : list α → list bool → list α → list α
 | l  tf [] := l
 | [] tf _  := []
 | l  [] _  := l
 | (n::ns) (tf::bs) e@(c::cs) := if tf then c :: ns.replace_if bs cs else n :: ns.replace_if bs e
 
-meta def replace_explicit_args (f : expr) (farg parg : list expr) : tactic (expr) :=
-do --let fargs := f.get_app_args,
---  trace "dentro replace",--trace farg,
-  finf ← (get_fun_info f),--trace finf,
-  let is_ex_arg : list bool := finf.params.map (λ e, ¬ e.is_implicit ∧ ¬ e.is_inst_implicit),
---  trace "farg, is_ex_args, parg",
---  trace farg,
---  trace is_ex_arg,
---  trace parg,
-  let nargs := list.replace_if farg is_ex_arg parg,
---  trace nargs,
-  return $ expr.mk_app f.get_app_fn nargs
-/-
-meta def replace_explicit_args (f : expr) : list expr → tactic (list expr)
-| [] := return f.get_app_args
-| (ne :: li) := do
-
-  prev ← replace_explicit_args f li,
-  return mk_app
-  failed
-| e _ := return e
+/--  In its intended usage, `f` is a "fully applied" function, `farg` is its list of arguments,
+`parg` is a list of the new *explicit* arguments that we want to pass to `f`.
+`replace_explicit_args f farg parg` then replaces the explicit arguments of `f` by the elements
+of `parg`.
 -/
+meta def replace_explicit_args (f : expr) (farg parg : list expr) : tactic (expr) :=
+do finf ← (get_fun_info f),
+  let is_ex_arg : list bool := finf.params.map (λ e, ¬ e.is_implicit ∧ ¬ e.is_inst_implicit),
+  let nargs := list.replace_if farg is_ex_arg parg,
+  return $ expr.mk_app f.get_app_fn nargs
 
 /--  Replaces a "function underscore" input to `congrm` into the correct expression,
 read off from the left-hand-side of the target expression. -/
@@ -90,68 +62,10 @@ if pat.get_app_fn.const_name = ``tactic.congrm_fun4 ∨
    pat.get_app_fn.const_name = ``tactic.congrm_fun1
 then
   do let f := lhs.get_app_fn,
---  finf ← (get_fun_info f),
---  trace "params",
---  trace finf.params,
---  trace "  * filter",
---  trace $ finf.params.filter (λ e, ¬ e.is_implicit ∧ ¬ e.is_inst_implicit),
---  let is_ex_arg : list bool := finf.params.map (λ e, ¬ e.is_implicit ∧ ¬ e.is_inst_implicit),
---  trace is_ex_arg,
---  trace lhs.get_app_args,
   pargs ← pat.list_explicit_args,
-  --trace pargs,
---  trace "  ** questa",
   replace_explicit_args f lhs.get_app_args pargs
-
---  return $ f.app_of_list pargs
 else
   return pat
-
-
-/-
-meta def convert_to_explicit (pat lhs : expr) : tactic expr :=
-if pat.get_app_fn.const_name = ``tactic.congrm_fun4 then
-  match lhs with
-  | (expr.app (expr.app (expr.app (expr.app mr ma) mb) mc) md) := do
-    let arg_list := [ma, mb, mc, md],
-    [ta, tb, tc, td] ← arg_list.mmap infer_type,
-    att ← to_expr ``((λ (x : %%ta) (y : %%tb) (z : %%tc) (w : %%td), %%mr x y z w)) tt ff,
-    return $ att.app_of_list $ pat.get_app_args.drop $ arg_list.length + 2
-  | _ := fail "not a quadruple function application"
-  end
-else
-if pat.get_app_fn.const_name = ``tactic.congrm_fun3 then
-  match lhs with
-  | (expr.app (expr.app (expr.app mr ma) mb) mc) := do
-    let arg_list := [ma, mb, mc],
-    [ta, tb, tc] ← arg_list.mmap infer_type,
-    att ← to_expr ``((λ (x : %%ta) (y : %%tb) (z : %%tc), %%mr x y z)) tt ff,
-    return $ att.app_of_list $ pat.get_app_args.drop $ arg_list.length + 2
-  | _ := fail "not a triple function application"
-  end
-else
-if pat.get_app_fn.const_name = ``tactic.congrm_fun2 then
-  match lhs with
-  | (expr.app (expr.app mr ma) mb) := do
-    let arg_list := [ma, mb],
-    [ta, tb] ← arg_list.mmap infer_type,
-  att ← to_expr ``((λ (x : %%ta) (y : %%tb), %%mr x y)) tt ff,
-  return $ att.app_of_list $ pat.get_app_args.drop $ arg_list.length + 2
-  | _ := fail "not a double function application"
-  end
-else
-if pat.get_app_fn.const_name = ``tactic.congrm_fun1 then
-  match lhs with
-  | (expr.app mr ma) := do
-    let arg_list := [ma],
-    [ta] ← arg_list.mmap infer_type,
-  att ← to_expr ``((λ (x : %%ta), %%mr x)) tt ff,
-  return $ att.app_of_list $ pat.get_app_args.drop $ arg_list.length + 2
-  | e := fail "not a single function application"
-  end
-else
-return pat
--/
 
 /--
 For each element of `list congr_arg_kind` that is `eq`, add a pair `(g, pat)` to the
@@ -191,7 +105,7 @@ if pat.is_mvar || pat.get_delayed_abstraction_locals.is_some then do
   get_goals <* set_goals []
 else if pat.is_app then do
   `(%%lhs = %%rhs) ← target,
-  pat ← new_convert_to_explicit pat lhs,--trace pat,
+  pat ← new_convert_to_explicit pat lhs,
   cl ← mk_specialized_congr_lemma pat,
   H_congr_lemma ← assertv `H_congr_lemma cl.type cl.proof,
   [prf] ← get_goals,

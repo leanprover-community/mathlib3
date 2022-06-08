@@ -428,31 +428,12 @@ by { change right_rigid_category (single_obj H ⥤ V), apply_instance }
 instance [right_rigid_category V] : right_rigid_category (Action V H) :=
 right_rigid_category_of_equivalence (functor_category_monoidal_equivalence V _)
 
-instance [left_rigid_category V] : left_rigid_category (single_obj (H : Mon.{u}) ⥤ V) :=
-by { change left_rigid_category (single_obj H ⥤ V), apply_instance }
-
-/-- If `V` is left rigid, so is `Action V G`. -/
-instance [left_rigid_category V] : left_rigid_category (Action V H) :=
-left_rigid_category_of_equivalence (functor_category_monoidal_equivalence V _)
-
 instance [rigid_category V] : rigid_category (single_obj (H : Mon.{u}) ⥤ V) :=
 by { change rigid_category (single_obj H ⥤ V), apply_instance }
 
 /-- If `V` is rigid, so is `Action V G`. -/
 instance [rigid_category V] : rigid_category (Action V H) :=
 rigid_category_of_equivalence (functor_category_monoidal_equivalence V _)
-
-variables {V H} (X : Action V H)
-
-@[simp] lemma right_dual_V [right_rigid_category V] : (Xᘁ).V = (X.V)ᘁ := rfl
-
-@[simp] lemma left_dual_V [left_rigid_category V] : (ᘁX).V = ᘁ(X.V) := rfl
-
-@[simp] lemma right_dual_ρ [right_rigid_category V] (h : H) : (Xᘁ).ρ h = (X.ρ (h⁻¹ : H))ᘁ :=
-by { rw ←single_obj.inv_as_inv, refl }
-
-@[simp] lemma left_dual_ρ [left_rigid_category V] (h : H) : (ᘁX).ρ h = ᘁ(X.ρ (h⁻¹ : H)) :=
-by { rw ←single_obj.inv_as_inv, refl }
 
 end monoidal
 

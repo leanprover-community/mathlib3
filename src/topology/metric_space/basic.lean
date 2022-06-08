@@ -192,13 +192,8 @@ end
 
 variables [pseudo_metric_space α]
 
-@[priority 100] -- see Note [lower instance priority]
-instance metric_space.to_uniform_space' : uniform_space α :=
-pseudo_metric_space.to_uniform_space
-
-@[priority 100] -- see Note [lower instance priority]
-instance pseudo_metric_space.to_bornology' {α : Type u} [pseudo_metric_space α] : bornology α :=
-pseudo_metric_space.to_bornology
+attribute [priority 100, instance] pseudo_metric_space.to_uniform_space
+attribute [priority 100, instance] pseudo_metric_space.to_bornology
 
 @[priority 200] -- see Note [lower instance priority]
 instance pseudo_metric_space.to_has_edist : has_edist α := ⟨pseudo_metric_space.edist⟩
@@ -1124,7 +1119,7 @@ pseudo_emetric_space.to_pseudo_metric_space_of_dist
 See Note [forgetful inheritance].
 -/
 def pseudo_metric_space.replace_bornology {α} [B : bornology α] (m : pseudo_metric_space α)
-  (H : ∀ s, @is_bounded _ B s ↔ @is_bounded _ pseudo_metric_space.to_bornology' s) :
+  (H : ∀ s, @is_bounded _ B s ↔ @is_bounded _ pseudo_metric_space.to_bornology s) :
   pseudo_metric_space α :=
 { to_bornology := B,
   cobounded_sets := set.ext $ compl_surjective.forall.2 $ λ s, (H s).trans $
@@ -1132,7 +1127,7 @@ def pseudo_metric_space.replace_bornology {α} [B : bornology α] (m : pseudo_me
   .. m }
 
 lemma pseudo_metric_space.replace_bornology_eq {α} [m : pseudo_metric_space α] [B : bornology α]
-  (H : ∀ s, @is_bounded _ B s ↔ @is_bounded _ pseudo_metric_space.to_bornology' s) :
+  (H : ∀ s, @is_bounded _ B s ↔ @is_bounded _ pseudo_metric_space.to_bornology s) :
   pseudo_metric_space.replace_bornology _ H = m :=
 by { ext, refl }
 
@@ -1737,7 +1732,7 @@ begin
     from ne_of_lt ((finset.sup_lt_iff bot_lt_top).2 $ λ b hb, edist_lt_top _ _),
   show ↑(sup univ (λ b, nndist (f b) (g b))) = (sup univ (λ b, edist (f b) (g b))).to_real,
     by simp only [edist_nndist, ← ennreal.coe_finset_sup, ennreal.coe_to_real],
-  show (@is_bounded _ pi.bornology s ↔ @is_bounded _ pseudo_metric_space.to_bornology' _),
+  show (@is_bounded _ pi.bornology s ↔ @is_bounded _ pseudo_metric_space.to_bornology _),
   { simp only [← is_bounded_def, is_bounded_iff_eventually, ← forall_is_bounded_image_eval_iff,
       ball_image_iff, ← eventually_all, function.eval_apply, @dist_nndist (π _)],
     refine eventually_congr ((eventually_ge_at_top 0).mono $ λ C hC, _),

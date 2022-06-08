@@ -627,34 +627,6 @@ calc is_unit (associates.mk a) ↔ a ~ᵤ 1 :
     by rw [is_unit_iff_eq_one, one_eq_mk_one, mk_eq_mk_iff_associated]
   ... ↔ is_unit a : associated_one_iff_is_unit
 
-section unique_units
-
-variable [unique (αˣ)]
-
-/-- `associates.mk` as a monoid equiv -/
-noncomputable def mk_monoid_equiv : α ≃* associates α :=
-mul_equiv.of_bijective
-  (@associates.mk_monoid_hom α _) ⟨associates.mk_injective, associates.mk_surjective⟩
-
-@[simp]
-lemma mk_monoid_equiv_apply {a : α} :
-  associates.mk_monoid_equiv a = associates.mk a := rfl
-
-@[simp]
-lemma mk_monoid_equiv_apply_symm {a : associates α} :
-  associates.mk (associates.mk_monoid_equiv.symm a) = a :=
-by simp only [←associates.mk_monoid_equiv_apply, mk_monoid_equiv,
-  mul_equiv.of_bijective_apply_symm_apply, mul_equiv.of_bijective_apply_symm,
-  mul_equiv.of_bijective_apply]
-
-@[simp]
-lemma mk_monoid_equiv_apply_symm_mk {a : α} :
-  associates.mk_monoid_equiv.symm (associates.mk a) = a :=
-by rw [associates.mk_monoid_equiv, mul_equiv.of_bijective_apply_symm,
-  ← associates.mk_monoid_hom_apply, equiv.of_bijective_symm_apply_apply]
-
-end unique_units
-
 section order
 
 theorem mul_mono {a b c d : associates α} (h₁ : a ≤ b) (h₂ : c ≤ d) :
@@ -721,15 +693,6 @@ end monoid_with_zero
 section comm_monoid_with_zero
 
 variables [comm_monoid_with_zero α]
-
-lemma mk_monoid_equiv_le_iff_dvd [unique αˣ] {a b : α} :
-  associates.mk_monoid_equiv a ≤ associates.mk_monoid_equiv b ↔ a ∣ b :=
-by rw [associates.mk_monoid_equiv_apply, associates.mk_monoid_equiv_apply,
-    associates.mk_le_mk_iff_dvd_iff]
-
-lemma mk_monoid_equiv_symm_dvd_iff_le [unique αˣ] {a b : associates α} :
-  (associates.mk_monoid_equiv.symm a) ∣ (associates.mk_monoid_equiv.symm b) ↔ a ≤ b :=
-by rw [← mk_monoid_equiv_le_iff_dvd, mul_equiv.apply_symm_apply, mul_equiv.apply_symm_apply]
 
 instance : comm_monoid_with_zero (associates α) :=
 { zero_mul := by { rintro ⟨a⟩, show associates.mk (0 * a) = associates.mk 0, rw [zero_mul] },

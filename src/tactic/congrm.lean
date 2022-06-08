@@ -7,10 +7,11 @@ import tactic.interactive
 
 /-!  `congrm`: `congr` with pattern-matching -/
 
-namespace tactic
 /-- Get the list of explicit arguments of a function. -/
 meta def expr.list_explicit_args (f : expr) : tactic (list expr) :=
 tactic.fold_explicit_args f [] (λ ll e, return $ ll ++ [e])
+
+namespace tactic
 
 /--  A generic function with one argument.  It is the "function underscore" input to `congrm`. -/
 @[nolint unused_arguments]

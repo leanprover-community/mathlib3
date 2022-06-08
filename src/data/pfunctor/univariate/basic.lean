@@ -98,7 +98,7 @@ one part of `x` or is invalid, if `i.1 ≠ x.1` -/
 def Idx := Σ x : P.A, P.B x
 
 instance Idx.inhabited [inhabited P.A] [inhabited (P.B default)] : inhabited P.Idx :=
-⟨ ⟨default, default⟩ ⟩
+⟨⟨default, default⟩⟩
 
 variables {P}
 

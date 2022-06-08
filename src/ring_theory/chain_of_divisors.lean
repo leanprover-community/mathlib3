@@ -411,8 +411,9 @@ begin
     (associates_equiv_of_unique_units.symm p), by simp only [dvd_of_mem_normalized_factors hp,
       associates_equiv_of_unique_units_symm_apply, associates_equiv_of_unique_units_apply,
       out_mk, normalize_eq] ⟩)
-      = ↑(mk_factor_order_iso_of_factor_dvd_equiv d hd ⟨(mk_monoid_equiv p), by
-      rw mk_monoid_equiv_apply ; exact mk_le_mk_of_dvd (dvd_of_mem_normalized_factors hp) ⟩),
+      = ↑(mk_factor_order_iso_of_factor_dvd_equiv d hd ⟨(associates_equiv_of_unique_units.symm p),
+        by rw [associates_equiv_of_unique_units_symm_apply] ;
+          exact mk_le_mk_of_dvd (dvd_of_mem_normalized_factors hp) ⟩),
   { rw mk_factor_order_iso_of_factor_dvd_equiv_apply_coe, refl },
   rw this,
   letI := classical.dec_eq (associates M),

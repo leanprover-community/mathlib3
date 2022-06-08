@@ -315,6 +315,17 @@ begin
   { simpa [h y (mem_cons_self _ _)] using IH (λ x hx, h x $ mem_cons_of_mem _ hx) }
 end
 
+lemma le_max_of_le {l : list α} {a x : α} (hx : x ∈ l) (h : a ≤ x) :
+  a ≤ l.foldr max ⊥ :=
+begin
+  induction l with y l IH,
+  { exact absurd hx (not_mem_nil _), },
+  { obtain rfl | hl := hx,
+    simp only [foldr, foldr_cons],
+    { exact le_max_of_le_left h, },
+    { exact le_max_of_le_right (IH hl) }}
+end
+
 end order_bot
 
 section order_top
@@ -325,6 +336,10 @@ variables [order_top α] {l : list α}
 
 lemma le_min_of_forall_le (l : list α) (a : α) (h : ∀ x ∈ l, a ≤ x) : a ≤ l.foldr min ⊤ :=
 @max_le_of_forall_le αᵒᵈ _ _ _ _ h
+
+lemma min_le_of_le (l : list α) (a : α) {x : α} (hx : x ∈ l) (h : x ≤ a) :
+  l.foldr min ⊤ ≤ a :=
+@le_max_of_le αᵒᵈ _ _ _ _ _ hx h
 
 end order_top
 end fold

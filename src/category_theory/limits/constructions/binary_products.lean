@@ -117,20 +117,20 @@ def is_coproduct_of_is_initial_is_pushout {W X Y Z : C} (f : X ⟶ Z) (g : Y ⟶
 
 /-- The coproduct is the pushout under the initial object. -/
 def is_pushout_of_is_initial_is_coproduct {W X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z) (h : W ⟶ X)
-  (k : W ⟶ Y) (H₁ : is_terminal Z)
-  (H₂ : is_limit (binary_fan.mk h k)) :
-  is_limit (pullback_cone.mk _ _ (show h ≫ f = k ≫ g, from H₁.hom_ext _ _)) :=
+  (k : W ⟶ Y) (H₁ : is_initial W)
+  (H₂ : is_colimit (binary_cofan.mk f g)) :
+  is_colimit (pushout_cocone.mk _ _ (show h ≫ f = k ≫ g, from H₁.hom_ext _ _)) :=
 begin
-  apply pullback_cone.is_limit_aux',
+  apply pushout_cocone.is_colimit_aux',
   intro s,
-  use H₂.lift (binary_fan.mk s.fst s.snd),
-  use H₂.fac (binary_fan.mk s.fst s.snd) ⟨walking_pair.left⟩,
-  use H₂.fac (binary_fan.mk s.fst s.snd) ⟨walking_pair.right⟩,
+  use H₂.desc (binary_cofan.mk s.inl s.inr),
+  use H₂.fac (binary_cofan.mk s.inl s.inr) ⟨walking_pair.left⟩,
+  use H₂.fac (binary_cofan.mk s.inl s.inr) ⟨walking_pair.right⟩,
   intros m h₁ h₂,
   apply H₂.hom_ext,
   rintro ⟨⟨⟩⟩,
-  { exact h₁.trans (H₂.fac (binary_fan.mk s.fst s.snd) ⟨walking_pair.left⟩).symm },
-  { exact h₂.trans (H₂.fac (binary_fan.mk s.fst s.snd) ⟨walking_pair.right⟩).symm }
+  { exact h₁.trans (H₂.fac (binary_cofan.mk s.inl s.inr) ⟨walking_pair.left⟩).symm },
+  { exact h₂.trans (H₂.fac (binary_cofan.mk s.inl s.inr) ⟨walking_pair.right⟩).symm }
 end
 
 variable (C)

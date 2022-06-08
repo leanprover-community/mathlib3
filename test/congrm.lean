@@ -14,15 +14,6 @@ begin
   { exact H' },
 end
 
-example {g : X → X} (H : a = b) (H' : c + f a = c + f d) (H'' : f d = f b) :
-  f (g a) * (f d + (c + f a)) = f (g b) * (f b + (c + f d)) :=
-begin
-  congrm _₂ (f (_₁ _)) (_₂ _ _),
-  { exact H },
-  { exact H'' },
-  { exact H' },
-end
-
 example (H' : c + (f a) = c + (f d)) (H'' : f d = f b) :
   f (f a) * (f d + (c + f a)) = f (f a) * (f b + (c + f d)) :=
 begin
@@ -75,6 +66,15 @@ example : true ∧ false ↔ (true ∧ true) ∧ false :=
 begin
   congrm _₂ _ _,
   exact (true_and true).symm,
+end
+
+example {g : X → X} (H : a = b) (H' : c + f a = c + f d) (H'' : f d = f b) :
+  f (g a) * (f d + (c + f a)) = f (g b) * (f b + (c + f d)) :=
+begin
+  congrm _₂ (f (_₁ _)) (_₂ _ _),
+  { exact H },
+  { exact H'' },
+  { exact H' },
 end
 
 example {A B C D E : Type*} [has_add A] [has_mul C] {a1 a2 a3 : A} (b1 b2 : B) {c1 c2 c3 : C}

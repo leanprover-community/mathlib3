@@ -627,9 +627,6 @@ by exact_mod_cast @set.ssubset_iff_insert α s t
 
 lemma ssubset_insert (h : a ∉ s) : s ⊂ insert a s := ssubset_iff.mpr ⟨a, h, subset.rfl⟩
 
-lemma ssubset_iff_exists_insert_subset {s t : finset α} : s ⊂ t ↔ ∃ a ∉ s, insert a s ⊆ t :=
-by simp_rw [ssubset_iff_exists_cons_subset, cons_eq_insert]
-
 @[elab_as_eliminator]
 lemma cons_induction {α : Type*} {p : finset α → Prop}
   (h₁ : p ∅) (h₂ : ∀ ⦃a : α⦄ {s : finset α} (h : a ∉ s), p s → p (cons a s h)) : ∀ s, p s

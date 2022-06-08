@@ -934,9 +934,9 @@ instance is_scalar_tower_left
   is_scalar_tower S α β :=
 S.to_subsemiring.is_scalar_tower
 
-instance [has_scalar A α] [has_faithful_scalar A α] (S : subalgebra R A) :
-  has_faithful_scalar S α :=
-S.to_subsemiring.has_faithful_scalar
+instance [has_scalar A α] [has_faithful_smul A α] (S : subalgebra R A) :
+  has_faithful_smul S α :=
+S.to_subsemiring.has_faithful_smul
 
 /-- The action by a subalgebra is the action by the underlying algebra. -/
 instance [mul_action A α] (S : subalgebra R A) : mul_action S α :=

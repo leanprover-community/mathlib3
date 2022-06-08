@@ -9,7 +9,7 @@ import tactic.localized
 /-!
 # Alternate definition of `vector` in terms of `fin2`
 
-This file provides a locale `vector3` which overrides `[a, b, c]` notation to create a `vector3`
+This file provides a locale `vector3` which overrides the `[a, b, c]` notation to create a `vector3`
 instead of a `list`.
 
 The `::` notation is also overloaded by this file to mean `vector3.cons`.

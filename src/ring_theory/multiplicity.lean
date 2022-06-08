@@ -265,8 +265,8 @@ lemma multiplicity_mk_eq_multiplicity [decidable_rel ((∣) : associates α → 
 begin
   by_cases h : finite a b,
   { rw ← enat.coe_get (finite_iff_dom.mp h),
-    refine multiplicity.unique
-      (show (associates.mk a)^(((multiplicity a b).get h)) ∣ associates.mk b, from _) _;
+    refine (multiplicity.unique
+      (show (associates.mk a)^(((multiplicity a b).get h)) ∣ associates.mk b, from _) _).symm ;
       rw [← associates.mk_pow, associates.mk_dvd_mk],
     { exact pow_multiplicity_dvd h },
     { exact is_greatest ((enat.lt_coe_iff _ _).mpr (exists.intro

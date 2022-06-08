@@ -53,7 +53,7 @@ example (V : Rep k G) : G →* (V →ₗ[k] V) := V.ρ
 /-- Lift an unbundled representation to `Rep`. -/
 @[simps ρ]
 def of {V : Type u} [add_comm_group V] [module k V] (ρ : G →* (V →ₗ[k] V)) : Rep k G :=
-⟨Module.of k V, Mon.of_hom ρ⟩
+⟨Module.of k V, ρ⟩
 
 -- Verify that limits are calculated correctly.
 noncomputable example : preserves_limits (forget₂ (Rep k G) (Module.{u} k)) :=

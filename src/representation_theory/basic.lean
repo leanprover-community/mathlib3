@@ -30,8 +30,6 @@ Representations of a monoid `G` on a `k`-module `V` are implemented as
 homomorphisms `G →* (V →ₗ[k] V)`.
 -/
 
-universes u
-
 open monoid_algebra (lift) (of)
 open linear_map
 

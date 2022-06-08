@@ -158,8 +158,7 @@ lemma is_connected.of_induct [nonempty J] {j₀ : J}
   is_connected J :=
 is_connected.of_constant_of_preserves_morphisms (λ α F a,
 begin
-  have w := h {j | F j = F j₀} rfl (λ _ _ f, by simp [a f]),
-  dsimp at w,
+  have w : ∀ j, _ = _ := h {j | F j = F j₀} rfl (λ _ _ f, by simp [a f]),
   intros j j',
   rw [w j, w j'],
 end)

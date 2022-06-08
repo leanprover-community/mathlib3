@@ -167,8 +167,7 @@ open_locale pointwise
 instance {Q : Type*} [linear_order Q] [add_group Q]
   [covariant_class Q Q (+) (<)] [covariant_class Q Q (function.swap (+)) (<)] :
   has_add (dedekind_cut Q) :=
-⟨λ α β, {
-  carrier := α + β,
+⟨λ α β, { carrier := α + β,
   nonempty' := by { obtain ⟨p, hp⟩ := α.nonempty, obtain ⟨q, hq⟩ := β.nonempty,
     exact ⟨p + q, p, q, hp, hq, rfl⟩ },
   ne_top' := begin

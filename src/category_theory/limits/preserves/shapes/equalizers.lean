@@ -202,13 +202,26 @@ begin
 end
 
 lemma map_π_preserves_coequalizer_inv_colim_map
-  (X' Y' : D) (f' g' : X' ⟶ Y') [has_coequalizer f' g'] (p : G.obj X ⟶ X') (q : G.obj Y ⟶ Y')
+  {X' Y' : D} (f' g' : X' ⟶ Y') [has_coequalizer f' g'] (p : G.obj X ⟶ X') (q : G.obj Y ⟶ Y')
   (wf : (G.map f) ≫ q = p ≫ f') (wg : (G.map g) ≫ q = p ≫ g') :
   G.map (coequalizer.π f g) ≫ (preserves_coequalizer.iso G f g).inv ≫
   colim_map (parallel_pair_hom (G.map f) (G.map g) f' g' p q wf wg) =
   q ≫ coequalizer.π f' g' :=
 begin
   rw [←category.assoc, map_π_preserves_coequalizer_inv, ι_colim_map, parallel_pair_hom_app_one],
+end
+
+lemma map_π_preserves_coequalizer_inv_colim_map_desc
+  {X' Y' : D} (f' g' : X' ⟶ Y') [has_coequalizer f' g'] (p : G.obj X ⟶ X') (q : G.obj Y ⟶ Y')
+  (wf : (G.map f) ≫ q = p ≫ f') (wg : (G.map g) ≫ q = p ≫ g')
+  {Z' : D} (h : Y' ⟶ Z') (wh : f' ≫ h = g' ≫ h) :
+  G.map (coequalizer.π f g) ≫ (preserves_coequalizer.iso G f g).inv ≫
+  colim_map (parallel_pair_hom (G.map f) (G.map g) f' g' p q wf wg) ≫
+  coequalizer.desc h wh =
+  q ≫ h :=
+begin
+  slice_lhs 1 3 { rw map_π_preserves_coequalizer_inv_colim_map },
+  slice_lhs 2 3 { rw coequalizer.π_desc },
 end
 
 /-- Any functor preserves coequalizers of split pairs. -/

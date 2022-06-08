@@ -96,7 +96,7 @@ lemma basis_sets_zero (U) (hU : U ∈ p.basis_sets) :
   (0 : E) ∈ U :=
 begin
   rcases p.basis_sets_iff.mp hU with ⟨ι', r, hr, hU⟩,
-  rw [hU, mem_ball_zero, (ι'.sup p).zero],
+  rw [hU, mem_ball_zero, map_zero],
   exact hr,
 end
 

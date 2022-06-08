@@ -457,8 +457,7 @@ lemma pow_padic_val_nat_dvd {p n : ℕ} : p ^ (padic_val_nat p n) ∣ n :=
 begin
   rcases n.eq_zero_or_pos with rfl | hn, { simp },
   rcases eq_or_ne p 1 with rfl | hp, { simp },
-  rw multiplicity.pow_dvd_iff_le_multiplicity,
-  simp [le_of_eq, padic_val_nat, hp, hn],
+  rw [multiplicity.pow_dvd_iff_le_multiplicity, padic_val_nat_def']; assumption,
 end
 
 lemma pow_succ_padic_val_nat_not_dvd {p n : ℕ} [hp : fact (nat.prime p)] (hn : 0 < n) :

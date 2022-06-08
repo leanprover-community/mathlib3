@@ -1050,7 +1050,7 @@ by rw [emetric.inseparable_iff, edist_nndist, dist_nndist, ennreal.coe_eq_zero,
 See Note [forgetful inheritance].
 -/
 def pseudo_metric_space.replace_uniformity {α} [U : uniform_space α] (m : pseudo_metric_space α)
-  (H : @uniformity _ U = @uniformity _ pseudo_emetric_space.to_uniform_space') :
+  (H : @uniformity _ U = @uniformity _ pseudo_emetric_space.to_uniform_space) :
   pseudo_metric_space α :=
 { dist               := @dist _ m.to_has_dist,
   dist_self          := dist_self,
@@ -1063,7 +1063,7 @@ def pseudo_metric_space.replace_uniformity {α} [U : uniform_space α] (m : pseu
 
 lemma pseudo_metric_space.replace_uniformity_eq {α} [U : uniform_space α]
   (m : pseudo_metric_space α)
-  (H : @uniformity _ U = @uniformity _ pseudo_emetric_space.to_uniform_space') :
+  (H : @uniformity _ U = @uniformity _ pseudo_emetric_space.to_uniform_space) :
   m.replace_uniformity H = m :=
 by { ext, refl }
 

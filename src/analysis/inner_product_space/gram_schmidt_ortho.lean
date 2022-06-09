@@ -137,24 +137,35 @@ begin
     { exact submodule.sum_mem _ (λ b hb, mem_sup_right (smul_mem _ _ (h₀ b hb))) } }
 end
 
-/-- If the input vectors of `gram_schmidt` are linearly independent,
-then the output vectors are non-zero. -/
-lemma gram_schmidt_ne_zero [succ_order ι] [is_succ_archimedean ι]
-    (f : ι → E) (n : ι) (h₀ : linear_independent 𝕜 f) :
+lemma gram_schmidt_ne_zero_coe [succ_order ι] [is_succ_archimedean ι]
+    (f : ι → E) (n : ι) (h₀ : linear_independent 𝕜 (f ∘ (coe : set.Iic n → ι))) :
   gram_schmidt 𝕜 f n ≠ 0 :=
 begin
   by_contra h,
-  have h₃ : f n ∈ span 𝕜 (f '' Iio n),
+  have h₁ : f n ∈ span 𝕜 (f '' Iio n),
   { rw [← span_gram_schmidt 𝕜 f n, gram_schmidt_def' _ f, h, zero_add],
     apply submodule.sum_mem _ _,
     simp_intros a ha only [finset.mem_Ico],
     simp only [set.mem_image, set.mem_Iio, orthogonal_projection_singleton],
     apply submodule.smul_mem _ _ _,
     rw finset.mem_Iio at ha,
-    refine subset_span ⟨a, ha, by refl⟩, },
-  apply linear_independent.not_mem_span_image h₀ _ h₃,
+    refine subset_span ⟨a, ha, by refl⟩ },
+  have h₂ : (f ∘ (coe : set.Iic n → ι)) ⟨n, le_refl n⟩
+    ∈ span 𝕜 (f ∘ (coe : set.Iic n → ι) '' Iio ⟨n, le_refl n⟩),
+  { rw [image_comp],
+    convert h₁ using 3,
+    ext i,
+    simpa using @le_of_lt _ _ i n },
+  apply linear_independent.not_mem_span_image h₀ _ h₂,
   simp only [set.mem_Iio, lt_self_iff_false, not_false_iff]
 end
+
+/-- If the input vectors of `gram_schmidt` are linearly independent,
+then the output vectors are non-zero. -/
+lemma gram_schmidt_ne_zero [succ_order ι] [is_succ_archimedean ι]
+    (f : ι → E) (n : ι) (h₀ : linear_independent 𝕜 f) :
+  gram_schmidt 𝕜 f n ≠ 0 :=
+gram_schmidt_ne_zero_coe _ _ _ (linear_independent.comp h₀ _ subtype.coe_injective)
 
 /-- the normalized `gram_schmidt`
 (i.e each vector in `gram_schmidt_normed` has unit length.) -/

@@ -16,13 +16,18 @@ See the doc-string for `tactic.interactive.move_add` for more information.
 
 ##  Implementation notes
 
+This file defines a general `move_op` tactic, intended for reordering terms in an expression
+obtained by repeated applications of a given associative, commutative binary operation.  The
+user decides the final reordering.  Applying `move_op` without specifying the order will simply
+remove all parentheses from the expression.
+The main user-facing tactics are `move_add` and `move_mul`, dealing with addition and
+multiplication, respectively.
+
+In what is below, we talk about `move_add` for definiteness, but everything applies
+to `move_mul` and to the more general `move_op`.
+
 The implementation of `move_add` only moves the terms specified by the user (and rearranges
 parentheses).
-
-An earlier version of this tactic also had a relation on `expr` that performed a sorting on the
-terms that were not specified by the user.  This is very easy to implement, if desired, but is not
-part of this tactic.  We had used the order given by the `≤` on `string` and a small support for
-sorting `monomial`s by increasing degree.
 
 Note that the tactic `abel` already implements a very solid heuristic for normalizing terms in an
 additive commutative semigroup and produces expressions in more or less standard form.
@@ -32,46 +37,21 @@ around a sum.
 ##  Future work
 
 * Add support for `neg` in additive groups?
-* Add different operations other than `+`, most notably `*`?
+* Add different operations other than `+` and `*`?
 * Add functionality for moving terms across the two sides of an in/dis/equality.
   E.g. it might be desirable to have `to_lhs [a]` converting `b + c = a + d` to `- a + b + c = d`.
 * Add a non-recursive version for use in `conv` mode.
 * Revise tests?
 -/
 
---  Contained in PR #14617, in the file `meta.expr`.  It is currently here to minimize
---  CI cycles: I will delete this definition if the other PR gets merged.
-/--  Takes an `expr` and returns a list of its summands. -/
-meta def expr.list_summands1 : expr → list expr
-| `(has_add.add %%a %%b) := a.list_summands1 ++ b.list_summands1
-| a                      := [a]
-
 namespace tactic
 
-namespace move_add
+namespace move_op
 
---section generic_op
 /-!
-In this section, `op : expr` denotes an arbitrary (binary) operation.  We do not use, but
-implicitly imagine, that this operation is associative, since we extract iterations of
+Throughout this file, `op : pexpr` denotes an arbitrary (binary) operation.  We do not use,
+but implicitly imagine, that this operation is associative, since we extract iterations of
 such operations, with complete disregard of the order in which these iterations arise.
--/
-
-/-
-meta def candidates (op : expr) : bool → expr → (list expr)
-| bo (expr.app (expr.app f a) b)      :=
-  if bo then
-    if f = op then [f.mk_app [a,b]] ++ candidates ff a ++ candidates ff b
-    else candidates ff a ++ candidates ff b
-  else candidates tt f ++ candidates tt a ++ candidates tt b
---| bo e@`(%%a + %%b)      := if bo then [e] ++ candidates ff a ++ candidates ff b
---                            else candidates ff a ++ candidates ff b
-| bo (expr.app e f)      := candidates tt e ++ candidates tt f
-| bo (expr.lam _ _ e f)  := candidates tt e ++ candidates tt f
-| bo (expr.pi  _ _ e f)  := candidates tt e ++ candidates tt f
-| bo (expr.mvar  _ _ e)  := candidates tt e
-| bo (expr.elet _ e f g) := candidates tt e ++ candidates tt f ++ candidates tt g
-| bo e                   := []
 -/
 
 /-- `list_explicit_args f` returns a list of the explicit arguments of `f`. -/
@@ -79,24 +59,21 @@ meta def list_explicit_args (f : expr) : tactic (list expr) :=
 tactic.fold_explicit_args f [] (λ ll e, return $ ll ++ [e])
 
 
-/- Partially traverses an expression in search for a sum of terms and producing a list of them.
-In the intended application, the `bool` input is initially set to `tt`.
-The first time `candidates` finds an expression whose head symbol is `has_add.add`,
-`candidates` adds the expression to the list, and recurses inside the summands as well,
-but with the boolean set to `ff`.  This prevents partial summands of a large sum to
-appear.  Once `candidates` finds a term whose head symbol is not `has_add.add`,
-it reverts the boolean to `tt`, so that the recursion can isolate further sums later in the
-expression.
-
-For instance, applying `candidates` to `a + (b + c)*(d + e) + f + g` produces
-`[a + (b + c) * (d + e) + f + g, b + c, d + e]`. -/
-
 /--  `list_head_op op tt e` recurses into the expression `e` looking for first appearances of
 `op` as the head symbol of a subexpression.  Every time it finds one, it isolates it.
 Usually, `op` is a binary, associative operation.  E.g., if the operation is addition and the
 input expression is `3 / (2 + 4) + 2 * (0 + 2)`, `list_head_op` returns
 `[3 / (2 + 4) + 2 * (0 + 2), 2 + 4, 0 + 2]`.
- -/
+
+More in detail, `list_head_op` partially traverses an expression in search for a term that is an
+iterated application of `op` and produces a list of such terms.
+In the intended application, the `bool` input is initially set to `tt`.
+The first time `list_head_op` finds an expression whose head symbol is `op`,
+`list_head_op` adds the expression to the list, and recurses inside the operands as well,
+but with the boolean set to `ff`.  This prevents partial operands of a large expression to
+appear.  Once `list_head_op` finds a term whose head symbol is not `op`,
+it reverts the boolean to `tt`, so that the recursion can isolate further sums later in the
+expression. -/
 meta def list_head_op (op : pexpr) : bool → expr → tactic (list expr)
 | bo (expr.app F b) := do
   op ← to_expr op tt ff,
@@ -139,6 +116,7 @@ do
   fe ← to_expr ``(%%f : %%t → %%t → %%t ),
   list_binary_operands_aux fe x
 
+/--  Takes an `expr` and returns a list of its summands. -/
 meta def _root_.expr.list_summands (e : expr) : tactic (list expr) :=
 list_binary_operands ``((+)) e
 
@@ -199,12 +177,12 @@ do
   return (l1 ++ l3 ++ l2, is_unused)
 
 /-- `sorted_sum` takes an optional location name `hyp` for where it will be applied, a list `ll` of
-`bool × pexpr` (arising as the user-provided input to `move_add`) and an expression `e`.
+`bool × pexpr` (arising as the user-provided input to `move_op`) and an expression `e`.
 
 `sorted_sum hyp ll e` returns an ordered sum of the terms of `e`, where the order is
 determined using the `final_sorting` applied to `ll` and `e`.
 
-We use this function for expressions in an additive commutative semigroup. -/
+We use this function for expressions in an (additive) commutative semigroup. -/
 meta def sorted_sum (hyp : option name) (ll : list (bool × pexpr)) (f : pexpr) (e : expr) :
   tactic (list bool) :=
 do
@@ -263,20 +241,20 @@ meta def with_errors (f : pexpr) (ll : list (bool × pexpr)) :
   tn ← target,
   if t = tn then return (tt, is_unused) else return (ff, is_unused)
 
-section parsing_arguments_for_move_add
+section parsing_arguments_for_move_op
 
 setup_tactic_parser
-/-- `move_add_arg` is a single elementary argument that `move_add` takes for the
+/-- `move_op_arg` is a single elementary argument that `move_op` takes for the
 variables to be moved.  It is either a `pexpr`, or a `pexpr` preceded by a `←`. -/
-meta def move_add_arg (prec : nat) : parser (bool × pexpr) :=
+meta def move_op_arg (prec : nat) : parser (bool × pexpr) :=
 prod.mk <$> (option.is_some <$> (tk "<-")?) <*> parser.pexpr prec
 
-/-- `move_pexpr_list_or_texpr` is either a list of `move_add_arg`, possibly empty, or a single
-`move_add_arg`. -/
+/-- `move_pexpr_list_or_texpr` is either a list of `move_op_arg`, possibly empty, or a single
+`move_op_arg`. -/
 meta def move_pexpr_list_or_texpr : parser (list (bool × pexpr)) :=
-list_of (move_add_arg 0) <|> list.ret <$> move_add_arg tac_rbp <|> return []
+list_of (move_op_arg 0) <|> list.ret <$> move_op_arg tac_rbp <|> return []
 
-meta def move_oper (args : parse move_pexpr_list_or_texpr) (locat : parse location) (f : pexpr) :
+meta def move_op (args : parse move_pexpr_list_or_texpr) (locat : parse location) (f : pexpr) :
   tactic unit :=
 match locat with
 | loc.wildcard := do
@@ -284,7 +262,7 @@ match locat with
   err_rep ← ctx.mmap (λ e, with_errors f args e.local_pp_name),
   er_t ← with_errors f args none,
   if ff ∉ er_t.1::err_rep.map (λ e, e.1) then
-    fail "'move_add at *' changed nothing" else skip,
+    fail "'move_op at *' changed nothing" else skip,
   let li_unused := er_t.2::err_rep.map (λ e, e.2),
   let li_unused_clear := li_unused.filter (≠ []),
   let li_tf_vars := li_unused_clear.transpose.map list.band,
@@ -311,13 +289,13 @@ match locat with
   assumption <|> try (tactic.reflexivity reducible)
   end
 
-end parsing_arguments_for_move_add
+end parsing_arguments_for_move_op
 
-end move_add
+end move_op
 
 namespace interactive
 
-open move_add
+open move_op
 setup_tactic_parser
 
 /--
@@ -330,7 +308,7 @@ may change the goal. Also, the *order* in which the terms are provided matters: 
 them from left to right.  This is especially important if there are multiple matches for the typed
 terms in the given expressions.
 
-A single call of `move_add` moves terms across different sums in the same expression.
+A single call of `move_op` moves terms across different sums in the same expression.
 Here is an example.
 
 ```lean
@@ -404,13 +382,13 @@ same effect and changes the goal to `b + a = 0`.  These are all valid uses of `m
 -/
 meta def move_add (args : parse move_pexpr_list_or_texpr) (locat : parse location) :
   tactic unit :=
-move_oper args locat ``((+))
+move_op args locat ``((+))
 
 /--  See the doc-string for `move_add` and mentally
 replace addition with multiplication throughout. ;-) -/
 meta def move_mul (args : parse move_pexpr_list_or_texpr) (locat : parse location) :
   tactic unit :=
-move_oper args locat ``((has_mul.mul))
+move_op args locat ``((has_mul.mul))
 
 add_tactic_doc
 { name := "move_add",

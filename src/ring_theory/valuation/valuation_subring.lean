@@ -437,6 +437,7 @@ end unit_group
 
 section maximal_ideal
 
+/-- The unique maximal ideal of a valuation subring, as a subsemigroup of `K`-/
 def maximal_ideal : subsemigroup K :=
 { carrier := { x | A.valuation x < 1 },
   mul_mem' := λ a b ha hb, by { simpa using mul_lt_mul₀ ha hb } }

@@ -5,7 +5,7 @@ Authors: Scott Morrison
 -/
 import topology.sheaves.sheaf_condition.equalizer_products
 import category_theory.full_subcategory
-import category_theory.limits.punit
+import category_theory.limits.unit
 
 /-!
 # Sheaves

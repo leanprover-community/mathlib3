@@ -34,26 +34,28 @@ variables {E : Type u₃} [category.{v₃} E]
 variables {J : Type w} [small_category J] {K : J ⥤ C}
 
 /--
-A functor is said to preserve finite limits, if it preserves all limits of shape `J`, where
-`J` is a finite category.
+A functor is said to preserve finite limits of size `w`, if it preserves all limits of shape `J`,
+where `J : Type w` is a finite category.
 -/
-class preserves_finite_limits (F : C ⥤ D) :=
+class preserves_finite_limits_of_size (F : C ⥤ D) :=
 (preserves_finite_limits : Π (J : Type w) [small_category J] [fin_category J],
   preserves_limits_of_shape J F . tactic.apply_instance)
 
-attribute [instance] preserves_finite_limits.preserves_finite_limits
+abbreviation preserves_finite_limits (F : C ⥤ D) := preserves_finite_limits_of_size.{0} F
+
+attribute [instance] preserves_finite_limits_of_size.preserves_finite_limits
 
 @[priority 100]
 instance preserves_limits.preserves_finite_limits (F : C ⥤ D) [preserves_limits_of_size.{w w} F] :
-  preserves_finite_limits.{w} F := {}
+  preserves_finite_limits_of_size.{w} F := {}
 
 instance id_preserves_finite_limits :
-  preserves_finite_limits (𝟭 C) := {}
+  preserves_finite_limits_of_size (𝟭 C) := {}
 
 /-- The composition of two left exact functors is left exact. -/
 def comp_preserves_finite_limits (F : C ⥤ D) (G : D ⥤ E)
-  [preserves_finite_limits.{w} F] [preserves_finite_limits.{w} G] :
-  preserves_finite_limits.{w} (F ⋙ G) :=
+  [preserves_finite_limits_of_size.{w} F] [preserves_finite_limits_of_size.{w} G] :
+  preserves_finite_limits_of_size.{w} (F ⋙ G) :=
 ⟨λ _ _ _, by { resetI, apply_instance }⟩
 
 /--

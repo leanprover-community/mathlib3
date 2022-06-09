@@ -154,7 +154,7 @@ by simp only [le_antisymm_iff, add_le_add_iff_right]
 end, λ e, by simp only [e, card_zero]⟩
 
 protected lemma one_ne_zero : (1 : ordinal) ≠ 0 :=
-type_ne_zero_iff_nonempty.2 ⟨punit.star⟩
+type_ne_zero_of_nonempty _
 
 instance : nontrivial ordinal.{u} :=
 ⟨⟨1, 0, ordinal.one_ne_zero⟩⟩

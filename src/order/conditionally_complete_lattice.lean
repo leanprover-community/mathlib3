@@ -132,7 +132,7 @@ instance complete_linear_order.to_conditionally_complete_linear_order_bot {α : 
 section
 open_locale classical
 
-/-- A well founded linear order is conditionally complete, with a bottom element. -/
+/-- A well founded linear order with a bottom element is conditionally complete. -/
 @[reducible] noncomputable def well_founded.conditionally_complete_linear_order_with_bot
   {α : Type*} [i₁ : linear_order α] [i₂ : order_bot α] (h : well_founded ((<) : α → α → Prop)) :
   conditionally_complete_linear_order_bot α :=

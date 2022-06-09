@@ -99,13 +99,11 @@ class pseudo_emetric_space (α : Type u) extends has_edist α : Type u :=
   uniform_space_of_edist edist edist_self edist_comm edist_triangle)
 (uniformity_edist : 𝓤 α = ⨅ ε>0, 𝓟 {p:α×α | edist p.1 p.2 < ε} . control_laws_tac)
 
+attribute [priority 100, instance] pseudo_emetric_space.to_uniform_space
+
 /- Pseudoemetric spaces are less common than metric spaces. Therefore, we work in a dedicated
 namespace, while notions associated to metric spaces are mostly in the root namespace. -/
 variables [pseudo_emetric_space α]
-
-@[priority 100] -- see Note [lower instance priority]
-instance pseudo_emetric_space.to_uniform_space' : uniform_space α :=
-pseudo_emetric_space.to_uniform_space
 
 export pseudo_emetric_space (edist_self edist_comm edist_triangle)
 
@@ -635,14 +633,14 @@ theorem cauchy_seq_iff_nnreal [nonempty β] [semilattice_sup β] {u : β → α}
 uniformity_basis_edist_nnreal.cauchy_seq_iff'
 
 theorem totally_bounded_iff {s : set α} :
-  totally_bounded s ↔ ∀ ε > 0, ∃t : set α, finite t ∧ s ⊆ ⋃y∈t, ball y ε :=
+  totally_bounded s ↔ ∀ ε > 0, ∃t : set α, t.finite ∧ s ⊆ ⋃y∈t, ball y ε :=
 ⟨λ H ε ε0, H _ (edist_mem_uniformity ε0),
  λ H r ru, let ⟨ε, ε0, hε⟩ := mem_uniformity_edist.1 ru,
                ⟨t, ft, h⟩ := H ε ε0 in
   ⟨t, ft, h.trans $ Union₂_mono $ λ y yt z, hε⟩⟩
 
 theorem totally_bounded_iff' {s : set α} :
-  totally_bounded s ↔ ∀ ε > 0, ∃t⊆s, finite t ∧ s ⊆ ⋃y∈t, ball y ε :=
+  totally_bounded s ↔ ∀ ε > 0, ∃t⊆s, set.finite t ∧ s ⊆ ⋃y∈t, ball y ε :=
 ⟨λ H ε ε0, (totally_bounded_iff_subset.1 H) _ (edist_mem_uniformity ε0),
  λ H r ru, let ⟨ε, ε0, hε⟩ := mem_uniformity_edist.1 ru,
                ⟨t, _, ft, h⟩ := H ε ε0 in
@@ -835,10 +833,6 @@ class emetric_space (α : Type u) extends pseudo_emetric_space α : Type u :=
 (eq_of_edist_eq_zero : ∀ {x y : α}, edist x y = 0 → x = y)
 
 variables {γ : Type w} [emetric_space γ]
-
-@[priority 100] -- see Note [lower instance priority]
-instance emetric_space.to_uniform_space' : uniform_space γ :=
-pseudo_emetric_space.to_uniform_space
 
 export emetric_space (eq_of_edist_eq_zero)
 

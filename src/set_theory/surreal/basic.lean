@@ -217,6 +217,20 @@ begin
   simpa using λ i, IH _ (ordinal.to_left_moves_to_pgame_symm_lt i)
 end
 
+theorem star_lt_of_numeric_of_pos {x} (ox : numeric x) (hx : 0 < x) : star < x :=
+lt_of_le_of_lf
+  (star_le_iff.2 ⟨hx.lf, λ j, star_lf_zero.trans_lt $ hx.trans $ ox.lt_move_right j⟩)
+  (star_lf_of_zero_le hx.le)
+
+/-- The game `up` is smaller than all positive numeric games. -/
+theorem up_lt_numeric_pos {x} : numeric x → 0 < x → up < x :=
+begin
+  apply pgame.move_rec_on x,
+  exact λ x _ IH ox h, lt_of_le_of_lf
+    (up_le_iff.2 ⟨h.lf, λ j, (IH j (ox.move_right j) $ h.trans $ ox.lt_move_right j).lf⟩)
+    (up_lf_iff.2 $ or.inr $ (star_lt_of_numeric_of_pos ox h).le)
+end
+
 end pgame
 
 /-- The equivalence on numeric pre-games. -/

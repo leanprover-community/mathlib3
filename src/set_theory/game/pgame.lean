@@ -1349,8 +1349,32 @@ def star : pgame.{u} := ⟨punit, punit, λ _, 0, λ _, 0⟩
 instance unique_star_left_moves : unique star.left_moves := punit.unique
 instance unique_star_right_moves : unique star.right_moves := punit.unique
 
+theorem star_le_iff {x} : star ≤ x ↔ 0 ⧏ x ∧ ∀ j, star ⧏ x.move_right j :=
+by { rw le_iff_forall_lf, simp }
+
+theorem le_star_iff {x} : x ≤ star ↔ (∀ i, x.move_left i ⧏ star) ∧ x ⧏ 0 :=
+by { rw le_iff_forall_lf, simp }
+
+theorem star_lf_iff {x} : star ⧏ x ↔ (∃ i, star ≤ x.move_left i) ∨ 0 ≤ x :=
+by { rw lf_iff_forall_le, simp }
+
+theorem lf_star_iff {x} : x ⧏ star ↔ x ≤ 0 ∨ ∃ j, x.move_right j ≤ star :=
+by { rw lf_iff_forall_le, simp }
+
+theorem star_lf_zero : star ⧏ 0 :=
+star_lf_iff.2 (or.inr le_rfl)
+
+theorem zero_lf_star : 0 ⧏ star :=
+lf_star_iff.2 (or.inl le_rfl)
+
 theorem star_fuzzy_zero : star ∥ 0 :=
-⟨by { rw lf_zero, use default, rintros ⟨⟩ }, by { rw zero_lf, use default, rintros ⟨⟩ }⟩
+⟨star_lf_zero, zero_lf_star⟩
+
+theorem star_lf_of_zero_le {x} : 0 ≤ x → star ⧏ x :=
+lf_of_lf_of_le star_lf_zero
+
+theorem lf_star_of_le_zero {x} : x ≤ 0 → x ⧏ star :=
+λ h, lf_of_le_of_lf h zero_lf_star
 
 @[simp] theorem neg_star : -star = star :=
 by simp [star]
@@ -1412,7 +1436,22 @@ def up : pgame.{u} := ⟨punit, punit, 0, λ _, star⟩
 instance unique_up_left_moves : unique up.left_moves := punit.unique
 instance unique_up_right_moves : unique up.right_moves := punit.unique
 
+theorem up_le_iff {x} : up ≤ x ↔ 0 ⧏ x ∧ ∀ j, up ⧏ x.move_right j :=
+by { rw le_iff_forall_lf, simp }
+
+theorem le_up_iff {x} : x ≤ up ↔ (∀ i, x.move_left i ⧏ up) ∧ x ⧏ star :=
+by { rw le_iff_forall_lf, simp }
+
+theorem up_lf_iff {x} : up ⧏ x ↔ (∃ i, up ≤ x.move_left i) ∨ star ≤ x :=
+by { rw lf_iff_forall_le, simp }
+
+theorem lf_up_iff {x} : x ⧏ up ↔ x ≤ 0 ∨ ∃ j, x.move_right j ≤ up :=
+by { rw lf_iff_forall_le, simp }
+
 theorem up_pos : 0 < up :=
 lt_of_le_of_lf (zero_le_lf.2 (λ j, star_fuzzy_zero.gf)) (zero_lf_le.2 ⟨default, le_rfl⟩)
+
+theorem up_lf_star : up ⧏ star :=
+lf_move_right punit.star
 
 end pgame

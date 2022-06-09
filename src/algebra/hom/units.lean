@@ -6,7 +6,21 @@ Authors: Johan Commelin, Chris Hughes, Kevin Buzzard
 import algebra.hom.group
 
 /-!
-# Lift monoid homomorphisms to group homomorphisms of their units subgroups.
+# Monoid homomorphisms and units
+
+This file allows to lift monoid homomorphisms to group homomorphisms of their units subgroups. It
+also contains unrelated results about `units` that depend on `monoid_hom`.
+
+## Main declarations
+
+* `units.map`: Turn an homomorphism from `α` to `β` monoids into an homomorphism from `αˣ` to `βˣ`.
+* `monoid_hom.to_hom_units`: Turn an homomorphism from a group `α` to `β` into an homomorphism from
+  `α` to `βˣ`.
+
+## TODO
+
+The results that don't mention homomorphisms should be proved (earlier?) in a different file and be
+used to golf the basic `group` lemmas.
 -/
 
 open function

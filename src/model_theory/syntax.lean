@@ -365,14 +365,6 @@ def exs : ∀ {n}, L.bounded_formula α n → L.formula α
 | 0 φ := φ
 | (n + 1) φ := φ.ex.exs
 
-/-- Raises all of the `fin`-indexed variables of a formula greater than or equal to `m` by `n'`. -/
-def lift_at : ∀ {n : ℕ} (n' m : ℕ), L.bounded_formula α n → L.bounded_formula α (n + n')
-| n n' m falsum := falsum
-| n n' m (equal t₁ t₂) := (t₁.lift_at n' m).bd_equal (t₂.lift_at n' m)
-| n n' m (rel R ts) := R.bounded_formula (term.lift_at n' m ∘ ts)
-| n n' m (imp f₁ f₂) := (f₁.lift_at n' m).imp (f₂.lift_at n' m)
-| n n' m (all f) := ((f.lift_at n' m).cast_le (by rw [add_assoc, add_comm 1, ← add_assoc])).all
-
 /-- Maps bounded formulas along a map of terms and a map of relations. -/
 def map_term_rel {g : ℕ → ℕ}
   (ft : ∀ n, L.term (α ⊕ fin n) → L'.term (β ⊕ fin (g n)))
@@ -386,8 +378,8 @@ def map_term_rel {g : ℕ → ℕ}
 | n (all φ) := (h n φ.map_term_rel).all
 
 /-- Raises all of the `fin`-indexed variables of a formula greater than or equal to `m` by `n'`. -/
-def lift_at' : ∀ {n : ℕ} (n' m : ℕ), L.bounded_formula α n → L.bounded_formula α (n + n') :=
-λ n n' m φ, φ.map_term_rel (λ k t, t.lift_at n' k) (λ _, id)
+def lift_at : ∀ {n : ℕ} (n' m : ℕ), L.bounded_formula α n → L.bounded_formula α (n + n') :=
+λ n n' m φ, φ.map_term_rel (λ k t, t.lift_at n' m) (λ _, id)
   (λ _, cast_le (by rw [add_assoc, add_comm 1, add_assoc]))
 
 @[simp] lemma map_term_rel_map_term_rel {L'' : language}

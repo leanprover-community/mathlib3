@@ -333,16 +333,15 @@ lemma realize_lift_at {n n' m : ℕ} {φ : L.bounded_formula α n}
   (φ.lift_at n' m).realize v xs ↔ φ.realize v (xs ∘
     (λ i, if ↑i < m then fin.cast_add n' i else fin.add_nat n' i)) :=
 begin
+  rw lift_at,
   induction φ with _ _ _ _ _ _ _ _ _ _ _ ih1 ih2 k _ ih3,
-  { simp [lift_at, realize] },
-  { simp only [lift_at, realize, realize_bd_equal, realize_lift_at, sum.elim_comp_map,
-      function.comp.right_id] },
-  { simp only [lift_at, realize, realize_rel, realize_lift_at, sum.elim_comp_map,
-      function.comp.right_id] },
-  { simp only [lift_at, realize, ih1 hmn, ih2 hmn], },
+  { simp [realize, map_term_rel], },
+  { simp [realize, map_term_rel, realize_rel, realize_lift_at, sum.elim_comp_map], },
+  { simp [realize, map_term_rel, realize_rel, realize_lift_at, sum.elim_comp_map], },
+  { simp only [map_term_rel, realize, ih1 hmn, ih2 hmn] },
   { have h : k + 1 + n' = k + n'+ 1,
     { rw [add_assoc, add_comm 1 n', ← add_assoc], },
-    simp only [lift_at, realize, realize_cast_le_of_eq h, ih3 (hmn.trans k.succ.le_succ)],
+    simp only [map_term_rel, realize, realize_cast_le_of_eq h, ih3 (hmn.trans k.succ.le_succ)],
     refine forall_congr (λ x, iff_eq_eq.mpr (congr rfl (funext (fin.last_cases _ (λ i, _))))),
     { simp only [function.comp_app, coe_last, snoc_last],
       by_cases (k < m),

@@ -9,7 +9,7 @@ begin
     ("'d' is an unused variable"),
   move_add at *,
   success_if_fail_with_msg { move_add at * }
-    ("'move_add at *' changed nothing"),
+    ("'move_op at *' changed nothing"),
   success_if_fail_with_msg { move_add [a, e, f, g] at h a b c ⊢ }
     ("'[a, b, c]' did not change"),
   success_if_fail_with_msg { move_add [a, e, f, g] at h ⊢ }
@@ -27,7 +27,7 @@ begin
     ("'d' is an unused variable"),
   move_mul at *,
   success_if_fail_with_msg { move_mul at * }
-    ("'move_add at *' changed nothing"),
+    ("'move_op at *' changed nothing"),
   success_if_fail_with_msg { move_mul [a, e, f, g] at h a b c ⊢ }
     ("'[a, b, c]' did not change"),
   success_if_fail_with_msg { move_mul [a, e, f, g] at h ⊢ }

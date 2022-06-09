@@ -289,6 +289,10 @@ surjective_quot_mk _
 @[simp] lemma range_mk : range (mk : X → separation_quotient X) = univ :=
 surjective_mk.range_eq
 
+instance [nonempty X] : nonempty (separation_quotient X) := nonempty.map mk ‹_›
+instance [inhabited X] : inhabited (separation_quotient X) := ⟨mk default⟩
+instance [subsingleton X] : subsingleton (separation_quotient X) := surjective_mk.subsingleton
+
 lemma preimage_image_mk_open (hs : is_open s) : mk ⁻¹' (mk '' s) = s :=
 begin
   refine subset.antisymm _ (subset_preimage_image _ _),

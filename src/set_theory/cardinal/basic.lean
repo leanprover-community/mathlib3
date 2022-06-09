@@ -1111,9 +1111,9 @@ by rw [←to_nat_lift, lift_mk_eq.mpr ⟨e⟩, to_nat_lift]
 
 @[simp] lemma to_nat_mul (x y : cardinal) : (x * y).to_nat = x.to_nat * y.to_nat :=
 begin
-  rcases eq_or_ne x 0 with rfl|hx1,
+  rcases eq_or_ne x 0 with rfl | hx1,
   { rw [zero_mul, zero_to_nat, zero_mul] },
-  rcases eq_or_ne y 0 with rfl|hy1,
+  rcases eq_or_ne y 0 with rfl | hy1,
   { rw [mul_zero, zero_to_nat, mul_zero] },
   cases lt_or_le x ℵ₀ with hx2 hx2,
   { cases lt_or_le y ℵ₀ with hy2 hy2,

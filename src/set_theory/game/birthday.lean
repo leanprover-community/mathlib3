@@ -156,8 +156,10 @@ let h := le_birthday (-x) in by rwa [neg_birthday, ←neg_le_iff, neg_neg] at h
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 
-theorem birthday_add_one : (a + 1).birthday = a.birthday + 1 := by simp
-theorem birthday_one_add : (1 + a).birthday = a.birthday + 1 := by simp
+theorem birthday_add_zero : (a + 0).birthday = a.birthday := by simp
+theorem birthday_zero_add : (0 + a).birthday = a.birthday := by simp
+theorem birthday_add_one  : (a + 1).birthday = a.birthday + 1 := by simp
+theorem birthday_one_add  : (1 + a).birthday = a.birthday + 1 := by simp
 
 @[simp] theorem birthday_nat (n : ℕ) : birthday n = n :=
 begin

@@ -315,8 +315,8 @@ lemma integral_exp_mul_complex {c : ℂ} (hc : c ≠ 0) :
 begin
   have D : ∀ (x : ℝ), has_deriv_at (λ (y : ℝ), complex.exp (c * y) / c) (complex.exp (c * x)) x,
   { intro x,
-    conv begin congr, skip, rw ←mul_div_cancel (complex.exp (c * x)) hc, end,
-    convert (has_deriv_at.comp x (complex.has_deriv_at_exp _) _).div_const c using 1,
+    conv { congr, skip, rw ←mul_div_cancel (complex.exp (c * x)) hc, },
+    convert ((complex.has_deriv_at_exp _).comp x _).div_const c using 1,
     simpa only [complex.of_real_clm_apply, complex.of_real_one, one_mul, mul_one, mul_comm] using
       complex.of_real_clm.has_deriv_at.mul_const c },
   rw integral_deriv_eq_sub' _ (funext (λ x, (D x).deriv)) (λ x hx, (D x).differentiable_at),

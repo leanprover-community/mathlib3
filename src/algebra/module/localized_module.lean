@@ -40,8 +40,6 @@ universes u v
 variables {R : Type u} [comm_semiring R] (S : submonoid R)
 variables (M : Type v) [add_comm_monoid M] [module R M]
 
-example (r : R) (m : M) : M := r • m
-
 /--The equivalence relation on `M × S` where `(m1, s1) ≈ (m2, s2)` if and only if
 for some (u : S), u * (s2 • m1 - s1 • m2) = 0-/
 def r (p1 p2 : M × S) : Prop :=

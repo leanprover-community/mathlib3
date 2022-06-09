@@ -293,6 +293,13 @@ begin
   simpa only [v.map_one, v.map_neg] using v.map_add_eq_of_lt_left h
 end
 
+lemma one_lt_val_iff
+  {K : Type*} [division_ring K] (v : valuation K Γ₀) {x : K} (h : x ≠ 0) :
+  1 < v x ↔ v x⁻¹ < 1 :=
+begin
+  simpa using (inv_lt_inv₀ (v.ne_zero_iff.2 h) one_ne_zero).symm,
+end
+
 /-- The subgroup of elements whose valuation is less than a certain unit.-/
 def lt_add_subgroup (v : valuation R Γ₀) (γ : Γ₀ˣ) : add_subgroup R :=
 { carrier   := {x | v x < γ},

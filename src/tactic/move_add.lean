@@ -36,7 +36,8 @@ around a sum.
 
 ##  Future work
 
-* Add support for `neg` in additive groups?
+* Add support for `neg/div/inv` in additive/multiplicative groups?
+* Customize error messages to mention `move_add/move_mul` instead of `move_op`?
 * Add different operations other than `+` and `*`?
 * Add functionality for moving terms across the two sides of an in/dis/equality.
   E.g. it might be desirable to have `to_lhs [a]` converting `b + c = a + d` to `- a + b + c = d`.

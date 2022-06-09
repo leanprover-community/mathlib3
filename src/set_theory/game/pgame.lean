@@ -625,6 +625,9 @@ by { simp only [lt_iff_le_and_lf, fuzzy, ←pgame.not_le], tauto! }
 theorem lf_of_fuzzy {x y : pgame} (h : x ∥ y) : x ⧏ y := lf_iff_lt_or_fuzzy.2 (or.inr h)
 alias lf_of_fuzzy ← pgame.fuzzy.lf
 
+theorem gf_of_fuzzy {x y : pgame} (h : x ∥ y) : y ⧏ x := h.swap.lf
+alias gf_of_fuzzy ← pgame.fuzzy.gf
+
 theorem lt_or_fuzzy_of_lf {x y : pgame} : x ⧏ y → x < y ∨ x ∥ y :=
 lf_iff_lt_or_fuzzy.1
 
@@ -1395,5 +1398,21 @@ begin
     { exact ⟨sum.inr punit.star, (add_zero_equiv _).2⟩ },
     { exact ⟨sum.inl punit.star, (zero_add_equiv _).2⟩ } }
 end
+
+/-- The pre-game `up` is defined as `{0 | *}`. It's positive but smaller than all positive numeric
+games. -/
+def up : pgame.{u} := ⟨punit, punit, 0, λ _, star⟩
+
+@[simp] theorem up_left_moves : up.left_moves = punit := rfl
+@[simp] theorem up_right_moves : up.right_moves = punit := rfl
+
+@[simp] theorem up_move_left (x) : up.move_left x = 0 := rfl
+@[simp] theorem up_move_right (x) : up.move_right x = star := rfl
+
+instance unique_up_left_moves : unique up.left_moves := punit.unique
+instance unique_up_right_moves : unique up.right_moves := punit.unique
+
+theorem up_pos : 0 < up :=
+lt_of_le_of_lf (zero_le_lf.2 (λ j, star_fuzzy_zero.gf)) (zero_lf_le.2 ⟨default, le_rfl⟩)
 
 end pgame

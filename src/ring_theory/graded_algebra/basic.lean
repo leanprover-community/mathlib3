@@ -24,8 +24,6 @@ See the docstring of that typeclass for more information.
   `direct_sum.decompose 𝒜`.
 * `graded_algebra.proj 𝒜 i` is the linear map from `A` to its degree `i : ι` component, such that
   `proj 𝒜 i x = decompose 𝒜 x i`.
-* `graded_algebra.support 𝒜 r` is the `finset ι` containing the `i : ι` such that the degree `i`
-  component of `r` is not zero.
 
 ## Implementation notes
 
@@ -105,42 +103,25 @@ map_mul (decompose_alg_equiv 𝒜).symm x y
 
 end direct_sum
 
+open direct_sum
+
 /-- The projection maps of graded algebra-/
 def graded_algebra.proj (𝒜 : ι → submodule R A) [graded_algebra 𝒜] (i : ι) : A →ₗ[R] A :=
 (𝒜 i).subtype.comp $
   (dfinsupp.lapply i).comp $
-  (direct_sum.decompose_alg_equiv 𝒜).to_alg_hom.to_linear_map
+  (decompose_alg_equiv 𝒜).to_alg_hom.to_linear_map
 
 @[simp] lemma graded_algebra.proj_apply (i : ι) (r : A) :
-  graded_algebra.proj 𝒜 i r = (direct_sum.decompose 𝒜 r : ⨁ i, 𝒜 i) i := rfl
-
-/-- The support of `r` is the `finset` where `proj R A i r ≠ 0 ↔ i ∈ r.support`-/
-def graded_algebra.support [Π (i : ι) (x : 𝒜 i), decidable (x ≠ 0)]
-  (r : A) : finset ι :=
-@dfinsupp.support _ _ _ _ ‹_› (direct_sum.decompose 𝒜 (r : A) : ⨁ i, 𝒜 i)
+  graded_algebra.proj 𝒜 i r = (decompose 𝒜 r : ⨁ i, 𝒜 i) i := rfl
 
 lemma graded_algebra.proj_recompose (a : ⨁ i, 𝒜 i) (i : ι) :
-  graded_algebra.proj 𝒜 i ((direct_sum.decompose 𝒜).symm a) =
-  (direct_sum.decompose 𝒜).symm (direct_sum.of _ i (a i)) :=
-by rw [graded_algebra.proj_apply, direct_sum.decompose_symm_of, equiv.apply_symm_apply]
+  graded_algebra.proj 𝒜 i ((decompose 𝒜).symm a) =
+  (decompose 𝒜).symm (of _ i (a i)) :=
+by rw [graded_algebra.proj_apply, decompose_symm_of, equiv.apply_symm_apply]
 
-variable [Π (i : ι) (x : 𝒜 i), decidable (x ≠ 0)]
-
-lemma graded_algebra.mem_support_iff (r : A) (i : ι) :
-  i ∈ graded_algebra.support 𝒜 r ↔ graded_algebra.proj 𝒜 i r ≠ 0 :=
-begin
-  rw [graded_algebra.support, dfinsupp.mem_support_iff, graded_algebra.proj_apply],
-  simp only [ne.def, submodule.coe_eq_zero],
-end
-
-lemma graded_algebra.sum_support_decompose (r : A) :
-  ∑ i in graded_algebra.support 𝒜 r, (direct_sum.decompose 𝒜 r i : A) = r :=
-begin
-  conv_rhs { rw [←(direct_sum.decompose 𝒜).symm_apply_apply r,
-    ←direct_sum.sum_support_of (λ i, (𝒜 i)) (direct_sum.decompose 𝒜 r)] },
-  rw [direct_sum.decompose_symm_sum, graded_algebra.support],
-  simp_rw direct_sum.decompose_symm_of,
-end
+lemma graded_algebra.mem_support_iff [Π (x : A), decidable (x ≠ 0)] (r : A) (i : ι) :
+  i ∈ (decompose 𝒜 r).support ↔ graded_algebra.proj 𝒜 i r ≠ 0 :=
+dfinsupp.mem_support_iff.trans submodule.coe_eq_zero.not.symm
 
 end graded_algebra
 

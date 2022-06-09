@@ -627,9 +627,6 @@ by exact_mod_cast @set.ssubset_iff_insert α s t
 
 lemma ssubset_insert (h : a ∉ s) : s ⊂ insert a s := ssubset_iff.mpr ⟨a, h, subset.rfl⟩
 
-lemma ssubset_iff_exists_insert_subset {s t : finset α} : s ⊂ t ↔ ∃ a ∉ s, insert a s ⊆ t :=
-by simp_rw [ssubset_iff_exists_cons_subset, cons_eq_insert]
-
 @[elab_as_eliminator]
 lemma cons_induction {α : Type*} {p : finset α → Prop}
   (h₁ : p ∅) (h₂ : ∀ ⦃a : α⦄ {s : finset α} (h : a ∉ s), p s → p (cons a s h)) : ∀ s, p s
@@ -2591,7 +2588,7 @@ def sigma_equiv_option_of_inhabited (α : Type u) [inhabited α] [decidable_eq �
   Σ (β : Type u), α ≃ option β :=
 ⟨{x : α // x ≠ default},
 { to_fun := λ (x : α), if h : x = default then none else some ⟨x, h⟩,
-  inv_fun := λ o, option.elim o (default) coe,
+  inv_fun := λ o, option.elim o default coe,
   left_inv := λ x, by { dsimp only, split_ifs; simp [*] },
   right_inv := begin
     rintro (_|⟨x,h⟩),

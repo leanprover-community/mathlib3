@@ -91,7 +91,8 @@ lemma ideal.is_homogeneous.is_prime_of_homogeneous_mem_or_mem
     have eq_add_sum :=
       calc  proj 𝒜 (max₁ + max₂) (x * y)
           = ∑ ij in antidiag, proj 𝒜 ij.1 x * proj 𝒜 ij.2 y
-          : by simp_rw [ha, proj_apply, map_mul, support, direct_sum.coe_mul_apply 𝒜]
+          : by simp_rw [ha, proj_apply, direct_sum.decompose_mul, support,
+                        direct_sum.coe_mul_apply 𝒜]
       ... = proj 𝒜 max₁ x * proj 𝒜 max₂ y + ∑ ij in antidiag.erase (max₁, max₂),
                                               proj 𝒜 ij.1 x * proj 𝒜 ij.2 y
           : (add_sum_erase _ _ mem_antidiag).symm,

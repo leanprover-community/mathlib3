@@ -90,8 +90,8 @@ def grading.decompose : (R × R) →+ direct_sum two (λ i, grading R i) :=
     dsimp; simp only [zero_add, add_zero]; refl,
   end }
 
-lemma grading.left_inv :
-  function.left_inverse grading.decompose (coe_linear_map (grading R)) := λ zz,
+lemma grading.right_inv :
+  function.right_inverse (coe_linear_map (grading R)) grading.decompose := λ zz,
 begin
   induction zz using direct_sum.induction_on with i zz d1 d2 ih1 ih2,
   { simp only [map_zero],},
@@ -100,8 +100,8 @@ begin
   { simp only [map_add, ih1, ih2], },
 end
 
-lemma grading.right_inv :
-  function.right_inverse grading.decompose (coe_linear_map (grading R)) := λ zz,
+lemma grading.left_inv :
+  function.left_inverse (coe_linear_map (grading R)) grading.decompose := λ zz,
 begin
   cases zz with a b,
   unfold grading.decompose,

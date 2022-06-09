@@ -178,7 +178,7 @@ lemma det_ne_zero_of_right_inverse [nontrivial α] (h : A ⬝ B = 1) : A.det ≠
 
 end invertible
 
-variables [fintype m] [fintype n] [decidable_eq m] [decidable_eq n] [comm_ring α]
+variables [fintype n] [decidable_eq n] [comm_ring α]
 variables (A : matrix n n α) (B : matrix n n α)
 
 lemma is_unit_det_transpose (h : is_unit A.det) : is_unit Aᵀ.det :=
@@ -476,6 +476,9 @@ by rw [← (A⁻¹).transpose_transpose, vec_mul_transpose, transpose_nonsing_in
 
 /-! ### More results about determinants -/
 
+section det
+variables [fintype m] [decidable_eq m]
+
 /-- A variant of `matrix.det_units_conj`. -/
 lemma det_conj {M : matrix m m α} (h : is_unit M) (N : matrix m m α) :
   det (M ⬝ N ⬝ M⁻¹) = det N :=
@@ -548,5 +551,7 @@ TODO: show this more generally. -/
 lemma det_one_add_col_mul_row (u v : m → α) : det (1 + col u ⬝ row v) = 1 + v ⬝ᵥ u :=
 by rw [det_one_add_mul_comm, det_unique, pi.add_apply, pi.add_apply, matrix.one_apply_eq,
        matrix.row_mul_col_apply]
+
+end det
 
 end matrix

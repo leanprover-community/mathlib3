@@ -521,11 +521,11 @@ option.rec h₁ h₂
 
 @[norm_cast] lemma coe_eq_coe : (a : with_bot α) = b ↔ a = b := option.some_inj
 
--- the `by exact` here forces the type of the equality to be `@eq (with_bot α)`
-@[simp] lemma map_bot (f : α → β) :
-  (by exact option.map f (⊥ : with_bot α)) = (⊥ : with_bot β) := rfl
-lemma map_coe (f : α → β) (a : α) :
-  (by exact option.map f (a : with_bot α)) = (f a : with_bot β) := rfl
+/-- Lift a map `f : α → β` to `with_bot α → with_bot β`. Implemented using `option.map`. -/
+def map (f : α → β) : with_bot α → with_bot β := option.map f
+
+@[simp] lemma map_bot (f : α → β) : map f ⊥ = ⊥ := rfl
+@[simp] lemma map_coe (f : α → β) (a : α) : map f a = f a := rfl
 
 lemma ne_bot_iff_exists {x : with_bot α} : x ≠ ⊥ ↔ ∃ (a : α), ↑a = x := option.ne_none_iff_exists
 
@@ -674,11 +674,11 @@ lemma coe_sup [semilattice_sup α] (a b : α) : ((a ⊔ b : α) : with_bot α) =
 instance [semilattice_inf α] : semilattice_inf (with_bot α) :=
 { inf          := λ o₁ o₂, o₁.bind (λ a, o₂.map (λ b, a ⊓ b)),
   inf_le_left  := λ o₁ o₂ a ha, begin
-    simp at ha, rcases ha with ⟨b, rfl, c, rfl, rfl⟩,
+    simp [map] at ha, rcases ha with ⟨b, rfl, c, rfl, rfl⟩,
     exact ⟨_, rfl, inf_le_left⟩
   end,
   inf_le_right := λ o₁ o₂ a ha, begin
-    simp at ha, rcases ha with ⟨b, rfl, c, rfl, rfl⟩,
+    simp [map] at ha, rcases ha with ⟨b, rfl, c, rfl, rfl⟩,
     exact ⟨_, rfl, inf_le_right⟩
   end,
   le_inf       := λ o₁ o₂ o₃ h₁ h₂ a ha, begin
@@ -808,11 +808,11 @@ option.rec h₁ h₂
 
 @[norm_cast] lemma coe_eq_coe : (a : with_top α) = b ↔ a = b := option.some_inj
 
--- the `by exact` here forces the type of the equality to be `@eq (with_top α)`
-@[simp] lemma map_top (f : α → β) :
-  (by exact option.map f (⊤ : with_top α)) = (⊤ : with_top β) := rfl
-lemma map_coe (f : α → β) (a : α) :
-  (by exact option.map f (a : with_top α)) = (f a : with_top β) := rfl
+/-- Lift a map `f : α → β` to `with_top α → with_top β`. Implemented using `option.map`. -/
+def map (f : α → β) : with_top α → with_top β := option.map f
+
+@[simp] lemma map_top (f : α → β) : map f ⊤ = ⊤ := rfl
+@[simp] lemma map_coe (f : α → β) (a : α) : map f a = f a := rfl
 
 lemma ne_top_iff_exists {x : with_top α} : x ≠ ⊤ ↔ ∃ (a : α), ↑a = x := option.ne_none_iff_exists
 
@@ -939,11 +939,11 @@ lemma coe_inf [semilattice_inf α] (a b : α) : ((a ⊓ b : α) : with_top α) =
 instance [semilattice_sup α] : semilattice_sup (with_top α) :=
 { sup          := λ o₁ o₂, o₁.bind (λ a, o₂.map (λ b, a ⊔ b)),
   le_sup_left  := λ o₁ o₂ a ha, begin
-    simp at ha, rcases ha with ⟨b, rfl, c, rfl, rfl⟩,
+    simp [map] at ha, rcases ha with ⟨b, rfl, c, rfl, rfl⟩,
     exact ⟨_, rfl, le_sup_left⟩
   end,
   le_sup_right := λ o₁ o₂ a ha, begin
-    simp at ha, rcases ha with ⟨b, rfl, c, rfl, rfl⟩,
+    simp [map] at ha, rcases ha with ⟨b, rfl, c, rfl, rfl⟩,
     exact ⟨_, rfl, le_sup_right⟩
   end,
   sup_le       := λ o₁ o₂ o₃ h₁ h₂ a ha, begin
@@ -1030,6 +1030,27 @@ instance [has_lt α] [no_min_order α] [nonempty α] : no_min_order (with_top α
 end⟩
 
 end with_top
+
+section mono
+
+variables [preorder α] [preorder β] {f : α → β}
+
+protected lemma monotone.with_bot_map (hf : monotone f) : monotone (with_bot.map f)
+| ⊥       _       h := bot_le
+| (a : α) ⊥       h := (with_bot.not_coe_le_bot _ h).elim
+| (a : α) (b : α) h := with_bot.coe_le_coe.2 (hf (with_bot.coe_le_coe.1 h))
+
+protected lemma monotone.with_top_map (hf : monotone f) : monotone (with_top.map f) :=
+hf.dual.with_bot_map.dual
+
+protected lemma strict_mono.with_bot_map (hf : strict_mono f) : strict_mono (with_bot.map f)
+| ⊥       (a : α) h := with_bot.bot_lt_coe _
+| (a : α) (b : α) h := with_bot.coe_lt_coe.mpr (hf $ with_bot.coe_lt_coe.mp h)
+
+protected lemma strict_mono.with_top_map (hf : strict_mono f) : strict_mono (with_top.map f) :=
+hf.dual.with_bot_map.dual
+
+end mono
 
 /-! ### Subtype, order dual, product lattices -/
 

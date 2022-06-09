@@ -1456,7 +1456,7 @@ begin
   intro; simp only [set.mem_to_finset, set.mem_compl_eq]; refl,
 end
 
-theorem card_subtype_le_of_imp (p q : α → Prop) (h : p ≤ q)
+theorem card_subtype_mono (p q : α → Prop) (h : p ≤ q)
   [fintype {x // p x}] [fintype {x // q x}] :
   fintype.card {x // p x} ≤ fintype.card {x // q x} :=
 fintype.card_le_of_embedding (subtype.imp_embedding _ _ h)

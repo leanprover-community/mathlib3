@@ -2014,8 +2014,8 @@ funext $ λ z, hf.swap_apply _ _ _
 
 /-- If both `α` and `β` are singletons, then `α ≃ β`. -/
 def equiv_of_unique_of_unique [unique α] [unique β] : α ≃ β :=
-{ to_fun := λ _, default,
-  inv_fun := λ _, default,
+{ to_fun := default,
+  inv_fun := default,
   left_inv := λ _, subsingleton.elim _ _,
   right_inv := λ _, subsingleton.elim _ _ }
 

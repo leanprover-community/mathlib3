@@ -191,8 +191,8 @@ instance {S} [monoid S] [distrib_mul_action S R] : distrib_mul_action S R[X] :=
 function.injective.distrib_mul_action
   ⟨to_finsupp, to_finsupp_zero, to_finsupp_add⟩ to_finsupp_injective to_finsupp_smul
 
-instance {S} [monoid S] [distrib_mul_action S R] [has_faithful_scalar S R] :
-  has_faithful_scalar S R[X] :=
+instance {S} [monoid S] [distrib_mul_action S R] [has_faithful_smul S R] :
+  has_faithful_smul S R[X] :=
 { eq_of_smul_eq_smul := λ s₁ s₂ h, eq_of_smul_eq_smul $ λ a : ℕ →₀ R, congr_arg to_finsupp (h ⟨a⟩) }
 
 instance {S} [semiring S] [module S R] : module S R[X] :=
@@ -534,11 +534,39 @@ linear_map.to_add_monoid_hom_injective $ add_hom_ext $ λ n, linear_map.congr_fu
 lemma eq_zero_of_eq_zero (h : (0 : R) = (1 : R)) (p : R[X]) : p = 0 :=
 by rw [←one_smul R p, ←h, zero_smul]
 
-lemma support_monomial (n) (a : R) (H : a ≠ 0) : (monomial n a).support = singleton n :=
-by rw [←of_finsupp_single, support, finsupp.support_single_ne_zero H]
+section fewnomials
+
+lemma support_monomial (n) {a : R} (H : a ≠ 0) : (monomial n a).support = singleton n :=
+by rw [←of_finsupp_single, support, finsupp.support_single_ne_zero _ H]
 
 lemma support_monomial' (n) (a : R) : (monomial n a).support ⊆ singleton n :=
 by { rw [←of_finsupp_single, support], exact finsupp.support_single_subset }
+
+lemma support_C_mul_X_pow (n : ℕ) {c : R} (h : c ≠ 0) : (C c * X ^ n).support = singleton n :=
+by rw [←monomial_eq_C_mul_X, support_monomial n h]
+
+lemma support_C_mul_X_pow' (n : ℕ) (c : R) : (C c * X ^ n).support ⊆ singleton n :=
+begin
+  rw ← monomial_eq_C_mul_X,
+  exact support_monomial' n c,
+end
+
+open finset
+
+lemma support_binomial' (k m : ℕ) (x y : R) : (C x * X ^ k + C y * X ^ m).support ⊆ {k, m} :=
+support_add.trans (union_subset ((support_C_mul_X_pow' k x).trans
+  (singleton_subset_iff.mpr (mem_insert_self k {m}))) ((support_C_mul_X_pow' m y).trans
+  (singleton_subset_iff.mpr (mem_insert_of_mem (mem_singleton_self m)))))
+
+lemma support_trinomial' (k m n : ℕ) (x y z : R) :
+  (C x * X ^ k + C y * X ^ m + C z * X ^ n).support ⊆ {k, m, n} :=
+support_add.trans (union_subset (support_add.trans (union_subset ((support_C_mul_X_pow' k x).trans
+  (singleton_subset_iff.mpr (mem_insert_self k {m, n}))) ((support_C_mul_X_pow' m y).trans
+  (singleton_subset_iff.mpr (mem_insert_of_mem (mem_insert_self m {n}))))))
+  ((support_C_mul_X_pow' n z).trans (singleton_subset_iff.mpr
+  (mem_insert_of_mem (mem_insert_of_mem (mem_singleton_self n))))))
+
+end fewnomials
 
 lemma X_pow_eq_monomial (n) : X ^ n = monomial n (1:R) :=
 begin
@@ -554,7 +582,7 @@ calc monomial n a = monomial n (a * 1) : by simp
 
 lemma support_X_pow (H : ¬ (1:R) = 0) (n : ℕ) : (X^n : R[X]).support = singleton n :=
 begin
-  convert support_monomial n 1 H,
+  convert support_monomial n H,
   exact X_pow_eq_monomial n,
 end
 

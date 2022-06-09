@@ -1452,6 +1452,6 @@ theorem up_pos : 0 < up :=
 lt_of_le_of_lf (zero_le_lf.2 (λ j, star_fuzzy_zero.gf)) (zero_lf_le.2 ⟨default, le_rfl⟩)
 
 theorem up_fuzzy_star : up ∥ star :=
-⟨lf_move_right punit.star, lf_up_iff.2 $ by simpa using or.inr up_pos.le⟩
+⟨lf_move_right punit.star, star_lf_of_zero_le up_pos.le⟩
 
 end pgame

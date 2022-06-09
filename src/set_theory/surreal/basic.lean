@@ -217,6 +217,21 @@ begin
   simpa using λ i, IH _ (ordinal.to_left_moves_to_pgame_symm_lt i)
 end
 
+/-- The pre-game `{0 | x}` is numeric when `x` is numeric and positive. -/
+theorem numeric.of_right_move_with_zero {x} (ox : numeric x) (hx : 0 < x) :
+  numeric (of_right_move_with_zero x) :=
+by { rw numeric_def, simp [hx, ox, numeric_zero] }
+
+/-- When `x` is numeric and positive, so is `{0 | x}`. -/
+theorem numeric.of_right_move_with_zero_pos {x} (ox : numeric x) (hx : 0 < x) :
+  0 < of_right_move_with_zero x :=
+lt_of_lf (zero_lf_of_right_move_with_zero x) numeric_zero (ox.of_right_move_with_zero hx)
+
+/-- When `x` is numeric and positive, `{0 | x}` is less than `x`. -/
+theorem numeric.of_right_move_with_zero_pos_lt {x} (ox : numeric x) (hx : 0 < x) :
+  of_right_move_with_zero x < x :=
+lt_of_lf (of_right_move_with_zero_lf x) (ox.of_right_move_with_zero hx) ox
+
 end pgame
 
 /-- The equivalence on numeric pre-games. -/

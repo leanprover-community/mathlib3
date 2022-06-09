@@ -249,6 +249,29 @@ instance : has_one pgame := ⟨⟨punit, pempty, λ _, 0, pempty.elim⟩⟩
 instance unique_one_left_moves : unique (left_moves 1) := punit.unique
 instance is_empty_one_right_moves : is_empty (right_moves 1) := pempty.is_empty
 
+/-- The game `{0 | x}`. When `x` is `numeric` and positive, this yields a positive `numeric`
+pre-game strictly lesser than `x`. -/
+def of_right_move_with_zero (x : pgame) : pgame := ⟨punit, punit, 0, λ _, x⟩
+
+lemma of_right_move_with_zero_left_moves (x) : (of_right_move_with_zero x).left_moves = punit :=
+rfl
+lemma of_right_move_with_zero_right_moves (x) : (of_right_move_with_zero x).right_moves = punit :=
+rfl
+
+@[simp] lemma of_right_move_with_zero_move_left (x y) :
+  (of_right_move_with_zero x).move_left y = 0 :=
+rfl
+@[simp] lemma of_right_move_with_zero_move_right (x y) :
+  (of_right_move_with_zero x).move_right y = x :=
+rfl
+
+instance unique_of_right_move_with_zero_left_moves (x) :
+  unique (of_right_move_with_zero x).left_moves :=
+punit.unique
+instance unique_of_right_move_with_zero_right_moves (x) :
+  unique (of_right_move_with_zero x).right_moves :=
+punit.unique
+
 /-- Define simultaneously by mutual induction the `≤` relation and its swapped converse `⧏` on
   pre-games.
 
@@ -472,6 +495,12 @@ zero_le.2 is_empty_elim
 
 @[simp] theorem le_zero_of_is_empty_left_moves (x : pgame) [is_empty x.left_moves] : x ≤ 0 :=
 le_zero.2 is_empty_elim
+
+theorem zero_lf_of_right_move_with_zero (x) : 0 ⧏ of_right_move_with_zero x :=
+@move_left_lf (of_right_move_with_zero x) default
+
+theorem of_right_move_with_zero_lf (x) : of_right_move_with_zero x ⧏ x :=
+lf_move_right default
 
 /-- Given a game won by the right player when they play second, provide a response to any move by
 left. -/
@@ -1335,7 +1364,7 @@ theorem lt_iff_sub_pos {x y : pgame} : x < y ↔ 0 < y - x :=
      ... ≤ y : (add_zero_relabelling y).le⟩
 
 /-- The pre-game `star`, which is fuzzy with zero. -/
-def star : pgame.{u} := ⟨punit, punit, λ _, 0, λ _, 0⟩
+def star : pgame.{u} := of_right_move_with_zero 0
 
 @[simp] theorem star_left_moves : star.left_moves = punit := rfl
 @[simp] theorem star_right_moves : star.right_moves = punit := rfl
@@ -1346,11 +1375,17 @@ def star : pgame.{u} := ⟨punit, punit, λ _, 0, λ _, 0⟩
 instance unique_star_left_moves : unique star.left_moves := punit.unique
 instance unique_star_right_moves : unique star.right_moves := punit.unique
 
+theorem star_lf_zero : star ⧏ 0 :=
+of_right_move_with_zero_lf 0
+
+theorem zero_lf_star : 0 ⧏ star :=
+zero_lf_of_right_move_with_zero 0
+
 theorem star_fuzzy_zero : star ∥ 0 :=
-⟨by { rw lf_zero, use default, rintros ⟨⟩ }, by { rw zero_lf, use default, rintros ⟨⟩ }⟩
+⟨star_lf_zero, zero_lf_star⟩
 
 @[simp] theorem neg_star : -star = star :=
-by simp [star]
+by simpa [star, of_right_move_with_zero]
 
 @[simp] theorem zero_lt_one : (0 : pgame) < 1 :=
 lt_of_le_of_lf (zero_le_of_is_empty_right_moves 1) (zero_lf_le.2 ⟨default, le_rfl⟩)

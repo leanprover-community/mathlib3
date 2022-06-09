@@ -9,22 +9,21 @@ import set_theory.surreal.dyadic
 /-!
 # Infinitesimal pre-games
 
-We define the notions of an infinitesimal and a strongly infinitesimal pre-game, and prove the basic
+We define the notions of an infinitesimal and a small pre-game, and prove the basic
 results.
 
 ## Main definitions
 
 - `pgame.infinitesimal`: a pre-game between `-2 ^ (-n)` and `2 ^ (-n)` for any `n : ℕ`.
-- `pgame.strong_infinitesimal`: a pre-game between `-x` and `x` for any positive numeric `x`.
+- `pgame.small`: a pre-game between `-x` and `x` for any positive numeric `x`.
 - `pgame.dicotic`: a pre-game where both players can move from any nonempty position.
 
 ## Todo
 
-- Prove the analog of `pgame.infinitesimal_iff_forall_mem_Icc` for strongly infinitesimal games.
-- Show that a dicotic pre-game is strongly infinitesimal.
+- Prove the analog of `pgame.infinitesimal_iff_forall_mem_Icc` for small games.
+- Show that a dicotic pre-game is small.
 - Define the pre-game `↑` (in set_theory/game/pgame) and show that it's dicotic.
-- Show that infinitesimal and strongly infinitesimal games are closed under addition (and
-  multiplication?)
+- Show that infinitesimal and small games are closed under addition (and multiplication?)
 -/
 
 namespace pgame
@@ -41,21 +40,20 @@ theorem infinitesimal_iff_forall_mem_Icc {x : pgame} :
 ⟨λ h n, set.Ioo_subset_Icc_self (h n), λ h n, set.Icc_subset_Ioo
   (neg_lt_neg_iff.2 $ pow_half_succ_lt_pow_half n) (pow_half_succ_lt_pow_half n) $ h _⟩
 
-/-- A pre-game is strongly infinitesimal when it's between `-x` and `x` for any positive numeric
-pre-game `x`. -/
-def strong_infinitesimal (x : pgame) : Prop :=
+/-- A pre-game is small when it's between `-x` and `x` for any positive numeric pre-game `x`. -/
+def small (x : pgame) : Prop :=
 ∀ y, numeric y → 0 < y → x ∈ set.Ioo (-y) y
 
-theorem strong_infinitesimal.infinitesimal {x} (h : strong_infinitesimal x) : infinitesimal x :=
+theorem small.infinitesimal {x} (h : small x) : infinitesimal x :=
 λ n, h _ (numeric_pow_half n) (pow_half_pos n)
 
-theorem zero_strong_infinitesimal : strong_infinitesimal 0 :=
+theorem zero_small : small 0 :=
 λ y oy hy, ⟨neg_lt_zero_iff.2 hy, hy⟩
 
 theorem zero_infinitesimal : infinitesimal 0 :=
-zero_strong_infinitesimal.infinitesimal
+zero_small.infinitesimal
 
-theorem strong_infinitesimal.neg {x} (hx : strong_infinitesimal x) : strong_infinitesimal (-x) :=
+theorem small.neg {x} (hx : small x) : small (-x) :=
 λ n, by simpa [and.comm, neg_lt_iff] using hx n
 
 /-- A pre-game is dicotic or all-small when both players can move from any nonempty position.

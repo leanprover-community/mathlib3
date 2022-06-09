@@ -410,15 +410,9 @@ lemma submartingale_iff_expected_stopped_value_mono [is_finite_measure μ]
 
 section maximal
 
-/-! Doob's maximal inequality -/
-
-/-
-If f is a random process, we define f*(n) := sup k ≤ n, |f(k)|
--/
-
 lemma maximal_ineq [is_finite_measure μ]
-  {f : ℕ → α → ℝ} (hsub : submartingale f 𝒢 μ) (hnonneg : 0 ≤ f) (ε : ℝ) (hε : 0 < ε) (n : ℕ) :
-  ε • (μ {x | ⨆ k ≤ n, ε ≤ f k x}).to_real ≤ ∫ x in {x | ⨆ k ≤ n, ε ≤ f k x}, f n x ∂μ :=
+  {f : ℕ → α → ℝ} (hsub : submartingale f 𝒢 μ) (hnonneg : 0 ≤ f) (ε : ℝ≥0) (hε : 0 < ε) (n : ℕ) :
+  ε • μ {x | ⨆ k ≤ n, (ε : ℝ) ≤ f k x} ≤ ∫⁻ x in {x | ⨆ k ≤ n, (ε : ℝ) ≤ f k x}, ∥f n x∥₊ ∂μ :=
 begin
   sorry
 end

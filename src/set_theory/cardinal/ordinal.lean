@@ -748,9 +748,9 @@ lemma mk_compl_eq_mk_compl_infinite {α : Type*} [infinite α] {s t : set α} (h
 by { rw [mk_compl_of_infinite s hs, mk_compl_of_infinite t ht] }
 
 lemma mk_compl_eq_mk_compl_finite_lift {α : Type u} {β : Type v} [fintype α]
-  {s : set α} {t : set β} (h1 : lift.{(max v w)} (#α) = lift.{(max u w)} (#β))
-  (h2 : lift.{(max v w)} (#s) = lift.{(max u w)} (#t)) :
-  lift.{(max v w)} (#(sᶜ : set α)) = lift.{(max u w)} (#(tᶜ : set β)) :=
+  {s : set α} {t : set β} (h1 : lift.{max v w} (#α) = lift.{max u w} (#β))
+  (h2 : lift.{max v w} (#s) = lift.{max u w} (#t)) :
+  lift.{max v w} (#(sᶜ : set α)) = lift.{max u w} (#(tᶜ : set β)) :=
 begin
   rcases lift_mk_eq.1 h1 with ⟨e⟩, letI : fintype β := fintype.of_equiv α e,
   replace h1 : fintype.card α = fintype.card β := (fintype.of_equiv_card _).symm,

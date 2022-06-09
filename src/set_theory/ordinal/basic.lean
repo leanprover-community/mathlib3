@@ -494,23 +494,22 @@ def type (r : α → α → Prop) [wo : is_well_order α r] : ordinal :=
 def typein (r : α → α → Prop) [is_well_order α r] (a : α) : ordinal :=
 type (subrel r {b | r b a})
 
-theorem type_def (r : α → α → Prop) [wo : is_well_order α r] :
-  @eq ordinal ⟦⟨α, r, wo⟩⟧ (type r) := rfl
+@[simp] theorem type_def' (w : Well_order) : ⟦w⟧ = type w.r :=
+by { cases w, refl }
 
-@[simp] theorem type_def' (r : α → α → Prop) [is_well_order α r] {wo} :
-  @eq ordinal ⟦⟨α, r, wo⟩⟧ (type r) := rfl
+@[simp] theorem type_def (r) [wo : is_well_order α r] : (⟦⟨α, r, wo⟩⟧ : ordinal) = type r :=
+rfl
 
 theorem type_eq {α β} {r : α → α → Prop} {s : β → β → Prop}
-  [is_well_order α r] [is_well_order β s] :
-  type r = type s ↔ nonempty (r ≃r s) := quotient.eq
+  [is_well_order α r] [is_well_order β s] : type r = type s ↔ nonempty (r ≃r s) :=
+quotient.eq
+
+theorem _root_.rel_iso.ordinal_type_eq {α β} {r : α → α → Prop} {s : β → β → Prop}
+  [is_well_order α r] [is_well_order β s] (h : r ≃r s) :
+  type r = type s := type_eq.2 ⟨h⟩
 
 @[simp] theorem type_lt (o : ordinal) : type ((<) : o.out.α → o.out.α → Prop) = o :=
-begin
-  change type o.out.r = _,
-  refine eq.trans _ (quotient.out_eq o),
-  cases quotient.out o,
-  refl
-end
+(type_def' _).symm.trans $ quotient.out_eq o
 
 @[elab_as_eliminator] theorem induction_on {C : ordinal → Prop}
   (o : ordinal) (H : ∀ α r [is_well_order α r], by exactI C (type r)) : C o :=
@@ -819,20 +818,20 @@ quotient.sound ⟨rel_iso.preimage equiv.ulift r⟩
 @[simp] theorem lift_id : ∀ a, lift.{u u} a = a := lift_id'.{u u}
 
 @[simp]
-theorem lift_lift (a : ordinal) : lift.{w} (lift.{v} a) = lift.{(max v w)} a :=
+theorem lift_lift (a : ordinal) : lift.{w} (lift.{v} a) = lift.{max v w} a :=
 induction_on a $ λ α r _,
 quotient.sound ⟨(rel_iso.preimage equiv.ulift _).trans $
   (rel_iso.preimage equiv.ulift _).trans (rel_iso.preimage equiv.ulift _).symm⟩
 
 theorem lift_type_le {α : Type u} {β : Type v} {r s} [is_well_order α r] [is_well_order β s] :
-  lift.{(max v w)} (type r) ≤ lift.{(max u w)} (type s) ↔ nonempty (r ≼i s) :=
+  lift.{max v w} (type r) ≤ lift.{max u w} (type s) ↔ nonempty (r ≼i s) :=
 ⟨λ ⟨f⟩, ⟨(initial_seg.of_iso (rel_iso.preimage equiv.ulift r).symm).trans $
     f.trans (initial_seg.of_iso (rel_iso.preimage equiv.ulift s))⟩,
  λ ⟨f⟩, ⟨(initial_seg.of_iso (rel_iso.preimage equiv.ulift r)).trans $
     f.trans (initial_seg.of_iso (rel_iso.preimage equiv.ulift s).symm)⟩⟩
 
 theorem lift_type_eq {α : Type u} {β : Type v} {r s} [is_well_order α r] [is_well_order β s] :
-  lift.{(max v w)} (type r) = lift.{(max u w)} (type s) ↔ nonempty (r ≃r s) :=
+  lift.{max v w} (type r) = lift.{max u w} (type s) ↔ nonempty (r ≃r s) :=
 quotient.eq.trans
 ⟨λ ⟨f⟩, ⟨(rel_iso.preimage equiv.ulift r).symm.trans $
     f.trans (rel_iso.preimage equiv.ulift s)⟩,
@@ -840,11 +839,11 @@ quotient.eq.trans
     f.trans (rel_iso.preimage equiv.ulift s).symm⟩⟩
 
 theorem lift_type_lt {α : Type u} {β : Type v} {r s} [is_well_order α r] [is_well_order β s] :
-  lift.{(max v w)} (type r) < lift.{(max u w)} (type s) ↔ nonempty (r ≺i s) :=
-by haveI := @rel_embedding.is_well_order _ _ (@equiv.ulift.{(max v w)} α ⁻¹'o r)
-     r (rel_iso.preimage equiv.ulift.{(max v w)} r) _;
-   haveI := @rel_embedding.is_well_order _ _ (@equiv.ulift.{(max u w)} β ⁻¹'o s)
-     s (rel_iso.preimage equiv.ulift.{(max u w)} s) _; exact
+  lift.{max v w} (type r) < lift.{max u w} (type s) ↔ nonempty (r ≺i s) :=
+by haveI := @rel_embedding.is_well_order _ _ (@equiv.ulift.{max v w} α ⁻¹'o r)
+     r (rel_iso.preimage equiv.ulift.{max v w} r) _;
+   haveI := @rel_embedding.is_well_order _ _ (@equiv.ulift.{max u w} β ⁻¹'o s)
+     s (rel_iso.preimage equiv.ulift.{max u w} s) _; exact
 ⟨λ ⟨f⟩, ⟨(f.equiv_lt (rel_iso.preimage equiv.ulift r).symm).lt_le
     (initial_seg.of_iso (rel_iso.preimage equiv.ulift s))⟩,
  λ ⟨f⟩, ⟨(f.equiv_lt (rel_iso.preimage equiv.ulift r)).lt_le
@@ -1153,7 +1152,7 @@ def lift.principal_seg : @principal_seg ordinal.{u} ordinal.{max (u+1) v} (<) (<
 end⟩
 
 @[simp] theorem lift.principal_seg_coe :
-  (lift.principal_seg.{u v} : ordinal → ordinal) = lift.{(max (u+1) v)} := rfl
+  (lift.principal_seg.{u v} : ordinal → ordinal) = lift.{max (u+1) v} := rfl
 
 @[simp] theorem lift.principal_seg_top : lift.principal_seg.top = univ := rfl
 

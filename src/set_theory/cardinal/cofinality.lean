@@ -82,7 +82,7 @@ end order
 
 theorem rel_iso.cof_le_lift {α : Type u} {β : Type v} {r : α → α → Prop} {s}
   [is_refl β s] (f : r ≃r s) :
-  cardinal.lift.{(max u v)} (order.cof r) ≤ cardinal.lift.{(max u v)} (order.cof s) :=
+  cardinal.lift.{max u v} (order.cof r) ≤ cardinal.lift.{max u v} (order.cof s) :=
 begin
   rw [order.cof, order.cof, lift_Inf, lift_Inf,
     le_cInf_iff'' (nonempty_image_iff.2 (order.cof_nonempty s))],
@@ -97,7 +97,7 @@ end
 
 theorem rel_iso.cof_eq_lift {α : Type u} {β : Type v} {r s}
   [is_refl α r] [is_refl β s] (f : r ≃r s) :
-  cardinal.lift.{(max u v)} (order.cof r) = cardinal.lift.{(max u v)} (order.cof s) :=
+  cardinal.lift.{max u v} (order.cof r) = cardinal.lift.{max u v} (order.cof s) :=
 (rel_iso.cof_le_lift f).antisymm (rel_iso.cof_le_lift f.symm)
 
 theorem rel_iso.cof_le {α β : Type u} {r : α → α → Prop} {s} [is_refl β s] (f : r ≃r s) :

@@ -68,7 +68,7 @@ open_locale classical
 
 noncomputable theory
 
-universes u v w x
+universes u v w
 variables {α β : Type u}
 
 /-- The equivalence relation on types given by equivalence (bijective correspondence) of types.
@@ -156,7 +156,7 @@ induction_on a $ λ α, mk_congr equiv.ulift
 @[simp] theorem lift_uzero (a : cardinal.{u}) : lift.{0} a = a := lift_id'.{0 u} a
 
 @[simp] theorem lift_lift (a : cardinal) :
-  lift.{w} (lift.{v} a) = lift.{(max v w)} a :=
+  lift.{w} (lift.{v} a) = lift.{max v w} a :=
 induction_on a $ λ α,
 (equiv.ulift.trans $ equiv.ulift.trans equiv.ulift.symm).cardinal_eq
 
@@ -199,7 +199,7 @@ theorem out_embedding {c c' : cardinal} : c ≤ c' ↔ nonempty (c.out ↪ c'.ou
 by { transitivity _, rw [←quotient.out_eq c, ←quotient.out_eq c'], refl }
 
 theorem lift_mk_le {α : Type u} {β : Type v} :
-  lift.{(max v w)} (#α) ≤ lift.{(max u w)} (#β) ↔ nonempty (α ↪ β) :=
+  lift.{(max v w)} (#α) ≤ lift.{max u w} (#β) ↔ nonempty (α ↪ β) :=
 ⟨λ ⟨f⟩, ⟨embedding.congr equiv.ulift equiv.ulift f⟩,
  λ ⟨f⟩, ⟨embedding.congr equiv.ulift.symm equiv.ulift.symm f⟩⟩
 
@@ -212,7 +212,7 @@ theorem lift_mk_le' {α : Type u} {β : Type v} :
 lift_mk_le.{u v 0}
 
 theorem lift_mk_eq {α : Type u} {β : Type v} :
-  lift.{(max v w)} (#α) = lift.{(max u w)} (#β) ↔ nonempty (α ≃ β) :=
+  lift.{max v w} (#α) = lift.{max u w} (#β) ↔ nonempty (α ≃ β) :=
 quotient.eq.trans
 ⟨λ ⟨f⟩, ⟨equiv.ulift.symm.trans $ f.trans equiv.ulift⟩,
  λ ⟨f⟩, ⟨equiv.ulift.trans $ f.trans equiv.ulift.symm⟩⟩
@@ -716,7 +716,7 @@ le_antisymm
   (succ_le_of_lt $ lift_lt.2 $ lt_succ a)
 
 @[simp] theorem lift_umax_eq {a : cardinal.{u}} {b : cardinal.{v}} :
-  lift.{(max v w)} a = lift.{(max u w)} b ↔ lift.{v} a = lift.{u} b :=
+  lift.{max v w} a = lift.{max u w} b ↔ lift.{v} a = lift.{u} b :=
 by rw [←lift_lift, ←lift_lift, lift_inj]
 
 @[simp] theorem lift_min {a b : cardinal} : lift (min a b) = min (lift a) (lift b) :=
@@ -1218,7 +1218,7 @@ lemma mk_range_eq_of_injective {α : Type u} {β : Type v} {f : α → β} (hf :
 lift_mk_eq'.mpr ⟨(equiv.of_injective f hf).symm⟩
 
 lemma mk_range_eq_lift {α : Type u} {β : Type v} {f : α → β} (hf : injective f) :
-  lift.{(max u w)} (# (range f)) = lift.{(max v w)} (# α) :=
+  lift.{max u w} (# (range f)) = lift.{max v w} (# α) :=
 lift_mk_eq.mpr ⟨(equiv.of_injective f hf).symm⟩
 
 theorem mk_image_eq {α β : Type u} {f : α → β} {s : set α} (hf : injective f) :
@@ -1281,7 +1281,7 @@ mk_congr (equiv.set.sum_compl s)
 lemma mk_le_mk_of_subset {α} {s t : set α} (h : s ⊆ t) : #s ≤ #t :=
 ⟨set.embedding_of_subset s t h⟩
 
-lemma mk_subtype_mono {p q : α → Prop} (h : ∀x, p x → q x) : #{x // p x} ≤ #{x // q x} :=
+lemma mk_subtype_mono {p q : α → Prop} (h : ∀ x, p x → q x) : #{x // p x} ≤ #{x // q x} :=
 ⟨embedding_of_subset _ _ h⟩
 
 lemma mk_union_le_aleph_0 {α} {P Q : set α} : #((P ∪ Q : set α)) ≤ ℵ₀ ↔ #P ≤ ℵ₀ ∧ #Q ≤ ℵ₀ :=

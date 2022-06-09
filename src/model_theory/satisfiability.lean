@@ -20,12 +20,18 @@ every finite subset of `T` is satisfiable.
 models each sentence or its negation.
 * `first_order.language.Theory.semantically_equivalent`: `T.semantically_equivalent φ ψ` indicates
 that `φ` and `ψ` are equivalent formulas or sentences in models of `T`.
+* `cardinal.categorical`: A theory is `κ`-categorical if all models of size `κ` are isomorphic.
 
 ## Main Results
 * The Compactness Theorem, `first_order.language.Theory.is_satisfiable_iff_is_finitely_satisfiable`,
 shows that a theory is satisfiable iff it is finitely satisfiable.
 * `first_order.language.complete_theory.is_complete`: The complete theory of a structure is
 complete.
+* `first_order.language.Theory.exists_large_model_of_infinite_model` shows that any theory with an
+infinite model has arbitrarily large models.
+* `first_order.language.Theory.exists_elementary_embedding_card_eq`: The Upward Löwenheim–Skolem
+Theorem: If `κ` is a cardinal greater than the cardinalities of `L` and an infinite `L`-structure
+`M`, then `M` has an elementary extension of cardinality `κ`.
 
 ## Implementation Details
 * Satisfiability of an `L.Theory` `T` is defined in the minimal universe containing all the symbols
@@ -33,12 +39,15 @@ of `L`. By Löwenheim-Skolem, this is equivalent to satisfiability in any univer
 
 -/
 
-universes u v w
+universes u v w w'
+
+open cardinal category_theory
+open_locale cardinal first_order
 
 namespace first_order
 namespace language
 
-variables {L : language.{u v}} {T : L.Theory} {α : Type*} {n : ℕ}
+variables {L : language.{u v}} {T : L.Theory} {α : Type w} {n : ℕ}
 
 namespace Theory
 
@@ -96,6 +105,85 @@ begin
   intros T0 hT0,
   obtain ⟨i, hi⟩ := h.exists_mem_subset_of_finset_subset_bUnion hT0,
   exact (h' i).mono hi,
+end
+
+theorem is_satisfiable_union_distinct_constants_theory_of_card_le (T : L.Theory) (s : set α)
+  (M : Type w') [nonempty M] [L.Structure M] [M ⊨ T]
+  (h : cardinal.lift.{w'} (# s) ≤ cardinal.lift.{w} (# M)) :
+  ((L.Lhom_with_constants α).on_Theory T ∪ L.distinct_constants_theory s).is_satisfiable :=
+begin
+  haveI : inhabited M := classical.inhabited_of_nonempty infer_instance,
+  rw [cardinal.lift_mk_le'] at h,
+  letI : (constants_on α).Structure M :=
+    constants_on.Structure (function.extend coe h.some default),
+  haveI : M ⊨ (L.Lhom_with_constants α).on_Theory T ∪ L.distinct_constants_theory s,
+  { refine ((Lhom.on_Theory_model _ _).2 infer_instance).union _,
+    rw [model_distinct_constants_theory],
+    refine λ a as b bs ab, _,
+    rw [← subtype.coe_mk a as, ← subtype.coe_mk b bs, ← subtype.ext_iff],
+    exact h.some.injective
+      ((function.extend_apply subtype.coe_injective h.some default ⟨a, as⟩).symm.trans
+      (ab.trans (function.extend_apply subtype.coe_injective h.some default ⟨b, bs⟩))), },
+  exact model.is_satisfiable M,
+end
+
+theorem is_satisfiable_union_distinct_constants_theory_of_infinite (T : L.Theory) (s : set α)
+  (M : Type w') [L.Structure M] [M ⊨ T] [infinite M] :
+  ((L.Lhom_with_constants α).on_Theory T ∪ L.distinct_constants_theory s).is_satisfiable :=
+begin
+  classical,
+  rw [distinct_constants_theory_eq_Union, set.union_Union, is_satisfiable_directed_union_iff],
+  { exact λ t, is_satisfiable_union_distinct_constants_theory_of_card_le T _ M ((lift_le_omega.2
+      (le_of_lt (finset_card_lt_omega _))).trans (omega_le_lift.2 (omega_le_mk M))), },
+  { refine (monotone_const.union (monotone_distinct_constants_theory.comp _)).directed_le,
+    simp only [finset.coe_map, function.embedding.coe_subtype],
+    exact set.monotone_image.comp (λ _ _, finset.coe_subset.2) }
+end
+
+/-- Any theory with an infinite model has arbitrarily large models. -/
+lemma exists_large_model_of_infinite_model (T : L.Theory) (κ : cardinal.{w})
+  (M : Type w') [L.Structure M] [M ⊨ T] [infinite M] :
+  ∃ (N : Model.{_ _ (max u v w)} T), cardinal.lift.{max u v w} κ ≤ # N :=
+begin
+  obtain ⟨N⟩ :=
+    is_satisfiable_union_distinct_constants_theory_of_infinite T (set.univ : set κ.out) M,
+  refine ⟨(N.is_model.mono (set.subset_union_left _ _)).bundled.reduct _, _⟩,
+  haveI : N ⊨ distinct_constants_theory _ _ := N.is_model.mono (set.subset_union_right _ _),
+  simp only [Model.reduct_carrier, coe_of, Model.carrier_eq_coe],
+  refine trans (lift_le.2 (le_of_eq (cardinal.mk_out κ).symm)) _,
+  rw [← mk_univ],
+  refine (card_le_of_model_distinct_constants_theory L set.univ N).trans (lift_le.1 _),
+  rw lift_lift,
+end
+
+/-- The Upward Löwenheim–Skolem Theorem: If `κ` is a cardinal greater than the cardinalities of `L`
+and an infinite `L`-structure `M`, then `M` has an elementary extension of cardinality `κ`. -/
+theorem exists_elementary_embedding_card_eq (M : Type w') [L.Structure M] [iM : infinite M]
+  (κ : cardinal.{w})
+  (h1 : cardinal.lift.{w} L.card ≤ cardinal.lift.{max u v} κ)
+  (h2 : cardinal.lift.{w} (# M) ≤ cardinal.lift.{w'} κ) :
+  ∃ (N : bundled.{max u v w w'} L.Structure),
+    nonempty (M ↪ₑ[L] N) ∧ # N = cardinal.lift.{max u v w'} κ :=
+begin
+  obtain ⟨N0, hN0⟩ := exists_large_model_of_infinite_model (L.elementary_diagram M) κ M,
+  let f0 := elementary_embedding.of_models_elementary_diagram L M N0,
+  rw [← lift_le.{(max w w') (max u v)}, lift_lift, lift_lift] at h2,
+  obtain ⟨N, hN1, hN2⟩ := exists_elementary_substructure_card_eq (L[[M]]) (set.range f0)
+    (cardinal.lift.{max u v w'} κ)
+    (trans _ h2) (trans _ (lift_le.2 h2)) _ _,
+  { letI := (Lhom_with_constants L M).reduct N,
+    refine ⟨bundled.of N, ⟨_⟩, lift_inj.1 hN2⟩,
+    apply elementary_embedding.of_models_elementary_diagram L M N },
+  { exact omega_le_lift.2 (omega_le_mk M) },
+  { rw [lift_id'.{(max w u v w') (max (max u w') v w)}, ← lift_le, lift_lift, lift_lift],
+    exact mk_range_le_lift },
+  { simp only [card_with_constants, lift_add, lift_lift],
+    rw [add_comm, add_eq_max (omega_le_lift.2 (infinite_iff.1 iM)), max_le_iff],
+    rw [← lift_le.{_ w'}, lift_lift, lift_lift] at h1,
+    refine ⟨trans _ h2, trans _ h1⟩;
+    { rw [← lift_le.{_ max (max w u v) w'}, lift_lift, lift_lift] } },
+  { refine trans _ (lift_le.2 hN0),
+    rw [← lift_le.{_ (max (max u w') v w)}, lift_lift, lift_lift, lift_lift, lift_lift] }
 end
 
 variable (T)
@@ -341,3 +429,18 @@ lemma induction_on_exists_not {P : Π {m}, L.bounded_formula α m → Prop} (φ 
 end bounded_formula
 end language
 end first_order
+
+namespace cardinal
+open first_order first_order.language
+
+variables {L : language.{u v}} (κ : cardinal.{w}) (T : L.Theory)
+
+/-- A theory is `κ`-categorical if all models of size `κ` are isomorphic. -/
+def categorical : Prop :=
+∀ (M N : T.Model), # M = κ → # N = κ → nonempty (M ≃[L] N)
+
+theorem empty_Theory_categorical (T : language.empty.Theory) :
+  κ.categorical T :=
+λ M N hM hN, by rw [empty.nonempty_equiv_iff, hM, hN]
+
+end cardinal

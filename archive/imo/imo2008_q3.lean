@@ -43,7 +43,7 @@ begin
     simp only [int.nat_abs_sq, int.coe_nat_pow, int.coe_nat_succ, int.coe_nat_dvd.mp],
     refine (zmod.int_coe_zmod_eq_zero_iff_dvd (m ^ 2 + 1) p).mp _,
     simp only [int.cast_pow, int.cast_add, int.cast_one, zmod.coe_val_min_abs],
-    rw hy, exact add_left_neg 1 },
+    rw [pow_two, ← hy], exact add_left_neg 1 },
 
   have hnat₂ : n ≤ p / 2 := zmod.nat_abs_val_min_abs_le y,
   have hnat₃ : p ≥ 2 * n, { linarith [nat.div_mul_le_self p 2] },

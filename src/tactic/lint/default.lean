@@ -63,10 +63,11 @@ The following linters are run by default:
 21. `syn_taut` checks that declarations are not syntactic tautologies.
 22. `check_reducibility` checks whether non-instances with a class as type are reducible.
 23. `unprintable_interactive` checks that interactive tactics have parser documentation.
-24. `to_additive_doc` checks if additive versions of lemmas have documentation
+24. `to_additive_doc` checks if additive versions of lemmas have documentation.
 
-Another linter, `doc_blame_thm`, checks for missing doc strings on lemmas and theorems.
-This is not run by default.
+The following linters are not run by default:
+1. `doc_blame_thm`, checks for missing doc strings on lemmas and theorems.
+2. `explicit_vars_of_iff` checks if there are explicit variables used on both sides of an iff.
 
 The command `#list_linters` prints a list of the names of all available linters.
 

@@ -557,7 +557,7 @@ protected theorem strict_mono_on.compares (hf : strict_mono_on f s) {a b : α} (
 protected theorem strict_anti_on.compares (hf : strict_anti_on f s) {a b : α} (ha : a ∈ s)
   (hb : b ∈ s) {o : ordering} :
   o.compares (f a) (f b) ↔ o.compares b a :=
-order_dual.dual_compares.trans $ hf.dual_right.compares hb ha
+to_dual_compares_to_dual.trans $ hf.dual_right.compares hb ha
 
 protected theorem strict_mono.compares (hf : strict_mono f) {a b : α} {o : ordering} :
   o.compares (f a) (f b) ↔ o.compares a b :=

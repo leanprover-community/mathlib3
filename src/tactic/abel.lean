@@ -181,7 +181,7 @@ by simp [h₂.symm, h₁.symm, termg]; ac_refl
 
 meta def eval_neg (c : context) : normal_expr → tactic (normal_expr × expr)
 | (zero e) := do
-  p ← c.mk_app ``neg_zero ``add_group [],
+  p ← c.mk_app ``neg_zero ``subtraction_monoid [],
   return (zero' c, p)
 | (nterm e n x a) := do
   (n', h₁) ← mk_app ``has_neg.neg [n.1] >>= norm_num.eval_field,
@@ -227,8 +227,7 @@ meta def eval_atom (c : context) (e : expr) : tactic (normal_expr × expr) :=
 do n1 ← c.int_to_expr 1,
    return (term' c (n1, 1) e (zero' c), c.iapp ``term_atom [e])
 
-lemma unfold_sub {α} [add_group α] (a b c : α)
-  (h : a + -b = c) : a - b = c :=
+lemma unfold_sub {α} [subtraction_monoid α] (a b c : α) (h : a + -b = c) : a - b = c :=
 by rw [sub_eq_add_neg, h]
 
 theorem unfold_smul {α} [add_comm_monoid α] (n) (x y : α)
@@ -295,7 +294,7 @@ meta def eval (c : context) : expr → tactic (normal_expr × expr)
   e₂' ← mk_app ``has_neg.neg [e₂],
   e ← mk_app ``has_add.add [e₁, e₂'],
   (e', p) ← eval e,
-  p' ← c.mk_app ``unfold_sub ``add_group [e₁, e₂, e', p],
+  p' ← c.mk_app ``unfold_sub ``subtraction_monoid [e₁, e₂, e', p],
   return (e', p')
 | `(- %%e) := do
   (e₁, p₁) ← eval e,

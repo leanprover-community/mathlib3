@@ -20,7 +20,7 @@ section bounded
 
 variables [densely_ordered α]
 
-lemma Ioo.infinite {a b : α} (h : a < b) : infinite (Ioo a b) :=
+lemma Ioo.infinite {a b : α} (h : a < b) : (Ioo a b).infinite :=
 begin
   rintro (f : finite (Ioo a b)),
   obtain ⟨m, hm₁, hm₂⟩ : ∃ m ∈ Ioo a b, ∀ x ∈ Ioo a b, ¬x < m,
@@ -29,13 +29,13 @@ begin
   exact hm₂ z ⟨hz₁, lt_trans hz₂ hm₁.2⟩ hz₂,
 end
 
-lemma Ico.infinite {a b : α} (h : a < b) : infinite (Ico a b) :=
+lemma Ico.infinite {a b : α} (h : a < b) : (Ico a b).infinite :=
 (Ioo.infinite h).mono Ioo_subset_Ico_self
 
-lemma Ioc.infinite {a b : α} (h : a < b) : infinite (Ioc a b) :=
+lemma Ioc.infinite {a b : α} (h : a < b) : (Ioc a b).infinite :=
 (Ioo.infinite h).mono Ioo_subset_Ioc_self
 
-lemma Icc.infinite {a b : α} (h : a < b) : infinite (Icc a b) :=
+lemma Icc.infinite {a b : α} (h : a < b) : (Icc a b).infinite :=
 (Ioo.infinite h).mono Ioo_subset_Icc_self
 
 end bounded
@@ -44,7 +44,7 @@ section unbounded_below
 
 variables [no_min_order α]
 
-lemma Iio.infinite {b : α} : infinite (Iio b) :=
+lemma Iio.infinite {b : α} : (Iio b).infinite :=
 begin
   rintro (f : finite (Iio b)),
   obtain ⟨m, hm₁, hm₂⟩ : ∃ m < b, ∀ x < b, ¬x < m,
@@ -53,7 +53,7 @@ begin
   exact hm₂ z (lt_trans hz hm₁) hz
 end
 
-lemma Iic.infinite {b : α} : infinite (Iic b) :=
+lemma Iic.infinite {b : α} : (Iic b).infinite :=
 Iio.infinite.mono Iio_subset_Iic_self
 
 end unbounded_below
@@ -62,9 +62,9 @@ section unbounded_above
 
 variables [no_max_order α]
 
-lemma Ioi.infinite {a : α} : infinite (Ioi a) := @Iio.infinite αᵒᵈ _ _ _
+lemma Ioi.infinite {a : α} : (Ioi a).infinite := @Iio.infinite αᵒᵈ _ _ _
 
-lemma Ici.infinite {a : α} : infinite (Ici a) :=
+lemma Ici.infinite {a : α} : (Ici a).infinite :=
 Ioi.infinite.mono Ioi_subset_Ici_self
 
 end unbounded_above

@@ -1044,4 +1044,23 @@ exp_antiperiodic z
 @[simp] lemma exp_sub_pi_mul_I (z : ℂ) : exp (z - π * I) = -exp z :=
 exp_antiperiodic.sub_eq z
 
+/-- A supporting lemma for the **Phragmen-Lindelöf principle** in a horizontal strip. If `z : ℂ`
+belongs to a horizontal strip `|complex.im z| ≤ b`, `b ≤ π / 2`, and `a ≤ 0`, then
+$$\left|exp^{a\left(e^{z}+e^{-z}\right)}\right| \le e^{a\cos b \exp^{|re z|}}.$$
+-/
+lemma abs_exp_mul_exp_add_exp_neg_le_of_abs_im_le {a b : ℝ} (ha : a ≤ 0)
+  {z : ℂ} (hz : |z.im| ≤ b) (hb : b ≤ π / 2) :
+  abs (exp (a * (exp z + exp (-z)))) ≤ real.exp (a * real.cos b * real.exp (|z.re|)) :=
+begin
+  simp only [abs_exp, real.exp_le_exp, of_real_mul_re, add_re, exp_re, neg_im, real.cos_neg,
+    ← add_mul, mul_assoc, mul_comm (real.cos b), neg_re, ← real.cos_abs z.im],
+  have : real.exp (|z.re|) ≤ real.exp z.re + real.exp (-z.re),
+    from apply_abs_le_add_of_nonneg (λ x, (real.exp_pos x).le) z.re,
+  refine mul_le_mul_of_nonpos_left (mul_le_mul this _ _ ((real.exp_pos _).le.trans this)) ha,
+  { exact real.cos_le_cos_of_nonneg_of_le_pi (_root_.abs_nonneg _)
+      (hb.trans $ half_le_self $ real.pi_pos.le) hz },
+  { refine real.cos_nonneg_of_mem_Icc ⟨_, hb⟩,
+    exact (neg_nonpos.2 $ real.pi_div_two_pos.le).trans ((_root_.abs_nonneg _).trans hz) }
+end
+
 end complex

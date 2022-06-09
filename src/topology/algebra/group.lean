@@ -129,45 +129,6 @@ lemma discrete_topology_iff_open_singleton_one : discrete_topology G ↔ is_open
 end continuous_mul_group
 
 /-!
-### Topological operations on pointwise sums and products
-
-A few results about interior and closure of the pointwise addition/multiplication of sets in groups
-with continuous addition/multiplication. See also `submonoid.top_closure_mul_self_eq` in
-`topology.algebra.monoid`.
--/
-
-section pointwise
-variables [topological_space α] [group α] [has_continuous_mul α] {s t : set α}
-
-@[to_additive]
-lemma is_open.mul_left (ht : is_open t) : is_open (s * t) :=
-begin
-  rw ←Union_mul_left_image,
-  exact is_open_Union (λ a, is_open_Union $ λ ha, is_open_map_mul_left a t ht),
-end
-
-@[to_additive]
-lemma is_open.mul_right (hs : is_open s) : is_open (s * t) :=
-begin
-  rw ←Union_mul_right_image,
-  exact is_open_Union (λ a, is_open_Union $ λ ha, is_open_map_mul_right a s hs),
-end
-
-@[to_additive]
-lemma subset_interior_mul_left : interior s * t ⊆ interior (s * t) :=
-interior_maximal (set.mul_subset_mul_right interior_subset) is_open_interior.mul_right
-
-@[to_additive]
-lemma subset_interior_mul_right : s * interior t ⊆ interior (s * t) :=
-interior_maximal (set.mul_subset_mul_left interior_subset) is_open_interior.mul_left
-
-@[to_additive]
-lemma subset_interior_mul : interior s * interior t ⊆ interior (s * t) :=
-(set.mul_subset_mul_left interior_subset).trans subset_interior_mul_left
-
-end pointwise
-
-/-!
 ### `has_continuous_inv` and `has_continuous_neg`
 -/
 
@@ -280,10 +241,36 @@ instance multiplicative.has_continuous_inv [h : topological_space H] [has_neg H]
 
 end continuous_inv
 
-@[to_additive]
-lemma is_compact.inv [topological_space G] [has_involutive_inv G] [has_continuous_inv G]
-  {s : set G} (hs : is_compact s) : is_compact (s⁻¹) :=
+section continuous_involutive_inv
+variables [topological_space G] [has_involutive_inv G] [has_continuous_inv G] {s : set G}
+
+@[to_additive] lemma is_compact.inv (hs : is_compact s) : is_compact s⁻¹ :=
 by { rw [← image_inv], exact hs.image continuous_inv }
+
+variables (G)
+
+/-- Inversion in a topological group as a homeomorphism. -/
+@[to_additive "Negation in a topological group as a homeomorphism."]
+protected def homeomorph.inv (G : Type*) [topological_space G] [has_involutive_inv G]
+  [has_continuous_inv G] : G ≃ₜ G :=
+{ continuous_to_fun  := continuous_inv,
+  continuous_inv_fun := continuous_inv,
+  .. equiv.inv G }
+
+@[to_additive] lemma is_open_map_inv : is_open_map (has_inv.inv : G → G) :=
+(homeomorph.inv _).is_open_map
+
+@[to_additive] lemma is_closed_map_inv : is_closed_map (has_inv.inv : G → G) :=
+(homeomorph.inv _).is_closed_map
+
+variables {G}
+
+@[to_additive] lemma is_open.inv (hs : is_open s) : is_open s⁻¹ := hs.preimage continuous_inv
+@[to_additive] lemma is_closed.inv (hs : is_closed s) : is_closed s⁻¹ := hs.preimage continuous_inv
+@[to_additive] lemma inv_closure : ∀ s : set G, (closure s)⁻¹ = closure s⁻¹ :=
+(homeomorph.inv G).preimage_closure
+
+end continuous_involutive_inv
 
 section lattice_ops
 
@@ -487,16 +474,9 @@ instance [group α] [topological_group α] :
 
 variable (G)
 
-/-- Inversion in a topological group as a homeomorphism. -/
-@[to_additive "Negation in a topological group as a homeomorphism."]
-protected def homeomorph.inv : G ≃ₜ G :=
-{ continuous_to_fun  := continuous_inv,
-  continuous_inv_fun := continuous_inv,
-  .. equiv.inv G }
-
 @[to_additive]
 lemma nhds_one_symm : comap has_inv.inv (𝓝 (1 : G)) = 𝓝 (1 : G) :=
-((homeomorph.inv G).comap_nhds_eq _).trans (congr_arg nhds one_inv)
+((homeomorph.inv G).comap_nhds_eq _).trans (congr_arg nhds inv_one)
 
 /-- The map `(x, y) ↦ (x, xy)` as a homeomorphism. This is a shear mapping. -/
 @[to_additive "The map `(x, y) ↦ (x, x + y)` as a homeomorphism.
@@ -517,33 +497,6 @@ lemma homeomorph.shear_mul_right_symm_coe :
 rfl
 
 variables {G}
-
-@[to_additive]
-lemma is_open.inv {s : set G} (hs : is_open s) : is_open s⁻¹ := hs.preimage continuous_inv
-
-@[to_additive]
-lemma is_closed.inv {s : set G} (hs : is_closed s) : is_closed s⁻¹ := hs.preimage continuous_inv
-
-@[to_additive]
-lemma inv_closure (s : set G) : (closure s)⁻¹ = closure s⁻¹ :=
-(homeomorph.inv G).preimage_closure s
-
-@[to_additive] lemma is_open.mul_closure {U : set G} (hU : is_open U) (s : set G) :
-  U * closure s = U * s :=
-begin
-  refine subset.antisymm _ (mul_subset_mul subset.rfl subset_closure),
-  rintro _ ⟨a, b, ha, hb, rfl⟩,
-  rw mem_closure_iff at hb,
-  have hbU : b ∈ U⁻¹ * {a * b},
-    from ⟨a⁻¹, a * b, set.inv_mem_inv.2 ha, rfl, inv_mul_cancel_left _ _⟩,
-  rcases hb _ hU.inv.mul_right hbU with ⟨_, ⟨c, d, hc, (rfl : d = _), rfl⟩, hcs⟩,
-  exact ⟨c⁻¹, _, hc, hcs, inv_mul_cancel_left _ _⟩
-end
-
-@[to_additive] lemma is_open.closure_mul {U : set G} (hU : is_open U) (s : set G) :
-  closure s * U = s * U :=
-by rw [← inv_inv (closure s * U), set.mul_inv_rev, inv_closure, hU.inv.mul_closure,
-  set.mul_inv_rev, inv_inv, inv_inv]
 
 namespace subgroup
 
@@ -633,7 +586,7 @@ end
   [topological_group G] {g : G} (hg : g ∈ connected_component (1 : G)) :
   g⁻¹ ∈ connected_component (1 : G) :=
 begin
-  rw ← one_inv,
+  rw ← inv_one,
   exact continuous.image_connected_component_subset continuous_inv _
     ((set.mem_image _ _ _).mp ⟨g, hg, rfl⟩)
 end
@@ -878,6 +831,12 @@ def homeomorph.div_left (x : G) : G ≃ₜ G :=
   continuous_inv_fun := continuous_inv.mul continuous_const,
   .. equiv.div_left x }
 
+@[to_additive] lemma is_open_map_div_left (a : G) : is_open_map ((/) a) :=
+(homeomorph.div_left _).is_open_map
+
+@[to_additive] lemma is_closed_map_div_left (a : G) : is_closed_map ((/) a) :=
+(homeomorph.div_left _).is_closed_map
+
 /-- A version of `homeomorph.mul_right a⁻¹ b` that is defeq to `b / a`. -/
 @[to_additive /-" A version of `homeomorph.add_right (-a) b` that is defeq to `b - a`. "-/,
   simps {simp_rhs := tt}]
@@ -903,12 +862,77 @@ begin
   exact ⟨λ h, by simpa using h.mul A, λ h, by simpa using h.div' A⟩
 end
 
+@[to_additive] lemma nhds_translation_div (x : G) : comap (/ x) (𝓝 1) = 𝓝 x :=
+by simpa only [div_eq_mul_inv] using nhds_translation_mul_inv x
+
 end div_in_topological_group
 
-@[to_additive]
-lemma nhds_translation_div [topological_space G] [group G] [topological_group G] (x : G) :
-  comap (λy:G, y / x) (𝓝 1) = 𝓝 x :=
-by simpa only [div_eq_mul_inv] using nhds_translation_mul_inv x
+/-!
+### Topological operations on pointwise sums and products
+
+A few results about interior and closure of the pointwise addition/multiplication of sets in groups
+with continuous addition/multiplication. See also `submonoid.top_closure_mul_self_eq` in
+`topology.algebra.monoid`.
+-/
+
+section has_continuous_mul
+variables [topological_space α] [group α] [has_continuous_mul α] {s t : set α}
+
+@[to_additive] lemma is_open.mul_left (ht : is_open t) : is_open (s * t) :=
+by { rw ←Union_mul_left_image, exact is_open_bUnion (λ a ha, is_open_map_mul_left a t ht) }
+
+@[to_additive] lemma is_open.mul_right (hs : is_open s) : is_open (s * t) :=
+by { rw ←Union_mul_right_image, exact is_open_bUnion (λ a ha, is_open_map_mul_right a s hs) }
+
+@[to_additive] lemma subset_interior_mul_left : interior s * t ⊆ interior (s * t) :=
+interior_maximal (set.mul_subset_mul_right interior_subset) is_open_interior.mul_right
+
+@[to_additive] lemma subset_interior_mul_right : s * interior t ⊆ interior (s * t) :=
+interior_maximal (set.mul_subset_mul_left interior_subset) is_open_interior.mul_left
+
+@[to_additive] lemma subset_interior_mul : interior s * interior t ⊆ interior (s * t) :=
+(set.mul_subset_mul_left interior_subset).trans subset_interior_mul_left
+
+end has_continuous_mul
+
+section topological_group
+variables [topological_space α] [group α] [topological_group α] {s t : set α}
+
+@[to_additive] lemma is_open.div_left (ht : is_open t) : is_open (s / t) :=
+by { rw ←Union_div_left_image, exact is_open_bUnion (λ a ha, is_open_map_div_left a t ht) }
+
+@[to_additive] lemma is_open.div_right (hs : is_open s) : is_open (s / t) :=
+by { rw ←Union_div_right_image, exact is_open_bUnion (λ a ha, is_open_map_div_right a s hs) }
+
+@[to_additive] lemma subset_interior_div_left : interior s / t ⊆ interior (s / t) :=
+interior_maximal (div_subset_div_right interior_subset) is_open_interior.div_right
+
+@[to_additive] lemma subset_interior_div_right : s / interior t ⊆ interior (s / t) :=
+interior_maximal (div_subset_div_left interior_subset) is_open_interior.div_left
+
+@[to_additive] lemma subset_interior_div : interior s / interior t ⊆ interior (s / t) :=
+(div_subset_div_left interior_subset).trans subset_interior_div_left
+
+@[to_additive] lemma is_open.mul_closure (hs : is_open s) (t : set α) : s * closure t = s * t :=
+begin
+  refine (mul_subset_iff.2 $ λ a ha b hb, _).antisymm (mul_subset_mul_left subset_closure),
+  rw mem_closure_iff at hb,
+  have hbU : b ∈ s⁻¹ * {a * b} := ⟨a⁻¹, a * b, set.inv_mem_inv.2 ha, rfl, inv_mul_cancel_left _ _⟩,
+  obtain ⟨_, ⟨c, d, hc, (rfl : d = _), rfl⟩, hcs⟩ := hb _ hs.inv.mul_right hbU,
+  exact ⟨c⁻¹, _, hc, hcs, inv_mul_cancel_left _ _⟩,
+end
+
+@[to_additive] lemma is_open.closure_mul (ht : is_open t) (s : set α) : closure s * t = s * t :=
+by rw [←inv_inv (closure s * t), mul_inv_rev, inv_closure, ht.inv.mul_closure, mul_inv_rev, inv_inv,
+  inv_inv]
+
+@[to_additive] lemma is_open.div_closure (hs : is_open s) (t : set α) : s / closure t = s / t :=
+by simp_rw [div_eq_mul_inv, inv_closure, hs.mul_closure]
+
+@[to_additive] lemma is_open.closure_div (ht : is_open t) (s : set α) : closure s / t = s / t :=
+by simp_rw [div_eq_mul_inv, ht.inv.closure_mul]
+
+end topological_group
 
 /-- additive group with a neighbourhood around 0.
 Only used to construct a topology and uniform space.

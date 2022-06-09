@@ -101,7 +101,7 @@ lemma norm_sub_mod_part_aux (r : ℚ) (h : ∥(r : ℚ_[p])∥ ≤ 1) :
   ↑p ∣ r.num - r.num * r.denom.gcd_a p % p * ↑(r.denom) :=
 begin
   rw ← zmod.int_coe_zmod_eq_zero_iff_dvd,
-  simp only [int.cast_coe_nat, zmod.nat_cast_mod p, int.cast_mul, int.cast_sub],
+  simp only [int.cast_coe_nat, zmod.nat_cast_mod, int.cast_mul, int.cast_sub],
   have := congr_arg (coe : ℤ → zmod p) (gcd_eq_gcd_ab r.denom p),
   simp only [int.cast_coe_nat, add_zero, int.cast_add, zmod.nat_cast_self, int.cast_mul, zero_mul]
     at this,

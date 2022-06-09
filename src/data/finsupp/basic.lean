@@ -1248,7 +1248,7 @@ end
 /-- Taking the product under `h` is an additive-to-multiplicative homomorphism of finsupps,
 if `h` is an additive-to-multiplicative homomorphism.
 This is a more specialized version of `finsupp.prod_add_index` with simpler hypotheses. -/
-@[to_additive "Taking the product under `h` is an additive homomorphism of finsupps,
+@[to_additive "Taking the sum under `h` is an additive homomorphism of finsupps,
 if `h` is an additive homomorphism.
 This is a more specific version of `finsupp.sum_add_index` with simpler hypotheses."]
 lemma prod_add_index' [add_zero_class M] [comm_monoid N] {f g : α →₀ M}
@@ -1782,6 +1782,7 @@ section comap_domain
 /-- Given `f : α → β`, `l : β →₀ M` and a proof `hf` that `f` is injective on
 the preimage of `l.support`, `comap_domain f l hf` is the finitely supported function
 from `α` to `M` given by composing `l` with `f`. -/
+@[simps support]
 def comap_domain [has_zero M] (f : α → β) (l : β →₀ M) (hf : set.inj_on f (f ⁻¹' ↑l.support)) :
   α →₀ M :=
 { support := l.support.preimage f hf,
@@ -1819,8 +1820,59 @@ begin
   exact h b (hb.2.symm ▸ ha)
 end
 
-lemma map_domain_comap_domain [add_comm_monoid M] (f : α → β) (l : β →₀ M)
-  (hf : function.injective f) (hl : ↑l.support ⊆ set.range f):
+section f_injective
+
+section has_zero
+variables [has_zero M]
+
+/-- Note the `hif` argument is needed for this to work in `rw`. -/
+@[simp] lemma comap_domain_zero (f : α → β)
+  (hif : set.inj_on f (f ⁻¹' ↑((0 : β →₀ M).support)) := set.inj_on_empty _) :
+  comap_domain f (0 : β →₀ M) hif = (0 : α →₀ M) :=
+by { ext, refl }
+
+@[simp] lemma comap_domain_single (f : α → β) (a : α) (m : M)
+  (hif : set.inj_on f (f ⁻¹' (single (f a) m).support)) :
+  comap_domain f (finsupp.single (f a) m) hif = finsupp.single a m :=
+begin
+  rcases eq_or_ne m 0 with rfl | hm,
+  { simp only [single_zero, comap_domain_zero] },
+  { rw [eq_single_iff, comap_domain_apply, comap_domain_support, ← finset.coe_subset, coe_preimage,
+      support_single_ne_zero hm, coe_singleton, coe_singleton, single_eq_same],
+    rw [support_single_ne_zero hm, coe_singleton] at hif,
+    exact ⟨λ x hx, hif hx rfl hx, rfl⟩ }
+end
+
+end has_zero
+
+section add_zero_class
+variables [add_zero_class M] {f : α → β}
+
+lemma comap_domain_add (v₁ v₂ : β →₀ M)
+  (hv₁ : set.inj_on f (f ⁻¹' ↑(v₁.support))) (hv₂ : set.inj_on f (f ⁻¹' ↑(v₂.support)))
+  (hv₁₂ : set.inj_on f (f ⁻¹' ↑((v₁ + v₂).support))) :
+  comap_domain f (v₁ + v₂) hv₁₂ = comap_domain f v₁ hv₁ + comap_domain f v₂ hv₂ :=
+by { ext, simp only [comap_domain_apply, coe_add, pi.add_apply] }
+
+/-- A version of `finsupp.comap_domain_add` that's easier to use. -/
+lemma comap_domain_add_of_injective (hf : function.injective f) (v₁ v₂ : β →₀ M) :
+  comap_domain f (v₁ + v₂) (hf.inj_on _)
+    = comap_domain f v₁ (hf.inj_on _) + comap_domain f v₂ (hf.inj_on _) :=
+comap_domain_add _ _ _ _ _
+
+/-- `finsupp.comap_domain` is an `add_monoid_hom`. -/
+@[simps]
+def comap_domain.add_monoid_hom (hf : function.injective f) : (β →₀ M) →+ (α →₀ M) :=
+{ to_fun := λ x, comap_domain f x (hf.inj_on _),
+  map_zero' := comap_domain_zero f,
+  map_add' := comap_domain_add_of_injective hf }
+
+end add_zero_class
+
+variables [add_comm_monoid M] (f : α → β)
+
+lemma map_domain_comap_domain
+  (hf : function.injective f) (l : β →₀ M) (hl : ↑l.support ⊆ set.range f) :
   map_domain f (comap_domain f l (hf.inj_on _)) = l :=
 begin
   ext a,
@@ -1831,6 +1883,8 @@ begin
     by_contra h_contr,
     apply h_cases (hl $ finset.mem_coe.2 $ mem_support_iff.2 $ λ h, h_contr h.symm) }
 end
+
+end f_injective
 
 end comap_domain
 
@@ -2499,6 +2553,20 @@ end
 
 lemma smul_single_one [semiring R] (a : α) (b : R) : b • single a 1 = single a b :=
 by rw [smul_single, smul_eq_mul, mul_one]
+
+lemma comap_domain_smul [add_monoid M] [monoid R] [distrib_mul_action R M]
+  {f : α → β} (r : R) (v : β →₀ M)
+  (hfv : set.inj_on f (f ⁻¹' ↑(v.support)))
+  (hfrv : set.inj_on f (f ⁻¹' ↑((r • v).support)) :=
+    hfv.mono $ set.preimage_mono $ finset.coe_subset.mpr support_smul):
+  comap_domain f (r • v) hfrv = r • comap_domain f v hfv :=
+by { ext, refl }
+
+/-- A version of `finsupp.comap_domain_smul` that's easier to use. -/
+lemma comap_domain_smul_of_injective [add_monoid M] [monoid R] [distrib_mul_action R M]
+  {f : α → β} (hf : function.injective f) (r : R) (v : β →₀ M) :
+  comap_domain f (r • v) (hf.inj_on _) = r • comap_domain f v (hf.inj_on _) :=
+comap_domain_smul _ _ _ _
 
 end
 

@@ -5,6 +5,7 @@ Authors: Apurva Nakade
 -/
 import algebra.algebra.basic
 import ring_theory.localization.away
+import set_theory.game.birthday
 import set_theory.surreal.basic
 
 /-!
@@ -54,6 +55,14 @@ instance is_empty_pow_half_zero_right_moves : is_empty (pow_half 0).right_moves 
 pempty.is_empty
 instance unique_pow_half_succ_right_moves (n) : unique (pow_half (n + 1)).right_moves :=
 punit.unique
+
+@[simp] theorem birthday_pow_half (n) : birthday (pow_half n) = n + 1 :=
+begin
+  induction n with n hn,
+  { simp },
+  { rw [pow_half, birthday],
+    simpa [hn] using ordinal.one_le_succ _ }
+end
 
 /-- For all natural numbers `n`, the pre-games `pow_half n` are numeric. -/
 theorem numeric_pow_half (n) : (pow_half n).numeric :=

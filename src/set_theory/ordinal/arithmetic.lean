@@ -112,6 +112,9 @@ theorem succ_pos (o : ordinal) : 0 < succ o :=
 theorem succ_ne_zero (o : ordinal) : succ o ≠ 0 :=
 ne_of_gt $ succ_pos o
 
+theorem one_le_succ (o : ordinal) : 1 ≤ succ o :=
+one_le_iff_pos.2 $ succ_pos o
+
 @[simp] theorem card_succ (o : ordinal) : card (succ o) = card o + 1 :=
 by simp only [←add_one_eq_succ, card_add, card_one]
 

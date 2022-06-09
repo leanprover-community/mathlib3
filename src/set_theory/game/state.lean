@@ -122,24 +122,24 @@ def of_state_aux_relabelling : Π (s : S) (n m : ℕ) (hn : turn_bound s ≤ n) 
 /-- Construct a combinatorial `pgame` from a state. -/
 def of_state (s : S) : pgame := of_state_aux (turn_bound s) s (refl _)
 
-/--
-The equivalence between `left_moves` for a `pgame` constructed using `of_state_aux _ s _`, and `L s`.
--/
+/-- The equivalence between `left_moves` for a `pgame` constructed using `of_state_aux _ s _`, and
+`L s`. -/
 def left_moves_of_state_aux (n : ℕ) {s : S} (h : turn_bound s ≤ n) :
   left_moves (of_state_aux n s h) ≃ {t // t ∈ L s} :=
 by induction n; refl
-/--
-The equivalence between `left_moves` for a `pgame` constructed using `of_state s`, and `L s`.
--/
+
+/-- The equivalence between `left_moves` for a `pgame` constructed using `of_state s`, and `L s`. -/
 def left_moves_of (s : S) : left_moves (of_state s) ≃ {t // t ∈ L s} :=
 left_moves_of_state_aux _ _
-/--
-The equivalence between `right_moves` for a `pgame` constructed using `of_state_aux _ s _`, and `R s`.
--/
+
+/-- The equivalence between `right_moves` for a `pgame` constructed using `of_state_aux _ s _`, and
+`R s`. -/
 def right_moves_of_state_aux (n : ℕ) {s : S} (h : turn_bound s ≤ n) :
   right_moves (of_state_aux n s h) ≃ {t // t ∈ R s} :=
 by induction n; refl
-/-- The equivalence between `right_moves` for a `pgame` constructed using `of_state s`, and `R s`. -/
+
+/-- The equivalence between `right_moves` for a `pgame` constructed using `of_state s`, and
+`R s`. -/
 def right_moves_of (s : S) : right_moves (of_state s) ≃ {t // t ∈ R s} :=
 right_moves_of_state_aux _ _
 

@@ -750,7 +750,7 @@ instance : inhabited ordinal := ⟨0⟩
 (rel_iso.rel_iso_of_is_empty r _).ordinal_type_eq
 
 @[simp] theorem type_eq_zero_iff_is_empty [is_well_order α r] : type r = 0 ↔ is_empty α :=
-⟨λ h, (nonempty.some (type_eq.1 h)).to_equiv.is_empty, @type_eq_zero_of_empty α r _⟩
+⟨λ h, (nonempty.some $ type_eq.1 h).to_equiv.is_empty, @type_eq_zero_of_empty α r _⟩
 
 @[simp] theorem type_ne_zero_iff_nonempty [is_well_order α r] : type r ≠ 0 ↔ nonempty α :=
 by { rw ←not_iff_not, simp }

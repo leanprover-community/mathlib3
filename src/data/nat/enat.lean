@@ -251,8 +251,8 @@ by simpa only [← some_eq_coe] using part.ne_none_iff
 lemma ne_top_iff_dom {x : enat} : x ≠ ⊤ ↔ x.dom :=
 by classical; exact not_iff_comm.1 part.eq_none_iff'.symm
 
-lemma not_dom_iff_eq_top {x : enat} : ¬ x.dom ↔ x = ⊤  :=
-  iff.not_left ne_top_iff_dom.symm
+lemma not_dom_iff_eq_top {x : enat} : ¬ x.dom ↔ x = ⊤ :=
+iff.not_left ne_top_iff_dom.symm
 
 lemma ne_top_of_lt {x y : enat} (h : x < y) : x ≠ ⊤ :=
 ne_of_lt $ lt_of_lt_of_le h le_top

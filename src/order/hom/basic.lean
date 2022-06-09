@@ -5,7 +5,7 @@ Authors: Johan Commelin
 -/
 import logic.equiv.option
 import order.rel_iso
-import tactic.apply_fun
+import tactic.monotonicity.basic
 
 /-!
 # Order homomorphisms
@@ -635,9 +635,13 @@ def of_hom_inv {F : Type u_1} {G : Type u_4} [order_hom_class F α β] [order_ho
   inv_fun := g,
   left_inv := fun_like.congr_fun h₂,
   right_inv := fun_like.congr_fun h₁,
-  map_rel_iff' := λ a b, ⟨λ h, by {apply_fun g at h, rwa [equiv.coe_fn_mk,
+  map_rel_iff' := λ a b, ⟨λ h, begin
+    rwa [equiv.coe_fn_mk] at h,
+    apply_fun g at h,
+    rw [
     ← order_hom_class.comp_apply, ← order_hom_class.comp_apply, h₂] at h,
-    exact (g : β →o α).monotone }, λ h, (f : α →o β).monotone h⟩ }
+    exact (g : β →o α).monotone
+    end , λ h, (f : α →o β).monotone h⟩ }
 
 /-- Order isomorphism between two equal sets. -/
 def set_congr (s t : set α) (h : s = t) : s ≃o t :=

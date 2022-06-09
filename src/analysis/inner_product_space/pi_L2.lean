@@ -106,6 +106,10 @@ lemma euclidean_space.nndist_eq {𝕜 : Type*} [is_R_or_C 𝕜] {n : Type*} [fin
   (x y : euclidean_space 𝕜 n) : nndist x y = (∑ i, nndist (x i) (y i) ^ 2).sqrt :=
 by convert pi_Lp.nndist_eq_of_L2 x y
 
+lemma euclidean_space.edist_eq {𝕜 : Type*} [is_R_or_C 𝕜] {n : Type*} [fintype n]
+  (x y : euclidean_space 𝕜 n) : edist x y = (∑ i, edist (x i) (y i) ^ 2) ^ (1 / 2 : ℝ) :=
+by simp_rw [pi_Lp.edist_eq, ennreal.rpow_two]
+
 variables [fintype ι]
 
 section

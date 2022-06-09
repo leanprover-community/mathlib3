@@ -419,6 +419,64 @@ begin
       { rw ← h at hx', exact le_of_eq hx' } } }
 end
 
+lemma is_equiv_iff_val_lt_one
+  [linear_ordered_comm_group_with_zero Γ₀]
+  [linear_ordered_comm_group_with_zero Γ'₀]
+  {K : Type*} [division_ring K]
+  (v : valuation K Γ₀) (v' : valuation K Γ'₀) :
+  v.is_equiv v' ↔ ∀ {x : K}, v x < 1 ↔ v' x < 1 :=
+begin
+  split,
+  { intros h x,
+    simp only [lt_iff_le_and_ne, and_congr ((is_equiv_iff_val_le_one _ _).1 h)
+      ((is_equiv_iff_val_eq_one _ _).1 h).not] },
+  { rw is_equiv_iff_val_eq_one,
+    intros h x,
+    by_cases hx : x = 0, { simp only [(zero_iff _).2 hx, zero_ne_one] },
+    split,
+    { intro hh,
+      by_contra h_1,
+      cases ne_iff_lt_or_gt.1 h_1,
+      { simpa [hh, lt_self_iff_false] using h.2 h_2 },
+      { rw [← inv_one, eq_inv_iff_eq_inv, ← map_inv] at hh,
+        exact hh.le.not_lt (h.2 ((one_lt_val_iff v' hx).1 h_2)) } },
+    { intro hh,
+      by_contra h_1,
+      cases ne_iff_lt_or_gt.1 h_1,
+      { simpa [hh, lt_self_iff_false] using h.1 h_2 },
+      { rw [← inv_one, eq_inv_iff_eq_inv, ← map_inv] at hh,
+        exact hh.le.not_lt (h.1 ((one_lt_val_iff v hx).1 h_2)) } } }
+end
+
+lemma is_equiv_iff_val_sub_one_lt_one
+  [linear_ordered_comm_group_with_zero Γ₀]
+  [linear_ordered_comm_group_with_zero Γ'₀]
+  {K : Type*} [division_ring K]
+  (v : valuation K Γ₀) (v' : valuation K Γ'₀) :
+  v.is_equiv v' ↔ ∀ {x : K}, v (x - 1) < 1 ↔ v' (x - 1) < 1 :=
+begin
+  rw is_equiv_iff_val_lt_one,
+  refine ⟨λ h x, @h (x - 1), λ h x, by simpa using @h (x + 1)⟩,
+end
+
+lemma is_equiv_tfae
+  [linear_ordered_comm_group_with_zero Γ₀]
+  [linear_ordered_comm_group_with_zero Γ'₀]
+  {K : Type*} [division_ring K]
+  (v : valuation K Γ₀) (v' : valuation K Γ'₀) :
+  [ v.is_equiv v'
+  , ∀ {x}, v x ≤ 1 ↔ v' x ≤ 1
+  , ∀ {x}, v x = 1 ↔ v' x = 1
+  , ∀ {x}, v x < 1 ↔ v' x < 1
+  , ∀ {x}, v (x-1) < 1 ↔ v' (x-1) < 1].tfae :=
+begin
+  tfae_have : 1 ↔ 2, { apply is_equiv_iff_val_le_one },
+  tfae_have : 1 ↔ 3, { apply is_equiv_iff_val_eq_one },
+  tfae_have : 1 ↔ 4, { apply is_equiv_iff_val_lt_one },
+  tfae_have : 1 ↔ 5, { apply is_equiv_iff_val_sub_one_lt_one },
+  tfae_finish
+end
+
 end
 
 section supp

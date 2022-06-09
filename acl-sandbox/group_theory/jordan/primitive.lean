@@ -219,9 +219,7 @@ variables (G : Type*) [group G] (X : Type*) [mul_action G X]
 
 open_locale big_operators pointwise
 
-/- Couldn't use in a straightforward way the order equivalence
-for proving the next theorem — what a pity ! -/
-instance block.mem_is_bounded_order (a : X) : bounded_order {B : set X // a ∈ B ∧ is_block G B} := {
+instance block.bounded_order_of_mem (a : X) : bounded_order {B : set X // a ∈ B ∧ is_block G B} := {
 top := ⟨⊤,
 begin rw set.top_eq_univ, apply set.mem_univ end,
 top_is_block X⟩,
@@ -238,21 +236,21 @@ begin
   exact ha
 end }
 
-lemma block.mem_is_bounded_order.top_eq (a : X) :
-  ((block.mem_is_bounded_order G X a).top : set X) = ⊤ := rfl
+lemma block.bounded_order_of_mem.top_eq (a : X) :
+  ((block.bounded_order_of_mem G X a).top : set X) = ⊤ := rfl
 
-lemma block.mem_is_bounded_order.bot_eq (a : X) :
-  ((block.mem_is_bounded_order G X a).bot : set X) = {a} := rfl
+lemma block.bounded_order_of_mem.bot_eq (a : X) :
+  ((block.bounded_order_of_mem G X a).bot : set X) = {a} := rfl
 
 lemma block.mem_is_nontrivial_order_of_nontrivial [nontrivial X] (a : X) :
   nontrivial {B : set X // a ∈ B ∧ is_block G B } :=
 begin
   rw nontrivial_iff,
-  use (block.mem_is_bounded_order G X a).bot,
-  use (block.mem_is_bounded_order G X a).top,
+  use (block.bounded_order_of_mem G X a).bot,
+  use (block.bounded_order_of_mem G X a).top,
   intro h,
   rw ← subtype.coe_inj at h,
-  simp only [block.mem_is_bounded_order.top_eq, block.mem_is_bounded_order.bot_eq] at h,
+  simp only [block.bounded_order_of_mem.top_eq, block.bounded_order_of_mem.bot_eq] at h,
   obtain ⟨b, hb⟩ := exists_ne a,
   apply hb,
   rw ← set.mem_singleton_iff,
@@ -271,11 +269,11 @@ begin
     simp only [← subtype.coe_inj, subtype.coe_mk],
     cases hGX'.has_trivial_blocks hB,
     { apply or.intro_left,
-      change B = ↑(block.mem_is_bounded_order G X a).bot,
-      rw block.mem_is_bounded_order.bot_eq,
+      change B = ↑(block.bounded_order_of_mem G X a).bot,
+      rw block.bounded_order_of_mem.bot_eq,
       exact set.subsingleton.eq_singleton_of_mem h haB },
     { apply or.intro_right,
-      change B = ↑(block.mem_is_bounded_order G X a).top,
+      change B = ↑(block.bounded_order_of_mem G X a).top,
       exact h } },
   { intro h, let h_bot_or_top := h.eq_bot_or_eq_top,
     apply is_preprimitive.mk_mem htGX a,
@@ -306,7 +304,6 @@ end stabilizer
 
 section finite
 
--- variables {G : Type*} [group G] {X : Type*} [mul_action G X]
 variables {M : Type*} [group M] {α : Type*} [mul_action M α]
 variables {N β : Type*} [group N] [mul_action N β]
 

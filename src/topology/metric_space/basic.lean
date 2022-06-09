@@ -424,6 +424,16 @@ by rw [← not_nonempty_iff_eq_empty, nonempty_ball, not_lt]
 @[simp] lemma ball_zero : ball x 0 = ∅ :=
 by rw [ball_eq_empty]
 
+/-- If a point belongs to an open ball, then there is a strictly smaller radius whose ball also
+contains it.
+
+See also `exists_lt_subset_ball`. -/
+lemma exists_lt_mem_ball_of_mem_ball (h : x ∈ ball y ε) : ∃ ε' < ε, x ∈ ball y ε' :=
+begin
+  simp only [mem_ball] at h ⊢,
+  exact ⟨(ε + dist x y) / 2, by linarith, by linarith⟩,
+end
+
 lemma ball_eq_ball (ε : ℝ) (x : α) :
   uniform_space.ball x {p | dist p.2 p.1 < ε} = metric.ball x ε := rfl
 

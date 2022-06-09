@@ -889,10 +889,35 @@ def ideal_factors_fun_of_quot_hom {f : R ⧸ I →+* A ⧸ J} (hf : function.sur
         ← ring_hom.ker_eq_comap_bot, mk_ker, sup_eq_left.mpr $ le_of_dvd hY],
     end }
 
+lemma ideal_factors_fun_of_quot_hom_id :
+  ideal_factors_fun_of_quot_hom  (ring_hom.id (A ⧸ J)).is_surjective = order_hom.id :=
+order_hom.ext _ _ (funext $ λ X, by simp only [ideal_factors_fun_of_quot_hom, map_id,
+  order_hom.coe_fun_mk, order_hom.id_coe, id.def, comap_map_of_surjective _ quotient.mk_surjective,
+  ← ring_hom.ker_eq_comap_bot J^.quotient.mk, mk_ker, sup_eq_left.mpr (dvd_iff_le.mp X.prop),
+  subtype.coe_eta] )
+
+
+
+variables {B : Type*} [comm_ring B] [is_domain B] [is_dedekind_domain B] {L : ideal B}
 variable [is_dedekind_domain R]
 
+lemma ideal_factors_fun_of_quot_hom_comp
+  (f : R ⧸ I →+* A ⧸ J)  (g : A ⧸ J →+* B ⧸ L) (hf : function.surjective f)
+    (hg : function.surjective g) :
+    (ideal_factors_fun_of_quot_hom hg).comp
+  (ideal_factors_fun_of_quot_hom hf)  = ideal_factors_fun_of_quot_hom
+      (show function.surjective (g.comp f), from hg.comp hf) :=
+begin
+  refine order_hom.ext _ _ (funext $ λ x, _),
+  rw [ideal_factors_fun_of_quot_hom, ideal_factors_fun_of_quot_hom, order_hom.comp_coe,
+    order_hom.coe_fun_mk, order_hom.coe_fun_mk, function.comp_app,
+    ideal_factors_fun_of_quot_hom,  order_hom.coe_fun_mk, subtype.mk_eq_mk, subtype.coe_mk,
+    map_comap_of_surjective J^.quotient.mk quotient.mk_surjective, map_map],
+end
+
+
 lemma ideal_factors_fun_of_quot_hom_inv_of_equiv (f : R ⧸ I ≃+* A ⧸ J) :
-  function.left_inverse (ideal_factors_fun_of_quot_hom (f : R ⧸ I →+* A ⧸ J) f.surjective)
+  function.left_inverse (ideal_factors_fun_of_quot_hom  (f.surjective) )
   (ideal_factors_fun_of_quot_hom (f.symm : A ⧸ J →+* R ⧸ I) f.symm.surjective) :=
 begin
   rintros ⟨p, hp⟩,
@@ -910,11 +935,18 @@ end
 @[simp]
 def ideal_factors_equiv_of_quot_equiv (f : R ⧸ I ≃+* A ⧸ J) :
   {p : ideal R | p ∣ I} ≃o {p : ideal A | p ∣ J} :=
-order_iso.of_hom_inv (ideal_factors_fun_of_quot_hom f f.surjective)
-  (ideal_factors_fun_of_quot_hom f.symm f.symm.surjective)
-  (ideal_factors_fun_of_quot_hom_inv_of_equiv f.symm)
-  (ideal_factors_fun_of_quot_hom_inv_of_equiv f)
 
+/- order_iso.of_hom_inv (ideal_factors_fun_of_quot_hom (show function.surjective
+  (f : R ⧸I →+* A ⧸ J), from sorry))
+  (ideal_factors_fun_of_quot_hom (show function.surjective
+  (f.symm : A ⧸J →+* R ⧸ I), from sorry))
+  (begin
+
+  end )
+  sorry
+
+
+-/
 end
 
 section chinese_remainder

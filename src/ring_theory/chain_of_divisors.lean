@@ -273,16 +273,16 @@ begin
   { obtain ⟨x, hx⟩ := d.surjective ⟨b, le_trans (le_of_lt hb)
       (d ⟨p, dvd_of_mem_normalized_factors hp⟩).prop⟩,
     rw [← subtype.coe_mk b _ , subtype.coe_lt_coe, ← hx] at hb,
-    haveI : order_bot {l : associates M // l ≤ m} := subtype.order_bot bot_le,
-    haveI : order_bot {l : associates N // l ≤ n} := subtype.order_bot bot_le,
+    letI : order_bot {l : associates M // l ≤ m} := subtype.order_bot bot_le,
+    letI : order_bot {l : associates N // l ≤ n} := subtype.order_bot bot_le,
     suffices : x = ⊥,
     { rw [this, order_iso.map_bot d] at hx,
       refine (subtype.mk_eq_bot_iff _ _).mp hx.symm,
       exact bot_le },
     obtain ⟨a, ha⟩ := x,
     rw subtype.mk_eq_bot_iff,
-    exact ((associates.is_atom_iff $ prime.ne_zero $ prime_of_normalized_factor p hp).mpr
-      $ irreducible_of_normalized_factor p hp).right a (subtype.mk_lt_mk.mp $ d.lt_iff_lt.mp hb),
+    { exact ((associates.is_atom_iff $ prime.ne_zero $ prime_of_normalized_factor p hp).mpr $
+      irreducible_of_normalized_factor p hp).right a (subtype.mk_lt_mk.mp $ d.lt_iff_lt.mp hb) },
     exact bot_le },
 end
 

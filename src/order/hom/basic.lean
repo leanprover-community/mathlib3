@@ -5,7 +5,7 @@ Authors: Johan Commelin
 -/
 import logic.equiv.option
 import order.rel_iso
-import tactic.monotonicity.basic
+import tactic.apply_fun
 
 /-!
 # Order homomorphisms
@@ -221,6 +221,9 @@ def curry : (α × β →o γ) ≃o (α →o β →o γ) :=
 /-- The composition of two bundled monotone functions. -/
 @[simps {fully_applied := ff}]
 def comp (g : β →o γ) (f : α →o β) : α →o γ := ⟨g ∘ f, g.mono.comp f.mono⟩
+
+lemma order_hom_class.comp_apply {G : Type u_4} [order_hom_class F α β] [order_hom_class G β γ]
+  {f : F} {g : G} {a : α} : (g : β →o γ).comp (f : α →o β) a = g (f a) := rfl
 
 @[mono] lemma comp_mono ⦃g₁ g₂ : β →o γ⦄ (hg : g₁ ≤ g₂) ⦃f₁ f₂ : α →o β⦄ (hf : f₁ ≤ f₂) :
   g₁.comp f₁ ≤ g₂.comp f₂ :=
@@ -625,13 +628,16 @@ have gf : ∀ (a : α), a = g (f a) := by { intro, rw [←cmp_eq_eq_iff, h, cmp_
 
 /-- To show that `f : α →o β` and `g : β →o α` make up an order isomorphism it is enough to show
     that `g` is the inverse of `f`-/
-def of_hom_inv {f : α →o β} {g : β →o α} (h₁ : function.left_inverse g f)
-   (h₂ : function.left_inverse f g) : α ≃o β :=
+def of_hom_inv {F : Type u_1} {G : Type u_4} [order_hom_class F α β] [order_hom_class G β α]
+  {f : F} {g : G} (h₁ : (f : α →o β).comp (g : β →o α) = order_hom.id)
+    (h₂ : (g : β →o α).comp (f : α →o β) = order_hom.id) : α ≃o β :=
 { to_fun := f,
   inv_fun := g,
-  left_inv := h₁,
-  right_inv := h₂,
-  map_rel_iff' := λ a b, ⟨λ h, by rw [← h₁ a, ← h₁ b] ; exact g.monotone h, λ h, f.monotone h⟩ }
+  left_inv := fun_like.congr_fun h₂,
+  right_inv := fun_like.congr_fun h₁,
+  map_rel_iff' := λ a b, ⟨λ h, by {apply_fun g at h, rwa [equiv.coe_fn_mk,
+    ← order_hom_class.comp_apply, ← order_hom_class.comp_apply, h₂] at h,
+    exact (g : β →o α).monotone }, λ h, (f : α →o β).monotone h⟩ }
 
 /-- Order isomorphism between two equal sets. -/
 def set_congr (s t : set α) (h : s = t) : s ≃o t :=

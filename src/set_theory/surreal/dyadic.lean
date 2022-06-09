@@ -79,15 +79,10 @@ begin
 end
 
 theorem pow_half_succ_lt_one (n : ℕ) : pow_half (n + 1) < 1 :=
-(pow_half_succ_lt_pow_half n).trans_le (pow_half_le_one n)
+(pow_half_succ_lt_pow_half n).trans_le $ pow_half_le_one n
 
 theorem pow_half_pos (n : ℕ) : 0 < pow_half n :=
-begin
-  cases n,
-  { exact zero_lt_one },
-  { rw [←lf_iff_lt numeric_zero (numeric_pow_half _), zero_lf_le],
-    exact ⟨punit.star, le_rfl⟩ }
-end
+by { rw [←lf_iff_lt numeric_zero (numeric_pow_half n), zero_lf_le], simp }
 
 theorem zero_le_pow_half (n : ℕ) : 0 ≤ pow_half n :=
 (pow_half_pos n).le

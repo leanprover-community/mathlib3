@@ -259,12 +259,12 @@ lemma le_cinfi_iff [nonempty ι] {f : ι → α} {a : α} (hf : bdd_below (range
   a ≤ infi f ↔ ∀ i, a ≤ f i :=
 (le_is_glb_iff $ is_glb_cinfi hf).trans forall_range_iff
 
-lemma bcsupr_le_iff {ι : Type*} {s : set ι} {f : ι → α} {a : α} (hs : s.nonempty)
+lemma csupr_set_le_iff {ι : Type*} {s : set ι} {f : ι → α} {a : α} (hs : s.nonempty)
   (hf : bdd_above (f '' s)) :
   (⨆ i : s, f i) ≤ a ↔ ∀ i ∈ s, f i ≤ a :=
 (is_lub_le_iff $ is_lub_csupr_set hf hs).trans ball_image_iff
 
-lemma le_bcinfi_iff {ι : Type*} {s : set ι} {f : ι → α} {a : α} (hs : s.nonempty)
+lemma le_cinfi_set_iff {ι : Type*} {s : set ι} {f : ι → α} {a : α} (hs : s.nonempty)
   (hf : bdd_below (f '' s)) :
   a ≤ (⨅ i : s, f i) ↔ ∀ i ∈ s, a ≤ f i :=
 (le_is_glb_iff $ is_glb_cinfi_set hf hs).trans ball_image_iff

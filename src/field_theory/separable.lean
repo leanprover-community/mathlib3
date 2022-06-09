@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 
-import algebra.algebra.basic
 import algebra.polynomial.big_operators
 import algebra.squarefree
 import field_theory.minpoly

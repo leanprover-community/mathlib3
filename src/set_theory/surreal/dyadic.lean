@@ -71,6 +71,16 @@ theorem pow_half_succ_lt_pow_half (n : ℕ) : pow_half (n + 1) < pow_half n :=
 theorem pow_half_succ_le_pow_half (n : ℕ) : pow_half (n + 1) ≤ pow_half n :=
 (pow_half_succ_lt_pow_half n).le
 
+theorem pow_half_le_one (n : ℕ) : pow_half n ≤ 1 :=
+begin
+  induction n with n hn,
+  { exact le_rfl },
+  { exact (pow_half_succ_le_pow_half n).trans hn }
+end
+
+theorem pow_half_succ_lt_one (n : ℕ) : pow_half (n + 1) < 1 :=
+(pow_half_succ_lt_pow_half n).trans_le (pow_half_le_one n)
+
 theorem pow_half_pos (n : ℕ) : 0 < pow_half n :=
 begin
   cases n,

@@ -1,4 +1,31 @@
+/-
+Copyright (c) 2022 Violeta Hernández Palacios. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Violeta Hernández Palacios
+-/
+
 import set_theory.surreal.dyadic
+
+/-!
+# Infinitesimal pre-games
+
+We define the notions of an infinitesimal and a strongly infinitesimal pre-game, and prove the basic
+results.
+
+## Main definitions
+
+- `pgame.infinitesimal`: a pre-game between `-2 ^ (-n)` and `2 ^ (-n)` for any `n : ℕ`.
+- `pgame.strong_infinitesimal`: a pre-game between `-x` and `x` for any positive numeric `x`.
+- `pgame.dicotic`: a pre-game where both players can move from any nonempty position.
+
+## Todo
+
+- Prove the analog of `pgame.infinitesimal_iff_forall_mem_Icc` for strongly infinitesimal games.
+- Show that a dicotic pre-game is strongly infinitesimal.
+- Define the pre-game `↑` (in set_theory/game/pgame) and show that it's dicotic.
+- Show that infinitesimal and strongly infinitesimal games are closed under addition (and
+  multiplication?)
+-/
 
 namespace pgame
 
@@ -6,10 +33,13 @@ namespace pgame
 def infinitesimal (x : pgame) : Prop :=
 ∀ n, x ∈ set.Ioo (-pow_half n) (pow_half n)
 
+theorem infinitesimal.neg {x} (hx : infinitesimal x) : infinitesimal (-x) :=
+λ n, by simpa [and.comm, neg_lt_iff] using hx n
+
 theorem infinitesimal_iff_forall_mem_Icc {x : pgame} :
   x.infinitesimal ↔ ∀ n, x ∈ set.Icc (-pow_half n) (pow_half n) :=
 ⟨λ h n, set.Ioo_subset_Icc_self (h n), λ h n, set.Icc_subset_Ioo
-  (neg_lt_iff.2 $ pow_half_succ_lt_pow_half n) (pow_half_succ_lt_pow_half n) $ h _⟩
+  (neg_lt_neg_iff.2 $ pow_half_succ_lt_pow_half n) (pow_half_succ_lt_pow_half n) $ h _⟩
 
 /-- A pre-game is strongly infinitesimal when it's between `-x` and `x` for any positive numeric
 pre-game `x`. -/
@@ -25,95 +55,97 @@ theorem zero_strong_infinitesimal : strong_infinitesimal 0 :=
 theorem zero_infinitesimal : infinitesimal 0 :=
 zero_strong_infinitesimal.infinitesimal
 
-/-- A pre-game is all-small when every position with left moves has right moves and viceversa.
-Equivalently, either none or both of its left and right move sets are empty, and all options are
-also all-small. -/
-def all_small_aux : pgame → Prop
+theorem strong_infinitesimal.neg {x} (hx : strong_infinitesimal x) : strong_infinitesimal (-x) :=
+λ n, by simpa [and.comm, neg_lt_iff] using hx n
+
+/-- A pre-game is dicotic when both players can move from any nonempty position. Equivalently,
+either none or both of its left and right move sets are empty, and all options are also dicotic. -/
+def dicotic_aux : pgame → Prop
 | x := (is_empty x.left_moves ↔ is_empty x.right_moves) ∧
-    (∀ i, all_small_aux (x.move_left i)) ∧ ∀ j, all_small_aux (x.move_right j)
+    (∀ i, dicotic_aux (x.move_left i)) ∧ ∀ j, dicotic_aux (x.move_right j)
 using_well_founded { dec_tac := pgame_wf_tac }
 
-lemma all_small_aux_def {x : pgame} : x.all_small_aux ↔
+lemma dicotic_aux_def {x : pgame} : x.dicotic_aux ↔
   (is_empty x.left_moves ↔ is_empty x.right_moves) ∧
-  (∀ i, all_small_aux (x.move_left i)) ∧ ∀ j, all_small_aux (x.move_right j) :=
-by rw all_small_aux
+  (∀ i, dicotic_aux (x.move_left i)) ∧ ∀ j, dicotic_aux (x.move_right j) :=
+by rw dicotic_aux
 
-/-- A typeclass on all-small games. -/
-class all_small (x : pgame) : Prop := (out : all_small_aux x)
+/-- A typeclass on dicotic games. -/
+class dicotic (x : pgame) : Prop := (out : dicotic_aux x)
 
-lemma all_small_iff_aux {x : pgame} : x.all_small ↔ x.all_small_aux :=
+lemma dicotic_iff_aux {x : pgame} : x.dicotic ↔ x.dicotic_aux :=
 ⟨λ h, h.1, λ h, ⟨h⟩⟩
 
-lemma all_small_def {x : pgame} : x.all_small ↔
+lemma dicotic_def {x : pgame} : x.dicotic ↔
   (is_empty x.left_moves ↔ is_empty x.right_moves) ∧
-  (∀ i, all_small (x.move_left i)) ∧ ∀ j, all_small (x.move_right j) :=
-by simpa only [all_small_iff_aux] using all_small_aux_def
+  (∀ i, dicotic (x.move_left i)) ∧ ∀ j, dicotic (x.move_right j) :=
+by simpa only [dicotic_iff_aux] using dicotic_aux_def
 
-theorem is_empty_moves_iff {x : pgame} [h : x.all_small] :
+theorem is_empty_moves_iff {x : pgame} [h : x.dicotic] :
   is_empty x.left_moves ↔ is_empty x.right_moves :=
-(all_small_def.1 h).1
+(dicotic_def.1 h).1
 
-theorem nonempty_moves_iff {x : pgame} [h : x.all_small] :
+theorem nonempty_moves_iff {x : pgame} [h : x.dicotic] :
   nonempty x.left_moves ↔ nonempty x.right_moves :=
 by { rw ←not_iff_not, simp [is_empty_moves_iff] }
 
-instance move_left_all_small {x : pgame} [h : x.all_small] (i : x.left_moves) :
-  (x.move_left i).all_small :=
-(all_small_def.1 h).2.1 i
+instance move_left_dicotic {x : pgame} [h : x.dicotic] (i : x.left_moves) :
+  (x.move_left i).dicotic :=
+(dicotic_def.1 h).2.1 i
 
-instance move_right_all_small {x : pgame} [h : x.all_small] (j : x.right_moves) :
-  (x.move_right j).all_small :=
-(all_small_def.1 h).2.2 j
+instance move_right_dicotic {x : pgame} [h : x.dicotic] (j : x.right_moves) :
+  (x.move_right j).dicotic :=
+(dicotic_def.1 h).2.2 j
 
-instance all_small_of_is_empty_moves (x : pgame)
-  [hl : is_empty x.left_moves] [hr : is_empty x.right_moves] : x.all_small :=
+instance dicotic_of_is_empty_moves (x : pgame)
+  [hl : is_empty x.left_moves] [hr : is_empty x.right_moves] : x.dicotic :=
 begin
-  rw all_small_def,
+  rw dicotic_def,
   simp only [hl, hr, iff_self, true_and],
   exact ⟨is_empty_elim, is_empty_elim⟩
 end
 
-theorem zero_all_small : all_small 0 := by apply_instance
+theorem zero_dicotic : dicotic 0 := by apply_instance
 
-instance star_all_small : star.all_small :=
-by { rw all_small_def, simpa using zero_all_small }
+instance star_dicotic : star.dicotic :=
+by { rw dicotic_def, simpa using zero_dicotic }
 
-theorem all_small_congr : ∀ {x y : pgame} (e : relabelling x y) [x.all_small], y.all_small
+theorem dicotic_congr : ∀ {x y : pgame} (e : relabelling x y) [x.dicotic], y.dicotic
 | x y ⟨L, R, hL, hR⟩ := begin
   introI h,
-  refine all_small_def.2 ⟨_, _, _⟩,
+  refine dicotic_def.2 ⟨_, _, _⟩,
   { rw [←L.is_empty_congr, ←R.is_empty_congr, is_empty_moves_iff] },
   { intro i,
-    convert all_small_congr (hL (L.symm i)),
+    convert dicotic_congr (hL (L.symm i)),
     rw equiv.apply_symm_apply },
-  { exact λ j, all_small_congr (hR j) }
+  { exact λ j, dicotic_congr (hR j) }
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 
-instance all_small_add : ∀ (x y : pgame) [x.all_small] [y.all_small], (x + y).all_small
+instance dicotic_add : ∀ (x y : pgame) [x.dicotic] [y.dicotic], (x + y).dicotic
 | x y := begin
   introsI hx hy,
-  rw all_small_def,
+  rw dicotic_def,
   simp only [left_moves_add, right_moves_add, is_empty_sum],
   rw [is_empty_moves_iff, is_empty_moves_iff],
   refine ⟨iff.rfl, _, _⟩,
   { intro i,
     apply left_moves_add_cases i;
     { intro j,
-      simpa using all_small_add _ _ } },
+      simpa using dicotic_add _ _ } },
   { intro i,
     apply right_moves_add_cases i;
     { intro j,
-      simpa using all_small_add _ _ } }
+      simpa using dicotic_add _ _ } }
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 
-instance all_small_neg : ∀ (x : pgame) [x.all_small], (-x).all_small
+instance dicotic_neg : ∀ (x : pgame) [x.dicotic], (-x).dicotic
 | x := begin
   introI h,
-  rw all_small_def,
+  rw dicotic_def,
   simp only [left_moves_neg, right_moves_neg, move_left_neg', move_right_neg'],
-  exact ⟨is_empty_moves_iff.symm, λ i, all_small_neg _, λ j, all_small_neg _⟩
+  exact ⟨is_empty_moves_iff.symm, λ i, dicotic_neg _, λ j, dicotic_neg _⟩
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 

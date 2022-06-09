@@ -164,7 +164,7 @@ theorem numeric_zero : numeric 0 := numeric_of_is_empty 0
 theorem numeric_one : numeric 1 := numeric_of_is_empty_right_moves 1 $ λ _, numeric_zero
 
 theorem numeric.neg : Π {x : pgame} (o : numeric x), numeric (-x)
-| ⟨l, r, L, R⟩ o := ⟨λ j i, neg_lt_iff.2 (o.1 i j), λ j, (o.2.2 j).neg, λ i, (o.2.1 i).neg⟩
+| ⟨l, r, L, R⟩ o := ⟨λ j i, neg_lt_neg_iff.2 (o.1 i j), λ j, (o.2.2 j).neg, λ i, (o.2.1 i).neg⟩
 
 theorem numeric.move_left_lt {x : pgame} (o : numeric x) (i) : x.move_left i < x :=
 (pgame.move_left_lf i).lt (o.move_left i) o

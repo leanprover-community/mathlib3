@@ -899,58 +899,67 @@ def relabelling.neg_congr : ∀ {x y : pgame}, x.relabelling y → (-x).relabell
     λ i, relabelling.neg_congr (by simpa using R_relabelling (R_equiv i)),
     λ i, relabelling.neg_congr (by simpa using L_relabelling (L_equiv.symm i))⟩
 
-@[simp] theorem neg_le_iff : Π {x y : pgame}, -y ≤ -x ↔ x ≤ y
+@[simp] theorem neg_le_neg_iff : Π {x y : pgame}, -y ≤ -x ↔ x ≤ y
 | (mk xl xr xL xR) (mk yl yr yL yR) :=
 begin
   rw [le_def, le_def], dsimp,
   refine ⟨λ h, ⟨λ i, _, λ j, _⟩, λ h, ⟨λ i, _, λ j, _⟩⟩,
   { rcases h.right i with ⟨w, h⟩ | ⟨w, h⟩,
-    { refine or.inr ⟨to_left_moves_neg.symm w, neg_le_iff.1 _⟩,
+    { refine or.inr ⟨to_left_moves_neg.symm w, neg_le_neg_iff.1 _⟩,
       rwa [move_right_neg_symm, neg_neg] },
-    { exact or.inl ⟨w, neg_le_iff.1 h⟩ } },
+    { exact or.inl ⟨w, neg_le_neg_iff.1 h⟩ } },
   { rcases h.left j with ⟨w, h⟩ | ⟨w, h⟩,
-    { exact or.inr ⟨w, neg_le_iff.1 h⟩ },
-    { refine or.inl ⟨to_right_moves_neg.symm w, neg_le_iff.1 _⟩,
+    { exact or.inr ⟨w, neg_le_neg_iff.1 h⟩ },
+    { refine or.inl ⟨to_right_moves_neg.symm w, neg_le_neg_iff.1 _⟩,
       rwa [move_left_neg_symm, neg_neg] } },
   { rcases h.right i with ⟨w, h⟩ | ⟨w, h⟩,
     { refine or.inr ⟨to_right_moves_neg w, _⟩,
-      convert neg_le_iff.2 h,
+      convert neg_le_neg_iff.2 h,
       rw move_right_neg },
-    { exact or.inl ⟨w, neg_le_iff.2 h⟩ } },
+    { exact or.inl ⟨w, neg_le_neg_iff.2 h⟩ } },
   { rcases h.left j with ⟨w, h⟩ | ⟨w, h⟩,
-    { exact or.inr ⟨w, neg_le_iff.2 h⟩ },
+    { exact or.inr ⟨w, neg_le_neg_iff.2 h⟩ },
     { refine or.inl ⟨to_left_moves_neg w, _⟩,
-      convert neg_le_iff.2 h,
+      convert neg_le_neg_iff.2 h,
       rw move_left_neg } }
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 
-theorem neg_congr {x y : pgame} (h : x ≈ y) : -x ≈ -y :=
-⟨neg_le_iff.2 h.2, neg_le_iff.2 h.1⟩
+@[simp] theorem neg_lf_neg_iff {x y : pgame} : -y ⧏ -x ↔ x ⧏ y :=
+by rw [←pgame.not_le, ←pgame.not_le, not_iff_not, neg_le_neg_iff]
 
-@[simp] theorem neg_lf_iff {x y : pgame} : -y ⧏ -x ↔ x ⧏ y :=
-by rw [←pgame.not_le, ←pgame.not_le, not_iff_not, neg_le_iff]
+@[simp] theorem neg_lt_neg_iff {x y : pgame} : -y < -x ↔ x < y :=
+by rw [lt_iff_le_and_lf, lt_iff_le_and_lf, neg_le_neg_iff, neg_lf_neg_iff]
 
-@[simp] theorem neg_lt_iff {x y : pgame} : -y < -x ↔ x < y :=
-by rw [lt_iff_le_and_lf, lt_iff_le_and_lf, neg_le_iff, neg_lf_iff]
+theorem neg_le_iff {x y : pgame} : -y ≤ x ↔ -x ≤ y :=
+by rw [←neg_neg x, neg_le_neg_iff, neg_neg]
+
+theorem neg_lf_iff {x y : pgame} : -y ⧏ x ↔ -x ⧏ y :=
+by rw [←neg_neg x, neg_lf_neg_iff, neg_neg]
+
+theorem neg_lt_iff {x y : pgame} : -y < x ↔ -x < y :=
+by rw [←neg_neg x, neg_lt_neg_iff, neg_neg]
 
 @[simp] theorem neg_le_zero_iff {x : pgame} : -x ≤ 0 ↔ 0 ≤ x :=
-by { convert neg_le_iff, rw pgame.neg_zero }
+by { convert neg_le_neg_iff, rw pgame.neg_zero }
 
 @[simp] theorem zero_le_neg_iff {x : pgame} : 0 ≤ -x ↔ x ≤ 0 :=
-by { convert neg_le_iff, rw pgame.neg_zero }
+by { convert neg_le_neg_iff, rw pgame.neg_zero }
 
 @[simp] theorem neg_lf_zero_iff {x : pgame} : -x ⧏ 0 ↔ 0 ⧏ x :=
-by { convert neg_lf_iff, rw pgame.neg_zero }
+by { convert neg_lf_neg_iff, rw pgame.neg_zero }
 
 @[simp] theorem zero_lf_neg_iff {x : pgame} : 0 ⧏ -x ↔ x ⧏ 0 :=
-by { convert neg_lf_iff, rw pgame.neg_zero }
+by { convert neg_lf_neg_iff, rw pgame.neg_zero }
 
 @[simp] theorem neg_lt_zero_iff {x : pgame} : -x < 0 ↔ 0 < x :=
-by { convert neg_lt_iff, rw pgame.neg_zero }
+by { convert neg_lt_neg_iff, rw pgame.neg_zero }
 
 @[simp] theorem zero_lt_neg_iff {x : pgame} : 0 < -x ↔ x < 0 :=
-by { convert neg_lt_iff, rw pgame.neg_zero }
+by { convert neg_lt_neg_iff, rw pgame.neg_zero }
+
+theorem neg_congr {x y : pgame} (h : x ≈ y) : -x ≈ -y :=
+⟨neg_le_neg_iff.2 h.2, neg_le_neg_iff.2 h.1⟩
 
 /-- The sum of `x = {xL | xR}` and `y = {yL | yR}` is `{xL + y, x + yL | xR + y, x + yR}`. -/
 instance : has_add pgame.{u} := ⟨λ x y, begin
@@ -1208,7 +1217,7 @@ end
 
 theorem zero_le_add_left_neg (x : pgame) : 0 ≤ -x + x :=
 begin
-  rw [←neg_le_iff, pgame.neg_zero],
+  rw [←neg_le_neg_iff, pgame.neg_zero],
   exact neg_add_le.trans (add_left_neg_le_zero _)
 end
 

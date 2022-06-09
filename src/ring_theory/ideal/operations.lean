@@ -306,6 +306,18 @@ begin
   simpa only [pow_succ] using mul_mem_mul hx ih,
 end
 
+lemma prod_mem_prod {ι : Type*} {s : finset ι} {I : ι → ideal R} {x : ι → R} :
+  (∀ i ∈ s, x i ∈ I i) → ∏ i in s, x i ∈ ∏ i in s, I i :=
+begin
+  classical,
+  apply finset.induction_on s,
+  { intro _, rw [finset.prod_empty, finset.prod_empty, one_eq_top], exact submodule.mem_top },
+  { intros a s ha IH h,
+    rw [finset.prod_insert ha, finset.prod_insert ha],
+    exact mul_mem_mul (h a $ finset.mem_insert_self a s)
+      (IH $ λ i hi, h i $ finset.mem_insert_of_mem hi) }
+end
+
 theorem mul_le : I * J ≤ K ↔ ∀ (r ∈ I) (s ∈ J), r * s ∈ K :=
 submodule.smul_le
 

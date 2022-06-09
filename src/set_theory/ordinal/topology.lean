@@ -184,7 +184,7 @@ theorem is_closed_iff_bsup :
   (∀ i hi, f i hi ∈ s) → bsup.{u u} o f ∈ s :=
 begin
   rw is_closed_iff_sup,
-  refine ⟨λ H o ho f hf, H (out_nonempty_iff_ne_zero.2 ho) _ _, λ  H ι hι f hf, _⟩,
+  refine ⟨λ H o ho f hf, H (out_nonempty_iff_ne_zero.2 ho) _ _, λ H ι hι f hf, _⟩,
   { exact λ i, hf _ _ },
   { rw ←bsup_eq_sup,
     apply H (type_ne_zero_iff_nonempty.2 hι),

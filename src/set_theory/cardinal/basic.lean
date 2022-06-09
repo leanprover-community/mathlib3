@@ -504,12 +504,11 @@ protected theorem lt_wf : @well_founded cardinal.{u} (<) :=
   let ι := {c : cardinal // ¬ acc (<) c},
   let f : ι → cardinal := subtype.val,
   haveI hι : nonempty ι := ⟨⟨_, h⟩⟩,
-  have := classical.some_spec (embedding.min_injective (λ i, (f i).out)),
-  cases classical.some (embedding.min_injective (λ i, (f i).out)) with c hc,
-  cases this with h,
+  obtain ⟨⟨c : cardinal, hc : ¬acc (<) c⟩, ⟨h_1 : Π j, (f ⟨c, hc⟩).out ↪ (f j).out⟩⟩ :=
+    embedding.min_injective (λ i, (f i).out),
   apply hc (acc.intro _ (λ j h', classical.by_contradiction (λ hj, h'.2 _))),
-  have : #_ ≤ #_ := ⟨h ⟨j, hj⟩⟩,
-  simpa [mk_out] using this
+  have : #_ ≤ #_ := ⟨h_1 ⟨j, hj⟩⟩,
+  simpa only [f, mk_out] using this
 end⟩
 
 instance : has_well_founded cardinal.{u} := ⟨(<), cardinal.lt_wf⟩

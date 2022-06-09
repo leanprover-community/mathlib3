@@ -73,13 +73,6 @@ section nat
 
 open nat
 
--- TODO very similar to padic_val_nat_central_binom_le in central.lean,
--- we probably ought to move this there
-lemma pow_factorization_central_binom_le_two_mul {p n : ℕ} (hp : p.prime) (n_pos : 0 < n) :
-  p ^ ((central_binom n).factorization p) ≤ 2 * n :=
-trans (pow_le_pow (le_of_lt hp.one_lt) factorization_choose_le)
-  (pow_log_le_self hp.one_lt (by linarith))
-
 -- < works here too, but this is more golfed and either is loose anyway
 lemma two_n_div_3_le_central_binom (n : ℕ) : 2 * n / 3 ≤ central_binom n :=
 calc 2 * (n) / 3 ≤ 2 * (n)          : nat.div_le_self (2 * n) 3
@@ -516,8 +509,7 @@ nat.central_binom n
           refine (nat.mul_le_mul_right _ _),
           refine finset.prod_le_prod'' _,
           intros i hyp,
-          simp only [finset.mem_filter, finset.mem_range] at hyp,
-          exact pow_factorization_central_binom_le_two_mul (hyp.1.2) (by linarith),
+          exact nat.pow_factorization_choose_le (by linarith),
         end
 ... = (2 * n) ^ (((finset.range (2 * n / 3 + 1)).filter nat.prime).filter (≤ nat.sqrt (2 * n))).card
       *

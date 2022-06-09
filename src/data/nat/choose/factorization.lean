@@ -11,14 +11,14 @@ import data.nat.multiplicity
 /-!
 # Factorization of Binomial Coefficients
 
-This file contains a few results on the arity of primes within certain size
+This file contains a few results on the multiplicity of prime factors within certain size
 bounds in binomial coefficients. These include:
 
-* `nat.factorization_choose_le`: a logarithmic upper bound on the multiplicity of a prime in
+* `nat.factorization_choose_le_log`: a logarithmic upper bound on the multiplicity of a prime in
   a binomial coefficient.
 * `nat.factorization_choose_le_one`: Primes above `sqrt n` appear at most once
   in the factorization of `n` choose `k`.
-* `nat.factorization_central_binom_of_two_mul_self_lt_3_mul`: Primes from `2 * n / 3` to `n`
+* `nat.factorization_central_binom_of_two_mul_self_lt_three_mul`: Primes from `2 * n / 3` to `n`
 do not appear in the factorization of the `n`th central binomial coefficient.
 * `nat.factorization_choose_eq_zero_of_lt`: Primes greater than `n` do not
   appear in the factorization of `n` choose `k`.
@@ -33,7 +33,7 @@ variables {p n k : ℕ}
 /--
 A logarithmic upper bound on the multiplicity of a prime in a binomial coefficient.
 -/
-lemma factorization_choose_le : (choose n k).factorization p ≤ log p n :=
+lemma factorization_choose_le_log : (choose n k).factorization p ≤ log p n :=
 begin
   by_cases h : (choose n k).factorization p = 0, { simp [h] },
   have hp : p.prime := not.imp_symm (choose n k).factorization_eq_zero_of_non_prime h,
@@ -50,7 +50,7 @@ lemma pow_factorization_choose_le (hn : 0 < n) : p ^ (choose n k).factorization 
 begin
   cases le_or_lt p 1,
   { exact (pow_le_pow_of_le h).trans ((le_of_eq (one_pow _)).trans hn) },
-  { exact (pow_le_iff_le_log h hn).mpr factorization_choose_le },
+  { exact (pow_le_iff_le_log h hn).mpr factorization_choose_le_log },
 end
 
 /--
@@ -58,7 +58,7 @@ Primes greater than about `sqrt n` appear only to multiplicity 0 or 1 in the bin
 -/
 lemma factorization_choose_le_one (p_large : n < p ^ 2) : (choose n k).factorization p ≤ 1 :=
 begin
-  apply factorization_choose_le.trans,
+  apply factorization_choose_le_log.trans,
   rcases n.eq_zero_or_pos with rfl | hn0, { simp },
   refine lt_succ_iff.1 ((lt_pow_iff_log_lt _ hn0).1 p_large),
   contrapose! hn0,
@@ -98,7 +98,7 @@ Primes greater than about `2 * n / 3` and less than `n` do not appear in the fac
 -/
 lemma factorization_central_binom_of_two_mul_self_lt_three_mul
   (n_big : 2 < n) (p_le_n : p ≤ n) (big : 2 * n < 3 * p) :
-  ((central_binom n).factorization p) = 0 :=
+  (central_binom n).factorization p = 0 :=
 begin
   refine factorization_choose_of_lt_three_mul _ p_le_n (p_le_n.trans _) big,
   { rintro rfl, linarith },

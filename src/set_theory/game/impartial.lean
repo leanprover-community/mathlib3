@@ -83,14 +83,14 @@ begin
   introsI hG hH,
   rw impartial_def,
   refine ⟨(add_congr (neg_equiv_self _) (neg_equiv_self _)).trans
-    (neg_add_relabelling _ _).equiv.symm, λ i, _, λ i, _⟩,
-  { rcases left_moves_add_cases i with ⟨j, rfl⟩ | ⟨j, rfl⟩,
+    (neg_add_relabelling _ _).equiv.symm, λ k, _, λ k, _⟩,
+  { apply left_moves_add_cases k,
     all_goals
-    { simp only [add_move_left_inl, add_move_left_inr],
+    { intro i, simp only [add_move_left_inl, add_move_left_inr],
       apply impartial_add } },
-  { rcases right_moves_add_cases i with ⟨j, rfl⟩ | ⟨j, rfl⟩,
+  { apply right_moves_add_cases k,
     all_goals
-    { simp only [add_move_right_inl, add_move_right_inr],
+    { intro i, simp only [add_move_right_inl, add_move_right_inr],
       apply impartial_add } }
 end
 using_well_founded { dec_tac := pgame_wf_tac }

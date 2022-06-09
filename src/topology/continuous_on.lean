@@ -552,7 +552,11 @@ hs.induction_on (continuous_on_empty f) (continuous_on_singleton f)
 
 theorem nhds_within_le_comap {x : α} {s : set α} {f : α → β} (ctsf : continuous_within_at f s x) :
   𝓝[s] x ≤ comap f (𝓝[f '' s] (f x)) :=
-map_le_iff_le_comap.1 ctsf.tendsto_nhds_within_image
+ctsf.tendsto_nhds_within_image.le_comap
+
+@[simp] lemma comap_nhds_within_range {α} (f : α → β) (y : β) :
+  comap f (𝓝[range f] y) = comap f (𝓝 y) :=
+comap_inf_principal_range
 
 theorem continuous_within_at_iff_ptendsto_res (f : α → β) {x : α} {s : set α} :
   continuous_within_at f s x ↔ ptendsto (pfun.res f s) (𝓝 x) (𝓝 (f x)) :=

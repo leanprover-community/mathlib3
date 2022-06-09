@@ -50,6 +50,77 @@ namespace tactic
 
 namespace move_add
 
+--section generic_op
+/-!
+In this section, `op : expr` denotes an arbitrary (binary) operation.  We do not use, but
+implicitly imagine, that this operation is associative, since we extract iterations of
+such operations, with complete disregard of the order in which these iterations arise.
+-/
+
+/-
+meta def candidates (op : expr) : bool → expr → (list expr)
+| bo (expr.app (expr.app f a) b)      :=
+  if bo then
+    if f = op then [f.mk_app [a,b]] ++ candidates ff a ++ candidates ff b
+    else candidates ff a ++ candidates ff b
+  else candidates tt f ++ candidates tt a ++ candidates tt b
+--| bo e@`(%%a + %%b)      := if bo then [e] ++ candidates ff a ++ candidates ff b
+--                            else candidates ff a ++ candidates ff b
+| bo (expr.app e f)      := candidates tt e ++ candidates tt f
+| bo (expr.lam _ _ e f)  := candidates tt e ++ candidates tt f
+| bo (expr.pi  _ _ e f)  := candidates tt e ++ candidates tt f
+| bo (expr.mvar  _ _ e)  := candidates tt e
+| bo (expr.elet _ e f g) := candidates tt e ++ candidates tt f ++ candidates tt g
+| bo e                   := []
+-/
+
+/-- `list_explicit_args f` returns a list of the explicit arguments of `f`. -/
+meta def list_explicit_args (f : expr) : tactic (list expr) :=
+tactic.fold_explicit_args f [] (λ ll e, return $ ll ++ [e])
+
+
+/- Partially traverses an expression in search for a sum of terms and producing a list of them.
+In the intended application, the `bool` input is initially set to `tt`.
+The first time `candidates` finds an expression whose head symbol is `has_add.add`,
+`candidates` adds the expression to the list, and recurses inside the summands as well,
+but with the boolean set to `ff`.  This prevents partial summands of a large sum to
+appear.  Once `candidates` finds a term whose head symbol is not `has_add.add`,
+it reverts the boolean to `tt`, so that the recursion can isolate further sums later in the
+expression.
+
+For instance, applying `candidates` to `a + (b + c)*(d + e) + f + g` produces
+`[a + (b + c) * (d + e) + f + g, b + c, d + e]`. -/
+
+/--  `list_head_op op tt e` recurses into the expression `e` looking for first appearances of
+`op` as the head symbol of a subexpression.  Every time it finds one, it isolates it.
+Usually, `op` is a binary, associative operation.  E.g., if the operation is addition and the
+input expression is `3 / (2 + 4) + 2 * (0 + 2)`, `list_head_op` returns
+`[3 / (2 + 4) + 2 * (0 + 2), 2 + 4, 0 + 2]`.
+ -/
+meta def list_head_op (op : pexpr) : bool → expr → tactic (list expr)
+| bo (expr.app F b) := do
+  op ← to_expr op tt ff,
+  if F.get_app_fn.const_name = op.get_app_fn.const_name then do
+    Fargs ← list_explicit_args F,
+    ac ← (Fargs ++ [b]).mmap $ list_head_op ff,
+    if bo then return $ [F.mk_app [b]] ++ ac.join
+    else return ac.join
+  else do
+    Fc ← list_head_op tt F, bc ← list_head_op tt b,
+    return $ Fc ++ bc
+| bo (expr.lam _ _ e f) := do
+  ec ← list_head_op tt e, fc ← list_head_op tt f,
+  return $ ec ++ fc
+| bo (expr.pi  _ _ e f) := do
+  ec ← list_head_op tt e, fc ← list_head_op tt f,
+  return $ ec ++ fc
+| bo (expr.mvar  _ _ e) := do
+  list_head_op tt e >>= return
+| bo (expr.elet _ e f g) := do
+  ec ← list_head_op tt e, fc ← list_head_op tt f, gc ← list_head_op tt g,
+  return $ ec ++ fc ++ gc
+| bo e := return []
+
 /--  An auxilliary function to `list_binary_operands`:
 it takes an input `expr`, rather than a `pexpr`. -/
 meta def list_binary_operands_aux (f : expr) : expr → tactic (list expr)
@@ -67,9 +138,6 @@ do
   t ← infer_type x,
   fe ← to_expr ``(%%f : %%t → %%t → %%t ),
   list_binary_operands_aux fe x
-
-#eval list_binary_operands ``((++)) `([1, 2] ++ [3] ++ []) >>= tactic.trace
-#eval list_binary_operands ``((*)) `(1 * 2 * 3) >>= tactic.trace
 
 meta def _root_.expr.list_summands (e : expr) : tactic (list expr) :=
 list_binary_operands ``((+)) e
@@ -129,48 +197,7 @@ do
   lp_exp : list (bool × expr) ← snd_to_expr lp,
   (l1, l2, l3, is_unused) ← move_left_or_right lp_exp sl [],
   return (l1 ++ l3 ++ l2, is_unused)
-#eval ((``(has_add.add)).const_name = `has_add.add : bool)
-/-- Partially traverses an expression in search for a sum of terms and producing a list of them.
-In the intended application, the `bool` input is initially set to `tt`.
-The first time `candidates` finds an expression whose head symbol is `has_add.add`,
-`candidates` adds the expression to the list, and recurses inside the summands as well,
-but with the boolean set to `ff`.  This prevents partial summands of a large sum to
-appear.  Once `candidates` finds a term whose head symbol is not `has_add.add`,
-it reverts the boolean to `tt`, so that the recursion can isolate further sums later in the
-expression.
 
-For instance, applying `candidates` to `a + (b + c)*(d + e) + f + g` produces
-`[a + (b + c) * (d + e) + f + g, b + c, d + e]`. -/
-meta def candidates : pexpr → bool → expr → tactic (list expr)
---| f bo e@`(%%g %%a %%b)      := if bo then [e] ++ candidates ff a ++ candidates ff b
---                            else candidates ff a ++ candidates ff b
-| op bo (expr.app (expr.app f a) b)      := do
-  nop ← to_expr ``(%%op) tt ff,
-  uni ← succeeds $ unify f nop,
-  if uni then
-    if bo then
-          ac ← candidates op ff a,
-          bc ← candidates op ff b,
-          return $ [e] ++ ac ++ bc
-                            else candidates ff a ++ candidates ff b
-  else (do
-    fc ← candidates op tt f,
-    ac ← candidates op tt a,
-    bc ← candidates op tt b,
-    let fac := fc ++ ac ++ bc,
-    return fc
- ),
-  trace "sì unif!",
-  if (f.const_name = `nop : bool) then return [] else return []
-
---candidates op tt e ++ candidates op tt f
---| op bo (expr.app e f )     := candidates op tt e ++ candidates op tt f
---| op bo (expr.lam _ _ e f)  := candidates op tt e ++ candidates op tt f
---| op bo (expr.pi  _ _ e f)  := candidates op tt e ++ candidates op tt f
---| op bo (expr.mvar  _ _ e)  := candidates op tt e
---| op bo (expr.elet _ e f g) := candidates op tt e ++ candidates op tt f ++ candidates op tt g
-| op bo e                   := return []
-#eval candidates ``((+)) tt `((3 + 5))
 /-- `sorted_sum` takes an optional location name `hyp` for where it will be applied, a list `ll` of
 `bool × pexpr` (arising as the user-provided input to `move_add`) and an expression `e`.
 
@@ -186,9 +213,9 @@ do
   match sli with
   | []       := return is_unused
   | (eₕ::es) := do
-  newf ← to_expr ``(%%f) tt ff,trace newf,
-   infer_type newf >>= trace,
-    e' ← es.mfoldl (λ eₗ eᵣ, mk_app `has_add.add [eₗ, eᵣ]) eₕ,
+    t ← infer_type e,
+    fe ← to_expr ``(%%f : %%t → %%t → %%t ),
+    e' ← es.mfoldl (λ eₗ eᵣ, mk_app fe.get_app_fn.const_name [eₗ, eᵣ]) eₕ,
     e_eq ← mk_app `eq [e, e'],
     e_eq_fmt ← pp e_eq,
     h ← solve_aux e_eq $
@@ -212,7 +239,7 @@ do
 (`tt`) and which one was used (`ff`).  This information is used for reporting unused inputs. -/
 meta def is_unused_and_sort (hyp : option name) (ll : list (bool × pexpr)) (e : expr) (f : pexpr) :
   tactic (list bool) :=
-do results ← (candidates tt e).mmap (sorted_sum hyp ll f),
+do results ← list_head_op f tt e >>= list.mmap (sorted_sum hyp ll f),
   return $ results.transpose.map list.band
 
 /-- Passes the user input `ll` to `is_unused_and_sort` at a single location, that could either be
@@ -379,12 +406,20 @@ meta def move_add (args : parse move_pexpr_list_or_texpr) (locat : parse locatio
   tactic unit :=
 move_oper args locat ``((+))
 
+/--  See the doc-string for `move_add` and mentally
+replace addition with multiplication throughout. ;-) -/
 meta def move_mul (args : parse move_pexpr_list_or_texpr) (locat : parse location) :
   tactic unit :=
 move_oper args locat ``((has_mul.mul))
 
 add_tactic_doc
 { name := "move_add",
+  category := doc_category.tactic,
+  decl_names := [`tactic.interactive.move_add],
+  tags := ["arithmetic"] }
+
+add_tactic_doc
+{ name := "move_mul",
   category := doc_category.tactic,
   decl_names := [`tactic.interactive.move_add],
   tags := ["arithmetic"] }

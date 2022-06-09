@@ -16,15 +16,15 @@ See the doc-string for `tactic.interactive.move_add` for more information.
 
 ##  Implementation notes
 
-This file defines a general `move_op` tactic, intended for reordering terms in an expression
+This file defines a general `move_oper` tactic, intended for reordering terms in an expression
 obtained by repeated applications of a given associative, commutative binary operation.  The
-user decides the final reordering.  Applying `move_op` without specifying the order will simply
+user decides the final reordering.  Applying `move_oper` without specifying the order will simply
 remove all parentheses from the expression.
 The main user-facing tactics are `move_add` and `move_mul`, dealing with addition and
 multiplication, respectively.
 
 In what is below, we talk about `move_add` for definiteness, but everything applies
-to `move_mul` and to the more general `move_op`.
+to `move_mul` and to the more general `move_oper`.
 
 The implementation of `move_add` only moves the terms specified by the user (and rearranges
 parentheses).
@@ -255,7 +255,7 @@ prod.mk <$> (option.is_some <$> (tk "<-")?) <*> parser.pexpr prec
 meta def move_pexpr_list_or_texpr : parser (list (bool × pexpr)) :=
 list_of (move_op_arg 0) <|> list.ret <$> move_op_arg tac_rbp <|> return []
 
-meta def move_op (args : parse move_pexpr_list_or_texpr) (locat : parse location) (f : pexpr) :
+meta def move_oper (args : parse move_pexpr_list_or_texpr) (locat : parse location) (f : pexpr) :
   tactic unit :=
 match locat with
 | loc.wildcard := do
@@ -383,13 +383,13 @@ same effect and changes the goal to `b + a = 0`.  These are all valid uses of `m
 -/
 meta def move_add (args : parse move_pexpr_list_or_texpr) (locat : parse location) :
   tactic unit :=
-move_op args locat ``((+))
+move_oper args locat ``((+))
 
 /--  See the doc-string for `move_add` and mentally
 replace addition with multiplication throughout. ;-) -/
 meta def move_mul (args : parse move_pexpr_list_or_texpr) (locat : parse location) :
   tactic unit :=
-move_op args locat ``((has_mul.mul))
+move_oper args locat ``((has_mul.mul))
 
 add_tactic_doc
 { name := "move_add",

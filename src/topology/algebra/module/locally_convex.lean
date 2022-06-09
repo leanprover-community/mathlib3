@@ -96,15 +96,10 @@ end module
 section lattice_ops
 
 variables {ι : Sort*} {𝕜 E F : Type*} [ordered_semiring 𝕜] [add_comm_monoid E]
-  [module 𝕜 E] [add_comm_monoid F] [module 𝕜 F] {ts : set (topological_space E)}
-  (h : ∀ t ∈ ts, @locally_convex_space 𝕜 E  _ _ _ t) {ts' : ι → topological_space E}
-  (h' : ∀ i, @locally_convex_space 𝕜 E  _ _ _ (ts' i)) {t₁ t₂ : topological_space E}
-  (h₁ : @locally_convex_space 𝕜 E _ _ _ t₁) (h₂ : @locally_convex_space 𝕜 E _ _ _ t₂)
-  {t : topological_space F} [locally_convex_space 𝕜 F] {f : E →ₗ[𝕜] F}
+  [module 𝕜 E] [add_comm_monoid F] [module 𝕜 F]
 
-include h
-
-lemma locally_convex_space_Inf :
+lemma locally_convex_space_Inf {ts : set (topological_space E)}
+  (h : ∀ t ∈ ts, @locally_convex_space 𝕜 E  _ _ _ t) :
   @locally_convex_space 𝕜 E _ _ _ (Inf ts) :=
 begin
   letI : topological_space E := Inf ts,
@@ -117,28 +112,21 @@ begin
   exact has_basis_infi (λ i : ts, (@locally_convex_space_iff 𝕜 E _ _ _ ↑i).mp (h ↑i i.2) x),
 end
 
-omit h
-
-include h'
-
-lemma locally_convex_space_infi :
+lemma locally_convex_space_infi {ts' : ι → topological_space E}
+  (h' : ∀ i, @locally_convex_space 𝕜 E  _ _ _ (ts' i)) :
   @locally_convex_space 𝕜 E _ _ _ (⨅ i, ts' i) :=
 begin
   refine locally_convex_space_Inf _,
   rwa forall_range_iff
 end
 
-omit h'
-
-include h₁ h₂
-
-lemma locally_convex_space_inf :
+lemma locally_convex_space_inf {t₁ t₂ : topological_space E}
+  (h₁ : @locally_convex_space 𝕜 E _ _ _ t₁) (h₂ : @locally_convex_space 𝕜 E _ _ _ t₂) :
   @locally_convex_space 𝕜 E _ _ _ (t₁ ⊓ t₂) :=
 by {rw inf_eq_infi, refine locally_convex_space_infi (λ b, _), cases b; assumption}
 
-omit h₁ h₂
-
-lemma locally_convex_space_induced :
+lemma locally_convex_space_induced {t : topological_space F} [locally_convex_space 𝕜 F]
+  (f : E →ₗ[𝕜] F) :
   @locally_convex_space 𝕜 E _ _ _ (t.induced f) :=
 begin
   letI : topological_space E := t.induced f,
@@ -148,5 +136,17 @@ begin
   rw nhds_induced,
   exact (locally_convex_space.convex_basis $ f x).comap f
 end
+
+instance {ι : Type*} {X : ι → Type*} [Π i, add_comm_monoid (X i)] [Π i, topological_space (X i)]
+  [Π i, module 𝕜 (X i)] [Π i, locally_convex_space 𝕜 (X i)] :
+  locally_convex_space 𝕜 (Π i, X i) :=
+locally_convex_space_infi (λ i, locally_convex_space_induced (linear_map.proj i))
+
+instance [topological_space E] [topological_space F] [locally_convex_space 𝕜 E]
+  [locally_convex_space 𝕜 F] :
+  locally_convex_space 𝕜 (E × F) :=
+locally_convex_space_inf
+  (locally_convex_space_induced (linear_map.fst _ _ _))
+  (locally_convex_space_induced (linear_map.snd _ _ _))
 
 end lattice_ops

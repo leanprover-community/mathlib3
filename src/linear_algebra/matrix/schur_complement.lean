@@ -12,31 +12,11 @@ localized "infix ` ⊕ᵥ `:65 := sum.elim" in matrix
 localized "infix ` ᵛ⬝ `:73 := vec_mul" in matrix
 localized "infix ` ⬝ᵛ `:74 := mul_vec" in matrix
 
-lemma from_blocks_mul_vec_elim : (from_blocks A B C D) ⬝ᵛ (x ⊕ᵥ y) =
-  (A ⬝ᵛ x + B ⬝ᵛ y) ⊕ᵥ
-  (C ⬝ᵛ x + D ⬝ᵛ y) :=
-begin
-  ext i,
-  cases i,
-  simp [mul_vec, dot_product],
-  simp [mul_vec, dot_product],
-end
-
-lemma elim_vec_mul_from_blocks : (x ⊕ᵥ y) ᵛ⬝ (from_blocks A B C D) =
-  (x ᵛ⬝ A + y ᵛ⬝ C) ⊕ᵥ
-  (x ᵛ⬝ B + y ᵛ⬝ D) :=
-begin
-  ext i,
-  cases i,
-  simp [vec_mul, dot_product],
-  simp [vec_mul, dot_product],
-end
-
 lemma schur_complement_eq {A : matrix n n R} (hA : A.is_symm) [invertible A] :
 (x ⊕ᵥ y) ᵛ⬝ from_blocks A B Bᵀ D ⬝ᵥ (x ⊕ᵥ y) =
   (x + A⁻¹ ⬝ B ⬝ᵛ y) ᵛ⬝ A ⬝ᵥ (x + A⁻¹ ⬝ B ⬝ᵛ y) + y ᵛ⬝ (D - Bᵀ ⬝ A⁻¹ ⬝ B) ⬝ᵥ y :=
 begin
-  simp [from_blocks_mul_vec_elim, elim_vec_mul_from_blocks, add_vec_mul, dot_product_mul_vec,
+  simp [from_blocks_mul_vec, vec_mul_from_blocks, add_vec_mul, dot_product_mul_vec,
     vec_mul_sub, matrix.mul_assoc, vec_mul_mul_vec, hA.eq, transpose_nonsing_inv],
   abel
 end
@@ -63,12 +43,12 @@ begin
 end
 
 lemma schur_complement_pos_def [invertible A] (hAsymm : A.is_symm) (hA : A.pos_def) :
-  (from_blocks A B Bᵀ D).pos_semidef ↔ (D - Bᵀ ⬝ ⅟A ⬝ B).pos_semidef :=
+  (from_blocks A B Bᵀ D).pos_semidef ↔ (D - Bᵀ ⬝ A⁻¹ ⬝ B).pos_semidef :=
 begin
   split,
   { intros h x,
     unfold pos_def at *,
-    have := h (- (⅟A ⬝ B ⬝ᵛ x) ⊕ᵥ x),
+    have := h (- (A⁻¹ ⬝ B ⬝ᵛ x) ⊕ᵥ x),
     rw [schur_complement_eq _ _ _ _ hAsymm, neg_add_self, dot_product_zero, zero_add] at this,
     exact this },
   { intros h x,

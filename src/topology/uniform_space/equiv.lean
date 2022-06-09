@@ -105,7 +105,7 @@ h.uniform_continuous_symm.continuous
 
 /-- A uniform isomorphism as a homeomorphism. -/
 @[simps]
-protected def to_homeomorph {α : Type*} [uniform_space α] (e : α ≃ᵤ α) : α ≃ₜ α :=
+protected def to_homeomorph (e : α ≃ᵤ β) : α ≃ₜ β :=
 { continuous_to_fun := e.continuous,
   continuous_inv_fun := e.continuous_symm,
   ..e.to_equiv }

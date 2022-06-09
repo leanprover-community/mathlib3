@@ -246,12 +246,6 @@ begin
   rw [←inv_of_eq_nonsing_inv, matrix.inv_of_mul_self],
 end
 
-@[simp] lemma mul_inv_of_invertible [invertible A] : A ⬝ A⁻¹ = 1 :=
-mul_nonsing_inv A (is_unit_det_of_invertible A)
-
-@[simp] lemma inv_mul_of_invertible [invertible A] : A⁻¹ ⬝ A = 1 :=
-nonsing_inv_mul A (is_unit_det_of_invertible A)
-
 @[simp] lemma mul_nonsing_inv_cancel_right (B : matrix m n α) (h : is_unit A.det) :
   B ⬝ A ⬝ A⁻¹ = B :=
 by simp [matrix.mul_assoc, mul_nonsing_inv A h]
@@ -267,6 +261,12 @@ by simp [matrix.mul_assoc, nonsing_inv_mul A h]
 @[simp] lemma nonsing_inv_mul_cancel_left (B : matrix n m α) (h : is_unit A.det) :
   A⁻¹ ⬝ (A ⬝ B) = B :=
 by simp [←matrix.mul_assoc, nonsing_inv_mul A h]
+
+@[simp] lemma mul_inv_of_invertible [invertible A] : A ⬝ A⁻¹ = 1 :=
+mul_nonsing_inv A (is_unit_det_of_invertible A)
+
+@[simp] lemma inv_mul_of_invertible [invertible A] : A⁻¹ ⬝ A = 1 :=
+nonsing_inv_mul A (is_unit_det_of_invertible A)
 
 @[simp] lemma mul_inv_cancel_right_of_invertible (B : matrix m n α) [invertible A] :
   B ⬝ A ⬝ A⁻¹ = B :=

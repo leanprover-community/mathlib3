@@ -461,7 +461,7 @@ begin
   exact (associated.mul_mul (factors_prod hx) (factors_prod hy)).symm,
 end
 
-@[simp] lemma factors_pow {x : α} (n : ℕ) :
+lemma factors_pow {x : α} (n : ℕ) :
   multiset.rel associated (factors (x ^ n)) (n • factors x) :=
 begin
   induction n with n ih,

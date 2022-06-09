@@ -742,7 +742,7 @@ theorem card_le_card {o₁ o₂ : ordinal} : o₁ ≤ o₂ → card o₁ ≤ car
 induction_on o₁ $ λ α r _, induction_on o₂ $ λ β s _ ⟨⟨⟨f, _⟩, _⟩⟩, ⟨f⟩
 
 instance : has_zero ordinal :=
-⟨⟦⟨pempty, empty_relation, by apply_instance⟩⟧⟩
+⟨@type pempty empty_relation _⟩
 
 instance : inhabited ordinal := ⟨0⟩
 
@@ -783,7 +783,7 @@ instance is_empty_out_zero : is_empty (0 : ordinal).out.α :=
 out_empty_iff_eq_zero.2 rfl
 
 instance : has_one ordinal :=
-⟨⟦⟨punit, empty_relation, by apply_instance⟩⟧⟩
+⟨@type punit empty_relation _⟩
 
 theorem one_eq_type_unit : 1 = @type unit empty_relation _ :=
 quotient.sound ⟨⟨punit_equiv_punit, λ _ _, iff.rfl⟩⟩

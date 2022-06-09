@@ -21,6 +21,32 @@ begin
   move_add ← a at *,  -- `move_add` closes the goal, since, after rearranging, it tries `assumption`
 end
 
+example {R : Type*} [comm_semigroup R] (a b c d e f g : R) (h : a * b * c = d) : b * (a * c) = d :=
+begin
+  success_if_fail_with_msg { move_mul [d] at * }
+    ("'d' is an unused variable"),
+  move_mul at *,
+  success_if_fail_with_msg { move_mul at * }
+    ("'move_add at *' changed nothing"),
+  success_if_fail_with_msg { move_mul [a, e, f, g] at h a b c ⊢ }
+    ("'[a, b, c]' did not change"),
+  success_if_fail_with_msg { move_mul [a, e, f, g] at h ⊢ }
+    ("'[e, f, g]' are unused variables"),
+  success_if_fail_with_msg { move_mul at ⊢ h }
+    ("'[h]' did not change"),
+  success_if_fail_with_msg { move_mul at ⊢ }
+    ("Goal did not change"),
+  move_mul ← a at *,  -- `move_mul` closes the goal, since, after rearranging, it tries `assumption`
+end
+
+example {R : Type*} [comm_semigroup R] {a b c d e f g : R} :
+  a * b = b * a :=
+by move_mul [a]
+
+example {R : Type*} [has_add R] [comm_semigroup R] {a b c d e f g : R} :
+  a * (b * c * a) * ((d * e) * e) * f * g = (c * b * a) * (e * (e * d)) * g * f * a :=
+by move_mul [a, a, b, c, d, e, f]
+
 example [has_mul R] [has_neg R] : a + (b + c + a) * (- (d + e) + e) + f + g =
   (c + b + a) * (e + - (e + d)) + g + f + a :=
 by move_add [b, d, g, f, a, e]

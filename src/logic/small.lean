@@ -53,7 +53,7 @@ theorem small_map {α : Type*} {β : Type*} [hβ : small.{w} β] (e : α ≃ β)
 let ⟨γ, ⟨f⟩⟩ := hβ.equiv_small in small.mk' (e.trans f)
 
 theorem small_lift (α : Type u) [hα : small.{v} α] : small.{max v w} α :=
-small.mk' $ (equiv_shrink α).trans equiv.ulift.symm
+let ⟨⟨γ, ⟨f⟩⟩⟩ := hα in small.mk' $ f.trans equiv.ulift.symm
 
 @[priority 100]
 instance small_max (α : Type v) : small.{max w v} α :=

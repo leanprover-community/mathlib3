@@ -108,6 +108,25 @@ begin
   simp only [set.bot_eq_empty, set.smul_set_empty]
 end
 
+/-- Singletons are (trivial) blocks -/
+variable {X}
+lemma singleton_is_block (a : X) : is_block G ({a} : set X) :=
+begin
+  rw is_block.def,
+  intros g g',
+  simp only [set.smul_set_singleton, set.singleton_eq_singleton_iff,
+    set.disjoint_singleton, ne.def],
+  apply em,
+end
+
+/-- Subsingletons are (trivial) blocks -/
+lemma subsingleton_is_block {B : set X} (hB : B.subsingleton) : is_block G B :=
+begin
+  cases set.subsingleton.eq_empty_or_singleton hB,
+  { rw h, apply bot_is_block },
+  { obtain ⟨a, ha⟩ := h, rw ha, apply singleton_is_block }
+end
+
 end has_scalar
 
 section group
@@ -190,26 +209,6 @@ begin
       (set.mem_smul_set_iff_inv_smul_mem.mp hb') (set.smul_mem_smul_set_iff.mpr hb) }
 end
 
-/-- Subsingletons are (trivial) blocks -/
-lemma subsingleton_is_block {B : set X} (hB : B.subsingleton) : is_block G B :=
-begin
-  rw is_block.mk_mem,
-  intros g a ha hga,
-  ext b,
-  rw (set.subsingleton_iff_singleton ha).mp hB at ⊢ hga,
-  simp only [set.smul_set_singleton, set.mem_singleton_iff] at ⊢ hga, rw hga
-end
-
-/-- Singletons are (trivial) blocks -/
-lemma singleton_is_block (x : X) : is_block G ({x} : set X) :=
-begin
-  rw is_block.def_one,
-  intro g,
-  simp only [set.smul_set_singleton, set.singleton_eq_singleton_iff,
-    set.disjoint_singleton, ne.def],
-  apply em,
-end
-
 /-- An invariant block is a block -/
 lemma is_block_of_invariant (B : set X) (hfB : is_invariant_block G B) :
   is_block G B :=
@@ -240,7 +239,7 @@ begin
   simp only [set.top_eq_univ, set.smul_set_univ],
 end
 
-variable {X}
+variables {G X}
 /-- Is B is a block for an action G, it is a block for the action of any subgroup of G -/
 lemma subgroup.is_block {H : subgroup G} {B : set X} (hfB : is_block G B) :
   is_block H B :=
@@ -249,7 +248,6 @@ begin
   simpa only using is_block.def_one.mp hfB g
 end
 
-variable {G}
 lemma is_block_preimage {H Y: Type*} [group H] [mul_action H Y]
   {φ : H → G} (j : Y →ₑ[φ] X)
   {B : set X} (hB : is_block G B) :
@@ -378,11 +376,9 @@ begin
   { obtain ⟨j,hj⟩ := h,
     apply or.intro_right,
       -- rw set.smul_Inter h,
-    refine disjoint.mono _ _ _ ,
-    exact (g • (B j)) , exact (B j),
+    refine disjoint.mono _ _ hj ,
     apply set.Inter_subset ,
-    apply set.Inter_subset,
-    exact hj },
+    apply set.Inter_subset },
   simp only [not_exists] at h,
   apply or.intro_left,
   have : ∀ (i : ι) , g • (B i) = B i := λ i, or.resolve_right (is_block.def_one.mp (hB i) g) (h i),
@@ -529,7 +525,6 @@ end
 end normal
 
 section stabilizer
-
 
 /- For transitive actions, construction of the lattice equivalence
   `stabilizer_block_equiv` between

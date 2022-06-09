@@ -443,14 +443,20 @@ def maximal_ideal : subsemigroup K :=
 
 lemma mem_maximal_ideal_iff (x : K) : x ∈ A.maximal_ideal ↔ A.valuation x < 1 := iff.refl _
 
-lemma eq_iff_maximal_ideal (A B : valuation_subring K) :
-  A = B ↔ A.maximal_ideal = B.maximal_ideal :=
-begin
-  simp_rw [← A.valuation_subring_valuation, ← B.valuation_subring_valuation,
-    ← valuation.is_equiv_iff_valuation_subring,
-    A.valuation_subring_valuation, B.valuation_subring_valuation,
-    valuation.is_equiv_iff_val_lt_one, set_like.ext_iff, mem_maximal_ideal_iff],
+lemma maximal_ideal_injective :
+  function.injective (maximal_ideal : valuation_subring K → subsemigroup _) :=
+λ A B h, begin
+  rw [← A.valuation_subring_valuation, ← B.valuation_subring_valuation,
+    ← valuation.is_equiv_iff_valuation_subring, valuation.is_equiv_iff_val_lt_one],
+  rw set_like.ext_iff at h,
+  intros x,
+  by_cases hx : x = 0, { simp only [hx, valuation.map_zero, zero_lt_one₀] },
+  exact h (units.mk0 x hx)
 end
+
+lemma eq_iff_maximal_ideal {A B : valuation_subring K} :
+  A = B ↔ A.maximal_ideal = B.maximal_ideal :=
+maximal_ideal_injective.eq_iff.symm
 
 /-- `A.maximal_ideal` agrees with the maximal ideal of `A`. -/
 def maximal_ideal_equiv : A.maximal_ideal ≃ local_ring.maximal_ideal A :=

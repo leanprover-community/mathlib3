@@ -121,7 +121,7 @@ lemma ideal.mul_homogeneous_element_mem_of_mem
   graded_algebra.proj 𝒜 j (r * x) ∈ I :=
 begin
   letI : Π (i : ι) (x : 𝒜 i), decidable (x ≠ 0) := λ _ _, classical.dec _,
-  rw [←graded_algebra.sum_support_decompose 𝒜 r, finset.sum_mul, linear_map.map_sum],
+  rw [←direct_sum.sum_support_decompose 𝒜 r, finset.sum_mul, linear_map.map_sum],
   apply ideal.sum_mem,
   intros k hk,
   obtain ⟨i, hi⟩ := hx₁,
@@ -175,7 +175,7 @@ begin
   apply le_antisymm (I.homogeneous_core'_le 𝒜) _,
   intros x hx,
   letI : Π (i : ι) (x : 𝒜 i), decidable (x ≠ 0) := λ _ _, classical.dec _,
-  rw ←graded_algebra.sum_support_decompose 𝒜 x,
+  rw ←direct_sum.sum_support_decompose 𝒜 x,
   exact ideal.sum_mem _ (λ j hj, ideal.subset_span ⟨⟨_, is_homogeneous_coe _⟩, h _ hx, rfl⟩)
 end
 
@@ -449,7 +449,7 @@ lemma ideal.le_to_ideal_homogeneous_hull :
 begin
   intros r hr,
   letI : Π (i : ι) (x : 𝒜 i), decidable (x ≠ 0) := λ _ _, classical.dec _,
-  rw [←graded_algebra.sum_support_decompose 𝒜 r],
+  rw [←direct_sum.sum_support_decompose 𝒜 r],
   refine ideal.sum_mem _ _, intros j hj,
   apply ideal.subset_span, use j, use ⟨r, hr⟩, refl,
 end

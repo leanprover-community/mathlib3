@@ -223,7 +223,7 @@ lt_of_le_of_lf
   (star_lf_of_zero_le hx.le)
 
 /-- The game `up` is smaller than all positive numeric games. -/
-theorem up_lt_numeric_pos {x} : numeric x → 0 < x → up < x :=
+theorem up_lt_of_numeric_of_pos {x} : numeric x → 0 < x → up < x :=
 begin
   apply pgame.move_rec_on x,
   exact λ x _ IH ox h, lt_of_le_of_lf

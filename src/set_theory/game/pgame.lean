@@ -931,6 +931,10 @@ by rw [←pgame.not_le, ←pgame.not_le, not_iff_not, neg_le_neg_iff]
 @[simp] theorem neg_lt_neg_iff {x y : pgame} : -y < -x ↔ x < y :=
 by rw [lt_iff_le_and_lf, lt_iff_le_and_lf, neg_le_neg_iff, neg_lf_neg_iff]
 
+@[simp] theorem neg_equiv_neg_iff {x y : pgame} : -x ≈ -y ↔ x ≈ y :=
+⟨λ h, ⟨neg_le_neg_iff.1 h.2, neg_le_neg_iff.1 h.1⟩,
+  λ h, ⟨neg_le_neg_iff.2 h.2, neg_le_neg_iff.2 h.1⟩⟩
+
 theorem neg_le_iff {x y : pgame} : -y ≤ x ↔ -x ≤ y :=
 by rw [←neg_neg x, neg_le_neg_iff, neg_neg]
 
@@ -939,6 +943,9 @@ by rw [←neg_neg x, neg_lf_neg_iff, neg_neg]
 
 theorem neg_lt_iff {x y : pgame} : -y < x ↔ -x < y :=
 by rw [←neg_neg x, neg_lt_neg_iff, neg_neg]
+
+theorem neg_equiv_iff {x y : pgame} : -x ≈ y ↔ -x ≈ y :=
+by rw [←neg_neg y, neg_equiv_neg_iff]
 
 @[simp] theorem neg_le_zero_iff {x : pgame} : -x ≤ 0 ↔ 0 ≤ x :=
 by { convert neg_le_neg_iff, rw pgame.neg_zero }

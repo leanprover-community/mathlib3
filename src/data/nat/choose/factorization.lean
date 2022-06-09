@@ -14,7 +14,7 @@ import data.nat.multiplicity
 This file contains a few results on the arity of primes within certain size
 bounds in binomial coefficients. These include:
 
-* `nat.factorization_choose_le`: a logarithmic upper bound on the multiplicity of a prime in
+* `nat.factorization_choose_le_log`: a logarithmic upper bound on the multiplicity of a prime in
   a binomial coefficient.
 * `nat.factorization_choose_le_one`: Primes above `sqrt n` appear at most once
   in the factorization of `n` choose `k`.

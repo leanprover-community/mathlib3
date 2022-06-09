@@ -33,7 +33,7 @@ variables {p n k : ℕ}
 /--
 A logarithmic upper bound on the multiplicity of a prime in a binomial coefficient.
 -/
-lemma factorization_choose_le : (choose n k).factorization p ≤ log p n :=
+lemma factorization_choose_le_log : (choose n k).factorization p ≤ log p n :=
 begin
   by_cases h : (choose n k).factorization p = 0, { simp [h] },
   have hp : p.prime := not.imp_symm (choose n k).factorization_eq_zero_of_non_prime h,

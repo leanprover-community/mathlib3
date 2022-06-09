@@ -252,17 +252,37 @@ mul_nonsing_inv A (is_unit_det_of_invertible A)
 @[simp] lemma inv_mul_of_invertible [invertible A] : A⁻¹ ⬝ A = 1 :=
 nonsing_inv_mul A (is_unit_det_of_invertible A)
 
-@[simp] lemma mul_inv_cancel_right (B : matrix m n α) [invertible A] : B ⬝ A ⬝ A⁻¹ = B :=
-by simp [matrix.mul_assoc]
+@[simp] lemma mul_nonsing_inv_cancel_right (B : matrix m n α) (h : is_unit A.det) :
+  B ⬝ A ⬝ A⁻¹ = B :=
+by simp [matrix.mul_assoc, mul_nonsing_inv A h]
 
-@[simp] lemma mul_inv_cancel_left (B : matrix n m α) [invertible A] : A ⬝ (A⁻¹ ⬝ B) = B :=
-by simp [←matrix.mul_assoc]
+@[simp] lemma mul_nonsing_inv_cancel_left (B : matrix n m α) (h : is_unit A.det) :
+  A ⬝ (A⁻¹ ⬝ B) = B :=
+by simp [←matrix.mul_assoc, mul_nonsing_inv A h]
 
-@[simp] lemma inv_mul_cancel_right (B : matrix m n α) [invertible A] : B ⬝ A⁻¹ ⬝ A = B :=
-by simp [matrix.mul_assoc]
+@[simp] lemma nonsing_inv_mul_cancel_right (B : matrix m n α) (h : is_unit A.det) :
+  B ⬝ A⁻¹ ⬝ A = B :=
+by simp [matrix.mul_assoc, nonsing_inv_mul A h]
 
-@[simp] lemma inv_mul_cancel_left (B : matrix n m α) [invertible A] : A⁻¹ ⬝ (A ⬝ B) = B :=
-by simp [←matrix.mul_assoc]
+@[simp] lemma nonsing_inv_mul_cancel_left (B : matrix n m α) (h : is_unit A.det) :
+  A⁻¹ ⬝ (A ⬝ B) = B :=
+by simp [←matrix.mul_assoc, nonsing_inv_mul A h]
+
+@[simp] lemma mul_inv_cancel_right_of_invertible (B : matrix m n α) [invertible A] :
+  B ⬝ A ⬝ A⁻¹ = B :=
+mul_nonsing_inv_cancel_right A B (is_unit_det_of_invertible A)
+
+@[simp] lemma mul_inv_cancel_left_of_invertible (B : matrix n m α) [invertible A] :
+  A ⬝ (A⁻¹ ⬝ B) = B :=
+mul_nonsing_inv_cancel_left A B (is_unit_det_of_invertible A)
+
+@[simp] lemma inv_mul_cancel_right_of_invertible (B : matrix m n α) [invertible A] :
+  B ⬝ A⁻¹ ⬝ A = B :=
+nonsing_inv_mul_cancel_right A B (is_unit_det_of_invertible A)
+
+@[simp] lemma inv_mul_cancel_left_of_invertible (B : matrix n m α) [invertible A] :
+  A⁻¹ ⬝ (A ⬝ B) = B :=
+nonsing_inv_mul_cancel_left A B (is_unit_det_of_invertible A)
 
 lemma nonsing_inv_cancel_or_zero :
   (A⁻¹ ⬝ A = 1 ∧ A ⬝ A⁻¹ = 1) ∨ A⁻¹ = 0 :=

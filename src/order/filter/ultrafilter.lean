@@ -110,11 +110,11 @@ lemma eventually_not : (∀ᶠ x in f, ¬p x) ↔ ¬∀ᶠ x in f, p x := compl_
 lemma eventually_imp : (∀ᶠ x in f, p x → q x) ↔ (∀ᶠ x in f, p x) → ∀ᶠ x in f, q x :=
 by simp only [imp_iff_not_or, eventually_or, eventually_not]
 
-lemma finite_sUnion_mem_iff {s : set (set α)} (hs : finite s) : ⋃₀ s ∈ f ↔ ∃t∈s, t ∈ f :=
+lemma finite_sUnion_mem_iff {s : set (set α)} (hs : s.finite) : ⋃₀ s ∈ f ↔ ∃t∈s, t ∈ f :=
 finite.induction_on hs (by simp) $ λ a s ha hs his,
   by simp [union_mem_iff, his, or_and_distrib_right, exists_or_distrib]
 
-lemma finite_bUnion_mem_iff {is : set β} {s : β → set α} (his : finite is) :
+lemma finite_bUnion_mem_iff {is : set β} {s : β → set α} (his : is.finite) :
   (⋃i∈is, s i) ∈ f ↔ ∃i∈is, s i ∈ f :=
 by simp only [← sUnion_image, finite_sUnion_mem_iff (his.image s), bex_image_iff]
 
@@ -247,11 +247,14 @@ end
 end ultrafilter
 
 namespace filter
+variables {f : filter α} {s : set α} {a : α}
 
 open ultrafilter
 
-lemma mem_iff_ultrafilter {s : set α} {f : filter α} :
-  s ∈ f ↔ ∀ g : ultrafilter α, ↑g ≤ f → s ∈ g :=
+protected lemma ne_bot.le_pure_iff (hf : f.ne_bot) : f ≤ pure a ↔ f = pure a :=
+⟨ultrafilter.unique (pure a), le_of_eq⟩
+
+lemma mem_iff_ultrafilter : s ∈ f ↔ ∀ g : ultrafilter α, ↑g ≤ f → s ∈ g :=
 begin
   refine ⟨λ hf g hg, hg hf, λ H, by_contra $ λ hf, _⟩,
   set g : filter ↥sᶜ := comap coe f,

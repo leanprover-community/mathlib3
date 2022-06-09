@@ -402,6 +402,7 @@ lemma eq_empty_of_is_empty [is_empty α] (s : finset α) : s = ∅ :=
 finset.eq_empty_of_forall_not_mem is_empty_elim
 
 /-! ### singleton -/
+
 /--
 `{a} : finset a` is the set `{a}` containing `a` and nothing else.
 
@@ -465,15 +466,11 @@ by rw [coe_singleton, set.singleton_subset_iff]
 singleton_subset_set_iff
 
 @[simp] lemma subset_singleton_iff {s : finset α} {a : α} : s ⊆ {a} ↔ s = ∅ ∨ s = {a} :=
-begin
-  refine ⟨λ hs, s.eq_empty_or_nonempty.imp_right _, _⟩,
-  { rintro ⟨t, ht⟩,
-    apply subset.antisymm hs,
-    rwa [singleton_subset_iff, ←mem_singleton.1 (hs ht)] },
-  rintro (rfl | rfl),
-  { exact empty_subset _ },
-  exact subset.rfl,
-end
+by rw [←coe_subset, coe_singleton, set.subset_singleton_iff_eq, coe_eq_empty, coe_eq_singleton]
+
+protected lemma nonempty.subset_singleton_iff {s : finset α} {a : α} (h : s.nonempty) :
+  s ⊆ {a} ↔ s = {a} :=
+subset_singleton_iff.trans $ or_iff_right h.ne_empty
 
 lemma subset_singleton_iff' {s : finset α} {a : α} : s ⊆ {a} ↔ ∀ b ∈ s, b = a :=
 forall₂_congr $ λ _ _, mem_singleton
@@ -582,17 +579,14 @@ instance : is_lawful_singleton α (finset α) := ⟨λ a, by { ext, simp }⟩
 
 @[simp] lemma insert_eq_of_mem (h : a ∈ s) : insert a s = s := eq_of_veq $ ndinsert_of_mem h
 
-@[simp] theorem insert_singleton_self_eq (a : α) : ({a, a} : finset α) = {a} :=
+@[simp] theorem pair_self_eq (a : α) : ({a, a} : finset α) = {a} :=
 insert_eq_of_mem $ mem_singleton_self _
 
 theorem insert.comm (a b : α) (s : finset α) : insert a (insert b s) = insert b (insert a s) :=
 ext $ λ x, by simp only [mem_insert, or.left_comm]
 
-theorem insert_singleton_comm (a b : α) : ({a, b} : finset α) = {b, a} :=
-begin
-  ext,
-  simp [or.comm]
-end
+theorem pair_comm (a b : α) : ({a, b} : finset α) = {b, a} :=
+insert.comm a b ∅
 
 @[simp] theorem insert_idem (a : α) (s : finset α) : insert a (insert a s) = insert a s :=
 ext $ λ x, by simp only [mem_insert, or.assoc.symm, or_self]
@@ -632,9 +626,6 @@ lemma ssubset_iff : s ⊂ t ↔ ∃ a ∉ s, insert a s ⊆ t :=
 by exact_mod_cast @set.ssubset_iff_insert α s t
 
 lemma ssubset_insert (h : a ∉ s) : s ⊂ insert a s := ssubset_iff.mpr ⟨a, h, subset.rfl⟩
-
-lemma ssubset_iff_exists_insert_subset {s t : finset α} : s ⊂ t ↔ ∃ a ∉ s, insert a s ⊆ t :=
-by simp_rw [ssubset_iff_exists_cons_subset, cons_eq_insert]
 
 @[elab_as_eliminator]
 lemma cons_induction {α : Type*} {p : finset α → Prop}
@@ -835,25 +826,35 @@ begin
   exact union_of singletons (symm hi),
 end
 
-lemma exists_mem_subset_of_subset_bUnion_of_directed_on {α ι : Type*}
-  {f : ι → set α}  {c : set ι} {a : ι} (hac : a ∈ c) (hc : directed_on (λ i j, f i ⊆ f j) c)
-  {s : finset α} (hs : (s : set α) ⊆ ⋃ i ∈ c, f i) : ∃ i ∈ c, (s : set α) ⊆ f i :=
+lemma _root_.directed.exists_mem_subset_of_finset_subset_bUnion {α ι : Type*} [hn : nonempty ι]
+  {f : ι → set α} (h : directed (⊆) f)
+  {s : finset α} (hs : (s : set α) ⊆ ⋃ i, f i) : ∃ i, (s : set α) ⊆ f i :=
 begin
   classical,
   revert hs,
   apply s.induction_on,
-  { intros,
-    use [a, hac],
-    simp },
+  { refine λ _, ⟨hn.some, _⟩,
+    simp only [coe_empty, set.empty_subset], },
   { intros b t hbt htc hbtc,
-    obtain ⟨i : ι , hic : i ∈ c, hti : (t : set α) ⊆ f i⟩ :=
+    obtain ⟨i : ι , hti : (t : set α) ⊆ f i⟩ :=
       htc (set.subset.trans (t.subset_insert b) hbtc),
-    obtain ⟨j, hjc, hbj⟩ : ∃ j ∈ c, b ∈ f j,
+    obtain ⟨j, hbj⟩ : ∃ j, b ∈ f j,
       by simpa [set.mem_Union₂] using hbtc (t.mem_insert_self b),
-    rcases hc j hjc i hic with ⟨k, hkc, hk, hk'⟩,
-    use [k, hkc],
+    rcases h j i with ⟨k, hk, hk'⟩,
+    use k,
     rw [coe_insert, set.insert_subset],
     exact ⟨hk hbj, trans hti hk'⟩ }
+end
+
+lemma _root_.directed_on.exists_mem_subset_of_finset_subset_bUnion {α ι : Type*}
+  {f : ι → set α}  {c : set ι} (hn : c.nonempty) (hc : directed_on (λ i j, f i ⊆ f j) c)
+  {s : finset α} (hs : (s : set α) ⊆ ⋃ i ∈ c, f i) : ∃ i ∈ c, (s : set α) ⊆ f i :=
+begin
+  rw set.bUnion_eq_Union at hs,
+  haveI := c.nonempty_coe_sort.2 hn,
+  obtain ⟨⟨i, hic⟩, hi⟩ :=
+    (directed_comp.2 hc.directed_coe).exists_mem_subset_of_finset_subset_bUnion hs,
+  exact ⟨i, hic, hi⟩
 end
 
 /-! #### inter -/
@@ -1738,7 +1739,7 @@ finset.ext $ by simp
 @[simp] lemma to_finset_union (s t : multiset α) : (s ∪ t).to_finset = s.to_finset ∪ t.to_finset :=
 by ext; simp
 
-theorem to_finset_eq_empty {m : multiset α} : m.to_finset = ∅ ↔ m = 0 :=
+@[simp] theorem to_finset_eq_empty {m : multiset α} : m.to_finset = ∅ ↔ m = 0 :=
 finset.val_inj.symm.trans multiset.dedup_eq_zero
 
 @[simp] lemma to_finset_subset (s t : multiset α) : s.to_finset ⊆ t.to_finset ↔ s ⊆ t :=
@@ -1838,20 +1839,6 @@ mem_map.trans $ by simp only [exists_prop]; refl
 @[simp] lemma mem_map_equiv {f : α ≃ β} {b : β} : b ∈ s.map f.to_embedding ↔ f.symm b ∈ s :=
 by { rw mem_map, exact ⟨by { rintro ⟨a, H, rfl⟩, simpa }, λ h, ⟨_, h, by simp⟩⟩ }
 
-/-- If the only elements outside `s` are those left fixed by `σ`, then mapping by `σ` has no effect.
--/
-lemma map_perm {σ : equiv.perm α} (hs : {a | σ a ≠ a} ⊆ s) : s.map (σ : α ↪ α) = s :=
-begin
-  ext i,
-  rw mem_map,
-  obtain hi | hi := eq_or_ne (σ i) i,
-  { refine ⟨_, λ h, ⟨i, h, hi⟩⟩,
-    rintro ⟨j, hj, h⟩,
-    rwa σ.injective (hi.trans h.symm) },
-  { refine iff_of_true ⟨σ.symm i, hs $ λ h, hi _, σ.apply_symm_apply _⟩ (hs hi),
-    convert congr_arg σ h; exact (σ.apply_symm_apply _).symm }
-end
-
 lemma mem_map' (f : α ↪ β) {a} {s : finset α} : f a ∈ s.map f ↔ a ∈ s := mem_map_of_injective f.2
 
 lemma mem_map_of_mem (f : α ↪ β) {a} {s : finset α} : a ∈ s → f a ∈ s.map f := (mem_map' _).2
@@ -1865,6 +1852,11 @@ set.ext $ λ x, mem_map.trans set.mem_image_iff_bex.symm
 theorem coe_map_subset_range (f : α ↪ β) (s : finset α) : (s.map f : set β) ⊆ set.range f :=
 calc ↑(s.map f) = f '' s      : coe_map f s
             ... ⊆ set.range f : set.image_subset_range f ↑s
+
+/-- If the only elements outside `s` are those left fixed by `σ`, then mapping by `σ` has no effect.
+-/
+lemma map_perm {σ : equiv.perm α} (hs : {a | σ a ≠ a} ⊆ s) : s.map (σ : α ↪ α) = s :=
+coe_injective $ (coe_map _ _).trans $ set.image_perm hs
 
 theorem map_to_finset [decidable_eq α] [decidable_eq β] {s : multiset α} :
   s.to_finset.map f = (s.map f).to_finset :=
@@ -1914,6 +1906,10 @@ coe_injective $ by simp only [coe_map, coe_singleton, set.image_singleton]
 @[simp] lemma map_insert [decidable_eq α] [decidable_eq β] (f : α ↪ β) (a : α) (s : finset α) :
   (insert a s).map f = insert (f a) (s.map f) :=
 by simp only [insert_eq, map_union, map_singleton]
+
+@[simp] lemma map_cons (f : α ↪ β) (a : α) (s : finset α) (ha : a ∉ s) :
+  (cons a s ha).map f = cons (f a) (s.map f) (by simpa using ha) :=
+eq_of_veq $ multiset.map_cons f a s.val
 
 @[simp] theorem map_eq_empty : s.map f = ∅ ↔ s = ∅ :=
 ⟨λ h, eq_empty_of_forall_not_mem $
@@ -2055,6 +2051,11 @@ theorem image_union [decidable_eq α] {f : α → β} (s₁ s₂ : finset α) :
   (s₁ ∪ s₂).image f = s₁.image f ∪ s₂.image f :=
 ext $ λ _, by simp only [mem_image, mem_union, exists_prop, or_and_distrib_right,
   exists_or_distrib]
+
+lemma image_inter_subset [decidable_eq α] (f : α → β) (s t : finset α) :
+  (s ∩ t).image f ⊆ s.image f ∩ t.image f :=
+subset_inter (image_subset_image $ inter_subset_left _ _) $
+  image_subset_image $ inter_subset_right _ _
 
 lemma image_inter [decidable_eq α] (s₁ s₂ : finset α) (hf : ∀ x y, f x = f y → x = y) :
   (s₁ ∩ s₂).image f = s₁.image f ∩ s₂.image f :=
@@ -2532,6 +2533,36 @@ lemma choose_mem (hp : ∃! a, a ∈ l ∧ p a) : choose p l hp ∈ l := (choose
 lemma choose_property (hp : ∃! a, a ∈ l ∧ p a) : p (choose p l hp) := (choose_spec _ _ _).2
 
 end choose
+
+section pairwise
+variables {s : finset α}
+
+lemma pairwise_subtype_iff_pairwise_finset' (r : β → β → Prop) (f : α → β) :
+  pairwise (r on λ x : s, f x) ↔ (s : set α).pairwise (r on f) :=
+begin
+  refine ⟨λ h x hx y hy hxy, h ⟨x, hx⟩ ⟨y, hy⟩ (by simpa only [subtype.mk_eq_mk, ne.def]), _⟩,
+  rintros h ⟨x, hx⟩ ⟨y, hy⟩ hxy,
+  exact h hx hy (subtype.mk_eq_mk.not.mp hxy)
+end
+
+lemma pairwise_subtype_iff_pairwise_finset (r : α → α → Prop) :
+  pairwise (r on λ x : s, x) ↔ (s : set α).pairwise r :=
+pairwise_subtype_iff_pairwise_finset' r id
+
+lemma pairwise_cons' {a : α} (ha : a ∉ s) (r : β → β → Prop) (f : α → β) :
+  pairwise (r on λ a : s.cons a ha, f a) ↔
+  pairwise (r on λ a : s, f a) ∧ ∀ b ∈ s, r (f a) (f b) ∧ r (f b) (f a) :=
+begin
+  simp only [pairwise_subtype_iff_pairwise_finset', finset.coe_cons, set.pairwise_insert,
+             finset.mem_coe, and.congr_right_iff],
+  exact λ hsr, ⟨λ h b hb, h b hb $ by { rintro rfl, contradiction }, λ h b hb _, h b hb⟩,
+end
+
+lemma pairwise_cons {a : α} (ha : a ∉ s) (r : α → α → Prop) :
+  pairwise (r on λ a : s.cons a ha, a) ↔ pairwise (r on λ a : s, a) ∧ ∀ b ∈ s, r a b ∧ r b a :=
+pairwise_cons' ha r id
+
+end pairwise
 end finset
 
 namespace equiv
@@ -2561,7 +2592,7 @@ def sigma_equiv_option_of_inhabited (α : Type u) [inhabited α] [decidable_eq �
   Σ (β : Type u), α ≃ option β :=
 ⟨{x : α // x ≠ default},
 { to_fun := λ (x : α), if h : x = default then none else some ⟨x, h⟩,
-  inv_fun := λ o, option.elim o (default) coe,
+  inv_fun := λ o, option.elim o default coe,
   left_inv := λ x, by { dsimp only, split_ifs; simp [*] },
   right_inv := begin
     rintro (_|⟨x,h⟩),

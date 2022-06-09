@@ -150,7 +150,7 @@ begin
     refine ⟨V, H₁, _⟩,
     cases V, dsimp at H₂, subst H₂, exact hsV },
   { refine is_topological_basis_of_open_of_nhds _ _,
-    { rintros sU ⟨U, ⟨H₁, H₂⟩⟩, subst H₂, exact U.property },
+    { rintros sU ⟨U, ⟨H₁, rfl⟩⟩, exact U.property },
     { intros x sU hx hsU,
       rcases @h (⟨sU, hsU⟩ : opens α) x hx with ⟨V, hV, H⟩,
       exact ⟨V, ⟨V, hV, rfl⟩, H⟩ } }
@@ -199,7 +199,7 @@ protected lemma comap_comap (g : C(β, γ)) (f : C(α, β)) (U : opens γ) :
   comap f (comap g U) = comap (g.comp f) U := rfl
 
 lemma comap_injective [t0_space β] : injective (comap : C(α, β) → frame_hom (opens β) (opens α)) :=
-λ f g h, continuous_map.ext $ λ a, indistinguishable.eq $ λ s hs, begin
+λ f g h, continuous_map.ext $ λ a, inseparable.eq $ λ s hs, begin
   simp_rw ←mem_preimage,
   congr' 2,
   have := fun_like.congr_fun h ⟨_, hs⟩,

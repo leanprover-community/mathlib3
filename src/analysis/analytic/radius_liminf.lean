@@ -27,10 +27,10 @@ variables (p : formal_multilinear_series 𝕜 E F)
 /-- The radius of a formal multilinear series is equal to
 $\liminf_{n\to\infty} \frac{1}{\sqrt[n]{∥p n∥}}$. The actual statement uses `ℝ≥0` and some
 coercions. -/
-lemma radius_eq_liminf : p.radius = liminf at_top (λ n, 1/((nnnorm (p n)) ^ (1 / (n : ℝ)) : ℝ≥0)) :=
+lemma radius_eq_liminf : p.radius = liminf at_top (λ n, 1/((∥p n∥₊) ^ (1 / (n : ℝ)) : ℝ≥0)) :=
 begin
   have : ∀ (r : ℝ≥0) {n : ℕ}, 0 < n →
-    ((r : ℝ≥0∞) ≤ 1 / ↑(nnnorm (p n) ^ (1 / (n : ℝ))) ↔ nnnorm (p n) * r ^ n ≤ 1),
+    ((r : ℝ≥0∞) ≤ 1 / ↑(∥p n∥₊ ^ (1 / (n : ℝ))) ↔ ∥p n∥₊ * r ^ n ≤ 1),
   { intros r n hn,
     have : 0 < (n : ℝ) := nat.cast_pos.2 hn,
     conv_lhs {rw [one_div, ennreal.le_inv_iff_mul_le, ← ennreal.coe_mul,

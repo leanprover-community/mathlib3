@@ -95,10 +95,9 @@ lemma function.injective.sigma_map {f₁ : α₁ → α₂} {f₂ : Πa, β₁ a
   function.injective (sigma.map f₁ f₂)
 | ⟨i, x⟩ ⟨j, y⟩ h :=
 begin
-  have : i = j, from h₁ (sigma.mk.inj_iff.mp h).1,
-  subst j,
-  have : x = y, from h₂ i (eq_of_heq (sigma.mk.inj_iff.mp h).2),
-  subst y
+  obtain rfl : i = j, from h₁ (sigma.mk.inj_iff.mp h).1,
+  obtain rfl : x = y, from h₂ i (eq_of_heq (sigma.mk.inj_iff.mp h).2),
+  refl
 end
 
 lemma function.surjective.sigma_map {f₁ : α₁ → α₂} {f₂ : Πa, β₁ a → β₂ (f₁ a)}

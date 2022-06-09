@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import algebra.algebra.basic
-import set_theory.cardinal_ordinal
+import set_theory.cardinal.ordinal
 import tactic.ring_exp
 
 /-!
@@ -594,7 +594,7 @@ section quaternion_algebra
 variables {R : Type*} (c₁ c₂ : R)
 
 private theorem pow_four [infinite R] : #R ^ 4 = #R :=
-power_nat_eq (omega_le_mk R) $ by simp
+power_nat_eq (aleph_0_le_mk R) $ by simp
 
 /-- The cardinality of a quaternion algebra, as a type. -/
 lemma mk_quaternion_algebra : #ℍ[R, c₁, c₂] = #R ^ 4 :=

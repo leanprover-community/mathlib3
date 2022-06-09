@@ -6,7 +6,7 @@ Authors: Jordan Brown, Thomas Browning, Patrick Lutz
 
 import data.fin.vec_notation
 import group_theory.abelianization
-import set_theory.cardinal
+import set_theory.cardinal.basic
 
 /-!
 # Solvable Groups
@@ -133,33 +133,18 @@ end
 
 lemma solvable_of_solvable_injective (hf : function.injective f) [h : is_solvable G'] :
   is_solvable G :=
-begin
-  rw is_solvable_def at *,
-  cases h with n hn,
-  use n,
-  rw ← map_eq_bot_iff_of_injective _ hf,
-  rw eq_bot_iff at *,
-  calc map f (derived_series G n) ≤ derived_series G' n : map_derived_series_le_derived_series f n
-  ... ≤ ⊥ : hn,
-end
+solvable_of_ker_le_range (1 : G' →* G) f ((f.ker_eq_bot_iff.mpr hf).symm ▸ bot_le)
 
 instance subgroup_solvable_of_solvable (H : subgroup G) [h : is_solvable G] : is_solvable H :=
 solvable_of_solvable_injective (show function.injective (subtype H), from subtype.val_injective)
 
 lemma solvable_of_surjective (hf : function.surjective f) [h : is_solvable G] :
   is_solvable G' :=
-begin
-  rw is_solvable_def at *,
-  cases h with n hn,
-  use n,
-  calc derived_series G' n = (derived_series G n).map f : eq.symm (map_derived_series_eq hf n)
-    ... = (⊥ : subgroup G).map f : by rw hn
-    ... = ⊥ : map_bot f,
-end
+solvable_of_ker_le_range f (1 : G' →* G) ((f.range_top_of_surjective hf).symm ▸ le_top)
 
 instance solvable_quotient_of_solvable (H : subgroup G) [H.normal] [h : is_solvable G] :
   is_solvable (G ⧸ H) :=
-solvable_of_surjective (show function.surjective (quotient_group.mk' H), by tidy)
+solvable_of_surjective (quotient_group.mk'_surjective H)
 
 instance solvable_prod {G' : Type*} [group G'] [h : is_solvable G] [h' : is_solvable G'] :
   is_solvable (G × G') :=

@@ -187,6 +187,16 @@ end
 lemma arg_of_real_of_nonneg {x : ℝ} (hx : 0 ≤ x) : arg x = 0 :=
 by simp [arg, hx]
 
+lemma arg_eq_zero_iff {z : ℂ} : arg z = 0 ↔ 0 ≤ z.re ∧ z.im = 0 :=
+begin
+  refine ⟨λ h, _, _⟩,
+  { rw [←abs_mul_cos_add_sin_mul_I z, h],
+    simp [abs_nonneg] },
+  { cases z with x y,
+    rintro ⟨h, rfl : y = 0⟩,
+    exact arg_of_real_of_nonneg h }
+end
+
 lemma arg_eq_pi_iff {z : ℂ} : arg z = π ↔ z.re < 0 ∧ z.im = 0 :=
 begin
   by_cases h₀ : z = 0, { simp [h₀, lt_irrefl, real.pi_ne_zero.symm] },
@@ -267,6 +277,41 @@ begin
   { simp [hx] },
   { exact arg_real_mul (conj x) (by simp [hx]) }
 end
+
+lemma arg_le_pi_div_two_iff {z : ℂ} : arg z ≤ π / 2 ↔ 0 ≤ re z ∨ im z < 0 :=
+begin
+  cases le_or_lt 0 (re z) with hre hre,
+  { simp only [hre, arg_of_re_nonneg hre, real.arcsin_le_pi_div_two, true_or] },
+  simp only [hre.not_le, false_or],
+  cases le_or_lt 0 (im z) with him him,
+  { simp only [him.not_lt],
+    rw [iff_false, not_le, arg_of_re_neg_of_im_nonneg hre him, ← sub_lt_iff_lt_add, half_sub,
+      real.neg_pi_div_two_lt_arcsin, neg_im, neg_div, neg_lt_neg_iff, div_lt_one, ←
+      _root_.abs_of_nonneg him, abs_im_lt_abs],
+    exacts [hre.ne, abs_pos.2 $ ne_of_apply_ne re hre.ne] },
+  { simp only [him],
+    rw [iff_true, arg_of_re_neg_of_im_neg hre him],
+    exact (sub_le_self _ real.pi_pos.le).trans (real.arcsin_le_pi_div_two _) }
+end
+
+lemma neg_pi_div_two_le_arg_iff {z : ℂ} : -(π / 2) ≤ arg z ↔ 0 ≤ re z ∨ 0 ≤ im z :=
+begin
+  cases le_or_lt 0 (re z) with hre hre,
+  { simp only [hre, arg_of_re_nonneg hre, real.neg_pi_div_two_le_arcsin, true_or] },
+  simp only [hre.not_le, false_or],
+  cases le_or_lt 0 (im z) with him him,
+  { simp only [him],
+    rw [iff_true, arg_of_re_neg_of_im_nonneg hre him],
+    exact (real.neg_pi_div_two_le_arcsin _).trans (le_add_of_nonneg_right real.pi_pos.le) },
+  { simp only [him.not_le],
+    rw [iff_false, not_le, arg_of_re_neg_of_im_neg hre him, sub_lt_iff_lt_add', ← sub_eq_add_neg,
+      sub_half, real.arcsin_lt_pi_div_two, div_lt_one, neg_im, ← abs_of_neg him, abs_im_lt_abs],
+    exacts [hre.ne, abs_pos.2 $ ne_of_apply_ne re hre.ne] }
+end
+
+@[simp] lemma abs_arg_le_pi_div_two_iff {z : ℂ} : |arg z| ≤ π / 2 ↔ 0 ≤ re z :=
+by rw [abs_le, arg_le_pi_div_two_iff, neg_pi_div_two_le_arg_iff, ← or_and_distrib_left, ← not_le,
+  and_not_self, or_false]
 
 @[simp] lemma arg_conj_coe_angle (x : ℂ) : (arg (conj x) : real.angle) = -arg x :=
 begin

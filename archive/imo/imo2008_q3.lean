@@ -7,7 +7,7 @@ import data.real.basic
 import data.real.sqrt
 import data.nat.prime
 import number_theory.primes_congruent_one
-import number_theory.quadratic_reciprocity
+import number_theory.legendre_symbol.quadratic_reciprocity
 import tactic.linear_combination
 
 /-!
@@ -33,7 +33,7 @@ lemma p_lemma (p : ℕ) (hpp : nat.prime p) (hp_mod_4_eq_1 : p ≡ 1 [MOD 4]) (h
 begin
   haveI := fact.mk hpp,
   have hp_mod_4_ne_3 : p % 4 ≠ 3, { linarith [(show p % 4 = 1, by exact hp_mod_4_eq_1)] },
-  obtain ⟨y, hy⟩ := (zmod.exists_sq_eq_neg_one_iff_mod_four_ne_three p).mpr hp_mod_4_ne_3,
+  obtain ⟨y, hy⟩ := (zmod.exists_sq_eq_neg_one_iff p).mpr hp_mod_4_ne_3,
 
   let m := zmod.val_min_abs y,
   let n := int.nat_abs m,
@@ -43,7 +43,7 @@ begin
     simp only [int.nat_abs_sq, int.coe_nat_pow, int.coe_nat_succ, int.coe_nat_dvd.mp],
     refine (zmod.int_coe_zmod_eq_zero_iff_dvd (m ^ 2 + 1) p).mp _,
     simp only [int.cast_pow, int.cast_add, int.cast_one, zmod.coe_val_min_abs],
-    rw hy, exact add_left_neg 1 },
+    rw [pow_two, ← hy], exact add_left_neg 1 },
 
   have hnat₂ : n ≤ p / 2 := zmod.nat_abs_val_min_abs_le y,
   have hnat₃ : p ≥ 2 * n, { linarith [nat.div_mul_le_self p 2] },
@@ -56,7 +56,7 @@ begin
     { use (p:ℤ) - 4 * n + 4 * x,
       have hcast₁ : (k:ℤ) = p - 2 * n, { assumption_mod_cast },
       have hcast₂ : (n:ℤ) ^ 2 + 1 = p * x, { assumption_mod_cast },
-      linear_combination (hcast₁, (k:ℤ) + p - 2 * n) (hcast₂, 4) },
+      linear_combination ((k:ℤ) + p - 2 * n)*hcast₁ + 4*hcast₂ },
     assumption_mod_cast },
 
   have hnat₆ : k ^ 2 + 4 ≥ p := nat.le_of_dvd (k ^ 2 + 3).succ_pos hnat₅,
@@ -81,7 +81,7 @@ theorem imo2008_q3 : ∀ N : ℕ, ∃ n : ℕ, n ≥ N ∧
   ∃ p : ℕ, nat.prime p ∧ p ∣ n ^ 2 + 1 ∧ (p : ℝ) > 2 * n + sqrt(2 * n) :=
 begin
   intro N,
-  obtain ⟨p, hpp, hineq₁, hpmod4⟩ := nat.exists_prime_ge_modeq_one 4 (N ^ 2 + 21) zero_lt_four,
+  obtain ⟨p, hpp, hineq₁, hpmod4⟩ := nat.exists_prime_ge_modeq_one (N ^ 2 + 21) zero_lt_four,
   obtain ⟨n, hnat, hreal⟩ := p_lemma p hpp hpmod4 (by linarith [hineq₁, nat.zero_le (N ^ 2)]),
 
   have hineq₂  : n ^ 2 + 1 ≥ p := nat.le_of_dvd (n ^ 2).succ_pos hnat,

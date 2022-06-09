@@ -55,7 +55,7 @@ structure measurable_space (α : Type*) :=
 
 attribute [class] measurable_space
 
-instance [h : measurable_space α] : measurable_space (order_dual α) := h
+instance [h : measurable_space α] : measurable_space αᵒᵈ := h
 
 section
 
@@ -110,7 +110,7 @@ begin
   exact measurable_set.Union (by simpa using h)
 end
 
-lemma set.finite.measurable_set_bUnion {f : β → set α} {s : set β} (hs : finite s)
+lemma set.finite.measurable_set_bUnion {f : β → set α} {s : set β} (hs : s.finite)
   (h : ∀ b ∈ s, measurable_set (f b)) :
   measurable_set (⋃ b ∈ s, f b) :=
 measurable_set.bUnion hs.countable h
@@ -124,7 +124,7 @@ lemma measurable_set.sUnion {s : set (set α)} (hs : countable s) (h : ∀ t ∈
   measurable_set (⋃₀ s) :=
 by { rw sUnion_eq_bUnion, exact measurable_set.bUnion hs h }
 
-lemma set.finite.measurable_set_sUnion {s : set (set α)} (hs : finite s)
+lemma set.finite.measurable_set_sUnion {s : set (set α)} (hs : s.finite)
   (h : ∀ t ∈ s, measurable_set t) :
   measurable_set (⋃₀ s) :=
 measurable_set.sUnion hs.countable h
@@ -140,7 +140,7 @@ by { rw compl_Inter, exact measurable_set.Union (λ b, (h b).compl) }
 
 section fintype
 
-local attribute [instance] fintype.encodable
+local attribute [instance] fintype.to_encodable
 
 lemma measurable_set.Union_fintype [fintype β] {f : β → set α} (h : ∀ b, measurable_set (f b)) :
   measurable_set (⋃ b, f b) :=
@@ -157,7 +157,7 @@ lemma measurable_set.bInter {f : β → set α} {s : set β} (hs : countable s)
 measurable_set.compl_iff.1 $
 by { rw compl_Inter₂, exact measurable_set.bUnion hs (λ b hb, (h b hb).compl) }
 
-lemma set.finite.measurable_set_bInter {f : β → set α} {s : set β} (hs : finite s)
+lemma set.finite.measurable_set_bInter {f : β → set α} {s : set β} (hs : s.finite)
   (h : ∀ b ∈ s, measurable_set (f b)) : measurable_set (⋂ b ∈ s, f b) :=
 measurable_set.bInter hs.countable h
 
@@ -169,7 +169,7 @@ lemma measurable_set.sInter {s : set (set α)} (hs : countable s) (h : ∀ t ∈
   measurable_set (⋂₀ s) :=
 by { rw sInter_eq_bInter, exact measurable_set.bInter hs h }
 
-lemma set.finite.measurable_set_sInter {s : set (set α)} (hs : finite s)
+lemma set.finite.measurable_set_sInter {s : set (set α)} (hs : s.finite)
   (h : ∀ t ∈ s, measurable_set t) : measurable_set (⋂₀ s) :=
 measurable_set.sInter hs.countable h
 
@@ -257,7 +257,7 @@ lemma measurable_set.insert {s : set α} (hs : measurable_set s) (a : α) :
 lemma set.subsingleton.measurable_set {s : set α} (hs : s.subsingleton) : measurable_set s :=
 hs.induction_on measurable_set.empty measurable_set_singleton
 
-lemma set.finite.measurable_set {s : set α} (hs : finite s) : measurable_set s :=
+lemma set.finite.measurable_set {s : set α} (hs : s.finite) : measurable_set s :=
 finite.induction_on hs measurable_set.empty $ λ a s ha hsf hsm, hsm.insert _
 
 protected lemma finset.measurable_set (s : finset α) : measurable_set (↑s : set α) :=
@@ -413,21 +413,21 @@ def measurable [measurable_space α] [measurable_space β] (f : α → β) : Pro
 
 localized "notation `measurable[` m `]` := @measurable _ _ m _" in measure_theory
 
-variables [measurable_space α] [measurable_space β] [measurable_space γ]
+lemma measurable_id {ma : measurable_space α} : measurable (@id α) := λ t, id
 
-lemma measurable_id : measurable (@id α) := λ t, id
+lemma measurable_id' {ma : measurable_space α} : measurable (λ a : α, a) := measurable_id
 
-lemma measurable_id' : measurable (λ a : α, a) := measurable_id
-
-lemma measurable.comp {α β γ} {mα : measurable_space α} {mβ : measurable_space β}
+lemma measurable.comp {mα : measurable_space α} {mβ : measurable_space β}
   {mγ : measurable_space γ} {g : β → γ} {f : α → β} (hg : measurable g) (hf : measurable f) :
   measurable (g ∘ f) :=
 λ t ht, hf (hg ht)
 
-@[simp] lemma measurable_const {a : α} : measurable (λ b : β, a) :=
+@[simp] lemma measurable_const {ma : measurable_space α} {mb : measurable_space β} {a : α} :
+  measurable (λ b : β, a) :=
 assume s hs, measurable_set.const (a ∈ s)
 
-lemma measurable.le {α} {m m0 : measurable_space α} (hm : m ≤ m0) {f : α → β}
+lemma measurable.le {α} {m m0 : measurable_space α} {mb : measurable_space β} (hm : m ≤ m0)
+  {f : α → β}
   (hf : measurable[m] f) : measurable[m0] f :=
 λ s hs, hm _ (hf hs)
 

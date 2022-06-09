@@ -228,7 +228,8 @@ begin
   { rintros x ⟨f, rfl⟩,
     refine mem_closure_of_tendsto (hV.has_sum_linear_isometry f) (eventually_of_forall _),
     intros s,
-    refine sum_mem (supr (λ i, (V i).to_linear_map.range)) _,
+    rw set_like.mem_coe,
+    refine sum_mem _,
     intros i hi,
     refine mem_supr_of_mem i _,
     exact linear_map.mem_range_self _ (f i) },
@@ -251,6 +252,7 @@ linear_isometry_equiv.symm $
 linear_isometry_equiv.of_surjective
 hV.linear_isometry
 begin
+  rw [←linear_isometry.coe_to_linear_map],
   refine linear_map.range_eq_top.mp _,
   rw ← hV',
   rw hV.range_linear_isometry,
@@ -379,7 +381,7 @@ begin
   refine mem_closure_of_tendsto (b.has_sum_repr x) (eventually_of_forall _),
   intros s,
   simp only [set_like.mem_coe],
-  refine sum_mem _ _,
+  refine sum_mem _,
   rintros i -,
   refine smul_mem _ _ _,
   exact subset_span ⟨i, rfl⟩

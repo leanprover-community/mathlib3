@@ -6,6 +6,7 @@ Amelia Livingston, Yury Kudryashov
 -/
 import group_theory.group_action.defs
 import group_theory.submonoid.basic
+import group_theory.subsemigroup.operations
 
 /-!
 # Operations on `submonoid`s
@@ -51,8 +52,8 @@ In this file we define various operations on `submonoid`s and `monoid_hom`s.
 
 * `monoid_hom.mrange`: range of a monoid homomorphism as a submonoid of the codomain;
 * `monoid_hom.mker`: kernel of a monoid homomorphism as a submonoid of the domain;
-* `monoid_hom.mrestrict`: restrict a monoid homomorphism to a submonoid;
-* `monoid_hom.cod_mrestrict`: restrict the codomain of a monoid homomorphism to a submonoid;
+* `monoid_hom.restrict`: restrict a monoid homomorphism to a submonoid;
+* `monoid_hom.cod_restrict`: restrict the codomain of a monoid homomorphism to a submonoid;
 * `monoid_hom.mrange_restrict`: restrict a monoid homomorphism to its range;
 
 ## Tags
@@ -385,17 +386,10 @@ namespace submonoid_class
 variables {A : Type*} [set_like A M] [hA : submonoid_class A M] (S' : A)
 include hA
 
-open mul_mem_class
-
-/-- A submonoid of a monoid inherits a multiplication. -/
-@[to_additive "An `add_submonoid` of an `add_monoid` inherits an addition."]
-instance has_mul : has_mul S' := ⟨λ a b, ⟨a.1 * b.1, mul_mem a.2 b.2⟩⟩
-
 /-- A submonoid of a monoid inherits a 1. -/
 @[to_additive "An `add_submonoid` of an `add_monoid` inherits a zero."]
 instance has_one : has_one S' := ⟨⟨_, one_mem S'⟩⟩
 
-@[simp, norm_cast, to_additive] lemma coe_mul (x y : S') : (↑(x * y) : M) = ↑x * ↑y := rfl
 @[simp, norm_cast, to_additive] lemma coe_one : ((1 : S') : M) = 1 := rfl
 
 variables {S'}
@@ -403,10 +397,6 @@ variables {S'}
 (subtype.ext_iff.symm : (x : M) = (1 : S') ↔ x = 1)
 variables (S')
 
-@[simp, to_additive] lemma mk_mul_mk (x y : M) (hx : x ∈ S') (hy : y ∈ S') :
-  (⟨x, hx⟩ : S') * ⟨y, hy⟩ = ⟨x * y, mul_mem hx hy⟩ := rfl
-
-@[to_additive] lemma mul_def (x y : S') : x * y = ⟨x * y, mul_mem x.2 y.2⟩ := rfl
 @[to_additive] lemma one_def : (1 : S') = ⟨1, one_mem S'⟩ := rfl
 
 omit hA
@@ -528,17 +518,9 @@ structure."]
 instance to_mul_one_class {M : Type*} [mul_one_class M] (S : submonoid M) : mul_one_class S :=
 subtype.coe_injective.mul_one_class coe rfl (λ _ _, rfl)
 
-@[to_additive] lemma pow_mem {M : Type*} [monoid M] (S : submonoid M) {x : M}
+@[to_additive] protected lemma pow_mem {M : Type*} [monoid M] (S : submonoid M) {x : M}
   (hx : x ∈ S) (n : ℕ) : x ^ n ∈ S :=
 pow_mem hx n
-
-instance _root_.add_submonoid.has_nsmul {M : Type*} [add_monoid M] (S : add_submonoid M) :
-  has_scalar ℕ S :=
-⟨λ n x, ⟨n • x, S.nsmul_mem x.prop _⟩⟩
-
-@[to_additive]
-instance has_pow {M : Type*} [monoid M] (S : submonoid M) : has_pow S ℕ :=
-⟨λ x n, ⟨x ^ n, S.pow_mem x.prop _⟩⟩
 
 @[simp, norm_cast, to_additive] theorem coe_pow  {M : Type*} [monoid M] {S : submonoid M}
   (x : S) (n : ℕ) : ↑(x ^ n) = (x ^ n : M) :=
@@ -685,7 +667,7 @@ ext $ λ p, ⟨λ ⟨x, hx, hp⟩, hp ▸ ⟨set.mem_singleton 1, hx⟩,
 lemma prod_bot_sup_bot_prod (s : submonoid M) (t : submonoid N) :
   (s.prod ⊥) ⊔ (prod ⊥ t) = s.prod t :=
 le_antisymm (sup_le (prod_mono (le_refl s) bot_le) (prod_mono bot_le (le_refl t))) $
-assume p hp, prod.fst_mul_snd p ▸ mul_mem _
+assume p hp, prod.fst_mul_snd p ▸ mul_mem
   ((le_sup_left : s.prod ⊥ ≤ s.prod ⊥ ⊔ prod ⊥ t) ⟨hp.1, set.mem_singleton 1⟩)
   ((le_sup_right : prod ⊥ t ≤ s.prod ⊥ ⊔ prod ⊥ t) ⟨set.mem_singleton 1, hp.2⟩)
 
@@ -822,16 +804,20 @@ le_antisymm
 
 /-- Restriction of a monoid hom to a submonoid of the domain. -/
 @[to_additive "Restriction of an add_monoid hom to an `add_submonoid` of the domain."]
-def mrestrict {N : Type*} [mul_one_class N] (f : M →* N) (S : submonoid M) : S →* N :=
-f.comp S.subtype
+def restrict {N S : Type*} [mul_one_class N] [set_like S M] [submonoid_class S M]
+  (f : M →* N) (s : S) : s →* N :=
+f.comp (submonoid_class.subtype _)
 
 @[simp, to_additive]
-lemma mrestrict_apply {N : Type*} [mul_one_class N] (f : M →* N) (x : S) : f.mrestrict S x = f x :=
+lemma restrict_apply {N S : Type*} [mul_one_class N] [set_like S M] [submonoid_class S M]
+  (f : M →* N) (s : S) (x : s) : f.restrict s x = f x :=
 rfl
 
 /-- Restriction of a monoid hom to a submonoid of the codomain. -/
-@[to_additive "Restriction of an `add_monoid` hom to an `add_submonoid` of the codomain.", simps]
-def cod_mrestrict (f : M →* N) (S : submonoid N) (h : ∀ x, f x ∈ S) : M →* S :=
+@[to_additive "Restriction of an `add_monoid` hom to an `add_submonoid` of the codomain.",
+  simps apply]
+def cod_restrict {S} [set_like S N] [submonoid_class S N] (f : M →* N) (s : S)
+  (h : ∀ x, f x ∈ s) : M →* s :=
 { to_fun := λ n, ⟨f n, h n⟩,
   map_one' := subtype.eq f.map_one,
   map_mul' := λ x y, subtype.eq (f.map_mul x y) }
@@ -839,7 +825,7 @@ def cod_mrestrict (f : M →* N) (S : submonoid N) (h : ∀ x, f x ∈ S) : M �
 /-- Restriction of a monoid hom to its range interpreted as a submonoid. -/
 @[to_additive "Restriction of an `add_monoid` hom to its range interpreted as a submonoid."]
 def mrange_restrict {N} [mul_one_class N] (f : M →* N) : M →* f.mrange :=
-f.cod_mrestrict f.mrange $ λ x, ⟨x, rfl⟩
+f.cod_restrict f.mrange $ λ x, ⟨x, rfl⟩
 
 @[simp, to_additive]
 lemma coe_mrange_restrict {N} [mul_one_class N] (f : M →* N) (x : M) :
@@ -969,7 +955,7 @@ by simp only [mrange_inl, mrange_inr, prod_bot_sup_bot_prod, top_prod_top]
 /-- The monoid hom associated to an inclusion of submonoids. -/
 @[to_additive "The `add_monoid` hom associated to an inclusion of submonoids."]
 def inclusion {S T : submonoid M} (h : S ≤ T) : S →* T :=
-S.subtype.cod_mrestrict _ (λ x, h x.2)
+S.subtype.cod_restrict _ (λ x, h x.2)
 
 @[simp, to_additive]
 lemma range_subtype (s : submonoid M) : s.subtype.mrange = s :=
@@ -1084,8 +1070,8 @@ instance
 @[to_additive]
 lemma smul_def [has_scalar M' α] {S : submonoid M'} (g : S) (m : α) : g • m = (g : M') • m := rfl
 
-instance [has_scalar M' α] [has_faithful_scalar M' α] (S : submonoid M') :
-  has_faithful_scalar S α :=
+instance [has_scalar M' α] [has_faithful_smul M' α] (S : submonoid M') :
+  has_faithful_smul S α :=
 ⟨λ x y h, subtype.ext $ eq_of_smul_eq_smul h⟩
 
 end mul_one_class

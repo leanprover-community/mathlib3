@@ -49,8 +49,6 @@ namespace lie_submodule
 
 variables {R L M} (N N' : lie_submodule R L M)
 
-open neg_mem_class
-
 instance : set_like (lie_submodule R L M) M :=
 { coe := carrier,
   coe_injective' := λ N O h, by cases N; cases O; congr' }
@@ -85,7 +83,7 @@ iff.rfl
 
 lemma mem_coe {x : M} : x ∈ (N : set M) ↔ x ∈ N := iff.rfl
 
-@[simp] lemma zero_mem : (0 : M) ∈ N := (N : submodule R M).zero_mem
+@[simp] protected lemma zero_mem : (0 : M) ∈ N := zero_mem N
 
 @[simp] lemma mk_eq_zero {x} (h : x ∈ N) : (⟨x, h⟩ : N) = 0 ↔ x = 0 := subtype.ext_iff_val
 
@@ -557,6 +555,10 @@ lemma mem_map (m' : M') : m' ∈ N.map f ↔ ∃ m, m ∈ N ∧ f m = m' :=
 submodule.mem_map
 
 @[simp] lemma mem_comap {m : M} : m ∈ comap f N' ↔ f m ∈ N' := iff.rfl
+
+lemma comap_incl_eq_top : N₂.comap N.incl = ⊤ ↔ N ≤ N₂ :=
+by simpa only [← lie_submodule.coe_to_submodule_eq_iff, lie_submodule.coe_submodule_comap,
+  lie_submodule.incl_coe, lie_submodule.top_coe_submodule, submodule.comap_subtype_eq_top]
 
 end lie_submodule
 

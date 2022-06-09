@@ -83,7 +83,7 @@ def mk_pnat (n : ℤ) : ℕ+ → ℚ | ⟨d, dpos⟩ :=
 let n' := n.nat_abs, g := n'.gcd d in
 ⟨n / g, d / g, begin
   apply (nat.le_div_iff_mul_le _ _ (nat.gcd_pos_of_pos_right _ dpos)).2,
-  simp, exact nat.le_of_dvd dpos (nat.gcd_dvd_right _ _)
+  rw one_mul, exact nat.le_of_dvd dpos (nat.gcd_dvd_right _ _)
 end, begin
   have : int.nat_abs (n / ↑g) = n' / g,
   { cases int.nat_abs_eq n with e e; rw e, { refl },
@@ -113,7 +113,11 @@ theorem mk_nat_eq (n d) : mk_nat n d = n /. d := rfl
 @[simp] theorem mk_zero (n) : n /. 0 = 0 := rfl
 
 @[simp] theorem zero_mk_pnat (n) : mk_pnat 0 n = 0 :=
-by cases n; simp [mk_pnat]; change int.nat_abs 0 with 0; simp *; refl
+begin
+  cases n with n npos,
+  simp only [mk_pnat, int.nat_abs_zero, nat.div_self npos, nat.gcd_zero_left, int.zero_div],
+  refl
+end
 
 @[simp] theorem zero_mk_nat (n) : mk_nat 0 n = 0 :=
 by by_cases n = 0; simp [*, mk_nat]
@@ -126,16 +130,19 @@ int.dvd_nat_abs.1 $ int.coe_nat_dvd.2 $ nat.gcd_dvd_left (int.nat_abs a) b
 
 @[simp] theorem mk_eq_zero {a b : ℤ} (b0 : b ≠ 0) : a /. b = 0 ↔ a = 0 :=
 begin
-  constructor; intro h; [skip, {subst a, simp}],
+  refine ⟨λ h, _, by { rintro rfl, simp }⟩,
   have : ∀ {a b}, mk_pnat a b = 0 → a = 0,
-  { intros a b e, cases b with b h,
+  { rintro a ⟨b, h⟩ e,
     injection e with e,
     apply int.eq_mul_of_div_eq_right gcd_abs_dvd_left e },
-  cases b with b; simp [mk, mk_nat] at h,
-  { simp [mt (congr_arg int.of_nat) b0] at h,
+  cases b with b; simp only [mk, mk_nat, int.of_nat_eq_coe, dite_eq_left_iff] at h,
+  { simp only [mt (congr_arg int.of_nat) b0, not_false_iff, forall_true_left] at h,
     exact this h },
   { apply neg_injective, simp [this h] }
 end
+
+theorem mk_ne_zero {a b : ℤ} (b0 : b ≠ 0) : a /. b ≠ 0 ↔ a ≠ 0 :=
+(mk_eq_zero b0).not
 
 theorem mk_eq : ∀ {a b c d : ℤ} (hb : b ≠ 0) (hd : d ≠ 0),
   a /. b = c /. d ↔ a * d = c * b :=
@@ -247,7 +254,7 @@ begin
   refine (int.nat_abs_dvd.1 $ int.dvd_nat_abs.1 $ int.coe_nat_dvd.2 $
     c.dvd_of_dvd_mul_right _),
   have := congr_arg int.nat_abs e,
-  simp [int.nat_abs_mul, int.nat_abs_of_nat] at this, simp [this]
+  simp only [int.nat_abs_mul, int.nat_abs_of_nat] at this, simp [this]
 end
 
 theorem denom_dvd (a b : ℤ) : ((a /. b).denom : ℤ) ∣ b :=
@@ -351,9 +358,9 @@ begin
       unfold rat.inv, rw num_denom' },
     { unfold rat.inv, rw num_denom', refl } },
   have n0 : n ≠ 0,
-  { refine mt (λ (n0 : n = 0), _) a0,
-    subst n0, simp at ha,
-    exact (mk_eq_zero b0).1 ha },
+  { rintro rfl,
+    rw [rat.zero_mk, mk_eq_zero b0] at ha,
+    exact a0 ha },
   have d0 := ne_of_gt (int.coe_nat_lt.2 h),
   have ha := (mk_eq b0 d0).1 ha,
   apply (mk_eq n0 a0).2,
@@ -425,12 +432,11 @@ protected theorem mul_add : a * (b + c) = a * b + a * c :=
 by rw [rat.mul_comm, rat.add_mul, rat.mul_comm, rat.mul_comm c a]
 
 protected theorem zero_ne_one : 0 ≠ (1:ℚ) :=
-suffices (1:ℚ) = 0 → false, by cc,
-by { rw [← mk_one_one, mk_eq_zero one_ne_zero], exact one_ne_zero }
+by { rw [ne_comm, ← mk_one_one, mk_ne_zero one_ne_zero], exact one_ne_zero }
 
 protected theorem mul_inv_cancel : a ≠ 0 → a * a⁻¹ = 1 :=
 num_denom_cases_on' a $ λ n d h a0,
-have n0 : n ≠ 0, from mt (by intro e; subst e; simp) a0,
+have n0 : n ≠ 0, from mt (by { rintro rfl, simp }) a0,
 by simpa [h, n0, mul_comm] using @div_mk_div_cancel_left 1 1 _ n0
 
 protected theorem inv_mul_cancel (h : a ≠ 0) : a⁻¹ * a = 1 :=
@@ -529,8 +535,7 @@ assume : d = 0,
 hq $ by simpa [this] using hqnd
 
 lemma mk_ne_zero_of_ne_zero {n d : ℤ} (h : n ≠ 0) (hd : d ≠ 0) : n /. d ≠ 0 :=
-assume : n /. d = 0,
-h $ (mk_eq_zero hd).1 this
+(mk_ne_zero hd).mpr h
 
 lemma mul_num_denom (q r : ℚ) : q * r = (q.num * r.num) /. ↑(q.denom * r.denom) :=
 have hq' : (↑q.denom : ℤ) ≠ 0, by have := denom_ne_zero q; simpa,
@@ -549,21 +554,22 @@ else
          ... = (q.num /. q.denom) * (r.denom /. r.num) : by rw inv_def
          ... = (q.num * r.denom) /. (q.denom * r.num) : mul_def (by simpa using denom_ne_zero q) hr
 
-lemma num_denom_mk {q : ℚ} {n d : ℤ} (hn : n ≠ 0) (hd : d ≠ 0) (qdf : q = n /. d) :
-      ∃ c : ℤ, n = c * q.num ∧ d = c * q.denom :=
-have hq : q ≠ 0, from
-  assume : q = 0,
-  hn $ (rat.mk_eq_zero hd).1 (by cc),
-have q.num /. q.denom = n /. d, by rwa [num_denom],
-have q.num * d = n * ↑(q.denom), from (rat.mk_eq (by simp [rat.denom_ne_zero]) hd).1 this,
+lemma num_denom_mk {q : ℚ} {n d : ℤ} (hd : d ≠ 0) (qdf : q = n /. d) :
+  ∃ c : ℤ, n = c * q.num ∧ d = c * q.denom :=
 begin
-  existsi n / q.num,
-  have hqdn : q.num ∣ n, begin rw qdf, apply rat.num_dvd, assumption end,
-  split,
+  obtain rfl|hn := eq_or_ne n 0,
+  { simp [qdf] },
+  have : q.num * d = n * ↑(q.denom),
+  { refine (rat.mk_eq _ hd).mp _,
+    { exact int.coe_nat_ne_zero.mpr (rat.denom_ne_zero _) },
+    { rwa [num_denom] } },
+  have hqdn : q.num ∣ n,
+  { rw qdf, exact rat.num_dvd _ hd },
+  refine ⟨n / q.num, _, _⟩,
   { rw int.div_mul_cancel hqdn },
-  { apply int.eq_mul_div_of_mul_eq_mul_of_dvd_left,
-    { apply rat.num_ne_zero_of_ne_zero hq },
-    repeat { assumption } }
+  { refine int.eq_mul_div_of_mul_eq_mul_of_dvd_left _ hqdn this,
+    rw qdf,
+    exact rat.num_ne_zero_of_ne_zero ((mk_ne_zero hd).mpr hn) }
 end
 
 theorem mk_pnat_num (n : ℤ) (d : ℕ+) :
@@ -659,12 +665,11 @@ end
 theorem num_div_denom (r : ℚ) : (r.num / r.denom : ℚ) = r :=
 by rw [← int.cast_coe_nat, ← mk_eq_div, num_denom]
 
-lemma exists_eq_mul_div_num_and_eq_mul_div_denom {n d : ℤ} (n_ne_zero : n ≠ 0)
-  (d_ne_zero : d ≠ 0) :
+lemma exists_eq_mul_div_num_and_eq_mul_div_denom (n : ℤ) {d : ℤ} (d_ne_zero : d ≠ 0) :
   ∃ (c : ℤ), n = c * ((n : ℚ) / d).num ∧ (d : ℤ) = c * ((n : ℚ) / d).denom :=
 begin
   have : ((n : ℚ) / d) = rat.mk n d, by rw [←rat.mk_eq_div],
-  exact rat.num_denom_mk n_ne_zero d_ne_zero this
+  exact rat.num_denom_mk d_ne_zero this
 end
 
 theorem coe_int_eq_of_int (z : ℤ) : ↑z = of_int z :=

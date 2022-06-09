@@ -5,7 +5,7 @@ Authors: Yury Kudryashov
 -/
 import measure_theory.group.fundamental_domain
 import measure_theory.integral.interval_integral
-import topology.algebra.floor_ring
+import topology.algebra.order.floor
 
 /-!
 # Integrals of periodic functions

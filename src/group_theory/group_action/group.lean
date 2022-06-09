@@ -19,8 +19,8 @@ section mul_action
 
 /-- `monoid.to_mul_action` is faithful on cancellative monoids. -/
 @[to_additive /-" `add_monoid.to_add_action` is faithful on additive cancellative monoids. "-/]
-instance right_cancel_monoid.to_has_faithful_scalar [right_cancel_monoid α] :
-  has_faithful_scalar α α :=
+instance right_cancel_monoid.to_has_faithful_smul [right_cancel_monoid α] :
+  has_faithful_smul α α :=
 ⟨λ x y h, mul_right_cancel (h 1)⟩
 
 section group
@@ -40,7 +40,7 @@ by rw [smul_smul, mul_right_inv, one_smul]
 add_decl_doc add_action.to_perm
 
 /-- `mul_action.to_perm` is injective on faithful actions. -/
-@[to_additive] lemma mul_action.to_perm_injective [has_faithful_scalar α β] :
+@[to_additive] lemma mul_action.to_perm_injective [has_faithful_smul α β] :
   function.injective (mul_action.to_perm : α → equiv.perm β) :=
 (show function.injective (equiv.to_fun ∘ mul_action.to_perm), from smul_left_injective').of_comp
 
@@ -74,7 +74,7 @@ instance equiv.perm.apply_mul_action (α : Type*) : mul_action (equiv.perm α) �
 rfl
 
 /-- `equiv.perm.apply_mul_action` is faithful. -/
-instance equiv.perm.apply_has_faithful_scalar (α : Type*) : has_faithful_scalar (equiv.perm α) α :=
+instance equiv.perm.apply_has_faithful_smul (α : Type*) : has_faithful_smul (equiv.perm α) α :=
 ⟨λ x y, equiv.ext⟩
 
 variables {α} {β}
@@ -123,8 +123,8 @@ mul_action.injective g h
 end group
 
 /-- `monoid.to_mul_action` is faithful on nontrivial cancellative monoids with zero. -/
-instance cancel_monoid_with_zero.to_has_faithful_scalar [cancel_monoid_with_zero α] [nontrivial α] :
-  has_faithful_scalar α α :=
+instance cancel_monoid_with_zero.to_has_faithful_smul [cancel_monoid_with_zero α] [nontrivial α] :
+  has_faithful_smul α α :=
 ⟨λ x y h, mul_left_injective₀ one_ne_zero (h 1)⟩
 
 section gwz
@@ -240,7 +240,7 @@ section arrow
 /-- If `G` acts on `A`, then it acts also on `A → B`, by `(g • F) a = F (g⁻¹ • a)`. -/
 @[simps] def arrow_action {G A B : Type*} [group G] [mul_action G A] : mul_action G (A → B) :=
 { smul := λ g F a, F (g⁻¹ • a),
-  one_smul := by { intro, simp only [one_inv, one_smul] },
+  one_smul := by { intro, simp only [inv_one, one_smul] },
   mul_smul := by { intros, simp only [mul_smul, mul_inv_rev] } }
 
 local attribute [instance] arrow_action
@@ -282,7 +282,17 @@ end distrib_mul_action
 
 end is_unit
 
-@[simp] lemma is_unit_smul_iff [group α] [monoid β] [mul_action α β]
-  [smul_comm_class α β β] [is_scalar_tower α β β] {g : α} {m : β} :
-  is_unit (g • m) ↔ is_unit m :=
+section smul
+
+variables [group α] [monoid β]
+
+@[simp] lemma is_unit_smul_iff [mul_action α β] [smul_comm_class α β β] [is_scalar_tower α β β]
+  (g : α) (m : β) : is_unit (g • m) ↔ is_unit m :=
 ⟨λ h, inv_smul_smul g m ▸ h.smul g⁻¹, is_unit.smul g⟩
+
+lemma is_unit.smul_sub_iff_sub_inv_smul
+  [add_group β] [distrib_mul_action α β] [is_scalar_tower α β β] [smul_comm_class α β β]
+  (r : α) (a : β) : is_unit (r • 1 - a) ↔ is_unit (1 - r⁻¹ • a) :=
+by rw [←is_unit_smul_iff r (1 - r⁻¹ • a), smul_sub, smul_inv_smul]
+
+end smul

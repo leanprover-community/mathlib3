@@ -66,6 +66,13 @@ variables [semiring R]
 instance : has_coe_to_fun (continuous_multilinear_map R M₁ M₂) (λ _, (Π i, M₁ i) → M₂) :=
 ⟨λ f, f.to_fun⟩
 
+/-- See Note [custom simps projection]. We need to specify this projection explicitly in this case,
+  because it is a composition of multiple projections. -/
+def simps.apply (L₁ : continuous_multilinear_map R M₁ M₂) (v : Π i, M₁ i) : M₂ := L₁ v
+
+initialize_simps_projections continuous_multilinear_map
+  (-to_multilinear_map, to_multilinear_map_to_fun → apply)
+
 @[continuity] lemma coe_continuous : continuous (f : (Π i, M₁ i) → M₂) := f.cont
 
 @[simp] lemma coe_coe : (f.to_multilinear_map : (Π i, M₁ i) → M₂) = f := rfl
@@ -408,5 +415,63 @@ def pi_linear_equiv {ι' : Type*} {M' : ι' → Type*}
   .. pi_equiv }
 
 end module
+
+section comm_algebra
+
+variables (R ι) (A : Type*) [fintype ι] [comm_semiring R] [comm_semiring A] [algebra R A]
+  [topological_space A] [has_continuous_mul A]
+
+/-- The continuous multilinear map on `A^ι`, where `A` is a normed commutative algebra
+over `𝕜`, associating to `m` the product of all the `m i`.
+
+See also `continuous_multilinear_map.mk_pi_algebra_fin`. -/
+protected def mk_pi_algebra : continuous_multilinear_map R (λ i : ι, A) A :=
+{ cont := continuous_finset_prod _ $ λ i hi, continuous_apply _,
+  to_multilinear_map := multilinear_map.mk_pi_algebra R ι A}
+
+@[simp] lemma mk_pi_algebra_apply (m : ι → A) :
+  continuous_multilinear_map.mk_pi_algebra R ι A m = ∏ i, m i :=
+rfl
+
+end comm_algebra
+
+section algebra
+
+variables (R n) (A : Type*) [comm_semiring R] [semiring A] [algebra R A]
+  [topological_space A] [has_continuous_mul A]
+
+/-- The continuous multilinear map on `A^n`, where `A` is a normed algebra over `𝕜`, associating to
+`m` the product of all the `m i`.
+
+See also: `continuous_multilinear_map.mk_pi_algebra`. -/
+protected def mk_pi_algebra_fin : A [×n]→L[R] A :=
+{ cont := begin
+    change continuous (λ m, (list.of_fn m).prod),
+    simp_rw list.of_fn_eq_map,
+    exact continuous_list_prod _ (λ i hi, continuous_apply _),
+  end,
+  to_multilinear_map := multilinear_map.mk_pi_algebra_fin R n A}
+
+variables {R n A}
+
+@[simp] lemma mk_pi_algebra_fin_apply (m : fin n → A) :
+  continuous_multilinear_map.mk_pi_algebra_fin R n A m = (list.of_fn m).prod :=
+rfl
+
+end algebra
+
+section smul_right
+
+variables [comm_semiring R] [Π i, add_comm_monoid (M₁ i)] [add_comm_monoid M₂]
+  [Π i, module R (M₁ i)] [module R M₂] [topological_space R] [Π i, topological_space (M₁ i)]
+  [topological_space M₂] [has_continuous_smul R M₂] (f : continuous_multilinear_map R M₁ R) (z : M₂)
+
+/-- Given a continuous `R`-multilinear map `f` taking values in `R`, `f.smul_right z` is the
+continuous multilinear map sending `m` to `f m • z`. -/
+@[simps to_multilinear_map apply] def smul_right : continuous_multilinear_map R M₁ M₂ :=
+{ to_multilinear_map := f.to_multilinear_map.smul_right z,
+  cont := f.cont.smul continuous_const }
+
+end smul_right
 
 end continuous_multilinear_map

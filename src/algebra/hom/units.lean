@@ -12,7 +12,7 @@ import algebra.hom.group
 universes u v w
 
 namespace units
-variables {M : Type u} {N : Type v} {P : Type w} [monoid M] [monoid N] [monoid P]
+variables {α : Type*} {M : Type u} {N : Type v} {P : Type w} [monoid M] [monoid N] [monoid P]
 
 /-- The group homomorphism on units induced by a `monoid_hom`. -/
 @[to_additive "The `add_group` homomorphism on `add_unit`s induced by an `add_monoid_hom`."]
@@ -48,9 +48,16 @@ variable {M}
 lemma coe_pow (u : Mˣ) (n : ℕ) : ((u ^ n : Mˣ) : M) = u ^ n :=
 (units.coe_hom M).map_pow u n
 
-@[simp, norm_cast, to_additive]
-lemma coe_zpow {G} [group G] (u : Gˣ) (n : ℤ) : ((u ^ n : Gˣ) : G) = u ^ n :=
-(units.coe_hom G).map_zpow u n
+section division_monoid
+variables [division_monoid α]
+
+@[simp, norm_cast, to_additive] lemma coe_inv : ∀ u : αˣ, ↑u⁻¹ = (u⁻¹ : α) :=
+(units.coe_hom α).map_inv
+
+@[simp, norm_cast, to_additive] lemma coe_zpow : ∀ (u : αˣ) (n : ℤ), ((u ^ n : αˣ) : α) = u ^ n :=
+(units.coe_hom α).map_zpow
+
+end division_monoid
 
 /-- If a map `g : M → Nˣ` agrees with a homomorphism `f : M →* N`, then
 this map is a monoid homomorphism too. -/
@@ -109,19 +116,18 @@ to `f : M →* Nˣ`. See also `units.lift_right` for a computable version. -/
 lifted to `f : M →+ add_units N`. See also `add_units.lift_right` for a computable version."]
 noncomputable def is_unit.lift_right [monoid M] [monoid N] (f : M →* N)
   (hf : ∀ x, is_unit (f x)) : M →* Nˣ :=
-units.lift_right f (λ x, classical.some (hf x)) $ λ x, classical.some_spec (hf x)
+units.lift_right f (λ x, (hf x).unit) $ λ x, rfl
 
 @[to_additive] lemma is_unit.coe_lift_right [monoid M] [monoid N] (f : M →* N)
   (hf : ∀ x, is_unit (f x)) (x) :
-  (is_unit.lift_right f hf x : N) = f x :=
-units.coe_lift_right _ x
+  (is_unit.lift_right f hf x : N) = f x := rfl
 
 @[simp, to_additive] lemma is_unit.mul_lift_right_inv [monoid M] [monoid N] (f : M →* N)
   (h : ∀ x, is_unit (f x)) (x) : f x * ↑(is_unit.lift_right f h x)⁻¹ = 1 :=
-units.mul_lift_right_inv (λ y, classical.some_spec $ h y) x
+units.mul_lift_right_inv (λ y, rfl) x
 
 @[simp, to_additive] lemma is_unit.lift_right_inv_mul [monoid M] [monoid N] (f : M →* N)
   (h : ∀ x, is_unit (f x)) (x) : ↑(is_unit.lift_right f h x)⁻¹ * f x = 1 :=
-units.lift_right_inv_mul (λ y, classical.some_spec $ h y) x
+units.lift_right_inv_mul (λ y, rfl) x
 
 end is_unit

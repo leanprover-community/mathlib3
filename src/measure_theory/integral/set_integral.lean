@@ -6,6 +6,7 @@ Authors: Zhouhang Zhou, Yury Kudryashov
 import measure_theory.integral.integrable_on
 import measure_theory.integral.bochner
 import order.filter.indicator_function
+import topology.metric_space.thickened_indicator
 
 /-!
 # Set integral
@@ -30,7 +31,7 @@ Finally, we prove a version of the
 for set integral, see `filter.tendsto.integral_sub_linear_is_o_ae` and its corollaries.
 Namely, consider a measurably generated filter `l`, a measure `μ` finite at this filter, and
 a function `f` that has a finite limit `c` at `l ⊓ μ.ae`. Then `∫ x in s, f x ∂μ = μ s • c + o(μ s)`
-as `s` tends to `l.lift' powerset`, i.e. for any `ε>0` there exists `t ∈ l` such that
+as `s` tends to `l.small_sets`, i.e. for any `ε>0` there exists `t ∈ l` such that
 `∥∫ x in s, f x ∂μ - μ s • c∥ ≤ ε * μ s` whenever `s ⊆ t`. We also formulate a version of this
 theorem for a locally finite measure `μ` and a function `f` continuous at a point `a`.
 
@@ -140,6 +141,31 @@ begin
       (integral_congr_ae (indicator_ae_eq_restrict_compl hs))
   ... = ∫ x in s, f x ∂μ : by simp
 end
+
+lemma of_real_set_integral_one_of_measure_ne_top {α : Type*} {m : measurable_space α}
+  {μ : measure α} {s : set α} (hs : μ s ≠ ∞) :
+  ennreal.of_real (∫ x in s, (1 : ℝ) ∂μ) = μ s :=
+calc
+ennreal.of_real (∫ x in s, (1 : ℝ) ∂μ)
+    = ennreal.of_real (∫ x in s, ∥(1 : ℝ)∥ ∂μ) : by simp only [norm_one]
+... = ∫⁻ x in s, 1 ∂μ :
+begin
+  rw of_real_integral_norm_eq_lintegral_nnnorm (integrable_on_const.2 (or.inr hs.lt_top)),
+  simp only [nnnorm_one, ennreal.coe_one],
+end
+... = μ s : set_lintegral_one _
+
+lemma of_real_set_integral_one {α : Type*} {m : measurable_space α} (μ : measure α)
+  [is_finite_measure μ] (s : set α) :
+  ennreal.of_real (∫ x in s, (1 : ℝ) ∂μ) = μ s :=
+of_real_set_integral_one_of_measure_ne_top (measure_ne_top μ s)
+
+lemma integral_piecewise [decidable_pred (∈ s)] (hs : measurable_set s)
+  {f g : α → E} (hf : integrable_on f s μ) (hg : integrable_on g sᶜ μ) :
+  ∫ x, s.piecewise f g x ∂μ = ∫ x in s, f x ∂μ + ∫ x in sᶜ, g x ∂μ :=
+by rw [← set.indicator_add_compl_eq_piecewise,
+  integral_add' (hf.indicator hs) (hg.indicator hs.compl),
+  integral_indicator hs, integral_indicator hs.compl]
 
 lemma tendsto_set_integral_of_monotone {ι : Type*} [encodable ι] [semilattice_sup ι]
   {s : ι → set α} {f : α → E} (hsm : ∀ i, measurable_set (s i))
@@ -258,6 +284,11 @@ lemma integral_indicator_const (e : E) ⦃s : set α⦄ (s_meas : measurable_set
   ∫ (a : α), s.indicator (λ (x : α), e) a ∂μ = (μ s).to_real • e :=
 by rw [integral_indicator s_meas, ← set_integral_const]
 
+@[simp]
+lemma integral_indicator_one ⦃s : set α⦄ (hs : measurable_set s) :
+  ∫ a, s.indicator 1 a ∂μ = (μ s).to_real :=
+(integral_indicator_const 1 hs).trans ((smul_eq_mul _).trans (mul_one _))
+
 lemma set_integral_indicator_const_Lp {p : ℝ≥0∞} (hs : measurable_set s) (ht : measurable_set t)
   (hμt : μ t ≠ ∞) (x : E) :
   ∫ a in s, indicator_const_Lp p ht hμt x a ∂μ = (μ (t ∩ s)).to_real • x :=
@@ -274,11 +305,13 @@ calc ∫ a, indicator_const_Lp p ht hμt x a ∂μ
 ... = (μ t).to_real • x : by rw inter_univ
 
 lemma set_integral_map {β} [measurable_space β] {g : α → β} {f : β → E} {s : set β}
-  (hs : measurable_set s) (hf : ae_strongly_measurable f (measure.map g μ)) (hg : measurable g) :
+  (hs : measurable_set s)
+  (hf : ae_strongly_measurable f (measure.map g μ)) (hg : ae_measurable g μ) :
   ∫ y in s, f y ∂(measure.map g μ) = ∫ x in g ⁻¹' s, f (g x) ∂μ :=
 begin
-  rw [measure.restrict_map hg hs, integral_map hg (hf.mono_measure _)],
-  exact measure.map_mono g measure.restrict_le_self
+  rw [measure.restrict_map_of_ae_measurable hg hs,
+      integral_map (hg.mono_measure measure.restrict_le_self) (hf.mono_measure _)],
+  exact measure.map_mono_of_ae_measurable measure.restrict_le_self hg
 end
 
 lemma _root_.measurable_embedding.set_integral_map {β} {_ : measurable_space β} {f : α → β}
@@ -507,7 +540,7 @@ end tendsto_mono
 We prove that for any set `s`, the function `λ f : α →₁[μ] E, ∫ x in s, f x ∂μ` is continuous. -/
 
 section continuous_set_integral
-variables [normed_group E] {𝕜 : Type*} [is_R_or_C 𝕜] [normed_group F] [normed_space 𝕜 F]
+variables [normed_group E] {𝕜 : Type*} [normed_field 𝕜] [normed_group F] [normed_space 𝕜 F]
   {p : ℝ≥0∞} {μ : measure α}
 
 /-- For `f : Lp E p μ`, we can define an element of `Lp E p (μ.restrict s)` by
@@ -593,9 +626,8 @@ variables {ι : Type*} [normed_group E]
 
 /-- Fundamental theorem of calculus for set integrals: if `μ` is a measure that is finite at a
 filter `l` and `f` is a measurable function that has a finite limit `b` at `l ⊓ μ.ae`, then `∫ x in
-s i, f x ∂μ = μ (s i) • b + o(μ (s i))` at a filter `li` provided that `s i` tends to `l.lift'
-powerset` along `li`. Since `μ (s i)` is an `ℝ≥0∞` number, we use `(μ (s i)).to_real` in the
-actual statement.
+s i, f x ∂μ = μ (s i) • b + o(μ (s i))` at a filter `li` provided that `s i` tends to `l.small_sets`
+along `li`. Since `μ (s i)` is an `ℝ≥0∞` number, we use `(μ (s i)).to_real` in the actual statement.
 
 Often there is a good formula for `(μ (s i)).to_real`, so the formalization can take an optional
 argument `m` with this formula and a proof `of `(λ i, (μ (s i)).to_real) =ᶠ[li] m`. Without these
@@ -605,17 +637,16 @@ lemma filter.tendsto.integral_sub_linear_is_o_ae
   {μ : measure α} {l : filter α} [l.is_measurably_generated]
   {f : α → E} {b : E} (h : tendsto f (l ⊓ μ.ae) (𝓝 b))
   (hfm : strongly_measurable_at_filter f l μ) (hμ : μ.finite_at_filter l)
-  {s : ι → set α} {li : filter ι} (hs : tendsto s li (l.lift' powerset))
+  {s : ι → set α} {li : filter ι} (hs : tendsto s li l.small_sets)
   (m : ι → ℝ := λ i, (μ (s i)).to_real)
   (hsμ : (λ i, (μ (s i)).to_real) =ᶠ[li] m . tactic.interactive.refl) :
-  is_o (λ i, ∫ x in s i, f x ∂μ - m i • b) m li :=
+  (λ i, ∫ x in s i, f x ∂μ - m i • b) =o[li] m :=
 begin
-  suffices : is_o (λ s, ∫ x in s, f x ∂μ - (μ s).to_real • b) (λ s, (μ s).to_real)
-    (l.lift' powerset),
+  suffices : (λ s, ∫ x in s, f x ∂μ - (μ s).to_real • b) =o[l.small_sets] (λ s, (μ s).to_real),
     from (this.comp_tendsto hs).congr' (hsμ.mono $ λ a ha, ha ▸ rfl) hsμ,
   refine is_o_iff.2 (λ ε ε₀, _),
-  have : ∀ᶠ s in l.lift' powerset, ∀ᶠ x in μ.ae, x ∈ s → f x ∈ closed_ball b ε :=
-    eventually_lift'_powerset_eventually.2 (h.eventually $ closed_ball_mem_nhds _ ε₀),
+  have : ∀ᶠ s in l.small_sets, ∀ᶠ x in μ.ae, x ∈ s → f x ∈ closed_ball b ε :=
+    eventually_small_sets_eventually.2 (h.eventually $ closed_ball_mem_nhds _ ε₀),
   filter_upwards [hμ.eventually, (hμ.integrable_at_filter_of_tendsto_ae hfm h).eventually,
     hfm.eventually, this],
   simp only [mem_closed_ball, dist_eq_norm],
@@ -628,7 +659,7 @@ end
 /-- Fundamental theorem of calculus for set integrals, `nhds_within` version: if `μ` is a locally
 finite measure and `f` is an almost everywhere measurable function that is continuous at a point `a`
 within a measurable set `t`, then `∫ x in s i, f x ∂μ = μ (s i) • f a + o(μ (s i))` at a filter `li`
-provided that `s i` tends to `(𝓝[t] a).lift' powerset` along `li`.  Since `μ (s i)` is an `ℝ≥0∞`
+provided that `s i` tends to `(𝓝[t] a).small_sets` along `li`.  Since `μ (s i)` is an `ℝ≥0∞`
 number, we use `(μ (s i)).to_real` in the actual statement.
 
 Often there is a good formula for `(μ (s i)).to_real`, so the formalization can take an optional
@@ -640,19 +671,19 @@ lemma continuous_within_at.integral_sub_linear_is_o_ae
   {μ : measure α} [is_locally_finite_measure μ] {a : α} {t : set α}
   {f : α → E} (ha : continuous_within_at f t a) (ht : measurable_set t)
   (hfm : strongly_measurable_at_filter f (𝓝[t] a) μ)
-  {s : ι → set α} {li : filter ι} (hs : tendsto s li ((𝓝[t] a).lift' powerset))
+  {s : ι → set α} {li : filter ι} (hs : tendsto s li (𝓝[t] a).small_sets)
   (m : ι → ℝ := λ i, (μ (s i)).to_real)
   (hsμ : (λ i, (μ (s i)).to_real) =ᶠ[li] m . tactic.interactive.refl) :
-  is_o (λ i, ∫ x in s i, f x ∂μ - m i • f a) m li :=
+  (λ i, ∫ x in s i, f x ∂μ - m i • f a) =o[li] m :=
 by haveI : (𝓝[t] a).is_measurably_generated := ht.nhds_within_is_measurably_generated _;
 exact (ha.mono_left inf_le_left).integral_sub_linear_is_o_ae
   hfm (μ.finite_at_nhds_within a t) hs m hsμ
 
 /-- Fundamental theorem of calculus for set integrals, `nhds` version: if `μ` is a locally finite
 measure and `f` is an almost everywhere measurable function that is continuous at a point `a`, then
-`∫ x in s i, f x ∂μ = μ (s i) • f a + o(μ (s i))` at `li` provided that `s` tends to `(𝓝 a).lift'
-powerset` along `li.  Since `μ (s i)` is an `ℝ≥0∞` number, we use `(μ (s i)).to_real` in the
-actual statement.
+`∫ x in s i, f x ∂μ = μ (s i) • f a + o(μ (s i))` at `li` provided that `s` tends to
+`(𝓝 a).small_sets` along `li.  Since `μ (s i)` is an `ℝ≥0∞` number, we use `(μ (s i)).to_real` in
+the actual statement.
 
 Often there is a good formula for `(μ (s i)).to_real`, so the formalization can take an optional
 argument `m` with this formula and a proof `of `(λ i, (μ (s i)).to_real) =ᶠ[li] m`. Without these
@@ -662,16 +693,16 @@ lemma continuous_at.integral_sub_linear_is_o_ae
   [normed_space ℝ E] [complete_space E]
   {μ : measure α} [is_locally_finite_measure μ] {a : α}
   {f : α → E} (ha : continuous_at f a) (hfm : strongly_measurable_at_filter f (𝓝 a) μ)
-  {s : ι → set α} {li : filter ι} (hs : tendsto s li ((𝓝 a).lift' powerset))
+  {s : ι → set α} {li : filter ι} (hs : tendsto s li (𝓝 a).small_sets)
   (m : ι → ℝ := λ i, (μ (s i)).to_real)
   (hsμ : (λ i, (μ (s i)).to_real) =ᶠ[li] m . tactic.interactive.refl) :
-  is_o (λ i, ∫ x in s i, f x ∂μ - m i • f a) m li :=
+  (λ i, ∫ x in s i, f x ∂μ - m i • f a) =o[li] m :=
 (ha.mono_left inf_le_left).integral_sub_linear_is_o_ae hfm (μ.finite_at_nhds a) hs m hsμ
 
 /-- Fundamental theorem of calculus for set integrals, `nhds_within` version: if `μ` is a locally
 finite measure, `f` is continuous on a measurable set `t`, and `a ∈ t`, then `∫ x in (s i), f x ∂μ =
-μ (s i) • f a + o(μ (s i))` at `li` provided that `s i` tends to `(𝓝[t] a).lift' powerset` along
-`li`.  Since `μ (s i)` is an `ℝ≥0∞` number, we use `(μ (s i)).to_real` in the actual statement.
+μ (s i) • f a + o(μ (s i))` at `li` provided that `s i` tends to `(𝓝[t] a).small_sets` along `li`.
+Since `μ (s i)` is an `ℝ≥0∞` number, we use `(μ (s i)).to_real` in the actual statement.
 
 Often there is a good formula for `(μ (s i)).to_real`, so the formalization can take an optional
 argument `m` with this formula and a proof `of `(λ i, (μ (s i)).to_real) =ᶠ[li] m`. Without these
@@ -681,10 +712,10 @@ lemma continuous_on.integral_sub_linear_is_o_ae
   [normed_space ℝ E] [complete_space E] [second_countable_topology_either α E]
   {μ : measure α} [is_locally_finite_measure μ] {a : α} {t : set α}
   {f : α → E} (hft : continuous_on f t) (ha : a ∈ t) (ht : measurable_set t)
-  {s : ι → set α} {li : filter ι} (hs : tendsto s li ((𝓝[t] a).lift' powerset))
+  {s : ι → set α} {li : filter ι} (hs : tendsto s li (𝓝[t] a).small_sets)
   (m : ι → ℝ := λ i, (μ (s i)).to_real)
   (hsμ : (λ i, (μ (s i)).to_real) =ᶠ[li] m . tactic.interactive.refl) :
-  is_o (λ i, ∫ x in s i, f x ∂μ - m i • f a) m li :=
+  (λ i, ∫ x in s i, f x ∂μ - m i • f a) =o[li] m :=
 (hft a ha).integral_sub_linear_is_o_ae ht
   ⟨t, self_mem_nhds_within, hft.ae_strongly_measurable ht⟩ hs m hsμ
 
@@ -932,3 +963,30 @@ lemma set_integral_with_density_eq_set_integral_smul₀ {f : α → ℝ≥0} {s 
 by rw [restrict_with_density hs, integral_with_density_eq_integral_smul₀ hf]
 
 end
+
+section thickened_indicator
+
+variables [pseudo_emetric_space α]
+
+lemma measure_le_lintegral_thickened_indicator_aux
+  (μ : measure α) {E : set α} (E_mble : measurable_set E) (δ : ℝ) :
+  μ E ≤ ∫⁻ a, (thickened_indicator_aux δ E a : ℝ≥0∞) ∂μ :=
+begin
+  convert_to lintegral μ (E.indicator (λ _, (1 : ℝ≥0∞)))
+              ≤ lintegral μ (thickened_indicator_aux δ E),
+  { rw [lintegral_indicator _ E_mble],
+    simp only [lintegral_one, measure.restrict_apply, measurable_set.univ, univ_inter], },
+  { apply lintegral_mono,
+    apply indicator_le_thickened_indicator_aux, },
+end
+
+lemma measure_le_lintegral_thickened_indicator
+  (μ : measure α) {E : set α} (E_mble : measurable_set E) {δ : ℝ} (δ_pos : 0 < δ) :
+  μ E ≤ ∫⁻ a, (thickened_indicator δ_pos E a : ℝ≥0∞) ∂μ :=
+begin
+  convert measure_le_lintegral_thickened_indicator_aux μ E_mble δ,
+  dsimp,
+  simp only [thickened_indicator_aux_lt_top.ne, ennreal.coe_to_nnreal, ne.def, not_false_iff],
+end
+
+end thickened_indicator

@@ -44,7 +44,7 @@ More sophisticated lemmas belong in `group_theory.group_action`.
 group action
 -/
 
-variables {M N G A B α β γ : Type*}
+variables {M N G A B α β γ δ : Type*}
 
 open function (injective surjective)
 
@@ -57,16 +57,16 @@ class has_faithful_vadd (G : Type*) (P : Type*) [has_vadd G P] : Prop :=
 (eq_of_vadd_eq_vadd : ∀ {g₁ g₂ : G}, (∀ p : P, g₁ +ᵥ p = g₂ +ᵥ p) → g₁ = g₂)
 
 /-- Typeclass for faithful actions. -/
-@[to_additive has_faithful_vadd]
-class has_faithful_scalar (M : Type*) (α : Type*) [has_scalar M α] : Prop :=
+@[to_additive]
+class has_faithful_smul (M : Type*) (α : Type*) [has_scalar M α] : Prop :=
 (eq_of_smul_eq_smul : ∀ {m₁ m₂ : M}, (∀ a : α, m₁ • a = m₂ • a) → m₁ = m₂)
 
-export has_faithful_scalar (eq_of_smul_eq_smul) has_faithful_vadd (eq_of_vadd_eq_vadd)
+export has_faithful_smul (eq_of_smul_eq_smul) has_faithful_vadd (eq_of_vadd_eq_vadd)
 
 @[to_additive]
-lemma smul_left_injective' [has_scalar M α] [has_faithful_scalar M α] :
+lemma smul_left_injective' [has_scalar M α] [has_faithful_smul M α] :
   function.injective ((•) : M → α → α) :=
-λ m₁ m₂ h, has_faithful_scalar.eq_of_smul_eq_smul (congr_fun h)
+λ m₁ m₂ h, has_faithful_smul.eq_of_smul_eq_smul (congr_fun h)
 
 /-- See also `monoid.to_mul_action` and `mul_zero_class.to_smul_with_zero`. -/
 @[priority 910, to_additive] -- see Note [lower instance priority]
@@ -84,6 +84,25 @@ instance has_mul.to_has_scalar (α : Type*) [has_mul α] : has_scalar α α := �
 class mul_action (α : Type*) (β : Type*) [monoid α] extends has_scalar α β :=
 (one_smul : ∀ b : β, (1 : α) • b = b)
 (mul_smul : ∀ (x y : α) (b : β), (x * y) • b = x • y • b)
+
+instance additive.add_action [monoid α] [mul_action α β] : add_action (additive α) β :=
+{ vadd := (•) ∘ additive.to_mul,
+  zero_vadd := mul_action.one_smul,
+  add_vadd := mul_action.mul_smul }
+
+@[simp] lemma additive.of_mul_vadd [monoid α] [mul_action α β] (a : α) (b : β) :
+  additive.of_mul a +ᵥ b = a • b :=
+rfl
+
+instance multiplicative.mul_action [add_monoid α] [add_action α β] :
+  mul_action (multiplicative α) β :=
+{ smul := (+ᵥ) ∘ multiplicative.to_add,
+  one_smul := add_action.zero_vadd,
+  mul_smul := add_action.add_vadd }
+
+@[simp] lemma multiplicative.of_add_smul [add_monoid α] [add_action α β] (a : α) (b : β) :
+  multiplicative.of_add a • b = a +ᵥ b :=
+rfl
 
 /-!
 ### (Pre)transitive action
@@ -289,6 +308,11 @@ lemma mul_smul_comm [has_mul β] [has_scalar α β] [smul_comm_class α β β] (
 lemma smul_mul_assoc [has_mul β] [has_scalar α β] [is_scalar_tower α β β] (r : α) (x y : β)  :
   (r • x) * y = r • (x * y) :=
 smul_assoc r x y
+
+lemma smul_smul_smul_comm [has_scalar α β] [has_scalar α γ] [has_scalar β δ] [has_scalar α δ]
+  [has_scalar γ δ] [is_scalar_tower α β δ] [is_scalar_tower α γ δ] [smul_comm_class β γ δ]
+  (a : α) (b : β) (c : γ) (d : δ) : (a • b) • (c • d) = (a • c) • b • d :=
+by { rw [smul_assoc, smul_assoc, smul_comm b], apply_instance }
 
 variables [has_scalar M α]
 
@@ -547,13 +571,27 @@ def distrib_mul_action.to_add_monoid_End : M →* add_monoid.End A :=
   map_one' := add_monoid_hom.ext $ one_smul M,
   map_mul' := λ x y, add_monoid_hom.ext $ mul_smul x y }
 
+instance add_monoid.nat_smul_comm_class : smul_comm_class ℕ M A :=
+{ smul_comm := λ n x y, ((distrib_mul_action.to_add_monoid_hom A x).map_nsmul y n).symm }
+
+-- `smul_comm_class.symm` is not registered as an instance, as it would cause a loop
+instance add_monoid.nat_smul_comm_class' : smul_comm_class M ℕ A :=
+smul_comm_class.symm _ _ _
+
 end
 
 section
 variables [monoid M] [add_group A] [distrib_mul_action M A]
 
+instance add_group.int_smul_comm_class : smul_comm_class ℤ M A :=
+{ smul_comm := λ n x y, ((distrib_mul_action.to_add_monoid_hom A x).map_zsmul y n).symm }
+
+-- `smul_comm_class.symm` is not registered as an instance, as it would cause a loop
+instance add_group.int_smul_comm_class' : smul_comm_class M ℤ A :=
+smul_comm_class.symm _ _ _
+
 @[simp] theorem smul_neg (r : M) (x : A) : r • (-x) = -(r • x) :=
-eq_neg_of_add_eq_zero $ by rw [← smul_add, neg_add_self, smul_zero]
+eq_neg_of_add_eq_zero_left $ by rw [← smul_add, neg_add_self, smul_zero]
 
 theorem smul_sub (r : M) (x y : A) : r • (x - y) = r • x - r • y :=
 by rw [sub_eq_add_neg, sub_eq_add_neg, smul_add, smul_neg]
@@ -683,7 +721,7 @@ instance function.End.apply_mul_action : mul_action (function.End α) α :=
 @[simp] lemma function.End.smul_def (f : function.End α) (a : α) : f • a = f a := rfl
 
 /-- `function.End.apply_mul_action` is faithful. -/
-instance function.End.apply_has_faithful_scalar : has_faithful_scalar (function.End α) α :=
+instance function.End.apply_has_faithful_smul : has_faithful_smul (function.End α) α :=
 ⟨λ x y, funext⟩
 
 /-- The tautological action by `add_monoid.End α` on `α`.
@@ -701,8 +739,8 @@ instance add_monoid.End.apply_distrib_mul_action [add_monoid α] :
   f • a = f a := rfl
 
 /-- `add_monoid.End.apply_distrib_mul_action` is faithful. -/
-instance add_monoid.End.apply_has_faithful_scalar [add_monoid α] :
-  has_faithful_scalar (add_monoid.End α) α :=
+instance add_monoid.End.apply_has_faithful_smul [add_monoid α] :
+  has_faithful_smul (add_monoid.End α) α :=
 ⟨add_monoid_hom.ext⟩
 
 /-- The monoid hom representing a monoid action.

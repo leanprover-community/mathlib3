@@ -120,13 +120,35 @@ lemma smul_measure [monoid R] [distrib_mul_action R ℝ≥0∞] [is_scalar_tower
   ae_measurable f (c • μ) :=
 ⟨h.mk f, h.measurable_mk, ae_smul_measure h.ae_eq_mk c⟩
 
-lemma comp_measurable {f : α → δ} {g : δ → β} (hg : ae_measurable g (μ.map f)) (hf : measurable f) :
-  ae_measurable (g ∘ f) μ :=
-⟨hg.mk g ∘ f, hg.measurable_mk.comp hf, ae_eq_comp hf hg.ae_eq_mk⟩
+lemma comp_ae_measurable {f : α → δ} {g : δ → β}
+  (hg : ae_measurable g (μ.map f)) (hf : ae_measurable f μ) : ae_measurable (g ∘ f) μ :=
+⟨hg.mk g ∘ hf.mk f, hg.measurable_mk.comp hf.measurable_mk,
+  (ae_eq_comp hf hg.ae_eq_mk).trans ((hf.ae_eq_mk).fun_comp (mk g hg))⟩
+
+lemma comp_measurable {f : α → δ} {g : δ → β}
+  (hg : ae_measurable g (μ.map f)) (hf : measurable f) : ae_measurable (g ∘ f) μ :=
+hg.comp_ae_measurable hf.ae_measurable
 
 lemma comp_measurable' {ν : measure δ} {f : α → δ} {g : δ → β} (hg : ae_measurable g ν)
   (hf : measurable f) (h : μ.map f ≪ ν) : ae_measurable (g ∘ f) μ :=
 (hg.mono' h).comp_measurable hf
+
+lemma map_map_of_ae_measurable {g : β → γ} {f : α → β}
+  (hg : ae_measurable g (measure.map f μ)) (hf : ae_measurable f μ) :
+  (μ.map f).map g = μ.map (g ∘ f) :=
+begin
+  ext1 s hs,
+  let g' := hg.mk g,
+  have A : map g (map f μ) = map g' (map f μ),
+  { apply measure_theory.measure.map_congr,
+    exact hg.ae_eq_mk },
+  have B : map (g ∘ f) μ = map (g' ∘ f) μ,
+  { apply measure_theory.measure.map_congr,
+    exact ae_of_ae_map hf hg.ae_eq_mk },
+  simp only [A, B, hs, hg.measurable_mk.ae_measurable.comp_ae_measurable hf, hg.measurable_mk,
+    hg.measurable_mk hs, hf, map_apply, map_apply_of_ae_measurable],
+  refl,
+end
 
 @[measurability]
 lemma prod_mk {f : α → β} {g : α → γ} (hf : ae_measurable f μ) (hg : ae_measurable g μ) :
@@ -259,3 +281,27 @@ end
 lemma ae_measurable.indicator (hfm : ae_measurable f μ) {s} (hs : measurable_set s) :
   ae_measurable (s.indicator f) μ :=
 (ae_measurable_indicator_iff hs).mpr hfm.restrict
+
+lemma measure_theory.measure.restrict_map_of_ae_measurable
+  {f : α → δ} (hf : ae_measurable f μ) {s : set δ} (hs : measurable_set s) :
+  (μ.map f).restrict s = (μ.restrict $ f ⁻¹' s).map f :=
+calc
+(μ.map f).restrict s = (μ.map (hf.mk f)).restrict s :
+  by { congr' 1, apply measure.map_congr hf.ae_eq_mk }
+... = (μ.restrict $ (hf.mk f) ⁻¹' s).map (hf.mk f) :
+  measure.restrict_map hf.measurable_mk hs
+... = (μ.restrict $ (hf.mk f) ⁻¹' s).map f :
+  measure.map_congr (ae_restrict_of_ae (hf.ae_eq_mk.symm))
+... = (μ.restrict $ f ⁻¹' s).map f :
+begin
+  apply congr_arg,
+  ext1 t ht,
+  simp only [ht, measure.restrict_apply],
+  apply measure_congr,
+  apply (eventually_eq.refl _ _).inter (hf.ae_eq_mk.symm.preimage s)
+end
+
+lemma measure_theory.measure.map_mono_of_ae_measurable
+  {f : α → δ} (h : μ ≤ ν) (hf : ae_measurable f ν) :
+  μ.map f ≤ ν.map f :=
+λ s hs, by simpa [hf, hs, hf.mono_measure h] using measure.le_iff'.1 h (f ⁻¹' s)

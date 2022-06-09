@@ -58,8 +58,9 @@ zero_strong_infinitesimal.infinitesimal
 theorem strong_infinitesimal.neg {x} (hx : strong_infinitesimal x) : strong_infinitesimal (-x) :=
 λ n, by simpa [and.comm, neg_lt_iff] using hx n
 
-/-- A pre-game is dicotic when both players can move from any nonempty position. Equivalently,
-either none or both of its left and right move sets are empty, and all options are also dicotic. -/
+/-- A pre-game is dicotic or all-small when both players can move from any nonempty position.
+Equivalently, either none or both of its left and right move sets are empty, and all options are
+also dicotic. -/
 def dicotic_aux : pgame → Prop
 | x := (is_empty x.left_moves ↔ is_empty x.right_moves) ∧
     (∀ i, dicotic_aux (x.move_left i)) ∧ ∀ j, dicotic_aux (x.move_right j)

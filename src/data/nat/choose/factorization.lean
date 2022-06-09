@@ -98,7 +98,7 @@ Primes greater than about `2 * n / 3` and less than `n` do not appear in the fac
 -/
 lemma factorization_central_binom_of_two_mul_self_lt_three_mul
   (n_big : 2 < n) (p_le_n : p ≤ n) (big : 2 * n < 3 * p) :
-  ((central_binom n).factorization p) = 0 :=
+  (central_binom n).factorization p = 0 :=
 begin
   refine factorization_choose_of_lt_three_mul _ p_le_n (p_le_n.trans _) big,
   { rintro rfl, linarith },

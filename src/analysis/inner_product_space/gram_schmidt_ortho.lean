@@ -172,11 +172,16 @@ gram_schmidt_ne_zero_coe _ _ _ (linear_independent.comp h₀ _ subtype.coe_injec
 noncomputable def gram_schmidt_normed (f : ι → E) (n : ι) : E :=
 (∥gram_schmidt 𝕜 f n∥ : 𝕜)⁻¹ • (gram_schmidt 𝕜 f n)
 
+lemma gram_schmidt_normed_unit_length_coe [succ_order ι] [is_succ_archimedean ι]
+    (f : ι → E) (n : ι) (h₀ : linear_independent 𝕜 (f ∘ (coe : set.Iic n → ι))) :
+  ∥gram_schmidt_normed 𝕜 f n∥ = 1 :=
+by simp only [gram_schmidt_ne_zero_coe 𝕜 f n h₀,
+  gram_schmidt_normed, norm_smul_inv_norm, ne.def, not_false_iff]
+
 lemma gram_schmidt_normed_unit_length [succ_order ι] [is_succ_archimedean ι]
     (f : ι → E) (n : ι) (h₀ : linear_independent 𝕜 f) :
   ∥gram_schmidt_normed 𝕜 f n∥ = 1 :=
-by simp only [gram_schmidt_ne_zero 𝕜 f n h₀,
-  gram_schmidt_normed, norm_smul_inv_norm, ne.def, not_false_iff]
+gram_schmidt_normed_unit_length_coe _ _ _ (linear_independent.comp h₀ _ subtype.coe_injective)
 
 /-- **Gram-Schmidt Orthonormalization**:
 `gram_schmidt_normed` produces an orthornormal system of vectors. -/

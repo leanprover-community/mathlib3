@@ -422,9 +422,6 @@ end splits
 theorem _root_.irreducible.separable [char_zero F] {f : F[X]}
   (hf : irreducible f) : f.separable :=
 begin
-  haveI : no_zero_smul_divisors ℤ F :=
-    no_zero_smul_divisors.of_algebra_map_injective ((algebra_map ℤ F).injective_int),
-  haveI : no_zero_smul_divisors ℕ F := nat.no_zero_smul_divisors ℤ F,
   rw [separable_iff_derivative_ne_zero hf, ne, ← degree_eq_bot, degree_derivative_eq],
   { rintro ⟨⟩ },
   rw [pos_iff_ne_zero, ne, nat_degree_eq_zero_iff_degree_le_zero, degree_le_zero_iff],

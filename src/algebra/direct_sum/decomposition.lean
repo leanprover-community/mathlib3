@@ -116,11 +116,11 @@ map_sum (decompose_add_equiv ℳ) f s
 map_sum (decompose_add_equiv ℳ).symm f s
 
 /-- This instance produces the instance needed by `dfinsupp.support` -/
-instance set_like_decidable_ne_zero [Π x : M, decidable (x ≠ 0)] :
-  Π i (x : ℳ i), decidable (x ≠ 0) :=
-λ i x, decidable_of_iff _ add_submonoid_class.coe_eq_zero.not
+-- instance set_like_decidable_ne_zero [Π x : M, decidable (x ≠ 0)] :
+--   Π i (x : ℳ i), decidable (x ≠ 0) :=
+-- λ i x, decidable_of_iff _ add_submonoid_class.coe_eq_zero.not
 
-lemma sum_support_decompose [Π x : M, decidable (x ≠ 0)] (r : M) :
+lemma sum_support_decompose [Π i (x : ℳ i), decidable (x ≠ 0)] (r : M) :
   ∑ i in (decompose ℳ r).support, (decompose ℳ r i : M) = r :=
 begin
   conv_rhs { rw [←(decompose ℳ).symm_apply_apply r,

@@ -109,6 +109,13 @@ lemma circle_map_mem_closed_ball (c : ℂ) {R : ℝ} (hR : 0 ≤ R) (θ : ℝ) :
   circle_map c R θ ∈ closed_ball c R :=
 sphere_subset_closed_ball (circle_map_mem_sphere c hR θ)
 
+lemma circle_map_nmem_ball (c : ℂ) {R : ℝ} (hR : 0 ≤ R) (θ : ℝ) : circle_map c R θ ∉ ball c R :=
+begin
+  replace hR := circle_map_mem_sphere c hR θ,
+  simp only [mem_ball, mem_sphere] at hR ⊢,
+  linarith,
+end
+
 /-- The range of `circle_map c R` is the circle with center `c` and radius `|R|`. -/
 @[simp] lemma range_circle_map (c : ℂ) (R : ℝ) : range (circle_map c R) = sphere c (|R|) :=
 calc range (circle_map c R) = c +ᵥ R • range (λ θ : ℝ, exp (θ * I)) :

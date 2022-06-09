@@ -240,6 +240,12 @@ theorem subset.rfl {s : set α} : s ⊆ s := subset.refl s
 @[trans] theorem mem_of_eq_of_mem {x y : α} {s : set α} (hx : x = y) (h : y ∈ s) : x ∈ s :=
 hx.symm ▸ h
 
+lemma ne_of_mem_nmem {x y : α} (hx : x ∈ s) (hy : y ∉ s) : y ≠ x :=
+begin
+  contrapose! hy,
+  exact mem_of_eq_of_mem hy hx,
+end
+
 theorem subset.antisymm {a b : set α} (h₁ : a ⊆ b) (h₂ : b ⊆ a) : a = b :=
 set.ext $ λ x, ⟨@h₁ _, @h₂ _⟩
 

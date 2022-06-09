@@ -1066,8 +1066,8 @@ instance
 @[to_additive]
 lemma smul_def [has_scalar M' α] {S : submonoid M'} (g : S) (m : α) : g • m = (g : M') • m := rfl
 
-instance [has_scalar M' α] [has_faithful_scalar M' α] (S : submonoid M') :
-  has_faithful_scalar S α :=
+instance [has_scalar M' α] [has_faithful_smul M' α] (S : submonoid M') :
+  has_faithful_smul S α :=
 ⟨λ x y h, subtype.ext $ eq_of_smul_eq_smul h⟩
 
 end mul_one_class

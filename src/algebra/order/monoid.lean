@@ -114,8 +114,12 @@ class linear_ordered_comm_monoid (α : Type*)
 class zero_le_one_class (α : Type*) [has_zero α] [has_one α] [has_le α] :=
 (zero_le_one : (0 : α) ≤ 1)
 
-@[simp] lemma zero_le_one [has_le α] [has_zero α] [has_one α] [zero_le_one_class α] : (0 : α) ≤ 1 :=
+@[simp] lemma zero_le_one [has_zero α] [has_one α] [has_le α] [zero_le_one_class α] : (0 : α) ≤ 1 :=
 zero_le_one_class.zero_le_one
+
+/- `zero_le_one` with an explicit type argument. -/
+lemma zero_le_one' (α) [has_zero α] [has_one α] [has_le α] [zero_le_one_class α] : (0 : α) ≤ 1 :=
+zero_le_one
 
 lemma zero_le_two [preorder α] [has_one α] [add_zero_class α] [zero_le_one_class α]
   [covariant_class α α (+) (≤)] : (0 : α) ≤ 2 :=
@@ -843,6 +847,9 @@ trans eq_comm coe_eq_one
 @[simp, to_additive] theorem top_ne_one : ⊤ ≠ (1 : with_top α) .
 @[simp, to_additive] theorem one_ne_top : (1 : with_top α) ≠ ⊤ .
 
+instance [has_zero α] [has_le α] [zero_le_one_class α] : zero_le_one_class (with_top α) :=
+⟨some_le_some.2 zero_le_one⟩
+
 end has_one
 
 section has_add
@@ -1113,7 +1120,11 @@ instance [add_semigroup α] : add_semigroup (with_bot α) := with_top.add_semigr
 instance [add_comm_semigroup α] : add_comm_semigroup (with_bot α) := with_top.add_comm_semigroup
 instance [add_zero_class α] : add_zero_class (with_bot α) := with_top.add_zero_class
 instance [add_monoid α] : add_monoid (with_bot α) := with_top.add_monoid
-instance [add_comm_monoid α] : add_comm_monoid (with_bot α) :=  with_top.add_comm_monoid
+instance [add_comm_monoid α] : add_comm_monoid (with_bot α) := with_top.add_comm_monoid
+
+instance [has_zero α] [has_one α] [has_le α] [zero_le_one_class α] :
+  zero_le_one_class (with_bot α) :=
+⟨some_le_some.2 zero_le_one⟩
 
 -- `by norm_cast` proves this lemma, so I did not tag it with `norm_cast`
 @[to_additive]

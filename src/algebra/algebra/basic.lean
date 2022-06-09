@@ -438,50 +438,6 @@ end ring
 
 end algebra
 
-namespace no_zero_smul_divisors
-
-variables {R A : Type*}
-
-open algebra
-
-/-- If `algebra_map R A` is injective and `A` has no zero divisors,
-`R`-multiples in `A` are zero only if one of the factors is zero.
-
-Cannot be an instance because there is no `injective (algebra_map R A)` typeclass.
--/
-lemma of_algebra_map_injective
-  [comm_semiring R] [semiring A] [algebra R A] [no_zero_divisors A]
-  (h : function.injective (algebra_map R A)) : no_zero_smul_divisors R A :=
-⟨λ c x hcx, (mul_eq_zero.mp ((smul_def c x).symm.trans hcx)).imp_left
-  (map_eq_zero_iff (algebra_map R A) h).mp⟩
-
-variables (R A)
-lemma algebra_map_injective [comm_ring R] [ring A] [nontrivial A]
-  [algebra R A] [no_zero_smul_divisors R A] :
-  function.injective (algebra_map R A) :=
-suffices function.injective (λ (c : R), c • (1 : A)),
-by { convert this, ext, rw [algebra.smul_def, mul_one] },
-smul_left_injective R one_ne_zero
-
-variables {R A}
-lemma iff_algebra_map_injective [comm_ring R] [ring A] [is_domain A] [algebra R A] :
-  no_zero_smul_divisors R A ↔ function.injective (algebra_map R A) :=
-⟨@@no_zero_smul_divisors.algebra_map_injective R A _ _ _ _,
- no_zero_smul_divisors.of_algebra_map_injective⟩
-
-section field
-
-variables [field R] [semiring A] [algebra R A]
-
-@[priority 100] -- see note [lower instance priority]
-instance algebra.no_zero_smul_divisors [nontrivial A] [no_zero_divisors A] :
-  no_zero_smul_divisors R A :=
-no_zero_smul_divisors.of_algebra_map_injective (algebra_map R A).injective
-
-end field
-
-end no_zero_smul_divisors
-
 namespace mul_opposite
 
 variables {R A : Type*} [comm_semiring R] [semiring A] [algebra R A]
@@ -1352,6 +1308,60 @@ instance int_algebra_subsingleton : subsingleton (algebra ℤ R) :=
 ⟨λ P Q, by { ext, simp, }⟩
 
 end int
+
+namespace no_zero_smul_divisors
+
+variables {R A : Type*}
+
+open algebra
+
+/-- If `algebra_map R A` is injective and `A` has no zero divisors,
+`R`-multiples in `A` are zero only if one of the factors is zero.
+
+Cannot be an instance because there is no `injective (algebra_map R A)` typeclass.
+-/
+lemma of_algebra_map_injective
+  [comm_semiring R] [semiring A] [algebra R A] [no_zero_divisors A]
+  (h : function.injective (algebra_map R A)) : no_zero_smul_divisors R A :=
+⟨λ c x hcx, (mul_eq_zero.mp ((smul_def c x).symm.trans hcx)).imp_left
+  (map_eq_zero_iff (algebra_map R A) h).mp⟩
+
+variables (R A)
+lemma algebra_map_injective [comm_ring R] [ring A] [nontrivial A]
+  [algebra R A] [no_zero_smul_divisors R A] :
+  function.injective (algebra_map R A) :=
+suffices function.injective (λ (c : R), c • (1 : A)),
+by { convert this, ext, rw [algebra.smul_def, mul_one] },
+smul_left_injective R one_ne_zero
+
+variables {R A}
+lemma iff_algebra_map_injective [comm_ring R] [ring A] [is_domain A] [algebra R A] :
+  no_zero_smul_divisors R A ↔ function.injective (algebra_map R A) :=
+⟨@@no_zero_smul_divisors.algebra_map_injective R A _ _ _ _,
+ no_zero_smul_divisors.of_algebra_map_injective⟩
+
+@[priority 100] -- see note [lower instance priority]
+instance char_zero.no_zero_smul_divisors_nat [semiring R] [no_zero_divisors R] [char_zero R] :
+  no_zero_smul_divisors ℕ R :=
+no_zero_smul_divisors.of_algebra_map_injective $ (algebra_map ℕ R).injective_nat
+
+@[priority 100] -- see note [lower instance priority]
+instance char_zero.no_zero_smul_divisors_int [ring R] [no_zero_divisors R] [char_zero R] :
+  no_zero_smul_divisors ℤ R :=
+no_zero_smul_divisors.of_algebra_map_injective $ (algebra_map ℤ R).injective_int
+
+section field
+
+variables [field R] [semiring A] [algebra R A]
+
+@[priority 100] -- see note [lower instance priority]
+instance algebra.no_zero_smul_divisors [nontrivial A] [no_zero_divisors A] :
+  no_zero_smul_divisors R A :=
+no_zero_smul_divisors.of_algebra_map_injective (algebra_map R A).injective
+
+end field
+
+end no_zero_smul_divisors
 
 /-!
 The R-algebra structure on `Π i : I, A i` when each `A i` is an R-algebra.

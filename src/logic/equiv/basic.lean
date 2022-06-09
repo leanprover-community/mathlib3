@@ -341,33 +341,21 @@ by { ext, simp }
 
 end perm_congr
 
+/-- Two empty types are equivalent. -/
+def equiv_of_is_empty  (α β : Sort*) [is_empty α] [is_empty β] : α ≃ β :=
+⟨is_empty_elim, is_empty_elim, is_empty_elim, is_empty_elim⟩
+
 /-- If `α` is an empty type, then it is equivalent to the `empty` type. -/
 def equiv_empty (α : Sort u) [is_empty α] : α ≃ empty :=
-⟨is_empty_elim, λ e, e.rec _, is_empty_elim, λ e, e.rec _⟩
+equiv_of_is_empty  α _
+
+/-- If `α` is an empty type, then it is equivalent to the `pempty` type in any universe. -/
+def equiv_pempty (α : Sort v) [is_empty α] : α ≃ pempty.{u} :=
+equiv_of_is_empty  α _
 
 /-- `α` is equivalent to an empty type iff `α` is empty. -/
 def equiv_empty_equiv (α : Sort u) : (α ≃ empty) ≃ is_empty α :=
 ⟨λ e, function.is_empty e, @equiv_empty α, λ e, ext $ λ x, (e x).elim, λ p, rfl⟩
-
-/-- `false` is equivalent to `empty`. -/
-def false_equiv_empty : false ≃ empty :=
-equiv_empty _
-
-/-- If `α` is an empty type, then it is equivalent to the `pempty` type in any universe. -/
-def {u' v'} equiv_pempty (α : Sort v') [is_empty α] : α ≃ pempty.{u'} :=
-⟨is_empty_elim, λ e, e.rec _, is_empty_elim, λ e, e.rec _⟩
-
-/-- `false` is equivalent to `pempty`. -/
-def false_equiv_pempty : false ≃ pempty :=
-equiv_pempty _
-
-/-- `empty` is equivalent to `pempty`. -/
-def empty_equiv_pempty : empty ≃ pempty :=
-equiv_pempty _
-
-/-- `pempty` types from any two universes are equivalent. -/
-def pempty_equiv_pempty : pempty.{v} ≃ pempty.{w} :=
-equiv_pempty _
 
 /-- The `Sort` of proofs of a true proposition is equivalent to `punit`. -/
 def prop_equiv_punit {p : Prop} (h : p) : p ≃ punit :=
@@ -375,7 +363,7 @@ def prop_equiv_punit {p : Prop} (h : p) : p ≃ punit :=
 
 /-- The `Sort` of proofs of a false proposition is equivalent to `pempty`. -/
 def prop_equiv_pempty {p : Prop} (h : ¬p) : p ≃ pempty :=
-⟨λ x, absurd x h, λ x, by cases x, λ x, absurd x h, λ x, by cases x⟩
+@equiv_pempty p $ is_empty.prop_iff.2 h
 
 /-- `true` is equivalent to `punit`. -/
 def true_equiv_punit : true ≃ punit := prop_equiv_punit trivial

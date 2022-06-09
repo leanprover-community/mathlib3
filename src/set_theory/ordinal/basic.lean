@@ -494,27 +494,22 @@ def type (r : α → α → Prop) [wo : is_well_order α r] : ordinal :=
 def typein (r : α → α → Prop) [is_well_order α r] (a : α) : ordinal :=
 type (subrel r {b | r b a})
 
-theorem type_def (r : α → α → Prop) [wo : is_well_order α r] :
-  @eq ordinal ⟦⟨α, r, wo⟩⟧ (type r) := rfl
+@[simp] theorem type_def' (w : Well_order) : ⟦w⟧ = type w.r :=
+by { cases w, refl }
 
-@[simp] theorem type_def' (r : α → α → Prop) [is_well_order α r] {wo} :
-  @eq ordinal ⟦⟨α, r, wo⟩⟧ (type r) := rfl
+@[simp] theorem type_def (r) [wo : is_well_order α r] : (⟦⟨α, r, wo⟩⟧ : ordinal) = type r :=
+rfl
 
 theorem type_eq {α β} {r : α → α → Prop} {s : β → β → Prop}
-  [is_well_order α r] [is_well_order β s] :
-  type r = type s ↔ nonempty (r ≃r s) := quotient.eq
+  [is_well_order α r] [is_well_order β s] : type r = type s ↔ nonempty (r ≃r s) :=
+quotient.eq
 
 theorem _root_.rel_iso.ordinal_type_eq {α β} {r : α → α → Prop} {s : β → β → Prop}
   [is_well_order α r] [is_well_order β s] (h : r ≃r s) :
   type r = type s := type_eq.2 ⟨h⟩
 
 @[simp] theorem type_lt (o : ordinal) : type ((<) : o.out.α → o.out.α → Prop) = o :=
-begin
-  change type o.out.r = _,
-  refine eq.trans _ (quotient.out_eq o),
-  cases quotient.out o,
-  refl
-end
+(type_def' _).symm.trans $ quotient.out_eq o
 
 @[elab_as_eliminator] theorem induction_on {C : ordinal → Prop}
   (o : ordinal) (H : ∀ α r [is_well_order α r], by exactI C (type r)) : C o :=
@@ -752,7 +747,7 @@ instance : has_zero ordinal :=
 instance : inhabited ordinal := ⟨0⟩
 
 theorem zero_eq_type_empty : 0 = @type empty empty_relation _ :=
-quotient.sound ⟨⟨empty_equiv_pempty.symm, λ _ _, iff.rfl⟩⟩
+quotient.sound ⟨⟨equiv_of_is_empty  _ _, λ _ _, iff.rfl⟩⟩
 
 @[simp] theorem card_zero : card 0 = 0 := rfl
 
@@ -866,7 +861,7 @@ by simp only [lt_iff_le_not_le, lift_le]
 
 @[simp] theorem lift_zero : lift 0 = 0 :=
 quotient.sound ⟨(rel_iso.preimage equiv.ulift _).trans
- ⟨pempty_equiv_pempty, λ a b, iff.rfl⟩⟩
+ ⟨equiv_of_is_empty  _ _, λ a b, iff.rfl⟩⟩
 
 theorem zero_eq_lift_type_empty : 0 = lift.{u} (@type empty empty_relation _) :=
 by rw [← zero_eq_type_empty, lift_zero]

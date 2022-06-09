@@ -90,8 +90,12 @@ prime.pos (prime_of_mem_factorization hp)
 lemma le_of_mem_factorization {n p : ℕ} (h : p ∈ n.factorization.support) : p ≤ n :=
 le_of_mem_factors (factor_iff_mem_factorization.mp h)
 
+@[simp]
 lemma factorization_eq_zero_of_non_prime (n : ℕ) {p : ℕ} (hp : ¬p.prime) : n.factorization p = 0 :=
 not_mem_support_iff.1 (mt prime_of_mem_factorization hp)
+
+lemma factorization_eq_zero_of_lt {n p : ℕ} (h : n < p) : n.factorization p = 0 :=
+finsupp.not_mem_support_iff.mp (mt le_of_mem_factorization (not_le_of_lt h))
 
 @[simp] lemma factorization_zero_right (n : ℕ) : n.factorization 0 = 0 :=
 factorization_eq_zero_of_non_prime _ not_prime_zero

@@ -5,6 +5,7 @@ Authors: Apurva Nakade
 -/
 import algebra.algebra.basic
 import ring_theory.localization.away
+import set_theory.game.birthday
 import set_theory.surreal.basic
 
 /-!
@@ -55,6 +56,9 @@ pempty.is_empty
 instance unique_pow_half_succ_right_moves (n) : unique (pow_half (n + 1)).right_moves :=
 punit.unique
 
+@[simp] theorem birthday_half : birthday (pow_half 1) = 2 :=
+by { rw birthday_def, dsimp, simpa using order.le_succ (1 : ordinal) }
+
 /-- For all natural numbers `n`, the pre-games `pow_half n` are numeric. -/
 theorem numeric_pow_half (n) : (pow_half n).numeric :=
 begin
@@ -94,8 +98,8 @@ begin
     { rintro (⟨⟨ ⟩⟩ | ⟨⟨ ⟩⟩); apply lf_of_lt,
       { apply lt_of_equiv_of_lt (zero_add_equiv _) (pow_half_succ_lt_pow_half n) },
       { apply lt_of_equiv_of_lt (add_zero_equiv _) (pow_half_succ_lt_pow_half n) } },
-    { cases n,
-      rintro ⟨ ⟩, rintro ⟨ ⟩,
+    { cases n, { rintro ⟨ ⟩ }, 
+      rintro ⟨ ⟩,
       refine lf_of_forall_le (or.inr ⟨sum.inl punit.star, _⟩),
       apply le_of_le_of_equiv (add_le_add_left (pow_half_succ_le_pow_half _) _)
         (hn _ (nat.lt_succ_self n)) },
@@ -110,6 +114,9 @@ begin
       { apply lt_of_equiv_of_lt ((zero_add_equiv _).symm)
           (add_lt_add_right (pow_half_pos n.succ) _) } } }
 end
+
+theorem half_add_half_equiv_one : pow_half 1 + pow_half 1 ≈ 1 :=
+add_pow_half_succ_self_eq_pow_half 0
 
 end pgame
 

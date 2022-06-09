@@ -29,8 +29,8 @@ open finset
 variables {α : Type*}
 
 namespace set
-section generalized_boolean_algebra
-variables [generalized_boolean_algebra α] {s t : set α} {a b c : α}
+section semilattice_inf
+variables [semilattice_inf α] [order_bot α] {s t : set α} {a b c : α}
 
 /-- A set family is intersecting if every pair of elements is non-disjoint. -/
 def intersecting (s : set α) : Prop := ∀ ⦃a⦄, a ∈ s → ∀ ⦃b⦄, b ∈ s → ¬ disjoint a b
@@ -46,15 +46,6 @@ ne_of_mem_of_not_mem ha hs.not_bot_mem
 lemma intersecting_empty : (∅ : set α).intersecting := λ _, false.elim
 
 @[simp] lemma intersecting_singleton : ({a} : set α).intersecting ↔ a ≠ ⊥ := by simp [intersecting]
-
-protected lemma subsingleton.intersecting (hs : s.subsingleton) : s.intersecting ↔ s ≠ {⊥} :=
-begin
-  refine ⟨_, λ h a ha b hb hab, h $ hs.eq_singleton_of_mem _⟩,
-  { rintro h rfl,
-    exact intersecting_singleton.1 h rfl },
-  { rw [hs ha hb, disjoint_self] at hab,
-    rwa ←hab }
-end
 
 lemma intersecting.insert (hs : s.intersecting) (ha : a ≠ ⊥) (h : ∀ b ∈ s, ¬ disjoint a b) :
   (insert a s).intersecting :=
@@ -84,6 +75,20 @@ begin
       ⟨hb, λ c hc, not_ne_iff.1 $ λ H, h.1 hb hc H.symm disjoint_bot_left⟩) }
 end
 
+protected lemma subsingleton.intersecting (hs : s.subsingleton) : s.intersecting ↔ s ≠ {⊥} :=
+intersecting_iff_pairwise_not_disjoint.trans $ and_iff_right $ hs.pairwise _
+
+lemma intersecting_iff_eq_empty_of_subsingleton [subsingleton α] (s : set α) :
+  s.intersecting ↔ s = ∅ :=
+begin
+  refine subsingleton_of_subsingleton.intersecting.trans
+    ⟨not_imp_comm.2 $ λ h, subsingleton_of_subsingleton.eq_singleton_of_mem _, _⟩,
+  { obtain ⟨a, ha⟩ := ne_empty_iff_nonempty.1 h,
+    rwa subsingleton.elim ⊥ a },
+  { rintro rfl,
+    exact (set.singleton_nonempty _).ne_empty.symm }
+end
+
 /-- Maximal intersecting families are upper sets. -/
 protected lemma intersecting.is_upper_set (hs : s.intersecting)
   (h : ∀ t : set α, t.intersecting → s ⊆ t → s = t) :
@@ -111,7 +116,7 @@ begin
     (λ c hc hbc, hs ha hc $ hbc.mono_left hab),
 end
 
-end generalized_boolean_algebra
+end semilattice_inf
 
 lemma intersecting.exists_mem_set {𝒜 : set (set α)} (h𝒜 : 𝒜.intersecting) {s t : set α}
   (hs : s ∈ 𝒜) (ht : t ∈ 𝒜) : ∃ a, a ∈ s ∧ a ∈ t :=
@@ -134,7 +139,7 @@ variables [fintype α] {s : finset α}
 lemma intersecting.card_le (hs : (s : set α).intersecting) : 2 * s.card ≤ fintype.card α :=
 begin
   classical,
-  refine (s ∪ (s.map ⟨compl, compl_injective⟩)).card_le_univ.trans_eq' _,
+  refine (s ∪ s.map ⟨compl, compl_injective⟩).card_le_univ.trans_eq' _,
   rw [two_mul, card_union_eq, card_map],
   rintro x hx,
   rw [finset.inf_eq_inter, finset.mem_inter, mem_map] at hx,
@@ -150,7 +155,7 @@ begin
   classical,
   refine ⟨λ h, _, λ h t ht hst, eq_of_subset_of_card_le hst $
     le_of_mul_le_mul_left (ht.card_le.trans_eq h.symm) two_pos⟩,
-  suffices : (s ∪ (s.map ⟨compl, compl_injective⟩)) = finset.univ,
+  suffices : s ∪ s.map ⟨compl, compl_injective⟩ = finset.univ,
   { rw [fintype.card, ←this, two_mul, card_union_eq, card_map],
     rintro x hx,
     rw [finset.inf_eq_inter, finset.mem_inter, mem_map] at hx,
@@ -161,9 +166,9 @@ begin
   refine eq_univ_of_forall (λ a, _),
   simp_rw [mem_union, mem_preimage],
   by_contra' ha,
-  refine finset.ne_insert_of_not_mem _ _ ha.1 (h (insert a s) _ $ finset.subset_insert _ _),
+  refine s.ne_insert_of_not_mem _ ha.1 (h _ _ $ s.subset_insert _),
   rw coe_insert,
-  refine hs.insert _ (λ b hb hab, ha.2 $ (hs.is_upper_set' h) hab.le_compl' hb),
+  refine hs.insert _ (λ b hb hab, ha.2 $ (hs.is_upper_set' h) hab.le_compl_left hb),
   rintro rfl,
   have := h {⊤} (by { rw coe_singleton, exact intersecting_singleton.2 top_ne_bot }),
   rw compl_bot at ha,
@@ -177,7 +182,7 @@ begin
   have := hs.card_le,
   rw [mul_comm, ←nat.le_div_iff_mul_le' two_pos] at this,
   revert hs,
-  refine finset.strong_downward_induction_on s _ this,
+  refine s.strong_downward_induction_on _ this,
   rintro s ih hcard hs,
   by_cases ∀ t : finset α, (t : set α).intersecting → s ⊆ t → s = t,
   { exact ⟨s, subset.rfl, hs.is_max_iff_card_eq.1 h, hs⟩ },

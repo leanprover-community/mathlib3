@@ -238,37 +238,38 @@ lemma comp_mono {p : seminorm 𝕜 F} {q : seminorm 𝕜 F} (f : E →ₗ[𝕜] 
 @[simps] def pullback (f : E →ₗ[𝕜] F) : add_monoid_hom (seminorm 𝕜 F) (seminorm 𝕜 E) :=
 ⟨λ p, p.comp f, zero_comp f, λ p q, add_comp p q f⟩
 
-section norm_one_class
-variables [norm_one_class 𝕜] (p : seminorm 𝕜 E) (x y : E) (r : ℝ)
+section
+variables (p : seminorm 𝕜 E)
 
 @[simp]
-protected lemma neg : p (-x) = p x :=
-calc p (-x) = p ((-1 : 𝕜) • x) : by rw neg_one_smul
-...         = p x : by rw [p.smul, norm_neg, norm_one, one_mul]
+protected lemma neg (x : E) : p (-x) = p x :=
+by rw [←neg_one_smul 𝕜, seminorm.smul, norm_neg, ←seminorm.smul, one_smul]
 
-protected lemma sub_le : p (x - y) ≤ p x + p y :=
+protected lemma sub_le (x y : E) : p (x - y) ≤ p x + p y :=
 calc
   p (x - y)
       = p (x + -y) : by rw sub_eq_add_neg
   ... ≤ p x + p (-y) : p.triangle x (-y)
   ... = p x + p y : by rw p.neg
 
-lemma nonneg : 0 ≤ p x :=
+lemma nonneg (x : E) : 0 ≤ p x :=
 have h: 0 ≤ 2 * p x, from
 calc 0 = p (x + (- x)) : by rw [add_neg_self, map_zero]
 ...    ≤ p x + p (-x)  : p.triangle _ _
 ...    = 2 * p x : by rw [p.neg, two_mul],
 nonneg_of_mul_nonneg_left h zero_lt_two
 
-lemma sub_rev : p (x - y) = p (y - x) := by rw [←neg_sub, p.neg]
+lemma sub_rev (x y : E) : p (x - y) = p (y - x) := by rw [←neg_sub, p.neg]
 
 /-- The direct path from 0 to y is shorter than the path with x "inserted" in between. -/
-lemma le_insert : p y ≤ p x + p (x - y) :=
+lemma le_insert (x y : E) : p y ≤ p x + p (x - y) :=
 calc p y = p (x - (x - y)) : by rw sub_sub_cancel
 ... ≤ p x + p (x - y) : p.sub_le _ _
 
 /-- The direct path from 0 to x is shorter than the path with y "inserted" in between. -/
-lemma le_insert' : p x ≤ p y + p (x - y) := by { rw sub_rev, exact le_insert _ _ _ }
+lemma le_insert' (x y : E) : p x ≤ p y + p (x - y) := by { rw sub_rev, exact le_insert _ _ _ }
+
+end
 
 instance : order_bot (seminorm 𝕜 E) := ⟨0, nonneg⟩
 
@@ -321,7 +322,6 @@ begin
   { exact nnreal.coe_pos.mpr ha },
 end
 
-end norm_one_class
 end module
 end semi_normed_ring
 
@@ -468,8 +468,7 @@ begin
   simp_rw [ball, mem_preimage, comp_apply, set.mem_set_of_eq, map_sub],
 end
 
-section norm_one_class
-variables [norm_one_class 𝕜] (p : seminorm 𝕜 E)
+variables (p : seminorm 𝕜 E)
 
 lemma ball_zero_eq_preimage_ball {r : ℝ} :
   p.ball 0 r = p ⁻¹' (metric.ball 0 r) :=
@@ -523,7 +522,6 @@ begin
   exact hr.trans (p.nonneg _),
 end
 
-end norm_one_class
 end module
 end add_comm_group
 end semi_normed_ring
@@ -662,7 +660,7 @@ lemma absorbent_ball (hx : ∥x∥ < r) : absorbent 𝕜 (metric.ball x r) :=
 by { rw ←ball_norm_seminorm 𝕜, exact (norm_seminorm _ _).absorbent_ball hx }
 
 /-- Balls at the origin are balanced. -/
-lemma balanced_ball_zero [norm_one_class 𝕜] : balanced 𝕜 (metric.ball (0 : E) r) :=
+lemma balanced_ball_zero : balanced 𝕜 (metric.ball (0 : E) r) :=
 by { rw ←ball_norm_seminorm 𝕜, exact (norm_seminorm _ _).balanced_ball_zero r }
 
 end norm_seminorm

@@ -230,7 +230,7 @@ We follow the proof in [schleicher_stoll], except that we use the well-foundedne
 the hydra relation `cut_expand` on `multiset pgame` instead of the argument based
 on a depth function in the paper.
 
-In the argument, P3 is stated with four variables `x₁, x₂, y₁, y₂` satisfying `x₁ < x₂` and
+In the argument, P3 is stated with four variables `x₁`, `x₂`, `y₁`, `y₂` satisfying `x₁ < x₂` and
 `y₁ < y₂`, and says that `x₁ * y₂ + x₂ * x₁ < x₁ * y₁ + x₂ * y₂`, which is equivalent to
 `0 < x₂ - x₁ → 0 < y₂ - y₁ → 0 < (x₂ - x₁) * (y₂ - y₁)`, i.e.
 `@mul_pos pgame _ (x₂ - x₁) (y₂ - y₁)`. It has to be stated in this form and not in terms of
@@ -239,11 +239,11 @@ for example `P1 x y` will be deduced from P3 with variables taking values simple
 (among other induction hypotheses), but if you subtract two pregames simpler than `x` or `y`,
 the result may no longer be simpler.
 
-The specialized version of P3 is called P4, which takes only three arguments `x₁, x₂, y` and
+The specialized version of P3 is called P4, which takes only three arguments `x₁`, `x₂`, `y` and
 requires that `y₂ = y` or `-y` and that `y₁` is a left option of `y₂`. After P1, P2 and P4 are
 shown, a further inductive argument (this time using the `game_add` relation) proves P3 in full.
 
-Our proof features a clear separation of
+Our proof features a clear separation into components/submodules:
 * calculation (e.g. ...),
 * specialize induction hypothesis to a form easier to apply
   (that direct takes in `is_option` arguments),
@@ -559,7 +559,7 @@ def mul_options_lt_mul (x y) : Prop := ∀ ⦃i j⦄, ⟦mul_option x y i j⟧ <
 
 /-- That the left options of `x * y` are less than itself and the right options are greater, which
   is part of the condition that `x * y` is numeric, is equivalent to the conjunction of various
-  `mul_options_lt_mul` statements for `x, y` and their negations. We only show the forward
+  `mul_options_lt_mul` statements for `x`, `y` and their negations. We only show the forward
   direction. -/
 lemma mul_options_lt_mul_of_numeric (hn : (x * y).numeric) :
   (mul_options_lt_mul x y ∧ mul_options_lt_mul (-x) (-y)) ∧
@@ -591,8 +591,8 @@ begin
   exacts [(h.2.2.2 hl).trans h.2.2.1, by { rw [P3, h.1 he, h.2.1 he], exact h.2.2.1 }],
 end
 
-/-- P3 follows from `ih3`, so P4 (with `y₁` a left option of `y₂`) follows from the induction
-  hypothesis. -/
+/-- P3 follows from `ih3` (so P4 (with `y₁` a left option of `y₂`) follows from the induction
+  hypothesis). -/
 theorem P3_of_lt {y₁ y₂} (h : ∀ i, ih3 x₁ (x₂.move_left i) x₂ y₁ y₂)
   (hs : ∀ i, ih3 (-x₂) ((-x₁).move_left i) (-x₁) y₁ y₂) (hl : x₁ < x₂) : P3 x₁ x₂ y₁ y₂ :=
 begin
@@ -706,9 +706,10 @@ def lift₂ {α} (f : ∀ x y, numeric x → numeric y → α)
 lift (λ x ox, lift (λ y oy, f x y ox oy) (λ y₁ y₂ oy₁ oy₂, H _ _ _ _ equiv_rfl))
   (λ x₁ x₂ ox₁ ox₂ h, funext $ quotient.ind $ by exact λ ⟨y, oy⟩, H _ _ _ _ h equiv_rfl)
 
-/-- All the surreal operations (`+`, `-`, `*`) and relations (`≤`, `<`) are inherited from
+/-! All the surreal operations (`+`, `-`, `*`) and relations (`≤`, `<`) are inherited from
   `pgame`. -/
-instance : ordered_comm_ring surreal :=
+
+instance : add_comm_group surreal :=
 { add := lift₂ (λ x y ox oy, ⟦⟨x + y, ox.add oy⟩⟧)
     (λ x₁ y₁ x₂ y₂ _ _ _ _ hx hy, quotient.sound $ add_congr hx hy),
   add_assoc := by { rintros ⟨_⟩ ⟨_⟩ ⟨_⟩, exact quotient.sound add_assoc_equiv },
@@ -717,15 +718,10 @@ instance : ordered_comm_ring surreal :=
   add_zero := by { rintros ⟨a⟩, exact quotient.sound (add_zero_equiv a) },
   neg := lift (λ x ox, ⟦⟨-x, ox.neg⟩⟧) (λ _ _ _ _ a, quotient.sound $ neg_congr a),
   add_left_neg := by { rintros ⟨a⟩, exact quotient.sound (add_left_neg_equiv a) },
-  add_comm := by { rintros ⟨_⟩ ⟨_⟩, exact quotient.sound add_comm_equiv },
-  le := lift₂ (λ x y _ _, x ≤ y) (λ x₁ y₁ x₂ y₂ _ _ _ _ hx hy, propext $ le_congr hx hy),
-  lt := lift₂ (λ x y _ _, x < y) (λ x₁ y₁ x₂ y₂ _ _ _ _ hx hy, propext $ lt_congr hx hy),
-  le_refl := by { rintros ⟨_⟩, apply @le_rfl pgame },
-  le_trans := by { rintros ⟨_⟩ ⟨_⟩ ⟨_⟩, apply @le_trans pgame },
-  lt_iff_le_not_le := by { rintros ⟨_⟩ ⟨_⟩, exact lt_iff_le_not_le },
-  le_antisymm := by { rintros ⟨_⟩ ⟨_⟩ h₁ h₂, exact quotient.sound ⟨h₁, h₂⟩ },
-  add_le_add_left := by { rintros ⟨_⟩ ⟨_⟩ hx ⟨_⟩, exact @add_le_add_left pgame _ _ _ _ _ hx _ },
-  mul := lift₂ (λ x y ox oy, ⟦⟨x * y, ox.mul oy⟩⟧)
+  add_comm := by { rintros ⟨_⟩ ⟨_⟩, exact quotient.sound add_comm_equiv } }
+
+instance : ordered_comm_ring surreal :=
+{ mul := lift₂ (λ x y ox oy, ⟦⟨x * y, ox.mul oy⟩⟧)
     (λ _ _ _ _ ox₁ oy₁ ox₂ oy₂ hx hy, quotient.sound $ ox₁.mul_congr ox₂ oy₁ oy₂ hx hy),
   mul_assoc := by { rintro ⟨x⟩ ⟨y⟩ ⟨z⟩, exact quotient.sound (mul_assoc_equiv x y z) },
   one := mk 1 numeric_one,
@@ -733,9 +729,17 @@ instance : ordered_comm_ring surreal :=
   mul_one := by { rintro ⟨x⟩, exact quotient.sound (mul_one_equiv x) },
   left_distrib := by { rintro ⟨x⟩ ⟨y⟩ ⟨z⟩, exact quotient.sound (left_distrib_equiv x y z) },
   right_distrib := by { rintro ⟨x⟩ ⟨y⟩ ⟨z⟩, exact quotient.sound (right_distrib_equiv x y z) },
+  mul_comm := by { rintro ⟨x⟩ ⟨y⟩, exact quotient.sound (mul_comm_equiv x y) },
+  le := lift₂ (λ x y _ _, x ≤ y) (λ x₁ y₁ x₂ y₂ _ _ _ _ hx hy, propext $ le_congr hx hy),
+  lt := lift₂ (λ x y _ _, x < y) (λ x₁ y₁ x₂ y₂ _ _ _ _ hx hy, propext $ lt_congr hx hy),
+  le_refl := by { rintros ⟨_⟩, apply @le_rfl pgame },
+  le_trans := by { rintros ⟨_⟩ ⟨_⟩ ⟨_⟩, apply @le_trans pgame },
+  lt_iff_le_not_le := by { rintros ⟨_⟩ ⟨_⟩, exact lt_iff_le_not_le },
+  le_antisymm := by { rintros ⟨_⟩ ⟨_⟩ h₁ h₂, exact quotient.sound ⟨h₁, h₂⟩ },
+  add_le_add_left := by { rintros ⟨_⟩ ⟨_⟩ hx ⟨_⟩, exact @add_le_add_left pgame _ _ _ _ _ hx _ },
   zero_le_one := pgame.zero_le_one_class.zero_le_one,
   mul_pos := by { rintro ⟨x⟩ ⟨y⟩, exact x.2.mul_pos y.2 },
-  mul_comm := by { rintro ⟨x⟩ ⟨y⟩, exact quotient.sound (mul_comm_equiv x y) } }
+  .. surreal.add_comm_group }
 
 noncomputable instance : linear_ordered_comm_ring surreal :=
 { exists_pair_ne := ⟨0, 1, ne_of_lt zero_lt_one⟩,

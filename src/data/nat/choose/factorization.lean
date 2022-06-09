@@ -50,7 +50,7 @@ lemma pow_factorization_choose_le (hn : 0 < n) : p ^ (choose n k).factorization 
 begin
   cases le_or_lt p 1,
   { exact (pow_le_pow_of_le h).trans ((le_of_eq (one_pow _)).trans hn) },
-  { exact (pow_le_iff_le_log h hn).mpr factorization_choose_le },
+  { exact (pow_le_iff_le_log h hn).mpr factorization_choose_le_log },
 end
 
 /--
@@ -58,7 +58,7 @@ Primes greater than about `sqrt n` appear only to multiplicity 0 or 1 in the bin
 -/
 lemma factorization_choose_le_one (p_large : n < p ^ 2) : (choose n k).factorization p ≤ 1 :=
 begin
-  apply factorization_choose_le.trans,
+  apply factorization_choose_le_log.trans,
   rcases n.eq_zero_or_pos with rfl | hn0, { simp },
   refine lt_succ_iff.1 ((lt_pow_iff_log_lt _ hn0).1 p_large),
   contrapose! hn0,

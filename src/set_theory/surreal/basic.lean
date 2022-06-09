@@ -229,7 +229,7 @@ begin
   apply pgame.move_rec_on x,
   exact λ x _ IH ox h, lt_of_le_of_lf
     (up_le_iff.2 ⟨h.lf, λ j, (IH j (ox.move_right j) $ h.trans $ ox.lt_move_right j).lf⟩)
-    (up_lf_iff.2 $ or.inr $ (ox.star_lt_of_pos h).le)
+    (up_lf_of_star_le (ox.star_lt_of_pos h).le)
 end
 
 end pgame

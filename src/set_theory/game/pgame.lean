@@ -1451,7 +1451,16 @@ by { rw lf_iff_forall_le, simp }
 theorem up_pos : 0 < up :=
 lt_of_le_of_lf (zero_le_lf.2 (λ j, star_fuzzy_zero.gf)) (zero_lf_le.2 ⟨default, le_rfl⟩)
 
+theorem up_lf_star : up ⧏ star :=
+lf_move_right punit.star
+
+theorem star_lf_up : star ⧏ up :=
+star_lf_of_zero_le up_pos.le
+
 theorem up_fuzzy_star : up ∥ star :=
-⟨lf_move_right punit.star, star_lf_of_zero_le up_pos.le⟩
+⟨up_lf_star, star_lf_up⟩
+
+theorem up_lf_of_star_le {x} : star ≤ x → up ⧏ x :=
+lf_of_lf_of_le up_lf_star
 
 end pgame

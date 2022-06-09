@@ -867,7 +867,7 @@ by simp only [lt_iff_le_not_le, lift_le]
 
 @[simp] theorem lift_zero : lift 0 = 0 :=
 quotient.sound ⟨(rel_iso.preimage equiv.ulift _).trans
- ⟨pempty_equiv_pempty, λ a b, iff.rfl⟩⟩
+ ⟨equiv_of_is_empty  _ _, λ a b, iff.rfl⟩⟩
 
 @[simp] theorem lift_one : lift 1 = 1 :=
 quotient.sound ⟨(rel_iso.preimage equiv.ulift _).trans

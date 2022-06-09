@@ -746,14 +746,14 @@ instance : has_zero ordinal :=
 
 instance : inhabited ordinal := ⟨0⟩
 
-@[simp] theorem type_eq_zero_of_empty [is_well_order α r] [is_empty α] : type r = 0 :=
-(rel_iso.rel_iso_of_is_empty _ _).ordinal_type_eq
+@[simp] theorem type_eq_zero_of_empty (r) [is_well_order α r] [is_empty α] : type r = 0 :=
+(rel_iso.rel_iso_of_is_empty r _).ordinal_type_eq
 
 @[simp] theorem type_eq_zero_iff_is_empty [is_well_order α r] : type r = 0 ↔ is_empty α :=
-(@card_eq_zero (type r)).symm.trans mk_eq_zero_iff
+⟨λ h, (nonempty.some (type_eq.1 h)).to_equiv.is_empty, @type_eq_zero_of_empty α r _⟩
 
-theorem type_ne_zero_iff_nonempty [is_well_order α r] : type r ≠ 0 ↔ nonempty α :=
-(not_congr (@card_eq_zero (type r))).symm.trans mk_ne_zero_iff
+@[simp] theorem type_ne_zero_iff_nonempty [is_well_order α r] : type r ≠ 0 ↔ nonempty α :=
+by { rw ←not_iff_not, simp }
 
 @[simp] theorem card_zero : card 0 = 0 := rfl
 

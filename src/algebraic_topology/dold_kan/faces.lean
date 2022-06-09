@@ -134,13 +134,12 @@ lemma Hσφ_eq_zero {Y : C} {n q : ℕ} (hqn : n<q) {φ : Y ⟶ X _[n+1]}
   (v : higher_faces_vanish q φ) : φ ≫ (Hσ q).f (n+1) = 0 :=
 begin
   simp only [Hσ, homotopy.null_homotopic_map'_f (c_mk (n+2) (n+1) rfl) (c_mk (n+1) n rfl)],
-  erw [hσ'_eq_zero hqn (c_mk (n+1) n rfl), comp_zero, zero_add],
+  rw [hσ'_eq_zero hqn (c_mk (n+1) n rfl), comp_zero, zero_add],
   by_cases hqn' : n+1<q,
   { rw [hσ'_eq_zero hqn' (c_mk (n+2) (n+1) rfl), zero_comp, comp_zero], },
   { simp only [hσ'_eq (show n+1=0+q, by linarith) (c_mk (n+2) (n+1) rfl),
-      pow_zero, fin.mk_zero, one_zsmul, eq_to_hom_refl, comp_id],
-    erw chain_complex.of_d,
-    simp only [alternating_face_map_complex.obj_d, comp_sum],
+      pow_zero, fin.mk_zero, one_zsmul, eq_to_hom_refl, comp_id,
+      comp_sum, alternating_face_map_complex.obj_d_eq],
     rw [← fin.sum_congr' _ (show 2+(n+1)=n+1+2, by linarith), fin.sum_trunc],
     { simp only [fin.sum_univ_cast_succ, fin.sum_univ_zero, zero_add, fin.last,
         fin.cast_le_mk, fin.cast_mk, fin.cast_succ_mk],
@@ -161,8 +160,8 @@ lemma higher_faces_vanish_induction {Y : C} {n q : ℕ} {φ : Y ⟶ X _[n+1]}
   (v : higher_faces_vanish q φ) : higher_faces_vanish (q+1) (φ ≫ (𝟙 _ + Hσ q).f (n+1)) :=
 begin
   intros j hj₁,
-  simp only [add_comp, comp_add, homological_complex.add_f_apply, homological_complex.id_f],
-  erw comp_id,
+  dsimp,
+  simp only [comp_add, add_comp, comp_id],
   -- when n < q, the result follows immediately from the assumption
   by_cases hqn : n<q,
   { rw [Hσφ_eq_zero hqn v, zero_comp, add_zero, v j (by linarith)], },
@@ -192,14 +191,16 @@ begin
     linarith, },
   have ineq₁ : (fin.cast_succ (⟨a, nat.lt_succ_iff.mpr ham⟩ : fin (m+1)) < j),
   { rw fin.lt_iff_coe_lt_coe, exact haj, },
-  erw δ_comp_σ_of_gt X ineq₁,
+  have eq₁ := δ_comp_σ_of_gt X ineq₁,
+  rw fin.cast_succ_mk at eq₁,
+  rw eq₁,
   by_cases ham' : a<m,
   { -- case where `a<m`
     have ineq₂ : (fin.cast_succ (⟨a+1, nat.succ_lt_succ ham'⟩ : fin (m+1)) ≤ j),
     { simpa only [fin.le_iff_coe_le_coe] using nat.succ_le_iff.mpr haj, },
-    have δδ_rel := δ_comp_δ X ineq₂,
-    simp only [fin.cast_succ_mk] at δδ_rel,
-    slice_rhs 2 3 { rw ← δδ_rel, },
+    have eq₂ := δ_comp_δ X ineq₂,
+    simp only [fin.cast_succ_mk] at eq₂,
+    slice_rhs 2 3 { rw ← eq₂, },
     simp only [← assoc, v j (by linarith), zero_comp], },
   { -- in the last case, a=m, q=1 and j=a+1
     have ham'' : a=m := le_antisymm ham (not_lt.mp ham'),

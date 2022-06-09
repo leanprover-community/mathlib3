@@ -52,12 +52,8 @@ direct_sum.decomposition.is_internal _
 /--
 If `M` is graded by `𝓜`, then `M` is isomorphic to `⨁ i, 𝓜 i` as `add_comm_monoid`.
 -/
-def decompose [graded_module 𝓐 𝓜] : M ≃+ ⨁ i, 𝓜 i := add_equiv.symm
-{ to_fun := direct_sum.coe_add_monoid_hom 𝓜,
-  inv_fun := direct_sum.decompose 𝓜,
-  left_inv := direct_sum.decomposition.right_inv,
-  right_inv := direct_sum.decomposition.left_inv,
-  map_add' := λ x y, by rw map_add }
+def decompose [graded_module 𝓐 𝓜] : M ≃+ ⨁ i, 𝓜 i :=
+direct_sum.decompose_add_equiv 𝓜
 
 @[simp] lemma decompose_symm_of [graded_module 𝓐 𝓜] {i : ι} (x : 𝓜 i) :
   (graded_module.decompose 𝓐 𝓜).symm (direct_sum.of _ i x) = x :=

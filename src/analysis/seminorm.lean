@@ -183,12 +183,13 @@ function.injective.semilattice_sup _ fun_like.coe_injective coe_sup
 end has_scalar
 
 section smul_with_zero
-variables [smul_with_zero 𝕜 E] (p : seminorm 𝕜 E)
+variables [smul_with_zero 𝕜 E]
 
-@[simp]
-protected lemma zero : p 0 = 0 :=
-calc p 0 = p ((0 : 𝕜) • 0) : by rw zero_smul
-...      = 0 : by rw [p.smul, norm_zero, zero_mul]
+/-- Note that this provides the global `map_zero`. -/
+instance : zero_hom_class (seminorm 𝕜 E) E ℝ :=
+{ map_zero := λ p, calc p 0 = p ((0 : 𝕜) • 0) : by rw zero_smul
+                   ...      = 0 : by rw [p.smul, norm_zero, zero_mul],
+  ..seminorm.fun_like}
 
 end smul_with_zero
 end add_monoid
@@ -212,7 +213,7 @@ lemma coe_comp (p : seminorm 𝕜 F) (f : E →ₗ[𝕜] F) : ⇑(p.comp f) = p 
 ext $ λ _, rfl
 
 @[simp] lemma comp_zero (p : seminorm 𝕜 F) : p.comp (0 : E →ₗ[𝕜] F) = 0 :=
-ext $ λ _, seminorm.zero _
+ext $ λ _, map_zero p
 
 @[simp] lemma zero_comp (f : E →ₗ[𝕜] F) : (0 : seminorm 𝕜 F).comp f = 0 :=
 ext $ λ _, rfl
@@ -254,7 +255,7 @@ calc
 
 lemma nonneg : 0 ≤ p x :=
 have h: 0 ≤ 2 * p x, from
-calc 0 = p (x + (- x)) : by rw [add_neg_self, p.zero]
+calc 0 = p (x + (- x)) : by rw [add_neg_self, map_zero]
 ...    ≤ p x + p (-x)  : p.triangle _ _
 ...    = 2 * p x : by rw [p.neg, two_mul],
 nonneg_of_mul_nonneg_left h zero_lt_two
@@ -359,7 +360,7 @@ noncomputable instance : has_inf (seminorm 𝕜 E) :=
       { simp_rw [norm_zero, zero_mul, zero_smul, zero_sub, seminorm.neg],
         refine cinfi_eq_of_forall_ge_of_forall_gt_exists_lt
           (λ i, add_nonneg (p.nonneg _) (q.nonneg _))
-          (λ x hx, ⟨0, by rwa [p.zero, q.zero, add_zero]⟩) },
+          (λ x hx, ⟨0, by rwa [map_zero, map_zero, add_zero]⟩) },
       simp_rw [real.mul_infi_of_nonneg (norm_nonneg a), mul_add, ←p.smul, ←q.smul, smul_sub],
       refine function.surjective.infi_congr ((•) a⁻¹ : E → E) (λ u, ⟨a • u, inv_smul_smul₀ ha u⟩)
         (λ u, _),
@@ -372,11 +373,11 @@ noncomputable instance : lattice (seminorm 𝕜 E) :=
 { inf := (⊓),
   inf_le_left := λ p q x, begin
     apply cinfi_le_of_le (bdd_below_range_add _ _ _) x,
-    simp only [sub_self, seminorm.zero, add_zero],
+    simp only [sub_self, map_zero, add_zero],
   end,
   inf_le_right := λ p q x, begin
     apply cinfi_le_of_le (bdd_below_range_add _ _ _) (0:E),
-    simp only [sub_self, seminorm.zero, zero_add, sub_zero],
+    simp only [sub_self, map_zero, zero_add, sub_zero],
   end,
   le_inf := λ a b c hab hac x,
     le_cinfi $ λ u, le_trans (a.le_insert' _ _) (add_le_add (hab _) (hac _)),

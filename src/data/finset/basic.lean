@@ -627,9 +627,6 @@ by exact_mod_cast @set.ssubset_iff_insert α s t
 
 lemma ssubset_insert (h : a ∉ s) : s ⊂ insert a s := ssubset_iff.mpr ⟨a, h, subset.rfl⟩
 
-lemma ssubset_iff_exists_insert_subset {s t : finset α} : s ⊂ t ↔ ∃ a ∉ s, insert a s ⊆ t :=
-by simp_rw [ssubset_iff_exists_cons_subset, cons_eq_insert]
-
 @[elab_as_eliminator]
 lemma cons_induction {α : Type*} {p : finset α → Prop}
   (h₁ : p ∅) (h₂ : ∀ ⦃a : α⦄ {s : finset α} (h : a ∉ s), p s → p (cons a s h)) : ∀ s, p s
@@ -1910,6 +1907,10 @@ coe_injective $ by simp only [coe_map, coe_singleton, set.image_singleton]
   (insert a s).map f = insert (f a) (s.map f) :=
 by simp only [insert_eq, map_union, map_singleton]
 
+@[simp] lemma map_cons (f : α ↪ β) (a : α) (s : finset α) (ha : a ∉ s) :
+  (cons a s ha).map f = cons (f a) (s.map f) (by simpa using ha) :=
+eq_of_veq $ multiset.map_cons f a s.val
+
 @[simp] theorem map_eq_empty : s.map f = ∅ ↔ s = ∅ :=
 ⟨λ h, eq_empty_of_forall_not_mem $
  λ a m, ne_empty_of_mem (mem_map_of_mem _ m) h, λ e, e.symm ▸ rfl⟩
@@ -2591,7 +2592,7 @@ def sigma_equiv_option_of_inhabited (α : Type u) [inhabited α] [decidable_eq �
   Σ (β : Type u), α ≃ option β :=
 ⟨{x : α // x ≠ default},
 { to_fun := λ (x : α), if h : x = default then none else some ⟨x, h⟩,
-  inv_fun := λ o, option.elim o (default) coe,
+  inv_fun := λ o, option.elim o default coe,
   left_inv := λ x, by { dsimp only, split_ifs; simp [*] },
   right_inv := begin
     rintro (_|⟨x,h⟩),

@@ -462,16 +462,16 @@ by rw [mul_comm, sec_spec]
 @[to_additive "Given an add_monoid hom `f : M →+ N` and submonoid `S ⊆ M` such that
 `f(S) ⊆ add_units N`, for all `w : M, z : N` and `y ∈ S`, we have `w - f y = z ↔ w = f y + z`."]
 lemma mul_inv_left {f : M →* N} (h : ∀ y : S, is_unit (f y))
-  (y : S) (w z) : w * ↑(is_unit.lift_right (f.mrestrict S) h y)⁻¹ = z ↔ w = f y * z :=
+  (y : S) (w z) : w * ↑(is_unit.lift_right (f.restrict S) h y)⁻¹ = z ↔ w = f y * z :=
 by rw mul_comm; convert units.inv_mul_eq_iff_eq_mul _;
-  exact (is_unit.coe_lift_right (f.mrestrict S) h _).symm
+  exact (is_unit.coe_lift_right (f.restrict S) h _).symm
 
 /-- Given a monoid hom `f : M →* N` and submonoid `S ⊆ M` such that `f(S) ⊆ Nˣ`, for all
 `w : M, z : N` and `y ∈ S`, we have `z = w * (f y)⁻¹ ↔ z * f y = w`. -/
 @[to_additive "Given an add_monoid hom `f : M →+ N` and submonoid `S ⊆ M` such that
 `f(S) ⊆ add_units N`, for all `w : M, z : N` and `y ∈ S`, we have `z = w - f y ↔ z + f y = w`."]
 lemma mul_inv_right {f : M →* N} (h : ∀ y : S, is_unit (f y))
-  (y : S) (w z) : z = w * ↑(is_unit.lift_right (f.mrestrict S) h y)⁻¹ ↔ z * f y = w :=
+  (y : S) (w z) : z = w * ↑(is_unit.lift_right (f.restrict S) h y)⁻¹ ↔ z * f y = w :=
 by rw [eq_comm, mul_inv_left h, mul_comm, eq_comm]
 
 /-- Given a monoid hom `f : M →* N` and submonoid `S ⊆ M` such that
@@ -481,8 +481,8 @@ by rw [eq_comm, mul_inv_left h, mul_comm, eq_comm]
 `f(S) ⊆ add_units N`, for all `x₁ x₂ : M` and `y₁, y₂ ∈ S`, we have
 `f x₁ - f y₁ = f x₂ - f y₂ ↔ f (x₁ + y₂) = f (x₂ + y₁)`."]
 lemma mul_inv {f : M →* N} (h : ∀ y : S, is_unit (f y)) {x₁ x₂} {y₁ y₂ : S} :
-  f x₁ * ↑(is_unit.lift_right (f.mrestrict S) h y₁)⁻¹ =
-    f x₂ * ↑(is_unit.lift_right (f.mrestrict S) h y₂)⁻¹ ↔ f (x₁ * y₂) = f (x₂ * y₁) :=
+  f x₁ * ↑(is_unit.lift_right (f.restrict S) h y₁)⁻¹ =
+    f x₂ * ↑(is_unit.lift_right (f.restrict S) h y₂)⁻¹ ↔ f (x₁ * y₂) = f (x₂ * y₁) :=
 by rw [mul_inv_right h, mul_assoc, mul_comm _ (f y₂), ←mul_assoc, mul_inv_left h, mul_comm x₂,
   f.map_mul, f.map_mul]
 
@@ -491,17 +491,17 @@ by rw [mul_inv_right h, mul_assoc, mul_comm _ (f y₂), ←mul_assoc, mul_inv_le
 @[to_additive "Given an add_monoid hom `f : M →+ N` and submonoid `S ⊆ M` such that
 `f(S) ⊆ add_units N`, for all `y, z ∈ S`, we have `- (f y) = - (f z) → f y = f z`."]
 lemma inv_inj {f : M →* N} (hf : ∀ y : S, is_unit (f y)) {y z}
-  (h : (is_unit.lift_right (f.mrestrict S) hf y)⁻¹ = (is_unit.lift_right (f.mrestrict S) hf z)⁻¹) :
+  (h : (is_unit.lift_right (f.restrict S) hf y)⁻¹ = (is_unit.lift_right (f.restrict S) hf z)⁻¹) :
   f y = f z :=
 by rw [←mul_one (f y), eq_comm, ←mul_inv_left hf y (f z) 1, h];
-  convert units.inv_mul _; exact (is_unit.coe_lift_right (f.mrestrict S) hf _).symm
+  convert units.inv_mul _; exact (is_unit.coe_lift_right (f.restrict S) hf _).symm
 
 /-- Given a monoid hom `f : M →* N` and submonoid `S ⊆ M` such that `f(S) ⊆ Nˣ`, for all
 `y ∈ S`, `(f y)⁻¹` is unique. -/
 @[to_additive "Given an add_monoid hom `f : M →+ N` and submonoid `S ⊆ M` such that
 `f(S) ⊆ add_units N`, for all `y ∈ S`, `- (f y)` is unique."]
 lemma inv_unique {f : M →* N} (h : ∀ y : S, is_unit (f y)) {y : S}
-  {z} (H : f y * z = 1) : ↑(is_unit.lift_right (f.mrestrict S) h y)⁻¹ = z :=
+  {z} (H : f y * z = 1) : ↑(is_unit.lift_right (f.restrict S) h y)⁻¹ = z :=
 by rw [←one_mul ↑(_)⁻¹, mul_inv_left, ←H]
 
 variables (f : localization_map S N)
@@ -524,7 +524,7 @@ f.map_right_cancel $ by rw [mul_comm _ x, mul_comm _ y, h]
 @[to_additive "Given a localization map `f : M →+ N`, the surjection sending `(x, y) : M × S`
 to `f x - f y`."]
 noncomputable def mk' (f : localization_map S N) (x : M) (y : S) : N :=
-f.to_map x * ↑(is_unit.lift_right (f.to_map.mrestrict S) f.map_units y)⁻¹
+f.to_map x * ↑(is_unit.lift_right (f.to_map.restrict S) f.map_units y)⁻¹
 
 @[to_additive] lemma mk'_mul (x₁ x₂ : M) (y₁ y₂ : S) :
   f.mk' (x₁ * x₂) (y₁ * y₂) = f.mk' x₁ y₁ * f.mk' x₂ y₂ :=
@@ -631,9 +631,9 @@ by rw [mul_comm, mk'_mul_cancel_right]
 
 @[to_additive] lemma is_unit_comp (j : N →* P) (y : S) :
   is_unit (j.comp f.to_map y) :=
-⟨units.map j $ is_unit.lift_right (f.to_map.mrestrict S) f.map_units y,
+⟨units.map j $ is_unit.lift_right (f.to_map.restrict S) f.map_units y,
   show j _ = j _, from congr_arg j $
-    (is_unit.coe_lift_right (f.to_map.mrestrict S) f.map_units _)⟩
+    (is_unit.coe_lift_right (f.to_map.restrict S) f.map_units _)⟩
 
 variables {g : M →* P}
 
@@ -646,7 +646,7 @@ lemma eq_of_eq (hg : ∀ y : S, is_unit (g y)) {x y} (h : f.to_map x = f.to_map 
   g x = g y :=
 begin
   obtain ⟨c, hc⟩ := f.eq_iff_exists.1 h,
-  rw [←mul_one (g x), ←is_unit.mul_lift_right_inv (g.mrestrict S) hg c],
+  rw [←mul_one (g x), ←is_unit.mul_lift_right_inv (g.restrict S) hg c],
   show _ * (g c * _) = _,
   rw [←mul_assoc, ←g.map_mul, hc, mul_inv_left hg, g.map_mul, mul_comm],
 end
@@ -673,7 +673,7 @@ of `add_comm_monoid`s `g : M →+ P` such that `g y` is invertible for all `y : 
 induced from `N` to `P` sending `z : N` to `g x - g y`, where `(x, y) : M × S` are such that
 `z = f x - f y`."]
 noncomputable def lift : N →* P :=
-{ to_fun := λ z, g (f.sec z).1 * ↑(is_unit.lift_right (g.mrestrict S) hg (f.sec z).2)⁻¹,
+{ to_fun := λ z, g (f.sec z).1 * ↑(is_unit.lift_right (g.restrict S) hg (f.sec z).2)⁻¹,
   map_one' := by rw [mul_inv_left, mul_one]; exact f.eq_of_eq hg
     (by rw [←sec_spec, one_mul]),
   map_mul' := λ x y,
@@ -693,7 +693,7 @@ variables {S g}
 of `add_comm_monoid`s `g : M →+ P` such that `g y` is invertible for all `y : S`, the homomorphism
 induced from `N` to `P` maps `f x - f y` to `g x - g y` for all `x : M, y ∈ S`."]
 lemma lift_mk' (x y) :
-  f.lift hg (f.mk' x y) = g x * ↑(is_unit.lift_right (g.mrestrict S) hg y)⁻¹ :=
+  f.lift hg (f.mk' x y) = g x * ↑(is_unit.lift_right (g.restrict S) hg y)⁻¹ :=
 (mul_inv hg).2 $ f.eq_of_eq hg $ by
   rw [f.to_map.map_mul, f.to_map.map_mul, sec_spec', mul_assoc, f.mk'_spec, mul_comm]
 
@@ -818,7 +818,7 @@ begin
     obtain ⟨x, hx⟩ := f.surj z,
     use x,
     rw [←hz, f.eq_mk'_iff_mul_eq.2 hx, lift_mk', mul_assoc, mul_comm _ (g ↑x.2)],
-    erw [is_unit.mul_lift_right_inv (g.mrestrict S) hg, mul_one] },
+    erw [is_unit.mul_lift_right_inv (g.restrict S) hg, mul_one] },
   { intros H v,
     obtain ⟨x, hx⟩ := H v,
     use f.mk' x.1 x.2,

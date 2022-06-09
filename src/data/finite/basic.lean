@@ -89,7 +89,7 @@ by { casesI h with n f, exact ⟨n, ⟨f⟩⟩ }
 lemma finite.of_equiv (α : Sort*) {β : Sort*} [h : finite α] (f : α ≃ β) : finite β :=
 by { casesI h with n e, exact finite.intro (f.symm.trans e) }
 
-lemma finite_iff_of_equiv {α β : Sort*} (f : α ≃ β) : finite α ↔ finite β :=
+lemma finite_iff {α β : Sort*} (f : α ≃ β) : finite α ↔ finite β :=
 ⟨λ _, by exactI finite.of_equiv _ f, λ _, by exactI finite.of_equiv _ f.symm⟩
 
 lemma finite.of_fintype {α : Type*} (h : fintype α) : finite α := ⟨fintype.equiv_fin α⟩

@@ -132,6 +132,11 @@ a loop in the class inheritance graph. -/
 
 end unique
 
+lemma unique_iff_subsingleton_and_nonempty (α : Sort u) :
+  nonempty (unique α) ↔ subsingleton α ∧ nonempty α :=
+⟨λ ⟨u⟩, by split; exactI infer_instance,
+ λ ⟨hs, hn⟩, ⟨by { resetI, inhabit α, exact unique.mk' α }⟩⟩
+
 @[simp] lemma pi.default_def {β : Π a : α, Sort v} [Π a, inhabited (β a)] :
   @default (Π a, β a) _ = λ a : α, @default (β a) _ := rfl
 

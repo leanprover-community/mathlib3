@@ -320,6 +320,10 @@ lemma nndist_eq_of_L2 {β : ι → Type*} [Π i, semi_normed_group (β i)] (x y 
   nndist x y = (∑ i, nndist (x i) (y i) ^ 2).sqrt :=
 subtype.ext $ by { push_cast, exact dist_eq_of_L2 _ _ }
 
+lemma edist_eq_of_L2 {β : ι → Type*} [Π i, semi_normed_group (β i)] (x y : pi_Lp 2 β) :
+  edist x y = (∑ i, edist (x i) (y i) ^ 2) ^ (1 / 2 : ℝ) :=
+by simp_rw [pi_Lp.edist_eq, ennreal.rpow_two]
+
 include fact_one_le_p
 
 variables [normed_field 𝕜]

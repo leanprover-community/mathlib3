@@ -100,15 +100,15 @@ pi_Lp.nnnorm_eq_of_L2 x
 
 lemma euclidean_space.dist_eq {𝕜 : Type*} [is_R_or_C 𝕜] {n : Type*} [fintype n]
   (x y : euclidean_space 𝕜 n) : dist x y = (∑ i, dist (x i) (y i) ^ 2).sqrt :=
-by convert pi_Lp.dist_eq_of_L2 x y
+(pi_Lp.dist_eq_of_L2 x y : _)
 
 lemma euclidean_space.nndist_eq {𝕜 : Type*} [is_R_or_C 𝕜] {n : Type*} [fintype n]
   (x y : euclidean_space 𝕜 n) : nndist x y = (∑ i, nndist (x i) (y i) ^ 2).sqrt :=
-by convert pi_Lp.nndist_eq_of_L2 x y
+(pi_Lp.nndist_eq_of_L2 x y : _)
 
 lemma euclidean_space.edist_eq {𝕜 : Type*} [is_R_or_C 𝕜] {n : Type*} [fintype n]
   (x y : euclidean_space 𝕜 n) : edist x y = (∑ i, edist (x i) (y i) ^ 2) ^ (1 / 2 : ℝ) :=
-by simp_rw [pi_Lp.edist_eq, ennreal.rpow_two]
+(pi_Lp.edist_eq_of_L2 x y : _)
 
 variables [fintype ι]
 

@@ -311,7 +311,7 @@ end with_zero
 class canonically_ordered_add_monoid (α : Type*) extends ordered_add_comm_monoid α, has_bot α :=
 (bot_le : ∀ x : α, ⊥ ≤ x)
 (exists_add_of_le : ∀ {a b : α}, a ≤ b → ∃ c, b = a + c)
-(le_add : ∀ a b : α, a ≤ a + b)
+(le_self_add : ∀ a b : α, a ≤ a + b)
 
 @[priority 100]  -- see Note [lower instance priority]
 instance canonically_ordered_add_monoid.to_order_bot (α : Type u)
@@ -331,7 +331,7 @@ instance canonically_ordered_add_monoid.to_order_bot (α : Type u)
 class canonically_ordered_monoid (α : Type*) extends ordered_comm_monoid α, has_bot α :=
 (bot_le : ∀ x : α, ⊥ ≤ x)
 (exists_mul_of_le : ∀ {a b : α}, a ≤ b → ∃ c, b = a * c)
-(le_mul : ∀ a b : α, a ≤ a * b)
+(le_self_mul : ∀ a b : α, a ≤ a * b)
 
 @[priority 100, to_additive]  -- see Note [lower instance priority]
 instance canonically_ordered_monoid.to_order_bot (α : Type u)
@@ -347,7 +347,7 @@ section canonically_ordered_monoid
 
 variables [canonically_ordered_monoid α] {a b c d : α}
 
-@[to_additive] lemma le_self_mul : a ≤ a * c := canonically_ordered_monoid.le_mul _ _
+@[to_additive] lemma le_self_mul : a ≤ a * c := canonically_ordered_monoid.le_self_mul _ _
 @[to_additive] lemma le_mul_self : a ≤ b * a := by { rw mul_comm, exact le_self_mul }
 
 @[to_additive] lemma self_le_mul_right (a b : α) : a ≤ a * b := le_self_mul
@@ -782,7 +782,7 @@ instance [ordered_cancel_comm_monoid M] [ordered_cancel_comm_monoid N] :
 
 @[to_additive] instance [canonically_ordered_monoid α] [canonically_ordered_monoid β] :
   canonically_ordered_monoid (α × β) :=
-{ le_mul := λ a b, ⟨le_self_mul, le_self_mul⟩,
+{ le_self_mul := λ a b, ⟨le_self_mul, le_self_mul⟩,
   ..prod.ordered_comm_monoid, ..prod.order_bot _ _, ..prod.has_exists_mul_of_le }
 
 end prod
@@ -1246,7 +1246,7 @@ instance [has_mul α] [has_le α] [has_exists_mul_of_le α] : has_exists_add_of_
 ⟨@exists_mul_of_le α _ _ _⟩
 
 instance [canonically_ordered_add_monoid α] : canonically_ordered_monoid (multiplicative α) :=
-{ le_mul := @le_self_add α _,
+{ le_self_mul := @le_self_add α _,
   ..multiplicative.ordered_comm_monoid, ..multiplicative.order_bot,
   ..multiplicative.has_exists_mul_of_le }
 

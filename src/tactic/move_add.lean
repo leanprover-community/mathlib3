@@ -16,15 +16,15 @@ See the doc-string for `tactic.interactive.move_add` for more information.
 
 ##  Implementation notes
 
-This file defines a general `move_oper` tactic, intended for reordering terms in an expression
+This file defines a general `move_op` tactic, intended for reordering terms in an expression
 obtained by repeated applications of a given associative, commutative binary operation.  The
-user decides the final reordering.  Applying `move_oper` without specifying the order will simply
+user decides the final reordering.  Applying `move_op` without specifying the order will simply
 remove all parentheses from the expression.
 The main user-facing tactics are `move_add` and `move_mul`, dealing with addition and
 multiplication, respectively.
 
 In what is below, we talk about `move_add` for definiteness, but everything applies
-to `move_mul` and to the more general `move_oper`.
+to `move_mul` and to the more general `move_op`.
 
 The implementation of `move_add` only moves the terms specified by the user (and rearranges
 parentheses).
@@ -212,7 +212,7 @@ do
     end
   end
 
-/--  Extracts the "summand expressions" in `e` via `candidates` and, to each one of them, applies
+/--  Extracts the "summand expressions" in `e` via `list_head_op` and, to each one of them, applies
 `sorted_sum`.  Besides the state changes, which involve the reordering of the addends,
 `is_unused_and_sort` outputs a list of Booleans, encoding which user input was unused
 (`tt`) and which one was used (`ff`).  This information is used for reporting unused inputs. -/
@@ -255,13 +255,28 @@ prod.mk <$> (option.is_some <$> (tk "<-")?) <*> parser.pexpr prec
 meta def move_pexpr_list_or_texpr : parser (list (bool × pexpr)) :=
 list_of (move_op_arg 0) <|> list.ret <$> move_op_arg tac_rbp <|> return []
 
-meta def move_oper (args : parse move_pexpr_list_or_texpr) (locat : parse location) (f : pexpr) :
+end parsing_arguments_for_move_op
+
+end move_op
+
+setup_tactic_parser
+open move_op
+
+/--  `move_op args locat op` is the non-interactive version of the main tactics `move_add` and
+`move_mul` of this file.  Given as input `args` (a list of terms of a sequence of operands),
+`locat` (hypotheses or goal where the tactic should act) and `op` (the operation to use),
+`move_op` attempts to perform the rearrangement of the terms determined by `args`.
+
+Currently, the tactic uses only `add/mul_comm, add/mul_assoc, add/mul_left_comm`, so other
+operations will not actually work.
+-/
+meta def move_op (args : parse move_pexpr_list_or_texpr) (locat : parse location) (op : pexpr) :
   tactic unit :=
 match locat with
 | loc.wildcard := do
   ctx ← local_context,
-  err_rep ← ctx.mmap (λ e, with_errors f args e.local_pp_name),
-  er_t ← with_errors f args none,
+  err_rep ← ctx.mmap (λ e, with_errors op args e.local_pp_name),
+  er_t ← with_errors op args none,
   if ff ∉ er_t.1::err_rep.map (λ e, e.1) then
     fail "'move_op at *' changed nothing" else skip,
   let li_unused := er_t.2::err_rep.map (λ e, e.2),
@@ -274,7 +289,7 @@ match locat with
   end,
   assumption <|> try (tactic.reflexivity reducible)
 | loc.ns names := do
-  err_rep ← names.mmap $ with_errors f args,
+  err_rep ← names.mmap $ with_errors op args,
   let conds := err_rep.map (λ e, e.1),
   linames ← (return_unused names conds).reduce_option.mmap get_local,
   if linames ≠ [] then fail format!"'{linames}' did not change" else skip,
@@ -290,14 +305,7 @@ match locat with
   assumption <|> try (tactic.reflexivity reducible)
   end
 
-end parsing_arguments_for_move_op
-
-end move_op
-
 namespace interactive
-
-open move_op
-setup_tactic_parser
 
 /--
 Calling `move_add [a, ← b, c]`, recursively looks inside the goal for expressions involving a sum.
@@ -383,13 +391,13 @@ same effect and changes the goal to `b + a = 0`.  These are all valid uses of `m
 -/
 meta def move_add (args : parse move_pexpr_list_or_texpr) (locat : parse location) :
   tactic unit :=
-move_oper args locat ``((+))
+move_op args locat ``((+))
 
 /--  See the doc-string for `move_add` and mentally
 replace addition with multiplication throughout. ;-) -/
 meta def move_mul (args : parse move_pexpr_list_or_texpr) (locat : parse location) :
   tactic unit :=
-move_oper args locat ``((has_mul.mul))
+move_op args locat ``((has_mul.mul))
 
 add_tactic_doc
 { name := "move_add",

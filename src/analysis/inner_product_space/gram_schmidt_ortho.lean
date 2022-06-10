@@ -121,7 +121,7 @@ begin
     simp only [set.mem_image, set.mem_Iio],
     refine ⟨b, (finset.mem_Ico.1 hb).2, by refl⟩ },
   rw not_iff_not.2 order.succ_eq_iff_is_max at h,
-  rw [order.Iio_succ_eq_insert_of_not_is_max _ h],
+  rw [order.Iio_succ_eq_insert_of_not_is_max h],
   simp only [span_insert, image_insert_eq, hc],
   apply le_antisymm,
   { simp only [nat.succ_eq_succ,gram_schmidt_def 𝕜 f c, orthogonal_projection_singleton,

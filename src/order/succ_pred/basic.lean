@@ -290,10 +290,6 @@ lemma lt_succ_iff_eq_or_lt_of_not_is_max (hb : ¬ is_max b) : a < succ b ↔ a =
 
 lemma Iic_succ (a : α) : Iic (succ a) = insert (succ a) (Iic a) := ext $ λ _, le_succ_iff_eq_or_le
 
-lemma Iio_succ_eq_insert_of_not_is_max (a : α) (ha : ¬ is_max a) :
-  Iio (succ a) = insert a (Iio a) :=
-ext (λ _, lt_succ_iff_eq_or_lt_of_not_is_max ha)
-
 lemma Icc_succ_right (h : a ≤ succ b) : Icc a (succ b) = insert (succ b) (Icc a b) :=
 by simp_rw [←Ici_inter_Iic, Iic_succ, inter_insert_of_mem (mem_Ici.2 h)]
 
@@ -509,7 +505,7 @@ lemma pred_lt_iff_eq_or_lt_of_not_is_min (ha : ¬ is_min a) : pred a < b ↔ a =
 
 lemma Ici_pred (a : α) : Ici (pred a) = insert (pred a) (Ici a) := ext $ λ _, pred_le_iff_eq_or_le
 
-lemma Ioi_pred_eq_insert_of_not_is_min (a : α) (ha : ¬ is_min a) :
+lemma Ioi_pred_eq_insert_of_not_is_min (ha : ¬ is_min a) :
   Ioi (pred a) = insert a (Ioi a) :=
 begin
   ext x, simp only [insert, set.insert, mem_set_of, @eq_comm _ x a],

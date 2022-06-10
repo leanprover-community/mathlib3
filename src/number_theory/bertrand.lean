@@ -73,50 +73,6 @@ section nat
 
 open nat
 
-lemma factorization_support_subset_filter_prime_range (n : ℕ) :
-  n.factorization.support ⊆ finset.filter nat.prime (finset.range (n + 1)) :=
-begin
-  rw [nat.support_factorization, finset.subset_iff],
-  simp only [list.mem_to_finset, finset.mem_filter, finset.mem_range],
-  intros p p_factor,
-  cases le_or_gt n 0 with n_le_0 n_pos,
-  { rw nat.le_zero_iff at n_le_0,
-    subst n_le_0,
-    simp only [factors_zero, list.not_mem_nil] at p_factor,
-    exfalso, exact p_factor, },
-  { split,
-    { linarith [le_of_dvd n_pos (dvd_of_mem_factors p_factor)], },
-    { exact prime_of_mem_factors p_factor, }, },
-end
-
--- lemma fooo (n : ℕ) : ∏ p in finset.filter nat.prime (finset.range (n + 1)), p ^ (n.factorization p)
---   = ∏ p in n.factorization.support, p ^ (n.factorization p) :=
--- begin
---   refine (finset.prod_subset (factorization_support_subset_filter_prime_range n) _).symm,
---   intros i i_in i_not,
---   simp at i_not,
---   have r : n.factorization i = 0,
---   { rw factorization_eq_zero_iff',
---     by_contradiction,
---     push_neg at h,
---     refine i_not _,
---     exact (mem_factors_iff_dvd h.2.2 h.1).2 h.2.1, },
---   rw [←pow_zero i, r],
--- end
-
--- -- TODO aesthetically, I think this theorem would be better if the range was 2 * n + 1
--- lemma central_binom_factorization (n : ℕ) :
---   ∏ p in finset.filter nat.prime (finset.range (central_binom n + 1)),
---     p ^ ((central_binom n).factorization p)
---   = central_binom n :=
--- begin
---   calc ∏ p in finset.filter nat.prime (finset.range (n.central_binom + 1)),
---           p ^ (n.central_binom.factorization p)
---     = ∏ p in (central_binom n).factorization.support, p ^ (n.central_binom.factorization p) :
---       fooo _
---   ... = central_binom n : factorization_prod_pow_eq_self (central_binom_ne_zero _),
--- end
-
 lemma choose_factorization_prod_pow (n k : ℕ) (hkn : k ≤ n) :
   ∏ p in finset.filter nat.prime (finset.range (n + 1)),
     p ^ ((nat.choose n k).factorization p)

@@ -38,6 +38,8 @@ For a module over a normed ring:
 seminorm, locally convex, LCTVS
 -/
 
+set_option old_structure_cmd true
+
 open normed_field set
 open_locale big_operators nnreal pointwise topological_space
 
@@ -56,8 +58,7 @@ variables [add_monoid E]
 
 instance fun_like : fun_like (add_monoid_seminorm E) E (λ _, ℝ) :=
 { coe := λ f, f.to_fun,
-  coe_injective' := λ f g h,
-  by rcases f with ⟨⟨f, _⟩, _⟩; rcases g with ⟨⟨g, _⟩, _⟩; simpa using h }
+  coe_injective' := λ f g h, by cases f; cases g; congr' }
 
 /-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`. -/
 instance : has_coe_to_fun (add_monoid_seminorm E) (λ _, E → ℝ) := ⟨λ p, p.to_fun⟩
@@ -169,18 +170,17 @@ structure seminorm (𝕜 : Type*) (E : Type*) [semi_normed_ring 𝕜] [add_monoi
   extends add_monoid_seminorm E :=
 (smul' : ∀ (a : 𝕜) (x : E), to_fun (a • x) = ∥a∥ * to_fun x)
 
-lemma map_zero.of_smul {𝕜 : Type*} {E : Type*} [semi_normed_ring 𝕜] [add_monoid E]
+private lemma map_zero.of_smul {𝕜 : Type*} {E : Type*} [semi_normed_ring 𝕜] [add_monoid E]
   [smul_with_zero 𝕜 E] {f : E → ℝ} (smul : ∀ (a : 𝕜) (x : E), f (a • x) = ∥a∥ * f x) : f 0 = 0 :=
 calc f 0 = f ((0 : 𝕜) • 0) : by rw zero_smul
      ... = 0 : by rw [smul, norm_zero, zero_mul]
 
-lemma neg.of_smul {𝕜 : Type*} {E : Type*} [semi_normed_ring 𝕜] [add_comm_group E]
-  [module 𝕜 E] [norm_one_class 𝕜] {f : E → ℝ} (smul : ∀ (a : 𝕜) (x : E), f (a • x) = ∥a∥ * f x)
+private lemma neg.of_smul {𝕜 : Type*} {E : Type*} [semi_normed_ring 𝕜] [add_comm_group E]
+  [module 𝕜 E] {f : E → ℝ} (smul : ∀ (a : 𝕜) (x : E), f (a • x) = ∥a∥ * f x)
   (x : E) : f (-x) = f x :=
-  calc f (-x) = f ((-1 : 𝕜) • x) : by rw neg_one_smul
-          ... = f x : by rw [smul, norm_neg, norm_one, one_mul]
+by rw [←neg_one_smul 𝕜, smul, norm_neg, ← smul, one_smul]
 
-lemma nonneg.of {𝕜 : Type*} {E : Type*} [semi_normed_ring 𝕜] [add_comm_group E] [module 𝕜 E]
+private lemma nonneg.of {𝕜 : Type*} {E : Type*} [semi_normed_ring 𝕜] [add_comm_group E] [module 𝕜 E]
   [norm_one_class 𝕜] {f : E → ℝ} (add_le : ∀ (x y : E), f (x + y) ≤ f x + f y)
   (smul : ∀ (a : 𝕜) (x : E), f (a • x) = ∥a∥ * f x) (x : E) : 0 ≤ f x :=
 have h: 0 ≤ 2 * f x, from
@@ -192,7 +192,7 @@ nonneg_of_mul_nonneg_left h zero_lt_two
 /-- Alternative constructor for a `seminorm` on an `add_comm_group E` over a `semi_norm_ring 𝕜`
   in which `1` has norm `1`. -/
 def seminorm.of {𝕜 : Type*} {E : Type*} [semi_normed_ring 𝕜] [add_comm_group E] [module 𝕜 E]
-  [norm_one_class 𝕜] {f : E → ℝ} (add_le : ∀ (x y : E), f (x + y) ≤ f x + f y)
+  [norm_one_class 𝕜] (f : E → ℝ) (add_le : ∀ (x y : E), f (x + y) ≤ f x + f y)
   (smul : ∀ (a : 𝕜) (x : E), f (a • x) = ∥a∥ * f x) : seminorm 𝕜 E :=
 { to_fun    := f,
   map_zero' := map_zero.of_smul smul,
@@ -213,12 +213,7 @@ variables [has_scalar 𝕜 E]
 
 instance fun_like : fun_like (seminorm 𝕜 E) E (λ _, ℝ) :=
 { coe := λ f, f.to_fun,
-  coe_injective' := λ f g h,
-  begin
-   rcases f with ⟨⟨⟨f, _⟩, _⟩, _⟩,
-   rcases g with ⟨⟨⟨g, _⟩, _⟩, _⟩,
-   simpa using h,
-  end }
+  coe_injective' := λ f g h, by cases f; cases g; congr' }
 
 /-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`. -/
 instance : has_coe_to_fun (seminorm 𝕜 E) (λ _, E → ℝ) := ⟨λ p, p.to_fun⟩
@@ -247,21 +242,11 @@ instance [has_scalar R ℝ] [has_scalar R ℝ≥0] [is_scalar_tower R ℝ≥0 �
   has_scalar R (seminorm 𝕜 E) :=
 { smul := λ r p,
   { to_fun  := λ x, r • p x,
-    nonneg' := λ x, begin
-      simp only [←smul_one_smul ℝ≥0 r (_ : ℝ), nnreal.smul_def, smul_eq_mul],
-      exact mul_nonneg (nnreal.coe_nonneg _) (p.nonneg _)
-    end,
-    map_zero' := by simp only [←smul_one_smul ℝ≥0 r (_ : ℝ), nnreal.smul_def, smul_eq_mul,
-      p.map_zero, mul_zero],
-    add_le' := λ _ _, begin
-      simp only [←smul_one_smul ℝ≥0 r (_ : ℝ), nnreal.smul_def, smul_eq_mul],
-      exact (mul_le_mul_of_nonneg_left (p.add_le _ _) (nnreal.coe_nonneg _)).trans_eq
-        (mul_add _ _ _),
-    end,
     smul' := λ _ _, begin
       simp only [←smul_one_smul ℝ≥0 r (_ : ℝ), nnreal.smul_def, smul_eq_mul],
       rw [p.smul, mul_left_comm],
-    end }}
+    end,
+    ..(r • p.to_add_monoid_seminorm) }}
 
 instance [has_scalar R ℝ] [has_scalar R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ]
   [has_scalar R' ℝ] [has_scalar R' ℝ≥0] [is_scalar_tower R' ℝ≥0 ℝ]
@@ -278,11 +263,8 @@ lemma coe_smul [has_scalar R ℝ] [has_scalar R ℝ≥0] [is_scalar_tower R ℝ�
 instance : has_add (seminorm 𝕜 E) :=
 { add := λ p q,
   { to_fun    := λ x, p x + q x,
-    nonneg'   := λ x, add_nonneg (p.nonneg _) (q.nonneg _),
-    map_zero' := by rw [p.map_zero, q.map_zero, zero_add],
     smul'     := λ a x, by simp only [p.smul, q.smul, mul_add],
-    add_le'   := λ _ _, has_le.le.trans_eq (add_le_add (p.add_le _ _) (q.add_le _ _))
-      (add_add_add_comm _ _ _ _) }}
+    ..(p.to_add_monoid_seminorm + q.to_add_monoid_seminorm) }}
 
 lemma coe_add (p q : seminorm 𝕜 E) : ⇑(p + q) = p + q := rfl
 
@@ -520,26 +502,23 @@ by { use 0, rintro _ ⟨x, rfl⟩, exact add_nonneg (p.nonneg _) (q.nonneg _) }
 noncomputable instance : has_inf (seminorm 𝕜 E) :=
 { inf := λ p q,
 begin
-  set f := λ x, ⨅ u : E, p u + q (x-u) with hf,
-  have add_le : ∀ (x y : E), f (x + y) ≤ f x + f y := λ x y, begin
-      refine le_cinfi_add_cinfi (λ u v, _),
-      apply cinfi_le_of_le (bdd_below_range_add _ _ _) (v+u), dsimp only,
-      convert add_le_add (p.add_le v u) (q.add_le (y-v) (x-u)) using 1,
-      { rw show x + y - (v + u) = y - v + (x - u), by abel },
-      { abel },
-    end,
-  have smul : ∀ (a : 𝕜) (x : E), f (a • x) = ∥a∥ * f x := λ a x, begin
-      obtain rfl | ha := eq_or_ne a 0,
-      { rw [norm_zero, zero_mul, zero_smul],
-        refine cinfi_eq_of_forall_ge_of_forall_gt_exists_lt
-          (λ i, add_nonneg (p.nonneg _) (q.nonneg _))
-          (λ x hx, ⟨0, by rwa [map_zero, sub_zero, map_zero, add_zero]⟩) },
-      simp_rw [real.mul_infi_of_nonneg (norm_nonneg a), mul_add, ←p.smul, ←q.smul, smul_sub],
-      refine function.surjective.infi_congr ((•) a⁻¹ : E → E) (λ u, ⟨a • u, inv_smul_smul₀ ha u⟩)
-        (λ u, _),
-      rw smul_inv_smul₀ ha,
-    end,
-  exact seminorm.of add_le smul,
+  refine seminorm.of (λ x, ⨅ u : E, p u + q (x-u)) _ _,
+  { intros x y,
+    refine le_cinfi_add_cinfi (λ u v, _),
+    apply cinfi_le_of_le (bdd_below_range_add _ _ _) (v + u), dsimp only,
+    convert add_le_add (p.add_le v u) (q.add_le (y-v) (x-u)) using 1,
+    { rw show x + y - (v + u) = y - v + (x - u), by abel },
+    { abel }},
+  { intros a x,
+    obtain rfl | ha := eq_or_ne a 0,
+    { rw [norm_zero, zero_mul, zero_smul],
+      refine cinfi_eq_of_forall_ge_of_forall_gt_exists_lt
+        (λ i, add_nonneg (p.nonneg _) (q.nonneg _))
+        (λ x hx, ⟨0, by rwa [map_zero, sub_zero, map_zero, add_zero]⟩) },
+    simp_rw [real.mul_infi_of_nonneg (norm_nonneg a), mul_add, ←p.smul, ←q.smul, smul_sub],
+    refine function.surjective.infi_congr ((•) a⁻¹ : E → E) (λ u, ⟨a • u, inv_smul_smul₀ ha u⟩)
+      (λ u, _),
+    rw smul_inv_smul₀ ha },
 end }
 
 @[simp] lemma inf_apply (p q : seminorm 𝕜 E) (x : E) : (p ⊓ q) x = ⨅ u : E, p u + q (x-u) := rfl
@@ -821,12 +800,14 @@ variables (𝕜 E) [normed_field 𝕜] [semi_normed_group E] [normed_space 𝕜 
 
 /-- The norm of a seminormed group as an add_monoid seminorm. -/
 def norm_add_monoid_seminorm : add_monoid_seminorm E :=
-⟨⟨norm, norm_zero⟩, norm_nonneg, norm_add_le⟩
+⟨norm, norm_zero, norm_nonneg, norm_add_le⟩
 
 @[simp] lemma coe_norm_add_monoid_seminorm : ⇑(norm_add_monoid_seminorm E) = norm := rfl
 
 /-- The norm of a seminormed group as a seminorm. -/
-def norm_seminorm : seminorm 𝕜 E := ⟨norm_add_monoid_seminorm E, norm_smul⟩
+def norm_seminorm : seminorm 𝕜 E :=
+{ smul' := norm_smul,
+  ..(norm_add_monoid_seminorm E)}
 
 @[simp] lemma coe_norm_seminorm : ⇑(norm_seminorm 𝕜 E) = norm := rfl
 

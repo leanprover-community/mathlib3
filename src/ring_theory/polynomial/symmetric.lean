@@ -196,12 +196,12 @@ begin
   simp only [← single_eq_monomial],
   convert finsupp.support_sum_eq_bUnion (powerset_len n (univ : finset σ)) _,
   intros s t hst d,
-  simp only [finsupp.support_single_ne_zero one_ne_zero, and_imp, inf_eq_inter, mem_inter,
+  simp only [finsupp.support_single_ne_zero _ one_ne_zero, and_imp, inf_eq_inter, mem_inter,
              mem_singleton],
   rintro h rfl,
   have := congr_arg finsupp.support h,
   rw [finsupp.support_sum_eq_bUnion, finsupp.support_sum_eq_bUnion] at this,
-  { simp only [finsupp.support_single_ne_zero one_ne_zero, bUnion_singleton_eq_self] at this,
+  { simp only [finsupp.support_single_ne_zero _ one_ne_zero, bUnion_singleton_eq_self] at this,
     exact absurd this hst.symm },
   all_goals { intros x y, simp [finsupp.support_single_disjoint] }
 end
@@ -213,7 +213,7 @@ begin
   rw support_esymm'',
   congr,
   funext,
-  exact finsupp.support_single_ne_zero one_ne_zero
+  exact finsupp.support_single_ne_zero _ one_ne_zero
 end
 
 lemma support_esymm (n : ℕ) [decidable_eq σ] [nontrivial R] :

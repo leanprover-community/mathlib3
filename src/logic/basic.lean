@@ -1273,7 +1273,7 @@ propext (exists_prop_congr hq _)
 @[simp] lemma exists_true_left (p : true → Prop) : (∃ x, p x) ↔ p true.intro :=
 exists_prop_of_true _
 
--- This is superceded by `exists_iff` in logic/is_empty.
+-- This is superceded by `is_empty.exists_iff`.
 private lemma exists_false_left (p : false → Prop) : ¬ ∃ x, p x :=
 exists_prop_of_false not_false
 
@@ -1292,7 +1292,7 @@ propext (forall_prop_congr hq _)
 @[simp] lemma forall_true_left (p : true → Prop) : (∀ x, p x) ↔ p true.intro :=
 forall_prop_of_true _
 
--- This is superceded by `forall_iff` in logic/is_empty.
+-- This is superceded by `is_empty.forall_iff`.
 private lemma forall_false_left (p : false → Prop) : (∀ x, p x) ↔ true :=
 forall_prop_of_false not_false
 

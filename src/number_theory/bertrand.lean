@@ -73,13 +73,6 @@ section nat
 
 open nat
 
--- < works here too, but this is more golfed and either is loose anyway
-lemma two_n_div_3_le_central_binom (n : ℕ) : 2 * n / 3 ≤ central_binom n :=
-calc 2 * (n) / 3 ≤ 2 * (n)          : nat.div_le_self (2 * n) 3
-    ... = (2 * n).choose(1)         : by norm_num
-    ... ≤ (2 * n).choose(2 * n / 2) : choose_le_middle 1 (2 * (n))
-    ... = (2 * n).choose(n)         : by {congr, rw [nat.mul_div_right], norm_num, }
-
 lemma factorization_support_subset_filter_prime_range (n : ℕ) :
   n.factorization.support ⊆ finset.filter nat.prime (finset.range (n + 1)) :=
 begin
@@ -96,32 +89,73 @@ begin
     { exact prime_of_mem_factors p_factor, }, },
 end
 
-lemma fooo (n : ℕ) : ∏ p in finset.filter nat.prime (finset.range (n + 1)), p ^ (n.factorization p)
-  = ∏ p in n.factorization.support, p ^ (n.factorization p) :=
-begin
-  refine (finset.prod_subset (factorization_support_subset_filter_prime_range n) _).symm,
-  intros i i_in i_not,
-  simp at i_not,
-  have r : n.factorization i = 0,
-  { rw factorization_eq_zero_iff',
-    by_contradiction,
-    push_neg at h,
-    refine i_not _,
-    exact (mem_factors_iff_dvd h.2.2 h.1).2 h.2.1, },
-  rw [←pow_zero i, r],
-end
+-- lemma fooo (n : ℕ) : ∏ p in finset.filter nat.prime (finset.range (n + 1)), p ^ (n.factorization p)
+--   = ∏ p in n.factorization.support, p ^ (n.factorization p) :=
+-- begin
+--   refine (finset.prod_subset (factorization_support_subset_filter_prime_range n) _).symm,
+--   intros i i_in i_not,
+--   simp at i_not,
+--   have r : n.factorization i = 0,
+--   { rw factorization_eq_zero_iff',
+--     by_contradiction,
+--     push_neg at h,
+--     refine i_not _,
+--     exact (mem_factors_iff_dvd h.2.2 h.1).2 h.2.1, },
+--   rw [←pow_zero i, r],
+-- end
 
--- TODO aesthetically, I think this theorem would be better if the range was 2 * n + 1
-lemma central_binom_factorization (n : ℕ) :
-  ∏ p in finset.filter nat.prime (finset.range (central_binom n + 1)),
+-- -- TODO aesthetically, I think this theorem would be better if the range was 2 * n + 1
+-- lemma central_binom_factorization (n : ℕ) :
+--   ∏ p in finset.filter nat.prime (finset.range (central_binom n + 1)),
+--     p ^ ((central_binom n).factorization p)
+--   = central_binom n :=
+-- begin
+--   calc ∏ p in finset.filter nat.prime (finset.range (n.central_binom + 1)),
+--           p ^ (n.central_binom.factorization p)
+--     = ∏ p in (central_binom n).factorization.support, p ^ (n.central_binom.factorization p) :
+--       fooo _
+--   ... = central_binom n : factorization_prod_pow_eq_self (central_binom_ne_zero _),
+-- end
+
+lemma choose_factorization_prod_pow (n k : ℕ) (hkn : k ≤ n) :
+  ∏ p in finset.filter nat.prime (finset.range (n + 1)),
+    p ^ ((nat.choose n k).factorization p)
+  = choose n k :=
+calc
+∏ p in finset.filter nat.prime (finset.range (n + 1)), p ^ ((nat.choose n k).factorization p)
+  = ∏ p in (nat.choose n k).factorization.support, p ^ ((nat.choose n k).factorization p) :
+    begin
+      apply eq.symm,
+      apply finset.prod_subset,
+      { rw finset.subset_iff,
+        intros p hp,
+        simp only [finset.mem_filter, finset.mem_range],
+        split,
+        { rw lt_add_one_iff,
+          rw finsupp.mem_support_iff at hp,
+          contrapose! hp,
+          apply factorization_choose_eq_zero_of_lt hp,
+        },
+        {
+          exact prime_of_mem_factorization hp,
+        }, },
+      {
+        intros p hp hp',
+        rw finsupp.mem_support_iff at hp',
+        simp only [not_not] at hp',
+        rw hp',
+        simp only [eq_self_iff_true, pow_zero],
+      }
+    end
+... = choose n k : factorization_prod_pow_eq_self (ne_of_lt (choose_pos hkn)).symm
+
+lemma central_binom_factorization_prod_pow (n : ℕ) :
+  ∏ p in finset.filter nat.prime (finset.range (2 * n + 1)),
     p ^ ((central_binom n).factorization p)
   = central_binom n :=
 begin
-  calc ∏ p in finset.filter nat.prime (finset.range (n.central_binom + 1)),
-          p ^ (n.central_binom.factorization p)
-    = ∏ p in (central_binom n).factorization.support, p ^ (n.central_binom.factorization p) :
-      fooo _
-  ... = central_binom n : factorization_prod_pow_eq_self (central_binom_ne_zero _),
+  apply choose_factorization_prod_pow,
+  linarith,
 end
 
 lemma sq_prime_is_small' {p n : ℕ} (hp : nat.prime p) (n_big : 2 < n) (small : p ≤ sqrt (2 * n)) :
@@ -412,14 +446,15 @@ lemma central_binom_factorization_small (n : nat) (n_large : 2 < n)
   ∏ p in (finset.range (2 * n / 3 + 1)).filter nat.prime,
     p ^ ((nat.central_binom n).factorization p)
   =
-  ∏ p in (finset.range (nat.central_binom n + 1)).filter nat.prime,
+  ∏ p in (finset.range (2 * n + 1)).filter nat.prime,
     p ^ ((nat.central_binom n).factorization p) :=
 begin
   apply finset.prod_subset,
   { apply finset.filter_subset_filter,
     rw finset.range_subset,
     rw [add_le_add_iff_right],
-    exact (two_n_div_3_le_central_binom n), },
+    apply nat.div_le_of_le_mul,
+    linarith, },
   intro x,
   rw [finset.mem_filter, finset.mem_filter, finset.mem_range, finset.mem_range],
   intros hx h2x,
@@ -463,10 +498,11 @@ lemma bertrand_central_binom_le (n : ℕ) (n_big : 2 < n)
       * 4 ^ (2 * n / 3) :=
 calc
 nat.central_binom n
-    = (∏ p in (finset.range (2 * n / 3 + 1)).filter nat.prime,
+    = ∏ p in finset.filter nat.prime (finset.range (2 * n + 1)),
+        p ^ ((nat.central_binom n).factorization p) : by rw [central_binom_factorization_prod_pow]
+... = (∏ p in (finset.range (2 * n / 3 + 1)).filter nat.prime,
           p ^ ((nat.central_binom n).factorization p)) :
-          by rw [central_binom_factorization_small n (by linarith) no_prime,
-                 central_binom_factorization]
+          by {rw [central_binom_factorization_small n (by linarith) no_prime]}
 ... = (∏ p in (finset.range (2 * n / 3 + 1)).filter nat.prime,
           if p ≤ nat.sqrt (2 * n)
           then p ^ ((nat.central_binom n).factorization p)

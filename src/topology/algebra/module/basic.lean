@@ -265,6 +265,9 @@ class continuous_semilinear_map_class (F : Type*) {R S : out_param Type*} [semir
   (M₂ : out_param Type*) [topological_space M₂] [add_comm_monoid M₂] [module R M] [module S M₂]
   extends semilinear_map_class F σ M M₂, continuous_map_class F M M₂
 
+-- `σ`, `R` and `S` become metavariables, but they are all outparams so it's OK
+attribute [nolint dangerous_instance] continuous_semilinear_map_class.to_continuous_map_class
+
 set_option old_structure_cmd false
 
 /-- `continuous_linear_map_class F R M M₂` asserts `F` is a type of bundled continuous

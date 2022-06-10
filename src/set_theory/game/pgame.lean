@@ -985,10 +985,10 @@ by rw [neg_equiv_iff, pgame.neg_zero]
 @[simp] theorem neg_fuzzy_zero_iff {x : pgame} : -x ∥ 0 ↔ x ∥ 0 :=
 by rw [neg_fuzzy_iff, pgame.neg_zero]
 
-@[simp] theorem equiv_neg_zero_iff {x : pgame} : 0 ≈ -x ↔ 0 ≈ x :=
+@[simp] theorem zero_equiv_neg_iff {x : pgame} : 0 ≈ -x ↔ 0 ≈ x :=
 by rw [←neg_equiv_iff, pgame.neg_zero]
 
-@[simp] theorem fuzzy_neg_zero_iff {x : pgame} : 0 ∥ -x ↔ 0 ∥ x :=
+@[simp] theorem zero_fuzzy_neg_iff {x : pgame} : 0 ∥ -x ↔ 0 ∥ x :=
 by rw [←neg_fuzzy_iff, pgame.neg_zero]
 
 theorem neg_congr {x y : pgame} (h : x ≈ y) : -x ≈ -y :=

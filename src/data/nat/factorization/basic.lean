@@ -90,8 +90,18 @@ prime.pos (prime_of_mem_factorization hp)
 lemma le_of_mem_factorization {n p : ℕ} (h : p ∈ n.factorization.support) : p ≤ n :=
 le_of_mem_factors (factor_iff_mem_factorization.mp h)
 
+@[simp]
 lemma factorization_eq_zero_of_non_prime (n : ℕ) {p : ℕ} (hp : ¬p.prime) : n.factorization p = 0 :=
 not_mem_support_iff.1 (mt prime_of_mem_factorization hp)
+
+lemma factorization_eq_zero_of_lt {n p : ℕ} (h : n < p) : n.factorization p = 0 :=
+finsupp.not_mem_support_iff.mp (mt le_of_mem_factorization (not_le_of_lt h))
+
+@[simp] lemma factorization_zero_right (n : ℕ) : n.factorization 0 = 0 :=
+factorization_eq_zero_of_non_prime _ not_prime_zero
+
+@[simp] lemma factorization_one_right (n : ℕ) : n.factorization 1 = 0 :=
+factorization_eq_zero_of_non_prime _ not_prime_one
 
 lemma dvd_of_factorization_pos {n p : ℕ} (hn : n.factorization p ≠ 0) : p ∣ n :=
 dvd_of_mem_factors (factor_iff_mem_factorization.1 (mem_support_iff.2 hn))
@@ -103,6 +113,15 @@ by rwa [←factors_count_eq, count_pos, mem_factors_iff_dvd hn hp]
 /-- The only numbers with empty prime factorization are `0` and `1` -/
 lemma factorization_eq_zero_iff (n : ℕ) : n.factorization = 0 ↔ n = 0 ∨ n = 1 :=
 by simp [factorization, add_equiv.map_eq_zero_iff, multiset.coe_eq_zero]
+
+lemma factorization_eq_zero_iff' (n p : ℕ) :
+  n.factorization p = 0 ↔ ¬p.prime ∨ ¬p ∣ n ∨ n = 0 :=
+begin
+  rw [←not_mem_support_iff, support_factorization, mem_to_finset],
+  rcases eq_or_ne n 0 with rfl | hn,
+  { simp },
+  { simp [hn, nat.mem_factors, not_and_distrib] },
+end
 
 /-- For nonzero `a` and `b`, the power of `p` in `a * b` is the sum of the powers in `a` and `b` -/
 @[simp] lemma factorization_mul {a b : ℕ} (ha : a ≠ 0) (hb : b ≠ 0) :

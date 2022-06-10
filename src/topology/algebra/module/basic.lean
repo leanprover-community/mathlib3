@@ -659,7 +659,7 @@ module.comp_hom _ to_linear_map_ring_hom
 @[simp] protected lemma smul_def (f : M₁ →L[R₁] M₁) (a : M₁) : f • a = f a := rfl
 
 /-- `continuous_linear_map.apply_module` is faithful. -/
-instance apply_has_faithful_scalar : has_faithful_scalar (M₁ →L[R₁] M₁) M₁ :=
+instance apply_has_faithful_smul : has_faithful_smul (M₁ →L[R₁] M₁) M₁ :=
 ⟨λ _ _, continuous_linear_map.ext⟩
 
 instance apply_smul_comm_class : smul_comm_class R₁ (M₁ →L[R₁] M₁) M₁ :=
@@ -1201,10 +1201,10 @@ end smul
 
 section smul_rightₗ
 
-variables {R S T M M₂ : Type*} [ring R] [ring S] [ring T] [module R S]
-  [add_comm_group M₂] [module R M₂] [module S M₂] [is_scalar_tower R S M₂]
+variables {R S T M M₂ : Type*} [semiring R] [semiring S] [semiring T] [module R S]
+  [add_comm_monoid M₂] [module R M₂] [module S M₂] [is_scalar_tower R S M₂]
   [topological_space S] [topological_space M₂] [has_continuous_smul S M₂]
-  [topological_space M] [add_comm_group M] [module R M] [topological_add_group M₂]
+  [topological_space M] [add_comm_monoid M] [module R M] [has_continuous_add M₂]
   [module T M₂] [has_continuous_const_smul T M₂]
   [smul_comm_class R T M₂] [smul_comm_class S T M₂]
 

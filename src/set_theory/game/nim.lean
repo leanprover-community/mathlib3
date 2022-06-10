@@ -57,26 +57,25 @@ lemma nim_def (O : ordinal) : nim O = pgame.mk O.out.α O.out.α
   (λ O₂, nim (ordinal.typein (<) O₂)) :=
 by { rw nim, refl }
 
-instance : is_empty (left_moves (nim 0)) :=
-by { rw nim_def, exact α.is_empty }
+instance : is_empty (nim 0).left_moves :=
+by { rw nim_def, exact ordinal.is_empty_out_zero }
 
-instance : is_empty (right_moves (nim 0)) :=
-by { rw nim_def, exact α.is_empty }
+instance : is_empty (nim 0).right_moves :=
+by { rw nim_def, exact ordinal.is_empty_out_zero }
 
-noncomputable instance : unique (left_moves (nim 1)) :=
-by { rw nim_def, exact α.unique }
+noncomputable instance : unique (nim 1).left_moves :=
+by { rw nim_def, exact ordinal.unique_out_one }
 
-noncomputable instance : unique (right_moves (nim 1)) :=
-by { rw nim_def, exact α.unique }
+noncomputable instance : unique (nim 1).right_moves :=
+by { rw nim_def, exact ordinal.unique_out_one }
 
-/-- `0` has exactly the same moves as `nim 0`. -/
-def nim_zero_relabelling : relabelling 0 (nim 0) :=
-(relabelling.is_empty _).symm
+/-- `nim 0` has exactly the same moves as `0`. -/
+def nim_zero_relabelling : relabelling (nim 0) 0 := relabelling.is_empty _
 
-@[simp] theorem nim_zero_equiv : 0 ≈ nim 0 := nim_zero_relabelling.equiv
+@[simp] theorem nim_zero_equiv : nim 0 ≈ 0 := equiv.is_empty _
 
 /-- `nim 1` has exactly the same moves as `star`. -/
-noncomputable def nim_one_relabelling : relabelling star (nim 1) :=
+noncomputable def nim_one_relabelling : relabelling (nim 1) star :=
 begin
   rw nim_def,
   refine ⟨_, _, λ i,  _, λ j, _⟩,
@@ -84,7 +83,7 @@ begin
   all_goals { simp, exact nim_zero_relabelling }
 end
 
-@[simp] theorem nim_one_equiv : star ≈ nim 1 := nim_one_relabelling.equiv
+@[simp] theorem nim_one_equiv : nim 1 ≈ star := nim_one_relabelling.equiv
 
 @[simp] lemma nim_birthday (O : ordinal) : (nim O).birthday = O :=
 begin
@@ -180,7 +179,7 @@ begin
     { exact le_total O₁ O₂ },
     { have h : O₁ < O₂ := lt_of_le_of_ne h' h,
       rw [impartial.first_wins_symm', lf_iff_forall_le, nim_def O₂],
-      refine or.inl ⟨(left_moves_add (nim O₁) _).symm (sum.inr _), _⟩,
+      refine or.inl ⟨to_left_moves_add (sum.inr _), _⟩,
       { exact (ordinal.principal_seg_out h).top },
       { simpa using (impartial.add_self (nim O₁)).2 } },
     { exact first_wins_of_equiv add_comm_equiv (this (ne.symm h)) } },
@@ -216,9 +215,9 @@ begin
   introI hG,
   rw [impartial.equiv_iff_sum_first_loses, ←impartial.no_good_left_moves_iff_first_loses],
   intro i,
-  equiv_rw left_moves_add G (nim (grundy_value G)) at i,
-  cases i with i₁ i₂,
-  { rw add_move_left_inl,
+  apply left_moves_add_cases i,
+  { intro i₁,
+    rw add_move_left_inl,
     apply first_wins_of_equiv (add_congr_left (equiv_nim_grundy_value (G.move_left i₁)).symm),
     rw nim.sum_first_wins_iff_neq,
     intro heq,
@@ -226,7 +225,8 @@ begin
     have h := ordinal.ne_mex _,
     rw heq at h,
     exact (h i₁).irrefl },
-  { rw [add_move_left_inr, ←impartial.good_left_move_iff_first_wins],
+  { intro i₂,
+    rw [add_move_left_inr, ←impartial.good_left_move_iff_first_wins],
     revert i₂,
     rw nim.nim_def,
     intro i₂,
@@ -240,7 +240,7 @@ begin
       simpa using hnotin},
 
     cases h' with i hi,
-    use (left_moves_add _ _).symm (sum.inl i),
+    use to_left_moves_add (sum.inl i),
     rw [add_move_left_inl, move_left_mk],
     apply first_loses_of_equiv
       (add_congr_left (equiv_nim_grundy_value (G.move_left i)).symm),
@@ -251,7 +251,7 @@ using_well_founded { dec_tac := pgame_wf_tac }
 @[simp] lemma grundy_value_eq_iff_equiv_nim (G : pgame) [G.impartial] (O : ordinal) :
   grundy_value G = O ↔ G ≈ nim O :=
 ⟨by { rintro rfl, exact equiv_nim_grundy_value G },
-  by { intro h, rw ←nim.equiv_iff_eq, exact equiv_trans (equiv_symm (equiv_nim_grundy_value G)) h }⟩
+  by { intro h, rw ←nim.equiv_iff_eq, exact (equiv_nim_grundy_value G).symm.trans h }⟩
 
 lemma nim.grundy_value (O : ordinal.{u}) : grundy_value (nim O) = O :=
 by simp
@@ -260,14 +260,12 @@ by simp
   grundy_value G = grundy_value H ↔ G ≈ H :=
 (grundy_value_eq_iff_equiv_nim _ _).trans (equiv_congr_left.1 (equiv_nim_grundy_value H) _).symm
 
-lemma grundy_value_zero : grundy_value 0 = 0 :=
-by simp
+@[simp] lemma grundy_value_zero : grundy_value 0 = 0 := by simp [nim.nim_zero_equiv.symm]
 
 @[simp] lemma grundy_value_iff_equiv_zero (G : pgame) [G.impartial] : grundy_value G = 0 ↔ G ≈ 0 :=
 by rw [←grundy_value_eq_iff_equiv, grundy_value_zero]
 
-lemma grundy_value_star : grundy_value star = 1 :=
-by simp
+lemma grundy_value_star : grundy_value star = 1 := by simp [nim.nim_one_equiv.symm]
 
 @[simp] lemma grundy_value_nim_add_nim (n m : ℕ) :
   grundy_value (nim.{u} n + nim.{u} m) = nat.lxor n m :=
@@ -284,13 +282,14 @@ begin
   have h₀ : ∀ i, grundy_value ((nim n + nim m).move_left i) ≠ (nat.lxor n m : ordinal),
   { -- To show that `n xor m` is unreachable, we show that every move produces a Grundy number
     -- different from `n xor m`.
-    equiv_rw left_moves_add _ _,
+    intro i,
 
     -- The move operates either on the left pile or on the right pile.
-    rintro (a|a),
+    apply left_moves_add_cases i,
 
     all_goals
     { -- One of the piles is reduced to `k` stones, with `k < n` or `k < m`.
+      intro a,
       obtain ⟨ok, hk, hk'⟩ := nim.exists_ordinal_move_left_eq a,
       obtain ⟨k, rfl⟩ := ordinal.lt_omega.1 (lt_trans hk (ordinal.nat_lt_omega _)),
       replace hk := ordinal.nat_cast_lt.1 hk,
@@ -326,11 +325,11 @@ begin
     -- Therefore, we can play the corresponding move, and by the inductive hypothesis the new state
     -- is `(u xor m) xor m = u` or `n xor (u xor n) = u` as required.
     { obtain ⟨i, hi⟩ := nim.exists_move_left_eq (ordinal.nat_cast_lt.2 h),
-      refine ⟨(left_moves_add _ _).symm (sum.inl i), _⟩,
+      refine ⟨to_left_moves_add (sum.inl i), _⟩,
       simp only [hi, add_move_left_inl],
       rw [hn _ h, nat.lxor_assoc, nat.lxor_self, nat.lxor_zero] },
     { obtain ⟨i, hi⟩ := nim.exists_move_left_eq (ordinal.nat_cast_lt.2 h),
-      refine ⟨(left_moves_add _ _).symm (sum.inr i), _⟩,
+      refine ⟨to_left_moves_add (sum.inr i), _⟩,
       simp only [hi, add_move_left_inr],
       rw [hm _ h, nat.lxor_comm, nat.lxor_assoc, nat.lxor_self, nat.lxor_zero] } },
 
@@ -347,7 +346,7 @@ lemma grundy_value_add (G H : pgame) [G.impartial] [H.impartial] {n m : ℕ} (hG
   (hH : grundy_value H = m) : grundy_value (G + H) = nat.lxor n m :=
 begin
   rw [←nim.grundy_value (nat.lxor n m), grundy_value_eq_iff_equiv],
-  refine equiv_trans _ nim_add_nim_equiv,
+  refine equiv.trans _ nim_add_nim_equiv,
   convert add_congr (equiv_nim_grundy_value G) (equiv_nim_grundy_value H);
   simp only [hG, hH]
 end

@@ -81,7 +81,7 @@ and to check that the triangle commutes.
 @[simps]
 def iso_mk {f f' : structured_arrow S T} (g : f.right ≅ f'.right)
   (w : f.hom ≫ T.map g.hom = f'.hom) : f ≅ f' :=
-comma.iso_mk (eq_to_iso (by ext)) g (by simpa using w.symm)
+comma.iso_mk (eq_to_iso (by ext)) g (by simpa [eq_to_hom_map] using w.symm)
 
 /--
 A morphism between source objects `S ⟶ S'`
@@ -180,7 +180,7 @@ def hom_mk {f f' : costructured_arrow S T} (g : f.left ⟶ f'.left) (w : S.map g
   f ⟶ f' :=
 { left := g,
   right := eq_to_hom (by ext),
-  w' := by simpa using w, }
+  w' := by simpa [eq_to_hom_map] using w, }
 
 /--
 To construct an isomorphism of costructured arrows,
@@ -190,7 +190,7 @@ and to check that the triangle commutes.
 @[simps]
 def iso_mk {f f' : costructured_arrow S T} (g : f.left ≅ f'.left)
   (w : S.map g.hom ≫ f'.hom = f.hom) : f ≅ f' :=
-comma.iso_mk g (eq_to_iso (by ext)) (by simpa using w)
+comma.iso_mk g (eq_to_iso (by ext)) (by simpa [eq_to_hom_map] using w)
 
 /--
 A morphism between target objects `T ⟶ T'`

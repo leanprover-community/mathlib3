@@ -628,7 +628,7 @@ section isometry
 
 lemma isometry_iff_norm (f : normed_group_hom V W) :
   isometry f ↔ ∀ v, ∥f v∥ = ∥v∥ :=
-add_monoid_hom.isometry_iff_norm f.to_add_monoid_hom
+add_monoid_hom_class.isometry_iff_norm f.to_add_monoid_hom
 
 lemma isometry_of_norm (f : normed_group_hom V W) (hf : ∀ v, ∥f v∥ = ∥v∥) :
   isometry f :=

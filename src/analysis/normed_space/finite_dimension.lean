@@ -555,7 +555,7 @@ def continuous_linear_equiv.pi_ring (ι : Type*) [fintype ι] [decidable_eq ι] 
     simp_rw [linear_equiv.inv_fun_eq_symm, linear_equiv.trans_symm, linear_equiv.symm_symm],
     change continuous (linear_map.to_continuous_linear_map.to_linear_map.comp
                       (linear_equiv.pi_ring 𝕜 E ι 𝕜).symm.to_linear_map),
-    apply linear_map.continuous_of_bound _ (fintype.card ι : ℝ) (λ g, _),
+    apply add_monoid_hom_class.continuous_of_bound _ (fintype.card ι : ℝ) (λ g, _),
     rw ← nsmul_eq_mul,
     apply op_norm_le_bound _ (nsmul_nonneg (norm_nonneg g) (fintype.card ι)) (λ t, _),
     simp_rw [linear_map.coe_comp, linear_equiv.coe_to_linear_map, function.comp_app,

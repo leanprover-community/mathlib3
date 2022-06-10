@@ -983,7 +983,7 @@ has_fderiv_at_filter.is_O_sub h
 theorem has_deriv_at_filter.is_O_sub_rev (hf : has_deriv_at_filter f f' x L) (hf' : f' ≠ 0) :
   (λ x', x' - x) =O[L] (λ x', f x' - f x) :=
 suffices antilipschitz_with ∥f'∥₊⁻¹ (smul_right (1 : 𝕜 →L[𝕜] 𝕜) f'), from hf.is_O_sub_rev this,
-(smul_right (1 : 𝕜 →L[𝕜] 𝕜) f').to_linear_map.antilipschitz_of_bound $
+add_monoid_hom_class.antilipschitz_of_bound (smul_right (1 : 𝕜 →L[𝕜] 𝕜) f') $
   λ x, by simp [norm_smul, ← div_eq_inv_mul, mul_div_cancel _ (mt norm_eq_zero.1 hf')]
 
 theorem has_deriv_at_filter.sub_const

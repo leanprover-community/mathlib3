@@ -475,7 +475,7 @@ begin
     exact ⟨0, f.ker.zero_mem⟩ },
   rcases real.lt_Inf_add_pos nonemp hε with
     ⟨_, ⟨⟨x, hx, rfl⟩, H : ∥m + x∥ < Inf ((λ (m' : M), ∥m + m'∥) '' f.ker) + ε⟩⟩,
-  exact ⟨m+x, by rw [f.map_add,(normed_group_hom.mem_ker f x).mp hx, add_zero],
+  exact ⟨m+x, by rw [map_add,(normed_group_hom.mem_ker f x).mp hx, add_zero],
                by rwa hquot.norm⟩,
 end
 

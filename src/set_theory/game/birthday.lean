@@ -124,8 +124,8 @@ begin
   rw [to_pgame_def, pgame.birthday],
   simp only [lsub_empty, max_zero_right],
   nth_rewrite 0 ←lsub_typein o,
-  congr,
-  exact funext (λ x, IH _ $ typein_lt_self x)
+  congr, ext x,
+  exact IH _ (typein_lt_self x)
 end
 
 theorem le_birthday : ∀ x : pgame, x ≤ x.birthday.to_pgame

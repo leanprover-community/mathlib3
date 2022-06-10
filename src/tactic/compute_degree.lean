@@ -122,10 +122,10 @@ meta def single_term_resolve : expr → tactic unit
 
 /--  Given an expression `e`, assuming it is a polyomial, `extract_deg_single_term e` tries to guess
 the `nat_degree` of `e`.  Currently, it supports:
-* `monomial n r`,  guessing `n`,
-* `C a`,           guessing `0`,
-* `polynomial.X`,  guessing `1`,
-* `X ^ n`,         guessing `n`,
+* `monomial n r`,     guessing `n`,
+* `C a`,              guessing `0`,
+* `polynomial.X`,     guessing `1`,
+* `polynomial.X ^ n`, guessing `n`,
 * everything else, guessing `e.nat_degree`.
 
 The expectation is that the argument of `extract_deg_single_term` is a factor of a summand of an

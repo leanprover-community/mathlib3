@@ -86,8 +86,8 @@ def polynomial_linear_of_semiconj {L : M →ₗ[R] N} (h : L.comp E = F.comp L) 
         aeval_monomial, mul_apply, algebra_map_End_apply, ← comp_apply, ← comp_apply, this] }
   end,
   ..L }
-@[simp] lemma polynomial_linear_of_semiconj_apply {L : M →ₗ[R] N} (h : L.comp E = F.comp L) (u : M) :
-  polynomial_linear_of_semiconj h u = L u := rfl
+@[simp] lemma polynomial_linear_of_semiconj_apply {L : M →ₗ[R] N} (h : L.comp E = F.comp L)
+  (u : M) : polynomial_linear_of_semiconj h u = L u := rfl
 
 /--A `R[X]`-linear isomorphism is a `R`-linear isomorphism compatible with the action of `X`.-/
 def polynomial_lequiv_of_semiconj {L : M ≃ₗ[R] N}

@@ -156,18 +156,13 @@ calc
         { rw lt_add_one_iff,
           rw finsupp.mem_support_iff at hp,
           contrapose! hp,
-          apply factorization_choose_eq_zero_of_lt hp,
-        },
-        {
-          exact prime_of_mem_factorization hp,
-        }, },
-      {
-        intros p hp hp',
+          apply factorization_choose_eq_zero_of_lt hp, },
+        exact prime_of_mem_factorization hp, },
+      { intros p hp hp',
         rw finsupp.mem_support_iff at hp',
         simp only [not_not] at hp',
         rw hp',
-        simp only [eq_self_iff_true, pow_zero],
-      }
+        simp only [eq_self_iff_true, pow_zero], }
     end
 ... = choose n k : factorization_prod_pow_eq_self (ne_of_lt (choose_pos hkn)).symm
 

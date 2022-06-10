@@ -4,9 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 import algebra.big_operators.ring
-import data.real.basic
+import data.real.pointwise
 import algebra.indicator_function
 import algebra.algebra.basic
+import algebra.order.module
 import algebra.order.nonneg
 
 /-!
@@ -122,6 +123,7 @@ protected lemma coe_inv (r : ℝ≥0) : ((r⁻¹ : ℝ≥0) : ℝ) = r⁻¹ := r
 protected lemma coe_div (r₁ r₂ : ℝ≥0) : ((r₁ / r₂ : ℝ≥0) : ℝ) = r₁ / r₂ := rfl
 @[simp, norm_cast] protected lemma coe_bit0 (r : ℝ≥0) : ((bit0 r : ℝ≥0) : ℝ) = bit0 r := rfl
 @[simp, norm_cast] protected lemma coe_bit1 (r : ℝ≥0) : ((bit1 r : ℝ≥0) : ℝ) = bit1 r := rfl
+protected lemma coe_two : ((2 : ℝ≥0) : ℝ) = 2 := rfl
 
 @[simp, norm_cast] protected lemma coe_sub {r₁ r₂ : ℝ≥0} (h : r₂ ≤ r₁) :
   ((r₁ - r₂ : ℝ≥0) : ℝ) = r₁ - r₂ :=
@@ -316,8 +318,18 @@ by rw [supr, supr, coe_Sup, set.range_comp]
 eq.symm $ @subset_Inf_of_within ℝ (set.Ici 0) _ ⟨(0 : ℝ≥0)⟩ s $
   real.Inf_nonneg _ $ λ y ⟨x, _, hy⟩, hy ▸ x.2
 
+@[simp] lemma Inf_empty : Inf (∅ : set ℝ≥0) = 0 :=
+by rw [← nnreal.coe_eq_zero, coe_Inf, set.image_empty, real.Inf_empty]
+
 @[norm_cast] lemma coe_infi {ι : Sort*} (s : ι → ℝ≥0) : (↑(⨅ i, s i) : ℝ) = ⨅ i, (s i) :=
 by rw [infi, infi, coe_Inf, set.range_comp]
+
+lemma le_infi_add_infi {ι ι' : Sort*} [nonempty ι] [nonempty ι'] {f : ι → ℝ≥0} {g : ι' → ℝ≥0}
+  {a : ℝ≥0} (h : ∀ i j, a ≤ f i + g j) : a ≤ (⨅ i, f i) + ⨅ j, g j :=
+begin
+  rw [← nnreal.coe_le_coe, nnreal.coe_add, coe_infi, coe_infi],
+  exact le_cinfi_add_cinfi h
+end
 
 example : archimedean ℝ≥0 := by apply_instance
 
@@ -563,7 +575,7 @@ by simp [pos_iff_ne_zero]
 lemma div_pos {r p : ℝ≥0} (hr : 0 < r) (hp : 0 < p) : 0 < r / p :=
 by simpa only [div_eq_mul_inv] using mul_pos hr (inv_pos.2 hp)
 
-protected lemma mul_inv {r p : ℝ≥0} : (r * p)⁻¹ = p⁻¹ * r⁻¹ := nnreal.eq $ mul_inv_rev₀ _ _
+protected lemma mul_inv {r p : ℝ≥0} : (r * p)⁻¹ = p⁻¹ * r⁻¹ := nnreal.eq $ mul_inv_rev _ _
 
 lemma div_self_le (r : ℝ≥0) : r / r ≤ 1 := div_self_le_one (r : ℝ)
 
@@ -653,6 +665,8 @@ lemma half_pos {a : ℝ≥0} (h : 0 < a) : 0 < a / 2 := div_pos h zero_lt_two
 
 lemma add_halves (a : ℝ≥0) : a / 2 + a / 2 = a := nnreal.eq (add_halves a)
 
+lemma half_le_self (a : ℝ≥0) : a / 2 ≤ a := nnreal.coe_le_coe.mp $ half_le_self a.coe_nonneg
+
 lemma half_lt_self {a : ℝ≥0} (h : a ≠ 0) : a / 2 < a :=
 by rw [← nnreal.coe_lt_coe, nnreal.coe_div]; exact
 half_lt_self (bot_lt_iff_ne_bot.2 h)
@@ -724,6 +738,75 @@ end inv
 
 @[simp] lemma abs_eq (x : ℝ≥0) : |(x : ℝ)| = x :=
 abs_of_nonneg x.property
+
+section csupr
+open set
+
+variables {ι : Sort*} {f : ι → ℝ≥0}
+
+lemma le_to_nnreal_of_coe_le {x : ℝ≥0} {y : ℝ} (h : ↑x ≤ y) : x ≤ y.to_nnreal :=
+(le_to_nnreal_iff_coe_le $ x.2.trans h).2 h
+
+lemma Sup_of_not_bdd_above {s : set ℝ≥0} (hs : ¬bdd_above s) : has_Sup.Sup s = 0 :=
+begin
+  rw [← bdd_above_coe] at hs,
+  rw [← nnreal.coe_eq, coe_Sup],
+  exact Sup_of_not_bdd_above hs,
+end
+
+lemma supr_of_not_bdd_above (hf : ¬ bdd_above (range f)) : (⨆ i, f i) = 0 :=
+Sup_of_not_bdd_above hf
+
+lemma infi_empty [is_empty ι] (f : ι → ℝ≥0) : (⨅ i, f i) = 0 :=
+by { rw [← nnreal.coe_eq, coe_infi], exact real.cinfi_empty _, }
+
+@[simp] lemma infi_const_zero {α : Sort*} : (⨅ i : α, (0 : ℝ≥0)) = 0 :=
+by { rw [← nnreal.coe_eq, coe_infi], exact real.cinfi_const_zero, }
+
+lemma infi_mul (f : ι → ℝ≥0) (a : ℝ≥0)  : infi f * a = ⨅ i, f i * a :=
+begin
+  rw [← nnreal.coe_eq, nnreal.coe_mul, coe_infi, coe_infi],
+  exact real.infi_mul_of_nonneg (nnreal.coe_nonneg _) _,
+end
+
+lemma mul_infi (f : ι → ℝ≥0) (a : ℝ≥0) : a * infi f = ⨅ i, a * f i :=
+by simpa only [mul_comm] using infi_mul f a
+
+lemma mul_supr (f : ι → ℝ≥0) (a : ℝ≥0) : a * (⨆ i, f i) = ⨆ i, a * f i :=
+begin
+  rw [← nnreal.coe_eq, nnreal.coe_mul, nnreal.coe_supr, nnreal.coe_supr],
+  exact real.mul_supr_of_nonneg (nnreal.coe_nonneg _) _,
+end
+
+lemma supr_mul (f : ι → ℝ≥0) (a : ℝ≥0) : (⨆ i, f i) * a = ⨆ i, f i * a :=
+by { rw [mul_comm, mul_supr], simp_rw [mul_comm] }
+
+lemma supr_div (f : ι → ℝ≥0) (a : ℝ≥0) : (⨆ i, f i) / a = ⨆ i, f i / a :=
+by simp only [div_eq_mul_inv, supr_mul]
+
+variable [nonempty ι]
+
+lemma le_mul_infi {a : ℝ≥0} {g : ℝ≥0} {h : ι → ℝ≥0} (H : ∀ j, a ≤ g * h j) : a ≤ g * infi h :=
+by { rw [mul_infi], exact le_cinfi H }
+
+lemma mul_supr_le {a : ℝ≥0} {g : ℝ≥0} {h : ι → ℝ≥0} (H : ∀ j, g * h j ≤ a) : g * supr h ≤ a :=
+by { rw [mul_supr], exact csupr_le H }
+
+lemma le_infi_mul {a : ℝ≥0} {g : ι → ℝ≥0} {h : ℝ≥0} (H : ∀ i, a ≤ g i * h) : a ≤ infi g * h :=
+by { rw infi_mul, exact le_cinfi H }
+
+lemma supr_mul_le {a : ℝ≥0} {g : ι → ℝ≥0} {h : ℝ≥0} (H : ∀ i, g i * h ≤ a) : supr g * h ≤ a :=
+by { rw supr_mul, exact csupr_le H }
+
+lemma le_infi_mul_infi {a : ℝ≥0} {g h : ι → ℝ≥0} (H : ∀ i j, a ≤ g i * h j) :
+  a ≤ infi g * infi h :=
+le_infi_mul  $ λ i, le_mul_infi $ H i
+
+lemma supr_mul_supr_le {a : ℝ≥0} {g h : ι → ℝ≥0} (H : ∀ i j, g i * h j ≤ a) :
+  supr g * supr h ≤ a :=
+supr_mul_le $ λ i, mul_supr_le $ H _
+
+end csupr
 
 end nnreal
 

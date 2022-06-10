@@ -413,7 +413,7 @@ lemma dist_map_zero_lt_of_semiconj {f g₁ g₂ : circle_deg1_lift} (h : functio
   dist (g₁ 0) (g₂ 0) < 2 :=
 calc dist (g₁ 0) (g₂ 0) ≤ dist (g₁ 0) (f (g₁ 0) - f 0) + dist _ (g₂ 0) : dist_triangle _ _ _
 ... = dist (f 0 + g₁ 0) (f (g₁ 0)) + dist (g₂ 0 + f 0) (g₂ (f 0)) :
-  by simp only [h.eq, real.dist_eq, sub_sub, add_comm (f 0), sub_sub_assoc_swap, abs_sub_comm
+  by simp only [h.eq, real.dist_eq, sub_sub, add_comm (f 0), sub_sub_eq_add_sub, abs_sub_comm
     (g₂ (f 0))]
 ... < 2 : add_lt_add (f.dist_map_map_zero_lt g₁) (g₂.dist_map_map_zero_lt f)
 
@@ -535,7 +535,7 @@ lemma transnum_aux_seq_dist_lt (n : ℕ) :
   dist (f.transnum_aux_seq n) (f.transnum_aux_seq (n+1)) < (1 / 2) / (2^n) :=
 begin
   have : 0 < (2^(n+1):ℝ) := pow_pos zero_lt_two _,
-  rw [div_div_eq_div_mul, ← pow_succ, ← abs_of_pos this],
+  rw [div_div, ← pow_succ, ← abs_of_pos this],
   replace := abs_pos.2 (ne_of_gt this),
   convert (div_lt_div_right this).2 ((f^(2^n)).dist_map_map_zero_lt (f^(2^n))),
   simp_rw [transnum_aux_seq, real.dist_eq],

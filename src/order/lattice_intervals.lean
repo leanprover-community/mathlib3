@@ -96,9 +96,6 @@ instance [preorder α] [order_bot α] : order_bot (Iic a) :=
 
 @[simp] lemma coe_bot [preorder α] [order_bot α] {a : α} : ↑(⊥ : Iic a) = (⊥ : α) := rfl
 
-instance [partial_order α] [no_min_order α] {a : α} : no_min_order (Iic a) :=
-⟨λ x, let ⟨y, hy⟩ := exists_lt x.1 in ⟨⟨y, le_trans hy.le x.2⟩, hy⟩ ⟩
-
 instance [preorder α] [order_bot α] : bounded_order (Iic a) :=
 { .. Iic.order_top,
   .. Iic.order_bot }
@@ -130,9 +127,6 @@ instance [preorder α] [order_top α] : order_top (Ici a) :=
   le_top := λ ⟨_,_⟩, subtype.mk_le_mk.2 le_top }
 
 @[simp] lemma coe_top [preorder α] [order_top α] {a : α} : ↑(⊤ : Ici a) = (⊤ : α) := rfl
-
-instance [partial_order α] [no_max_order α] {a : α} : no_max_order (Ici a) :=
-⟨λ x, let ⟨y, hy⟩ := exists_gt x.1 in ⟨⟨y, le_trans x.2 hy.le⟩, hy⟩ ⟩
 
 instance [preorder α] [order_top α] : bounded_order (Ici a) :=
 { .. Ici.order_top,

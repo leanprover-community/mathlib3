@@ -5,11 +5,11 @@ Authors: Leonardo de Moura, Mario Carneiro
 -/
 import data.fun_like.equiv
 import data.option.basic
-import data.prod
+import data.prod.basic
 import data.quot
 import data.sigma.basic
-import data.sum.basic
 import data.subtype
+import data.sum.basic
 import logic.function.conjugate
 import logic.unique
 import tactic.norm_cast
@@ -341,33 +341,21 @@ by { ext, simp }
 
 end perm_congr
 
+/-- Two empty types are equivalent. -/
+def equiv_of_is_empty  (α β : Sort*) [is_empty α] [is_empty β] : α ≃ β :=
+⟨is_empty_elim, is_empty_elim, is_empty_elim, is_empty_elim⟩
+
 /-- If `α` is an empty type, then it is equivalent to the `empty` type. -/
 def equiv_empty (α : Sort u) [is_empty α] : α ≃ empty :=
-⟨is_empty_elim, λ e, e.rec _, is_empty_elim, λ e, e.rec _⟩
+equiv_of_is_empty  α _
+
+/-- If `α` is an empty type, then it is equivalent to the `pempty` type in any universe. -/
+def equiv_pempty (α : Sort v) [is_empty α] : α ≃ pempty.{u} :=
+equiv_of_is_empty  α _
 
 /-- `α` is equivalent to an empty type iff `α` is empty. -/
 def equiv_empty_equiv (α : Sort u) : (α ≃ empty) ≃ is_empty α :=
 ⟨λ e, function.is_empty e, @equiv_empty α, λ e, ext $ λ x, (e x).elim, λ p, rfl⟩
-
-/-- `false` is equivalent to `empty`. -/
-def false_equiv_empty : false ≃ empty :=
-equiv_empty _
-
-/-- If `α` is an empty type, then it is equivalent to the `pempty` type in any universe. -/
-def {u' v'} equiv_pempty (α : Sort v') [is_empty α] : α ≃ pempty.{u'} :=
-⟨is_empty_elim, λ e, e.rec _, is_empty_elim, λ e, e.rec _⟩
-
-/-- `false` is equivalent to `pempty`. -/
-def false_equiv_pempty : false ≃ pempty :=
-equiv_pempty _
-
-/-- `empty` is equivalent to `pempty`. -/
-def empty_equiv_pempty : empty ≃ pempty :=
-equiv_pempty _
-
-/-- `pempty` types from any two universes are equivalent. -/
-def pempty_equiv_pempty : pempty.{v} ≃ pempty.{w} :=
-equiv_pempty _
 
 /-- The `Sort` of proofs of a true proposition is equivalent to `punit`. -/
 def prop_equiv_punit {p : Prop} (h : p) : p ≃ punit :=
@@ -375,7 +363,7 @@ def prop_equiv_punit {p : Prop} (h : p) : p ≃ punit :=
 
 /-- The `Sort` of proofs of a false proposition is equivalent to `pempty`. -/
 def prop_equiv_pempty {p : Prop} (h : ¬p) : p ≃ pempty :=
-⟨λ x, absurd x h, λ x, by cases x, λ x, absurd x h, λ x, by cases x⟩
+@equiv_pempty p $ is_empty.prop_iff.2 h
 
 /-- `true` is equivalent to `punit`. -/
 def true_equiv_punit : true ≃ punit := prop_equiv_punit trivial
@@ -1244,6 +1232,14 @@ def sigma_prod_distrib {ι : Type*} (α : ι → Type*) (β : Type*) :
  λ p, by { rcases p with ⟨⟨_, _⟩, _⟩, refl },
  λ p, by { rcases p with ⟨_, ⟨_, _⟩⟩, refl }⟩
 
+/-- An equivalence that separates out the 0th fiber of `(Σ (n : ℕ), f n)`. -/
+def sigma_nat_succ (f : ℕ → Type u) :
+  (Σ n, f n) ≃ f 0 ⊕ Σ n, f (n + 1) :=
+⟨λ x, @sigma.cases_on ℕ f (λ _, f 0 ⊕ Σ n, f (n + 1)) x (λ n, @nat.cases_on (λ i, f i → (f 0 ⊕
+  Σ (n : ℕ), f (n + 1))) n (λ (x : f 0), sum.inl x) (λ (n : ℕ) (x : f n.succ), sum.inr ⟨n, x⟩)),
+  sum.elim (sigma.mk 0) (sigma.map nat.succ (λ _, id)),
+  by { rintro ⟨(n | n), x⟩; refl }, by { rintro (x | ⟨n, x⟩); refl }⟩
+
 /-- The product `bool × α` is equivalent to `α ⊕ α`. -/
 def bool_prod_equiv_sum (α : Type u) : bool × α ≃ α ⊕ α :=
 calc bool × α ≃ (unit ⊕ unit) × α       : prod_congr bool_equiv_punit_sum_punit (equiv.refl _)
@@ -1285,10 +1281,6 @@ def list_equiv_of_equiv {α β : Type*} (e : α ≃ β) : list α ≃ list β :=
   left_inv := λ l, by rw [list.map_map, e.symm_comp_self, list.map_id],
   right_inv := λ l, by rw [list.map_map, e.self_comp_symm, list.map_id] }
 
-/-- `fin n` is equivalent to `{m // m < n}`. -/
-def fin_equiv_subtype (n : ℕ) : fin n ≃ {m // m < n} :=
-⟨λ x, ⟨x.1, x.2⟩, λ x, ⟨x.1, x.2⟩, λ ⟨a, b⟩, rfl,λ ⟨a, b⟩, rfl⟩
-
 /-- If `α` is equivalent to `β`, then `unique α` is equivalent to `unique β`. -/
 def unique_congr (e : α ≃ β) : unique α ≃ unique β :=
 { to_fun := λ h, @equiv.unique _ _ h e.symm,
@@ -1311,10 +1303,10 @@ at corresponding points, then `{a // p a}` is equivalent to `{b // q b}`.
 For the statement where `α = β`, that is, `e : perm α`, see `perm.subtype_perm`. -/
 def subtype_equiv {p : α → Prop} {q : β → Prop}
   (e : α ≃ β) (h : ∀ a, p a ↔ q (e a)) : {a : α // p a} ≃ {b : β // q b} :=
-⟨λ x, ⟨e x, (h _).1 x.2⟩,
- λ y, ⟨e.symm y, (h _).2 (by { simp, exact y.2 })⟩,
- λ ⟨x, h⟩, subtype.ext_val $ by simp,
- λ ⟨y, h⟩, subtype.ext_val $ by simp⟩
+{ to_fun    := λ a, ⟨e a, (h _).mp a.prop⟩,
+  inv_fun   := λ b, ⟨e.symm b, (h _).mpr ((e.apply_symm_apply b).symm ▸ b.prop)⟩,
+  left_inv  := λ a, subtype.ext $ by simp,
+  right_inv := λ b, subtype.ext $ by simp }
 
 @[simp] lemma subtype_equiv_refl {p : α → Prop}
   (h : ∀ a, p a ↔ p (equiv.refl _ a) := λ a, iff.rfl) :
@@ -2006,8 +1998,8 @@ funext $ λ z, hf.swap_apply _ _ _
 
 /-- If both `α` and `β` are singletons, then `α ≃ β`. -/
 def equiv_of_unique_of_unique [unique α] [unique β] : α ≃ β :=
-{ to_fun := λ _, default,
-  inv_fun := λ _, default,
+{ to_fun := default,
+  inv_fun := default,
   left_inv := λ _, subsingleton.elim _ _,
   right_inv := λ _, subsingleton.elim _ _ }
 

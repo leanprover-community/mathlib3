@@ -234,7 +234,7 @@ section module
 variables [ring R] [add_comm_group M] [module R M] (r s : R) (x y : M)
 
 @[simp] theorem neg_smul : -r • x = - (r • x) :=
-eq_neg_of_add_eq_zero (by rw [← add_smul, add_left_neg, zero_smul])
+eq_neg_of_add_eq_zero_left $ by rw [← add_smul, add_left_neg, zero_smul]
 
 @[simp] lemma neg_smul_neg : -r • -x = r • x :=
 by rw [neg_smul, smul_neg, neg_neg]
@@ -297,7 +297,7 @@ instance ring_hom.apply_distrib_mul_action [semiring R] : distrib_mul_action (R 
   f • a = f a := rfl
 
 /-- `ring_hom.apply_distrib_mul_action` is faithful. -/
-instance ring_hom.apply_has_faithful_scalar [semiring R] : has_faithful_scalar (R →+* R) R :=
+instance ring_hom.apply_has_faithful_smul [semiring R] : has_faithful_smul (R →+* R) R :=
 ⟨ring_hom.ext⟩
 
 section add_comm_monoid

@@ -35,7 +35,7 @@ lemma sinh_injective : function.injective sinh := sinh_strict_mono.injective
 
 private lemma aux_lemma (x : ℝ) : 1 / (x + sqrt (1 + x ^ 2)) = -x + sqrt (1 + x ^ 2) :=
 begin
-  refine (eq_one_div_of_mul_eq_one _).symm,
+  refine (eq_one_div_of_mul_eq_one_right _).symm,
   have : 0 ≤ 1 + x ^ 2 := add_nonneg zero_le_one (sq_nonneg x),
   rw [add_comm, ← sub_eq_neg_add, ← mul_self_sub_mul_self,
       mul_self_sqrt this, sq, add_sub_cancel]

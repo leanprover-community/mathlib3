@@ -630,11 +630,10 @@ by rw [concat_eq_append, reverse_append, reverse_singleton, singleton_append]
 @[simp] theorem reverse_reverse (l : list α) : reverse (reverse l) = l :=
 by induction l; [refl, simp only [*, reverse_cons, reverse_append]]; refl
 
-@[simp] theorem reverse_involutive : involutive (@reverse α) :=
-λ l, reverse_reverse l
-
-@[simp] theorem reverse_injective : injective (@reverse α) :=
-reverse_involutive.injective
+@[simp] theorem reverse_involutive : involutive (@reverse α) := reverse_reverse
+@[simp] theorem reverse_injective : injective (@reverse α) := reverse_involutive.injective
+theorem reverse_surjective : surjective (@reverse α) := reverse_involutive.surjective
+theorem reverse_bijective : bijective (@reverse α) := reverse_involutive.bijective
 
 @[simp] theorem reverse_inj {l₁ l₂ : list α} : reverse l₁ = reverse l₂ ↔ l₁ = l₂ :=
 reverse_injective.eq_iff
@@ -1381,6 +1380,14 @@ begin
   congr,
   exact eq_bot_iff.mpr (nat.lt_succ_iff.mp h₂)
 end
+
+lemma nth_le_eq_iff {α : Type}
+  {l : list α} {n : ℕ} {x : α} {h} : l.nth_le n h = x ↔ l.nth n = some x :=
+by { rw nth_eq_some, tauto }
+
+lemma some_nth_le_eq {α : Type}
+  {l : list α} {n : ℕ} {h} : some (l.nth_le n h) = l.nth n :=
+by { symmetry, rw nth_eq_some, tauto }
 
 lemma modify_nth_tail_modify_nth_tail {f g : list α → list α} (m : ℕ) :
   ∀n (l:list α), (l.modify_nth_tail f n).modify_nth_tail g (m + n) =

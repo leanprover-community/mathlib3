@@ -3,11 +3,11 @@ Copyright (c) 2021 Justus Springer. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Justus Springer, Andrew Yang
 -/
-import algebra.category.CommRing.filtered_colimits
+import algebra.category.Ring.filtered_colimits
 import algebraic_geometry.sheafed_space
 import topology.sheaves.stalks
-import algebra.category.CommRing.colimits
-import algebra.category.CommRing.limits
+import algebra.category.Ring.colimits
+import algebra.category.Ring.limits
 
 /-!
 # Ringed spaces

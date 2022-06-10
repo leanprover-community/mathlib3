@@ -163,6 +163,8 @@ variables [has_zero_object V] {W : Type*} [category W] [preadditive W] [has_zero
 
 namespace homological_complex
 
+local attribute [simp] eq_to_hom_map
+
 /--
 Turning an object into a complex supported at `j` then applying a functor is
 the same as applying the functor then forming the complex.

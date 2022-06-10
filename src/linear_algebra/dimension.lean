@@ -235,7 +235,7 @@ variables [nontrivial R]
 
 lemma {m} cardinal_lift_le_dim_of_linear_independent
   {ι : Type w} {v : ι → M} (hv : linear_independent R v) :
-  cardinal.lift.{(max v m)} (#ι) ≤ cardinal.lift.{(max w m)} (module.rank R M) :=
+  cardinal.lift.{max v m} (#ι) ≤ cardinal.lift.{max w m} (module.rank R M) :=
 begin
   apply le_trans,
   { exact cardinal.lift_mk_le.mpr
@@ -521,10 +521,10 @@ begin
     exact le_antisymm w₁ w₂, }
 end
 
-/-- Given two basis indexed by `ι` and `ι'` of an `R`-module, where `R` satisfies the invariant
+/-- Given two bases indexed by `ι` and `ι'` of an `R`-module, where `R` satisfies the invariant
 basis number property, an equiv `ι ≃ ι' `. -/
 def basis.index_equiv (v : basis ι R M) (v' : basis ι' R M) : ι ≃ ι' :=
-nonempty.some (cardinal.lift_mk_eq.1 (cardinal.lift_max.2 (mk_eq_mk_of_basis v v')))
+nonempty.some (cardinal.lift_mk_eq.1 (cardinal.lift_umax_eq.2 (mk_eq_mk_of_basis v v')))
 
 theorem mk_eq_mk_of_basis' {ι' : Type w} (v : basis ι R M) (v' : basis ι' R M) :
   #ι = #ι' :=
@@ -839,7 +839,7 @@ begin
 end
 
 theorem {m} basis.mk_eq_dim' (v : basis ι R M) :
-  cardinal.lift.{(max v m)} (#ι) = cardinal.lift.{(max w m)} (module.rank R M) :=
+  cardinal.lift.{max v m} (#ι) = cardinal.lift.{max w m} (module.rank R M) :=
 by simpa using v.mk_eq_dim
 
 /-- If a module has a finite dimension, all bases are indexed by a finite type. -/

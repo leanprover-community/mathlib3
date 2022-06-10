@@ -64,31 +64,63 @@ list.cons <$> p <*> (many p)
 
 /-- Auxiliary parsing helper, returning a list of lists if the matrix has at least one row,
 or the number of columns if the matrix has zero rows. -/
-private meta def parser_aux {α} (p : parser α) : parser (list (list α) ⊕ ℕ) :=
-brackets "[" "]" $
-  (sum.inl <$> (
-    at_least_one (pure [] <* tk ";") <|> -- empty rows
-    (sep_by' (tk ";") $ sep_by' (tk ",") p)) <|>
-  (sum.inr <$> list.length <$> many (tk ","))) -- empty columns
+meta def entry_parser {α : Type} (p : parser α) :
+  parser (Σ m n, vector (vector α n) m) :=
+do
+  -- a list of lists if the matrix has at least one row, or the number of columns if the matrix has
+  -- zero rows.
+  let p : parser (list (list α) ⊕ ℕ) :=
+    (sum.inl <$> (
+      at_least_one (pure [] <* tk ";") <|> -- empty rows
+      (sep_by' (tk ";") $ sep_by' (tk ",") p)) <|>
+    (sum.inr <$> list.length <$> many (tk ","))), -- empty columns
+  which ← p,
+  match which with
+  | (sum.inl l) := do
+    h :: tl ← pure l,
+    let n := h.length,
+    l : list (vector α n) ← tl.mmap (λ row,
+      if h : row.length = n then
+        pure (⟨row, h⟩ : vector α n)
+      else
+        interaction_monad.fail "Rows must be of equal length"),
+    pure ⟨l.length, n, ⟨l, rfl⟩⟩
+  | (sum.inr n) :=
+    pure ⟨0, n, vector.nil⟩
+  end
 
-reserve prefix `!ₘ `:100
+reserve  notation `!ₘ[`
+
+local attribute [semireducible] reflected
+
+attribute [derive _root_.reflect] vector
+
+
+meta instance {α : Type} [has_reflect α] [reflected α] : Π n, has_reflect (vector α n)
+| n ⟨[], _⟩ := `(@vector.nil.{0} %%(reflect α))
+| n ⟨x :: xs, _⟩ := `(@vector.cons.{0} %%(reflect α) %%(reflect n) %%(reflect x) %%(reflect xs))
+
+#exit
+
+-- #check vector.nth
 
 @[user_notation]
-meta def «notation» (_ : parse $ tk "!ₘ") : (parse $ parser_aux $ parser.pexpr 1) → parser pexpr
-| (sum.inl l) := do
-  let m := l.length,
-  h :: tl ← pure l,
-  let n := h.length,
-  tl.mfoldl (λ n row,
-    if row.length ≠ h.length then
-      interaction_monad.fail "Rows must of equal length"
-    else pure ()) (),
-  let rows := l.foldr (λ row m_out,
-    let row := row.foldr (λ xij row_out, ``(matrix.vec_cons %%xij %%row_out)) ``(![]) in
-    ``(matrix.vec_cons %%row %%m_out)) ``(![]) in
-  pure ``(@matrix.of (fin %%m) (fin %%n) _ %%rows)
-| (sum.inr n) :=
-  pure ``(@matrix.of (fin 0) (fin %%n) _ (vec_empty))
+meta def «notation» (_ : parse $ tk "!ₘ[")
+  (entries : parse (entry_parser (parser.pexpr 1) <* tk "]") : parser pexpr :=
+-- | (sum.inl l) := do
+--   let m := l.length,
+--   h :: tl ← pure l,
+--   let n := h.length,
+--   tl.mfoldl (λ n row,
+--     if row.length ≠ h.length then
+--       interaction_monad.fail "Rows must of equal length"
+--     else pure ()) (),
+--   let rows := l.foldr (λ row m_out,
+--     let row := row.foldr (λ xij row_out, ``(matrix.vec_cons %%xij %%row_out)) ``(![]) in
+--     ``(matrix.vec_cons %%row %%m_out)) ``(![]) in
+--   pure ``(@matrix.of (fin %%m) (fin %%n) _ %%rows)
+-- | (sum.inr n) :=
+--   pure ``(@matrix.of (fin 0) (fin %%n) _ (vec_empty))
 
 end parser
 

@@ -26,65 +26,6 @@ correlate in the uniform measure.
 * [D. J. Kleitman, *Families of non-disjoint subsets*][kleitman1966]
 -/
 
-section rearrangement
-variables {α : Type*}
-
-/-
-TODO: The assumptions are all over the place because of the algebraic order hierarchy weirdness.
-* `mul_add_mul_le_mul_add_mul_aux` ought to prove `mul_add_mul_le_mul_add_mul'` but it doesn't
-  because `canonically_ordered_comm_semiring` doesn't imply `ordered_semiring`.
-* The situation for `mul_add_mul_lt_mul_add_mul'` is worse because we don't have the typeclasses to
-  express the correct lemma, so we are restricted to `ℕ`.
-
-Possibly, both lemmas are true without `∃ e, b = a + e` and `∃ f, d = c + f`, in which case the
-above is nonsense.
--/
-
-lemma mul_add_mul_le_mul_add_mul_aux [ordered_semiring α] {a b c d : α} (hb : ∃ e, b = a + e)
-  (hd : ∃ f, d = c + f) (hab : a ≤ b) (hcd : c ≤ d) :
-  a * d + b * c ≤ a * c + b * d :=
-begin
-  obtain ⟨b, rfl⟩ := hb,
-  obtain ⟨d, rfl⟩ := hd,
-  rw [mul_add, add_right_comm, mul_add, ←add_assoc],
-  exact add_le_add_left (mul_le_mul_of_nonneg_right hab $ (le_add_iff_nonneg_right _).1 hcd) _,
-end
-
-lemma mul_add_mul_lt_mul_add_mul_aux [ordered_semiring α] {a b c d : α} (hb : ∃ e, b = a + e)
-  (hd : ∃ f, d = c + f) (hab : a < b) (hcd : c < d) :
-  a * d + b * c < a * c + b * d :=
-begin
-  obtain ⟨b, rfl⟩ := hb,
-  obtain ⟨d, rfl⟩ := hd,
-  rw [mul_add, add_right_comm, mul_add, ←add_assoc],
-  exact add_lt_add_left (mul_lt_mul_of_pos_right hab $ (lt_add_iff_pos_right _).1 hcd) _,
-end
-
-lemma mul_add_mul_le_mul_add_mul [ordered_ring α] {a b c d : α} :
-  a ≤ b → c ≤ d → a * d + b * c ≤ a * c + b * d :=
-mul_add_mul_le_mul_add_mul_aux ⟨_, (add_sub_cancel'_right _ _).symm⟩
-  ⟨_, (add_sub_cancel'_right _ _).symm⟩
-
-lemma mul_add_mul_lt_mul_add_mul [ordered_ring α] {a b c d : α} :
-  a < b → c < d → a * d + b * c < a * c + b * d :=
-mul_add_mul_lt_mul_add_mul_aux ⟨_, (add_sub_cancel'_right _ _).symm⟩
-  ⟨_, (add_sub_cancel'_right _ _).symm⟩
-
-lemma mul_add_mul_le_mul_add_mul' [canonically_ordered_comm_semiring α] {a b c d : α} (hab : a ≤ b)
-  (hcd : c ≤ d) : a * d + b * c ≤ a * c + b * d :=
-begin
-  obtain ⟨b, rfl⟩ := le_iff_exists_add.1 hab,
-  obtain ⟨d, rfl⟩ := le_iff_exists_add.1 hcd,
-  rw [mul_add, add_right_comm, mul_add, ←add_assoc],
-  exact add_le_add_left (mul_le_mul_right' hab _) _,
-end
-
-lemma mul_add_mul_lt_mul_add_mul' {a b c d : ℕ} (hab : a < b) (hcd : c < d) :
-  a * d + b * c < a * c + b * d :=
-mul_add_mul_lt_mul_add_mul_aux (le_iff_exists_add.1 hab.le) (le_iff_exists_add.1 hcd.le) hab hcd
-
-end rearrangement
-
 open_locale big_operators
 
 variables {α : Type*} [decidable_eq α] {𝒜 ℬ : finset (finset α)} {s : finset α} {a : α}
@@ -184,7 +125,7 @@ begin
     { simp only [card_empty, pow_zero, inter_singleton_of_mem, mem_singleton, card_singleton] } },
   rw [card_insert_of_not_mem hs, ←card_member_slice_add_card_non_member_slice 𝒜 a,
     ←card_member_slice_add_card_non_member_slice ℬ a, add_mul, mul_add, mul_add, add_comm (_ * _), add_add_add_comm],
-  refine (add_le_add_right (mul_add_mul_le_mul_add_mul'
+  refine (add_le_add_right (mul_add_mul_le_mul_add_mul
     (card_le_of_subset h𝒜.member_slice_subset_non_member_slice) $
     card_le_of_subset hℬ.member_slice_subset_non_member_slice) _).trans _,
   rw [←two_mul, pow_succ, mul_assoc],

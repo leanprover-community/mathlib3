@@ -256,7 +256,7 @@ def image (e : α ≃ᵤ β) (s : set α) : s ≃ᵤ e '' s :=
   uniform_continuous_inv_fun := uniform_continuous_subtype_mk
     (e.symm.uniform_continuous.comp uniform_continuous_subtype_val)
     (λ x, by simpa using mem_image_of_mem e.symm x.2),
-  ..e.to_equiv.image s, }
+  to_equiv := e.to_equiv.image s }
 
 end uniform_equiv
 

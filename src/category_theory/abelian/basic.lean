@@ -406,15 +406,6 @@ have aux1 : strong_epi_mono_factorisation (L.map f) :=
   fac' := by rw [←L.map_comp, limits.image.fac] },
 is_image.iso_ext (image.is_image (L.map f)) aux1.to_mono_is_image
 
-lemma precomp_factor_thru_image {X Y : 𝓐} (f : X ⟶ Y) :
-  factor_thru_image  (L.map f) ≫ (iso L f).hom =
-  L.map (factor_thru_image f) :=
-begin
-  dunfold iso,
-  simp only [is_image.iso_ext_hom],
-  erw image.fac_lift,
-end
-
 end preserves_image
 
 end images

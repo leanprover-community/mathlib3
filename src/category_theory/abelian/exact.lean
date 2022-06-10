@@ -27,7 +27,8 @@ true in more general settings.
   sequences.
 * `X ⟶ Y ⟶ Z ⟶ 0` is exact if and only if the second map is a cokernel of the first, and
   `0 ⟶ X ⟶ Y ⟶ Z` is exact if and only if the first map is a kernel of the second.
-
+* An exact functor preserves exactness, more specifically, if `F` preserves finite colimits and
+  limits, then `exact f g` implies `exact (F.map f) (F.map g)`
 -/
 
 universes v₁ v₂ u₁ u₂
@@ -319,34 +320,32 @@ variables (L : 𝓐 ⥤ 𝓑) [preserves_finite_limits L] [preserves_finite_coli
 lemma exact_of_exact_functor {X Y Z : 𝓐} (f : X ⟶ Y) (g : Y ⟶ Z) (e1 : exact f g) :
   exact (L.map f) (L.map g) :=
 have H : is_iso (image_to_kernel f g e1.w) := is_iso_of_mono_of_epi _,
-begin
-  rw abelian.exact_iff_image_eq_kernel,
-  ext,
-  work_on_goal 2
-  { refine (preserves_image.iso L f) ≪≫ _ ≪≫ (preserves_kernel.iso _ _),
-    exact
-    { hom := L.map $ (image_subobject_iso _).inv ≫ image_to_kernel f g e1.w ≫
+let e : image (L.map f) ≅ kernel (L.map g) :=
+(preserves_image.iso L f) ≪≫
+{ hom := L.map $ (image_subobject_iso _).inv ≫ image_to_kernel f g e1.w ≫
         (kernel_subobject_iso _).hom,
-      inv := L.map $ (kernel_subobject_iso _).inv ≫
-        (@as_iso _ _ _ _ (image_to_kernel _ _ e1.w) H).inv ≫ (image_subobject_iso _).hom,
-      hom_inv_id' := begin
-        simp only [←L.map_comp, category.assoc],
-        have h1 := (kernel_subobject_iso g).hom_inv_id,
-        reassoc h1,
-        rw [h1, ←category.assoc _ _ (image_subobject_iso _).hom, as_iso_inv,
-          is_iso.hom_inv_id, category.id_comp, iso.inv_hom_id, L.map_id],
-      end,
-      inv_hom_id' := begin
-        simp only [←L.map_comp, category.assoc],
-        have h1 := (image_subobject_iso f).hom_inv_id,
-        reassoc h1,
-        rw [h1, ←category.assoc _ _ (kernel_subobject_iso _).hom, as_iso_inv,
-          is_iso.inv_hom_id, category.id_comp, iso.inv_hom_id, L.map_id],
-      end } },
-  { simp only [functor.map_comp, category.assoc, iso.trans_hom, preserves_kernel.iso_hom,
-      kernel_comparison_comp_ι, limits.image.fac],
-    simp only [←L.map_comp, kernel_subobject_arrow, image_to_kernel_arrow, image_subobject_arrow'],
-    rw [←category.assoc, preserves_image.precomp_factor_thru_image, ←L.map_comp, limits.image.fac] }
+  inv := L.map $ (kernel_subobject_iso _).inv ≫
+    (@as_iso _ _ _ _ (image_to_kernel _ _ e1.w) H).inv ≫ (image_subobject_iso _).hom,
+  hom_inv_id' := begin
+    simp only [←L.map_comp, category.assoc],
+    have h1 := (kernel_subobject_iso g).hom_inv_id,
+    reassoc h1,
+    rw [h1, ←category.assoc _ _ (image_subobject_iso _).hom, as_iso_inv,
+      is_iso.hom_inv_id, category.id_comp, iso.inv_hom_id, L.map_id],
+  end,
+  inv_hom_id' := begin
+    simp only [←L.map_comp, category.assoc],
+    have h1 := (image_subobject_iso f).hom_inv_id,
+    reassoc h1,
+    rw [h1, ←category.assoc _ _ (kernel_subobject_iso _).hom, as_iso_inv,
+      is_iso.inv_hom_id, category.id_comp, iso.inv_hom_id, L.map_id],
+  end } ≪≫ (preserves_kernel.iso _ _) in
+(abelian.exact_iff_image_eq_kernel _ _).mpr $ subobject.mk_eq_mk_of_comm _ _ e $
+begin
+  simp only [functor.map_comp, category.assoc, iso.trans_hom, preserves_kernel.iso_hom,
+    kernel_comparison_comp_ι],
+  simp only [←L.map_comp, preserves_image.iso, is_image.iso_ext_hom, kernel_subobject_arrow,
+    image_to_kernel_arrow, image_subobject_arrow', is_image.lift_fac, image.as_ι],
 end
 
 end abelian

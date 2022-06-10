@@ -75,6 +75,7 @@ noncomputable def quot_torsion_of_equiv_span_singleton (x : M) :
 (linear_map.to_span_singleton R M x).quot_ker_equiv_range.trans $
 linear_equiv.of_eq _ _ (linear_map.span_singleton_eq_range R M x).symm
 
+variables {R M}
 @[simp] lemma quot_torsion_of_equiv_span_singleton_apply_mk (x : M) (a : R) :
   quot_torsion_of_equiv_span_singleton R M x (submodule.quotient.mk a) =
     a • ⟨x, submodule.mem_span_singleton_self x⟩ := rfl
@@ -281,6 +282,28 @@ lemma sup_indep_torsion_by_ideal : S.sup_indep (λ i, torsion_by_set R M $ p i) 
   rw [← this, ideal.sup_infi_eq_top, top_coe, torsion_by_univ],
   intros j hj, apply hp hi (hT hj), rintro rfl, exact hiT hj
 end
+
+omit hp
+variables {q : ι → R} (hq : (S : set ι).pairwise $ is_coprime on q)
+include hq
+
+lemma supr_torsion_by_eq_torsion_by_prod :
+  (⨆ i ∈ S, torsion_by R M $ q i) = torsion_by R M (∏ i in S, q i) :=
+begin
+  rw [← torsion_by_span_singleton_eq, ideal.submodule_span_eq,
+    ← ideal.finset_inf_span_singleton _ _ hq, finset.inf_eq_infi,
+    ← supr_torsion_by_ideal_eq_torsion_by_infi],
+  { congr, ext : 1, congr, ext : 1, exact (torsion_by_span_singleton_eq _).symm },
+  { exact λ i hi j hj ij, (ideal.sup_eq_top_iff_is_coprime _ _).mpr (hq hi hj ij), }
+end
+
+lemma sup_indep_torsion_by : S.sup_indep (λ i, torsion_by R M $ q i) :=
+begin
+  convert sup_indep_torsion_by_ideal
+    (λ i hi j hj ij, (ideal.sup_eq_top_iff_is_coprime (q i) _).mpr $ hq hi hj ij),
+  ext : 1, exact (torsion_by_span_singleton_eq _).symm,
+end
+
 end coprime
 end submodule
 end
@@ -290,19 +313,32 @@ variables [comm_ring R] [add_comm_group M] [module R M]
 
 namespace submodule
 open_locale big_operators
-variables {ι : Type*} [decidable_eq ι] {p : ι → ideal R} {S : finset ι}
-variables (hp : (S : set ι).pairwise $ λ i j, p i ⊔ p j = ⊤)
-include hp
+variables {ι : Type*} [decidable_eq ι] {S : finset ι}
 
 /--If the `p i` are pairwise coprime, a `⨅ i, p i`-torsion module is the internal direct sum of
 its `p i`-torsion submodules.-/
-lemma torsion_is_internal (hM : module.is_torsion_by_set R M (⨅ i ∈ S, p i : ideal R)) :
+lemma torsion_by_set_is_internal {p : ι → ideal R}
+  (hp : (S : set ι).pairwise $ λ i j, p i ⊔ p j = ⊤)
+  (hM : module.is_torsion_by_set R M (⨅ i ∈ S, p i : ideal R)) :
   direct_sum.is_internal (λ i : S, torsion_by_set R M $ p i) :=
 direct_sum.is_internal_submodule_of_independent_of_supr_eq_top
   (complete_lattice.independent_iff_sup_indep.mpr $ sup_indep_torsion_by_ideal hp)
   ((supr_subtype'' ↑S $ λ i, torsion_by_set R M $ p i).trans $
     (supr_torsion_by_ideal_eq_torsion_by_infi hp).trans $
     (module.is_torsion_by_set_iff_torsion_by_set_eq_top _).mp hM)
+
+/--If the `q i` are pairwise coprime, a `∏ i, q i`-torsion module is the internal direct sum of
+its `q i`-torsion submodules.-/
+lemma torsion_by_is_internal {q : ι → R} (hq : (S : set ι).pairwise $ is_coprime on q)
+  (hM : module.is_torsion_by R M $ ∏ i in S, q i) :
+  direct_sum.is_internal (λ i : S, torsion_by R M $ q i) :=
+begin
+  rw [← module.is_torsion_by_span_singleton_iff, ideal.submodule_span_eq,
+    ← ideal.finset_inf_span_singleton _ _ hq, finset.inf_eq_infi] at hM,
+  convert torsion_by_set_is_internal
+    (λ i hi j hj ij, (ideal.sup_eq_top_iff_is_coprime (q i) _).mpr $ hq hi hj ij) hM,
+  ext : 1, exact (torsion_by_span_singleton_eq _).symm,
+end
 
 end submodule
 

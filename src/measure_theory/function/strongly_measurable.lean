@@ -650,7 +650,8 @@ begin
         simp only [hy, exists_true_left, not_true, and_false, or_false]},
       { rw dif_neg hy,
         have A : y ∈ t, by simpa [hy] using h (mem_univ y),
-        simp only [A, hy, false_or, exists_iff, not_false_iff, and_true, exists_true_left] }
+        simp only [A, hy, false_or, is_empty.exists_iff, not_false_iff, and_true,
+          exists_true_left] }
     end,
     finite_range' :=
     begin

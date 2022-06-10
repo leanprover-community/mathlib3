@@ -300,6 +300,20 @@ lemma units.coe_op_equiv_symm {M} [monoid M] (u : (Mˣ)ᵐᵒᵖ) :
   (units.op_equiv.symm u : Mᵐᵒᵖ) = op (u.unop : M) :=
 rfl
 
+lemma is_unit.op {M} [monoid M] {a : M} (h : is_unit a) : is_unit (op a) :=
+let ⟨a, _⟩ := h in ⟨units.op_equiv.symm (op a), by simpa⟩
+
+lemma is_unit.unop {M} [monoid M] {x : Mᵐᵒᵖ} (h : is_unit x) : is_unit (unop x) :=
+let ⟨a, _⟩ := h in ⟨unop a.op_equiv, by simpa⟩
+
+@[simp]
+lemma is_unit_op_iff_is_unit {M} [monoid M] {a : M} : is_unit (op a) ↔ is_unit a :=
+⟨λ h, unop_op a ▸ h.unop, is_unit.op⟩
+
+@[simp]
+lemma is_unit_unop_iff_is_unit {M} [monoid M] {x : Mᵐᵒᵖ} : is_unit (unop x) ↔ is_unit x :=
+⟨λ h, op_unop x ▸ h.op, is_unit.unop⟩
+
 /-- A semigroup homomorphism `M →ₙ* N` can equivalently be viewed as a semigroup homomorphism
 `Mᵐᵒᵖ →ₙ* Nᵐᵒᵖ`. This is the action of the (fully faithful) `ᵐᵒᵖ`-functor on morphisms. -/
 @[to_additive "An additive semigroup homomorphism `add_hom M N` can equivalently be viewed as an

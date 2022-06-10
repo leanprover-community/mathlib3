@@ -61,8 +61,8 @@ lemma of_unique_max_ideal (h : ∃! I : ideal R, I.is_maximal) :
   let ⟨I, Imax, _⟩ := h in (λ (H : 0 = 1), Imax.1.1 $ I.eq_top_iff_one.2 $ H ▸ I.zero_mem)) $
   λ x y hx hy H,
     let ⟨I, Imax, Iuniq⟩ := h in
-    let ⟨Ix, Ixmax, Hx⟩ := exists_max_ideal_of_mem_nonunits hx in
-    let ⟨Iy, Iymax, Hy⟩ := exists_max_ideal_of_mem_nonunits hy in
+    let ⟨Ix, Ixmax, Hx⟩ := mem_nonunits_iff_exists_max_ideal.mp hx in
+    let ⟨Iy, Iymax, Hy⟩ := mem_nonunits_iff_exists_max_ideal.mp hy in
     have xmemI : x ∈ I, from Iuniq Ix Ixmax ▸ Hx,
     have ymemI : y ∈ I, from Iuniq Iy Iymax ▸ Hy,
     Imax.1.1 $ I.eq_top_of_is_unit_mem (I.add_mem xmemI ymemI) H

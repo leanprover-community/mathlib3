@@ -319,6 +319,10 @@ by { rcases h with ⟨⟨a, b, hab, _⟩, rfl⟩, exact ⟨b, hab⟩ }
   {a : M} (h : is_unit a) : ∃ b, b * a = 1 :=
 by { rcases h with ⟨⟨a, b, _, hba⟩, rfl⟩, exact ⟨b, hba⟩ }
 
+lemma is_unit_iff_has_two_sided_inv [monoid M] {a : M} :
+  is_unit a ↔ ∃ x : M, a * x = 1 ∧ x * a = 1 :=
+⟨λ ⟨⟨a, x, hax, hxa⟩, rfl⟩, ⟨x, hax, hxa⟩, λ ⟨x, hax, hxa⟩, ⟨⟨a, x, hax, hxa⟩, rfl⟩⟩
+
 @[to_additive] theorem is_unit_iff_exists_inv [comm_monoid M]
   {a : M} : is_unit a ↔ ∃ b, a * b = 1 :=
 ⟨λ h, h.exists_right_inv,
@@ -402,6 +406,35 @@ begin
   convert units.mul_inv _,
   simp [h.unit_spec]
 end
+
+/-- An element `a : M` of a monoid has a left inverse
+if there is some `x : M` satisfying `x * a = 1`. -/
+def has_left_inv [monoid M] (a : M) : Prop := ∃ x : M, x * a = 1
+
+/-- An element `a : M` of a monoid has a right inverse
+if there is some `x : M` satisfying `a * x = 1`. -/
+def has_right_inv [monoid M] (a : M) : Prop := ∃ x : M, a * x = 1
+
+/-- An element of a monoid is a unit
+if and only if it has both a left inverse and a right inverse. -/
+theorem is_unit_iff_has_left_inv_right_inv [monoid M] {a : M} :
+  is_unit a ↔ has_left_inv a ∧ has_right_inv a :=
+⟨λ h, ⟨h.exists_left_inv, h.exists_right_inv⟩,
+  λ ⟨⟨x, hxa⟩, ⟨y, hay⟩⟩, ⟨⟨a, x, by { convert hay,
+  rw [←mul_one x, ←hay, ←mul_assoc, hxa, one_mul] }, hxa⟩, rfl⟩⟩
+
+/-- Make a unit from an element `a` of a monoid such that there is some `b` with a left inverse
+satisfying `b * a = 1`.-/
+def units_of_left_inv_of_has_left_inv [monoid M] {a b : M}
+  (h₁ : b * a = 1) (h₂ : has_left_inv b) : Mˣ :=
+⟨a, b, by { obtain ⟨c, hcb⟩ := h₂, convert hcb,
+  rw [←one_mul a, ←hcb, mul_assoc, h₁, mul_one] }, h₁⟩
+
+/-- An element of a monoid is a unit
+if it has a left inverse which also has a left inverse. -/
+theorem is_unit_of_left_inv_of_has_left_inv [monoid M] {a b : M}
+  (h₁ : b * a = 1) (h₂ : has_left_inv b) : is_unit a :=
+(units_of_left_inv_of_has_left_inv h₁ h₂).is_unit
 
 end is_unit
 

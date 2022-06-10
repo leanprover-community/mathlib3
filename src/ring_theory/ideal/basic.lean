@@ -256,6 +256,32 @@ begin
   rwa ← span_eq I,
 end
 
+/-- A version of `ideal.span_singleton_eq_top` for non-commutative rings. -/
+lemma span_singleton_eq_top' {x : α} :
+  span ({x} : set α) = ⊤ ↔ has_left_inv x :=
+begin
+  split,
+  { intro h,
+    have : (1 : α) ∈ span ({x} : set α) := by { rw h, exact submodule.mem_top },
+    exact (mem_span_singleton').mp this },
+  { rintro ⟨a, hax⟩,
+    apply eq_top_of_unit_mem _ x a _ hax,
+    apply submodule.mem_span_singleton_self },
+end
+
+lemma not_has_left_inv_iff_mem_maximal {x : α} :
+  ¬has_left_inv x ↔ ∃ I : ideal α, I.is_maximal ∧ x ∈ I :=
+begin
+  rw ←span_singleton_eq_top',
+  split,
+  { intro hx,
+    obtain ⟨I, hImax, hxI⟩ := exists_le_maximal _ hx,
+    exact ⟨I, hImax, by {apply hxI, apply submodule.mem_span_singleton_self}⟩ },
+  { rintro ⟨I, hImax, hxI⟩ hcontra,
+    refine hImax.ne_top _,
+    rwa [eq_top_iff, ←hcontra, span_le, set.singleton_subset_iff] },
+end
+
 section lattice
 variables {R : Type u} [semiring R]
 
@@ -605,6 +631,9 @@ def nonunits (α : Type u) [monoid α] : set α := { a | ¬is_unit a }
 
 @[simp] theorem mem_nonunits_iff [monoid α] : a ∈ nonunits α ↔ ¬ is_unit a := iff.rfl
 
+theorem mem_nonunits_iff' [comm_monoid α] : a ∈ nonunits α ↔ ¬has_left_inv a :=
+is_unit_iff_exists_inv'.not
+
 theorem mul_mem_nonunits_right [comm_monoid α] :
   b ∈ nonunits α → a * b ∈ nonunits α :=
 mt is_unit_of_mul_is_unit_right
@@ -623,11 +652,6 @@ theorem coe_subset_nonunits [semiring α] {I : ideal α} (h : I ≠ ⊤) :
   (I : set α) ⊆ nonunits α :=
 λ x hx hu, h $ I.eq_top_of_is_unit_mem hx hu
 
-lemma exists_max_ideal_of_mem_nonunits [comm_semiring α] (h : a ∈ nonunits α) :
-  ∃ I : ideal α, I.is_maximal ∧ a ∈ I :=
-begin
-  have : ideal.span ({a} : set α) ≠ ⊤,
-  { intro H, rw ideal.span_singleton_eq_top at H, contradiction },
-  rcases ideal.exists_le_maximal _ this with ⟨I, Imax, H⟩,
-  use [I, Imax], apply H, apply ideal.subset_span, exact set.mem_singleton a
-end
+lemma mem_nonunits_iff_exists_max_ideal [comm_semiring α] :
+  a ∈ nonunits α ↔ ∃ I : ideal α, I.is_maximal ∧ a ∈ I :=
+mem_nonunits_iff'.trans ideal.not_has_left_inv_iff_mem_maximal

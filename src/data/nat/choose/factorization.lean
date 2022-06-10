@@ -26,6 +26,8 @@ do not appear in the factorization of the `n`th central binomial coefficient.
 These results appear in the [Erdős proof of Bertrand's postulate](aigner1999proofs).
 -/
 
+open_locale big_operators
+
 namespace nat
 
 variables {p n k : ℕ}
@@ -136,5 +138,46 @@ Contrapositive form of `nat.factorization_central_binom_eq_zero_of_two_mul_lt`
 lemma le_two_mul_of_factorization_central_binom_pos
   (h_pos : 0 < (central_binom n).factorization p) : p ≤ 2 * n :=
 le_of_not_lt (pos_iff_ne_zero.mp h_pos ∘ factorization_central_binom_eq_zero_of_two_mul_lt)
+
+lemma choose_factorization_prod_pow (n k : ℕ) (hkn : k ≤ n) :
+  ∏ p in finset.filter nat.prime (finset.range (n + 1)),
+    p ^ ((nat.choose n k).factorization p)
+  = choose n k :=
+calc
+∏ p in finset.filter nat.prime (finset.range (n + 1)), p ^ ((nat.choose n k).factorization p)
+  = ∏ p in (nat.choose n k).factorization.support, p ^ ((nat.choose n k).factorization p) :
+    begin
+      apply eq.symm,
+      apply finset.prod_subset,
+      { rw finset.subset_iff,
+        intros p hp,
+        simp only [finset.mem_filter, finset.mem_range],
+        split,
+        { rw lt_add_one_iff,
+          rw finsupp.mem_support_iff at hp,
+          contrapose! hp,
+          apply factorization_choose_eq_zero_of_lt hp,
+        },
+        {
+          exact prime_of_mem_factorization hp,
+        }, },
+      {
+        intros p hp hp',
+        rw finsupp.mem_support_iff at hp',
+        simp only [not_not] at hp',
+        rw hp',
+        simp only [eq_self_iff_true, pow_zero],
+      }
+    end
+... = choose n k : factorization_prod_pow_eq_self (ne_of_lt (choose_pos hkn)).symm
+
+lemma central_binom_factorization_prod_pow (n : ℕ) :
+  ∏ p in finset.filter nat.prime (finset.range (2 * n + 1)),
+    p ^ ((central_binom n).factorization p)
+  = central_binom n :=
+begin
+  apply choose_factorization_prod_pow,
+  linarith,
+end
 
 end nat

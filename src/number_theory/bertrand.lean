@@ -73,47 +73,6 @@ section nat
 
 open nat
 
-lemma choose_factorization_prod_pow (n k : ℕ) (hkn : k ≤ n) :
-  ∏ p in finset.filter nat.prime (finset.range (n + 1)),
-    p ^ ((nat.choose n k).factorization p)
-  = choose n k :=
-calc
-∏ p in finset.filter nat.prime (finset.range (n + 1)), p ^ ((nat.choose n k).factorization p)
-  = ∏ p in (nat.choose n k).factorization.support, p ^ ((nat.choose n k).factorization p) :
-    begin
-      apply eq.symm,
-      apply finset.prod_subset,
-      { rw finset.subset_iff,
-        intros p hp,
-        simp only [finset.mem_filter, finset.mem_range],
-        split,
-        { rw lt_add_one_iff,
-          rw finsupp.mem_support_iff at hp,
-          contrapose! hp,
-          apply factorization_choose_eq_zero_of_lt hp,
-        },
-        {
-          exact prime_of_mem_factorization hp,
-        }, },
-      {
-        intros p hp hp',
-        rw finsupp.mem_support_iff at hp',
-        simp only [not_not] at hp',
-        rw hp',
-        simp only [eq_self_iff_true, pow_zero],
-      }
-    end
-... = choose n k : factorization_prod_pow_eq_self (ne_of_lt (choose_pos hkn)).symm
-
-lemma central_binom_factorization_prod_pow (n : ℕ) :
-  ∏ p in finset.filter nat.prime (finset.range (2 * n + 1)),
-    p ^ ((central_binom n).factorization p)
-  = central_binom n :=
-begin
-  apply choose_factorization_prod_pow,
-  linarith,
-end
-
 lemma sq_prime_is_small' {p n : ℕ} (hp : nat.prime p) (n_big : 2 < n) (small : p ≤ sqrt (2 * n)) :
   p ^ 2 < 2 * n :=
 begin
@@ -455,10 +414,10 @@ lemma bertrand_central_binom_le (n : ℕ) (n_big : 2 < n)
 calc
 nat.central_binom n
     = ∏ p in finset.filter nat.prime (finset.range (2 * n + 1)),
-        p ^ ((nat.central_binom n).factorization p) : by rw [central_binom_factorization_prod_pow]
+        p ^ ((nat.central_binom n).factorization p) : n.central_binom_factorization_prod_pow.symm
 ... = (∏ p in (finset.range (2 * n / 3 + 1)).filter nat.prime,
           p ^ ((nat.central_binom n).factorization p)) :
-          by {rw [central_binom_factorization_small n (by linarith) no_prime]}
+          (central_binom_factorization_small n (by linarith) no_prime).symm
 ... = (∏ p in (finset.range (2 * n / 3 + 1)).filter nat.prime,
           if p ≤ nat.sqrt (2 * n)
           then p ^ ((nat.central_binom n).factorization p)

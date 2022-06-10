@@ -176,6 +176,15 @@ begin
   exact (uniform_convergence.gc α γ).u_infi
 end
 
+protected lemma inf_eq {u₁ u₂ : uniform_space γ} :
+  (@uniform_convergence.uniform_space α γ (u₁ ⊓ u₂)) =
+  (@uniform_convergence.uniform_space α γ u₁) ⊓ (@uniform_convergence.uniform_space α γ u₂) :=
+begin
+  rw [inf_eq_infi, inf_eq_infi, uniform_convergence.infi_eq],
+  refine infi_congr (λ i, _),
+  cases i; refl
+end
+
 protected lemma comap_eq {f : γ → β} :
   (@uniform_convergence.uniform_space α γ (‹uniform_space β›.comap f)) =
   (uniform_convergence.uniform_space α β).comap ((∘) f) :=
@@ -207,6 +216,14 @@ calc uniform_convergence.uniform_space α γ
 ... = (uniform_convergence.uniform_space α β).comap ((∘) f) :
       uniform_convergence.comap_eq
 
+protected def congr_right [uniform_space γ] (e : γ ≃ᵤ β) :
+  (α → γ) ≃ᵤ (α → β) :=
+{ uniform_continuous_to_fun :=
+    uniform_convergence.postcomp_uniform_continuous e.uniform_continuous,
+  uniform_continuous_inv_fun :=
+    uniform_convergence.postcomp_uniform_continuous e.symm.uniform_continuous,
+  .. equiv.Pi_congr_right (λ a, e.to_equiv) }
+
 protected lemma precomp_uniform_continuous {f : γ → α} :
   uniform_continuous (λ g : α → β, g ∘ f) :=
 begin
@@ -216,6 +233,14 @@ begin
     ((uniform_convergence.has_basis_uniformity γ β).comap _),
   exact λ U hU, ⟨U, hU, λ uv huv x, huv (f x)⟩
 end
+
+protected def congr_left (e : γ ≃ α) :
+  (γ → β) ≃ᵤ (α → β) :=
+{ uniform_continuous_to_fun :=
+    uniform_convergence.precomp_uniform_continuous,
+  uniform_continuous_inv_fun :=
+    uniform_convergence.precomp_uniform_continuous,
+  .. equiv.arrow_congr e (equiv.refl _) }
 
 lemma t2_space [t2_space β] : t2_space (α → β) :=
 { t2 :=
@@ -246,6 +271,22 @@ begin
     exact λ n, id }
 end
 
+protected def uniform_equiv_prod_arrow [uniform_space γ] :
+  (α → β × γ) ≃ᵤ ((α → β) × (α → γ)) :=
+(equiv.arrow_prod_equiv_prod_arrow _ _ _).to_uniform_equiv_of_uniform_inducing
+begin
+  split,
+  change comap (prod.map (equiv.arrow_prod_equiv_prod_arrow _ _ _)
+    (equiv.arrow_prod_equiv_prod_arrow _ _ _)) _ = _,
+  rw ← uniformity_comap rfl,
+  congr,
+  rw [prod.uniform_space, uniform_space.of_core_eq_to_core, prod.uniform_space,
+      uniform_space.of_core_eq_to_core, uniform_space.comap_inf, uniform_convergence.inf_eq],
+  congr;
+  rw [← uniform_space.comap_comap, uniform_convergence.comap_eq];
+  refl
+end
+
 variables (α) (δ : ι → Type*) [Π i, uniform_space (δ i)]
 
 local attribute [-instance] uniform_convergence.uniform_space
@@ -259,7 +300,7 @@ protected def uniform_equiv_Pi_comm : @uniform_equiv (α → Π i, δ i) (Π i, 
 @equiv.to_uniform_equiv_of_uniform_inducing _ _
   (@uniform_convergence.uniform_space α (Π i, δ i) (Pi.uniform_space δ))
   (@Pi.uniform_space ι (λ i, α → δ i) (λ i, uniform_convergence.uniform_space α (δ i)))
-  equiv.Pi_comm
+  (equiv.Pi_comm _)
 begin
   split,
   change comap (prod.map function.swap function.swap) _ = _,
@@ -344,6 +385,16 @@ begin
   exact infi_congr (λ s, infi_comm)
 end
 
+protected lemma inf_eq {u₁ u₂ : uniform_space γ} :
+  (@uniform_convergence_on.uniform_space α γ (u₁ ⊓ u₂) 𝔖) =
+  (@uniform_convergence_on.uniform_space α γ u₁ 𝔖) ⊓
+  (@uniform_convergence_on.uniform_space α γ u₂ 𝔖) :=
+begin
+  rw [inf_eq_infi, inf_eq_infi, uniform_convergence_on.infi_eq],
+  refine infi_congr (λ i, _),
+  cases i; refl
+end
+
 protected lemma comap_eq {f : γ → β} :
   (@uniform_convergence_on.uniform_space α γ (‹uniform_space β›.comap f) 𝔖) =
   (uniform_convergence_on.uniform_space α β 𝔖).comap ((∘) f) :=
@@ -366,6 +417,15 @@ begin
   ... = (uniform_convergence_on.uniform_space α β 𝔖).comap ((∘) f) :
         uniform_convergence_on.comap_eq
 end
+
+protected def congr_right [uniform_space γ] (e : γ ≃ᵤ β) :
+  @uniform_equiv (α → γ) (α → β)
+  (uniform_convergence_on.uniform_space α γ 𝔖) (uniform_convergence_on.uniform_space α β 𝔖) :=
+{ uniform_continuous_to_fun :=
+    uniform_convergence_on.postcomp_uniform_continuous e.uniform_continuous,
+  uniform_continuous_inv_fun :=
+    uniform_convergence_on.postcomp_uniform_continuous e.symm.uniform_continuous,
+  .. equiv.Pi_congr_right (λ a, e.to_equiv) }
 
 protected lemma precomp_uniform_continuous {𝔗 : set (set γ)} {f : γ → α}
   (hf : 𝔗 ⊆ (image f) ⁻¹' 𝔖) :
@@ -420,6 +480,29 @@ begin
   refl
 end
 
+protected def uniform_equiv_prod_arrow [uniform_space γ] :
+  @uniform_equiv (α → β × γ) ((α → β) × (α → γ))
+  (uniform_convergence_on.uniform_space α (β × γ) 𝔖)
+  (@prod.uniform_space _ _ (uniform_convergence_on.uniform_space α β 𝔖)
+    (uniform_convergence_on.uniform_space α γ 𝔖)) :=
+@equiv.to_uniform_equiv_of_uniform_inducing _ _
+  (uniform_convergence_on.uniform_space α (β × γ) 𝔖)
+  (@prod.uniform_space _ _ (uniform_convergence_on.uniform_space α β 𝔖)
+    (uniform_convergence_on.uniform_space α γ 𝔖))
+  (equiv.arrow_prod_equiv_prod_arrow _ _ _)
+begin
+  split,
+  change comap (prod.map (equiv.arrow_prod_equiv_prod_arrow _ _ _)
+    (equiv.arrow_prod_equiv_prod_arrow _ _ _)) _ = _,
+  rw ← uniformity_comap rfl,
+  congr,
+  rw [prod.uniform_space, uniform_space.of_core_eq_to_core, prod.uniform_space,
+      uniform_space.of_core_eq_to_core, uniform_space.comap_inf, uniform_convergence_on.inf_eq],
+  congr;
+  rw [← uniform_space.comap_comap, uniform_convergence_on.comap_eq];
+  refl
+end
+
 variables (𝔖) (δ : ι → Type*) [Π i, uniform_space (δ i)]
 
 /-- If `α → Π i, δ i` and each `α → δ i` are equipped with the uniform structures of
@@ -431,7 +514,7 @@ protected def uniform_equiv_Pi_comm : @uniform_equiv (α → Π i, δ i) (Π i, 
 @equiv.to_uniform_equiv_of_uniform_inducing _ _
   (@uniform_convergence_on.uniform_space α (Π i, δ i) (Pi.uniform_space δ) 𝔖)
   (@Pi.uniform_space ι (λ i, α → δ i) (λ i, uniform_convergence_on.uniform_space α (δ i) 𝔖))
-  equiv.Pi_comm
+  (equiv.Pi_comm _)
 begin
   split,
   change comap (prod.map function.swap function.swap) _ = _,

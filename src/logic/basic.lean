@@ -1274,7 +1274,7 @@ propext (exists_prop_congr hq _)
 exists_prop_of_true _
 
 -- This lemma needs to be `simp` for `by_cases` to work, but is superceded by `exists_iff`.
-@[priority 100, simp] lemma exists_false_left (p : false → Prop) : ¬ ∃ x, p x :=
+@[simp, priority 100] lemma exists_false_left (p : false → Prop) : ¬ ∃ x, p x :=
 exists_prop_of_false not_false
 
 lemma exists_unique.unique {α : Sort*} {p : α → Prop} (h : ∃! x, p x)
@@ -1293,7 +1293,7 @@ propext (forall_prop_congr hq _)
 forall_prop_of_true _
 
 -- This lemma needs to be `simp` for `by_cases` to work, but is superceded by `forall_iff`.
-@[priority 100, simp] lemma forall_false_left (p : false → Prop) : (∀ x, p x) ↔ true :=
+@[simp, priority 100] lemma forall_false_left (p : false → Prop) : (∀ x, p x) ↔ true :=
 forall_prop_of_false not_false
 
 lemma exists_unique.elim2 {α : Sort*} {p : α → Sort*} [∀ x, subsingleton (p x)]

@@ -300,6 +300,17 @@ by simp_rw [←Ici_inter_Iic, Iic_succ, inter_insert_of_mem (mem_Ici.2 h)]
 lemma Ioc_succ_right (h : a < succ b) : Ioc a (succ b) = insert (succ b) (Ioc a b) :=
 by simp_rw [←Ioi_inter_Iic, Iic_succ, inter_insert_of_mem (mem_Ioi.2 h)]
 
+lemma Iio_succ_eq_insert_of_not_is_max (h : ¬is_max a) : Iio (succ a) = insert a (Iio a) :=
+ext $ λ _, lt_succ_iff_eq_or_lt_of_not_is_max h
+
+lemma Ico_succ_right_eq_insert_of_not_is_max (h₁ : a ≤ b) (h₂ : ¬is_max b) :
+  Ico a (succ b) = insert b (Ico a b) :=
+by simp_rw [←Iio_inter_Ici, Iio_succ_eq_insert_of_not_is_max h₂, insert_inter_of_mem (mem_Ici.2 h₁)]
+
+lemma Ioo_succ_right_eq_insert_of_not_is_max (h₁ : a < b) (h₂ : ¬is_max b) :
+  Ioo a (succ b) = insert b (Ioo a b) :=
+by simp_rw [←Iio_inter_Ioi, Iio_succ_eq_insert_of_not_is_max h₂, insert_inter_of_mem (mem_Ioi.2 h₁)]
+
 section no_max_order
 variables [no_max_order α]
 
@@ -317,13 +328,13 @@ lemma succ_eq_iff_covby : succ a = b ↔ a ⋖ b :=
 ⟨by { rintro rfl, exact covby_succ _ }, covby.succ_eq⟩
 
 lemma Iio_succ_eq_insert (a : α) : Iio (succ a) = insert a (Iio a) :=
-ext $ λ _, lt_succ_iff_eq_or_lt
+Iio_succ_eq_insert_of_not_is_max $ not_is_max a
 
 lemma Ico_succ_right_eq_insert (h : a ≤ b) : Ico a (succ b) = insert b (Ico a b) :=
-by simp_rw [←Iio_inter_Ici, Iio_succ_eq_insert, insert_inter_of_mem (mem_Ici.2 h)]
+Ico_succ_right_eq_insert_of_not_is_max h $ not_is_max b
 
 lemma Ioo_succ_right_eq_insert (h : a < b) : Ioo a (succ b) = insert b (Ioo a b) :=
-by simp_rw [←Iio_inter_Ioi, Iio_succ_eq_insert, insert_inter_of_mem (mem_Ioi.2 h)]
+Ioo_succ_right_eq_insert_of_not_is_max h $ not_is_max b
 
 end no_max_order
 

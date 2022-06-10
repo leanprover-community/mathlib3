@@ -150,7 +150,7 @@ lemma congr_sets (h : {x | x ∈ s ↔ x ∈ t} ∈ f) : s ∈ f ↔ t ∈ f :=
 ⟨λ hs, mp_mem hs (mem_of_superset h (λ x, iff.mp)),
  λ hs, mp_mem hs (mem_of_superset h (λ x, iff.mpr))⟩
 
-@[simp] lemma bInter_mem {β : Type v} {s : β → set α} {is : set β} (hf : finite is) :
+@[simp] lemma bInter_mem {β : Type v} {s : β → set α} {is : set β} (hf : is.finite) :
   (⋂ i ∈ is, s i) ∈ f ↔ ∀ i ∈ is, s i ∈ f :=
 finite.induction_on hf (by simp) (λ i s hi _ hs, by simp [hs])
 
@@ -161,7 +161,7 @@ bInter_mem is.finite_to_set
 alias bInter_finset_mem ← finset.Inter_mem_sets
 attribute [protected] finset.Inter_mem_sets
 
-@[simp] lemma sInter_mem {s : set (set α)} (hfin : finite s) :
+@[simp] lemma sInter_mem {s : set (set α)} (hfin : s.finite) :
   ⋂₀ s ∈ f ↔ ∀ U ∈ s, U ∈ f :=
 by rw [sInter_eq_bInter, bInter_mem hfin]
 
@@ -274,6 +274,7 @@ def join (f : filter (filter α)) : filter α :=
 end join
 
 section lattice
+variables {f g : filter α} {s t : set α}
 
 instance : partial_order (filter α) :=
 { le            := λ f g, ∀ ⦃U : set α⦄, U ∈ g → U ∈ f,
@@ -281,7 +282,9 @@ instance : partial_order (filter α) :=
   le_refl       := λ a, subset.rfl,
   le_trans      := λ a b c h₁ h₂, subset.trans h₂ h₁ }
 
-theorem le_def {f g : filter α} : f ≤ g ↔ ∀ x ∈ g, x ∈ f := iff.rfl
+theorem le_def : f ≤ g ↔ ∀ x ∈ g, x ∈ f := iff.rfl
+
+protected lemma not_le : ¬ f ≤ g ↔ ∃ s ∈ g, s ∉ f := by simp_rw [le_def, not_forall]
 
 /-- `generate_sets g s`: `s` is in the filter closure of `g`. -/
 inductive generate_sets (g : set (set α)) : set α → Prop
@@ -305,7 +308,7 @@ iff.intro
     (λ x y _ _ hx hy, inter_mem hx hy))
 
 lemma mem_generate_iff {s : set $ set α} {U : set α} :
-  U ∈ generate s ↔ ∃ t ⊆ s, finite t ∧ ⋂₀ t ⊆ U :=
+  U ∈ generate s ↔ ∃ t ⊆ s, set.finite t ∧ ⋂₀ t ⊆ U :=
 begin
   split ; intro h,
   { induction h,
@@ -452,6 +455,8 @@ hf.mono hg
 @[simp] lemma sup_ne_bot {f g : filter α} : ne_bot (f ⊔ g) ↔ ne_bot f ∨ ne_bot g :=
 by simp [ne_bot_iff, not_and_distrib]
 
+lemma not_disjoint_self_iff : ¬ disjoint f f ↔ f.ne_bot := by rw [disjoint_self, ne_bot_iff]
+
 lemma bot_sets_eq : (⊥ : filter α).sets = univ := rfl
 
 lemma sup_sets_eq {f g : filter α} : (f ⊔ g).sets = f.sets ∩ g.sets :=
@@ -505,7 +510,7 @@ show generate _ = generate _, from congr_arg _ $ congr_arg Sup $ (range_comp _ _
 lemma mem_infi_of_mem {f : ι → filter α} (i : ι) : ∀ {s}, s ∈ f i → s ∈ ⨅ i, f i :=
 show (⨅ i, f i) ≤ f i, from infi_le _ _
 
-lemma mem_infi_of_Inter {ι} {s : ι → filter α} {U : set α} {I : set ι} (I_fin : finite I)
+lemma mem_infi_of_Inter {ι} {s : ι → filter α} {U : set α} {I : set ι} (I_fin : I.finite)
   {V : I → set α} (hV : ∀ i, V i ∈ s i) (hU : (⋂ i, V i) ⊆ U) : U ∈ ⨅ i, s i :=
 begin
   haveI := I_fin.fintype,
@@ -514,7 +519,7 @@ begin
 end
 
 lemma mem_infi {ι} {s : ι → filter α} {U : set α} : (U ∈ ⨅ i, s i) ↔
-  ∃ I : set ι, finite I ∧ ∃ V : I → set α, (∀ i, V i ∈ s i) ∧ U = ⋂ i, V i :=
+  ∃ I : set ι, I.finite ∧ ∃ V : I → set α, (∀ i, V i ∈ s i) ∧ U = ⋂ i, V i :=
 begin
   split,
   { rw [infi_eq_generate, mem_generate_iff],
@@ -535,7 +540,7 @@ begin
 end
 
 lemma mem_infi' {ι} {s : ι → filter α} {U : set α} : (U ∈ ⨅ i, s i) ↔
-  ∃ I : set ι, finite I ∧ ∃ V : ι → set α, (∀ i, V i ∈ s i) ∧
+  ∃ I : set ι, I.finite ∧ ∃ V : ι → set α, (∀ i, V i ∈ s i) ∧
     (∀ i ∉ I, V i = univ) ∧ (U = ⋂ i ∈ I, V i) ∧ U = ⋂ i, V i :=
 begin
   simp only [mem_infi, set_coe.forall', bInter_eq_Inter],
@@ -618,6 +623,10 @@ by simp only [disjoint_iff, ← empty_mem_iff_bot, mem_inf_iff,
 lemma disjoint_of_disjoint_of_mem {f g : filter α} {s t : set α} (h : disjoint s t)
   (hs : s ∈ f) (ht : t ∈ g) : disjoint f g :=
 filter.disjoint_iff.mpr ⟨s, hs, t, ht, h⟩
+
+lemma ne_bot.not_disjoint (hf : f.ne_bot) (hs : s ∈ f) (ht : t ∈ f) :
+  ¬ disjoint s t :=
+λ h, not_disjoint_self_iff.2 hf $ filter.disjoint_iff.2 ⟨s, hs, t, ht, h⟩
 
 lemma inf_eq_bot_iff {f g : filter α} :
   f ⊓ g = ⊥ ↔ ∃ (U ∈ f) (V ∈ g), U ∩ V = ∅ :=
@@ -888,7 +897,7 @@ end
   (⨅ i, 𝓟 (f i)) = 𝓟 (⋂ i, f i) :=
 by simpa using infi_principal_finset finset.univ f
 
-lemma infi_principal_finite {ι : Type w} {s : set ι} (hs : finite s) (f : ι → set α) :
+lemma infi_principal_finite {ι : Type w} {s : set ι} (hs : s.finite) (f : ι → set α) :
   (⨅ i ∈ s, 𝓟 (f i)) = 𝓟 (⋂ i ∈ s, f i) :=
 begin
   lift s to finset ι using hs,
@@ -1697,7 +1706,9 @@ lemma map_comap_le : map m (comap m g) ≤ g := (gc_map_comap m).l_u_le _
 lemma le_comap_map : f ≤ comap m (map m f) := (gc_map_comap m).le_u_l _
 
 @[simp] lemma comap_bot : comap m ⊥ = ⊥ :=
-bot_unique $ λ s _, ⟨∅, by simp only [mem_bot], by simp only [empty_subset, preimage_empty]⟩
+bot_unique $ λ s _, ⟨∅, mem_bot, by simp only [empty_subset, preimage_empty]⟩
+
+lemma comap_inf_principal_range : comap m (g ⊓ 𝓟 (range m)) = comap m g := by simp
 
 lemma disjoint_comap (h : disjoint g₁ g₂) : disjoint (comap m g₁) (comap m g₂) :=
 by simp only [disjoint_iff, ← comap_inf, h.eq_bot, comap_bot]
@@ -1903,6 +1914,8 @@ by simp only [ne_bot_iff, ne, map_eq_bot_iff]
 lemma ne_bot.map (hf : ne_bot f) (m : α → β) : ne_bot (map m f) :=
 (map_ne_bot_iff m).2 hf
 
+lemma ne_bot.of_map : ne_bot (f.map m) → ne_bot f := (map_ne_bot_iff m).1
+
 instance map_ne_bot [hf : ne_bot f] : ne_bot (f.map m) := hf.map m
 
 lemma sInter_comap_sets (f : α → β) (F : filter β) :
@@ -1991,6 +2004,9 @@ map_eq_comap_of_inverse prod.swap_swap_eq prod.swap_swap_eq
 lemma le_map {f : filter α} {m : α → β} {g : filter β} (h : ∀ s ∈ f, m '' s ∈ g) :
   g ≤ f.map m :=
 λ s hs, mem_of_superset (h _ hs) $ image_preimage_subset _ _
+
+lemma le_map_iff {f : filter α} {m : α → β} {g : filter β} : g ≤ f.map m ↔ ∀ s ∈ f, m '' s ∈ g :=
+⟨λ h s hs, h (image_mem_map hs), le_map⟩
 
 protected lemma push_pull (f : α → β) (F : filter α) (G : filter β) :
   map f (F ⊓ comap f G) = map f F ⊓ G :=

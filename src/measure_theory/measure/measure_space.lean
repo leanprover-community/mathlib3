@@ -1648,7 +1648,7 @@ calc count (↑s : set α) = ∑' i : (↑s : set α), 1 : count_apply s.measura
                     ... = ∑ i in s, 1 : s.tsum_subtype 1
                     ... = s.card : by simp
 
-lemma count_apply_finite [measurable_singleton_class α] (s : set α) (hs : finite s) :
+lemma count_apply_finite [measurable_singleton_class α] (s : set α) (hs : s.finite) :
   count s = hs.to_finset.card :=
 by rw [← count_apply_finset, finite.coe_to_finset]
 
@@ -2360,6 +2360,8 @@ lemma insert_ae_eq_self (a : α) (s : set α) :
   (insert a s : set α) =ᵐ[μ] s :=
 union_ae_eq_right.2 $ measure_mono_null (diff_subset _ _) (measure_singleton _)
 
+section
+
 variables [partial_order α] {a b : α}
 
 lemma Iio_ae_eq_Iic : Iio a =ᵐ[μ] Iic a :=
@@ -2385,6 +2387,12 @@ Ico_ae_eq_Icc' (measure_singleton b)
 
 lemma Ico_ae_eq_Ioc : Ico a b =ᵐ[μ] Ioc a b :=
 Ico_ae_eq_Ioc' (measure_singleton a) (measure_singleton b)
+
+end
+
+open_locale interval
+
+lemma interval_oc_ae_eq_interval [linear_order α] {a b : α} : Ι a b =ᵐ[μ] [a, b] := Ioc_ae_eq_Icc
 
 end no_atoms
 
@@ -2830,6 +2838,22 @@ lemma is_locally_finite_measure_of_is_finite_measure_on_compacts [topological_sp
   rcases exists_compact_mem_nhds x with ⟨K, K_compact, K_mem⟩,
   exact ⟨K, K_mem, K_compact.measure_lt_top⟩,
 end⟩
+
+lemma exists_pos_measure_of_cover [encodable ι] {U : ι → set α} (hU : (⋃ i, U i) = univ)
+  (hμ : μ ≠ 0) : ∃ i, 0 < μ (U i) :=
+begin
+  contrapose! hμ with H,
+  rw [← measure_univ_eq_zero, ← hU],
+  exact measure_Union_null (λ i, nonpos_iff_eq_zero.1 (H i))
+end
+
+lemma exists_pos_preimage_ball [pseudo_metric_space δ] (f : α → δ) (x : δ) (hμ : μ ≠ 0) :
+  ∃ n : ℕ, 0 < μ (f ⁻¹' metric.ball x n) :=
+exists_pos_measure_of_cover (by rw [← preimage_Union, metric.Union_ball_nat, preimage_univ]) hμ
+
+lemma exists_pos_ball [pseudo_metric_space α] (x : α) (hμ : μ ≠ 0) :
+  ∃ n : ℕ, 0 < μ (metric.ball x n) :=
+exists_pos_preimage_ball id x hμ
 
 /-- If a set has zero measure in a neighborhood of each of its points, then it has zero measure
 in a second-countable space. -/
@@ -3338,12 +3362,45 @@ piecewise_ae_eq_restrict hs
 lemma indicator_ae_eq_restrict_compl (hs : measurable_set s) : indicator s f =ᵐ[μ.restrict sᶜ] 0 :=
 piecewise_ae_eq_restrict_compl hs
 
+lemma indicator_ae_eq_of_restrict_compl_ae_eq_zero (hs : measurable_set s)
+  (hf : f =ᵐ[μ.restrict sᶜ] 0) :
+  s.indicator f =ᵐ[μ] f :=
+begin
+  rw [filter.eventually_eq, ae_restrict_iff' hs.compl] at hf,
+  filter_upwards [hf] with x hx,
+  by_cases hxs : x ∈ s,
+  { simp only [hxs, set.indicator_of_mem], },
+  { simp only [hx hxs, pi.zero_apply, set.indicator_apply_eq_zero, eq_self_iff_true,
+      implies_true_iff], },
+end
+
+lemma indicator_ae_eq_zero_of_restrict_ae_eq_zero (hs : measurable_set s)
+  (hf : f =ᵐ[μ.restrict s] 0) :
+  s.indicator f =ᵐ[μ] 0 :=
+begin
+  rw [filter.eventually_eq, ae_restrict_iff' hs] at hf,
+  filter_upwards [hf] with x hx,
+  by_cases hxs : x ∈ s,
+  { simp only [hxs, hx hxs, set.indicator_of_mem], },
+  { simp [hx, hxs], },
+end
+
 lemma indicator_ae_eq_of_ae_eq_set (hst : s =ᵐ[μ] t) : s.indicator f =ᵐ[μ] t.indicator f :=
 piecewise_ae_eq_of_ae_eq_set hst
 
 lemma indicator_meas_zero (hs : μ s = 0) : indicator s f =ᵐ[μ] 0 :=
 (indicator_empty' f) ▸ indicator_ae_eq_of_ae_eq_set (ae_eq_empty.2 hs)
 
-variables [measurable_space β]
+lemma ae_eq_restrict_iff_indicator_ae_eq {g : α → β} (hs : measurable_set s) :
+  f =ᵐ[μ.restrict s] g ↔ s.indicator f =ᵐ[μ] s.indicator g :=
+begin
+  rw [filter.eventually_eq, ae_restrict_iff' hs],
+  refine ⟨λ h, _, λ h, _⟩; filter_upwards [h] with x hx,
+  { by_cases hxs : x ∈ s,
+    { simp [hxs, hx hxs], },
+    { simp [hxs], }, },
+  { intros hxs,
+    simpa [hxs] using hx, },
+end
 
 end indicator_function

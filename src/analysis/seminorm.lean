@@ -431,13 +431,6 @@ calc
   ... ≤ p x + p (-y) : p.add_le x (-y)
   ... = p x + p y : by rw p.neg
 
-lemma nonneg (x : E) : 0 ≤ p x :=
-have h: 0 ≤ 2 * p x, from
-calc 0 = p (x + (- x)) : by rw [add_neg_self, map_zero]
-...    ≤ p x + p (-x)  : p.add_le _ _
-...    = 2 * p x : by rw [p.neg, two_mul],
-nonneg_of_mul_nonneg_left h zero_lt_two
-
 lemma sub_rev (x y : E) : p (x - y) = p (y - x) := by rw [←neg_sub, p.neg]
 
 /-- The direct path from 0 to y is shorter than the path with x "inserted" in between. -/

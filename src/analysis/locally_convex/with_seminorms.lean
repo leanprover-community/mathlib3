@@ -96,11 +96,7 @@ lemma basis_sets_zero (U) (hU : U ∈ p.basis_sets) :
   (0 : E) ∈ U :=
 begin
   rcases p.basis_sets_iff.mp hU with ⟨ι', r, hr, hU⟩,
-<<<<<<< HEAD
-  rw [hU, mem_ball_zero, (ι'.sup p).map_zero],
-=======
   rw [hU, mem_ball_zero, map_zero],
->>>>>>> origin/eric-wieser/seminorm.neg
   exact hr,
 end
 
@@ -165,11 +161,7 @@ begin
     use (s.sup p).ball 0 (r / ∥x∥),
     exact ⟨p.basis_sets_mem s (div_pos hr (norm_pos_iff.mpr h)), subset.rfl⟩ },
   refine ⟨(s.sup p).ball 0 r, p.basis_sets_mem s hr, _⟩,
-<<<<<<< HEAD
-  simp only [not_ne_iff.mp h, subset_def, mem_ball_zero, hr, mem_univ, seminorm.map_zero,
-=======
   simp only [not_ne_iff.mp h, subset_def, mem_ball_zero, hr, mem_univ, map_zero,
->>>>>>> origin/eric-wieser/seminorm.neg
     implies_true_iff, preimage_const_of_mem, zero_smul],
 end
 

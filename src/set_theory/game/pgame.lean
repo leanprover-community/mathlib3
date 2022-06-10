@@ -931,6 +931,12 @@ by rw [←pgame.not_le, ←pgame.not_le, not_iff_not, neg_le_neg_iff]
 @[simp] theorem neg_lt_neg_iff {x y : pgame} : -y < -x ↔ x < y :=
 by rw [lt_iff_le_and_lf, lt_iff_le_and_lf, neg_le_neg_iff, neg_lf_neg_iff]
 
+@[simp] theorem neg_equiv_neg_iff {x y : pgame} : -x ≈ -y ↔ x ≈ y :=
+by rw [equiv, equiv, neg_le_neg_iff, neg_le_neg_iff, and.comm]
+
+@[simp] theorem neg_fuzzy_neg_iff {x y : pgame} : -x ∥ -y ↔ x ∥ y :=
+by rw [fuzzy, fuzzy, neg_lf_neg_iff, neg_lf_neg_iff, and.comm]
+
 theorem neg_le_iff {x y : pgame} : -y ≤ x ↔ -x ≤ y :=
 by rw [←neg_neg x, neg_le_neg_iff, neg_neg]
 
@@ -940,23 +946,50 @@ by rw [←neg_neg x, neg_lf_neg_iff, neg_neg]
 theorem neg_lt_iff {x y : pgame} : -y < x ↔ -x < y :=
 by rw [←neg_neg x, neg_lt_neg_iff, neg_neg]
 
+theorem neg_equiv_iff {x y : pgame} : -x ≈ y ↔ x ≈ -y :=
+by rw [←neg_neg y, neg_equiv_neg_iff, neg_neg]
+
+theorem neg_fuzzy_iff {x y : pgame} : -x ∥ y ↔ x ∥ -y :=
+by rw [←neg_neg y, neg_fuzzy_neg_iff, neg_neg]
+
+theorem le_neg_iff {x y : pgame} : y ≤ -x ↔ x ≤ -y :=
+by rw [←neg_neg x, neg_le_neg_iff, neg_neg]
+
+theorem lf_neg_iff {x y : pgame} : y ⧏ -x ↔ x ⧏ -y :=
+by rw [←neg_neg x, neg_lf_neg_iff, neg_neg]
+
+theorem lt_neg_iff {x y : pgame} : y < -x ↔ x < -y :=
+by rw [←neg_neg x, neg_lt_neg_iff, neg_neg]
+
 @[simp] theorem neg_le_zero_iff {x : pgame} : -x ≤ 0 ↔ 0 ≤ x :=
-by { convert neg_le_neg_iff, rw pgame.neg_zero }
+by rw [neg_le_iff, pgame.neg_zero]
 
 @[simp] theorem zero_le_neg_iff {x : pgame} : 0 ≤ -x ↔ x ≤ 0 :=
-by { convert neg_le_neg_iff, rw pgame.neg_zero }
+by rw [le_neg_iff, pgame.neg_zero]
 
 @[simp] theorem neg_lf_zero_iff {x : pgame} : -x ⧏ 0 ↔ 0 ⧏ x :=
-by { convert neg_lf_neg_iff, rw pgame.neg_zero }
+by rw [neg_lf_iff, pgame.neg_zero]
 
 @[simp] theorem zero_lf_neg_iff {x : pgame} : 0 ⧏ -x ↔ x ⧏ 0 :=
-by { convert neg_lf_neg_iff, rw pgame.neg_zero }
+by rw [lf_neg_iff, pgame.neg_zero]
 
 @[simp] theorem neg_lt_zero_iff {x : pgame} : -x < 0 ↔ 0 < x :=
-by { convert neg_lt_neg_iff, rw pgame.neg_zero }
+by rw [neg_lt_iff, pgame.neg_zero]
 
 @[simp] theorem zero_lt_neg_iff {x : pgame} : 0 < -x ↔ x < 0 :=
-by { convert neg_lt_neg_iff, rw pgame.neg_zero }
+by rw [lt_neg_iff, pgame.neg_zero]
+
+@[simp] theorem neg_equiv_zero_iff {x : pgame} : -x ≈ 0 ↔ x ≈ 0 :=
+by rw [neg_equiv_iff, pgame.neg_zero]
+
+@[simp] theorem neg_fuzzy_zero_iff {x : pgame} : -x ∥ 0 ↔ x ∥ 0 :=
+by rw [neg_fuzzy_iff, pgame.neg_zero]
+
+@[simp] theorem zero_equiv_neg_iff {x : pgame} : 0 ≈ -x ↔ 0 ≈ x :=
+by rw [←neg_equiv_iff, pgame.neg_zero]
+
+@[simp] theorem zero_fuzzy_neg_iff {x : pgame} : 0 ∥ -x ↔ 0 ∥ x :=
+by rw [←neg_fuzzy_iff, pgame.neg_zero]
 
 theorem neg_congr {x y : pgame} (h : x ≈ y) : -x ≈ -y :=
 ⟨neg_le_neg_iff.2 h.2, neg_le_neg_iff.2 h.1⟩

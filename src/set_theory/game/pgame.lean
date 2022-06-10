@@ -503,8 +503,6 @@ classical.some_spec $ (zero_le.1 h) j
 If `x ≈ 0`, then the second player can always win `x`. -/
 def equiv (x y : pgame) : Prop := x ≤ y ∧ y ≤ x
 
--- TODO: add `equiv.le` and `equiv.ge` synonyms for `equiv.1` and `equiv.2`.
-
 local infix ` ≈ ` := pgame.equiv
 
 instance : is_equiv _ (≈) :=
@@ -519,6 +517,8 @@ theorem equiv.ge {x y : pgame} (h : x ≈ y) : y ≤ x := h.2
 theorem equiv_refl (x) : x ≈ x := refl x
 @[symm] protected theorem equiv.symm {x y} : x ≈ y → y ≈ x := symm
 @[trans] protected theorem equiv.trans {x y z} : x ≈ y → y ≈ z → x ≈ z := trans
+
+theorem equiv_of_eq {x y} (h : x = y) : x ≈ y := by subst h
 
 @[trans] theorem le_of_le_of_equiv {x y z} (h₁ : x ≤ y) (h₂ : y ≈ z) : x ≤ z := h₁.trans h₂.1
 @[trans] theorem le_of_equiv_of_le {x y z} (h₁ : x ≈ y) : y ≤ z → x ≤ z := h₁.1.trans

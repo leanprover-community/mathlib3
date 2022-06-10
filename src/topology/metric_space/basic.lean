@@ -2646,7 +2646,7 @@ emetric_space.to_metric_space_of_dist (λx y, ennreal.to_real (edist x y)) h (λ
 See Note [forgetful inheritance].
 -/
 def metric_space.replace_bornology {α} [B : bornology α] (m : metric_space α)
-  (H : ∀ s, @is_bounded _ B s ↔ @is_bounded _ pseudo_metric_space.to_bornology' s) :
+  (H : ∀ s, @is_bounded _ B s ↔ @is_bounded _ pseudo_metric_space.to_bornology s) :
   metric_space α :=
 { to_bornology := B,
   .. pseudo_metric_space.replace_bornology _ H,

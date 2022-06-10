@@ -257,10 +257,7 @@ by { haveI := fintype.of_finite α, simp [fintype.card_eq_zero_iff] }
 end finite
 
 instance subtype.finite {α : Sort*} [finite α] {p : α → Prop} : finite {x // p x} :=
-begin
-  haveI := fintype.of_finite (plift α),
-  exact finite.of_equiv _ (equiv.subtype_equiv_of_subtype equiv.plift),
-end
+finite.of_injective coe subtype.coe_injective
 
 theorem finite.card_subtype_le [finite α] (p : α → Prop) :
   nat.card {x // p x} ≤ nat.card α :=
@@ -287,30 +284,21 @@ finite.of_surjective _ (surjective_quot_mk r)
 instance quotient.finite {α : Sort*} [finite α] (s : setoid α) : finite (quotient s) :=
 quot.finite _
 
-instance equiv.finite_left {α β : Sort*} [finite α] : finite (α ≃ β) :=
-begin
-  casesI is_empty_or_nonempty (α ≃ β) with _ h,
-  { apply_instance },
-  { refine h.elim (λ f, _),
-    haveI := finite.of_equiv _ f,
-    haveI := fintype.of_finite (plift α),
-    haveI := fintype.of_finite (plift β),
-    exact finite.of_equiv _ (equiv.equiv_congr equiv.plift equiv.plift), },
-end
-
-instance equiv.finite_right {α β : Sort*} [finite β] : finite (α ≃ β) :=
-finite.of_equiv _ ⟨equiv.symm, equiv.symm, equiv.symm_symm, equiv.symm_symm⟩
-
 instance function.embedding.finite {α β : Sort*} [finite β] : finite (α ↪ β) :=
 begin
   casesI is_empty_or_nonempty (α ↪ β) with _ h,
   { apply_instance, },
   { refine h.elim (λ f, _),
-    haveI := finite.of_injective _ f.injective,
-    haveI := fintype.of_finite (plift α),
-    haveI := fintype.of_finite (plift β),
-    exact finite.of_equiv _ (equiv.embedding_congr equiv.plift equiv.plift), },
+    haveI : finite α := finite.of_injective _ f.injective,
+    exact finite.of_injective _ fun_like.coe_injective },
 end
+
+instance equiv.finite_right {α β : Sort*} [finite β] : finite (α ≃ β) :=
+finite.of_injective equiv.to_embedding $ λ e₁ e₂ h, equiv.ext $
+  by convert fun_like.congr_fun h
+
+instance equiv.finite_left {α β : Sort*} [finite α] : finite (α ≃ β) :=
+finite.of_equiv _ ⟨equiv.symm, equiv.symm, equiv.symm_symm, equiv.symm_symm⟩
 
 instance [finite α] {n : ℕ} : finite (sym α n) :=
 by { haveI := fintype.of_finite α, apply_instance }

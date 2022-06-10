@@ -34,17 +34,11 @@ into cases by characteristics.
 ## Main results
 
 - `equal_char_zero.iff_rat_cast_inj`: A ring has equal characteristic zero iff there is an
-                                      injective homomorphism `ℚ →+* R`.
-
+  injective homomorphism `ℚ →+* R`.
 - `is_domain.split_by_characteristic`: Split a statement over a domain `R` into the three
-                                        different cases by characteristic.
+   different cases by characteristic.
 - `local_ring.split_by_characteristic`: Split a statement over a local ring `R` into the three
-                                        different cases by characteristic.
-
-## Implementation notes
-
-## References
-
+  different cases by characteristic.
 -/
 
 /-!
@@ -232,7 +226,8 @@ begin
       simp_rw [←int.cast_coe_nat, ←int.cast_mul, ←mul_assoc, ←rat.mul_num_denom'],
       ring_nf,
     end,
-    map_add' := begin
+    map_add' :=
+    begin
       -- This is just a boring calculation using commutativity, associativity & distributivity
       intros a b,
       apply (is_unit.mul_left_inj (nat_is_unit_of_pos R ((a+b).pos))).mp,
@@ -347,7 +342,8 @@ begin
     let r := ring_char (R ⧸ M),
     resetI,
 
-    have r_pos : r ≠ 0 := begin
+    have r_pos : r ≠ 0 :=
+    begin
       let f_IM := ideal.quotient.factor I M h_IM,
       have q_zero := congr_arg f_IM (char_p.cast_eq_zero (R ⧸ I) q),
       simp only [map_nat_cast, map_zero] at q_zero,
@@ -358,15 +354,16 @@ begin
     or_iff_not_imp_right.1 (char_p.char_is_prime_or_zero (R ⧸ M) r) r_pos,
 
     apply h r r_prime,
-    exact {
-      char_zero := q_mixed_char.char_zero,
+    exact
+    { char_zero := q_mixed_char.char_zero,
       p_pos := nat.prime.ne_zero r_prime,
-      residue_char_p := begin
+      residue_char_p :=
+      begin
         use M,
         split,
         exact hM_max.ne_top,
         refine ring_char.of_eq rfl,
-      end}},
+      end}}
 
 end
 
@@ -386,12 +383,12 @@ begin
     use P,
     split,
     exact hP_max.is_prime,
-    cases char_p.exists (R⧸P) with r hr,
+    cases char_p.exists (R ⧸ P) with r hr,
     convert hr,
     resetI,
 
     have r_dvd_p : r ∣ p := begin
-      rw ←char_p.cast_eq_zero_iff (R⧸P) r p,
+      rw ←char_p.cast_eq_zero_iff (R ⧸ P) r p,
       let fIm := ideal.quotient.factor I P hP,
       convert congr_arg fIm (char_p.cast_eq_zero (R ⧸ I) p),
       simp,
@@ -400,8 +397,7 @@ begin
     have q := char_p.char_ne_one (R ⧸ P) r,
     rw or_iff_not_imp_left at one_or_p,
     exact (one_or_p q).symm},
-  {
-    intro g,
+  { intro g,
     rcases g with ⟨I, ⟨hI_prime, hI⟩⟩,
     use I,
     exact ⟨ideal.is_prime.ne_top hI_prime, hI⟩}
@@ -418,16 +414,15 @@ lemma equal_or_mixed_char (R : Type*) [comm_ring R] [g : char_zero R] :
   equal_char_zero R ↔ ¬(∃p, mixed_char_zero R p) :=
 begin
   apply iff.intro,
-  {
-    introI h,
+  { introI h,
     by_contradiction hp,
     cases hp with p hp,
     rcases hp.residue_char_p with ⟨I, ⟨hI_ne_top, hI_p⟩⟩,
     have hI_zero := @char_p.of_char_zero _ _ _ (equal_char_zero.residue_char_zero I hI_ne_top),
     exact absurd (char_p.eq (R⧸I) hI_p hI_zero) hp.p_pos},
   { intro h,
-    exact ⟨
-    begin
+    exact
+    ⟨begin
       intros I hI_ne_top,
       apply char_p.char_p_to_char_zero _,
       by_cases hr : ring_char (R⧸I) = 0,
@@ -439,8 +434,7 @@ begin
           char_zero := g,
           p_pos := hr,
           residue_char_p := ⟨I, ⟨hI_ne_top, ring_char.char_p _⟩⟩}},
-    end⟩
-  },
+    end⟩}
 end
 
 /--
@@ -451,10 +445,8 @@ theorem split_equal_mixed_char (R : Type) [comm_ring R] [char_zero R] {P : Prop}
   (h_mixed : ∀(p : ℕ), (nat.prime p → mixed_char_zero R p → P)) : P :=
 begin
   cases or_iff_not_imp_right.2 (equal_or_mixed_char R).2,
-  { -- The case `char(R) = (0,0)`.
-    exact h_equal h},
-  { -- The case `char(R) = (0,q)`.
-    cases h with p h_char,
+  exact h_equal h,            -- The case `char(R) = (0,0)`.
+  { cases h with p h_char,    -- The case `char(R) = (0,q)`.
     rw ←mixed_char_zero.reduce_to_p_prime R P at h_mixed,
     exact h_mixed p h_char}
 end
@@ -470,7 +462,7 @@ theorem split_by_characteristic' (R : Type) [comm_ring R] {P : Prop}
 begin
   -- There exists a `p:ℕ` such that `char(R) = p`.
   casesI char_p.exists R with p hp,
-  by_cases p=0,
+  by_cases p = 0,
   { haveI h0' : char_p R 0 :=
     begin
       rw ←h,
@@ -481,8 +473,8 @@ begin
     apply split_equal_mixed_char R,
     exact h2,
     exact h3},
-  { -- The case `char(R) = p > 0`.
-    clear h2 h3,
+  -- The case `char(R) = p > 0`.
+  { clear h2 h3,
     apply (h1 p),
     exact h,
     exact hp},
@@ -497,8 +489,8 @@ begin
   casesI char_p.exists R with p hp,
   -- The characteristics `p` is either prime or zero.
   cases char_p.char_is_prime_or_zero R p with g g,  -- This uses `is_domain R`.
-  { -- The case `char(R) = p > 0`.
-    clear h2 h3,
+  -- The case `char(R) = p > 0`.
+  { clear h2 h3,
     apply (h1 p),
     exact g,
     exact hp},
@@ -533,8 +525,8 @@ begin
     apply split_equal_mixed_char R,
     exact h2,
     exact h3},
-  { -- The case `char(R) = p > 0`.
-    clear h2 h3,
+  -- The case `char(R) = p > 0`.
+  { clear h2 h3,
     apply (h1 p),
     exact g,
     exact hp},

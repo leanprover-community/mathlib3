@@ -25,21 +25,21 @@ open_locale interval real
 
 noncomputable theory
 
-variables {E : Type} [normed_group E] [normed_space ℂ E]
+variables {E : Type} [normed_group E] [normed_space ℂ E] (R : ℝ) (z w : ℂ)
 
 namespace complex
 
 /-- Given a function `f : ℂ → E`, this gives the function $(2πi)^{-1}\frac{f(x)}{x-w}$ where `x`
 runs over a circle of radius `R` around `z`. If `f` is differentiable and `w` is in the interior of
 the ball, then the integral from `0` to `2 * π` of this gives the value `f(w)`. -/
-def circle_integral_transform (R : ℝ) (z w : ℂ) (f : ℂ → E) : ℝ → E :=
+def circle_integral_transform (f : ℂ → E) : ℝ → E :=
   λ θ, (2 * ↑π * I)⁻¹ • deriv (circle_map z R) θ • ((circle_map z R θ) - w)⁻¹ • f (circle_map z R θ)
 
 /-- The derivative of `circle_integral_transform` w.r.t `w` -/
-def circle_integral_transform_deriv (R : ℝ) (z w : ℂ) (f : ℂ → E) (θ : ℝ) : E :=
+def circle_integral_transform_deriv (f : ℂ → E) (θ : ℝ) : E :=
   (2 * ↑π * I)⁻¹ • deriv (circle_map z R) θ • ((circle_map z R θ - w) ^ 2)⁻¹ • f (circle_map z R θ)
 
-lemma circle_integral_transform_deriv_eq (R : ℝ) (z w : ℂ) (f : ℂ → E) :
+lemma circle_integral_transform_deriv_eq (f : ℂ → E) :
   circle_integral_transform_deriv R z w f =
   (λ θ, (circle_map z R θ - w)⁻¹ • (circle_integral_transform R z w f θ)) :=
 begin
@@ -48,7 +48,7 @@ begin
   ring_nf, simp,
 end
 
-lemma circle_integral_transform_circle_int [complete_space E] (R : ℝ) (z w : ℂ) (f : ℂ → E) :
+lemma circle_integral_transform_circle_int [complete_space E] (f : ℂ → E) :
   ∫ (θ : ℝ) in 0..2 * π, circle_integral_transform R z w f θ =
   (2 * ↑π * I)⁻¹ • ∮ z in C(z, R), (z - w)⁻¹ • f z :=
 begin
@@ -105,7 +105,7 @@ begin
     simp only [deriv_circle_map],
     have c := (continuous_circle_map 0 R).continuous_on,
     apply_rules [continuous_on.mul, c.comp continuous_on_snd (λ _, and.right), continuous_on_const],
-    simp_rw ←inv_pow₀,
+    simp_rw ←inv_pow,
     apply circle_int_funct_cont_on_prod hR hr, },
   refine continuous_abs.continuous_on.comp this _,
   show maps_to _ _ (⊤ : set ℂ),
@@ -126,13 +126,15 @@ begin
 end
 
 /-- The derivative of a `circle_integral_transform` is bounded by a continuous function -/
-lemma circle_integral_transform_deriv_bound {R r : ℝ} (hR : 0 < R) (hr : r < R) (hr' : 0 ≤ r)
-  {z x : ℂ} {f : ℂ → ℂ} (hx : x ∈ ball z r) (hf : continuous_on f (sphere z R)) :
+lemma circle_integral_transform_deriv_bound {R r : ℝ} (hR : 0 < R) {z x : ℂ} {f : ℂ → ℂ}
+  (hx : x ∈ ball z R) (hf : continuous_on f (sphere z R)) :
   ∃ (B ε : ℝ), 0 < ε ∧ ball x ε ⊆ ball z R ∧
   (∀ (t ∈ [0, 2 * π]) (y ∈ ball x ε), ∥circle_integral_transform_deriv R z y f t∥ ≤ B) :=
 begin
-  obtain ⟨ε', hε', H⟩ := exists_ball_subset_ball hx,
-  obtain ⟨⟨⟨a, b⟩, ⟨ha, hb⟩⟩, hab⟩ := circle_integral_bounding_function_bound hR hr hr' z,
+  obtain ⟨r, hr, hrx⟩ := exists_lt_mem_ball_of_mem_ball hx,
+  obtain ⟨ε', hε', H⟩ := exists_ball_subset_ball hrx,
+  obtain ⟨⟨⟨a, b⟩, ⟨ha, hb⟩⟩, hab⟩ := circle_integral_bounding_function_bound hR hr
+    (pos_of_mem_ball hrx).le z,
   let V : ℝ → (ℂ → ℂ) := λ θ w, circle_integral_transform_deriv R z w (λ x, 1) θ,
   have funccomp : continuous_on (λ r , abs (f r)) (sphere z R),
   by { have cabs : continuous_on abs ⊤ := by apply continuous_abs.continuous_on,

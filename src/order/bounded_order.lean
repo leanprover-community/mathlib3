@@ -154,6 +154,7 @@ class order_bot (α : Type u) [has_le α] extends has_bot α :=
 (bot_le : ∀ a : α, ⊥ ≤ a)
 
 section order_bot
+
 section has_le
 variables [has_le α] [order_bot α] {a : α}
 
@@ -161,6 +162,27 @@ variables [has_le α] [order_bot α] {a : α}
 @[simp] lemma is_bot_bot : is_bot (⊥ : α) := λ _, bot_le
 
 end has_le
+
+namespace order_dual
+variable (α)
+
+instance [has_bot α] : has_top αᵒᵈ := ⟨(⊥ : α)⟩
+instance [has_top α] : has_bot αᵒᵈ := ⟨(⊤ : α)⟩
+
+instance [has_le α] [order_bot α] : order_top αᵒᵈ :=
+{ le_top := @bot_le α _ _,
+  .. order_dual.has_top α }
+
+instance [has_le α] [order_top α] : order_bot αᵒᵈ :=
+{ bot_le := @le_top α _ _,
+  .. order_dual.has_bot α }
+
+@[simp] lemma of_dual_bot [has_top α] : of_dual ⊥ = (⊤ : α) := rfl
+@[simp] lemma of_dual_top [has_bot α] : of_dual ⊤ = (⊥ : α) := rfl
+@[simp] lemma to_dual_bot [has_bot α] : to_dual (⊥ : α) = ⊤ := rfl
+@[simp] lemma to_dual_top [has_top α] : to_dual (⊤ : α) = ⊥ := rfl
+
+end order_dual
 
 section preorder
 variables [preorder α] [order_bot α] {a b : α}
@@ -201,15 +223,14 @@ lemma ne.bot_lt' (h : ⊥ ≠ a) : ⊥ < a := h.symm.bot_lt
 lemma ne_bot_of_le_ne_bot (hb : b ≠ ⊥) (hab : b ≤ a) : a ≠ ⊥ := (hb.bot_lt.trans_le hab).ne'
 
 lemma strict_mono.apply_eq_bot_iff (hf : strict_mono f) : f a = f ⊥ ↔ a = ⊥ :=
-⟨λ h, not_bot_lt_iff.1 $ λ ha, (hf ha).ne' h, congr_arg _⟩
+hf.dual.apply_eq_top_iff
 
 lemma strict_anti.apply_eq_bot_iff (hf : strict_anti f) : f a = f ⊥ ↔ a = ⊥ :=
-⟨λ h, not_bot_lt_iff.1 $ λ ha, (hf ha).ne h, congr_arg _⟩
+hf.dual.apply_eq_top_iff
 
 variables [nontrivial α]
 
-lemma not_is_max_bot : ¬ is_max (⊥ : α) :=
-λ h, let ⟨a, ha⟩ := exists_ne (⊥ : α) in ha $ le_bot_iff.1 $ h bot_le
+lemma not_is_max_bot : ¬ is_max (⊥ : α) := @not_is_min_top αᵒᵈ _ _ _
 
 end order_bot
 
@@ -267,7 +288,7 @@ inf_of_le_right le_top
 inf_of_le_left le_top
 
 @[simp] theorem inf_eq_top_iff : a ⊓ b = ⊤ ↔ (a = ⊤ ∧ b = ⊤) :=
-by rw [eq_top_iff, le_inf_iff]; simp
+@sup_eq_bot_iff αᵒᵈ _ _ _ _
 
 end semilattice_inf_top
 
@@ -288,6 +309,9 @@ end semilattice_inf_bot
   denoted `⊤` and `⊥` respectively. -/
 @[ancestor order_top order_bot]
 class bounded_order (α : Type u) [has_le α] extends order_top α, order_bot α.
+
+instance (α : Type u) [has_le α] [bounded_order α] : bounded_order αᵒᵈ :=
+{ .. order_dual.order_top α, .. order_dual.order_bot α }
 
 theorem bounded_order.ext {α} [partial_order α] {A B : bounded_order α} : A = B :=
 begin
@@ -821,7 +845,7 @@ def untop : Π (x : with_top α), x ≠ ⊤ → α :=
 with_bot.unbot
 
 @[simp] lemma coe_untop (x : with_top α) (h : x ≠ ⊤) : (x.untop h : with_top α) = x :=
-by { cases x, simpa using h, refl, }
+with_bot.coe_unbot x h
 
 @[simp] lemma untop_coe (x : α) (h : (x : with_top α) ≠ ⊤ := coe_ne_top) :
   (x : with_top α).untop h = x := rfl
@@ -852,8 +876,7 @@ instance [order_bot α] : order_bot (with_top α) :=
 instance [order_bot α] : bounded_order (with_top α) :=
 { ..with_top.order_top, ..with_top.order_bot }
 
-lemma not_top_le_coe (a : α) : ¬ (⊤ : with_top α) ≤ ↑a :=
-λ h, let ⟨b, hb, _⟩ := h _ rfl in option.not_mem_none _ hb
+lemma not_top_le_coe (a : α) : ¬ (⊤ : with_top α) ≤ ↑a := with_bot.not_coe_le_bot (to_dual a)
 
 lemma le_coe : ∀ {o : option α}, a ∈ o → (@has_le.le (with_top α) _ o b ↔ a ≤ b) | _ rfl :=
 coe_le_coe
@@ -966,11 +989,7 @@ instance decidable_lt [has_lt α] [@decidable_rel α (<)] : @decidable_rel (with
 λ x y, @with_bot.decidable_lt αᵒᵈ _ _ y x
 
 instance is_total_le [has_le α] [is_total α (≤)] : is_total (with_top α) (≤) :=
-⟨λ a b, match a, b with
-  | _     , none   := or.inl le_top
-  | none  , _      := or.inr le_top
-  | some x, some y := (total_of (≤) x y).imp some_le_some.2 some_le_some.2
-  end⟩
+@order_dual.is_total_le (with_bot αᵒᵈ) _ _
 
 instance [linear_order α] : linear_order (with_top α) := lattice.to_linear_order _
 
@@ -998,13 +1017,7 @@ lemma _root_.with_bot.well_founded_gt [preorder α] (h : @well_founded α (>)) :
 @with_top.well_founded_lt αᵒᵈ _ h
 
 instance [has_lt α] [densely_ordered α] [no_max_order α] : densely_ordered (with_top α) :=
-⟨ λ a b,
-  match a, b with
-  | none,   a   := λ h : ⊤ < a, (not_none_lt _ h).elim
-  | some a, none := λ h, let ⟨b, hb⟩ := exists_gt a in ⟨b, coe_lt_coe.2 hb, coe_lt_top b⟩
-  | some a, some b := λ h, let ⟨a, ha₁, ha₂⟩ := exists_between (coe_lt_coe.1 h) in
-    ⟨a, coe_lt_coe.2 ha₁, coe_lt_coe.2 ha₂⟩
-  end⟩
+order_dual.densely_ordered (with_bot αᵒᵈ)
 
 lemma lt_iff_exists_coe_btwn [preorder α] [densely_ordered α] [no_max_order α] {a b : with_top α} :
   a < b ↔ ∃ x : α, a < ↑x ∧ ↑x < b :=
@@ -1012,22 +1025,10 @@ lemma lt_iff_exists_coe_btwn [preorder α] [densely_ordered α] [no_max_order α
  λ ⟨x, hx⟩, lt_trans hx.1 hx.2⟩
 
 instance [has_le α] [no_bot_order α] [nonempty α] : no_bot_order (with_top α) :=
-⟨begin
-  apply with_top.rec_top_coe,
-  { exact ‹nonempty α›.elim (λ a, ⟨a, not_top_le_coe a⟩) },
-  { intro a,
-    obtain ⟨b, h⟩ := exists_not_ge a,
-    exact ⟨b, by rwa coe_le_coe⟩ }
-end⟩
+order_dual.no_bot_order (with_bot αᵒᵈ)
 
 instance [has_lt α] [no_min_order α] [nonempty α] : no_min_order (with_top α) :=
-⟨begin
-  apply rec_top_coe,
-  { exact ‹nonempty α›.elim (λ a, ⟨a, with_top.coe_lt_top a⟩) },
-  { intro a,
-    obtain ⟨b, ha⟩ := exists_lt a,
-    exact ⟨b, coe_lt_coe.mpr ha⟩ }
-end⟩
+order_dual.no_min_order (with_bot αᵒᵈ)
 
 end with_top
 
@@ -1106,32 +1107,6 @@ by rw [←coe_top htop, ext_iff]
 (coe_eq_top_iff htop).symm
 
 end subtype
-
-section order_dual
-variable (α)
-
-instance [has_bot α] : has_top αᵒᵈ := ⟨(⊥ : α)⟩
-instance [has_top α] : has_bot αᵒᵈ := ⟨(⊤ : α)⟩
-
-instance [has_le α] [order_bot α] : order_top αᵒᵈ :=
-{ le_top := @bot_le α _ _,
-  .. order_dual.has_top α }
-
-instance [has_le α] [order_top α] : order_bot αᵒᵈ :=
-{ bot_le := @le_top α _ _,
-  .. order_dual.has_bot α }
-
-instance [has_le α] [bounded_order α] : bounded_order αᵒᵈ :=
-{ .. order_dual.order_top α, .. order_dual.order_bot α }
-
-open order_dual
-
-@[simp] lemma of_dual_bot [has_top α] : of_dual ⊥ = (⊤ : α) := rfl
-@[simp] lemma of_dual_top [has_bot α] : of_dual ⊤ = (⊥ : α) := rfl
-@[simp] lemma to_dual_bot [has_bot α] : to_dual (⊥ : α) = ⊤ := rfl
-@[simp] lemma to_dual_top [has_top α] : to_dual (⊤ : α) = ⊥ := rfl
-
-end order_dual
 
 namespace prod
 variables (α β)

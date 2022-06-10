@@ -23,7 +23,7 @@ infixr `::ᵥ`:67  := vector.cons
 attribute [simp] head_cons tail_cons
 
 instance [inhabited α] : inhabited (vector α n) :=
-⟨of_fn (λ _, default)⟩
+⟨of_fn default⟩
 
 theorem to_list_injective : function.injective (@to_list α n) :=
 subtype.val_injective

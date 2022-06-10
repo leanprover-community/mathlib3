@@ -228,6 +228,41 @@ meta def pgame_wf_tac :=
    subsequent.mk_left, subsequent.mk_right, subsequent.trans]
   { max_depth := 6 }]
 
+/-- The game `P{x | y}` with indexing types `punit`. -/
+@[reducible] def of (x y : pgame) : pgame := ⟨punit, punit, λ _, x, λ _, y⟩
+
+/-- The game `P{x |}` with indexing types `punit` and `pempty`. -/
+@[reducible] def of_left (x : pgame) : pgame := ⟨punit, pempty, λ _, x, pempty.elim⟩
+
+/-- The game `P{| x}` with indexing types `pempty` and `punit`. -/
+@[reducible] def of_right (x : pgame) : pgame := ⟨pempty, punit, pempty.elim, λ _, x⟩
+
+notation `P{` x ` | ` y `}` := of x y
+notation `P{` x ` |}` := of_left x
+notation `P{| ` y `}` := of_right y
+
+theorem of_left_moves (x y) : P{x | y}.left_moves = punit := rfl
+theorem of_right_moves (x y) : P{x | y}.right_moves = punit := rfl
+@[simp] theorem of_move_left {x y} (i) : P{x | y}.move_left i = x := rfl
+@[simp] theorem of_move_right {x y} (j) : P{x | y}.move_right j = y := rfl
+
+instance unique_of_left_moves (x y) : unique P{x | y}.left_moves := punit.unique
+instance unique_of_right_moves (x y) : unique P{x | y}.right_moves := punit.unique
+
+theorem of_left_left_moves (x) : P{x |}.left_moves = punit := rfl
+theorem of_left_right_moves (x) : P{x |}.right_moves = pempty := rfl
+@[simp] theorem of_left_move_left {x} (i) : P{x |}.move_left i = x := rfl
+
+instance unique_of_left_left_moves (x) : unique P{x |}.left_moves := punit.unique
+instance is_empty_of_left_right_moves (x) : is_empty P{x |}.right_moves := pempty.is_empty
+
+theorem of_right_left_moves (x) : P{| x}.left_moves = pempty := rfl
+theorem of_right_right_moves (x) : P{| x}.right_moves = punit := rfl
+@[simp] theorem of_right_move_right {x} (i) : P{x |}.move_left i = x := rfl
+
+instance is_empty_of_right_left_moves (x) : is_empty P{| x}.left_moves := pempty.is_empty
+instance unique_of_right_right_moves (x) : unique P{| x}.right_moves := punit.unique
+
 /-- The pre-game `zero` is defined by `0 = { | }`. -/
 instance : has_zero pgame := ⟨⟨pempty, pempty, pempty.elim, pempty.elim⟩⟩
 
@@ -239,8 +274,8 @@ instance is_empty_zero_right_moves : is_empty (right_moves 0) := pempty.is_empty
 
 instance : inhabited pgame := ⟨0⟩
 
-/-- The pre-game `one` is defined by `1 = { 0 | }`. -/
-instance : has_one pgame := ⟨⟨punit, pempty, λ _, 0, pempty.elim⟩⟩
+/-- The pre-game `one` is defined by `1 = P{0 |}`. -/
+instance : has_one pgame := ⟨P{0 |}⟩
 
 @[simp] lemma one_left_moves : left_moves 1 = punit := rfl
 @[simp] lemma one_move_left (x) : move_left 1 x = 0 := rfl
@@ -472,6 +507,15 @@ zero_le.2 is_empty_elim
 
 @[simp] theorem le_zero_of_is_empty_left_moves (x : pgame) [is_empty x.left_moves] : x ≤ 0 :=
 le_zero.2 is_empty_elim
+
+theorem zero_le_of_left (x) : 0 ≤ P{x |} := zero_le_of_is_empty_right_moves _
+theorem of_right_le_zero (x) : P{| x} ≤ 0 := le_zero_of_is_empty_left_moves _
+
+theorem lf_of (x y) : x ⧏ P{x | y} := @move_left_lf P{x | y} default
+theorem of_lf (x y) : P{x | y} ⧏ y := lf_move_right default
+
+theorem lf_of_left (x) : x ⧏ P{x |} := @move_left_lf P{x |} default
+theorem of_right_lf (x) : P{| x} ⧏ x := lf_move_right default
 
 /-- Given a game won by the right player when they play second, provide a response to any move by
 left. -/
@@ -1334,8 +1378,8 @@ theorem lt_iff_sub_pos {x y : pgame} : x < y ↔ 0 < y - x :=
      ... ≤ y + 0 : add_le_add_left (add_left_neg_le_zero x) _
      ... ≤ y : (add_zero_relabelling y).le⟩
 
-/-- The pre-game `star`, which is fuzzy with zero. -/
-def star : pgame.{u} := ⟨punit, punit, λ _, 0, λ _, 0⟩
+/-- The pre-game `star = P{0 | 0}`, which is fuzzy with zero. -/
+def star : pgame.{u} := P{0 | 0}
 
 @[simp] theorem star_left_moves : star.left_moves = punit := rfl
 @[simp] theorem star_right_moves : star.right_moves = punit := rfl

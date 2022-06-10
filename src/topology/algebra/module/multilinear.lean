@@ -453,4 +453,22 @@ rfl
 
 end algebra
 
+section smul_right
+
+variables [comm_semiring R] [Π i, add_comm_monoid (M₁ i)] [add_comm_monoid M₂]
+  [Π i, module R (M₁ i)] [module R M₂] [topological_space R] [Π i, topological_space (M₁ i)]
+  [topological_space M₂] [has_continuous_smul R M₂] (f : continuous_multilinear_map R M₁ R) (z : M₂)
+
+/-- Given a continuous `R`-multilinear map `f` taking values in `R`, `f.smul_right z` is the
+continuous multilinear map sending `m` to `f m • z`. -/
+@[simps] def smul_right : continuous_multilinear_map R M₁ M₂ :=
+{ to_multilinear_map := f.to_multilinear_map.smul_right z,
+  cont := f.cont.smul continuous_const }
+
+@[simp] lemma smul_right_apply (m : Π i, M₁ i) :
+  f.smul_right z m = (f m) • z :=
+rfl
+
+end smul_right
+
 end continuous_multilinear_map

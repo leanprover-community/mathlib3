@@ -755,7 +755,7 @@ by { ext, simp }
 
 lemma neighbor_finset_compl [decidable_eq V] [decidable_rel G.adj] (v : V) :
   Gᶜ.neighbor_finset v = (G.neighbor_finset v)ᶜ \ {v} :=
-by simp only [neighbor_finset, neighbor_set_compl, set.to_finset_sdiff, set.to_finset_compl,
+by simp only [neighbor_finset, neighbor_set_compl, set.to_finset_diff, set.to_finset_compl,
     set.to_finset_singleton]
 
 @[simp]
@@ -917,17 +917,17 @@ begin
   { rw finset.insert_subset,
     split,
     { simpa, },
-    { rw [neighbor_finset, ← set.subset_iff_to_finset_subset],
+    { rw [neighbor_finset, set.to_finset_mono],
       exact G.common_neighbors_subset_neighbor_set_left _ _ } }
 end
 
 lemma card_common_neighbors_top [decidable_eq V] {v w : V} (h : v ≠ w) :
   fintype.card ((⊤ : simple_graph V).common_neighbors v w) = fintype.card V - 2 :=
 begin
-  simp only [common_neighbors_top_eq, ← set.to_finset_card, set.to_finset_sdiff],
+  simp only [common_neighbors_top_eq, ← set.to_finset_card, set.to_finset_diff],
   rw finset.card_sdiff,
   { simp [finset.card_univ, h], },
-  { simp only [←set.subset_iff_to_finset_subset, set.subset_univ] },
+  { simp only [set.to_finset_mono, set.subset_univ] },
 end
 
 end finite
@@ -989,6 +989,7 @@ def map_dart (d : G.dart) : G'.dart := ⟨d.1.map f f, f.map_adj d.2⟩
 @[simp] lemma map_dart_apply (d : G.dart) : f.map_dart d = ⟨d.1.map f f, f.map_adj d.2⟩ := rfl
 
 /-- The induced map for spanning subgraphs, which is the identity on vertices. -/
+@[simps]
 def map_spanning_subgraphs {G G' : simple_graph V} (h : G ≤ G') : G →g G' :=
 { to_fun := λ x, x,
   map_rel' := h }

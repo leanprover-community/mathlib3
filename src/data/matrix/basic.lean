@@ -36,7 +36,7 @@ universes u u' v w
 
 open_locale big_operators
 
-/-- `matrix m n` is the type of matrices whose rows are indexed by `m`
+/-- `matrix m n R` is the type of matrices with entries in `R`, whose rows are indexed by `m`
 and whose columns are indexed by `n`. -/
 def matrix (m : Type u) (n : Type u') (α : Type v) : Type (max u u' v) :=
 m → n → α
@@ -1145,15 +1145,33 @@ by { ext i, simp only [mul_vec, dot_product, finset.smul_sum, pi.smul_apply, mul
 end non_unital_non_assoc_semiring
 
 section non_unital_semiring
-variables [non_unital_semiring α] [fintype n]
+variables [non_unital_semiring α]
 
-@[simp] lemma vec_mul_vec_mul [fintype m] (v : m → α) (M : matrix m n α) (N : matrix n o α) :
+@[simp] lemma vec_mul_vec_mul [fintype n] [fintype m]
+  (v : m → α) (M : matrix m n α) (N : matrix n o α) :
   vec_mul (vec_mul v M) N = vec_mul v (M ⬝ N) :=
 by { ext, apply dot_product_assoc }
 
-@[simp] lemma mul_vec_mul_vec [fintype o] (v : o → α) (M : matrix m n α) (N : matrix n o α) :
+@[simp] lemma mul_vec_mul_vec [fintype n] [fintype o]
+  (v : o → α) (M : matrix m n α) (N : matrix n o α) :
   mul_vec M (mul_vec N v) = mul_vec (M ⬝ N) v :=
 by { ext, symmetry, apply dot_product_assoc }
+
+lemma star_mul_vec [fintype n] [star_ring α] (M : matrix m n α) (v : n → α) :
+  star (M.mul_vec v) = vec_mul (star v) (Mᴴ) :=
+funext $ λ i, (star_dot_product_star _ _).symm
+
+lemma star_vec_mul [fintype m] [star_ring α] (M : matrix m n α) (v : m → α) :
+  star (M.vec_mul v) = (Mᴴ).mul_vec (star v) :=
+funext $ λ i, (star_dot_product_star _ _).symm
+
+lemma mul_vec_conj_transpose [fintype m] [star_ring α] (A : matrix m n α) (x : m → α) :
+  mul_vec Aᴴ x = star (vec_mul (star x) A) :=
+funext $ λ i, star_dot_product _ _
+
+lemma vec_mul_conj_transpose [fintype n] [star_ring α] (A : matrix m n α) (x : n → α) :
+  vec_mul x Aᴴ = star (mul_vec A (star x)) :=
+funext $ λ i, dot_product_star _ _
 
 end non_unital_semiring
 
@@ -1185,13 +1203,9 @@ by { ext, apply dot_product_neg }
 
 end non_unital_non_assoc_ring
 
-section comm_semiring
+section non_unital_comm_semiring
 
-variables [comm_semiring α]
-
-lemma mul_vec_smul_assoc [fintype n] (A : matrix m n α) (b : n → α) (a : α) :
-  A.mul_vec (a • b) = a • (A.mul_vec b) :=
-by { ext, apply dot_product_smul }
+variables [non_unital_comm_semiring α]
 
 lemma mul_vec_transpose [fintype m] (A : matrix m n α) (x : m → α) :
   mul_vec Aᵀ x = vec_mul x A :=
@@ -1200,6 +1214,16 @@ by { ext, apply dot_product_comm }
 lemma vec_mul_transpose [fintype n] (A : matrix m n α) (x : n → α) :
   vec_mul x Aᵀ = mul_vec A x :=
 by { ext, apply dot_product_comm }
+
+end non_unital_comm_semiring
+
+section comm_semiring
+
+variables [comm_semiring α]
+
+lemma mul_vec_smul_assoc [fintype n] (A : matrix m n α) (b : n → α) (a : α) :
+  A.mul_vec (a • b) = a • (A.mul_vec b) :=
+by { ext, apply dot_product_smul }
 
 end comm_semiring
 

@@ -82,6 +82,9 @@ variables {H K L}
 @[to_additive] lemma index_dvd_of_le (h : H ≤ K) : K.index ∣ H.index :=
 dvd_of_mul_left_eq (H.relindex K) (relindex_mul_index h)
 
+@[to_additive] lemma relindex_dvd_index_of_le (h : H ≤ K) : H.relindex K ∣ H.index :=
+dvd_of_mul_right_eq K.index (relindex_mul_index h)
+
 @[to_additive] lemma relindex_subgroup_of (hKL : K ≤ L) :
   (H.subgroup_of L).relindex (K.subgroup_of L) = H.relindex K :=
 ((index_comap (H.subgroup_of L) (inclusion hKL)).trans (congr_arg _ (inclusion_range hKL))).symm
@@ -115,6 +118,9 @@ cardinal.to_nat_congr (quotient_group.quotient_inf_equiv_prod_normal_quotient H 
 
 @[to_additive] lemma relindex_eq_relindex_sup [K.normal] : K.relindex H = K.relindex (H ⊔ K) :=
 by rw [←inf_relindex_left, inf_relindex_eq_relindex_sup]
+
+@[to_additive] lemma relindex_dvd_index_of_normal [H.normal] : H.relindex K ∣ H.index :=
+(relindex_eq_relindex_sup K H).symm ▸ relindex_dvd_index_of_le le_sup_right
 
 variables {H K}
 

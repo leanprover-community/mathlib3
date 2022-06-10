@@ -57,8 +57,7 @@ The discrete category on the paths includes into the category of 1-morphisms in 
 bicategory.
 -/
 def inclusion_path (a b : B) : discrete (path.{v+1} a b) ⥤ hom a b :=
-{ obj := inclusion_path_aux,
-  map := λ f g η, eq_to_hom (congr_arg inclusion_path_aux (discrete.eq_of_hom η)) }
+discrete.functor inclusion_path_aux
 
 /--
 The inclusion from the locally discrete bicategory on the path category into the free bicategory
@@ -75,6 +74,15 @@ def preinclusion (B : Type u) [quiver.{v+1} B] :
 lemma preinclusion_obj (a : B) :
   (preinclusion B).obj a = a :=
 rfl
+
+@[simp]
+lemma preinclusion_map₂ {a b : B} (f g : discrete (path.{v+1} a b)) (η : f ⟶ g) :
+  (preinclusion B).map₂ η = eq_to_hom (congr_arg _ (discrete.ext _ _ (discrete.eq_of_hom η))) :=
+begin
+  rcases η with ⟨⟨⟩⟩,
+  cases discrete.ext _ _ η,
+  exact (inclusion_path a b).map_id _
+end
 
 /--
 The normalization of the composition of `p : path a b` and `f : hom b c`.
@@ -114,7 +122,7 @@ fully-normalized 1-morphism.
 -/
 @[simp]
 def normalize_iso {a : B} : ∀ {b c : B} (p : path a b) (f : hom b c),
-  (preinclusion B).map p ≫ f ≅ (preinclusion B).map (normalize_aux p f)
+  (preinclusion B).map ⟨p⟩ ≫ f ≅ (preinclusion B).map ⟨normalize_aux p f⟩
 | _ _ p (hom.of f)      := iso.refl _
 | _ _ p (hom.id b)      := ρ_ _
 | _ _ p (hom.comp f g)  := (α_ _ _ _).symm ≪≫
@@ -140,8 +148,9 @@ end
 
 /-- The 2-isomorphism `normalize_iso p f` is natural in `f`. -/
 lemma normalize_naturality {a b c : B} (p : path a b) {f g : hom b c} (η : f ⟶ g) :
-  (preinclusion B).map p ◁ η ≫ (normalize_iso p g).hom =
-    (normalize_iso p f).hom ≫ eq_to_hom (congr_arg _ (normalize_aux_congr p η)) :=
+  (preinclusion B).map ⟨p⟩ ◁ η ≫ (normalize_iso p g).hom =
+    (normalize_iso p f).hom ≫
+      (preinclusion B).map₂ (eq_to_hom (discrete.ext _ _ (normalize_aux_congr p η))) :=
 begin
   rcases η, induction η,
   case id : { simp },
@@ -175,10 +184,10 @@ end
 def normalize (B : Type u) [quiver.{v+1} B] :
   pseudofunctor (free_bicategory B) (locally_discrete (paths B)) :=
 { obj       := id,
-  map       := λ a b, normalize_aux nil,
-  map₂      := λ a b f g η, eq_to_hom (normalize_aux_congr nil η),
-  map_id    := λ a, iso.refl nil,
-  map_comp  := λ a b c f g, eq_to_iso (normalize_aux_nil_comp f g) }
+  map       := λ a b f, ⟨normalize_aux nil f⟩,
+  map₂      := λ a b f g η, eq_to_hom $ discrete.ext _ _ $ normalize_aux_congr nil η,
+  map_id    := λ a, eq_to_iso $ discrete.ext _ _ rfl,
+  map_comp  := λ a b c f g, eq_to_iso $ discrete.ext _ _ $ normalize_aux_nil_comp f g }
 
 /-- Auxiliary definition for `normalize_equiv`. -/
 def normalize_unit_iso (a b : free_bicategory B) :
@@ -195,7 +204,7 @@ end
 def normalize_equiv (a b : B) : hom a b ≌ discrete (path.{v+1} a b) :=
 equivalence.mk ((normalize _).map_functor a b) (inclusion_path a b)
   (normalize_unit_iso a b)
-  (discrete.nat_iso (λ f, eq_to_iso (by { induction f; tidy })))
+  (discrete.nat_iso (λ f, eq_to_iso (by { induction f; induction f; tidy })))
 
 /-- The coherence theorem for bicategories. -/
 instance locally_thin {a b : free_bicategory B} (f g : a ⟶ b) : subsingleton (f ⟶ g) :=
@@ -203,8 +212,8 @@ instance locally_thin {a b : free_bicategory B} (f g : a ⟶ b) : subsingleton (
 
 /-- Auxiliary definition for `inclusion`. -/
 def inclusion_map_comp_aux {a b : B} : ∀ {c : B} (f : path a b) (g : path b c),
-  (preinclusion _).map (f ≫ g) ≅ (preinclusion _).map f ≫ (preinclusion _).map g
-| _ f nil := (ρ_ ((preinclusion _).map f)).symm
+  (preinclusion _).map (⟨f⟩ ≫ ⟨g⟩) ≅ (preinclusion _).map ⟨f⟩ ≫ (preinclusion _).map ⟨g⟩
+| _ f nil := (ρ_ ((preinclusion _).map ⟨f⟩)).symm
 | _ f (cons g₁ g₂) := whisker_right_iso (inclusion_map_comp_aux f g₁) (hom.of g₂) ≪≫ α_ _ _ _
 
 /--
@@ -214,7 +223,7 @@ free bicategory.
 def inclusion (B : Type u) [quiver.{v+1} B] :
   pseudofunctor (locally_discrete (paths B)) (free_bicategory B) :=
 { map_id    := λ a, iso.refl (𝟙 a),
-  map_comp  := λ a b c f g, inclusion_map_comp_aux f g,
+  map_comp  := λ a b c f g, inclusion_map_comp_aux f.as g.as,
   -- All the conditions for 2-morphisms are trivial thanks to the coherence theorem!
   .. preinclusion B }
 

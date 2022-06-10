@@ -1186,7 +1186,7 @@ end
 include V
 
 /-- Two points are cospherical. -/
-lemma cospherical_insert_singleton (p₁ p₂ : P) : cospherical ({p₁, p₂} : set P) :=
+lemma cospherical_pair (p₁ p₂ : P) : cospherical ({p₁, p₂} : set P) :=
 begin
   use [(2⁻¹ : ℝ) • (p₂ -ᵥ p₁) +ᵥ p₁, (2⁻¹ : ℝ) * (dist p₂ p₁)],
   intro p,

@@ -39,7 +39,7 @@ cardinal arithmetic (for infinite cardinals)
 
 noncomputable theory
 
-open function cardinal set equiv
+open function cardinal set equiv order
 open_locale classical cardinal
 
 universes u v w
@@ -104,7 +104,7 @@ def aleph_idx.rel_iso : @rel_iso cardinal.{u} ordinal.{u} (<) (<) :=
   have : ∀ c, aleph_idx c < o := λ c, (e _).2 ⟨_, rfl⟩,
   refine ordinal.induction_on o _ this, introsI α r _ h,
   let s := sup.{u u} (λ a:α, inv_fun aleph_idx (ordinal.typein r a)),
-  apply not_le_of_gt (lt_succ_self s),
+  apply (lt_succ s).not_le,
   have I : injective aleph_idx := aleph_idx.initial_seg.to_embedding.injective,
   simpa only [typein_enum, left_inverse_inv_fun I (succ s)] using
     le_sup.{u u} (λ a, inv_fun aleph_idx (ordinal.typein r a))
@@ -152,16 +152,16 @@ cardinal.aleph_idx.rel_iso.to_equiv.apply_symm_apply o
 by rw [← nonpos_iff_eq_zero, ← aleph'_aleph_idx 0, aleph'_le];
    apply ordinal.zero_le
 
-@[simp] theorem aleph'_succ {o : ordinal.{u}} : aleph' o.succ = (aleph' o).succ :=
-le_antisymm
- (cardinal.aleph_idx_le.1 $
-  by rw [aleph_idx_aleph', ordinal.succ_le, ← aleph'_lt, aleph'_aleph_idx];
-     apply cardinal.lt_succ_self)
- (cardinal.succ_le.2 $ aleph'_lt.2 $ ordinal.lt_succ_self _)
+@[simp] theorem aleph'_succ {o : ordinal.{u}} : aleph' (succ o) = succ (aleph' o) :=
+begin
+  apply (succ_le_of_lt $ aleph'_lt.2 $ lt_succ o).antisymm' (cardinal.aleph_idx_le.1 $ _),
+  rw [aleph_idx_aleph', succ_le_iff, ← aleph'_lt, aleph'_aleph_idx],
+  apply lt_succ
+end
 
 @[simp] theorem aleph'_nat : ∀ n : ℕ, aleph' n = n
 | 0     := aleph'_zero
-| (n+1) := show aleph' (ordinal.succ n) = n.succ,
+| (n+1) := show aleph' (succ n) = n.succ,
            by rw [aleph'_succ, aleph'_nat, nat_succ]
 
 theorem aleph'_le_of_limit {o : ordinal.{u}} (l : o.is_limit) {c} :
@@ -202,8 +202,8 @@ begin
   { rw [max_eq_left h, max_eq_left (aleph_le.1 h)] }
 end
 
-@[simp] theorem aleph_succ {o : ordinal.{u}} : aleph o.succ = (aleph o).succ :=
-by rw [aleph, ordinal.add_succ, aleph'_succ]; refl
+@[simp] theorem aleph_succ {o : ordinal.{u}} : aleph (succ o) = succ (aleph o) :=
+by { rw [aleph, ordinal.add_succ, aleph'_succ], refl }
 
 @[simp] theorem aleph_zero : aleph 0 = ω :=
 by simp only [aleph, add_zero, aleph'_omega]
@@ -239,7 +239,7 @@ theorem exists_aleph {c : cardinal} : ω ≤ c ↔ ∃ o, c = aleph o :=
  λ ⟨o, e⟩, e.symm ▸ omega_le_aleph _⟩
 
 theorem aleph'_is_normal : is_normal (ord ∘ aleph') :=
-⟨λ o, ord_lt_ord.2 $ aleph'_lt.2 $ ordinal.lt_succ_self _,
+⟨λ o, ord_lt_ord.2 $ aleph'_lt.2 $ lt_succ o,
  λ o l a, by simp only [ord_le, aleph'_le_of_limit l]⟩
 
 theorem aleph_is_normal : is_normal (ord ∘ aleph) :=
@@ -249,10 +249,10 @@ theorem succ_omega : succ ω = aleph 1 :=
 by rw [← aleph_zero, ← aleph_succ, ordinal.succ_zero]
 
 lemma omega_lt_aleph_one : ω < aleph 1 :=
-by { rw ← succ_omega, exact lt_succ_self _ }
+by { rw ← succ_omega, apply lt_succ }
 
 lemma countable_iff_lt_aleph_one {α : Type*} (s : set α) : countable s ↔ #s < aleph 1 :=
-by rw [← succ_omega, lt_succ, mk_set_le_omega]
+by rw [← succ_omega, lt_succ_iff, mk_set_le_omega]
 
 /-- Ordinals that are cardinals are unbounded. -/
 theorem ord_card_unbounded : unbounded (<) {b : ordinal | b.card.ord = b} :=
@@ -305,7 +305,7 @@ begin
     (by simpa only [mul_one] using
       mul_le_mul_left' (one_lt_omega.le.trans h) c),
   -- the only nontrivial part is `c * c ≤ c`. We prove it inductively.
-  refine acc.rec_on (cardinal.wf.apply c) (λ c _,
+  refine acc.rec_on (cardinal.lt_wf.apply c) (λ c _,
     quotient.induction_on c $ λ α IH ol, _) h,
   -- consider the minimal well-order `r` on `α` (a type with cardinality `c`).
   rcases ord_eq α with ⟨r, wo, e⟩, resetI,
@@ -328,7 +328,8 @@ begin
   refine le_of_forall_lt (λ o h, _),
   rcases typein_surj s h with ⟨p, rfl⟩,
   rw [← e, lt_ord],
-  refine lt_of_le_of_lt (_ : _ ≤ card (typein (<) (g p)).succ * card (typein (<) (g p)).succ) _,
+  refine lt_of_le_of_lt
+    (_ : _ ≤ card (succ (typein (<) (g p))) * card (succ (typein (<) (g p)))) _,
   { have : {q | s q p} ⊆ insert (g p) {x | x < g p} ×ˢ insert (g p) {x | x < g p},
     { intros q h,
       simp only [s, embedding.coe_fn_mk, order.preimage, typein_lt_typein, prod.lex_def, typein_inj]
@@ -340,7 +341,7 @@ begin
     refine (equiv.set.insert _).trans
       ((equiv.refl _).sum_congr punit_equiv_punit),
     apply @irrefl _ r },
-  cases lt_or_le (card (typein (<) (g p)).succ) ω with qo qo,
+  cases lt_or_le (card (succ (typein (<) (g p)))) ω with qo qo,
   { exact lt_of_lt_of_le (mul_lt_omega qo qo) ol },
   { suffices, {exact lt_of_le_of_lt (IH _ this qo) this},
     rw ← lt_ord, apply (ord_is_limit ol).2,
@@ -408,11 +409,17 @@ begin
   convert mul_le_mul_left' (one_le_iff_ne_zero.mpr h') _, rw [mul_one],
 end
 
+lemma mul_eq_max_of_omega_le_right {a b : cardinal} (h' : a ≠ 0) (h : ω ≤ b) : a * b = max a b :=
+begin
+  rw [mul_comm, max_comm],
+  exact mul_eq_max_of_omega_le_left h h'
+end
+
 lemma mul_eq_max' {a b : cardinal} (h : ω ≤ a * b) : a * b = max a b :=
 begin
-  rcases omega_le_mul_iff.mp h with ⟨ha, hb, h⟩,
-  wlog h : ω ≤ a := h using [a b],
-  exact mul_eq_max_of_omega_le_left h hb
+  rcases omega_le_mul_iff.mp h with ⟨ha, hb, ha' | hb'⟩,
+  { exact mul_eq_max_of_omega_le_left ha' hb },
+  { exact mul_eq_max_of_omega_le_right ha hb' }
 end
 
 theorem mul_le_max (a b : cardinal) : a * b ≤ max (max a b) ω :=
@@ -690,7 +697,7 @@ calc #(finset α) ≤ #(list α) : mk_le_of_surjective list.to_finset_surjective
 ... = #α : mk_list_eq_mk α
 
 lemma mk_bounded_set_le_of_infinite (α : Type u) [infinite α] (c : cardinal) :
-  #{t : set α // mk t ≤ c} ≤ #α ^ c :=
+  #{t : set α // #t ≤ c} ≤ #α ^ c :=
 begin
   refine le_trans _ (by rw [←add_one_eq (omega_le_mk α)]),
   induction c using cardinal.induction_on with β,

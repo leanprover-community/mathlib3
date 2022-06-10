@@ -187,13 +187,7 @@ lemma mul_X_injective : function.injective (λ P : R[X], X * P) :=
 pow_one (X : R[X]) ▸ mul_X_pow_injective 1
 
 lemma C_mul_X_pow_eq_monomial (c : R) (n : ℕ) : C c * X^n = monomial n c :=
-by { ext1, rw [monomial_eq_smul_X, coeff_smul, coeff_C_mul, smul_eq_mul] }
-
-lemma support_mul_X_pow (c : R) (n : ℕ) (H : c ≠ 0) : (C c * X^n).support = singleton n :=
-by rw [C_mul_X_pow_eq_monomial, support_monomial n c H]
-
-lemma support_C_mul_X_pow' {c : R} {n : ℕ} : (C c * X^n).support ⊆ singleton n :=
-by { rw [C_mul_X_pow_eq_monomial], exact support_monomial' n c }
+monomial_eq_C_mul_X.symm
 
 lemma coeff_X_add_C_pow (r : R) (n k : ℕ) :
   ((X + C r) ^ n).coeff k = r ^ (n - k) * (n.choose k : R) :=

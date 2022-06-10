@@ -34,8 +34,7 @@ open arithmetic_function finset
 open_locale arithmetic_function
 
 lemma sigma_two_pow_eq_mersenne_succ (k : ℕ) : σ 1 (2 ^ k) = mersenne (k + 1) :=
-by simpa [mersenne, prime_two, ← geom_sum_mul_add 1 (k+1)]
-
+by simp [mersenne, prime_two, ← geom_sum_mul_add 1 (k+1)]
 
 /-- Euclid's theorem that Mersenne primes induce perfect numbers -/
 theorem perfect_two_pow_mul_mersenne_of_prime (k : ℕ) (pr : (mersenne (k + 1)).prime) :

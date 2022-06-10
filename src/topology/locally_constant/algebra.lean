@@ -72,6 +72,29 @@ instance [mul_zero_class Y] : mul_zero_class (locally_constant X Y) :=
 instance [mul_zero_one_class Y] : mul_zero_one_class (locally_constant X Y) :=
 { .. locally_constant.mul_zero_class, .. locally_constant.mul_one_class }
 
+section char_fn
+
+variables (Y) [mul_zero_one_class Y] {U V : set X}
+
+/-- Characteristic functions are locally constant functions taking `x : X` to `1` if `x ∈ U`,
+  where `U` is a clopen set, and `0` otherwise. -/
+noncomputable def char_fn (hU : is_clopen U) : locally_constant X Y := indicator 1 hU
+
+lemma coe_char_fn (hU : is_clopen U) : (char_fn Y hU : X → Y) = set.indicator U 1 :=
+rfl
+
+lemma char_fn_eq_one [nontrivial Y] (x : X) (hU : is_clopen U) :
+  char_fn Y hU x = (1 : Y) ↔ x ∈ U := set.indicator_eq_one_iff_mem _
+
+lemma char_fn_eq_zero [nontrivial Y] (x : X) (hU : is_clopen U) :
+  char_fn Y hU x = (0 : Y) ↔ x ∉ U := set.indicator_eq_zero_iff_not_mem _
+
+lemma char_fn_inj [nontrivial Y] (hU : is_clopen U) (hV : is_clopen V)
+  (h : char_fn Y hU = char_fn Y hV) : U = V :=
+set.indicator_one_inj Y $ coe_inj.mpr h
+
+end char_fn
+
 @[to_additive] instance [has_div Y] : has_div (locally_constant X Y) :=
 { div := λ f g, ⟨f / g, f.is_locally_constant.div g.is_locally_constant⟩ }
 

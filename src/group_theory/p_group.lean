@@ -7,7 +7,7 @@ Authors: Chris Hughes, Thomas Browning
 import data.zmod.basic
 import group_theory.index
 import group_theory.group_action.conj_act
-import group_theory.perm.cycle_type
+import group_theory.perm.cycle.type
 import group_theory.quotient_group
 
 /-!

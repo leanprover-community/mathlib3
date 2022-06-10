@@ -431,7 +431,6 @@ instance : lie_group (𝓡 1) circle :=
 
 /-- The map `λ t, exp (t * I)` from `ℝ` to the unit circle in `ℂ` is smooth. -/
 lemma cont_mdiff_exp_map_circle : cont_mdiff 𝓘(ℝ, ℝ) (𝓡 1) ∞ exp_map_circle :=
-(((cont_diff_exp.restrict_scalars ℝ).comp
-  (cont_diff_id.smul cont_diff_const)).cont_mdiff).cod_restrict_sphere _
+((cont_diff_exp.comp (cont_diff_id.smul cont_diff_const)).cont_mdiff).cod_restrict_sphere _
 
 end circle

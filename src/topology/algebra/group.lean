@@ -923,8 +923,8 @@ begin
 end
 
 @[to_additive] lemma is_open.closure_mul (ht : is_open t) (s : set α) : closure s * t = s * t :=
-by rw [←inv_inv (closure s * t), set.mul_inv_rev, inv_closure, ht.inv.mul_closure, set.mul_inv_rev,
-  inv_inv, inv_inv]
+by rw [←inv_inv (closure s * t), mul_inv_rev, inv_closure, ht.inv.mul_closure, mul_inv_rev, inv_inv,
+  inv_inv]
 
 @[to_additive] lemma is_open.div_closure (hs : is_open s) (t : set α) : s / closure t = s / t :=
 by simp_rw [div_eq_mul_inv, inv_closure, hs.mul_closure]

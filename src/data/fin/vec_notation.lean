@@ -77,15 +77,6 @@ variables {m n : ℕ}
 instance _root_.pi_fin.has_repr [has_repr α] : has_repr (fin n → α) :=
 { repr := λ f, "![" ++ (string.intercalate ", " ((list.fin_range n).map (λ n, repr (f n)))) ++ "]" }
 
-section
-local attribute [semireducible] reflected
-meta instance _root_.pi_fin.reflect {α : Type} [reflected α] [h : has_reflect α] :
-  Π {n}, has_reflect (fin n → α)
-| 0 v := `(@vec_empty.{0} %%(reflect α))
-| (n + 1) v := `(@vec_cons.{0} %%(reflect α) %%(reflect n)
-                               %%(h (vec_head v)) %%(_root_.pi_fin.reflect (vec_tail v)) )
-end
-
 end matrix_notation
 
 variables {m n o : ℕ} {m' n' o' : Type*}
@@ -154,6 +145,12 @@ by { refine fin.forall_fin_one.2 _ i, refl }
 
 lemma cons_fin_one (x : α) (u : fin 0 → α) : vec_cons x u = (λ _, x) :=
 funext (cons_val_fin_one x u)
+
+meta instance _root_.pi_fin.reflect {α : Type} [reflected α] [h : has_reflect α] :
+  Π {n}, has_reflect (fin n → α)
+| 0 v := (subsingleton.elim vec_empty v).rec (`(λ a, @vec_empty.{0} a).subst `(α))
+| (n + 1) v := (cons_head_tail v).rec $
+  (`(λ x (xs : fin n → α), vec_cons x xs).subst (h _)).subst (_root_.pi_fin.reflect _)
 
 /-! ### Numeral (`bit0` and `bit1`) indices
 The following definitions and `simp` lemmas are to allow any

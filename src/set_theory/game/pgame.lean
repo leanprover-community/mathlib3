@@ -122,10 +122,20 @@ def move_left : Π (g : pgame), left_moves g → pgame
 def move_right : Π (g : pgame), right_moves g → pgame
 | (mk _ r _ R) := R
 
-@[simp] lemma left_moves_mk {xl xr xL xR} : (⟨xl, xr, xL, xR⟩ : pgame).left_moves = xl := rfl
-@[simp] lemma move_left_mk {xl xr xL xR} : (⟨xl, xr, xL, xR⟩ : pgame).move_left = xL := rfl
-@[simp] lemma right_moves_mk {xl xr xL xR} : (⟨xl, xr, xL, xR⟩ : pgame).right_moves = xr := rfl
-@[simp] lemma move_right_mk {xl xr xL xR} : (⟨xl, xr, xL, xR⟩ : pgame).move_right = xR := rfl
+@[simp] lemma left_moves_mk {xl xr xL xR} : (mk xl xr xL xR).left_moves = xl := rfl
+@[simp] lemma move_left_mk {xl xr xL xR} : (mk xl xr xL xR).move_left = xL := rfl
+@[simp] lemma right_moves_mk {xl xr xL xR} : (mk xl xr xL xR).right_moves = xr := rfl
+@[simp] lemma move_right_mk {xl xr xL xR} : (mk xl xr xL xR).move_right = xR := rfl
+
+-- These instances are useful for other `reducible` definitions below.
+instance is_empty_mk_left_moves {xl xr xL xR} [h : is_empty xl] :
+  is_empty (mk xl xr xL xR).left_moves := h
+instance is_empty_mk_right_moves {xl xr xL xR} [h : is_empty xr] :
+  is_empty (mk xl xr xL xR).right_moves := h
+instance unique_mk_left_moves {xl xr xL xR} [h : unique xl] :
+  unique (mk xl xr xL xR).left_moves := h
+instance unique_mk_right_moves {xl xr xL xR} [h : unique xr] :
+  unique (mk xl xr xL xR).right_moves := h
 
 /--
 Construct a pre-game from list of pre-games describing the available moves for Left and Right.
@@ -243,25 +253,16 @@ notation `P{| ` y `}` := of_right y
 
 theorem of_left_moves (x y) : P{x | y}.left_moves = punit := rfl
 theorem of_right_moves (x y) : P{x | y}.right_moves = punit := rfl
-@[simp] theorem of_move_left {x y} (i) : P{x | y}.move_left i = x := rfl
-@[simp] theorem of_move_right {x y} (j) : P{x | y}.move_right j = y := rfl
-
-instance unique_of_left_moves (x y) : unique P{x | y}.left_moves := punit.unique
-instance unique_of_right_moves (x y) : unique P{x | y}.right_moves := punit.unique
+theorem of_move_left {x y} (i) : P{x | y}.move_left i = x := rfl
+theorem of_move_right {x y} (j) : P{x | y}.move_right j = y := rfl
 
 theorem of_left_left_moves (x) : P{x |}.left_moves = punit := rfl
 theorem of_left_right_moves (x) : P{x |}.right_moves = pempty := rfl
-@[simp] theorem of_left_move_left {x} (i) : P{x |}.move_left i = x := rfl
-
-instance unique_of_left_left_moves (x) : unique P{x |}.left_moves := punit.unique
-instance is_empty_of_left_right_moves (x) : is_empty P{x |}.right_moves := pempty.is_empty
+theorem of_left_move_left {x} (i) : P{x |}.move_left i = x := rfl
 
 theorem of_right_left_moves (x) : P{| x}.left_moves = pempty := rfl
 theorem of_right_right_moves (x) : P{| x}.right_moves = punit := rfl
-@[simp] theorem of_right_move_right {x} (i) : P{x |}.move_left i = x := rfl
-
-instance is_empty_of_right_left_moves (x) : is_empty P{| x}.left_moves := pempty.is_empty
-instance unique_of_right_right_moves (x) : unique P{| x}.right_moves := punit.unique
+theorem of_right_move_right {x} (i) : P{x |}.move_left i = x := rfl
 
 /-- The pre-game `zero` is defined by `0 = { | }`. -/
 instance : has_zero pgame := ⟨⟨pempty, pempty, pempty.elim, pempty.elim⟩⟩
@@ -1392,11 +1393,9 @@ theorem star_right_moves : star.right_moves = punit := rfl
 theorem star_move_left (x) : star.move_left x = 0 := rfl
 theorem star_move_right (x) : star.move_right x = 0 := rfl
 
-theorem star_fuzzy_zero : star ∥ 0 :=
-of_self_fuzzy 0
+theorem star_fuzzy_zero : star ∥ 0 := of_self_fuzzy 0
 
-theorem neg_star : -star = star :=
-by simp
+theorem neg_star : -star = star := by simp
 
 @[simp] theorem zero_lf_one : 0 ⧏ 1 :=
 lf_of_left 0
@@ -1407,16 +1406,13 @@ instance : zero_le_one_class pgame :=
 @[simp] theorem zero_lt_one : (0 : pgame) < 1 :=
 lt_of_le_of_lf zero_le_one zero_lf_one
 
-/-- The pre-game `half` is defined as `{0 | 1}`. -/
-def half : pgame := ⟨punit, punit, 0, 1⟩
+/-- The pre-game `half` is defined as `P{0 | 1}`. -/
+@[reducible] def half : pgame := P{0 | 1}
 
-@[simp] theorem half_left_moves : half.left_moves = punit := rfl
-@[simp] theorem half_right_moves : half.right_moves = punit := rfl
-@[simp] lemma half_move_left (x) : half.move_left x = 0 := rfl
-@[simp] lemma half_move_right (x) : half.move_right x = 1 := rfl
-
-instance unique_half_left_moves : unique half.left_moves := punit.unique
-instance unique_half_right_moves : unique half.right_moves := punit.unique
+theorem half_left_moves : half.left_moves = punit := rfl
+theorem half_right_moves : half.right_moves = punit := rfl
+lemma half_move_left (x) : half.move_left x = 0 := rfl
+lemma half_move_right (x) : half.move_right x = 1 := rfl
 
 protected theorem zero_lt_half : 0 < half :=
 lt_of_le_of_lf (zero_le.2 (λ j, ⟨punit.star, le_rfl⟩))

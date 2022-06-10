@@ -154,7 +154,7 @@ a summand of `e` of maximal guessed degree equal to `deg`.
 The tactic fails if `e` contains no summand (this probably means something else went wrong
 somewhere else). -/
 meta def extract_top_degree_term_and_deg (e : expr) : tactic (expr × ℕ) :=
-do summ ← tactic.move_op.list_summands e,
+do summ ← e.list_summands,
   nat_degs ← summ.mmap extract_deg_single_summand,
   eval_nat_degs ← nat_degs.mmap (eval_expr ℕ) <|>
     fail "Only closed naturals are supported in exponents\n\n",
@@ -229,7 +229,7 @@ do t ← target,
         trace sformat!"should the nat_degree be '{m'}'?\n\n",
         trace sformat!"Try this: {pptl}.nat_degree = {ppm'}", failed
     else
-      move_add.with_errors [(ff, pexpr.of_expr lead)] none,
+      move_op.with_errors ``((+)) [(ff, pexpr.of_expr lead)] none,
       refine ``(polynomial.nat_degree_add_left_succ _ %%lead _ _ _),
       single_term_resolve lead,
       compute_degree_le
@@ -245,7 +245,7 @@ do t ← target,
         trace sformat!"should the degree be '{m'}'?\n\n",
         trace sformat!"Try this: {pptl}.degree = {ppm'}", failed
     else
-      move_add.with_errors [(ff, pexpr.of_expr lead)] none,
+      move_op.with_errors ``((+)) [(ff, pexpr.of_expr lead)] none,
       refine ``(polynomial.nat_degree_add_left_succ _ %%lead _ _ _),
       single_term_resolve lead,
       compute_degree_le

@@ -251,8 +251,9 @@ rfl
 
 instance canonically_ordered_add_monoid [ordered_ring α] :
   canonically_ordered_add_monoid {x : α // 0 ≤ x} :=
-{ exists_add_of_le := λ a b h,
-    ⟨⟨b - a, sub_nonneg_of_le h⟩, subtype.ext $ add_sub_cancel'_right _ _⟩,
+{ le_self_add := λ a b, le_add_of_nonneg_right b.2,
+  exists_add_of_le := λ a b h,
+    ⟨⟨b - a, sub_nonneg_of_le h⟩, subtype.ext (add_sub_cancel'_right _ _).symm⟩,
   ..nonneg.ordered_add_comm_monoid,
   ..nonneg.order_bot }
 

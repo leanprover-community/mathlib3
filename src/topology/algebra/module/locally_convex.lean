@@ -105,7 +105,7 @@ begin
   letI : topological_space E := Inf ts,
   refine locally_convex_space.of_bases 𝕜 E
     (λ x, λ If : set ts × (ts → set E), ⋂ i ∈ If.1, If.2 i)
-    (λ x, λ If : set ts × (ts → set E), finite If.1 ∧ ∀ i ∈ If.1,
+    (λ x, λ If : set ts × (ts → set E), If.1.finite ∧ ∀ i ∈ If.1,
       ((If.2 i) ∈ @nhds _ ↑i x ∧ convex 𝕜 (If.2 i)))
     (λ x, _) (λ x If hif, convex_Inter $ λ i, convex_Inter $ λ hi, (hif.2 i hi).2),
   rw [nhds_Inf, ← infi_subtype''],

@@ -6,6 +6,7 @@ Authors: Yakov Pechersky
 import data.multiset.sort
 import data.fintype.list
 import data.list.rotate
+import logic.is_empty
 
 /-!
 # Cycles of a list

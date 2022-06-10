@@ -1082,6 +1082,12 @@ subset_insert_iff.1 $ subset.rfl
 theorem insert_erase_subset (a : α) (s : finset α) : s ⊆ insert a (erase s a) :=
 subset_insert_iff.2 $ subset.rfl
 
+lemma subset_insert_iff_of_not_mem(h : a ∉ s) : s ⊆ insert a t ↔ s ⊆ t :=
+by rw [subset_insert_iff, erase_eq_of_not_mem h]
+
+lemma erase_subset_iff_of_mem (h : a ∈ t) : s.erase a ⊆ t ↔ s ⊆ t :=
+by rw [←subset_insert_iff, insert_eq_of_mem h]
+
 lemma erase_inj {x y : α} (s : finset α) (hx : x ∈ s) : s.erase x = s.erase y ↔ x = y :=
 begin
   refine ⟨λ h, _, congr_arg _⟩,
@@ -1091,6 +1097,9 @@ begin
 end
 
 lemma erase_inj_on (s : finset α) : set.inj_on s.erase s := λ _ _ _ _, (erase_inj s ‹_›).mp
+
+lemma erase_inj_on' (a : α) : {s : finset α | a ∈ s}.inj_on (λ s, erase s a) :=
+λ s hs t ht (h : s.erase a =  _), by rw [←insert_erase hs, ←insert_erase ht, h]
 
 /-! ### sdiff -/
 
@@ -1494,6 +1503,9 @@ ext $ λ x, by simp only [mem_filter, mem_union, and_or_distrib_left.symm]
 lemma filter_mem_eq_inter {s t : finset α} [Π i, decidable (i ∈ t)] :
   s.filter (λ i, i ∈ t) = s ∩ t :=
 ext $ λ i, by rw [mem_filter, mem_inter]
+
+lemma filter_inter_distrib (s t : finset α) : (s ∩ t).filter p = s.filter p ∩ t.filter p :=
+by { ext, simp only [mem_filter, mem_inter], exact and_and_distrib_right _ _ _ }
 
 theorem filter_inter (s t : finset α) : filter p s ∩ t = filter p (s ∩ t) :=
 by { ext, simp only [mem_inter, mem_filter, and.right_comm] }
@@ -2057,11 +2069,18 @@ lemma image_inter_subset [decidable_eq α] (f : α → β) (s t : finset α) :
 subset_inter (image_subset_image $ inter_subset_left _ _) $
   image_subset_image $ inter_subset_right _ _
 
-lemma image_inter [decidable_eq α] (s₁ s₂ : finset α) (hf : ∀ x y, f x = f y → x = y) :
+lemma image_inter_of_inj_on [decidable_eq α] {f : α → β} (s t : finset α)
+  (hf : set.inj_on f (s ∪ t)) :
+  (s ∩ t).image f = s.image f ∩ t.image f :=
+(image_inter_subset _ _ _).antisymm $ λ x, begin
+  simp only [mem_inter, mem_image],
+  rintro ⟨⟨a, ha, rfl⟩, b, hb, h⟩,
+  exact ⟨a, ⟨ha, by rwa ←hf (or.inr hb) (or.inl ha) h⟩, rfl⟩,
+end
+
+lemma image_inter [decidable_eq α] (s₁ s₂ : finset α) (hf : injective f) :
   (s₁ ∩ s₂).image f = s₁.image f ∩ s₂.image f :=
-ext $ by simp only [mem_image, exists_prop, mem_inter]; exact λ b,
-⟨λ ⟨a, ⟨m₁, m₂⟩, e⟩, ⟨⟨a, m₁, e⟩, ⟨a, m₂, e⟩⟩,
- λ ⟨⟨a, m₁, e₁⟩, ⟨a', m₂, e₂⟩⟩, ⟨a, ⟨m₁, hf _ _ (e₂.trans e₁.symm) ▸ m₂⟩, e₁⟩⟩.
+image_inter_of_inj_on _ _ $ hf.inj_on _
 
 @[simp] theorem image_singleton (f : α → β) (a : α) : image f {a} = {f a} :=
 ext $ λ x, by simpa only [mem_image, exists_prop, mem_singleton, exists_eq_left] using eq_comm

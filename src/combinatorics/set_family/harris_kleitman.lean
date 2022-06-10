@@ -32,25 +32,6 @@ variables {α : Type*} [decidable_eq α] {𝒜 ℬ : finset (finset α)} {s : fi
 
 namespace finset
 
-lemma erase_inj_on' (a : α) : {s : finset α | a ∈ s}.inj_on (λ s, erase s a) :=
-λ s hs t ht (h : s.erase a =  _), by rw [←insert_erase hs, ←insert_erase ht, h]
-
-lemma subset_insert_iff_of_not_mem {s t : finset α} {a : α} (h : a ∉ s) : s ⊆ insert a t ↔ s ⊆ t :=
-by rw [subset_insert_iff, erase_eq_of_not_mem h]
-
-lemma filter_inter_distrib (p : α → Prop) [decidable_pred p] (s t : finset α) :
-  (s ∩ t).filter p = s.filter p ∩ t.filter p :=
-by { ext, simp only [mem_filter, mem_inter], exact and_and_distrib_right _ _ _ }
-
-lemma image_inter_of_inj_on {β : Type*} [decidable_eq β] {f : α → β} (s t : finset α)
-  (hf : set.inj_on f (s ∪ t)) :
-  (s ∩ t).image f = s.image f ∩ t.image f :=
-(image_inter_subset _ _ _).antisymm $ λ x, begin
-  simp only [mem_inter, mem_image],
-  rintro ⟨⟨a, ha, rfl⟩, b, hb, h⟩,
-  exact ⟨a, ⟨ha, by rwa ←hf (or.inr hb) (or.inl ha) h⟩, rfl⟩,
-end
-
 /-- ELements of `𝒜` that do not contain `a`. -/
 def non_member_slice (𝒜 : finset (finset α)) (a : α) : finset (finset α) := 𝒜.filter $ λ s, a ∉ s
 

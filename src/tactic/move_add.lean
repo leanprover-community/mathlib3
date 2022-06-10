@@ -16,13 +16,18 @@ See the doc-string for `tactic.interactive.move_add` for more information.
 
 ##  Implementation notes
 
+This file defines a general `move_op` tactic, intended for reordering terms in an expression
+obtained by repeated applications of a given associative, commutative binary operation.  The
+user decides the final reordering.  Applying `move_op` without specifying the order will simply
+remove all parentheses from the expression.
+The main user-facing tactics are `move_add` and `move_mul`, dealing with addition and
+multiplication, respectively.
+
+In what is below, we talk about `move_add` for definiteness, but everything applies
+to `move_mul` and to the more general `move_op`.
+
 The implementation of `move_add` only moves the terms specified by the user (and rearranges
 parentheses).
-
-An earlier version of this tactic also had a relation on `expr` that performed a sorting on the
-terms that were not specified by the user.  This is very easy to implement, if desired, but is not
-part of this tactic.  We had used the order given by the `≤` on `string` and a small support for
-sorting `monomial`s by increasing degree.
 
 Note that the tactic `abel` already implements a very solid heuristic for normalizing terms in an
 additive commutative semigroup and produces expressions in more or less standard form.
@@ -31,8 +36,9 @@ around a sum.
 
 ##  Future work
 
-* Add support for `neg` in additive groups?
-* Add different operations other than `+`, most notably `*`?
+* Add support for `neg/div/inv` in additive/multiplicative groups?
+* Customize error messages to mention `move_add/move_mul` instead of `move_op`?
+* Add different operations other than `+` and `*`?
 * Add functionality for moving terms across the two sides of an in/dis/equality.
   E.g. it might be desirable to have `to_lhs [a]` converting `b + c = a + d` to `- a + b + c = d`.
 * Add a non-recursive version for use in `conv` mode.
@@ -41,7 +47,79 @@ around a sum.
 
 namespace tactic
 
-namespace move_add
+namespace move_op
+
+/-!
+Throughout this file, `op : pexpr` denotes an arbitrary (binary) operation.  We do not use,
+but implicitly imagine, that this operation is associative, since we extract iterations of
+such operations, with complete disregard of the order in which these iterations arise.
+-/
+
+/-- `list_explicit_args f` returns a list of the explicit arguments of `f`. -/
+meta def list_explicit_args (f : expr) : tactic (list expr) :=
+tactic.fold_explicit_args f [] (λ ll e, return $ ll ++ [e])
+
+
+/--  `list_head_op op tt e` recurses into the expression `e` looking for first appearances of
+`op` as the head symbol of a subexpression.  Every time it finds one, it isolates it.
+Usually, `op` is a binary, associative operation.  E.g., if the operation is addition and the
+input expression is `3 / (2 + 4) + 2 * (0 + 2)`, `list_head_op` returns
+`[3 / (2 + 4) + 2 * (0 + 2), 2 + 4, 0 + 2]`.
+
+More in detail, `list_head_op` partially traverses an expression in search for a term that is an
+iterated application of `op` and produces a list of such terms.
+In the intended application, the `bool` input is initially set to `tt`.
+The first time `list_head_op` finds an expression whose head symbol is `op`,
+`list_head_op` adds the expression to the list, and recurses inside the operands as well,
+but with the boolean set to `ff`.  This prevents partial operands of a large expression to
+appear.  Once `list_head_op` finds a term whose head symbol is not `op`,
+it reverts the boolean to `tt`, so that the recursion can isolate further sums later in the
+expression. -/
+meta def list_head_op (op : pexpr) : bool → expr → tactic (list expr)
+| bo (expr.app F b) := do
+  op ← to_expr op tt ff,
+  if F.get_app_fn.const_name = op.get_app_fn.const_name then do
+    Fargs ← list_explicit_args F,
+    ac ← (Fargs ++ [b]).mmap $ list_head_op ff,
+    if bo then return $ [F.mk_app [b]] ++ ac.join
+    else return ac.join
+  else do
+    Fc ← list_head_op tt F, bc ← list_head_op tt b,
+    return $ Fc ++ bc
+| bo (expr.lam _ _ e f) := do
+  ec ← list_head_op tt e, fc ← list_head_op tt f,
+  return $ ec ++ fc
+| bo (expr.pi  _ _ e f) := do
+  ec ← list_head_op tt e, fc ← list_head_op tt f,
+  return $ ec ++ fc
+| bo (expr.mvar  _ _ e) := do
+  list_head_op tt e >>= return
+| bo (expr.elet _ e f g) := do
+  ec ← list_head_op tt e, fc ← list_head_op tt f, gc ← list_head_op tt g,
+  return $ ec ++ fc ++ gc
+| bo e := return []
+
+/--  An auxiliary function to `list_binary_operands`:
+it takes an input `expr`, rather than a `pexpr`. -/
+meta def list_binary_operands_aux (f : expr) : expr → tactic (list expr)
+| x@(expr.app (expr.app g a) b) := do
+  some _ ← try_core (unify f g) | pure [x],
+  as ← list_binary_operands_aux a,
+  bs ← list_binary_operands_aux b,
+  pure (as ++ bs)
+| a                      := pure [a]
+
+/-- `list_binary_operands f x` produces a list of all the operands in `x`, ignoring associativity.
+The binary operation is the input `f`. -/
+meta def list_binary_operands (f : pexpr) (x : expr) : tactic (list expr) :=
+do
+  t ← infer_type x,
+  fe ← to_expr ``(%%f : %%t → %%t → %%t ),
+  list_binary_operands_aux fe x
+
+/--  Takes an `expr` and returns a list of its summands. -/
+meta def _root_.expr.list_summands (e : expr) : tactic (list expr) :=
+list_binary_operands ``((+)) e
 
 /--  Given a list `un` of `α`s and a list `bo` of `bool`s, return the sublist of `un`
 consisting of the entries of `un` whose corresponding entry in `bo` is `tt`.
@@ -99,47 +177,30 @@ do
   (l1, l2, l3, is_unused) ← move_left_or_right lp_exp sl [],
   return (l1 ++ l3 ++ l2, is_unused)
 
-/-- Partially traverses an expression in search for a sum of terms and producing a list of them.
-In the intended application, the `bool` input is initially set to `tt`.
-The first time `candidates` finds an expression whose head symbol is `has_add.add`,
-`candidates` adds the expression to the list, and recurses inside the summands as well,
-but with the boolean set to `ff`.  This prevents partial summands of a large sum to
-appear.  Once `candidates` finds a term whose head symbol is not `has_add.add`,
-it reverts the boolean to `tt`, so that the recursion can isolate further sums later in the
-expression.
-
-For instance, applying `candidates` to `a + (b + c)*(d + e) + f + g` produces
-`[a + (b + c) * (d + e) + f + g, b + c, d + e]`. -/
-meta def candidates : bool → expr → list expr
-| bo e@`(%%a + %%b)      := if bo then [e] ++ candidates ff a ++ candidates ff b
-                            else candidates ff a ++ candidates ff b
-| bo (expr.lam _ _ e f)  := candidates tt e ++ candidates tt f
-| bo (expr.pi  _ _ e f)  := candidates tt e ++ candidates tt f
-| bo (expr.mvar  _ _ e)  := candidates tt e
-| bo (expr.app e f)      := candidates tt e ++ candidates tt f
-| bo (expr.elet _ e f g) := candidates tt e ++ candidates tt f ++ candidates tt g
-| bo e                   := []
-
 /-- `sorted_sum` takes an optional location name `hyp` for where it will be applied, a list `ll` of
-`bool × pexpr` (arising as the user-provided input to `move_add`) and an expression `e`.
+`bool × pexpr` (arising as the user-provided input to `move_op`) and an expression `e`.
 
 `sorted_sum hyp ll e` returns an ordered sum of the terms of `e`, where the order is
 determined using the `final_sorting` applied to `ll` and `e`.
 
-We use this function for expressions in an additive commutative semigroup. -/
-meta def sorted_sum (hyp : option name) (ll : list (bool × pexpr)) (e : expr) :
+We use this function for expressions in an (additive) commutative semigroup. -/
+meta def sorted_sum (hyp : option name) (ll : list (bool × pexpr)) (f : pexpr) (e : expr) :
   tactic (list bool) :=
 do
-  (sli, is_unused) ← final_sorting ll (e.list_summands),
+  lisu ← list_binary_operands f e,
+  (sli, is_unused) ← final_sorting ll lisu,
   match sli with
   | []       := return is_unused
   | (eₕ::es) := do
-    e' ← es.mfoldl (λ eₗ eᵣ, mk_app `has_add.add [eₗ, eᵣ]) eₕ,
+    t ← infer_type e,
+    fe ← to_expr ``(%%f : %%t → %%t → %%t ),
+    e' ← es.mfoldl (λ eₗ eᵣ, mk_app fe.get_app_fn.const_name [eₗ, eᵣ]) eₕ,
     e_eq ← mk_app `eq [e, e'],
     e_eq_fmt ← pp e_eq,
     h ← solve_aux e_eq $
       reflexivity <|>
-      `[{ simp only [add_comm, add_assoc, add_left_comm], done, }] |
+      `[{ simp only [add_comm, add_assoc, add_left_comm], done, }] <|>
+      `[{ simp only [mul_comm, mul_assoc, mul_left_comm], done, }] |
       fail format!"failed to prove:\n\n{e_eq_fmt}",
     match hyp with
     | some loc := do
@@ -151,13 +212,13 @@ do
     end
   end
 
-/--  Extracts the "summand expressions" in `e` via `candidates` and, to each one of them, applies
+/--  Extracts the "summand expressions" in `e` via `list_head_op` and, to each one of them, applies
 `sorted_sum`.  Besides the state changes, which involve the reordering of the addends,
 `is_unused_and_sort` outputs a list of Booleans, encoding which user input was unused
 (`tt`) and which one was used (`ff`).  This information is used for reporting unused inputs. -/
-meta def is_unused_and_sort (hyp : option name) (ll : list (bool × pexpr)) (e : expr) :
+meta def is_unused_and_sort (hyp : option name) (ll : list (bool × pexpr)) (e : expr) (f : pexpr) :
   tactic (list bool) :=
-do results ← (candidates tt e).mmap (sorted_sum hyp ll),
+do results ← list_head_op f tt e >>= list.mmap (sorted_sum hyp ll f),
   return $ results.transpose.map list.band
 
 /-- Passes the user input `ll` to `is_unused_and_sort` at a single location, that could either be
@@ -168,39 +229,83 @@ did *not* change the goal on which it was acting.  The list of booleans records 
 unified.
 
 This definition is useful to streamline error catching. -/
-meta def with_errors (ll : list (bool × pexpr)) : option name → tactic (bool × list bool)
+meta def with_errors (f : pexpr) (ll : list (bool × pexpr)) :
+  option name → tactic (bool × list bool)
 | (some hyp) := do
   thyp ← get_local hyp >>= infer_type,
-  is_unused ← is_unused_and_sort hyp ll thyp,
+  is_unused ← is_unused_and_sort hyp ll thyp f,
   nthyp ← get_local hyp >>= infer_type,
   if thyp = nthyp then return (tt, is_unused) else return (ff, is_unused)
 | none       := do
   t ← target,
-  is_unused ← is_unused_and_sort none ll t,
+  is_unused ← is_unused_and_sort none ll t f,
   tn ← target,
   if t = tn then return (tt, is_unused) else return (ff, is_unused)
 
-section parsing_arguments_for_move_add
+section parsing_arguments_for_move_op
 
 setup_tactic_parser
-/-- `move_add_arg` is a single elementary argument that `move_add` takes for the
+/-- `move_op_arg` is a single elementary argument that `move_op` takes for the
 variables to be moved.  It is either a `pexpr`, or a `pexpr` preceded by a `←`. -/
-meta def move_add_arg (prec : nat) : parser (bool × pexpr) :=
+meta def move_op_arg (prec : nat) : parser (bool × pexpr) :=
 prod.mk <$> (option.is_some <$> (tk "<-")?) <*> parser.pexpr prec
 
-/-- `move_pexpr_list_or_texpr` is either a list of `move_add_arg`, possibly empty, or a single
-`move_add_arg`. -/
+/-- `move_pexpr_list_or_texpr` is either a list of `move_op_arg`, possibly empty, or a single
+`move_op_arg`. -/
 meta def move_pexpr_list_or_texpr : parser (list (bool × pexpr)) :=
-list_of (move_add_arg 0) <|> list.ret <$> move_add_arg tac_rbp <|> return []
+list_of (move_op_arg 0) <|> list.ret <$> move_op_arg tac_rbp <|> return []
 
-end parsing_arguments_for_move_add
+end parsing_arguments_for_move_op
 
-end move_add
+end move_op
+
+setup_tactic_parser
+open move_op
+
+/--  `move_op args locat op` is the non-interactive version of the main tactics `move_add` and
+`move_mul` of this file.  Given as input `args` (a list of terms of a sequence of operands),
+`locat` (hypotheses or goal where the tactic should act) and `op` (the operation to use),
+`move_op` attempts to perform the rearrangement of the terms determined by `args`.
+
+Currently, the tactic uses only `add/mul_comm, add/mul_assoc, add/mul_left_comm`, so other
+operations will not actually work.
+-/
+meta def move_op (args : parse move_pexpr_list_or_texpr) (locat : parse location) (op : pexpr) :
+  tactic unit :=
+match locat with
+| loc.wildcard := do
+  ctx ← local_context,
+  err_rep ← ctx.mmap (λ e, with_errors op args e.local_pp_name),
+  er_t ← with_errors op args none,
+  if ff ∉ er_t.1::err_rep.map (λ e, e.1) then
+    fail "'move_op at *' changed nothing" else skip,
+  let li_unused := er_t.2::err_rep.map (λ e, e.2),
+  let li_unused_clear := li_unused.filter (≠ []),
+  let li_tf_vars := li_unused_clear.transpose.map list.band,
+  match (return_unused args li_tf_vars).map (λ e : bool × pexpr, e.2) with
+  | []   := skip
+  | [pe] := fail format!"'{pe}' is an unused variable"
+  | pes  := fail format!"'{pes}' are unused variables"
+  end,
+  assumption <|> try (tactic.reflexivity reducible)
+| loc.ns names := do
+  err_rep ← names.mmap $ with_errors op args,
+  let conds := err_rep.map (λ e, e.1),
+  linames ← (return_unused names conds).reduce_option.mmap get_local,
+  if linames ≠ [] then fail format!"'{linames}' did not change" else skip,
+  if none ∈ return_unused names conds then fail "Goal did not change" else skip,
+  let li_unused := (err_rep.map (λ e, e.2)),
+  let li_unused_clear := li_unused.filter (≠ []),
+  let li_tf_vars := li_unused_clear.transpose.map list.band,
+  match (return_unused args li_tf_vars).map (λ e : bool × pexpr, e.2) with
+  | []   := skip
+  | [pe] := fail format!"'{pe}' is an unused variable"
+  | pes  := fail format!"'{pes}' are unused variables"
+  end,
+  assumption <|> try (tactic.reflexivity reducible)
+  end
 
 namespace interactive
-
-open move_add
-setup_tactic_parser
 
 /--
 Calling `move_add [a, ← b, c]`, recursively looks inside the goal for expressions involving a sum.
@@ -212,7 +317,7 @@ may change the goal. Also, the *order* in which the terms are provided matters: 
 them from left to right.  This is especially important if there are multiple matches for the typed
 terms in the given expressions.
 
-A single call of `move_add` moves terms across different sums in the same expression.
+A single call of `move_op` moves terms across different sums in the same expression.
 Here is an example.
 
 ```lean
@@ -286,41 +391,22 @@ same effect and changes the goal to `b + a = 0`.  These are all valid uses of `m
 -/
 meta def move_add (args : parse move_pexpr_list_or_texpr) (locat : parse location) :
   tactic unit :=
-match locat with
-| loc.wildcard := do
-  ctx ← local_context,
-  err_rep ← ctx.mmap (λ e, with_errors args e.local_pp_name),
-  er_t ← with_errors args none,
-  if ff ∉ er_t.1::err_rep.map (λ e, e.1) then
-    fail "'move_add at *' changed nothing" else skip,
-  let li_unused := er_t.2::err_rep.map (λ e, e.2),
-  let li_unused_clear := li_unused.filter (≠ []),
-  let li_tf_vars := li_unused_clear.transpose.map list.band,
-  match (return_unused args li_tf_vars).map (λ e : bool × pexpr, e.2) with
-  | []   := skip
-  | [pe] := fail format!"'{pe}' is an unused variable"
-  | pes  := fail format!"'{pes}' are unused variables"
-  end,
-  assumption <|> try (tactic.reflexivity reducible)
-| loc.ns names := do
-  err_rep ← names.mmap $ with_errors args,
-  let conds := err_rep.map (λ e, e.1),
-  linames ← (return_unused names conds).reduce_option.mmap get_local,
-  if linames ≠ [] then fail format!"'{linames}' did not change" else skip,
-  if none ∈ return_unused names conds then fail "Goal did not change" else skip,
-  let li_unused := (err_rep.map (λ e, e.2)),
-  let li_unused_clear := li_unused.filter (≠ []),
-  let li_tf_vars := li_unused_clear.transpose.map list.band,
-  match (return_unused args li_tf_vars).map (λ e : bool × pexpr, e.2) with
-  | []   := skip
-  | [pe] := fail format!"'{pe}' is an unused variable"
-  | pes  := fail format!"'{pes}' are unused variables"
-  end,
-  assumption <|> try (tactic.reflexivity reducible)
-  end
+move_op args locat ``((+))
+
+/--  See the doc-string for `move_add` and mentally
+replace addition with multiplication throughout. ;-) -/
+meta def move_mul (args : parse move_pexpr_list_or_texpr) (locat : parse location) :
+  tactic unit :=
+move_op args locat ``((has_mul.mul))
 
 add_tactic_doc
 { name := "move_add",
+  category := doc_category.tactic,
+  decl_names := [`tactic.interactive.move_add],
+  tags := ["arithmetic"] }
+
+add_tactic_doc
+{ name := "move_mul",
   category := doc_category.tactic,
   decl_names := [`tactic.interactive.move_add],
   tags := ["arithmetic"] }

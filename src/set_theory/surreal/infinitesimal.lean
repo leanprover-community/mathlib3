@@ -96,7 +96,7 @@ instance move_right_dicotic {x : pgame} [h : x.dicotic] (j : x.right_moves) :
   (x.move_right j).dicotic :=
 (dicotic_def.1 h).2.2 j
 
-instance dicotic_of_is_empty_moves (x : pgame)
+@[priority 100] instance dicotic_of_is_empty_moves (x : pgame)
   [hl : is_empty x.left_moves] [hr : is_empty x.right_moves] : x.dicotic :=
 begin
   rw dicotic_def,

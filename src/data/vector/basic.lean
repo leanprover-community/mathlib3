@@ -18,7 +18,7 @@ variables {n : ℕ}
 namespace vector
 variables {α : Type*}
 
-infixr `::ᵥ`:67  := vector.cons
+infixr ` ::ᵥ `:67  := vector.cons
 
 attribute [simp] head_cons tail_cons
 
@@ -563,5 +563,15 @@ instance : is_lawful_traversable.{u} (flip vector n) :=
   naturality := @vector.naturality n,
   id_map := by intros; cases x; simp! [(<$>)],
   comp_map := by intros; cases x; simp! [(<$>)] }
+
+section
+
+local attribute [semireducible] reflected
+meta instance {α : Type} [has_reflect α] [reflected α] (n : ℕ) : has_reflect (vector α n) :=
+λ v, @vector.induction_on n α (λ _ _, expr) v
+  `(@vector.nil.{0} %%(reflect α))
+  (λ n x xs ih, `(@vector.cons.{0} %%(reflect α) %%(reflect n) %%(reflect x) %%(ih)))
+
+end
 
 end vector

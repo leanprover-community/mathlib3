@@ -172,7 +172,7 @@ begin
   -- finally cancel the Bernoulli polynomial and the algebra_map
   congr',
   apply congr_arg,
-  rw [mul_assoc, div_eq_mul_inv, ← mul_inv₀],
+  rw [mul_assoc, div_eq_mul_inv, ← mul_inv],
 end
 
 end polynomial

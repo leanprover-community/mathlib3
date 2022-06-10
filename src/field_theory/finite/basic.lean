@@ -282,7 +282,7 @@ instance : is_splitting_field (zmod p) K (X^q - X) :=
   begin
     classical,
     transitivity algebra.adjoin (zmod p) ((roots (X^q - X : K[X])).to_finset : set K),
-    { simp only [polynomial.map_pow, map_X, polynomial.map_sub], convert rfl },
+    { simp only [polynomial.map_pow, map_X, polynomial.map_sub], },
     { rw [roots_X_pow_card_sub_X, val_to_finset, coe_univ, algebra.adjoin_univ], }
   end }
 

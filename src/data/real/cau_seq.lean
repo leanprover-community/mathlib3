@@ -314,9 +314,9 @@ end
 
 lemma neg_equiv_neg {f g : cau_seq β abv} (hf : f ≈ g) : -f ≈ -g :=
 begin
-  have hf : lim_zero _ := neg_lim_zero hf,
   show lim_zero (-f - -g),
-  convert hf using 1, simp
+  rw ←neg_sub',
+  exact neg_lim_zero hf,
 end
 
 theorem equiv_def₃ {f g : cau_seq β abv} (h : f ≈ g) {ε : α} (ε0 : 0 < ε) :

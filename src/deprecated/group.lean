@@ -5,16 +5,20 @@ Authors: Yury Kudryashov
 -/
 import algebra.group.type_tags
 import algebra.hom.equiv
+import algebra.hom.ring
 import algebra.hom.units
-import algebra.ring.basic
 
 /-!
 # Unbundled monoid and group homomorphisms
 
-This file defines predicates for unbundled monoid and group homomorphisms. Though
-bundled morphisms are preferred in mathlib, these unbundled predicates are still occasionally used
-in mathlib, and probably will not go away before Lean 4
-because Lean 3 often fails to coerce a bundled homomorphism to a function.
+This file is deprecated, and is no longer imported by anything in mathlib other than other
+deprecated files, and test files. You should not need to import it.
+
+This file defines predicates for unbundled monoid and group homomorphisms. Instead of using
+this file, please use `monoid_hom`, defined in `algebra.hom.group`, with notation `→*`, for
+morphisms between monoids or groups. For example use `φ : G →* H` to represent a group
+homomorphism between multiplicative groups, and `ψ : A →+ B` to represent a group homomorphism
+between additive groups.
 
 ## Main Definitions
 
@@ -52,7 +56,8 @@ lemma comp {f : α → β} {g : β → γ} (hf : is_mul_hom f) (hg : is_mul_hom 
 
 /-- A product of maps which preserve multiplication,
 preserves multiplication when the target is commutative. -/
-@[to_additive]
+@[to_additive "A sum of maps which preserves addition, preserves addition when the target
+is commutative."]
 lemma mul {α β} [semigroup α] [comm_semigroup β]
   {f g : α → β} (hf : is_mul_hom f) (hg : is_mul_hom g) :
   is_mul_hom (λ a, f a * g a) :=
@@ -60,7 +65,8 @@ lemma mul {α β} [semigroup α] [comm_semigroup β]
 
 /-- The inverse of a map which preserves multiplication,
 preserves multiplication when the target is commutative. -/
-@[to_additive]
+@[to_additive "The negation of a map which preserves addition, preserves addition when
+the target is commutative."]
 lemma inv {α β} [has_mul α] [comm_group β] {f : α → β} (hf : is_mul_hom f) :
   is_mul_hom (λ a, (f a)⁻¹) :=
 { map_mul := λ a b, (hf.map_mul a b).symm ▸ mul_inv _ _ }
@@ -107,12 +113,13 @@ namespace mul_equiv
 variables {M : Type*} {N : Type*} [mul_one_class M] [mul_one_class N]
 
 /-- A multiplicative isomorphism preserves multiplication (deprecated). -/
-@[to_additive]
+@[to_additive "An additive isomorphism preserves addition (deprecated)."]
 theorem is_mul_hom (h : M ≃* N) : is_mul_hom h := ⟨h.map_mul⟩
 
 /-- A multiplicative bijection between two monoids is a monoid hom
   (deprecated -- use `mul_equiv.to_monoid_hom`). -/
-@[to_additive]
+@[to_additive "An additive bijection between two additive monoids is an additive
+monoid hom (deprecated). "]
 lemma is_monoid_hom (h : M ≃* N) : is_monoid_hom h :=
 { map_mul := h.map_mul,
   map_one := h.map_one }
@@ -123,22 +130,24 @@ namespace is_monoid_hom
 variables [mul_one_class α] [mul_one_class β] {f : α → β} (hf : is_monoid_hom f)
 
 /-- A monoid homomorphism preserves multiplication. -/
-@[to_additive]
+@[to_additive "An additive monoid homomorphism preserves addition."]
 lemma map_mul (x y) : f (x * y) = f x * f y :=
 hf.map_mul x y
 
 /-- The inverse of a map which preserves multiplication,
 preserves multiplication when the target is commutative. -/
-@[to_additive]
+@[to_additive "The negation of a map which preserves addition, preserves addition
+when the target is commutative."]
 lemma inv {α β} [mul_one_class α] [comm_group β] {f : α → β} (hf : is_monoid_hom f) :
   is_monoid_hom (λ a, (f a)⁻¹) :=
-{ map_one := hf.map_one.symm ▸ one_inv,
+{ map_one := hf.map_one.symm ▸ inv_one,
   map_mul := λ a b, (hf.map_mul a b).symm ▸ mul_inv _ _ }
 
 end is_monoid_hom
 
 /-- A map to a group preserving multiplication is a monoid homomorphism. -/
-@[to_additive]
+@[to_additive "A map to an additive group preserving addition is an additive monoid
+homomorphism."]
 theorem is_mul_hom.to_is_monoid_hom [mul_one_class α] [group β] {f : α → β} (hf : is_mul_hom f) :
   is_monoid_hom f :=
 { map_one := mul_right_eq_self.1 $ by rw [← hf.map_mul, one_mul],
@@ -148,11 +157,12 @@ namespace is_monoid_hom
 variables [mul_one_class α] [mul_one_class β] {f : α → β}
 
 /-- The identity map is a monoid homomorphism. -/
-@[to_additive]
+@[to_additive "The identity map is an additive monoid homomorphism."]
 lemma id : is_monoid_hom (@id α) := { map_one := rfl, map_mul := λ _ _, rfl }
 
 /-- The composite of two monoid homomorphisms is a monoid homomorphism. -/
-@[to_additive]
+@[to_additive "The composite of two additive monoid homomorphisms is an additive monoid
+homomorphism."]
 lemma comp (hf : is_monoid_hom f) {γ} [mul_one_class γ] {g : β → γ} (hg : is_monoid_hom g) :
   is_monoid_hom (g ∘ f) :=
 { map_one := show g _ = 1, by rw [hf.map_one, hg.map_one],
@@ -191,7 +201,7 @@ lemma mul_equiv.is_group_hom {G H : Type*} {_ : group G} {_ : group H} (h : G �
   is_group_hom h := { map_mul := h.map_mul }
 
 /-- Construct `is_group_hom` from its only hypothesis. -/
-@[to_additive]
+@[to_additive "Construct `is_add_group_hom` from its only hypothesis."]
 lemma is_group_hom.mk' [group α] [group β] {f : α → β} (hf : ∀ x y, f (x * y) = f x * f y) :
   is_group_hom f :=
 { map_mul := hf }
@@ -203,47 +213,51 @@ open is_mul_hom (map_mul)
 lemma map_mul : ∀ (x y), f (x * y) = f x * f y := hf.to_is_mul_hom.map_mul
 
 /-- A group homomorphism is a monoid homomorphism. -/
-@[to_additive]
+@[to_additive "An additive group homomorphism is an additive monoid homomorphism."]
 lemma to_is_monoid_hom : is_monoid_hom f :=
 hf.to_is_mul_hom.to_is_monoid_hom
 
 /-- A group homomorphism sends 1 to 1. -/
-@[to_additive]
+@[to_additive "An additive group homomorphism sends 0 to 0."]
 lemma map_one : f 1 = 1 := hf.to_is_monoid_hom.map_one
 
 /-- A group homomorphism sends inverses to inverses. -/
-@[to_additive]
+@[to_additive "An additive group homomorphism sends negations to negations."]
 theorem map_inv (hf : is_group_hom f) (a : α) : f a⁻¹ = (f a)⁻¹ :=
-eq_inv_of_mul_eq_one $ by rw [← hf.map_mul, inv_mul_self, hf.map_one]
+eq_inv_of_mul_eq_one_left $ by rw [← hf.map_mul, inv_mul_self, hf.map_one]
+
+@[to_additive] lemma map_div (hf : is_group_hom f) (a b : α) : f (a / b) = f a / f b :=
+by simp_rw [div_eq_mul_inv, hf.map_mul, hf.map_inv]
 
 /-- The identity is a group homomorphism. -/
-@[to_additive]
+@[to_additive "The identity is an additive group homomorphism."]
 lemma id : is_group_hom (@id α) := { map_mul := λ _ _, rfl}
 
 /-- The composition of two group homomorphisms is a group homomorphism. -/
-@[to_additive]
+@[to_additive "The composition of two additive group homomorphisms is an additive
+group homomorphism."]
 lemma comp (hf : is_group_hom f) {γ} [group γ] {g : β → γ} (hg : is_group_hom g) :
   is_group_hom (g ∘ f) :=
 { ..is_mul_hom.comp hf.to_is_mul_hom hg.to_is_mul_hom }
 
 /-- A group homomorphism is injective iff its kernel is trivial. -/
-@[to_additive]
+@[to_additive "An additive group homomorphism is injective if its kernel is trivial."]
 lemma injective_iff {f : α → β} (hf : is_group_hom f) :
   function.injective f ↔ (∀ a, f a = 1 → a = 1) :=
 ⟨λ h _, by rw ← hf.map_one; exact @h _ _,
-  λ h x y hxy, by rw [← inv_inv (f x), inv_eq_iff_mul_eq_one, ← hf.map_inv,
-      ← hf.map_mul] at hxy;
-    simpa using inv_eq_of_mul_eq_one (h _ hxy)⟩
+  λ h x y hxy, eq_of_div_eq_one $ h _ $ by rwa [hf.map_div, div_eq_one]⟩
 
 /-- The product of group homomorphisms is a group homomorphism if the target is commutative. -/
-@[to_additive]
+@[to_additive "The sum of two additive group homomorphisms is an additive group homomorphism
+if the target is commutative."]
 lemma mul {α β} [group α] [comm_group β]
   {f g : α → β} (hf : is_group_hom f) (hg : is_group_hom g) :
   is_group_hom (λa, f a * g a) :=
 { map_mul := (hf.to_is_mul_hom.mul hg.to_is_mul_hom).map_mul }
 
 /-- The inverse of a group homomorphism is a group homomorphism if the target is commutative. -/
-@[to_additive]
+@[to_additive "The negation of an additive group homomorphism is an additive group homomorphism
+if the target is commutative."]
 lemma inv {α β} [group α] [comm_group β] {f : α → β} (hf : is_group_hom f) :
   is_group_hom (λa, (f a)⁻¹) :=
 { map_mul := hf.to_is_mul_hom.inv.map_mul }
@@ -283,18 +297,6 @@ end ring_hom
 "Negation is an `add_group` homomorphism if the `add_group` is commutative."]
 lemma inv.is_group_hom [comm_group α] : is_group_hom (has_inv.inv : α → α) :=
 { map_mul := mul_inv }
-
-namespace is_add_group_hom
-variables [add_group α] [add_group β] {f : α → β} (hf : is_add_group_hom f)
-
-/-- Additive group homomorphisms commute with subtraction. -/
-lemma map_sub (a b) : f (a - b) = f a - f b :=
-calc f (a - b) = f (a + -b)   : congr_arg f (sub_eq_add_neg a b)
-           ... = f a + f (-b) : hf.map_add _ _
-           ... = f a + -f b   : by rw [hf.map_neg]
-           ... = f a - f b    : (sub_eq_add_neg _ _).symm
-
-end is_add_group_hom
 
 /-- The difference of two additive group homomorphisms is an additive group
 homomorphism if the target is commutative. -/

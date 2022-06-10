@@ -107,12 +107,12 @@ lemma move_right_nim_heq (O : ordinal) : (nim O).move_right == λ i : O.out.α, 
 by { rw nim_def, refl }
 
 /-- Turns an ordinal less than `O` into a left move for `nim O` and viceversa. -/
-noncomputable def to_left_moves_nim {O : ordinal} : {O' // O' < O} ≃ (nim O).left_moves :=
-(out_equiv_lt O).trans (equiv.cast (left_moves_nim O).symm)
+noncomputable def to_left_moves_nim {O : ordinal} : set.Iio O ≃ (nim O).left_moves :=
+(enum_iso_out O).to_equiv.trans (equiv.cast (left_moves_nim O).symm)
 
 /-- Turns an ordinal less than `O` into a right move for `nim O` and viceversa. -/
-noncomputable def to_right_moves_nim {O : ordinal} : {O' // O' < O} ≃ (nim O).right_moves :=
-(out_equiv_lt O).trans (equiv.cast (right_moves_nim O).symm)
+noncomputable def to_right_moves_nim {O : ordinal} : set.Iio O ≃ (nim O).right_moves :=
+(enum_iso_out O).to_equiv.trans (equiv.cast (right_moves_nim O).symm)
 
 @[simp] theorem to_left_moves_nim_symm_lt {O : ordinal} (i : (nim O).left_moves) :
   ↑(to_left_moves_nim.symm i) < O :=
@@ -150,7 +150,7 @@ instance nim_impartial (O : ordinal) : impartial (nim O) :=
 begin
   induction O using ordinal.induction with O IH,
   rw [impartial_def, neg_nim],
-  refine ⟨equiv_refl _, λ i, _, λ i, _⟩;
+  refine ⟨equiv_rfl, λ i, _, λ i, _⟩;
   simpa using IH _ (typein_lt_self _)
 end
 
@@ -161,14 +161,11 @@ lemma exists_move_left_eq {O O' : ordinal} (h : O' < O) : ∃ i, (nim O).move_le
 ⟨to_left_moves_nim ⟨O', h⟩, by simp⟩
 
 @[simp] lemma zero_first_loses : (nim (0 : ordinal)).first_loses :=
-begin
-  rw [impartial.first_loses_symm, nim_def, le_def_lt],
-  exact ⟨@is_empty_elim (0 : ordinal).out.α _ _, @is_empty_elim pempty _ _⟩
-end
+equiv.is_empty _
 
 lemma non_zero_first_wins {O : ordinal} (hO : O ≠ 0) : (nim O).first_wins :=
 begin
-  rw [impartial.first_wins_symm, nim_def, lt_def_le],
+  rw [impartial.first_wins_symm, nim_def, lf_iff_forall_le],
   rw ←ordinal.pos_iff_ne_zero at hO,
   exact or.inr ⟨(ordinal.principal_seg_out hO).top, by simp⟩
 end
@@ -180,10 +177,10 @@ begin
     intro h,
     rw [impartial.not_first_loses],
     wlog h' : O₁ ≤ O₂ using [O₁ O₂, O₂ O₁],
-    { exact ordinal.le_total O₁ O₂ },
+    { exact le_total O₁ O₂ },
     { have h : O₁ < O₂ := lt_of_le_of_ne h' h,
-      rw [impartial.first_wins_symm', lt_def_le, nim_def O₂],
-      refine or.inl ⟨(left_moves_add (nim O₁) _).symm (sum.inr _), _⟩,
+      rw [impartial.first_wins_symm', lf_iff_forall_le, nim_def O₂],
+      refine or.inl ⟨to_left_moves_add (sum.inr _), _⟩,
       { exact (ordinal.principal_seg_out h).top },
       { simpa using (impartial.add_self (nim O₁)).2 } },
     { exact first_wins_of_equiv add_comm_equiv (this (ne.symm h)) } },
@@ -196,7 +193,7 @@ by rw [iff_not_comm, impartial.not_first_wins, sum_first_loses_iff_eq]
 
 @[simp] lemma equiv_iff_eq (O₁ O₂ : ordinal) : nim O₁ ≈ nim O₂ ↔ O₁ = O₂ :=
 ⟨λ h, (sum_first_loses_iff_eq _ _).1 $
-  by rw [first_loses_of_equiv_iff (add_congr h (equiv_refl _)), sum_first_loses_iff_eq],
+  by rw [first_loses_of_equiv_iff (add_congr_left h), sum_first_loses_iff_eq],
  by { rintro rfl, refl }⟩
 
 end nim
@@ -219,11 +216,9 @@ begin
   introI hG,
   rw [impartial.equiv_iff_sum_first_loses, ←impartial.no_good_left_moves_iff_first_loses],
   intro i,
-  equiv_rw left_moves_add G (nim (grundy_value G)) at i,
-  cases i with i₁ i₂,
+  rcases left_moves_add_cases i with ⟨i₁, rfl⟩ | ⟨i₂, rfl⟩,
   { rw add_move_left_inl,
-    apply first_wins_of_equiv
-     (add_congr (equiv_nim_grundy_value (G.move_left i₁)).symm (equiv_refl _)),
+    apply first_wins_of_equiv (add_congr_left (equiv_nim_grundy_value (G.move_left i₁)).symm),
     rw nim.sum_first_wins_iff_neq,
     intro heq,
     rw [eq_comm, grundy_value_def G] at heq,
@@ -244,10 +239,10 @@ begin
       simpa using hnotin},
 
     cases h' with i hi,
-    use (left_moves_add _ _).symm (sum.inl i),
+    use to_left_moves_add (sum.inl i),
     rw [add_move_left_inl, move_left_mk],
     apply first_loses_of_equiv
-      (add_congr (equiv_symm (equiv_nim_grundy_value (G.move_left i))) (equiv_refl _)),
+      (add_congr_left (equiv_nim_grundy_value (G.move_left i)).symm),
     simpa only [hi] using impartial.add_self (nim (grundy_value (G.move_left i))) }
 end
 using_well_founded { dec_tac := pgame_wf_tac }
@@ -288,10 +283,10 @@ begin
   have h₀ : ∀ i, grundy_value ((nim n + nim m).move_left i) ≠ (nat.lxor n m : ordinal),
   { -- To show that `n xor m` is unreachable, we show that every move produces a Grundy number
     -- different from `n xor m`.
-    equiv_rw left_moves_add _ _,
+    intro i,
 
     -- The move operates either on the left pile or on the right pile.
-    rintro (a|a),
+    rcases left_moves_add_cases i with ⟨a, rfl⟩ | ⟨a, rfl⟩,
 
     all_goals
     { -- One of the piles is reduced to `k` stones, with `k < n` or `k < m`.
@@ -330,11 +325,11 @@ begin
     -- Therefore, we can play the corresponding move, and by the inductive hypothesis the new state
     -- is `(u xor m) xor m = u` or `n xor (u xor n) = u` as required.
     { obtain ⟨i, hi⟩ := nim.exists_move_left_eq (ordinal.nat_cast_lt.2 h),
-      refine ⟨(left_moves_add _ _).symm (sum.inl i), _⟩,
+      refine ⟨to_left_moves_add (sum.inl i), _⟩,
       simp only [hi, add_move_left_inl],
       rw [hn _ h, nat.lxor_assoc, nat.lxor_self, nat.lxor_zero] },
     { obtain ⟨i, hi⟩ := nim.exists_move_left_eq (ordinal.nat_cast_lt.2 h),
-      refine ⟨(left_moves_add _ _).symm (sum.inr i), _⟩,
+      refine ⟨to_left_moves_add (sum.inr i), _⟩,
       simp only [hi, add_move_left_inr],
       rw [hm _ h, nat.lxor_comm, nat.lxor_assoc, nat.lxor_self, nat.lxor_zero] } },
 

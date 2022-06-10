@@ -385,7 +385,6 @@ begin
   simp only [X, ←of_finsupp_single, ←of_finsupp_mul, linear_map.coe_mk],
   ext,
   simp [add_monoid_algebra.mul_apply, sum_single_index, add_comm],
-  congr; ext; congr,
 end
 
 lemma X_pow_mul {n : ℕ} : X^n * p = p * X^n :=

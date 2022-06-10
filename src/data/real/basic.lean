@@ -491,12 +491,7 @@ real.Sup_of_not_bdd_above $ λ ⟨x, h⟩, not_le_of_lt (lt_add_one _) $ h (set.
 by simp [Inf_def, Sup_empty]
 
 lemma cinfi_empty {α : Sort*} [is_empty α] (f : α → ℝ) : (⨅ i, f i) = 0 :=
-begin
-  dsimp [infi],
-  convert real.Inf_empty,
-  rw set.range_eq_empty_iff,
-  apply_instance
-end
+by rw [infi_of_empty', Inf_empty]
 
 @[simp] lemma cinfi_const_zero {α : Sort*} : (⨅ i : α, (0:ℝ)) = 0 :=
 begin

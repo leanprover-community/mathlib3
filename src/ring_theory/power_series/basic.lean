@@ -758,7 +758,7 @@ begin
         mv_power_series.inv_mul_cancel _ h.right] }
 end
 
-@[simp] lemma one_inv : (1 : mv_power_series σ k)⁻¹ = 1 :=
+@[simp] lemma inv_one : (1 : mv_power_series σ k)⁻¹ = 1 :=
 by { rw [mv_power_series.inv_eq_iff_mul_eq_one, mul_one], simp }
 
 @[simp] lemma C_inv (r : k) : (C σ k r)⁻¹ = C σ k r⁻¹ :=
@@ -1579,8 +1579,8 @@ mv_power_series.inv_eq_iff_mul_eq_one h
   (φ * ψ)⁻¹ = ψ⁻¹ * φ⁻¹ :=
 mv_power_series.mul_inv_rev _ _
 
-@[simp] lemma one_inv : (1 : power_series k)⁻¹ = 1 :=
-mv_power_series.one_inv
+@[simp] lemma inv_one : (1 : power_series k)⁻¹ = 1 :=
+mv_power_series.inv_one
 
 @[simp] lemma C_inv (r : k) : (C k r)⁻¹ = C k r⁻¹ :=
 mv_power_series.C_inv _

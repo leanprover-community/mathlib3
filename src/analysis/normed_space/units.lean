@@ -120,14 +120,14 @@ begin
   simp only [inverse_one_sub t ht, set.mem_set_of_eq],
   have h : 1 = ((range n).sum (λ i, t ^ i)) * (units.one_sub t ht) + t ^ n,
   { simp only [units.coe_one_sub],
-    rw [← geom_sum, geom_sum_mul_neg],
+    rw [geom_sum_mul_neg],
     simp },
   rw [← one_mul ↑(units.one_sub t ht)⁻¹, h, add_mul],
   congr,
   { rw [mul_assoc, (units.one_sub t ht).mul_inv],
     simp },
   { simp only [units.coe_one_sub],
-    rw [← add_mul, ← geom_sum, geom_sum_mul_neg],
+    rw [← add_mul, geom_sum_mul_neg],
     simp }
 end
 

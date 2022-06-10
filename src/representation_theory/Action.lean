@@ -197,7 +197,7 @@ def functor_category_equivalence : Action V G ≌ (single_obj G ⥤ V) :=
 attribute [simps] functor_category_equivalence
 
 instance [has_finite_products V] : has_finite_products (Action V G) :=
-{ out := λ J _ _, by exactI
+{ out := λ J _, by exactI
   adjunction.has_limits_of_shape_of_equivalence (Action.functor_category_equivalence _ _).functor }
 
 instance [has_limits V] : has_limits (Action V G) :=
@@ -420,6 +420,13 @@ instance : is_equivalence ((functor_category_monoidal_equivalence V G).to_functo
 by { change is_equivalence (Action.functor_category_equivalence _ _).functor, apply_instance, }
 
 variables (H : Group.{u})
+
+instance [right_rigid_category V] : right_rigid_category (single_obj (H : Mon.{u}) ⥤ V) :=
+by { change right_rigid_category (single_obj H ⥤ V), apply_instance }
+
+/-- If `V` is right rigid, so is `Action V G`. -/
+instance [right_rigid_category V] : right_rigid_category (Action V H) :=
+right_rigid_category_of_equivalence (functor_category_monoidal_equivalence V _)
 
 instance [rigid_category V] : rigid_category (single_obj (H : Mon.{u}) ⥤ V) :=
 by { change rigid_category (single_obj H ⥤ V), apply_instance }

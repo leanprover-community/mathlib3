@@ -63,7 +63,7 @@ begin
     (sign (u j) * u j) ^ - (1 / 2 : ℝ) * u j * v j * v j,
   { erw [← mul_assoc, this], ring },
   rw [← real.rpow_add (sign_mul_pos_of_ne_zero _ $ units.ne_zero _),
-      show - (1 / 2 : ℝ) + - (1 / 2) = -1, by ring, real.rpow_neg_one, mul_inv₀,
+      show - (1 / 2 : ℝ) + - (1 / 2) = -1, by ring, real.rpow_neg_one, mul_inv,
       inv_sign, mul_assoc (sign (u j)) (u j)⁻¹,
       inv_mul_cancel (units.ne_zero _), mul_one],
   apply_instance

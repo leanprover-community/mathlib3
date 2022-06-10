@@ -362,9 +362,8 @@ begin
   have hab : 0 < a + b := add_pos ha hb,
   apply gauge_le_of_mem hab.le,
   have := convex_iff_div.1 hs hx hy ha.le hb.le hab,
-  rwa [smul_smul, smul_smul, mul_comm_div', mul_comm_div', ←mul_div_assoc, ←mul_div_assoc,
-    mul_inv_cancel ha.ne', mul_inv_cancel hb.ne', ←smul_add, one_div,
-    ←mem_smul_set_iff_inv_smul_mem₀ hab.ne'] at this,
+  rwa [smul_smul, smul_smul, ←mul_div_right_comm, ←mul_div_right_comm, mul_inv_cancel ha.ne',
+    mul_inv_cancel hb.ne', ←smul_add, one_div, ←mem_smul_set_iff_inv_smul_mem₀ hab.ne'] at this,
 end
 
 /-- `gauge s` as a seminorm when `s` is symmetric, convex and absorbent. -/

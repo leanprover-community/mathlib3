@@ -473,34 +473,6 @@ def measurable_le (μ ν : measure α) : set (α → ℝ≥0∞) :=
 lemma zero_mem_measurable_le : (0 : α → ℝ≥0∞) ∈ measurable_le μ ν :=
 ⟨measurable_zero, λ A hA, by simp⟩
 
-lemma max_measurable_le (f g : α → ℝ≥0∞)
-  (hf : f ∈ measurable_le μ ν) (hg : g ∈ measurable_le μ ν) (A : set α) (hA : measurable_set A) :
-  ∫⁻ a in A, max (f a) (g a) ∂μ ≤
-  ∫⁻ a in A ∩ { a | f a ≤ g a }, g a ∂μ + ∫⁻ a in A ∩ { a | g a < f a }, f a ∂μ :=
-begin
-  rw [← lintegral_indicator _ hA, ← lintegral_indicator f,
-      ← lintegral_indicator g, ← lintegral_add],
-  { refine lintegral_mono (λ a, _),
-    by_cases haA : a ∈ A,
-    { by_cases f a ≤ g a,
-      { simp only,
-        rw [indicator_of_mem haA, indicator_of_mem, indicator_of_not_mem, add_zero],
-        simp only [le_refl, max_le_iff, and_true, h],
-        { rintro ⟨_, hc⟩, exact false.elim ((not_lt.2 h) hc) },
-        { exact ⟨haA, h⟩ } },
-      { simp only,
-        rw [indicator_of_mem haA, indicator_of_mem _ f,
-            indicator_of_not_mem, zero_add],
-        simp only [true_and, le_refl, max_le_iff, le_of_lt (not_le.1 h)],
-        { rintro ⟨_, hc⟩, exact false.elim (h hc) },
-        { exact ⟨haA, not_le.1 h⟩ } } },
-    { simp [indicator_of_not_mem haA] } },
-  { exact measurable.indicator hg.1 (hA.inter (measurable_set_le hf.1 hg.1)) },
-  { exact measurable.indicator hf.1 (hA.inter (measurable_set_lt hg.1 hf.1)) },
-  { exact hA.inter (measurable_set_le hf.1 hg.1) },
-  { exact hA.inter (measurable_set_lt hg.1 hf.1) },
-end
-
 lemma sup_mem_measurable_le {f g : α → ℝ≥0∞}
   (hf : f ∈ measurable_le μ ν) (hg : g ∈ measurable_le μ ν) :
   (λ a, f a ⊔ g a) ∈ measurable_le μ ν :=
@@ -509,7 +481,7 @@ begin
   refine ⟨measurable.max hf.1 hg.1, λ A hA, _⟩,
   have h₁ := hA.inter (measurable_set_le hf.1 hg.1),
   have h₂ := hA.inter (measurable_set_lt hg.1 hf.1),
-  refine le_trans (max_measurable_le f g hf hg A hA) _,
+  rw [set_lintegral_max hf.1 hg.1],
   refine (add_le_add (hg.2 _ h₁) (hf.2 _ h₂)).trans_eq _,
   { simp only [← not_le, ← compl_set_of, ← diff_eq],
     exact measure_inter_add_diff _ (measurable_set_le hf.1 hg.1) }
@@ -669,16 +641,11 @@ theorem have_lebesgue_decomposition_of_finite_measure [is_finite_measure μ] [is
     have hξε : ξ + E.indicator (λ _, ε) ∈ measurable_le ν μ,
     { refine ⟨measurable.add hξm (measurable.indicator measurable_const hE₁), λ A hA, _⟩,
       have : ∫⁻ a in A, (ξ + E.indicator (λ _, ε)) a ∂ν =
-            ∫⁻ a in A ∩ E, ε + ξ a ∂ν + ∫⁻ a in A ∩ Eᶜ, ξ a ∂ν,
-      { rw [lintegral_add measurable_const hξm, add_assoc,
-            ← lintegral_union (hA.inter hE₁) (hA.inter hE₁.compl)
-              (disjoint.mono (inter_subset_right _ _) (inter_subset_right _ _)
-              disjoint_compl_right), inter_union_compl],
-        simp_rw [pi.add_apply],
-        rw [lintegral_add hξm (measurable.indicator measurable_const hE₁), add_comm],
-        refine congr_fun (congr_arg has_add.add _) _,
-        rw [set_lintegral_const, lintegral_indicator _ hE₁, set_lintegral_const,
-            measure.restrict_apply hE₁, inter_comm] },
+            ∫⁻ a in A ∩ E, ε + ξ a ∂ν + ∫⁻ a in A \ E, ξ a ∂ν,
+      { simp only [lintegral_add measurable_const hξm, add_assoc, pi.add_apply, inter_comm E,
+          lintegral_inter_add_diff _ _ hE₁, lintegral_add hξm (measurable_const.indicator hE₁),
+          lintegral_indicator _ hE₁, set_lintegral_const, measure.restrict_apply hE₁],
+        exact add_comm _ _ },
       rw [this, ← measure_inter_add_diff A hE₁],
       exact add_le_add (hε₂ A hA) (hξle (A \ E) (hA.diff hE₁)) },
       have : ∫⁻ a, ξ a + E.indicator (λ _, ε) a ∂ν ≤ Sup (measurable_le_eval ν μ) :=
@@ -1022,7 +989,7 @@ begin
   ext i hi,
   rw [vector_measure.sub_apply, to_signed_measure_apply_measurable hi,
       to_signed_measure_apply_measurable hi, add_apply, add_apply,
-      ennreal.to_real_add, ennreal.to_real_add, add_sub_comm,
+      ennreal.to_real_add, ennreal.to_real_add, add_sub_add_comm,
       ← to_signed_measure_apply_measurable hi, ← to_signed_measure_apply_measurable hi,
       ← vector_measure.sub_apply, ← jordan_decomposition.to_signed_measure,
       to_signed_measure_to_jordan_decomposition, vector_measure.add_apply,

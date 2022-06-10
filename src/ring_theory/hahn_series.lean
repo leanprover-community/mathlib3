@@ -1179,19 +1179,7 @@ end algebra
 
 section valuation
 
-variables [linear_ordered_add_comm_group Γ] [ring R] [is_domain R]
-
-instance : linear_ordered_comm_group (multiplicative Γ) :=
-{ .. (infer_instance : linear_order (multiplicative Γ)),
-  .. (infer_instance : ordered_comm_group (multiplicative Γ)) }
-
-instance : linear_ordered_comm_group_with_zero (with_zero (multiplicative Γ)) :=
-{ zero_le_one := with_zero.zero_le 1,
-  .. (with_zero.ordered_comm_monoid),
-  .. (infer_instance : linear_order (with_zero (multiplicative Γ))),
-  .. (infer_instance : comm_group_with_zero (with_zero (multiplicative Γ))) }
-
-variables (Γ) (R)
+variables (Γ R) [linear_ordered_add_comm_group Γ] [ring R] [is_domain R]
 
 /-- The additive valuation on `hahn_series Γ R`, returning the smallest index at which
   a Hahn Series has a nonzero coefficient, or `⊤` for the 0 series.  -/
@@ -1484,10 +1472,8 @@ def of_finsupp (f : α →₀ (hahn_series Γ R)) :
       intros g hg,
       obtain ⟨a, ha⟩ := set.mem_Union.1 hg,
       have haf : a ∈ f.support,
-      { rw finsupp.mem_support_iff,
-        contrapose! ha,
-        rw [ha, support_zero],
-        exact set.not_mem_empty _ },
+      { rw [finsupp.mem_support_iff, ← support_nonempty_iff],
+        exact ⟨g, ha⟩ },
       have h : (λ i, (f i).support) a ≤ _ := le_sup haf,
       exact h ha,
     end,

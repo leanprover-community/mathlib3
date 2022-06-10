@@ -7,6 +7,7 @@ import data.nat.enat
 import data.set.countable
 import logic.small
 import order.conditionally_complete_lattice
+import order.succ_pred.basic
 import set_theory.schroeder_bernstein
 
 /-!
@@ -564,22 +565,27 @@ cardinal.wf.conditionally_complete_linear_order_with_bot 0 $ le_antisymm (cardin
 
 instance wo : @is_well_order cardinal.{u} (<) := ⟨cardinal.wf⟩
 
+/-- The set in the definition of `cardinal.succ` is nonempty. -/
+theorem succ_nonempty (c : cardinal) : {c' : cardinal | c < c'}.nonempty := ⟨_, cantor c⟩
+
 /-- The successor cardinal - the smallest cardinal greater than
   `c`. This is not the same as `c + 1` except in the case of finite `c`. -/
 def succ (c : cardinal) : cardinal :=
 Inf {c' | c < c'}
 
-theorem succ_nonempty (c : cardinal) : {c' : cardinal | c < c'}.nonempty :=
-⟨_, cantor _⟩
-
-theorem lt_succ_self (c : cardinal) : c < succ c :=
+theorem lt_succ (c : cardinal) : c < succ c :=
 Inf_mem (succ_nonempty c)
 
-theorem succ_le {a b : cardinal} : succ a ≤ b ↔ a < b :=
-⟨lt_of_lt_of_le (lt_succ_self _), λ h, cInf_le' h⟩
+theorem succ_le_iff {a b : cardinal} : succ a ≤ b ↔ a < b :=
+⟨(lt_succ a).trans_le, λ h, cInf_le' h⟩
 
-@[simp] theorem lt_succ {a b : cardinal} : a < succ b ↔ a ≤ b :=
-by rw [← not_le, succ_le, not_lt]
+instance : succ_order cardinal :=
+succ_order.of_succ_le_iff succ (λ a b, succ_le_iff)
+
+theorem le_succ : ∀ a, a ≤ succ a := order.le_succ
+theorem lt_succ_iff {a b : cardinal} : a < succ b ↔ a ≤ b := order.lt_succ_iff
+theorem succ_le_of_lt {a b : cardinal} : a < b → succ a ≤ b := order.succ_le_of_lt
+theorem le_of_lt_succ {a b : cardinal} : a < succ b → a ≤ b := order.le_of_lt_succ
 
 theorem add_one_le_succ (c : cardinal.{u}) : c + 1 ≤ succ c :=
 begin
@@ -593,7 +599,7 @@ begin
           ... ≤ #β          : (f.option_elim b hb).cardinal_le
 end
 
-lemma succ_pos (c : cardinal) : 0 < succ c := by simp
+lemma succ_pos (c : cardinal) : 0 < succ c := order.bot_lt_succ c
 
 lemma succ_ne_zero (c : cardinal) : succ c ≠ 0 := (succ_pos _).ne'
 
@@ -696,6 +702,13 @@ begin
   exact sum_le_sum _ _ (le_sup _)
 end
 
+theorem sum_nat_eq_add_sum_succ (f : ℕ → cardinal.{u}) :
+  cardinal.sum f = f 0 + cardinal.sum (λ i, f (i + 1)) :=
+begin
+  refine (equiv.sigma_nat_succ (λ i, quotient.out (f i))).cardinal_eq.trans _,
+  simp only [mk_sum, mk_out, lift_id, mk_sigma],
+end
+
 theorem sup_eq_zero {ι} {f : ι → cardinal} [is_empty ι] : sup f = 0 :=
 by { rw ←nonpos_iff_eq_zero, exact sup_le is_empty_elim }
 
@@ -763,10 +776,10 @@ theorem lt_lift_iff {a : cardinal.{u}} {b : cardinal.{max u v}} :
 le_antisymm
   (le_of_not_gt $ λ h, begin
     rcases lt_lift_iff.1 h with ⟨b, e, h⟩,
-    rw [lt_succ, ← lift_le, e] at h,
-    exact not_lt_of_le h (lt_succ_self _)
+    rw [lt_succ_iff, ← lift_le, e] at h,
+    exact h.not_lt (lt_succ _)
   end)
-  (succ_le.2 $ lift_lt.2 $ lt_succ_self _)
+  (succ_le_of_lt $ lift_lt.2 $ lt_succ a)
 
 @[simp] theorem lift_max {a : cardinal.{u}} {b : cardinal.{v}} :
   lift.{(max v w)} a = lift.{(max u w)} b ↔ lift.{v} a = lift.{u} b :=
@@ -908,7 +921,7 @@ lemma nat_cast_injective : injective (coe : ℕ → cardinal) :=
 nat.cast_injective
 
 @[simp, norm_cast, priority 900] theorem nat_succ (n : ℕ) : (n.succ : cardinal) = succ n :=
-le_antisymm (add_one_le_succ _) (succ_le.2 $ nat_cast_lt.2 $ nat.lt_succ_self _)
+(add_one_le_succ _).antisymm (succ_le_of_lt $ nat_cast_lt.2 $ nat.lt_succ_self _)
 
 @[simp] theorem succ_zero : succ 0 = 1 :=
 by norm_cast
@@ -916,7 +929,7 @@ by norm_cast
 theorem card_le_of {α : Type u} {n : ℕ} (H : ∀ s : finset α, s.card ≤ n) :
   # α ≤ n :=
 begin
-  refine lt_succ.1 (lt_of_not_ge $ λ hn, _),
+  refine le_of_lt_succ (lt_of_not_ge $ λ hn, _),
   rw [← cardinal.nat_succ, ← cardinal.lift_mk_fin n.succ] at hn,
   cases hn with f,
   refine not_lt_of_le (H $ finset.univ.map f) _,
@@ -925,17 +938,17 @@ begin
 end
 
 theorem cantor' (a) {b : cardinal} (hb : 1 < b) : a < b ^ a :=
-by rw [← succ_le, (by norm_cast : succ 1 = 2)] at hb;
-   exact lt_of_lt_of_le (cantor _) (power_le_power_right hb)
+by rw [← succ_le_iff, (by norm_cast : succ 1 = 2)] at hb;
+   exact (cantor a).trans_le (power_le_power_right hb)
 
 theorem one_le_iff_pos {c : cardinal} : 1 ≤ c ↔ 0 < c :=
-by rw [← succ_zero, succ_le]
+by rw [← succ_zero, succ_le_iff]
 
 theorem one_le_iff_ne_zero {c : cardinal} : 1 ≤ c ↔ c ≠ 0 :=
 by rw [one_le_iff_pos, pos_iff_ne_zero]
 
 theorem nat_lt_omega (n : ℕ) : (n : cardinal.{u}) < ω :=
-succ_le.1 $ by rw [← nat_succ, ← lift_mk_fin, omega, lift_mk_le.{0 0 u}]; exact
+succ_le_iff.1 $ by rw [← nat_succ, ← lift_mk_fin, omega, lift_mk_le.{0 0 u}]; exact
 ⟨⟨coe, λ a b, fin.ext⟩⟩
 
 @[simp] theorem one_lt_omega : 1 < ω :=
@@ -1479,7 +1492,7 @@ begin
   split,
   { rintro ⟨f⟩, refine ⟨f $ sum.inl ⟨⟩, f $ sum.inr ⟨⟩, _⟩, intro h, cases f.2 h },
   { rintro ⟨x, y, h⟩, by_contra h',
-    rw [not_le, ←nat.cast_two, nat_succ, lt_succ, nat.cast_one, le_one_iff_subsingleton] at h',
+    rw [not_le, ←nat.cast_two, nat_succ, lt_succ_iff, nat.cast_one, le_one_iff_subsingleton] at h',
     apply h, exactI subsingleton.elim _ _ }
 end
 
@@ -1506,7 +1519,7 @@ lemma three_le {α : Type*} (h : 3 ≤ # α) (x : α) (y : α) :
   ∃ (z : α), z ≠ x ∧ z ≠ y :=
 begin
   have : ((3:nat) : cardinal) ≤ # α, simpa using h,
-  have : ((2:nat) : cardinal) < # α, rwa [← cardinal.succ_le, ← cardinal.nat_succ],
+  have : ((2:nat) : cardinal) < # α, rwa [← cardinal.succ_le_iff, ← cardinal.nat_succ],
   have := exists_not_mem_of_length_le [x, y] this,
   simpa [not_or_distrib] using this,
 end
@@ -1544,8 +1557,8 @@ by { rw [powerlt, sup_le_iff], exact λ ⟨s, hs⟩, le_powerlt (lt_of_lt_of_le 
 lemma powerlt_succ {c₁ c₂ : cardinal} (h : c₁ ≠ 0) : c₁ ^< c₂.succ = c₁ ^ c₂ :=
 begin
   apply le_antisymm,
-  { rw powerlt_le, intros c₃ h2, apply power_le_power_left h, rwa [←lt_succ] },
-  { apply le_powerlt, apply lt_succ_self }
+  { rw powerlt_le, intros c₃ h2, apply power_le_power_left h, rwa [←lt_succ_iff] },
+  { apply le_powerlt, apply lt_succ }
 end
 
 lemma powerlt_max {c₁ c₂ c₃ : cardinal} : c₁ ^< max c₂ c₃ = max (c₁ ^< c₂) (c₁ ^< c₃) :=

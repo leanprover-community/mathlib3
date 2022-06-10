@@ -59,19 +59,45 @@ structure language :=
 (functions : ℕ → Type u) (relations : ℕ → Type v)
 
 /-- Used to define `first_order.language₂`. -/
-def sequence₂ (a₀ a₁ a₂ : Type u) : ℕ → Type u
+@[simp] def sequence₂ (a₀ a₁ a₂ : Type u) : ℕ → Type u
 | 0 := a₀
 | 1 := a₁
 | 2 := a₂
 | _ := pempty
 
-instance {a₀ a₁ a₂ : Type u} [h : inhabited a₀] : inhabited (sequence₂ a₀ a₁ a₂ 0) := h
+namespace sequence₂
+
+variables (a₀ a₁ a₂ : Type u)
+
+instance inhabited₀ [h : inhabited a₀] : inhabited (sequence₂ a₀ a₁ a₂ 0) := h
+
+instance inhabited₁ [h : inhabited a₁] : inhabited (sequence₂ a₀ a₁ a₂ 1) := h
+
+instance inhabited₂ [h : inhabited a₂] : inhabited (sequence₂ a₀ a₁ a₂ 2) := h
+
+instance {n : ℕ} : is_empty (sequence₂ a₀ a₁ a₂ (n + 3)) := pempty.is_empty
+
+@[simp] lemma lift_mk {i : ℕ} :
+  cardinal.lift (# (sequence₂ a₀ a₁ a₂ i)) = # (sequence₂ (ulift a₀) (ulift a₁) (ulift a₂) i) :=
+begin
+  rcases i with (_ | _ | _ | i);
+  simp only [sequence₂, mk_ulift, mk_fintype, fintype.card_of_is_empty, nat.cast_zero, lift_zero],
+end
+
+@[simp] lemma sum_card :
+  cardinal.sum (λ i, # (sequence₂ a₀ a₁ a₂ i)) = # a₀ + # a₁ + # a₂ :=
+begin
+  rw [sum_nat_eq_add_sum_succ, sum_nat_eq_add_sum_succ, sum_nat_eq_add_sum_succ],
+  simp [add_assoc],
+end
+
+end sequence₂
 
 namespace language
 
 /-- A constructor for languages with only constants, unary and binary functions, and
 unary and binary relations. -/
-protected def mk₂ (c f₁ f₂ : Type u) (r₁ r₂ : Type v) : language :=
+@[simps] protected def mk₂ (c f₁ f₂ : Type u) (r₁ r₂ : Type v) : language :=
 ⟨sequence₂ c f₁ f₂, sequence₂ pempty r₁ r₂⟩
 
 /-- The empty language has no symbols. -/
@@ -87,6 +113,10 @@ variable (L : language.{u v})
 
 /-- The type of constants in a given language. -/
 @[nolint has_inhabited_instance] protected def «constants» := L.functions 0
+
+@[simp] lemma constants_mk₂ (c f₁ f₂ : Type u) (r₁ r₂ : Type v) :
+  (language.mk₂ c f₁ f₂ r₁ r₂).constants = c :=
+rfl
 
 /-- The type of symbols in a given language. -/
 @[nolint has_inhabited_instance] def symbols := (Σl, L.functions l) ⊕ (Σl, L.relations l)
@@ -207,6 +237,12 @@ begin
   rw [add_assoc, ←add_assoc (cardinal.sum (λ i, (# (L'.functions i)).lift)),
     add_comm (cardinal.sum (λ i, (# (L'.functions i)).lift)), add_assoc, add_assoc]
 end
+
+@[simp] lemma card_mk₂ (c f₁ f₂ : Type u) (r₁ r₂ : Type v) :
+  (language.mk₂ c f₁ f₂ r₁ r₂).card =
+    cardinal.lift.{v} (# c) + cardinal.lift.{v} (# f₁) + cardinal.lift.{v} (# f₂)
+    + cardinal.lift.{u} (# r₁) + cardinal.lift.{u} (# r₂) :=
+by simp [card_eq_card_functions_add_card_relations, add_assoc]
 
 variables (L) (M : Type w)
 

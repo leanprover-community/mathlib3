@@ -138,9 +138,8 @@ lemma fork_map_comp_first_obj_iso_pi_opens_eq
   presheaf.fork_map R F ≫ (first_obj_iso_pi_opens F U R).hom =
   F.map (eq_to_hom (supr_eq_of_mem_grothendieck U R hR)).op ≫ res F (covering_of_presieve U R) :=
 begin
-  ext f,
-  rw [category.assoc, category.assoc],
-  rw first_obj_iso_pi_opens_π,
+  ext ⟨f⟩,
+  rw [category.assoc, category.assoc, first_obj_iso_pi_opens_π],
   dunfold presheaf.fork_map res,
   rw [limit.lift_π, fan.mk_π_app, limit.lift_π, fan.mk_π_app, ← F.map_comp],
   congr,
@@ -336,7 +335,7 @@ lemma fork_ι_comp_pi_opens_to_first_obj_to_pi_opens_eq
   (s : limits.fork (left_res F U) (right_res F U)) :
   s.ι ≫ pi_opens_to_first_obj F U ≫ first_obj_to_pi_opens F U = s.ι :=
 begin
-  ext j,
+  ext ⟨j⟩,
   dunfold first_obj_to_pi_opens pi_opens_to_first_obj,
   rw [category.assoc, category.assoc, limit.lift_π, fan.mk_π_app, limit.lift_π, fan.mk_π_app],
   -- The issue here is that `index_of_hom U (hom_of_index U j)` need not be equal to `j`.

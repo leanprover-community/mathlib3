@@ -32,7 +32,7 @@ Show that for any locally convex space there exist seminorms that induce the top
 seminorm, locally convex
 -/
 
-open normed_field set seminorm
+open normed_field set seminorm topological_space
 open_locale big_operators nnreal pointwise topological_space
 
 variables {𝕜 E F G ι ι' : Type*}
@@ -483,3 +483,48 @@ instance normed_space.to_locally_convex_space [normed_space ℝ E] :
 normed_space.to_locally_convex_space' ℝ
 
 end normed_space
+
+section topological_constructions
+
+variables [normed_field 𝕜] [add_comm_group F] [module 𝕜 F] [add_comm_group E] [module 𝕜 E]
+
+/-- The family of seminorms obtained by composing each seminorm by a linear map. -/
+def seminorm_family.comp (q : seminorm_family 𝕜 F ι) (f : E →ₗ[𝕜] F) :
+  seminorm_family 𝕜 E ι :=
+λ i, (q i).comp f
+
+lemma seminorm_family.comp_apply (q : seminorm_family 𝕜 F ι) (i : ι) (f : E →ₗ[𝕜] F) :
+  q.comp f i = (q i).comp f :=
+rfl
+
+lemma seminorm_family.finset_sup_comp (q : seminorm_family 𝕜 F ι) (s : finset ι)
+  (f : E →ₗ[𝕜] F) : (s.sup q).comp f = s.sup (q.comp f) :=
+begin
+  ext x,
+  rw [seminorm.comp_apply, seminorm.finset_sup_apply, seminorm.finset_sup_apply],
+  refl
+end
+
+variables [topological_space F] [topological_add_group F]
+
+lemma linear_map.with_seminorms_induced [hι : nonempty ι] {q : seminorm_family 𝕜 F ι}
+  [hq : with_seminorms q] (f : E →ₗ[𝕜] F) :
+  @with_seminorms 𝕜 E ι _ _ _ _ (q.comp f) (induced f infer_instance) :=
+begin
+  letI : topological_space E := induced f infer_instance,
+  letI : topological_add_group E := topological_add_group_induced f,
+  rw [(q.comp f).with_seminorms_iff_nhds_eq_infi, nhds_induced, map_zero,
+      q.with_seminorms_iff_nhds_eq_infi.mp hq, filter.comap_infi],
+  refine infi_congr (λ i, _),
+  exact filter.comap_comap
+end
+
+lemma inducing.with_seminorms [hι : nonempty ι] {q : seminorm_family 𝕜 F ι}
+  [hq : with_seminorms q] [topological_space E] {f : E →ₗ[𝕜] F} (hf : inducing f) :
+  with_seminorms (q.comp f) :=
+begin
+  rw hf.induced,
+  exact f.with_seminorms_induced
+end
+
+end topological_constructions

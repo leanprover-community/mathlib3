@@ -214,13 +214,24 @@ nat_degree_eq_of_degree_eq_some (degree_C_mul_X_pow n ha)
 @[simp] lemma nat_degree_C_mul_X (a : R) (ha : a ≠ 0) : nat_degree (C a * X) = 1 :=
 by simpa only [pow_one] using nat_degree_C_mul_X_pow 1 a ha
 
-@[simp] lemma nat_degree_monomial [decidable_eq R] (i : ℕ) (r : R)  :
+@[simp] lemma nat_degree_monomial [decidable_eq R] (i : ℕ) (r : R) :
   nat_degree (monomial i r) = if r = 0 then 0 else i :=
 begin
   split_ifs with hr,
   { simp [hr] },
   { rw [← C_mul_X_pow_eq_monomial, nat_degree_C_mul_X_pow i r hr] }
 end
+
+lemma nat_degree_monomial_le (a : R) {m : ℕ} : (monomial m a).nat_degree ≤ m :=
+begin
+  rw polynomial.nat_degree_monomial,
+  split_ifs,
+  exacts [nat.zero_le _, rfl.le],
+end
+
+lemma nat_degree_monomial_eq (i : ℕ) {r : R} (r0 : r ≠ 0) :
+  (monomial i r).nat_degree = i :=
+eq.trans (nat_degree_monomial _ _) (if_neg r0)
 
 lemma coeff_eq_zero_of_degree_lt (h : degree p < n) : coeff p n = 0 :=
 not_not.1 (mt le_degree_of_ne_zero (not_le_of_gt h))
@@ -989,7 +1000,6 @@ by rw [add_assoc, add_assoc, ← add_assoc (C b * X ^ 2), add_comm, leading_coef
 
 end semiring
 
-
 section nontrivial_semiring
 variables [semiring R] [nontrivial R] {p q : R[X]}
 
@@ -998,6 +1008,14 @@ by rw [X_pow_eq_monomial, degree_monomial _ (@one_ne_zero R _ _)]
 
 @[simp] lemma nat_degree_X_pow (n : ℕ) : nat_degree ((X : R[X]) ^ n) = n :=
 nat_degree_eq_of_degree_eq_some (degree_X_pow n)
+
+/-  This lemma explicitly does not require the `nontrivial R` assumption. -/
+lemma nat_degree_X_pow_le {R : Type*} [semiring R] (n : ℕ) :
+  (X ^ n : R[X]).nat_degree ≤ n :=
+begin
+  nontriviality R,
+  rwa polynomial.nat_degree_X_pow,
+end
 
 theorem not_is_unit_X : ¬ is_unit (X : R[X]) :=
 λ ⟨⟨_, g, hfg, hgf⟩, rfl⟩, @zero_ne_one R _ _ $

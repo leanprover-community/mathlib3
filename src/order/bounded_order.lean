@@ -1084,7 +1084,7 @@ by rw [←coe_top htop, ext_iff]
 
 end subtype
 
-namespace order_dual
+section order_dual
 variable (α)
 
 instance [has_bot α] : has_top αᵒᵈ := ⟨(⊥ : α)⟩
@@ -1100,6 +1100,13 @@ instance [has_le α] [order_top α] : order_bot αᵒᵈ :=
 
 instance [has_le α] [bounded_order α] : bounded_order αᵒᵈ :=
 { .. order_dual.order_top α, .. order_dual.order_bot α }
+
+open order_dual
+
+@[simp] lemma of_dual_bot [has_top α] : of_dual ⊥ = (⊤ : α) := rfl
+@[simp] lemma of_dual_top [has_bot α] : of_dual ⊤ = (⊥ : α) := rfl
+@[simp] lemma to_dual_bot [has_bot α] : to_dual (⊥ : α) = ⊤ := rfl
+@[simp] lemma to_dual_top [has_top α] : to_dual (⊤ : α) = ⊥ := rfl
 
 end order_dual
 

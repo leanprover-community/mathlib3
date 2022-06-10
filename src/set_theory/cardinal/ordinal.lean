@@ -104,7 +104,7 @@ def aleph_idx.rel_iso : @rel_iso cardinal.{u} ordinal.{u} (<) (<) :=
   have : ∀ c, aleph_idx c < o := λ c, (e _).2 ⟨_, rfl⟩,
   refine ordinal.induction_on o _ this, introsI α r _ h,
   let s := sup.{u u} (λ a:α, inv_fun aleph_idx (ordinal.typein r a)),
-  apply not_le_of_gt (lt_succ_self s),
+  apply (lt_succ s).not_le,
   have I : injective aleph_idx := aleph_idx.initial_seg.to_embedding.injective,
   simpa only [typein_enum, left_inverse_inv_fun I (succ s)] using
     le_sup.{u u} (λ a, inv_fun aleph_idx (ordinal.typein r a))
@@ -156,8 +156,8 @@ by rw [← nonpos_iff_eq_zero, ← aleph'_aleph_idx 0, aleph'_le];
 le_antisymm
  (cardinal.aleph_idx_le.1 $
   by rw [aleph_idx_aleph', ordinal.succ_le, ← aleph'_lt, aleph'_aleph_idx];
-     apply cardinal.lt_succ_self)
- (cardinal.succ_le.2 $ aleph'_lt.2 $ ordinal.lt_succ_self _)
+     apply cardinal.lt_succ)
+ (cardinal.succ_le_of_lt $ aleph'_lt.2 $ ordinal.lt_succ_self _)
 
 @[simp] theorem aleph'_nat : ∀ n : ℕ, aleph' n = n
 | 0     := aleph'_zero
@@ -249,10 +249,10 @@ theorem succ_omega : succ ω = aleph 1 :=
 by rw [← aleph_zero, ← aleph_succ, ordinal.succ_zero]
 
 lemma omega_lt_aleph_one : ω < aleph 1 :=
-by { rw ← succ_omega, exact lt_succ_self _ }
+by { rw ← succ_omega, apply lt_succ }
 
 lemma countable_iff_lt_aleph_one {α : Type*} (s : set α) : countable s ↔ #s < aleph 1 :=
-by rw [← succ_omega, lt_succ, mk_set_le_omega]
+by rw [← succ_omega, lt_succ_iff, mk_set_le_omega]
 
 /-- Ordinals that are cardinals are unbounded. -/
 theorem ord_card_unbounded : unbounded (<) {b : ordinal | b.card.ord = b} :=

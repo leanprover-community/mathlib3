@@ -100,7 +100,7 @@ graded_algebra.of_alg_hom _
     refine submodule.supr_induction' _ (λ i x hx, _) _ (λ x y hx hy ihx ihy, _) hx',
     { obtain ⟨i, rfl⟩ := i,
       dsimp only [subtype.coe_mk] at hx,
-      refine submodule.pow_induction_on' _
+      refine submodule.pow_induction_on_left' _
         (λ r, _) (λ x y i hx hy ihx ihy, _) (λ m hm i x hx ih, _) hx,
       { rw [alg_hom.commutes, direct_sum.algebra_map_apply], refl },
       { rw [alg_hom.map_add, ihx, ihy, ←map_add], refl },
@@ -151,7 +151,7 @@ begin
   simp_rw [pow_add, pow_mul],
   refine submodule.mul_induction_on' _ _,
   { intros a ha b hb,
-    refine submodule.pow_induction_on' ((ι Q).range ^ 2) _ _ _ ha,
+    refine submodule.pow_induction_on_left' ((ι Q).range ^ 2) _ _ _ ha,
     { intro r,
       simp_rw ←algebra.smul_def,
       exact hr _ (submodule.smul_mem _ _ hb), },

@@ -32,7 +32,7 @@ begin
   have : (λ x : ℂ × ℂ, x.1 ^ x.2) =ᶠ[𝓝 p] (λ x, exp (log x.1 * x.2)),
     from ((is_open_ne.preimage continuous_fst).eventually_mem A).mono
       (λ p hp, cpow_def_of_ne_zero hp _),
-  rw [cpow_sub _ _ A, cpow_one, mul_div_comm, mul_smul, mul_smul, ← smul_add],
+  rw [cpow_sub _ _ A, cpow_one, mul_div_left_comm, mul_smul, mul_smul, ← smul_add],
   refine has_strict_fderiv_at.congr_of_eventually_eq _ this.symm,
   simpa only [cpow_def_of_ne_zero A, div_eq_mul_inv, mul_smul, add_comm]
     using ((has_strict_fderiv_at_fst.clog hp).mul has_strict_fderiv_at_snd).cexp
@@ -203,7 +203,7 @@ begin
     from (continuous_at_fst.eventually (lt_mem_nhds hp)).mono (λ p hp, rpow_def_of_pos hp _),
   refine has_strict_fderiv_at.congr_of_eventually_eq _ this.symm,
   convert ((has_strict_fderiv_at_fst.log hp.ne').mul has_strict_fderiv_at_snd).exp,
-  rw [rpow_sub_one hp.ne', ← rpow_def_of_pos hp, smul_add, smul_smul, mul_div_comm,
+  rw [rpow_sub_one hp.ne', ← rpow_def_of_pos hp, smul_add, smul_smul, mul_div_left_comm,
     div_eq_mul_inv, smul_smul, smul_smul, mul_assoc, add_comm]
 end
 

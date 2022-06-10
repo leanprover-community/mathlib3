@@ -58,9 +58,8 @@ lemma interior_convex_hull_aff_basis {ι E : Type*} [fintype ι] [normed_group E
   (b : affine_basis ι ℝ E) :
   interior (convex_hull ℝ (range b.points)) = { x | ∀ i, 0 < b.coord i x } :=
 begin
-  cases subsingleton_or_nontrivial ι with h h,
+  casesI subsingleton_or_nontrivial ι,
   { -- The zero-dimensional case.
-    haveI := h,
     suffices : range (b.points) = univ, { simp [this], },
     refine affine_subspace.eq_univ_of_subsingleton_span_eq_top _ b.tot,
     rw ← image_univ,

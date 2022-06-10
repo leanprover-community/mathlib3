@@ -215,6 +215,19 @@ theorem perm.filter (p : α → Prop) [decidable_pred p]
   {l₁ l₂ : list α} (s : l₁ ~ l₂) : filter p l₁ ~ filter p l₂ :=
 by rw ← filter_map_eq_filter; apply s.filter_map _
 
+theorem filter_append_perm (p : α → Prop) [decidable_pred p]
+  (l : list α) : filter p l ++ filter (λ x, ¬ p x) l ~ l :=
+begin
+  induction l with x l ih,
+  { refl },
+  { by_cases h : p x,
+    { simp only [h, filter_cons_of_pos, filter_cons_of_neg, not_true, not_false_iff, cons_append],
+      exact ih.cons x },
+    { simp only [h, filter_cons_of_neg, not_false_iff, filter_cons_of_pos],
+      refine perm.trans _ (ih.cons x),
+      exact perm_append_comm.trans (perm_append_comm.cons _), } }
+end
+
 theorem exists_perm_sublist {l₁ l₂ l₂' : list α}
   (s : l₁ <+ l₂) (p : l₂ ~ l₂') : ∃ l₁' ~ l₁, l₁' <+ l₂' :=
 begin
@@ -377,6 +390,22 @@ by rw [countp_eq_length_filter, countp_eq_length_filter];
 theorem subperm.countp_le (p : α → Prop) [decidable_pred p]
   {l₁ l₂ : list α} : l₁ <+~ l₂ → countp p l₁ ≤ countp p l₂
 | ⟨l, p', s⟩ := p'.countp_eq p ▸ s.countp_le p
+
+theorem perm.countp_congr (s : l₁ ~ l₂) {p p' : α → Prop} [decidable_pred p] [decidable_pred p']
+  (hp : ∀ x ∈ l₁, p x = p' x) : l₁.countp p = l₂.countp p' :=
+begin
+  rw ← s.countp_eq p',
+  clear s,
+  induction l₁ with y s hs,
+  { refl },
+  { simp only [mem_cons_iff, forall_eq_or_imp] at hp,
+    simp only [countp_cons, hs hp.2, hp.1], },
+end
+
+theorem countp_eq_countp_filter_add
+  (l : list α) (p q : α → Prop) [decidable_pred p] [decidable_pred q] :
+  l.countp p = (l.filter q).countp p + (l.filter (λ a, ¬ q a)).countp p :=
+by { rw [← countp_append], exact perm.countp_eq _ (filter_append_perm _ _).symm }
 
 theorem perm.count_eq [decidable_eq α] {l₁ l₂ : list α}
   (p : l₁ ~ l₂) (a) : count a l₁ = count a l₂ :=

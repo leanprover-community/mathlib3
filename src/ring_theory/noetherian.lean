@@ -674,17 +674,22 @@ lemma is_noetherian_ring_iff_ideal_fg (R : Type*) [semiring R] :
 is_noetherian_ring_iff.trans is_noetherian_def
 
 @[priority 80] -- see Note [lower instance priority]
-instance ring.is_noetherian_of_fintype (R M) [fintype M] [semiring R] [add_comm_monoid M]
-  [module R M] :
+instance is_noetherian_of_fintype (R M) [fintype M] [semiring R] [add_comm_monoid M] [module R M] :
   is_noetherian R M :=
 by letI := classical.dec; exact
 ⟨assume s, ⟨to_finset s, by rw [set.coe_to_finset, submodule.span_eq]⟩⟩
 
-theorem ring.is_noetherian_of_zero_eq_one {R} [semiring R] (h01 : (0 : R) = 1) :
+/-- Modules over the trivial ring are Noetherian. -/
+@[priority 100] -- see Note [lower instance priority]
+instance is_noetherian_of_subsingleton (R M) [subsingleton R] [semiring R] [add_comm_monoid M]
+  [module R M] : is_noetherian R M :=
+by haveI := module.subsingleton R M;
+   exact is_noetherian_of_fintype R M
+
+@[priority 100] -- see Note [lower instance priority]
+instance ring.is_noetherian_of_subsingleton {R} [semiring R] [subsingleton R] :
   is_noetherian_ring R :=
-by haveI := subsingleton_of_zero_eq_one h01;
-   haveI := fintype.of_subsingleton (0:R);
-   exact is_noetherian_ring_iff.2 (ring.is_noetherian_of_fintype R R)
+⟨⟩
 
 theorem is_noetherian_of_submodule_of_noetherian (R M) [semiring R] [add_comm_monoid M] [module R M]
   (N : submodule R M) (h : is_noetherian R M) : is_noetherian R N :=
@@ -774,16 +779,31 @@ theorem is_noetherian_ring_of_ring_equiv (R) [ring R] {S} [ring S]
 is_noetherian_ring_of_surjective R S f.to_ring_hom f.to_equiv.surjective
 
 namespace submodule
+
+section map₂
+variables {R M N P : Type*}
+variables [comm_semiring R] [add_comm_monoid M] [add_comm_monoid N] [add_comm_monoid P]
+variables [module R M] [module R N] [module R P]
+
+theorem fg.map₂ (f : M →ₗ[R] N →ₗ[R] P) {p : submodule R M} {q : submodule R N}
+  (hp : p.fg) (hq : q.fg) : (map₂ f p q).fg :=
+let ⟨sm, hfm, hm⟩ := fg_def.1 hp, ⟨sn, hfn, hn⟩ := fg_def.1 hq in
+fg_def.2 ⟨set.image2 (λ m n, f m n) sm sn,
+  hfm.image2 _ hfn, map₂_span_span R f sm sn ▸ hm ▸ hn ▸ rfl⟩
+
+end map₂
+
+section mul
 variables {R : Type*} {A : Type*} [comm_semiring R] [semiring A] [algebra R A]
 variables {M N : submodule R A}
 
-theorem fg.mul (hm : M.fg) (hn : N.fg) : (M * N).fg :=
-let ⟨m, hfm, hm⟩ := fg_def.1 hm, ⟨n, hfn, hn⟩ := fg_def.1 hn in
-fg_def.2 ⟨m * n, hfm.mul hfn, span_mul_span R m n ▸ hm ▸ hn ▸ rfl⟩
+theorem fg.mul (hm : M.fg) (hn : N.fg) : (M * N).fg := hm.map₂ _ hn
 
 lemma fg.pow (h : M.fg) (n : ℕ) : (M ^ n).fg :=
 nat.rec_on n
   (⟨{1}, by simp [one_eq_span]⟩)
   (λ n ih, by simpa [pow_succ] using h.mul ih)
+
+end mul
 
 end submodule

@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Floris van Doorn
 -/
 import data.sum.order
-import order.succ_pred.basic
 import set_theory.cardinal.basic
 
 /-!
@@ -517,19 +516,42 @@ quot.induction_on o $ λ ⟨α, r, wo⟩, @H α r wo
 
 /-! ### The order on ordinals -/
 
+instance : partial_order ordinal :=
+{ le := λ a b, quotient.lift_on₂ a b (λ ⟨α, r, wo⟩ ⟨β, s, wo'⟩, nonempty (r ≼i s)) $
+    λ ⟨α₁, r₁, o₁⟩ ⟨α₂, r₂, o₂⟩ ⟨β₁, s₁, p₁⟩ ⟨β₂, s₂, p₂⟩ ⟨f⟩ ⟨g⟩,
+    propext ⟨
+      λ ⟨h⟩, ⟨(initial_seg.of_iso f.symm).trans $
+        h.trans (initial_seg.of_iso g)⟩,
+      λ ⟨h⟩, ⟨(initial_seg.of_iso f).trans $
+        h.trans (initial_seg.of_iso g.symm)⟩⟩,
+  lt := λ a b, quotient.lift_on₂ a b (λ ⟨α, r, wo⟩ ⟨β, s, wo'⟩, nonempty (r ≺i s)) $
+    λ ⟨α₁, r₁, o₁⟩ ⟨α₂, r₂, o₂⟩ ⟨β₁, s₁, p₁⟩ ⟨β₂, s₂, p₂⟩ ⟨f⟩ ⟨g⟩,
+    by exactI propext ⟨
+      λ ⟨h⟩, ⟨principal_seg.equiv_lt f.symm $
+        h.lt_le (initial_seg.of_iso g)⟩,
+      λ ⟨h⟩, ⟨principal_seg.equiv_lt f $
+        h.lt_le (initial_seg.of_iso g.symm)⟩⟩,
+  le_refl := quot.ind $ by exact λ ⟨α, r, wo⟩, ⟨initial_seg.refl _⟩,
+  le_trans := λ a b c, quotient.induction_on₃ a b c $
+    λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨γ, t, _⟩ ⟨f⟩ ⟨g⟩, ⟨f.trans g⟩,
+  lt_iff_le_not_le := λ a b, quotient.induction_on₂ a b $
+    λ ⟨α, r, _⟩ ⟨β, s, _⟩, by exactI
+      ⟨λ ⟨f⟩, ⟨⟨f⟩, λ ⟨g⟩, (f.lt_le g).irrefl _⟩,
+      λ ⟨⟨f⟩, h⟩, sum.rec_on f.lt_or_eq (λ g, ⟨g⟩)
+      (λ g, (h ⟨initial_seg.of_iso g.symm⟩).elim)⟩,
+  le_antisymm := λ a b,
+    quotient.induction_on₂ a b $ λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨h₁⟩ ⟨h₂⟩,
+    by exactI quot.sound ⟨initial_seg.antisymm h₁ h₂⟩ }
+
 /-- Ordinal less-equal is defined such that
   well orders `r` and `s` satisfy `type r ≤ type s` if there exists
   a function embedding `r` as an initial segment of `s`. -/
-protected def le (a b : ordinal) : Prop :=
-quotient.lift_on₂ a b (λ ⟨α, r, wo⟩ ⟨β, s, wo'⟩, nonempty (r ≼i s)) $
-λ ⟨α₁, r₁, o₁⟩ ⟨α₂, r₂, o₂⟩ ⟨β₁, s₁, p₁⟩ ⟨β₂, s₂, p₂⟩ ⟨f⟩ ⟨g⟩,
-propext ⟨
-  λ ⟨h⟩, ⟨(initial_seg.of_iso f.symm).trans $
-    h.trans (initial_seg.of_iso g)⟩,
-  λ ⟨h⟩, ⟨(initial_seg.of_iso f).trans $
-    h.trans (initial_seg.of_iso g.symm)⟩⟩
+add_decl_doc ordinal.partial_order.le
 
-instance : has_le ordinal := ⟨ordinal.le⟩
+/-- Ordinal less-than is defined such that
+  well orders `r` and `s` satisfy `type r < type s` if there exists
+  a function embedding `r` as a principal segment of `s`. -/
+add_decl_doc ordinal.partial_order.lt
 
 theorem type_le {α β} {r : α → α → Prop} {s : β → β → Prop}
   [is_well_order α r] [is_well_order β s] :
@@ -539,38 +561,9 @@ theorem type_le' {α β} {r : α → α → Prop} {s : β → β → Prop}
   [is_well_order α r] [is_well_order β s] : type r ≤ type s ↔ nonempty (r ↪r s) :=
 ⟨λ ⟨f⟩, ⟨f⟩, λ ⟨f⟩, ⟨f.collapse⟩⟩
 
-/-- Ordinal less-than is defined such that
-  well orders `r` and `s` satisfy `type r < type s` if there exists
-  a function embedding `r` as a principal segment of `s`. -/
-def lt (a b : ordinal) : Prop :=
-quotient.lift_on₂ a b (λ ⟨α, r, wo⟩ ⟨β, s, wo'⟩, nonempty (r ≺i s)) $
-λ ⟨α₁, r₁, o₁⟩ ⟨α₂, r₂, o₂⟩ ⟨β₁, s₁, p₁⟩ ⟨β₂, s₂, p₂⟩ ⟨f⟩ ⟨g⟩,
-by exactI propext ⟨
-  λ ⟨h⟩, ⟨principal_seg.equiv_lt f.symm $
-    h.lt_le (initial_seg.of_iso g)⟩,
-  λ ⟨h⟩, ⟨principal_seg.equiv_lt f $
-    h.lt_le (initial_seg.of_iso g.symm)⟩⟩
-
-instance : has_lt ordinal := ⟨ordinal.lt⟩
-
 @[simp] theorem type_lt_iff {α β} {r : α → α → Prop} {s : β → β → Prop}
   [is_well_order α r] [is_well_order β s] :
   type r < type s ↔ nonempty (r ≺i s) := iff.rfl
-
-instance : partial_order ordinal :=
-{ le := (≤),
-  lt := (<),
-  le_refl := quot.ind $ by exact λ ⟨α, r, wo⟩, ⟨initial_seg.refl _⟩,
-  le_trans := λ a b c, quotient.induction_on₃ a b c $
-    λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨γ, t, _⟩ ⟨f⟩ ⟨g⟩, ⟨f.trans g⟩,
-  lt_iff_le_not_le := λ a b, quotient.induction_on₂ a b $
-    λ ⟨α, r, _⟩ ⟨β, s, _⟩, by exactI
-      ⟨λ ⟨f⟩, ⟨⟨f⟩, λ ⟨g⟩, (f.lt_le g).irrefl _⟩,
-      λ ⟨⟨f⟩, h⟩, sum.rec_on f.lt_or_eq (λ g, ⟨g⟩)
-       (λ g, (h ⟨initial_seg.of_iso g.symm⟩).elim)⟩,
-  le_antisymm := λ x b, show x ≤ b → b ≤ x → x = b, from
-    quotient.induction_on₂ x b $ λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨h₁⟩ ⟨h₂⟩,
-    by exactI quot.sound ⟨initial_seg.antisymm h₁ h₂⟩ }
 
 /-- Given two ordinals `α ≤ β`, then `initial_seg_out α β` is the initial segment embedding
 of `α` to `β`, as map from a model type for `α` to a model type for `β`. -/
@@ -680,20 +673,6 @@ enum_type (principal_seg.of_element r a)
   {o} (h : o < type r) : typein r (enum r o h) = o :=
 let ⟨a, e⟩ := typein_surj r h in
 by clear _let_match; subst e; rw enum_typein
-
-/-- The equivalence between ordinals less than `o` and `o.out.α`. -/
-@[simps] noncomputable def out_equiv_lt (o : ordinal) : {o' : ordinal // o' < o} ≃ o.out.α :=
-{ to_fun := λ ⟨o', h⟩, enum (<) o' (by rwa type_lt),
-  inv_fun := λ x, ⟨typein (<) x, typein_lt_self x⟩,
-  left_inv := λ ⟨o', h⟩, subtype.ext_val (typein_enum _ _),
-  right_inv := λ h, enum_typein _ _ }
-
-/-- A well order `r` is order isomorphic to the set of ordinals strictly smaller than the
-ordinal version of `r`. -/
-def typein_iso (r : α → α → Prop) [is_well_order α r] : r ≃r subrel (<) (< type r) :=
-⟨⟨λ x, ⟨typein r x, typein_lt_type r x⟩, λ x, enum r x.1 x.2, λ y, enum_typein r y,
- λ ⟨y, hy⟩, subtype.eq (typein_enum r hy)⟩,
-  λ a b, (typein_lt_typein r)⟩
 
 theorem enum_lt_enum {r : α → α → Prop} [is_well_order α r]
   {o₁ o₂ : ordinal} (h₁ : o₁ < type r) (h₂ : o₂ < type r) :
@@ -954,14 +933,27 @@ the addition, together with properties of the other operations, are proved in
 `ordinal_arithmetic.lean`.
 -/
 
+instance : add_monoid ordinal.{u} :=
+{ add       := λ o₁ o₂, quotient.lift_on₂ o₁ o₂
+    (λ ⟨α, r, wo⟩ ⟨β, s, wo'⟩, ⟦⟨α ⊕ β, sum.lex r s, by exactI sum.lex.is_well_order _ _⟩⟧
+      : Well_order → Well_order → ordinal) $
+    λ ⟨α₁, r₁, o₁⟩ ⟨α₂, r₂, o₂⟩ ⟨β₁, s₁, p₁⟩ ⟨β₂, s₂, p₂⟩ ⟨f⟩ ⟨g⟩,
+    quot.sound ⟨rel_iso.sum_lex_congr f g⟩,
+  zero      := 0,
+  zero_add  := λ o, induction_on o $ λ α r _, eq.symm $ quotient.sound
+    ⟨⟨(empty_sum pempty α).symm, λ a b, sum.lex_inr_inr⟩⟩,
+  add_zero  := λ o, induction_on o $ λ α r _, eq.symm $ quotient.sound
+    ⟨⟨(sum_empty α pempty).symm, λ a b, sum.lex_inl_inl⟩⟩,
+  add_assoc := λ o₁ o₂ o₃, quotient.induction_on₃ o₁ o₂ o₃ $
+    λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨γ, t, _⟩, quot.sound
+    ⟨⟨sum_assoc _ _ _, λ a b,
+    begin rcases a with ⟨a|a⟩|a; rcases b with ⟨b|b⟩|b;
+      simp only [sum_assoc_apply_inl_inl, sum_assoc_apply_inl_inr, sum_assoc_apply_inr,
+        sum.lex_inl_inl, sum.lex_inr_inr, sum.lex.sep, sum.lex_inr_inl] end⟩⟩ }
+
 /-- `o₁ + o₂` is the order on the disjoint union of `o₁` and `o₂` obtained by declaring that
   every element of `o₁` is smaller than every element of `o₂`. -/
-instance : has_add ordinal.{u} :=
-⟨λo₁ o₂, quotient.lift_on₂ o₁ o₂
-  (λ ⟨α, r, wo⟩ ⟨β, s, wo'⟩, ⟦⟨α ⊕ β, sum.lex r s, by exactI sum.lex.is_well_order _ _⟩⟧
-    : Well_order → Well_order → ordinal) $
-λ ⟨α₁, r₁, o₁⟩ ⟨α₂, r₂, o₂⟩ ⟨β₁, s₁, p₁⟩ ⟨β₂, s₂, p₂⟩ ⟨f⟩ ⟨g⟩,
-quot.sound ⟨rel_iso.sum_lex_congr f g⟩⟩
+add_decl_doc ordinal.add_monoid.add
 
 @[simp] theorem card_add (o₁ o₂ : ordinal) : card (o₁ + o₂) = card o₁ + card o₂ :=
 induction_on o₁ $ λ α r _, induction_on o₂ $ λ β s _, rfl
@@ -977,20 +969,6 @@ by induction n; [refl, simp only [card_add, card_one, nat.cast_succ, *]]
 def succ (o : ordinal) : ordinal := o + 1
 
 theorem succ_eq_add_one (o) : succ o = o + 1 := rfl
-
-instance : add_monoid ordinal.{u} :=
-{ add       := (+),
-  zero      := 0,
-  zero_add  := λ o, induction_on o $ λ α r _, eq.symm $ quotient.sound
-    ⟨⟨(empty_sum pempty α).symm, λ a b, sum.lex_inr_inr⟩⟩,
-  add_zero  := λ o, induction_on o $ λ α r _, eq.symm $ quotient.sound
-    ⟨⟨(sum_empty α pempty).symm, λ a b, sum.lex_inl_inl⟩⟩,
-  add_assoc := λ o₁ o₂ o₃, quotient.induction_on₃ o₁ o₂ o₃ $
-    λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨γ, t, _⟩, quot.sound
-    ⟨⟨sum_assoc _ _ _, λ a b,
-    begin rcases a with ⟨a|a⟩|a; rcases b with ⟨b|b⟩|b;
-      simp only [sum_assoc_apply_inl_inl, sum_assoc_apply_inl_inr, sum_assoc_apply_inr,
-        sum.lex_inl_inl, sum.lex_inr_inr, sum.lex.sep, sum.lex_inr_inl] end⟩⟩ }
 
 instance has_le.le.add_covariant_class : covariant_class ordinal.{u} ordinal.{u} (+) (≤) :=
 ⟨λ c a b h, begin
@@ -1013,7 +991,7 @@ instance has_le.le.add_covariant_class : covariant_class ordinal.{u} ordinal.{u}
 end⟩
 
 instance has_le.le.add_swap_covariant_class :
-  covariant_class ordinal.{u} ordinal.{u} (function.swap (+)) (≤) :=
+  covariant_class ordinal.{u} ordinal.{u} (swap (+)) (≤) :=
 ⟨λ c a b h, begin
   revert h c, exact (
   induction_on a $ λ α₁ r₁ hr₁, induction_on b $ λ α₂ r₂ hr₂ ⟨⟨⟨f, fo⟩, fi⟩⟩ c,
@@ -1061,22 +1039,20 @@ induction_on a $ λ α r hr, induction_on b $ λ β s hs ⟨⟨f, t, hf⟩⟩, b
     { intro h, cases (hf b).1 h with w h, exact ⟨sum.inl w, h⟩ } }
 end⟩
 
-theorem le_total (a b : ordinal) : a ≤ b ∨ b ≤ a :=
-match lt_or_eq_of_le (le_add_left b a), lt_or_eq_of_le (le_add_right a b) with
-| or.inr h, _ := by rw h; exact or.inl (le_add_right _ _)
-| _, or.inr h := by rw h; exact or.inr (le_add_left _ _)
-| or.inl h₁, or.inl h₂ := induction_on a (λ α₁ r₁ _,
-  induction_on b $ λ α₂ r₂ _ ⟨f⟩ ⟨g⟩, begin
-    resetI,
-    rw [← typein_top f, ← typein_top g, le_iff_lt_or_eq,
-        le_iff_lt_or_eq, typein_lt_typein, typein_lt_typein],
-    rcases trichotomous_of (sum.lex r₁ r₂) g.top f.top with h|h|h;
-    [exact or.inl (or.inl h), {left, right, rw h}, exact or.inr (or.inl h)]
-  end) h₁ h₂
-end
-
 instance : linear_order ordinal :=
-{ le_total     := le_total,
+{ le_total     := λ a b,
+    match lt_or_eq_of_le (le_add_left b a), lt_or_eq_of_le (le_add_right a b) with
+    | or.inr h, _ := by rw h; exact or.inl (le_add_right _ _)
+    | _, or.inr h := by rw h; exact or.inr (le_add_left _ _)
+    | or.inl h₁, or.inl h₂ := induction_on a (λ α₁ r₁ _,
+      induction_on b $ λ α₂ r₂ _ ⟨f⟩ ⟨g⟩, begin
+        resetI,
+        rw [← typein_top f, ← typein_top g, le_iff_lt_or_eq,
+            le_iff_lt_or_eq, typein_lt_typein, typein_lt_typein],
+        rcases trichotomous_of (sum.lex r₁ r₂) g.top f.top with h|h|h;
+        [exact or.inl (or.inl h), {left, right, rw h}, exact or.inr (or.inl h)]
+      end) h₁ h₂
+    end,
   decidable_le := classical.dec_rel _,
   ..ordinal.partial_order }
 
@@ -1129,6 +1105,22 @@ theorem enum_inj {r : α → α → Prop} [is_well_order α r] {o₁ o₂ : ordi
     { rwa [←@enum_lt_enum α r _ o₁ o₂ h₁ h₂, h] at hlt },
     { change _ < _ at hlt, rwa [←@enum_lt_enum α r _ o₂ o₁ h₂ h₁, h] at hlt }
 end, λ h, by simp_rw h⟩
+
+/-- A well order `r` is order isomorphic to the set of ordinals smaller than `type r`. -/
+@[simps] def enum_iso (r : α → α → Prop) [is_well_order α r] : subrel (<) (< type r) ≃r r :=
+{ to_fun := λ ⟨o, h⟩, enum r o h,
+  inv_fun := λ x, ⟨typein r x, typein_lt_type r x⟩,
+  left_inv := λ ⟨o, h⟩, subtype.ext_val (typein_enum _ _),
+  right_inv := λ h, enum_typein _ _,
+  map_rel_iff' := by { rintros ⟨a, _⟩ ⟨b, _⟩, apply enum_lt_enum } }
+
+/-- The order isomorphism between ordinals less than `o` and `o.out.α`. -/
+@[simps] noncomputable def enum_iso_out (o : ordinal.{u}) : set.Iio o ≃o o.out.α :=
+{ to_fun := λ ⟨o', h⟩, enum (<) o' (by rwa type_lt),
+  inv_fun := λ x, ⟨typein (<) x, typein_lt_self x⟩,
+  left_inv := λ ⟨o', h⟩, subtype.ext_val (typein_enum _ _),
+  right_inv := λ h, enum_typein _ _,
+  map_rel_iff' := by { rintros ⟨a, _⟩ ⟨b, _⟩, apply enum_le_enum' } }
 
 /-- `o.out.α` is an `order_bot` whenever `0 < o`. -/
 def out_order_bot_of_pos {o : ordinal} (ho : 0 < o) : order_bot o.out.α :=
@@ -1295,7 +1287,7 @@ theorem ord_card_le (o : ordinal) : o.card.ord ≤ o :=
 ord_le.2 le_rfl
 
 lemma lt_ord_succ_card (o : ordinal) : o < o.card.succ.ord :=
-by { rw [lt_ord], apply cardinal.lt_succ_self }
+by { rw [lt_ord], apply cardinal.lt_succ }
 
 @[simp] theorem ord_le_ord {c₁ c₂} : ord c₁ ≤ ord c₂ ↔ c₁ ≤ c₂ :=
 by simp only [ord_le, card_ord]
@@ -1364,7 +1356,7 @@ theorem univ_id : univ.{u (u+1)} = #ordinal := lift_id _
 theorem univ_umax : univ.{u (max (u+1) v)} = univ.{u v} := congr_fun lift_umax _
 
 theorem lift_lt_univ (c : cardinal) : lift.{(u+1) u} c < univ.{u (u+1)} :=
-by simpa only [lift.principal_seg_coe, lift_ord, lift_succ, ord_le, succ_le] using le_of_lt
+by simpa only [lift.principal_seg_coe, lift_ord, lift_succ, ord_le, succ_le_iff] using le_of_lt
   (lift.principal_seg.{u (u+1)}.lt_top (succ c).ord)
 
 theorem lift_lt_univ' (c : cardinal) : lift.{(max (u+1) v) u} c < univ.{u v} :=

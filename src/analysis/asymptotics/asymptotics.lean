@@ -346,11 +346,8 @@ end
 theorem is_O.trans_is_o (hfg : is_O f g' l) (hgk : is_o g' k l) : is_o f k l :=
 let ⟨c, cpos, hc⟩ := hfg.exists_pos in hc.trans_is_o hgk cpos
 
-theorem is_o.trans (hfg : is_o f g l) (hgk : is_o g k' l) : is_o f k' l :=
-hfg.trans_is_O hgk.is_O
-
-theorem is_o.trans' (hfg : is_o f g' l) (hgk : is_o g' k l) : is_o f k l :=
-hfg.is_O.trans_is_o hgk
+theorem is_o.trans (hfg : is_o f g l) (hgk : is_o g k l) : is_o f k l :=
+hfg.trans_is_O_with hgk.is_O_with one_pos
 
 section
 
@@ -1054,7 +1051,7 @@ begin
   { refine (h₀ $ norm_le_zero_iff.1 _).elim,
     exact hle.trans (mul_nonpos_of_nonpos_of_nonneg hc $ norm_nonneg _) },
   { replace hle := inv_le_inv_of_le (norm_pos_iff.2 h₀) hle,
-    simpa only [norm_inv, mul_inv₀, ← div_eq_inv_mul, div_le_iff hc] using hle }
+    simpa only [norm_inv, mul_inv, ← div_eq_inv_mul, div_le_iff hc] using hle }
 end
 
 theorem is_O.inv_rev {f : α → 𝕜} {g : α → 𝕜'} (h : is_O f g l)

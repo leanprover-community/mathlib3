@@ -228,7 +228,7 @@
 66:
   title  : Sum of a Geometric Series
   decls  :
-    - geom_sum
+    - geom_sum_Ico
     - nnreal.has_sum_geometric
   author : Sander R. Dahmen (finite) and Johannes Hölzl (infinite)
 67:

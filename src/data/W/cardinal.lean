@@ -74,7 +74,7 @@ calc cardinal.sum (λ a : α, m ^ #(β a))
     rw [hn],
     exact power_nat_le (le_max_right _ _)
   end))
-  (pos_iff_ne_zero.1 (succ_le.1
+  (pos_iff_ne_zero.1 (succ_le_iff.1
     begin
       rw [succ_zero],
       obtain ⟨a⟩ : nonempty α, from hn,

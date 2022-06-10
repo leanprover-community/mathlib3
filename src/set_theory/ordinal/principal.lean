@@ -209,10 +209,10 @@ begin
   { simp only [principal_zero, or.inl] },
   { rw [principal_add_iff_add_left_eq_self],
     simp only [ho, false_or],
-    refine ⟨λ H, ⟨_, ((lt_or_eq_of_le (opow_log_le _ (ordinal.pos_iff_ne_zero.2 ho)))
+    refine ⟨λ H, ⟨_, ((lt_or_eq_of_le (opow_log_le_self _ (ordinal.pos_iff_ne_zero.2 ho)))
         .resolve_left $ λ h, _).symm⟩, λ ⟨b, e⟩, e.symm ▸ λ a, add_omega_opow⟩,
     have := H _ h,
-    have := lt_opow_succ_log one_lt_omega o,
+    have := lt_opow_succ_log_self one_lt_omega o,
     rw [opow_succ, lt_mul_of_limit omega_is_limit] at this,
     rcases this with ⟨a, ao, h'⟩,
     rcases lt_omega.1 ao with ⟨n, rfl⟩, clear ao,
@@ -400,9 +400,9 @@ begin
     rw [mul_assoc, opow_succ],
     refine mul_le_mul_left' (le_of_lt (hb (hbl.2 _ _) hcb)) _,
     rw [div_lt hbo₀, ←opow_succ],
-    exact lt_opow_succ_log hb₁ _ },
+    exact lt_opow_succ_log_self hb₁ _ },
   { rw opow_succ,
-    exact mul_le_mul_right' (opow_log_le b ha) b }
+    exact mul_le_mul_right' (opow_log_le_self b ha) b }
 end
 
 /-! #### Exponential principal ordinals -/

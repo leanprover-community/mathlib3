@@ -27,12 +27,8 @@ namespace polynomial
 
 variables {𝕜 : Type*} [normed_linear_ordered_field 𝕜] (P Q : 𝕜[X])
 
-lemma eventually_no_roots (hP : P ≠ 0) : ∀ᶠ x in filter.at_top, ¬ P.is_root x :=
-begin
-  obtain ⟨x₀, hx₀⟩ := exists_max_root P hP,
-  refine filter.eventually_at_top.mpr (⟨x₀ + 1, λ x hx h, _⟩),
-  exact absurd (hx₀ x h) (not_le.mpr (lt_of_lt_of_le (lt_add_one x₀) hx)),
-end
+lemma eventually_no_roots (hP : P ≠ 0) : ∀ᶠ x in at_top, ¬ P.is_root x :=
+at_top_le_cofinite $ (finite_set_of_is_root hP).compl_mem_cofinite
 
 variables [order_topology 𝕜]
 
@@ -141,7 +137,7 @@ begin
   refine (P.is_equivalent_at_top_lead.symm.div
           Q.is_equivalent_at_top_lead.symm).symm.trans
          (eventually_eq.is_equivalent ((eventually_gt_at_top 0).mono $ λ x hx, _)),
-  simp [← div_mul_div_comm₀, hP, hQ, zpow_sub₀ hx.ne.symm]
+  simp [← div_mul_div_comm, hP, hQ, zpow_sub₀ hx.ne.symm]
 end
 
 lemma div_tendsto_zero_of_degree_lt (hdeg : P.degree < Q.degree) :

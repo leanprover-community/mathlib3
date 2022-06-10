@@ -31,6 +31,7 @@ universes v' u'
 
 open category_theory
 open category_theory.category
+open_locale classical
 
 namespace category_theory.limits
 
@@ -519,15 +520,13 @@ end image
 
 /-- In the presence of zero morphisms, coprojections into a coproduct are (split) monomorphisms. -/
 instance split_mono_sigma_ι
-  {β : Type v} [decidable_eq β]
-  [has_zero_morphisms C]
+  {β : Type v} [has_zero_morphisms C]
   (f : β → C) [has_colimit (discrete.functor f)] (b : β) : split_mono (sigma.ι f b) :=
 { retraction := sigma.desc (λ b', if h : b' = b then eq_to_hom (congr_arg f h) else 0), }
 
 /-- In the presence of zero morphisms, projections into a product are (split) epimorphisms. -/
 instance split_epi_pi_π
-  {β : Type v} [decidable_eq β]
-  [has_zero_morphisms C]
+  {β : Type v} [has_zero_morphisms C]
   (f : β → C) [has_limit (discrete.functor f)] (b : β) : split_epi (pi.π f b) :=
 { section_ := pi.lift (λ b', if h : b = b' then eq_to_hom (congr_arg f h) else 0), }
 

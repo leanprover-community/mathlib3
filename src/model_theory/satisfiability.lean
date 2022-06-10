@@ -20,6 +20,7 @@ every finite subset of `T` is satisfiable.
 models each sentence or its negation.
 * `first_order.language.Theory.semantically_equivalent`: `T.semantically_equivalent φ ψ` indicates
 that `φ` and `ψ` are equivalent formulas or sentences in models of `T`.
+* `cardinal.categorical`: A theory is `κ`-categorical if all models of size `κ` are isomorphic.
 
 ## Main Results
 * The Compactness Theorem, `first_order.language.Theory.is_satisfiable_iff_is_finitely_satisfiable`,
@@ -395,3 +396,18 @@ lemma induction_on_exists_not {P : Π {m}, L.bounded_formula α m → Prop} (φ 
 end bounded_formula
 end language
 end first_order
+
+namespace cardinal
+open first_order first_order.language
+
+variables {L : language.{u v}} (κ : cardinal.{w}) (T : L.Theory)
+
+/-- A theory is `κ`-categorical if all models of size `κ` are isomorphic. -/
+def categorical : Prop :=
+∀ (M N : T.Model), # M = κ → # N = κ → nonempty (M ≃[L] N)
+
+theorem empty_Theory_categorical (T : language.empty.Theory) :
+  κ.categorical T :=
+λ M N hM hN, by rw [empty.nonempty_equiv_iff, hM, hN]
+
+end cardinal

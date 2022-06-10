@@ -458,14 +458,17 @@ instance decidable_mem_incidence_set [decidable_eq V] [decidable_rel G.adj] (v :
 /--
 The `edge_set` of the graph as a `finset`.
 -/
-def edge_finset [decidable_eq V] [fintype V] [decidable_rel G.adj] : finset (sym2 V) :=
+@[reducible] def edge_finset [fintype G.edge_set] : finset (sym2 V) :=
 set.to_finset G.edge_set
 
-@[simp] lemma mem_edge_finset [decidable_eq V] [fintype V] [decidable_rel G.adj] (e : sym2 V) :
+@[simp] lemma mem_edge_finset [fintype G.edge_set] (e : sym2 V) :
   e ∈ G.edge_finset ↔ e ∈ G.edge_set :=
 set.mem_to_finset
 
-@[simp] lemma edge_set_univ_card [decidable_eq V] [fintype V] [decidable_rel G.adj] :
+lemma edge_finset_card [fintype G.edge_set] : G.edge_finset.card = fintype.card G.edge_set :=
+set.to_finset_card _
+
+@[simp] lemma edge_set_univ_card [fintype G.edge_set] :
   (univ : finset G.edge_set).card = G.edge_finset.card :=
 fintype.card_of_subtype G.edge_finset (mem_edge_finset _)
 

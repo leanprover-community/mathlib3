@@ -10,9 +10,7 @@ import tactic.abel
 # Combinatorial games.
 
 In this file we define the quotient of pre-games by the equivalence relation `p ≈ q ↔ p ≤ q ∧ q ≤
-p`, and construct an instance `add_comm_group game`, as well as an instance `partial_order game`
-(although note carefully the warning that the `<` field in this instance is not the usual relation
-on combinatorial games).
+p`, and construct an instance `add_comm_group game`, as well as an instance `partial_order game`.
 
 ## Multiplication on pre-games
 
@@ -48,71 +46,50 @@ open pgame
 
 namespace game
 
-instance : has_le game :=
-⟨quotient.lift₂ (λ x y, x ≤ y) (λ x₁ y₁ x₂ y₂ hx hy, propext (le_congr hx hy))⟩
-
--- Adding `@[refl]` and `@[trans]` attributes here would override the ones on
--- `preorder.le_refl` and `preorder.le_trans`, which breaks all non-`game` uses of `≤`!
-theorem le_rfl : ∀ {x : game}, x ≤ x :=
-by { rintro ⟨x⟩, exact pgame.le_rfl }
-theorem le_refl (x : game) : x ≤ x :=
-le_rfl
-theorem le_trans : ∀ x y z : game, x ≤ y → y ≤ z → x ≤ z :=
-by { rintro ⟨x⟩ ⟨y⟩ ⟨z⟩, apply pgame.le_trans }
-theorem le_antisymm : ∀ x y : game, x ≤ y → y ≤ x → x = y :=
-by { rintro ⟨x⟩ ⟨y⟩ h₁ h₂, apply quot.sound, exact ⟨h₁, h₂⟩ }
-
-/-- This instance is incompatible with that provided by `game.partial_order`, which is why it's made
-into a `def` instead. -/
-instance : has_lt game :=
-⟨quotient.lift₂ (λ x y, x < y) (λ x₁ y₁ x₂ y₂ hx hy, propext (lt_congr hx hy))⟩
-
-theorem lt_or_eq_of_le : ∀ {x y : game}, x ≤ y → x < y ∨ x = y :=
-by { rintro ⟨x⟩ ⟨y⟩, change _ → _ ∨ ⟦x⟧ = ⟦y⟧, rw quotient.eq, exact lt_or_equiv_of_le }
-
-instance : is_trichotomous game (<) :=
-⟨by { rintro ⟨x⟩ ⟨y⟩, change _ ∨ ⟦x⟧ = ⟦y⟧ ∨ _, rw quotient.eq, apply lt_or_equiv_or_gt }⟩
-
-@[simp] theorem not_le : ∀ {x y : game}, ¬ x ≤ y ↔ y < x :=
-by { rintro ⟨x⟩ ⟨y⟩, exact not_le }
-
-@[simp] theorem not_lt : ∀ {x y : game}, ¬ x < y ↔ y ≤ x :=
-by { rintro ⟨x⟩ ⟨y⟩, exact not_lt }
-
-instance : has_zero game := ⟨⟦0⟧⟩
-instance : inhabited game := ⟨0⟩
-instance : has_one game := ⟨⟦1⟧⟩
-
-/-- The negation of `{L | R}` is `{-R | -L}`. -/
-instance : has_neg game :=
-⟨quot.lift (λ x, ⟦-x⟧) (λ x y h, quot.sound (@neg_congr x y h))⟩
-
-/-- The sum of `x = {xL | xR}` and `y = {yL | yR}` is `{xL + y, x + yL | xR + y, x + yR}`. -/
-instance : has_add game :=
-⟨quotient.lift₂ (λ x y : pgame, ⟦x + y⟧) (λ x₁ y₁ x₂ y₂ hx hy, quot.sound (pgame.add_congr hx hy))⟩
-
-instance : add_semigroup game.{u} :=
-{ add_assoc := by { rintros ⟨x⟩ ⟨y⟩ ⟨z⟩, exact quot.sound add_assoc_equiv },
-  ..game.has_add }
-
-instance : add_monoid game :=
-{ add_zero := by { rintro ⟨x⟩, exact quot.sound (add_zero_equiv x) },
-  zero_add := by { rintro ⟨x⟩, exact quot.sound (zero_add_equiv x) },
-  ..game.has_zero,
-  ..game.add_semigroup }
-
-instance : add_group game :=
-{ add_left_neg := by { rintro ⟨x⟩, exact quot.sound (add_left_neg_equiv x) },
-  ..game.has_neg,
-  ..game.add_monoid }
-
-instance : add_comm_semigroup game :=
-{ add_comm := by { rintros ⟨x⟩ ⟨y⟩, exact quot.sound add_comm_equiv },
-  ..game.add_semigroup }
-
 instance : add_comm_group game :=
-{ ..game.add_comm_semigroup,
-  ..game.add_group }
+{ zero := ⟦0⟧,
+  neg := quot.lift (λ x, ⟦-x⟧) (λ x y h, quot.sound (@neg_congr x y h)),
+  add := quotient.lift₂ (λ x y : pgame, ⟦x + y⟧)
+    (λ x₁ y₁ x₂ y₂ hx hy, quot.sound (pgame.add_congr hx hy)),
+  add_zero := by { rintro ⟨x⟩, exact quot.sound (add_zero_equiv x) },
+  zero_add := by { rintro ⟨x⟩, exact quot.sound (zero_add_equiv x) },
+  add_assoc := by { rintros ⟨x⟩ ⟨y⟩ ⟨z⟩, exact quot.sound add_assoc_equiv },
+  add_left_neg := by { rintro ⟨x⟩, exact quot.sound (add_left_neg_equiv x) },
+  add_comm := by { rintros ⟨x⟩ ⟨y⟩, exact quot.sound add_comm_equiv } }
+
+instance : has_one game := ⟨⟦1⟧⟩
+instance : inhabited game := ⟨0⟩
+
+instance : partial_order game :=
+{ le := quotient.lift₂ (λ x y, x ≤ y) (λ x₁ y₁ x₂ y₂ hx hy, propext (le_congr hx hy)),
+  le_refl := by { rintro ⟨x⟩, exact le_refl x },
+  le_trans := by { rintro ⟨x⟩ ⟨y⟩ ⟨z⟩, exact @le_trans _ _ x y z },
+  le_antisymm := by { rintro ⟨x⟩ ⟨y⟩ h₁ h₂, apply quot.sound, exact ⟨h₁, h₂⟩ } }
+
+/-- The less or fuzzy relation on games.
+
+If `0 ⧏ x` (less or fuzzy with), then Left can win `x` as the first player. -/
+def lf : game → game → Prop :=
+quotient.lift₂ lf (λ x₁ y₁ x₂ y₂ hx hy, propext (lf_congr hx hy))
+
+local infix ` ⧏ `:50 := lf
+
+/-- On `pgame`, simp-normal inequalities should use as few negations as possible. -/
+@[simp] theorem not_le : ∀ {x y : game}, ¬ x ≤ y ↔ y ⧏ x :=
+by { rintro ⟨x⟩ ⟨y⟩, exact pgame.not_le }
+
+/-- On `pgame`, simp-normal inequalities should use as few negations as possible. -/
+@[simp] theorem not_lf : ∀ {x y : game}, ¬ x ⧏ y ↔ y ≤ x :=
+by { rintro ⟨x⟩ ⟨y⟩, exact pgame.not_lf }
+
+instance : is_trichotomous game (⧏) :=
+⟨by { rintro ⟨x⟩ ⟨y⟩, change _ ∨ ⟦x⟧ = ⟦y⟧ ∨ _, rw quotient.eq, apply lf_or_equiv_or_gf }⟩
+
+/-- The fuzzy, confused, or incomparable relation on games.
+
+If `x ∥ 0`, then the first player can always win `x`. -/
+def fuzzy : game → game → Prop :=
+quotient.lift₂ fuzzy (λ x₁ y₁ x₂ y₂ hx hy, propext (fuzzy_congr hx hy))
 
 instance covariant_class_add_le : covariant_class game game (+) (≤) :=
 ⟨by { rintro ⟨a⟩ ⟨b⟩ ⟨c⟩ h, exact @add_le_add_left _ _ _ _ b c h a }⟩
@@ -126,27 +103,13 @@ instance covariant_class_add_lt : covariant_class game game (+) (<) :=
 instance covariant_class_swap_add_lt : covariant_class game game (swap (+)) (<) :=
 ⟨by { rintro ⟨a⟩ ⟨b⟩ ⟨c⟩ h, exact @add_lt_add_right _ _ _ _ b c h a }⟩
 
--- While it is very tempting to define a `partial_order` on games, and prove
--- that games form an `ordered_add_comm_group`, it is a bit dangerous.
+theorem add_lf_add_right : ∀ {b c : game} (h : b ⧏ c) (a), b + a ⧏ c + a :=
+by { rintro ⟨b⟩ ⟨c⟩ h ⟨a⟩, apply add_lf_add_right h }
 
--- The relations `≤` and `<` on games do not satisfy
--- `lt_iff_le_not_le : ∀ a b : α, a < b ↔ (a ≤ b ∧ ¬ b ≤ a)`
--- (Consider `a = 0`, `b = star`.)
--- (`lt_iff_le_not_le` is satisfied by surreal numbers, however.)
--- Thus we can not use `<` when defining a `partial_order`.
+theorem add_lf_add_left : ∀ {b c : game} (h : b ⧏ c) (a), a + b ⧏ a + c :=
+by { rintro ⟨b⟩ ⟨c⟩ h ⟨a⟩, apply add_lf_add_left h }
 
--- Because of this issue, we define the `partial_order` and `ordered_add_comm_group` instances,
--- but do not actually mark them as instances, for safety.
-
-/-- The `<` operation provided by this partial order is not the usual `<` on games! -/
-def partial_order : partial_order game :=
-{ le_refl := le_refl,
-  le_trans := le_trans,
-  le_antisymm := le_antisymm,
-  ..game.has_le }
-
-/-- The `<` operation provided by this `ordered_add_comm_group` is not the usual `<` on games! -/
-def ordered_add_comm_group : ordered_add_comm_group game :=
+instance ordered_add_comm_group : ordered_add_comm_group game :=
 { add_le_add_left := @add_le_add_left _ _ _ game.covariant_class_add_le,
   ..game.add_comm_group,
   ..game.partial_order }

@@ -10,7 +10,7 @@ import .for_mathlib.partitions
 import .for_mathlib.set
 -- import data.setoid.partition
 import .equivariant_map
-import .sub_mul_action
+import .sub_mul_actions
 import .maximal_subgroups
 
 -- import group_theory.group_action.basic

@@ -20,15 +20,15 @@ This generalizes the notion defined as `mul_action_hom` in `group_action.lean`.
 
 We define :
 
-* `equivariant_map φ α β`, `α →[φ] β` : an equivariant map between to `has_scalar`.
-This means that `φ : M → N` is a map, `has_scalar M α`, `has_scalar N β` and `f : α →[φ] β`
+* `equivariant_map φ α β`, `α →ₑ[φ] β` : an equivariant map between to `has_scalar`.
+This means that `φ : M → N` is a map, `has_scalar M α`, `has_scalar N β` and `f : α →ₑ[φ] β`
 satisfies `f(m • a) = φ(m) • f(a)`.
 
-* composition of such maps, identies, inverses when possible
+* composition of such maps, identities, inverses when possible
 
 * some pointwise lemmas.
 
-We also introduce the notation `α →[M] β` to mean `α → [id M] β`.
+We also introduce the notation `α →[M] β` to mean `α →ₑ[id M] β`.
 
 * `is_equivariant φ f` is a predicate that says that `f : α → β`
 is equivariant with respect to `φ`.

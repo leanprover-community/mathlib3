@@ -17,38 +17,56 @@ open_locale classical
 
 variable {α : Type*}
 
+example (h q : Prop) : h → ¬h → q := begin
+exact absurd,
+end
+
 /-- Given a nat.card inequality, get an embedding from a fin _ -/
-lemma gimme_some {m : ℕ} (hα : m ≤ nat.card α) : ∃ (x : fin m ↪ α), true :=
+lemma gimme_some {m : ℕ} (hα : ↑m ≤ enat.card α) : ∃ (x : fin m ↪ α), true :=
 begin
-  cases fintype_or_infinite α; resetI,
-  { suffices : ∃ (x' : ulift (fin m) ↪ α), true,
+  suffices : ∃ (x' : ulift (fin m) ↪ α), true,
     { obtain ⟨x'⟩ := this, use equiv.ulift.symm.to_embedding.trans x' },
-    rw [exists_true_iff_nonempty, ← cardinal.le_def],
-    simp only [cardinal.mk_fintype, fintype.card_ulift, fintype.card_fin],
-    simp only [cardinal.nat_cast_le, ← nat.card_eq_fintype_card],
-    exact hα, },
-  { rw [nat.card_eq_zero_of_infinite, nonpos_iff_eq_zero] at hα,
-    rw hα,
-    use function.embedding.of_is_empty }
+  rw [exists_true_iff_nonempty, ← cardinal.le_def],
+  simp only [cardinal.mk_fintype, fintype.card_ulift, fintype.card_fin],
+  cases lt_or_ge (cardinal.mk α) (cardinal.aleph_0),
+  { obtain ⟨n, hn⟩ := (cardinal.lt_aleph_0.1 h),
+    rw hn, simp only [cardinal.nat_cast_le],
+    unfold enat.card at hα, rw hn at hα,
+    simpa only [cardinal.to_enat_cast, enat.coe_le_coe] using hα },
+  { refine le_trans _ h,
+    apply le_of_lt,
+    exact cardinal.nat_lt_aleph_0 m }
+end
+
+lemma gimme_some_equiv {m : ℕ} [fintype α] (hα : m = fintype.card α) :
+  ∃ (x : fin m ≃ α), true :=
+begin
+  suffices : ∃ (x' : ulift (fin m) ≃ α), true,
+  { obtain ⟨x'⟩ := this, use equiv.ulift.symm.trans x' },
+  rw [exists_true_iff_nonempty, ← cardinal.eq],
+  simp only [cardinal.mk_fintype, fintype.card_ulift, fintype.card_fin, nat.cast_inj],
+  exact hα,
 end
 
 /-- Given an embedding and a strict nat.card inequality, get another element  -/
-lemma gimme_another {m : ℕ} (x : fin m → α) (hα : m < nat.card α) :
+lemma gimme_another {m : ℕ} (x : fin m → α) (hα : ↑m < enat.card α) :
   ∃ (a : α), a ∉ set.range x :=
 begin
-  cases fintype_or_infinite α; resetI,
-  { apply not_forall.mp,
-    -- change ¬ (function.surjective x),
-    intro h,
-    apply (lt_iff_not_ge _ _).mp  hα,
-    --   rw ge_iff_le,
-    let hx := cardinal.mk_le_of_surjective (ulift.surjective_iff_surjective.mpr h),
-    simp only [cardinal.mk_fintype, fintype.card_ulift, fintype.card_fin, cardinal.nat_cast_le] at hx,
-    rw nat.card_eq_fintype_card,
-    exact hx },
+  rw ← not_forall,
+  intro h,
+  apply (lt_iff_not_ge _ _).mp  hα,
+  let hx := cardinal.mk_range_le_lift,
+  rw set.eq_univ_of_forall h at hx,
+  simp only [cardinal.mk_univ, cardinal.lift_uzero, cardinal.mk_fin, cardinal.lift_nat_cast] at hx,
+
+  cases lt_or_ge (cardinal.mk α) (cardinal.aleph_0) with hα' hα',
+  { obtain ⟨n, hn⟩ := (cardinal.lt_aleph_0.1 hα'),
+    unfold enat.card, rw hn,
+    simp only [cardinal.to_enat_cast, ge_iff_le, enat.coe_le_coe],
+    simpa only [hn, cardinal.lift_nat_cast, cardinal.nat_cast_le] using hx },
   { exfalso,
-    rw nat.card_eq_zero_of_infinite at hα,
-    simpa using hα }
+    apply (lt_iff_not_ge _ _).mp (cardinal.nat_lt_aleph_0 m),
+    exact le_trans hα' hx }
 end
 
 /-- Extend a fin embedding by another element -/
@@ -85,10 +103,15 @@ begin
   { simp only [not_lt, coe_fn_mk, dif_neg] }
 end
 
+example (m n : ℕ) (h : m ≤ n): (m : enat) ≤ n :=
+begin
+exact enat.coe_le_coe.mpr h,
+end
+
+
 /-- Extend an embedding from fin given a nat.card inequality -/
-lemma may_extend {m n : ℕ} (hmn : m ≤ n) (hα : n ≤ nat.card α) (x : fin m ↪ α) :
+lemma may_extend {m n : ℕ} (hmn : m ≤ n) (hα : ↑n ≤ enat.card α) (x : fin m ↪ α) :
   ∃ (x' : fin n ↪ α), (fin.cast_le hmn).to_embedding.trans x' = x :=
- -- ∀ (i : fin m), x' (⟨i.val, lt_of_lt_of_le i.prop hmn⟩ : fin n) = x i
 begin
   induction n with n hrec,
   { simp only [nat.nat_zero_eq_zero, nonpos_iff_eq_zero] at hmn,
@@ -104,9 +127,9 @@ begin
         equiv.to_embedding_apply, rel_iso.coe_fn_to_equiv, fin.cast_mk] },
     -- case where m < n.succ
     { obtain ⟨y, hy⟩ :=
-      hrec (nat.le_of_lt_succ h) (le_trans (le_succ n) hα),
+      hrec (nat.le_of_lt_succ h) (le_trans (enat.coe_le_coe.mpr (le_succ n)) hα),
       obtain ⟨a,ha⟩ :=
-      gimme_another y (lt_of_lt_of_le (nat.lt_succ_self n) hα),
+      gimme_another y (lt_of_lt_of_le (enat.coe_lt_coe.mpr (nat.lt_succ_self n)) hα),
       obtain ⟨x', hx', hx'a⟩ := may_extend_with y a ha,
       use x', rw ← hy, rw ← hx',
       ext ⟨i, hi⟩, refl } }

@@ -17,7 +17,7 @@ import .for_mathlib.stabilizer
 import .for_mathlib.pretransitive
 import .for_mathlib.set
 import .equivariant_map
-import .sub_mul_action
+import .sub_mul_actions
 import .for_mathlib.partitions
 import .maximal_subgroups
 import .blocks

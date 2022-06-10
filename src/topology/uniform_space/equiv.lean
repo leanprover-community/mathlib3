@@ -108,7 +108,7 @@ h.uniform_continuous_symm.continuous
 protected def to_homeomorph (e : α ≃ᵤ β) : α ≃ₜ β :=
 { continuous_to_fun := e.continuous,
   continuous_inv_fun := e.continuous_symm,
-  to_equiv := e.to_equiv }
+  .. e.to_equiv }
 
 @[simp] lemma apply_symm_apply (h : α ≃ᵤ β) (x : β) : h (h.symm x) = x :=
 h.to_equiv.apply_symm_apply x
@@ -266,4 +266,4 @@ end uniform_equiv
   α ≃ᵤ β :=
 { uniform_continuous_to_fun := hf.uniform_continuous,
   uniform_continuous_inv_fun := hf.uniform_continuous_iff.2 $ by simpa using uniform_continuous_id,
-  to_equiv := f }
+  .. f }

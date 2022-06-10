@@ -28,6 +28,12 @@ def modeq (n a b : ℤ) := a % n = b % n
 
 notation a ` ≡ `:50 b ` [ZMOD `:50 n `]`:0 := modeq n a b
 
+/-- `a ≢ b [ZMOD n]` when `a % n ≠ b % n`. -/
+@[derive decidable]
+def modneq (n a b : ℕ) := a % n ≠ b % n
+
+notation a ` ≢ `:50 b ` [ZMOD `:50 n `]`:0 := modneq n a b
+
 variables {m n a b c d : ℤ}
 
 namespace modeq

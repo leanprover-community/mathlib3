@@ -108,7 +108,7 @@ h.uniform_continuous_symm.continuous
 protected def to_homeomorph (e : α ≃ᵤ β) : α ≃ₜ β :=
 { continuous_to_fun := e.continuous,
   continuous_inv_fun := e.continuous_symm,
-  ..e.to_equiv }
+  to_equiv := e.to_equiv }
 
 @[simp] lemma apply_symm_apply (h : α ≃ᵤ β) (x : β) : h (h.symm x) = x :=
 h.to_equiv.apply_symm_apply x
@@ -169,7 +169,7 @@ noncomputable def of_uniform_embedding (f : α → β) (hf : uniform_embedding f
     hf.to_uniform_inducing.uniform_continuous _,
   uniform_continuous_inv_fun :=
     by simp [hf.to_uniform_inducing.uniform_continuous_iff, uniform_continuous_subtype_coe],
-  .. equiv.of_injective f hf.inj }
+  to_equiv := equiv.of_injective f hf.inj }
 
 /-- If two sets are equal, then they are uniformly equivalent. -/
 def set_congr {s t : set α} (h : s = t) : s ≃ᵤ t :=
@@ -245,7 +245,7 @@ def {u} pi_fin_two (α : fin 2 → Type u) [Π i, uniform_space (α i)] : (Π i,
 
 /-- Uniform isomorphism between `α² = fin 2 → α` and `α × α`. -/
 @[simps { fully_applied := ff }] def fin_two_arrow : (fin 2 → α) ≃ᵤ α × α :=
-{ to_equiv := fin_two_arrow_equiv α, ..  pi_fin_two (λ _, α) }
+{ to_equiv := fin_two_arrow_equiv α, .. pi_fin_two (λ _, α) }
 
 /--
 A subset of a uniform space is uniformly isomorphic to its image under a uniform isomorphism.
@@ -266,4 +266,4 @@ end uniform_equiv
   α ≃ᵤ β :=
 { uniform_continuous_to_fun := hf.uniform_continuous,
   uniform_continuous_inv_fun := hf.uniform_continuous_iff.2 $ by simpa using uniform_continuous_id,
-  .. f }
+  to_equiv := f }

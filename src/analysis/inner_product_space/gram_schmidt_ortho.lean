@@ -185,23 +185,35 @@ begin
     exact span_mono (image_subset_range _ (Iic i)) (mem_span_gram_schmidt 𝕜 f i i (le_refl i)) }
 end
 
-/-- If the input vectors of `gram_schmidt` are linearly independent,
-then the output vectors are non-zero. -/
-lemma gram_schmidt_ne_zero (f : ι → E) (n : ι) (h₀ : linear_independent 𝕜 f) :
+lemma gram_schmidt_ne_zero_coe [succ_order ι] [is_succ_archimedean ι]
+    (f : ι → E) (n : ι) (h₀ : linear_independent 𝕜 (f ∘ (coe : set.Iic n → ι))) :
   gram_schmidt 𝕜 f n ≠ 0 :=
 begin
   by_contra h,
-  have h₃ : f n ∈ span 𝕜 (f '' Iio n),
+  have h₁ : f n ∈ span 𝕜 (f '' Iio n),
   { rw [← span_gram_schmidt_Iio 𝕜 f n, gram_schmidt_def' _ f, h, zero_add],
     apply submodule.sum_mem _ _,
     simp_intros a ha only [finset.mem_Ico],
     simp only [set.mem_image, set.mem_Iio, orthogonal_projection_singleton],
     apply submodule.smul_mem _ _ _,
     rw finset.mem_Iio at ha,
-    refine subset_span ⟨a, ha, by refl⟩, },
-  apply linear_independent.not_mem_span_image h₀ _ h₃,
+    refine subset_span ⟨a, ha, by refl⟩ },
+  have h₂ : (f ∘ (coe : set.Iic n → ι)) ⟨n, le_refl n⟩
+    ∈ span 𝕜 (f ∘ (coe : set.Iic n → ι) '' Iio ⟨n, le_refl n⟩),
+  { rw [image_comp],
+    convert h₁ using 3,
+    ext i,
+    simpa using @le_of_lt _ _ i n },
+  apply linear_independent.not_mem_span_image h₀ _ h₂,
   simp only [set.mem_Iio, lt_self_iff_false, not_false_iff]
 end
+
+/-- If the input vectors of `gram_schmidt` are linearly independent,
+then the output vectors are non-zero. -/
+lemma gram_schmidt_ne_zero [succ_order ι] [is_succ_archimedean ι]
+    (f : ι → E) (n : ι) (h₀ : linear_independent 𝕜 f) :
+  gram_schmidt 𝕜 f n ≠ 0 :=
+gram_schmidt_ne_zero_coe _ _ _ (linear_independent.comp h₀ _ subtype.coe_injective)
 
 /-- `gram_schmidt` produces a triangular matrix of vectors when given a basis. -/
 lemma gram_schmidt_triangular {i j : ι} (hij : i < j) (b : basis ι 𝕜 E) :
@@ -237,10 +249,15 @@ lemma coe_gram_schmidt_basis (b : basis ι 𝕜 E) :
 noncomputable def gram_schmidt_normed (f : ι → E) (n : ι) : E :=
 (∥gram_schmidt 𝕜 f n∥ : 𝕜)⁻¹ • (gram_schmidt 𝕜 f n)
 
+lemma gram_schmidt_normed_unit_length_coe
+    (f : ι → E) (n : ι) (h₀ : linear_independent 𝕜 (f ∘ (coe : set.Iic n → ι))) :
+  ∥gram_schmidt_normed 𝕜 f n∥ = 1 :=
+by simp only [gram_schmidt_ne_zero_coe 𝕜 f n h₀,
+  gram_schmidt_normed, norm_smul_inv_norm, ne.def, not_false_iff]
+
 lemma gram_schmidt_normed_unit_length (f : ι → E) (n : ι) (h₀ : linear_independent 𝕜 f) :
   ∥gram_schmidt_normed 𝕜 f n∥ = 1 :=
-by simp only [gram_schmidt_ne_zero 𝕜 f n h₀,
-  gram_schmidt_normed, norm_smul_inv_norm, ne.def, not_false_iff]
+gram_schmidt_normed_unit_length_coe _ _ _ (linear_independent.comp h₀ _ subtype.coe_injective)
 
 /-- **Gram-Schmidt Orthonormalization**:
 `gram_schmidt_normed` produces an orthornormal system of vectors. -/

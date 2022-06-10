@@ -5,6 +5,7 @@ Authors: Scott Morrison
 -/
 import category_theory.limits.preserves.shapes.pullbacks
 import category_theory.limits.shapes.zero_morphisms
+import category_theory.limits.constructions.binary_products
 
 /-!
 # Pullback and pushout squares
@@ -36,6 +37,8 @@ but do restate the pasting lemmas.
 Bicartesian squares, and
 show that the pullback and pushout squares for a biproduct are bicartesian.
 -/
+
+noncomputable theory
 
 open category_theory
 open category_theory.limits
@@ -157,6 +160,28 @@ lemma of_has_pullback (f : X ⟶ Z) (g : Y ⟶ Z) [has_pullback f g] :
   is_pullback (pullback.fst : pullback f g ⟶ X) (pullback.snd : pullback f g ⟶ Y) f g :=
 of_is_limit (limit.is_limit (cospan f g))
 
+/-- If `c` is a limiting binary product cone, and we have a terminal object,
+then we have `is_pullback c.fst c.snd 0 0`
+(where each `0` is the unique morphism to the terminal object). -/
+lemma of_is_product {c : binary_fan X Y} (h : limits.is_limit c) (t : is_terminal Z) :
+  is_pullback c.fst c.snd (t.from _) (t.from _) :=
+of_is_limit (is_pullback_of_is_terminal_is_product _ _ _ _ t
+  (is_limit.of_iso_limit h (limits.cones.ext (iso.refl c.X) (by rintro ⟨⟨⟩⟩; { dsimp, simp, }))))
+
+variables (X Y)
+
+lemma of_has_binary_product' [has_binary_product X Y] [has_terminal C] :
+  is_pullback limits.prod.fst limits.prod.snd (terminal.from X) (terminal.from Y) :=
+of_is_product (limit.is_limit _) terminal_is_terminal
+
+open_locale zero_object
+
+lemma of_has_binary_product [has_binary_product X Y] [has_zero_object C] [has_zero_morphisms C] :
+  is_pullback limits.prod.fst limits.prod.snd (0 : X ⟶ 0) (0 : Y ⟶ 0) :=
+by convert of_is_product (limit.is_limit _) has_zero_object.zero_is_terminal
+
+variables {X Y}
+
 /-- Any object at the top left of a pullback square is
 isomorphic to the pullback provided by the `has_limit` API. -/
 noncomputable
@@ -215,6 +240,30 @@ of_is_colimit h
 lemma of_has_pushout (f : Z ⟶ X) (g : Z ⟶ Y) [has_pushout f g] :
   is_pushout f g (pushout.inl : X ⟶ pushout f g) (pushout.inr : Y ⟶ pushout f g) :=
 of_is_colimit (colimit.is_colimit (span f g))
+
+/-- If `c` is a colimiting binary coproduct cocone, and we have an initial object,
+then we have `is_pushout 0 0 c.inl c.inr`
+(where each `0` is the unique morphism from the initial object). -/
+lemma of_is_coproduct {c : binary_cofan X Y} (h : limits.is_colimit c) (t : is_initial Z) :
+  is_pushout (t.to _) (t.to _) c.inl c.inr :=
+of_is_colimit (is_pushout_of_is_initial_is_coproduct _ _ _ _ t
+  (is_colimit.of_iso_colimit h
+    (limits.cocones.ext (iso.refl c.X) (by rintro ⟨⟨⟩⟩; { dsimp, simp, }))))
+
+variables (X Y)
+
+lemma of_has_binary_coproduct' [has_binary_coproduct X Y] [has_initial C] :
+  is_pushout (initial.to _) (initial.to _) (coprod.inl : X ⟶ _) (coprod.inr : Y ⟶ _)  :=
+of_is_coproduct (colimit.is_colimit _) initial_is_initial
+
+open_locale zero_object
+
+lemma of_has_binary_coproduct
+  [has_binary_coproduct X Y] [has_zero_object C] [has_zero_morphisms C] :
+  is_pushout (0 : 0 ⟶ X) (0 : 0 ⟶ Y) coprod.inl coprod.inr :=
+by convert of_is_coproduct (colimit.is_colimit _) has_zero_object.zero_is_initial
+
+variables {X Y}
 
 /-- Any object at the top left of a pullback square is
 isomorphic to the pullback provided by the `has_limit` API. -/

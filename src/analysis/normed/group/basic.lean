@@ -510,15 +510,17 @@ begin
   exact ⟨C, λ x hx, hC _ (set.mem_image_of_mem _ hx)⟩,
 end
 
-lemma add_monoid_hom.isometry_iff_norm (f : E →+ F) : isometry f ↔ ∀ x, ∥f x∥ = ∥x∥ :=
+lemma add_monoid_hom_class.isometry_iff_norm {F' : Type*} [add_monoid_hom_class F' E F]
+  (f : F') : isometry f ↔ ∀ x, ∥f x∥ = ∥x∥ :=
 begin
-  simp only [isometry_emetric_iff_metric, dist_eq_norm, ← f.map_sub],
+  simp only [isometry_emetric_iff_metric, dist_eq_norm, ←map_sub],
   refine ⟨λ h x, _, λ h x y, h _⟩,
   simpa using h x 0
 end
 
-lemma add_monoid_hom.isometry_of_norm (f : E →+ F) (hf : ∀ x, ∥f x∥ = ∥x∥) : isometry f :=
-f.isometry_iff_norm.2 hf
+lemma add_monoid_hom_class.isometry_of_norm {F' : Type*} [add_monoid_hom_class F' E F]
+  (f : F') (hf : ∀ x, ∥f x∥ = ∥x∥) : isometry f :=
+(add_monoid_hom_class.isometry_iff_norm f).2 hf
 
 lemma controlled_sum_of_mem_closure {s : add_subgroup E} {g : E}
   (hg : g ∈ closure (s : set E)) {b : ℕ → ℝ} (b_pos : ∀ n, 0 < b n) :

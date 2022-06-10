@@ -185,7 +185,7 @@ begin
     exact span_mono (image_subset_range _ (Iic i)) (mem_span_gram_schmidt 𝕜 f i i (le_refl i)) }
 end
 
-lemma gram_schmidt_ne_zero_coe [succ_order ι] [is_succ_archimedean ι]
+lemma gram_schmidt_ne_zero_coe
     (f : ι → E) (n : ι) (h₀ : linear_independent 𝕜 (f ∘ (coe : set.Iic n → ι))) :
   gram_schmidt 𝕜 f n ≠ 0 :=
 begin
@@ -210,8 +210,7 @@ end
 
 /-- If the input vectors of `gram_schmidt` are linearly independent,
 then the output vectors are non-zero. -/
-lemma gram_schmidt_ne_zero [succ_order ι] [is_succ_archimedean ι]
-    (f : ι → E) (n : ι) (h₀ : linear_independent 𝕜 f) :
+lemma gram_schmidt_ne_zero (f : ι → E) (n : ι) (h₀ : linear_independent 𝕜 f) :
   gram_schmidt 𝕜 f n ≠ 0 :=
 gram_schmidt_ne_zero_coe _ _ _ (linear_independent.comp h₀ _ subtype.coe_injective)
 
@@ -224,7 +223,7 @@ begin
   have : gram_schmidt 𝕜 b i ∈ span 𝕜 (b '' set.Iio j),
     by rwa [← span_gram_schmidt_Iio 𝕜 b j],
   have : ↑(((b.repr) (gram_schmidt 𝕜 b i)).support) ⊆ set.Iio j,
-    from basis.repr_support_of_mem_span b (set.Iio j) (gram_schmidt 𝕜 b i) this,
+    from basis.repr_support_subset_of_mem_span b (set.Iio j) this,
   exact (finsupp.mem_supported' _ _).1
     ((finsupp.mem_supported 𝕜 _).2 this) j (not_mem_Iio.2 (le_refl j)),
 end

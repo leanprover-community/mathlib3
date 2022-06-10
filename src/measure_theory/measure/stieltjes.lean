@@ -214,7 +214,7 @@ begin
 end
 
 lemma measurable_set_Ioi {c : ℝ} :
-  f.outer.caratheodory.measurable_set' (Ioi c) :=
+  measurable_set[f.outer.caratheodory] (Ioi c) :=
 begin
   apply outer_measure.of_function_caratheodory (λ t, _),
   refine le_infi (λ a, le_infi (λ b, le_infi (λ h, _))),

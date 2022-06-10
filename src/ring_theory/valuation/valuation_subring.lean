@@ -485,4 +485,74 @@ lemma maximal_ideal_equiv_symm_map_smul (a b : local_ring.maximal_ideal A) :
 
 end maximal_ideal
 
+section principal_unit_group
+
+/-- The principal unit group of a valuation subring, as a subgroup of `Kˣ`. -/
+def principal_unit_group : subgroup Kˣ :=
+{ carrier := { x | A.valuation (x - 1) < 1 },
+  mul_mem' := begin
+    intros a b ha hb,
+    refine lt_of_le_of_lt _ (max_lt hb ha),
+    rw [← one_mul (A.valuation (b - 1)), ← A.valuation.map_one_add_of_lt ha, add_sub_cancel'_right,
+      ← valuation.map_mul, mul_sub_one, ← sub_add_sub_cancel],
+    exact A.valuation.map_add _ _,
+  end,
+  one_mem' := by { simpa using zero_lt_one₀ },
+  inv_mem' := begin
+    rintros a ha,
+    rwa [set.mem_set_of_eq, ← mul_one (A.valuation (_)), ← A.valuation.map_one_add_of_lt ha,
+      add_sub_cancel'_right, ← valuation.map_mul, sub_mul, units.inv_mul, one_mul,
+      ← neg_sub (a : K), valuation.map_neg, ← add_sub_cancel'_right _ (a : K),
+      A.valuation.map_one_add_of_lt ha, add_sub_cancel'],
+  end }
+
+lemma mem_principal_unit_group_iff (x : Kˣ) :
+  x ∈ A.principal_unit_group ↔ A.valuation ((x : K) - 1) < 1 := iff.refl _
+
+lemma eq_iff_principal_unit_group (A B : valuation_subring K) :
+  A = B ↔ A.principal_unit_group = B.principal_unit_group :=
+begin
+  simp_rw [← A.valuation_subring_valuation, ← B.valuation_subring_valuation,
+    ← valuation.is_equiv_iff_valuation_subring,
+    A.valuation_subring_valuation, B.valuation_subring_valuation,
+    valuation.is_equiv_iff_val_sub_one_lt_one, set_like.ext_iff],
+  split,
+  { intros h x, apply h },
+  { intros h x,
+    by_cases hx : x = 0,
+    { simp only [hx, zero_sub, valuation.map_neg, valuation.map_one, lt_self_iff_false] },
+    { exact h (units.mk0 x hx) } }
+end
+
+def principal_unit_group_ordered_embedding :
+  valuation_subring K ↪o (subgroup Kˣ)ᵒᵈ :=
+{ to_fun := λ A, A.principal_unit_group,
+  inj' := λ A B h, by rwa eq_iff_principal_unit_group,
+  map_rel_iff' := begin
+    intros A B,
+    dsimp,
+    split,
+    { rintros h x hx,
+      by_cases h_1 : x = 0, { simp only [h_1, zero_mem] },
+      by_cases h_2 : x⁻¹ + 1 = 0,
+      { rw add_eq_zero_iff_eq_neg at h_2,
+        apply_fun B.valuation at h_2,
+        rw [valuation.map_neg, valuation.map_one, valuation.map_inv, inv_eq_one₀] at h_2,
+        exact (B.valuation_le_one_iff _).1 (le_of_eq h_2) },
+      by_contra h_3,
+      rw [← valuation_le_one_iff, not_le, B.valuation.one_lt_val_iff h_1, ← add_sub_cancel x⁻¹,
+        ← units.coe_mk0 h_2, ← mem_principal_unit_group_iff] at h_3,
+      have := h h_3,
+      rw [mem_principal_unit_group_iff, units.coe_mk0 h_2, add_sub_cancel,
+        ← A.valuation.one_lt_val_iff h_1, ← not_le, valuation_le_one_iff] at this,
+      exact this hx },
+    { rintros h x hx,
+      by_contra h_1, from not_lt.2 (monotone_map_of_le _ _ h (not_lt.1 h_1)) hx }
+  end }
+
+lemma principal_units_le_units : A.principal_unit_group ≤ A.unit_group :=
+λ a h, by {simpa using A.valuation.map_one_add_of_lt h}
+
+end principal_unit_group
+
 end valuation_subring

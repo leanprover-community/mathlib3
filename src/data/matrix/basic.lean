@@ -57,6 +57,11 @@ ext_iff.mp
 
 end ext
 
+/-- Cast a function into a matrix -/
+def of : (m → n → α) ≃ matrix m n α := equiv.refl _
+@[simp] lemma of_apply (f : m → n → α) (i j) : of f i j = f i j := rfl
+@[simp] lemma of_symm_apply (f : matrix m n α) (i j) : of.symm f i j = f i j := rfl
+
 /-- `M.map f` is the matrix obtained by applying `f` to each entry of the matrix `M`.
 
 This is available in bundled forms as:
@@ -139,6 +144,18 @@ instance [monoid R] [add_monoid α] [distrib_mul_action R α] :
   distrib_mul_action R (matrix m n α) := pi.distrib_mul_action _
 instance [semiring R] [add_comm_monoid α] [module R α] :
   module R (matrix m n α) := pi.module _ _ _
+
+@[simp] lemma of_zero [has_zero α] : of (0 : m → n → α) = 0 := rfl
+@[simp] lemma of_symm_zero [has_zero α] : of.symm 0 = (0 : m → n → α) := rfl
+@[simp] lemma of_add [has_add α] (f g : m → n → α) : of (f + g) = of f + of g := rfl
+@[simp] lemma of_symm_add [has_add α] (A B : matrix m n α) : of.symm (A + B) = of A + of B := rfl
+@[simp] lemma of_sub [has_sub α] (f g : m → n → α) : of (f - g) = of f - of g := rfl
+@[simp] lemma of_symm_sub [has_sub α] (A B : matrix m n α) : of.symm (A - B) = of A - of B := rfl
+@[simp] lemma of_neg [has_neg α] (f : m → n → α) : of (-f) = -of f := rfl
+@[simp] lemma of_symm_neg [has_neg α] (A : matrix m n α) : of.symm (-A) = -of A := rfl
+@[simp] lemma of_smul [has_scalar R α] (r : R) (f : m → n → α) : of (r • f) = r • of f := rfl
+@[simp] lemma of_symm_smul [has_scalar R α] (r : R) (A : matrix m n α) :
+  of.symm (r • A) = r • of A := rfl
 
 @[simp] protected lemma map_zero [has_zero α] [has_zero β] (f : α → β) (h : f 0 = 0) :
   (0 : matrix m n α).map f = 0 :=

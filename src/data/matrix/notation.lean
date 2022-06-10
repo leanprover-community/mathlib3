@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Anne Baanen
+Authors: Anne Baanen, Eric Wieser
 -/
 import data.matrix.basic
 import data.fin.vec_notation
@@ -39,13 +39,38 @@ variables {α : Type u} {o n m : ℕ} {m' n' o' : Type*}
 
 open_locale matrix
 
+section parser
+open lean
+open lean.parser
+open interactive
+open interactive.types
+
+private meta def parser_aux {α} (p : parser α) : parser (list (list α)) :=
+brackets "[" "]" $ sep_by (skip_info (tk ";")) $ sep_by (skip_info (tk ",")) p
+
+reserve prefix `!ₘ `:100
+
+@[user_notation]
+meta def «notation» (_ : parse $ tk "!ₘ") (m : parse $ parser_aux parser.pexpr) : parser pexpr :=
+do
+  let rows := m.foldr (λ row m_out,
+    let row := row.foldr (λ xij row_out, ``(matrix.vec_cons %%xij %%row_out)) ``(![]) in
+    ``(matrix.vec_cons %%row %%m_out)) ``(![]),
+  pure ``(matrix.of %%rows)
+
+end parser
+
+
 /-- Use `![...]` notation for displaying a `fin`-indexed matrix, for example:
 
 ```
-#eval ![![1, 2], ![3, 4]] + ![![3, 4], ![5, 6]] -- ![![4, 6], ![8, 10]]
+#eval !ₘ[1, 2; 3, 4] + !ₘ[3, 4; 5, 6]  -- !ₘ[4, 6; 8, 10]
 ```
 -/
-instance [has_repr α] : has_repr (matrix (fin m) (fin n) α) := pi_fin.has_repr
+instance [has_repr α] : has_repr (matrix (fin m) (fin n) α) :=
+{ repr := λ f,
+  "!ₘ[" ++ (string.intercalate "; " $ (list.fin_range m).map $ λ i,
+    string.intercalate ", " $ (list.fin_range n).map (λ j, repr (f i j)))  ++ "]" }
 
 @[simp] lemma cons_val' (v : n' → α) (B : matrix (fin m) n' α) (i j) :
   vec_cons v B i j = vec_cons (v j) (λ i, B i j) i :=

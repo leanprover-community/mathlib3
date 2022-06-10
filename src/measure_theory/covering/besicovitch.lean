@@ -7,7 +7,7 @@ import measure_theory.covering.differentiation
 import measure_theory.covering.vitali_family
 import measure_theory.integral.lebesgue
 import measure_theory.measure.regular
-import set_theory.ordinal_arithmetic
+import set_theory.ordinal.arithmetic
 import topology.metric_space.basic
 
 /-!
@@ -139,7 +139,7 @@ class has_besicovitch_covering (α : Type*) [metric_space α] : Prop :=
 /-- There is always a satellite configuration with a single point. -/
 instance {α : Type*} {τ : ℝ} [inhabited α] [metric_space α] :
   inhabited (besicovitch.satellite_config α 0 τ) :=
-⟨{ c := λ i, default,
+⟨{ c := default,
   r := λ i, 1,
   rpos := λ i, zero_lt_one,
   h := λ i j hij, (hij (subsingleton.elim i j)).elim,

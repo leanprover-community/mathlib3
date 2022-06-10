@@ -319,6 +319,13 @@ by rw [attach_affine_combination_of_injective s w (coe : s → P) subtype.coe_in
 
 omit S
 
+/-- Viewing a module as an affine space modelled on itself, a `weighted_vsub` is just a linear
+combination. -/
+@[simp] lemma weighted_vsub_eq_linear_combination
+  {ι} (s : finset ι) {w : ι → k} {p : ι → V} (hw : s.sum w = 0) :
+  s.weighted_vsub p w = ∑ i in s, w i • p i :=
+by simp [s.weighted_vsub_apply, vsub_eq_sub, smul_sub, ← finset.sum_smul, hw]
+
 /-- Viewing a module as an affine space modelled on itself, affine combinations are just linear
 combinations. -/
 @[simp] lemma affine_combination_eq_linear_combination (s : finset ι) (p : ι → V) (w : ι → k)
@@ -531,7 +538,7 @@ by simp [centroid_def, affine_combination_apply]
 
 /-- The centroid of two points, expressed directly as adding a vector
 to a point. -/
-lemma centroid_insert_singleton [invertible (2 : k)] (p : ι → P) (i₁ i₂ : ι) :
+lemma centroid_pair [invertible (2 : k)] (p : ι → P) (i₁ i₂ : ι) :
   ({i₁, i₂} : finset ι).centroid k p = (2 ⁻¹ : k) • (p i₂ -ᵥ p i₁) +ᵥ p i₁ :=
 begin
   by_cases h : i₁ = i₂,
@@ -543,17 +550,16 @@ begin
     rw [centroid_def,
         affine_combination_eq_weighted_vsub_of_point_vadd_of_sum_eq_one _ _ _
           (sum_centroid_weights_eq_one_of_cast_card_ne_zero _ hc) (p i₁)],
-    simp [h],
-    norm_num }
+    simp [h] }
 end
 
 /-- The centroid of two points indexed by `fin 2`, expressed directly
 as adding a vector to the first point. -/
-lemma centroid_insert_singleton_fin [invertible (2 : k)] (p : fin 2 → P) :
+lemma centroid_pair_fin [invertible (2 : k)] (p : fin 2 → P) :
   univ.centroid k p = (2 ⁻¹ : k) • (p 1 -ᵥ p 0) +ᵥ p 0 :=
 begin
   rw univ_fin2,
-  convert centroid_insert_singleton k p 0 1
+  convert centroid_pair k p 0 1
 end
 
 /-- A centroid, over the image of an embedding, equals a centroid with

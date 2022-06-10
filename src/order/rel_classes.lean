@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Mario Carneiro, Yury G. Kudryashov
 -/
 import order.basic
+import logic.is_empty
 
 /-!
 # Unbundled relation classes
@@ -19,6 +20,8 @@ universes u v
 variables {α : Type u} {β : Type v} {r : α → α → Prop} {s : β → β → Prop}
 
 open function
+
+lemma of_eq [is_refl α r] : ∀ {a b}, a = b → r a b | _ _ ⟨h⟩ := refl _
 
 lemma comm [is_symm α r] {a b : α} : r a b ↔ r b a := ⟨symm, symm⟩
 lemma antisymm' [is_antisymm α r] {a b : α} : r a b → r b a → b = a := λ h h', antisymm h' h
@@ -94,6 +97,8 @@ begin
   intros h₁ h₂, rcases trichotomous_of r b c with h₃|h₃|h₃,
   exact trans h₁ h₃, rw ←h₃, exact h₁, exfalso, exact h₂ h₃
 end
+
+lemma transitive_of_trans (r : α → α → Prop) [is_trans α r] : transitive r := λ _ _ _, trans
 
 /-- Construct a partial order from a `is_strict_order` relation.
 
@@ -229,6 +234,13 @@ instance empty_relation.is_well_order [subsingleton α] : is_well_order α empty
   trans        := λ a b c, false.elim,
   wf           := ⟨λ a, ⟨_, λ y, false.elim⟩⟩ }
 
+@[priority 100]
+instance is_empty.is_well_order [is_empty α] (r : α → α → Prop) : is_well_order α r :=
+{ trichotomous := is_empty_elim,
+  irrefl       := is_empty_elim,
+  trans        := is_empty_elim,
+  wf           := well_founded_of_empty r }
+
 instance prod.lex.is_well_order [is_well_order α r] [is_well_order β s] :
   is_well_order (α × β) (prod.lex r s) :=
 { trichotomous := λ ⟨a₁, a₂⟩ ⟨b₁, b₂⟩,
@@ -320,7 +332,7 @@ lemma subset_of_eq [is_refl α (⊆)] : a = b → a ⊆ b := λ h, h ▸ subset_
 lemma superset_of_eq [is_refl α (⊆)] : a = b → b ⊆ a := λ h, h ▸ subset_rfl
 lemma ne_of_not_subset [is_refl α (⊆)] : ¬ a ⊆ b → a ≠ b := mt subset_of_eq
 lemma ne_of_not_superset [is_refl α (⊆)] : ¬ a ⊆ b → b ≠ a := mt superset_of_eq
-@[trans] lemma subset_trans [is_trans α (⊆)] (h : a ⊆ b) (h' : b ⊆ c) : a ⊆ c := trans h h'
+@[trans] lemma subset_trans [is_trans α (⊆)] {a b c : α} : a ⊆ b → b ⊆ c → a ⊆ c := trans
 
 lemma subset_antisymm [is_antisymm α (⊆)] (h : a ⊆ b) (h' : b ⊆ a) : a = b :=
 antisymm h h'
@@ -349,8 +361,7 @@ lemma ssubset_irrefl [is_irrefl α (⊂)] (a : α) : ¬ a ⊂ a := irrefl _
 lemma ssubset_irrfl [is_irrefl α (⊂)] {a : α} : ¬ a ⊂ a := irrefl _
 lemma ne_of_ssubset [is_irrefl α (⊂)] {a b : α} : a ⊂ b → a ≠ b := ne_of_irrefl
 lemma ne_of_ssuperset [is_irrefl α (⊂)] {a b : α} : a ⊂ b → b ≠ a := ne_of_irrefl'
-@[trans] lemma ssubset_trans [is_trans α (⊂)] {a b c : α} (h : a ⊂ b) (h' : b ⊂ c) : a ⊂ c :=
-trans h h'
+@[trans] lemma ssubset_trans [is_trans α (⊂)] {a b c : α} : a ⊂ b → b ⊂ c → a ⊂ c := trans
 lemma ssubset_asymm [is_asymm α (⊂)] {a b : α} (h : a ⊂ b) : ¬ b ⊂ a := asymm h
 
 alias ssubset_irrfl   ← has_ssubset.ssubset.false
@@ -450,7 +461,15 @@ instance [linear_order α] : is_order_connected α (<) := by apply_instance
 instance [linear_order α] : is_incomp_trans α (<) := by apply_instance
 instance [linear_order α] : is_strict_weak_order α (<) := by apply_instance
 
-instance order_dual.is_total_le [has_le α] [is_total α (≤)] : is_total (order_dual α) (≤) :=
+lemma transitive_le [preorder α] : transitive (@has_le.le α _) := transitive_of_trans _
+lemma transitive_lt [preorder α] : transitive (@has_lt.lt α _) := transitive_of_trans _
+lemma transitive_ge [preorder α] : transitive (@ge α _) := transitive_of_trans _
+lemma transitive_gt [preorder α] : transitive (@gt α _) := transitive_of_trans _
+
+instance order_dual.is_total_le [has_le α] [is_total α (≤)] : is_total αᵒᵈ (≤) :=
 @is_total.swap α _ _
 
 instance nat.lt.is_well_order : is_well_order ℕ (<) := ⟨nat.lt_wf⟩
+
+instance [linear_order α] [h : is_well_order α (<)] : is_well_order αᵒᵈ (>) := h
+instance [linear_order α] [h : is_well_order α (>)] : is_well_order αᵒᵈ (<) := h

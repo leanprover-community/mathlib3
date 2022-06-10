@@ -50,7 +50,7 @@ instance has_forget_to_Lattice : has_forget₂ DistribLattice Lattice := bundled
 
 /-- `order_dual` as a functor. -/
 @[simps] def dual : DistribLattice ⥤ DistribLattice :=
-{ obj := λ X, of (order_dual X), map := λ X Y, lattice_hom.dual }
+{ obj := λ X, of Xᵒᵈ, map := λ X Y, lattice_hom.dual }
 
 /-- The equivalence between `DistribLattice` and itself induced by `order_dual` both ways. -/
 @[simps functor inverse] def dual_equiv : DistribLattice ≌ DistribLattice :=

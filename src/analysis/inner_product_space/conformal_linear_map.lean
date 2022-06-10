@@ -17,27 +17,23 @@ variables {E F : Type*} [inner_product_space ℝ E] [inner_product_space ℝ F]
 open linear_isometry continuous_linear_map
 open_locale real_inner_product_space
 
-lemma is_conformal_map_iff (f' : E →L[ℝ] F) :
-  is_conformal_map f' ↔ ∃ (c : ℝ), 0 < c ∧
-  ∀ (u v : E), ⟪f' u, f' v⟫ = (c : ℝ) * ⟪u, v⟫ :=
+/-- A map between two inner product spaces is a conformal map if and only if it preserves inner
+products up to a scalar factor, i.e., there exists a positive `c : ℝ` such that `⟪f u, f v⟫ = c *
+⟪u, v⟫` for all `u`, `v`. -/
+lemma is_conformal_map_iff (f : E →L[ℝ] F) :
+  is_conformal_map f ↔ ∃ (c : ℝ), 0 < c ∧ ∀ (u v : E), ⟪f u, f v⟫ = c * ⟪u, v⟫ :=
 begin
   split,
-  { rintros ⟨c₁, hc₁, li, h⟩,
+  { rintros ⟨c₁, hc₁, li, rfl⟩,
     refine ⟨c₁ * c₁, mul_self_pos.2 hc₁, λ u v, _⟩,
-    simp only [h, pi.smul_apply, inner_map_map,
-               real_inner_smul_left, real_inner_smul_right, mul_assoc], },
+    simp only [real_inner_smul_left, real_inner_smul_right, mul_assoc, coe_smul',
+      coe_to_continuous_linear_map, pi.smul_apply, inner_map_map] },
   { rintros ⟨c₁, hc₁, huv⟩,
-    let c := real.sqrt c₁⁻¹,
-    have hc : c ≠ 0 := λ w, by {simp only [c] at w;
-      exact (real.sqrt_ne_zero'.mpr $ inv_pos.mpr hc₁) w},
-    let f₁ := c • f',
-    have minor : (f₁ : E → F) = c • f' := rfl,
-    have minor' : (f' : E → F) = c⁻¹ • f₁ := by ext;
-      simp_rw [minor, pi.smul_apply]; rw [smul_smul, inv_mul_cancel hc, one_smul],
-    refine ⟨c⁻¹, inv_ne_zero hc, f₁.to_linear_map.isometry_of_inner (λ u v, _), minor'⟩,
-    simp_rw [to_linear_map_eq_coe, continuous_linear_map.coe_coe, minor, pi.smul_apply],
-    rw [real_inner_smul_left, real_inner_smul_right,
-        huv u v, ← mul_assoc, ← mul_assoc,
-        real.mul_self_sqrt $ le_of_lt $ inv_pos.mpr hc₁,
-        inv_mul_cancel $ ne_of_gt hc₁, one_mul], },
+    obtain ⟨c, hc, rfl⟩ : ∃ c : ℝ, 0 < c ∧ c₁ = c * c,
+      from ⟨real.sqrt c₁, real.sqrt_pos.2 hc₁, (real.mul_self_sqrt hc₁.le).symm⟩,
+    refine ⟨c, hc.ne', (c⁻¹ • f : E →ₗ[ℝ] F).isometry_of_inner (λ u v, _), _⟩,
+    { simp only [real_inner_smul_left, real_inner_smul_right, huv, mul_assoc, coe_smul,
+        inv_mul_cancel_left₀ hc.ne', linear_map.smul_apply, continuous_linear_map.coe_coe] },
+    { ext1 x,
+      exact (smul_inv_smul₀ hc.ne' (f x)).symm } }
 end

@@ -35,6 +35,8 @@ instance : inhabited BoolAlg := ⟨of punit⟩
 /-- Turn a `BoolAlg` into a `BoundedDistribLattice` by forgetting its complement operation. -/
 def to_BoundedDistribLattice (X : BoolAlg) : BoundedDistribLattice := BoundedDistribLattice.of X
 
+@[simp] lemma coe_to_BoundedDistribLattice (X : BoolAlg) : ↥X.to_BoundedDistribLattice = ↥X := rfl
+
 instance : large_category.{u} BoolAlg := induced_category.category to_BoundedDistribLattice
 instance : concrete_category BoolAlg := induced_category.concrete_category to_BoundedDistribLattice
 
@@ -51,7 +53,7 @@ between them. -/
 
 /-- `order_dual` as a functor. -/
 @[simps] def dual : BoolAlg ⥤ BoolAlg :=
-{ obj := λ X, of (order_dual X), map := λ X Y, bounded_lattice_hom.dual }
+{ obj := λ X, of Xᵒᵈ, map := λ X Y, bounded_lattice_hom.dual }
 
 /-- The equivalence between `BoolAlg` and itself induced by `order_dual` both ways. -/
 @[simps functor inverse] def dual_equiv : BoolAlg ≌ BoolAlg :=

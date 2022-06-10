@@ -8,7 +8,7 @@ import category_theory.closed.monoidal
 import algebra.category.Module.basic
 import linear_algebra.tensor_product
 import category_theory.linear.yoneda
-import category_theory.monoidal.preadditive
+import category_theory.monoidal.linear
 
 /-!
 # The symmetric monoidal category structure on R-modules
@@ -273,6 +273,10 @@ instance : monoidal_preadditive (Module.{u} R) :=
   tensor_add' := by { intros, ext, simp [tensor_product.tmul_add], },
   add_tensor' := by { intros, ext, simp [tensor_product.add_tmul], }, }
 
+instance : monoidal_linear R (Module.{u} R) :=
+{ tensor_smul' := by { intros, ext, simp, },
+  smul_tensor' := by { intros, ext, simp [tensor_product.smul_tmul], }, }
+
 /--
 Auxiliary definition for the `monoidal_closed` instance on `Module R`.
 (This is only a separate definition in order to speed up typechecking. )
@@ -298,5 +302,18 @@ instance : monoidal_closed (Module.{u} R) :=
     { right := (linear_coyoneda R (Module.{u} R)).obj (op M),
       adj := adjunction.mk_of_hom_equiv
       { hom_equiv := λ N P, monoidal_closed_hom_equiv M N P, } } } }
+
+-- I can't seem to express the function coercion here without writing `@coe_fn`.
+@[simp]
+lemma monoidal_closed_curry {M N P : Module.{u} R} (f : M ⊗ N ⟶ P) (x : M) (y : N) :
+  @coe_fn _ _ linear_map.has_coe_to_fun ((monoidal_closed.curry f : N →ₗ[R] (M →ₗ[R] P)) y) x =
+    f (x ⊗ₜ[R] y) :=
+rfl
+
+@[simp]
+lemma monoidal_closed_uncurry {M N P : Module.{u} R}
+  (f : N ⟶ (M ⟶[Module.{u} R] P)) (x : M) (y : N) :
+  monoidal_closed.uncurry f (x ⊗ₜ[R] y) = (@coe_fn _ _ linear_map.has_coe_to_fun (f y)) x :=
+by { simp only [monoidal_closed.uncurry, ihom.adjunction, is_left_adjoint.adj], simp, }
 
 end Module

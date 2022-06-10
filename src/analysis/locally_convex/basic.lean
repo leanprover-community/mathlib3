@@ -37,7 +37,7 @@ absorbent, balanced, locally convex, LCTVS
 open set
 open_locale pointwise topological_space
 
-variables {𝕜 𝕝 E : Type*}
+variables {𝕜 𝕝 E ι : Type*}
 
 section semi_normed_ring
 variables [semi_normed_ring 𝕜]
@@ -49,40 +49,10 @@ variables (𝕜) [has_scalar 𝕜 E]
 sufficiently large norm. -/
 def absorbs (A B : set E) := ∃ r, 0 < r ∧ ∀ a : 𝕜, r ≤ ∥a∥ → B ⊆ a • A
 
-/-- A set is absorbent if it absorbs every singleton. -/
-def absorbent (A : set E) := ∀ x, ∃ r, 0 < r ∧ ∀ a : 𝕜, r ≤ ∥a∥ → x ∈ a • A
+variables {𝕜} {s t u v A B : set E}
 
-/-- A set `A` is balanced if `a • A` is contained in `A` whenever `a` has norm at most `1`. -/
-def balanced (A : set E) := ∀ a : 𝕜, ∥a∥ ≤ 1 → a • A ⊆ A
-
-variables {𝕜} {A B : set E}
-
-lemma balanced_univ : balanced 𝕜 (univ : set E) := λ a ha, subset_univ _
-
-lemma balanced.union (hA : balanced 𝕜 A) (hB : balanced 𝕜 B) : balanced 𝕜 (A ∪ B) :=
-begin
-  intros a ha t ht,
-  rw smul_set_union at ht,
-  exact ht.imp (λ x, hA _ ha x) (λ x, hB _ ha x),
-end
-
-end has_scalar
-
-section add_comm_group
-variables [add_comm_group E] [module 𝕜 E] {s t u v A B : set E}
-
-lemma balanced.inter (hA : balanced 𝕜 A) (hB : balanced 𝕜 B) : balanced 𝕜 (A ∩ B) :=
-begin
-  rintro a ha _ ⟨x, ⟨hx₁, hx₂⟩, rfl⟩,
-  exact ⟨hA _ ha ⟨_, hx₁, rfl⟩, hB _ ha ⟨_, hx₂, rfl⟩⟩,
-end
-
-lemma balanced.add (hA₁ : balanced 𝕜 A) (hA₂ : balanced 𝕜 B) : balanced 𝕜 (A + B) :=
-begin
-  rintro a ha _ ⟨_, ⟨x, y, hx, hy, rfl⟩, rfl⟩,
-  rw smul_add,
-  exact add_mem_add (hA₁ _ ha ⟨_, hx, rfl⟩) (hA₂ _ ha ⟨_, hy, rfl⟩),
-end
+@[simp] lemma absorbs_empty {s : set E}: absorbs 𝕜 s (∅ : set E) :=
+⟨1, one_pos, λ a ha, set.empty_subset _⟩
 
 lemma absorbs.mono (hs : absorbs 𝕜 s u) (hst : s ⊆ t) (hvu : v ⊆ u) : absorbs 𝕜 t v :=
 let ⟨r, hr, h⟩ := hs in ⟨r, hr, λ a ha, hvu.trans $ (h _ ha).trans $ smul_set_mono hst⟩
@@ -102,6 +72,35 @@ end
 ⟨λ h, ⟨h.mono_right $ subset_union_left _ _, h.mono_right $ subset_union_right _ _⟩,
   λ h, h.1.union h.2⟩
 
+lemma absorbs_Union_finset {s : set E} {t : finset ι} {f : ι → set E} :
+  absorbs 𝕜 s (⋃ (i ∈ t), f i) ↔ ∀ i ∈ t, absorbs 𝕜 s (f i) :=
+begin
+  classical,
+  induction t using finset.induction_on with i t ht hi,
+  { simp only [finset.not_mem_empty, set.Union_false, set.Union_empty, absorbs_empty,
+    forall_false_left, implies_true_iff] },
+  rw [finset.set_bUnion_insert, absorbs_union, hi],
+  split; intro h,
+  { refine λ _ hi', (finset.mem_insert.mp hi').elim _ (h.2 _),
+    exact (λ hi'', by { rw hi'', exact h.1 }) },
+  exact ⟨h i (finset.mem_insert_self i t), λ i' hi', h i' (finset.mem_insert_of_mem hi')⟩,
+end
+
+lemma set.finite.absorbs_Union {s : set E} {t : set ι} {f : ι → set E} (hi : t.finite) :
+  absorbs 𝕜 s (⋃ (i : ι) (hy : i ∈ t), f i) ↔ ∀ i ∈ t, absorbs 𝕜 s (f i) :=
+begin
+  lift t to finset ι using hi,
+  simp only [finset.mem_coe],
+  exact absorbs_Union_finset,
+end
+
+variables (𝕜)
+
+/-- A set is absorbent if it absorbs every singleton. -/
+def absorbent (A : set E) := ∀ x, ∃ r, 0 < r ∧ ∀ a : 𝕜, r ≤ ∥a∥ → x ∈ a • A
+
+variables {𝕜}
+
 lemma absorbent.subset (hA : absorbent 𝕜 A) (hAB : A ⊆ B) : absorbent 𝕜 B :=
 begin
   refine forall_imp (λ x, _) hA,
@@ -119,7 +118,64 @@ forall_congr $ λ x, ⟨λ ⟨r, hr, hx⟩, ⟨r, hr.le, λ a ha, hx a ha.le⟩,
   ⟨r + 1, add_pos_of_nonneg_of_pos hr zero_lt_one,
     λ a ha, hx ((lt_add_of_pos_right r zero_lt_one).trans_le ha)⟩⟩
 
-end add_comm_group
+lemma absorbent.absorbs_finite {s : set E} (hs : absorbent 𝕜 s) {v : set E} (hv : v.finite) :
+  absorbs 𝕜 s v :=
+begin
+  rw ←set.bUnion_of_singleton v,
+  exact hv.absorbs_Union.mpr (λ _ _, hs.absorbs),
+end
+
+variables (𝕜)
+
+/-- A set `A` is balanced if `a • A` is contained in `A` whenever `a` has norm at most `1`. -/
+def balanced (A : set E) := ∀ a : 𝕜, ∥a∥ ≤ 1 → a • A ⊆ A
+
+variables {𝕜}
+
+lemma balanced_mem {s : set E} (hs : balanced 𝕜 s) {x : E} (hx : x ∈ s) {a : 𝕜} (ha : ∥a∥ ≤ 1) :
+  a • x ∈ s :=
+mem_of_subset_of_mem (hs a ha) (smul_mem_smul_set hx)
+
+lemma balanced_univ : balanced 𝕜 (univ : set E) := λ a ha, subset_univ _
+
+lemma balanced.union (hA : balanced 𝕜 A) (hB : balanced 𝕜 B) : balanced 𝕜 (A ∪ B) :=
+begin
+  intros a ha t ht,
+  rw smul_set_union at ht,
+  exact ht.imp (λ x, hA _ ha x) (λ x, hB _ ha x),
+end
+
+lemma balanced.inter (hA : balanced 𝕜 A) (hB : balanced 𝕜 B) : balanced 𝕜 (A ∩ B) :=
+begin
+  rintro a ha _ ⟨x, ⟨hx₁, hx₂⟩, rfl⟩,
+  exact ⟨hA _ ha ⟨_, hx₁, rfl⟩, hB _ ha ⟨_, hx₂, rfl⟩⟩,
+end
+
+end has_scalar
+
+section add_comm_monoid
+variables [add_comm_monoid E] [module 𝕜 E] {s s' t t' u v A B : set E}
+
+lemma absorbs.add (h : absorbs 𝕜 s t) (h' : absorbs 𝕜 s' t') : absorbs 𝕜 (s + s') (t + t') :=
+begin
+  rcases h with ⟨r, hr, h⟩,
+  rcases h' with ⟨r', hr', h'⟩,
+  refine ⟨max r r', lt_max_of_lt_left hr, λ a ha, _⟩,
+  rw smul_add,
+  exact set.add_subset_add (h a (le_of_max_le_left ha)) (h' a (le_of_max_le_right ha)),
+end
+
+lemma balanced.add (hA₁ : balanced 𝕜 A) (hA₂ : balanced 𝕜 B) : balanced 𝕜 (A + B) :=
+begin
+  rintro a ha _ ⟨_, ⟨x, y, hx, hy, rfl⟩, rfl⟩,
+  rw smul_add,
+  exact add_mem_add (hA₁ _ ha ⟨_, hx, rfl⟩) (hA₂ _ ha ⟨_, hy, rfl⟩),
+end
+
+lemma zero_singleton_balanced : balanced 𝕜 ({0} : set E) :=
+λ a ha, by simp only [smul_set_singleton, smul_zero]
+
+end add_comm_monoid
 end semi_normed_ring
 
 section normed_comm_ring

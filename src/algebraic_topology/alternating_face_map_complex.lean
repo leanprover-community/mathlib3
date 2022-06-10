@@ -148,6 +148,9 @@ chain_complex.of_hom _ _ _ _ _ _
       refl,
     end)
 
+@[simp]
+lemma map_f (f : X ⟶ Y) (n : ℕ) : (map f).f n = f.app (op [n]) := rfl
+
 end alternating_face_map_complex
 
 variables (C : Type*) [category C] [preadditive C]

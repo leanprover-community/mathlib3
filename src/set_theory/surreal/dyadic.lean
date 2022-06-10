@@ -30,12 +30,12 @@ local infix ` ≈ ` := pgame.equiv
 namespace pgame
 
 /-- For a natural number `n`, the pre-game `pow_half (n + 1)` is recursively defined as
-`{ 0 | pow_half n }`. These are the explicit expressions of powers of `half`. By definition, we have
- `pow_half 0 = 0` and `pow_half 1 = half` and we prove later on that
+`P{0 | pow_half n}`. These are the explicit expressions of powers of `half`. By definition, we have
+`pow_half 0 = 1` and `pow_half 1 = half` and we prove later on that
 `pow_half (n + 1) + pow_half (n + 1) ≈ pow_half n`.-/
 def pow_half : ℕ → pgame
-| 0       := mk punit pempty 0 pempty.elim
-| (n + 1) := mk punit punit 0 (λ _, pow_half n)
+| 0       := 1
+| (n + 1) := P{0 | pow_half n}
 
 @[simp] lemma pow_half_left_moves {n} : (pow_half n).left_moves = punit :=
 by cases n; refl

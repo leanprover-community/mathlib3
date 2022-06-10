@@ -32,7 +32,7 @@ namespace cancel_factors
 
 lemma mul_subst {α} [comm_ring α] {n1 n2 k e1 e2 t1 t2 : α} (h1 : n1 * e1 = t1) (h2 : n2 * e2 = t2)
      (h3 : n1*n2 = k) : k * (e1 * e2) = t1 * t2 :=
-by rw [←h3, mul_comm n1, mul_assoc n2, ←mul_assoc n1, h1, ←mul_assoc n2, mul_comm n2, mul_assoc, h2]
+by rw [←h3, ← h1, ← h2, mul_mul_mul_comm]
 
 lemma div_subst {α} [field α] {n1 n2 k e1 e2 t1 : α} (h1 : n1 * e1 = t1) (h2 : n2 / e2 = 1)
    (h3 : n1*n2 = k) : k * (e1 / e2) = t1 :=
@@ -72,11 +72,11 @@ lemma cancel_factors_eq {α} [linear_ordered_field α] {a b ad bd a' b' gcd : α
   (hb : bd*b = b') (had : 0 < ad) (hbd : 0 < bd) (hgcd : 0 < gcd) :
   a = b = ((1/gcd)*(bd*a') = (1/gcd)*(ad*b')) :=
 begin
-  rw [←ha, ←hb, ←mul_assoc bd, ←mul_assoc ad, mul_comm bd],
+  rw [←ha, ←hb],
+  move_mul [ad, a, b],
   ext, split,
   { rintro rfl, refl },
   { intro h,
-    simp only [←mul_assoc] at h,
     refine mul_left_cancel₀ (mul_ne_zero _ _) h,
     apply mul_ne_zero, apply div_ne_zero,
     all_goals {apply ne_of_gt; assumption <|> exact zero_lt_one}}

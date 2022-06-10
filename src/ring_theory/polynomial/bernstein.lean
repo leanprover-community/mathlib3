@@ -117,14 +117,10 @@ begin
     refine congr (congr_arg (*) (congr (congr_arg (*) _) rfl)) rfl,
     -- Now it's just about binomial coefficients
     exact_mod_cast congr_arg (λ m : ℕ, (m : R[X])) (nat.succ_mul_choose_eq n ν).symm, },
-  { rw [← tsub_add_eq_tsub_tsub, ← mul_assoc, ← mul_assoc], congr' 1,
-    rw mul_comm , rw [←mul_assoc,←mul_assoc],  congr' 1,
+  { move_mul [← ↑(nat.choose _ _), ← ↑(n - ν)],
     norm_cast,
-    congr' 1,
-    convert (nat.choose_mul_succ_eq n (ν + 1)).symm using 1,
-    { convert mul_comm _ _ using 2,
-      simp, },
-    { apply mul_comm, }, },
+    congr' 2,
+    rw [← nat.succ_sub_succ_eq_sub n, ← nat.choose_mul_succ_eq n (ν + 1)] },
 end
 
 lemma derivative_succ (n ν : ℕ) :

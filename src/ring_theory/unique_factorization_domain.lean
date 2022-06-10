@@ -244,9 +244,10 @@ begin
     obtain ⟨q, hq⟩ := multiset.exists_mem_of_ne_zero hs0,
     apply (hs q (by simp [hq])).2.1,
     refine (ha.is_unit_or_is_unit (_ : _ = ((p * ↑u) * (s.erase q).prod) * _)).resolve_left _,
-    { rw [mul_right_comm _ _ q, mul_assoc, ← multiset.prod_cons, multiset.cons_erase hq, ← hu,
-        mul_comm, mul_comm p _, mul_assoc],
-      simp, },
+    {
+      move_mul [← q, ← multiset.prod _],
+      rw [← multiset.prod_cons, multiset.cons_erase hq, ← hu, multiset.prod_cons],
+      move_mul ← p },
     apply mt is_unit_of_mul_is_unit_left (mt is_unit_of_mul_is_unit_left _),
     apply (hs p (multiset.mem_cons_self _ _)).2.1 },
   simp only [mul_one, multiset.prod_cons, multiset.prod_zero, hs0] at *,

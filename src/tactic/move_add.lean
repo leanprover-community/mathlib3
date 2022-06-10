@@ -99,7 +99,7 @@ meta def list_head_op (op : pexpr) : bool → expr → tactic (list expr)
   return $ ec ++ fc ++ gc
 | bo e := return []
 
-/--  An auxilliary function to `list_binary_operands`:
+/--  An auxiliary function to `list_binary_operands`:
 it takes an input `expr`, rather than a `pexpr`. -/
 meta def list_binary_operands_aux (f : expr) : expr → tactic (list expr)
 | x@(expr.app (expr.app g a) b) := do

@@ -108,7 +108,7 @@ power of `X` is non-zero, or the tactic `nontriviality R` succeeds. -/
 meta def single_term_resolve : expr → tactic unit
 | (expr.app `(⇑(@polynomial.monomial %%R %%inst %%n)) x) :=
   refine ``(polynomial.nat_degree_monomial_eq %%n _) *>
-  assumption <|> exact ``(one_ne_zero)
+  assumption <|> exact ``(one_ne_zero) <|> skip
 | (expr.app `(⇑(@polynomial.C %%R %%inst)) x) :=
   exact ``(polynomial.nat_degree_C _)
 | `(@has_pow.pow (@polynomial %%R %%nin) %%N %%inst %%mX %%n) :=
@@ -221,8 +221,8 @@ meta def compute_degree : tactic unit :=
 do t ← target,
   match t with
   | `(polynomial.nat_degree %%tl = %%tr) := do
-    (lead,m') ← extract_top_degree_term_and_deg tl <|> fail
-      "currently, there is no support for some of the terms appearing in the polynomial",
+    (lead,m') ← extract_top_degree_term_and_deg tl, --<|> fail
+--      "currently, there is no support for some of the terms appearing in the polynomial",
     td ← eval_expr ℕ tr,
     if m' ≠ td then
       do pptl ← pp tl, ppm' ← pp m',
@@ -238,8 +238,8 @@ do t ← target,
     rotate,
     `(_ = %%tr1) ← target,
     td ← eval_expr ℕ tr1,
-    (lead,m') ← extract_top_degree_term_and_deg tl <|> fail
-      "currently, there is no support for some of the terms appearing in the polynomial",
+    (lead,m') ← extract_top_degree_term_and_deg tl, -- <|> fail
+--      "currently, there is no support for some of the terms appearing in the polynomial",
     if m' ≠ td then
       do pptl ← pp tl, ppm' ← pp m',
         trace sformat!"should the degree be '{m'}'?\n\n",

@@ -690,6 +690,9 @@ ssubset_iff_insert.2 ⟨a, h, subset.rfl⟩
 theorem insert_comm (a b : α) (s : set α) : insert a (insert b s) = insert b (insert a s) :=
 ext $ λ x, or.left_comm
 
+@[simp] lemma insert_idem (a : α) (s : set α) : insert a (insert a s) = insert a s :=
+insert_eq_of_mem $ mem_insert _ _
+
 theorem insert_union : insert a s ∪ t = insert a (s ∪ t) := ext $ λ x, or.assoc
 
 @[simp] theorem union_insert : s ∪ insert a t = insert a (s ∪ t) := ext $ λ x, or.left_comm
@@ -745,6 +748,9 @@ lemma singleton_injective : injective (singleton : α → set α) :=
 λ _ _, singleton_eq_singleton_iff.mp
 
 theorem mem_singleton_of_eq {x y : α} (H : x = y) : x ∈ ({y} : set α) := H
+
+@[simp] lemma insert_singleton (a : α) : insert a ({a} : set α) = {a} :=
+insert_eq_of_mem $ mem_singleton _
 
 theorem insert_eq (x : α) (s : set α) : insert x s = ({x} : set α) ∪ s := rfl
 

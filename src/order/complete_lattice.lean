@@ -743,6 +743,16 @@ le_antisymm
 -- TODO: should this be @[simp]?
 lemma infi_comm {f : ι → ι' → α} : (⨅ i j, f i j) = ⨅ j i, f i j := @supr_comm αᵒᵈ _ _ _ _
 
+lemma supr₂_comm {ι₁ ι₂ : Sort*} {κ₁ : ι₁ → Sort*} {κ₂ : ι₂ → Sort*}
+  (f : Π i₁, κ₁ i₁ → Π i₂, κ₂ i₂ → α) :
+  (⨆ i₁ j₁ i₂ j₂, f i₁ j₁ i₂ j₂) = ⨆ i₂ j₂ i₁ j₁, f i₁ j₁ i₂ j₂ :=
+by simp only [@supr_comm _ (κ₁ _), @supr_comm _ ι₁]
+
+lemma infi₂_comm {ι₁ ι₂ : Sort*} {κ₁ : ι₁ → Sort*} {κ₂ : ι₂ → Sort*}
+  (f : Π i₁, κ₁ i₁ → Π i₂, κ₂ i₂ → α) :
+  (⨅ i₁ j₁ i₂ j₂, f i₁ j₁ i₂ j₂) = ⨅ i₂ j₂ i₁ j₁, f i₁ j₁ i₂ j₂ :=
+by simp only [@infi_comm _ (κ₁ _), @infi_comm _ ι₁]
+
 /- TODO: this is strange. In the proof below, we get exactly the desired
    among the equalities, but close does not get it.
 begin

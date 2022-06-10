@@ -404,7 +404,8 @@ The bound splits the prime factors of `central_binom n` into those
 1. At most `sqrt (2 * n)`, which contribute at most `2 * n` for each such prime.
 2. Between `sqrt (2 * n)` and `2 * n / 3`, which contribute at most `4^(2 * n / 3)` in total.
 3. Between `2 * n / 3` and `n`, which do not exist.
-4. Above `n`, which do not exist in the case where Bertrand's postulate is false.
+4. Between `n` and `2 * n`, which would not exist in the case where Bertrand's postulate is false.
+5. Above `2 * n`, which do not exist.
 -/
 lemma bertrand_central_binom_le (n : ℕ) (n_big : 2 < n)
   (no_prime : ¬∃ (p : ℕ), nat.prime p ∧ n < p ∧ p ≤ 2 * n) :

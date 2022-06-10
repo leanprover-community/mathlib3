@@ -1196,7 +1196,7 @@ lemma inv_le_iff_le_mul : (b = ∞ → a ≠ 0) → (a = ∞ → b ≠ 0) → (a
 begin
   induction a using with_top.rec_top_coe;
   induction b using with_top.rec_top_coe;
-  simp only [top_mul, coe_ne_top, ne.def, forall_iff, eq_self_iff_true, coe_eq_zero,
+  simp only [top_mul, coe_ne_top, ne.def, is_empty.forall_iff, eq_self_iff_true, coe_eq_zero,
     forall_true_left, inv_top, coe_nonneg, top_ne_zero, not_false_iff, mul_top, iff_self,
     zero_le', true_iff, if_false, le_top, implies_true_iff] {contextual := tt},
   obtain rfl|ha := eq_or_ne a 0,

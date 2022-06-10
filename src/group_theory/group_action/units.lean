@@ -41,7 +41,7 @@ lemma _root_.is_unit.inv_smul [monoid α] {a : α} (h : is_unit a) :
 h.coe_inv_mul
 
 @[to_additive]
-instance [monoid M] [has_scalar M α] [has_faithful_scalar M α] : has_faithful_scalar Mˣ α :=
+instance [monoid M] [has_scalar M α] [has_faithful_smul M α] : has_faithful_smul Mˣ α :=
 { eq_of_smul_eq_smul := λ u₁ u₂ h, units.ext $ eq_of_smul_eq_smul h, }
 
 @[to_additive]

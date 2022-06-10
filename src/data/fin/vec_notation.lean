@@ -74,8 +74,17 @@ variables {m n : ℕ}
 #eval ![1, 2] + ![3, 4] -- ![4, 6]
 ```
 -/
-instance pi_fin.has_repr [has_repr α] : has_repr (fin n → α) :=
+instance _root_.pi_fin.has_repr [has_repr α] : has_repr (fin n → α) :=
 { repr := λ f, "![" ++ (string.intercalate ", " ((list.fin_range n).map (λ n, repr (f n)))) ++ "]" }
+
+section
+local attribute [semireducible] reflected
+meta instance _root_.pi_fin.reflect {α : Type} [reflected α] [h : has_reflect α] :
+  Π {n}, has_reflect (fin n → α)
+| 0 v := `(@vec_empty.{0} %%(reflect α))
+| (n + 1) v := `(@vec_cons.{0} %%(reflect α) %%(reflect n)
+                               %%(h (vec_head v)) %%(_root_.pi_fin.reflect (vec_tail v)) )
+end
 
 end matrix_notation
 

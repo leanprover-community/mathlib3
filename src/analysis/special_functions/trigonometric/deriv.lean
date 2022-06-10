@@ -547,6 +547,13 @@ funext $ λ x, (has_deriv_at_cosh x).deriv
 lemma sinh_strict_mono : strict_mono sinh :=
 strict_mono_of_deriv_pos $ by { rw real.deriv_sinh, exact cosh_pos }
 
+/-- `sinh` is injective, `∀ a b, sinh a = sinh b → a = b`. -/
+lemma sinh_injective : function.injective sinh := sinh_strict_mono.injective
+
+@[simp] lemma sinh_inj : sinh x = sinh y ↔ x = y := sinh_injective.eq_iff
+@[simp] lemma sinh_le_sinh : sinh x ≤ sinh y ↔ x ≤ y := sinh_strict_mono.le_iff_le
+@[simp] lemma sinh_lt_sinh : sinh x < sinh y ↔ x < y := sinh_strict_mono.lt_iff_lt
+
 end real
 
 section

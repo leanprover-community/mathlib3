@@ -1116,6 +1116,9 @@ by rw ← of_real_inj; simp [cosh_sq_sub_sinh_sq]
 lemma cosh_sq : cosh x ^ 2 = sinh x ^ 2 + 1 :=
 by rw ← of_real_inj; simp [cosh_sq]
 
+lemma cosh_sq' : cosh x ^ 2 = 1 + sinh x ^ 2 :=
+(cosh_sq x).trans (add_comm _ _)
+
 lemma sinh_sq : sinh x ^ 2 = cosh x ^ 2 - 1 :=
 by rw ← of_real_inj; simp [sinh_sq]
 

@@ -160,11 +160,10 @@ begin
   exact fintype.card_pos_iff,
 end
 
+lemma of_subsingleton {α : Sort*} [subsingleton α] : finite α := finite.of_equiv _ equiv.plift
+
 @[nolint instance_priority]
-instance finite.prop (p : Prop) : finite p :=
-if h : p
-then ⟨(equiv.prop_equiv_punit h).trans (by simpa using fintype.equiv_fin punit)⟩
-else ⟨(equiv.prop_equiv_pempty h).trans (by simpa using fintype.equiv_fin pempty)⟩
+instance finite.prop (p : Prop) : finite p := of_subsingleton
 
 namespace finite
 
@@ -181,14 +180,6 @@ instance {α : Sort*} [finite α] : finite (plift α) := finite.of_equiv _ equiv
 lemma of_bijective {α β : Sort*} [finite α] (f : α → β) (H : function.bijective f) : finite β :=
 finite.of_equiv _ (equiv.of_bijective _ H)
 
-lemma of_surjective {α β : Sort*} [finite α] (f : α → β) (H : function.surjective f) : finite β :=
-begin
-  haveI := fintype.of_finite (plift α),
-  rw [← equiv.surjective_comp equiv.plift f, ← equiv.comp_surjective _ equiv.plift.symm] at H,
-  haveI := fintype.of_surjective _ H,
-  exact finite.of_equiv _ equiv.plift,
-end
-
 lemma of_injective {α β : Sort*} [finite β] (f : α → β) (H : function.injective f) : finite α :=
 begin
   haveI := fintype.of_finite (plift β),
@@ -197,10 +188,11 @@ begin
   exact finite.of_equiv _ equiv.plift,
 end
 
+lemma of_surjective {α β : Sort*} [finite α] (f : α → β) (H : function.surjective f) : finite β :=
+of_injective _ $ function.injective_surj_inv H
+
 lemma card_eq [finite α] [finite β] : nat.card α = nat.card β ↔ nonempty (α ≃ β) :=
 by { haveI := fintype.of_finite α, haveI := fintype.of_finite β, simp [fintype.card_eq] }
-
-lemma of_subsingleton {α : Sort*} [subsingleton α] : finite α := finite.of_equiv _ equiv.plift
 
 @[priority 100] -- see Note [lower instance priority]
 instance of_is_empty {α : Sort*} [is_empty α] : finite α := finite.of_equiv _ equiv.plift

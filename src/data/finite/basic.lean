@@ -146,9 +146,8 @@ lemma nat.card_eq (α : Type*) :
   nat.card α = if h : finite α then by exactI @fintype.card α (fintype.of_finite α) else 0 :=
 begin
   casesI finite_or_infinite α,
-  { haveI := fintype.of_finite α,
-    simp only [*, nat.card_eq_fintype_card, dif_pos],
-    congr, },
+  { letI := fintype.of_finite α,
+    simp only [*, nat.card_eq_fintype_card, dif_pos] },
   { simp [*, not_finite_iff_infinite.mpr h] },
 end
 

@@ -126,7 +126,7 @@ begin
 end
 
 /-- The derivative of a `circle_integral_transform` is bounded by a continuous function -/
-lemma circle_integral_transform_deriv_bound {R r : ℝ} (hR : 0 < R) {z x : ℂ} {f : ℂ → ℂ}
+lemma circle_integral_transform_deriv_bound {R : ℝ} (hR : 0 < R) {z x : ℂ} {f : ℂ → ℂ}
   (hx : x ∈ ball z R) (hf : continuous_on f (sphere z R)) :
   ∃ (B ε : ℝ), 0 < ε ∧ ball x ε ⊆ ball z R ∧
   (∀ (t ∈ [0, 2 * π]) (y ∈ ball x ε), ∥circle_integral_transform_deriv R z y f t∥ ≤ B) :=

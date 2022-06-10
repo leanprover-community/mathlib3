@@ -264,10 +264,10 @@ instance is_empty_of_right_left_moves (x) : is_empty P{| x}.left_moves := pempty
 instance unique_of_right_right_moves (x) : unique P{| x}.right_moves := punit.unique
 
 /-- The pre-game `zero` is defined by `0 = { | }`. -/
-@[reducible] instance : has_zero pgame := ⟨⟨pempty, pempty, pempty.elim, pempty.elim⟩⟩
+instance : has_zero pgame := ⟨⟨pempty, pempty, pempty.elim, pempty.elim⟩⟩
 
-lemma zero_left_moves : left_moves 0 = pempty := rfl
-lemma zero_right_moves : right_moves 0 = pempty := rfl
+@[simp] lemma zero_left_moves : left_moves 0 = pempty := rfl
+@[simp] lemma zero_right_moves : right_moves 0 = pempty := rfl
 
 instance is_empty_zero_left_moves : is_empty (left_moves 0) := pempty.is_empty
 instance is_empty_zero_right_moves : is_empty (right_moves 0) := pempty.is_empty
@@ -864,7 +864,7 @@ instance : has_involutive_neg pgame :=
   ..pgame.has_neg }
 
 @[simp] protected lemma neg_zero : -(0 : pgame) = 0 :=
-by { rw neg_def, congr }
+by { unfold has_zero.zero, rw neg_def, congr }
 
 @[simp] lemma neg_of_lists (L R : list pgame) :
   -of_lists L R = of_lists (R.map (λ x, -x)) (L.map (λ x, -x)) :=

@@ -51,7 +51,7 @@ rfl
 
 lemma pow_half_move_left' (n) :
   (pow_half n).move_left (equiv.cast (pow_half_left_moves.symm) punit.star) = 0 :=
-pow_half_move_left
+by simp only [eq_self_iff_true, pow_half_move_left]
 
 lemma pow_half_move_right' (n) :
   (pow_half (n + 1)).move_right (equiv.cast (pow_half_right_moves.symm) punit.star) = pow_half n :=
@@ -64,7 +64,9 @@ begin
   { exact numeric_one },
   { split,
     { rintro ⟨ ⟩ ⟨ ⟩,
-      simpa using hn.move_left_lt (equiv.cast (pow_half_left_moves.symm) punit.star) },
+      dsimp only [pi.zero_apply],
+      rw ← pow_half_move_left' n,
+      apply hn.move_left_lt },
     { exact ⟨λ _, numeric_zero, λ _, hn⟩ } }
 end
 

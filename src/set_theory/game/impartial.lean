@@ -44,7 +44,7 @@ by simpa only [impartial_iff_aux] using impartial_aux_def
 namespace impartial
 
 instance impartial_zero : impartial 0 :=
-by { rw [impartial_def, pgame.neg_zero], dsimp, simp }
+by { rw impartial_def, dsimp, simp }
 
 instance impartial_star : impartial star :=
 by { rw impartial_def, simpa using impartial.impartial_zero }

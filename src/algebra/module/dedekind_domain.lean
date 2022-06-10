@@ -17,28 +17,12 @@ open_locale big_operators
 variables {R : Type u} [comm_ring R] [is_domain R] {M : Type v} [add_comm_group M] [module R M]
 
 open_locale direct_sum
-open submodule
 
-lemma is_torsion_by_ideal_of_finite_of_is_torsion [module.finite R M] (hM : module.is_torsion R M) :
-  ∃ I : ideal R, I ≠ 0 ∧ module.is_torsion_by_set R M I :=
-begin
-  cases (module.finite_def.mp infer_instance : (⊤ : submodule R M).fg) with S h,
-  refine ⟨∏ x in S, torsion_of R M x, _, _⟩,
-  { rw finset.prod_ne_zero_iff,
-    intros x hx h0, obtain ⟨⟨a, ha⟩, h1⟩ := @hM x,
-    change a ∈ torsion_of R M x at h1, rw [h0, ideal.zero_eq_bot, ideal.mem_bot] at h1,
-    rw h1 at ha, apply @one_ne_zero R, apply ha, apply mul_zero },
-  { rw [is_torsion_by_set_iff_torsion_by_set_eq_top, eq_top_iff, ← h, span_le],
-    intros x hx, apply torsion_by_set_le_torsion_by_set_of_subset,
-    { apply ideal.le_of_dvd, exact finset.dvd_prod_of_mem _ hx },
-    { rw mem_torsion_by_set_iff, rintro ⟨a, ha⟩, exact ha } }
-end
-
-section dedekind_domain
+namespace submodule
 variables [is_dedekind_domain R]
 open unique_factorization_monoid
 
-lemma is_internal_prime_power_torsion_of_is_torsion_by_ideal {I : ideal R} (hI : I ≠ 0)
+lemma is_internal_prime_power_torsion_of_is_torsion_by_ideal {I : ideal R} (hI : I ≠ ⊥)
   (hM : module.is_torsion_by_set R M I) :
   ∃ (P : finset $ ideal R) [decidable_eq P] [∀ p ∈ P, prime p] (e : P → ℕ),
   by exactI direct_sum.is_internal (λ p : P, torsion_by_set R M (p ^ e p : ideal R)) :=
@@ -47,7 +31,12 @@ begin
   let P := factors I,
   have prime_of_mem := λ p (hp : p ∈ P.to_finset), prime_of_factor p (multiset.mem_to_finset.mp hp),
   refine ⟨P.to_finset, infer_instance, prime_of_mem, λ i, P.count i, _⟩,
-  apply @torsion_is_internal _ _ _ _ _ _ _ (λ p, p ^ P.count p) _,
+  apply @torsion_by_set_is_internal _ _ _ _ _ _ _ _ (λ p, p ^ P.count p) _,
+  { convert hM,
+    rw [← finset.inf_eq_infi, is_dedekind_domain.inf_prime_pow_eq_prod,
+      ← finset.prod_multiset_count, ← associated_iff_eq],
+    { exact factors_prod hI },
+    { exact prime_of_mem }, { exact λ _ _ _ _ ij, ij } },
   { intros p hp q hq pq, dsimp,
     rw irreducible_pow_sup,
     { suffices : (normalized_factors _).count p = 0,
@@ -56,12 +45,7 @@ begin
           (prime_of_mem q hq).irreducible, multiset.mem_repeat],
         exact λ H, pq $ H.2.trans $ normalize_eq q } },
     { rw ← ideal.zero_eq_bot, apply pow_ne_zero, exact (prime_of_mem q hq).ne_zero },
-    { exact (prime_of_mem p hp).irreducible } },
-  { convert hM,
-    rw [← finset.inf_eq_infi, is_dedekind_domain.inf_prime_pow_eq_prod,
-      ← finset.prod_multiset_count, ← associated_iff_eq],
-    exact factors_prod hI,
-    { exact prime_of_mem }, { exact λ _ _ _ _ ij, ij } }
+    { exact (prime_of_mem p hp).irreducible } }
 end
 
 theorem is_internal_prime_power_torsion [module.finite R M] (hM : module.is_torsion R M) :
@@ -69,7 +53,9 @@ theorem is_internal_prime_power_torsion [module.finite R M] (hM : module.is_tors
   by exactI direct_sum.is_internal (λ p : P, torsion_by_set R M (p ^ e p : ideal R)) :=
 begin
   obtain ⟨I, hI, hM'⟩ := is_torsion_by_ideal_of_finite_of_is_torsion hM,
-  exact is_internal_prime_power_torsion_of_is_torsion_by_ideal hI hM'
+  refine is_internal_prime_power_torsion_of_is_torsion_by_ideal _ hM',
+  rw set.ne_empty_iff_nonempty at hI, rw submodule.ne_bot_iff,
+  obtain ⟨x, H, hx⟩ := hI, exact ⟨x, H, non_zero_divisors.ne_zero hx⟩
 end
 
-end dedekind_domain
+end submodule

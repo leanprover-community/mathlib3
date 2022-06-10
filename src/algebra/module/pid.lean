@@ -3,11 +3,10 @@ Copyright (c) 2022 Pierre-Alexandre Bazin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Pierre-Alexandre Bazin
 -/
-import algebra.module.torsion
+import algebra.module.dedekind_domain
 import linear_algebra.free_module.pid
 import algebra.module.projective
 import algebra.category.Module.biproducts
-import ring_theory.dedekind_domain.ideal
 
 /-!
 # Structure of finitely generated modules over a PID
@@ -56,7 +55,8 @@ variables {N : Type (max u v)} [add_comm_group N] [module R N]
 open_locale direct_sum
 open submodule
 
-theorem is_internal_prime_power_torsion_of_pid [module.finite R M] (hM : module.is_torsion R M) :
+theorem submodule.is_internal_prime_power_torsion_of_pid
+  [module.finite R M] (hM : module.is_torsion R M) :
   ∃ (ι : Type u) [fintype ι] [decidable_eq ι] (p : ι → R) [∀ i, irreducible $ p i] (e : ι → ℕ),
   by exactI direct_sum.is_internal (λ i, torsion_by R M $ p i ^ e i) :=
 begin
@@ -70,6 +70,7 @@ begin
       ideal.span_singleton_generator] }
 end
 
+namespace module
 section p_torsion
 variables {p : R} (hp : irreducible p) (hM : module.is_torsion' M (submonoid.powers p))
 variables [dec : Π x : M, decidable (x = 0)]
@@ -78,7 +79,7 @@ open ideal submodule.is_principal
 include dec
 
 include hp hM
-lemma torsion_of_eq_span_pow_p_order (x : M) :
+lemma _root_.ideal.torsion_of_eq_span_pow_p_order (x : M) :
   torsion_of R M x = span {p ^ p_order hM x} :=
 begin
   dunfold p_order,
@@ -110,7 +111,7 @@ begin
     dsimp only [smul_eq_mul, f, linear_equiv.trans_apply, submodule.quot_equiv_of_eq_mk,
       quot_torsion_of_equiv_span_singleton_apply_mk] at ha,
     rw [smul_smul, mul_comm], exact congr_arg coe ha.symm,
-    { symmetry, convert torsion_of_eq_span_pow_p_order hp hM y,
+    { symmetry, convert ideal.torsion_of_eq_span_pow_p_order hp hM y,
       rw [← pow_add, nat.sub_add_cancel hk] } },
   { use 0, rw [zero_smul, smul_zero, ← nat.sub_add_cancel (le_of_not_le hk),
       pow_add, mul_smul, hM', smul_zero] }
@@ -120,7 +121,7 @@ open submodule.quotient
 
 lemma exists_smul_eq_zero_and_mk_eq {z : M} (hz : module.is_torsion_by R M (p ^ p_order hM z))
   {k : ℕ} (f : (R ⧸ R ∙ p ^ k) →ₗ[R] M ⧸ R ∙ z) :
-  ∃ x : M, p ^ k • x = 0 ∧ mk x = f 1 :=
+  ∃ x : M, p ^ k • x = 0 ∧ submodule.quotient.mk x = f 1 :=
 begin
   have f1 := mk_surjective (R ∙ z) (f 1),
   have : p ^ k • f1.some ∈ R ∙ z,
@@ -149,9 +150,10 @@ begin
     exact ⟨0⟩ },
   { haveI : Π x : N, decidable (x = 0), classical, apply_instance,
     obtain ⟨j, hj⟩ := exists_is_torsion_by hN d.succ d.succ_ne_zero s hs,
-    let s' : fin d → N ⧸ R ∙ s j := mk ∘ s ∘ j.succ_above,
+    let s' : fin d → N ⧸ R ∙ s j := submodule.quotient.mk ∘ s ∘ j.succ_above,
     obtain ⟨k, ⟨f⟩⟩ := IH _ s' _; clear IH,
-    { have : ∀ i : fin d, ∃ x : N, p ^ k i • x = 0 ∧ f (mk x) = direct_sum.lof R _ _ i 1,
+    { have : ∀ i : fin d, ∃ x : N,
+        p ^ k i • x = 0 ∧ f (submodule.quotient.mk x) = direct_sum.lof R _ _ i 1,
       { intro i,
         let fi := f.symm.to_linear_map.comp (direct_sum.lof _ _ _ i),
         obtain ⟨x, h0, h1⟩ := exists_smul_eq_zero_and_mk_eq hp hN hj fi, refine ⟨x, h0, _⟩, rw h1,
@@ -164,7 +166,7 @@ begin
             ulift.module_equiv.to_linear_map)
           (R ∙ s j).injective_subtype _ _).symm.trans $
         ((quot_torsion_of_equiv_span_singleton _ _ _).symm.trans $
-          quot_equiv_of_eq _ _ $ torsion_of_eq_span_pow_p_order hp hN _).prod $
+          quot_equiv_of_eq _ _ $ ideal.torsion_of_eq_span_pow_p_order hp hN _).prod $
           ulift.module_equiv).trans $
         (@direct_sum.lequiv_prod_direct_sum R _ _ _
           (λ i, R ⧸ R ∙ p ^ @option.rec _ (λ _, ℕ) (p_order hN $ s j) k i) _ _).symm).trans $
@@ -185,7 +187,7 @@ begin
       (λ x, ⟨(@hN x).some, by rw [← quotient.mk_smul, (@hN x).some_spec, quotient.mk_zero]⟩) },
     { have hs' := congr_arg (submodule.map $ mkq $ R ∙ s j) hs,
       rw [submodule.map_span, submodule.map_top, range_mkq] at hs', simp only [mkq_apply] at hs',
-      simp only [s'], rw [set.range_comp (mk ∘ s), fin.range_succ_above],
+      simp only [s'], rw [set.range_comp (_ ∘ s), fin.range_succ_above],
       rw [← set.range_comp, ← set.insert_image_compl_eq_range _ j, function.comp_apply,
         (quotient.mk_eq_zero _).mpr (mem_span_singleton_self _), span_insert_zero] at hs',
       exact hs' } }
@@ -198,7 +200,8 @@ theorem equiv_direct_sum_of_is_torsion [h' : module.finite R N] (hN : module.is_
   ∃ (ι : Type u) [fintype ι] (p : ι → R) [∀ i, irreducible $ p i] (e : ι → ℕ),
   nonempty $ N ≃ₗ[R] ⨁ (i : ι), R ⧸ R ∙ (p i ^ e i) :=
 begin
-  obtain ⟨I, fI, _, p, hp, e, h⟩ := is_internal_prime_power_torsion_of_pid hN, haveI := fI,
+  obtain ⟨I, fI, _, p, hp, e, h⟩ := submodule.is_internal_prime_power_torsion_of_pid hN,
+  haveI := fI,
   have : ∀ i, ∃ (d : ℕ) (k : fin d → ℕ),
     nonempty $ torsion_by R N (p i ^ e i) ≃ₗ[R] ⨁ j, R ⧸ R ∙ (p i ^ k j),
   { haveI := is_noetherian_of_fg_of_noetherian' (module.finite_def.mp h'),
@@ -233,3 +236,4 @@ begin
       (h.prod g).trans $ linear_equiv.prod_comm R _ _⟩⟩,
   rw [range_subtype, ker_mkq]
 end
+end module

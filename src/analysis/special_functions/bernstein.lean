@@ -117,7 +117,7 @@ begin
   simp [alg_hom.map_sum, finset.sum_range, ←polynomial.nat_cast_mul] at this,
   convert this using 1,
   { congr' 1, funext k,
-    rw [mul_comm _ (n : ℝ), mul_comm _ (n : ℝ), ←mul_assoc, ←mul_assoc],
+    move_mul polynomial.eval _ _,
     congr' 1,
     field_simp [h],
     ring, },

@@ -514,7 +514,7 @@ begin
   have h' : a' * b' = 1,
   { apply (mul_right_inj' h0₁).mp, rw mul_one,
     apply (mul_right_inj' h0₂).mp, rw ← h,
-    rw [mul_assoc, mul_comm a', ← mul_assoc _ b', ← mul_assoc b', mul_comm b'] },
+    move_mul b' },
   use units.mk_of_mul_eq_one _ _ h',
   rw [units.coe_mk_of_mul_eq_one, ha']
 end

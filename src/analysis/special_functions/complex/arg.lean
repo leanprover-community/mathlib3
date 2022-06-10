@@ -438,8 +438,7 @@ begin
                                               (arg x + arg y : real.angle) using 3,
   simp_rw [←real.angle.coe_add, real.angle.sin_coe, real.angle.cos_coe, of_real_cos,
            of_real_sin, cos_add_sin_I, of_real_add, add_mul, exp_add, of_real_mul],
-  rw [mul_assoc, mul_comm (exp _), ←mul_assoc (abs y : ℂ), abs_mul_exp_arg_mul_I, mul_comm y,
-      ←mul_assoc, abs_mul_exp_arg_mul_I]
+  rw [mul_mul_mul_comm, abs_mul_exp_arg_mul_I, abs_mul_exp_arg_mul_I],
 end
 
 lemma arg_div_coe_angle {x y : ℂ} (hx : x ≠ 0) (hy : y ≠ 0) :

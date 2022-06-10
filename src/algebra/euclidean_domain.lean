@@ -331,9 +331,9 @@ theorem xgcd_aux_P (a b : R) {r r' : R} : ∀ {s t s' t'}, P a b (r, s, t) →
   P a b (r', s', t') → P a b (xgcd_aux r s t r' s' t') :=
 gcd.induction r r' (by { intros, simpa only [xgcd_zero_left] }) $ λ x y h IH s t s' t' p p', begin
   rw [xgcd_aux_rec h], refine IH _ p, unfold P at p p' ⊢,
-  rw [mul_sub, mul_sub, add_sub, sub_add_eq_add_sub, ← p', sub_sub,
-    mul_comm _ s, ← mul_assoc, mul_comm _ t, ← mul_assoc, ← add_mul, ← p,
-    mod_eq_sub_mul_div]
+  rw [mul_sub, mul_sub, add_sub, sub_add_eq_add_sub, ← p', sub_sub],
+  move_mul _ / _,
+  rw [← add_mul, ← p, mod_eq_sub_mul_div]
 end
 
 /-- An explicit version of **Bézout's lemma** for Euclidean domains. -/
@@ -364,13 +364,13 @@ theorem dvd_lcm_left (x y : R) : x ∣ lcm x y :=
 classical.by_cases
   (assume hxy : gcd x y = 0, by { rw [lcm, hxy, div_zero], exact dvd_zero _ })
   (λ hxy, let ⟨z, hz⟩ := (gcd_dvd x y).2 in ⟨z, eq.symm $ eq_div_of_mul_eq_left hxy $
-    by rw [mul_right_comm, mul_assoc, ← hz]⟩)
+    by { move_mul [z, x], rw ← hz }⟩)
 
 theorem dvd_lcm_right (x y : R) : y ∣ lcm x y :=
 classical.by_cases
   (assume hxy : gcd x y = 0, by { rw [lcm, hxy, div_zero], exact dvd_zero _ })
   (λ hxy, let ⟨z, hz⟩ := (gcd_dvd x y).1 in ⟨z, eq.symm $ eq_div_of_mul_eq_right hxy $
-    by rw [← mul_assoc, mul_right_comm, ← hz]⟩)
+    by { move_mul y, rw ← hz }⟩)
 
 theorem lcm_dvd {x y z : R} (hxz : x ∣ z) (hyz : y ∣ z) : lcm x y ∣ z :=
 begin
@@ -381,10 +381,10 @@ begin
   { cases this with p hp, use p,
     generalize_hyp : gcd x y = g at hxy hs hp ⊢, subst hs,
     rw [mul_left_comm, mul_div_cancel_left _ hxy, ← mul_left_inj' hxy, hp],
-    rw [← mul_assoc], simp only [mul_right_comm] },
+    move_mul g },
   rw [gcd_eq_gcd_ab, mul_add], apply dvd_add,
   { rw mul_left_comm, exact mul_dvd_mul_left _ (hyz.mul_right _) },
-  { rw [mul_left_comm, mul_comm], exact mul_dvd_mul_left _ (hxz.mul_right _) }
+  { move_mul y, exact mul_dvd_mul_right (hxz.mul_right _) _ }
 end
 
 @[simp] lemma lcm_dvd_iff {x y z : R} : lcm x y ∣ z ↔ x ∣ z ∧ y ∣ z :=

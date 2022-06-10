@@ -416,7 +416,9 @@ minimal_period_iterate_eq_div_gcd_aux $
   gcd_pos_of_pos_left n (minimal_period_pos_iff_mem_periodic_pts.mpr h)
 
 /-- The orbit of a periodic point `x` of `f` is the cycle `[x, f x, f (f x), ...]`. Its length is
-the minimal period of `x`. -/
+the minimal period of `x`.
+
+If `x` is not a periodic point, then this is the empty (aka nil) cycle. -/
 def periodic_orbit (f : α → α) (x : α) : cycle α :=
 (list.range (minimal_period f x)).map (λ n, f^[n] x)
 
@@ -426,7 +428,7 @@ lemma periodic_orbit_def (f : α → α) (x : α) :
 rfl
 
 /-- The definition of a periodic orbit, in terms of `cycle.map`. -/
-lemma orbit_def' (f : α → α) (x : α) :
+lemma periodic_orbit_eq_cycle_map (f : α → α) (x : α) :
   periodic_orbit f x = (list.range (minimal_period f x) : cycle ℕ).map (λ n, f^[n] x) :=
 rfl
 

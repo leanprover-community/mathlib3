@@ -146,12 +146,6 @@ instance subsingleton_pempty : subsingleton pempty := ⟨λa, a.elim⟩
 @[simp] lemma not_nonempty_pempty : ¬ nonempty pempty :=
 assume ⟨h⟩, h.elim
 
-@[simp] theorem forall_pempty {P : pempty → Prop} : (∀ x : pempty, P x) ↔ true :=
-⟨λ h, trivial, λ h x, by cases x⟩
-
-@[simp] theorem exists_pempty {P : pempty → Prop} : (∃ x : pempty, P x) ↔ false :=
-⟨λ h, by { cases h with w, cases w }, false.elim⟩
-
 lemma congr_heq {α β γ : Sort*} {f : α → γ} {g : β → γ} {x : α} {y : β} (h₁ : f == g)
   (h₂ : x == y) : f x = g y :=
 by { cases h₂, cases h₁, refl }

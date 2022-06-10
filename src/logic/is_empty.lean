@@ -84,10 +84,10 @@ is_empty_iff
 
 variables [is_empty α]
 
-lemma forall_iff {p : α → Prop} : (∀ a, p a) ↔ true :=
+@[simp] lemma forall_iff {p : α → Prop} : (∀ a, p a) ↔ true :=
 iff_true_intro is_empty_elim
 
-lemma exists_iff {p : α → Prop} : (∃ a, p a) ↔ false :=
+@[simp] lemma exists_iff {p : α → Prop} : (∃ a, p a) ↔ false :=
 iff_false_intro $ λ ⟨x, hx⟩, is_empty.false x
 
 @[priority 100] -- see Note [lower instance priority]
@@ -117,7 +117,7 @@ by simp only [← not_nonempty_iff, nonempty_sum, not_or_distrib]
 by simp only [← not_nonempty_iff, nonempty_psum, not_or_distrib]
 
 lemma well_founded_of_empty {α} [is_empty α] (r : α → α → Prop) : well_founded r :=
-⟨is_empty_elim⟩ 
+⟨is_empty_elim⟩
 
 variables (α)
 

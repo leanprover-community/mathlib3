@@ -405,7 +405,7 @@ theorem is_normal.inj {f} (H : is_normal f) {a b} : f a = f b ↔ a = b :=
 by simp only [le_antisymm_iff, H.le_iff]
 
 theorem is_normal.self_le {f} (H : is_normal f) (a) : a ≤ f a :=
-lt_wf.self_le_of_strict_mono H.strict_mono a
+H.strict_mono.self_le a
 
 theorem is_normal.le_set {f} (H : is_normal f) (p : set ordinal) (p0 : p.nonempty) (b)
   (H₂ : ∀ o, b ≤ o ↔ ∀ a ∈ p, a ≤ o) {o : ordinal} : f b ≤ o ↔ ∀ a ∈ p, f a ≤ o :=
@@ -1729,7 +1729,7 @@ theorem enum_ord_surjective (hS : unbounded (<) S) : ∀ s ∈ S, ∃ a, enum_or
     exact (enum_ord_strict_mono hS hab).trans_le hb },
   { by_contra' h,
     exact (le_cSup ⟨s, λ a,
-      (lt_wf.self_le_of_strict_mono (enum_ord_strict_mono hS) a).trans⟩
+      ((enum_ord_strict_mono hS).self_le a).trans⟩
       (enum_ord_succ_le hS hs h)).not_lt (lt_succ _) }
 end⟩
 
@@ -1747,7 +1747,7 @@ theorem eq_enum_ord (f : ordinal → ordinal) (hS : unbounded (<) S) :
 begin
   split,
   { rintro ⟨h₁, h₂⟩,
-    rwa [←lt_wf.eq_strict_mono_iff_eq_range h₁ (enum_ord_strict_mono hS), range_enum_ord hS] },
+    rwa [←range_eq_iff_eq_of_strict_mono h₁ (enum_ord_strict_mono hS), range_enum_ord hS] },
   { rintro rfl,
     exact ⟨enum_ord_strict_mono hS, range_enum_ord hS⟩ }
 end

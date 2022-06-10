@@ -3,8 +3,9 @@ Copyright (c) 2020 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Mario Carneiro
 -/
-import tactic.by_contra
 import data.set.basic
+import tactic.by_contra
+import order.bounds
 
 /-!
 # Well-founded relations
@@ -132,12 +133,13 @@ begin
   rintro (hy | rfl), exact trans hy (wo.wf.lt_succ h), exact wo.wf.lt_succ h
 end
 
-section linear_order
+end well_founded
 
-variables {β : Type*} [linear_order β] (h : well_founded ((<) : β → β → Prop))
-  {γ : Type*} [partial_order γ]
+section is_well_order
 
-private theorem eq_strict_mono_iff_eq_range_aux {f g : β → γ} (hf : strict_mono f)
+variables {β γ : Type*} [linear_order β] [partial_order γ]
+
+private theorem range_eq_iff_eq_of_strict_mono_aux {f g : β → γ} (hf : strict_mono f)
   (hg : strict_mono g) (hfg : set.range f = set.range g) {b : β} (H : ∀ a < b, f a = g a) :
   f b ≤ g b :=
 begin
@@ -150,23 +152,29 @@ begin
     exact hf.monotone hbc }
 end
 
-include h
-theorem eq_strict_mono_iff_eq_range {f g : β → γ} (hf : strict_mono f)
-  (hg : strict_mono g) : set.range f = set.range g ↔ f = g :=
+theorem range_eq_iff_eq_of_strict_mono {f g : β → γ} (hf : strict_mono f)
+  (hg : strict_mono g) [h : is_well_order β (<)] : set.range f = set.range g ↔ f = g :=
 ⟨λ hfg, begin
   funext a,
-  apply h.induction a,
+  apply h.wf.induction a,
   exact λ b H, le_antisymm
-    (eq_strict_mono_iff_eq_range_aux hf hg hfg H)
-    (eq_strict_mono_iff_eq_range_aux hg hf hfg.symm (λ a hab, (H a hab).symm))
+    (range_eq_iff_eq_of_strict_mono_aux hf hg hfg H)
+    (range_eq_iff_eq_of_strict_mono_aux hg hf hfg.symm (λ a hab, (H a hab).symm))
 end, congr_arg _⟩
 
-theorem self_le_of_strict_mono {φ : β → β} (hφ : strict_mono φ) : ∀ n, n ≤ φ n :=
-by { by_contra' h₁, have h₂ := h.min_mem _ h₁, exact h.not_lt_min _ h₁ (hφ h₂) h₂ }
+theorem strict_mono.self_le {f : β → β} (hf : strict_mono f) [h : is_well_order β (<)] :
+  ∀ n, n ≤ f n :=
+by { by_contra' h₁, have h₂ := h.wf.min_mem _ h₁, exact h.wf.not_lt_min _ h₁ (hf h₂) h₂ }
 
-end linear_order
+theorem strict_mono.not_bdd_above_range {f : β → β} (hf : strict_mono f) [is_well_order β (<)]
+  [no_max_order β] : ¬ bdd_above (set.range f) :=
+begin
+  rintro ⟨a, ha⟩,
+  cases exists_gt a with b hb,
+  exact ((hf hb).trans_le (ha (set.mem_range_self b))).not_le (hf.self_le a)
+end
 
-end well_founded
+end is_well_order
 
 namespace function
 

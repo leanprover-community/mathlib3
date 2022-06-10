@@ -82,8 +82,8 @@ def center_and_rescale :
         rw [dist_eq_norm] at H,
         convert H.1 using 2,
         abel },
-      { rw [← mul_assoc, mul_comm τ, mul_assoc],
-        refine mul_le_mul_of_nonneg_left _ (inv_nonneg.2 ((a.rpos _)).le),
+      { move_mul _⁻¹,
+        refine mul_le_mul_of_nonneg_right _ (inv_nonneg.2 ((a.rpos _)).le),
         exact H.2 } },
   end,
   hlast := λ i hi, begin
@@ -95,8 +95,8 @@ def center_and_rescale :
       rw [dist_eq_norm] at H,
       convert H.1 using 2,
       abel },
-    { rw [← mul_assoc, mul_comm τ, mul_assoc],
-      refine mul_le_mul_of_nonneg_left _ (inv_nonneg.2 ((a.rpos _)).le),
+    { move_mul _⁻¹,
+      refine mul_le_mul_of_nonneg_right _ (inv_nonneg.2 ((a.rpos _)).le),
       exact H.2 }
   end,
   inter := λ i hi, begin

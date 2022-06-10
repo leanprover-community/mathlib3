@@ -463,7 +463,7 @@ lemma is_equiv_iff_val_sub_one_lt_one
   v.is_equiv v' ↔ ∀ {x : K}, v (x - 1) < 1 ↔ v' (x - 1) < 1 :=
 begin
   rw is_equiv_iff_val_lt_one,
-  refine ⟨λ h x, @h (x - 1), λ h x, by simpa using @h (x + 1)⟩,
+  exact (equiv.sub_right 1).surjective.forall
 end
 
 lemma is_equiv_tfae

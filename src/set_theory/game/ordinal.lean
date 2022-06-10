@@ -31,7 +31,7 @@ local infix ` ⧏ `:50 := lf
 namespace ordinal
 
 /-- Converts an ordinal into the corresponding pre-game. -/
-noncomputable! def to_pgame : Π o : ordinal.{u}, pgame.{u}
+noncomputable! def to_pgame : ordinal.{u} → pgame.{u}
 | o := ⟨o.out.α, pempty, λ x, let hwf := ordinal.typein_lt_self x in
         (typein (<) x).to_pgame, pempty.elim⟩
 using_well_founded { dec_tac := tactic.assumption }

@@ -63,7 +63,7 @@ end
 @[simp] lemma card_unique [unique α] : nat.card α = 1 :=
 card_of_subsingleton default
 
-lemma card_eq_one_iff_nonempty_unique : nat.card α = 1 ↔ subsingleton α ∧ nonempty α :=
+lemma card_eq_one_iff_unique : nat.card α = 1 ↔ subsingleton α ∧ nonempty α :=
 cardinal.to_nat_eq_one_iff_unique
 
 theorem card_of_is_empty [is_empty α] : nat.card α = 0 := by simp

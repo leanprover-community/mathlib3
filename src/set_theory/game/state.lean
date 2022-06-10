@@ -129,7 +129,7 @@ def left_moves_of_state_aux (n : ℕ) {s : S} (h : turn_bound s ≤ n) :
 by induction n; refl
 
 /-- The equivalence between `left_moves` for a `pgame` constructed using `of_state s`, and `L s`. -/
-def left_moves_of (s : S) : left_moves (of_state s) ≃ {t // t ∈ L s} :=
+def left_moves_of_state (s : S) : left_moves (of_state s) ≃ {t // t ∈ L s} :=
 left_moves_of_state_aux _ _
 
 /-- The equivalence between `right_moves` for a `pgame` constructed using `of_state_aux _ s _`, and
@@ -140,7 +140,7 @@ by induction n; refl
 
 /-- The equivalence between `right_moves` for a `pgame` constructed using `of_state s`, and
 `R s`. -/
-def right_moves_of (s : S) : right_moves (of_state s) ≃ {t // t ∈ R s} :=
+def right_moves_of_state (s : S) : right_moves (of_state s) ≃ {t // t ∈ R s} :=
 right_moves_of_state_aux _ _
 
 /--
@@ -167,7 +167,7 @@ has itself been constructed using `of`.
 def relabelling_move_left (s : S) (t : left_moves (of_state s)) :
   relabelling
     (move_left (of_state s) t)
-    (of_state (((left_moves_of s).to_fun t) : S)) :=
+    (of_state (((left_moves_of_state s).to_fun t) : S)) :=
 begin
   transitivity,
   apply relabelling_move_left_aux,
@@ -197,7 +197,7 @@ has itself been constructed using `of`.
 def relabelling_move_right (s : S) (t : right_moves (of_state s)) :
   relabelling
     (move_right (of_state s) t)
-    (of_state (((right_moves_of s).to_fun t) : S)) :=
+    (of_state (((right_moves_of_state s).to_fun t) : S)) :=
 begin
   transitivity,
   apply relabelling_move_right_aux,

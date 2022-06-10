@@ -103,14 +103,18 @@ by rw [birthday_def, max_eq_zero, lsub_eq_zero_iff, lsub_eq_zero_iff]
 @[simp] theorem birthday_zero : birthday 0 = 0 :=
 by simp [pempty.is_empty]
 
-@[simp] theorem birthday_one : birthday 1 = 1 :=
+@[simp] theorem birthday_of (x y) : birthday P{x | y} = max (birthday x) (birthday y) + 1 :=
+by { rw birthday_def, simpa using order.succ_mono.map_max.symm }
+
+@[simp] theorem birthday_of_left (x) : birthday P{x |} = birthday x + 1 :=
 by { rw birthday_def, simp }
 
-@[simp] theorem birthday_star : birthday star = 1 :=
+@[simp] theorem birthday_of_right (x) : birthday P{| x} = birthday x + 1 :=
 by { rw birthday_def, simp }
 
-@[simp] theorem birthday_half : birthday half = 2 :=
-by { rw birthday_def, simpa using order.le_succ (1 : ordinal) }
+theorem birthday_one  : birthday 1    = 1 := by simp
+theorem birthday_star : birthday star = 1 := by simp
+theorem birthday_half : birthday half = 2 := by simp
 
 @[simp] theorem neg_birthday : ∀ x : pgame, (-x).birthday = x.birthday
 | ⟨xl, xr, xL, xR⟩ := begin

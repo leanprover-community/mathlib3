@@ -251,6 +251,8 @@ notation `P{` x ` | ` y `}` := of x y
 notation `P{` x ` |}` := of_left x
 notation `P{| ` y `}` := of_right y
 
+-- `simp` can solve all of the following:
+
 theorem of_left_moves (x y) : P{x | y}.left_moves = punit := rfl
 theorem of_right_moves (x y) : P{x | y}.right_moves = punit := rfl
 theorem of_move_left {x y} (i) : P{x | y}.move_left i = x := rfl
@@ -278,6 +280,7 @@ instance : inhabited pgame := ⟨0⟩
 /-- The pre-game `one` is defined by `1 = P{0 |}`. -/
 @[reducible] instance : has_one pgame := ⟨P{0 |}⟩
 
+-- `simp` can solve all of the following:
 lemma one_left_moves : left_moves 1 = punit := rfl
 lemma one_move_left (x) : move_left 1 x = 0 := rfl
 lemma one_right_moves : right_moves 1 = pempty := rfl
@@ -1387,9 +1390,9 @@ theorem lt_iff_sub_pos {x y : pgame} : x < y ↔ 0 < y - x :=
 /-- The pre-game `star = P{0 | 0}`, which is fuzzy with zero. -/
 @[reducible] def star : pgame.{u} := P{0 | 0}
 
+-- `simp` can solve all of the following:
 theorem star_left_moves : star.left_moves = punit := rfl
 theorem star_right_moves : star.right_moves = punit := rfl
-
 theorem star_move_left (x) : star.move_left x = 0 := rfl
 theorem star_move_right (x) : star.move_right x = 0 := rfl
 
@@ -1409,10 +1412,11 @@ lt_of_le_of_lf zero_le_one zero_lf_one
 /-- The pre-game `half` is defined as `P{0 | 1}`. -/
 @[reducible] def half : pgame := P{0 | 1}
 
+-- `simp` can solve all of the following:
 theorem half_left_moves : half.left_moves = punit := rfl
 theorem half_right_moves : half.right_moves = punit := rfl
-lemma half_move_left (x) : half.move_left x = 0 := rfl
-lemma half_move_right (x) : half.move_right x = 1 := rfl
+theorem half_move_left (x) : half.move_left x = 0 := rfl
+theorem half_move_right (x) : half.move_right x = 1 := rfl
 
 protected theorem zero_lt_half : 0 < half :=
 lt_of_le_of_lf (zero_le.2 (λ j, ⟨punit.star, le_rfl⟩))

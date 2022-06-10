@@ -2649,7 +2649,7 @@ def metric_space.replace_bornology {α} [B : bornology α] (m : metric_space α)
   (H : ∀ s, @is_bounded _ B s ↔ @is_bounded _ pseudo_metric_space.to_bornology' s) :
   metric_space α :=
 { to_bornology := B,
-  ..(pseudo_metric_space.replace_bornology _ H),
+  .. pseudo_metric_space.replace_bornology _ H,
   .. m }
 
 lemma metric_space.replace_bornology_eq {α} [m : metric_space α] [B : bornology α]

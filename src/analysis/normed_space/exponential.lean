@@ -562,7 +562,7 @@ lemma exp_zsmul (z : ℤ) (x : 𝔸) : exp 𝕂 (z • x) = (exp 𝕂 x) ^ z :=
 begin
   obtain ⟨n, rfl | rfl⟩ := z.eq_coe_or_neg,
   { rw [zpow_coe_nat, coe_nat_zsmul, exp_nsmul] },
-  { rw [zpow_neg₀, zpow_coe_nat, neg_smul, exp_neg, coe_nat_zsmul, exp_nsmul] },
+  { rw [zpow_neg, zpow_coe_nat, neg_smul, exp_neg, coe_nat_zsmul, exp_nsmul] },
 end
 
 lemma exp_conj (y : 𝔸) (x : 𝔸) (hy : y ≠ 0) :

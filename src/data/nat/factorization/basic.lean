@@ -90,8 +90,18 @@ prime.pos (prime_of_mem_factorization hp)
 lemma le_of_mem_factorization {n p : ℕ} (h : p ∈ n.factorization.support) : p ≤ n :=
 le_of_mem_factors (factor_iff_mem_factorization.mp h)
 
+@[simp]
 lemma factorization_eq_zero_of_non_prime (n : ℕ) {p : ℕ} (hp : ¬p.prime) : n.factorization p = 0 :=
 not_mem_support_iff.1 (mt prime_of_mem_factorization hp)
+
+lemma factorization_eq_zero_of_lt {n p : ℕ} (h : n < p) : n.factorization p = 0 :=
+finsupp.not_mem_support_iff.mp (mt le_of_mem_factorization (not_le_of_lt h))
+
+@[simp] lemma factorization_zero_right (n : ℕ) : n.factorization 0 = 0 :=
+factorization_eq_zero_of_non_prime _ not_prime_zero
+
+@[simp] lemma factorization_one_right (n : ℕ) : n.factorization 1 = 0 :=
+factorization_eq_zero_of_non_prime _ not_prime_one
 
 lemma dvd_of_factorization_pos {n p : ℕ} (hn : n.factorization p ≠ 0) : p ∣ n :=
 dvd_of_mem_factors (factor_iff_mem_factorization.1 (mem_support_iff.2 hn))
@@ -103,6 +113,15 @@ by rwa [←factors_count_eq, count_pos, mem_factors_iff_dvd hn hp]
 /-- The only numbers with empty prime factorization are `0` and `1` -/
 lemma factorization_eq_zero_iff (n : ℕ) : n.factorization = 0 ↔ n = 0 ∨ n = 1 :=
 by simp [factorization, add_equiv.map_eq_zero_iff, multiset.coe_eq_zero]
+
+lemma factorization_eq_zero_iff' (n p : ℕ) :
+  n.factorization p = 0 ↔ ¬p.prime ∨ ¬p ∣ n ∨ n = 0 :=
+begin
+  rw [←not_mem_support_iff, support_factorization, mem_to_finset],
+  rcases eq_or_ne n 0 with rfl | hn,
+  { simp },
+  { simp [hn, nat.mem_factors, not_and_distrib] },
+end
 
 /-- For nonzero `a` and `b`, the power of `p` in `a * b` is the sum of the powers in `a` and `b` -/
 @[simp] lemma factorization_mul {a b : ℕ} (ha : a ≠ 0) (hb : b ≠ 0) :
@@ -217,6 +236,18 @@ begin
   simp [list.eq_of_mem_repeat hq],
 end
 
+lemma pow_factorization_le {n : ℕ} (p : ℕ) (hn : n ≠ 0) : p ^ n.factorization p ≤ n :=
+le_of_dvd hn.bot_lt (nat.pow_factorization_dvd n p)
+
+lemma div_pow_factorization_ne_zero {n : ℕ} (p : ℕ) (hn : n ≠ 0) :
+  n / p ^ n.factorization p ≠ 0 :=
+begin
+  by_cases pp : nat.prime p,
+  { apply mt (nat.div_eq_zero_iff (pow_pos (prime.pos pp) _)).1,
+    simp [le_of_dvd hn.bot_lt (nat.pow_factorization_dvd n p)] },
+  { simp [nat.factorization_eq_zero_of_non_prime n pp, hn] },
+end
+
 lemma pow_succ_factorization_not_dvd {n p : ℕ} (hn : n ≠ 0) (hp : p.prime) :
   ¬ p ^ (n.factorization p + 1) ∣ n :=
 begin
@@ -281,6 +312,14 @@ begin
   rw [tsub_add_cancel_of_le $ (nat.factorization_le_iff_dvd hd hn).mpr h,
       ←nat.factorization_mul (nat.div_pos (nat.le_of_dvd hn.bot_lt h) hd.bot_lt).ne' hd,
       nat.div_mul_cancel h],
+end
+
+lemma not_dvd_div_pow_factorization {n p : ℕ} (hp : prime p) (hn : n ≠ 0) :
+  ¬p ∣ n / p ^ n.factorization p :=
+begin
+  rw [nat.prime.dvd_iff_one_le_factorization hp (div_pow_factorization_ne_zero p hn),
+    nat.factorization_div (nat.pow_factorization_dvd n p)],
+  simp [hp.factorization],
 end
 
 lemma dvd_iff_div_factorization_eq_tsub {d n : ℕ} (hd : d ≠ 0) (hdn : d ≤ n) :

@@ -6,6 +6,7 @@ Authors: Robert A. Spencer, Markus Himmel
 import algebra.category.Group.basic
 import category_theory.limits.shapes.kernels
 import category_theory.linear
+import category_theory.elementwise
 import linear_algebra.basic
 import category_theory.conj
 
@@ -89,10 +90,9 @@ instance has_forget_to_AddCommGroup : has_forget₂ (Module R) AddCommGroup :=
   { obj := λ M, AddCommGroup.of M,
     map := λ M₁ M₂ f, linear_map.to_add_monoid_hom f } }
 
--- TODO: instantiate `linear_map_class` once that gets defined
-instance (M N : Module R) : add_monoid_hom_class (M ⟶ N) M N :=
+instance (M N : Module R) : linear_map_class (M ⟶ N) R M N :=
 { coe := λ f, f,
-  .. linear_map.add_monoid_hom_class }
+  .. linear_map.semilinear_map_class }
 
 /-- The object in the category of R-modules associated to an R-module -/
 def of (X : Type v) [add_comm_group X] [module R X] : Module R := ⟨X⟩

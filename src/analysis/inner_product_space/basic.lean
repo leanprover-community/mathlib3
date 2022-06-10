@@ -5,8 +5,8 @@ Authors: Zhouhang Zhou, Sébastien Gouëzel, Frédéric Dupuis
 -/
 import algebra.direct_sum.module
 import analysis.complex.basic
+import analysis.convex.uniform
 import analysis.normed_space.bounded_linear_maps
-import analysis.convex.strict_convex_space
 import linear_algebra.bilinear_form
 import linear_algebra.sesquilinear_form
 
@@ -1071,6 +1071,19 @@ begin
   simp only [sq, ← mul_div_right_comm, ← add_div]
 end
 
+@[priority 100] -- See note [lower instance priority]
+instance inner_product_space.to_uniform_convex_space : uniform_convex_space F :=
+⟨λ ε hε, begin
+  refine ⟨2 - sqrt (4 - ε^2), sub_pos_of_lt $ (sqrt_lt' zero_lt_two).2 _, λ x hx y hy hxy, _⟩,
+  { norm_num,
+    exact pow_pos hε _ },
+  rw sub_sub_cancel,
+  refine le_sqrt_of_sq_le _,
+  rw [sq, eq_sub_iff_add_eq.2 (parallelogram_law_with_norm x y), ←sq (∥x - y∥), hx, hy],
+  norm_num,
+  exact pow_le_pow_of_le_left hε.le hxy _,
+end⟩
+
 section complex
 
 variables {V : Type*}
@@ -1574,19 +1587,6 @@ Compare `abs_inner_eq_norm_iff`, which takes the weaker hypothesis `abs ⟪x, y�
 lemma inner_eq_norm_mul_iff_real {x y : F} : ⟪x, y⟫_ℝ = ∥x∥ * ∥y∥ ↔ ∥y∥ • x = ∥x∥ • y :=
 inner_eq_norm_mul_iff
 
-/-- An inner product space is strictly convex. We do not register this as an instance for an inner
-space over `𝕜`, `is_R_or_C 𝕜`, because there is no order of the typeclass argument that does not
-lead to a search of `[is_scalar_tower ℝ ?m E]` with unknown `?m`. -/
-instance inner_product_space.strict_convex_space : strict_convex_space ℝ F :=
-begin
-  refine strict_convex_space.of_norm_add (λ x y h, _),
-  rw [same_ray_iff_norm_smul_eq, eq_comm, ← inner_eq_norm_mul_iff_real,
-    real_inner_eq_norm_add_mul_self_sub_norm_mul_self_sub_norm_mul_self_div_two, h,
-    add_mul_self_eq, sub_sub, add_sub_add_right_eq_sub, add_sub_cancel', mul_assoc,
-    mul_div_cancel_left],
-  exact _root_.two_ne_zero
-end
-
 /-- If the inner product of two unit vectors is `1`, then the two vectors are equal. One form of
 the equality case for Cauchy-Schwarz. -/
 lemma inner_eq_norm_mul_iff_of_norm_one {x y : E} (hx : ∥x∥ = 1) (hy : ∥y∥ = 1) :
@@ -1935,9 +1935,8 @@ begin
     have : ∀ i, 0 ≤ ∥f i∥ ^ 2 := λ i : ι, sq_nonneg _,
     simp only [finset.abs_sum_of_nonneg' this],
     have : ∑ i in s₁ \ s₂, ∥f i∥ ^ 2 + ∑ i in s₂ \ s₁, ∥f i∥ ^ 2 < (sqrt ε) ^ 2,
-    { rw ← hV.norm_sq_diff_sum,
-      apply sq_lt_sq,
-      rw [_root_.abs_of_nonneg (sqrt_nonneg _), _root_.abs_of_nonneg (norm_nonneg _)],
+    { rw [← hV.norm_sq_diff_sum, sq_lt_sq,
+        _root_.abs_of_nonneg (sqrt_nonneg _), _root_.abs_of_nonneg (norm_nonneg _)],
       exact H s₁ hs₁ s₂ hs₂ },
     have hη := sq_sqrt (le_of_lt hε),
     linarith },
@@ -1989,9 +1988,9 @@ begin
 end
 
 include dec_ι
-lemma direct_sum.submodule_is_internal.collected_basis_orthonormal {V : ι → submodule 𝕜 E}
+lemma direct_sum.is_internal.collected_basis_orthonormal {V : ι → submodule 𝕜 E}
   (hV : @orthogonal_family 𝕜 _ _ _ _ (λ i, V i) _ (λ i, (V i).subtypeₗᵢ))
-  (hV_sum : direct_sum.submodule_is_internal (λ i, V i))
+  (hV_sum : direct_sum.is_internal (λ i, V i))
   {α : ι → Type*}
   {v_family : Π i, basis (α i) 𝕜 (V i)} (hv_family : ∀ i, orthonormal 𝕜 (v_family i)) :
   orthonormal 𝕜 (hV_sum.collected_basis v_family) :=

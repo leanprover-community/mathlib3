@@ -197,7 +197,7 @@ begin
             apply fun_mono_2,
             { rw coeffs.val_except_eq_val_except
               update_eq_of_ne (get_set_eq_of_ne _) },
-            simp only [m], ring,
+            ring,
           end
   ... = -(m * a_n * sgm v b as n) + (b + a_n * (symmod b m))
         + coeffs.val_except n v (as.map (λ a_i, a_i + a_n * (symmod a_i m))) :

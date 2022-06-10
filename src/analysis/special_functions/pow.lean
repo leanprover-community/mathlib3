@@ -537,7 +537,7 @@ by { rw ← rpow_nat_cast, simp only [nat.cast_bit0, nat.cast_one] }
 lemma rpow_neg_one (x : ℝ) : x ^ (-1 : ℝ) = x⁻¹ :=
 begin
   suffices H : x ^ ((-1 : ℤ) : ℝ) = x⁻¹, by exact_mod_cast H,
-  simp only [rpow_int_cast, zpow_one, zpow_neg₀],
+  simp only [rpow_int_cast, zpow_one, zpow_neg],
 end
 
 lemma mul_rpow {x y z : ℝ} (h : 0 ≤ x) (h₁ : 0 ≤ y) : (x*y)^z = x^z * y^z :=
@@ -968,8 +968,8 @@ namespace asymptotics
 
 variables {α : Type*} {r c : ℝ} {l : filter α} {f g : α → ℝ}
 
-lemma is_O_with.rpow (h : is_O_with c f g l) (hc : 0 ≤ c) (hr : 0 ≤ r) (hg : 0 ≤ᶠ[l] g) :
-  is_O_with (c ^ r) (λ x, f x ^ r) (λ x, g x ^ r) l :=
+lemma is_O_with.rpow (h : is_O_with c l f g) (hc : 0 ≤ c) (hr : 0 ≤ r) (hg : 0 ≤ᶠ[l] g) :
+  is_O_with (c ^ r) l (λ x, f x ^ r) (λ x, g x ^ r) :=
 begin
   apply is_O_with.of_bound,
   filter_upwards [hg, h.bound] with x hgx hx,
@@ -978,12 +978,12 @@ begin
              ... = c ^ r * |g x ^ r| : by rw [mul_rpow hc (abs_nonneg _), abs_rpow_of_nonneg hgx]
 end
 
-lemma is_O.rpow (hr : 0 ≤ r) (hg : 0 ≤ᶠ[l] g) (h : is_O f g l) :
-  is_O (λ x, f x ^ r) (λ x, g x ^ r) l :=
+lemma is_O.rpow (hr : 0 ≤ r) (hg : 0 ≤ᶠ[l] g) (h : f =O[l] g) :
+  (λ x, f x ^ r) =O[l] (λ x, g x ^ r) :=
 let ⟨c, hc, h'⟩ := h.exists_nonneg in (h'.rpow hc hr hg).is_O
 
-lemma is_o.rpow (hr : 0 < r) (hg : 0 ≤ᶠ[l] g) (h : is_o f g l) :
-  is_o (λ x, f x ^ r) (λ x, g x ^ r) l :=
+lemma is_o.rpow (hr : 0 < r) (hg : 0 ≤ᶠ[l] g) (h : f =o[l] g) :
+  (λ x, f x ^ r) =o[l] (λ x, g x ^ r) :=
 is_o.of_is_O_with $ λ c hc, ((h.forall_is_O_with (rpow_pos_of_pos hc r⁻¹)).rpow
   (rpow_nonneg_of_nonneg hc.le _) hr.le hg).congr_const
     (by rw [←rpow_mul hc.le, inv_mul_cancel hr.ne', rpow_one])
@@ -994,40 +994,38 @@ open asymptotics
 
 /-- `x ^ s = o(exp(b * x))` as `x → ∞` for any real `s` and positive `b`. -/
 lemma is_o_rpow_exp_pos_mul_at_top (s : ℝ) {b : ℝ} (hb : 0 < b) :
-  is_o (λ x : ℝ, x ^ s) (λ x, exp (b * x)) at_top :=
+  (λ x : ℝ, x ^ s) =o[at_top] (λ x, exp (b * x)) :=
 iff.mpr (is_o_iff_tendsto $ λ x h, absurd h (exp_pos _).ne') $
   by simpa only [div_eq_mul_inv, exp_neg, neg_mul]
     using tendsto_rpow_mul_exp_neg_mul_at_top_nhds_0 s b hb
 
 /-- `x ^ k = o(exp(b * x))` as `x → ∞` for any integer `k` and positive `b`. -/
 lemma is_o_zpow_exp_pos_mul_at_top (k : ℤ) {b : ℝ} (hb : 0 < b) :
-  is_o (λ x : ℝ, x ^ k) (λ x, exp (b * x)) at_top :=
+  (λ x : ℝ, x ^ k) =o[at_top] (λ x, exp (b * x)) :=
 by simpa only [rpow_int_cast] using is_o_rpow_exp_pos_mul_at_top k hb
 
 /-- `x ^ k = o(exp(b * x))` as `x → ∞` for any natural `k` and positive `b`. -/
 lemma is_o_pow_exp_pos_mul_at_top (k : ℕ) {b : ℝ} (hb : 0 < b) :
-  is_o (λ x : ℝ, x ^ k) (λ x, exp (b * x)) at_top :=
+  (λ x : ℝ, x ^ k) =o[at_top] (λ x, exp (b * x)) :=
 is_o_zpow_exp_pos_mul_at_top k hb
 
 /-- `x ^ s = o(exp x)` as `x → ∞` for any real `s`. -/
-lemma is_o_rpow_exp_at_top (s : ℝ) : is_o (λ x : ℝ, x ^ s) exp at_top :=
+lemma is_o_rpow_exp_at_top (s : ℝ) : (λ x : ℝ, x ^ s) =o[at_top] exp :=
 by simpa only [one_mul] using is_o_rpow_exp_pos_mul_at_top s one_pos
 
-lemma is_o_log_rpow_at_top {r : ℝ} (hr : 0 < r) : is_o log (λ x, x ^ r) at_top :=
-begin
-  rw ←is_o_const_mul_left_iff hr.ne',
-  refine (is_o_log_id_at_top.comp_tendsto (tendsto_rpow_at_top hr)).congr' _ eventually_eq.rfl,
-  filter_upwards [eventually_gt_at_top (0 : ℝ)] with x hx using log_rpow hx _,
-end
+lemma is_o_log_rpow_at_top {r : ℝ} (hr : 0 < r) : log =o[at_top] (λ x, x ^ r) :=
+calc log =O[at_top] (λ x, r * log x)   : is_O_self_const_mul _ hr.ne' _ _
+     ... =ᶠ[at_top] (λ x, log (x ^ r)) :
+  (eventually_gt_at_top 0).mono $ λ x hx, (log_rpow hx _).symm
+     ... =o[at_top] (λ x, x ^ r)       : is_o_log_id_at_top.comp_tendsto (tendsto_rpow_at_top hr)
 
 lemma is_o_log_rpow_rpow_at_top {r s : ℝ} (hr : 0 < r) (hs : 0 < s) :
-  is_o (λ x, log x ^ r) (λ x, x ^ s) at_top :=
-begin
-  refine ((is_o_log_rpow_at_top (div_pos hs hr)).rpow hr _).congr' eventually_eq.rfl _,
-  { filter_upwards [eventually_ge_at_top (0 : ℝ)] with x hx,
-    rw [← rpow_mul hx, div_mul_cancel _ hr.ne'] },
-  { exact (tendsto_rpow_at_top (div_pos hs hr)).eventually (eventually_ge_at_top 0) },
-end
+  (λ x, log x ^ r) =o[at_top] (λ x, x ^ s) :=
+have H : 0 < s / r, from div_pos hs hr,
+calc (λ x, log x ^ r) =o[at_top] (λ x, (x ^ (s / r)) ^ r) :
+  (is_o_log_rpow_at_top H).rpow hr $ (tendsto_rpow_at_top H).eventually $ eventually_ge_at_top 0
+                  ... =ᶠ[at_top] (λ x, x ^ s) :
+  (eventually_ge_at_top 0).mono $ λ x hx, by simp only [← rpow_mul hx, div_mul_cancel _ hr.ne']
 
 end limits
 
@@ -1408,7 +1406,13 @@ lemma coe_rpow_def (x : ℝ≥0) (y : ℝ) :
   (x : ℝ≥0∞) ^ y = if x = 0 ∧ y < 0 then ⊤ else (x ^ y : ℝ≥0) := rfl
 
 @[simp] lemma rpow_one (x : ℝ≥0∞) : x ^ (1 : ℝ) = x :=
-by cases x; dsimp only [(^), rpow]; simp [zero_lt_one, not_lt_of_le zero_le_one]
+begin
+  cases x,
+  { exact dif_pos zero_lt_one },
+  { change ite _ _ _ = _,
+    simp,
+    exact λ _, zero_le_one.not_lt }
+end
 
 @[simp] lemma one_rpow (x : ℝ) : (1 : ℝ≥0∞) ^ x = 1 :=
 by { rw [← coe_one, coe_rpow_of_ne_zero one_ne_zero], simp }
@@ -1864,11 +1868,11 @@ lemma filter.tendsto.ennrpow_const {α : Type*} {f : filter α} {m : α → ℝ�
 namespace norm_num
 open tactic
 
-theorem rpow_pos (a b : ℝ) (b' : ℕ) (c : ℝ) (hb : b = b') (h : a ^ b' = c) : a ^ b = c :=
-by rw [← h, hb, real.rpow_nat_cast]
+theorem rpow_pos (a b : ℝ) (b' : ℕ) (c : ℝ) (hb : (b':ℝ) = b) (h : a ^ b' = c) : a ^ b = c :=
+by rw [← h, ← hb, real.rpow_nat_cast]
 theorem rpow_neg (a b : ℝ) (b' : ℕ) (c c' : ℝ)
-  (a0 : 0 ≤ a) (hb : b = b') (h : a ^ b' = c) (hc : c⁻¹ = c') : a ^ -b = c' :=
-by rw [← hc, ← h, hb, real.rpow_neg a0, real.rpow_nat_cast]
+  (a0 : 0 ≤ a) (hb : (b':ℝ) = b) (h : a ^ b' = c) (hc : c⁻¹ = c') : a ^ -b = c' :=
+by rw [← hc, ← h, ← hb, real.rpow_neg a0, real.rpow_nat_cast]
 
 /-- Evaluate `real.rpow a b` where `a` is a rational numeral and `b` is an integer.
 (This cannot go via the generalized version `prove_rpow'` because `rpow_pos` has a side condition;

@@ -762,4 +762,42 @@ disjoint.mono_right (tailing_le_tunnel f i _) (tailings_disjoint_tunnel f i _)
 
 end tunnel
 
+section graph
+
+variables [semiring R] [add_comm_monoid M] [add_comm_monoid M₂]
+  [add_comm_group M₃] [add_comm_group M₄] [module R M] [module R M₂]
+  [module R M₃] [module R M₄] (f : M →ₗ[R] M₂) (g : M₃ →ₗ[R] M₄)
+
+/-- Graph of a linear map. -/
+def graph : submodule R (M × M₂) :=
+{ carrier := {p | p.2 = f p.1},
+  add_mem' := λ a b (ha : _ = _) (hb : _ = _),
+  begin
+    change _ + _ = f (_ + _),
+    rw [map_add, ha, hb]
+  end,
+  zero_mem' := eq.symm (map_zero f),
+  smul_mem' := λ c x (hx : _ = _),
+  begin
+    change _ • _ = f (_ • _),
+    rw [map_smul, hx]
+  end }
+
+@[simp] lemma mem_graph_iff (x : M × M₂) : x ∈ f.graph ↔ x.2 = f x.1 := iff.rfl
+
+lemma graph_eq_ker_coprod : g.graph = ((-g).coprod linear_map.id).ker :=
+begin
+  ext x,
+  change _ = _ ↔ -(g x.1) + x.2 = _,
+  rw [add_comm, add_neg_eq_zero]
+end
+
+lemma graph_eq_range_prod : f.graph = (linear_map.id.prod f).range :=
+begin
+  ext x,
+  exact ⟨λ hx, ⟨x.1, prod.ext rfl hx.symm⟩, λ ⟨u, hu⟩, hu ▸ rfl⟩
+end
+
+end graph
+
 end linear_map

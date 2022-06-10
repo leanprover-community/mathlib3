@@ -31,15 +31,15 @@ variable (X : Scheme)
 
 instance : t0_space X.carrier :=
 begin
-  rw t0_space_iff_distinguishable,
+  rw t0_space_iff_not_inseparable,
   intros x y h h',
   obtain ⟨U, R, ⟨e⟩⟩ := X.local_affine x,
   have hy := (h' _ U.1.2).mp U.2,
-  erw ← subtype_indistinguishable_iff (⟨x, U.2⟩ : U.1.1) (⟨y, hy⟩ : U.1.1) at h',
+  erw ← subtype_inseparable_iff (⟨x, U.2⟩ : U.1.1) (⟨y, hy⟩ : U.1.1) at h',
   let e' : U.1 ≃ₜ prime_spectrum R :=
     homeo_of_iso ((LocallyRingedSpace.forget_to_SheafedSpace ⋙ SheafedSpace.forget _).map_iso e),
   have := t0_space_of_injective_of_continuous e'.injective e'.continuous,
-  rw t0_space_iff_distinguishable at this,
+  rw t0_space_iff_not_inseparable at this,
   exact this ⟨x, U.2⟩ ⟨y, hy⟩ (by simpa using h) h'
 end
 
@@ -204,7 +204,7 @@ begin
     replace hs := (hs.map (Spec_Γ_identity.app R).inv),
     -- what the hell?!
     replace hs := @is_nilpotent.eq_zero _ _ _ _ (show _, from _) hs,
-    rw coe_hom_inv_id at hs,
+    rw iso.hom_inv_id_apply at hs,
     rw [hs, map_zero],
     exact @@is_reduced.component_reduced hX ⊤ }
 end

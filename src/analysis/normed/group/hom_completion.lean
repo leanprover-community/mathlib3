@@ -121,7 +121,7 @@ end
 
 lemma normed_group_hom.completion_neg (f : normed_group_hom G H) :
   (-f).completion = -f.completion :=
-normed_group_hom_completion_hom.map_neg f
+map_neg (normed_group_hom_completion_hom : normed_group_hom G H →+ _) f
 
 lemma normed_group_hom.completion_add (f g : normed_group_hom G H) :
   (f + g).completion = f.completion + g.completion :=
@@ -129,7 +129,7 @@ normed_group_hom_completion_hom.map_add f g
 
 lemma normed_group_hom.completion_sub (f g : normed_group_hom G H) :
   (f - g).completion = f.completion - g.completion :=
-normed_group_hom_completion_hom.map_sub f g
+map_sub (normed_group_hom_completion_hom : normed_group_hom G H →+ _) f g
 
 @[simp]
 lemma normed_group_hom.zero_completion : (0 : normed_group_hom G H).completion = 0 :=

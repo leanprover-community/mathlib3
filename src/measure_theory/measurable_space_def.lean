@@ -110,7 +110,7 @@ begin
   exact measurable_set.Union (by simpa using h)
 end
 
-lemma set.finite.measurable_set_bUnion {f : β → set α} {s : set β} (hs : finite s)
+lemma set.finite.measurable_set_bUnion {f : β → set α} {s : set β} (hs : s.finite)
   (h : ∀ b ∈ s, measurable_set (f b)) :
   measurable_set (⋃ b ∈ s, f b) :=
 measurable_set.bUnion hs.countable h
@@ -124,7 +124,7 @@ lemma measurable_set.sUnion {s : set (set α)} (hs : countable s) (h : ∀ t ∈
   measurable_set (⋃₀ s) :=
 by { rw sUnion_eq_bUnion, exact measurable_set.bUnion hs h }
 
-lemma set.finite.measurable_set_sUnion {s : set (set α)} (hs : finite s)
+lemma set.finite.measurable_set_sUnion {s : set (set α)} (hs : s.finite)
   (h : ∀ t ∈ s, measurable_set t) :
   measurable_set (⋃₀ s) :=
 measurable_set.sUnion hs.countable h
@@ -157,7 +157,7 @@ lemma measurable_set.bInter {f : β → set α} {s : set β} (hs : countable s)
 measurable_set.compl_iff.1 $
 by { rw compl_Inter₂, exact measurable_set.bUnion hs (λ b hb, (h b hb).compl) }
 
-lemma set.finite.measurable_set_bInter {f : β → set α} {s : set β} (hs : finite s)
+lemma set.finite.measurable_set_bInter {f : β → set α} {s : set β} (hs : s.finite)
   (h : ∀ b ∈ s, measurable_set (f b)) : measurable_set (⋂ b ∈ s, f b) :=
 measurable_set.bInter hs.countable h
 
@@ -169,7 +169,7 @@ lemma measurable_set.sInter {s : set (set α)} (hs : countable s) (h : ∀ t ∈
   measurable_set (⋂₀ s) :=
 by { rw sInter_eq_bInter, exact measurable_set.bInter hs h }
 
-lemma set.finite.measurable_set_sInter {s : set (set α)} (hs : finite s)
+lemma set.finite.measurable_set_sInter {s : set (set α)} (hs : s.finite)
   (h : ∀ t ∈ s, measurable_set t) : measurable_set (⋂₀ s) :=
 measurable_set.sInter hs.countable h
 
@@ -219,6 +219,8 @@ lemma nonempty_measurable_superset (s : set α) : nonempty { t // s ⊆ t ∧ me
 
 end
 
+open_locale measure_theory
+
 @[ext] lemma measurable_space.ext : ∀ {m₁ m₂ : measurable_space α},
   (∀ s : set α, m₁.measurable_set' s ↔ m₂.measurable_set' s) → m₁ = m₂
 | ⟨s₁, _, _, _⟩ ⟨s₂, _, _, _⟩ h :=
@@ -257,7 +259,7 @@ lemma measurable_set.insert {s : set α} (hs : measurable_set s) (a : α) :
 lemma set.subsingleton.measurable_set {s : set α} (hs : s.subsingleton) : measurable_set s :=
 hs.induction_on measurable_set.empty measurable_set_singleton
 
-lemma set.finite.measurable_set {s : set α} (hs : finite s) : measurable_set s :=
+lemma set.finite.measurable_set {s : set α} (hs : s.finite) : measurable_set s :=
 finite.induction_on hs measurable_set.empty $ λ a s ha hsf hsm, hsm.insert _
 
 protected lemma finset.measurable_set (s : finset α) : measurable_set (↑s : set α) :=
@@ -276,16 +278,15 @@ namespace measurable_space
 section complete_lattice
 
 instance : has_le (measurable_space α) :=
-{ le          := λ m₁ m₂, m₁.measurable_set' ≤ m₂.measurable_set' }
+{ le          := λ m₁ m₂, ∀ s, measurable_set[m₁] s → measurable_set[m₂] s }
 
 lemma le_def {α} {a b : measurable_space α} :
   a ≤ b ↔ a.measurable_set' ≤ b.measurable_set' := iff.rfl
 
 instance : partial_order (measurable_space α) :=
-{ le_refl     := assume a b, le_rfl,
-  le_trans    := assume a b c hab hbc, le_def.mpr (le_trans hab hbc),
-  le_antisymm := assume a b h₁ h₂, measurable_space.ext $ assume s, ⟨h₁ s, h₂ s⟩,
-  ..measurable_space.has_le }
+{ lt := λ m₁ m₂, m₁ ≤ m₂ ∧ ¬m₂ ≤ m₁,
+  .. measurable_space.has_le,
+  .. partial_order.lift (@measurable_space.measurable_set' α) (λ m₁ m₂ h, ext $ λ s, h ▸ iff.rfl) }
 
 /-- The smallest σ-algebra containing a collection `s` of basic sets -/
 inductive generate_measurable (s : set (set α)) : set α → Prop
@@ -399,9 +400,7 @@ by simp only [supr, measurable_set_Sup, exists_range_iff]
 
 end complete_lattice
 
-
 end measurable_space
-
 
 section measurable_functions
 open measurable_space

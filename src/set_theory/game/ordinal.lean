@@ -13,19 +13,20 @@ import set_theory.ordinal.basic
 We define the canonical map `ordinal → pgame`, where every ordinal is mapped to the game whose left
 set consists of all previous ordinals.
 
+The map to surreals is defined in `ordinal.to_surreal`.
+
 # Main declarations
 
 - `ordinal.to_pgame`: The canonical map between ordinals and pre-games.
 - `ordinal.to_pgame_embedding`: The order embedding version of the previous map.
-
-# Todo
-
-- Extend this map to `game` and `surreal`.
 -/
 
-local infix ` ≈ ` := pgame.equiv
-
 universe u
+
+open pgame
+
+local infix ` ≈ ` := equiv
+local infix ` ⧏ `:50 := lf
 
 namespace ordinal
 
@@ -40,10 +41,10 @@ theorem to_pgame_def (o : ordinal) :
 by rw to_pgame
 
 @[simp] theorem to_pgame_left_moves (o : ordinal) : o.to_pgame.left_moves = o.out.α :=
-by rw [to_pgame, pgame.left_moves]
+by rw [to_pgame, left_moves]
 
 @[simp] theorem to_pgame_right_moves (o : ordinal) : o.to_pgame.right_moves = pempty :=
-by rw [to_pgame, pgame.right_moves]
+by rw [to_pgame, right_moves]
 
 instance : is_empty (to_pgame 0).left_moves :=
 by { rw to_pgame_left_moves, apply_instance }
@@ -53,8 +54,8 @@ by { rw to_pgame_right_moves, apply_instance }
 
 /-- Converts an ordinal less than `o` into a move for the `pgame` corresponding to `o`, and vice
 versa. -/
-noncomputable def to_left_moves_to_pgame {o : ordinal} : {o' // o' < o} ≃ o.to_pgame.left_moves :=
-(out_equiv_lt o).trans (equiv.cast (to_pgame_left_moves o).symm)
+noncomputable def to_left_moves_to_pgame {o : ordinal} : set.Iio o ≃ o.to_pgame.left_moves :=
+(enum_iso_out o).to_equiv.trans (equiv.cast (to_pgame_left_moves o).symm)
 
 @[simp] theorem to_left_moves_to_pgame_symm_lt {o : ordinal} (i : o.to_pgame.left_moves) :
   ↑(to_left_moves_to_pgame.symm i) < o :=
@@ -72,30 +73,36 @@ theorem to_pgame_move_left {o : ordinal} (i) :
   o.to_pgame.move_left (to_left_moves_to_pgame i) = i.val.to_pgame :=
 by simp
 
-theorem to_pgame_lt {a b : ordinal} (h : a < b) : a.to_pgame < b.to_pgame :=
-by { convert pgame.move_left_lt (to_left_moves_to_pgame ⟨a, h⟩), rw to_pgame_move_left }
+theorem to_pgame_lf {a b : ordinal} (h : a < b) : a.to_pgame ⧏ b.to_pgame :=
+by { convert move_left_lf (to_left_moves_to_pgame ⟨a, h⟩), rw to_pgame_move_left }
 
 theorem to_pgame_le {a b : ordinal} (h : a ≤ b) : a.to_pgame ≤ b.to_pgame :=
-pgame.le_def.2 ⟨λ i, or.inl ⟨to_left_moves_to_pgame
-  ⟨_, (to_left_moves_to_pgame_symm_lt i).trans_le h⟩, by simp⟩, is_empty_elim⟩
+begin
+  refine le_iff_forall_lf.2 ⟨λ i, _, is_empty_elim⟩,
+  rw to_pgame_move_left',
+  exact to_pgame_lf ((to_left_moves_to_pgame_symm_lt i).trans_le h)
+end
 
-@[simp] theorem to_pgame_lt_iff {a b : ordinal} : a.to_pgame < b.to_pgame ↔ a < b :=
-⟨by { contrapose, rw [not_lt, pgame.not_lt], exact to_pgame_le }, to_pgame_lt⟩
+theorem to_pgame_lt {a b : ordinal} (h : a < b) : a.to_pgame < b.to_pgame :=
+lt_of_le_of_lf (to_pgame_le h.le) (to_pgame_lf h)
+
+@[simp] theorem to_pgame_lf_iff {a b : ordinal} : a.to_pgame ⧏ b.to_pgame ↔ a < b :=
+⟨by { contrapose, rw [not_lt, not_lf], exact to_pgame_le }, to_pgame_lf⟩
 
 @[simp] theorem to_pgame_le_iff {a b : ordinal} : a.to_pgame ≤ b.to_pgame ↔ a ≤ b :=
-⟨by { contrapose, rw [not_le, pgame.not_le], exact to_pgame_lt }, to_pgame_le⟩
+⟨by { contrapose, rw [not_le, pgame.not_le], exact to_pgame_lf }, to_pgame_le⟩
+
+@[simp] theorem to_pgame_lt_iff {a b : ordinal} : a.to_pgame < b.to_pgame ↔ a < b :=
+⟨by { contrapose, rw not_lt, exact λ h, not_lt_of_le (to_pgame_le h) }, to_pgame_lt⟩
 
 @[simp] theorem to_pgame_equiv_iff {a b : ordinal} : a.to_pgame ≈ b.to_pgame ↔ a = b :=
 by rw [pgame.equiv, le_antisymm_iff, to_pgame_le_iff, to_pgame_le_iff]
 
 theorem to_pgame_injective : function.injective ordinal.to_pgame :=
-λ a b h, begin
-  by_contra hne,
-  cases lt_or_gt_of_ne hne with hlt hlt;
-  { have := to_pgame_lt hlt,
-    rw h at this,
-    exact pgame.lt_irrefl _ this }
-end
+λ a b h, to_pgame_equiv_iff.1 $ equiv_of_eq h
+
+@[simp] theorem to_pgame_eq_iff {a b : ordinal} : a.to_pgame = b.to_pgame ↔ a = b :=
+to_pgame_injective.eq_iff
 
 /-- The order embedding version of `to_pgame`. -/
 @[simps] noncomputable def to_pgame_embedding : ordinal.{u} ↪o pgame.{u} :=

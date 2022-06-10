@@ -785,8 +785,35 @@ by rw [product_map, alg_hom.range_comp, map_range, map_sup, ←alg_hom.range_com
     lmul'_comp_include_right, alg_hom.id_comp, alg_hom.id_comp]
 
 end
+
 end tensor_product
 end algebra
+
+namespace module
+
+variables {R M N : Type*} [comm_semiring R]
+variables [add_comm_monoid M] [add_comm_monoid N]
+variables [module R M] [module R N]
+
+/-- The algebra homomorphism from `End M ⊗ End N` to `End (M ⊗ N)` sending `f ⊗ₜ g` to
+the `tensor_product.map f g`, the tensor product of the two maps. -/
+def End_tensor_End_alg_hom : (End R M) ⊗[R] (End R N) →ₐ[R] End R (M ⊗[R] N) :=
+begin
+  refine algebra.tensor_product.alg_hom_of_linear_map_tensor_product
+    (hom_tensor_hom_map R M N M N) _ _,
+  { intros f₁ f₂ g₁ g₂,
+    simp only [hom_tensor_hom_map_apply, tensor_product.map_mul] },
+  { intro r,
+    simp only [hom_tensor_hom_map_apply],
+    ext m n, simp [smul_tmul] }
+end
+
+lemma End_tensor_End_alg_hom_apply (f : End R M) (g : End R N) :
+  End_tensor_End_alg_hom (f ⊗ₜ[R] g) = tensor_product.map f g :=
+by simp only [End_tensor_End_alg_hom,
+  algebra.tensor_product.alg_hom_of_linear_map_tensor_product_apply, hom_tensor_hom_map_apply]
+
+end module
 
 lemma subalgebra.finite_dimensional_sup {K L : Type*} [field K] [comm_ring L] [algebra K L]
   (E1 E2 : subalgebra K L) [finite_dimensional K E1] [finite_dimensional K E2] :

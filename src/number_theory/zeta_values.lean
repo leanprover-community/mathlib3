@@ -47,7 +47,7 @@ lemma has_deriv_at_bernoulli_fun0 (k : ℕ) (x : ℝ) :
   has_deriv_at (bernoulli_fun0 k) (k * bernoulli_fun0 (k - 1) x) x :=
 begin
   have t := polynomial.has_deriv_at (polynomial.map (algebra_map ℚ ℝ) (polynomial.bernoulli k)) x,
-  rw [polynomial.derivative_map, polynomial.deriv_bernoulli k] at t,
+  rw [polynomial.derivative_map, polynomial.derivative_bernoulli k] at t,
   convert t,
   simp only [polynomial.map_mul, polynomial.map_nat_cast, polynomial.eval_mul,
     polynomial.eval_nat_cast, mul_eq_mul_left_iff, nat.cast_eq_zero],

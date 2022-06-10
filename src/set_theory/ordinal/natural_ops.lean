@@ -599,7 +599,7 @@ instance : ordered_comm_semiring nat_ordinal :=
   one_mul := one_nmul,
   mul_one := nmul_one,
   mul_comm := nmul_comm,
-  zero_le_one := zero_le_one,
+  zero_le_one := zero_le_one' ordinal,
   mul_lt_mul_of_pos_left := λ a b c, nmul_lt_nmul_of_pos_left,
   mul_lt_mul_of_pos_right := λ a b c, nmul_lt_nmul_of_pos_right,
   ..nat_ordinal.ordered_cancel_add_comm_monoid,

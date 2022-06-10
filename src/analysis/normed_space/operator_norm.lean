@@ -475,12 +475,6 @@ def prodₗᵢ (R : Type*) [semiring R] [module R Fₗ] [module R Gₗ]
   (E →L[𝕜] Fₗ) × (E →L[𝕜] Gₗ) ≃ₗᵢ[R] (E →L[𝕜] Fₗ × Gₗ) :=
 ⟨prodₗ R, λ ⟨f, g⟩, op_norm_prod f g⟩
 
-/-- A continuous linear map is an isometry if and only if it preserves the norm.
-(Note: Do you really want to use this lemma?  Try using the bundled structure `linear_isometry`
-instead.) -/
---lemma isometry_iff_norm (f : E →SL[σ₁₂] F) : isometry f ↔ ∀x, ∥f x∥ = ∥x∥ :=
---f.to_linear_map.to_add_monoid_hom.isometry_iff_norm
-
 variables [ring_hom_isometric σ₁₂] (f : E →SL[σ₁₂] F)
 
 @[simp, nontriviality] lemma op_norm_subsingleton [subsingleton E] : ∥f∥ = 0 :=

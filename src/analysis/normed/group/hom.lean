@@ -113,18 +113,6 @@ instance : add_monoid_hom_class (normed_group_hom V₁ V₂) V₁ V₂ :=
   map_add := λ f, f.to_add_monoid_hom.map_add,
   map_zero := λ f, f.to_add_monoid_hom.map_zero }
 
---@[simp] protected lemma map_zero : f 0 = 0 := f.to_add_monoid_hom.map_zero
---
---@[simp] protected lemma map_add (x y) : f (x + y) = f x + f y := f.to_add_monoid_hom.map_add _ _
---
---@[simp] protected lemma map_sum {ι : Type*} (v : ι → V₁) (s : finset ι) :
---  f (∑ i in s, v i) = ∑ i in s, f (v i) :=
---map_sum _ _ _
---
---@[simp] protected lemma map_sub (x y) : f (x - y) = f x - f y := map_sub _ _ _
---
---@[simp] protected lemma map_neg (x) : f (-x) = -(f x) := map_neg _ _
-
 lemma bound : ∃ C, 0 < C ∧ ∀ x, ∥f x∥ ≤ C * ∥x∥ :=
 let ⟨C, hC⟩ := f.bound' in exists_pos_bound_of_bound _ hC
 
@@ -631,14 +619,6 @@ lemma comp {g : normed_group_hom V₂ V₃} {f : normed_group_hom V₁ V₂}
 end norm_noninc
 
 section isometry
-
---lemma isometry_iff_norm (f : normed_group_hom V W) :
---  isometry f ↔ ∀ v, ∥f v∥ = ∥v∥ :=
---add_monoid_hom_class.isometry_iff_norm f
---
---lemma isometry_of_norm (f : normed_group_hom V W) (hf : ∀ v, ∥f v∥ = ∥v∥) :
---  isometry f :=
---f.isometry_iff_norm.mpr hf
 
 lemma norm_eq_of_isometry {f : normed_group_hom V W} (hf : isometry f) (v : V) :
   ∥f v∥ = ∥v∥ :=

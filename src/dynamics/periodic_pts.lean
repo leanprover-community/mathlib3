@@ -507,8 +507,8 @@ theorem periodic_orbit_chain' (r : α → α → Prop) {f : α → α} {x : α} 
 begin
   rw periodic_orbit_chain r,
   refine ⟨λ H n, _, λ H n _, H n⟩,
-  rw [iterate_succ_apply, ←iterate_eq_mod_minimal_period],
-  nth_rewrite 1 ←iterate_eq_mod_minimal_period,
+  rw [iterate_succ_apply, ←iterate_mod_minimal_period_eq],
+  nth_rewrite 1 ←iterate_mod_minimal_period_eq,
   rw [←iterate_succ_apply, minimal_period_apply hx],
   exact H _ (mod_lt _ (minimal_period_pos_of_mem_periodic_pts hx))
 end

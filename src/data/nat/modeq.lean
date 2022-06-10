@@ -31,6 +31,12 @@ def modeq (n a b : ℕ) := a % n = b % n
 
 notation a ` ≡ `:50 b ` [MOD `:50 n `]`:0 := modeq n a b
 
+/-- Not valid modular congruence. `n.modneq a b`, or `a ≢ b [MOD n]`, means that `a - b` is NOT a multiple of `n`. -/
+@[derive decidable]
+def modneq (n a b : ℕ) := a % n ≠ b % n
+
+notation a ` ≢ `:50 b ` [MOD `:50 n `]`:0 := modneq n a b
+
 variables {m n a b c d : ℕ}
 
 namespace modeq

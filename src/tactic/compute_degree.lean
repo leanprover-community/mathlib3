@@ -154,8 +154,8 @@ a summand of `e` of maximal guessed degree equal to `deg`.
 The tactic fails if `e` contains no summand (this probably means something else went wrong
 somewhere else). -/
 meta def extract_top_degree_term_and_deg (e : expr) : tactic (expr × ℕ) :=
-let summ := e.list_summands in
-do nat_degs ← summ.mmap extract_deg_single_summand,
+do summ ← e.list_summands,
+  nat_degs ← summ.mmap extract_deg_single_summand,
   eval_nat_degs ← nat_degs.mmap (eval_expr ℕ) <|>
     fail "Only closed naturals are supported in exponents\n\n",
   let summ_and_degs := summ.zip eval_nat_degs in

@@ -327,10 +327,10 @@ fintype.of_finset (finset.Ioc a b) (λ x, by rw [finset.mem_Ioc, mem_Ioc])
 instance fintype_Ioo : fintype (Ioo a b) :=
 fintype.of_finset (finset.Ioo a b) (λ x, by rw [finset.mem_Ioo, mem_Ioo])
 
-lemma finite_Icc : (Icc a b).finite := ⟨set.fintype_Icc a b⟩
-lemma finite_Ico : (Ico a b).finite := ⟨set.fintype_Ico a b⟩
-lemma finite_Ioc : (Ioc a b).finite := ⟨set.fintype_Ioc a b⟩
-lemma finite_Ioo : (Ioo a b).finite := ⟨set.fintype_Ioo a b⟩
+lemma finite_Icc : (Icc a b).finite := set.finite_of_fintype _
+lemma finite_Ico : (Ico a b).finite := set.finite_of_fintype _
+lemma finite_Ioc : (Ioc a b).finite := set.finite_of_fintype _
+lemma finite_Ioo : (Ioo a b).finite := set.finite_of_fintype _
 
 end preorder
 
@@ -343,8 +343,8 @@ fintype.of_finset (finset.Ici a) (λ x, by rw [finset.mem_Ici, mem_Ici])
 instance fintype_Ioi : fintype (Ioi a) :=
 fintype.of_finset (finset.Ioi a) (λ x, by rw [finset.mem_Ioi, mem_Ioi])
 
-lemma finite_Ici : (Ici a).finite := ⟨set.fintype_Ici a⟩
-lemma finite_Ioi : (Ioi a).finite := ⟨set.fintype_Ioi a⟩
+lemma finite_Ici : (Ici a).finite := set.finite_of_fintype _
+lemma finite_Ioi : (Ioi a).finite := set.finite_of_fintype _
 
 end order_top
 
@@ -357,8 +357,8 @@ fintype.of_finset (finset.Iic b) (λ x, by rw [finset.mem_Iic, mem_Iic])
 instance fintype_Iio : fintype (Iio b) :=
 fintype.of_finset (finset.Iio b) (λ x, by rw [finset.mem_Iio, mem_Iio])
 
-lemma finite_Iic : (Iic b).finite := ⟨set.fintype_Iic b⟩
-lemma finite_Iio : (Iio b).finite := ⟨set.fintype_Iio b⟩
+lemma finite_Iic : (Iic b).finite := set.finite_of_fintype _
+lemma finite_Iio : (Iio b).finite := set.finite_of_fintype _
 
 end order_bot
 
@@ -423,13 +423,13 @@ open order_dual
 variables [locally_finite_order α] (a b : α)
 
 /-- Note we define `Icc (to_dual a) (to_dual b)` as `Icc α _ _ b a` (which has type `finset α` not
-`finset (order_dual α)`!) instead of `(Icc b a).map to_dual.to_embedding` as this means the
+`finset αᵒᵈ`!) instead of `(Icc b a).map to_dual.to_embedding` as this means the
 following is defeq:
 ```
 lemma this : (Icc (to_dual (to_dual a)) (to_dual (to_dual b)) : _) = (Icc a b : _) := rfl
 ```
 -/
-instance : locally_finite_order (order_dual α) :=
+instance : locally_finite_order αᵒᵈ :=
 { finset_Icc := λ a b, @Icc α _ _ (of_dual b) (of_dual a),
   finset_Ico := λ a b, @Ioc α _ _ (of_dual b) (of_dual a),
   finset_Ioc := λ a b, @Ico α _ _ (of_dual b) (of_dual a),
@@ -570,7 +570,7 @@ namespace with_bot
 variables (α) [partial_order α] [order_bot α] [locally_finite_order α]
 
 instance : locally_finite_order (with_bot α) :=
-@order_dual.locally_finite_order (with_top (order_dual α)) _ _
+@order_dual.locally_finite_order (with_top αᵒᵈ) _ _
 
 variables (a b : α)
 

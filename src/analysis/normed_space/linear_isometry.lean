@@ -74,6 +74,8 @@ instance : has_coe_to_fun (E →ₛₗᵢ[σ₁₂] E₂) (λ _, E → E₂) := 
 
 @[simp] lemma coe_to_linear_map : ⇑f.to_linear_map = f := rfl
 
+@[simp] lemma coe_mk (f : E →ₛₗ[σ₁₂] E₂) (hf) : ⇑(mk f hf) = f := rfl
+
 lemma coe_injective : @injective (E →ₛₗᵢ[σ₁₂] E₂) (E → E₂) coe_fn :=
 fun_like.coe_injective
 
@@ -100,7 +102,7 @@ f.to_linear_map.map_smul c x
 
 @[simp] lemma norm_map (x : E) : ∥f x∥ = ∥x∥ := f.norm_map' x
 
-@[simp] lemma nnnorm_map (x : E) : nnnorm (f x) = nnnorm x := nnreal.eq $ f.norm_map x
+@[simp] lemma nnnorm_map (x : E) : ∥f x∥₊ = ∥x∥₊ := nnreal.eq $ f.norm_map x
 
 protected lemma isometry : isometry f :=
 f.to_linear_map.to_add_monoid_hom.isometry_of_norm f.norm_map
@@ -168,6 +170,9 @@ def id : E →ₗᵢ[R] E := ⟨linear_map.id, λ x, rfl⟩
 @[simp] lemma id_apply (x : E) : (id : E →ₗᵢ[R] E) x = x := rfl
 
 @[simp] lemma id_to_linear_map : (id.to_linear_map : E →ₗ[R] E) = linear_map.id := rfl
+
+@[simp] lemma id_to_continuous_linear_map :
+  id.to_continuous_linear_map = continuous_linear_map.id R E := rfl
 
 instance : inhabited (E →ₗᵢ[R] E) := ⟨id⟩
 
@@ -488,7 +493,7 @@ omit σ₂₁
 @[simp] lemma map_smul [module R E₂] {e : E ≃ₗᵢ[R] E₂} (c : R) (x : E) : e (c • x) = c • e x :=
 e.1.map_smul c x
 
-@[simp] lemma nnnorm_map (x : E) : nnnorm (e x) = nnnorm x := e.to_linear_isometry.nnnorm_map x
+@[simp] lemma nnnorm_map (x : E) : ∥e x∥₊ = ∥x∥₊ := e.to_linear_isometry.nnnorm_map x
 
 @[simp] lemma dist_map (x y : E) : dist (e x) (e y) = dist x y :=
 e.to_linear_isometry.dist_map x y

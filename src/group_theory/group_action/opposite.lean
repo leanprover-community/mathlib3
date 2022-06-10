@@ -85,7 +85,8 @@ See also `monoid.to_opposite_mul_action` and `monoid_with_zero.to_opposite_mul_a
   a • a' = a' * a.unop := rfl
 
 /-- The right regular action of a group on itself is transitive. -/
-@[to_additive] instance mul_action.opposite_regular.is_pretransitive {G : Type*} [group G] :
+@[to_additive "The right regular action of an additive group on itself is transitive."]
+instance mul_action.opposite_regular.is_pretransitive {G : Type*} [group G] :
   mul_action.is_pretransitive Gᵐᵒᵖ G :=
 ⟨λ x y, ⟨op (x⁻¹ * y), mul_inv_cancel_left _ _⟩⟩
 
@@ -122,10 +123,10 @@ example [monoid α] : monoid.to_mul_action αᵐᵒᵖ = mul_opposite.mul_action
 
 /-- `monoid.to_opposite_mul_action` is faithful on cancellative monoids. -/
 @[to_additive] instance left_cancel_monoid.to_has_faithful_opposite_scalar [left_cancel_monoid α] :
-  has_faithful_scalar αᵐᵒᵖ α :=
+  has_faithful_smul αᵐᵒᵖ α :=
 ⟨λ x y h, unop_injective $ mul_left_cancel (h 1)⟩
 
 /-- `monoid.to_opposite_mul_action` is faithful on nontrivial cancellative monoids with zero. -/
 instance cancel_monoid_with_zero.to_has_faithful_opposite_scalar
-  [cancel_monoid_with_zero α] [nontrivial α] : has_faithful_scalar αᵐᵒᵖ α :=
+  [cancel_monoid_with_zero α] [nontrivial α] : has_faithful_smul αᵐᵒᵖ α :=
 ⟨λ x y h, unop_injective $ mul_left_cancel₀ one_ne_zero (h 1)⟩

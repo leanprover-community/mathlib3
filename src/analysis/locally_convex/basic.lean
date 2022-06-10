@@ -37,7 +37,7 @@ absorbent, balanced, locally convex, LCTVS
 open set
 open_locale pointwise topological_space
 
-variables {𝕜 𝕝 E : Type*}
+variables {𝕜 𝕝 E ι : Type*}
 
 section semi_normed_ring
 variables [semi_normed_ring 𝕜]
@@ -51,7 +51,7 @@ def absorbs (A B : set E) := ∃ r, 0 < r ∧ ∀ a : 𝕜, r ≤ ∥a∥ → B 
 
 variables {𝕜} {s t u v A B : set E}
 
-lemma absorbs_empty {s : set E}: absorbs 𝕜 s (∅ : set E) :=
+@[simp] lemma absorbs_empty {s : set E}: absorbs 𝕜 s (∅ : set E) :=
 ⟨1, one_pos, λ a ha, set.empty_subset _⟩
 
 lemma absorbs.mono (hs : absorbs 𝕜 s u) (hst : s ⊆ t) (hvu : v ⊆ u) : absorbs 𝕜 t v :=
@@ -71,6 +71,28 @@ end
 @[simp] lemma absorbs_union : absorbs 𝕜 s (u ∪ v) ↔ absorbs 𝕜 s u ∧ absorbs 𝕜 s v :=
 ⟨λ h, ⟨h.mono_right $ subset_union_left _ _, h.mono_right $ subset_union_right _ _⟩,
   λ h, h.1.union h.2⟩
+
+lemma absorbs_Union_finset {s : set E} {t : finset ι} {f : ι → set E} :
+  absorbs 𝕜 s (⋃ (i ∈ t), f i) ↔ ∀ i ∈ t, absorbs 𝕜 s (f i) :=
+begin
+  classical,
+  induction t using finset.induction_on with i t ht hi,
+  { simp only [finset.not_mem_empty, set.Union_false, set.Union_empty, absorbs_empty,
+    forall_false_left, implies_true_iff] },
+  rw [finset.set_bUnion_insert, absorbs_union, hi],
+  split; intro h,
+  { refine λ _ hi', (finset.mem_insert.mp hi').elim _ (h.2 _),
+    exact (λ hi'', by { rw hi'', exact h.1 }) },
+  exact ⟨h i (finset.mem_insert_self i t), λ i' hi', h i' (finset.mem_insert_of_mem hi')⟩,
+end
+
+lemma set.finite.absorbs_Union {s : set E} {t : set ι} {f : ι → set E} (hi : t.finite) :
+  absorbs 𝕜 s (⋃ (i : ι) (hy : i ∈ t), f i) ↔ ∀ i ∈ t, absorbs 𝕜 s (f i) :=
+begin
+  lift t to finset ι using hi,
+  simp only [finset.mem_coe],
+  exact absorbs_Union_finset,
+end
 
 variables (𝕜)
 
@@ -95,6 +117,13 @@ lemma absorbent_iff_nonneg_lt : absorbent 𝕜 A ↔ ∀ x, ∃ r, 0 ≤ r ∧ �
 forall_congr $ λ x, ⟨λ ⟨r, hr, hx⟩, ⟨r, hr.le, λ a ha, hx a ha.le⟩, λ ⟨r, hr, hx⟩,
   ⟨r + 1, add_pos_of_nonneg_of_pos hr zero_lt_one,
     λ a ha, hx ((lt_add_of_pos_right r zero_lt_one).trans_le ha)⟩⟩
+
+lemma absorbent.absorbs_finite {s : set E} (hs : absorbent 𝕜 s) {v : set E} (hv : v.finite) :
+  absorbs 𝕜 s v :=
+begin
+  rw ←set.bUnion_of_singleton v,
+  exact hv.absorbs_Union.mpr (λ _ _, hs.absorbs),
+end
 
 variables (𝕜)
 
@@ -125,7 +154,16 @@ end
 end has_scalar
 
 section add_comm_monoid
-variables [add_comm_monoid E] [module 𝕜 E] {s t u v A B : set E}
+variables [add_comm_monoid E] [module 𝕜 E] {s s' t t' u v A B : set E}
+
+lemma absorbs.add (h : absorbs 𝕜 s t) (h' : absorbs 𝕜 s' t') : absorbs 𝕜 (s + s') (t + t') :=
+begin
+  rcases h with ⟨r, hr, h⟩,
+  rcases h' with ⟨r', hr', h'⟩,
+  refine ⟨max r r', lt_max_of_lt_left hr, λ a ha, _⟩,
+  rw smul_add,
+  exact set.add_subset_add (h a (le_of_max_le_left ha)) (h' a (le_of_max_le_right ha)),
+end
 
 lemma balanced.add (hA₁ : balanced 𝕜 A) (hA₂ : balanced 𝕜 B) : balanced 𝕜 (A + B) :=
 begin

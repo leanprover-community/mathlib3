@@ -46,14 +46,14 @@ instance [has_scalar Mᵐᵒᵖ α] [has_scalar Mᵐᵒᵖ β] [is_central_scala
   is_central_scalar M (α × β) :=
 ⟨λ r m, prod.ext (op_smul_eq_smul _ _) (op_smul_eq_smul _ _)⟩
 
-@[to_additive has_faithful_vadd_left]
-instance has_faithful_scalar_left [has_faithful_scalar M α] [nonempty β] :
-  has_faithful_scalar M (α × β) :=
+@[to_additive]
+instance has_faithful_smul_left [has_faithful_smul M α] [nonempty β] :
+  has_faithful_smul M (α × β) :=
 ⟨λ x y h, let ⟨b⟩ := ‹nonempty β› in eq_of_smul_eq_smul $ λ a : α, by injection h (a, b)⟩
 
-@[to_additive has_faithful_vadd_right]
-instance has_faithful_scalar_right [nonempty α] [has_faithful_scalar M β] :
-  has_faithful_scalar M (α × β) :=
+@[to_additive]
+instance has_faithful_smul_right [nonempty α] [has_faithful_smul M β] :
+  has_faithful_smul M (α × β) :=
 ⟨λ x y h, let ⟨a⟩ := ‹nonempty α› in eq_of_smul_eq_smul $ λ b : β, by injection h (a, b)⟩
 
 end
@@ -93,7 +93,7 @@ section bundled_smul
 @[simps]
 def smul_mul_hom [monoid α] [has_mul β] [mul_action α β] [is_scalar_tower α β β]
   [smul_comm_class α β β] :
-  mul_hom (α × β) β :=
+  (α × β) →ₙ* β :=
 { to_fun := λ a, a.1 • a.2,
   map_mul' := λ a b, (smul_mul_smul _ _ _ _).symm }
 

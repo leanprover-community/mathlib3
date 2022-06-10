@@ -84,7 +84,7 @@ end
 
 /-- The clifford algebra is graded by the even and odd parts. -/
 instance graded_algebra : graded_algebra (even_odd Q) :=
-graded_algebra.of_alg_hom _
+graded_algebra.of_alg_hom (even_odd Q)
   (lift _ $ ⟨graded_algebra.ι Q, graded_algebra.ι_sq_scalar Q⟩)
   -- the proof from here onward is mostly similar to the `tensor_algebra` case, with some extra
   -- handling for the `supr` in `even_odd`.
@@ -92,7 +92,7 @@ graded_algebra.of_alg_hom _
     ext m,
     dsimp only [linear_map.comp_apply, alg_hom.to_linear_map_apply, alg_hom.comp_apply,
       alg_hom.id_apply],
-    rw [lift_ι_apply, graded_algebra.ι_apply, direct_sum.submodule_coe_alg_hom_of, subtype.coe_mk],
+    rw [lift_ι_apply, graded_algebra.ι_apply, direct_sum.coe_alg_hom_of, subtype.coe_mk],
   end)
   (λ i' x', begin
     cases x' with x' hx',
@@ -100,15 +100,15 @@ graded_algebra.of_alg_hom _
     refine submodule.supr_induction' _ (λ i x hx, _) _ (λ x y hx hy ihx ihy, _) hx',
     { obtain ⟨i, rfl⟩ := i,
       dsimp only [subtype.coe_mk] at hx,
-      refine submodule.pow_induction_on' _
+      refine submodule.pow_induction_on_left' _
         (λ r, _) (λ x y i hx hy ihx ihy, _) (λ m hm i x hx ih, _) hx,
       { rw [alg_hom.commutes, direct_sum.algebra_map_apply], refl },
       { rw [alg_hom.map_add, ihx, ihy, ←map_add], refl },
       { obtain ⟨_, rfl⟩ := hm,
         rw [alg_hom.map_mul, ih, lift_ι_apply, graded_algebra.ι_apply, direct_sum.of_mul_of],
-        refine direct_sum.of_eq_of_graded_monoid_eq (sigma.subtype_ext _ _),
+        refine direct_sum.of_eq_of_graded_monoid_eq (sigma.subtype_ext _ _);
           dsimp only [graded_monoid.mk, subtype.coe_mk],
-        { rw [nat.succ_eq_add_one, add_comm], refl },
+        { rw [nat.succ_eq_add_one, add_comm, nat.cast_add, nat.cast_one] },
         refl } },
     { rw alg_hom.map_zero,
       apply eq.symm,
@@ -118,11 +118,12 @@ graded_algebra.of_alg_hom _
 
 lemma supr_ι_range_eq_top : (⨆ i : ℕ, (ι Q).range ^ i) = ⊤ :=
 begin
-  rw [← (graded_algebra.is_internal $ λ i, even_odd Q i).supr_eq_top, eq_comm],
+  rw [← (graded_algebra.is_internal $ λ i, even_odd Q i).submodule_supr_eq_top, eq_comm],
   dunfold even_odd,
   calc    (⨆ (i : zmod 2) (j : {n // ↑n = i}), (ι Q).range ^ ↑j)
         = (⨆ (i : Σ i : zmod 2, {n : ℕ // ↑n = i}), (ι Q).range ^ (i.2 : ℕ)) : by rw supr_sigma
-    ... = (⨆ (i : ℕ), (ι Q).range ^ i) : supr_congr (λ i, i.2) (λ i, ⟨⟨_, i, rfl⟩, rfl⟩) (λ _, rfl),
+    ... = (⨆ (i : ℕ), (ι Q).range ^ i)
+        : function.surjective.supr_congr (λ i, i.2) (λ i, ⟨⟨_, i, rfl⟩, rfl⟩) (λ _, rfl),
 end
 
 lemma even_odd_is_compl : is_compl (even_odd Q 0) (even_odd Q 1) :=
@@ -150,7 +151,7 @@ begin
   simp_rw [pow_add, pow_mul],
   refine submodule.mul_induction_on' _ _,
   { intros a ha b hb,
-    refine submodule.pow_induction_on' ((ι Q).range ^ 2) _ _ _ ha,
+    refine submodule.pow_induction_on_left' ((ι Q).range ^ 2) _ _ _ ha,
     { intro r,
       simp_rw ←algebra.smul_def,
       exact hr _ (submodule.smul_mem _ _ hb), },

@@ -37,7 +37,8 @@ def locally_integrable (f : X → E) (μ : measure X . volume_tac) : Prop :=
 lemma integrable.locally_integrable (hf : integrable f μ) : locally_integrable f μ :=
 λ K hK, hf.integrable_on
 
-lemma locally_integrable.ae_measurable [sigma_compact_space X] (hf : locally_integrable f μ) :
+lemma locally_integrable.ae_strongly_measurable [sigma_compact_space X]
+  (hf : locally_integrable f μ) :
   ae_strongly_measurable f μ :=
 begin
   rw [← @restrict_univ _ _ μ, ← Union_compact_covering, ae_strongly_measurable_Union_iff],
@@ -179,12 +180,12 @@ end
 
 lemma antitone_on.integrable_on_compact (hs : is_compact s) (hanti : antitone_on f s) :
   integrable_on f s μ :=
-@monotone_on.integrable_on_compact X (order_dual E) _ _ _ _ _ _ _ _ _ _ _ _ _ _ hs hanti
+hanti.dual_right.integrable_on_compact hs
 
 lemma monotone.locally_integrable (hmono : monotone f) : locally_integrable f μ :=
-λ s hs, monotone_on.integrable_on_compact hs (λ x y _ _ hxy, hmono hxy)
+λ s hs, (hmono.monotone_on _).integrable_on_compact hs
 
 lemma antitone.locally_integrable (hanti : antitone f) : locally_integrable f μ :=
-@monotone.locally_integrable X (order_dual E) _ _ _ _ _ _ _ _ _ _ _ _ _ hanti
+hanti.dual_right.locally_integrable
 
 end monotone

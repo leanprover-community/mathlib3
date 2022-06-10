@@ -183,12 +183,13 @@ function.injective.semilattice_sup _ fun_like.coe_injective coe_sup
 end has_scalar
 
 section smul_with_zero
-variables [smul_with_zero 𝕜 E] (p : seminorm 𝕜 E)
+variables [smul_with_zero 𝕜 E]
 
-@[simp]
-protected lemma zero : p 0 = 0 :=
-calc p 0 = p ((0 : 𝕜) • 0) : by rw zero_smul
-...      = 0 : by rw [p.smul, norm_zero, zero_mul]
+/-- Note that this provides the global `map_zero`. -/
+instance : zero_hom_class (seminorm 𝕜 E) E ℝ :=
+{ map_zero := λ p, calc p 0 = p ((0 : 𝕜) • 0) : by rw zero_smul
+                   ...      = 0 : by rw [p.smul, norm_zero, zero_mul],
+  ..seminorm.fun_like}
 
 end smul_with_zero
 end add_monoid
@@ -212,7 +213,7 @@ lemma coe_comp (p : seminorm 𝕜 F) (f : E →ₗ[𝕜] F) : ⇑(p.comp f) = p 
 ext $ λ _, rfl
 
 @[simp] lemma comp_zero (p : seminorm 𝕜 F) : p.comp (0 : E →ₗ[𝕜] F) = 0 :=
-ext $ λ _, seminorm.zero _
+ext $ λ _, map_zero p
 
 @[simp] lemma zero_comp (f : E →ₗ[𝕜] F) : (0 : seminorm 𝕜 F).comp f = 0 :=
 ext $ λ _, rfl
@@ -237,37 +238,38 @@ lemma comp_mono {p : seminorm 𝕜 F} {q : seminorm 𝕜 F} (f : E →ₗ[𝕜] 
 @[simps] def pullback (f : E →ₗ[𝕜] F) : add_monoid_hom (seminorm 𝕜 F) (seminorm 𝕜 E) :=
 ⟨λ p, p.comp f, zero_comp f, λ p q, add_comp p q f⟩
 
-section norm_one_class
-variables [norm_one_class 𝕜] (p : seminorm 𝕜 E) (x y : E) (r : ℝ)
+section
+variables (p : seminorm 𝕜 E)
 
 @[simp]
-protected lemma neg : p (-x) = p x :=
-calc p (-x) = p ((-1 : 𝕜) • x) : by rw neg_one_smul
-...         = p x : by rw [p.smul, norm_neg, norm_one, one_mul]
+protected lemma neg (x : E) : p (-x) = p x :=
+by rw [←neg_one_smul 𝕜, seminorm.smul, norm_neg, ←seminorm.smul, one_smul]
 
-protected lemma sub_le : p (x - y) ≤ p x + p y :=
+protected lemma sub_le (x y : E) : p (x - y) ≤ p x + p y :=
 calc
   p (x - y)
       = p (x + -y) : by rw sub_eq_add_neg
   ... ≤ p x + p (-y) : p.triangle x (-y)
   ... = p x + p y : by rw p.neg
 
-lemma nonneg : 0 ≤ p x :=
+lemma nonneg (x : E) : 0 ≤ p x :=
 have h: 0 ≤ 2 * p x, from
-calc 0 = p (x + (- x)) : by rw [add_neg_self, p.zero]
+calc 0 = p (x + (- x)) : by rw [add_neg_self, map_zero]
 ...    ≤ p x + p (-x)  : p.triangle _ _
 ...    = 2 * p x : by rw [p.neg, two_mul],
 nonneg_of_mul_nonneg_left h zero_lt_two
 
-lemma sub_rev : p (x - y) = p (y - x) := by rw [←neg_sub, p.neg]
+lemma sub_rev (x y : E) : p (x - y) = p (y - x) := by rw [←neg_sub, p.neg]
 
 /-- The direct path from 0 to y is shorter than the path with x "inserted" in between. -/
-lemma le_insert : p y ≤ p x + p (x - y) :=
+lemma le_insert (x y : E) : p y ≤ p x + p (x - y) :=
 calc p y = p (x - (x - y)) : by rw sub_sub_cancel
 ... ≤ p x + p (x - y) : p.sub_le _ _
 
 /-- The direct path from 0 to x is shorter than the path with y "inserted" in between. -/
-lemma le_insert' : p x ≤ p y + p (x - y) := by { rw sub_rev, exact le_insert _ _ _ }
+lemma le_insert' (x y : E) : p x ≤ p y + p (x - y) := by { rw sub_rev, exact le_insert _ _ _ }
+
+end
 
 instance : order_bot (seminorm 𝕜 E) := ⟨0, nonneg⟩
 
@@ -320,7 +322,6 @@ begin
   { exact nnreal.coe_pos.mpr ha },
 end
 
-end norm_one_class
 end module
 end semi_normed_ring
 
@@ -359,9 +360,10 @@ noncomputable instance : has_inf (seminorm 𝕜 E) :=
       { simp_rw [norm_zero, zero_mul, zero_smul, zero_sub, seminorm.neg],
         refine cinfi_eq_of_forall_ge_of_forall_gt_exists_lt
           (λ i, add_nonneg (p.nonneg _) (q.nonneg _))
-          (λ x hx, ⟨0, by rwa [p.zero, q.zero, add_zero]⟩) },
+          (λ x hx, ⟨0, by rwa [map_zero, map_zero, add_zero]⟩) },
       simp_rw [real.mul_infi_of_nonneg (norm_nonneg a), mul_add, ←p.smul, ←q.smul, smul_sub],
-      refine infi_congr ((•) a⁻¹ : E → E) (λ u, ⟨a • u, inv_smul_smul₀ ha u⟩) (λ u, _),
+      refine function.surjective.infi_congr ((•) a⁻¹ : E → E) (λ u, ⟨a • u, inv_smul_smul₀ ha u⟩)
+        (λ u, _),
       rw smul_inv_smul₀ ha,
     end } }
 
@@ -371,11 +373,11 @@ noncomputable instance : lattice (seminorm 𝕜 E) :=
 { inf := (⊓),
   inf_le_left := λ p q x, begin
     apply cinfi_le_of_le (bdd_below_range_add _ _ _) x,
-    simp only [sub_self, seminorm.zero, add_zero],
+    simp only [sub_self, map_zero, add_zero],
   end,
   inf_le_right := λ p q x, begin
     apply cinfi_le_of_le (bdd_below_range_add _ _ _) (0:E),
-    simp only [sub_self, seminorm.zero, zero_add, sub_zero],
+    simp only [sub_self, map_zero, zero_add, sub_zero],
   end,
   le_inf := λ a b c hab hac x,
     le_cinfi $ λ u, le_trans (a.le_insert' _ _) (add_le_add (hab _) (hac _)),
@@ -448,7 +450,7 @@ lemma ball_add_ball_subset (p : seminorm 𝕜 E) (r₁ r₂ : ℝ) (x₁ x₂ : 
   p.ball (x₁ : E) r₁ + p.ball (x₂ : E) r₂ ⊆ p.ball (x₁ + x₂) (r₁ + r₂) :=
 begin
   rintros x ⟨y₁, y₂, hy₁, hy₂, rfl⟩,
-  rw [mem_ball, add_sub_comm],
+  rw [mem_ball, add_sub_add_comm],
   exact (p.triangle _ _).trans_lt (add_lt_add hy₁ hy₂),
 end
 
@@ -466,8 +468,14 @@ begin
   simp_rw [ball, mem_preimage, comp_apply, set.mem_set_of_eq, map_sub],
 end
 
-section norm_one_class
-variables [norm_one_class 𝕜] (p : seminorm 𝕜 E)
+variables (p : seminorm 𝕜 E)
+
+lemma ball_zero_eq_preimage_ball {r : ℝ} :
+  p.ball 0 r = p ⁻¹' (metric.ball 0 r) :=
+begin
+  ext x,
+  simp only [mem_ball, sub_zero, mem_preimage, mem_ball_zero_iff, real.norm_of_nonneg (p.nonneg x)],
+end
 
 @[simp] lemma ball_bot {r : ℝ} (x : E) (hr : 0 < r) : ball (⊥ : seminorm 𝕜 E) x r = set.univ :=
 ball_zero' x hr
@@ -514,7 +522,6 @@ begin
   exact hr.trans (p.nonneg _),
 end
 
-end norm_one_class
 end module
 end add_comm_group
 end semi_normed_ring
@@ -653,7 +660,7 @@ lemma absorbent_ball (hx : ∥x∥ < r) : absorbent 𝕜 (metric.ball x r) :=
 by { rw ←ball_norm_seminorm 𝕜, exact (norm_seminorm _ _).absorbent_ball hx }
 
 /-- Balls at the origin are balanced. -/
-lemma balanced_ball_zero [norm_one_class 𝕜] : balanced 𝕜 (metric.ball (0 : E) r) :=
+lemma balanced_ball_zero : balanced 𝕜 (metric.ball (0 : E) r) :=
 by { rw ←ball_norm_seminorm 𝕜, exact (norm_seminorm _ _).balanced_ball_zero r }
 
 end norm_seminorm

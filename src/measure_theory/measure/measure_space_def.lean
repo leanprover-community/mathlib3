@@ -214,7 +214,7 @@ lemma measure_Union_fintype_le [fintype β] (f : β → set α) :
   μ (⋃ b, f b) ≤ ∑ p, μ (f p) :=
 by { convert measure_bUnion_finset_le finset.univ f, simp }
 
-lemma measure_bUnion_lt_top {s : set β} {f : β → set α} (hs : finite s)
+lemma measure_bUnion_lt_top {s : set β} {f : β → set α} (hs : s.finite)
   (hfin : ∀ i ∈ s, μ (f i) ≠ ∞) : μ (⋃ i ∈ s, f i) < ∞ :=
 begin
   convert (measure_bUnion_finset_le hs.to_finset f).trans_lt _,
@@ -268,9 +268,8 @@ not_iff_not.1 $ by simp only [← lt_top_iff_ne_top, ← ne.def, not_or_distrib,
 lemma exists_measure_pos_of_not_measure_Union_null [encodable β] {s : β → set α}
   (hs : μ (⋃ n, s n) ≠ 0) : ∃ n, 0 < μ (s n) :=
 begin
-  by_contra' h,
-  simp_rw nonpos_iff_eq_zero at h,
-  exact hs (measure_Union_null h),
+  contrapose! hs,
+  exact measure_Union_null (λ n, nonpos_iff_eq_zero.1 (hs n))
 end
 
 lemma measure_inter_lt_top_of_left_ne_top (hs_finite : μ s ≠ ∞) : μ (s ∩ t) < ∞ :=
@@ -325,9 +324,8 @@ eventually_of_forall
 instance : countable_Inter_filter μ.ae :=
 ⟨begin
   intros S hSc hS,
-  simp only [mem_ae_iff, compl_sInter, sUnion_image, bUnion_eq_Union] at hS ⊢,
-  haveI := hSc.to_encodable,
-  exact measure_Union_null (subtype.forall.2 hS)
+  rw [mem_ae_iff, compl_sInter, sUnion_image],
+  exact (measure_bUnion_null_iff hSc).2 hS
 end⟩
 
 lemma ae_imp_iff {p : α → Prop} {q : Prop} : (∀ᵐ x ∂μ, q → p x) ↔ (q → ∀ᵐ x ∂μ, p x) :=
@@ -393,13 +391,7 @@ h.inter h'
 @[to_additive]
 lemma _root_.set.mul_indicator_ae_eq_one {M : Type*} [has_one M] {f : α → M} {s : set α}
   (h : s.mul_indicator f =ᵐ[μ] 1) : μ (s ∩ function.mul_support f) = 0 :=
-begin
-  rw [filter.eventually_eq, ae_iff] at h,
-  convert h,
-  ext a,
-  rw ← set.mul_indicator_eq_one_iff,
-  refl
-end
+by simpa [filter.eventually_eq, ae_iff] using h
 
 /-- If `s ⊆ t` modulo a set of measure `0`, then `μ s ≤ μ t`. -/
 @[mono] lemma measure_mono_ae (H : s ≤ᵐ[μ] t) : μ s ≤ μ t :=

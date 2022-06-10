@@ -93,24 +93,28 @@ inductive rel : Π {a b : B} {f g : hom a b}, hom₂ f g → hom₂ f g → Prop
 | whisker_left_id {a b c} (f : hom a b) (g : hom b c) :
     rel (f ◁ 𝟙 g) (𝟙 (f.comp g))
 | whisker_left_comp {a b c} (f : hom a b) {g h i : hom b c} (η : hom₂ g h) (θ : hom₂ h i) :
-    rel (f ◁ (η ≫ θ)) ((f ◁ η) ≫ (f ◁ θ))
+    rel (f ◁ (η ≫ θ)) (f ◁ η ≫ f ◁ θ)
+| id_whisker_left {a b} {f g : hom a b} (η : hom₂ f g) :
+    rel (hom.id a ◁ η) (λ_ f ≫ η ≫ λ⁻¹_ g)
+| comp_whisker_left
+    {a b c d} (f : hom a b) (g : hom b c) {h h' : hom c d} (η : hom₂ h h') :
+    rel ((f.comp g) ◁ η) (α_ f g h ≫ f ◁ g ◁ η ≫ α⁻¹_ f g h')
 | whisker_right {a b c} (f g : hom a b) (h : hom b c) (η η' : hom₂ f g) :
     rel η η' → rel (η ▷ h) (η' ▷ h)
-| whisker_right_id {a b c} (f : hom a b) (g : hom b c) :
+| id_whisker_right {a b c} (f : hom a b) (g : hom b c) :
     rel (𝟙 f ▷ g) (𝟙 (f.comp g))
-| whisker_right_comp {a b c} {f g h : hom a b} (i : hom b c) (η : hom₂ f g) (θ : hom₂ g h) :
-    rel ((η ≫ θ) ▷ i) ((η ▷ i) ≫ (θ ▷ i))
-| whisker_exchange {a b c} {f g : hom a b} {h i : hom b c} (η : hom₂ f g) (θ : hom₂ h i) :
-    rel ((f ◁ θ) ≫ (η ▷ i)) ((η ▷ h) ≫ (g ◁ θ))
-| associator_naturality_left
+| comp_whisker_right {a b c} {f g h : hom a b} (i : hom b c) (η : hom₂ f g) (θ : hom₂ g h) :
+    rel ((η ≫ θ) ▷ i) (η ▷ i ≫ θ ▷ i)
+| whisker_right_id {a b} {f g : hom a b} (η : hom₂ f g) :
+    rel (η ▷ hom.id b) (ρ_ f ≫ η ≫ ρ⁻¹_ g)
+| whisker_right_comp
     {a b c d} {f f' : hom a b} (g : hom b c) (h : hom c d) (η : hom₂ f f') :
-    rel (((η ▷ g) ▷ h) ≫ α_ f' g h) (α_ f g h ≫ (η ▷ (g.comp h)))
-| associator_naturality_middle
+    rel (η ▷ (g.comp h)) (α⁻¹_ f g h ≫ η ▷ g ▷ h ≫ α_ f' g h)
+| whisker_assoc
     {a b c d} (f : hom a b) {g g' : hom b c} (η : hom₂ g g') (h : hom c d) :
-    rel (((f ◁ η) ▷ h) ≫ α_ f g' h) (α_ f g h ≫ (f ◁ (η ▷ h)))
-| associator_naturality_right
-    {a b c d} (f : hom a b) (g : hom b c) {h h' : hom c d} (η : hom₂ h h') :
-    rel (((f.comp g) ◁ η) ≫ α_ f g h') (α_ f g h ≫ (f ◁ (g ◁ η)))
+    rel ((f ◁ η) ▷ h) (α_ f g h ≫ f ◁ (η ▷ h)≫ α⁻¹_ f g' h)
+| whisker_exchange {a b c} {f g : hom a b} {h i : hom b c} (η : hom₂ f g) (θ : hom₂ h i) :
+    rel (f ◁ θ ≫ η ▷ i) (η ▷ h ≫ g ◁ θ)
 | associator_hom_inv {a b c d} (f : hom a b) (g : hom b c) (h : hom c d) :
     rel (α_ f g h ≫ α⁻¹_ f g h) (𝟙 ((f.comp g).comp h))
 | associator_inv_hom {a b c d} (f : hom a b) (g : hom b c) (h : hom c d) :
@@ -119,19 +123,15 @@ inductive rel : Π {a b : B} {f g : hom a b}, hom₂ f g → hom₂ f g → Prop
     rel (λ_ f ≫ λ⁻¹_ f) (𝟙 ((hom.id a).comp f))
 | left_unitor_inv_hom {a b} (f : hom a b) :
     rel (λ⁻¹_ f ≫ λ_ f) (𝟙 f)
-| left_unitor_naturality {a b} {f f' : hom a b} (η : hom₂ f f') :
-    rel ((hom.id a ◁ η) ≫ λ_ f') (λ_ f ≫ η)
 | right_unitor_hom_inv {a b} (f : hom a b) :
     rel (ρ_ f ≫ ρ⁻¹_ f) (𝟙 (f.comp (hom.id b)))
 | right_unitor_inv_hom {a b} (f : hom a b) :
     rel (ρ⁻¹_ f ≫ ρ_ f) (𝟙 f)
-| right_unitor_naturality {a b} {f f' : hom a b} (η : hom₂ f f') :
-    rel ((η ▷ hom.id b) ≫ ρ_ f') (ρ_ f ≫ η)
 | pentagon {a b c d e} (f : hom a b) (g : hom b c) (h : hom c d) (i : hom d e) :
-    rel ((α_ f g h ▷ i) ≫ α_ f (g.comp h) i ≫ (f ◁ α_ g h i))
+    rel (α_ f g h ▷ i ≫ α_ f (g.comp h) i ≫ f ◁ α_ g h i)
         (α_ (f.comp g) h i ≫ α_ f g (h.comp i))
 | triangle {a b c} (f : hom a b) (g : hom b c) :
-    rel (α_ f (hom.id b) g ≫ (f ◁ λ_ g)) (ρ_ f ▷ g)
+    rel (α_ f (hom.id b) g ≫ f ◁ λ_ g) (ρ_ f ▷ g)
 
 end
 
@@ -156,11 +156,21 @@ instance bicategory : bicategory (free_bicategory B) :=
   whisker_left_id' := λ a b c f g, quot.sound (rel.whisker_left_id f g),
   whisker_left_comp' := by
   { rintros a b c f g h i ⟨η⟩ ⟨θ⟩, exact quot.sound (rel.whisker_left_comp f η θ) },
+  id_whisker_left' := by
+  { rintros a b f g ⟨η⟩, exact quot.sound (rel.id_whisker_left η) },
+  comp_whisker_left' := by
+  { rintros a b c d f g h h' ⟨η⟩, exact quot.sound (rel.comp_whisker_left f g η) },
   whisker_right := λ a b c f g η h,
     quot.map (hom₂.whisker_right h) (rel.whisker_right f g h) η,
-  whisker_right_id' := λ a b c f g, quot.sound (rel.whisker_right_id f g),
+  id_whisker_right' := λ a b c f g, quot.sound (rel.id_whisker_right f g),
+  comp_whisker_right' := by
+  { rintros a b c f g h ⟨η⟩ ⟨θ⟩ i, exact quot.sound (rel.comp_whisker_right i η θ) },
+  whisker_right_id' := by
+  { rintros a b f g ⟨η⟩, exact quot.sound (rel.whisker_right_id η) },
   whisker_right_comp' := by
-  { rintros a b c f g h ⟨η⟩ ⟨θ⟩ i, exact quot.sound (rel.whisker_right_comp i η θ) },
+  { rintros a b c d f f' ⟨η⟩ g h, exact quot.sound (rel.whisker_right_comp g h η) },
+  whisker_assoc' := by
+  { rintros a b c d f g g' ⟨η⟩ h, exact quot.sound (rel.whisker_assoc f η h) },
   whisker_exchange' := by
   { rintros a b c f g h i ⟨η⟩ ⟨θ⟩, exact quot.sound (rel.whisker_exchange η θ) },
   associator := λ a b c d f g h,
@@ -168,26 +178,16 @@ instance bicategory : bicategory (free_bicategory B) :=
     inv := quot.mk rel (hom₂.associator_inv f g h),
     hom_inv_id' := quot.sound (rel.associator_hom_inv f g h),
     inv_hom_id' := quot.sound (rel.associator_inv_hom f g h) },
-  associator_naturality_left' := by
-  { rintros a b c d f f' ⟨η⟩ g h, exact quot.sound (rel.associator_naturality_left g h η) },
-  associator_naturality_middle' := by
-  { rintros a b c d f g g' ⟨η⟩ h, exact quot.sound (rel.associator_naturality_middle f η h) },
-  associator_naturality_right' := by
-  { rintros a b c d f g h h' ⟨η⟩, exact quot.sound (rel.associator_naturality_right f g η) },
   left_unitor := λ a b f,
   { hom := quot.mk rel (hom₂.left_unitor f),
     inv := quot.mk rel (hom₂.left_unitor_inv f),
     hom_inv_id' := quot.sound (rel.left_unitor_hom_inv f),
     inv_hom_id' := quot.sound (rel.left_unitor_inv_hom f) },
-  left_unitor_naturality' := by
-  { rintros a b f f' ⟨η⟩, exact quot.sound (rel.left_unitor_naturality η) },
   right_unitor := λ a b f,
   { hom := quot.mk rel (hom₂.right_unitor f),
     inv := quot.mk rel (hom₂.right_unitor_inv f),
     hom_inv_id' := quot.sound (rel.right_unitor_hom_inv f),
     inv_hom_id' := quot.sound (rel.right_unitor_inv_hom f) },
-  right_unitor_naturality' := by
-  { rintros a b f f' ⟨η⟩, exact quot.sound (rel.right_unitor_naturality η) },
   pentagon' := λ a b c d e f g h i, quot.sound (rel.pentagon f g h i),
   triangle' := λ a b c f g, quot.sound (rel.triangle f g) }
 
@@ -255,9 +255,7 @@ def lift_hom₂ : ∀ {a b : B} {f g : hom a b}, hom₂ f g → (lift_hom F f �
 | _ _ _ _ (hom₂.whisker_left f η)       := lift_hom F f ◁ lift_hom₂ η
 | _ _ _ _ (hom₂.whisker_right h η)      := lift_hom₂ η ▷ lift_hom F h
 
-local attribute [simp]
-  associator_naturality_left associator_naturality_middle associator_naturality_right
-  left_unitor_naturality right_unitor_naturality pentagon
+local attribute [simp] whisker_exchange
 
 lemma lift_hom₂_congr {a b : B} {f g : hom a b} {η θ : hom₂ f g} (H : rel η θ) :
   lift_hom₂ F η = lift_hom₂ F θ :=

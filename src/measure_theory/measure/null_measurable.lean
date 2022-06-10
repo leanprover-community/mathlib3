@@ -308,7 +308,7 @@ measurable_set_insert
 lemma null_measurable_set_eq {a : α} : null_measurable_set {x | x = a} μ :=
 null_measurable_set_singleton a
 
-protected lemma _root_.set.finite.null_measurable_set (hs : finite s) : null_measurable_set s μ :=
+protected lemma _root_.set.finite.null_measurable_set (hs : s.finite) : null_measurable_set s μ :=
 finite.measurable_set hs
 
 protected lemma _root_.finset.null_measurable_set (s : finset α) : null_measurable_set ↑s μ :=
@@ -316,7 +316,7 @@ finset.measurable_set s
 
 end measurable_singleton_class
 
-lemma _root_.set.finite.null_measurable_set_bUnion {f : ι → set α} {s : set ι} (hs : finite s)
+lemma _root_.set.finite.null_measurable_set_bUnion {f : ι → set α} {s : set ι} (hs : s.finite)
   (h : ∀ b ∈ s, null_measurable_set (f b) μ) :
   null_measurable_set (⋃ b ∈ s, f b) μ :=
 finite.measurable_set_bUnion hs h
@@ -326,12 +326,12 @@ lemma _root_.finset.null_measurable_set_bUnion {f : ι → set α} (s : finset �
   null_measurable_set (⋃ b ∈ s, f b) μ :=
 finset.measurable_set_bUnion s h
 
-lemma _root_.set.finite.null_measurable_set_sUnion {s : set (set α)} (hs : finite s)
+lemma _root_.set.finite.null_measurable_set_sUnion {s : set (set α)} (hs : s.finite)
   (h : ∀ t ∈ s, null_measurable_set t μ) :
   null_measurable_set (⋃₀ s) μ :=
 finite.measurable_set_sUnion hs h
 
-lemma _root_.set.finite.null_measurable_set_bInter {f : ι → set α} {s : set ι} (hs : finite s)
+lemma _root_.set.finite.null_measurable_set_bInter {f : ι → set α} {s : set ι} (hs : s.finite)
   (h : ∀ b ∈ s, null_measurable_set (f b) μ) : null_measurable_set (⋂ b ∈ s, f b) μ :=
 finite.measurable_set_bInter hs h
 
@@ -339,7 +339,7 @@ lemma _root_.finset.null_measurable_set_bInter {f : ι → set α} (s : finset �
   (h : ∀ b ∈ s, null_measurable_set (f b) μ) : null_measurable_set (⋂ b ∈ s, f b) μ :=
 s.finite_to_set.null_measurable_set_bInter h
 
-lemma _root_.set.finite.null_measurable_set_sInter {s : set (set α)} (hs : finite s)
+lemma _root_.set.finite.null_measurable_set_sInter {s : set (set α)} (hs : s.finite)
   (h : ∀ t ∈ s, null_measurable_set t μ) : null_measurable_set (⋂₀ s) μ :=
 null_measurable_set.sInter hs.countable h
 
@@ -418,8 +418,8 @@ def completion {_ : measurable_space α} (μ : measure α) :
   trimmed := begin
     refine le_antisymm (λ s, _) (outer_measure.le_trim _),
     rw outer_measure.trim_eq_infi, simp only [to_outer_measure_apply],
-    refine (binfi_le_binfi _).trans_eq (measure_eq_infi _).symm,
-    exact λ t ht, infi_le_infi2 (λ h, ⟨h.null_measurable_set, le_rfl⟩)
+    refine (infi₂_mono _).trans_eq (measure_eq_infi _).symm,
+    exact λ t ht, infi_mono' (λ h, ⟨h.null_measurable_set, le_rfl⟩)
   end }
 
 instance completion.is_complete {m : measurable_space α} (μ : measure α) :

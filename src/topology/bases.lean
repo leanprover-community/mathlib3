@@ -66,7 +66,7 @@ structure is_topological_basis (s : set (set α)) : Prop :=
 /-- If a family of sets `s` generates the topology, then nonempty intersections of finite
 subcollections of `s` form a topological basis. -/
 lemma is_topological_basis_of_subbasis {s : set (set α)} (hs : t = generate_from s) :
-  is_topological_basis ((λ f, ⋂₀ f) '' {f : set (set α) | finite f ∧ f ⊆ s ∧ (⋂₀ f).nonempty}) :=
+  is_topological_basis ((λ f, ⋂₀ f) '' {f : set (set α) | f.finite ∧ f ⊆ s ∧ (⋂₀ f).nonempty}) :=
 begin
   refine ⟨_, _, _⟩,
   { rintro _ ⟨t₁, ⟨hft₁, ht₁b, ht₁⟩, rfl⟩ _ ⟨t₂, ⟨hft₂, ht₂b, ht₂⟩, rfl⟩ x h,
@@ -102,7 +102,7 @@ begin
     refine (@is_open_iff_nhds α (generate_from s) u).mpr (λ a ha, _),
     rcases h_nhds a u ha hu with ⟨v, hvs, hav, hvu⟩,
     rw nhds_generate_from,
-    exact binfi_le_of_le v ⟨hav, hvs⟩ (le_principal_iff.2 hvu) }
+    exact infi₂_le_of_le v ⟨hav, hvs⟩ (le_principal_iff.2 hvu) }
 end
 
 /-- A set `s` is in the neighbourhood of `a` iff there is some basis set `t`, which
@@ -291,7 +291,7 @@ def dense_seq [separable_space α] [nonempty α] : ℕ → α := classical.some 
 variable {α}
 
 @[priority 100]
-instance encodable.separable_space [encodable α] : separable_space α :=
+instance encodable.to_separable_space [encodable α] : separable_space α :=
 { exists_countable_dense := ⟨set.univ, set.countable_encodable set.univ, dense_univ⟩ }
 
 lemma separable_space_of_dense_range {ι : Type*} [encodable ι] (u : ι → α) (hu : dense_range u) :
@@ -363,7 +363,7 @@ end
 lemma _root_.set.countable.is_separable {s : set α} (hs : countable s) : is_separable s :=
 ⟨s, hs, subset_closure⟩
 
-lemma _root_.set.finite.is_separable {s : set α} (hs : finite s) : is_separable s :=
+lemma _root_.set.finite.is_separable {s : set α} (hs : s.finite) : is_separable s :=
 hs.countable.is_separable
 
 lemma is_separable_univ_iff :
@@ -553,7 +553,7 @@ variable (α)
 lemma exists_countable_basis [second_countable_topology α] :
   ∃b:set (set α), countable b ∧ ∅ ∉ b ∧ is_topological_basis b :=
 let ⟨b, hb₁, hb₂⟩ := second_countable_topology.is_open_generated_countable α in
-let b' := (λs, ⋂₀ s) '' {s:set (set α) | finite s ∧ s ⊆ b ∧ (⋂₀ s).nonempty} in
+let b' := (λs, ⋂₀ s) '' {s:set (set α) | s.finite ∧ s ⊆ b ∧ (⋂₀ s).nonempty} in
 ⟨b',
   ((countable_set_of_finite_subset hb₁).mono
     (by { simp only [← and_assoc], apply inter_subset_left })).image _,
@@ -648,7 +648,7 @@ end
 instance second_countable_topology_fintype {ι : Type*} {π : ι → Type*}
   [fintype ι] [t : ∀a, topological_space (π a)] [∀a, second_countable_topology (π a)] :
   second_countable_topology (∀a, π a) :=
-by { letI := fintype.encodable ι, exact topological_space.second_countable_topology_encodable }
+by { letI := fintype.to_encodable ι, exact topological_space.second_countable_topology_encodable }
 
 @[priority 100] -- see Note [lower instance priority]
 instance second_countable_topology.to_separable_space

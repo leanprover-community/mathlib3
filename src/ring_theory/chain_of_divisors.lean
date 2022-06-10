@@ -143,7 +143,7 @@ begin
   have : (finset.univ.image (λ (m : fin (i + 1)), (c 1) ^ (m : ℕ))).card = i + 1,
   { conv_rhs { rw [← finset.card_fin (i+1)] },
     cases n, { contradiction },
-    rw finset.card_image_eq_iff_inj_on,
+    rw finset.card_image_iff,
     refine set.inj_on_of_injective (λ m m' h, fin.ext _) _,
     refine pow_injective_of_not_unit
       (element_of_chain_not_is_unit_of_index_ne_zero (by simp) h₁) _ h,
@@ -172,7 +172,7 @@ begin
   refine (nat.lt_succ_iff.1 i.prop).antisymm' (nat.le_of_succ_le_succ _),
   calc n + 1 = (finset.univ : finset (fin (n + 1))).card : (finset.card_fin _).symm
          ... = (finset.univ.image c).card :
-    (finset.card_image_eq_iff_inj_on.mpr (h₁.injective.inj_on _)).symm
+    (finset.card_image_iff.mpr (h₁.injective.inj_on _)).symm
          ... ≤ (finset.univ.image (λ (m : fin (i + 1)), (c 1)^(m : ℕ))).card :
           finset.card_le_of_subset _
          ... ≤ (finset.univ : finset (fin (i + 1))).card : finset.card_image_le
@@ -202,9 +202,11 @@ open divisor_chain
 
 lemma pow_image_of_prime_by_factor_order_iso_dvd {m p : associates M} {n : associates N}
   (hn : n ≠ 0) (hp : p ∈ normalized_factors m)
-  (d : {l : associates M // l ≤ m} ≃o {l : associates N // l ≤ n}) {s : ℕ} (hs : s ≠ 0)
+  (d : {l : associates M // l ≤ m} ≃o {l : associates N // l ≤ n}) {s : ℕ}
   (hs' : p^s ≤ m) : (d ⟨p, dvd_of_mem_normalized_factors hp⟩ : associates N)^s ≤ n :=
 begin
+  by_cases hs : s = 0,
+  { simp [hs], },
   suffices : (d ⟨p, dvd_of_mem_normalized_factors hp⟩ : associates N)^s = ↑(d ⟨p^s, hs'⟩),
   { rw this,
     apply subtype.prop (d ⟨p^s, hs'⟩) },
@@ -234,14 +236,15 @@ variables [decidable_rel ((∣) : associates M → associates M → Prop)]
  [decidable_rel ((∣) : associates N → associates N → Prop)]
 
 lemma multiplicity_prime_le_multiplicity_image_by_factor_order_iso {m p : associates M}
-  {n : associates N} (hm : m ≠ 0) (hn : n ≠ 0) (hp : p ∈ normalized_factors m)
+  {n : associates N} (hp : p ∈ normalized_factors m)
   (d : {l : associates M // l ≤ m} ≃o {l : associates N // l ≤ n}) :
   multiplicity p m ≤ multiplicity ↑(d ⟨p, dvd_of_mem_normalized_factors hp⟩) n :=
 begin
+  by_cases hn : n = 0,
+  { simp [hn], },
+  by_cases hm : m = 0,
+  { simpa [hm] using hp, },
   rw [←enat.coe_get (finite_iff_dom.1 $ finite_prime_left (prime_of_normalized_factor p hp) hm),
     ←pow_dvd_iff_le_multiplicity],
-  refine pow_image_of_prime_by_factor_order_iso_dvd hn hp d (λ H, _) (pow_multiplicity_dvd _),
-  refine (dvd_of_mem_normalized_factors hp).multiplicity_pos.ne' (part.eq_some_iff.mpr _),
-  rw ←H,
-  exact part.get_mem _,
+  exact pow_image_of_prime_by_factor_order_iso_dvd hn hp d (pow_multiplicity_dvd _),
 end

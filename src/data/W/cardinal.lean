@@ -59,7 +59,8 @@ lemma cardinal_mk_le_max_aleph_0_of_fintype [Π a, fintype (β a)] : #(W_type β
     exact zero_le _
   end) $
 λ hn, let m := max (#α) ℵ₀ in cardinal_mk_le_of_le $
-calc cardinal.sum (λ a, m ^ #(β a)) ≤ #α * ⨆ a, m ^ cardinal.mk (β a) : cardinal.sum_le_supr _
+calc cardinal.sum (λ a, m ^ #(β a))
+    ≤ #α * ⨆ a, m ^ #(β a) : cardinal.sum_le_supr _
 ... ≤ m * ⨆ a, m ^ #(β a) : mul_le_mul' (le_max_left _ _) le_rfl
 ... = m : mul_eq_left.{u} (le_max_right _ _)
   (csupr_le' $ λ i, begin

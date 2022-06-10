@@ -39,9 +39,9 @@ points. It is an almost immediate strengthening of the lemma. The proof goes:
 ## Related theorems
 
 When the space is finite dimensional, the `closure` can be dropped to strengthen the result of the
-Krein-Milman theorem. This leads to the Minkowski-Carathéodory theorem (currently not in mathlib).
-Birkhoff's theorem is the Minkowski-Carathéodory theorem applied to the set of bistochastic
-matrices, permutation matrices being the extreme points.
+Krein-Milman theorem. This leads to the Minkowski-Carathéodory theorem (see
+`convex_hull_extreme_points`). Birkhoff's theorem is the Minkowski-Carathéodory theorem applied to
+the set of bistochastic matrices, permutation matrices being the extreme points.
 
 ## References
 
@@ -60,7 +60,7 @@ variables {E : Type*} [normed_group E] [normed_space ℝ E] {s : set E}
 
 /-- **Krein-Milman lemma**: In a LCTVS (currently only in normed `ℝ`-spaces), any nonempty compact
 set has an extreme point. -/
-lemma is_compact.has_extreme_point (hscomp : is_compact s) (hsnemp : s.nonempty) :
+lemma is_compact.extreme_points_nonempty (hscomp : is_compact s) (hsnemp : s.nonempty) :
   (s.extreme_points ℝ).nonempty :=
 begin
   let S : set (set E) := {t | t.nonempty ∧ is_closed t ∧ is_extreme ℝ s t},
@@ -92,17 +92,17 @@ end
 
 /-- **Krein-Milman theorem**: In a LCTVS (currently only in normed `ℝ`-spaces), any compact convex
 set is the closure of the convex hull of its extreme points. -/
-lemma closure_convex_hull_extreme_points (hscomp : is_compact s) (hAconv : convex ℝ s) :
+lemma closure_convex_hull_extreme_points (hscomp : is_compact s) (hsconv : convex ℝ s) :
   closure (convex_hull ℝ $ s.extreme_points ℝ) = s :=
 begin
-  apply (closure_minimal (convex_hull_min extreme_points_subset hAconv) hscomp.is_closed).antisymm,
+  apply (closure_minimal (convex_hull_min extreme_points_subset hsconv) hscomp.is_closed).antisymm,
   by_contra hs,
   obtain ⟨x, hxA, hxt⟩ := not_subset.1 hs,
   obtain ⟨l, r, hlr, hrx⟩ := geometric_hahn_banach_closed_point (convex_convex_hull _ _).closure
     is_closed_closure hxt,
   have h : is_exposed ℝ s {y ∈ s | ∀ z ∈ s, l z ≤ l y} := λ _, ⟨l, rfl⟩,
   obtain ⟨z, hzA, hz⟩ := hscomp.exists_forall_ge ⟨x, hxA⟩ l.continuous.continuous_on,
-  obtain ⟨y, hy⟩ := (h.is_compact hscomp).has_extreme_point ⟨z, hzA, hz⟩,
+  obtain ⟨y, hy⟩ := (h.is_compact hscomp).extreme_points_nonempty ⟨z, hzA, hz⟩,
   linarith [hlr _ (subset_closure $ subset_convex_hull _ _ $
     h.is_extreme.extreme_points_subset_extreme_points hy), hy.1.2 x hxA],
 end

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jon Eugster
 -/
 import algebra.char_p.algebra
+import algebra.char_p.local_ring
 import ring_theory.ideal.quotient
 
 /-!
@@ -74,7 +75,8 @@ end⟩
 namespace equal_char_zero
 
 /-- Equal characteristics zero implies `char(R) = 0`. -/
-instance char_zero (R : Type*) [comm_ring R] [nontrivial R] [equal_char_zero R] : char_zero R :=
+@[priority 100] instance char_zero (R : Type*) [comm_ring R] [nontrivial R] [equal_char_zero R] :
+  char_zero R :=
 ⟨begin
   intros x y h,
   apply (equal_char_zero.residue_char_zero (⊥:ideal R) bot_ne_top).cast_injective,
@@ -126,7 +128,7 @@ theorem of_rat_cast_inj (R : Type*) [comm_ring R] [char_zero R] {i : ℚ →+* R
         have h3 : is_unit t := is_unit.mk0 t h2, -- Therefore `i(t)` is a unit, too.
         refine ring_hom.is_unit_map i h3,
       end,
-      have h_c_not_unit: ¬(is_unit c) :=  -- If `a-b` is a unit then `I=R`. Contradiction!
+      have h_c_not_unit: ¬(is_unit c) :=         -- If `a-b` is a unit then `I=R`. Contradiction!
       begin
         by_contradiction h_unit,
         have h_is_top := I.eq_top_of_is_unit_mem h_c h_unit,
@@ -160,12 +162,12 @@ begin
       exact h,
     end,
     cases h2 with x hx,
-    have hx':= h1 x,
+    have hx' := h1 x,
     contradiction,
   end,
   -- so  `char R⧸(n) = 0`
   have h_charzero := equal_char_zero.residue_char_zero I ((ideal.ne_top_iff_one I).2 hI),
-  -- but also `char R⧸(n)` is not zero, because `n*1 = 0`.
+  -- but also `char R⧸(n)` is not zero, because `n * 1 = 0`.
   have h2 : (ideal.quotient.mk I n) = 0 :=
   begin
     rw ideal.quotient.eq_zero_iff_mem,
@@ -185,12 +187,16 @@ begin
 end
 
 lemma nat_is_unit_of_pos (R : Type*) [comm_ring R] [equal_char_zero R] {n : ℕ} (hn : 0 < n) :
-  is_unit (n:R) :=
+  is_unit (n : R) :=
 begin
   rw is_unit_iff_exists_inv',
   exact nat_inv_exists_of_pos R hn,
 end
 
+/--
+The inverse of a natural number `n:ℕ` in the ring `R`. This is a temporary definition
+in order to construct the map `ℚ →+* R`.
+-/
 noncomputable def nat_inv (R : Type*) [comm_ring R] [equal_char_zero R] {n : ℕ} (hn : 0 < n) : R :=
   ↑((nat_is_unit_of_pos R hn).unit)⁻¹
 
@@ -223,7 +229,7 @@ begin
       apply (is_unit.mul_left_inj (nat_is_unit_of_pos R b.pos)).mp,
       repeat {rw mul_assoc},
       conv in (nat_inv R _ * _) {rw [mul_comm, mul_assoc, mul_nat_inv, mul_one]},
-      simp_rw [←int.cast_coe_nat, ←int.cast_mul, ←mul_assoc, ←rat.mul_num_denom_def],
+      simp_rw [←int.cast_coe_nat, ←int.cast_mul, ←mul_assoc, ←rat.mul_num_denom'],
       ring_nf,
     end,
     map_add' := begin
@@ -239,9 +245,10 @@ begin
       conv in (nat_inv R _ * _) {rw [mul_comm, mul_assoc, mul_nat_inv, mul_one]},
       rw ←mul_assoc,
       nth_rewrite 1 mul_comm,
-      simp_rw [←int.cast_coe_nat, ←int.cast_mul, rat.add_eq_def],
+      simp_rw [←int.cast_coe_nat, ←int.cast_mul, rat.add_num_denom' a b],
       rw [add_mul, int.cast_add],
-      ring_nf,
+      simp only [int.cast_mul, int.cast_coe_nat],
+      ring,
     end},
   use cast,
   { intros x y hxy,
@@ -279,16 +286,20 @@ begin
     exact to_rat_cast_inj R},
   { intro h,
     cases h with i hi,
-    sorry,
-    -- haveI h_char := char_zero_of_injective_algebra_map hi,
-    -- exact of_rat_cast_inj R hi}
+    haveI h_char: char_zero R := begin
+      haveI q := (i.to_algebra),
+      apply @char_zero_of_injective_algebra_map ℚ,
+      exact (algebra_map ℚ R).injective,
+    end,
+    exact of_rat_cast_inj R hi}
 end
 
 /-- The injective homomorphism `ℚ →+* R`. -/
 noncomputable def rat_cast (R: Type*) [comm_ring R] [nontrivial R] [equal_char_zero R] :=
 classical.some (to_rat_cast_inj R)
 
-def rat_cast_inj (R: Type*) [comm_ring R] [nontrivial R] [equal_char_zero R] :=
+lemma rat_cast_inj (R : Type*) [comm_ring R] [nontrivial R] [equal_char_zero R] :
+  function.injective (rat_cast R) :=
 classical.some_spec (to_rat_cast_inj R)
 
 -- see Note [coercion into rings]
@@ -313,7 +324,7 @@ i.e. if there exists an ideal `I` such that `R/I` has positive characteristic.
 class mixed_char_zero (R : Type*) [comm_ring R] (p : ℕ) : Prop :=
   (char_zero : char_zero R)
   (p_pos : p ≠ 0)
-  (residue_char_p : ∃(I : ideal R), (I ≠ ⊤) ∧ char_p (R⧸I) p)
+  (residue_char_p : ∃(I : ideal R), (I ≠ ⊤) ∧ char_p (R ⧸ I) p)
 
 namespace mixed_char_zero
 
@@ -340,7 +351,8 @@ begin
       let f_IM := ideal.quotient.factor I M h_IM,
       have q_zero := congr_arg f_IM (char_p.cast_eq_zero (R ⧸ I) q),
       simp only [map_nat_cast, map_zero] at q_zero,
-      exact char_p.ne_zero_of_coe_zero (R⧸M) r q_mixed_char.hp q_zero,
+      apply ne_zero_of_dvd_ne_zero q_mixed_char.p_pos,
+      exact (char_p.cast_eq_zero_iff (R⧸M) r q).mp q_zero,
     end,
     have r_prime : nat.prime r :=
     or_iff_not_imp_right.1 (char_p.char_is_prime_or_zero (R ⧸ M) r) r_pos,
@@ -348,7 +360,7 @@ begin
     apply h r r_prime,
     exact {
       char_zero := q_mixed_char.char_zero,
-      hp := nat.prime.ne_zero r_prime,
+      p_pos := nat.prime.ne_zero r_prime,
       residue_char_p := begin
         use M,
         split,
@@ -412,7 +424,7 @@ begin
     cases hp with p hp,
     rcases hp.residue_char_p with ⟨I, ⟨hI_ne_top, hI_p⟩⟩,
     have hI_zero := @char_p.of_char_zero _ _ _ (equal_char_zero.residue_char_zero I hI_ne_top),
-    exact absurd (char_p.eq (R⧸I) hI_p hI_zero) hp.hp},
+    exact absurd (char_p.eq (R⧸I) hI_p hI_zero) hp.p_pos},
   { intro h,
     exact ⟨
     begin
@@ -425,7 +437,7 @@ begin
         use (ring_char (R ⧸ I)),
         exact {
           char_zero := g,
-          hp := hr,
+          p_pos := hr,
           residue_char_p := ⟨I, ⟨hI_ne_top, ring_char.char_p _⟩⟩}},
     end⟩
   },

@@ -216,6 +216,8 @@ calc uniform_convergence.uniform_space α γ
 ... = (uniform_convergence.uniform_space α β).comap ((∘) f) :
       uniform_convergence.comap_eq
 
+/-- Turn a uniform isomorphism `γ ≃ᵤ β` to a uniform isomorphism `(α → γ) ≃ᵤ (α → β)`, with the
+uniform structures of uniform convergence, by post-composing. -/
 protected def congr_right [uniform_space γ] (e : γ ≃ᵤ β) :
   (α → γ) ≃ᵤ (α → β) :=
 { uniform_continuous_to_fun :=
@@ -234,6 +236,8 @@ begin
   exact λ U hU, ⟨U, hU, λ uv huv x, huv (f x)⟩
 end
 
+/-- Turn a bijection `γ ≃ α` to a uniform isomorphism `(γ → β) ≃ᵤ (α → β)`, with the uniform
+structures of uniform convergence, by pre-composing. -/
 protected def congr_left (e : γ ≃ α) :
   (γ → β) ≃ᵤ (α → β) :=
 { uniform_continuous_to_fun :=
@@ -271,6 +275,9 @@ begin
     exact λ n, id }
 end
 
+/-- If `α → β × γ`, `α → β` and `α → γ` are equipped with the uniform structures of uniform
+convergence, then the natural bijection between `(α → β × γ)` and `((α → β) × (α → γ))` is a
+uniform isomorphism. -/
 protected def uniform_equiv_prod_arrow [uniform_space γ] :
   (α → β × γ) ≃ᵤ ((α → β) × (α → γ)) :=
 (equiv.arrow_prod_equiv_prod_arrow _ _ _).to_uniform_equiv_of_uniform_inducing
@@ -418,6 +425,8 @@ begin
         uniform_convergence_on.comap_eq
 end
 
+/-- Turn a uniform isomorphism `γ ≃ᵤ β` to a uniform isomorphism `(α → γ) ≃ᵤ (α → β)`, with the
+uniform structures of `𝔖`-convergence, by post-composing. -/
 protected def congr_right [uniform_space γ] (e : γ ≃ᵤ β) :
   @uniform_equiv (α → γ) (α → β)
   (uniform_convergence_on.uniform_space α γ 𝔖) (uniform_convergence_on.uniform_space α β 𝔖) :=
@@ -480,6 +489,9 @@ begin
   refl
 end
 
+/-- If `α → β × γ`, `α → β` and `α → γ` are equipped with the uniform structures of
+`𝔖`-convergence, then the natural bijection between `(α → β × γ)` and `((α → β) × (α → γ))` is a
+uniform isomorphism. -/
 protected def uniform_equiv_prod_arrow [uniform_space γ] :
   @uniform_equiv (α → β × γ) ((α → β) × (α → γ))
   (uniform_convergence_on.uniform_space α (β × γ) 𝔖)

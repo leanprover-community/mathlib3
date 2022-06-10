@@ -57,7 +57,7 @@ lemma nth_set_card_aux {n : ℕ} (hp : (set_of p).finite)
 begin
   unfreezingI { induction n with k hk },
   { congr,
-    simp only [forall_false_left, nat.not_lt_zero, forall_const, and_true] },
+    simp only [forall_iff, nat.not_lt_zero, forall_const, and_true] },
   have hp'': {i : ℕ | p i ∧ ∀ t, t < k → nth p t < i}.finite,
   { refine hp.subset (λ x hx, _),
     rw set.mem_set_of_eq at hx,

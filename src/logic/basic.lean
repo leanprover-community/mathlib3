@@ -1273,8 +1273,8 @@ propext (exists_prop_congr hq _)
 @[simp] lemma exists_true_left (p : true → Prop) : (∃ x, p x) ↔ p true.intro :=
 exists_prop_of_true _
 
--- This lemma needs to be `simp` for `by_cases` to work, but is superceded by `exists_iff`.
-@[simp, priority 100] lemma exists_false_left (p : false → Prop) : ¬ ∃ x, p x :=
+-- This is superceded by `exists_iff` in logic/is_empty.
+private lemma exists_false_left (p : false → Prop) : ¬ ∃ x, p x :=
 exists_prop_of_false not_false
 
 lemma exists_unique.unique {α : Sort*} {p : α → Prop} (h : ∃! x, p x)
@@ -1292,8 +1292,8 @@ propext (forall_prop_congr hq _)
 @[simp] lemma forall_true_left (p : true → Prop) : (∀ x, p x) ↔ p true.intro :=
 forall_prop_of_true _
 
--- This lemma needs to be `simp` for `by_cases` to work, but is superceded by `forall_iff`.
-@[simp, priority 100] lemma forall_false_left (p : false → Prop) : (∀ x, p x) ↔ true :=
+-- This is superceded by `forall_iff` in logic/is_empty.
+private lemma forall_false_left (p : false → Prop) : (∀ x, p x) ↔ true :=
 forall_prop_of_false not_false
 
 lemma exists_unique.elim2 {α : Sort*} {p : α → Sort*} [∀ x, subsingleton (p x)]
@@ -1485,12 +1485,15 @@ section ite
 variables {α β γ : Sort*} {σ : α → Sort*} (f : α → β) {P Q : Prop} [decidable P] [decidable Q]
   {a b c : α} {A : P → α} {B : ¬ P → α}
 
-lemma dite_eq_iff : dite P A B = c ↔ (∃ h, A h = c) ∨ ∃ h, B h = c := by by_cases P; simp *
+lemma dite_eq_iff : dite P A B = c ↔ (∃ h, A h = c) ∨ ∃ h, B h = c :=
+by by_cases P; simp [*, exists_false_left]
 lemma ite_eq_iff : ite P a b = c ↔ P ∧ a = c ∨ ¬ P ∧ b = c :=
 dite_eq_iff.trans $ by rw [exists_prop, exists_prop]
 
-@[simp] lemma dite_eq_left_iff : dite P (λ _, a) B = a ↔ ∀ h, B h = a := by by_cases P; simp *
-@[simp] lemma dite_eq_right_iff : dite P A (λ _, b) = b ↔ ∀ h, A h = b := by by_cases P; simp *
+@[simp] lemma dite_eq_left_iff : dite P (λ _, a) B = a ↔ ∀ h, B h = a :=
+by by_cases P; simp [*, forall_false_left]
+@[simp] lemma dite_eq_right_iff : dite P A (λ _, b) = b ↔ ∀ h, A h = b :=
+by by_cases P; simp [*, forall_false_left]
 @[simp] lemma ite_eq_left_iff : ite P a b = a ↔ (¬ P → b = a) := dite_eq_left_iff
 @[simp] lemma ite_eq_right_iff : ite P a b = b ↔ (P → a = b) := dite_eq_right_iff
 

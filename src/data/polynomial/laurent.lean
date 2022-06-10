@@ -290,7 +290,7 @@ begin
     ext a,
     have := ((not_le.mp n0).trans_le (int.coe_zero_le a)).ne',
     simp only [coeff, comap_domain_apply, int.of_nat_eq_coe, coeff_zero, single_apply_eq_zero, this,
-      forall_false_left] }
+      forall_iff] }
 end
 
 @[simp] lemma left_inverse_trunc_to_laurent :

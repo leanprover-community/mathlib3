@@ -407,7 +407,7 @@ end
 theorem prime_of_factor {a : α} : ∀ (x : α), x ∈ factors a → prime x :=
 begin
   rw [factors],
-  split_ifs with ane0, { simp only [multiset.not_mem_zero, forall_false_left, forall_const] },
+  split_ifs with ane0, { simp only [multiset.not_mem_zero, forall_iff, forall_const] },
   intros x hx,
   exact (classical.some_spec (unique_factorization_monoid.exists_prime_factors a ane0)).1 x hx,
 end

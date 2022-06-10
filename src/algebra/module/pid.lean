@@ -13,9 +13,9 @@ import algebra.category.Module.biproducts
 
 ## Main statements
 
-* `equiv_direct_sum_of_is_torsion` : A finitely generated torsion module over a PID is isomorphic
-  to a direct sum of some `R ⧸ R ∙ (p i ^ e i)` where the `p i ^ e i` are prime powers.
-* `equiv_free_prod_direct_sum` : A finitely generated module over a PID is isomorphic to the
+* `module.equiv_direct_sum_of_is_torsion` : A finitely generated torsion module over a PID is
+  isomorphic to a direct sum of some `R ⧸ R ∙ (p i ^ e i)` where the `p i ^ e i` are prime powers.
+* `module.equiv_free_prod_direct_sum` : A finitely generated module over a PID is isomorphic to the
   product of a free module (its torsion free part) and a direct sum of the form above (its torsion
   submodule).
 
@@ -29,9 +29,10 @@ import algebra.category.Module.biproducts
 
 ## Implementation details
 
-We first prove (`is_internal_prime_power_torsion`) that a finitely generated torsion module is the
-internal direct sum of its `p i ^ e i`-torsion submodules for some (finitely many) prime powers
-`p i ^ e i`.
+We first prove (`submodule.is_internal_prime_power_torsion_of_pid`) that a finitely generated
+torsion module is the internal direct sum of its `p i ^ e i`-torsion submodules for some
+(finitely many) prime powers `p i ^ e i`. This is proved in more generality for a Dedekind domain
+at `submodule.is_internal_prime_power_torsion`.
 
 Then we treat the case of a `p ^ ∞`-torsion module (that is, a module where all elements are
 cancelled by scalar multiplication by some power of `p`) and apply it to the `p i ^ e i`-torsion
@@ -55,6 +56,8 @@ variables {N : Type (max u v)} [add_comm_group N] [module R N]
 open_locale direct_sum
 open submodule
 
+/--A finitely generated torsion module over a PID is an internal direct sum of its
+`p i ^ e i`-torsion submodules for some primes `p i` and numbers `e i`.-/
 theorem submodule.is_internal_prime_power_torsion_of_pid
   [module.finite R M] (hM : module.is_torsion R M) :
   ∃ (ι : Type u) [fintype ι] [decidable_eq ι] (p : ι → R) [∀ i, irreducible $ p i] (e : ι → ℕ),
@@ -138,6 +141,8 @@ end
 open finset multiset
 omit dec hM
 
+/--A finitely generated `p ^ ∞`-torsion module over a PID is isomorphic to a direct sum of some
+  `R ⧸ R ∙ (p ^ e i)` for some `e i`.-/
 theorem torsion_by_prime_power_decomposition (hN : module.is_torsion' N (submonoid.powers p))
   [h' : module.finite R N] :
   ∃ (d : ℕ) (k : fin d → ℕ), nonempty $ N ≃ₗ[R] ⨁ (i : fin d), R ⧸ R ∙ (p ^ (k i : ℕ)) :=

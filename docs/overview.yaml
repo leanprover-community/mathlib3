@@ -158,7 +158,7 @@ Linear algebra:
     finite-dimensionality : 'finite_dimensional'
     isomorphism with $K^n$: 'basis.equiv_fun'
     isomorphism with bidual: 'module.eval_equiv'
-  Structure theorem of finitely generated modules over a PID: 'equiv_free_prod_direct_sum'
+  Structure theorem of finitely generated modules over a PID: 'module.equiv_free_prod_direct_sum'
   Matrices:
     ring-valued matrix: 'matrix'
     matrix representation of a linear map: 'linear_map.to_matrix'

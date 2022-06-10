@@ -9,6 +9,10 @@ import ring_theory.dedekind_domain.ideal
 /-!
 # Modules over a Dedekind domain
 
+Over a Dedekind domain, a `I`-torsion module is the internal direct sum of its `p i ^ e i`-torsion
+submodules, where `I = ∏ i, p i ^ e i` is its unique decomposition in prime ideals.
+Therefore, as any finitely generated torsion module is `I`-torsion for some `I`, it is an internal
+direct sum of its `p i ^ e i`-torsion submodules for some prime ideals `p i` and numbers `e i`.
 -/
 
 universes u v
@@ -22,6 +26,8 @@ namespace submodule
 variables [is_dedekind_domain R]
 open unique_factorization_monoid
 
+/--Over a Dedekind domain, a `I`-torsion module is the internal direct sum of its `p i ^ e i`-
+torsion submodules, where `I = ∏ i, p i ^ e i` is its unique decomposition in prime ideals.-/
 lemma is_internal_prime_power_torsion_of_is_torsion_by_ideal {I : ideal R} (hI : I ≠ ⊥)
   (hM : module.is_torsion_by_set R M I) :
   ∃ (P : finset $ ideal R) [decidable_eq P] [∀ p ∈ P, prime p] (e : P → ℕ),
@@ -48,6 +54,8 @@ begin
     { exact (prime_of_mem p hp).irreducible } }
 end
 
+/--A finitely generated torsion module over a Dedekind domain is an internal direct sum of its
+`p i ^ e i`-torsion submodules for some prime ideals `p i` and numbers `e i`.-/
 theorem is_internal_prime_power_torsion [module.finite R M] (hM : module.is_torsion R M) :
   ∃ (P : finset $ ideal R) [decidable_eq P] [∀ p ∈ P, prime p] (e : P → ℕ),
   by exactI direct_sum.is_internal (λ p : P, torsion_by_set R M (p ^ e p : ideal R)) :=

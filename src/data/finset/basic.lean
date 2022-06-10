@@ -1907,6 +1907,10 @@ coe_injective $ by simp only [coe_map, coe_singleton, set.image_singleton]
   (insert a s).map f = insert (f a) (s.map f) :=
 by simp only [insert_eq, map_union, map_singleton]
 
+@[simp] lemma map_cons (f : α ↪ β) (a : α) (s : finset α) (ha : a ∉ s) :
+  (cons a s ha).map f = cons (f a) (s.map f) (by simpa using ha) :=
+eq_of_veq $ multiset.map_cons f a s.val
+
 @[simp] theorem map_eq_empty : s.map f = ∅ ↔ s = ∅ :=
 ⟨λ h, eq_empty_of_forall_not_mem $
  λ a m, ne_empty_of_mem (mem_map_of_mem _ m) h, λ e, e.symm ▸ rfl⟩

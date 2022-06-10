@@ -384,6 +384,10 @@ theorem union_Inter (s : set β) (t : ι → set β) :
   s ∪ (⋂ i, t i) = ⋂ i, s ∪ t i :=
 sup_infi_eq _ _
 
+theorem Inter_union (s : ι → set β) (t : set β) :
+  (⋂ i, s i) ∪ t = ⋂ i, s i ∪ t :=
+infi_sup_eq _ _
+
 theorem Union_diff (s : set β) (t : ι → set β) :
   (⋃ i, t i) \ s = ⋃ i, t i \ s :=
 Union_inter _ _

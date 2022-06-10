@@ -291,9 +291,9 @@ variables {ι α : Type*} {s : ι → set α} (hs : indexed_partition s)
 instance [unique ι] [inhabited α] :
   inhabited (indexed_partition (λ i : ι, (set.univ : set α))) :=
 ⟨{ eq_of_mem := λ x i j hi hj, subsingleton.elim _ _,
-   some := λ i, default,
+   some := default,
    some_mem := set.mem_univ,
-   index := λ a, default,
+   index := default,
    mem_index := set.mem_univ }⟩
 
 attribute [simp] some_mem mem_index

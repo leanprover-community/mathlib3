@@ -991,9 +991,6 @@ by rw [←neg_equiv_iff, pgame.neg_zero]
 @[simp] theorem zero_fuzzy_neg_iff {x : pgame} : 0 ∥ -x ↔ 0 ∥ x :=
 by rw [←neg_fuzzy_iff, pgame.neg_zero]
 
-theorem neg_congr {x y : pgame} (h : x ≈ y) : -x ≈ -y :=
-⟨neg_le_neg_iff.2 h.2, neg_le_neg_iff.2 h.1⟩
-
 /-- The sum of `x = {xL | xR}` and `y = {yL | yR}` is `{xL + y, x + yL | xR + y, x + yR}`. -/
 instance : has_add pgame.{u} := ⟨λ x y, begin
   induction x with xl xr xL xR IHxl IHxr generalizing y,
@@ -1341,7 +1338,7 @@ theorem add_congr_right {x y z : pgame} : y ≈ z → x + y ≈ x + z :=
 add_congr equiv_rfl
 
 theorem sub_congr {w x y z : pgame} (h₁ : w ≈ x) (h₂ : y ≈ z) : w - y ≈ x - z :=
-add_congr h₁ (neg_congr h₂)
+add_congr h₁ (neg_equiv_neg_iff.2 h₂)
 
 theorem sub_congr_left {x y z : pgame} (h : x ≈ y) : x - z ≈ y - z :=
 sub_congr h equiv_rfl

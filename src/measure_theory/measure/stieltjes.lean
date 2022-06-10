@@ -25,7 +25,7 @@ a Borel measure `f.measure`.
 noncomputable theory
 open classical set filter
 open ennreal (of_real)
-open_locale big_operators ennreal nnreal topological_space
+open_locale big_operators ennreal nnreal topological_space measure_theory
 
 /-! ### Basic properties of Stieltjes functions -/
 

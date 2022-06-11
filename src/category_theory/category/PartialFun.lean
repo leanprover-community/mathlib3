@@ -126,13 +126,13 @@ equivalence.mk PartialFun_to_Pointed Pointed_to_PartialFun
       left_inv := λ a, option.rec_on a (dif_pos rfl) $ λ a, (dif_neg a.2).trans $
         by simp only [option.elim, subtype.val_eq_coe, subtype.coe_eta],
       right_inv := λ a, begin
-        change option.elim (dite _ _ _) _ _ = _,
+        change option.elim _ _ (dite _ _ _) = _,
         split_ifs,
         { rw h, refl },
         { refl }
       end } rfl) $ λ X Y f, Pointed.hom.ext _ _ $ funext $ λ a, option.rec_on a f.map_point.symm $
     λ a, begin
-      change option.elim (option.elim _ _ _) _ _ = _,
+      change option.elim _ _ (option.elim _ _ _) = _,
       rw [option.elim, part.elim_to_option],
       split_ifs,
       { refl },

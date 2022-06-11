@@ -1414,7 +1414,7 @@ lemma trim_supr {ι} [encodable ι] (μ : ι → outer_measure α) :
   trim (⨆ i, μ i) = ⨆ i, trim (μ i) :=
 begin
   ext1 s,
-  rcases exists_measurable_superset_forall_eq_trim (λ o, option.elim o (supr μ) μ) s
+  rcases exists_measurable_superset_forall_eq_trim (option.elim (supr μ) μ) s
     with ⟨t, hst, ht, hμt⟩,
   simp only [option.forall, option.elim] at hμt,
   simp only [supr_apply, ← hμt.1, ← hμt.2]

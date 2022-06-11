@@ -33,6 +33,7 @@ variables {α : Type u} {β : Type v} {ι : Sort w} {γ : Type x}
 theorem set.finite_of_finite (s : set α) [finite s] : s.finite := ⟨fintype.of_finite s⟩
 
 /-- Projection of `set.finite` to its `finite` instance. -/
+@[nolint dup_namespace]
 protected lemma set.finite.finite {s : set α} (h : s.finite) : finite s :=
 finite.of_fintype h.fintype
 

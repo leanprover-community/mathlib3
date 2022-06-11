@@ -131,8 +131,7 @@ meta def single_term_resolve : expr → tactic unit
 | `(@polynomial.X %%R %%inst) :=
   nontriviality_by_assumption R *>
   exact ``(polynomial.nat_degree_X)
-| e := do C_mul_terms e <|>  -- either `e` is `C a * (X ^ n)` and `C_mul_terms e` handles it or
-  trace "The leading term is not of the form\n`C a * X (^ n)`\n\n"
+| e := C_mul_terms e
 
 /--
  `guess_degree e` assumes that `e` is a single summand of a polynomial and makes an attempt

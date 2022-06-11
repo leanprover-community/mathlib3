@@ -305,6 +305,12 @@ map_pow f a
 
 end ring_hom
 
+/-- We define `x ↦ x^n` (for positive `n : ℕ`) as a `monoid_with_zero_hom` -/
+def pow_monoid_with_zero_hom {M : Type*} [comm_monoid_with_zero M] {n : ℕ} (hn : 0 < n) :
+  M →*₀ M :=
+{ map_zero' := zero_pow hn,
+  ..pow_monoid_hom n }
+
 lemma pow_dvd_pow [monoid R] (a : R) {m n : ℕ} (h : m ≤ n) :
   a ^ m ∣ a ^ n := ⟨a ^ (n - m), by rw [← pow_add, nat.add_comm, tsub_add_cancel_of_le h]⟩
 

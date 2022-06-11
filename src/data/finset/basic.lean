@@ -2523,6 +2523,10 @@ lemma disjoint_filter_filter_neg (s : finset α) (p : α → Prop) [decidable_pr
 @[simp, norm_cast] lemma disjoint_coe : disjoint (s : set α) t ↔ disjoint s t :=
 by { rw [finset.disjoint_left, set.disjoint_left], refl }
 
+@[simp, norm_cast] lemma pairwise_disjoint_coe {ι : Type*} {s : set ι} {f : ι → finset α} :
+  s.pairwise_disjoint (λ i, f i : ι → set α) ↔ s.pairwise_disjoint f :=
+forall₅_congr $ λ _ _ _ _ _, disjoint_coe
+
 @[simp] lemma _root_.disjoint.of_image_finset (h : disjoint (s.image f) (t.image f)) :
   disjoint s t :=
 disjoint_iff_ne.2 $ λ a ha b hb, ne_of_apply_ne f $ h.forall_ne_finset

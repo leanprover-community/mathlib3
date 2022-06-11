@@ -307,10 +307,6 @@ variables (H K)
 finite_index_of_fintype (fintype.of_equiv f.range
   (quotient_group.quotient_ker_equiv_range f).symm.to_equiv)
 
-@[to_additive] lemma index_ker {G' : Type*} [group G'] (f : G →* G') [fintype f.range] :
-  f.ker.index = fintype.card f.range :=
-f.ker.index_eq_card.trans (fintype.card_congr (quotient_group.quotient_ker_equiv_range f).to_equiv)
-
 instance finite_index_normal_core [H.finite_index] : H.normal_core.finite_index :=
 begin
   rw normal_core_eq_ker,

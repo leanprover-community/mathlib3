@@ -594,10 +594,8 @@ def units_residue_field_equiv :
 mul_equiv.of_bijective A.unit_group_mod_to_residue_field_units
 begin
   split,
-  {
+   {
     rintros ⟨x,hx⟩ ⟨y,hy⟩ h,
-    by_cases h_1 : (x : K) = 0, { sorry },
-    by_cases h_2 : (y : K) = 0, { sorry },
     rw unit_group_mod_to_residue_field_units at h,
     rw units.ext_iff at h,
     dsimp at h,
@@ -605,15 +603,13 @@ begin
     change A.valuation (x - y) < 1 at h,
     have : A.valuation ↑y⁻¹ = 1, from (A.mem_unit_group_iff _).1(A.unit_group.inv_mem hy),
     rw [← mul_one (A.valuation (_)), ← this, ← valuation.map_mul, this] at h,
-    have tdo : (x * y⁻¹ : K) ≠ 0, from mul_ne_zero h_1 (inv_ne_zero h_2),
-    rw [sub_mul, units.mul_inv, units.coe_inv', ← units.coe_mk0 tdo,
-      ← mem_principal_unit_group_iff, units.mk0_mul, units.mk0_coe,
-      ← quotient_group.eq_one_iff, quotient_group.coe_mul, mul_eq_one_iff_eq_inv] at h,
-    rw ← quotient_group.coe_inv at h,
-
+    rwa [sub_mul, units.mul_inv, ← units.coe_mul, ← mem_principal_unit_group_iff,
+       ← quotient_group.eq_one_iff, quotient_group.coe_mul, mul_eq_one_iff_eq_inv,
+       ← quotient_group.coe_inv, inv_inv] at h,
 
   sorry },
-  { sorry }
+  {
+  sorry }
 end
 
 /-

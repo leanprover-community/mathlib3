@@ -134,12 +134,11 @@ end finite.set
 
 /-! ### Non-instances -/
 
-/-- If `(set.univ : set α)` is finite then `α` is a finite type. -/
-lemma set.finite.finite_of_finite_univ (H : (univ : set α).finite) : finite α :=
-@finite.of_equiv _ _ H.finite (equiv.set.univ α)
+lemma set.finite_univ_iff : finite (set.univ : set α) ↔ finite α :=
+(equiv.set.univ α).finite_iff
 
-lemma finite.set.finite_of_finite_univ [finite ↥(univ : set α)] : finite α :=
-(set.finite_of_finite _).finite_of_finite_univ
+lemma finite.of_finite_univ [finite ↥(univ : set α)] : finite α :=
+set.finite_univ_iff.mp ‹_›
 
 lemma finite.set.finite_of_finite_image (s : set α)
   {f : α → β} {g} (I : function.is_partial_inv f g) [finite (f '' s)] : finite s :=

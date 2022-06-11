@@ -954,6 +954,13 @@ e.dual.map_csupr_set hf hne
 
 end order_iso
 
+/-!
+### Supremum/infimum of `set.image2`
+
+A collection of lemmas showing what happens to the suprema/infima of `s` and `t` when mapped under
+a binary function whose partial evaluations are lower/upper adjoints of Galois connections.
+-/
+
 section
 variables [conditionally_complete_lattice α] [conditionally_complete_lattice β]
   [conditionally_complete_lattice γ] {f : α → β → γ} {s : set α} {t : set β}

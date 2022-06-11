@@ -1094,15 +1094,6 @@ by rw [subset_insert_iff, erase_eq_of_not_mem h]
 lemma erase_subset_iff_of_mem (h : a ∈ t) : s.erase a ⊆ t ↔ s ⊆ t :=
 by rw [←subset_insert_iff, insert_eq_of_mem h]
 
-lemma erase_image_subset_image_erase (f : α → β) (s : finset α) (a : α) :
-  (s.image f).erase (f a) ⊆ (s.erase a).image f :=
-begin
-  intro b,
-  simp only [and_imp, exists_prop, mem_image, exists_imp_distrib, mem_erase],
-  rintro hb x hx rfl,
-  exact ⟨_, ⟨ne_of_apply_ne f hb, hx⟩, rfl⟩,
-end
-
 lemma erase_inj {x y : α} (s : finset α) (hx : x ∈ s) : s.erase x = s.erase y ↔ x = y :=
 begin
   refine ⟨λ h, _, congr_arg _⟩,
@@ -2104,16 +2095,21 @@ ext $ λ x, by simpa only [mem_image, exists_prop, mem_singleton, exists_eq_left
   (insert a s).image f = insert (f a) (s.image f) :=
 by simp only [insert_eq, image_singleton, image_union]
 
+lemma erase_image_subset_image_erase [decidable_eq α] (f : α → β) (s : finset α) (a : α) :
+  (s.image f).erase (f a) ⊆ (s.erase a).image f :=
+begin
+  simp only [subset_iff, and_imp, exists_prop, mem_image, exists_imp_distrib, mem_erase],
+  rintro b hb x hx rfl,
+  exact ⟨_, ⟨ne_of_apply_ne f hb, hx⟩, rfl⟩,
+end
+
 @[simp] lemma image_erase [decidable_eq α] {f : α → β} (hf : injective f) (s : finset α) (a : α) :
   (s.erase a).image f = (s.image f).erase (f a) :=
 begin
-  ext b,
+  refine (erase_image_subset_image_erase _ _ _).antisymm' (λ b, _),
   simp only [mem_image, exists_prop, mem_erase],
-  split,
-  { rintro ⟨a', ⟨haa', ha'⟩, rfl⟩,
-    exact ⟨hf.ne haa', a', ha', rfl⟩ },
-  { rintro ⟨h, a', ha', rfl⟩,
-    exact ⟨a', ⟨ne_of_apply_ne _ h, ha'⟩, rfl⟩ }
+  rintro ⟨a', ⟨haa', ha'⟩, rfl⟩,
+  exact ⟨hf.ne haa', a', ha', rfl⟩,
 end
 
 @[simp] theorem image_eq_empty : s.image f = ∅ ↔ s = ∅ :=

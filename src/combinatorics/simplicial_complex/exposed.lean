@@ -65,19 +65,6 @@ end
 
 /-! # Harder stuff -/
 
-/-- **Eidelheit's Theorem** -/
-lemma Inter_halfspaces_eq (hs₁ : convex ℝ s) (hs₂ : is_closed s) :
-  (⋂ (l : E →L[ℝ] ℝ), {x | ∃ y ∈ s, l x ≤ l y}) = s :=
-begin
-  ext,
-  simp only [mem_Inter],
-  refine ⟨λ hx, _, λ hx l, ⟨x, hx, le_rfl⟩⟩,
-  by_contra,
-  obtain ⟨l, s, hlA, hl⟩ := geometric_hahn_banach_closed_point hs₁ hs₂ h,
-  obtain ⟨y, hy, hxy⟩ := hx l,
-  linarith [hlA y hy],
-end
-
 lemma closed_extreme_points [finite_dimensional ℝ E] (hE : finite_dimensional.finrank ℝ E = 2)
   (hs₁ : convex ℝ s) (hs₂ : is_closed s) :
   is_closed (s.extreme_points ℝ) :=
@@ -86,7 +73,7 @@ begin
 end
 
 --theorem of S. Straszewicz proved in 1935
-lemma limit_exposed_points_of_extreme (hs₁ : convex ℝ s) (hs₂ : is_closed s) :
+lemma extreme_points_subset_closure_exposed_points (hs₁ : convex ℝ s) (hs₂ : is_closed s) :
   s.extreme_points ℝ ⊆ closure (s.exposed_points ℝ) :=
 begin
   sorry

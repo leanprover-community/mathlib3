@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ivan Sadofschi Costa
 -/
 import topology.order
+import topology.sets.opens
 import topology.continuous_function.basic
 
 /-!
@@ -19,6 +20,8 @@ also injective and therefore an embedding.
 
 noncomputable theory
 
+namespace topological_space
+
 variables {X : Type*} [t : topological_space X] [t0 : t0_space X]
 
 instance : topological_space (Π (u : {s : set X | t.is_open s}), Prop) :=
@@ -28,10 +31,10 @@ instance : topological_space (Π (u : {s : set X | t.is_open s}), Prop) :=
   The continuous map from `X` to the product of copies of the Sierpinski space, (one copy for each
   open subset `u` of `X`). The `u` coordinate of  `product_of_mem_opens x` is given by `x ∈ u`.
 -/
-def product_of_mem_opens (X : Type*) [t : topological_space X] : continuous_map X
-  (Π (u : {s : set X | t.is_open s}), Prop) :=
-{ to_fun := λ x u, x ∈ (u : set X),
-  continuous_to_fun := continuous_pi_iff.2 (λ u, continuous_Prop.2 (by simpa using subtype.mem u)) }
+def product_of_mem_opens (X : Type*) [topological_space X] : continuous_map X
+  (opens X → Prop) :=
+{ to_fun := λ x u, x ∈ u,
+  continuous_to_fun := continuous_pi_iff.2 (λ u, continuous_Prop.2 u.property) }
 
 include t0
 lemma product_of_mem_opens_injective : function.injective (product_of_mem_opens X) :=
@@ -45,7 +48,7 @@ begin
  end
  omit t0
 
-lemma eq_induced_by_maps_to_sierpinski : t = ⨅ (u : {s : set X | t.is_open s}),
+lemma eq_induced_by_maps_to_sierpinski : t = ⨅ (u : {s : set X | is_open s}),
    topological_space.induced (λ x, x ∈ (u : set X)) sierpinski_space :=
 le_antisymm
 (le_infi_iff.2 (λ u, continuous.le_induced $ is_open_iff_continuous_mem.1 u.2))
@@ -69,3 +72,5 @@ end⟩
 
 theorem product_of_mem_opens_embedding : embedding (product_of_mem_opens X) :=
 embedding.mk (product_of_mem_opens_inducing) (@product_of_mem_opens_injective X t t0)
+
+end topological_space

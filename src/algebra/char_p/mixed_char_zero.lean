@@ -430,8 +430,8 @@ begin
       { by_contradiction h_unused,
         apply h,
         use (ring_char (R ⧸ I)),
-        exact {
-          char_zero := g,
+        exact
+        { char_zero := g,
           p_pos := hr,
           residue_char_p := ⟨I, ⟨hI_ne_top, ring_char.char_p _⟩⟩}},
     end⟩}

@@ -749,9 +749,6 @@ lemma singleton_injective : injective (singleton : α → set α) :=
 
 theorem mem_singleton_of_eq {x y : α} (H : x = y) : x ∈ ({y} : set α) := H
 
-@[simp] lemma insert_singleton (a : α) : insert a ({a} : set α) = {a} :=
-insert_eq_of_mem $ mem_singleton _
-
 theorem insert_eq (x : α) (s : set α) : insert x s = ({x} : set α) ∪ s := rfl
 
 @[simp] theorem pair_eq_singleton (a : α) : ({a, a} : set α) = {a} := union_self _

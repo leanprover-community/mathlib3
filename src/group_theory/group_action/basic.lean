@@ -566,12 +566,4 @@ begin
     exact (mul_action.quotient.smul_mk H g 1).symm.trans (equiv.perm.ext_iff.mp hg (1 : G)) },
 end
 
-noncomputable instance fintype_quotient_normal_core [fintype (G ⧸ H)] :
-  fintype (G ⧸ H.normal_core) :=
-begin
-  rw H.normal_core_eq_ker,
-  classical,
-  exact fintype.of_equiv _ (quotient_group.quotient_ker_equiv_range _).symm.to_equiv,
-end
-
 end subgroup

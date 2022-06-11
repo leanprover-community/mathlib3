@@ -31,7 +31,7 @@ open finset mul_action
 
 open_locale pointwise
 
-variables (R S T : left_transversals (H : set G)) [fintype (G ⧸ H)]
+variables (R S T : left_transversals (H : set G)) [H.finite_index]
 
 /-- The difference of two left transversals -/
 @[to_additive "The difference of two left transversals"]
@@ -60,7 +60,7 @@ end subgroup
 
 namespace monoid_hom
 
-variables [fintype (G ⧸ H)]
+variables [H.finite_index]
 
 open subgroup subgroup.left_transversals
 

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Browning
 -/
 
+import group_theory.group_action.basic
 import group_theory.quotient_group
 import set_theory.cardinal.finite
 
@@ -282,7 +283,10 @@ class _root_.add_subgroup.finite_index {G : Type*} [add_group G] (H : add_subgro
 
 attribute [to_additive] finite_index
 
-@[to_additive] instance finite_index_of_fintype [fintype G] : finite_index H :=
+@[to_additive] lemma finite_index_of_fintype [fintype (G ⧸ H)] : finite_index H :=
+⟨index_ne_zero_of_fintype⟩
+
+@[to_additive] instance finite_index_of_fintype' [fintype G] : finite_index H :=
 ⟨ne_zero_of_dvd_ne_zero fintype.card_ne_zero H.index_dvd_card⟩
 
 @[to_additive] noncomputable instance [hH : finite_index H] : fintype (G ⧸ H) :=
@@ -293,6 +297,18 @@ fintype_of_index_ne_zero hH.1
 
 @[to_additive] instance [hH : finite_index H] [hK : finite_index K] : finite_index (H ⊓ K) :=
 ⟨index_inf_ne_zero hH.1 hK.1⟩
+
+@[to_additive] instance finite_index_ker {G' : Type*} [group G'] (f : G →* G') [fintype f.range] :
+  f.ker.finite_index :=
+@finite_index_of_fintype G _ f.ker
+  (fintype.of_equiv f.range (quotient_group.quotient_ker_equiv_range f).symm.to_equiv)
+
+instance finite_index_normal_core [H.finite_index] : H.normal_core.finite_index :=
+begin
+  rw normal_core_eq_ker,
+  classical,
+  apply_instance,
+end
 
 variables {H K}
 

@@ -522,6 +522,10 @@ finset.ext $ by simp
   hs.to_finset = insert a (hs.subset $ subset_insert _ _).to_finset :=
 finset.ext $ by simp
 
+lemma finite.to_finset_insert' [decidable_eq α] {a : α} {s : set α} (hs : s.finite) :
+  (hs.insert a).to_finset = insert a hs.to_finset :=
+finite.to_finset_insert _
+
 lemma finite.fin_embedding {s : set α} (h : s.finite) : ∃ (n : ℕ) (f : fin n ↪ α), range f = s :=
 ⟨_, (fintype.equiv_fin (h.to_finset : set α)).symm.as_embedding, by simp⟩
 

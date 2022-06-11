@@ -183,6 +183,14 @@ begin
     apply even_mul_succ_self }
 end
 
+lemma even_prime_eq_two {p : ℕ} (he : even p) (hp : prime p) : p = 2 :=
+begin
+  rw nat.even_iff at he,
+  symmetry,
+  rw ←(nat.prime_dvd_prime_iff_eq prime_two hp),
+  exact nat.dvd_of_mod_eq_zero he,
+end
+
 lemma even_sub_one_of_prime_ne_two {p : ℕ} (hp : prime p) (hodd : p ≠ 2) : even (p - 1) :=
 odd.sub_odd (odd_iff.2 $ hp.eq_two_or_odd.resolve_left hodd) (odd_iff.2 rfl)
 

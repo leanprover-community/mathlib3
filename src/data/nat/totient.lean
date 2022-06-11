@@ -137,10 +137,10 @@ if hmn0 : m * n = 0
 lemma totient_div_of_dvd {n d : ℕ} (hnd : d ∣ n) :
   φ (n/d) = (filter (λ (k : ℕ), n.gcd k = d) (range n)).card :=
 begin
-  rcases d.eq_zero_or_pos with rfl | hd0, { simp [zero_dvd_iff.1 hnd] },
+  rcases d.eq_zero_or_pos with rfl | hd0, { simp [eq_zero_of_zero_dvd hnd] },
   rcases hnd with ⟨x, rfl⟩,
   rw nat.mul_div_cancel_left x hd0,
-  apply card_congr (λ k _, d * k),
+  apply finset.card_congr (λ k _, d * k),
   { simp only [mem_filter, mem_range, and_imp, coprime],
     refine λ a ha1 ha2, ⟨(mul_lt_mul_left hd0).2 ha1, _⟩,
     rw [gcd_mul_left, ha2, mul_one] },

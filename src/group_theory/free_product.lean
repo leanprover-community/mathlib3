@@ -63,6 +63,8 @@ another answer, which is constructively more satisfying, could be obtained by sh
 
 -/
 
+open set
+
 variables {ι : Type*} (M : Π i : ι, Type*) [Π i, monoid (M i)]
 
 /-- A relation on the free monoid on alphabet `Σ i, M i`, relating `⟨i, 1⟩` with `1` and
@@ -137,11 +139,11 @@ lemma induction_on {C : free_product M → Prop}
   C m :=
 begin
   let S : submonoid (free_product M) := submonoid.mk (set_of C) h_mul h_one,
-  convert subtype.prop (lift (λ i, of.cod_mrestrict S (h_of i)) m),
+  convert subtype.prop (lift (λ i, of.cod_restrict S (h_of i)) m),
   change monoid_hom.id _ m = S.subtype.comp _ m,
   congr,
   ext,
-  simp [monoid_hom.cod_mrestrict],
+  simp [monoid_hom.cod_restrict],
 end
 
 lemma of_left_inverse [decidable_eq ι] (i : ι) :

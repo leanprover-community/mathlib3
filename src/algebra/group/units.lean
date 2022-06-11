@@ -419,10 +419,10 @@ section monoid
 variables [monoid M] {a b c : M}
 
 @[to_additive] lemma is_unit.mul_left_inj (h : is_unit a) : b * a = c * a ↔ b = c :=
-h.unit.mul_left_inj
+let ⟨u, hu⟩ := h in hu ▸ u.mul_left_inj
 
 @[to_additive] lemma is_unit.mul_right_inj (h : is_unit a) : a * b = a * c ↔ b = c :=
-h.unit.mul_right_inj
+let ⟨u, hu⟩ := h in hu ▸ u.mul_right_inj
 
 @[to_additive] protected lemma is_unit.mul_left_cancel (h : is_unit a) : a * b = a * c → b = c :=
 h.mul_right_inj.1

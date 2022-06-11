@@ -874,7 +874,7 @@ begin
     simpa [first_map, second_map] using t _ g hf },
   { intros t Y Z f g hf,
     rw types.limit_ext_iff' at t,
-    simpa [first_map, second_map] using t ⟨Y, Z, g, f, hf⟩ }
+    simpa [first_map, second_map] using t ⟨⟨Y, Z, g, f, hf⟩⟩ }
 end
 
 /-- `P` is a sheaf for `S`, iff the fork given by `w` is an equalizer. -/
@@ -953,7 +953,7 @@ begin
     simpa [first_map, second_map] using t hf hg },
   { intros t Y Z f g hf hg,
     rw types.limit_ext_iff' at t,
-    simpa [first_map, second_map] using t ⟨⟨Y, f, hf⟩, Z, g, hg⟩ }
+    simpa [first_map, second_map] using t ⟨⟨⟨Y, f, hf⟩, Z, g, hg⟩⟩ }
 end
 
 /--

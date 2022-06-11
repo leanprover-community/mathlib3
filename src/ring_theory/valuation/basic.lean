@@ -49,6 +49,13 @@ on R / J = `ideal.quotient J` is `on_quot v h`.
 
 `add_valuation R Γ₀` is implemented as `valuation R (multiplicative Γ₀)ᵒᵈ`.
 
+## Notation
+
+In the `discrete_valuation` locale:
+
+ * `ℕₘ₀` is a shorthand for `with_zero (multiplicative ℕ)`
+ * `ℤₘ₀` is a shorthand for `with_zero (multiplicative ℤ)`
+
 ## TODO
 
 If ever someone extends `valuation`, we should fully comply to the `fun_like` by migrating the
@@ -271,6 +278,19 @@ begin
   have := valuation.map_add_of_distinct_val v (ne_of_gt h).symm,
   rw max_eq_right (le_of_lt h) at this,
   simpa using this
+end
+
+lemma map_one_add_of_lt (h : v x < 1) : v (1 + x) = 1 :=
+begin
+  rw ← v.map_one at h,
+  simpa only [v.map_one] using v.map_add_eq_of_lt_left h
+end
+
+lemma map_one_sub_of_lt (h : v x < 1) : v (1 - x) = 1 :=
+begin
+  rw [← v.map_one, ← v.map_neg] at h,
+  rw sub_eq_add_neg 1 x,
+  simpa only [v.map_one, v.map_neg] using v.map_add_eq_of_lt_left h
 end
 
 /-- The subgroup of elements whose valuation is less than a certain unit.-/
@@ -743,3 +763,10 @@ end supp -- end of section
 attribute [irreducible] add_valuation
 
 end add_valuation
+
+section valuation_notation
+
+localized "notation `ℕₘ₀` := with_zero (multiplicative ℕ)" in discrete_valuation
+localized "notation `ℤₘ₀` := with_zero (multiplicative ℤ)" in discrete_valuation
+
+end valuation_notation

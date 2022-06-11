@@ -458,7 +458,7 @@ lemma measurable.dite [∀ x, decidable (x ∈ s)] {f : s → β} (hf : measurab
 measurable_of_restrict_of_restrict_compl hs (by simpa) (by simpa)
 
 lemma measurable_of_measurable_on_compl_finite [measurable_singleton_class α]
-  {f : α → β} (s : set α) (hs : finite s) (hf : measurable (sᶜ.restrict f)) :
+  {f : α → β} (s : set α) (hs : s.finite) (hf : measurable (sᶜ.restrict f)) :
   measurable f :=
 begin
   letI : fintype s := finite.fintype hs,
@@ -1059,7 +1059,7 @@ iff.intro
 /-- Any two types with unique elements are measurably equivalent. -/
 def of_unique_of_unique (α β : Type*) [measurable_space α] [measurable_space β]
   [unique α] [unique β] : α ≃ᵐ β :=
-{ to_equiv := equiv_of_unique_of_unique,
+{ to_equiv := equiv_of_unique α β,
   measurable_to_fun := subsingleton.measurable,
   measurable_inv_fun := subsingleton.measurable }
 

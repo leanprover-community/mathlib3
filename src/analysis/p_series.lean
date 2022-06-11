@@ -160,7 +160,7 @@ begin
   cases `0 ≤ p` and `p < 0` separately. -/
   { rw ← summable_condensed_iff_of_nonneg,
     { simp_rw [nat.cast_pow, nat.cast_two, ← rpow_nat_cast, ← rpow_mul zero_lt_two.le, mul_comm _ p,
-        rpow_mul zero_lt_two.le, rpow_nat_cast, ← inv_pow₀, ← mul_pow,
+        rpow_mul zero_lt_two.le, rpow_nat_cast, ← inv_pow, ← mul_pow,
         summable_geometric_iff_norm_lt_1],
       nth_rewrite 0 [← rpow_one 2],
       rw [← division_def, ← rpow_sub zero_lt_two, norm_eq_abs,

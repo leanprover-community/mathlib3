@@ -347,7 +347,7 @@ calc μ (((•) r) ⁻¹' s) = measure.map ((•) r) μ s :
   μ (r • s) = ennreal.of_real (abs (r ^ (finrank ℝ E))) * μ s :=
 begin
   rcases ne_or_eq r 0 with h|rfl,
-  { rw [← preimage_smul_inv₀ h, add_haar_preimage_smul μ (inv_ne_zero h), inv_pow₀, inv_inv] },
+  { rw [← preimage_smul_inv₀ h, add_haar_preimage_smul μ (inv_ne_zero h), inv_pow, inv_inv] },
   rcases eq_empty_or_nonempty s with rfl|hs,
   { simp only [measure_empty, mul_zero, smul_set_empty] },
   rw [zero_smul_set hs, ← singleton_zero],
@@ -584,7 +584,7 @@ begin
   { apply tendsto_add_haar_inter_smul_zero_of_density_zero_aux1 μ s x h
       t' u',
     { simp only [h'u, (pow_pos Rpos _).ne', abs_nonpos_iff, add_haar_smul, not_false_iff,
-        ennreal.of_real_eq_zero, inv_eq_zero, inv_pow₀, ne.def, or_self, mul_eq_zero] },
+        ennreal.of_real_eq_zero, inv_eq_zero, inv_pow, ne.def, or_self, mul_eq_zero] },
     { convert smul_set_mono t_bound,
       rw [smul_closed_ball _ _ Rpos.le, smul_zero, real.norm_of_nonneg (inv_nonneg.2 Rpos.le),
         inv_mul_cancel Rpos.ne'] } },

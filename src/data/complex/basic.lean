@@ -181,6 +181,10 @@ instance : add_comm_group ℂ := by apply_instance
 instance. -/
 instance : ring ℂ := by apply_instance
 
+/-- This shortcut instance ensures we do not find `comm_semiring` via the noncomputable
+`complex.field` instance. -/
+instance : comm_semiring ℂ := infer_instance
+
 /-- The "real part" map, considered as an additive group homomorphism. -/
 def re_add_group_hom : ℂ →+ ℝ :=
 { to_fun := re,

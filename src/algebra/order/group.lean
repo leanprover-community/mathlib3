@@ -826,7 +826,7 @@ lemma div_le_inv_mul_iff [covariant_class α α (swap (*)) (≤)] :
   a / b ≤ a⁻¹ * b ↔ a ≤ b :=
 begin
   rw [div_eq_mul_inv, mul_inv_le_inv_mul_iff],
-  exact ⟨λ h, not_lt.mp (λ k, not_lt.mpr h (mul_lt_mul''' k k)), λ h, mul_le_mul' h h⟩,
+  exact ⟨λ h, not_lt.mp (λ k, not_lt.mpr h (mul_lt_mul_of_lt_of_lt k k)), λ h, mul_le_mul' h h⟩,
 end
 
 /-  What is the point of this lemma?  See comment about `div_le_inv_mul_iff` above. -/
@@ -1094,6 +1094,13 @@ begin
             ... ≤ a     : h },
   { calc -|a| = - - a : congr_arg (has_neg.neg) (abs_of_nonpos h)
             ... ≤ a     : (neg_neg a).le }
+end
+
+lemma add_abs_nonneg (a : α) : 0 ≤ a + |a| :=
+begin
+  rw ←add_right_neg a,
+  apply add_le_add_left,
+  exact (neg_le_abs_self a),
 end
 
 lemma neg_abs_le_neg (a : α) : -|a| ≤ -a :=

@@ -693,23 +693,16 @@ protected lemma tsub_lt_tsub_iff_right (hc : add_le_cancellable c) (h : c ≤ a)
   a - c < b - c ↔ a < b :=
 by rw [hc.lt_tsub_iff_left, add_tsub_cancel_of_le h]
 
-protected lemma tsub_lt_self (ha : add_le_cancellable a) (hb : add_le_cancellable b)
-  (h₁ : 0 < a) (h₂ : 0 < b) : a - b < a :=
+protected lemma tsub_lt_self (ha : add_le_cancellable a) (h₁ : 0 < a) (h₂ : 0 < b) : a - b < a :=
 begin
-  refine tsub_le_self.lt_of_ne _,
-  intro h,
+  refine tsub_le_self.lt_of_ne (λ h, _),
   rw [← h, tsub_pos_iff_lt] at h₁,
-  have := h.ge,
-  rw [hb.le_tsub_iff_left h₁.le, ha.add_le_iff_nonpos_left] at this,
-  exact h₂.not_le this,
+  exact h₂.not_le (ha.add_le_iff_nonpos_left.1 $ add_le_of_le_tsub_left_of_le h₁.le h.ge),
 end
 
-protected lemma tsub_lt_self_iff (ha : add_le_cancellable a) (hb : add_le_cancellable b) :
-  a - b < a ↔ 0 < a ∧ 0 < b :=
+protected lemma tsub_lt_self_iff (ha : add_le_cancellable a) : a - b < a ↔ 0 < a ∧ 0 < b :=
 begin
-  refine ⟨_, λ h, ha.tsub_lt_self hb h.1 h.2⟩,
-  intro h,
-  refine ⟨(zero_le _).trans_lt h, (zero_le b).lt_of_ne _⟩,
+  refine ⟨λ h, ⟨(zero_le _).trans_lt h, (zero_le b).lt_of_ne _⟩, λ h, ha.tsub_lt_self h.1 h.2⟩,
   rintro rfl,
   rw [tsub_zero] at h,
   exact h.false
@@ -729,11 +722,10 @@ variable [contravariant_class α α (+) (≤)]
 lemma tsub_lt_tsub_iff_right (h : c ≤ a) : a - c < b - c ↔ a < b :=
 contravariant.add_le_cancellable.tsub_lt_tsub_iff_right h
 
-lemma tsub_lt_self (h₁ : 0 < a) (h₂ : 0 < b) : a - b < a :=
-contravariant.add_le_cancellable.tsub_lt_self contravariant.add_le_cancellable h₁ h₂
+lemma tsub_lt_self : 0 < a → 0 < b → a - b < a := contravariant.add_le_cancellable.tsub_lt_self
 
 lemma tsub_lt_self_iff : a - b < a ↔ 0 < a ∧ 0 < b :=
-contravariant.add_le_cancellable.tsub_lt_self_iff contravariant.add_le_cancellable
+contravariant.add_le_cancellable.tsub_lt_self_iff
 
 /-- See `lt_tsub_iff_left_of_le_of_le` for a weaker statement in a partial order. -/
 lemma tsub_lt_tsub_iff_left_of_le (h : b ≤ a) : a - b < a - c ↔ c < b :=

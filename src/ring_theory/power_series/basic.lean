@@ -514,7 +514,7 @@ begin
   { subst m, simp },
   { symmetry, rw mv_polynomial.coeff_one, exact if_neg (ne.symm H'), },
   { symmetry, rw mv_polynomial.coeff_one, refine if_neg _,
-    intro H', apply H, subst m, exact ne.bot_lt hnn, }
+    rintro rfl, apply H, exact ne.bot_lt hnn, }
 end
 
 @[simp] lemma trunc_C (hnn : n ≠ 0) (a : R) : trunc R n (C σ R a) = mv_polynomial.C a :=
@@ -758,7 +758,7 @@ begin
         mv_power_series.inv_mul_cancel _ h.right] }
 end
 
-@[simp] lemma one_inv : (1 : mv_power_series σ k)⁻¹ = 1 :=
+@[simp] lemma inv_one : (1 : mv_power_series σ k)⁻¹ = 1 :=
 by { rw [mv_power_series.inv_eq_iff_mul_eq_one, mul_one], simp }
 
 @[simp] lemma C_inv (r : k) : (C σ k r)⁻¹ = C σ k r⁻¹ :=
@@ -1284,6 +1284,21 @@ by simp
 by { ext, simp only [ring_hom.id_apply, rescale, one_pow, coeff_mk, one_mul,
   ring_hom.coe_mk], }
 
+lemma rescale_mk (f : ℕ → R) (a : R) :
+  rescale a (mk f) = mk (λ n : ℕ, a^n * (f n)) :=
+by { ext, rw [coeff_rescale, coeff_mk, coeff_mk], }
+
+lemma rescale_rescale (f : power_series R) (a b : R) :
+  rescale b (rescale a f) = rescale (a * b) f :=
+begin
+  ext,
+  repeat { rw coeff_rescale, },
+  rw [mul_pow, mul_comm _ (b^n), mul_assoc],
+end
+
+lemma rescale_mul (a b : R) : rescale (a * b) = (rescale b).comp (rescale a) :=
+by { ext, simp [← rescale_rescale], }
+
 section trunc
 
 /-- The `n`th truncation of a formal power series to a polynomial -/
@@ -1309,7 +1324,7 @@ begin
   { subst m, rw [if_pos rfl] },
   { symmetry, exact if_neg (ne.elim (ne.symm H')) },
   { symmetry, refine if_neg _,
-    intro H', apply H, subst m, exact nat.zero_lt_succ _ }
+    rintro rfl, apply H, exact nat.zero_lt_succ _ }
 end
 
 @[simp] lemma trunc_C (n) (a : R) : trunc (n + 1) (C R a) = polynomial.C a :=
@@ -1443,7 +1458,8 @@ begin
     suffices : m < i,
     { have : m + n < i + j := add_lt_add_of_lt_of_le this hj,
       exfalso, exact ne_of_lt this hij.symm },
-    contrapose! hne, have : i = m := le_antisymm hne hi, subst i, clear hi hne,
+    contrapose! hne,
+    obtain rfl := le_antisymm hi hne,
     simpa [ne.def, prod.mk.inj_iff] using (add_right_inj m).mp hij },
   { contrapose!, intro h, rw finset.nat.mem_antidiagonal }
 end
@@ -1578,8 +1594,8 @@ mv_power_series.inv_eq_iff_mul_eq_one h
   (φ * ψ)⁻¹ = ψ⁻¹ * φ⁻¹ :=
 mv_power_series.mul_inv_rev _ _
 
-@[simp] lemma one_inv : (1 : power_series k)⁻¹ = 1 :=
-mv_power_series.one_inv
+@[simp] lemma inv_one : (1 : power_series k)⁻¹ = 1 :=
+mv_power_series.inv_one
 
 @[simp] lemma C_inv (r : k) : (C k r)⁻¹ = C k r⁻¹ :=
 mv_power_series.C_inv _

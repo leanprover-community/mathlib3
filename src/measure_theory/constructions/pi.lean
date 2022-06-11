@@ -83,7 +83,7 @@ lemma is_countably_spanning.pi {C : Π i, set (set (α i))}
   is_countably_spanning (pi univ '' pi univ C) :=
 begin
   choose s h1s h2s using hC,
-  haveI := fintype.encodable ι,
+  haveI := fintype.to_encodable ι,
   let e : ℕ → (ι → ℕ) := λ n, (decode (ι → ℕ) n).iget,
   refine ⟨λ n, pi univ (λ i, s i (e n i)), λ n, mem_image_of_mem _ (λ i _, h1s i _), _⟩,
   simp_rw [(surjective_decode_iget (ι → ℕ)).Union_comp (λ x, pi univ (λ i, s i (x i))),
@@ -96,7 +96,7 @@ lemma generate_from_pi_eq {C : Π i, set (set (α i))}
   (hC : ∀ i, is_countably_spanning (C i)) :
   @measurable_space.pi _ _ (λ i, generate_from (C i)) = generate_from (pi univ '' pi univ C) :=
 begin
-  haveI := fintype.encodable ι,
+  haveI := fintype.to_encodable ι,
   apply le_antisymm,
   { refine supr_le _, intro i, rw [comap_generate_from],
     apply generate_from_le, rintro _ ⟨s, hs, rfl⟩, dsimp,
@@ -277,7 +277,7 @@ begin
   refine le_antisymm _ _,
   { rw [measure.pi, to_measure_apply _ _ (measurable_set.pi_fintype (λ i _, hs i))],
     apply outer_measure.pi_pi_le },
-  { haveI : encodable ι := fintype.encodable ι,
+  { haveI : encodable ι := fintype.to_encodable ι,
     rw [← pi'_pi μ s],
     simp_rw [← pi'_pi μ s, measure.pi,
       to_measure_apply _ _ (measurable_set.pi_fintype (λ i _, hs i)), ← to_outer_measure_apply],
@@ -298,7 +298,7 @@ def finite_spanning_sets_in.pi {C : Π i, set (set (α i))}
   (measure.pi μ).finite_spanning_sets_in (pi univ '' pi univ C) :=
 begin
   haveI := λ i, (hμ i).sigma_finite,
-  haveI := fintype.encodable ι,
+  haveI := fintype.to_encodable ι,
   refine ⟨λ n, pi univ (λ i, (hμ i).set ((decode (ι → ℕ) n).iget i)), λ n, _, λ n, _, _⟩;
   -- TODO (kmill) If this let comes before the refine, while the noncomputability checker
   -- correctly sees this definition is computable, the Lean VM fails to see the binding is
@@ -357,7 +357,7 @@ eq.symm $ pi_eq $ λ s hs, pi'_pi μ s
 
 @[simp] lemma pi_pi (s : Π i, set (α i)) : measure.pi μ (pi univ s) = ∏ i, μ i (s i) :=
 begin
-  haveI : encodable ι := fintype.encodable ι,
+  haveI : encodable ι := fintype.to_encodable ι,
   rw [← pi'_eq_pi, pi'_pi]
 end
 
@@ -553,7 +553,9 @@ measure.pi_closed_ball _ _ hr
 open measure
 /-- We intentionally restrict this only to the nondependent function space, since type-class
 inference cannot find an instance for `ι → ℝ` when this is stated for dependent function spaces. -/
-@[to_additive]
+@[to_additive "We intentionally restrict this only to the nondependent function space, since
+type-class inference cannot find an instance for `ι → ℝ` when this is stated for dependent function
+spaces."]
 instance pi.is_mul_left_invariant_volume {α} [group α] [measure_space α]
   [sigma_finite (volume : measure α)]
   [has_measurable_mul α] [is_mul_left_invariant (volume : measure α)] :
@@ -562,7 +564,9 @@ pi.is_mul_left_invariant _
 
 /-- We intentionally restrict this only to the nondependent function space, since type-class
 inference cannot find an instance for `ι → ℝ` when this is stated for dependent function spaces. -/
-@[to_additive]
+@[to_additive "We intentionally restrict this only to the nondependent function space, since
+type-class inference cannot find an instance for `ι → ℝ` when this is stated for dependent function
+spaces."]
 instance pi.is_inv_invariant_volume {α} [group α] [measure_space α]
   [sigma_finite (volume : measure α)]
   [has_measurable_inv α] [is_inv_invariant (volume : measure α)] :
@@ -587,7 +591,7 @@ lemma measure_preserving_pi_equiv_pi_subtype_prod {ι : Type u} {α : ι → Typ
     ((measure.pi $ λ i : subtype p, μ i).prod (measure.pi $ λ i, μ i)) :=
 begin
   set e := (measurable_equiv.pi_equiv_pi_subtype_prod α p).symm,
-  suffices : measure_preserving e _ _, from this.symm,
+  refine measure_preserving.symm e _,
   refine ⟨e.measurable, (pi_eq $ λ s hs, _).symm⟩,
   have : e ⁻¹' (pi univ s) =
     (pi univ (λ i : {i // p i}, s i)) ×ˢ (pi univ (λ i : {i // ¬p i}, s i)),
@@ -609,7 +613,7 @@ lemma measure_preserving_pi_fin_succ_above_equiv {n : ℕ} {α : fin (n + 1) →
     ((μ i).prod $ measure.pi $ λ j, μ (i.succ_above j)) :=
 begin
   set e := (measurable_equiv.pi_fin_succ_above_equiv α i).symm,
-  suffices : measure_preserving e _ _, from this.symm,
+  refine measure_preserving.symm e _,
   refine ⟨e.measurable, (pi_eq $ λ s hs, _).symm⟩,
   rw [e.map_apply, i.prod_univ_succ_above _, ← pi_pi, ← prod_prod],
   congr' 1 with ⟨x, f⟩,
@@ -631,7 +635,7 @@ begin
     rw [pi_premeasure, fintype.prod_unique, to_outer_measure_apply, e.symm.map_apply],
     congr' 1, exact e.to_equiv.image_eq_preimage s },
   simp only [measure.pi, outer_measure.pi, this, bounded_by_measure, to_outer_measure_to_measure],
-  exact ((measurable_equiv.fun_unique α β).symm.measurable.measure_preserving _).symm
+  exact (e.symm.measurable.measure_preserving _).symm e.symm
 end
 
 lemma volume_preserving_fun_unique (α : Type u) (β : Type v) [unique α] [measure_space β] :

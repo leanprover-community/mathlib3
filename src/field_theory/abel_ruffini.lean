@@ -123,7 +123,7 @@ begin
   { rw [ha, C_0, sub_zero],
     exact gal_X_pow_is_solvable n },
   have ha' : algebra_map F (X ^ n - C a).splitting_field a ≠ 0 :=
-    mt ((ring_hom.injective_iff _).mp (ring_hom.injective _) a) ha,
+    mt ((injective_iff_map_eq_zero _).mp (ring_hom.injective _) a) ha,
   by_cases hn : n = 0,
   { rw [hn, pow_zero, ←C_1, ←C_sub],
     exact gal_C_is_solvable (1 - a) },
@@ -159,7 +159,7 @@ end
 lemma splits_X_pow_sub_one_of_X_pow_sub_C {F : Type*} [field F] {E : Type*} [field E]
   (i : F →+* E) (n : ℕ) {a : F} (ha : a ≠ 0) (h : (X ^ n - C a).splits i) : (X ^ n - 1).splits i :=
 begin
-  have ha' : i a ≠ 0 := mt (i.injective_iff.mp (i.injective) a) ha,
+  have ha' : i a ≠ 0 := mt ((injective_iff_map_eq_zero i).mp (i.injective) a) ha,
   by_cases hn : n = 0,
   { rw [hn, pow_zero, sub_self],
     exact splits_zero i },

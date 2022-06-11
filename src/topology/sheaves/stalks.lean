@@ -11,17 +11,14 @@ import category_theory.limits.preserves.filtered
 import category_theory.limits.final
 import topology.sober
 import tactic.elementwise
-import algebra.category.CommRing
+import algebra.category.Ring
 
 /-!
 # Stalks
 
 For a presheaf `F` on a topological space `X`, valued in some category `C`, the *stalk* of `F`
-at the point `x : X` is defined as the colimit of the following functor
-
-(nhds x)ᵒᵖ ⥤ (opens X)ᵒᵖ ⥤ C
-
-where the functor on the left is the inclusion of categories and the functor on the right is `F`.
+at the point `x : X` is defined as the colimit of the composition of the inclusion of categories
+`(nhds x)ᵒᵖ ⥤ (opens X)ᵒᵖ` and the functor `F : (opens X)ᵒᵖ ⥤ C`.
 For an open neighborhood `U` of `x`, we define the map `F.germ x : F.obj (op U) ⟶ F.stalk x` as the
 canonical morphism into this colimit.
 
@@ -260,7 +257,7 @@ def stalk_pullback_iso (f : X ⟶ Y) (F : Y.presheaf C) (x : X) :
     delta stalk_pullback_hom stalk_pullback_inv stalk_functor presheaf.pullback stalk_pushforward,
     ext U j,
     induction U using opposite.rec,
-    cases U, cases j, cases j_right,
+    cases U, cases j, rcases j_right with ⟨⟨⟩⟩,
     erw [colimit.map_desc, colimit.map_desc, colimit.ι_desc_assoc,
       colimit.ι_desc_assoc, colimit.ι_desc, category.comp_id],
     simp only [cocone.whisker_ι, colimit.cocone_ι, open_nhds.inclusion_map_iso_inv,
@@ -276,7 +273,7 @@ def stalk_pullback_iso (f : X ⟶ Y) (F : Y.presheaf C) (x : X) :
     congr,
     simp only [category.assoc, costructured_arrow.map_mk],
     delta costructured_arrow.mk,
-    congr
+    congr,
   end }
 
 end stalk_pullback
@@ -318,7 +315,7 @@ by { ext, delta stalk_functor, simpa [stalk_specializes] }
 
 @[simp, reassoc, elementwise]
 lemma stalk_specializes_stalk_pushforward (f : X ⟶ Y) (F : X.presheaf C) {x y : X} (h : x ⤳ y) :
-  (f _* F).stalk_specializes (f.map_specialization h) ≫ F.stalk_pushforward _ f x =
+  (f _* F).stalk_specializes (f.map_specializes h) ≫ F.stalk_pushforward _ f x =
     F.stalk_pushforward _ f y ≫ F.stalk_specializes h :=
 by { ext, delta stalk_pushforward, simpa [stalk_specializes] }
 
@@ -348,7 +345,7 @@ every element of the stalk is the germ of a section.
 lemma germ_exist (F : X.presheaf C) (x : X) (t : stalk F x) :
   ∃ (U : opens X) (m : x ∈ U) (s : F.obj (op U)), F.germ ⟨x, m⟩ s = t :=
 begin
-  obtain ⟨U, s, e⟩ := types.jointly_surjective _
+  obtain ⟨U, s, e⟩ := types.jointly_surjective.{v v} _
     (is_colimit_of_preserves (forget C) (colimit.is_colimit _)) t,
   revert s e,
   rw [(show U = op (unop U), from rfl)],
@@ -363,7 +360,7 @@ lemma germ_eq (F : X.presheaf C) {U V : opens X} (x : X) (mU : x ∈ U) (mV : x 
   (h : germ F ⟨x, mU⟩ s = germ F ⟨x, mV⟩ t) :
   ∃ (W : opens X) (m : x ∈ W) (iU : W ⟶ U) (iV : W ⟶ V), F.map iU.op s = F.map iV.op t :=
 begin
-  obtain ⟨W, iU, iV, e⟩ := (types.filtered_colimit.is_colimit_eq_iff _
+  obtain ⟨W, iU, iV, e⟩ := (types.filtered_colimit.is_colimit_eq_iff.{v v} _
     (is_colimit_of_preserves _ (colimit.is_colimit ((open_nhds.inclusion x).op ⋙ F)))).mp h,
   exact ⟨(unop W).1, (unop W).2, iU.unop, iV.unop, e⟩,
 end

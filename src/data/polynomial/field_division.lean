@@ -181,7 +181,7 @@ have hg : g ≠ 0, from λ hg, by { rw [hp, hg, mul_zero] at hp1, exact not_moni
 or.imp (λ hf, is_unit_of_mul_eq_one _ _ hf) (λ hg, is_unit_of_mul_eq_one _ _ hg) $
 hp3 (f * C f.leading_coeff⁻¹) (g * C g.leading_coeff⁻¹)
   (monic_mul_leading_coeff_inv hf) (monic_mul_leading_coeff_inv hg) $
-by rw [mul_assoc, mul_left_comm _ g, ← mul_assoc, ← C_mul, ← mul_inv₀, ← leading_coeff_mul,
+by rw [mul_assoc, mul_left_comm _ g, ← mul_assoc, ← C_mul, ← mul_inv, ← leading_coeff_mul,
     ← hp, monic.def.1 hp1, inv_one, C_1, mul_one]⟩⟩
 
 /-- Division of polynomials. See `polynomial.div_by_monic` for more details.-/
@@ -418,7 +418,7 @@ lemma div_C_mul : p / (C a * q) = C a⁻¹ * (p / q) :=
 begin
   by_cases ha : a = 0,
   { simp [ha] },
-  simp only [div_def, leading_coeff_mul, mul_inv₀,
+  simp only [div_def, leading_coeff_mul, mul_inv,
     leading_coeff_C, C.map_mul, mul_assoc],
   congr' 3,
   rw [mul_left_comm q, ← mul_assoc, ← C.map_mul, mul_inv_cancel ha,

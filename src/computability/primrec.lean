@@ -1026,7 +1026,7 @@ def subtype {p : α → Prop} [decidable_pred p]
 instance fin {n} : primcodable (fin n) :=
 @of_equiv _ _
   (subtype $ nat_lt.comp primrec.id (const n))
-  (equiv.fin_equiv_subtype _)
+  (equiv.refl _)
 
 instance vector {n} : primcodable (vector α n) :=
 subtype ((@primrec.eq _ _ nat.decidable_eq).comp list_length (const _))

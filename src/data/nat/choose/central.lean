@@ -5,8 +5,7 @@ Authors: Patrick Stevens, Thomas Browning
 -/
 
 import data.nat.choose.basic
-import tactic.norm_num
-import tactic.linarith
+import data.nat.choose.sum
 
 /-!
 # Central binomial coefficients
@@ -68,7 +67,7 @@ calc (n + 1) * (2 * (n + 1)).choose (n + 1) = (2 * n + 2).choose (n + 1) * (n + 
 /--
 An exponential lower bound on the central binomial coefficient.
 This bound is of interest because it appears in
-[Tochiori's refinement of Erdős's proof of Bertrand's postulate](https://en.wikipedia.org/w/index.php?title=Proof_of_Bertrand%27s_postulate&oldid=859165151#Proof_by_Shigenori_Tochiori).
+[Tochiori's refinement of Erdős's proof of Bertrand's postulate](tochiori_bertrand).
 -/
 lemma four_pow_lt_mul_central_binom (n : ℕ) (n_big : 4 ≤ n) : 4 ^ n < n * central_binom n :=
 begin

@@ -5,6 +5,7 @@ Authors: Nathaniel Thomas, Jeremy Avigad, Johannes Hölzl, Mario Carneiro
 -/
 import algebra.big_operators.basic
 import algebra.smul_with_zero
+import group_theory.group_action.big_operators
 import group_theory.group_action.group
 import tactic.norm_num
 
@@ -38,9 +39,8 @@ semimodule, module, vector space
 open function
 open_locale big_operators
 
-universes u u' v w x y z
-variables {R : Type u} {k : Type u'} {S : Type v} {M : Type w} {M₂ : Type x} {M₃ : Type y}
-  {ι : Type z}
+universes u v
+variables {α R k S M M₂ M₃ ι : Type*}
 
 /-- A module is a generalization of vector spaces to a scalar semiring.
   It consists of a scalar semiring `R` and an additive monoid of "vectors" `M`,
@@ -234,7 +234,7 @@ section module
 variables [ring R] [add_comm_group M] [module R M] (r s : R) (x y : M)
 
 @[simp] theorem neg_smul : -r • x = - (r • x) :=
-eq_neg_of_add_eq_zero (by rw [← add_smul, add_left_neg, zero_smul])
+eq_neg_of_add_eq_zero_left $ by rw [← add_smul, add_left_neg, zero_smul]
 
 @[simp] lemma neg_smul_neg : -r • -x = r • x :=
 by rw [neg_smul, smul_neg, neg_neg]
@@ -297,7 +297,7 @@ instance ring_hom.apply_distrib_mul_action [semiring R] : distrib_mul_action (R 
   f • a = f a := rfl
 
 /-- `ring_hom.apply_distrib_mul_action` is faithful. -/
-instance ring_hom.apply_has_faithful_scalar [semiring R] : has_faithful_scalar (R →+* R) R :=
+instance ring_hom.apply_has_faithful_smul [semiring R] : has_faithful_smul (R →+* R) R :=
 ⟨ring_hom.ext⟩
 
 section add_comm_monoid
@@ -549,7 +549,7 @@ variables (M)
 
 lemma smul_right_injective [no_zero_smul_divisors R M] {c : R} (hc : c ≠ 0) :
   function.injective ((•) c : M → M) :=
-(smul_add_hom R M c).injective_iff.2 $ λ a ha, (smul_eq_zero.mp ha).resolve_left hc
+(injective_iff_map_eq_zero (smul_add_hom R M c)).2 $ λ a ha, (smul_eq_zero.mp ha).resolve_left hc
 
 variables {M}
 
@@ -617,3 +617,6 @@ by rw [nsmul_eq_mul, mul_one]
 @[simp] lemma int.smul_one_eq_coe {R : Type*} [ring R] (m : ℤ) :
   m • (1 : R) = ↑m :=
 by rw [zsmul_eq_mul, mul_one]
+
+lemma finset.cast_card [comm_semiring R] (s : finset α) : (s.card : R) = ∑ a in s, 1 :=
+by rw [finset.sum_const, nat.smul_one_eq_coe]

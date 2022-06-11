@@ -213,7 +213,7 @@ begin
   classical,
   induction finset.univ using finset.induction_on with i s hi H,
   { simp },
-  { rw [finset.sum_insert hi, add_submonoid_class.coe_add, H, finset.sum_insert hi] }
+  { rw [finset.sum_insert hi, add_mem_class.coe_add, H, finset.sum_insert hi] }
 end
 
 @[simp, norm_cast]
@@ -222,7 +222,7 @@ begin
   classical,
   induction finset.univ using finset.induction_on with i s hi H,
   { simp },
-  { rw [finset.prod_insert hi, submonoid_class.coe_mul, H, finset.prod_insert hi] }
+  { rw [finset.prod_insert hi, mul_mem_class.coe_mul, H, finset.prod_insert hi] }
 end
 
 /-! `intermediate_field`s inherit structure from their `subalgebra` coercions. -/
@@ -299,8 +299,8 @@ lemma aeval_coe {R : Type*} [comm_ring R] [algebra R K] [algebra R L]
   [is_scalar_tower R K L] (x : S) (P : R[X]) : aeval (x : L) P = aeval x P :=
 begin
   refine polynomial.induction_on' P (λ f g hf hg, _) (λ n r, _),
-  { rw [aeval_add, aeval_add, add_submonoid_class.coe_add, hf, hg] },
-  { simp only [submonoid_class.coe_mul, aeval_monomial, submonoid_class.coe_pow,
+  { rw [aeval_add, aeval_add, add_mem_class.coe_add, hf, hg] },
+  { simp only [mul_mem_class.coe_mul, aeval_monomial, submonoid_class.coe_pow,
                mul_eq_mul_right_iff],
     left, refl }
 end
@@ -310,7 +310,7 @@ lemma coe_is_integral_iff {R : Type*} [comm_ring R] [algebra R K] [algebra R L]
 begin
   refine ⟨λ h, _, λ h, _⟩,
   { obtain ⟨P, hPmo, hProot⟩ := h,
-    refine ⟨P, hPmo, (ring_hom.injective_iff _).1 (algebra_map ↥S L).injective _ _⟩,
+    refine ⟨P, hPmo, (injective_iff_map_eq_zero _).1 (algebra_map ↥S L).injective _ _⟩,
     letI : is_scalar_tower R S L := is_scalar_tower.of_algebra_map_eq (congr_fun rfl),
     rwa [eval₂_eq_eval_map, ← eval₂_at_apply, eval₂_eq_eval_map, polynomial.map_map,
       ← is_scalar_tower.algebra_map_eq, ← eval₂_eq_eval_map] },

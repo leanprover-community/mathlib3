@@ -89,7 +89,8 @@ def functor.right_derived_obj_injective_succ (F : C ⥤ D) [F.additive] (n : ℕ
   (F.right_derived (n+1)).obj X ≅ 0 :=
 F.right_derived_obj_iso (n+1) (InjectiveResolution.self X) ≪≫
   (homology_functor _ _ _).map_iso ((cochain_complex.single₀_map_homological_complex F).app X) ≪≫
-  (cochain_complex.homology_functor_succ_single₀ D n).app (F.obj X)
+  (cochain_complex.homology_functor_succ_single₀ D n).app (F.obj X) ≪≫
+  (functor.zero_obj _).iso_zero
 /--
 We can compute a right derived functor on a morphism using a descent of that morphism
 to a cochain map between chosen injective resolutions.

@@ -587,31 +587,27 @@ begin
   { rintro (rfl|rfl); [left, right]; assumption }
 end
 
-theorem pair_inj {x y x' y' : Set.{u}} (H : pair x y = pair x' y') : x = x' ∧ y = y' := begin
+theorem pair_inj {x y x' y' : Set.{u}} (H : pair x y = pair x' y') : x = x' ∧ y = y' :=
+begin
   have ae := ext_iff.2 H,
-  simp [pair] at ae,
-  have : x = x',
+  simp only [pair, mem_pair] at ae,
+  obtain rfl : x = x',
   { cases (ae {x}).1 (by simp) with h h,
     { exact singleton_inj h },
     { have m : x' ∈ ({x} : Set),
-      { rw h, simp },
-      simp at m, simp [*] } },
-  subst x',
-  have he : y = x → y = y',
-  { intro yx, subst y,
+      { simp [h] },
+      rw mem_singleton.mp m } },
+  have he : x = y → y = y',
+  { rintro rfl,
     cases (ae {x, y'}).2 (by simp only [eq_self_iff_true, or_true]) with xy'x xy'xx,
     { rw [eq_comm, ←mem_singleton, ←xy'x, mem_pair],
       exact or.inr rfl },
-    { have yxx := (ext_iff.2 xy'xx y').1 (by simp),
-      simp at yxx, subst y' } },
-  have xyxy' := (ae {x, y}).1 (by simp),
-  cases xyxy' with xyx xyy',
-  { have yx := (ext_iff.2 xyx y).1 (by simp),
-    simp at yx, simp [he yx] },
-  { have yxy' := (ext_iff.2 xyy' y).1 (by simp),
-    simp at yxy',
-    cases yxy' with yx yy',
-    { simp [he yx] },
+    { simpa [eq_comm] using (ext_iff.2 xy'xx y').1 (by simp) } },
+  obtain xyx | xyy' := (ae {x, y}).1 (by simp),
+  { obtain rfl := mem_singleton.mp ((ext_iff.2 xyx y).1 $ by simp),
+    simp [he rfl] },
+  { obtain rfl | yy' := mem_pair.mp ((ext_iff.2 xyy' y).1 $ by simp),
+    { simp [he rfl] },
     { simp [yy'] } }
 end
 
@@ -666,19 +662,11 @@ theorem map_unique {f : Set.{u} → Set.{u}} [H : definable 1 f] {x z : Set.{u}}
 end Set
 
 /-- The collection of all classes. A class is defined as a `set` of ZFC sets. -/
+@[derive [has_subset, has_sep Set, has_emptyc, inhabited, has_insert Set, has_union, has_inter,
+  has_compl, has_sdiff]]
 def Class := set Set
 
 namespace Class
-
-instance : has_subset Class     := ⟨set.subset⟩
-instance : has_sep Set Class    := ⟨set.sep⟩
-instance : has_emptyc Class     := ⟨λ a, false⟩
-instance : inhabited Class      := ⟨∅⟩
-instance : has_insert Set Class := ⟨set.insert⟩
-instance : has_union Class      := ⟨set.union⟩
-instance : has_inter Class      := ⟨set.inter⟩
-instance : has_neg Class        := ⟨set.compl⟩
-instance : has_sdiff Class      := ⟨set.diff⟩
 
 /-- Coerce a ZFC set into a class -/
 def of_Set (x : Set.{u}) : Class.{u} := {y | y ∈ x}

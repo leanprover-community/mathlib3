@@ -311,8 +311,8 @@ lemma map_lift (P₀ : path x₀ x₁) (f : C(X, Y)) :
 
 lemma hpath_hext {p₁ : path x₀ x₁} {p₂ : path x₂ x₃} (hp : ∀ t, p₁ t = p₂ t) : ⟦p₁⟧ == ⟦p₂⟧ :=
 begin
-  have : x₀ = x₂ := by { convert hp 0; simp, }, subst this,
-  have : x₁ = x₃ := by { convert hp 1; simp, }, subst this,
+  obtain rfl : x₀ = x₂ := by { convert hp 0; simp, },
+  obtain rfl : x₁ = x₃ := by { convert hp 1; simp, },
   rw heq_iff_eq, congr, ext t, exact hp t,
 end
 

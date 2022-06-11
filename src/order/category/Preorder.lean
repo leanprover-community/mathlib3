@@ -52,7 +52,7 @@ instance (α : Preorder) : preorder α := α.str
 
 /-- `order_dual` as a functor. -/
 @[simps] def dual : Preorder ⥤ Preorder :=
-{ obj := λ X, of (order_dual X), map := λ X Y, order_hom.dual }
+{ obj := λ X, of Xᵒᵈ, map := λ X Y, order_hom.dual }
 
 /-- The equivalence between `Preorder` and itself induced by `order_dual` both ways. -/
 @[simps functor inverse] def dual_equiv : Preorder ≌ Preorder :=

@@ -30,7 +30,7 @@ open metric
 
 @[simp, is_R_or_C_simps] lemma is_R_or_C.norm_coe_norm {𝕜 : Type*} [is_R_or_C 𝕜]
   {E : Type*} [normed_group E] {z : E} : ∥(∥z∥ : 𝕜)∥ = ∥z∥ :=
-by { unfold_coes, simp only [norm_algebra_map_eq, ring_hom.to_fun_eq_coe, norm_norm], }
+by { unfold_coes, simp only [norm_algebra_map', ring_hom.to_fun_eq_coe, norm_norm], }
 
 variables {𝕜 : Type*} [is_R_or_C 𝕜] {E : Type*} [normed_group E] [normed_space 𝕜 E]
 

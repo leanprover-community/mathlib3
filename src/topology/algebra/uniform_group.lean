@@ -205,7 +205,13 @@ begin
   exact tendsto.comp h tendsto_comap
 end
 
-@[to_additive] lemma uniform_continuous_of_continuous_at_one {hom : Type*}
+/-- A group homomorphism (a bundled morphism of a type that implements `monoid_hom_class`) between
+two uniform groups is uniformly continuous provided that it is continuous at one. See also
+`continuous_of_continuous_at_one`. -/
+@[to_additive "An additive group homomorphism (a bundled morphism of a type that implements
+`add_monoid_hom_class`) between two uniform additive groups is uniformly continuous provided that it
+is continuous at zero. See also `continuous_of_continuous_at_zero`."]
+lemma uniform_continuous_of_continuous_at_one {hom : Type*}
   [uniform_space β] [group β] [uniform_group β] [monoid_hom_class hom α β]
   (f : hom) (hf : continuous_at f 1) :
   uniform_continuous f :=
@@ -372,19 +378,18 @@ begin
   simpa [(∘), div_eq_mul_inv, mul_comm, mul_left_comm] using this
 end
 
-local attribute [instance] topological_group_is_uniform
-
 open set
 
-@[to_additive] lemma topological_group.separated_iff_one_closed :
-  separated_space G ↔ is_closed ({1} : set G) :=
+@[to_additive] lemma topological_group.t2_space_iff_one_closed :
+  t2_space G ↔ is_closed ({1} : set G) :=
 begin
-  rw [separated_space_iff, ← closure_eq_iff_is_closed],
+  haveI : uniform_group G := topological_group_is_uniform,
+  rw [← separated_iff_t2, separated_space_iff, ← closure_eq_iff_is_closed],
   split; intro h,
   { apply subset.antisymm,
     { intros x x_in,
       have := group_separation_rel x 1,
-      rw div_one' at this,
+      rw div_one at this,
       rw [← this, h] at x_in,
       change x = 1 at x_in,
       simp [x_in] },
@@ -395,10 +400,10 @@ begin
     refl }
 end
 
-@[to_additive] lemma topological_group.separated_of_one_sep
-  (H : ∀ x : G, x ≠ 1 → ∃ U ∈ nhds (1 : G), x ∉ U) : separated_space G:=
+@[to_additive] lemma topological_group.t2_space_of_one_sep
+  (H : ∀ x : G, x ≠ 1 → ∃ U ∈ nhds (1 : G), x ∉ U) : t2_space G :=
 begin
-  rw [topological_group.separated_iff_one_closed, ← is_open_compl_iff, is_open_iff_mem_nhds],
+  rw [topological_group.t2_space_iff_one_closed, ← is_open_compl_iff, is_open_iff_mem_nhds],
   intros x x_not,
   have : x ≠ 1, from mem_compl_singleton_iff.mp x_not,
   rcases H x this with ⟨U, U_in, xU⟩,

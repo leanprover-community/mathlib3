@@ -524,9 +524,8 @@ begin
       rw dfinsupp.single_eq_of_ne (ne.symm hij) at hci,
       rw dfinsupp.single_eq_of_ne (hij) at hcj,
       exact or.inr ⟨hci, hcj.symm⟩, }, },
-  { rintros (⟨hi, hxi⟩ | ⟨hi, hj⟩),
-    { subst hi,
-      rw eq_of_heq hxi, },
+  { rintros (⟨rfl, hxi⟩ | ⟨hi, hj⟩),
+    { rw eq_of_heq hxi, },
     { rw [hi, hj, dfinsupp.single_zero, dfinsupp.single_zero], }, },
 end
 
@@ -1042,7 +1041,7 @@ assume f g, decidable_of_iff (f.support = g.support ∧ (∀i∈f.support, f i =
         have hf : f i = 0, by rwa [mem_support_iff, not_not] at h,
         have hg : g i = 0, by rwa [h₁, mem_support_iff, not_not] at h,
         by rw [hf, hg],
-    by intro h; subst h; simp⟩
+    by { rintro rfl, simp }⟩
 
 section equiv
 open finset
@@ -1368,7 +1367,7 @@ finset.prod_mul_distrib
 @[simp, to_additive] lemma prod_inv [Π i, add_comm_monoid (β i)] [Π i (x : β i), decidable (x ≠ 0)]
   [comm_group γ] {f : Π₀ i, β i} {h : Π i, β i → γ} :
   f.prod (λi b, (h i b)⁻¹) = (f.prod h)⁻¹ :=
-((comm_group.inv_monoid_hom : γ →* γ).map_prod _ f.support).symm
+((inv_monoid_hom : γ →* γ).map_prod _ f.support).symm
 
 @[to_additive] lemma prod_eq_one [Π i, has_zero (β i)] [Π i (x : β i), decidable (x ≠ 0)]
   [comm_monoid γ] {f : Π₀ i, β i} {h : Π i, β i → γ} (hyp : ∀ i, h i (f i) = 1) :

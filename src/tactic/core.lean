@@ -16,7 +16,7 @@ universe u
 
 attribute [derive [has_reflect, decidable_eq]] tactic.transparency
 
--- Rather than import order.lexicographic here, we can get away with defining the order by hand.
+-- Rather than import data.prod.lex here, we can get away with defining the order by hand.
 instance : has_lt pos :=
 { lt := λ x y, x.line < y.line ∨ x.line = y.line ∧ x.column < y.column }
 
@@ -977,36 +977,29 @@ meta def apply_list_expr (opt : apply_cfg) : list (tactic expr) → tactic unit
 | (h::t) := (do e ← h, interactive.concat_tags (apply e opt)) <|> apply_list_expr t
 
 /--
-Constructs a list of `tactic expr` given a list of p-expressions, as follows:
-- if the p-expression is the name of a theorem, use `i_to_expr_for_apply` on it
-- if the p-expression is a user attribute, add all the theorems with this attribute
-  to the list.
-
-We need to return a list of `tactic expr`, rather than just `expr`, because these expressions
-will be repeatedly applied against goals, and we need to ensure that metavariables don't get stuck.
+Given the name of a user attribute, produces a list of `tactic expr`s, each of which is the
+application of `i_to_expr_for_apply` to a declaration with that attribute.
 -/
-meta def build_list_expr_for_apply : list pexpr → tactic (list (tactic expr))
-| [] := return []
-| (h::t) := do
-  tail ← build_list_expr_for_apply t,
-  a ← i_to_expr_for_apply h,
-  (do l ← attribute.get_instances (expr.const_name a),
-      m ← l.mmap (λ n, _root_.to_pexpr <$> mk_const n),
-      -- We reverse the list of lemmas marked with an attribute,
-      -- on the assumption that lemmas proved earlier are more often applicable
-      -- than lemmas proved later. This is a performance optimization.
-      build_list_expr_for_apply (m.reverse ++ t))
-  <|> return ((i_to_expr_for_apply h) :: tail)
+meta def resolve_attribute_expr_list (attr_name : name) : tactic (list (tactic expr)) := do
+  l ← attribute.get_instances attr_name,
+  list.map i_to_expr_for_apply <$> list.reverse <$> l.mmap resolve_name
 
-/--`apply_rules hs n`: apply the list of rules `hs` (given as pexpr) and `assumption` on the
-first goal and the resulting subgoals, iteratively, at most `n` times.
+
+/--`apply_rules args attrs n`: apply the lists of rules `args` (given as pexprs) and `attrs` (given
+as names of attributes) and `the tactic assumption` on the first goal and the resulting subgoals,
+iteratively, at most `n` times.
 
 Unlike `solve_by_elim`, `apply_rules` does not do any backtracking, and just greedily applies
 a lemma from the list until it can't.
  -/
-meta def apply_rules (hs : list pexpr) (n : nat) (opt : apply_cfg) : tactic unit :=
-do l ← lock_tactic_state $ build_list_expr_for_apply hs,
-   iterate_at_most_on_subgoals n (assumption <|> apply_list_expr opt l)
+meta def apply_rules (args : list pexpr) (attrs : list name) (n : nat) (opt : apply_cfg) :
+  tactic unit := do
+  attr_exprs ← lock_tactic_state $ attrs.mfoldl
+    (λ l n, list.append l <$> resolve_attribute_expr_list n) [],
+  let args_exprs := args.map i_to_expr_for_apply ++ attr_exprs,
+-- `args_exprs` is a list of `tactic expr`, rather than just `expr`, because these expressions will
+-- be repeatedly applied against goals, and we need to ensure that metavariables don't get stuck.
+   iterate_at_most_on_subgoals n (assumption <|> apply_list_expr opt args_exprs)
 
 /-- `replace h p` elaborates the pexpr `p`, clears the existing hypothesis named `h` from the local
 context, and adds a new hypothesis named `h`. The type of this hypothesis is the type of `p`.
@@ -1726,11 +1719,21 @@ add_tactic_doc
   tags                     := ["goal information"] }
 
 /-- Makes the declaration `classical.prop_decidable` available to type class inference.
-This asserts that all propositions are decidable, but does not have computational content. -/
-meta def classical : tactic unit :=
-do h ← get_unused_name `_inst,
-   mk_const `classical.prop_decidable >>= note h none,
-   reset_instance_cache
+This asserts that all propositions are decidable, but does not have computational content.
+
+The `aggressive` argument controls whether the instance is added globally, where it has low
+priority, or in the local context, where it has very high priority. -/
+meta def classical (aggressive : bool := ff) : tactic unit :=
+if aggressive then do
+  h ← get_unused_name `_inst,
+  mk_const `classical.prop_decidable >>= note h none,
+  reset_instance_cache
+else do
+  -- Turn on the `prop_decidable` instance. `9` is what we use in the `classical` locale
+  tactic.set_basic_attribute `instance `classical.prop_decidable ff (some 9),
+  -- Lower the priority of `decidable_eq_of_decidable_le`. `8` is what we use in the `classical`
+  -- locale. We should remove this when we update lean, as it will cease to be a global instance.
+  tactic.set_basic_attribute `instance `decidable_eq_of_decidable_le ff (some 8)
 
 open expr
 

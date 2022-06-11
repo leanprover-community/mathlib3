@@ -516,7 +516,10 @@ protected theorem nonneg_total : Π (a : ℤ√d), nonneg a ∨ nonneg (-a)
 | ⟨-[1+ x], (y+1:ℕ)⟩ := nat.le_total
 
 protected theorem le_total (a b : ℤ√d) : a ≤ b ∨ b ≤ a :=
-let t := nonneg_total (b - a) in by rw [show -(b-a) = a-b, from neg_sub b a] at t; exact t
+begin
+  have t := (b - a).nonneg_total,
+  rwa neg_sub at t,
+end
 
 instance : preorder ℤ√d :=
 { le               := (≤),
@@ -669,8 +672,8 @@ instance : linear_order ℤ√d :=
 
 protected theorem eq_zero_or_eq_zero_of_mul_eq_zero : Π {a b : ℤ√d}, a * b = 0 → a = 0 ∨ b = 0
 | ⟨x, y⟩ ⟨z, w⟩ h := by injection h with h1 h2; exact
-  have h1 : x*z = -(d*y*w), from eq_neg_of_add_eq_zero h1,
-  have h2 : x*w = -(y*z), from eq_neg_of_add_eq_zero h2,
+  have h1 : x*z = -(d*y*w), from eq_neg_of_add_eq_zero_left h1,
+  have h2 : x*w = -(y*z), from eq_neg_of_add_eq_zero_left h2,
   have fin : x*x = d*y*y → (⟨x, y⟩:ℤ√d) = 0, from
   λe, match x, y, divides_sq_eq_zero_z e with ._, ._, ⟨rfl, rfl⟩ := rfl end,
   if z0 : z = 0 then if w0 : w = 0 then
@@ -725,13 +728,15 @@ begin
     exact mul_nonpos_of_nonpos_of_nonneg h.le (mul_self_nonneg _) }
 end
 
-variables {R : Type} [comm_ring R]
+variables {R : Type}
 
-@[ext] lemma hom_ext {d : ℤ} (f g : ℤ√d →+* R) (h : f sqrtd = g sqrtd) : f = g :=
+@[ext] lemma hom_ext [ring R] {d : ℤ} (f g : ℤ√d →+* R) (h : f sqrtd = g sqrtd) : f = g :=
 begin
   ext ⟨x_re, x_im⟩,
   simp [decompose, h],
 end
+
+variables [comm_ring R]
 
 /-- The unique `ring_hom` from `ℤ√d` to a ring `R`, constructed by replacing `√d` with the provided
 root. Conversely, this associates to every mapping `ℤ√d →+* R` a value of `√d` in `R`. -/
@@ -755,7 +760,7 @@ def lift {d : ℤ} : {r : R // r * r = ↑d} ≃ (ℤ√d →+* R) :=
 `ℤ` into `R` is injective). -/
 lemma lift_injective [char_zero R] {d : ℤ} (r : {r : R // r * r = ↑d}) (hd : ∀ n : ℤ, d ≠ n*n) :
   function.injective (lift r) :=
-(lift r).injective_iff.mpr $ λ a ha,
+(injective_iff_map_eq_zero (lift r)).mpr $ λ a ha,
 begin
   have h_inj : function.injective (coe : ℤ → R) := int.cast_injective,
   suffices : lift r a.norm = 0,

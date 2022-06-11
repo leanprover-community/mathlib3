@@ -47,7 +47,7 @@ def mk_normed_group_hom (f : V →+ W)
 /-- Associate to a group homomorphism a bounded group homomorphism under a norm control condition.
 
 See `add_monoid_hom.mk_normed_group_hom` for a version that uses `ℝ` for the bound. -/
-def mk_normed_group_hom' (f : V →+ W) (C : ℝ≥0) (hC : ∀ x, nnnorm (f x) ≤ C * nnnorm x) :
+def mk_normed_group_hom' (f : V →+ W) (C : ℝ≥0) (hC : ∀ x, ∥f x∥₊ ≤ C * ∥x∥₊) :
   normed_group_hom V W :=
 { bound' := ⟨C, hC⟩ .. f}
 

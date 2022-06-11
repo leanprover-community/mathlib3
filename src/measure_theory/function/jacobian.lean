@@ -297,7 +297,7 @@ begin
       (𝓝[>] 0) (𝓝 (μ (A '' (closed_ball 0 1)))),
     { apply L0.congr' _,
       filter_upwards [self_mem_nhds_within] with r hr,
-      rw [HC.cthickening_eq_add_closed_ball (le_of_lt hr), add_comm] },
+      rw [←HC.add_closed_ball_zero (le_of_lt hr), add_comm] },
     have L2 : tendsto (λ ε, μ (closed_ball 0 ε + A '' (closed_ball 0 1)))
       (𝓝[>] 0) (𝓝 (d * μ (closed_ball 0 1))),
     { convert L1,
@@ -330,7 +330,7 @@ begin
         abel } },
     have : A '' (closed_ball 0 r) + closed_ball (f x) (ε * r)
       = {f x} + r • (A '' (closed_ball 0 1) + closed_ball 0 ε),
-      by rw [smul_add_set, ← add_assoc, add_comm ({f x}), add_assoc, smul_closed_ball _ _ εpos.le,
+      by rw [smul_add, ← add_assoc, add_comm ({f x}), add_assoc, smul_closed_ball _ _ εpos.le,
         smul_zero, singleton_add_closed_ball_zero, ← A.image_smul_set,
         smul_closed_ball _ _ zero_le_one, smul_zero, real.norm_eq_abs, abs_of_nonneg r0, mul_one,
         mul_comm],
@@ -891,10 +891,7 @@ begin
       rw ← this,
     end
   ... = ∫⁻ x in s, ennreal.of_real (|(f' x).det|) ∂μ + 2 * ε * μ s :
-    begin
-      rw lintegral_add' (ae_measurable_of_real_abs_det_fderiv_within μ hs hf') ae_measurable_const,
-      simp only [lintegral_const, measurable_set.univ, measure.restrict_apply, univ_inter],
-    end
+    by simp only [lintegral_add_right' _ ae_measurable_const, set_lintegral_const]
 end
 
 lemma add_haar_image_le_lintegral_abs_det_fderiv_aux2 (hs : measurable_set s) (h's : μ s ≠ ∞)
@@ -1034,11 +1031,10 @@ begin
                       ennreal.of_real_coe_nnreal]
     end
   ... = ∑' n, (ennreal.of_real (|(A n).det|) * μ (s ∩ t n) + ε * μ (s ∩ t n)) :
-    by simp only [measurable_const, lintegral_const, lintegral_add, measurable_set.univ,
-                  eq_self_iff_true, measure.restrict_apply, univ_inter]
+    by simp only [set_lintegral_const, lintegral_add_right _ measurable_const]
   ... ≤ ∑' n, ((μ (f '' (s ∩ t n)) + ε * μ (s ∩ t n)) + ε * μ (s ∩ t n)) :
     begin
-      refine ennreal.tsum_le_tsum (λ n, add_le_add _ le_rfl),
+      refine ennreal.tsum_le_tsum (λ n, add_le_add_right _ _),
       exact (hδ (A n)).2.2 _ _ (ht n),
     end
   ... = μ (f '' s) + 2 * ε * μ s :

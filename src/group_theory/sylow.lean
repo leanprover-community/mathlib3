@@ -526,6 +526,7 @@ begin
   rwa pow_one at key,
 end
 
+/-- Sylow subgroups are Hall subgroups. -/
 lemma card_coprime_index [fintype G] {p : ℕ} [hp : fact p.prime] (P : sylow p G) :
   (card P).coprime (index (P : subgroup G)) :=
 let ⟨n, hn⟩ := is_p_group.iff_card.mp P.2 in

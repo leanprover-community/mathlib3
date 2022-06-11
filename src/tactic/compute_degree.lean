@@ -171,7 +171,7 @@ The tactic fails if `e` contains no summand (this probably means something else 
 somewhere else). -/
 meta def extract_top_degree_term_and_deg (e : expr) : tactic (expr × ℕ) :=
 do summ ← e.list_summands,
-  nat_degs ← summ.mmap guess_degree, trace nat_degs,
+  nat_degs ← summ.mmap guess_degree,
   let summ_and_degs := summ.zip nat_degs in
   match summ_and_degs.argmax (λ e : expr × ℕ, e.2) with
   | none := fail

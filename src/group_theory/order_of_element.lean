@@ -656,7 +656,7 @@ let ⟨m, hm⟩ := @order_of_dvd_card_univ _ x _ _ in
 by simp [hm, pow_mul, pow_order_of_eq_one]
 
 @[to_additive] lemma subgroup.pow_index_mem {G : Type*} [group G] (H : subgroup G)
-  [fintype (G ⧸ H)] [normal H] (g : G) : g ^ index H ∈ H :=
+  [H.finite_index] [normal H] (g : G) : g ^ index H ∈ H :=
 by rw [←eq_one_iff, quotient_group.coe_pow H, index_eq_card, pow_card_eq_one]
 
 @[to_additive] lemma pow_eq_mod_card (n : ℕ) :

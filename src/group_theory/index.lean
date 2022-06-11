@@ -270,4 +270,33 @@ noncomputable def fintype_of_index_ne_zero (hH : H.index ≠ 0) : fintype (G ⧸
 lemma one_lt_index_of_ne_top [fintype (G ⧸ H)] (hH : H ≠ ⊤) : 1 < H.index :=
 nat.one_lt_iff_ne_zero_and_ne_one.mpr ⟨index_ne_zero_of_fintype, mt index_eq_one.mp hH⟩
 
+variables (H K)
+
+/-- Typeclass for finite index subgroups. -/
+class finite_index : Prop :=
+(finite_index : H.index ≠ 0)
+
+/-- Typeclass for finite index subgroups. -/
+class _root_.add_subgroup.finite_index {G : Type*} [add_group G] (H : add_subgroup G) : Prop :=
+(finite_index : H.index ≠ 0)
+
+attribute [to_additive] finite_index
+
+@[to_additive] instance finite_index_of_fintype [fintype G] : finite_index H :=
+⟨ne_zero_of_dvd_ne_zero fintype.card_ne_zero H.index_dvd_card⟩
+
+@[to_additive] noncomputable instance [hH : finite_index H] : fintype (G ⧸ H) :=
+fintype_of_index_ne_zero hH.1
+
+@[to_additive] instance : finite_index (⊤ : subgroup G) :=
+⟨ne_of_eq_of_ne index_top one_ne_zero⟩
+
+@[to_additive] instance [hH : finite_index H] [hK : finite_index K] : finite_index (H ⊓ K) :=
+⟨index_inf_ne_zero hH.1 hK.1⟩
+
+variables {H K}
+
+@[to_additive] lemma finite_index_of_le [hH : finite_index H] (h : H ≤ K) : finite_index K :=
+⟨ne_zero_of_dvd_ne_zero hH.1 (index_dvd_of_le h)⟩
+
 end subgroup

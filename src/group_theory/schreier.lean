@@ -103,12 +103,13 @@ begin
   exact closure_mul_image_eq_top hR hR1 hS,
 end
 
-lemma exists_finset_card_le_mul (hH : H.index ≠ 0) {S : finset G} (hS : closure (S : set G) = ⊤) :
+variables (H)
+
+lemma exists_finset_card_le_mul [H.finite_index] {S : finset G} (hS : closure (S : set G) = ⊤) :
   ∃ T : finset H, T.card ≤ H.index * S.card ∧ closure (T : set H) = ⊤ :=
 begin
   haveI : decidable_eq G := classical.dec_eq G,
   obtain ⟨R₀, hR : R₀ ∈ right_transversals (H : set G), hR1⟩ := exists_right_transversal (1 : G),
-  haveI : fintype (G ⧸ H) := fintype_of_index_ne_zero hH,
   haveI : fintype R₀ := fintype.of_equiv _ (mem_right_transversals.to_equiv hR),
   let R : finset G := set.to_finset R₀,
   replace hR : (R : set G) ∈ right_transversals (H : set G) := by rwa set.coe_to_finset,
@@ -126,21 +127,20 @@ end
 
 /-- **Schreier's Lemma**: A finite index subgroup of a finitely generated
   group is finitely generated. -/
-lemma fg_of_index_ne_zero [hG : group.fg G] (hH : H.index ≠ 0) : group.fg H :=
+instance fg_of_index_ne_zero [hG : group.fg G] [hH : H.finite_index] : group.fg H :=
 begin
   obtain ⟨S, hS⟩ := hG.1,
-  obtain ⟨T, -, hT⟩ := exists_finset_card_le_mul hH hS,
+  obtain ⟨T, -, hT⟩ := H.exists_finset_card_le_mul hS,
   exact ⟨⟨T, hT⟩⟩,
 end
 
-lemma rank_le_index_mul_rank [hG : group.fg G] {H : subgroup G} (hH : H.index ≠ 0)
+lemma rank_le_index_mul_rank [hG : group.fg G] [hH : H.finite_index]
   [decidable_pred (λ n, ∃ (S : finset G), S.card = n ∧ subgroup.closure (S : set G) = ⊤)]
   [decidable_pred (λ n, ∃ (S : finset H), S.card = n ∧ subgroup.closure (S : set H) = ⊤)] :
-  @group.rank H _ (fg_of_index_ne_zero hH) _ ≤ H.index * group.rank G :=
+  group.rank H ≤ H.index * group.rank G :=
 begin
-  haveI := fg_of_index_ne_zero hH,
   obtain ⟨S, hS₀, hS⟩ := group.rank_spec G,
-  obtain ⟨T, hT₀, hT⟩ := exists_finset_card_le_mul hH hS,
+  obtain ⟨T, hT₀, hT⟩ := H.exists_finset_card_le_mul hS,
   calc group.rank H ≤ T.card : group.rank_le H hT
   ... ≤ H.index * S.card : hT₀
   ... = H.index * group.rank G : congr_arg ((*) H.index) hS₀,

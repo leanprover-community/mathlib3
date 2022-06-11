@@ -303,7 +303,7 @@ variables {H K}
 
 variables (H K)
 
-@[to_additive] instance finite_index_of_fintype' [fintype G] : finite_index H :=
+@[priority 100, to_additive] instance finite_index_of_fintype' [fintype G] : finite_index H :=
 ⟨ne_zero_of_dvd_ne_zero fintype.card_ne_zero H.index_dvd_card⟩
 
 @[to_additive] instance finite_index_ker {G' : Type*} [group G'] (f : G →* G') [fintype f.range] :

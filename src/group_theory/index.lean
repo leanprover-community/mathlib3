@@ -286,9 +286,6 @@ attribute [to_additive] finite_index
 @[to_additive] lemma finite_index_of_fintype [fintype (G ⧸ H)] : finite_index H :=
 ⟨index_ne_zero_of_fintype⟩
 
-@[to_additive] instance finite_index_of_fintype' [fintype G] : finite_index H :=
-⟨ne_zero_of_dvd_ne_zero fintype.card_ne_zero H.index_dvd_card⟩
-
 @[to_additive] noncomputable instance [hH : finite_index H] : fintype (G ⧸ H) :=
 fintype_of_index_ne_zero hH.1
 

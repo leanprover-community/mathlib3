@@ -2,24 +2,23 @@ import representation_theory.cohomology.shenyang
 import representation_theory.invariants
 import representation_theory.cohomology.one_cocycles
 
-universes v u
+universes v u w w'
 
-variables {k : Type*} [comm_ring k] {G : Type*} [group G] {V : Type*}
-  [add_comm_group V] [module k V] (ρ : representation k G V)
 noncomputable theory
 
 namespace stuff
 
-def pair {G H : Type*} [group G] [group H]
-  {M N : Type*} [add_comm_group M] [add_comm_group N] [module k M] [module k N]
+variables {k : Type*} [comm_ring k] {G H : Type u} [group G] [group H]
+  {M N : Type v} [add_comm_group M] [add_comm_group N] [module k M] [module k N]
   (ρ : representation k G M) (τ : representation k H N)
-  (f : G →* H) (φ : N →ₗ[k] M) : Prop :=
+  (f : G →* H) (φ : N →ₗ[k] M)
+
+def pair : Prop :=
 ∀ (g : G) (x : N), φ (τ (f g) x) = ρ g (φ x)
 
-@[simps] def pair_chain_map_aux {G H : Type*} [group G] [group H]
-  {M N : Type*} [add_comm_group M] [add_comm_group N] [module k M] [module k N]
-  (ρ : representation k G M) (τ : representation k H N)
-  (f : G →* H) (φ : N →ₗ[k] M) (n : ℕ) :
+variables (k)
+
+@[simps] def pair_chain_map_aux (n : ℕ) :
   ((fin n → H) → N) →ₗ[k] ((fin n → G) → M) :=
 { to_fun := λ F x, φ (F (f ∘ x)),
   map_smul' := λ r x, by ext; exact φ.map_smul _ _,
@@ -27,14 +26,13 @@ def pair {G H : Type*} [group G] [group H]
 
 open representation
 
-variables (H : subgroup G) [h1 : H.normal] (g : G) (m : invariants (ρ.comp H.subtype))
- (h : H)
+variables {k} (S : subgroup G)
 
-def quotient_action_aux (H : subgroup G) [h1 : H.normal] (g : G) :
-  invariants (ρ.comp H.subtype) →ₗ[k] invariants (ρ.comp H.subtype) :=
+def quotient_action_aux [h1 : S.normal] (g : G) :
+  invariants (ρ.comp S.subtype) →ₗ[k] invariants (ρ.comp S.subtype) :=
 { to_fun := λ m, ⟨ρ g m, λ h, by { have : ρ (g⁻¹ * h * g) m = m,
-  by {refine m.2 (⟨g⁻¹ * h * g, _⟩ : H),
-  convert subgroup.normal.conj_mem h1 (h : H) h.2 g⁻¹, rw inv_inv},
+  by {refine m.2 (⟨g⁻¹ * h * g, _⟩ : S),
+  convert subgroup.normal.conj_mem h1 (h : S) h.2 g⁻¹, rw inv_inv},
   conv_rhs {rw ←this},
   sorry,
   --rw [←ρ.map_mul, ←mul_assoc, mul_inv_cancel_left, mul_smul],
@@ -43,9 +41,9 @@ def quotient_action_aux (H : subgroup G) [h1 : H.normal] (g : G) :
   map_add' := sorry,
   map_smul' := sorry }
 
-def inf_rep (H : subgroup G) [H.normal] :
-  representation k (G ⧸ H) (invariants (ρ.comp H.subtype)) :=
-{ to_fun := λ g, quotient.lift_on' g (λ (g : G), quotient_action_aux ρ H g) $ λ a b hab,
+def inf_rep [S.normal] :
+  representation k (G ⧸ S) (invariants (ρ.comp S.subtype)) :=
+{ to_fun := λ g, quotient.lift_on' g (λ (g : G), quotient_action_aux ρ S g) $ λ a b hab,
   begin
     sorry/-ext,
     show (a • x : M) = b • x,
@@ -56,12 +54,12 @@ def inf_rep (H : subgroup G) [H.normal] :
   map_one' := sorry,
   map_mul' := sorry }
 
-lemma quotient_pair (H : subgroup G) [H.normal] :
-  pair ρ (inf_rep ρ H) (quotient_group.mk' H) (invariants (ρ.comp H.subtype)).subtype :=
+lemma quotient_pair (S : subgroup G) [S.normal] :
+  pair ρ (inf_rep ρ S) (quotient_group.mk' S) (invariants (ρ.comp S.subtype)).subtype :=
 λ x y, rfl
 
-lemma subgroup_pair (H : subgroup G) :
-  pair (ρ.comp H.subtype) ρ H.subtype linear_map.id :=
+lemma subgroup_pair (S : subgroup G) :
+  pair (ρ.comp S.subtype) ρ S.subtype linear_map.id :=
 λ x y, rfl
 
 lemma rep_hom_pair {k : Type u} [comm_ring k] {G : Type u} [group G]
@@ -69,12 +67,9 @@ lemma rep_hom_pair {k : Type u} [comm_ring k] {G : Type u} [group G]
   pair N.ρ M.ρ (monoid_hom.id G) f.hom :=
 λ g, linear_map.ext_iff.1 (f.comm _)
 
-lemma pair_chain_map_aux_comm {G H : Type*} [group G] [group H]
-  {M N : Type*} [add_comm_group M] [add_comm_group N] [module k M] [module k N]
-  (ρ : representation k G M) (τ : representation k H N)
-  (f : G →* H) (φ : N →ₗ[k] M) (hp : pair ρ τ f φ) (n : ℕ) :
-  (cochain.d ρ n).comp (pair_chain_map_aux ρ τ f φ n)
-    = (pair_chain_map_aux ρ τ f φ (n + 1)).comp (cochain.d τ n) :=
+lemma pair_chain_map_aux_comm (hp : pair ρ τ f φ) (n : ℕ) :
+  (cochain.d ρ n).comp (pair_chain_map_aux k f φ n)
+    = (pair_chain_map_aux k f φ (n + 1)).comp (cochain.d τ n) :=
 begin
   ext x g,
   dsimp [d_to_fun, pair_chain_map_aux],
@@ -91,73 +86,66 @@ begin
     { simp only [F_neg_apply _ _ _ h heq] }}
 end
 
-def pair_chain_map {G H : Type*} [group G] [group H]
-  {M N : Type*} [add_comm_group M] [add_comm_group N] [module k M] [module k N]
-  (ρ : representation k G M) (τ : representation k H N)
-  (f : G →* H) (φ : N →ₗ[k] M) (hp : pair ρ τ f φ) :
+def pair_chain_map (hp : pair ρ τ f φ) :
   cochain_cx τ ⟶ cochain_cx ρ :=
-{ f := λ i, pair_chain_map_aux ρ τ f φ i,
+{ f := λ i, pair_chain_map_aux k f φ i,
   comm' := λ i j hij, by
   { cases hij,
     dsimp,
     erw [cochain_complex.of_d, cochain_complex.of_d],
     exact pair_chain_map_aux_comm ρ τ f φ hp i }}
 
-def pair_homology_map {G H : Type*} [group G] [group H]
-  {M N : Type*} [add_comm_group M] [add_comm_group N] [module k M] [module k N]
-  (ρ : representation k G M) (τ : representation k H N)
-  (f : G →* H) (φ : N →ₗ[k] M) (hp : pair ρ τ f φ) (n : ℕ) :
+def pair_homology_map (hp : pair ρ τ f φ) (n : ℕ) :
   (cochain_cx τ).homology n →ₗ[k] (cochain_cx ρ).homology n :=
 (homology_functor _ _ n).map (pair_chain_map ρ τ f φ hp)
 
 variables {G}
 
-noncomputable def cohomology_map {M N : Type*} [add_comm_group M] [add_comm_group N]
-  [module k M] [module k N] (ρ : representation k G M) (τ : representation k G N)
-  (f : M →ₗ[k] N) (hp : pair τ ρ (monoid_hom.id G) f) (n : ℕ) :
+noncomputable def cohomology_map (ρ : representation k G M) (τ : representation k G N)
+  (φ : M →ₗ[k] N) (hp : pair τ ρ (monoid_hom.id G) φ) (n : ℕ) :
   (cochain_cx ρ).homology n →ₗ[k] (cochain_cx τ).homology n :=
-(pair_homology_map τ ρ (monoid_hom.id G) f hp n)
+(pair_homology_map τ ρ (monoid_hom.id G) φ hp n)
 
 noncomputable def cohomology_map' {k : Type u} [comm_ring k] {G : Type u} [group G]
-  (M N : Rep k G) (f : M ⟶ N) (n : ℕ) :
+  (M N : Rep k G) (φ : M ⟶ N) (n : ℕ) :
   (cochain_cx M.ρ).homology n →ₗ[k] (cochain_cx N.ρ).homology n :=
-(pair_homology_map _ _ (monoid_hom.id G) f.hom (rep_hom_pair f) n)
+(pair_homology_map _ _ (monoid_hom.id G) φ.hom (rep_hom_pair φ) n)
 
-def Res (H : subgroup G) (n : ℕ) :
-  (cochain_cx ρ).homology n →ₗ[k] (cochain_cx (ρ.comp H.subtype)).homology n :=
-pair_homology_map _ _ H.subtype linear_map.id (subgroup_pair ρ H) n
+def Res (S : subgroup G) (n : ℕ) :
+  (cochain_cx ρ).homology n →ₗ[k] (cochain_cx (ρ.comp S.subtype)).homology n :=
+pair_homology_map _ _ S.subtype linear_map.id (subgroup_pair ρ S) n
 
-def Res_one (H : subgroup G) :
-  firstcoh ρ →ₗ[k] firstcoh (ρ.comp H.subtype) :=
-((first_iso (ρ.comp H.subtype)).to_linear_map.comp (Res ρ H 1)).comp (first_iso ρ).symm.to_linear_map
+def Res_one (S : subgroup G) :
+  firstcoh ρ →ₗ[k] firstcoh (ρ.comp S.subtype) :=
+((first_iso (ρ.comp S.subtype)).to_linear_map.comp (Res ρ S 1)).comp (first_iso ρ).symm.to_linear_map
 
-@[simp] lemma Res_one_apply (H : subgroup G) (x : one_cocycles ρ) :
-  Res_one ρ H (quotient.mk' x : firstcoh ρ) = quotient.mk' (⟨↑x ∘ H.subtype, λ g h, x.2 g h⟩ : one_cocycles (ρ.comp H.subtype)) :=
+@[simp] lemma Res_one_apply (S : subgroup G) (x : one_cocycles ρ) :
+  Res_one ρ S (quotient.mk' x : firstcoh ρ) = quotient.mk' (⟨↑x ∘ S.subtype, λ g h, x.2 g h⟩ : one_cocycles (ρ.comp S.subtype)) :=
 begin
   sorry
 end
 
-def Inf (H : subgroup G) [h1 : H.normal] (n : ℕ) :
-  (cochain_cx (inf_rep ρ H)).homology n →ₗ[k] (cochain_cx ρ).homology n :=
-pair_homology_map _ _ (quotient_group.mk' H) (invariants (ρ.comp H.subtype)).subtype (quotient_pair ρ H) n
+def Inf (S : subgroup G) [h1 : S.normal] (n : ℕ) :
+  (cochain_cx (inf_rep ρ S)).homology n →ₗ[k] (cochain_cx ρ).homology n :=
+pair_homology_map _ _ (quotient_group.mk' S) (invariants (ρ.comp S.subtype)).subtype (quotient_pair ρ S) n
 
-def Inf_one (H : subgroup G) [h1 : H.normal] :
-  firstcoh (inf_rep ρ H) →ₗ[k] firstcoh ρ :=
-((first_iso ρ).to_linear_map.comp (Inf ρ H 1)).comp
-  (first_iso (inf_rep ρ H)).symm.to_linear_map
+def Inf_one (S : subgroup G) [h1 : S.normal] :
+  firstcoh (inf_rep ρ S) →ₗ[k] firstcoh ρ :=
+((first_iso ρ).to_linear_map.comp (Inf ρ S 1)).comp
+  (first_iso (inf_rep ρ S)).symm.to_linear_map
 
-lemma Inf_one_apply_aux (H : subgroup G) [h1 : H.normal] (x : one_cocycles (inf_rep ρ H)) :
-  (invariants (ρ.comp H.subtype)).subtype ∘ ↑x ∘ (coe : G → G ⧸ H) ∈ one_cocycles ρ :=
+lemma Inf_one_apply_aux (S : subgroup G) [h1 : S.normal] (x : one_cocycles (inf_rep ρ S)) :
+  (invariants (ρ.comp S.subtype)).subtype ∘ ↑x ∘ (coe : G → G ⧸ S) ∈ one_cocycles ρ :=
 λ g h, subtype.ext_iff.1 (x.2 g h)
 #exit
-lemma Inf_one_apply (H : subgroup G) [h1 : H.normal] (x : one_cocycles (inf_rep ρ H)) :
+lemma Inf_one_apply (S : subgroup G) [h1 : S.normal] (x : one_cocycles (inf_rep ρ H)) :
   Inf_one ρ H (quotient.mk' x) =
-    (⟨(invariants (ρ.comp H.subtype)).subtype ∘ ↑x ∘ (coe : G → G ⧸ H), Inf_one_apply_aux ρ H x⟩ : one_cocycles ρ) :=
+    (⟨(invariants (ρ.comp S.subtype)).subtype ∘ ↑x ∘ (coe : G → G ⧸ H), Inf_one_apply_aux ρ H x⟩ : one_cocycles ρ) :=
 begin
   sorry
 end
 
-def ibuprofenrules (H : subgroup G) [h1 : H.normal]
+def ibuprofenrules (S : subgroup G) [h1 : S.normal]
   (x : one_cocycles (G ⧸ H) (invariants H M)) (m : M)
   (h : ∀ g : G, ((↑x : G ⧸ H → invariants H M) (g : G ⧸ H) : M) = g • m - m) :
   G ⧸ H → M :=
@@ -167,7 +155,7 @@ begin
   rw [←h a, ←h b, quotient_group.eq.2 hab],
 end
 
-def ibuprofen (H : subgroup G) [h1 : H.normal]
+def ibuprofen (S : subgroup G) [h1 : S.normal]
   (x : one_cocycles (G ⧸ H) (invariants H M)) (m : M)
   (h : ∀ g : G, ((↑x : G ⧸ H → invariants H M) (g : G ⧸ H) : M) = g • m - m) :
   G ⧸ H → invariants H M :=
@@ -181,7 +169,7 @@ begin
   exact coe_invariants _,
 end⟩
 
-lemma Inf_ker_eq_bot_aux (H : subgroup G) [h1 : H.normal]
+lemma Inf_ker_eq_bot_aux (S : subgroup G) [h1 : S.normal]
   (x : one_cocycles (G ⧸ H) (invariants H M)) (m : M)
   (h : ∀ g : G, ((↑x : G ⧸ H → invariants H M) (g : G ⧸ H) : M) = g • m - m) :
   m ∈ invariants H M :=
@@ -193,7 +181,7 @@ begin
   refl,
 end
 
-lemma Inf_ker_eq_bot (H : subgroup G) [h1 : H.normal] :
+lemma Inf_ker_eq_bot (S : subgroup G) [h1 : S.normal] :
   (Inf_one M H).ker = ⊥ :=
 begin
   rw eq_bot_iff,
@@ -210,7 +198,7 @@ begin
   { intro z, ext, exact hm z },
 end
 
-lemma Inf_one_range_le_Res_one_ker (H : subgroup G) [h1 : H.normal] :
+lemma Inf_one_range_le_Res_one_ker (S : subgroup G) [h1 : S.normal] :
   (Inf_one M H).range ≤ (Res_one M H).ker :=
 begin
   intros x hx,
@@ -224,11 +212,11 @@ begin
   rw [(quotient_group.eq_one_iff (g : G)).2 g.2, one_cocycles_map_one],
 end
 
-lemma seriously (H : subgroup G) [h1 : H.normal] (h : H) (g : G) :
+lemma seriously (S : subgroup G) [h1 : S.normal] (h : H) (g : G) :
   g⁻¹ * h * g ∈ H :=
 by {convert subgroup.normal.conj_mem h1 h h.2 g⁻¹, rw inv_inv }
 
-lemma helper (H : subgroup G) [h1 : H.normal]  (y : one_cocycles G M) (m : M)
+lemma helper (S : subgroup G) [h1 : S.normal]  (y : one_cocycles G M) (m : M)
   (Hy : ∀ h : H, (y : G → M) h = h • m - m) (g : G) (h : H) :
   h • ((y : G → M) g - g • m + m) = (y : G → M) g - g • m + m :=
 begin
@@ -242,7 +230,7 @@ begin
   abel,
 end
 
-lemma Inf_one_range_eq_Res_one_ker (H : subgroup G) [h1 : H.normal] :
+lemma Inf_one_range_eq_Res_one_ker (S : subgroup G) [h1 : S.normal] :
   (Inf_one M H).range = (Res_one M H).ker :=
 le_antisymm (Inf_one_range_le_Res_one_ker M H) $ λ x,
 begin

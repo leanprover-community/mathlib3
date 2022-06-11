@@ -286,10 +286,11 @@ attribute [to_additive] finite_index
 @[priority 100, to_additive] noncomputable instance [hH : finite_index H] : fintype (G ⧸ H) :=
 fintype_of_index_ne_zero hH.1
 
-@[to_additive] instance : finite_index (⊤ : subgroup G) :=
+@[to_additive] instance finite_index_top : finite_index (⊤ : subgroup G) :=
 ⟨ne_of_eq_of_ne index_top one_ne_zero⟩
 
-@[to_additive] instance [hH : finite_index H] [hK : finite_index K] : finite_index (H ⊓ K) :=
+@[to_additive] instance finite_index_inf [hH : finite_index H] [hK : finite_index K] :
+  finite_index (H ⊓ K) :=
 ⟨index_inf_ne_zero hH.1 hK.1⟩
 
 variables {H K}
@@ -301,6 +302,9 @@ variables {H K}
 ⟨index_ne_zero_of_fintype⟩
 
 variables (H K)
+
+@[to_additive] instance finite_index_of_fintype' [fintype G] : finite_index H :=
+⟨ne_zero_of_dvd_ne_zero fintype.card_ne_zero H.index_dvd_card⟩
 
 @[to_additive] instance finite_index_ker {G' : Type*} [group G'] (f : G →* G') [fintype f.range] :
   f.ker.finite_index :=

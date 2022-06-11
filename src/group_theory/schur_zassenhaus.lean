@@ -30,7 +30,7 @@ section schur_zassenhaus_abelian
 
 open mul_opposite mul_action subgroup.left_transversals mem_left_transversals
 
-variables {G : Type*} [group G] (H : subgroup G) [is_commutative H] [H.finite_index]
+variables {G : Type*} [group G] (H : subgroup G) [is_commutative H] [finite_index H]
   (α β : left_transversals (H : set G))
 
 /-- The quotient of the transversals of an abelian normal `N` by the `diff` relation. -/

@@ -584,22 +584,22 @@ theorem commutes (r : R) : φ (algebra_map R A r) = algebra_map R B r := φ.comm
 theorem comp_algebra_map : (φ : A →+* B).comp (algebra_map R A) = algebra_map R B :=
 ring_hom.ext $ φ.commutes
 
---protected lemma map_add (r s : A) : φ (r + s) = φ r + φ s := map_add _ _ _
---protected lemma map_zero : φ 0 = 0 := map_zero _
---protected lemma map_mul (x y) : φ (x * y) = φ x * φ y := map_mul _ _ _
---protected lemma map_one : φ 1 = 1 := map_one _
---protected lemma map_pow (x : A) (n : ℕ) : φ (x ^ n) = (φ x) ^ n := map_pow _ _ _
+protected lemma map_add (r s : A) : φ (r + s) = φ r + φ s := map_add _ _ _
+protected lemma map_zero : φ 0 = 0 := map_zero _
+protected lemma map_mul (x y) : φ (x * y) = φ x * φ y := map_mul _ _ _
+protected lemma map_one : φ 1 = 1 := map_one _
+protected lemma map_pow (x : A) (n : ℕ) : φ (x ^ n) = (φ x) ^ n := map_pow _ _ _
 
---@[simp] protected lemma map_smul (r : R) (x : A) : φ (r • x) = r • φ x := map_smul _ _ _
+@[simp] protected lemma map_smul (r : R) (x : A) : φ (r • x) = r • φ x := map_smul _ _ _
 
---protected lemma map_sum {ι : Type*} (f : ι → A) (s : finset ι) :
---  φ (∑ x in s, f x) = ∑ x in s, φ (f x) := map_sum _ _ _
---
---protected lemma map_finsupp_sum {α : Type*} [has_zero α] {ι : Type*} (f : ι →₀ α) (g : ι → α → A) :
---  φ (f.sum g) = f.sum (λ i a, φ (g i a)) := map_finsupp_sum _ _ _
---
---protected lemma map_bit0 (x) : φ (bit0 x) = bit0 (φ x) := map_bit0 _ _
---protected lemma map_bit1 (x) : φ (bit1 x) = bit1 (φ x) := map_bit1 _ _
+protected lemma map_sum {ι : Type*} (f : ι → A) (s : finset ι) :
+  φ (∑ x in s, f x) = ∑ x in s, φ (f x) := map_sum _ _ _
+
+protected lemma map_finsupp_sum {α : Type*} [has_zero α] {ι : Type*} (f : ι →₀ α) (g : ι → α → A) :
+  φ (f.sum g) = f.sum (λ i a, φ (g i a)) := map_finsupp_sum _ _ _
+
+protected lemma map_bit0 (x) : φ (bit0 x) = bit0 (φ x) := map_bit0 _ _
+protected lemma map_bit1 (x) : φ (bit1 x) = bit1 (φ x) := map_bit1 _ _
 
 /-- If a `ring_hom` is `R`-linear, then it is an `alg_hom`. -/
 def mk' (f : A →+* B) (h : ∀ (c : R) x, f (c • x) = c • f x) : A →ₐ[R] B :=
@@ -717,14 +717,14 @@ section comm_semiring
 variables [comm_semiring R] [comm_semiring A] [comm_semiring B]
 variables [algebra R A] [algebra R B] (φ : A →ₐ[R] B)
 
---protected lemma map_multiset_prod (s : multiset A) :
---  φ s.prod = (s.map φ).prod := map_multiset_prod _ _
+protected lemma map_multiset_prod (s : multiset A) :
+  φ s.prod = (s.map φ).prod := map_multiset_prod _ _
 
---protected lemma map_prod {ι : Type*} (f : ι → A) (s : finset ι) :
---  φ (∏ x in s, f x) = ∏ x in s, φ (f x) := map_prod _ _ _
+protected lemma map_prod {ι : Type*} (f : ι → A) (s : finset ι) :
+  φ (∏ x in s, f x) = ∏ x in s, φ (f x) := map_prod _ _ _
 
---protected lemma map_finsupp_prod {α : Type*} [has_zero α] {ι : Type*} (f : ι →₀ α) (g : ι → α → A) :
---  φ (f.prod g) = f.prod (λ i a, φ (g i a)) := map_finsupp_prod _ _ _
+protected lemma map_finsupp_prod {α : Type*} [has_zero α] {ι : Type*} (f : ι →₀ α) (g : ι → α → A) :
+  φ (f.prod g) = f.prod (λ i a, φ (g i a)) := map_finsupp_prod _ _ _
 
 end comm_semiring
 
@@ -733,8 +733,8 @@ section ring
 variables [comm_semiring R] [ring A] [ring B]
 variables [algebra R A] [algebra R B] (φ : A →ₐ[R] B)
 
---protected lemma map_neg (x) : φ (-x) = -φ x := map_neg _ _
---protected lemma map_sub (x y) : φ (x - y) = φ x - φ y := map_sub _ _ _
+protected lemma map_neg (x) : φ (-x) = -φ x := map_neg _ _
+protected lemma map_sub (x y) : φ (x - y) = φ x - φ y := map_sub _ _ _
 
 @[simp] lemma map_int_cast (n : ℤ) : φ n = n :=
 φ.to_ring_hom.map_int_cast n

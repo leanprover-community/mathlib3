@@ -76,10 +76,24 @@ lemma nat_degree_add_left_succ {R : Type*} [semiring R] (n : ℕ) (f g : polynom
   (g + f).nat_degree = n + 1 :=
 by rwa nat_degree_add_eq_right_of_nat_degree_lt (dg.trans_lt (nat.lt_of_succ_le df.ge))
 
+lemma nat_degree_bit0_le {R : Type*} [semiring R] (f : polynomial R) :
+  (bit0 f).nat_degree ≤ f.nat_degree :=
+begin
+  rw [bit0, ← two_mul, show (2 : polynomial R) = C 2, by rw [C_bit0, map_one]],
+  exact (nat_degree_C_mul_le _ _).trans rfl.le,
+end
+
+lemma nat_degree_bit1_le {R : Type*} [semiring R] (f : polynomial R) :
+  (bit1 f).nat_degree ≤ f.nat_degree :=
+begin
+  rw [bit1],
+  exact (nat_degree_add_le _ _).trans (by simp [nat_degree_bit0_le]),
+end
+
 end polynomial
 
 namespace tactic.interactive
-open tactic
+open tactic expr
 setup_tactic_parser
 
 /-- `C_mul_terms e` produces a proof of `e.nat_degree = ??` in the case in which `e` is of the form
@@ -106,10 +120,10 @@ exponent of `X`.
 Assumptions: either there is an assumption in context asserting that the constant in front of the
 power of `X` is non-zero, or the tactic `nontriviality R` succeeds. -/
 meta def single_term_resolve : expr → tactic unit
-| (expr.app `(⇑(@polynomial.monomial %%R %%inst %%n)) x) :=
+| (app `(⇑(@polynomial.monomial %%R %%inst %%n)) x) :=
   refine ``(polynomial.nat_degree_monomial_eq %%n _) *>
   assumption <|> exact ``(one_ne_zero) <|> skip
-| (expr.app `(⇑(@polynomial.C %%R %%inst)) x) :=
+| (app `(⇑(@polynomial.C %%R %%inst)) x) :=
   exact ``(polynomial.nat_degree_C _)
 | `(@has_pow.pow (@polynomial %%R %%nin) %%N %%inst %%mX %%n) :=
   nontriviality_by_assumption R *>
@@ -120,32 +134,34 @@ meta def single_term_resolve : expr → tactic unit
 | e := do C_mul_terms e <|>  -- either `e` is `C a * (X ^ n)` and `C_mul_terms e` handles it or
   trace "The leading term is not of the form\n`C a * X (^ n)`\n\n"
 
-/--  Given an expression `e`, assuming it is a polyomial, `extract_deg_single_term e` tries to guess
-the `nat_degree` of `e`.  Currently, it supports:
+/--
+ `guess_degree e` assumes that `e` is a single summand of a polynomial and makes an attempt
+ at guessing its degree.  It returns a closed natural number, via `expr.to_nat` or fails.
+Currently, `guess_degree` supports:
 * `monomial n r`,     guessing `n`,
-* `C a`,              guessing `0`,
+* `C a`               guessing `0`,
+*  `bit0 f, bit1 f`,  guessing `guess_degree f`,
+                               (this could give wrong results, e.g. `bit0 f = 0` if the
+                                characteristic of the ground ring is `2`),
 * `polynomial.X`,     guessing `1`,
 * `polynomial.X ^ n`, guessing `n`,
-* everything else, guessing `e.nat_degree`.
-
-The expectation is that the argument of `extract_deg_single_term` is a factor of a summand of an
-expression in a polynomial ring. -/
-meta def extract_deg_single_term : expr → tactic expr
-| `(polynomial.X)                            := to_expr ``(1)
-| `(polynomial.X ^ %%n)                      := return n
-| (expr.app `(⇑(polynomial.monomial %%n)) x) := return n
-| (expr.app `(⇑polynomial.C) x)              := to_expr ``(0)
-| e                                          := to_expr ``(polynomial.nat_degree %%e)
-
-/--  `extract_deg_single_summand e` takes apart "factors" in the expression `e` and returns them
-as sums of their "guessed degrees", via `extract_deg_single_term`.  When applied to an expression
-that is a summand in a polynomial, it should correctly guess its `nat_degree`. -/
-meta def extract_deg_single_summand : expr → tactic expr
-| `(has_mul.mul %%a %%b) := do
-  ga ← extract_deg_single_summand a,
-  gb ← extract_deg_single_summand b,
-  mk_app `has_add.add [ga, gb] >>= return
-| e := extract_deg_single_term e >>= return
+* `f * g`,            guessing `guess_degree f + guess_degree g`,
+* on anything else it fails.
+ -/
+meta def guess_degree : expr → tactic ℕ
+| `(has_zero.zero)         := return 0
+| `(has_one.one)           := return 0
+| `(bit0 %%a)              := guess_degree a
+| `(bit1 %%a)              := guess_degree a
+| `(has_mul.mul %%a %%b)   := do da ← guess_degree a, db ← guess_degree b,
+                                return $ da + db
+| `(polynomial.X)          := return 1
+| (app `(⇑polynomial.C) x) := return 0
+| `(polynomial.X ^ %%n)    := n.to_nat <|>
+  fail format!"The exponent of 'X ^ {n}' is not a closed natural number"
+| (app `(⇑(polynomial.monomial %%n)) x) := n.to_nat <|>
+  fail format!"The exponent of 'monomial {n} {x}' is not a closed natural number"
+| e                                     := fail format!"cannot guess the degree of '{e}'"
 
 /-- `extract_top_degree_term_and_deg e` takes an expression `e` looks for summands in `e`
 (assuming the Type of `e` is `R[X]`), and produces the pairs `(e',deg)`, where `e'` is
@@ -155,10 +171,8 @@ The tactic fails if `e` contains no summand (this probably means something else 
 somewhere else). -/
 meta def extract_top_degree_term_and_deg (e : expr) : tactic (expr × ℕ) :=
 do summ ← e.list_summands,
-  nat_degs ← summ.mmap extract_deg_single_summand,
-  eval_nat_degs ← nat_degs.mmap (eval_expr ℕ) <|>
-    fail "Only closed naturals are supported in exponents\n\n",
-  let summ_and_degs := summ.zip eval_nat_degs in
+  nat_degs ← summ.mmap guess_degree, trace nat_degs,
+  let summ_and_degs := summ.zip nat_degs in
   match summ_and_degs.argmax (λ e : expr × ℕ, e.2) with
   | none := fail
       "'`compute_degree`' could not find summands: something has gone very wrong!\n\n"

@@ -5,6 +5,7 @@ Authors: Patrick Stevens, Bolton Bailey
 -/
 import data.nat.multiplicity
 import data.nat.choose.central
+import data.nat.parity
 import data.nat.choose.factorization
 import number_theory.padics.padic_norm
 import data.complex.exponential_bounds
@@ -68,50 +69,6 @@ and this is Clearly False for sufficiently large n.
 -/
 
 open_locale big_operators
-
-section nat
-
-open nat
-
-lemma sq_prime_is_small' {p n : ℕ} (hp : nat.prime p) (n_big : 2 < n) (small : p ≤ sqrt (2 * n)) :
-  p ^ 2 < 2 * n :=
-begin
-  cases lt_or_ge (p ^ 2) (2 * n),
-  { exact h, },
-  { have small' : p ^ 2 ≤ (2 * n) := le_sqrt'.mp small,
-    have t : p * p = 2 * n := (sq _).symm.trans (small'.antisymm h),
-    have p_even : 2 ∣ p := (or_self _).mp ((prime.dvd_mul prime_two).mp ⟨n, t⟩),
-    rw nat.prime_dvd_prime_iff_eq prime_two hp at p_even,
-    rw [←p_even, sq],
-    exact (mul_lt_mul_left zero_lt_two).mpr n_big, },
-end
-
-lemma sq_prime_is_small {p : ℕ} (hp : nat.prime p) :
-  ∀ {n : ℕ} (p_small : p ≤ sqrt (2 * n)), ((p = 2 ∧ n = 2) ∨ (p ^ 2 < 2 * n))
-| 0 p_small :=
-  begin
-    norm_num at p_small,
-    linarith [prime.two_le hp],
-  end
-| 1 p_small :=
-  begin
-    norm_num at p_small,
-    linarith [prime.two_le hp],
-  end
-| 2 p_small :=
-  begin
-    left,
-    norm_num at p_small,
-    exact ⟨by linarith [prime.two_le hp], rfl⟩,
-  end
-| (n + 3) p_small :=
-  begin
-    right,
-    have r : 2 < n + 3 := by linarith,
-    linarith [sq_prime_is_small' hp r p_small],
-  end
-
-end nat
 
 section real_inequalities
 open real
@@ -398,6 +355,18 @@ begin
     exact x_le_two_mul_n, },
 end
 
+-- TODO move to dat.nat.parity
+lemma even_prime_eq_two (n : ℕ) (he : even n) (hp : n.prime) : n = 2 :=
+begin
+  rw nat.even_iff at he,
+  have : 2 ∣ n, exact nat.dvd_of_mod_eq_zero he,
+  symmetry,
+  rw ←nat.prime_dvd_prime_iff_eq,
+  exact this,
+  norm_num,
+  exact hp,
+end
+
 /--
 An upper bound on the central binomial coefficient used in the proof of Bertrand's postulate.
 The bound splits the prime factors of `central_binom n` into those
@@ -457,12 +426,14 @@ nat.central_binom n
           ext1,
           simp only [and_imp, finset.mem_filter, finset.mem_range, and.congr_right_iff],
           intros h a_prime,
-          split,
-          { intros a_small,
-            rcases sq_prime_is_small a_prime a_small with bad | good,
-            { linarith, },
-            { exact good, }, },
-          { rw nat.le_sqrt', exact le_of_lt, },
+          rw [nat.le_sqrt', le_iff_eq_or_lt, or_iff_right_iff_imp],
+          intro a_sq,
+          exfalso,
+          have h_a_sq := even_two_mul n,
+          rw [<-a_sq, nat.even_pow] at h_a_sq,
+          rw [even_prime_eq_two a h_a_sq.left a_prime] at a_sq,
+          norm_num at a_sq,
+          linarith,
         end
 ... ≤ (2 * n) ^ (nat.sqrt (2 * n))
         *

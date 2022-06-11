@@ -25,6 +25,14 @@ add_nonneg zero_le_two zero_le_one
 lemma zero_le_four {α : Type} [ordered_semiring α] : (0 : α) ≤ 4 :=
 add_nonneg zero_le_two zero_le_two
 
+lemma max_pow {a b : ℝ} (ha : 0 ≤ a) (hb : 0 ≤ b) (n : ℕ) : max a b ^ n = max (a ^ n) (b ^ n) :=
+begin
+  by_cases hab : a ≤ b,
+  { rw [max_eq_right hab, max_eq_right $ pow_le_pow_of_le_left ha hab n] },
+  { rw [max_eq_left $ le_of_not_le hab,
+        max_eq_left $ pow_le_pow_of_le_left hb (le_of_not_le hab) n] }
+end
+
 namespace padic_val_nat
 
 variables (n : ℕ)
@@ -246,9 +254,8 @@ begin
     { simpa only [padic_val_rat.of_int] using int.coe_nat_nonneg _ }
   end,
   have hpy2 : 0 ≤ padic_val_rat p (x ^ 3 + A * x + B) :=
-  le_trans
-    (le_min (le_trans (le_min hpx3 hpAx) $ padic_val_rat.min_le_padic_val_rat_add p hx3Ax) hpB)
-    (padic_val_rat.min_le_padic_val_rat_add p hx3AxB),
+  le_trans' (padic_val_rat.min_le_padic_val_rat_add p hx3AxB)
+    (le_min (le_trans (le_min hpx3 hpAx) $ padic_val_rat.min_le_padic_val_rat_add p hx3Ax) hpB),
   rw [← w, padic_val_rat.pow p hy] at hpy2,
   exact nonneg_of_mul_nonneg_left hpy2 zero_lt_two
 end
@@ -300,7 +307,7 @@ begin
     rw [padic_val_rat.of_int],
     exact lt_of_lt_of_le (mul_neg_of_pos_of_neg zero_lt_three hpx) (int.coe_nat_nonneg _)
   end,
-  have hy : y ≠ 0 := (pow_ne_zero_iff zero_lt_two).mp (w.symm ▸ hx3AxB),
+  have hy : y ≠ 0 := ne_zero_pow two_ne_zero (w.symm ▸ hx3AxB),
   apply_fun padic_val_rat p at w,
   rw [padic_val_rat.pow p hy, hpx3AxB, padic_val_rat.pow p hx] at w,
   change 2 * padic_val_rat p y = 3 * padic_val_rat p x at w,
@@ -414,26 +421,26 @@ def height : E⟮ℚ⟯ → ℝ
   height (some x y w : E⟮ℚ⟯) = (max (|x.num|) (|x.denom|) : ℝ).log :=
 rfl
 
+lemma height_pos (x : ℚ) : (0 : ℝ) < max (|x.num|) (|x.denom|) :=
+lt_max_of_lt_right $ abs_pos_of_pos $ nat.cast_pos.mpr x.pos
+
 lemma height_nonneg (P : E⟮ℚ⟯) : 0 ≤ height P :=
 begin
   cases P with x,
   { exact (le_refl 0) },
-  { rw [height, real.le_log_iff_exp_le, real.exp_zero],
-    all_goals { rw [nat.abs_cast] },
-    rw [le_max_iff, nat.one_le_cast, nat.succ_le_iff],
-    any_goals { rw [lt_max_iff, nat.cast_pos] },
-    all_goals { exact or.inr x.pos } }
+  { rw [height_some, real.le_log_iff_exp_le $ height_pos x, real.exp_zero, nat.abs_cast],
+    exact le_max_of_le_right (nat.one_le_cast.mpr $ nat.succ_le_of_lt x.pos) }
 end
 
-include ha₁ ha₃
-
-def height_le_constant.function {C : ℝ} (hC : 0 ≤ C) :
+private def height_le_constant.function {C : ℝ} :
   {P : E⟮ℚ⟯ // height P ≤ C} → option (fin (2 * ⌊C.exp⌋₊ + 1) × fin (⌊C.exp⌋₊ + 1) × fin 2)
 | ⟨0         , _⟩ := none
 | ⟨some x y w, h⟩ := some ⟨(x.num + ⌊C.exp⌋).to_nat, x.denom, if y ≤ 0 then 0 else 1⟩
 
-lemma height_le_constant.injective {C : ℝ} (hC : 0 ≤ C) :
-  function.injective $ @height_le_constant.function E ha₁ ha₃ C hC :=
+include ha₁ ha₃
+
+private lemma height_le_constant.injective {C : ℝ} :
+  function.injective $ @height_le_constant.function E C :=
 begin
   rintro ⟨_ | ⟨⟨n, d, hx, _⟩, y, w⟩, hP⟩ ⟨_ | ⟨⟨n', d', hx', _⟩, y', w'⟩, hQ⟩ hPQ,
   any_goals { contradiction },
@@ -483,16 +490,22 @@ begin
     { exact or.inr hx' } }
 end
 
-instance height_le_constant.fintype (C : ℝ) : fintype {P : E⟮ℚ⟯ // height P ≤ C} :=
-begin
-  by_cases hC : 0 ≤ C,
-  { exact fintype.of_injective (height_le_constant.function ha₁ ha₃ hC)
-      (height_le_constant.injective ha₁ ha₃ hC) },
-  { exact @fintype.of_is_empty {P : E⟮ℚ⟯ // height P ≤ C}
-      ⟨λ ⟨P, hP⟩, hC $ le_trans (height_nonneg P) hP⟩ }
-end
+/-- There are finitely many points of bounded height. -/
+def height_le_constant.fintype (C : ℝ) : fintype {P : E⟮ℚ⟯ // height P ≤ C} :=
+fintype.of_injective height_le_constant.function $ height_le_constant.injective ha₁ ha₃
 
 include ha₂ ha₄ ha₆
+
+private lemma coeff_ne_zero : (A : ℝ) ≠ 0 ∨ (B : ℝ) ≠ 0 :=
+begin
+  by_cases hA : (A : ℝ) = 0,
+  { have disc : (E.disc_unit.val : ℝ) ≠ 0 := rat.cast_ne_zero.mpr (units.ne_zero E.disc_unit),
+    push_cast [E.disc_unit_eq, ha₁, ha₂, ha₃, ha₄, ha₆, hA, disc_aux] at disc,
+    simp only [zero_add, add_zero, zero_sub, sub_zero, zero_mul, mul_zero, zero_pow zero_lt_two,
+               zero_pow zero_lt_three, neg_ne_zero] at disc,
+    exact or.inr (right_ne_zero_of_mul $ ne_zero_pow two_ne_zero $ right_ne_zero_of_mul disc) },
+  { exact or.inl hA }
+end
 
 lemma exists_constant_height_add_le_two_mul_height_add_constant (Q : E⟮ℚ⟯) :
   ∃ C : ℝ, ∀ P : E⟮ℚ⟯, height (P + Q) ≤ 2 * height P + C :=
@@ -500,84 +513,250 @@ begin
   cases Q with x' y' w',
   { exact ⟨0, λ P, by simpa only [EllipticCurve.zero_def, add_zero, two_mul]
                       using le_add_of_nonneg_left (height_nonneg P)⟩ },
-  { let hQ : ℝ := height (some x' y' w'),
-    let h2Q : ℝ := height (EllipticCurve.dbl $ some x' y' w'),
-    -- let C₁ : ℝ := (1 + |A| + |B| : ℝ).sqrt,
-    -- let C₂ : ℝ := 1 + |x'|,
-    -- let C₃ : ℝ := (|A| + |x'|) * C₂ + 2 * (|B| + |y'| * C₁),
-    existsi [max 0 $ max hQ h2Q],
+  { existsi [max (height $ some x' y' w') $
+             max (height $ EllipticCurve.dbl $ some x' y' w') $
+             max (|x'.num * x'.denom| + |x'.num ^ 2 + A * x'.denom ^ 2|
+                  + |A * x'.num * x'.denom + 2 * B * x'.denom ^ 2|
+                  + (1 + |A| + |B| : ℝ).sqrt * |2 * y'.num * (x'.denom : ℝ).sqrt| : ℝ).log
+                 (|x'.denom ^ 2| + |2 * x'.num * x'.denom| + |x'.num ^ 2| : ℝ).log],
     rintro (_ | ⟨x, y, w⟩),
-    { rw [EllipticCurve.zero_def, zero_add, height_zero, mul_zero, zero_add],
-      exact le_max_of_le_right (le_max_left hQ h2Q) },
+    { simpa only [EllipticCurve.zero_def, zero_add, height_zero, mul_zero] using le_max_left _ _ },
     { have sw := w,
       have sw' := w',
-      unfold has_add.add,
+      conv_lhs { dsimp only [has_add.add] },
       unfold EllipticCurve.add,
       simp only [ha₁, ha₂, ha₃, ha₄, ha₆, algebra_map_rat_rat, ring_hom.id_apply, mul_zero,
                  zero_mul, add_zero, sub_zero] at sw sw' ⊢,
       split_ifs with hx hy,
-      { rcases padic_val_point.denom sw with ⟨d, hxd, hyd⟩,
+      { by_cases hxy : ((y - y') * (x - x')⁻¹) ^ 2 - x - x' = 0,
+        { rw [height_some, hxy, rat.num_zero, int.cast_zero, abs_zero, rat.denom_zero, nat.cast_one,
+              abs_one, max_eq_right (@zero_le_one ℝ _), real.log_one],
+          exact le_add_of_nonneg_of_le (mul_nonneg zero_le_two $ height_nonneg _)
+            (le_max_of_le_left $ height_nonneg _) },
+        rcases padic_val_point.denom sw with ⟨d, hxd, hyd⟩,
         rcases padic_val_point.denom sw' with ⟨d', hxd', hyd'⟩,
         have hd : (d : ℚ) ≠ 0 :=
         by { rw [nat.cast_ne_zero], rintro rfl, exact ne_zero_of_lt x.pos hxd },
         have hd' : (d' : ℚ) ≠ 0 :=
         by { rw [nat.cast_ne_zero], rintro rfl, exact ne_zero_of_lt x'.pos hxd' },
-        have add_rw :
-          ((y - y') * (x - x')⁻¹) ^ 2 - x - x'
-          = (((x.num * x'.num + A * d ^ 2 * d' ^ 2) * (x.num * d' ^ 2 + x'.num * d ^ 2)
-              + 2 * B * d ^ 4 * d' ^ 4 - 2 * y.num * d * y'.num * d' : ℤ) : ℚ)
-            / (((x.num * d' ^ 2 - x'.num * d ^ 2) ^ 2 : ℤ) : ℚ) :=
+        have hdd' : x.num * (d' : ℤ) ^ 2 - (d : ℤ) ^ 2 * x'.num ≠ 0 :=
+        begin
+          rw [← sub_ne_zero, ← rat.num_div_denom x, hxd, nat.cast_pow, ← rat.num_div_denom x', hxd',
+              nat.cast_pow, div_sub_div _ _ (pow_ne_zero 2 hd) (pow_ne_zero 2 hd'), div_ne_zero_iff]
+            at hx,
+          simpa only [← @int.cast_ne_zero ℚ] with push_cast using hx.1
+        end,
+        have hnum : 0 < (|x'.num * d' ^ 2| + |x'.num ^ 2 + A * (d' ^ 2) ^ 2|
+                          + |A * x'.num * d' ^ 2 + 2 * B * (d' ^ 2) ^ 2|
+                          + (1 + |A| + |B| : ℝ).sqrt * |2 * y'.num * d'| : ℝ) :=
+        begin
+          push_cast [← @rat.cast_ne_zero ℝ] at hd',
+          rw [← @pow_ne_zero_iff ℝ _ _ _ _ zero_lt_two] at hd',
+          apply add_pos_of_pos_of_nonneg _ (mul_nonneg (real.sqrt_nonneg _) $ abs_nonneg _),
+          by_cases hnum : (x'.num : ℝ) = 0,
+          { simp only [hnum, zero_add, zero_mul, mul_zero, zero_pow zero_lt_two, abs_zero],
+            cases coeff_ne_zero ha₁ ha₂ ha₃ ha₄ ha₆ with hA hB,
+            { exact add_pos_of_pos_of_nonneg (abs_pos.mpr $ mul_ne_zero hA $ pow_ne_zero 2 hd')
+                (abs_nonneg _) },
+            { exact add_pos_of_nonneg_of_pos (abs_nonneg _)
+                (abs_pos.mpr $ mul_ne_zero (mul_ne_zero two_ne_zero hB) $ pow_ne_zero 2 hd') } },
+          { exact add_pos_of_pos_of_nonneg
+              (add_pos_of_pos_of_nonneg (abs_pos.mpr $ mul_ne_zero hnum hd') $ abs_nonneg _)
+              (abs_nonneg _) }
+        end,
+        have hdenom : 0 < (|(d' ^ 2) ^ 2| + |2 * x'.num * d' ^ 2| + |x'.num ^ 2| : ℝ) :=
+        begin
+          push_cast [← @rat.cast_ne_zero ℝ] at hd',
+          rw [← @pow_ne_zero_iff ℝ _ _ _ _ zero_lt_two, ← @pow_ne_zero_iff ℝ _ _ _ _ zero_lt_two,
+              ← abs_pos] at hd',
+          exact add_pos_of_pos_of_nonneg (add_pos_of_pos_of_nonneg hd' $ abs_nonneg _)
+            (abs_nonneg _)
+        end,
+        have add_rw : ((y - y') * (x - x')⁻¹) ^ 2 - x - x' = rat.mk
+          (x.num ^ 2 * (x'.num * d' ^ 2) + x.num * d ^ 2 * (x'.num ^ 2 + A * (d' ^ 2) ^ 2)
+            + (d ^ 2) ^ 2 * (A * x'.num * d' ^ 2 + 2 * B * (d' ^ 2) ^ 2)
+            - y.num * d * (2 * y'.num * d'))
+          ((x.num * d' ^ 2 - d ^ 2 * x'.num) ^ 2) :=
         calc ((y - y') * (x - x')⁻¹) ^ 2 - x - x'
-              = (y - y') ^ 2 / (x - x') ^ 2 - (x + x') * ((x - x') ^ 2 / (x - x') ^ 2) :
-                by rw [← div_eq_mul_inv, div_pow, sub_sub,
-                       div_self $ pow_ne_zero 2 $ sub_ne_zero_of_ne hx, mul_one]
-          ... = ((x * x' + A) * (x + x') + 2 * B - 2 * y * y') / (x - x') ^ 2 :
-                by { rw [sub_sq, sw, sw'], ring1 }
-          ... = (((x.num / d ^ 2) * (x'.num / d' ^ 2) + A) * (x.num / d ^ 2 + x'.num / d' ^ 2)
-                  + 2 * B - 2 * (y.num / d ^ 3) * (y'.num / d' ^ 3))
-                / (x.num / d ^ 2 - x'.num / d' ^ 2) ^ 2 :
-                by simp only [← nat.cast_pow, ← hxd, ← hyd, ← hxd', ← hyd', rat.num_div_denom]
-          ... = ((x.num * (d ^ 2 / d ^ 2) * x'.num * (d' ^ 2 / d' ^ 2) + A * d ^ 2 * d' ^ 2)
-                  * (x.num * d' ^ 2 + x'.num * d ^ 2) * (d ^ 2 / d ^ 2) * (d' ^ 2 / d' ^ 2)
-                  + 2 * B * d ^ 4 * d' ^ 4
-                  - 2 * y.num * d * y'.num * d' * (d ^ 3 / d ^ 3) * (d' ^ 3 / d' ^ 3))
+              = (x ^ 3 + A * x + B - 2 * y * y' + (x' ^ 3 + A * x' + B) - (x + x') * (x - x') ^ 2)
+                / (x - x') ^ 2 :
+                by rw [← div_eq_mul_inv, div_pow, sub_sq, sw, sw', sub_sub, ← div_sub_div_same,
+                       mul_div_cancel (x + x') $ pow_ne_zero 2 $ sub_ne_zero_of_ne hx]
+          ... = (x.num ^ 2 * (x'.num * d' ^ 2) * (d ^ 2 / d ^ 2) ^ 2 * (d' ^ 2 / d' ^ 2)
+                  + x.num * d ^ 2 * (x'.num ^ 2 * (d' ^ 2 / d' ^ 2) ^ 2 + A * (d' ^ 2) ^ 2)
+                    * (d ^ 2 / d ^ 2)
+                  + (d ^ 2) ^ 2 * (A * x'.num * d' ^ 2 * (d' ^ 2 / d' ^ 2) + 2 * B * (d' ^ 2) ^ 2)
+                  - y.num * d * (2 * y'.num * d') * (d ^ 3 / d ^ 3) * (d' ^ 3 / d' ^ 3))
                 / (x.num * d' ^ 2 - d ^ 2 * x'.num) ^ 2 :
-                by { rw [div_add_div _ _ (pow_ne_zero 2 hd) (pow_ne_zero 2 hd'), div_mul_eq_div_div,
-                         div_sub_div _ _ (pow_ne_zero 2 hd) (pow_ne_zero 2 hd'), div_pow,
-                         ← div_mul], ring1 }
-          ... = (((x.num * x'.num + A * d ^ 2 * d' ^ 2) * (x.num * d' ^ 2 + x'.num * d ^ 2)
-                  + 2 * B * d ^ 4 * d' ^ 4 - 2 * y.num * d * y'.num * d' : ℤ) : ℚ)
-                / (((x.num * d' ^ 2 - x'.num * d ^ 2) ^ 2 : ℤ) : ℚ) :
-                by { simp only [div_self (pow_ne_zero _ hd), div_self (pow_ne_zero _ hd'), mul_one],
-                     rw [mul_comm (d ^ 2 : ℚ)], push_cast },
-        sorry },
+                begin
+                  conv_lhs { rw [← rat.num_div_denom x, hxd, ← rat.num_div_denom y, hyd,
+                                 ← rat.num_div_denom x', hxd', ← rat.num_div_denom y', hyd'] },
+                  simp only [nat.cast_pow],
+                  nth_rewrite_lhs 1 [div_sub_div _ _ (pow_ne_zero 2 hd) (pow_ne_zero 2 hd')],
+                  rw [div_pow _ (d ^ 2 * d' ^ 2 : ℚ), div_div_eq_mul_div],
+                  ring1
+                end
+          ... = rat.mk
+                  (x.num ^ 2 * (x'.num * d' ^ 2) + x.num * d ^ 2 * (x'.num ^ 2 + A * (d' ^ 2) ^ 2)
+                    + (d ^ 2) ^ 2 * (A * x'.num * d' ^ 2 + 2 * B * (d' ^ 2) ^ 2)
+                    - y.num * d * (2 * y'.num * d'))
+                  ((x.num * d' ^ 2 - d ^ 2 * x'.num) ^ 2) :
+                by push_cast [div_self (pow_ne_zero _ hd), div_self (pow_ne_zero _ hd'), one_pow,
+                              mul_one, rat.mk_eq_div],
+        have sw_rw : (y.num ^ 2 : ℚ) = x.num ^ 3 + x.num * (d ^ 2) ^ 2 * A + (d ^ 2) ^ 3 * B :=
+        begin
+          conv_lhs { rw [← div_mul_cancel (y.num : ℚ) $ pow_ne_zero 3 hd, mul_pow, ← pow_mul,
+                         ← nat.cast_pow, ← hyd, rat.num_div_denom, sw, ← rat.num_div_denom x, hxd,
+                         nat.cast_pow, div_pow, add_mul, add_mul, pow_mul',
+                         div_mul_cancel (x.num ^ 3 : ℚ) $ pow_ne_zero 3 $ pow_ne_zero 2 hd,
+                         pow_succ (d ^ 2 : ℚ), ← mul_assoc, mul_assoc (A : ℚ),
+                         div_mul_cancel (x.num : ℚ) $ pow_ne_zero 2 hd] },
+          ring1
+        end,
+        have sw_le : (|y.num| : ℝ) ≤ max (|x.num| : ℝ).sqrt (|d|) ^ 3 * (1 + |A| + |B| : ℝ).sqrt :=
+        begin
+          push_cast [← @rat.cast_inj ℝ] at sw_rw,
+          rw [← real.sqrt_sq $ abs_nonneg _, pow_abs, sw_rw,
+              ← real.sqrt_sq $ pow_nonneg (le_max_of_le_right $ abs_nonneg _) 3, ← pow_mul _ 3,
+              max_pow (real.sqrt_nonneg _) $ abs_nonneg _, pow_mul', real.sq_sqrt $ abs_nonneg _,
+              pow_mul', ← real.sqrt_mul $ le_max_of_le_left $ pow_nonneg (abs_nonneg _) 3],
+          apply real.sqrt_le_sqrt (le_trans' _ $ abs_add_three _ _ _),
+          simp only [abs_mul, abs_pow, mul_add, mul_one],
+          apply add_le_add_three,
+          { exact le_max_left _ _ },
+          { apply mul_le_mul_of_nonneg_right _ (abs_nonneg (A : ℝ)),
+            by_cases hsq : (|x.num| : ℝ) ≤ |d| ^ 2,
+            { apply le_trans (mul_le_mul_of_nonneg_right hsq $ sq_nonneg _),
+              simpa only [← pow_succ] using le_max_right _ _ },
+            { apply le_trans
+                (mul_le_mul_of_nonneg_left
+                  (pow_le_pow_of_le_left (sq_nonneg (|d| : ℝ)) (le_of_lt $ lt_of_not_le hsq) 2)
+                  (abs_nonneg _)),
+              simpa only [← pow_succ] using le_max_left _ _ } },
+          { exact mul_le_mul_of_nonneg_right (le_max_right _ _) (abs_nonneg _) }
+        end,
+        have y_le : (|y.num| * |↑d| : ℝ) ≤ max (|x.num|) (|d ^ 2|) ^ 2 * (1 + |A| + |B| : ℝ).sqrt :=
+        begin
+          apply le_trans (mul_le_mul_of_nonneg_right sw_le $ abs_nonneg _),
+          rw [mul_comm, ← mul_assoc],
+          apply mul_le_mul_of_nonneg_right _ (real.sqrt_nonneg _),
+          by_cases hsq : (|x.num| : ℝ) ≤ |d ^ 2|,
+          { rw [max_eq_right hsq],
+            rw [← real.sqrt_le_sqrt_iff $ abs_nonneg _, abs_pow,
+                real.sqrt_sq $ abs_nonneg _] at hsq,
+            simpa only [max_eq_right hsq, ← pow_succ, abs_pow, ← pow_mul] using le_refl _ },
+          { rw [max_eq_left_of_lt $ lt_of_not_le hsq],
+            nth_rewrite_rhs 0 [← real.sq_sqrt $ abs_nonneg _],
+            rw [not_le, ← real.sqrt_lt_sqrt_iff $ abs_nonneg _, abs_pow,
+                real.sqrt_sq $ abs_nonneg _] at hsq,
+            apply le_trans
+              (mul_le_mul_of_nonneg_right (le_of_lt hsq) $
+                pow_nonneg (le_max_of_le_right $ abs_nonneg _) 3),
+            simpa only [max_eq_left_of_lt hsq, ← pow_succ, ← pow_mul] using le_refl _ }
+        end,
+        nth_rewrite_rhs 0 [← nat.cast_two],
+        rw [height_some, real.log_le_iff_le_exp $ height_pos _, real.exp_add, real.exp_nat_mul,
+            height_some, real.exp_log $ height_pos _, hxd', nat.cast_pow],
+        apply le_trans' ((mul_le_mul_left $ pow_pos (height_pos _) 2).mpr $ real.exp_monotone $
+                          le_max_of_le_right $ le_max_right _ _),
+        rw [real.sqrt_sq $ nat.cast_nonneg d', max_le_iff],
+        split,
+        { apply le_trans' ((mul_le_mul_left $ pow_pos (height_pos _) 2).mpr $ real.exp_monotone $
+                            le_max_left _ _),
+          rw [hxd, nat.cast_pow, real.exp_log hnum],
+          calc (|(((y - y') * (x - x')⁻¹) ^ 2 - x - x').num| : ℝ)
+                ≤ (|x.num ^ 2 * (x'.num * d' ^ 2) + x.num * d ^ 2 * (x'.num ^ 2 + A * (d' ^ 2) ^ 2)
+                    + (d ^ 2) ^ 2 * (A * x'.num * d' ^ 2 + 2 * B * (d' ^ 2) ^ 2)
+                    - y.num * d * (2 * y'.num * d')| : ℤ) :
+                  by simpa only [← int.cast_abs, int.cast_le, add_rw]
+                     using int.le_of_dvd (abs_pos.mpr $ rat.mk_num_ne_zero_of_ne_zero hxy add_rw)
+                       ((abs_dvd_abs _ _).mpr $ rat.num_dvd _ $ pow_ne_zero 2 hdd')
+            ... ≤ |x.num| ^ 2 * |x'.num * d' ^ 2|
+                  + |x.num| * |d ^ 2| * |x'.num ^ 2 + A * (d' ^ 2) ^ 2|
+                  + |d ^ 2| ^ 2 * |A * x'.num * d' ^ 2 + 2 * B * (d' ^ 2) ^ 2|
+                  + |y.num| * |d| * |2 * y'.num * d'| :
+                  by simpa only [int.cast_le, ← abs_mul, pow_abs] with push_cast
+                     using le_trans (abs_sub _ _) (add_le_add_right (abs_add_three _ _ _) _)
+            ... ≤ max (|x.num|) (|d ^ 2|) ^ 2
+                  * (|x'.num * d' ^ 2| + |x'.num ^ 2 + A * (d' ^ 2) ^ 2|
+                      + |A * x'.num * d' ^ 2 + 2 * B * (d' ^ 2) ^ 2|
+                      + (1 + |A| + |B| : ℝ).sqrt * |2 * y'.num * d'|) :
+                  begin
+                    simp only [mul_add, ← mul_assoc],
+                    apply add_le_add,
+                    { apply add_le_add_three,
+                      { exact mul_le_mul_of_nonneg_right
+                          (pow_le_pow_of_le_left (abs_nonneg _) (le_max_left _ _) 2)
+                          (abs_nonneg _) },
+                      { rw [sq $ max _ _],
+                        exact mul_le_mul_of_nonneg_right
+                          (mul_le_mul (le_max_left _ _) (le_max_right _ _) (abs_nonneg _) $
+                            le_max_of_le_left $ abs_nonneg _) (abs_nonneg _) },
+                      { exact mul_le_mul_of_nonneg_right
+                          (pow_le_pow_of_le_left (abs_nonneg _) (le_max_right _ _) 2)
+                          (abs_nonneg _) } },
+                    { exact mul_le_mul_of_nonneg_right y_le (abs_nonneg _) }
+                  end },
+        { apply le_trans' ((mul_le_mul_left $ pow_pos (height_pos _) 2).mpr $ real.exp_monotone $
+                            le_max_right _ _),
+          rw [hxd, nat.cast_pow, real.exp_log hdenom],
+          calc (|(((y - y') * (x - x')⁻¹) ^ 2 - x - x').denom| : ℝ)
+                ≤ (|(x.num * d' ^ 2 - d ^ 2 * x'.num) ^ 2| : ℤ) :
+                  by simpa only [← int.cast_coe_nat, ← int.cast_abs, int.cast_le, add_rw]
+                     using int.le_of_dvd (abs_pos.mpr $ pow_ne_zero 2 hdd')
+                      ((abs_dvd_abs _ _).mpr $ rat.denom_dvd _ _)
+            ... ≤ |x.num ^ 2 * (d' ^ 2) ^ 2 - x.num * d ^ 2 * (2 * x'.num * d' ^ 2)
+                  + (d ^ 2) ^ 2 * x'.num ^ 2| :
+                  le_of_eq $ by { push_cast, congr' 1, ring1 }
+            ... ≤ |x.num| ^ 2 * |(d' ^ 2) ^ 2| + |x.num| * |d ^ 2| * |2 * x'.num * d' ^ 2|
+                  + |d ^ 2| ^ 2 * |x'.num ^ 2| :
+                  by simpa only [← abs_mul, pow_abs]
+                     using le_trans (abs_add _ _) (add_le_add_right (abs_sub _ _) _)
+            ... ≤ max (|x.num|) (|d ^ 2|) ^ 2
+                  * (|(d' ^ 2) ^ 2| + |2 * x'.num * d' ^ 2| + |x'.num ^ 2| : ℝ) :
+                  begin
+                    simp only [mul_add],
+                    apply add_le_add_three,
+                    { exact mul_le_mul_of_nonneg_right
+                        (pow_le_pow_of_le_left (abs_nonneg _) (le_max_left _ _) 2) (abs_nonneg _) },
+                    { rw [sq $ max _ _],
+                      exact mul_le_mul_of_nonneg_right
+                        (mul_le_mul (le_max_left _ _) (le_max_right _ _) (abs_nonneg _) $
+                          le_max_of_le_left $ abs_nonneg _) (abs_nonneg _) },
+                    { exact mul_le_mul_of_nonneg_right
+                        (pow_le_pow_of_le_left (abs_nonneg _) (le_max_right _ _) 2) (abs_nonneg _) }
+                  end } },
       { rw [not_ne_iff, eq_comm] at hx,
         subst hx,
         rw [← sw', sq_eq_sq_iff_abs_eq_abs, abs_eq_abs,
             or_iff_left $ (not_iff_not_of_iff add_eq_zero_iff_eq_neg).mp hy, eq_comm] at sw,
         subst sw,
         exact le_add_of_nonneg_of_le (mul_nonneg zero_le_two $ height_nonneg _)
-          (le_max_of_le_right $ le_max_right hQ h2Q) },
+          (le_max_of_le_right $ le_max_left _ _) },
       all_goals { exact add_nonneg (mul_nonneg zero_le_two $ height_nonneg _)
-                    (le_max_of_le_left $ le_refl 0) } } }
+                    (le_max_of_le_left $ height_nonneg _) } } }
 end
 
 lemma exists_constant_four_mul_height_le_height_two_smul_add_constant :
   ∃ C : ℝ, ∀ P : E⟮ℚ⟯, 4 * height P ≤ height (EllipticCurve.dbl P) + C :=
 begin
-  let h2 : ℝ := 4 * finset.max'
-    (finset.image (λ p : E⟮ℚ⟯[2], height p.val) (set.finite.of_fintype set.univ).to_finset)
-    (by simp only [finset.nonempty.image_iff, set.finite.to_finset.nonempty, set.univ_nonempty]),
   -- let C₁ : ℝ := (max 12 $ 16 * |A|),
   -- let C₂ : ℝ := (max 3 $ max (5 * |A|) $ 27 * |B|),
   -- let C₃ : ℝ := (max (16 * |A| ^ 3 + 108 * B ^ 2) $ max (4 * A ^ 2 * |B|) $
   --                max (12 * A ^ 4 + 88 * |A| * B ^ 2) $ 12 * |A| ^ 3 * |B| + 96 * |B| ^ 3),
   -- let C₄ : ℝ := (max (A ^ 2 * |B|) $ max (5 * A ^ 4 + 32 * |A| * B ^ 2) $
   --                max (26 * |A| ^ 3 * |B| + 192 * |B| ^ 3) $ 3 * |A| ^ 5 + 24 * A ^ 2 * B ^ 2),
-  existsi [max 0 h2],
+  existsi [max (4 * finset.max'
+                (finset.image (λ p : E⟮ℚ⟯[2], height p.val)
+                  (set.finite.of_fintype set.univ).to_finset)
+                (by simp only [finset.nonempty.image_iff, set.finite.to_finset.nonempty,
+                               set.univ_nonempty])) $
+           sorry],
   rintro (_ | ⟨x, y, w⟩),
   { rw [EllipticCurve.zero_def, EllipticCurve.dbl_zero, height_zero, mul_zero, zero_add],
-    exact le_max_of_le_left (le_refl 0) },
+    exact le_max_of_le_left
+      (mul_nonneg zero_le_four $ finset.le_max' _ _ $ finset.mem_image.mpr
+        ⟨⟨0, map_zero $ mul_by 2⟩, (set.finite.mem_to_finset _).mpr $ set.mem_univ _, rfl⟩) },
   { have sw := w,
     have E₂_y : y = 0 → some x y w ∈ E⟮ℚ⟯[2],
     any_goals { rintro rfl,
@@ -590,11 +769,11 @@ begin
     { rw [not_ne_iff, two_mul, add_self_eq_zero] at hy,
       subst hy,
       rw [height_zero, zero_add],
-      apply le_max_of_le_right,
-      apply mul_le_mul_of_nonneg_left _ zero_le_four,
-      apply finset.le_max',
-      rw [finset.mem_image],
-      exact ⟨⟨some x 0 w, E₂_y rfl⟩, (set.finite.mem_to_finset _).mpr $ set.mem_univ _, rfl⟩ } }
+      exact le_max_of_le_left
+        (mul_le_mul_of_nonneg_left
+          (finset.le_max' _ _ $ finset.mem_image.mpr
+            ⟨⟨some x 0 w, E₂_y rfl⟩, (set.finite.mem_to_finset _).mpr $ set.mem_univ _, rfl⟩)
+          zero_le_four) } }
 end
 
 end heights

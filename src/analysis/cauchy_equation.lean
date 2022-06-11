@@ -75,7 +75,7 @@ let ⟨s, hs, hbounded⟩ := exists_zero_nhds_bounded f h in
   additive_continuous_at_zero_of_bounded_nhds_zero f hs hbounded
 
 lemma measurable.continuous_real (f : ℝ →+ ℝ) (h : measurable f) : continuous f :=
-(f.uniform_continuous_of_continuous_at_zero $ additive_continuous_at_zero f h).continuous
+continuous_of_continuous_at_zero f $ additive_continuous_at_zero f h
 
 -- do we want this one and where would it go?
 lemma is_linear_map_iff_apply_eq_apply_one_mul {M : Type*} [comm_semiring M] (f : M →+ M) :
@@ -120,7 +120,7 @@ lemma add_monoid_hom.continuous_at_iff_continuous_at_zero (f : ℝ →+ ℝ) :
   continuous_at f a ↔ continuous_at f 0 :=
 begin
   refine ⟨λ ha, continuous_at_iff.2 $ λ ε hε, Exists₂.imp (λ δ hδ, _) (continuous_at_iff.1 ha ε hε),
-    λ h, (f.uniform_continuous_of_continuous_at_zero h).continuous.continuous_at⟩,
+    λ h, (continuous_of_continuous_at_zero f h).continuous_at⟩,
   refine λ hδf y hyδ, _,
   replace hyδ : dist (y + a) a < δ,
   { convert hyδ using 1,
@@ -130,8 +130,8 @@ begin
 end
 
 lemma continuous_at.is_linear_real (f : ℝ →+ ℝ) (h : continuous_at f a) : is_linear_map ℝ f :=
-(f.to_real_linear_map $ (f.uniform_continuous_of_continuous_at_zero $
-  (f.continuous_at_iff_continuous_at_zero).mp h).continuous).to_linear_map.is_linear
+(f.to_real_linear_map $ continuous_of_continuous_at_zero f $
+  (f.continuous_at_iff_continuous_at_zero).mp h).to_linear_map.is_linear
 
 lemma is_linear_map_real_of_bounded_nhds (f : ℝ →+ ℝ) (hs : s ∈ 𝓝 a) (hf : bounded (f '' s)) :
   is_linear_map ℝ f :=

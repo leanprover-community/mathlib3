@@ -1,4 +1,8 @@
-import combinatorics.additive.mathlib
+/-
+Copyright (c) 2022 Yaël Dillies, George Shakan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Yaël Dillies, George Shakan
+-/
 import combinatorics.double_counting
 import data.finset.pointwise
 
@@ -6,10 +10,37 @@ import data.finset.pointwise
 # The Plünnecke-Ruzsa inequality
 -/
 
+namespace finset
+variables {α : Type*}
+open_locale pointwise
+
+section
+variables [add_left_cancel_semigroup α] [decidable_eq α] (s t : finset α) (a : α)
+
+@[simp] lemma card_singleton_add : ({a} + s).card = s.card :=
+by { simp_rw singleton_add, exact card_image_of_injective _ (add_right_injective _) }
+
+lemma singleton_add_inter : {a} + (s ∩ t) = ({a} + s) ∩ ({a} + t) :=
+by { simp_rw singleton_add, exact image_inter _ _ (add_right_injective _) }
+
+end
+
+section
+variables [add_right_cancel_semigroup α] [decidable_eq α] (s t : finset α) (a : α)
+
+lemma inter_add_singleton : (s ∩ t) + {a} = (s + {a}) ∩ (t + {a}) :=
+by { simp_rw add_singleton, exact image_inter _ _ (add_left_injective a) }
+
+@[simp] lemma card_add_singleton : (s + {a}).card = s.card :=
+by { simp_rw add_singleton, exact card_image_of_injective _ (add_left_injective _) }
+
+end
+end finset
+
 open finset
 open_locale pointwise
 
-variables {α : Type*} [add_group α] [decidable_eq α] {A B C X : finset α}
+variables {α : Type*} [add_comm_group α] [decidable_eq α] {A B C X : finset α}
 
 /-- **Ruzsa's triangle inequality** -/
 lemma card_sub_mul_le_card_sub_mul_card_sub (A B C : finset α) :
@@ -37,36 +68,31 @@ begin
   set C' := insert x C with hC',
   rw [insert_eq, add_union],
   have : A' + {x} = (A + {x}) ∩ (A + C),
-  {
-    rw [hA'],
-  },
+  { rw [hA', inter_add_singleton, (is_add_unit_singleton x).sub_add_cancel] },
   have : (A + C').card = (A + C).card + A.card - A'.card,
-  {
-    rw [hC', insert_eq, add_union, hA'],
-  }
+  { rw [hC', insert_eq, add_union, ←card_add_singleton A x, ←card_add_singleton A' x,
+      add_comm (card _), this],
+    exact eq_tsub_of_add_eq (card_union_add_card_inter _ _) },
+  sorry
 end
 
 /-- **Ruzsa's triangle inequality** -/
 lemma card_sub_mul_le_card_add_mul_card_add (A B C : finset α) :
   (A - C).card * B.card ≤ (A + B).card * (B + C).card :=
 begin
-  -- rw [←sub_neg_eq_add A, ←card_neg B, ←card_neg (B + C)],
-  sorry
+  rw [←sub_neg_eq_add, ←card_neg B, ←card_neg (B + C), neg_add, ←sub_eq_add_neg],
+  exact card_sub_mul_le_card_sub_mul_card_sub _ _ _,
 end
 
 /-- **Ruzsa's triangle inequality** -/
 lemma card_add_mul_le_card_sub_mul_card_add (A B C : finset α) :
   (A + C).card * B.card ≤ (A - B).card * (B + C).card :=
-begin
-  sorry
-end
+by { rw [←sub_neg_eq_add, ←sub_neg_eq_add B], exact card_sub_mul_le_card_sub_mul_card_sub _ _ _ }
 
 /-- **Ruzsa's triangle inequality** -/
 lemma card_add_mul_le_card_add_mul_card_sub (A B C : finset α) :
   (A + C).card * B.card ≤ (A + B).card * (B - C).card :=
-begin
-  sorry
-end
+by { rw [←sub_neg_eq_add, sub_eq_add_neg B], exact card_sub_mul_le_card_add_mul_card_add _ _ _ }
 
 /-! ### Sum triangle inequality -/
 
@@ -78,14 +104,17 @@ sorry
 /-- **Ruzsa's triangle inequality** -/
 lemma card_add_mul_le_card_sub_mul_card_sub (A B C : finset α) :
   (A + C).card * B.card ≤ (A - B).card * (B - C).card :=
-sorry
+begin
+  rw [sub_eq_add_neg, ←card_neg B, ←card_neg (B - C), neg_sub', sub_neg_eq_add],
+  exact card_add_mul_le_card_add_mul_card_add _ _ _,
+end
 
 /-- **Ruzsa's triangle inequality** -/
 lemma card_sub_mul_le_card_add_mul_card_sub (A B C : finset α) :
   (A - C).card * B.card ≤ (A + B).card * (B - C).card :=
-sorry
+by { rw [sub_eq_add_neg, sub_eq_add_neg], exact card_add_mul_le_card_add_mul_card_add _ _ _ }
 
 /-- **Ruzsa's triangle inequality** -/
 lemma card_sub_mul_le_card_sub_mul_card_add (A B C : finset α) :
   (A - C).card * B.card ≤ (A - B).card * (B + C).card :=
-sorry
+by { rw [←sub_neg_eq_add, sub_eq_add_neg], exact card_add_mul_le_card_sub_mul_card_sub _ _ _ }

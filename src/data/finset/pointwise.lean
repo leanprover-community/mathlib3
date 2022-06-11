@@ -124,10 +124,10 @@ end has_inv
 open_locale pointwise
 
 section has_involutive_inv
-variables [decidable_eq α] [has_involutive_inv α] {s t : finset α}
+variables [decidable_eq α] [has_involutive_inv α] (s : finset α)
 
 @[simp, norm_cast, to_additive]
-lemma coe_inv (s : finset α) : ↑(s⁻¹) = (s : set α)⁻¹ := coe_image.trans set.image_inv
+lemma coe_inv : ↑(s⁻¹) = (s : set α)⁻¹ := coe_image.trans set.image_inv
 
 @[simp, to_additive] lemma card_inv : s⁻¹.card = s.card := card_image_of_injective _ inv_injective
 

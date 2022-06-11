@@ -191,8 +191,8 @@ begin
   simpa [finset.card_pos] using hsnonempty,
 end
 
-lemma nonempty_combi_interior_of_nonempty (hs : affine_independent 𝕜 (coe : (s : set E) → E))
-  (hsnonempty : s.nonempty) :
+protected lemma _root_.finset.nonempty.combi_interior
+  (hs : affine_independent 𝕜 (coe : (s : set E) → E)) (hsnonempty : s.nonempty) :
   (combi_interior 𝕜 s).nonempty :=
 ⟨s.centroid 𝕜 id, centroid_mem_combi_interior hs hsnonempty⟩
 

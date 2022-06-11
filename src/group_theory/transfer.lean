@@ -232,7 +232,7 @@ begin
     obtain ⟨n, hn, key⟩ := key_sylow_lemma' g₀ P P_comm (P.1.pow_mem hg.2 k) hk,
     rw [key, mul_assoc, hP hn (g ^ k) (P.1.pow_mem hg.2 k), inv_mul_cancel_left],
   end),
-  have key' : (fintype.card P.1).coprime P.1.index := P.lema19,
+  have key' : (fintype.card P.1).coprime P.1.index := P.card_coprime_index,
   have : pow_coprime key' ⟨g, hg.2⟩ = 1 := key.symm.trans hg.1,
   rwa [←pow_coprime_one, equiv.apply_eq_iff_eq, subtype.ext_iff] at this,
 end

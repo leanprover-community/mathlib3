@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Thomas Browning
 -/
 
-import data.nat.factorization
+import data.nat.factorization.basic
 import data.set_like.fintype
 import group_theory.group_action.conj_act
 import group_theory.p_group
@@ -520,14 +520,11 @@ begin
   rwa pow_one at key,
 end
 
-lemma lema19 [fintype G] {p : ℕ} [hp : fact p.prime] (P : sylow p G) :
-  nat.coprime (card P) (index (P : subgroup G)) :=
-begin
-  change nat.coprime (card P.1) (index P.1),
-  obtain ⟨n, hn⟩ := is_p_group.iff_card.mp P.2,
-  rw hn,
-  exact (hp.1.coprime_pow_of_not_dvd (not_dvd_index_sylow P index_ne_zero_of_fintype)).symm,
-end
+/-- Sylow subgroups are Hall subgroups. -/
+lemma card_coprime_index [fintype G] {p : ℕ} [hp : fact p.prime] (P : sylow p G) :
+  (card P).coprime (index (P : subgroup G)) :=
+let ⟨n, hn⟩ := is_p_group.iff_card.mp P.2 in
+hn.symm ▸ (hp.1.coprime_pow_of_not_dvd (not_dvd_index_sylow P index_ne_zero_of_fintype)).symm
 
 lemma ne_bot_of_dvd_card [fintype G] {p : ℕ} [hp : fact p.prime] (P : sylow p G)
   (hdvd : p ∣ card G) : (P : subgroup G) ≠ ⊥ :=

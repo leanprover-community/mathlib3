@@ -198,7 +198,7 @@ begin
   apply key_lemma0,
   intro g,
   have key := subtype.ext_iff.mp (abelianization.commutator_subset_ker
-    (monoid_hom.transfer_pow' hG) g.1.2),
+    (monoid_hom.transfer_center_pow' hG) g.1.2),
   exact subtype.ext (subtype.ext key),
 end
 

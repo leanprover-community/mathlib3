@@ -60,6 +60,10 @@ Some set instances do not appear here since they are consequences of others, for
 
 namespace finite.set
 
+example {s : set α} [finite α] : finite s := infer_instance
+example : finite (∅ : set α) := infer_instance
+example (a : α) : finite ({a} : set α) := infer_instance
+
 instance finite_union (s t : set α) [finite s] [finite t] :
   finite (s ∪ t : set α) :=
 by { haveI := fintype.of_finite s, haveI := fintype.of_finite t, apply_instance }
@@ -106,6 +110,15 @@ instance finite_bUnion' {ι : Type*} (s : set ι) [finite s] (t : ι → set α)
   finite (⋃(x ∈ s), t x) :=
 finite_bUnion s t (λ i h, infer_instance)
 
+/--
+Example: `finite (⋃ (i < n), f i)` where `f : ℕ → set α` and `[∀ i, finite (f i)]`
+(given instances from `data.nat.interval`).
+-/
+instance finite_bUnion'' {ι : Type*} (p : ι → Prop) [h : finite {x | p x}]
+  (t : ι → set α) [∀ i, finite (t i)] :
+  finite (⋃ x (h : p x), t x) :=
+@finite.set.finite_bUnion' _ _ (set_of p) h t _
+
 instance finite_Inter {ι : Sort*} [nonempty ι] (t : ι → set α) [∀ i, finite (t i)] :
   finite (⋂ i, t i) :=
 finite.set.subset (t $ classical.arbitrary ι) (Inter_subset _ _)
@@ -118,6 +131,9 @@ instance finite_image (s : set α) (f : α → β) [finite s] : finite (f '' s) 
 
 instance finite_range (f : ι → α) [finite ι] : finite (range f) :=
 by { haveI := fintype.of_finite (plift ι), apply_instance }
+
+instance finite_replacement [finite α] (f : α → β) : finite {(f x) | (x : α)} :=
+finite.set.finite_range f
 
 instance finite_prod (s : set α) (t : set β) [finite s] [finite t] :
   finite (s ×ˢ t : set (α × β)) :=

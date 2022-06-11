@@ -337,6 +337,9 @@ section set_finite_constructors
 theorem finite.of_fintype [fintype α] (s : set α) : s.finite :=
 by { classical, apply finite_of_fintype }
 
+@[nontriviality] lemma finite.of_subsingleton [subsingleton α] (s : set α) : s.finite :=
+finite.of_fintype s
+
 theorem finite_univ [fintype α] : (@univ α).finite := finite_of_fintype _
 
 theorem finite.union {s t : set α} (hs : s.finite) (ht : t.finite) : (s ∪ t).finite :=

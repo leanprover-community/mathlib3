@@ -1702,6 +1702,18 @@ begin
   simp,
 end
 
+lemma count_injective_image [measurable_singleton_class β]
+  {f : β → α} (hf : function.injective f) (s : set β) :
+  count (f '' s) = count s :=
+begin
+  by_cases hs : s.finite,
+  { lift s to finset β using hs,
+    rw [← finset.coe_image, count_apply_finset, count_apply_finset, s.card_image_of_injective hf] },
+  rw count_apply_infinite hs,
+  rw ← (finite_image_iff $ hf.inj_on _) at hs,
+  rw count_apply_infinite hs,
+end
+
 end count
 
 /-! ### Absolute continuity -/
@@ -2360,6 +2372,8 @@ lemma insert_ae_eq_self (a : α) (s : set α) :
   (insert a s : set α) =ᵐ[μ] s :=
 union_ae_eq_right.2 $ measure_mono_null (diff_subset _ _) (measure_singleton _)
 
+section
+
 variables [partial_order α] {a b : α}
 
 lemma Iio_ae_eq_Iic : Iio a =ᵐ[μ] Iic a :=
@@ -2385,6 +2399,12 @@ Ico_ae_eq_Icc' (measure_singleton b)
 
 lemma Ico_ae_eq_Ioc : Ico a b =ᵐ[μ] Ioc a b :=
 Ico_ae_eq_Ioc' (measure_singleton a) (measure_singleton b)
+
+end
+
+open_locale interval
+
+lemma interval_oc_ae_eq_interval [linear_order α] {a b : α} : Ι a b =ᵐ[μ] [a, b] := Ioc_ae_eq_Icc
 
 end no_atoms
 

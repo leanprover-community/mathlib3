@@ -434,7 +434,7 @@ instance : canonically_ordered_comm_semiring cardinal.{u} :=
       (equiv.sum_congr (equiv.of_injective f hf) (equiv.refl _)).trans $
       (equiv.set.sum_compl (range f)),
     ⟨#↥(range f)ᶜ, mk_congr this.symm⟩,
-  le_self_add := λ a b, add_zero a ▸ add_le_add_left (cardinal.zero_le _) _⟩,
+  le_self_add := λ a b, (add_zero a).ge.trans $ add_le_add_left (cardinal.zero_le _) _,
   eq_zero_or_eq_zero_of_mul_eq_zero := λ a b, induction_on₂ a b $ λ α β,
     by simpa only [mul_def, mk_eq_zero_iff, is_empty_prod] using id,
   ..cardinal.comm_semiring, ..cardinal.partial_order }

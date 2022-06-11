@@ -277,7 +277,7 @@ calc sylow p G ≃ (⊤ : set (sylow p G)) : (equiv.set.univ (sylow p G)).symm
 ... ≃ G ⧸ (stabilizer G P) : orbit_equiv_quotient_stabilizer G P
 ... ≃ G ⧸ (P : subgroup G).normalizer : by rw P.stabilizer_eq_normalizer
 
-noncomputable instance [fact p.prime] [fintype (sylow p G)] (P : sylow p G) :
+instance finite_index_normalizer_sylow [fact p.prime] [fintype (sylow p G)] (P : sylow p G) :
   (P : subgroup G).normalizer.finite_index :=
 finite_index_of_fintype (of_equiv (sylow p G) P.equiv_quotient_normalizer)
 

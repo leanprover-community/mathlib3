@@ -16,6 +16,7 @@ of `finite` instances for basic set constructions such as unions, intersections,
 
 * `set.finite_of_finite` creates a `set.finite` proof from a `finite` instance
 * `set.finite.finite` creates a `finite` instance from a `set.finite` proof
+* `finite.set.subset` for finiteness of subsets of a finite set
 
 ## Tags
 
@@ -32,7 +33,9 @@ variables {α : Type u} {β : Type v} {ι : Sort w} {γ : Type x}
 /-- Constructor for `set.finite` using a `finite` instance. -/
 theorem set.finite_of_finite (s : set α) [finite s] : s.finite := ⟨fintype.of_finite s⟩
 
-/-- Projection of `set.finite` to its `finite` instance. -/
+/-- Projection of `set.finite` to its `finite` instance.
+This is intended to be used with dot notation.
+See also `set.finite.fintype`. -/
 @[nolint dup_namespace]
 protected lemma set.finite.finite {s : set α} (h : s.finite) : finite s :=
 finite.of_fintype h.fintype
@@ -41,7 +44,7 @@ lemma set.finite_iff_finite {s : set α} : s.finite ↔ finite s :=
 ⟨λ h, h.finite, λ h, by exactI set.finite_of_finite s⟩
 
 /-- Construct a `finite` instance for a `set` from a `finset` with the same elements. -/
-lemma finite.of_finset {p : set α} (s : finset α) (H : ∀ x, x ∈ s ↔ x ∈ p) : finite p :=
+protected lemma finite.of_finset {p : set α} (s : finset α) (H : ∀ x, x ∈ s ↔ x ∈ p) : finite p :=
 finite.of_fintype (fintype.of_finset s H)
 
 /-! ### Finite instances
@@ -50,16 +53,12 @@ There is seemingly some overlap between the following instances and the `fintype
 in `data.set.finite`. While every `fintype` instance gives a `finite` instance, those
 instances that depend on `fintype` or `decidable` instances need an additional `finite` instance
 to be able to generally apply.
+
+Some set instances do not appear here since they are consequences of others, for example
+`subtype.finite` for subsets of a finite type.
 -/
 
 namespace finite.set
-
-instance finite_univ [finite α] : finite (univ : set α) :=
-finite.of_equiv α (equiv.set.univ α).symm
-
-/-- If `(set.univ : set α)` is finite then `α` is a finite type. -/
-lemma _root_.set.finite_of_finite_univ (H : (univ : set α).finite) : finite α :=
-@finite.of_equiv _ _ H.finite (equiv.set.univ α)
 
 instance finite_union (s t : set α) [finite s] [finite t] :
   finite (s ∪ t : set α) :=
@@ -107,18 +106,15 @@ instance finite_bUnion' {ι : Type*} (s : set ι) [finite s] (t : ι → set α)
   finite (⋃(x ∈ s), t x) :=
 finite_bUnion s t (λ i h, infer_instance)
 
+instance finite_Inter {ι : Sort*} [nonempty ι] (t : ι → set α) [∀ i, finite (t i)] :
+  finite (⋂ i, t i) :=
+finite.set.subset (t $ classical.arbitrary ι) (Inter_subset _ _)
+
 instance finite_insert (a : α) (s : set α) [finite s] : finite (insert a s : set α) :=
 ((set.finite_of_finite s).insert a).finite
 
 instance finite_image (s : set α) (f : α → β) [finite s] : finite (f '' s) :=
 ((set.finite_of_finite s).image f).finite
-
-lemma finite_of_finite_image (s : set α)
-  {f : α → β} {g} (I : function.is_partial_inv f g) [finite (f '' s)] : finite s :=
-begin
-  haveI := fintype.of_finite (f '' s),
-  exact finite.of_fintype (set.fintype_of_fintype_image s I),
-end
 
 instance finite_range (f : ι → α) [finite ι] : finite (range f) :=
 by { haveI := fintype.of_finite (plift ι), apply_instance }
@@ -135,3 +131,19 @@ instance finite_seq (f : set (α → β)) (s : set α) [finite f] [finite s] : f
 by { rw seq_def, apply_instance }
 
 end finite.set
+
+/-! ### Non-instances -/
+
+/-- If `(set.univ : set α)` is finite then `α` is a finite type. -/
+lemma set.finite.finite_of_finite_univ (H : (univ : set α).finite) : finite α :=
+@finite.of_equiv _ _ H.finite (equiv.set.univ α)
+
+lemma finite.set.finite_of_finite_univ [finite ↥(univ : set α)] : finite α :=
+(set.finite_of_finite _).finite_of_finite_univ
+
+lemma finite.set.finite_of_finite_image (s : set α)
+  {f : α → β} {g} (I : function.is_partial_inv f g) [finite (f '' s)] : finite s :=
+begin
+  haveI := fintype.of_finite (f '' s),
+  exact finite.of_fintype (set.fintype_of_fintype_image s I),
+end

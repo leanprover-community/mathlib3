@@ -299,16 +299,15 @@ le_iff_forall_lf.2
 show (le_lf _ _).2 ↔ _, by { rw le_lf, refl }
 
 /-- Definition of `x ⧏ y` on pre-games, in terms of `≤` -/
-theorem lf_iff_forall_le {x y : pgame} :
+theorem lf_iff_exists_le {x y : pgame} :
   x ⧏ y ↔ (∃ i, x ≤ y.move_left i) ∨ ∃ j, x.move_right j ≤ y :=
 by { cases x, cases y, exact mk_lf_mk }
 
-theorem lf_of_forall_le {x y : pgame} :
+theorem lf_of_exists_le {x y : pgame} :
   ((∃ i, x ≤ y.move_left i) ∨ ∃ j, x.move_right j ≤ y) → x ⧏ y :=
-lf_iff_forall_le.2
+lf_iff_exists_le.2
 
-private theorem not_le_lf {x y : pgame} :
-  (¬ x ≤ y ↔ y ⧏ x) ∧ (¬ x ⧏ y ↔ y ≤ x) :=
+private theorem not_le_lf {x y : pgame} : (¬ x ≤ y ↔ y ⧏ x) ∧ (¬ x ⧏ y ↔ y ≤ x) :=
 begin
   induction x with xl xr xL xR IHxl IHxr generalizing y,
   induction y with yl yr yL yR IHyl IHyr,
@@ -319,8 +318,8 @@ end
 
 @[simp] protected theorem not_le {x y : pgame} : ¬ x ≤ y ↔ y ⧏ x := not_le_lf.1
 @[simp] theorem not_lf {x y : pgame} : ¬ x ⧏ y ↔ y ≤ x := not_le_lf.2
-theorem _root_.has_le.le.not_lf {x y : pgame} : x ≤ y → ¬ y ⧏ x := not_lf.2
-theorem lf.not_le {x y : pgame} : x ⧏ y → ¬ y ≤ x := pgame.not_le.2
+theorem _root_.has_le.le.not_gf {x y : pgame} : x ≤ y → ¬ y ⧏ x := not_lf.2
+theorem lf.not_ge {x y : pgame} : x ⧏ y → ¬ y ≤ x := pgame.not_le.2
 
 theorem le_or_gf (x y : pgame) : x ≤ y ∨ y ⧏ x :=
 by { rw ←pgame.not_le, apply em }
@@ -360,8 +359,8 @@ private theorem le_trans_aux
   mk xl xr xL xR ≤ mk zl zr zL zR :=
 by simp only [mk_le_mk] at *; exact
 λ ⟨xLy, xyR⟩ ⟨yLz, yzR⟩, ⟨
-  λ i, pgame.not_le.1 (λ h, (h₁ _ ⟨yLz, yzR⟩ h).not_lf (xLy _)),
-  λ i, pgame.not_le.1 (λ h, (h₂ _ h ⟨xLy, xyR⟩).not_lf (yzR _))⟩
+  λ i, pgame.not_le.1 (λ h, (h₁ _ ⟨yLz, yzR⟩ h).not_gf (xLy _)),
+  λ i, pgame.not_le.1 (λ h, (h₂ _ h ⟨xLy, xyR⟩).not_gf (yzR _))⟩
 
 instance : preorder pgame :=
 { le_refl := λ x, begin
@@ -382,7 +381,7 @@ instance : preorder pgame :=
   end,
   ..pgame.has_le }
 
-theorem lf_irrefl (x : pgame) : ¬ x ⧏ x := le_rfl.not_lf
+theorem lf_irrefl (x : pgame) : ¬ x ⧏ x := le_rfl.not_gf
 instance : is_irrefl _ (⧏) := ⟨lf_irrefl⟩
 
 @[trans] theorem lf_of_le_of_lf {x y z : pgame} (h₁ : x ≤ y) (h₂ : y ⧏ z) : x ⧏ z :=
@@ -423,17 +422,23 @@ lt_iff_le_and_lf.2 ⟨h₁, h₂⟩
 theorem lf_of_lt {x y : pgame} (h : x < y) : x ⧏ y := (lt_iff_le_and_lf.1 h).2
 alias lf_of_lt ← has_lt.lt.lf
 
+/-- This special case of `le_of_forall_lf` is useful when dealing with surreals, where `<` is
+preferred over `⧏`. -/
+theorem le_of_forall_lt {x y : pgame} (h : (∀ i, x.move_left i < y) ∧ ∀ j, x < y.move_right j) :
+  x ≤ y :=
+le_of_forall_lf ⟨λ i, (h.1 i).lf, λ i, (h.2 i).lf⟩
+
 /-- The definition of `x ≤ y` on pre-games, in terms of `≤` two moves later. -/
 theorem le_def {x y : pgame} : x ≤ y ↔
   (∀ i, (∃ i', x.move_left i ≤ y.move_left i')  ∨ ∃ j, (x.move_left i).move_right j ≤ y) ∧
    ∀ j, (∃ i, x ≤ (y.move_right j).move_left i) ∨ ∃ j', x.move_right j' ≤ y.move_right j :=
-by { rw le_iff_forall_lf, conv { to_lhs, simp only [lf_iff_forall_le] } }
+by { rw le_iff_forall_lf, conv { to_lhs, simp only [lf_iff_exists_le] } }
 
 /-- The definition of `x ⧏ y` on pre-games, in terms of `⧏` two moves later. -/
 theorem lf_def {x y : pgame} : x ⧏ y ↔
   (∃ i, (∀ i', x.move_left i' ⧏ y.move_left i)  ∧ ∀ j, x ⧏ (y.move_left i).move_right j) ∨
    ∃ j, (∀ i, (x.move_right j).move_left i ⧏ y) ∧ ∀ j', x.move_right j ⧏ y.move_right j' :=
-by { rw lf_iff_forall_le, conv { to_lhs, simp only [le_iff_forall_lf] } }
+by { rw lf_iff_exists_le, conv { to_lhs, simp only [le_iff_forall_lf] } }
 
 /-- The definition of `0 ≤ x` on pre-games, in terms of `0 ⧏`. -/
 theorem zero_le_lf {x : pgame} : 0 ≤ x ↔ ∀ j, 0 ⧏ x.move_right j :=
@@ -445,11 +450,11 @@ by { rw le_iff_forall_lf, dsimp, simp }
 
 /-- The definition of `0 ⧏ x` on pre-games, in terms of `0 ≤`. -/
 theorem zero_lf_le {x : pgame} : 0 ⧏ x ↔ ∃ i, 0 ≤ x.move_left i :=
-by { rw lf_iff_forall_le, dsimp, simp }
+by { rw lf_iff_exists_le, dsimp, simp }
 
 /-- The definition of `x ⧏ 0` on pre-games, in terms of `≤ 0`. -/
 theorem lf_zero_le {x : pgame} : x ⧏ 0 ↔ ∃ j, x.move_right j ≤ 0 :=
-by { rw lf_iff_forall_le, dsimp, simp }
+by { rw lf_iff_exists_le, dsimp, simp }
 
 /-- The definition of `0 ≤ x` on pre-games, in terms of `0 ≤` two moves later. -/
 theorem zero_le {x : pgame} : 0 ≤ x ↔ ∀ j, ∃ i, 0 ≤ (x.move_right j).move_left i :=
@@ -523,10 +528,10 @@ theorem equiv_of_eq {x y} (h : x = y) : x ≈ y := by subst h
 @[trans] theorem le_of_le_of_equiv {x y z} (h₁ : x ≤ y) (h₂ : y ≈ z) : x ≤ z := h₁.trans h₂.1
 @[trans] theorem le_of_equiv_of_le {x y z} (h₁ : x ≈ y) : y ≤ z → x ≤ z := h₁.1.trans
 
-theorem lf.not_equiv {x y} (h : x ⧏ y) : ¬ x ≈ y := λ h', h.not_le h'.2
-theorem lf.not_equiv' {x y} (h : x ⧏ y) : ¬ y ≈ x := λ h', h.not_le h'.1
+theorem lf.not_equiv {x y} (h : x ⧏ y) : ¬ x ≈ y := λ h', h.not_ge h'.2
+theorem lf.not_equiv' {x y} (h : x ⧏ y) : ¬ y ≈ x := λ h', h.not_ge h'.1
 
-theorem lf.not_lt {x y} (h : x ⧏ y) : ¬ y < x := λ h', h.not_le h'.le
+theorem lf.not_gt {x y} (h : x ⧏ y) : ¬ y < x := λ h', h.not_ge h'.le
 
 theorem le_congr_imp {x₁ y₁ x₂ y₂} (hx : x₁ ≈ x₂) (hy : y₁ ≈ y₂) (h : x₁ ≤ y₁) : x₂ ≤ y₂ :=
 hx.2.trans (h.trans hy.1)
@@ -629,14 +634,14 @@ theorem lt_or_fuzzy_of_lf {x y : pgame} : x ⧏ y → x < y ∨ x ∥ y :=
 lf_iff_lt_or_fuzzy.1
 
 theorem fuzzy.not_equiv {x y : pgame} (h : x ∥ y) : ¬ x ≈ y :=
-λ h', h'.1.not_lf h.2
+λ h', h'.1.not_gf h.2
 theorem fuzzy.not_equiv' {x y : pgame} (h : x ∥ y) : ¬ y ≈ x :=
-λ h', h'.2.not_lf h.2
+λ h', h'.2.not_gf h.2
 
 theorem not_fuzzy_of_le {x y : pgame} (h : x ≤ y) : ¬ x ∥ y :=
-λ h', h'.2.not_le h
+λ h', h'.2.not_ge h
 theorem not_fuzzy_of_ge {x y : pgame} (h : y ≤ x) : ¬ x ∥ y :=
-λ h', h'.1.not_le h
+λ h', h'.1.not_ge h
 
 theorem equiv.not_fuzzy {x y : pgame} (h : x ≈ y) : ¬ x ∥ y :=
 not_fuzzy_of_le h.1
@@ -1419,7 +1424,7 @@ pgame.zero_lt_half.le
 
 theorem half_lt_one : half < 1 :=
 lt_of_le_of_lf
-  (le_of_forall_lf ⟨by simp, is_empty_elim⟩) (lf_of_forall_le (or.inr ⟨default, le_rfl⟩))
+  (le_of_forall_lf ⟨by simp, is_empty_elim⟩) (lf_of_exists_le (or.inr ⟨default, le_rfl⟩))
 
 theorem half_add_half_equiv_one : half + half ≈ 1 :=
 begin

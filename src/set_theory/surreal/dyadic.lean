@@ -93,7 +93,7 @@ begin
       { calc pow_half (n.succ + 1) + 0 ≈ pow_half (n.succ + 1) : add_zero_equiv _
                                    ... < pow_half n.succ       : pow_half_succ_lt_pow_half } },
     { rintro ⟨ ⟩,
-      rw lf_iff_forall_le,
+      rw lf_iff_exists_le,
       right,
       use sum.inl punit.star,
       calc pow_half (n.succ) + pow_half (n.succ + 1)

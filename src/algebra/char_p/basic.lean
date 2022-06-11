@@ -122,6 +122,10 @@ theorem dvd {x : ℕ} (hx : (x : R) = 0) : ring_char R ∣ x :=
 @[simp]
 lemma eq_zero [char_zero R] : ring_char R = 0 := eq R 0
 
+@[simp]
+lemma nat.cast_ring_char : (ring_char R : R) = 0 :=
+by rw ring_char.spec
+
 end ring_char
 
 theorem add_pow_char_of_commute [semiring R] {p : ℕ} [fact p.prime]

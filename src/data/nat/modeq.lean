@@ -30,7 +30,8 @@ namespace nat
 def modeq (n a b : ℕ) := a % n = b % n
 notation a ` ≡ `:50 b ` [MOD `:50 n `]`:0 := modeq n a b
 
-/-- Invalid modular congruence. `n.modneq a b`, or `a ≢ b [MOD n]`, means that `a - b` is NOT a multiple of `n`. -/
+/-- Invalid modular congruence. `n.modneq a b`, or `a ≢ b [MOD n]`,
+means that `a - b` is NOT a multiple of `n`. -/
 @[reducible] def modneq (n a b : ℕ) := ¬ (a ≡ b [MOD n])
 notation a ` ≢ `:50 b ` [MOD `:50 n `]`:0 := modneq n a b
 lemma modneq.def (n a b : ℕ): a % n ≠ b % n = ¬ (a ≡ b [MOD n]) := rfl

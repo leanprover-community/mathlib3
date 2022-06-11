@@ -107,6 +107,16 @@ by rw [←pow_add, nat.add_comm, tsub_add_cancel_of_le h]
 theorem pow_sub_mul_pow (a : M) {m n : ℕ} (h : m ≤ n) : a ^ (n - m) * a ^ m = a ^ n :=
 by rw [←pow_add, tsub_add_cancel_of_le h]
 
+/-- If `x ^ n = 1`, then `x ^ m` is the same as `x ^ (m % n)` -/
+@[to_additive nsmul_eq_mod_nsmul "If `n • x = 0`, then `m • x` is the same as `(m % n) • x`"]
+lemma pow_eq_pow_mod {M : Type*} [monoid M] {x : M} (m : ℕ) {n : ℕ} (h : x ^ n = 1) :
+  x ^ m = x ^ (m % n) :=
+begin
+  have t := congr_arg (λ a, x ^ a) (nat.div_add_mod m n).symm,
+  dsimp at t,
+  rw [t, pow_add, pow_mul, h, one_pow, one_mul],
+end
+
 @[to_additive bit0_nsmul]
 theorem pow_bit0 (a : M) (n : ℕ) : a ^ bit0 n = a^n * a^n := pow_add _ _ _
 

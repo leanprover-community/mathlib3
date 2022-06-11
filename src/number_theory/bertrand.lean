@@ -353,7 +353,7 @@ begin
     exact x_le_two_mul_n, },
 end
 
--- TODO move to dat.nat.parity
+-- TODO move to dat.nat.parity in #14688
 lemma even_prime_eq_two (n : ℕ) (he : even n) (hp : n.prime) : n = 2 :=
 begin
   rw nat.even_iff at he,

@@ -279,7 +279,7 @@ calc sylow p G ≃ (⊤ : set (sylow p G)) : (equiv.set.univ (sylow p G)).symm
 
 noncomputable instance [fact p.prime] [fintype (sylow p G)] (P : sylow p G) :
   (P : subgroup G).normalizer.finite_index :=
-of_equiv (sylow p G) P.equiv_quotient_normalizer
+finite_index_of_fintype (of_equiv (sylow p G) P.equiv_quotient_normalizer)
 
 lemma card_sylow_eq_card_quotient_normalizer [fact p.prime] [fintype (sylow p G)] (P : sylow p G) :
   card (sylow p G) = card (G ⧸ (P : subgroup G).normalizer) :=

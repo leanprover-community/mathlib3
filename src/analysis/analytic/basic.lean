@@ -126,7 +126,7 @@ lemma le_radius_of_bound_nnreal (C : ℝ≥0) {r : ℝ≥0} (h : ∀ (n : ℕ), 
 p.le_radius_of_bound C $ λ n, by exact_mod_cast (h n)
 
 /-- If `∥pₙ∥ rⁿ = O(1)`, as `n → ∞`, then the radius of `p` is at least `r`. -/
-lemma le_radius_of_is_O (h : is_O (λ n, ∥p n∥ * r^n) (λ n, (1 : ℝ)) at_top) : ↑r ≤ p.radius :=
+lemma le_radius_of_is_O (h : (λ n, ∥p n∥ * r^n) =O[at_top] (λ n, (1 : ℝ))) : ↑r ≤ p.radius :=
 exists.elim (is_O_one_nat_at_top_iff.1 h) $ λ C hC, p.le_radius_of_bound C $
   λ n, (le_abs_self _).trans (hC n)
 
@@ -140,7 +140,7 @@ lemma le_radius_of_summable (h : summable (λ n, ∥p n∥ * r ^ n)) : ↑r ≤ 
 p.le_radius_of_summable_nnnorm $ by { simp only [← coe_nnnorm] at h, exact_mod_cast h }
 
 lemma radius_eq_top_of_forall_nnreal_is_O
-  (h : ∀ r : ℝ≥0, is_O (λ n, ∥p n∥ * r^n) (λ n, (1 : ℝ)) at_top) : p.radius = ∞ :=
+  (h : ∀ r : ℝ≥0, (λ n, ∥p n∥ * r^n) =O[at_top] (λ n, (1 : ℝ))) : p.radius = ∞ :=
 ennreal.eq_top_of_forall_nnreal_le $ λ r, p.le_radius_of_is_O (h r)
 
 lemma radius_eq_top_of_eventually_eq_zero (h : ∀ᶠ n in at_top, p n = 0) : p.radius = ∞ :=
@@ -154,7 +154,7 @@ p.radius_eq_top_of_eventually_eq_zero $ mem_at_top_sets.2
 /-- For `r` strictly smaller than the radius of `p`, then `∥pₙ∥ rⁿ` tends to zero exponentially:
 for some `0 < a < 1`, `∥p n∥ rⁿ = o(aⁿ)`. -/
 lemma is_o_of_lt_radius (h : ↑r < p.radius) :
-  ∃ a ∈ Ioo (0 : ℝ) 1, is_o (λ n, ∥p n∥ * r ^ n) (pow a) at_top :=
+  ∃ a ∈ Ioo (0 : ℝ) 1, (λ n, ∥p n∥ * r ^ n) =o[at_top] (pow a) :=
 begin
   rw (tfae_exists_lt_is_o_pow (λ n, ∥p n∥ * r ^ n) 1).out 1 4,
   simp only [radius, lt_supr_iff] at h,
@@ -170,7 +170,7 @@ end
 
 /-- For `r` strictly smaller than the radius of `p`, then `∥pₙ∥ rⁿ = o(1)`. -/
 lemma is_o_one_of_lt_radius (h : ↑r < p.radius) :
-  is_o (λ n, ∥p n∥ * r ^ n) (λ _, 1 : ℕ → ℝ) at_top :=
+  (λ n, ∥p n∥ * r ^ n) =o[at_top] (λ _, 1 : ℕ → ℝ) :=
 let ⟨a, ha, hp⟩ := p.is_o_of_lt_radius h in
 hp.trans $ (is_o_pow_pow_of_lt_left ha.1.le ha.2).congr (λ n, rfl) one_pow
 
@@ -186,7 +186,7 @@ end
 
 /-- If `r ≠ 0` and `∥pₙ∥ rⁿ = O(aⁿ)` for some `-1 < a < 1`, then `r < p.radius`. -/
 lemma lt_radius_of_is_O (h₀ : r ≠ 0) {a : ℝ} (ha : a ∈ Ioo (-1 : ℝ) 1)
-  (hp : is_O (λ n, ∥p n∥ * r ^ n) (pow a) at_top) :
+  (hp : (λ n, ∥p n∥ * r ^ n) =O[at_top] (pow a)) :
   ↑r < p.radius :=
 begin
   rcases ((tfae_exists_lt_is_o_pow (λ n, ∥p n∥ * r ^ n) 1).out 2 5).mp ⟨a, ha, hp⟩
@@ -289,7 +289,7 @@ begin
   rcases norm_le_div_pow_of_pos_of_lt_radius p rpos rlt with ⟨C, Cpos, hCp⟩,
   refine ⟨C, r ⁻¹, Cpos, by simp [rpos], λ n, _⟩,
   convert hCp n,
-  exact inv_pow₀ _ _,
+  exact inv_pow _ _,
 end
 
 /-- The radius of the sum of two formal series is at least the minimum of their two radii. -/
@@ -552,7 +552,7 @@ end
 
 /-- Taylor formula for an analytic function, `is_O` version. -/
 lemma has_fpower_series_at.is_O_sub_partial_sum_pow (hf : has_fpower_series_at f p x) (n : ℕ) :
-  is_O (λ y : E, f (x + y) - p.partial_sum n y) (λ y, ∥y∥ ^ n) (𝓝 0) :=
+  (λ y : E, f (x + y) - p.partial_sum n y) =O[𝓝 0] (λ y, ∥y∥ ^ n) :=
 begin
   rcases hf with ⟨r, hf⟩,
   rcases ennreal.lt_iff_exists_nnreal_btwn.1 hf.r_pos with ⟨r', r'0, h⟩,
@@ -571,8 +571,8 @@ ball, the norm of the difference `f y - f z - p 1 (λ _, y - z)` is bounded abov
 `filter.principal` on `E × E`. -/
 lemma has_fpower_series_on_ball.is_O_image_sub_image_sub_deriv_principal
   (hf : has_fpower_series_on_ball f p x r) (hr : r' < r) :
-  is_O (λ y : E × E, f y.1 - f y.2 - (p 1 (λ _, y.1 - y.2)))
-    (λ y, ∥y - (x, x)∥ * ∥y.1 - y.2∥) (𝓟 $ emetric.ball (x, x) r') :=
+  (λ y : E × E, f y.1 - f y.2 - (p 1 (λ _, y.1 - y.2))) =O[𝓟 (emetric.ball (x, x) r')]
+    (λ y, ∥y - (x, x)∥ * ∥y.1 - y.2∥) :=
 begin
   lift r' to ℝ≥0 using ne_top_of_lt hr,
   rcases (zero_le r').eq_or_lt with rfl|hr'0,
@@ -618,7 +618,7 @@ begin
       convert (has_sum_coe_mul_geometric_of_norm_lt_1 this).add
         ((has_sum_geometric_of_norm_lt_1 this).mul_left 2) },
     exact hA.norm_le_of_bounded hBL hAB },
-  suffices : is_O L (λ y, ∥y - (x, x)∥ * ∥y.1 - y.2∥) (𝓟 (emetric.ball (x, x) r')),
+  suffices : L =O[𝓟 (emetric.ball (x, x) r')] (λ y, ∥y - (x, x)∥ * ∥y.1 - y.2∥),
   { refine (is_O.of_bound 1 (eventually_principal.2 $ λ y hy, _)).trans this,
     rw one_mul,
     exact (hL y hy).trans (le_abs_self _) },
@@ -641,8 +641,8 @@ by simpa only [is_O_principal, mul_assoc, norm_mul, norm_norm, prod.forall,
 `f y - f z - p 1 (λ _, y - z) = O(∥(y, z) - (x, x)∥ * ∥y - z∥)` as `(y, z) → (x, x)`.
 In particular, `f` is strictly differentiable at `x`. -/
 lemma has_fpower_series_at.is_O_image_sub_norm_mul_norm_sub (hf : has_fpower_series_at f p x) :
-  is_O (λ y : E × E, f y.1 - f y.2 - (p 1 (λ _, y.1 - y.2)))
-    (λ y, ∥y - (x, x)∥ * ∥y.1 - y.2∥) (𝓝 (x, x)) :=
+  (λ y : E × E, f y.1 - f y.2 - (p 1 (λ _, y.1 - y.2))) =O[𝓝 (x, x)]
+    (λ y, ∥y - (x, x)∥ * ∥y.1 - y.2∥) :=
 begin
   rcases hf with ⟨r, hf⟩,
   rcases ennreal.lt_iff_exists_nnreal_btwn.1 hf.r_pos with ⟨r', r'0, h⟩,
@@ -769,7 +769,7 @@ section uniqueness
 open continuous_multilinear_map
 
 lemma asymptotics.is_O.continuous_multilinear_map_apply_eq_zero {n : ℕ} {p : E [×n]→L[𝕜] F}
-  (h : is_O (λ y, p (λ i, y)) (λ y, ∥y∥ ^ (n + 1)) (𝓝 0)) (y : E) :
+  (h : (λ y, p (λ i, y)) =O[𝓝 0] (λ y, ∥y∥ ^ (n + 1))) (y : E) :
   p (λ i, y) = 0 :=
 begin
   obtain ⟨c, c_pos, hc⟩ := h.exists_pos,

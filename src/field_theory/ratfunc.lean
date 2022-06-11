@@ -577,7 +577,7 @@ def lift_monoid_with_zero_hom (φ : R[X] →*₀ G₀) (hφ : R[X]⁰ ≤ G₀�
                    simp only [map_one, submonoid.coe_one, div_one] },
   map_mul' := λ x y, by { cases x, cases y, induction x with p q, induction y with p' q',
     { rw [←of_fraction_ring_mul, localization.mk_mul],
-      simp only [lift_on_of_fraction_ring_mk, div_mul_div_comm₀, map_mul, submonoid.coe_mul] },
+      simp only [lift_on_of_fraction_ring_mk, div_mul_div_comm, map_mul, submonoid.coe_mul] },
     { refl },
     { refl } },
   map_zero' := by { rw [←of_fraction_ring_zero, ←localization.mk_zero (1 : R[X]⁰),
@@ -1060,7 +1060,7 @@ by rw [num_mul_eq_mul_denom_iff (denom_ne_zero x), _root_.map_neg, neg_div, num_
 lemma num_denom_mul (x y : ratfunc K) :
   (x * y).num * (x.denom * y.denom) = x.num * y.num * (x * y).denom :=
 (num_mul_eq_mul_denom_iff (mul_ne_zero (denom_ne_zero x) (denom_ne_zero y))).mpr $
-  by conv_lhs { rw [← num_div_denom x, ← num_div_denom y, div_mul_div_comm₀,
+  by conv_lhs { rw [← num_div_denom x, ← num_div_denom y, div_mul_div_comm,
                     ← ring_hom.map_mul, ← ring_hom.map_mul] }
 
 lemma num_dvd {x : ratfunc K} {p : K[X]} (hp : p ≠ 0) :
@@ -1070,7 +1070,7 @@ begin
   { rintro ⟨q, rfl⟩,
     obtain ⟨hx, hq⟩ := mul_ne_zero_iff.mp hp,
     use denom x * q,
-    rw [ring_hom.map_mul, ring_hom.map_mul, ← div_mul_div_comm₀, div_self, mul_one, num_div_denom],
+    rw [ring_hom.map_mul, ring_hom.map_mul, ← div_mul_div_comm, div_self, mul_one, num_div_denom],
     { exact ⟨mul_ne_zero (denom_ne_zero x) hq, rfl⟩ },
     { exact algebra_map_ne_zero hq } },
   { rintro ⟨q, hq, rfl⟩,
@@ -1084,7 +1084,7 @@ begin
   { rintro ⟨p, rfl⟩,
     obtain ⟨hx, hp⟩ := mul_ne_zero_iff.mp hq,
     use num x * p,
-    rw [ring_hom.map_mul, ring_hom.map_mul, ← div_mul_div_comm₀, div_self, mul_one, num_div_denom],
+    rw [ring_hom.map_mul, ring_hom.map_mul, ← div_mul_div_comm, div_self, mul_one, num_div_denom],
     { exact algebra_map_ne_zero hp } },
   { rintro ⟨p, rfl⟩,
     exact denom_div_dvd p q },
@@ -1098,14 +1098,14 @@ begin
   { simp [hy] },
   rw num_dvd (mul_ne_zero (num_ne_zero hx) (num_ne_zero hy)),
   refine ⟨x.denom * y.denom, mul_ne_zero (denom_ne_zero x) (denom_ne_zero y), _⟩,
-  rw [ring_hom.map_mul, ring_hom.map_mul, ← div_mul_div_comm₀, num_div_denom, num_div_denom]
+  rw [ring_hom.map_mul, ring_hom.map_mul, ← div_mul_div_comm, num_div_denom, num_div_denom]
 end
 
 lemma denom_mul_dvd (x y : ratfunc K) : denom (x * y) ∣ denom x * denom y :=
 begin
   rw denom_dvd (mul_ne_zero (denom_ne_zero x) (denom_ne_zero y)),
   refine ⟨x.num * y.num, _⟩,
-  rw [ring_hom.map_mul, ring_hom.map_mul, ← div_mul_div_comm₀, num_div_denom, num_div_denom]
+  rw [ring_hom.map_mul, ring_hom.map_mul, ← div_mul_div_comm, num_div_denom, num_div_denom]
 end
 
 lemma denom_add_dvd (x y : ratfunc K) : denom (x + y) ∣ denom x * denom y :=
@@ -1269,7 +1269,7 @@ begin
   { have := polynomial.eval₂_eq_zero_of_dvd_of_eval₂_eq_zero f a (denom_mul_dvd x y) hxy,
     rw polynomial.eval₂_mul at this,
     cases mul_eq_zero.mp this; contradiction },
-  rw [div_mul_div_comm₀, eq_div_iff (mul_ne_zero hx hy), div_eq_mul_inv, mul_right_comm,
+  rw [div_mul_div_comm, eq_div_iff (mul_ne_zero hx hy), div_eq_mul_inv, mul_right_comm,
       ← div_eq_mul_inv, div_eq_iff hxy],
   repeat { rw ← polynomial.eval₂_mul },
   congr' 1,
@@ -1312,7 +1312,7 @@ by rw [int_degree, ratfunc.num_algebra_map, ratfunc.denom_algebra_map, polynomia
 lemma int_degree_mul {x y : ratfunc K} (hx : x ≠ 0) (hy : y ≠ 0) :
   int_degree (x * y) = int_degree x + int_degree y :=
 begin
-  simp only [int_degree, add_sub, sub_add, sub_sub_assoc_swap, sub_sub, sub_eq_sub_iff_add_eq_add],
+  simp only [int_degree, add_sub, sub_add, sub_sub_eq_add_sub, sub_sub, sub_eq_sub_iff_add_eq_add],
   norm_cast,
   rw [← polynomial.nat_degree_mul x.denom_ne_zero y.denom_ne_zero,
         ← polynomial.nat_degree_mul (ratfunc.num_ne_zero (mul_ne_zero hx hy))

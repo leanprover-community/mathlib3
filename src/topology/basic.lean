@@ -129,12 +129,12 @@ by rw union_eq_Union; exact is_open_Union (bool.forall_bool.2 ⟨h₂, h₁⟩)
 @[simp] lemma is_open_empty : is_open (∅ : set α) :=
 by rw ← sUnion_empty; exact is_open_sUnion (assume a, false.elim)
 
-lemma is_open_sInter {s : set (set α)} (hs : finite s) : (∀t ∈ s, is_open t) → is_open (⋂₀ s) :=
+lemma is_open_sInter {s : set (set α)} (hs : s.finite) : (∀t ∈ s, is_open t) → is_open (⋂₀ s) :=
 finite.induction_on hs (λ _, by rw sInter_empty; exact is_open_univ) $
 λ a s has hs ih h, by rw sInter_insert; exact
 is_open.inter (h _ $ mem_insert _ _) (ih $ λ t, h t ∘ mem_insert_of_mem _)
 
-lemma is_open_bInter {s : set β} {f : β → set α} (hs : finite s) :
+lemma is_open_bInter {s : set β} {f : β → set α} (hs : s.finite) :
   (∀i∈s, is_open (f i)) → is_open (⋂i∈s, f i) :=
 finite.induction_on hs
   (λ _, by rw bInter_empty; exact is_open_univ)
@@ -199,7 +199,7 @@ by { rw [← is_open_compl_iff] at *, rw compl_inter, exact is_open.union h₁ h
 lemma is_closed.sdiff {s t : set α} (h₁ : is_closed s) (h₂ : is_open t) : is_closed (s \ t) :=
 is_closed.inter h₁ (is_closed_compl_iff.mpr h₂)
 
-lemma is_closed_bUnion {s : set β} {f : β → set α} (hs : finite s) :
+lemma is_closed_bUnion {s : set β} {f : β → set α} (hs : s.finite) :
   (∀i∈s, is_closed (f i)) → is_closed (⋃i∈s, f i) :=
 finite.induction_on hs
   (λ _, by rw bUnion_empty; exact is_closed_empty)
@@ -523,6 +523,15 @@ end
 /-- The frontier of a set is the set of points between the closure and interior. -/
 def frontier (s : set α) : set α := closure s \ interior s
 
+@[simp] lemma closure_diff_interior (s : set α) : closure s \ interior s = frontier s := rfl
+
+@[simp] lemma closure_diff_frontier (s : set α) : closure s \ frontier s = interior s :=
+by rw [frontier, diff_diff_right_self, inter_eq_self_of_subset_right interior_subset_closure]
+
+@[simp] lemma self_diff_frontier (s : set α) : s \ frontier s = interior s :=
+by rw [frontier, diff_diff_right, diff_eq_empty.2 subset_closure,
+  inter_eq_self_of_subset_right interior_subset, empty_union]
+
 lemma frontier_eq_closure_inter_closure {s : set α} :
   frontier s = closure s ∩ closure sᶜ :=
 by rw [closure_compl, frontier, diff_eq]
@@ -635,9 +644,12 @@ localized "notation `𝓝[<] ` x:100 := nhds_within x (set.Iio x)" in topologica
 
 lemma nhds_def (a : α) : 𝓝 a = (⨅ s ∈ {s : set α | a ∈ s ∧ is_open s}, 𝓟 s) := by rw nhds
 
+lemma nhds_def' (a : α) : 𝓝 a = ⨅ (s : set α) (hs : is_open s) (ha : a ∈ s), 𝓟 s :=
+by simp only [nhds_def, mem_set_of_eq, and_comm (a ∈ _), infi_and]
+
 /-- The open sets containing `a` are a basis for the neighborhood filter. See `nhds_basis_opens'`
 for a variant using open neighborhoods instead. -/
-lemma nhds_basis_opens (a : α) : (𝓝 a).has_basis (λ s : set α, a ∈ s ∧ is_open s) (λ x, x) :=
+lemma nhds_basis_opens (a : α) : (𝓝 a).has_basis (λ s : set α, a ∈ s ∧ is_open s) (λ s, s) :=
 begin
   rw nhds_def,
   exact has_basis_binfi_principal
@@ -645,6 +657,10 @@ begin
       ⟨inter_subset_left _ _, inter_subset_right _ _⟩⟩)
     ⟨univ, ⟨mem_univ a, is_open_univ⟩⟩
 end
+
+lemma nhds_basis_closeds (a : α) : (𝓝 a).has_basis (λ s : set α, a ∉ s ∧ is_closed s) compl :=
+⟨λ t, (nhds_basis_opens a).mem_iff.trans $ compl_surjective.exists.trans $
+  by simp only [is_open_compl_iff, mem_compl_iff]⟩
 
 /-- A filter lies below the neighborhood filter at `a` iff it contains every open set around `a`. -/
 lemma le_nhds_iff {f a} : f ≤ 𝓝 a ↔ ∀ s : set α, a ∈ s → is_open s → s ∈ f :=
@@ -698,11 +714,7 @@ lemma nhds_basis_opens' (a : α) : (𝓝 a).has_basis (λ s : set α, s ∈ 𝓝
 begin
   convert nhds_basis_opens a,
   ext s,
-  split,
-  { rintros ⟨s_in, s_op⟩,
-    exact ⟨mem_of_mem_nhds s_in, s_op⟩ },
-  { rintros ⟨a_in, s_op⟩,
-    exact ⟨is_open.mem_nhds s_op a_in, s_op⟩ },
+  exact and.congr_left_iff.2 is_open.mem_nhds_iff
 end
 
 /-- If `U` is a neighborhood of each point of a set `s` then it is a neighborhood of `s`:
@@ -711,11 +723,8 @@ lemma exists_open_set_nhds {s U : set α} (h : ∀ x ∈ s, U ∈ 𝓝 x) :
   ∃ V : set α, s ⊆ V ∧ is_open V ∧ V ⊆ U :=
 begin
   have := λ x hx, (nhds_basis_opens x).mem_iff.1 (h x hx),
-  choose! Z hZ hZ' using this,
-  refine ⟨⋃ x ∈ s, Z x, λ x hx, mem_bUnion hx (hZ x hx).1, is_open_Union _, Union₂_subset hZ'⟩,
-  intro x,
-  by_cases hx : x ∈ s ; simp [hx],
-  exact (hZ x hx).2,
+  choose! Z hZ hZU using this, choose hZmem hZo using hZ,
+  exact ⟨⋃ x ∈ s, Z x, λ x hx, mem_bUnion hx (hZmem x hx), is_open_bUnion hZo, Union₂_subset hZU⟩
 end
 
 /-- If `U` is a neighborhood of each point of a set `s` then it is a neighborhood of s:
@@ -792,6 +801,11 @@ rtendsto'_nhds
 theorem tendsto_nhds {f : β → α} {l : filter β} {a : α} :
   tendsto f l (𝓝 a) ↔ (∀ s, is_open s → a ∈ s → f ⁻¹' s ∈ l) :=
 all_mem_nhds_filter _ _ (λ s t h, preimage_mono h) _
+
+lemma tendsto_at_top_nhds [nonempty β] [semilattice_sup β] {f : β → α} {a : α} :
+  (tendsto f at_top (𝓝 a)) ↔ ∀ U : set α, a ∈ U → is_open U → ∃ N, ∀ n, N ≤ n → f n ∈ U :=
+(at_top_basis.tendsto_iff (nhds_basis_opens a)).trans $
+  by simp only [and_imp, exists_prop, true_and, mem_Ici, ge_iff_le]
 
 lemma tendsto_const_nhds {a : α} {f : filter β} : tendsto (λb:β, a) f (𝓝 a) :=
 tendsto_nhds.mpr $ assume s hs ha, univ_mem' $ assume _, ha
@@ -1170,10 +1184,10 @@ section locally_finite
 /-- A family of sets in `set α` is locally finite if at every point `x:α`,
   there is a neighborhood of `x` which meets only finitely many sets in the family -/
 def locally_finite (f : β → set α) :=
-∀x:α, ∃t ∈ 𝓝 x, finite {i | (f i ∩ t).nonempty }
+∀x:α, ∃t ∈ 𝓝 x, {i | (f i ∩ t).nonempty}.finite
 
 lemma locally_finite.point_finite {f : β → set α} (hf : locally_finite f) (x : α) :
-  finite {b | x ∈ f b} :=
+  {b | x ∈ f b}.finite :=
 let ⟨t, hxt, ht⟩ := hf x in ht.subset $ λ b hb, ⟨x, hb, mem_of_mem_nhds hxt⟩
 
 lemma locally_finite_of_fintype [fintype β] (f : β → set α) : locally_finite f :=
@@ -1517,13 +1531,9 @@ lemma dense_range.exists_mem_open (hf : dense_range f) {s : set β} (ho : is_ope
 exists_range_iff.1 $ hf.exists_mem_open ho hs
 
 lemma dense_range.mem_nhds {f : κ → β} (h : dense_range f) {b : β} {U : set β}
-  (U_in : U ∈ nhds b) : ∃ a, f a ∈ U :=
-begin
-  rcases (mem_closure_iff_nhds.mp
-    ((dense_range_iff_closure_range.mp h).symm ▸ mem_univ b : b ∈ closure (range f)) U U_in)
-    with ⟨_, h, a, rfl⟩,
-  exact ⟨a, h⟩
-end
+  (U_in : U ∈ 𝓝 b) : ∃ a, f a ∈ U :=
+let ⟨a, ha⟩ := h.exists_mem_open is_open_interior ⟨b, mem_interior_iff_mem_nhds.2 U_in⟩
+in ⟨a, interior_subset ha⟩
 
 end dense_range
 

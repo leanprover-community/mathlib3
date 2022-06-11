@@ -38,14 +38,14 @@ section
 -- We use parameters here, mainly so we can have the abbreviations `M` and `M.mk` below, without
 -- passing around `F` all the time.
 parameters {R : Type u} [ring R] {J : Type v} [small_category J] [is_filtered J]
-parameters (F : J ⥤ Module.{v} R)
+parameters (F : J ⥤ Module.{max v u} R)
 
 /--
 The colimit of `F ⋙ forget₂ (Module R) AddCommGroup` in the category `AddCommGroup`.
 In the following, we will show that this has the structure of an `R`-module.
 -/
 abbreviation M : AddCommGroup :=
-AddCommGroup.filtered_colimits.colimit (F ⋙ forget₂ (Module R) AddCommGroup)
+AddCommGroup.filtered_colimits.colimit (F ⋙ forget₂ (Module R) AddCommGroup.{max v u})
 
 /-- The canonical projection into the colimit, as a quotient type. -/
 abbreviation M.mk : (Σ j, F.obj j) → M := quot.mk (types.quot.rel (F ⋙ forget (Module R)))
@@ -125,7 +125,8 @@ def colimit : Module R := Module.of R M
 /-- The linear map from a given `R`-module in the diagram to the colimit module. -/
 def cocone_morphism (j : J) : F.obj j ⟶ colimit :=
 { map_smul' := λ r x, begin erw colimit_smul_mk_eq F r ⟨j, x⟩, refl, end,
-.. (AddCommGroup.filtered_colimits.colimit_cocone (F ⋙ forget₂ (Module R) AddCommGroup)).ι.app j }
+.. (AddCommGroup.filtered_colimits.colimit_cocone
+    (F ⋙ forget₂ (Module R) AddCommGroup.{max v u})).ι.app j }
 
 /-- The cocone over the proposed colimit module. -/
 def colimit_cocone : cocone F :=
@@ -147,8 +148,8 @@ def colimit_desc (t : cocone F) : colimit ⟶ t.X :=
     exact linear_map.map_smul (t.ι.app j) r x,
   end,
   .. (AddCommGroup.filtered_colimits.colimit_cocone_is_colimit
-      (F ⋙ forget₂ (Module R) AddCommGroup)).desc
-      ((forget₂ (Module R) AddCommGroup.{v}).map_cocone t) }
+      (F ⋙ forget₂ (Module R) AddCommGroup.{max v u})).desc
+      ((forget₂ (Module R) AddCommGroup.{max v u}).map_cocone t) }
 
 /-- The proposed colimit cocone is a colimit in `Module R`. -/
 def colimit_cocone_is_colimit : is_colimit colimit_cocone :=
@@ -161,14 +162,15 @@ def colimit_cocone_is_colimit : is_colimit colimit_cocone :=
     ((forget (Module R)).map_cocone t) m ((λ j, funext $ λ x, linear_map.congr_fun (h j) x)) }
 
 instance forget₂_AddCommGroup_preserves_filtered_colimits :
-  preserves_filtered_colimits (forget₂ (Module R) AddCommGroup.{v}) :=
+  preserves_filtered_colimits (forget₂ (Module R) AddCommGroup.{u}) :=
 { preserves_filtered_colimits := λ J _ _, by exactI
   { preserves_colimit := λ F, preserves_colimit_of_preserves_colimit_cocone
       (colimit_cocone_is_colimit F)
       (AddCommGroup.filtered_colimits.colimit_cocone_is_colimit
-        (F ⋙ forget₂ (Module R) AddCommGroup.{v})) } }
+        (F ⋙ forget₂ (Module.{u} R) AddCommGroup.{u})) } }
 
-instance forget_preserves_filtered_colimits : preserves_filtered_colimits (forget (Module R)) :=
+instance forget_preserves_filtered_colimits :
+  preserves_filtered_colimits (forget (Module.{u} R)) :=
 limits.comp_preserves_filtered_colimits (forget₂ (Module R) AddCommGroup) (forget AddCommGroup)
 
 end

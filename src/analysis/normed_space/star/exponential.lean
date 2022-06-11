@@ -23,7 +23,7 @@ subtypes `self_adjoint A` and `unitary A`.
 section star
 
 variables {A : Type*}
-[normed_ring A] [normed_algebra ℂ A] [star_ring A] [cstar_ring A] [complete_space A]
+[normed_ring A] [normed_algebra ℂ A] [star_ring A] [has_continuous_star A] [complete_space A]
 [star_module ℂ A]
 
 open complex

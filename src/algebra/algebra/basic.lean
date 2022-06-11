@@ -501,9 +501,10 @@ namespace alg_hom_class
 variables {R : Type*} {A : Type*} {B : Type*} [comm_semiring R] [semiring A] [semiring B]
   [algebra R A] [algebra R B]
 
+@[priority 100] -- see Note [lower instance priority]
 instance {F : Type*} [alg_hom_class F R A B] : linear_map_class F R A B :=
 { map_smulₛₗ := λ f r x, by simp only [algebra.smul_def, map_mul, commutes, ring_hom.id_apply],
-  ..show alg_hom_class F R A B, from infer_instance }
+  ..‹alg_hom_class F R A B› }
 
 end alg_hom_class
 

@@ -77,9 +77,10 @@ variables [semiring R]
   [non_unital_non_assoc_semiring A] [module R A]
   [non_unital_non_assoc_semiring B] [module R B]
 
+@[priority 100] -- see Note [lower instance priority]
 instance {F : Type*} [non_unital_alg_hom_class F R A B] : linear_map_class F R A B :=
 { map_smulₛₗ := distrib_mul_action_hom_class.map_smul,
-  ..show non_unital_alg_hom_class F R A B, from infer_instance }
+  ..‹non_unital_alg_hom_class F R A B› }
 
 end non_unital_alg_hom_class
 
@@ -290,9 +291,10 @@ namespace alg_hom
 
 variables {R A B} [comm_semiring R] [semiring A] [semiring B] [algebra R A] [algebra R B]
 
+@[priority 100] -- see Note [lower instance priority]
 instance {F : Type*} [alg_hom_class F R A B] : non_unital_alg_hom_class F R A B :=
 { map_smul := map_smul,
-  ..show alg_hom_class F R A B, from infer_instance }
+  ..‹alg_hom_class F R A B› }
 
 /-- A unital morphism of algebras is a `non_unital_alg_hom`. -/
 def to_non_unital_alg_hom (f : A →ₐ[R] B) : A →ₙₐ[R] B :=

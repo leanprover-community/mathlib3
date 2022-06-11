@@ -210,6 +210,7 @@ def locally_finite_order_top.of_Iic (α : Type*) [partial_order α] [decidable_e
 variables {α β : Type*}
 
 /-- An empty type is locally finite. -/
+@[reducible] -- See note [reducible non-instances]
 protected def _root_.is_empty.to_locally_finite_order [preorder α] [is_empty α] :
   locally_finite_order α :=
 { finset_Icc := is_empty_elim,
@@ -222,6 +223,7 @@ protected def _root_.is_empty.to_locally_finite_order [preorder α] [is_empty α
   finset_mem_Ioo := is_empty_elim }
 
 /-- An empty type is locally finite. -/
+@[reducible] -- See note [reducible non-instances]
 protected def _root_.is_empty.to_locally_finite_order_top [preorder α] [is_empty α] :
   locally_finite_order_top α :=
 { finset_Ici := is_empty_elim,
@@ -230,6 +232,7 @@ protected def _root_.is_empty.to_locally_finite_order_top [preorder α] [is_empt
   finset_mem_Ioi := is_empty_elim }
 
 /-- An empty type is locally finite. -/
+@[reducible] -- See note [reducible non-instances]
 protected def _root_.is_empty.to_locally_finite_order_bot [preorder α] [is_empty α] :
   locally_finite_order_bot α :=
 { finset_Iic := is_empty_elim,

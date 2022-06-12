@@ -40,17 +40,20 @@ to match the Wikipedia name.
 
 noncomputable theory
 
-open function set
-open_locale topological_space ennreal nnreal
+open function set classical
+open_locale topological_space ennreal nnreal classical
 
 section defs
 
 variables (α : Type*) (β : Type*) [pseudo_emetric_space α] [pseudo_emetric_space β]
 
 /-- A dilation is a map that uniformly scales the edistance between any two points.  -/
-structure dilation :=
+structure dilation [decidable (∀ (x y : α), edist x y = 0)] :=
 (to_fun : α → β)
-(edist_eq' : ∃ r : ℝ≥0, ∀ x y : α, edist (to_fun x) (to_fun y) = r * edist x y)
+(r : ℝ≥0)
+(r_pos' : r ≠ 0)
+(edist_eq' : ∀ x y : α, edist (to_fun x) (to_fun y) = r * edist x y)
+(ratio_eq' : (∀ x y : α, edist x y = 0 ∨ edist x y = ⊤) → r = 1)
 
 attribute [nolint has_inhabited_instance] dilation
 
@@ -60,8 +63,12 @@ attribute [nolint has_inhabited_instance] dilation
 You should extend this typeclass when you extend `dilation`.
 -/
 class dilation_class (F : Type*) (α β : out_param $ Type*)
-  [pseudo_emetric_space α] [pseudo_emetric_space β] extends fun_like F α (λ _, β) :=
-(edist_eq' : ∀ (f : F), ∃ r : ℝ≥0, ∀ (x y : α), edist (f x) (f y) = r * edist x y)
+  [pseudo_emetric_space α] [pseudo_emetric_space β]
+  extends fun_like F α (λ _, β) :=
+(r : F → ℝ≥0)
+(r_pos' : ∀ f : F, r f ≠ 0)
+(edist_eq' : ∀ (f : F), ∀ (x y : α), edist (f x) (f y) = r f * edist x y)
+(ratio_eq' : ∀ (f : F), (∀ x y : α, edist x y = 0 ∨ edist x y = ⊤) → r f = 1)
 
 attribute [nolint dangerous_instance] dilation_class.to_fun_like
 
@@ -76,14 +83,29 @@ variables [pseudo_emetric_space α] [pseudo_emetric_space β]
 instance to_dilation_class :
   dilation_class (dilation α β) α β :=
 { coe := to_fun,
-  coe_injective' := λ f g h, by { cases f; cases g; congr', },
-  edist_eq' := λ f, edist_eq' f }
+  coe_injective' := λ f g h, begin
+    cases f; cases g; cases h, congr',
+    by_cases key : ∀ x y : α, edist x y = 0 ∨ edist x y = ⊤,
+    { rw f_ratio_eq' key,
+      rw g_ratio_eq' key, },
+    push_neg at key,
+    rcases key with ⟨x₁, y₁, hxy₁⟩,
+    have hr₁ := f_edist_eq' x₁ y₁,
+    have hr₂ := g_edist_eq' x₁ y₁,
+    rw hr₁ at hr₂,
+    rw ennreal.mul_eq_mul_right hxy₁.1 hxy₁.2 at hr₂,
+    rwa ennreal.coe_eq_coe at hr₂,
+  end,
+  r := r,
+  r_pos' := r_pos',
+  edist_eq' := edist_eq',
+  ratio_eq' := ratio_eq' }
 
 instance : has_coe_to_fun (dilation α β) (λ _, α → β) := fun_like.has_coe_to_fun
 
 @[simp] lemma to_fun_eq_coe {f : dilation α β} : f.to_fun = (f : α → β) := rfl
 
-@[simp] lemma coe_mk (f : α → β) (h) : ⇑(⟨f, h⟩ : dilation α β) = f := rfl
+@[simp] lemma coe_mk (f : α → β) (h₁ h₂ h₃ h₄) : ⇑(⟨f, h₁, h₂, h₃, h₄⟩ : dilation α β) = f := rfl
 
 lemma congr_fun {f g : dilation α β} (h : f = g) (x : α) : f x = g x := fun_like.congr_fun h x
 lemma congr_arg (f : dilation α β) {x y : α} (h : x = y) : f x = f y := fun_like.congr_arg f h
@@ -93,22 +115,26 @@ fun_like.ext f g h
 
 lemma ext_iff {f g : dilation α β} : f = g ↔ ∀ x, f x = g x := fun_like.ext_iff
 
-@[simp] lemma mk_coe (f : dilation α β) (h) : dilation.mk f h = f := ext $ λ _, rfl
+@[simp] lemma mk_coe (f : dilation α β) (h₁ h₂ h₃ h₄) : dilation.mk f h₁ h₂ h₃ h₄ = f :=
+ext $ λ _, rfl
 
 /-- Copy of a `dilation` with a new `to_fun` equal to the old one. Useful to fix definitional
 equalities. -/
 protected def copy (f : dilation α β) (f' : α → β) (h : f' = ⇑f) : dilation α β :=
 { to_fun := f',
-  edist_eq' := h.symm ▸ f.edist_eq' }
+  r := f.r,
+  r_pos' := f.r_pos',
+  edist_eq' := h.symm ▸ f.edist_eq',
+  ratio_eq' := f.ratio_eq' }
 
 /-- The ratio of a dilation `f`. Uses `Exists.some`, the `some_spec` counterpart
 is the lemma `edist_eq` below -/
 def ratio [dilation_class F α β] (f : F) : ℝ≥0 :=
-(dilation_class.edist_eq' f).some
+dilation_class.r f
 
 @[simp] lemma edist_eq [dilation_class F α β] (f : F) (x y : α) :
   edist (f x) (f y) = ratio f * edist x y :=
-(dilation_class.edist_eq' f).some_spec x y
+dilation_class.edist_eq' f x y
 
 @[simp] lemma dist_eq {α β} {F : Type*}
   [pseudo_metric_space α] [pseudo_metric_space β] [dilation_class F α β]
@@ -238,19 +264,25 @@ def of_subsingleton [subsingleton α] (f : α → β) : dilation α β :=
 /-- The identity is a dilation -/
 def id (α) [pseudo_emetric_space α] : dilation α α :=
 { to_fun := _root_.id,
-  edist_eq' := ⟨1, λ x y, by simp only [id.def, ennreal.coe_one, one_mul]⟩ }
+  r := 1,
+  r_pos' := one_ne_zero,
+  edist_eq' := λ x y, by simp,
+  ratio_eq' := by simp, }
 
 instance : inhabited (dilation α α) := ⟨id α⟩
 
 @[simp] lemma id_apply (x : α) : id α x = x := rfl
 
-lemma id_ratio {α} [metric_space α] [nontrivial α] : ratio (id α) = 1 :=
+lemma id_ratio : (id α).r = 1 :=
 begin
-  rcases exists_pair_ne α with ⟨x, y, hne⟩,
-  have := dist_eq (id α) x y,
-  rw ← dist_ne_zero at hne,
-  rwa [id_apply, id_apply, eq_comm, ← div_eq_iff_mul_eq hne,
-    div_self hne, eq_comm, nnreal.coe_eq_one] at this,
+  by_cases key : ∀ x y : α, edist x y = 0 ∨ edist x y = ⊤,
+    { exact (id α).ratio_eq' key, },
+    push_neg at key,
+    rcases key with ⟨x, y, hxy⟩,
+    have := edist_eq (id α) x y,
+    rw [id_apply, id_apply, eq_comm] at this,
+    have := @div_eq_iff_mul_eq ℝ≥0∞ _,
+    -- div_self hne, eq_comm, nnreal.coe_eq_one] at this,
 end
 
 /-- The composition of dilations is a dilation -/

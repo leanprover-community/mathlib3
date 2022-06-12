@@ -76,6 +76,7 @@ lemma nat_degree_add_left_succ {R : Type*} [semiring R] (n : ℕ) (f g : polynom
   (g + f).nat_degree = n + 1 :=
 by rwa nat_degree_add_eq_right_of_nat_degree_lt (dg.trans_lt (nat.lt_of_succ_le df.ge))
 
+/-
 lemma nat_degree_bit0_le {R : Type*} [semiring R] (f : polynomial R) :
   (bit0 f).nat_degree ≤ f.nat_degree :=
 begin
@@ -90,24 +91,60 @@ begin
   exact (nat_degree_add_le _ _).trans (by simp [nat_degree_bit0_le]),
 end
 
+lemma nat_degree_mul_X_pow {R : Type*} [semiring R] (a : polynomial R) (ad : a.nat_degree = 0)
+  (a0 : a ≠ 0) (n : ℕ) (f : polynomial R) :
+  (a * X ^ n).nat_degree = n :=
+begin
+  nontriviality (polynomial R),
+  haveI : nontrivial R := polynomial.nontrivial_iff.mp ‹_›,
+  rw [nat_degree_mul', ad, zero_add, nat_degree_X_pow],
+  rwa [leading_coeff_X_pow, mul_one, leading_coeff_ne_zero],
+end
+-/
+
 end polynomial
 
-namespace tactic.interactive
-open tactic expr
-setup_tactic_parser
+namespace tactic
+open tactic.interactive interactive expr
+--setup_tactic_parser
+
+meta def is_num : expr → option ℕ
+| `(has_zero.zero) := some 0
+| `(has_one.one) := some 1
+| `(bit0 %%a) := match is_num a with
+  | some an := some (bit0 an)
+  | none := none
+  end
+| `(bit1 %%a) := match is_num a with
+  | some an := some (bit1 an)
+  | none := none
+  end
+| _ := none
+
+meta def convert_num_to_C_num (a : expr) : tactic unit :=
+match is_num a with
+| some an := do
+  `(@polynomial %%R %%inst) ← infer_type a,
+  n_eq_Cn ← to_expr ``(%%a = polynomial.C (%%an : %%R)),
+  (_, nproof) ← solve_aux n_eq_Cn
+    (`[ simp only [nat.cast_bit1, nat.cast_bit0, nat.cast_one, C_bit1, C_bit0, map_one, map_one]]),
+  rewrite_target nproof
+| none := skip
+end
 
 /-- `C_mul_terms e` produces a proof of `e.nat_degree = ??` in the case in which `e` is of the form
 `C a * X (^ n)?`.  It has special support for `C 1`, when there is a `nontrivial` assumption on the
 base-semiring. -/
 meta def C_mul_terms : expr → tactic unit
-| `(has_mul.mul %%C %%X) := match X with
-  | `(@polynomial.X %%R %%inst) := do
-      refine ``(polynomial.nat_degree_C_mul_X _ _),
-      assumption <|> exact ``(one_ne_zero)
-  | `(@has_pow.pow (@polynomial %%R %%nin) %%N %%inst %%mX %%n) := do
-      nontriviality_by_assumption R,
-      refine ``(polynomial.nat_degree_C_mul_X_pow %%n _ _),
-      assumption <|> exact ``(one_ne_zero)
+| `(has_mul.mul %%a %%X) := do match X with
+  | `(polynomial.X) := do  -- a * X
+    convert_num_to_C_num a,
+    refine ``(polynomial.nat_degree_C_mul_X _ _),
+    try assumption
+  | `(@has_pow.pow (@polynomial %%R %%nin) ℕ %%inst %%mX %%n) := do  -- a * X ^ n
+    convert_num_to_C_num a,
+    refine ``(polynomial.nat_degree_C_mul_X_pow %%n _ _),
+    assumption <|> interactive.exact ``(one_ne_zero) <|> skip
   | _ := trace "The leading term is not of the form\n`C a * X (^ n)`\n\n"
   end
 | _ := fail "The leading term is not of the form\n`C a * X (^ n)`\n\n"
@@ -122,15 +159,15 @@ power of `X` is non-zero, or the tactic `nontriviality R` succeeds. -/
 meta def single_term_resolve : expr → tactic unit
 | (app `(⇑(@polynomial.monomial %%R %%inst %%n)) x) :=
   refine ``(polynomial.nat_degree_monomial_eq %%n _) *>
-  assumption <|> exact ``(one_ne_zero) <|> skip
+  assumption <|> interactive.exact ``(one_ne_zero) <|> skip
 | (app `(⇑(@polynomial.C %%R %%inst)) x) :=
-  exact ``(polynomial.nat_degree_C _)
+  interactive.exact ``(polynomial.nat_degree_C _)
 | `(@has_pow.pow (@polynomial %%R %%nin) %%N %%inst %%mX %%n) :=
   nontriviality_by_assumption R *>
   refine ``(polynomial.nat_degree_X_pow %%n)
 | `(@polynomial.X %%R %%inst) :=
   nontriviality_by_assumption R *>
-  exact ``(polynomial.nat_degree_X)
+  interactive.exact ``(polynomial.nat_degree_X)
 | e := C_mul_terms e
 
 /--
@@ -178,6 +215,18 @@ do summ ← e.list_summands,
   | (some first) := return first
   end
 
+/--  These are the cases in which an easy lemma computes the degree. -/
+meta def single_term_suggestions : tactic unit := do
+interactive.exact ``(polynomial.nat_degree_X_pow _), trace "Try this: exact nat_degree_X_pow _" <|>
+interactive.exact ``(polynomial.nat_degree_C _),     trace "Try this: exact nat_degree_C _"     <|>
+interactive.exact ``(polynomial.nat_degree_X),       trace "Try this: exact nat_degree_X"       <|>
+fail "easy lemmas do not work"
+
+end tactic
+
+namespace tactic.interactive
+open tactic
+
 /--  `compute_degree_le` tries to solve a goal of the form `f.nat_degree ≤ d`, where `d : ℕ` and `f`
 satisfies:
 * `f` is a sum of expression of the form
@@ -195,7 +244,8 @@ do repeat $ refine ``((polynomial.nat_degree_add_le_iff_left _ _ _).mpr _),
   repeat $ refine ``((polynomial.nat_degree_C_mul_le _ _).trans _),
   repeat $ refine ``((polynomial.nat_degree_X_pow_le _).trans _),
   repeat $ refine ``(polynomial.nat_degree_X_le.trans _),
-  `[try { any_goals { norm_num } }] <|>
+  `[try { any_goals { norm_num } }],
+  try $ any_goals' $ assumption <|>
 do `(polynomial.nat_degree %%tl ≤ %%tr) ← target |
     fail "Goal is not of the form `f.nat_degree ≤ d\n\n",
   (lead,m') ← extract_top_degree_term_and_deg tl,
@@ -206,13 +256,6 @@ do `(polynomial.nat_degree %%tl ≤ %%tr) ← target |
     trace sformat!"should the degree be '{m'}'?\n\n",
     trace sformat!"Try this: {pptl}.nat_degree ≤ {ppm'}", failed
   else fail "sorry, the tactic failed, but I do not know why."
-
-/--  These are the cases in which an easy lemma computes the degree. -/
-meta def single_term_suggestions : tactic unit :=
-do exact ``(polynomial.nat_degree_X_pow _) *> trace "Try this: exact nat_degree_X_pow _" <|>
-   exact ``(polynomial.nat_degree_C _)     *> trace "Try this: exact nat_degree_C _"     <|>
-   exact ``(polynomial.nat_degree_X)       *> trace "Try this: exact nat_degree_X"       <|>
-   fail "easy lemmas do not work"
 
 /--  `compute_degree` tries to solve a goal of the form `f.nat_degree = d` or  `f.degree = d`,
 where `d : ℕ` and `f` satisfies:
@@ -234,8 +277,8 @@ meta def compute_degree : tactic unit :=
 do t ← target,
   match t with
   | `(polynomial.nat_degree %%tl = %%tr) := do
-    (lead,m') ← extract_top_degree_term_and_deg tl, --<|> fail
---      "currently, there is no support for some of the terms appearing in the polynomial",
+    (lead,m') ← extract_top_degree_term_and_deg tl <|> fail
+      "currently, there is no support for some of the terms appearing in the polynomial",
     td ← eval_expr ℕ tr,
     if m' ≠ td then
       do pptl ← pp tl, ppm' ← pp m',
@@ -248,11 +291,10 @@ do t ← target,
       compute_degree_le
   | `(polynomial.degree %%tl = %%tr) := do
     refine ``((polynomial.degree_eq_iff_nat_degree_eq_of_pos _).mpr _),
-    rotate,
+    interactive.rotate,
     `(_ = %%tr1) ← target,
     td ← eval_expr ℕ tr1,
-    (lead,m') ← extract_top_degree_term_and_deg tl, -- <|> fail
---      "currently, there is no support for some of the terms appearing in the polynomial",
+    (lead,m') ← extract_top_degree_term_and_deg tl,
     if m' ≠ td then
       do pptl ← pp tl, ppm' ← pp m',
         trace sformat!"should the degree be '{m'}'?\n\n",

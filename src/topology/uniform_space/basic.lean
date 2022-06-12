@@ -313,12 +313,7 @@ u.of_core_eq_to_core _ _
 section uniform_space
 variables [uniform_space α]
 
-/-- The uniformity is a filter on α × α (inferred from an ambient uniform space
-  structure on α). -/
-def uniformity (α : Type u) [uniform_space α] : filter (α × α) :=
-  (@uniform_space.to_core α _).uniformity
-
-localized "notation `𝓤` := uniformity" in uniformity
+localized "notation `𝓤` α:100 := (@uniform_space.to_core α _).uniformity" in uniformity
 
 lemma is_open_uniformity {s : set α} :
   is_open s ↔ (∀x∈s, { p : α × α | p.1 = x → p.2 ∈ s } ∈ 𝓤 α) :=
@@ -1010,7 +1005,7 @@ instance : partial_order (uniform_space α) :=
 
 instance : has_Inf (uniform_space α) :=
 ⟨assume s, uniform_space.of_core
-{ uniformity := (⨅u∈s, @uniformity α u),
+{ uniformity := (⨅u∈s, (u : uniform_space α).uniformity),
   refl       := le_infi $ assume u, le_infi $ assume hu, u.refl,
   symm       := le_infi $ assume u, le_infi $ assume hu,
     le_trans (map_mono $ infi_le_of_le _ $ infi_le _ hu) u.symm,
@@ -1019,12 +1014,12 @@ instance : has_Inf (uniform_space α) :=
 
 private lemma Inf_le {tt : set (uniform_space α)} {t : uniform_space α} (h : t ∈ tt) :
   Inf tt ≤ t :=
-show (⨅u∈tt, @uniformity α u) ≤ t.uniformity,
+show (⨅u∈tt, (u : uniform_space α).uniformity) ≤ t.uniformity,
   from infi_le_of_le t $ infi_le _ h
 
 private lemma le_Inf {tt : set (uniform_space α)} {t : uniform_space α} (h : ∀t'∈tt, t ≤ t') :
   t ≤ Inf tt :=
-show t.uniformity ≤ (⨅u∈tt, @uniformity α u),
+show t.uniformity ≤ (⨅u∈tt, (u : uniform_space α).uniformity),
   from le_infi $ assume t', le_infi $ assume ht', h t' ht'
 
 instance : has_top (uniform_space α) :=
@@ -1072,19 +1067,11 @@ le_antisymm
   (le_infi $ assume i, infi_le_of_le (u i) $ infi_le _ ⟨i, rfl⟩)
   (le_infi $ assume a, le_infi $ assume ⟨i, (ha : u i = a)⟩, ha ▸ infi_le _ _)
 
-lemma infi_uniformity' {ι : Sort*} {u : ι → uniform_space α} :
-  @uniformity α (infi u) = (⨅i, @uniformity α (u i)) :=
-infi_uniformity
-
 lemma inf_uniformity {u v : uniform_space α} :
   (u ⊓ v).uniformity = u.uniformity ⊓ v.uniformity :=
 have (u ⊓ v) = (⨅i (h : i = u ∨ i = v), i), by simp [infi_or, infi_inf_eq],
 calc (u ⊓ v).uniformity = ((⨅i (h : i = u ∨ i = v), i) : uniform_space α).uniformity : by rw [this]
   ... = _ : by simp [infi_uniformity, infi_or, infi_inf_eq]
-
-lemma inf_uniformity' {u v : uniform_space α} :
-  @uniformity α (u ⊓ v) = @uniformity α u ⊓ @uniformity α v :=
-inf_uniformity
 
 instance inhabited_uniform_space : inhabited (uniform_space α) := ⟨⊥⟩
 instance inhabited_uniform_space_core : inhabited (uniform_space.core α) :=
@@ -1194,7 +1181,7 @@ by rw [to_topological_space_Inf, infi_pair]
 
 /-- A uniform space with the discrete uniformity has the discrete topology. -/
 lemma discrete_topology_of_discrete_uniformity [hα : uniform_space α]
-  (h : uniformity α = 𝓟 id_rel) :
+  (h : 𝓤 α = 𝓟 id_rel) :
   discrete_topology α :=
 ⟨(uniform_space_eq h.symm : ⊥ = hα) ▸ rfl⟩
 
@@ -1321,7 +1308,7 @@ end
 
 lemma mem_uniform_prod [t₁ : uniform_space α] [t₂ : uniform_space β] {a : set (α × α)}
   {b : set (β × β)} (ha : a ∈ 𝓤 α) (hb : b ∈ 𝓤 β) :
-  {p:(α×β)×(α×β) | (p.1.1, p.2.1) ∈ a ∧ (p.1.2, p.2.2) ∈ b } ∈ (@uniformity (α × β) _) :=
+  {p:(α×β)×(α×β) | (p.1.1, p.2.1) ∈ a ∧ (p.1.2, p.2.2) ∈ b } ∈ 𝓤 (α × β) :=
 by rw [uniformity_prod]; exact inter_mem_inf (preimage_mem_comap ha) (preimage_mem_comap hb)
 
 lemma tendsto_prod_uniformity_fst [uniform_space α] [uniform_space β] :

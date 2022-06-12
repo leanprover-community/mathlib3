@@ -50,7 +50,7 @@ import measure_theory.measurable_space_def
 -/
 
 open measurable_space set
-open_locale classical
+open_locale classical measure_theory
 
 /-- A π-system is a collection of subsets of `α` that is closed under binary intersection of
   non-disjoint sets. Usually it is also required that the collection is nonempty, but we don't do
@@ -190,7 +190,7 @@ end
 
 lemma generate_from_measurable_set_of_generate_pi_system {α} {g : set (set α)} (t : set α)
   (ht : t ∈ generate_pi_system g) :
-  (generate_from g).measurable_set' t :=
+  measurable_set[generate_from g] t :=
 @generate_pi_system_measurable_set α (generate_from g) g
   (λ s h_s_in_g, measurable_set_generate_from h_s_in_g) t ht
 
@@ -404,7 +404,7 @@ lemma generate_le {s : set (set α)} (h : ∀ t ∈ s, d.has t) : generate s ≤
   (assume f hd _ hf, d.has_Union hd hf)
 
 lemma generate_has_subset_generate_measurable {C : set (set α)} {s : set α}
-  (hs : (generate C).has s) : (generate_from C).measurable_set' s :=
+  (hs : (generate C).has s) : measurable_set[generate_from C] s :=
 generate_le (of_measurable_space (generate_from C)) (λ t, measurable_set_generate_from) s hs
 
 lemma generate_inter {s : set (set α)}

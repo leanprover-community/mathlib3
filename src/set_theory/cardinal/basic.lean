@@ -272,7 +272,7 @@ instance : has_one cardinal.{u} := ⟨#punit⟩
 instance : nontrivial cardinal.{u} := ⟨⟨1, 0, mk_ne_zero _⟩⟩
 
 lemma mk_eq_one (α : Type u) [unique α] : #α = 1 :=
-mk_congr equiv_punit_of_unique
+(equiv.equiv_punit α).cardinal_eq
 
 theorem le_one_iff_subsingleton {α : Type u} : #α ≤ 1 ↔ subsingleton α :=
 ⟨λ ⟨f⟩, ⟨λ a b, f.injective (subsingleton.elim _ _)⟩,
@@ -504,12 +504,11 @@ protected theorem lt_wf : @well_founded cardinal.{u} (<) :=
   let ι := {c : cardinal // ¬ acc (<) c},
   let f : ι → cardinal := subtype.val,
   haveI hι : nonempty ι := ⟨⟨_, h⟩⟩,
-  have := classical.some_spec (embedding.min_injective (λ i, (f i).out)),
-  cases classical.some (embedding.min_injective (λ i, (f i).out)) with c hc,
-  cases this with h,
+  obtain ⟨⟨c : cardinal, hc : ¬acc (<) c⟩, ⟨h_1 : Π j, (f ⟨c, hc⟩).out ↪ (f j).out⟩⟩ :=
+    embedding.min_injective (λ i, (f i).out),
   apply hc (acc.intro _ (λ j h', classical.by_contradiction (λ hj, h'.2 _))),
-  have : #_ ≤ #_ := ⟨h ⟨j, hj⟩⟩,
-  simpa [mk_out] using this
+  have : #_ ≤ #_ := ⟨h_1 ⟨j, hj⟩⟩,
+  simpa only [f, mk_out] using this
 end⟩
 
 instance : has_well_founded cardinal.{u} := ⟨(<), cardinal.lt_wf⟩
@@ -964,9 +963,19 @@ begin
   rintro (rfl|rfl|⟨ha,hb⟩); simp only [*, mul_lt_aleph_0, aleph_0_pos, zero_mul, mul_zero]
 end
 
+/-- See also `cardinal.aleph_0_le_mul_iff`. -/
 lemma aleph_0_le_mul_iff {a b : cardinal} : ℵ₀ ≤ a * b ↔ a ≠ 0 ∧ b ≠ 0 ∧ (ℵ₀ ≤ a ∨ ℵ₀ ≤ b) :=
 let h := (@mul_lt_aleph_0_iff a b).not in
 by rwa [not_lt, not_or_distrib, not_or_distrib, not_and_distrib, not_lt, not_lt] at h
+
+/-- See also `cardinal.aleph_0_le_mul_iff'`. -/
+lemma aleph_0_le_mul_iff' {a b : cardinal.{u}} : ℵ₀ ≤ a * b ↔ a ≠ 0 ∧ ℵ₀ ≤ b ∨ ℵ₀ ≤ a ∧ b ≠ 0 :=
+begin
+  have : ∀ {a : cardinal.{u}}, ℵ₀ ≤ a → a ≠ 0, from λ a, ne_bot_of_le_ne_bot aleph_0_ne_zero,
+  simp only [aleph_0_le_mul_iff, and_or_distrib_left, and_iff_right_of_imp this,
+    @and.left_comm (a ≠ 0)],
+  simp only [and.comm, or.comm]
+end
 
 lemma mul_lt_aleph_0_iff_of_ne_zero {a b : cardinal} (ha : a ≠ 0) (hb : b ≠ 0) :
   a * b < ℵ₀ ↔ a < ℵ₀ ∧ b < ℵ₀ :=
@@ -979,13 +988,9 @@ end
 
 lemma eq_one_iff_unique {α : Type*} :
   #α = 1 ↔ subsingleton α ∧ nonempty α :=
-calc #α = 1 ↔ #α ≤ 1 ∧ ¬#α < 1 : eq_iff_le_not_lt
+calc #α = 1 ↔ #α ≤ 1 ∧ 1 ≤ #α : le_antisymm_iff
         ... ↔ subsingleton α ∧ nonempty α :
-begin
-  apply and_congr le_one_iff_subsingleton,
-  push_neg,
-  rw [one_le_iff_ne_zero, mk_ne_zero_iff]
-end
+  le_one_iff_subsingleton.and (one_le_iff_ne_zero.trans mk_ne_zero_iff)
 
 theorem infinite_iff {α : Type u} : infinite α ↔ ℵ₀ ≤ #α :=
 by rw [←not_lt, lt_aleph_0_iff_fintype, not_nonempty_iff, is_empty_fintype]
@@ -1106,18 +1111,17 @@ by rw [←to_nat_lift, lift_mk_eq.mpr ⟨e⟩, to_nat_lift]
 @[simp] lemma to_nat_mul (x y : cardinal) : (x * y).to_nat = x.to_nat * y.to_nat :=
 begin
   rcases eq_or_ne x 0 with rfl | hx1,
-  { rw [comm_semiring.mul_comm, mul_zero, zero_to_nat, nat.zero_mul] },
+  { rw [zero_mul, zero_to_nat, zero_mul] },
   rcases eq_or_ne y 0 with rfl | hy1,
-  { rw [zero_to_nat, mul_zero, mul_zero, zero_to_nat] },
-  refine nat_cast_injective (eq.trans _ (nat.cast_mul _ _).symm),
+  { rw [mul_zero, zero_to_nat, mul_zero] },
   cases lt_or_le x ℵ₀ with hx2 hx2,
   { cases lt_or_le y ℵ₀ with hy2 hy2,
-    { rw [cast_to_nat_of_lt_aleph_0, cast_to_nat_of_lt_aleph_0 hx2, cast_to_nat_of_lt_aleph_0 hy2],
-      exact mul_lt_aleph_0 hx2 hy2 },
-    { rw [cast_to_nat_of_aleph_0_le hy2, mul_zero, cast_to_nat_of_aleph_0_le],
-      exact not_lt.mp (mt (mul_lt_aleph_0_iff_of_ne_zero hx1 hy1).mp (λ h, not_lt.mpr hy2 h.2)) } },
-  { rw [cast_to_nat_of_aleph_0_le hx2, zero_mul, cast_to_nat_of_aleph_0_le],
-    exact not_lt.mp (mt (mul_lt_aleph_0_iff_of_ne_zero hx1 hy1).mp (λ h, not_lt.mpr hx2 h.1)) },
+    { lift x to ℕ using hx2, lift y to ℕ using hy2,
+      rw [← nat.cast_mul, to_nat_cast, to_nat_cast, to_nat_cast] },
+    { rw [to_nat_apply_of_aleph_0_le hy2, mul_zero, to_nat_apply_of_aleph_0_le],
+      exact aleph_0_le_mul_iff'.2 (or.inl ⟨hx1, hy2⟩) } },
+  { rw [to_nat_apply_of_aleph_0_le hx2, zero_mul, to_nat_apply_of_aleph_0_le],
+    exact aleph_0_le_mul_iff'.2 (or.inr ⟨hx2, hy1⟩) },
 end
 
 @[simp] lemma to_nat_add_of_lt_aleph_0 {a : cardinal.{u}} {b : cardinal.{v}}

@@ -129,6 +129,10 @@ lemma inducing.is_open_iff {f : α → β} (hf : inducing f) {s : set α} :
   is_open s ↔ ∃ t, is_open t ∧ f ⁻¹' t = s :=
 by rw [hf.induced, is_open_induced_iff]
 
+lemma inducing.dense_iff {f : α → β} (hf : inducing f) {s : set α} :
+  dense s ↔ ∀ x, f x ∈ closure (f '' s) :=
+by simp only [dense, hf.closure_eq_preimage_closure_image, mem_preimage]
+
 end inducing
 
 section embedding

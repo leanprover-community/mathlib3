@@ -21,12 +21,14 @@ inverse, arsinh.
 
 ## Main Results
 
-- `real.sinh_surjective`: The proof that `real.sinh` is surjective
-- `real.sinh_bijective`: The proof `real.sinh` is bijective
+- `real.sinh_surjective`, `real.sinh_bijective`: `real.sinh` is surjective and bijective;
 
-- `real.arsinh_injective`: The proof that `real.arsinh` is injective
-- `real.arsinh_surjective`: The proof that `real.arsinh` is surjective
-- `real.arsinh_bijective`: The proof `real.arsinh` is bijective
+- `real.arsinh_injective`, `real.arsinh_surjective`, `real.arsinh_bijective`: `real.arsinh` is
+  injective, surjective, and bijective;
+
+- `real.continuous_arsinh`, `real.differentiable_arsinh`, `real.cont_diff_arsinh`: `real.arsinh` is
+  continuous, differentiable, and continuously differentiable; we also provide dot notation
+  convenience lemmas like `filter.tendsto.arsinh` and `cont_diff_at.arsinh`.
 
 ## Tags
 
@@ -34,7 +36,7 @@ arsinh, arcsinh, argsinh, asinh, sinh injective, sinh bijective, sinh surjective
 -/
 noncomputable theory
 
-open function filter
+open function filter set
 open_locale topological_space
 
 namespace real
@@ -87,12 +89,12 @@ right_inverse_of_injective_of_left_inverse sinh_injective sinh_arsinh x
   right_inv := sinh_arsinh }
 
 /-- `real.sinh` as an `order_iso`. -/
-@[simps] def sinh_order_iso : ℝ ≃o ℝ :=
+@[simps { fully_applied := ff }] def sinh_order_iso : ℝ ≃o ℝ :=
 { to_equiv := sinh_equiv,
   map_rel_iff' := @sinh_le_sinh }
 
 /-- `real.sinh` as a `homeomorph`. -/
-@[simps] def sinh_homeomorph : ℝ ≃ₜ ℝ := sinh_order_iso.to_homeomorph
+@[simps { fully_applied := ff }] def sinh_homeomorph : ℝ ≃ₜ ℝ := sinh_order_iso.to_homeomorph
 
 lemma arsinh_bijective : bijective arsinh := sinh_equiv.symm.bijective
 lemma arsinh_injective : injective arsinh := sinh_equiv.symm.injective
@@ -119,6 +121,22 @@ lt_iff_lt_of_le_iff_le arsinh_nonpos_iff
 @[simp] lemma arsinh_neg_iff : arsinh x < 0 ↔ x < 0 :=
 lt_iff_lt_of_le_iff_le arsinh_nonneg_iff
 
+lemma has_strict_deriv_at_arsinh (x : ℝ) : has_strict_deriv_at arsinh (sqrt (1 + x ^ 2))⁻¹ x :=
+begin
+  convert sinh_homeomorph.to_local_homeomorph.has_strict_deriv_at_symm (mem_univ x)
+    (cosh_pos _).ne' (has_strict_deriv_at_sinh _),
+  exact (cosh_arsinh _).symm
+end
+
+lemma has_deriv_at_arsinh (x : ℝ) : has_deriv_at arsinh (sqrt (1 + x ^ 2))⁻¹ x :=
+(has_strict_deriv_at_arsinh x).has_deriv_at
+
+lemma differentiable_arsinh : differentiable ℝ arsinh :=
+λ x, (has_deriv_at_arsinh x).differentiable_at
+
+lemma cont_diff_arsinh {n : with_top ℕ} : cont_diff ℝ n arsinh :=
+sinh_homeomorph.cont_diff_symm_deriv (λ x, (cosh_pos x).ne') has_deriv_at_sinh cont_diff_sinh
+
 @[continuity] lemma continuous_arsinh : continuous arsinh := sinh_homeomorph.symm.continuous
 
 end real
@@ -128,6 +146,8 @@ open real
 lemma filter.tendsto.arsinh {α : Type*} {l : filter α} {f : α → ℝ} {a : ℝ}
   (h : tendsto f l (𝓝 a)) : tendsto (λ x, arsinh (f x)) l (𝓝 (arsinh a)) :=
 (continuous_arsinh.tendsto _).comp h
+
+section continuous
 
 variables {X : Type*} [topological_space X] {f : X → ℝ} {s : set X} {a : X}
 
@@ -142,3 +162,72 @@ lemma continuous_on.arsinh (h : continuous_on f s) : continuous_on (λ x, arsinh
 
 lemma continuous.arsinh (h : continuous f) : continuous (λ x, arsinh (f x)) :=
 continuous_arsinh.comp h
+
+end continuous
+
+section fderiv
+
+variables {E : Type*} [normed_group E] [normed_space ℝ E] {f : E → ℝ} {s : set E} {a : E}
+  {f' : E →L[ℝ] ℝ} {n : with_top ℕ}
+
+lemma has_strict_fderiv_at.arsinh (hf : has_strict_fderiv_at f f' a) :
+  has_strict_fderiv_at (λ x, arsinh (f x)) ((sqrt (1 + (f a) ^ 2))⁻¹ • f') a :=
+(has_strict_deriv_at_arsinh _).comp_has_strict_fderiv_at a hf
+
+lemma has_fderiv_at.arsinh (hf : has_fderiv_at f f' a) :
+  has_fderiv_at (λ x, arsinh (f x)) ((sqrt (1 + (f a) ^ 2))⁻¹ • f') a :=
+(has_deriv_at_arsinh _).comp_has_fderiv_at a hf
+
+lemma has_fderiv_within_at.arsinh (hf : has_fderiv_within_at f f' s a) :
+  has_fderiv_within_at (λ x, arsinh (f x)) ((sqrt (1 + (f a) ^ 2))⁻¹ • f') s a :=
+(has_deriv_at_arsinh _).comp_has_fderiv_within_at a hf
+
+lemma differentiable_at.arsinh (h : differentiable_at ℝ f a) :
+  differentiable_at ℝ (λ x, arsinh (f x)) a :=
+(differentiable_arsinh _).comp a h
+
+lemma differentiable_within_at.arsinh (h : differentiable_within_at ℝ f s a) :
+  differentiable_within_at ℝ (λ x, arsinh (f x)) s a :=
+(differentiable_arsinh _).comp_differentiable_within_at a h
+
+lemma differentiable_on.arsinh (h : differentiable_on ℝ f s) :
+  differentiable_on ℝ (λ x, arsinh (f x)) s :=
+λ x hx, (h x hx).arsinh
+
+lemma differentiable.arsinh (h : differentiable ℝ f) :
+  differentiable ℝ (λ x, arsinh (f x)) :=
+differentiable_arsinh.comp h
+
+lemma cont_diff_at.arsinh (h : cont_diff_at ℝ n f a) :
+  cont_diff_at ℝ n (λ x, arsinh (f x)) a :=
+cont_diff_arsinh.cont_diff_at.comp a h
+
+lemma cont_diff_within_at.arsinh (h : cont_diff_within_at ℝ n f s a) :
+  cont_diff_within_at ℝ n (λ x, arsinh (f x)) s a :=
+cont_diff_arsinh.cont_diff_at.comp_cont_diff_within_at a h
+
+lemma cont_diff.arsinh (h : cont_diff ℝ n f) : cont_diff ℝ n (λ x, arsinh (f x)) :=
+cont_diff_arsinh.comp h
+
+lemma cont_diff_on.arsinh (h : cont_diff_on ℝ n f s) : cont_diff_on ℝ n (λ x, arsinh (f x)) s :=
+λ x hx, (h x hx).arsinh
+
+end fderiv
+
+section deriv
+
+variables {f : ℝ → ℝ} {s : set ℝ} {a f' : ℝ}
+
+lemma has_strict_deriv_at.arsinh (hf : has_strict_deriv_at f f' a) :
+  has_strict_deriv_at (λ x, arsinh (f x)) ((sqrt (1 + (f a) ^ 2))⁻¹ • f') a :=
+(has_strict_deriv_at_arsinh _).comp a hf
+
+lemma has_deriv_at.arsinh (hf : has_deriv_at f f' a) :
+  has_deriv_at (λ x, arsinh (f x)) ((sqrt (1 + (f a) ^ 2))⁻¹ • f') a :=
+(has_deriv_at_arsinh _).comp a hf
+
+lemma has_deriv_within_at.arsinh (hf : has_deriv_within_at f f' s a) :
+  has_deriv_within_at (λ x, arsinh (f x)) ((sqrt (1 + (f a) ^ 2))⁻¹ • f') s a :=
+(has_deriv_at_arsinh _).comp_has_deriv_within_at a hf
+
+end deriv

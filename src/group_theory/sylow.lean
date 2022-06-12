@@ -520,6 +520,12 @@ begin
   rwa pow_one at key,
 end
 
+/-- Sylow subgroups are Hall subgroups. -/
+lemma card_coprime_index [fintype G] {p : ℕ} [hp : fact p.prime] (P : sylow p G) :
+  (card P).coprime (index (P : subgroup G)) :=
+let ⟨n, hn⟩ := is_p_group.iff_card.mp P.2 in
+hn.symm ▸ (hp.1.coprime_pow_of_not_dvd (not_dvd_index_sylow P index_ne_zero_of_fintype)).symm
+
 lemma ne_bot_of_dvd_card [fintype G] {p : ℕ} [hp : fact p.prime] (P : sylow p G)
   (hdvd : p ∣ card G) : (P : subgroup G) ≠ ⊥ :=
 begin

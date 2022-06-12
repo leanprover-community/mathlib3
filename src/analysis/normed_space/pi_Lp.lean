@@ -312,6 +312,18 @@ lemma nnnorm_eq_of_L2 {β : ι → Type*} [Π i, semi_normed_group (β i)] (x : 
   ∥x∥₊ = nnreal.sqrt (∑ (i : ι), ∥x i∥₊ ^ 2) :=
 subtype.ext $ by { push_cast, exact norm_eq_of_L2 x }
 
+lemma dist_eq_of_L2 {β : ι → Type*} [Π i, semi_normed_group (β i)] (x y : pi_Lp 2 β) :
+  dist x y = (∑ i, dist (x i) (y i) ^ 2).sqrt :=
+by simp_rw [dist_eq_norm, norm_eq_of_L2, pi.sub_apply]
+
+lemma nndist_eq_of_L2 {β : ι → Type*} [Π i, semi_normed_group (β i)] (x y : pi_Lp 2 β) :
+  nndist x y = (∑ i, nndist (x i) (y i) ^ 2).sqrt :=
+subtype.ext $ by { push_cast, exact dist_eq_of_L2 _ _ }
+
+lemma edist_eq_of_L2 {β : ι → Type*} [Π i, semi_normed_group (β i)] (x y : pi_Lp 2 β) :
+  edist x y = (∑ i, edist (x i) (y i) ^ 2) ^ (1 / 2 : ℝ) :=
+by simp_rw [pi_Lp.edist_eq, ennreal.rpow_two]
+
 include fact_one_le_p
 
 variables [normed_field 𝕜]

@@ -690,6 +690,9 @@ ssubset_iff_insert.2 ⟨a, h, subset.rfl⟩
 theorem insert_comm (a b : α) (s : set α) : insert a (insert b s) = insert b (insert a s) :=
 ext $ λ x, or.left_comm
 
+@[simp] lemma insert_idem (a : α) (s : set α) : insert a (insert a s) = insert a s :=
+insert_eq_of_mem $ mem_insert _ _
+
 theorem insert_union : insert a s ∪ t = insert a (s ∪ t) := ext $ λ x, or.assoc
 
 @[simp] theorem union_insert : s ∪ insert a t = insert a (s ∪ t) := ext $ λ x, or.left_comm

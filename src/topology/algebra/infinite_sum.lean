@@ -1289,7 +1289,7 @@ lemma tsum_comm [t1_space α] {f : β → γ → α} (h : summable (function.unc
   ∑' c b, f b c = ∑' b c, f b c :=
 tsum_comm' h h.prod_factor h.prod_symm.prod_factor
 
-lemma has_sum.sum_ℕ_of_sum_ℤ [t2_space α] {f : ℤ → α} (hf : has_sum f a) :
+lemma has_sum.sum_nat_of_sum_int [t2_space α] {f : ℤ → α} (hf : has_sum f a) :
   has_sum (λ n:ℕ, f(n + 1) + f(-n - 1)) (a - f 0) :=
 begin
   have : summable (λ n:ℕ, f(n + 1)),

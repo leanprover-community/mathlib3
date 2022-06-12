@@ -312,34 +312,6 @@ lemma pairwise_disjoint_sUnion {s : set (set ι)} (h : directed_on (⊆) s) :
   (⋃₀ s).pairwise_disjoint f ↔ ∀ ⦃a⦄, a ∈ s → set.pairwise_disjoint a f :=
 pairwise_sUnion h
 
-lemma pairwise_disjoint_image_right_iff {f : α → β → γ} {s : set α} {t : set β}
-  (hf : ∀ a ∈ s, injective (f a)) :
-  s.pairwise_disjoint (λ a, f a '' t) ↔ (s ×ˢ t : set (α × β)).inj_on (λ p, f p.1 p.2) :=
-begin
-  refine ⟨λ hs x hx y hy (h : f _ _ = _), _, λ hs x hx y hy h, _⟩,
-  { suffices : x.1 = y.1,
-    { exact prod.ext this (hf _ hx.1 $ h.trans $ by rw this) },
-    refine hs.elim hx.1 hy.1 (not_disjoint_iff.2 ⟨_, mem_image_of_mem _ hx.2, _⟩),
-    rw h,
-    exact mem_image_of_mem _ hy.2 },
-  { rintro _ ⟨⟨a, ha, hab⟩, b, hb, rfl⟩,
-    exact h (congr_arg prod.fst $ hs (mk_mem_prod hx ha) (mk_mem_prod hy hb) hab) }
-end
-
-lemma pairwise_disjoint_image_left_iff {f : α → β → γ} {s : set α} {t : set β}
-  (hf : ∀ b ∈ t, injective (λ a, f a b)) :
-  t.pairwise_disjoint (λ b, (λ a, f a b) '' s) ↔ (s ×ˢ t : set (α × β)).inj_on (λ p, f p.1 p.2) :=
-begin
-  refine ⟨λ ht x hx y hy (h : f _ _ = _), _, λ ht x hx y hy h, _⟩,
-  { suffices : x.2 = y.2,
-    { exact prod.ext (hf _ hx.2 $ h.trans $ by rw this) this },
-    refine ht.elim hx.2 hy.2 (not_disjoint_iff.2 ⟨_, mem_image_of_mem _ hx.1, _⟩),
-    rw h,
-    exact mem_image_of_mem _ hy.1 },
-  { rintro _ ⟨⟨a, ha, hab⟩, b, hb, rfl⟩,
-    exact h (congr_arg prod.snd $ ht (mk_mem_prod ha hx) (mk_mem_prod hb hy) hab) }
-end
-
 -- classical
 lemma pairwise_disjoint.elim (hs : s.pairwise_disjoint f) {i j : ι} (hi : i ∈ s) (hj : j ∈ s)
   (h : ¬ disjoint (f i) (f j)) :
@@ -412,6 +384,34 @@ noncomputable def bUnion_eq_sigma_of_disjoint {s : set ι} {f : ι → set α}
   (⋃ i ∈ s, f i) ≃ (Σ i : s, f i) :=
 (equiv.set_congr (bUnion_eq_Union _ _)).trans $ Union_eq_sigma_of_disjoint $
   λ ⟨i, hi⟩ ⟨j, hj⟩ ne, h hi hj $ λ eq, ne $ subtype.eq eq
+
+lemma pairwise_disjoint_image_right_iff {f : α → β → γ} {s : set α} {t : set β}
+  (hf : ∀ a ∈ s, injective (f a)) :
+  s.pairwise_disjoint (λ a, f a '' t) ↔ (s ×ˢ t : set (α × β)).inj_on (λ p, f p.1 p.2) :=
+begin
+  refine ⟨λ hs x hx y hy (h : f _ _ = _), _, λ hs x hx y hy h, _⟩,
+  { suffices : x.1 = y.1,
+    { exact prod.ext this (hf _ hx.1 $ h.trans $ by rw this) },
+    refine hs.elim hx.1 hy.1 (not_disjoint_iff.2 ⟨_, mem_image_of_mem _ hx.2, _⟩),
+    rw h,
+    exact mem_image_of_mem _ hy.2 },
+  { rintro _ ⟨⟨a, ha, hab⟩, b, hb, rfl⟩,
+    exact h (congr_arg prod.fst $ hs (mk_mem_prod hx ha) (mk_mem_prod hy hb) hab) }
+end
+
+lemma pairwise_disjoint_image_left_iff {f : α → β → γ} {s : set α} {t : set β}
+  (hf : ∀ b ∈ t, injective (λ a, f a b)) :
+  t.pairwise_disjoint (λ b, (λ a, f a b) '' s) ↔ (s ×ˢ t : set (α × β)).inj_on (λ p, f p.1 p.2) :=
+begin
+  refine ⟨λ ht x hx y hy (h : f _ _ = _), _, λ ht x hx y hy h, _⟩,
+  { suffices : x.2 = y.2,
+    { exact prod.ext (hf _ hx.2 $ h.trans $ by rw this) this },
+    refine ht.elim hx.2 hy.2 (not_disjoint_iff.2 ⟨_, mem_image_of_mem _ hx.1, _⟩),
+    rw h,
+    exact mem_image_of_mem _ hy.1 },
+  { rintro _ ⟨⟨a, ha, hab⟩, b, hb, rfl⟩,
+    exact h (congr_arg prod.snd $ ht (mk_mem_prod ha hx) (mk_mem_prod hb hy) hab) }
+end
 
 end set
 

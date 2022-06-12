@@ -185,7 +185,7 @@ private lemma neg.of_smul {𝕜 : Type*} {E : Type*} [semi_normed_ring 𝕜] [ad
 by rw [←neg_one_smul 𝕜, smul, norm_neg, ← smul, one_smul]
 
 private lemma nonneg.of {𝕜 : Type*} {E : Type*} [semi_normed_ring 𝕜] [add_comm_group E] [module 𝕜 E]
-  [norm_one_class 𝕜] {f : E → ℝ} (add_le : ∀ (x y : E), f (x + y) ≤ f x + f y)
+  {f : E → ℝ} (add_le : ∀ (x y : E), f (x + y) ≤ f x + f y)
   (smul : ∀ (a : 𝕜) (x : E), f (a • x) = ∥a∥ * f x) (x : E) : 0 ≤ f x :=
 have h: 0 ≤ 2 * f x, from
 calc 0 = f (x + (- x)) : by rw [add_neg_self, map_zero.of_smul smul]
@@ -196,7 +196,7 @@ nonneg_of_mul_nonneg_left h zero_lt_two
 /-- Alternative constructor for a `seminorm` on an `add_comm_group E` over a `semi_norm_ring 𝕜`
   in which `1` has norm `1`. -/
 def seminorm.of {𝕜 : Type*} {E : Type*} [semi_normed_ring 𝕜] [add_comm_group E] [module 𝕜 E]
-  [norm_one_class 𝕜] (f : E → ℝ) (add_le : ∀ (x y : E), f (x + y) ≤ f x + f y)
+  (f : E → ℝ) (add_le : ∀ (x y : E), f (x + y) ≤ f x + f y)
   (smul : ∀ (a : 𝕜) (x : E), f (a • x) = ∥a∥ * f x) : seminorm 𝕜 E :=
 { to_fun    := f,
   map_zero' := map_zero.of_smul smul,

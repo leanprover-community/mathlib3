@@ -177,9 +177,8 @@ by rw [compl_eq_univ_sdiff, sdiff_singleton_eq_erase]
 lemma insert_inj_on' (s : finset α) : set.inj_on (λ a, insert a s) (sᶜ : finset α) :=
 by { rw coe_compl, exact s.insert_inj_on }
 
-lemma image_univ_of_surjective [fintype β] [decidable_eq β] {f : α → β} (hf : surjective f) :
-  univ.image f = univ :=
-eq_univ_of_forall $ by simpa [image]
+lemma image_univ_of_surjective [fintype β] {f : β → α} (hf : surjective f) : univ.image f = univ :=
+eq_univ_of_forall $ hf.forall.2 $ λ _, mem_image_of_mem _ $ mem_univ _
 
 end boolean_algebra
 
@@ -681,7 +680,7 @@ by simp only [finset.ssubset_def, to_finset_mono, ssubset_def]
 
 @[simp] theorem to_finset_disjoint_iff [decidable_eq α] {s t : set α} [fintype s] [fintype t] :
   disjoint s.to_finset t.to_finset ↔ disjoint s t :=
-by simp only [disjoint_iff_disjoint_coe, coe_to_finset]
+by simp only [←disjoint_coe, coe_to_finset]
 
 lemma to_finset_inter {α : Type*} [decidable_eq α] (s t : set α) [fintype (s ∩ t : set α)]
   [fintype s] [fintype t] : (s ∩ t).to_finset = s.to_finset ∩ t.to_finset :=

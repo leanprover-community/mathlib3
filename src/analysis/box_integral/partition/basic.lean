@@ -550,7 +550,7 @@ lemma distortion_le_of_mem (h : J ∈ π) : J.distortion ≤ π.distortion :=
 le_sup h
 
 lemma distortion_le_iff {c : ℝ≥0} : π.distortion ≤ c ↔ ∀ J ∈ π, box.distortion J ≤ c :=
-sup_le_iff
+finset.sup_le_iff
 
 lemma distortion_bUnion (π : prepartition I) (πi : Π J, prepartition J) :
   (π.bUnion πi).distortion = π.boxes.sup (λ J, (πi J).distortion) :=

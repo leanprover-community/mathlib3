@@ -59,7 +59,7 @@ def re (z : ℍ) := (z : ℂ).re
 @[simp] lemma coe_re (z : ℍ) : (z : ℂ).re = z.re := rfl
 
 lemma re_add_im (z : ℍ) : (z.re + z.im * complex.I : ℂ) = z :=
-complex.re_add_im z 
+complex.re_add_im z
 
 lemma im_pos (z : ℍ) : 0 < z.im := z.2
 

@@ -568,6 +568,9 @@ by simpa only [sinh_zero] using @sinh_lt_sinh x 0
 @[simp] lemma sinh_nonneg_iff : 0 ≤ sinh x ↔ 0 ≤ x :=
 by simpa only [sinh_zero] using @sinh_le_sinh 0 x
 
+lemma abs_sinh (x : ℝ) : |sinh x| = sinh (|x|) :=
+by cases le_total x 0; simp [abs_of_nonneg, abs_of_nonpos, *]
+
 lemma cosh_strict_mono_on : strict_mono_on cosh (Ici 0) :=
 (convex_Ici _).strict_mono_on_of_deriv_pos continuous_cosh.continuous_on $ λ x hx,
   by { rw [interior_Ici, mem_Ioi] at hx, rwa [deriv_cosh, sinh_pos_iff] }

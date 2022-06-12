@@ -774,7 +774,13 @@ end preorder
 end comm_group
 
 section linear_order
-variables [group α] [linear_order α] [covariant_class α α (*) (≤)]
+variables [group α] [linear_order α]
+
+@[simp, to_additive cmp_sub_zero]
+lemma cmp_div_one' [covariant_class α α (swap (*)) (≤)] (a b : α) : cmp (a / b) 1 = cmp a b :=
+by rw [← cmp_mul_right' _ _ b, one_mul, div_mul_cancel']
+
+variables [covariant_class α α (*) (≤)]
 
 section variable_names
 variables {a b c : α}

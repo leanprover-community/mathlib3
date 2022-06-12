@@ -562,7 +562,7 @@ of_real_cosh_of_real_re _
 @[simp] lemma cosh_of_real_im (x : ℝ) : (cosh x).im = 0 :=
 by rw [← of_real_cosh_of_real_re, of_real_im]
 
-lemma cosh_of_real_re (x : ℝ) : (cosh x).re = real.cosh x := rfl
+@[simp] lemma cosh_of_real_re (x : ℝ) : (cosh x).re = real.cosh x := rfl
 
 lemma tanh_eq_sinh_div_cosh : tanh x = sinh x / cosh x := rfl
 

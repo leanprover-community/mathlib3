@@ -305,11 +305,23 @@ map_pow f a
 
 end ring_hom
 
+section pow_monoid_with_zero_hom
+
+variables [comm_monoid_with_zero M] {n : ℕ} (hn : 0 < n)
+include M hn
+
 /-- We define `x ↦ x^n` (for positive `n : ℕ`) as a `monoid_with_zero_hom` -/
-def pow_monoid_with_zero_hom {M : Type*} [comm_monoid_with_zero M] {n : ℕ} (hn : 0 < n) :
-  M →*₀ M :=
+def pow_monoid_with_zero_hom : M →*₀ M :=
 { map_zero' := zero_pow hn,
   ..pow_monoid_hom n }
+
+@[simp]
+lemma coe_pow_monoid_with_zero_hom : (pow_monoid_with_zero_hom hn : M → M) = (^ n) := rfl
+
+@[simp]
+lemma pow_monoid_with_zero_hom_apply (a : M) : pow_monoid_with_zero_hom hn a = a ^ n := rfl
+
+end pow_monoid_with_zero_hom
 
 lemma pow_dvd_pow [monoid R] (a : R) {m n : ℕ} (h : m ≤ n) :
   a ^ m ∣ a ^ n := ⟨a ^ (n - m), by rw [← pow_add, nat.add_comm, tsub_add_cancel_of_le h]⟩

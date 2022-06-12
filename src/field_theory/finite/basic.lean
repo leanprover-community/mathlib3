@@ -444,8 +444,6 @@ namespace finite_field
 variables {F : Type*} [field F] [fintype F]
 
 /-- In a finite field of characteristic `2`, all elements are squares. -/
--- TODO: move the following lemmas (up to and incluiding `exists_nonsquare`)
--- to the end of `field_theory.finite.basic`
 lemma is_square_of_char_two (hF : ring_char F = 2) (a : F) : is_square a :=
 begin
   haveI hF' : char_p F 2 := ring_char.of_eq hF,

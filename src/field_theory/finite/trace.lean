@@ -20,23 +20,13 @@ finite field, trace
 
 namespace finite_field
 
-/-- The trace map from a finite field of characteristic `p` to `zmod p` -/
-noncomputable
-def trace_to_zmod (F : Type*) [field F] :
- F →ₗ[zmod (ring_char F)] zmod (ring_char F) :=
-begin
-  letI := zmod.algebra F (ring_char F),
-  exact algebra.trace (zmod (ring_char F)) F,
-end
-
 /-- The trace map from a finite field to its prime field is nongedenerate. -/
 lemma trace_to_zmod_nondegenerate (F : Type*) [field F] [fintype F] {a : F}
- (ha : a ≠ 0) : ∃ b : F, trace_to_zmod F (a * b) ≠ 0 :=
+ (ha : a ≠ 0) : ∃ b : F, algebra.trace (zmod (ring_char F)) F (a * b) ≠ 0 :=
 begin
   haveI : fact (ring_char F).prime := ⟨char_p.char_is_prime F _⟩,
   have htr := trace_form_nondegenerate (zmod (ring_char F)) F a,
   simp_rw [algebra.trace_form_apply] at htr,
-  simp_rw [trace_to_zmod],
   by_contra' hf,
   exact ha (htr hf),
 end

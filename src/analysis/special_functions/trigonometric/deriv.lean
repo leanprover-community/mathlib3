@@ -578,10 +578,10 @@ cosh_abs x ▸ cosh_abs y ▸ cosh_strict_mono_on.le_iff_le (_root_.abs_nonneg x
 @[simp] lemma cosh_lt_cosh : cosh x < cosh y ↔ |x| < |y| :=
 lt_iff_lt_of_le_iff_le cosh_le_cosh
 
-lemma one_le_cosh (x : ℝ) : 1 ≤ cosh x :=
+@[simp] lemma one_le_cosh (x : ℝ) : 1 ≤ cosh x :=
 cosh_zero ▸ cosh_le_cosh.2 (by simp only [_root_.abs_zero, _root_.abs_nonneg])
 
-lemma one_lt_cosh : 1 < cosh x ↔ x ≠ 0 :=
+@[simp] lemma one_lt_cosh : 1 < cosh x ↔ x ≠ 0 :=
 cosh_zero ▸ cosh_lt_cosh.trans (by simp only [_root_.abs_zero, abs_pos])
 
 lemma sinh_sub_id_strict_mono : strict_mono (λ x, sinh x - x) :=

@@ -34,7 +34,6 @@ notation a ` ≡ `:50 b ` [MOD `:50 n `]`:0 := modeq n a b
 means that `a - b` is NOT a multiple of `n`. -/
 @[reducible] def modneq (n a b : ℕ) := ¬ (a ≡ b [MOD n])
 notation a ` ≢ `:50 b ` [MOD `:50 n `]`:0 := modneq n a b
-lemma modneq.def (n a b : ℕ): a % n ≠ b % n = ¬ (a ≡ b [MOD n]) := rfl
 lemma modneq_iff (n a b : ℕ):  a ≢ b [MOD n] ↔ a % n ≠ b % n := by refl
 
 variables {m n a b c d : ℕ}

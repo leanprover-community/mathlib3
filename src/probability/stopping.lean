@@ -30,6 +30,7 @@ at a specific time and is the first step in formalizing stochastic processes.
   function `τ` such that for all `i`, the preimage of `{j | j ≤ i}` along `τ` is
   `f i`-measurable
 * `measure_theory.is_stopping_time.measurable_space`: the σ-algebra associated with a stopping time
+* `measure_theory.hitting`: the first hitting time of a process
 
 ## Main results
 
@@ -1293,23 +1294,24 @@ end piecewise_const
 
 section hitting
 
-/-- Hitting time: given a stochastic process `u` and a set `s`, `hitting u s` is the first time
-`u` is in `s` (before some time). The hitting time is a stopping time if the process is adapted
-and discrete. -/
-noncomputable def hitting [preorder ι] [has_Inf ι] (u : ι → α → β) (s : set β) (default : ι) :
+/-- Hitting time: given a stochastic process `u` and a set `s`, `hitting u s n` is the first time
+`u` is in `s` before `n` (if `u` does not hit `s` before `n` then the hitting time is simply `n`).
+
+The hitting time is a stopping time if the process is adapted and discrete. -/
+noncomputable def hitting [preorder ι] [has_Inf ι] (u : ι → α → β) (s : set β) (n : ι) :
   α → ι :=
-λ x, if ∃ j ≤ default, u j x ∈ s then Inf { i : ι | u i x ∈ s } else default
+λ x, if ∃ j ≤ n, u j x ∈ s then Inf {i : ι | u i x ∈ s} else n
 
 section complete_linear_order
 
 variables [complete_linear_order ι] {u : ι → α → β} {s : set β} {f : filtration ι m}
 
 @[simp]
-lemma hitting_eq_Inf (x : α) : hitting u s ⊤ x = Inf { i : ι | u i x ∈ s } :=
+lemma hitting_eq_Inf (x : α) : hitting u s ⊤ x = Inf {i : ι | u i x ∈ s} :=
 begin
   simp only [hitting, ite_eq_left_iff],
   intro h,
-  have : { i : ι | u i x ∈ s } = ∅,
+  have : {i : ι | u i x ∈ s} = ∅,
   { push_neg at h,
     simp only [le_top, forall_true_left] at h,
     rwa set.eq_empty_iff_forall_not_mem },
@@ -1317,15 +1319,15 @@ begin
 end
 
 lemma hitting_lt_eq_Union (i : ι) :
-  { x | hitting u s ⊤ x < i } = ⋃ j < i, u j ⁻¹' s :=
+  {x | hitting u s ⊤ x < i} = ⋃ j < i, u j ⁻¹' s :=
 begin
   ext x,
   simp only [hitting_eq_Inf, set.mem_set_of_eq, set.mem_Union, set.mem_preimage,
     exists_prop, Inf_lt_iff, and_comm]
 end
 
-lemma hitting_le_eq_Union [nontrivial ι] [is_well_order ι (<)] {i : ι} (hi : i ≠ ⊤) :
-  { x | hitting u s ⊤ x ≤ i } = ⋃ j ≤ i, u j ⁻¹' s :=
+lemma hitting_le_eq_Union [is_well_order ι (<)] {i : ι} (hi : i ≠ ⊤) :
+  {x | hitting u s ⊤ x ≤ i} = ⋃ j ≤ i, u j ⁻¹' s :=
 begin
   ext x,
   simp only [le_iff_eq_or_lt, set.Union_Union_eq_or_left, ← hitting_lt_eq_Union i,
@@ -1346,7 +1348,7 @@ end
 
 /-- A discrete hitting time is a stopping time. This lemma is mostly intended in the case the
 time index is `enat`. -/
-lemma hitting_is_stopping_time [nontrivial ι] [is_well_order ι (<)] [encodable ι]
+lemma hitting_is_stopping_time [is_well_order ι (<)] [encodable ι]
   [topological_space β] [pseudo_metrizable_space β] [measurable_space β] [borel_space β]
   (hu : adapted f u) (hs : measurable_set s) :
   is_stopping_time f (hitting u s ⊤) :=
@@ -1376,8 +1378,8 @@ begin
   exact le_trans (nat.Inf_le hk₂) hk₁
 end
 
-lemma hitting_le_eq_Union_nat_of_lt_default {i n : ℕ} (hin : i < n) :
-  { x | hitting u s n x ≤ i } = ⋃ j ≤ i, u j ⁻¹' s :=
+lemma hitting_le_eq_Union_nat_of_lt {i n : ℕ} (hin : i < n) :
+  {x | hitting u s n x ≤ i} = ⋃ j ≤ i, u j ⁻¹' s :=
 begin
   ext x,
   by_cases hj : ∃ j, j ≤ n ∧ u j x ∈ s,
@@ -1392,8 +1394,8 @@ begin
       exact false.elim (hj j (le_trans hj₁ hin.le) hj₂) } }
 end
 
-lemma hitting_le_eq_Union_nat_of_default_le {i n : ℕ} (hin : n ≤ i) :
-  { x | hitting u s n x ≤ i } = { x | ∀ j ≤ n, u j x ∉ s } ∪ ⋃ j ≤ i, u j ⁻¹' s :=
+lemma hitting_le_eq_Union_nat_of_le {i n : ℕ} (hin : n ≤ i) :
+  {x | hitting u s n x ≤ i} = {x | ∀ j ≤ n, u j x ∉ s} ∪ ⋃ j ≤ i, u j ⁻¹' s :=
 begin
   ext x,
   by_cases hj : ∃ j, j ≤ n ∧ u j x ∈ s,
@@ -1417,11 +1419,11 @@ lemma hitting_is_stopping_time_nat
 begin
   intro i,
   by_cases hin : i < n,
-  { rw hitting_le_eq_Union_nat_of_lt_default hin,
+  { rw hitting_le_eq_Union_nat_of_lt hin,
     exact measurable_set.Union (λ j, measurable_set.Union_Prop $
       λ hj, f.mono hj _ ((hu j).measurable hs)) },
-  { rw [hitting_le_eq_Union_nat_of_default_le (not_lt.1 hin),
-      (by { ext, simp } : { x | ∀ j, j ≤ n → u j x ∉ s } = ⋂ j ≤ n, { x | u j x ∉ s })],
+  { rw [hitting_le_eq_Union_nat_of_le (not_lt.1 hin),
+      (by { ext, simp } : {x | ∀ j, j ≤ n → u j x ∉ s} = ⋂ j ≤ n, {x | u j x ∉ s})],
     exact measurable_set.union
       (measurable_set.Inter (λ j, measurable_set.Inter_Prop $
         λ hj, f.mono (le_trans hj (not_lt.1 hin)) _ ((hu j).measurable hs).compl))

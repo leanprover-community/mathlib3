@@ -221,7 +221,7 @@ le_sub_iff_add_le
   λ a0, (abs_eq_zero.mpr a0).le.trans_lt zero_lt_one⟩
 
 lemma abs_le_one_iff {a : ℤ} : |a| ≤ 1 ↔ a = 0 ∨ a = 1 ∨ a = -1 :=
-by rw [le_iff_lt_or_eq, abs_lt_one_iff, abs_eq (@zero_le_one ℤ _ _ _ _)]
+by rw [le_iff_lt_or_eq, abs_lt_one_iff, abs_eq (zero_le_one' ℤ)]
 
 lemma one_le_abs {z : ℤ} (h₀: z ≠ 0) : 1 ≤ |z| :=
 add_one_le_iff.mpr (abs_pos.mpr h₀)
@@ -1368,6 +1368,16 @@ by rw [←units.coe_mul, units_mul_self, units.coe_one]
 @[simp] lemma neg_one_pow_ne_zero {n : ℕ} : (-1 : ℤ)^n ≠ 0 :=
 pow_ne_zero _ (abs_pos.mp trivial)
 
+lemma is_unit_add_is_unit_eq_is_unit_add_is_unit {a b c d : ℤ}
+  (ha : is_unit a) (hb : is_unit b) (hc : is_unit c) (hd : is_unit d) :
+  a + b = c + d ↔ a = c ∧ b = d ∨ a = d ∧ b = c :=
+begin
+  rw is_unit_iff at ha hb hc hd,
+  cases ha; cases hb; cases hc; cases hd;
+  subst ha; subst hb; subst hc; subst hd;
+  tidy,
+end
+
 /-! ### bitwise ops -/
 
 @[simp] lemma bodd_zero : bodd 0 = ff := rfl
@@ -1614,7 +1624,7 @@ begin
 end
 
 lemma sq_eq_one_of_sq_lt_four {x : ℤ} (h1 : x ^ 2 < 4) (h2 : x ≠ 0) : x ^ 2 = 1 :=
-sq_eq_one_iff.mpr ((abs_eq (@zero_le_one ℤ _ _ _ _)).mp (le_antisymm (lt_add_one_iff.mp
+sq_eq_one_iff.mpr ((abs_eq (zero_le_one' ℤ)).mp (le_antisymm (lt_add_one_iff.mp
   (abs_lt_of_sq_lt_sq h1 zero_le_two)) (sub_one_lt_iff.mp (abs_pos.mpr h2))))
 
 lemma sq_eq_one_of_sq_le_three {x : ℤ} (h1 : x ^ 2 ≤ 3) (h2 : x ≠ 0) : x ^ 2 = 1 :=

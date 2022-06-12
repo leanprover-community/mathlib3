@@ -790,9 +790,6 @@ by rw [inv_eq_iff_inv_eq, inv_zero, eq_comm]
 @[simp] lemma zero_eq_inv {a : G₀} : 0 = a⁻¹ ↔ 0 = a :=
 eq_comm.trans $ inv_eq_zero.trans eq_comm
 
-theorem divp_eq_div (a : G₀) (u : G₀ˣ) : a /ₚ u = a / u :=
-by simpa only [div_eq_mul_inv] using congr_arg ((*) a) u.coe_inv'
-
 @[simp] theorem divp_mk0 (a : G₀) {b : G₀} (hb : b ≠ 0) :
   a /ₚ units.mk0 b hb = a / b :=
 divp_eq_div _ _

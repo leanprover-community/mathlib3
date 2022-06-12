@@ -1597,7 +1597,7 @@ begin
     refine generate_from_le (λ t, _),
     simp only [mem_Union, mem_singleton_iff], rintro ⟨a, b, h, rfl⟩,
     rw (set.ext (λ x, _) : Ioo (a : ℝ) b = (⋃c>a, (Iio c)ᶜ) ∩ Iio b),
-    { have hg : ∀ q : ℚ, g.measurable_set' (Iio q) :=
+    { have hg : ∀ q : ℚ, measurable_set[g] (Iio q) :=
         λ q, generate_measurable.basic (Iio q) (by simp),
       refine @measurable_set.inter _ g _ _ _ (hg _),
       refine @measurable_set.bUnion _ _ g _ _ (countable_encodable _) (λ c h, _),

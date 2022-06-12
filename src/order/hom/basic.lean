@@ -653,17 +653,15 @@ have gf : ∀ (a : α), a = g (f a) := by { intro, rw [←cmp_eq_eq_iff, h, cmp_
 /-- To show that `f : α →o β` and `g : β →o α` make up an order isomorphism it is enough to show
     that `g` is the inverse of `f`-/
 def of_hom_inv {F : Type u_1} {G : Type u_4} [order_hom_class F α β] [order_hom_class G β α]
-  {f : F} {g : G} (h₁ : (f : α →o β).comp (g : β →o α) = order_hom.id)
+  (f : F) (g : G) (h₁ : (f : α →o β).comp (g : β →o α) = order_hom.id)
     (h₂ : (g : β →o α).comp (f : α →o β) = order_hom.id) : α ≃o β :=
 { to_fun := f,
   inv_fun := g,
   left_inv := fun_like.congr_fun h₂,
   right_inv := fun_like.congr_fun h₁,
   map_rel_iff' := λ a b, ⟨λ h, begin
-    rwa [equiv.coe_fn_mk] at h,
     apply_fun g at h,
-    rw [
-    ← order_hom_class.comp_apply, ← order_hom_class.comp_apply, h₂] at h,
+    rwa [equiv.coe_fn_mk, ← order_hom_class.comp_apply, ← order_hom_class.comp_apply, h₂] at h,
     exact (g : β →o α).monotone
     end , λ h, (f : α →o β).monotone h⟩ }
 

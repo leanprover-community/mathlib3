@@ -342,8 +342,8 @@ def mk_factor_order_iso_of_factor_dvd_equiv
   ((d l) : N) ∣ (d l') ↔ (l : M) ∣ (l' : M)) :
    {l : associates M // l ≤ associates.mk m} ≃o {l : associates N // l ≤ associates.mk n} :=
 { to_fun := λ l, ⟨associates.mk (d ⟨associates_equiv_of_unique_units ↑l,
-    by obtain ⟨x, hx⟩ := l ; rw [subtype.coe_mk,  associates_equiv_of_unique_units_apply,
-      out_dvd_iff] ; exact hx ⟩),
+    by { obtain ⟨x, hx⟩ := l, rw [subtype.coe_mk,  associates_equiv_of_unique_units_apply,
+      out_dvd_iff], exact hx } ⟩),
     mk_le_mk_iff_dvd_iff.mpr (subtype.prop (d ⟨associates_equiv_of_unique_units ↑l, _ ⟩)) ⟩,
   inv_fun := λ l, ⟨associates.mk (d.symm (⟨(associates_equiv_of_unique_units ↑l),
       by obtain ⟨x, hx⟩ := l ; rw [subtype.coe_mk, associates_equiv_of_unique_units_apply,

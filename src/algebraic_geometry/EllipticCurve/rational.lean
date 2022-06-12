@@ -581,7 +581,7 @@ begin
               = (x ^ 3 + A * x + B - 2 * y * y' + (x' ^ 3 + A * x' + B) - (x + x') * (x - x') ^ 2)
                 / (x - x') ^ 2 :
                 by rw [← div_eq_mul_inv, div_pow, sub_sq, sw, sw', sub_sub, ← div_sub_div_same,
-                       mul_div_cancel (x + x') $ pow_ne_zero 2 $ sub_ne_zero_of_ne hx]
+                       mul_div_cancel _ $ pow_ne_zero 2 $ sub_ne_zero_of_ne hx]
           ... = (x.num ^ 2 * (x'.num * d' ^ 2) * (d ^ 2 / d ^ 2) ^ 2 * (d' ^ 2 / d' ^ 2)
                   + x.num * d ^ 2 * (x'.num ^ 2 * (d' ^ 2 / d' ^ 2) ^ 2 + A * (d' ^ 2) ^ 2)
                     * (d ^ 2 / d ^ 2)
@@ -765,7 +765,32 @@ begin
     all_goals { simp only [ha₁, ha₂, ha₃, ha₄, ha₆, algebra_map_rat_rat, ring_hom.id_apply,
                            mul_zero, zero_mul, add_zero, sub_zero] at sw ⊢ },
     split_ifs with hy,
-    { sorry },
+    { have hx : x ^ 3 + A * x + B ≠ 0 := sw ▸ pow_ne_zero 2 (right_ne_zero_of_mul hy),
+      have dbl_rw : ((3 * x ^ 2 + A) * (2 * y)⁻¹) ^ 2 - 2 * x = rat.mk
+        (x.num ^ 4 - 2 * A * x.num ^ 2 * x.denom ^ 2 - 8 * B * x.num * x.denom ^ 3
+          + A ^ 2 * x.denom ^ 4)
+        (4 * (x.num ^ 3 * x.denom + A * x.num * x.denom ^ 3 + B * x.denom ^ 4)) :=
+      calc ((3 * x ^ 2 + A) * (2 * y)⁻¹) ^ 2 - 2 * x
+            = ((3 * x ^ 2 + A) ^ 2 - 2 * x * (2 ^ 2 * (x ^ 3 + A * x + B)))
+              / (2 ^ 2 * (x ^ 3 + A * x + B)) :
+              by rw [← div_eq_mul_inv, div_pow, mul_pow, sw, ← div_sub_div_same,
+                     mul_div_cancel _ $ mul_ne_zero (pow_ne_zero 2 $ @two_ne_zero ℚ _ _) hx]
+        ... = (x ^ 4 - 2 * A * x ^ 2 - 8 * B * x + A ^ 2)
+              / (4 * (x ^ 3 + A * x + B)) :
+              by { norm_num1, ring1 }
+        ... = (x.num ^ 4 - 2 * A * x.num ^ 2 * x.denom ^ 2 * x.denom ^ 2 / x.denom ^ 2
+                - 8 * B * x.num * x.denom ^ 3 * x.denom / x.denom + A ^ 2 * x.denom ^ 4)
+              / (4 * (x.num ^ 3 * x.denom * x.denom ^ 3 / x.denom ^ 3
+                      + A * x.num * x.denom ^ 3 * x.denom / x.denom + B * x.denom ^ 4)) :
+              begin
+                sorry
+              end
+        ... = rat.mk
+                (x.num ^ 4 - 2 * A * x.num ^ 2 * x.denom ^ 2 - 8 * B * x.num * x.denom ^ 3
+                  + A ^ 2 * x.denom ^ 4)
+                (4 * (x.num ^ 3 * x.denom + A * x.num * x.denom ^ 3 + B * x.denom ^ 4)) :
+              by sorry,
+      sorry },
     { rw [not_ne_iff, two_mul, add_self_eq_zero] at hy,
       subst hy,
       rw [height_zero, zero_add],

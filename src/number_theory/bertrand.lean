@@ -218,7 +218,7 @@ begin
 
 end
 
-lemma equality4 {x : ℝ} (n_large : x ≠ 0) : 2 * x / 3 * log 4 / (x * log 4) = 2 / 3 :=
+lemma equality4 (x : ℝ) (n_large : x ≠ 0) : 2 * x / 3 * log 4 / (x * log 4) = 2 / 3 :=
 begin
   field_simp [log_four_nonzero],
   ring,
@@ -245,7 +245,7 @@ begin
   { rw <-div_lt_one,
     simp only [add_div, mul_add, add_mul, add_div, ←add_assoc],
     simp only [zero_le_one, sqrt_mul, zero_le_bit0],
-    { rw [@equality4 x (by linarith)],
+    { rw [equality4 x (by linarith)],
       have x_100 : 100 ≤ x := by linarith,
       have x_313 : 313 ≤ x := by linarith,
       linarith only [inequality1 x_100, inequality2 x_313, inequality3 n_large], },
@@ -264,7 +264,10 @@ lemma bertrand_inequality {n : ℕ} (n_large : 722 ≤ n) :
   n * (2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3) ≤ 4 ^ n :=
 begin
   rw ←@nat.cast_le ℝ,
-  have fact1 : 0 < (n : ℝ),
+  have n_large_real : 722 ≤ (n : ℝ),
+  { rw ←@nat.cast_le ℝ at n_large,
+    convert n_large, norm_num, },
+  have n_pos : 0 < (n : ℝ),
   { rw ←nat.cast_zero, norm_num, linarith, },
   have fact2 : 0 < 2 * (n : ℝ) := by linarith,
   simp only [nat.cast_bit0, nat.cast_add, nat.cast_one, nat.cast_mul, nat.cast_pow],
@@ -274,15 +277,12 @@ begin
   (n : ℝ) * (2 * (n : ℝ)) ^ (nat.sqrt (2 * n) : ℝ) * 4 ^ (((2 * n / 3) : ℕ) : ℝ)
       ≤ (n : ℝ) * (2 * n : ℝ) ^ (real.sqrt (2 * (n : ℝ))) * 4 ^ (((2 * n / 3) : ℕ) : ℝ) :
           begin
-            rw [mul_le_mul_right, mul_le_mul_left fact1],
+            rw [mul_le_mul_right, mul_le_mul_left n_pos],
             { apply real.rpow_le_rpow_of_exponent_le,
-              { rw ←@nat.cast_le ℝ at n_large,
-                have h : 722 ≤ (n : ℝ),
-                { convert n_large, simp, },
-                linarith, },
-              rw [real.le_sqrt (nat.cast_nonneg _) (le_of_lt fact2), ←nat.cast_pow],
-              calc _ ≤ ↑(2 * n) : nat.cast_le.mpr (nat.sqrt_le' _)
-                 ... = 2 * (n : ℝ) : by norm_num, },
+              { linarith, },
+              { rw [real.le_sqrt (nat.cast_nonneg _) (le_of_lt fact2), ←nat.cast_pow],
+                calc _ ≤ ↑(2 * n) : nat.cast_le.mpr (nat.sqrt_le' _)
+                  ... = 2 * (n : ℝ) : by norm_num, }, },
             { apply real.rpow_pos_of_pos,
               norm_num, },
           end
@@ -290,23 +290,16 @@ begin
           begin
             have one_le_four : 1 ≤ (4 : ℝ) := by norm_num,
             rw mul_le_mul_left,
-            apply real.rpow_le_rpow_of_exponent_le one_le_four,
-            { apply trans nat.cast_div_le,
-              apply le_of_eq,
-              congr,
-              { simp only [nat.cast_bit0, nat.cast_one, nat.cast_mul], },
-              { simp only [nat.cast_bit1, nat.cast_one], },
-              { exact is_trans.swap (λ (x y : ℝ), y ≤ x), }, },
-            apply mul_pos fact1,
-            apply real.rpow_pos_of_pos fact2,
+            { refine real.rpow_le_rpow_of_exponent_le one_le_four _,
+              { apply trans nat.cast_div_le,
+                { apply le_of_eq,
+                  congr,
+                  { simp only [nat.cast_bit0, nat.cast_one, nat.cast_mul], },
+                  { simp only [nat.cast_bit1, nat.cast_one], }, },
+                { exact is_trans.swap (λ (x y : ℝ), y ≤ x), }, }, },
+            { exact mul_pos n_pos (real.rpow_pos_of_pos fact2 _), },
           end
-  ... < 4 ^ (n : ℝ) :
-          begin
-            apply real_bertrand_inequality,
-            rw ←@nat.cast_le ℝ at n_large,
-            have: 722 ≤ (n : ℝ), { convert n_large, norm_num, },
-            linarith,
-          end,
+  ... < 4 ^ (n : ℝ) : real_bertrand_inequality n_large_real,
 end
 
 /--
@@ -337,20 +330,15 @@ begin
     rw [le_zero_iff] at h,
     rw h,
     exact pow_zero x, },
-  apply no_prime,
-  use x,
-  split,
-  { exact hx.right, },
-  { split,
-    { by_contradiction neg_n_le_x,
-      simp only [not_lt] at neg_n_le_x,
-      rw [nat.add_one, nat.succ_le_iff, nat.div_lt_iff_lt_mul' three_pos, mul_comm x] at h2x,
-      have x_non_div :=
-        nat.factorization_central_binom_of_two_mul_self_lt_three_mul n_large neg_n_le_x h2x,
-      rw [x_non_div, pow_zero] at h,
-      simp at h,
-      exact h, },
-    exact x_le_two_mul_n, },
+  apply no_prime ⟨x, ⟨hx.right, ⟨_, x_le_two_mul_n⟩⟩⟩,
+  cases le_or_gt x n with x_le_n n_lt_x,
+  { rw [nat.add_one, nat.succ_le_iff, nat.div_lt_iff_lt_mul' three_pos, mul_comm x] at h2x,
+    have x_non_div :=
+      nat.factorization_central_binom_of_two_mul_self_lt_three_mul n_large x_le_n h2x,
+    rw [x_non_div, pow_zero] at h,
+    simp only [eq_self_iff_true, not_true] at h,
+    exfalso, exact h, },
+  { exact n_lt_x, },
 end
 
 -- TODO move to dat.nat.parity in #14688
@@ -423,14 +411,14 @@ nat.central_binom n
           congr' 3,
           ext1,
           simp only [and_imp, finset.mem_filter, finset.mem_range, and.congr_right_iff],
-          intros h a_prime,
+          intros a_small a_prime,
           rw [nat.le_sqrt', le_iff_eq_or_lt, or_iff_right_iff_imp],
-          intro a_sq,
+          intro a_sq_even,
           exfalso,
-          have h_a_sq := even_two_mul n,
-          rw [<-a_sq, nat.even_pow] at h_a_sq,
-          rw [even_prime_eq_two a h_a_sq.left a_prime] at a_sq,
-          norm_num at a_sq,
+          have a_even := even_two_mul n,
+          rw [←a_sq_even, nat.even_pow] at a_even,
+          rw [even_prime_eq_two a a_even.left a_prime] at a_sq_even,
+          norm_num at a_sq_even,
           linarith,
         end
 ... ≤ (2 * n) ^ (nat.sqrt (2 * n))
@@ -440,16 +428,15 @@ nat.central_binom n
         begin
           refine (nat.mul_le_mul_right _ _),
           refine pow_le_pow (by linarith) _,
-          have : (finset.Ico 1 (nat.sqrt (2 * n) + 1)).card = nat.sqrt (2 * n),
-          { simp, },
-          rw <-this,
+          have : (finset.Ico 1 (nat.sqrt (2 * n) + 1)).card = nat.sqrt (2 * n) := by simp,
+          rw ←this,
           clear this,
           apply finset.card_mono,
           rw [finset.le_eq_subset, finset.subset_iff],
           simp only [and_imp, finset.mem_filter, finset.mem_range, finset.mem_Ico],
-          intros x _ px h,
+          intros x _ x_prime h,
           split,
-          { exact le_of_lt (nat.prime.one_lt px), },
+          { exact le_of_lt (nat.prime.one_lt x_prime), },
           { rw nat.lt_succ_iff,
             rw nat.le_sqrt',
             exact le_of_lt h, },
@@ -461,17 +448,16 @@ nat.central_binom n
       begin
         refine nat.mul_le_mul_left _ _,
         { refine finset.prod_le_prod'' _,
-          intros i hyp,
-          simp only [finset.mem_filter, finset.mem_range] at hyp,
-          cases hyp with i_facts sqrt_two_n_lt_i,
+          simp only [finset.mem_filter, finset.mem_range],
+          rintros i ⟨⟨_, i_prime⟩, sqrt_two_n_lt_i⟩,
           refine pow_le_pow _ _,
           { cases le_or_gt 1 i,
             { exact h, },
             { have i_zero : i = 0, by linarith,
-              rw i_zero at i_facts,
+              rw i_zero at i_prime,
               exfalso,
-              exact nat.not_prime_zero i_facts.2, }, },
-          { apply nat.factorization_choose_le_one,
+              exact nat.not_prime_zero i_prime, }, },
+          { refine nat.factorization_choose_le_one _,
             exact (@nat.sqrt_lt' (2 * n) i).1 sqrt_two_n_lt_i, }, },
       end
 ... ≤ (2 * n) ^ (nat.sqrt (2 * n))
@@ -482,12 +468,12 @@ nat.central_binom n
           refine nat.mul_le_mul_left _ _,
           refine finset.prod_le_prod_of_subset_of_one_le' (finset.filter_subset _ _) _,
           { intros i hyp1 hyp2,
-          cases le_or_gt 1 i,
-          { ring_nf, exact h, },
-          { have i_zero : i = 0, by linarith,
-            simp only [i_zero, true_and, nat.succ_pos',
-                        finset.mem_filter, finset.mem_range] at hyp1,
-            exfalso, exact nat.not_prime_zero hyp1, }, }
+            cases le_or_gt 1 i,
+            { ring_nf, exact h, },
+            { have i_zero : i = 0, by linarith,
+              simp only [i_zero, true_and, nat.succ_pos',
+                          finset.mem_filter, finset.mem_range] at hyp1,
+              exfalso, exact nat.not_prime_zero hyp1, }, }
         end
 ... = (2 * n) ^ (nat.sqrt (2 * n))
         *
@@ -530,32 +516,34 @@ lemma bertrand_initial (n : ℕ) (hn0 : 0 < n)
   ∃ (p : ℕ), p.prime ∧ n < p ∧ p ≤ 2 * n :=
 begin
   unfreezingI { induction plist, },
-  { simp * at *,
+  { simp only [list.nil_append, list.head_cons] at hn,
     interval_cases n,
     { use 2,
       norm_num, }, },
-  { simp * at *,
+  { simp only [list.mem_cons_iff, forall_eq_or_imp] at prime_plist,
     by_cases plist_hd ≤ 2 * n,
     { use plist_hd,
       exact ⟨prime_plist.left, hn, h⟩, },
-    { apply plist_ih,
-      { exact prime_plist.right, },
+    { apply plist_ih prime_plist.right,
       { intros a b hmem,
         apply covering,
         cases plist_tl,
-        { simp * at *, },
-        { simp at hmem,
-          simp only [list.mem_cons_iff, list.cons_append, prod.mk.inj_iff, list.zip_cons_cons],
+        { simp only [list.nil_append, list.tail_cons, list.zip_nil_right, list.not_mem_nil] at hmem,
+          exfalso, exact hmem, },
+        { simp only [list.cons_append, list.tail_cons] at hmem,
           right,
-          assumption, }, },
+          exact hmem, }, },
       { cases plist_tl,
-        { simp * at *,
-          have h_hd := covering plist_hd 2 rfl rfl,
-          have hn2 : 2 * n < 2 * 2, exact gt_of_ge_of_gt h_hd h,
+        { have h_hd := covering plist_hd 2,
+          simp only [list.singleton_append, list.tail_cons, list.zip_cons_cons, list.zip_nil_right,
+            list.mem_singleton, eq_self_iff_true, forall_true_left] at h_hd,
+          have hn2 : 2 * n < 2 * 2 := by linarith only [h, h_hd],
           exact lt_of_mul_lt_mul_left' hn2, },
-        { simp * at *,
+        { simp only [list.cons_append, list.head_cons],
           have h_hd := covering plist_hd plist_tl_hd,
-          simp at h_hd,
+          simp only [list.cons_append, list.tail_cons, list.zip_cons_cons, list.mem_cons_iff,
+            eq_self_iff_true, true_or, forall_true_left] at h_hd,
+          rw [not_le] at h,
           have hn2 : 2 * n < 2 * plist_tl_hd, exact gt_of_ge_of_gt h_hd h,
           exact lt_of_mul_lt_mul_left' hn2, }, }, }, },
 end

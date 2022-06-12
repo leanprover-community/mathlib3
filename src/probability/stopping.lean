@@ -1442,6 +1442,15 @@ begin
         λ hj, f.mono hj _ ((hu j).measurable hs))) }
 end
 
+lemma stopped_value_hitting_mem {u : ℕ → α → β} {n : ℕ} {x : α} (h : ∃ j ≤ n, u j x ∈ s) :
+  stopped_value u (hitting u s n) x ∈ s :=
+begin
+  simp only [stopped_value, hitting, if_pos h],
+  obtain ⟨j, hj₁, hj₂⟩ := h,
+  change Inf {i : ℕ | u i x ∈ s} ∈ {i : ℕ | u i x ∈ s},
+  exact nat.Inf_mem (set.nonempty_of_mem hj₂),
+end
+
 end nat
 
 end hitting

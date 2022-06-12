@@ -68,6 +68,7 @@ along with some machinery
   See `infinite.of_injective` and `infinite.of_surjective`.
 -/
 
+open function
 open_locale nat
 
 universes u v
@@ -95,6 +96,7 @@ fintype.complete x
 @[simp] theorem mem_univ_val : ∀ x, x ∈ (univ : finset α).1 := mem_univ
 
 lemma eq_univ_iff_forall : s = univ ↔ ∀ x, x ∈ s := by simp [ext_iff]
+lemma eq_univ_of_forall  : (∀ x, x ∈ s) → s = univ := eq_univ_iff_forall.2
 
 @[simp] lemma coe_univ : ↑(univ : finset α) = (set.univ : set α) :=
 by ext; simp
@@ -174,6 +176,9 @@ by rw [compl_eq_univ_sdiff, sdiff_singleton_eq_erase]
 
 lemma insert_inj_on' (s : finset α) : set.inj_on (λ a, insert a s) (sᶜ : finset α) :=
 by { rw coe_compl, exact s.insert_inj_on }
+
+lemma image_univ_of_surjective [fintype β] {f : β → α} (hf : surjective f) : univ.image f = univ :=
+eq_univ_of_forall $ hf.forall.2 $ λ _, mem_image_of_mem _ $ mem_univ _
 
 end boolean_algebra
 
@@ -675,7 +680,7 @@ by simp only [finset.ssubset_def, to_finset_mono, ssubset_def]
 
 @[simp] theorem to_finset_disjoint_iff [decidable_eq α] {s t : set α} [fintype s] [fintype t] :
   disjoint s.to_finset t.to_finset ↔ disjoint s t :=
-by simp only [disjoint_iff_disjoint_coe, coe_to_finset]
+by simp only [←disjoint_coe, coe_to_finset]
 
 lemma to_finset_inter {α : Type*} [decidable_eq α] (s t : set α) [fintype (s ∩ t : set α)]
   [fintype s] [fintype t] : (s ∩ t).to_finset = s.to_finset ∩ t.to_finset :=
@@ -1458,6 +1463,11 @@ begin
       fintype.card_of_subtype (set.to_finset p)];
   intro; simp only [set.mem_to_finset, set.mem_compl_eq]; refl,
 end
+
+theorem card_subtype_mono (p q : α → Prop) (h : p ≤ q)
+  [fintype {x // p x}] [fintype {x // q x}] :
+  fintype.card {x // p x} ≤ fintype.card {x // q x} :=
+fintype.card_le_of_embedding (subtype.imp_embedding _ _ h)
 
 /-- If two subtypes of a fintype have equal cardinality, so do their complements. -/
 lemma fintype.card_compl_eq_card_compl [fintype α]

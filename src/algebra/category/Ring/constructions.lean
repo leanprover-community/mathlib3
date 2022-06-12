@@ -166,7 +166,7 @@ def equalizer_fork_is_limit : is_limit (equalizer_fork f g) :=
 begin
   fapply fork.is_limit.mk',
   intro s,
-  use s.ι.cod_restrict' _ (λ x, (concrete_category.congr_hom s.condition x : _)),
+  use s.ι.cod_restrict _ (λ x, (concrete_category.congr_hom s.condition x : _)),
   split,
   { ext, refl },
   { intros m hm, ext x, exact concrete_category.congr_hom hm x }

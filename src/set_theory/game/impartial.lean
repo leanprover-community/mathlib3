@@ -63,7 +63,7 @@ theorem impartial_congr : ∀ {G H : pgame} (e : relabelling G H) [G.impartial],
 | G H e := begin
   introI h,
   rw impartial_def,
-  refine ⟨e.symm.equiv.trans ((neg_equiv_self G).trans (neg_congr e.equiv)),
+  refine ⟨e.symm.equiv.trans ((neg_equiv_self G).trans (neg_equiv_neg_iff.2 e.equiv)),
     λ i, _, λ j, _⟩;
   cases e with _ _ L R hL hR,
   { convert impartial_congr (hL (L.symm i)),
@@ -78,14 +78,14 @@ begin
   introsI hG hH,
   rw impartial_def,
   refine ⟨(add_congr (neg_equiv_self _) (neg_equiv_self _)).trans
-    (neg_add_relabelling _ _).equiv.symm, λ i, _, λ i, _⟩,
-  { rcases left_moves_add_cases i with ⟨j, rfl⟩ | ⟨j, rfl⟩,
+    (neg_add_relabelling _ _).equiv.symm, λ k, _, λ k, _⟩,
+  { apply left_moves_add_cases k,
     all_goals
-    { simp only [add_move_left_inl, add_move_left_inr],
+    { intro i, simp only [add_move_left_inl, add_move_left_inr],
       apply impartial_add } },
-  { rcases right_moves_add_cases i with ⟨j, rfl⟩ | ⟨j, rfl⟩,
+  { apply right_moves_add_cases k,
     all_goals
-    { simp only [add_move_right_inl, add_move_right_inr],
+    { intro i, simp only [add_move_right_inl, add_move_right_inr],
       apply impartial_add } }
 end
 using_well_founded { dec_tac := pgame_wf_tac }
@@ -107,14 +107,14 @@ using_well_founded { dec_tac := pgame_wf_tac }
 
 lemma nonpos (G : pgame) [G.impartial] : ¬ 0 < G :=
 λ h, begin
-  have h' := neg_lt_iff.2 h,
+  have h' := neg_lt_neg_iff.2 h,
   rw [pgame.neg_zero, lt_congr_left (neg_equiv_self G).symm] at h',
   exact (h.trans h').false
 end
 
 lemma nonneg (G : pgame) [G.impartial] : ¬ G < 0 :=
 λ h, begin
-  have h' := neg_lt_iff.2 h,
+  have h' := neg_lt_neg_iff.2 h,
   rw [pgame.neg_zero, lt_congr_right (neg_equiv_self G).symm] at h',
   exact (h.trans h').false
 end

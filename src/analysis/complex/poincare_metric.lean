@@ -8,15 +8,11 @@ import geometry.euclidean.inversion
 noncomputable theory
 
 open_locale upper_half_plane complex_conjugate nnreal topological_space
-open set metric filter
+open set metric filter real
 
 variables {z w : ℍ} {r R : ℝ}
 
 namespace upper_half_plane
-
-section real
-
-open real
 
 instance : has_dist ℍ :=
 ⟨λ z w, 2 * arsinh (dist (z : ℂ) w / (2 * sqrt (z.im * w.im)))⟩
@@ -119,7 +115,7 @@ have H : 0 < 2 * z.im * w.im, from mul_pos (mul_pos two_pos z.im_pos) w.im_pos,
 by { field_simp [cosh_dist, complex.dist_eq, complex.sq_abs, norm_sq_apply, H, H.ne'], ring }
 
 lemma cmp_dist_eq_cmp_dist_coe (z w : ℍ) (r : ℝ) :
-  cmp (dist z w) r = cmp (dist (z : ℂ) (w.re + (w.im * real.cosh r : ℝ) * I : ℂ)) (w.im * sinh r) :=
+  cmp (dist z w) r = cmp (dist (z : ℂ) ⟨w.re, w.im * real.cosh r⟩) (w.im * sinh r) :=
 begin
   letI := metric_space_aux,
   cases lt_or_le r 0 with hr₀ hr₀,
@@ -136,32 +132,44 @@ begin
     by rw [← cmp_mul_pos_left hzw₀, mul_div_cancel' _ hzw₀.ne']
   ... = cmp ((z.re - w.re) ^ 2 + (z.im - w.im * cosh r) ^ 2 - (w.im * sinh r) ^ 2) 0 :
     by { rw [← cmp_sub_zero, sub_sq _ (_ * _), mul_pow, real.cosh_sq], congr' 1, ring }
-  ... = cmp ((dist (z : ℂ) (w.re + (w.im * real.cosh r : ℝ) * I : ℂ)) ^ 2) ((w.im * sinh r) ^ 2) :
-    by simp only [cmp_sub_zero, complex.dist_eq, complex.sq_abs, norm_sq_apply, sub_re, sub_im,
-      add_re, add_im, of_real_re, of_real_im, coe_re, coe_im, mul_I_re, mul_I_im, ← sq, zero_add,
-      neg_zero, add_zero]
-  ... = cmp (dist (z : ℂ) (w.re + (w.im * real.cosh r : ℝ) * I : ℂ)) (w.im * sinh r) :
+  ... = cmp (dist (z : ℂ) ⟨w.re, w.im * real.cosh r⟩ ^ 2) ((w.im * sinh r) ^ 2) :
+    by simp only [cmp_sub_zero, complex.dist_eq, complex.sq_abs, norm_sq_apply, ← sq,
+      sub_re, sub_im, coe_re, coe_im]
+  ... = cmp (dist (z : ℂ) ⟨w.re, w.im * real.cosh r⟩) (w.im * sinh r) :
     (@strict_mono_on_pow ℝ _ _ two_pos).cmp_map_eq dist_nonneg hr₀'
 end
 
 lemma dist_eq_iff_dist_coe_eq :
-  dist z w = r ↔ dist (z : ℂ) (w.re + (w.im * real.cosh r : ℝ) * I) = w.im * real.sinh r :=
+  dist z w = r ↔ dist (z : ℂ) ⟨w.re, w.im * real.cosh r⟩ = w.im * real.sinh r :=
 eq_iff_eq_of_cmp_eq_cmp (cmp_dist_eq_cmp_dist_coe z w r)
 
+protected lemma dist_centers (z : ℍ) (r : ℝ) :
+  dist (z : ℂ) ⟨z.re, z.im * cosh r⟩ = z.im * (cosh r - 1) :=
+calc dist (z : ℂ)  ⟨z.re, z.im * cosh r⟩ = dist z.im (z.im * cosh r) : complex.dist_of_re_eq rfl
+... =  z.im * (cosh r - 1) :
+  begin
+    rw [dist_comm, real.dist_eq, mul_sub, mul_one],
+    exact abs_of_nonneg (sub_nonneg.2 $ le_mul_of_one_le_right z.im_pos.le (one_le_cosh _))
+  end
+
+protected lemma dist_center (z w : ℍ) :
+  dist (z : ℂ) ⟨w.re, w.im * real.cosh (dist z w)⟩ = w.im * real.sinh (dist z w) :=
+dist_eq_iff_dist_coe_eq.1 rfl
+
 lemma dist_lt_iff_dist_coe_lt :
-  dist z w < r ↔ dist (z : ℂ) (w.re + (w.im * real.cosh r : ℝ) * I) < w.im * real.sinh r :=
+  dist z w < r ↔ dist (z : ℂ) ⟨w.re, w.im * real.cosh r⟩ < w.im * real.sinh r :=
 lt_iff_lt_of_cmp_eq_cmp (cmp_dist_eq_cmp_dist_coe z w r)
 
 lemma lt_dist_iff_lt_dist_coe :
-  r < dist z w ↔ w.im * real.sinh r < dist (z : ℂ) (w.re + (w.im * real.cosh r : ℝ) * I) :=
+  r < dist z w ↔ w.im * real.sinh r < dist (z : ℂ) ⟨w.re, w.im * real.cosh r⟩ :=
 lt_iff_lt_of_cmp_eq_cmp (cmp_eq_cmp_symm.1 $ cmp_dist_eq_cmp_dist_coe z w r)
 
 lemma dist_le_iff_dist_coe_le :
-  dist z w ≤ r ↔ dist (z : ℂ) (w.re + (w.im * real.cosh r : ℝ) * I) ≤ w.im * real.sinh r :=
+  dist z w ≤ r ↔ dist (z : ℂ) ⟨w.re, w.im * real.cosh r⟩ ≤ w.im * real.sinh r :=
 le_iff_le_of_cmp_eq_cmp (cmp_dist_eq_cmp_dist_coe z w r)
 
 lemma le_dist_iff_le_dist_coe :
-  r < dist z w ↔ w.im * real.sinh r < dist (z : ℂ) (w.re + (w.im * real.cosh r : ℝ) * I) :=
+  r < dist z w ↔ w.im * real.sinh r < dist (z : ℂ) ⟨w.re, w.im * real.cosh r⟩ :=
 lt_iff_lt_of_cmp_eq_cmp (cmp_eq_cmp_symm.1 $ cmp_dist_eq_cmp_dist_coe z w r)
 
 /-- For two points on the same vertical line, the distance is equal to the distance between the
@@ -169,7 +177,7 @@ logarithms of their imaginary parts. -/
 lemma dist_of_re_eq (h : z.re = w.re) : dist z w = dist (log z.im) (log w.im) :=
 begin
   have h₀ : 0 < z.im / w.im, from div_pos z.im_pos w.im_pos,
-  rw [dist_eq_iff_dist_coe_eq, real.dist_eq, ← abs_sinh, cosh_abs, ← mk_eq_add_mul_I,
+  rw [dist_eq_iff_dist_coe_eq, real.dist_eq, ← abs_sinh, cosh_abs,
     ← log_div z.im_ne_zero w.im_ne_zero, sinh_log h₀, cosh_log h₀, inv_div, dist_of_re_eq];
     [skip, exact h],
   nth_rewrite 3 [← abs_of_pos w.im_pos],
@@ -199,27 +207,22 @@ lemma im_div_exp_dist_le (z w : ℍ) : z.im / exp (dist z w) ≤ w.im :=
 /-- An upper estimate on the complex distance between two points in terms of the hyperbolic distance
 and the imaginary part of one of the points. -/
 lemma dist_coe_le (z w : ℍ) : dist (z : ℂ) w ≤ w.im * (exp (dist z w) - 1) :=
-by letI := metric_space_aux; exact
-calc dist (z : ℂ) w = 2 * sqrt (z.im * w.im) * sinh (dist z w / 2) :
-  begin
-    rw [sinh_half_dist, mul_div_cancel'],
-    exact (mul_pos two_pos $ sqrt_pos.2 $ mul_pos z.im_pos w.im_pos).ne'
-  end
-... ≤ 2 * sqrt (w.im * exp (dist z w) * w.im) * sinh (dist z w / 2) :
-  mul_le_mul_of_nonneg_right (mul_le_mul_of_nonneg_left
-    (sqrt_le_sqrt $ mul_le_mul_of_nonneg_right (im_le_im_mul_exp_dist z w) w.im_pos.le) zero_le_two)
-    (sinh_nonneg_iff.2 $ div_nonneg dist_nonneg zero_le_two)
-... = 2 * w.im * exp (dist z w / 2) * sinh (dist z w / 2) :
-  by rw [mul_right_comm w.im, sqrt_mul (mul_self_nonneg _), sqrt_mul_self w.im_pos.le, ← exp_half,
-    ← mul_assoc]
-... = w.im * (exp (dist z w) - 1) :
-  by rw [mul_assoc (2 * w.im), sinh_eq, mul_div, mul_sub, ← real.exp_add, ← real.exp_add,
-    add_neg_self, add_halves, real.exp_zero, mul_div, mul_assoc,
-    mul_div_cancel_left _ (@two_ne_zero ℝ _ _)]
+calc dist (z : ℂ) w
+    ≤ dist (z : ℂ) ⟨w.re, w.im * cosh (dist z w)⟩ + dist (w : ℂ) ⟨w.re, w.im * cosh (dist z w)⟩ :
+  dist_triangle_right _ _ _
+... = w.im * sinh (dist z w) + w.im * (cosh (dist z w) - 1) :
+  congr_arg2 (+) (z.dist_center w) (w.dist_centers _)
+... = w.im  * (exp (dist z w) - 1) :
+  by rw [← mul_add, ← add_sub_assoc, real.sinh_add_cosh]
 
-end real
-
-open real (sinh arsinh log) complex
+/-- An upper estimate on the complex distance between two points in terms of the hyperbolic distance
+and the imaginary part of one of the points. -/
+lemma le_dist_coe (z w : ℍ) : w.im * (1 - exp (-dist z w)) ≤ dist (z : ℂ) w :=
+calc w.im * (1 - exp (-dist z w)) = w.im * sinh (dist z w) - w.im * (cosh (dist z w) - 1) :
+  by { rw [sub_eq_neg_add, ← real.sinh_sub_cosh], ring }
+... = dist (z : ℂ) ⟨w.re, w.im * cosh (dist z w)⟩ - dist (w : ℂ) ⟨w.re, w.im * cosh (dist z w)⟩ :
+  congr_arg2 _ (z.dist_center w).symm (w.dist_centers _).symm
+... ≤ dist (z : ℂ) w : sub_le_iff_le_add.2 $ dist_triangle _ _ _
 
 /-- The hyperbolic metric on the upper half plane. -/
 instance : metric_space ℍ := metric_space_aux.replace_topology $

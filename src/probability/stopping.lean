@@ -1292,7 +1292,6 @@ by { ext x, rw stopped_value, by_cases hx : x ∈ s; simp [hx] }
 
 end piecewise_const
 
-
 section hitting
 
 /-- Hitting time: given a stochastic process `u` and a set `s`, `hitting u s n` is the first time
@@ -1302,6 +1301,17 @@ The hitting time is a stopping time if the process is adapted and discrete. -/
 noncomputable def hitting [preorder ι] [has_Inf ι] (u : ι → α → β) (s : set β) (n : ι) :
   α → ι :=
 λ x, if ∃ j ≤ n, u j x ∈ s then Inf {i : ι | u i x ∈ s} else n
+
+lemma hitting_le [conditionally_complete_linear_order_bot ι]
+  {u : ι → α → β} {s : set β} {n : ι} (x : α) :
+  hitting u s n x ≤ n :=
+begin
+  simp only [hitting],
+  split_ifs,
+  { obtain ⟨j, hj₁, hj₂⟩ := h,
+    exact le_trans (cInf_le' hj₂) hj₁ },
+  exact le_rfl
+end
 
 section complete_linear_order
 

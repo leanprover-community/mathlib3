@@ -5,6 +5,7 @@ Authors: Violeta Hernández Palacios
 -/
 
 import set_theory.ordinal.arithmetic
+import tactic.abel
 
 /-!
 # Natural operations on ordinals
@@ -298,6 +299,9 @@ namespace ordinal
 
 local infix ` ♯ `:65 := nadd
 
+theorem nadd_eq_add (a b : ordinal) : a ♯ b = (a.to_nat_ordinal + b.to_nat_ordinal).to_ordinal :=
+rfl
+
 @[simp] theorem to_nat_ordinal_cast_nat (n : ℕ) : to_nat_ordinal n = n :=
 by { rw ←to_ordinal_cast_nat n, refl }
 
@@ -501,20 +505,18 @@ theorem nmul_nadd_lt₃' {a' b' c' : ordinal} (ha : a' < a) (hb : b' < b) (hc : 
   a' ⨳ (b ⨳ c) ♯ a ⨳ (b' ⨳ c) ♯ a ⨳ (b ⨳ c') ♯ a' ⨳ (b' ⨳ c') <
   a ⨳ (b ⨳ c) ♯ a' ⨳ (b' ⨳ c) ♯ a' ⨳ (b ⨳ c') ♯ a ⨳ (b' ⨳ c') :=
 begin
-  have := nmul_nadd_lt ha (nmul_nadd_lt hb hc),
-  simp only [nmul_nadd, ←nadd_assoc] at this,
-  rwa [nadd_right_comm (a' ⨳ _), nadd_right_comm, nadd_right_comm (a ⨳ _),
-    nadd_right_comm _ (a ⨳ (b' ⨳ c'))] at this
+  simp only [nmul_comm _ (_ ⨳ _)],
+  convert nmul_nadd_lt₃ hb hc ha using 1;
+  { simp only [nadd_eq_add, to_ordinal_to_nat_ordinal], abel }
 end
 
 theorem nmul_nadd_le₃' {a' b' c' : ordinal} (ha : a' ≤ a) (hb : b' ≤ b) (hc : c' ≤ c) :
   a' ⨳ (b ⨳ c) ♯ a ⨳ (b' ⨳ c) ♯ a ⨳ (b ⨳ c') ♯ a' ⨳ (b' ⨳ c') ≤
   a ⨳ (b ⨳ c) ♯ a' ⨳ (b' ⨳ c) ♯ a' ⨳ (b ⨳ c') ♯ a ⨳ (b' ⨳ c') :=
 begin
-  have := nmul_nadd_le ha (nmul_nadd_le hb hc),
-  simp only [nmul_nadd, ←nadd_assoc] at this,
-  rwa [nadd_right_comm (a' ⨳ _), nadd_right_comm, nadd_right_comm (a ⨳ _),
-    nadd_right_comm _ (a ⨳ (b' ⨳ c'))] at this
+  simp only [nmul_comm _ (_ ⨳ _)],
+  convert nmul_nadd_le₃ hb hc ha using 1;
+  { simp only [nadd_eq_add, to_ordinal_to_nat_ordinal], abel }
 end
 
 theorem lt_nmul_iff₃ : d < a ⨳ b ⨳ c ↔ ∃ (a' < a) (b' < b) (c' < c),
@@ -545,20 +547,10 @@ theorem lt_nmul_iff₃' : d < a ⨳ (b ⨳ c) ↔ ∃ (a' < a) (b' < b) (c' < c)
   d ♯ a' ⨳ (b' ⨳ c) ♯ a' ⨳ (b ⨳ c') ♯ a ⨳ (b' ⨳ c') ≤
   a' ⨳ (b ⨳ c) ♯ a ⨳ (b' ⨳ c) ♯ a ⨳ (b ⨳ c') ♯ a' ⨳ (b' ⨳ c') :=
 begin
-  refine ⟨λ h, _, _⟩,
-  { rcases lt_nmul_iff.1 h with ⟨a', ha, e, he, H₁⟩,
-    rcases lt_nmul_iff.1 he with ⟨b', hb, c', hc, H₂⟩,
-    refine ⟨a', ha, b', hb, c', hc, _⟩,
-    have := nadd_le_nadd H₁ (nmul_nadd_le ha.le H₂),
-    simp only [nmul_nadd, nadd_assoc] at this,
-    rw [nadd_left_comm, nadd_left_comm (a' ⨳ (b ⨳ c)), nadd_left_comm (a ⨳ (b ⨳ c')),
-      nadd_left_comm (a ⨳ (b' ⨳ c)), nadd_left_comm (a' ⨳ (b ⨳ c)), nadd_left_comm (a ⨳ e),
-      nadd_le_nadd_iff_left, nadd_left_comm (a' ⨳ (b ⨳ c')), nadd_left_comm (a' ⨳ (b' ⨳ c)),
-      nadd_left_comm d, nadd_le_nadd_iff_left] at this,
-    simpa only [nadd_assoc] },
-  { rintro ⟨a', ha, b', hb, c', hc, h⟩,
-    have := h.trans_lt (nmul_nadd_lt₃' ha hb hc),
-    repeat { rwa nadd_lt_nadd_iff_right at this } }
+  simp only [nmul_comm _ (_ ⨳ _), lt_nmul_iff₃, nadd_eq_add, to_ordinal_to_nat_ordinal],
+  split; rintro ⟨b', hb, c', hc, a', ha, h⟩,
+  { use [a', ha, b', hb, c', hc], convert h using 1; abel },
+  { use [c', hc, a', ha, b', hb], convert h using 1; abel }
 end
 
 theorem nmul_le_iff₃' : a ⨳ (b ⨳ c) ≤ d ↔ ∀ (a' < a) (b' < b) (c' < c),
@@ -611,6 +603,9 @@ namespace ordinal
 
 local infix ` ♯ `:65 := nadd
 local infix ` ⨳ `:70 := nmul
+
+theorem nmul_eq_mul (a b : ordinal) : a ⨳ b = (a.to_nat_ordinal * b.to_nat_ordinal).to_ordinal :=
+rfl
 
 theorem nmul_nadd_one : ∀ a b, a ⨳ (b ♯ 1) = a ⨳ b ♯ a := @mul_add_one nat_ordinal _ _ _
 theorem nadd_one_nmul : ∀ a b, (a ♯ 1) ⨳ b = a ⨳ b ♯ b := @add_one_mul nat_ordinal _ _ _

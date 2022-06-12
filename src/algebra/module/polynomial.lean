@@ -33,14 +33,17 @@ open_locale polynomial
 open polynomial module
 
 /--A type synonym for a `R`-module which explicitly mentions a given endomorphism.-/
+@[nolint unused_arguments has_inhabited_instance]
 def module_with_End (E : End R M) := M
 
 namespace module_with_End
-variables (E : End R M)
+variables {E : End R M}
 
 instance : add_comm_monoid (module_with_End E) := (infer_instance : add_comm_monoid M)
 instance : module R (module_with_End E) := (infer_instance : module R M)
-def of_module : M ≃ₗ[R] module_with_End E := linear_equiv.refl R M
+/--The type conversion `M → module_with_End E`, as a `R`-linear isomorphism.-/
+def of_module (E : End R M) : M ≃ₗ[R] module_with_End E := linear_equiv.refl R M
+@[simp] lemma of_module_apply (u : M) : of_module E u = u := rfl
 instance apply_module : module (End R M) (module_with_End E) :=
 (infer_instance : module (End R M) M)
 

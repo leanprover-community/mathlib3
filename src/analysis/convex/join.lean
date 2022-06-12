@@ -13,62 +13,14 @@ segments with one end in `s` and the other in `t`. This is notably a useful gadg
 convex hulls of finite sets.
 -/
 
-lemma exists₂_comm {ι₁ ι₂ : Sort*} {κ₁ : ι₁ → Sort*} {κ₂ : ι₂ → Sort*}
-  {p : Π i₁, κ₁ i₁ → Π i₂, κ₂ i₂ → Prop} :
-  (∃ i₁ j₁ i₂ j₂, p i₁ j₁ i₂ j₂) ↔ ∃ i₂ j₂ i₁ j₁, p i₁ j₁ i₂ j₂ :=
-by simp only [@exists_comm (κ₁ _), @exists_comm ι₁]
-
-namespace set
-variables {α : Type*} {ι₁ ι₂ : Sort*} {κ₁ : ι₁ → Sort*} {κ₂ : ι₂ → Sort*}
-
-lemma Union₂_comm (s : Π i₁, κ₁ i₁ → Π i₂, κ₂ i₂ → set α) :
-  (⋃ i₁ j₁ i₂ j₂, s i₁ j₁ i₂ j₂) = ⋃ i₂ j₂ i₁ j₁, s i₁ j₁ i₂ j₂ :=
-ext $ λ _, by { simp_rw mem_Union₂, exact exists₂_comm }
-
-@[simp] lemma insert_idem (a : α) (s : set α) : insert a (insert a s) = insert a s :=
-insert_eq_of_mem $ mem_insert _ _
-
-@[simp] lemma finite.to_finset_singleton {a : α} (ha : ({a} : set α).finite := finite_singleton _) :
-  ha.to_finset = {a} :=
-finset.ext $ by simp
-
-variables [decidable_eq α] {a : α} {s : set α}
-
-@[simp] lemma finite.to_finset_insert' (hs : (insert a s).finite) :
-  hs.to_finset = insert a (hs.subset $ subset_insert _ _).to_finset :=
-finset.ext $ by simp
-
-end set
-
 open set
 open_locale big_operators
 
 variables {ι : Sort*} {𝕜 E : Type*}
 
 section ordered_semiring
-variables [ordered_semiring 𝕜] [add_comm_monoid E] [module 𝕜 E] {s t s₁ s₂ t₁ t₂ u : set E}
+variables (𝕜) [ordered_semiring 𝕜] [add_comm_monoid E] [module 𝕜 E] {s t s₁ s₂ t₁ t₂ u : set E}
   {x y : E}
-
-lemma segment_subset_convex_hull (hx : x ∈ s) (hy : y ∈ s) : segment 𝕜 x y ⊆ convex_hull 𝕜 s :=
-(convex_convex_hull _ _).segment_subset (subset_convex_hull _ _ hx) (subset_convex_hull _ _ hy)
-
-lemma convex_hull_convex_hull_union_left (s t : set E) :
-  convex_hull 𝕜 (convex_hull 𝕜 s ∪ t) = convex_hull 𝕜 (s ∪ t) :=
-closure_operator.closure_sup_closure_left _ _ _
-
-lemma convex_hull_convex_hull_union_right (s t : set E) :
-  convex_hull 𝕜 (s ∪ convex_hull 𝕜 t) = convex_hull 𝕜 (s ∪ t) :=
-closure_operator.closure_sup_closure_right _ _ _
-
-@[simp] lemma convex_hull_pair (x y : E) : convex_hull 𝕜 {x, y} = segment 𝕜 x y :=
-begin
-  refine (convex_hull_min _ $ convex_segment _ _).antisymm
-    (segment_subset_convex_hull (mem_insert _ _) $ mem_insert_of_mem _ $ mem_singleton _),
-  rw [insert_subset, singleton_subset_iff],
-  exact ⟨left_mem_segment _ _ _, right_mem_segment _ _ _⟩,
-end
-
-variables (𝕜)
 
 /-- The join of two sets is the union of the segments joining them. This can be interpreted as the
 topological join, but within the original space. -/

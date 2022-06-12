@@ -30,11 +30,11 @@ variables {op} {f : α → β} {b : β} {s : finset α} {a : α}
 @[simp] theorem fold_empty : (∅ : finset α).fold op b f = b := rfl
 
 @[simp] theorem fold_cons (h : a ∉ s) : (cons a s h).fold op b f = f a * s.fold op b f :=
-by { dunfold fold, rw [cons_val, map_cons, fold_cons_left], }
+by { dunfold fold, rw [cons_val, multiset.map_cons, fold_cons_left], }
 
 @[simp] theorem fold_insert [decidable_eq α] (h : a ∉ s) :
   (insert a s).fold op b f = f a * s.fold op b f :=
-by unfold fold; rw [insert_val, ndinsert_of_not_mem h, map_cons, fold_cons_left]
+by unfold fold; rw [insert_val, ndinsert_of_not_mem h, multiset.map_cons, fold_cons_left]
 
 @[simp] theorem fold_singleton : ({a} : finset α).fold op b f = f a * b := rfl
 

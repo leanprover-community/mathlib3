@@ -384,6 +384,10 @@ theorem union_Inter (s : set β) (t : ι → set β) :
   s ∪ (⋂ i, t i) = ⋂ i, s ∪ t i :=
 sup_infi_eq _ _
 
+theorem Inter_union (s : ι → set β) (t : set β) :
+  (⋂ i, s i) ∪ t = ⋂ i, s i ∪ t :=
+infi_sup_eq _ _
+
 theorem Union_diff (s : set β) (t : ι → set β) :
   (⋃ i, t i) \ s = ⋃ i, t i \ s :=
 Union_inter _ _
@@ -405,19 +409,27 @@ let ⟨z, zb₁, zb₂⟩ := hd b₁ b₂,
 ⟨x, ⟨z, xf⟩, xa₁, xa₂⟩
 
 lemma Union_inter_subset {ι α} {s t : ι → set α} : (⋃ i, s i ∩ t i) ⊆ (⋃ i, s i) ∩ (⋃ i, t i) :=
-by { rintro x ⟨_, ⟨i, rfl⟩, xs, xt⟩, exact ⟨⟨_, ⟨i, rfl⟩, xs⟩, _, ⟨i, rfl⟩, xt⟩ }
+le_supr_inf_supr s t
 
-lemma Union_inter_of_monotone {ι α} [semilattice_sup ι] {s t : ι → set α}
+lemma Union_inter_of_monotone {ι α} [preorder ι] [is_directed ι (≤)] {s t : ι → set α}
   (hs : monotone s) (ht : monotone t) : (⋃ i, s i ∩ t i) = (⋃ i, s i) ∩ (⋃ i, t i) :=
-begin
-  ext x, refine ⟨λ hx, Union_inter_subset hx, _⟩,
-  rintro ⟨⟨_, ⟨i, rfl⟩, xs⟩, _, ⟨j, rfl⟩, xt⟩,
-  exact ⟨_, ⟨i ⊔ j, rfl⟩, hs le_sup_left xs, ht le_sup_right xt⟩
-end
+supr_inf_of_monotone hs ht
+
+lemma Union_inter_of_antitone {ι α} [preorder ι] [is_directed ι (swap (≤))] {s t : ι → set α}
+  (hs : antitone s) (ht : antitone t) : (⋃ i, s i ∩ t i) = (⋃ i, s i) ∩ (⋃ i, t i) :=
+supr_inf_of_antitone hs ht
+
+lemma Inter_union_of_monotone {ι α} [preorder ι] [is_directed ι (swap (≤))] {s t : ι → set α}
+  (hs : monotone s) (ht : monotone t) : (⋂ i, s i ∪ t i) = (⋂ i, s i) ∪ (⋂ i, t i) :=
+infi_sup_of_monotone hs ht
+
+lemma Inter_union_of_antitone {ι α} [preorder ι] [is_directed ι (≤)] {s t : ι → set α}
+  (hs : antitone s) (ht : antitone t) : (⋂ i, s i ∪ t i) = (⋂ i, s i) ∪ (⋂ i, t i) :=
+infi_sup_of_antitone hs ht
 
 /-- An equality version of this lemma is `Union_Inter_of_monotone` in `data.set.finite`. -/
 lemma Union_Inter_subset {s : ι → ι' → set α} : (⋃ j, ⋂ i, s i j) ⊆ ⋂ i, ⋃ j, s i j :=
-by { rintro x ⟨_, ⟨i, rfl⟩, hx⟩ _ ⟨j, rfl⟩, exact ⟨_, ⟨i, rfl⟩, hx _ ⟨j, rfl⟩⟩ }
+supr_infi_le_infi_supr (flip s)
 
 lemma Union_option {ι} (s : option ι → set α) : (⋃ o, s o) = s none ∪ ⋃ i, s (some i) :=
 supr_option s
@@ -1657,6 +1669,30 @@ lemma sigma_to_Union_bijective (h : ∀ i j, i ≠ j → disjoint (t i) (t j)) :
 noncomputable def Union_eq_sigma_of_disjoint {t : α → set β}
   (h : ∀ i j, i ≠ j → disjoint (t i) (t j)) : (⋃ i, t i) ≃ (Σ i, t i) :=
 (equiv.of_bijective _ $ sigma_to_Union_bijective t h).symm
+
+lemma Union_ge_eq_Union_nat_add (u : ℕ → set α) (n : ℕ) : (⋃ i ≥ n, u i) = ⋃ i, u (i + n) :=
+supr_ge_eq_supr_nat_add u n
+
+lemma Inter_ge_eq_Inter_nat_add (u : ℕ → set α) (n : ℕ) : (⋂ i ≥ n, u i) = ⋂ i, u (i + n) :=
+infi_ge_eq_infi_nat_add u n
+
+lemma _root_.monotone.Union_nat_add {f : ℕ → set α} (hf : monotone f) (k : ℕ) :
+  (⋃ n, f (n + k)) = ⋃ n, f n :=
+hf.supr_nat_add k
+
+lemma _root_.antitone.Inter_nat_add {f : ℕ → set α} (hf : antitone f) (k : ℕ) :
+  (⋂ n, f (n + k)) = ⋂ n, f n :=
+hf.infi_nat_add k
+
+@[simp] lemma Union_Inter_ge_nat_add (f : ℕ → set α) (k : ℕ) :
+  (⋃ n, ⋂ i ≥ n, f (i + k)) = ⋃ n, ⋂ i ≥ n, f i :=
+supr_infi_ge_nat_add f k
+
+lemma union_Union_nat_succ (u : ℕ → set α) : u 0 ∪ (⋃ i, u (i + 1)) = ⋃ i, u i :=
+sup_supr_nat_succ u
+
+lemma inter_Inter_nat_succ (u : ℕ → set α) : u 0 ∩ (⋂ i, u (i + 1)) = ⋂ i, u i :=
+inf_infi_nat_succ u
 
 end set
 

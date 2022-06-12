@@ -477,8 +477,8 @@ begin
   { refine nonempty_diff.2 (λ hsub, _),
     have : countable (Ioo l u),
       from (hs.preimage ((add_right_injective w).comp of_real_injective)).mono hsub,
-    rw [← cardinal.mk_set_le_omega, cardinal.mk_Ioo_real (hlu₀.1.trans hlu₀.2)] at this,
-    exact this.not_lt cardinal.omega_lt_continuum },
+    rw [← cardinal.mk_set_le_aleph_0, cardinal.mk_Ioo_real (hlu₀.1.trans hlu₀.2)] at this,
+    exact this.not_lt cardinal.aleph_0_lt_continuum },
   exact ⟨g x, (hlu_sub hx.1).1, (hlu_sub hx.1).2, hx.2⟩
 end
 

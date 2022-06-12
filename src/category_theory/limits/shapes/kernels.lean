@@ -151,10 +151,10 @@ lemma is_kernel_comp_mono_lift {c : kernel_fork f} (i : is_limit c) {Z} (g : Y �
   = i.lift (fork.of_ι s.ι (by { rw [←cancel_mono g, category.assoc, ←hh], simp })) := rfl
 
 /-- Every kernel of `f ≫ g` is also a kernel of `f`, as long as `c.ι ≫ f` vanishes. -/
-def is_kernel_of_comp {W : C} (g : Y ⟶ W) {c : kernel_fork (f ≫ g)} (i : is_limit c)
-  (h : c.ι ≫ f = 0) : is_limit (kernel_fork.of_ι c.ι h) :=
+def is_kernel_of_comp {W : C} (g : Y ⟶ W) (h : X ⟶ W) {c : kernel_fork h} (i : is_limit c)
+  (hf : c.ι ≫ f = 0) (hfg : f ≫ g = h) : is_limit (kernel_fork.of_ι c.ι hf) :=
 fork.is_limit.mk _
-  (λ s, i.lift (kernel_fork.of_ι s.ι (by simp)))
+  (λ s, i.lift (kernel_fork.of_ι s.ι (by simp [← hfg])))
   (λ s, by simp only [kernel_fork.ι_of_ι, fork.is_limit.lift_ι])
   (λ s m h, by { apply fork.is_limit.hom_ext i, simpa using h })
 
@@ -491,10 +491,10 @@ lemma is_cokernel_epi_comp_desc {c : cokernel_cofork f} (i : is_colimit c) {W}
   = i.desc (cofork.of_π s.π (by { rw [←cancel_epi g, ←category.assoc, ←hh], simp })) := rfl
 
 /-- Every cokernel of `g ≫ f` is also a cokernel of `f`, as long as `f ≫ c.π` vanishes. -/
-def is_cokernel_of_comp {W : C} (g : W ⟶ X) {c : cokernel_cofork (g ≫ f)} (i : is_colimit c)
-  (h : f ≫ c.π = 0) : is_colimit (cokernel_cofork.of_π c.π h) :=
+def is_cokernel_of_comp {W : C} (g : W ⟶ X) (h : W ⟶ Y) {c : cokernel_cofork h} (i : is_colimit c)
+  (hf : f ≫ c.π = 0) (hfg : g ≫ f = h) : is_colimit (cokernel_cofork.of_π c.π hf) :=
 cofork.is_colimit.mk _
-  (λ s, i.desc (cokernel_cofork.of_π s.π (by simp)))
+  (λ s, i.desc (cokernel_cofork.of_π s.π (by simp [← hfg])))
   (λ s, by simp only [cokernel_cofork.π_of_π, cofork.is_colimit.π_desc])
   (λ s m h, by { apply cofork.is_colimit.hom_ext i, simpa using h })
 

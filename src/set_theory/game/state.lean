@@ -235,7 +235,7 @@ instance short_of_state_aux : Π (n : ℕ) {s : S} (h : turn_bound s ≤ n), sho
   (λ i, short_of_relabelling (relabelling_move_left_aux (n+1) h i).symm (short_of_state_aux n _))
   (λ j, short_of_relabelling (relabelling_move_right_aux (n+1) h j).symm (short_of_state_aux n _))
 
-instance short_of (s : S) : short (of_state s) :=
+instance short_of_state (s : S) : short (of_state s) :=
 begin
   dsimp [pgame.of_state],
   apply_instance

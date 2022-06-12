@@ -52,6 +52,8 @@ structure add_monoid_seminorm (G : Type*) [add_monoid G]
 (nonneg' : ∀ r, 0 ≤ to_fun r)
 (add_le' : ∀ r s, to_fun (r + s) ≤ to_fun r + to_fun s)
 
+attribute [nolint doc_blame] add_monoid_seminorm.to_zero_hom
+
 namespace add_monoid_seminorm
 
 variables [add_monoid E]
@@ -169,6 +171,8 @@ semidefinite, positive homogeneous, and subadditive. -/
 structure seminorm (𝕜 : Type*) (E : Type*) [semi_normed_ring 𝕜] [add_monoid E] [has_scalar 𝕜 E]
   extends add_monoid_seminorm E :=
 (smul' : ∀ (a : 𝕜) (x : E), to_fun (a • x) = ∥a∥ * to_fun x)
+
+attribute [nolint doc_blame] seminorm.to_add_monoid_seminorm
 
 private lemma map_zero.of_smul {𝕜 : Type*} {E : Type*} [semi_normed_ring 𝕜] [add_monoid E]
   [smul_with_zero 𝕜 E] {f : E → ℝ} (smul : ∀ (a : 𝕜) (x : E), f (a • x) = ∥a∥ * f x) : f 0 = 0 :=

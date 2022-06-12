@@ -34,7 +34,8 @@ arsinh, arcsinh, argsinh, asinh, sinh injective, sinh bijective, sinh surjective
 -/
 noncomputable theory
 
-open function
+open function filter set
+open_locale topological_space
 
 namespace real
 
@@ -103,4 +104,92 @@ lemma arsinh_strict_mono : strict_mono arsinh := sinh_order_iso.symm.strict_mono
 @[simp] lemma arsinh_le_arsinh : arsinh x ≤ arsinh y ↔ x ≤ y := sinh_order_iso.symm.le_iff_le
 @[simp] lemma arsinh_lt_arsinh : arsinh x < arsinh y ↔ x < y := sinh_order_iso.symm.lt_iff_lt
 
+@[simp] lemma arsinh_eq_zero_iff : arsinh x = 0 ↔ x = 0 :=
+arsinh_injective.eq_iff' arsinh_zero
+
+@[simp] lemma arsinh_nonneg_iff : 0 ≤ arsinh x ↔ 0 ≤ x :=
+by rw [← sinh_le_sinh, sinh_zero, sinh_arsinh]
+
+@[simp] lemma arsinh_nonpos_iff : arsinh x ≤ 0 ↔ x ≤ 0 :=
+by rw [← sinh_le_sinh, sinh_zero, sinh_arsinh]
+
+@[simp] lemma arsinh_pos_iff : 0 < arsinh x ↔ 0 < x :=
+lt_iff_lt_of_le_iff_le arsinh_nonpos_iff
+
+@[simp] lemma arsinh_neg_iff : arsinh x < 0 ↔ x < 0 :=
+lt_iff_lt_of_le_iff_le arsinh_nonneg_iff
+
+lemma has_strict_deriv_at_arsinh (x : ℝ) : has_strict_deriv_at arsinh (sqrt (1 + x ^ 2))⁻¹ x :=
+begin
+  convert sinh_homeomorph.to_local_homeomorph.has_strict_deriv_at_symm (mem_univ x)
+    (cosh_pos _).ne' (has_strict_deriv_at_sinh _),
+  exact (cosh_arsinh _).symm
+end
+
+lemma has_deriv_at_arsinh (x : ℝ) : has_deriv_at arsinh (sqrt (1 + x ^ 2))⁻¹ x :=
+(has_strict_deriv_at_arsinh x).has_deriv_at
+
+@[continuity] lemma continuous_arsinh : continuous arsinh := sinh_homeomorph.symm.continuous
+
 end real
+
+open real
+
+lemma filter.tendsto.arsinh {α : Type*} {l : filter α} {f : α → ℝ} {a : ℝ}
+  (h : tendsto f l (𝓝 a)) : tendsto (λ x, arsinh (f x)) l (𝓝 (arsinh a)) :=
+(continuous_arsinh.tendsto _).comp h
+
+section continuous
+
+variables {X : Type*} [topological_space X] {f : X → ℝ} {s : set X} {a : X}
+
+lemma continuous_at.arsinh (h : continuous_at f a) : continuous_at (λ x, arsinh (f x)) a := h.arsinh
+
+lemma continuous_within_at.arsinh (h : continuous_within_at f s a) :
+  continuous_within_at (λ x, arsinh (f x)) s a :=
+h.arsinh
+
+lemma continuous_on.arsinh (h : continuous_on f s) : continuous_on (λ x, arsinh (f x)) s :=
+λ x hx, (h x hx).arsinh
+
+lemma continuous.arsinh (h : continuous f) : continuous (λ x, arsinh (f x)) :=
+continuous_arsinh.comp h
+
+end continuous
+
+section fderiv
+
+variables {E : Type*} [normed_group E] [normed_space ℝ E] {f : E → ℝ} {s : set E} {a : E}
+  {f' : E →L[ℝ] ℝ}
+
+lemma has_strict_fderiv_at.arsinh (hf : has_strict_fderiv_at f f' a) :
+  has_strict_fderiv_at (λ x, arsinh (f x)) ((sqrt (1 + (f a) ^ 2))⁻¹ • f') a :=
+(has_strict_deriv_at_arsinh _).comp_has_strict_fderiv_at a hf
+
+lemma has_fderiv_at.arsinh (hf : has_fderiv_at f f' a) :
+  has_fderiv_at (λ x, arsinh (f x)) ((sqrt (1 + (f a) ^ 2))⁻¹ • f') a :=
+(has_deriv_at_arsinh _).comp_has_fderiv_at a hf
+
+lemma has_fderiv_within_at.arsinh (hf : has_fderiv_within_at f f' s a) :
+  has_fderiv_within_at (λ x, arsinh (f x)) ((sqrt (1 + (f a) ^ 2))⁻¹ • f') s a :=
+(has_deriv_at_arsinh _).comp_has_fderiv_within_at a hf
+
+end fderiv
+
+section deriv
+
+variables {f : ℝ → ℝ} {s : set ℝ} {a f' : ℝ}
+
+lemma has_strict_deriv_at.arsinh (hf : has_strict_deriv_at f f' a) :
+  has_strict_deriv_at (λ x, arsinh (f x)) ((sqrt (1 + (f a) ^ 2))⁻¹ • f') a :=
+(has_strict_deriv_at_arsinh _).comp a hf
+
+lemma has_deriv_at.arsinh (hf : has_deriv_at f f' a) :
+  has_deriv_at (λ x, arsinh (f x)) ((sqrt (1 + (f a) ^ 2))⁻¹ • f') a :=
+(has_deriv_at_arsinh _).comp a hf
+
+lemma has_deriv_within_at.arsinh (hf : has_deriv_within_at f f' s a) :
+  has_deriv_within_at (λ x, arsinh (f x)) ((sqrt (1 + (f a) ^ 2))⁻¹ • f') s a :=
+(has_deriv_at_arsinh _).comp_has_deriv_within_at a hf
+
+end deriv

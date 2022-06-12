@@ -347,19 +347,6 @@ protected lemma ae_strongly_measurable' (h : interval_integrable f μ a b) :
   ae_strongly_measurable f (μ.restrict (Ioc b a)):=
 h.2.ae_strongly_measurable
 
-lemma comp_sub_right (hf : interval_integrable f volume a b) (c : ℝ) :
-  interval_integrable (λ x, f (x - c)) volume (a + c) (b + c) :=
-begin
-  rw interval_integrable_iff at *,
-  have : measurable_embedding (λ x, x - c) :=
-    (homeomorph.sub_right c).closed_embedding.measurable_embedding,
-  convert (@measurable_embedding.integrable_on_map_iff _ _ _ _ _ _ _ this f volume
-    (interval_oc a b)).mp _,
-  { simp_rw [interval_oc], rw preimage_sub_const_Ioc, congr,
-    rw min_add_add_right, rw max_add_add_right },
-  convert hf, apply map_add_right_eq_self,
-end
-
 end
 
 variables {f g : ℝ → E} {a b : ℝ} {μ : measure ℝ}

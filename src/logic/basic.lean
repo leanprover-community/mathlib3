@@ -933,6 +933,9 @@ section dependent
 variables {β : α → Sort*} {γ : Π a, β a → Sort*} {δ : Π a b, γ a b → Sort*}
   {ε : Π a b c, δ a b c → Sort*}
 
+lemma pi_congr {β' : α → Sort*} (h : ∀ a, β a = β' a) : (Π a, β a) = Π a, β' a :=
+(funext h : β = β') ▸ rfl
+
 lemma forall₂_congr {p q : Π a, β a → Prop} (h : ∀ a b, p a b ↔ q a b) :
   (∀ a b, p a b) ↔ ∀ a b, q a b :=
 forall_congr $ λ a, forall_congr $ h a

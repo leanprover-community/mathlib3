@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Thomas Browning
 -/
 
-import data.nat.factorization
+import data.nat.factorization.basic
 import data.set_like.fintype
 import group_theory.group_action.conj_act
 import group_theory.p_group
@@ -507,16 +507,10 @@ theorem exists_subgroup_card_pow_prime [fintype G] (p : ℕ) {n : ℕ} [fact p.p
 let ⟨K, hK⟩ := exists_subgroup_card_pow_prime_le p hdvd ⊥ (by simp) n.zero_le in
 ⟨K, hK.1⟩
 
-lemma pow_dvd_card_of_pow_dvd_card [fintype G] {p n : ℕ} [fact p.prime] (P : sylow p G)
+lemma pow_dvd_card_of_pow_dvd_card [fintype G] {p n : ℕ} [hp : fact p.prime] (P : sylow p G)
   (hdvd : p ^ n ∣ card G) : p ^ n ∣ card P :=
-begin
-  obtain ⟨Q, hQ⟩ := exists_subgroup_card_pow_prime p hdvd,
-  obtain ⟨R, hR⟩ := (is_p_group.of_card hQ).exists_le_sylow,
-  obtain ⟨g, rfl⟩ := exists_smul_eq G R P,
-  calc p ^ n = card Q : hQ.symm
-  ... ∣ card R : card_dvd_of_le hR
-  ... = card (g • R) : card_congr (R.equiv_smul g).to_equiv
-end
+(hp.1.coprime_pow_of_not_dvd (not_dvd_index_sylow P
+  index_ne_zero_of_fintype)).symm.dvd_of_dvd_mul_left ((index_mul_card P.1).symm ▸ hdvd)
 
 lemma dvd_card_of_dvd_card [fintype G] {p : ℕ} [fact p.prime] (P : sylow p G)
   (hdvd : p ∣ card G) : p ∣ card P :=

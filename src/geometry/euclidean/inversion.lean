@@ -1,9 +1,26 @@
+/-
+Copyright (c) 2022 Yury G. Kudryashov. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Yury G. Kudryashov
+-/
 import geometry.euclidean.basic
 
 /-!
--/
-noncomputable theory
+# Inversion in an affine space
 
+In this file we define inversion in a sphere in an affine space. This map sends each point `x` to
+the point `y` such that `y -ᵥ c = (R / dist x c) ^ 2 • (x -ᵥ c)`, where `c` and `R` are the center
+and the radius the sphere.
+
+In many applications, it is convenient to assume that the inversions swaps the center and the point
+at infinity. In order to stay in the original affine space, we define the map so that it sends
+center to itself.
+
+Currently, we prove only a few basic lemmas needed to prove Ptolemy's inequality, see
+`euclidean_geometry.mul_dist_le_mul_dist_add_mul_dist`.
+-/
+
+noncomputable theory
 open metric real
 
 namespace euclidean_geometry
@@ -11,9 +28,11 @@ namespace euclidean_geometry
 variables {V P : Type*} [inner_product_space ℝ V] [metric_space P] [normed_add_torsor V P]
   {a b c d x y z : P} {R : ℝ}
 
-local notation `⟪`x`, `y`⟫` := @inner ℝ V _ x y
 include V
 
+/-- Inversion in a sphere in an affine space. This map sends each point `x` to the point `y` such
+that `y -ᵥ c = (R / dist x c) ^ 2 • (x -ᵥ c)`, where `c` and `R` are the center and the radius the
+sphere. -/
 def inversion (c : P) (R : ℝ) (x : P) := (R / dist x c) ^ 2 • (x -ᵥ c) +ᵥ c
 
 @[simp] lemma inversion_self (c : P) (R : ℝ) : inversion c R c = c := by simp [inversion]
@@ -28,20 +47,6 @@ end
 
 lemma inversion_of_mem_sphere (h : x ∈ sphere c R) : inversion c R x = x :=
 h.out ▸ inversion_dist_center c x
-
-lemma dist_div_norm_sq_smul {x y : V} (hx : x ≠ 0) (hy : y ≠ 0) (R : ℝ) :
-  dist ((R / ∥x∥) ^ 2 • x) ((R / ∥y∥) ^ 2 • y) = (R ^ 2 / (∥x∥ * ∥y∥)) * dist x y :=
-have hx' : ∥x∥ ≠ 0, from norm_ne_zero_iff.2 hx,
-have hy' : ∥y∥ ≠ 0, from norm_ne_zero_iff.2 hy,
-calc dist ((R / ∥x∥) ^ 2 • x) ((R / ∥y∥) ^ 2 • y)
-    = sqrt (∥(R / ∥x∥) ^ 2 • x - (R / ∥y∥) ^ 2 • y∥^2) :
-  by rw [dist_eq_norm, sqrt_sq (norm_nonneg _)]
-... = sqrt ((R ^ 2 / (∥x∥ * ∥y∥)) ^ 2 * ∥x - y∥ ^ 2) :
-  congr_arg sqrt $ by { field_simp [sq, norm_sub_mul_self_real, norm_smul, real_inner_smul_left,
-    inner_smul_right, norm_of_nonneg (mul_self_nonneg _)], ring }
-... = (R ^ 2 / (∥x∥ * ∥y∥)) * dist x y :
-  by rw [sqrt_mul (sq_nonneg _), sqrt_sq (norm_nonneg _),
-    sqrt_sq (div_nonneg (sq_nonneg _) (mul_nonneg (norm_nonneg _) (norm_nonneg _))), dist_eq_norm]
 
 /-- Distance from the image of a point under inversion to the center. This formula accidentally
 works for `x = c`. -/
@@ -62,7 +67,7 @@ begin
     using dist_div_norm_sq_smul (vsub_ne_zero.2 hx) (vsub_ne_zero.2 hy) R
 end
 
-/-- Ptolemy's inequality: in a quadrangle `ABCD`, `|AC| * |BD| ≤ |AB| * |CD| + |BC| * |AD|`. If
+/-- **Ptolemy's inequality**: in a quadrangle `ABCD`, `|AC| * |BD| ≤ |AB| * |CD| + |BC| * |AD|`. If
 `ABCD` is a convex cyclic polygon, then this inequality becomes an equality, see
 `euclidean_geometry.mul_dist_add_mul_dist_eq_mul_dist_of_cospherical`.  -/
 lemma mul_dist_le_mul_dist_add_mul_dist (a b c d : P) :

@@ -167,6 +167,7 @@ instance : linear_order bool :=
   le_antisymm := dec_trivial,
   le_total := dec_trivial,
   decidable_le := infer_instance,
+  decidable_eq := infer_instance,
   max := bor,
   max_def := by { funext x y, revert x y, exact dec_trivial },
   min := band,

@@ -29,15 +29,12 @@ lemma link_le : K.link A ≤ K := K.of_subcomplex_le _
 @[simp] lemma link_bot : (⊥ : simplicial_complex 𝕜 E).link A = ⊥ := of_subcomplex_bot _
 
 @[simp] lemma link_empty : K.link ∅ = ⊥ :=
-begin
-  ext s,
-  exact iff_of_false (λ ⟨hs, hsA, t, ht, u, hu, hsu, htu⟩, ht) id,
-end
+ext _ _ $ set.eq_empty_of_forall_not_mem $ λ s ⟨hs, hsA, t, ht, u⟩, ht
 
 @[simp] lemma link_singleton_empty : K.link {∅} = K :=
 begin
   ext s,
-  refine ⟨_, λ hs, ⟨K.nonempty hs, _, ⟨∅, rfl, s, hs, subset.refl s, empty_subset s⟩⟩⟩,
+  refine ⟨_, λ hs, ⟨K.nonempty hs, _, ∅, rfl, s, hs, subset.rfl, empty_subset s⟩⟩,
   { rintro ⟨hs, _, _, u, _, hu, hsu, _⟩,
     exact K.down_closed hu hsu hs },
   { rintro r (rfl : r = ∅),
@@ -47,22 +44,16 @@ end
 
 lemma mem_link_singleton_iff [decidable_eq E] :
   t ∈ (K.link {s}).faces ↔ t.nonempty ∧ disjoint s t ∧ ∃ u ∈ K.faces, t ⊆ u ∧ s ⊆ u :=
-begin
-  unfold link,
-  simp,
-end
+by simp [link]
 
 lemma link_singleton_subset (hs : s.nonempty) :
   (K.link {s}).faces ⊆ (K.Star {s}).faces \ K.star {s} :=
 begin
-  rintro t ⟨ht, W, u, (hWs : W = s), hu, htu, hWu⟩,
-  simp at ht,
-  subst hWs,
-  split,
-  { exact ⟨W, u, mem_singleton W, hu, htu, hWu⟩ },
-  { rintro h,
-    rw mem_star_singleton_iff at h,
-    exact hs (disjoint_self.1 (finset.disjoint_of_subset_right h.2 ht)) }
+  rintro t ⟨ht, hst, W, (rfl : W = s), u, hu, htu, hWu⟩,
+  refine ⟨⟨ht, W, set.mem_singleton _, u, hu, htu, hWu⟩, λ h, _⟩,
+  simp only [set.mem_singleton_iff, forall_eq] at hst,
+  rw mem_star_singleton_iff at h,
+  exact hs.to_set.ne_empty (disjoint_self.1 $ hst.mono_right h.2),
 end
 
 lemma link_singleton_eq_Star_minus_star_iff_singleton (hs : s.nonempty) :
@@ -72,45 +63,33 @@ begin
   { sorry --true? The PDF claims so but I'm not sure
   },
   { rintro hscard,
-    apply subset.antisymm (link_singleton_subset hs),
+    refine (link_singleton_subset hs).antisymm _,
     rintro t ⟨h, htstar⟩,
-    obtain ⟨u, hu, htu, hsu⟩ := mem_Star_singleton_iff.1 h,
-    split,
-    {   obtain ⟨x, hxs⟩ := finset.card_eq_one.1 hscard,
-      rintro W (hW : W = s),
-      subst hW,
-      subst hxs,
-      rw finset.singleton_disjoint,
-      rintro hx,
-      apply htstar,
-      rw [mem_star_singleton_iff, finset.singleton_subset_iff],
-      exact ⟨K.down_closed hu htu, hx⟩,
-    },
-    exact ⟨s, u, rfl, hu, htu, hsu⟩,
-  }
+    obtain ⟨ht, u, hu, htu, hsu⟩ := mem_Star_singleton_iff.1 h,
+    refine ⟨ht, _, s, rfl, u, hu, htu, hsu⟩,
+    obtain ⟨x, rfl⟩ := finset.card_eq_one.1 hscard,
+    rintro W (rfl : W = {x}),
+    rw [coe_singleton, set.disjoint_singleton_left],
+    refine λ hx, htstar _,
+    rw [mem_star_singleton_iff, finset.singleton_subset_iff],
+    exact ⟨Star_le h, hx⟩ }
 end
 
 lemma link_eq_Star_sub_star_closure {K : simplicial_complex 𝕜 E} {A : set (finset E)} :
   (K.link A).faces = (K.Star A).faces \ K.star ((K.closure A).faces \ {∅}) :=
 begin
+  classical,
   ext s,
   split,
-  { rintro ⟨hsdisj, hsStar⟩,
-    use hsStar,
+  { rintro ⟨hs, hsdisj, hsStar⟩,
+    refine ⟨⟨hs, hsStar⟩, _⟩,
     rintro ⟨hs, t, ⟨⟨ht, u, hu, htu⟩, (htnonempty : t ≠ ∅)⟩, hts⟩,
-    have htus : t ⊆ u ∩ s := finset.subset_inter htu hts,
-    rw finset.disjoint_iff_inter_eq_empty.mp (hsdisj hu) at htus,
-    exact htnonempty (finset.subset_empty.mp htus) },
+    exact htnonempty (coe_eq_empty.1 $ disjoint_self.1 $ (hsdisj hu).mono htu hts) },
   rintro ⟨hsStar, hs'⟩,
-  refine ⟨λ W hW x hx, hs' ⟨Star_subset hsStar, {x}, _, _, _⟩, _⟩,
-  { unfold simplicial_complex.closure simplicial_complex.of_subcomplex,
-      simp,
-      exact ⟨K.down_closed (Star_subset hsStar) (subset.trans (finset.singleton_subset_iff.2 hx)
-        (finset.inter_subset_right _ _)), W, hW, finset.inter_subset_left _ _ hx⟩ },
-  { rintro (h : {x} = ∅),
-    exact (finset.singleton_ne_empty x) h },
-  { exact finset.singleton_subset_iff.2 (finset.inter_subset_right W s hx) },
-  { exact hsStar }
+  refine ⟨(K.Star A).nonempty hsStar, λ W hW x hx, hs' _, hsStar.2⟩,
+  have : (W ∩ s).nonempty := ⟨x, by rwa [set.inf_eq_inter, ←coe_inter] at hx⟩,
+  refine ⟨Star_le hsStar, W ∩ s, ⟨⟨K.down_closed (Star_le hsStar) (inter_subset_right _ _) this,
+    _, hW, inter_subset_left _ _⟩, this.ne_empty⟩, inter_subset_right _ _⟩,
 end
 /-
 
@@ -120,28 +99,21 @@ lemma link_facet_iff {K : simplicial_complex 𝕜 E} {A : set (finset E)} {n k :
 
 -- s ∈ (K.link A).facets ↔ s ∉ K.facets ∧ (∀ {W}, W ∈ A → disjoint W s) ∧ ∃ {t W u}, t ∈ K.facets ∧
 --   W ∈ A ∧ u ∈ K.facets ∧ s ∪ W ⊆ u ∧ ∀ {y}, y ∈ t → y ∈ s ∨ ∃ {V}, V ∈ A ∧ y ∈ V
-lemma link_facet_iff :
-  s ∈ (K.link A).facets ↔ s ∉ K.facets ∧ (∀ {W}, W ∈ A → disjoint W s) ∧ ∃ {W t u},
+lemma link_facet_iff [decidable_eq E] :
+  s ∈ (K.link A).facets ↔ s.nonempty ∧ s ∉ K.facets ∧ (∀ ⦃W⦄, W ∈ A → disjoint W s) ∧ ∃ {W t u},
    W ∈ A ∧ t ∈ K.facets ∧ u ∈ K.faces ∧ s ∪ W ⊆ u ∧ ∀ {y}, y ∈ t → y ∈ s ∨ ∃ {V}, V ∈ A ∧ y ∈ V :=
 begin
   split,
   { rintro ⟨⟨hsdisj, W, u, hW, hu, hsu, hWu⟩, hsmax⟩,
     sorry
     /-obtain ⟨t, ht, hut⟩ := subfacet hu,
+    refine ⟨sorry, hsdisj, W, t, u, hW, ht, hu, finset.union_subset hsu hWu, λ y hy, _⟩,
+    sorry -/ },
+  { rintro ⟨hs, stuff, hsdisj, W, t, u, hW, ht, hu, hstW, hunion⟩,
     split,
-    {   sorry
-    },
-    {   use [(λ W, hsdisj), W, t, u, hW, ht, hu, finset.union_subset hsu hWu],
-      rintro y hy,
-      sorry
-    }-/
-  },
-  { rintro ⟨stuff, hsdisj, W, t, u, hW, ht, hu, hstW, hunion⟩,
-    split,
-    {   have hsu : s ⊆ u := sorry, -- finset.union_subset_iff.1 hstW
+    { have hsu : s ⊆ u := sorry, -- finset.union_subset_iff.1 hstW
       have hWu : W ⊆ u := sorry, -- finset.union_subset_iff.1 hstW
-      exact ⟨(λ V, hsdisj), W, u, hW, hu, hsu, hWu⟩,
-    },
+      exact ⟨hs, λ r hr, disjoint_coe.2 $ hsdisj hr, W, hW, u, hu, hsu, hWu⟩ },
     {   rintro V ⟨hVdisj, U, R, hU, hR, hVR, hUR⟩ hsV,
       apply finset.subset.antisymm hsV,
       rintro v hv,
@@ -159,11 +131,10 @@ begin
   }
 end
 
-lemma pure_link_of_pure (hK : K.pure_of n) (hA : ∀ {s}, s ∈ A → (s : finset _).card = k) :
-  (K.link A).pure_of (n - k) :=
+protected lemma pure.link (hK : K.pure n) (hA : ∀ ⦃s : finset _⦄, s ∈ A → s.card = k) :
+  (K.link A).pure (n - k) :=
 begin
-  rintro s ⟨⟨hsdisj, W, u, hW, hu, hsu, hWu⟩, hsmax⟩, --easy once we have `link_facet_iff`
-  sorry
+  sorry -- easy once we have `link_facet_iff`
 end
 
-end affine
+end geometry.simplicial_complex

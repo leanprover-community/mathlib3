@@ -22,53 +22,33 @@ namespace geometry.simplicial_complex
 variables [normed_linear_ordered_field 𝕜] [normed_group E] [normed_space 𝕜 E] {m n : ℕ}
   {S : simplicial_complex 𝕜 E} {X : finset E}
 
-lemma boundary_space_eq_space_frontier_of_full_dimensional (hS : S.full_dimensional) :
-  S.boundary.space = frontier S.space :=
-begin
-  ext x,
-  split,
-  { sorry,
-  },
-  { sorry
-  }
-end
+-- lemma boundary_space_eq_space_frontier_of_full_dimensional (hS : S.full_dimensional) :
+--   S.boundary.space = frontier S.space := sorry
 
-lemma boundary_face_iff_subset_space_frontier_of_full_dimensional (hS : S.full_dimensional) :
-  X ∈ S.boundary.faces ↔ X ∈ S.faces ∧ ↑X ⊆ frontier S.space :=
-begin
-  split,
-  { rintro ⟨Y, hY, hXY, Z, hZ, hYZ, hZunique⟩,
-    use S.down_closed hY hXY,
-    sorry
-  },
-  { rintro ⟨hX, hXspace⟩,
-    sorry
-  }
-end
+-- lemma boundary_face_iff_subset_space_frontier_of_full_dimensional (hS : S.full_dimensional) :
+--   X ∈ S.boundary.faces ↔ X ∈ S.faces ∧ ↑X ⊆ frontier S.space :=
+-- begin
+--   split,
+--   { rintro ⟨Y, hY, hXY, Z, hZ, hYZ, hZunique⟩,
+--     use S.down_closed hY hXY,
+--     sorry },
+--   { rintro ⟨hX, hXspace⟩,
+--     sorry }
+-- end
 
-lemma closed_space_of_locally_finite (hS : S.locally_finite) : is_closed S.space :=
-begin
-  sorry
-end
+lemma locally_finite.is_closed_space (hS : S.locally_finite) : is_closed S.space := sorry
 
 lemma space_frontier_eq :
   frontier S.space = (⋃ (X ∈ S.facets) (H : (X : finset E).card ≤ finite_dimensional.finrank 𝕜 E),
-  convex_hull 𝕜 ↑X) ∪ (⋃ (X ∈ S.boundary.faces), combi_interior 𝕜 X) :=
-begin
-  sorry
-end
+  convex_hull 𝕜 ↑X) ∪ ⋃ (X ∈ S.boundary.faces), combi_interior 𝕜 X :=
+sorry
 
-lemma boundary_space_eq_of_full_dimensional (hS : S.full_dimensional) :
-  frontier S.space = S.boundary.space :=
-begin
-  rw space_frontier_eq,
-  rw combi_interiors_cover,
-  ext x,
-  split,
-  { sorry
-  },
-  sorry
-end
+-- lemma boundary_space_eq_of_full_dimensional (hS : S.full_dimensional) :
+--   frontier S.space = S.boundary.space :=
+-- begin
+--   rw [space_frontier_eq, ←combi_interiors_cover],
+--   sorry
+-- end
 
 /-- A simplicial complex is connected iff its space is. -/
 def connected (S : simplicial_complex 𝕜 E) : Prop := connected_space S.space
@@ -82,23 +62,16 @@ begin
 end
 
 lemma locally_compact_realisation_iff_locally_finite :
-  S.locally_finite ↔ locally_compact_space S.space :=
+  locally_compact_space S.space ↔ S.locally_finite :=
 begin
   rw locally_finite_iff_mem_finitely_many_faces,
-  split,
-  { rintro hS,
-    apply locally_compact_of_compact_nhds,
-    rintro ⟨x, hx⟩,
-    specialize hS x,
-    sorry
-  },
-  { rintro hS x,
-    --obtain ⟨a, b⟩ := hS x,
-    sorry
-  }
+  refine ⟨λ hS x, sorry, λ hS, locally_compact_of_compact_nhds _⟩,
+  rintro ⟨x, hx⟩,
+  specialize hS x,
+  sorry
 end
 
 --def simplicial_complex.nonsingular (S : simplicial_complex 𝕜 E) {X : finset (fin m → 𝕜)} : Prop :=
---  homeomorph (S.link {X}).space (metric.ball (0 : E) 1)
+-- homeomorph (S.link {X}).space (metric.ball (0 : E) 1)
 
 end geometry.simplicial_complex

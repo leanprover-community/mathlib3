@@ -123,6 +123,10 @@ end
   down_closed := λ s t, down_closed,
   inter_subset_convex_hull := λ s t hs ht, K.inter_subset_convex_hull (subset hs) (subset ht) }
 
+@[simp] lemma mem_of_subcomplex {faces subset down_closed} :
+  s ∈ K.of_subcomplex faces subset down_closed ↔ s ∈ faces :=
+iff.rfl
+
 /-! ### Vertices -/
 
 /-- The vertices of a simplicial complex are its zero dimensional faces. -/

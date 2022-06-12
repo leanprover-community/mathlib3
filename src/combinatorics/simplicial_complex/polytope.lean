@@ -10,7 +10,7 @@ import combinatorics.simplicial_complex.glued
 # Polytopes
 -/
 
-open set
+open geometry geometry.simplicial_complex set
 
 variables {𝕜 E : Type*}
 
@@ -32,15 +32,15 @@ variables {𝕜 E} {p : polytope 𝕜 E}
 /-- A constructor for polytopes from an underlying simplicial complex. -/
 def simplicial_complex.to_polytope (hS : S.pure n) : polytope 𝕜 E := ⟨S.space, S, n, hS, rfl⟩
 
-noncomputable def polytope.to_simplicial_complex (p : polytope 𝕜 E) :
-  simplicial_complex 𝕜 E := classical.some p.realisable
+noncomputable def polytope.to_simplicial_complex (p : polytope 𝕜 E) : simplicial_complex 𝕜 E :=
+classical.some p.realisable
 
 lemma pure_polytope_realisation : p.to_simplicial_complex.pure n :=
-(classical.some_spec p.realisable).1
+sorry -- (classical.some_spec p.realisable).1
 
 lemma polytope_space_eq_realisation_space :
   p.space = p.to_simplicial_complex.space :=
-(classical.some_spec p.realisable).2
+sorry -- (classical.some_spec p.realisable).2
 
 def polytope.vertices (p : polytope 𝕜 E) :
   set E :=
@@ -78,7 +78,7 @@ begin
   end else p.to_simplicial_complex,
 end
 
-/- Every convex polytope can be realised by a simplicial complex with the same vertices-/
+/-- Every convex polytope can be realised by a simplicial complex with the same vertices-/
 lemma polytope.triangulable_of_convex (hp : convex 𝕜 p.space) :
   p.triangulation.vertices = p.vertices :=
 begin
@@ -124,12 +124,11 @@ def simplicial_complex.to_polytopial_complex (S : simplicial_complex 𝕜 E) :
   polytopial_complex 𝕜 E :=
 { faces := S.faces,
   indep := λ X hX, (S.indep hX).convex_independent,
-  down_closed := λ X Y hX hYX hY, S.down_closed hX hYX,
+  down_closed := λ X Y hX hYX hY, S.down_closed hX hYX sorry,
   disjoint := S.inter_subset_convex_hull }
 
 noncomputable def polytope.to_polytopial_complex (p : polytope 𝕜 E) : polytopial_complex 𝕜 E :=
-simplicial_complex.to_polytopial_complex p.to_simplicial_complex
---@Bhavik I can't use dot notation here because of namespace problems. Do you have a fix?
+p.to_simplicial_complex.to_polytopial_complex
 
 def polytopial_complex.to_simplicial_complex (P : polytopial_complex 𝕜 E) :
   simplicial_complex 𝕜 E :=
@@ -138,10 +137,10 @@ def polytopial_complex.to_simplicial_complex (P : polytopial_complex 𝕜 E) :
     obtain ⟨p, hp, hX⟩ := mem_Union₂.1 hX,
     exact p.to_simplicial_complex.indep hX,
   end,
-  down_closed := λ X Y hX hYX, begin
+  down_closed := λ X Y hX hYX hY, begin
     rw mem_Union₂ at ⊢ hX,
     obtain ⟨p, hp, hX⟩ := hX,
-    exact ⟨p, hp, p.to_simplicial_complex.down_closed hX hYX⟩,
+    exact ⟨p, hp, p.to_simplicial_complex.down_closed hX hYX hY⟩,
   end,
   inter_subset_convex_hull := λ X Y hX hY, begin
     obtain ⟨p, hp, hX⟩ := mem_Union₂.1 hX,
@@ -154,7 +153,7 @@ def polytopial_complex.to_simplicial_complex (P : polytopial_complex 𝕜 E) :
 end ordered_ring
 
 section linear_ordered_field
-variables [linear_ordered_field 𝕜] [add_comm_group E] [module 𝕜 E] {C : set E}
+variables [linear_ordered_field 𝕜] [decidable_eq E] [add_comm_group E] [module 𝕜 E] {C : set E}
 
 def polytopial_complex.coplanarless (P : polytopial_complex 𝕜 E) : Prop :=
 ∀ X Y ∈ P.faces, adjacent X Y → (X : set E) ⊆ affine_span 𝕜 (Y : set E) →

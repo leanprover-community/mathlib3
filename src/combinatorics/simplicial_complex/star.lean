@@ -34,7 +34,7 @@ by { unfold star, simp }
 
 lemma star_subset : K.star A ⊆ K.faces := λ s hs, hs.1
 
-lemma subset_star : K.faces ∩ A ⊆ K.star A := λ s hs, ⟨hs.1, s, hs.2, subset.refl s⟩
+lemma subset_star : K.faces ∩ A ⊆ K.star A := λ s hs, ⟨hs.1, s, hs.2, subset.rfl⟩
 
 lemma star_mono (hAB : A ⊆ B) : K.star A ⊆ K.star B := λ s ⟨hs, t, ht, hts⟩, ⟨hs, t, hAB ht, hts⟩
 
@@ -75,7 +75,7 @@ end
 /-- The closed star of a complex `K` and a set `A` is the complex whose faces are in `K` and share a
 surface with some face in `A`. -/
 def Star (K : simplicial_complex 𝕜 E) (A : set (finset E)) : simplicial_complex 𝕜 E :=
-K.of_subcomplex {s | s.nonempty ∧ ∃ {t u}, t ∈ A ∧ u ∈ K ∧ s ⊆ u ∧ t ⊆ u}
+K.of_subcomplex {s | s.nonempty ∧ ∃ (t ∈ A) (u ∈ K), s ⊆ u ∧ t ⊆ u}
   (λ s ⟨hs, _, u, _, hu, hsu, _⟩, K.down_closed hu hsu hs)
   (λ s t ⟨hs, u, v, hu, hv, hsv, huv⟩ hts ht, ⟨ht, u, v, hu, hv, hts.trans hsv, huv⟩)
 
@@ -83,61 +83,48 @@ lemma Star_le : K.Star A ≤ K := K.of_subcomplex_le _
 
 lemma Star_bot : (⊥ : simplicial_complex 𝕜 E).Star A = ⊥ := of_subcomplex_bot _
 
-lemma Star_empty : K.Star ∅ = ⊥ :=
-begin
-  ext s,
-  refine iff_of_false _ id,
-  unfold Star,
-  simp,
-end
+lemma Star_empty : K.Star ∅ = ⊥ := ext _ _ $ set.eq_empty_of_forall_not_mem $ by simp [Star]
 
 lemma Star_singleton_empty : K.Star {∅} = K :=
 begin
   ext s,
-  refine ⟨_, λ hs, ⟨K.nonempty hs, ∅, s, rfl, hs, subset.refl _, empty_subset s⟩⟩,
-  rintro ⟨hs, t, u, (ht : t = ∅), hu, hsu, htu⟩,
+  refine ⟨_, λ hs, ⟨K.nonempty hs, ∅, rfl, s, hs, subset.rfl, empty_subset _⟩⟩,
+  rintro ⟨hs, t, (ht : t = ∅), u, hu, hsu, htu⟩,
   exact K.down_closed hu hsu hs,
 end
 
 lemma mem_Star_singleton_iff : t ∈ K.Star {s} ↔ t.nonempty ∧ ∃ u ∈ K, t ⊆ u ∧ s ⊆ u :=
-begin
-  unfold Star,
-  simp,
-  refl,
-end
+by simp [Star]
 
 /-- The closed star of a set is the closure of its open star. -/
 lemma Star_eq_closure_star : K.Star A = K.closure (K.star A) :=
 begin
   ext s,
   split,
-  { rintro ⟨hs, t, u, ht, hu, hsu, htu⟩,
+  { rintro ⟨hs, t, ht, u, hu, hsu, htu⟩,
     exact ⟨K.down_closed hu hsu hs, u, ⟨hu, t, ht, htu⟩, hsu⟩ },
   { rintro ⟨hs, u, ⟨hu, t, ht, htu⟩, hsu⟩,
-    exact ⟨K.nonempty hs, t, u, ht, hu, hsu, htu⟩ }
+    exact ⟨K.nonempty hs, t, ht, u, hu, hsu, htu⟩ }
 end
 
 lemma subset_Star : K.faces ∩ A ⊆ (K.Star A).faces :=
-λ s ⟨hs, hsA⟩, ⟨K.nonempty hs, s, s, hsA, hs, subset.refl s, subset.refl s⟩
+λ s ⟨hs, hsA⟩, ⟨K.nonempty hs, s, hsA, s, hs, subset.rfl, subset.rfl⟩
 
 lemma star_subset_Star : K.star A ⊆ (K.Star A).faces :=
-λ s ⟨hs, t, ht, hts⟩, ⟨K.nonempty hs, t, s, ht, hs, subset.refl s, hts⟩
+λ s ⟨hs, t, ht, hts⟩, ⟨K.nonempty hs, t, ht, s, hs, subset.rfl, hts⟩
 
 lemma Star_mono (hAB : A ⊆ B) : K.Star A ≤ K.Star B :=
-begin
-  rw [Star_eq_closure_star, Star_eq_closure_star],
-  exact closure_mono (star_mono hAB),
-end
+by { rw [Star_eq_closure_star, Star_eq_closure_star], exact closure_mono (star_mono hAB) }
 
 lemma mem_facets_Star_iff : s ∈ (K.Star A).facets ↔ s ∈ K.facets ∧ ∃ t ∈ A, t ⊆ s :=
 begin
   split,
-  { rintro ⟨⟨hs, t, u, ht, hu, hsu, htu⟩, hsmax⟩,
-    have := hsmax ⟨hs.mono hsu, t, u, ht, hu, subset.refl u, htu⟩ hsu,
+  { rintro ⟨⟨hs, t, ht, u, hu, hsu, htu⟩, hsmax⟩,
+    have := hsmax ⟨hs.mono hsu, t, ht, u, hu, subset.rfl, htu⟩ hsu,
     subst this,
     exact ⟨⟨hu, λ v hv hsv, hsmax (star_subset_Star ⟨hv, t, ht, htu.trans hsv⟩) hsv⟩, t, ht, htu⟩ },
   { rintro ⟨hs, t, ht, hts⟩,
-    exact ⟨⟨K.nonempty hs.1, t, s, ht, hs.1, subset.refl s, hts⟩, λ u hu, hs.2 $ Star_le hu⟩ }
+    exact ⟨⟨K.nonempty hs.1, t, ht, s, hs.1, subset.rfl, hts⟩, λ u hu, hs.2 $ Star_le hu⟩ }
 end
 
 protected lemma pure.Star (hK : K.pure n) : (K.Star A).pure n :=

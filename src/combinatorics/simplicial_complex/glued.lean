@@ -10,227 +10,162 @@ import logic.relation
 # Transitive neighborhood relation in simplicial complexes
 -/
 
-namespace affine
-open set relation
-open_locale classical
-variables {𝕜 E : Type*} [ordered_ring 𝕜] [add_comm_group E] [module 𝕜 E] {a b m n : ℕ}
-  {S S' S₁ S₂ : simplicial_complex 𝕜 E} {X Y Z : finset E}
+open finset geometry relation
 
-def adjacent (X Y : finset E) :
-  Prop :=
-X.card = (X ∩ Y).card + 1 ∧ Y.card = (X ∩ Y).card + 1
+variables {𝕜 E : Type*}
 
-lemma adjacent.symmetric :
-  symmetric (adjacent : finset E → finset E → Prop) :=
-begin
-  rintro X Y ⟨hX, hY⟩,
-  rw finset.inter_comm at hX hY,
-  exact ⟨hY, hX⟩,
-end
+namespace geometry.simplicial_complex
+section ordered_ring
+variables [ordered_ring 𝕜] [add_comm_group E] [decidable_eq E] [module 𝕜 E] {a b m n : ℕ}
+  {S S' S₁ S₂ : simplicial_complex 𝕜 E} {s t u : finset E}
 
-lemma adjacent.symm :
-  adjacent X Y ↔ adjacent Y X :=
-begin
-  split;
-  apply adjacent.symmetric,
-end
+def adjacent (s t : finset E) : Prop := s.card = (s ∩ t).card + 1 ∧ t.card = (t ∩ s).card + 1
 
-lemma card_eq_of_adjacent (hX : X ∈ S.faces) (hY : adjacent X Y) :
-  Y.card = X.card :=
-eq.trans hY.2 hY.1.symm
+lemma adjacent.symm : symmetric (adjacent : finset E → finset E → Prop) := λ s t, and.symm
 
-def simplicial_complex.glued (S : simplicial_complex 𝕜 E) :
-  finset E → finset E → Prop :=
-refl_trans_gen (λ X Y, adjacent X Y ∧ X ∈ S.facets ∧ Y ∈ S.facets)
+lemma adjacent_comm : adjacent s t ↔ adjacent t s := ⟨λ h, h.symm, λ h, h.symm⟩
 
-lemma glued.refl :
-  S.glued X X :=
-refl_trans_gen.refl
+lemma adjacent.card_eq (h : adjacent s t) : t.card = s.card := h.2.trans $ by rw [inter_comm, h.1]
 
-lemma glued.symmetric :
-  symmetric S.glued :=
-begin
-  apply refl_trans_gen.symmetric,
-  rintro X Y ⟨hXY, hX, hY⟩,
-  rw adjacent.symm at hXY,
-  exact ⟨hXY, hY, hX⟩,
-end
+def glued (S : simplicial_complex 𝕜 E) : finset E → finset E → Prop :=
+refl_trans_gen (λ s t, adjacent s t ∧ s ∈ S.facets ∧ t ∈ S.facets)
 
-lemma glued.symm :
-  S.glued X Y ↔ S.glued Y X :=
-begin
-  split;
-  apply glued.symmetric,
-end
+@[refl] lemma glued.refl (s : finset E) : S.glued s s := refl_trans_gen.refl
+lemma glued.rfl : S.glued s s := glued.refl _
 
-lemma glued.transitive :
-  transitive S.glued :=
-transitive_refl_trans_gen
+lemma glued.symm : symmetric S.glued :=
+refl_trans_gen.symmetric $ λ s t ⟨hst, hs, ht⟩, ⟨hst.symm, ht, hs⟩
 
-lemma glued.trans (hXY : S.glued X Y) (hYZ : S.glued Y Z) :
-  S.glued X Z :=
-transitive_refl_trans_gen hXY hYZ
+lemma glued_comm : S.glued s t ↔ S.glued t s := ⟨λ h, h.symm, λ h, h.symm⟩
+
+lemma glued.transitive : transitive S.glued := transitive_refl_trans_gen
+
+@[trans] lemma glued.trans (hst : S.glued s t) : S.glued t u → S.glued s u := glued.transitive hst
 
 instance : is_equiv (finset E) S.glued :=
 { refl := reflexive_refl_trans_gen,
   trans := transitive_refl_trans_gen,
-  symm := glued.symmetric }
+  symm := glued.symm }
 
-lemma face_of_glued (hX : X ∈ S.faces) (hXY : S.glued X Y) :
-  Y ∈ S.faces :=
+lemma glued.mem_faces (hst : S.glued s t) (hs : s ∈ S.faces) : t ∈ S.faces :=
 begin
-  cases refl_trans_gen.cases_tail hXY,
+  cases refl_trans_gen.cases_tail hst,
   { rw h,
-    exact hX },
-  { obtain ⟨W, _, _, _, hY⟩ := h,
-    exact hY.1 }
+    exact hs },
+  { obtain ⟨W, _, _, _, ht⟩ := h,
+    exact ht.1 }
 end
 
-lemma facet_of_glued (hX : X ∈ S.facets) (hXY : S.glued X Y) :
-  Y ∈ S.facets :=
+lemma glued.mem_facets (hst : S.glued s t) (hs : s ∈ S.facets) : t ∈ S.facets :=
 begin
-  cases refl_trans_gen.cases_tail hXY,
+  cases refl_trans_gen.cases_tail hst,
   { rw h,
-    exact hX },
-  { obtain ⟨W, _, _, _, hY⟩ := h,
-    exact hY }
+    exact hs },
+  { obtain ⟨W, _, _, _, ht⟩ := h,
+    exact ht }
 end
 
-lemma card_eq_of_glued (hY : S.glued X Y) :
-  Y.card = X.card :=
-refl_trans_gen.trans_induction_on hY
-  (λ _, rfl)
-  (λ X Y ⟨hXY, hX, _⟩, card_eq_of_adjacent hX.1 hXY)
-  (λ X Y Z _ _ hYX hZY, eq.trans hZY hYX)
+lemma glued.card_eq (ht : S.glued s t) : t.card = s.card :=
+refl_trans_gen.trans_induction_on ht (λ _, rfl) (λ s t h, h.1.card_eq)
+  (λ s t u _ _ hts hut, hut.trans hts)
 
-lemma setof_glued_subset (hX : X ∈ S.faces) :
-  set_of (S.glued X) ⊆ S.faces :=
-λ Y hY, face_of_glued hX hY
+lemma set_of_glued_subset (hs : s ∈ S.faces) :  set_of (S.glued s) ⊆ S.faces :=
+λ t ht, ht.mem_faces hs
 
-lemma setof_glued_attop ⦃Y Z : finset E⦄ (hY : Y ∈ set_of (S.glued X))
-  (hZ : Z ∈ set_of (S.glued X)) (hYZ : Y ⊆ Z) :
-  Y = Z :=
-begin
-  apply finset.eq_of_subset_of_card_le hYZ (le_of_eq _),
-  rw [card_eq_of_glued hY, card_eq_of_glued hZ],
-end
+lemma set_of_glued_antichain : is_antichain (⊆) {t | S.glued s t} :=
+λ t ht u hu h htu, h $ eq_of_subset_of_card_le htu $ le_of_eq $ by rw [ht.card_eq, hu.card_eq]
 
-def simplicial_complex.pure_decomp (S : simplicial_complex 𝕜 E) :
-  set (simplicial_complex 𝕜 E) :=
-(λ X, S.closure (set_of (S.glued X))) '' S.facets
+def pure_decomp (S : simplicial_complex 𝕜 E) : set (simplicial_complex 𝕜 E) :=
+(λ s, S.closure {t | S.glued s t}) '' S.facets
 
-lemma pure_decomp_faces_subset (hS : S' ∈ S.pure_decomp) :
-  S'.faces ⊆ S.faces :=
-begin
-  obtain ⟨_, _, rfl⟩ := hS,
-  exact λ X hX, closure_subset hX,
-end
+lemma le_of_mem_pure_decomp (hS : S' ∈ S.pure_decomp) : S' ≤ S :=
+by { obtain ⟨_, _, rfl⟩ := hS, exact closure_le }
 
-lemma card_le_of_mem_element_pure_decomp (hY : Y ∈ (S.closure (set_of (S.glued X))).faces) :
-  Y.card ≤ X.card :=
-begin
-  obtain ⟨hY, Z, hZ, hYZ⟩ := hY,
-  rw ←card_eq_of_glued hZ,
-  exact finset.card_le_of_subset hYZ,
-end
+lemma card_le_of_mem_element_pure_decomp (ht : t ∈ (S.closure {t | S.glued s t}).faces) :
+  t.card ≤ s.card :=
+by { obtain ⟨ht, u, hu, htu⟩ := ht, rw ←hu.card_eq, exact finset.card_le_of_subset htu }
 
-lemma facet_pure_decomp_self (hX : X ∈ S.faces) :
-  X ∈ (S.closure (set_of (S.glued X))).facets :=
-⟨⟨hX, ⟨X, glued.refl, finset.subset.refl _⟩⟩, (λ Y hY hXY, finset.eq_of_subset_of_card_le hXY
-  (card_le_of_mem_element_pure_decomp hY))⟩
+lemma facet_pure_decomp_self (hs : s ∈ S.faces) : s ∈ (S.closure {t | S.glued s t}).facets :=
+⟨⟨hs, ⟨s, glued.rfl, subset.rfl⟩⟩, (λ t ht hst, finset.eq_of_subset_of_card_le hst
+  (card_le_of_mem_element_pure_decomp ht))⟩
 
-lemma mem_pure_decomp_facets_iff (hX : X ∈ S.faces) :
-  Y ∈ (S.closure (set_of (S.glued X))).facets ↔ S.glued X Y :=
-by rw [closure_facets_eq (setof_glued_subset hX) setof_glued_attop, mem_set_of_eq]
+lemma mem_pure_decomp_facets_iff (hs : s ∈ S.faces) :
+  t ∈ (S.closure {t | S.glued s t}).facets ↔ S.glued s t :=
+by rw [facets_closure_eq (set_of_glued_subset hs) set_of_glued_antichain, set.mem_set_of]
 
 lemma pure_decomp_facet_iff (hS : S' ∈ S.pure_decomp) :
-  X ∈ S'.facets ↔ X ∈ S.faces ∧ S' = S.closure (set_of (S.glued X)) :=
+  s ∈ S'.facets ↔ s ∈ S.faces ∧ S' = S.closure {t | S.glued s t} :=
 begin
-  split,
-  { rintro hX,
-    obtain ⟨Y, hY, rfl⟩ := hS,
-    use closure_subset (facets_subset hX),
-    rw mem_pure_decomp_facets_iff hY.1 at hX,
-    rw ←curry_eq_of_symmetric_transitive glued.symmetric glued.transitive hX },
-  { rintro ⟨hX, rfl⟩,
-    exact ⟨faces_subset_closure ⟨hX, glued.refl⟩, (λ Y hY hXY,
-      finset.eq_of_subset_of_card_le hXY (card_le_of_mem_element_pure_decomp hY))⟩ }
+  refine ⟨λ hs, _, _⟩,
+  { obtain ⟨t, ht, rfl⟩ := hS,
+    use closure_le (facets_subset hs),
+    rw mem_pure_decomp_facets_iff ht.1 at hs,
+    rw ←curry_eq_of_symmetric_transitive glued.symm glued.transitive hs },
+  { rintro ⟨hs, rfl⟩,
+    exact ⟨faces_subset_closure ⟨hs, glued.rfl⟩, (λ t ht hst,
+      finset.eq_of_subset_of_card_le hst (card_le_of_mem_element_pure_decomp ht))⟩ }
 end
 
-lemma pure_decomp_cover_facets (hX : X ∈ S.facets) :
-  ∃ {S' : simplicial_complex 𝕜 E}, S' ∈ S.pure_decomp ∧ X ∈ S'.facets :=
-begin
-  use S.closure (set_of (S.glued X)),
-  split,
-  { use [X, hX] },
-  use [faces_subset_closure ⟨hX.1, glued.refl⟩],
-  rintro Y hY hXY,
-  exact hX.2 (closure_subset hY) hXY,
-end
+lemma pure_decomp_cover_facets (hs : s ∈ S.facets) :
+  ∃ S' : simplicial_complex 𝕜 E, S' ∈ S.pure_decomp ∧ s ∈ S'.facets :=
+⟨S.closure {t | S.glued s t}, set.mem_image_of_mem _ hs, faces_subset_closure ⟨hs.1, glued.rfl⟩,
+  λ t ht, hs.2 $ closure_le ht⟩
 
-lemma pure_decomp_disjoint_facets (hS₁ : S₁ ∈ S.pure_decomp)
-  (hS₂ : S₂ ∈ S.pure_decomp) (hX : X ∈ S.facets) (hX₁ : X ∈ S₁.facets) (hX₂ : X ∈ S₂.facets) :
+lemma pure_decomp_disjoint_facets (hS₁ : S₁ ∈ S.pure_decomp) (hS₂ : S₂ ∈ S.pure_decomp)
+  (hs : s ∈ S.facets) (hs₁ : s ∈ S₁.facets) (hs₂ : s ∈ S₂.facets) :
   S₁ = S₂ :=
 begin
-  obtain ⟨Y₁, hY₁, rfl⟩ := hS₁,
-  obtain ⟨Y₂, hY₂, rfl⟩ := hS₂,
-  simp at ⊢ hX₁ hX₂,
-  rw mem_pure_decomp_facets_iff hY₁.1 at hX₁,
-  rw mem_pure_decomp_facets_iff hY₂.1 at hX₂,
-  rw ←curry_eq_of_symmetric_transitive glued.symmetric glued.transitive
-    (glued.trans hX₁ (glued.symmetric hX₂)),
+  obtain ⟨t₁, ht₁, rfl⟩ := hS₁,
+  obtain ⟨t₂, ht₂, rfl⟩ := hS₂,
+  simp at ⊢ hs₁ hs₂,
+  rw mem_pure_decomp_facets_iff ht₁.1 at hs₁,
+  rw mem_pure_decomp_facets_iff ht₂.1 at hs₂,
+  rw ←curry_eq_of_symmetric_transitive glued.symm glued.transitive (hs₁.trans hs₂.symm),
 end
 
-lemma pure_decomp_cover [finite_dimensional 𝕜 E] (hX : X ∈ S.faces) :
-  ∃ {S' : simplicial_complex 𝕜 E}, S' ∈ S.pure_decomp ∧ X ∈ S'.faces :=
-begin
-  obtain ⟨Y, hY, hXY⟩ := subfacet hX,
-  obtain ⟨S', hS', hYS'⟩ := pure_decomp_cover_facets hY,
-  exact ⟨S', hS', S'.down_closed hYS'.1 hXY⟩,
-end
+end ordered_ring
 
-lemma pure_decomp_facets_subset (hS : S' ∈ S.pure_decomp) (hX : X ∈ S'.facets) :
-  X ∈ S.facets :=
-begin
-  obtain ⟨Y, hY, rfl⟩ := hS,
-  exact facet_of_glued hY ((mem_pure_decomp_facets_iff hY.1).1 hX),
-end
+section linear_ordered_field
+variables [linear_ordered_field 𝕜] [add_comm_group E] [decidable_eq E] [module 𝕜 E] {a b m n : ℕ}
+  {S S' S₁ S₂ : simplicial_complex 𝕜 E} {s t u : finset E}
+
+lemma pure_decomp_cover [finite_dimensional 𝕜 E] (hs : s ∈ S.faces) :
+  ∃ S' : simplicial_complex 𝕜 E, S' ∈ S.pure_decomp ∧ s ∈ S'.faces :=
+let ⟨t, ht, hst⟩ := subfacet hs in (pure_decomp_cover_facets ht).imp $ λ S',
+  and.imp_right $ λ htS', S'.down_closed htS'.1 hst $ S.nonempty hs
+
+lemma pure_decomp_facets_subset (hS : S' ∈ S.pure_decomp) (hs : s ∈ S'.facets) : s ∈ S.facets :=
+by { obtain ⟨t, ht, rfl⟩ := hS, exact ((mem_pure_decomp_facets_iff ht.1).1 hs).mem_facets ht }
 
 --lemma pure_decomp_facets_partition :
 
-lemma pure_of_mem_pure_decomp (hS : S' ∈ S.pure_decomp) :
-  S'.pure :=
+lemma pure_of_mem_pure_decomp (hS : S' ∈ S.pure_decomp) : ∃ n, S'.pure n :=
 begin
-  obtain ⟨Y, hY, rfl⟩ := hS,
-  exact ⟨Y.card, (λ X hX, card_eq_of_glued ((mem_pure_decomp_facets_iff hY.1).1 hX))⟩,
+  obtain ⟨t, ht, rfl⟩ := hS,
+  refine ⟨t.card, λ s hs, ((mem_pure_decomp_facets_iff ht.1).1 ⟨hs, sorry⟩).card_eq.trans_le
+    le_self_add, sorry⟩,
 end
 
-lemma pure_of_pure_decomp_singleton (hS : S.pure_decomp = {S}) :
-  S.pure :=
+lemma pure_of_pure_decomp_singleton (hS : S.pure_decomp = {S}) : ∃ n, S.pure n :=
 begin
   refine pure_of_mem_pure_decomp (_ : S ∈ S.pure_decomp),
   rw hS,
-  exact mem_singleton _,
+  exact set.mem_singleton _,
 end
 
 lemma pure_decomp_space_subset_space :
   (⋃ (S' ∈ S.pure_decomp), (S' : simplicial_complex 𝕜 E).space) ⊆ S.space :=
-begin
-  rintro x hx,
-  rw mem_bUnion_iff at hx,
-  obtain ⟨S', hS', hx⟩ := hx,
-  obtain ⟨X, hX, hxX⟩ := mem_space_iff.1 hx,
-  exact mem_space_iff.2 ⟨X, pure_decomp_faces_subset hS' hX, hxX⟩,
-end
+set.Union₂_subset $ λ S' hS' x hx, let ⟨s, hs, hxs⟩ := mem_space_iff.1 hx in
+  mem_space_iff.2 ⟨s, le_of_mem_pure_decomp hS' hs, hxs⟩
 
 lemma pure_decomp_space_eq_space [finite_dimensional 𝕜 E] :
   (⋃ (S' ∈ S.pure_decomp), (S' : simplicial_complex 𝕜 E).space) = S.space :=
 begin
-  apply subset.antisymm pure_decomp_space_subset_space,
-  rintro x hx,
-  obtain ⟨X, hX, hxX⟩ := mem_space_iff.1 hx,
-  obtain ⟨S', hS', hx⟩ := pure_decomp_cover hX,
-  exact mem_bUnion hS' (mem_space_iff.2 ⟨X, hx, hxX⟩),
+  refine pure_decomp_space_subset_space.antisymm (λ x hx, _),
+  obtain ⟨s, hs, hxs⟩ := mem_space_iff.1 hx,
+  obtain ⟨S', hS', hx⟩ := pure_decomp_cover hs,
+  exact set.mem_bUnion hS' (mem_space_iff.2 ⟨s, hx, hxs⟩),
 end
 
-end affine
+end linear_ordered_field
+end geometry.simplicial_complex

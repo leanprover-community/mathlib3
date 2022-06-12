@@ -124,7 +124,7 @@ not_disjoint_iff.1 $ h𝒜 hs ht
 
 lemma intersecting.exists_mem_finset [decidable_eq α] {𝒜 : set (finset α)} (h𝒜 : 𝒜.intersecting)
   {s t : finset α} (hs : s ∈ 𝒜) (ht : t ∈ 𝒜) : ∃ a, a ∈ s ∧ a ∈ t :=
-not_disjoint_iff.1 $ disjoint_iff_disjoint_coe.not.1 $ h𝒜 hs ht
+not_disjoint_iff.1 $ disjoint_coe.not.2 $ h𝒜 hs ht
 
 variables [boolean_algebra α]
 

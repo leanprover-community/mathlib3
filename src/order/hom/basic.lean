@@ -6,6 +6,7 @@ Authors: Johan Commelin
 import logic.equiv.option
 import order.rel_iso
 import tactic.monotonicity.basic
+import tactic.apply_fun
 
 /-!
 # Order homomorphisms

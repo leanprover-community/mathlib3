@@ -935,7 +935,7 @@ end
 @[simp]
 def ideal_factors_equiv_of_quot_equiv (f : R ⧸ I ≃+* A ⧸ J) :
   {p : ideal R | p ∣ I} ≃o {p : ideal A | p ∣ J} :=
-
+sorry
 /- order_iso.of_hom_inv (ideal_factors_fun_of_quot_hom (show function.surjective
   (f : R ⧸I →+* A ⧸ J), from sorry))
   (ideal_factors_fun_of_quot_hom (show function.surjective

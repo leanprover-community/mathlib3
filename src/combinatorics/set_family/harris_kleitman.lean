@@ -105,7 +105,8 @@ begin
     { simp only [card_empty, inter_empty, mul_zero, zero_mul] },
     { simp only [card_empty, pow_zero, inter_singleton_of_mem, mem_singleton, card_singleton] } },
   rw [card_insert_of_not_mem hs, ←card_member_slice_add_card_non_member_slice 𝒜 a,
-    ←card_member_slice_add_card_non_member_slice ℬ a, add_mul, mul_add, mul_add, add_comm (_ * _), add_add_add_comm],
+    ←card_member_slice_add_card_non_member_slice ℬ a, add_mul, mul_add, mul_add, add_comm (_ * _),
+    add_add_add_comm],
   refine (add_le_add_right (mul_add_mul_le_mul_add_mul
     (card_le_of_subset h𝒜.member_slice_subset_non_member_slice) $
     card_le_of_subset hℬ.member_slice_subset_non_member_slice) _).trans _,

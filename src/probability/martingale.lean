@@ -410,9 +410,18 @@ lemma submartingale_iff_expected_stopped_value_mono [is_finite_measure μ]
 
 section maximal
 
+lemma foo [is_finite_measure μ]
+  {f : ℕ → α → ℝ} (hsub : submartingale f 𝒢 μ) (hnonneg : 0 ≤ f) (ε : ℝ≥0) (hε : 0 < ε) (n : ℕ) :
+  ε • μ {x | (ε : ℝ) ≤ ⨆ k ≤ n, f k x} ≤ ennreal.of_real
+    (∫ x in {x | (ε : ℝ) ≤ ⨆ k ≤ n, f k x}, stopped_value f (hitting f {y | (ε : ℝ) < y} n) x ∂μ) :=
+begin
+  sorry
+end
+
 lemma maximal_ineq [is_finite_measure μ]
   {f : ℕ → α → ℝ} (hsub : submartingale f 𝒢 μ) (hnonneg : 0 ≤ f) (ε : ℝ≥0) (hε : 0 < ε) (n : ℕ) :
-  ε • μ {x | ⨆ k ≤ n, (ε : ℝ) ≤ f k x} ≤ ∫⁻ x in {x | ⨆ k ≤ n, (ε : ℝ) ≤ f k x}, ∥f n x∥₊ ∂μ :=
+  ε • μ {x | (ε : ℝ) ≤ ⨆ k ≤ n, f k x} ≤
+  ennreal.of_real (∫ x in {x | (ε : ℝ) ≤ ⨆ k ≤ n, f k x}, ∥f n x∥ ∂μ) :=
 begin
   sorry
 end

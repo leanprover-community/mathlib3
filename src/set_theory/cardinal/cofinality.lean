@@ -292,7 +292,7 @@ sup_lt_ord_lift (by rwa (#ι).lift_id)
 theorem supr_lt_lift {ι} {f : ι → cardinal} {c : cardinal} (hι : cardinal.lift (#ι) < c.ord.cof)
   (hf : ∀ i, f i < c) : supr f < c :=
 begin
-  rw [←ord_lt_ord, ←supr_ord (cardinal.bdd_above_range _)],
+  rw [←ord_lt_ord, supr_ord (cardinal.bdd_above_range _)],
   refine sup_lt_ord_lift hι (λ i, _),
   rw ord_lt_ord,
   apply hf
@@ -360,7 +360,7 @@ by { rw ←(o.card).lift_id, exact cof_blsub_le_lift f }
 theorem blsub_lt_ord_lift {o : ordinal} {f : Π a < o, ordinal} {c : ordinal}
   (ho : o.card.lift < c.cof) (hf : ∀ i hi, f i hi < c) : blsub.{u v} o f < c :=
 lt_of_le_of_ne (blsub_le hf) (λ h, ho.not_le
-  (by simpa [supr_ord, hf, h] using cof_blsub_le_lift.{u} f))
+  (by simpa [←supr_ord, hf, h] using cof_blsub_le_lift.{u} f))
 
 theorem blsub_lt_ord {o : ordinal} {f : Π a < o, ordinal} {c : ordinal} (ho : o.card < c.cof)
   (hf : ∀ i hi, f i hi < c) : blsub.{u u} o f < c :=

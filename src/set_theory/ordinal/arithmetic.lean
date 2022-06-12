@@ -1110,7 +1110,7 @@ let hs' := bdd_above_iff_small.2 hs in
   ((cSup_le_iff' hs').2 (le_sup_shrink_equiv hs)).antisymm'
   (sup_le (λ x, le_cSup hs' (subtype.mem _)))
 
-theorem Sup_ord {s : set cardinal.{u}} (hs : bdd_above s) : Sup (ord '' s) = (Sup s).ord :=
+theorem Sup_ord {s : set cardinal.{u}} (hs : bdd_above s) : (Sup s).ord = Sup (ord '' s) :=
 eq_of_forall_ge_iff $ λ a, begin
   rw [cSup_le_iff' (bdd_above_iff_small.2 (@small_image _ _ _ s
     (cardinal.bdd_above_iff_small.1 hs))), ord_le, cSup_le_iff' hs],
@@ -1118,7 +1118,7 @@ eq_of_forall_ge_iff $ λ a, begin
 end
 
 theorem supr_ord {ι} {f : ι → cardinal} (hf : bdd_above (range f)) :
-  (⨆ i, (f i).ord) = (supr f).ord :=
+  (supr f).ord = ⨆ i, (f i).ord :=
 by { unfold supr, convert Sup_ord hf, rw range_comp }
 
 private theorem sup_le_sup {ι ι' : Type u} (r : ι → ι → Prop) (r' : ι' → ι' → Prop)

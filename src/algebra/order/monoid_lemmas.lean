@@ -910,6 +910,16 @@ lemma strict_mono.mul_monotone' (hf : strict_mono f) (hg : monotone g) :
   strict_mono (λ x, f x * g x) :=
 λ x y h, mul_lt_mul_of_lt_of_le (hf h) (hg h.le)
 
+@[simp, to_additive cmp_add_left]
+lemma cmp_mul_left' {α : Type*} [has_mul α] [linear_order α] [covariant_class α α (*) (<)]
+  (a b c : α) : cmp (a * b) (a * c) = cmp b c :=
+(strict_mono_id.const_mul' a).cmp_map_eq b c
+
+@[simp, to_additive cmp_add_right]
+lemma cmp_mul_right' {α : Type*} [has_mul α] [linear_order α] [covariant_class α α (swap (*)) (<)]
+  (a b c : α) : cmp (a * c) (b * c) = cmp a b :=
+(strict_mono_id.mul_const' c).cmp_map_eq a b
+
 end mono
 
 /--

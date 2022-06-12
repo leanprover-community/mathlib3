@@ -25,13 +25,16 @@ namespace int
 /-- `a ≡ b [ZMOD n]` when `a % n = b % n`. -/
 @[derive decidable]
 def modeq (n a b : ℤ) := a % n = b % n
+
 notation a ` ≡ `:50 b ` [ZMOD `:50 n `]`:0 := modeq n a b
 
 /-- `a ≢ b [ZMOD n]` when `a % n ≠ b % n`. -/
 @[reducible]
 def modneq (n a b : ℤ) := ¬ (a ≡ b [ZMOD n])
+
 notation a ` ≢ `:50 b ` [ZMOD `:50 n `]`:0 := modneq n a b
-lemma modneq_iff (n a b : ℤ):  a ≢ b [ZMOD n] ↔ a % n ≠ b % n := by refl
+
+lemma modneq_iff (n a b : ℤ) : a ≢ b [ZMOD n] ↔ a % n ≠ b % n := by refl
 
 variables {m n a b c d : ℤ}
 

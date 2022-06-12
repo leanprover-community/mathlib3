@@ -36,9 +36,6 @@ end)
 
 variables (X : Type*) [topological_space X]
 
-instance : topological_space (opens X → Prop) :=
-@Pi.topological_space _ (λ u, Prop) (λ u, sierpinski_space)
-
 /--
   The continuous map from `X` to the product of copies of the Sierpinski space, (one copy for each
   open subset `u` of `X`). The `u` coordinate of  `product_of_mem_opens x` is given by `x ∈ u`.
@@ -47,7 +44,7 @@ def product_of_mem_opens : continuous_map X (opens X → Prop) :=
 { to_fun := λ x u, x ∈ u,
   continuous_to_fun := continuous_pi_iff.2 (λ u, continuous_Prop.2 u.property) }
 
-lemma product_of_mem_opens_inducing : inducing (product_of_mem_opens X).to_fun :=
+lemma product_of_mem_opens_inducing : inducing (product_of_mem_opens X) :=
 ⟨(eq_induced_by_maps_to_sierpinski X).trans begin
   erw induced_infi, -- same steps as in the proof of `inducing_infi_to_pi`
   congr' 1,

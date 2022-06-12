@@ -186,6 +186,9 @@ end
 lemma even_prime_eq_two {p : ℕ} (he : even p) (hp : prime p) : p = 2 :=
 ((prime_dvd_prime_iff_eq prime_two hp).mp (even_iff_two_dvd.mp he)).symm
 
+lemma prime.even_iff {p : ℕ} (hp : nat.prime p) : even p ↔ p = 2 :=
+by rw [even_iff_two_dvd, prime_dvd_prime_iff_eq prime_two hp, eq_comm]
+
 lemma even_sub_one_of_prime_ne_two {p : ℕ} (hp : prime p) (hodd : p ≠ 2) : even (p - 1) :=
 odd.sub_odd (odd_iff.2 $ hp.eq_two_or_odd.resolve_left hodd) (odd_iff.2 rfl)
 

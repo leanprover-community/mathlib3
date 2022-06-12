@@ -122,4 +122,19 @@ begin
       exact nat.lt_succ_iff.mp (finset.mem_range.mp hi') } }
 end
 
+lemma det_vandermonde_eq_zero_iff [is_domain R] {n : ℕ} (v : fin n → R) :
+  det (vandermonde v) = 0 ↔ ∃ (i j : fin n), v i = v j ∧ i ≠ j :=
+begin
+  split,
+  { simp only [det_vandermonde v, finset.prod_eq_zero_iff, sub_eq_zero, forall_exists_index],
+    exact λ i _ j h₁ h₂, ⟨j, i, h₂, (finset.mem_filter.mp h₁).2.ne'⟩ },
+  { simp only [ne.def, forall_exists_index, and_imp],
+    exact λ i j h₁ h₂, matrix.det_zero_of_row_eq h₂
+      (funext (λ k, (by simp only [vandermonde_apply, h₁]))) }
+end
+
+lemma det_vandermonde_ne_zero_iff [is_domain R] {n : ℕ} (v : fin n → R) :
+  det (vandermonde v) ≠ 0 ↔ function.injective v :=
+by simpa only [det_vandermonde_eq_zero_iff, ne.def, not_exists, not_and, not_not]
+
 end matrix

@@ -30,6 +30,20 @@ abbreviation coh_lim := @module.direct_limit k _ (open_normal G) _ _
  (λ U, (cochain_cx (inf_rep ρ (U : subgroup G))).homology n) (λ n, by apply_instance)
  (λ n, by apply_instance) (λ S T hST, coh_lim_aux ρ n _ _ hST)
 
+--#check homology.desc
+def fdjgfd (U : open_normal G) (x : (cochain.d (inf_rep ρ (U : subgroup G)) n).ker) :
+  (d_of_cts ρ n).ker :=
+⟨⟨λ f, x.1 (quotient.mk' ∘ f), _⟩, _⟩
+
+#check homological_complex.d_to_comp_d_from
+def inv_map_aux (U : open_normal G) :
+  (cochain_cx (inf_rep ρ (U : subgroup G))).homology n →ₗ[k] cts_coh ρ n :=
+homology.desc _ _ ((cochain_cx (inf_rep ρ (U : subgroup G))).d_to_comp_d_from _) _ _
+
+#exit
+def inv_map : coh_lim ρ n →ₗ[k] cts_coh ρ n :=
+module.direct_limit.lift k (open_normal G) _ _ (λ U, _) _
+
 lemma goal : cts_coh ρ n ≃ₗ[k] coh_lim ρ n := sorry
 
 lemma goal2 : cts_coh ρ n ≃ₗ[k] (cochain_cx ρ).homology n := sorry

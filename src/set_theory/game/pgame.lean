@@ -422,7 +422,7 @@ lt_iff_le_and_lf.2 ⟨h₁, h₂⟩
 theorem lf_of_lt {x y : pgame} (h : x < y) : x ⧏ y := (lt_iff_le_and_lf.1 h).2
 alias lf_of_lt ← has_lt.lt.lf
 
-/-- This special case of `le_of_forall_lf` is useful when dealing with surreals, where `<` is
+/-- This special case of `pgame.le_of_forall_lf` is useful when dealing with surreals, where `<` is
 preferred over `⧏`. -/
 theorem le_of_forall_lt {x y : pgame} (h : (∀ i, x.move_left i < y) ∧ ∀ j, x < y.move_right j) :
   x ≤ y :=

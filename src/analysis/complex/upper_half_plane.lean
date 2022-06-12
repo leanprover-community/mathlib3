@@ -58,6 +58,9 @@ def re (z : ℍ) := (z : ℂ).re
 
 @[simp] lemma coe_re (z : ℍ) : (z : ℂ).re = z.re := rfl
 
+lemma re_add_im (z : ℍ) : (z.re + z.im * complex.I : ℂ) = z :=
+complex.re_add_im z 
+
 lemma im_pos (z : ℍ) : 0 < z.im := z.2
 
 lemma im_ne_zero (z : ℍ) : z.im ≠ 0 := z.im_pos.ne'
@@ -69,6 +72,15 @@ lemma norm_sq_pos (z : ℍ) : 0 < complex.norm_sq (z : ℂ) :=
 by { rw complex.norm_sq_pos, exact z.ne_zero }
 
 lemma norm_sq_ne_zero (z : ℍ) : complex.norm_sq (z : ℂ) ≠ 0 := (norm_sq_pos z).ne'
+
+lemma open_embedding_coe : open_embedding (coe : ℍ → ℂ) :=
+is_open.open_embedding_subtype_coe $ is_open_lt continuous_const complex.continuous_im
+
+lemma embedding_coe : embedding (coe : ℍ → ℂ) := embedding_subtype_coe
+lemma continuous_coe : continuous (coe : ℍ → ℂ) := embedding_coe.continuous
+
+lemma continuous_re : continuous re := complex.continuous_re.comp continuous_coe
+lemma continuous_im : continuous im := complex.continuous_im.comp continuous_coe
 
 /-- Numerator of the formula for a fractional linear transformation -/
 @[simp] def num (g : GL(2, ℝ)⁺) (z : ℍ) : ℂ := (↑ₘg 0 0 : ℝ) * z + (↑ₘg 0 1 : ℝ)

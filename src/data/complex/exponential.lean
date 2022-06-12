@@ -639,6 +639,10 @@ begin
   ring,
 end
 
+lemma sinh_sq'''' : sinh x ^ 2 = (cosh (2 * x) - 1) / 2 :=
+by rw [cosh_two_mul, cosh_sq, add_right_comm, add_sub_cancel, ← mul_two,
+  mul_div_cancel (sinh x ^ 2) two_ne_zero']
+
 @[simp] lemma sin_zero : sin 0 = 0 := by simp [sin]
 
 @[simp] lemma sin_neg : sin (-x) = -sin x :=
@@ -1086,7 +1090,10 @@ eq_div_of_mul_eq two_ne_zero $ by rw [cosh, exp, exp, complex.of_real_neg, compl
 @[simp] lemma cosh_zero : cosh 0 = 1 := by simp [cosh]
 
 @[simp] lemma cosh_neg : cosh (-x) = cosh x :=
-by simp [cosh, exp_neg]
+by simp [cosh]
+
+@[simp] lemma cosh_abs : cosh (|x|) = cosh x :=
+by cases le_total x 0; simp [*, _root_.abs_of_nonneg, abs_of_nonpos]
 
 lemma cosh_add : cosh (x + y) = cosh x * cosh y + sinh x * sinh y :=
 by rw ← of_real_inj; simp [cosh, cosh_add]
@@ -1133,6 +1140,9 @@ by rw ← of_real_inj; simp [cosh_three_mul]
 
 lemma sinh_three_mul : sinh (3 * x) = 4 * sinh x ^ 3 + 3 * sinh x :=
 by rw ← of_real_inj; simp [sinh_three_mul]
+
+lemma sinh_sq'''' : sinh x ^ 2 = (cosh (2 * x) - 1) / 2 :=
+of_real_inj.1 $ by simp [sinh_sq'''']
 
 open is_absolute_value
 

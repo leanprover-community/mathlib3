@@ -2301,16 +2301,13 @@ theorem tendsto.congr {f₁ f₂ : α → β} {l₁ : filter α} {l₂ : filter 
   (h : ∀ x, f₁ x = f₂ x) : tendsto f₁ l₁ l₂ → tendsto f₂ l₁ l₂ :=
 (tendsto_congr h).1
 
-lemma tendsto_id' {x y : filter α} : x ≤ y → tendsto id x y :=
-by simp only [tendsto, map_id, forall_true_iff] {contextual := tt}
+lemma tendsto_id' {x y : filter α} : tendsto id x y ↔ x ≤ y := iff.rfl
 
-lemma tendsto_id {x : filter α} : tendsto id x x := tendsto_id' $ le_refl x
+lemma tendsto_id {x : filter α} : tendsto id x x := le_refl x
 
 lemma tendsto.comp {f : α → β} {g : β → γ} {x : filter α} {y : filter β} {z : filter γ}
   (hg : tendsto g y z) (hf : tendsto f x y) : tendsto (g ∘ f) x z :=
-calc map (g ∘ f) x = map g (map f x) : by rw [map_map]
-  ... ≤ map g y : map_mono hf
-  ... ≤ z : hg
+λ s hs, hf (hg hs)
 
 lemma tendsto.mono_left {f : α → β} {x y : filter α} {z : filter β}
   (hx : tendsto f x z) (h : y ≤ x) : tendsto f y z :=

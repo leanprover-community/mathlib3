@@ -42,26 +42,23 @@ is so we can talk about morphisms of representations.
 
 noncomputable theory
 universes v u
-variables (k G : Type u) [comm_ring k] (n : ℕ)
+variables {k G : Type u} [comm_ring k] {n : ℕ}
 
 local notation `Gⁿ` := fin n → G
 local notation `Gⁿ⁺¹` := fin (n + 1) → G
 
-open monoid_algebra
-
 namespace Rep
 section monoid
-variables [monoid G] (H : Type u) [mul_action G H]
+variables (k G) [monoid G] (H : Type u) [mul_action G H]
 
 /-- Given a `G`-action on `H`, this is `k[H]` bundled with the natural representation
 `G →* End(k[H])` as a term of type `Rep k G.` -/
 abbreviation of_mul_action : Rep k G := Rep.of (representation.of_mul_action k G H)
 
-variables {k G n}
-
+variables {k G}
 -- No idea what to call these or where to put them; would move them, but then they can't be private.
 /-- Sends `(g₁, ..., gₙ) ↦ (1, g₁, g₁g₂, ..., g₁...gₙ)` -/
-private def to_prod (f : fin n → G) (i : fin (n + 1)) : G :=
+private def to_prod (f : Gⁿ) (i : fin (n + 1)) : G :=
 ((list.of_fn f).take i).prod
 
 @[simp] private lemma to_prod_zero (f : Gⁿ) :
@@ -78,19 +75,19 @@ by simpa [to_prod]
 
 end monoid
 
-variables [group G] (n)
+variables (k G) [group G]
 open_locale tensor_product
 
 /-- The `k`-linear map from `k[Gⁿ⁺¹]` to `k[G] ⊗ₖ k[Gⁿ]` sending `(g₀, ..., gₙ)`
 to `g₀ ⊗ (g₀⁻¹g₁, g₁⁻¹g₂, ..., gₙ₋₁⁻¹gₙ)` -/
-def to_tensor_aux :
+def to_tensor_aux (n : ℕ) :
   of_mul_action k G Gⁿ⁺¹ →ₗ[k] (G →₀ k) ⊗[k] (Gⁿ →₀ k) :=
 finsupp.lift ((G →₀ k) ⊗[k] (Gⁿ →₀ k)) k Gⁿ⁺¹
   (λ x, finsupp.single (x 0) 1 ⊗ₜ[k] finsupp.single (λ i, (x i)⁻¹ * x i.succ) 1)
 
-variables {k G n}
+variables {k G}
 
-private lemma to_tensor_aux_single (f : fin (n + 1) → G) (m : k) :
+private lemma to_tensor_aux_single (f : Gⁿ⁺¹) (m : k) :
   to_tensor_aux k G n (finsupp.single f m) =
     finsupp.single (f 0) m ⊗ₜ finsupp.single (λ i, (f i)⁻¹ * f i.succ) 1 :=
 begin
@@ -99,71 +96,71 @@ begin
   { simp },
 end
 
-private lemma to_tensor_aux_comm (g : G) (x : fin (n + 1) → G) :
+private lemma to_tensor_aux_comm (g : G) (x : Gⁿ⁺¹) :
   to_tensor_aux k G n (representation.of_mul_action k G Gⁿ⁺¹ g (finsupp.single x 1))
   = tensor_product.map (representation.of_mul_action k G G g) 1
     (to_tensor_aux k G n (finsupp.single x 1)) :=
-by simp [representation.of_mul_action_apply', to_tensor_aux_single, mul_assoc, inv_mul_cancel_left]
+by simp [representation.of_mul_action_def, to_tensor_aux_single, mul_assoc, inv_mul_cancel_left]
 
-variables (k G n)
+variables (k G)
 
 /-- A hom of `k`-linear representations of `G` from `k[Gⁿ⁺¹]` to `k[G] ⊗ₖ k[Gⁿ]` (on which `G` acts
 by `ρ(g₁)(g₂ ⊗ x) = (g₁ * g₂) ⊗ x`) sending `(g₀, ..., gₙ)` to
 `g₀ ⊗ (g₀⁻¹g₁, g₁⁻¹g₂, ..., gₙ₋₁⁻¹gₙ)` -/
-def to_tensor : of_mul_action k G Gⁿ⁺¹ ⟶ Rep.of
+def to_tensor (n : ℕ) : of_mul_action k G Gⁿ⁺¹ ⟶ Rep.of
   ((representation.of_mul_action k G G).tprod (1 : G →* module.End k (Gⁿ →₀ k))) :=
 { hom := to_tensor_aux k G n,
   comm' := λ g, by ext; exact to_tensor_aux_comm _ _ }
 
-variables {k G n}
+variables {k G}
 
-@[simp] lemma to_tensor_single (f : fin (n + 1) → G) (m : k) :
+@[simp] lemma to_tensor_single (f : Gⁿ⁺¹) (m : k) :
   (to_tensor k G n).hom (finsupp.single f m) =
     finsupp.single (f 0) m ⊗ₜ finsupp.single (λ i, (f i)⁻¹ * f i.succ) 1 :=
 to_tensor_aux_single _ _
 
-variables (k G n)
+variables (k G)
 
 /-- The `k`-linear map from `k[G] ⊗ₖ k[Gⁿ]` to `k[Gⁿ⁺¹]` sending `g ⊗ (g₁, ..., gₙ)` to
 `(g, gg₁, gg₁g₂, ..., gg₁...gₙ)` -/
-def of_tensor_aux :
-  monoid_algebra k G ⊗[k] (Gⁿ →₀ k) →ₗ[k] of_mul_action k G Gⁿ⁺¹ :=
+def of_tensor_aux (n : ℕ) :
+  (G →₀ k) ⊗[k] (Gⁿ →₀ k) →ₗ[k] of_mul_action k G Gⁿ⁺¹ :=
 tensor_product.lift (finsupp.lift _ _ _ $ λ g, finsupp.lift _ _ _
-  (λ f, monoid_algebra.of _ Gⁿ⁺¹ (g • to_prod f)))
+  (λ f, finsupp.single (g • to_prod f) (1 : k)))
 
-variables {k G n}
+variables {k G}
 
-private lemma of_tensor_aux_single (g : G) (m : k) (x : (fin n → G) →₀ k) :
-  of_tensor_aux k G n ((finsupp.single g m) ⊗ₜ x) = finsupp.lift (of_mul_action k G
-    Gⁿ⁺¹) k Gⁿ (λ f, finsupp.single (g • to_prod f) m) x :=
+private lemma of_tensor_aux_single (g : G) (m : k) (x : Gⁿ →₀ k) :
+  of_tensor_aux k G n ((finsupp.single g m) ⊗ₜ x) = finsupp.lift (of_mul_action k G Gⁿ⁺¹) k Gⁿ
+    (λ f, finsupp.single (g • to_prod f) m) x :=
 by simp [of_tensor_aux, finsupp.sum_single_index, finsupp.smul_sum, mul_comm m]
 
-private lemma of_tensor_aux_comm (g h : G) (x : fin n → G) :
+private lemma of_tensor_aux_comm (g h : G) (x : Gⁿ) :
   of_tensor_aux k G n (tensor_product.map (representation.of_mul_action k G G g)
     (1 : module.End k (Gⁿ →₀ k)) (finsupp.single h (1 : k) ⊗ₜ finsupp.single x (1 : k)))
   = representation.of_mul_action k G Gⁿ⁺¹ g (of_tensor_aux k G n
     (finsupp.single h 1 ⊗ₜ finsupp.single x 1)) :=
 begin
   dsimp,
-  simp [representation.of_mul_action_apply', of_tensor_aux_single, mul_smul],
+  simp [representation.of_mul_action_def, of_tensor_aux_single, mul_smul],
 end
 
-variables (k G n)
+variables (k G)
 
 /-- A hom of `k`-linear representations of `G` from `k[G] ⊗ₖ k[Gⁿ]` (on which `G` acts
 by `ρ(g₁)(g₂ ⊗ x) = (g₁ * g₂) ⊗ x`) to `k[Gⁿ⁺¹]` sending `g ⊗ (g₁, ..., gₙ)` to
 `(g, gg₁, gg₁g₂, ..., gg₁...gₙ)` -/
-def of_tensor :
+def of_tensor (n : ℕ) :
   Rep.of ((representation.of_mul_action k G G).tprod (1 : G →* module.End k (Gⁿ →₀ k)))
     ⟶ of_mul_action k G Gⁿ⁺¹ :=
 { hom := of_tensor_aux k G n,
   comm' := λ g, by { ext, congr' 1, exact (of_tensor_aux_comm _ _ _) }}
 
-variables {k G n}
+variables {k G}
 
 @[simp] lemma of_tensor_single (g : G) (m : k) (x : Gⁿ →₀ k) :
-  (of_tensor k G n).hom ((finsupp.single g m) ⊗ₜ x) = finsupp.lift (of_mul_action k G
-    Gⁿ⁺¹) k Gⁿ (λ f, finsupp.single (g • to_prod f) m) x :=
+  (of_tensor k G n).hom ((finsupp.single g m) ⊗ₜ x) = finsupp.lift (of_mul_action k G Gⁿ⁺¹) k Gⁿ
+    (λ f, finsupp.single (g • to_prod f) m) x :=
 of_tensor_aux_single _ _ _
 
 lemma of_tensor_single' (g : G →₀ k) (x : Gⁿ) (r : k) :

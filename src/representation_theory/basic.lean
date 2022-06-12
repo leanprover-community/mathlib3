@@ -103,7 +103,7 @@ noncomputable def of_mul_action : representation k G (H →₀ k) :=
 
 variables {k G H}
 
-lemma of_mul_action_apply' (g : G) : of_mul_action k G H g = finsupp.lmap_domain k k ((•) g) := rfl
+lemma of_mul_action_def (g : G) : of_mul_action k G H g = finsupp.lmap_domain k k ((•) g) := rfl
 
 end mul_action
 section group
@@ -111,14 +111,14 @@ section group
 variables {k G V : Type*} [comm_semiring k] [group G] [add_comm_monoid V] [module k V]
 variables (ρ : representation k G V)
 
-lemma of_mul_action_apply {H : Type*} [mul_action G H]
+@[simp] lemma of_mul_action_apply {H : Type*} [mul_action G H]
   (g : G) (f : H →₀ k) (h : H) : of_mul_action k G H g f h = f (g⁻¹ • h) :=
 begin
   conv_lhs { rw ← smul_inv_smul g h, },
   let h' := g⁻¹ • h,
   change of_mul_action k G H g f (g • h') = f h',
   have hg : function.injective ((•) g : H → H), { intros h₁ h₂, simp, },
-  simp only [of_mul_action_apply', finsupp.lmap_domain_apply, finsupp.map_domain_apply, hg],
+  simp only [of_mul_action_def, finsupp.lmap_domain_apply, finsupp.map_domain_apply, hg],
 end
 
 /--

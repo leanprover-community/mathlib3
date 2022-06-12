@@ -683,7 +683,11 @@ end
 
 lemma monotone.div_const {β : Type*} [preorder β] {f : β → α} (hf : monotone f)
   {c : α} (hc : 0 ≤ c) : monotone (λ x, (f x) / c) :=
-by simpa only [div_eq_mul_inv] using hf.mul_const (inv_nonneg.2 hc)
+begin
+  haveI := @linear_order.decidable_le α _,
+  simpa only [div_eq_mul_inv]
+    using (decidable.monotone_mul_right_of_nonneg (inv_nonneg.2 hc)).comp hf
+end
 
 lemma strict_mono.div_const {β : Type*} [preorder β] {f : β → α} (hf : strict_mono f)
   {c : α} (hc : 0 < c) :

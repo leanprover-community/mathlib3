@@ -176,8 +176,11 @@ end polynomial
 section zmod
 
 variables {p : ℕ} [fact p.prime]
+
 example : @euclidean_domain.to_comm_ring _ (@field.to_euclidean_domain _ (zmod.field p)) =
   zmod.comm_ring p :=
 rfl
+
+example (n : ℕ) : zmod.comm_ring (n + 1) = fin.comm_ring n := rfl
 
 end zmod

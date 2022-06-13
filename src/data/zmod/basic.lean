@@ -115,6 +115,18 @@ instance comm_ring (n : ℕ) : comm_ring (zmod n) :=
   neg := nat.cases_on n ((@has_neg.neg) int _) (λ n, @has_neg.neg (fin n.succ) _),
   sub := nat.cases_on n ((@has_sub.sub) int _) (λ n, @has_sub.sub (fin n.succ) _),
   sub_eq_add_neg := nat.cases_on n (@sub_eq_add_neg int _) (λ n, @sub_eq_add_neg (fin n.succ) _),
+  zsmul := nat.cases_on n ((@comm_ring.zsmul) int _) (λ n, @comm_ring.zsmul (fin n.succ) _),
+  zsmul_zero' := nat.cases_on n (@comm_ring.zsmul_zero' int _)
+    (λ n, @comm_ring.zsmul_zero' (fin n.succ) _),
+  zsmul_succ' := nat.cases_on n (@comm_ring.zsmul_succ' int _)
+    (λ n, @comm_ring.zsmul_succ' (fin n.succ) _),
+  zsmul_neg' := nat.cases_on n (@comm_ring.zsmul_neg' int _)
+    (λ n, @comm_ring.zsmul_neg' (fin n.succ) _),
+  nsmul := nat.cases_on n ((@comm_ring.nsmul) int _) (λ n, @comm_ring.nsmul (fin n.succ) _),
+  nsmul_zero' := nat.cases_on n (@comm_ring.nsmul_zero' int _)
+    (λ n, @comm_ring.nsmul_zero' (fin n.succ) _),
+  nsmul_succ' := nat.cases_on n (@comm_ring.nsmul_succ' int _)
+    (λ n, @comm_ring.nsmul_succ' (fin n.succ) _),
   add_left_neg := by { cases n, exacts [@add_left_neg int _, @add_left_neg (fin n.succ) _] },
   add_comm := nat.cases_on n (@add_comm int _) (λ n, @add_comm (fin n.succ) _),
   mul := nat.cases_on n ((@has_mul.mul) int _) (λ n, @has_mul.mul (fin n.succ) _),

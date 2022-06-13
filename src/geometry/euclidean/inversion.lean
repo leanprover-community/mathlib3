@@ -33,7 +33,7 @@ include V
 /-- Inversion in a sphere in an affine space. This map sends each point `x` to the point `y` such
 that `y -ᵥ c = (R / dist x c) ^ 2 • (x -ᵥ c)`, where `c` and `R` are the center and the radius the
 sphere. -/
-def inversion (c : P) (R : ℝ) (x : P) := (R / dist x c) ^ 2 • (x -ᵥ c) +ᵥ c
+def inversion (c : P) (R : ℝ) (x : P) : P := (R / dist x c) ^ 2 • (x -ᵥ c) +ᵥ c
 
 @[simp] lemma inversion_self (c : P) (R : ℝ) : inversion c R c = c := by simp [inversion]
 

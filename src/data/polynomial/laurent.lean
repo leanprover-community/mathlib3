@@ -3,6 +3,7 @@ Copyright (c) 2022 Damiano Testa. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Damiano Testa
 -/
+
 import data.polynomial.algebra_map
 import ring_theory.localization.basic
 
@@ -410,8 +411,7 @@ lemma is_localization : is_localization (submonoid.closure ({X} : set R[X])) R[T
       exact ⟨1, rfl⟩ },
     { rintro ⟨⟨h, hX⟩, h⟩,
       rcases submonoid.mem_closure_singleton.mp hX with ⟨n, rfl⟩,
-      rw [mul_comm, mul_comm _ ↑_] at h,
-      exact mul_X_pow_injective n h }
+      exact mul_X_pow_injective n (by simpa only [X_pow_mul]) }
   end }
 
 end comm_semiring

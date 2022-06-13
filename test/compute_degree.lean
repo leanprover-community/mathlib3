@@ -4,110 +4,27 @@ open polynomial
 open_locale polynomial
 
 variables {R : Type*} [semiring R] [nontrivial R] {f g h : R[X]} {a b c d e : R}
-set_option profiler true
 
 example : nat_degree (C 7 * X : R[X]) ≤ 1 :=
 by compute_degree_le
---#exit
+
 example : (7 : polynomial R).nat_degree ≤ 4 :=
-begin
-  compute_degree_le,
---  refine (polynomial.nat_degree_one.le.trans (nat.zero_le _)),
-end
---#exit
+by compute_degree_le
+
 example {F} [ring F] [nontrivial F] {n m : ℕ} (n4 : n ≤ 4) (m4 : m ≤ 4) {a : F} :
   nat_degree (C a * X ^ n + X ^ m + bit1 1 : F[X]) ≤ 4 :=
 by compute_degree_le; assumption
 
 example : (1 : polynomial R).nat_degree ≤ 4 :=
-begin
-  compute_degree_le,
---  refine (polynomial.nat_degree_one.le.trans (nat.zero_le _)),
-end
---#exit
---namespace tactic
---open expr
-/-
-meta def single_term_resolve_le : expr → tactic unit
---| `((⇑(@polynomial.C %%R1 %%nin1) %%a) * %%b) := do trace "here", failed
-| (app `(⇑(@polynomial.monomial %%R %%inst %%n)) x) := do trace "here",
-  refine ``((polynomial.nat_degree_monomial_le %%x).trans (by norm_num))
---  assumption <|> interactive.exact ``(one_ne_zero) <|> skip
-| (app `(⇑(@polynomial.C %%R %%inst)) x) :=
-  interactive.exact ``((polynomial.nat_degree_C _).le.trans (nat.zero_le _))
-| `(@has_pow.pow (@polynomial %%R %%nin) ℕ %%inst %%mX %%n) :=
-  nontriviality_by_assumption R *>
-  refine ``(polynomial.nat_degree_X_pow %%n)
-| `(@polynomial.X %%R %%inst) :=
-  nontriviality_by_assumption R *>
-  interactive.exact ``(polynomial.nat_degree_X)
-| e := C_mul_terms e
--/
+by compute_degree_le
 
-/-
-#check guess_degree
-meta def single_term_resolve_le : expr → tactic unit
-| (app `(⇑(@polynomial.monomial %%R %%inst %%n)) x) := do trace "here",
-  refine ``((polynomial.nat_degree_monomial_le %%x).trans (by norm_num))
-| (app `(⇑(@polynomial.C %%R %%inst)) x) :=
-  interactive.exact ``((polynomial.nat_degree_C _).le.trans (nat.zero_le _))
-| `(@has_pow.pow (@polynomial %%R %%nin) ℕ %%inst %%mX %%n) :=
-  refine ``((nat_degree_X_pow_le %%n).trans (by norm_num))
-| `(@polynomial.X %%R %%inst) :=
-  refine ``(nat_degree_X_le.trans (by norm_num))
-| `(%%a * %%Xp) := do da ← guess_degree a, dXp ← guess_degree Xp,trace da, trace dXp,
-  refine ``(nat_degree_mul_le.trans ((add_le_add _ _).trans (by norm_num : %%da + %%dXp ≤ _))),
-  single_term_resolve_le a,
-  single_term_resolve_le Xp
-| e := C_mul_terms e
-
-lemma pro : nat_degree (X ^ 0 : polynomial R) ≤ 10 :=
-by
-{ refine (nat_degree_X_pow_le _).trans _,
-
-   refine (polynomial.nat_degree_monomial_le _).trans _,
-  norm_num
-  --single_term_resolve_le lhs
-}
-example : nat_degree (C a * X ^ 0) ≤ 10 :=
-by
-{ refine nat_degree_mul_le.trans (le_trans _ (by norm_num : 0 + 0 ≤ _)),
-  refine add_le_add _ _,
-
-  refine (nat_degree_C_mul_X_pow_le _ _).trans _,
-
-   refine (polynomial.nat_degree_monomial_le _).trans _,
-  norm_num
-  --single_term_resolve_le lhs
-}
-
-
-
-example : nat_degree (X ^ 4 * monomial 6 c : polynomial R) ≤ 10 :=
-by do `(polynomial.nat_degree %%lhs ≤ %%deg) ← target,
-  single_term_resolve_le lhs
---  trace lhs,
---  apply polynomial.nat_degree_monomial_le,
---  target >>= trace
-
-end tactic
-
-
-
-#exit
---/
-lemma pro : nat_degree (monomial 5 c * monomial 1 c + monomial 7 d + monomial 9 1 +
+example : nat_degree (monomial 5 c * monomial 1 c + monomial 7 d + monomial 9 1 +
     C a * X ^ 0 + C b * X ^ 5 + C c * X ^ 2 + X ^ 10 + C e * X) = 10 :=
 by compute_degree
 
-
 example {m s: ℕ} (ms : m ≤ s) (s1 : 1 ≤ s) : nat_degree (C a * X ^ m + X + 5) ≤ s :=
-by {compute_degree_le; assumption,
---  sorry,
---  refine (polynomial.nat_degree_mul_le.trans ((add_le_add _ _).trans (_ : 0 + m ≤ _))),
---assumption
-}
---#exit
+by compute_degree_le; assumption
+
 example : nat_degree (X + 1 : polynomial R) = 1 :=
 by compute_degree
 
@@ -148,12 +65,10 @@ by compute_degree
 
 example {F} [ring F] [nontrivial F] {n m : ℕ} (n4 : n ≤ 4) (m4 : m ≤ 4) {a : F} :
   nat_degree (C a * X ^ n + X ^ m + bit1 1 : F[X]) ≤ 4 :=
-by { compute_degree_le; assumption,
---compute_degree_le,
- }
+by compute_degree_le; assumption
 
 example {F} [ring F] : nat_degree (X ^ 4 + bit1 1 : F[X]) ≤ 4 :=
-by {compute_degree_le, }
+by compute_degree_le
 
 example {F} [ring F] [nontrivial F] : degree (X ^ 4 + C (- 1) : F[X]) = 4 :=
 by compute_degree
@@ -168,7 +83,7 @@ example {F} [field F] {a : F} (a0 : a ≠ 0) : nat_degree (C a * X ^ 2 + C 1 : F
 by compute_degree
 
 example : nat_degree (C a * X ^ 3 + C b * X ^ 2 + C c * X + C d) ≤ 3 :=
-by {compute_degree_le, }
+by compute_degree_le
 
 example (ha : a ≠ 0) : nat_degree (C a * X ^ 3 + C b * X ^ 2 + C c * X + C d) = 3 :=
 by compute_degree

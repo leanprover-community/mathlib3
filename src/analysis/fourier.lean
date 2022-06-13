@@ -186,8 +186,7 @@ begin
   exact set_integral_eq_subtype measurable_set_Ioc _,
 end
 
-lemma integral_circle_eq_circle_integral [complete_space E] [normed_space ℂ E] (f : ℂ → E)
-  (hf : circle_integrable f 0 1) :
+lemma integral_circle_eq_circle_integral [complete_space E] [normed_space ℂ E] (f : ℂ → E) :
   circle_integral f 0 1 = (2 * ↑π * I) • integral circle_measure (λ z, z • f z) :=
 begin
   simp_rw [integral_circle_eq, circle_integral, deriv_circle_map, ←interval_integral.integral_smul],
@@ -399,13 +398,13 @@ namespace fourier_line
 /-! We define Fourier theory for functions `ℝ → ℂ` via composition with `arg'`, so we are
 ignoring their values outside the set `(0, 2 * π]`. -/
 
-section fourier_line
-
-variables {E : Type*} [normed_group E] (f : ℝ → E)
-
 abbreviation μ₀ := volume.restrict (Ioc 0 (2 * π))
 
+variables {E : Type*} (f : ℝ → E)
+
 def to_circle : circle → E := λ z, f (arg' z)
+
+variables [normed_group E]
 
 lemma to_circle_mem_ℒ2 (hf : mem_ℒp f 2 μ₀) : mem_ℒp (to_circle f) 2 :=
 begin
@@ -474,5 +473,4 @@ begin
   exact fourier_circle.has_sum_sq_fourier_series_repr _,
 end
 
-end fourier_line
 end fourier_line

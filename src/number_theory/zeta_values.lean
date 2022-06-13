@@ -132,8 +132,7 @@ section bernoulli_fourier_coeffs
 def bernoulli_fourier_coeff (k : ℕ) (n : ℤ) : ℂ :=
   1 / (2 * π) * ∫ x in 0 .. 2 * π, exp (-n * I * x) * bernoulli_fun k x
 
-lemma coefficient_recurrence (k : ℕ) (hk : 1 ≤ k) (n : ℤ) (hn : n ≠ 0) :
-  bernoulli_fourier_coeff k n =
+lemma coefficient_recurrence (k : ℕ) (n : ℤ) (hn : n ≠ 0) : bernoulli_fourier_coeff k n =
   I / n * (- k * bernoulli_fourier_coeff (k - 1) n + ite (k = 1) 1 0) :=
 begin
   rw [bernoulli_fourier_coeff],
@@ -215,7 +214,7 @@ begin
     rw this, simp, },
   induction k with k h, -- no tidy way to induct starting at 1?
   { exfalso, linarith, },
-  { rw coefficient_recurrence k.succ hk n hn,
+  { rw coefficient_recurrence k.succ n hn,
     rcases eq_or_ne k 0 with h'|h',
     { rw h',
       simp only [nat.cast_one, tsub_self, neg_mul, one_mul, eq_self_iff_true, if_true,
@@ -237,7 +236,7 @@ section bernoulli_L2_norm
 /-! We evaluate the integral of `Bᵢ(x) Bⱼ(x)`by using repeated integration by parts. As a special
 case we deduce the `L²` norm of `Bₖ`.  -/
 
-lemma bernoulli_prod_recurrence (i : ℕ) (hi : i ≠ 0) (j : ℕ) (hj : 1 ≤ j)  :
+lemma bernoulli_prod_recurrence (i : ℕ) (hi : i ≠ 0) (j : ℕ) :
   ∫ x:ℝ in 0..(2 * π), bernoulli_fun i x * bernoulli_fun j x =
   ite (j = 1) (2 * π * bernoulli_fun (i + 1) 0 / (i + 1)) 0
   - j / (i + 1) * ∫ x:ℝ in 0..(2 * π), bernoulli_fun (i+1) x * bernoulli_fun (j-1) x :=
@@ -266,7 +265,7 @@ begin
     intros x hx, dsimp only, ring },
 end
 
-lemma bernoulli_prod (m : ℕ) (j : ℕ) (hj1 : 1 ≤ j) (hj2 : j + 1 ≤ m):
+lemma bernoulli_prod (m : ℕ) (j : ℕ) (hj1 : 1 ≤ j) (hj2 : j + 1 ≤ m) :
   ∫ x:ℝ in 0..(2 * π), bernoulli_fun (m - j) x * bernoulli_fun j x =
   (-1) ^ (j - 1) * (2 * π) ^ (m + 1) * bernoulli m / nat.choose m j :=
 begin
@@ -277,7 +276,7 @@ begin
   induction j with j hj,
   { exfalso, linarith },
   { simp_rw nat.succ_eq_add_one at *,
-    rw bernoulli_prod_recurrence (m - (j + 1)) _ (j + 1) hj1,
+    rw bernoulli_prod_recurrence (m - (j + 1)) _ (j + 1),
     swap, { contrapose! hj2, simp only [tsub_eq_zero_iff_le] at hj2, linarith },
     have w : m - (j + 1) + 1 = m - j,
     { rw [←nat.sub_sub, nat.sub_add_cancel],
@@ -324,8 +323,7 @@ begin
       linarith } },
 end
 
-lemma bernoulli_norm (k : ℕ) (hk : 1 ≤ k) :
-  ∫ x:ℝ in 0..(2 * π), (bernoulli_fun k x) ^ 2 =
+lemma bernoulli_norm (k : ℕ) (hk : 1 ≤ k) : ∫ x:ℝ in 0..(2 * π), (bernoulli_fun k x) ^ 2 =
   (-1) ^ (k - 1) * (2 * π) ^ (2 * k + 1) * bernoulli (2 * k) / nat.choose (2 * k) k :=
 begin
   convert bernoulli_prod (2 * k) k hk _,

@@ -54,7 +54,7 @@ include A
 /--An `I : ideal A` is homogeneous if for every `r ∈ I`, all homogeneous components
   of `r` are in `I`.-/
 def ideal.is_homogeneous : Prop :=
-∀ (i : ι) ⦃r : A⦄, r ∈ I → (graded_ring.decompose 𝒜 r i : A) ∈ I
+∀ (i : ι) ⦃r : A⦄, r ∈ I → (direct_sum.decompose 𝒜 r i : A) ∈ I
 
 /-- For any `semiring A`, we collect the homogeneous ideals of `A` into a type. -/
 structure homogeneous_ideal extends submodule A A :=
@@ -123,14 +123,14 @@ lemma ideal.mul_homogeneous_element_mem_of_mem
   {I : ideal A} (r x : A) (hx₁ : is_homogeneous 𝒜 x) (hx₂ : x ∈ I) (j : ι) :
   graded_ring.proj 𝒜 j (r * x) ∈ I :=
 begin
-  letI : Π (i : ι) (x : 𝒜 i), decidable (x ≠ 0) := λ _ _, classical.dec _,
-  rw [←graded_ring.sum_support_decompose 𝒜 r, finset.sum_mul, map_sum],
+  classical,
+  rw [←direct_sum.sum_support_decompose 𝒜 r, finset.sum_mul, map_sum],
   apply ideal.sum_mem,
   intros k hk,
   obtain ⟨i, hi⟩ := hx₁,
-  have mem₁ : (graded_ring.decompose 𝒜 r k : A) * x ∈ 𝒜 (k + i) := graded_monoid.mul_mem
+  have mem₁ : (direct_sum.decompose 𝒜 r k : A) * x ∈ 𝒜 (k + i) := graded_monoid.mul_mem
     (set_like.coe_mem _) hi,
-  erw [graded_ring.proj_apply, graded_ring.decompose_of_mem 𝒜 mem₁,
+  erw [graded_ring.proj_apply, direct_sum.decompose_of_mem 𝒜 mem₁,
     coe_of_apply, set_like.coe_mk],
   split_ifs,
   { exact I.mul_mem_left _ hx₂ },
@@ -144,7 +144,7 @@ begin
   rw [ideal.span, finsupp.span_eq_range_total] at hr,
   rw linear_map.mem_range at hr,
   obtain ⟨s, rfl⟩ := hr,
-  rw [ finsupp.total_apply, finsupp.sum, map_sum, dfinsupp.finset_sum_apply,
+  rw [finsupp.total_apply, finsupp.sum, decompose_sum, dfinsupp.finset_sum_apply,
     add_submonoid_class.coe_finset_sum],
   refine ideal.sum_mem _ _,
   rintros z hz1,
@@ -178,8 +178,8 @@ lemma ideal.is_homogeneous.to_ideal_homogeneous_core_eq_self (h : I.is_homogeneo
 begin
   apply le_antisymm (I.homogeneous_core'_le 𝒜) _,
   intros x hx,
-  letI : Π (i : ι) (x : 𝒜 i), decidable (x ≠ 0) := λ _ _, classical.dec _,
-  rw ←graded_ring.sum_support_decompose 𝒜 x,
+  classical,
+  rw ←direct_sum.sum_support_decompose 𝒜 x,
   exact ideal.sum_mem _ (λ j hj, ideal.subset_span ⟨⟨_, is_homogeneous_coe _⟩, h _ hx, rfl⟩)
 end
 
@@ -220,7 +220,7 @@ namespace ideal.is_homogeneous
 lemma bot : ideal.is_homogeneous 𝒜 ⊥ := λ i r hr,
 begin
   simp only [ideal.mem_bot] at hr,
-  rw [hr, map_zero, zero_apply],
+  rw [hr, decompose_zero, zero_apply],
   apply ideal.zero_mem
 end
 
@@ -443,7 +443,7 @@ include A
 /--For any `I : ideal A`, not necessarily homogeneous, `I.homogeneous_hull 𝒜` is
 the smallest homogeneous ideal containing `I`. -/
 def ideal.homogeneous_hull : homogeneous_ideal 𝒜 :=
-⟨ideal.span {r : A | ∃ (i : ι) (x : I), (graded_ring.decompose 𝒜 (x : A) i : A) = r}, begin
+⟨ideal.span {r : A | ∃ (i : ι) (x : I), (direct_sum.decompose 𝒜 (x : A) i : A) = r}, begin
   refine ideal.is_homogeneous_span _ _ (λ x hx, _),
   obtain ⟨i, x, rfl⟩ := hx,
   apply set_like.is_homogeneous_coe
@@ -453,8 +453,8 @@ lemma ideal.le_to_ideal_homogeneous_hull :
   I ≤ (ideal.homogeneous_hull 𝒜 I).to_ideal :=
 begin
   intros r hr,
-  letI : Π (i : ι) (x : 𝒜 i), decidable (x ≠ 0) := λ _ _, classical.dec _,
-  rw [←graded_ring.sum_support_decompose 𝒜 r],
+  classical,
+  rw [←direct_sum.sum_support_decompose 𝒜 r],
   refine ideal.sum_mem _ _, intros j hj,
   apply ideal.subset_span, use j, use ⟨r, hr⟩, refl,
 end
@@ -553,7 +553,7 @@ def homogeneous_ideal.irrelevant : homogeneous_ideal 𝒜 :=
 ⟨(graded_ring.proj_zero_ring_hom 𝒜).ker, λ i r (hr : (decompose 𝒜 r 0 : A) = 0), begin
   change (decompose 𝒜 (decompose 𝒜 r _ : A) 0 : A) = 0,
   by_cases h : i = 0,
-  { rw [h, hr, map_zero, zero_apply, add_submonoid_class.coe_zero] },
+  { rw [h, hr, decompose_zero, zero_apply, add_submonoid_class.coe_zero] },
   { rw [decompose_of_mem_ne 𝒜 (set_like.coe_mem _) h] }
 end⟩
 

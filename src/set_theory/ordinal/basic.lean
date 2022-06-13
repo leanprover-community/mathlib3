@@ -1188,9 +1188,10 @@ let ⟨i, e⟩ := min_eq I (lift ∘ f) in
 by rw e; exact lift_le.2 (le_min.2 $ λ j, lift_le.1 $
 by have := min_le (lift ∘ f) j; rwa e at this)
 
+instance : order_bot ordinal := ⟨0, ordinal.zero_le⟩
+
 instance : conditionally_complete_linear_order_bot ordinal :=
-lt_wf.conditionally_complete_linear_order_with_bot 0 $ le_antisymm (ordinal.zero_le _) $
-  not_lt.1 (lt_wf.not_lt_min set.univ ⟨0, mem_univ _⟩ (mem_univ 0))
+lt_wf.conditionally_complete_linear_order_with_bot
 
 @[simp] lemma bot_eq_zero : (⊥ : ordinal) = 0 := rfl
 

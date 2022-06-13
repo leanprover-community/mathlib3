@@ -465,9 +465,9 @@ begin
     rw this,
     apply countable.union _ (countable_singleton _),
     rw [cardinal.countable_iff_lt_aleph_one, ← Hcont],
-    exact cardinal.card_typein_lt r x type_well_ordering_rel.symm },
+    exact cardinal.card_typein_lt _ x ordinal.type_well_ordering_rel.symm },
   { rw [cardinal.countable_iff_lt_aleph_one, ← Hcont],
-    exact cardinal.card_typein_lt r y type_well_ordering_rel.symm }
+    exact cardinal.card_typein_lt _ y ordinal.type_well_ordering_rel.symm }
 end
 
 /-- A family of sets in `ℝ` which only miss countably many points, but such that any point is

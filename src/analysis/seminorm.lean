@@ -195,7 +195,8 @@ calc 0 = f (x + (- x)) : by rw [add_neg_self, map_zero.of_smul smul]
 ...    = 2 * f x : by rw [neg.of_smul smul, two_mul],
 nonneg_of_mul_nonneg_left h zero_lt_two
 
-/-- Alternative constructor for a `seminorm` on an `add_comm_group E` over a `semi_norm_ring 𝕜`. -/
+/-- Alternative constructor for a `seminorm` on an `add_comm_group E` that is a module over a
+`semi_norm_ring 𝕜`. -/
 def seminorm.of {𝕜 : Type*} {E : Type*} [semi_normed_ring 𝕜] [add_comm_group E] [module 𝕜 E]
   (f : E → ℝ) (add_le : ∀ (x y : E), f (x + y) ≤ f x + f y)
   (smul : ∀ (a : 𝕜) (x : E), f (a • x) = ∥a∥ * f x) : seminorm 𝕜 E :=

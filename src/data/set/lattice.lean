@@ -384,6 +384,10 @@ theorem union_Inter (s : set β) (t : ι → set β) :
   s ∪ (⋂ i, t i) = ⋂ i, s ∪ t i :=
 sup_infi_eq _ _
 
+theorem Inter_union (s : ι → set β) (t : set β) :
+  (⋂ i, s i) ∪ t = ⋂ i, s i ∪ t :=
+infi_sup_eq _ _
+
 theorem Union_diff (s : set β) (t : ι → set β) :
   (⋃ i, t i) \ s = ⋃ i, t i \ s :=
 Union_inter _ _
@@ -405,19 +409,27 @@ let ⟨z, zb₁, zb₂⟩ := hd b₁ b₂,
 ⟨x, ⟨z, xf⟩, xa₁, xa₂⟩
 
 lemma Union_inter_subset {ι α} {s t : ι → set α} : (⋃ i, s i ∩ t i) ⊆ (⋃ i, s i) ∩ (⋃ i, t i) :=
-by { rintro x ⟨_, ⟨i, rfl⟩, xs, xt⟩, exact ⟨⟨_, ⟨i, rfl⟩, xs⟩, _, ⟨i, rfl⟩, xt⟩ }
+le_supr_inf_supr s t
 
-lemma Union_inter_of_monotone {ι α} [semilattice_sup ι] {s t : ι → set α}
+lemma Union_inter_of_monotone {ι α} [preorder ι] [is_directed ι (≤)] {s t : ι → set α}
   (hs : monotone s) (ht : monotone t) : (⋃ i, s i ∩ t i) = (⋃ i, s i) ∩ (⋃ i, t i) :=
-begin
-  ext x, refine ⟨λ hx, Union_inter_subset hx, _⟩,
-  rintro ⟨⟨_, ⟨i, rfl⟩, xs⟩, _, ⟨j, rfl⟩, xt⟩,
-  exact ⟨_, ⟨i ⊔ j, rfl⟩, hs le_sup_left xs, ht le_sup_right xt⟩
-end
+supr_inf_of_monotone hs ht
+
+lemma Union_inter_of_antitone {ι α} [preorder ι] [is_directed ι (swap (≤))] {s t : ι → set α}
+  (hs : antitone s) (ht : antitone t) : (⋃ i, s i ∩ t i) = (⋃ i, s i) ∩ (⋃ i, t i) :=
+supr_inf_of_antitone hs ht
+
+lemma Inter_union_of_monotone {ι α} [preorder ι] [is_directed ι (swap (≤))] {s t : ι → set α}
+  (hs : monotone s) (ht : monotone t) : (⋂ i, s i ∪ t i) = (⋂ i, s i) ∪ (⋂ i, t i) :=
+infi_sup_of_monotone hs ht
+
+lemma Inter_union_of_antitone {ι α} [preorder ι] [is_directed ι (≤)] {s t : ι → set α}
+  (hs : antitone s) (ht : antitone t) : (⋂ i, s i ∪ t i) = (⋂ i, s i) ∪ (⋂ i, t i) :=
+infi_sup_of_antitone hs ht
 
 /-- An equality version of this lemma is `Union_Inter_of_monotone` in `data.set.finite`. -/
 lemma Union_Inter_subset {s : ι → ι' → set α} : (⋃ j, ⋂ i, s i j) ⊆ ⋂ i, ⋃ j, s i j :=
-by { rintro x ⟨_, ⟨i, rfl⟩, hx⟩ _ ⟨j, rfl⟩, exact ⟨_, ⟨i, rfl⟩, hx _ ⟨j, rfl⟩⟩ }
+supr_infi_le_infi_supr (flip s)
 
 lemma Union_option {ι} (s : option ι → set α) : (⋃ o, s o) = s none ∪ ⋃ i, s (some i) :=
 supr_option s
@@ -537,13 +549,16 @@ theorem Inter_and {p q : Prop} (s : p ∧ q → set α) :
   (⋂ h, s h) = ⋂ hp hq, s ⟨hp, hq⟩ :=
 infi_and
 
-theorem Union_comm (s : ι → ι' → set α) :
-  (⋃ i i', s i i') = ⋃ i' i, s i i' :=
-supr_comm
+lemma Union_comm (s : ι → ι' → set α) : (⋃ i i', s i i') = ⋃ i' i, s i i' := supr_comm
+lemma Inter_comm (s : ι → ι' → set α) : (⋂ i i', s i i') = ⋂ i' i, s i i' := infi_comm
 
-theorem Inter_comm (s : ι → ι' → set α) :
-  (⋂ i i', s i i') = ⋂ i' i, s i i' :=
-infi_comm
+lemma Union₂_comm (s : Π i₁, κ₁ i₁ → Π i₂, κ₂ i₂ → set α) :
+  (⋃ i₁ j₁ i₂ j₂, s i₁ j₁ i₂ j₂) = ⋃ i₂ j₂ i₁ j₁, s i₁ j₁ i₂ j₂ :=
+supr₂_comm _
+
+lemma Inter₂_comm (s : Π i₁, κ₁ i₁ → Π i₂, κ₂ i₂ → set α) :
+  (⋂ i₁ j₁ i₂ j₂, s i₁ j₁ i₂ j₂) = ⋂ i₂ j₂ i₁ j₁, s i₁ j₁ i₂ j₂ :=
+infi₂_comm _
 
 @[simp] theorem bUnion_and (p : ι → Prop) (q : ι → ι' → Prop) (s : Π x y, p x ∧ q x y → set α) :
   (⋃ (x : ι) (y : ι') (h : p x ∧ q x y), s x y h) =

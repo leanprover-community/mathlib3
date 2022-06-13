@@ -319,8 +319,7 @@ lemma exists_T_pow (f : R[T;T⁻¹]) :
 begin
   apply f.induction_on' _ (λ n a, _); clear f,
   { rintros f g ⟨m, fn, hf⟩ ⟨n, gn, hg⟩,
-    by_cases h : m ≤ n;
-    refine ⟨m + n, fn * X ^ n + gn * X ^ m, _⟩;
+    refine ⟨m + n, fn * X ^ n + gn * X ^ m, _⟩,
     simp only [hf, hg, add_mul, add_comm (n : ℤ), map_add, map_mul, polynomial.to_laurent_X_pow,
       mul_T_assoc, int.coe_nat_add] },
   { cases n with n n,

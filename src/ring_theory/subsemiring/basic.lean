@@ -800,25 +800,27 @@ end subsemiring
 namespace ring_hom
 
 variables [non_assoc_semiring T] {s : subsemiring R}
+variables {σR σS : Type*}
+variables [set_like σR R] [set_like σS S] [subsemiring_class σR R] [subsemiring_class σS S]
 
 open subsemiring
 
 /-- Restriction of a ring homomorphism to a subsemiring of the domain. -/
-def srestrict (f : R →+* S) (s : subsemiring R) : s →+* S := f.comp s.subtype
+def restrict (f : R →+* S) (s : σR) : s →+* S := f.comp $ subsemiring_class.subtype s
 
-@[simp] lemma srestrict_apply (f : R →+* S) (x : s) : f.srestrict s x = f x := rfl
+@[simp] lemma restrict_apply (f : R →+* S) {s : σR} (x : s) : f.restrict s x = f x := rfl
 
 /-- Restriction of a ring homomorphism to a subsemiring of the codomain. -/
-def cod_srestrict (f : R →+* S) (s : subsemiring S) (h : ∀ x, f x ∈ s) : R →+* s :=
+def cod_restrict (f : R →+* S) (s : σS) (h : ∀ x, f x ∈ s) : R →+* s :=
 { to_fun := λ n, ⟨f n, h n⟩,
-  .. (f : R →* S).cod_mrestrict s.to_submonoid h,
-  .. (f : R →+ S).cod_mrestrict s.to_add_submonoid h }
+  .. (f : R →* S).cod_restrict s h,
+  .. (f : R →+ S).cod_restrict s h }
 
 /-- Restriction of a ring homomorphism to its range interpreted as a subsemiring.
 
 This is the bundled version of `set.range_factorization`. -/
 def srange_restrict (f : R →+* S) : R →+* f.srange :=
-f.cod_srestrict f.srange f.mem_srange_self
+f.cod_restrict f.srange f.mem_srange_self
 
 @[simp] lemma coe_srange_restrict (f : R →+* S) (x : R) :
   (f.srange_restrict x : S) = f x :=
@@ -874,7 +876,7 @@ open ring_hom
 
 /-- The ring homomorphism associated to an inclusion of subsemirings. -/
 def inclusion {S T : subsemiring R} (h : S ≤ T) : S →+* T :=
-S.subtype.cod_srestrict _ (λ x, h x.2)
+S.subtype.cod_restrict _ (λ x, h x.2)
 
 @[simp] lemma srange_subtype (s : subsemiring R) : s.subtype.srange = s :=
 set_like.coe_injective $ (coe_srange _).trans subtype.range_coe
@@ -973,9 +975,9 @@ instance [has_scalar α β] [has_scalar R' α] [has_scalar R' β] [is_scalar_tow
   is_scalar_tower S α β :=
 S.to_submonoid.is_scalar_tower
 
-instance [has_scalar R' α] [has_faithful_scalar R' α] (S : subsemiring R') :
-  has_faithful_scalar S α :=
-S.to_submonoid.has_faithful_scalar
+instance [has_scalar R' α] [has_faithful_smul R' α] (S : subsemiring R') :
+  has_faithful_smul S α :=
+S.to_submonoid.has_faithful_smul
 
 /-- The action by a subsemiring is the action by the underlying semiring. -/
 instance [has_zero α] [smul_with_zero R' α] (S : subsemiring R') : smul_with_zero S α :=

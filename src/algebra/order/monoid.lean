@@ -26,7 +26,7 @@ set_option old_structure_cmd true
 open function
 
 universe u
-variable {α : Type u}
+variables {α : Type u} {β : Type*}
 
 /-- An ordered commutative monoid is a commutative monoid
 with a partial order such that `a ≤ b → c * a ≤ c * b` (multiplication is monotone)
@@ -85,13 +85,13 @@ end ordered_instances
 /-- An `ordered_comm_monoid` with one-sided 'division' in the sense that
 if `a ≤ b`, there is some `c` for which `a * c = b`. This is a weaker version
 of the condition on canonical orderings defined by `canonically_ordered_monoid`. -/
-class has_exists_mul_of_le (α : Type u) [ordered_comm_monoid α] : Prop :=
+class has_exists_mul_of_le (α : Type u) [has_mul α] [has_le α] : Prop :=
 (exists_mul_of_le : ∀ {a b : α}, a ≤ b → ∃ (c : α), b = a * c)
 
 /-- An `ordered_add_comm_monoid` with one-sided 'subtraction' in the sense that
 if `a ≤ b`, then there is some `c` for which `a + c = b`. This is a weaker version
 of the condition on canonical orderings defined by `canonically_ordered_add_monoid`. -/
-class has_exists_add_of_le (α : Type u) [ordered_add_comm_monoid α] : Prop :=
+class has_exists_add_of_le (α : Type u) [has_add α] [has_le α] : Prop :=
 (exists_add_of_le : ∀ {a b : α}, a ≤ b → ∃ (c : α), b = a + c)
 
 attribute [to_additive] has_exists_mul_of_le
@@ -110,10 +110,40 @@ class linear_ordered_add_comm_monoid (α : Type*)
 class linear_ordered_comm_monoid (α : Type*)
   extends linear_order α, ordered_comm_monoid α.
 
+/-- Typeclass for expressing that the `0` of a type is less or equal to its `1`. -/
+class zero_le_one_class (α : Type*) [has_zero α] [has_one α] [has_le α] :=
+(zero_le_one : (0 : α) ≤ 1)
+
+@[simp] lemma zero_le_one [has_zero α] [has_one α] [has_le α] [zero_le_one_class α] : (0 : α) ≤ 1 :=
+zero_le_one_class.zero_le_one
+
+/- `zero_le_one` with an explicit type argument. -/
+lemma zero_le_one' (α) [has_zero α] [has_one α] [has_le α] [zero_le_one_class α] : (0 : α) ≤ 1 :=
+zero_le_one
+
+lemma zero_le_two [preorder α] [has_one α] [add_zero_class α] [zero_le_one_class α]
+  [covariant_class α α (+) (≤)] : (0 : α) ≤ 2 :=
+add_nonneg zero_le_one zero_le_one
+
+lemma one_le_two [has_le α] [has_one α] [add_zero_class α] [zero_le_one_class α]
+  [covariant_class α α (+) (≤)] : (1 : α) ≤ 2 :=
+calc 1 = 1 + 0 : (add_zero 1).symm
+   ... ≤ 1 + 1 : add_le_add_left zero_le_one _
+
+lemma one_le_two' [has_le α] [has_one α] [add_zero_class α] [zero_le_one_class α]
+  [covariant_class α α (swap (+)) (≤)] : (1 : α) ≤ 2 :=
+calc 1 = 0 + 1 : (zero_add 1).symm
+   ... ≤ 1 + 1 : add_le_add_right zero_le_one _
+
 /-- A linearly ordered commutative monoid with a zero element. -/
 class linear_ordered_comm_monoid_with_zero (α : Type*)
   extends linear_ordered_comm_monoid α, comm_monoid_with_zero α :=
 (zero_le_one : (0 : α) ≤ 1)
+
+@[priority 100]
+instance linear_ordered_comm_monoid_with_zero.zero_le_one_class
+  [h : linear_ordered_comm_monoid_with_zero α] : zero_le_one_class α :=
+{ ..h }
 
 /-- A linearly ordered commutative monoid with an additively absorbing `⊤` element.
   Instances should include number systems with an infinite element adjoined.` -/
@@ -770,11 +800,26 @@ namespace prod
 variables {M N : Type*}
 
 @[to_additive]
+instance [ordered_comm_monoid α] [ordered_comm_monoid β] : ordered_comm_monoid (α × β) :=
+{ mul_le_mul_left := λ a b h c, ⟨mul_le_mul_left' h.1 _, mul_le_mul_left' h.2 _⟩,
+  .. prod.comm_monoid, .. prod.partial_order _ _ }
+
+@[to_additive]
 instance [ordered_cancel_comm_monoid M] [ordered_cancel_comm_monoid N] :
   ordered_cancel_comm_monoid (M × N) :=
-{ mul_le_mul_left := λ a b h c, ⟨mul_le_mul_left' h.1 _, mul_le_mul_left' h.2 _⟩,
-  le_of_mul_le_mul_left := λ a b c h, ⟨le_of_mul_le_mul_left' h.1, le_of_mul_le_mul_left' h.2⟩,
- .. prod.cancel_comm_monoid, .. prod.partial_order M N }
+{ le_of_mul_le_mul_left := λ a b c h, ⟨le_of_mul_le_mul_left' h.1, le_of_mul_le_mul_left' h.2⟩,
+  .. prod.cancel_comm_monoid, .. prod.ordered_comm_monoid }
+
+@[to_additive] instance [has_le α] [has_le β] [has_mul α] [has_mul β] [has_exists_mul_of_le α]
+  [has_exists_mul_of_le β] : has_exists_mul_of_le (α × β) :=
+⟨λ a b h, let ⟨c, hc⟩ := exists_mul_of_le h.1, ⟨d, hd⟩ := exists_mul_of_le h.2 in
+  ⟨(c, d), ext hc hd⟩⟩
+
+@[to_additive] instance [canonically_ordered_monoid α] [canonically_ordered_monoid β] :
+  canonically_ordered_monoid (α × β) :=
+{ le_iff_exists_mul := λ a b,
+    ⟨exists_mul_of_le, by { rintro ⟨c, rfl⟩, exact ⟨le_self_mul, le_self_mul⟩ }⟩,
+  .. prod.ordered_comm_monoid, .. prod.order_bot _ _ }
 
 end prod
 
@@ -801,6 +846,9 @@ trans eq_comm coe_eq_one
 
 @[simp, to_additive] theorem top_ne_one : ⊤ ≠ (1 : with_top α) .
 @[simp, to_additive] theorem one_ne_top : (1 : with_top α) ≠ ⊤ .
+
+instance [has_zero α] [has_le α] [zero_le_one_class α] : zero_le_one_class (with_top α) :=
+⟨some_le_some.2 zero_le_one⟩
 
 end has_one
 
@@ -1072,7 +1120,11 @@ instance [add_semigroup α] : add_semigroup (with_bot α) := with_top.add_semigr
 instance [add_comm_semigroup α] : add_comm_semigroup (with_bot α) := with_top.add_comm_semigroup
 instance [add_zero_class α] : add_zero_class (with_bot α) := with_top.add_zero_class
 instance [add_monoid α] : add_monoid (with_bot α) := with_top.add_monoid
-instance [add_comm_monoid α] : add_comm_monoid (with_bot α) :=  with_top.add_comm_monoid
+instance [add_comm_monoid α] : add_comm_monoid (with_bot α) := with_top.add_comm_monoid
+
+instance [has_zero α] [has_one α] [has_le α] [zero_le_one_class α] :
+  zero_le_one_class (with_bot α) :=
+⟨some_le_some.2 zero_le_one⟩
 
 -- `by norm_cast` proves this lemma, so I did not tag it with `norm_cast`
 @[to_additive]
@@ -1182,12 +1234,22 @@ end with_bot
 
 section type_tags
 
+instance : Π [has_le α], has_le (multiplicative α) := id
+instance : Π [has_le α], has_le (additive α) := id
+instance : Π [has_lt α], has_lt (multiplicative α) := id
+instance : Π [has_lt α], has_lt (additive α) := id
 instance : Π [preorder α], preorder (multiplicative α) := id
 instance : Π [preorder α], preorder (additive α) := id
 instance : Π [partial_order α], partial_order (multiplicative α) := id
 instance : Π [partial_order α], partial_order (additive α) := id
 instance : Π [linear_order α], linear_order (multiplicative α) := id
 instance : Π [linear_order α], linear_order (additive α) := id
+instance [has_le α] : Π [order_bot α], order_bot (multiplicative α) := id
+instance [has_le α] : Π [order_bot α], order_bot (additive α) := id
+instance [has_le α] : Π [order_top α], order_top (multiplicative α) := id
+instance [has_le α] : Π [order_top α], order_top (additive α) := id
+instance [has_le α] : Π [bounded_order α], bounded_order (multiplicative α) := id
+instance [has_le α] : Π [bounded_order α], bounded_order (additive α) := id
 
 instance [ordered_add_comm_monoid α] : ordered_comm_monoid (multiplicative α) :=
 { mul_le_mul_left := @ordered_add_comm_monoid.add_le_add_left α _,
@@ -1216,6 +1278,29 @@ instance [linear_ordered_add_comm_monoid α] : linear_ordered_comm_monoid (multi
 instance [linear_ordered_comm_monoid α] : linear_ordered_add_comm_monoid (additive α) :=
 { ..additive.linear_order,
   ..additive.ordered_add_comm_monoid }
+
+instance [has_add α] [has_le α] [has_exists_add_of_le α] :
+  has_exists_mul_of_le (multiplicative α) :=
+⟨@exists_add_of_le α _ _ _⟩
+
+instance [has_mul α] [has_le α] [has_exists_mul_of_le α] : has_exists_add_of_le (additive α) :=
+⟨@exists_mul_of_le α _ _ _⟩
+
+instance [canonically_ordered_add_monoid α] : canonically_ordered_monoid (multiplicative α) :=
+{ le_iff_exists_mul := @le_iff_exists_add α _,
+  ..multiplicative.ordered_comm_monoid, ..multiplicative.order_bot }
+
+instance [canonically_ordered_monoid α] : canonically_ordered_add_monoid (additive α) :=
+{ le_iff_exists_add := @le_iff_exists_mul α _,
+  ..additive.ordered_add_comm_monoid, ..additive.order_bot }
+
+instance [canonically_linear_ordered_add_monoid α] :
+  canonically_linear_ordered_monoid (multiplicative α) :=
+{ ..multiplicative.canonically_ordered_monoid, ..multiplicative.linear_order }
+
+instance [canonically_linear_ordered_monoid α] :
+  canonically_linear_ordered_add_monoid (additive α) :=
+{ ..additive.canonically_ordered_add_monoid, ..additive.linear_order }
 
 namespace additive
 

@@ -415,6 +415,18 @@ end
 theorem irreducible_of_factor {a : α} : ∀ (x : α), x ∈ factors a → irreducible x :=
 λ x h, (prime_of_factor x h).irreducible
 
+@[simp] lemma factors_zero : factors (0 : α) = 0 :=
+by simp [factors]
+
+@[simp] lemma factors_one : factors (1 : α) = 0 :=
+begin
+  nontriviality α using [factors],
+  rw ← multiset.rel_zero_right,
+  refine factors_unique irreducible_of_factor (λ x hx, (multiset.not_mem_zero x hx).elim) _,
+  rw multiset.prod_zero,
+  exact factors_prod one_ne_zero,
+end
+
 lemma exists_mem_factors_of_dvd {a p : α} (ha0 : a ≠ 0) (hp : irreducible p) : p ∣ a →
   ∃ q ∈ factors a, p ~ᵤ q :=
 λ ⟨b, hb⟩,
@@ -438,6 +450,29 @@ end
 
 lemma dvd_of_mem_factors {p a : α} (h : p ∈ factors a) : p ∣ a :=
 dvd_trans (multiset.dvd_prod h) (associated.dvd (factors_prod (ne_zero_of_mem_factors h)))
+
+lemma factors_mul {x y : α} (hx : x ≠ 0) (hy : y ≠ 0) :
+  multiset.rel associated (factors (x * y)) (factors x + factors y) :=
+begin
+  refine factors_unique irreducible_of_factor
+    (λ a ha, (multiset.mem_add.mp ha).by_cases (irreducible_of_factor _) (irreducible_of_factor _))
+    ((factors_prod (mul_ne_zero hx hy)).trans _),
+  rw multiset.prod_add,
+  exact (associated.mul_mul (factors_prod hx) (factors_prod hy)).symm,
+end
+
+lemma factors_pow {x : α} (n : ℕ) :
+  multiset.rel associated (factors (x ^ n)) (n • factors x) :=
+begin
+  induction n with n ih,
+  { simp },
+  by_cases h0 : x = 0,
+  { simp [h0, zero_pow n.succ_pos, smul_zero] },
+  rw [pow_succ, succ_nsmul],
+  refine multiset.rel.trans _ (factors_mul h0 (pow_ne_zero n h0)) _,
+  refine multiset.rel.add _ ih,
+  exact multiset.rel_refl_of_refl_on (λ y hy, associated.refl _),
+end
 
 end unique_factorization_monoid
 

@@ -694,6 +694,9 @@ cSup_le' $ forall_range_iff.2 h
 lemma exists_lt_of_lt_csupr' {f : ι → α} {a : α} (h : a < ⨆ i, f i) : ∃ i, a < f i :=
 by { contrapose! h, exact csupr_le' h }
 
+lemma cInf_le_cInf' {s t : set α} (h₁ : t.nonempty) (h₂ : t ⊆ s) : Inf s ≤ Inf t :=
+cInf_le_cInf (order_bot.bdd_below s) h₁ h₂
+
 end conditionally_complete_linear_order_bot
 
 namespace with_top

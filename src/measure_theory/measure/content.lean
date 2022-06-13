@@ -51,7 +51,7 @@ universes u v w
 noncomputable theory
 
 open set topological_space
-open_locale nnreal ennreal
+open_locale nnreal ennreal measure_theory
 
 namespace measure_theory
 
@@ -288,7 +288,7 @@ lemma is_mul_left_invariant_outer_measure [group G] [topological_group G]
 by convert μ.outer_measure_preimage (homeomorph.mul_left g) (λ K, h g) A
 
 lemma outer_measure_caratheodory (A : set G) :
-  μ.outer_measure.caratheodory.measurable_set' A ↔ ∀ (U : opens G),
+  measurable_set[μ.outer_measure.caratheodory] A ↔ ∀ (U : opens G),
   μ.outer_measure (U ∩ A) + μ.outer_measure (U \ A) ≤ μ.outer_measure U :=
 begin
   dsimp [opens], rw subtype.forall,

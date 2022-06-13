@@ -133,9 +133,8 @@ section
 open_locale classical
 
 /-- A well founded linear order is conditionally complete, with a bottom element. -/
-@[reducible] noncomputable def well_founded.conditionally_complete_linear_order_with_bot
-  {α : Type*} [i : linear_order α] (h : well_founded ((<) : α → α → Prop))
-  (c : α) (hc : c = h.min set.univ ⟨c, mem_univ c⟩) :
+@[reducible] noncomputable def well_founded.conditionally_complete_linear_order_bot
+  (α : Type*) [i : linear_order α] [h : is_well_order α (<)] [b : order_bot α] :
   conditionally_complete_linear_order_bot α :=
 { sup := max,
   le_sup_left := le_max_left,
@@ -145,34 +144,28 @@ open_locale classical
   inf_le_left := min_le_left,
   inf_le_right := min_le_right,
   le_inf := λ a b c, le_min,
-  Inf := λ s, if hs : s.nonempty then h.min s hs else c,
+  Inf := λ s, if hs : s.nonempty then h.wf.min s hs else ⊥,
   cInf_le := λ s a hs has, begin
     have s_ne : s.nonempty := ⟨a, has⟩,
-    simpa [s_ne] using not_lt.1 (h.not_lt_min s s_ne has),
+    simpa [s_ne] using not_lt.1 (h.wf.not_lt_min s s_ne has),
   end,
   le_cInf := λ s a hs has, begin
     simp only [hs, dif_pos],
-    exact has (h.min_mem s hs),
+    exact has (h.wf.min_mem s hs),
   end,
-  Sup := λ s, if hs : (upper_bounds s).nonempty then h.min _ hs else c,
+  Sup := λ s, if hs : (upper_bounds s).nonempty then h.wf.min _ hs else ⊥,
   le_cSup := λ s a hs has, begin
     have h's : (upper_bounds s).nonempty := hs,
     simp only [h's, dif_pos],
-    exact h.min_mem _ h's has,
+    exact h.wf.min_mem _ h's has,
   end,
   cSup_le := λ s a hs has, begin
     have h's : (upper_bounds s).nonempty := ⟨a, has⟩,
     simp only [h's, dif_pos],
-    simpa using h.not_lt_min _ h's has,
+    simpa using h.wf.not_lt_min _ h's has,
   end,
-  bot := c,
-  bot_le := λ x, by convert not_lt.1 (h.not_lt_min set.univ ⟨c, mem_univ c⟩ (mem_univ x)),
-  cSup_empty := begin
-    have : (set.univ : set α).nonempty := ⟨c, mem_univ c⟩,
-    simp only [this, dif_pos, upper_bounds_empty],
-    exact hc.symm
-  end,
-  .. i }
+  cSup_empty := by simpa using eq_bot_iff.2 (not_lt.1 $ h.wf.not_lt_min _ _ $ mem_univ ⊥),
+  ..i, ..b }
 
 end
 

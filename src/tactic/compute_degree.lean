@@ -84,34 +84,31 @@ lemma nat_degree_bit1 {R : Type*} [semiring R] (a : polynomial R) :
   (bit1 a).nat_degree ≤ a.nat_degree :=
 (nat_degree_add_le _ _).trans (by simp [nat_degree_bit0])
 
-lemma nat_degree_zero' {R : Type*} [semiring R] :
-  (0 : polynomial R).nat_degree = 0 :=
-nat_degree_zero
-
-lemma nat_degree_one' {R : Type*} [semiring R] :
-  (1 : polynomial R).nat_degree = 0 :=
-nat_degree_one
-
 end polynomial
 
 namespace tactic
 open expr
 
-meta def is_num : expr → option ℕ
+/--  If an expression `e` is an iterated suquence of `bit0` and `bit1` starting from `0` or `1`,
+then `num_to_nat e` returns `some n`, where `n` is the natural number obtained from the same
+sequence of `bit0` and `bit1` applied to `0` or `1`.  Otherwise, `num_to_nat e = none`. -/
+-- for the application, the line `| `(has_zero.zero) := some 0` step is unnecessary: the standard
+-- assumption is that the coefficient of the term of highest-looking term is non-zero.
+meta def num_to_nat : expr → option ℕ
 | `(has_zero.zero) := some 0
 | `(has_one.one) := some 1
-| `(bit0 %%a) := match is_num a with
+| `(bit0 %%a) := match num_to_nat a with
   | some an := some (bit0 an)
   | none := none
   end
-| `(bit1 %%a) := match is_num a with
+| `(bit1 %%a) := match num_to_nat a with
   | some an := some (bit1 an)
   | none := none
   end
 | _ := none
 
 meta def convert_num_to_C_num (a : expr) : tactic unit :=
-match is_num a with
+match num_to_nat a with
 | some an := do
   `(@polynomial %%R %%inst) ← infer_type a,
   n_eq_Cn ← to_expr ``(%%a = polynomial.C (%%an : %%R)),
@@ -125,6 +122,15 @@ end
 `C a * X (^ n)?`.  It has special support for `C 1`, when there is a `nontrivial` assumption on the
 base-semiring. -/
 meta def C_mul_terms : expr → tactic unit
+| `(has_mul.mul %%a %%X) := do
+  convert_num_to_C_num a,
+  refine ``(polynomial.nat_degree_C_mul_X _ _) <|>
+    refine ``(polynomial.nat_degree_C_mul_X_pow _ _ _) <|>
+    fail "The leading term is not of the form\n`C a * X (^ n)`\n\n",
+  assumption <|> interactive.exact ``(one_ne_zero) <|> skip
+| _ := fail "The leading term is not of the form\n`C a * X (^ n)`\n\n"
+
+meta def C_mul_terms_old : expr → tactic unit
 | `(has_mul.mul %%a %%X) := do match X with
   | `(polynomial.X) := do  -- a * X
     convert_num_to_C_num a,
@@ -138,26 +144,40 @@ meta def C_mul_terms : expr → tactic unit
   end
 | _ := fail "The leading term is not of the form\n`C a * X (^ n)`\n\n"
 
-/--  Let `e` be an expression.  Assume that `e` is either a pure `X`-power or `C a` times a pure
-`X`-power in a polynomial ring over `R`.
+/--  Let `e` be an expression.  Assume that `e` is
+* `C a * X (^ n)`,
+* `num * X (^ n)`, where `num` is a sequence of `bit0` and `bit1` applied to `1`,
+* `monomial n a`,
+* `X (^ n)`,
+in a polynomial ring over `R`.
 `single_term_resolve e` produces a proof of the goal `e.nat_degree = d`, where `d` is the
 exponent of `X`.
 
-Assumptions: either there is an assumption in context asserting that the constant in front of the
-power of `X` is non-zero, or the tactic `nontriviality R` succeeds. -/
+Assumptions: the tactic tries to discharge the proof that constant in front of the power of `X` is
+non-zero using `assumption <|> ...`.
+When it is needed, `single_term_resolve` produces a `nontriviality` assumption using tactic
+`nontriviality R` or fails. -/
 meta def single_term_resolve : expr → tactic unit
+| `(has_mul.mul %%a %%X) := do
+  convert_num_to_C_num a,
+  refine ``(polynomial.nat_degree_C_mul_X _ _) <|>
+    refine ``(polynomial.nat_degree_C_mul_X_pow _ _ _) <|>
+    fail "The leading term is not of the form\n`C a * X (^ n)`\n\n",
+  assumption <|> interactive.exact ``(one_ne_zero) <|> skip
 | (app `(⇑(@polynomial.monomial %%R %%inst %%n)) x) :=
   refine ``(polynomial.nat_degree_monomial_eq %%n _) *>
   assumption <|> interactive.exact ``(one_ne_zero) <|> skip
 | (app `(⇑(@polynomial.C %%R %%inst)) x) :=
   interactive.exact ``(polynomial.nat_degree_C _)
 | `(@has_pow.pow (@polynomial %%R %%nin) ℕ %%inst %%mX %%n) :=
-  nontriviality_by_assumption R *>
+  (nontriviality_by_assumption R <|>
+    fail format!"could not produce a 'nontrivial {R}' assumption") >>
   refine ``(polynomial.nat_degree_X_pow %%n)
 | `(@polynomial.X %%R %%inst) :=
-  nontriviality_by_assumption R *>
+  (nontriviality_by_assumption R <|>
+    fail format!"could not produce a 'nontrivial {R}' assumption") >>
   interactive.exact ``(polynomial.nat_degree_X)
-| e := C_mul_terms e
+| e := fail "C_mul_terms e"
 
 /--
  `guess_degree e` assumes that `e` is a single summand of a polynomial and makes an attempt

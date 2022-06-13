@@ -29,7 +29,7 @@ example : nat_degree (X + 1 : polynomial R) = 1 :=
 by compute_degree
 
 example : nat_degree (C 1 * X + 1 : polynomial R) = 1 :=
-by {compute_degree}
+by compute_degree
 
 example {R : Type*} [ring R] (a : R) (h : -a ≠ 0) :
   nat_degree (C a * X ^ 2 + 1 : polynomial R) = 2 :=

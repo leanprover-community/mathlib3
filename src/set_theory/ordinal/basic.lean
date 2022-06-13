@@ -1216,13 +1216,13 @@ begin
     (quot.sound ⟨rel_iso.preimage f i.1⟩)
 end
 
-lemma ord_eq_min (α : Type u) : ord (#α) = ⨅ r : {r // is_well_order α r}, @type α r.1 r.2 :=
+lemma ord_eq_Inf (α : Type u) : ord (#α) = ⨅ r : {r // is_well_order α r}, @type α r.1 r.2 :=
 rfl
 
 theorem ord_eq (α) : ∃ (r : α → α → Prop) [wo : is_well_order α r], ord (#α) = @type α r wo :=
 let ⟨r, wo⟩ := infi_mem (λ r : {r // is_well_order α r}, @type α r.1 r.2) in ⟨r.1, r.2, wo.symm⟩
 
-theorem ord_le_type (r : α → α → Prop) [h : is_well_order α r] : ord (#α) ≤ ordinal.type r :=
+theorem ord_le_type (r : α → α → Prop) [h : is_well_order α r] : ord (#α) ≤ type r :=
 cinfi_le' _ (subtype.mk r h)
 
 theorem ord_le {c o} : ord c ≤ o ↔ c ≤ o.card :=

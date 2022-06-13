@@ -46,23 +46,15 @@ def trivial [nontrivial R] [decidable_pred (λ x : R, is_unit x)] : R →*₀ R'
                    split_ifs; tauto, } }
 attribute [protected] trivial
 
-/-- A multiplicative character takes unit values on units -/
-lemma is_unit_of_is_unit (χ : R →*₀ R') {a : R} (ha : is_unit a) : is_unit (χ a) :=
-begin
-  obtain ⟨u, rfl⟩ := ha,
-  exact is_unit_of_mul_eq_one _ _
-          (by rw [← map_mul, units.mul_inv, map_one] : χ u * χ (u⁻¹ : Rˣ) = 1),
-end
-
-/-- A multiplicative character is *nontrivial* if it takes a value `≠ 1` on a unit -/
+/-- A multiplicative character is *nontrivial* if it takes a value `≠ 1` on a unit. -/
 def is_nontrivial (χ : R →*₀ R') : Prop := ∃ (a : R), is_unit a ∧ χ a ≠ 1
 
-/-- A multiplicative character is *quadratic* if it takes only the values `0`, `1`, `-1` -/
+/-- A multiplicative character is *quadratic* if it takes only the values `0`, `1`, `-1`. -/
 def is_quadratic (χ : R →*₀ R') : Prop := ∀ a, χ a = 0 ∨ χ a = 1 ∨ χ a = -1
 
-/-- Composition with an injective ring homomorphism preserves nontriviality -/
-lemma comp_is_nontrivial {χ : R →*₀ R'} (hχ : is_nontrivial χ) {R'' : Type w} [comm_ring R'']
-  (f : R' →+* R'') (hf : function.injective f) :
+/-- Composition with an injective ring homomorphism preserves nontriviality. -/
+lemma is_nontrivial.comp {χ : R →*₀ R'} (hχ : is_nontrivial χ) {R'' : Type w} [comm_ring R'']
+  {f : R' →+* R''} (hf : function.injective f) :
    is_nontrivial (f.to_monoid_with_zero_hom.comp χ) :=
 begin
   obtain ⟨a, ha₁, ha₂⟩ := hχ,
@@ -70,13 +62,13 @@ begin
   erw [ha, map_one],
 end
 
-/-- Composition with a ring homomorphism preserves the property of being a quadratic character -/
-lemma comp_is_quadratic {χ : R →*₀ R'} (hχ : is_quadratic χ) {R'' : Type w} [comm_ring R'']
+/-- Composition with a ring homomorphism preserves the property of being a quadratic character. -/
+lemma is_quadratic.comp {χ : R →*₀ R'} (hχ : is_quadratic χ) {R'' : Type w} [comm_ring R'']
   (f : R' →+* R'') : is_quadratic (f.to_monoid_with_zero_hom.comp χ) :=
 begin
   intro a,
-  have hχ' : f.to_monoid_with_zero_hom.comp χ a = f (χ a) := rfl,
-  rw [hχ'],
+  simp only [monoid_with_zero_hom.coe_comp, ring_hom.to_monoid_with_zero_hom_eq_coe,
+             function.comp_app],
   rcases hχ a with (ha | ha | ha); rw [ha],
   { left,
     rw [map_zero], },
@@ -88,16 +80,17 @@ end
 
 /-- If `χ` is a quadratic character and `a : R` is a unit, then `(χ a) * (χ a) = 1`. -/
 lemma quad_char_sq_eq_one {χ : R →*₀ R'} [nontrivial R'] (hχ : is_quadratic χ)
- {a : R} (ha : is_unit a) : χ a * χ a = 1 :=
+ {a : R} (ha : is_unit a) : χ a ^ 2 = 1 :=
 begin
   rcases hχ a with (h | h | h),
-  { have hu := is_unit_of_is_unit χ ha,
+  { have hu := is_unit.map χ ha,
     rw h at hu ⊢,
     exact false.rec _ (is_unit.ne_zero hu rfl), },
-  all_goals { simp only [h, mul_neg, mul_one, neg_neg], },
+  { rw [h, one_pow], },
+  { rw [h, neg_one_sq], },
 end
 
-/-- For positive `n : ℕ`, define `χ ^ n` as `χ` composed with the `n`the power homomorphism -/
+/-- For positive `n : ℕ`, define `χ ^ n` as `χ` composed with the `n`the power homomorphism. -/
 def pow_pos (χ : R →*₀ R') {n : ℕ} (hn : 0 < n) : R →*₀ R' :=
 χ.comp (pow_monoid_with_zero_hom hn)
 
@@ -109,8 +102,9 @@ by simp only [pow_pos, pow_monoid_with_zero_hom_apply, monoid_with_zero_hom.coe_
 
 /-- The `p`th power of a quadratic character is itself, when `p` is the (prime) characteristic
 of the target ring. -/
-lemma quad_char_pow_char {χ : R →*₀ R'} (hχ : is_quadratic χ) (p : ℕ) [fact p.prime] [char_p R' p] :
-  pow_pos χ (fact.out p.prime).pos = χ :=
+lemma quad_char_pow_char {χ : R →*₀ R'} (hχ : is_quadratic χ)
+ (p : ℕ) [hp : fact p.prime] [char_p R' p] :
+  pow_pos χ hp.1.pos = χ :=
 begin
   ext,
   rw [pow_pos_spec],
@@ -132,7 +126,7 @@ begin
   { exact odd.neg_one_pow (nat.odd_iff.mpr hn), },
 end
 
-/-- The inverse of a multiplicative character -/
+/-- The inverse of a multiplicative character. -/
 noncomputable
 def inv' (χ : R →*₀ R') : R →*₀ R' := χ.comp monoid_with_zero.inverse
 attribute [protected] inv'
@@ -153,7 +147,7 @@ begin
   simp only [inv_spec, inv'_spec, ring.inverse_eq_inv'],
 end
 
-/-- The product of a character with its inverse is the trivial character -/
+/-- The product of a character with its inverse is the trivial character. -/
 @[simp]
 lemma mul_inv [nontrivial R] [decidable_pred (λ (x : R), is_unit x)] (χ : R →*₀ R') :
   χ * (inv' χ) = mul_char.trivial :=
@@ -167,7 +161,7 @@ begin
   { rw [ring.inverse_non_unit x h, mul_zero, map_zero], },
 end
 
-/-- The inverse of a quadratic character is itself -/
+/-- The inverse of a quadratic character is itself. -/
 lemma quadratic_char_inv {χ : R →*₀ R'} (hχ : is_quadratic χ) (hχ' : ∀ a, χ a ≠ 0 → is_unit a) :
   inv' χ = χ :=
 begin
@@ -175,12 +169,12 @@ begin
   rw [inv'_spec],
   by_cases hx : is_unit x,
   { haveI := is_unit.invertible hx,
-    apply_fun (λ a, a * χ x) using (is_unit.is_regular (is_unit_of_is_unit χ hx)).right,
+    apply_fun (λ a, a * χ x) using (is_unit.is_regular (is_unit.map χ hx)).right,
     change χ _ * χ x = χ x * χ x,
     rw [← map_mul, ring.inverse_invertible, inv_of_mul_self, map_one],
     rcases hχ x with h₀ | h₁ | h₂,
     { rw [h₀, mul_zero],
-      exact (is_unit_zero_iff.mp (cast (congr_arg is_unit h₀) (is_unit_of_is_unit χ hx))).symm, },
+      exact (is_unit_zero_iff.mp (cast (congr_arg is_unit h₀) (is_unit.map χ hx))).symm, },
     { rw [h₁, mul_one], },
     { rw [h₂, neg_one_mul, neg_neg], }, },
   { rw [ring.inverse_non_unit x hx, map_zero],
@@ -200,7 +194,7 @@ end
 
 open_locale big_operators
 
-/-- The sum over all values of a nontrivial multiplicative character is zero -/
+/-- The sum over all values of a nontrivial multiplicative character is zero. -/
 lemma sum_eq_zero_of_is_nontrivial [fintype R] [is_domain R'] {χ : R →*₀ R'}
  (hχ : is_nontrivial χ) : ∑ a, χ a = 0 :=
 begin

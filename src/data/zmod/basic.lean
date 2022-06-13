@@ -104,30 +104,25 @@ instance has_repr : Π (n : ℕ), has_repr (zmod n)
 | (n+1) := fin.has_repr _
 
 instance comm_ring (n : ℕ) : comm_ring (zmod n) :=
-{ add := nat.cases_on n
-    (@comm_ring.add _ int.comm_ring) (λ n, @comm_ring.add _ (fin.comm_ring _)),
-  add_assoc := nat.cases_on n comm_ring.add_assoc (λ n, comm_ring.add_assoc),
-  zero := nat.cases_on n
-    (@comm_ring.zero _ int.comm_ring) (λ n, @comm_ring.zero _ (fin.comm_ring _)),
-  zero_add := nat.cases_on n comm_ring.zero_add (λ n, comm_ring.zero_add),
-  add_zero := nat.cases_on n comm_ring.add_zero (λ n, comm_ring.add_zero),
-  neg := nat.cases_on n
-    (@comm_ring.neg _ int.comm_ring) (λ n, @comm_ring.neg _ (fin.comm_ring _)),
-  sub := nat.cases_on n
-    (@comm_ring.sub _ int.comm_ring) (λ n, @comm_ring.sub _ (fin.comm_ring _)),
-  sub_eq_add_neg := begin cases n; exact comm_ring.sub_eq_add_neg, end,
-  add_left_neg := begin cases n; exact comm_ring.add_left_neg, end,
-  add_comm := begin cases n; exact comm_ring.add_comm, end,
-  mul := nat.cases_on n
-    (@comm_ring.mul _ int.comm_ring) (λ n, @comm_ring.mul _ (fin.comm_ring _)),
-  mul_assoc := begin cases n; exact comm_ring.mul_assoc, end,
-  one := nat.cases_on n
-    (@comm_ring.one _ int.comm_ring) (λ n, @comm_ring.one _ (fin.comm_ring _)),
-  one_mul := nat.cases_on n comm_ring.one_mul (λ n, comm_ring.one_mul),
-  mul_one := nat.cases_on n comm_ring.mul_one (λ n, comm_ring.mul_one),
-  left_distrib := begin cases n; exact comm_ring.left_distrib, end,
-  right_distrib := begin cases n; exact comm_ring.right_distrib, end,
-  mul_comm := begin cases n; exact comm_ring.mul_comm, end, }
+{ add := nat.cases_on n ((@has_add.add) int _) (λ n, @has_add.add (fin n.succ) _),
+  add_assoc := nat.cases_on n (@add_assoc int _) (λ n, @add_assoc (fin n.succ) _),
+  zero := nat.cases_on n (0 : int) (λ n, (0 : fin n.succ)),
+  zero_add := nat.cases_on n (@zero_add int _) (λ n, @zero_add (fin n.succ) _),
+  add_zero := nat.cases_on n (@add_zero int _) (λ n, @add_zero (fin n.succ) _),
+  neg := nat.cases_on n ((@has_neg.neg) int _) (λ n, @has_neg.neg (fin n.succ) _),
+  sub := nat.cases_on n ((@has_sub.sub) int _) (λ n, @has_sub.sub (fin n.succ) _),
+  sub_eq_add_neg := nat.cases_on n (@sub_eq_add_neg int _) (λ n, @sub_eq_add_neg (fin n.succ) _),
+  add_left_neg := by { cases n, exacts [@add_left_neg int _, @add_left_neg (fin n.succ) _] },
+  add_comm := nat.cases_on n (@add_comm int _) (λ n, @add_comm (fin n.succ) _),
+  mul := nat.cases_on n ((@has_mul.mul) int _) (λ n, @has_mul.mul (fin n.succ) _),
+  mul_assoc := nat.cases_on n (@mul_assoc int _) (λ n, @mul_assoc (fin n.succ) _),
+  one := nat.cases_on n (1 : int) (λ n, (1 : fin n.succ)),
+  one_mul := nat.cases_on n (@one_mul int _) (λ n, @one_mul (fin n.succ) _),
+  mul_one := nat.cases_on n (@mul_one int _) (λ n, @mul_one (fin n.succ) _),
+  left_distrib := nat.cases_on n (@left_distrib int _ _ _) (λ n, @left_distrib (fin n.succ) _ _ _),
+  right_distrib :=
+    nat.cases_on n (@right_distrib int _ _ _) (λ n, @right_distrib (fin n.succ) _ _ _),
+  mul_comm := nat.cases_on n (@mul_comm int _) (λ n, @mul_comm (fin n.succ) _) }
 
 instance inhabited (n : ℕ) : inhabited (zmod n) := ⟨0⟩
 

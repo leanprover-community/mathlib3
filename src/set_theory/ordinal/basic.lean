@@ -764,7 +764,7 @@ protected theorem zero_le (o : ordinal) : 0 ≤ o :=
 induction_on o $ λ α r _, ⟨⟨⟨embedding.of_is_empty, is_empty_elim⟩, is_empty_elim⟩⟩
 
 instance : order_bot ordinal :=
-⟨0, ordinal.zero_le⟩ 
+⟨0, ordinal.zero_le⟩
 
 @[simp] protected theorem le_zero {o : ordinal} : o ≤ 0 ↔ o = 0 :=
 by simp only [le_antisymm_iff, ordinal.zero_le, and_true]
@@ -1190,6 +1190,8 @@ le_antisymm (le_min.2 $ λ a, lift_le.2 $ min_le _ a) $
 let ⟨i, e⟩ := min_eq I (lift ∘ f) in
 by rw e; exact lift_le.2 (le_min.2 $ λ j, lift_le.1 $
 by have := min_le (lift ∘ f) j; rwa e at this)
+
+instance : order_bot ordinal := ⟨0, ordinal.zero_le⟩
 
 instance : conditionally_complete_linear_order_bot ordinal :=
 well_founded.conditionally_complete_linear_order_bot _

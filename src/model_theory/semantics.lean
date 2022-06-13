@@ -142,11 +142,12 @@ begin
   induction t with _ n f _ ih,
   { simp },
   { cases n,
-    { cases f;
-      simp [ih], }, },
+    { cases f,
+      { simp [ih], },
+      { simp [ih], } }, },
     { cases f,
       { simp [ih] },
-      { exact is_empty_elim f } } }
+      { exact is_empty_elim f } }
 end
 
 @[simp] lemma realize_vars_to_constants [L[[α]].Structure M]

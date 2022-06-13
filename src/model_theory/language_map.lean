@@ -422,6 +422,13 @@ instance add_constants_expansion {L' : language} [L'.Structure M] (φ : L →ᴸ
   (φ.add_constants α).is_expansion_on M :=
 Lhom.sum_map_is_expansion_on _ _ M
 
+@[simp] lemma with_constants_fun_map_sum_inr {a : α} {x : fin 0 → M} :
+  @fun_map (L[[α]]) M _ 0 (sum.inr a : L[[α]].functions 0) x = L.con a :=
+begin
+  rw unique.eq_default x,
+  exact (Lhom.sum_inr : (constants_on α) →ᴸ L.sum _).map_on_function M _ _,
+end
+
 variables {α} (A : set M)
 
 @[simp] lemma coe_con {a : A} : ((L.con a) : M) = a := rfl

@@ -165,7 +165,7 @@ variables (Q : quadratic_form R M)
 
 lemma map_smul (a : R) (x : M) : Q (a • x) = a * a * Q x := Q.to_fun_smul a x
 
-lemma exists_companion : ∃ B : bilin_form R M, ∀ x y,  Q (x + y) = Q x + Q y + B x y :=
+lemma exists_companion : ∃ B : bilin_form R M, ∀ x y, Q (x + y) = Q x + Q y + B x y :=
 Q.exists_companion'
 
 lemma map_add_add_add_map (x y z : M) :
@@ -297,7 +297,7 @@ def of_polar (to_fun : M → R) (to_fun_smul : ∀ (a : R) (x : M), to_fun (a �
       bilin_smul_left := polar_smul_left,
       bilin_add_right := λ x y z, by simp_rw [polar_comm _ x, polar_add_left],
       bilin_smul_right := λ r x y, by simp_rw [polar_comm _ x, polar_smul_left, smul_eq_mul] },
-    λ x y, by rw [bilin_form.coe_fn_mk, polar,  sub_sub, add_sub_cancel'_right]⟩ }
+    λ x y, by rw [bilin_form.coe_fn_mk, polar, sub_sub, add_sub_cancel'_right]⟩ }
 
 /-- In a ring the companion bilinear form is unique and equal to `quadratic_form.polar`. -/
 lemma some_exists_companion : Q.exists_companion.some = polar_bilin Q :=

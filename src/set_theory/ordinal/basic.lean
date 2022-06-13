@@ -438,12 +438,10 @@ theorem nonempty_embedding_to_cardinal : nonempty (σ ↪ cardinal.{u}) :=
 /-- An embedding of any type to the set of cardinals. -/
 def embedding_to_cardinal : σ ↪ cardinal.{u} := classical.choice nonempty_embedding_to_cardinal
 
-/-- Any type can be endowed with a well order, obtained by pulling back the well order over
-cardinals by some embedding. -/
-def well_ordering_rel : σ → σ → Prop := embedding_to_cardinal ⁻¹'o (<)
-
-instance well_ordering_rel.is_well_order : is_well_order σ well_ordering_rel :=
-(rel_embedding.preimage _ _).is_well_order
+/-- We don't make this into a definition, as we define a well ordering `well_ordering_rel` with
+extra properties later. -/
+instance : nonempty {r // is_well_order σ r} :=
+⟨⟨embedding_to_cardinal ⁻¹'o (<), (rel_embedding.preimage _ _).is_well_order⟩⟩
 
 end well_ordering_thm
 
@@ -1222,8 +1220,7 @@ by { convert (ordinal.card_type (<)).symm, exact (ordinal.type_lt o).symm }
 def ord (c : cardinal) : ordinal :=
 begin
   let ι := λ α, {r // is_well_order α r},
-  have : Π α, ι α := λ α, ⟨well_ordering_rel, by apply_instance⟩,
-  let F := λ α, ordinal.min ⟨this _⟩ (λ i:ι α, ⟦⟨α, i.1, i.2⟩⟧),
+  let F := λ α, ordinal.min ⟨classical.arbitrary {r // _}⟩ (λ i:ι α, ⟦⟨α, i.1, i.2⟩⟧),
   refine quot.lift_on c F _,
   suffices : ∀ {α β}, α ≈ β → F α ≤ F β,
   from λ α β h, le_antisymm (this h) (this (setoid.symm h)),
@@ -1236,26 +1233,34 @@ begin
 end
 
 lemma ord_eq_min (α : Type u) : ord (#α) =
-  @ordinal.min {r // is_well_order α r} ⟨⟨well_ordering_rel, by apply_instance⟩⟩
-    (λ i, ⟦⟨α, i.1, i.2⟩⟧) := rfl
+  @ordinal.min {r // is_well_order α r} (by apply_instance) (λ i, ⟦⟨α, i.1, i.2⟩⟧) := rfl
 
-theorem ord_eq (α) : ∃ (r : α → α → Prop) [wo : is_well_order α r],
+private theorem ord_eq (α) : ∃ (r : α → α → Prop) [wo : is_well_order α r],
   ord (#α) = @type α r wo :=
-let ⟨⟨r, wo⟩, h⟩ := @ordinal.min_eq {r // is_well_order α r}
-  ⟨⟨well_ordering_rel, by apply_instance⟩⟩
+let ⟨⟨r, wo⟩, h⟩ := @ordinal.min_eq {r // is_well_order α r} (by apply_instance)
   (λ i:{r // is_well_order α r}, ⟦⟨α, i.1, i.2⟩⟧) in
 ⟨r, wo, h⟩
 
+/-- Any type `α` can be endowed with a well order whose order type equals `(#α).ord`. -/
+def well_ordering_rel : α → α → Prop :=
+classical.some $ ord_eq α
+
+instance well_ordering_rel.is_well_order : is_well_order α well_ordering_rel :=
+classical.some $ classical.some_spec $ ord_eq α
+
+@[simp] theorem type_well_ordering_rel' : type (@well_ordering_rel α) = (#α).ord :=
+(classical.some_spec $ classical.some_spec $ ord_eq α).symm
+
 theorem ord_le_type (r : α → α → Prop) [is_well_order α r] : ord (#α) ≤ ordinal.type r :=
-@ordinal.min_le {r // is_well_order α r}
-  ⟨⟨well_ordering_rel, by apply_instance⟩⟩
+@ordinal.min_le {r // is_well_order α r} (by apply_instance)
   (λ i:{r // is_well_order α r}, ⟦⟨α, i.1, i.2⟩⟧) ⟨r, _⟩
 
 theorem ord_le {c o} : ord c ≤ o ↔ c ≤ o.card :=
 induction_on c $ λ α, ordinal.induction_on o $ λ β s _,
-let ⟨r, _, e⟩ := ord_eq α in begin
+begin
   resetI, simp only [card_type], split; intro h,
-  { rw e at h, exact let ⟨f⟩ := h in ⟨f.to_embedding⟩ },
+  { rw ←type_well_ordering_rel' at h,
+    exact let ⟨f⟩ := h in ⟨f.to_embedding⟩ },
   { cases h with f,
     have g := rel_embedding.preimage f s,
     haveI := rel_embedding.is_well_order g,

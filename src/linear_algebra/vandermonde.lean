@@ -133,7 +133,7 @@ begin
     rw [vandermonde_apply, vandermonde_apply, h₁], }
 end
 
-lemma det_vandermonde_ne_zero_iff [is_domain R] {n : ℕ} (v : fin n → R) :
+lemma det_vandermonde_ne_zero_iff [is_domain R] {n : ℕ} {v : fin n → R} :
   det (vandermonde v) ≠ 0 ↔ function.injective v :=
 by simpa only [det_vandermonde_eq_zero_iff, ne.def, not_exists, not_and, not_not]
 

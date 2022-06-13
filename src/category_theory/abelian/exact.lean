@@ -313,12 +313,12 @@ open limits abelian
 
 universes u v
 
-variables {𝓐 𝓑 : Type u} [category.{v} 𝓐] [category.{v} 𝓑]
-variables [has_zero_object 𝓐] [has_zero_morphisms 𝓐] [has_images 𝓐] [has_equalizers 𝓐]
-variables [has_cokernels 𝓐] [abelian 𝓑]
-variables (L : 𝓐 ⥤ 𝓑) [preserves_finite_limits L] [preserves_finite_colimits L]
+variables {A B : Type u} [category.{v} A] [category.{v} B]
+variables [has_zero_object A] [has_zero_morphisms A] [has_images A] [has_equalizers A]
+variables [has_cokernels A] [abelian B]
+variables (L : A ⥤ B) [preserves_finite_limits L] [preserves_finite_colimits L]
 
-lemma exact_of_exact_functor {X Y Z : 𝓐} (f : X ⟶ Y) (g : Y ⟶ Z) (e1 : exact f g) :
+lemma exact_of_exact_functor {X Y Z : A} (f : X ⟶ Y) (g : Y ⟶ Z) (e1 : exact f g) :
   exact (L.map f) (L.map g) :=
 begin
   let hcoker := is_colimit_of_has_cokernel_of_preserves_colimit L f,

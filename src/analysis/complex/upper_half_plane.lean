@@ -261,17 +261,9 @@ section upper_half_plane_manifold
 def upper_half_space := {z : ℂ | 0 <  z.im}
 
 lemma upper_half_plane_is_open: is_open upper_half_space  :=
-begin
-  have : upper_half_space = complex.im⁻¹' set.Ioi 0 :=
-    set.ext (λ z, iff.intro (λ hz, set.mem_preimage.mp hz) $ λ hz, hz),
-  exact is_open.preimage complex.continuous_im is_open_Ioi,
-end
+is_open.preimage complex.continuous_im is_open_Ioi
 
 local notation `ℍ'`:= (⟨upper_half_space , upper_half_plane_is_open⟩: topological_space.opens ℂ)
-
-instance : charted_space ℂ ℂ := infer_instance
-
-instance : charted_space ℂ ℍ' := infer_instance
 
 /--The extension of a function from `ℍ` to `ℍ'`-/
 def hol_extn (f : ℍ → ℂ) : ℍ' → ℂ := λ (z : ℍ'), (f (z : ℍ))

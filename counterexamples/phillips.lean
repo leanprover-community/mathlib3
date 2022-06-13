@@ -451,25 +451,23 @@ We need the continuum hypothesis to construct it.
 theorem sierpinski_pathological_family (Hcont : #ℝ = aleph 1) :
   ∃ (f : ℝ → set ℝ), (∀ x, countable (univ \ f x)) ∧ (∀ y, countable {x | y ∈ f x}) :=
 begin
-  rcases cardinal.ord_eq ℝ with ⟨r, hr, H⟩,
-  resetI,
-  refine ⟨λ x, {y | r x y}, λ x, _, λ y, _⟩,
-  { have : univ \ {y | r x y} = {y | r y x} ∪ {x},
+  refine ⟨λ x, {y | well_ordering_rel x y}, λ x, _, λ y, _⟩,
+  { have : univ \ {y | well_ordering_rel x y} = {y | well_ordering_rel y x} ∪ {x},
     { ext y,
       simp only [true_and, mem_univ, mem_set_of_eq, mem_insert_iff, union_singleton, mem_diff],
-      rcases trichotomous_of r x y with h|rfl|h,
+      rcases trichotomous_of well_ordering_rel x y with h|rfl|h,
       { simp only [h, not_or_distrib, false_iff, not_true],
         split,
-        { rintros rfl, exact irrefl_of r y h },
+        { rintros rfl, exact irrefl_of well_ordering_rel y h },
         { exact asymm h } },
       { simp only [true_or, eq_self_iff_true, iff_true], exact irrefl x },
       { simp only [h, iff_true, or_true], exact asymm h } },
     rw this,
     apply countable.union _ (countable_singleton _),
     rw [cardinal.countable_iff_lt_aleph_one, ← Hcont],
-    exact cardinal.card_typein_lt r x H },
+    exact cardinal.card_typein_lt r x type_well_ordering_rel.symm },
   { rw [cardinal.countable_iff_lt_aleph_one, ← Hcont],
-    exact cardinal.card_typein_lt r y H }
+    exact cardinal.card_typein_lt r y type_well_ordering_rel.symm }
 end
 
 /-- A family of sets in `ℝ` which only miss countably many points, but such that any point is

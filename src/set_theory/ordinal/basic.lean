@@ -1248,7 +1248,7 @@ classical.some $ ord_eq α
 instance well_ordering_rel.is_well_order : is_well_order α well_ordering_rel :=
 classical.some $ classical.some_spec $ ord_eq α
 
-@[simp] theorem type_well_ordering_rel' : type (@well_ordering_rel α) = (#α).ord :=
+@[simp] theorem type_well_ordering_rel : type (@well_ordering_rel α) = (#α).ord :=
 (classical.some_spec $ classical.some_spec $ ord_eq α).symm
 
 theorem ord_le_type (r : α → α → Prop) [is_well_order α r] : ord (#α) ≤ ordinal.type r :=
@@ -1259,7 +1259,7 @@ theorem ord_le {c o} : ord c ≤ o ↔ c ≤ o.card :=
 induction_on c $ λ α, ordinal.induction_on o $ λ β s _,
 begin
   resetI, simp only [card_type], split; intro h,
-  { rw ←type_well_ordering_rel' at h,
+  { rw ←type_well_ordering_rel at h,
     exact let ⟨f⟩ := h in ⟨f.to_embedding⟩ },
   { cases h with f,
     have g := rel_embedding.preimage f s,
@@ -1271,8 +1271,7 @@ theorem lt_ord {c o} : o < ord c ↔ o.card < c :=
 by rw [← not_le, ← not_le, ord_le]
 
 @[simp] theorem card_ord (c) : (ord c).card = c :=
-quotient.induction_on c $ λ α,
-let ⟨r, _, e⟩ := ord_eq α in by simp only [mk_def, e, card_type]
+quotient.induction_on c $ λ α, by simp only [mk_def, ←type_well_ordering_rel, card_type]
 
 theorem ord_card_le (o : ordinal) : o.card.ord ≤ o :=
 ord_le.2 le_rfl

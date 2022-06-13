@@ -188,6 +188,8 @@ meta def guess_degree : expr → tactic ℕ
   fail format!"The exponent of 'monomial {n} {x}' is not a closed natural number"
 | e                                     := fail format!"cannot guess the degree of '{e}'"
 
+/--  Similar to `guess_degree e`, except that it returns an `expr`.  It outputs ``(0)`, when
+the heuristic for the guess fails. -/
 meta def guess_degree_expr : expr → expr
 | `(has_zero.zero)         := `(0)
 | `(has_one.one)           := `(0)
@@ -199,8 +201,9 @@ meta def guess_degree_expr : expr → expr
 | (app `(⇑polynomial.C) x) := `(0)
 | `(polynomial.X ^ %%n)    := n
 | (app `(⇑(polynomial.monomial %%n)) x) := n
-| e                                     := `(0) --expr.mk_app `(polynomial.nat_degree) [e]
+| e                                     := `(0)
 
+/--  Similar to `single_term_resolve`, but adapted to `f.nat_degree ≤ d`. -/
 meta def single_term_resolve_le : expr → tactic unit
 | `(%%a * %%Xp) := do
   let da  := guess_degree_expr a,
@@ -221,32 +224,7 @@ meta def single_term_resolve_le : expr → tactic unit
   refine ``((polynomial.nat_degree_X_pow_le %%n).trans _)
 | `(@polynomial.X %%R %%inst) :=
   refine ``(polynomial.nat_degree_X_le.trans _)
---| (app f Xp) := do
---  match f with
---  | (app `(has_mul.mul) a) := do
---      da ← guess_degree a, dXp ← guess_degree Xp,trace da, trace dXp,
---  refine ``(polynomial.nat_degree_mul_le.trans ((add_le_add _ _).trans (_ : %%da + %%dXp ≤ _)))
---  any_goals' (try `[ norm_num])
-  --,
---  gs ← get_goals,trace gs,
---  gs.mmap' (λ s : expr, match s with
---  | `(%%lhs ≤ %%rhs) := infer_type lhs >>= trace >> infer_type rhs >>= trace
---  | _ := fail "sorry"
---  end)
---  | _ := fail "oh no!"
---  end
---  single_term_resolve_le a,
---  single_term_resolve_le Xp
---| (app (app `(has_mul.mul) %%a) %%Xp) := do da ← guess_degree a, dXp ← guess_degree Xp,trace da, trace dXp,
---  refine ``(polynomial.nat_degree_mul_le.trans ((add_le_add _ _).trans (_ : %%da + %%dXp ≤ _))),
---  gs ← get_goals,trace gs,
---  gs.mmap' (λ s : expr, match s with
---  | `(%%lhs ≤ %%rhs) := infer_type lhs >>= trace >> infer_type rhs >>= trace
---  | _ := skip
---  end)
-----  single_term_resolve_le a,
-----  single_term_resolve_le Xp
-| e := try `[norm_num] >> try assumption --skip--C_mul_terms e
+| e := try `[norm_num] >> try assumption
 
 /-- `extract_top_degree_term_and_deg e` takes an expression `e` looks for summands in `e`
 (assuming the Type of `e` is `R[X]`), and produces the pairs `(e',deg)`, where `e'` is
@@ -293,37 +271,6 @@ do repeat $ refine ``((polynomial.nat_degree_add_le_iff_left _ _ _).mpr _),
     single_term_resolve_le lhs),
   try $ any_goals' `[ norm_num ],
   try $ any_goals' assumption
-/-
-  gs ← get_goals,--gs.mmap infer_type >>= trace, failed
-  gs.mmap' (λ s,
---   infer_type s >>= trace >>
-match s with
-    | (expr.app f g) := trace f >> trace g-- >>
---    | (expr.app `(has_le.le) (`(polynomial.nat_degree %%lhs) )) := trace lhs-- >>
---    | (expr.app (expr.app `(has_le.le) `(polynomial.nat_degree) %%lhs) %%deg) :=
---     try $ single_term_resolve_le lhs
-    | e := infer_type e >>= trace >>fail "oh what a goal!"
-      end)
--/
-/-
-  `[repeat { rw polynomial.monomial_mul_monomial }],
-  try $ any_goals' $ refine ``((polynomial.nat_degree_monomial_le _).trans _),
-  repeat $ refine ``((polynomial.nat_degree_C_mul_le _ _).trans _),
-  repeat $ refine ``((polynomial.nat_degree_X_pow_le _).trans _),
-  repeat $ refine ``(polynomial.nat_degree_X_le.trans _),
-  `[try { any_goals { norm_num } }],
-  try $ any_goals' $ assumption <|>
-do `(polynomial.nat_degree %%tl ≤ %%tr) ← target |
-    fail "Goal is not of the form `f.nat_degree ≤ d\n\n",
-  (lead,m') ← extract_top_degree_term_and_deg tl,
-  td ← eval_expr ℕ tr | fail
-    "currently, there is no support for some of the terms appearing in the polynomial",
-  if td < m' then
-    do pptl ← pp tl, ppm' ← pp m',
-    trace sformat!"should the degree be '{m'}'?\n\n",
-    trace sformat!"Try this: {pptl}.nat_degree ≤ {ppm'}", failed
-  else fail "sorry, the tactic failed, but I do not know why."
--/
 
 /--  `compute_degree` tries to solve a goal of the form `f.nat_degree = d` or  `f.degree = d`,
 where `d : ℕ` and `f` satisfies:

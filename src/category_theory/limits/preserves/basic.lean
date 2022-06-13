@@ -233,8 +233,8 @@ def preserves_limits_of_shape_of_equiv {J' : Type w₂} [category.{w₂'} J'] (e
     end } }
 
 /--
-`preserves_limits_of_size_shrink.{v u} C` tries to obtain `preserves_limits_of_size.{v u} C`
-from some other `has_limits_of_size C`.
+`preserves_limits_of_size_shrink.{w w'} F` tries to obtain `preserves_limits_of_size.{w w'} F`
+from some other `preserves_limits_of_size F`.
 -/
 lemma preserves_limits_of_size_shrink (F : C ⥤ D)
   [preserves_limits_of_size.{(max w w₂) (max w' w₂')} F] : preserves_limits_of_size.{w w'} F :=

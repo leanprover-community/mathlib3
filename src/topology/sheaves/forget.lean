@@ -167,6 +167,7 @@ begin
       let c := fork (F ⋙ G) U,
       obtain ⟨hc⟩ := S U,
       let d := G.map_cone (equalizer.fork (left_res F U) (right_res F U)),
+      letI := preserves_smallest_limits_of_preserve_limits G,
       have hd : is_limit d := preserves_limit.preserves (limit.is_limit _),
       -- Since both of these are limit cones
       -- (`c` by our hypothesis `S`, and `d` because `G` preserves limits),

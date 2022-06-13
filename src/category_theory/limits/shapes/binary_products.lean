@@ -554,14 +554,14 @@ variables (C)
 
 See <https://stacks.math.columbia.edu/tag/001T>.
 -/
-abbreviation has_binary_products := has_limits_of_shape (discrete walking_pair) C
+abbreviation has_binary_products := has_limits_of_shape (discrete.{0} walking_pair) C
 
 /--
 `has_binary_coproducts` represents a choice of coproduct for every pair of objects.
 
 See <https://stacks.math.columbia.edu/tag/04AP>.
 -/
-abbreviation has_binary_coproducts := has_colimits_of_shape (discrete walking_pair) C
+abbreviation has_binary_coproducts := has_colimits_of_shape (discrete.{0} walking_pair) C
 
 /-- If `C` has all limits of diagrams `pair X Y`, then it has all binary products -/
 lemma has_binary_products_of_has_limit_pair [Π {X Y : C}, has_limit (pair X Y)] :

@@ -40,36 +40,32 @@ In `extend_fan_is_limit` we show that if the two given fans are limits, then thi
 limit.
 -/
 @[simps {rhs_md := semireducible}]
-def extend_fan {n : ℕ} {f : ulift (fin (n+1)) → C}
-  (c₁ : fan (λ (i : ulift (fin n)), f ⟨i.down.succ⟩))
-  (c₂ : binary_fan (f ⟨0⟩) c₁.X) :
+def extend_fan {n : ℕ} {f : fin (n+1) → C}
+  (c₁ : fan (λ (i : fin n), f i.succ))
+  (c₂ : binary_fan (f 0) c₁.X) :
   fan f :=
 fan.mk c₂.X
 begin
-  rintro ⟨i⟩,
-  revert i,
   refine fin.cases _ _,
   { apply c₂.fst },
-  { intro i,
-    apply c₂.snd ≫ c₁.π.app (ulift.up i) },
+  { intro i, apply c₂.snd ≫ c₁.π.app i },
 end
 
 /--
 Show that if the two given fans in `extend_fan` are limits, then the constructed fan is also a
 limit.
 -/
-def extend_fan_is_limit {n : ℕ} (f : ulift (fin (n+1)) → C)
-  {c₁ : fan (λ (i : ulift (fin n)), f ⟨i.down.succ⟩)} {c₂ : binary_fan (f ⟨0⟩) c₁.X}
+def extend_fan_is_limit {n : ℕ} (f : fin (n+1) → C)
+  {c₁ : fan (λ (i : fin n), f i.succ)} {c₂ : binary_fan (f 0) c₁.X}
   (t₁ : is_limit c₁) (t₂ : is_limit c₂) :
   is_limit (extend_fan c₁ c₂) :=
 { lift := λ s,
   begin
-    apply (binary_fan.is_limit.lift' t₂ (s.π.app ⟨0⟩) _).1,
-    apply t₁.lift ⟨_, discrete.nat_trans (λ i, s.π.app ⟨i.down.succ⟩)⟩
+    apply (binary_fan.is_limit.lift' t₂ (s.π.app 0) _).1,
+    apply t₁.lift ⟨_, discrete.nat_trans (λ i, s.π.app i.succ)⟩
   end,
-  fac' := λ s,
+  fac' := λ s j,
   begin
-    rintro ⟨j⟩,
     apply fin.induction_on j,
     { apply (binary_fan.is_limit.lift' t₂ _ _).2.1 },
     { rintro i -,
@@ -81,7 +77,7 @@ def extend_fan_is_limit {n : ℕ} (f : ulift (fin (n+1)) → C)
   begin
     apply binary_fan.is_limit.hom_ext t₂,
     { rw (binary_fan.is_limit.lift' t₂ _ _).2.1,
-      apply w ⟨0⟩ },
+      apply w 0 },
     { rw (binary_fan.is_limit.lift' t₂ _ _).2.2,
       apply t₁.uniq ⟨_, _⟩,
       rintro ⟨j⟩,
@@ -93,7 +89,7 @@ def extend_fan_is_limit {n : ℕ} (f : ulift (fin (n+1)) → C)
   end }
 
 section
-variables [has_binary_products.{v} C] [has_terminal C]
+variables [has_binary_products C] [has_terminal C]
 
 /--
 If `C` has a terminal object and binary products, then it has a product for objects indexed by

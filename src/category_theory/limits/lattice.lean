@@ -46,12 +46,12 @@ def finite_colimit_cocone [semilattice_sup α] [order_bot α] (F : J ⥤ α) : c
 
 @[priority 100] -- see Note [lower instance priority]
 instance has_finite_limits_of_semilattice_inf_order_top [semilattice_inf α] [order_top α] :
-  has_finite_limits.{w} α :=
+  has_finite_limits_of_size.{w} α :=
 ⟨λ J 𝒥₁ 𝒥₂, by exactI { has_limit := λ F, has_limit.mk (finite_limit_cone F) }⟩
 
 @[priority 100] -- see Note [lower instance priority]
 instance has_finite_colimits_of_semilattice_sup_order_bot [semilattice_sup α] [order_bot α] :
-  has_finite_colimits.{w} α :=
+  has_finite_colimits_of_size.{w} α :=
 ⟨λ J 𝒥₁ 𝒥₂, by exactI { has_colimit := λ F, has_colimit.mk (finite_colimit_cocone F) }⟩
 
 /--
@@ -92,7 +92,7 @@ lemma finite_coproduct_eq_finset_sup [semilattice_sup α] [order_bot α] {ι : T
 instance [semilattice_inf α] [order_top α] : has_binary_products α :=
 begin
   haveI : ∀ (x y : α), has_limit (pair x y),
-  { letI := has_smallest_finite_limits_of_has_finite_limits.{u} α, apply_instance },
+  { letI := has_finite_limits_of_has_finite_limits_of_size.{u} α, apply_instance },
   apply has_binary_products_of_has_limit_pair
 end
 
@@ -110,7 +110,7 @@ calc limits.prod x y = limit (pair x y) : rfl
 instance [semilattice_sup α] [order_bot α] : has_binary_coproducts α :=
 begin
   haveI : ∀ (x y : α), has_colimit (pair x y),
-  { letI := has_smallest_finite_colimits_of_has_finite_colimits.{u} α, apply_instance },
+  { letI := has_finite_colimits_of_has_finite_colimits_of_size.{u} α, apply_instance },
   apply has_binary_coproducts_of_has_colimit_pair
 end
 

@@ -37,7 +37,7 @@ by { haveI := @has_finite_products.out C _ _ J (classical.dec_eq _), apply_insta
 
 /-- If `C` has finite limits then it has finite products. -/
 @[priority 10]
-instance has_finite_products_of_has_finite_limits [has_finite_limits.{w} C] :
+instance has_finite_products_of_has_finite_limits [has_finite_limits_of_size.{w} C] :
   has_finite_products.{w} C :=
 ⟨λ J 𝒥₁ 𝒥₂, by { resetI, apply_instance }⟩
 
@@ -66,7 +66,7 @@ by { haveI := @has_finite_coproducts.out C _ _ J (classical.dec_eq _), apply_ins
 
 /-- If `C` has finite colimits then it has finite coproducts. -/
 @[priority 10]
-instance has_finite_coproducts_of_has_finite_colimits [has_finite_colimits.{w} C] :
+instance has_finite_coproducts_of_has_finite_colimits [has_finite_colimits_of_size.{w} C] :
   has_finite_coproducts.{w} C :=
 ⟨λ J 𝒥₁ 𝒥₂, by { resetI, apply_instance }⟩
 

@@ -314,7 +314,7 @@ end
 
 noncomputable
 instance filtered_colim_preserves_finite_limits_of_types :
-  preserves_finite_limits (colim : (K ⥤ Type v) ⥤ _) := ⟨λ J _ _, by exactI ⟨λ F, ⟨λ c hc,
+  preserves_finite_limits_of_size (colim : (K ⥤ Type v) ⥤ _) := ⟨λ J _ _, by exactI ⟨λ F, ⟨λ c hc,
 begin
   apply is_limit.of_iso_limit (limit.is_limit _),
   symmetry,
@@ -342,9 +342,9 @@ end
 local attribute [instance] reflects_limits_of_shape_of_reflects_isomorphisms
 
 noncomputable
-instance [preserves_finite_limits (forget C)] [preserves_filtered_colimits (forget C)]
-  [has_finite_limits C] [has_colimits_of_shape K C] [reflects_isomorphisms (forget C)] :
-    preserves_finite_limits (colim : (K ⥤ C) ⥤ _) :=
+instance [preserves_finite_limits_of_size.{v} (forget C)] [preserves_filtered_colimits (forget C)]
+  [has_finite_limits_of_size.{v} C] [has_colimits_of_shape K C] [reflects_isomorphisms (forget C)] :
+    preserves_finite_limits_of_size (colim : (K ⥤ C) ⥤ _) :=
 ⟨λ _ _ _, by exactI category_theory.limits.filtered_colim_preserves_finite_limits⟩
 
 section

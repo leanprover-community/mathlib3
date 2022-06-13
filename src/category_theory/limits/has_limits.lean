@@ -991,7 +991,7 @@ lemma has_colimits_of_size_shrink [has_colimits_of_size.{(max v₁ v₂) (max u�
 ⟨λ J hJ, by exactI has_colimits_of_shape_of_equivalence
   (ulift_hom_ulift_category.equiv.{v₂ u₂} J).symm⟩
 
-lemma has_smallest_colimits_of_has_colimits [has_colimits C] :
+instance has_smallest_colimits_of_has_colimits [has_colimits C] :
   has_colimits_of_size.{0 0} C := has_colimits_of_size_shrink.{0 0} C
 
 end colimit

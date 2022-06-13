@@ -25,7 +25,8 @@ open category_theory
 
 namespace category_theory.limits
 
-universes w v₁ v₂ v₃ u₁ u₂ u₃ -- declare the `v`'s first; see `category_theory.category` for an explanation
+-- declare the `v`'s first; see `category_theory.category` for an explanation
+universes w w₂ v₁ v₂ v₃ u₁ u₂ u₃
 
 variables {C : Type u₁} [category.{v₁} C]
 variables {D : Type u₂} [category.{v₂} D]
@@ -41,9 +42,31 @@ class preserves_finite_limits_of_size (F : C ⥤ D) :=
 (preserves_finite_limits : Π (J : Type w) [small_category J] [fin_category J],
   preserves_limits_of_shape J F . tactic.apply_instance)
 
+/-- Preserving finite limits means preserving finite limits of size `0`. -/
 abbreviation preserves_finite_limits (F : C ⥤ D) := preserves_finite_limits_of_size.{0} F
 
 attribute [instance] preserves_finite_limits_of_size.preserves_finite_limits
+
+/--
+`preserves_finite_limits_of_size_shrink.{w} F` tries to obtain
+`preserves_finite_limits_of_size.{w} F` from some other `preserves_finite_limits_of_size F`.
+-/
+def preserves_finite_limits_of_size_shrink (F : C ⥤ D)
+  [hpres : preserves_finite_limits_of_size.{(max w w₂)} F] :
+  preserves_finite_limits_of_size.{w} F :=
+⟨λ (J : Type w) hJ fJ, by {
+    resetI,
+    letI : small_category (ulift_hom.{w₂} (ulift.{w₂} J)),
+    { exact (@ulift_hom.category (ulift.{w₂ w} J) (@category_theory.ulift_category J _)) },
+    haveI := preserves_finite_limits_of_size.preserves_finite_limits
+      (ulift_hom.{w₂ (max w w₂)} (ulift.{w₂ w} J)),
+    apply preserves_limits_of_shape_of_equiv (ulift_hom_ulift_category.equiv.{w₂ w₂} J).symm F,
+    rotate, rotate, rotate, rotate, rotate, exact hpres,
+  }⟩
+
+def preserves_finite_limits_of_preserve_finite_limits_of_size
+  (F : C ⥤ D) [preserves_finite_limits_of_size.{w} F] : preserves_finite_limits F :=
+preserves_finite_limits_of_size_shrink F
 
 @[priority 100]
 instance preserves_limits.preserves_finite_limits (F : C ⥤ D) [preserves_limits_of_size.{w w} F] :

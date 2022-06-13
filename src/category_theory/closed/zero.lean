@@ -30,7 +30,7 @@ namespace category_theory
 open category limits
 
 variables {C : Type u} [category.{v} C]
-variables [has_finite_products C] [cartesian_closed C]
+variables [has_finite_products.{0} C] [cartesian_closed C]
 
 /--
 If a cartesian closed category has an initial object which is isomorphic to the terminal object,

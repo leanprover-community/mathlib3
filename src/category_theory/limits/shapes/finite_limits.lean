@@ -55,11 +55,14 @@ instance has_finite_limits_of_has_limits_of_size [has_limits_of_size.{v' u'} C] 
 instance has_finite_limits_of_has_limits [has_limits C] : has_finite_limits_of_size.{w} C :=
 infer_instance
 
+/-- We can always derive `has_finite_limits_of_size C` for a smaller universe. -/
 lemma has_finite_limits_shrink [has_finite_limits_of_size.{(max w w')} C] :
   has_finite_limits_of_size.{w} C :=
 ⟨λ J _ _, by exactI has_limits_of_shape_of_equivalence
   (ulift_hom_ulift_category.equiv.{w' w' w} J).symm ⟩
 
+/-- We can always derive `has_finite_limits C` if we have `has_finite_limits_of_size.{w} C`
+for any universe `w`. -/
 lemma has_finite_limits_of_has_finite_limits_of_size [has_finite_limits_of_size.{w} C] :
   has_finite_limits C := has_finite_limits_shrink C
 
@@ -81,6 +84,7 @@ instance has_limits_of_shape_of_has_finite_colimits
   (J : Type w) [small_category J] [fin_category J] [has_finite_colimits_of_size.{w} C] :
   has_colimits_of_shape J C := has_finite_colimits_of_size.out J
 
+
 @[priority 100]
 instance has_finite_colimits_of_has_colimits_of_size [has_colimits_of_size.{v' u'} C] :
   has_finite_colimits_of_size.{w} C :=
@@ -93,11 +97,14 @@ instance has_finite_colimits_of_has_colimits [has_colimits C] :
   has_finite_colimits_of_size.{w} C :=
 infer_instance
 
+/-- We can always derive `has_finite_colimits_of_size C` for a smaller universe. -/
 lemma has_finite_colimits_shrink [has_finite_colimits_of_size.{(max w w')} C] :
   has_finite_colimits_of_size.{w} C :=
 ⟨λ J _ _, by exactI has_colimits_of_shape_of_equivalence
   (ulift_hom_ulift_category.equiv.{w' w' w} J).symm ⟩
 
+/-- We can always derive `has_finite_colimits C` if we have `has_finite_colimits_of_size.{w} C`
+for any universe `w`. -/
 lemma has_finite_colimits_of_has_finite_colimits_of_size [has_finite_colimits_of_size.{w} C] :
   has_finite_colimits C := has_finite_colimits_shrink C
 

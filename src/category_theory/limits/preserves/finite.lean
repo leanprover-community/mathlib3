@@ -82,26 +82,51 @@ def comp_preserves_finite_limits (F : C ⥤ D) (G : D ⥤ E)
 ⟨λ _ _ _, by { resetI, apply_instance }⟩
 
 /--
-A functor is said to preserve finite colimits, if it preserves all colimits of shape `J`, where
-`J` is a finite category.
+A functor is said to preserve finite colimits of size `w`, if it preserves all colimits of 
+shape `J`, where `J : Type w` is a finite category.
 -/
-class preserves_finite_colimits (F : C ⥤ D) :=
+class preserves_finite_colimits_of_size (F : C ⥤ D) :=
 (preserves_finite_colimits : Π (J : Type w) [small_category J] [fin_category J],
   preserves_colimits_of_shape J F . tactic.apply_instance)
 
-attribute [instance] preserves_finite_colimits.preserves_finite_colimits
+  /-- Preserving finite colimits means preserving finite colimits of size `0`. -/
+abbreviation preserves_finite_colimits (F : C ⥤ D) := preserves_finite_colimits_of_size.{0} F
+
+attribute [instance] preserves_finite_colimits_of_size.preserves_finite_colimits
+
+/--
+`preserves_finite_colimits_of_size_shrink.{w} F` tries to obtain
+`preserves_finite_colimits_of_size.{w} F` from some other `preserves_finite_colimits_of_size F`.
+-/
+def preserves_finite_colimits_of_size_shrink (F : C ⥤ D)
+  [hpres : preserves_finite_colimits_of_size.{(max w w₂)} F] :
+  preserves_finite_colimits_of_size.{w} F :=
+⟨λ (J : Type w) hJ fJ, by {
+    resetI,
+    letI : small_category (ulift_hom.{w₂} (ulift.{w₂} J)),
+    { exact (@ulift_hom.category (ulift.{w₂ w} J) (@category_theory.ulift_category J _)) },
+    haveI := preserves_finite_colimits_of_size.preserves_finite_colimits
+      (ulift_hom.{w₂ (max w w₂)} (ulift.{w₂ w} J)),
+    apply preserves_colimits_of_shape_of_equiv (ulift_hom_ulift_category.equiv.{w₂ w₂} J).symm F,
+    rotate, rotate, rotate, rotate, rotate, exact hpres,
+  }⟩
+
+set_option pp.universes true
+def preserves_finite_colimits_of_preserve_finite_colimits_of_size
+  (F : C ⥤ D) [preserves_finite_colimits_of_size.{w} F] : preserves_finite_colimits F :=
+preserves_finite_colimits_of_size_shrink F
 
 @[priority 100]
 instance preserves_colimits.preserves_finite_colimits (F : C ⥤ D)
-  [preserves_colimits_of_size.{w w} F] : preserves_finite_colimits.{w} F := {}
+  [preserves_colimits_of_size.{w w} F] : preserves_finite_colimits_of_size.{w} F := {}
 
 instance id_preserves_finite_colimits :
-  preserves_finite_colimits (𝟭 C) := {}
+  preserves_finite_colimits_of_size (𝟭 C) := {}
 
 /-- The composition of two right exact functors is right exact. -/
 def comp_preserves_finite_colimits (F : C ⥤ D) (G : D ⥤ E)
-  [preserves_finite_colimits.{w} F] [preserves_finite_colimits.{w} G] :
-  preserves_finite_colimits.{w} (F ⋙ G) :=
+  [preserves_finite_colimits_of_size.{w} F] [preserves_finite_colimits_of_size.{w} G] :
+  preserves_finite_colimits_of_size.{w} (F ⋙ G) :=
 ⟨λ _ _ _, by { resetI, apply_instance }⟩
 
 end category_theory.limits

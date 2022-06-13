@@ -173,10 +173,11 @@ instance cofiltered_of_has_finite_limits [has_finite_limits C] : is_cofiltered C
   cocone_maps :=  λ A B f g, ⟨equalizer f g, equalizer.ι f g, equalizer.condition f g⟩,
   nonempty := ⟨⊤_ C⟩ }
 
+
 lemma flat_of_preserves_finite_limits [has_finite_limits C] (F : C ⥤ D)
   [preserves_finite_limits F] : representably_flat F := ⟨λ X,
 begin
-  haveI : has_finite_limits (structured_arrow X F) :=
+  haveI : has_finite_limits_of_size.{v₁} (structured_arrow X F) :=
     { out := λ J _ _, by { resetI, apply_instance } },
   apply_instance
 end⟩

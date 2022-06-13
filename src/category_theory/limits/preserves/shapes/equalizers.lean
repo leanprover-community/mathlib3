@@ -18,7 +18,7 @@ the limit of the parallel pair `f,g`, as well as the dual result.
 
 noncomputable theory
 
-universes v₁ v₂ u₁ u₂
+universes w v₁ v₂ u₁ u₂
 
 open category_theory category_theory.category category_theory.limits
 

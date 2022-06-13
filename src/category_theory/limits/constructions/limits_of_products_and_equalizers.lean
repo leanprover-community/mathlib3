@@ -125,8 +125,6 @@ instance limit_subobject_product_mono [has_limits_of_size.{w w} C] (F : J ⥤ C)
   mono (limit_subobject_product F) :=
 mono_comp _ _
 
-set_option pp.universes true
-#check @has_limit_of_equalizer_and_product.{w v u}
 /--
 Any category with products and equalizers has all limits.
 
@@ -143,7 +141,7 @@ Any category with finite products and equalizers has all finite limits.
 See <https://stacks.math.columbia.edu/tag/002O>.
 -/
 lemma finite_limits_from_equalizers_and_finite_products
-  [has_finite_products.{w} C] [has_equalizers C] : has_finite_limits.{w} C :=
+  [has_finite_products.{w} C] [has_equalizers C] : has_finite_limits_of_size.{w} C :=
 ⟨λ J _ _, { has_limit := λ F, by exactI has_limit_of_equalizer_and_product F }⟩
 
 variables {D : Type u₂} [category.{v₂} D]
@@ -204,7 +202,7 @@ def preserves_finite_limits_of_preserves_equalizers_and_finite_products
   [has_equalizers C] [has_finite_products.{w} C]
   (G : C ⥤ D) [preserves_limits_of_shape walking_parallel_pair G]
   [∀ (J : Type w) [fintype J], preserves_limits_of_shape (discrete J) G] :
-  preserves_finite_limits.{w} G :=
+  preserves_finite_limits_of_size.{w} G :=
 ⟨λ _ _ _, by exactI preserves_limit_of_preserves_equalizers_and_product G⟩
 
 /-- If G preserves equalizers and products, it preserves all limits. -/
@@ -328,7 +326,7 @@ Any category with finite coproducts and coequalizers has all finite colimits.
 See <https://stacks.math.columbia.edu/tag/002Q>.
 -/
 lemma finite_colimits_from_coequalizers_and_finite_coproducts
-  [has_finite_coproducts.{w} C] [has_coequalizers C] : has_finite_colimits.{w} C :=
+  [has_finite_coproducts.{w} C] [has_coequalizers C] : has_finite_colimits_of_size.{w} C :=
 ⟨λ J _ _, { has_colimit := λ F, by exactI has_colimit_of_coequalizer_and_coproduct F }⟩
 
 noncomputable theory

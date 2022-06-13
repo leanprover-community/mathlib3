@@ -43,7 +43,7 @@ instance has_finite_products_of_has_finite_limits [has_finite_limits_of_size.{w}
   has_finite_products.{w} C :=
 ⟨λ J 𝒥, by { resetI, apply_instance }⟩
 
-instance has_fintype_products [has_finite_products C] (ι : Type w) [fintype ι] :
+instance has_fintype_products [has_finite_products.{v} C] (ι : Type w) [fintype ι] :
   has_limits_of_shape (discrete ι) C :=
 has_limits_of_shape_of_equivalence
   (discrete.equivalence
@@ -79,7 +79,7 @@ instance has_finite_coproducts_of_has_finite_colimits [has_finite_colimits_of_si
   has_finite_coproducts.{w} C :=
 ⟨λ J 𝒥, by { resetI, apply_instance }⟩
 
-instance has_fintype_coproducts [has_finite_coproducts C] (ι : Type w) [fintype ι] :
+instance has_fintype_coproducts [has_finite_coproducts.{v} C] (ι : Type w) [fintype ι] :
   has_colimits_of_shape (discrete ι) C :=
 has_colimits_of_shape_of_equivalence
   (discrete.equivalence

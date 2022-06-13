@@ -18,6 +18,8 @@ A typeclass for categories with all finite (co)limits.
 
 universes w' w v' u' v u
 
+noncomputable theory
+
 open category_theory
 
 namespace category_theory.limits
@@ -145,8 +147,7 @@ namespace wide_pullback_shape
 instance fintype_obj [fintype J] : fintype (wide_pullback_shape J) :=
 by { rw wide_pullback_shape, apply_instance }
 
-instance fintype_hom (j j' : wide_pullback_shape J) :
-  fintype (j ⟶ j') :=
+instance fintype_hom (j j' : wide_pullback_shape J) : fintype (j ⟶ j') :=
 { elems :=
   begin
     cases j',
@@ -167,8 +168,7 @@ namespace wide_pushout_shape
 instance fintype_obj [fintype J] : fintype (wide_pushout_shape J) :=
 by { rw wide_pushout_shape, apply_instance }
 
-instance fintype_hom (j j' : wide_pushout_shape J) :
-  fintype (j ⟶ j') :=
+instance fintype_hom (j j' : wide_pushout_shape J) : fintype (j ⟶ j') :=
 { elems :=
   begin
     cases j,
@@ -184,8 +184,7 @@ instance fintype_hom (j j' : wide_pushout_shape J) :
 
 end wide_pushout_shape
 
-instance fin_category_wide_pullback [fintype J] :
-  fin_category (wide_pullback_shape J) :=
+instance fin_category_wide_pullback [fintype J] : fin_category (wide_pullback_shape J) :=
 { fintype_hom := wide_pullback_shape.fintype_hom }
 
 instance fin_category_wide_pushout [fintype J] :
@@ -211,12 +210,12 @@ by { haveI := @has_finite_wide_pullbacks.out C _ _ J, apply_instance }
 for every finite collection of morphisms
 -/
 class has_finite_wide_pushouts : Prop :=
-(out (J : Type w) [decidable_eq J] [fintype J] : has_colimits_of_shape (wide_pushout_shape J) C)
+(out (J : Type w) [fintype J] : has_colimits_of_shape (wide_pushout_shape J) C)
 
 instance has_colimits_of_shape_wide_pushout_shape
   (J : Type w) [fintype J] [has_finite_wide_pushouts C] :
   has_colimits_of_shape (wide_pushout_shape J) C :=
-by { haveI := @has_finite_wide_pushouts.out C _ _ J (classical.dec_eq _), apply_instance }
+by { haveI := @has_finite_wide_pushouts.out C _ _ J, apply_instance }
 
 /--
 Finite wide pullbacks are finite limits, so if `C` has all finite limits,

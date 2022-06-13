@@ -186,7 +186,7 @@ variables {D : Type u₂} [category.{v₂} D]
 
 /-- A functor applied to a cospan is a cospan. -/
 def cospan_comp_iso (F : C ⥤ D) {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z) :
-  cospan f g ⋙ F ≅ walking_cospan_functor ⋙ cospan (F.map f) (F.map g) :=
+  cospan f g ⋙ F ≅ cospan (F.map f) (F.map g) :=
 nat_iso.of_components (by rintros (⟨⟩|⟨⟨⟩⟩); exact iso.refl _)
   (by rintros (⟨⟩|⟨⟨⟩⟩) (⟨⟩|⟨⟨⟩⟩) ⟨⟩; repeat { dsimp, simp, })
 
@@ -233,7 +233,7 @@ end
 
 /-- A functor applied to a span is a span. -/
 def span_comp_iso (F : C ⥤ D) {X Y Z : C} (f : X ⟶ Y) (g : X ⟶ Z) :
-  span f g ⋙ F ≅ walking_span_functor ⋙ span (F.map f) (F.map g) :=
+  span f g ⋙ F ≅ span (F.map f) (F.map g) :=
 nat_iso.of_components (by rintros (⟨⟩|⟨⟨⟩⟩); exact iso.refl _)
   (by rintros (⟨⟩|⟨⟨⟩⟩) (⟨⟩|⟨⟨⟩⟩) ⟨⟩; repeat { dsimp, simp, })
 
@@ -1525,8 +1525,10 @@ instance has_cokernel_pair_of_epi [epi f] : has_pushout f f :=
 ⟨⟨⟨_, pushout_cocone.is_colimit_mk_id_id f⟩⟩⟩
 
 lemma inl_eq_inr_of_epi_eq [epi f] : (pushout.inl : _ ⟶ pushout f f) = pushout.inr :=
-((pushout_cocone.is_colimit_mk_id_id f).fac (get_colimit_cocone (span f f)).cocone left).symm.trans
-  ((pushout_cocone.is_colimit_mk_id_id f).fac (get_colimit_cocone (span f f)).cocone right : _)
+((pushout_cocone.is_colimit_mk_id_id f).fac 
+    (get_colimit_cocone (span f f)).cocone left).symm.trans
+  ((pushout_cocone.is_colimit_mk_id_id f).fac
+    (get_colimit_cocone (span f f)).cocone right : _)
 
 @[simp] lemma pullback_symmetry_hom_of_epi_eq [epi f] :
   (pushout_symmetry f f).hom = 𝟙 _ := by ext; simp [inl_eq_inr_of_epi_eq]

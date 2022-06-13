@@ -1,6 +1,5 @@
 import tactic.move_add
 
-open tactic interactive
 variables {R : Type*} [add_comm_semigroup R] {a b c d e f g h : R}
 
 example (e f g : R) (h : a + b + c = d) : b + (a + c) = d :=

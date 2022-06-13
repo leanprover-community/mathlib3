@@ -1191,8 +1191,6 @@ let ⟨i, e⟩ := min_eq I (lift ∘ f) in
 by rw e; exact lift_le.2 (le_min.2 $ λ j, lift_le.1 $
 by have := min_le (lift ∘ f) j; rwa e at this)
 
-instance : order_bot ordinal := ⟨0, ordinal.zero_le⟩
-
 instance : conditionally_complete_linear_order_bot ordinal :=
 well_founded.conditionally_complete_linear_order_bot _
 

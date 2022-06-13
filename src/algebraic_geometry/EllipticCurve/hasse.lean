@@ -127,13 +127,15 @@ def P (n : ℤ) : option ((E.twist (units.mk0 _ (D_nonzero E))).to_long.points (
 @[simp]
 lemma P_zero : P h E 0 = b E := by simp [P]
 -- lemma P_one : d E 1 = 1 := sorry
+.
+
 
 def d (n : ℤ) : ℕ :=
 polynomial.nat_degree
 ((P h E n).get_or_else (b E)).1.1.num
 
 lemma d_zero : d h E 0 = p := begin
-  sorry,
+  simp [d],
 end
 
 

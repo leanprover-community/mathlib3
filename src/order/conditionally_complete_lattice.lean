@@ -134,17 +134,9 @@ open_locale classical
 
 /-- A well founded linear order is conditionally complete, with a bottom element. -/
 @[reducible] noncomputable def well_founded.conditionally_complete_linear_order_bot
-  (α : Type*) [i : linear_order α] [h : is_well_order α (<)] [b : order_bot α] :
+  (α : Type*) [i₁ : linear_order α] [i₂ : order_bot α] [h : is_well_order α (<)] :
   conditionally_complete_linear_order_bot α :=
-{ sup := max,
-  le_sup_left := le_max_left,
-  le_sup_right := le_max_right,
-  sup_le := λ a b c, max_le,
-  inf := min,
-  inf_le_left := min_le_left,
-  inf_le_right := min_le_right,
-  le_inf := λ a b c, le_min,
-  Inf := λ s, if hs : s.nonempty then h.wf.min s hs else ⊥,
+{ Inf := λ s, if hs : s.nonempty then h.wf.min s hs else ⊥,
   cInf_le := λ s a hs has, begin
     have s_ne : s.nonempty := ⟨a, has⟩,
     simpa [s_ne] using not_lt.1 (h.wf.not_lt_min s s_ne has),
@@ -165,7 +157,7 @@ open_locale classical
     simpa using h.wf.not_lt_min _ h's has,
   end,
   cSup_empty := by simpa using eq_bot_iff.2 (not_lt.1 $ h.wf.not_lt_min _ _ $ mem_univ ⊥),
-  ..i, ..b }
+  ..i₁, ..i₂, ..linear_order.to_lattice }
 
 end
 

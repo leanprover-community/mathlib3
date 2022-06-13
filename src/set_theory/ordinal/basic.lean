@@ -1307,6 +1307,13 @@ end
 
 lemma mk_ord_out (c : cardinal) : #c.ord.out.α = c := by simp
 
+lemma card_typein_lt (r : α → α → Prop) [is_well_order α r] (x : α)
+  (h : ord (#α) = type r) : card (typein r x) < #α :=
+by { rw [←lt_ord, h], apply typein_lt_type }
+
+lemma card_typein_out_lt (c : cardinal) (x : c.ord.out.α) : card (typein (<) x) < c :=
+by { rw ←lt_ord, apply typein_lt_self }
+
 lemma ord_injective : injective ord :=
 by { intros c c' h, rw [←card_ord c, ←card_ord c', h] }
 

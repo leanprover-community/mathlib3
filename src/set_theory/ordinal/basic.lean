@@ -1305,6 +1305,8 @@ eq_of_forall_ge_iff $ λ o, le_iff_le_iff_lt_iff_lt.2 $ begin
     rwa [ordinal.lift_lt, lt_ord] }
 end
 
+lemma mk_ord_out (c : cardinal) : #c.ord.out.α = c := by simp
+
 lemma ord_injective : injective ord :=
 by { intros c c' h, rw [←card_ord c, ←card_ord c', h] }
 

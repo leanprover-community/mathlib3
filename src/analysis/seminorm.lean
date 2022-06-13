@@ -312,19 +312,9 @@ instance [semiring R] [module R ℝ] [has_scalar R ℝ≥0] [is_scalar_tower R �
 noncomputable instance : has_sup (seminorm 𝕜 E) :=
 { sup := λ p q,
   { to_fun  := p ⊔ q,
-    nonneg' := λ x, begin
-      simp only [pi.sup_apply, le_sup_iff],
-      exact or.intro_left _ (p.nonneg _),
-    end,
-    map_zero' := begin
-      simp only [pi.sup_apply],
-      rw [← p.map_zero, sup_eq_left, p.map_zero, q.map_zero],
-    end,
-    add_le' := λ x y, sup_le
-      ((p.add_le x y).trans $ add_le_add le_sup_left le_sup_left)
-      ((q.add_le x y).trans $ add_le_add le_sup_right le_sup_right),
     smul' := λ x v, (congr_arg2 max (p.smul x v) (q.smul x v)).trans $
-      (mul_max_of_nonneg _ _ $ norm_nonneg x).symm } }
+      (mul_max_of_nonneg _ _ $ norm_nonneg x).symm,
+    ..(p.to_add_monoid_seminorm ⊔ q.to_add_monoid_seminorm) } }
 
 @[simp] lemma coe_sup (p q : seminorm 𝕜 E) : ⇑(p ⊔ q) = p ⊔ q := rfl
 lemma sup_apply (p q : seminorm 𝕜 E) (x : E) : (p ⊔ q) x = p x ⊔ q x := rfl

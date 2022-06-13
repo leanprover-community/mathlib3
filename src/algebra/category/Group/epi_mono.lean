@@ -115,17 +115,19 @@ namespace CommGroup
 
 variables {A B : CommGroup.{u}} (f : A ⟶ B)
 
-@[to_additive]
+@[to_additive AddCommGroup.range_eq_top_of_epi]
 lemma range_eq_top_of_epi [epi f] : f.range = ⊤ :=
 monoid_hom.range_eq_top_of_cancel $ λ u v,
   (@cancel_epi _ _ _ _ _ f _
     (show CommGroup.of B ⟶ CommGroup.of (B ⧸ f.range), from u) _).1
 
+@[to_additive AddCommGroup.epi_iff_range_eq_top]
 lemma epi_iff_range_eq_top :
   epi f ↔ f.range = ⊤ :=
 ⟨λ h, @@range_eq_top_of_epi f h,
 λ h, concrete_category.epi_of_surjective _ $ (monoid_hom.range_eq_top f).1 h⟩
 
+@[to_additive AddCommGroup.epi_iff_surjective]
 lemma epi_iff_surjective :
   epi f ↔ function.surjective f :=
 iff.trans (epi_iff_range_eq_top f) $ monoid_hom.range_eq_top f

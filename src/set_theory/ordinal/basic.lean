@@ -1215,7 +1215,7 @@ namespace cardinal
 open ordinal
 
 @[simp] theorem mk_ordinal_out (o : ordinal) : #(o.out.α) = o.card :=
-by { convert (ordinal.card_type (<)).symm, exact (ordinal.type_lt o).symm }
+(ordinal.card_type _).symm.trans $ by rw ordinal.type_lt
 
 /-- The ordinal corresponding to a cardinal `c` is the least ordinal
   whose cardinal is `c`. For the order-embedding version, see `ord.order_embedding`. -/
@@ -1304,16 +1304,6 @@ eq_of_forall_ge_iff $ λ o, le_iff_le_iff_lt_iff_lt.2 $ begin
     rw [← lift_card, lift_lt] at h,
     rwa [ordinal.lift_lt, lt_ord] }
 end
-
-lemma mk_ord_out (c : cardinal) : #c.ord.out.α = c :=
-by rw [←card_type (<), type_lt, card_ord]
-
-lemma card_typein_lt (r : α → α → Prop) [is_well_order α r] (x : α)
-  (h : ord (#α) = type r) : card (typein r x) < #α :=
-by { rw [←ord_lt_ord, h], refine lt_of_le_of_lt (ord_card_le _) (typein_lt_type r x) }
-
-lemma card_typein_out_lt (c : cardinal) (x : c.ord.out.α) : card (typein (<) x) < c :=
-by { convert card_typein_lt (<) x _, rw [mk_ord_out], rw [type_lt, mk_ord_out] }
 
 lemma ord_injective : injective ord :=
 by { intros c c' h, rw [←card_ord c, ←card_ord c', h] }

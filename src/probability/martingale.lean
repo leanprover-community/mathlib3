@@ -467,8 +467,7 @@ begin
           (λ n, (hsub.strongly_measurable n).measurable.le (𝒢.le n)) _) measurable_const) },
       exacts [(hsub.integrable _).integrable_on, (hsub.integrable _).integrable_on,
         integral_nonneg (hnonneg _), integral_nonneg (hnonneg _)] },
-    rwa [hadd, ennreal.add_le_add_iff_right ennreal.of_real_ne_top] at this,
-   },
+    rwa [hadd, ennreal.add_le_add_iff_right ennreal.of_real_ne_top] at this },
   calc ε • μ {x | (ε : ℝ) ≤ ⨆ k ≤ n, f k x}
     + ennreal.of_real (∫ x in {x | (⨆ k ≤ n, f k x) < ε}, f n x ∂μ) ≤
     ennreal.of_real

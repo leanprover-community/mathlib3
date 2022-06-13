@@ -826,7 +826,7 @@ induction_on a $ λ α r _, quotient.sound ⟨rel_iso.preimage equiv.ulift r⟩
 @[simp] theorem lift_id : ∀ a, lift.{u u} a = a := lift_id'.{u u}
 
 /-- An ordinal lifted to the zero universe equals itself. -/
-theorem lift_uzero (a : ordinal.{u}) : lift.{0} a = a := lift_id'.{0 u} a
+@[simp] theorem lift_uzero (a : ordinal.{u}) : lift.{0} a = a := lift_id'.{0 u} a
 
 @[simp] theorem lift_lift (a : ordinal) : lift.{w} (lift.{v} a) = lift.{(max v w)} a :=
 induction_on a $ λ α r _,

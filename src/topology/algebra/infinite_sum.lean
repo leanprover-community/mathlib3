@@ -831,6 +831,39 @@ begin
     { apply_instance } }
 end
 
+lemma has_sum.int_rec {b : α} {f g : ℕ → α} (hf : has_sum f a) (hg : has_sum g b) :
+  @has_sum α _ _ _ (@int.rec (λ _, α) f g) (a + b) :=
+begin
+  -- note this proof works for any two-case inductive
+  have h₁ : injective (coe : ℕ → ℤ) := @int.of_nat.inj,
+  have h₂ : injective int.neg_succ_of_nat := @int.neg_succ_of_nat.inj,
+  have : is_compl (set.range (coe : ℕ → ℤ)) (set.range int.neg_succ_of_nat),
+  { split,
+    { rintros _ ⟨⟨i, rfl⟩, ⟨j, ⟨⟩⟩⟩ },
+    { rintros (i | j) h,
+      exact or.inl ⟨_, rfl⟩,
+      exact or.inr ⟨_, rfl⟩ } },
+  exact has_sum.add_is_compl this (h₁.has_sum_range_iff.mpr hf) (h₂.has_sum_range_iff.mpr hg),
+end
+
+lemma has_sum.nonneg_add_neg {b : α} {f : ℤ → α}
+  (hnonneg : has_sum (λ n : ℕ, f n) a) (hneg : has_sum (λ n, f (-[1+ n])) b) :
+  has_sum f (a + b) :=
+begin
+  convert hnonneg.int_rec hneg using 1,
+  ext (i | j); refl,
+end
+
+lemma has_sum.pos_add_zero_add_neg {b : α} {f : ℤ → α}
+  (hpos : has_sum (λ n:ℕ, f(n + 1)) a) (hneg : has_sum (λ n:ℕ, f(-n - 1)) b) :
+  has_sum f (a + f 0 + b) :=
+begin
+  have : ∀ g : ℕ → α, has_sum (λ k, g (k + 1)) a → has_sum g (a + g 0),
+  { intros g hg, simpa using (has_sum_nat_add_iff _).mp hg },
+  refine (this (λ n, f n) hpos).nonneg_add_neg _,
+  convert hneg, simp_rw int.neg_succ_of_nat_coe',
+end
+
 end subtype
 
 end topological_group
@@ -1261,43 +1294,7 @@ lemma tsum_comm [t1_space α] {f : β → γ → α} (h : summable (function.unc
   ∑' c b, f b c = ∑' b c, f b c :=
 tsum_comm' h h.prod_factor h.prod_symm.prod_factor
 
-
-/-!
-### Sums indexed by ℤ
-
-This section proves various results relating sums over `ℤ` with sums over `ℕ`.
--/
-section zsums
-variables {b : α}
-
-lemma has_sum.nonneg_add_neg {b : α} {f : ℤ → α} (hnonneg : has_sum (f ∘ coe : ℕ → α) a)
-  (hneg : has_sum (λ n:ℕ, f(-n - 1)) b) : has_sum f (a + b) :=
-begin
-  let N := set.range (coe : ℕ → ℤ),
-  have t1 : has_sum (f ∘ coe : N → α) a,
-  { refine (function.injective.has_sum_range_iff (λ x1 x2, _)).mpr hnonneg, simp, },
-  have : Nᶜ = set.range (λ n, -n - 1 : ℕ → ℤ),
-  { ext1, split,
-    { intro h, cases x,
-      { simp only [int.of_nat_eq_coe, set.mem_compl_eq, set.mem_range_self] at h, tauto, },
-      { use x, rw int.neg_succ_of_nat_coe' }, },
-    { intro h, simp only [set.mem_range] at h, cases h with y hy, rw ←hy,
-      simp only [set.mem_compl_eq, set.mem_range], rw ←int.neg_succ_of_nat_coe', tauto,} },
-  have t2 : has_sum (f ∘ coe : Nᶜ → α) b,
-  { rw this,
-    refine (function.injective.has_sum_range_iff (λ x1 x2, _)).mpr hneg, simp, },
-  simpa only [add_comm] using t2.compl_add t1,
-end
-
-lemma has_sum.pos_add_zero_add_neg {f : ℤ → α} (hpos : has_sum (λ n:ℕ, f(n + 1)) a)
-  (hneg : has_sum (λ n:ℕ, f(-n - 1)) b) : has_sum f (a + f 0 + b) :=
-begin
-  have : ∀ g : ℕ → α, has_sum (λ k, g (k + 1)) a → has_sum g (a + g 0),
-  { intros g hg, simpa using (has_sum_nat_add_iff _).mp hg },
-  exact (this (λ n, f n) hpos).nonneg_add_neg hneg,
-end
-
-lemma has_sum.sum_ℕ_of_sum_ℤ [t2_space α] {f : ℤ → α} (hf : has_sum f a) :
+lemma has_sum.sum_nat_of_sum_int [t2_space α] {f : ℤ → α} (hf : has_sum f a) :
   has_sum (λ n:ℕ, f(n + 1) + f(-n - 1)) (a - f 0) :=
 begin
   have : summable (λ n:ℕ, f(n + 1)),
@@ -1309,8 +1306,6 @@ begin
   convert h1.add h2,
   rw [hf.unique (h1.pos_add_zero_add_neg h2), add_comm, ←add_assoc, add_sub_cancel, add_comm],
 end
-
-end zsums
 
 end uniform_group
 

@@ -286,10 +286,10 @@ e.subalgebra_map E.to_subalgebra
 
 /- We add these two simp lemmas manually because `@[simps]` before `intermediate_field_map`
   led to a timeout. -/
-@[simp] lemma intermediate_field_map_apply_coe (e : L ≃ₐ[K] L') (E : intermediate_field K L) (a : E) :
+lemma intermediate_field_map_apply_coe (e : L ≃ₐ[K] L') (E : intermediate_field K L) (a : E) :
   ↑(intermediate_field_map e E a) = e a := rfl
 
-@[simp] lemma intermediate_field_map_symm_apply_coe (e : L ≃ₐ[K] L') (E : intermediate_field K L)
+lemma intermediate_field_map_symm_apply_coe (e : L ≃ₐ[K] L') (E : intermediate_field K L)
   (a : subsemiring.map e.to_ring_equiv.to_ring_hom E.to_subalgebra.to_subsemiring) :
   ↑((intermediate_field_map e E).symm a) = e.symm a := rfl
 

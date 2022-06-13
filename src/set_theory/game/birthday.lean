@@ -161,7 +161,7 @@ theorem birthday_zero_add : (0 + a).birthday = a.birthday := by simp
 theorem birthday_add_one  : (a + 1).birthday = a.birthday + 1 := by simp
 theorem birthday_one_add  : (1 + a).birthday = a.birthday + 1 := by simp
 
-@[simp] theorem birthday_nat (n : ℕ) : birthday n = n :=
+@[simp] theorem birthday_nat_cast (n : ℕ) : birthday n = n :=
 begin
   induction n with n hn,
   { exact birthday_zero },

@@ -416,39 +416,29 @@ begin
   sorry
 end
 
+lemma nat.exists_of_le_supr {p : ℕ → Prop} (hp : {n | p n}.finite)
+  {f : ℕ → ℝ} {ε : ℝ≥0} (hn : 0 < ε) (h : ↑ε ≤ ⨆ k (h : p k), f k) :
+  ∃ m, p m ∧ ↑ε ≤ f m :=
+begin
+  sorry,
+end
+
 lemma smul_le_stopped_value_hitting [is_finite_measure μ]
   {f : ℕ → α → ℝ} (hsub : submartingale f 𝒢 μ) (hnonneg : 0 ≤ f) (ε : ℝ≥0) (hε : 0 < ε) (n : ℕ) :
   ε • μ {x | (ε : ℝ) ≤ ⨆ k ≤ n, f k x} ≤ ennreal.of_real
-    (∫ x in {x | (ε : ℝ) ≤ ⨆ k ≤ n, f k x}, stopped_value f (hitting f {y | (ε : ℝ) < y} n) x ∂μ) :=
+    (∫ x in {x | (ε : ℝ) ≤ ⨆ k ≤ n, f k x}, stopped_value f (hitting f {y : ℝ | ↑ε ≤ y} n) x ∂μ) :=
 begin
   have : ∀ x, ((ε : ℝ) ≤ ⨆ k ≤ n, f k x) →
-    (ε : ℝ) ≤ stopped_value f (hitting f {y : ℝ | ↑ε < y} n) x,
+    (ε : ℝ) ≤ stopped_value f (hitting f {y : ℝ | ↑ε ≤ y} n) x,
   { intros x hx,
-    refine le_iff_eq_or_lt.2 (or_iff_not_imp_left.2 (λ heq, stopped_value_hitting_mem _)),
+    refine stopped_value_hitting_mem _,
     simp only [set.mem_set_of_eq, exists_prop],
-    sorry,
-    -- rw real.le_Sup_iff at hx,
-    -- by_contra h,
-    -- rw ← not_lt at hx,
-    -- refine hx _,
-   },
+    exact nat.exists_of_le_supr (set.finite_le_nat n) hε hx },
   rw [ennreal.le_of_real_iff_to_real_le, ennreal.to_real_smul],
   { refine set_integral_le_const this },
   { exact (ennreal.mul_lt_top (by simp) (measure_lt_top _ _).ne).ne },
   { exact le_trans (mul_nonneg ε.coe_nonneg ennreal.to_real_nonneg) (set_integral_le_const this) }
 end
-  -- rw stopped_value_eq hitting_le,
-  -- swap, apply_instance,
-  -- simp only [finset.sum_apply],
-  -- rw integral_finset_sum _ _,
-  -- { sorry },
-  -- { intros i hi,
-  --   exact (integrable_on_univ.1 $ integrable_on.restrict
-  --     (integrable_on_univ.2 $ hsub.integrable _) measurable_set.univ).indicator
-  --     (measurable_set_eq_fun_of_encodable
-  --     ((hitting_is_stopping_time_nat hsub.adapted _ n).measurable.le
-  --     (hitting_is_stopping_time_nat (submartingale.adapted hsub)
-  --     measurable_set_Ioi n).measurable_space_le) measurable_const) }
 
 lemma maximal_ineq [is_finite_measure μ]
   {f : ℕ → α → ℝ} (hsub : submartingale f 𝒢 μ) (hnonneg : 0 ≤ f) (ε : ℝ≥0) (hε : 0 < ε) (n : ℕ) :

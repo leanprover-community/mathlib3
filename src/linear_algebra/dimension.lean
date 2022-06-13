@@ -285,6 +285,22 @@ end
 
 variables {R M}
 
+/-- A linearly-independent family of vectors in a module over a non-trivial ring must be finite if
+the module is Noetherian. -/
+lemma linear_independent.finite_of_is_noetherian [is_noetherian R M]
+  {v : ι → M} (hv : linear_independent R v) : finite ι :=
+begin
+  have hwf := is_noetherian_iff_well_founded.mp (by apply_instance : is_noetherian R M),
+  refine complete_lattice.well_founded.finite_of_independent hwf hv.independent (λ i contra, _),
+  apply hv.ne_zero i,
+  have : v i ∈ R ∙ v i := submodule.mem_span_singleton_self (v i),
+  rwa [contra, submodule.mem_bot] at this,
+end
+
+lemma linear_independent.set_finite_of_is_noetherian [is_noetherian R M]
+  {s : set M} (hi : linear_independent R (coe : s → M)) : s.finite :=
+⟨@fintype.of_finite _ hi.finite_of_is_noetherian⟩
+
 /--
 Over any nontrivial ring, the existence of a finite spanning set implies that any basis is finite.
 -/
@@ -689,26 +705,6 @@ begin
   rw s,
   exact le_top,
 end
-
-/-- A linearly-independent family of vectors in a module over a ring satisfying the strong rank
-condition must be finite if the module is Noetherian. -/
-noncomputable def fintype_of_is_noetherian_linear_independent [is_noetherian R M]
-  {v : ι → M} (hi : linear_independent R v) : fintype ι :=
-begin
-  have hfg : (⊤ : submodule R M).fg,
-  { exact is_noetherian_def.mp infer_instance ⊤, },
-  rw submodule.fg_def at hfg,
-  choose s hs hs' using hfg,
-  haveI : fintype s := hs.fintype,
-  apply linear_independent_fintype_of_le_span_fintype v hi s,
-  simp only [hs', set.subset_univ, submodule.top_coe, set.le_eq_subset],
-end
-
-/-- A linearly-independent subset of a module over a ring satisfying the strong rank condition
-must be finite if the module is Noetherian. -/
-lemma finite_of_is_noetherian_linear_independent [is_noetherian R M]
-  {s : set M} (hi : linear_independent R (coe : s → M)) : s.finite :=
-⟨fintype_of_is_noetherian_linear_independent hi⟩
 
 /--
 An auxiliary lemma for `linear_independent_le_basis`:

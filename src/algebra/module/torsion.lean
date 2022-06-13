@@ -59,13 +59,59 @@ Torsion, submodule, module, quotient
 
 namespace ideal
 
-section
+section torsion_of
+
 variables (R M : Type*) [semiring R] [add_comm_monoid M] [module R M]
+
 /--The torsion ideal of `x`, containing all `a` such that `a • x = 0`.-/
 @[simps] def torsion_of (x : M) : ideal R := (linear_map.to_span_singleton R M x).ker
+
+@[simp] lemma torsion_of_zero : torsion_of R M (0 : M) = ⊤ := by simp [torsion_of]
+
 variables {R M}
+
 @[simp] lemma mem_torsion_of_iff (x : M) (a : R) : a ∈ torsion_of R M x ↔ a • x = 0 := iff.rfl
+
+variables (R)
+
+@[simp] lemma torsion_of_eq_top_iff (m : M) : torsion_of R M m = ⊤ ↔ m = 0 :=
+begin
+  refine ⟨λ h, _, λ h, by simp [h]⟩,
+  rw [← one_smul R m, ← mem_torsion_of_iff m (1 : R), h],
+  exact submodule.mem_top,
 end
+
+@[simp] lemma torsion_of_eq_bot_iff_of_no_zero_smul_divisors
+  [nontrivial R] [no_zero_smul_divisors R M] (m : M) :
+  torsion_of R M m = ⊥ ↔ m ≠ 0 :=
+begin
+  refine ⟨λ h contra, _, λ h, (submodule.eq_bot_iff _).mpr $ λ r hr, _⟩,
+  { rw [contra, torsion_of_zero] at h,
+    exact bot_ne_top.symm h, },
+  { rw [mem_torsion_of_iff, smul_eq_zero] at hr,
+    tauto, },
+end
+
+lemma complete_lattice.independent.linear_independent' {ι R M : Type*} {v : ι → M}
+  [ring R] [add_comm_group M] [module R M]
+  (hv : complete_lattice.independent $ λ i, (R ∙ v i))
+  (h_ne_zero : ∀ i, ideal.torsion_of R M (v i) = ⊥) :
+  linear_independent R v :=
+begin
+  refine linear_independent_iff_not_smul_mem_span.mpr (λ i r hi, _),
+  replace hv := complete_lattice.independent_def.mp hv i,
+  simp only [supr_subtype', ← submodule.span_range_eq_supr, disjoint_iff] at hv,
+  have : r • v i ∈ ⊥,
+  { rw [← hv, submodule.mem_inf],
+    refine ⟨submodule.mem_span_singleton.mpr ⟨r, rfl⟩, _⟩,
+    convert hi,
+    ext,
+    simp, },
+  rw [← submodule.mem_bot R, ← h_ne_zero i],
+  simpa using this,
+end
+
+end torsion_of
 
 lemma sup_eq_top_iff_is_coprime {R : Type*} [comm_semiring R] (x y : R) :
   span ({x} : set R) ⊔ span {y} = ⊤ ↔ is_coprime x y :=

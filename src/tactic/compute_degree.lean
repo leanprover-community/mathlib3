@@ -118,32 +118,6 @@ match num_to_nat a with
 | none := skip
 end
 
-/-- `C_mul_terms e` produces a proof of `e.nat_degree = ??` in the case in which `e` is of the form
-`C a * X (^ n)?`.  It has special support for `C 1`, when there is a `nontrivial` assumption on the
-base-semiring. -/
-meta def C_mul_terms : expr → tactic unit
-| `(has_mul.mul %%a %%X) := do
-  convert_num_to_C_num a,
-  refine ``(polynomial.nat_degree_C_mul_X _ _) <|>
-    refine ``(polynomial.nat_degree_C_mul_X_pow _ _ _) <|>
-    fail "The leading term is not of the form\n`C a * X (^ n)`\n\n",
-  assumption <|> interactive.exact ``(one_ne_zero) <|> skip
-| _ := fail "The leading term is not of the form\n`C a * X (^ n)`\n\n"
-
-meta def C_mul_terms_old : expr → tactic unit
-| `(has_mul.mul %%a %%X) := do match X with
-  | `(polynomial.X) := do  -- a * X
-    convert_num_to_C_num a,
-    refine ``(polynomial.nat_degree_C_mul_X _ _),
-    try assumption
-  | `(@has_pow.pow (@polynomial %%R %%nin) ℕ %%inst %%mX %%n) := do  -- a * X ^ n
-    convert_num_to_C_num a,
-    refine ``(polynomial.nat_degree_C_mul_X_pow %%n _ _),
-    assumption <|> interactive.exact ``(one_ne_zero) <|> skip
-  | _ := trace "The leading term is not of the form\n`C a * X (^ n)`\n\n"
-  end
-| _ := fail "The leading term is not of the form\n`C a * X (^ n)`\n\n"
-
 /--  Let `e` be an expression.  Assume that `e` is
 * `C a * X (^ n)`,
 * `num * X (^ n)`, where `num` is a sequence of `bit0` and `bit1` applied to `1`,
@@ -206,7 +180,7 @@ meta def guess_degree : expr → tactic ℕ
   fail format!"The exponent of 'X ^ {n}' is not a closed natural number"
 | (app `(⇑(polynomial.monomial %%n)) x) := n.to_nat <|>
   fail format!"The exponent of 'monomial {n} {x}' is not a closed natural number"
-| e                                     := fail format!"cannot guess the degree of '{e}'"
+| e                        := fail format!"cannot guess the degree of '{e}'"
 
 /--  Similar to `guess_degree e`, except that it returns an `expr`.  It outputs ``(0)`, when
 the heuristic for the guess fails. -/
@@ -221,7 +195,7 @@ meta def guess_degree_expr : expr → expr
 | (app `(⇑polynomial.C) x) := `(0)
 | `(polynomial.X ^ %%n)    := n
 | (app `(⇑(polynomial.monomial %%n)) x) := n
-| e                                     := `(0)
+| e                        := `(0)
 
 /--  Similar to `single_term_resolve`, but adapted to `f.nat_degree ≤ d`. -/
 meta def single_term_resolve_le : expr → tactic unit
@@ -264,10 +238,22 @@ do summ ← e.list_summands,
 
 /--  These are the cases in which an easy lemma computes the degree. -/
 meta def single_term_suggestions : tactic unit := do
-interactive.exact ``(polynomial.nat_degree_X_pow _), trace "Try this: exact nat_degree_X_pow _" <|>
-interactive.exact ``(polynomial.nat_degree_C _),     trace "Try this: exact nat_degree_C _"     <|>
-interactive.exact ``(polynomial.nat_degree_X),       trace "Try this: exact nat_degree_X"       <|>
-fail "easy lemmas do not work"
+bo ← succeeds $ interactive.exact ``(polynomial.nat_degree_X_pow _),
+if bo then fail "Try this: exact polynomial.nat_degree_X_pow _"
+else do
+bo ← succeeds $ interactive.exact ``(polynomial.nat_degree_C _),
+if bo then fail "Try this: exact polynomial.nat_degree_C _"
+else do
+bo ← succeeds $ interactive.exact ``(polynomial.nat_degree_X),
+if bo then fail "Try this: exact polynomial.nat_degree_X"
+else do
+bo ← succeeds $ interactive.exact ``(polynomial.nat_degree_C_mul_X_pow _ _ ‹_›),
+if bo then fail "Try this: exact polynomial.nat_degree_C_mul_X_pow _ _ ‹_›"
+else do
+bo ← succeeds $ interactive.exact ``(polynomial.nat_degree_C_mul_X _ ‹_›),
+if bo then fail "Try this: exact polynomial.nat_degree_C_mul_X _ ‹_›"
+else
+  fail "single term lemmas do not work"
 
 end tactic
 
@@ -309,38 +295,24 @@ then the tactic suggests the degree that it computed.
 
 The tactic also reports when it is used with non-closed natural numbers as exponents. -/
 meta def compute_degree : tactic unit :=
-do t ← target,
-  match t with
-  | `(polynomial.nat_degree %%tl = %%tr) := do
-    (lead,m') ← extract_top_degree_term_and_deg tl,-- <|> fail
---      "currently, there is no support for some of the terms appearing in the polynomial",
-    td ← eval_expr ℕ tr,
-    if m' ≠ td then
-      do pptl ← pp tl, ppm' ← pp m',
-        trace sformat!"should the nat_degree be '{m'}'?\n\n",
-        trace sformat!"Try this: {pptl}.nat_degree = {ppm'}", failed
-    else
-      move_op.with_errors ``((+)) [(ff, pexpr.of_expr lead)] none,
-      refine ``(polynomial.nat_degree_add_left_succ _ %%lead _ _ _),
-      single_term_resolve lead,
-      compute_degree_le
-  | `(polynomial.degree %%tl = %%tr) := do
-    refine ``((polynomial.degree_eq_iff_nat_degree_eq_of_pos _).mpr _),
-    interactive.rotate,
-    `(_ = %%tr1) ← target,
-    td ← eval_expr ℕ tr1,
-    (lead,m') ← extract_top_degree_term_and_deg tl,
-    if m' ≠ td then
-      do pptl ← pp tl, ppm' ← pp m',
-        trace sformat!"should the degree be '{m'}'?\n\n",
-        trace sformat!"Try this: {pptl}.degree = {ppm'}", failed
-    else
-      move_op.with_errors ``((+)) [(ff, pexpr.of_expr lead)] none,
-      refine ``(polynomial.nat_degree_add_left_succ _ %%lead _ _ _),
-      single_term_resolve lead,
-      compute_degree_le
-  |_ := fail "Goals is not of the form\n`f.nat_degree = d` or `f.degree = d`"
-  end
+do ifdeg ← succeeds ( refine ``((polynomial.degree_eq_iff_nat_degree_eq_of_pos _).mpr _) >>
+    interactive.rotate),
+  let is_deg := if ifdeg then tt else ff,
+  `(polynomial.nat_degree %%tl = %%tr) ← target |
+    fail "Goal is not of the form\n`f.nat_degree = d` or `f.degree = d`",
+  (lead,m') ← extract_top_degree_term_and_deg tl,
+  td ← eval_expr ℕ tr,
+  if m' ≠ td then
+    do pptl ← pp tl, ppm' ← pp m',
+      if is_deg then
+        fail sformat!"should the degree be '{m'}'?"
+      else
+       fail sformat!"should the nat_degree be '{m'}'?"
+  else
+    move_op.with_errors ``((+)) [(ff, pexpr.of_expr lead)] none,
+    refine ``(polynomial.nat_degree_add_left_succ _ %%lead _ _ _) <|> single_term_suggestions,
+    single_term_resolve lead,
+    compute_degree_le
 
 add_tactic_doc
 { name := "compute_degree_le",
@@ -355,3 +327,4 @@ add_tactic_doc
   tags := ["arithmetic, finishing"] }
 
 end tactic.interactive
+#lint

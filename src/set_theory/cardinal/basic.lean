@@ -641,6 +641,7 @@ begin
   simp only [mk_sum, mk_out, lift_id, mk_sigma],
 end
 
+/-- A variant of `csupr_of_empty` but with `0` on the RHS for convenience -/
 @[simp] protected theorem supr_of_empty {ι} (f : ι → cardinal) [is_empty ι] : supr f = 0 :=
 csupr_of_empty f
 

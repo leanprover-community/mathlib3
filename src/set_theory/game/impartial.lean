@@ -63,7 +63,7 @@ theorem impartial_congr : ∀ {G H : pgame} (e : relabelling G H) [G.impartial],
 | G H e := begin
   introI h,
   rw impartial_def,
-  refine ⟨e.symm.equiv.trans ((neg_equiv_self G).trans (neg_congr e.equiv)),
+  refine ⟨e.symm.equiv.trans ((neg_equiv_self G).trans (neg_equiv_neg_iff.2 e.equiv)),
     λ i, _, λ j, _⟩;
   cases e with _ _ L R hL hR,
   { convert impartial_congr (hL (L.symm i)),

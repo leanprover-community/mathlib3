@@ -579,7 +579,7 @@ instance : is_lawful_singleton α (finset α) := ⟨λ a, by { ext, simp }⟩
 
 @[simp] lemma insert_eq_of_mem (h : a ∈ s) : insert a s = s := eq_of_veq $ ndinsert_of_mem h
 
-@[simp] theorem pair_self_eq (a : α) : ({a, a} : finset α) = {a} :=
+@[simp] theorem pair_eq_singleton (a : α) : ({a, a} : finset α) = {a} :=
 insert_eq_of_mem $ mem_singleton_self _
 
 theorem insert.comm (a b : α) (s : finset α) : insert a (insert b s) = insert b (insert a s) :=
@@ -1058,6 +1058,9 @@ begin
   exact ⟨a, ht, subset_erase.2 ⟨h.1, hs⟩⟩,
 end
 
+lemma erase_ssubset_insert (s : finset α) (a : α) : s.erase a ⊂ insert a s :=
+ssubset_iff_exists_subset_erase.2 ⟨a, mem_insert_self _ _, erase_subset_erase _ $ subset_insert _ _⟩
+
 @[simp]
 theorem erase_eq_of_not_mem {a : α} {s : finset α} (h : a ∉ s) : erase s a = s :=
 eq_of_veq $ erase_of_not_mem h
@@ -1065,6 +1068,9 @@ eq_of_veq $ erase_of_not_mem h
 @[simp] lemma erase_insert_eq_erase (s : finset α) (a : α) :
   (insert a s).erase a = s.erase a :=
 by by_cases ha : a ∈ s; { simp [ha, erase_insert] }
+
+lemma erase_cons {s : finset α} {a : α} (h : a ∉ s) : (s.cons a h).erase a = s :=
+by rw [cons_eq_insert, erase_insert_eq_erase, erase_eq_of_not_mem h]
 
 lemma erase_idem {a : α} {s : finset α} : erase (erase s a) a = erase s a :=
 by simp
@@ -1082,6 +1088,12 @@ subset_insert_iff.1 $ subset.rfl
 theorem insert_erase_subset (a : α) (s : finset α) : s ⊆ insert a (erase s a) :=
 subset_insert_iff.2 $ subset.rfl
 
+lemma subset_insert_iff_of_not_mem (h : a ∉ s) : s ⊆ insert a t ↔ s ⊆ t :=
+by rw [subset_insert_iff, erase_eq_of_not_mem h]
+
+lemma erase_subset_iff_of_mem (h : a ∈ t) : s.erase a ⊆ t ↔ s ⊆ t :=
+by rw [←subset_insert_iff, insert_eq_of_mem h]
+
 lemma erase_inj {x y : α} (s : finset α) (hx : x ∈ s) : s.erase x = s.erase y ↔ x = y :=
 begin
   refine ⟨λ h, _, congr_arg _⟩,
@@ -1091,6 +1103,9 @@ begin
 end
 
 lemma erase_inj_on (s : finset α) : set.inj_on s.erase s := λ _ _ _ _, (erase_inj s ‹_›).mp
+
+lemma erase_inj_on' (a : α) : {s : finset α | a ∈ s}.inj_on (λ s, erase s a) :=
+λ s hs t ht (h : s.erase a =  _), by rw [←insert_erase hs, ←insert_erase ht, h]
 
 /-! ### sdiff -/
 
@@ -1494,6 +1509,9 @@ ext $ λ x, by simp only [mem_filter, mem_union, and_or_distrib_left.symm]
 lemma filter_mem_eq_inter {s t : finset α} [Π i, decidable (i ∈ t)] :
   s.filter (λ i, i ∈ t) = s ∩ t :=
 ext $ λ i, by rw [mem_filter, mem_inter]
+
+lemma filter_inter_distrib (s t : finset α) : (s ∩ t).filter p = s.filter p ∩ t.filter p :=
+by { ext, simp only [mem_filter, mem_inter], exact and_and_distrib_right _ _ _ }
 
 theorem filter_inter (s t : finset α) : filter p s ∩ t = filter p (s ∩ t) :=
 by { ext, simp only [mem_inter, mem_filter, and.right_comm] }
@@ -2057,11 +2075,18 @@ lemma image_inter_subset [decidable_eq α] (f : α → β) (s t : finset α) :
 subset_inter (image_subset_image $ inter_subset_left _ _) $
   image_subset_image $ inter_subset_right _ _
 
-lemma image_inter [decidable_eq α] (s₁ s₂ : finset α) (hf : ∀ x y, f x = f y → x = y) :
+lemma image_inter_of_inj_on [decidable_eq α] {f : α → β} (s t : finset α)
+  (hf : set.inj_on f (s ∪ t)) :
+  (s ∩ t).image f = s.image f ∩ t.image f :=
+(image_inter_subset _ _ _).antisymm $ λ x, begin
+  simp only [mem_inter, mem_image],
+  rintro ⟨⟨a, ha, rfl⟩, b, hb, h⟩,
+  exact ⟨a, ⟨ha, by rwa ←hf (or.inr hb) (or.inl ha) h⟩, rfl⟩,
+end
+
+lemma image_inter [decidable_eq α] (s₁ s₂ : finset α) (hf : injective f) :
   (s₁ ∩ s₂).image f = s₁.image f ∩ s₂.image f :=
-ext $ by simp only [mem_image, exists_prop, mem_inter]; exact λ b,
-⟨λ ⟨a, ⟨m₁, m₂⟩, e⟩, ⟨⟨a, m₁, e⟩, ⟨a, m₂, e⟩⟩,
- λ ⟨⟨a, m₁, e₁⟩, ⟨a', m₂, e₂⟩⟩, ⟨a, ⟨m₁, hf _ _ (e₂.trans e₁.symm) ▸ m₂⟩, e₁⟩⟩.
+image_inter_of_inj_on _ _ $ hf.inj_on _
 
 @[simp] theorem image_singleton (f : α → β) (a : α) : image f {a} = {f a} :=
 ext $ λ x, by simpa only [mem_image, exists_prop, mem_singleton, exists_eq_left] using eq_comm
@@ -2070,16 +2095,21 @@ ext $ λ x, by simpa only [mem_image, exists_prop, mem_singleton, exists_eq_left
   (insert a s).image f = insert (f a) (s.image f) :=
 by simp only [insert_eq, image_singleton, image_union]
 
+lemma erase_image_subset_image_erase [decidable_eq α] (f : α → β) (s : finset α) (a : α) :
+  (s.image f).erase (f a) ⊆ (s.erase a).image f :=
+begin
+  simp only [subset_iff, and_imp, exists_prop, mem_image, exists_imp_distrib, mem_erase],
+  rintro b hb x hx rfl,
+  exact ⟨_, ⟨ne_of_apply_ne f hb, hx⟩, rfl⟩,
+end
+
 @[simp] lemma image_erase [decidable_eq α] {f : α → β} (hf : injective f) (s : finset α) (a : α) :
   (s.erase a).image f = (s.image f).erase (f a) :=
 begin
-  ext b,
+  refine (erase_image_subset_image_erase _ _ _).antisymm' (λ b, _),
   simp only [mem_image, exists_prop, mem_erase],
-  split,
-  { rintro ⟨a', ⟨haa', ha'⟩, rfl⟩,
-    exact ⟨hf.ne haa', a', ha', rfl⟩ },
-  { rintro ⟨h, a', ha', rfl⟩,
-    exact ⟨a', ⟨ne_of_apply_ne _ h, ha'⟩, rfl⟩ }
+  rintro ⟨a', ⟨haa', ha'⟩, rfl⟩,
+  exact ⟨hf.ne haa', a', ha', rfl⟩,
 end
 
 @[simp] theorem image_eq_empty : s.image f = ∅ ↔ s = ∅ :=
@@ -2490,8 +2520,12 @@ lemma disjoint_filter_filter_neg (s : finset α) (p : α → Prop) [decidable_pr
   disjoint (s.filter p) (s.filter $ λ a, ¬ p a) :=
 (disjoint_filter.2 $ λ a _, id).symm
 
-lemma disjoint_iff_disjoint_coe : disjoint s t ↔ disjoint (s : set α) (t : set α) :=
+@[simp, norm_cast] lemma disjoint_coe : disjoint (s : set α) t ↔ disjoint s t :=
 by { rw [finset.disjoint_left, set.disjoint_left], refl }
+
+@[simp, norm_cast] lemma pairwise_disjoint_coe {ι : Type*} {s : set ι} {f : ι → finset α} :
+  s.pairwise_disjoint (λ i, f i : ι → set α) ↔ s.pairwise_disjoint f :=
+forall₅_congr $ λ _ _ _ _ _, disjoint_coe
 
 @[simp] lemma _root_.disjoint.of_image_finset (h : disjoint (s.image f) (t.image f)) :
   disjoint s t :=

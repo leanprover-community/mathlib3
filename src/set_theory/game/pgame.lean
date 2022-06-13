@@ -503,8 +503,6 @@ classical.some_spec $ (zero_le.1 h) j
 If `x ≈ 0`, then the second player can always win `x`. -/
 def equiv (x y : pgame) : Prop := x ≤ y ∧ y ≤ x
 
--- TODO: add `equiv.le` and `equiv.ge` synonyms for `equiv.1` and `equiv.2`.
-
 local infix ` ≈ ` := pgame.equiv
 
 instance : is_equiv _ (≈) :=
@@ -519,6 +517,8 @@ theorem equiv.ge {x y : pgame} (h : x ≈ y) : y ≤ x := h.2
 theorem equiv_refl (x) : x ≈ x := refl x
 @[symm] protected theorem equiv.symm {x y} : x ≈ y → y ≈ x := symm
 @[trans] protected theorem equiv.trans {x y z} : x ≈ y → y ≈ z → x ≈ z := trans
+
+theorem equiv_of_eq {x y} (h : x = y) : x ≈ y := by subst h
 
 @[trans] theorem le_of_le_of_equiv {x y z} (h₁ : x ≤ y) (h₂ : y ≈ z) : x ≤ z := h₁.trans h₂.1
 @[trans] theorem le_of_equiv_of_le {x y z} (h₁ : x ≈ y) : y ≤ z → x ≤ z := h₁.1.trans
@@ -991,9 +991,6 @@ by rw [←neg_equiv_iff, pgame.neg_zero]
 @[simp] theorem zero_fuzzy_neg_iff {x : pgame} : 0 ∥ -x ↔ 0 ∥ x :=
 by rw [←neg_fuzzy_iff, pgame.neg_zero]
 
-theorem neg_congr {x y : pgame} (h : x ≈ y) : -x ≈ -y :=
-⟨neg_le_neg_iff.2 h.2, neg_le_neg_iff.2 h.1⟩
-
 /-- The sum of `x = {xL | xR}` and `y = {yL | yR}` is `{xL + y, x + yL | xR + y, x + yR}`. -/
 instance : has_add pgame.{u} := ⟨λ x y, begin
   induction x with xl xr xL xR IHxl IHxr generalizing y,
@@ -1341,7 +1338,7 @@ theorem add_congr_right {x y z : pgame} : y ≈ z → x + y ≈ x + z :=
 add_congr equiv_rfl
 
 theorem sub_congr {w x y z : pgame} (h₁ : w ≈ x) (h₂ : y ≈ z) : w - y ≈ x - z :=
-add_congr h₁ (neg_congr h₂)
+add_congr h₁ (neg_equiv_neg_iff.2 h₂)
 
 theorem sub_congr_left {x y z : pgame} (h : x ≈ y) : x - z ≈ y - z :=
 sub_congr h equiv_rfl

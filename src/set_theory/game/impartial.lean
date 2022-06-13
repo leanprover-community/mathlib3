@@ -126,6 +126,7 @@ lemma nonneg : ¬ G < 0 :=
   exact (h.trans h').false
 end
 
+/-- In an impartial game, either the first player always wins, or the second player always wins. -/
 lemma equiv_or_fuzzy_zero : G ≈ 0 ∨ G ∥ 0 :=
 begin
   rcases lt_or_equiv_or_gt_or_fuzzy G 0 with h | h | h | h,

@@ -557,4 +557,44 @@ by simpa only [arg_eq_pi_iff.2 ⟨hre, him⟩]
 
 end continuity
 
+section arg'
+
+/-- Branch of argument function valued in `(0, 2 * π]`. -/
+def arg' (x : ℂ) : ℝ := if (0 < arg x) then arg x else arg x + 2 * π
+
+lemma arg'_mem_Ioc (x : ℂ) : arg' x ∈ Ioc 0 (2 * π) :=
+begin
+  rw arg', split_ifs,
+  { refine ⟨h, _⟩, linarith [arg_le_pi x, real.pi_pos], },
+  { push_neg at h, split, linarith [neg_pi_lt_arg x], linarith, }
+end
+
+lemma arg'_eq_arg (x : ℂ) : (arg' x = arg x) ∨ (arg' x = arg x + 2 * π) :=
+begin
+  rw arg', split_ifs, tauto, tauto,
+end
+
+/-- Alternate definition of arg' for nonzero `x`. Note it is false for `x = 0`! -/
+lemma arg'_eq_arg_neg_add (x : ℂ) (hx : x ≠ 0) : arg' x = arg (-x) + π :=
+begin
+  rw arg', split_ifs,
+  { apply eq_add_of_sub_eq, symmetry,
+    rw arg_neg_eq_arg_sub_pi_iff,
+    rw lt_iff_le_and_ne at h, cases h, rw arg_nonneg_iff at h_left,
+    rw le_iff_lt_or_eq at h_left, cases h_left, tauto, contrapose! hx,
+    cases hx, replace hx_right := hx_right h_left.symm,
+    symmetry' at h_right,
+    rw [ne.def, arg_eq_zero_iff] at h_right,  push_neg at h_right, tauto },
+  { push_neg at h,
+    apply eq_add_of_sub_eq, ring_nf, symmetry,
+    rw arg_neg_eq_arg_add_pi_iff, rcases h.lt_or_eq,
+    { rw arg_neg_iff at h_1, tauto, },
+    { rw arg_eq_zero_iff at h_1, right, split, tauto,
+      rcases h_1.1.lt_or_eq, tauto,
+      exfalso, contrapose! hx, ext1, tauto, tauto, } },
+end
+
+end arg'
+
+
 end complex

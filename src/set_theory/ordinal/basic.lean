@@ -439,7 +439,7 @@ theorem nonempty_embedding_to_cardinal : nonempty (σ ↪ cardinal.{u}) :=
 def embedding_to_cardinal : σ ↪ cardinal.{u} := classical.choice nonempty_embedding_to_cardinal
 
 /-- We don't make this into a definition, as we define a well ordering `well_ordering_rel` with
-extra properties later. -/
+the extra property `type (@well_ordering_rel α) = (#α).ord` later. -/
 instance : nonempty {r // is_well_order σ r} :=
 ⟨⟨embedding_to_cardinal ⁻¹'o (<), (rel_embedding.preimage _ _).is_well_order⟩⟩
 
@@ -1242,10 +1242,10 @@ let ⟨⟨r, wo⟩, h⟩ := @ordinal.min_eq {r // is_well_order α r} (by apply_
 ⟨r, wo, h⟩
 
 /-- Any type `α` can be endowed with a well order whose order type equals `(#α).ord`. -/
-def well_ordering_rel : α → α → Prop :=
+def _root_.well_ordering_rel : α → α → Prop :=
 classical.some $ ord_eq α
 
-instance well_ordering_rel.is_well_order : is_well_order α well_ordering_rel :=
+instance _root_.well_ordering_rel.is_well_order : is_well_order α well_ordering_rel :=
 classical.some $ classical.some_spec $ ord_eq α
 
 @[simp] theorem type_well_ordering_rel : type (@well_ordering_rel α) = (#α).ord :=

@@ -75,7 +75,7 @@ begin
   apply_rules [continuous.smul, continuous_const],
   simp_rw deriv_circle_map,
   apply_rules [continuous.mul, (continuous_circle_map 0 R), continuous_const],
-  { apply circle_map_inv_continuous hR hw },
+  { apply circle_map_inv_continuous hw },
   { apply continuous_on.comp_continuous hf (continuous_circle_map z R),
     exact (λ _, (circle_map_mem_sphere _ hR.le) _) },
 end
@@ -85,7 +85,7 @@ lemma circle_integral_transform_deriv_continuous {R : ℝ} (hR : 0 < R) {f : ℂ
   continuous (circle_integral_transform_deriv R z w f) :=
 begin
   rw circle_integral_transform_deriv_eq,
-  exact (circle_map_inv_continuous hR hw).smul (circle_integral_transform_continuous hR hf hw),
+  exact (circle_map_inv_continuous hw).smul (circle_integral_transform_continuous hR hf hw),
 end
 
 /--A useful bound for circle integrals (with complex codomain)-/

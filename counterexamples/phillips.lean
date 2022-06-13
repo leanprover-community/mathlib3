@@ -466,10 +466,8 @@ begin
       { simp only [h, iff_true, or_true], exact asymm h } },
     rw this,
     apply countable.union _ (countable_singleton _),
-    rw [cardinal.countable_iff_lt_aleph_one, ← Hcont],
-    exact cardinal.card_typein_lt r x H },
-  { rw [cardinal.countable_iff_lt_aleph_one, ← Hcont],
-    exact cardinal.card_typein_lt r y H }
+    rw [cardinal.countable_iff_lt_aleph_one, ← Hcont, H, ← lt_ord] },
+  { rw [cardinal.countable_iff_lt_aleph_one, ← Hcont, H, ← lt_ord] }
 end
 
 /-- A family of sets in `ℝ` which only miss countably many points, but such that any point is

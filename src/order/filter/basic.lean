@@ -2593,7 +2593,7 @@ end
 /-- A fact that is eventually true about all pairs `l ×ᶠ l` is eventually true about
 all diagonal pairs `(i, i)` -/
 lemma eventually.diag_of_prod {f : filter α} {p : α × α → Prop}
-  (h : ∀ᶠ i in (f.prod f), p i) : (∀ᶠ i in f, p (i, i)) :=
+  (h : ∀ᶠ i in f ×ᶠ f, p i) : (∀ᶠ i in f, p (i, i)) :=
 begin
   obtain ⟨t, ht, s, hs, hst⟩ := eventually_prod_iff.1 h,
   apply (ht.and hs).mono (λ x hx, hst hx.1 hx.2),

@@ -35,6 +35,8 @@ See chapter 8 of [Barry Simon, *Convexity*][simon2011]
 
 ## TODO
 
+Define intrinsic frontier and prove lemmas related to extreme sets and points.
+
 More not-yet-PRed stuff is available on the branch `sperner_again`.
 -/
 

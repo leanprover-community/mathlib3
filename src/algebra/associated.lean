@@ -133,21 +133,18 @@ end
 We explicitly avoid stating that `p` is non-zero, this would require a semiring. Assuming only a
 monoid allows us to reuse irreducible for associated elements.
 -/
-class irreducible [monoid α] (p : α) : Prop :=
-(not_unit' : ¬ is_unit p)
+structure irreducible [monoid α] (p : α) : Prop :=
+(not_unit : ¬ is_unit p)
 (is_unit_or_is_unit' : ∀a b, p = a * b → is_unit a ∨ is_unit b)
 
 namespace irreducible
-
-lemma not_unit [monoid α] {p : α} (hp : irreducible p) : ¬ is_unit p :=
-hp.1
 
 lemma not_dvd_one [comm_monoid α] {p : α} (hp : irreducible p) : ¬ p ∣ 1 :=
 mt (is_unit_of_dvd_one _) hp.not_unit
 
 lemma is_unit_or_is_unit [monoid α] {p : α} (hp : irreducible p) {a b : α} (h : p = a * b) :
   is_unit a ∨ is_unit b :=
-irreducible.is_unit_or_is_unit' a b h
+hp.is_unit_or_is_unit' a b h
 
 end irreducible
 

@@ -326,7 +326,7 @@ begin
   suffices : type s ≤ type r, {exact card_le_card this},
   refine le_of_forall_lt (λ o h, _),
   rcases typein_surj s h with ⟨p, rfl⟩,
-  rw [← e, lt_ord],
+  rw [e, lt_ord],
   refine lt_of_le_of_lt
     (_ : _ ≤ card (succ (typein (<) (g p))) * card (succ (typein (<) (g p)))) _,
   { have : {q | s q p} ⊆ insert (g p) {x | x < g p} ×ˢ insert (g p) {x | x < g p},
@@ -344,7 +344,7 @@ begin
   { exact (mul_lt_aleph_0 qo qo).trans_le ol },
   { suffices, {exact (IH _ this qo).trans_lt this},
     rw ← lt_ord, apply (ord_is_limit ol).2,
-    rw [mk_def, e], apply typein_lt_type }
+    rw [mk_def, ← e], apply typein_lt_type }
 end
 
 end using_ordinals

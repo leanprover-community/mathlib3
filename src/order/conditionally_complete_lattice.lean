@@ -295,6 +295,14 @@ is_lub_le_iff (is_lub_cSup hs hb)
 theorem le_cInf_iff (hb : bdd_below s) (hs : s.nonempty) : a ≤ Inf s ↔ ∀ b ∈ s, a ≤ b :=
 le_is_glb_iff (is_glb_cInf hs hb)
 
+theorem csupr_le_iff [nonempty ι] {f : ι → α} {a : α} (hf : bdd_above (range f)) :
+  supr f ≤ a ↔ ∀ i, f i ≤ a :=
+(cSup_le_iff hf (range_nonempty f)).trans $ by simp
+
+theorem le_cinfi_iff [nonempty ι] {f : ι → α} {a : α} (hf : bdd_below (range f)) :
+  a ≤ infi f ↔ ∀ i, a ≤ f i :=
+(le_cInf_iff hf (range_nonempty f)).trans $ by simp
+
 lemma cSup_lower_bounds_eq_cInf {s : set α} (h : bdd_below s) (hs : s.nonempty) :
   Sup (lower_bounds s) = Inf s :=
 (is_lub_cSup h $ hs.mono $ λ x hx y hy, hy hx).unique (is_glb_cInf hs h).is_lub
@@ -639,6 +647,8 @@ le_is_glb_iff (is_least_Inf hs).is_glb
 
 lemma Inf_mem (hs : s.nonempty) : Inf s ∈ s := (is_least_Inf hs).1
 
+lemma infi_mem [nonempty ι] (f : ι → α) : infi f ∈ range f := Inf_mem (range_nonempty f)
+
 lemma monotone_on.map_Inf {β : Type*} [conditionally_complete_lattice β] {f : α → β}
   (hf : monotone_on f s) (hs : s.nonempty) : f (Inf s) = Inf (f '' s) :=
 (hf.map_is_least (is_least_Inf hs)).cInf_eq.symm
@@ -690,8 +700,15 @@ theorem le_cInf_iff'' {s : set α} {a : α} (ne : s.nonempty) :
   a ≤ Inf s ↔ ∀ (b : α), b ∈ s → a ≤ b :=
 le_cInf_iff ⟨⊥, λ a _, bot_le⟩ ne
 
+theorem le_cinfi_iff' [nonempty ι] {f : ι → α} {a : α} :
+  a ≤ infi f ↔ ∀ i, a ≤ f i :=
+le_cinfi_iff ⟨⊥, λ a _, bot_le⟩
+
 theorem cInf_le' {s : set α} {a : α} (h : a ∈ s) : Inf s ≤ a :=
 cInf_le ⟨⊥, λ a _, bot_le⟩ h
+
+theorem cinfi_le' (f : ι → α) (i : ι) : infi f ≤ f i :=
+cinfi_le ⟨⊥, λ a _, bot_le⟩ _
 
 lemma exists_lt_of_lt_cSup' {s : set α} {a : α} (h : a < Sup s) : ∃ b ∈ s, a < b :=
 by { contrapose! h, exact cSup_le' h }

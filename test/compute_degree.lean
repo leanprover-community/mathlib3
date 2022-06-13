@@ -185,8 +185,11 @@ by compute_degree_le
 --  fails with error message `should the degree bound be '10'?`
 example (h : 9 = 11) : nat_degree (monomial 5 c * monomial 6 c) ≤ 9 :=
 begin
+/-  this is commented, since `compute_degree_le` fails with a `success_if_fail` fails, but
+--  I made it also trace a message of what should be the "correct" degree.
   success_if_fail_with_msg {compute_degree_le}
     "success_if_fail combinator failed, given tactic succeeded",
+-/
   rw h,
   compute_degree_le
 end

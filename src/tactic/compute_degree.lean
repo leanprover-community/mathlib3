@@ -261,159 +261,50 @@ else
 
 namespace interactive
 
+/--  `resolve_sum_step e` first checks that `e` is of the form `f.nat_degree ≤ d`,
+failing otherwise.  Suppose that `e` has the desired form.
+* If `f` is a sum of two terms, then `resolve_sum_step` splits off one summand from `f` using
+  `nat_degree_add_le_iff_left`.
+* Otherwise, `resolve_sum_step` tries to solve the goal using `single_term_resolve_le`.
+
+In either case, there might be side-goals left of two different shapes:
+* `f'.nat_degree ≤ d`, with `f'` having fewer terms than `f`;
+* `m ≤ n`, where `m, n` are naturanl numbers.
+-/
+meta def resolve_sum_step : expr → tactic unit
+| `(polynomial.nat_degree (%%tl1 + %%tl2) ≤ %%tr) := do
+    refine ``((polynomial.nat_degree_add_le_iff_left _ _ _).mpr _)
+| `(polynomial.nat_degree %%tl ≤ %%tr) := do
+  single_term_resolve_le tl
+| _ := failed
+
+/--  If `check_deg_le tl tr` fails, then either at least one of the expressions `tl, tr` involves
+a non-closed natural number, or the expected degree of `tl` is smaller than `tr`.  In either
+case, failure means that we can proceed with the checking in `compute_degree_le`. -/
+meta def check_deg_le (tl tr : expr) : tactic unit :=
+do (_, m') ← extract_top_degree_term_and_deg tl,
+  td ← eval_expr ℕ tr,
+  if (m' ≤ td) then failed else trace sformat!"should the degree be {m'}?"
+
 /--  `compute_degree_le` tries to solve a goal of the form `f.nat_degree ≤ d`, where `d : ℕ` and `f`
 satisfies:
 * `f` is a sum of expression of the form
   `C a * X ^ n, C a * X, C a, X ^ n, X, monomial n a, monomial n a * monomial m b`,
 * all exponents and the `n` in `monomial n a` are *closed* terms of type `ℕ`.
-
 If the given degree is smaller than the one that the tactic computes,
 then the tactic suggests the degree that it computed.
 
-The tactic also reports when it is used with non-closed natural numbers as exponents. -/
-
-meta def resolve_sum_step : expr → tactic unit
-| `(polynomial.nat_degree %%tl ≤ %%tr) := do
-  match tl with
-  | `(%%tl1 + %%tl2) := do
-    refine ``((polynomial.nat_degree_add_le_iff_left _ _ _).mpr _)
-  | _ := single_term_resolve_le tl
-  end
-| _ := failed --try `[ norm_num ]
-
-meta def many_steps : tactic unit :=
-do repeat $ do t ← target,
-  resolve_sum_step t
-
-meta def check_deg_le_clumsy (tl tr : expr) : tactic bool :=
-do are_closed_exps ← succeeds $ extract_top_degree_term_and_deg tl,
-  is_closed_target_deg ← succeeds $ eval_expr ℕ tr,
-  if are_closed_exps ∧ is_closed_target_deg then do
-    (_, m') ← extract_top_degree_term_and_deg tl,
-    td ← eval_expr ℕ tr,
-    return (m' ≤ td)
-  else return ¬ (are_closed_exps ∧ is_closed_target_deg)
-
-/--  If `check_deg_le tl tr` fails, then we can proceed with the checking-/
-meta def check_deg_le (tl tr : expr) : tactic unit :=
-do --are_closed_exps ← succeeds $ extract_top_degree_term_and_deg tl,
-  --is_closed_target_deg ← succeeds $ eval_expr ℕ tr,
-  --if are_closed_exps ∧ is_closed_target_deg then do
-    (_, m') ← extract_top_degree_term_and_deg tl,
-    td ← eval_expr ℕ tr,
-    if (m' ≤ td) then failed else trace sformat!"should the degree be {m'}?"
---  else return ¬ (are_closed_exps ∧ is_closed_target_deg)
-#check guard
+The tactic reports nothing if it is used with non-closed natural numbers as exponents. -/
 meta def compute_degree_le : tactic unit :=
 do try $ refine ``(polynomial.degree_le_nat_degree.trans (with_bot.coe_le_coe.mpr _)),
-  `(polynomial.nat_degree %%tl ≤ %%tr) ← target | --skip,
+  `(polynomial.nat_degree %%tl ≤ %%tr) ← target |
     (do try $ any_goals' `[ norm_num ],
     try $ any_goals' assumption),
-    -- |
---    fail "Goal is not of the form\n`f.nat_degree ≤ d` or `f.degree ≤ d`",
-  tactic.success_if_fail $ check_deg_le tl tr <|> failed,-- sformat!"should the degree be m'?",
---  (_,m') ← extract_top_degree_term_and_deg tl,
---  td ← eval_expr ℕ tr,
---  if td < m' then do
---    pptl ← pp tr, ppm' ← pp m',
---    fail sformat!"should the nat_degree be '{m'}'?"
---  else
+  tactic.success_if_fail $ check_deg_le tl tr,  -- can `success_if_fail` fail with a custom message?
   repeat $ target >>= resolve_sum_step,
   try $ any_goals' `[ norm_num ],
   try $ any_goals' assumption
 
---  match t with
---  | `(polynomial.nat_degree %%tl ≤ %%tr) := do
---    (_,m') ← extract_top_degree_term_and_deg tl,--trace m',
---    td ← eval_expr ℕ tr,
---    if td < m' then do
---      pptl ← pp tr, ppm' ← pp m',
---      fail sformat!"should the nat_degree be '{m'}'?"
---    else
-
-/-
-meta def resolve_sum : expr → tactic unit
-| `(polynomial.nat_degree %%tl ≤ %%tr) := do trace "here",
---  (_,m') ← extract_top_degree_term_and_deg tl,--trace m',
---  td ← eval_expr ℕ tr,
---  if td < m' then do
---    pptl ← pp tr, ppm' ← pp m',
---    fail sformat!"should the nat_degree be '{m'}'?"
---  else
-  match tl with
-  | `(%%tl1 + %%tl2) := do
-  --tl ← mk_app ``has_add.add [tl1, tl2],
-    refine ``((polynomial.nat_degree_add_le_iff_left _ _ _).mpr _),
-    trace "before single and recompute",
-    --gs ← get_goals, gs.mmap infer_type >>= trace,
---    single_term_resolve_le tl,
-    gs ← get_goals,
-    gst ← gs.mmap infer_type,trace gst,
-    gst.mmap resolve_sum,
-    pure ()
---    gs.mmap' resolve_sum
---    return ()
---    tar ← target,
---    gs.mfoldl (λ a b, do resolve_sum a, return a) tar,
---    skip --,
---    target >>= resolve_sum
-  | _ := do trace "there", gs ← get_goals, gs.mmap infer_type >>= trace,single_term_resolve_le tl
-  end
-| _ := skip
-
-meta def compute_degree_le_old : tactic unit :=
-do try $ refine ``(polynomial.degree_le_nat_degree.trans (with_bot.coe_le_coe.mpr _)),
-  t ← target,
-  match t with
-  | `(polynomial.nat_degree %%tl ≤ %%tr) := do
-    (_,m') ← extract_top_degree_term_and_deg tl,--trace m',
-    td ← eval_expr ℕ tr,
-    if td < m' then do
-      pptl ← pp tr, ppm' ← pp m',
-      fail sformat!"should the nat_degree be '{m'}'?"
-    else
-    match tl with
-    | `(%%tl1 + %%tl2) := do
-    --tl ← mk_app ``has_add.add [tl1, tl2],
-      refine ``((polynomial.nat_degree_add_le_iff_left _ _ _).mpr _),
-      trace "before single and recompute",
-      --gs ← get_goals, gs.mmap infer_type >>= trace,
-      single_term_resolve_le tl,
-      compute_degree_le
-    | _ := do  gs ← get_goals, gs.mmap infer_type >>= trace,single_term_resolve_le tl
---fail "single summand"
-      end
---    (repeat $ do single_term_resolve_le tl,
---      gs ← get_goals, gs.mmap infer_type >>= trace )
-  | _ := do fail "not an inequality"
-  --try $ any_goals' `[ norm_num ],
-  --try $ any_goals' assumption
-  end
-/-
-   `(polynomial.nat_degree %%tl ≤ %%tr) ← target,
-  (_,m') ← extract_top_degree_term_and_deg tl,
-  td ← eval_expr ℕ tr,
-  if td < m' then do
-    pptl ← pp tl, ppm' ← pp m',
-    fail sformat!"should the nat_degree be '{m'}'?"
-  else
-  repeat $ refine ``((polynomial.nat_degree_add_le_iff_left _ _ _).mpr _),
-  (repeat $ do
---  cat ← capture
---  (do
---      ),
---    fail format!"{m'}") <|>
-    single_term_resolve_le tl,--unwrap cat,
-      gs ← get_goals, gs.mmap infer_type >>= trace
---    nt ← target, trace nt
-    ),
-  try $ any_goals' `[ norm_num ],
-  try $ any_goals' assumption
--/
--/
-
---#check @polynomial.degree_le_nat_degree
---#check capture
 /--  `compute_degree` tries to solve a goal of the form `f.nat_degree = d` or  `f.degree = d`,
 where `d : ℕ` and `f` satisfies:
 * `f` is a sum of expressions of the form
@@ -445,9 +336,9 @@ do is_deg ← succeeds ( refine ``((polynomial.degree_eq_iff_nat_degree_eq_of_po
      fail sformat!"should the nat_degree be '{m'}'?"
   else
     move_op.with_errors ``((+)) [(ff, pexpr.of_expr lead)] none,
-    refine ``(polynomial.nat_degree_add_left_succ _ %%lead _ _ _) <|> single_term_suggestions,
+    refine ``(polynomial.nat_degree_add_left_succ _ %%lead _ _ _) <|>
+      single_term_suggestions,
     single_term_resolve lead,
---    gs ← get_goals, gs.mmap (λ g, infer_type g >>= trace),
     any_goals' compute_degree_le
 
 add_tactic_doc

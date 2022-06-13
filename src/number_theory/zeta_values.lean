@@ -40,6 +40,9 @@ noncomputable theory
 section bernoulli_fun_props
 /-! Simple properties of the function `Bₖ(x / (2 * π))`. -/
 
+/-- The Bernoulli polynomial evaluated at `x`, as a function `ℝ → ℝ`.
+
+TO DO: get rid of this and inline it where needed . -/
 def bernoulli_fun0 (k : ℕ) (x : ℝ) : ℝ :=
 (polynomial.map (algebra_map ℚ ℝ) (polynomial.bernoulli k)).eval x
 
@@ -54,6 +57,7 @@ begin
   left, refl,
 end
 
+/-- The function `x ↦ Bₖ(x / (2 * π)) : ℝ → ℝ`. -/
 def bernoulli_fun (k : ℕ) (x : ℝ) : ℝ := (2 * π) ^ k * bernoulli_fun0 k (x / (2 * π))
 
 lemma bernoulli_fun_zero : bernoulli_fun 0 = (λ x, 1 : ℝ → ℝ) :=
@@ -129,6 +133,7 @@ end bernoulli_fun_props
 section bernoulli_fourier_coeffs
 /-! Compute the Fourier coefficients of the Bernoulli functions. -/
 
+/-- The `n`-th Fourier coefficient of the `k`-th Bernoulli function. -/
 def bernoulli_fourier_coeff (k : ℕ) (n : ℤ) : ℂ :=
   1 / (2 * π) * ∫ x in 0 .. 2 * π, exp (-n * I * x) * bernoulli_fun k x
 

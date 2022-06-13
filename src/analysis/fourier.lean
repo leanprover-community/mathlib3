@@ -85,6 +85,8 @@ begin
   { exact (measurable_set_lt measurable_const measurable_arg).compl },
 end
 
+/-- Measurable equivalence from `Ioc 0 (2 * π)` to `circle`, whose underlying set bijection is
+`circle.circle_equiv`. -/
 def circle_m_equiv : measurable_equiv (Ioc 0 (2 * π)) circle :=
 { measurable_inv_fun := by
   { rw circle.circle_equiv, rw circle.arg'_equiv,
@@ -95,7 +97,7 @@ def circle_m_equiv : measurable_equiv (Ioc 0 (2 * π)) circle :=
   measurable_to_fun := (exp_map_circle.continuous.borel_measurable).comp measurable_subtype_coe,
   .. circle.circle_equiv }
 
-def arg'_m_emb : measurable_embedding (arg' ∘ coe : circle → ℝ) :=
+lemma arg'_m_emb : measurable_embedding (arg' ∘ coe : circle → ℝ) :=
 begin
   convert (measurable_embedding.subtype_coe measurable_set_Ioc).comp
     (circle_m_equiv.symm).measurable_embedding using 1,
@@ -398,10 +400,12 @@ namespace fourier_line
 /-! We define Fourier theory for functions `ℝ → ℂ` via composition with `arg'`, so we are
 ignoring their values outside the set `(0, 2 * π]`. -/
 
+/-- An abbreviation for the restriction of the volume measure on `ℝ` to `Ioc 0 (2 * π)`. -/
 abbreviation μ₀ := volume.restrict (Ioc 0 (2 * π))
 
 variables {E : Type*} (f : ℝ → E)
 
+/-- Send a function `ℝ → E` to a function `circle → E` by composition with `arg'`. -/
 def to_circle : circle → E := λ z, f (arg' z)
 
 variables [normed_group E]
@@ -420,6 +424,8 @@ begin
   congr' 3, symmetry, exact arg'_exp_map_circle hx.1 hx.2,
 end
 
+/-- The Fourier coefficients of a function `f : ℝ → ℂ` (ignoring its values outside `(0, 2 * π]`.)
+ -/
 def fourier_coeff (f : ℝ → ℂ) (hf : mem_ℒp f 2 μ₀) (n : ℤ) : ℂ :=
   fourier_circle.fourier_series.repr (mem_ℒp.to_Lp _ (to_circle_mem_ℒ2 f hf)) n
 

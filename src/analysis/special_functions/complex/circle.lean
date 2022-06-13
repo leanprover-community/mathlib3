@@ -108,12 +108,14 @@ end
 
 namespace circle
 
+/-- Equivalence between `circle` and `(0, 2 * π]` given by `arg'`. -/
 noncomputable def arg'_equiv : circle ≃ Ioc 0 (2 * π) :=
 { to_fun := λ z, ⟨arg' z, arg'_mem_Ioc z⟩,
   inv_fun := exp_map_circle ∘ coe,
   left_inv := λ z, exp_map_circle_arg' z,
   right_inv := λ x, subtype.ext (arg'_exp_map_circle x.2.1 x.2.2) }
 
+/-- Equivalence between `(0, 2 * π]` and `circle` given by `exp_map_circle`. -/
 noncomputable def circle_equiv : Ioc 0 (2 * π) ≃ circle := arg'_equiv.symm
 
 end circle

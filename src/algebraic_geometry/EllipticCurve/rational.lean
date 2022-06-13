@@ -496,14 +496,22 @@ fintype.of_injective height_le_constant.function $ height_le_constant.injective 
 
 include ha₂ ha₄ ha₆
 
+private lemma disc_ne_zero : 4 * A ^ 3 + 27 * B ^ 2 ≠ 0 :=
+begin
+  push_cast [← @int.cast_ne_zero ℚ],
+  apply @right_ne_zero_of_mul ℚ _ (-16),
+  convert_to E.disc_unit.val ≠ 0,
+  { rw [E.disc_unit_eq, ha₁, ha₂, ha₃, ha₄, ha₆, disc_aux],
+    ring1 },
+  exact E.disc_unit.ne_zero
+end
+
 private lemma coeff_ne_zero : (A : ℝ) ≠ 0 ∨ (B : ℝ) ≠ 0 :=
 begin
   by_cases hA : (A : ℝ) = 0,
-  { have disc : (E.disc_unit.val : ℝ) ≠ 0 := rat.cast_ne_zero.mpr (units.ne_zero E.disc_unit),
-    push_cast [E.disc_unit_eq, ha₁, ha₂, ha₃, ha₄, ha₆, hA, disc_aux] at disc,
-    simp only [zero_add, add_zero, zero_sub, sub_zero, zero_mul, mul_zero, zero_pow zero_lt_two,
-               zero_pow zero_lt_three, neg_ne_zero] at disc,
-    exact or.inr (right_ne_zero_of_mul $ ne_zero_pow two_ne_zero $ right_ne_zero_of_mul disc) },
+  { have hdisc : 4 * A ^ 3 + 27 * B ^ 2 ≠ 0 := disc_ne_zero ha₁ ha₂ ha₃ ha₄ ha₆,
+    push_cast [← @int.cast_ne_zero ℝ, hA, zero_pow zero_lt_three, mul_zero, zero_add] at hdisc,
+    exact or.inr (ne_zero_pow two_ne_zero $ right_ne_zero_of_mul hdisc) },
   { exact or.inl hA }
 end
 
@@ -601,8 +609,8 @@ begin
                     + (d ^ 2) ^ 2 * (A * x'.num * d' ^ 2 + 2 * B * (d' ^ 2) ^ 2)
                     - y.num * d * (2 * y'.num * d'))
                   ((x.num * d' ^ 2 - d ^ 2 * x'.num) ^ 2) :
-                by push_cast [div_self (pow_ne_zero _ hd), div_self (pow_ne_zero _ hd'), one_pow,
-                              mul_one, rat.mk_eq_div],
+                by push_cast [div_self (pow_ne_zero _ hd), div_self (pow_ne_zero _ hd'), mul_one,
+                              one_pow, rat.mk_eq_div],
         have sw_rw : (y.num ^ 2 : ℚ) = x.num ^ 3 + x.num * (d ^ 2) ^ 2 * A + (d ^ 2) ^ 3 * B :=
         begin
           conv_lhs { rw [← div_mul_cancel (y.num : ℚ) $ pow_ne_zero 3 hd, mul_pow, ← pow_mul,
@@ -654,12 +662,11 @@ begin
                 pow_nonneg (le_max_of_le_right $ abs_nonneg _) 3),
             simpa only [max_eq_left_of_lt hsq, ← pow_succ, ← pow_mul] using le_refl _ }
         end,
+        apply le_trans' (add_le_add_left (le_max_of_le_right $ le_max_right _ _) (_ : ℝ)),
         nth_rewrite_rhs 0 [← nat.cast_two],
         rw [height_some, real.log_le_iff_le_exp $ height_pos _, real.exp_add, real.exp_nat_mul,
-            height_some, real.exp_log $ height_pos _, hxd', nat.cast_pow],
-        apply le_trans' ((mul_le_mul_left $ pow_pos (height_pos _) 2).mpr $ real.exp_monotone $
-                          le_max_of_le_right $ le_max_right _ _),
-        rw [real.sqrt_sq $ nat.cast_nonneg d', max_le_iff],
+            height_some, real.exp_log $ height_pos _, hxd', nat.cast_pow,
+            real.sqrt_sq $ nat.cast_nonneg d', max_le_iff],
         split,
         { apply le_trans' ((mul_le_mul_left $ pow_pos (height_pos _) 2).mpr $ real.exp_monotone $
                             le_max_left _ _),
@@ -765,31 +772,81 @@ begin
     all_goals { simp only [ha₁, ha₂, ha₃, ha₄, ha₆, algebra_map_rat_rat, ring_hom.id_apply,
                            mul_zero, zero_mul, add_zero, sub_zero] at sw ⊢ },
     split_ifs with hy,
-    { have hx : x ^ 3 + A * x + B ≠ 0 := sw ▸ pow_ne_zero 2 (right_ne_zero_of_mul hy),
-      have dbl_rw : ((3 * x ^ 2 + A) * (2 * y)⁻¹) ^ 2 - 2 * x = rat.mk
-        (x.num ^ 4 - 2 * A * x.num ^ 2 * x.denom ^ 2 - 8 * B * x.num * x.denom ^ 3
-          + A ^ 2 * x.denom ^ 4)
-        (4 * (x.num ^ 3 * x.denom + A * x.num * x.denom ^ 3 + B * x.denom ^ 4)) :=
+    { let Δ : ℤ  := 4 * A ^ 3 + 27 * B ^ 2,
+      let F : ℤ  := x.num ^ 4 - 2 * A * x.num ^ 2 * x.denom ^ 2 - 8 * B * x.num * x.denom ^ 3
+                    + A ^ 2 * x.denom ^ 4,
+      let G : ℤ  := 4 * (x.num ^ 3 * x.denom + A * x.num * x.denom ^ 3 + B * x.denom ^ 4),
+      let f₁ : ℤ := 4 * (4 * A ^ 3 + 27 * B ^ 2) * x.num ^ 3 - 4 * A ^ 2 * B * x.num ^ 2 * x.denom
+                    + 4 * A * (3 * A ^ 3 + 22 * B ^ 2) * x.num * x.denom ^ 2
+                    + 12 * B * (A ^ 3 + 8 * B ^ 2) * x.denom ^ 3,
+      let g₁ : ℤ := -A ^ 2 * B * x.num ^ 3 - A * (5 * A ^ 3 + 32 * B ^ 2) * x.num ^ 2 * x.denom
+                    - 2 * B * (13 * A ^ 3 + 96 * B ^ 2) * x.num * x.denom ^ 2
+                    + 3 * A ^ 2 * (A ^ 3 + 8 * B ^ 2) * x.denom ^ 3,
+      let f₂ : ℤ := 12 * x.num ^ 2 * x.denom + 16 * A * x.denom ^ 3,
+      let g₂ : ℤ := 3 * x.num ^ 3 - 5 * A * x.num * x.denom ^ 2 - 27 * B * x.denom ^ 3,
+      have hd : (x.denom : ℚ) ≠ 0 := nat.cast_ne_zero.mpr (ne_zero_of_lt x.pos),
+      have hx : x ^ 3 + A * x + B ≠ 0 := sw ▸ pow_ne_zero 2 (right_ne_zero_of_mul hy),
+      have hnum : f₁ * F - g₁ * G = 4 * Δ * x.num ^ 7 := by { dsimp only [Δ, F, G, f₁, g₁], ring1 },
+      have hdenom : f₂ * F - g₂ * G = 4 * Δ * x.denom ^ 7 :=
+      by { dsimp only [Δ, F, G, f₂, g₂], ring },
+      have hgcd : (4 * Δ * x.num ^ 7).gcd (4 * Δ * x.denom ^ 7) = (4 * Δ).nat_abs :=
+      begin
+        rw [int.gcd_mul_left, int.gcd_eq_one_iff_coprime.mpr, mul_one],
+        exact is_coprime.pow (int.coprime_iff_nat_coprime.mpr x.cop)
+      end,
+      have gcd_le : (F.gcd G : ℤ) ≤ |4 * Δ| :=
+      begin
+        apply int.le_of_dvd
+          (abs_pos.mpr $ mul_ne_zero four_ne_zero $ disc_ne_zero ha₁ ha₂ ha₃ ha₄ ha₆),
+        rw [int.abs_eq_nat_abs, int.coe_nat_dvd, ← hgcd, ← hnum, ← hdenom],
+        apply nat.dvd_gcd,
+        all_goals { exact int.dvd_nat_abs_of_of_nat_dvd
+                      (dvd_sub (dvd_mul_of_dvd_right (int.gcd_dvd_left _ _) _) $
+                        dvd_mul_of_dvd_right (int.gcd_dvd_right _ _) _) }
+      end,
+      have num_le : |4 * Δ * x.num ^ 7| ≤ 2 * max (|f₁|) (|g₁|) * max (|F|) (|G|) :=
+      begin
+        sorry
+      end,
+      have denom_le : |4 * Δ * x.denom ^ 7| ≤ 2 * max (|f₂|) (|g₂|) * max (|F|) (|G|) :=
+      begin
+        sorry
+      end,
+      have x_le : ∃ C : ℤ,
+        max (|4 * Δ * x.num ^ 7|) (|4 * Δ * x.denom ^ 7|)
+        ≤ 2 * C * max (|x.num|) (|x.denom|) ^ 3 * max (|F|) (|G|) :=
+      begin
+        sorry
+      end,
+      have dbl_rw : ((3 * x ^ 2 + A) * (2 * y)⁻¹) ^ 2 - 2 * x = rat.mk F G :=
       calc ((3 * x ^ 2 + A) * (2 * y)⁻¹) ^ 2 - 2 * x
             = ((3 * x ^ 2 + A) ^ 2 - 2 * x * (2 ^ 2 * (x ^ 3 + A * x + B)))
               / (2 ^ 2 * (x ^ 3 + A * x + B)) :
               by rw [← div_eq_mul_inv, div_pow, mul_pow, sw, ← div_sub_div_same,
                      mul_div_cancel _ $ mul_ne_zero (pow_ne_zero 2 $ @two_ne_zero ℚ _ _) hx]
-        ... = (x ^ 4 - 2 * A * x ^ 2 - 8 * B * x + A ^ 2)
-              / (4 * (x ^ 3 + A * x + B)) :
+        ... = (x ^ 4 - 2 * A * x ^ 2 - 8 * B * x + A ^ 2) / (4 * (x ^ 3 + A * x + B)) :
               by { norm_num1, ring1 }
-        ... = (x.num ^ 4 - 2 * A * x.num ^ 2 * x.denom ^ 2 * x.denom ^ 2 / x.denom ^ 2
-                - 8 * B * x.num * x.denom ^ 3 * x.denom / x.denom + A ^ 2 * x.denom ^ 4)
-              / (4 * (x.num ^ 3 * x.denom * x.denom ^ 3 / x.denom ^ 3
-                      + A * x.num * x.denom ^ 3 * x.denom / x.denom + B * x.denom ^ 4)) :
+        ... = (x.num ^ 4 * (x.denom ^ 4 / x.denom ^ 4)
+                - 2 * A * x.num ^ 2 * x.denom ^ 2 * (x.denom ^ 2 / x.denom ^ 2)
+                - 8 * B * x.num * x.denom ^ 3 * (x.denom / x.denom) + A ^ 2 * x.denom ^ 4)
+              / (4 * (x.num ^ 3 * x.denom + A * x.num * x.denom ^ 3 + B * x.denom ^ 4)) :
               begin
-                sorry
+                conv_lhs { rw [← rat.num_div_denom x, div_pow, div_pow,
+                               ← mul_div_mul_right _ _ $ mul_ne_zero hd $ pow_ne_zero 3 hd],
+                           congr, skip,
+                           rw [mul_assoc, add_mul, add_mul, div_pow, ← mul_assoc,
+                               ← mul_div_right_comm, div_mul_cancel _ $ pow_ne_zero 3 hd,
+                               mul_div_assoc', ← mul_assoc, div_mul_cancel _ hd, ← pow_succ] },
+                ring1
               end
-        ... = rat.mk
-                (x.num ^ 4 - 2 * A * x.num ^ 2 * x.denom ^ 2 - 8 * B * x.num * x.denom ^ 3
-                  + A ^ 2 * x.denom ^ 4)
-                (4 * (x.num ^ 3 * x.denom + A * x.num * x.denom ^ 3 + B * x.denom ^ 4)) :
-              by sorry,
+        ... = rat.mk F G :
+              by push_cast [div_self hd, div_self (pow_ne_zero _ hd), mul_one, rat.mk_eq_div],
+      convert_to ((4 : ℕ) : ℝ) * _ ≤ _,
+      { rw [nat.cast_bit0, nat.cast_two] },
+      rw [← sub_le_iff_le_add],
+      apply le_trans (sub_le_sub_left (le_max_right _ _) (_ : ℝ)),
+      rw [@height_some _ $ _ - _, real.le_log_iff_exp_le $ height_pos _, real.exp_sub,
+          real.exp_nat_mul, height_some, real.exp_log $ height_pos _],
       sorry },
     { rw [not_ne_iff, two_mul, add_self_eq_zero] at hy,
       subst hy,

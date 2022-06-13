@@ -107,6 +107,10 @@ meta def num_to_nat : expr → option ℕ
   end
 | _ := none
 
+/--  `convert_num_to_C_num a` takes an expression `a`, assuming that it is a term in a polynomial
+ring `R[X]`.  If `a` is an iterated application of `bit0` and `bit1` to `0` or `1`, then
+`convert_num_to_C_num` produces a proof of the equality
+`a = C (a : R)` and rewrites the goal with this identity.  Otherwise, the tactic does nothing. -/
 meta def convert_num_to_C_num (a : expr) : tactic unit :=
 match num_to_nat a with
 | some an := do
@@ -295,19 +299,18 @@ then the tactic suggests the degree that it computed.
 
 The tactic also reports when it is used with non-closed natural numbers as exponents. -/
 meta def compute_degree : tactic unit :=
-do ifdeg ← succeeds ( refine ``((polynomial.degree_eq_iff_nat_degree_eq_of_pos _).mpr _) >>
+do is_deg ← succeeds ( refine ``((polynomial.degree_eq_iff_nat_degree_eq_of_pos _).mpr _) >>
     interactive.rotate),
-  let is_deg := if ifdeg then tt else ff,
   `(polynomial.nat_degree %%tl = %%tr) ← target |
     fail "Goal is not of the form\n`f.nat_degree = d` or `f.degree = d`",
   (lead,m') ← extract_top_degree_term_and_deg tl,
   td ← eval_expr ℕ tr,
-  if m' ≠ td then
-    do pptl ← pp tl, ppm' ← pp m',
-      if is_deg then
-        fail sformat!"should the degree be '{m'}'?"
-      else
-       fail sformat!"should the nat_degree be '{m'}'?"
+  if m' ≠ td then do
+    pptl ← pp tl, ppm' ← pp m',
+    if is_deg then
+      fail sformat!"should the degree be '{m'}'?"
+    else
+     fail sformat!"should the nat_degree be '{m'}'?"
   else
     move_op.with_errors ``((+)) [(ff, pexpr.of_expr lead)] none,
     refine ``(polynomial.nat_degree_add_left_succ _ %%lead _ _ _) <|> single_term_suggestions,
@@ -327,4 +330,3 @@ add_tactic_doc
   tags := ["arithmetic, finishing"] }
 
 end tactic.interactive
-#lint

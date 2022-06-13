@@ -162,7 +162,7 @@ induction_on a $ λ α, mk_congr equiv.ulift
 @[simp] theorem lift_id (a : cardinal) : lift.{u u} a = a := lift_id'.{u u} a
 
 /-- A cardinal lifted to the zero universe equals itself. -/
-theorem lift_uzero (a : cardinal.{u}) : lift.{0} a = a := lift_id'.{0 u} a
+@[simp] theorem lift_uzero (a : cardinal.{u}) : lift.{0} a = a := lift_id'.{0 u} a
 
 @[simp] theorem lift_lift (a : cardinal) :
   lift.{w} (lift.{v} a) = lift.{(max v w)} a :=

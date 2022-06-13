@@ -603,7 +603,20 @@ variables (L)
 /-- The complete theory of a structure `M` is the set of all sentences `M` satisfies. -/
 def complete_theory : L.Theory := { φ | M ⊨ φ }
 
-variables {L}
+variable (N)
+
+/-- Two structures are elementarily equivalent when they satisfy the same sentences. -/
+def elementarily_equivalent : Prop := L.complete_theory M = L.complete_theory N
+
+localized "notation A ` ≅[`:25 L `] ` B := first_order.language.elementarily_equivalent L A B"
+  in first_order
+
+variables {L} {M} {N}
+
+lemma elementarily_equivalent_iff : (M ≅[L] N) ↔ (∀ φ : L.sentence, M ⊨ φ ↔ N ⊨ φ) :=
+by simp only [elementarily_equivalent, set.ext_iff, complete_theory, set.mem_set_of_eq]
+
+variables (M)
 
 /-- A model of a theory is a structure in which every sentence is realized as true. -/
 class Theory.model (T : L.Theory) : Prop :=

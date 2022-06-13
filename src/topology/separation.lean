@@ -6,6 +6,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 import topology.subset_properties
 import topology.connected
 import topology.nhds_set
+import topology.inseparable
 
 /-!
 # Separation properties of topological spaces.
@@ -166,21 +167,6 @@ lemma t0_space_def (α : Type u) [topological_space α] :
   t0_space α ↔ ∀ x y, x ≠ y → ∃ U:set α, is_open U ∧ (xor (x ∈ U) (y ∈ U)) :=
 by { split, apply @t0_space.t0, apply t0_space.mk }
 
-/-- Two points are topologically inseparable if no open set separates them. -/
-def inseparable {α : Type u} [topological_space α] (x y : α) : Prop :=
-∀ (U : set α) (hU : is_open U), x ∈ U ↔ y ∈ U
-
-lemma inseparable_iff_nhds_eq {x y : α} : inseparable x y ↔ 𝓝 x = 𝓝 y :=
-⟨λ h, by simp only [nhds_def', h _] { contextual := tt },
-  λ h U hU, by simp only [← hU.mem_nhds_iff, h]⟩
-
-alias inseparable_iff_nhds_eq ↔ inseparable.nhds_eq _
-
-lemma inseparable.map [topological_space β] {x y : α} {f : α → β}
-  (h : inseparable x y) (hf : continuous f) :
-  inseparable (f x) (f y) :=
-λ U hU, h (f ⁻¹' U) (hU.preimage hf)
-
 lemma t0_space_iff_not_inseparable (α : Type u) [topological_space α] :
   t0_space α ↔ ∀ (x y : α), x ≠ y → ¬inseparable x y :=
 by simp only [t0_space_def, xor_iff_not_iff, not_forall, exists_prop, inseparable]
@@ -192,6 +178,14 @@ by simp only [t0_space_iff_not_inseparable, ne.def, not_imp_not]
 lemma inseparable.eq [t0_space α] {x y : α} (h : inseparable x y) : x = y :=
 (t0_space_iff_inseparable α).1 ‹_› x y h
 
+lemma specializes_antisymm [t0_space α] (x y : α) : x ⤳ y → y ⤳ x → x = y :=
+λ h₁ h₂, ((inseparable_iff_specializes_and _ _).mpr ⟨h₁, h₂⟩).eq
+
+/-- Specialization forms a partial order on a t0 topological space. -/
+def specialization_order (α : Type*) [topological_space α] [t0_space α] : partial_order α :=
+{ le_antisymm := λ _ _ h₁ h₂, specializes_antisymm _ _ h₂ h₁,
+  .. specialization_preorder α }
+
 lemma t0_space_iff_nhds_injective (α : Type u) [topological_space α] :
   t0_space α ↔ injective (𝓝 : α → filter α) :=
 by simp only [t0_space_iff_inseparable, injective, inseparable_iff_nhds_eq]
@@ -201,24 +195,6 @@ lemma nhds_injective [t0_space α] : injective (𝓝 : α → filter α) :=
 
 @[simp] lemma nhds_eq_nhds_iff [t0_space α] {a b : α} : 𝓝 a = 𝓝 b ↔ a = b :=
 nhds_injective.eq_iff
-
-lemma inseparable_iff_closed {x y : α} :
-  inseparable x y ↔ ∀ (U : set α) (hU : is_closed U), x ∈ U ↔ y ∈ U :=
-⟨λ h U hU, not_iff_not.mp (h _ hU.1), λ h U hU, not_iff_not.mp (h _ (is_closed_compl_iff.mpr hU))⟩
-
-lemma inseparable_iff_closure (x y : α) :
-  inseparable x y ↔ x ∈ closure ({y} : set α) ∧ y ∈ closure ({x} : set α) :=
-begin
-  rw inseparable_iff_closed,
-  exact ⟨λ h, ⟨(h _ is_closed_closure).mpr (subset_closure $ set.mem_singleton y),
-      (h _ is_closed_closure).mp (subset_closure $ set.mem_singleton x)⟩,
-    λ h U hU, ⟨λ hx, (is_closed.closure_subset_iff hU).mpr (set.singleton_subset_iff.mpr hx) h.2,
-      λ hy, (is_closed.closure_subset_iff hU).mpr (set.singleton_subset_iff.mpr hy) h.1⟩⟩
-end
-
-lemma subtype_inseparable_iff {α : Type u} [topological_space α] {U : set α} (x y : U) :
-  inseparable x y ↔ inseparable (x : α) y :=
-by { simp_rw [inseparable_iff_closure, closure_subtype, image_singleton] }
 
 theorem minimal_nonempty_closed_subsingleton [t0_space α] {s : set α} (hs : is_closed s)
   (hmin : ∀ t ⊆ s, t.nonempty → is_closed t → t = s) :
@@ -340,6 +316,14 @@ protected lemma set.finite.is_closed [t1_space α] {s : set α} (hs : set.finite
 begin
   rw ← bUnion_of_singleton s,
   exact is_closed_bUnion hs (λ i hi, is_closed_singleton)
+end
+
+lemma topological_space.is_topological_basis.exists_mem_of_ne
+  [t1_space α] {b : set (set α)} (hb : is_topological_basis b) {x y : α} (h : x ≠ y) :
+  ∃ a ∈ b, x ∈ a ∧ y ∉ a :=
+begin
+  rcases hb.is_open_iff.1 is_open_ne x h with ⟨a, ab, xa, ha⟩,
+  exact ⟨a, ab, xa, λ h, ha h rfl⟩,
 end
 
 lemma filter.coclosed_compact_le_cofinite [t1_space α] :
@@ -512,6 +496,12 @@ hs.induction_on (by simp) $ λ x, by simp
 @[simp] lemma subsingleton_closure [t1_space α] {s : set α} :
   (closure s).subsingleton ↔ s.subsingleton :=
 ⟨λ h, h.mono subset_closure, λ h, h.closure⟩
+
+lemma specializes.eq [t1_space α] {x y : α} (h : x ⤳ y) : x = y :=
+by simpa only [specializes, closure_singleton, mem_singleton_iff, eq_comm] using h
+
+@[simp] lemma specializes_iff_eq [t1_space α] {x y : α} : x ⤳ y ↔ x = y :=
+⟨specializes.eq, λ h, h ▸ specializes_refl _⟩
 
 lemma is_closed_map_const {α β} [topological_space α] [topological_space β] [t1_space β] {y : β} :
   is_closed_map (function.const α y) :=

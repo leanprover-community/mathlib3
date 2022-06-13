@@ -111,8 +111,8 @@ begin
   have h_inj : function.injective ⇑(algebra_map ℤ (𝓞 K)),
   { exact ring_hom.injective_int (algebra_map ℤ (𝓞 K)) },
   intro hf,
-  exact int.not_is_field ((is_integral.is_field_iff_is_field
-    (is_integral_closure.is_integral_algebra ℤ K) h_inj).mpr hf)
+  exact int.not_is_field
+    (((is_integral_closure.is_integral_algebra ℤ K).is_field_iff_is_field h_inj).mpr hf)
 end
 
 instance [number_field K] : is_dedekind_domain (𝓞 K) :=

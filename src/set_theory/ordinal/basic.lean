@@ -1248,7 +1248,9 @@ classical.some $ ord_eq α
 instance _root_.well_ordering_rel.is_well_order : is_well_order α well_ordering_rel :=
 classical.some $ classical.some_spec $ ord_eq α
 
-@[simp] theorem _root_.ordinal.type_well_ordering_rel : type (@well_ordering_rel α) = (#α).ord :=
+/-- This theorem isn't marked as `simp`, as there are circumstances where knowing the exact order
+type of this relation is just noise. -/
+theorem _root_.ordinal.type_well_ordering_rel : type (@well_ordering_rel α) = (#α).ord :=
 (classical.some_spec $ classical.some_spec $ ord_eq α).symm
 
 theorem ord_le_type (r : α → α → Prop) [is_well_order α r] : ord (#α) ≤ ordinal.type r :=

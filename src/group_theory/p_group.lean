@@ -7,7 +7,7 @@ Authors: Chris Hughes, Thomas Browning
 import data.zmod.basic
 import group_theory.index
 import group_theory.group_action.conj_act
-import group_theory.perm.cycle_type
+import group_theory.perm.cycle.type
 import group_theory.quotient_group
 
 /-!
@@ -54,7 +54,7 @@ begin
   intros q hq,
   obtain ⟨hq1, hq2⟩ := (nat.mem_factors hG).mp hq,
   haveI : fact q.prime := ⟨hq1⟩,
-  obtain ⟨g, hg⟩ := equiv.perm.exists_prime_order_of_dvd_card q hq2,
+  obtain ⟨g, hg⟩ := exists_prime_order_of_dvd_card q hq2,
   obtain ⟨k, hk⟩ := (iff_order_of.mp h) g,
   exact (hq1.pow_eq_iff.mp (hg.symm.trans hk).symm).1.symm,
 end

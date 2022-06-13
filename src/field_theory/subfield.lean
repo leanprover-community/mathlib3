@@ -441,7 +441,7 @@ def closure (s : set K) : subfield K :=
   zero_mem' := ⟨0, subring.zero_mem _, 1, subring.one_mem _, div_one _⟩,
   one_mem' := ⟨1, subring.one_mem _, 1, subring.one_mem _, div_one _⟩,
   neg_mem' := λ x ⟨y, hy, z, hz, x_eq⟩, ⟨-y, subring.neg_mem _ hy, z, hz, x_eq ▸ neg_div _ _⟩,
-  inv_mem' := λ x ⟨y, hy, z, hz, x_eq⟩, ⟨z, hz, y, hy, x_eq ▸ inv_div.symm⟩,
+  inv_mem' := λ x ⟨y, hy, z, hz, x_eq⟩, ⟨z, hz, y, hy, x_eq ▸ (inv_div _ _).symm⟩,
   add_mem' := λ x y x_mem y_mem, begin
     obtain ⟨nx, hnx, dx, hdx, rfl⟩ := id x_mem,
     obtain ⟨ny, hny, dy, hdy, rfl⟩ := id y_mem,
@@ -457,7 +457,7 @@ def closure (s : set K) : subfield K :=
     obtain ⟨ny, hny, dy, hdy, rfl⟩ := id y_mem,
     exact ⟨nx * ny, subring.mul_mem _ hnx hny,
            dx * dy, subring.mul_mem _ hdx hdy,
-           (div_mul_div_comm₀ _ _ _ _).symm⟩
+           (div_mul_div_comm _ _ _ _).symm⟩
   end }
 
 lemma mem_closure_iff {s : set K} {x} :

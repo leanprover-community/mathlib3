@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 import order.complete_lattice
-import order.order_dual
+import order.synonym
+
 /-!
 # Galois connections, insertions and coinsertions
 
@@ -521,8 +522,8 @@ def lift_complete_lattice [complete_lattice α] (gi : galois_insertion l u) : co
 { Sup := λ s, l (Sup (u '' s)),
   Sup_le := λ s, (gi.is_lub_of_u_image (is_lub_Sup _)).2,
   le_Sup := λ s, (gi.is_lub_of_u_image (is_lub_Sup _)).1,
-  Inf := λ s, gi.choice (Inf (u '' s)) $ gi.gc.monotone_u.le_is_glb_image
-    (gi.is_glb_of_u_image $ is_glb_Inf _) (is_glb_Inf _),
+  Inf := λ s, gi.choice (Inf (u '' s)) $ (is_glb_Inf _).2 $ gi.gc.monotone_u.mem_lower_bounds_image
+    (gi.is_glb_of_u_image $ is_glb_Inf _).1,
   Inf_le := λ s, by { rw gi.choice_eq, exact (gi.is_glb_of_u_image (is_glb_Inf _)).1 },
   le_Inf := λ s, by { rw gi.choice_eq, exact (gi.is_glb_of_u_image (is_glb_Inf _)).2 },
   .. gi.lift_bounded_order,

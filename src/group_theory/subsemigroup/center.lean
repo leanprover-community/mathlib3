@@ -12,7 +12,9 @@ import data.fintype.basic
 ## Main definitions
 
 * `set.center`: the center of a magma
+* `subsemigroup.center`: the center of a semigroup
 * `set.add_center`: the center of an additive magma
+* `add_subsemigroup.center`: the center of an additive semigroup
 
 We provide `submonoid.center`, `add_submonoid.center`, `subgroup.center`, `add_subgroup.center`,
 `subsemiring.center`, and `subring.center` in other files.
@@ -112,3 +114,42 @@ lemma center_eq_univ [comm_semigroup M] : center M = set.univ :=
 subset.antisymm (subset_univ _) $ λ x _ y, mul_comm y x
 
 end set
+
+namespace subsemigroup
+section
+variables (M) [semigroup M]
+
+/-- The center of a semigroup `M` is the set of elements that commute with everything in `M` -/
+@[to_additive "The center of a semigroup `M` is the set of elements that commute with everything in
+`M`"]
+def center : subsemigroup M :=
+{ carrier := set.center M,
+  mul_mem' := λ a b, set.mul_mem_center }
+
+@[to_additive] lemma coe_center : ↑(center M) = set.center M := rfl
+
+variables {M}
+
+@[to_additive] lemma mem_center_iff {z : M} : z ∈ center M ↔ ∀ g, g * z = z * g := iff.rfl
+
+@[to_additive]
+instance decidable_mem_center [decidable_eq M] [fintype M] : decidable_pred (∈ center M) :=
+λ _, decidable_of_iff' _ mem_center_iff
+
+/-- The center of a semigroup is commutative. -/
+@[to_additive "The center of an additive semigroup is commutative."]
+instance : comm_semigroup (center M) :=
+{ mul_comm := λ a b, subtype.ext $ b.prop _,
+  .. mul_mem_class.to_semigroup (center M) }
+
+end
+
+section
+variables (M) [comm_semigroup M]
+
+@[to_additive, simp] lemma center_eq_top : center M = ⊤ :=
+set_like.coe_injective (set.center_eq_univ M)
+
+end
+
+end subsemigroup

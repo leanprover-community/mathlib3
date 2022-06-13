@@ -60,8 +60,8 @@ begin
   -- and that these have the same image under `colimit_limit_to_limit_colimit F`.
   intros x y h,
   -- These elements of the colimit have representatives somewhere:
-  obtain ⟨kx, x, rfl⟩ := jointly_surjective' x,
-  obtain ⟨ky, y, rfl⟩ := jointly_surjective' y,
+  obtain ⟨kx, x, rfl⟩ := jointly_surjective'.{v v} x,
+  obtain ⟨ky, y, rfl⟩ := jointly_surjective'.{v v} y,
   dsimp at x y,
 
   -- Since the images of `x` and `y` are equal in a limit, they are equal componentwise
@@ -69,7 +69,7 @@ begin
   replace h := λ j, congr_arg (limit.π ((curry.obj F) ⋙ colim) j) h,
   -- and they are equations in a filtered colimit,
   -- so for each `j` we have some place `k j` to the right of both `kx` and `ky`
-  simp [colimit_eq_iff] at h,
+  simp [colimit_eq_iff.{v v}] at h,
   let k := λ j, (h j).some,
   let f : Π j, kx ⟶ k j := λ j, (h j).some_spec.some,
   let g : Π j, ky ⟶ k j := λ j, (h j).some_spec.some_spec.some,
@@ -118,7 +118,7 @@ begin
 
   -- Our goal is now an equation between equivalence classes of representatives of a colimit,
   -- and so it suffices to show those representative become equal somewhere, in particular at `S`.
-  apply colimit_sound' (T kxO) (T kyO),
+  apply colimit_sound'.{v v} (T kxO) (T kyO),
 
   -- We can check if two elements of a limit (in `Type`) are equal by comparing them componentwise.
   ext,
@@ -147,7 +147,7 @@ begin
   intro x,
   -- This consists of some coherent family of elements in the various colimits,
   -- and so our first task is to pick representatives of these elements.
-  have z := λ j, jointly_surjective' (limit.π (curry.obj F ⋙ limits.colim) j x),
+  have z := λ j, jointly_surjective'.{v v} (limit.π (curry.obj F ⋙ limits.colim) j x),
   -- `k : J ⟶ K` records where the representative of the element in the `j`-th element of `x` lives
   let k : J → K := λ j, (z j).some,
   -- `y j : F.obj (j, k j)` is the representative
@@ -177,14 +177,14 @@ begin
   { intros j j' f,
     have t : (f, g j) = (((f, 𝟙 (k j)) : (j, k j) ⟶ (j', k j)) ≫ (𝟙 j', g j) : (j, k j) ⟶ (j', k')),
     { simp only [id_comp, comp_id, prod_comp], },
-    erw [colimit.w_apply, t, functor_to_types.map_comp_apply, colimit.w_apply, e,
-      ←limit.w_apply f, ←e],
+    erw [colimit.w_apply', t, functor_to_types.map_comp_apply, colimit.w_apply', e,
+      ←limit.w_apply' f, ←e],
     simp, },
 
   -- Because `K` is filtered, we can restate this as saying that
   -- for each such `f`, there is some place to the right of `k'`
   -- where these images of `y j` and `y j'` become equal.
-  simp_rw colimit_eq_iff at w,
+  simp_rw colimit_eq_iff.{v v} at w,
 
   -- We take a moment to restate `w` more conveniently.
   let kf : Π {j j'} (f : j ⟶ j'), K := λ _ _ f, (w f).some,
@@ -265,11 +265,12 @@ begin
     -- This representative is meant to be an element of a limit,
     -- so we need to construct a family of elements in `F.obj (j, k'')` for varying `j`,
     -- then show that are coherent with respect to morphisms in the `j` direction.
-    ext, swap,
+    apply limit.mk.{v v}, swap,
     { -- We construct the elements as the images of the `y j`.
       exact λ j, F.map (⟨𝟙 j, g j ≫ gf (𝟙 j) ≫ i (𝟙 j)⟩ : (j, k j) ⟶ (j, k'')) (y j), },
     { -- After which it's just a calculation, using `s` and `wf`, to see they are coherent.
       dsimp,
+      intros j j' f,
       simp only [←functor_to_types.map_comp_apply, prod_comp, id_comp, comp_id],
       calc F.map ((f, g j ≫ gf (𝟙 j) ≫ i (𝟙 j)) : (j, k j) ⟶ (j', k'')) (y j)
           = F.map ((f, g j ≫ hf f ≫ i f) : (j, k j) ⟶ (j', k'')) (y j)
@@ -287,12 +288,12 @@ begin
 
   -- Finally we check that this maps to `x`.
   { -- We can do this componentwise:
-    apply limit_ext,
+    apply limit_ext',
     intro j,
 
     -- and as each component is an equation in a colimit, we can verify it by
     -- pointing out the morphism which carries one representative to the other:
-    simp only [←e, colimit_eq_iff, curry.obj_obj_map, limit.π_mk,
+    simp only [←e, colimit_eq_iff.{v v}, curry.obj_obj_map, limit.π_mk',
       bifunctor.map_id_comp, id.def, types_comp_apply,
       limits.ι_colimit_limit_to_limit_colimit_π_apply],
     refine ⟨k'', 𝟙 k'', g j ≫ gf (𝟙 j) ≫ i (𝟙 j), _⟩,

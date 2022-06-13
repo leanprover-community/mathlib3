@@ -143,6 +143,7 @@ instance category_of_PresheafedSpaces : category (PresheafedSpace.{v v u} C) :=
 end
 
 variables {C}
+local attribute [simp] eq_to_hom_map
 
 @[simp] lemma id_base (X : PresheafedSpace.{v v u} C) :
   ((𝟙 X) : X ⟶ X).base = 𝟙 (X : Top.{v}) := rfl

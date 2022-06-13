@@ -133,6 +133,15 @@ lemma tendsto_log_nhds_within_im_nonneg_of_re_neg_of_im_zero
 by simpa only [log, arg_eq_pi_iff.2 ⟨hre, him⟩]
   using (continuous_within_at_log_of_re_neg_of_im_zero hre him).tendsto
 
+@[simp] lemma map_exp_comap_re_at_bot : map exp (comap re at_bot) = 𝓝[≠] 0 :=
+by rw [← comap_exp_nhds_zero, map_comap, range_exp, nhds_within]
+
+@[simp] lemma map_exp_comap_re_at_top : map exp (comap re at_top) = comap abs at_top :=
+begin
+  rw [← comap_exp_comap_abs_at_top, map_comap, range_exp, inf_eq_left, le_principal_iff],
+  exact eventually_ne_of_tendsto_norm_at_top tendsto_comap 0
+end
+
 end complex
 
 section log_deriv

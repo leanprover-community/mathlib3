@@ -9,7 +9,8 @@ import data.list.infix
 # Double universal quantification on a list
 
 This file provides an API for `list.forall₂` (definition in `data.list.defs`).
-`forall₂ r l₁ l₂` means that `∀ a ∈ l₁, ∀ b ∈ l₂, r a b`, where `l₁`, `l₂` are lists.
+`forall₂ R l₁ l₂` means that `l₁` and `l₂` have the same length, and whenever `a` is the nth element
+of `l₁`, and `b` is the nth element of `l₂`, then `R a b` is satisfied.
 -/
 
 open nat function

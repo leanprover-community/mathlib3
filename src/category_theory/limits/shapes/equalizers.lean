@@ -827,7 +827,7 @@ rfl
 
 section comparison
 
-variables {D : Type u₂} [category.{v₂} D] (G : C ⥤ D)
+variables {D : Type u₂} [category.{v} D] (G : C ⥤ D)
 
 /--
 The comparison morphism for the equalizer of `f,g`.
@@ -872,10 +872,10 @@ end comparison
 variables (C)
 
 /-- `has_equalizers` represents a choice of equalizer for every pair of morphisms -/
-abbreviation has_equalizers := has_limits_of_shape walking_parallel_pair C
+abbreviation has_equalizers := has_limits_of_shape walking_parallel_pair.{v} C
 
 /-- `has_coequalizers` represents a choice of coequalizer for every pair of morphisms -/
-abbreviation has_coequalizers := has_colimits_of_shape walking_parallel_pair C
+abbreviation has_coequalizers := has_colimits_of_shape walking_parallel_pair.{v} C
 
 /-- If `C` has all limits of diagrams `parallel_pair f g`, then it has all equalizers -/
 lemma has_equalizers_of_has_limit_parallel_pair
@@ -1018,7 +1018,7 @@ def split_epi_of_idempotent_of_is_colimit_cofork {X : C} {f : X ⟶ X} (hf : f �
   id' :=
   begin
     letI := epi_of_is_colimit_cofork i,
-    rw [← cancel_epi_id c.π, ← category.assoc, cofork.is_colimit.π_comp_desc,
+    rw [← cancel_epi_id c.π, ← category.assoc, cofork.is_colimit.π_comp_desc, 
       cofork.π_of_π, ← c.condition],
     exact category.id_comp _,
   end }

@@ -79,7 +79,7 @@ by simp [pushforward_eq]
 lemma pushforward_eq'_hom_app
   {X Y : Top.{w}} {f g : X ⟶ Y} (h : f = g) (ℱ : X.presheaf C) (U) :
   nat_trans.app (eq_to_hom (pushforward_eq' h ℱ)) U = ℱ.map (eq_to_hom (by rw h)) :=
-by simpa
+by simpa [eq_to_hom_map]
 
 @[simp]
 lemma pushforward_eq_rfl {X Y : Top.{w}} (f : X ⟶ Y) (ℱ : X.presheaf C) (U) :
@@ -197,7 +197,7 @@ nat_iso.of_components
     ℱ.map_iso (eq_to_iso (by simp)))
   (λ U V i,
   begin
-      ext, simp [-eq_to_hom_map,-eq_to_iso_map],
+      ext, simp,
       erw colimit.pre_desc_assoc,
       erw colimit.ι_desc_assoc,
       erw colimit.ι_desc_assoc,
@@ -208,7 +208,7 @@ lemma id_inv_app (U : opens Y) :
   (id ℱ).inv.app (op U) = colimit.ι (Lan.diagram (opens.map (𝟙 Y)).op ℱ (op U))
     (@costructured_arrow.mk _ _ _ _ _ (op U) _ (eq_to_hom (by simp))) :=
 begin
-  dsimp[id], simp[-eq_to_hom_map,-eq_to_iso_map],dsimp[colimit_of_diagram_terminal],
+  dsimp[id], simp, dsimp[colimit_of_diagram_terminal],
   delta Lan.diagram,
   refine eq.trans _ (category.id_comp _),
   rw ← ℱ.map_id,
@@ -236,7 +236,10 @@ lemma pushforward_map_app' {X Y : Top.{v}} (f : X ⟶ Y)
 lemma id_pushforward {X : Top.{v}} : pushforward C (𝟙 X) = 𝟭 (X.presheaf C) :=
 begin
   apply category_theory.functor.ext,
-  { intros, ext U, have h := f.congr, erw h (opens.op_map_id_obj U), simpa },
+  { intros,
+    ext U,
+    have h := f.congr, erw h (opens.op_map_id_obj U),
+    simpa [eq_to_hom_map], },
   { intros, apply pushforward.id_eq },
 end
 
@@ -266,10 +269,10 @@ lemma to_pushforward_of_iso_app {X Y : Top} (H₁ : X ≅ Y) {ℱ : X.presheaf C
 begin
   delta to_pushforward_of_iso,
   simp only [equiv.to_fun_as_coe, nat_trans.comp_app, equivalence.equivalence_mk'_unit,
-    eq_to_hom_map, presheaf_equiv_of_iso_unit_iso_hom_app_app, equivalence.to_adjunction,
-    equivalence.equivalence_mk'_counit, presheaf_equiv_of_iso_inverse_map_app,
-    adjunction.mk_of_unit_counit_hom_equiv_apply],
-  congr
+    eq_to_hom_map, eq_to_hom_op, eq_to_hom_trans, presheaf_equiv_of_iso_unit_iso_hom_app_app,
+    equivalence.to_adjunction, equivalence.equivalence_mk'_counit,
+    presheaf_equiv_of_iso_inverse_map_app, adjunction.mk_of_unit_counit_hom_equiv_apply],
+  congr,
 end
 
 /--

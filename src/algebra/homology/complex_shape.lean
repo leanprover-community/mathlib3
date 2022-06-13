@@ -168,6 +168,9 @@ def down' {α : Type*} [add_right_cancel_semigroup α] (a : α) : complex_shape 
   next_eq := λ i j k hi hj, add_right_cancel (hi.trans (hj.symm)),
   prev_eq := λ i j k hi hj, hi.symm.trans hj, }
 
+lemma down'_mk {α : Type*} [add_right_cancel_semigroup α] (a : α)
+  (i j : α) (h : j + a = i) : (down' a).rel i j := h
+
 /--
 The `complex_shape` appropriate for cohomology, so `d : X i ⟶ X j` only when `j = i + 1`.
 -/
@@ -181,5 +184,9 @@ The `complex_shape` appropriate for homology, so `d : X i ⟶ X j` only when `i 
 @[simps]
 def down (α : Type*) [add_right_cancel_semigroup α] [has_one α] : complex_shape α :=
 down' 1
+
+lemma down_mk {α : Type*} [add_right_cancel_semigroup α] [has_one α]
+  (i j : α) (h : j + 1 = i) : (down α).rel i j :=
+down'_mk (1 : α) i j h
 
 end complex_shape

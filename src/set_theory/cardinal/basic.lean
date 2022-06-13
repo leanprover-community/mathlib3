@@ -742,7 +742,7 @@ end
 /-- The lift of a supremum is the supremum of the lifts. -/
 lemma lift_supr {ι : Type v} {f : ι → cardinal.{w}} (hf : bdd_above (range f)) :
   lift.{u} (supr f) = ⨆ i, lift.{u} (f i) :=
-by { unfold supr, convert lift_Sup hf, rw range_comp }
+by rw [supr, supr, lift_Sup hf, ←range_comp]
 
 /-- `ℵ₀` is the smallest infinite cardinal. -/
 def aleph_0 : cardinal.{u} := lift (#ℕ)

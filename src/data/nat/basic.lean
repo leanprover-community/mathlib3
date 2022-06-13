@@ -1289,16 +1289,16 @@ lemma dvd_left_injective : function.injective ((∣) : ℕ → ℕ → Prop) :=
 lemma div_lt_div_of_lt_of_dvd {a b d : ℕ} (hdb : d ∣ b) (h : a < b) : a / d < b / d :=
 by { rw nat.lt_div_iff_mul_lt hdb, exact lt_of_le_of_lt (mul_div_le a d) h }
 
-lemma nat.sub_lt_of_lt {a b c : ℕ} (h : a < b) : a - c < b :=
+lemma sub_lt_of_lt {a b c : ℕ} (h : a < b) : a - c < b :=
 lt_of_le_of_lt (nat.sub_le a c) h
 
-lemma nat.mul_add_mod {a b c : ℕ} : (a * b + c) % b = c % b :=
+lemma mul_add_mod {a b c : ℕ} : (a * b + c) % b = c % b :=
 by simp [nat.add_mod]
 
-lemma nat.mul_add_mod_of_lt {a b c : ℕ} (h : c < b) : (a * b + c) % b = c :=
+lemma mul_add_mod_of_lt {a b c : ℕ} (h : c < b) : (a * b + c) % b = c :=
 by rw [nat.mul_add_mod, nat.mod_eq_of_lt h]
 
-lemma nat.pred_eq_self_iff {n : ℕ} : n.pred = n ↔ n = 0 :=
+lemma pred_eq_self_iff {n : ℕ} : n.pred = n ↔ n = 0 :=
 by { cases n; simp [(nat.succ_ne_self _).symm] }
 
 /-! ### `find` -/

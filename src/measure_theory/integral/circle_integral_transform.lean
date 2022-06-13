@@ -39,7 +39,7 @@ def circle_integral_transform (f : ℂ → E) : ℝ → E :=
 def circle_integral_transform_deriv (f : ℂ → E) (θ : ℝ) : E :=
   (2 * ↑π * I)⁻¹ • deriv (circle_map z R) θ • ((circle_map z R θ - w) ^ 2)⁻¹ • f (circle_map z R θ)
 
-lemma circle_integral_transform_deriv_periodic (f : ℂ → E) (θ : ℝ) :
+lemma circle_integral_transform_deriv_periodic (f : ℂ → E) :
   periodic (circle_integral_transform_deriv R z w f) (2 * π) :=
 begin
   have := periodic_circle_map,
@@ -92,7 +92,7 @@ end
 def circle_integral_bounding_function (R : ℝ) (z : ℂ) : (ℂ × ℝ → ℂ) :=
   λ w, circle_integral_transform_deriv R z w.1 (λ x, 1) w.2
 
-lemma circle_int_funct_cont_on_prod {R r : ℝ} (hR : 0 < R) (hr : r < R) {z : ℂ} :
+lemma circle_int_funct_cont_on_prod {R r : ℝ} (hr : r < R) {z : ℂ} :
  continuous_on (λ (w : ℂ × ℝ), ((circle_map z R w.snd - w.fst)⁻¹) ^ 2)
   ((closed_ball z r) ×ˢ (⊤ : set ℝ)) :=
 begin
@@ -106,7 +106,7 @@ begin
   refine (sub_ne_zero.2 (circle_map_ne_mem_ball ha2 b)),
 end
 
-lemma circle_integral_bounding_function_continuous {R r : ℝ} (hR : 0 < R) (hr : r < R) (z : ℂ) :
+lemma circle_integral_bounding_function_continuous {R r : ℝ} (hr : r < R) (z : ℂ) :
   continuous_on (abs ∘ (circle_integral_bounding_function R z))
   ((closed_ball z r) ×ˢ (⊤ : set ℝ) : set $ ℂ × ℝ) :=
 begin
@@ -117,19 +117,19 @@ begin
     have c := (continuous_circle_map 0 R).continuous_on,
     apply_rules [continuous_on.mul, c.comp continuous_on_snd (λ _, and.right), continuous_on_const],
     simp_rw ←inv_pow,
-    apply circle_int_funct_cont_on_prod hR hr, },
+    apply circle_int_funct_cont_on_prod hr, },
   refine continuous_abs.continuous_on.comp this _,
   show maps_to _ _ (⊤ : set ℂ),
   simp [maps_to],
 end
 
-lemma circle_integral_bounding_function_bound {R r : ℝ} (hR: 0 < R) (hr : r < R) (hr' : 0 ≤ r)
+lemma circle_integral_bounding_function_bound {R r : ℝ} (hr : r < R) (hr' : 0 ≤ r)
   (z : ℂ) :
   ∃ (x : ((closed_ball z r) ×ˢ [0, 2 * π] : set $ ℂ × ℝ)),
   ∀ (y : ((closed_ball z r) ×ˢ [0, 2 * π] : set $ ℂ × ℝ)),
   abs (circle_integral_bounding_function R z y) ≤ abs (circle_integral_bounding_function R z x) :=
 begin
-  have cts := circle_integral_bounding_function_continuous hR hr z,
+  have cts := circle_integral_bounding_function_continuous hr z,
   have comp : is_compact (((closed_ball z r) ×ˢ [0, 2 * π]) : set (ℂ × ℝ)),
   { apply_rules [is_compact.prod, proper_space.is_compact_closed_ball z r, is_compact_interval], },
   have none := (nonempty_closed_ball.2 hr').prod nonempty_interval,
@@ -144,7 +144,7 @@ lemma circle_integral_transform_deriv_bound {R : ℝ} (hR : 0 < R) {z x : ℂ} {
 begin
   obtain ⟨r, hr, hrx⟩ := exists_lt_mem_ball_of_mem_ball hx,
   obtain ⟨ε', hε', H⟩ := exists_ball_subset_ball hrx,
-  obtain ⟨⟨⟨a, b⟩, ⟨ha, hb⟩⟩, hab⟩ := circle_integral_bounding_function_bound hR hr
+  obtain ⟨⟨⟨a, b⟩, ⟨ha, hb⟩⟩, hab⟩ := circle_integral_bounding_function_bound hr
     (pos_of_mem_ball hrx).le z,
   let V : ℝ → (ℂ → ℂ) := λ θ w, circle_integral_transform_deriv R z w (λ x, 1) θ,
   have funccomp : continuous_on (λ r , abs (f r)) (sphere z R),
@@ -153,10 +153,10 @@ begin
   have sbou := is_compact.exists_forall_ge (is_compact_sphere z R)
     (normed_space.sphere_nonempty.2 hR.le) funccomp,
   obtain ⟨X, HX, HX2⟩ := sbou,
-  refine ⟨abs (V b a) * abs (f X), ε' , hε', subset.trans H (ball_subset_ball hr.le),  _ ⟩,
+  refine ⟨abs (V b a) * abs (f X), ε' , hε', subset.trans H (ball_subset_ball hr.le), _ ⟩,
   intros y v hv,
   obtain ⟨y1, hy1, hfun⟩ := periodic.exists_mem_Ico₀
-    (circle_integral_transform_deriv_periodic R z v f y) real.two_pi_pos y,
+    (circle_integral_transform_deriv_periodic R z v f) real.two_pi_pos y,
   have hy2: y1 ∈ [0, 2*π], by {convert (Ico_subset_Icc_self hy1),
     simp [interval_of_le real.two_pi_pos.le]},
   have := mul_le_mul (hab ⟨⟨v, y1⟩, ⟨ball_subset_closed_ball (H hv), hy2⟩⟩)
@@ -165,7 +165,7 @@ begin
   simp only [circle_integral_bounding_function, circle_integral_transform_deriv, V, norm_eq_abs,
     algebra.id.smul_eq_mul, deriv_circle_map, abs_mul, abs_circle_map_zero, abs_I, mul_one,
     ←mul_assoc, mul_inv_rev, inv_I, abs_neg, abs_inv, abs_of_real, one_mul, abs_two, abs_pow,
-    mem_ball, gt_iff_lt, subtype.coe_mk, set_coe.forall, mem_prod,  mem_closed_ball, and_imp,
+    mem_ball, gt_iff_lt, subtype.coe_mk, set_coe.forall, mem_prod, mem_closed_ball, and_imp,
     prod.forall, normed_space.sphere_nonempty, mem_sphere_iff_norm] at *,
   exact this,
 end

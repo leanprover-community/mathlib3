@@ -61,7 +61,7 @@ has been appropriately replaced.
 
 ###  Error reporting
 The tactics report that
-* naturals involving variables are not allowed in exponents;
+* naturals involving variables are not allowed in exponents for `compute_deg`;
 * when a simple lemma application would have sufficed (via a `Try this: ...`);
 * when the guessed degree is incompatible with the goal, suggesting a sharper value.
 -/
@@ -87,6 +87,7 @@ lemma nat_degree_bit1 {R : Type*} [semiring R] (a : polynomial R) :
 end polynomial
 
 namespace tactic
+namespace compute_degree
 open expr
 
 /--  If an expression `e` is an iterated suquence of `bit0` and `bit1` starting from `0` or `1`,
@@ -259,8 +260,6 @@ if bo then fail "Try this: exact polynomial.nat_degree_C_mul_X _ ‹_›"
 else
   fail "single term lemmas do not work"
 
-namespace interactive
-
 /--  `resolve_sum_step e` first checks that `e` is of the form `f.nat_degree ≤ d`,
 failing otherwise.  Suppose that `e` has the desired form.
 * If `f` is a sum of two terms, then `resolve_sum_step` splits off one summand from `f` using
@@ -278,6 +277,15 @@ meta def resolve_sum_step : expr → tactic unit
   single_term_resolve_le tl
 | _ := failed
 
+/--  `norm_assum` simply tries `norm_num` and `assumption`.  It is used to try to discharge as
+many as possible of the side-goals of `compute_degree` and `compute_degree_le`, once they have
+processed all the goals of the form `f.(nat_)degree ≤/= d`.
+Such side-goals are all of the form `m ≤ n`, for natural numbers `m, n` or of the form
+`a ≠ 0` with `a` is a coefficient of the polynomial `f` in question.
+ -/
+meta def norm_assum : tactic unit :=
+try `[ norm_num ] >> try assumption
+
 /--  If `check_deg_le tl tr` fails, then either at least one of the expressions `tl, tr` involves
 a non-closed natural number, or the expected degree of `tl` is smaller than `tr`.  In either
 case, failure means that we can proceed with the checking in `compute_degree_le`. -/
@@ -285,6 +293,11 @@ meta def check_deg_le (tl tr : expr) : tactic unit :=
 do (_, m') ← extract_top_degree_term_and_deg tl,
   td ← eval_expr ℕ tr,
   if (m' ≤ td) then failed else trace sformat!"should the degree be {m'}?"
+
+end compute_degree
+
+namespace interactive
+open compute_degree
 
 /--  `compute_degree_le` tries to solve a goal of the form `f.nat_degree ≤ d`, where `d : ℕ` and `f`
 satisfies:
@@ -298,12 +311,10 @@ The tactic reports nothing if it is used with non-closed natural numbers as expo
 meta def compute_degree_le : tactic unit :=
 do try $ refine ``(polynomial.degree_le_nat_degree.trans (with_bot.coe_le_coe.mpr _)),
   `(polynomial.nat_degree %%tl ≤ %%tr) ← target |
-    (do try $ any_goals' `[ norm_num ],
-    try $ any_goals' assumption),
+    fail "Goal is not of the form\n`f.nat_degree ≤ d` or `f.degree ≤ d`",
   tactic.success_if_fail $ check_deg_le tl tr,  -- can `success_if_fail` fail with a custom message?
   repeat $ target >>= resolve_sum_step,
-  try $ any_goals' `[ norm_num ],
-  try $ any_goals' assumption
+  try $ any_goals' norm_assum
 
 /--  `compute_degree` tries to solve a goal of the form `f.nat_degree = d` or  `f.degree = d`,
 where `d : ℕ` and `f` satisfies:
@@ -339,7 +350,15 @@ do is_deg ← succeeds ( refine ``((polynomial.degree_eq_iff_nat_degree_eq_of_po
     refine ``(polynomial.nat_degree_add_left_succ _ %%lead _ _ _) <|>
       single_term_suggestions,
     single_term_resolve lead,
-    any_goals' compute_degree_le
+    gs ← get_goals,
+    gts ← gs.mmap infer_type,
+    -- `is_ineq` is a list of tactics, one for each goal:
+    -- * if the goal has the form `f.nat_degree ≤ d`, the tactic is `compute_degree_le`
+    -- * otherwise, it is the tactic that tries `norm_num` and `assumption`
+    is_ineq ← gts.mmap (λ t : expr, do match t with
+      | `(polynomial.nat_degree %%_ ≤ %%_) := return compute_degree_le
+      | _                                  := return norm_assum end),
+    focus' is_ineq
 
 add_tactic_doc
 { name := "compute_degree_le",

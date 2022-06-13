@@ -254,10 +254,13 @@ example : nat_degree (monomial 5 c * monomial 1 c + monomial 7 d +
 by compute_degree_le
 
 --  fails with error message `should the degree bound be '10'?`
-example : nat_degree (monomial 5 c * monomial 1 c + monomial 7 d +
-  C a * X ^ 0 + C b * X ^ 5 + C c * X ^ 2 + X ^ 10 + C e * X) ≤ 9 :=
-by compute_degree_le
---/
+example (h : 9 = 11) : nat_degree (monomial 5 c * monomial 6 c) ≤ 9 :=
+begin
+  success_if_fail_with_msg {compute_degree_le}
+    "success_if_fail combinator failed, given tactic succeeded",
+  rw h,
+  compute_degree_le
+end
 
 example : nat_degree (monomial 5 c * monomial 1 c + monomial 7 d +
   C a * X ^ 0 + C b * X ^ 5 + C c * X ^ 2 + C 7 * X ^ 10 + C e * X) ≤ 10 :=

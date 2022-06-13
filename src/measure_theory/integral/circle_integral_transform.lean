@@ -39,6 +39,17 @@ def circle_integral_transform (f : ℂ → E) : ℝ → E :=
 def circle_integral_transform_deriv (f : ℂ → E) (θ : ℝ) : E :=
   (2 * ↑π * I)⁻¹ • deriv (circle_map z R) θ • ((circle_map z R θ - w) ^ 2)⁻¹ • f (circle_map z R θ)
 
+lemma circle_integral_transform_deriv_periodic (f : ℂ → E) (θ : ℝ) :
+  periodic (circle_integral_transform_deriv R z w f) (2 * π) :=
+begin
+  have := periodic_circle_map,
+  simp_rw periodic at *,
+  intro x,
+  simp_rw [circle_integral_transform_deriv, this],
+  congr' 2,
+  simp [this],
+end
+
 lemma circle_integral_transform_deriv_eq (f : ℂ → E) :
   circle_integral_transform_deriv R z w f =
   (λ θ, (circle_map z R θ - w)⁻¹ • (circle_integral_transform R z w f θ)) :=
@@ -129,7 +140,7 @@ end
 lemma circle_integral_transform_deriv_bound {R : ℝ} (hR : 0 < R) {z x : ℂ} {f : ℂ → ℂ}
   (hx : x ∈ ball z R) (hf : continuous_on f (sphere z R)) :
   ∃ (B ε : ℝ), 0 < ε ∧ ball x ε ⊆ ball z R ∧
-  (∀ (t ∈ [0, 2 * π]) (y ∈ ball x ε), ∥circle_integral_transform_deriv R z y f t∥ ≤ B) :=
+  (∀ (t : ℝ) (y ∈ ball x ε), ∥circle_integral_transform_deriv R z y f t∥ ≤ B) :=
 begin
   obtain ⟨r, hr, hrx⟩ := exists_lt_mem_ball_of_mem_ball hx,
   obtain ⟨ε', hε', H⟩ := exists_ball_subset_ball hrx,
@@ -143,9 +154,14 @@ begin
     (normed_space.sphere_nonempty.2 hR.le) funccomp,
   obtain ⟨X, HX, HX2⟩ := sbou,
   refine ⟨abs (V b a) * abs (f X), ε' , hε', subset.trans H (ball_subset_ball hr.le),  _ ⟩,
-  intros y hy v hv,
-  have := mul_le_mul (hab ⟨⟨v, y⟩, ⟨ball_subset_closed_ball (H hv), hy⟩⟩)
-   (HX2 (circle_map z R y) (circle_map_mem_sphere z hR.le y)) (abs_nonneg _) (abs_nonneg _),
+  intros y v hv,
+  obtain ⟨y1, hy1, hfun⟩ := periodic.exists_mem_Ico₀
+    (circle_integral_transform_deriv_periodic R z v f y) real.two_pi_pos y,
+  have hy2: y1 ∈ [0, 2*π], by {convert (Ico_subset_Icc_self hy1),
+    simp [interval_of_le real.two_pi_pos.le]},
+  have := mul_le_mul (hab ⟨⟨v, y1⟩, ⟨ball_subset_closed_ball (H hv), hy2⟩⟩)
+   (HX2 (circle_map z R y1) (circle_map_mem_sphere z hR.le y1)) (abs_nonneg _) (abs_nonneg _),
+   simp_rw hfun,
   simp only [circle_integral_bounding_function, circle_integral_transform_deriv, V, norm_eq_abs,
     algebra.id.smul_eq_mul, deriv_circle_map, abs_mul, abs_circle_map_zero, abs_I, mul_one,
     ←mul_assoc, mul_inv_rev, inv_I, abs_neg, abs_inv, abs_of_real, one_mul, abs_two, abs_pow,

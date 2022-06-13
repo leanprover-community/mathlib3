@@ -60,6 +60,7 @@ lemma mem_mk {s : set P} (hn hne hl hg) : p ∈ mk s hn hne hl hg ↔ p ∈ s :=
 
 variables (α)
 
+-- Restatement of the axioms of cuts with different binders
 lemma nonempty : (α : set P).nonempty := α.nonempty'
 lemma lt_univ : (α : set P) < set.univ := α.ne_univ'.lt_top
 lemma is_lt_lower ⦃p q : P⦄ (h : q < p) (hp : p ∈ α) : q ∈ α := α.is_lt_lower' h hp

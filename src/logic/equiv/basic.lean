@@ -927,7 +927,7 @@ This is `function.swap` as an `equiv`. -/
 def Pi_comm {α β} (φ : α → β → Sort*) : (Π a b, φ a b) ≃ (Π b a, φ a b) :=
 ⟨swap, swap, λ x, rfl, λ y, rfl⟩
 
-lemma Pi_comm_symm {α β} {φ : α → β → Sort*} :
+@[simp] lemma Pi_comm_symm {α β} {φ : α → β → Sort*} :
   (Pi_comm φ).symm = (Pi_comm $ swap φ) :=
 rfl
 

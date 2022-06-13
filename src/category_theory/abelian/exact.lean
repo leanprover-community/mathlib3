@@ -319,33 +319,11 @@ variables (L : 𝓐 ⥤ 𝓑) [preserves_finite_limits L] [preserves_finite_coli
 
 lemma exact_of_exact_functor {X Y Z : 𝓐} (f : X ⟶ Y) (g : Y ⟶ Z) (e1 : exact f g) :
   exact (L.map f) (L.map g) :=
-have H : is_iso (image_to_kernel f g e1.w) := is_iso_of_mono_of_epi _,
-let e : image (L.map f) ≅ kernel (L.map g) :=
-(preserves_image.iso L f) ≪≫
-{ hom := L.map $ (image_subobject_iso _).inv ≫ image_to_kernel f g e1.w ≫
-        (kernel_subobject_iso _).hom,
-  inv := L.map $ (kernel_subobject_iso _).inv ≫
-    (@as_iso _ _ _ _ (image_to_kernel _ _ e1.w) H).inv ≫ (image_subobject_iso _).hom,
-  hom_inv_id' := begin
-    simp only [←L.map_comp, category.assoc],
-    have h1 := (kernel_subobject_iso g).hom_inv_id,
-    reassoc h1,
-    rw [h1, ←category.assoc _ _ (image_subobject_iso _).hom, as_iso_inv,
-      is_iso.hom_inv_id, category.id_comp, iso.inv_hom_id, L.map_id],
-  end,
-  inv_hom_id' := begin
-    simp only [←L.map_comp, category.assoc],
-    have h1 := (image_subobject_iso f).hom_inv_id,
-    reassoc h1,
-    rw [h1, ←category.assoc _ _ (kernel_subobject_iso _).hom, as_iso_inv,
-      is_iso.inv_hom_id, category.id_comp, iso.inv_hom_id, L.map_id],
-  end } ≪≫ (preserves_kernel.iso _ _) in
-(abelian.exact_iff_image_eq_kernel _ _).mpr $ subobject.mk_eq_mk_of_comm _ _ e $
 begin
-  simp only [functor.map_comp, category.assoc, iso.trans_hom, preserves_kernel.iso_hom,
-    kernel_comparison_comp_ι],
-  simp only [←L.map_comp, preserves_image.iso, is_image.iso_ext_hom, kernel_subobject_arrow,
-    image_to_kernel_arrow, image_subobject_arrow', is_image.lift_fac, image.as_ι],
+  let hcoker := is_colimit_of_has_cokernel_of_preserves_colimit L f,
+  let hker := is_limit_of_has_kernel_of_preserves_limit L g,
+  refine (exact_iff' _ _ hker hcoker).2 ⟨by simp [← L.map_comp, e1.1], _⟩,
+  rw [fork.ι_of_ι, cofork.π_of_π, ← L.map_comp, kernel_comp_cokernel _ _ e1, L.map_zero]
 end
 
 end abelian

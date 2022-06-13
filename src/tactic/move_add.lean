@@ -303,7 +303,7 @@ match locat with
   | pes  := fail format!"'{pes}' are unused variables"
   end,
   assumption <|> try (tactic.reflexivity reducible)
-  end
+end
 
 namespace interactive
 

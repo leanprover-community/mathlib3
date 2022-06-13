@@ -132,20 +132,11 @@ instance complete_linear_order.to_conditionally_complete_linear_order_bot {α : 
 section
 open_locale classical
 
-/-- A well founded linear order is conditionally complete, with a bottom element. -/
+/-- A well founded linear order with a bottom element is conditionally complete. -/
 @[reducible] noncomputable def well_founded.conditionally_complete_linear_order_with_bot
-  {α : Type*} [i : linear_order α] (h : well_founded ((<) : α → α → Prop))
-  (c : α) (hc : c = h.min set.univ ⟨c, mem_univ c⟩) :
+  {α : Type*} [i₁ : linear_order α] [i₂ : order_bot α] (h : well_founded ((<) : α → α → Prop)) :
   conditionally_complete_linear_order_bot α :=
-{ sup := max,
-  le_sup_left := le_max_left,
-  le_sup_right := le_max_right,
-  sup_le := λ a b c, max_le,
-  inf := min,
-  inf_le_left := min_le_left,
-  inf_le_right := min_le_right,
-  le_inf := λ a b c, le_min,
-  Inf := λ s, if hs : s.nonempty then h.min s hs else c,
+{ Inf := λ s, if hs : s.nonempty then h.min s hs else ⊥,
   cInf_le := λ s a hs has, begin
     have s_ne : s.nonempty := ⟨a, has⟩,
     simpa [s_ne] using not_lt.1 (h.not_lt_min s s_ne has),
@@ -154,7 +145,7 @@ open_locale classical
     simp only [hs, dif_pos],
     exact has (h.min_mem s hs),
   end,
-  Sup := λ s, if hs : (upper_bounds s).nonempty then h.min _ hs else c,
+  Sup := λ s, if hs : (upper_bounds s).nonempty then h.min _ hs else ⊥,
   le_cSup := λ s a hs has, begin
     have h's : (upper_bounds s).nonempty := hs,
     simp only [h's, dif_pos],
@@ -165,14 +156,11 @@ open_locale classical
     simp only [h's, dif_pos],
     simpa using h.not_lt_min _ h's has,
   end,
-  bot := c,
-  bot_le := λ x, by convert not_lt.1 (h.not_lt_min set.univ ⟨c, mem_univ c⟩ (mem_univ x)),
   cSup_empty := begin
-    have : (set.univ : set α).nonempty := ⟨c, mem_univ c⟩,
-    simp only [this, dif_pos, upper_bounds_empty],
-    exact hc.symm
+    simp only [univ_nonempty, dif_pos, upper_bounds_empty],
+    exact bot_unique (h.min_le $ mem_univ ⊥)
   end,
-  .. i }
+  .. i₁, .. i₂, .. linear_order.to_lattice }
 
 end
 
@@ -589,16 +577,16 @@ by { rw h.cSup_eq_max', exact s.max'_mem _ }
 lemma finset.nonempty.cInf_mem {s : finset α} (h : s.nonempty) : Inf (s : set α) ∈ s :=
 @finset.nonempty.cSup_mem αᵒᵈ _ _ h
 
-lemma set.nonempty.cSup_mem (h : s.nonempty) (hs : finite s) : Sup s ∈ s :=
+lemma set.nonempty.cSup_mem (h : s.nonempty) (hs : s.finite) : Sup s ∈ s :=
 by { lift s to finset α using hs, exact finset.nonempty.cSup_mem h }
 
-lemma set.nonempty.cInf_mem (h : s.nonempty) (hs : finite s) : Inf s ∈ s :=
+lemma set.nonempty.cInf_mem (h : s.nonempty) (hs : s.finite) : Inf s ∈ s :=
 @set.nonempty.cSup_mem αᵒᵈ _ _ h hs
 
-lemma set.finite.cSup_lt_iff (hs : finite s) (h : s.nonempty) : Sup s < a ↔ ∀ x ∈ s, x < a :=
+lemma set.finite.cSup_lt_iff (hs : s.finite) (h : s.nonempty) : Sup s < a ↔ ∀ x ∈ s, x < a :=
 ⟨λ h x hx, (le_cSup hs.bdd_above hx).trans_lt h, λ H, H _ $ h.cSup_mem hs⟩
 
-lemma set.finite.lt_cInf_iff (hs : finite s) (h : s.nonempty) : a < Inf s ↔ ∀ x ∈ s, a < x :=
+lemma set.finite.lt_cInf_iff (hs : s.finite) (h : s.nonempty) : a < Inf s ↔ ∀ x ∈ s, a < x :=
 @set.finite.cSup_lt_iff αᵒᵈ _ _ _ hs h
 
 /-- When b < Sup s, there is an element a in s with b < a, if s is nonempty and the order is
@@ -639,6 +627,14 @@ le_is_glb_iff (is_least_Inf hs).is_glb
 
 lemma Inf_mem (hs : s.nonempty) : Inf s ∈ s := (is_least_Inf hs).1
 
+lemma monotone_on.map_Inf {β : Type*} [conditionally_complete_lattice β] {f : α → β}
+  (hf : monotone_on f s) (hs : s.nonempty) : f (Inf s) = Inf (f '' s) :=
+(hf.map_is_least (is_least_Inf hs)).cInf_eq.symm
+
+lemma monotone.map_Inf {β : Type*} [conditionally_complete_lattice β] {f : α → β} (hf : monotone f)
+  (hs : s.nonempty) : f (Inf s) = Inf (f '' s) :=
+(hf.map_is_least (is_least_Inf hs)).cInf_eq.symm
+
 end conditionally_complete_linear_order
 
 /-!
@@ -658,6 +654,8 @@ conditionally_complete_linear_order_bot.cSup_empty
 by rw [supr_of_empty', cSup_empty]
 
 @[simp] lemma csupr_false (f : false → α) : (⨆ i, f i) = ⊥ := csupr_of_empty f
+
+@[simp] lemma cInf_univ : Inf (univ : set α) = ⊥ := is_least_univ.cInf_eq
 
 lemma is_lub_cSup' {s : set α} (hs : bdd_above s) : is_lub s (Sup s) :=
 begin

@@ -94,6 +94,73 @@ lemma insert_of_symmetric (hs : is_antichain r s) (hr : symmetric r)
   is_antichain r (insert a s) :=
 (is_antichain_insert_of_symmetric hr).2 ⟨hs, h⟩
 
+lemma image_rel_embedding (hs : is_antichain r s) (φ : r ↪r r') : is_antichain r' (φ '' s) :=
+begin
+  intros b hb b' hb' h₁ h₂,
+  rw set.mem_image at hb hb',
+  obtain ⟨⟨a,has,rfl⟩,⟨a',has',rfl⟩⟩ := ⟨hb,hb'⟩,
+  exact hs has has' (λ haa', h₁ (haa'.subst (by refl))) (φ.map_rel_iff.mp h₂),
+end
+
+lemma preimage_rel_embedding {t : set β} (ht : is_antichain r' t) (φ : r ↪r r') :
+  is_antichain r (φ ⁻¹' t) :=
+λ a ha a' ha' hne hle, ht ha ha' (λ h, hne (φ.injective h)) (φ.map_rel_iff.mpr hle)
+
+lemma image_rel_iso (hs : is_antichain r s) (φ : r ≃r r') : is_antichain r' (φ '' s) :=
+hs.image_rel_embedding φ
+
+lemma preimage_rel_iso {t : set β} (hs : is_antichain r' t) (φ : r ≃r r') :
+  is_antichain r (φ ⁻¹' t) :=
+hs.preimage_rel_embedding φ
+
+lemma image_rel_embedding_iff {φ : r ↪r r'} : is_antichain r' (φ '' s) ↔ is_antichain r s :=
+⟨λ h, (φ.injective.preimage_image s).subst (h.preimage_rel_embedding φ),
+  λ h, h.image_rel_embedding φ⟩
+
+lemma image_rel_iso_iff {φ : r ≃r r'} : is_antichain r' (φ '' s) ↔ is_antichain r s :=
+  @image_rel_embedding_iff _ _ _ _ _ (φ : r ↪r r')
+
+lemma image_embedding [has_le α] [has_le β] (hs : is_antichain (≤) s) (φ : α ↪o β) :
+  is_antichain (≤) (φ '' s) :=
+image_rel_embedding hs _
+
+lemma preimage_embedding [has_le α] [has_le β] {t : set β} (ht : is_antichain (≤) t) (φ : α ↪o β) :
+  is_antichain (≤) (φ ⁻¹' t) :=
+preimage_rel_embedding ht _
+
+lemma image_embedding_iff [has_le α] [has_le β] {φ : α ↪o β} :
+  is_antichain (≤) (φ '' s) ↔ is_antichain (≤) s :=
+image_rel_embedding_iff
+
+lemma image_iso [has_le α] [has_le β] (hs : is_antichain (≤) s) (φ : α ≃o β) :
+  is_antichain (≤) (φ '' s) :=
+image_rel_embedding hs _
+
+lemma image_iso_iff [has_le α] [has_le β] {φ : α ≃o β} :
+  is_antichain (≤) (φ '' s) ↔ is_antichain (≤) s :=
+image_rel_embedding_iff
+
+lemma preimage_iso [has_le α] [has_le β] {t : set β} (ht : is_antichain (≤) t) (φ : α ≃o β) :
+  is_antichain (≤) (φ ⁻¹' t) :=
+preimage_rel_embedding ht _
+
+lemma preimage_iso_iff [has_le α] [has_le β] {t : set β} {φ : α ≃o β} :
+  is_antichain (≤) (φ ⁻¹' t) ↔ is_antichain (≤) t :=
+⟨λ h, (φ.image_preimage t).subst (h.image_iso φ), λ h, h.preimage_iso _⟩
+
+lemma to_dual [has_le α] (hs : is_antichain (≤) s) : @is_antichain αᵒᵈ (≤) s :=
+λ a ha b hb hab, hs hb ha hab.symm
+
+lemma to_dual_iff [has_le α] : is_antichain (≤) s ↔ @is_antichain αᵒᵈ (≤) s := ⟨to_dual, to_dual⟩
+
+lemma image_compl [boolean_algebra α] (hs : is_antichain (≤) s) :
+  is_antichain (≤) (compl '' s) :=
+(hs.image_embedding (order_iso.compl α).to_order_embedding).flip
+
+lemma preimage_compl [boolean_algebra α] (hs : is_antichain (≤) s) :
+  is_antichain (≤) (compl ⁻¹' s) :=
+λ a ha a' ha' hne hle, hs ha' ha (λ h, hne (compl_inj_iff.mp h.symm)) (compl_le_compl hle)
+
 end is_antichain
 
 lemma is_antichain_singleton (a : α) (r : α → α → Prop) : is_antichain r {a} :=

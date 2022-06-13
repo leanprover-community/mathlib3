@@ -183,6 +183,11 @@ def option_embedding_equiv (α β) : (option α ↪ β) ≃ Σ f : α ↪ β, �
   left_inv := λ f, ext $ by { rintro (_|_); simp [option.coe_def] },
   right_inv := λ ⟨f, y, hy⟩, by { ext; simp [option.coe_def] } }
 
+/-- A version of `option.map` for `function.embedding`s. -/
+@[simps { fully_applied := ff }]
+def option_map {α β} (f : α ↪ β) : option α ↪ option β :=
+⟨option.map f, option.map_injective f.injective⟩
+
 /-- Embedding of a `subtype`. -/
 def subtype {α} (p : α → Prop) : subtype p ↪ α :=
 ⟨coe, λ _ _, subtype.ext_val⟩
@@ -281,7 +286,7 @@ This embedding sends each `f : α → γ` to a function `g : β → γ` such tha
 `g y = default` whenever `y ∉ range e`. -/
 noncomputable def arrow_congr_left {α : Sort u} {β : Sort v} {γ : Sort w} [inhabited γ]
   (e : α ↪ β) : (α → γ) ↪ (β → γ) :=
-⟨λ f, extend e f (λ _, default), λ f₁ f₂ h, funext $ λ x,
+⟨λ f, extend e f default, λ f₁ f₂ h, funext $ λ x,
   by simpa only [extend_apply e.injective] using congr_fun h (e x)⟩
 
 /-- Restrict both domain and codomain of an embedding. -/

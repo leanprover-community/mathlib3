@@ -410,10 +410,13 @@ lemma submartingale_iff_expected_stopped_value_mono [is_finite_measure μ]
 
 section maximal
 
-lemma set_integral_le_const {c : ℝ} {f : α → ℝ} {s : set α} (hf : ∀ x ∈ s, c ≤ f x) :
+lemma set_integral_le_const {c : ℝ} {f : α → ℝ} {s : set α}
+  (hs : measurable_set s) (hμs : μ s ≠ ∞) (hf : ∀ x ∈ s, c ≤ f x)
+  (hfint : integrable_on (λ (x : α), f x) s μ) :
   c * (μ s).to_real ≤ ∫ x in s, f x ∂μ :=
 begin
-  sorry
+  rw [mul_comm, ← smul_eq_mul, ← set_integral_const c],
+  exact set_integral_mono_on (integrable_on_const.2 (or.inr hμs.lt_top)) hfint hs hf,
 end
 
 lemma nat.exists_of_le_supr {p : ℕ → Prop} (hp : {n | p n}.finite)
@@ -440,10 +443,15 @@ begin
     refine stopped_value_hitting_mem _,
     simp only [set.mem_set_of_eq, exists_prop],
     exact nat.exists_of_le_supr (set.finite_le_nat n) hε hx },
+  have h := set_integral_le_const (measurable_set_le measurable_const (measurable_supr_le
+      (λ n, (hsub.strongly_measurable n).measurable.le (𝒢.le n)) _))
+      (measure_lt_top _ _).ne this
+      (integrable.integrable_on (integrable_stopped_value (hitting_is_stopping_time_nat
+        hsub.adapted measurable_set_Ici n) hsub.integrable hitting_le)),
   rw [ennreal.le_of_real_iff_to_real_le, ennreal.to_real_smul],
-  { exact set_integral_le_const this },
+  { exact h },
   { exact (ennreal.mul_lt_top (by simp) (measure_lt_top _ _).ne).ne },
-  { exact le_trans (mul_nonneg ε.coe_nonneg ennreal.to_real_nonneg) (set_integral_le_const this) }
+  { exact le_trans (mul_nonneg ε.coe_nonneg ennreal.to_real_nonneg) h }
 end
 
 lemma maximal_ineq [is_finite_measure μ]

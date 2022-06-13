@@ -154,7 +154,7 @@ localized "attribute [instance] finset.has_mul finset.has_add" in pointwise
 lemma mul_def : s * t = (s.product t).image (λ p : α × α, p.1 * p.2) := rfl
 
 @[to_additive]
-lemma image_mul_product : (s.product t).image (λ x : α × α, x.fst * x.snd)  = s * t := rfl
+lemma image_mul_product : (s.product t).image (λ x : α × α, x.fst * x.snd) = s * t := rfl
 
 @[to_additive]
 lemma mem_mul {x : α} : x ∈ s * t ↔ ∃ y z, y ∈ s ∧ z ∈ t ∧ y * z = x := mem_image₂

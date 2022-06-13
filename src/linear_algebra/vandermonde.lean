@@ -122,7 +122,7 @@ begin
       exact nat.lt_succ_iff.mp (finset.mem_range.mp hi') } }
 end
 
-lemma det_vandermonde_eq_zero_iff [is_domain R] {n : ℕ} (v : fin n → R) :
+lemma det_vandermonde_eq_zero_iff [is_domain R] {n : ℕ} {v : fin n → R} :
   det (vandermonde v) = 0 ↔ ∃ (i j : fin n), v i = v j ∧ i ≠ j :=
 begin
   split,

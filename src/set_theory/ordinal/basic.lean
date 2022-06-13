@@ -1219,8 +1219,8 @@ end
 lemma ord_eq_min (α : Type u) : ord (#α) = ⨅ r : {r // is_well_order α r}, @type α r.1 r.2 :=
 rfl
 
-theorem ord_eq (α) : ∃ (r : α → α → Prop) (wo : is_well_order α r), @type α r wo = ord (#α) :=
-by simpa using infi_mem (λ r : {r // is_well_order α r}, @type α r.1 r.2)
+theorem ord_eq (α) : ∃ (r : α → α → Prop) [wo : is_well_order α r], ord (#α) = @type α r wo :=
+let ⟨r, wo⟩ := infi_mem (λ r : {r // is_well_order α r}, @type α r.1 r.2) in ⟨r.1, r.2, wo.symm⟩
 
 theorem ord_le_type (r : α → α → Prop) [h : is_well_order α r] : ord (#α) ≤ ordinal.type r :=
 cinfi_le' _ (subtype.mk r h)
@@ -1229,7 +1229,7 @@ theorem ord_le {c o} : ord c ≤ o ↔ c ≤ o.card :=
 induction_on c $ λ α, ordinal.induction_on o $ λ β s _,
 let ⟨r, _, e⟩ := ord_eq α in begin
   resetI, simp only [card_type], split; intro h,
-  { rw ←e at h, exact let ⟨f⟩ := h in ⟨f.to_embedding⟩ },
+  { rw e at h, exact let ⟨f⟩ := h in ⟨f.to_embedding⟩ },
   { cases h with f,
     have g := rel_embedding.preimage f s,
     haveI := rel_embedding.is_well_order g,
@@ -1241,7 +1241,7 @@ by rw [← not_le, ← not_le, ord_le]
 
 @[simp] theorem card_ord (c) : (ord c).card = c :=
 quotient.induction_on c $ λ α,
-let ⟨r, _, e⟩ := ord_eq α in by simp only [mk_def, ←e, card_type]
+let ⟨r, _, e⟩ := ord_eq α in by simp only [mk_def, e, card_type]
 
 theorem ord_card_le (o : ordinal) : o.card.ord ≤ o :=
 ord_le.2 le_rfl

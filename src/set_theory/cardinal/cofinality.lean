@@ -159,8 +159,9 @@ let ⟨S, hS, e⟩ := cof_eq r, ⟨s, _, e'⟩ := cardinal.ord_eq S,
     T : set α := {a | ∃ aS : a ∈ S, ∀ b : S, s b ⟨_, aS⟩ → r b a} in
 begin
   resetI, suffices,
-  { refine ⟨T, this, le_antisymm _ (cardinal.ord_le.2 $ cof_type_le this)⟩,
-    rw [←e, ←e'],
+  { refine ⟨T, this,
+      le_antisymm _ (cardinal.ord_le.2 $ cof_type_le this)⟩,
+    rw [← e, e'],
     refine type_le'.2 ⟨rel_embedding.of_monotone
       (λ a, ⟨a, let ⟨aS, _⟩ := a.2 in aS⟩) (λ a b h, _)⟩,
     rcases a with ⟨a, aS, ha⟩, rcases b with ⟨b, bS, hb⟩,
@@ -332,7 +333,7 @@ begin
   rcases exists_lsub_cof o with ⟨ι, f, hf, hι⟩,
   rcases cardinal.ord_eq ι with ⟨r, hr, hι'⟩,
   rw ←@blsub_eq_lsub' ι r hr at hf,
-  rw [←hι, ←hι'],
+  rw [←hι, hι'],
   exact ⟨_, hf⟩
 end
 
@@ -776,7 +777,7 @@ theorem is_regular_succ {c : cardinal.{u}} (h : ℵ₀ ≤ c) : is_regular (succ
   cases quotient.exists_rep (@succ cardinal _ _ c) with α αe, simp at αe,
   rcases ord_eq α with ⟨r, wo, re⟩, resetI,
   have := ord_is_limit (h.trans (le_succ _)),
-  rw [← αe, ← re] at this ⊢,
+  rw [← αe, re] at this ⊢,
   rcases cof_eq' r this with ⟨S, H, Se⟩,
   rw [← Se],
   apply lt_imp_lt_of_le_imp_le (λ h, mul_le_mul_right' h c),
@@ -785,7 +786,7 @@ theorem is_regular_succ {c : cardinal.{u}} (h : ℵ₀ ≤ c) : is_regular (succ
   { simp only [← card_typein, ← mk_sigma],
     exact ⟨embedding.of_surjective (λ x, x.2.1)
       (λ a, let ⟨b, h, ab⟩ := H a in ⟨⟨⟨_, h⟩, _, ab⟩, rfl⟩)⟩ },
-  { rw [← lt_succ_iff, ← lt_ord, ← αe, ← re],
+  { rw [← lt_succ_iff, ← lt_ord, ← αe, re],
     apply typein_lt_type }
 end⟩
 
@@ -988,7 +989,7 @@ theorem lt_power_cof {c : cardinal.{u}} : ℵ₀ ≤ c → c < c ^ cof c.ord :=
 quotient.induction_on c $ λ α h, begin
   rcases ord_eq α with ⟨r, wo, re⟩, resetI,
   have := ord_is_limit h,
-  rw [mk_def, ← re] at this ⊢,
+  rw [mk_def, re] at this ⊢,
   rcases cof_eq' r this with ⟨S, H, Se⟩,
   have := sum_lt_prod (λ a:S, #{x // r x a}) (λ _, #α) (λ i, _),
   { simp only [cardinal.prod_const, cardinal.lift_id, ← Se, ← mk_sigma, power_def] at this ⊢,
@@ -997,7 +998,7 @@ quotient.induction_on c $ λ α h, begin
     { exact λ x, x.2.1 },
     { exact λ a, let ⟨b, h, ab⟩ := H a in ⟨⟨⟨_, h⟩, _, ab⟩, rfl⟩ } },
   { have := typein_lt_type r i,
-    rwa [re, lt_ord] at this }
+    rwa [← re, lt_ord] at this }
 end
 
 theorem lt_cof_power {a b : cardinal} (ha : ℵ₀ ≤ a) (b1 : 1 < b) :

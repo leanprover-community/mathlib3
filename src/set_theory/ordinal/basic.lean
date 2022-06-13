@@ -763,6 +763,9 @@ type_ne_zero_iff_nonempty.2 h
 protected theorem zero_le (o : ordinal) : 0 ≤ o :=
 induction_on o $ λ α r _, ⟨⟨⟨embedding.of_is_empty, is_empty_elim⟩, is_empty_elim⟩⟩
 
+instance : order_bot ordinal :=
+⟨0, ordinal.zero_le⟩ 
+
 @[simp] protected theorem le_zero {o : ordinal} : o ≤ 0 ↔ o = 0 :=
 by simp only [le_antisymm_iff, ordinal.zero_le, and_true]
 

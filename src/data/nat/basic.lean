@@ -747,6 +747,27 @@ lemma decreasing_induction_succ_left {P : ℕ → Sort*} (h : ∀n, P (n+1) → 
 by { rw [subsingleton.elim mn (le_trans (le_succ m) smn), decreasing_induction_trans,
          decreasing_induction_succ'] }
 
+/-- Given a predicate on two naturals `P : ℕ → ℕ → Prop`, `P a b` is true for all `a < b` if
+`P (a + 1) (a + 1)` is true for all `a`, `P 0 (b + 1)` is true for all `b` and for all
+`a < b`, `P (a + 1) b` is true and `P a (b + 1)` is true implies `P (a + 1) (b + 1)` is true. -/
+@[elab_as_eliminator]
+lemma diag_induction (P : ℕ → ℕ → Prop) (ha : ∀ a, P (a + 1) (a + 1)) (hb : ∀ b, P 0 (b + 1))
+  (hd : ∀ a b, a < b → P (a + 1) b → P a (b + 1) → P (a + 1) (b + 1)) :
+  ∀ a b, a < b → P a b
+| 0 (b + 1) h := hb _
+| (a + 1) (b + 1) h :=
+begin
+  apply hd _ _ ((add_lt_add_iff_right _).1 h),
+  { have : a + 1 = b ∨ a + 1 < b,
+    { rwa [← le_iff_eq_or_lt, ← nat.lt_succ_iff] },
+    rcases this with rfl | _,
+    { exact ha _ },
+    apply diag_induction (a + 1) b this },
+  apply diag_induction a (b + 1),
+  apply lt_of_le_of_lt (nat.le_succ _) h,
+end
+using_well_founded { rel_tac := λ _ _, `[exact ⟨_, measure_wf (λ p, p.1 + p.2.1)⟩] }
+
 /-- Recursion starting at a non-zero number: given a map `C k → C (k+1)` for each `k ≥ n`,
 there is a map from `C n` to each `C m`, `n ≤ m`. -/
 @[elab_as_eliminator]

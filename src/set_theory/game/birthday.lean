@@ -109,9 +109,6 @@ by { rw birthday_def, simp }
 @[simp] theorem birthday_star : birthday star = 1 :=
 by { rw birthday_def, simp }
 
-@[simp] theorem birthday_half : birthday half = 2 :=
-by { rw birthday_def, simpa using order.le_succ (1 : ordinal) }
-
 @[simp] theorem neg_birthday : ∀ x : pgame, (-x).birthday = x.birthday
 | ⟨xl, xr, xL, xR⟩ := begin
   rw [birthday_def, birthday_def, max_comm],
@@ -135,6 +132,6 @@ le_def.2 ⟨λ i, or.inl ⟨to_left_moves_to_pgame ⟨_, birthday_move_left_lt i
   by simp [le_birthday (xL i)]⟩, is_empty_elim⟩
 
 theorem neg_birthday_le (x : pgame) : -x.birthday.to_pgame ≤ x :=
-let h := le_birthday (-x) in by rwa [neg_birthday, ←neg_le_iff, neg_neg] at h
+let h := le_birthday (-x) in by rwa [neg_birthday, neg_le_iff] at h
 
 end pgame

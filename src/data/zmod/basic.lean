@@ -103,6 +103,9 @@ instance has_repr : Π (n : ℕ), has_repr (zmod n)
 | 0     := int.has_repr
 | (n+1) := fin.has_repr _
 
+/- We define each field by cases, to ensure that the eta-expanded `zmod.comm_ring` is defeq to the
+original, this helps avoid diamonds with instances coming from classes extending `comm_ring` such as
+field. -/
 instance comm_ring (n : ℕ) : comm_ring (zmod n) :=
 { add := nat.cases_on n ((@has_add.add) int _) (λ n, @has_add.add (fin n.succ) _),
   add_assoc := nat.cases_on n (@add_assoc int _) (λ n, @add_assoc (fin n.succ) _),

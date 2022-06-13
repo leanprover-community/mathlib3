@@ -1098,14 +1098,13 @@ eq_div_of_mul_eq two_ne_zero $ by rw [cosh, exp, exp, complex.of_real_neg, compl
 
 @[simp] lemma cosh_zero : cosh 0 = 1 := by simp [cosh]
 
-@[simp] lemma cosh_neg : cosh (-x) = cosh x :=
-by simp [cosh]
+@[simp] lemma cosh_neg : cosh (-x) = cosh x := of_real_inj.1 $ by simp
 
 @[simp] lemma cosh_abs : cosh (|x|) = cosh x :=
 by cases le_total x 0; simp [*, _root_.abs_of_nonneg, abs_of_nonpos]
 
 lemma cosh_add : cosh (x + y) = cosh x * cosh y + sinh x * sinh y :=
-by rw ← of_real_inj; simp [cosh, cosh_add]
+by rw ← of_real_inj; simp [cosh_add]
 
 lemma sinh_sub : sinh (x - y) = sinh x * cosh y - cosh x * sinh y :=
 by simp [sub_eq_add_neg, sinh_add, sinh_neg, cosh_neg]
@@ -1228,6 +1227,9 @@ exp_zero ▸ exp_le_exp
 /-- `real.cosh` is always positive -/
 lemma cosh_pos (x : ℝ) : 0 < real.cosh x :=
 (cosh_eq x).symm ▸ half_pos (add_pos (exp_pos x) (exp_pos (-x)))
+
+lemma sinh_lt_cosh : sinh x < cosh x :=
+lt_of_pow_lt_pow 2 (cosh_pos _).le $ (cosh_sq x).symm ▸ (lt_add_one _)
 
 end real
 

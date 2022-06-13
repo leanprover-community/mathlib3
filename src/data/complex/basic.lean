@@ -46,6 +46,9 @@ theorem ext : ∀ {z w : ℂ}, z.re = w.re → z.im = w.im → z = w
 theorem ext_iff {z w : ℂ} : z = w ↔ z.re = w.re ∧ z.im = w.im :=
 ⟨λ H, by simp [H], and.rec ext⟩
 
+theorem re_surjective : function.surjective re := λ x, ⟨⟨x, 0⟩, rfl⟩
+theorem im_surjective : function.surjective im := λ y, ⟨⟨0, y⟩, rfl⟩
+
 instance : has_coe ℝ ℂ := ⟨λ r, ⟨r, 0⟩⟩
 
 @[simp, norm_cast] lemma of_real_re (r : ℝ) : (r : ℂ).re = r := rfl

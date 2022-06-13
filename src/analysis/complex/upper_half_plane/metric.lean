@@ -1,4 +1,4 @@
-import analysis.complex.upper_half_plane
+import analysis.complex.upper_half_plane.topology
 import analysis.special_functions.arsinh
 import geometry.euclidean.inversion
 
@@ -36,6 +36,13 @@ begin
   simp only [complex.dist_eq, complex.sq_abs, complex.norm_sq_sub, complex.norm_sq_conj,
     complex.conj_conj, complex.mul_re, complex.conj_re, complex.conj_im, coe_im],
   ring
+end
+
+lemma tanh_half_dist (z w : ℍ) :
+  tanh (dist z w / 2) = dist (z : ℂ) w / dist (z : ℂ) (conj ↑w) :=
+begin
+  rw [tanh_eq_sinh_div_cosh, sinh_half_dist, cosh_half_dist, div_div_div_comm, div_self, div_one],
+  exact (mul_pos two_pos (sqrt_pos.2 $ mul_pos z.im_pos w.im_pos)).ne'
 end
 
 lemma exp_half_dist (z w : ℍ) :
@@ -114,8 +121,33 @@ lemma cosh_dist' (z w : ℍ) :
 have H : 0 < 2 * z.im * w.im, from mul_pos (mul_pos two_pos z.im_pos) w.im_pos,
 by { field_simp [cosh_dist, complex.dist_eq, complex.sq_abs, norm_sq_apply, H, H.ne'], ring }
 
-lemma cmp_dist_eq_cmp_dist_coe (z w : ℍ) (r : ℝ) :
-  cmp (dist z w) r = cmp (dist (z : ℂ) ⟨w.re, w.im * real.cosh r⟩) (w.im * sinh r) :=
+/-- Euclidean center of the circle with center `z` and radius `r` in the hyperbolic metric. -/
+def center (z : ℍ) (r : ℝ) : ℍ := ⟨⟨z.re, z.im * cosh r⟩, mul_pos z.im_pos (cosh_pos _)⟩
+
+@[simp] lemma center_re (z r) : (center z r).re = z.re := rfl
+@[simp] lemma center_im (z r) : (center z r).im = z.im * cosh r := rfl
+
+@[simp] lemma center_zero (z : ℍ) : center z 0 = z :=
+subtype.ext $ ext rfl $ by rw [coe_im, coe_im, center_im, real.cosh_zero, mul_one]
+
+lemma dist_coe_center_sq (z w : ℍ) (r : ℝ) :
+  dist (z : ℂ) (w.center r) ^ 2 =
+    2 * z.im * w.im * (cosh (dist z w) - cosh r) + (w.im * sinh r) ^ 2 :=
+begin
+  have H : 2 * z.im * w.im ≠ 0, by apply_rules [mul_ne_zero, two_ne_zero, im_ne_zero],
+  simp only [complex.dist_eq, complex.sq_abs, norm_sq_apply, coe_re, coe_im, center_re, center_im,
+    cosh_dist', mul_div_cancel' _ H, sub_sq z.im, mul_pow, real.cosh_sq, sub_re, sub_im, mul_sub,
+    ← sq],
+  ring
+end
+
+lemma dist_coe_center (z w : ℍ) (r : ℝ) :
+  dist (z : ℂ) (w.center r) =
+    sqrt (2 * z.im * w.im * (cosh (dist z w) - cosh r) + (w.im * sinh r) ^ 2) :=
+by rw [← sqrt_sq dist_nonneg, dist_coe_center_sq]
+
+lemma cmp_dist_eq_cmp_dist_coe_center (z w : ℍ) (r : ℝ) :
+  cmp (dist z w) r = cmp (dist (z : ℂ) (w.center r)) (w.im * sinh r) :=
 begin
   letI := metric_space_aux,
   cases lt_or_le r 0 with hr₀ hr₀,
@@ -125,60 +157,47 @@ begin
         dist_nonneg).cmp_eq_gt.symm] },
   have hr₀' : 0 ≤ w.im * sinh r, from mul_nonneg w.im_pos.le (sinh_nonneg_iff.2 hr₀),
   have hzw₀ : 0 < 2 * z.im * w.im, from mul_pos (mul_pos two_pos z.im_pos) w.im_pos,
-  calc cmp (dist z w) r
-      = cmp (((z.re - w.re) ^ 2 + z.im ^ 2 + w.im ^ 2) / (2 * z.im * w.im)) (cosh r) :
-    by rw [← cosh_dist' z w, cosh_strict_mono_on.cmp_map_eq dist_nonneg hr₀]
-  ... = cmp ((z.re - w.re) ^ 2 + z.im ^ 2 + w.im ^ 2) (2 * z.im * w.im * cosh r) :
-    by rw [← cmp_mul_pos_left hzw₀, mul_div_cancel' _ hzw₀.ne']
-  ... = cmp ((z.re - w.re) ^ 2 + (z.im - w.im * cosh r) ^ 2 - (w.im * sinh r) ^ 2) 0 :
-    by { rw [← cmp_sub_zero, sub_sq _ (_ * _), mul_pow, real.cosh_sq], congr' 1, ring }
-  ... = cmp (dist (z : ℂ) ⟨w.re, w.im * real.cosh r⟩ ^ 2) ((w.im * sinh r) ^ 2) :
-    by simp only [cmp_sub_zero, complex.dist_eq, complex.sq_abs, norm_sq_apply, ← sq,
-      sub_re, sub_im, coe_re, coe_im]
-  ... = cmp (dist (z : ℂ) ⟨w.re, w.im * real.cosh r⟩) (w.im * sinh r) :
-    (@strict_mono_on_pow ℝ _ _ two_pos).cmp_map_eq dist_nonneg hr₀'
+  simp only [← cosh_strict_mono_on.cmp_map_eq dist_nonneg hr₀,
+    ← (@strict_mono_on_pow ℝ _ _ two_pos).cmp_map_eq dist_nonneg hr₀', dist_coe_center_sq],
+  rw [← cmp_mul_pos_left hzw₀, ← cmp_sub_zero, ← mul_sub, ← cmp_add_right, zero_add],
 end
 
-lemma dist_eq_iff_dist_coe_eq :
-  dist z w = r ↔ dist (z : ℂ) ⟨w.re, w.im * real.cosh r⟩ = w.im * real.sinh r :=
-eq_iff_eq_of_cmp_eq_cmp (cmp_dist_eq_cmp_dist_coe z w r)
+lemma dist_eq_iff_dist_coe_center_eq : dist z w = r ↔ dist (z : ℂ) (w.center r) = w.im * sinh r :=
+eq_iff_eq_of_cmp_eq_cmp (cmp_dist_eq_cmp_dist_coe_center z w r)
 
-protected lemma dist_centers (z : ℍ) (r : ℝ) :
-  dist (z : ℂ) ⟨z.re, z.im * cosh r⟩ = z.im * (cosh r - 1) :=
-calc dist (z : ℂ)  ⟨z.re, z.im * cosh r⟩ = dist z.im (z.im * cosh r) : complex.dist_of_re_eq rfl
-... =  z.im * (cosh r - 1) :
-  begin
-    rw [dist_comm, real.dist_eq, mul_sub, mul_one],
-    exact abs_of_nonneg (sub_nonneg.2 $ le_mul_of_one_le_right z.im_pos.le (one_le_cosh _))
-  end
+@[simp] lemma dist_self_center (z : ℍ) (r : ℝ) : dist (z : ℂ) (z.center r) = z.im * (cosh r - 1) :=
+begin
+  rw [dist_of_re_eq (z.center_re r).symm, dist_comm, real.dist_eq, mul_sub, mul_one],
+  exact abs_of_nonneg (sub_nonneg.2 $ le_mul_of_one_le_right z.im_pos.le (one_le_cosh _))
+end
 
-protected lemma dist_center (z w : ℍ) :
-  dist (z : ℂ) ⟨w.re, w.im * real.cosh (dist z w)⟩ = w.im * real.sinh (dist z w) :=
-dist_eq_iff_dist_coe_eq.1 rfl
+@[simp] lemma dist_center_dist (z w : ℍ) :
+  dist (z : ℂ) (w.center (dist z w)) = w.im * sinh (dist z w) :=
+dist_eq_iff_dist_coe_center_eq.1 rfl
 
-lemma dist_lt_iff_dist_coe_lt :
-  dist z w < r ↔ dist (z : ℂ) ⟨w.re, w.im * real.cosh r⟩ < w.im * real.sinh r :=
-lt_iff_lt_of_cmp_eq_cmp (cmp_dist_eq_cmp_dist_coe z w r)
+lemma dist_lt_iff_dist_coe_center_lt :
+  dist z w < r ↔ dist (z : ℂ) (w.center r) < w.im * sinh r :=
+lt_iff_lt_of_cmp_eq_cmp (cmp_dist_eq_cmp_dist_coe_center z w r)
 
-lemma lt_dist_iff_lt_dist_coe :
-  r < dist z w ↔ w.im * real.sinh r < dist (z : ℂ) ⟨w.re, w.im * real.cosh r⟩ :=
-lt_iff_lt_of_cmp_eq_cmp (cmp_eq_cmp_symm.1 $ cmp_dist_eq_cmp_dist_coe z w r)
+lemma lt_dist_iff_lt_dist_coe_center :
+  r < dist z w ↔ w.im * sinh r < dist (z : ℂ) (w.center r) :=
+lt_iff_lt_of_cmp_eq_cmp (cmp_eq_cmp_symm.1 $ cmp_dist_eq_cmp_dist_coe_center z w r)
 
-lemma dist_le_iff_dist_coe_le :
-  dist z w ≤ r ↔ dist (z : ℂ) ⟨w.re, w.im * real.cosh r⟩ ≤ w.im * real.sinh r :=
-le_iff_le_of_cmp_eq_cmp (cmp_dist_eq_cmp_dist_coe z w r)
+lemma dist_le_iff_dist_coe_center_le :
+  dist z w ≤ r ↔ dist (z : ℂ) (w.center r) ≤ w.im * sinh r :=
+le_iff_le_of_cmp_eq_cmp (cmp_dist_eq_cmp_dist_coe_center z w r)
 
-lemma le_dist_iff_le_dist_coe :
-  r < dist z w ↔ w.im * real.sinh r < dist (z : ℂ) ⟨w.re, w.im * real.cosh r⟩ :=
-lt_iff_lt_of_cmp_eq_cmp (cmp_eq_cmp_symm.1 $ cmp_dist_eq_cmp_dist_coe z w r)
+lemma le_dist_iff_le_dist_coe_center :
+  r < dist z w ↔ w.im * sinh r < dist (z : ℂ) (w.center r) :=
+lt_iff_lt_of_cmp_eq_cmp (cmp_eq_cmp_symm.1 $ cmp_dist_eq_cmp_dist_coe_center z w r)
 
 /-- For two points on the same vertical line, the distance is equal to the distance between the
 logarithms of their imaginary parts. -/
 lemma dist_of_re_eq (h : z.re = w.re) : dist z w = dist (log z.im) (log w.im) :=
 begin
   have h₀ : 0 < z.im / w.im, from div_pos z.im_pos w.im_pos,
-  rw [dist_eq_iff_dist_coe_eq, real.dist_eq, ← abs_sinh, cosh_abs,
-    ← log_div z.im_ne_zero w.im_ne_zero, sinh_log h₀, cosh_log h₀, inv_div, dist_of_re_eq];
+  rw [dist_eq_iff_dist_coe_center_eq, real.dist_eq, ← abs_sinh, ← log_div z.im_ne_zero w.im_ne_zero,
+    sinh_log h₀, dist_of_re_eq, coe_im, coe_im, center_im, cosh_abs, cosh_log h₀, inv_div];
     [skip, exact h],
   nth_rewrite 3 [← abs_of_pos w.im_pos],
   simp only [← _root_.abs_mul, coe_im, real.dist_eq],
@@ -207,21 +226,17 @@ lemma im_div_exp_dist_le (z w : ℍ) : z.im / exp (dist z w) ≤ w.im :=
 /-- An upper estimate on the complex distance between two points in terms of the hyperbolic distance
 and the imaginary part of one of the points. -/
 lemma dist_coe_le (z w : ℍ) : dist (z : ℂ) w ≤ w.im * (exp (dist z w) - 1) :=
-calc dist (z : ℂ) w
-    ≤ dist (z : ℂ) ⟨w.re, w.im * cosh (dist z w)⟩ + dist (w : ℂ) ⟨w.re, w.im * cosh (dist z w)⟩ :
+calc dist (z : ℂ) w ≤ dist (z : ℂ) (w.center (dist z w)) + dist (w : ℂ) (w.center (dist z w)) :
   dist_triangle_right _ _ _
-... = w.im * sinh (dist z w) + w.im * (cosh (dist z w) - 1) :
-  congr_arg2 (+) (z.dist_center w) (w.dist_centers _)
 ... = w.im  * (exp (dist z w) - 1) :
-  by rw [← mul_add, ← add_sub_assoc, real.sinh_add_cosh]
+  by rw [dist_center_dist, dist_self_center, ← mul_add, ← add_sub_assoc, real.sinh_add_cosh]
 
 /-- An upper estimate on the complex distance between two points in terms of the hyperbolic distance
 and the imaginary part of one of the points. -/
 lemma le_dist_coe (z w : ℍ) : w.im * (1 - exp (-dist z w)) ≤ dist (z : ℂ) w :=
-calc w.im * (1 - exp (-dist z w)) = w.im * sinh (dist z w) - w.im * (cosh (dist z w) - 1) :
-  by { rw [sub_eq_neg_add, ← real.sinh_sub_cosh], ring }
-... = dist (z : ℂ) ⟨w.re, w.im * cosh (dist z w)⟩ - dist (w : ℂ) ⟨w.re, w.im * cosh (dist z w)⟩ :
-  congr_arg2 _ (z.dist_center w).symm (w.dist_centers _).symm
+calc w.im * (1 - exp (-dist z w))
+    = dist (z : ℂ) (w.center (dist z w)) - dist (w : ℂ) (w.center (dist z w)) :
+  by { rw [dist_center_dist, dist_self_center, ← real.cosh_sub_sinh], ring }
 ... ≤ dist (z : ℂ) w : sub_le_iff_le_add.2 $ dist_triangle _ _ _
 
 /-- The hyperbolic metric on the upper half plane. -/
@@ -244,6 +259,75 @@ begin
     refine ⟨log (R / im z + 1), real.log_pos h₁, _⟩,
     refine λ w hw, (dist_coe_le w z).trans_lt _,
     rwa [← lt_div_iff' z.im_pos, sub_lt_iff_lt_add, ← real.lt_log_iff_exp_lt h₀] }
+end
+
+lemma im_pos_of_dist_center_le {z : ℍ} {r : ℝ} {w : ℂ} (h : dist w (center z r) ≤ z.im * sinh r) :
+  0 < w.im :=
+calc 0 < z.im * (cosh r - sinh r) : mul_pos z.im_pos (sub_pos.2 $ sinh_lt_cosh _)
+... = (z.center r).im - z.im * sinh r : mul_sub _ _ _
+... ≤ (z.center r).im - dist (z.center r : ℂ) w : sub_le_sub_left (by rwa [dist_comm]) _
+... ≤ w.im : sub_le.1 $ (le_abs_self _).trans (abs_im_le_abs $ z.center r - w)
+
+lemma image_coe_closed_ball (z : ℍ) (r : ℝ) :
+  (coe : ℍ → ℂ) '' closed_ball z r = closed_ball (z.center r) (z.im * sinh r) :=
+begin
+  ext w, split,
+  { rintro ⟨w, hw, rfl⟩,
+    exact dist_le_iff_dist_coe_center_le.1 hw },
+  { intro hw,
+    lift w to ℍ using im_pos_of_dist_center_le hw,
+    exact mem_image_of_mem _ (dist_le_iff_dist_coe_center_le.2 hw) },
+end
+
+lemma image_coe_ball (z : ℍ) (r : ℝ) :
+  (coe : ℍ → ℂ) '' ball z r = ball (z.center r) (z.im * sinh r) :=
+begin
+  ext w, split,
+  { rintro ⟨w, hw, rfl⟩,
+    exact dist_lt_iff_dist_coe_center_lt.1 hw },
+  { intro hw,
+    lift w to ℍ using im_pos_of_dist_center_le (ball_subset_closed_ball hw),
+    exact mem_image_of_mem _ (dist_lt_iff_dist_coe_center_lt.2 hw) },
+end
+
+lemma image_coe_sphere (z : ℍ) (r : ℝ) :
+  (coe : ℍ → ℂ) '' sphere z r = sphere (z.center r) (z.im * sinh r) :=
+begin
+  ext w, split,
+  { rintro ⟨w, hw, rfl⟩,
+    exact dist_eq_iff_dist_coe_center_eq.1 hw },
+  { intro hw,
+    lift w to ℍ using im_pos_of_dist_center_le (sphere_subset_closed_ball hw),
+    exact mem_image_of_mem _ (dist_eq_iff_dist_coe_center_eq.2 hw) },
+end
+
+instance : proper_space ℍ :=
+begin
+  refine ⟨λ z r, _⟩,
+  rw [← inducing_coe.is_compact_iff, image_coe_closed_ball],
+  apply is_compact_closed_ball
+end
+
+lemma isometry_vertical_line (a : ℝ) : isometry (λ y, mk ⟨a, exp y⟩ (exp_pos y) : ℝ → ℍ) :=
+begin
+  refine isometry_emetric_iff_metric.2 (λ y₁ y₂, _),
+  rw [dist_of_re_eq],
+  exacts [congr_arg2 _ (log_exp _) (log_exp _), rfl]
+end
+
+lemma isometry_shift (a : ℝ) : isometry (λ y : ℍ, mk (y + a) (by simp [y.im_pos])) :=
+isometry_emetric_iff_metric.2 $ λ y₁ y₂,
+  by simp only [dist_eq, coe_mk, dist_add_right, mk_im, add_im, coe_im, of_real_im, add_zero]
+
+lemma isometry_pos_mul (a : ℝ) (ha : 0 < a) :
+  isometry (λ y : ℍ, mk (a * y) (by simp [ha, y.im_pos])) :=
+begin
+  refine isometry_emetric_iff_metric.2 (λ y₁ y₂, _),
+  simp only [dist_eq], congr' 2,
+  rw [coe_mk, coe_mk, mk_im, mk_im, of_real_mul_im, of_real_mul_im, mul_mul_mul_comm,
+    ← real_smul, ← real_smul, dist_smul, real.norm_eq_abs, abs_of_pos ha, ← sq,
+    sqrt_mul (sq_nonneg _), sqrt_sq ha.le, mul_left_comm, ← div_mul_div_comm, div_self ha.ne',
+    one_mul, coe_im, coe_im]
 end
 
 end upper_half_plane

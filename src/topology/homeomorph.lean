@@ -451,6 +451,12 @@ def image (e : α ≃ₜ β) (s : set α) : s ≃ₜ e '' s :=
   continuous_inv_fun := by continuity!,
   ..e.to_equiv.image s, }
 
+/-- `univ α` is homeomorphic to `α`. -/
+def set.univ (α : Type*) [topological_space α] : (univ : set α) ≃ₜ α :=
+{ to_equiv := equiv.set.univ α,
+  continuous_to_fun := continuous_subtype_coe,
+  continuous_inv_fun := continuous_subtype_mk _ continuous_id }
+
 end homeomorph
 
 /-- An inducing equiv between topological spaces is a homeomorphism. -/

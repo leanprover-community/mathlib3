@@ -39,7 +39,7 @@ local prefix `↑ₘ`:1024 := @coe _ (matrix (fin 2) (fin 2) _) _
 local notation `GL(` n `, ` R `)`⁺ := matrix.GL_pos (fin n) R
 
 /-- The open upper half plane -/
-@[derive [topological_space, λ α, has_coe α ℂ]]
+@[derive [λ α, has_coe α ℂ]]
 def upper_half_plane := {point : ℂ // 0 < point.im}
 
 localized "notation `ℍ` := upper_half_plane" in upper_half_plane
@@ -48,15 +48,26 @@ namespace upper_half_plane
 
 instance : inhabited ℍ := ⟨⟨complex.I, by simp⟩⟩
 
+instance : can_lift ℂ ℍ := subtype.can_lift (λ z, 0 < z.im)
+
 /-- Imaginary part -/
 def im (z : ℍ) := (z : ℂ).im
 
 /-- Real part -/
 def re (z : ℍ) := (z : ℂ).re
 
+/-- Constructor for `upper_half_plane`. It is useful if `⟨z, h⟩` makes Lean use a wrong
+typeclass instance. -/
+def mk (z : ℂ) (h : 0 < z.im) : ℍ := ⟨z, h⟩
+
 @[simp] lemma coe_im (z : ℍ) : (z : ℂ).im = z.im := rfl
 
 @[simp] lemma coe_re (z : ℍ) : (z : ℂ).re = z.re := rfl
+
+@[simp] lemma mk_re (z : ℂ) (h : 0 < z.im) : (mk z h).re = z.re := rfl
+@[simp] lemma mk_im (z : ℂ) (h : 0 < z.im) : (mk z h).im = z.im := rfl
+@[simp] lemma coe_mk (z : ℂ) (h : 0 < z.im) : (mk z h : ℂ) = z := rfl
+@[simp] lemma mk_coe (z : ℍ) (h : 0 < (z : ℂ).im := z.2) : mk z h = z := subtype.eta z h
 
 lemma re_add_im (z : ℍ) : (z.re + z.im * complex.I : ℂ) = z :=
 complex.re_add_im z
@@ -72,15 +83,6 @@ lemma norm_sq_pos (z : ℍ) : 0 < complex.norm_sq (z : ℂ) :=
 by { rw complex.norm_sq_pos, exact z.ne_zero }
 
 lemma norm_sq_ne_zero (z : ℍ) : complex.norm_sq (z : ℂ) ≠ 0 := (norm_sq_pos z).ne'
-
-lemma open_embedding_coe : open_embedding (coe : ℍ → ℂ) :=
-is_open.open_embedding_subtype_coe $ is_open_lt continuous_const complex.continuous_im
-
-lemma embedding_coe : embedding (coe : ℍ → ℂ) := embedding_subtype_coe
-lemma continuous_coe : continuous (coe : ℍ → ℂ) := embedding_coe.continuous
-
-lemma continuous_re : continuous re := complex.continuous_re.comp continuous_coe
-lemma continuous_im : continuous im := complex.continuous_im.comp continuous_coe
 
 /-- Numerator of the formula for a fractional linear transformation -/
 @[simp] def num (g : GL(2, ℝ)⁺) (z : ℍ) : ℂ := (↑ₘg 0 0 : ℝ) * z + (↑ₘg 0 1 : ℝ)

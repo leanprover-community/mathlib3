@@ -286,6 +286,8 @@ lemma Ioo_subset_Ioi_self : Ioo a b ⊆ Ioi a := λ x, and.left
 
 lemma Ioi_subset_Ici_self : Ioi a ⊆ Ici a := λ x hx, le_of_lt hx
 
+lemma Ioi_ssubset_Ici_self  : Ioi a ⊂ Ici a := ⟨Ioi_subset_Ici_self, λ h, lt_irrefl a (h le_rfl)⟩
+
 lemma Iio_subset_Iic_self : Iio a ⊆ Iic a := λ x hx, le_of_lt hx
 
 lemma Ico_subset_Ici_self : Ico a b ⊆ Ici a := λ x, and.left

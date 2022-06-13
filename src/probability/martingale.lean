@@ -453,7 +453,22 @@ lemma maximal_ineq [is_finite_measure μ]
 begin
   suffices : ε • μ {x | (ε : ℝ) ≤ ⨆ k ≤ n, f k x} +
     ennreal.of_real (∫ x in {x | (⨆ k ≤ n, f k x) < ε}, f n x ∂μ) ≤ ennreal.of_real (μ[f n]),
-  { sorry },
+  { have hadd : ennreal.of_real (∫ (x : α), f n x ∂μ) =
+      ennreal.of_real (∫ (x : α) in {x : α | ↑ε ≤ (⨆ k ≤ n, f k x)}, f n x ∂μ) +
+      ennreal.of_real (∫ (x : α) in {x : α | (⨆ k ≤ n, f k x) < ↑ε}, f n x ∂μ),
+    { rw [← ennreal.of_real_add, ← integral_union],
+      { conv_lhs { rw ← integral_univ },
+        convert rfl,
+        ext x,
+        simp [le_or_lt] },
+      { rintro x ⟨hx₁ : _ ≤ _, hx₂ : _ < _⟩,
+        exact (not_le.2 hx₂) hx₁ },
+      { exact (measurable_set_lt (measurable_supr_le
+          (λ n, (hsub.strongly_measurable n).measurable.le (𝒢.le n)) _) measurable_const) },
+      exacts [(hsub.integrable _).integrable_on, (hsub.integrable _).integrable_on,
+        integral_nonneg (hnonneg _), integral_nonneg (hnonneg _)] },
+    rwa [hadd, ennreal.add_le_add_iff_right ennreal.of_real_ne_top] at this,
+   },
   calc ε • μ {x | (ε : ℝ) ≤ ⨆ k ≤ n, f k x}
     + ennreal.of_real (∫ x in {x | (⨆ k ≤ n, f k x) < ε}, f n x ∂μ) ≤
     ennreal.of_real
@@ -488,8 +503,31 @@ begin
           (set.finite_singleton 0)) this },
       simp_rw [stopped_value, this],
     end
-    ... ≤ ennreal.of_real (μ[f n]) : _,
-    sorry
+    ... = ennreal.of_real (∫ x, stopped_value f (hitting f {y : ℝ | ↑ε ≤ y} n) x ∂μ) :
+    begin
+      rw [← ennreal.of_real_add, ← integral_union],
+      { conv_rhs { rw ← integral_univ },
+        convert rfl,
+        ext x,
+        simp [le_or_lt] },
+      { rintro x ⟨hx₁ : _ ≤ _, hx₂ : _ < _⟩,
+        exact (not_le.2 hx₂) hx₁ },
+      { exact (measurable_set_lt (measurable_supr_le
+          (λ n, (hsub.strongly_measurable n).measurable.le (𝒢.le n)) _) measurable_const) },
+      { exact (integrable.integrable_on (integrable_stopped_value (hitting_is_stopping_time_nat
+          hsub.adapted measurable_set_Ici n) hsub.integrable hitting_le)) },
+      { exact (integrable.integrable_on (integrable_stopped_value (hitting_is_stopping_time_nat
+          hsub.adapted measurable_set_Ici n) hsub.integrable hitting_le)) },
+      exacts [integral_nonneg (λ x, hnonneg _ _), integral_nonneg (λ x, hnonneg _ _)],
+    end
+    ... ≤ ennreal.of_real (μ[f n]) :
+    begin
+      refine ennreal.of_real_le_of_real _,
+      rw ← stopped_value_const f n,
+      exact hsub.expected_stopped_value_mono
+        (hitting_is_stopping_time_nat hsub.adapted measurable_set_Ici _)
+        (is_stopping_time_const _ _) (λ x, hitting_le x) (λ x, le_rfl : ∀ x, n ≤ n),
+    end
 end
 
 end maximal

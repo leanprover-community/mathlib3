@@ -103,7 +103,7 @@ begin
   simp only [mem_prod, ne.def, and_imp, prod.forall],
   intros a b ha hb,
   have ha2 : a ∈ ball z R, by {simp at *, linarith,},
-  refine (sub_ne_zero.2 (circle_map_ne_of_mem hR ha2 b)),
+  refine (sub_ne_zero.2 (circle_map_ne_mem_ball ha2 b)),
 end
 
 lemma circle_integral_bounding_function_continuous {R r : ℝ} (hR : 0 < R) (hr : r < R) (z : ℂ) :

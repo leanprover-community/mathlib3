@@ -440,7 +440,7 @@ def embedding_to_cardinal : σ ↪ cardinal.{u} := classical.choice nonempty_emb
 
 /-- We don't make this into a definition, as we define a well ordering `well_ordering_rel` with
 the extra property `type (@well_ordering_rel α) = (#α).ord` later. -/
-instance : nonempty {r // is_well_order σ r} :=
+instance is_well_order.subtype_nonempty : nonempty {r // is_well_order σ r} :=
 ⟨⟨embedding_to_cardinal ⁻¹'o (<), (rel_embedding.preimage _ _).is_well_order⟩⟩
 
 end well_ordering_thm
@@ -1220,7 +1220,7 @@ by { convert (ordinal.card_type (<)).symm, exact (ordinal.type_lt o).symm }
 def ord (c : cardinal) : ordinal :=
 begin
   let ι := λ α, {r // is_well_order α r},
-  let F := λ α, ordinal.min ⟨classical.arbitrary {r // _}⟩ (λ i:ι α, ⟦⟨α, i.1, i.2⟩⟧),
+  let F := λ α, ordinal.min infer_instance (λ i:ι α, ⟦⟨α, i.1, i.2⟩⟧),
   refine quot.lift_on c F _,
   suffices : ∀ {α β}, α ≈ β → F α ≤ F β,
   from λ α β h, le_antisymm (this h) (this (setoid.symm h)),
@@ -1233,11 +1233,11 @@ begin
 end
 
 lemma ord_eq_min (α : Type u) : ord (#α) =
-  @ordinal.min {r // is_well_order α r} (by apply_instance) (λ i, ⟦⟨α, i.1, i.2⟩⟧) := rfl
+  @ordinal.min {r // is_well_order α r} infer_instance (λ i, ⟦⟨α, i.1, i.2⟩⟧) := rfl
 
 private theorem ord_eq (α) : ∃ (r : α → α → Prop) [wo : is_well_order α r],
   ord (#α) = @type α r wo :=
-let ⟨⟨r, wo⟩, h⟩ := @ordinal.min_eq {r // is_well_order α r} (by apply_instance)
+let ⟨⟨r, wo⟩, h⟩ := @ordinal.min_eq {r // is_well_order α r} infer_instance
   (λ i:{r // is_well_order α r}, ⟦⟨α, i.1, i.2⟩⟧) in
 ⟨r, wo, h⟩
 
@@ -1252,7 +1252,7 @@ classical.some $ classical.some_spec $ ord_eq α
 (classical.some_spec $ classical.some_spec $ ord_eq α).symm
 
 theorem ord_le_type (r : α → α → Prop) [is_well_order α r] : ord (#α) ≤ ordinal.type r :=
-@ordinal.min_le {r // is_well_order α r} (by apply_instance)
+@ordinal.min_le {r // is_well_order α r} infer_instance
   (λ i:{r // is_well_order α r}, ⟦⟨α, i.1, i.2⟩⟧) ⟨r, _⟩
 
 theorem ord_le {c o} : ord c ≤ o ↔ c ≤ o.card :=

@@ -119,20 +119,19 @@ begin
   exact (le_of_lt (finset.mem_Iio.1 hk)).trans hij
 end
 
-lemma gram_schmidt_mem_span (f : ι → E) (j : ι) :
-  ∀ i, i ≤ j → gram_schmidt 𝕜 f i ∈ span 𝕜 (f '' Iic j) :=
-begin
-  apply well_founded.induction (@is_well_order.wf ι (<) _) j,
-  intros j ih i hij,
+lemma gram_schmidt_mem_span (f : ι → E) :
+  ∀ j i, i ≤ j → gram_schmidt 𝕜 f i ∈ span 𝕜 (f '' Iic j)
+| j := λ i hij, begin
   rw [gram_schmidt_def 𝕜 f i],
   refine submodule.sub_mem _ (subset_span (mem_image_of_mem _ hij))
     (submodule.sum_mem _ (λ k hk, _)),
   simp only [orthogonal_projection_singleton],
-  apply smul_mem _ _ _,
-  apply span_mono,
-  apply set.image_subset f (Iic_subset_Iic.2 ((le_of_lt (finset.mem_Iio.1 hk)).trans hij)),
-  exact ih k (lt_of_lt_of_le (finset.mem_Iio.1 hk) hij) k (le_refl k),
+  refine smul_mem _ _ _,
+  let hkj : k < j := (finset.mem_Iio.1 hk).trans_le hij,
+  refine span_mono _ (gram_schmidt_mem_span k k le_rfl),
+  exact set.image_subset f (Iic_subset_Iic.2 hkj.le)
 end
+using_well_founded { dec_tac := `[assumption] }
 
 lemma span_gram_schmidt_Iic (f : ι → E) (c : ι) :
   span 𝕜 (gram_schmidt 𝕜 f '' Iic c) = span 𝕜 (f '' Iic c) :=

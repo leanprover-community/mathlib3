@@ -67,4 +67,6 @@ begin
   simp,
 end
 
+end preserves_image
+
 end category_theory

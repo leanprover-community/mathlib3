@@ -5,6 +5,7 @@ Authors: Damiano Testa
 -/
 
 import data.polynomial.algebra_map
+import ring_theory.localization.basic
 
 /-!  # Laurent polynomials
 
@@ -364,11 +365,42 @@ instance (R : Type*) [semiring R] : is_scalar_tower R[X] R[X] R[T;T⁻¹] :=
 end semiring
 
 section comm_semiring
+variable [comm_semiring R]
 
 instance algebra_polynomial (R : Type*) [comm_semiring R] : algebra R[X] R[T;T⁻¹] :=
 { commutes' := λ f l, by simp [mul_comm],
   smul_def' := λ f l, rfl,
   .. polynomial.to_laurent }
+
+lemma algebra_map_X_pow (n : ℕ) : algebra_map R[X] R[T;T⁻¹] (X ^ n) = T n :=
+polynomial.to_laurent_X_pow n
+
+@[simp]
+lemma algebra_map_eq_to_laurent (f : R[X]) : algebra_map R[X] R[T;T⁻¹] f = f.to_laurent :=
+rfl
+
+lemma is_localization : is_localization (submonoid.closure ({X} : set R[X])) R[T;T⁻¹] :=
+{ map_units := λ t, begin
+    cases t with t ht,
+    rcases submonoid.mem_closure_singleton.mp ht with ⟨n, rfl⟩,
+    simp only [is_unit_T n, set_like.coe_mk, algebra_map_eq_to_laurent, polynomial.to_laurent_X_pow]
+  end,
+  surj := λ f, begin
+    induction f using laurent_polynomial.induction_on_mul_T with f n,
+    have := (submonoid.closure ({X} : set R[X])).pow_mem submonoid.mem_closure_singleton_self n,
+    refine ⟨(f, ⟨_, this⟩), _⟩,
+    simp only [set_like.coe_mk, algebra_map_eq_to_laurent, polynomial.to_laurent_X_pow, mul_T_assoc,
+      add_left_neg, T_zero, mul_one],
+  end,
+  eq_iff_exists := λ f g, begin
+    rw [algebra_map_eq_to_laurent, algebra_map_eq_to_laurent, polynomial.to_laurent_inj],
+    refine ⟨_, _⟩,
+    { rintro rfl,
+      exact ⟨1, rfl⟩ },
+    { rintro ⟨⟨h, hX⟩, h⟩,
+      rcases submonoid.mem_closure_singleton.mp hX with ⟨n, rfl⟩,
+      exact mul_X_pow_injective n (by simpa only [X_pow_mul] using h) }
+  end }
 
 end comm_semiring
 

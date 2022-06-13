@@ -272,7 +272,7 @@ instance : has_one cardinal.{u} := ⟨#punit⟩
 instance : nontrivial cardinal.{u} := ⟨⟨1, 0, mk_ne_zero _⟩⟩
 
 lemma mk_eq_one (α : Type u) [unique α] : #α = 1 :=
-mk_congr equiv_punit_of_unique
+(equiv.equiv_punit α).cardinal_eq
 
 theorem le_one_iff_subsingleton {α : Type u} : #α ≤ 1 ↔ subsingleton α :=
 ⟨λ ⟨f⟩, ⟨λ a b, f.injective (subsingleton.elim _ _)⟩,
@@ -514,8 +514,7 @@ end⟩
 instance : has_well_founded cardinal.{u} := ⟨(<), cardinal.lt_wf⟩
 
 instance : conditionally_complete_linear_order_bot cardinal :=
-cardinal.lt_wf.conditionally_complete_linear_order_with_bot 0 $ (cardinal.zero_le _).antisymm $
-  not_lt.1 (cardinal.lt_wf.not_lt_min set.univ ⟨0, mem_univ _⟩ (mem_univ 0))
+cardinal.lt_wf.conditionally_complete_linear_order_with_bot
 
 instance wo : @is_well_order cardinal.{u} (<) := ⟨cardinal.lt_wf⟩
 

@@ -79,6 +79,18 @@ variable (r : R → R → Prop)
 @[irreducible] private def sub {R : Type u₁} [ring R] (r : R → R → Prop) :
   ring_quot r → ring_quot r → ring_quot r
 | ⟨a⟩ ⟨b⟩ := ⟨quot.map₂ has_sub.sub rel.sub_right rel.sub_left a b⟩
+@[irreducible] private def npow (n : ℕ) : ring_quot r → ring_quot r
+| ⟨a⟩ := ⟨quot.lift
+          (λ a, quot.mk (ring_quot.rel r) (a ^ n))
+          (λ a b (h : rel r a b), begin
+            -- note we can't define a `rel.pow` as `rel` isn't reflexive so `rel r 1 1` isn't true
+            dsimp only,
+            induction n,
+            { rw [pow_zero, pow_zero] },
+            { rw [pow_succ, pow_succ],
+              simpa only [mul] using congr_arg2 (λ x y, mul r ⟨x⟩ ⟨y⟩) (quot.sound h) n_ih }
+          end)
+          a⟩
 @[irreducible] private def smul [algebra S R] (n : S) : ring_quot r → ring_quot r
 | ⟨a⟩ := ⟨quot.map (λ a, n • a) (rel.smul n) a⟩
 
@@ -86,6 +98,7 @@ instance : has_zero (ring_quot r) := ⟨zero r⟩
 instance : has_one (ring_quot r) := ⟨one r⟩
 instance : has_add (ring_quot r) := ⟨add r⟩
 instance : has_mul (ring_quot r) := ⟨mul r⟩
+instance : has_pow (ring_quot r) ℕ := ⟨λ x n, npow r n x⟩
 instance {R : Type u₁} [ring R] (r : R → R → Prop) : has_neg (ring_quot r) := ⟨neg r⟩
 instance {R : Type u₁} [ring R] (r : R → R → Prop) : has_sub (ring_quot r) := ⟨sub r⟩
 instance [algebra S R] : has_scalar S (ring_quot r) := ⟨smul r⟩
@@ -96,6 +109,8 @@ lemma add_quot {a b} : (⟨quot.mk _ a⟩ + ⟨quot.mk _ b⟩ : ring_quot r) = �
 by { show add r _ _ = _, rw add, refl }
 lemma mul_quot {a b} : (⟨quot.mk _ a⟩ * ⟨quot.mk _ b⟩ : ring_quot r) = ⟨quot.mk _ (a * b)⟩ :=
 by { show mul r _ _ = _, rw mul, refl }
+lemma pow_quot {a} {n : ℕ}: (⟨quot.mk _ a⟩ ^ n : ring_quot r) = ⟨quot.mk _ (a ^ n)⟩ :=
+by { show npow r _ _ = _, rw npow }
 lemma neg_quot {R : Type u₁} [ring R] (r : R → R → Prop) {a} :
   (-⟨quot.mk _ a⟩ : ring_quot r) = ⟨quot.mk _ (-a)⟩ :=
 by { show neg r _ = _, rw neg, refl }
@@ -122,6 +137,9 @@ instance (r : R → R → Prop) : semiring (ring_quot r) :=
   mul_one       := by { rintros ⟨⟨⟩⟩, simp [mul_quot, ← one_quot] },
   left_distrib  := by { rintros ⟨⟨⟩⟩ ⟨⟨⟩⟩ ⟨⟨⟩⟩, simp [mul_quot, add_quot, left_distrib] },
   right_distrib := by { rintros ⟨⟨⟩⟩ ⟨⟨⟩⟩ ⟨⟨⟩⟩, simp [mul_quot, add_quot, right_distrib] },
+  npow          := λ n x, x ^ n,
+  npow_zero'    := by { rintros ⟨⟨⟩⟩, simp [pow_quot, ← one_quot] },
+  npow_succ'    := by { rintros n ⟨⟨⟩⟩, simp [pow_quot, mul_quot, pow_succ] },
   nsmul         := (•),
   nsmul_zero'   := by { rintros ⟨⟨⟩⟩, simp [smul_quot, ← zero_quot] },
   nsmul_succ'   := by { rintros n ⟨⟨⟩⟩, simp [smul_quot, add_quot, add_mul, add_comm] } }

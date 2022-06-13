@@ -82,7 +82,7 @@ noncomputable def nim_one_relabelling : relabelling (nim 1) star :=
 begin
   rw nim_def,
   refine ⟨_, _, λ i,  _, λ j, _⟩,
-  any_goals { dsimp, apply equiv_of_unique_of_unique },
+  any_goals { dsimp, apply equiv.equiv_of_unique },
   all_goals { simp, exact nim_zero_relabelling }
 end
 

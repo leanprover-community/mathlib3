@@ -341,44 +341,40 @@ by { ext, simp }
 
 end perm_congr
 
+/-- Two empty types are equivalent. -/
+def equiv_of_is_empty  (α β : Sort*) [is_empty α] [is_empty β] : α ≃ β :=
+⟨is_empty_elim, is_empty_elim, is_empty_elim, is_empty_elim⟩
+
 /-- If `α` is an empty type, then it is equivalent to the `empty` type. -/
 def equiv_empty (α : Sort u) [is_empty α] : α ≃ empty :=
-⟨is_empty_elim, λ e, e.rec _, is_empty_elim, λ e, e.rec _⟩
+equiv_of_is_empty  α _
+
+/-- If `α` is an empty type, then it is equivalent to the `pempty` type in any universe. -/
+def equiv_pempty (α : Sort v) [is_empty α] : α ≃ pempty.{u} :=
+equiv_of_is_empty  α _
 
 /-- `α` is equivalent to an empty type iff `α` is empty. -/
 def equiv_empty_equiv (α : Sort u) : (α ≃ empty) ≃ is_empty α :=
 ⟨λ e, function.is_empty e, @equiv_empty α, λ e, ext $ λ x, (e x).elim, λ p, rfl⟩
 
-/-- `false` is equivalent to `empty`. -/
-def false_equiv_empty : false ≃ empty :=
-equiv_empty _
+/-- The `Sort` of proofs of a false proposition is equivalent to `pempty`. -/
+def prop_equiv_pempty {p : Prop} (h : ¬p) : p ≃ pempty :=
+@equiv_pempty p $ is_empty.prop_iff.2 h
 
-/-- If `α` is an empty type, then it is equivalent to the `pempty` type in any universe. -/
-def {u' v'} equiv_pempty (α : Sort v') [is_empty α] : α ≃ pempty.{u'} :=
-⟨is_empty_elim, λ e, e.rec _, is_empty_elim, λ e, e.rec _⟩
+/-- If both `α` and `β` have a unique element, then `α ≃ β`. -/
+def equiv_of_unique (α β : Sort*) [unique α] [unique β] : α ≃ β :=
+{ to_fun := default,
+  inv_fun := default,
+  left_inv := λ _, subsingleton.elim _ _,
+  right_inv := λ _, subsingleton.elim _ _ }
 
-/-- `false` is equivalent to `pempty`. -/
-def false_equiv_pempty : false ≃ pempty :=
-equiv_pempty _
-
-/-- `empty` is equivalent to `pempty`. -/
-def empty_equiv_pempty : empty ≃ pempty :=
-equiv_pempty _
-
-/-- `pempty` types from any two universes are equivalent. -/
-def pempty_equiv_pempty : pempty.{v} ≃ pempty.{w} :=
-equiv_pempty _
+/-- If `α` has a unique element, then it is equivalent to any `punit`. -/
+def equiv_punit (α : Sort*) [unique α] : α ≃ punit.{v} :=
+equiv_of_unique α _
 
 /-- The `Sort` of proofs of a true proposition is equivalent to `punit`. -/
 def prop_equiv_punit {p : Prop} (h : p) : p ≃ punit :=
-⟨λ x, (), λ x, h, λ _, rfl, λ ⟨⟩, rfl⟩
-
-/-- The `Sort` of proofs of a false proposition is equivalent to `pempty`. -/
-def prop_equiv_pempty {p : Prop} (h : ¬p) : p ≃ pempty :=
-⟨λ x, absurd x h, λ x, by cases x, λ x, absurd x h, λ x, by cases x⟩
-
-/-- `true` is equivalent to `punit`. -/
-def true_equiv_punit : true ≃ punit := prop_equiv_punit trivial
+@equiv_punit p $ unique_prop h
 
 /-- `ulift α` is equivalent to `α`. -/
 @[simps apply symm_apply {fully_applied := ff}]
@@ -1293,10 +1289,6 @@ def list_equiv_of_equiv {α β : Type*} (e : α ≃ β) : list α ≃ list β :=
   left_inv := λ l, by rw [list.map_map, e.symm_comp_self, list.map_id],
   right_inv := λ l, by rw [list.map_map, e.self_comp_symm, list.map_id] }
 
-/-- `fin n` is equivalent to `{m // m < n}`. -/
-def fin_equiv_subtype (n : ℕ) : fin n ≃ {m // m < n} :=
-⟨λ x, ⟨x.1, x.2⟩, λ x, ⟨x.1, x.2⟩, λ ⟨a, b⟩, rfl,λ ⟨a, b⟩, rfl⟩
-
 /-- If `α` is equivalent to `β`, then `unique α` is equivalent to `unique β`. -/
 def unique_congr (e : α ≃ β) : unique α ≃ unique β :=
 { to_fun := λ h, @equiv.unique _ _ h e.symm,
@@ -2011,17 +2003,6 @@ lemma function.injective.swap_comp [decidable_eq α] [decidable_eq β] {f : α �
   (hf : function.injective f) (x y : α) :
   equiv.swap (f x) (f y) ∘ f = f ∘ equiv.swap x y :=
 funext $ λ z, hf.swap_apply _ _ _
-
-/-- If both `α` and `β` are singletons, then `α ≃ β`. -/
-def equiv_of_unique_of_unique [unique α] [unique β] : α ≃ β :=
-{ to_fun := default,
-  inv_fun := default,
-  left_inv := λ _, subsingleton.elim _ _,
-  right_inv := λ _, subsingleton.elim _ _ }
-
-/-- If `α` is a singleton, then it is equivalent to any `punit`. -/
-def equiv_punit_of_unique [unique α] : α ≃ punit.{v} :=
-equiv_of_unique_of_unique
 
 /-- If `α` is a subsingleton, then it is equivalent to `α × α`. -/
 def subsingleton_prod_self_equiv {α : Type*} [subsingleton α] : α × α ≃ α :=

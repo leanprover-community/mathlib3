@@ -289,12 +289,15 @@ local infix ` ~ᵤ ` : 50 := associated
 namespace associated
 
 @[refl] protected theorem refl [monoid α] (x : α) : x ~ᵤ x := ⟨1, by simp⟩
+instance [monoid α] : is_refl α associated := ⟨associated.refl⟩
 
 @[symm] protected theorem symm [monoid α] : ∀{x y : α}, x ~ᵤ y → y ~ᵤ x
 | x _ ⟨u, rfl⟩ := ⟨u⁻¹, by rw [mul_assoc, units.mul_inv, mul_one]⟩
+instance [monoid α] : is_symm α associated := ⟨λ a b, associated.symm⟩
 
 @[trans] protected theorem trans [monoid α] : ∀{x y z : α}, x ~ᵤ y → y ~ᵤ z → x ~ᵤ z
 | x _ _ ⟨u, rfl⟩ ⟨v, rfl⟩ := ⟨u * v, by rw [units.coe_mul, mul_assoc]⟩
+instance [monoid α] : is_trans α associated := ⟨λ a b c, associated.trans⟩
 
 /-- The setoid of the relation `x ~ᵤ y` iff there is a unit `u` such that `x * u = y` -/
 protected def setoid (α : Type*) [monoid α] : setoid α :=

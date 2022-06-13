@@ -505,6 +505,13 @@ lemma pred_lt_iff_eq_or_lt_of_not_is_min (ha : ¬ is_min a) : pred a < b ↔ a =
 
 lemma Ici_pred (a : α) : Ici (pred a) = insert (pred a) (Ici a) := ext $ λ _, pred_le_iff_eq_or_le
 
+lemma Ioi_pred_eq_insert_of_not_is_min (ha : ¬ is_min a) :
+  Ioi (pred a) = insert a (Ioi a) :=
+begin
+  ext x, simp only [insert, set.insert, mem_set_of, @eq_comm _ x a],
+  exact pred_lt_iff_eq_or_lt_of_not_is_min ha
+end
+
 lemma Icc_pred_left (h : pred a ≤ b) : Icc (pred a) b = insert (pred a) (Icc a b) :=
 by simp_rw [←Ici_inter_Iic, Ici_pred, insert_inter_of_mem (mem_Iic.2 h)]
 

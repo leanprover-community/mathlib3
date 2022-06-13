@@ -383,7 +383,7 @@ end
 lemma zeta_value (k : ℕ) (hk : 1 ≤ k) : has_sum (λ n:ℕ, 1 / ((n + 1) : ℝ) ^ (2 * k))
   ((-1) ^ (k - 1) * 2 ^ (2 * k - 1) * π ^ (2 * k) * bernoulli (2 * k) / ((2 * k).factorial)) :=
 begin
-  have := (zeta_ℤ k hk).sum_ℕ_of_sum_ℤ,
+  have := (zeta_ℤ k hk).sum_nat_of_sum_int,
   simp only [int.cast_add, int.cast_coe_nat, int.cast_one, int.cast_sub, int.cast_neg,
     int.cast_zero] at this,
   have aux : ∀ (n:ℕ), (-(n:ℝ) - 1) ^ (2 * k) = ((n:ℝ) + 1) ^ (2 * k),

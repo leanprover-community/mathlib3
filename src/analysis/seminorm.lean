@@ -58,9 +58,11 @@ namespace add_monoid_seminorm
 
 variables [add_monoid E]
 
-instance fun_like : fun_like (add_monoid_seminorm E) E (λ _, ℝ) :=
+instance zero_hom_class : zero_hom_class (add_monoid_seminorm E) E ℝ :=
 { coe := λ f, f.to_fun,
-  coe_injective' := λ f g h, by cases f; cases g; congr' }
+  coe_injective' := λ f g h, by cases f; cases g; congr',
+  map_zero := λ f, f.map_zero' }
+
 
 /-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`. -/
 instance : has_coe_to_fun (add_monoid_seminorm E) (λ _, E → ℝ) := ⟨λ p, p.to_fun⟩
@@ -214,9 +216,10 @@ variables [add_monoid E]
 section has_scalar
 variables [has_scalar 𝕜 E]
 
-instance fun_like : fun_like (seminorm 𝕜 E) E (λ _, ℝ) :=
+instance zero_hom_class : zero_hom_class (seminorm 𝕜 E) E ℝ :=
 { coe := λ f, f.to_fun,
-  coe_injective' := λ f g h, by cases f; cases g; congr' }
+  coe_injective' := λ f g h, by cases f; cases g; congr',
+  map_zero := λ f, f.map_zero' }
 
 /-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`. -/
 instance : has_coe_to_fun (seminorm 𝕜 E) (λ _, E → ℝ) := ⟨λ p, p.to_fun⟩
@@ -344,16 +347,6 @@ function.injective.semilattice_sup _ fun_like.coe_injective coe_sup
 
 end has_scalar
 
-section smul_with_zero
-variables [smul_with_zero 𝕜 E]
-
-/-- Note that this provides the global `map_zero`. -/
-instance : zero_hom_class (seminorm 𝕜 E) E ℝ :=
-{ map_zero := λ p, calc p 0 = p ((0 : 𝕜) • 0) : by rw zero_smul
-                   ...      = 0 : by rw [p.smul, norm_zero, zero_mul],
-  ..seminorm.fun_like}
-
-end smul_with_zero
 end add_monoid
 
 section module

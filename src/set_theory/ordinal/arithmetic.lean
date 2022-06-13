@@ -1090,7 +1090,7 @@ theorem sup_eq_of_range_eq {ι ι'} {f : ι → ordinal} {g : ι' → ordinal}
 (sup_le_of_range_subset h.le).antisymm (sup_le_of_range_subset.{v u w} h.ge)
 
 @[simp] theorem sup_sum {α : Type u} {β : Type v} (f : α ⊕ β → ordinal) : sup.{(max u v) w} f =
-  max (sup.{u max v w} (λ a, f (sum.inl a))) (sup.{v max u w} (λ b, f (sum.inr b))) :=
+  max (sup.{u (max v w)} (λ a, f (sum.inl a))) (sup.{v (max u w)} (λ b, f (sum.inr b))) :=
 begin
   apply (sup_le_iff.2 _).antisymm (max_le_iff.2 ⟨_, _⟩),
   { rintro (i|i),
@@ -1329,7 +1329,7 @@ theorem lsub_eq_of_range_eq {ι ι'} {f : ι → ordinal} {g : ι' → ordinal}
 (lsub_le_of_range_subset h.le).antisymm (lsub_le_of_range_subset.{v u w} h.ge)
 
 @[simp] theorem lsub_sum {α : Type u} {β : Type v} (f : α ⊕ β → ordinal) : lsub.{(max u v) w} f =
-  max (lsub.{u max v w} (λ a, f (sum.inl a))) (lsub.{v max u w} (λ b, f (sum.inr b))) :=
+  max (lsub.{u (max v w)} (λ a, f (sum.inl a))) (lsub.{v (max u w)} (λ b, f (sum.inr b))) :=
 sup_sum _
 
 theorem lsub_not_mem_range {ι} (f : ι → ordinal) : lsub f ∉ set.range f :=

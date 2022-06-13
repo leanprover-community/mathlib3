@@ -948,8 +948,9 @@ begin
   have hfgpoly : finite R[X] (module_with_End f), from finite.of_restrict_scalars_finite R _ _,
   have : (⊤ : submodule R[X] $ module_with_End f) ≤ ideal.span {X} • ⊤,
   { intros a ha,
+    induction a using module_with_End.rec,
     obtain ⟨y, rfl⟩ := f_surj a,
-    rw [← module_with_End.X_smul],
+    rw ← module_with_End.X_smul,
     exact submodule.smul_mem_smul (ideal.subset_span $ set.mem_singleton X) trivial, },
   obtain ⟨F, hFa, hFb⟩ := submodule.exists_sub_one_mem_and_smul_eq_zero_of_fg_of_le_smul _ _
     (finite_def.mp hfgpoly) this,
@@ -960,7 +961,7 @@ begin
   suffices : (F - 1) • module_with_End.of_module f m = 0,
   { have Fmzero := hFb (module_with_End.of_module f m) (by simp),
     rwa [← sub_add_cancel F 1, add_smul, one_smul, this, zero_add] at Fmzero, },
-  rw [← hG, mul_smul, module_with_End.X_smul, module_with_End.of_module_apply, hm, smul_zero],
+  rw [← hG, mul_smul, module_with_End.X_smul, hm, map_zero, smul_zero],
 end
 
 end vasconcelos

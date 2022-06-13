@@ -43,34 +43,43 @@ instance : add_comm_monoid (module_with_End E) := (infer_instance : add_comm_mon
 instance : module R (module_with_End E) := (infer_instance : module R M)
 /--The type conversion `M → module_with_End E`, as a `R`-linear isomorphism.-/
 def of_module (E : End R M) : M ≃ₗ[R] module_with_End E := linear_equiv.refl R M
-@[simp] lemma of_module_apply (u : M) : of_module E u = u := rfl
 instance apply_module : module (End R M) (module_with_End E) :=
 (infer_instance : module (End R M) M)
+
+/-- Recursor for `module_with_End`. -/
+@[elab_as_eliminator]
+def rec {motive : module_with_End E → Sort*}
+  (h : Π m, motive (of_module E m)) (m : module_with_End E) : motive m :=
+h $ (of_module E).symm m
 
 /--Defines a `R[X]`-module structure on a `R`-module given an endomorphism `E` which defines the
 action of `X`.-/
 noncomputable instance polynomial_module : module R[X] (module_with_End E) :=
 comp_hom M (aeval E).to_ring_hom
-lemma smul_def (P : R[X]) (u : module_with_End E) : P • u = aeval E P u := rfl
+lemma smul_def (P : R[X]) (u : M) :
+  P • of_module E u = of_module E (aeval E P u) := rfl
 
-lemma X_smul (u : module_with_End E) : (X : R[X]) • u = E u :=
+lemma X_smul (u : M) : (X : R[X]) • of_module E u = of_module E (E u) :=
 by rw [smul_def, aeval_X]
-lemma C_smul (a : R) (u : module_with_End E) : (C a) • u = a • u :=
+lemma C_smul (a : R) (u : M) : (C a) • of_module E u = of_module E (a • u) :=
 by rw [smul_def, aeval_C, algebra_map_End_apply]
 
 instance is_scalar_tower : is_scalar_tower R R[X] (module_with_End E) :=
-⟨λ a P u, by rw [smul_def, alg_hom.map_smul, linear_map.smul_apply, ← smul_def]⟩
+⟨λ a P u, begin
+  induction u using module_with_End.rec,
+  rw [smul_def, alg_hom.map_smul, linear_map.smul_apply, (of_module E).map_smul, ← smul_def]
+end⟩
 
 /--A `R[X]`-module is a `R`-module with an endomorphism (given by the action of `X`).-/
-def of_polynomial_module [module R[X] M] [is_scalar_tower R R[X] M] :
+noncomputable def of_polynomial_module [module R[X] M] [is_scalar_tower R R[X] M] :
   M ≃ₗ[R[X]] module_with_End (algebra.lsmul R M (X : R[X])) :=
 { map_smul' := λ P u, by
-    rw [add_equiv.to_fun_eq_coe, add_equiv.refl_apply, ring_hom.id_apply, add_equiv.refl_apply,
-      smul_def, aeval_alg_hom_apply, aeval_X_left, alg_hom.id_apply, algebra.lsmul_coe],
-  ..add_equiv.refl M}
+    rw [linear_equiv.to_fun_eq_coe, ring_hom.id_apply, smul_def, aeval_alg_hom_apply, aeval_X_left,
+      alg_hom.id_apply, algebra.lsmul_coe],
+  ..of_module _}
 
 variables {E} {N : Type*} [add_comm_monoid N] [module R N] {F : End R N}
-open linear_map
+open linear_map linear_equiv
 
 /--A `R[X]`-linear map is a `R`-linear map compatible with the action of `X`.-/
 def polynomial_linear_of_semiconj {L : M →ₗ[R] N} (h : L.comp E = F.comp L) :
@@ -85,18 +94,22 @@ def polynomial_linear_of_semiconj {L : M →ₗ[R] N} (h : L.comp E = F.comp L) 
         { rw [pow_zero, one_eq_id, comp_id, pow_zero, one_eq_id, id_comp] },
         { rw [pow_succ, mul_eq_comp, ← linear_map.comp_assoc, h, linear_map.comp_assoc, ih,
             ← linear_map.comp_assoc, ← mul_eq_comp, ← pow_succ] } },
-      rw [smul_def, aeval_monomial, mul_apply, algebra_map_End_apply, L.map_smul, smul_def,
-        aeval_monomial, mul_apply, algebra_map_End_apply, ← comp_apply, ← comp_apply, this] }
+      induction u using module_with_End.rec,
+      rw [comp_apply, comp_apply, coe_to_linear_map, coe_to_linear_map, smul_def, aeval_monomial,
+        mul_apply, algebra_map_End_apply, symm_apply_apply, L.map_smul,
+        comp_apply, comp_apply, coe_to_linear_map, coe_to_linear_map, smul_def, aeval_monomial,
+        mul_apply, algebra_map_End_apply, symm_apply_apply, ← comp_apply, ← comp_apply, this] }
   end,
-  ..L }
+  ..(of_module F).to_linear_map.comp $ L.comp $ (of_module E).symm.to_linear_map }
 @[simp] lemma polynomial_linear_of_semiconj_apply {L : M →ₗ[R] N} (h : L.comp E = F.comp L)
-  (u : M) : polynomial_linear_of_semiconj h u = L u := rfl
+  (u : M) : polynomial_linear_of_semiconj h (of_module E u) = of_module F (L u) := rfl
 
 /--A `R[X]`-linear isomorphism is a `R`-linear isomorphism compatible with the action of `X`.-/
 def polynomial_lequiv_of_semiconj {L : M ≃ₗ[R] N}
   (h : (L : M →ₗ[R] N).comp E = F.comp (L : M →ₗ[R] N)) :
   module_with_End E ≃ₗ[R[X]] module_with_End F :=
-{ map_smul' := (polynomial_linear_of_semiconj h).map_smul', ..L }
+{ map_smul' := (polynomial_linear_of_semiconj h).map_smul',
+  ..(of_module E).symm.trans $ L.trans (of_module F) }
 @[simp] lemma polynomial_lequiv_of_semiconj_apply {L : M ≃ₗ[R] N}
   (h : (L : M →ₗ[R] N).comp E = F.comp (L : M →ₗ[R] N)) (u : M) :
   polynomial_lequiv_of_semiconj h u = L u := rfl
@@ -104,24 +117,26 @@ def polynomial_lequiv_of_semiconj {L : M ≃ₗ[R] N}
 /--A `R[X]`-linear map is a `R`-linear map compatible with the action of `X`.-/
 noncomputable def semiconj_of_polynomial_linear (L : module_with_End E →ₗ[R[X]] module_with_End F) :
   { L : M →ₗ[R] N // L.comp E = F.comp L } :=
-⟨L.restrict_scalars R, begin
+⟨(of_module F).symm.to_linear_map.comp $ (L.restrict_scalars R).comp (of_module E).to_linear_map,
+begin
   ext u,
-  rw [comp_apply, restrict_scalars_apply, ← X_smul,
-    comp_apply, restrict_scalars_apply, ← X_smul, L.map_smul]
+  simp only [comp_apply, coe_to_linear_map, linear_map.restrict_scalars_apply],
+  rw [← X_smul, L.map_smul, symm_apply_eq, ← X_smul, apply_symm_apply]
 end⟩
 @[simp] lemma semiconj_of_polynomial_linear_apply (L : module_with_End E →ₗ[R[X]] module_with_End F)
-  (u : M) : semiconj_of_polynomial_linear L u = L u := rfl
+  (u : M) : of_module F (semiconj_of_polynomial_linear L u) = L (of_module E u) := rfl
 
 /--A `R[X]`-linear isomorphism is a `R`-linear isomorphism compatible with the action of `X`.-/
 noncomputable def semiconj_of_polynomial_lequiv (L : module_with_End E ≃ₗ[R[X]] module_with_End F) :
   { L : M ≃ₗ[R] N // (L : M →ₗ[R] N).comp E = F.comp (L : M →ₗ[R] N) } :=
-⟨L.restrict_scalars R, begin
+⟨(of_module E).trans $ (L.restrict_scalars R).trans (of_module F).symm,
+begin
   ext u,
-  rw [comp_apply, linear_equiv.coe_coe, linear_equiv.restrict_scalars_apply, ← X_smul,
-    comp_apply, linear_equiv.coe_coe, linear_equiv.restrict_scalars_apply, ← X_smul, L.map_smul]
+  simp only [comp_apply, linear_equiv.coe_coe, trans_apply, linear_equiv.restrict_scalars_apply],
+  rw [← X_smul, L.map_smul, symm_apply_eq, ← X_smul, apply_symm_apply]
 end⟩
 @[simp] lemma semiconj_of_polynomial_lequiv_apply (L : module_with_End E ≃ₗ[R[X]] module_with_End F)
-  (u : M) : semiconj_of_polynomial_lequiv L u = L u := rfl
+  (u : M) : of_module F (semiconj_of_polynomial_lequiv L u) = L (of_module E u) := rfl
 
 /--Equivalence between `R[X]`-linear maps and `R`-linear maps compatible with the action of `X`.-/
 noncomputable def polynomial_linear_equiv_semiconj :

@@ -314,7 +314,8 @@ open limits abelian
 universes u v
 
 variables {𝓐 𝓑 : Type u} [category.{v} 𝓐] [category.{v} 𝓑]
-variables [abelian 𝓐] [abelian 𝓑]
+variables [has_zero_object 𝓐] [has_zero_morphisms 𝓐] [has_images 𝓐] [has_equalizers 𝓐]
+variables [has_cokernels 𝓐] [abelian 𝓑]
 variables (L : 𝓐 ⥤ 𝓑) [preserves_finite_limits L] [preserves_finite_colimits L]
 
 lemma exact_of_exact_functor {X Y Z : 𝓐} (f : X ⟶ Y) (g : Y ⟶ Z) (e1 : exact f g) :

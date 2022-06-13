@@ -503,7 +503,7 @@ variables [group α] [division_monoid β] [monoid_hom_class F α β] (m : F) {s 
 /-! Note that `finset` is not a `group` because `s / s ≠ 1` in general. -/
 
 @[simp, to_additive] lemma one_mem_div_iff : (1 : α) ∈ s / t ↔ ¬ disjoint s t :=
-by rw [←mem_coe, disjoint_iff_disjoint_coe, coe_div, set.one_mem_div_iff]
+by rw [←mem_coe, ←disjoint_coe, coe_div, set.one_mem_div_iff]
 
 @[to_additive] lemma not_one_mem_div_iff : (1 : α) ∉ s / t ↔ disjoint s t :=
 one_mem_div_iff.not_left

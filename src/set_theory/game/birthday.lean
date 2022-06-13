@@ -124,7 +124,7 @@ begin
   rw [to_pgame_def, pgame.birthday],
   simp only [lsub_empty, max_zero_right],
   nth_rewrite 0 ←lsub_typein o,
-  congr, ext,
+  congr' with x,
   exact IH _ (typein_lt_self x)
 end
 

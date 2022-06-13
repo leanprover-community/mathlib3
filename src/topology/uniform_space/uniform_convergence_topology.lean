@@ -6,7 +6,6 @@ Authors: Anatole Dedecker
 import topology.uniform_space.uniform_convergence
 import topology.uniform_space.pi
 import topology.uniform_space.equiv
-import topology.homeomorph
 
 /-!
 # Topology and uniform structure of uniform convergence

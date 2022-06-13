@@ -132,19 +132,11 @@ instance complete_linear_order.to_conditionally_complete_linear_order_bot {α : 
 section
 open_locale classical
 
-/-- A well founded linear order is conditionally complete, with a bottom element. -/
-@[reducible] noncomputable def well_founded.conditionally_complete_linear_order_bot
-  (α : Type*) [i : linear_order α] [h : is_well_order α (<)] [b : order_bot α] :
+/-- A well founded linear order with a bottom element is conditionally complete. -/
+@[reducible] noncomputable def well_founded.conditionally_complete_linear_order_with_bot
+  {α : Type*} [i₁ : linear_order α] [i₂ : order_bot α] (h : well_founded ((<) : α → α → Prop)) :
   conditionally_complete_linear_order_bot α :=
-{ sup := max,
-  le_sup_left := le_max_left,
-  le_sup_right := le_max_right,
-  sup_le := λ a b c, max_le,
-  inf := min,
-  inf_le_left := min_le_left,
-  inf_le_right := min_le_right,
-  le_inf := λ a b c, le_min,
-  Inf := λ s, if hs : s.nonempty then h.wf.min s hs else ⊥,
+{ Inf := λ s, if hs : s.nonempty then h.min s hs else ⊥,
   cInf_le := λ s a hs has, begin
     have s_ne : s.nonempty := ⟨a, has⟩,
     simpa [s_ne] using not_lt.1 (h.wf.not_lt_min s s_ne has),
@@ -153,7 +145,7 @@ open_locale classical
     simp only [hs, dif_pos],
     exact has (h.wf.min_mem s hs),
   end,
-  Sup := λ s, if hs : (upper_bounds s).nonempty then h.wf.min _ hs else ⊥,
+  Sup := λ s, if hs : (upper_bounds s).nonempty then h.min _ hs else ⊥,
   le_cSup := λ s a hs has, begin
     have h's : (upper_bounds s).nonempty := hs,
     simp only [h's, dif_pos],
@@ -164,8 +156,11 @@ open_locale classical
     simp only [h's, dif_pos],
     simpa using h.wf.not_lt_min _ h's has,
   end,
-  cSup_empty := by simpa using eq_bot_iff.2 (not_lt.1 $ h.wf.not_lt_min _ _ $ mem_univ ⊥),
-  ..i, ..b }
+  cSup_empty := begin
+    simp only [univ_nonempty, dif_pos, upper_bounds_empty],
+    exact bot_unique (h.min_le $ mem_univ ⊥)
+  end,
+  .. i₁, .. i₂, .. linear_order.to_lattice }
 
 end
 

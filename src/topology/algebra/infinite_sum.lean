@@ -831,23 +831,27 @@ begin
     { apply_instance } }
 end
 
-lemma has_sum.nonneg_add_neg {b : α} {f : ℤ → α} (hnonneg : has_sum (f ∘ coe : ℕ → α) a)
-  (hneg : has_sum (λ n:ℕ, f(-n - 1)) b) : has_sum f (a + b) :=
+lemma has_sum.int_rec {b : α} {f g : ℕ → α} (hf : has_sum f a) (hg : has_sum g b) :
+  @has_sum α _ _ _ (@int.rec (λ _, α) f g) (a + b) :=
 begin
-  let N := set.range (coe : ℕ → ℤ),
-  have t1 : has_sum (f ∘ coe : N → α) a,
-  { refine (function.injective.has_sum_range_iff (λ x1 x2, _)).mpr hnonneg, simp, },
-  have : Nᶜ = set.range (λ n, -n - 1 : ℕ → ℤ),
-  { ext1, split,
-    { intro h, cases x,
-      { simp only [int.of_nat_eq_coe, set.mem_compl_eq, set.mem_range_self] at h, tauto, },
-      { use x, rw int.neg_succ_of_nat_coe' }, },
-    { intro h, simp only [set.mem_range] at h, cases h with y hy, rw ←hy,
-      simp only [set.mem_compl_eq, set.mem_range], rw ←int.neg_succ_of_nat_coe', tauto,} },
-  have t2 : has_sum (f ∘ coe : Nᶜ → α) b,
-  { rw this,
-    refine (function.injective.has_sum_range_iff (λ x1 x2, _)).mpr hneg, simp, },
-  simpa only [add_comm] using t2.compl_add t1,
+  -- note this proof works for any two-case inductive
+  have h₁ : injective (coe : ℕ → ℤ) := @int.of_nat.inj,
+  have h₂ : injective int.neg_succ_of_nat := @int.neg_succ_of_nat.inj,
+  have : is_compl (set.range (coe : ℕ → ℤ)) (set.range int.neg_succ_of_nat),
+  { split,
+    { rintros _ ⟨⟨i, rfl⟩, ⟨j, ⟨⟩⟩⟩ },
+    { rintros (i | j) h,
+      exact or.inl ⟨_, rfl⟩,
+      exact or.inr ⟨_, rfl⟩ } },
+  exact has_sum.add_is_compl this (h₁.has_sum_range_iff.mpr hf) (h₂.has_sum_range_iff.mpr hg),
+end
+
+lemma has_sum.nonneg_add_neg {b : α} {f : ℤ → α}
+  (hnonneg : has_sum (λ n : ℕ, f n) a) (hneg : has_sum (λ n, f (-[1+ n])) b) :
+  has_sum f (a + b) :=
+begin
+  convert hnonneg.int_rec hneg using 1,
+  ext (i | j); refl,
 end
 
 lemma has_sum.pos_add_zero_add_neg {b : α} {f : ℤ → α}

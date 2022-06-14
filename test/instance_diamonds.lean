@@ -172,6 +172,20 @@ rfl
 
 end polynomial
 
+/-! ## `subtype` instances -/
+section subtype
+
+-- this diamond is the reason that `fintype.to_locally_finite_order` is not an instance
+example {α} [preorder α] [locally_finite_order α] [fintype α] [@decidable_rel α (≤)]
+  (p : α → Prop) [decidable_pred p] :
+  subtype.locally_finite_order p = fintype.to_locally_finite_order :=
+begin
+  success_if_fail { refl, },
+  exact subsingleton.elim _ _
+end
+
+end subtype
+
 /-! ## `zmod` instances -/
 section zmod
 

@@ -51,7 +51,7 @@ When it's also an `order_bot`,
 A `locally_finite_order` instance can be built
 * for a subtype of a locally finite order. See `subtype.locally_finite_order`.
 * for the product of two locally finite orders. See `prod.locally_finite_order`.
-* for any fintype (but it is noncomputable). See `fintype.to_locally_finite_order`.
+* for any fintype (but not as an instance). See `fintype.to_locally_finite_order`.
 * from a definition of `finset.Icc` alone. See `locally_finite_order.of_Icc`.
 * by pulling back `locally_finite_order β` through an order embedding `f : α →o β`. See
   `order_embedding.locally_finite_order`.
@@ -378,16 +378,22 @@ noncomputable def locally_finite_order.of_finite_Icc (h : ∀ a b : α, (set.Icc
   (λ a b, (h a b).to_finset)
   (λ a b x, by rw [set.finite.mem_to_finset, set.mem_Icc])
 
-/-- A fintype is noncomputably a locally finite order. -/
-noncomputable def fintype.to_locally_finite_order [fintype α] : locally_finite_order α :=
-{ finset_Icc := λ a b, (set.finite.of_fintype (set.Icc a b)).to_finset,
-  finset_Ico := λ a b, (set.finite.of_fintype (set.Ico a b)).to_finset,
-  finset_Ioc := λ a b, (set.finite.of_fintype (set.Ioc a b)).to_finset,
-  finset_Ioo := λ a b, (set.finite.of_fintype (set.Ioo a b)).to_finset,
-  finset_mem_Icc := λ a b x, by rw [set.finite.mem_to_finset, set.mem_Icc],
-  finset_mem_Ico := λ a b x, by rw [set.finite.mem_to_finset, set.mem_Ico],
-  finset_mem_Ioc := λ a b x, by rw [set.finite.mem_to_finset, set.mem_Ioc],
-  finset_mem_Ioo := λ a b x, by rw [set.finite.mem_to_finset, set.mem_Ioo] }
+/-- A fintype is a locally finite order.
+
+This is not an instance as it would not be defeq to better instances such as
+`fin.locally_finite_order`.
+-/
+@[reducible]
+def fintype.to_locally_finite_order [fintype α] [@decidable_rel α (<)] [@decidable_rel α (≤)] :
+  locally_finite_order α :=
+{ finset_Icc := λ a b, univ.filter (∈ set.Icc a b),
+  finset_Ico := λ a b, univ.filter (∈ set.Ico a b),
+  finset_Ioc := λ a b, univ.filter (∈ set.Ioc a b),
+  finset_Ioo := λ a b, univ.filter (∈ set.Ioo a b),
+  finset_mem_Icc := λ a b x, by simp only [mem_filter, finset.mem_univ, true_and, set.mem_Icc],
+  finset_mem_Ico := λ a b x, by simp only [mem_filter, finset.mem_univ, true_and, set.mem_Ico],
+  finset_mem_Ioc := λ a b x, by simp only [mem_filter, finset.mem_univ, true_and, set.mem_Ioc],
+  finset_mem_Ioo := λ a b x, by simp only [mem_filter, finset.mem_univ, true_and, set.mem_Ioo] }
 
 instance : subsingleton (locally_finite_order α) :=
 subsingleton.intro (λ h₀ h₁, begin

@@ -84,6 +84,15 @@ lemma Ioi_def (a : α) : {x | a < x} = Ioi a := rfl
 @[simp] lemma mem_Ici : x ∈ Ici a ↔ a ≤ x := iff.rfl
 @[simp] lemma mem_Ioi : x ∈ Ioi a ↔ a < x := iff.rfl
 
+instance decidable_mem_Ioo : Π [decidable (a < x ∧ x < b)], decidable (x ∈ Ioo a b) := id
+instance decidable_mem_Ico : Π [decidable (a ≤ x ∧ x < b)], decidable (x ∈ Ico a b) := id
+instance decidable_mem_Iio : Π [decidable (x < b)], decidable (x ∈ Iio b) := id
+instance decidable_mem_Icc : Π [decidable (a ≤ x ∧ x ≤ b)], decidable (x ∈ Icc a b) := id
+instance decidable_mem_Iic : Π [decidable (x ≤ b)], decidable (x ∈ Iic b) := id
+instance decidable_mem_Ioc : Π [decidable (a < x ∧ x ≤ b)], decidable (x ∈ Ioc a b) := id
+instance decidable_mem_Ici : Π [decidable (a ≤ x)], decidable (x ∈ Ici a) := id
+instance decidable_mem_Ioi : Π [decidable (a < x)], decidable (x ∈ Ioi a) := id
+
 @[simp] lemma left_mem_Ioo : a ∈ Ioo a b ↔ false := by simp [lt_irrefl]
 @[simp] lemma left_mem_Ico : a ∈ Ico a b ↔ a < b := by simp [le_refl]
 @[simp] lemma left_mem_Icc : a ∈ Icc a b ↔ a ≤ b := by simp [le_refl]

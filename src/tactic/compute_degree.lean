@@ -363,6 +363,12 @@ where `d : ℕ` and `f` satisfies:
 If the given degree does not match what the tactic computes,
 then the tactic suggests the degree that it computed.
 
+You can also pass an optional argument to `compute_degree`, letting the tactic know which term is
+the one of highest degree.  The syntax is `compute_degree [<expression for one term>]`.  The
+expression can involve underscore, and Lean will try to unify them with one of the summands in the
+goal.  This opens the possibility of working with polynomials whose exponents are not closed natural
+numbers, though this is mostly unimplemented still.
+
 The tactic also reports when it is used with non-closed natural numbers as exponents. -/
 meta def compute_degree : parse opt_pexpr_list → tactic unit
 | [] := do
@@ -386,31 +392,6 @@ else do tactic.compute_degree.with_lead lead
   (lead :: hs) ← tls.mfilter $ λ e', succeeds $ unify lead e',
   tactic.compute_degree.with_lead lead
 | _  := fail "'compute_degree' only accepts one leading term"
-
---| (some d) := skip
---| none := failed
-#exit
-
-meta def compute_degree_lead (lead : parse texpr?) : tactic unit := do
-  -- is_deg ← succeeds ( refine ``((polynomial.degree_eq_iff_nat_degree_eq_of_pos _).mpr _) >>
-  --  interactive.rotate),
---  `(polynomial.nat_degree %%tl = %%tr) ← target |
---    fail "Goal is not of the form\n`f.nat_degree = d` or `f.degree = d`",
-  --(lead,m') ← extract_top_degree_term_and_deg tl,
-  --td ← eval_expr ℕ tr,
-  --if m' ≠ td then do
-  --  pptl ← pp tl, ppm' ← pp m',
-  --  if is_deg then
-  --    fail sformat!"should the degree be '{m'}'?"
-  --  else
-  --   fail sformat!"should the nat_degree be '{m'}'?"
-  --else
---
---    `(@polynomial %%R %%inst) ← infer_type tl,
-    match lead with
-    | none := skip
-    | (some lead) :=
-    lead ← to_expr lead tt ff,
 
 add_tactic_doc
 { name := "compute_degree_le",

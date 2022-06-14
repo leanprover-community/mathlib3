@@ -77,6 +77,10 @@ begin
    exact pow_ne_zero _ hR }
 end
 
+@[simp] lemma inversion_inversion (c : P) {R : ℝ} (hR : R ≠ 0) (x : P) :
+  inversion c R (inversion c R x) = x :=
+inversion_involutive c hR x
+
 lemma inversion_surjective (c : P) {R : ℝ} (hR : R ≠ 0) : surjective (inversion c R) :=
 (inversion_involutive c hR).surjective
 
@@ -102,6 +106,7 @@ end
 lemma mul_dist_le_mul_dist_add_mul_dist (a b c d : P) :
   dist a c * dist b d ≤ dist a b * dist c d + dist b c * dist a d :=
 begin
+  -- If one of the points `b`, `c`, `d` is equal to `a`, then the inequality is trivial.
   rcases eq_or_ne b a with rfl|hb,
   { rw [dist_self, zero_mul, zero_add] },
   rcases eq_or_ne c a with rfl|hc,
@@ -109,6 +114,8 @@ begin
     apply_rules [add_nonneg, mul_nonneg, dist_nonneg] },
   rcases eq_or_ne d a with rfl|hd,
   { rw [dist_self, mul_zero, add_zero, dist_comm d, dist_comm d, mul_comm] },
+  /- Otherwise, we apply the triangle inequality to `euclidean_geometry.inversion a 1 b`,
+  `euclidean_geometry.inversion a 1 c`, and `euclidean_geometry.inversion a 1 d`. -/
   have H := dist_triangle (inversion a 1 b) (inversion a 1 c) (inversion a 1 d),
   rw [dist_inversion_inversion hb hd, dist_inversion_inversion hb hc,
     dist_inversion_inversion hc hd, one_pow] at H,

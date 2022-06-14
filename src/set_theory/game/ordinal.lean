@@ -13,14 +13,12 @@ import set_theory.ordinal.basic
 We define the canonical map `ordinal → pgame`, where every ordinal is mapped to the game whose left
 set consists of all previous ordinals.
 
+The map to surreals is defined in `ordinal.to_surreal`.
+
 # Main declarations
 
 - `ordinal.to_pgame`: The canonical map between ordinals and pre-games.
 - `ordinal.to_pgame_embedding`: The order embedding version of the previous map.
-
-# Todo
-
-- Extend this map to `game` and `surreal`.
 -/
 
 universe u
@@ -101,13 +99,10 @@ lt_of_le_of_lf (to_pgame_le h.le) (to_pgame_lf h)
 by rw [pgame.equiv, le_antisymm_iff, to_pgame_le_iff, to_pgame_le_iff]
 
 theorem to_pgame_injective : function.injective ordinal.to_pgame :=
-λ a b h, begin
-  by_contra hne,
-  cases lt_or_gt_of_ne hne with hlt hlt;
-  { have := to_pgame_lt hlt,
-    rw h at this,
-    exact lt_irrefl _ this }
-end
+λ a b h, to_pgame_equiv_iff.1 $ equiv_of_eq h
+
+@[simp] theorem to_pgame_eq_iff {a b : ordinal} : a.to_pgame = b.to_pgame ↔ a = b :=
+to_pgame_injective.eq_iff
 
 /-- The order embedding version of `to_pgame`. -/
 @[simps] noncomputable def to_pgame_embedding : ordinal.{u} ↪o pgame.{u} :=

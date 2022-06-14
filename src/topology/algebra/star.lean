@@ -64,6 +64,9 @@ lemma continuous_within_at.star (hf : continuous_within_at f s x) :
   continuous_within_at (λ x, star (f x)) s x :=
 hf.star
 
+/-- The star operation bundled as a continuous map. -/
+@[simps] def star_continuous_map : C(R, R) := ⟨star, continuous_star⟩
+
 end continuity
 
 section instances

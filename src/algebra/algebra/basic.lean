@@ -775,7 +775,7 @@ attribute [nolint doc_blame] alg_equiv.to_mul_equiv
 
 notation A ` ≃ₐ[`:50 R `] ` A' := alg_equiv R A A'
 
-/-- `alg_equiv_class F R S` states that `F` is a type of algebra structure preserving
+/-- `alg_equiv_class F R A B` states that `F` is a type of algebra structure preserving
   equivalences. You should extend this class when you extend `alg_equiv`. -/
 class alg_equiv_class (F : Type*) (R A B : out_param Type*)
   [comm_semiring R] [semiring A] [semiring B] [algebra R A] [algebra R B]

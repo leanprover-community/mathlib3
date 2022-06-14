@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alex Kontorovich, Heather Macbeth, Marc Masdeu
 -/
 
-import analysis.complex.upper_half_plane
+import analysis.complex.upper_half_plane.basic
 import linear_algebra.general_linear_group
 import analysis.matrix
 
@@ -69,42 +69,13 @@ noncomputable theory
 local notation `SL(` n `, ` R `)`:= special_linear_group (fin n) R
 local prefix `↑ₘ`:1024 := @coe _ (matrix (fin 2) (fin 2) ℤ) _
 
-
 open_locale upper_half_plane complex_conjugate
 
 local attribute [instance] fintype.card_fin_even
 
 namespace modular_group
 
-variables (g : SL(2, ℤ)) (z : ℍ)
-
-section upper_half_plane_action
-
-/-- For a subring `R` of `ℝ`, the action of `SL(2, R)` on the upper half-plane, as a restriction of
-the `SL(2, ℝ)`-action defined by `upper_half_plane.mul_action`. -/
-instance {R : Type*} [comm_ring R] [algebra R ℝ] : mul_action SL(2, R) ℍ :=
-mul_action.comp_hom ℍ (map (algebra_map R ℝ))
-
-lemma coe_smul : ↑(g • z) = num g z / denom g z := rfl
-
-lemma re_smul : (g • z).re = (num g z / denom g z).re := rfl
-
-@[simp] lemma smul_coe : (g : SL(2,ℝ)) • z = g • z := rfl
-
-@[simp] lemma neg_smul : -g • z = g • z :=
-show ↑(-g) • _ = _, by simp [neg_smul g z]
-
-lemma im_smul : (g • z).im = (num g z / denom g z).im := rfl
-
-lemma im_smul_eq_div_norm_sq :
-  (g • z).im = z.im / (complex.norm_sq (denom g z)) :=
-im_smul_eq_div_norm_sq g z
-
-@[simp] lemma denom_apply : denom g z = ↑ₘg 1 0 * z + ↑ₘg 1 1 := by simp
-
-end upper_half_plane_action
-
-variables {g}
+variables {g : SL(2, ℤ)} (z : ℍ)
 
 section bottom_row
 
@@ -258,9 +229,7 @@ begin
 end
 
 /-- This replaces `(g•z).re = a/c + *` in the standard theory with the following novel identity:
-
   `g • z = (a c + b d) / (c^2 + d^2) + (d z - c) / ((c^2 + d^2) (c z + d))`
-
   which does not need to be decomposed depending on whether `c = 0`. -/
 lemma smul_eq_lc_row0_add {p : fin 2 → ℤ} (hp : is_coprime (p 0) (p 1)) (hg : ↑ₘg 1 = p) :
   ↑(g • z) = ((lc_row0 p ↑(g : SL(2, ℝ))) : ℂ) / (p 0 ^ 2 + p 1 ^ 2)
@@ -272,8 +241,8 @@ begin
   field_simp [nonZ1, nonZ2, denom_ne_zero, -upper_half_plane.denom, -denom_apply],
   rw (by simp : (p 1 : ℂ) * z - p 0 = ((p 1) * z - p 0) * ↑(det (↑g : matrix (fin 2) (fin 2) ℤ))),
   rw [←hg, det_fin_two],
-  simp only [int.coe_cast_ring_hom, coe_matrix_coe, coe_fn_eq_coe,
-    int.cast_mul, of_real_int_cast, map_apply, denom, int.cast_sub],
+  simp only [int.coe_cast_ring_hom, coe_matrix_coe, int.cast_mul, of_real_int_cast, map_apply,
+  denom, int.cast_sub, _root_.coe_coe,coe_GL_pos_coe_GL_coe_matrix],
   ring,
 end
 
@@ -313,7 +282,8 @@ begin
     filter.tendsto.exists_within_forall_le hs (tendsto_norm_sq_coprime_pair z),
   obtain ⟨g, -, hg⟩ := bottom_row_surj hp_coprime,
   refine ⟨g, λ g', _⟩,
-  rw [im_smul_eq_div_norm_sq, im_smul_eq_div_norm_sq, div_le_div_left],
+  rw [special_linear_group.im_smul_eq_div_norm_sq, special_linear_group.im_smul_eq_div_norm_sq,
+    div_le_div_left],
   { simpa [← hg] using hp (↑ₘg' 1) (bottom_row_coprime g') },
   { exact z.im_pos },
   { exact norm_sq_denom_pos g' z },
@@ -364,7 +334,7 @@ end
 
 variables {z}
 
-@[simp] lemma coe_T_zpow_smul_eq {n : ℤ} : (↑((T^n) • z) : ℂ) = z + n :=
+lemma coe_T_zpow_smul_eq {n : ℤ} : (↑((T^n) • z) : ℂ) = z + n :=
 by simp [coe_T_zpow]
 
 -- If instead we had `g` and `T` of type `PSL(2, ℤ)`, then we could simply state `g = T^n`.
@@ -379,7 +349,7 @@ begin
     ext i j, fin_cases i; fin_cases j;
     simp [ha, hc, hd, coe_T_zpow], },
   { use -↑ₘg 0 1,
-    suffices : g = -T^(-↑ₘg 0 1), { intros z, conv_lhs { rw [this, neg_smul], }, },
+    suffices : g = -T^(-↑ₘg 0 1), { intros z, conv_lhs { rw [this, SL_neg_smul], }, },
     ext i j, fin_cases i; fin_cases j;
     simp [ha, hc, hd, coe_T_zpow], },
 end
@@ -406,7 +376,7 @@ begin
     apply (lt_div_iff z.norm_sq_pos).mpr,
     nlinarith },
   convert this,
-  simp only [im_smul_eq_div_norm_sq],
+  simp only [special_linear_group.im_smul_eq_div_norm_sq],
   field_simp [norm_sq_denom_ne_zero, norm_sq_ne_zero, S]
 end
 
@@ -468,7 +438,8 @@ begin
   -- `g` has same max im property as `g₀`
   have hg₀' : ∀ (g' : SL(2,ℤ)), (g' • z).im ≤ (g • z).im,
   { have hg'' : (g • z).im = (g₀ • z).im,
-    { rw [im_smul_eq_div_norm_sq, im_smul_eq_div_norm_sq, denom_apply, denom_apply, hg] },
+    { rw [special_linear_group.im_smul_eq_div_norm_sq, special_linear_group.im_smul_eq_div_norm_sq,
+      denom_apply, denom_apply, hg]},
     simpa only [hg''] using hg₀ },
   split,
   { -- Claim: `1 ≤ ⇑norm_sq ↑(g • z)`. If not, then `S•g•z` has larger imaginary part
@@ -506,9 +477,8 @@ begin
   let c : ℝ := (c' : ℝ),
   suffices : 3 * c^2 < 4,
   { rw [← int.cast_pow, ← int.cast_three, ← int.cast_four, ← int.cast_mul, int.cast_lt] at this,
-    replace this : c'^2 ≤ 1^2, { linarith, },
-    rw ← abs_one,
-    exact abs_le_abs_of_sq_le_sq this, },
+    replace this : c' ^ 2 ≤ 1 ^ 2, { linarith, },
+    rwa [sq_le_sq, abs_one] at this },
   suffices : c ≠ 0 → 9 * c^4 < 16,
   { rcases eq_or_ne c 0 with hc | hc,
     { rw hc, norm_num, },
@@ -524,7 +494,8 @@ begin
       (upper_half_plane.c_mul_im_sq_le_norm_sq_denom z g)) (sq_nonneg _),
   let nsq := norm_sq (denom g z),
   calc 9 * c^4 < c^4 * z.im^2 * (g • z).im^2 * 16 : by linarith
-           ... = c^4 * z.im^4 / nsq^2 * 16 : by { rw [im_smul_eq_div_norm_sq, div_pow], ring, }
+           ... = c^4 * z.im^4 / nsq^2 * 16 : by { rw [special_linear_group.im_smul_eq_div_norm_sq,
+            div_pow], ring, }
            ... ≤ 16 : by { rw ← mul_pow, linarith, },
 end
 
@@ -545,7 +516,7 @@ begin
   have hn : ↑ₘg 1 0 ≠ -1,
   { intros hc,
     replace hc : ↑ₘ(-g) 1 0 = 1, { simp [eq_neg_of_eq_neg hc], },
-    replace hg : (-g) • z ∈ 𝒟ᵒ := (neg_smul g z).symm ▸ hg,
+    replace hg : (-g) • z ∈ 𝒟ᵒ := (SL_neg_smul g z).symm ▸ hg,
     exact hp hg hc, },
   specialize hp hg,
   rcases (int.abs_le_one_iff.mp $ abs_c_le_one hz hg);
@@ -558,7 +529,7 @@ lemma eq_smul_self_of_mem_fdo_mem_fdo (hz : z ∈ 𝒟ᵒ) (hg : g • z ∈ �
 begin
   obtain ⟨n, hn⟩ := exists_eq_T_zpow_of_c_eq_zero (c_eq_zero hz hg),
   rw hn at hg ⊢,
-  simp [eq_zero_of_mem_fdo_of_T_zpow_mem_fdo hz hg],
+  simp [eq_zero_of_mem_fdo_of_T_zpow_mem_fdo hz hg, one_smul],
 end
 
 end unique_representative

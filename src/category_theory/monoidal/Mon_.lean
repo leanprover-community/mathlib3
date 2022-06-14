@@ -266,6 +266,9 @@ def Mon_to_lax_monoidal : Mon_ C ⥤ lax_monoidal_functor (discrete punit.{u+1})
     unit' := f.one_hom,
     tensor' := λ _ _, f.mul_hom, }, }
 
+local attribute [tidy] tactic.discrete_cases
+local attribute [simp] eq_to_iso_map
+
 /-- Implementation of `Mon_.equiv_lax_monoidal_functor_punit`. -/
 @[simps]
 def unit_iso :
@@ -286,6 +289,8 @@ nat_iso.of_components (λ F, { hom := { hom := 𝟙 _, }, inv := { hom := 𝟙 _
 end equiv_lax_monoidal_functor_punit
 
 open equiv_lax_monoidal_functor_punit
+
+local attribute [simp] eq_to_iso_map
 
 /--
 Monoid objects in `C` are "just" lax monoidal functors from the trivial monoidal category to `C`.

@@ -45,16 +45,16 @@ class is_cartan_subalgebra : Prop :=
 (nilpotent        : lie_algebra.is_nilpotent R H)
 (self_normalizing : H.normalizer = H)
 
-instance [is_cartan_subalgebra H] : lie_algebra.is_nilpotent R H := is_cartan_subalgebra.nilpotent
+instance [H.is_cartan_subalgebra] : lie_algebra.is_nilpotent R H := is_cartan_subalgebra.nilpotent
 
 @[simp] lemma centralizer_eq_self_of_is_cartan_subalgebra
-  (H : lie_subalgebra R L) [lie_subalgebra.is_cartan_subalgebra H] :
+  (H : lie_subalgebra R L) [H.is_cartan_subalgebra] :
   H.to_lie_submodule.centralizer = H.to_lie_submodule :=
-by rw [← lie_submodule.coe_to_submodule_eq_iff, lie_subalgebra.coe_centralizer_eq_normalizer,
-  lie_subalgebra.is_cartan_subalgebra.self_normalizing, lie_subalgebra.coe_to_lie_submodule]
+by rw [← lie_submodule.coe_to_submodule_eq_iff, coe_centralizer_eq_normalizer,
+  is_cartan_subalgebra.self_normalizing, coe_to_lie_submodule]
 
 @[simp] lemma ucs_eq_self_of_is_cartan_subalgebra
-  (H : lie_subalgebra R L) [lie_subalgebra.is_cartan_subalgebra H] (k : ℕ) :
+  (H : lie_subalgebra R L) [H.is_cartan_subalgebra] (k : ℕ) :
   H.to_lie_submodule.ucs k = H.to_lie_submodule :=
 begin
   induction k with k ih,

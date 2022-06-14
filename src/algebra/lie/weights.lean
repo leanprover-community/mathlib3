@@ -252,7 +252,7 @@ begin
   use k,
   ext ⟨m, hm : m ∈ pre_weight_space M 0⟩,
   rw [linear_map.zero_apply, lie_submodule.coe_zero, submodule.coe_eq_zero,
-    lie_submodule.to_endomorphism_eq_to_endomorphism_restrict, linear_map.pow_restrict,
+    ← lie_submodule.to_endomorphism_restrict_eq_to_endomorphism, linear_map.pow_restrict,
     ← set_like.coe_eq_coe, linear_map.restrict_apply, submodule.coe_mk, lie_submodule.coe_zero],
   exact hk hm,
 end
@@ -451,12 +451,20 @@ subalgebra.
 When `L` is Noetherian, it follows from Engel's theorem that the converse holds. See
 `lie_algebra.zero_root_subalgebra_eq_iff_is_cartan` -/
 lemma is_cartan_of_zero_root_subalgebra_eq (h : zero_root_subalgebra R L H = H) :
+<<<<<<< HEAD
   lie_subalgebra.is_cartan_subalgebra H :=
+=======
+  H.is_cartan_subalgebra :=
+>>>>>>> master
 { nilpotent        := infer_instance,
   self_normalizing := by { rw ← h, exact zero_root_subalgebra_normalizer_eq_self R L H, } }
 
 @[simp] lemma zero_root_subalgebra_eq_of_is_cartan (H : lie_subalgebra R L)
+<<<<<<< HEAD
   [lie_subalgebra.is_cartan_subalgebra H] [is_noetherian R L] :
+=======
+  [H.is_cartan_subalgebra] [is_noetherian R L] :
+>>>>>>> master
   zero_root_subalgebra R L H = H :=
 begin
   refine le_antisymm _ (le_zero_root_subalgebra R L H),
@@ -466,7 +474,11 @@ begin
 end
 
 lemma zero_root_subalgebra_eq_iff_is_cartan [is_noetherian R L] :
+<<<<<<< HEAD
   zero_root_subalgebra R L H = H ↔ lie_subalgebra.is_cartan_subalgebra H :=
+=======
+  zero_root_subalgebra R L H = H ↔ H.is_cartan_subalgebra :=
+>>>>>>> master
 ⟨is_cartan_of_zero_root_subalgebra_eq R L H, by { introsI, simp, }⟩
 
 end lie_algebra

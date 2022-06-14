@@ -306,6 +306,18 @@ begin
   simpa only [pow_succ] using mul_mem_mul hx ih,
 end
 
+lemma prod_mem_prod {ι : Type*} {s : finset ι} {I : ι → ideal R} {x : ι → R} :
+  (∀ i ∈ s, x i ∈ I i) → ∏ i in s, x i ∈ ∏ i in s, I i :=
+begin
+  classical,
+  apply finset.induction_on s,
+  { intro _, rw [finset.prod_empty, finset.prod_empty, one_eq_top], exact submodule.mem_top },
+  { intros a s ha IH h,
+    rw [finset.prod_insert ha, finset.prod_insert ha],
+    exact mul_mem_mul (h a $ finset.mem_insert_self a s)
+      (IH $ λ i hi, h i $ finset.mem_insert_of_mem hi) }
+end
+
 theorem mul_le : I * J ≤ K ↔ ∀ (r ∈ I) (s ∈ J), r * s ∈ K :=
 submodule.smul_le
 
@@ -419,6 +431,19 @@ begin
   rwa [finset.coe_univ, set.pairwise_univ]
 end
 
+lemma sup_eq_top_iff_is_coprime {R : Type*} [comm_semiring R] (x y : R) :
+  span ({x} : set R) ⊔ span {y} = ⊤ ↔ is_coprime x y :=
+begin
+  rw [eq_top_iff_one, submodule.mem_sup],
+  split,
+  { rintro ⟨u, hu, v, hv, h1⟩,
+    rw mem_span_singleton' at hu hv,
+    rw [← hu.some_spec, ← hv.some_spec] at h1,
+    exact ⟨_, _, h1⟩ },
+  { exact λ ⟨u, v, h1⟩,
+      ⟨_, mem_span_singleton'.mpr ⟨_, rfl⟩, _, mem_span_singleton'.mpr ⟨_, rfl⟩, h1⟩ },
+end
+
 theorem mul_le_inf : I * J ≤ I ⊓ J :=
 mul_le.2 $ λ r hri s hsj, ⟨I.mul_mem_right s hri, J.mul_mem_left r hsj⟩
 
@@ -440,6 +465,51 @@ le_antisymm mul_le_inf $ λ r ⟨hri, hrj⟩,
 let ⟨s, hsi, t, htj, hst⟩ := submodule.mem_sup.1 ((eq_top_iff_one _).1 h) in
 mul_one r ▸ hst ▸ (mul_add r s t).symm ▸ ideal.add_mem (I * J) (mul_mem_mul_rev hsi hrj)
   (mul_mem_mul hri htj)
+
+lemma sup_mul_eq_of_coprime_left (h : I ⊔ J = ⊤) : I ⊔ (J * K) = I ⊔ K :=
+le_antisymm (sup_le_sup_left mul_le_left _) $ λ i hi,
+begin
+  rw eq_top_iff_one at h, rw submodule.mem_sup at h hi ⊢,
+  obtain ⟨i1, hi1, j, hj, h⟩ := h, obtain ⟨i', hi', k, hk, hi⟩ := hi,
+  refine ⟨_, add_mem hi' (mul_mem_right k _ hi1), _, mul_mem_mul hj hk, _⟩,
+  rw [add_assoc, ← add_mul, h, one_mul, hi]
+end
+
+lemma sup_mul_eq_of_coprime_right (h : I ⊔ K = ⊤) : I ⊔ (J * K) = I ⊔ J :=
+by { rw mul_comm, exact sup_mul_eq_of_coprime_left h }
+
+lemma mul_sup_eq_of_coprime_left (h : I ⊔ J = ⊤) : (I * K) ⊔ J = K ⊔ J :=
+by { rw sup_comm at h, rw [sup_comm, sup_mul_eq_of_coprime_left h, sup_comm] }
+
+lemma mul_sup_eq_of_coprime_right (h : K ⊔ J = ⊤) : (I * K) ⊔ J = I ⊔ J :=
+by { rw sup_comm at h, rw [sup_comm, sup_mul_eq_of_coprime_right h, sup_comm] }
+
+lemma sup_prod_eq_top {s : finset ι} {J : ι → ideal R} (h : ∀ i, i ∈ s → I ⊔ J i = ⊤) :
+  I ⊔ ∏ i in s, J i = ⊤ :=
+finset.prod_induction _ (λ J, I ⊔ J = ⊤) (λ J K hJ hK, (sup_mul_eq_of_coprime_left hJ).trans hK)
+(by rw [one_eq_top, sup_top_eq]) h
+
+lemma sup_infi_eq_top {s : finset ι} {J : ι → ideal R} (h : ∀ i, i ∈ s → I ⊔ J i = ⊤) :
+  I ⊔ (⨅ i ∈ s, J i) = ⊤ :=
+eq_top_iff.mpr $ le_of_eq_of_le (sup_prod_eq_top h).symm $ sup_le_sup_left
+  (le_of_le_of_eq prod_le_inf $ finset.inf_eq_infi _ _) _
+
+lemma prod_sup_eq_top {s : finset ι} {J : ι → ideal R} (h : ∀ i, i ∈ s → J i ⊔ I = ⊤) :
+  (∏ i in s, J i) ⊔ I = ⊤ :=
+sup_comm.trans (sup_prod_eq_top $ λ i hi, sup_comm.trans $ h i hi)
+
+lemma infi_sup_eq_top {s : finset ι} {J : ι → ideal R} (h : ∀ i, i ∈ s → J i ⊔ I = ⊤) :
+  (⨅ i ∈ s, J i) ⊔ I = ⊤ :=
+sup_comm.trans (sup_infi_eq_top $ λ i hi, sup_comm.trans $ h i hi)
+
+lemma sup_pow_eq_top {n : ℕ} (h : I ⊔ J = ⊤) : I ⊔ (J ^ n) = ⊤ :=
+by { rw [← finset.card_range n, ← finset.prod_const], exact sup_prod_eq_top (λ _ _, h) }
+
+lemma pow_sup_eq_top {n : ℕ} (h : I ⊔ J = ⊤) : (I ^ n) ⊔ J = ⊤ :=
+by { rw [← finset.card_range n, ← finset.prod_const], exact prod_sup_eq_top (λ _ _, h) }
+
+lemma pow_sup_pow_eq_top {m n : ℕ} (h : I ⊔ J = ⊤) : (I ^ m) ⊔ (J ^ n) = ⊤ :=
+sup_pow_eq_top (pow_sup_eq_top h)
 
 variables (I)
 @[simp] theorem mul_bot : I * ⊥ = ⊥ :=
@@ -1477,7 +1547,7 @@ end
 
 theorem map_is_prime_of_equiv (f : R ≃+* S) {I : ideal R} [is_prime I] :
   is_prime (map (f : R →+* S) I) :=
-map_is_prime_of_surjective f.surjective $ by simp
+map_is_prime_of_surjective f.surjective $ by simp only [ring_hom.ker_coe_equiv, bot_le]
 
 end ring
 

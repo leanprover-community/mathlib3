@@ -451,6 +451,11 @@ begin
   { exact le_trans (mul_nonneg ε.coe_nonneg ennreal.to_real_nonneg) h }
 end
 
+/-- **Doob's maximal inequality**: Given a non-negative submartingale `f`, for all `ε : ℝ≥0`,
+we have `ε • μ {x | (ε : ℝ) ≤ ⨆ k : {k // k ≤ n}, f k x} ≤ 𝔼[f n]`.
+
+In some literature, the Doob's maximal inequality refers to what we call Doob's Lp inequality
+(which is a corollary of this lemma and will be proved in an upcomming PR). -/
 lemma maximal_ineq [is_finite_measure μ]
   {f : ℕ → α → ℝ} (hsub : submartingale f 𝒢 μ) (hnonneg : 0 ≤ f) {ε : ℝ≥0} (n : ℕ) :
   ε • μ {x | (ε : ℝ) ≤ ⨆ k : {k // k ≤ n}, f k x} ≤

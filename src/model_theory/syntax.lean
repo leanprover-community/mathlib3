@@ -50,18 +50,6 @@ the continuum hypothesis*][flypitch_itp]
 
 universes u v w u' v'
 
-namespace fin
-
-@[simp] lemma cast_le_cast_le {k m n} (km : k ≤ m) (mn : m ≤ n) (i : fin k) :
-  fin.cast_le mn (fin.cast_le km i) = fin.cast_le (km.trans mn) i :=
-fin.ext (by simp only [coe_cast_le])
-
-@[simp] lemma cast_le_comp_cast_le {k m n} (km : k ≤ m) (mn : m ≤ n) :
-  fin.cast_le mn ∘ fin.cast_le km = fin.cast_le (km.trans mn) :=
-funext (cast_le_cast_le km mn)
-
-end fin
-
 namespace first_order
 namespace language
 
@@ -121,7 +109,7 @@ begin
 end
 
 @[simp] lemma relabel_comp_relabel (f : α → β) (g : β → γ) :
-  ((term.relabel g) ∘ (term.relabel f) : L.term α → L.term γ) = term.relabel (g ∘ f) :=
+  (term.relabel g ∘ term.relabel f : L.term α → L.term γ) = term.relabel (g ∘ f) :=
 funext (relabel_relabel f g)
 
 /-- Restricts a term to use only a set of the given variables. -/

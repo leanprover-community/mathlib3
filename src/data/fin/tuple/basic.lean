@@ -259,7 +259,7 @@ funext (λ i, by rw [function.comp_app, snoc_cast_succ])
 @[simp] lemma snoc_last : snoc p x (last n) = x :=
 by { simp [snoc] }
 
-@[simp] lemma snoc_comp_nat_add {n m : ℕ} {α : Sort*} {a : α} {f : fin (m + n) → α} :
+@[simp] lemma snoc_comp_nat_add {n m : ℕ} {α : Sort*} (f : fin (m + n) → α) (a : α) :
   (snoc f a : fin _ → α) ∘ (nat_add m : fin (n + 1) → fin (m + n + 1)) = snoc (f ∘ nat_add m) a :=
 begin
   ext i,
@@ -271,14 +271,14 @@ begin
 end
 
 @[simp] lemma snoc_cast_add {α : fin (n + m + 1) → Type*}
-  {f : Π i : fin (n + m), α (cast_succ i)} {a : α (last (n + m))}
+  (f : Π i : fin (n + m), α (cast_succ i)) (a : α (last (n + m)))
   (i : fin n) :
   (snoc f a) (cast_add (m + 1) i) = f (cast_add m i) :=
 dif_pos _
 
-@[simp] lemma snoc_comp_cast_add {n m : ℕ} {α : Sort*} {a : α} {f : fin (n + m) → α} :
-  (snoc f a : fin _ → α) ∘ cast_add (m + 1) = f ∘ (cast_add m) :=
-funext snoc_cast_add
+@[simp] lemma snoc_comp_cast_add {n m : ℕ} {α : Sort*} (f : fin (n + m) → α) (a : α) :
+  (snoc f a : fin _ → α) ∘ cast_add (m + 1) = f ∘ cast_add m :=
+funext (snoc_cast_add f a)
 
 /-- Updating a tuple and adding an element at the end commute. -/
 @[simp] lemma snoc_update : snoc (update p i y) x = update (snoc p x) i.cast_succ y :=

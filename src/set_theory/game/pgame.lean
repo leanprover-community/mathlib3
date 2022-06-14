@@ -909,7 +909,7 @@ begin
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 
-@[simp] theorem neg_le_neg_iff : Π {x y : pgame}, -y ≤ -x ↔ x ≤ y := neg_le_lf_neg_iff.1
+@[simp] theorem neg_le_neg_iff {x y : pgame} : -y ≤ -x ↔ x ≤ y := neg_le_lf_neg_iff.1
 
 @[simp] theorem neg_lf_neg_iff {x y : pgame} : -y ⧏ -x ↔ x ⧏ y := neg_le_lf_neg_iff.2
 

@@ -57,7 +57,7 @@ begin
     ((nat.dvd_add_right hm_divides_fact).mp (dvd_of_mul_right_dvd hn_divides)),
 
   cases h_1.right,
-  linarith
+  linarith,
 end
 
 /-- **Wilson's Theorem**: For `n > 1`, `(n-1)!` is congruent to `-1` modulo `n` iff n is prime. --/
@@ -69,7 +69,7 @@ begin
   intro h2,
   apply wilsons_theorem_only_if_direction _ _,
   { exact h, },
-  exact h2
+  exact h2,
 end
 
 end nat

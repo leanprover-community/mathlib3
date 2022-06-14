@@ -21,7 +21,7 @@ Currently, we prove only a few basic lemmas needed to prove Ptolemy's inequality
 -/
 
 noncomputable theory
-open metric real
+open metric real function
 
 namespace euclidean_geometry
 
@@ -34,6 +34,10 @@ include V
 that `y -ᵥ c = (R / dist x c) ^ 2 • (x -ᵥ c)`, where `c` and `R` are the center and the radius the
 sphere. -/
 def inversion (c : P) (R : ℝ) (x : P) : P := (R / dist x c) ^ 2 • (x -ᵥ c) +ᵥ c
+
+lemma inversion_vsub_center (c : P) (R : ℝ) (x : P) :
+  inversion c R x -ᵥ c = (R / dist x c) ^ 2 • (x -ᵥ c) :=
+vadd_vsub _ _
 
 @[simp] lemma inversion_self (c : P) (R : ℝ) : inversion c R c = c := by simp [inversion]
 
@@ -56,6 +60,31 @@ begin
   have : dist x c ≠ 0, from dist_ne_zero.2 hx,
   field_simp [inversion, norm_smul, norm_eq_abs, abs_div, ← dist_eq_norm_vsub, sq, mul_assoc]
 end
+
+/-- Distance from the center of an inversion to the image of a point under the inversion. This
+formula accidentally works for `x = c`. -/
+lemma dist_center_inversion (c x : P) (R : ℝ) : dist c (inversion c R x) = R ^ 2 / dist x c :=
+(dist_comm _ _).trans (dist_inversion_center _ _ _)
+
+lemma inversion_involutive (c : P) {R : ℝ} (hR : R ≠ 0) : involutive (inversion c R) :=
+begin
+  intro x,
+  rcases eq_or_ne x c with rfl|hne,
+  { rw [inversion_self, inversion_self] },
+  { rw [inversion, dist_inversion_center, inversion_vsub_center, smul_smul, ← mul_pow,
+      div_mul_div_comm, div_mul_cancel _ (dist_ne_zero.2 hne), ← sq, div_self, one_pow, one_smul,
+      vsub_vadd],
+   exact pow_ne_zero _ hR }
+end
+
+lemma inversion_surjective (c : P) {R : ℝ} (hR : R ≠ 0) : surjective (inversion c R) :=
+(inversion_involutive c hR).surjective
+
+lemma inversion_injective (c : P) {R : ℝ} (hR : R ≠ 0) : injective (inversion c R) :=
+(inversion_involutive c hR).injective
+
+lemma inversion_bijective (c : P) {R : ℝ} (hR : R ≠ 0) : bijective (inversion c R) :=
+(inversion_involutive c hR).bijective
 
 /-- Distance between the images of two points under an inversion. -/
 lemma dist_inversion_inversion (hx : x ≠ c) (hy : y ≠ c) (R : ℝ) :

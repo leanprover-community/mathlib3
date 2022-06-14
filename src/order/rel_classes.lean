@@ -282,6 +282,9 @@ by simp only [bounded, unbounded, not_forall, not_exists, exists_prop, not_and, 
 @[simp] lemma not_unbounded_iff {r : α → α → Prop} (s : set α) : ¬unbounded r s ↔ bounded r s :=
 by rw [not_iff_comm, not_bounded_iff]
 
+lemma unbounded_of_is_empty [is_empty α] {r : α → α → Prop} (s : set α) : unbounded r s :=
+is_empty_elim 
+
 end set
 
 namespace prod

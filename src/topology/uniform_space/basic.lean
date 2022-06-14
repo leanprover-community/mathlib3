@@ -1128,6 +1128,31 @@ lemma uniform_space.comap_comap {α β γ} [uγ : uniform_space γ] {f : α → 
   uniform_space.comap (g ∘ f) uγ = uniform_space.comap f (uniform_space.comap g uγ) :=
 by ext ; dsimp [uniform_space.comap] ; rw filter.comap_comap
 
+lemma uniform_space.comap_inf {α γ} {u₁ u₂ : uniform_space γ} {f : α → γ} :
+  (u₁ ⊓ u₂).comap f = u₁.comap f ⊓ u₂.comap f :=
+begin
+  ext : 1,
+  change (𝓤 _) = (𝓤 _),
+  simp [uniformity_comap rfl, inf_uniformity'],
+end
+
+lemma uniform_space.comap_infi {ι α γ} {u : ι → uniform_space γ} {f : α → γ} :
+  (⨅ i, u i).comap f = ⨅ i, (u i).comap f :=
+begin
+  ext : 1,
+  change (𝓤 _) = (𝓤 _),
+  simp [uniformity_comap rfl, infi_uniformity']
+end
+
+lemma uniform_space.comap_mono {α γ} {f : α → γ} :
+  monotone (λ u : uniform_space γ, u.comap f) :=
+begin
+  intros u₁ u₂ hu,
+  change (𝓤 _) ≤ (𝓤 _),
+  rw uniformity_comap rfl,
+  exact comap_mono hu
+end
+
 lemma uniform_continuous_iff {α β} [uα : uniform_space α] [uβ : uniform_space β] {f : α → β} :
   uniform_continuous f ↔ uα ≤ uβ.comap f :=
 filter.map_le_iff_le_comap

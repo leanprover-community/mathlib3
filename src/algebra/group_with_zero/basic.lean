@@ -1054,6 +1054,24 @@ end group_with_zero
 
 end monoid_with_zero_hom
 
+/-- We define the inverse as a `monoid_with_zero_hom` by extending the inverse map by zero
+on non-units. -/
+noncomputable
+def monoid_with_zero.inverse {M : Type*} [comm_monoid_with_zero M] :
+  M →*₀ M :=
+{ to_fun := ring.inverse,
+  map_zero' := ring.inverse_zero _,
+  map_one' := ring.inverse_one _,
+  map_mul' := λ x y, (ring.mul_inverse_rev x y).trans (mul_comm _ _) }
+
+@[simp]
+lemma monoid_with_zero.coe_inverse {M : Type*} [comm_monoid_with_zero M] :
+  (monoid_with_zero.inverse : M → M) = ring.inverse := rfl
+
+@[simp]
+lemma monoid_with_zero.inverse_apply {M : Type*} [comm_monoid_with_zero M] (a : M) :
+  monoid_with_zero.inverse a = ring.inverse a := rfl
+
 /-- Inversion on a commutative group with zero, considered as a monoid with zero homomorphism. -/
 def inv_monoid_with_zero_hom {G₀ : Type*} [comm_group_with_zero G₀] : G₀ →*₀ G₀ :=
 { to_fun := has_inv.inv,

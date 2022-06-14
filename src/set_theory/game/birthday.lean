@@ -114,7 +114,6 @@ by { rw birthday_def, simp }
 
 theorem birthday_one  : birthday 1    = 1 := by simp
 theorem birthday_star : birthday star = 1 := by simp
-theorem birthday_half : birthday half = 2 := by simp
 
 @[simp] theorem neg_birthday : ∀ x : pgame, (-x).birthday = x.birthday
 | ⟨xl, xr, xL, xR⟩ := begin

@@ -580,12 +580,18 @@ meta def to_implicit_binder : expr → expr
 | (pi n _ d b) := pi n binder_info.implicit d b
 | e  := e
 
-/--  Takes an `expr` and returns a list of its summands. -/
+/--  Takes an `expr` and returns a list of its summands.
+
+See the related `expr.list_binary_operands` in `tactic.core` for a `tactic` version that takes an
+arbitrary (binary) operation as a parameter. -/
 meta def list_summands : expr → list expr
 | `(has_add.add %%a %%b) := a.list_summands ++ b.list_summands
 | a                      := [a]
 
-/--  Takes an `expr` and returns a list of its factors. -/
+/--  Takes an `expr` and returns a list of its factors.
+
+See the related `expr.list_binary_operands` in `tactic.core` for a `tactic` version that takes an
+arbitrary (binary) operation as a parameter. -/
 meta def list_factors : expr → list expr
 | `(has_mul.mul %%a %%b) := a.list_summands ++ b.list_summands
 | a                      := [a]

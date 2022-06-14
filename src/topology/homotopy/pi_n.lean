@@ -60,6 +60,16 @@ namespace cube
   def boundary (n:nat) : set (I^n)
     := { y | ∃ i:fin n , y i = 0 ∨ y i = 1}
 
+  /--
+  The first projection of a non-zero dimensional cube
+  -/
+  @[simp] def head {n} : I^(n+1) -> I := λc,c 0
+
+  /--
+  The last `n` projection of an `n+1` dimensional cube
+  -/
+  @[simp] def tail {n} : I^(n+1) -> I^n := λc,fin.tail c
+
   instance unique_cube0 : unique (I^0)
     := { default := 0, uniq := by {intro a, ext1, exact x.elim0} }
 
@@ -73,16 +83,6 @@ namespace cube
     := begin ext1 i, rcases i with ⟨⟨_,_⟩,_⟩, reflexivity,
       exfalso, exact (nat.not_lt_zero _ (nat.le_of_succ_le_succ i_property))
     end
-
-  /--
-  The first projection of a non-zero dimensional cube
-  -/
-  @[simp] def head {n} : I^(n+1) -> I := λc,c 0
-
-  /--
-  The last `n` projection of an `n+1` dimensional cube
-  -/
-  @[simp] def tail {n} : I^(n+1) -> I^n := λc,fin.tail c
 end cube
 
 /--
@@ -105,9 +105,9 @@ namespace pre_π
 
   @[simp] lemma mk_apply (f : C(I^n, X)) (H y) : (⟨f, H⟩ : pre_π n x)  y = f y :=
       rfl
-
+  def const : pre_π n x := ⟨⟨λ_x,by continuity⟩,λ_ _,rfl⟩
   instance inhabited : inhabited (pre_π n x) :=
-    { default := ⟨⟨λ_x,by continuity⟩,λ_ _,rfl⟩ }
+    { default := const }
 
   /--
   Homotopies are functions I×I^n → X
@@ -193,7 +193,7 @@ namespace pre_π
     end
 
     instance inhabited : inhabited
-      ( (⟨⟨λ_x,by continuity⟩,λ_ _,rfl⟩:pre_π n x).homotopy ⟨⟨λ_x,by continuity⟩,λ_ _,rfl⟩ ) :=
+      ( (const:pre_π n x).homotopy const ) :=
       { default := { to_fun := λ_,x,
         continuous_to_fun := by continuity,
         map_zero_left' := λ_,rfl,
@@ -227,10 +227,8 @@ equivalence
 -/
 def π (n : nat) (x : X) := quotient (pre_π.homotopic.setoid n x)
 
-namespace π
-  instance inhabited : inhabited (π n x) :=
-    { default :=  quotient.mk' ⟨⟨λ_x,by continuity⟩,λ_ _,rfl⟩ }
-end π
+instance π.inhabited : inhabited (π n x) :=
+  { default :=  quotient.mk' ⟨⟨λ_x,by continuity⟩,λ_ _,rfl⟩ }
 
 variable (X)
 /--
@@ -360,5 +358,3 @@ def pi1_equiv_fundamental_group : π 1 x ≃ category_theory.End (fundamental_gr
     rcases p with ⟨⟨p,Hcont⟩,H0,H1⟩,
     constructor
     end }
-
-#lint

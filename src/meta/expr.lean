@@ -580,9 +580,28 @@ meta def to_implicit_binder : expr → expr
 | (pi n _ d b) := pi n binder_info.implicit d b
 | e  := e
 
+/--  Given an expression `f` (likely a binary operation) and a further expression `x`, calling
+`list_binary_operands f x` breaks `x` apart into successions of applications of `f` until this can
+no longer be done and returns a list of the leaves of the process.
+
+E.g. (code not actually working) `list_binary_operands + (3 + (4 * 5 + 6) + 7 / 3)` returns
+`[3, 4 * 5, 6, 7 / 3]`. -/
+meta def list_binary_operands (f : expr) : expr → tactic (list expr)
+| x@(expr.app (expr.app g a) b) := do
+  some _ ← try_core (unify f g) | pure [x],
+  as ← a.list_binary_operands,
+  bs ← b.list_binary_operands,
+  pure (as ++ bs)
+| a                      := pure [a]
+
 /--  Takes an `expr` and returns a list of its summands. -/
 meta def list_summands : expr → list expr
 | `(has_add.add %%a %%b) := a.list_summands ++ b.list_summands
+| a                      := [a]
+
+/--  Takes an `expr` and returns a list of its factors. -/
+meta def list_factors : expr → list expr
+| `(has_mul.mul %%a %%b) := a.list_summands ++ b.list_summands
 | a                      := [a]
 
 /-- Returns a list of all local constants in an expression (without duplicates). -/

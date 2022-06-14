@@ -1072,7 +1072,8 @@ begin
 end
 
 /-- Formula for the distance between the images of two nonzero points under an inversion with center
-zero. See also `euclidean_geometry.dist_inversion_inversion`. -/
+zero. See also `euclidean_geometry.dist_inversion_inversion` for inversions around a general
+point. -/
 lemma dist_div_norm_sq_smul {x y : F} (hx : x ≠ 0) (hy : y ≠ 0) (R : ℝ) :
   dist ((R / ∥x∥) ^ 2 • x) ((R / ∥y∥) ^ 2 • y) = (R ^ 2 / (∥x∥ * ∥y∥)) * dist x y :=
 have hx' : ∥x∥ ≠ 0, from norm_ne_zero_iff.2 hx,

@@ -150,7 +150,7 @@ Fiber bundle, topological bundle, local trivialization, structure group
 
 variables {ι : Type*} {B : Type*} {F : Type*}
 
-open topological_space filter set
+open topological_space filter set bundle
 open_locale topological_space classical
 
 /-! ### General definition of topological fiber bundles -/
@@ -769,15 +769,14 @@ namespace bundle
 
 variable (E : B → Type*)
 
-attribute [mfld_simps] proj total_space_mk coe_fst coe_snd coe_snd_map_apply coe_snd_map_smul
-  total_space.mk_cast
+attribute [mfld_simps] total_space.proj total_space_mk coe_fst coe_snd coe_snd_map_apply
+  coe_snd_map_smul total_space.mk_cast
 
 instance [I : topological_space F] : ∀ x : B, topological_space (trivial B F x) := λ x, I
 
 instance [t₁ : topological_space B] [t₂ : topological_space F] :
   topological_space (total_space (trivial B F)) :=
-topological_space.induced (proj (trivial B F)) t₁ ⊓
-  topological_space.induced (trivial.proj_snd B F) t₂
+induced total_space.proj t₁ ⊓ induced (trivial.proj_snd B F) t₂
 
 end bundle
 
@@ -836,7 +835,7 @@ different name for typeclass inference. -/
 def total_space := bundle.total_space Z.fiber
 
 /-- The projection from the total space of a topological fiber bundle core, on its base. -/
-@[reducible, simp, mfld_simps] def proj : Z.total_space → B := bundle.proj Z.fiber
+@[reducible, simp, mfld_simps] def proj : Z.total_space → B := bundle.total_space.proj
 
 /-- Local homeomorphism version of the trivialization change. -/
 def triv_change (i j : ι) : local_homeomorph (B × F) (B × F) :=
@@ -929,7 +928,8 @@ begin
   { rintros ⟨x, v⟩ hx,
     simp only [triv_change, local_triv_as_local_equiv, local_equiv.symm, true_and, prod.mk.inj_iff,
       prod_mk_mem_set_prod_eq, local_equiv.trans_source, mem_inter_eq, and_true, mem_preimage, proj,
-      mem_univ, local_equiv.coe_mk, eq_self_iff_true, local_equiv.coe_trans, bundle.proj] at hx ⊢,
+      mem_univ, local_equiv.coe_mk, eq_self_iff_true, local_equiv.coe_trans,
+      total_space.proj] at hx ⊢,
     simp only [Z.coord_change_comp, hx, mem_inter_eq, and_self, mem_base_set_at], }
 end
 
@@ -1082,11 +1082,10 @@ trivialization.mem_target _
   b ∈ (Z.local_triv_at b).base_set :=
 by { rw [local_triv_at, ←base_set_at], exact Z.mem_base_set_at b, }
 
-open bundle
-
 /-- The inclusion of a fiber into the total space is a continuous map. -/
 @[continuity]
-lemma continuous_total_space_mk (b : B) : continuous (λ a, total_space_mk Z.fiber b a) :=
+lemma continuous_total_space_mk (b : B) :
+  continuous (total_space_mk b : Z.fiber b → bundle.total_space Z.fiber) :=
 begin
   rw [continuous_iff_le_induced, topological_fiber_bundle_core.to_topological_space],
   apply le_induced_generate_from,
@@ -1096,7 +1095,7 @@ begin
   rw [←((Z.local_triv i).source_inter_preimage_target_inter t), preimage_inter, ←preimage_comp,
     trivialization.source_eq],
   apply is_open.inter,
-  { simp only [bundle.proj, proj, ←preimage_comp],
+  { simp only [total_space.proj, proj, ←preimage_comp],
     by_cases (b ∈ (Z.local_triv i).base_set),
     { rw preimage_const_of_mem h, exact is_open_univ, },
     { rw preimage_const_of_not_mem h, exact is_open_empty, }},

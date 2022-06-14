@@ -78,15 +78,15 @@ theorem antisymm : (α ↪ β) → (β ↪ α) → nonempty (α ≃ β)
 end antisymm
 
 section wo
-parameters {ι : Type u} {β : ι → Type v}
+parameters {ι : Type u} (β : ι → Type v)
 
 @[reducible] private def sets := {s : set (∀ i, β i) |
   ∀ (x ∈ s) (y ∈ s) i, (x : ∀ i, β i) i = y i → x = y}
 
 /-- The cardinals are well-ordered. We express it here by the fact that in any set of cardinals
 there is an element that injects into the others. See `cardinal.linear_order` for (one of) the
-lattice instance. -/
-theorem min_injective (I : nonempty ι) : ∃ i, nonempty (∀ j, β i ↪ β j) :=
+lattice instances. -/
+theorem min_injective [I : nonempty ι] : ∃ i, nonempty (∀ j, β i ↪ β j) :=
 let ⟨s, hs, ms⟩ := show ∃ s ∈ sets, ∀ a ∈ sets, s ⊆ a → a = s, from
   zorn_subset sets (λ c hc hcc, ⟨⋃₀ c,
     λ x ⟨p, hpc, hxp⟩ y ⟨q, hqc, hyq⟩ i hi, (hcc.total hpc hqc).elim
@@ -114,7 +114,7 @@ end wo
 
 /-- The cardinals are totally ordered. See `cardinal.linear_order` for (one of) the lattice
 instance. -/
-theorem total {α : Type u} {β : Type v} : nonempty (α ↪ β) ∨ nonempty (β ↪ α) :=
+theorem total (α : Type u) (β : Type v) : nonempty (α ↪ β) ∨ nonempty (β ↪ α) :=
 match @min_injective bool (λ b, cond b (ulift α) (ulift.{(max u v) v} β)) ⟨tt⟩ with
 | ⟨tt, ⟨h⟩⟩ := let ⟨f, hf⟩ := h ff in or.inl ⟨embedding.congr equiv.ulift equiv.ulift ⟨f, hf⟩⟩
 | ⟨ff, ⟨h⟩⟩ := let ⟨f, hf⟩ := h tt in or.inr ⟨embedding.congr equiv.ulift equiv.ulift ⟨f, hf⟩⟩

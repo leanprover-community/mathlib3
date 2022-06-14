@@ -51,7 +51,7 @@ Matiyasevic's theorem, Hilbert's tenth problem
 
 open fin2 function nat sum
 
-local infixr ` ::ₒ `:67 := option.cons
+local infixr ` ::ₒ `:67 := option.elim
 local infixr ` ⊗ `:65 := sum.elim
 
 universe u
@@ -349,7 +349,7 @@ ext (dioph_fn_comp1 (reindex_dioph _ (none :: some) d) df) $ λ v,
 theorem vec_ex1_dioph (n) {S : set (vector3 ℕ (succ n))} (d : dioph S) :
   dioph {v : fin2 n → ℕ | ∃ x, x :: v ∈ S} :=
 ext (ex1_dioph $ reindex_dioph _ (none :: some) d) $ λ v, exists_congr $ λ x, by { dsimp,
-  rw [show (option.cons x v) ∘ (cons none some) = x :: v,
+  rw [show option.elim x v ∘ cons none some = x :: v,
   from funext $ λ s, by cases s with a b; refl] }
 
 lemma dioph_fn_vec (f : vector3 ℕ n → ℕ) : dioph_fn f ↔ dioph {v | f (v ∘ fs) = v fz} :=

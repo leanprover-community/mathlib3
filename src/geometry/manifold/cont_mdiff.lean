@@ -1558,7 +1558,7 @@ begin
   { apply is_open.mem_nhds,
     apply (local_homeomorph.open_target _).preimage I.continuous_inv_fun,
     simp only with mfld_simps },
-  have A : mdifferentiable_at I I.tangent (λ (x : M), total_space_mk (tangent_space I) x 0) x :=
+  have A : mdifferentiable_at I I.tangent (λ x, @total_space_mk M (tangent_space I) x 0) x :=
     tangent_bundle.smooth_zero_section.mdifferentiable_at,
   have B : fderiv_within 𝕜 (λ (x_1 : E), (x_1, (0 : E))) (set.range ⇑I) (I ((chart_at H x) x)) v
     = (v, 0),

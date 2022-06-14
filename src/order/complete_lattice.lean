@@ -551,6 +551,9 @@ le_infi₂ $ λ i j, let ⟨i', j', h⟩ := h i j in infi₂_le_of_le i' j' h
 lemma supr_const_mono (h : ι → ι') : (⨆ i : ι, a) ≤ ⨆ j : ι', a := supr_le $ le_supr _ ∘ h
 lemma infi_const_mono (h : ι' → ι) : (⨅ i : ι, a) ≤ ⨅ j : ι', a := le_infi $ infi_le _ ∘ h
 
+lemma supr_infi_le_infi_supr (f : ι → ι' → α) : (⨆ i, ⨅ j, f i j) ≤ (⨅ j, ⨆ i, f i j) :=
+supr_le $ λ i, infi_mono $ λ j, le_supr _ i
+
 lemma bsupr_mono {p q : ι → Prop} (hpq : ∀ i, p i → q i) :
   (⨆ i (h : p i), f i) ≤ ⨆ i (h : q i), f i :=
 supr_mono $ λ i, supr_const_mono (hpq i)
@@ -739,6 +742,16 @@ le_antisymm
 
 -- TODO: should this be @[simp]?
 lemma infi_comm {f : ι → ι' → α} : (⨅ i j, f i j) = ⨅ j i, f i j := @supr_comm αᵒᵈ _ _ _ _
+
+lemma supr₂_comm {ι₁ ι₂ : Sort*} {κ₁ : ι₁ → Sort*} {κ₂ : ι₂ → Sort*}
+  (f : Π i₁, κ₁ i₁ → Π i₂, κ₂ i₂ → α) :
+  (⨆ i₁ j₁ i₂ j₂, f i₁ j₁ i₂ j₂) = ⨆ i₂ j₂ i₁ j₁, f i₁ j₁ i₂ j₂ :=
+by simp only [@supr_comm _ (κ₁ _), @supr_comm _ ι₁]
+
+lemma infi₂_comm {ι₁ ι₂ : Sort*} {κ₁ : ι₁ → Sort*} {κ₂ : ι₂ → Sort*}
+  (f : Π i₁, κ₁ i₁ → Π i₂, κ₂ i₂ → α) :
+  (⨅ i₁ j₁ i₂ j₂, f i₁ j₁ i₂ j₂) = ⨅ i₂ j₂ i₁ j₁, f i₁ j₁ i₂ j₂ :=
+by simp only [@infi_comm _ (κ₁ _), @infi_comm _ ι₁]
 
 /- TODO: this is strange. In the proof below, we get exactly the desired
    among the equalities, but close does not get it.
@@ -1092,7 +1105,7 @@ lemma infi_ne_top_subtype (f : ι → α) : (⨅ i : {i // f i ≠ ⊤}, f i) = 
 ### `supr` and `infi` under `ℕ`
 -/
 
-lemma supr_ge_eq_supr_nat_add {u : ℕ → α} (n : ℕ) : (⨆ i ≥ n, u i) = ⨆ i, u (i + n) :=
+lemma supr_ge_eq_supr_nat_add (u : ℕ → α) (n : ℕ) : (⨆ i ≥ n, u i) = ⨆ i, u (i + n) :=
 begin
   apply le_antisymm;
   simp only [supr_le_iff],
@@ -1100,12 +1113,16 @@ begin
   { exact λ i, le_Sup ⟨i + n, supr_pos (nat.le_add_left _ _)⟩ }
 end
 
-lemma infi_ge_eq_infi_nat_add {u : ℕ → α} (n : ℕ) : (⨅ i ≥ n, u i) = ⨅ i, u (i + n) :=
+lemma infi_ge_eq_infi_nat_add (u : ℕ → α) (n : ℕ) : (⨅ i ≥ n, u i) = ⨅ i, u (i + n) :=
 @supr_ge_eq_supr_nat_add αᵒᵈ _ _ _
 
 lemma monotone.supr_nat_add {f : ℕ → α} (hf : monotone f) (k : ℕ) :
   (⨆ n, f (n + k)) = ⨆ n, f n :=
 le_antisymm (supr_le $ λ i, le_supr _ (i + k)) $ supr_mono $ λ i, hf $ nat.le_add_right i k
+
+lemma antitone.infi_nat_add {f : ℕ → α} (hf : antitone f) (k : ℕ) :
+  (⨅ n, f (n + k)) = ⨅ n, f n :=
+hf.dual_right.supr_nat_add k
 
 @[simp] lemma supr_infi_ge_nat_add (f : ℕ → α) (k : ℕ) :
   (⨆ n, ⨅ i ≥ n, f (i + k)) = ⨆ n, ⨅ i ≥ n, f i :=
@@ -1261,6 +1278,12 @@ supr₂_le $ λ i h, inf_le_inf_left _ (le_Sup h)
 /-- This is a weaker version of `Sup_inf_eq` -/
 lemma supr_inf_le_Sup_inf : (⨆ b ∈ s, b ⊓ a) ≤ Sup s ⊓ a :=
 supr₂_le $ λ i h, inf_le_inf_right _ (le_Sup h)
+
+lemma le_supr_inf_supr (f g : ι → α) : (⨆ i, f i ⊓ g i) ≤ (⨆ i, f i) ⊓ (⨆ i, g i) :=
+le_inf (supr_mono $ λ i, inf_le_left) (supr_mono $ λ i, inf_le_right)
+
+lemma infi_sup_infi_le (f g : ι → α) : (⨅ i, f i) ⊔ (⨅ i, g i) ≤ ⨅ i, f i ⊔ g i :=
+@le_supr_inf_supr αᵒᵈ ι _ f g
 
 lemma disjoint_Sup_left {a : set α} {b : α} (d : disjoint (Sup a) b) {i} (hi : i ∈ a) :
   disjoint i b :=

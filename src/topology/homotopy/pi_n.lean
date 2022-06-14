@@ -258,42 +258,61 @@ The first homotopy group at x is equivalent to the endomorphisms of x in the fun
 -/
 def pi1_equiv_fundamental_group : π 1 x ≃ category_theory.End (fundamental_groupoid.mk x) :=
 { to_fun := begin
-    refine quotient.map' (λ⟨⟨f,Hcont⟩,Hf⟩, path.mk ⟨λt,f (λ_,t), by continuity⟩
-        (Hf (λ_,0) ⟨0,by {left, refl}⟩)
-        (Hf (λ_,1) ⟨1,by {right, refl}⟩)) _,
-    rintros ⟨⟨f,Hfc⟩,Hf⟩ ⟨⟨g,Hgc⟩,Hg⟩ ⟨⟨⟨h,Hhcont⟩,H0,H1⟩,Hh⟩,
+    refine quotient.map' (λp, path.mk ⟨λt,p (λ_,t), by {continuity, exact p.1.2}⟩
+        (p.boundary (λ_,0) ⟨0,by {left, refl}⟩)
+        (p.boundary (λ_,1) ⟨1,by {right, refl}⟩)) _,
+    rintros f g ⟨H⟩,
     constructor,
     refine
-    { to_fun := λx,h ⟨x.fst,λ_,x.snd⟩,
-      continuous_to_fun := by continuity,
-      map_zero_left' := λx,H0 (λ_,x),
-      map_one_left' := λx,H1 (λ_,x),
+    { to_fun := λx,H (fin.cons x.fst (λ_,x.snd)),
+      continuous_to_fun := begin
+        simp only [cube.head, cube.tail, pre_π.homotopy.coe_def,
+        fin.cons_zero, fin.tail_cons, continuous_map.homotopy_with.coe_to_homotopy],
+        continuity end,
+      map_zero_left' := λx,by simp only [pre_π.homotopy.at0, continuous_map.coe_mk],
+      map_one_left' := λx,by simp only [pre_π.homotopy.at1, continuous_map.coe_mk],
       prop' := begin
-        rintros t x' ⟨_,_⟩,
-        { specialize (Hh t (λ_,0) ⟨0,by {left, refl}⟩),
-          simp only [continuous_map.coe_mk] at Hh, simp [← Hh] },
-        rcases H, specialize (Hh t (λ_,1) ⟨1,by {right, refl}⟩),
-        simp only [continuous_map.coe_mk] at Hh, simp [← Hh]
+        rintros t x' H0, cases H0, -- ⟨_ | ⟨_⟩⟩,
+        { simp only [cube.head, cube.tail, pre_π.homotopy.coe_def, fin.cons_zero, fin.tail_cons,
+            continuous_map.homotopy_with.coe_to_homotopy, continuous_map.coe_mk],
+          rw H0,
+          have Hh := (H.prop' t (λ_,0) ⟨0,by {left, refl}⟩),
+          simp only [continuous_map.coe_mk] at Hh, exact Hh },
+        have Hh := (H.prop' t (λ_,x') ⟨1,by {right, apply H0}⟩),
+        simp only [continuous_map.to_fun_eq_coe, continuous_map.homotopy_with.coe_to_continuous_map,
+          continuous_map.coe_mk] at Hh,
+        simp only [cube.head, cube.tail, pre_π.homotopy.coe_def, fin.cons_zero, fin.tail_cons,
+          continuous_map.homotopy_with.coe_to_homotopy, continuous_map.coe_mk],
+        exact Hh
         end },
     end,
   inv_fun := begin
-    refine quotient.map' _ _,
-    { rintros ⟨⟨f,Hcont⟩,H0,H1⟩,
-      refine ⟨⟨(λh,f (h 0)), by continuity⟩, _⟩,
-      rintros y ⟨i,H⟩,
+    refine quotient.map' (λf,⟨⟨(λh,f (h 0)), by continuity⟩, _⟩) _,
+    { rintros y ⟨i,H⟩,
       simp only [cube.one_indep y 0 i],
       rcases H,
-      { simp only [H], exact H0, },
-      simp only [H], exact H1 },
-    rintros ⟨⟨f,Hfcont⟩,Hf0,Hf1⟩ ⟨⟨g,Hgcont⟩,Hg0,Hg1⟩ ⟨⟨⟨h,Hhcont⟩,Hh0,Hh1⟩,Hh⟩,
-    constructor,
-    refine ⟨⟨⟨λx,h ⟨x.fst,x.snd 0⟩,_⟩,(λx,Hh0 (x 0)),(λx,Hh1 (x 0))⟩,_⟩,
-    { have h:(λ(x:↥I×I^1), x.snd 0)=(λ(x:I^1), x 0) ∘ prod.snd,
-      { ext1, simp },
-      continuity, rw h, apply continuous.comp, continuity },
-    rintros t x ⟨i,H⟩,
-    specialize (Hh t (x 0) (by simp [cube.one_indep x 0 i, H])),
-    simp only [subtype.coe_eta] at Hh, exact Hh
+      { simp only [H], exact f.source' },
+      simp only [H], exact f.target' },
+    rintros f g ⟨H⟩,
+    constructor, simp, refine
+    { to_fun := λx,H (x.fst, x.snd.head),
+      continuous_to_fun := begin
+        simp only [cube.head], continuity,
+        have h:(λ(x:↥I×I^1), x.snd 0)=(λ(x:I^1), x 0) ∘ prod.snd := by { ext1, simp },
+        rw h, apply continuous.comp; continuity end,
+      map_zero_left' := by simp only [cube.head, eq_self_iff_true,
+        continuous_map.homotopy_with.apply_zero, path.coe_to_continuous_map,
+        continuous_map.coe_mk, forall_const],
+      map_one_left' := by simp only [cube.head, eq_self_iff_true,
+        continuous_map.homotopy_with.apply_one, path.coe_to_continuous_map,
+        continuous_map.coe_mk, forall_const],
+      prop' := _ },
+    rintros t x ⟨i,H'⟩,
+    have Hh := (H.prop' t (x 0) (by simp [cube.one_indep x 0 i, H'])),
+    simp only [continuous_map.to_fun_eq_coe,
+      continuous_map.homotopy_with.coe_to_continuous_map, continuous_map.coe_mk,
+      path.coe_to_continuous_map] at Hh,
+    exact Hh
     end,
   left_inv := begin
     intro p, induction p using quotient.induction_on',
@@ -301,9 +320,11 @@ def pi1_equiv_fundamental_group : π 1 x ≃ category_theory.End (fundamental_gr
     simp only [quotient.map'_mk', quotient.eq'],
     constructor,
     refine ⟨⟨⟨(λx,p x.snd),by continuity⟩,_,by simp⟩,_⟩,
-    { intro y, rw (cube.one_char y), simp },
+    { intro y, rw (cube.one_char y),
+      simp only [pre_π.mk_apply, continuous_map.coe_mk, path.coe_mk]},
     rintros t y ⟨i,H⟩,
-    rw (cube.one_char y), simp,
+    rw (cube.one_char y),
+    simp only [pre_π.mk_apply, continuous_map.coe_mk, path.coe_mk, and_self],
     end,
   right_inv := begin
     intro p, induction p using quotient.induction_on',

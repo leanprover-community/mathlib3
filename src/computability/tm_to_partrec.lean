@@ -1005,7 +1005,7 @@ def split_at_pred {α} (p : α → bool) : list α → list α × option α × l
 
 theorem split_at_pred_eq {α} (p : α → bool) : ∀ L l₁ o l₂,
   (∀ x ∈ l₁, p x = ff) →
-  option.elim o (L = l₁ ∧ l₂ = []) (λ a, p a = tt ∧ L = l₁ ++ a :: l₂) →
+  option.elim (L = l₁ ∧ l₂ = []) (λ a, p a = tt ∧ L = l₁ ++ a :: l₂) o →
   split_at_pred p L = (l₁, o, l₂)
 | [] _ none _ _ ⟨rfl, rfl⟩ := rfl
 | [] l₁ (some o) l₂ h₁ ⟨h₂, h₃⟩ := by simp at h₃; contradiction

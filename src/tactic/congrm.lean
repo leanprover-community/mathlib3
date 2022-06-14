@@ -94,23 +94,28 @@ open tactic interactive
 setup_tactic_parser
 
 /--
-`congrm e` assumes that the goal is of the form `lhs = rhs` or `lhs ↔ rhs`.
-`congrm e` scans `e, lhs, rhs` in parallel.
-Assuming that the three expressions are successions of function applications, lambdas or pis,
-`congrm e` uses `e` as a pattern to decide what to do in corresponding places of `lhs` and `rhs`.
+Assume that the goal is of the form `lhs = rhs` or `lhs ↔ rhs`.
+`congrm e` takes an expression `e` containing placeholders `_` and scans `e, lhs, rhs` in parallel.
 
-If `e` has a meta-variable in a location, then the tactic produces a side-goal with
-the equality of the corresponding locations in `lhs, rhs`.
+It matches both `lhs` and `rhs` to the pattern `e`, and produces one goal for each placeholder,
+stating that the corresponding subexpressions in `lhs` and `rhs` are equal.
 
-If `e` is a function application, `congrm` applies the automatically generated congruence lemma
-(like `tactic.congr`).
+Examples:
+```lean
+example {a b c d : ℕ} :
+  nat.pred a.succ * (d + (c + a.pred)) = nat.pred b.succ * (b + (c + d.pred)) :=
+begin
+  congrm nat.pred (nat.succ _) * (_ + _),
+/-  Goals left:
+⊢ a = b
+⊢ d = b
+⊢ c + a.pred = c + d.pred
+-/
+  sorry,
+  sorry,
+  sorry,
+end
 
-If `e` is a lambda abstraction, `congrm` applies `funext`.
-If `e` is a pi, `congrm` applies `pi_congr`.
-
-Subexpressions that are defeq or whose type is a subsingleton are skipped.
-
-```
 example {a b : ℕ} (h : a = b) : (λ y : ℕ, ∀ z, a + a = z) = (λ x, ∀ z, b + a = z) :=
 begin
   congrm λ x, ∀ w, _ + a = w,

@@ -1,10 +1,30 @@
+/-
+Copyright (c) 2022 Pierre-Alexandre Bazin. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Pierre-Alexandre Bazin
+-/
 import data.zmod.quotient
 import algebra.module.pid
+
+/-!
+# Structure of finite(ly generated) abelian groups
+
+* `add_comm_group.equiv_free_prod_direct_sum_zmod` : Any finitely generated abelian group is the
+  product of a power of `ℤ` and a direct sum of some `zmod (p i ^ e i)` for some prime powers
+  `p i ^ e i`.
+* `add_comm_group.equiv_direct_sum_zmod_of_fintype` : Any finite abelian group is a direct sum of
+  some `zmod (p i ^ e i)` for some prime powers `p i ^ e i`.
+
+-/
+
 
 open_locale direct_sum
 
 namespace add_comm_group
 
+/-- **Structure theorem of finitely generated abelian groups** : Any finitely generated abelian
+group is the product of a power of `ℤ` and a direct sum of some `zmod (p i ^ e i)` for some
+prime powers `p i ^ e i`.-/
 theorem equiv_free_prod_direct_sum_zmod (G : Type*) [add_comm_group G] [hG : add_group.fg G] :
   ∃ (n : ℕ) (ι : Type) [fintype ι] (p : ι → ℕ) [∀ i, nat.prime $ p i] (e : ι → ℕ),
   nonempty $ G ≃+ (fin n →₀ ℤ) × ⨁ (i : ι), zmod (p i ^ e i) :=
@@ -18,6 +38,8 @@ begin
       zmod.ring_equiv_congr $ (p i).nat_abs_pow _).to_add_equiv)
 end
 
+/-- **Structure theorem of finite abelian groups** : Any finite abelian group is a direct sum of
+some `zmod (p i ^ e i)` for some prime powers `p i ^ e i`.-/
 theorem equiv_direct_sum_zmod_of_fintype (G : Type*) [add_comm_group G] [fintype G] :
   ∃ (ι : Type) [fintype ι] (p : ι → ℕ) [∀ i, nat.prime $ p i] (e : ι → ℕ),
   nonempty $ G ≃+ ⨁ (i : ι), zmod (p i ^ e i) :=

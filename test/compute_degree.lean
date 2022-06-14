@@ -134,6 +134,12 @@ begin
   compute_degree
 end
 
+example [nontrivial R] : (monomial 5 c * monomial 1 c + monomial 7 d + monomial 9 1 +
+    C a * X ^ 0 + C b * X ^ 5 + C c * X ^ 2 + X ^ 10 + C e * X).nat_degree = 10 :=
+begin
+  compute_degree [_ ^ 10],
+end
+
 example (h : (9 : with_bot ℕ) = 10) : degree (monomial 5 c * monomial 1 c + monomial 7 d +
   C a * X ^ 0 + C b * X ^ 5 + C c * X ^ 2 + X ^ 10 + C e * X) = 9 :=
 begin

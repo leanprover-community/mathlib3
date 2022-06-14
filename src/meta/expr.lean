@@ -580,26 +580,6 @@ meta def to_implicit_binder : expr → expr
 | (pi n _ d b) := pi n binder_info.implicit d b
 | e  := e
 
-/--  Given an expression `f` (likely a binary operation) and a further expression `x`, calling
-`list_binary_operands f x` breaks `x` apart into successions of applications of `f` until this can
-no longer be done and returns a list of the leaves of the process.
-
-For example:
-```lean
-#eval list_binary_operands `(@has_add.add ℕ _) `(3 + (4 * 5 + 6) + 7 / 3) >>= tactic.trace
--- [3, 4 * 5, 6, 7 / 3]
-#eval list_binary_operands `(@list.append ℕ) `([1, 2] ++ [3, 4] ++ (1 :: [])) >>= tactic.trace
--- [[1, 2], [3, 4], [1]]
-```
--/
-meta def list_binary_operands (f : expr) : expr → tactic (list expr)
-| x@(expr.app (expr.app g a) b) := do
-  some _ ← try_core (unify f g) | pure [x],
-  as ← a.list_binary_operands,
-  bs ← b.list_binary_operands,
-  pure (as ++ bs)
-| a                      := pure [a]
-
 /--  Takes an `expr` and returns a list of its summands. -/
 meta def list_summands : expr → list expr
 | `(has_add.add %%a %%b) := a.list_summands ++ b.list_summands

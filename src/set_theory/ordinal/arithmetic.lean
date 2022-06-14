@@ -352,6 +352,17 @@ end
 theorem out_no_max_of_succ_lt {o : ordinal} (ho : ∀ a < o, succ a < o) : no_max_order o.out.α :=
 ⟨has_succ_of_type_succ_lt (by rwa type_lt)⟩
 
+lemma bounded_singleton {r : α → α → Prop} [is_well_order α r] (hr : (type r).is_limit) (x) :
+  bounded r {x} :=
+begin
+  refine ⟨enum r (succ (typein r x)) (hr.2 _ (typein_lt_type r x)), _⟩,
+  intros b hb,
+  rw mem_singleton_iff.1 hb,
+  nth_rewrite 0 ←enum_typein r x,
+  rw @enum_lt_enum _ r,
+  apply lt_succ
+end
+
 lemma type_subrel_lt (o : ordinal.{u}) :
   type (subrel (<) {o' : ordinal | o' < o}) = ordinal.lift.{u+1} o :=
 begin

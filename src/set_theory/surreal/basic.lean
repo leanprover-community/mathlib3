@@ -298,16 +298,16 @@ begin
 end
 
 lemma P3_neg : P3 x₁ x₂ y₁ y₂ ↔ P3 (-x₂) (-x₁) y₁ y₂ :=
-by { simp only [P3, quot_neg_mul], rw ← neg_lt_neg_iff, convert iff.rfl; abel }
+by { simp only [P3, quot_neg_mul], rw ← _root_.neg_lt_neg_iff, convert iff.rfl; abel }
 
-lemma P2_negx : P2 x₁ x₂ y ↔ P2 (-x₂) (-x₁) y :=
-iff.imp (by rw [equiv_comm, neg_equiv_iff]) (by rw [quot_neg_mul, quot_neg_mul, eq_comm, neg_inj])
+lemma P2_negx : P2 x₁ x₂ y ↔ P2 (-x₂) (-x₁) y := iff.imp
+  (by rw [equiv_comm, neg_equiv_neg_iff]) (by rw [quot_neg_mul, quot_neg_mul, eq_comm, neg_inj])
 
 lemma P2_negy : P2 x₁ x₂ y ↔ P2 x₁ x₂ (-y) :=
 iff.rfl.imp $ by rw [quot_mul_neg, quot_mul_neg, neg_inj]
 
 lemma P4_negx : P4 x₁ x₂ y ↔ P4 (-x₂) (-x₁) y :=
-iff.imp (by rw neg_lt_iff) $ and_congr (forall_congr $ λ _, P3_neg) (forall_congr $ λ _, P3_neg)
+iff.imp (by rw neg_lt_neg_iff) $ and_congr (forall_congr $ λ _, P3_neg) (forall_congr $ λ _, P3_neg)
 
 lemma P4_negy : P4 x₁ x₂ y ↔ P4 x₁ x₂ (-y) := iff.rfl.imp $ by rw [neg_neg, and_comm]
 
@@ -540,7 +540,7 @@ end
 theorem mul_right_le_of_equiv (h₁ : x₁.numeric) (h₂ : x₂.numeric)
   (h₁₂ : ih24 x₁ x₂ y) (h₂₁ : ih24 x₂ x₁ y) (he : x₁ ≈ x₂) : x₁ * y ≤ x₂ * y :=
 le_of_forall_lt begin
-  have he' := neg_congr he, simp_rw lt_iff_game_lt,
+  have he' := neg_equiv_neg_iff.2 he, simp_rw lt_iff_game_lt,
   rw [left_moves_mul_iff (gt _), right_moves_mul_iff],
   refine ⟨⟨mul_option_lt_mul_of_equiv h₁ h₁₂ he, _⟩, _⟩,
   { rw ← quot_neg_mul_neg,
@@ -660,7 +660,7 @@ begin
   { have hi := hx₁.neg.move_left i,
     exact ⟨(P24 hx₂.neg hi hy₁).1, (P24 hx₂.neg hi hy₂).1,
       P3_comm.2 $ ((P24 hy₁ hy₂ hx₁).2 hy).2 _,
-      by { rw [move_left_neg', ← P3_neg, neg_lt_iff],
+      by { rw [move_left_neg', ← P3_neg, neg_lt_neg_iff],
         exact ih _ (fst $ is_option.move_right _) (hx₁.move_right _) hx₂ }⟩ },
 end
 omit hy₁ hy₂

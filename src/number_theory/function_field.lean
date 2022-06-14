@@ -122,7 +122,7 @@ begin
 end
 
 lemma not_is_field : ¬ is_field (ring_of_integers Fq F) :=
-by simpa [← (is_integral.is_field_iff_is_field (is_integral_closure.is_integral_algebra Fq[X] F)
+by simpa [← ((is_integral_closure.is_integral_algebra Fq[X] F).is_field_iff_is_field
   (algebra_map_injective Fq F))] using (polynomial.not_is_field Fq)
 
 variables [function_field Fq F]
@@ -238,10 +238,7 @@ lemma infty_valued_Fqt.def {x : ratfunc Fq} :
 def Fqt_infty := @uniform_space.completion (ratfunc Fq) $ (infty_valued_Fqt Fq).to_uniform_space
 
 instance : field (Fqt_infty Fq) :=
-begin
-  letI := infty_valued_Fqt Fq,
-  exact field_completion,
-end
+by { letI := infty_valued_Fqt Fq, exact uniform_space.completion.field }
 
 instance : inhabited (Fqt_infty Fq) := ⟨(0 : Fqt_infty Fq)⟩
 

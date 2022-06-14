@@ -42,7 +42,7 @@ graded_algebra.of_alg_hom _
     ext m,
     dsimp only [linear_map.comp_apply, alg_hom.to_linear_map_apply, alg_hom.comp_apply,
       alg_hom.id_apply],
-    rw [lift_ι_apply, graded_algebra.ι_apply, direct_sum.submodule_coe_alg_hom_of, subtype.coe_mk],
+    rw [lift_ι_apply, graded_algebra.ι_apply, direct_sum.coe_alg_hom_of, subtype.coe_mk],
   end)
   (λ i x, begin
     cases x with x hx,

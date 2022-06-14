@@ -42,7 +42,7 @@ lt_or_equiv_or_gt_or_fuzzy G 0
 lemma first_loses_is_zero {G : pgame} : G.first_loses ↔ G ≈ 0 := by refl
 
 lemma first_loses_of_equiv {G H : pgame} (h : G ≈ H) : G.first_loses → H.first_loses :=
-equiv_trans $ equiv_symm h
+h.symm.trans
 lemma first_wins_of_equiv {G H : pgame} (h : G ≈ H) : G.first_wins → H.first_wins :=
 (fuzzy_congr_left h).1
 lemma left_wins_of_equiv {G H : pgame} (h : G ≈ H) : G.left_wins → H.left_wins :=
@@ -51,7 +51,7 @@ lemma right_wins_of_equiv {G H : pgame} (h : G ≈ H) : G.right_wins → H.right
 (lt_congr_left h).1
 
 lemma first_loses_of_equiv_iff {G H : pgame} (h : G ≈ H) : G.first_loses ↔ H.first_loses :=
-⟨first_loses_of_equiv h, equiv_trans h⟩
+⟨first_loses_of_equiv h, h.trans⟩
 lemma first_wins_of_equiv_iff {G H : pgame} : G ≈ H → (G.first_wins ↔ H.first_wins) :=
 fuzzy_congr_left
 lemma left_wins_of_equiv_iff {G H : pgame} : G ≈ H → (G.left_wins ↔ H.left_wins) :=

@@ -413,7 +413,7 @@ apply_nolint monoid.to_opposite_mul_action to_additive_doc
 -- group_theory/group_action/pi.lean
 apply_nolint function.has_scalar to_additive_doc
 apply_nolint function.smul_comm_class to_additive_doc
-apply_nolint pi.has_faithful_scalar_at to_additive_doc
+apply_nolint pi.has_faithful_smul_at to_additive_doc
 
 -- group_theory/group_action/sub_mul_action.lean
 apply_nolint sub_mul_action.has_zero fails_quickly
@@ -497,9 +497,6 @@ apply_nolint tactic.add_coinductive_predicate.coind_rule doc_blame
 apply_nolint tactic.coinductive_predicate doc_blame
 apply_nolint tactic.interactive.coinduction doc_blame
 apply_nolint tactic.mono doc_blame
-
--- order/filter/at_top_bot.lean
-apply_nolint filter.map_at_top_finset_prod_le_of_prod_eq to_additive_doc
 
 -- order/prime_ideal.lean
 apply_nolint order.ideal.is_prime.is_maximal fails_quickly

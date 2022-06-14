@@ -189,6 +189,9 @@ begin
     neg_mul_eq_neg_mul],
 end
 
+lemma log_sqrt {x : ℝ} (hx : 0 ≤ x) : log (sqrt x) = log x / 2 :=
+by { rw [eq_div_iff, mul_comm, ← nat.cast_two, ← log_pow, sq_sqrt hx], exact two_ne_zero }
+
 lemma log_le_sub_one_of_pos {x : ℝ} (hx : 0 < x) : log x ≤ x - 1 :=
 begin
   rw le_sub_iff_add_le,
@@ -261,15 +264,14 @@ lemma tendsto_pow_log_div_mul_add_at_top (a b : ℝ) (n : ℕ) (ha : a ≠ 0) :
 ((tendsto_div_pow_mul_exp_add_at_top a b n ha.symm).comp tendsto_log_at_top).congr'
   (by filter_upwards [eventually_gt_at_top (0 : ℝ)] with x hx using by simp [exp_log hx])
 
-lemma is_o_pow_log_id_at_top {n : ℕ} : asymptotics.is_o (λ x, log x ^ n) id at_top :=
+lemma is_o_pow_log_id_at_top {n : ℕ} : (λ x, log x ^ n) =o[at_top] id :=
 begin
   rw asymptotics.is_o_iff_tendsto',
   { simpa using tendsto_pow_log_div_mul_add_at_top 1 0 n one_ne_zero },
   filter_upwards [eventually_ne_at_top (0 : ℝ)] with x h₁ h₂ using (h₁ h₂).elim,
 end
 
-lemma is_o_log_id_at_top : asymptotics.is_o log id at_top :=
-is_o_pow_log_id_at_top.congr_left (λ x, pow_one _)
+lemma is_o_log_id_at_top : log =o[at_top] id := is_o_pow_log_id_at_top.congr_left (λ x, pow_one _)
 
 end real
 

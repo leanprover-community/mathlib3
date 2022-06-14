@@ -323,7 +323,7 @@ fun_like.congr_fun h x
 def mul_equiv_of_unique_of_unique {M N}
   [unique M] [unique N] [has_mul M] [has_mul N] : M ≃* N :=
 { map_mul' := λ _ _, subsingleton.elim _ _,
-  ..equiv_of_unique_of_unique }
+  ..equiv.equiv_of_unique M N }
 
 /-- There is a unique monoid homomorphism between two monoids with a unique element. -/
 @[to_additive
@@ -664,24 +664,17 @@ end group_with_zero
 
 end equiv
 
-/-- When the group is commutative, `equiv.inv` is a `mul_equiv`. There is a variant of this
+/-- In a `division_comm_monoid`, `equiv.inv` is a `mul_equiv`. There is a variant of this
 `mul_equiv.inv' G : G ≃* Gᵐᵒᵖ` for the non-commutative case. -/
-@[to_additive "When the `add_group` is commutative, `equiv.neg` is an `add_equiv`."]
-def mul_equiv.inv (G : Type*) [comm_group G] : G ≃* G :=
+@[to_additive "When the `add_group` is commutative, `equiv.neg` is an `add_equiv`.", simps apply]
+def mul_equiv.inv (G : Type*) [division_comm_monoid G] : G ≃* G :=
 { to_fun   := has_inv.inv,
   inv_fun  := has_inv.inv,
   map_mul' := mul_inv,
   ..equiv.inv G }
 
-/-- When the group with zero is commutative, `equiv.inv₀` is a `mul_equiv`. -/
-@[simps apply] def mul_equiv.inv₀ (G : Type*) [comm_group_with_zero G] : G ≃* G :=
-{ to_fun   := has_inv.inv,
-  inv_fun  := has_inv.inv,
-  map_mul' := mul_inv,
-  ..equiv.inv G }
-
-@[simp] lemma mul_equiv.inv₀_symm (G : Type*) [comm_group_with_zero G] :
-  (mul_equiv.inv₀ G).symm = mul_equiv.inv₀ G := rfl
+@[simp] lemma mul_equiv.inv_symm (G : Type*) [division_comm_monoid G] :
+  (mul_equiv.inv G).symm = mul_equiv.inv G := rfl
 
 section type_tags
 

@@ -1394,7 +1394,7 @@ instance : has_scalar (hahn_series Γ R) (summable_family Γ R α) :=
       exact λ a ha, (set.add_subset_add (set.subset.refl _) (set.subset_Union _ a)) ha,
     end,
     finite_co_support' := λ g, begin
-      refine ((add_antidiagonal x.is_pwo_support s.is_pwo_Union_support g).finite_to_set.bUnion
+      refine ((add_antidiagonal x.is_pwo_support s.is_pwo_Union_support g).finite_to_set.bUnion'
         (λ ij hij, _)).subset (λ a ha, _),
       { exact λ ij hij, function.support (λ a, (s a).coeff ij.2) },
       { apply s.finite_co_support },

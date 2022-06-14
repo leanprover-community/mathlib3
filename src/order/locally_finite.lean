@@ -390,10 +390,10 @@ def fintype.to_locally_finite_order [fintype α] [@decidable_rel α (<)] [@decid
   finset_Ico := λ a b, univ.filter (∈ set.Ico a b),
   finset_Ioc := λ a b, univ.filter (∈ set.Ioc a b),
   finset_Ioo := λ a b, univ.filter (∈ set.Ioo a b),
-  finset_mem_Icc := λ a b x, by simp only [mem_filter, finset.mem_univ, true_and, set.mem_Icc],
-  finset_mem_Ico := λ a b x, by simp only [mem_filter, finset.mem_univ, true_and, set.mem_Ico],
-  finset_mem_Ioc := λ a b x, by simp only [mem_filter, finset.mem_univ, true_and, set.mem_Ioc],
-  finset_mem_Ioo := λ a b x, by simp only [mem_filter, finset.mem_univ, true_and, set.mem_Ioo] }
+  finset_mem_Icc := λ a b x, by simp only [mem_filter, mem_univ, true_and, set.mem_Icc],
+  finset_mem_Ico := λ a b x, by simp only [mem_filter, mem_univ, true_and, set.mem_Ico],
+  finset_mem_Ioc := λ a b x, by simp only [mem_filter, mem_univ, true_and, set.mem_Ioc],
+  finset_mem_Ioo := λ a b x, by simp only [mem_filter, mem_univ, true_and, set.mem_Ioo] }
 
 instance : subsingleton (locally_finite_order α) :=
 subsingleton.intro (λ h₀ h₁, begin

@@ -101,28 +101,6 @@ meta def list_head_op (op : pexpr) : bool → expr → tactic (list expr)
   return $ ec ++ fc ++ gc
 | bo e := return []
 
-/--  An auxiliary function to `list_binary_operands`:
-it takes an input `expr`, rather than a `pexpr`. -/
-meta def list_binary_operands_aux (f : expr) : expr → tactic (list expr)
-| x@(expr.app (expr.app g a) b) := do
-  some _ ← try_core (unify f g) | pure [x],
-  as ← list_binary_operands_aux a,
-  bs ← list_binary_operands_aux b,
-  pure (as ++ bs)
-| a                      := pure [a]
-
-/-- `list_binary_operands f x` produces a list of all the operands in `x`, ignoring associativity.
-The binary operation is the input `f`. -/
-meta def list_binary_operands (f : pexpr) (x : expr) : tactic (list expr) :=
-do
-  t ← infer_type x,
-  fe ← to_expr ``(%%f : %%t → %%t → %%t ),
-  list_binary_operands_aux fe x
-
-/--  Takes an `expr` and returns a list of its summands. -/
-meta def _root_.expr.list_summands (e : expr) : tactic (list expr) :=
-list_binary_operands ``((+)) e
-
 /--  Given a list `un` of `α`s and a list `bo` of `bool`s, return the sublist of `un`
 consisting of the entries of `un` whose corresponding entry in `bo` is `tt`.
 
@@ -188,7 +166,8 @@ We use this function for expressions in an (additive) commutative semigroup. -/
 meta def sorted_sum (hyp : option name) (ll : list (bool × pexpr)) (f : pexpr) (e : expr) :
   tactic (list bool) :=
 do
-  lisu ← list_binary_operands f e,
+  f ← to_expr f tt ff,
+  lisu ← expr.list_binary_operands f e,
   (sli, is_unused) ← final_sort ll lisu,
   match sli with
   | []       := return is_unused

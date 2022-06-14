@@ -17,7 +17,8 @@ This is a useful notion in various applications, but in particular it is relevan
 in coding theory, in which it is fundamental for defining the minimum distance of a
 code.
 
-In this file we define `ham β`, the type synonym of a Pi type with the Hamming distance `ham_dist` and weight `ham_wt` attached, and the various instances that arise
+In this file we define `ham β`, the type synonym of a Pi type with the Hamming
+distance `ham_dist` and weight `ham_wt` attached, and the various instances that arise
 from the properties of these definitions.
 
 -/
@@ -69,6 +70,7 @@ variables {β} [fintype ι] [Π i, decidable_eq (β i)]
 /--
 The Hamming distance function to the naturals.
 -/
+
 def ham_dist (x y : ham β) := card {i // x i ≠ y i}
 
 lemma ham_dist_smul_le [Π i, has_scalar α (β i)] (k : α) (x y : ham β) :
@@ -99,7 +101,7 @@ begin
           λ h, subtype.is_empty_of_false (λ i H, H (h _))⟩
 end
 
-lemma ham_dist_self (x : ham β) : ham_dist x x = 0 := ham_dist_eq_zero.mpr rfl
+@[simp] lemma ham_dist_self (x : ham β) : ham_dist x x = 0 := ham_dist_eq_zero.mpr rfl
 
 lemma eq_of_ham_dist_eq_zero (x y : ham β) :
 ham_dist x y = 0 → x = y := ham_dist_eq_zero.mp
@@ -110,7 +112,7 @@ not_iff_not.mpr ham_dist_eq_zero
 lemma ham_dist_pos {x y : ham β} : 0 < ham_dist x y ↔ x ≠ y :=
 by rw [←ham_dist_ne_zero, iff_not_comm, not_lt, nat.le_zero_iff]
 
-lemma ham_dist_eq_zero_iff_forall_eq {x y : ham β} :
+@[simp] lemma ham_dist_eq_zero_iff_forall_eq {x y : ham β} :
 ham_dist x y = 0 ↔ ∀ i, x i = y i := by rw [ham_dist_eq_zero, function.funext_iff]
 
 lemma ham_dist_ne_zero_iff_exists_ne {x y : ham β} :
@@ -123,21 +125,24 @@ variable [Π i, has_zero (β i)]
 /--
 The Hamming weight function to the naturals.
 -/
+
 def ham_wt (x : ham β) : ℕ := ham_dist x 0
-
-lemma ham_wt_smul_le [has_zero α] [Π i, smul_with_zero α (β i)] (k : α) (x : ham β) :
-ham_wt (k • x) ≤ ham_wt x :=
-by rw [ham_wt, ← smul_zero' (ham β) k]; exact ham_dist_smul_le _ _ _
-
-lemma ham_wt_smul [has_zero α] [Π i, smul_with_zero α (β i)] {k : α}
-(hk : ∀ i, is_smul_regular (β i) k) (x : ham β) : ham_wt x = ham_wt (k • x) :=
-by simp_rw ham_wt; nth_rewrite 1 ← smul_zero' (ham β) k; exact ham_dist_smul hk _ _
 
 lemma ham_wt_eq (x : ham β) : ham_wt x = card {i // x i ≠ 0} := rfl
 
+lemma ham_wt_eq_ham_dist_zero (x : ham β) : ham_wt x = ham_dist x 0 := rfl
+
+lemma ham_wt_smul_le [has_zero α] [Π i, smul_with_zero α (β i)] (k : α) (x : ham β) :
+ham_wt (k • x) ≤ ham_wt x :=
+by convert ham_dist_smul_le k x _; rw smul_zero'; refl
+
+lemma ham_wt_smul [has_zero α] [Π i, smul_with_zero α (β i)] {k : α}
+(hk : ∀ i, is_smul_regular (β i) k) (x : ham β) : ham_wt x = ham_wt (k • x) :=
+by convert ham_dist_smul hk _ _; rw smul_zero'; refl
+
 lemma ham_wt_eq_zero {x : ham β} : ham_wt x = 0 ↔ x = 0 := ham_dist_eq_zero
 
-lemma ham_wt_zero : ham_wt (0 : ham β) = 0 := ham_dist_self _
+@[simp] lemma ham_wt_zero : ham_wt (0 : ham β) = 0 := ham_dist_self _
 
 lemma zero_of_ham_wt_eq_zero (x : ham β) :
 ham_wt x = 0 → x = 0 := eq_of_ham_dist_eq_zero _ _
@@ -146,7 +151,7 @@ lemma ham_wt_ne_zero {x : ham β} : ham_wt x ≠ 0 ↔ x ≠ 0 := ham_dist_ne_ze
 
 lemma ham_wt_pos {x : ham β} : 0 < ham_wt x ↔ x ≠ 0 := ham_dist_pos
 
-lemma ham_wt_zero_iff_forall_zero {x : ham β} : ham_wt x = 0 ↔ ∀ i, x i = 0 :=
+@[simp] lemma ham_wt_zero_iff_forall_zero {x : ham β} : ham_wt x = 0 ↔ ∀ i, x i = 0 :=
 ham_dist_eq_zero_iff_forall_eq
 
 lemma ham_wt_pos_iff_exists_nz {x : ham β} : ham_wt x ≠ 0 ↔ ∃ i, x i ≠ 0 :=
@@ -156,7 +161,7 @@ end has_zero
 
 lemma ham_dist_eq_ham_wt_sub [Π i, add_group (β i)] (x y : ham β) :
 ham_dist x y = ham_wt (x - y) :=
-by simp_rw [ham_dist_eq, ham_wt_eq, pi.sub_apply, sub_ne_zero]
+by simp_rw [ham_wt_eq, ham_dist_eq, pi.sub_apply, sub_ne_zero]
 
 instance : has_dist (ham β) := ⟨λ x y, ham_dist x y⟩
 
@@ -184,19 +189,23 @@ instance [Π i, add_comm_group (β i)] : semi_normed_group (ham β) :=
 instance [Π i, add_comm_group (β i)] : normed_group (ham β) :=
 { ..ham.semi_normed_group }
 
+
 /-
 Want something like this:
+
 instance [Π i, add_comm_group (β i)] {α : Type*} [normed_field α]
-[Π i, module α (β i)] : normed_space α (ham β) := sorry
+[Π i, module α (β i)] : normed_space α (ham β) := {
+  norm_smul_le := sorry, ..ham.module }
 
 But this isn't true. There is no existing structure tha
  captures properties like ham_wt_smul_le.
 
 This is unfortunate - because the module structure ought to
 combine with the metric structure!
+
+Also... something is going wrong here with the inference of the module structure.
 -/
 
 end decidable_eq
 
 end hamming
-#lint

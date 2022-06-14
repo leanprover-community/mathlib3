@@ -96,9 +96,6 @@ protected lemma congr_fun {f g : C(α, β)} (H : f = g) (x : α) : f x = g x := 
 /-- Deprecated. Use `fun_like.congr_arg` instead. -/
 protected lemma congr_arg (f : C(α, β)) {x y : α} (h : x = y) : f x = f y := h ▸ rfl
 
-instance [inhabited β] : inhabited C(α, β) :=
-⟨{ to_fun := λ _, default, }⟩
-
 lemma coe_injective : @function.injective (C(α, β)) (α → β) coe_fn :=
 λ f g h, by cases f; cases g; congr'
 
@@ -131,6 +128,9 @@ protected def id : C(α, α) := ⟨id⟩
 def const (b : β) : C(α, β) := ⟨const α b⟩
 
 @[simp] lemma coe_const (b : β) : ⇑(const α b) = function.const α b := rfl
+
+instance [inhabited β] : inhabited C(α, β) :=
+⟨const α default⟩
 
 variables {α}
 

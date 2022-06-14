@@ -903,7 +903,8 @@ private theorem neg_le_lf_neg_iff :
   Π {x y : pgame.{u}}, (-y ≤ -x ↔ x ≤ y) ∧ (-y ⧏ -x ↔ x ⧏ y)
 | (mk xl xr xL xR) (mk yl yr yL yR) :=
 begin
-  simp only [neg_def, mk_le_mk, mk_lf_mk], simp only [← neg_def], split,
+  simp_rw [neg_def, mk_le_mk, mk_lf_mk, ← neg_def],
+  split,
   { rw and_comm, apply and_congr; exact forall_congr (λ _, neg_le_lf_neg_iff.2) },
   { rw or_comm, apply or_congr; exact exists_congr (λ _, neg_le_lf_neg_iff.1) },
 end

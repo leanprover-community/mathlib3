@@ -269,21 +269,19 @@ variables (F K E) [algebra K E] [is_scalar_tower F K E]
 /-- If `E/K/F` is a tower of fields with `K/F` normal then we have an equivalence
  (K →ₐ[F] E) ≃ (K ≃ₐ[F] K). -/
 def normal.alg_hom_equiv_aut [normal F K] : (K →ₐ[F] E) ≃ (K ≃ₐ[F] K) :=
-by refine equiv.mk (λ (σ : K →ₐ[F] E), (alg_hom.restrict_normal' σ K))
-  (λ σ, (is_scalar_tower.to_alg_hom F K E).comp σ.to_alg_hom)
-  begin
-    intro σ,
+{ to_fun := λ σ, alg_hom.restrict_normal' σ K,
+  inv_fun := λ σ, (is_scalar_tower.to_alg_hom F K E).comp σ.to_alg_hom,
+  left_inv := λ σ, begin
     ext,
     simp[alg_hom.restrict_normal'],
-  end
-  begin
-    intro σ,
+  end,
+  right_inv := λ σ, begin
     ext,
     simp only [alg_hom.restrict_normal', alg_equiv.to_alg_hom_eq_coe, alg_equiv.coe_of_bijective],
     apply no_zero_smul_divisors.algebra_map_injective K E,
     rw alg_hom.restrict_normal_commutes,
     simp,
-  end
+  end }
 
 
 end restrict

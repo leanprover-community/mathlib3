@@ -98,8 +98,7 @@ namespace pre_π
       coe_injective' := begin
         intros f g hfg, cases f, cases g,
         congr, ext1, exact congr_fun hfg _,
-      end
-    }
+        end }
 
   @[ext] lemma ext (f g : pre_π n x) (H : ∀ y, f y = g y) : f = g :=
     fun_like.ext f g H
@@ -123,8 +122,8 @@ namespace pre_π
         coe_injective' := begin
           rintros h1 h2 hfg, cases h1, cases h2,
           congr, ext1 ⟨x,y⟩, simpa only [fin.tail_cons] using congr_fun hfg (fin.cons x y),
-        end
-      }
+        end }
+
     @[continuity] lemma continuous : continuous H :=
       begin  refine H.continuous.comp _, continuity; apply continuous_apply  end
 
@@ -149,8 +148,8 @@ namespace pre_π
         boundary := λ y H, (begin
           simp, rw continuous_map.homotopy_rel.eq_fst,
           apply f.boundary, assumption, assumption,
-        end),
-      }
+        end), }
+
     @[simp] lemma eval0 : H.eval 0 = f :=
       begin ext, unfold eval,
         simp only [mk_apply, continuous_map.homotopy_with.apply_zero,
@@ -221,34 +220,33 @@ variable {X}
 The 0th homotopy "group" is equivalent to the path components of X
 -/
 def pi0_equiv_path_components : π 0 x ≃ path_components X :=
-  { to_fun := begin
-      refine quotient.map' (λf,f 0) _,
-      rintros f g ⟨h⟩,       constructor, apply path.symm,
-      exact ⟨⟨(λt,h (λ_,t)), by continuity⟩,
-        by { have h0:h 0=f 0:=h.apply_zero 0,
-            have c0:((λ_,0):I^(0+1))=(0:I^(0+1)):=by {ext, simp},
-            simp [h0, c0], },
-        by { have h1:h 1=g 0:=by convert h.apply_one 1,
-            have c1:((λ_,1):I^(0+1))=(1:I^(0+1)):=by {ext, simp},
-            simp [h1, c1], }⟩,
-      end,
-    inv_fun := begin
-      refine quotient.map' (λy,⟨continuous_map.const _ y,(λ_ ⟨f0,_⟩,fin.elim0 f0)⟩) _,
-      rintros y0 y1 ⟨p⟩, constructor, symmetry,
-      exact ⟨⟨⟨(λ tx, p tx.1),by continuity⟩,by simp,by simp⟩, (λ_ _ ⟨f0,_⟩,fin.elim0 f0)⟩,
-      end,
-    left_inv := begin
-      intro f, induction f using quotient.induction_on',
-      simp only [quotient.map'_mk', quotient.eq', matrix.zero_empty],
-      constructor, convert pre_π.homotopy.refl _, ext1,
-      have Hy : y=matrix.vec_empty := subsingleton.elim _ _,
-      simp [Hy],
-      end,
-    right_inv := begin
-      intro p, induction p using quotient.induction_on',
-      simp only [continuous_map.const_apply, quotient.map'_mk', pre_π.mk_apply],
-      end
-}
+{ to_fun := begin
+    refine quotient.map' (λf,f 0) _,
+    rintros f g ⟨h⟩,       constructor, apply path.symm,
+    exact ⟨⟨(λt,h (λ_,t)), by continuity⟩,
+      by { have h0:h 0=f 0:=h.apply_zero 0,
+          have c0:((λ_,0):I^(0+1))=(0:I^(0+1)):=by {ext, simp},
+          simp [h0, c0], },
+      by { have h1:h 1=g 0:=by convert h.apply_one 1,
+          have c1:((λ_,1):I^(0+1))=(1:I^(0+1)):=by {ext, simp},
+          simp [h1, c1], }⟩,
+    end,
+  inv_fun := begin
+    refine quotient.map' (λy,⟨continuous_map.const _ y,(λ_ ⟨f0,_⟩,fin.elim0 f0)⟩) _,
+    rintros y0 y1 ⟨p⟩, constructor, symmetry,
+    exact ⟨⟨⟨(λ tx, p tx.1),by continuity⟩,by simp,by simp⟩, (λ_ _ ⟨f0,_⟩,fin.elim0 f0)⟩,
+    end,
+  left_inv := begin
+    intro f, induction f using quotient.induction_on',
+    simp only [quotient.map'_mk', quotient.eq', matrix.zero_empty],
+    constructor, convert pre_π.homotopy.refl _, ext1,
+    have Hy : y=matrix.vec_empty := subsingleton.elim _ _,
+    simp [Hy],
+    end,
+  right_inv := begin
+    intro p, induction p using quotient.induction_on',
+    simp only [continuous_map.const_apply, quotient.map'_mk', pre_π.mk_apply],
+    end }
 
 /--
 The fundamental grupoid "constructor",
@@ -258,15 +256,15 @@ def fundamental_groupoid.mk : X -> fundamental_groupoid X := id
 /--
 The first homotopy group at x is equivalent to the endomorphisms of x in the fundamental grupoid
 -/
-def pi1_equiv_fundamental_group : π 1 x ≃ category_theory.End (fundamental_groupoid.mk x) := {
-  to_fun := begin
+def pi1_equiv_fundamental_group : π 1 x ≃ category_theory.End (fundamental_groupoid.mk x) :=
+{ to_fun := begin
     refine quotient.map' (λ⟨⟨f,Hcont⟩,Hf⟩, path.mk ⟨λt,f (λ_,t), by continuity⟩
         (Hf (λ_,0) ⟨0,by {left, refl}⟩)
         (Hf (λ_,1) ⟨1,by {right, refl}⟩)) _,
     rintros ⟨⟨f,Hfc⟩,Hf⟩ ⟨⟨g,Hgc⟩,Hg⟩ ⟨⟨⟨h,Hhcont⟩,H0,H1⟩,Hh⟩,
     constructor,
-    refine {
-      to_fun := λx,h ⟨x.fst,λ_,x.snd⟩,
+    refine
+    { to_fun := λx,h ⟨x.fst,λ_,x.snd⟩,
       continuous_to_fun := by continuity,
       map_zero_left' := λx,H0 (λ_,x),
       map_one_left' := λx,H1 (λ_,x),
@@ -276,8 +274,7 @@ def pi1_equiv_fundamental_group : π 1 x ≃ category_theory.End (fundamental_gr
           simp only [continuous_map.coe_mk] at Hh, simp [← Hh] },
         rcases H, specialize (Hh t (λ_,1) ⟨1,by {right, refl}⟩),
         simp only [continuous_map.coe_mk] at Hh, simp [← Hh]
-        end
-      },
+        end },
     end,
   inv_fun := begin
     refine quotient.map' _ _,
@@ -312,5 +309,4 @@ def pi1_equiv_fundamental_group : π 1 x ≃ category_theory.End (fundamental_gr
     intro p, induction p using quotient.induction_on',
     rcases p with ⟨⟨p,Hcont⟩,H0,H1⟩,
     constructor
-    end,
-}
+    end }

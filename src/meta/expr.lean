@@ -580,12 +580,24 @@ meta def to_implicit_binder : expr → expr
 | (pi n _ d b) := pi n binder_info.implicit d b
 | e  := e
 
+/--  Takes two `expr`s `f` and `x`, where `f` represents a bunary operation.  Decomposes the
+second expression `x` into repeated applications of `f`, returning a list of the atoms of the
+matching process.
+
+See the related `expr.list_summands` and `expr.list_factors` for versions specialized to
+addition and multiplication. -/
+meta def list_binary_operands (f : expr) : expr → list expr
+| x@(expr.app (expr.app g a) b) :=
+  if f =ₐ g then a.list_binary_operands ++ b.list_binary_operands else [x]
+| a := [a]
+
 /--  Takes an `expr` and returns a list of its summands.
 
 See the related `expr.list_binary_operands` in `tactic.core` for a `tactic` version that takes an
 arbitrary (binary) operation as a parameter. -/
 meta def list_summands : expr → list expr
-| `(has_add.add %%a %%b) := a.list_summands ++ b.list_summands
+| e@(app (app f a) b) :=
+  if f.is_app_of `has_add.add then list_binary_operands f a ++ list_binary_operands f b else [e]
 | a                      := [a]
 
 /--  Takes an `expr` and returns a list of its factors.
@@ -593,7 +605,8 @@ meta def list_summands : expr → list expr
 See the related `expr.list_binary_operands` in `tactic.core` for a `tactic` version that takes an
 arbitrary (binary) operation as a parameter. -/
 meta def list_factors : expr → list expr
-| `(has_mul.mul %%a %%b) := a.list_factors ++ b.list_factors
+| e@(app (app f a) b) :=
+  if f.is_app_of `has_mul.mul then list_binary_operands f a ++ list_binary_operands f b else [e]
 | a                      := [a]
 
 /-- Returns a list of all local constants in an expression (without duplicates). -/

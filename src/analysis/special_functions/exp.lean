@@ -131,6 +131,9 @@ namespace real
 
 variables {x y z : ℝ}
 
+lemma exp_half (x : ℝ) : exp (x / 2) = sqrt (exp x) :=
+by rw [eq_comm, sqrt_eq_iff_sq_eq, sq, ← exp_add, add_halves]; exact (exp_pos _).le
+
 /-- The real exponential function tends to `+∞` at `+∞`. -/
 lemma tendsto_exp_at_top : tendsto exp at_top at_top :=
 begin

@@ -593,7 +593,7 @@ meta def list_summands : expr → list expr
 See the related `expr.list_binary_operands` in `tactic.core` for a `tactic` version that takes an
 arbitrary (binary) operation as a parameter. -/
 meta def list_factors : expr → list expr
-| `(has_mul.mul %%a %%b) := a.list_summands ++ b.list_summands
+| `(has_mul.mul %%a %%b) := a.list_factors ++ b.list_factors
 | a                      := [a]
 
 /-- Returns a list of all local constants in an expression (without duplicates). -/

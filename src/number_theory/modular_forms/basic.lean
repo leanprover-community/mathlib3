@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Birkbeck, David Loeffler
 -/
 import algebra.module.submodule.basic
-import analysis.complex.upper_half_plane
+import analysis.complex.upper_half_plane.basic
 import linear_algebra.general_linear_group
 import linear_algebra.special_linear_group
 import algebra.direct_sum.ring

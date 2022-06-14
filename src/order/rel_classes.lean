@@ -228,6 +228,10 @@ noncomputable def is_well_order.linear_order (r : α → α → Prop) [is_well_o
   linear_order α :=
 by { letI := λ x y, classical.dec (¬r x y), exact linear_order_of_STO' r }
 
+/-- Derive a `has_well_founded` instance from a `is_well_order` instance. -/
+def is_well_order.to_has_well_founded [has_lt α] [hwo : is_well_order α (<)] :
+  has_well_founded α := { r := (<), wf := hwo.wf }
+
 instance empty_relation.is_well_order [subsingleton α] : is_well_order α empty_relation :=
 { trichotomous := λ a b, or.inr $ or.inl $ subsingleton.elim _ _,
   irrefl       := λ a, id,
@@ -277,6 +281,9 @@ by simp only [bounded, unbounded, not_forall, not_exists, exists_prop, not_and, 
 
 @[simp] lemma not_unbounded_iff {r : α → α → Prop} (s : set α) : ¬unbounded r s ↔ bounded r s :=
 by rw [not_iff_comm, not_bounded_iff]
+
+lemma unbounded_of_is_empty [is_empty α] {r : α → α → Prop} (s : set α) : unbounded r s :=
+is_empty_elim 
 
 end set
 

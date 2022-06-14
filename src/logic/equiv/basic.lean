@@ -357,16 +357,24 @@ equiv_of_is_empty  α _
 def equiv_empty_equiv (α : Sort u) : (α ≃ empty) ≃ is_empty α :=
 ⟨λ e, function.is_empty e, @equiv_empty α, λ e, ext $ λ x, (e x).elim, λ p, rfl⟩
 
-/-- The `Sort` of proofs of a true proposition is equivalent to `punit`. -/
-def prop_equiv_punit {p : Prop} (h : p) : p ≃ punit :=
-⟨λ x, (), λ x, h, λ _, rfl, λ ⟨⟩, rfl⟩
-
 /-- The `Sort` of proofs of a false proposition is equivalent to `pempty`. -/
 def prop_equiv_pempty {p : Prop} (h : ¬p) : p ≃ pempty :=
 @equiv_pempty p $ is_empty.prop_iff.2 h
 
-/-- `true` is equivalent to `punit`. -/
-def true_equiv_punit : true ≃ punit := prop_equiv_punit trivial
+/-- If both `α` and `β` have a unique element, then `α ≃ β`. -/
+def equiv_of_unique (α β : Sort*) [unique α] [unique β] : α ≃ β :=
+{ to_fun := default,
+  inv_fun := default,
+  left_inv := λ _, subsingleton.elim _ _,
+  right_inv := λ _, subsingleton.elim _ _ }
+
+/-- If `α` has a unique element, then it is equivalent to any `punit`. -/
+def equiv_punit (α : Sort*) [unique α] : α ≃ punit.{v} :=
+equiv_of_unique α _
+
+/-- The `Sort` of proofs of a true proposition is equivalent to `punit`. -/
+def prop_equiv_punit {p : Prop} (h : p) : p ≃ punit :=
+@equiv_punit p $ unique_prop h
 
 /-- `ulift α` is equivalent to `α`. -/
 @[simps apply symm_apply {fully_applied := ff}]
@@ -908,6 +916,16 @@ section
 def Pi_congr_right {α} {β₁ β₂ : α → Sort*} (F : Π a, β₁ a ≃ β₂ a) : (Π a, β₁ a) ≃ (Π a, β₂ a) :=
 ⟨λ H a, F a (H a), λ H a, (F a).symm (H a),
  λ H, funext $ by simp, λ H, funext $ by simp⟩
+
+/-- Given `φ : α → β → Sort*`, we have an equivalence between `Π a b, φ a b` and `Π b a, φ a b`.
+This is `function.swap` as an `equiv`. -/
+@[simps apply]
+def Pi_comm {α β} (φ : α → β → Sort*) : (Π a b, φ a b) ≃ (Π b a, φ a b) :=
+⟨swap, swap, λ x, rfl, λ y, rfl⟩
+
+@[simp] lemma Pi_comm_symm {α β} {φ : α → β → Sort*} :
+  (Pi_comm φ).symm = (Pi_comm $ swap φ) :=
+rfl
 
 /-- Dependent `curry` equivalence: the type of dependent functions on `Σ i, β i` is equivalent
 to the type of dependent functions of two arguments (i.e., functions to the space of functions).
@@ -1995,17 +2013,6 @@ lemma function.injective.swap_comp [decidable_eq α] [decidable_eq β] {f : α �
   (hf : function.injective f) (x y : α) :
   equiv.swap (f x) (f y) ∘ f = f ∘ equiv.swap x y :=
 funext $ λ z, hf.swap_apply _ _ _
-
-/-- If both `α` and `β` are singletons, then `α ≃ β`. -/
-def equiv_of_unique_of_unique [unique α] [unique β] : α ≃ β :=
-{ to_fun := default,
-  inv_fun := default,
-  left_inv := λ _, subsingleton.elim _ _,
-  right_inv := λ _, subsingleton.elim _ _ }
-
-/-- If `α` is a singleton, then it is equivalent to any `punit`. -/
-def equiv_punit_of_unique [unique α] : α ≃ punit.{v} :=
-equiv_of_unique_of_unique
 
 /-- If `α` is a subsingleton, then it is equivalent to `α × α`. -/
 def subsingleton_prod_self_equiv {α : Type*} [subsingleton α] : α × α ≃ α :=

@@ -50,8 +50,7 @@ variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] [add_comm_group
 /-- Construct a seminorm from a linear form `f : E →ₗ[𝕜] 𝕜` over a normed field `𝕜` by
 `λ x, ∥f x∥` -/
 def to_seminorm (f : E →ₗ[𝕜] 𝕜) : seminorm 𝕜 E :=
-seminorm.of (λ x, ∥f x∥) (λ x y, by rw map_add; exact norm_add_le _ _)
-  (λ a x, by rw [map_smul, smul_eq_mul, norm_mul])
+(norm_seminorm 𝕜 𝕜).comp f
 
 lemma coe_to_seminorm {f : E →ₗ[𝕜] 𝕜} :
   ⇑f.to_seminorm = λ x, ∥f x∥ := rfl

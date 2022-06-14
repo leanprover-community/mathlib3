@@ -337,6 +337,9 @@ section set_finite_constructors
 theorem finite.of_fintype [fintype α] (s : set α) : s.finite :=
 by { classical, apply finite_of_fintype }
 
+@[nontriviality] lemma finite.of_subsingleton [subsingleton α] (s : set α) : s.finite :=
+finite.of_fintype s
+
 theorem finite_univ [fintype α] : (@univ α).finite := finite_of_fintype _
 
 theorem finite.union {s t : set α} (hs : s.finite) (ht : t.finite) : (s ∪ t).finite :=
@@ -510,9 +513,18 @@ lemma univ_finite_iff_nonempty_fintype :
   (univ : set α).finite ↔ nonempty (fintype α) :=
 ⟨λ h, ⟨fintype_of_finite_univ h⟩, λ ⟨_i⟩, by exactI finite_univ⟩
 
-lemma finite.to_finset_insert [decidable_eq α] {a : α} {s : set α} (hs : s.finite) :
-  (hs.insert a).to_finset = insert a hs.to_finset :=
+@[simp] lemma finite.to_finset_singleton {a : α} (ha : ({a} : set α).finite := finite_singleton _) :
+  ha.to_finset = {a} :=
 finset.ext $ by simp
+
+@[simp] lemma finite.to_finset_insert [decidable_eq α] {s : set α} {a : α}
+  (hs : (insert a s).finite) :
+  hs.to_finset = insert a (hs.subset $ subset_insert _ _).to_finset :=
+finset.ext $ by simp
+
+lemma finite.to_finset_insert' [decidable_eq α] {a : α} {s : set α} (hs : s.finite) :
+  (hs.insert a).to_finset = insert a hs.to_finset :=
+finite.to_finset_insert _
 
 lemma finite.fin_embedding {s : set α} (h : s.finite) : ∃ (n : ℕ) (f : fin n ↪ α), range f = s :=
 ⟨_, (fintype.equiv_fin (h.to_finset : set α)).symm.as_embedding, by simp⟩

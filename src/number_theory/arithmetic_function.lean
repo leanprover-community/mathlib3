@@ -5,9 +5,9 @@ Authors: Aaron Anderson
 -/
 import algebra.big_operators.ring
 import number_theory.divisors
-import algebra.squarefree
+import data.nat.squarefree
 import algebra.invertible
-import data.nat.factorization
+import data.nat.factorization.basic
 
 /-!
 # Arithmetic Functions and Dirichlet Convolution

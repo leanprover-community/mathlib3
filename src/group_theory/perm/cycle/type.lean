@@ -434,7 +434,7 @@ by appending the inverse of the product of `v`. -/
 by deleting the last entry of `v`. -/
 def equiv_vector : vectors_prod_eq_one G n ≃ vector G (n - 1) :=
 ((vector_equiv G (n - 1)).trans (if hn : n = 0 then (show vectors_prod_eq_one G (n - 1 + 1) ≃
-  vectors_prod_eq_one G n, by { rw hn, exact equiv_of_unique_of_unique })
+  vectors_prod_eq_one G n, by { rw hn, apply equiv_of_unique })
   else by rw tsub_add_cancel_of_le (nat.pos_of_ne_zero hn).nat_succ_le)).symm
 
 instance [fintype G] : fintype (vectors_prod_eq_one G n) :=

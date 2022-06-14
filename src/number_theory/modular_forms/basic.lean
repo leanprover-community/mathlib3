@@ -20,9 +20,8 @@ This file defines modular forms and proves some basic properties about them.
 We begin by defining the `slash` operator on the space of functions `ℍ → ℂ` and from this
 define the notion of weakly modular form.
 
-We then define `bounded_at_infinity` and `zero_at_infinity`. Finally we construct the vector
-space of modular forms and prove that the product of two modular forms is a modular form
-(of higher weight).
+Finally we construct the vector space of modular forms and prove that the product of two
+modular forms is a modular form (of higher weight).
 -/
 
 universes u v

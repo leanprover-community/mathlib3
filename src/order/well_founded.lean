@@ -156,8 +156,10 @@ begin
     exact hf.monotone hbc }
 end
 
-theorem range_eq_iff_eq_of_strict_mono {f g : β → γ} (hf : strict_mono f)
-  (hg : strict_mono g) : set.range f = set.range g ↔ f = g :=
+include h
+
+theorem range_eq_iff_eq_of_strict_mono {f g : β → γ} (hf : strict_mono f) (hg : strict_mono g) :
+  set.range f = set.range g ↔ f = g :=
 ⟨λ hfg, begin
   funext a,
   apply h.wf.induction a,
@@ -186,10 +188,6 @@ variables {β : Type*} (f : α → β)
 section has_lt
 
 variables [has_lt β] (h : well_founded ((<) : β → β → Prop))
-
-theorem min_le {x : β} {s : set β} (hx : x ∈ s) (hne : s.nonempty := ⟨x, hx⟩) :
-  h.min s hne ≤ x :=
-not_lt.1 $ h.not_lt_min _ _ hx
 
 /-- Given a function `f : α → β` where `β` carries a well-founded `<`, this is an element of `α`
 whose image under `f` is minimal in the sense of `function.not_lt_argmin`. -/

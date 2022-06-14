@@ -51,7 +51,7 @@ variables {R : Type u} [ring R]
 
 namespace ideal
 
-lemma one_add_mul_self_mem_maximal_of_not_mem_maximal {x : R} {I : ideal R}
+lemma exists_one_add_mul_self_mem_of_is_maximal_nmem {x : R} {I : ideal R}
   (h₁ : I.is_maximal) (h₂ : x ∉ I) : ∃ a : R, 1 + a * x ∈ I :=
 begin
   have : (1 : R) ∈ I ⊔ span {x},
@@ -134,7 +134,7 @@ begin
     simp only [not_forall] at hx,
     rcases hx with ⟨I, hImax, hxI⟩,
     refine hImax.ne_top _,
-    obtain ⟨a, ha⟩ := ideal.one_add_mul_self_mem_maximal_of_not_mem_maximal hImax hxI,
+    obtain ⟨a, ha⟩ := ideal.exists_one_add_mul_self_mem_of_is_maximal_nmem hImax hxI,
     apply eq_top_of_is_unit_mem _ ha,
     specialize h a 1,
     rwa [mul_assoc, mul_one] at h },

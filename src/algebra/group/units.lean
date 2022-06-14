@@ -319,7 +319,7 @@ by { rcases h with ⟨⟨a, b, hab, _⟩, rfl⟩, exact ⟨b, hab⟩ }
   {a : M} (h : is_unit a) : ∃ b, b * a = 1 :=
 by { rcases h with ⟨⟨a, b, _, hba⟩, rfl⟩, exact ⟨b, hba⟩ }
 
-lemma is_unit_iff_has_two_sided_inv [monoid M] {a : M} :
+lemma is_unit_iff_exists_inv_two_sided [monoid M] {a : M} :
   is_unit a ↔ ∃ x : M, a * x = 1 ∧ x * a = 1 :=
 ⟨λ ⟨⟨a, x, hax, hxa⟩, rfl⟩, ⟨x, hax, hxa⟩, λ ⟨x, hax, hxa⟩, ⟨⟨a, x, hax, hxa⟩, rfl⟩⟩
 

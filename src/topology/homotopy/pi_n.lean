@@ -105,6 +105,10 @@ namespace pre_π
 
   @[simp] lemma mk_apply (f : C(I^n, X)) (H y) : (⟨f, H⟩ : pre_π n x)  y = f y :=
       rfl
+
+  /--
+  The constant `pre_π` at x
+  -/
   def const : pre_π n x := ⟨⟨λ_x,by continuity⟩,λ_ _,rfl⟩
   instance inhabited : inhabited (pre_π n x) :=
     { default := const }

@@ -63,8 +63,8 @@ end
 
 /-- Distance from the center of an inversion to the image of a point under the inversion. This
 formula accidentally works for `x = c`. -/
-lemma dist_center_inversion (c x : P) (R : ℝ) : dist c (inversion c R x) = R ^ 2 / dist x c :=
-(dist_comm _ _).trans (dist_inversion_center _ _ _)
+lemma dist_center_inversion (c x : P) (R : ℝ) : dist c (inversion c R x) = R ^ 2 / dist c x :=
+by rw [dist_comm c, dist_comm c, dist_inversion_center]
 
 lemma inversion_involutive (c : P) {R : ℝ} (hR : R ≠ 0) : involutive (inversion c R) :=
 begin

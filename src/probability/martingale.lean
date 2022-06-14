@@ -419,30 +419,45 @@ begin
   exact set_integral_mono_on (integrable_on_const.2 (or.inr hμs.lt_top)) hfint hs hf,
 end
 
-lemma nat.exists_of_le_supr {p : ℕ → Prop} (hp : {n | p n}.finite)
-  {f : ℕ → ℝ} {ε : ℝ≥0} (hn : 0 < ε) (h : ↑ε ≤ ⨆ k (h : p k), f k) :
-  ∃ m, p m ∧ ↑ε ≤ f m :=
+lemma exists_of_le_supr_finite {α : Type*} {p : α → Prop}
+  (hp : {x | p x}.finite) (hp' : {x | p x}.nonempty) {f : α → ℝ} {ε : ℝ}
+  (h : ε ≤ ⨆ x : {x // p x}, f x) : ∃ x, p x ∧ ε ≤ f x :=
 begin
-  sorry,
+  haveI : fintype {x // p x} := hp.fintype,
+  have : (⨆ x : {x // p x}, f x) = hp.to_finset.sup' (hp.nonempty_to_finset.2 hp') f,
+  { rw finset.sup'_eq_cSup_image,
+    symmetry,
+    refine cSup_eq_of_forall_le_of_forall_lt_exists_gt
+      (set.nonempty_image_iff.2 (hp.nonempty_to_finset.2 hp')) _ _,
+    { rintro _ ⟨x, hx, rfl⟩,
+      exact le_cSup (set.finite.bdd_above (set.finite_range _))
+        ⟨⟨x, (set.finite.mem_to_finset _).1 hx⟩, rfl⟩ },
+    { intros x hx,
+      haveI : nonempty {x : α // p x} := {x : α | p x}.nonempty_coe_sort.2 hp',
+      obtain ⟨⟨y, hpy⟩, hy⟩ := exists_lt_of_lt_csupr hx,
+      exact ⟨f y, ⟨y, by simpa, rfl⟩, hy⟩ } },
+  rw [this, finset.le_sup'_iff] at h,
+  obtain ⟨x, hx₁, hx₂⟩ := h,
+  exact ⟨x, (set.finite.mem_to_finset _).1 hx₁, hx₂⟩
 end
 
 lemma measurable_supr_le {f : ℕ → α → ℝ} (hf : ∀ n, measurable[m0] (f n)) (n : ℕ) :
-  measurable (λ x, ⨆ k ≤ n, f k x) :=
+  measurable (λ x, ⨆ k : {k // k ≤ n}, f k x) :=
 begin
   sorry
 end
 
 lemma smul_le_stopped_value_hitting [is_finite_measure μ]
   {f : ℕ → α → ℝ} (hsub : submartingale f 𝒢 μ) {ε : ℝ≥0} (hε : 0 < ε) (n : ℕ) :
-  ε • μ {x | (ε : ℝ) ≤ ⨆ k ≤ n, f k x} ≤ ennreal.of_real
-    (∫ x in {x | (ε : ℝ) ≤ ⨆ k ≤ n, f k x}, stopped_value f (hitting f {y : ℝ | ↑ε ≤ y} n) x ∂μ) :=
+  ε • μ {x | (ε : ℝ) ≤ ⨆ k : {k // k ≤ n}, f k x} ≤ ennreal.of_real
+    (∫ x in {x | (ε : ℝ) ≤ ⨆ k : {k // k ≤ n}, f k x}, stopped_value f (hitting f {y : ℝ | ↑ε ≤ y} n) x ∂μ) :=
 begin
-  have : ∀ x, ((ε : ℝ) ≤ ⨆ k ≤ n, f k x) →
+  have : ∀ x, ((ε : ℝ) ≤ ⨆ k : {k // k ≤ n}, f k x) →
     (ε : ℝ) ≤ stopped_value f (hitting f {y : ℝ | ↑ε ≤ y} n) x,
   { intros x hx,
     refine stopped_value_hitting_mem _,
     simp only [set.mem_set_of_eq, exists_prop],
-    exact nat.exists_of_le_supr (set.finite_le_nat n) hε hx },
+    exact exists_of_le_supr_finite (set.finite_le_nat n) ⟨0, nat.zero_le _⟩ hx },
   have h := set_integral_le_const (measurable_set_le measurable_const (measurable_supr_le
       (λ n, (hsub.strongly_measurable n).measurable.le (𝒢.le n)) _))
       (measure_lt_top _ _).ne this
@@ -456,14 +471,14 @@ end
 
 lemma maximal_ineq [is_finite_measure μ]
   {f : ℕ → α → ℝ} (hsub : submartingale f 𝒢 μ) (hnonneg : 0 ≤ f) {ε : ℝ≥0} (hε : 0 < ε) (n : ℕ) :
-  ε • μ {x | (ε : ℝ) ≤ ⨆ k ≤ n, f k x} ≤
-  ennreal.of_real (∫ x in {x | (ε : ℝ) ≤ ⨆ k ≤ n, f k x}, f n x ∂μ) :=
+  ε • μ {x | (ε : ℝ) ≤ ⨆ k : {k // k ≤ n}, f k x} ≤
+  ennreal.of_real (∫ x in {x | (ε : ℝ) ≤ ⨆ k : {k // k ≤ n}, f k x}, f n x ∂μ) :=
 begin
-  suffices : ε • μ {x | (ε : ℝ) ≤ ⨆ k ≤ n, f k x} +
-    ennreal.of_real (∫ x in {x | (⨆ k ≤ n, f k x) < ε}, f n x ∂μ) ≤ ennreal.of_real (μ[f n]),
+  suffices : ε • μ {x | (ε : ℝ) ≤ ⨆ k : {k // k ≤ n}, f k x} +
+    ennreal.of_real (∫ x in {x | (⨆ k : {k // k ≤ n}, f k x) < ε}, f n x ∂μ) ≤ ennreal.of_real (μ[f n]),
   { have hadd : ennreal.of_real (∫ (x : α), f n x ∂μ) =
-      ennreal.of_real (∫ (x : α) in {x : α | ↑ε ≤ (⨆ k ≤ n, f k x)}, f n x ∂μ) +
-      ennreal.of_real (∫ (x : α) in {x : α | (⨆ k ≤ n, f k x) < ↑ε}, f n x ∂μ),
+      ennreal.of_real (∫ (x : α) in {x : α | ↑ε ≤ (⨆ k : {k // k ≤ n}, f k x)}, f n x ∂μ) +
+      ennreal.of_real (∫ (x : α) in {x : α | (⨆ k : {k // k ≤ n}, f k x) < ↑ε}, f n x ∂μ),
     { rw [← ennreal.of_real_add, ← integral_union],
       { conv_lhs { rw ← integral_univ },
         convert rfl,
@@ -476,12 +491,12 @@ begin
       exacts [(hsub.integrable _).integrable_on, (hsub.integrable _).integrable_on,
         integral_nonneg (hnonneg _), integral_nonneg (hnonneg _)] },
     rwa [hadd, ennreal.add_le_add_iff_right ennreal.of_real_ne_top] at this },
-  calc ε • μ {x | (ε : ℝ) ≤ ⨆ k ≤ n, f k x}
-    + ennreal.of_real (∫ x in {x | (⨆ k ≤ n, f k x) < ε}, f n x ∂μ) ≤
+  calc ε • μ {x | (ε : ℝ) ≤ ⨆ k : {k // k ≤ n}, f k x}
+    + ennreal.of_real (∫ x in {x | (⨆ k : {k // k ≤ n}, f k x) < ε}, f n x ∂μ) ≤
     ennreal.of_real
-      (∫ x in {x | (ε : ℝ) ≤ ⨆ k ≤ n, f k x}, stopped_value f (hitting f {y : ℝ | ↑ε ≤ y} n) x ∂μ)
+      (∫ x in {x | (ε : ℝ) ≤ ⨆ k : {k // k ≤ n}, f k x}, stopped_value f (hitting f {y : ℝ | ↑ε ≤ y} n) x ∂μ)
     + ennreal.of_real
-      (∫ x in {x | (⨆ k ≤ n, f k x) < ε}, stopped_value f (hitting f {y : ℝ | ↑ε ≤ y} n) x ∂μ) :
+      (∫ x in {x | (⨆ k : {k // k ≤ n}, f k x) < ε}, stopped_value f (hitting f {y : ℝ | ↑ε ≤ y} n) x ∂μ) :
     begin
       refine add_le_add (smul_le_stopped_value_hitting hsub hε _)
         (ennreal.of_real_le_of_real (set_integral_mono_on (hsub.integrable n).integrable_on
@@ -495,19 +510,9 @@ begin
       { simp only [hitting, set.mem_set_of_eq, exists_prop, pi.coe_nat, nat.cast_id,
           ite_eq_right_iff, forall_exists_index, and_imp],
         intros m hm hεm,
-        refine false.elim ((not_le.2 hx) (le_trans hεm
-          (le_cSup (set.finite.bdd_above _) ⟨m, csupr_pos hm⟩))),
-        have : set.range (λ k, ⨆ (H : k ≤ n), f k x) ⊆ (λ k, f k x) '' {k | k ≤ n} ∪ {0},
-        { rintro _ ⟨k, rfl⟩,
-          by_cases hk : k ≤ n,
-          { dsimp,
-            rw csupr_pos hk,
-            exact or.inl ⟨k, hk, rfl⟩ },
-          { refine or.inr _,
-            simp only [hk, set.mem_singleton_iff],
-            rw @real.csupr_empty _ false.is_empty (λ false, f k x) } },
-        exact set.finite.subset (set.finite.union (set.finite_of_fintype _)
-          (set.finite_singleton 0)) this },
+        haveI : fintype {k // k ≤ n} := (set.finite_le_nat n).fintype,
+        exact false.elim ((not_le.2 hx) (le_trans hεm
+          (le_cSup (set.finite.bdd_above $ set.finite_range _) ⟨⟨m, hm⟩, rfl⟩))) },
       simp_rw [stopped_value, this],
     end
     ... = ennreal.of_real (∫ x, stopped_value f (hitting f {y : ℝ | ↑ε ≤ y} n) x ∂μ) :

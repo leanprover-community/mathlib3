@@ -53,7 +53,7 @@ outer measure, Carathéodory-measurable, Carathéodory's criterion
 noncomputable theory
 
 open set finset function filter encodable topological_space (second_countable_topology)
-open_locale classical big_operators nnreal topological_space ennreal
+open_locale classical big_operators nnreal topological_space ennreal measure_theory
 
 namespace measure_theory
 
@@ -832,15 +832,15 @@ protected def caratheodory : measurable_space α :=
 caratheodory_dynkin.to_measurable_space $ assume s₁ s₂, is_caratheodory_inter
 
 lemma is_caratheodory_iff {s : set α} :
-  caratheodory.measurable_set' s ↔ ∀t, m t = m (t ∩ s) + m (t \ s) :=
+  measurable_set[caratheodory] s ↔ ∀t, m t = m (t ∩ s) + m (t \ s) :=
 iff.rfl
 
 lemma is_caratheodory_iff_le {s : set α} :
-  caratheodory.measurable_set' s ↔ ∀t, m (t ∩ s) + m (t \ s) ≤ m t :=
+  measurable_set[caratheodory] s ↔ ∀t, m (t ∩ s) + m (t \ s) ≤ m t :=
 is_caratheodory_iff_le'
 
 protected lemma Union_eq_of_caratheodory {s : ℕ → set α}
-  (h : ∀i, caratheodory.measurable_set' (s i)) (hd : pairwise (disjoint on s)) :
+  (h : ∀i, measurable_set[caratheodory] (s i)) (hd : pairwise (disjoint on s)) :
   m (⋃i, s i) = ∑'i, m (s i) :=
 f_Union h hd
 
@@ -850,7 +850,7 @@ variables {α : Type*}
 
 lemma of_function_caratheodory {m : set α → ℝ≥0∞} {s : set α}
   {h₀ : m ∅ = 0} (hs : ∀t, m (t ∩ s) + m (t \ s) ≤ m t) :
-  (outer_measure.of_function m h₀).caratheodory.measurable_set' s :=
+  measurable_set[(outer_measure.of_function m h₀).caratheodory] s :=
 begin
   apply (is_caratheodory_iff_le _).mpr,
   refine λ t, le_infi (λ f, le_infi $ λ hf, _),
@@ -863,7 +863,7 @@ begin
 end
 
 lemma bounded_by_caratheodory {m : set α → ℝ≥0∞} {s : set α}
-  (hs : ∀t, m (t ∩ s) + m (t \ s) ≤ m t) : (bounded_by m).caratheodory.measurable_set' s :=
+  (hs : ∀t, m (t ∩ s) + m (t \ s) ≤ m t) : measurable_set[(bounded_by m).caratheodory] s :=
 begin
   apply of_function_caratheodory, intro t,
   cases t.eq_empty_or_nonempty with h h,
@@ -1215,7 +1215,7 @@ end
   of `s`.
 -/
 lemma induced_outer_measure_caratheodory (s : set α) :
-  (induced_outer_measure m P0 m0).caratheodory.measurable_set' s ↔ ∀ (t : set α), P t →
+  measurable_set[(induced_outer_measure m P0 m0).caratheodory] s ↔ ∀ (t : set α), P t →
   induced_outer_measure m P0 m0 (t ∩ s) + induced_outer_measure m P0 m0 (t \ s) ≤
     induced_outer_measure m P0 m0 t :=
 begin

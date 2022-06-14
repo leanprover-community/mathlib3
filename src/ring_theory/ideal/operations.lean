@@ -306,6 +306,18 @@ begin
   simpa only [pow_succ] using mul_mem_mul hx ih,
 end
 
+lemma prod_mem_prod {ι : Type*} {s : finset ι} {I : ι → ideal R} {x : ι → R} :
+  (∀ i ∈ s, x i ∈ I i) → ∏ i in s, x i ∈ ∏ i in s, I i :=
+begin
+  classical,
+  apply finset.induction_on s,
+  { intro _, rw [finset.prod_empty, finset.prod_empty, one_eq_top], exact submodule.mem_top },
+  { intros a s ha IH h,
+    rw [finset.prod_insert ha, finset.prod_insert ha],
+    exact mul_mem_mul (h a $ finset.mem_insert_self a s)
+      (IH $ λ i hi, h i $ finset.mem_insert_of_mem hi) }
+end
+
 theorem mul_le : I * J ≤ K ↔ ∀ (r ∈ I) (s ∈ J), r * s ∈ K :=
 submodule.smul_le
 
@@ -417,6 +429,19 @@ lemma infi_span_singleton {ι : Type*} [fintype ι] (I : ι → R)
 begin
   rw [← finset.inf_univ_eq_infi, finset_inf_span_singleton],
   rwa [finset.coe_univ, set.pairwise_univ]
+end
+
+lemma sup_eq_top_iff_is_coprime {R : Type*} [comm_semiring R] (x y : R) :
+  span ({x} : set R) ⊔ span {y} = ⊤ ↔ is_coprime x y :=
+begin
+  rw [eq_top_iff_one, submodule.mem_sup],
+  split,
+  { rintro ⟨u, hu, v, hv, h1⟩,
+    rw mem_span_singleton' at hu hv,
+    rw [← hu.some_spec, ← hv.some_spec] at h1,
+    exact ⟨_, _, h1⟩ },
+  { exact λ ⟨u, v, h1⟩,
+      ⟨_, mem_span_singleton'.mpr ⟨_, rfl⟩, _, mem_span_singleton'.mpr ⟨_, rfl⟩, h1⟩ },
 end
 
 theorem mul_le_inf : I * J ≤ I ⊓ J :=
@@ -1522,7 +1547,7 @@ end
 
 theorem map_is_prime_of_equiv (f : R ≃+* S) {I : ideal R} [is_prime I] :
   is_prime (map (f : R →+* S) I) :=
-map_is_prime_of_surjective f.surjective $ by simp
+map_is_prime_of_surjective f.surjective $ by simp only [ring_hom.ker_coe_equiv, bot_le]
 
 end ring
 

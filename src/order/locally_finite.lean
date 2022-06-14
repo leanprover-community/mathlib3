@@ -327,10 +327,10 @@ fintype.of_finset (finset.Ioc a b) (λ x, by rw [finset.mem_Ioc, mem_Ioc])
 instance fintype_Ioo : fintype (Ioo a b) :=
 fintype.of_finset (finset.Ioo a b) (λ x, by rw [finset.mem_Ioo, mem_Ioo])
 
-lemma finite_Icc : (Icc a b).finite := ⟨set.fintype_Icc a b⟩
-lemma finite_Ico : (Ico a b).finite := ⟨set.fintype_Ico a b⟩
-lemma finite_Ioc : (Ioc a b).finite := ⟨set.fintype_Ioc a b⟩
-lemma finite_Ioo : (Ioo a b).finite := ⟨set.fintype_Ioo a b⟩
+lemma finite_Icc : (Icc a b).finite := set.finite_of_fintype _
+lemma finite_Ico : (Ico a b).finite := set.finite_of_fintype _
+lemma finite_Ioc : (Ioc a b).finite := set.finite_of_fintype _
+lemma finite_Ioo : (Ioo a b).finite := set.finite_of_fintype _
 
 end preorder
 
@@ -343,8 +343,8 @@ fintype.of_finset (finset.Ici a) (λ x, by rw [finset.mem_Ici, mem_Ici])
 instance fintype_Ioi : fintype (Ioi a) :=
 fintype.of_finset (finset.Ioi a) (λ x, by rw [finset.mem_Ioi, mem_Ioi])
 
-lemma finite_Ici : (Ici a).finite := ⟨set.fintype_Ici a⟩
-lemma finite_Ioi : (Ioi a).finite := ⟨set.fintype_Ioi a⟩
+lemma finite_Ici : (Ici a).finite := set.finite_of_fintype _
+lemma finite_Ioi : (Ioi a).finite := set.finite_of_fintype _
 
 end order_top
 
@@ -357,8 +357,8 @@ fintype.of_finset (finset.Iic b) (λ x, by rw [finset.mem_Iic, mem_Iic])
 instance fintype_Iio : fintype (Iio b) :=
 fintype.of_finset (finset.Iio b) (λ x, by rw [finset.mem_Iio, mem_Iio])
 
-lemma finite_Iic : (Iic b).finite := ⟨set.fintype_Iic b⟩
-lemma finite_Iio : (Iio b).finite := ⟨set.fintype_Iio b⟩
+lemma finite_Iic : (Iic b).finite := set.finite_of_fintype _
+lemma finite_Iio : (Iio b).finite := set.finite_of_fintype _
 
 end order_bot
 

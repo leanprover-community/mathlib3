@@ -1108,6 +1108,12 @@ prod.mk `(false) <$> mk_app ``eq_false_intro [p]
 theorem not_refl_false_intro {α} (a : α) : (a ≠ a) = false :=
 eq_false_intro $ not_not_intro rfl
 
+@[nolint ge_or_gt] -- see Note [nolint_ge]
+theorem gt_intro {α} [has_lt α] (a b : α) (c) (h : a < b = c) : b > a = c := h
+
+@[nolint ge_or_gt] -- see Note [nolint_ge]
+theorem ge_intro {α} [has_le α] (a b : α) (c) (h : a ≤ b = c) : b ≥ a = c := h
+
 /-- Evaluates the inequality operations `=`,`<`,`>`,`≤`,`≥`,`≠` on numerals. -/
 meta def eval_ineq : expr → tactic (expr × expr)
 | `(%%e₁ < %%e₂) := do
@@ -1139,8 +1145,12 @@ meta def eval_ineq : expr → tactic (expr × expr)
   c ← infer_type e₁ >>= mk_instance_cache,
   if n₁ = n₂ then mk_eq_refl e₁ >>= true_intro
   else do (_, p) ← prove_ne c e₁ e₂ n₁ n₂, false_intro p
-| `(%%e₁ > %%e₂) := mk_app ``has_lt.lt [e₂, e₁] >>= eval_ineq
-| `(%%e₁ ≥ %%e₂) := mk_app ``has_le.le [e₂, e₁] >>= eval_ineq
+| `(%%e₁ > %%e₂) := do
+  (e, p) ← mk_app ``has_lt.lt [e₂, e₁] >>= eval_ineq,
+  prod.mk e <$> mk_app ``gt_intro [e₂, e₁, e, p]
+| `(%%e₁ ≥ %%e₂) := do
+  (e, p) ← mk_app ``has_le.le [e₂, e₁] >>= eval_ineq,
+  prod.mk e <$> mk_app ``ge_intro [e₂, e₁, e, p]
 | `(%%e₁ ≠ %%e₂) := do
   n₁ ← e₁.to_rat, n₂ ← e₂.to_rat,
   c ← infer_type e₁ >>= mk_instance_cache,

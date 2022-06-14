@@ -68,21 +68,25 @@ lemma lintegral_norm_eq_lintegral_edist (f : α → β) :
 by simp only [of_real_norm_eq_coe_nnnorm, edist_eq_coe_nnnorm]
 
 lemma lintegral_edist_triangle {f g h : α → β}
-  (hf : ae_strongly_measurable f μ) (hg : ae_strongly_measurable g μ)
-  (hh : ae_strongly_measurable h μ) :
+  (hf : ae_strongly_measurable f μ) (hh : ae_strongly_measurable h μ) :
   ∫⁻ a, edist (f a) (g a) ∂μ ≤ ∫⁻ a, edist (f a) (h a) ∂μ + ∫⁻ a, edist (g a) (h a) ∂μ :=
 begin
-  rw ← lintegral_add' (hf.edist hh) (hg.edist hh),
+  rw ← lintegral_add_left' (hf.edist hh),
   refine lintegral_mono (λ a, _),
   apply edist_triangle_right
 end
 
 lemma lintegral_nnnorm_zero : ∫⁻ a : α, ∥(0 : β)∥₊ ∂μ = 0 := by simp
 
-lemma lintegral_nnnorm_add
-  {f : α → β} {g : α → γ} (hf : ae_strongly_measurable f μ) (hg : ae_strongly_measurable g μ) :
+lemma lintegral_nnnorm_add_left
+  {f : α → β} (hf : ae_strongly_measurable f μ) (g : α → γ) :
   ∫⁻ a, ∥f a∥₊ + ∥g a∥₊ ∂μ = ∫⁻ a, ∥f a∥₊ ∂μ + ∫⁻ a, ∥g a∥₊ ∂μ :=
-lintegral_add' hf.ennnorm hg.ennnorm
+lintegral_add_left' hf.ennnorm _
+
+lemma lintegral_nnnorm_add_right
+  (f : α → β) {g : α → γ} (hg : ae_strongly_measurable g μ) :
+  ∫⁻ a, ∥f a∥₊ + ∥g a∥₊ ∂μ = ∫⁻ a, ∥f a∥₊ ∂μ + ∫⁻ a, ∥g a∥₊ ∂μ :=
+lintegral_add_right' _ hg.ennnorm
 
 lemma lintegral_nnnorm_neg {f : α → β} :
   ∫⁻ a, ∥(-f) a∥₊ ∂μ = ∫⁻ a, ∥f a∥₊ ∂μ :=
@@ -560,9 +564,8 @@ lemma lintegral_edist_lt_top {f g : α → β}
   (hf : integrable f μ) (hg : integrable g μ) :
   ∫⁻ a, edist (f a) (g a) ∂μ < ∞ :=
 lt_of_le_of_lt
-  (lintegral_edist_triangle hf.ae_strongly_measurable hg.ae_strongly_measurable
-    (ae_strongly_measurable_const : ae_strongly_measurable (λa, (0 : β)) μ))
-  (ennreal.add_lt_top.2 $ by { simp_rw ← has_finite_integral_iff_edist,
+  (lintegral_edist_triangle hf.ae_strongly_measurable ae_strongly_measurable_zero)
+  (ennreal.add_lt_top.2 $ by { simp_rw [pi.zero_apply, ← has_finite_integral_iff_edist],
                                exact ⟨hf.has_finite_integral, hg.has_finite_integral⟩ })
 
 variables (α β μ)
@@ -570,12 +573,11 @@ variables (α β μ)
 by simp [integrable, ae_strongly_measurable_const]
 variables {α β μ}
 
-lemma integrable.add' {f g : α → β} (hf : integrable f μ)
-  (hg : integrable g μ) :
+lemma integrable.add' {f g : α → β} (hf : integrable f μ) (hg : integrable g μ) :
   has_finite_integral (f + g) μ :=
 calc ∫⁻ a, ∥f a + g a∥₊ ∂μ ≤ ∫⁻ a, ∥f a∥₊ + ∥g a∥₊ ∂μ :
   lintegral_mono (λ a, by exact_mod_cast nnnorm_add_le _ _)
-... = _ : lintegral_nnnorm_add hf.ae_strongly_measurable hg.ae_strongly_measurable
+... = _ : lintegral_nnnorm_add_left hf.ae_strongly_measurable _
 ... < ∞ : add_lt_top.2 ⟨hf.has_finite_integral, hg.has_finite_integral⟩
 
 lemma integrable.add

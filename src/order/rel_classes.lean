@@ -87,7 +87,7 @@ lemma ne_of_irrefl' {r} [is_irrefl α r] : ∀ {x y : α}, r x y → y ≠ x | _
 lemma not_rel (r) [is_irrefl α r] [subsingleton α] (x y) : ¬ r x y :=
 subsingleton.elim x y ▸ irrefl x
 
-@[simp] lemma empty_relation_apply (a b : α) : empty_relation a b = false := rfl
+@[simp] lemma empty_relation_apply (a b : α) : empty_relation a b ↔ false := iff.rfl
 
 lemma eq_empty_relation (r) [is_irrefl α r] [subsingleton α] : r = empty_relation :=
 funext₂ $ by simpa using not_rel r

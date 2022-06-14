@@ -467,7 +467,7 @@ end
 -- non-negative.
 
 lemma smul_le_stopped_value_hitting [is_finite_measure μ]
-  {f : ℕ → α → ℝ} (hsub : submartingale f 𝒢 μ) {ε : ℝ≥0} (hε : 0 < ε) (n : ℕ) :
+  {f : ℕ → α → ℝ} (hsub : submartingale f 𝒢 μ) {ε : ℝ≥0} (n : ℕ) :
   ε • μ {x | (ε : ℝ) ≤ ⨆ k : {k // k ≤ n}, f k x} ≤ ennreal.of_real
     (∫ x in {x | (ε : ℝ) ≤ ⨆ k : {k // k ≤ n}, f k x}, stopped_value f (hitting f {y : ℝ | ↑ε ≤ y} n) x ∂μ) :=
 begin
@@ -489,7 +489,7 @@ begin
 end
 
 lemma maximal_ineq [is_finite_measure μ]
-  {f : ℕ → α → ℝ} (hsub : submartingale f 𝒢 μ) (hnonneg : 0 ≤ f) {ε : ℝ≥0} (hε : 0 < ε) (n : ℕ) :
+  {f : ℕ → α → ℝ} (hsub : submartingale f 𝒢 μ) (hnonneg : 0 ≤ f) {ε : ℝ≥0} (n : ℕ) :
   ε • μ {x | (ε : ℝ) ≤ ⨆ k : {k // k ≤ n}, f k x} ≤
   ennreal.of_real (∫ x in {x | (ε : ℝ) ≤ ⨆ k : {k // k ≤ n}, f k x}, f n x ∂μ) :=
 begin
@@ -517,7 +517,7 @@ begin
     + ennreal.of_real
       (∫ x in {x | (⨆ k : {k // k ≤ n}, f k x) < ε}, stopped_value f (hitting f {y : ℝ | ↑ε ≤ y} n) x ∂μ) :
     begin
-      refine add_le_add (smul_le_stopped_value_hitting hsub hε _)
+      refine add_le_add (smul_le_stopped_value_hitting hsub _)
         (ennreal.of_real_le_of_real (set_integral_mono_on (hsub.integrable n).integrable_on
         (integrable.integrable_on (integrable_stopped_value (hitting_is_stopping_time_nat
           hsub.adapted measurable_set_Ici n) hsub.integrable hitting_le))

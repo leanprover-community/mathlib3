@@ -156,7 +156,8 @@ meta def single_term_resolve : expr → tactic unit
   (nontriviality_by_assumption R <|>
     fail format!"could not produce a 'nontrivial {R}' assumption") >>
   interactive.exact ``(polynomial.nat_degree_X)
-| e := fail "C_mul_terms e"
+| e := fail format!"'{e}' is not a supported term: can you change it to `C a * X (^ n)`?\n
+See the docstring of `tactic.compute_degree.single_term_resolve` for more shapes. "
 
 /--
  `guess_degree e` assumes that `e` is a single summand of a polynomial and makes an attempt
@@ -185,7 +186,7 @@ meta def guess_degree : expr → tactic ℕ
   fail format!"The exponent of 'X ^ {n}' is not a closed natural number"
 | (app `(⇑(polynomial.monomial %%n)) x) := n.to_nat <|>
   fail format!"The exponent of 'monomial {n} {x}' is not a closed natural number"
-| e                        := fail format!"cannot guess the degree of '{e}'"
+| e                        := do ppe ← pp e, fail format!"cannot guess the degree of '{ppe}'"
 
 /--  Similar to `guess_degree e`, except that it returns an `expr`.  It outputs ``(0)`, when
 the heuristic for the guess fails. -/
@@ -238,7 +239,13 @@ do summ ← e.list_summands,
   match summ_and_degs.argmax (λ e : expr × ℕ, e.2) with
   | none := fail
       "'`compute_degree`' could not find summands: something has gone very wrong!\n\n"
-  | (some first) := return first
+  | (some first) := let maxs := summ_and_degs.filter (λ f, f.2 = first.2) in
+    if maxs.length ≠ 1 then do
+      ppf ← pp $ maxs.map prod.fst,
+      fail format!("the maximum degree '{first.2}' is guessed at the {maxs.length} terms\n" ++
+      "{ppf}:\n\n" ++
+      "'compute_degree' assumes that only one term has the top guessed degree\n")
+    else return first
   end
 
 /--  These are the cases in which an easy lemma computes the degree. -/
@@ -258,7 +265,7 @@ else do
 bo ← succeeds $ interactive.exact ``(polynomial.nat_degree_C_mul_X _ ‹_›),
 if bo then fail "Try this: exact polynomial.nat_degree_C_mul_X _ ‹_›"
 else
-  fail "single term lemmas do not work"
+  fail "'compute_degree' works better with polynomials involving more than one term\n"
 
 /--  `resolve_sum_step e` first checks that `e` is of the form `f.nat_degree ≤ d`,
 failing otherwise.  Suppose that `e` has the desired form.
@@ -268,7 +275,7 @@ failing otherwise.  Suppose that `e` has the desired form.
 
 In either case, there might be side-goals left of two different shapes:
 * `f'.nat_degree ≤ d`, with `f'` having fewer terms than `f`;
-* `m ≤ n`, where `m, n` are naturanl numbers.
+* `m ≤ n`, where `m, n` are natural numbers.
 -/
 meta def resolve_sum_step : expr → tactic unit
 | `(polynomial.nat_degree (%%tl1 + %%tl2) ≤ %%tr) := do

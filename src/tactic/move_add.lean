@@ -59,7 +59,6 @@ such operations, with complete disregard of the order in which these iterations 
 meta def list_explicit_args (f : expr) : tactic (list expr) :=
 tactic.fold_explicit_args f [] (λ ll e, return $ ll ++ [e])
 
-
 /--  `list_head_op op tt e` recurses into the expression `e` looking for first appearances of
 `op` as the head symbol of a subexpression.  Every time it finds one, it isolates it.
 Usually, `op` is a binary, associative operation.  E.g., if the operation is addition and the

@@ -782,6 +782,9 @@ class alg_equiv_class (F : Type*) (R A B : out_param Type*)
   extends ring_equiv_class F A B :=
 (commutes : ∀ (f : F) (r : R), f (algebra_map R A r) = algebra_map R B r)
 
+-- `R` becomes a metavariable but that's fine because it's an `out_param`
+attribute [nolint dangerous_instance] alg_equiv_class.to_ring_equiv_class
+
 namespace alg_equiv_class
 
 @[priority 100] -- See note [lower instance priority]

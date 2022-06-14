@@ -410,15 +410,6 @@ lemma submartingale_iff_expected_stopped_value_mono [is_finite_measure μ]
 
 section maximal
 
-lemma set_integral_le_const {c : ℝ} {f : α → ℝ} {s : set α}
-  (hs : measurable_set s) (hμs : μ s ≠ ∞) (hf : ∀ x ∈ s, c ≤ f x)
-  (hfint : integrable_on (λ (x : α), f x) s μ) :
-  c * (μ s).to_real ≤ ∫ x in s, f x ∂μ :=
-begin
-  rw [mul_comm, ← smul_eq_mul, ← set_integral_const c],
-  exact set_integral_mono_on (integrable_on_const.2 (or.inr hμs.lt_top)) hfint hs hf,
-end
-
 lemma exists_of_le_supr_finite {α : Type*} {p : α → Prop}
   (hp : {x | p x}.finite) (hp' : {x | p x}.nonempty) {f : α → ℝ} {ε : ℝ}
   (h : ε ≤ ⨆ x : {x // p x}, f x) : ∃ x, p x ∧ ε ≤ f x :=

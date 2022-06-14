@@ -196,6 +196,8 @@ noncomputable instance : fintype (K →+* ℂ) := fintype.of_equiv (K →ₐ[ℚ
 lemma card_embeddings : fintype.card (K →+* ℂ) = finrank ℚ K :=
 by rw [fintype.of_equiv_card equiv_alg, alg_hom.card]
 
+open polynomial
+
 /-- Any embeddings of a number field `K` can be extended to an embedding of an extension `L`. -/
 lemma lift {L : Type*} [field L] [number_field L] [algebra K L] (φ : K →+* ℂ) :
   ∃ ψ : L →+* ℂ, φ = ψ.comp (algebra_map K L) :=
@@ -207,11 +209,10 @@ begin
     intro a,
     obtain ⟨p, hp⟩ := (number_field.is_algebraic L) a,
     haveI : algebra ℚ K, { exact algebra_rat },
-    use (polynomial.map (algebra_map ℚ K) p),
+    use (map (algebra_map ℚ K) p),
     split,
-    simp only [ne.def, polynomial.map_eq_zero, not_false_iff, hp.left],
-    simp only [polynomial.aeval_map, map_zero, hp.right]
-  },
+    simp only [ne.def, map_eq_zero, not_false_iff, hp.left],
+    simp only [aeval_map, map_zero, hp.right], },
   let ψ₀ : L →ₐ[K] ℂ := is_alg_closed.lift hS,
   let ψ := ψ₀.to_ring_hom,
   use ψ,
@@ -222,46 +223,46 @@ begin
   exact rfl,
 end
 
--- todo: add result roots_equal_embeddings
-lemma roots_equal_embeddings : (range (λ φ : K →+* ℂ, φ x)).to_finset =
-  ((polynomial.map (algebra_map ℚ ℂ) (minpoly ℚ x)).roots.to_finset : finset ℂ) :=
+/-- For `x ∈ K`, with `K` a number field, the images of `x` by the embeddings of `K` are exactly
+the roots of the minimal polynomial of `x` over `ℚ` -/
+lemma eq_roots : range (λ φ : K →+* ℂ, φ x) = (minpoly ℚ x).root_set ℂ :=
 begin
   have hx : is_integral ℚ x, { exact is_separable.is_integral ℚ x },
   ext a,
-  simp only [to_finset_range, finset.mem_image, finset.mem_univ, exists_true_left,
-      multiset.mem_to_finset],
   split,
-  rintro ⟨φ, hφ⟩,
-
---  rw polynomial.mem_roots_map_of_injective,
-  rw [← hφ, polynomial.eval₂_eq_eval_map, ← coe_aeval_eq_eval, aeval_map],
-  let ψ := ring_hom.to_rat_alg_hom φ,
-  show (aeval (ψ x)) (minpoly ℚ x) = 0,
-  { rw polynomial.aeval_alg_hom_apply ψ x (minpoly ℚ x),
-    simp only [minpoly.aeval, map_zero] },
-  exact (algebra_map ℚ ℂ).injective,
-  exact minpoly.ne_zero hx,
-  intro ha,
-  let Qx := adjoin_root (minpoly ℚ x),
-  haveI : irreducible (minpoly ℚ x), { exact minpoly.irreducible hx },
-  haveI : number_field Qx := by apply_instance,
-  have hK : (aeval x) (minpoly ℚ x) = 0, { exact minpoly.aeval _ _, },
-  have hC : (aeval a) (minpoly ℚ x) = 0,
-  { rw polynomial.mem_roots_map_of_injective at ha,
-    exact ha,
-    exact (algebra_map ℚ ℂ).injective,
+  { rintro ⟨φ, hφ⟩,
+    rw [mem_root_set_iff, ←hφ],
+    let ψ := ring_hom.to_rat_alg_hom φ,
+    show (aeval (ψ x)) (minpoly ℚ x) = 0,
+    { rw aeval_alg_hom_apply ψ x (minpoly ℚ x),
+      simp only [minpoly.aeval, map_zero] },
     exact minpoly.ne_zero hx, },
-  let ψ : Qx →+* ℂ := adjoin_root.lift (algebra_map ℚ ℂ) a hC,
-  letI : algebra Qx K, { exact ring_hom.to_algebra (adjoin_root.lift (algebra_map ℚ K) x hK), },
-  obtain ⟨φ, hφ⟩ := embeddings.lift ψ,
-  use φ,
-  rw (_ : x = (algebra_map Qx K) (adjoin_root.root (minpoly ℚ x))),
-  rw (_ : a = ψ (adjoin_root.root (minpoly ℚ x))),
-  rw ←function.comp_app φ _ _,
-  simp only [congr_fun, hφ, ring_hom.coe_comp],
-  exact (adjoin_root.lift_root hC).symm,
-  exact (adjoin_root.lift_root hK).symm,
-  apply_instance
+  { intro ha,
+    let Qx := adjoin_root (minpoly ℚ x),
+    haveI : irreducible (minpoly ℚ x), { exact minpoly.irreducible hx },
+    haveI : number_field Qx := by apply_instance,
+    have hK : (aeval x) (minpoly ℚ x) = 0, { exact minpoly.aeval _ _, },
+    have hC : (aeval a) (minpoly ℚ x) = 0,
+    { rw [aeval_def, ←eval_map, ←mem_root_set_iff'],
+      exact ha,
+      suffices : (minpoly ℚ x) ≠ 0,
+      { contrapose! this,
+        simp only [polynomial.ext_iff, coeff_map, coeff_zero] at this ⊢,
+        suffices inj : function.injective (algebra_map ℚ ℂ),
+        { exact λ n : ℕ, inj (by rw [(this n), (algebra_map ℚ ℂ).map_zero]),},
+        exact (algebra_map ℚ ℂ).injective, },
+      exact minpoly.ne_zero hx, },
+    let ψ : Qx →+* ℂ := adjoin_root.lift (algebra_map ℚ ℂ) a hC,
+    letI : algebra Qx K,
+    { exact ring_hom.to_algebra (adjoin_root.lift (algebra_map ℚ K) x hK), },
+    obtain ⟨φ, hφ⟩ := lift ψ,
+    use φ,
+    rw (_ : x = (algebra_map Qx K) (adjoin_root.root (minpoly ℚ x))),
+    rw (_ : a = ψ (adjoin_root.root (minpoly ℚ x))),
+    simp only [congr_fun, hφ, ring_hom.coe_comp],
+    exact (adjoin_root.lift_root hC).symm,
+    exact (adjoin_root.lift_root hK).symm,
+    apply_instance, },
 end
 
 end number_field

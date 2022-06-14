@@ -673,9 +673,7 @@ lemma set_to_simple_func_const (T : set α → F →L[ℝ] F') (hT_empty : T ∅
   simple_func.set_to_simple_func T (simple_func.const α x) = T univ x :=
 begin
   casesI hα : is_empty_or_nonempty α,
-  { have h_univ_empty : (univ : set α) = ∅,
-    { haveI : unique (set α) := unique_empty,
-      exact subsingleton.elim (univ : set α) (∅ : set α), },
+  { have h_univ_empty : (univ : set α) = ∅, from subsingleton.elim _ _,
     rw [h_univ_empty, hT_empty],
     simp only [set_to_simple_func, continuous_linear_map.zero_apply, sum_empty,
       range_eq_empty_of_is_empty], },

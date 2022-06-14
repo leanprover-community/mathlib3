@@ -205,10 +205,6 @@ theorem numeric_nat : Π (n : ℕ), numeric n
 | 0 := numeric_zero
 | (n + 1) := (numeric_nat n).add numeric_one
 
-/-- The pre-game `half` is numeric. -/
-theorem numeric_half : numeric half :=
-⟨λ _ _, zero_lt_one, λ _, numeric_zero, λ _, numeric_one⟩
-
 /-- Ordinal games are numeric. -/
 theorem numeric_to_pgame (o : ordinal) : o.to_pgame.numeric :=
 begin

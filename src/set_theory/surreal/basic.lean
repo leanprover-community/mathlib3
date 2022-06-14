@@ -164,7 +164,7 @@ theorem numeric_zero : numeric 0 := numeric_of_is_empty 0
 theorem numeric_one : numeric 1 := numeric_of_is_empty_right_moves 1 $ λ _, numeric_zero
 
 theorem numeric.neg : Π {x : pgame} (o : numeric x), numeric (-x)
-| ⟨l, r, L, R⟩ o := ⟨λ j i, neg_lt_iff.2 (o.1 i j), λ j, (o.2.2 j).neg, λ i, (o.2.1 i).neg⟩
+| ⟨l, r, L, R⟩ o := ⟨λ j i, neg_lt_neg_iff.2 (o.1 i j), λ j, (o.2.2 j).neg, λ i, (o.2.1 i).neg⟩
 
 theorem numeric.move_left_lt {x : pgame} (o : numeric x) (i) : x.move_left i < x :=
 (pgame.move_left_lf i).lt (o.move_left i) o
@@ -204,10 +204,6 @@ lemma numeric.sub {x y : pgame} (ox : numeric x) (oy : numeric y) : numeric (x -
 theorem numeric_nat : Π (n : ℕ), numeric n
 | 0 := numeric_zero
 | (n + 1) := (numeric_nat n).add numeric_one
-
-/-- The pre-game `half` is numeric. -/
-theorem numeric_half : numeric half :=
-⟨λ _ _, zero_lt_one, λ _, numeric_zero, λ _, numeric_one⟩
 
 /-- Ordinal games are numeric. -/
 theorem numeric_to_pgame (o : ordinal) : o.to_pgame.numeric :=
@@ -274,7 +270,7 @@ the negation of `{L | R}` is `{-R | -L}`. -/
 instance : has_neg surreal  :=
 ⟨surreal.lift
   (λ x ox, ⟦⟨-x, ox.neg⟩⟧)
-  (λ _ _ _ _ a, quotient.sound (pgame.neg_congr a))⟩
+  (λ _ _ _ _ a, quotient.sound (pgame.neg_equiv_neg_iff.2 a))⟩
 
 instance : ordered_add_comm_group surreal :=
 { add               := (+),

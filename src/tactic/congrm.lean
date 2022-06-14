@@ -169,28 +169,28 @@ open tactic interactive
 setup_tactic_parser
 
 /--
-`congrm e` assumes that the goal is of the form `lhs = rhs` or `lhs ↔ rhs`.
-`congrm e` scans `e, lhs, rhs` in parallel.
-Assuming that the three expressions are successions of function applications, lambdas or pis,
-`e` possibly involving underscores or "function underscores",
-`congrm e` uses `e` as a pattern to decide what to do in corresponding places of `lhs` and `rhs`.
+Assume that the goal is of the form `lhs = rhs` or `lhs ↔ rhs`.
+`congrm e` takes an expression `e` containing placeholders `_` and scans `e, lhs, rhs` in parallel.
 
-If `e` has a meta-variable in a location, then the tactic produces a side-goal with
-the equality of the corresponding locations in `lhs, rhs`.
+It matches both `lhs` and `rhs` to the pattern `e`, and produces one goal for each placeholder,
+stating that the corresponding subexpressions in `lhs` and `rhs` are equal.
 
-If `e` has a "function underscore" in a location, then the tactic reads off the function `f` that
-appears in `lhs` at the current location, replacing the *explicit* arguments of `f` by the user
-inputs to the "function underscore".  After that, `congrm` continues with its matching.
+Examples:
+```lean
+example {a b c d : ℕ} :
+  nat.pred a.succ * (d + (c + a.pred)) = nat.pred b.succ * (b + (c + d.pred)) :=
+begin
+  congrm nat.pred (nat.succ _) * (_ + _),
+/-  Goals left:
+⊢ a = b
+⊢ d = b
+⊢ c + a.pred = c + d.pred
+-/
+  sorry,
+  sorry,
+  sorry,
+end
 
-If `e` is a function application, `congrm` applies the automatically generated congruence lemma
-(like `tactic.congr`).
-
-If `e` is a lambda abstraction, `congrm` applies `funext`.
-If `e` is a pi, `congrm` applies `pi_congr`.
-
-Subexpressions that are defeq or whose type is a subsingleton are skipped.
-
-```
 example {a b : ℕ} (h : a = b) : (λ y : ℕ, ∀ z, a + a = z) = (λ x, ∀ z, b + a = z) :=
 begin
   congrm λ x, ∀ w, _ + a = w,
@@ -198,6 +198,12 @@ begin
   exact h,
 end
 ```
+
+The tactic also allows for "function underscores", denoted by `_₁, ..., _₄`.  The index denotes
+the number of explicit arguments of the function to be matched.
+If `e` has a "function underscore" in a location, then the tactic reads off the function `f` that
+appears in `lhs` at the current location, replacing the *explicit* arguments of `f` by the user
+inputs to the "function underscore".  After that, `congrm` continues with its matching.
 -/
 meta def congrm (arg : parse texpr) : tactic unit := do
 try $ applyc ``_root_.eq.to_iff,

@@ -468,8 +468,9 @@ end
 
 lemma smul_le_stopped_value_hitting [is_finite_measure μ]
   {f : ℕ → α → ℝ} (hsub : submartingale f 𝒢 μ) {ε : ℝ≥0} (n : ℕ) :
-  ε • μ {x | (ε : ℝ) ≤ ⨆ k : {k // k ≤ n}, f k x} ≤ ennreal.of_real
-    (∫ x in {x | (ε : ℝ) ≤ ⨆ k : {k // k ≤ n}, f k x}, stopped_value f (hitting f {y : ℝ | ↑ε ≤ y} n) x ∂μ) :=
+  ε • μ {x | (ε : ℝ) ≤ ⨆ k : {k // k ≤ n}, f k x} ≤
+  ennreal.of_real (∫ x in {x | (ε : ℝ) ≤ ⨆ k : {k // k ≤ n}, f k x},
+    stopped_value f (hitting f {y : ℝ | ↑ε ≤ y} n) x ∂μ) :=
 begin
   have : ∀ x, ((ε : ℝ) ≤ ⨆ k : {k // k ≤ n}, f k x) →
     (ε : ℝ) ≤ stopped_value f (hitting f {y : ℝ | ↑ε ≤ y} n) x,

@@ -592,6 +592,7 @@ meta def list_binary_operands (f : expr) : expr → list expr
 | a := [a]
 
 /--  Takes an `expr` and returns a list of its summands.
+For instance, ``list_summands `(a + (b + c))`` will return ``[`(a), `(b), `(c)]``.
 
 See the related `expr.list_binary_operands` in `tactic.core` for a `tactic` version that takes an
 arbitrary (binary) operation as a parameter. -/
@@ -601,6 +602,7 @@ meta def list_summands : expr → list expr
 | a                      := [a]
 
 /--  Takes an `expr` and returns a list of its factors.
+For instance, ``list_factors `(a * (b * c))`` will return ``[`(a), `(b), `(c)]``.
 
 See the related `expr.list_binary_operands` in `tactic.core` for a `tactic` version that takes an
 arbitrary (binary) operation as a parameter. -/

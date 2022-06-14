@@ -30,6 +30,7 @@ at a specific time and is the first step in formalizing stochastic processes.
   function `τ` such that for all `i`, the preimage of `{j | j ≤ i}` along `τ` is
   `f i`-measurable
 * `measure_theory.is_stopping_time.measurable_space`: the σ-algebra associated with a stopping time
+* `measure_theory.hitting`: the first hitting time of a process
 
 ## Main results
 
@@ -1290,5 +1291,159 @@ lemma stopped_value_piecewise_const' {ι' : Type*} {i j : ι'} {f : ι' → α �
 by { ext x, rw stopped_value, by_cases hx : x ∈ s; simp [hx] }
 
 end piecewise_const
+
+section hitting
+
+/-- Hitting time: given a stochastic process `u` and a set `s`, `hitting u s n` is the first time
+`u` is in `s` before `n` (if `u` does not hit `s` before `n` then the hitting time is simply `n`).
+
+The hitting time is a stopping time if the process is adapted and discrete. -/
+noncomputable def hitting [preorder ι] [has_Inf ι] (u : ι → α → β) (s : set β) (n : ι) :
+  α → ι :=
+λ x, if ∃ j ≤ n, u j x ∈ s then Inf {i : ι | u i x ∈ s} else n
+
+lemma hitting_le [conditionally_complete_linear_order_bot ι]
+  {u : ι → α → β} {s : set β} {n : ι} (x : α) :
+  hitting u s n x ≤ n :=
+begin
+  simp only [hitting],
+  split_ifs,
+  { obtain ⟨j, hj₁, hj₂⟩ := h,
+    exact le_trans (cInf_le' hj₂) hj₁ },
+  exact le_rfl
+end
+
+section complete_linear_order
+
+variables [complete_linear_order ι] {u : ι → α → β} {s : set β} {f : filtration ι m}
+
+@[simp]
+lemma hitting_eq_Inf (x : α) : hitting u s ⊤ x = Inf {i : ι | u i x ∈ s} :=
+begin
+  simp only [hitting, ite_eq_left_iff],
+  intro h,
+  have : {i : ι | u i x ∈ s} = ∅,
+  { push_neg at h,
+    simp only [le_top, forall_true_left] at h,
+    rwa set.eq_empty_iff_forall_not_mem },
+  exact this.symm ▸ Inf_empty.symm
+end
+
+lemma hitting_lt_eq_Union (i : ι) :
+  {x | hitting u s ⊤ x < i} = ⋃ j < i, u j ⁻¹' s :=
+begin
+  ext x,
+  simp only [hitting_eq_Inf, set.mem_set_of_eq, set.mem_Union, set.mem_preimage,
+    exists_prop, Inf_lt_iff, and_comm]
+end
+
+lemma hitting_le_eq_Union [is_well_order ι (<)] {i : ι} (hi : i ≠ ⊤) :
+  {x | hitting u s ⊤ x ≤ i} = ⋃ j ≤ i, u j ⁻¹' s :=
+begin
+  ext x,
+  simp only [le_iff_eq_or_lt, set.Union_Union_eq_or_left, ← hitting_lt_eq_Union i,
+    hitting_eq_Inf, set.mem_set_of_eq, set.mem_union_eq, set.mem_preimage],
+  split,
+  { rintro (rfl | h),
+    { by_cases hemp : {i : ι | u i x ∈ s}.nonempty,
+      { exact or.inl (Inf_mem hemp) },
+      { rw set.not_nonempty_iff_eq_empty at hemp,
+        rw [hemp, Inf_empty, ne.def, eq_self_iff_true, not_true] at hi,
+        exact false.elim hi } },
+    exact or.inr h },
+  { rintro (h | h),
+    { rw ← le_iff_eq_or_lt,
+      exact Inf_le h },
+    exact or.inr h }
+end
+
+/-- A discrete hitting time is a stopping time. This lemma is mostly intended in the case the
+time index is `enat`. -/
+lemma hitting_is_stopping_time [is_well_order ι (<)] [encodable ι]
+  [topological_space β] [pseudo_metrizable_space β] [measurable_space β] [borel_space β]
+  (hu : adapted f u) (hs : measurable_set s) :
+  is_stopping_time f (hitting u s ⊤) :=
+begin
+  intro i,
+  by_cases hi : i = ⊤,
+  { simp [hi] },
+  { rw hitting_le_eq_Union hi,
+    exact measurable_set.Union (λ j, measurable_set.Union_Prop $
+      λ hj, f.mono hj _ ((hu j).measurable hs)) }
+end
+
+end complete_linear_order
+
+section nat
+
+variables {u : ℕ → α → β} {s : set β} {f : filtration ℕ m}
+
+lemma hitting_le_iff_mem_Union_nat {i n : ℕ} {x : α} (hx : ∃ j, j ≤ n ∧ u j x ∈ s) :
+  hitting u s n x ≤ i ↔ x ∈ ⋃ j ≤ i, u j ⁻¹' s :=
+begin
+  simp only [hitting, set.mem_Union, set.mem_preimage, exists_prop, if_pos hx],
+  obtain ⟨j, hj₁, hj₂⟩ := hx,
+  have hj' : { i | u i x ∈ s }.nonempty := set.nonempty_of_mem hj₂,
+  refine ⟨λ h, ⟨Inf {i : ℕ | u i x ∈ s}, h, nat.Inf_mem hj'⟩, λ h, _⟩,
+  obtain ⟨k, hk₁, hk₂⟩ := h,
+  exact le_trans (nat.Inf_le hk₂) hk₁
+end
+
+lemma hitting_le_eq_Union_nat_of_lt {i n : ℕ} (hin : i < n) :
+  {x | hitting u s n x ≤ i} = ⋃ j ≤ i, u j ⁻¹' s :=
+begin
+  ext x,
+  by_cases hj : ∃ j, j ≤ n ∧ u j x ∈ s,
+  { exact hitting_le_iff_mem_Union_nat hj },
+  { simp only [hitting, if_neg hj, set.mem_set_of_eq, set.mem_Union,
+      set.mem_preimage, exists_prop],
+    split,
+    { intro h,
+      linarith },
+    { push_neg at hj,
+      rintro ⟨j, hj₁, hj₂⟩,
+      exact false.elim (hj j (le_trans hj₁ hin.le) hj₂) } }
+end
+
+lemma hitting_le_eq_Union_nat_of_le {i n : ℕ} (hin : n ≤ i) :
+  {x | hitting u s n x ≤ i} = {x | ∀ j ≤ n, u j x ∉ s} ∪ ⋃ j ≤ i, u j ⁻¹' s :=
+begin
+  ext x,
+  by_cases hj : ∃ j, j ≤ n ∧ u j x ∈ s,
+  { rw [set.mem_set_of, hitting_le_iff_mem_Union_nat hj],
+    refine ⟨λ h, or.inr h, _⟩,
+    rintro (h | h),
+    { exact let ⟨j, hj₁, hj₂⟩ := hj in false.elim (h j hj₁ hj₂) },
+    { assumption } },
+  { simp only [hitting, hj, hin, exists_prop, set.mem_set_of_eq, if_false, set.mem_union_eq,
+      set.mem_Union, set.mem_preimage, true_iff],
+    push_neg at hj,
+    exact or.inl hj }
+end
+
+/-- A `ℕ`-indexed hitting time of an adpated process is a stopping time if the set it hits is
+measurable. -/
+lemma hitting_is_stopping_time_nat
+  [topological_space β] [pseudo_metrizable_space β] [measurable_space β] [borel_space β]
+  {f : filtration ℕ m} {u : ℕ → α → β} (hu : adapted f u) (hs : measurable_set s) (n : ℕ) :
+  is_stopping_time f (hitting u s n) :=
+begin
+  intro i,
+  by_cases hin : i < n,
+  { rw hitting_le_eq_Union_nat_of_lt hin,
+    exact measurable_set.Union (λ j, measurable_set.Union_Prop $
+      λ hj, f.mono hj _ ((hu j).measurable hs)) },
+  { rw [hitting_le_eq_Union_nat_of_le (not_lt.1 hin),
+      (by { ext, simp } : {x | ∀ j, j ≤ n → u j x ∉ s} = ⋂ j ≤ n, {x | u j x ∉ s})],
+    exact measurable_set.union
+      (measurable_set.Inter (λ j, measurable_set.Inter_Prop $
+        λ hj, f.mono (le_trans hj (not_lt.1 hin)) _ ((hu j).measurable hs).compl))
+      (measurable_set.Union (λ j, measurable_set.Union_Prop $
+        λ hj, f.mono hj _ ((hu j).measurable hs))) }
+end
+
+end nat
+
+end hitting
 
 end measure_theory

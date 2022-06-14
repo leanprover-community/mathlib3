@@ -532,13 +532,11 @@ begin
   { rintros h x hx,
     by_cases h_1 : x = 0, { simp only [h_1, zero_mem] },
     by_cases h_2 : x⁻¹ + 1 = 0,
-    { rw add_eq_zero_iff_eq_neg at h_2,
-      apply_fun B.valuation at h_2,
-      rw [valuation.map_neg, valuation.map_one, valuation.map_inv, inv_eq_one] at h_2,
-      exact (B.valuation_le_one_iff _).1 h_2.le },
-    rw [← valuation_le_one_iff, ← not_lt, valuation.one_lt_val_iff _ h_1, ← add_sub_cancel x⁻¹,
+    { rw [add_eq_zero_iff_eq_neg, inv_eq_iff_inv_eq, inv_neg, inv_one] at h_2,
+      simpa only [h_2] using B.neg_mem _ B.one_mem },
+    { rw [← valuation_le_one_iff, ← not_lt, valuation.one_lt_val_iff _ h_1, ← add_sub_cancel x⁻¹,
       ← units.coe_mk0 h_2, ← mem_principal_unit_group_iff] at hx ⊢,
-    simpa only [hx] using @h (units.mk0 (x⁻¹ + 1) h_2) },
+      simpa only [hx] using @h (units.mk0 (x⁻¹ + 1) h_2) } },
   { rintros h x hx,
     by_contra h_1, from not_lt.2 (monotone_map_of_le _ _ h (not_lt.1 h_1)) hx }
 end

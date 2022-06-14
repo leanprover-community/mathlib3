@@ -495,7 +495,8 @@ lemma maximal_ineq [is_finite_measure μ]
   ennreal.of_real (∫ x in {x | (ε : ℝ) ≤ ⨆ k : {k // k ≤ n}, f k x}, f n x ∂μ) :=
 begin
   suffices : ε • μ {x | (ε : ℝ) ≤ ⨆ k : {k // k ≤ n}, f k x} +
-    ennreal.of_real (∫ x in {x | (⨆ k : {k // k ≤ n}, f k x) < ε}, f n x ∂μ) ≤ ennreal.of_real (μ[f n]),
+    ennreal.of_real (∫ x in {x | (⨆ k : {k // k ≤ n}, f k x) < ε}, f n x ∂μ) ≤
+    ennreal.of_real (μ[f n]),
   { have hadd : ennreal.of_real (∫ (x : α), f n x ∂μ) =
       ennreal.of_real (∫ (x : α) in {x : α | ↑ε ≤ (⨆ k : {k // k ≤ n}, f k x)}, f n x ∂μ) +
       ennreal.of_real (∫ (x : α) in {x : α | (⨆ k : {k // k ≤ n}, f k x) < ↑ε}, f n x ∂μ),
@@ -513,10 +514,10 @@ begin
     rwa [hadd, ennreal.add_le_add_iff_right ennreal.of_real_ne_top] at this },
   calc ε • μ {x | (ε : ℝ) ≤ ⨆ k : {k // k ≤ n}, f k x}
     + ennreal.of_real (∫ x in {x | (⨆ k : {k // k ≤ n}, f k x) < ε}, f n x ∂μ) ≤
-    ennreal.of_real
-      (∫ x in {x | (ε : ℝ) ≤ ⨆ k : {k // k ≤ n}, f k x}, stopped_value f (hitting f {y : ℝ | ↑ε ≤ y} n) x ∂μ)
-    + ennreal.of_real
-      (∫ x in {x | (⨆ k : {k // k ≤ n}, f k x) < ε}, stopped_value f (hitting f {y : ℝ | ↑ε ≤ y} n) x ∂μ) :
+      ennreal.of_real (∫ x in {x | (ε : ℝ) ≤ ⨆ k : {k // k ≤ n}, f k x},
+        stopped_value f (hitting f {y : ℝ | ↑ε ≤ y} n) x ∂μ)
+    + ennreal.of_real (∫ x in {x | (⨆ k : {k // k ≤ n}, f k x) < ε},
+        stopped_value f (hitting f {y : ℝ | ↑ε ≤ y} n) x ∂μ) :
     begin
       refine add_le_add (smul_le_stopped_value_hitting hsub _)
         (ennreal.of_real_le_of_real (set_integral_mono_on (hsub.integrable n).integrable_on

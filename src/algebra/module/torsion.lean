@@ -433,20 +433,34 @@ section torsion
 variables [comm_semiring R] [add_comm_monoid M] [module R M]
 open_locale big_operators
 
-lemma is_torsion_by_ideal_of_finite_of_is_torsion [module.finite R M] (hM : module.is_torsion R M) :
-  ∃ I : ideal R, (I : set R) ∩ R⁰ ≠ ∅ ∧ module.is_torsion_by_set R M I :=
+variables (R M)
+/-- An ideal satisfying `module.is_torsion_by_set R M I`. -/
+noncomputable def _root_.module.torsion_ideal [module.finite R M] : ideal R :=
+∏ x in ‹module.finite R M›.out.some, ideal.torsion_of R M x
+
+
+lemma _root_.module.is_torsion_by_set_torsion_ideal [module.finite R M] :
+  module.is_torsion_by_set R M (module.torsion_ideal R M) :=
 begin
-  cases (module.finite_def.mp infer_instance : (⊤ : submodule R M).fg) with S h,
-  refine ⟨∏ x in S, ideal.torsion_of R M x, _, _⟩,
-  { rw set.ne_empty_iff_nonempty,
-    refine ⟨_, _, (∏ x in S, (@hM x).some : R⁰).2⟩,
-    rw [subtype.val_eq_coe, submonoid.coe_finset_prod],
-    apply ideal.prod_mem_prod,
-    exact λ x _, (@hM x).some_spec },
-  { rw [module.is_torsion_by_set_iff_torsion_by_set_eq_top, eq_top_iff, ← h, span_le],
-    intros x hx, apply torsion_by_set_le_torsion_by_set_of_subset,
-    { apply ideal.le_of_dvd, exact finset.dvd_prod_of_mem _ hx },
-    { rw mem_torsion_by_set_iff, rintro ⟨a, ha⟩, exact ha } }
+  have h := ‹module.finite R M›.out.some_spec,
+  rw [module.is_torsion_by_set_iff_torsion_by_set_eq_top, eq_top_iff, ← h, span_le],
+  intros x hx, apply torsion_by_set_le_torsion_by_set_of_subset,
+  { apply ideal.le_of_dvd, exact finset.dvd_prod_of_mem _ hx },
+  { rw mem_torsion_by_set_iff, rintro ⟨a, ha⟩, exact ha },
+end
+
+variables {R M}
+
+lemma _root_.module.torsion_ideal_inter_non_zero_divisors [module.finite R M]
+  (hM : module.is_torsion R M) :
+  (module.torsion_ideal R M : set R) ∩ R⁰ ≠ ∅:=
+begin
+  let S := ‹module.finite R M›.out.some,
+  rw set.ne_empty_iff_nonempty,
+  refine ⟨_, _, (∏ x in S, (@hM x).some : R⁰).prop⟩,
+  rw [submonoid.coe_finset_prod],
+  apply ideal.prod_mem_prod,
+  exact λ x _, (@hM x).some_spec,
 end
 
 variables [no_zero_divisors R] [nontrivial R]

@@ -36,7 +36,7 @@ namespace pgame
 `pow_half (n + 1) + pow_half (n + 1) ≈ pow_half n`. -/
 def pow_half : ℕ → pgame
 | 0       := 1
-| (n + 1) := ⟨punit, punit, 0, λ _, pow_half n⟩
+| (n + 1) := P{0 | pow_half n}
 
 @[simp] lemma pow_half_zero : pow_half 0 = 1 := rfl
 
@@ -45,7 +45,7 @@ lemma pow_half_zero_right_moves : (pow_half 0).right_moves = pempty := rfl
 lemma pow_half_succ_right_moves (n) : (pow_half (n + 1)).right_moves = punit := rfl
 
 @[simp] lemma pow_half_move_left (n i) : (pow_half n).move_left i = 0 :=
-by cases n; cases i; refl
+by cases n; refl
 @[simp] lemma pow_half_succ_move_right (n i) : (pow_half (n + 1)).move_right i = pow_half n :=
 rfl
 
@@ -56,18 +56,14 @@ pempty.is_empty
 instance unique_pow_half_succ_right_moves (n) : unique (pow_half (n + 1)).right_moves :=
 punit.unique
 
-@[simp] theorem birthday_half : birthday (pow_half 1) = 2 :=
-by { rw birthday_def, dsimp, simpa using order.le_succ (1 : ordinal) }
+@[simp] theorem birthday_pow_half : ∀ n, birthday (pow_half n) = n + 1 :=
+| 0       := birthday_one
+| (n + 1) := by simp [pow_half]
 
 /-- For all natural numbers `n`, the pre-games `pow_half n` are numeric. -/
-theorem numeric_pow_half (n) : (pow_half n).numeric :=
-begin
-  induction n with n hn,
-  { exact numeric_one },
-  { split,
-    { simpa using hn.move_left_lt default },
-    { exact ⟨λ _, numeric_zero, λ _, hn⟩ } }
-end
+theorem numeric_pow_half : ∀ n, (pow_half n).numeric :=
+| 0       := numeric_one
+| (n + 1) := ⟨by simpa using hn.move_left_lt default, ⟨λ _, numeric_zero, λ _, hn⟩⟩
 
 theorem pow_half_succ_lt_pow_half (n : ℕ) : pow_half (n + 1) < pow_half n :=
 (numeric_pow_half (n + 1)).lt_move_right default
@@ -86,7 +82,7 @@ theorem pow_half_succ_lt_one (n : ℕ) : pow_half (n + 1) < 1 :=
 (pow_half_succ_lt_pow_half n).trans_le $ pow_half_le_one n
 
 theorem pow_half_pos (n : ℕ) : 0 < pow_half n :=
-by { rw [←lf_iff_lt numeric_zero (numeric_pow_half n), zero_lf_le], simp }
+by { rw [←lf_iff_lt numeric_zero (numeric_pow_half n)], apply lf_of }
 
 theorem zero_le_pow_half (n : ℕ) : 0 ≤ pow_half n :=
 (pow_half_pos n).le

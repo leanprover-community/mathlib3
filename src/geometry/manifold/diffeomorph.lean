@@ -261,30 +261,6 @@ lemma to_local_homeomorph_mdifferentiable (h : M ≃ₘ^n⟮I, J⟯ N) (hn : 1 �
 
 section constructions
 
-
--- open topological_space
--- /-- If two sets are equal, then they are diffeomorphic. -/
--- def set_congr {s t : opens M} (h : s = t) (n : with_top ℕ) : s ≃ₘ^n⟮I, I⟯ t :=
--- { cont_mdiff_to_fun := cont_mdiff_subtype_mk _ cont_mdiff_subtype_val,
---   cont_mdiff_inv_fun := cont_mdiff_subtype_mk _ cont_mdiff_subtype_val,
---   to_equiv := equiv.set_congr (congr_arg (coe : opens M → set M) h) }
-
--- /-- Sum of two diffeomorphisms. -/
--- def sum_congr (h₁ : M ≃ₘ^n⟮I, I'⟯ M') (h₂ : N ≃ₘ^n⟮J, J'⟯ N') : M ⊕ N ≃ₘ^n⟮I.prod I', J⟯ M' ⊕ N' :=
--- { cont_mdiff_to_fun  :=
---   begin
---     convert cont_mdiff_sum_rec (cont_mdiff_inl.comp h₁.cont_mdiff)
---       (cont_mdiff_inr.comp h₂.cont_mdiff),
---     ext x, cases x; refl,
---   end,
---   cont_mdiff_inv_fun :=
---   begin
---     convert cont_mdiff_sum_rec (cont_mdiff_inl.comp h₁.symm.cont_mdiff)
---       (cont_mdiff_inr.comp h₂.symm.cont_mdiff),
---     ext x, cases x; refl
---   end,
---   to_equiv := h₁.to_equiv.sum_congr h₂.to_equiv }
-
 /-- Product of two diffeomorphisms. -/
 def prod_congr (h₁ : M ≃ₘ^n⟮I, I'⟯ M') (h₂ : N ≃ₘ^n⟮J, J'⟯ N') :
   M × N ≃ₘ^n⟮I.prod J, I'.prod J'⟯ M' × N' :=
@@ -320,89 +296,8 @@ def prod_assoc : (M × N) × N' ≃ₘ^n⟮(I.prod J).prod J', I.prod (J.prod J'
     (cont_mdiff_snd.comp cont_mdiff_snd),
   to_equiv := equiv.prod_assoc M N N' }
 
--- /-- `M × {*}` is diffeomorphic to `M`. -/
--- @[simps apply {fully_applied := ff}]
--- def prod_punit : M × punit ≃ₘ^n⟮I, J⟯ M :=
--- { to_equiv := equiv.prod_punit M,
---   cont_mdiff_to_fun := cont_mdiff_fst,
---   cont_mdiff_inv_fun := cont_mdiff_id.prod_mk cont_mdiff_const }
-
--- /-- `{*} × M` is diffeomorphic to `M`. -/
--- def punit_prod : punit × M ≃ₘ^n⟮I, J⟯ M :=
--- (prod_comm _ _).trans (prod_punit _)
-
--- @[simp] lemma coe_punit_prod : ⇑(punit_prod M) = prod.snd := rfl
-
 end
-
--- /-- `ulift M` is diffeomorphic to `M`. -/
--- def {v} ulift : ulift.{v} M ≃ₘ^n⟮I, I⟯ M :=
--- { cont_mdiff_to_fun := cont_mdiff_ulift_down,
---   cont_mdiff_inv_fun := cont_mdiff_ulift_up,
---   to_equiv := equiv.ulift }
-
--- section distrib
-
--- /-- `(M ⊕ N) × N'` is diffeomorphic to `M × N' ⊕ N × N'`. -/
--- def sum_prod_distrib : (M ⊕ N) × N' ≃ₘ^n⟮I, J⟯ M × N' ⊕ N × N' :=
--- begin
---   refine (homeomorph.homeomorph_of_cont_mdiff_open (equiv.sum_prod_distrib M N N').symm _ _).symm,
---   { convert cont_mdiff_sum_rec
---       ((cont_mdiff_inl.comp cont_mdiff_fst).prod_mk cont_mdiff_snd)
---       ((cont_mdiff_inr.comp cont_mdiff_fst).prod_mk cont_mdiff_snd),
---     ext1 x, cases x; refl, },
---   { exact (is_open_map_sum
---     (open_embedding_inl.prod open_embedding_id).is_open_map
---     (open_embedding_inr.prod open_embedding_id).is_open_map) }
--- end
-
--- /-- `M × (N ⊕ N')` is diffeomorphic to `M × N ⊕ M × N'`. -/
--- def prod_sum_distrib : M × (N ⊕ N') ≃ₘ^n⟮I, J⟯ M × N ⊕ M × N' :=
--- (prod_comm _ _).trans $
--- sum_prod_distrib.trans $
--- sum_congr (prod_comm _ _) (prod_comm _ _)
-
--- variables {ι : Type*} {σ : ι → Type*} [Π i, topological_space (σ i)]
-
--- /-- `(Σ i, σ i) × N` is diffeomorphic to `Σ i, (σ i × N)`. -/
--- def sigma_prod_distrib : ((Σ i, σ i) × N) ≃ₘ^n⟮I, J⟯ (Σ i, (σ i × N)) :=
--- homeomorph.symm $
--- homeomorph_of_cont_mdiff_open (equiv.sigma_prod_distrib σ N).symm
---   (cont_mdiff_sigma $ λ i,
---     (cont_mdiff_sigma_mk.comp cont_mdiff_fst).prod_mk cont_mdiff_snd)
---   (is_open_map_sigma $ λ i,
---     (open_embedding_sigma_mk.prod open_embedding_id).is_open_map)
-
--- end distrib
-
--- /-- If `ι` has a unique element, then `ι → M` is diffeomorphic to `M`. -/
--- @[simps { fully_applied := ff }]
--- def fun_unique (ι : Type*) [unique ι] : (ι → M) ≃ₘ^n⟮model_with_corners.pi (λ _ : ι, I), I⟯ M :=
--- { to_equiv := equiv.fun_unique ι M,
---   cont_mdiff_to_fun := cont_mdiff_apply _,
---   cont_mdiff_inv_fun := cont_mdiff_pi (λ _, cont_mdiff_id) }
-
--- /-- Homeomorphism between dependent functions `Π i : fin 2, M i` and `M 0 × M 1`. -/
--- @[simps { fully_applied := ff }]
--- def {u} pi_fin_two (M : fin 2 → Type u) [Π i, topological_space (M i)] : (Π i, M i) ≃ₘ^n⟮I, J⟯ M 0 × M 1 :=
--- { to_equiv := pi_fin_two_equiv M,
---   cont_mdiff_to_fun := (cont_mdiff_apply 0).prod_mk (cont_mdiff_apply 1),
---   cont_mdiff_inv_fun := cont_mdiff_pi $ fin.forall_fin_two.2 ⟨cont_mdiff_fst, cont_mdiff_snd⟩ }
-
--- /-- Homeomorphism between `M² = fin 2 → M` and `M × M`. -/
--- @[simps { fully_applied := ff }] def fin_two_arrow : (fin 2 → M) ≃ₘ^n⟮I, J⟯ M × M :=
--- { to_equiv := fin_two_arrow_equiv M, ..  pi_fin_two (λ _, M) }
-
--- /--
--- A subset of a topological space is diffeomorphic to its image under a homeomorphism.
--- -/
--- def image (e : M ≃ₘ^n⟮I, J⟯ N) (s : set M) : s ≃ₜ e '' s :=
--- { cont_mdiff_to_fun := by continuity!,
---   cont_mdiff_inv_fun := by continuity!,
---   ..e.to_equiv.image s, }
-
 end constructions
-
 
 variables [smooth_manifold_with_corners I M] [smooth_manifold_with_corners J N]
 

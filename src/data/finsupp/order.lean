@@ -103,8 +103,8 @@ instance [ordered_add_comm_monoid α] [contravariant_class α α (+) (≤)] :
   contravariant_class (ι →₀ α) (ι →₀ α) (+) (≤) :=
 ⟨λ f g h H x, le_of_add_le_add_left $ H x⟩
 
-section canonically_ordered_add_monoid
-variables [canonically_ordered_add_monoid α]
+section ordered_add_comm_monoid
+variables [ordered_add_comm_monoid α] [canonical_mul_order α]
 
 instance : order_bot (ι →₀ α) :=
 { bot := 0,
@@ -135,7 +135,7 @@ instance tsub : has_sub (ι →₀ α) := ⟨zip_with (λ m n, m - n) (tsub_self
 
 instance : has_ordered_sub (ι →₀ α) := ⟨λ n m k, forall_congr $ λ x, tsub_le_iff_right⟩
 
-instance : canonically_ordered_add_monoid (ι →₀ α) :=
+instance : canonical_add_order (ι →₀ α) :=
 { exists_add_of_le := λ f g h, ⟨g - f, ext $ λ x, (add_tsub_cancel_of_le $ h x).symm⟩,
   le_self_add := λ f g x, le_self_add,
  .. finsupp.order_bot,
@@ -160,10 +160,10 @@ by simp only [subset_iff, tsub_eq_zero_iff_le, mem_support_iff, ne.def, coe_tsub
 lemma subset_support_tsub {f1 f2 : ι →₀ α} : f1.support \ f2.support ⊆ (f1 - f2).support :=
 by simp [subset_iff] {contextual := tt}
 
-end canonically_ordered_add_monoid
+end ordered_add_comm_monoid
 
-section canonically_linear_ordered_add_monoid
-variables [canonically_linear_ordered_add_monoid α] [decidable_eq ι] {f g : ι →₀ α}
+section linear_ordered_add_comm_monoid
+variables [linear_ordered_add_comm_monoid α] [canonical_mul_order α] [decidable_eq ι] {f g : ι →₀ α}
 
 @[simp] lemma support_inf : (f ⊓ g).support = f.support ∩ g.support :=
 begin
@@ -187,7 +187,7 @@ begin
   refl,
 end
 
-end canonically_linear_ordered_add_monoid
+end linear_ordered_add_comm_monoid
 
 /-! ### Some lemmas about `ℕ` -/
 

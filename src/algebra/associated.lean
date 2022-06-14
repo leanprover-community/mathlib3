@@ -846,12 +846,10 @@ instance : cancel_comm_monoid_with_zero (associates α) :=
   mul_right_cancel_of_ne_zero := eq_of_mul_eq_mul_right,
   .. (infer_instance : comm_monoid_with_zero (associates α)) }
 
-instance : canonically_ordered_monoid (associates α) :=
+instance : canonical_mul_order (associates α) :=
 { exists_mul_of_le := λ a b, id,
   le_self_mul := λ a b, ⟨b, rfl⟩,
-  ..associates.cancel_comm_monoid_with_zero,
-  ..associates.bounded_order,
-  ..associates.ordered_comm_monoid}
+  ..associates.bounded_order }
 
 theorem dvd_not_unit_iff_lt {a b : associates α} :
   dvd_not_unit a b ↔ a < b :=

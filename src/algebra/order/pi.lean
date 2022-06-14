@@ -36,10 +36,11 @@ instance ordered_comm_monoid {ι : Type*} {Z : ι → Type*} [∀ i, ordered_com
 /-- The product of a family of canonically ordered monoids is a canonically ordered monoid. -/
 @[to_additive "The product of a family of canonically ordered additive monoids is
   a canonically ordered additive monoid."]
-instance {ι : Type*} {Z : ι → Type*} [∀ i, canonically_ordered_monoid (Z i)] :
-  canonically_ordered_monoid (Π i, Z i) :=
+instance {ι : Type*} {Z : ι → Type*} [Π i, ordered_comm_monoid (Z i)]
+  [Π i, canonical_mul_order (Z i)] :
+  canonical_mul_order (Π i, Z i) :=
 { le_self_mul := λ f g i, le_self_mul,
-  ..pi.order_bot, ..pi.ordered_comm_monoid, ..pi.has_exists_mul_of_le }
+  ..pi.order_bot, ..pi.has_exists_mul_of_le }
 
 @[to_additive]
 instance ordered_cancel_comm_monoid [∀ i, ordered_cancel_comm_monoid $ f i] :

@@ -388,7 +388,7 @@ begin
 end
 
 @[to_additive]
-lemma monotone_prod_take [canonically_ordered_monoid M] (L : list M) :
+lemma monotone_prod_take [ordered_comm_monoid M] [canonical_mul_order M] (L : list M) :
   monotone (λ i, (L.take i).prod) :=
 begin
   apply monotone_nat_of_le_succ (λ n, _),
@@ -429,7 +429,7 @@ lemma all_one_of_le_one_le_of_prod_eq_one [ordered_comm_monoid M]
   x = 1 :=
 le_antisymm (hl₂ ▸ single_le_prod hl₁ _ hx) (hl₁ x hx)
 
-@[to_additive] lemma prod_eq_one_iff [canonically_ordered_monoid M] (l : list M) :
+@[to_additive] lemma prod_eq_one_iff [ordered_comm_monoid M] [canonical_mul_order M] (l : list M) :
   l.prod = 1 ↔ ∀ x ∈ l, x = (1 : M) :=
 ⟨all_one_of_le_one_le_of_prod_eq_one (λ _ _, one_le _),
   λ h, by rw [eq_repeat.2 ⟨rfl, h⟩, prod_repeat, one_pow]⟩

@@ -318,12 +318,13 @@ begin
 end
 
 @[to_additive]
-lemma prod_eq_one_iff [canonically_ordered_monoid α] {m : multiset α} :
+lemma prod_eq_one_iff [ordered_comm_monoid α] [canonical_mul_order α] {m : multiset α} :
   m.prod = 1 ↔ ∀ x ∈ m, x = (1 : α) :=
 quotient.induction_on m $ λ l, by simpa using list.prod_eq_one_iff l
 
 @[to_additive]
-lemma le_prod_of_mem [canonically_ordered_monoid α] {m : multiset α} {a : α} (h : a ∈ m) :
+lemma le_prod_of_mem [ordered_comm_monoid α] [canonical_mul_order α] {m : multiset α} {a : α}
+  (h : a ∈ m) :
   a ≤ m.prod :=
 begin
   obtain ⟨m', rfl⟩ := exists_cons_of_mem h,

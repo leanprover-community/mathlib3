@@ -84,13 +84,13 @@ end ordered_instances
 
 /-- An `ordered_comm_monoid` with one-sided 'division' in the sense that
 if `a ≤ b`, there is some `c` for which `a * c = b`. This is a weaker version
-of the condition on canonical orderings defined by `canonically_ordered_monoid`. -/
+of the condition on canonical orderings defined by `canonical_mul_order`. -/
 class has_exists_mul_of_le (α : Type u) [has_mul α] [has_le α] : Prop :=
 (exists_mul_of_le : ∀ {a b : α}, a ≤ b → ∃ (c : α), b = a * c)
 
 /-- An `ordered_add_comm_monoid` with one-sided 'subtraction' in the sense that
 if `a ≤ b`, then there is some `c` for which `a + c = b`. This is a weaker version
-of the condition on canonical orderings defined by `canonically_ordered_add_monoid`. -/
+of the condition on canonical orderings defined by `canonical_add_order`. -/
 class has_exists_add_of_le (α : Type u) [has_add α] [has_le α] : Prop :=
 (exists_add_of_le : ∀ {a b : α}, a ≤ b → ∃ (c : α), b = a + c)
 
@@ -332,23 +332,17 @@ end
 
 end with_zero
 
-/-- A canonically ordered additive monoid is an ordered commutative additive monoid
+/-- An additive canonical order additive is an ordered additive monoid
   in which the ordering coincides with the subtractibility relation,
   which is to say, `a ≤ b` iff there exists `c` with `b = a + c`.
   This is satisfied by the natural numbers, for example, but not
   the integers or other nontrivial `ordered_add_comm_group`s. -/
-@[protect_proj, ancestor ordered_add_comm_monoid has_bot]
-class canonically_ordered_add_monoid (α : Type*) extends ordered_add_comm_monoid α, has_bot α :=
-(bot_le : ∀ x : α, ⊥ ≤ x)
-(exists_add_of_le : ∀ {a b : α}, a ≤ b → ∃ c, b = a + c)
+@[protect_proj, ancestor order_bot has_exists_add_of_le]
+class canonical_add_order (α : Type*) [has_add α] [has_le α]
+  extends order_bot α, has_exists_add_of_le α :=
 (le_self_add : ∀ a b : α, a ≤ a + b)
 
-@[priority 100]  -- see Note [lower instance priority]
-instance canonically_ordered_add_monoid.to_order_bot (α : Type u)
-  [h : canonically_ordered_add_monoid α] : order_bot α :=
-{ ..h }
-
-/-- A canonically ordered monoid is an ordered commutative monoid
+/-- A multiplicative canonical order monoid is an ordered monoid
   in which the ordering coincides with the divisibility relation,
   which is to say, `a ≤ b` iff there exists `c` with `b = a * c`.
   Examples seem rare; it seems more likely that the `order_dual`
@@ -357,27 +351,21 @@ instance canonically_ordered_add_monoid.to_order_bot (α : Type u)
   Dedekind domain satisfy this; collections of all things ≤ 1 seem to
   be more natural that collections of all things ≥ 1).
 -/
-@[protect_proj, ancestor ordered_comm_monoid has_bot, to_additive]
-class canonically_ordered_monoid (α : Type*) extends ordered_comm_monoid α, has_bot α :=
-(bot_le : ∀ x : α, ⊥ ≤ x)
-(exists_mul_of_le : ∀ {a b : α}, a ≤ b → ∃ c, b = a * c)
+@[protect_proj, ancestor order_bot has_exists_mul_of_le, to_additive]
+class canonical_mul_order (α : Type*) [has_mul α] [has_le α]
+  extends order_bot α, has_exists_mul_of_le α :=
 (le_self_mul : ∀ a b : α, a ≤ a * b)
 
-@[priority 100, to_additive]  -- see Note [lower instance priority]
-instance canonically_ordered_monoid.to_order_bot (α : Type u)
-  [h : canonically_ordered_monoid α] : order_bot α :=
-{ ..h }
+section has_mul
+variables [has_mul α] [has_le α] [canonical_mul_order α] {a b : α}
 
-@[priority 100, to_additive]  -- see Note [lower instance priority]
-instance canonically_ordered_monoid.has_exists_mul_of_le (α : Type u)
-  [h : canonically_ordered_monoid α] : has_exists_mul_of_le α :=
-{ ..h }
+@[to_additive] lemma le_self_mul : a ≤ a * b := canonical_mul_order.le_self_mul _ _
 
-section canonically_ordered_monoid
+end has_mul
 
-variables [canonically_ordered_monoid α] {a b c d : α}
+section ordered_comm_monoid
+variables [ordered_comm_monoid α] [canonical_mul_order α] {a b c d : α}
 
-@[to_additive] lemma le_self_mul : a ≤ a * c := canonically_ordered_monoid.le_self_mul _ _
 @[to_additive] lemma le_mul_self : a ≤ b * a := by { rw mul_comm, exact le_self_mul }
 
 @[to_additive] lemma self_le_mul_right (a b : α) : a ≤ a * b := le_self_mul
@@ -438,6 +426,8 @@ begin
   { rw [← (self_le_mul_right a c).lt_iff_ne], apply lt_mul_of_one_lt_right' }
 end
 
+end ordered_comm_monoid
+
 instance with_zero.has_exists_add_of_le {α} [has_add α] [preorder α] [has_exists_add_of_le α] :
   has_exists_add_of_le (with_zero α) :=
 ⟨λ a b, begin
@@ -450,10 +440,12 @@ instance with_zero.has_exists_add_of_le {α} [has_add α] [preorder α] [has_exi
   exact ⟨c, rfl⟩,
 end⟩
 
+section ordered_add_comm_monoid
+variables [ordered_add_comm_monoid α] [canonical_add_order α] {a b : α}
+
 -- This instance looks absurd: a monoid already has a zero
 /-- Adding a new zero to a canonically ordered additive monoid produces another one. -/
-instance with_zero.canonically_ordered_add_monoid {α : Type u} [canonically_ordered_add_monoid α] :
-  canonically_ordered_add_monoid (with_zero α) :=
+instance with_zero.canonical_add_order : canonical_add_order (with_zero α) :=
 { le_self_add := λ a b, begin
     apply with_zero.cases_on a,
     { exact bot_le },
@@ -464,35 +456,12 @@ instance with_zero.canonically_ordered_add_monoid {α : Type u} [canonically_ord
   .. with_zero.order_bot,
   .. with_zero.ordered_add_comm_monoid zero_le, ..with_zero.has_exists_add_of_le }
 
-end canonically_ordered_monoid
+lemma pos_of_gt : a < b → 0 < b := (zero_le _).trans_lt
 
-lemma pos_of_gt {M : Type*} [canonically_ordered_add_monoid M] {n m : M} (h : n < m) : 0 < m :=
-lt_of_le_of_lt (zero_le _) h
+end ordered_add_comm_monoid
 
-/-- A canonically linear-ordered additive monoid is a canonically ordered additive monoid
-    whose ordering is a linear order. -/
-@[protect_proj, ancestor canonically_ordered_add_monoid linear_order]
-class canonically_linear_ordered_add_monoid (α : Type*)
-      extends canonically_ordered_add_monoid α, linear_order α
-
-/-- A canonically linear-ordered monoid is a canonically ordered monoid
-    whose ordering is a linear order. -/
-@[protect_proj, ancestor canonically_ordered_monoid linear_order, to_additive]
-class canonically_linear_ordered_monoid (α : Type*)
-      extends canonically_ordered_monoid α, linear_order α
-
-section canonically_linear_ordered_monoid
-variables [canonically_linear_ordered_monoid α]
-
-@[priority 100, to_additive]  -- see Note [lower instance priority]
-instance canonically_linear_ordered_monoid.semilattice_sup : semilattice_sup α :=
-{ ..linear_order.to_lattice }
-
-instance with_zero.canonically_linear_ordered_add_monoid
-  (α : Type*) [canonically_linear_ordered_add_monoid α] :
-    canonically_linear_ordered_add_monoid (with_zero α) :=
-{ .. with_zero.canonically_ordered_add_monoid,
-  .. with_zero.linear_order }
+section linear_ordered_comm_monoid
+variables [linear_ordered_comm_monoid α] [canonical_mul_order α]
 
 @[to_additive]
 lemma min_mul_distrib (a b c : α) : min a (b * c) = min a (min a b * min a c) :=
@@ -516,7 +485,7 @@ min_eq_left (one_le a)
 lemma min_one (a : α) : min a 1 = 1 :=
 min_eq_right (one_le a)
 
-end canonically_linear_ordered_monoid
+end linear_ordered_comm_monoid
 
 /-- An ordered cancellative additive commutative monoid
 is an additive commutative monoid with a partial order,
@@ -810,10 +779,11 @@ instance [ordered_cancel_comm_monoid M] [ordered_cancel_comm_monoid N] :
 ⟨λ a b h, let ⟨c, hc⟩ := exists_mul_of_le h.1, ⟨d, hd⟩ := exists_mul_of_le h.2 in
   ⟨(c, d), ext hc hd⟩⟩
 
-@[to_additive] instance [canonically_ordered_monoid α] [canonically_ordered_monoid β] :
-  canonically_ordered_monoid (α × β) :=
+@[to_additive] instance [has_le α] [has_le β] [has_mul α] [has_mul β] [canonical_mul_order α]
+  [canonical_mul_order β] :
+  canonical_mul_order (α × β) :=
 { le_self_mul := λ a b, ⟨le_self_mul, le_self_mul⟩,
-  ..prod.ordered_comm_monoid, ..prod.order_bot _ _, ..prod.has_exists_mul_of_le }
+  ..prod.order_bot _ _, ..prod.has_exists_mul_of_le }
 
 end prod
 
@@ -1055,18 +1025,14 @@ instance [has_le α] [has_add α] [has_exists_add_of_le α] : has_exists_add_of_
   | ⊤, (b : α) := λ h, (not_top_le_coe _ h).elim
 end⟩
 
-instance [canonically_ordered_add_monoid α] : canonically_ordered_add_monoid (with_top α) :=
+instance [has_le α] [has_add α] [canonical_add_order α] : canonical_add_order (with_top α) :=
 { le_self_add := λ a b, match a, b with
-  | ⊤, ⊤ := le_rfl
+  | ⊤, ⊤ := le_none
   | (a : α), ⊤ := le_top
   | (a : α), (b : α) := with_top.coe_le_coe.2 le_self_add
-  | ⊤, (b : α) := le_rfl
+  | ⊤, (b : α) := le_none
   end,
-  ..with_top.order_bot, ..with_top.ordered_add_comm_monoid, ..with_top.has_exists_add_of_le }
-
-instance [canonically_linear_ordered_add_monoid α] :
-  canonically_linear_ordered_add_monoid (with_top α) :=
-{ ..with_top.canonically_ordered_add_monoid, ..with_top.linear_order }
+  ..with_top.order_bot, ..with_top.has_exists_add_of_le }
 
 /-- Coercion from `α` to `with_top α` as an `add_monoid_hom`. -/
 def coe_add_hom [add_monoid α] : α →+ with_top α :=
@@ -1282,22 +1248,13 @@ instance [has_add α] [has_le α] [has_exists_add_of_le α] :
 instance [has_mul α] [has_le α] [has_exists_mul_of_le α] : has_exists_add_of_le (additive α) :=
 ⟨@exists_mul_of_le α _ _ _⟩
 
-instance [canonically_ordered_add_monoid α] : canonically_ordered_monoid (multiplicative α) :=
-{ le_self_mul := @le_self_add α _,
-  ..multiplicative.ordered_comm_monoid, ..multiplicative.order_bot,
-  ..multiplicative.has_exists_mul_of_le }
+instance [has_add α] [has_le α] [canonical_add_order α] : canonical_mul_order (multiplicative α) :=
+{ le_self_mul := @le_self_add α _  _ _,
+  ..multiplicative.order_bot, ..multiplicative.has_exists_mul_of_le }
 
-instance [canonically_ordered_monoid α] : canonically_ordered_add_monoid (additive α) :=
-{ le_self_add := @le_self_mul α _,
-  ..additive.ordered_add_comm_monoid, ..additive.order_bot, ..additive.has_exists_add_of_le }
-
-instance [canonically_linear_ordered_add_monoid α] :
-  canonically_linear_ordered_monoid (multiplicative α) :=
-{ ..multiplicative.canonically_ordered_monoid, ..multiplicative.linear_order }
-
-instance [canonically_linear_ordered_monoid α] :
-  canonically_linear_ordered_add_monoid (additive α) :=
-{ ..additive.canonically_ordered_add_monoid, ..additive.linear_order }
+instance [has_mul α] [has_le α] [canonical_mul_order α] : canonical_add_order (additive α) :=
+{ le_self_add := @le_self_mul α _ _ _,
+  ..additive.order_bot, ..additive.has_exists_add_of_le }
 
 namespace additive
 

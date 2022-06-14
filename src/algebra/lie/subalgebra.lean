@@ -379,11 +379,10 @@ instance : add_comm_monoid (lie_subalgebra R L) :=
   add_comm  := λ _ _, sup_comm, }
 
 /-- This is not an instance, as it would stop `⊥` being the simp-normal form (via `bot_eq_zero`). -/
-def canonically_ordered_add_monoid : canonically_ordered_add_monoid (lie_subalgebra R L) :=
+def canonical_add_order : canonical_add_order (lie_subalgebra R L) :=
 { add_le_add_left := λ a b, sup_le_sup_left,
   exists_add_of_le := λ a b h, ⟨b, (sup_eq_right.2 h).symm⟩,
   le_self_add := λ a b, le_sup_left,
-  ..lie_subalgebra.add_comm_monoid,
   ..lie_subalgebra.complete_lattice }
 
 @[simp] lemma add_eq_sup : K + K' = K ⊔ K' := rfl

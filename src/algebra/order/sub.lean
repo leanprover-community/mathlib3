@@ -16,9 +16,9 @@ subtraction on a canonically ordered monoid (`ℕ`, `multiset`, `enat`, `ennreal
 ## Implementation details
 
 `has_ordered_sub` is a mixin type-class, so that we can use the results in this file even in cases
-where we don't have a `canonically_ordered_add_monoid` instance
-(even though that is our main focus). Conversely, this means we can use
-`canonically_ordered_add_monoid` without necessarily having to define a subtraction.
+where we don't have a `canonical_add_order` instance (even though that is our main focus).
+Conversely, this means we can use `canonical_add_order` without necessarily having to define a
+subtraction.
 
 The results in this file are ordered by the type-class assumption needed to prove it.
 This means that similar results might not be close to each other. Furthermore, we don't prove
@@ -364,8 +364,9 @@ end linear_order
 
 /-! ### Lemmas in a canonically ordered monoid. -/
 
-section canonically_ordered_add_monoid
-variables [canonically_ordered_add_monoid α] [has_sub α] [has_ordered_sub α] {a b c d : α}
+section ordered_add_comm_monoid
+variables [ordered_add_comm_monoid α] [canonical_mul_order α] [has_sub α] [has_ordered_sub α]
+  {a b c d : α}
 
 @[simp] lemma add_tsub_cancel_of_le (h : a ≤ b) : a + (b - a) = b :=
 begin
@@ -664,12 +665,12 @@ contravariant.add_le_cancellable.tsub_tsub_cancel_of_le h
 
 end contra
 
-end canonically_ordered_add_monoid
+end ordered_add_comm_monoid
 
 /-! ### Lemmas in a linearly canonically ordered monoid. -/
 
-section canonically_linear_ordered_add_monoid
-variables [canonically_linear_ordered_add_monoid α] [has_sub α] [has_ordered_sub α] {a b c d : α}
+section linear_ordered_add_comm_monoid
+variables [linear_ordered_add_comm_monoid α] [canonical_mul_order α] [has_sub α] [has_ordered_sub α] {a b c d : α}
 
 @[simp] lemma tsub_pos_iff_lt : 0 < a - b ↔ b < a :=
 by rw [tsub_pos_iff_not_le, not_le]
@@ -755,7 +756,7 @@ end
 lemma tsub_add_min : a - b + min a b = a :=
 by { rw [← tsub_min, tsub_add_cancel_of_le], apply min_le_left }
 
-end canonically_linear_ordered_add_monoid
+end linear_ordered_add_comm_monoid
 
 namespace with_top
 
@@ -777,7 +778,7 @@ instance : has_sub (with_top α) :=
 
 end
 
-variables [canonically_ordered_add_monoid α] [has_sub α] [has_ordered_sub α]
+variables [ordered_add_comm_monoid α] [canonical_mul_order α] [has_sub α] [has_ordered_sub α]
 instance : has_ordered_sub (with_top α) :=
 begin
   constructor,

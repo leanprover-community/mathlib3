@@ -97,10 +97,9 @@ intros; trivial <|> simp only [eq_iff_true_of_subsingleton]
 @[simp] protected lemma le : x ≤ y := trivial
 @[simp] lemma not_lt : ¬(x < y) := not_false
 
-instance : canonically_ordered_add_monoid punit :=
+instance : canonical_add_order punit :=
 by refine
-{ exists_add_of_le := λ _ _ _, ⟨star, subsingleton.elim _ _⟩,
-  .. punit.comm_ring, .. punit.complete_boolean_algebra, .. };
+{ exists_add_of_le := λ _ _ _, ⟨star, subsingleton.elim _ _⟩, .. };
 intros; trivial
 
 instance : linear_ordered_cancel_add_comm_monoid punit :=
@@ -110,7 +109,7 @@ instance : linear_ordered_cancel_add_comm_monoid punit :=
   decidable_le := λ _ _, decidable.true,
   decidable_eq := punit.decidable_eq,
   decidable_lt := λ _ _, decidable.false,
-  .. punit.canonically_ordered_add_monoid }
+  .. punit.canonical_add_order }
 
 instance : has_scalar R punit :=
 { smul := λ _ _, star }

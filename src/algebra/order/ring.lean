@@ -75,7 +75,7 @@ immediate predecessors and what conditions are added to each of them.
   - `linear_ordered_ring` & commutativity of multiplication
   - `is_domain` & linear order structure
 * `canonically_ordered_comm_semiring`
-  - `canonically_ordered_add_monoid` & multiplication & `*` respects `<` & no zero divisors
+  - `canonical_add_order` & multiplication & `*` respects `<` & no zero divisors
   - `comm_semiring` & `a ≤ b ↔ ∃ c, b = a + c` & no zero divisors
 
 ## TODO
@@ -1467,11 +1467,17 @@ in which `a ≤ b` iff there exists `c` with `b = a + c`. This is satisfied by t
 natural numbers, for example, but not the integers or other ordered groups. -/
 @[protect_proj]
 class canonically_ordered_comm_semiring (α : Type*) extends
-  canonically_ordered_add_monoid α, comm_semiring α :=
+  ordered_add_comm_monoid α, comm_semiring α :=
+(exists_add_of_le : ∀ {a b : α}, a ≤ b → ∃ (c : α), b = a + c)
+(le_self_add : ∀ a b : α, a ≤ a + b)
 (eq_zero_or_eq_zero_of_mul_eq_zero : ∀ a b : α, a * b = 0 → a = 0 ∨ b = 0)
 
 namespace canonically_ordered_comm_semiring
 variables [canonically_ordered_comm_semiring α] {a b : α}
+
+@[priority 100] -- See note [lower instance priority]
+instance to_canonical_add_order : canonical_add_order α :=
+{ ..‹canonically_ordered_comm_semiring α› }
 
 @[priority 100] -- see Note [lower instance priority]
 instance to_no_zero_divisors : no_zero_divisors α :=
@@ -1680,9 +1686,9 @@ begin
     repeat { refl <|> exact congr_arg some (add_mul _ _ _) } }
 end
 
-/-- This instance requires `canonically_ordered_comm_semiring` as it is the smallest class
-that derives from both `non_assoc_non_unital_semiring` and `canonically_ordered_add_monoid`, both
-of which are required for distributivity. -/
+/-- This instance requires `canonically_ordered_comm_semiring` as it is the smallest class that
+derives from both `non_assoc_non_unital_semiring` and `canonical_add_order`, both of which are
+required for distributivity. -/
 instance [nontrivial α] : comm_semiring (with_top α) :=
 { right_distrib   := distrib',
   left_distrib    := assume a b c, by rw [mul_comm, distrib', mul_comm b, mul_comm c]; refl,
@@ -1690,7 +1696,7 @@ instance [nontrivial α] : comm_semiring (with_top α) :=
 
 instance [nontrivial α] : canonically_ordered_comm_semiring (with_top α) :=
 { .. with_top.comm_semiring,
-  .. with_top.canonically_ordered_add_monoid,
+  .. with_top.canonical_add_order,
   .. with_top.no_zero_divisors, }
 
 /-- A version of `with_top.map` for `ring_hom`s. -/

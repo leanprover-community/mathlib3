@@ -39,7 +39,7 @@ instance pnat : ne_zero (a : ℕ) := ⟨a.ne_zero⟩
 instance succ : ne_zero (n + 1) := ⟨n.succ_ne_zero⟩
 
 lemma of_pos [preorder M] [has_zero M] (h : 0 < x) : ne_zero x := ⟨h.ne'⟩
-lemma of_gt  [canonically_ordered_add_monoid M] (h : x < y) : ne_zero y := of_pos $ pos_of_gt h
+lemma of_gt [ordered_add_comm_monoid M] [canonical_add_order M] (h : x < y) : ne_zero y := of_pos $ pos_of_gt h
 
 instance char_zero [ne_zero n] [add_monoid M] [has_one M] [char_zero M] : ne_zero (n : M) :=
 ⟨nat.cast_ne_zero.mpr $ ne_zero.ne n⟩
@@ -64,7 +64,7 @@ lemma nat_of_injective [non_assoc_semiring M] [non_assoc_semiring R] [h : ne_zer
   [ring_hom_class F R M] {f : F} (hf : function.injective f) : ne_zero (n : M) :=
  ⟨λ h, (ne_zero.ne' n R) $ hf $ by simpa⟩
 
-lemma pos (r : R) [canonically_ordered_add_monoid R] [ne_zero r] : 0 < r :=
+lemma pos (r : R) [ordered_addcomm_monoid R] [canonical_mul_order R] [ne_zero r] : 0 < r :=
 (zero_le r).lt_of_ne $ ne_zero.out.symm
 
 variables (R M)

@@ -55,15 +55,16 @@ lemma is_invariant.is_fw_invariant [preorder τ] [has_zero τ] {ϕ : τ → α �
   (h : is_invariant ϕ s) : is_fw_invariant ϕ s :=
 λ t ht, h t
 
-/-- If `τ` is a `canonically_ordered_add_monoid` (e.g., `ℕ` or `ℝ≥0`), then the notions
+/-- If `τ` is a `canonical_add_order` (e.g., `ℕ` or `ℝ≥0`), then the notions
 `is_fw_invariant` and `is_invariant` are equivalent. -/
-lemma is_fw_invariant.is_invariant [canonically_ordered_add_monoid τ] {ϕ : τ → α → α} {s : set α}
+protected lemma is_fw_invariant.is_invariant [ordered_add_comm_monoid τ] [canonical_mul_order τ]
+  {ϕ : τ → α → α} {s : set α}
   (h : is_fw_invariant ϕ s) : is_invariant ϕ s :=
 λ t, h (zero_le t)
 
-/-- If `τ` is a `canonically_ordered_add_monoid` (e.g., `ℕ` or `ℝ≥0`), then the notions
+/-- If `τ` is a `canonical_add_order` (e.g., `ℕ` or `ℝ≥0`), then the notions
 `is_fw_invariant` and `is_invariant` are equivalent. -/
-lemma is_fw_invariant_iff_is_invariant [canonically_ordered_add_monoid τ]
+lemma is_fw_invariant_iff_is_invariant [ordered_add_comm_monoid τ] [canonical_mul_order τ]
   {ϕ : τ → α → α} {s : set α} :
   is_fw_invariant ϕ s ↔ is_invariant ϕ s :=
 ⟨is_fw_invariant.is_invariant, is_invariant.is_fw_invariant⟩

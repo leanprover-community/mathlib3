@@ -1097,8 +1097,8 @@ end
 end ordered_topological_group
 
 section canonically_ordered
-variables [canonically_ordered_add_monoid α] [topological_space α] [order_closed_topology α]
-variables {f : β → α} {a : α}
+variables [ordered_add_comm_monoid α] [canonical_mul_order α] [topological_space α]
+  [order_closed_topology α] {f : β → α} {a : α}
 
 lemma le_has_sum' (hf : has_sum f a) (b : β) : f b ≤ a :=
 le_has_sum hf b $ λ _ _, zero_le _

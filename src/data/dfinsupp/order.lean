@@ -122,8 +122,8 @@ instance [Π i, ordered_add_comm_monoid (α i)] [Π i, contravariant_class (α i
   contravariant_class (Π₀ i, α i) (Π₀ i, α i) (+) (≤) :=
 ⟨λ f g h H i, by { specialize H i, rw [add_apply, add_apply] at H, exact le_of_add_le_add_left H }⟩
 
-section canonically_ordered_add_monoid
-variables (α) [Π i, canonically_ordered_add_monoid (α i)]
+section canonical_add_order
+variables (α) [Π i, ordered_add_comm_monoid (α i)] [Π i, canonical_add_order (α i)]
 
 instance : order_bot (Π₀ i, α i) :=
 { bot := 0,
@@ -176,12 +176,11 @@ variables (α)
 instance : has_ordered_sub (Π₀ i, α i) :=
 ⟨λ n m k, forall_congr $ λ i, by { rw [add_apply, tsub_apply], exact tsub_le_iff_right }⟩
 
-instance : canonically_ordered_add_monoid (Π₀ i, α i) :=
+instance : canonical_add_order (Π₀ i, α i) :=
 { exists_add_of_le := λ f g h, ⟨g - f,
     by { ext i, rw [add_apply, tsub_apply], exact (add_tsub_cancel_of_le $ h i).symm }⟩,
   le_self_add := λ f g i, by { rw add_apply, exact le_self_add },
- .. dfinsupp.order_bot α,
- .. dfinsupp.ordered_add_comm_monoid α }
+ .. dfinsupp.order_bot α }
 
 variables {α} [decidable_eq ι]
 

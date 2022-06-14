@@ -527,19 +527,19 @@ section irrelevant_ideal
 
 variables [comm_semiring R] [semiring A]
 variables [algebra R A] [decidable_eq ι]
-variables [canonically_ordered_add_monoid ι]
+variables [ordered_add_comm_monoid ι] [canonical_mul_order ι]
 variables (𝒜 : ι → submodule R A) [graded_algebra 𝒜]
 
 open graded_algebra set_like.graded_monoid direct_sum
 
 /--
-For a graded ring `⨁ᵢ 𝒜ᵢ` graded by a `canonically_ordered_add_monoid ι`, the irrelevant ideal
+For a graded ring `⨁ᵢ 𝒜ᵢ` graded by a `canonical_add_order`, the irrelevant ideal
 refers to `⨁_{i>0} 𝒜ᵢ`, or equivalently `{a | a₀ = 0}`. This definition is used in `Proj`
 construction where `ι` is always `ℕ` so the irrelevant ideal is simply elements with `0` as
 0-th coordinate.
 
 # Future work
-Here in the definition, `ι` is assumed to be `canonically_ordered_add_monoid`. However, the notion
+Here in the definition, `ι` is assumed to be `canonical_add_order`. However, the notion
 of irrelevant ideal makes sense in a more general setting by defining it as the ideal of elements
 with `0` as i-th coordinate for all `i ≤ 0`, i.e. `{a | ∀ (i : ι), i ≤ 0 → aᵢ = 0}`.
 -/

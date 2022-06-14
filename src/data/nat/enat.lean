@@ -17,7 +17,7 @@ The natural numbers and an extra `top` element `⊤`.
 The following instances are defined:
 
 * `ordered_add_comm_monoid enat`
-* `canonically_ordered_add_monoid enat`
+* `canonical_add_order enat`
 
 There is no additive analogue of `monoid_with_zero`; if there were then `enat` could
 be an `add_monoid_with_top`.
@@ -301,15 +301,13 @@ instance : ordered_add_comm_monoid enat :=
   ..enat.linear_order,
   ..enat.add_comm_monoid }
 
-instance : canonically_ordered_add_monoid enat :=
+instance : canonical_add_order enat :=
 { le_self_add := λ a b, enat.cases_on b (le_top.trans_eq (add_top _).symm) $ λ b, enat.cases_on a
     (top_add _).ge $ λ a, (coe_le_coe.2 le_self_add).trans_eq (nat.cast_add _ _),
   exists_add_of_le := λ a b, enat.cases_on b (λ _, ⟨⊤, (add_top _).symm⟩) $ λ b, enat.cases_on a
     (λ h, ((coe_lt_top _).not_le h).elim) $ λ a h, ⟨(b - a : ℕ),
         by rw [←nat.cast_add, coe_inj, add_comm, tsub_add_cancel_of_le (coe_le_coe.1 h)]⟩,
-  ..enat.semilattice_sup,
-  ..enat.order_bot,
-  ..enat.ordered_add_comm_monoid }
+  ..enat.order_bot }
 
 protected lemma add_lt_add_right {x y z : enat} (h : x < y) (hz : z ≠ ⊤) : x + z < y + z :=
 begin

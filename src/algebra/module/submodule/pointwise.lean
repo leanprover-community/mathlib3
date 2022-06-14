@@ -140,10 +140,10 @@ instance pointwise_add_comm_monoid : add_comm_monoid (submodule R M) :=
 `submodule.zero_eq_bot`. It can be safely enabled with
 ```lean
 local attribute [-simp] submodule.zero_eq_bot
-local attribute [instance] canonically_ordered_add_monoid
+local attribute [instance] submodule.canonical_add_order
 ```
 -/
-def canonically_ordered_add_monoid : canonically_ordered_add_monoid (submodule R M) :=
+def canonical_add_order : canonical_add_order (submodule R M) :=
 { zero := 0,
   bot := ⊥,
   add := (+),

@@ -328,9 +328,8 @@ lemma card_le_card_bUnion_add_one {s : finset ι} {f : ι → finset α} (hf : i
 
 end double_counting
 
-section canonically_ordered_monoid
-
-variables [canonically_ordered_monoid M] {f : ι → M} {s t : finset ι}
+section canonical_mul_order
+variables[ordered_comm_monoid M] [canonical_mul_order M] {f : ι → M} {s t : finset ι}
 
 @[simp, to_additive sum_eq_zero_iff]
 lemma prod_eq_one_iff' : ∏ x in s, f x = 1 ↔ ∀ x ∈ s, f x = 1 :=
@@ -355,7 +354,7 @@ calc ∏ x in s, f x = (∏ x in s.filter (λ x, f x = 1), f x) * ∏ x in s.fil
       (prod_le_one' $ by simp only [mem_filter, and_imp]; exact λ _ _, le_of_eq)
       (prod_le_prod_of_subset' $ by simpa only [subset_iff, mem_filter, and_imp])
 
-end canonically_ordered_monoid
+end canonical_mul_order
 
 section ordered_cancel_comm_monoid
 

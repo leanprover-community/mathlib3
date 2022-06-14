@@ -13,7 +13,7 @@ intervals as finsets and fintypes.
 
 ## TODO
 
-Some lemmas can be generalized using `ordered_group`, `canonically_ordered_monoid` or `succ_order`
+Some lemmas can be generalized using `ordered_group`, `canonical_mul_order` or `succ_order`
 and subsequently be moved upstream to `data.finset.locally_finite`.
 -/
 

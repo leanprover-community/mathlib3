@@ -164,7 +164,7 @@ open graded_algebra set_like.graded_monoid direct_sum
 variables {ι R A : Type*}
 variables [comm_semiring R] [semiring A]
 variables [algebra R A] [decidable_eq ι]
-variables [canonically_ordered_add_monoid ι]
+variables [ordered_add_comm_monoid ι] [canonical_mul_order ι]
 variables (𝒜 : ι → submodule R A) [graded_algebra 𝒜]
 
 /--

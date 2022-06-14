@@ -249,23 +249,17 @@ protected lemma coe_div [linear_ordered_field α] (a b : {x : α // 0 ≤ x}) :
   (⟨x, hx⟩ : {x : α // 0 ≤ x}) / ⟨y, hy⟩ = ⟨x / y, div_nonneg hx hy⟩ :=
 rfl
 
-instance canonically_ordered_add_monoid [ordered_ring α] :
-  canonically_ordered_add_monoid {x : α // 0 ≤ x} :=
+instance canonical_add_order [ordered_ring α] : canonical_add_order {x : α // 0 ≤ x} :=
 { le_self_add := λ a b, le_add_of_nonneg_right b.2,
   exists_add_of_le := λ a b h,
     ⟨⟨b - a, sub_nonneg_of_le h⟩, subtype.ext (add_sub_cancel'_right _ _).symm⟩,
-  ..nonneg.ordered_add_comm_monoid,
   ..nonneg.order_bot }
 
 instance canonically_ordered_comm_semiring [ordered_comm_ring α] [no_zero_divisors α] :
   canonically_ordered_comm_semiring {x : α // 0 ≤ x} :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := by { rintro ⟨a, ha⟩ ⟨b, hb⟩, simp },
-  ..nonneg.canonically_ordered_add_monoid,
+  ..nonneg.canonical_add_order,
   ..nonneg.ordered_comm_semiring }
-
-instance canonically_linear_ordered_add_monoid [linear_ordered_ring α] :
-  canonically_linear_ordered_add_monoid {x : α // 0 ≤ x} :=
-{ ..subtype.linear_order _, ..nonneg.canonically_ordered_add_monoid }
 
 instance floor_semiring [ordered_semiring α] [floor_semiring α] : floor_semiring {r : α // 0 ≤ r} :=
 { floor := λ a, ⌊(a : α)⌋₊,

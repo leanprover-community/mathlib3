@@ -552,9 +552,8 @@ end
 
 end order
 
-section canonically_ordered_monoid
-
-variables [canonically_ordered_monoid M]
+section canonical_mul_order
+variables [ordered_comm_monoid M] [canonical_mul_order M]
 
 @[to_additive] lemma mul_indicator_le_self (s : set α) (f : α → M) :
   mul_indicator s f ≤ f :=
@@ -569,7 +568,7 @@ mul_indicator_apply_le' hfg $ λ _, one_le _
   mul_indicator s f ≤ g :=
 mul_indicator_le' hfg $ λ _ _, one_le _
 
-end canonically_ordered_monoid
+end canonical_mul_order
 
 lemma indicator_le_indicator_nonneg {β} [linear_order β] [has_zero β] (s : set α) (f : α → β) :
   s.indicator f ≤ {x | 0 ≤ f x}.indicator f :=

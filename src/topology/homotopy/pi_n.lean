@@ -106,6 +106,9 @@ namespace pre_π
   @[simp] lemma mk_apply (f : C(I^n, X)) (H y) : (⟨f, H⟩ : pre_π n x)  y = f y :=
       rfl
 
+  instance inhabited : inhabited (pre_π n x) :=
+    { default := ⟨⟨λ_x,by continuity⟩,λ_ _,rfl⟩ }
+
   /--
   Homotopies are functions I×I^n → X
   -/
@@ -130,13 +133,22 @@ namespace pre_π
     @[simp] lemma coe_def  (y : I^(n+1))
       : H y = H.1 (y.head, y.tail) := rfl
 
-    @[refl] lemma refl (f : pre_π n x) : f ~ f :=
+    /--
+    The constant homotopy at f
+    -/
+    @[refl] def refl (f : pre_π n x) : f ~ f :=
       continuous_map.homotopy_rel.refl _ _
 
-    @[symm] lemma symm : f ~ g -> g ~ f :=
+    /--
+    Reversing of a homotopy
+    -/
+    @[symm] def symm : f ~ g -> g ~ f :=
       continuous_map.homotopy_rel.symm
 
-    @[trans] lemma trans : f ~ g -> g ~ h -> f ~ h :=
+    /--
+    Concatenation of homotopies by using them along `[0,2⁻¹]` and `[2⁻¹,1] `
+    -/
+    @[trans] def trans : f ~ g -> g ~ h -> f ~ h :=
       continuous_map.homotopy_rel.trans
 
     /--
@@ -179,6 +191,14 @@ namespace pre_π
       funext (at1 H)
 
     end
+
+    instance inhabited : inhabited
+      ( (⟨⟨λ_x,by continuity⟩,λ_ _,rfl⟩:pre_π n x).homotopy ⟨⟨λ_x,by continuity⟩,λ_ _,rfl⟩ ) :=
+      { default := { to_fun := λ_,x,
+        continuous_to_fun := by continuity,
+        map_zero_left' := λ_,rfl,
+        map_one_left' := λ_,rfl,
+        prop' := λ_ _ _,⟨rfl,rfl⟩ } }
   end homotopy
 
   /--
@@ -207,6 +227,11 @@ equivalence
 -/
 def π (n : nat) (x : X) := quotient (pre_π.homotopic.setoid n x)
 
+namespace π
+  instance inhabited : inhabited (π n x) :=
+    { default :=  quotient.mk' ⟨⟨λ_x,by continuity⟩,λ_ _,rfl⟩ }
+end π
+
 variable (X)
 /--
 The quotient of X up to path components
@@ -214,6 +239,10 @@ The quotient of X up to path components
 def path_components := quotient (⟨λ x y, x ∈ path_component y,
     ⟨mem_path_component_self, λ _ _, mem_path_component_of_mem, λ _ _ _, joined.mem_path_component⟩⟩
   : setoid X)
+
+instance path_components.inhabited [inhabited X] : inhabited (path_components X)
+  := { default := quotient.mk' (arbitrary X) }
+
 variable {X}
 
 /--
@@ -251,7 +280,7 @@ def pi0_equiv_path_components : π 0 x ≃ path_components X :=
 /--
 The fundamental grupoid "constructor",
 -/
-def fundamental_groupoid.mk : X -> fundamental_groupoid X := id
+def fundamental_groupoid.mk {X} : X -> fundamental_groupoid X := id
 
 /--
 The first homotopy group at x is equivalent to the endomorphisms of x in the fundamental grupoid
@@ -331,3 +360,5 @@ def pi1_equiv_fundamental_group : π 1 x ≃ category_theory.End (fundamental_gr
     rcases p with ⟨⟨p,Hcont⟩,H0,H1⟩,
     constructor
     end }
+
+#lint

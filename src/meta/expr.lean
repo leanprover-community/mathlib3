@@ -584,8 +584,14 @@ meta def to_implicit_binder : expr → expr
 `list_binary_operands f x` breaks `x` apart into successions of applications of `f` until this can
 no longer be done and returns a list of the leaves of the process.
 
-E.g. (code not actually working) `list_binary_operands + (3 + (4 * 5 + 6) + 7 / 3)` returns
-`[3, 4 * 5, 6, 7 / 3]`. -/
+For example:
+```lean
+#eval list_binary_operands `(@has_add.add ℕ _) `(3 + (4 * 5 + 6) + 7 / 3) >>= tactic.trace
+-- [3, 4 * 5, 6, 7 / 3]
+#eval list_binary_operands `(@list.append ℕ) `([1, 2] ++ [3, 4] ++ (1 :: [])) >>= tactic.trace
+-- [[1, 2], [3, 4], [1]]
+```
+-/
 meta def list_binary_operands (f : expr) : expr → tactic (list expr)
 | x@(expr.app (expr.app g a) b) := do
   some _ ← try_core (unify f g) | pure [x],

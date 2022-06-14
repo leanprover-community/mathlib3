@@ -290,8 +290,7 @@ e.subalgebra_map E.to_subalgebra
   (a : E) : ↑(intermediate_field_map e E a) = e a := rfl
 
 @[simp] lemma intermediate_field_map_symm_apply_coe (e : L ≃ₐ[K] L') (E : intermediate_field K L)
-  (a : E.map e.to_alg_hom) :
-  ↑((intermediate_field_map e E).symm a) = e.symm a := rfl
+  (a : E.map e.to_alg_hom) : ↑((intermediate_field_map e E).symm a) = e.symm a := rfl
 
 /-- The embedding from an intermediate field of `L / K` to `L`. -/
 def val : S →ₐ[K] L :=

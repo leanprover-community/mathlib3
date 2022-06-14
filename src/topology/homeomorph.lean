@@ -446,10 +446,17 @@ def {u} pi_fin_two (α : fin 2 → Type u) [Π i, topological_space (α i)] : (�
 /--
 A subset of a topological space is homeomorphic to its image under a homeomorphism.
 -/
-def image (e : α ≃ₜ β) (s : set α) : s ≃ₜ e '' s :=
+@[simps] def image (e : α ≃ₜ β) (s : set α) : s ≃ₜ e '' s :=
 { continuous_to_fun := by continuity!,
   continuous_inv_fun := by continuity!,
-  ..e.to_equiv.image s, }
+  to_equiv := e.to_equiv.image s, }
+
+/-- `univ α` is homeomorphic to `α`. -/
+@[simps { fully_applied := ff }]
+def set.univ (α : Type*) [topological_space α] : (univ : set α) ≃ₜ α :=
+{ to_equiv := equiv.set.univ α,
+  continuous_to_fun := continuous_subtype_coe,
+  continuous_inv_fun := continuous_subtype_mk _ continuous_id }
 
 end homeomorph
 

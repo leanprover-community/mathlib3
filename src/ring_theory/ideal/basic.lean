@@ -193,10 +193,6 @@ by rw [lt_iff_le_not_le]; exact
   λ H ⟨h₁, h₂⟩, let ⟨x, xJ, xI⟩ := not_subset.1 h₂ in
    J.eq_top_iff_one.2 $ H x h₁ xI xJ⟩
 
-theorem _root_.submodule.is_maximal.eq_of_le {I J : ideal α}
-  (hI : I.is_maximal) (hJ : J ≠ ⊤) (IJ : I ≤ J) : I = J :=
-eq_iff_le_not_lt.2 ⟨IJ, λ h, hJ (hI.1.2 _ h)⟩
-
 instance : is_coatomic (ideal α) :=
 begin
   apply complete_lattice.coatomic_of_top_compact,

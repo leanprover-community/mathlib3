@@ -26,8 +26,8 @@ open_locale nat
 namespace nat
 
 /-- For `n > 1`, `(n-1)!` is congruent to `-1` modulo `n` only if n is prime. --/
-private lemma wilsons_theorem_only_if_direction (n : ℕ) (h : (((n - 1)! : zmod n) = -1)) (h1 : 1 < n) :
-(prime n) :=
+private lemma wilsons_theorem_only_if_direction
+  (n : ℕ) (h : (((n - 1)! : zmod n) = -1)) (h1 : 1 < n) : (prime n) :=
 begin
   have hp : ((n - 1)! + 1 : zmod n) = 0,
   { rw h, simp, },

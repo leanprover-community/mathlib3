@@ -38,7 +38,10 @@ around a sum.
 
 * Add support for `neg/div/inv` in additive/multiplicative groups?
 * Customize error messages to mention `move_add/move_mul` instead of `move_op`?
-* Add different operations other than `+` and `*`?
+* Add different operations other than `+` and `*`?  E.g. `∪, ∩, ⊓, ⊔, ...`?
+  Should there be the desire for supporting more operations, it might make sense to extract
+  the `reflexivity <|> simp [add] <|> simp [mul]` block in `sorted_sum` to a separate tactic,
+  including all the lemmas used for the rearrangement to work.
 * Add functionality for moving terms across the two sides of an in/dis/equality.
   E.g. it might be desirable to have `to_lhs [a]` converting `b + c = a + d` to `- a + b + c = d`.
 * Add a non-recursive version for use in `conv` mode.
@@ -169,8 +172,7 @@ lp.mmap $ λ x : α × pexpr, do
    `move_left_or_right`,
 3. we jam the third factor inside the first two.
 -/
-meta def final_sorting (lp : list (bool × pexpr)) (sl : list expr) :
-  tactic (list expr × list bool) :=
+meta def final_sort (lp : list (bool × pexpr)) (sl : list expr) : tactic (list expr × list bool) :=
 do
   lp_exp : list (bool × expr) ← snd_to_expr lp,
   (l1, l2, l3, is_unused) ← move_left_or_right lp_exp sl [],
@@ -180,14 +182,14 @@ do
 `bool × pexpr` (arising as the user-provided input to `move_op`) and an expression `e`.
 
 `sorted_sum hyp ll e` returns an ordered sum of the terms of `e`, where the order is
-determined using the `final_sorting` applied to `ll` and `e`.
+determined using the `final_sort` applied to `ll` and `e`.
 
 We use this function for expressions in an (additive) commutative semigroup. -/
 meta def sorted_sum (hyp : option name) (ll : list (bool × pexpr)) (f : pexpr) (e : expr) :
   tactic (list bool) :=
 do
   lisu ← list_binary_operands f e,
-  (sli, is_unused) ← final_sorting ll lisu,
+  (sli, is_unused) ← final_sort ll lisu,
   match sli with
   | []       := return is_unused
   | (eₕ::es) := do

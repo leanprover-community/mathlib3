@@ -1330,7 +1330,6 @@ begin
       (λ f hf g hg, hf.sup hg) (λ n hn, hm n) }
 end
 
-
 end conditionally_complete_linear_order
 
 /-- Convert a `homeomorph` to a `measurable_equiv`. -/

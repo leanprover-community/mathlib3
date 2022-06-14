@@ -439,7 +439,7 @@ begin
   { intros x hx,
     refine stopped_value_hitting_mem _,
     simp only [set.mem_set_of_eq, exists_prop],
-    exact real.exists_of_le_supr_finite (set.finite_le_nat n) ⟨0, nat.zero_le _⟩ hx },
+    exact real.exists_of_le_supr_subtype (set.finite_le_nat n) ⟨0, nat.zero_le _⟩ hx },
   have h := set_integral_le_const (measurable_set_le measurable_const (measurable_csupr_le
     (λ n, (hsub.strongly_measurable n).measurable.le (𝒢.le n)) _))
     (measure_lt_top _ _).ne this

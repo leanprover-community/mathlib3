@@ -411,14 +411,14 @@ end
 instance with_zero.has_exists_add_of_le {α} [has_add α] [preorder α] [has_exists_add_of_le α] :
   has_exists_add_of_le (with_zero α) :=
 ⟨λ a b, begin
-    apply with_zero.cases_on a,
-    { exact λ _, ⟨b, (zero_add b).symm⟩ },
-    apply with_zero.cases_on b,
-    { exact λ b' h, (with_bot.not_coe_le_bot _ h).elim },
-    rintro a' b' h,
-    obtain ⟨c, rfl⟩ := exists_add_of_le (with_zero.coe_le_coe.1 h),
-    exact ⟨c, rfl⟩,
-  end⟩
+  apply with_zero.cases_on a,
+  { exact λ _, ⟨b, (zero_add b).symm⟩ },
+  apply with_zero.cases_on b,
+  { exact λ b' h, (with_bot.not_coe_le_bot _ h).elim },
+  rintro a' b' h,
+  obtain ⟨c, rfl⟩ := exists_add_of_le (with_zero.coe_le_coe.1 h),
+  exact ⟨c, rfl⟩,
+end⟩
 
 -- This instance looks absurd: a monoid already has a zero
 /-- Adding a new zero to a canonically ordered additive monoid produces another one. -/
@@ -1020,7 +1020,7 @@ instance [has_le α] [has_add α] [has_exists_add_of_le α] : has_exists_add_of_
       exact ⟨c, rfl⟩
     end
   | ⊤, (b : α) := λ h, (not_top_le_coe _ h).elim
-  end⟩
+end⟩
 
 instance [canonically_ordered_add_monoid α] : canonically_ordered_add_monoid (with_top α) :=
 { le_self_add := λ a b, match a, b with

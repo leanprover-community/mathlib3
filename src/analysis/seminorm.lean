@@ -166,6 +166,46 @@ lemma lt_def (p q : add_monoid_seminorm E) : p < q ↔ (p : E → ℝ) < q := if
 noncomputable instance : semilattice_sup (add_monoid_seminorm E) :=
 function.injective.semilattice_sup _ fun_like.coe_injective coe_sup
 
+section comp
+variables [add_monoid F] [add_monoid G]
+
+/-- Composition of an add_monoid_seminorm with an add_monoid_hom is an add_monoid_seminorm. -/
+def comp (p : add_monoid_seminorm F) (f : E →+ F) : add_monoid_seminorm E :=
+{ to_fun    := λ x, p (f x),
+  nonneg'   := λ x, p.nonneg _,
+  map_zero' := by rw [f.map_zero, p.map_zero],
+  add_le'   := λ _ _, by apply eq.trans_le (congr_arg p (f.map_add _ _)) (p.add_le _ _) }
+
+lemma coe_comp (p : add_monoid_seminorm F) (f : E →+ F) : ⇑(p.comp f) = p ∘ f := rfl
+
+@[simp] lemma comp_apply (p : add_monoid_seminorm F) (f : E →+ F) (x : E) :
+  (p.comp f) x = p (f x) := rfl
+
+@[simp] lemma comp_id (p : add_monoid_seminorm E) : p.comp (add_monoid_hom.id _) = p :=
+ext $ λ _, rfl
+
+@[simp] lemma comp_zero (p : add_monoid_seminorm F) : p.comp (0 : E →+ F) = 0 :=
+ext $ λ _, map_zero p
+
+@[simp] lemma zero_comp (f : E →+ F) : (0 : add_monoid_seminorm F).comp f = 0 :=
+ext $ λ _, rfl
+
+lemma comp_comp (p : add_monoid_seminorm G) (g : F →+ G) (f : E →+ F) :
+  p.comp (g.comp f) = (p.comp g).comp f :=
+ext $ λ _, rfl
+
+lemma add_comp (p q : add_monoid_seminorm F) (f : E →+ F) : (p + q).comp f = p.comp f + q.comp f :=
+ext $ λ _, rfl
+
+lemma comp_add_le {A B : Type*} [add_comm_monoid A] [add_comm_monoid B]
+  (p : add_monoid_seminorm B) (f g : A →+ B) : p.comp (f + g) ≤ p.comp f + p.comp g :=
+λ _, p.add_le _ _
+
+lemma comp_mono {p : add_monoid_seminorm F} {q : add_monoid_seminorm F} (f : E →+ F) (hp : p ≤ q) :
+  p.comp f ≤ q.comp f := λ _, hp _
+
+end comp
+
 end add_monoid_seminorm
 
 /-- A seminorm on a module over a normed ring is a function to the reals that is positive
@@ -348,10 +388,8 @@ variables [has_scalar R ℝ] [has_scalar R ℝ≥0] [is_scalar_tower R ℝ≥0 �
 /-- Composition of a seminorm with a linear map is a seminorm. -/
 def comp (p : seminorm 𝕜 F) (f : E →ₗ[𝕜] F) : seminorm 𝕜 E :=
 { to_fun    := λ x, p (f x),
-  nonneg'   := λ x, p.nonneg _,
-  map_zero' := by rw [f.map_zero, p.map_zero],
   smul'     := λ _ _, (congr_arg p (f.map_smul _ _)).trans (p.smul _ _),
-  add_le'   := λ _ _, by apply eq.trans_le (congr_arg p (f.map_add _ _)) (p.add_le _ _) }
+  ..(p.to_add_monoid_seminorm.comp f.to_add_monoid_hom) }
 
 lemma coe_comp (p : seminorm 𝕜 F) (f : E →ₗ[𝕜] F) : ⇑(p.comp f) = p ∘ f := rfl
 

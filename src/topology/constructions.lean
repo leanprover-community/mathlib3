@@ -764,6 +764,9 @@ lemma continuous_at_subtype_coe {p : α → Prop} {a : subtype p} :
   continuous_at (coe : subtype p → α) a :=
 continuous_iff_continuous_at.mp continuous_subtype_coe _
 
+lemma subtype.dense_iff {s : set α} {t : set s} : dense t ↔ s ⊆ closure (coe '' t) :=
+by { rw [inducing_coe.dense_iff, set_coe.forall], refl }
+
 lemma map_nhds_subtype_coe_eq {a : α} (ha : p a) (h : {a | p a} ∈ 𝓝 a) :
   map (coe : subtype p → α) (𝓝 ⟨a, ha⟩) = 𝓝 a :=
 map_nhds_induced_of_mem $ by simpa only [subtype.coe_mk, subtype.range_coe] using h

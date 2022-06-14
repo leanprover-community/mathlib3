@@ -775,6 +775,27 @@ attribute [nolint doc_blame] alg_equiv.to_mul_equiv
 
 notation A ` ≃ₐ[`:50 R `] ` A' := alg_equiv R A A'
 
+/-- `alg_equiv_class F R S` states that `F` is a type of algebra structure preserving
+  equivalences. You should extend this class when you extend `alg_equiv`. -/
+class alg_equiv_class (F : Type*) (R A B : out_param Type*)
+  [comm_semiring R] [semiring A] [semiring B] [algebra R A] [algebra R B]
+  extends ring_equiv_class F A B :=
+(commutes : ∀ (f : F) (r : R), f (algebra_map R A r) = algebra_map R B r)
+
+namespace alg_equiv_class
+
+@[priority 100] -- See note [lower instance priority]
+instance to_alg_hom_class (F R A B : Type*)
+  [comm_semiring R] [semiring A] [semiring B] [algebra R A] [algebra R B]
+  [h : alg_equiv_class F R A B] : alg_hom_class F R A B :=
+{ coe := coe_fn,
+  coe_injective' := fun_like.coe_injective,
+  map_zero := map_zero,
+  map_one := map_one,
+  .. h }
+
+end alg_equiv_class
+
 namespace alg_equiv
 
 variables {R : Type u} {A₁ : Type v} {A₂ : Type w} {A₃ : Type u₁}
@@ -785,12 +806,13 @@ variables [comm_semiring R] [semiring A₁] [semiring A₂] [semiring A₃]
 variables [algebra R A₁] [algebra R A₂] [algebra R A₃]
 variables (e : A₁ ≃ₐ[R] A₂)
 
-instance : ring_equiv_class (A₁ ≃ₐ[R] A₂) A₁ A₂ :=
+instance : alg_equiv_class (A₁ ≃ₐ[R] A₂) R A₁ A₂ :=
 { coe := to_fun,
   inv := inv_fun,
   coe_injective' := λ f g h₁ h₂, by { cases f, cases g, congr' },
   map_add := map_add',
   map_mul := map_mul',
+  commutes := commutes',
   left_inv := left_inv,
   right_inv := right_inv }
 

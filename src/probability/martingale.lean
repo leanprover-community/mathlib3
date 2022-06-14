@@ -423,6 +423,7 @@ lemma exists_of_le_supr_finite {α : Type*} {p : α → Prop}
   (hp : {x | p x}.finite) (hp' : {x | p x}.nonempty) {f : α → ℝ} {ε : ℝ}
   (h : ε ≤ ⨆ x : {x // p x}, f x) : ∃ x, p x ∧ ε ≤ f x :=
 begin
+  haveI : nonempty {x : α // p x} := {x : α | p x}.nonempty_coe_sort.2 hp',
   haveI : fintype {x // p x} := hp.fintype,
   have : (⨆ x : {x // p x}, f x) = hp.to_finset.sup' (hp.nonempty_to_finset.2 hp') f,
   { rw finset.sup'_eq_cSup_image,
@@ -433,7 +434,6 @@ begin
       exact le_cSup (set.finite.bdd_above (set.finite_range _))
         ⟨⟨x, (set.finite.mem_to_finset _).1 hx⟩, rfl⟩ },
     { intros x hx,
-      haveI : nonempty {x : α // p x} := {x : α | p x}.nonempty_coe_sort.2 hp',
       obtain ⟨⟨y, hpy⟩, hy⟩ := exists_lt_of_lt_csupr hx,
       exact ⟨f y, ⟨y, by simpa, rfl⟩, hy⟩ } },
   rw [this, finset.le_sup'_iff] at h,
@@ -444,8 +444,27 @@ end
 lemma measurable_supr_le {f : ℕ → α → ℝ} (hf : ∀ n, measurable[m0] (f n)) (n : ℕ) :
   measurable (λ x, ⨆ k : {k // k ≤ n}, f k x) :=
 begin
-  sorry
+  haveI : nonempty {k // k ≤ n} := nonempty_subtype.2 ⟨0, nat.zero_le _⟩,
+  haveI : fintype {k // k ≤ n} := (set.finite_le_nat n).fintype,
+  have heq : (λ x, ⨆ k : {k // k ≤ n}, f k x) = ((set.finite_le_nat n).to_finset.sup'
+    ((set.finite.nonempty_to_finset _).2 ⟨0, nat.zero_le _⟩) f),
+  { ext x,
+    rw [finset.sup'_apply, finset.sup'_eq_cSup_image, set.finite.coe_to_finset],
+    refine cSup_eq_of_forall_le_of_forall_lt_exists_gt (set.range_nonempty _) _ _,
+    { rintro _ ⟨⟨m, hm⟩, rfl⟩,
+      exact le_cSup (set.finite.bdd_above ((set.finite_le_nat n).image _)) ⟨m, hm, rfl⟩ },
+    { intros y hy,
+      obtain ⟨_, ⟨m, hm₁, rfl⟩, hm₂⟩ := exists_lt_of_lt_cSup _ hy,
+      { exact ⟨f m x, ⟨⟨m, hm₁⟩, rfl⟩, hm₂⟩ },
+      { exact set.nonempty.image _ ⟨0, nat.zero_le _⟩ } } },
+  { rw heq,
+    exact finset.sup'_induction ((set.finite.nonempty_to_finset _).2 ⟨0, nat.zero_le _⟩) _
+      (λ f hf g hg, hf.sup hg) (λ n hn, hf n) },
 end
+
+-- We use the spelling `⨆ x : {x // p x}, f x` because it behaves better than
+-- `⨆ x (h : p x), f x` in the case `f` is `ℝ`-valued. The two spellings are equal when `f` is
+-- non-negative.
 
 lemma smul_le_stopped_value_hitting [is_finite_measure μ]
   {f : ℕ → α → ℝ} (hsub : submartingale f 𝒢 μ) {ε : ℝ≥0} (hε : 0 < ε) (n : ℕ) :

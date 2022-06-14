@@ -1399,40 +1399,4 @@ instance : zero_le_one_class pgame := ⟨zero_lt_one.le⟩
 @[simp] theorem zero_lf_one : (0 : pgame) ⧏ 1 :=
 zero_lt_one.lf
 
-/-- The pre-game `half` is defined as `{0 | 1}`. -/
-def half : pgame := ⟨punit, punit, 0, 1⟩
-
-@[simp] theorem half_left_moves : half.left_moves = punit := rfl
-@[simp] theorem half_right_moves : half.right_moves = punit := rfl
-@[simp] lemma half_move_left (x) : half.move_left x = 0 := rfl
-@[simp] lemma half_move_right (x) : half.move_right x = 1 := rfl
-
-instance unique_half_left_moves : unique half.left_moves := punit.unique
-instance unique_half_right_moves : unique half.right_moves := punit.unique
-
-protected theorem zero_lt_half : 0 < half :=
-lt_of_le_of_lf (zero_le.2 (λ j, ⟨punit.star, le_rfl⟩))
-  (zero_lf.2 ⟨default, is_empty.elim pempty.is_empty⟩)
-
-protected theorem zero_le_half : 0 ≤ half :=
-pgame.zero_lt_half.le
-
-theorem half_lt_one : half < 1 :=
-lt_of_le_of_lf
-  (le_of_forall_lf ⟨by simp, is_empty_elim⟩) (lf_of_forall_le (or.inr ⟨default, le_rfl⟩))
-
-theorem half_add_half_equiv_one : half + half ≈ 1 :=
-begin
-  split; rw le_def; split,
-  { rintro (⟨⟨ ⟩⟩ | ⟨⟨ ⟩⟩),
-    { exact or.inr ⟨sum.inr punit.star, (le_congr_left (zero_add_equiv 1)).2 le_rfl⟩ },
-    { exact or.inr ⟨sum.inl punit.star, (le_congr_left (add_zero_equiv 1)).2 le_rfl⟩ } },
-  { rintro ⟨ ⟩ },
-  { rintro ⟨ ⟩,
-    exact or.inl ⟨sum.inl punit.star, (le_congr_right (zero_add_equiv _)).2 pgame.zero_le_half⟩ },
-  { rintro (⟨⟨ ⟩⟩ | ⟨⟨ ⟩⟩); left,
-    { exact ⟨sum.inr punit.star, (add_zero_equiv _).2⟩ },
-    { exact ⟨sum.inl punit.star, (zero_add_equiv _).2⟩ } }
-end
-
 end pgame

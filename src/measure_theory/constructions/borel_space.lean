@@ -1308,7 +1308,7 @@ begin
 end
 
 lemma measurable_csupr_subtype {α' : Type*}
-  [measure_space α'] [conditionally_complete_linear_order α'] [has_measurable_sup₂ α']
+  [measurable_space α'] [conditionally_complete_linear_order α'] [has_measurable_sup₂ α']
   {ι} {p : ι → Prop} (hp : {x | p x}.finite) (hemp : {y | p y}.nonempty)
   {f : ι → δ → α'} (hm : ∀ n, measurable (f n)) :
   measurable (λ x, ⨆ y : {y // p y}, f y x) :=

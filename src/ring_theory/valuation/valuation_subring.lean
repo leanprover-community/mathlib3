@@ -535,18 +535,15 @@ begin
     { rw add_eq_zero_iff_eq_neg at h_2,
       apply_fun B.valuation at h_2,
       rw [valuation.map_neg, valuation.map_one, valuation.map_inv, inv_eq_one] at h_2,
-      exact (B.valuation_le_one_iff _).1 (le_of_eq h_2) },
-    by_contra h_3,
-    rw [← valuation_le_one_iff, not_le, B.valuation.one_lt_val_iff h_1, ← add_sub_cancel x⁻¹,
-      ← units.coe_mk0 h_2, ← mem_principal_unit_group_iff] at h_3,
-    have := h h_3,
-    rw [mem_principal_unit_group_iff, units.coe_mk0 h_2, add_sub_cancel,
-      ← A.valuation.one_lt_val_iff h_1, ← not_le, valuation_le_one_iff] at this,
-    exact this hx },
+      exact (B.valuation_le_one_iff _).1 h_2.le },
+    rw [← valuation_le_one_iff, ← not_lt, valuation.one_lt_val_iff _ h_1, ← add_sub_cancel x⁻¹,
+      ← units.coe_mk0 h_2, ← mem_principal_unit_group_iff] at hx ⊢,
+    simpa only [hx] using @h (units.mk0 (x⁻¹ + 1) h_2) },
   { rintros h x hx,
     by_contra h_1, from not_lt.2 (monotone_map_of_le _ _ h (not_lt.1 h_1)) hx }
 end
 
+/-- The map on valuation subrings to their principal unit groups is an order embedding. -/
 def principal_unit_group_order_embedding :
   valuation_subring K ↪o (subgroup Kˣ)ᵒᵈ :=
 { to_fun := λ A, A.principal_unit_group,

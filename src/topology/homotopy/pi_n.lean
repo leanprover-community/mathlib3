@@ -54,6 +54,9 @@ namespace cube
       convert ((@is_open_induced_iff' _ _ _ _ (λ (f : I^n), f i)).2 ⟨s,⟨H,by refl⟩⟩)
     end
 
+  /--
+  The points of the nth dimensional cube with a projection set to 0 or 1
+  -/
   def boundary (n:nat) : set (I^n)
     := { y | ∃ i:fin n , y i = 0 ∨ y i = 1}
 
@@ -71,7 +74,14 @@ namespace cube
       exfalso, exact (nat.not_lt_zero _ (nat.le_of_succ_le_succ i_property))
     end
 
+  /--
+  The first projection of a non-zero dimensional cube
+  -/
   @[simp] def head {n} : I^(n+1) -> I := λc,c 0
+
+  /--
+  The last `n` projection of an `n+1` dimensional cube
+  -/
   @[simp] def tail {n} : I^(n+1) -> I^n := λc,fin.tail c
 end cube
 
@@ -121,15 +131,18 @@ namespace pre_π
     @[simp] lemma coe_def  (y : I^(n+1))
       : H y = H.1 (y.head, y.tail) := rfl
 
-    @[refl] def refl (f : pre_π n x) : f ~ f :=
+    @[refl] lemma refl (f : pre_π n x) : f ~ f :=
       continuous_map.homotopy_rel.refl _ _
 
-    @[symm] def symm : f ~ g -> g ~ f :=
+    @[symm] lemma symm : f ~ g -> g ~ f :=
       continuous_map.homotopy_rel.symm
 
-    @[trans] def trans : f ~ g -> g ~ h -> f ~ h :=
+    @[trans] lemma trans : f ~ g -> g ~ h -> f ~ h :=
       continuous_map.homotopy_rel.trans
 
+    /--
+    Eval an homotopy at an intermediate point, yielding a `pre_π`
+    -/
     def eval (t:I) : pre_π n x :=
       { to_fun := H.to_homotopy.curry t,
         continuous_to_fun := by {continuity},
@@ -169,6 +182,9 @@ namespace pre_π
     end
   end homotopy
 
+  /--
+  Homotopic relation between `pre_π`s
+  -/
   def homotopic (f0 f1 : pre_π n x) : Prop := nonempty (f0 ~ f1)
   namespace homotopic
     @[refl] lemma refl (f : pre_π n x) : homotopic f f :=
@@ -204,7 +220,7 @@ variable {X}
 /--
 The 0th homotopy "group" is equivalent to the path components of X
 -/
-theorem pi0_equiv_path_components : π 0 x ≃ path_components X :=
+def pi0_equiv_path_components : π 0 x ≃ path_components X :=
   { to_fun := begin
       refine quotient.map' (λf,f 0) _,
       rintros f g ⟨h⟩,       constructor, apply path.symm,
@@ -234,13 +250,15 @@ theorem pi0_equiv_path_components : π 0 x ≃ path_components X :=
       end
 }
 
-
+/--
+The fundamental grupoid "constructor",
+-/
 def fundamental_groupoid.mk : X -> fundamental_groupoid X := id
 
 /--
 The first homotopy group at x is equivalent to the endomorphisms of x in the fundamental grupoid
 -/
-theorem pi1_equiv_fundamental_group : π 1 x ≃ category_theory.End (fundamental_groupoid.mk x) := {
+def pi1_equiv_fundamental_group : π 1 x ≃ category_theory.End (fundamental_groupoid.mk x) := {
   to_fun := begin
     refine quotient.map' (λ⟨⟨f,Hcont⟩,Hf⟩, path.mk ⟨λt,f (λ_,t), by continuity⟩
         (Hf (λ_,0) ⟨0,by {left, refl}⟩)
@@ -296,7 +314,3 @@ theorem pi1_equiv_fundamental_group : π 1 x ≃ category_theory.End (fundamenta
     constructor
     end,
 }
-
-
-
--- Goal 3: countnous map (base preserving) induces homomorphism functorially

@@ -252,7 +252,7 @@ begin
   use k,
   ext ⟨m, hm : m ∈ pre_weight_space M 0⟩,
   rw [linear_map.zero_apply, lie_submodule.coe_zero, submodule.coe_eq_zero,
-    lie_submodule.to_endomorphism_eq_to_endomorphism_restrict, linear_map.pow_restrict,
+    ← lie_submodule.to_endomorphism_restrict_eq_to_endomorphism, linear_map.pow_restrict,
     ← set_like.coe_eq_coe, linear_map.restrict_apply, submodule.coe_mk, lie_submodule.coe_zero],
   exact hk hm,
 end

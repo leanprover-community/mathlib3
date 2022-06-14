@@ -314,11 +314,8 @@ lemma pow_apply_mem_of_forall_mem {p : submodule R M}
   (n : ℕ) (h : ∀ x ∈ p, f' x ∈ p) (x : M) (hx : x ∈ p) :
   (f'^n) x ∈ p :=
 begin
-  revert x,
-  induction n with n ih, { simp, },
-  intros x hx,
-  simpa only [linear_map.iterate_succ, coe_comp, function.comp_app, restrict_apply] using
-    ih _ (h _ hx),
+  induction n with n ih generalizing x, { simpa, },
+  simpa only [iterate_succ, coe_comp, function.comp_app, restrict_apply] using ih _ (h _ hx),
 end
 
 lemma pow_restrict {p : submodule R M} (n : ℕ)

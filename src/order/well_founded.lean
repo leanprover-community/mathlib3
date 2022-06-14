@@ -137,7 +137,7 @@ end well_founded
 
 section linear_order
 
-variables {β γ : Type*} [linear_order β] [partial_order γ]
+variables {β γ : Type*} [linear_order β] [partial_order γ] [h : is_well_order β (<)]
 
 theorem well_founded.min_le {x : β} {s : set β} (hx : x ∈ s) (hne : s.nonempty := ⟨x, hx⟩) :
   h.wf.min s hne ≤ x :=
@@ -157,7 +157,7 @@ begin
 end
 
 theorem range_eq_iff_eq_of_strict_mono {f g : β → γ} (hf : strict_mono f)
-  (hg : strict_mono g) [h : is_well_order β (<)] : set.range f = set.range g ↔ f = g :=
+  (hg : strict_mono g) : set.range f = set.range g ↔ f = g :=
 ⟨λ hfg, begin
   funext a,
   apply h.wf.induction a,
@@ -166,12 +166,11 @@ theorem range_eq_iff_eq_of_strict_mono {f g : β → γ} (hf : strict_mono f)
     (range_eq_iff_eq_of_strict_mono_aux hg hf hfg.symm (λ a hab, (H a hab).symm))
 end, congr_arg _⟩
 
-theorem strict_mono.self_le {f : β → β} (hf : strict_mono f) [h : is_well_order β (<)] :
-  ∀ n, n ≤ f n :=
+theorem strict_mono.self_le {f : β → β} (hf : strict_mono f) : ∀ n, n ≤ f n :=
 by { by_contra' h₁, have h₂ := h.wf.min_mem _ h₁, exact h.wf.not_lt_min _ h₁ (hf h₂) h₂ }
 
-theorem strict_mono.not_bdd_above_range {f : β → β} (hf : strict_mono f) [is_well_order β (<)]
-  [no_max_order β] : ¬ bdd_above (set.range f) :=
+theorem strict_mono.not_bdd_above_range {f : β → β} (hf : strict_mono f) [no_max_order β] :
+  ¬ bdd_above (set.range f) :=
 begin
   rintro ⟨a, ha⟩,
   cases exists_gt a with b hb,

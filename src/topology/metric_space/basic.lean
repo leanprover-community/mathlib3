@@ -2694,7 +2694,8 @@ def metric_space.discrete {α} [decidable_eq α] (c : ℝ≥0) (hc : c ≠ 0) : 
 @metric_space.replace_bornology _ ⟨⊥, bot_le⟩
   (@emetric_space.to_metric_space_of_dist α (emetric_space.discrete c $ ennreal.coe_ne_zero.2 hc)
     (λ a b, if a = b then 0 else c)
-    (λ a b h, ((ite_eq_iff.1 h).imp and.right and.right).elim ennreal.zero_ne_top ennreal.coe_ne_top)
+    (λ a b h,
+      ((ite_eq_iff.1 h).imp and.right and.right).elim ennreal.zero_ne_top ennreal.coe_ne_top)
     (λ a b, eq.trans (by simp) (apply_ite _ _ _ _).symm)) $
       λ s, (true_iff _).mpr begin
         change ∃ x, _,

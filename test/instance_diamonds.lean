@@ -182,6 +182,6 @@ example : @euclidean_domain.to_comm_ring _ (@field.to_euclidean_domain _ (zmod.f
 rfl
 
 example (n : ℕ) : zmod.comm_ring (n + 1) = fin.comm_ring n := rfl
-exavmple : zmod.comm_ring 0 = int.comm_ring := rfl
+example : zmod.comm_ring 0 = int.comm_ring := rfl
 
 end zmod

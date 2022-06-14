@@ -259,13 +259,9 @@ namespace smooth_fiber_bundle.trivialization
 that sends `p : Z` to `((e p).1, h (e p).2)`. -/
 def trans_fiber_diffeomorph (e : trivialization I I₂ I₃ F proj) (h : F ≃ₘ⟮I₂, I₅⟯ F') :
   trivialization I I₅ I₃ F' proj :=
-{ smooth_on_to_fun := by { convert (smooth_id.prod_map h.smooth).comp_smooth_on
-  e.smooth_on, dsimp [topological_fiber_bundle.trivialization.trans_fiber_homeomorph],
-  refine inter_univ _ },
+{ smooth_on_to_fun := (smooth_id.prod_map h.smooth).comp_smooth_on e.smooth_on,
   smooth_on_inv_fun :=
-    e.smooth_on_symm.comp (smooth_id.prod_map h.symm.smooth).smooth_on
-  (by { dsimp [topological_fiber_bundle.trivialization.trans_fiber_homeomorph],
-    refine (univ_inter _).subset }),
+    e.smooth_on_symm.comp (smooth_id.prod_map h.symm.smooth).smooth_on subset.rfl,
   ..e.to_topological.trans_fiber_homeomorph h.to_homeomorph }
 
 @[simp] lemma trans_fiber_diffeomorph_apply
@@ -501,6 +497,7 @@ begin
   rintro ⟨_, ⟨i, rfl⟩, _, ⟨j, rfl⟩, he⟩ ⟨_, ⟨i', rfl⟩, _, ⟨j', rfl⟩, he'⟩,
   rw [mem_singleton_iff] at he he', substs he he',
   simp_rw [local_homeomorph_chart, local_homeomorph.trans_symm_eq_symm_trans_symm],
+  sorry
 end
 
 
@@ -518,6 +515,7 @@ begin
   /-
 (⇑I (⇑(chart_at H x.fst) (⇑((chart_at (model_prod H H₂) x).symm) (⇑((I.to_local_equiv.prod I₂.to_local_equiv).symm) (b, f))).fst), ⇑I₂ (⇑(chart_at H₂ (X.coord_change (X.index_at x.fst) i x.fst x.snd)) (X.coord_change (X.index_at (⇑((chart_at (model_prod H H₂) x).symm) (⇑((I.to_local_equiv.prod I₂.to_local_equiv).symm) (b, f))).fst) i (⇑((chart_at (model_prod H H₂) x).symm) (⇑((I.to_local_equiv.prod I₂.to_local_equiv).symm) (b, f))).fst (⇑((chart_at (model_prod H H₂) x).symm) (⇑((I.to_local_equiv.prod I₂.to_local_equiv).symm) (b, f))).snd)))
   -/
+  sorry
 end
 
 -- (⇑I (⇑(chart_at H x.fst) (⇑((chart_at (model_prod H H₂) x).symm) (⇑((I.to_local_equiv.prod I₂.to_local_equiv).symm) (b, f))).fst),
@@ -529,6 +527,7 @@ def local_triv (i : atlas H B) : trivialization I I₂ (I.prod I₂) F X.proj :=
 { smooth_on_to_fun := by { simp only [smooth_on] with mfld_simps, intros x hx,
   rw [cont_mdiff_within_at_iff],
   refine ⟨(X.to_topological.local_triv i).continuous_to_fun x hx, _⟩,
+  sorry
    },
   smooth_on_inv_fun := sorry,
   ..X.to_topological.local_triv i }

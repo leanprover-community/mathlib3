@@ -112,6 +112,26 @@ meta def kreplace (e old new : expr) (md := semireducible) (unify := tt)
   e ← kabstract e old md unify,
   pure $ e.instantiate_var new
 
+/--  Given an expression `f` (likely a binary operation) and a further expression `x`, calling
+`list_binary_operands f x` breaks `x` apart into successions of applications of `f` until this can
+no longer be done and returns a list of the leaves of the process.
+
+For example:
+```lean
+#eval list_binary_operands `(@has_add.add ℕ _) `(3 + (4 * 5 + 6) + 7 / 3) >>= tactic.trace
+-- [3, 4 * 5, 6, 7 / 3]
+#eval list_binary_operands `(@list.append ℕ) `([1, 2] ++ [3, 4] ++ (1 :: [])) >>= tactic.trace
+-- [[1, 2], [3, 4], [1]]
+```
+-/
+meta def list_binary_operands (f : expr) : expr → tactic (list expr)
+| x@(expr.app (expr.app g a) b) := do
+  some _ ← try_core (unify f g) | pure [x],
+  as ← a.list_binary_operands,
+  bs ← b.list_binary_operands,
+  pure (as ++ bs)
+| a                      := pure [a]
+
 end expr
 
 namespace name

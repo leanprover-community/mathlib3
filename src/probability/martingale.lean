@@ -441,26 +441,34 @@ begin
   exact ⟨x, (set.finite.mem_to_finset _).1 hx₁, hx₂⟩
 end
 
+lemma measurable_supr {α β : Type*} [measurable_space β] {p : α → Prop} (hp : {x | p x}.finite)
+  {f : α → β → ℝ} (hf : ∀ n, measurable (f n)) :
+  measurable (λ x, ⨆ y : {y // p y}, f y x) :=
+begin
+  by_cases hemp : {y : α | p y}.nonempty,
+  { haveI : fintype {y // p y} := hp.fintype,
+    haveI : nonempty {y // p y} := nonempty_subtype.2 hemp,
+    have heq : (λ x, ⨆ y : {y // p y}, f y x) = (hp.to_finset.sup'
+      ((set.finite.nonempty_to_finset _).2 _) f),
+    { ext x,
+      rw [finset.sup'_apply, finset.sup'_eq_cSup_image, set.finite.coe_to_finset],
+      refine cSup_eq_of_forall_le_of_forall_lt_exists_gt (set.range_nonempty _) _ _,
+      { rintro _ ⟨⟨m, hm⟩, rfl⟩,
+        exact le_cSup (set.finite.bdd_above (hp.image _)) ⟨m, hm, rfl⟩ },
+      { intros y hy,
+        obtain ⟨_, ⟨m, hm₁, rfl⟩, hm₂⟩ := exists_lt_of_lt_cSup _ hy,
+        { exact ⟨f m x, ⟨⟨m, hm₁⟩, rfl⟩, hm₂⟩ },
+        { exact set.nonempty.image _ hemp } } },
+    { rw heq,
+      exact finset.sup'_induction ((set.finite.nonempty_to_finset _).2 hemp) _
+        (λ f hf g hg, hf.sup hg) (λ n hn, hf n) } },
+  { haveI : is_empty {y // p y} := subtype.is_empty_of_false (λ x hx, hemp ⟨x, hx⟩),
+    simp [real.csupr_empty] }
+end
+
 lemma measurable_supr_le {f : ℕ → α → ℝ} (hf : ∀ n, measurable[m0] (f n)) (n : ℕ) :
   measurable (λ x, ⨆ k : {k // k ≤ n}, f k x) :=
-begin
-  haveI : nonempty {k // k ≤ n} := nonempty_subtype.2 ⟨0, nat.zero_le _⟩,
-  haveI : fintype {k // k ≤ n} := (set.finite_le_nat n).fintype,
-  have heq : (λ x, ⨆ k : {k // k ≤ n}, f k x) = ((set.finite_le_nat n).to_finset.sup'
-    ((set.finite.nonempty_to_finset _).2 ⟨0, nat.zero_le _⟩) f),
-  { ext x,
-    rw [finset.sup'_apply, finset.sup'_eq_cSup_image, set.finite.coe_to_finset],
-    refine cSup_eq_of_forall_le_of_forall_lt_exists_gt (set.range_nonempty _) _ _,
-    { rintro _ ⟨⟨m, hm⟩, rfl⟩,
-      exact le_cSup (set.finite.bdd_above ((set.finite_le_nat n).image _)) ⟨m, hm, rfl⟩ },
-    { intros y hy,
-      obtain ⟨_, ⟨m, hm₁, rfl⟩, hm₂⟩ := exists_lt_of_lt_cSup _ hy,
-      { exact ⟨f m x, ⟨⟨m, hm₁⟩, rfl⟩, hm₂⟩ },
-      { exact set.nonempty.image _ ⟨0, nat.zero_le _⟩ } } },
-  { rw heq,
-    exact finset.sup'_induction ((set.finite.nonempty_to_finset _).2 ⟨0, nat.zero_le _⟩) _
-      (λ f hf g hg, hf.sup hg) (λ n hn, hf n) },
-end
+measurable_supr (set.finite_le_nat n) hf
 
 -- We use the spelling `⨆ x : {x // p x}, f x` because it behaves better than
 -- `⨆ x (h : p x), f x` in the case `f` is `ℝ`-valued. The two spellings are equal when `f` is
@@ -479,10 +487,10 @@ begin
     simp only [set.mem_set_of_eq, exists_prop],
     exact exists_of_le_supr_finite (set.finite_le_nat n) ⟨0, nat.zero_le _⟩ hx },
   have h := set_integral_le_const (measurable_set_le measurable_const (measurable_supr_le
-      (λ n, (hsub.strongly_measurable n).measurable.le (𝒢.le n)) _))
-      (measure_lt_top _ _).ne this
-      (integrable.integrable_on (integrable_stopped_value (hitting_is_stopping_time_nat
-        hsub.adapted measurable_set_Ici n) hsub.integrable hitting_le)),
+    (λ n, (hsub.strongly_measurable n).measurable.le (𝒢.le n)) _))
+    (measure_lt_top _ _).ne this
+    (integrable.integrable_on (integrable_stopped_value (hitting_is_stopping_time_nat
+      hsub.adapted measurable_set_Ici n) hsub.integrable hitting_le)),
   rw [ennreal.le_of_real_iff_to_real_le, ennreal.to_real_smul],
   { exact h },
   { exact (ennreal.mul_lt_top (by simp) (measure_lt_top _ _).ne).ne },

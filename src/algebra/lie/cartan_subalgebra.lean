@@ -82,7 +82,7 @@ begin
         dunfold lie_algebra.is_nilpotent,
         erw H.to_lie_submodule.is_nilpotent_iff_exists_lcs_eq_bot,
         use k,
-        rw [_root_.eq_bot_iff, ← lie_submodule.lcs_le_ucs_iff', hk k (le_refl k)],
+        rw [_root_.eq_bot_iff, lie_submodule.lcs_le_iff, hk k (le_refl k)],
         exact le_refl _,
       end,
       self_normalizing :=

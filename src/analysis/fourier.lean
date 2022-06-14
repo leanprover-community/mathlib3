@@ -4,11 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Heather Macbeth
 -/
 import analysis.complex.circle
+import analysis.special_functions.complex.circle
+import analysis.special_functions.complex.log
 import analysis.inner_product_space.l2_space
 import measure_theory.function.continuous_map_dense
 import measure_theory.function.l2_space
 import measure_theory.measure.haar
 import measure_theory.group.integration
+import measure_theory.integral.circle_integral
+import analysis.special_functions.integrals
 import topology.metric_space.emetric_paracompact
 import topology.continuous_function.stone_weierstrass
 
@@ -20,14 +24,15 @@ This file contains basic results on Fourier series.
 
 ## Main definitions
 
-* `haar_circle`, Haar measure on the circle, normalized to have total measure `1`
-* instances `measure_space`, `is_probability_measure` for the circle with respect to this measure
+* `circle_measure`: measure on the circle transported from the measure `1 / (2 * π) • volume` on
+  `(0, 2 * π]` via `exp_map_circle`.
+* instances `measure_space`, `is_probability_measure` for the circle with respect to this measure.
 * for `n : ℤ`, `fourier n` is the monomial `λ z, z ^ n`, bundled as a continuous map from `circle`
   to `ℂ`
 * for `n : ℤ` and `p : ℝ≥0∞`, `fourier_Lp p n` is an abbreviation for the monomial `fourier n`
-  considered as an element of the Lᵖ-space `Lp ℂ p haar_circle`, via the embedding
+  considered as an element of the Lᵖ-space `Lp ℂ p circle_measure`, via the embedding
   `continuous_map.to_Lp`
-* `fourier_series` is the canonical isometric isomorphism from `Lp ℂ 2 haar_circle` to `ℓ²(ℤ, ℂ)`
+* `fourier_series` is the canonical isometric isomorphism from `Lp ℂ 2 circle_measure` to `ℓ²(ℤ, ℂ)`
   induced by taking Fourier series
 
 ## Main statements
@@ -38,7 +43,7 @@ the Stone-Weierstrass theorem after checking that it is a subalgebra, closed und
 separates points.
 
 The theorem `span_fourier_Lp_closure_eq_top` states that for `1 ≤ p < ∞` the span of the monomials
-`fourier_Lp` is dense in `Lp ℂ p haar_circle`, i.e. that its `submodule.topological_closure` is
+`fourier_Lp` is dense in `Lp ℂ p circle_measure`, i.e. that its `submodule.topological_closure` is
 `⊤`.  This follows from the previous theorem using general theory on approximation of Lᵖ functions
 by continuous functions.
 
@@ -53,29 +58,155 @@ this Hilbert basis.
 -/
 
 noncomputable theory
-open_locale ennreal complex_conjugate classical
-open topological_space continuous_map measure_theory measure_theory.measure algebra submodule set
+open_locale real ennreal complex_conjugate classical
+open real complex topological_space continuous_map measure_theory measure_theory.measure
+  algebra submodule set interval_integral
 
 /-! ### Choice of measure on the circle -/
 
-section haar_circle
-/-! We make the circle into a measure space, using the Haar measure normalized to have total
-measure 1. -/
+section circle_measure
+/-! We make the circle into a measure space, using the measure transported from `(0, 2 * π]`,
+ normalized to have total measure 1. -/
 
 instance : measurable_space circle := borel circle
 instance : borel_space circle := ⟨rfl⟩
 
-/-- Haar measure on the circle, normalized to have total measure 1. -/
-@[derive is_haar_measure]
-def haar_circle : measure circle := haar_measure ⊤
+lemma measurable_arg' : measurable arg' :=
+begin
+  let t1 := { z : ℂ | 0 < arg z}, let t2 := t1ᶜ,
+  apply measurable_of_measurable_union_cover t1 t2 _ _ (by simp),
+  { have : (λ (a : t1), arg' a) = (λ (a : t1), arg a),
+    { ext, rw arg', split_ifs, refl, exfalso, exact h x.property }, rw this,
+    exact measurable_arg.comp measurable_subtype_coe },
+  { have : (λ (a : t2), arg' a) = (λ (a : t2), arg a + (2 * π)),
+    { ext, rw arg', split_ifs, exfalso, exact x.property h, refl, }, rw this,
+    exact (measurable_arg.add_const _).comp measurable_subtype_coe },
+  { exact measurable_set_lt measurable_const measurable_arg },
+  { exact (measurable_set_lt measurable_const measurable_arg).compl },
+end
 
-instance : is_probability_measure haar_circle := ⟨haar_measure_self⟩
+/-- Measurable equivalence from `Ioc 0 (2 * π)` to `circle`, whose underlying set bijection is
+`circle.circle_equiv`. -/
+def circle_m_equiv : measurable_equiv (Ioc 0 (2 * π)) circle :=
+{ measurable_inv_fun := by
+  { rw circle.circle_equiv, rw circle.arg'_equiv,
+    simp only [equiv.inv_fun_as_coe, equiv.symm_symm, equiv.coe_fn_mk, equiv.coe_fn_symm_mk],
+    rw ←(measurable_embedding.subtype_coe
+          (@measurable_set_Ioc ℝ _ _ _ _ _ _ _)).measurable_comp_iff,
+    exact measurable_arg'.comp continuous_subtype_coe.measurable },
+  measurable_to_fun := (exp_map_circle.continuous.borel_measurable).comp measurable_subtype_coe,
+  .. circle.circle_equiv }
 
-instance : measure_space circle :=
-{ volume := haar_circle,
-  .. circle.measurable_space }
+lemma arg'_m_emb : measurable_embedding (arg' ∘ coe : circle → ℝ) :=
+begin
+  convert (measurable_embedding.subtype_coe measurable_set_Ioc).comp
+    (circle_m_equiv.symm).measurable_embedding using 1,
+end
 
-end haar_circle
+/-- Measure on the circle, normalized to have total measure 1. -/
+def circle_measure : measure circle :=
+  (ennreal.of_real (1 / (2 * π)) • volume).map circle_m_equiv
+
+lemma circle_measure_univ : circle_measure univ = 1 :=
+begin
+  dsimp only [circle_measure],
+  rw [circle_m_equiv.map_apply, preimage_univ, measure.smul_apply, id.smul_eq_mul,
+    ←volume_image_subtype_coe (@measurable_set_Ioc ℝ _ _ _ _ _ _ _), image_univ,
+    subtype.range_coe, real.volume_Ioc, ←ennreal.of_real_mul (one_div_nonneg.mpr two_pi_pos.le)],
+  ring_nf, field_simp [real.pi_ne_zero],
+end
+
+instance : is_probability_measure circle_measure := ⟨circle_measure_univ⟩
+
+instance : measure_space circle := { volume := circle_measure,  .. circle.measurable_space }
+
+lemma measure_map_arg' : circle_measure.map (arg' ∘ coe : circle → ℝ) =
+  ennreal.of_real (1 / (2 * π)) • volume.restrict (Ioc 0 (2 * π)) :=
+begin
+  rw [circle_measure, map_map arg'_m_emb.measurable],
+  swap, { exact circle_m_equiv.measurable_to_fun },
+  rw measure_theory.measure.map_smul, congr' 1,
+  have : (arg' ∘ coe) ∘ ⇑circle_m_equiv = coe,
+  { ext1, apply arg'_exp_map_circle, exacts [x.property.1, x.property.2]},
+  rw this, exact map_comap_subtype_coe measurable_set_Ioc _,
+end
+
+end circle_measure
+
+section circle_functions
+
+variables {E : Type*} [normed_group E] (f : circle → E)
+
+lemma integrable_circle_iff :
+  integrable f circle_measure ↔ integrable_on (f ∘ exp_map_circle) (Ioc 0 (2 * π)) :=
+begin
+  have : f = f ∘ exp_map_circle ∘ arg' ∘ coe,
+  { ext1, simp only [function.comp_app], rwa exp_map_circle_arg' },
+  conv begin to_lhs, rw this, end,
+  rw [←@measurable_embedding.integrable_map_iff _ _ _ _ _ _ _ _  arg'_m_emb (f ∘ exp_map_circle),
+    measure_map_arg', integrable_smul_measure],
+  { refl }, { simp [pi_pos] }, { exact ennreal.of_real_ne_top },
+end
+
+lemma integrable_circle_iff_circle_integrable (f : ℂ → E) :
+  integrable (f ∘ coe) circle_measure ↔ (circle_integrable f 0 1) :=
+begin
+  rw [circle_integrable, integrable_circle_iff],
+  rw interval_integrable_iff_integrable_Ioc_of_le (by linarith [pi_pos] : 0 ≤ (2 * π)),
+  suffices : eq_on ((f ∘ coe) ∘ ⇑exp_map_circle) (λ (θ : ℝ), f (circle_map 0 1 θ)) (Ioc 0 (2 * π)),
+  { exact ⟨λ h, integrable_on.congr_fun h this measurable_set_Ioc,
+      λ h, integrable_on.congr_fun h this.symm measurable_set_Ioc⟩,  },
+  intros x hx, simp [circle_map]
+end
+
+lemma ae_strongly_measurable_comp_arg' (f : ℝ → E)
+  (hf : ae_strongly_measurable f $ volume.restrict $ Ioc 0 $ 2 * π) :
+ae_strongly_measurable (f ∘ arg' ∘ coe : circle → E) volume :=
+begin
+  apply ae_strongly_measurable.comp_measurable,
+  { dsimp only [measure_space.volume],
+    rw [circle_measure, map_map],
+    swap, { exact measurable_arg'.comp continuous_subtype_coe.borel_measurable },
+    swap, { exact circle_m_equiv.measurable_to_fun },
+    have : (arg' ∘ coe ∘ circle_m_equiv) = (coe : Ioc 0 (2 * π) → ℝ),
+    { ext1, simp only [function.comp_app], exact arg'_exp_map_circle x.property.1 x.property.2, },
+    rw this, rw measure_theory.measure.map_smul,
+    apply ae_strongly_measurable.smul_measure,
+    convert hf,
+    exact map_comap_subtype_coe measurable_set_Ioc _, },
+  { exact measurable_arg'.comp continuous_subtype_coe.borel_measurable },
+end
+
+lemma integral_circle_eq [complete_space E] [normed_space ℝ E] (f : circle → E) :
+  integral circle_measure f = (1 / (2 * π)) • ∫ θ in 0..(2 * π), f (exp_map_circle θ) :=
+begin
+  dsimp only [circle_measure],
+  rw [integral_map_equiv, measure_theory.integral_smul_measure,
+    ennreal.to_real_of_real (one_div_nonneg.mpr two_pi_pos.le)],
+  congr' 1, symmetry,
+  rw integral_of_le (by linarith [pi_pos] : 0 ≤ 2 * π),
+  exact set_integral_eq_subtype measurable_set_Ioc _,
+end
+
+lemma integral_circle_eq_circle_integral [complete_space E] [normed_space ℂ E] (f : ℂ → E) :
+  circle_integral f 0 1 = (2 * ↑π * I) • integral circle_measure (λ z, z • f z) :=
+begin
+  simp_rw [integral_circle_eq, circle_integral, deriv_circle_map, ←interval_integral.integral_smul],
+  apply integral_congr, intros x hx,
+  simp only [circle_map, exp_map_circle, of_real_one, one_mul, zero_add, continuous_map.coe_mk,
+    set_like.coe_mk],
+  rw [smul_comm, ←smul_assoc, complex.real_smul, smul_comm, ←smul_assoc],
+  have : ↑(1 / (2 * π)) * (2 * ↑π * I) = I,
+  { field_simp, rw [mul_comm, mul_div_cancel],
+    simp only [ne.def, mul_eq_zero, bit0_eq_zero, one_ne_zero, of_real_eq_zero, false_or],
+    exact pi_pos.ne' },
+  rw this, refl,
+end
+
+end circle_functions
+
+
+namespace fourier_circle
 
 /-! ### Monomials on the circle -/
 
@@ -164,33 +295,22 @@ end
 
 /-- The family of monomials `λ z, z ^ n`, parametrized by `n : ℤ` and considered as elements of
 the `Lp` space of functions on `circle` taking values in `ℂ`. -/
-abbreviation fourier_Lp (p : ℝ≥0∞) [fact (1 ≤ p)] (n : ℤ) : Lp ℂ p haar_circle :=
-to_Lp p haar_circle ℂ (fourier n)
+abbreviation fourier_Lp (p : ℝ≥0∞) [fact (1 ≤ p)] (n : ℤ) : Lp ℂ p circle_measure :=
+to_Lp p circle_measure ℂ (fourier n)
 
 lemma coe_fn_fourier_Lp (p : ℝ≥0∞) [fact (1 ≤ p)] (n : ℤ) :
-  ⇑(fourier_Lp p n) =ᵐ[haar_circle] fourier n :=
-coe_fn_to_Lp haar_circle (fourier n)
+  ⇑(fourier_Lp p n) =ᵐ[circle_measure] fourier n :=
+coe_fn_to_Lp circle_measure (fourier n)
 
 /-- For each `1 ≤ p < ∞`, the linear span of the monomials `z ^ n` is dense in
-`Lp ℂ p haar_circle`. -/
+`Lp ℂ p circle_measure`. -/
 lemma span_fourier_Lp_closure_eq_top {p : ℝ≥0∞} [fact (1 ≤ p)] (hp : p ≠ ∞) :
   (span ℂ (range (fourier_Lp p))).topological_closure = ⊤ :=
 begin
-  convert (continuous_map.to_Lp_dense_range ℂ hp haar_circle ℂ).topological_closure_map_submodule
+  convert (continuous_map.to_Lp_dense_range ℂ hp circle_measure ℂ).topological_closure_map_submodule
     span_fourier_closure_eq_top,
   rw [map_span, range_comp],
   simp
-end
-
-/-- For `n ≠ 0`, a rotation by `n⁻¹ * real.pi` negates the monomial `z ^ n`. -/
-lemma fourier_add_half_inv_index {n : ℤ} (hn : n ≠ 0) (z : circle) :
-  fourier n ((exp_map_circle (n⁻¹ * real.pi) * z)) = - fourier n z :=
-begin
-  have : ↑n * ((↑n)⁻¹ * ↑real.pi * complex.I) = ↑real.pi * complex.I,
-  { have : (n:ℂ) ≠ 0 := by exact_mod_cast hn,
-    field_simp,
-    ring },
-  simp [mul_zpow, ← complex.exp_int_mul, complex.exp_pi_mul_I, this]
 end
 
 /-- The monomials `z ^ n` are an orthonormal set with respect to Haar measure on the circle. -/
@@ -198,62 +318,80 @@ lemma orthonormal_fourier : orthonormal ℂ (fourier_Lp 2) :=
 begin
   rw orthonormal_iff_ite,
   intros i j,
-  rw continuous_map.inner_to_Lp haar_circle (fourier i) (fourier j),
+  rw continuous_map.inner_to_Lp circle_measure (fourier i) (fourier j),
   split_ifs,
-  { simp [h, is_probability_measure.measure_univ, ← fourier_neg, ← fourier_add, -fourier_to_fun] },
-  simp only [← fourier_add, ← fourier_neg],
-  have hij : -i + j ≠ 0,
-  { rw add_comm,
-    exact sub_ne_zero.mpr (ne.symm h) },
-  exact integral_eq_zero_of_mul_left_eq_neg (fourier_add_half_inv_index hij)
+  { have : (λ (x : circle), conj ((fourier i) x) * (fourier j) x) = (λ x, 1),
+    { ext1 x, rw [h, ←fourier_neg, ←fourier_add, neg_add_self, fourier_zero], },
+    rw this,
+    simp only [measure_theory.integral_const, measure_univ, ennreal.one_to_real, real_smul,
+      of_real_one, mul_one] },
+  simp only [←fourier_add, ←fourier_neg],
+  have hij : -i + j ≠ 0 := by { rw add_comm, exact sub_ne_zero.mpr (ne.symm h) },
+  rw [fourier, integral_circle_eq, continuous_map.coe_mk],
+  convert smul_zero _ using 2,
+  simp_rw [exp_map_circle_apply, ←exp_int_mul, ←mul_assoc],
+  convert integral_exp_mul_complex (_ : I * (-i + j) ≠ 0),
+  { ext1 θ, congr' 1, simp only [int.cast_add, int.cast_neg], ring },
+  { symmetry, rw div_eq_zero_iff, left, rw sub_eq_zero,
+    rw exp_eq_exp_iff_exists_int, use (j - i), rw int.cast_sub, rw complex.of_real_mul,
+    rw complex.of_real_bit0, rw complex.of_real_one, simp, ring_nf, },
+  { apply mul_ne_zero, exact I_ne_zero, rwa [←int.cast_neg, ←int.cast_add, int.cast_ne_zero],}
 end
 
 end monomials
 
 section fourier
 
-/-- We define `fourier_series` to be a `ℤ`-indexed Hilbert basis for `Lp ℂ 2 haar_circle`, which by
-definition is an isometric isomorphism from `Lp ℂ 2 haar_circle` to `ℓ²(ℤ, ℂ)`. -/
-def fourier_series : hilbert_basis ℤ ℂ (Lp ℂ 2 haar_circle) :=
+/-- We define `fourier_series` to be a `ℤ`-indexed Hilbert basis for `Lp ℂ 2 circle_measure`, which
+by definition is an isometric isomorphism from `Lp ℂ 2 circle_measure` to `ℓ²(ℤ, ℂ)`. -/
+def fourier_series : hilbert_basis ℤ ℂ (Lp ℂ 2 circle_measure) :=
 hilbert_basis.mk orthonormal_fourier (span_fourier_Lp_closure_eq_top (by norm_num))
 
-/-- The elements of the Hilbert basis `fourier_series` for `Lp ℂ 2 haar_circle` are the functions
+/-- The elements of the Hilbert basis `fourier_series` for `Lp ℂ 2 circle_measure` are the functions
 `fourier_Lp 2`, the monomials `λ z, z ^ n` on the circle considered as elements of `L2`. -/
 @[simp] lemma coe_fourier_series : ⇑fourier_series = fourier_Lp 2 := hilbert_basis.coe_mk _ _
 
-/-- Under the isometric isomorphism `fourier_series` from `Lp ℂ 2 haar_circle` to `ℓ²(ℤ, ℂ)`, the
+/-- Under the isometric isomorphism `fourier_series` from `Lp ℂ 2 circle_measure` to `ℓ²(ℤ, ℂ)`, the
 `i`-th coefficient is the integral over the circle of `λ t, t ^ (-i) * f t`. -/
-lemma fourier_series_repr (f : Lp ℂ 2 haar_circle) (i : ℤ) :
-  fourier_series.repr f i = ∫ t : circle, t ^ (-i) * f t ∂ haar_circle :=
+lemma fourier_series_repr (f : Lp ℂ 2 circle_measure) (i : ℤ) :
+  fourier_series.repr f i = ∫ t : circle, t ^ (-i) * f t ∂ circle_measure :=
 begin
-  transitivity ∫ t : circle, conj ((fourier_Lp 2 i : circle → ℂ) t) * f t ∂ haar_circle,
+  transitivity ∫ t : circle, conj ((fourier_Lp 2 i : circle → ℂ) t) * f t ∂ circle_measure,
   { simp [fourier_series.repr_apply_apply f i, measure_theory.L2.inner_def] },
-  apply integral_congr_ae,
+  apply measure_theory.integral_congr_ae,
   filter_upwards [coe_fn_fourier_Lp 2 i] with _ ht,
   rw [ht, ← fourier_neg],
   simp [-fourier_neg]
 end
 
 /-- The Fourier series of an `L2` function `f` sums to `f`, in the `L2` topology on the circle. -/
-lemma has_sum_fourier_series (f : Lp ℂ 2 haar_circle) :
+lemma has_sum_fourier_series (f : Lp ℂ 2 circle_measure) :
   has_sum (λ i, fourier_series.repr f i • fourier_Lp 2 i) f :=
 by simpa using hilbert_basis.has_sum_repr fourier_series f
 
-/-- **Parseval's identity**: the sum of the squared norms of the Fourier coefficients equals the
-`L2` norm of the function. -/
-lemma tsum_sq_fourier_series_repr (f : Lp ℂ 2 haar_circle) :
-  ∑' i : ℤ, ∥fourier_series.repr f i∥ ^ 2 = ∫ t : circle, ∥f t∥ ^ 2 ∂ haar_circle :=
+/-- **Parseval's identity**: the sum of the squared norms of the Fourier coefficients is
+convergent, and converges to the `L2` norm of the function. -/
+lemma has_sum_sq_fourier_series_repr (f : Lp ℂ 2 circle_measure) :
+  has_sum (λ i:ℤ, ∥fourier_series.repr f i∥ ^ 2) (∫ t : circle, ∥f t∥ ^ 2) :=
 begin
-  have H₁ : ∥fourier_series.repr f∥ ^ 2 = ∑' i, ∥fourier_series.repr f i∥ ^ 2,
-  { exact_mod_cast lp.norm_rpow_eq_tsum _ (fourier_series.repr f),
+  have H₁ : has_sum (λ i:ℤ, ∥fourier_series.repr f i∥ ^ 2) (∥fourier_series.repr f∥ ^ 2),
+  { exact_mod_cast lp.has_sum_norm _ (fourier_series.repr f),
     norm_num },
   have H₂ : ∥fourier_series.repr f∥ ^ 2 = ∥f∥ ^2 := by simp,
   have H₃ := congr_arg is_R_or_C.re (@L2.inner_def circle ℂ ℂ _ _ _ _ f f),
   rw ← integral_re at H₃,
   { simp only [← norm_sq_eq_inner] at H₃,
-    rw [← H₁, H₂],
-    exact H₃ },
+    rwa [H₂, H₃] at H₁, },
   { exact L2.integrable_inner f f },
 end
 
+/-- **Parseval's identity**: the sum of the squared norms of the Fourier coefficients equals the
+`L2` norm of the function. -/
+lemma tsum_sq_fourier_series_repr (f : Lp ℂ 2 circle_measure) :
+  ∑' i : ℤ, ∥fourier_series.repr f i∥ ^ 2 = ∫ t : circle, ∥f t∥ ^ 2 ∂ circle_measure :=
+(has_sum_sq_fourier_series_repr f).tsum_eq
+
 end fourier
+
+end fourier_circle
+

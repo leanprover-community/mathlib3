@@ -288,8 +288,8 @@
 76:
   title  : Fourier Series
   decls   :
-    - fourier_series_repr
-    - has_sum_fourier_series
+    - fourier_circle.fourier_series_repr
+    - fourier_circle.has_sum_fourier_series
   author : Heather Macbeth
 77:
   title  : Sum of kth powers

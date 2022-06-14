@@ -410,28 +410,6 @@ lemma submartingale_iff_expected_stopped_value_mono [is_finite_measure μ]
 
 section maximal
 
-lemma exists_of_le_supr_finite {α : Type*} {p : α → Prop}
-  (hp : {x | p x}.finite) (hp' : {x | p x}.nonempty) {f : α → ℝ} {ε : ℝ}
-  (h : ε ≤ ⨆ x : {x // p x}, f x) : ∃ x, p x ∧ ε ≤ f x :=
-begin
-  haveI : nonempty {x : α // p x} := {x : α | p x}.nonempty_coe_sort.2 hp',
-  haveI : fintype {x // p x} := hp.fintype,
-  have : (⨆ x : {x // p x}, f x) = hp.to_finset.sup' (hp.nonempty_to_finset.2 hp') f,
-  { rw finset.sup'_eq_cSup_image,
-    symmetry,
-    refine cSup_eq_of_forall_le_of_forall_lt_exists_gt
-      (set.nonempty_image_iff.2 (hp.nonempty_to_finset.2 hp')) _ _,
-    { rintro _ ⟨x, hx, rfl⟩,
-      exact le_cSup (set.finite.bdd_above (set.finite_range _))
-        ⟨⟨x, (set.finite.mem_to_finset _).1 hx⟩, rfl⟩ },
-    { intros x hx,
-      obtain ⟨⟨y, hpy⟩, hy⟩ := exists_lt_of_lt_csupr hx,
-      exact ⟨f y, ⟨y, by simpa, rfl⟩, hy⟩ } },
-  rw [this, finset.le_sup'_iff] at h,
-  obtain ⟨x, hx₁, hx₂⟩ := h,
-  exact ⟨x, (set.finite.mem_to_finset _).1 hx₁, hx₂⟩
-end
-
 lemma measurable_csupr_real {β : Type*} {p : β → Prop} (hp : {x | p x}.finite)
   {f : β → α → ℝ} (hm : ∀ n, measurable[m0] (f n)) :
   measurable (λ x, ⨆ y : {y // p y}, f y x) :=
@@ -461,7 +439,7 @@ begin
   { intros x hx,
     refine stopped_value_hitting_mem _,
     simp only [set.mem_set_of_eq, exists_prop],
-    exact exists_of_le_supr_finite (set.finite_le_nat n) ⟨0, nat.zero_le _⟩ hx },
+    exact real.exists_of_le_supr_finite (set.finite_le_nat n) ⟨0, nat.zero_le _⟩ hx },
   have h := set_integral_le_const (measurable_set_le measurable_const (measurable_csupr_le
     (λ n, (hsub.strongly_measurable n).measurable.le (𝒢.le n)) _))
     (measure_lt_top _ _).ne this

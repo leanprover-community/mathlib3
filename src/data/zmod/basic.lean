@@ -438,6 +438,17 @@ of characteristic `n` and cardinality `n`. -/
 noncomputable def ring_equiv [fintype R] (h : fintype.card R = n) : zmod n ≃+* R :=
 ring_equiv.of_bijective _ (zmod.cast_hom_bijective R h)
 
+/-- The identity between `zmod m` and `zmod n` when `m = n`, as a ring isomorphism. -/
+noncomputable def ring_equiv_congr {m n : ℕ} (h : m = n) : zmod m ≃+* zmod n :=
+begin
+  cases m; cases n,
+  { exact ring_equiv.refl _ },
+  { exfalso, exact n.succ_ne_zero h.symm },
+  { exfalso, exact m.succ_ne_zero h },
+  { haveI : char_p (zmod n.succ) m.succ, { rw h, apply_instance },
+    apply ring_equiv, rw h, exact card _ }
+end
+
 end char_eq
 
 end universal_property

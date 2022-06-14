@@ -36,7 +36,7 @@ This is a characteristic property of Cartan subalgebras with the roles of `L`, `
 def lie_submodule.is_ucs_limit
   {M : Type*} [add_comm_group M] [module R M] [lie_ring_module L M] [lie_module R L M]
   (N : lie_submodule R L M) : Prop :=
-  ∃ k, ∀ l, k ≤ l → (⊥ : lie_submodule R L M).ucs l = N
+∃ k, ∀ l, k ≤ l → (⊥ : lie_submodule R L M).ucs l = N
 
 namespace lie_subalgebra
 

@@ -432,34 +432,19 @@ begin
   exact ⟨x, (set.finite.mem_to_finset _).1 hx₁, hx₂⟩
 end
 
-lemma measurable_supr {α β : Type*} [measurable_space β] {p : α → Prop} (hp : {x | p x}.finite)
-  {f : α → β → ℝ} (hf : ∀ n, measurable (f n)) :
+lemma measurable_csupr_real {β : Type*} {p : β → Prop} (hp : {x | p x}.finite)
+  {f : β → α → ℝ} (hm : ∀ n, measurable[m0] (f n)) :
   measurable (λ x, ⨆ y : {y // p y}, f y x) :=
 begin
-  by_cases hemp : {y : α | p y}.nonempty,
-  { haveI : fintype {y // p y} := hp.fintype,
-    haveI : nonempty {y // p y} := nonempty_subtype.2 hemp,
-    have heq : (λ x, ⨆ y : {y // p y}, f y x) = (hp.to_finset.sup'
-      ((set.finite.nonempty_to_finset _).2 _) f),
-    { ext x,
-      rw [finset.sup'_apply, finset.sup'_eq_cSup_image, set.finite.coe_to_finset],
-      refine cSup_eq_of_forall_le_of_forall_lt_exists_gt (set.range_nonempty _) _ _,
-      { rintro _ ⟨⟨m, hm⟩, rfl⟩,
-        exact le_cSup (set.finite.bdd_above (hp.image _)) ⟨m, hm, rfl⟩ },
-      { intros y hy,
-        obtain ⟨_, ⟨m, hm₁, rfl⟩, hm₂⟩ := exists_lt_of_lt_cSup _ hy,
-        { exact ⟨f m x, ⟨⟨m, hm₁⟩, rfl⟩, hm₂⟩ },
-        { exact set.nonempty.image _ hemp } } },
-    { rw heq,
-      exact finset.sup'_induction ((set.finite.nonempty_to_finset _).2 hemp) _
-        (λ f hf g hg, hf.sup hg) (λ n hn, hf n) } },
+  by_cases hemp : {y | p y}.nonempty,
+  { exact measurable_csupr_subtype hp hemp hm },
   { haveI : is_empty {y // p y} := subtype.is_empty_of_false (λ x hx, hemp ⟨x, hx⟩),
     simp [real.csupr_empty] }
 end
 
-lemma measurable_supr_le {f : ℕ → α → ℝ} (hf : ∀ n, measurable[m0] (f n)) (n : ℕ) :
+lemma measurable_csupr_le {f : ℕ → α → ℝ} (hf : ∀ n, measurable[m0] (f n)) (n : ℕ) :
   measurable (λ x, ⨆ k : {k // k ≤ n}, f k x) :=
-measurable_supr (set.finite_le_nat n) hf
+measurable_csupr_real (set.finite_le_nat n) hf
 
 -- We use the spelling `⨆ x : {x // p x}, f x` because it behaves better than
 -- `⨆ x (h : p x), f x` in the case `f` is `ℝ`-valued. The two spellings are equal when `f` is
@@ -477,7 +462,7 @@ begin
     refine stopped_value_hitting_mem _,
     simp only [set.mem_set_of_eq, exists_prop],
     exact exists_of_le_supr_finite (set.finite_le_nat n) ⟨0, nat.zero_le _⟩ hx },
-  have h := set_integral_le_const (measurable_set_le measurable_const (measurable_supr_le
+  have h := set_integral_le_const (measurable_set_le measurable_const (measurable_csupr_le
     (λ n, (hsub.strongly_measurable n).measurable.le (𝒢.le n)) _))
     (measure_lt_top _ _).ne this
     (integrable.integrable_on (integrable_stopped_value (hitting_is_stopping_time_nat
@@ -506,7 +491,7 @@ begin
         simp [le_or_lt] },
       { rintro x ⟨hx₁ : _ ≤ _, hx₂ : _ < _⟩,
         exact (not_le.2 hx₂) hx₁ },
-      { exact (measurable_set_lt (measurable_supr_le
+      { exact (measurable_set_lt (measurable_csupr_le
           (λ n, (hsub.strongly_measurable n).measurable.le (𝒢.le n)) _) measurable_const) },
       exacts [(hsub.integrable _).integrable_on, (hsub.integrable _).integrable_on,
         integral_nonneg (hnonneg _), integral_nonneg (hnonneg _)] },
@@ -522,7 +507,7 @@ begin
         (ennreal.of_real_le_of_real (set_integral_mono_on (hsub.integrable n).integrable_on
         (integrable.integrable_on (integrable_stopped_value (hitting_is_stopping_time_nat
           hsub.adapted measurable_set_Ici n) hsub.integrable hitting_le))
-        (measurable_set_lt (measurable_supr_le
+        (measurable_set_lt (measurable_csupr_le
           (λ n, (hsub.strongly_measurable n).measurable.le (𝒢.le n)) _) measurable_const) _)),
       intros x hx,
       simp at hx,
@@ -544,7 +529,7 @@ begin
         simp [le_or_lt] },
       { rintro x ⟨hx₁ : _ ≤ _, hx₂ : _ < _⟩,
         exact (not_le.2 hx₂) hx₁ },
-      { exact (measurable_set_lt (measurable_supr_le
+      { exact (measurable_set_lt (measurable_csupr_le
           (λ n, (hsub.strongly_measurable n).measurable.le (𝒢.le n)) _) measurable_const) },
       { exact (integrable.integrable_on (integrable_stopped_value (hitting_is_stopping_time_nat
           hsub.adapted measurable_set_Ici n) hsub.integrable hitting_le)) },

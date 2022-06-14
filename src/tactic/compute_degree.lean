@@ -148,6 +148,10 @@ meta def single_term_resolve : expr → tactic unit
   assumption <|> interactive.exact ``(one_ne_zero) <|> skip
 | (app `(⇑(@polynomial.C %%R %%inst)) x) :=
   interactive.exact ``(polynomial.nat_degree_C _)
+--| `(has_pow.pow (@polynomial.X %%R %%inst) %%n) :=
+--  (nontriviality_by_assumption R <|>
+--    fail format!"could not produce a 'nontrivial {R}' assumption") >>
+--  refine ``(polynomial.nat_degree_X_pow %%n)
 | `(@has_pow.pow (@polynomial %%R %%nin) ℕ %%inst %%mX %%n) :=
   (nontriviality_by_assumption R <|>
     fail format!"could not produce a 'nontrivial {R}' assumption") >>
@@ -156,7 +160,8 @@ meta def single_term_resolve : expr → tactic unit
   (nontriviality_by_assumption R <|>
     fail format!"could not produce a 'nontrivial {R}' assumption") >>
   interactive.exact ``(polynomial.nat_degree_X)
-| e := fail format!"'{e}' is not a supported term: can you change it to `C a * X (^ n)`?\n
+| e := do ppe ← pp e,
+  fail format!"'{ppe}' is not a supported term: can you change it to `C a * X (^ n)`?\n
 See the docstring of `tactic.compute_degree.single_term_resolve` for more shapes. "
 
 /--
@@ -323,6 +328,26 @@ do try $ refine ``(polynomial.degree_le_nat_degree.trans (with_bot.coe_le_coe.mp
   repeat $ target >>= resolve_sum_step,
   try $ any_goals' norm_assum
 
+/--  `compute_degree.with_lead lead` assumes that `lead` is an expression for the highest degree
+term of a polynomial and proceeds to try to close a goal of the form
+`f.nat_degree = d` or `f.degree = d`. -/
+meta def _root_.tactic.compute_degree.with_lead (lead : expr) : tactic unit := do
+move_op.with_errors ``((+)) [(ff, pexpr.of_expr lead)] none,
+refine ``(polynomial.nat_degree_add_left_succ _ %%lead _ _ _) <|>
+  single_term_suggestions,
+single_term_resolve lead,
+gs ← get_goals,
+gts ← gs.mmap infer_type,
+-- `is_ineq` is a list of tactics, one for each goal:
+-- * if the goal has the form `f.nat_degree ≤ d`, the tactic is `compute_degree_le`
+-- * otherwise, it is the tactic that tries `norm_num` and `assumption`
+is_ineq ← gts.mmap (λ t : expr, do match t with
+  | `(polynomial.nat_degree %%_ ≤ %%_) := return compute_degree_le
+  | _                                  := return norm_assum end),
+focus' is_ineq
+
+setup_tactic_parser
+
 /--  `compute_degree` tries to solve a goal of the form `f.nat_degree = d` or  `f.degree = d`,
 where `d : ℕ` and `f` satisfies:
 * `f` is a sum of expressions of the form
@@ -339,33 +364,53 @@ If the given degree does not match what the tactic computes,
 then the tactic suggests the degree that it computed.
 
 The tactic also reports when it is used with non-closed natural numbers as exponents. -/
-meta def compute_degree : tactic unit :=
-do is_deg ← succeeds ( refine ``((polynomial.degree_eq_iff_nat_degree_eq_of_pos _).mpr _) >>
-    interactive.rotate),
-  `(polynomial.nat_degree %%tl = %%tr) ← target |
-    fail "Goal is not of the form\n`f.nat_degree = d` or `f.degree = d`",
-  (lead,m') ← extract_top_degree_term_and_deg tl,
-  td ← eval_expr ℕ tr,
-  if m' ≠ td then do
-    pptl ← pp tl, ppm' ← pp m',
-    if is_deg then
-      fail sformat!"should the degree be '{m'}'?"
-    else
-     fail sformat!"should the nat_degree be '{m'}'?"
+meta def compute_degree : parse opt_pexpr_list → tactic unit
+| [] := do
+is_deg ← succeeds $ refine ``((polynomial.degree_eq_iff_nat_degree_eq_of_pos _).mpr _) >>
+  interactive.rotate,
+`(polynomial.nat_degree %%tl = %%tr) ← target |
+  fail "Goal is not of the form\n`f.nat_degree = d` or `f.degree = d`",
+(lead,m') ← extract_top_degree_term_and_deg tl,
+td ← eval_expr ℕ tr,
+if m' ≠ td then do
+  pptl ← pp tl, ppm' ← pp m',
+  if is_deg then
+    fail sformat!"should the degree be '{m'}'?"
   else
-    move_op.with_errors ``((+)) [(ff, pexpr.of_expr lead)] none,
-    refine ``(polynomial.nat_degree_add_left_succ _ %%lead _ _ _) <|>
-      single_term_suggestions,
-    single_term_resolve lead,
-    gs ← get_goals,
-    gts ← gs.mmap infer_type,
-    -- `is_ineq` is a list of tactics, one for each goal:
-    -- * if the goal has the form `f.nat_degree ≤ d`, the tactic is `compute_degree_le`
-    -- * otherwise, it is the tactic that tries `norm_num` and `assumption`
-    is_ineq ← gts.mmap (λ t : expr, do match t with
-      | `(polynomial.nat_degree %%_ ≤ %%_) := return compute_degree_le
-      | _                                  := return norm_assum end),
-    focus' is_ineq
+   fail sformat!"should the nat_degree be '{m'}'?"
+else do tactic.compute_degree.with_lead lead
+| [lead] := do `(polynomial.nat_degree %%tl = %%tr) ← target |
+    fail "Goal is not of the form\n`f.nat_degree = d` or `f.degree = d`",
+  tls ← tl.list_summands,
+  lead ← to_expr lead,
+  (lead :: hs) ← tls.mfilter $ λ e', succeeds $ unify lead e',
+  tactic.compute_degree.with_lead lead
+| _  := fail "'compute_degree' only accepts one leading term"
+
+--| (some d) := skip
+--| none := failed
+#exit
+
+meta def compute_degree_lead (lead : parse texpr?) : tactic unit := do
+  -- is_deg ← succeeds ( refine ``((polynomial.degree_eq_iff_nat_degree_eq_of_pos _).mpr _) >>
+  --  interactive.rotate),
+--  `(polynomial.nat_degree %%tl = %%tr) ← target |
+--    fail "Goal is not of the form\n`f.nat_degree = d` or `f.degree = d`",
+  --(lead,m') ← extract_top_degree_term_and_deg tl,
+  --td ← eval_expr ℕ tr,
+  --if m' ≠ td then do
+  --  pptl ← pp tl, ppm' ← pp m',
+  --  if is_deg then
+  --    fail sformat!"should the degree be '{m'}'?"
+  --  else
+  --   fail sformat!"should the nat_degree be '{m'}'?"
+  --else
+--
+--    `(@polynomial %%R %%inst) ← infer_type tl,
+    match lead with
+    | none := skip
+    | (some lead) :=
+    lead ← to_expr lead tt ff,
 
 add_tactic_doc
 { name := "compute_degree_le",

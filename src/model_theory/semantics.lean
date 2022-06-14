@@ -164,7 +164,7 @@ end
 @[simp] lemma realize_constants_vars_equiv_left [L[[α]].Structure M]
   [(Lhom_with_constants L α).is_expansion_on M]
   {n} {t : L[[α]].term (β ⊕ fin n)} {v : β → M} {xs : fin n → M} :
-  (constants_vars_equiv_left t).realize (sum.elim (λ a, ↑(L.con a)) v) xs) =
+  (constants_vars_equiv_left t).realize (sum.elim (λ a, ↑(L.con a)) v) xs) :=
     t.realize (sum.elim v xs) :=
 begin
   simp only [constants_vars_equiv_left, realize_relabel, realize_constants_to_vars, equiv.coe_trans,

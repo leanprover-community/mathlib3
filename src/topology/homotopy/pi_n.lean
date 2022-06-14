@@ -187,7 +187,8 @@ namespace pre_π
 end pre_π
 
 /--
-The nth homotopy group at x defined as the quotient of base preserving functions up to homotopic equivalence
+The nth homotopy group at x defined as the quotient of base preserving functions up to homotopic
+equivalence
 -/
 def π (n : nat) (x : X) := quotient (pre_π.homotopic.setoid n x)
 

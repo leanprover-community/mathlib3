@@ -713,12 +713,12 @@ by {rw [eq_comm], exact has_precompl.compl_involutive'.eq_iff.symm}
 lemma eq_compl_comm : x = yᶜ ↔ y = xᶜ :=
 by rw [← compl_compl x, compl_eq_comm, compl_compl, compl_compl]
 
-lemma compl_le (hxy : x ≤ y) : yᶜ ≤ xᶜ := has_precompl.compl_antitone' _ _ hxy
+lemma compl_le_compl (hxy : x ≤ y) : yᶜ ≤ xᶜ := has_precompl.compl_antitone' _ _ hxy
 
 lemma le_of_compl_le (hx : xᶜ ≤ yᶜ) : y ≤ x :=
-by {rw [←compl_compl x, ←compl_compl y], exact compl_le hx,}
+by {rw [←compl_compl x, ←compl_compl y], exact compl_le_compl hx,}
 
-lemma compl_le_compl_iff_le : xᶜ ≤ yᶜ ↔ y ≤ x := ⟨le_of_compl_le, compl_le⟩
+lemma compl_le_compl_iff_le : xᶜ ≤ yᶜ ↔ y ≤ x := ⟨le_of_compl_le, compl_le_compl⟩
 
 lemma le_compl_comm : x ≤ yᶜ ↔ y ≤ xᶜ := by rw [←compl_le_compl_iff_le, compl_compl]
 

@@ -886,19 +886,21 @@ section precompl
 
 variables (α) [preorder α] [has_precompl α]
 
+instance order_dual.has_precompl : has_precompl αᵒᵈ :=
+{ compl := @has_precompl.compl α _ _,
+  compl_antitone' := λ a b h, @has_precompl.compl_antitone' α _ _ b a h,
+  compl_involutive' := has_precompl.compl_involutive' }
+
 /-- Taking complements as an order isomorphism to the order dual. -/
 @[simps]
 def order_iso.compl : α ≃o αᵒᵈ :=
 { to_fun := order_dual.to_dual ∘ compl,
   inv_fun := compl ∘ order_dual.of_dual,
-  left_inv := has_precompl.compl_compl,
-  right_inv := has_precompl.compl_compl,
-  map_rel_iff' := λ x y, has_precompl.compl_le_iff }
+  left_inv := compl_compl,
+  right_inv := compl_compl,
+  map_rel_iff' := λ _ _, compl_le_compl_iff_le }
 
 theorem compl_strict_anti : strict_anti (compl : α → α) :=
 (order_iso.compl α).strict_mono
-
-theorem compl_antitone : antitone (compl : α → α) :=
-(order_iso.compl α).monotone
 
 end precompl

@@ -116,7 +116,7 @@ class locally_finite_order (α : Type*) [preorder α] :=
 (finset_mem_Ioo : ∀ a b x : α, x ∈ finset_Ioo a b ↔ a < x ∧ x < b)
 
 /-- A locally finite order top is an order where all intervals bounded above are finite. This is
-slightly weaker than `locally_finite_order` + `order_top`, the difference being for empty types. -/
+slightly weaker than `locally_finite_order` + `order_top` as it allows empty types. -/
 class locally_finite_order_top (α : Type*) [preorder α] :=
 (finset_Ioi : α → finset α)
 (finset_Ici : α → finset α)
@@ -124,7 +124,7 @@ class locally_finite_order_top (α : Type*) [preorder α] :=
 (finset_mem_Ioi : ∀ a x : α, x ∈ finset_Ioi a ↔ a < x)
 
 /-- A locally finite order bot is an order where all intervals bounded below are finite. This is
-slightly weaker than `locally_finite_order` + `order_bot`, the difference being for empty types. -/
+slightly weaker than `locally_finite_order` + `order_bot` as it allows empty types. -/
 class locally_finite_order_bot (α : Type*) [preorder α] :=
 (finset_Iio : α → finset α)
 (finset_Iic : α → finset α)
@@ -209,7 +209,9 @@ def locally_finite_order_top.of_Iic (α : Type*) [partial_order α] [decidable_e
 
 variables {α β : Type*}
 
-/-- An empty type is locally finite. -/
+/-- An empty type is locally finite.
+
+This is not an instance as it would be not be defeq to more specific instances. -/
 @[reducible] -- See note [reducible non-instances]
 protected def _root_.is_empty.to_locally_finite_order [preorder α] [is_empty α] :
   locally_finite_order α :=
@@ -222,7 +224,9 @@ protected def _root_.is_empty.to_locally_finite_order [preorder α] [is_empty α
   finset_mem_Ioc := is_empty_elim,
   finset_mem_Ioo := is_empty_elim }
 
-/-- An empty type is locally finite. -/
+/-- An empty type is locally finite.
+
+This is not an instance as it would be not be defeq to more specific instances. -/
 @[reducible] -- See note [reducible non-instances]
 protected def _root_.is_empty.to_locally_finite_order_top [preorder α] [is_empty α] :
   locally_finite_order_top α :=
@@ -231,7 +235,9 @@ protected def _root_.is_empty.to_locally_finite_order_top [preorder α] [is_empt
   finset_mem_Ici := is_empty_elim,
   finset_mem_Ioi := is_empty_elim }
 
-/-- An empty type is locally finite. -/
+/-- An empty type is locally finite.
+
+This is not an instance as it would be not be defeq to more specific instances. -/
 @[reducible] -- See note [reducible non-instances]
 protected def _root_.is_empty.to_locally_finite_order_bot [preorder α] [is_empty α] :
   locally_finite_order_bot α :=

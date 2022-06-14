@@ -26,19 +26,19 @@ open_locale nat
 namespace nat
 
 /-- For `n > 1`, `(n-1)!` is congruent to `-1` modulo `n` only if n is prime. --/
-private lemma wilsons_theorem_only_if_direction  (n : ℕ) (h1: 1 < n) :
-(((n - 1)! : zmod n) = -1)  → (prime n):=
+private lemma wilsons_theorem_only_if_direction (n : ℕ) (h1 : 1 < n) :
+(((n - 1)! : zmod n) = -1) → (prime n) :=
 begin
   intro h,
-  have hp: ((n - 1)! + 1 : zmod n) = 0,
+  have hp : ((n - 1)! + 1 : zmod n) = 0,
   rw h,
   simp,
-  have hn_divides: n ∣(n-1)! + 1,
+  have hn_divides : n ∣(n-1)! + 1,
   rw ← zmod.nat_coe_zmod_eq_zero_iff_dvd,
   exact hp,
 
   by_contradiction h2,
-  obtain ⟨m⟩  := exists_dvd_of_not_prime2 h1 h2,
+  obtain ⟨m⟩ := exists_dvd_of_not_prime2 h1 h2,
   have m_leq_n_minus_one : m ≤ (n-1),
   cases h_1.right,
   rw lt_iff_add_one_le at right,
@@ -55,7 +55,7 @@ begin
 
   clear h h1 h2 h_2 hp m_leq_n_minus_one,
 
-  have m_is_one: (m = 1), from
+  have m_is_one : (m = 1), from
     nat.dvd_one.mp
     ((nat.dvd_add_right hm_divides_fact).mp (dvd_of_mul_right_dvd hn_divides)),
 
@@ -64,7 +64,7 @@ begin
 end
 
 /-- **Wilson's Theorem**: For `n > 1`, `(n-1)!` is congruent to `-1` modulo `n` iff n is prime. --/
-theorem wilsons_theorem (n : ℕ) (h1: 1 < n) :
+theorem wilsons_theorem (n : ℕ) (h1 : 1 < n) :
   (prime n) ↔ (((n - 1)! : zmod n) = -1) :=
 begin
   split,

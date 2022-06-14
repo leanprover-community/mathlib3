@@ -64,9 +64,11 @@ tactic.fold_explicit_args f [] (λ ll e, return $ ll ++ [e])
 
 /--  `list_head_op op tt e` recurses into the expression `e` looking for first appearances of
 `op` as the head symbol of a subexpression.  Every time it finds one, it isolates it.
-Usually, `op` is a binary, associative operation.  E.g., if the operation is addition and the
-input expression is `3 / (2 + 4) + 2 * (0 + 2)`, `list_head_op` returns
-`[3 / (2 + 4) + 2 * (0 + 2), 2 + 4, 0 + 2]`.
+Usually, `op` is a binary, associative operation.  E.g.,
+```lean
+#eval trace $ list_head_op ``((+)) tt `(3 / (2 + 4) + 2 * (0 + 2))
+-- [3 / (2 + 4) + 2 * (0 + 2), 2 + 4, 0 + 2]
+```
 
 More in detail, `list_head_op` partially traverses an expression in search for a term that is an
 iterated application of `op` and produces a list of such terms.

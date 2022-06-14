@@ -199,7 +199,7 @@ do
     h ← solve_aux e_eq $
       reflexivity <|>
       `[{ simp only [add_comm, add_assoc, add_left_comm], done, }] <|>
-      `[{ simp only [mul_comm, mul_assoc, mul_left_comm], done, }] |
+      `[{ simp only [mul_comm, mul_assoc, mul_left_comm], done, }] <|>
       fail format!"failed to prove:\n\n{e_eq_fmt}",
     match hyp with
     | some loc := do

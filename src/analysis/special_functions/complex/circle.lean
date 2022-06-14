@@ -47,7 +47,7 @@ noncomputable def arg_local_equiv : local_equiv circle ℝ :=
   left_inv' := λ z _, exp_map_circle_arg z,
   right_inv' := λ x hx, arg_exp_map_circle hx.1 hx.2 }
 
-/-- `complex.arg` and `exp_map_circle` define an equivalence between `circle and `(-π, π]`. -/
+/-- `complex.arg` and `exp_map_circle` define an equivalence between `circle` and `(-π, π]`. -/
 @[simps { fully_applied := ff }]
 noncomputable def arg_equiv : circle ≃ Ioc (-π) π :=
 { to_fun := λ z, ⟨arg z, neg_pi_lt_arg _, arg_le_pi _⟩,
@@ -87,6 +87,43 @@ periodic_exp_map_circle.sub_eq x
 lemma exp_map_circle_add_two_pi (x : ℝ) : exp_map_circle (x + 2 * π) = exp_map_circle x :=
 periodic_exp_map_circle x
 
+
+section arg'_equiv
+
+lemma arg'_exp_map_circle {x : ℝ} (h₁ : 0 < x) (h₂ : x ≤ 2 * π) : arg' (exp_map_circle x) = x :=
+begin
+  rw arg'_eq_arg_neg_add _ (ne_zero_of_mem_circle _), apply add_eq_of_eq_sub,
+  have : arg (exp_map_circle (x - π)) = x - π,
+  { apply arg_exp_map_circle, linarith, linarith },
+  rw [←this, exp_map_circle_apply, exp_map_circle_apply, of_real_sub, sub_mul, exp_sub,
+    exp_pi_mul_I, div_neg, div_one],
+end
+
+lemma exp_map_circle_arg' (z : circle) : exp_map_circle (arg' z) = z :=
+begin
+  rcases arg'_eq_arg z,
+  { rw h, apply exp_map_circle_arg, },
+  { rw [h, exp_map_circle_add_two_pi], apply exp_map_circle_arg },
+end
+
+namespace circle
+
+/-- Equivalence between `circle` and `(0, 2 * π]` given by `arg'`. -/
+noncomputable def arg'_equiv : circle ≃ Ioc 0 (2 * π) :=
+{ to_fun := λ z, ⟨arg' z, arg'_mem_Ioc z⟩,
+  inv_fun := exp_map_circle ∘ coe,
+  left_inv := λ z, exp_map_circle_arg' z,
+  right_inv := λ x, subtype.ext (arg'_exp_map_circle x.2.1 x.2.2) }
+
+/-- Equivalence between `(0, 2 * π]` and `circle` given by `exp_map_circle`. -/
+noncomputable def circle_equiv : Ioc 0 (2 * π) ≃ circle := arg'_equiv.symm
+
+end circle
+
+end arg'_equiv
+
+section angle
+
 /-- `exp_map_circle`, applied to a `real.angle`. -/
 noncomputable def real.angle.exp_map_circle (θ : real.angle) : circle :=
 periodic_exp_map_circle.lift θ
@@ -122,3 +159,5 @@ begin
   rw [real.angle.exp_map_circle_coe, exp_map_circle_apply, exp_mul_I, ←of_real_cos,
       ←of_real_sin, ←real.angle.cos_coe, ←real.angle.sin_coe, arg_cos_add_sin_mul_I_coe_angle]
 end
+
+end angle

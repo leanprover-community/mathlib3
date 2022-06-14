@@ -580,7 +580,7 @@ meta def to_implicit_binder : expr → expr
 | (pi n _ d b) := pi n binder_info.implicit d b
 | e  := e
 
-/--  Takes two `expr`s `f` and `x`, where `f` represents a bunary operation.  Decomposes the
+/--  Takes two `expr`s `f` and `x`, where `f` represents a binary operation.  Decomposes the
 second expression `x` into repeated applications of `f`, returning a list of the atoms of the
 matching process.
 

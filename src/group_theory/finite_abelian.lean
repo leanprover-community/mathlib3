@@ -46,7 +46,7 @@ theorem equiv_direct_sum_zmod_of_fintype (G : Type*) [add_comm_group G] [fintype
 begin
   obtain ⟨n, ι, fι, p, hp, e, ⟨f⟩⟩ := equiv_free_prod_direct_sum_zmod G,
   cases n,
-  { exact ⟨ι, fι, p, hp, e, ⟨f.trans $ add_equiv.unique_prod _ _⟩⟩ },
+  { exact ⟨ι, fι, p, hp, e, ⟨f.trans add_equiv.unique_prod⟩⟩ },
   { haveI := @fintype.prod_left _ _ _ (fintype.of_equiv G f.to_equiv) _,
     exact (fintype.of_surjective (λ f : fin n.succ →₀ ℤ, f 0) $
       λ a, ⟨finsupp.single 0 a, finsupp.single_eq_same⟩).false.elim }

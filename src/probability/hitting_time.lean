@@ -20,8 +20,6 @@ discrete and the process is adapted.
 
 * `measure_theory.hitting_is_stopping_time`: a discrete hitting time of an adapted process is a
   stopping time
-* `measure_theory.hitting_is_stopping_time_nat`: a hitting time indexed by the natural numbers
-  of an adapted process is a stopping time
 
 ## Implementation notes
 
@@ -212,14 +210,6 @@ begin
     obtain ⟨j, hj₁, hj₂⟩ := hx,
     exact ⟨j, hj₁.trans hi, hj₂⟩, },
 end
-
-/-- A `ℕ`-indexed hitting time of an adpated process is a stopping time if the set it hits is
-measurable. -/
-lemma hitting_is_stopping_time_nat
-  [topological_space β] [pseudo_metrizable_space β] [measurable_space β] [borel_space β]
-  {f : filtration ℕ m} {u : ℕ → α → β} (hu : adapted f u) (hs : measurable_set s) (n : ℕ) :
-  is_stopping_time f (hitting u s 0 n) :=
-hitting_is_stopping_time hu hs
 
 end nat
 

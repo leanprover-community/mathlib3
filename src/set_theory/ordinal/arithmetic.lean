@@ -136,9 +136,9 @@ instance add_swap_contravariant_class_lt :
   contravariant_class ordinal.{u} ordinal.{u} (swap (+)) (<) :=
 ⟨λ a b c, lt_imp_lt_of_le_imp_le (λ h, add_le_add_right h _)⟩
 
-theorem add_le_add_iff_right {a b : ordinal} (n : ℕ) : a + n ≤ b + n ↔ a ≤ b :=
-by induction n with n ih; [rw [nat.cast_zero, add_zero, add_zero],
-  rw [nat_cast_succ, add_succ, add_succ, succ_le_succ_iff, ih]]
+theorem add_le_add_iff_right {a b : ordinal} : ∀ n : ℕ, a + n ≤ b + n ↔ a ≤ b
+| 0     := by simp
+| (n+1) := by rw [nat_cast_succ, add_succ, add_succ, succ_le_succ_iff, add_le_add_iff_right]
 
 theorem add_right_cancel {a b : ordinal} (n : ℕ) : a + n = b + n ↔ a = b :=
 by simp only [le_antisymm_iff, add_le_add_iff_right]

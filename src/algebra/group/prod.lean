@@ -460,13 +460,13 @@ def prod_congr (f : M ≃* M') (g : N ≃* N') : M × N ≃* M' × N' :=
 @[to_additive unique_prod "Multiplying by the trivial monoid doesn't change the structure."]
 def unique_prod [unique N] : N × M ≃* M :=
 { map_mul' := λ x y, rfl,
-  ..((equiv.equiv_punit N).prod_congr $ equiv.refl M).trans $ equiv.punit_prod M }
+  ..equiv.unique_prod }
 
 /--Multiplying by the trivial monoid doesn't change the structure.-/
 @[to_additive prod_unique "Multiplying by the trivial monoid doesn't change the structure."]
 def prod_unique [unique N] : M × N ≃* M :=
 { map_mul' := λ x y, rfl,
-  ..((equiv.refl M).prod_congr $ equiv.equiv_punit N).trans $ equiv.prod_punit M }
+  ..equiv.unique_prod }
 
 end
 

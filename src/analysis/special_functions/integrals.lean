@@ -58,8 +58,7 @@ begin
   refine (complex.continuous_of_real.continuous_on.cpow_const _).interval_integrable,
   intros c hc,
   left,
-  norm_cast,
-  calc 0 < min a b : lt_min ha hb ... ≤ c : hc.left,
+  exact_mod_cast lt_of_lt_of_le (lt_min ha hb) hc.left,
 end
 
 @[simp]

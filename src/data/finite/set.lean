@@ -112,7 +112,7 @@ finite_bUnion s t (λ i h, infer_instance)
 
 /--
 Example: `finite (⋃ (i < n), f i)` where `f : ℕ → set α` and `[∀ i, finite (f i)]`
-(given instances from `data.nat.interval`).
+(when given instances from `data.nat.interval`).
 -/
 instance finite_bUnion'' {ι : Type*} (p : ι → Prop) [h : finite {x | p x}]
   (t : ι → set α) [∀ i, finite (t i)] :
@@ -157,8 +157,5 @@ lemma finite.of_finite_univ [finite ↥(univ : set α)] : finite α :=
 set.finite_univ_iff.mp ‹_›
 
 lemma finite.set.finite_of_finite_image (s : set α)
-  {f : α → β} {g} (I : function.is_partial_inv f g) [finite (f '' s)] : finite s :=
-begin
-  haveI := fintype.of_finite (f '' s),
-  exact finite.of_fintype (set.fintype_of_fintype_image s I),
-end
+  {f : α → β} (h : s.inj_on f) [finite (f '' s)] : finite s :=
+finite.of_equiv _ (equiv.of_bijective _ h.bij_on_image.bijective).symm

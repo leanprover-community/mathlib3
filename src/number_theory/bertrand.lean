@@ -341,18 +341,6 @@ begin
   { exact n_lt_x, },
 end
 
--- TODO move to dat.nat.parity in #14688
-lemma even_prime_eq_two (n : ℕ) (he : even n) (hp : n.prime) : n = 2 :=
-begin
-  rw nat.even_iff at he,
-  have : 2 ∣ n, exact nat.dvd_of_mod_eq_zero he,
-  symmetry,
-  rw ←nat.prime_dvd_prime_iff_eq,
-  exact this,
-  norm_num,
-  exact hp,
-end
-
 /--
 An upper bound on the central binomial coefficient used in the proof of Bertrand's postulate.
 The bound splits the prime factors of `central_binom n` into those
@@ -416,8 +404,8 @@ nat.central_binom n
           intro a_sq_even,
           exfalso,
           have a_even := even_two_mul n,
-          rw [←a_sq_even, nat.even_pow] at a_even,
-          rw [even_prime_eq_two a a_even.left a_prime] at a_sq_even,
+          rw [←a_sq_even, nat.even_pow, nat.prime.even_iff a_prime] at a_even,
+          rw a_even.left at a_sq_even,
           norm_num at a_sq_even,
           linarith,
         end

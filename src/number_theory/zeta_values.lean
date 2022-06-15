@@ -40,30 +40,14 @@ noncomputable theory
 section bernoulli_fun_props
 /-! Simple properties of the function `Bₖ(x / (2 * π))`. -/
 
-/-- The Bernoulli polynomial evaluated at `x`, as a function `ℝ → ℝ`.
-
-TO DO: get rid of this and inline it where needed . -/
-def bernoulli_fun0 (k : ℕ) (x : ℝ) : ℝ :=
-(polynomial.map (algebra_map ℚ ℝ) (polynomial.bernoulli k)).eval x
-
-lemma has_deriv_at_bernoulli_fun0 (k : ℕ) (x : ℝ) :
-  has_deriv_at (bernoulli_fun0 k) (k * bernoulli_fun0 (k - 1) x) x :=
-begin
-  have t := polynomial.has_deriv_at (polynomial.map (algebra_map ℚ ℝ) (polynomial.bernoulli k)) x,
-  rw [polynomial.derivative_map, polynomial.derivative_bernoulli k] at t,
-  convert t,
-  simp only [polynomial.map_mul, polynomial.map_nat_cast, polynomial.eval_mul,
-    polynomial.eval_nat_cast, mul_eq_mul_left_iff, nat.cast_eq_zero],
-  left, refl,
-end
-
 /-- The function `x ↦ Bₖ(x / (2 * π)) : ℝ → ℝ`. -/
-def bernoulli_fun (k : ℕ) (x : ℝ) : ℝ := (2 * π) ^ k * bernoulli_fun0 k (x / (2 * π))
+def bernoulli_fun (k : ℕ) (x : ℝ) : ℝ :=
+(2 * π) ^ k * (polynomial.map (algebra_map ℚ ℝ) (polynomial.bernoulli k)).eval (x / (2 * π))
 
 lemma bernoulli_fun_zero : bernoulli_fun 0 = (λ x, 1 : ℝ → ℝ) :=
 begin
   ext1 x,
-  dsimp only [bernoulli_fun, bernoulli_fun0],
+  dsimp only [bernoulli_fun],
   rw polynomial.bernoulli_zero,
   simp,
 end
@@ -71,7 +55,7 @@ end
 lemma bernoulli_fun_eval_two_pi (k : ℕ) :
   bernoulli_fun k (2 * π) = bernoulli_fun k 0 + ite (k = 1) (2 * π) 0 :=
 begin
-  rw [bernoulli_fun, bernoulli_fun, bernoulli_fun0, bernoulli_fun0, div_self two_pi_pos.ne',
+  rw [bernoulli_fun, bernoulli_fun, div_self two_pi_pos.ne',
     zero_div, polynomial.eval_one_map, polynomial.eval_zero_map, polynomial.bernoulli_eval_one,
     polynomial.bernoulli_eval_zero],
   split_ifs,
@@ -83,7 +67,7 @@ end
 
 lemma bernoulli_fun_eval_zero (k : ℕ): bernoulli_fun k 0 = (2 * π) ^ k * bernoulli k :=
 begin
-  dsimp only [bernoulli_fun, bernoulli_fun0],
+  dsimp only [bernoulli_fun],
   rw [zero_div, polynomial.eval_zero_map, polynomial.bernoulli_eval_zero],
   refl,
 end
@@ -92,7 +76,14 @@ lemma has_deriv_at_bernoulli_fun (k : ℕ) (x : ℝ) : has_deriv_at (bernoulli_f
   (k * bernoulli_fun (k - 1) x) x :=
 begin
   have t : has_deriv_at (λ y:ℝ, y / (2 * π)) (1 / (2 * π)) x := (has_deriv_at_id x).div_const _,
-  convert ((has_deriv_at_bernoulli_fun0 k _).comp _ t).const_mul ((2 * π) ^ k) using 1,
+  have s : ∀ z:ℝ, has_deriv_at
+    (λ y:ℝ, (polynomial.map (algebra_map ℚ ℝ) (polynomial.bernoulli k)).eval y)
+    (k * ((polynomial.map (algebra_map ℚ ℝ) (polynomial.bernoulli (k - 1))).eval z)) z,
+  { intro z,
+    convert polynomial.has_deriv_at (polynomial.map (algebra_map ℚ ℝ) (polynomial.bernoulli k)) z,
+    simp only [polynomial.derivative_map, polynomial.derivative_bernoulli k, polynomial.map_mul,
+      polynomial.map_nat_cast, polynomial.eval_mul, polynomial.eval_nat_cast, nat.cast_eq_zero] },
+  convert ((s _).comp _ t).const_mul ((2 * π) ^ k) using 1,
   rcases nat.eq_zero_or_pos k with hk|hk,
   { rw hk, simp,},
   rw bernoulli_fun, ring_nf, congr' 1,
@@ -101,14 +92,7 @@ begin
 end
 
 lemma continuous_bernoulli_fun (k : ℕ) : continuous (bernoulli_fun k) :=
-begin
-  rw continuous_iff_continuous_at, intro x,
-  rcases (nat.eq_zero_or_pos k),
-  { rw h, convert continuous_at_const,
-    ext1, dsimp only [bernoulli_fun, bernoulli_fun0],
-    rw [polynomial.bernoulli_zero, pow_zero, polynomial.map_one, polynomial.eval_one, mul_one], },
-  { exact (has_deriv_at_bernoulli_fun k x).continuous_at },
-end
+continuous_iff_continuous_at.mpr (λ x, (has_deriv_at_bernoulli_fun k x).continuous_at)
 
 lemma continuous_bernoulli_fun' (k : ℕ) : continuous (λ x, bernoulli_fun k x : ℝ → ℂ) :=
 continuous_of_real.comp (continuous_bernoulli_fun k)
@@ -190,7 +174,7 @@ end
 
 lemma bernoulli_fourier_coeff_zero (n : ℤ) (hn : n ≠ 0): bernoulli_fourier_coeff 0 n = 0 :=
 begin
-  dsimp only [bernoulli_fourier_coeff, bernoulli_fun, bernoulli_fun0],
+  dsimp only [bernoulli_fourier_coeff, bernoulli_fun],
   simp_rw polynomial.bernoulli_zero,
   simp only [one_div, mul_inv_rev, pow_zero, polynomial.map_one, polynomial.eval_one,
     mul_one, of_real_one, mul_eq_zero, inv_eq_zero, of_real_eq_zero, bit0_eq_zero, one_ne_zero,
@@ -198,7 +182,7 @@ begin
   rw integral_exp_mul_complex (mul_ne_zero (neg_ne_zero.mpr (int.cast_ne_zero.mpr hn)) I_ne_zero),
   have : -↑n * I * ↑(2 * π) = ↑(-n) * (2 * π * I),
   { rw [int.cast_neg, of_real_mul, of_real_bit0, of_real_one], ring, },
-  rw [this, exp_int_mul_two_pi_mul_I, of_real_zero, mul_zero, complex.exp_zero, sub_self, zero_div]
+  rw [this, exp_int_mul_two_pi_mul_I, of_real_zero, mul_zero, complex.exp_zero, sub_self, zero_div],
 end
 
 lemma bernoulli_fourier_coeff_eq (k : ℕ) (hk : 1 ≤ k) (n : ℤ) :
@@ -241,12 +225,12 @@ section bernoulli_L2_norm
 /-! We evaluate the integral of `Bᵢ(x) Bⱼ(x)`by using repeated integration by parts. As a special
 case we deduce the `L²` norm of `Bₖ`.  -/
 
-lemma bernoulli_prod_recurrence (i : ℕ) (hi : i ≠ 0) (j : ℕ) :
+private lemma bernoulli_prod_recurrence (i : ℕ) (hi : i ≠ 0) (j : ℕ) :
   ∫ x:ℝ in 0..(2 * π), bernoulli_fun i x * bernoulli_fun j x =
   ite (j = 1) (2 * π * bernoulli_fun (i + 1) 0 / (i + 1)) 0
-  - j / (i + 1) * ∫ x:ℝ in 0..(2 * π), bernoulli_fun (i+1) x * bernoulli_fun (j-1) x :=
+  - j / (i + 1) * ∫ x:ℝ in 0..(2 * π), bernoulli_fun (i + 1) x * bernoulli_fun (j - 1) x :=
 begin
-  have t : ∀ x:ℝ, x ∈ interval 0 (2 * π) → has_deriv_at (λ y, bernoulli_fun (i+1) y / (i + 1) )
+  have t : ∀ x:ℝ, x ∈ interval 0 (2 * π) → has_deriv_at (λ y, bernoulli_fun (i + 1) y / (i + 1) )
     (bernoulli_fun i x) x,
   { intros x hx, have t := (has_deriv_at_bernoulli_fun (i + 1) x).div_const (i + 1),
     convert t,
@@ -340,7 +324,7 @@ end bernoulli_L2_norm
 
 section main_proof
 
-lemma zeta_ℤ (k : ℕ) (hk : 1 ≤ k) : has_sum (λ (n : ℤ), 1 / (n : ℝ) ^ (2 * k))
+private lemma zeta_value0 (k : ℕ) (hk : 1 ≤ k) : has_sum (λ (n : ℤ), 1 / (n : ℝ) ^ (2 * k))
   ((-1) ^ (k - 1) * 2 ^ (2 * k) * π ^ (2 * k) * bernoulli (2 * k) / ((2 * k).factorial)) :=
 begin
   have t := fourier_line.parseval_line (λ x, bernoulli_fun k x) _,
@@ -383,7 +367,7 @@ end
 lemma zeta_value (k : ℕ) (hk : 1 ≤ k) : has_sum (λ n:ℕ, 1 / ((n + 1) : ℝ) ^ (2 * k))
   ((-1) ^ (k - 1) * 2 ^ (2 * k - 1) * π ^ (2 * k) * bernoulli (2 * k) / ((2 * k).factorial)) :=
 begin
-  have := (zeta_ℤ k hk).sum_nat_of_sum_int,
+  have := (zeta_value0 k hk).sum_nat_of_sum_int,
   simp only [int.cast_add, int.cast_coe_nat, int.cast_one, int.cast_sub, int.cast_neg,
     int.cast_zero] at this,
   have aux : ∀ (n:ℕ), (-(n:ℝ) - 1) ^ (2 * k) = ((n:ℝ) + 1) ^ (2 * k),

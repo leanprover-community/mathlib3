@@ -435,17 +435,17 @@ unit_group_order_embedding.strict_mono
 
 end unit_group
 
-section maximal_ideal
+section nonunits
 
-/-- The unique maximal ideal of a valuation subring, as a subsemigroup of `K`-/
-def maximal_ideal : subsemigroup K :=
+/-- The nonunits of a valuation subring, as a subsemigroup of `K`-/
+def nonunits : subsemigroup K :=
 { carrier := { x | A.valuation x < 1 },
   mul_mem' := λ a b ha hb, by { simpa using mul_lt_mul₀ ha hb } }
 
-lemma mem_maximal_ideal_iff (x : K) : x ∈ A.maximal_ideal ↔ A.valuation x < 1 := iff.refl _
+lemma mem_nonunits_iff (x : K) : x ∈ A.nonunits ↔ A.valuation x < 1 := iff.refl _
 
-lemma maximal_ideal_injective :
-  function.injective (maximal_ideal : valuation_subring K → subsemigroup _) :=
+lemma nonunits_injective :
+  function.injective (nonunits : valuation_subring K → subsemigroup _) :=
 λ A B h, begin
   rw [← A.valuation_subring_valuation, ← B.valuation_subring_valuation,
     ← valuation.is_equiv_iff_valuation_subring, valuation.is_equiv_iff_val_lt_one],
@@ -455,19 +455,19 @@ lemma maximal_ideal_injective :
   exact h (units.mk0 x hx)
 end
 
-lemma eq_iff_maximal_ideal {A B : valuation_subring K} :
-  A = B ↔ A.maximal_ideal = B.maximal_ideal :=
-maximal_ideal_injective.eq_iff.symm
+lemma eq_iff_nonunits {A B : valuation_subring K} :
+  A = B ↔ A.nonunits = B.nonunits :=
+nonunits_injective.eq_iff.symm
 
-/-- `A.maximal_ideal` agrees with the maximal ideal of `A`. -/
-def maximal_ideal_equiv : A.maximal_ideal ≃ local_ring.maximal_ideal A :=
+/-- `A.nonunits` agrees with the maximal ideal of `A`. -/
+def maximal_ideal_equiv : A.nonunits ≃ local_ring.maximal_ideal A :=
 { to_fun := λ a, ⟨⟨a,(A.valuation_le_one_iff _).1 (le_of_lt a.2)⟩,(A.valuation_lt_one_iff _).2 a.2⟩,
   inv_fun := λ a, ⟨a,(A.valuation_lt_one_iff _).1 a.2⟩,
   left_inv := λ a, by { ext, refl },
   right_inv := λ a, by { ext, refl } }
 
 @[simp]
-lemma coe_maximal_ideal_equiv_apply (a : A.maximal_ideal) :
+lemma coe_maximal_ideal_equiv_apply (a : A.nonunits) :
   (A.maximal_ideal_equiv a : K) = a := rfl
 
 @[simp]
@@ -475,7 +475,7 @@ lemma coe_maximal_ideal_equiv_symm_apply (a : local_ring.maximal_ideal A) :
   (A.maximal_ideal_equiv.symm a : K) = a := rfl
 
 @[simp]
-lemma maximal_ideal_equiv_map_mul (a b : A.maximal_ideal) :
+lemma maximal_ideal_equiv_map_mul (a b : A.nonunits) :
   A.maximal_ideal_equiv (a * b) = (A.maximal_ideal_equiv a : A) • A.maximal_ideal_equiv b := rfl
 
 @[simp]
@@ -483,6 +483,6 @@ lemma maximal_ideal_equiv_symm_map_smul (a b : local_ring.maximal_ideal A) :
   A.maximal_ideal_equiv.symm ((a : A) • b) =
   A.maximal_ideal_equiv.symm a * A.maximal_ideal_equiv.symm b := rfl
 
-end maximal_ideal
+end nonunits
 
 end valuation_subring

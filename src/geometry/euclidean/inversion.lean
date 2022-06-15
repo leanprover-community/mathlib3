@@ -74,7 +74,7 @@ begin
   { rw [inversion, dist_inversion_center, inversion_vsub_center, smul_smul, ← mul_pow,
       div_mul_div_comm, div_mul_cancel _ (dist_ne_zero.2 hne), ← sq, div_self, one_pow, one_smul,
       vsub_vadd],
-   exact pow_ne_zero _ hR }
+    exact pow_ne_zero _ hR }
 end
 
 @[simp] lemma inversion_inversion (c : P) {R : ℝ} (hR : R ≠ 0) (x : P) :

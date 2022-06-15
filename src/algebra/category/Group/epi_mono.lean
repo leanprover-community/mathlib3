@@ -4,13 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jujian Zhang
 -/
 import category_theory.epi_mono
-import group_theory.coset
-import group_theory.perm.basic
 import group_theory.quotient_group
 import algebra.category.Group.basic
 
 /-!
-# Monomorphisms and epimorphism in `Group` and `CommGroup`
+# Monomorphisms and epimorphism in `Group`
 In this file, we prove monomorphisms in category of group are injective homomorphisms and
 epimorphisms are surjective homomorphisms.
 -/

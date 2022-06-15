@@ -26,7 +26,7 @@ prove the basic properties about these.
 
 universe u
 
-open ordinal
+open ordinal order
 
 namespace pgame
 
@@ -103,13 +103,13 @@ by rw [birthday_def, max_eq_zero, lsub_eq_zero_iff, lsub_eq_zero_iff]
 @[simp] theorem birthday_zero : birthday 0 = 0 :=
 by simp [pempty.is_empty]
 
-@[simp] theorem birthday_of (x y) : birthday P{x | y} = max (birthday x) (birthday y) + 1 :=
+@[simp] theorem birthday_of (x y) : birthday P{x | y} = succ (max (birthday x) (birthday y)) :=
 by { rw birthday_def, simpa using order.succ_mono.map_max.symm }
 
-@[simp] theorem birthday_of_left (x) : birthday P{x |} = birthday x + 1 :=
+@[simp] theorem birthday_of_left (x) : birthday P{x |} = succ (birthday x) :=
 by { rw birthday_def, simp }
 
-@[simp] theorem birthday_of_right (x) : birthday P{| x} = birthday x + 1 :=
+@[simp] theorem birthday_of_right (x) : birthday P{| x} = succ (birthday x) :=
 by { rw birthday_def, simp }
 
 theorem birthday_one  : birthday 1    = 1 := by simp

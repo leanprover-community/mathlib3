@@ -312,7 +312,7 @@ lemma realize_cast_le_of_eq {m n : ℕ} (h : m = n) {h' : m ≤ n} {φ : L.bound
   {v : α → M} {xs : fin n → M} :
   (φ.cast_le h').realize v xs ↔ φ.realize v (xs ∘ fin.cast h) :=
 begin
-  obtain rfl := h,
+  subst h,
   simp only [cast_le_rfl, cast_refl, order_iso.coe_refl, function.comp.right_id],
 end
 
@@ -337,35 +337,29 @@ lemma realize_map_term_rel_add_cast_le [L'.Structure M]
   {k : ℕ}
   {ft : ∀ n, L.term (α ⊕ fin n) → L'.term (β ⊕ fin (k + n))}
   {fr : ∀ n, L.relations n → L'.relations n}
-  {n} {φ : L.bounded_formula α n} {v : α → M} {v' : β → M} {xs : fin (k + n) → M}
+  {n} {φ : L.bounded_formula α n} (v : ∀ {n}, (fin (k + n) → M) → α → M) {v' : β → M}
+  (xs : fin (k + n) → M)
   (h1 : ∀ n (t : L.term (α ⊕ fin n)) (xs' : fin (k + n) → M),
     (ft n t).realize (sum.elim v' xs') =
-    t.realize (sum.elim v (xs' ∘ fin.nat_add _)))
-  (h2 : ∀ n (R : L.relations n) (x : fin n → M), rel_map (fr n R) x = rel_map R x) :
-  (φ.map_term_rel ft fr (λ n, cast_le (ge_of_eq (add_assoc _ _ _)))).realize v' xs ↔
-    φ.realize v (xs ∘ fin.nat_add _) :=
+    t.realize (sum.elim (v xs') (xs' ∘ fin.nat_add _)))
+  (h2 : ∀ n (R : L.relations n) (x : fin n → M), rel_map (fr n R) x = rel_map R x)
+  (hv : ∀ n (xs : fin (k + n) → M) (x : M), @v (n+1) (snoc xs x : fin _ → M) = v xs):
+  (φ.map_term_rel ft fr (λ n, cast_le (add_assoc _ _ _).symm.le)).realize v' xs ↔
+    φ.realize (v xs) (xs ∘ fin.nat_add _) :=
 begin
   induction φ with _ _ _ _ _ _ _ _ _ _ _ ih1 ih2 _ _ ih,
   { refl },
   { simp [map_term_rel, realize, h1] },
   { simp [map_term_rel, realize, h1, h2] },
   { simp [map_term_rel, realize, ih1, ih2], },
-  { simp [map_term_rel, realize, ih] },
+  { simp [map_term_rel, realize, ih, hv] },
 end
 
 lemma realize_relabel {m n : ℕ}
   {φ : L.bounded_formula α n} {g : α → β ⊕ fin m} {v : β → M} {xs : fin (m + n) → M} :
   (φ.relabel g).realize v xs ↔
     φ.realize (sum.elim v (xs ∘ fin.cast_add n) ∘ g) (xs ∘ fin.nat_add m) :=
-begin
-  rw [relabel],
-  induction φ with _ _ _ _ _ _ _ _ _ _ _ ih1 ih2 _ _ ih,
-  { refl },
-  { simp only [map_term_rel, realize, realize_relabel, sum_elim_comp_relabel_aux], },
-  { simp only [map_term_rel, realize, id.def, realize_relabel, sum_elim_comp_relabel_aux], },
-  { simp [map_term_rel, realize, ih1, ih2] },
-  { simp only [map_term_rel, realize, ih, cast_le_rfl, snoc_comp_nat_add, snoc_comp_cast_add], },
-end
+by rw [relabel, realize_map_term_rel_add_cast_le]; intros; simp
 
 lemma realize_lift_at {n n' m : ℕ} {φ : L.bounded_formula α n}
   {v : α → M} {xs : fin (n + n') → M} (hmn : m + n' ≤ n + 1) :
@@ -686,7 +680,20 @@ variables (L)
 /-- The complete theory of a structure `M` is the set of all sentences `M` satisfies. -/
 def complete_theory : L.Theory := { φ | M ⊨ φ }
 
-variables {L}
+variable (N)
+
+/-- Two structures are elementarily equivalent when they satisfy the same sentences. -/
+def elementarily_equivalent : Prop := L.complete_theory M = L.complete_theory N
+
+localized "notation A ` ≅[`:25 L `] ` B:50 := first_order.language.elementarily_equivalent L A B"
+  in first_order
+
+variables {L} {M} {N}
+
+lemma elementarily_equivalent_iff : M ≅[L] N ↔ ∀ φ : L.sentence, M ⊨ φ ↔ N ⊨ φ :=
+by simp only [elementarily_equivalent, set.ext_iff, complete_theory, set.mem_set_of_eq]
+
+variables (M)
 
 /-- A model of a theory is a structure in which every sentence is realized as true. -/
 class Theory.model (T : L.Theory) : Prop :=
@@ -908,7 +915,7 @@ begin
 end
 
 @[simp] lemma model_infinite_theory_iff : M ⊨ L.infinite_theory ↔ infinite M :=
-by simp [infinite_theory, infinite_iff, omega_le]
+by simp [infinite_theory, infinite_iff, aleph_0_le]
 
 instance model_infinite_theory [h : infinite M] :
   M ⊨ L.infinite_theory :=

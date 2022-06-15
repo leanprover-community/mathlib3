@@ -124,7 +124,7 @@ begin
 end
 
 @[simp] lemma relabel_comp_relabel (f : α → β) (g : β → γ) :
-  ((term.relabel g) ∘ (term.relabel f) : L.term α → L.term γ) = term.relabel (g ∘ f) :=
+  (term.relabel g ∘ term.relabel f : L.term α → L.term γ) = term.relabel (g ∘ f) :=
 funext (relabel_relabel f g)
 
 /-- Relabels a term's variables along a bijection. -/

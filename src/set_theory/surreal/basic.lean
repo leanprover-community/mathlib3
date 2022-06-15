@@ -181,7 +181,7 @@ theorem lt_of {x y} (h : numeric P{x | y}) : x < P{x | y} :=
 lt_of_lf (lf_of x y) (h.move_left default) h
 
 theorem of_lt {x y} (h : numeric P{x | y}) : P{x | y} < y :=
-lt_of_lf (of_lf x y) (h.move_right default) h
+lt_of_lf (of_lf x y) h (h.move_right default)
 
 theorem numeric_one : numeric 1 := numeric_zero.of_left
 

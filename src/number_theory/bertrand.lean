@@ -123,9 +123,9 @@ calc log x / (x * log 4) = (log x / x) / log 4 : by field_simp
           begin
             rw div_le_div_right log_four_pos,
             apply log_div_self_antitone_on,
-            { simp only [set.mem_set_of_eq],
+            { rw set.mem_set_of,
               linarith only [exp_one_lt_d9], },
-            { simp only [set.mem_set_of_eq],
+            { rw set.mem_set_of,
               linarith only [exp_one_lt_d9, n_large], },
             { exact n_large, },
           end
@@ -231,13 +231,10 @@ This is not best possible: it actually holds for 464 ≤ x.
 lemma real_bertrand_inequality {x : ℝ} (n_large : (722 : ℝ) ≤ x)
   : x * (2 * x) ^ (sqrt (2 * x)) * 4 ^ (2 * x / 3) < 4 ^ x :=
 begin
-  have four_pow_pos : ∀ (k : ℝ), (0 : ℝ) < 4 ^ k,
-  { intros k,
-    apply rpow_pos_of_pos four_pos, },
   have v : 0 < (2 * x) ^ (sqrt (2 * x)) := rpow_pos_of_pos (by linarith) _,
-  apply (log_lt_log_iff _ (four_pow_pos x)).1,
+  apply (log_lt_log_iff _ (rpow_pos_of_pos four_pos x)).1,
   swap,
-  { exact mul_pos (mul_pos (by linarith) v) (four_pow_pos _), },
+  { exact mul_pos (mul_pos (by linarith) v) (rpow_pos_of_pos four_pos _), },
   -- Goal structure gets a bit odd here because there are so many little conditions...
   rw [log_mul, log_mul, log_rpow, log_rpow, log_rpow, log_mul],
   -- Discharge most of the side goals
@@ -252,7 +249,7 @@ begin
       exact mul_pos (by linarith) log_four_pos, },
   repeat {apply ne_of_gt},
   { apply mul_pos _ v, linarith, },
-  { exact four_pow_pos _, },
+  { exact rpow_pos_of_pos four_pos _, },
 end
 
 end real_inequalities

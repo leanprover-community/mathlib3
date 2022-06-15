@@ -89,7 +89,7 @@ measure, almost everywhere, measure space, completion, null set, null measurable
 noncomputable theory
 
 open set filter (hiding map) function measurable_space topological_space (second_countable_topology)
-open_locale classical topological_space big_operators filter ennreal nnreal interval
+open_locale classical topological_space big_operators filter ennreal nnreal interval measure_theory
 
 variables {α β γ δ ι R R' : Type*}
 
@@ -805,7 +805,7 @@ section Inf
 variables {m : set (measure α)}
 
 lemma Inf_caratheodory (s : set α) (hs : measurable_set s) :
-  (Inf (to_outer_measure '' m)).caratheodory.measurable_set' s :=
+  measurable_set[(Inf (to_outer_measure '' m)).caratheodory] s :=
 begin
   rw [outer_measure.Inf_eq_bounded_by_Inf_gen],
   refine outer_measure.bounded_by_caratheodory (λ t, _),
@@ -1648,7 +1648,7 @@ calc count (↑s : set α) = ∑' i : (↑s : set α), 1 : count_apply s.measura
                     ... = ∑ i in s, 1 : s.tsum_subtype 1
                     ... = s.card : by simp
 
-lemma count_apply_finite [measurable_singleton_class α] (s : set α) (hs : finite s) :
+lemma count_apply_finite [measurable_singleton_class α] (s : set α) (hs : s.finite) :
   count s = hs.to_finset.card :=
 by rw [← count_apply_finset, finite.coe_to_finset]
 
@@ -1700,6 +1700,18 @@ end
 begin
   rw [count_apply_finite ({a} : set α) (set.finite_singleton _), set.finite.to_finset],
   simp,
+end
+
+lemma count_injective_image [measurable_singleton_class β]
+  {f : β → α} (hf : function.injective f) (s : set β) :
+  count (f '' s) = count s :=
+begin
+  by_cases hs : s.finite,
+  { lift s to finset β using hs,
+    rw [← finset.coe_image, count_apply_finset, count_apply_finset, s.card_image_of_injective hf] },
+  rw count_apply_infinite hs,
+  rw ← (finite_image_iff $ hf.inj_on _) at hs,
+  rw count_apply_infinite hs,
 end
 
 end count
@@ -2360,6 +2372,8 @@ lemma insert_ae_eq_self (a : α) (s : set α) :
   (insert a s : set α) =ᵐ[μ] s :=
 union_ae_eq_right.2 $ measure_mono_null (diff_subset _ _) (measure_singleton _)
 
+section
+
 variables [partial_order α] {a b : α}
 
 lemma Iio_ae_eq_Iic : Iio a =ᵐ[μ] Iic a :=
@@ -2385,6 +2399,12 @@ Ico_ae_eq_Icc' (measure_singleton b)
 
 lemma Ico_ae_eq_Ioc : Ico a b =ᵐ[μ] Ioc a b :=
 Ico_ae_eq_Ioc' (measure_singleton a) (measure_singleton b)
+
+end
+
+open_locale interval
+
+lemma interval_oc_ae_eq_interval [linear_order α] {a b : α} : Ι a b =ᵐ[μ] [a, b] := Ioc_ae_eq_Icc
 
 end no_atoms
 
@@ -2831,6 +2851,22 @@ lemma is_locally_finite_measure_of_is_finite_measure_on_compacts [topological_sp
   exact ⟨K, K_mem, K_compact.measure_lt_top⟩,
 end⟩
 
+lemma exists_pos_measure_of_cover [encodable ι] {U : ι → set α} (hU : (⋃ i, U i) = univ)
+  (hμ : μ ≠ 0) : ∃ i, 0 < μ (U i) :=
+begin
+  contrapose! hμ with H,
+  rw [← measure_univ_eq_zero, ← hU],
+  exact measure_Union_null (λ i, nonpos_iff_eq_zero.1 (H i))
+end
+
+lemma exists_pos_preimage_ball [pseudo_metric_space δ] (f : α → δ) (x : δ) (hμ : μ ≠ 0) :
+  ∃ n : ℕ, 0 < μ (f ⁻¹' metric.ball x n) :=
+exists_pos_measure_of_cover (by rw [← preimage_Union, metric.Union_ball_nat, preimage_univ]) hμ
+
+lemma exists_pos_ball [pseudo_metric_space α] (x : α) (hμ : μ ≠ 0) :
+  ∃ n : ℕ, 0 < μ (metric.ball x n) :=
+exists_pos_preimage_ball id x hμ
+
 /-- If a set has zero measure in a neighborhood of each of its points, then it has zero measure
 in a second-countable space. -/
 lemma null_of_locally_null [topological_space α] [second_countable_topology α]
@@ -2865,7 +2901,7 @@ lemma ext_on_measurable_space_of_generate_finite {α} (m₀ : measurable_space �
   {μ ν : measure α} [is_finite_measure μ]
   (C : set (set α)) (hμν : ∀ s ∈ C, μ s = ν s) {m : measurable_space α}
   (h : m ≤ m₀) (hA : m = measurable_space.generate_from C) (hC : is_pi_system C)
-  (h_univ : μ set.univ = ν set.univ) {s : set α} (hs : m.measurable_set' s) :
+  (h_univ : μ set.univ = ν set.univ) {s : set α} (hs : measurable_set[m] s) :
   μ s = ν s :=
 begin
   haveI : is_finite_measure ν := begin

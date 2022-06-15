@@ -24,32 +24,6 @@ open function
 universe u
 variable {α : Type u}
 
-@[to_additive]
-instance group.covariant_class_le.to_contravariant_class_le
-  [group α] [has_le α] [covariant_class α α (*) (≤)] : contravariant_class α α (*) (≤) :=
-group.covconv
-
-@[to_additive]
-instance group.swap.covariant_class_le.to_contravariant_class_le [group α] [has_le α]
-  [covariant_class α α (swap (*)) (≤)] : contravariant_class α α (swap (*)) (≤) :=
-{ elim := λ a b c bc, calc  b = b * a * a⁻¹ : eq_mul_inv_of_mul_eq rfl
-                          ... ≤ c * a * a⁻¹ : mul_le_mul_right' bc a⁻¹
-                          ... = c           : mul_inv_eq_of_eq_mul rfl }
-
-@[to_additive]
-instance group.covariant_class_lt.to_contravariant_class_lt
-  [group α] [has_lt α] [covariant_class α α (*) (<)] : contravariant_class α α (*) (<) :=
-{ elim := λ a b c bc, calc  b = a⁻¹ * (a * b) : eq_inv_mul_of_mul_eq rfl
-                          ... < a⁻¹ * (a * c) : mul_lt_mul_left' bc a⁻¹
-                          ... = c             : inv_mul_cancel_left a c }
-
-@[to_additive]
-instance group.swap.covariant_class_lt.to_contravariant_class_lt [group α] [has_lt α]
-  [covariant_class α α (swap (*)) (<)] : contravariant_class α α (swap (*)) (<) :=
-{ elim := λ a b c bc, calc  b = b * a * a⁻¹ : eq_mul_inv_of_mul_eq rfl
-                          ... < c * a * a⁻¹ : mul_lt_mul_right' bc a⁻¹
-                          ... = c           : mul_inv_eq_of_eq_mul rfl }
-
 /-- An ordered additive commutative group is an additive commutative group
 with a partial order in which addition is strictly monotone. -/
 @[protect_proj, ancestor add_comm_group partial_order]
@@ -1088,6 +1062,13 @@ begin
             ... ≤ a     : h },
   { calc -|a| = - - a : congr_arg (has_neg.neg) (abs_of_nonpos h)
             ... ≤ a     : (neg_neg a).le }
+end
+
+lemma add_abs_nonneg (a : α) : 0 ≤ a + |a| :=
+begin
+  rw ←add_right_neg a,
+  apply add_le_add_left,
+  exact (neg_le_abs_self a),
 end
 
 lemma neg_abs_le_neg (a : α) : -|a| ≤ -a :=

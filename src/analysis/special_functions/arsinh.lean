@@ -14,7 +14,6 @@ inverse, arsinh.
 
 ## Main Results
 
-- `sinh_injective`: The proof that `sinh` is injective
 - `sinh_surjective`: The proof that `sinh` is surjective
 - `sinh_bijective`: The proof `sinh` is bijective
 - `arsinh`: The inverse function of `sinh`
@@ -29,9 +28,6 @@ namespace real
 
 /-- `arsinh` is defined using a logarithm, `arsinh x = log (x + sqrt(1 + x^2))`. -/
 @[pp_nodot] def arsinh (x : ℝ) := log (x + sqrt (1 + x^2))
-
-/-- `sinh` is injective, `∀ a b, sinh a = sinh b → a = b`. -/
-lemma sinh_injective : function.injective sinh := sinh_strict_mono.injective
 
 private lemma aux_lemma (x : ℝ) : 1 / (x + sqrt (1 + x ^ 2)) = -x + sqrt (1 + x ^ 2) :=
 begin

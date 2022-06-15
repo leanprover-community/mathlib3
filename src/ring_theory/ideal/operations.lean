@@ -1393,7 +1393,7 @@ namespace ring_hom
 variables {R : Type u} {S : Type v} {T : Type v}
 
 section semiring
-variables {F G : Type*} [semiring R] [semiring S] [semiring T]
+variables {F : Type*} {G : Type*} [semiring R] [semiring S] [semiring T]
 variables [rcf : ring_hom_class F R S] [rcg : ring_hom_class G T S]
 (f : F) (g : G)
 
@@ -1992,11 +1992,14 @@ lemma ker_quot_left_to_quot_sup :
 by simp only [mk_ker, sup_idem, sup_comm, quot_left_to_quot_sup, quotient.factor, ker_quotient_lift,
     map_eq_iff_sup_ker_eq_of_surjective I^.quotient.mk quotient.mk_surjective, ← sup_assoc]
 
+set_option pp.all true
+--set_option trace.class_instances true
 /-- The ring homomorphism `(R/I)/J' -> R/(I ⊔ J)` induced by `quot_left_to_quot_sup` where `J'`
   is the image of `J` in `R/I`-/
 def quot_quot_to_quot_sup : (R ⧸ I) ⧸ J.map (ideal.quotient.mk I) →+* R ⧸ I ⊔ J :=
 ideal.quotient.lift (J.map (ideal.quotient.mk I)) (quot_left_to_quot_sup I J)
   (ker_quot_left_to_quot_sup I J).symm.le
+set_option trace.class_instances false
 
 /-- The composite of the maps `R → (R/I)` and `(R/I) → (R/I)/J'` -/
 def quot_quot_mk : R →+* ((R ⧸ I) ⧸ J.map I^.quotient.mk) :=

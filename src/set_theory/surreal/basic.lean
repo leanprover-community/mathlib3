@@ -148,13 +148,23 @@ theorem not_fuzzy {x y : pgame} (ox : numeric x) (oy : numeric y) : ¬ fuzzy x y
 theorem lt_or_equiv_or_gt {x y : pgame} (ox : numeric x) (oy : numeric y) : x < y ∨ x ≈ y ∨ y < x :=
 (lf_or_equiv_or_gf x y).imp (λ h, h.lt ox oy) $ or.imp_right $ λ h, h.lt oy ox
 
-theorem numeric_zero : numeric 0 :=
-⟨by rintros ⟨⟩ ⟨⟩, ⟨by rintros ⟨⟩, by rintros ⟨⟩⟩⟩
-theorem numeric_one : numeric 1 :=
-⟨by rintros ⟨⟩ ⟨⟩, ⟨λ x, numeric_zero, by rintros ⟨⟩⟩⟩
+theorem numeric_of_is_empty (x : pgame) [is_empty x.left_moves] [is_empty x.right_moves] :
+  numeric x :=
+(numeric_def x).2 ⟨is_empty_elim, is_empty_elim, is_empty_elim⟩
+
+theorem numeric_of_is_empty_left_moves (x : pgame) [is_empty x.left_moves]
+  (H : ∀ j, numeric (x.move_right j)) : numeric x :=
+(numeric_def x).2 ⟨is_empty_elim, is_empty_elim, H⟩
+
+theorem numeric_of_is_empty_right_moves (x : pgame) [is_empty x.right_moves]
+  (H : ∀ i, numeric (x.move_left i)) : numeric x :=
+(numeric_def x).2 ⟨λ _, is_empty_elim, H, is_empty_elim⟩
+
+theorem numeric_zero : numeric 0 := numeric_of_is_empty 0
+theorem numeric_one : numeric 1 := numeric_of_is_empty_right_moves 1 $ λ _, numeric_zero
 
 theorem numeric.neg : Π {x : pgame} (o : numeric x), numeric (-x)
-| ⟨l, r, L, R⟩ o := ⟨λ j i, neg_lt_iff.2 (o.1 i j), λ j, (o.2.2 j).neg, λ i, (o.2.1 i).neg⟩
+| ⟨l, r, L, R⟩ o := ⟨λ j i, neg_lt_neg_iff.2 (o.1 i j), λ j, (o.2.2 j).neg, λ i, (o.2.1 i).neg⟩
 
 theorem numeric.move_left_lt {x : pgame} (o : numeric x) (i) : x.move_left i < x :=
 (pgame.move_left_lf i).lt (o.move_left i) o
@@ -195,25 +205,12 @@ theorem numeric_nat : Π (n : ℕ), numeric n
 | 0 := numeric_zero
 | (n + 1) := (numeric_nat n).add numeric_one
 
-/-- The pre-game `half` is numeric. -/
-theorem numeric_half : numeric half :=
-begin
-  split,
-  { rintros ⟨ ⟩ ⟨ ⟩,
-    exact zero_lt_one },
-  split; rintro ⟨ ⟩,
-  { exact numeric_zero },
-  { exact numeric_one }
-end
-
 /-- Ordinal games are numeric. -/
 theorem numeric_to_pgame (o : ordinal) : o.to_pgame.numeric :=
 begin
   induction o using ordinal.induction with o IH,
-  rw numeric_def,
-  refine ⟨λ i, is_empty_elim, λ i, _, is_empty_elim⟩,
-  rw ordinal.to_pgame_move_left',
-  exact IH _ (ordinal.to_left_moves_to_pgame_symm_lt i)
+  apply numeric_of_is_empty_right_moves,
+  simpa using λ i, IH _ (ordinal.to_left_moves_to_pgame_symm_lt i)
 end
 
 end pgame
@@ -237,13 +234,10 @@ def surreal := quotient surreal.setoid
 namespace surreal
 
 /-- Construct a surreal number from a numeric pre-game. -/
-def mk (x : pgame) (h : x.numeric) : surreal := quotient.mk ⟨x, h⟩
+def mk (x : pgame) (h : x.numeric) : surreal := ⟦⟨x, h⟩⟧
 
-instance : has_zero surreal :=
-{ zero := ⟦⟨0, numeric_zero⟩⟧ }
-instance : has_one surreal :=
-{ one := ⟦⟨1, numeric_one⟩⟧ }
-
+instance : has_zero surreal := ⟨mk 0 numeric_zero⟩
+instance : has_one surreal := ⟨mk 1 numeric_one⟩
 instance : inhabited surreal := ⟨0⟩
 
 /-- Lift an equivalence-respecting function on pre-games to surreals. -/
@@ -255,7 +249,7 @@ quotient.lift (λ x : {x // numeric x}, f x.1 x.2) (λ x y, H x.2 y.2)
 def lift₂ {α} (f : ∀ x y, numeric x → numeric y → α)
   (H : ∀ {x₁ y₁ x₂ y₂} (ox₁ : numeric x₁) (oy₁ : numeric y₁) (ox₂ : numeric x₂) (oy₂ : numeric y₂),
     x₁.equiv x₂ → y₁.equiv y₂ → f x₁ y₁ ox₁ oy₁ = f x₂ y₂ ox₂ oy₂) : surreal → surreal → α :=
-lift (λ x ox, lift (λ y oy, f x y ox oy) (λ y₁ y₂ oy₁ oy₂ h, H _ _ _ _ equiv_rfl h))
+lift (λ x ox, lift (λ y oy, f x y ox oy) (λ y₁ y₂ oy₁ oy₂, H _ _ _ _ equiv_rfl))
   (λ x₁ x₂ ox₁ ox₂ h, funext $ quotient.ind $ by exact λ ⟨y, oy⟩, H _ _ _ _ h equiv_rfl)
 
 instance : has_le surreal :=
@@ -276,7 +270,7 @@ the negation of `{L | R}` is `{-R | -L}`. -/
 instance : has_neg surreal  :=
 ⟨surreal.lift
   (λ x ox, ⟦⟨-x, ox.neg⟩⟧)
-  (λ _ _ _ _ a, quotient.sound (pgame.neg_congr a))⟩
+  (λ _ _ _ _ a, quotient.sound (pgame.neg_equiv_neg_iff.2 a))⟩
 
 instance : ordered_add_comm_group surreal :=
 { add               := (+),

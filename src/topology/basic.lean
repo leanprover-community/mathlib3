@@ -1531,13 +1531,9 @@ lemma dense_range.exists_mem_open (hf : dense_range f) {s : set β} (ho : is_ope
 exists_range_iff.1 $ hf.exists_mem_open ho hs
 
 lemma dense_range.mem_nhds {f : κ → β} (h : dense_range f) {b : β} {U : set β}
-  (U_in : U ∈ nhds b) : ∃ a, f a ∈ U :=
-begin
-  rcases (mem_closure_iff_nhds.mp
-    ((dense_range_iff_closure_range.mp h).symm ▸ mem_univ b : b ∈ closure (range f)) U U_in)
-    with ⟨_, h, a, rfl⟩,
-  exact ⟨a, h⟩
-end
+  (U_in : U ∈ 𝓝 b) : ∃ a, f a ∈ U :=
+let ⟨a, ha⟩ := h.exists_mem_open is_open_interior ⟨b, mem_interior_iff_mem_nhds.2 U_in⟩
+in ⟨a, interior_subset ha⟩
 
 end dense_range
 
@@ -1560,7 +1556,7 @@ However, lemmas with this conclusion are not nice to use in practice because
 1. They confuse the elaborator. The following two examples fail, because of limitations in the
   elaboration process.
   ```
-  variables {M : Type*} [has_mul M] [topological_space M] [has_continuous_mul M]
+  variables {M : Type*} [has_add M] [topological_space M] [has_continuous_add M]
   example : continuous (λ x : M, x + x) :=
   continuous_add.comp _
 

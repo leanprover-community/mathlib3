@@ -190,6 +190,20 @@ begin
     pi.add_apply],
 end
 
+lemma from_blocks_mul_vec [fintype l] [fintype m] [non_unital_non_assoc_semiring α]
+  (A : matrix n l α) (B : matrix n m α) (C : matrix o l α) (D : matrix o m α) (x : l ⊕ m → α) :
+  mul_vec (from_blocks A B C D) x =
+  sum.elim (mul_vec A (x ∘ sum.inl) + mul_vec B (x ∘ sum.inr))
+           (mul_vec C (x ∘ sum.inl) + mul_vec D (x ∘ sum.inr)) :=
+by { ext i, cases i; simp [mul_vec, dot_product] }
+
+lemma vec_mul_from_blocks [fintype n] [fintype o] [non_unital_non_assoc_semiring α]
+  (A : matrix n l α) (B : matrix n m α) (C : matrix o l α) (D : matrix o m α) (x : n ⊕ o → α) :
+  vec_mul x (from_blocks A B C D) =
+  sum.elim (vec_mul (x ∘ sum.inl) A + vec_mul (x ∘ sum.inr) C)
+           (vec_mul (x ∘ sum.inl) B + vec_mul (x ∘ sum.inr) D) :=
+by { ext i, cases i; simp [vec_mul, dot_product] }
+
 variables [decidable_eq l] [decidable_eq m]
 
 @[simp] lemma from_blocks_diagonal [has_zero α] (d₁ : l → α) (d₂ : m → α) :

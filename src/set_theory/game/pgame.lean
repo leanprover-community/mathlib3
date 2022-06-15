@@ -200,8 +200,8 @@ trans_gen is_option
 
 instance : is_trans _ subsequent := trans_gen.is_trans
 
-@[trans] theorem subsequent.trans : ∀ {x y z}, subsequent x y → subsequent y z → subsequent x z :=
-@trans_gen.trans _ _
+@[trans] theorem subsequent.trans {x y z} : subsequent x y → subsequent y z → subsequent x z :=
+trans_gen.trans
 
 theorem wf_subsequent : well_founded subsequent := wf_is_option.trans_gen
 
@@ -503,8 +503,6 @@ classical.some_spec $ (zero_le.1 h) j
 If `x ≈ 0`, then the second player can always win `x`. -/
 def equiv (x y : pgame) : Prop := x ≤ y ∧ y ≤ x
 
--- TODO: add `equiv.le` and `equiv.ge` synonyms for `equiv.1` and `equiv.2`.
-
 local infix ` ≈ ` := pgame.equiv
 
 instance : is_equiv _ (≈) :=
@@ -519,6 +517,8 @@ theorem equiv.ge {x y : pgame} (h : x ≈ y) : y ≤ x := h.2
 theorem equiv_refl (x) : x ≈ x := refl x
 @[symm] protected theorem equiv.symm {x y} : x ≈ y → y ≈ x := symm
 @[trans] protected theorem equiv.trans {x y z} : x ≈ y → y ≈ z → x ≈ z := trans
+
+theorem equiv_of_eq {x y} (h : x = y) : x ≈ y := by subst h
 
 @[trans] theorem le_of_le_of_equiv {x y z} (h₁ : x ≤ y) (h₂ : y ≈ z) : x ≤ z := h₁.trans h₂.1
 @[trans] theorem le_of_equiv_of_le {x y z} (h₁ : x ≈ y) : y ≤ z → x ≤ z := h₁.1.trans
@@ -899,58 +899,83 @@ def relabelling.neg_congr : ∀ {x y : pgame}, x.relabelling y → (-x).relabell
     λ i, relabelling.neg_congr (by simpa using R_relabelling (R_equiv i)),
     λ i, relabelling.neg_congr (by simpa using L_relabelling (L_equiv.symm i))⟩
 
-@[simp] theorem neg_le_iff : Π {x y : pgame}, -y ≤ -x ↔ x ≤ y
+private theorem neg_le_lf_neg_iff :
+  Π {x y : pgame.{u}}, (-y ≤ -x ↔ x ≤ y) ∧ (-y ⧏ -x ↔ x ⧏ y)
 | (mk xl xr xL xR) (mk yl yr yL yR) :=
 begin
-  rw [le_def, le_def], dsimp,
-  refine ⟨λ h, ⟨λ i, _, λ j, _⟩, λ h, ⟨λ i, _, λ j, _⟩⟩,
-  { rcases h.right i with ⟨w, h⟩ | ⟨w, h⟩,
-    { refine or.inr ⟨to_left_moves_neg.symm w, neg_le_iff.1 _⟩,
-      rwa [move_right_neg_symm, neg_neg] },
-    { exact or.inl ⟨w, neg_le_iff.1 h⟩ } },
-  { rcases h.left j with ⟨w, h⟩ | ⟨w, h⟩,
-    { exact or.inr ⟨w, neg_le_iff.1 h⟩ },
-    { refine or.inl ⟨to_right_moves_neg.symm w, neg_le_iff.1 _⟩,
-      rwa [move_left_neg_symm, neg_neg] } },
-  { rcases h.right i with ⟨w, h⟩ | ⟨w, h⟩,
-    { refine or.inr ⟨to_right_moves_neg w, _⟩,
-      convert neg_le_iff.2 h,
-      rw move_right_neg },
-    { exact or.inl ⟨w, neg_le_iff.2 h⟩ } },
-  { rcases h.left j with ⟨w, h⟩ | ⟨w, h⟩,
-    { exact or.inr ⟨w, neg_le_iff.2 h⟩ },
-    { refine or.inl ⟨to_left_moves_neg w, _⟩,
-      convert neg_le_iff.2 h,
-      rw move_left_neg } }
+  simp_rw [neg_def, mk_le_mk, mk_lf_mk, ← neg_def],
+  split,
+  { rw and_comm, apply and_congr; exact forall_congr (λ _, neg_le_lf_neg_iff.2) },
+  { rw or_comm, apply or_congr; exact exists_congr (λ _, neg_le_lf_neg_iff.1) },
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 
-theorem neg_congr {x y : pgame} (h : x ≈ y) : -x ≈ -y :=
-⟨neg_le_iff.2 h.2, neg_le_iff.2 h.1⟩
+@[simp] theorem neg_le_neg_iff {x y : pgame} : -y ≤ -x ↔ x ≤ y := neg_le_lf_neg_iff.1
 
-@[simp] theorem neg_lf_iff {x y : pgame} : -y ⧏ -x ↔ x ⧏ y :=
-by rw [←pgame.not_le, ←pgame.not_le, not_iff_not, neg_le_iff]
+@[simp] theorem neg_lf_neg_iff {x y : pgame} : -y ⧏ -x ↔ x ⧏ y := neg_le_lf_neg_iff.2
 
-@[simp] theorem neg_lt_iff {x y : pgame} : -y < -x ↔ x < y :=
-by rw [lt_iff_le_and_lf, lt_iff_le_and_lf, neg_le_iff, neg_lf_iff]
+@[simp] theorem neg_lt_neg_iff {x y : pgame} : -y < -x ↔ x < y :=
+by rw [lt_iff_le_and_lf, lt_iff_le_and_lf, neg_le_neg_iff, neg_lf_neg_iff]
+
+@[simp] theorem neg_equiv_neg_iff {x y : pgame} : -x ≈ -y ↔ x ≈ y :=
+by rw [equiv, equiv, neg_le_neg_iff, neg_le_neg_iff, and.comm]
+
+@[simp] theorem neg_fuzzy_neg_iff {x y : pgame} : -x ∥ -y ↔ x ∥ y :=
+by rw [fuzzy, fuzzy, neg_lf_neg_iff, neg_lf_neg_iff, and.comm]
+
+theorem neg_le_iff {x y : pgame} : -y ≤ x ↔ -x ≤ y :=
+by rw [←neg_neg x, neg_le_neg_iff, neg_neg]
+
+theorem neg_lf_iff {x y : pgame} : -y ⧏ x ↔ -x ⧏ y :=
+by rw [←neg_neg x, neg_lf_neg_iff, neg_neg]
+
+theorem neg_lt_iff {x y : pgame} : -y < x ↔ -x < y :=
+by rw [←neg_neg x, neg_lt_neg_iff, neg_neg]
+
+theorem neg_equiv_iff {x y : pgame} : -x ≈ y ↔ x ≈ -y :=
+by rw [←neg_neg y, neg_equiv_neg_iff, neg_neg]
+
+theorem neg_fuzzy_iff {x y : pgame} : -x ∥ y ↔ x ∥ -y :=
+by rw [←neg_neg y, neg_fuzzy_neg_iff, neg_neg]
+
+theorem le_neg_iff {x y : pgame} : y ≤ -x ↔ x ≤ -y :=
+by rw [←neg_neg x, neg_le_neg_iff, neg_neg]
+
+theorem lf_neg_iff {x y : pgame} : y ⧏ -x ↔ x ⧏ -y :=
+by rw [←neg_neg x, neg_lf_neg_iff, neg_neg]
+
+theorem lt_neg_iff {x y : pgame} : y < -x ↔ x < -y :=
+by rw [←neg_neg x, neg_lt_neg_iff, neg_neg]
 
 @[simp] theorem neg_le_zero_iff {x : pgame} : -x ≤ 0 ↔ 0 ≤ x :=
-by { convert neg_le_iff, rw pgame.neg_zero }
+by rw [neg_le_iff, pgame.neg_zero]
 
 @[simp] theorem zero_le_neg_iff {x : pgame} : 0 ≤ -x ↔ x ≤ 0 :=
-by { convert neg_le_iff, rw pgame.neg_zero }
+by rw [le_neg_iff, pgame.neg_zero]
 
 @[simp] theorem neg_lf_zero_iff {x : pgame} : -x ⧏ 0 ↔ 0 ⧏ x :=
-by { convert neg_lf_iff, rw pgame.neg_zero }
+by rw [neg_lf_iff, pgame.neg_zero]
 
 @[simp] theorem zero_lf_neg_iff {x : pgame} : 0 ⧏ -x ↔ x ⧏ 0 :=
-by { convert neg_lf_iff, rw pgame.neg_zero }
+by rw [lf_neg_iff, pgame.neg_zero]
 
 @[simp] theorem neg_lt_zero_iff {x : pgame} : -x < 0 ↔ 0 < x :=
-by { convert neg_lt_iff, rw pgame.neg_zero }
+by rw [neg_lt_iff, pgame.neg_zero]
 
 @[simp] theorem zero_lt_neg_iff {x : pgame} : 0 < -x ↔ x < 0 :=
-by { convert neg_lt_iff, rw pgame.neg_zero }
+by rw [lt_neg_iff, pgame.neg_zero]
+
+@[simp] theorem neg_equiv_zero_iff {x : pgame} : -x ≈ 0 ↔ x ≈ 0 :=
+by rw [neg_equiv_iff, pgame.neg_zero]
+
+@[simp] theorem neg_fuzzy_zero_iff {x : pgame} : -x ∥ 0 ↔ x ∥ 0 :=
+by rw [neg_fuzzy_iff, pgame.neg_zero]
+
+@[simp] theorem zero_equiv_neg_iff {x : pgame} : 0 ≈ -x ↔ 0 ≈ x :=
+by rw [←neg_equiv_iff, pgame.neg_zero]
+
+@[simp] theorem zero_fuzzy_neg_iff {x : pgame} : 0 ∥ -x ↔ 0 ∥ x :=
+by rw [←neg_fuzzy_iff, pgame.neg_zero]
 
 /-- The sum of `x = {xL | xR}` and `y = {yL | yR}` is `{xL + y, x + yL | xR + y, x + yR}`. -/
 instance : has_add pgame.{u} := ⟨λ x y, begin
@@ -1068,22 +1093,24 @@ rfl
   (x + y).move_right (to_right_moves_add (sum.inr i)) = x + y.move_right i :=
 by { cases x, cases y, refl }
 
-lemma left_moves_add_cases {x y : pgame} (i : (x + y).left_moves) :
-  (∃ j, i = to_left_moves_add (sum.inl j)) ∨ ∃ j, i = to_left_moves_add (sum.inr j) :=
+lemma left_moves_add_cases {x y : pgame} (k) {P : (x + y).left_moves → Prop}
+  (hl : ∀ i, P $ to_left_moves_add (sum.inl i))
+  (hr : ∀ i, P $ to_left_moves_add (sum.inr i)) : P k :=
 begin
-  rw ←to_left_moves_add.apply_symm_apply i,
-  cases to_left_moves_add.symm i with j j,
-  { exact or.inl ⟨j, rfl⟩ },
-  { exact or.inr ⟨j, rfl⟩ }
+  rw ←to_left_moves_add.apply_symm_apply k,
+  cases to_left_moves_add.symm k with i i,
+  { exact hl i },
+  { exact hr i }
 end
 
-lemma right_moves_add_cases {x y : pgame} (i : (x + y).right_moves) :
-  (∃ j, i = to_right_moves_add (sum.inl j)) ∨ ∃ j, i = to_right_moves_add (sum.inr j) :=
+lemma right_moves_add_cases {x y : pgame} (k) {P : (x + y).right_moves → Prop}
+  (hl : ∀ j, P $ to_right_moves_add (sum.inl j))
+  (hr : ∀ j, P $ to_right_moves_add (sum.inr j)) : P k :=
 begin
-  rw ←to_right_moves_add.apply_symm_apply i,
-  cases to_right_moves_add.symm i with j j,
-  { exact or.inl ⟨j, rfl⟩ },
-  { exact or.inr ⟨j, rfl⟩ }
+  rw ←to_right_moves_add.apply_symm_apply k,
+  cases to_right_moves_add.symm k with i i,
+  { exact hl i },
+  { exact hr i }
 end
 
 instance is_empty_nat_right_moves : ∀ n : ℕ, is_empty (right_moves n)
@@ -1152,7 +1179,7 @@ def add_comm_relabelling : Π (x y : pgame.{u}), relabelling (x + y) (y + x)
 begin
   refine ⟨equiv.sum_comm _ _, equiv.sum_comm _ _, _, _⟩;
   rintros (_|_);
-  { simp [left_moves_add, right_moves_add], apply add_comm_relabelling }
+  { dsimp [left_moves_add, right_moves_add], apply add_comm_relabelling }
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 
@@ -1206,7 +1233,7 @@ end
 
 theorem zero_le_add_left_neg (x : pgame) : 0 ≤ -x + x :=
 begin
-  rw [←neg_le_iff, pgame.neg_zero],
+  rw [←neg_le_neg_iff, pgame.neg_zero],
   exact neg_add_le.trans (add_left_neg_le_zero _)
 end
 
@@ -1297,7 +1324,7 @@ theorem add_congr_right {x y z : pgame} : y ≈ z → x + y ≈ x + z :=
 add_congr equiv_rfl
 
 theorem sub_congr {w x y z : pgame} (h₁ : w ≈ x) (h₂ : y ≈ z) : w - y ≈ x - z :=
-add_congr h₁ (neg_congr h₂)
+add_congr h₁ (neg_equiv_neg_iff.2 h₂)
 
 theorem sub_congr_left {x y z : pgame} (h : x ≈ y) : x - z ≈ y - z :=
 sub_congr h equiv_rfl
@@ -1353,46 +1380,9 @@ by simp [star]
 @[simp] theorem zero_lt_one : (0 : pgame) < 1 :=
 lt_of_le_of_lf (zero_le_of_is_empty_right_moves 1) (zero_lf_le.2 ⟨default, le_rfl⟩)
 
-@[simp] theorem zero_le_one : (0 : pgame) ≤ 1 :=
-zero_lt_one.le
+instance : zero_le_one_class pgame := ⟨zero_lt_one.le⟩
 
 @[simp] theorem zero_lf_one : (0 : pgame) ⧏ 1 :=
 zero_lt_one.lf
-
-/-- The pre-game `half` is defined as `{0 | 1}`. -/
-def half : pgame := ⟨punit, punit, 0, 1⟩
-
-@[simp] theorem half_left_moves : half.left_moves = punit := rfl
-@[simp] theorem half_right_moves : half.right_moves = punit := rfl
-@[simp] lemma half_move_left (x) : half.move_left x = 0 := rfl
-@[simp] lemma half_move_right (x) : half.move_right x = 1 := rfl
-
-instance unique_half_left_moves : unique half.left_moves := punit.unique
-instance unique_half_right_moves : unique half.right_moves := punit.unique
-
-protected theorem zero_lt_half : 0 < half :=
-lt_of_le_of_lf (zero_le.2 (λ j, ⟨punit.star, le_rfl⟩))
-  (zero_lf.2 ⟨default, is_empty.elim pempty.is_empty⟩)
-
-protected theorem zero_le_half : 0 ≤ half :=
-pgame.zero_lt_half.le
-
-theorem half_lt_one : half < 1 :=
-lt_of_le_of_lf
-  (le_of_forall_lf ⟨by simp, is_empty_elim⟩) (lf_of_forall_le (or.inr ⟨default, le_rfl⟩))
-
-theorem half_add_half_equiv_one : half + half ≈ 1 :=
-begin
-  split; rw le_def; split,
-  { rintro (⟨⟨ ⟩⟩ | ⟨⟨ ⟩⟩),
-    { exact or.inr ⟨sum.inr punit.star, (le_congr_left (zero_add_equiv 1)).2 le_rfl⟩ },
-    { exact or.inr ⟨sum.inl punit.star, (le_congr_left (add_zero_equiv 1)).2 le_rfl⟩ } },
-  { rintro ⟨ ⟩ },
-  { rintro ⟨ ⟩,
-    exact or.inl ⟨sum.inl punit.star, (le_congr_right (zero_add_equiv _)).2 pgame.zero_le_half⟩ },
-  { rintro (⟨⟨ ⟩⟩ | ⟨⟨ ⟩⟩); left,
-    { exact ⟨sum.inr punit.star, (add_zero_equiv _).2⟩ },
-    { exact ⟨sum.inl punit.star, (zero_add_equiv _).2⟩ } }
-end
 
 end pgame

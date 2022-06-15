@@ -78,19 +78,22 @@ end inhabited
 variable {T}
 
 /-- Maps a bundled model along a bijection. -/
-def equiv_induced {M : Model.{u v w} T} {N : Type w'} (e : M ≃ N) :
+@[simps] def equiv_induced {M : Model.{u v w} T} {N : Type w'} (e : M ≃ N) :
   Model.{u v w'} T :=
 { carrier := N,
   struc := e.induced_Structure,
   is_model := @equiv.Theory_model L M N _ e.induced_Structure T e.induced_Structure_equiv _,
   nonempty' := e.symm.nonempty }
 
+instance of_small (M : Type w) [nonempty M] [L.Structure M] [M ⊨ T] [h : small.{w'} M] :
+  small.{w'} (Model.of T M) := h
+
 /-- Shrinks a small model to a particular universe. -/
-noncomputable def shrink (M : Model.{u v w} T) [small.{w'} M] :
+@[simps] noncomputable def shrink (M : Model.{u v w} T) [small.{w'} M] :
   Model.{u v w'} T := equiv_induced (equiv_shrink M)
 
 /-- Lifts a model to a particular universe. -/
-def ulift (M : Model.{u v w} T) : Model.{u v (max w w')} T :=
+@[simps] def ulift (M : Model.{u v w} T) : Model.{u v (max w w')} T :=
   equiv_induced (equiv.ulift.symm : M ≃ _)
 
 /-- The reduct of any model of `φ.on_Theory T` is a model of `T`. -/
@@ -125,7 +128,7 @@ lemma coe_of {M : Type w} [L.Structure M] [nonempty M] (h : M ⊨ T) :
 end Theory
 
 /-- An elementary substructure of a bundled model as a bundled model. -/
-def elementary_substructure.to_Model {M : T.Model} (S : L.elementary_substructure M) : T.Model :=
+@[simps] def elementary_substructure.to_Model {M : T.Model} (S : L.elementary_substructure M) : T.Model :=
 Theory.Model.of T S
 
 instance {M : T.Model} (S : L.elementary_substructure M) [h : small S] :

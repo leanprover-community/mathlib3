@@ -38,6 +38,20 @@ of `L`. By Löwenheim-Skolem, this is equivalent to satisfiability in any univer
 
 universes u v w w'
 
+namespace cardinal
+
+open_locale cardinal
+
+@[simp] lemma lift_mk_shrink (α : Type u) [small.{v} α] :
+  cardinal.lift.{u} (# (shrink.{v} α)) = cardinal.lift.{v} (# α) :=
+lift_mk_eq'.2 ⟨(equiv_shrink α).symm⟩
+
+@[simp] lemma lift_mk_shrink' (α : Type (max u v)) [small.{v} α] :
+  cardinal.lift.{u} (# (shrink.{v} α)) = # α :=
+by rw [← lift_inj, lift_lift, lift_mk_shrink]
+
+end cardinal
+
 open cardinal category_theory
 open_locale cardinal first_order
 
@@ -153,34 +167,67 @@ begin
   rw lift_lift,
 end
 
+variable (L)
+
 /-- The Upward Löwenheim–Skolem Theorem: If `κ` is a cardinal greater than the cardinalities of `L`
 and an infinite `L`-structure `M`, then `M` has an elementary extension of cardinality `κ`. -/
 theorem exists_elementary_embedding_card_eq (M : Type w') [L.Structure M] [iM : infinite M]
-  (κ : cardinal.{max u v w'})
-  (h1 : cardinal.lift.{w'} L.card ≤ κ)
-  (h2 : cardinal.lift.{max u v} (# M) ≤ κ) :
-  ∃ (N : bundled L.Structure),
-    nonempty (M ↪ₑ[L] N) ∧ # N = κ :=
+  (κ : cardinal.{w})
+  (h1 : cardinal.lift.{w} L.card ≤ cardinal.lift.{max u v} κ)
+  (h2 : cardinal.lift.{w} (# M) ≤ cardinal.lift.{w'} κ) :
+  ∃ (N : bundled.{max u v w w'} L.Structure),
+    nonempty (M ↪ₑ[L] N) ∧ # N = cardinal.lift.{max u v w'} κ :=
 begin
   obtain ⟨N0, hN0⟩ := exists_large_model_of_infinite_model (L.elementary_diagram M) κ M,
   let f0 := elementary_embedding.of_models_elementary_diagram L M N0,
-  rw lift_id at hN0,
-  obtain ⟨N, hN1, hN2⟩ := exists_elementary_substructure_card_eq (L[[M]]) (set.range f0) κ
-    ((omega_le_lift.2 (infinite_iff.1 iM)).trans h2) _ _ (hN0.trans (le_of_eq (lift_id _).symm)),
+  rw [← lift_le.{(max w w') (max u v)}, lift_lift, lift_lift] at h2,
+  obtain ⟨N, hN1, hN2⟩ := exists_elementary_substructure_card_eq (L[[M]]) (set.range f0)
+    (cardinal.lift.{max u v w'} κ)
+    (trans _ h2) (trans _ (lift_le.2 h2)) _ _,
   { letI := (Lhom_with_constants L M).reduct N,
-    rw lift_id at hN2,
-    refine ⟨bundled.of N, ⟨_⟩, hN2⟩,
+    refine ⟨bundled.of N, ⟨_⟩, lift_inj.1 hN2⟩,
     { have f := elementary_embedding.of_models_elementary_diagram L M N,
       exact f } },
-  { refine trans (_) h2,
-    rw [lift_id, ← lift_le, lift_lift],
+  { exact omega_le_lift.2 (omega_le_mk M) },
+  { rw [lift_id'.{(max w u v w') (max (max u w') v w)}, ← lift_le, lift_lift, lift_lift],
     exact mk_range_le_lift },
-  { simp only [card_with_constants, lift_add, lift_id],
+  { simp only [card_with_constants, lift_add, lift_lift],
     rw [add_comm, add_eq_max (omega_le_lift.2 (infinite_iff.1 iM)), max_le_iff],
-    exact ⟨h2, h1⟩ },
+    rw [← lift_le.{_ w'}, lift_lift, lift_lift] at h1,
+    refine ⟨trans _ h2, trans _ h1⟩;
+    { rw [← lift_le.{_ max (max w u v) w'}, lift_lift, lift_lift] } },
+  { refine trans _ (lift_le.2 hN0),
+    rw [← lift_le.{_ (max (max u w') v w)}, lift_lift, lift_lift, lift_lift, lift_lift] }
 end
 
-variable (T)
+theorem exists_model_card_eq
+  (h : ∃ (M : Model.{u v (max u v)} T), infinite M)
+  (κ : cardinal.{w})
+  (h1 : cardinal.lift.{w} L.card ≤ cardinal.lift.{max u v} κ)
+  (h2 : ω ≤ κ) :
+  ∃ (N : Model.{u v w} T), # N = κ :=
+begin
+  obtain ⟨M, hM⟩ := h,
+  resetI,
+  cases le_total (cardinal.lift.{max u v} κ) (cardinal.lift.{w} (# M)) with h h,
+  { obtain ⟨S, S1, S2⟩ := exists_elementary_substructure_card_eq L (∅ : set M) κ h2 _ h1 h,
+    { haveI : small.{w} (S.to_Model T),
+      { rw [← lift_inj.{_ (w + 1)}, lift_lift, lift_lift] at S2,
+        exact small_iff_lift_mk_lt_univ.2 (lt_of_eq_of_lt S2 κ.lift_lt_univ') },
+      refine ⟨(S.to_Model T).shrink, lift_inj.1 (trans _ S2)⟩,
+      simp },
+    { simp only [mk_emptyc, lift_zero, zero_le] } },
+  { obtain ⟨N, ⟨MN⟩, hN⟩ := exists_elementary_embedding_card_eq.{u v w} L M κ h1 h,
+    haveI : infinite N := infinite_iff.2 ((omega_le_lift.2 h2).trans (ge_of_eq hN)),
+    haveI : N ⊨ T := (MN.Theory_model_iff T).1 M.is_model,
+    haveI : small.{w} N,
+    { rw [small_iff_lift_mk_lt_univ, hN, lift_lift],
+      exact κ.lift_lt_univ' },
+    refine ⟨(Model.of T N).shrink, lift_inj.1 (trans _ hN)⟩,
+    simp },
+end
+
+variables {L} (T)
 
 /-- A theory models a (bounded) formula when any of its nonempty models realizes that formula on all
   inputs.-/
@@ -423,3 +470,38 @@ lemma induction_on_exists_not {P : Π {m}, L.bounded_formula α m → Prop} (φ 
 end bounded_formula
 end language
 end first_order
+
+namespace cardinal
+open first_order first_order.language
+
+variables {L : language.{u v}} (κ : cardinal.{w}) (T : L.Theory)
+
+/-- A theory is `κ`-categorical if all models of size `κ` are isomorphic. -/
+def categorical : Prop :=
+∀ (M N : T.Model), # M = κ → # N = κ → nonempty (M ≃[L] N)
+
+variables {κ T}
+
+/-- The Łoś–Vaught Test : a criterion for categorical theories to be complete. -/
+lemma categorical.is_complete (h : κ.categorical T)
+  (h1 : cardinal.lift.{w} L.card ≤ cardinal.lift.{max u v} κ)
+  (h2 : ω ≤ κ)
+  (hS : T.is_satisfiable)
+  (hT : ∀ (M : Theory.Model.{u v max u v} T), infinite M) :
+  T.is_complete :=
+⟨hS, λ φ, begin
+  rw [Theory.models_sentence_iff, Theory.models_sentence_iff],
+  by_contra con,
+  push_neg at con,
+  obtain ⟨⟨MF, hMF⟩, MT, hMT⟩ := con,
+  rw [← sentence.realize_not] at hMF,
+  rw [sentence.realize_not, not_not] at hMT,
+  haveI := hT MT,
+  haveI := hT MF,
+
+
+
+end⟩
+
+
+end cardinal

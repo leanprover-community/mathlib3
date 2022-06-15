@@ -158,6 +158,15 @@ instance : inhabited (M ↪ₑ[L] M) := ⟨refl L M⟩
 lemma comp_assoc (f : M ↪ₑ[L] N) (g : N ↪ₑ[L] P) (h : P ↪ₑ[L] Q) :
   (h.comp g).comp f = h.comp (g.comp f) := rfl
 
+lemma realize_sentence_iff (f : M ↪ₑ[L] N) (φ : L.sentence) :
+  M ⊨ φ ↔ N ⊨ φ :=
+by rw [sentence.realize, ← f.map_formula φ default, unique.eq_default (f ∘ default),
+  sentence.realize]
+
+lemma Theory_model_iff (f : M ↪ₑ[L] N) (T : L.Theory) :
+  M ⊨ T ↔ N ⊨ T :=
+by simp only [Theory.model_iff, f.realize_sentence_iff]
+
 end elementary_embedding
 
 variables (L) (M)

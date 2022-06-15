@@ -91,22 +91,26 @@ do
 
 reserve  notation `!ₘ[`
 
-local attribute [semireducible] reflected
+meta instance sigma.reflect {α : Type*} (β : α → Type)
+  [reflected α] [reflected β] [hα : has_reflect α] [hβ : Π i, has_reflect (β i)] :
+  has_reflect (Σ a, β a) :=
+λ ⟨a, b⟩, (`(sigma.mk.{0 0}).subst (hα a)).subst (hβ _ b)
 
-attribute [derive _root_.reflect] vector
 
+meta instance sigma.reflect₂ {α β : Type} (γ : α → β → Type)
+  [reflected α] [reflected β] [reflected γ] [hα : has_reflect α] [hβ : has_reflect β]
+  [hγ : Π i j, has_reflect (γ i j)] :
+  has_reflect (Σ a b, γ a b) :=
+@sigma.reflect _ (λ a, Σ b, γ a b) _ _ _ $ λ a,
+  @sigma.reflect _ (λ b, γ a b) _ _ _ $ λ b, hγ a b
 
-meta instance {α : Type} [has_reflect α] [reflected α] : Π n, has_reflect (vector α n)
-| n ⟨[], _⟩ := `(@vector.nil.{0} %%(reflect α))
-| n ⟨x :: xs, _⟩ := `(@vector.cons.{0} %%(reflect α) %%(reflect n) %%(reflect x) %%(reflect xs))
-
-#exit
-
--- #check vector.nth
+meta instance foo : has_reflect (Σ m n, vector (vector pexpr n) m) :=
+@sigma.reflect ℕ (λ m, Σ n, vector (vector pexpr n) m) _ _ _ $ λ m : ℕ,
+  @sigma.reflect ℕ (λ n, vector (vector pexpr n) m) _ _ _ $ λ n, by apply_instance
 
 @[user_notation]
 meta def «notation» (_ : parse $ tk "!ₘ[")
-  (entries : parse (entry_parser (parser.pexpr 1) <* tk "]") : parser pexpr :=
+  (entries : parse (entry_parser (parser.pexpr 1))) : parser pexpr :=
 -- | (sum.inl l) := do
 --   let m := l.length,
 --   h :: tl ← pure l,
@@ -121,6 +125,8 @@ meta def «notation» (_ : parse $ tk "!ₘ[")
 --   pure ``(@matrix.of (fin %%m) (fin %%n) _ %%rows)
 -- | (sum.inr n) :=
 --   pure ``(@matrix.of (fin 0) (fin %%n) _ (vec_empty))
+
+#exit
 
 end parser
 

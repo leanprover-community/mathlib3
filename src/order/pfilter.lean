@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mathieu Guay-Paquet
 -/
 import order.ideal
-import data.real.ennreal -- just for examples, can remove later
+
 /-!
 # Order filters
 

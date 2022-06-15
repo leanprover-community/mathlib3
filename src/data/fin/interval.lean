@@ -25,10 +25,6 @@ instance : Π n, locally_finite_order_top (fin n)
 | 0 := is_empty.to_locally_finite_order_top
 | (n + 1) := infer_instance
 
-instance : Π n, locally_finite_order_top (fin n)
-| 0 := infer_instance
-| (n + 1) := infer_instance
-
 namespace fin
 variables {n} (a b : fin n)
 

@@ -58,7 +58,7 @@ open wide_pullback
 open wide_pullback_shape
 
 lemma concrete.wide_pullback_ext {B : C} {ι : Type*} {X : ι → C} (f : Π j : ι, X j ⟶ B)
-  [has_wide_pullback B X f] [preserves_limit (wide_cospan B X f) (forget C)]
+  [has_wide_pullback.{v} B X f] [preserves_limit (wide_cospan B X f) (forget C)]
   (x y : wide_pullback B X f) (h₀ : base f x = base f y)
   (h : ∀ j, π f j x = π f j y) : x = y :=
 begin
@@ -69,7 +69,7 @@ begin
 end
 
 lemma concrete.wide_pullback_ext' {B : C} {ι : Type*} [nonempty ι]
-  {X : ι → C} (f : Π j : ι, X j ⟶ B) [has_wide_pullback B X f]
+  {X : ι → C} (f : Π j : ι, X j ⟶ B) [has_wide_pullback.{v} B X f]
   [preserves_limit (wide_cospan B X f) (forget C)]
   (x y : wide_pullback B X f) (h : ∀ j, π f j x = π f j y) : x = y :=
 begin
@@ -295,7 +295,7 @@ open wide_pushout
 open wide_pushout_shape
 
 lemma concrete.wide_pushout_exists_rep {B : C} {α : Type*} {X : α → C} (f : Π j : α, B ⟶ X j)
-  [has_wide_pushout B X f] [preserves_colimit (wide_span B X f) (forget C)]
+  [has_wide_pushout.{v} B X f] [preserves_colimit (wide_span B X f) (forget C)]
   (x : wide_pushout B X f) : (∃ y : B, head f y = x) ∨ (∃ (i : α) (y : X i), ι f i y = x) :=
 begin
   obtain ⟨_ | j, y, rfl⟩ := concrete.colimit_exists_rep _ x,
@@ -305,7 +305,7 @@ begin
 end
 
 lemma concrete.wide_pushout_exists_rep' {B : C} {α : Type*} [nonempty α] {X : α → C}
-  (f : Π j : α, B ⟶ X j) [has_wide_pushout B X f]
+  (f : Π j : α, B ⟶ X j) [has_wide_pushout.{v} B X f]
   [preserves_colimit (wide_span B X f) (forget C)] (x : wide_pushout B X f) :
   ∃ (i : α) (y : X i), ι f i y = x :=
 begin

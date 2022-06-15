@@ -155,7 +155,7 @@ def is_kernel_of_comp {W : C} (g : Y ⟶ W) (h : X ⟶ W) {c : kernel_fork h} (i
   (hf : c.ι ≫ f = 0) (hfg : f ≫ g = h) : is_limit (kernel_fork.of_ι c.ι hf) :=
 fork.is_limit.mk _
   (λ s, i.lift (kernel_fork.of_ι s.ι (by simp [← hfg])))
-  (λ s, by simp only [kernel_fork.ι_of_ι, fork.is_limit.lift_ι])
+  (λ s, by simp only [kernel_fork.ι_of_ι, fork.is_limit.lift_comp_ι])
   (λ s m h, by { apply fork.is_limit.hom_ext i, simpa using h })
 
 end
@@ -495,7 +495,7 @@ def is_cokernel_of_comp {W : C} (g : W ⟶ X) (h : W ⟶ Y) {c : cokernel_cofork
   (hf : f ≫ c.π = 0) (hfg : g ≫ f = h) : is_colimit (cokernel_cofork.of_π c.π hf) :=
 cofork.is_colimit.mk _
   (λ s, i.desc (cokernel_cofork.of_π s.π (by simp [← hfg])))
-  (λ s, by simp only [cokernel_cofork.π_of_π, cofork.is_colimit.π_desc])
+  (λ s, by simp only [cokernel_cofork.π_of_π, cofork.is_colimit.π_comp_desc])
   (λ s m h, by { apply cofork.is_colimit.hom_ext i, simpa using h })
 
 end

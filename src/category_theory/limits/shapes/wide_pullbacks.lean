@@ -24,7 +24,7 @@ Typeclasses `has_wide_pullbacks` and `has_finite_wide_pullbacks` assert the exis
 pullbacks and finite wide pullbacks.
 -/
 
-universes v u w
+universes w v u
 
 open category_theory category_theory.limits opposite
 
@@ -193,11 +193,11 @@ variables (C : Type u) [category.{v} C]
 
 /-- `has_wide_pullbacks` represents a choice of wide pullback for every collection of morphisms -/
 abbreviation has_wide_pullbacks : Prop :=
-Π (J : Type v), has_limits_of_shape (wide_pullback_shape J) C
+Π (J : Type w), has_limits_of_shape (wide_pullback_shape J) C
 
 /-- `has_wide_pushouts` represents a choice of wide pushout for every collection of morphisms -/
 abbreviation has_wide_pushouts : Prop :=
-Π (J : Type v), has_colimits_of_shape (wide_pushout_shape J) C
+Π (J : Type w), has_colimits_of_shape (wide_pushout_shape J) C
 
 variables {C J}
 

@@ -386,7 +386,7 @@ def preserves_finite_colimits_of_preserves_coequalizers_and_finite_coproducts
   [has_coequalizers C] [has_finite_coproducts.{w} C]
   (G : C ⥤ D) [preserves_colimits_of_shape walking_parallel_pair G]
   [∀ J [fintype J], preserves_colimits_of_shape (discrete.{w} J) G] :
-  preserves_finite_colimits.{w} G :=
+  preserves_finite_colimits_of_size.{w} G :=
 ⟨λ _ _ _, by exactI preserves_colimit_of_preserves_coequalizers_and_coproduct G⟩
 
 /-- If G preserves coequalizers and coproducts, it preserves all colimits. -/

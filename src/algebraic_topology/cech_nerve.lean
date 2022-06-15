@@ -36,12 +36,12 @@ variables {C : Type u} [category.{v} C]
 namespace category_theory.arrow
 
 variables (f : arrow C)
-variables [∀ n : ℕ, has_wide_pullback.{v u 0} f.right (λ i : fin (n+1), f.left) (λ i, f.hom)]
+variables [∀ n : ℕ, has_wide_pullback.{0} f.right (λ i : fin (n+1), f.left) (λ i, f.hom)]
 
 /-- The Čech nerve associated to an arrow. -/
 @[simps]
 def cech_nerve : simplicial_object C :=
-{ obj := λ n, wide_pullback.{v u 0} f.right
+{ obj := λ n, wide_pullback.{0} f.right
     (λ i : fin (n.unop.len + 1), f.left) (λ i, f.hom),
   map := λ m n g, wide_pullback.lift (wide_pullback.base _)
     (λ i, wide_pullback.π (λ i, f.hom) $ g.unop.to_order_hom i) $ λ j, by simp,

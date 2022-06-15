@@ -15,11 +15,10 @@ import category_theory.limits.constructions.equalizers
 Declare instances for limits in the over category: If `C` has finite wide pullbacks, `over B` has
 finite limits, and if `C` has arbitrary wide pullbacks then `over B` has limits.
 -/
-universes v u -- morphism levels before object levels. See note [category_theory universes].
+universes w v u -- morphism levels before object levels. See note [category_theory universes].
 
 open category_theory category_theory.limits
 
-variables {J : Type v} [small_category J]
 variables {C : Type u} [category.{v} C]
 variable {X : C}
 
@@ -31,7 +30,8 @@ example {B : C} [has_pullbacks C] : has_pullbacks (over B) := by apply_instance
 /-- Make sure we can derive equalizers in `over B`. -/
 example {B : C} [has_equalizers C] : has_equalizers (over B) := by apply_instance
 
-instance has_finite_limits {B : C} [has_finite_wide_pullbacks C] : has_finite_limits (over B) :=
+instance has_finite_limits {B : C} [has_finite_wide_pullbacks.{w} C] :
+  has_finite_limits_of_size.{w} (over B) :=
 begin
   apply @finite_limits_from_equalizers_and_finite_products _ _ _ _,
   { exact construct_products.over_finite_products_of_finite_wide_pullbacks, },
@@ -41,7 +41,7 @@ begin
     { apply_instance, } }
 end
 
-instance has_limits {B : C} [has_wide_pullbacks C] : has_limits (over B) :=
+instance has_limits {B : C} [has_wide_pullbacks.{w} C] : has_limits_of_size.{w} (over B) :=
 begin
   apply @limits_from_equalizers_and_products _ _ _ _,
   { exact construct_products.over_products_of_wide_pullbacks },

@@ -132,8 +132,7 @@ variables {K} (C)
 
 /-- The equivalence between `L →ₐ[K] C` and `primitive_roots n C` given by a primitive root `ζ`. -/
 @[simps] noncomputable def embeddings_equiv_primitive_roots (C : Type*) [comm_ring C] [is_domain C]
-  [algebra K C] [ne_zero ((n : ℕ) : K)]
-  (hirr : irreducible (cyclotomic n K)) : (L →ₐ[K] C) ≃ primitive_roots n C :=
+  [algebra K C] (hirr : irreducible (cyclotomic n K)) : (L →ₐ[K] C) ≃ primitive_roots n C :=
 ((hζ.power_basis K).lift_equiv).trans
 { to_fun    := λ x,
   begin

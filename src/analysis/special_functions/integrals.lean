@@ -199,7 +199,7 @@ begin
   simpa using h
 end
 
-lemma integral_cpow {a b : ℝ} {r : ℂ} (ha : 0 < a) (hb : 0 < b) (hr : r ≠ -1):
+lemma integral_cpow {r : ℂ} (ha : 0 < a) (hb : 0 < b) (hr : r ≠ -1) :
   ∫ (x : ℝ) in a..b, (x : ℂ) ^ r = (b ^ (r + 1) - a ^ (r + 1)) / (r + 1) :=
 begin
   suffices : ∀ x ∈ set.interval a b, has_deriv_at (λ x : ℝ, (x : ℂ) ^ (r + 1) / (r + 1)) (x ^ r) x,

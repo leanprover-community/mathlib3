@@ -607,7 +607,7 @@ iff.rfl
   M ⊨ φ.on_sentence ψ ↔ M ⊨ ψ :=
 φ.realize_on_formula ψ
 
-variables (M L)
+variables (L)
 
 /-- The complete theory of a structure `M` is the set of all sentences `M` satisfies. -/
 def complete_theory : L.Theory := { φ | M ⊨ φ }

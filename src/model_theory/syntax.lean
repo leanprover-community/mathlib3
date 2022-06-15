@@ -187,6 +187,14 @@ end⟩
 def constants_vars_equiv_left : L[[γ]].term (α ⊕ β) ≃ L.term ((γ ⊕ α) ⊕ β) :=
 constants_vars_equiv.trans (relabel_equiv (equiv.sum_assoc _ _ _)).symm
 
+@[simp] lemma constants_vars_equiv_left_apply (t : L[[γ]].term (α ⊕ β)) :
+  constants_vars_equiv_left t = (constants_to_vars t).relabel (equiv.sum_assoc _ _ _).symm :=
+rfl
+
+@[simp] lemma constants_vars_equiv_left_symm_apply (t : L.term ((γ ⊕ α) ⊕ β)) :
+  constants_vars_equiv_left.symm t = vars_to_constants (t.relabel (equiv.sum_assoc _ _ _)) :=
+rfl
+
 instance inhabited_of_var [inhabited α] : inhabited (L.term α) :=
 ⟨var default⟩
 

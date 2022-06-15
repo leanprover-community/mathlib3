@@ -436,14 +436,17 @@ begin
 end
 
 lemma realize_constants_vars_equiv [L[[α]].Structure M]
-  [h : (Lhom_with_constants L α).is_expansion_on M]
+  [(Lhom_with_constants L α).is_expansion_on M]
   {n} {φ : L[[α]].bounded_formula β n} {v : β → M} {xs : fin n → M} :
   (constants_vars_equiv φ).realize (sum.elim (λ a, ↑(L.con a)) v) xs ↔ φ.realize v xs :=
 begin
   refine realize_map_term_rel_id (λ n t xs, realize_constants_vars_equiv_left) (λ n R xs, _),
-  rw h.map_on_relation,
-
-
+  rw ← (Lhom_with_constants L α).map_on_relation M (equiv.sum_empty (L.relations n)
+    ((constants_on α).relations n) R) xs,
+  rcongr,
+  cases R,
+  { simp, },
+  { exact is_empty_elim R }
 end
 
 variables [nonempty M]

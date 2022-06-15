@@ -108,6 +108,12 @@ by simp only [mgf, zero_mul, real.exp_zero, integral_const, algebra.id.smul_eq_m
 @[simp] lemma cgf_zero : cgf X μ 0 = real.log (μ set.univ).to_real :=
 by simp only [cgf, mgf_zero]
 
+lemma mgf_undef (hX : ¬ integrable (λ ω, real.exp (t * X ω)) μ) : mgf X μ t = 0 :=
+by simp only [mgf, integral_undef hX]
+
+lemma cgf_undef (hX : ¬ integrable (λ ω, real.exp (t * X ω)) μ) : cgf X μ t = 0 :=
+by simp only [cgf, mgf_undef hX, real.log_zero]
+
 lemma mgf_nonneg : 0 ≤ mgf X μ t :=
 begin
   refine integral_nonneg _,

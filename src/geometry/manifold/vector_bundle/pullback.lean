@@ -16,18 +16,21 @@ noncomputable theory
 open bundle set topological_space topological_vector_bundle
 open_locale classical
 
-variables {𝕜 : Type*} {B V V' H H' : Type*}
+variables {𝕜 : Type*} {B B' VB VB' VE HB HB' HE : Type*}
 
 variables [nondiscrete_normed_field 𝕜]
-variables [normed_group V] [normed_space 𝕜 V] [normed_group V'] [normed_space 𝕜 V']
-variables [topological_space H] [topological_space H']
-variables (I : model_with_corners 𝕜 V H) (I' : model_with_corners 𝕜 V' H')
+variables [normed_group VB] [normed_space 𝕜 VB] [normed_group VB'] [normed_space 𝕜 VB']
+variables [normed_group VE] [normed_space 𝕜 VE]
+variables [topological_space HB] [topological_space HB'] [topological_space HE]
+variables (IB : model_with_corners 𝕜 VB HB) (IB' : model_with_corners 𝕜 VB' HB')
+variables (IE : model_with_corners 𝕜 VE HE)
 variables (F : Type*) (E : B → Type*)
 variables [∀ x, normed_group (E x)] [∀ x, normed_space 𝕜 (E x)]
 variables [normed_group F] [normed_space 𝕜 F]
-variables [topological_space B] [charted_space H B]
+variables [topological_space B] [charted_space HB B]
+variables [topological_space B'] [charted_space HB' B']
 
-variables [topological_space (total_space E)] [charted_space H' (total_space E)]
+variables [topological_space (total_space E)] [charted_space HE (total_space E)]
 -- variables [smooth_manifold_with_corners I' (total_space E)]
 
 instance [∀ (x : B), topological_space (E' x)] : ∀ (x : B'), topological_space ((f *ᵖ E') x) :=

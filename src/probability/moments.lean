@@ -93,6 +93,12 @@ by simp only [mgf, pi.zero_apply, mul_zero, real.exp_zero, integral_const, algeb
 @[simp] lemma cgf_zero_fun : cgf 0 μ t = real.log (μ set.univ).to_real :=
 by simp only [cgf, mgf_zero_fun]
 
+@[simp] lemma mgf_zero_measure : mgf X (0 : measure Ω) t = 0 :=
+by simp only [mgf, integral_zero_measure]
+
+@[simp] lemma cgf_zero_measure : cgf X (0 : measure Ω) t = 0 :=
+by simp only [cgf, real.log_zero, mgf_zero_measure]
+
 @[simp] lemma mgf_const (c : ℝ) : mgf (λ _, c) μ t = (μ set.univ).to_real * real.exp (t * c) :=
 by simp only [mgf, integral_const, algebra.id.smul_eq_mul]
 
@@ -164,11 +170,13 @@ begin
   exact indep_fun.comp h_indep h_meas h_meas,
 end
 
-lemma indep_fun.cgf_add (hμ : μ ≠ 0) {X Y : Ω → ℝ} (h_indep : indep_fun X Y μ)
+lemma indep_fun.cgf_add {X Y : Ω → ℝ} (h_indep : indep_fun X Y μ)
   (h_int_X : integrable (λ ω, real.exp (t * X ω)) μ)
   (h_int_Y : integrable (λ ω, real.exp (t * Y ω)) μ) :
   cgf (X + Y) μ t = cgf X μ t + cgf Y μ t :=
 begin
+  by_cases hμ : μ = 0,
+  { simp [hμ], },
   simp only [cgf, h_indep.mgf_add h_int_X h_int_Y],
   exact real.log_mul (mgf_pos hμ h_int_X).ne' (mgf_pos hμ h_int_Y).ne',
 end

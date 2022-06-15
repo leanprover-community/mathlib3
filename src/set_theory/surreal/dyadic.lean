@@ -82,9 +82,8 @@ end
 theorem pow_half_succ_lt_one (n : ℕ) : pow_half (n + 1) < 1 :=
 (pow_half_succ_lt_pow_half n).trans_le $ pow_half_le_one n
 
-theorem pow_half_pos : ∀ n, 0 < pow_half n
-| 0       := zero_lt_one
-| (n + 1) := lt_of (numeric_pow_half n.succ)
+theorem pow_half_pos (n) : 0 < pow_half n :=
+by simpa using (numeric_pow_half n).move_left_lt default
 
 theorem zero_le_pow_half (n : ℕ) : 0 ≤ pow_half n :=
 (pow_half_pos n).le

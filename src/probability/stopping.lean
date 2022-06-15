@@ -737,6 +737,17 @@ lemma le_measurable_space_of_const_le (hτ : is_stopping_time f τ) {i : ι} (h�
   f i ≤ hτ.measurable_space :=
 (measurable_space_const _ _).symm.le.trans (measurable_space_mono _ hτ hτ_le)
 
+instance sigma_finite_stopping_time [order_bot ι]
+  [(filter.at_top : filter ι).is_countably_generated]
+  [sigma_finite_filtration μ f] (hτ : is_stopping_time f τ) :
+  sigma_finite (μ.trim hτ.measurable_space_le) :=
+begin
+  refine sigma_finite_trim_mono hτ.measurable_space_le _,
+  { exact f ⊥, },
+  { exact hτ.le_measurable_space_of_const_le (λ _, bot_le), },
+  { apply_instance, },
+end
+
 end preorder
 
 section linear_order

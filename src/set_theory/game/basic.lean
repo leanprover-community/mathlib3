@@ -591,7 +591,7 @@ theorem inv_eq_of_pos {x : pgame} (h : 0 < x) : x⁻¹ = inv' x :=
 (if_neg h.lf.not_equiv').trans (if_pos h)
 
 theorem inv_eq_of_lf_zero {x : pgame} (h : x ⧏ 0) : x⁻¹ = -inv' (-x) :=
-(if_neg h.not_equiv).trans (if_neg h.not_lt)
+(if_neg h.not_equiv).trans (if_neg h.not_gt)
 
 /-- `1⁻¹` has exactly the same moves as `1`. -/
 def inv_one : relabelling (1 : pgame)⁻¹ 1 :=

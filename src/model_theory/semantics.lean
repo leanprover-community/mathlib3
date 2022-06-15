@@ -607,10 +607,6 @@ iff.rfl
   M ⊨ φ.on_sentence ψ ↔ M ⊨ ψ :=
 φ.realize_on_formula ψ
 
-variables {M}
-
-@[simp] lemma mem_complete_theory {φ : sentence L} : φ ∈ L.complete_theory M ↔ M ⊨ φ := iff.rfl
-
 variables (M L)
 
 /-- The complete theory of a structure `M` is the set of all sentences `M` satisfies. -/
@@ -625,6 +621,8 @@ localized "notation A ` ≅[`:25 L `] ` B:50 := first_order.language.elementaril
   in first_order
 
 variables {L} {M} {N}
+
+@[simp] lemma mem_complete_theory {φ : sentence L} : φ ∈ L.complete_theory M ↔ M ⊨ φ := iff.rfl
 
 lemma elementarily_equivalent_iff : M ≅[L] N ↔ ∀ φ : L.sentence, M ⊨ φ ↔ N ⊨ φ :=
 by simp only [elementarily_equivalent, set.ext_iff, complete_theory, set.mem_set_of_eq]

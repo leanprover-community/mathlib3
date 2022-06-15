@@ -177,11 +177,11 @@ lt_of_lf (lf_of_left x) ox ox.of_left
 theorem numeric.of_right_lt {x} (ox : numeric x) : P{| x} < x :=
 lt_of_lf (of_right_lf x) ox.of_right ox
 
-theorem lt_of {x y} (ox : numeric x) (oy : numeric y) (h : x < y) : x < P{x | y} :=
-lt_of_lf (lf_of x y) ox (numeric_of_of_lt ox oy h)
+theorem lt_of {x y} (h : numeric P{x | y}) : x < P{x | y} :=
+lt_of_lf (lf_of x y) (h.move_left default) h
 
-theorem of_lt {x y} (ox : numeric x) (oy : numeric y) (h : x < y) : P{x | y} < y :=
-lt_of_lf (of_lf x y) (numeric_of_of_lt ox oy h) oy
+theorem of_lt {x y} (h : numeric P{x | y}) : P{x | y} < y :=
+lt_of_lf (of_lf x y) (h.move_right default) h
 
 theorem numeric_one : numeric 1 := numeric_zero.of_left
 

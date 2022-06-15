@@ -31,7 +31,7 @@ local infix ` ≈ ` := pgame.equiv
 namespace pgame
 
 /-- For a natural number `n`, the pre-game `pow_half (n + 1)` is recursively defined as
-`{0 | pow_half n}`. These are the explicit expressions of powers of `1 / 2`. By definition, we have
+`P{0 | pow_half n}`. These are the explicit expressions of powers of `1 / 2`. By definition, we have
 `pow_half 0 = 1` and `pow_half 1 ≈ 1 / 2` and we prove later on that
 `pow_half (n + 1) + pow_half (n + 1) ≈ pow_half n`. -/
 def pow_half : ℕ → pgame
@@ -82,7 +82,7 @@ theorem pow_half_succ_lt_one (n : ℕ) : pow_half (n + 1) < 1 :=
 (pow_half_succ_lt_pow_half n).trans_le $ pow_half_le_one n
 
 theorem pow_half_pos (n : ℕ) : 0 < pow_half n :=
-by { rw [←lf_iff_lt numeric_zero (numeric_pow_half n)], apply lf_of }
+lt_of (numeric_pow_half n)
 
 theorem zero_le_pow_half (n : ℕ) : 0 ≤ pow_half n :=
 (pow_half_pos n).le

@@ -52,7 +52,7 @@ lemma interval_integrable_rpow {r : ℝ} (h : 0 ≤ r ∨ (0 : ℝ) ∉ [a, b]) 
   interval_integrable (λ x, x ^ r) μ a b :=
 (continuous_on_id.rpow_const $ λ x hx, h.symm.imp (ne_of_mem_of_not_mem hx) id).interval_integrable
 
-lemma interval_integrable_cpow {a b : ℝ} {r : ℂ} (ha : 0 < a) (hb : 0 < b):
+lemma interval_integrable_cpow {r : ℂ} (ha : 0 < a) (hb : 0 < b) :
   interval_integrable (λ x : ℝ, (x : ℂ) ^ r) volume a b :=
 begin
   refine (complex.continuous_of_real.continuous_on.cpow_const _).interval_integrable,

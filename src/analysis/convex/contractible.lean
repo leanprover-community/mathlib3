@@ -16,7 +16,7 @@ topological space.
 variables {E : Type*} [add_comm_group E] [module ℝ E] [topological_space E]
   [has_continuous_add E] [has_continuous_smul ℝ E] {s : set E} {x : E}
 
-/-- A nonempty star convex set is a contractible space. -/
+/-- A non-empty star convex set is a contractible space. -/
 protected lemma star_convex.contractible_space (h : star_convex ℝ x s) (hne : s.nonempty) :
   contractible_space s :=
 begin
@@ -31,7 +31,7 @@ begin
   { ext1, simp }
 end
 
-/-- A nonempty convex set is a contractible space. -/
+/-- A non-empty convex set is a contractible space. -/
 protected lemma convex.contractible_space (hs : convex ℝ s) (hne : s.nonempty) :
   contractible_space s :=
 let ⟨x, hx⟩ := hne in (hs.star_convex hx).contractible_space hne

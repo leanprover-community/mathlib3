@@ -65,7 +65,7 @@ end
 theorem sup_congr {f g : β → α} (hs : s₁ = s₂) (hfg : ∀a∈s₂, f a = g a) : s₁.sup f = s₂.sup g :=
 by subst hs; exact finset.fold_congr hfg
 
-@[simp] lemma sup_le_iff {a : α} : s.sup f ≤ a ↔ (∀b ∈ s, f b ≤ a) :=
+@[simp] protected lemma sup_le_iff {a : α} : s.sup f ≤ a ↔ (∀b ∈ s, f b ≤ a) :=
 begin
   apply iff.trans multiset.sup_le,
   simp only [multiset.mem_map, and_imp, exists_imp_distrib],
@@ -77,7 +77,7 @@ end
 eq_of_forall_ge_iff $ λ c, by simp [@forall_swap _ β]
 
 lemma sup_const {s : finset β} (h : s.nonempty) (c : α) : s.sup (λ _, c) = c :=
-eq_of_forall_ge_iff $ λ b, sup_le_iff.trans h.forall_const
+eq_of_forall_ge_iff $ λ b, finset.sup_le_iff.trans h.forall_const
 
 @[simp] lemma sup_bot (s : finset β) : s.sup (λ _, ⊥) = (⊥ : α) :=
 begin
@@ -92,10 +92,10 @@ lemma sup_ite (p : β → Prop) [decidable_pred p] :
 fold_ite _
 
 lemma sup_le {a : α} : (∀b ∈ s, f b ≤ a) → s.sup f ≤ a :=
-sup_le_iff.2
+finset.sup_le_iff.2
 
 lemma le_sup {b : β} (hb : b ∈ s) : f b ≤ s.sup f :=
-sup_le_iff.1 le_rfl _ hb
+finset.sup_le_iff.1 le_rfl _ hb
 
 lemma sup_mono_fun {g : β → α} (h : ∀b∈s, f b ≤ g b) : s.sup f ≤ s.sup g :=
 sup_le (λ b hb, le_trans (h b hb) (le_sup hb))
@@ -107,7 +107,7 @@ lemma sup_comm (s : finset β) (t : finset γ) (f : β → γ → α) :
   s.sup (λ b, t.sup (f b)) = t.sup (λ c, s.sup (λ b, f b c)) :=
 begin
   refine eq_of_forall_ge_iff (λ a, _),
-  simp_rw sup_le_iff,
+  simp_rw finset.sup_le_iff,
   exact ⟨λ h c hc b hb, h b hb c hc, λ h b hb c hc, h c hc b hb⟩,
 end
 
@@ -198,7 +198,7 @@ begin
     -- z ∈ s is above x and y
     obtain ⟨z, hzs, ⟨hxz, hyz⟩⟩ := hdir x hxs y hys,
     use [z, hzs],
-    rw [sup_insert, id.def, _root_.sup_le_iff],
+    rw [sup_insert, id.def, sup_le_iff],
     exact ⟨le_trans hay hyz, le_trans hsx_sup hxz⟩, },
 end
 
@@ -292,7 +292,7 @@ lemma inf_const {s : finset β} (h : s.nonempty) (c : α) : s.inf (λ _, c) = c 
 @[simp] lemma inf_top (s : finset β) : s.inf (λ _, ⊤) = (⊤ : α) := @sup_bot αᵒᵈ _ _ _ _
 
 lemma le_inf_iff {a : α} : a ≤ s.inf f ↔ ∀ b ∈ s, a ≤ f b :=
-@sup_le_iff αᵒᵈ _ _ _ _ _ _
+@finset.sup_le_iff αᵒᵈ _ _ _ _ _ _
 
 lemma inf_le {b : β} (hb : b ∈ s) : s.inf f ≤ f b :=
 le_inf_iff.1 le_rfl _ hb

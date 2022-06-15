@@ -435,6 +435,28 @@ begin
   { simp [restrict_free_var, realize, ih3] },
 end
 
+lemma realize_constants_vars_equiv [L[[α]].Structure M]
+  [h : (Lhom_with_constants L α).is_expansion_on M]
+  {n} {φ : L[[α]].bounded_formula β n} {v : β → M} {xs : fin n → M} :
+  (constants_vars_equiv φ).realize (sum.elim (λ a, ↑(L.con a)) v) xs ↔ φ.realize v xs :=
+begin
+  refine realize_map_term_rel_id (λ n t xs, realize_constants_vars_equiv_left) (λ n R xs, _),
+  rw h.map_on_relation,
+
+
+end
+
+@[simp] lemma realize_vars_to_constants [L[[α]].Structure M]
+  [(Lhom_with_constants L α).is_expansion_on M]
+  {t : L.term (α ⊕ β)} {v : β → M} :
+  t.vars_to_constants.realize v = t.realize (sum.elim (λ a, ↑(L.con a)) v) :=
+begin
+  induction t with ab n f ts ih,
+  { cases ab;
+    simp [language.con], },
+  { simp [ih], }
+end
+
 variables [nonempty M]
 
 lemma realize_all_lift_at_one_self {n : ℕ} {φ : L.bounded_formula α n}

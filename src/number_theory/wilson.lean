@@ -29,16 +29,12 @@ namespace nat
 lemma wilsons_theorem_only_if_direction
   {n : ℕ} (h : ((n - 1)! : zmod n) = -1) (h1 : 1 < n) : prime n :=
 begin
-  have hn_divides : n ∣ (n-1)! + 1,
-  { rw [←zmod.nat_coe_zmod_eq_zero_iff_dvd, cast_add, cast_one, h, add_left_neg] },
-
   by_contradiction h2,
-  obtain ⟨m, hm1, hm2, hm3⟩ := exists_dvd_of_not_prime2 h1 h2,
+  obtain ⟨m, hm1, hm2 : 1 < m, hm3⟩ := exists_dvd_of_not_prime2 h1 h2,
   rw [lt_iff_add_one_le, nat.add_le_to_le_sub m h1.le] at hm3,
-  have hm_divides_fact : m ∣ (n-1)! := nat.dvd_factorial (pos_of_gt hm2) hm3,
-  have m_is_one : m = 1 :=
-  nat.dvd_one.mp ((nat.dvd_add_right hm_divides_fact).mp (hm1.trans hn_divides)),
-  linarith,
+  replace hm3 := nat.dvd_factorial (pos_of_gt hm2) hm3,
+  refine hm2.ne' (nat.dvd_one.mp ((nat.dvd_add_right hm3).mp (hm1.trans _))),
+  rw [←zmod.nat_coe_zmod_eq_zero_iff_dvd, cast_add, cast_one, h, add_left_neg],
 end
 
 /-- **Wilson's Theorem**: For `n > 1`, `(n-1)!` is congruent to `-1` modulo `n` iff n is prime. --/

@@ -625,6 +625,20 @@ lemma nhds_translation_mul_inv (x : G) : comap (λ y : G, y * x⁻¹) (𝓝 1) =
 
 @[to_additive] lemma map_mul_left_nhds_one (x : G) : map ((*) x) (𝓝 1) = 𝓝 x := by simp
 
+/-- A monoid homomorphism (a bundled morphism of a type that implements `monoid_hom_class`) from a
+topological group to a topological monoid is continuous provided that it is continuous at one. See
+also `uniform_continuous_of_continuous_at_one`. -/
+@[to_additive "An additive monoid homomorphism (a bundled morphism of a type that implements
+`add_monoid_hom_class`) from an additive topological group to an additive topological monoid is
+continuous provided that it is continuous at zero. See also
+`uniform_continuous_of_continuous_at_zero`."]
+lemma continuous_of_continuous_at_one {M hom : Type*} [mul_one_class M] [topological_space M]
+  [has_continuous_mul M] [monoid_hom_class hom G M] (f : hom) (hf : continuous_at f 1) :
+  continuous f :=
+continuous_iff_continuous_at.2 $ λ x,
+  by simpa only [continuous_at, ← map_mul_left_nhds_one x, tendsto_map'_iff, (∘),
+    map_mul, map_one, mul_one] using hf.tendsto.const_mul (f x)
+
 @[to_additive]
 lemma topological_group.ext {G : Type*} [group G] {t t' : topological_space G}
   (tg : @topological_group G t _) (tg' : @topological_group G t' _)

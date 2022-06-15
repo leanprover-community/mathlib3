@@ -177,15 +177,9 @@ instance : has_ordered_sub (Π₀ i, α i) :=
 ⟨λ n m k, forall_congr $ λ i, by { rw [add_apply, tsub_apply], exact tsub_le_iff_right }⟩
 
 instance : canonically_ordered_add_monoid (Π₀ i, α i) :=
-{ le_iff_exists_add := λ f g, begin
-      refine ⟨λ h, ⟨g - f, _⟩, _⟩,
-      { ext i,
-        rw [add_apply, tsub_apply],
-        exact (add_tsub_cancel_of_le $ h i).symm },
-      { rintro ⟨g, rfl⟩ i,
-        rw add_apply,
-        exact self_le_add_right (f i) (g i) }
-    end,
+{ exists_add_of_le := λ f g h, ⟨g - f,
+    by { ext i, rw [add_apply, tsub_apply], exact (add_tsub_cancel_of_le $ h i).symm }⟩,
+  le_self_add := λ f g i, by { rw add_apply, exact le_self_add },
  .. dfinsupp.order_bot α,
  .. dfinsupp.ordered_add_comm_monoid α }
 

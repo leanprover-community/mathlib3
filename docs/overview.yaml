@@ -158,6 +158,8 @@ Linear algebra:
     finite-dimensionality : 'finite_dimensional'
     isomorphism with $K^n$: 'basis.equiv_fun'
     isomorphism with bidual: 'module.eval_equiv'
+  Finitely generated modules over a PID:
+    structure theorem: 'module.equiv_free_prod_direct_sum'
   Matrices:
     ring-valued matrix: 'matrix'
     matrix representation of a linear map: 'linear_map.to_matrix'
@@ -424,3 +426,5 @@ Logic and computation:
     definable set: 'set.definable'
     elementary embedding: 'first_order.language.elementary_embedding'
     Compactness theorem: 'first_order.language.Theory.is_satisfiable_iff_is_finitely_satisfiable'
+    Downward Löwenheim-Skolem: 'first_order.language.exists_elementary_substructure_card_eq'
+    Upward Löwenheim-Skolem: 'first_order.language.Theory.exists_elementary_embedding_card_eq'

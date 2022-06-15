@@ -77,7 +77,7 @@ by { rintro ⟨x⟩ ⟨y⟩, exact pgame.not_le }
 
 /-- On `game`, simp-normal inequalities should use as few negations as possible. -/
 @[simp] theorem not_lf : ∀ {x y : game}, ¬ x ⧏ y ↔ y ≤ x :=
-by { rintro ⟨x⟩ ⟨y⟩, exact pgame.not_lf }
+by { rintro ⟨x⟩ ⟨y⟩, exact not_lf }
 
 instance : is_trichotomous game (⧏) :=
 ⟨by { rintro ⟨x⟩ ⟨y⟩, change _ ∨ ⟦x⟧ = ⟦y⟧ ∨ _, rw quotient.eq, apply lf_or_equiv_or_gf }⟩

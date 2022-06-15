@@ -62,9 +62,8 @@ lemma gram_schmidt_def' (f : ι → E) (n : ι):
     orthogonal_projection (𝕜 ∙ gram_schmidt 𝕜 f i) (f n) :=
 by rw [gram_schmidt_def, sub_add_cancel]
 
-@[simp] lemma gram_schmidt_zero (f : ι → E) :
-  gram_schmidt 𝕜 f ⊥ = f ⊥ :=
-by rw [gram_schmidt_def, Iio, finset.Ico_self, finset.sum_empty, sub_zero]
+@[simp] lemma gram_schmidt_zero (f : ι → E) : gram_schmidt 𝕜 f ⊥ = f ⊥ :=
+by rw [gram_schmidt_def, Iio_eq_Ico, finset.Ico_self, finset.sum_empty, sub_zero]
 
 /-- **Gram-Schmidt Orthogonalisation**:
 `gram_schmidt` produces an orthogonal system of vectors. -/

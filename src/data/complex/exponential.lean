@@ -553,7 +553,7 @@ begin
       ring_hom.map_div, conj_bit0, ring_hom.map_one]
 end
 
-@[simp] lemma of_real_cosh_of_real_re (x : ℝ) : ((cosh x).re : ℂ) = cosh x :=
+lemma of_real_cosh_of_real_re (x : ℝ) : ((cosh x).re : ℂ) = cosh x :=
 eq_conj_iff_re.1 $ by rw [← cosh_conj, conj_of_real]
 
 @[simp, norm_cast] lemma of_real_cosh (x : ℝ) : (real.cosh x : ℂ) = cosh x :=
@@ -562,7 +562,7 @@ of_real_cosh_of_real_re _
 @[simp] lemma cosh_of_real_im (x : ℝ) : (cosh x).im = 0 :=
 by rw [← of_real_cosh_of_real_re, of_real_im]
 
-lemma cosh_of_real_re (x : ℝ) : (cosh x).re = real.cosh x := rfl
+@[simp] lemma cosh_of_real_re (x : ℝ) : (cosh x).re = real.cosh x := rfl
 
 lemma tanh_eq_sinh_div_cosh : tanh x = sinh x / cosh x := rfl
 
@@ -584,18 +584,27 @@ by rw [← of_real_tanh_of_real_re, of_real_im]
 
 lemma tanh_of_real_re (x : ℝ) : (tanh x).re = real.tanh x := rfl
 
-lemma cosh_add_sinh : cosh x + sinh x = exp x :=
+@[simp] lemma cosh_add_sinh : cosh x + sinh x = exp x :=
 by rw [← mul_right_inj' (@two_ne_zero' ℂ _ _ _), mul_add,
        two_cosh, two_sinh, add_add_sub_cancel, two_mul]
 
-lemma sinh_add_cosh : sinh x + cosh x = exp x :=
+@[simp] lemma sinh_add_cosh : sinh x + cosh x = exp x :=
 by rw [add_comm, cosh_add_sinh]
 
-lemma cosh_sub_sinh : cosh x - sinh x = exp (-x) :=
+@[simp] lemma exp_sub_cosh : exp x - cosh x = sinh x :=
+sub_eq_iff_eq_add.2 (sinh_add_cosh x).symm
+
+@[simp] lemma exp_sub_sinh : exp x - sinh x = cosh x :=
+sub_eq_iff_eq_add.2 (cosh_add_sinh x).symm
+
+@[simp] lemma cosh_sub_sinh : cosh x - sinh x = exp (-x) :=
 by rw [← mul_right_inj' (@two_ne_zero' ℂ _ _ _), mul_sub,
        two_cosh, two_sinh, add_sub_sub_cancel, two_mul]
 
-lemma cosh_sq_sub_sinh_sq : cosh x ^ 2 - sinh x ^ 2 = 1 :=
+@[simp] lemma sinh_sub_cosh : sinh x - cosh x = -exp (-x) :=
+by rw [← neg_sub, cosh_sub_sinh]
+
+@[simp] lemma cosh_sq_sub_sinh_sq : cosh x ^ 2 - sinh x ^ 2 = 1 :=
 by rw [sq_sub_sq, cosh_add_sinh, cosh_sub_sinh, ← exp_add, add_neg_self, exp_zero]
 
 lemma cosh_sq : cosh x ^ 2 = sinh x ^ 2 + 1 :=
@@ -1085,14 +1094,13 @@ eq_div_of_mul_eq two_ne_zero $ by rw [cosh, exp, exp, complex.of_real_neg, compl
 
 @[simp] lemma cosh_zero : cosh 0 = 1 := by simp [cosh]
 
-@[simp] lemma cosh_neg : cosh (-x) = cosh x :=
-by simp [cosh]
+@[simp] lemma cosh_neg : cosh (-x) = cosh x := of_real_inj.1 $ by simp
 
 @[simp] lemma cosh_abs : cosh (|x|) = cosh x :=
 by cases le_total x 0; simp [*, _root_.abs_of_nonneg, abs_of_nonpos]
 
 lemma cosh_add : cosh (x + y) = cosh x * cosh y + sinh x * sinh y :=
-by rw ← of_real_inj; simp [cosh, cosh_add]
+by rw ← of_real_inj; simp [cosh_add]
 
 lemma sinh_sub : sinh (x - y) = sinh x * cosh y - cosh x * sinh y :=
 by simp [sub_eq_add_neg, sinh_add, sinh_neg, cosh_neg]
@@ -1107,17 +1115,32 @@ of_real_inj.1 $ by simp [tanh_eq_sinh_div_cosh]
 
 @[simp] lemma tanh_neg : tanh (-x) = -tanh x := by simp [tanh, neg_div]
 
-lemma cosh_add_sinh : cosh x + sinh x = exp x :=
-by rw ← of_real_inj; simp [cosh_add_sinh]
+@[simp] lemma cosh_add_sinh : cosh x + sinh x = exp x :=
+by rw ← of_real_inj; simp
 
-lemma sinh_add_cosh : sinh x + cosh x = exp x :=
-by rw ← of_real_inj; simp [sinh_add_cosh]
+@[simp] lemma sinh_add_cosh : sinh x + cosh x = exp x :=
+by rw [add_comm, cosh_add_sinh]
 
-lemma cosh_sq_sub_sinh_sq (x : ℝ) : cosh x ^ 2 - sinh x ^ 2 = 1 :=
-by rw ← of_real_inj; simp [cosh_sq_sub_sinh_sq]
+@[simp] lemma exp_sub_cosh : exp x - cosh x = sinh x :=
+sub_eq_iff_eq_add.2 (sinh_add_cosh x).symm
+
+@[simp] lemma exp_sub_sinh : exp x - sinh x = cosh x :=
+sub_eq_iff_eq_add.2 (cosh_add_sinh x).symm
+
+@[simp] lemma cosh_sub_sinh : cosh x - sinh x = exp (-x) :=
+by { rw [← of_real_inj], simp }
+
+@[simp] lemma sinh_sub_cosh : sinh x - cosh x = -exp (-x) :=
+by rw [← neg_sub, cosh_sub_sinh]
+
+@[simp] lemma cosh_sq_sub_sinh_sq (x : ℝ) : cosh x ^ 2 - sinh x ^ 2 = 1 :=
+by rw ← of_real_inj; simp
 
 lemma cosh_sq : cosh x ^ 2 = sinh x ^ 2 + 1 :=
 by rw ← of_real_inj; simp [cosh_sq]
+
+lemma cosh_sq' : cosh x ^ 2 = 1 + sinh x ^ 2 :=
+(cosh_sq x).trans (add_comm _ _)
 
 lemma sinh_sq : sinh x ^ 2 = cosh x ^ 2 - 1 :=
 by rw ← of_real_inj; simp [sinh_sq]
@@ -1197,6 +1220,9 @@ exp_zero ▸ exp_le_exp
 /-- `real.cosh` is always positive -/
 lemma cosh_pos (x : ℝ) : 0 < real.cosh x :=
 (cosh_eq x).symm ▸ half_pos (add_pos (exp_pos x) (exp_pos (-x)))
+
+lemma sinh_lt_cosh : sinh x < cosh x :=
+lt_of_pow_lt_pow 2 (cosh_pos _).le $ (cosh_sq x).symm ▸ lt_add_one _
 
 end real
 

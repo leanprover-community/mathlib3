@@ -9,8 +9,6 @@ import group_theory.perm.basic
 import group_theory.quotient_group
 import algebra.category.Group.basic
 
-noncomputable theory
-
 /-!
 # Monomorphisms and epimorphism in `Group` and `CommGroup`
 In this file, we prove monomorphisms in category of group are injective homomorphisms and
@@ -146,12 +144,12 @@ local notation `X'` := X_with_infinity f
 local notation `⊙` := X_with_infinity.infinity
 local notation `SX'` := equiv.perm X'
 
-instance : decidable_eq X' := classical.dec_eq _
+noncomputable instance : decidable_eq X' := classical.dec_eq _
 
 /--
 Let `τ` be the permutation on `X'` exchanging `f.range` and the point at infinity.
 -/
-def tau : SX' := equiv.swap
+noncomputable def tau : SX' := equiv.swap
 (from_coset ⟨f.range.carrier, ⟨1, one_left_coset _⟩⟩) ⊙
 
 local notation `τ` := tau f

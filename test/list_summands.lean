@@ -20,37 +20,3 @@ open tactic
   guard $ ops = [`(1), `(2), `(3)]
 
 end tactic
-
-section expr
-open expr
-
--- this fails
--- #eval show tactic unit, from do
---   let ops := list_summands
---     `(@has_add.add _ (add_zero_class.to_has_add _) 1 $
---         @has_add.add _ (add_semigroup.to_has_add _) 2 3),
---   guard $ ops = [`(1), `(2), `(3)]
-
--- this fails
--- #eval show tactic unit, from do
---    let ops := list_factors
---      `(@has_mul.mul _ (mul_one_class.to_has_mul _) 1 $
---         @has_mul.mul _ (semigroup.to_has_mul _) 2 3),
---   guard $ ops = [`(1), `(2), `(3)]
-
-def a : fin 2 → fin 2 → ℕ := λ _ _, 0
-
-#eval show tactic unit, from do
-  let ops := list_factors `(a * a),
-  guard $ ops = [`(a), `(a)]
-
--- if the operation are actually different, always use the outermost one
-#eval show tactic unit, from do
-  let ops := list_factors `(a * (a * a : matrix _ _ ℕ)),
-  guard $ ops = [`(a), `(a * a : matrix _ _ ℕ)]
-
-#eval show tactic unit, from do
-  let ops := list_factors `(a * (a * a : _) : matrix _ _ ℕ),
-  guard $ ops = [`(a), `(a * a)]
-
-end expr

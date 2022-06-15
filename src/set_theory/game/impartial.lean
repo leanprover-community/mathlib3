@@ -200,8 +200,8 @@ end
 lemma good_left_move_iff_first_wins (G : pgame) [G.impartial] :
   (∃ (i : G.left_moves), (G.move_left i).first_loses) ↔ G.first_wins :=
 begin
-  refine ⟨λ ⟨i, hi⟩, (first_wins_symm' G).2 (lf_of_forall_le $ or.inl ⟨i, hi.2⟩), λ hn, _⟩,
-  rw [first_wins_symm' G, lf_iff_forall_le] at hn,
+  refine ⟨λ ⟨i, hi⟩, (first_wins_symm' G).2 (lf_of_exists_le $ or.inl ⟨i, hi.2⟩), λ hn, _⟩,
+  rw [first_wins_symm' G, lf_iff_exists_le] at hn,
   rcases hn with ⟨i, hi⟩ | ⟨j, _⟩,
   { exact ⟨i, (first_loses_symm' _).2 hi⟩ },
   { exact pempty.elim j }
@@ -210,8 +210,8 @@ end
 lemma good_right_move_iff_first_wins (G : pgame) [G.impartial] :
   (∃ j : G.right_moves, (G.move_right j).first_loses) ↔ G.first_wins :=
 begin
-  refine ⟨λ ⟨j, hj⟩, (first_wins_symm G).2 (lf_of_forall_le $ or.inr ⟨j, hj.1⟩), λ hn, _⟩,
-  rw [first_wins_symm G, lf_iff_forall_le] at hn,
+  refine ⟨λ ⟨j, hj⟩, (first_wins_symm G).2 (lf_of_exists_le $ or.inr ⟨j, hj.1⟩), λ hn, _⟩,
+  rw [first_wins_symm G, lf_iff_exists_le] at hn,
   rcases hn with ⟨i, _⟩ | ⟨j, hj⟩,
   { exact pempty.elim i },
   { exact ⟨j, (first_loses_symm _).2 hj⟩ }

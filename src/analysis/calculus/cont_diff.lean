@@ -6,6 +6,7 @@ Authors: Sébastien Gouëzel
 import analysis.calculus.mean_value
 import analysis.normed_space.multilinear
 import analysis.calculus.formal_multilinear_series
+import tactic.congrm
 
 /-!
 # Higher differentiability
@@ -1027,8 +1028,7 @@ theorem cont_diff_on_succ_iff_fderiv_of_open {n : ℕ} (hs : is_open s) :
   differentiable_on 𝕜 f s ∧ cont_diff_on 𝕜 n (λ y, fderiv 𝕜 f y) s :=
 begin
   rw cont_diff_on_succ_iff_fderiv_within hs.unique_diff_on,
-  congr' 2,
-  rw ← iff_iff_eq,
+  congrm _ ∧ _,
   apply cont_diff_on_congr,
   assume x hx,
   exact fderiv_within_of_open hs hx
@@ -1059,8 +1059,7 @@ theorem cont_diff_on_top_iff_fderiv_of_open (hs : is_open s) :
   differentiable_on 𝕜 f s ∧ cont_diff_on 𝕜 ∞ (λ y, fderiv 𝕜 f y) s :=
 begin
   rw cont_diff_on_top_iff_fderiv_within hs.unique_diff_on,
-  congr' 2,
-  rw ← iff_iff_eq,
+  congrm _ ∧ _,
   apply cont_diff_on_congr,
   assume x hx,
   exact fderiv_within_of_open hs hx
@@ -2978,8 +2977,7 @@ theorem cont_diff_on_succ_iff_deriv_of_open {n : ℕ} (hs : is_open s₂) :
   differentiable_on 𝕜 f₂ s₂ ∧ cont_diff_on 𝕜 n (deriv f₂) s₂ :=
 begin
   rw cont_diff_on_succ_iff_deriv_within hs.unique_diff_on,
-  congr' 2,
-  rw ← iff_iff_eq,
+  congrm _ ∧ _,
   apply cont_diff_on_congr,
   assume x hx,
   exact deriv_within_of_open hs hx
@@ -3010,8 +3008,7 @@ theorem cont_diff_on_top_iff_deriv_of_open (hs : is_open s₂) :
   differentiable_on 𝕜 f₂ s₂ ∧ cont_diff_on 𝕜 ∞ (deriv f₂) s₂ :=
 begin
   rw cont_diff_on_top_iff_deriv_within hs.unique_diff_on,
-  congr' 2,
-  rw ← iff_iff_eq,
+  congrm _ ∧ _,
   apply cont_diff_on_congr,
   assume x hx,
   exact deriv_within_of_open hs hx

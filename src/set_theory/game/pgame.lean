@@ -1448,7 +1448,4 @@ instance : zero_le_one_class pgame :=
 @[simp] theorem zero_lt_one : (0 : pgame) < 1 :=
 lt_of_le_of_lf zero_le_one zero_lf_one
 
-@[simp] theorem zero_lf_one : (0 : pgame) ⧏ 1 :=
-zero_lt_one.lf
-
 end pgame

@@ -14,6 +14,7 @@ of characteristic zero. The result that the complex numbers are algebraically cl
 -/
 
 open_locale big_operators
+open set function
 
 /-! ### Definition and basic arithmmetic -/
 
@@ -45,6 +46,12 @@ theorem ext : ∀ {z w : ℂ}, z.re = w.re → z.im = w.im → z = w
 
 theorem ext_iff {z w : ℂ} : z = w ↔ z.re = w.re ∧ z.im = w.im :=
 ⟨λ H, by simp [H], and.rec ext⟩
+
+theorem re_surjective : surjective re := λ x, ⟨⟨x, 0⟩, rfl⟩
+theorem im_surjective : surjective im := λ y, ⟨⟨0, y⟩, rfl⟩
+
+@[simp] theorem range_re : range re = univ := re_surjective.range_eq
+@[simp] theorem range_im : range im = univ := im_surjective.range_eq
 
 instance : has_coe ℝ ℂ := ⟨λ r, ⟨r, 0⟩⟩
 
@@ -274,6 +281,10 @@ by { ext; simp [norm_sq, mul_comm], }
 lemma norm_sq_nonneg (z : ℂ) : 0 ≤ norm_sq z :=
 add_nonneg (mul_self_nonneg _) (mul_self_nonneg _)
 
+@[simp] lemma range_norm_sq : range norm_sq = Ici 0 :=
+subset.antisymm (range_subset_iff.2 norm_sq_nonneg) $ λ x hx,
+  ⟨real.sqrt x, by rw [norm_sq_of_real, real.mul_self_sqrt hx]⟩
+
 lemma norm_sq_eq_zero {z : ℂ} : norm_sq z = 0 ↔ z = 0 :=
 ⟨λ h, ext
   (eq_zero_of_mul_self_add_mul_self_eq_zero h)
@@ -471,6 +482,9 @@ calc abs 2 = abs (2 : ℝ) : by rw [of_real_bit0, of_real_one]
 
 lemma abs_nonneg (z : ℂ) : 0 ≤ abs z :=
 real.sqrt_nonneg _
+
+@[simp] lemma range_abs : range abs = Ici 0 :=
+subset.antisymm (range_subset_iff.2 abs_nonneg) $ λ x hx, ⟨x, abs_of_nonneg hx⟩
 
 @[simp] lemma abs_eq_zero {z : ℂ} : abs z = 0 ↔ z = 0 :=
 (real.sqrt_eq_zero $ norm_sq_nonneg _).trans norm_sq_eq_zero

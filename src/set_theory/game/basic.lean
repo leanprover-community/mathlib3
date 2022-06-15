@@ -81,11 +81,24 @@ by { rintro ⟨x⟩ ⟨y⟩, exact pgame.not_lf }
 instance : is_trichotomous game (⧏) :=
 ⟨by { rintro ⟨x⟩ ⟨y⟩, change _ ∨ ⟦x⟧ = ⟦y⟧ ∨ _, rw quotient.eq, apply lf_or_equiv_or_gf }⟩
 
+/-! It can be useful to use these lemmas to turn `pgame` inequalities into `game` inequalities, as
+the `add_comm_group` structure on `game` often simplifies many proofs. -/
+
+theorem _root_.pgame.le_iff_game_le {x y : pgame} : x ≤ y ↔ ⟦x⟧ ≤ ⟦y⟧ := iff.rfl
+theorem _root_.pgame.lf_iff_game_lf {x y : pgame} : pgame.lf x y ↔ ⟦x⟧ ⧏ ⟦y⟧ := iff.rfl
+theorem _root_.pgame.lt_iff_game_lt {x y : pgame} : x < y ↔ ⟦x⟧ < ⟦y⟧ := iff.rfl
+theorem _root_.pgame.equiv_iff_game_eq {x y : pgame} : x ≈ y ↔ ⟦x⟧ = ⟦y⟧ :=
+(@quotient.eq _ _ x y).symm
+
 /-- The fuzzy, confused, or incomparable relation on games.
 
 If `x ∥ 0`, then the first player can always win `x`. -/
 def fuzzy : game → game → Prop :=
 quotient.lift₂ fuzzy (λ x₁ y₁ x₂ y₂ hx hy, propext (fuzzy_congr hx hy))
+
+local infix ` ∥ `:50 := fuzzy
+
+theorem _root_.pgame.fuzzy_iff_game_fuzzy {x y : pgame} : pgame.fuzzy x y ↔ ⟦x⟧ ∥ ⟦y⟧ := iff.rfl
 
 instance covariant_class_add_le : covariant_class game game (+) (≤) :=
 ⟨by { rintro ⟨a⟩ ⟨b⟩ ⟨c⟩ h, exact @add_le_add_left _ _ _ _ b c h a }⟩

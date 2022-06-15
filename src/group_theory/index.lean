@@ -284,8 +284,8 @@ class _root_.add_subgroup.finite_index {G : Type*} [add_group G] (H : add_subgro
 
 attribute [to_additive] finite_index
 
-@[priority 100, to_additive] instance [hH : finite_index H] : finite (G ⧸ H) :=
-finite.of_fintype (fintype_of_index_ne_zero hH.1)
+@[priority 100, to_additive] noncomputable instance [hH : finite_index H] : fintype (G ⧸ H) :=
+fintype_of_index_ne_zero hH.1
 
 @[to_additive] instance finite_index_top : finite_index (⊤ : subgroup G) :=
 ⟨ne_of_eq_of_ne index_top one_ne_zero⟩

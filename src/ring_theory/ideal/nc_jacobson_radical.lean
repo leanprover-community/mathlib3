@@ -49,26 +49,6 @@ coincides with that of maximal right ideals.
 universe u
 variables {R : Type u} [ring R]
 
-namespace ideal
-
-lemma exists_one_add_mul_self_mem_of_is_maximal_nmem {x : R} {I : ideal R}
-  (h₁ : I.is_maximal) (h₂ : x ∉ I) : ∃ a : R, 1 + a * x ∈ I :=
-begin
-  have : (1 : R) ∈ I ⊔ span {x},
-  { rw is_maximal_iff at h₁,
-    apply h₁.2 _ _ le_sup_left h₂,
-    apply mem_sup_right,
-    apply submodule.mem_span_singleton_self },
-  rw submodule.mem_sup at this,
-  obtain ⟨m, hmI, y, hy, hmy⟩ := this,
-  rw mem_span_singleton' at hy,
-  obtain ⟨a, rfl⟩ := hy,
-  existsi -a,
-  rwa [←hmy, neg_mul, add_neg_cancel_right],
-end
-
-end ideal
-
 /-! ### Jacobson radical of a ring -/
 
 namespace ring

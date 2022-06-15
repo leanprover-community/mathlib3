@@ -504,6 +504,22 @@ protected lemma sub_mem : a ∈ I → b ∈ I → a - b ∈ I := sub_mem
 lemma mem_span_insert' {s : set α} {x y} :
   x ∈ span (insert y s) ↔ ∃a, x + a * y ∈ span s := submodule.mem_span_insert'
 
+lemma exists_one_add_mul_self_mem_of_is_maximal_nmem
+  (h₁ : I.is_maximal) (h₂ : a ∉ I) : ∃ x : α, 1 + x * a ∈ I :=
+begin
+  have : (1 : α) ∈ I ⊔ span {a},
+  { rw is_maximal_iff at h₁,
+    apply h₁.2 _ _ le_sup_left h₂,
+    apply mem_sup_right,
+    apply submodule.mem_span_singleton_self },
+  rw submodule.mem_sup at this,
+  obtain ⟨m, hmI, y, hy, hmy⟩ := this,
+  rw mem_span_singleton' at hy,
+  obtain ⟨a, rfl⟩ := hy,
+  existsi -a,
+  rwa [←hmy, neg_mul, add_neg_cancel_right],
+end
+
 end ideal
 
 end ring

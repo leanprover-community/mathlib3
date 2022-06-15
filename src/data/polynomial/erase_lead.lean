@@ -91,7 +91,7 @@ lemma ne_nat_degree_of_mem_erase_lead_support {a : ℕ} (h : a ∈ (erase_lead f
   a ≠ f.nat_degree :=
 (lt_nat_degree_of_mem_erase_lead_support h).ne
 
-@[simp] lemma nat_degree_not_mem_erase_lead_support : f.nat_degree ∉ (erase_lead f).support :=
+lemma nat_degree_not_mem_erase_lead_support : f.nat_degree ∉ (erase_lead f).support :=
 λ h, ne_nat_degree_of_mem_erase_lead_support h rfl
 
 lemma erase_lead_support_card_lt (h : f ≠ 0) : (erase_lead f).support.card < f.support.card :=

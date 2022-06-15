@@ -200,8 +200,8 @@ trans_gen is_option
 
 instance : is_trans _ subsequent := trans_gen.is_trans
 
-@[trans] theorem subsequent.trans : ∀ {x y z}, subsequent x y → subsequent y z → subsequent x z :=
-@trans_gen.trans _ _
+@[trans] theorem subsequent.trans {x y z} : subsequent x y → subsequent y z → subsequent x z :=
+trans_gen.trans
 
 theorem wf_subsequent : well_founded subsequent := wf_is_option.trans_gen
 
@@ -899,34 +899,20 @@ def relabelling.neg_congr : ∀ {x y : pgame}, x.relabelling y → (-x).relabell
     λ i, relabelling.neg_congr (by simpa using R_relabelling (R_equiv i)),
     λ i, relabelling.neg_congr (by simpa using L_relabelling (L_equiv.symm i))⟩
 
-@[simp] theorem neg_le_neg_iff : Π {x y : pgame}, -y ≤ -x ↔ x ≤ y
+private theorem neg_le_lf_neg_iff :
+  Π {x y : pgame.{u}}, (-y ≤ -x ↔ x ≤ y) ∧ (-y ⧏ -x ↔ x ⧏ y)
 | (mk xl xr xL xR) (mk yl yr yL yR) :=
 begin
-  rw [le_def, le_def], dsimp,
-  refine ⟨λ h, ⟨λ i, _, λ j, _⟩, λ h, ⟨λ i, _, λ j, _⟩⟩,
-  { rcases h.right i with ⟨w, h⟩ | ⟨w, h⟩,
-    { refine or.inr ⟨to_left_moves_neg.symm w, neg_le_neg_iff.1 _⟩,
-      rwa [move_right_neg_symm, neg_neg] },
-    { exact or.inl ⟨w, neg_le_neg_iff.1 h⟩ } },
-  { rcases h.left j with ⟨w, h⟩ | ⟨w, h⟩,
-    { exact or.inr ⟨w, neg_le_neg_iff.1 h⟩ },
-    { refine or.inl ⟨to_right_moves_neg.symm w, neg_le_neg_iff.1 _⟩,
-      rwa [move_left_neg_symm, neg_neg] } },
-  { rcases h.right i with ⟨w, h⟩ | ⟨w, h⟩,
-    { refine or.inr ⟨to_right_moves_neg w, _⟩,
-      convert neg_le_neg_iff.2 h,
-      rw move_right_neg },
-    { exact or.inl ⟨w, neg_le_neg_iff.2 h⟩ } },
-  { rcases h.left j with ⟨w, h⟩ | ⟨w, h⟩,
-    { exact or.inr ⟨w, neg_le_neg_iff.2 h⟩ },
-    { refine or.inl ⟨to_left_moves_neg w, _⟩,
-      convert neg_le_neg_iff.2 h,
-      rw move_left_neg } }
+  simp_rw [neg_def, mk_le_mk, mk_lf_mk, ← neg_def],
+  split,
+  { rw and_comm, apply and_congr; exact forall_congr (λ _, neg_le_lf_neg_iff.2) },
+  { rw or_comm, apply or_congr; exact exists_congr (λ _, neg_le_lf_neg_iff.1) },
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 
-@[simp] theorem neg_lf_neg_iff {x y : pgame} : -y ⧏ -x ↔ x ⧏ y :=
-by rw [←pgame.not_le, ←pgame.not_le, not_iff_not, neg_le_neg_iff]
+@[simp] theorem neg_le_neg_iff {x y : pgame} : -y ≤ -x ↔ x ≤ y := neg_le_lf_neg_iff.1
+
+@[simp] theorem neg_lf_neg_iff {x y : pgame} : -y ⧏ -x ↔ x ⧏ y := neg_le_lf_neg_iff.2
 
 @[simp] theorem neg_lt_neg_iff {x y : pgame} : -y < -x ↔ x < y :=
 by rw [lt_iff_le_and_lf, lt_iff_le_and_lf, neg_le_neg_iff, neg_lf_neg_iff]
@@ -1107,7 +1093,7 @@ rfl
   (x + y).move_right (to_right_moves_add (sum.inr i)) = x + y.move_right i :=
 by { cases x, cases y, refl }
 
-lemma left_moves_add_cases {x y : pgame} (k) {P : (x + y).left_moves -> Prop}
+lemma left_moves_add_cases {x y : pgame} (k) {P : (x + y).left_moves → Prop}
   (hl : ∀ i, P $ to_left_moves_add (sum.inl i))
   (hr : ∀ i, P $ to_left_moves_add (sum.inr i)) : P k :=
 begin
@@ -1117,7 +1103,7 @@ begin
   { exact hr i }
 end
 
-lemma right_moves_add_cases {x y : pgame} (k) {P : (x + y).right_moves -> Prop}
+lemma right_moves_add_cases {x y : pgame} (k) {P : (x + y).right_moves → Prop}
   (hl : ∀ j, P $ to_right_moves_add (sum.inl j))
   (hr : ∀ j, P $ to_right_moves_add (sum.inr j)) : P k :=
 begin
@@ -1193,7 +1179,7 @@ def add_comm_relabelling : Π (x y : pgame.{u}), relabelling (x + y) (y + x)
 begin
   refine ⟨equiv.sum_comm _ _, equiv.sum_comm _ _, _, _⟩;
   rintros (_|_);
-  { simp [left_moves_add, right_moves_add], apply add_comm_relabelling }
+  { dsimp [left_moves_add, right_moves_add], apply add_comm_relabelling }
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 

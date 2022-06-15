@@ -427,7 +427,8 @@ variables [comm_ring R] (I : ideal R) (f : polynomial R)
 
 See `adjoin_root.quot_map_of_equiv` for the isomorphism with `(R/I)[X] / (f mod I)`. -/
 def quot_map_of_equiv_quot_map_C_map_span_mk :
-  adjoin_root f ⧸ I.map (of f) ≃+* adjoin_root f ⧸ (I.map (C : R →+* R[X])).map (span {f})^.quotient.mk :=
+  adjoin_root f ⧸ I.map (of f) ≃+*
+    adjoin_root f ⧸ (I.map (C : R →+* R[X])).map (span {f})^.quotient.mk :=
 ideal.quot_equiv_of_eq (by rw [of, adjoin_root.mk, ideal.map_map])
 
 @[simp]

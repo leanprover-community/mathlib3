@@ -1086,7 +1086,10 @@ eq_div_of_mul_eq two_ne_zero $ by rw [cosh, exp, exp, complex.of_real_neg, compl
 @[simp] lemma cosh_zero : cosh 0 = 1 := by simp [cosh]
 
 @[simp] lemma cosh_neg : cosh (-x) = cosh x :=
-by simp [cosh, exp_neg]
+by simp [cosh]
+
+@[simp] lemma cosh_abs : cosh (|x|) = cosh x :=
+by cases le_total x 0; simp [*, _root_.abs_of_nonneg, abs_of_nonpos]
 
 lemma cosh_add : cosh (x + y) = cosh x * cosh y + sinh x * sinh y :=
 by rw ← of_real_inj; simp [cosh, cosh_add]

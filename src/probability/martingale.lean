@@ -432,10 +432,10 @@ lemma smul_le_stopped_value_hitting [is_finite_measure μ]
   {f : ℕ → α → ℝ} (hsub : submartingale f 𝒢 μ) {ε : ℝ≥0} (n : ℕ) :
   ε • μ {x | (ε : ℝ) ≤ ⨆ k : {k // k ≤ n}, f k x} ≤
   ennreal.of_real (∫ x in {x | (ε : ℝ) ≤ ⨆ k : {k // k ≤ n}, f k x},
-    stopped_value f (hitting f {y : ℝ | ↑ε ≤ y} n) x ∂μ) :=
+    stopped_value f (hitting f {y : ℝ | ↑ε ≤ y} 0 n) x ∂μ) :=
 begin
   have : ∀ x, ((ε : ℝ) ≤ ⨆ k : {k // k ≤ n}, f k x) →
-    (ε : ℝ) ≤ stopped_value f (hitting f {y : ℝ | ↑ε ≤ y} n) x,
+    (ε : ℝ) ≤ stopped_value f (hitting f {y : ℝ | ↑ε ≤ y} 0 n) x,
   { intros x hx,
     refine stopped_value_hitting_mem _,
     simp only [set.mem_set_of_eq, exists_prop],
@@ -482,9 +482,9 @@ begin
   calc ε • μ {x | (ε : ℝ) ≤ ⨆ k : {k // k ≤ n}, f k x}
     + ennreal.of_real (∫ x in {x | (⨆ k : {k // k ≤ n}, f k x) < ε}, f n x ∂μ) ≤
       ennreal.of_real (∫ x in {x | (ε : ℝ) ≤ ⨆ k : {k // k ≤ n}, f k x},
-        stopped_value f (hitting f {y : ℝ | ↑ε ≤ y} n) x ∂μ)
+        stopped_value f (hitting f {y : ℝ | ↑ε ≤ y} 0 n) x ∂μ)
     + ennreal.of_real (∫ x in {x | (⨆ k : {k // k ≤ n}, f k x) < ε},
-        stopped_value f (hitting f {y : ℝ | ↑ε ≤ y} n) x ∂μ) :
+        stopped_value f (hitting f {y : ℝ | ↑ε ≤ y} 0 n) x ∂μ) :
     begin
       refine add_le_add (smul_le_stopped_value_hitting hsub _)
         (ennreal.of_real_le_of_real (set_integral_mono_on (hsub.integrable n).integrable_on
@@ -503,7 +503,7 @@ begin
           (le_cSup (set.finite.bdd_above $ set.finite_range _) ⟨⟨m, hm⟩, rfl⟩))) },
       simp_rw [stopped_value, this],
     end
-    ... = ennreal.of_real (∫ x, stopped_value f (hitting f {y : ℝ | ↑ε ≤ y} n) x ∂μ) :
+    ... = ennreal.of_real (∫ x, stopped_value f (hitting f {y : ℝ | ↑ε ≤ y} 0 n) x ∂μ) :
     begin
       rw [← ennreal.of_real_add, ← integral_union],
       { conv_rhs { rw ← integral_univ },

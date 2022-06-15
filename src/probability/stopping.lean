@@ -1346,17 +1346,6 @@ begin
   { assumption }
 end
 
-lemma hitting_le [conditionally_complete_linear_order_bot ι]
-  {u : ι → α → β} {s : set β} {n : ι} (x : α) :
-  hitting u s n x ≤ n :=
-begin
-  simp only [hitting],
-  split_ifs,
-  { obtain ⟨j, hj₁, hj₂⟩ := h,
-    exact le_trans (cInf_le' hj₂) hj₁ },
-  exact le_rfl
-end
-
 section complete_linear_order
 
 variables [complete_linear_order ι] {u : ι → α → β} {s : set β} {f : filtration ι m}
@@ -1492,13 +1481,15 @@ begin
         λ hj, f.mono hj _ ((hu j).measurable hs))) }
 end
 
-lemma stopped_value_hitting_mem {u : ℕ → α → β} {n : ℕ} {x : α} (h : ∃ j ≤ n, u j x ∈ s) :
-  stopped_value u (hitting u s n) x ∈ s :=
+lemma stopped_value_hitting_mem {u : ℕ → α → β} {n m : ℕ} {x : α}
+  (h : ∃ j ∈ set.Icc n m, u j x ∈ s) :
+  stopped_value u (hitting u s n m) x ∈ s :=
 begin
   simp only [stopped_value, hitting, if_pos h],
   obtain ⟨j, hj₁, hj₂⟩ := h,
-  change Inf {i : ℕ | u i x ∈ s} ∈ {i : ℕ | u i x ∈ s},
-  exact nat.Inf_mem (set.nonempty_of_mem hj₂),
+  have : Inf (set.Icc n m ∩ {i : ℕ | u i x ∈ s}) ∈ set.Icc n m ∩ {i : ℕ | u i x ∈ s} :=
+    nat.Inf_mem (set.nonempty_of_mem ⟨hj₁, hj₂⟩),
+  exact this.2,
 end
 
 end nat

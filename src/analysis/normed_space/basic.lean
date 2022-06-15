@@ -3,7 +3,7 @@ Copyright (c) 2018 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Johannes Hölzl
 -/
-import analysis.normed.normed_field
+import analysis.normed.field.basic
 import analysis.normed.group.infinite_sum
 import data.matrix.basic
 import topology.sequences
@@ -186,16 +186,6 @@ def homeomorph_unit_ball {E : Type*} [semi_normed_group E] [normed_space ℝ E] 
   continuous_inv_fun := continuous.smul
     ((continuous_const.sub continuous_subtype_coe.norm).inv₀ $
       λ x, (sub_pos.2 $ mem_ball_zero_iff.1 x.2).ne') continuous_subtype_coe }
-
-variables (α)
-
-lemma ne_neg_of_mem_sphere [char_zero α] {r : ℝ} (hr : r ≠ 0) (x : sphere (0:E) r) : x ≠ - x :=
-λ h, ne_zero_of_mem_sphere hr x ((self_eq_neg α _).mp (by { conv_lhs {rw h}, simp }))
-
-lemma ne_neg_of_mem_unit_sphere [char_zero α] (x : sphere (0:E) 1) : x ≠ - x :=
-ne_neg_of_mem_sphere α one_ne_zero x
-
-variables {α}
 
 open normed_field
 

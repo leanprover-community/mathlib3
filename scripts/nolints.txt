@@ -413,7 +413,7 @@ apply_nolint monoid.to_opposite_mul_action to_additive_doc
 -- group_theory/group_action/pi.lean
 apply_nolint function.has_scalar to_additive_doc
 apply_nolint function.smul_comm_class to_additive_doc
-apply_nolint pi.has_faithful_scalar_at to_additive_doc
+apply_nolint pi.has_faithful_smul_at to_additive_doc
 
 -- group_theory/group_action/sub_mul_action.lean
 apply_nolint sub_mul_action.has_zero fails_quickly

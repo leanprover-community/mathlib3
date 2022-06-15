@@ -69,10 +69,24 @@ pairwise_iff_nth_le.trans
   .resolve_right (λ h', H _ _ h₁ h' h.symm),
  λ H i j h₁ h₂ h, ne_of_lt h₂ (H _ _ _ _ h)⟩
 
-theorem nodup.nth_le_inj_iff {α : Type*} {l : list α} (h : nodup l)
+theorem nodup.nth_le_inj_iff {l : list α} (h : nodup l)
   {i j : ℕ} (hi : i < l.length) (hj : j < l.length) :
   l.nth_le i hi = l.nth_le j hj ↔ i = j :=
 ⟨nodup_iff_nth_le_inj.mp h _ _ _ _, by simp {contextual := tt}⟩
+
+lemma nodup_iff_nth_ne_nth {l : list α} :
+  l.nodup ↔ ∀ (i j : ℕ), i < j → j < l.length → l.nth i ≠ l.nth j :=
+begin
+  rw nodup_iff_nth_le_inj,
+  simp only [nth_le_eq_iff, some_nth_le_eq],
+  split; rintro h i j h₁ h₂,
+  { exact mt (h i j (h₁.trans h₂) h₂) (ne_of_lt h₁) },
+  { intro h₃,
+    by_contra h₄,
+    cases lt_or_gt_of_ne h₄ with h₅ h₅,
+    { exact h i j h₅ h₂ h₃ },
+    { exact h j i h₅ h₁ h₃.symm }},
+end
 
 lemma nodup.ne_singleton_iff {l : list α} (h : nodup l) (x : α) :
   l ≠ [x] ↔ l = [] ∨ ∃ y ∈ l, y ≠ x :=

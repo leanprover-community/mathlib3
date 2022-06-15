@@ -104,7 +104,7 @@ ideal.principal_le_iff
 @[simp] lemma mem_principal : x ∈ principal y ↔ y ≤ x :=
 ideal.mem_principal -- defeq abuse
 
-lemma antitone_principal {p q : P} : antitone (principal : P → pfilter P) := by delta antitone; simp
+lemma antitone_principal : antitone (principal : P → pfilter P) := by delta antitone; simp
 
 lemma principal_le_principal_iff {p q : P} : principal q ≤ principal p ↔ p ≤ q :=
 by simp
@@ -161,3 +161,4 @@ end complete_semilattice_Inf_stuff
 end pfilter
 
 end order
+#lint

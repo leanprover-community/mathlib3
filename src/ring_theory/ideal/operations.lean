@@ -1435,7 +1435,11 @@ lemma ker_eq_bot_iff_eq_zero : ker f = ⊥ ↔ ∀ x, f x = 0 → x = 0 :=
 by { rw [← injective_iff_map_eq_zero f, injective_iff_ker_eq_bot] }
 omit rc
 
-@[simp] lemma ker_coe_equiv {F' : Type*} [ring_equiv_class F' R S] (f : F') :
+@[simp] lemma ker_coe_equiv (f : R ≃+* S) :
+  ker (f : R →+* S) = ⊥ :=
+by simpa only [←injective_iff_ker_eq_bot] using equiv_like.injective f
+
+@[simp] lemma ker_equiv {F' : Type*} [ring_equiv_class F' R S] (f : F') :
   ker f = ⊥ :=
 by simpa only [←injective_iff_ker_eq_bot] using equiv_like.injective f
 
@@ -1581,7 +1585,7 @@ omit rc
 theorem map_is_prime_of_equiv {F' : Type*} [ring_equiv_class F' R S]
   (f : F') {I : ideal R} [is_prime I] :
   is_prime (map f I) :=
-map_is_prime_of_surjective (equiv_like.surjective f) $ by simp only [ring_hom.ker_coe_equiv, bot_le]
+map_is_prime_of_surjective (equiv_like.surjective f) $ by simp only [ring_hom.ker_equiv, bot_le]
 
 end ring
 
@@ -1992,18 +1996,16 @@ lemma ker_quot_left_to_quot_sup :
 by simp only [mk_ker, sup_idem, sup_comm, quot_left_to_quot_sup, quotient.factor, ker_quotient_lift,
     map_eq_iff_sup_ker_eq_of_surjective I^.quotient.mk quotient.mk_surjective, ← sup_assoc]
 
-set_option pp.all true
---set_option trace.class_instances true
 /-- The ring homomorphism `(R/I)/J' -> R/(I ⊔ J)` induced by `quot_left_to_quot_sup` where `J'`
   is the image of `J` in `R/I`-/
 def quot_quot_to_quot_sup : (R ⧸ I) ⧸ J.map (ideal.quotient.mk I) →+* R ⧸ I ⊔ J :=
-ideal.quotient.lift (J.map (ideal.quotient.mk I)) (quot_left_to_quot_sup I J)
+by exact ideal.quotient.lift (J.map (ideal.quotient.mk I)) (quot_left_to_quot_sup I J)
   (ker_quot_left_to_quot_sup I J).symm.le
 set_option trace.class_instances false
 
 /-- The composite of the maps `R → (R/I)` and `(R/I) → (R/I)/J'` -/
 def quot_quot_mk : R →+* ((R ⧸ I) ⧸ J.map I^.quotient.mk) :=
-((J.map I^.quotient.mk)^.quotient.mk).comp I^.quotient.mk
+by exact ((J.map I^.quotient.mk)^.quotient.mk).comp I^.quotient.mk
 
 /-- The kernel of `quot_quot_mk` -/
 lemma ker_quot_quot_mk : (quot_quot_mk I J).ker = I ⊔ J :=

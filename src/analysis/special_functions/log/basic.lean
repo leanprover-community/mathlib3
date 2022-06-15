@@ -75,6 +75,12 @@ end
 @[simp] lemma log_neg_eq_log (x : ℝ) : log (-x) = log x :=
 by rw [← log_abs x, ← log_abs (-x), abs_neg]
 
+lemma sinh_log {x : ℝ} (hx : 0 < x) : sinh (log x) = (x - x⁻¹) / 2 :=
+by rw [sinh_eq, exp_neg, exp_log hx]
+
+lemma cosh_log {x : ℝ} (hx : 0 < x) : cosh (log x) = (x + x⁻¹) / 2 :=
+by rw [cosh_eq, exp_neg, exp_log hx]
+
 lemma surj_on_log' : surj_on log (Iio 0) univ :=
 λ x _, ⟨-exp x, neg_lt_zero.2 $ exp_pos x, by rw [log_neg_eq_log, log_exp]⟩
 
@@ -189,11 +195,27 @@ begin
     neg_mul_eq_neg_mul],
 end
 
+lemma log_sqrt {x : ℝ} (hx : 0 ≤ x) : log (sqrt x) = log x / 2 :=
+by { rw [eq_div_iff, mul_comm, ← nat.cast_two, ← log_pow, sq_sqrt hx], exact two_ne_zero }
+
 lemma log_le_sub_one_of_pos {x : ℝ} (hx : 0 < x) : log x ≤ x - 1 :=
 begin
   rw le_sub_iff_add_le,
   convert add_one_le_exp (log x),
   rw exp_log hx,
+end
+
+/-- Bound for `|log x * x|` in the interval `(0, 1]`. -/
+lemma abs_log_mul_self_lt (x: ℝ) (h1 : 0 < x) (h2 : x ≤ 1) : |log x * x| < 1 :=
+begin
+  have : 0 < 1/x := by simpa only [one_div, inv_pos] using h1,
+  replace := log_le_sub_one_of_pos this,
+  replace : log (1 / x) < 1/x := by linarith,
+  rw [log_div one_ne_zero h1.ne', log_one, zero_sub, lt_div_iff h1] at this,
+  have aux : 0 ≤ -log x * x,
+  { refine mul_nonneg _ h1.le, rw ←log_inv, apply log_nonneg,
+    rw [←(le_inv h1 zero_lt_one), inv_one], exact h2, },
+  rw [←(abs_of_nonneg aux), neg_mul, abs_neg] at this, exact this,
 end
 
 /-- The real logarithm function tends to `+∞` at `+∞`. -/
@@ -248,13 +270,14 @@ lemma tendsto_pow_log_div_mul_add_at_top (a b : ℝ) (n : ℕ) (ha : a ≠ 0) :
 ((tendsto_div_pow_mul_exp_add_at_top a b n ha.symm).comp tendsto_log_at_top).congr'
   (by filter_upwards [eventually_gt_at_top (0 : ℝ)] with x hx using by simp [exp_log hx])
 
-lemma is_o_pow_log_id_at_top {n : ℕ} :
-  asymptotics.is_o (λ x, log x ^ n) id at_top :=
+lemma is_o_pow_log_id_at_top {n : ℕ} : (λ x, log x ^ n) =o[at_top] id :=
 begin
   rw asymptotics.is_o_iff_tendsto',
   { simpa using tendsto_pow_log_div_mul_add_at_top 1 0 n one_ne_zero },
   filter_upwards [eventually_ne_at_top (0 : ℝ)] with x h₁ h₂ using (h₁ h₂).elim,
 end
+
+lemma is_o_log_id_at_top : log =o[at_top] id := is_o_pow_log_id_at_top.congr_left (λ x, pow_one _)
 
 end real
 

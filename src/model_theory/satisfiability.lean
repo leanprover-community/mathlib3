@@ -20,12 +20,15 @@ every finite subset of `T` is satisfiable.
 models each sentence or its negation.
 * `first_order.language.Theory.semantically_equivalent`: `T.semantically_equivalent φ ψ` indicates
 that `φ` and `ψ` are equivalent formulas or sentences in models of `T`.
+* `cardinal.categorical`: A theory is `κ`-categorical if all models of size `κ` are isomorphic.
 
 ## Main Results
 * The Compactness Theorem, `first_order.language.Theory.is_satisfiable_iff_is_finitely_satisfiable`,
 shows that a theory is satisfiable iff it is finitely satisfiable.
 * `first_order.language.complete_theory.is_complete`: The complete theory of a structure is
 complete.
+* `first_order.language.Theory.exists_large_model_of_infinite_model` shows that any theory with an
+infinite model has arbitrarily large models.
 * `first_order.language.Theory.exists_elementary_embedding_card_eq`: The Upward Löwenheim–Skolem
 Theorem: If `κ` is a cardinal greater than the cardinalities of `L` and an infinite `L`-structure
 `M`, then `M` has an elementary extension of cardinality `κ`.
@@ -144,8 +147,8 @@ theorem is_satisfiable_union_distinct_constants_theory_of_infinite (T : L.Theory
 begin
   classical,
   rw [distinct_constants_theory_eq_Union, set.union_Union, is_satisfiable_directed_union_iff],
-  { exact λ t, is_satisfiable_union_distinct_constants_theory_of_card_le T _ M ((lift_le_omega.2
-      (le_of_lt (finset_card_lt_omega _))).trans (omega_le_lift.2 (omega_le_mk M))), },
+  { exact λ t, is_satisfiable_union_distinct_constants_theory_of_card_le T _ M ((lift_le_aleph_0.2
+      ((finset_card_lt_aleph_0 _).le)).trans (aleph_0_le_lift.2 (aleph_0_le_mk M))) },
   { refine (monotone_const.union (monotone_distinct_constants_theory.comp _)).directed_le,
     simp only [finset.coe_map, function.embedding.coe_subtype],
     exact set.monotone_image.comp (λ _ _, finset.coe_subset.2) }
@@ -186,13 +189,12 @@ begin
     (trans _ h2) (trans _ (lift_le.2 h2)) _ _,
   { letI := (Lhom_with_constants L M).reduct N,
     refine ⟨bundled.of N, ⟨_⟩, lift_inj.1 hN2⟩,
-    { have f := elementary_embedding.of_models_elementary_diagram L M N,
-      exact f } },
-  { exact omega_le_lift.2 (omega_le_mk M) },
+    apply elementary_embedding.of_models_elementary_diagram L M N },
+  { exact aleph_0_le_lift.2 (aleph_0_le_mk M) },
   { rw [lift_id'.{(max w u v w') (max (max u w') v w)}, ← lift_le, lift_lift, lift_lift],
     exact mk_range_le_lift },
   { simp only [card_with_constants, lift_add, lift_lift],
-    rw [add_comm, add_eq_max (omega_le_lift.2 (infinite_iff.1 iM)), max_le_iff],
+    rw [add_comm, add_eq_max (aleph_0_le_lift.2 (infinite_iff.1 iM)), max_le_iff],
     rw [← lift_le.{_ w'}, lift_lift, lift_lift] at h1,
     refine ⟨trans _ h2, trans _ h1⟩;
     { rw [← lift_le.{_ max (max w u v) w'}, lift_lift, lift_lift] } },
@@ -499,9 +501,10 @@ lemma categorical.is_complete (h : κ.categorical T)
   haveI := hT MT,
   haveI := hT MF,
 
-
-
 end⟩
 
+theorem empty_Theory_categorical (T : language.empty.Theory) :
+  κ.categorical T :=
+λ M N hM hN, by rw [empty.nonempty_equiv_iff, hM, hN]
 
 end cardinal

@@ -402,7 +402,7 @@ have (F.derivative.eval soln + q * h) * h = 0, from eq.symm (calc
 have h = 0, from by_contradiction $ λ hne,
   have F.derivative.eval soln + q * h = 0,
     from (eq_zero_or_eq_zero_of_mul_eq_zero this).resolve_right hne,
-  have F.derivative.eval soln = (-q) * h, by simpa using eq_neg_of_add_eq_zero this,
+  have F.derivative.eval soln = (-q) * h, by simpa using eq_neg_of_add_eq_zero_left this,
   lt_irrefl ∥F.derivative.eval soln∥ (calc
   ∥F.derivative.eval soln∥ = ∥(-q) * h∥ : by rw this
 ... ≤ 1 * ∥h∥ :
@@ -427,7 +427,7 @@ have (F.derivative.eval a + q * h) * h = 0, from eq.symm (calc
 have h = 0, from by_contradiction $ λ hne,
   have F.derivative.eval a + q * h = 0,
     from (eq_zero_or_eq_zero_of_mul_eq_zero this).resolve_right hne,
-  have F.derivative.eval a = (-q) * h, by simpa using eq_neg_of_add_eq_zero this,
+  have F.derivative.eval a = (-q) * h, by simpa using eq_neg_of_add_eq_zero_left this,
   lt_irrefl ∥F.derivative.eval a∥ (calc
     ∥F.derivative.eval a∥ = ∥q∥*∥h∥ : by simp [this]
     ... ≤ 1*∥h∥ : mul_le_mul_of_nonneg_right (padic_int.norm_le_one _) (norm_nonneg _)

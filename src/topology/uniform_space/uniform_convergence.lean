@@ -137,13 +137,15 @@ lemma tendsto_uniformly.comp (h : tendsto_uniformly F f p) (g : γ → α) :
 
 /-- Composing on the left by a uniformly continuous function preserves
   uniform convergence on a set -/
-lemma tendsto_uniformly_on.comp' [uniform_space γ] {g : β → γ} (h : tendsto_uniformly_on F f p s)
-  (hg : uniform_continuous g) : tendsto_uniformly_on (λ i, g ∘ (F i)) (g ∘ f) p s :=
+lemma uniform_continuous.comp_tendsto_uniformly_on [uniform_space γ] {g : β → γ}
+  (hg : uniform_continuous g) (h : tendsto_uniformly_on F f p s) :
+  tendsto_uniformly_on (λ i, g ∘ (F i)) (g ∘ f) p s :=
 λ u hu, h _ (hg hu)
 
 /-- Composing on the left by a uniformly continuous function preserves uniform convergence -/
-lemma tendsto_uniformly.comp' [uniform_space γ] {g : β → γ} (h : tendsto_uniformly F f p)
-  (hg : uniform_continuous g) : tendsto_uniformly (λ i, g ∘ (F i)) (g ∘ f) p :=
+lemma uniform_continuous.comp_tendsto_uniformly [uniform_space γ] {g : β → γ}
+  (hg : uniform_continuous g) (h : tendsto_uniformly F f p) :
+  tendsto_uniformly (λ i, g ∘ (F i)) (g ∘ f) p :=
 λ u hu, h _ (hg hu)
 
 lemma tendsto_uniformly_on.prod_map {ι' α' β' : Type*} [uniform_space β']
@@ -311,8 +313,8 @@ lemma uniform_cauchy_seq_on.comp {γ : Type*} (hf : uniform_cauchy_seq_on F p s)
 
 /-- Composing on the left by a uniformly continuous function preserves
 uniform Cauchy sequences -/
-lemma uniform_cauchy_seq_on.comp' [uniform_space γ] {g : β → γ} (hf : uniform_cauchy_seq_on F p s)
-  (hg : uniform_continuous g) :
+lemma uniform_continuous.comp_uniform_cauchy_seq_on [uniform_space γ] {g : β → γ}
+  (hg : uniform_continuous g) (hf : uniform_cauchy_seq_on F p s) :
   uniform_cauchy_seq_on (λ n, g ∘ (F n)) p s :=
 λ u hu, hf _ (hg hu)
 

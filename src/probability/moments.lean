@@ -16,6 +16,13 @@ import probability.variance
 * `mgf X μ t`: moment generating function of `X` with respect to measure `μ`, `μ[exp(t*X)]`
 * `cgf X μ t`: cumulant generating function, logarithm of the moment generating function
 
+## Main results
+
+* `indep_fun.mgf_add`: if two random variables `X` and `Y` are independent and their mgf are
+  defined at `t`, then `mgf (X + Y) μ t = mgf X μ t * mgf Y μ t`
+* `indep_fun.cgf_add`: if two random variables `X` and `Y` are independent and their mgf are
+  defined at `t`, then `cgf (X + Y) μ t = cgf X μ t + cgf Y μ t`
+
 -/
 
 open measure_theory filter finset
@@ -141,7 +148,7 @@ begin
   { rwa integrable_on_univ, },
 end
 
-lemma mgf_add_of_indep_fun {X Y : Ω → ℝ} (h_indep : indep_fun X Y μ)
+lemma indep_fun.mgf_add {X Y : Ω → ℝ} (h_indep : indep_fun X Y μ)
   (h_int_X : integrable (λ ω, real.exp (t * X ω)) μ)
   (h_int_Y : integrable (λ ω, real.exp (t * Y ω)) μ) :
   mgf (X + Y) μ t = mgf X μ t * mgf Y μ t :=
@@ -153,12 +160,12 @@ begin
   exact indep_fun.comp h_indep h_meas h_meas,
 end
 
-lemma cgf_add_of_indep_fun (hμ : μ ≠ 0) {X Y : Ω → ℝ} (h_indep : indep_fun X Y μ)
+lemma indep_fun.cgf_add (hμ : μ ≠ 0) {X Y : Ω → ℝ} (h_indep : indep_fun X Y μ)
   (h_int_X : integrable (λ ω, real.exp (t * X ω)) μ)
   (h_int_Y : integrable (λ ω, real.exp (t * Y ω)) μ) :
   cgf (X + Y) μ t = cgf X μ t + cgf Y μ t :=
 begin
-  simp only [cgf, mgf_add_of_indep_fun h_indep h_int_X h_int_Y],
+  simp only [cgf, h_indep.mgf_add h_int_X h_int_Y],
   exact real.log_mul (mgf_pos hμ h_int_X).ne' (mgf_pos hμ h_int_Y).ne',
 end
 

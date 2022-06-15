@@ -162,7 +162,7 @@ begin
   { simp [ih], }
 end
 
-@[simp] lemma realize_constants_vars_equiv_left [L[[α]].Structure M]
+lemma realize_constants_vars_equiv_left [L[[α]].Structure M]
   [(Lhom_with_constants L α).is_expansion_on M]
   {n} {t : L[[α]].term (β ⊕ fin n)} {v : β → M} {xs : fin n → M} :
   (constants_vars_equiv_left t).realize (sum.elim (sum.elim (λ a, ↑(L.con a)) v) xs) =
@@ -762,7 +762,7 @@ begin
 end
 
 @[simp] lemma realize_to_formula (φ : L.bounded_formula α n) (v : α ⊕ fin n → M) :
-  φ.to_formula.realize v ↔ φ.realize (v ∘ sum.inl) v :=
+  φ.to_formula.realize v ↔ φ.realize (v ∘ sum.inl) (v ∘ sum.inr) :=
 begin
   induction φ with _ _ _ _ _ _ _ _ _ _ _ ih1 ih2 _ _ ih3 a8 a9 a0,
   { refl },

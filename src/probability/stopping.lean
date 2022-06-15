@@ -1294,23 +1294,50 @@ end piecewise_const
 
 section hitting
 
-/-- Hitting time: given a stochastic process `u` and a set `s`, `hitting u s n` is the first time
-`u` is in `s` before `n` (if `u` does not hit `s` before `n` then the hitting time is simply `n`).
+/-- Hitting time: given a stochastic process `u` and a set `s`, `hitting u s m n` is the first time
+`u` is in `s` after time `m` and before time `n` (if `u` does not hit `s` before `n` then the
+hitting time is simply `n`).
 
 The hitting time is a stopping time if the process is adapted and discrete. -/
-noncomputable def hitting [preorder ι] [has_Inf ι] (u : ι → α → β) (s : set β) (n : ι) :
-  α → ι :=
-λ x, if ∃ j ≤ n, u j x ∈ s then Inf {i : ι | u i x ∈ s} else n
+noncomputable def hitting [has_le ι] [has_Inf ι] (u : ι → α → β) (s : set β) (m n : ι) : α → ι :=
+λ x, if ∃ j, m ≤ j ∧ j ≤ n ∧ u j x ∈ s then Inf {i : ι | m ≤ i ∧ u i x ∈ s} else n
 
 lemma hitting_le [conditionally_complete_linear_order_bot ι]
-  {u : ι → α → β} {s : set β} {n : ι} (x : α) :
-  hitting u s n x ≤ n :=
+  {u : ι → α → β} {s : set β} {m n : ι} (x : α) :
+  hitting u s m n x ≤ n :=
 begin
   simp only [hitting],
   split_ifs,
-  { obtain ⟨j, hj₁, hj₂⟩ := h,
-    exact le_trans (cInf_le' hj₂) hj₁ },
+  { obtain ⟨j, hj₁, hj₂, hmem⟩ := h,
+    exact le_trans (cInf_le' ⟨hj₁, hmem⟩) hj₂ },
   exact le_rfl
+end
+
+lemma le_hitting [conditionally_complete_lattice ι]
+  {u : ι → α → β} {s : set β} {m n : ι} (x : α) (hmn : m ≤ n) :
+  m ≤ hitting u s m n x :=
+begin
+  simp only [hitting],
+  split_ifs,
+  { obtain ⟨j, hj₁, hj₂, hmem⟩ := h,
+    refine le_cInf ⟨j, hj₁, hmem⟩ _,
+    rintro k ⟨hk₁, hk₂⟩,
+    assumption },
+  { assumption }
+end
+
+lemma hitting_bot_eq [has_le ι] [order_bot ι] [has_Inf ι]
+  {u : ι → α → β} {s : set β} {n : ι} (x : α) :
+  hitting u s ⊥ n x = if ∃ j ≤ n, u j x ∈ s then Inf {i : ι | u i x ∈ s} else n :=
+begin
+  simp only [hitting],
+  by_cases ∃ j ≤ n, u j x ∈ s,
+  { rw [if_pos h, if_pos],
+    { simp only [bot_le, true_and] },
+    { obtain ⟨j, hj₁, hj₂⟩ := h,
+      exact ⟨j, bot_le, hj₁, hj₂⟩ } },
+  { rw [if_neg h, if_neg],
+    simpa using h }
 end
 
 section complete_linear_order
@@ -1318,9 +1345,9 @@ section complete_linear_order
 variables [complete_linear_order ι] {u : ι → α → β} {s : set β} {f : filtration ι m}
 
 @[simp]
-lemma hitting_eq_Inf (x : α) : hitting u s ⊤ x = Inf {i : ι | u i x ∈ s} :=
+lemma hitting_eq_Inf (x : α) : hitting u s ⊥ ⊤ x = Inf {i : ι | u i x ∈ s} :=
 begin
-  simp only [hitting, ite_eq_left_iff],
+  simp only [hitting_bot_eq, ite_eq_left_iff],
   intro h,
   have : {i : ι | u i x ∈ s} = ∅,
   { push_neg at h,
@@ -1330,7 +1357,7 @@ begin
 end
 
 lemma hitting_lt_eq_Union (i : ι) :
-  {x | hitting u s ⊤ x < i} = ⋃ j < i, u j ⁻¹' s :=
+  {x | hitting u s ⊥ ⊤ x < i} = ⋃ j < i, u j ⁻¹' s :=
 begin
   ext x,
   simp only [hitting_eq_Inf, set.mem_set_of_eq, set.mem_Union, set.mem_preimage,
@@ -1338,7 +1365,7 @@ begin
 end
 
 lemma hitting_le_eq_Union [is_well_order ι (<)] {i : ι} (hi : i ≠ ⊤) :
-  {x | hitting u s ⊤ x ≤ i} = ⋃ j ≤ i, u j ⁻¹' s :=
+  {x | hitting u s ⊥ ⊤ x ≤ i} = ⋃ j ≤ i, u j ⁻¹' s :=
 begin
   ext x,
   simp only [le_iff_eq_or_lt, set.Union_Union_eq_or_left, ← hitting_lt_eq_Union i,
@@ -1362,7 +1389,7 @@ time index is `enat`. -/
 lemma hitting_is_stopping_time [is_well_order ι (<)] [encodable ι]
   [topological_space β] [pseudo_metrizable_space β] [measurable_space β] [borel_space β]
   (hu : adapted f u) (hs : measurable_set s) :
-  is_stopping_time f (hitting u s ⊤) :=
+  is_stopping_time f (hitting u s ⊥ ⊤) :=
 begin
   intro i,
   by_cases hi : i = ⊤,
@@ -1378,10 +1405,14 @@ section nat
 
 variables {u : ℕ → α → β} {s : set β} {f : filtration ℕ m}
 
+lemma hitting_zero_eq {n : ℕ} (x : α) :
+  hitting u s 0 n x = if ∃ j ≤ n, u j x ∈ s then Inf {i | u i x ∈ s} else n :=
+hitting_bot_eq x
+
 lemma hitting_le_iff_mem_Union_nat {i n : ℕ} {x : α} (hx : ∃ j, j ≤ n ∧ u j x ∈ s) :
-  hitting u s n x ≤ i ↔ x ∈ ⋃ j ≤ i, u j ⁻¹' s :=
+  hitting u s 0 n x ≤ i ↔ x ∈ ⋃ j ≤ i, u j ⁻¹' s :=
 begin
-  simp only [hitting, set.mem_Union, set.mem_preimage, exists_prop, if_pos hx],
+  simp only [hitting_zero_eq, set.mem_Union, set.mem_preimage, exists_prop, if_pos hx],
   obtain ⟨j, hj₁, hj₂⟩ := hx,
   have hj' : { i | u i x ∈ s }.nonempty := set.nonempty_of_mem hj₂,
   refine ⟨λ h, ⟨Inf {i : ℕ | u i x ∈ s}, h, nat.Inf_mem hj'⟩, λ h, _⟩,
@@ -1390,12 +1421,12 @@ begin
 end
 
 lemma hitting_le_eq_Union_nat_of_lt {i n : ℕ} (hin : i < n) :
-  {x | hitting u s n x ≤ i} = ⋃ j ≤ i, u j ⁻¹' s :=
+  {x | hitting u s 0 n x ≤ i} = ⋃ j ≤ i, u j ⁻¹' s :=
 begin
   ext x,
   by_cases hj : ∃ j, j ≤ n ∧ u j x ∈ s,
   { exact hitting_le_iff_mem_Union_nat hj },
-  { simp only [hitting, if_neg hj, set.mem_set_of_eq, set.mem_Union,
+  { simp only [hitting_zero_eq, if_neg hj, set.mem_set_of_eq, set.mem_Union,
       set.mem_preimage, exists_prop],
     split,
     { intro h,
@@ -1406,7 +1437,7 @@ begin
 end
 
 lemma hitting_le_eq_Union_nat_of_le {i n : ℕ} (hin : n ≤ i) :
-  {x | hitting u s n x ≤ i} = {x | ∀ j ≤ n, u j x ∉ s} ∪ ⋃ j ≤ i, u j ⁻¹' s :=
+  {x | hitting u s 0 n x ≤ i} = {x | ∀ j ≤ n, u j x ∉ s} ∪ ⋃ j ≤ i, u j ⁻¹' s :=
 begin
   ext x,
   by_cases hj : ∃ j, j ≤ n ∧ u j x ∈ s,
@@ -1415,8 +1446,8 @@ begin
     rintro (h | h),
     { exact let ⟨j, hj₁, hj₂⟩ := hj in false.elim (h j hj₁ hj₂) },
     { assumption } },
-  { simp only [hitting, hj, hin, exists_prop, set.mem_set_of_eq, if_false, set.mem_union_eq,
-      set.mem_Union, set.mem_preimage, true_iff],
+  { simp only [hitting_zero_eq, hj, hin, exists_prop, set.mem_set_of_eq, if_false,
+      set.mem_union_eq, set.mem_Union, set.mem_preimage, true_iff],
     push_neg at hj,
     exact or.inl hj }
 end
@@ -1426,7 +1457,7 @@ measurable. -/
 lemma hitting_is_stopping_time_nat
   [topological_space β] [pseudo_metrizable_space β] [measurable_space β] [borel_space β]
   {f : filtration ℕ m} {u : ℕ → α → β} (hu : adapted f u) (hs : measurable_set s) (n : ℕ) :
-  is_stopping_time f (hitting u s n) :=
+  is_stopping_time f (hitting u s 0 n) :=
 begin
   intro i,
   by_cases hin : i < n,

@@ -196,12 +196,13 @@ end
 
 end complete_lattice
 
-section nat
+section conditionally_complete_linear_order_bot
 
-variables {u : ℕ → α → β} {s : set β} {f : filtration ℕ m}
+variables [conditionally_complete_linear_order_bot ι] [is_well_order ι (<)]
+variables {u : ι → α → β} {s : set β} {f : filtration ℕ m}
 
-lemma hitting_le_iff_nat {i n : ℕ} {x : α} (hx : ∃ j, j ≤ n ∧ u j x ∈ s) :
-  hitting u s 0 n x ≤ i ↔ ∃ j ≤ i, u j x ∈ s :=
+lemma hitting_bot_le_iff {i n : ι} {x : α} (hx : ∃ j, j ≤ n ∧ u j x ∈ s) :
+  hitting u s ⊥ n x ≤ i ↔ ∃ j ≤ i, u j x ∈ s :=
 begin
   cases lt_or_le i n with hi hi,
   { rw hitting_le_iff_of_lt _ hi,
@@ -211,6 +212,6 @@ begin
     exact ⟨j, hj₁.trans hi, hj₂⟩, },
 end
 
-end nat
+end conditionally_complete_linear_order_bot
 
 end measure_theory

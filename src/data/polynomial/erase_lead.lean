@@ -80,12 +80,19 @@ begin
     finset.pred_card_le_card_erase).ne.symm
 end
 
-@[simp] lemma nat_degree_not_mem_erase_lead_support : f.nat_degree ∉ (erase_lead f).support :=
-by simp [not_mem_support_iff]
+lemma lt_nat_degree_of_mem_erase_lead_support {a : ℕ} (h : a ∈ (erase_lead f).support) :
+  a < f.nat_degree :=
+begin
+  rw [erase_lead_support, mem_erase] at h,
+  exact lt_of_le_of_ne (le_nat_degree_of_mem_supp a h.2) h.1,
+end
 
 lemma ne_nat_degree_of_mem_erase_lead_support {a : ℕ} (h : a ∈ (erase_lead f).support) :
   a ≠ f.nat_degree :=
-by { rintro rfl, exact nat_degree_not_mem_erase_lead_support h }
+(lt_nat_degree_of_mem_erase_lead_support h).ne
+
+@[simp] lemma nat_degree_not_mem_erase_lead_support : f.nat_degree ∉ (erase_lead f).support :=
+λ h, ne_nat_degree_of_mem_erase_lead_support h rfl
 
 lemma erase_lead_support_card_lt (h : f ≠ 0) : (erase_lead f).support.card < f.support.card :=
 begin

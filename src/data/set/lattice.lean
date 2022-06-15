@@ -386,6 +386,10 @@ theorem union_Inter (s : set β) (t : ι → set β) :
   s ∪ (⋂ i, t i) = ⋂ i, s ∪ t i :=
 sup_infi_eq _ _
 
+theorem Inter_union (s : ι → set β) (t : set β) :
+  (⋂ i, s i) ∪ t = ⋂ i, s i ∪ t :=
+infi_sup_eq _ _
+
 theorem Union_diff (s : set β) (t : ι → set β) :
   (⋃ i, t i) \ s = ⋃ i, t i \ s :=
 Union_inter _ _
@@ -547,13 +551,16 @@ theorem Inter_and {p q : Prop} (s : p ∧ q → set α) :
   (⋂ h, s h) = ⋂ hp hq, s ⟨hp, hq⟩ :=
 infi_and
 
-theorem Union_comm (s : ι → ι' → set α) :
-  (⋃ i i', s i i') = ⋃ i' i, s i i' :=
-supr_comm
+lemma Union_comm (s : ι → ι' → set α) : (⋃ i i', s i i') = ⋃ i' i, s i i' := supr_comm
+lemma Inter_comm (s : ι → ι' → set α) : (⋂ i i', s i i') = ⋂ i' i, s i i' := infi_comm
 
-theorem Inter_comm (s : ι → ι' → set α) :
-  (⋂ i i', s i i') = ⋂ i' i, s i i' :=
-infi_comm
+lemma Union₂_comm (s : Π i₁, κ₁ i₁ → Π i₂, κ₂ i₂ → set α) :
+  (⋃ i₁ j₁ i₂ j₂, s i₁ j₁ i₂ j₂) = ⋃ i₂ j₂ i₁ j₁, s i₁ j₁ i₂ j₂ :=
+supr₂_comm _
+
+lemma Inter₂_comm (s : Π i₁, κ₁ i₁ → Π i₂, κ₂ i₂ → set α) :
+  (⋂ i₁ j₁ i₂ j₂, s i₁ j₁ i₂ j₂) = ⋂ i₂ j₂ i₁ j₁, s i₁ j₁ i₂ j₂ :=
+infi₂_comm _
 
 @[simp] theorem bUnion_and (p : ι → Prop) (q : ι → ι' → Prop) (s : Π x y, p x ∧ q x y → set α) :
   (⋃ (x : ι) (y : ι') (h : p x ∧ q x y), s x y h) =

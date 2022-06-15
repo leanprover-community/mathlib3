@@ -35,28 +35,13 @@ begin
   { rw ← zmod.nat_coe_zmod_eq_zero_iff_dvd, exact hp, },
 
   by_contradiction h2,
-  obtain ⟨m, hm⟩ := exists_dvd_of_not_prime2 h1 h2,
+  obtain ⟨m, hm1, hm2, hm3⟩ := exists_dvd_of_not_prime2 h1 h2,
   have m_leq_n_minus_one : m ≤ n-1,
-  { cases hm.right,
-    rw lt_iff_add_one_le at right,
-    rw nat.add_le_to_le_sub at right,
-    exact right,
-    exact le_of_lt h1, },
-
-  have hm_divides_fact : m ∣ (n-1)!,
-  { refine nat.dvd_factorial _ m_leq_n_minus_one,
-    cases hm.right,
-    exact pos_of_gt left, },
-  cases hm.left with _ hm_left,
-  rw hm_left at hn_divides hm_divides_fact,
-
-  clear h h1 h2 hp hm_left m_leq_n_minus_one,
-
-  have m_is_one : m = 1, from
-    nat.dvd_one.mp
-    ((nat.dvd_add_right hm_divides_fact).mp (dvd_of_mul_right_dvd hn_divides)),
-
-  cases hm.right,
+  { rwa [lt_iff_add_one_le, nat.add_le_to_le_sub m h1.le] at hm3 },
+  have hm_divides_fact : m ∣ (n-1)! :=
+  nat.dvd_factorial (pos_of_gt hm2) m_leq_n_minus_one ,
+  have m_is_one : m = 1 :=
+  nat.dvd_one.mp ((nat.dvd_add_right hm_divides_fact).mp (hm1.trans hn_divides)),
   linarith,
 end
 
@@ -67,8 +52,7 @@ begin
   split,
   { intro h1, rw ← zmod.wilsons_lemma _, exact fact_iff.mpr h1 },
   intro h2,
-  apply wilsons_theorem_only_if_direction n h2,
-  exact h,
+  apply wilsons_theorem_only_if_direction n h2 h,
 end
 
 end nat

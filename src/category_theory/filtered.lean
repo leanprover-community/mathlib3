@@ -481,14 +481,14 @@ instance is_cofiltered_of_semilattice_inf_nonempty
 
 @[priority 100]
 instance is_cofiltered_or_empty_of_directed_ge (α : Type u) [preorder α]
-  [is_directed α (swap (≤))] :
+  [is_directed α (≥)] :
   is_cofiltered_or_empty α :=
 { cocone_objs := λ X Y, let ⟨Z, hX, hY⟩ := exists_le_le X Y in
     ⟨Z, hom_of_le hX, hom_of_le hY, trivial⟩,
   cocone_maps := λ X Y f g, ⟨X, 𝟙 _, by simp⟩ }
 
 @[priority 100]
-instance is_cofiltered_of_directed_ge_nonempty  (α : Type u) [preorder α] [is_directed α (swap (≤))]
+instance is_cofiltered_of_directed_ge_nonempty  (α : Type u) [preorder α] [is_directed α (≥)]
   [nonempty α] :
   is_cofiltered α := {}
 

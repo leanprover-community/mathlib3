@@ -1556,7 +1556,7 @@ However, lemmas with this conclusion are not nice to use in practice because
 1. They confuse the elaborator. The following two examples fail, because of limitations in the
   elaboration process.
   ```
-  variables {M : Type*} [has_mul M] [topological_space M] [has_continuous_mul M]
+  variables {M : Type*} [has_add M] [topological_space M] [has_continuous_add M]
   example : continuous (λ x : M, x + x) :=
   continuous_add.comp _
 

@@ -555,8 +555,8 @@ def inv'_zero : relabelling (inv' 0) 1 :=
 begin
   change relabelling (mk _ _ _ _) 1,
   refine ⟨_, _, λ i, _, is_empty_elim⟩; dsimp,
-  { exact equiv_punit_of_unique },
-  { exact equiv.equiv_pempty _ },
+  { apply equiv.equiv_punit },
+  { apply equiv.equiv_pempty },
   { simp }
 end
 
@@ -568,10 +568,10 @@ begin
   change relabelling (mk _ _ _ _) 1,
   haveI : is_empty {i : punit.{u+1} // (0 : pgame.{u}) < 0},
   { rw lt_self_iff_false, apply_instance },
-  refine ⟨_, _, λ i, _, is_empty_elim⟩;
-  simp,
-  { apply equiv_punit_of_unique },
-  { apply equiv.equiv_pempty }
+  refine ⟨_, _, λ i, _, is_empty_elim⟩; dsimp,
+  { apply equiv.equiv_punit },
+  { apply equiv.equiv_pempty },
+  { simp }
 end
 
 theorem inv'_one_equiv : inv' 1 ≈ 1 := inv'_one.equiv

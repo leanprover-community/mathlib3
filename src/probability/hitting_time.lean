@@ -8,6 +8,29 @@ import probability.stopping
 /-!
 # Hitting time
 
+Given a stochastic process, the hitting time provides the first time the process ``hits'' some
+subset of the state space. The hitting time is a stopping time in the case that the time index is
+discrete and the process is adapted.
+
+## Main definition
+
+* `measure_theory.hitting`: the hitting time of a stochastic process
+
+## Main results
+
+* `measure_theory.hitting_is_stopping_time`: a discrete hitting time of an adapted process is a
+  stopping time
+* `measure_theory.hitting_is_stopping_time_nat`: a hitting time indexed by the natural numbers
+  of an adapted process is a stopping time
+
+## Implementation notes
+
+In the definition of the hitting time, we bound the hitting time by an upper and lower bound.
+This is to ensure that our result is meaningful in the case we are taking the infimum of an
+empty set or the infimum of a set which is unbounded from below. With this, we can talk about
+hitting times indexed by the natural numbers or the reals. By taking the bounds to be
+`⊤` and `⊥`, we obtain the standard definition in the case that the index is `with_top ℕ` or `ℝ≥0∞`.
+
 -/
 
 open filter order topological_space

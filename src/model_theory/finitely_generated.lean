@@ -60,7 +60,7 @@ end
 theorem fg_bot : (⊥ : L.substructure M).fg :=
 ⟨∅, by rw [finset.coe_empty, closure_empty]⟩
 
-theorem fg_closure {s : set M} (hs : finite s) : fg (closure L s) :=
+theorem fg_closure {s : set M} (hs : s.finite) : fg (closure L s) :=
 ⟨hs.to_finset, by rw [hs.coe_to_finset]⟩
 
 theorem fg_closure_singleton (x : M) : fg (closure L ({x} : set M)) :=

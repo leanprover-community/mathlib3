@@ -29,10 +29,8 @@ namespace nat
 private lemma wilsons_theorem_only_if_direction
   (n : ℕ) (h : ((n - 1)! : zmod n) = -1) (h1 : 1 < n) : prime n :=
 begin
-  have hp : ((n - 1)! + 1 : zmod n) = 0,
-  { rw h, simp, },
   have hn_divides : n ∣ (n-1)! + 1,
-  { rw ← zmod.nat_coe_zmod_eq_zero_iff_dvd, exact hp, },
+  { rw [←zmod.nat_coe_zmod_eq_zero_iff_dvd, cast_add, cast_one, h, add_left_neg] },
 
   by_contradiction h2,
   obtain ⟨m, hm1, hm2, hm3⟩ := exists_dvd_of_not_prime2 h1 h2,
@@ -49,10 +47,9 @@ end
 theorem wilsons_theorem (n : ℕ) (h : 1 < n) :
   prime n ↔ ((n - 1)! : zmod n) = -1 :=
 begin
-  split,
-  { intro h1, rw ← zmod.wilsons_lemma _, exact fact_iff.mpr h1 },
-  intro h2,
-  apply wilsons_theorem_only_if_direction n h2 h,
+  refine ⟨λ h1, _, λ h2, wilsons_theorem_only_if_direction n h2 h⟩,
+  haveI := fact.mk h1,
+  exact zmod.wilsons_lemma n,
 end
 
 end nat

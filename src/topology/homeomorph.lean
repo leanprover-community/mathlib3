@@ -451,7 +451,7 @@ A subset of a topological space is homeomorphic to its image under a homeomorphi
   continuous_inv_fun := by continuity!,
   to_equiv := e.to_equiv.image s, }
 
-/-- `univ α` is homeomorphic to `α`. -/
+/-- `set.univ α` is homeomorphic to `α`. -/
 @[simps { fully_applied := ff }]
 def set.univ (α : Type*) [topological_space α] : (univ : set α) ≃ₜ α :=
 { to_equiv := equiv.set.univ α,

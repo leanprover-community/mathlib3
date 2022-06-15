@@ -56,14 +56,15 @@ pempty.is_empty
 instance unique_pow_half_succ_right_moves (n) : unique (pow_half (n + 1)).right_moves :=
 punit.unique
 
-@[simp] theorem birthday_pow_half : ∀ n, birthday (pow_half n) = n + 1 :=
-| 0       := birthday_one
-| (n + 1) := by simp [pow_half]
+@[simp] theorem birthday_pow_half : ∀ n, birthday (pow_half n) = n + 1
+| 0       := by simp
+| (n + 1) := by simp [pow_half, birthday_pow_half n]
 
 /-- For all natural numbers `n`, the pre-games `pow_half n` are numeric. -/
-theorem numeric_pow_half : ∀ n, (pow_half n).numeric :=
+theorem numeric_pow_half : ∀ n, (pow_half n).numeric
 | 0       := numeric_one
-| (n + 1) := ⟨by simpa using hn.move_left_lt default, ⟨λ _, numeric_zero, λ _, hn⟩⟩
+| (n + 1) := let hn := numeric_pow_half n in
+               ⟨by simpa using hn.move_left_lt default, ⟨λ _, numeric_zero, λ _, hn⟩⟩
 
 theorem pow_half_succ_lt_pow_half (n : ℕ) : pow_half (n + 1) < pow_half n :=
 (numeric_pow_half (n + 1)).lt_move_right default
@@ -81,8 +82,9 @@ end
 theorem pow_half_succ_lt_one (n : ℕ) : pow_half (n + 1) < 1 :=
 (pow_half_succ_lt_pow_half n).trans_le $ pow_half_le_one n
 
-theorem pow_half_pos (n : ℕ) : 0 < pow_half n :=
-lt_of (numeric_pow_half n)
+theorem pow_half_pos : ∀ n, 0 < pow_half n
+| 0       := zero_lt_one
+| (n + 1) := lt_of (numeric_pow_half n.succ)
 
 theorem zero_le_pow_half (n : ℕ) : 0 ≤ pow_half n :=
 (pow_half_pos n).le

@@ -302,7 +302,7 @@ theorem card_le : # (Σ n, L.bounded_formula α n) ≤
   max ℵ₀ (cardinal.lift.{max u v} (#α) + cardinal.lift.{u'} L.card) :=
 begin
   refine lift_le.1 ((bounded_formula.encoding.card_le_card_list).trans _),
-  rw [encoding_Γ, mk_list_eq_max_mk_aleph_0, lift_max',lift_aleph_0, lift_max', lift_aleph_0,
+  rw [encoding_Γ, mk_list_eq_max_mk_aleph_0, lift_max, lift_aleph_0, lift_max, lift_aleph_0,
     max_le_iff],
   refine ⟨_, le_max_left _ _⟩,
   rw [mk_sum, term.card_sigma, mk_sum, ← add_eq_max le_rfl, mk_sum, mk_nat],

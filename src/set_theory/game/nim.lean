@@ -79,7 +79,7 @@ noncomputable def nim_one_relabelling : relabelling (nim 1) star :=
 begin
   rw nim_def,
   refine ⟨_, _, λ i,  _, λ j, _⟩,
-  any_goals { dsimp, apply equiv_of_unique_of_unique },
+  any_goals { dsimp, apply equiv.equiv_of_unique },
   all_goals { simp, exact nim_zero_relabelling }
 end
 
@@ -164,7 +164,7 @@ equiv.is_empty _
 
 lemma non_zero_first_wins {O : ordinal} (hO : O ≠ 0) : (nim O).first_wins :=
 begin
-  rw [impartial.first_wins_symm, nim_def, lf_iff_forall_le],
+  rw [impartial.first_wins_symm, nim_def, lf_iff_exists_le],
   rw ←ordinal.pos_iff_ne_zero at hO,
   exact or.inr ⟨(ordinal.principal_seg_out hO).top, by simp⟩
 end
@@ -178,7 +178,7 @@ begin
     wlog h' : O₁ ≤ O₂ using [O₁ O₂, O₂ O₁],
     { exact le_total O₁ O₂ },
     { have h : O₁ < O₂ := lt_of_le_of_ne h' h,
-      rw [impartial.first_wins_symm', lf_iff_forall_le, nim_def O₂],
+      rw [impartial.first_wins_symm', lf_iff_exists_le, nim_def O₂],
       refine or.inl ⟨to_left_moves_add (sum.inr _), _⟩,
       { exact (ordinal.principal_seg_out h).top },
       { simpa using (impartial.add_self (nim O₁)).2 } },
@@ -215,8 +215,9 @@ begin
   introI hG,
   rw [impartial.equiv_iff_sum_first_loses, ←impartial.no_good_left_moves_iff_first_loses],
   intro i,
-  rcases left_moves_add_cases i with ⟨i₁, rfl⟩ | ⟨i₂, rfl⟩,
-  { rw add_move_left_inl,
+  apply left_moves_add_cases i,
+  { intro i₁,
+    rw add_move_left_inl,
     apply first_wins_of_equiv (add_congr_left (equiv_nim_grundy_value (G.move_left i₁)).symm),
     rw nim.sum_first_wins_iff_neq,
     intro heq,
@@ -224,7 +225,8 @@ begin
     have h := ordinal.ne_mex _,
     rw heq at h,
     exact (h i₁).irrefl },
-  { rw [add_move_left_inr, ←impartial.good_left_move_iff_first_wins],
+  { intro i₂,
+    rw [add_move_left_inr, ←impartial.good_left_move_iff_first_wins],
     revert i₂,
     rw nim.nim_def,
     intro i₂,
@@ -283,10 +285,11 @@ begin
     intro i,
 
     -- The move operates either on the left pile or on the right pile.
-    rcases left_moves_add_cases i with ⟨a, rfl⟩ | ⟨a, rfl⟩,
+    apply left_moves_add_cases i,
 
     all_goals
     { -- One of the piles is reduced to `k` stones, with `k < n` or `k < m`.
+      intro a,
       obtain ⟨ok, hk, hk'⟩ := nim.exists_ordinal_move_left_eq a,
       obtain ⟨k, rfl⟩ := ordinal.lt_omega.1 (lt_trans hk (ordinal.nat_lt_omega _)),
       replace hk := ordinal.nat_cast_lt.1 hk,

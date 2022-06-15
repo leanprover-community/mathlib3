@@ -551,9 +551,20 @@ inductive normalize_mode | raw | SOP | horner
 instance : inhabited normalize_mode := ⟨normalize_mode.horner⟩
 
 /-- A `ring`-based normalization simplifier that rewrites ring expressions into the specified mode.
-  See `normalize`. This version takes a list of atoms to persist across multiple calls. -/
+See `normalize`. This version takes a list of atoms to persist across multiple calls.
+
+* `atoms`: a mutable reference containing the atom set from the previous call
+* `red`: the reducibility setting to use when comparing atoms for defeq
+* `mode`: the normalization style (see `normalize_mode`)
+* `recursive`: if true, atoms will be reduced recursively using `normalize'`
+* `e`: the expression to normalize
+* `inner`: This should be set to `ff`. It is used internally to disable normalization
+  at the top level when called from `eval` in order to prevent an infinite loop
+  `eval' -> eval_atom -> normalize' -> eval'` when called on something that can't
+  be simplified like `x`.
+-/
 meta def normalize' (atoms : ref (buffer expr))
-  (red : transparency) (mode := normalize_mode.horner) :
+  (red : transparency) (mode := normalize_mode.horner) (recursive := tt) :
   expr → opt_param _ ff → tactic (expr × expr)
 | e inner := do
   pow_lemma ← simp_lemmas.mk.add_simp ``pow_one,
@@ -575,11 +586,12 @@ meta def normalize' (atoms : ref (buffer expr))
       pure (e', pr))
     (λ e, do
       a ← read_ref atoms,
+      let norm_rec := if recursive then λ e, normalize' e tt else λ _, failed,
       (a, e', pr) ← ext_simplify_core a {}
         simp_lemmas.mk (λ _, failed) (λ a _ _ p e, do
           guard (inner → p.is_some),
           write_ref atoms a,
-          (new_e, pr) ← eval' red atoms (λ e, normalize' e tt) e,
+          (new_e, pr) ← eval' red atoms norm_rec e,
           (new_e, pr) ← match mode with
           | normalize_mode.raw := λ _, pure (new_e, pr)
           | normalize_mode.horner := trans_conv (λ _, pure (new_e, pr))
@@ -607,9 +619,11 @@ meta def normalize' (atoms : ref (buffer expr))
     This results in terms like `(3 * x ^ 2 * y + 1) * x + y`.
   * `SOP` means sum of products form, expanding everything to monomials.
     This results in terms like `3 * x ^ 3 * y + x + y`. -/
-meta def normalize (red : transparency) (mode := normalize_mode.horner) (e : expr) :
+meta def normalize (red : transparency) (mode := normalize_mode.horner) (recursive := tt) (e : expr) :
   tactic (expr × expr) :=
-using_new_ref mk_buffer $ λ atoms, normalize' atoms red mode e
+using_new_ref mk_buffer $ λ atoms, normalize' atoms red mode recursive e
+
+structure ring_nf_cfg := (recursive := tt)
 
 end ring
 
@@ -649,12 +663,12 @@ which rewrites all ring expressions into a normal form. When writing a normal fo
 `ring_nf SOP` will use sum-of-products form instead of horner form.
 `ring_nf!` will use a more aggressive reducibility setting to identify atoms.
 -/
-meta def ring_nf (red : parse (tk "!")?) (SOP : parse ring.mode) (loc : parse location) :
-  tactic unit :=
+meta def ring_nf (red : parse (tk "!")?) (SOP : parse ring.mode) (loc : parse location)
+  (cfg : ring_nf_cfg := {}) : tactic unit :=
 do ns ← loc.get_locals,
    let transp := if red.is_some then semireducible else reducible,
    tt ← using_new_ref mk_buffer $ λ atoms,
-     tactic.replace_at (normalize' atoms transp SOP) ns loc.include_goal
+     tactic.replace_at (normalize' atoms transp SOP cfg.recursive) ns loc.include_goal
    | fail "ring_nf failed to simplify",
    when loc.include_goal $ try tactic.reflexivity
 
@@ -695,9 +709,10 @@ local postfix `?`:9001 := optional
 /--
 Normalises expressions in commutative (semi-)rings inside of a `conv` block using the tactic `ring`.
 -/
-meta def ring_nf (red : parse (lean.parser.tk "!")?) (SOP : parse ring.mode) : conv unit :=
+meta def ring_nf (red : parse (lean.parser.tk "!")?) (SOP : parse ring.mode)
+  (cfg : ring.ring_nf_cfg := {}) : conv unit :=
 let transp := if red.is_some then semireducible else reducible in
-replace_lhs (normalize transp SOP)
+replace_lhs (normalize transp SOP cfg.recursive)
 <|> fail "ring_nf failed to simplify"
 
 /--

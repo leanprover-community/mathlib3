@@ -89,3 +89,9 @@ by transitivity; [exact h, ring]
 
 -- `ring_nf` should descend into the subexpressions `x * -a` and `-a * x`:
 example {a x : ℚ} : x * -a = - a * x := by ring_nf
+
+example (f : ℤ → ℤ) (a b : ℤ) : f (2 * a + b) + b = b + f (b + a + a) :=
+begin
+  success_if_fail {{ ring_nf {recursive := ff} }},
+  ring_nf
+end

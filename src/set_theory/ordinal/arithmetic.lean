@@ -115,7 +115,7 @@ ne_of_gt $ succ_pos o
 @[simp] theorem card_succ (o : ordinal) : card (succ o) = card o + 1 :=
 by simp only [←add_one_eq_succ, card_add, card_one]
 
-theorem nat_cast_succ (n : ℕ) : (succ n : ordinal) = n.succ := rfl
+theorem nat_cast_succ (n : ℕ) : ↑n.succ = succ (n : ordinal) := rfl
 
 theorem add_left_cancel (a) {b c : ordinal} : a + b = a + c ↔ b = c :=
 by simp only [le_antisymm_iff, add_le_add_iff_left]
@@ -138,7 +138,7 @@ instance add_swap_contravariant_class_lt :
 
 theorem add_le_add_iff_right {a b : ordinal} (n : ℕ) : a + n ≤ b + n ↔ a ≤ b :=
 by induction n with n ih; [rw [nat.cast_zero, add_zero, add_zero],
-  rw [← nat_cast_succ, add_succ, add_succ, succ_le_succ_iff, ih]]
+  rw [nat_cast_succ, add_succ, add_succ, succ_le_succ_iff, ih]]
 
 theorem add_right_cancel {a b : ordinal} (n : ℕ) : a + n = b + n ↔ a = b :=
 by simp only [le_antisymm_iff, add_le_add_iff_right]
@@ -2105,11 +2105,11 @@ end
 
 /-! ### Casting naturals into ordinals, compatibility with operations -/
 
-@[simp] theorem nat_cast_mul {m n : ℕ} : ((m * n : ℕ) : ordinal) = m * n :=
+@[simp] theorem nat_cast_mul (m n : ℕ) : ((m * n : ℕ) : ordinal) = m * n :=
 by induction n with n IH; [simp only [nat.cast_zero, nat.mul_zero, mul_zero],
   rw [nat.mul_succ, nat.cast_add, IH, nat.cast_succ, mul_add_one]]
 
-@[simp] theorem nat_cast_opow {m n : ℕ} : ((pow m n : ℕ) : ordinal) = m ^ n :=
+@[simp] theorem nat_cast_opow (m n : ℕ) : ((pow m n : ℕ) : ordinal) = m ^ n :=
 by induction n with n IH; [simp only [pow_zero, nat.cast_zero, opow_zero, nat.cast_one],
   rw [pow_succ', nat_cast_mul, IH, nat.cast_succ, add_one_eq_succ, opow_succ]]
 
@@ -2132,13 +2132,13 @@ not_congr nat_cast_eq_zero
 @[simp] theorem nat_cast_pos {n : ℕ} : (0 : ordinal) < n ↔ 0 < n :=
 @nat_cast_lt 0 n
 
-@[simp] theorem nat_cast_sub {m n : ℕ} : ((m - n : ℕ) : ordinal) = m - n :=
-(_root_.le_total m n).elim
+@[simp] theorem nat_cast_sub (m n : ℕ) : ((m - n : ℕ) : ordinal) = m - n :=
+(le_total m n).elim
   (λ h, by rw [tsub_eq_zero_iff_le.2 h, ordinal.sub_eq_zero_iff_le.2 (nat_cast_le.2 h)]; refl)
   (λ h, (add_left_cancel n).1 $ by rw [← nat.cast_add,
      add_tsub_cancel_of_le h, ordinal.add_sub_cancel_of_le (nat_cast_le.2 h)])
 
-@[simp] theorem nat_cast_div {m n : ℕ} : ((m / n : ℕ) : ordinal) = m / n :=
+@[simp] theorem nat_cast_div (m n : ℕ) : ((m / n : ℕ) : ordinal) = m / n :=
 if n0 : n = 0 then by simp only [n0, nat.div_zero, nat.cast_zero, div_zero] else
 have n0':_, from nat_cast_ne_zero.2 n0,
 le_antisymm
@@ -2148,7 +2148,7 @@ le_antisymm
           nat_cast_lt, mul_comm, ← nat.div_lt_iff_lt_mul _ _ (nat.pos_of_ne_zero n0)];
       apply nat.lt_succ_self)
 
-@[simp] theorem nat_cast_mod {m n : ℕ} : ((m % n : ℕ) : ordinal) = m % n :=
+@[simp] theorem nat_cast_mod (m n : ℕ) : ((m % n : ℕ) : ordinal) = m % n :=
 by rw [← add_left_cancel (n*(m/n)), div_add_mod, ← nat_cast_div, ← nat_cast_mul, ← nat.cast_add,
        nat.div_add_mod]
 
@@ -2174,9 +2174,6 @@ by rw [← card_eq_nat, card_type, mk_fin]
 @[simp] theorem lift_nat_cast (n : ℕ) : lift n = n :=
 by induction n with n ih; [simp only [nat.cast_zero, lift_zero],
   simp only [nat.cast_succ, lift_add, ih, lift_one]]
-
-theorem lift_type_fin (n : ℕ) : lift (@type (fin n) (<) _) = n :=
-by simp only [type_fin, lift_nat_cast]
 
 theorem type_fintype (r : α → α → Prop) [is_well_order α r] [fintype α] : type r = fintype.card α :=
 by rw [← card_eq_nat, card_type, mk_fintype]

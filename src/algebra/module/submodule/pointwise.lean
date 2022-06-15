@@ -148,7 +148,8 @@ def canonically_ordered_add_monoid : canonically_ordered_add_monoid (submodule R
   bot := ⊥,
   add := (+),
   add_le_add_left := λ a b, sup_le_sup_left,
-  le_iff_exists_add := λ a b, le_iff_exists_sup,
+  exists_add_of_le := λ a b h, ⟨b, (sup_eq_right.2 h).symm⟩,
+  le_self_add := λ a b, le_sup_left,
   ..submodule.pointwise_add_comm_monoid,
   ..submodule.complete_lattice }
 

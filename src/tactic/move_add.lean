@@ -169,7 +169,7 @@ meta def sorted_sum (hyp : option name) (ll : list (bool × pexpr)) (f : pexpr) 
   tactic (list bool) :=
 do
   f ← to_expr f tt ff,
-  lisu ← expr.list_binary_operands f e,
+  lisu ← tactic.list_binary_operands f e,
   (sli, is_unused) ← final_sort ll lisu,
   match sli with
   | []       := return is_unused

@@ -105,9 +105,6 @@ by { rw birthday_def, simp }
 @[simp] theorem birthday_star : birthday star = 1 :=
 by { rw birthday_def, simp }
 
-@[simp] theorem birthday_half : birthday half = 2 :=
-by { rw birthday_def, simpa using order.le_succ (1 : ordinal) }
-
 @[simp] theorem neg_birthday : ∀ x : pgame, (-x).birthday = x.birthday
 | ⟨xl, xr, xL, xR⟩ := begin
   rw [birthday_def, birthday_def, max_comm],
@@ -133,7 +130,7 @@ le_def.2 ⟨λ i, or.inl ⟨to_left_moves_to_pgame ⟨_, birthday_move_left_lt i
 variables (a b x : pgame.{u})
 
 theorem neg_birthday_le : -x.birthday.to_pgame ≤ x :=
-let h := le_birthday (-x) in by rwa [neg_birthday, ←neg_le_iff, neg_neg] at h
+let h := le_birthday (-x) in by rwa [neg_birthday, ←neg_le_iff] at h
 
 @[simp] theorem birthday_add : ∀ x y : pgame.{u}, (x + y).birthday = x.birthday ♯ y.birthday
 | ⟨xl, xr, xL, xR⟩ ⟨yl, yr, yL, yR⟩ := begin
@@ -158,8 +155,8 @@ using_well_founded { dec_tac := pgame_wf_tac }
 
 theorem birthday_add_zero : (a + 0).birthday = a.birthday := by simp
 theorem birthday_zero_add : (0 + a).birthday = a.birthday := by simp
-theorem birthday_add_one  : (a + 1).birthday = a.birthday + 1 := by simp
-theorem birthday_one_add  : (1 + a).birthday = a.birthday + 1 := by simp
+theorem birthday_add_one  : (a + 1).birthday = order.succ a.birthday := by simp
+theorem birthday_one_add  : (1 + a).birthday = order.succ a.birthday := by simp
 
 @[simp] theorem birthday_nat_cast (n : ℕ) : birthday n = n :=
 begin

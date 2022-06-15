@@ -107,7 +107,7 @@ lemma card_orbit (a : α) [fintype (orbit G a)] :
   ∃ n : ℕ, card (orbit G a) = p ^ n :=
 begin
   let ϕ := orbit_equiv_quotient_stabilizer G a,
-  haveI := subgroup.finite_index_of_fintype (fintype.of_equiv (orbit G a) ϕ),
+  haveI := subgroup.finite_index_of_finite (finite.of_fintype (fintype.of_equiv (orbit G a) ϕ)),
   rw [card_congr ϕ, ←subgroup.index_eq_card],
   exact hG.index (stabilizer G a),
 end

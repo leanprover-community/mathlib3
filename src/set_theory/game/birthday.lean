@@ -161,8 +161,7 @@ theorem birthday_one_add  : (1 + a).birthday = order.succ a.birthday := by simp
 begin
   induction n with n hn,
   { exact birthday_zero },
-  { convert birthday_add_one n,
-    rw hn, refl }
+  { simp [hn] }
 end
 
 theorem birthday_add_nat (n : ℕ) : (a + n).birthday = a.birthday + n := by simp

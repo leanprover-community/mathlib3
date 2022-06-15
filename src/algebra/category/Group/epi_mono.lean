@@ -4,11 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jujian Zhang
 -/
 import category_theory.epi_mono
--- import algebra.category.Group.limits
 import group_theory.coset
 import group_theory.perm.basic
 import group_theory.quotient_group
 import algebra.category.Group.basic
+
+noncomputable theory
 
 /-!
 # Monomorphisms and epimorphism in `Group` and `CommGroup`
@@ -110,16 +111,19 @@ namespace Group
 
 variables {A B : Group.{u}} (f : A ⟶ B)
 
+@[to_additive AddGroup.ker_eq_bot_of_mono]
 lemma ker_eq_bot_of_mono [mono f] : f.ker = ⊥ :=
 monoid_hom.ker_eq_bot_of_cancel $ λ u v,
   (@cancel_mono _ _ _ _ _ f _
     (show Group.of f.ker ⟶ A, from u) _).1
 
+@[to_additive AddGroup.mono_iff_ker_eq_bot]
 lemma mono_iff_ker_eq_bot :
   mono f ↔ f.ker = ⊥ :=
 ⟨λ h, @@ker_eq_bot_of_mono f h,
 λ h, concrete_category.mono_of_injective _ $ (monoid_hom.ker_eq_bot f).1 h⟩
 
+@[to_additive AddGroup.mono_iff_injective]
 lemma mono_iff_injective :
   mono f ↔ function.injective f :=
 iff.trans (mono_iff_ker_eq_bot f) $ monoid_hom.ker_eq_bot f
@@ -128,8 +132,11 @@ namespace surjective_of_epi_auxs
 
 local notation `X` := set.range (function.swap left_coset f.range.carrier)
 
+/--
+Define `X'` to be the set of all right cosets with an extra point at "infinity".
+-/
 inductive X_with_infinity
-| from_coset : X → X_with_infinity
+| from_coset : set.range (function.swap left_coset f.range.carrier) → X_with_infinity
 | infinity : X_with_infinity
 
 open X_with_infinity equiv.perm
@@ -139,8 +146,12 @@ local notation `X'` := X_with_infinity f
 local notation `⊙` := X_with_infinity.infinity
 local notation `SX'` := equiv.perm X'
 
-noncomputable instance : decidable_eq X' := classical.dec_eq _
-noncomputable def tau : SX' := equiv.swap
+instance : decidable_eq X' := classical.dec_eq _
+
+/--
+Let `τ` be the permutation on `X'` exchanging `f.range` and the point at infinity.
+-/
+def tau : SX' := equiv.swap
 (from_coset ⟨f.range.carrier, ⟨1, one_left_coset _⟩⟩) ⊙
 
 local notation `τ` := tau f
@@ -189,6 +200,10 @@ begin
   rw [equiv.symm_swap, equiv.swap_apply_right],
 end
 
+/--
+Let `g : B ⟶ S(X')` be defined as as such that, for any `β : B`, `g(β)` is the function sending
+point at infinity to point at infinity and sending coset `y` to `β *l y`.
+-/
 def G : B ⟶ Group.of SX' :=
 { to_fun := λ β,
   { to_fun := λ x,
@@ -246,6 +261,9 @@ def G : B ⟶ Group.of SX' :=
 
 local notation `g` := G f
 
+/--
+Define `h : B ⟶ S(X')` to be `τ g τ⁻¹`
+-/
 noncomputable def H : B ⟶ Group.of SX':=
 { to_fun := λ β, (equiv.trans (equiv.symm τ) (g β)).trans τ,
   map_one' := begin
@@ -258,6 +276,13 @@ noncomputable def H : B ⟶ Group.of SX':=
   end }
 
 local notation `h` := H f
+
+/--
+The strategy is the following: assuming `epi f`
+* prove that `f.range = {x | h x = g x}`;
+* thus `f ≫ h = f ≫ g` so that `h = g`;
+* but if `f` is not surjective, then some `x ≠ f.range`, then `h x ≠ g x` at the coset `f.range`.
+-/
 
 lemma g_apply_from_coset (x : B) (y : X) :
   (g x).to_fun (from_coset y) =
@@ -432,7 +457,7 @@ end
 lemma g_eq_h [epi f] : g = h :=
 (cancel_epi f).1 $ comp_eq f
 
-lemma g_ne_h [epi f] (x : B) (hx : x ∉ f.range) :
+lemma g_ne_h (x : B) (hx : x ∉ f.range) :
   g ≠ h :=
 begin
   intros r,
@@ -491,5 +516,6 @@ iff.trans (epi_iff_surjective _) begin
 end
 
 end Group
+
 
 end

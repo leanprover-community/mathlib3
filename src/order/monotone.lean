@@ -56,7 +56,7 @@ monotone, strictly monotone, antitone, strictly antitone, increasing, strictly i
 decreasing, strictly decreasing
 -/
 
-open function
+open function order_dual
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w} {r : α → α → Prop}
@@ -109,7 +109,7 @@ Often, you should not need the rewriting lemmas. Instead, you probably want to a
 -/
 
 section order_dual
-open order_dual
+
 variables [preorder α] [preorder β] {f : α → β} {s : set α}
 
 @[simp] lemma monotone_comp_of_dual_iff : monotone (f ∘ of_dual) ↔ antitone f := forall_swap
@@ -603,6 +603,27 @@ lemma antitone.strict_anti_iff_injective (hf : antitone f) :
 ⟨λ h, h.injective, hf.strict_anti_of_injective⟩
 
 end partial_order
+
+/-!
+### Strictly monotone functions and `cmp`
+-/
+
+variables [linear_order β] {f : α → β} {s : set α} {x y : α}
+
+lemma strict_mono_on.cmp_map_eq (hf : strict_mono_on f s) (hx : x ∈ s) (hy : y ∈ s) :
+  cmp (f x) (f y) = cmp x y :=
+((hf.compares hx hy).2 (cmp_compares x y)).cmp_eq
+
+lemma strict_mono.cmp_map_eq (hf : strict_mono f) (x y : α) : cmp (f x) (f y) = cmp x y :=
+(hf.strict_mono_on set.univ).cmp_map_eq trivial trivial
+
+lemma strict_anti_on.cmp_map_eq (hf : strict_anti_on f s) (hx : x ∈ s) (hy : y ∈ s) :
+  cmp (f x) (f y) = cmp y x :=
+hf.dual_right.cmp_map_eq hy hx
+
+lemma strict_anti.cmp_map_eq (hf : strict_anti f) (x y : α) : cmp (f x) (f y) = cmp y x :=
+(hf.strict_anti_on set.univ).cmp_map_eq trivial trivial
+
 end linear_order
 
 /-! ### Monotonicity in `ℕ` and `ℤ` -/

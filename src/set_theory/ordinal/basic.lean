@@ -742,12 +742,21 @@ theorem card_le_card {o₁ o₂ : ordinal} : o₁ ≤ o₂ → card o₁ ≤ car
 induction_on o₁ $ λ α r _, induction_on o₂ $ λ β s _ ⟨⟨⟨f, _⟩, _⟩⟩, ⟨f⟩
 
 instance : has_zero ordinal :=
-⟨⟦⟨pempty, empty_relation, by apply_instance⟩⟧⟩
+⟨@type pempty empty_relation _⟩
 
 instance : inhabited ordinal := ⟨0⟩
 
-theorem zero_eq_type_empty : 0 = @type empty empty_relation _ :=
-quotient.sound ⟨⟨equiv_of_is_empty  _ _, λ _ _, iff.rfl⟩⟩
+@[simp] theorem type_eq_zero_of_empty (r) [is_well_order α r] [is_empty α] : type r = 0 :=
+(rel_iso.rel_iso_of_is_empty r _).ordinal_type_eq
+
+@[simp] theorem type_eq_zero_iff_is_empty [is_well_order α r] : type r = 0 ↔ is_empty α :=
+⟨λ h, let ⟨s⟩ := type_eq.1 h in s.to_equiv.is_empty, @type_eq_zero_of_empty α r _⟩
+
+theorem type_ne_zero_iff_nonempty [is_well_order α r] : type r ≠ 0 ↔ nonempty α :=
+by simp
+
+theorem type_ne_zero_of_nonempty (r) [is_well_order α r] [h : nonempty α] : type r ≠ 0 :=
+type_ne_zero_iff_nonempty.2 h
 
 @[simp] theorem card_zero : card 0 = 0 := rfl
 
@@ -783,7 +792,7 @@ instance is_empty_out_zero : is_empty (0 : ordinal).out.α :=
 out_empty_iff_eq_zero.2 rfl
 
 instance : has_one ordinal :=
-⟨⟦⟨punit, empty_relation, by apply_instance⟩⟧⟩
+⟨@type punit empty_relation _⟩
 
 theorem one_eq_type_unit : 1 = @type unit empty_relation _ :=
 quotient.sound ⟨⟨punit_equiv_punit, λ _ _, iff.rfl⟩⟩
@@ -862,9 +871,6 @@ by simp only [lt_iff_le_not_le, lift_le]
 @[simp] theorem lift_zero : lift 0 = 0 :=
 quotient.sound ⟨(rel_iso.preimage equiv.ulift _).trans
  ⟨equiv_of_is_empty  _ _, λ a b, iff.rfl⟩⟩
-
-theorem zero_eq_lift_type_empty : 0 = lift.{u} (@type empty empty_relation _) :=
-by rw [← zero_eq_type_empty, lift_zero]
 
 @[simp] theorem lift_one : lift 1 = 1 :=
 quotient.sound ⟨(rel_iso.preimage equiv.ulift _).trans
@@ -1182,9 +1188,10 @@ let ⟨i, e⟩ := min_eq I (lift ∘ f) in
 by rw e; exact lift_le.2 (le_min.2 $ λ j, lift_le.1 $
 by have := min_le (lift ∘ f) j; rwa e at this)
 
+instance : order_bot ordinal := ⟨0, ordinal.zero_le⟩
+
 instance : conditionally_complete_linear_order_bot ordinal :=
-lt_wf.conditionally_complete_linear_order_with_bot 0 $ le_antisymm (ordinal.zero_le _) $
-  not_lt.1 (lt_wf.not_lt_min set.univ ⟨0, mem_univ _⟩ (mem_univ 0))
+lt_wf.conditionally_complete_linear_order_with_bot
 
 @[simp] lemma bot_eq_zero : (⊥ : ordinal) = 0 := rfl
 
@@ -1209,7 +1216,7 @@ namespace cardinal
 open ordinal
 
 @[simp] theorem mk_ordinal_out (o : ordinal) : #(o.out.α) = o.card :=
-by { convert (ordinal.card_type (<)).symm, exact (ordinal.type_lt o).symm }
+(ordinal.card_type _).symm.trans $ by rw ordinal.type_lt
 
 /-- The ordinal corresponding to a cardinal `c` is the least ordinal
   whose cardinal is `c`. For the order-embedding version, see `ord.order_embedding`. -/
@@ -1299,15 +1306,14 @@ eq_of_forall_ge_iff $ λ o, le_iff_le_iff_lt_iff_lt.2 $ begin
     rwa [ordinal.lift_lt, lt_ord] }
 end
 
-lemma mk_ord_out (c : cardinal) : #c.ord.out.α = c :=
-by rw [←card_type (<), type_lt, card_ord]
+lemma mk_ord_out (c : cardinal) : #c.ord.out.α = c := by simp
 
 lemma card_typein_lt (r : α → α → Prop) [is_well_order α r] (x : α)
   (h : ord (#α) = type r) : card (typein r x) < #α :=
-by { rw [←ord_lt_ord, h], refine lt_of_le_of_lt (ord_card_le _) (typein_lt_type r x) }
+by { rw [←lt_ord, h], apply typein_lt_type }
 
 lemma card_typein_out_lt (c : cardinal) (x : c.ord.out.α) : card (typein (<) x) < c :=
-by { convert card_typein_lt (<) x _, rw [mk_ord_out], rw [type_lt, mk_ord_out] }
+by { rw ←lt_ord, apply typein_lt_self }
 
 lemma ord_injective : injective ord :=
 by { intros c c' h, rw [←card_ord c, ←card_ord c', h] }

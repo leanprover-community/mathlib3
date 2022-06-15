@@ -422,34 +422,6 @@ realize_map_term_rel_id (λ n t x, begin
     { refl } }
 end) (by simp)
 
-@[simp] lemma realize_constants_vars_equiv [L[[α]].Structure M]
-  [(Lhom_with_constants L α).is_expansion_on M]
-  {n : ℕ} {φ : L[[α]].bounded_formula β n}
-  {v : β → M} {xs : fin n → M} :
-  (constants_vars_equiv φ).realize (sum.elim (λ a, ↑(L.con a)) v) xs ↔ φ.realize v xs :=
-begin
-  letI : (constants_on α).Structure M := (constants_on.Structure v),
-  refine realize_map_term_rel (λ n t x, term.realize_constants_vars_equiv_left) (λ n R x, _),
-  rw with_constants_rel_map_sum_inl,
-  cases R,
-  { refl },
-  { exact is_empty_elim R }
-end
-
-@[simp] lemma realize_constants_vars_equiv_symm [L[[α]].Structure M]
-  [(Lhom_with_constants L α).is_expansion_on M]
-  {n : ℕ} {φ : L.bounded_formula (α ⊕ β) n}
-  {v : β → M} {xs : fin n → M} :
-  (constants_vars_equiv.symm φ).realize v xs ↔ φ.realize (sum.elim (λ a, ↑(L.con a)) v) xs :=
-begin
-  refine realize_map_term_rel_id (λ n t x, _)
-    (λ n R x, ((Lhom_with_constants L α).map_on_relation _ _ _)),
-  simp only [constants_vars_equiv_left_symm_apply, realize_vars_to_constants, term.realize_relabel],
-  rcongr abi,
-  rcases abi with ((a | b) | i);
-  simp,
-end
-
 @[simp] lemma realize_restrict_free_var [decidable_eq α] {n : ℕ} {φ : L.bounded_formula α n}
   {s : set α} (h : ↑φ.free_var_finset ⊆ s) {v : α → M} {xs : fin n → M} :
   (φ.restrict_free_var (set.inclusion h)).realize (v ∘ coe) xs ↔

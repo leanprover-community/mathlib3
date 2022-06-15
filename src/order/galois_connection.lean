@@ -315,6 +315,52 @@ lemma l_comm_iff_u_comm
 
 end galois_connection
 
+section
+variables [complete_lattice α] [complete_lattice β] [complete_lattice γ] {f : α → β → γ} {s : set α}
+  {t : set β} {l u : α → β → γ} {l₁ u₁ : β → γ → α} {l₂ u₂ : α → γ → β}
+
+lemma Sup_image2_eq_Sup_Sup (h₁ : ∀ b, galois_connection (swap l b) (u₁ b))
+  (h₂ : ∀ a, galois_connection (l a) (u₂ a)) :
+  Sup (image2 l s t) = l (Sup s) (Sup t) :=
+by simp_rw [Sup_image2, ←(h₂ _).l_Sup, ←(h₁ _).l_Sup]
+
+lemma Sup_image2_eq_Sup_Inf (h₁ : ∀ b, galois_connection (swap l b) (u₁ b))
+  (h₂ : ∀ a, galois_connection (l a ∘ of_dual) (to_dual ∘ u₂ a)) :
+  Sup (image2 l s t) = l (Sup s) (Inf t) :=
+@Sup_image2_eq_Sup_Sup _ βᵒᵈ _ _ _ _ _ _ _ _ _ h₁ h₂
+
+lemma Sup_image2_eq_Inf_Sup (h₁ : ∀ b, galois_connection (swap l b ∘ of_dual) (to_dual ∘ u₁ b))
+  (h₂ : ∀ a, galois_connection (l a) (u₂ a)) :
+  Sup (image2 l s t) = l (Inf s) (Sup t) :=
+@Sup_image2_eq_Sup_Sup αᵒᵈ _ _ _ _ _ _ _ _ _ _ h₁ h₂
+
+lemma Sup_image2_eq_Inf_Inf (h₁ : ∀ b, galois_connection (swap l b ∘ of_dual) (to_dual ∘ u₁ b))
+  (h₂ : ∀ a, galois_connection (l a ∘ of_dual) (to_dual ∘ u₂ a)) :
+  Sup (image2 l s t) = l (Inf s) (Inf t) :=
+@Sup_image2_eq_Sup_Sup αᵒᵈ βᵒᵈ _ _ _ _ _ _ _ _ _ h₁ h₂
+
+lemma Inf_image2_eq_Inf_Inf (h₁ : ∀ b, galois_connection (l₁ b) (swap u b))
+  (h₂ : ∀ a, galois_connection (l₂ a) (u a)) :
+  Inf (image2 u s t) = u (Inf s) (Inf t) :=
+by simp_rw [Inf_image2, ←(h₂ _).u_Inf, ←(h₁ _).u_Inf]
+
+lemma Inf_image2_eq_Inf_Sup (h₁ : ∀ b, galois_connection (l₁ b) (swap u b))
+  (h₂ : ∀ a, galois_connection (to_dual ∘ l₂ a) (u a ∘ of_dual)) :
+  Inf (image2 u s t) = u (Inf s) (Sup t) :=
+@Inf_image2_eq_Inf_Inf _ βᵒᵈ _ _ _ _ _ _ _ _ _ h₁ h₂
+
+lemma Inf_image2_eq_Sup_Inf (h₁ : ∀ b, galois_connection (to_dual ∘ l₁ b) (swap u b ∘ of_dual))
+  (h₂ : ∀ a, galois_connection (l₂ a) (u a)) :
+  Inf (image2 u s t) = u (Sup s) (Inf t) :=
+@Inf_image2_eq_Inf_Inf αᵒᵈ _ _ _ _ _ _ _ _ _ _ h₁ h₂
+
+lemma Inf_image2_eq_Sup_Sup (h₁ : ∀ b, galois_connection (to_dual ∘ l₁ b) (swap u b ∘ of_dual))
+  (h₂ : ∀ a, galois_connection (to_dual ∘ l₂ a) (u a ∘ of_dual)) :
+  Inf (image2 u s t) = u (Sup s) (Sup t) :=
+@Inf_image2_eq_Inf_Inf αᵒᵈ βᵒᵈ _ _ _ _ _ _ _ _ _ h₁ h₂
+
+end
+
 namespace order_iso
 
 variables [preorder α] [preorder β]

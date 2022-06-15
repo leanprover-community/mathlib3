@@ -25,7 +25,8 @@ open polynomial
 section
 variables (R : Type u) {A : Type v} [comm_ring R] [ring A] [algebra R A]
 
-/-- An element of an R-algebra is algebraic over R if it is the root of a nonzero polynomial. -/
+/-- An element of an R-algebra is algebraic over R if it is a root of a nonzero polynomial
+with coefficients in R. -/
 def is_algebraic (x : A) : Prop :=
 ∃ p : R[X], p ≠ 0 ∧ aeval x p = 0
 

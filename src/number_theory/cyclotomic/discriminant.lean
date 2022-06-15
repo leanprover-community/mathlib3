@@ -125,10 +125,9 @@ begin
       { simpa only [← pnat.pow_coe, H, mul_comm _ (k + 1)] },
       { replace h := pow_eq_zero h,
         rw [coe_coe] at h,
-        rw [pnat.pow_coe, cast_pow, h, zero_pow (succ_pos _)] at hne,
         simpa using hne.1 } },
-    { apply_instance } },
-  { apply_instance }
+    all_goals { apply_instance } },
+  all_goals { apply_instance }
 end
 
 /-- If `p` is a prime and `is_cyclotomic_extension {p ^ (k + 1)} K L`, then the discriminant of
@@ -160,7 +159,8 @@ begin
     simp only [trace_matrix, map_one, one_pow, matrix.det_unique, trace_form_apply, mul_one],
     rw [← (algebra_map K L).map_one, trace_algebra_map, finrank _ hirr],
     { simp },
-    { simpa using hcycl } },
+    { apply_instance },
+    { exact hcycl } },
   { by_cases hk : p ^ (k + 1) = 2,
     { have hp : p = 2,
       { rw [← pnat.coe_inj, pnat.coe_bit0, pnat.one_coe, pnat.pow_coe, ← pow_one 2] at hk,
@@ -181,7 +181,8 @@ begin
         pow_zero, trace_form_apply, mul_one],
       rw [← (algebra_map K L).map_one, trace_algebra_map, finrank _ hirr, hp, hk],
       { simp },
-      { apply_instance } },
+      { apply_instance },
+      { exact hcycl } },
     { exact discr_prime_pow_ne_two hζ hirr hk } }
 end
 

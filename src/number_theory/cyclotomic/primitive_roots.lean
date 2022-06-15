@@ -102,36 +102,37 @@ end zeta
 
 section no_order
 
-variables [field K] [field L] [comm_ring C] [algebra K L] [algebra K C]
-          [is_cyclotomic_extension {n} K L]
+variables [field K] [comm_ring L] [is_domain L] [algebra K L] [is_cyclotomic_extension {n} K L]
           {ζ : L} (hζ : is_primitive_root ζ n)
 
 namespace is_primitive_root
 
-/-- The `power_basis` given by a primitive root `ζ`. -/
-@[simps] noncomputable def power_basis : power_basis K L :=
+variable {C}
+
+/-- The `power_basis` given by a primitive root `η`. -/
+@[simps] protected noncomputable def power_basis : power_basis K L :=
 power_basis.map (algebra.adjoin.power_basis $ integral {n} K L ζ) $
   (subalgebra.equiv_of_eq _ _ (is_cyclotomic_extension.adjoin_primitive_root_eq_top n _ hζ)).trans
   subalgebra.top_equiv
 
 lemma power_basis_gen_mem_adjoin_zeta_sub_one :
-  (power_basis K hζ).gen ∈ adjoin K ({ζ - 1} : set L) :=
+  (hζ.power_basis K).gen ∈ adjoin K ({ζ - 1} : set L) :=
 begin
   rw [power_basis_gen, adjoin_singleton_eq_range_aeval, alg_hom.mem_range],
   exact ⟨X + 1, by simp⟩
 end
 
-/-- The `power_basis` given by `ζ - 1`. -/
-@[simps] noncomputable def sub_one_power_basis (hζ : is_primitive_root ζ n) :
-  _root_.power_basis K L :=
+/-- The `power_basis` given by `η - 1`. -/
+@[simps] noncomputable def sub_one_power_basis : power_basis K L :=
   (hζ.power_basis K).of_gen_mem_adjoin
     (is_integral_sub (is_cyclotomic_extension.integral {n} K L ζ) is_integral_one)
     (hζ.power_basis_gen_mem_adjoin_zeta_sub_one _)
 
-variables {K}
+variables {K} (C)
 
-/-- The equivalence between `L →ₐ[K] A` and `primitive_roots n A` given by a primitive root `ζ`. -/
-@[simps] noncomputable def embeddings_equiv_primitive_roots [is_domain C]
+/-- The equivalence between `L →ₐ[K] C` and `primitive_roots n C` given by a primitive root `ζ`. -/
+@[simps] noncomputable def embeddings_equiv_primitive_roots (C : Type*) [comm_ring C] [is_domain C]
+  [algebra K C] [ne_zero ((n : ℕ) : K)]
   (hirr : irreducible (cyclotomic n K)) : (L →ₐ[K] C) ≃ primitive_roots n C :=
 ((hζ.power_basis K).lift_equiv).trans
 { to_fun    := λ x,
@@ -225,7 +226,7 @@ begin
   { unfreezingI {subst hn},
     convert norm_eq_neg_one_pow hζ,
     erw [is_cyclotomic_extension.finrank _ hirr, totient_two, pow_one],
-    apply_instance },
+    all_goals { apply_instance } },
   { exact hζ.norm_eq_one hn hirr }
 end
 

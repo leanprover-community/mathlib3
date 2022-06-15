@@ -928,7 +928,7 @@ def emetric_space.induced {γ β} (f : γ → β) (hf : function.injective f)
 
 See note [reducible non-instances]-/
 @[reducible]
-def emetric_space.discrete {α} [decidable_eq α] (c : ℝ≥0∞) (hc : c ≠ 0) : emetric_space α :=
+def emetric_space.const {α} [decidable_eq α] (c : ℝ≥0∞) (hc : c ≠ 0) : emetric_space α :=
 { edist := λ a b, if a = b then 0 else c,
   edist_self := λ a, if_pos rfl,
   edist_comm := λ a b, if_congr eq_comm rfl rfl,
@@ -956,6 +956,11 @@ def emetric_space.discrete {α} [decidable_eq α] (c : ℝ≥0∞) (hc : c ≠ 0
       rw if_pos (mem_id_rel.1 hab),
       exact hc },
   end }
+
+lemma const_edist_eq {α} [decidable_eq α] (c : ℝ≥0∞) (hc : c ≠ 0) (x y : α) :
+  (by haveI : emetric_space α := emetric_space.const c hc; exact edist x y)
+    = if x = y then 0 else c :=
+rfl
 
 /-- Emetric space instance on subsets of emetric spaces -/
 instance {α : Type*} {p : α → Prop} [emetric_space α] : emetric_space (subtype p) :=

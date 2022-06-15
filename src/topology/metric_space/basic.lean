@@ -2690,9 +2690,9 @@ end
 
 See note [reducible non-instances]-/
 @[reducible]
-def metric_space.discrete {α} [decidable_eq α] (c : ℝ≥0) (hc : c ≠ 0) : metric_space α :=
+def metric_space.const {α} [decidable_eq α] (c : ℝ≥0) (hc : c ≠ 0) : metric_space α :=
 @metric_space.replace_bornology _ ⟨⊥, bot_le⟩
-  (@emetric_space.to_metric_space_of_dist α (emetric_space.discrete c $ ennreal.coe_ne_zero.2 hc)
+  (@emetric_space.to_metric_space_of_dist α (emetric_space.const c $ ennreal.coe_ne_zero.2 hc)
     (λ a b, if a = b then 0 else c)
     (λ a b h,
       ((ite_eq_iff.1 h).imp and.right and.right).elim ennreal.zero_ne_top ennreal.coe_ne_top)
@@ -2705,6 +2705,16 @@ def metric_space.discrete {α} [decidable_eq α] (c : ℝ≥0) (hc : c ≠ 0) : 
         { exact c.prop },
         { exact le_rfl },
       end
+
+lemma const_dist_eq {α} [decidable_eq α] (c : ℝ≥0) (hc : c ≠ 0) (x y : α) :
+  (by haveI : metric_space α := metric_space.const c hc; exact dist x y)
+    = if x = y then (0 : ℝ) else c :=
+rfl
+
+lemma const_nndist_eq {α} [decidable_eq α] (c : ℝ≥0) (hc : c ≠ 0) (x y : α) :
+  (by haveI : metric_space α := metric_space.const c hc; exact nndist x y)
+    = if x = y then 0 else c :=
+subtype.ext $ eq.symm $ apply_ite _ _ _ _
 
 instance subtype.metric_space {α : Type*} {p : α → Prop} [metric_space α] :
   metric_space (subtype p) :=

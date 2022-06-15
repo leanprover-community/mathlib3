@@ -772,7 +772,7 @@ begin
       realize_imp], },
   { rw [to_formula, formula.realize, realize_all, realize_all],
     refine forall_congr (λ a, _),
-    have h := ih3 (sum.elim (v ∘ sum.inl) (snoc v a)),
+    have h := ih3 (sum.elim (v ∘ sum.inl) (snoc (v ∘ sum.inr) a)),
     simp only [sum.elim_comp_inl, sum.elim_comp_inr] at h,
     rw [← h, realize_relabel, formula.realize],
     rcongr,
@@ -930,4 +930,3 @@ end cardinality
 
 end language
 end first_order
-#lint

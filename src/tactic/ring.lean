@@ -619,8 +619,8 @@ meta def normalize' (atoms : ref (buffer expr))
     This results in terms like `(3 * x ^ 2 * y + 1) * x + y`.
   * `SOP` means sum of products form, expanding everything to monomials.
     This results in terms like `3 * x ^ 3 * y + x + y`. -/
-meta def normalize (red : transparency) (mode := normalize_mode.horner) (recursive := tt) (e : expr) :
-  tactic (expr × expr) :=
+meta def normalize (red : transparency) (mode := normalize_mode.horner)
+  (recursive := tt) (e : expr) : tactic (expr × expr) :=
 using_new_ref mk_buffer $ λ atoms, normalize' atoms red mode recursive e
 
 structure ring_nf_cfg := (recursive := tt)

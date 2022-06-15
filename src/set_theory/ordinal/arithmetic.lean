@@ -2174,7 +2174,7 @@ by simp only [le_antisymm_iff, card_le_nat, nat_le_card]
 @[simp] theorem type_fin (n : ℕ) : @type (fin n) (<) _ = n :=
 by rw [←card_eq_nat, card_type, mk_fin]
 
-@[simp] theorem lift_nat_cast : ∀ n : ℕ, lift.{u u} n = n
+@[simp] theorem lift_nat_cast : ∀ n : ℕ, lift.{u v} n = n
 | 0     := by simp
 | (n+1) := by simp [lift_nat_cast n]
 

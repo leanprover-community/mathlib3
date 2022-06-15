@@ -737,6 +737,8 @@ lemma le_measurable_space_of_const_le (hτ : is_stopping_time f τ) {i : ι} (h�
   f i ≤ hτ.measurable_space :=
 (measurable_space_const _ _).symm.le.trans (measurable_space_mono _ hτ hτ_le)
 
+end preorder
+
 instance sigma_finite_stopping_time {ι} [semilattice_sup ι] [order_bot ι]
   [(filter.at_top : filter ι).is_countably_generated]
   {μ : measure α} {f : filtration ι m} {τ : α → ι}
@@ -748,8 +750,6 @@ begin
   { exact hτ.le_measurable_space_of_const_le (λ _, bot_le), },
   { apply_instance, },
 end
-
-end preorder
 
 section linear_order
 

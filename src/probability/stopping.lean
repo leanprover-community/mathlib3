@@ -1299,8 +1299,7 @@ section hitting
 before `m` then the hitting time is simply `m`).
 
 The hitting time is a stopping time if the process is adapted and discrete. -/
-noncomputable def hitting [preorder ι] [has_Inf ι] (u : ι → α → β) (s : set β) (n m : ι) :
-  α → ι :=
+noncomputable def hitting [preorder ι] [has_Inf ι] (u : ι → α → β) (s : set β) (n m : ι) : α → ι :=
 λ x, if ∃ j ∈ set.Icc n m, u j x ∈ s then Inf (set.Icc n m ∩ {i : ι | u i x ∈ s}) else m
 
 lemma hitting_of_lt [conditionally_complete_lattice ι]
@@ -1341,24 +1340,10 @@ begin
   simp only [hitting],
   split_ifs,
   { obtain ⟨j, hj, hmem⟩ := h,
-    refine le_cInf ⟨j, hj₁, hmem⟩ _,
+    refine le_cInf ⟨j, hj, hmem⟩ _,
     rintro k ⟨hk₁, hk₂⟩,
-    assumption },
+    exact hk₁.1 },
   { assumption }
-end
-
-lemma hitting_bot_eq [has_le ι] [order_bot ι] [has_Inf ι]
-  {u : ι → α → β} {s : set β} {n : ι} (x : α) :
-  hitting u s ⊥ n x = if ∃ j ≤ n, u j x ∈ s then Inf {i : ι | u i x ∈ s} else n :=
-begin
-  simp only [hitting],
-  by_cases ∃ j ≤ n, u j x ∈ s,
-  { rw [if_pos h, if_pos],
-    { simp only [bot_le, true_and] },
-    { obtain ⟨j, hj₁, hj₂⟩ := h,
-      exact ⟨j, bot_le, hj₁, hj₂⟩ } },
-  { rw [if_neg h, if_neg],
-    simpa using h }
 end
 
 section complete_linear_order
@@ -1424,10 +1409,6 @@ end complete_linear_order
 section nat
 
 variables {u : ℕ → α → β} {s : set β} {f : filtration ℕ m}
-
-lemma hitting_zero_eq {n : ℕ} (x : α) :
-  hitting u s 0 n x = if ∃ j ≤ n, u j x ∈ s then Inf {i | u i x ∈ s} else n :=
-hitting_bot_eq x
 
 lemma hitting_le_iff_mem_Union_nat {i n : ℕ} {x : α} (hx : ∃ j, j ≤ n ∧ u j x ∈ s) :
   hitting u s 0 n x ≤ i ↔ x ∈ ⋃ j ≤ i, u j ⁻¹' s :=

@@ -121,7 +121,8 @@ end
 
 lemma gram_schmidt_mem_span (f : ι → E) :
   ∀ j i, i ≤ j → gram_schmidt 𝕜 f i ∈ span 𝕜 (f '' Iic j)
-| j := λ i hij, begin
+| j := λ i hij,
+begin
   rw [gram_schmidt_def 𝕜 f i],
   refine submodule.sub_mem _ (subset_span (mem_image_of_mem _ hij))
     (submodule.sum_mem _ (λ k hk, _)),

@@ -17,195 +17,194 @@ This is a useful notion in various applications, but in particular it is relevan
 in coding theory, in which it is fundamental for defining the minimum distance of a
 code.
 
-In this file we define `ham β`, the type synonym of a Pi type with the Hamming
-distance `ham_dist` and weight `ham_wt` attached, and the various instances that arise
+In this file we define `hamm β`, the type synonym of a Pi type with the Hamming
+distance `hamm_dist` and weight `hamm_wt` attached, and the various instances that arise
 from the properties of these definitions.
 
 -/
-
-open fintype
 
 /--
 Type synonym for a Pi type which we equip with the Hamming metric, adding all relevant
 instances as needed.
 -/
-def ham {ι : Type*} (β : ι → Type*) : Type* := Π i, β i
+def hamm {ι : Type*} (β : ι → Type*) : Type* := Π i, β i
 
-instance {ι : Type*} (β : ι → Type*) [Π i, inhabited (β i)] : inhabited (ham β) :=
+namespace hamm
+
+section
+instance {ι : Type*} (β : ι → Type*) [Π i, inhabited (β i)] : inhabited (hamm β) :=
 ⟨λ i, default⟩
 
-local notation `𝓗[` K`,` n`]` := ham (λ _ : fin n, K)
+local notation `𝓗[` K`,` n`]` := hamm (λ _ : fin n, K)
 
-namespace hamming
 variables {α ι : Type*} {β : ι → Type*}
 
-/-- `to_ham` is the identity function to the `ham` of a type.  -/
-@[pattern] def to_ham : (Π i, β i) ≃ ham β := equiv.refl _
+/-- `to_hamm` is the identity function to the `hamm` of a type.  -/
+@[pattern] def to_hamm : (Π i, β i) ≃ hamm β := equiv.refl _
 
-/-- `of_ham` is the identity function from the `ham` of a type.  -/
-@[pattern] def of_ham : ham β ≃ Π i, β i := equiv.refl _
+/-- `of_hamm` is the identity function from the `hamm` of a type.  -/
+@[pattern] def of_hamm : hamm β ≃ Π i, β i := equiv.refl _
 
-@[simp] lemma to_ham_symm_eq                : (@to_ham _ β).symm = of_ham := rfl
-@[simp] lemma of_ham_symm_eq                : (@of_ham _ β).symm = to_ham := rfl
-@[simp] lemma to_ham_of_ham (x : ham β)     : to_ham (of_ham x) = x := rfl
-@[simp] lemma of_ham_to_ham (x : Π i, β i)  : of_ham (to_ham x) = x := rfl
-@[simp] lemma to_ham_inj {x y : Π i, β i}   : to_ham x = to_ham y ↔ x = y := iff.rfl
-@[simp] lemma of_ham_inj {x y : ham β}      : of_ham x = of_ham y ↔ x = y := iff.rfl
+@[simp] lemma to_hamm_symm_eq                : (@to_hamm _ β).symm = of_hamm := rfl
+@[simp] lemma of_hamm_symm_eq                : (@of_hamm _ β).symm = to_hamm := rfl
+@[simp] lemma to_hamm_of_hamm (x : hamm β)     : to_hamm (of_hamm x) = x := rfl
+@[simp] lemma of_hamm_to_hamm (x : Π i, β i)  : of_hamm (to_hamm x) = x := rfl
+@[simp] lemma to_hamm_inj {x y : Π i, β i}   : to_hamm x = to_hamm y ↔ x = y := iff.rfl
+@[simp] lemma of_hamm_inj {x y : hamm β}      : of_hamm x = of_hamm y ↔ x = y := iff.rfl
 
-instance [Π i, has_zero (β i)] : has_zero (ham β) := pi.has_zero
-instance [Π i, has_sub (β i)] : has_sub (ham β) := pi.has_sub
-instance [Π i, has_scalar α (β i)] : has_scalar α (ham β) := pi.has_scalar
+instance [Π i, has_zero (β i)] : has_zero (hamm β) := pi.has_zero
+instance [Π i, has_sub (β i)] : has_sub (hamm β) := pi.has_sub
+instance [Π i, has_scalar α (β i)] : has_scalar α (hamm β) := pi.has_scalar
 instance [has_zero α] [Π i, has_zero (β i)] [Π i, smul_with_zero α (β i)] :
-smul_with_zero α (ham β) := pi.smul_with_zero _
-instance [Π i, add_monoid (β i)] : add_monoid (ham β) := pi.add_monoid
-instance [Π i, add_comm_monoid (β i)] : add_comm_monoid (ham β) := pi.add_comm_monoid
-instance [Π i, add_comm_group (β i)] : add_comm_group (ham β) := pi.add_comm_group
-instance [semiring α] [Π i, add_comm_monoid (β i)] [Π i, module α (β i)] :
-module α (ham β) := pi.module _ _ _
+smul_with_zero α (hamm β) := pi.smul_with_zero _
+instance [Π i, add_monoid (β i)] : add_monoid (hamm β) := pi.add_monoid
+instance [Π i, add_comm_monoid (β i)] : add_comm_monoid (hamm β) := pi.add_comm_monoid
+instance [Π i, add_comm_group (β i)] : add_comm_group (hamm β) := pi.add_comm_group
+instance (α) [semiring α] (β: ι → Type*) [Π i, add_comm_monoid (β i)]
+[Π i, module α (β i)] : module α (hamm β) := pi.module _ _ _
 
-section decidable_eq
+end
 
-variables {β} [fintype ι] [Π i, decidable_eq (β i)]
-
-/--
-The Hamming distance function to the naturals.
+/-
+We define `hamm_dist` and `hamm_wt` over Pi types, and will later attach them to our type
+synonym.
 -/
 
-def ham_dist (x y : ham β) := card {i // x i ≠ y i}
+section
+open fintype
 
-lemma ham_dist_smul_le [Π i, has_scalar α (β i)] (k : α) (x y : ham β) :
-ham_dist (k • x) (k • y) ≤ ham_dist x y :=
+variables {α ι : Type*} {β : ι → Type*} [fintype ι] [Π i, decidable_eq (β i)]
+
+/-- The Hamming distance function to the naturals. -/
+
+def hamm_dist (x y : Π i, β i) := card {i // x i ≠ y i}
+
+lemma hamm_dist_smul_le [Π i, has_scalar α (β i)] (k : α) (x y : Π i, β i) :
+hamm_dist (k • x) (k • y) ≤ hamm_dist x y :=
 card_subtype_mono _ _ (λ i h H, h (by rw [pi.smul_apply, pi.smul_apply, H]))
 
-lemma ham_dist_smul [Π i, has_scalar α (β i)] {k : α}
-(hk : ∀ i, is_smul_regular (β i) k) (x y : ham β) :
-ham_dist x y = ham_dist (k • x) (k • y) :=
-le_antisymm (card_subtype_mono _ _ (λ _ h H, h (hk _ H))) (ham_dist_smul_le _ _ _)
+lemma hamm_dist_smul [Π i, has_scalar α (β i)] {k : α}
+(hk : ∀ i, is_smul_regular (β i) k) (x y : Π i, β i) :
+hamm_dist x y = hamm_dist (k • x) (k • y) :=
+le_antisymm (card_subtype_mono _ _ (λ _ h H, h (hk _ H))) (hamm_dist_smul_le _ _ _)
 
-lemma ham_dist_eq (x y : ham β) : ham_dist x y = card {i // x i ≠ y i} := rfl
+lemma hamm_dist_eq (x y : Π i, β i) : hamm_dist x y = card {i // x i ≠ y i} := rfl
 
-lemma ham_dist_comm (x y : ham β) : ham_dist x y = ham_dist y x :=
-by simp_rw [ham_dist_eq, ne_comm]
+lemma hamm_dist_comm (x y : Π i, β i) : hamm_dist x y = hamm_dist y x :=
+by simp_rw [hamm_dist_eq, ne_comm]
 
-lemma ham_dist_triangle (x y z : ham β) : ham_dist x z ≤ ham_dist x y + ham_dist y z :=
+lemma hamm_dist_triangle (x y z : Π i, β i) : hamm_dist x z ≤ hamm_dist x y + hamm_dist y z :=
 begin
-  simp_rw ham_dist_eq,
+  simp_rw hamm_dist_eq,
   refine le_trans (card_subtype_mono _ _ (λ _ h, _)) (card_subtype_or _ _),
   by_contra' H, exact h (eq.trans H.1 H.2)
 end
 
-lemma ham_dist_eq_zero {x y : ham β} : ham_dist x y = 0 ↔ x = y :=
+lemma hamm_dist_eq_zero {x y : Π i, β i} : hamm_dist x y = 0 ↔ x = y :=
 begin
-  rw [function.funext_iff, ham_dist_eq, card_eq_zero_iff],
+  rw [function.funext_iff, hamm_dist_eq, card_eq_zero_iff],
   exact ⟨ λ h i, imp_of_not_imp_not _ _ (λ H, h.elim' ⟨i, H⟩) h,
           λ h, subtype.is_empty_of_false (λ i H, H (h _))⟩
 end
 
-@[simp] lemma ham_dist_self (x : ham β) : ham_dist x x = 0 := ham_dist_eq_zero.mpr rfl
+@[simp] lemma hamm_dist_self (x : Π i, β i) : hamm_dist x x = 0 := hamm_dist_eq_zero.mpr rfl
 
-lemma eq_of_ham_dist_eq_zero (x y : ham β) :
-ham_dist x y = 0 → x = y := ham_dist_eq_zero.mp
+lemma eq_of_hamm_dist_eq_zero (x y : Π i, β i) :
+hamm_dist x y = 0 → x = y := hamm_dist_eq_zero.mp
 
-lemma ham_dist_ne_zero {x y : ham β} : ham_dist x y ≠ 0 ↔ x ≠ y :=
-not_iff_not.mpr ham_dist_eq_zero
+lemma hamm_dist_ne_zero {x y : Π i, β i} : hamm_dist x y ≠ 0 ↔ x ≠ y :=
+not_iff_not.mpr hamm_dist_eq_zero
 
-lemma ham_dist_pos {x y : ham β} : 0 < ham_dist x y ↔ x ≠ y :=
-by rw [←ham_dist_ne_zero, iff_not_comm, not_lt, nat.le_zero_iff]
+lemma hamm_dist_pos {x y : Π i, β i} : 0 < hamm_dist x y ↔ x ≠ y :=
+by rw [←hamm_dist_ne_zero, iff_not_comm, not_lt, nat.le_zero_iff]
 
-@[simp] lemma ham_dist_eq_zero_iff_forall_eq {x y : ham β} :
-ham_dist x y = 0 ↔ ∀ i, x i = y i := by rw [ham_dist_eq_zero, function.funext_iff]
+@[simp] lemma hamm_dist_eq_zero_iff_forall_eq {x y : Π i, β i} :
+hamm_dist x y = 0 ↔ ∀ i, x i = y i := by rw [hamm_dist_eq_zero, function.funext_iff]
 
-lemma ham_dist_ne_zero_iff_exists_ne {x y : ham β} :
-ham_dist x y ≠ 0 ↔ ∃ i, x i ≠ y i := by rw [ham_dist_ne_zero, function.ne_iff]
+lemma hamm_dist_ne_zero_iff_exists_ne {x y : Π i, β i} :
+hamm_dist x y ≠ 0 ↔ ∃ i, x i ≠ y i := by rw [hamm_dist_ne_zero, function.ne_iff]
 
 section has_zero
 
 variable [Π i, has_zero (β i)]
 
-/--
-The Hamming weight function to the naturals.
--/
+/-- The Hamming weight function to the naturals. -/
 
-def ham_wt (x : ham β) : ℕ := ham_dist x 0
+def hamm_wt (x : Π i, β i) : ℕ := hamm_dist x 0
 
-lemma ham_wt_eq (x : ham β) : ham_wt x = card {i // x i ≠ 0} := rfl
+lemma hamm_wt_eq (x : Π i, β i) : hamm_wt x = card {i // x i ≠ 0} := rfl
 
-lemma ham_wt_eq_ham_dist_zero (x : ham β) : ham_wt x = ham_dist x 0 := rfl
+lemma hamm_wt_eq_hamm_dist_zero (x : Π i, β i) : hamm_wt x = hamm_dist x 0 := rfl
 
-lemma ham_wt_smul_le [has_zero α] [Π i, smul_with_zero α (β i)] (k : α) (x : ham β) :
-ham_wt (k • x) ≤ ham_wt x :=
-by convert ham_dist_smul_le k x _; rw smul_zero'; refl
+lemma hamm_wt_smul_le [has_zero α] [Π i, smul_with_zero α (β i)] (k : α)
+(x : Π i, β i) : hamm_wt (k • x) ≤ hamm_wt x :=
+by convert hamm_dist_smul_le k x _; rw smul_zero'; refl
 
-lemma ham_wt_smul [has_zero α] [Π i, smul_with_zero α (β i)] {k : α}
-(hk : ∀ i, is_smul_regular (β i) k) (x : ham β) : ham_wt x = ham_wt (k • x) :=
-by convert ham_dist_smul hk _ _; rw smul_zero'; refl
+lemma hamm_wt_smul [has_zero α] [Π i, smul_with_zero α (β i)] {k : α}
+(hk : ∀ i, is_smul_regular (β i) k) (x : Π i, β i) : hamm_wt x = hamm_wt (k • x) :=
+by convert hamm_dist_smul hk _ _; rw smul_zero'; refl
 
-lemma ham_wt_eq_zero {x : ham β} : ham_wt x = 0 ↔ x = 0 := ham_dist_eq_zero
+lemma hamm_wt_eq_zero {x : Π i, β i} : hamm_wt x = 0 ↔ x = 0 := hamm_dist_eq_zero
 
-@[simp] lemma ham_wt_zero : ham_wt (0 : ham β) = 0 := ham_dist_self _
+@[simp] lemma hamm_wt_zero : hamm_wt (0 : Π i, β i) = 0 := hamm_dist_self _
 
-lemma zero_of_ham_wt_eq_zero (x : ham β) :
-ham_wt x = 0 → x = 0 := eq_of_ham_dist_eq_zero _ _
+lemma zero_of_hamm_wt_eq_zero (x : Π i, β i) :
+hamm_wt x = 0 → x = 0 := eq_of_hamm_dist_eq_zero _ _
 
-lemma ham_wt_ne_zero {x : ham β} : ham_wt x ≠ 0 ↔ x ≠ 0 := ham_dist_ne_zero
+lemma hamm_wt_ne_zero {x : Π i, β i} : hamm_wt x ≠ 0 ↔ x ≠ 0 := hamm_dist_ne_zero
 
-lemma ham_wt_pos {x : ham β} : 0 < ham_wt x ↔ x ≠ 0 := ham_dist_pos
+lemma hamm_wt_pos {x : Π i, β i} : 0 < hamm_wt x ↔ x ≠ 0 := hamm_dist_pos
 
-@[simp] lemma ham_wt_zero_iff_forall_zero {x : ham β} : ham_wt x = 0 ↔ ∀ i, x i = 0 :=
-ham_dist_eq_zero_iff_forall_eq
+@[simp] lemma hamm_wt_zero_iff_forall_zero {x : Π i, β i} : hamm_wt x = 0 ↔ ∀ i, x i = 0 :=
+hamm_dist_eq_zero_iff_forall_eq
 
-lemma ham_wt_pos_iff_exists_nz {x : ham β} : ham_wt x ≠ 0 ↔ ∃ i, x i ≠ 0 :=
-ham_dist_ne_zero_iff_exists_ne
+lemma hamm_wt_pos_iff_exists_nz {x : Π i, β i} : hamm_wt x ≠ 0 ↔ ∃ i, x i ≠ 0 :=
+hamm_dist_ne_zero_iff_exists_ne
 
 end has_zero
 
-lemma ham_dist_eq_ham_wt_sub [Π i, add_group (β i)] (x y : ham β) :
-ham_dist x y = ham_wt (x - y) :=
-by simp_rw [ham_wt_eq, ham_dist_eq, pi.sub_apply, sub_ne_zero]
+lemma hamm_dist_eq_hamm_wt_sub [Π i, add_group (β i)] (x y : Π i, β i) :
+hamm_dist x y = hamm_wt (x - y) :=
+by simp_rw [hamm_wt_eq, hamm_dist_eq, pi.sub_apply, sub_ne_zero]
 
-instance : has_dist (ham β) := ⟨λ x y, ham_dist x y⟩
+end
 
-@[simp, push_cast] lemma dist_eq_ham_dist (x y : ham β) :
-dist x y = ham_dist x y := rfl
+section
 
-instance : pseudo_metric_space (ham β) :=
-{ dist_self           := by push_cast; exact_mod_cast ham_dist_self,
-  dist_comm           := by push_cast; exact_mod_cast ham_dist_comm,
-  dist_triangle       := by push_cast; exact_mod_cast ham_dist_triangle,
-  ..ham.has_dist }
+variables {α ι : Type*} {β : ι → Type*} [fintype ι] [Π i, decidable_eq (β i)]
 
-instance : metric_space (ham β) :=
-{ eq_of_dist_eq_zero  := by push_cast; exact_mod_cast eq_of_ham_dist_eq_zero,
-  ..ham.pseudo_metric_space }
+instance : has_dist (hamm β) := ⟨λ x y, hamm_dist x y⟩
 
-instance [Π i, has_zero (β i)] : has_norm (ham β) := ⟨λ x, ham_wt x⟩
+@[simp, push_cast] lemma dist_eq_hamm_dist (x y : hamm β) :
+dist x y = hamm_dist x y := rfl
 
-@[simp, push_cast] lemma norm_eq_ham_wt [Π i, has_zero (β i)] (x : ham β) :
-∥x∥ = ham_wt x := rfl
+instance : pseudo_metric_space (hamm β) :=
+{ dist_self           := by push_cast; exact_mod_cast hamm_dist_self,
+  dist_comm           := by push_cast; exact_mod_cast hamm_dist_comm,
+  dist_triangle       := by push_cast; exact_mod_cast hamm_dist_triangle,
+  ..hamm.has_dist }
 
-instance [Π i, add_comm_group (β i)] : semi_normed_group (ham β) :=
-{ dist_eq := by push_cast; exact_mod_cast ham_dist_eq_ham_wt_sub, ..pi.add_comm_group }
+instance : metric_space (hamm β) :=
+{ eq_of_dist_eq_zero  := by push_cast; exact_mod_cast eq_of_hamm_dist_eq_zero,
+  ..hamm.pseudo_metric_space }
 
-instance [Π i, add_comm_group (β i)] : normed_group (ham β) :=
-{ ..ham.semi_normed_group }
+instance [Π i, has_zero (β i)] : has_norm (hamm β) := ⟨λ x, hamm_wt x⟩
 
+@[simp, push_cast] lemma norm_eq_hamm_wt [Π i, has_zero (β i)] (x : hamm β) :
+∥x∥ = hamm_wt x := rfl
+
+instance [Π i, add_comm_group (β i)] : semi_normed_group (hamm β) :=
+{ dist_eq := by push_cast; exact_mod_cast hamm_dist_eq_hamm_wt_sub, ..pi.add_comm_group }
+
+instance [Π i, add_comm_group (β i)] : normed_group (hamm β) :=
+{ ..hamm.semi_normed_group }
 
 /-
-Want something like this:
-
-instance [Π i, add_comm_group (β i)] {α : Type*} [normed_field α]
-[Π i, module α (β i)] : normed_space α (ham β) := {
-  norm_smul_le := sorry, ..ham.module }
-
-But this isn't true. There is no existing structure tha
- captures properties like ham_wt_smul_le.
-
-This is unfortunate - because the module structure ought to
-combine with the metric structure!
-
-Also... something is going wrong here with the inference of the module structure.
+instance [Π i, add_comm_group (β i)] {α : Type*} [semiring α]
+[Π i, module α (β i)] : normed_space α (hamm β) :=
+{ norm_smul_le := sorry, ..hamm.module α β }
 -/
 
-end decidable_eq
+end
 
-end hamming
+end hamm

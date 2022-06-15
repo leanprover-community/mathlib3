@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne, Kexing Ying
 -/
 import probability.notation
-import probability.stopping
+import probability.hitting_time
 
 /-!
 # Martingales
@@ -488,19 +488,19 @@ begin
     begin
       refine add_le_add (smul_le_stopped_value_hitting hsub _)
         (ennreal.of_real_le_of_real (set_integral_mono_on (hsub.integrable n).integrable_on
-        (integrable.integrable_on (integrable_stopped_value (hitting_is_stopping_time_nat
-          hsub.adapted measurable_set_Ici n) hsub.integrable hitting_le))
+        (integrable.integrable_on (integrable_stopped_value
+          (hitting_is_stopping_time hsub.adapted measurable_set_Ici) hsub.integrable hitting_le))
         (measurable_set_lt (measurable_csupr_le
           (λ n, (hsub.strongly_measurable n).measurable.le (𝒢.le n)) _) measurable_const) _)),
       intros x hx,
       simp at hx,
-      have : hitting f {y : ℝ | ↑ε ≤ y} n x = n,
+      have : hitting f {y : ℝ | ↑ε ≤ y} 0 n x = n,
       { simp only [hitting, set.mem_set_of_eq, exists_prop, pi.coe_nat, nat.cast_id,
           ite_eq_right_iff, forall_exists_index, and_imp],
         intros m hm hεm,
         haveI : fintype {k // k ≤ n} := (set.finite_le_nat n).fintype,
         exact false.elim ((not_le.2 hx) (le_trans hεm
-          (le_cSup (set.finite.bdd_above $ set.finite_range _) ⟨⟨m, hm⟩, rfl⟩))) },
+          (le_cSup (set.finite.bdd_above $ set.finite_range _) ⟨⟨m, hm.2⟩, rfl⟩))) },
       simp_rw [stopped_value, this],
     end
     ... = ennreal.of_real (∫ x, stopped_value f (hitting f {y : ℝ | ↑ε ≤ y} 0 n) x ∂μ) :
@@ -514,10 +514,10 @@ begin
         exact (not_le.2 hx₂) hx₁ },
       { exact (measurable_set_lt (measurable_csupr_le
           (λ n, (hsub.strongly_measurable n).measurable.le (𝒢.le n)) _) measurable_const) },
-      { exact (integrable.integrable_on (integrable_stopped_value (hitting_is_stopping_time_nat
-          hsub.adapted measurable_set_Ici n) hsub.integrable hitting_le)) },
-      { exact (integrable.integrable_on (integrable_stopped_value (hitting_is_stopping_time_nat
-          hsub.adapted measurable_set_Ici n) hsub.integrable hitting_le)) },
+      { exact (integrable.integrable_on (integrable_stopped_value
+          (hitting_is_stopping_time hsub.adapted measurable_set_Ici) hsub.integrable hitting_le)) },
+      { exact (integrable.integrable_on (integrable_stopped_value
+          (hitting_is_stopping_time hsub.adapted measurable_set_Ici) hsub.integrable hitting_le)) },
       exacts [integral_nonneg (λ x, hnonneg _ _), integral_nonneg (λ x, hnonneg _ _)],
     end
     ... ≤ ennreal.of_real (μ[f n]) :
@@ -525,7 +525,7 @@ begin
       refine ennreal.of_real_le_of_real _,
       rw ← stopped_value_const f n,
       exact hsub.expected_stopped_value_mono
-        (hitting_is_stopping_time_nat hsub.adapted measurable_set_Ici _)
+        (hitting_is_stopping_time hsub.adapted measurable_set_Ici)
         (is_stopping_time_const _ _) (λ x, hitting_le x) (λ x, le_rfl : ∀ x, n ≤ n),
     end
 end

@@ -37,8 +37,10 @@ variables {Ω : Type*} {m : measurable_space Ω} {X : Ω → ℝ} {p : ℕ} {μ 
 
 include m
 
+/-- Moment of a random variable, `μ[X ^ p]`. -/
 def moment (X : Ω → ℝ) (p : ℕ) (μ : measure Ω) : ℝ := μ[X ^ p]
 
+/-- Central moment of a random variable, `μ[(X - μ[X]) ^ p]`. -/
 def central_moment (X : Ω → ℝ) (p : ℕ) (μ : measure Ω) : ℝ := μ[(X - (λ x, μ[X])) ^ p]
 
 @[simp] lemma moment_zero (hp : p ≠ 0) : moment 0 p μ = 0 :=
@@ -78,8 +80,10 @@ section moment_generating_function
 
 variables {t : ℝ}
 
+/-- Moment generating function of a random variable `X`: `λ t, μ[exp(t*X)]`. -/
 def mgf (X : Ω → ℝ) (μ : measure Ω) (t : ℝ) : ℝ := μ[λ ω, real.exp (t * X ω)]
 
+/-- Cumulant generating function of a random variable `X`: `λ t, log μ[exp(t*X)]`. -/
 def cgf (X : Ω → ℝ) (μ : measure Ω) (t : ℝ) : ℝ := real.log (mgf X μ t)
 
 @[simp] lemma mgf_zero_fun : mgf 0 μ t = (μ set.univ).to_real :=

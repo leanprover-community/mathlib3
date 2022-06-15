@@ -486,15 +486,13 @@ end surjective_of_epi_auxs
 
 lemma surjective_of_epi [epi f] : function.surjective f :=
 begin
-  have := surjective_of_epi_auxs.g_eq_h f,
   by_contra r,
   simp_rw [not_forall, not_exists] at r,
   rcases r with ⟨b, hb⟩,
-  contrapose! this,
-  apply surjective_of_epi_auxs.g_ne_h f b (λ r, _),
-  rcases r with ⟨c, hc⟩,
-  specialize hb c,
-  exact hb hc,
+  refine surjective_of_epi_auxs.g_ne_h f b (λ r, _) _,
+  { rcases r with ⟨c, hc⟩,
+    exact hb _ hc, },
+  apply surjective_of_epi_auxs.g_eq_h,
 end
 
 lemma epi_iff_surjective :
@@ -503,15 +501,7 @@ lemma epi_iff_surjective :
 
 lemma epi_iff_range_eq_top :
   epi f ↔ f.range = ⊤ :=
-iff.trans (epi_iff_surjective _) begin
-  rw subgroup.eq_top_iff',
-  split,
-  { intros h x,
-    rcases h x with ⟨a, h⟩,
-    exact ⟨a, h⟩, },
-  { intros h x,
-    exact h x, },
-end
+iff.trans (epi_iff_surjective _) (subgroup.eq_top_iff' f.range).symm
 
 end Group
 

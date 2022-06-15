@@ -31,6 +31,13 @@ open expr
 --         @has_add.add _ (add_semigroup.to_has_add _) 2 3),
 --   guard $ ops = [`(1), `(2), `(3)]
 
+-- this fails
+-- #eval show tactic unit, from do
+--    let ops := list_factors
+--      `(@has_mul.mul _ (mul_one_class.to_has_mul _) 1 $
+--         @has_mul.mul _ (semigroup.to_has_mul _) 2 3),
+--   guard $ ops = [`(1), `(2), `(3)]
+
 def a : fin 2 → fin 2 → ℕ := λ _ _, 0
 
 #eval show tactic unit, from do

@@ -623,7 +623,7 @@ meta def normalize (red : transparency) (mode := normalize_mode.horner)
   (recursive := tt) (e : expr) : tactic (expr × expr) :=
 using_new_ref mk_buffer $ λ atoms, normalize' atoms red mode recursive e
 
-structure ring_nf_cfg := (recursive := tt)
+@[derive inhabited] structure ring_nf_cfg := (recursive := tt)
 
 end ring
 

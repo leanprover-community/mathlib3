@@ -598,11 +598,11 @@ calc punit × α ≃ α × punit : prod_comm _ _
 
 /-- Any `unique` type is a right identity for type product up to equivalence. -/
 def prod_unique (α β : Type*) [unique β] : α × β ≃ α :=
-((refl α).prod_congr $ equiv_punit β).trans $ prod_punit α
+((equiv.refl α).prod_congr $ equiv_punit β).trans $ prod_punit α
 
 /-- Any `unique` type is a left identity for type product up to equivalence. -/
 def unique_prod (α β : Type*) [unique β] : β × α ≃ α :=
-((equiv_punit β).prod_congr $ refl α).trans $ punit_prod α
+((equiv_punit β).prod_congr $ equiv.refl α).trans $ punit_prod α
 
 /-- `empty` type is a right absorbing element for type product up to an equivalence. -/
 def prod_empty (α : Type*) : α × empty ≃ empty :=

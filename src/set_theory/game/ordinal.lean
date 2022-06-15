@@ -115,7 +115,8 @@ to_pgame_injective.eq_iff
 theorem to_pgame_add : ∀ a b : ordinal.{u}, a.to_pgame + b.to_pgame ≈ (a ♯ b).to_pgame
 | a b := begin
   refine ⟨le_iff_forall_lf.2 ⟨λ i, _, is_empty_elim⟩, le_iff_forall_lf.2 ⟨λ i, _, is_empty_elim⟩⟩,
-  { rcases left_moves_add_cases i with ⟨i, rfl⟩ | ⟨i, rfl⟩;
+  { apply left_moves_add_cases i;
+    intro i;
     let wf := to_left_moves_to_pgame_symm_lt i;
     try { rw add_move_left_inl }; try { rw add_move_left_inr };
     rw [to_pgame_move_left', lf_congr_left (to_pgame_add _ _), to_pgame_lf_iff],

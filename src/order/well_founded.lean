@@ -137,6 +137,10 @@ section linear_order
 variables {β : Type*} [linear_order β] (h : well_founded ((<) : β → β → Prop))
   {γ : Type*} [partial_order γ]
 
+theorem min_le {x : β} {s : set β} (hx : x ∈ s) (hne : s.nonempty := ⟨x, hx⟩) :
+  h.min s hne ≤ x :=
+not_lt.1 $ h.not_lt_min _ _ hx
+
 private theorem eq_strict_mono_iff_eq_range_aux {f g : β → γ} (hf : strict_mono f)
   (hg : strict_mono g) (hfg : set.range f = set.range g) {b : β} (H : ∀ a < b, f a = g a) :
   f b ≤ g b :=

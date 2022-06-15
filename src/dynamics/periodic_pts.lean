@@ -481,6 +481,38 @@ lemma periodic_orbit_apply_eq (hx : x ∈ periodic_pts f) :
   periodic_orbit f (f x) = periodic_orbit f x :=
 periodic_orbit_apply_iterate_eq hx 1
 
+theorem periodic_orbit_chain (r : α → α → Prop) {f : α → α} {x : α} :
+  (periodic_orbit f x).chain r ↔ ∀ n < minimal_period f x, r (f^[n] x) (f^[n+1] x) :=
+begin
+  by_cases hx : x ∈ periodic_pts f,
+  { have hx' := minimal_period_pos_of_mem_periodic_pts hx,
+    have hM := nat.sub_add_cancel (succ_le_iff.2 hx'),
+    rw [periodic_orbit, ←cycle.map_coe, cycle.chain_map, ←hM, cycle.chain_range_succ],
+    refine ⟨_, λ H, ⟨_, λ m hm, H _ (hm.trans (nat.lt_succ_self _))⟩⟩,
+    { rintro ⟨hr, H⟩ n hn,
+      cases eq_or_lt_of_le (lt_succ_iff.1 hn) with hM' hM',
+      { rwa [hM', hM, iterate_minimal_period] },
+      { exact H _ hM' } },
+    { rw iterate_zero_apply,
+      nth_rewrite 2 ←@iterate_minimal_period α f x,
+      nth_rewrite 1 ←hM,
+      exact H _ (nat.lt_succ_self _) } },
+  { rw [periodic_orbit_eq_nil_of_not_periodic_pt hx,
+      minimal_period_eq_zero_of_nmem_periodic_pts hx],
+    simp }
+end
+
+theorem periodic_orbit_chain' (r : α → α → Prop) {f : α → α} {x : α} (hx : x ∈ periodic_pts f) :
+  (periodic_orbit f x).chain r ↔ ∀ n, r (f^[n] x) (f^[n+1] x) :=
+begin
+  rw periodic_orbit_chain r,
+  refine ⟨λ H n, _, λ H n _, H n⟩,
+  rw [iterate_succ_apply, ←iterate_mod_minimal_period_eq],
+  nth_rewrite 1 ←iterate_mod_minimal_period_eq,
+  rw [←iterate_succ_apply, minimal_period_apply hx],
+  exact H _ (mod_lt _ (minimal_period_pos_of_mem_periodic_pts hx))
+end
+
 end function
 
 namespace mul_action

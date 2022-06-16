@@ -205,6 +205,25 @@ begin
   rw exp_log hx,
 end
 
+lemma log_nat_eq_factorization_sum {n : ℕ} : log n = n.factorization.sum (λ p t, t * log p) :=
+begin
+  refine n.rec_on_prime_pow _ _ (λ a p n hp hpa hn ih, _),
+  { simp },
+  { simp },
+  push_cast,
+  have ha : a ≠ 0,
+  { rintro rfl, exact hpa (dvd_zero p) },
+  have hpn : p ^ n ≠ 0 := pow_ne_zero n hp.ne_zero,
+  rw [log_mul, log_pow, nat.factorization_mul hpn ha, finsupp.sum_add_index', hp.factorization_pow,
+      finsupp.sum_single_index, ih],
+  { simp },
+  { simp },
+  { intros t x y,
+    rw [x.cast_add y, add_mul] },
+  { exact_mod_cast hpn },
+  { exact_mod_cast ha },
+end
+
 /-- Bound for `|log x * x|` in the interval `(0, 1]`. -/
 lemma abs_log_mul_self_lt (x: ℝ) (h1 : 0 < x) (h2 : x ≤ 1) : |log x * x| < 1 :=
 begin

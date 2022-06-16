@@ -290,6 +290,20 @@ noncomputable instance : linear_ordered_add_comm_group surreal :=
   decidable_le := classical.dec_rel _,
   ..surreal.ordered_add_comm_group }
 
+/-- Casts a `surreal` number into a `game`. -/
+def to_game : surreal →+ game :=
+{ to_fun := lift (λ x _, ⟦x⟧) (λ x y ox oy, quot.sound),
+  map_zero' := rfl,
+  map_add' := by { rintros ⟨_, _⟩ ⟨_, _⟩, refl } }
+
+theorem zero_to_game : to_game 0 = 0 := rfl
+
+@[simp] theorem one_to_game : to_game 1 = 1 := rfl
+
+@[simp] theorem nat_to_game : ∀ n : ℕ, to_game n = n
+| 0       := rfl
+| (n + 1) := by simp [nat_to_game n]
+
 end surreal
 
 open surreal
@@ -306,5 +320,4 @@ end ordinal
 
 -- We conclude with some ideas for further work on surreals; these would make fun projects.
 
--- TODO define the inclusion of groups `surreal → game`
 -- TODO define the field structure on the surreals

@@ -96,8 +96,10 @@ begin
     have : ∫ x in set.Iio 0, x ^ p ∂measure.map X μ = 0,
     { rw set_integral_eq_zero_iff_of_nonneg_ae _ hint',
       all_goals { simp only [hres, ae_zero] } },
-    conv_rhs {
-      rw ← add_zero (∫ (x : ℝ) in set.Ici 0, x ^ p ∂measure.map X μ), congr, skip, rw ← this },
+    conv_rhs { rw ← add_zero (∫ (x : ℝ) in set.Ici 0, x ^ p ∂measure.map X μ),
+      congr,
+      skip,
+      rw ← this },
     rw [← integral_union _ measurable_set_Iio _ hint', set.union_comm, set.Iio_union_Ici,
       measure.restrict_univ],
     { rintro x ⟨hx₁, hx₂⟩,

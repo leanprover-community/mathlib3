@@ -30,7 +30,6 @@ at a specific time and is the first step in formalizing stochastic processes.
   function `τ` such that for all `i`, the preimage of `{j | j ≤ i}` along `τ` is
   `f i`-measurable
 * `measure_theory.is_stopping_time.measurable_space`: the σ-algebra associated with a stopping time
-* `measure_theory.hitting`: the first hitting time of a process
 
 ## Main results
 

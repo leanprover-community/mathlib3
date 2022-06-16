@@ -234,7 +234,7 @@ lemma Indep.indep {α ι} {m : ι → measurable_space α} [measurable_space α]
   (h_indep : Indep m μ) {i j : ι} (hij : i ≠ j) :
   indep (m i) (m j) μ :=
 begin
-  change indep_sets ((λ x, (m x).measurable_set') i) ((λ x, (m x).measurable_set') j) μ,
+  change indep_sets ((λ x, measurable_set[m x]) i) ((λ x, measurable_set[m x]) j) μ,
   exact Indep_sets.indep_sets h_indep hij,
 end
 
@@ -269,7 +269,7 @@ section from_pi_systems_to_measurable_spaces
 private lemma indep_sets.indep_aux {α} {m2 : measurable_space α}
   {m : measurable_space α} {μ : measure α} [is_probability_measure μ] {p1 p2 : set (set α)}
   (h2 : m2 ≤ m) (hp2 : is_pi_system p2) (hpm2 : m2 = generate_from p2)
-  (hyp : indep_sets p1 p2 μ) {t1 t2 : set α} (ht1 : t1 ∈ p1) (ht2m : m2.measurable_set' t2) :
+  (hyp : indep_sets p1 p2 μ) {t1 t2 : set α} (ht1 : t1 ∈ p1) (ht2m : measurable_set[m2] t2) :
   μ (t1 ∩ t2) = μ t1 * μ t2 :=
 begin
   let μ_inter := μ.restrict t1,
@@ -279,7 +279,7 @@ begin
   haveI : is_finite_measure μ_inter := @restrict.is_finite_measure α _ t1 μ ⟨measure_lt_top μ t1⟩,
   rw [set.inter_comm, ←@measure.restrict_apply α _ μ t1 t2 (h2 t2 ht2m)],
   refine ext_on_measurable_space_of_generate_finite m p2 (λ t ht, _) h2 hpm2 hp2 h_univ ht2m,
-  have ht2 : m.measurable_set' t,
+  have ht2 : measurable_set[m] t,
   { refine h2 _ _,
     rw hpm2,
     exact measurable_set_generate_from ht, },
@@ -301,7 +301,7 @@ begin
   haveI : is_finite_measure μ_inter := @restrict.is_finite_measure α _ t2 μ ⟨measure_lt_top μ t2⟩,
   rw [mul_comm, ←@measure.restrict_apply α _ μ t2 t1 (h1 t1 ht1)],
   refine ext_on_measurable_space_of_generate_finite m p1 (λ t ht, _) h1 hpm1 hp1 h_univ ht1,
-  have ht1 : m.measurable_set' t,
+  have ht1 : measurable_set[m] t,
   { refine h1 _ _,
     rw hpm1,
     exact measurable_set_generate_from ht, },

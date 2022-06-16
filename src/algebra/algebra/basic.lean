@@ -1291,10 +1291,20 @@ def to_int_alg_hom [ring R] [ring S] [algebra ℤ R] [algebra ℤ S] (f : R →+
   (f : R →+* S) (r : ℚ) : f (algebra_map ℚ R r) = algebra_map ℚ S r :=
 ring_hom.ext_iff.1 (subsingleton.elim (f.comp (algebra_map ℚ R)) (algebra_map ℚ S)) r
 
-/-- Reinterpret a `ring_hom` as a `ℚ`-algebra homomorphism. -/
+/-- Reinterpret a `ring_hom` as a `ℚ`-algebra homomorphism. This actually yields an equivalence,
+see `ring_hom.equiv_rat_alg_hom`. -/
 def to_rat_alg_hom [ring R] [ring S] [algebra ℚ R] [algebra ℚ S] (f : R →+* S) :
   R →ₐ[ℚ] S :=
 { commutes' := f.map_rat_algebra_map, .. f }
+
+def equiv_rat_alg_hom [ring R] [ring S] [algebra ℚ R] [algebra ℚ S] :
+(R →ₐ[ℚ] S) ≃ (R →+* S) :=
+{ to_fun := coe,
+  inv_fun := λ f : R →+* S, alg_hom.mk' f (λ (c : ℚ) x, map_rat_smul f _ _),
+  left_inv  := λ x, alg_hom.ext  $ by simp only [forall_const, alg_hom.coe_to_ring_hom,
+                                                 eq_self_iff_true, alg_hom.coe_mk'],
+  right_inv := λ x, ring_hom.ext $ by simp only [forall_const, alg_hom.coe_to_ring_hom,
+                                                 eq_self_iff_true, alg_hom.coe_mk'] }
 
 end ring_hom
 

@@ -16,16 +16,16 @@ import logic.unique
 We define the nth homotopy group at x `π n x` as the equivalence classes
 of functions from the nth dimensional cube to the topological space X
 that send the boundary to the base point `x`, up to homotopic equivalence.
-Note that such functions are nth dimensional loops `nloop n x`, in particular
-`nloop 1 x ≃ path x x`
+Note that such functions are generalized loops `gen_loop n x`, in particular
+`gen_loop 1 x ≃ path x x`
 
 We show that `π 0 x` is equivalent to the path-conected components, and
 that `π 1 x` is equivalent to the fundamental grupoid at `x`.
 
 ## definitions
 
-* `nloop n x` is the type of continous fuctions `I^n→X` that send the boundary to `x`
-* `nth_homotopy_group n x` denoted `π n x` is the quotient of `nloop n x` up to homotopic
+* `gen_loop n x` is the type of continous fuctions `I^n→X` that send the boundary to `x`
+* `homotopy_group n x` denoted `π n x` is the quotient of `gen_loop n x` up to homotopic
   equivalence
 
 -/
@@ -71,7 +71,7 @@ The first projection of a non-zero dimensional cube
 @[continuity] lemma head.continuous {n} : continuous (@head n) := proj_continuous 0
 
 /--
-The last `n` projections of an `n+1` dimensional cube
+The projection to the last n coordinates from an n+1 dimensional cube
 -/
 @[simp] def tail {n} : I^(n+1) → I^n := λ c, fin.tail c
 
@@ -87,14 +87,14 @@ lemma one_char {α} (x : fin 1 → α) : x = λ _, x 0 :=
 end cube
 
 /--
-The nth dimensional loops; functions `I^n → X` that send the boundary to `x`
+The nth dimensional generalized loops; functions `I^n → X` fixed at the boundary
 -/
-structure nloop (n : nat) (x : X) extends C(I^n,X) :=
+structure gen_loop (n : nat) (x : X) extends C(I^n,X) :=
   (boundary : ∀ y ∈ cube.boundary n, to_fun y = x )
 
-namespace nloop
+namespace gen_loop
 
-instance fun_like : fun_like (nloop n x) (I^n) (λ _, X) :=
+instance fun_like : fun_like (gen_loop n x) (I^n) (λ _, X) :=
   { coe := λ f, f.1,
     coe_injective' :=
     begin
@@ -102,29 +102,29 @@ instance fun_like : fun_like (nloop n x) (I^n) (λ _, X) :=
       congr, ext1, exact congr_fun hfg _,
     end }
 
-@[ext] lemma ext (f g : nloop n x) (H : ∀ y, f y = g y) : f = g := fun_like.ext f g H
+@[ext] lemma ext (f g : gen_loop n x) (H : ∀ y, f y = g y) : f = g := fun_like.ext f g H
 
-@[simp] lemma mk_apply (f : C(I^n, X)) (H y) : (⟨f, H⟩ : nloop n x)  y = f y := rfl
+@[simp] lemma mk_apply (f : C(I^n, X)) (H y) : (⟨f, H⟩ : gen_loop n x)  y = f y := rfl
 
 /--
-The constant `nloop` at x
+The constant `gen_loop` at x
 -/
-def const : nloop n x := ⟨⟨λ_x,by continuity⟩,λ_ _,rfl⟩
+def const : gen_loop n x := ⟨⟨λ_x,by continuity⟩,λ_ _,rfl⟩
 
-instance inhabited : inhabited (nloop n x) :=
+instance inhabited : inhabited (gen_loop n x) :=
   { default := const }
 
 /--
-Boundary-preserving homotopic relation between `nloop`s
+Boundary-preserving homotopic relation between `gen_loop`s
 -/
-def homotopic (f g : nloop n x) : Prop :=
-  nonempty (f.to_continuous_map.homotopy_rel g.to_continuous_map (cube.boundary n))
+def homotopic (f g : gen_loop n x) : Prop :=
+  f.to_continuous_map.homotopic_rel g.to_continuous_map (cube.boundary n)
 
 namespace homotopic
 section
-variables {f g h : nloop n x}
+variables {f g h : gen_loop n x}
 
-@[refl] lemma refl (f : nloop n x) : homotopic f f :=
+@[refl] lemma refl (f : gen_loop n x) : homotopic f f :=
   ⟨continuous_map.homotopy_rel.refl _ _⟩
 
 @[symm] lemma symm (H : f.homotopic g) : g.homotopic f :=
@@ -136,23 +136,23 @@ variables {f g h : nloop n x}
 lemma equiv : equivalence (@homotopic X _ n x) :=
   ⟨homotopic.refl, λ _ _, homotopic.symm, λ _ _ _, homotopic.trans⟩
 
-instance setoid (n : nat) (x : X) : setoid (nloop n x) :=
+instance setoid (n : nat) (x : X) : setoid (gen_loop n x) :=
   ⟨homotopic, equiv⟩
 
 end
 end homotopic
 
-end nloop
+end gen_loop
 
 /--
 The nth homotopy group at x defined as the quotient of base preserving functions up to homotopic
 equivalence
 -/
-def nth_homotopy_group (n : nat) (x : X) : Type _ := quotient (nloop.homotopic.setoid n x)
-notation `π` := nth_homotopy_group
+def homotopy_group (n : nat) (x : X) : Type _ := quotient (gen_loop.homotopic.setoid n x)
+notation `π` := homotopy_group
 
-instance nth_homotopy_group.inhabited : inhabited (π n x) :=
-  { default :=  quotient.mk' nloop.const }
+instance homotopy_group.inhabited : inhabited (π n x) :=
+  { default :=  quotient.mk' gen_loop.const }
 
 /--
 The 0th homotopy "group" is equivalent to the path components of `X`, aka the `zeroth_homotopy`
@@ -160,12 +160,12 @@ The 0th homotopy "group" is equivalent to the path components of `X`, aka the `z
 def pi0_equiv_path_components : π 0 x ≃ zeroth_homotopy X :=
 begin
   refine (quotient.congr _ _),
-  -- nloop 0 x ≃ X
+  -- gen_loop 0 x ≃ X
   exact
   { to_fun := λ f, f 0,
     inv_fun := λ x, ⟨continuous_map.const _ x, (λ _ ⟨f0,_⟩, fin.elim0 f0)⟩,
     left_inv := λ _, by { ext1, revert y, refine (unique.forall_iff.2 _), unfold default,
-      simp only [nloop.mk_apply, continuous_map.const_apply] },
+      simp only [gen_loop.mk_apply, continuous_map.const_apply] },
     right_inv := λ _, by simp },
   -- joined iff homotopic
   intros, split; rintros ⟨H⟩; constructor,
@@ -189,7 +189,7 @@ i.e. the quotient of loops up to homotopy
 def pi1_equiv_fundamental_groupoid : π 1 x ≃ path.homotopic.quotient x x :=
 begin
   refine (quotient.congr _ _),
-  -- nloop 1 x ≃ path x x
+  -- gen_loop 1 x ≃ path x x
   exact
   { to_fun := λ p, path.mk ⟨λ t, p (λ _, t), by {continuity, exact p.1.2}⟩
       (p.boundary (λ _, 0) ⟨0, by {left, refl}⟩)
@@ -204,9 +204,9 @@ begin
         cases iH; rw iH, simp only [path.source], simp only [path.target],
       end },
     left_inv := by { intro p, ext1, rw (y.one_char),
-      simp only [cube.head, path.coe_mk, nloop.mk_apply, continuous_map.coe_mk], },
+      simp only [cube.head, path.coe_mk, gen_loop.mk_apply, continuous_map.coe_mk], },
     right_inv := by { intro p, ext1,
-      simp only [cube.head, nloop.mk_apply, continuous_map.coe_mk, path.coe_mk], } },
+      simp only [cube.head, gen_loop.mk_apply, continuous_map.coe_mk, path.coe_mk], } },
   -- homotopic iff homotopic
   intros, split; rintros ⟨H⟩; constructor,
   exact

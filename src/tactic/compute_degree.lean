@@ -150,17 +150,20 @@ with `a` is a coefficient of the polynomial `f` in question. -/
 meta def norm_assum : tactic unit :=
 try `[ norm_num <|> apply_instance ] >> try assumption
 
-/--  `conservative_eval e` takes an expression `e` and gives a "conservative" estimate for the
-size of `eval_expr ℕ e`.  It is tailor made for estimating degrees of polynomials.
+/--  `eval_guessing n e` takes a natural number `n` and an expression `e` and gives an
+estimate for the evaluation of `eval_expr ℕ e`.  It is tailor made for estimating degrees of
+polynomials.
 
 It decomposes `e` recursively as a sequence of additions, multiplications and `max`.
-On the atoms of the process, `conservative_eval` tries to use `eval_expr ℕ`, resorting to using
-`0` if `eval_expr ℕ` fails. -/
-meta def conservative_eval : expr → tactic ℕ
-| `(%%a + %%b)   := do ca ← conservative_eval a, cb ← conservative_eval b, return $ ca + cb
-| `(%%a * %%b)   := do ca ← conservative_eval a, cb ← conservative_eval b, return $ ca * cb
-| `(max %%a %%b) := do ca ← conservative_eval a, cb ← conservative_eval b, return $ max ca cb
-| e := do cond ← succeeds $ eval_expr ℕ e, if cond then eval_expr ℕ e else pure 0
+On the atoms of the process, `eval_guessing` tries to use `eval_expr ℕ`, resorting to using
+`n` if `eval_expr ℕ` fails.
+
+For use with degree of polynomials, we mostly use `n = 0`. -/
+meta def eval_guessing (n : ℕ) : expr → tactic ℕ
+| `(%%a + %%b)   := do ca ← eval_guessing a, cb ← eval_guessing b, return $ ca + cb
+| `(%%a * %%b)   := do ca ← eval_guessing a, cb ← eval_guessing b, return $ ca * cb
+| `(max %%a %%b) := do ca ← eval_guessing a, cb ← eval_guessing b, return $ max ca cb
+| e := do cond ← succeeds $ eval_expr ℕ e, if cond then eval_expr ℕ e else pure n
 
 end compute_degree
 
@@ -182,7 +185,7 @@ do t ← target,
   try $ refine ``(polynomial.degree_le_nat_degree.trans (with_bot.coe_le_coe.mpr _)),
   `(polynomial.nat_degree %%tl ≤ %%tr) ← target |
     fail "Goal is not of the form\n`f.nat_degree ≤ d` or `f.degree ≤ d`",
-  exp_deg ← guess_degree tl >>= conservative_eval,
+  exp_deg ← guess_degree tl >>= eval_guessing 0,
   cond ← succeeds $ eval_expr ℕ tr,
   deg_bou ← if cond then eval_expr ℕ tr else pure exp_deg,
   if deg_bou < exp_deg

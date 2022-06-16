@@ -235,7 +235,7 @@ variables [nontrivial R]
 
 lemma {m} cardinal_lift_le_dim_of_linear_independent
   {ι : Type w} {v : ι → M} (hv : linear_independent R v) :
-  cardinal.lift.{(max v m)} (#ι) ≤ cardinal.lift.{(max w m)} (module.rank R M) :=
+  cardinal.lift.{max v m} (#ι) ≤ cardinal.lift.{max w m} (module.rank R M) :=
 begin
   apply le_trans,
   { exact cardinal.lift_mk_le.mpr
@@ -839,7 +839,7 @@ begin
 end
 
 theorem {m} basis.mk_eq_dim' (v : basis ι R M) :
-  cardinal.lift.{(max v m)} (#ι) = cardinal.lift.{(max w m)} (module.rank R M) :=
+  cardinal.lift.{max v m} (#ι) = cardinal.lift.{max w m} (module.rank R M) :=
 by simpa using v.mk_eq_dim
 
 /-- If a module has a finite dimension, all bases are indexed by a finite type. -/

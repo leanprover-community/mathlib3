@@ -30,9 +30,9 @@ bounded below.
 
 set_option old_structure_cmd true
 
-open set
+open function order_dual set
 
-variables {α β : Type*} {ι : Sort*}
+variables {α β γ : Type*} {ι : Sort*}
 
 section
 
@@ -132,20 +132,11 @@ instance complete_linear_order.to_conditionally_complete_linear_order_bot {α : 
 section
 open_locale classical
 
-/-- A well founded linear order is conditionally complete, with a bottom element. -/
+/-- A well founded linear order with a bottom element is conditionally complete. -/
 @[reducible] noncomputable def well_founded.conditionally_complete_linear_order_with_bot
-  {α : Type*} [i : linear_order α] (h : well_founded ((<) : α → α → Prop))
-  (c : α) (hc : c = h.min set.univ ⟨c, mem_univ c⟩) :
+  {α : Type*} [i₁ : linear_order α] [i₂ : order_bot α] (h : well_founded ((<) : α → α → Prop)) :
   conditionally_complete_linear_order_bot α :=
-{ sup := max,
-  le_sup_left := le_max_left,
-  le_sup_right := le_max_right,
-  sup_le := λ a b c, max_le,
-  inf := min,
-  inf_le_left := min_le_left,
-  inf_le_right := min_le_right,
-  le_inf := λ a b c, le_min,
-  Inf := λ s, if hs : s.nonempty then h.min s hs else c,
+{ Inf := λ s, if hs : s.nonempty then h.min s hs else ⊥,
   cInf_le := λ s a hs has, begin
     have s_ne : s.nonempty := ⟨a, has⟩,
     simpa [s_ne] using not_lt.1 (h.not_lt_min s s_ne has),
@@ -154,7 +145,7 @@ open_locale classical
     simp only [hs, dif_pos],
     exact has (h.min_mem s hs),
   end,
-  Sup := λ s, if hs : (upper_bounds s).nonempty then h.min _ hs else c,
+  Sup := λ s, if hs : (upper_bounds s).nonempty then h.min _ hs else ⊥,
   le_cSup := λ s a hs has, begin
     have h's : (upper_bounds s).nonempty := hs,
     simp only [h's, dif_pos],
@@ -165,14 +156,11 @@ open_locale classical
     simp only [h's, dif_pos],
     simpa using h.not_lt_min _ h's has,
   end,
-  bot := c,
-  bot_le := λ x, by convert not_lt.1 (h.not_lt_min set.univ ⟨c, mem_univ c⟩ (mem_univ x)),
   cSup_empty := begin
-    have : (set.univ : set α).nonempty := ⟨c, mem_univ c⟩,
-    simp only [this, dif_pos, upper_bounds_empty],
-    exact hc.symm
+    simp only [univ_nonempty, dif_pos, upper_bounds_empty],
+    exact bot_unique (h.min_le $ mem_univ ⊥)
   end,
-  .. i }
+  .. i₁, .. i₂, .. linear_order.to_lattice }
 
 end
 
@@ -250,6 +238,24 @@ is_glb_cInf (range_nonempty f) H
 lemma is_glb_cinfi_set {f : β → α} {s : set β} (H : bdd_below (f '' s)) (Hne : s.nonempty) :
   is_glb (f '' s) (⨅ i : s, f i) :=
 @is_lub_csupr_set αᵒᵈ _ _ _ _ H Hne
+
+lemma csupr_le_iff [nonempty ι] {f : ι → α} {a : α} (hf : bdd_above (range f)) :
+  supr f ≤ a ↔ ∀ i, f i ≤ a :=
+(is_lub_le_iff $ is_lub_csupr hf).trans forall_range_iff
+
+lemma le_cinfi_iff [nonempty ι] {f : ι → α} {a : α} (hf : bdd_below (range f)) :
+  a ≤ infi f ↔ ∀ i, a ≤ f i :=
+(le_is_glb_iff $ is_glb_cinfi hf).trans forall_range_iff
+
+lemma csupr_set_le_iff {ι : Type*} {s : set ι} {f : ι → α} {a : α} (hs : s.nonempty)
+  (hf : bdd_above (f '' s)) :
+  (⨆ i : s, f i) ≤ a ↔ ∀ i ∈ s, f i ≤ a :=
+(is_lub_le_iff $ is_lub_csupr_set hf hs).trans ball_image_iff
+
+lemma le_cinfi_set_iff {ι : Type*} {s : set ι} {f : ι → α} {a : α} (hs : s.nonempty)
+  (hf : bdd_below (f '' s)) :
+  a ≤ (⨅ i : s, f i) ↔ ∀ i ∈ s, a ≤ f i :=
+(le_is_glb_iff $ is_glb_cinfi_set hf hs).trans ball_image_iff
 
 lemma is_lub.cSup_eq (H : is_lub s a) (ne : s.nonempty) : Sup s = a :=
 (is_lub_cSup ne ⟨a, H.1⟩).unique H
@@ -854,9 +860,8 @@ lemma le_cInf_image {s : set α} (hs : s.nonempty) {B : α} (hB: B ∈ lower_bou
 end monotone
 
 namespace galois_connection
-
-variables {γ : Type*} [conditionally_complete_lattice α] [conditionally_complete_lattice β]
-  [nonempty ι] {l : α → β} {u : β → α}
+variables [conditionally_complete_lattice α] [conditionally_complete_lattice β] [nonempty ι]
+  {l : α → β} {u : β → α}
 
 lemma l_cSup (gc : galois_connection l u) {s : set α} (hne : s.nonempty)
   (hbdd : bdd_above s) :
@@ -899,9 +904,7 @@ gc.dual.l_csupr_set hf hne
 end galois_connection
 
 namespace order_iso
-
-variables {γ : Type*} [conditionally_complete_lattice α] [conditionally_complete_lattice β]
-  [nonempty ι]
+variables [conditionally_complete_lattice α] [conditionally_complete_lattice β] [nonempty ι]
 
 lemma map_cSup (e : α ≃o β) {s : set α} (hne : s.nonempty) (hbdd : bdd_above s) :
   e (Sup s) = ⨆ x : s, e x :=
@@ -938,6 +941,68 @@ lemma map_cinfi_set (e : α ≃o β) {s : set γ} {f : γ → α}
 e.dual.map_csupr_set hf hne
 
 end order_iso
+
+/-!
+### Supremum/infimum of `set.image2`
+
+A collection of lemmas showing what happens to the suprema/infima of `s` and `t` when mapped under
+a binary function whose partial evaluations are lower/upper adjoints of Galois connections.
+-/
+
+section
+variables [conditionally_complete_lattice α] [conditionally_complete_lattice β]
+  [conditionally_complete_lattice γ] {f : α → β → γ} {s : set α} {t : set β}
+
+variables {l u : α → β → γ} {l₁ u₁ : β → γ → α} {l₂ u₂ : α → γ → β}
+
+lemma cSup_image2_eq_cSup_cSup (h₁ : ∀ b, galois_connection (swap l b) (u₁ b))
+  (h₂ : ∀ a, galois_connection (l a) (u₂ a))
+  (hs₀ : s.nonempty) (hs₁ : bdd_above s) (ht₀ : t.nonempty) (ht₁ : bdd_above t) :
+  Sup (image2 l s t) = l (Sup s) (Sup t) :=
+begin
+  refine eq_of_forall_ge_iff (λ c, _),
+  rw [cSup_le_iff (hs₁.image2 (λ _, (h₁ _).monotone_l) (λ _, (h₂ _).monotone_l) ht₁)
+    (hs₀.image2 ht₀), forall_image2_iff, forall₂_swap, (h₂ _).le_iff_le, cSup_le_iff ht₁ ht₀],
+  simp_rw [←(h₂ _).le_iff_le, (h₁ _).le_iff_le, cSup_le_iff hs₁ hs₀],
+end
+
+lemma cSup_image2_eq_cSup_cInf (h₁ : ∀ b, galois_connection (swap l b) (u₁ b))
+  (h₂ : ∀ a, galois_connection (l a ∘ of_dual) (to_dual ∘ u₂ a)) :
+  s.nonempty → bdd_above s → t.nonempty → bdd_below t → Sup (image2 l s t) = l (Sup s) (Inf t) :=
+@cSup_image2_eq_cSup_cSup _ βᵒᵈ _ _ _ _ _ _ _ _ _ h₁ h₂
+
+lemma cSup_image2_eq_cInf_cSup (h₁ : ∀ b, galois_connection (swap l b ∘ of_dual) (to_dual ∘ u₁ b))
+  (h₂ : ∀ a, galois_connection (l a) (u₂ a)) :
+  s.nonempty → bdd_below s → t.nonempty → bdd_above t → Sup (image2 l s t) = l (Inf s) (Sup t) :=
+@cSup_image2_eq_cSup_cSup αᵒᵈ _ _ _ _ _ _ _ _ _ _ h₁ h₂
+
+lemma cSup_image2_eq_cInf_cInf (h₁ : ∀ b, galois_connection (swap l b ∘ of_dual) (to_dual ∘ u₁ b))
+  (h₂ : ∀ a, galois_connection (l a ∘ of_dual) (to_dual ∘ u₂ a)) :
+  s.nonempty → bdd_below s → t.nonempty → bdd_below t → Sup (image2 l s t) = l (Inf s) (Inf t) :=
+@cSup_image2_eq_cSup_cSup αᵒᵈ βᵒᵈ _ _ _ _ _ _ _ _ _ h₁ h₂
+
+lemma cInf_image2_eq_cInf_cInf (h₁ : ∀ b, galois_connection (l₁ b) (swap u b))
+  (h₂ : ∀ a, galois_connection (l₂ a) (u a)) :
+  s.nonempty → bdd_below s → t.nonempty → bdd_below t →
+  Inf (image2 u s t) = u (Inf s) (Inf t) :=
+@cSup_image2_eq_cSup_cSup αᵒᵈ βᵒᵈ γᵒᵈ _ _ _ _ _ _ l₁ l₂ (λ _, (h₁ _).dual) (λ _, (h₂ _).dual)
+
+lemma cInf_image2_eq_cInf_cSup (h₁ : ∀ b, galois_connection (l₁ b) (swap u b))
+  (h₂ : ∀ a, galois_connection (to_dual ∘ l₂ a) (u a ∘ of_dual)) :
+  s.nonempty → bdd_below s → t.nonempty → bdd_above t → Inf (image2 u s t) = u (Inf s) (Sup t) :=
+@cInf_image2_eq_cInf_cInf _ βᵒᵈ _ _ _ _ _ _ _ _ _ h₁ h₂
+
+lemma cInf_image2_eq_cSup_cInf (h₁ : ∀ b, galois_connection (to_dual ∘ l₁ b) (swap u b ∘ of_dual))
+  (h₂ : ∀ a, galois_connection (l₂ a) (u a)) :
+  s.nonempty → bdd_above s → t.nonempty → bdd_below t → Inf (image2 u s t) = u (Sup s) (Inf t) :=
+@cInf_image2_eq_cInf_cInf αᵒᵈ _ _ _ _ _ _ _ _ _ _ h₁ h₂
+
+lemma cInf_image2_eq_cSup_cSup (h₁ : ∀ b, galois_connection (to_dual ∘ l₁ b) (swap u b ∘ of_dual))
+  (h₂ : ∀ a, galois_connection (to_dual ∘ l₂ a) (u a ∘ of_dual)) :
+  s.nonempty →  bdd_above s → t.nonempty → bdd_above t → Inf (image2 u s t) = u (Sup s) (Sup t) :=
+@cInf_image2_eq_cInf_cInf αᵒᵈ βᵒᵈ _ _ _ _ _ _ _ _ _ h₁ h₂
+
+end
 
 /-!
 ### Relation between `Sup` / `Inf` and `finset.sup'` / `finset.inf'`

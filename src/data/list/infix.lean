@@ -79,8 +79,20 @@ lemma infix_concat : l₁ <:+: l₂ → l₁ <:+: concat l₂ a :=
 protected lemma is_infix.sublist : l₁ <:+: l₂ → l₁ <+ l₂ :=
 λ ⟨s, t, h⟩, by { rw [← h], exact (sublist_append_right _ _).trans (sublist_append_left _ _) }
 
-protected lemma is_prefix.sublist (h : l₁ <+: l₂) : l₁ <+ l₂ := h.is_infix.sublist
-protected lemma is_suffix.sublist (h : l₁ <:+ l₂) : l₁ <+ l₂ := h.is_infix.sublist
+protected lemma is_infix.subset (hl : l₁ <:+: l₂) : l₁ ⊆ l₂ :=
+hl.sublist.subset
+
+protected lemma is_prefix.sublist (h : l₁ <+: l₂) : l₁ <+ l₂ :=
+h.is_infix.sublist
+
+protected lemma is_prefix.subset (hl : l₁ <+: l₂) : l₁ ⊆ l₂ :=
+hl.sublist.subset
+
+protected lemma is_suffix.sublist (h : l₁ <:+ l₂) : l₁ <+ l₂ :=
+h.is_infix.sublist
+
+protected lemma is_suffix.subset (hl : l₁ <:+ l₂) : l₁ ⊆ l₂ :=
+hl.sublist.subset
 
 @[simp] lemma reverse_suffix : reverse l₁ <:+ reverse l₂ ↔ l₁ <+: l₂ :=
 ⟨λ ⟨r, e⟩, ⟨reverse r,
@@ -493,4 +505,8 @@ congr_arg _ $ insert_of_mem h
 congr_arg _ $ insert_of_not_mem h
 
 end insert
+
+lemma mem_of_mem_suffix (hx : a ∈ l₁) (hl : l₁ <:+ l₂) : a ∈ l₂ :=
+hl.subset hx
+
 end list

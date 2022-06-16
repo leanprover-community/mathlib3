@@ -70,6 +70,8 @@ quotient.sound ⟨(rel_iso.preimage equiv.ulift _).trans
 @[simp] theorem lift_succ (a) : lift (succ a) = succ (lift a) :=
 by { rw [←add_one_eq_succ, lift_add, lift_one], refl }
 
+theorem lift_one_add (a) : lift (1 + a) = 1 + lift a := by simp
+
 instance add_contravariant_class_le : contravariant_class ordinal.{u} ordinal.{u} (+) (≤) :=
 ⟨λ a b c, induction_on a $ λ α r hr, induction_on b $ λ β₁ s₁ hs₁, induction_on c $ λ β₂ s₂ hs₂ ⟨f⟩,
   ⟨have fl : ∀ a, f (sum.inl a) = sum.inl a := λ a,
@@ -94,24 +96,6 @@ instance add_contravariant_class_le : contravariant_class ordinal.{u} ordinal.{u
       { rw fr at h, exact ⟨a', sum.inr.inj h⟩ }
     end⟩⟩⟩
 
-theorem add_succ (o₁ o₂ : ordinal) : o₁ + succ o₂ = succ (o₁ + o₂) :=
-(add_assoc _ _ _).symm
-
-@[simp] theorem succ_zero : succ (0 : ordinal) = 1 := zero_add 1
-@[simp] theorem succ_one : succ (1 : ordinal) = 2 := rfl
-
-theorem one_le_iff_pos {o : ordinal} : 1 ≤ o ↔ 0 < o :=
-by rw [← succ_zero, succ_le_iff]
-
-theorem one_le_iff_ne_zero {o : ordinal} : 1 ≤ o ↔ o ≠ 0 :=
-by rw [one_le_iff_pos, ordinal.pos_iff_ne_zero]
-
-theorem succ_pos (o : ordinal) : 0 < succ o :=
-(ordinal.zero_le o).trans_lt (lt_succ o)
-
-theorem succ_ne_zero (o : ordinal) : succ o ≠ 0 :=
-ne_of_gt $ succ_pos o
-
 @[simp] theorem card_succ (o : ordinal) : card (succ o) = card o + 1 :=
 by simp only [←add_one_eq_succ, card_add, card_one]
 
@@ -119,9 +103,6 @@ theorem nat_cast_succ (n : ℕ) : (succ n : ordinal) = n.succ := rfl
 
 theorem add_left_cancel (a) {b c : ordinal} : a + b = a + c ↔ b = c :=
 by simp only [le_antisymm_iff, add_le_add_iff_left]
-
-theorem lt_one_iff_zero {a : ordinal} : a < 1 ↔ a = 0 :=
-by rw [←succ_zero, lt_succ_iff, ordinal.le_zero]
 
 private theorem add_lt_add_iff_left' (a) {b c : ordinal} : a + b < a + c ↔ b < c :=
 by rw [← not_le, ← not_le, add_le_add_iff_left]
@@ -152,17 +133,6 @@ by simp only [le_antisymm_iff, add_le_add_iff_right]
   rw [← succ_le_iff, succ_zero] at hn, cases hn with f,
   exact ⟨f punit.star⟩
 end, λ e, by simp only [e, card_zero]⟩
-
-protected lemma one_ne_zero : (1 : ordinal) ≠ 0 :=
-type_ne_zero_of_nonempty _
-
-instance : nontrivial ordinal.{u} :=
-⟨⟨1, 0, ordinal.one_ne_zero⟩⟩
-
-@[simp] theorem zero_lt_one : (0 : ordinal) < 1 :=
-lt_iff_le_and_ne.2 ⟨ordinal.zero_le _, ordinal.one_ne_zero.symm⟩
-
-instance : zero_le_one_class ordinal := ⟨zero_lt_one.le⟩
 
 theorem le_one_iff {a : ordinal} : a ≤ 1 ↔ a = 0 ∨ a = 1 :=
 begin
@@ -531,11 +501,11 @@ theorem sub_is_limit {a b} (l : is_limit a) (h : b < a) : is_limit (a - b) :=
 ⟨ne_of_gt $ lt_sub.2 $ by rwa add_zero,
  λ c h, by rw [lt_sub, add_succ]; exact l.2 _ (lt_sub.1 h)⟩
 
+set_option pp.universes true
 @[simp] theorem one_add_omega : 1 + ω = ω :=
 begin
   refine le_antisymm _ (le_add_left _ _),
-  rw [omega, one_eq_lift_type_unit, ← lift_add, lift_le, type_add],
-  have : is_well_order unit empty_relation := by apply_instance,
+  rw [omega, ←lift_one_add.{0}, lift_le, ←one_def, type_add],
   refine ⟨rel_embedding.collapse (rel_embedding.of_monotone _ _)⟩,
   { apply sum.rec, exact λ _, 0, exact nat.succ },
   { intros a b, cases a; cases b; intro H; cases H with _ _ H _ _ H;

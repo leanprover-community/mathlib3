@@ -746,6 +746,8 @@ instance : has_zero ordinal :=
 
 instance : inhabited ordinal := ⟨0⟩
 
+theorem zero_def : type (@empty_relation pempty) = 0 := rfl
+
 @[simp] theorem type_eq_zero_of_empty (r) [is_well_order α r] [is_empty α] : type r = 0 :=
 (rel_iso.rel_iso_of_is_empty r _).ordinal_type_eq
 
@@ -769,21 +771,8 @@ by simp only [le_antisymm_iff, ordinal.zero_le, and_true]
 protected theorem pos_iff_ne_zero {o : ordinal} : 0 < o ↔ o ≠ 0 :=
 by simp only [lt_iff_le_and_ne, ordinal.zero_le, true_and, ne.def, eq_comm]
 
-lemma eq_zero_of_out_empty (o : ordinal) [h : is_empty o.out.α] : o = 0 :=
-begin
-  by_contra ho,
-  replace ho := ordinal.pos_iff_ne_zero.2 ho,
-  rw ←type_lt o at ho,
-  have α := enum (<) 0 ho,
-  exact h.elim α
-end
-
 @[simp] theorem out_empty_iff_eq_zero {o : ordinal} : is_empty o.out.α ↔ o = 0 :=
-begin
-  refine ⟨@eq_zero_of_out_empty o, λ h, ⟨λ i, _⟩⟩,
-  subst o,
-  exact (ordinal.zero_le _).not_lt (typein_lt_self i)
-end
+by { nth_rewrite_rhs 0 ←type_lt o, exact type_eq_zero_iff_is_empty.symm }
 
 @[simp] theorem out_nonempty_iff_ne_zero {o : ordinal} : nonempty o.out.α ↔ o ≠ 0 :=
 by rw [←not_iff_not, ←not_is_empty_iff, not_not, not_not, out_empty_iff_eq_zero]
@@ -794,34 +783,21 @@ out_empty_iff_eq_zero.2 rfl
 instance : has_one ordinal :=
 ⟨type (@empty_relation punit)⟩
 
+theorem one_def : type (@empty_relation punit) = 1 := rfl
+
 @[simp] theorem type_eq_one_of_unique (r) [is_well_order α r] [unique α] : type r = 1 :=
 (rel_iso.rel_iso_of_unique_of_irrefl r _).ordinal_type_eq
 
-@[simp] theorem type_eq_one_iff_nonempty_unique [is_well_order α r] :
-  type r = 1 ↔ nonempty (unique α) :=
-⟨λ h, let ⟨s⟩ := type_eq.1 h in s.to_equiv.is_empty, @type_eq_zero_of_empty α r _⟩
+protected lemma one_ne_zero : (1 : ordinal) ≠ 0 :=
+type_ne_zero_of_nonempty _
 
-theorem type_ne_one_iff_is_empty_unique [is_well_order α r] : type r ≠ 1 ↔ is_empty (unique α) :=
-by simp
+instance : nontrivial ordinal.{u} :=
+⟨⟨1, 0, ordinal.one_ne_zero⟩⟩
 
-lemma eq_one_of_out_unique (o : ordinal) [h : unique o.out.α] : o = 1 :=
-begin
-  by_contra ho,
-  replace ho := ordinal.pos_iff_ne_zero.2 ho,
-  rw ←type_lt o at ho,
-  have α := enum (<) 0 ho,
-  exact h.elim α
-end
+@[simp] theorem zero_lt_one : (0 : ordinal) < 1 :=
+lt_iff_le_and_ne.2 ⟨ordinal.zero_le _, ordinal.one_ne_zero.symm⟩
 
-@[simp] theorem out_unique_iff_eq_one {o : ordinal} : nonempty (unique o.out.α) ↔ o = 1 :=
-begin
-  refine ⟨@eq_zero_of_out_empty o, λ h, ⟨λ i, _⟩⟩,
-  subst o,
-  exact (ordinal.zero_le _).not_lt (typein_lt_self i)
-end
-
-instance unique_out_one : unique (0 : ordinal).out.α :=
-out_empty_iff_eq_zero.2 rfl
+instance : zero_le_one_class ordinal := ⟨zero_lt_one.le⟩
 
 @[simp] theorem card_one : card 1 = 1 := rfl
 
@@ -901,9 +877,6 @@ quotient.sound ⟨(rel_iso.preimage equiv.ulift _).trans
 @[simp] theorem lift_one : lift 1 = 1 :=
 quotient.sound ⟨(rel_iso.preimage equiv.ulift _).trans
  ⟨punit_equiv_punit, λ a b, iff.rfl⟩⟩
-
-theorem one_eq_lift_type_unit : 1 = lift.{u} (@type unit empty_relation _) :=
-by rw [← one_eq_type_unit, lift_one]
 
 @[simp] theorem lift_card (a) : (card a).lift = card (lift a) :=
 induction_on a $ λ α r _, rfl
@@ -1085,6 +1058,24 @@ instance : succ_order ordinal.{u} := succ_order.of_succ_le_iff (λ o, o + 1) (λ
 
 @[simp] theorem add_one_eq_succ (o : ordinal) : o + 1 = succ o := rfl
 
+theorem add_succ (o₁ o₂ : ordinal) : o₁ + succ o₂ = succ (o₁ + o₂) :=
+(add_assoc _ _ _).symm
+
+@[simp] theorem succ_zero : succ (0 : ordinal) = 1 := zero_add 1
+@[simp] theorem succ_one : succ (1 : ordinal) = 2 := rfl
+
+theorem one_le_iff_pos {o : ordinal} : 1 ≤ o ↔ 0 < o :=
+by rw [← succ_zero, succ_le_iff]
+
+theorem one_le_iff_ne_zero {o : ordinal} : 1 ≤ o ↔ o ≠ 0 :=
+by rw [one_le_iff_pos, ordinal.pos_iff_ne_zero]
+
+theorem succ_pos (o : ordinal) : 0 < succ o :=
+(ordinal.zero_le o).trans_lt (lt_succ o)
+
+theorem succ_ne_zero (o : ordinal) : succ o ≠ 0 :=
+ne_of_gt $ succ_pos o
+
 @[simp] lemma typein_le_typein (r : α → α → Prop) [is_well_order α r] {x x' : α} :
   typein r x ≤ typein r x' ↔ ¬r x' x :=
 by rw [←not_lt, typein_lt_typein]
@@ -1146,6 +1137,34 @@ def out_order_bot_of_pos {o : ordinal} (ho : 0 < o) : order_bot o.out.α :=
 theorem enum_zero_eq_bot {o : ordinal} (ho : 0 < o) :
   enum (<) 0 (by rwa type_lt) = by { haveI H := out_order_bot_of_pos ho, exact ⊥ } :=
 rfl
+
+theorem lt_one_iff_zero {a : ordinal} : a < 1 ↔ a = 0 :=
+by rw [←succ_zero, lt_succ_iff, ordinal.le_zero]
+
+theorem typein_eq_zero_of_type_eq_one {r} [is_well_order α r] (h : type r = 1) (x) :
+  typein r x = 0 :=
+by { rw [←lt_one_iff_zero, ←h], apply typein_lt_type }
+
+/-- A relation with order type 1 comes from a unique type. -/
+def unique_of_type_eq_one {r} [is_well_order α r] (h : type r = 1) : unique α :=
+{ default := enum r 0 (by { rw h, exact zero_lt_one }),
+  uniq := λ a, begin
+    rw ←enum_typein r a,
+    simp_rw typein_eq_zero_of_type_eq_one h,
+  end }
+
+instance unique_out_one : unique (1 : ordinal).out.α :=
+unique_of_type_eq_one $ type_lt 1
+
+@[simp] theorem type_eq_one_iff_nonempty_unique [is_well_order α r] :
+  type r = 1 ↔ nonempty (unique α) :=
+⟨λ h, ⟨unique_of_type_eq_one h⟩, λ ⟨h⟩, by exactI type_eq_one_of_unique r⟩
+
+theorem type_ne_one_iff_is_empty_unique [is_well_order α r] : type r ≠ 1 ↔ is_empty (unique α) :=
+by simp
+
+@[simp] theorem typein_one_out : ∀ x : (1 : ordinal).out.α, typein (<) x = 0 :=
+typein_eq_zero_of_type_eq_one $ type_lt 1
 
 /-- `univ.{u v}` is the order type of the ordinals of `Type u` as a member
   of `ordinal.{v}` (when `u < v`). It is an inaccessible cardinal. -/

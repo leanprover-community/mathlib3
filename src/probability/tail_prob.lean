@@ -1,9 +1,22 @@
+/-
+Copyright (c) 2022 Kexing Ying. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Kexing Ying
+-/
 import probability.notation
 import measure_theory.integral.interval_integral
 
-/-
-Tail probability states: if `X` is a nonnegative random variable, then
+/-!
+
+# Tail probability
+
+The tail probability formula states: if `X` is a nonnegative random variable, then
 $$\mathbb{E}[X^p] = p \int_0^\infty t^{p - 1} \mathbb{P}(X \ge t) \lambda(dt).$$
+
+## Main statement
+
+* `measure_theory.integral_pow_nonneg_eq_integral_meas_le`: tail probability formula
+
 -/
 
 open_locale probability_theory nnreal ennreal

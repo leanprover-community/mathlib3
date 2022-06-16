@@ -175,12 +175,14 @@ begin
           begin
             rw [mul_div_assoc, ←sqrt_div zero_le_two],
             norm_num,
-            rw [(show (361 : ℝ) = 19^2, by norm_num), sqrt_sq],
+            nth_rewrite 1 [(show (361 : ℝ) = (19:ℝ)^2, by norm_num)],
+            rw [sqrt_sq],
             field_simp,
             rw div_le_div_iff _ _,
             { rw [one_mul, mul_comm, ←@log_rpow 722 _ 4, mul_comm, ←le_rpow_iff_log_le]; norm_num},
             { refine mul_pos (log_pos _) _; norm_num },
             { norm_num },
+            linarith,
           end
 
 end

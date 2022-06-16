@@ -99,18 +99,17 @@ variables {p q}
 
 namespace is_unit_trinomial
 
+lemma not_is_unit (hp : p.is_unit_trinomial) : ¬ is_unit p :=
+begin
+  obtain ⟨k, m, n, hkm, hmn, u, v, w, hu, hv, hw, rfl⟩ := hp,
+  exact λ h, ne_zero_of_lt hmn ((trinomial_nat_degree hkm hmn hw.ne_zero).symm.trans
+    (nat_degree_eq_of_degree_eq_some (degree_eq_zero_of_is_unit h))),
+end
+
 lemma card_support_eq_three (hp : p.is_unit_trinomial) : p.support.card = 3 :=
 begin
   obtain ⟨k, m, n, hkm, hmn, u, v, w, hu, hv, hw, rfl⟩ := hp,
   exact card_support_trinomial hkm hmn hu.ne_zero hv.ne_zero hw.ne_zero,
-end
-
-lemma not_is_unit (hp : p.is_unit_trinomial) : ¬ is_unit p :=
-begin
-  intro h,
-  obtain ⟨r, hr, rfl⟩ := is_unit_iff.mp h,
-  exact not_le.mpr (nat.one_lt_bit1 one_ne_zero)
-    (hp.card_support_eq_three.ge.trans (card_mono (support_monomial' 0 r))),
 end
 
 lemma ne_zero (hp : p.is_unit_trinomial) : p ≠ 0 :=

@@ -148,6 +148,19 @@ by cases x; refl
 lemma prod.snd_to_sigma {α β} (x : α × β) : (prod.to_sigma x).snd = x.snd :=
 by cases x; refl
 
+meta instance sigma.reflect {α : Type} (β : α → Type)
+  [reflected α] [reflected β] [hα : has_reflect α] [hβ : Π i, has_reflect (β i)] :
+  has_reflect (Σ a, β a) :=
+λ ⟨a, b⟩, (`(sigma.mk.{0 0}).subst `(a)).subst `(b)
+
+/-- Lean produces a bizarre error when trying to synthesize the `reflected (γ a)` instance
+(https://github.com/leanprover-community/lean/issues/731), so we provide it explicitly here. -/
+meta instance sigma.reflect₂ {α β : Type} (γ : α → β → Type)
+  [reflected α] [reflected β] [reflected γ] [hα : has_reflect α] [hβ : has_reflect β]
+  [hγ : Π i j, has_reflect (γ i j)] :
+  has_reflect (Σ a b, γ a b) :=
+@sigma.reflect _ _ _ _ _ $ λ a, @sigma.reflect _ _ _ (show reflected (γ a), from `(γ).subst `(a)) _ _
+
 end sigma
 
 section psigma

@@ -1083,6 +1083,9 @@ begin
   exact ⟨x, ⟨H hx, xs⟩⟩
 end
 
+/-- A set in a nontrivial densely linear ordered type is dense in the sense of topology if and only
+if for any `a < b` there exists `c ∈ s`, `a < c < b`. Each implication requires less typeclass
+assumptions. -/
 lemma dense_iff_exists_between [densely_ordered α] [nontrivial α] {s : set α} :
   dense s ↔ ∀ a b, a < b → ∃ c ∈ s, a < c ∧ c < b :=
 ⟨λ h a b hab, h.exists_between hab, dense_of_exists_between⟩

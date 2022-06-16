@@ -1597,7 +1597,7 @@ begin
     refine generate_from_le (λ t, _),
     simp only [mem_Union, mem_singleton_iff], rintro ⟨a, b, h, rfl⟩,
     rw (set.ext (λ x, _) : Ioo (a : ℝ) b = (⋃c>a, (Iio c)ᶜ) ∩ Iio b),
-    { have hg : ∀ q : ℚ, g.measurable_set' (Iio q) :=
+    { have hg : ∀ q : ℚ, measurable_set[g] (Iio q) :=
         λ q, generate_measurable.basic (Iio q) (by simp),
       refine @measurable_set.inter _ g _ _ _ (hg _),
       refine @measurable_set.bUnion _ _ g _ _ (countable_encodable _) (λ c h, _),
@@ -1811,7 +1811,7 @@ lemma ae_measurable.coe_real_ereal {f : α → ℝ} {μ : measure α} (hf : ae_m
 measurable_coe_real_ereal.comp_ae_measurable hf
 
 /-- The set of finite `ereal` numbers is `measurable_equiv` to `ℝ`. -/
-def measurable_equiv.ereal_equiv_real : ({⊥, ⊤} : set ereal).compl ≃ᵐ ℝ :=
+def measurable_equiv.ereal_equiv_real : ({⊥, ⊤}ᶜ : set ereal) ≃ᵐ ℝ :=
 ereal.ne_bot_top_homeomorph_real.to_measurable_equiv
 
 lemma ereal.measurable_of_measurable_real {f : ereal → α}

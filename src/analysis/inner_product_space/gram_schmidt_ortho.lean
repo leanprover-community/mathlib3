@@ -41,8 +41,7 @@ open_locale big_operators
 open finset
 
 variables (𝕜 : Type*) {E : Type*} [is_R_or_C 𝕜] [inner_product_space 𝕜 E]
-variables {ι : Type*} [linear_order ι] [order_bot ι]
-variables [locally_finite_order ι] [is_well_order ι (<)]
+variables {ι : Type*} [linear_order ι] [locally_finite_order_bot ι] [is_well_order ι (<)]
 
 local attribute [instance] is_well_order.to_has_well_founded
 
@@ -52,7 +51,7 @@ local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 and outputs a set of orthogonal vectors which have the same span. -/
 noncomputable def gram_schmidt (f : ι → E) : ι → E
 | n := f n - ∑ i : Iio n, orthogonal_projection (𝕜 ∙ gram_schmidt i) (f n)
-using_well_founded { dec_tac := `[exact (mem_Ico.1 i.2).2] }
+using_well_founded { dec_tac := `[exact mem_Iio.1 i.2] }
 
 /-- This lemma uses `∑ i in` instead of `∑ i :`.-/
 lemma gram_schmidt_def (f : ι → E) (n : ι):
@@ -65,7 +64,8 @@ lemma gram_schmidt_def' (f : ι → E) (n : ι):
     orthogonal_projection (𝕜 ∙ gram_schmidt 𝕜 f i) (f n) :=
 by rw [gram_schmidt_def, sub_add_cancel]
 
-@[simp] lemma gram_schmidt_zero (f : ι → E) : gram_schmidt 𝕜 f ⊥ = f ⊥ :=
+@[simp] lemma gram_schmidt_zero {ι : Type*} [linear_order ι] [locally_finite_order ι]
+  [order_bot ι] [is_well_order ι (<)] (f : ι → E) : gram_schmidt 𝕜 f ⊥ = f ⊥ :=
 by rw [gram_schmidt_def, Iio_eq_Ico, finset.Ico_self, finset.sum_empty, sub_zero]
 
 /-- **Gram-Schmidt Orthogonalisation**:
@@ -96,7 +96,7 @@ begin
   cases hia.lt_or_lt with hia₁ hia₂,
   { rw inner_eq_zero_sym,
     exact ih a h₀ i hia₁ },
-  { exact ih i (mem_Ico.1 hi).2 a hia₂ }
+  { exact ih i (mem_Iio.1 hi) a hia₂ }
 end
 
 /-- This is another version of `gram_schmidt_orthogonal` using `pairwise` instead. -/

@@ -88,8 +88,12 @@ noncomputable instance unique_one_to_pgame_left_moves : unique (to_pgame 1).left
   (default : (to_pgame 1).left_moves) = @to_left_moves_to_pgame 1 ⟨0, zero_lt_one⟩ :=
 rfl
 
-@[simp] theorem one_to_pgame_move_left (x) : (to_pgame 1).move_left x = to_pgame 0 :=
-by { rw unique.eq_default x, simp }
+@[simp] theorem to_left_moves_one_to_pgame_symm (i) :
+  (@to_left_moves_to_pgame 1).symm i = ⟨0, zero_lt_one⟩ :=
+by simp
+
+theorem one_to_pgame_move_left (x) : (to_pgame 1).move_left x = to_pgame 0 :=
+by simp
 
 /-- `1.to_pgame` has the same moves as `1`. -/
 noncomputable def one_to_pgame_relabelling : relabelling (to_pgame 1) 1 :=

@@ -5,7 +5,6 @@ Authors: Benjamin Davidson
 -/
 import measure_theory.integral.interval_integral
 import analysis.special_functions.trigonometric.arctan_deriv
-import measure_theory.integral.integral_eq_improper
 
 /-!
 # Integration of specific interval integrals
@@ -77,6 +76,15 @@ begin
     rw interval_oc_of_le (by linarith : 0 ≤ -c) at hx,
     simp only [pi.smul_apply, algebra.id.smul_eq_mul, log_neg_eq_log, mul_comm,
       rpow_def_of_pos hx.1, rpow_def_of_neg (by linarith [hx.1] : -x < 0)], }
+end
+
+lemma interval_integrable_cpow {r : ℂ} (ha : 0 < a) (hb : 0 < b) :
+  interval_integrable (λ x : ℝ, (x : ℂ) ^ r) volume a b :=
+begin
+  refine (complex.continuous_of_real.continuous_on.cpow_const _).interval_integrable,
+  intros c hc,
+  left,
+  exact_mod_cast lt_of_lt_of_le (lt_min ha hb) hc.left,
 end
 
 @[simp]
@@ -231,6 +239,25 @@ begin
     exact integral_eq_sub_of_has_deriv_at hderiv' (interval_integrable_rpow (or.inr h.2)) },
 end
 
+lemma integral_cpow {r : ℂ} (ha : 0 < a) (hb : 0 < b) (hr : r ≠ -1) :
+  ∫ (x : ℝ) in a..b, (x : ℂ) ^ r = (b ^ (r + 1) - a ^ (r + 1)) / (r + 1) :=
+begin
+  suffices : ∀ x ∈ set.interval a b, has_deriv_at (λ x : ℝ, (x : ℂ) ^ (r + 1) / (r + 1)) (x ^ r) x,
+  { rw sub_div,
+    exact integral_eq_sub_of_has_deriv_at this (interval_integrable_cpow ha hb) },
+  intros x hx,
+  suffices : has_deriv_at (λ z : ℂ, z ^ (r + 1) / (r + 1)) (x ^ r) x,
+  { simpa using has_deriv_at.comp x this complex.of_real_clm.has_deriv_at },
+  have hx' : 0 < (x : ℂ).re ∨ (x : ℂ).im ≠ 0,
+  { left,
+    norm_cast,
+    calc 0 < min a b : lt_min ha hb ... ≤ x : hx.left, },
+  convert ((has_deriv_at_id (x:ℂ)).cpow_const hx').div_const (r + 1),
+  simp only [id.def, add_sub_cancel, mul_one], rw [mul_comm, mul_div_cancel],
+  contrapose! hr, rwa add_eq_zero_iff_eq_neg at hr,
+end
+
+
 lemma integral_zpow {n : ℤ} (h : 0 ≤ n ∨ n ≠ -1 ∧ (0 : ℝ) ∉ [a, b]) :
   ∫ x in a..b, x ^ n = (b ^ (n + 1) - a ^ (n + 1)) / (n + 1) :=
 begin
@@ -310,6 +337,20 @@ by simp only [one_div, integral_inv_of_neg ha hb]
 @[simp]
 lemma integral_exp : ∫ x in a..b, exp x = exp b - exp a :=
 by rw integral_deriv_eq_sub'; norm_num [continuous_on_exp]
+
+lemma integral_exp_mul_complex {c : ℂ} (hc : c ≠ 0) :
+  ∫ x in a..b, complex.exp (c * x) = (complex.exp (c * b) - complex.exp (c * a)) / c :=
+begin
+  have D : ∀ (x : ℝ), has_deriv_at (λ (y : ℝ), complex.exp (c * y) / c) (complex.exp (c * x)) x,
+  { intro x,
+    conv { congr, skip, rw ←mul_div_cancel (complex.exp (c * x)) hc, },
+    convert ((complex.has_deriv_at_exp _).comp x _).div_const c using 1,
+    simpa only [complex.of_real_clm_apply, complex.of_real_one, one_mul, mul_one, mul_comm] using
+      complex.of_real_clm.has_deriv_at.mul_const c },
+  rw integral_deriv_eq_sub' _ (funext (λ x, (D x).deriv)) (λ x hx, (D x).differentiable_at),
+  { ring_nf },
+  { apply continuous.continuous_on, continuity,}
+end
 
 @[simp]
 lemma integral_log (h : (0:ℝ) ∉ [a, b]) :

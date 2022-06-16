@@ -7,6 +7,7 @@ Authors: Anne Baanen, Kexing Ying, Eric Wieser
 import algebra.invertible
 import linear_algebra.matrix.determinant
 import linear_algebra.matrix.bilinear_form
+import linear_algebra.matrix.symmetric
 
 /-!
 # Quadratic forms
@@ -674,6 +675,13 @@ open quadratic_form
 lemma quadratic_form.to_matrix'_smul (a : R₁) (Q : quadratic_form R₁ (n → R₁)) :
   (a • Q).to_matrix' = a • Q.to_matrix' :=
 by simp only [to_matrix', linear_equiv.map_smul, linear_map.map_smul]
+
+lemma quadratic_form.is_symm_to_matrix' (Q : quadratic_form R₁ (n → R₁)) :
+  Q.to_matrix'.is_symm :=
+begin
+  ext i j,
+  rw [to_matrix', bilin_form.to_matrix'_apply, bilin_form.to_matrix'_apply, associated_is_symm]
+end
 
 end
 

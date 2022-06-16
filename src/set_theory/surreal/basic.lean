@@ -50,6 +50,7 @@ universes u
 
 local infix ` ≈ ` := pgame.equiv
 local infix ` ⧏ `:50 := pgame.lf
+local infix ` ♯ `:65 := ordinal.nadd
 
 namespace pgame
 
@@ -260,12 +261,25 @@ instance : has_add surreal  :=
   (λ (x y : pgame) (ox) (oy), ⟦⟨x + y, ox.add oy⟩⟧)
   (λ x₁ y₁ x₂ y₂ _ _ _ _ hx hy, quotient.sound (pgame.add_congr hx hy))⟩
 
+theorem mk_add {a b} (ha : numeric a) (hb : numeric b) :
+  mk (a + b) (ha.add hb) = mk a ha + mk b hb := rfl
+
+@[simp] lemma mk_nat_cast : ∀ n : ℕ, mk n (numeric_nat n) = n
+| 0       := rfl
+| (n + 1) := begin
+  simp_rw nat.cast_succ,
+  rw [mk_add (numeric_nat n) numeric_one, mk_nat_cast],
+  refl
+end
+
 /-- Negation for surreal numbers is inherited from pre-game negation:
 the negation of `{L | R}` is `{-R | -L}`. -/
 instance : has_neg surreal  :=
 ⟨surreal.lift
   (λ x ox, ⟦⟨-x, ox.neg⟩⟧)
   (λ _ _ _ _ a, quotient.sound (pgame.neg_equiv_neg_iff.2 a))⟩
+
+@[simp] theorem mk_neg {a} (h : numeric (-a)) : mk (-a) h = - mk a (by simpa using h.neg) := rfl
 
 instance : ordered_add_comm_group surreal :=
 { add               := (+),
@@ -283,6 +297,9 @@ instance : ordered_add_comm_group surreal :=
   lt_iff_le_not_le  := by { rintros ⟨_, ox⟩ ⟨_, oy⟩, exact lt_iff_le_not_le },
   le_antisymm       := by { rintros ⟨_⟩ ⟨_⟩ h₁ h₂, exact quotient.sound ⟨h₁, h₂⟩ },
   add_le_add_left   := by { rintros ⟨_⟩ ⟨_⟩ hx ⟨_⟩, exact @add_le_add_left pgame _ _ _ _ _ hx _ } }
+
+theorem mk_sub {a b} (ha : numeric a) (hb : numeric b) :
+  mk (a - b) (ha.sub hb) = mk a ha - mk b hb := rfl
 
 noncomputable instance : linear_ordered_add_comm_group surreal :=
 { le_total := by rintro ⟨⟨x, ox⟩⟩ ⟨⟨y, oy⟩⟩; classical; exact
@@ -302,7 +319,40 @@ noncomputable def to_surreal : ordinal ↪o surreal :=
   inj' := λ a b h, to_pgame_equiv_iff.1 (quotient.exact h),
   map_rel_iff' := @to_pgame_le_iff }
 
+theorem to_surreal_strict_mono : strict_mono to_surreal :=
+to_pgame_strict_mono
+
+@[simp] theorem zero_to_surreal : to_surreal 0 = 0 :=
+quotient.sound zero_to_pgame_equiv
+
+@[simp] theorem one_to_surreal : to_surreal 1 = 1 :=
+quotient.sound one_to_pgame_equiv
+
+@[simp] theorem to_surreal_add (a b : ordinal) : a.to_surreal + b.to_surreal = (a ♯ b).to_surreal :=
+quot.sound (to_pgame_add a b)
+
+@[simp] theorem to_surreal_add_one (a : ordinal) : a.to_surreal + 1 = (order.succ a).to_surreal :=
+quot.sound (to_pgame_add_one a)
+
+@[simp] theorem to_surreal_one_add (a : ordinal) : 1 + a.to_surreal = (order.succ a).to_surreal :=
+quot.sound (to_pgame_one_add a)
+
+@[simp] theorem nat_cast_to_surreal (n : ℕ) : to_surreal n = n :=
+by { rw ←mk_nat_cast, exact quot.sound (nat_cast_to_pgame n) }
+
+@[simp] theorem to_surreal_add_nat (a : ordinal) (n : ℕ) : a.to_surreal + n = (a + n).to_surreal :=
+by rw [←nat_cast_to_surreal, to_surreal_add, nadd_nat]
+
+@[simp] theorem to_surreal_nat_add (a : ordinal) (n : ℕ) : ↑n + a.to_surreal = (a + n).to_surreal :=
+by rw [add_comm, to_surreal_add_nat]
+
 end ordinal
+
+@[simps] noncomputable def nat_ordinal.to_surreal : order_add_monoid_hom nat_ordinal surreal :=
+{ to_fun := λ o, o.to_ordinal.to_surreal,
+  map_zero' := ordinal.zero_to_surreal,
+  map_add' := λ a b, (ordinal.to_surreal_add _ _).symm,
+  monotone' := ordinal.to_surreal_strict_mono.monotone }
 
 -- We conclude with some ideas for further work on surreals; these would make fun projects.
 

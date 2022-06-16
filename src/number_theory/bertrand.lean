@@ -91,10 +91,9 @@ by rw [four_eq_two_rpow_two, log_rpow two_pos]
 
 lemma exp_two_le_722 : exp 2 ≤ 722 :=
 calc exp 2 = (exp 1) ^ 2 : by rw [←exp_nat_mul 1 2]; simp
-    ... ≤ 4 ^ 2 :
-    pow_le_pow_of_le_left (exp_pos 1).le ((lt_of_lt_of_le exp_one_lt_d9 (by norm_num)).le) 2
+    ... ≤ 3 ^ 2 :
+    pow_le_pow_of_le_left (exp_pos 1).le (le_of_lt exp_one_lt_three) 2
   ... ≤ 722 : by norm_num
-
 
 -- This is best possible; it is false for x = 99.
 lemma inequality1 {x : ℝ} (n_large : 100 ≤ x) : log x / (x * log 4) ≤ 1/30 :=

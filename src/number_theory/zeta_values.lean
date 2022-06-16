@@ -38,7 +38,7 @@ noncomputable theory
 
 
 section bernoulli_fun_props
-/-! Simple properties of the function `Bₖ(x / (2 * π))`. -/
+/-! Simple properties of the function `x ↦ Bₖ(x / (2 * π))`. -/
 
 /-- The function `x ↦ Bₖ(x / (2 * π)) : ℝ → ℝ`. -/
 def bernoulli_fun (k : ℕ) (x : ℝ) : ℝ :=
@@ -47,9 +47,8 @@ def bernoulli_fun (k : ℕ) (x : ℝ) : ℝ :=
 lemma bernoulli_fun_zero : bernoulli_fun 0 = (λ x, 1 : ℝ → ℝ) :=
 begin
   ext1 x,
-  dsimp only [bernoulli_fun],
-  rw polynomial.bernoulli_zero,
-  simp,
+  simp only [bernoulli_fun, polynomial.bernoulli_zero, pow_zero, polynomial.map_one,
+    polynomial.eval_one, mul_one],
 end
 
 lemma bernoulli_fun_eval_two_pi (k : ℕ) :
@@ -144,8 +143,8 @@ begin
     refine ((complex.continuous_exp.comp (continuous_const.mul continuous_of_real)).mul _).add
       ((continuous_const.mul (complex.continuous_exp.comp _)).mul
       (continuous_const.mul (continuous_bernoulli_fun' (k - 1)))),
-    dsimp only, exact continuous_bernoulli_fun' k,
-    exact continuous_const.mul continuous_of_real, },
+    { exact continuous_bernoulli_fun' k },
+    { exact continuous_const.mul continuous_of_real }, },
   rw interval_integral.integral_add at int_ev,
   swap, { apply continuous.interval_integrable,
     refine (complex.continuous_exp.comp (continuous_const.mul continuous_of_real)).mul _,

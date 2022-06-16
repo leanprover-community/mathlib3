@@ -15,59 +15,17 @@ open finset
 
 section semiring
 
-variables {R : Type*} [semiring R] {p q : R[X]}
+variables {R : Type*} [semiring R] {p : R[X]}
 
--- todo: PR to `data/polynomial/basic` with other support lemmas
-lemma card_support_eq_one : p.support.card = 1 ↔ ∃ (k : ℕ) (x : R) (hx : x ≠ 0), p = C x * X ^ k :=
-begin
-  refine ⟨λ h, _, _⟩,
-  { obtain hp := card_support_eq_zero.mp (erase_lead_card_support h),
-    refine ⟨p.nat_degree, p.leading_coeff, _, _⟩,
-    { rw [ne, leading_coeff_eq_zero, ←card_support_eq_zero, h],
-      exact one_ne_zero },
-    { conv_lhs { rw [←p.erase_lead_add_C_mul_X_pow, hp, zero_add] } } },
-  { rintros ⟨k, x, hx, rfl⟩,
-    rw [support_C_mul_X_pow k hx, card_singleton] },
-end
-
--- todo: PR to `data/polynomial/basic` with other support lemmas
-lemma card_support_eq_two : p.support.card = 2 ↔ ∃ (k m : ℕ) (hkm : k < m)
-  (x y : R) (hx : x ≠ 0) (hy : y ≠ 0), p = C x * X ^ k + C y * X ^ m :=
-begin
-  refine ⟨λ h, _, _⟩,
-  { obtain ⟨k, x, hx, hp⟩ := card_support_eq_one.mp (erase_lead_card_support h),
-    refine ⟨k, p.nat_degree, _, x, p.leading_coeff, hx, _, _⟩,
-    { refine lt_of_le_of_lt _ (erase_lead_nat_degree_lt h.ge),
-      rw [hp, nat_degree_C_mul_X_pow k x hx] },
-    { rw [ne, leading_coeff_eq_zero, ←card_support_eq_zero, h],
-      exact two_ne_zero },
-    { rw [←hp, erase_lead_add_C_mul_X_pow] } },
-  { rintros ⟨k, m, hkm, x, y, hx, hy, rfl⟩,
-    exact card_support_binomial hkm.ne hx hy },
-end
-
--- todo: PR to `data/polynomial/basic` with other support lemmas
+-- PRed
 lemma card_support_eq_three : p.support.card = 3 ↔ ∃ (k m n : ℕ) (hkm : k < m) (hmn : m < n)
-  (x y z : R) (hx : x ≠ 0) (hy : y ≠ 0) (hz : z ≠ 0), p = C x * X ^ k + C y * X ^ m + C z * X ^ n :=
-begin
-  refine ⟨λ h, _, _⟩,
-  { obtain ⟨k, m, hkm, x, y, hx, hy, hp⟩ := card_support_eq_two.mp (erase_lead_card_support h),
-    refine ⟨k, m, p.nat_degree, hkm, _, x, y, p.leading_coeff, hx, hy, _, _⟩,
-    { refine lt_of_le_of_lt _ (erase_lead_nat_degree_lt (le_trans (nat.le_succ 2) h.ge)),
-      rw [hp, nat_degree_add_eq_right_of_nat_degree_lt, nat_degree_C_mul_X_pow m y hy],
-      rwa [nat_degree_C_mul_X_pow k x hx, nat_degree_C_mul_X_pow m y hy] },
-    { rw [ne, leading_coeff_eq_zero, ←card_support_eq_zero, h],
-      exact three_ne_zero },
-    { rw [←hp, erase_lead_add_C_mul_X_pow] } },
-  { rintros ⟨k, m, n, hkm, hmn, x, y, z, hx, hy, hz, rfl⟩,
-    exact card_support_trinomial hkm hmn hx hy hz },
-end
+  (x y z : R) (hx : x ≠ 0) (hy : y ≠ 0) (hz : z ≠ 0), p = C x * X ^ k + C y * X ^ m + C z * X ^ n := sorry
 
 end semiring
 
 section semiring
 
-variables {R : Type*} [semiring R] (p : R[X]) {k m n : ℕ} {u v w : R}
+variables {R : Type*} [semiring R] {k m n : ℕ} {u v w : R}
 
 lemma trinomial_leading_coeff' (hkm : k < m) (hmn : m < n) :
   (C u * X ^ k + C v * X ^ m + C w * X ^ n).coeff n = w :=
@@ -141,16 +99,26 @@ variables {p q}
 
 namespace is_unit_trinomial
 
--- todo: cleanup
 lemma card_support_eq_three (hp : p.is_unit_trinomial) : p.support.card = 3 :=
 begin
   obtain ⟨k, m, n, hkm, hmn, u, v, w, hu, hv, hw, rfl⟩ := hp,
-  rw [support_trinomial hkm hmn hu.ne_zero hv.ne_zero hw.ne_zero, card_insert_of_not_mem
-        (mt mem_insert.mp (not_or hkm.ne (mt mem_singleton.mp (hkm.trans hmn).ne))),
-      card_insert_of_not_mem (mt mem_singleton.mp hmn.ne), card_singleton],
+  exact card_support_trinomial hkm hmn hu.ne_zero hv.ne_zero hw.ne_zero,
 end
 
--- todo: cleanup
+lemma not_is_unit (hp : p.is_unit_trinomial) : ¬ is_unit p :=
+begin
+  intro h,
+  obtain ⟨r, hr, rfl⟩ := is_unit_iff.mp h,
+  exact not_le.mpr (nat.one_lt_bit1 one_ne_zero)
+    (hp.card_support_eq_three.ge.trans (card_mono (support_monomial' 0 r))),
+end
+
+lemma ne_zero (hp : p.is_unit_trinomial) : p ≠ 0 :=
+begin
+  rintro rfl,
+  exact nat.zero_ne_bit1 1 hp.card_support_eq_three,
+end
+
 lemma coeff_is_unit (hp : p.is_unit_trinomial) {k : ℕ} (hk : k ∈ p.support) :
   is_unit (p.coeff k) :=
 begin
@@ -162,6 +130,12 @@ begin
   { rwa trinomial_middle_coeff hkm hmn },
   { rwa trinomial_leading_coeff' hkm hmn },
 end
+
+lemma leading_coeff_is_unit (hp : p.is_unit_trinomial) : is_unit p.leading_coeff :=
+hp.coeff_is_unit (nat_degree_mem_support_of_nonzero hp.ne_zero)
+
+lemma trailing_coeff_is_unit (hp : p.is_unit_trinomial) : is_unit p.trailing_coeff :=
+hp.coeff_is_unit (nat_trailing_degree_mem_support_of_nonzero hp.ne_zero)
 
 end is_unit_trinomial
 
@@ -179,7 +153,7 @@ begin
   rw [if_neg hkm.ne', if_neg hmn.ne] at hy,
   rw [if_neg (hkm.trans hmn).ne', if_neg hmn.ne'] at hz,
   simp_rw [mul_zero, zero_add, add_zero] at hx hy hz,
-  refine ⟨k, m, n, hkm, hmn, x, y, z, hx, hy, hz, rfl⟩,
+  exact ⟨k, m, n, hkm, hmn, x, y, z, hx, hy, hz, rfl⟩,
 end
 
 lemma is_unit_trinomial_iff' : p.is_unit_trinomial ↔ (p * p.mirror).coeff
@@ -197,8 +171,7 @@ begin
   { have key : ∀ k ∈ p.support, (p.coeff k) ^ 2 = 1 :=
     λ k hk, int.sq_eq_one_of_sq_le_three ((single_le_sum
       (λ k hk, sq_nonneg (p.coeff k)) hk).trans hp.le) (mem_support_iff.mp hk),
-    refine is_unit_trinomial_iff.mpr ⟨_,
-      λ k hk, is_unit_of_pow_eq_one (p.coeff k) 2 (key k hk) zero_lt_two⟩,
+    refine is_unit_trinomial_iff.mpr ⟨_, λ k hk, is_unit_of_pow_eq_one _ 2 (key k hk) zero_lt_two⟩,
     rw [sum_def, sum_congr rfl key, sum_const, nat.smul_one_eq_coe] at hp,
     exact nat.cast_injective hp },
 end
@@ -208,30 +181,6 @@ lemma is_unit_trinomial_iff'' (h : p * p.mirror = q * q.mirror) :
 by rw [is_unit_trinomial_iff', is_unit_trinomial_iff', h]
 
 namespace is_unit_trinomial
-
--- todo: cleanup
-lemma not_is_unit (hp : p.is_unit_trinomial) : ¬ is_unit p :=
-begin
-  obtain ⟨k, m, n, hkm, hmn, u, v, w, hu, hv, hw, rfl⟩ := hp,
-  exact λ h, ne_zero_of_lt hmn ((trinomial_nat_degree hkm hmn hw.ne_zero).symm.trans
-    (nat_degree_eq_of_degree_eq_some (degree_eq_zero_of_is_unit h))),
-end
-
--- todo: cleanup
-lemma ne_zero (hp : p.is_unit_trinomial) : p ≠ 0 :=
-begin
-  rintro rfl,
-  apply nat.zero_ne_bit1 1,
-  rw [←hp.card_support_eq_three, support_zero, card_empty],
-end
-
--- todo: cleanup
-lemma leading_coeff_is_unit (hp : p.is_unit_trinomial) : is_unit p.leading_coeff :=
-hp.coeff_is_unit (nat_degree_mem_support_of_nonzero hp.ne_zero)
-
--- todo: cleanup
-lemma trailing_coeff_is_unit (hp : p.is_unit_trinomial) : is_unit p.trailing_coeff :=
-hp.coeff_is_unit (nat_trailing_degree_mem_support_of_nonzero hp.ne_zero)
 
 lemma irreducible_aux1 {k m n : ℕ} {u v w : ℤ} (hkm : k < m) (hmn : m < n) (hu : is_unit u)
   (hv : is_unit v) (hw : is_unit w) (hp : p = C u * X ^ k + C v * X ^ m + C w * X ^ n) :

@@ -490,6 +490,18 @@ lemma mul_apply (e₁ e₂ : r ≃r r) (x : α) : (e₁ * e₂) x = e₁ (e₂ x
 def rel_iso_of_is_empty (r : α → α → Prop) (s : β → β → Prop) [is_empty α] [is_empty β] : r ≃r s :=
 ⟨equiv.equiv_of_is_empty α β, is_empty_elim⟩
 
+/-- Two irreflexive relations on a unique type are isomorphic. -/
+def rel_iso_of_unique_of_irrefl (r : α → α → Prop) (s : β → β → Prop)
+  [is_irrefl α r] [is_irrefl β s] [unique α] [unique β] : r ≃r s :=
+⟨equiv.equiv_of_unique α β,
+  λ _ _, by rw [not_rel_iff_of_subsingleton r, not_rel_iff_of_subsingleton s]⟩
+
+  /-- Two reflexive relations on a unique type are isomorphic. -/
+def rel_iso_of_unique_of_refl (r : α → α → Prop) (s : β → β → Prop)
+  [is_refl α r] [is_refl β s] [unique α] [unique β] : r ≃r s :=
+⟨equiv.equiv_of_unique α β,
+  λ _ _, by rw [rel_iff_of_subsingleton r, rel_iff_of_subsingleton s]⟩
+
 end rel_iso
 
 /-- `subrel r p` is the inherited relation on a subset. -/

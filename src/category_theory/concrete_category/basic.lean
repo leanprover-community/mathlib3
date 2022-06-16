@@ -171,11 +171,11 @@ instance induced_category.has_forget₂ {C : Type v} {D : Type v'} [category D] 
   forget_comp := rfl }
 
 instance full_subcategory.concrete_category {C : Type v} [category C] [concrete_category C]
-  (Z : C → Prop) : concrete_category {X : C // Z X} :=
+  (Z : C → Prop) : concrete_category (full_subcategory Z) :=
 { forget := full_subcategory_inclusion Z ⋙ forget C }
 
 instance full_subcategory.has_forget₂ {C : Type v} [category C] [concrete_category C]
-  (Z : C → Prop) : has_forget₂ {X : C // Z X} C :=
+  (Z : C → Prop) : has_forget₂ (full_subcategory Z) C :=
 { forget₂ := full_subcategory_inclusion Z,
   forget_comp := rfl }
 

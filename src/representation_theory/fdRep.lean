@@ -42,13 +42,13 @@ variables {k G : Type u} [field k] [monoid G]
 instance : has_coe_to_sort (fdRep k G) (Type u) := concrete_category.has_coe_to_sort _
 
 instance (V : fdRep k G) : add_comm_group V :=
-by { change add_comm_group ((forget₂ (fdRep k G) (FinVect k)).obj V), apply_instance, }
+by { change add_comm_group ((forget₂ (fdRep k G) (FinVect k)).obj V).obj, apply_instance, }
 
 instance (V : fdRep k G) : module k V :=
-by { change module k ((forget₂ (fdRep k G) (FinVect k)).obj V), apply_instance, }
+by { change module k ((forget₂ (fdRep k G) (FinVect k)).obj V).obj, apply_instance, }
 
 instance (V : fdRep k G) : finite_dimensional k V :=
-by { change finite_dimensional k ((forget₂ (fdRep k G) (FinVect k)).obj V), apply_instance, }
+by { change finite_dimensional k ((forget₂ (fdRep k G) (FinVect k)).obj V).obj, apply_instance, }
 
 -- This works well with the new design for representations:
 example (V : fdRep k G) : G →* (V →ₗ[k] V) := V.ρ
@@ -57,7 +57,7 @@ example (V : fdRep k G) : G →* (V →ₗ[k] V) := V.ρ
 @[simps ρ]
 def of {V : Type u} [add_comm_group V] [module k V] [finite_dimensional k V]
   (ρ : G →* (V →ₗ[k] V)) : Rep k G :=
-⟨FinVect.of k V, ρ⟩
+⟨(FinVect.of k V).obj, ρ⟩
 
 instance : has_forget₂ (fdRep k G) (Rep k G) :=
 { forget₂ := (forget₂ (FinVect k) (Module k)).map_Action (Mon.of G), }

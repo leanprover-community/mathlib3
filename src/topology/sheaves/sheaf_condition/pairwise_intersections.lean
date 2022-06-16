@@ -439,8 +439,7 @@ begin
   { rw [← cancel_mono (F.1.map (eq_to_hom $ inf_comm : U ∩ V ⟶ _).op), category.assoc,
       category.assoc],
     erw [← F.1.map_comp, ← F.1.map_comp],
-    convert s.condition.symm },
-  { convert s.condition }
+    convert s.condition.symm }
 end
 
 lemma inter_union_pullback_cone_lift_left :

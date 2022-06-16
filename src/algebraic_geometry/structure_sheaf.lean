@@ -813,15 +813,15 @@ def basic_open_iso (f : R) : (structure_sheaf R).1.obj (op (basic_open f)) ≅
   CommRing.of (localization.away f) :=
 (as_iso (show CommRing.of _ ⟶ _, from to_basic_open R f)).symm
 
-instance stalk_algebra (p : prime_spectrum R) : algebra R ((structure_sheaf R).val.stalk p) :=
+instance stalk_algebra (p : prime_spectrum R) : algebra R ((structure_sheaf R).obj.stalk p) :=
 (to_stalk R p).to_algebra
 
 @[simp] lemma stalk_algebra_map (p : prime_spectrum R) (r : R) :
-  algebra_map R ((structure_sheaf R).val.stalk p) r = to_stalk R p r := rfl
+  algebra_map R ((structure_sheaf R).obj.stalk p) r = to_stalk R p r := rfl
 
 /-- Stalk of the structure sheaf at a prime p as localization of R -/
 instance is_localization.to_stalk (p : prime_spectrum R) :
-  is_localization.at_prime ((structure_sheaf R).val.stalk p) p.as_ideal :=
+  is_localization.at_prime ((structure_sheaf R).obj.stalk p) p.as_ideal :=
 begin
   convert (is_localization.is_localization_iff_of_ring_equiv _ (stalk_iso R p).symm
     .CommRing_iso_to_ring_equiv).mp localization.is_localization,
@@ -834,15 +834,15 @@ begin
 end
 
 instance open_algebra (U : (opens (prime_spectrum R))ᵒᵖ) :
-  algebra R ((structure_sheaf R).val.obj U) :=
+  algebra R ((structure_sheaf R).obj.obj U) :=
 (to_open R (unop U)).to_algebra
 
 @[simp] lemma open_algebra_map (U : (opens (prime_spectrum R))ᵒᵖ) (r : R) :
-  algebra_map R ((structure_sheaf R).val.obj U) r = to_open R (unop U) r := rfl
+  algebra_map R ((structure_sheaf R).obj.obj U) r = to_open R (unop U) r := rfl
 
 /-- Sections of the structure sheaf of Spec R on a basic open as localization of R -/
 instance is_localization.to_basic_open (r : R) :
-  is_localization.away r ((structure_sheaf R).val.obj (op $ basic_open r)) :=
+  is_localization.away r ((structure_sheaf R).obj.obj (op $ basic_open r)) :=
 begin
   convert (is_localization.is_localization_iff_of_ring_equiv _ (basic_open_iso R r).symm
     .CommRing_iso_to_ring_equiv).mp localization.is_localization,
@@ -885,13 +885,13 @@ as_iso (to_open R ⊤)
 @[simp, reassoc, elementwise]
 lemma to_stalk_stalk_specializes {R : Type*} [comm_ring R]
   {x y : prime_spectrum R} (h : x ⤳ y) :
-  to_stalk R y ≫ (structure_sheaf R).val.stalk_specializes h = to_stalk R x :=
-by { dsimp [ to_stalk], simpa }
+  to_stalk R y ≫ (structure_sheaf R).obj.stalk_specializes h = to_stalk R x :=
+by { dsimp [to_stalk], simpa [-to_open_germ] }
 
 @[simp, reassoc, elementwise]
 lemma localization_to_stalk_stalk_specializes {R : Type*} [comm_ring R]
   {x y : prime_spectrum R} (h : x ⤳ y) :
-  structure_sheaf.localization_to_stalk R y ≫ (structure_sheaf R).val.stalk_specializes h =
+  structure_sheaf.localization_to_stalk R y ≫ (structure_sheaf R).obj.stalk_specializes h =
     CommRing.of_hom (prime_spectrum.localization_map_of_specializes h) ≫
       structure_sheaf.localization_to_stalk R x :=
 begin
@@ -907,7 +907,7 @@ end
 @[simp, reassoc, elementwise]
 lemma stalk_specializes_stalk_to_fiber {R : Type*} [comm_ring R]
   {x y : prime_spectrum R} (h : x ⤳ y) :
-  (structure_sheaf R).val.stalk_specializes h ≫ structure_sheaf.stalk_to_fiber_ring_hom R x =
+  (structure_sheaf R).obj.stalk_specializes h ≫ structure_sheaf.stalk_to_fiber_ring_hom R x =
     structure_sheaf.stalk_to_fiber_ring_hom R y ≫
       prime_spectrum.localization_map_of_specializes h :=
 begin

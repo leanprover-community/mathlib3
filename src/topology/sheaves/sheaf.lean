@@ -91,7 +91,7 @@ A `sheaf C X` is a presheaf of objects from `C` over a (bundled) topological spa
 satisfying the sheaf condition.
 -/
 @[derive category]
-def sheaf : Type (max u v) := { F : presheaf C X // F.is_sheaf }
+def sheaf : Type (max u v) := full_subcategory (@presheaf.is_sheaf C _ _ X)
 
 -- Let's construct a trivial example, to keep the inhabited linter happy.
 instance sheaf_inhabited : inhabited (sheaf (category_theory.discrete punit) X) :=

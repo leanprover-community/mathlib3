@@ -156,17 +156,19 @@ by rw [←equiv.eq_symm_apply, unit_comp_partial_bijective_symm_natural A h, equ
 /-- If `i : D ⥤ C` is reflective, the inverse functor of `i ≌ F.ess_image` can be explicitly
 defined by the reflector. -/
 @[simps]
-def equiv_ess_image_of_reflective [reflective i] : D ≌ i.ess_image :=
+def equiv_ess_image_of_reflective [reflective i] : D ≌ i.ess_image_subcategory :=
 { functor := i.to_ess_image,
   inverse := i.ess_image_inclusion ⋙ (left_adjoint i : _),
   unit_iso := nat_iso.of_components (λ X, (as_iso $ (of_right_adjoint i).counit.app X).symm)
     (by { intros X Y f, dsimp, simp only [is_iso.eq_inv_comp, is_iso.comp_inv_eq, category.assoc],
       exact ((of_right_adjoint i).counit.naturality _).symm }),
-  counit_iso := nat_iso.of_components
-    (λ X, by { refine (iso.symm $ as_iso _), exact (of_right_adjoint i).unit.app X,
+  counit_iso :=
+  nat_iso.of_components
+    (λ X, by { refine (iso.symm $ as_iso _), exact (of_right_adjoint i).unit.app X.obj,
       apply_with (is_iso_of_reflects_iso _ i.ess_image_inclusion) { instances := ff },
-      exact functor.ess_image.unit_is_iso X.prop })
-    (by { intros X Y f, dsimp, simp only [is_iso.eq_inv_comp, is_iso.comp_inv_eq, category.assoc],
-      exact ((of_right_adjoint i).unit.naturality f).symm }) }
+      exact functor.ess_image.unit_is_iso X.property })
+    (by { intros X Y f, dsimp, rw [is_iso.comp_inv_eq, assoc],
+      have h := ((of_right_adjoint i).unit.naturality f).symm,
+      rw [functor.id_map] at h, erw [← h, is_iso.inv_hom_id_assoc, functor.comp_map] }) }
 
 end category_theory

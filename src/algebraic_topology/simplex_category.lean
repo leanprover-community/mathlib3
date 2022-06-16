@@ -382,7 +382,7 @@ def is_skeleton_of : is_skeleton_of NonemptyFinLinOrd simplex_category skeletal_
 
 /-- The truncated simplex category. -/
 @[derive small_category]
-def truncated (n : ℕ) := {a : simplex_category // a.len ≤ n}
+def truncated (n : ℕ) := full_subcategory (λ a : simplex_category, a.len ≤ n)
 
 namespace truncated
 

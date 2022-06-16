@@ -3,6 +3,10 @@ import tactic.compute_degree
 open polynomial tactic
 open_locale polynomial
 
+example {R : Type*} [ring R] {p q : R[X]} (h : p.nat_degree + 1 ≤ q.nat_degree) :
+  ( p * X : R[X]).nat_degree ≤ q.nat_degree :=
+by compute_degree_le
+
 example {F} [ring F] {a : F} {n : ℕ} (h : n ≤ 10) :
   nat_degree (X ^ n + C a * X ^ 10 : F[X]) ≤ 10 :=
 begin
@@ -157,6 +161,32 @@ end
 
 end non_trivial_assumption
 
+  degree (X ^ n + (X * monomial n 1 + X * X) + C a + C a * X ^ 10) ≤ 10 :=
+begin
+  compute_degree_le,
+  { exact nat.lt_succ_iff.mp h },
+  { exact nat.lt_succ_iff.mp ((lt_one_add n).trans h) },
+end
+
+example {n : ℕ} (h : 1 + n < 11) :
+  degree (X + (X * monomial 2 1 + X * X) ^ 2) ≤ 10 :=
+begin
+  compute_degree_le!,
+end
+
+example {R : Type*} [semiring R] {n : ℕ} (a : R) (h : 1 + n ≤ 10) :
+  degree (5 * X ^ 5 + (X * monomial n 1 + X * X) + C a + C a * X ^ 10) ≤ 10 :=
+begin
+  compute_degree_le,
+end
+
+example {n : ℕ} (h : 1 + n < 11) :
+  degree (X ^ 5 + (X * monomial n 1 + X * X) + C a + C a * X ^ 10) ≤ 10 :=
+begin
+  compute_degree_le,
+  exact nat.lt_succ_iff.mp h,
+end
+
 end tests_for_compute_degree
 
 section tests_for_compute_degree_le
@@ -188,21 +218,14 @@ example : nat_degree (monomial 5 c * monomial 1 c + monomial 7 d +
   C a * X ^ 0 + C b * X ^ 5 + C c * X ^ 2 + X ^ 10 + C e * X) ≤ 10 :=
 by compute_degree_le
 
---  fails with error message `should the degree bound be '10'?`
-example (h : 9 = 11) : nat_degree (monomial 5 c * monomial 6 c) ≤ 9 :=
+example {n : ℕ} : nat_degree (0 * (X ^ 0 + X ^ n) * monomial 5 c * monomial 6 c) ≤ 9 :=
 begin
-/-  this is commented, since `compute_degree_le` fails with a `success_if_fail` fails, but
---  I made it also trace a message of what should be the "correct" degree.
   success_if_fail_with_msg {compute_degree_le}
-    "success_if_fail combinator failed, given tactic succeeded",
--/
-  rw h,
-  compute_degree_le
+    "the given polynomial has a term of expected degree
+at least '11'",
+  rw [zero_mul, zero_mul, zero_mul, nat_degree_zero],
+  exact nat.zero_le _
 end
-
-example : nat_degree (monomial 5 c * monomial 1 c + monomial 7 d +
-  C a * X ^ 0 + C b * X ^ 5 + C c * X ^ 2 + C 7 * X ^ 10 + C e * X) ≤ 10 :=
-by compute_degree_le
 
 example : nat_degree (monomial 0 c * (monomial 0 c * C 1) + monomial 0 d + C 1 + C a * X ^ 0) ≤ 0 :=
 by compute_degree_le

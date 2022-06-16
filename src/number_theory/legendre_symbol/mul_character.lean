@@ -304,7 +304,8 @@ instance comm_group [decidable_pred (λ a : R, is_unit a)] : comm_group (mul_cha
 lemma mul_apply (χ χ' : mul_char R R') (a : R) : (χ * χ') a = χ a * χ' a := rfl
 
 /-- If `a` is a unit, then `(χ ^ n) a = (χ a) ^ n`. -/
-lemma pow_apply [decidable_pred (λ a : R, is_unit a)] (χ : mul_char R R') (n : ℕ) {a : R} (ha : is_unit a) :
+lemma pow_apply [decidable_pred (λ a : R, is_unit a)] (χ : mul_char R R') (n : ℕ)
+ {a : R} (ha : is_unit a) :
   (χ ^ n) a = (χ a) ^ n :=
 begin
   induction n with n ih,

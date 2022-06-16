@@ -790,9 +790,6 @@ by rw [inv_eq_iff_inv_eq, inv_zero, eq_comm]
 @[simp] lemma zero_eq_inv {a : G₀} : 0 = a⁻¹ ↔ 0 = a :=
 eq_comm.trans $ inv_eq_zero.trans eq_comm
 
-theorem divp_eq_div (a : G₀) (u : G₀ˣ) : a /ₚ u = a / u :=
-by simpa only [div_eq_mul_inv] using congr_arg ((*) a) u.coe_inv'
-
 @[simp] theorem divp_mk0 (a : G₀) {b : G₀} (hb : b ≠ 0) :
   a /ₚ units.mk0 b hb = a / b :=
 divp_eq_div _ _
@@ -1056,6 +1053,24 @@ by simpa only [div_eq_mul_inv] using ((f.map_mul _ _).trans $ _root_.congr_arg _
 end group_with_zero
 
 end monoid_with_zero_hom
+
+/-- We define the inverse as a `monoid_with_zero_hom` by extending the inverse map by zero
+on non-units. -/
+noncomputable
+def monoid_with_zero.inverse {M : Type*} [comm_monoid_with_zero M] :
+  M →*₀ M :=
+{ to_fun := ring.inverse,
+  map_zero' := ring.inverse_zero _,
+  map_one' := ring.inverse_one _,
+  map_mul' := λ x y, (ring.mul_inverse_rev x y).trans (mul_comm _ _) }
+
+@[simp]
+lemma monoid_with_zero.coe_inverse {M : Type*} [comm_monoid_with_zero M] :
+  (monoid_with_zero.inverse : M → M) = ring.inverse := rfl
+
+@[simp]
+lemma monoid_with_zero.inverse_apply {M : Type*} [comm_monoid_with_zero M] (a : M) :
+  monoid_with_zero.inverse a = ring.inverse a := rfl
 
 /-- Inversion on a commutative group with zero, considered as a monoid with zero homomorphism. -/
 def inv_monoid_with_zero_hom {G₀ : Type*} [comm_group_with_zero G₀] : G₀ →*₀ G₀ :=

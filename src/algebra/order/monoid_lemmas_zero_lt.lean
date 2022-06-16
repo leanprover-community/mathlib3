@@ -294,19 +294,19 @@ section partial_order
 variables [partial_order α]
 
 @[priority 100] -- see Note [lower instance priority]
-instance pos_mul_mono_of_pos_mul_strict_mono [pos_mul_strict_mono α] : pos_mul_mono α :=
+instance pos_mul_strict_mono.to_pos_mul_mono [pos_mul_strict_mono α] : pos_mul_mono α :=
 ⟨λ x a b h, h.eq_or_lt.elim (λ h', h' ▸ le_rfl) (λ h', (mul_lt_mul_left' h' x.prop).le)⟩
 
 @[priority 100] -- see Note [lower instance priority]
-instance mul_pos_mono_of_mul_pos_strict_mono [mul_pos_strict_mono α] : mul_pos_mono α :=
+instance mul_pos_strict_mono.to_mul_pos_mono [mul_pos_strict_mono α] : mul_pos_mono α :=
 ⟨λ x a b h, h.eq_or_lt.elim (λ h', h' ▸ le_rfl) (λ h', (mul_lt_mul_right' h' x.prop).le)⟩
 
 @[priority 100] -- see Note [lower instance priority]
-instance pos_mul_reflect_lt_of_pos_mul_mono_rev [pos_mul_mono_rev α] : pos_mul_reflect_lt α :=
+instance pos_mul_mono_rev.to_pos_mul_reflect_lt [pos_mul_mono_rev α] : pos_mul_reflect_lt α :=
 ⟨λ x a b h, lt_of_le_of_ne (le_of_mul_le_mul_left' h.le x.prop) (λ h', by simpa [h'] using h)⟩
 
 @[priority 100] -- see Note [lower instance priority]
-instance mul_pos_reflect_lt_of_mul_pos_mono_rev [mul_pos_mono_rev α] : mul_pos_reflect_lt α :=
+instance mul_pos_mono_rev.to_mul_pos_reflect_lt [mul_pos_mono_rev α] : mul_pos_reflect_lt α :=
 ⟨λ x a b h, lt_of_le_of_ne (le_of_mul_le_mul_right' h.le x.prop) (λ h', by simpa [h'] using h)⟩
 
 end partial_order

@@ -127,8 +127,8 @@ do t ← tactic.target,
 /-- List of tactics used by `measurability` internally. -/
 meta def measurability_tactics (md : transparency := semireducible) : list (tactic string) :=
 [
-  propositional_goal >> apply_assumption
-                        >> pure "apply_assumption",
+  propositional_goal >> assumption
+                        >> pure "assumption",
   goal_is_not_measurable >> intro1
                         >>= λ ns, pure ("intro " ++ ns.to_string),
   apply_rules [] [``measurability] 50 { md := md }

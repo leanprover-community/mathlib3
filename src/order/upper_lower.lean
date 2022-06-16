@@ -25,6 +25,8 @@ This file defines upper and lower sets in an order.
 * `upper_set.Ioi`: Strict principal upper set. `set.Ioi` as an upper set.
 * `lower_set.Iic`: Principal lower set. `set.Iic` as an lower set.
 * `lower_set.Iio`: Strict principal lower set. `set.Iio` as an lower set.
+* `upper_set.upper_set_of` : The minimal upper_set containing a given set, bundled.
+* `lower_set.lower_set_of` : The minimal lower_set containing a given set, bundled.
 
 ## TODO
 

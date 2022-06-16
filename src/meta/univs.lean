@@ -67,8 +67,6 @@ do
 
 universes u v w x y
 
-set_option pp.universes true
-
 /-- Convenience helper for two consecutive `reflected.subst` applications -/
 meta def reflected.subst₂ {α : Sort u} {β : α → Sort v} {γ : Π a, β a → Sort w}
   {f : Π a b, γ a b} {a : α} {b : β a} :
@@ -88,6 +86,8 @@ meta def reflected.subst₄ {α : Sort u} {β : α → Sort v} {γ : Π a, β a 
   {f : Π a b c d, ε a b c d} {a : α} {b : β a} {c : γ a b} {d : δ a b c} :
   reflected f → reflected a → reflected b → reflected c → reflected d → reflected (f a b c d) :=
 (∘) reflected.subst₃ ∘ reflected.subst
+
+/-! ### Universe-polymorphic `has_reflect` instances -/
 
 /-- Universe polymorphic version of the builtin `punit.reflect`. -/
 meta instance punit.reflect' [reflected_univ.{u}] : has_reflect punit.{u}

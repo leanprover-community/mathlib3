@@ -47,7 +47,7 @@ dvd_sub (pr.trans (dvd.intro_left _ rfl)) (pq.trans (dvd.intro_left _ rfl))
 
 end comm_ring
 
-lemma nat_degree_cancel_leads_lt_of_nat_degree_le_nat_degree [comm_ring R] [is_domain R]
+lemma nat_degree_cancel_leads_lt_of_nat_degree_le_nat_degree [comm_ring R]
   {p q : R[X]} (h : p.nat_degree ≤ q.nat_degree) (hq : 0 < q.nat_degree) :
   (p.cancel_leads q).nat_degree < q.nat_degree :=
 begin

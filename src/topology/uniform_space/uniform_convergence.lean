@@ -318,22 +318,49 @@ lemma uniform_continuous.comp_uniform_cauchy_seq_on [uniform_space γ] {g : β �
   uniform_cauchy_seq_on (λ n, g ∘ (F n)) p s :=
 λ u hu, hf _ (hg hu)
 
+lemma uniform_cauchy_seq_on.prod_map {ι' α' β' : Type*} [uniform_space β']
+  {F' : ι' → α' → β'} {p' : filter ι'} {s' : set α'}
+  (h : uniform_cauchy_seq_on F p s) (h' : uniform_cauchy_seq_on F' p' s') :
+  uniform_cauchy_seq_on (λ (i : ι × ι'), prod.map (F i.1) (F' i.2))
+    (p.prod p') (s ×ˢ s') :=
+begin
+  intros u hu,
+  rw [uniformity_prod_eq_prod, mem_map, mem_prod_iff] at hu,
+  obtain ⟨v, hv, w, hw, hvw⟩ := hu,
+  rw eventually_iff,
+  rw mem_prod_iff,
+  specialize h v hv,
+  specialize h' w hw,
+  have := (h.prod_mk h'),
+  exact mem_prod_iff.mpr ⟨_, h v hv, _, h' w hw,
+    λ i hi a ha, hvw (show (_, _) ∈ v ×ˢ w, from ⟨hi.1 a.1 ha.1, hi.2 a.2 ha.2⟩)⟩,
+end
+
+lemma uniform_cauchy_seq_on.prod {ι' β' : Type*} [uniform_space β'] {F' : ι' → α → β'}
+  {p' : filter ι'}
+  (h : uniform_cauchy_seq_on F p s) (h' : uniform_cauchy_seq_on F' p' s) :
+  uniform_cauchy_seq_on (λ (i : ι × ι') a, (F i.fst a, F' i.snd a)) (p ×ᶠ p') s :=
+(congr_arg _ s.inter_self).mp ((h.prod_map h').comp (λ a, (a, a)))
+
 lemma uniform_cauchy_seq_on.prod' {β' : Type*} [uniform_space β'] {F' : ι → α → β'}
   (h : uniform_cauchy_seq_on F p s) (h' : uniform_cauchy_seq_on F' p s) :
   uniform_cauchy_seq_on (λ (i : ι) a, (F i a, F' i a)) p s :=
 begin
   intros u hu,
-  rw [uniformity_prod_eq_prod, filter.mem_map, mem_prod_iff] at hu,
-  obtain ⟨t, ht, t', ht', htt'⟩ := hu,
-  apply ((h t ht).prod_mk (h' t' ht')).diag_of_prod.mono,
-  intros x hx y hy,
-  cases hx with hxt hxt',
-  specialize hxt y hy,
-  specialize hxt' y hy,
-  simp only at hxt hxt' ⊢,
-  have := calc ((F x.fst y, F x.snd y), (F' x.fst y, F' x.snd y)) ∈ t ×ˢ t' : by simp [hxt, hxt']
-    ... ⊆ (λ (p : (β × β) × β' × β'), ((p.fst.fst, p.snd.fst), p.fst.snd, p.snd.snd)) ⁻¹' u : htt',
-  simpa using this,
+  have hh : tendsto (λ x : ι, (x, x)) p (p ×ᶠ p),
+  { rw tendsto_iff_eventually,
+    intros pr hpr,
+    exact hpr.diag_of_prod, },
+  let pr := (λ (m : (ι × ι) × ι × ι),
+      (∀ (x : α), x ∈ s →
+        ((F m.fst.fst x, F' m.fst.snd x),
+        (F m.snd.fst x, F' m.snd.snd x)) ∈ u)),
+  have foo : ∀ m : ι × ι, ((∀ x : α, x ∈ s → ((F m.fst x, F' m.fst x), F m.snd x, F' m.snd x) ∈ u)
+    ↔ (pr ((m.fst, m.fst), m.snd, m.snd))),
+  { intros m,
+    simp [pr], },
+  simp_rw foo,
+  exact (hh.prod_map hh).eventually ((h.prod h') u hu),
 end
 
 section seq_tendsto

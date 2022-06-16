@@ -85,19 +85,13 @@ theorem zero_to_pgame_equiv : to_pgame 0 ≈ 0 :=
 pgame.equiv.is_empty _
 
 noncomputable instance : unique (to_pgame 1).left_moves :=
-{ default := @to_left_moves_to_pgame 1 ⟨0, zero_lt_one⟩,
-  uniq := λ a, begin
-    rw [←to_left_moves_to_pgame.apply_symm_apply a, equiv.apply_eq_iff_eq],
-    ext,
-    rw [subtype.coe_mk, ←lt_one_iff_zero],
-    apply to_left_moves_to_pgame_symm_lt
-  end }
+(equiv.cast $ to_pgame_left_moves 1).unique
 
-@[simp] theorem to_pgame_one_left_moves_default_eq :
+@[simp] theorem one_to_pgame_left_moves_default_eq :
   (default : (to_pgame 1).left_moves) = @to_left_moves_to_pgame 1 ⟨0, zero_lt_one⟩ :=
 rfl
 
-@[simp] theorem to_pgame_one_move_left (x) : (to_pgame 1).move_left x = to_pgame 0 :=
+@[simp] theorem one_to_pgame_move_left (x) : (to_pgame 1).move_left x = to_pgame 0 :=
 by { rw unique.eq_default x, simp }
 
 /-- `1.to_pgame` has the same moves as `1`. -/
@@ -122,7 +116,7 @@ theorem to_pgame_lt {a b : ordinal} (h : a < b) : a.to_pgame < b.to_pgame :=
 lt_of_le_of_lf (to_pgame_le h.le) (to_pgame_lf h)
 
 theorem to_pgame_strict_mono : strict_mono to_pgame :=
-λ a b, to_pgame_lt
+@to_pgame_lt
 
 @[simp] theorem to_pgame_lf_iff {a b : ordinal} : a.to_pgame ⧏ b.to_pgame ↔ a < b :=
 ⟨by { contrapose, rw [not_lt, not_lf], exact to_pgame_le }, to_pgame_lf⟩

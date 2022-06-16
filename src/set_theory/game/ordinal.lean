@@ -27,6 +27,7 @@ open pgame
 
 local infix ` ≈ ` := equiv
 local infix ` ⧏ `:50 := lf
+local infix ` ≡r `:50 := relabelling
 local infix ` ♯ `:65 := ordinal.nadd
 
 namespace ordinal
@@ -75,7 +76,7 @@ theorem to_pgame_move_left {o : ordinal} (i) :
 by simp
 
 /-- `0.to_pgame` has the same moves as `0`. -/
-noncomputable def zero_to_pgame_relabelling : relabelling (to_pgame 0) 0 :=
+noncomputable def zero_to_pgame_relabelling : to_pgame 0 ≡r 0 :=
 relabelling.is_empty _
 
 theorem zero_to_pgame_equiv : to_pgame 0 ≈ 0 :=
@@ -96,7 +97,7 @@ theorem one_to_pgame_move_left (x) : (to_pgame 1).move_left x = to_pgame 0 :=
 by simp
 
 /-- `1.to_pgame` has the same moves as `1`. -/
-noncomputable def one_to_pgame_relabelling : relabelling (to_pgame 1) 1 :=
+noncomputable def one_to_pgame_relabelling : to_pgame 1 ≡r 1 :=
 ⟨equiv.equiv_of_unique _ _, equiv.equiv_of_is_empty _ _,
   λ i, by simpa using zero_to_pgame_relabelling, is_empty_elim⟩
 

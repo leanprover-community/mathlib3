@@ -1074,21 +1074,21 @@ variables [comm_semigroup α] [has_zero α]
 
 variables [has_lt α]
 
-lemma pos_mul_strict_mono_iff_mul_pos_strict_mono [comm_semigroup α] :
+lemma pos_mul_strict_mono_iff_mul_pos_strict_mono :
   pos_mul_strict_mono α ↔ mul_pos_strict_mono α :=
 by simp ! only [mul_comm]
 
-lemma pos_mul_reflect_lt_iff_mul_pos_reflect_lt [comm_semigroup α] :
+lemma pos_mul_reflect_lt_iff_mul_pos_reflect_lt :
   pos_mul_reflect_lt α ↔ mul_pos_reflect_lt α :=
 by simp ! only [mul_comm]
 
 variables [has_le α]
 
-lemma pos_mul_mono_iff_mul_pos_mono [comm_semigroup α] :
+lemma pos_mul_mono_iff_mul_pos_mono :
   pos_mul_mono α ↔ mul_pos_mono α :=
 by simp ! only [mul_comm]
 
-lemma pos_mul_mono_rev_iff_mul_pos_mono_rev [comm_semigroup α] :
+lemma pos_mul_mono_rev_iff_mul_pos_mono_rev :
   pos_mul_mono_rev α ↔ mul_pos_mono_rev α :=
 by simp ! only [mul_comm]
 

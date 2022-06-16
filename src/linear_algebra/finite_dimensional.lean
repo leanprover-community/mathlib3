@@ -167,7 +167,7 @@ end
 /-- A quotient of a finite-dimensional space is also finite-dimensional. -/
 instance finite_dimensional_quotient [finite_dimensional K V] (S : submodule K V) :
   finite_dimensional K (V ⧸ S) :=
-finite.of_surjective (submodule.mkq S) $ surjective_quot_mk _
+of_surjective (submodule.mkq S) $ surjective_quot_mk _
 
 /-- The rank of a module as a natural number.
 

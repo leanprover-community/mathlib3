@@ -81,11 +81,13 @@ variables {C : Type u₁} [category.{v} C]
 variables (Z : C → Prop)
 
 /--
-The category structure on a subtype; morphisms just ignore the property.
+A subtype-like structure for full subcategories. Morphisms just ignore the property. We don't use
+actual subtypes since the simp-normal form `↑X` of `X.val` does not work well for full
+subcategories.
 
 See <https://stacks.math.columbia.edu/tag/001D>. We do not define 'strictly full' subcategories.
 -/
-@[ext] structure full_subcategory :=
+@[ext, nolint has_inhabited_instance] structure full_subcategory :=
 (obj : C)
 (property : Z obj)
 
@@ -149,7 +151,6 @@ lemma full_subcategory.inclusion_obj_lift_obj (F : C ⥤ D) (hF : ∀ X, P (F.ob
   (full_subcategory_inclusion P).obj ((full_subcategory.lift P F hF).obj X) = F.obj X :=
 rfl
 
-@[simp]
 lemma full_subcategory.inclusion_map_lift_map (F : C ⥤ D) (hF : ∀ X, P (F.obj X)) {X Y : C}
   (f : X ⟶ Y) :
   (full_subcategory_inclusion P).map ((full_subcategory.lift P F hF).map f) = F.map f :=
@@ -173,3 +174,4 @@ end lift
 end full_subcategory
 
 end category_theory
+#lint

@@ -90,24 +90,6 @@ lemma log_four : log 4 = 2 * log 2 :=
 calc log 4 = log (2 ^ (2 : ℝ)) : by norm_num
   ... = 2 * log 2 : by rw log_rpow two_pos
 
-lemma sqrt_361 : sqrt 361 = 19 :=
-calc sqrt 361 = sqrt (19 ^ 2) : by norm_num
-  ... = 19 : sqrt_sq (by norm_num)
-
-lemma log_722 : log 722 = log 2 + 2 * log 19 :=
-begin
-  repeat { rw ←log_rpow, rw ←log_mul, },
-  repeat { norm_num, },
-end
-
-lemma inequality : log 521284 / log 2 ≤ 19 :=
-begin
-  rw div_le_iff (log_pos one_lt_two),
-  calc log 521284
-        ≤ log (2 ^ (19 : ℝ)) : (@log_le_log 521284 _ (by norm_num) (by norm_num)).2 (by norm_num)
-    ... = 19 * log 2 : @log_rpow 2 two_pos 19,
-end
-
 lemma exp_two_le_722 : exp 2 ≤ 722 :=
 calc exp 2 = (exp 1) ^ 2 : by rw [←exp_nat_mul 1 2]; simp
     ... ≤ 3 ^ 2 :
@@ -193,7 +175,8 @@ begin
           begin
             rw [mul_div_assoc, ←sqrt_div zero_le_two],
             norm_num,
-            field_simp [sqrt_361],
+            rw [(show (361 : ℝ) = 19^2, by norm_num), sqrt_sq],
+            field_simp,
             rw div_le_div_iff _ _,
             { rw [one_mul, mul_comm, ←@log_rpow 722 _ 4, mul_comm, ←le_rpow_iff_log_le]; norm_num},
             { refine mul_pos (log_pos _) _; norm_num },
@@ -543,6 +526,6 @@ begin
                list.tail_cons] at hab,
     iterate { cases hab <|> rw [hab.left, hab.right] <|> linarith, }, },
   { -- The first element of the list is large enough.
-    simp only [list.head, list.cons_append],
+    rw [list.cons_append, list.head],
     linarith, },
 end

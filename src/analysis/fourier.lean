@@ -120,6 +120,45 @@ instance : is_probability_measure circle_measure := ⟨circle_measure_univ⟩
 
 instance : measure_space circle := { volume := circle_measure,  .. circle.measurable_space }
 
+lemma silly_lemma : is_open_pos_measure (volume : measure (Ioc 0 (2 * π))) :=
+begin
+  -- There must be a civilized proof of this, and the following is not it.
+  split, intros V hV1 hV2,
+  rw ←volume_image_subtype_coe, swap, exact measurable_set_Ioc,
+  refine (measure_pos_of_nonempty_interior _ _).ne',
+  rw is_open_induced_iff at hV1,
+  rcases hV1 with ⟨W, ⟨hW1, hW2⟩⟩,
+  rw [←hW2, subtype.image_preimage_coe, interior_inter, interior_Ioc, interior_eq_iff_open.mpr hW1],
+  have : (W ∩ Ioc 0 (2 * π)).nonempty,
+  { rwa [←subtype.image_preimage_coe, hW2, nonempty_image_iff] },
+  rcases this with ⟨x, ⟨hx1, hx2⟩⟩,
+  rcases ne_or_eq x (2 * π) with h|h,
+  { -- some x ≠ 2 * π is in W
+    exact ⟨x, ⟨hx1, ⟨hx2.1, lt_of_le_of_ne hx2.2 h⟩⟩⟩ },
+  { -- 2 * π is in W
+  rw metric.is_open_iff at hW1, specialize hW1 x hx1, rw h at hW1,
+  rcases hW1 with ⟨ε, ⟨hε1, hε2⟩⟩,
+  use max π (2 * π - ε / 2),
+  split,
+  { apply hε2, rw ball_eq_Ioo, split,
+    { refine lt_of_lt_of_le _ (le_max_right _ _), linarith },
+    { apply max_lt, linarith [pi_pos], linarith }, },
+  { split,
+    { exact lt_of_lt_of_le pi_pos (le_max_left _ _) },
+    { apply max_lt, linarith [pi_pos], linarith, } } },
+end
+
+instance : is_open_pos_measure circle_measure :=
+begin
+  split, intros U hU1 hU2,
+  rw [circle_measure, measurable_equiv.map_apply, measure_theory.measure.smul_apply],
+  rw [ne.def, smul_eq_zero, not_or_distrib, ←ne.def, ←ne.def],
+  split, { simp [pi_pos] },
+  apply silly_lemma.open_pos,
+  { exact ((map_continuous exp_map_circle).comp continuous_induced_dom).is_open_preimage _ hU1, },
+  { exact (circle.circle_equiv.bijective.surjective.nonempty_preimage).mpr hU2 }
+ end
+
 lemma measure_map_arg' : circle_measure.map (arg' ∘ coe : circle → ℝ) =
   ennreal.of_real (1 / (2 * π)) • volume.restrict (Ioc 0 (2 * π)) :=
 begin
@@ -369,6 +408,27 @@ lemma has_sum_fourier_series (f : Lp ℂ 2 circle_measure) :
   has_sum (λ i, fourier_series.repr f i • fourier_Lp 2 i) f :=
 by simpa using hilbert_basis.has_sum_repr fourier_series f
 
+/-- If the Fourier series of a continuous `f` converges (uniformly) to anything, then the limit must
+be `f` itself. -/
+lemma fourier_tendsto_eq (f : C(circle, ℂ))
+  (h : summable  (λ i, (fourier_series.repr (to_Lp 2 circle_measure ℂ f) i) • fourier i)) :
+tsum (λ i, (fourier_series.repr (to_Lp 2 circle_measure ℂ f) i) • fourier i) = f :=
+begin
+  obtain ⟨g, hg⟩ := h,
+  suffices : f = g, { have t := has_sum.tsum_eq hg, rwa ←this at t },
+  have f_sub_g_Lp_0 : to_Lp 2 circle_measure ℂ (f - g) = 0,
+  { have to_g := (to_Lp 2 circle_measure ℂ).has_sum hg,
+    rw [map_sub, (has_sum_fourier_series (to_Lp 2 circle_measure ℂ f)).unique to_g, sub_self] },
+  have := coe_fn_to_Lp circle_measure (f - g),
+  rw f_sub_g_Lp_0 at this,
+  replace := ae_eq_trans this.symm (Lp.coe_fn_zero ℂ 2 circle_measure),
+  rw continuous.ae_eq_iff_eq at this,
+  rw [coe_sub, sub_eq_zero] at this, ext1 a, rw this,
+  { rw [coe_sub], apply continuous.sub,
+    exact continuous_map.continuous f, exact continuous_map.continuous g, },
+  { refine @continuous_const _ _ _ _ (0 : ℂ), },
+end
+
 /-- **Parseval's identity**: the sum of the squared norms of the Fourier coefficients is
 convergent, and converges to the `L2` norm of the function. -/
 lemma has_sum_sq_fourier_series_repr (f : Lp ℂ 2 circle_measure) :
@@ -480,3 +540,14 @@ begin
 end
 
 end fourier_line
+
+section pointwise_convergence
+
+-- lemma sum_exists (c : ℤ → ℂ) (hf : summable c) (x : ℝ) :
+--   summable (λ n, c n * (exp_map_circle (n * x) : ℂ) : ℤ → ℂ) :=
+-- begin
+--   exact
+-- end
+
+
+end pointwise_convergence

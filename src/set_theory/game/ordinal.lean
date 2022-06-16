@@ -84,11 +84,11 @@ pgame.equiv.is_empty _
 noncomputable instance unique_one_to_pgame_left_moves : unique (to_pgame 1).left_moves :=
 (equiv.cast $ to_pgame_left_moves 1).unique
 
-@[simp] theorem to_pgame_one_left_moves_default_eq :
+@[simp] theorem one_to_pgame_left_moves_default_eq :
   (default : (to_pgame 1).left_moves) = @to_left_moves_to_pgame 1 ⟨0, zero_lt_one⟩ :=
 rfl
 
-@[simp] theorem to_pgame_one_move_left (x) : (to_pgame 1).move_left x = to_pgame 0 :=
+@[simp] theorem one_to_pgame_move_left (x) : (to_pgame 1).move_left x = to_pgame 0 :=
 by { rw unique.eq_default x, simp }
 
 /-- `1.to_pgame` has the same moves as `1`. -/

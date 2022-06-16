@@ -1300,11 +1300,9 @@ def to_rat_alg_hom [ring R] [ring S] [algebra ℚ R] [algebra ℚ S] (f : R →+
 def equiv_rat_alg_hom [ring R] [ring S] [algebra ℚ R] [algebra ℚ S] :
 (R →ₐ[ℚ] S) ≃ (R →+* S) :=
 { to_fun := coe,
-  inv_fun := λ f : R →+* S, alg_hom.mk' f (λ (c : ℚ) x, map_rat_smul f _ _),
-  left_inv  := λ x, alg_hom.ext  $ by simp only [forall_const, alg_hom.coe_to_ring_hom,
-                                                 eq_self_iff_true, alg_hom.coe_mk'],
-  right_inv := λ x, ring_hom.ext $ by simp only [forall_const, alg_hom.coe_to_ring_hom,
-                                                 eq_self_iff_true, alg_hom.coe_mk'] }
+  inv_fun := λ f : R →+* S, f.to_rat_alg_hom,
+  left_inv  := λ x, alg_hom.ext $ by { intro x, refl, },
+  right_inv := λ x, ring_hom.ext $ by { intro x, refl, }, }
 
 end ring_hom
 

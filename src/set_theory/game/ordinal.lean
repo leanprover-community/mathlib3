@@ -224,7 +224,7 @@ theorem to_pgame_nat_add (a : ordinal) (n : ℕ) : ↑n + a.to_pgame ≈ (a + n)
 end ordinal
 
 /-- The cast from `nat_ordinal` to `game` preserves addition. -/
-@[simps] noncomputable def nat_ordinal.to_pgame : order_add_monoid_hom nat_ordinal game :=
+@[simps] noncomputable def nat_ordinal.to_pgame : nat_ordinal →+o game :=
 { to_fun := λ o, o.to_ordinal.to_game,
   map_zero' := ordinal.zero_to_game,
   map_add' := λ a b, (ordinal.to_game_add _ _).symm,

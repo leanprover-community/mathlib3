@@ -1,3 +1,9 @@
+/-
+Copyright (c) 2022 Violeta Hernández Palacios. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Violeta Hernández Palacios
+-/
+
 import set_theory.surreal.basic
 
 /-!
@@ -49,7 +55,7 @@ by rw [add_comm, to_surreal_add_nat]
 end ordinal
 
 /-- The cast from `nat_ordinal` to `surreal` preserves addition. -/
-@[simps] noncomputable def nat_ordinal.to_surreal : order_add_monoid_hom nat_ordinal surreal :=
+@[simps] noncomputable def nat_ordinal.to_surreal : nat_ordinal →+o surreal :=
 { to_fun := λ o, o.to_ordinal.to_surreal,
   map_zero' := ordinal.zero_to_surreal,
   map_add' := λ a b, (ordinal.to_surreal_add _ _).symm,

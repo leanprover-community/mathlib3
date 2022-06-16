@@ -327,7 +327,7 @@ begin
   intros u hu,
   rw [uniformity_prod_eq_prod, mem_map, mem_prod_iff] at hu,
   obtain ⟨v, hv, w, hw, hvw⟩ := hu,
-  simp,
+  simp only [mem_prod, prod_map, and_imp, prod.forall],
   let pr := (λ (m : (ι × ι') × ι × ι'), ∀ (a : α) (b : α'),
     a ∈ s → b ∈ s' → ((F m.fst.fst a, F' m.fst.snd b), F m.snd.fst a, F' m.snd.snd b) ∈ u),
   have foo : ∀ m : (ι × ι') × ι × ι', (∀ (a : α) (b : α'),

@@ -228,8 +228,8 @@ end
 A reified version of the `bertrand_inequality` below.
 This is not best possible: it actually holds for 464 ≤ x.
 -/
-lemma real_bertrand_inequality {x : ℝ} (n_large : (722 : ℝ) ≤ x)
-  : x * (2 * x) ^ (sqrt (2 * x)) * 4 ^ (2 * x / 3) < 4 ^ x :=
+lemma real_bertrand_inequality {x : ℝ} (n_large : (722 : ℝ) ≤ x) :
+  x * (2 * x) ^ (sqrt (2 * x)) * 4 ^ (2 * x / 3) < 4 ^ x :=
 begin
   have v : 0 < (2 * x) ^ (sqrt (2 * x)) := rpow_pos_of_pos (by linarith) _,
   apply (log_lt_log_iff _ (rpow_pos_of_pos four_pos x)).1,

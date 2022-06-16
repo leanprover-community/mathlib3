@@ -415,20 +415,26 @@ end bot
 
 @[simp] theorem is_O_with_pure {x} : is_O_with c (pure x) f g ↔ ∥f x∥ ≤ c * ∥g x∥ := is_O_with_iff
 
-theorem is_O_with.join (h : is_O_with c l f g) (h' : is_O_with c l' f g) :
+theorem is_O_with.sup (h : is_O_with c l f g) (h' : is_O_with c l' f g) :
   is_O_with c (l ⊔ l') f g :=
 is_O_with.of_bound $ mem_sup.2 ⟨h.bound, h'.bound⟩
 
-theorem is_O_with.join' (h : is_O_with c l f g') (h' : is_O_with c' l' f g') :
+theorem is_O_with.sup' (h : is_O_with c l f g') (h' : is_O_with c' l' f g') :
   is_O_with (max c c') (l ⊔ l') f g' :=
 is_O_with.of_bound $
 mem_sup.2 ⟨(h.weaken $ le_max_left c c').bound, (h'.weaken $ le_max_right c c').bound⟩
 
-theorem is_O.join (h : f =O[l] g') (h' : f =O[l'] g') : f =O[l ⊔ l'] g' :=
-let ⟨c, hc⟩ := h.is_O_with, ⟨c', hc'⟩ := h'.is_O_with in (hc.join' hc').is_O
+theorem is_O.sup (h : f =O[l] g') (h' : f =O[l'] g') : f =O[l ⊔ l'] g' :=
+let ⟨c, hc⟩ := h.is_O_with, ⟨c', hc'⟩ := h'.is_O_with in (hc.sup' hc').is_O
 
-theorem is_o.join (h : f =o[l] g) (h' : f =o[l'] g) : f =o[l ⊔ l'] g :=
-is_o.of_is_O_with $ λ c cpos, (h.forall_is_O_with cpos).join (h'.forall_is_O_with cpos)
+theorem is_o.sup (h : f =o[l] g) (h' : f =o[l'] g) : f =o[l ⊔ l'] g :=
+is_o.of_is_O_with $ λ c cpos, (h.forall_is_O_with cpos).sup (h'.forall_is_O_with cpos)
+
+@[simp] lemma is_O_sup : f =O[l ⊔ l'] g' ↔ f =O[l] g' ∧ f =O[l'] g' :=
+⟨λ h, ⟨h.mono le_sup_left, h.mono le_sup_right⟩, λ h, h.1.sup h.2⟩
+
+@[simp] lemma is_o_sup : f =o[l ⊔ l'] g ↔ f =o[l] g ∧ f =o[l'] g :=
+⟨λ h, ⟨h.mono le_sup_left, h.mono le_sup_right⟩, λ h, h.1.sup h.2⟩
 
 /-! ### Simplification : norm -/
 

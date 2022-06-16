@@ -146,6 +146,14 @@ begin
   { simpa only [zpow_neg_succ_of_nat] using (h.pow _).inv }
 end
 
+lemma is_Theta.mono (h : f =Θ[l] g) (hl : l' ≤ l) : f =Θ[l'] g := ⟨h.1.mono hl, h.2.mono hl⟩
+
+lemma is_Theta.sup (h : f' =Θ[l] g') (h' : f' =Θ[l'] g') : f' =Θ[l ⊔ l'] g' :=
+⟨h.1.sup h'.1, h.2.sup h'.2⟩
+
+@[simp] lemma is_Theta_sup : f' =Θ[l ⊔ l'] g' ↔ f' =Θ[l] g' ∧ f' =Θ[l'] g' :=
+⟨λ h, ⟨h.mono le_sup_left, h.mono le_sup_right⟩, λ h, h.1.sup h.2⟩
+
 lemma is_Theta_const_const {c₁ : E''} {c₂ : F''} (h₁ : c₁ ≠ 0) (h₂ : c₂ ≠ 0) :
   (λ x : α, c₁) =Θ[l] (λ x, c₂) :=
 ⟨is_O_const_const _ h₂ _, is_O_const_const _ h₁ _⟩

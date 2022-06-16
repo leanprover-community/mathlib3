@@ -720,15 +720,25 @@ linear_map.mk_continuous₂
                                    function.comp_app, pi.smul_apply] }))
   1 $ λ f g, by simpa only [one_mul] using op_norm_comp_le f g
 
-variables {𝕜 E F G}
+variables {𝕜 σ₁₂ σ₂₃ E F G}
 
 include σ₁₃
 
 @[simp] lemma compSL_apply (f : F →SL[σ₂₃] G) (g : E →SL[σ₁₂] F) :
   compSL E F G σ₁₂ σ₂₃ f g = f.comp g := rfl
 
+lemma _root_.continuous.const_clm_comp {X} [topological_space X] {f : X → E →SL[σ₁₂] F}
+  (hf : continuous f) (g : F →SL[σ₂₃] G) : continuous (λ x, g.comp (f x) : X → E →SL[σ₁₃] G) :=
+(compSL E F G σ₁₂ σ₂₃ g).continuous.comp hf
+
+-- Giving the implicit argument speeds up elaboration significantly
+lemma _root_.continuous.clm_comp_const {X} [topological_space X] {g : X → F →SL[σ₂₃] G}
+  (hg : continuous g) (f : E →SL[σ₁₂] F) : continuous (λ x, (g x).comp f : X → E →SL[σ₁₃] G) :=
+(@continuous_linear_map.flip _ _ _ _ _ (E →SL[σ₁₃] G) _ _ _ _ _ _ _ _ _ _ _ _ _
+  (compSL E F G σ₁₂ σ₂₃) f).continuous.comp hg
+
 omit σ₁₃
-variables (𝕜 E Fₗ Gₗ)
+variables (𝕜 σ₁₂ σ₂₃ E Fₗ Gₗ)
 
 /-- Composition of continuous linear maps as a continuous bilinear map. -/
 def compL : (Fₗ →L[𝕜] Gₗ) →L[𝕜] (E →L[𝕜] Fₗ) →L[𝕜] (E →L[𝕜] Gₗ) :=
@@ -1154,66 +1164,6 @@ section normed
 variables [normed_group E] [normed_group F] [normed_group G] [normed_group Fₗ]
 
 open metric continuous_linear_map
-
-section normed_field
-
-variables [normed_field 𝕜] [normed_space 𝕜 E] [normed_space 𝕜 F] (f : E →ₗ[𝕜] F)
-
-lemma linear_map.continuous_iff_is_closed_ker {f : E →ₗ[𝕜] 𝕜} :
-  continuous f ↔ is_closed (f.ker : set E) :=
-begin
-  -- the continuity of f obviously implies that its kernel is closed
-  refine ⟨λh, (t1_space.t1 (0 : 𝕜)).preimage h, λh, _⟩,
-  -- for the other direction, we assume that the kernel is closed
-  by_cases hf : ∀x, x ∈ f.ker,
-  { -- if `f = 0`, its continuity is obvious
-    have : (f : E → 𝕜) = (λx, 0), by { ext x, simpa using hf x },
-    rw this,
-    exact continuous_const },
-  { /- if `f` is not zero, we use an element `x₀ ∉ ker f` such that `∥x₀∥ ≤ 2 ∥x₀ - y∥` for all
-    `y ∈ ker f`, given by Riesz's lemma, and prove that `2 ∥f x₀∥ / ∥x₀∥` gives a bound on the
-    operator norm of `f`. For this, start from an arbitrary `x` and note that
-    `y = x₀ - (f x₀ / f x) x` belongs to the kernel of `f`. Applying the above inequality to `x₀`
-    and `y` readily gives the conclusion. -/
-    push_neg at hf,
-    let r : ℝ := (2 : ℝ)⁻¹,
-    have : 0 ≤ r, by norm_num [r],
-    have : r < 1, by norm_num [r],
-    obtain ⟨x₀, x₀ker, h₀⟩ : ∃ (x₀ : E), x₀ ∉ f.ker ∧ ∀ y ∈ linear_map.ker f,
-      r * ∥x₀∥ ≤ ∥x₀ - y∥, from riesz_lemma h hf this,
-    have : x₀ ≠ 0,
-    { assume h,
-      have : x₀ ∈ f.ker, by { rw h, exact (linear_map.ker f).zero_mem },
-      exact x₀ker this },
-    have rx₀_ne_zero : r * ∥x₀∥ ≠ 0, by { simp [norm_eq_zero, this], },
-    have : ∀x, ∥f x∥ ≤ (((r * ∥x₀∥)⁻¹) * ∥f x₀∥) * ∥x∥,
-    { assume x,
-      by_cases hx : f x = 0,
-      { rw [hx, norm_zero],
-        apply_rules [mul_nonneg, norm_nonneg, inv_nonneg.2] },
-      { let y := x₀ - (f x₀ * (f x)⁻¹ ) • x,
-        have fy_zero : f y = 0, by calc
-          f y = f x₀ - (f x₀ * (f x)⁻¹ ) * f x : by simp [y]
-          ... = 0 :
-            by { rw [mul_assoc, inv_mul_cancel hx, mul_one, sub_eq_zero_of_eq], refl },
-        have A : r * ∥x₀∥ ≤ ∥f x₀∥ * ∥f x∥⁻¹ * ∥x∥, from calc
-          r * ∥x₀∥ ≤ ∥x₀ - y∥ : h₀ _ (linear_map.mem_ker.2 fy_zero)
-          ... = ∥(f x₀ * (f x)⁻¹ ) • x∥ : by { dsimp [y], congr, abel }
-          ... = ∥f x₀∥ * ∥f x∥⁻¹ * ∥x∥ :
-            by rw [norm_smul, norm_mul, norm_inv],
-        calc
-          ∥f x∥ = (r * ∥x₀∥)⁻¹ * (r * ∥x₀∥) * ∥f x∥ : by rwa [inv_mul_cancel, one_mul]
-          ... ≤ (r * ∥x₀∥)⁻¹ * (∥f x₀∥ * ∥f x∥⁻¹ * ∥x∥) * ∥f x∥ : begin
-            apply mul_le_mul_of_nonneg_right (mul_le_mul_of_nonneg_left A _) (norm_nonneg _),
-            exact inv_nonneg.2 (mul_nonneg (by norm_num) (norm_nonneg _))
-          end
-          ... = (∥f x∥ ⁻¹ * ∥f x∥) * (((r * ∥x₀∥)⁻¹) * ∥f x₀∥) * ∥x∥ : by ring
-          ... = (((r * ∥x₀∥)⁻¹) * ∥f x₀∥) * ∥x∥ :
-            by { rw [inv_mul_cancel, one_mul], simp [norm_eq_zero, hx] } } },
-    exact linear_map.continuous_of_bound f _ this }
-end
-
-end normed_field
 
 section
 variables [nondiscrete_normed_field 𝕜] [nondiscrete_normed_field 𝕜₂] [nondiscrete_normed_field 𝕜₃]
@@ -1827,18 +1777,20 @@ variables [ring_hom_isometric σ₁₃] [ring_hom_isometric σ₁₂]
 variables [ring_hom_isometric σ₃₄]
 
 include σ₂₁ σ₃₄ σ₁₃ σ₂₄
+
 /-- A pair of continuous (semi)linear equivalences generates an continuous (semi)linear equivalence
 between the spaces of continuous (semi)linear maps. -/
+@[simps apply symm_apply]
 def arrow_congrSL (e₁₂ : E ≃SL[σ₁₂] F) (e₄₃ : H ≃SL[σ₄₃] G) :
   (E →SL[σ₁₄] H) ≃SL[σ₄₃] (F →SL[σ₂₃] G) :=
-{ map_add' := λ f g, by simp only [equiv.to_fun_as_coe, add_comp, comp_add,
-    continuous_linear_equiv.arrow_congr_equiv_apply],
-  map_smul' := λ t f, by simp only [equiv.to_fun_as_coe, smul_comp, comp_smulₛₗ,
-    continuous_linear_equiv.arrow_congr_equiv_apply],
-  continuous_to_fun := (compSL F H G σ₂₄ σ₄₃ e₄₃).continuous.comp
-    (continuous_linear_map.flip (compSL F E H σ₂₁ σ₁₄) e₁₂.symm).continuous,
-  continuous_inv_fun := (compSL E G H σ₁₃ σ₃₄ e₄₃.symm).continuous.comp
-    (continuous_linear_map.flip (compSL E F G σ₁₂ σ₂₃) e₁₂).continuous,
+{ -- given explicitly to help `simps`
+  to_fun := λ L, (e₄₃ : H →SL[σ₄₃] G).comp (L.comp (e₁₂.symm : F →SL[σ₂₁] E)),
+  -- given explicitly to help `simps`
+  inv_fun := λ L, (e₄₃.symm : G →SL[σ₃₄] H).comp (L.comp (e₁₂ : E →SL[σ₁₂] F)),
+  map_add' := λ f g, by rw [add_comp, comp_add],
+  map_smul' := λ t f, by rw [smul_comp, comp_smulₛₗ],
+  continuous_to_fun := (continuous_id.clm_comp_const _).const_clm_comp _,
+  continuous_inv_fun := (continuous_id.clm_comp_const _).const_clm_comp _,
   .. e₁₂.arrow_congr_equiv e₄₃, }
 
 omit σ₂₁ σ₃₄ σ₁₃ σ₂₄

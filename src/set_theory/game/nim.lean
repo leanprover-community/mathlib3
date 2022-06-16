@@ -6,6 +6,7 @@ Authors: Fox Thomson, Markus Himmel
 import data.nat.bitwise
 import set_theory.game.birthday
 import set_theory.game.impartial
+
 /-!
 # Nim and the Sprague-Grundy theorem
 
@@ -46,7 +47,9 @@ using_well_founded { dec_tac := tactic.assumption }
 
 namespace pgame
 
+local infix ` ⧏ `:50 := lf
 local infix ` ≈ ` := equiv
+local infix ` ∥ `:50 := fuzzy
 
 namespace nim
 
@@ -79,7 +82,7 @@ noncomputable def nim_one_relabelling : relabelling (nim 1) star :=
 begin
   rw nim_def,
   refine ⟨_, _, λ i,  _, λ j, _⟩,
-  any_goals { dsimp, apply equiv_of_unique_of_unique },
+  any_goals { dsimp, apply equiv.equiv_of_unique },
   all_goals { simp, exact nim_zero_relabelling }
 end
 
@@ -159,41 +162,36 @@ lemma exists_ordinal_move_left_eq {O : ordinal} (i) : ∃ O' < O, (nim O).move_l
 lemma exists_move_left_eq {O O' : ordinal} (h : O' < O) : ∃ i, (nim O).move_left i = nim O' :=
 ⟨to_left_moves_nim ⟨O', h⟩, by simp⟩
 
-@[simp] lemma zero_first_loses : (nim (0 : ordinal)).first_loses :=
-equiv.is_empty _
-
-lemma non_zero_first_wins {O : ordinal} (hO : O ≠ 0) : (nim O).first_wins :=
+lemma non_zero_first_wins {O : ordinal} (hO : O ≠ 0) : nim O ∥ 0 :=
 begin
-  rw [impartial.first_wins_symm, nim_def, lf_iff_forall_le],
+  rw [impartial.fuzzy_zero_iff_lf, nim_def, lf_zero_le],
   rw ←ordinal.pos_iff_ne_zero at hO,
-  exact or.inr ⟨(ordinal.principal_seg_out hO).top, by simp⟩
+  exact ⟨(ordinal.principal_seg_out hO).top, by simp⟩
 end
 
-@[simp] lemma sum_first_loses_iff_eq (O₁ O₂ : ordinal) : (nim O₁ + nim O₂).first_loses ↔ O₁ = O₂ :=
+@[simp] lemma add_equiv_zero_iff_eq (O₁ O₂ : ordinal) : nim O₁ + nim O₂ ≈ 0 ↔ O₁ = O₂ :=
 begin
   split,
   { contrapose,
     intro h,
-    rw [impartial.not_first_loses],
+    rw [impartial.not_equiv_zero_iff],
     wlog h' : O₁ ≤ O₂ using [O₁ O₂, O₂ O₁],
     { exact le_total O₁ O₂ },
     { have h : O₁ < O₂ := lt_of_le_of_ne h' h,
-      rw [impartial.first_wins_symm', lf_iff_forall_le, nim_def O₂],
-      refine or.inl ⟨to_left_moves_add (sum.inr _), _⟩,
+      rw [impartial.fuzzy_zero_iff_gf, zero_lf_le, nim_def O₂],
+      refine ⟨to_left_moves_add (sum.inr _), _⟩,
       { exact (ordinal.principal_seg_out h).top },
       { simpa using (impartial.add_self (nim O₁)).2 } },
-    { exact first_wins_of_equiv add_comm_equiv (this (ne.symm h)) } },
+    { exact (fuzzy_congr_left add_comm_equiv).1 (this (ne.symm h)) } },
   { rintro rfl,
     exact impartial.add_self (nim O₁) }
 end
 
-@[simp] lemma sum_first_wins_iff_neq (O₁ O₂ : ordinal) : (nim O₁ + nim O₂).first_wins ↔ O₁ ≠ O₂ :=
-by rw [iff_not_comm, impartial.not_first_wins, sum_first_loses_iff_eq]
+@[simp] lemma add_fuzzy_zero_iff_ne (O₁ O₂ : ordinal) : nim O₁ + nim O₂ ∥ 0 ↔ O₁ ≠ O₂ :=
+by rw [iff_not_comm, impartial.not_fuzzy_zero_iff, add_equiv_zero_iff_eq]
 
 @[simp] lemma equiv_iff_eq (O₁ O₂ : ordinal) : nim O₁ ≈ nim O₂ ↔ O₁ = O₂ :=
-⟨λ h, (sum_first_loses_iff_eq _ _).1 $
-  by rw [first_loses_of_equiv_iff (add_congr_left h), sum_first_loses_iff_eq],
- by { rintro rfl, refl }⟩
+by rw [impartial.equiv_iff_add_equiv_zero, add_equiv_zero_iff_eq]
 
 end nim
 
@@ -213,18 +211,20 @@ theorem equiv_nim_grundy_value : ∀ (G : pgame.{u}) [G.impartial], G ≈ nim (g
 | G :=
 begin
   introI hG,
-  rw [impartial.equiv_iff_sum_first_loses, ←impartial.no_good_left_moves_iff_first_loses],
+  rw [impartial.equiv_iff_add_equiv_zero, ←impartial.forall_left_moves_fuzzy_iff_equiv_zero],
   intro i,
-  rcases left_moves_add_cases i with ⟨i₁, rfl⟩ | ⟨i₂, rfl⟩,
-  { rw add_move_left_inl,
-    apply first_wins_of_equiv (add_congr_left (equiv_nim_grundy_value (G.move_left i₁)).symm),
-    rw nim.sum_first_wins_iff_neq,
+  apply left_moves_add_cases i,
+  { intro i₁,
+    rw add_move_left_inl,
+    apply (fuzzy_congr_left (add_congr_left (equiv_nim_grundy_value (G.move_left i₁)).symm)).1,
+    rw nim.add_fuzzy_zero_iff_ne,
     intro heq,
     rw [eq_comm, grundy_value_def G] at heq,
     have h := ordinal.ne_mex _,
     rw heq at h,
     exact (h i₁).irrefl },
-  { rw [add_move_left_inr, ←impartial.good_left_move_iff_first_wins],
+  { intro i₂,
+    rw [add_move_left_inr, ←impartial.exists_left_move_equiv_iff_fuzzy_zero],
     revert i₂,
     rw nim.nim_def,
     intro i₂,
@@ -240,8 +240,7 @@ begin
     cases h' with i hi,
     use to_left_moves_add (sum.inl i),
     rw [add_move_left_inl, move_left_mk],
-    apply first_loses_of_equiv
-      (add_congr_left (equiv_nim_grundy_value (G.move_left i)).symm),
+    apply (add_congr_left (equiv_nim_grundy_value (G.move_left i))).trans,
     simpa only [hi] using impartial.add_self (nim (grundy_value (G.move_left i))) }
 end
 using_well_founded { dec_tac := pgame_wf_tac }
@@ -249,7 +248,7 @@ using_well_founded { dec_tac := pgame_wf_tac }
 @[simp] lemma grundy_value_eq_iff_equiv_nim (G : pgame) [G.impartial] (O : ordinal) :
   grundy_value G = O ↔ G ≈ nim O :=
 ⟨by { rintro rfl, exact equiv_nim_grundy_value G },
-  by { intro h, rw ←nim.equiv_iff_eq, exact equiv_trans (equiv_symm (equiv_nim_grundy_value G)) h }⟩
+  by { intro h, rw ←nim.equiv_iff_eq, exact (equiv_nim_grundy_value G).symm.trans h }⟩
 
 lemma nim.grundy_value (O : ordinal.{u}) : grundy_value (nim O) = O :=
 by simp
@@ -258,12 +257,12 @@ by simp
   grundy_value G = grundy_value H ↔ G ≈ H :=
 (grundy_value_eq_iff_equiv_nim _ _).trans (equiv_congr_left.1 (equiv_nim_grundy_value H) _).symm
 
-@[simp] lemma grundy_value_zero : grundy_value 0 = 0 := by simp [equiv_symm nim.nim_zero_equiv]
+@[simp] lemma grundy_value_zero : grundy_value 0 = 0 := by simp [nim.nim_zero_equiv.symm]
 
 @[simp] lemma grundy_value_iff_equiv_zero (G : pgame) [G.impartial] : grundy_value G = 0 ↔ G ≈ 0 :=
 by rw [←grundy_value_eq_iff_equiv, grundy_value_zero]
 
-lemma grundy_value_star : grundy_value star = 1 := by simp [equiv_symm nim.nim_one_equiv]
+lemma grundy_value_star : grundy_value star = 1 := by simp [nim.nim_one_equiv.symm]
 
 @[simp] lemma grundy_value_nim_add_nim (n m : ℕ) :
   grundy_value (nim.{u} n + nim.{u} m) = nat.lxor n m :=
@@ -283,10 +282,11 @@ begin
     intro i,
 
     -- The move operates either on the left pile or on the right pile.
-    rcases left_moves_add_cases i with ⟨a, rfl⟩ | ⟨a, rfl⟩,
+    apply left_moves_add_cases i,
 
     all_goals
     { -- One of the piles is reduced to `k` stones, with `k < n` or `k < m`.
+      intro a,
       obtain ⟨ok, hk, hk'⟩ := nim.exists_ordinal_move_left_eq a,
       obtain ⟨k, rfl⟩ := ordinal.lt_omega.1 (lt_trans hk (ordinal.nat_lt_omega _)),
       replace hk := ordinal.nat_cast_lt.1 hk,
@@ -343,7 +343,7 @@ lemma grundy_value_add (G H : pgame) [G.impartial] [H.impartial] {n m : ℕ} (hG
   (hH : grundy_value H = m) : grundy_value (G + H) = nat.lxor n m :=
 begin
   rw [←nim.grundy_value (nat.lxor n m), grundy_value_eq_iff_equiv],
-  refine equiv_trans _ nim_add_nim_equiv,
+  refine equiv.trans _ nim_add_nim_equiv,
   convert add_congr (equiv_nim_grundy_value G) (equiv_nim_grundy_value H);
   simp only [hG, hH]
 end

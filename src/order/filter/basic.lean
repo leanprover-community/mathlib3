@@ -150,7 +150,7 @@ lemma congr_sets (h : {x | x ∈ s ↔ x ∈ t} ∈ f) : s ∈ f ↔ t ∈ f :=
 ⟨λ hs, mp_mem hs (mem_of_superset h (λ x, iff.mp)),
  λ hs, mp_mem hs (mem_of_superset h (λ x, iff.mpr))⟩
 
-@[simp] lemma bInter_mem {β : Type v} {s : β → set α} {is : set β} (hf : finite is) :
+@[simp] lemma bInter_mem {β : Type v} {s : β → set α} {is : set β} (hf : is.finite) :
   (⋂ i ∈ is, s i) ∈ f ↔ ∀ i ∈ is, s i ∈ f :=
 finite.induction_on hf (by simp) (λ i s hi _ hs, by simp [hs])
 
@@ -161,7 +161,7 @@ bInter_mem is.finite_to_set
 alias bInter_finset_mem ← finset.Inter_mem_sets
 attribute [protected] finset.Inter_mem_sets
 
-@[simp] lemma sInter_mem {s : set (set α)} (hfin : finite s) :
+@[simp] lemma sInter_mem {s : set (set α)} (hfin : s.finite) :
   ⋂₀ s ∈ f ↔ ∀ U ∈ s, U ∈ f :=
 by rw [sInter_eq_bInter, bInter_mem hfin]
 
@@ -308,7 +308,7 @@ iff.intro
     (λ x y _ _ hx hy, inter_mem hx hy))
 
 lemma mem_generate_iff {s : set $ set α} {U : set α} :
-  U ∈ generate s ↔ ∃ t ⊆ s, finite t ∧ ⋂₀ t ⊆ U :=
+  U ∈ generate s ↔ ∃ t ⊆ s, set.finite t ∧ ⋂₀ t ⊆ U :=
 begin
   split ; intro h,
   { induction h,
@@ -510,7 +510,7 @@ show generate _ = generate _, from congr_arg _ $ congr_arg Sup $ (range_comp _ _
 lemma mem_infi_of_mem {f : ι → filter α} (i : ι) : ∀ {s}, s ∈ f i → s ∈ ⨅ i, f i :=
 show (⨅ i, f i) ≤ f i, from infi_le _ _
 
-lemma mem_infi_of_Inter {ι} {s : ι → filter α} {U : set α} {I : set ι} (I_fin : finite I)
+lemma mem_infi_of_Inter {ι} {s : ι → filter α} {U : set α} {I : set ι} (I_fin : I.finite)
   {V : I → set α} (hV : ∀ i, V i ∈ s i) (hU : (⋂ i, V i) ⊆ U) : U ∈ ⨅ i, s i :=
 begin
   haveI := I_fin.fintype,
@@ -519,7 +519,7 @@ begin
 end
 
 lemma mem_infi {ι} {s : ι → filter α} {U : set α} : (U ∈ ⨅ i, s i) ↔
-  ∃ I : set ι, finite I ∧ ∃ V : I → set α, (∀ i, V i ∈ s i) ∧ U = ⋂ i, V i :=
+  ∃ I : set ι, I.finite ∧ ∃ V : I → set α, (∀ i, V i ∈ s i) ∧ U = ⋂ i, V i :=
 begin
   split,
   { rw [infi_eq_generate, mem_generate_iff],
@@ -540,7 +540,7 @@ begin
 end
 
 lemma mem_infi' {ι} {s : ι → filter α} {U : set α} : (U ∈ ⨅ i, s i) ↔
-  ∃ I : set ι, finite I ∧ ∃ V : ι → set α, (∀ i, V i ∈ s i) ∧
+  ∃ I : set ι, I.finite ∧ ∃ V : ι → set α, (∀ i, V i ∈ s i) ∧
     (∀ i ∉ I, V i = univ) ∧ (U = ⋂ i ∈ I, V i) ∧ U = ⋂ i, V i :=
 begin
   simp only [mem_infi, set_coe.forall', bInter_eq_Inter],
@@ -897,7 +897,7 @@ end
   (⨅ i, 𝓟 (f i)) = 𝓟 (⋂ i, f i) :=
 by simpa using infi_principal_finset finset.univ f
 
-lemma infi_principal_finite {ι : Type w} {s : set ι} (hs : finite s) (f : ι → set α) :
+lemma infi_principal_finite {ι : Type w} {s : set ι} (hs : s.finite) (f : ι → set α) :
   (⨅ i ∈ s, 𝓟 (f i)) = 𝓟 (⋂ i ∈ s, f i) :=
 begin
   lift s to finset ι using hs,
@@ -2822,7 +2822,7 @@ lemma set.eq_on.eventually_eq_of_mem {α β} {s : set α} {l : filter α} {f g :
   f =ᶠ[l] g :=
 h.eventually_eq.filter_mono $ filter.le_principal_iff.2 hl
 
-lemma set.subset.eventually_le {α} {l : filter α} {s t : set α} (h : s ⊆ t) : s ≤ᶠ[l] t :=
+lemma has_subset.subset.eventually_le {α} {l : filter α} {s t : set α} (h : s ⊆ t) : s ≤ᶠ[l] t :=
 filter.eventually_of_forall h
 
 lemma set.maps_to.tendsto {α β} {s : set α} {t : set β} {f : α → β} (h : maps_to f s t) :

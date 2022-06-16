@@ -237,13 +237,13 @@ lemma nhds_within_prod {α : Type*} [topological_space α] {β : Type*} [topolog
 by { rw nhds_within_prod_eq, exact prod_mem_prod hu hv, }
 
 lemma nhds_within_pi_eq' {ι : Type*} {α : ι → Type*} [Π i, topological_space (α i)]
-  {I : set ι} (hI : finite I) (s : Π i, set (α i)) (x : Π i, α i) :
+  {I : set ι} (hI : I.finite) (s : Π i, set (α i)) (x : Π i, α i) :
   𝓝[pi I s] x = ⨅ i, comap (λ x, x i) (𝓝 (x i) ⊓ ⨅ (hi : i ∈ I), 𝓟 (s i)) :=
 by simp only [nhds_within, nhds_pi, filter.pi, comap_inf, comap_infi, pi_def, comap_principal,
   ← infi_principal_finite hI, ← infi_inf_eq]
 
 lemma nhds_within_pi_eq {ι : Type*} {α : ι → Type*} [Π i, topological_space (α i)]
-  {I : set ι} (hI : finite I) (s : Π i, set (α i)) (x : Π i, α i) :
+  {I : set ι} (hI : I.finite) (s : Π i, set (α i)) (x : Π i, α i) :
   𝓝[pi I s] x = (⨅ i ∈ I, comap (λ x, x i) (𝓝[s i] (x i))) ⊓
     ⨅ (i ∉ I), comap (λ x, x i) (𝓝 (x i)) :=
 begin
@@ -554,7 +554,7 @@ theorem nhds_within_le_comap {x : α} {s : set α} {f : α → β} (ctsf : conti
   𝓝[s] x ≤ comap f (𝓝[f '' s] (f x)) :=
 ctsf.tendsto_nhds_within_image.le_comap
 
-@[simp] lemma comap_nhds_within_range (f : α → β) (y : β) :
+@[simp] lemma comap_nhds_within_range {α} (f : α → β) (y : β) :
   comap f (𝓝[range f] y) = comap f (𝓝 y) :=
 comap_inf_principal_range
 
@@ -1030,10 +1030,15 @@ lemma continuous.if {p : α → Prop} {f g : α → β} [∀ a, decidable (p a)]
   continuous (λ a, if p a then f a else g a) :=
 continuous_if hp hf.continuous_on hg.continuous_on
 
+lemma continuous_if_const (p : Prop) {f g : α → β} [decidable p]
+  (hf : p → continuous f) (hg : ¬ p → continuous g) :
+  continuous (λ a, if p then f a else g a) :=
+by { split_ifs, exact hf h, exact hg h }
+
 lemma continuous.if_const (p : Prop) {f g : α → β} [decidable p]
   (hf : continuous f) (hg : continuous g) :
   continuous (λ a, if p then f a else g a) :=
-continuous_if (if h : p then by simp [h] else by simp [h]) hf.continuous_on hg.continuous_on
+continuous_if_const p (λ _, hf) (λ _, hg)
 
 lemma continuous_piecewise {s : set α} {f g : α → β} [∀ a, decidable (a ∈ s)]
   (hs : ∀ a ∈ frontier s, f a = g a) (hf : continuous_on f (closure s))

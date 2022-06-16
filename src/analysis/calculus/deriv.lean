@@ -225,14 +225,27 @@ theorem unique_diff_within_at.eq_deriv (s : set 𝕜) (H : unique_diff_within_at
   (h : has_deriv_within_at f f' s x) (h₁ : has_deriv_within_at f f₁' s x) : f' = f₁' :=
 smul_right_one_eq_iff.mp $ unique_diff_within_at.eq H h h₁
 
+theorem has_deriv_at_filter_iff_is_o :
+  has_deriv_at_filter f f' x L ↔ (λ x' : 𝕜, f x' - f x - (x' - x) • f') =o[L] (λ x', x' - x) :=
+iff.rfl
+
 theorem has_deriv_at_filter_iff_tendsto :
   has_deriv_at_filter f f' x L ↔
   tendsto (λ x' : 𝕜, ∥x' - x∥⁻¹ * ∥f x' - f x - (x' - x) • f'∥) L (𝓝 0) :=
 has_fderiv_at_filter_iff_tendsto
 
+theorem has_deriv_within_at_iff_is_o :
+  has_deriv_within_at f f' s x
+    ↔ (λ x' : 𝕜, f x' - f x - (x' - x) • f') =o[𝓝[s] x] (λ x', x' - x) :=
+iff.rfl
+
 theorem has_deriv_within_at_iff_tendsto : has_deriv_within_at f f' s x ↔
   tendsto (λ x', ∥x' - x∥⁻¹ * ∥f x' - f x - (x' - x) • f'∥) (𝓝[s] x) (𝓝 0) :=
 has_fderiv_at_filter_iff_tendsto
+
+theorem has_deriv_at_iff_is_o :
+  has_deriv_at f f' x ↔ (λ x' : 𝕜, f x' - f x - (x' - x) • f') =o[𝓝 x] (λ x', x' - x) :=
+iff.rfl
 
 theorem has_deriv_at_iff_tendsto : has_deriv_at f f' x ↔
   tendsto (λ x', ∥x' - x∥⁻¹ * ∥f x' - f x - (x' - x) • f'∥) (𝓝 x) (𝓝 0) :=
@@ -354,10 +367,7 @@ has_fderiv_within_at_inter h
 lemma has_deriv_within_at.union (hs : has_deriv_within_at f f' s x)
   (ht : has_deriv_within_at f f' t x) :
   has_deriv_within_at f f' (s ∪ t) x :=
-begin
-  simp only [has_deriv_within_at, nhds_within_union],
-  exact hs.join ht,
-end
+hs.has_fderiv_within_at.union ht.has_fderiv_within_at
 
 lemma has_deriv_within_at.nhds_within (h : has_deriv_within_at f f' s x)
   (ht : s ∈ 𝓝[t] x) : has_deriv_within_at f f' t x :=
@@ -429,6 +439,34 @@ by { unfold deriv_within, rw fderiv_within_inter ht hs }
 lemma deriv_within_of_open (hs : is_open s) (hx : x ∈ s) :
   deriv_within f s x = deriv f x :=
 by { unfold deriv_within, rw fderiv_within_of_open hs hx, refl }
+
+lemma deriv_mem_iff {f : 𝕜 → F} {s : set F} {x : 𝕜} :
+  deriv f x ∈ s ↔ (differentiable_at 𝕜 f x ∧ deriv f x ∈ s) ∨
+    (¬differentiable_at 𝕜 f x ∧ (0 : F) ∈ s) :=
+by by_cases hx : differentiable_at 𝕜 f x; simp [deriv_zero_of_not_differentiable_at, *]
+
+lemma deriv_within_mem_iff {f : 𝕜 → F} {t : set 𝕜} {s : set F} {x : 𝕜} :
+  deriv_within f t x ∈ s ↔ (differentiable_within_at 𝕜 f t x ∧ deriv_within f t x ∈ s) ∨
+    (¬differentiable_within_at 𝕜 f t x ∧ (0 : F) ∈ s) :=
+by by_cases hx : differentiable_within_at 𝕜 f t x;
+  simp [deriv_within_zero_of_not_differentiable_within_at, *]
+
+lemma differentiable_within_at_Ioi_iff_Ici [partial_order 𝕜] :
+  differentiable_within_at 𝕜 f (Ioi x) x ↔ differentiable_within_at 𝕜 f (Ici x) x :=
+⟨λ h, h.has_deriv_within_at.Ici_of_Ioi.differentiable_within_at,
+λ h, h.has_deriv_within_at.Ioi_of_Ici.differentiable_within_at⟩
+
+lemma deriv_within_Ioi_eq_Ici {E : Type*} [normed_group E] [normed_space ℝ E] (f : ℝ → E) (x : ℝ) :
+  deriv_within f (Ioi x) x = deriv_within f (Ici x) x :=
+begin
+  by_cases H : differentiable_within_at ℝ f (Ioi x) x,
+  { have A := H.has_deriv_within_at.Ici_of_Ioi,
+    have B := (differentiable_within_at_Ioi_iff_Ici.1 H).has_deriv_within_at,
+    simpa using (unique_diff_on_Ici x).eq le_rfl A B },
+  { rw [deriv_within_zero_of_not_differentiable_within_at H,
+      deriv_within_zero_of_not_differentiable_within_at],
+    rwa differentiable_within_at_Ioi_iff_Ici at H }
+end
 
 section congr
 /-! ### Congruence properties of derivatives -/
@@ -772,6 +810,14 @@ lemma deriv_within_smul (hxs : unique_diff_within_at 𝕜 s x)
 lemma deriv_smul (hc : differentiable_at 𝕜 c x) (hf : differentiable_at 𝕜 f x) :
   deriv (λ y, c y • f y) x = c x • deriv f x + (deriv c x) • f x :=
 (hc.has_deriv_at.smul hf.has_deriv_at).deriv
+
+theorem has_strict_deriv_at.smul_const
+  (hc : has_strict_deriv_at c c' x) (f : F) :
+  has_strict_deriv_at (λ y, c y • f) (c' • f) x :=
+begin
+  have := hc.smul (has_strict_deriv_at_const x f),
+  rwa [smul_zero, zero_add] at this,
+end
 
 theorem has_deriv_within_at.smul_const
   (hc : has_deriv_within_at c c' s x) (f : F) :

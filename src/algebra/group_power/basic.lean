@@ -3,9 +3,8 @@ Copyright (c) 2015 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Robert Y. Lewis
 -/
+import algebra.hom.ring
 import data.nat.basic
-import tactic.monotonicity.basic
-import group_theory.group_action.defs
 
 /-!
 # Power operations on monoids and groups
@@ -31,7 +30,7 @@ We adopt the convention that `0^0 = 1`.
 
 universes u v w x y z u₁ u₂
 
-variables {M : Type u} {N : Type v} {G : Type w} {H : Type x} {A : Type y} {B : Type z}
+variables {α : Type*} {M : Type u} {N : Type v} {G : Type w} {H : Type x} {A : Type y} {B : Type z}
   {R : Type u₁} {S : Type u₂}
 
 /-!
@@ -107,6 +106,16 @@ by rw [←pow_add, nat.add_comm, tsub_add_cancel_of_le h]
 @[to_additive sub_nsmul_nsmul_add]
 theorem pow_sub_mul_pow (a : M) {m n : ℕ} (h : m ≤ n) : a ^ (n - m) * a ^ m = a ^ n :=
 by rw [←pow_add, tsub_add_cancel_of_le h]
+
+/-- If `x ^ n = 1`, then `x ^ m` is the same as `x ^ (m % n)` -/
+@[to_additive nsmul_eq_mod_nsmul "If `n • x = 0`, then `m • x` is the same as `(m % n) • x`"]
+lemma pow_eq_pow_mod {M : Type*} [monoid M] {x : M} (m : ℕ) {n : ℕ} (h : x ^ n = 1) :
+  x ^ m = x ^ (m % n) :=
+begin
+  have t := congr_arg (λ a, x ^ a) (nat.div_add_mod m n).symm,
+  dsimp at t,
+  rw [t, pow_add, pow_mul, h, one_pow, one_mul],
+end
 
 @[to_additive bit0_nsmul]
 theorem pow_bit0 (a : M) (n : ℕ) : a ^ bit0 n = a^n * a^n := pow_add _ _ _
@@ -193,84 +202,84 @@ theorem zpow_neg_coe_of_pos (a : G) : ∀ {n : ℕ}, 0 < n → a ^ -(n:ℤ) = (a
 
 end div_inv_monoid
 
-section group
-variables [group G] [group H] [add_group A] [add_group B]
+section division_monoid
+variables [division_monoid α] {a b : α}
 
-open int
-
-section nat
-
-@[simp, to_additive] theorem inv_pow (a : G) (n : ℕ) : (a⁻¹)^n = (a^n)⁻¹ :=
-begin
-  induction n with n ih,
-  { rw [pow_zero, pow_zero, one_inv] },
-  { rw [pow_succ', pow_succ, ih, mul_inv_rev] }
-end
-
-@[to_additive] -- rename to sub_nsmul?
-theorem pow_sub (a : G) {m n : ℕ} (h : n ≤ m) : a^(m - n) = a^m * (a^n)⁻¹ :=
-have h1 : m - n + n = m, from tsub_add_cancel_of_le h,
-have h2 : a^(m - n) * a^n = a^m, by rw [←pow_add, h1],
-eq_mul_inv_of_mul_eq h2
-
-@[to_additive]
-theorem pow_inv_comm (a : G) (m n : ℕ) : (a⁻¹)^m * a^n = a^n * (a⁻¹)^m :=
-(commute.refl a).inv_left.pow_pow m n
-
-@[to_additive sub_nsmul_neg]
-theorem inv_pow_sub (a : G) {m n : ℕ} (h : n ≤ m) : a⁻¹^(m - n) = (a^m)⁻¹ * a^n :=
-by rw [pow_sub a⁻¹ h, inv_pow, inv_pow, inv_inv]
-
-end nat
+@[simp, to_additive] lemma inv_pow (a : α) : ∀ n : ℕ, (a⁻¹) ^ n = (a ^ n)⁻¹
+| 0       := by rw [pow_zero, pow_zero, inv_one]
+| (n + 1) := by rw [pow_succ', pow_succ, inv_pow, mul_inv_rev]
 
 -- the attributes are intentionally out of order. `smul_zero` proves `zsmul_zero`.
-@[to_additive zsmul_zero, simp]
-theorem one_zpow : ∀ (n : ℤ), (1 : G) ^ n = 1
+@[to_additive zsmul_zero, simp] lemma one_zpow : ∀ (n : ℤ), (1 : α) ^ n = 1
 | (n : ℕ) := by rw [zpow_coe_nat, one_pow]
-| -[1+ n] := by rw [zpow_neg_succ_of_nat, one_pow, one_inv]
+| -[1+ n] := by rw [zpow_neg_succ_of_nat, one_pow, inv_one]
 
-@[simp, to_additive neg_zsmul]
-theorem zpow_neg (a : G) : ∀ (n : ℤ), a ^ -n = (a ^ n)⁻¹
+@[simp, to_additive neg_zsmul] lemma zpow_neg (a : α) : ∀ (n : ℤ), a ^ -n = (a ^ n)⁻¹
 | (n+1:ℕ) := div_inv_monoid.zpow_neg' _ _
 | 0       := by { change a ^ (0 : ℤ) = (a ^ (0 : ℤ))⁻¹, simp }
 | -[1+ n] := by { rw [zpow_neg_succ_of_nat, inv_inv, ← zpow_coe_nat], refl }
 
-@[to_additive neg_one_zsmul_add] lemma mul_zpow_neg_one (a b : G) :
-  (a*b)^(-(1:ℤ)) = b^(-(1:ℤ))*a^(-(1:ℤ)) :=
-by simp only [mul_inv_rev, zpow_one, zpow_neg]
+@[to_additive neg_one_zsmul_add]
+lemma mul_zpow_neg_one (a b : α) : (a * b) ^ (-1 : ℤ) = b ^ (-1 : ℤ) * a ^ (-1 : ℤ) :=
+by simp_rw [zpow_neg_one, mul_inv_rev]
 
-@[to_additive zsmul_neg]
-theorem inv_zpow (a : G) : ∀n:ℤ, a⁻¹ ^ n = (a ^ n)⁻¹
+@[to_additive zsmul_neg] lemma inv_zpow (a : α) : ∀ n : ℤ, a⁻¹ ^ n = (a ^ n)⁻¹
 | (n : ℕ) := by rw [zpow_coe_nat, zpow_coe_nat, inv_pow]
 | -[1+ n] := by rw [zpow_neg_succ_of_nat, zpow_neg_succ_of_nat, inv_pow]
 
+@[simp, to_additive zsmul_neg']
+lemma inv_zpow' (a : α) (n : ℤ) : a⁻¹ ^ n = a ^ (-n) := by rw [inv_zpow, zpow_neg]
+
+@[to_additive nsmul_zero_sub]
+lemma one_div_pow (a : α) (n : ℕ) : (1 / a) ^ n = 1 / a ^ n := by simp_rw [one_div, inv_pow]
+
+@[to_additive zsmul_zero_sub]
+lemma one_div_zpow (a : α) (n : ℤ) :  (1 / a) ^ n = 1 / a ^ n := by simp_rw [one_div, inv_zpow]
+
 @[to_additive add_commute.zsmul_add]
-theorem commute.mul_zpow {a b : G} (h : commute a b) : ∀ n : ℤ, (a * b) ^ n = a ^ n * b ^ n
-| (n : ℕ) := by simp [zpow_coe_nat, h.mul_pow n]
-| -[1+n]  := by simp [h.mul_pow, (h.pow_pow n.succ n.succ).inv_inv.symm.eq]
+protected lemma commute.mul_zpow (h : commute a b) : ∀ (i : ℤ), (a * b) ^ i = a ^ i * b ^ i
+| (n : ℕ) := by simp [h.mul_pow n]
+| -[1+n]  := by simp [h.mul_pow, (h.pow_pow _ _).eq, mul_inv_rev]
 
-end group
+end division_monoid
 
-section comm_group
-variables [comm_group G] [add_comm_group A]
+section division_comm_monoid
+variables [division_comm_monoid α]
 
-@[to_additive zsmul_add]
-theorem mul_zpow (a b : G) (n : ℤ) : (a * b)^n = a^n * b^n := (commute.all a b).mul_zpow n
+@[to_additive zsmul_add] lemma mul_zpow (a b : α) : ∀ n : ℤ, (a * b) ^ n = a ^ n * b ^ n :=
+(commute.all a b).mul_zpow
 
-@[to_additive zsmul_sub]
-theorem div_zpow (a b : G) (n : ℤ) : (a / b) ^ n = a ^ n / b ^ n :=
-by rw [div_eq_mul_inv, div_eq_mul_inv, mul_zpow, inv_zpow]
+@[simp, to_additive nsmul_sub] lemma div_pow (a b : α) (n : ℕ) : (a / b) ^ n = a ^ n / b ^ n :=
+by simp only [div_eq_mul_inv, mul_pow, inv_pow]
 
-/-- The `n`th power map (`n` an integer) on a commutative group, considered as a group
+@[simp, to_additive zsmul_sub] lemma div_zpow (a b : α) (n : ℤ) : (a / b) ^ n = a ^ n / b ^ n :=
+by simp only [div_eq_mul_inv, mul_zpow, inv_zpow]
+
+/-- The `n`-th power map (for an integer `n`) on a commutative group, considered as a group
 homomorphism. -/
 @[to_additive "Multiplication by an integer `n` on a commutative additive group, considered as an
 additive group homomorphism.", simps]
-def zpow_group_hom (n : ℤ) : G →* G :=
+def zpow_group_hom (n : ℤ) : α →* α :=
 { to_fun := (^ n),
   map_one' := one_zpow n,
   map_mul' := λ a b, mul_zpow a b n }
 
-end comm_group
+end division_comm_monoid
+
+section group
+variables [group G] [group H] [add_group A] [add_group B]
+
+@[to_additive sub_nsmul] lemma pow_sub (a : G) {m n : ℕ} (h : n ≤ m) : a^(m - n) = a^m * (a^n)⁻¹ :=
+eq_mul_inv_of_mul_eq $ by rw [←pow_add, tsub_add_cancel_of_le h]
+
+@[to_additive] lemma pow_inv_comm (a : G) (m n : ℕ) : (a⁻¹)^m * a^n = a^n * (a⁻¹)^m :=
+(commute.refl a).inv_left.pow_pow _ _
+
+@[to_additive sub_nsmul_neg]
+lemma inv_pow_sub (a : G) {m n : ℕ} (h : n ≤ m) : a⁻¹^(m - n) = (a^m)⁻¹ * a^n :=
+by rw [pow_sub a⁻¹ h, inv_pow, inv_pow, inv_inv]
+
+end group
 
 lemma zero_pow [monoid_with_zero R] : ∀ {n : ℕ}, 0 < n → (0 : R) ^ n = 0
 | (n+1) _ := by rw [pow_succ, zero_mul]
@@ -295,6 +304,24 @@ protected lemma map_pow (f : R →+* S) (a) :
 map_pow f a
 
 end ring_hom
+
+section pow_monoid_with_zero_hom
+
+variables [comm_monoid_with_zero M] {n : ℕ} (hn : 0 < n)
+include M hn
+
+/-- We define `x ↦ x^n` (for positive `n : ℕ`) as a `monoid_with_zero_hom` -/
+def pow_monoid_with_zero_hom : M →*₀ M :=
+{ map_zero' := zero_pow hn,
+  ..pow_monoid_hom n }
+
+@[simp]
+lemma coe_pow_monoid_with_zero_hom : (pow_monoid_with_zero_hom hn : M → M) = (^ n) := rfl
+
+@[simp]
+lemma pow_monoid_with_zero_hom_apply (a : M) : pow_monoid_with_zero_hom hn a = a ^ n := rfl
+
+end pow_monoid_with_zero_hom
 
 lemma pow_dvd_pow [monoid R] (a : R) {m n : ℕ} (h : m ≤ n) :
   a ^ m ∣ a ^ n := ⟨a ^ (n - m), by rw [← pow_add, nat.add_comm, tsub_add_cancel_of_le h]⟩
@@ -400,7 +427,10 @@ alias neg_one_sq ← neg_one_pow_two
 end has_distrib_neg
 
 section ring
-variable [ring R]
+variables [ring R] {a b : R}
+
+protected lemma commute.sq_sub_sq (h : commute a b) : a ^ 2 - b ^ 2 = (a + b) * (a - b) :=
+by rw [sq, sq, h.mul_self_sub_mul_self_eq]
 
 @[simp]
 lemma neg_one_pow_mul_eq_zero_iff {n : ℕ} {r : R} : (-1)^n * r = 0 ↔ r = 0 :=
@@ -410,20 +440,25 @@ by rcases neg_one_pow_eq_or R n; simp [h]
 lemma mul_neg_one_pow_eq_zero_iff {n : ℕ} {r : R} : r * (-1)^n = 0 ↔ r = 0 :=
 by rcases neg_one_pow_eq_or R n; simp [h]
 
+variables [no_zero_divisors R]
+
+protected lemma commute.sq_eq_sq_iff_eq_or_eq_neg (h : commute a b) :
+  a ^ 2 = b ^ 2 ↔ a = b ∨ a = -b :=
+by rw [←sub_eq_zero, h.sq_sub_sq, mul_eq_zero, add_eq_zero_iff_eq_neg, sub_eq_zero, or_comm]
+
+@[simp] lemma sq_eq_one_iff : a^2 = 1 ↔ a = 1 ∨ a = -1 :=
+by rw [←(commute.one_right a).sq_eq_sq_iff_eq_or_eq_neg, one_pow]
+
+lemma sq_ne_one_iff : a^2 ≠ 1 ↔ a ≠ 1 ∧ a ≠ -1 := sq_eq_one_iff.not.trans not_or_distrib
+
 end ring
 
 section comm_ring
 variables [comm_ring R]
 
-lemma sq_sub_sq (a b : R) : a ^ 2 - b ^ 2 = (a + b) * (a - b) :=
-by rw [sq, sq, mul_self_sub_mul_self]
+lemma sq_sub_sq (a b : R) : a ^ 2 - b ^ 2 = (a + b) * (a - b) := (commute.all a b).sq_sub_sq
 
 alias sq_sub_sq ← pow_two_sub_pow_two
-
-lemma eq_or_eq_neg_of_sq_eq_sq [no_zero_divisors R] (a b : R) (h : a ^ 2 = b ^ 2) :
-  a = b ∨ a = -b :=
-by rwa [← add_eq_zero_iff_eq_neg, ← sub_eq_zero, or_comm, ← mul_eq_zero,
-        ← sq_sub_sq a b, sub_eq_zero]
 
 lemma sub_sq (a b : R) : (a - b) ^ 2 = a ^ 2 - 2 * a * b + b ^ 2 :=
 by rw [sub_eq_add_neg, add_sq, neg_sq, mul_neg, ← sub_eq_add_neg]
@@ -433,16 +468,22 @@ alias sub_sq ← sub_pow_two
 lemma sub_sq' (a b : R) : (a - b) ^ 2 = a ^ 2 + b ^ 2 - 2 * a * b :=
 by rw [sub_eq_add_neg, add_sq', neg_sq, mul_neg, ← sub_eq_add_neg]
 
+variables [no_zero_divisors R] {a b : R}
+
+lemma sq_eq_sq_iff_eq_or_eq_neg : a ^ 2 = b ^ 2 ↔ a = b ∨ a = -b :=
+(commute.all a b).sq_eq_sq_iff_eq_or_eq_neg
+
+lemma eq_or_eq_neg_of_sq_eq_sq (a b : R) : a ^ 2 = b ^ 2 → a = b ∨ a = -b :=
+sq_eq_sq_iff_eq_or_eq_neg.1
+
 /- Copies of the above comm_ring lemmas for `units R`. -/
 namespace units
 
-lemma eq_or_eq_neg_of_sq_eq_sq [no_zero_divisors R] (a b : Rˣ) (h : a ^ 2 = b ^ 2) :
-  a = b ∨ a = -b :=
-begin
-  refine (eq_or_eq_neg_of_sq_eq_sq _ _ _).imp (λ h, units.ext h) (λ h, units.ext h),
-  replace h := congr_arg (coe : Rˣ → R) h,
-  rwa [units.coe_pow, units.coe_pow] at h,
-end
+protected lemma sq_eq_sq_iff_eq_or_eq_neg {a b : Rˣ} : a ^ 2 = b ^ 2 ↔ a = b ∨ a = -b :=
+by simp_rw [ext_iff, coe_pow, sq_eq_sq_iff_eq_or_eq_neg, units.coe_neg]
+
+protected lemma eq_or_eq_neg_of_sq_eq_sq (a b : Rˣ) (h : a ^ 2 = b ^ 2) : a = b ∨ a = -b :=
+units.sq_eq_sq_iff_eq_or_eq_neg.1 h
 
 end units
 

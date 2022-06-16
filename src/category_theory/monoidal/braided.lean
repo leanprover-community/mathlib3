@@ -339,10 +339,8 @@ section comm_monoid
 
 variables (M : Type u) [comm_monoid M]
 
-instance comm_monoid_discrete : comm_monoid (discrete M) := by { dsimp [discrete], apply_instance }
-
 instance : braided_category (discrete M) :=
-{ braiding := λ X Y, eq_to_iso (mul_comm X Y), }
+{ braiding := λ X Y, discrete.eq_to_iso (mul_comm X.as Y.as), }
 
 variables {M} {N : Type u} [comm_monoid N]
 

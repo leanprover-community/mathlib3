@@ -110,7 +110,7 @@ lemma pred_true_of_cond_count_eq_one (h : cond_count s t = 1) :
 begin
   have hsf := finite_of_cond_count_ne_zero (by { rw h, exact one_ne_zero }),
   rw [cond_count, cond_apply _ hsf.measurable_set, mul_comm] at h,
-  replace h := ennreal.eq_inv_of_mul_eq_one h,
+  replace h := ennreal.eq_inv_of_mul_eq_one_left h,
   rw [inv_inv, measure.count_apply_finite _ hsf,
     measure.count_apply_finite _ (hsf.inter_of_left _), nat.cast_inj] at h,
   suffices : s ∩ t = s,
@@ -158,7 +158,7 @@ begin
   exacts [htu.mono inf_le_right inf_le_right, (hs.inter_of_left _).measurable_set],
 end
 
-lemma cond_count_compl (hs : s.finite) (hs' : s.nonempty) :
+lemma cond_count_compl (t : set α) (hs : s.finite) (hs' : s.nonempty) :
   cond_count s t + cond_count s tᶜ = 1 :=
 begin
   rw [← cond_count_union hs disjoint_compl_right, set.union_compl_self,
@@ -189,7 +189,7 @@ begin
 end
 
 /-- A version of the law of total probability for counting probabilites. -/
-lemma cond_count_add_compl_eq (hs : s.finite) :
+lemma cond_count_add_compl_eq (u t : set α) (hs : s.finite) :
   cond_count (s ∩ u) t * cond_count s u + cond_count (s ∩ uᶜ) t * cond_count s uᶜ =
   cond_count s t :=
 begin

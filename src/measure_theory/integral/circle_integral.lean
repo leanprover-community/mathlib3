@@ -109,6 +109,13 @@ lemma circle_map_mem_closed_ball (c : ℂ) {R : ℝ} (hR : 0 ≤ R) (θ : ℝ) :
   circle_map c R θ ∈ closed_ball c R :=
 sphere_subset_closed_ball (circle_map_mem_sphere c hR θ)
 
+lemma circle_map_not_mem_ball (c : ℂ) (R : ℝ) (θ : ℝ) : circle_map c R θ ∉ ball c R :=
+by simp [dist_eq, le_abs_self]
+
+lemma circle_map_ne_mem_ball {c : ℂ} {R : ℝ} {w : ℂ} (hw : w ∈ ball c R) (θ : ℝ) :
+  circle_map c R θ ≠ w :=
+(ne_of_mem_of_not_mem hw (circle_map_not_mem_ball _ _ _)).symm
+
 /-- The range of `circle_map c R` is the circle with center `c` and radius `|R|`. -/
 @[simp] lemma range_circle_map (c : ℂ) (R : ℝ) : range (circle_map c R) = sphere c (|R|) :=
 calc range (circle_map c R) = c +ᵥ R • range (λ θ : ℝ, exp (θ * I)) :
@@ -132,7 +139,7 @@ mt circle_map_eq_center_iff.1 hR
 lemma has_deriv_at_circle_map (c : ℂ) (R : ℝ) (θ : ℝ) :
   has_deriv_at (circle_map c R) (circle_map 0 R θ * I) θ :=
 by simpa only [mul_assoc, one_mul, of_real_clm_apply, circle_map, of_real_one, zero_add]
- using ((of_real_clm.has_deriv_at.mul_const I).cexp_real.const_mul (R : ℂ)).const_add c
+ using ((of_real_clm.has_deriv_at.mul_const I).cexp.const_mul (R : ℂ)).const_add c
 
 /- TODO: prove `cont_diff ℝ (circle_map c R)`. This needs a version of `cont_diff.mul`
 for multiplication in a normed algebra over the base field. -/
@@ -255,7 +262,7 @@ begin
         mem_nhds_within_of_mem_nhds (ball_mem_nhds _ zero_lt_one)],
       simp [dist_eq, sub_eq_zero] { contextual := tt } },
     refine ((((has_deriv_at_circle_map c R θ).is_O_sub).mono inf_le_left).inv_rev
-      (this.mono (λ θ', and.right))).trans _,
+      (this.mono (λ θ' h₁ h₂, absurd h₂ h₁.2))).trans _,
     refine is_O.of_bound (|R|)⁻¹ (this.mono $ λ θ' hθ', _),
     set x := abs (f θ'),
     suffices : x⁻¹ ≤ x ^ n, by simpa [inv_mul_cancel_left₀, mt _root_.abs_eq_zero.1 hR],
@@ -487,7 +494,7 @@ begin
   { rw [hR, mul_zero],
     exact mul_nonneg (inv_nonneg.2 real.two_pi_pos.le)
       (interval_integral.integral_nonneg real.two_pi_pos.le (λ _ _, norm_nonneg _)) },
-  { rw [inv_pow₀, inv_mul_cancel_right₀ hR] }
+  { rw [inv_pow, inv_mul_cancel_right₀ hR] }
 end
 
 /-- For any circle integrable function `f`, the power series `cauchy_power_series f c R` multiplied
@@ -515,7 +522,7 @@ begin
     refine has_sum.smul_const _,
     have : ∥w / (circle_map c R θ - c)∥ < 1, by simpa [abs_of_pos hR] using hwR.2,
     convert (has_sum_geometric_of_norm_lt_1 this).mul_right _,
-    simp [← sub_sub, ← mul_inv₀, sub_mul, div_mul_cancel _ (circle_map_ne_center hR.ne')] }
+    simp [← sub_sub, ← mul_inv, sub_mul, div_mul_cancel _ (circle_map_ne_center hR.ne')] }
 end
 
 /-- For any circle integrable function `f`, the power series `cauchy_power_series f c R`, `R > 0`,
@@ -574,7 +581,7 @@ begin
   refine this ▸ has_sum_single _ (λ n hn, _),
   simp only [div_eq_mul_inv, mul_pow, integral_const_mul, mul_assoc],
   rw [(integral_congr hR.le (λ z hz, _)).trans (H n hn), mul_zero],
-  rw [← pow_succ', ← zpow_coe_nat, inv_zpow₀, ← zpow_neg₀, int.coe_nat_succ, neg_add,
+  rw [← pow_succ', ← zpow_coe_nat, inv_zpow, ← zpow_neg, int.coe_nat_succ, neg_add,
     sub_eq_add_neg _ (1 : ℤ)]
 end
 

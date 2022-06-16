@@ -143,7 +143,7 @@ begin
   have : (finset.univ.image (λ (m : fin (i + 1)), (c 1) ^ (m : ℕ))).card = i + 1,
   { conv_rhs { rw [← finset.card_fin (i+1)] },
     cases n, { contradiction },
-    rw finset.card_image_eq_iff_inj_on,
+    rw finset.card_image_iff,
     refine set.inj_on_of_injective (λ m m' h, fin.ext _) _,
     refine pow_injective_of_not_unit
       (element_of_chain_not_is_unit_of_index_ne_zero (by simp) h₁) _ h,
@@ -172,7 +172,7 @@ begin
   refine (nat.lt_succ_iff.1 i.prop).antisymm' (nat.le_of_succ_le_succ _),
   calc n + 1 = (finset.univ : finset (fin (n + 1))).card : (finset.card_fin _).symm
          ... = (finset.univ.image c).card :
-    (finset.card_image_eq_iff_inj_on.mpr (h₁.injective.inj_on _)).symm
+    (finset.card_image_iff.mpr (h₁.injective.inj_on _)).symm
          ... ≤ (finset.univ.image (λ (m : fin (i + 1)), (c 1)^(m : ℕ))).card :
           finset.card_le_of_subset _
          ... ≤ (finset.univ : finset (fin (i + 1))).card : finset.card_image_le

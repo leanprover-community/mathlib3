@@ -327,13 +327,27 @@ begin
   intros u hu,
   rw [uniformity_prod_eq_prod, mem_map, mem_prod_iff] at hu,
   obtain ⟨v, hv, w, hw, hvw⟩ := hu,
-  rw eventually_iff,
-  rw mem_prod_iff,
-  specialize h v hv,
-  specialize h' w hw,
-  have := (h.prod_mk h'),
-  exact mem_prod_iff.mpr ⟨_, h v hv, _, h' w hw,
-    λ i hi a ha, hvw (show (_, _) ∈ v ×ˢ w, from ⟨hi.1 a.1 ha.1, hi.2 a.2 ha.2⟩)⟩,
+  simp,
+  let pr := (λ (m : (ι × ι') × ι × ι'), ∀ (a : α) (b : α'),
+    a ∈ s → b ∈ s' → ((F m.fst.fst a, F' m.fst.snd b), F m.snd.fst a, F' m.snd.snd b) ∈ u),
+  have foo : ∀ m : (ι × ι') × ι × ι', (∀ (a : α) (b : α'),
+    a ∈ s → b ∈ s' → ((F m.fst.fst a, F' m.fst.snd b), F m.snd.fst a, F' m.snd.snd b) ∈ u) ↔ (pr m),
+  {
+    intros m,
+    simp [pr],
+  },
+  simp_rw foo,
+
+  have : tendsto (λ m : (ι × ι') × ι × ι', ((m.fst.fst, m.snd.fst), m.fst.snd, m.snd.snd)) (p ×ᶠ p' ×ᶠ (p ×ᶠ p')) (p ×ᶠ p ×ᶠ (p' ×ᶠ p')), {
+    sorry,
+  },
+  apply (this.eventually ((h v hv).prod_mk (h' w hw))).mono,
+  intros x hx a b ha hb,
+  rw ←set.image_subset_iff at hvw,
+  refine set.mem_of_mem_of_subset _ hvw,
+  simp only [mem_image, mem_prod, prod.mk.inj_iff, prod.exists],
+  refine ⟨_, _, _, _, ⟨hx.1 a ha, hx.2 b hb⟩, _⟩,
+  simp only [eq_self_iff_true, and_self],
 end
 
 lemma uniform_cauchy_seq_on.prod {ι' β' : Type*} [uniform_space β'] {F' : ι' → α → β'}

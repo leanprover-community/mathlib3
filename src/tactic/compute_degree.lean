@@ -5,38 +5,38 @@ Authors: Damiano Testa
 -/
 import data.polynomial.degree.lemmas
 
-/-! # `compute_degree_le` a tactic for computing `nat_degree`s of polynomials
+/-! # `compute_degree_le` a tactic for computing degrees of polynomials
 
 This file defines the tactic `compute_degree_le`.
-Applied when the goal is of the form `f.nat_degree ≤ d`, it tries to solve it.
-There is also a more second version `compute_degree_le'` that recurses more aggressively into
-powers.  This version is more likely to leave unsolvable side-goals, especially if there are
-exponents that are not closed naturals that could be zero.
+
+Using `compute_degree_le` when the goal is of the form `f.nat_degree ≤ d`, tries to solve the goal.
+It may leave side-goals, in case it is not entirely successful.
+
+There is also a second version `compute_degree_le!` that recurses more aggressively into powers.
+If there are exponents that are not closed naturals that could be zero, then the `!`-version
+could leave unsolvable side-goals.
 
 See the doc-string for more details.
 
 ##  Future work
 
-* Add functionality to deal with goals of the form `f.nat_degree = d` (this PR is part of a PR
-  that does exactly this).
+* Deal with goals of the form `f.(nat_)degree = d` (PR #14040 does exactly this).
 * Add better functionality to deal with exponents that are not necessarily natural numbers.
-* Add support for proving goals of the from `f.nat_degree ≠ 0`.
+* Add support for proving goals of the from `f.(nat_)degree ≠ 0`.
 * Make sure that `degree` and `nat_degree` are equally supported.
 
 ##  Implementation details
 
 We start with a goal of the form `f.nat_degree ≤ d`.  Recurse into `f` breaking apart sums and
-products.  Take care of numerals, `C a, X (^ n), monomial a n` separately.
--/
+products.  Take care of numerals, `C a, X (^ n), monomial a n` separately. -/
 
 namespace polynomial
+variables {R : Type*} [semiring R] (a : polynomial R)
 
-lemma nat_degree_bit0 {R : Type*} [semiring R] (a : polynomial R) :
-  (bit0 a).nat_degree ≤ a.nat_degree :=
+lemma nat_degree_bit0 : (bit0 a).nat_degree ≤ a.nat_degree :=
 (nat_degree_add_le _ _).trans (by simp)
 
-lemma nat_degree_bit1 {R : Type*} [semiring R] (a : polynomial R) :
-  (bit1 a).nat_degree ≤ a.nat_degree :=
+lemma nat_degree_bit1 : (bit1 a).nat_degree ≤ a.nat_degree :=
 (nat_degree_add_le _ _).trans (by simp [nat_degree_bit0])
 
 end polynomial
@@ -48,7 +48,7 @@ open expr
 /--  `guess_degree e` assumes that `e` is an expression in a polynomial ring, and makes an attempt
 at guessing the degree of `e`.  Heuristics for `guess_degree`:
 * `0, 1`,            guessing `0`,
-* `C a`              guessing `0`,
+* `C a`,             guessing `0`,
 * `polynomial.X`,    guessing `1`,
 *  `bit0 f, bit1 f`, guessing `guess_degree f`,
                               (this could give wrong results, e.g. `bit0 f = 0` if the
@@ -129,16 +129,16 @@ meta def resolve_sum_step (pows : bool) : expr → tactic unit
   "{ppe}\nbut it expects `f.nat_degree ≤ d`")
 
 /--  `norm_assum` simply tries `norm_num` and `assumption`.  It is used to try to discharge as
-many as possible of the side-goals of `compute_degree` and `compute_degree_le`, once they have
-processed all the goals of the form `f.(nat_)degree ≤/= d`.
-Such side-goals are all of the form `m ≤ n`, for natural numbers `m, n` or of the form
-`a ≠ 0` with `a` is a coefficient of the polynomial `f` in question. -/
+many as possible of the side-goals of `compute_degree_le`.
+Several side-goals are of the form `m ≤ n`, for natural numbers `m, n` or of the form `a ≠ 0`
+with `a` is a coefficient of the polynomial `f` in question. -/
 meta def norm_assum : tactic unit :=
 try `[ norm_num ] >> try assumption
 
-/--  If `check_deg_le tl tr` fails, then either at least one of the expressions `tl, tr` involves
-a non-closed natural number, or the expected degree of `tl` is smaller than `tr`.  In either
-case, failure means that we can proceed with the checking in `compute_degree_le`. -/
+/--  Assume that `tl` is an expression in a polynomial ring and `tr` is an expression of type `ℕ`.
+If `check_deg_le tl tr` fails, then either at least one of the expressions `guess_deg tl` or `tr`
+involves a non-closed natural number, or the expected degree of `tl` is smaller than `tr`.
+In either case, failure means that we can proceed with the checking in `compute_degree_le`. -/
 meta def check_deg_le (tl tr : expr) : tactic unit :=
 do m' ← (guess_degree tl) >>= eval_expr ℕ,
   td ← eval_expr ℕ tr,

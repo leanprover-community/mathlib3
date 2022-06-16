@@ -496,7 +496,7 @@ def rel_iso_of_unique_of_irrefl (r : α → α → Prop) (s : β → β → Prop
 ⟨equiv.equiv_of_unique α β,
   λ _ _, by rw [not_rel_iff_of_subsingleton r, not_rel_iff_of_subsingleton s]⟩
 
-  /-- Two reflexive relations on a unique type are isomorphic. -/
+/-- Two reflexive relations on a unique type are isomorphic. -/
 def rel_iso_of_unique_of_refl (r : α → α → Prop) (s : β → β → Prop)
   [is_refl α r] [is_refl β s] [unique α] [unique β] : r ≃r s :=
 ⟨equiv.equiv_of_unique α β,

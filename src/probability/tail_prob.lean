@@ -60,7 +60,11 @@ by rw hf
 
 lemma measurable_set_prod_Icc : measurable_set {x : ℝ × ℝ | x.1 ∈ set.Icc 0 x.2} :=
 begin
-  sorry
+  rw (_ : {x : ℝ × ℝ | x.fst ∈ set.Icc 0 x.snd} =
+    (λ x : ℝ × ℝ, x.1) ⁻¹' (set.Ici 0) ∩ (λ x : ℝ × ℝ, x.2 - x.1) ⁻¹' (set.Ici 0)),
+  { refine (measurable_fst measurable_set_Ici).inter
+    ((measurable_snd.sub measurable_fst) measurable_set_Ici) },
+  { ext, simp },
 end
 
 lemma integral_pow_nonneg_eq_integral_Ici_pow

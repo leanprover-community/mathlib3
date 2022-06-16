@@ -437,6 +437,9 @@ instance : canonically_ordered_add_monoid (multiset α) :=
   ..multiset.order_bot,
   ..multiset.ordered_cancel_add_comm_monoid }
 
+/-- This is a `rfl` and `simp` version of `bot_eq_zero`. -/
+@[simp] theorem bot_eq_zero : (⊥ : multiset α) = 0 := rfl
+
 @[simp] theorem cons_add (a : α) (s t : multiset α) : a ::ₘ s + t = a ::ₘ (s + t) :=
 by rw [← singleton_add, ← singleton_add, add_assoc]
 

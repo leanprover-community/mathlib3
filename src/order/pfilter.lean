@@ -144,13 +144,11 @@ section complete_semilattice_Inf_stuff
 
 variables [complete_semilattice_Inf P] {F : pfilter P}
 
--- be careful! Attempting to remove the @ may leave you with false goals because unification
--- may not pick up the op
-lemma Inf_gc : @galois_connection P (pfilter P)ᵒᵈ _ _ principal (λ F, Inf (id F : pfilter P)) :=
-λ _ _, by simp; refl
+lemma Inf_gc : galois_connection (λ x, order_dual.to_dual (principal x)) (λ F, Inf (order_dual.of_dual F : pfilter P)) :=
+λ x F, by { simp, refl }
 
 /-- If a poset `P` admits arbitrary `Inf`s, then `principal` and `Inf` form a Galois coinsertion. -/
-def Inf_gi : @galois_coinsertion P (pfilter P)ᵒᵈ _ _   principal (λ F, Inf F : pfilter P → P) :=
+def Inf_gi : galois_coinsertion (λ x, order_dual.to_dual (principal x)) (λ F, Inf (order_dual.of_dual F : pfilter P)) :=
 { choice := λ F _, Inf (id F : pfilter P),
   gc := Inf_gc,
   u_l_le := λ s, Inf_le $ mem_principal.2 $ le_refl s,

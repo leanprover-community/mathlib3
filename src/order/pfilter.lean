@@ -161,4 +161,3 @@ end complete_semilattice_Inf_stuff
 end pfilter
 
 end order
-#lint

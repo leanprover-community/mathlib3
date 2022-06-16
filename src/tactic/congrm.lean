@@ -126,6 +126,8 @@ if pat.is_mvar || pat.get_delayed_abstraction_locals.is_some then do
   get_goals <* set_goals []
 else match pat with
 | expr.app _ _ := do
+  `(%%lhs = %%_) ← target,
+  pat ← convert_to_explicit pat lhs,
   cl ← mk_specialized_congr_lemma pat,
   H_congr_lemma ← assertv `H_congr_lemma cl.type cl.proof,
   [prf] ← get_goals,

@@ -1297,6 +1297,7 @@ def to_rat_alg_hom [ring R] [ring S] [algebra ℚ R] [algebra ℚ S] (f : R →+
   R →ₐ[ℚ] S :=
 { commutes' := f.map_rat_algebra_map, .. f }
 
+@[simps]
 def equiv_rat_alg_hom [ring R] [ring S] [algebra ℚ R] [algebra ℚ S] :
 (R →ₐ[ℚ] S) ≃ (R →+* S) :=
 { to_fun := coe,

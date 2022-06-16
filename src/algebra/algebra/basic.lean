@@ -1297,15 +1297,31 @@ def to_rat_alg_hom [ring R] [ring S] [algebra ℚ R] [algebra ℚ S] (f : R →+
   R →ₐ[ℚ] S :=
 { commutes' := f.map_rat_algebra_map, .. f }
 
+@[simp]
+lemma rat_alg_hom_to_ring_hom_eq_id [ring R] [ring S] [algebra ℚ R] [algebra ℚ S]
+(f : R →+* S) : f.to_rat_alg_hom.to_ring_hom = f :=
+ring_hom.ext (by {intro x, refl, })
+
+end ring_hom
+
+section
+
+variables {R S : Type*}
+
+@[simp]
+lemma alg_hom.ring_hom_to_rat_alg_hom_eq_id [ring R] [ring S] [algebra ℚ R] [algebra ℚ S]
+(f : R →ₐ[ℚ] S) : f.to_ring_hom.to_rat_alg_hom = f :=
+alg_hom.ext (by {intro x, refl, })
+
 @[simps]
-def equiv_rat_alg_hom [ring R] [ring S] [algebra ℚ R] [algebra ℚ S] :
+def ring_hom.equiv_rat_alg_hom [ring R] [ring S] [algebra ℚ R] [algebra ℚ S] :
 (R →ₐ[ℚ] S) ≃ (R →+* S) :=
 { to_fun := coe,
   inv_fun := λ f : R →+* S, f.to_rat_alg_hom,
-  left_inv  := λ x, alg_hom.ext $ by { intro x, refl, },
-  right_inv := λ x, ring_hom.ext $ by { intro x, refl, }, }
+  left_inv := λ f, alg_hom.ring_hom_to_rat_alg_hom_eq_id _,
+  right_inv := λ f, ring_hom.rat_alg_hom_to_ring_hom_eq_id _, }
 
-end ring_hom
+end
 
 section rat
 

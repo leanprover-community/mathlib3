@@ -62,6 +62,13 @@ begin
   exact (true_and true).symm,
 end
 
+example {f g : ℕ → ℕ → ℕ} (h : f = g) : (λ i j, f i j) = (λ i j, g i j) :=
+begin
+  congrm λ i j, _,
+  guard_target f i j = g i j,
+  rw h,
+end
+
 example : true ∧ false ↔ (true ∧ true) ∧ false :=
 begin
   congrm _₂ _ _,

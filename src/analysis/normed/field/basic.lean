@@ -514,27 +514,17 @@ variables (α) [nondiscrete_normed_field α]
 
 lemma exists_one_lt_norm : ∃x : α, 1 < ∥x∥ := ‹nondiscrete_normed_field α›.non_trivial
 
-lemma exists_norm_lt_one : ∃x : α, 0 < ∥x∥ ∧ ∥x∥ < 1 :=
-begin
-  rcases exists_one_lt_norm α with ⟨y, hy⟩,
-  refine ⟨y⁻¹, _, _⟩,
-  { simp only [inv_eq_zero, ne.def, norm_pos_iff],
-    rintro rfl,
-    rw norm_zero at hy,
-    exact lt_asymm zero_lt_one hy },
-  { simp [inv_lt_one hy] }
-end
-
 lemma exists_lt_norm (r : ℝ) : ∃ x : α, r < ∥x∥ :=
 let ⟨w, hw⟩ := exists_one_lt_norm α in
 let ⟨n, hn⟩ := pow_unbounded_of_one_lt r hw in
 ⟨w^n, by rwa norm_pow⟩
 
 lemma exists_norm_lt {r : ℝ} (hr : 0 < r) : ∃ x : α, 0 < ∥x∥ ∧ ∥x∥ < r :=
-let ⟨w, hw⟩ := exists_one_lt_norm α in
-let ⟨n, hle, hlt⟩ := exists_mem_Ioc_zpow hr hw in
-⟨w^n, by { rw norm_zpow; exact zpow_pos_of_pos (lt_trans zero_lt_one hw) _},
-by rwa norm_zpow⟩
+let ⟨w, hw⟩ := exists_lt_norm α r⁻¹ in
+⟨w⁻¹, by rwa [← set.mem_Ioo, norm_inv, ← set.mem_inv, set.inv_Ioo_0_left hr]⟩
+
+lemma exists_norm_lt_one : ∃x : α, 0 < ∥x∥ ∧ ∥x∥ < 1 :=
+exists_norm_lt α one_pos
 
 variable {α}
 

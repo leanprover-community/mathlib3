@@ -143,7 +143,7 @@ let hζ := (zeta_primitive_root n K L).eq_pow_of_pow_eq_one hμ.pow_eq_one n.pos
 lemma from_zeta_aut_spec [ne_zero ((n : ℕ) : K)] : from_zeta_aut hμ h (zeta n K L) = μ :=
 begin
   simp_rw [from_zeta_aut, aut_equiv_pow_symm_apply],
-  generalize_proofs _ hζ h _ hμ _,
+  generalize_proofs _ _ hζ h _ hμ _,
   rw [←hζ.power_basis_gen K] {occs := occurrences.pos [4]},
   rw [power_basis.equiv_of_minpoly_gen, hμ.power_basis_gen K],
   convert h.some_spec.some_spec,

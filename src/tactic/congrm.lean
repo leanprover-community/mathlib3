@@ -124,9 +124,8 @@ meta def equate_with_pattern_core : expr → tactic (list expr) | pat :=
 if pat.is_mvar || pat.get_delayed_abstraction_locals.is_some then do
   try $ applyc ``_root_.propext,
   get_goals <* set_goals []
-else if pat.is_app then do
-  `(%%lhs = %%_) ← target,
-  pat ← convert_to_explicit pat lhs,
+else match pat with
+| expr.app _ _ := do
   cl ← mk_specialized_congr_lemma pat,
   H_congr_lemma ← assertv `H_congr_lemma cl.type cl.proof,
   [prf] ← get_goals,
@@ -139,17 +138,18 @@ else if pat.is_app then do
     set_goals [subgoal],
     equate_with_pattern_core subpat),
   pure subgoals.join
-else if pat.is_lambda then do
+| expr.lam _ _ _ body := do
   applyc ``_root_.funext,
   x ← intro pat.binding_name,
-  equate_with_pattern_core $ pat.lambda_body.instantiate_var x
-else if pat.is_pi then do
+  equate_with_pattern_core $ body.instantiate_var x
+| expr.pi _ _ _ codomain := do
   applyc ``_root_.pi_congr,
   x ← intro pat.binding_name,
-  equate_with_pattern_core $ pat.pi_codomain.instantiate_var x
-else do
+  equate_with_pattern_core $ codomain.instantiate_var x
+| _ := do
   pat ← pp pat,
   fail $ to_fmt "unsupported pattern:\n" ++ pat
+end
 
 /--
 `equate_with_pattern pat` solves a single goal of the form `lhs = rhs`

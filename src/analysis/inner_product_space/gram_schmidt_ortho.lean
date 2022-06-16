@@ -229,7 +229,7 @@ theorem gram_schmidt_orthonormal (f : ι → E) (h₀ : linear_independent 𝕜 
 begin
   unfold orthonormal,
   split,
-  { simp only [gram_schmidt_normed_unit_length, h₀, forall_const] },
+  { simp only [gram_schmidt_normed_unit_length, h₀, eq_self_iff_true, implies_true_iff], },
   { intros i j hij,
     simp only [gram_schmidt_normed, inner_smul_left, inner_smul_right, is_R_or_C.conj_inv,
       is_R_or_C.conj_of_real, mul_eq_zero, inv_eq_zero, is_R_or_C.of_real_eq_zero, norm_eq_zero],

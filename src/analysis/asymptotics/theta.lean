@@ -100,6 +100,14 @@ lemma is_Theta.is_O_congr_left (h : f' =Θ[l] g') : f' =O[l] k ↔ g' =O[l] k :=
 lemma is_Theta.is_O_congr_right (h : g' =Θ[l] k') : f =O[l] g' ↔ f =O[l] k' :=
 ⟨λ H, H.trans_is_Theta h, λ H, H.trans_is_Theta h.symm⟩
 
+lemma is_Theta.mono (h : f =Θ[l] g) (hl : l' ≤ l) : f =Θ[l'] g := ⟨h.1.mono hl, h.2.mono hl⟩
+
+lemma is_Theta.sup (h : f' =Θ[l] g') (h' : f' =Θ[l'] g') : f' =Θ[l ⊔ l'] g' :=
+⟨h.1.sup h'.1, h.2.sup h'.2⟩
+
+@[simp] lemma is_Theta_sup : f' =Θ[l ⊔ l'] g' ↔ f' =Θ[l] g' ∧ f' =Θ[l'] g' :=
+⟨λ h, ⟨h.mono le_sup_left, h.mono le_sup_right⟩, λ h, h.1.sup h.2⟩
+
 lemma is_Theta.eq_zero_iff (h : f'' =Θ[l] g'') : ∀ᶠ x in l, f'' x = 0 ↔ g'' x = 0 :=
 h.1.eq_zero_imp.mp $ h.2.eq_zero_imp.mono $ λ x, iff.intro
 
@@ -145,14 +153,6 @@ begin
   { simpa only [zpow_of_nat] using h.pow _ },
   { simpa only [zpow_neg_succ_of_nat] using (h.pow _).inv }
 end
-
-lemma is_Theta.mono (h : f =Θ[l] g) (hl : l' ≤ l) : f =Θ[l'] g := ⟨h.1.mono hl, h.2.mono hl⟩
-
-lemma is_Theta.sup (h : f' =Θ[l] g') (h' : f' =Θ[l'] g') : f' =Θ[l ⊔ l'] g' :=
-⟨h.1.sup h'.1, h.2.sup h'.2⟩
-
-@[simp] lemma is_Theta_sup : f' =Θ[l ⊔ l'] g' ↔ f' =Θ[l] g' ∧ f' =Θ[l'] g' :=
-⟨λ h, ⟨h.mono le_sup_left, h.mono le_sup_right⟩, λ h, h.1.sup h.2⟩
 
 lemma is_Theta_const_const {c₁ : E''} {c₂ : F''} (h₁ : c₁ ≠ 0) (h₂ : c₂ ≠ 0) :
   (λ x : α, c₁) =Θ[l] (λ x, c₂) :=

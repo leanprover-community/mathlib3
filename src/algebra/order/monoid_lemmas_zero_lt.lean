@@ -294,19 +294,19 @@ section partial_order
 variables [partial_order α]
 
 @[priority 100] -- see Note [lower instance priority]
-instance pos_mul_strict_mono.to_pos_mul_mono [pos_mul_strict_mono α] : pos_mul_mono α :=
+instance pos_mul_mono_of_pos_mul_strict_mono [pos_mul_strict_mono α] : pos_mul_mono α :=
 ⟨λ x a b h, h.eq_or_lt.elim (λ h', h' ▸ le_rfl) (λ h', (mul_lt_mul_left' h' x.prop).le)⟩
 
 @[priority 100] -- see Note [lower instance priority]
-instance mul_pos_strict_mono.to_mul_pos_mono [mul_pos_strict_mono α] : mul_pos_mono α :=
+instance mul_pos_mono_of_mul_pos_strict_mono [mul_pos_strict_mono α] : mul_pos_mono α :=
 ⟨λ x a b h, h.eq_or_lt.elim (λ h', h' ▸ le_rfl) (λ h', (mul_lt_mul_right' h' x.prop).le)⟩
 
 @[priority 100] -- see Note [lower instance priority]
-instance pos_mul_mono_rev.to_pos_mul_reflect_lt [pos_mul_mono_rev α] : pos_mul_reflect_lt α :=
+instance pos_mul_reflect_lt_of_pos_mul_mono_rev [pos_mul_mono_rev α] : pos_mul_reflect_lt α :=
 ⟨λ x a b h, lt_of_le_of_ne (le_of_mul_le_mul_left' h.le x.prop) (λ h', by simpa [h'] using h)⟩
 
 @[priority 100] -- see Note [lower instance priority]
-instance mul_pos_mono_rev.to_mul_pos_reflect_lt [mul_pos_mono_rev α] : mul_pos_reflect_lt α :=
+instance mul_pos_reflect_lt_of_mul_pos_mono_rev [mul_pos_mono_rev α] : mul_pos_reflect_lt α :=
 ⟨λ x a b h, lt_of_le_of_ne (le_of_mul_le_mul_right' h.le x.prop) (λ h', by simpa [h'] using h)⟩
 
 end partial_order
@@ -315,12 +315,44 @@ section linear_order
 variables [linear_order α]
 
 @[priority 100] -- see Note [lower instance priority]
-instance pos_mul_strict_mono.to_pos_mul_mono_rev [pos_mul_strict_mono α] : pos_mul_mono_rev α :=
+instance pos_mul_mono_rev_of_pos_mul_strict_mono [pos_mul_strict_mono α] : pos_mul_mono_rev α :=
 ⟨λ x a b h, le_of_not_lt $ λ h', h.not_lt (mul_lt_mul_left' h' x.prop)⟩
 
 @[priority 100] -- see Note [lower instance priority]
-instance mul_pos_strict_mono.to_mul_pos_mono_rev [mul_pos_strict_mono α] : mul_pos_mono_rev α :=
+instance mul_pos_mono_rev_of_mul_pos_strict_mono [mul_pos_strict_mono α] : mul_pos_mono_rev α :=
 ⟨λ x a b h, le_of_not_lt $ λ h', h.not_lt (mul_lt_mul_right' h' x.prop)⟩
+
+lemma pos_mul_strict_mono_of_pos_mul_mono_rev [pos_mul_mono_rev α] : pos_mul_strict_mono α :=
+⟨λ x a b h, lt_of_not_le $ λ h', h.not_le (le_of_mul_le_mul_left' h' x.prop)⟩
+
+lemma mul_pos_strict_mono_of_mul_pos_mono_rev [mul_pos_mono_rev α] : mul_pos_strict_mono α :=
+⟨λ x a b h, lt_of_not_le $ λ h', h.not_le (le_of_mul_le_mul_right' h' x.prop)⟩
+
+lemma pos_mul_strict_mono_iff_pos_mul_mono_rev : pos_mul_strict_mono α ↔ pos_mul_mono_rev α :=
+⟨ @zero_lt.pos_mul_mono_rev_of_pos_mul_strict_mono _ _ _ _,
+          @pos_mul_strict_mono_of_pos_mul_mono_rev _ _ _ _⟩
+
+lemma mul_pos_strict_mono_iff_mul_pos_mono_rev : mul_pos_strict_mono α ↔ mul_pos_mono_rev α :=
+⟨ @zero_lt.mul_pos_mono_rev_of_mul_pos_strict_mono _ _ _ _,
+          @mul_pos_strict_mono_of_mul_pos_mono_rev _ _ _ _⟩
+
+lemma pos_mul_mono_of_pos_mul_reflect_lt [pos_mul_reflect_lt α] : pos_mul_mono α :=
+⟨λ x a b h, le_of_not_lt $ λ h', h.not_lt (lt_of_mul_lt_mul_left' h' x.prop)⟩
+
+lemma mul_pos_mono_of_mul_pos_reflect_lt [mul_pos_reflect_lt α] : mul_pos_mono α :=
+⟨λ x a b h, le_of_not_lt $ λ h', h.not_lt (lt_of_mul_lt_mul_right' h' x.prop)⟩
+
+lemma pos_mul_reflect_lt_of_pos_mul_mono [pos_mul_mono α] : pos_mul_reflect_lt α :=
+⟨λ x a b h, lt_of_not_le $ λ h', h.not_le (mul_le_mul_left' h' x.prop)⟩
+
+lemma mul_pos_reflect_lt_of_mul_pos_mono [mul_pos_mono α] : mul_pos_reflect_lt α :=
+⟨λ x a b h, lt_of_not_le $ λ h', h.not_le (mul_le_mul_right' h' x.prop)⟩
+
+lemma pos_mul_mono_iff_pos_mul_reflect_lt : pos_mul_mono α ↔ pos_mul_reflect_lt α :=
+⟨@pos_mul_reflect_lt_of_pos_mul_mono _ _ _ _, @pos_mul_mono_of_pos_mul_reflect_lt _ _ _ _⟩
+
+lemma mul_pos_mono_iff_mul_pos_reflect_lt : mul_pos_mono α ↔ mul_pos_reflect_lt α :=
+⟨@mul_pos_reflect_lt_of_mul_pos_mono _ _ _ _, @mul_pos_mono_of_mul_pos_reflect_lt _ _ _ _⟩
 
 end linear_order
 
@@ -997,5 +1029,69 @@ a0.lt_or_eq.elim exists_square_le' (λ h, by rw [← h]; exact ⟨0, by simp⟩)
 end linear_order
 
 end mul_zero_one_class
+
+section cancel_monoid_with_zero
+
+variables [cancel_monoid_with_zero α]
+
+section partial_order
+variables [partial_order α]
+
+lemma pos_mul_strict_mono_of_pos_mul_mono [pos_mul_mono α] : pos_mul_strict_mono α :=
+⟨λ x a b h, lt_of_le_of_ne (mul_le_mul_left' h.le x.2) (h.ne ∘ mul_left_cancel₀ x.2.ne.symm)⟩
+
+lemma pos_mul_mono_iff_pos_mul_strict_mono : pos_mul_mono α ↔ pos_mul_strict_mono α :=
+⟨@pos_mul_strict_mono_of_pos_mul_mono α _ _, @zero_lt.pos_mul_mono_of_pos_mul_strict_mono α _ _ _⟩
+
+lemma mul_pos_strict_mono_of_mul_pos_mono [mul_pos_mono α] : mul_pos_strict_mono α :=
+⟨λ x a b h, lt_of_le_of_ne (mul_le_mul_right' h.le x.2) (h.ne ∘ mul_right_cancel₀ x.2.ne.symm)⟩
+
+lemma mul_pos_mono_iff_mul_pos_strict_mono : mul_pos_mono α ↔ mul_pos_strict_mono α :=
+⟨@mul_pos_strict_mono_of_mul_pos_mono α _ _, @zero_lt.mul_pos_mono_of_mul_pos_strict_mono α _ _ _⟩
+
+lemma pos_mul_mono_rev_of_pos_mul_reflect_lt [pos_mul_reflect_lt α] : pos_mul_mono_rev α :=
+⟨λ x a b h, h.eq_or_lt.elim (le_of_eq ∘ mul_left_cancel₀ x.2.ne.symm)
+                            (λ h', (lt_of_mul_lt_mul_left' h' x.2).le)⟩
+
+lemma pos_mul_mono_rev_iff_pos_mul_reflect_lt : pos_mul_mono_rev α ↔ pos_mul_reflect_lt α :=
+⟨ @zero_lt.pos_mul_reflect_lt_of_pos_mul_mono_rev α _ _ _,
+  @pos_mul_mono_rev_of_pos_mul_reflect_lt α _ _ ⟩
+
+lemma mul_pos_mono_rev_of_mul_pos_reflect_lt [mul_pos_reflect_lt α] : mul_pos_mono_rev α :=
+⟨λ x a b h, h.eq_or_lt.elim (le_of_eq ∘ mul_right_cancel₀ x.2.ne.symm)
+                            (λ h', (lt_of_mul_lt_mul_right' h' x.2).le) ⟩
+
+lemma mul_pos_mono_rev_iff_mul_pos_reflect_lt : mul_pos_mono_rev α ↔ mul_pos_reflect_lt α :=
+⟨ @zero_lt.mul_pos_reflect_lt_of_mul_pos_mono_rev α _ _ _,
+  @mul_pos_mono_rev_of_mul_pos_reflect_lt α _ _ ⟩
+
+end partial_order
+
+end cancel_monoid_with_zero
+
+section comm_semigroup_has_zero
+variables [comm_semigroup α] [has_zero α]
+
+variables [has_lt α]
+
+lemma pos_mul_strict_mono_iff_mul_pos_strict_mono [comm_semigroup α] :
+  pos_mul_strict_mono α ↔ mul_pos_strict_mono α :=
+by simp ! only [mul_comm]
+
+lemma pos_mul_reflect_lt_iff_mul_pos_reflect_lt [comm_semigroup α] :
+  pos_mul_reflect_lt α ↔ mul_pos_reflect_lt α :=
+by simp ! only [mul_comm]
+
+variables [has_le α]
+
+lemma pos_mul_mono_iff_mul_pos_mono [comm_semigroup α] :
+  pos_mul_mono α ↔ mul_pos_mono α :=
+by simp ! only [mul_comm]
+
+lemma pos_mul_mono_rev_iff_mul_pos_mono_rev [comm_semigroup α] :
+  pos_mul_mono_rev α ↔ mul_pos_mono_rev α :=
+by simp ! only [mul_comm]
+
+end comm_semigroup_has_zero
 
 end zero_lt

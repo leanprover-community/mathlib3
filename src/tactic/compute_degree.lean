@@ -57,7 +57,7 @@ sum of terms is at most the degree of each individual term.
 We start with a goal of the form `f.nat_degree ≤ d`.  Recurse into `f` breaking apart sums and
 products.  Take care of numerals, `C a, X (^ n), monomial a n` separately.
 
-_Heuristic:_ there is no cancellation among the terms, at least the ones of highest degree.
+_Heuristic:_ the terms of "apparent" highest degree do not cancel.
 
 Finally, `compute_degree` takes one extra step.  It isolates the term of highest guessed degree
 and assumes that all remaining terms have smaller degree.  It checks that the degree of the highest

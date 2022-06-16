@@ -501,7 +501,6 @@ theorem sub_is_limit {a b} (l : is_limit a) (h : b < a) : is_limit (a - b) :=
 ⟨ne_of_gt $ lt_sub.2 $ by rwa add_zero,
  λ c h, by rw [lt_sub, add_succ]; exact l.2 _ (lt_sub.1 h)⟩
 
-set_option pp.universes true
 @[simp] theorem one_add_omega : 1 + ω = ω :=
 begin
   refine le_antisymm _ (le_add_left _ _),

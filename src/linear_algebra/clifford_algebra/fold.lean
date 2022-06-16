@@ -108,7 +108,7 @@ by rw [←foldr_reverse, reverse.map_one, foldr_one]
   foldl Q f hf n (a * b) = foldl Q f hf (foldl Q f hf n a) b :=
 by rw [←foldr_reverse, ←foldr_reverse, ←foldr_reverse, reverse.map_mul, foldr_mul]
 
-/-- This lemma demonstrates the origin of the `foldr` name. -/
+/-- This lemma demonstrates the origin of the `foldl` name. -/
 lemma foldl_prod_map_ι (l : list M) (f : M →ₗ[R] N →ₗ[R] N) (hf) (n : N):
   foldl Q f hf n (l.map $ ι Q).prod = list.foldl (λ m n, f n m) n l :=
 by rw [←foldr_reverse, reverse_prod_map_ι, ←list.map_reverse, foldr_prod_map_ι, list.foldr_reverse]

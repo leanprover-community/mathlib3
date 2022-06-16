@@ -349,10 +349,10 @@ lemma mul_pos_mono.to_mul_pos_reflect_lt [mul_pos_mono α] : mul_pos_reflect_lt 
 ⟨λ x a b h, lt_of_not_le $ λ h', h.not_le (mul_le_mul_right' h' x.prop)⟩
 
 lemma pos_mul_mono_iff_pos_mul_reflect_lt : pos_mul_mono α ↔ pos_mul_reflect_lt α :=
-⟨@pos_mul_reflect_lt_of_pos_mul_mono _ _ _ _, @pos_mul_mono_of_pos_mul_reflect_lt _ _ _ _⟩
+⟨@pos_mul_mono.to_pos_mul_reflect_lt _ _ _ _, @pos_mul_reflect_lt.to_pos_mul_mono _ _ _ _⟩
 
 lemma mul_pos_mono_iff_mul_pos_reflect_lt : mul_pos_mono α ↔ mul_pos_reflect_lt α :=
-⟨@mul_pos_reflect_lt_of_mul_pos_mono _ _ _ _, @mul_pos_mono_of_mul_pos_reflect_lt _ _ _ _⟩
+⟨@mul_pos_mono.to_mul_pos_reflect_lt _ _ _ _, @mul_pos_reflect_lt.to_mul_pos_mono _ _ _ _⟩
 
 end linear_order
 

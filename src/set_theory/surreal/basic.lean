@@ -3,6 +3,8 @@ Copyright (c) 2019 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Scott Morrison
 -/
+
+import algebra.order.hom.monoid
 import set_theory.game.ordinal
 
 /-!
@@ -291,10 +293,11 @@ noncomputable instance : linear_ordered_add_comm_group surreal :=
   ..surreal.ordered_add_comm_group }
 
 /-- Casts a `surreal` number into a `game`. -/
-def to_game : surreal →+ game :=
+def to_game : surreal →+o game :=
 { to_fun := lift (λ x _, ⟦x⟧) (λ x y ox oy, quot.sound),
   map_zero' := rfl,
-  map_add' := by { rintros ⟨_, _⟩ ⟨_, _⟩, refl } }
+  map_add' := by { rintros ⟨_, _⟩ ⟨_, _⟩, refl },
+  monotone' := by { rintros ⟨_, _⟩ ⟨_, _⟩, exact id } }
 
 theorem zero_to_game : to_game 0 = 0 := rfl
 

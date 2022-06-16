@@ -50,10 +50,10 @@ by rw [to_pgame, left_moves]
 @[simp] theorem to_pgame_right_moves (o : ordinal) : o.to_pgame.right_moves = pempty :=
 by rw [to_pgame, right_moves]
 
-instance : is_empty (to_pgame 0).left_moves :=
+instance is_empty_zero_to_pgame_left_moves : is_empty (to_pgame 0).left_moves :=
 by { rw to_pgame_left_moves, apply_instance }
 
-instance (o : ordinal) : is_empty o.to_pgame.right_moves :=
+instance is_empty_to_pgame_right_moves (o : ordinal) : is_empty o.to_pgame.right_moves :=
 by { rw to_pgame_right_moves, apply_instance }
 
 /-- Converts an ordinal less than `o` into a move for the `pgame` corresponding to `o`, and vice
@@ -84,7 +84,7 @@ relabelling.is_empty _
 theorem zero_to_pgame_equiv : to_pgame 0 ≈ 0 :=
 pgame.equiv.is_empty _
 
-noncomputable instance : unique (to_pgame 1).left_moves :=
+noncomputable instance unique_one_to_pgame_left_moves : unique (to_pgame 1).left_moves :=
 (equiv.cast $ to_pgame_left_moves 1).unique
 
 @[simp] theorem one_to_pgame_left_moves_default_eq :

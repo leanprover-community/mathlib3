@@ -174,4 +174,3 @@ end lift
 end full_subcategory
 
 end category_theory
-#lint

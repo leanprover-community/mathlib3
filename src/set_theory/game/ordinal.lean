@@ -74,6 +74,37 @@ theorem to_pgame_move_left {o : ordinal} (i) :
   o.to_pgame.move_left (to_left_moves_to_pgame i) = i.val.to_pgame :=
 by simp
 
+/-- `0.to_pgame` has the same moves as `0`. -/
+noncomputable def zero_to_pgame_relabelling : relabelling (to_pgame 0) 0 :=
+relabelling.is_empty _
+
+theorem zero_to_pgame_equiv : to_pgame 0 ≈ 0 :=
+pgame.equiv.is_empty _
+
+noncomputable instance : unique (to_pgame 1).left_moves :=
+{ default := @to_left_moves_to_pgame 1 ⟨0, zero_lt_one⟩,
+  uniq := λ a, begin
+    rw [←to_left_moves_to_pgame.apply_symm_apply a, equiv.apply_eq_iff_eq],
+    ext,
+    rw [subtype.coe_mk, ←lt_one_iff_zero],
+    apply to_left_moves_to_pgame_symm_lt
+  end }
+
+@[simp] theorem to_pgame_one_left_moves_default_eq :
+  (default : (to_pgame 1).left_moves) = @to_left_moves_to_pgame 1 ⟨0, zero_lt_one⟩ :=
+rfl
+
+@[simp] theorem to_pgame_one_move_left (x) : (to_pgame 1).move_left x = to_pgame 0 :=
+by { rw unique.eq_default x, simp }
+
+/-- `1.to_pgame` has the same moves as `1`. -/
+noncomputable def one_to_pgame_relabelling : relabelling (to_pgame 1) 1 :=
+⟨equiv.equiv_of_unique _ _, equiv.equiv_of_is_empty _ _,
+  λ i, by simpa using zero_to_pgame_relabelling, is_empty_elim⟩
+
+theorem one_to_pgame_equiv : to_pgame 1 ≈ 1 :=
+one_to_pgame_relabelling.equiv
+
 theorem to_pgame_lf {a b : ordinal} (h : a < b) : a.to_pgame ⧏ b.to_pgame :=
 by { convert move_left_lf (to_left_moves_to_pgame ⟨a, h⟩), rw to_pgame_move_left }
 

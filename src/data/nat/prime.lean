@@ -423,6 +423,9 @@ p.mod_two_eq_zero_or_one.imp_left
 lemma prime.eq_two_or_odd' {p : ℕ} (hp : prime p) : p = 2 ∨ odd p :=
 or.imp_right (λ h, ⟨p / 2, (div_add_mod p 2).symm.trans (congr_arg _ h)⟩) hp.eq_two_or_odd
 
+lemma prime.even_iff {p : ℕ} (hp : prime p) : even p ↔ p = 2 :=
+by rw [even_iff_two_dvd, prime_dvd_prime_iff_eq prime_two hp, eq_comm]
+
 /-- A prime `p` satisfies `p % 2 = 1` if and only if `p ≠ 2`. -/
 lemma prime.mod_two_eq_one_iff_ne_two {p : ℕ} [fact p.prime] : p % 2 = 1 ↔ p ≠ 2 :=
 begin

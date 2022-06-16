@@ -917,6 +917,16 @@ def Pi_congr_right {α} {β₁ β₂ : α → Sort*} (F : Π a, β₁ a ≃ β�
 ⟨λ H a, F a (H a), λ H a, (F a).symm (H a),
  λ H, funext $ by simp, λ H, funext $ by simp⟩
 
+/-- Given `φ : α → β → Sort*`, we have an equivalence between `Π a b, φ a b` and `Π b a, φ a b`.
+This is `function.swap` as an `equiv`. -/
+@[simps apply]
+def Pi_comm {α β} (φ : α → β → Sort*) : (Π a b, φ a b) ≃ (Π b a, φ a b) :=
+⟨swap, swap, λ x, rfl, λ y, rfl⟩
+
+@[simp] lemma Pi_comm_symm {α β} {φ : α → β → Sort*} :
+  (Pi_comm φ).symm = (Pi_comm $ swap φ) :=
+rfl
+
 /-- Dependent `curry` equivalence: the type of dependent functions on `Σ i, β i` is equivalent
 to the type of dependent functions of two arguments (i.e., functions to the space of functions).
 

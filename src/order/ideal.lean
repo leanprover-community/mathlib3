@@ -317,6 +317,16 @@ instance : complete_lattice (ideal P) :=
 
 end semilattice_sup_order_bot
 
+section Sup
+
+variable [complete_semilattice_Sup P]
+
+lemma gc : galois_connection (principal : P → ideal P) (λ ℐ, Sup ℐ.carrier) :=
+λ x ℐ, begin simp, rw le_Sup_iff, split,
+{ tidy }, intro h, specialize h (Sup ℐ.carrier) _, simp, intros x hx, exact le_Sup hx,
+rw le_Sup_iff at h, sorry end
+
+end Sup
 section distrib_lattice
 
 variables [distrib_lattice P]

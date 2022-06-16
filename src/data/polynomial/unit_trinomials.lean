@@ -87,8 +87,6 @@ by rw [mirror, trinomial_nat_trailing_degree hkm hmn hu, reverse, trinomial_nat_
 
 end semiring
 
-section semiring
-
 variables (p q : ℤ[X])
 
 /-- A unit trinomial is a trinomial with unit coefficients. -/
@@ -343,7 +341,5 @@ begin
     exact one_ne_zero },-/
   { sorry },
 end
-
-end semiring
 
 end polynomial

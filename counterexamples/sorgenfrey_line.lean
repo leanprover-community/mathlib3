@@ -6,6 +6,8 @@ Authors: Yury Kudryashov
 import topology.instances.irrational
 import topology.algebra.order.archimedean
 import topology.paracompact
+import topology.metric_space.metrizable
+import topology.metric_space.emetric_paracompact
 import data.set.intervals.monotone
 
 /-!
@@ -159,14 +161,6 @@ end
 
 instance : separable_space ℝₗ := ⟨⟨_, countable_range _, dense_range_coe_rat⟩⟩
 
-instance : paracompact_space ℝₗ :=
-begin
-  refine ⟨λ α s ho hc, _⟩,
-  rw Union_eq_univ_iff at hc,
-  choose i hi using hc,
-  
-end
-
 lemma is_closed_antidiagonal (c : ℝₗ) : is_closed {x : ℝₗ × ℝₗ | x.1 + x.2 = c} :=
 is_closed_singleton.preimage continuous_add
 
@@ -190,8 +184,23 @@ begin
     rwa [← add_le_add_iff_left, hs _ H, add_le_add_iff_right] }
 end
 
+lemma nhds_prod_basis_inv_nat_pos (x : ℝₗ × ℝₗ) :
+  (𝓝 x).has_basis (λ n : ℕ, 0 < n) (λ n, Ico x.1 (x.1 + 1 / n) ×ˢ Ico x.2 (x.2 + 1 / n)) :=
+begin
+  cases x with x y,
+  simp only [nhds_prod_eq],
+  refine (nhds_basis_Ico_inv_nat_pos x).to_has_basis.prod'
+    (nhds_basis_Ico_inv_nat_pos y).to_has_basis (λ i j hi hj, _),
+  refine ⟨max i j, lt_max_iff.2 $ or.inl hi, Ico_subset_Ico_right _, Ico_subset_Ico_right _⟩,
+  { exact add_le_add_left
+      (one_div_le_one_div_of_le (nat.cast_pos.2 hk₀) $ nat.mono_cast $ le_max_left _ _) _ },
+  { exact add_le_add_left
+      (one_div_le_one_div_of_le (nat.cast_pos.2 hl₀) $ nat.mono_cast $ le_max_right _ _) _ }
+end
+
 lemma not_normal_space_prod : ¬normal_space (ℝₗ × ℝₗ) :=
 begin
+  have h₀ : ∀ {n : ℕ}, 0 < n → (0 : ℝ) < 1 / n, from λ n hn, one_div_pos.2 (nat.cast_pos.2 hn),
   introI,
   set S := {x : ℝₗ × ℝₗ | x.1 + x.2 = 0 ∧ ∃ r : ℚ, ↑r = x.1},
   set T := {x : ℝₗ × ℝₗ | x.1 + x.2 = 0 ∧ irrational x.1.to_real},
@@ -202,28 +211,48 @@ begin
     exact r.not_irrational hr },
   rcases normal_separation hSc hTc hd with ⟨U, V, Uo, Vo, SU, TV, UV⟩,
   have : ∀ x : ℝₗ, irrational x.to_real →
-    ∃ k : ℕ, 0 < k ∧ Ico x (x + 1 / k) ×ˢ Ico (-x) (-x + 1 / k) ⊆ V,
+    ∃ (k : ℕ) (hk : 0 < k), Ico x (x + 1 / k) ×ˢ Ico (-x) (-x + 1 / k) ⊆ V,
   { intros x hx,
     have hV : V ∈ 𝓝 (x, -x), from Vo.mem_nhds (@TV (x, -x) ⟨add_neg_self x, hx⟩),
-    have := λ y, (nhds_basis_Ico_inv_nat_pos y).to_has_basis,
-    rcases ((this _).prod_nhds (this _)).mem_iff.1 hV with ⟨⟨k, l⟩, ⟨hk₀, hl₀⟩, H⟩,
-    refine ⟨max k l, lt_max_iff.2 (or.inl hk₀),
-      (set.prod_mono (Ico_subset_Ico_right _) (Ico_subset_Ico_right _)).trans H⟩,
-    { exact add_le_add_left
-        (one_div_le_one_div_of_le (nat.cast_pos.2 hk₀) $ nat.mono_cast $ le_max_left _ _) _ },
-    { exact add_le_add_left
-        (one_div_le_one_div_of_le (nat.cast_pos.2 hl₀) $ nat.mono_cast $ le_max_right _ _) _ } },
+    exact (nhds_prod_basis_inv_nat_pos _).mem_iff.1 hV },
   choose! k hk₀ hkV,
-  have H : {x : ℝ | irrational x} ⊆ ⋃ n ∈ {n : ℕ | 0 < n}, closure {x | k (to_real.symm x) = n},
-    from λ x hx, mem_bUnion (hk₀ (to_real.symm x) hx) (subset_closure rfl),
-  have Hd : dense (⋃ n ∈ {n : ℕ | 0 < n}, interior (closure {x | k (to_real.symm x) = n})),
+  set C : ℕ → set ℝ := λ n, closure {x | irrational x ∧ k (to_real.symm x) = n},
+  have H : {x : ℝ | irrational x} ⊆ ⋃ n ∈ {n : ℕ | 0 < n}, C n,
+    from λ x hx, mem_bUnion (hk₀ (to_real.symm x) hx) (subset_closure ⟨hx, rfl⟩),
+  have Hd : dense (⋃ n ∈ {n : ℕ | 0 < n}, interior (C n)),
     from is_Gδ_irrational.dense_bUnion_interior_of_closed dense_irrational
       (countable_encodable {n : ℕ | 0 < n}) (λ _ _, is_closed_closure) H,
-  obtain ⟨N, hN₀, hN⟩ :
-    ∃ n : ℕ, 0 < n ∧ (interior $ closure {x | k (to_real.symm x) = n}).nonempty,
+  obtain ⟨N, hN₀, hN⟩ : ∃ n : ℕ, 0 < n ∧ (interior $ C n).nonempty,
     by simpa only [nonempty_Union, exists_prop] using Hd.nonempty,
   rcases rat.dense_range_cast.exists_mem_open is_open_interior hN with ⟨r, hr⟩,
-  
+  have hrU : ((r, -r) : ℝₗ × ℝₗ) ∈ U, from @SU (r, -r) ⟨add_neg_self _, r, rfl⟩,
+  rcases (nhds_prod_basis_inv_nat_pos _).mem_iff.1 (Uo.mem_nhds hrU) with ⟨n, hn₀, hn⟩,
+  dsimp only at hn,
+  obtain ⟨ε, ε₀, hεn, hεN⟩ : ∃ ε : ℝ, 0 < ε ∧ ε ≤ 1 / n ∧ ε ≤ 1 / N,
+    from ⟨min (1 / n) (1 / N), lt_min (h₀ hn₀) (h₀ hN₀), min_le_left _ _, min_le_right _ _⟩,
+  obtain ⟨x, hxε, hx_irr, rfl⟩ :
+    ∃ x : ℝ, x ∈ Ioo (r : ℝ) (r + ε) ∧ irrational x ∧ k (to_real.symm x) = N,
+  { have : (r : ℝ) ∈ closure (Ioo (r : ℝ) (r + ε)),
+    { rw [closure_Ioo]; simp [ε₀.ne', ε₀.le] },
+    rcases mem_closure_iff_nhds.1 this _ (mem_interior_iff_mem_nhds.1 hr) with ⟨x', hx', hx'ε⟩,
+    exact mem_closure_iff.1 hx' _ is_open_Ioo hx'ε },
+  refine @UV (to_real.symm x, -r) ⟨hn ⟨_, _⟩, hkV x hx_irr ⟨_, _⟩⟩,
+  { exact ⟨hxε.1.le, hxε.2.trans_le $ add_le_add_left hεn _⟩ },
+  { exact left_mem_Ico.2 (lt_add_of_pos_right _ (h₀ hn₀)) },
+  { exact left_mem_Ico.2 (lt_add_of_pos_right _ (h₀ $ hk₀ x hx_irr)) },
+  { refine ⟨neg_le_neg hxε.1.le, _⟩,
+    simp only [add_neg_lt_iff_le_add', lt_neg_add_iff_add_lt],
+    exact hxε.2.trans_le (add_le_add_left hεN _) }
 end
+
+lemma not_metrizable_space : ¬metrizable_space ℝₗ :=
+begin
+  introI,
+  letI := metrizable_space_metric ℝₗ,
+  exact not_normal_space_prod infer_instance
+end
+
+lemma not_second_countable_topology : ¬second_countable_topology ℝₗ :=
+by { introI, exact not_metrizable_space (metrizable_space_of_regular_second_countable _) }
 
 end sorgenfrey_line

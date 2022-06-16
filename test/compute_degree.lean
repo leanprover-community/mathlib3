@@ -58,14 +58,6 @@ example : (7 : polynomial R).nat_degree ≤ 4 :=
 by compute_degree_le
 
 example : (1 : polynomial R).nat_degree ≤ 0 :=
-begin
-  compute_degree_le
-end
-
-example : (1 : polynomial R).nat_degree ≤ 0 :=
-by compute_degree_le
-
-example : nat_degree (C a * X ^ 3 + C b * X ^ 2 + C c * X + C d) ≤ 3 :=
 by compute_degree_le
 
 example : nat_degree (monomial 5 c * monomial 1 c + monomial 7 d +
@@ -81,19 +73,11 @@ at least '11'",
   exact nat.zero_le _
 end
 
-example : nat_degree (monomial 5 c * monomial 1 c + monomial 7 d +
-  C a * X ^ 0 + C b * X ^ 5 + C c * X ^ 2 + C 7 * X ^ 10 + C e * X) ≤ 10 :=
-by compute_degree_le
-
 example : nat_degree (monomial 0 c * (monomial 0 c * C 1) + monomial 0 d + C 1 + C a * X ^ 0) ≤ 0 :=
 by compute_degree_le
 
 example : nat_degree (C 0 : R[X]) ≤ 0 :=
 by compute_degree_le
-
-example {F} [ring F] {n m : ℕ} (n4 : n ≤ 4) (m4 : m ≤ 4) {a : F} :
-  nat_degree (C a * X ^ n + X ^ m + bit1 1 : F[X]) ≤ 4 :=
-by compute_degree_le; assumption
 
 example {F} [ring F] {n m : ℕ} (n4 : n ≤ 4) (m4 : m ≤ 4) {a : F} :
   nat_degree (C a * X ^ n + X ^ m + bit1 1 : F[X]) ≤ 4 :=

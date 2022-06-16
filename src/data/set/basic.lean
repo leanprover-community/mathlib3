@@ -73,34 +73,34 @@ open function
 
 universes u v w x
 
-run_cmd do e ← tactic.get_env,
-  tactic.set_env $ e.mk_protected `set.compl
-
 namespace set
 
 variable {α : Type*}
 
-instance : has_le (set α) := ⟨(⊆)⟩
-instance : has_lt (set α) := ⟨λ s t, s ≤ t ∧ ¬t ≤ s⟩  -- `⊂` is not defined until further down
+instance : has_le (set α) := ⟨λ s t, ∀ ⦃x⦄, x ∈ s → x ∈ t⟩
+instance : has_subset (set α) := ⟨(≤)⟩
 
 instance {α : Type*} : boolean_algebra (set α) :=
-{ sup := (∪),
+{ sup := λ s t, {x | x ∈ s ∨ x ∈ t},
   le  := (≤),
-  lt  := (<),
-  inf := (∩),
+  lt  := λ s t, s ⊆ t ∧ ¬t ⊆ s,
+  inf := λ s t, {x | x ∈ s ∧ x ∈ t},
   bot := ∅,
-  compl := set.compl,
+  compl := λ s, {x | x ∉ s},
   top := univ,
-  sdiff := (\),
+  sdiff := λ s t, {x | x ∈ s ∧ x ∉ t},
   .. (infer_instance : boolean_algebra (α → Prop)) }
+
+instance : has_ssubset (set α) := ⟨(<)⟩
+instance : has_union (set α) := ⟨(⊔)⟩
+instance : has_inter (set α) := ⟨(⊓)⟩
 
 @[simp] lemma top_eq_univ : (⊤ : set α) = univ := rfl
 @[simp] lemma bot_eq_empty : (⊥ : set α) = ∅ := rfl
 @[simp] lemma sup_eq_union : ((⊔) : set α → set α → set α) = (∪) := rfl
 @[simp] lemma inf_eq_inter : ((⊓) : set α → set α → set α) = (∩) := rfl
 @[simp] lemma le_eq_subset : ((≤) : set α → set α → Prop) = (⊆) := rfl
-/-! `set.lt_eq_ssubset` is defined further down -/
-@[simp] lemma compl_eq_compl : set.compl = (has_compl.compl : set α → set α) := rfl
+@[simp] lemma lt_eq_ssubset : ((<) : set α → set α → Prop) = (⊂) := rfl
 
 /-- Coercion from a set to the corresponding subtype. -/
 instance {α : Type u} : has_coe_to_sort (set α) (Type u) := ⟨λ s, {x // x ∈ s}⟩
@@ -186,8 +186,6 @@ by tauto
 
 /-! ### Lemmas about `mem` and `set_of` -/
 
-@[simp] theorem mem_set_of_eq {a : α} {p : α → Prop} : a ∈ {x | p x} = p a := rfl
-
 lemma mem_set_of {a : α} {p : α → Prop} : a ∈ {x | p x} ↔ p a := iff.rfl
 
 /-- If `h : a ∈ {x | p x}` then `h.out : p x`. These are definitionally equal, but this can
@@ -217,8 +215,6 @@ lemma set_of_and {p q : α → Prop} : {a | p a ∧ q a} = {a | p a} ∩ {a | q 
 lemma set_of_or {p q : α → Prop} : {a | p a ∨ q a} = {a | p a} ∪ {a | q a} := rfl
 
 /-! ### Subset and strict subset relations -/
-
-instance : has_ssubset (set α) := ⟨(<)⟩
 
 instance : is_refl (set α) (⊆) := has_le.le.is_refl
 instance : is_trans (set α) (⊆) := has_le.le.is_trans
@@ -265,8 +261,6 @@ begin
 end
 
 /-! ### Definition of strict subsets `s ⊂ t` and basic properties. -/
-
-@[simp] lemma lt_eq_ssubset : ((<) : set α → set α → Prop) = (⊂) := rfl
 
 protected theorem eq_or_ssubset_of_subset (h : s ⊆ t) : s = t ∨ s ⊂ t :=
 eq_or_lt_of_le h
@@ -689,6 +683,9 @@ ssubset_iff_insert.2 ⟨a, h, subset.rfl⟩
 
 theorem insert_comm (a b : α) (s : set α) : insert a (insert b s) = insert b (insert a s) :=
 ext $ λ x, or.left_comm
+
+@[simp] lemma insert_idem (a : α) (s : set α) : insert a (insert a s) = insert a s :=
+insert_eq_of_mem $ mem_insert _ _
 
 theorem insert_union : insert a s ∪ t = insert a (s ∪ t) := ext $ λ x, or.assoc
 
@@ -1146,11 +1143,16 @@ sup_eq_sdiff_sup_sdiff_sup_inf
 
 /-! ### Powerset -/
 
-theorem mem_powerset {x s : set α} (h : x ⊆ s) : x ∈ powerset s := h
+/-- `𝒫 s = set.powerset s` is the set of all subsets of `s`. -/
+def powerset (s : set α) : set (set α) := {t | t ⊆ s}
 
-theorem subset_of_mem_powerset {x s : set α} (h : x ∈ powerset s) : x ⊆ s := h
+prefix `𝒫`:100 := powerset
 
-@[simp] theorem mem_powerset_iff (x s : set α) : x ∈ powerset s ↔ x ⊆ s := iff.rfl
+theorem mem_powerset {x s : set α} (h : x ⊆ s) : x ∈ 𝒫 s := h
+
+theorem subset_of_mem_powerset {x s : set α} (h : x ∈ 𝒫 s) : x ⊆ s := h
+
+@[simp] theorem mem_powerset_iff (x s : set α) : x ∈ 𝒫 s ↔ x ⊆ s := iff.rfl
 
 theorem powerset_inter (s t : set α) : 𝒫 (s ∩ t) = 𝒫 s ∩ 𝒫 t :=
 ext $ λ u, subset_inter_iff
@@ -1312,6 +1314,10 @@ end preimage
 /-! ### Image of a set under a function -/
 
 section image
+
+/-- The image of `s : set α` by `f : α → β`, written `f '' s`,
+  is the set of `y : β` such that `f x = y` for some `x ∈ s`. -/
+def image (f : α → β) (s : set α) : set β := {y | ∃ x, x ∈ s ∧ f x = y}
 
 infix ` '' `:80 := image
 
@@ -1800,6 +1806,20 @@ instance [nonempty ι] (f : ι → α) : nonempty (range f) := (range_nonempty f
 @[simp] lemma image_union_image_compl_eq_range (f : α → β) :
   (f '' s) ∪ (f '' sᶜ) = range f :=
 by rw [← image_union, ← image_univ, ← union_compl_self]
+
+lemma insert_image_compl_eq_range (f : α → β) (x : α) :
+  insert (f x) (f '' {x}ᶜ) = range f :=
+begin
+  ext y, rw [mem_range, mem_insert_iff, mem_image],
+  split,
+  { rintro (h | ⟨x', hx', h⟩),
+    { exact ⟨x, h.symm⟩ },
+    { exact ⟨x', h⟩ } },
+  { rintro ⟨x', h⟩,
+    by_cases hx : x' = x,
+    { left, rw [← h, hx] },
+    { right, refine ⟨_, _, h⟩, rw mem_compl_singleton_iff, exact hx } }
+end
 
 theorem image_preimage_eq_inter_range {f : α → β} {t : set β} :
   f '' (f ⁻¹' t) = t ∩ range f :=

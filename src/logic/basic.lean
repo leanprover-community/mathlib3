@@ -1210,6 +1210,11 @@ by simp [@eq_comm _ a']
 theorem exists_comm {p : α → β → Prop} : (∃ a b, p a b) ↔ ∃ b a, p a b :=
 ⟨λ ⟨a, b, h⟩, ⟨b, a, h⟩, λ ⟨b, a, h⟩, ⟨a, b, h⟩⟩
 
+lemma exists₂_comm {ι₁ ι₂ : Sort*} {κ₁ : ι₁ → Sort*} {κ₂ : ι₂ → Sort*}
+  {p : Π i₁, κ₁ i₁ → Π i₂, κ₂ i₂ → Prop} :
+  (∃ i₁ j₁ i₂ j₂, p i₁ j₁ i₂ j₂) ↔ ∃ i₂ j₂ i₁ j₁, p i₁ j₁ i₂ j₂ :=
+by simp only [@exists_comm (κ₁ _), @exists_comm ι₁]
+
 theorem and.exists {p q : Prop} {f : p ∧ q → Prop} : (∃ h, f h) ↔ ∃ hp hq, f ⟨hp, hq⟩ :=
 ⟨λ ⟨h, H⟩, ⟨h.1, h.2, H⟩, λ ⟨hp, hq, H⟩, ⟨⟨hp, hq⟩, H⟩⟩
 

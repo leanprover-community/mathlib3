@@ -56,6 +56,9 @@ variables {K R : Type v} {V M : Type w}
 def eigenspace (f : End R M) (μ : R) : submodule R M :=
 (f - algebra_map R (End R M) μ).ker
 
+@[simp] lemma eigenspace_zero (f : End R M) : f.eigenspace 0 = f.ker :=
+by simp [eigenspace]
+
 /-- A nonzero element of an eigenspace is an eigenvector. (Def 5.7 of [axler2015]) -/
 def has_eigenvector (f : End R M) (μ : R) (x : M) : Prop :=
 x ∈ eigenspace f μ ∧ x ≠ 0
@@ -341,6 +344,10 @@ def generalized_eigenspace (f : End R M) (μ : R) : ℕ →o submodule R M :=
 @[simp] lemma mem_generalized_eigenspace (f : End R M) (μ : R) (k : ℕ) (m : M) :
   m ∈ f.generalized_eigenspace μ k ↔ ((f - μ • 1)^k) m = 0 :=
 iff.rfl
+
+@[simp] lemma generalized_eigenspace_zero (f : End R M) (k : ℕ) :
+  f.generalized_eigenspace 0 k = (f^k).ker :=
+by simp [module.End.generalized_eigenspace]
 
 /-- A nonzero element of a generalized eigenspace is a generalized eigenvector.
     (Def 8.9 of [axler2015])-/

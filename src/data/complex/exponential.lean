@@ -553,7 +553,7 @@ begin
       ring_hom.map_div, conj_bit0, ring_hom.map_one]
 end
 
-@[simp] lemma of_real_cosh_of_real_re (x : ℝ) : ((cosh x).re : ℂ) = cosh x :=
+lemma of_real_cosh_of_real_re (x : ℝ) : ((cosh x).re : ℂ) = cosh x :=
 eq_conj_iff_re.1 $ by rw [← cosh_conj, conj_of_real]
 
 @[simp, norm_cast] lemma of_real_cosh (x : ℝ) : (real.cosh x : ℂ) = cosh x :=

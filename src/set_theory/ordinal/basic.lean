@@ -944,8 +944,7 @@ the addition, together with properties of the other operations, are proved in
   every element of `o₁` is smaller than every element of `o₂`. -/
 instance : has_add ordinal.{u} :=
 ⟨λ o₁ o₂, quotient.lift_on₂ o₁ o₂
-  (λ ⟨α, r, wo⟩ ⟨β, s, wo'⟩, ⟦⟨α ⊕ β, sum.lex r s, by exactI sum.lex.is_well_order _ _⟩⟧
-    : Well_order → Well_order → ordinal) $
+  (λ ⟨α, r, wo⟩ ⟨β, s, wo'⟩, by exactI type (sum.lex r s)) $
   λ ⟨α₁, r₁, o₁⟩ ⟨α₂, r₂, o₂⟩ ⟨β₁, s₁, p₁⟩ ⟨β₂, s₂, p₂⟩ ⟨f⟩ ⟨g⟩,
   quot.sound ⟨rel_iso.sum_lex_congr f g⟩⟩
 
@@ -1216,7 +1215,7 @@ namespace cardinal
 open ordinal
 
 @[simp] theorem mk_ordinal_out (o : ordinal) : #(o.out.α) = o.card :=
-by { convert (ordinal.card_type (<)).symm, exact (ordinal.type_lt o).symm }
+(ordinal.card_type _).symm.trans $ by rw ordinal.type_lt
 
 /-- The ordinal corresponding to a cardinal `c` is the least ordinal
   whose cardinal is `c`. For the order-embedding version, see `ord.order_embedding`. -/
@@ -1306,15 +1305,14 @@ eq_of_forall_ge_iff $ λ o, le_iff_le_iff_lt_iff_lt.2 $ begin
     rwa [ordinal.lift_lt, lt_ord] }
 end
 
-lemma mk_ord_out (c : cardinal) : #c.ord.out.α = c :=
-by rw [←card_type (<), type_lt, card_ord]
+lemma mk_ord_out (c : cardinal) : #c.ord.out.α = c := by simp
 
 lemma card_typein_lt (r : α → α → Prop) [is_well_order α r] (x : α)
   (h : ord (#α) = type r) : card (typein r x) < #α :=
-by { rw [←ord_lt_ord, h], refine lt_of_le_of_lt (ord_card_le _) (typein_lt_type r x) }
+by { rw [←lt_ord, h], apply typein_lt_type }
 
 lemma card_typein_out_lt (c : cardinal) (x : c.ord.out.α) : card (typein (<) x) < c :=
-by { convert card_typein_lt (<) x _, rw [mk_ord_out], rw [type_lt, mk_ord_out] }
+by { rw ←lt_ord, apply typein_lt_self }
 
 lemma ord_injective : injective ord :=
 by { intros c c' h, rw [←card_ord c, ←card_ord c', h] }

@@ -148,7 +148,7 @@ instance group.covconv [group N] [covariant_class N N (*) r] :
 ⟨group.covariant_iff_contravariant.mp covariant_class.elim⟩
 
 @[to_additive]
-lemma group.covariant_iff_contravariant_swap [group N] :
+lemma group.covariant_swap_iff_contravariant_swap [group N] :
   covariant N N (swap (*)) r ↔ contravariant N N (swap (*)) r :=
 begin
   refine ⟨λ h a b c bc, _, λ h a b c bc, _⟩,
@@ -161,7 +161,7 @@ end
 @[priority 100, to_additive]
 instance group.covconv_swap [group N] [covariant_class N N (swap (*)) r] :
   contravariant_class N N (swap (*)) r :=
-⟨group.covariant_iff_contravariant_swap.mp covariant_class.elim⟩
+⟨group.covariant_swap_iff_contravariant_swap.mp covariant_class.elim⟩
 
 section is_trans
 variables [is_trans N r] (m n : M) {a b c d : N}

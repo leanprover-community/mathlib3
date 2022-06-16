@@ -138,19 +138,6 @@ meta def resolve_sum_step (pows : bool) : expr → tactic unit
       refine ``(polynomial.nat_degree_pow_le.trans $
         (mul_comm _ _).le.trans ((nat.le_div_iff_mul_le' _).mp _))
     else failed
---  | (app (app mu tl1) tl2) := do --trace "*  here",trace tl1, trace tl2,
---    typ ← infer_type tl1,
---    muu ← to_expr ``(has_mul.mul : %%typ → %%typ → %%typ) tt ff,
---    ad  ← to_expr ``(has_add.add : %%typ → %%typ → %%typ) tt ff,
---    cond ← succeeds (unify mu muu),
---    if cond then (do
---      d1 ← guess_degree tl1,
---      d2 ← guess_degree tl2,
---      refine ``(polynomial.nat_degree_mul_le.trans ((add_le_add _ _).trans (_ : %%d1 + %%d2 ≤ _))))
---    else (do
---      cond ← succeeds (unify mu ad),
---      refine ``((polynomial.nat_degree_add_le_iff_left _ _ _).mpr _)
---      )
   | e                := do ppe ← pp e, fail format!"'{e}' is not supported"
   end
 | e := do ppe ← pp e, fail format!("'resolve_sum_step' was called on\n" ++
@@ -195,11 +182,11 @@ do t ← target,
   try $ refine ``(polynomial.degree_le_nat_degree.trans (with_bot.coe_le_coe.mpr _)),
   `(polynomial.nat_degree %%tl ≤ %%tr) ← target |
     fail "Goal is not of the form\n`f.nat_degree ≤ d` or `f.degree ≤ d`",
-  exp_deg ← guess_degree tl >>= conservative_eval, trace exp_deg,
+  exp_deg ← guess_degree tl >>= conservative_eval,
   cond ← succeeds $eval_expr ℕ tr,
   deg_bou ← if cond then eval_expr ℕ tr else pure exp_deg,
   if deg_bou < exp_deg
-  then fail sformat!"the given polynomial has a term of expected degree '{exp_deg}'"
+  then fail sformat!"the given polynomial has a term of expected degree\nat least '{exp_deg}'"
   else
     repeat $ target >>= resolve_sum_step (if expos.is_some then tt else ff),
     gs ← get_goals,

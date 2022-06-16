@@ -512,4 +512,17 @@ fintype_of_ker_le_range ((top_equiv : _ ≃* G).to_monoid_hom.comp $ inclusion l
 noncomputable def fintype_of_dom_of_coker [normal f.range] [fintype $ G ⧸ f.range] : fintype G :=
 fintype_of_ker_le_range _ (mk' f.range) $ λ x, (eq_one_iff x).mp
 
+noncomputable instance has_quotient.quotient.fintype' (G : Type) [group G] [fintype G]
+  (N : subgroup G) [subgroup.normal N] : fintype (G ⧸ N) :=
+let h1 : (quotient_group.mk' N).range = ⊤ :=
+    (quotient_group.mk' N).range_top_of_surjective (quotient_group.mk'_surjective N) in
+  let h2 : fintype ((G ⧸ N) ⧸ (quotient_group.mk' N).range) := by
+  { rw h1,
+    apply @fintype.of_subsingleton' _ _,
+    apply quotient_group.subsingleton_quotient_top, } in
+  let h3 : (quotient_group.mk' N).range.normal :=
+  by { rw h1,
+    exact subgroup.normal_of_characteristic _, } in
+by exactI group.fintype_of_dom_of_coker (quotient_group.mk' N : G →* G ⧸ N)
+
 end group

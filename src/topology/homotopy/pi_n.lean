@@ -8,6 +8,7 @@ import topology.homotopy.basic
 import topology.path_connected
 import topology.unit_interval
 import algebraic_topology.fundamental_groupoid.basic
+import logic.unique
 
 /-!
 # nth homotopy group
@@ -15,15 +16,17 @@ import algebraic_topology.fundamental_groupoid.basic
 We define the nth homotopy group at x `π n x` as the equivalence classes
 of functions from the nth dimensional cube to the topological space X
 that send the boundary to the base point `x`, up to homotopic equivalence.
+Note that such functions are nth dimensional loops `nloop n x`, in particular
+`nloop 1 x ≃ path x x`
 
 We show that `π 0 x` is equivalent to the path-conected components, and
 that `π 1 x` is equivalent to the fundamental grupoid at `x`.
 
 ## definitions
 
-* `pre_π n x` is the type of continous fuctions `I^n→X` that send the boundary to `x`
-* `pre_π.homotopy` is the type of homotopies between such functions
-* `π n x` the quotient of `pre_π n x` up to homotopic equivalence
+* `nloop n x` is the type of continous fuctions `I^n→X` that send the boundary to `x`
+* `nth_homotopy_group n x` denoted `π n x` is the quotient of `nloop n x` up to homotopic
+  equivalence
 
 -/
 
@@ -66,39 +69,32 @@ The first projection of a non-zero dimensional cube
 @[simp] def head {n} : I^(n+1) → I := λ c, c 0
 
 @[continuity] lemma head.continuous {n} : continuous (@head n) := proj_continuous 0
+
 /--
-The last `n` projection of an `n+1` dimensional cube
+The last `n` projections of an `n+1` dimensional cube
 -/
 @[simp] def tail {n} : I^(n+1) → I^n := λ c, fin.tail c
 
 instance unique_cube0 : unique (I^0) :=
   { default := 0, uniq := by {intro a, ext1, exact x.elim0} }
 
-lemma one_indep (f:I^1) (i j:fin 1) : f i = f j :=
-begin
-  rcases i with ⟨⟨_,_⟩,_⟩; rcases j with ⟨⟨_,_⟩,_⟩,
-  reflexivity,
-  { exfalso, exact (nat.not_lt_zero _ (nat.le_of_succ_le_succ j_property)) },
-  all_goals { exfalso, exact (nat.not_lt_zero _ (nat.le_of_succ_le_succ i_property)) },
-end
+lemma one_indep {α} (f : fin 1 → α) (i j : fin 1) : f i = f j :=
+  by rw subsingleton.elim i j
 
-lemma one_char (x:I^1) : x = λ _, x 0 :=
-begin
-  ext1 i, rcases i with ⟨⟨_,_⟩,_⟩, reflexivity,
-  exfalso, exact (nat.not_lt_zero _ (nat.le_of_succ_le_succ i_property))
-end
+lemma one_char {α} (x : fin 1 → α) : x = λ _, x 0 :=
+  by { ext, apply one_indep }
 
 end cube
 
 /--
-The continuous fuctions `I^n→X` that send the boundary to `x`
+The nth dimensional loops; functions `I^n → X` that send the boundary to `x`
 -/
-structure pre_π (n : nat) (x : X) extends C(I^n,X) :=
+structure nloop (n : nat) (x : X) extends C(I^n,X) :=
   (boundary : ∀ y ∈ cube.boundary n, to_fun y = x )
 
-namespace pre_π
+namespace nloop
 
-instance fun_like : fun_like (pre_π n x) (I^n) (λ _, X) :=
+instance fun_like : fun_like (nloop n x) (I^n) (λ _, X) :=
   { coe := λ f, f.1,
     coe_injective' :=
     begin
@@ -106,166 +102,80 @@ instance fun_like : fun_like (pre_π n x) (I^n) (λ _, X) :=
       congr, ext1, exact congr_fun hfg _,
     end }
 
-@[ext] lemma ext (f g : pre_π n x) (H : ∀ y, f y = g y) : f = g := fun_like.ext f g H
+@[ext] lemma ext (f g : nloop n x) (H : ∀ y, f y = g y) : f = g := fun_like.ext f g H
 
-@[simp] lemma mk_apply (f : C(I^n, X)) (H y) : (⟨f, H⟩ : pre_π n x)  y = f y := rfl
+@[simp] lemma mk_apply (f : C(I^n, X)) (H y) : (⟨f, H⟩ : nloop n x)  y = f y := rfl
 
 /--
-The constant `pre_π` at x
+The constant `nloop` at x
 -/
-def const : pre_π n x := ⟨⟨λ_x,by continuity⟩,λ_ _,rfl⟩
+def const : nloop n x := ⟨⟨λ_x,by continuity⟩,λ_ _,rfl⟩
 
-instance inhabited : inhabited (pre_π n x) :=
+instance inhabited : inhabited (nloop n x) :=
   { default := const }
 
 /--
-Homotopies are functions I×I^n → X
+Boundary-preserving homotopic relation between `nloop`s
 -/
-abbreviation homotopy (f g : pre_π n x) :=
-  f.to_continuous_map.homotopy_rel g.to_continuous_map (cube.boundary n)
-infix `~`:50 := homotopy
+def homotopic (f g : nloop n x) : Prop :=
+  nonempty (f.to_continuous_map.homotopy_rel g.to_continuous_map (cube.boundary n))
 
-namespace homotopy
-section
-variables  {f g h : pre_π n x} (H : f ~ g)
-
-instance fun_like : fun_like (f ~ g) (I^(n+1)) (λ _, X) :=
-  { coe := λ h c, h.1 (c 0, fin.tail c),
-    coe_injective' :=
-    begin
-      rintros h1 h2 hfg, cases h1, cases h2,
-      congr, ext1 ⟨x,y⟩, simpa only [fin.tail_cons] using congr_fun hfg (fin.cons x y),
-    end }
-
-@[continuity] lemma continuous : continuous H :=
-  by { refine H.continuous.comp _, continuity; apply continuous_apply }
-
-/--
-The constant homotopy at f
--/
-@[refl] def refl (f : pre_π n x) : f ~ f :=
-  continuous_map.homotopy_rel.refl _ _
-
-/--
-Reversing of a homotopy
--/
-@[symm] def symm : f ~ g → g ~ f :=
-  continuous_map.homotopy_rel.symm
-
-/--
-Concatenation of homotopies by using them along `[0,2⁻¹]` and `[2⁻¹,1] `
--/
-@[trans] def trans : f ~ g → g ~ h → f ~ h :=
-  continuous_map.homotopy_rel.trans
-
-/--
-Eval an homotopy at an intermediate point, yielding a `pre_π`
--/
-def eval (t:I) : pre_π n x :=
-  { to_fun := H.to_homotopy.curry t,
-    continuous_to_fun := by continuity,
-    boundary :=
-    begin
-      intros y H,
-      simp only [continuous_map.homotopy.curry_apply,
-        continuous_map.homotopy_with.coe_to_homotopy],
-      rw continuous_map.homotopy_rel.eq_fst,
-      apply f.boundary,
-      all_goals { assumption }
-    end }
-
-@[simp] lemma eval0 : H.eval 0 = f :=
-begin
-  ext, unfold eval,
-  simp only [mk_apply, continuous_map.homotopy_with.apply_zero,
-    continuous_map.coe_mk, continuous_map.homotopy.curry_apply,
-    continuous_map.homotopy_with.coe_to_homotopy],
-  reflexivity,
-end
-
-@[simp] lemma eval1 : H.eval 1 = g :=
-begin
-  ext, unfold eval,
-  simp only [mk_apply, continuous_map.coe_mk,
-    continuous_map.homotopy_with.apply_one, continuous_map.homotopy.curry_apply,
-    continuous_map.homotopy_with.coe_to_homotopy],
-  reflexivity,
-end
-
-@[simp] lemma at0 (y : I^n) : H ⟨0, y⟩ = f y :=
-  by { convert H.apply_zero y }
-
-@[simp] lemma at1 (y : I^n) : H ⟨1, y⟩ = g y :=
-  by { convert H.apply_one y }
-
-end
-
-instance inhabited : inhabited ( (const:pre_π n x).homotopy const ) :=
-  { default :=
-    { to_fun := λ _, x,
-      continuous_to_fun := by continuity,
-      map_zero_left' := λ _, rfl,
-      map_one_left' := λ _, rfl,
-      prop' := λ _ _ _, ⟨rfl,rfl⟩ } }
-
-end homotopy
-
-/--
-Homotopic relation between `pre_π`s
--/
-def homotopic (f0 f1 : pre_π n x) : Prop := nonempty (f0 ~ f1)
 namespace homotopic
 section
-variables {f g h : pre_π n x}
+variables {f g h : nloop n x}
 
-@[refl] lemma refl (f : pre_π n x) : homotopic f f :=
-  ⟨homotopy.refl f⟩
+@[refl] lemma refl (f : nloop n x) : homotopic f f :=
+  ⟨continuous_map.homotopy_rel.refl _ _⟩
 
 @[symm] lemma symm (H : f.homotopic g) : g.homotopic f :=
-  H.map homotopy.symm
+  H.map continuous_map.homotopy_rel.symm
 
 @[trans] lemma trans (H0 : f.homotopic g) (H1 : g.homotopic h) : f.homotopic h :=
-  H0.map2 homotopy.trans H1
+  H0.map2 continuous_map.homotopy_rel.trans H1
 
 lemma equiv : equivalence (@homotopic X _ n x) :=
   ⟨homotopic.refl, λ _ _, homotopic.symm, λ _ _ _, homotopic.trans⟩
 
-instance setoid (n : nat) (x : X) : setoid (pre_π n x) :=
+instance setoid (n : nat) (x : X) : setoid (nloop n x) :=
   ⟨homotopic, equiv⟩
 
 end
 end homotopic
 
-end pre_π
+end nloop
 
 /--
 The nth homotopy group at x defined as the quotient of base preserving functions up to homotopic
 equivalence
 -/
-def π (n : nat) (x : X) := quotient (pre_π.homotopic.setoid n x)
+def nth_homotopy_group (n : nat) (x : X) := quotient (nloop.homotopic.setoid n x)
+notation `π` := nth_homotopy_group
 
-instance π.inhabited : inhabited (π n x) :=
-  { default :=  quotient.mk' pre_π.const }
+instance nth_homotopy_group.inhabited : inhabited (π n x) :=
+  { default :=  quotient.mk' nloop.const }
 
 /--
-The 0th homotopy "group" is equivalent to the path components of X aka the `zeroth_homotopy`
+The 0th homotopy "group" is equivalent to the path components of `X`, aka the `zeroth_homotopy`
 -/
 def pi0_equiv_path_components : π 0 x ≃ zeroth_homotopy X :=
 begin
   refine (quotient.congr _ _),
-  -- pre_π 0 x ≃ X
-  exact { to_fun := λ f, f 0,
+  -- nloop 0 x ≃ X
+  exact
+  { to_fun := λ f, f 0,
     inv_fun := λ x, ⟨continuous_map.const _ x, (λ _ ⟨f0,_⟩, fin.elim0 f0)⟩,
     left_inv := λ _, by { ext1, revert y, refine (unique.forall_iff.2 _), unfold default,
-      simp only [pre_π.mk_apply, continuous_map.const_apply] },
+      simp only [nloop.mk_apply, continuous_map.const_apply] },
     right_inv := λ _, by simp },
   -- joined iff homotopic
   intros, split; rintros ⟨H⟩; constructor,
-  exact { to_fun := λ t, H ⟨t, fin.elim0⟩,
+  exact
+  { to_fun := λ t, H ⟨t, fin.elim0⟩,
     continuous_to_fun := by continuity,
-    source' := by simpa only [matrix.zero_empty, pre_π.homotopy.at0],
-    target' := by simpa only [matrix.zero_empty, pre_π.homotopy.at1] },
-  exact { to_fun := λ t0, H t0.fst,
+    source' := by simpa only [matrix.zero_empty, continuous_map.homotopy_with.apply_zero],
+    target' := by simpa only [matrix.zero_empty, continuous_map.homotopy_with.apply_one]},
+  exact
+  { to_fun := λ t0, H t0.fst,
     continuous_to_fun := by continuity,
     map_zero_left' := by {refine (unique.forall_iff.2 _), unfold default, simpa only [path.source]},
     map_one_left' := by {refine (unique.forall_iff.2 _), unfold default, simpa only [path.target]},
@@ -273,13 +183,15 @@ begin
 end
 
 /--
-The first homotopy group at x is equivalent to the endomorphisms of x in the fundamental grupoid
+The first homotopy group at x is equivalent to the fundamental grupoid,
+i.e. the quotient of loops up to homotopy
 -/
-def pi1_equiv_fundamental_group : π 1 x ≃ path.homotopic.quotient x x :=
+def pi1_equiv_fundamental_groupoid : π 1 x ≃ path.homotopic.quotient x x :=
 begin
   refine (quotient.congr _ _),
-  exact {
-    to_fun := λ p, path.mk ⟨λ t, p (λ _, t), by {continuity, exact p.1.2}⟩
+  -- nloop 1 x ≃ path x x
+  exact
+  { to_fun := λ p, path.mk ⟨λ t, p (λ _, t), by {continuity, exact p.1.2}⟩
         (p.boundary (λ _, 0) ⟨0, by {left, refl}⟩)
         (p.boundary (λ _, 1) ⟨1, by {right, refl}⟩),
     inv_fun := λ p, {
@@ -292,40 +204,37 @@ begin
         cases iH; rw iH, simp only [path.source], simp only [path.target],
       end },
     left_inv := by { intro p, ext1, rw (y.one_char),
-      simp only [cube.head, path.coe_mk, pre_π.mk_apply, continuous_map.coe_mk], },
+      simp only [cube.head, path.coe_mk, nloop.mk_apply, continuous_map.coe_mk], },
     right_inv := by { intro p, ext1,
-      simp only [cube.head, pre_π.mk_apply, continuous_map.coe_mk, path.coe_mk], } },
+      simp only [cube.head, nloop.mk_apply, continuous_map.coe_mk, path.coe_mk], } },
+  -- homotopic iff homotopic
   intros, split; rintros ⟨H⟩; constructor,
-  exact {
-    to_fun := λ tx, H (tx.fst, λ _, tx.snd),
+  exact
+  { to_fun := λ tx, H (tx.fst, λ _, tx.snd),
     continuous_to_fun := by continuity,
-    map_zero_left' := by simp only [continuous_map.coe_mk, pre_π.homotopy.at0, equiv.coe_fn_mk,
-      eq_self_iff_true, forall_const],
-    map_one_left' := by simp only [continuous_map.coe_mk, pre_π.homotopy.at1, equiv.coe_fn_mk,
-      eq_self_iff_true, forall_const],
+    map_zero_left' := by { intros, simpa only [continuous_map.coe_mk,
+      continuous_map.homotopy_with.apply_zero, equiv.coe_fn_mk] },
+    map_one_left' := by {intros, simpa only [continuous_map.homotopy_with.apply_one]},
     prop' :=
     begin
       intros t y Hy, apply H.prop', use 0,
       cases Hy, rw Hy, left, refl,
       cases Hy, right, refl,
     end },
-  exact {
-    to_fun := λ tx, H (tx.fst, tx.snd.head),
+  refine
+  ⟨{to_fun := λ tx, H (tx.fst, tx.snd.head),
     continuous_to_fun := by continuity,
-    map_zero_left' := λ y, by {rw (cube.one_char y), simpa only [cube.head, continuous_map.coe_mk,
-      continuous_map.homotopy_with.apply_zero, equiv.coe_fn_mk]},
+    map_zero_left' := λ y, by {rw (cube.one_char y),
+      simpa only [continuous_map.homotopy_with.apply_zero]},
     map_one_left' := λ y, by {rw (cube.one_char y),
-      simpa only [continuous_map.homotopy_with.apply_one]},
-    prop' :=
-    begin
-      rintros t y ⟨i,iH⟩,
-      have hi : i = 0,
-        { rcases i with ⟨⟨_,_⟩,iH'⟩,
-          simp only [eq_iff_true_of_subsingleton],
-          exfalso, revert iH', norm_num },
-      simp only [cube.head, continuous_map.coe_mk],
-      split,
-      { convert (H.eq_fst _ _), exact y.one_char, rw ← hi, exact iH, },
-      convert (H.eq_snd _ _), exact y.one_char, rw ← hi, exact iH,
-    end  },
+      simpa only [continuous_map.homotopy_with.apply_one]} }, _⟩,
+  rintros t y ⟨i,iH⟩,
+  have hi : i = 0, { rcases i with ⟨⟨_,_⟩,iH'⟩,
+    simp only [eq_iff_true_of_subsingleton],
+    exfalso, revert iH', norm_num },
+  subst hi,
+  simp only [cube.head, continuous_map.coe_mk],
+  split,
+  { convert (H.eq_fst _ _), exact y.one_char, exact iH, },
+  convert (H.eq_snd _ _), exact y.one_char, exact iH
 end

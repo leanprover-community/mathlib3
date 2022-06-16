@@ -87,8 +87,7 @@ end
 lemma four_eq_two_rpow_two : (4 : ℝ) = 2 ^ (2 : ℝ) := by norm_num
 
 lemma log_four : log 4 = 2 * log 2 :=
-calc log 4 = log (2 ^ (2 : ℝ)) : by norm_num
-  ... = 2 * log 2 : by rw log_rpow two_pos
+by rw [four_eq_two_rpow_two, log_rpow two_pos]
 
 lemma exp_two_le_722 : exp 2 ≤ 722 :=
 calc exp 2 = (exp 1) ^ 2 : by rw [←exp_nat_mul 1 2]; simp

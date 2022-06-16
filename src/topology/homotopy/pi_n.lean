@@ -42,7 +42,7 @@ variables {n:nat} {x:X}
 The nth dimensional cube
 -/
 @[derive [has_zero, has_one]]
-def cube (n:nat) := fin n → I
+def cube (n:nat) : Type := fin n → I
 notation `I^` := cube
 
 namespace cube
@@ -148,7 +148,7 @@ end nloop
 The nth homotopy group at x defined as the quotient of base preserving functions up to homotopic
 equivalence
 -/
-def nth_homotopy_group (n : nat) (x : X) := quotient (nloop.homotopic.setoid n x)
+def nth_homotopy_group (n : nat) (x : X) : Type _ := quotient (nloop.homotopic.setoid n x)
 notation `π` := nth_homotopy_group
 
 instance nth_homotopy_group.inhabited : inhabited (π n x) :=
@@ -192,10 +192,10 @@ begin
   -- nloop 1 x ≃ path x x
   exact
   { to_fun := λ p, path.mk ⟨λ t, p (λ _, t), by {continuity, exact p.1.2}⟩
-        (p.boundary (λ _, 0) ⟨0, by {left, refl}⟩)
-        (p.boundary (λ _, 1) ⟨1, by {right, refl}⟩),
-    inv_fun := λ p, {
-      to_fun := λ c, p c.head,
+      (p.boundary (λ _, 0) ⟨0, by {left, refl}⟩)
+      (p.boundary (λ _, 1) ⟨1, by {right, refl}⟩),
+    inv_fun := λ p,
+    { to_fun := λ c, p c.head,
       continuous_to_fun := by continuity,
       boundary :=
       begin

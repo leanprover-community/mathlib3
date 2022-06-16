@@ -93,7 +93,7 @@ iff_false_intro $ not_rel_of_subsingleton r x y
 lemma rel_of_subsingleton (r) [is_refl α r] [subsingleton α] (x y) : r x y :=
 subsingleton.elim x y ▸ refl x
 
-@[simp] lemma rel_iff_of_subsingleton (r) [is_refl α r] [subsingleton α] (x y) : r x y ↔ true :=
+lemma rel_iff_of_subsingleton (r) [is_refl α r] [subsingleton α] (x y) : r x y ↔ true :=
 iff_true_intro $ rel_of_subsingleton r x y
 
 @[simp] lemma empty_relation_apply (a b : α) : empty_relation a b ↔ false := iff.rfl

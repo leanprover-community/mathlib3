@@ -106,6 +106,11 @@ instance : partial_order (ideal P) := partial_order.lift coe set_like.coe_inject
 @[trans] lemma mem_of_mem_of_le {x : P} {I J : ideal P} : x ∈ I → I ≤ J → x ∈ J :=
 @set.mem_of_mem_of_subset P x I J
 
+section pushforwards_and_pullbacks
+
+#where
+end pushforwards_and_pullbacks
+
 /-- A proper ideal is one that is not the whole set.
     Note that the whole set might not be an ideal. -/
 @[mk_iff] class is_proper (I : ideal P) : Prop := (ne_univ : (I : set P) ≠ univ)
@@ -321,10 +326,18 @@ section Sup
 
 variable [complete_semilattice_Sup P]
 
-lemma gc : galois_connection (λ ℐ, Sup ℐ.carrier : ideal P → P) (principal : P → ideal P)  :=
+lemma Sup_gc : galois_connection (λ ℐ, Sup ℐ.carrier : ideal P → P) (principal : P → ideal P)  :=
 λ x ℐ, by { simp, refl }
 
+/-- If a poset `P` admits arbitrary `Sup`s, then `Sup` and `principal` form a Galois insertion. -/
+def Sup_gi : galois_insertion (λ ℐ, Sup (ℐ.carrier) : ideal P → P) (principal : P → ideal P) :=
+{ choice := λ F _, Sup F,
+  gc := Sup_gc,
+  le_l_u := λ s, le_Sup $ by simp,
+  choice_eq := λ _ _, rfl }
+
 end Sup
+
 section distrib_lattice
 
 variables [distrib_lattice P]

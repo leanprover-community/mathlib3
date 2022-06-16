@@ -354,10 +354,16 @@ begin
   exact infi_le _ h,
 end
 
-protected lemma uniform_space_antitone : antitone (uniform_convergence_on.uniform_space α β) :=
-λ 𝔖₁ 𝔖₂ h₁₂, infi_le_infi_of_subset h₁₂
-
 variables {α}
+
+protected lemma mono ⦃u₁ u₂ : uniform_space γ⦄ (hu : u₁ ≤ u₂) ⦃𝔖₁ 𝔖₂ : set (set α)⦄
+  (h𝔖 : 𝔖₂ ⊆ 𝔖₁) :
+  @uniform_convergence_on.uniform_space α γ u₁ 𝔖₁ ≤
+  @uniform_convergence_on.uniform_space α γ u₂ 𝔖₂ :=
+calc @uniform_convergence_on.uniform_space α γ u₁ 𝔖₁
+    ≤ @uniform_convergence_on.uniform_space α γ u₁ 𝔖₂ : infi_le_infi_of_subset h𝔖
+... ≤ @uniform_convergence_on.uniform_space α γ u₂ 𝔖₂ : infi₂_mono
+        (λ i hi, uniform_space.comap_mono $ uniform_convergence.mono hu)
 
 lemma uniform_continuous_eval_of_mem {x : α} (hxs : x ∈ s) (hs : s ∈ 𝔖) :
   @uniform_continuous _ _ (uniform_convergence_on.uniform_space α β 𝔖) _ (function.eval x) :=
@@ -375,11 +381,6 @@ begin
 end
 
 variables {β} {𝔖}
-
-protected lemma mono_uniform_space ⦃u₁ u₂ : uniform_space γ⦄ (hu : u₁ ≤ u₂) :
-  @uniform_convergence_on.uniform_space α γ u₁ 𝔖 ≤
-  @uniform_convergence_on.uniform_space α γ u₂ 𝔖 :=
-infi₂_mono (λ i hi, uniform_space.comap_mono $ uniform_convergence.mono hu)
 
 protected lemma infi_eq {u : ι → uniform_space γ} :
   (@uniform_convergence_on.uniform_space α γ (⨅ i, u i) 𝔖) =
@@ -419,7 +420,7 @@ begin
   rw uniform_continuous_iff,
   calc uniform_convergence_on.uniform_space α γ 𝔖
       ≤ @uniform_convergence_on.uniform_space α γ (‹uniform_space β›.comap f) 𝔖 :
-        uniform_convergence_on.mono_uniform_space (uniform_continuous_iff.mp hf)
+        uniform_convergence_on.mono (uniform_continuous_iff.mp hf) (subset_rfl)
   ... = (uniform_convergence_on.uniform_space α β 𝔖).comap ((∘) f) :
         uniform_convergence_on.comap_eq
 end

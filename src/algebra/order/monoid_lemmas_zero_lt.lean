@@ -323,7 +323,7 @@ instance pos_mul_strict_mono.to_pos_mul_mono_rev [pos_mul_strict_mono α] : pos_
 
 @[priority 100] -- see Note [lower instance priority]
 instance mul_pos_strict_mono.to_mul_pos_mono_rev [mul_pos_strict_mono α] : mul_pos_mono_rev α :=
-⟨λ x a b h, le_of_not_lt $ λ h', h.not_lt (mul_lt_mul_right' h' x.prop)⟩
+⟨λ x a b h, le_of_not_lt $ λ h', h.not_lt (mul_lt_mul_right h' x.prop)⟩
 
 end linear_order
 

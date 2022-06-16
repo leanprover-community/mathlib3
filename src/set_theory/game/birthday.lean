@@ -5,7 +5,6 @@ Authors: Violeta Hernández Palacios
 -/
 
 import set_theory.game.ordinal
-import set_theory.ordinal.arithmetic
 
 /-!
 # Birthdays of games

@@ -205,25 +205,6 @@ begin
   rw exp_log hx,
 end
 
-lemma log_nat_eq_factorization_sum {n : ℕ} : log n = n.factorization.sum (λ p t, t * log p) :=
-begin
-  refine n.rec_on_prime_pow _ _ (λ a p n hp hpa hn ih, _),
-  { simp },
-  { simp },
-  push_cast,
-  have ha : a ≠ 0,
-  { rintro rfl, exact hpa (dvd_zero p) },
-  have hpn : p ^ n ≠ 0 := pow_ne_zero n hp.ne_zero,
-  rw [log_mul, log_pow, nat.factorization_mul hpn ha, finsupp.sum_add_index', hp.factorization_pow,
-      finsupp.sum_single_index, ih],
-  { simp },
-  { simp },
-  { intros t x y,
-    rw [x.cast_add y, add_mul] },
-  { exact_mod_cast hpn },
-  { exact_mod_cast ha },
-end
-
 /-- Bound for `|log x * x|` in the interval `(0, 1]`. -/
 lemma abs_log_mul_self_lt (x: ℝ) (h1 : 0 < x) (h2 : x ≤ 1) : |log x * x| < 1 :=
 begin
@@ -282,6 +263,19 @@ begin
   { simp },
   simp only [finset.mem_insert, forall_eq_or_imp] at hf,
   simp [ha, ih hf.2, log_mul hf.1 (finset.prod_ne_zero_iff.2 hf.2)],
+end
+
+lemma log_nat_eq_factorization_sum {n : ℕ} : log n = n.factorization.sum (λ p t, t * log p) :=
+begin
+  rcases eq_or_ne n 0 with rfl | hn,
+  { simp },
+  nth_rewrite 0 [←nat.factorization_prod_pow_eq_self hn],
+  rw [finsupp.prod, nat.cast_prod, log_prod, finsupp.sum],
+  simp_rw [nat.cast_pow, log_pow],
+  intros p hp,
+  norm_cast,
+  apply pow_ne_zero,
+  exact (nat.prime_of_mem_factorization hp).ne_zero
 end
 
 lemma tendsto_pow_log_div_mul_add_at_top (a b : ℝ) (n : ℕ) (ha : a ≠ 0) :

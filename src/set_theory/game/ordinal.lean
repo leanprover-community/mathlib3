@@ -11,8 +11,8 @@ import set_theory.ordinal.natural_ops
 /-!
 # Ordinals as games
 
-We define the canonical map `ordinal → pgame`, where every ordinal is mapped to the game whose left
-set consists of all previous ordinals.
+We define the canonical maps `ordinal → pgame` and `ordinal → game`, where every ordinal is mapped
+to the game whose left set consists of all previous ordinals.
 
 The map to surreals is defined in `ordinal.to_surreal`.
 
@@ -20,6 +20,7 @@ The map to surreals is defined in `ordinal.to_surreal`.
 
 - `ordinal.to_pgame`: The canonical map between ordinals and pre-games.
 - `ordinal.to_pgame_embedding`: The order embedding version of the previous map.
+- `ordinal.to_game`: The composition of `ordinal.to_pgame` with `quot.mk` as an order embedding.
 -/
 
 universe u

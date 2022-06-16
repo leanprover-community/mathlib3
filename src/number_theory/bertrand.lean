@@ -75,7 +75,7 @@ open real
 
 lemma log_four_pos : 0 < log 4 := log_pos (by linarith)
 
-lemma log_four_nonzero : log 4 ≠ 0 := by linarith [log_four_pos]
+lemma log_four_nonzero : log 4 ≠ 0 := log_four_pos.ne'
 
 lemma log_1024_div_log_4 : log 1024 / log 4 = 5 :=
 begin

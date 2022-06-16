@@ -91,7 +91,7 @@ meta def guess_degree : expr → tactic expr
 /--  `resolve_sum_step tf e` takes a boolean `tf` and an expression `e` as inputs.
 It assumes that `e` is of the form `f.nat_degree ≤ d`,failing otherwise.
 `resolve_sum_step` progresses into `f` if `f` is
-*  a sum or product;
+*  a sum, difference, opposite or product;
 * (a power of) `X`;
 * a monomial;
 * `C a`;

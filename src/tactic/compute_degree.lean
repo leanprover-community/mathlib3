@@ -157,8 +157,8 @@ It decomposes `e` recursively as a sequence of additions, multiplications and `m
 On the atoms of the process, `conservative_eval` tries to use `eval_expr ℕ`, resorting to using
 `0` if `eval_expr ℕ` fails. -/
 meta def conservative_eval : expr → tactic ℕ
-| `(%%a + %%b) := do ca ← conservative_eval a, cb ← conservative_eval b, return $ ca + cb
-| `(%%a * %%b) := do ca ← conservative_eval a, cb ← conservative_eval b, return $ ca * cb
+| `(%%a + %%b)   := do ca ← conservative_eval a, cb ← conservative_eval b, return $ ca + cb
+| `(%%a * %%b)   := do ca ← conservative_eval a, cb ← conservative_eval b, return $ ca * cb
 | `(max %%a %%b) := do ca ← conservative_eval a, cb ← conservative_eval b, return $ max ca cb
 | e := do cond ← succeeds $ eval_expr ℕ e, if cond then eval_expr ℕ e else pure 0
 
@@ -183,7 +183,7 @@ do t ← target,
   `(polynomial.nat_degree %%tl ≤ %%tr) ← target |
     fail "Goal is not of the form\n`f.nat_degree ≤ d` or `f.degree ≤ d`",
   exp_deg ← guess_degree tl >>= conservative_eval,
-  cond ← succeeds $eval_expr ℕ tr,
+  cond ← succeeds $ eval_expr ℕ tr,
   deg_bou ← if cond then eval_expr ℕ tr else pure exp_deg,
   if deg_bou < exp_deg
   then fail sformat!"the given polynomial has a term of expected degree\nat least '{exp_deg}'"

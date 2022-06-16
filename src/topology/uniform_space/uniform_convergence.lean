@@ -332,15 +332,34 @@ begin
     a ∈ s → b ∈ s' → ((F m.fst.fst a, F' m.fst.snd b), F m.snd.fst a, F' m.snd.snd b) ∈ u),
   have foo : ∀ m : (ι × ι') × ι × ι', (∀ (a : α) (b : α'),
     a ∈ s → b ∈ s' → ((F m.fst.fst a, F' m.fst.snd b), F m.snd.fst a, F' m.snd.snd b) ∈ u) ↔ (pr m),
-  {
-    intros m,
-    simp [pr],
-  },
+  { intros m,
+    simp only [pr], },
   simp_rw foo,
 
-  have : tendsto (λ m : (ι × ι') × ι × ι', ((m.fst.fst, m.snd.fst), m.fst.snd, m.snd.snd)) (p ×ᶠ p' ×ᶠ (p ×ᶠ p')) (p ×ᶠ p ×ᶠ (p' ×ᶠ p')), {
-    sorry,
-  },
+  have : tendsto (λ m : (ι × ι') × ι × ι', ((m.fst.fst, m.snd.fst), m.fst.snd, m.snd.snd))
+    (p ×ᶠ p' ×ᶠ (p ×ᶠ p')) (p ×ᶠ p ×ᶠ (p' ×ᶠ p')),
+  { unfold tendsto,
+    rw le_def,
+    intros s hs,
+    simp [hs],
+    simp_rw mem_prod_iff,
+    simp_rw mem_prod_iff at hs,
+    rcases hs with ⟨t₁, ⟨t₁', ht₁', t₁'', ht₁'', ht₁⟩, t₂, ⟨t₂', ht₂', t₂'', ht₂'', ht₂⟩, hts⟩,
+    use [t₁' ×ˢ t₂', t₁', ht₁', t₂', ht₂'],
+    refine ⟨t₁'' ×ˢ t₂'', ⟨t₁'', ht₁'', t₂'', ht₂'', rfl.subset⟩, _⟩,
+    rw set.subset_def,
+    intros x hx,
+    simp,
+    calc ((x.fst.fst, x.snd.fst), x.fst.snd, x.snd.snd) ∈ (t₁' ×ˢ t₁'') ×ˢ t₂' ×ˢ t₂'' : begin
+      simp at hx,
+      simp [hx],
+    end
+    ... ⊆ t₁ ×ˢ t₂ : begin
+      rw prod_subset_prod_iff,
+      left,
+      exact ⟨ht₁, ht₂⟩,
+      end
+    ... ⊆ s : hts, },
   apply (this.eventually ((h v hv).prod_mk (h' w hw))).mono,
   intros x hx a b ha hb,
   rw ←set.image_subset_iff at hvw,

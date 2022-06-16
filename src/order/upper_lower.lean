@@ -17,6 +17,8 @@ This file defines upper and lower sets in an order.
   member of the set is in the set itself.
 * `is_lower_set`: Predicate for a set to be a lower set. This means every element less than a member
   of the set is in the set itself.
+* `set.upper_set_of` : The minimal upper_set containing a given set.
+* `set.lower_set_of` : The minimal lower_set containing a given set.
 * `upper_set`: The type of upper sets.
 * `lower_set`: The type of lower sets.
 * `upper_set.Ici`: Principal upper set. `set.Ici` as an upper set.
@@ -45,6 +47,12 @@ def is_upper_set (s : set α) : Prop := ∀ ⦃a b : α⦄, a ≤ b → a ∈ s 
 /-- A lower set in an order `α` is a set such that any element less than one of its members is also
 a member. Also called down-set, downward-closed set. -/
 def is_lower_set (s : set α) : Prop := ∀ ⦃a b : α⦄, b ≤ a → a ∈ s → b ∈ s
+
+/-- The (unbundled) smallest upper set containing a set `s`-/
+def set.upper_set_of (s : set α) : set α := {x | ∃ a ∈ s, a ≤ x}
+
+/-- The (unbundled) smallest lower set containing a set `s`-/
+def set.lower_set_of (s : set α) : set α := {x | ∃ a ∈ s, x ≤ a}
 
 lemma is_upper_set_empty : is_upper_set (∅ : set α) := λ _ _ _, id
 lemma is_lower_set_empty : is_lower_set (∅ : set α) := λ _ _ _, id
@@ -114,6 +122,12 @@ iff.rfl
 @[simp] lemma is_upper_set_preimage_to_dual_iff {s : set αᵒᵈ} :
   is_upper_set (to_dual ⁻¹' s) ↔ is_lower_set s := iff.rfl
 
+lemma lower_set_of_preimage_of_dual (s : set α) :
+  set.lower_set_of (of_dual ⁻¹' s) = of_dual ⁻¹' (set.upper_set_of s) := rfl
+
+lemma upper_set_of_preimage_of_dual (s : set α) :
+  set.upper_set_of (of_dual ⁻¹' s) = of_dual ⁻¹' (set.lower_set_of s) := rfl
+
 alias is_lower_set_preimage_of_dual_iff ↔ _ is_upper_set.of_dual
 alias is_upper_set_preimage_of_dual_iff ↔ _ is_lower_set.of_dual
 alias is_lower_set_preimage_to_dual_iff ↔ _ is_upper_set.to_dual
@@ -129,7 +143,38 @@ lemma is_lower_set_Iic : is_lower_set (Iic a) := λ _ _, le_trans
 lemma is_upper_set_Ioi : is_upper_set (Ioi a) := λ _ _, flip lt_of_lt_of_le
 lemma is_lower_set_Iio : is_lower_set (Iio a) := λ _ _, lt_of_le_of_lt
 
+lemma is_upper_set_upper_set_of (s : set α) : is_upper_set (set.upper_set_of s) :=
+λ x a hxa ⟨y,hy,hyx⟩, ⟨y,hy,hyx.trans hxa⟩
+
+lemma is_lower_set_lower_set_of (s : set α) : is_lower_set (set.lower_set_of s) :=
+λ x a hax ⟨y,hy,hxy⟩, ⟨y,hy,hax.trans hxy⟩
+
 end preorder
+
+section boolean_algebra
+variables [boolean_algebra α]
+
+lemma lower_set_of_preimage_compl (s : set α) :
+  set.lower_set_of (compl ⁻¹' s) = compl ⁻¹' (set.upper_set_of s) :=
+begin
+  ext x, simp only [set.mem_set_of_eq, set.mem_preimage, exists_prop],
+  exact ⟨λ ⟨y,hy,hxy⟩, ⟨yᶜ, hy, compl_le_compl_iff_le.mpr hxy⟩,
+    λ ⟨y,hy,hxy⟩, ⟨yᶜ, by rwa [mem_preimage, compl_compl], le_compl_iff_le_compl.mpr hxy⟩⟩,
+end
+
+lemma lower_set_of_image_compl (s : set α) :
+  set.lower_set_of (compl '' s) = compl '' (set.upper_set_of s) :=
+by rw [←preimage_compl_eq_image_compl, lower_set_of_preimage_compl, ←preimage_compl_eq_image_compl]
+
+lemma upper_set_of_image_compl (s : set α) :
+  set.upper_set_of (compl '' s) = compl '' (set.lower_set_of s) :=
+by {nth_rewrite 1 ←(@compl_compl_image _ _ s), rw [lower_set_of_image_compl, compl_compl_image]}
+
+lemma upper_set_of_preimage_compl (s : set α):
+  set.upper_set_of (compl ⁻¹' s) = compl ⁻¹' (set.lower_set_of s) :=
+by rw [preimage_compl_eq_image_compl, preimage_compl_eq_image_compl, upper_set_of_image_compl]
+
+end boolean_algebra
 
 /-! ### Bundled upper/lower sets -/
 
@@ -357,18 +402,24 @@ end has_le
 
 namespace upper_set
 section preorder
-variables [preorder α] {a b : α}
+variables [preorder α] {a b : α} {s : set α}
 
-/-- The smallest upper set containing a given element. -/
+/-- Principal upper set; the smallest upper set containing a given element.
+  `set.Ici` as an upper set. -/
 def Ici (a : α) : upper_set α := ⟨Ici a, is_upper_set_Ici a⟩
 
-/-- The smallest upper set containing a given element. -/
+/-- Strict principal upper set; `set.Ioi` as an upper set. -/
 def Ioi (a : α) : upper_set α := ⟨Ioi a, is_upper_set_Ioi a⟩
+
+/-- The smallest upper set containing a given set. `set.upper_set_of` as an upper set -/
+def upper_set_of (s : set α) : upper_set α := ⟨set.upper_set_of s, is_upper_set_upper_set_of s⟩
 
 @[simp] lemma coe_Ici (a : α) : ↑(Ici a) = set.Ici a := rfl
 @[simp] lemma coe_Ioi (a : α) : ↑(Ioi a) = set.Ioi a := rfl
+@[simp] lemma coe_upper_set_of (s : set α) : ↑(upper_set_of s) = set.upper_set_of s := rfl
 @[simp] lemma mem_Ici_iff : b ∈ Ici a ↔ a ≤ b := iff.rfl
 @[simp] lemma mem_Ioi_iff : b ∈ Ioi a ↔ a < b := iff.rfl
+@[simp] lemma mem_upper_set_of_iff : a ∈ upper_set_of s ↔ ∃ b ∈ s, b ≤ a := iff.rfl
 
 lemma Ioi_le_Ici (a : α) : Ioi a ≤ Ici a := Ioi_subset_Ici_self
 
@@ -412,19 +463,24 @@ end upper_set
 
 namespace lower_set
 section preorder
-variables [preorder α] {a b : α}
+variables [preorder α] {a b : α} {s : set α}
 
-/-- Principal lower set. `set.Iic` as a lower set. The smallest lower set containing a given
-element. -/
+/-- Principal lower set; the smallest lower set containing a given element.
+  `set.Iic` as a lower set.-/
 def Iic (a : α) : lower_set α := ⟨Iic a, is_lower_set_Iic a⟩
 
-/-- Strict principal lower set. `set.Iio` as a lower set. -/
+/-- Strict principal lower set; `set.Iio` as a lower set. -/
 def Iio (a : α) : lower_set α := ⟨Iio a, is_lower_set_Iio a⟩
+
+/-- The smallest lower set containing a given set. `set.lower_set_of` as a lower set -/
+def lower_set_of (s : set α) : lower_set α := ⟨set.lower_set_of s, is_lower_set_lower_set_of s⟩
 
 @[simp] lemma coe_Iic (a : α) : ↑(Iic a) = set.Iic a := rfl
 @[simp] lemma coe_Iio (a : α) : ↑(Iio a) = set.Iio a := rfl
+@[simp] lemma coe_lower_set_of (s : set α) : ↑(lower_set_of s) = set.lower_set_of s := rfl
 @[simp] lemma mem_Iic_iff : b ∈ Iic a ↔ b ≤ a := iff.rfl
 @[simp] lemma mem_Iio_iff : b ∈ Iio a ↔ b < a := iff.rfl
+@[simp] lemma mem_lower_set_of_iff : a ∈ lower_set_of s ↔ ∃ b ∈ s, a ≤ b := iff.rfl
 
 lemma Ioi_le_Ici (a : α) : Ioi a ≤ Ici a := Ioi_subset_Ici_self
 

@@ -909,7 +909,7 @@ ext $ λ x, and_iff_not_or_not
 
 @[simp] theorem compl_union_self (s : set α) : sᶜ ∪ s = univ := by rw [union_comm, union_compl_self]
 
-theorem compl_comp_compl : compl ∘ compl = @id (set α) := funext compl_compl
+theorem compl_comp_compl [boolean_algebra α]: compl ∘ compl = @id α := funext compl_compl
 
 theorem compl_subset_comm {s t : set α} : sᶜ ⊆ t ↔ tᶜ ⊆ s := @compl_le_iff_compl_le _ s t _
 
@@ -1438,7 +1438,7 @@ theorem image_id (s : set α) : id '' s = s := by simp
 
 theorem compl_compl_image [boolean_algebra α] {S : set α} :
   compl '' (compl '' S) = S :=
-by {ext, simp}
+by rw [←image_comp, compl_comp_compl, image_id]
 
 theorem image_insert_eq {f : α → β} {a : α} {s : set α} :
   f '' (insert a s) = insert (f a) (f '' s) :=

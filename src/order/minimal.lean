@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
 import order.antichain
+import order.upper_lower
 
 /-!
 # Minimal/maximal elements of a set
@@ -131,16 +132,12 @@ lemma is_greatest.maximals_eq (h : is_greatest s a) : maximals (≤) s = {a} :=
 eq_singleton_iff_unique_mem.2 ⟨h.mem_maximals, λ b hb, hb.2 h.1 $ h.2 hb.1⟩
 
 lemma is_antichain.max_lower_set_of (hs : is_antichain (≤) s) :
-  maximals (≤) {x | ∃ y ∈ s, x ≤ y} = s :=
-begin
-  ext x,
-  simp only [maximals, exists_prop, mem_set_of_eq, forall_exists_index, and_imp, sep_set_of],
-  refine ⟨λ h, exists.elim h.1 (λ y hy, ((h.2 _ hy.1 rfl.le hy.2).symm.subst hy.1)),
-    λ h, ⟨⟨x,h,rfl.le⟩,λ b y hy hby hxy, _⟩⟩,
-  have : x = y := by_contra (λ h_eq, (hs h hy h_eq (hxy.trans hby)).elim),
-  exact hxy.antisymm (this.symm.subst hby),
-end
+  maximals (≤) (set.lower_set_of s) = s :=
+hs.max_maximals (λ x, λ ⟨⟨z,hzs,hxz⟩,hy⟩, by rwa (hy ⟨z,hzs,rfl.le⟩ hxz))
+  (λ a has, ⟨a,⟨⟨a,has,rfl.le⟩, λ y ⟨z,hz,hyz⟩ hay, by_contra
+    (λ haz, hs has hz (λ haz', haz (hay.antisymm (le_of_le_of_eq hyz haz'.symm)))
+      (hay.trans hyz) )⟩,rfl.le⟩)
 
 lemma is_antichain.min_upper_set_of (hs : is_antichain (≤) s) :
-  minimals (≤) {x | ∃ y ∈ s, y ≤ x} = s :=
+  minimals (≤) (set.upper_set_of s) = s :=
 hs.to_dual.max_lower_set_of

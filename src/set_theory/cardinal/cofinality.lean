@@ -590,7 +590,7 @@ begin
     rw [e, ord_nat] at this,
     cases n,
     { simp at e, simpa [e, not_zero_is_limit] using l },
-    { rw [← nat_cast_succ, cof_succ] at this,
+    { rw [nat_cast_succ, cof_succ] at this,
       rw [← this, cof_eq_one_iff_is_succ] at e,
       rcases e with ⟨a, rfl⟩,
       exact not_succ_is_limit _ l } }

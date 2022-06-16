@@ -660,10 +660,9 @@ def of_hom_inv {F G : Type*} [order_hom_class F α β] [order_hom_class G β α]
   inv_fun := g,
   left_inv := fun_like.congr_fun h₂,
   right_inv := fun_like.congr_fun h₁,
-  map_rel_iff' := λ a b, ⟨λ h, by {
-      replace h := map_rel g h,
-      rwa [equiv.coe_fn_mk, ← @order_hom_class.comp_apply α β α _ _ _ F G _ _ f g,
-      ← @order_hom_class.comp_apply α β α _ _ _ F G _ _ f g, h₂] at h },
+  map_rel_iff' := λ a b, ⟨λ h, by { replace h := map_rel g h, rwa [equiv.coe_fn_mk,
+    ← @order_hom_class.comp_apply α β α _ _ _ F G _ _ f g, ← @order_hom_class.comp_apply α β α _
+      _ _ F G _ _ f g, h₂] at h },
     λ h, (f : α →o β).monotone h⟩ }
 
 /-- Order isomorphism between two equal sets. -/

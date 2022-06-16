@@ -196,24 +196,11 @@ begin
             rw [mul_div_assoc, ←sqrt_div zero_le_two],
             norm_num,
             field_simp [sqrt_361],
-            cancel_denoms,
-            rw div_mul_eq_div_div,
-            cancel_denoms,
-            rw mul_div,
-            rw log_722,
-            rw log_four,
-            have nineteen_pos : (0 : ℝ) < 19 := by norm_num,
-            calc 4 * (log 2 + 2 * log 19) / (2 * log 2)
-                  = 2 * (2 * (log 2 + 2 * log 19)) / (2 * log 2) : by ring
-              ... = 2 * (log 2 + 2 * log 19) / log 2 : mul_div_mul_left _ _ (by norm_num)
-              ... = (2 * log 2 + 4 * log 19) / log 2 : by ring
-              ... = (log 4 + 4 * log 19) / log 2 : by rw log_four
-              ... = (log 4 + log (19 ^ (4 : ℝ))) / log 2 : by rw log_rpow nineteen_pos 4
-              ... = (log 4 + log 130321) / log 2 : by norm_num
-              ... = log (4 * 130321) / log 2 : by rw @log_mul 4 130321 (by norm_num) (by norm_num)
-              ... = log 521284 / log 2 : by norm_num
-              ... ≤ 19 : inequality,
-          end,
+            rw div_le_div_iff _ _,
+            { rw [one_mul, mul_comm, ←@log_rpow 722 _ 4, mul_comm, ←le_rpow_iff_log_le]; norm_num},
+            { refine mul_pos (log_pos _) _; norm_num },
+            { norm_num },
+          end
 
 end
 

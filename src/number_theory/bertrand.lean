@@ -110,10 +110,8 @@ end
 
 lemma exp_two_le_722 : exp 2 ≤ 722 :=
 calc exp 2 = (exp 1) ^ 2 : by rw [←exp_nat_mul 1 2]; simp
-  ... ≤ 2.7182818286 ^ 2 :
-      pow_le_pow_of_le_left (le_of_lt (exp_pos 1)) (le_of_lt exp_one_lt_d9) _
-  ... ≤ 3 ^ 2 :
-      pow_le_pow_of_le_left (by norm_num) (by norm_num) _
+    ... ≤ 3 ^ 2 :
+    pow_le_pow_of_le_left (exp_pos 1).le ((lt_of_lt_of_le exp_one_lt_d9 (by norm_num)).le) 2
   ... ≤ 722 : by norm_num
 
 

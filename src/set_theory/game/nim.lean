@@ -60,44 +60,6 @@ lemma nim_def (O : ordinal) : nim O = pgame.mk O.out.α O.out.α
   (λ O₂, nim (ordinal.typein (<) O₂)) :=
 by { rw nim, refl }
 
-instance : is_empty (nim 0).left_moves :=
-by { rw nim_def, exact ordinal.is_empty_out_zero }
-
-instance : is_empty (nim 0).right_moves :=
-by { rw nim_def, exact ordinal.is_empty_out_zero }
-
-noncomputable instance : unique (nim 1).left_moves :=
-by { rw nim_def, exact ordinal.unique_out_one }
-
-noncomputable instance : unique (nim 1).right_moves :=
-by { rw nim_def, exact ordinal.unique_out_one }
-
-/-- `nim 0` has exactly the same moves as `0`. -/
-def nim_zero_relabelling : relabelling (nim 0) 0 := relabelling.is_empty _
-
-@[simp] theorem nim_zero_equiv : nim 0 ≈ 0 := equiv.is_empty _
-
-/-- `nim 1` has exactly the same moves as `star`. -/
-noncomputable def nim_one_relabelling : relabelling (nim 1) star :=
-begin
-  rw nim_def,
-  refine ⟨_, _, λ i,  _, λ j, _⟩,
-  any_goals { dsimp, apply equiv.equiv_of_unique },
-  all_goals { simp, exact nim_zero_relabelling }
-end
-
-@[simp] theorem nim_one_equiv : nim 1 ≈ star := nim_one_relabelling.equiv
-
-@[simp] lemma nim_birthday (O : ordinal) : (nim O).birthday = O :=
-begin
-  induction O using ordinal.induction with O IH,
-  rw [nim_def, birthday_def],
-  dsimp,
-  rw max_eq_right le_rfl,
-  convert lsub_typein O,
-  exact funext (λ i, IH _ (typein_lt_self i))
-end
-
 lemma left_moves_nim (O : ordinal) : (nim O).left_moves = O.out.α :=
 by { rw nim_def, refl }
 lemma right_moves_nim (O : ordinal) : (nim O).right_moves = O.out.α :=
@@ -139,6 +101,66 @@ by simp
 lemma move_right_nim {O : ordinal} (i) :
   (nim O).move_right (to_right_moves_nim i) = nim i :=
 by simp
+
+instance is_empty_nim_zero_left_moves : is_empty (nim 0).left_moves :=
+by { rw nim_def, exact ordinal.is_empty_out_zero }
+
+instance is_empty_nim_zero_right_moves : is_empty (nim 0).right_moves :=
+by { rw nim_def, exact ordinal.is_empty_out_zero }
+
+noncomputable instance unique_nim_one_left_moves : unique (nim 1).left_moves :=
+(equiv.cast $ left_moves_nim 1).unique
+
+noncomputable instance unique_nim_one_right_moves : unique (nim 1).right_moves :=
+(equiv.cast $ right_moves_nim 1).unique
+
+@[simp] theorem default_nim_one_left_moves_eq :
+  (default : (nim 1).left_moves) = @to_left_moves_nim 1 ⟨0, ordinal.zero_lt_one⟩ :=
+rfl
+
+@[simp] theorem default_nim_one_right_moves_eq :
+  (default : (nim 1).right_moves) = @to_right_moves_nim 1 ⟨0, ordinal.zero_lt_one⟩ :=
+rfl
+
+@[simp] theorem to_left_moves_nim_one_symm (i) :
+  (@to_left_moves_nim 1).symm i = ⟨0, ordinal.zero_lt_one⟩ :=
+by simp
+
+@[simp] theorem to_right_moves_nim_one_symm (i) :
+  (@to_right_moves_nim 1).symm i = ⟨0, ordinal.zero_lt_one⟩ :=
+by simp
+
+theorem nim_one_move_left (x) : (nim 1).move_left x = nim 0 :=
+by simp
+
+theorem nim_one_move_right (x) : (nim 1).move_right x = nim 0 :=
+by simp
+
+/-- `nim 0` has exactly the same moves as `0`. -/
+def nim_zero_relabelling : relabelling (nim 0) 0 := relabelling.is_empty _
+
+@[simp] theorem nim_zero_equiv : nim 0 ≈ 0 := equiv.is_empty _
+
+/-- `nim 1` has exactly the same moves as `star`. -/
+noncomputable def nim_one_relabelling : relabelling (nim 1) star :=
+begin
+  rw nim_def,
+  refine ⟨_, _, λ i, _, λ j, _⟩,
+  any_goals { dsimp, apply equiv.equiv_of_unique },
+  all_goals { simp, exact nim_zero_relabelling }
+end
+
+@[simp] theorem nim_one_equiv : nim 1 ≈ star := nim_one_relabelling.equiv
+
+@[simp] lemma nim_birthday (O : ordinal) : (nim O).birthday = O :=
+begin
+  induction O using ordinal.induction with O IH,
+  rw [nim_def, birthday_def],
+  dsimp,
+  rw max_eq_right le_rfl,
+  convert lsub_typein O,
+  exact funext (λ i, IH _ (typein_lt_self i))
+end
 
 @[simp] lemma neg_nim (O : ordinal) : -nim O = nim O :=
 begin

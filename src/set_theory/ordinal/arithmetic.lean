@@ -162,6 +162,10 @@ instance : nontrivial ordinal.{u} :=
 @[simp] theorem zero_lt_one : (0 : ordinal) < 1 :=
 lt_iff_le_and_ne.2 ⟨ordinal.zero_le _, ordinal.one_ne_zero.symm⟩
 
+instance unique_Iio_one : unique (Iio (1 : ordinal)) :=
+{ default := ⟨0, zero_lt_one⟩,
+  uniq := λ a, subtype.ext $ lt_one_iff_zero.1 a.prop }
+
 instance : zero_le_one_class ordinal := ⟨zero_lt_one.le⟩
 
 instance unique_out_one : unique (1 : ordinal).out.α :=

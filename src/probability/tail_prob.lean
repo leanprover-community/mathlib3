@@ -42,22 +42,6 @@ begin
   exact hp.ne.symm
 end
 
-lemma aux (x : ℝ) :
-  (set.Ici (0 : ℝ)).eq_on
-  (λ t, (set.Icc 0 x).indicator (1 : ℝ → ℝ) t)
-  (λ t, (set.Ici t).indicator (1 : ℝ → ℝ) x) :=
-begin
-  classical,
-  intros t hnonneg,
-  simp only,
-  by_cases ht : t ∈ set.Icc 0 x,
-  { rw [set.indicator_apply, set.indicator_apply, if_pos ht, if_pos],
-    { refl },
-    { exact ht.2 } },
-  { rw [set.indicator_apply, set.indicator_apply, if_neg ht, if_neg],
-    simp only [*, set.mem_Ici, not_le, set.mem_Icc, not_and, set.mem_set_of_eq] at * }
-end
-
 lemma set_integral_indicator {E : Type*} [normed_group E] [normed_space ℝ E]
   [complete_space E] {s t : set α} (ht : measurable_set t) (f : α → E) :
   ∫ x in s, t.indicator f x ∂μ = ∫ x in s ∩ t, f x ∂μ :=
@@ -66,7 +50,10 @@ by rw [integral_indicator ht, measure.restrict_restrict ht, set.inter_comm]
 lemma set_integral_indicator' {E : Type*} [normed_group E] [normed_space ℝ E]
   [complete_space E] {s t : set α} (ht : measurable_set t) (f : α → α → E) :
   ∫ x in s, t.indicator (f x) x ∂μ = ∫ x in s ∩ t, f x x ∂μ :=
-sorry
+begin
+  rw ← set_integral_indicator ht,
+  refl,
+end
 
 lemma set.eq_on_of_eq (s : set ℝ) {f g : ℝ → ℝ} (hf : f = g) : s.eq_on f g :=
 by rw hf

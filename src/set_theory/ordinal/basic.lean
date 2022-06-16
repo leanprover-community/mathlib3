@@ -742,7 +742,7 @@ theorem card_le_card {o₁ o₂ : ordinal} : o₁ ≤ o₂ → card o₁ ≤ car
 induction_on o₁ $ λ α r _, induction_on o₂ $ λ β s _ ⟨⟨⟨f, _⟩, _⟩⟩, ⟨f⟩
 
 instance : has_zero ordinal :=
-⟨@type pempty empty_relation _⟩
+⟨type (@empty_relation pempty)⟩
 
 instance : inhabited ordinal := ⟨0⟩
 
@@ -792,10 +792,36 @@ instance is_empty_out_zero : is_empty (0 : ordinal).out.α :=
 out_empty_iff_eq_zero.2 rfl
 
 instance : has_one ordinal :=
-⟨@type punit empty_relation _⟩
+⟨type (@empty_relation punit)⟩
 
-theorem one_eq_type_unit : 1 = @type unit empty_relation _ :=
-quotient.sound ⟨⟨punit_equiv_punit, λ _ _, iff.rfl⟩⟩
+@[simp] theorem type_eq_one_of_unique (r) [is_well_order α r] [unique α] : type r = 1 :=
+(rel_iso.rel_iso_of_unique_of_irrefl r _).ordinal_type_eq
+
+@[simp] theorem type_eq_one_iff_nonempty_unique [is_well_order α r] :
+  type r = 1 ↔ nonempty (unique α) :=
+⟨λ h, let ⟨s⟩ := type_eq.1 h in s.to_equiv.is_empty, @type_eq_zero_of_empty α r _⟩
+
+theorem type_ne_one_iff_is_empty_unique [is_well_order α r] : type r ≠ 1 ↔ is_empty (unique α) :=
+by simp
+
+lemma eq_one_of_out_unique (o : ordinal) [h : unique o.out.α] : o = 1 :=
+begin
+  by_contra ho,
+  replace ho := ordinal.pos_iff_ne_zero.2 ho,
+  rw ←type_lt o at ho,
+  have α := enum (<) 0 ho,
+  exact h.elim α
+end
+
+@[simp] theorem out_unique_iff_eq_one {o : ordinal} : nonempty (unique o.out.α) ↔ o = 1 :=
+begin
+  refine ⟨@eq_zero_of_out_empty o, λ h, ⟨λ i, _⟩⟩,
+  subst o,
+  exact (ordinal.zero_le _).not_lt (typein_lt_self i)
+end
+
+instance unique_out_one : unique (0 : ordinal).out.α :=
+out_empty_iff_eq_zero.2 rfl
 
 @[simp] theorem card_one : card 1 = 1 := rfl
 

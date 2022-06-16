@@ -100,10 +100,12 @@ lemma nat_degree_bit0 : (bit0 a).nat_degree ≤ a.nat_degree :=
 lemma nat_degree_bit1 : (bit1 a).nat_degree ≤ a.nat_degree :=
 (nat_degree_add_le _ _).trans (by simp [nat_degree_bit0])
 
+end polynomial
+
 namespace tactic
 namespace compute_degree
 open expr
-#check ℕ
+
 /--  If an expression `e` is an iterated suquence of `bit0` and `bit1` starting from `0` or `1`,
 then `num_to_nat e` returns `some n`, where `n` is the natural number obtained from the same
 sequence of `bit0` and `bit1` applied to `0` or `1`.  Otherwise, `num_to_nat e = none`. -/
@@ -128,7 +130,7 @@ ring `R[X]`.  If `a` is an iterated application of `bit0` and `bit1` to `0` or `
 `a = C (a : R)` and rewrites the goal with this identity.  Otherwise, the tactic does nothing. -/
 meta def convert_num_to_C_num (a : expr) : tactic unit :=
 match num_to_nat a with
-| some an := do
+| (some an) := do
   `(@polynomial %%R %%inst) ← infer_type a,
   n_eq_Cn ← to_expr ``(%%a = polynomial.C (%%an : %%R)),
   (_, nproof) ← solve_aux n_eq_Cn
@@ -228,14 +230,6 @@ meta def eval_guessing (n : ℕ) : expr → tactic ℕ
 | `(max %%a %%b) := do ca ← eval_guessing a, cb ← eval_guessing b, return $ max ca cb
 | e := do cond ← succeeds $ eval_expr ℕ e, if cond then eval_expr ℕ e else pure n
 
-/--  If `check_deg_le tl tr` fails, then either at least one of the expressions `tl, tr` involves
-a non-closed natural number, or the expected degree of `tl` is smaller than `tr`.  In either
-case, failure means that we can proceed with the checking in `compute_degree_le`. -/
-meta def check_deg_le (tl tr : expr) : tactic unit :=
-do (_, m') ← extract_top_degree_term_and_deg tl,
-  td ← eval_expr ℕ tr,
-  if (m' ≤ td) then failed else trace sformat!"should the degree be {m'}?"
-
 /--  `resolve_sum_step tf e` takes a boolean `tf` and an expression `e` as inputs.
 It assumes that `e` is of the form `f.nat_degree ≤ d`,failing otherwise.
 `resolve_sum_step` progresses into `f` if `f` is
@@ -306,7 +300,7 @@ The tactic fails if `e` contains no summand (this probably means something else 
 somewhere else). -/
 meta def extract_top_degree_term_and_deg (e : expr) : tactic (expr × ℕ) :=
 do summ ← e.list_summands,
-  nat_degs ← summ.mmap guess_degree,
+  nat_degs ← summ.mmap $ eval_guessing 0,
   let summ_and_degs := summ.zip nat_degs in
   match summ_and_degs.argmax (λ e : expr × ℕ, e.2) with
   | none := fail
@@ -355,7 +349,7 @@ then the tactic suggests the degree that it computed.
 Using `compute_degree_le!` also recurses inside powers.
 Use it only if you know how to prove that exponents of terms other than `X ^ ??` are non-zero!
  -/
-meta def compute_degree_le (expos : parse (tk "!" )?) : tactic unit :=
+meta def compute_degree_le (expos : bool) : tactic unit :=
 do t ← target,
   try $ refine ``(polynomial.degree_le_nat_degree.trans (with_bot.coe_le_coe.mpr _)),
   `(polynomial.nat_degree %%tl ≤ %%tr) ← target |
@@ -366,7 +360,7 @@ do t ← target,
   if deg_bou < exp_deg
   then fail sformat!"the given polynomial has a term of expected degree\nat least '{exp_deg}'"
   else
-    repeat $ target >>= resolve_sum_step (if expos.is_some then tt else ff),
+    repeat $ target >>= resolve_sum_step (if expos then tt else ff),
     gs ← get_goals,
     os ← gs.mmap infer_type >>= list.mfilter (λ e, succeeds $ unify t e),
     guard (os.length = 0) <|> fail "Goal did not change",
@@ -386,7 +380,7 @@ gts ← gs.mmap infer_type,
 -- * if the goal has the form `f.nat_degree ≤ d`, the tactic is `compute_degree_le`
 -- * otherwise, it is the tactic that tries `norm_num` and `assumption`
 is_ineq ← gts.mmap (λ t : expr, do match t with
-  | `(polynomial.nat_degree %%_ ≤ %%_) := return compute_degree_le
+  | `(polynomial.nat_degree %%_ ≤ %%_) := return (compute_degree_le ff)
   | _                                  := return norm_assum end),
 focus' is_ineq
 

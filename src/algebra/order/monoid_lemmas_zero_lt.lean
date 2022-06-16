@@ -831,6 +831,22 @@ lemma preorder.le_mul_of_one_le_left [mul_pos_mono α] (h : 1 ≤ a) (b0 : 0 < b
   b ≤ a * b :=
 preorder.le_mul_of_one_le_of_le h le_rfl b0
 
+lemma mul_lt_of_lt_one_right [pos_mul_strict_mono α] (h : b < 1) (a0 : 0 < a) :
+  a * b < a :=
+mul_lt_of_le_of_lt_one le_rfl h a0
+
+lemma lt_mul_of_one_lt_right [pos_mul_strict_mono α] (h : 1 < b) (a0 : 0 < a) :
+  a < a * b :=
+lt_mul_of_le_of_one_lt le_rfl h a0
+
+lemma mul_lt_of_lt_one_left [mul_pos_strict_mono α] (h : a < 1) (b0 : 0 < b) :
+  a * b < b :=
+mul_lt_of_lt_one_of_le h le_rfl b0
+
+lemma lt_mul_of_one_lt_left [mul_pos_strict_mono α] (h : 1 < a) (b0 : 0 < b) :
+  b < a * b :=
+lt_mul_of_one_lt_of_le h le_rfl b0
+
 -- proven with `a0 : 0 ≤ a` as `le_of_mul_le_of_one_le_left`
 lemma preorder.le_of_mul_le_of_one_le_left [pos_mul_mono α]
   (h : a * b ≤ c) (hle : 1 ≤ b) (a0 : 0 < a) :

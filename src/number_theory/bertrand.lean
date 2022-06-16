@@ -153,12 +153,10 @@ calc log x / (x * log 4) = (log x / x) / log 4 : by field_simp
 lemma inequality2 {x : ℝ} (n_large : 313 ≤ x) : sqrt 2 * sqrt x * log 2 / (x * log 4) ≤ 0.04 :=
 begin
   have x_pos : 0 < x := by linarith,
-  rw div_le_iff (mul_pos x_pos log_four_pos),
-  rw [←mul_assoc, four_eq_two_rpow_two, log_rpow two_pos, ←mul_assoc,
-    mul_le_mul_right (log_pos one_lt_two)],
-  rw [←le_div_iff (sqrt_pos.mpr x_pos), mul_comm _ x, mul_assoc, mul_comm x, mul_div_assoc],
-  rw div_sqrt,
-  rw [mul_comm, ←div_le_iff],
+  rw [div_le_iff (mul_pos x_pos log_four_pos), ←mul_assoc, four_eq_two_rpow_two, log_rpow two_pos,
+      ←mul_assoc, mul_le_mul_right (log_pos one_lt_two), ←le_div_iff (sqrt_pos.mpr x_pos),
+      mul_comm _ x, mul_assoc, mul_comm x, mul_div_assoc, div_sqrt, mul_comm],
+  rw [←div_le_iff],
   { rw [le_sqrt _ (le_of_lt x_pos), div_pow, sq_sqrt (le_of_lt two_pos)],
     { ring_nf, linarith, },
     { rw div_nonneg_iff, simp only [sqrt_nonneg 2, one_div], norm_num, }, },
@@ -240,7 +238,7 @@ begin
   rw [log_mul, log_mul, log_rpow, log_rpow, log_rpow, log_mul],
   -- Discharge most of the side goals
   repeat { linarith, },
-  { rw <-div_lt_one,
+  { rw ←div_lt_one,
     simp only [add_div, mul_add, add_mul, add_div, ←add_assoc],
     simp only [zero_le_one, sqrt_mul, zero_le_bit0],
     { rw [equality4 x (by linarith)],

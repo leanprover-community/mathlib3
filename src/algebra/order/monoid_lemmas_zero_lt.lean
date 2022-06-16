@@ -1014,7 +1014,7 @@ b0.lt_or_eq.elim (preorder.le_of_mul_le_of_one_le_right h hle)
 lemma le_of_le_mul_of_le_one_right [mul_pos_mono α]
   (h : a ≤ b * c) (hle : b ≤ 1) (c0 : 0 ≤ c) :
   a ≤ c :=
-c0.lt_or_eq.elim (le_of_le_mul_of_le_one_right' h hle)
+c0.lt_or_eq.elim (preorder.le_of_le_mul_of_le_one_right h hle)
   (λ ha, by simpa only [← ha, mul_zero] using h)
 
 end partial_order

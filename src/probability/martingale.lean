@@ -434,17 +434,19 @@ lemma smul_le_stopped_value_hitting [is_finite_measure μ]
   ennreal.of_real (∫ x in {x | (ε : ℝ) ≤ ⨆ k : {k // k ≤ n}, f k x},
     stopped_value f (hitting f {y : ℝ | ↑ε ≤ y} 0 n) x ∂μ) :=
 begin
+  have hn : set.Icc 0 n = {k | k ≤ n},
+  { ext x, simp },
   have : ∀ x, ((ε : ℝ) ≤ ⨆ k : {k // k ≤ n}, f k x) →
     (ε : ℝ) ≤ stopped_value f (hitting f {y : ℝ | ↑ε ≤ y} 0 n) x,
   { intros x hx,
     refine stopped_value_hitting_mem _,
-    simp only [set.mem_set_of_eq, exists_prop],
+    simp only [set.mem_set_of_eq, exists_prop, hn],
     exact real.exists_of_le_supr_subtype (set.finite_le_nat n) ⟨0, nat.zero_le _⟩ hx },
   have h := set_integral_le_const (measurable_set_le measurable_const (measurable_csupr_le
     (λ n, (hsub.strongly_measurable n).measurable.le (𝒢.le n)) _))
     (measure_lt_top _ _).ne this
-    (integrable.integrable_on (integrable_stopped_value (hitting_is_stopping_time_nat
-      hsub.adapted measurable_set_Ici n) hsub.integrable hitting_le)),
+    (integrable.integrable_on (integrable_stopped_value (hitting_is_stopping_time
+      hsub.adapted measurable_set_Ici) hsub.integrable hitting_le)),
   rw [ennreal.le_of_real_iff_to_real_le, ennreal.to_real_smul],
   { exact h },
   { exact (ennreal.mul_lt_top (by simp) (measure_lt_top _ _).ne).ne },

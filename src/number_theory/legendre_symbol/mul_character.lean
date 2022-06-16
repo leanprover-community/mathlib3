@@ -10,7 +10,7 @@ import ring_theory.integral_domain
 
 Let `R` be a finite commutative ring.
 A *multiplicative character* of `R` with values in `R'` is a morphism of
-monoids with zero from the multiplicative monoid of `R` into that of `R'`
+monoids from the multiplicative monoid of `R` into that of `R'`
 that sends non-units to zero.
 
 We use the namespace `mul_char` for the definitions and results.
@@ -70,6 +70,7 @@ instance mul_char_class : mul_char_class (mul_char R R') R R' :=
   map_one := λ χ, χ.map_one',
   map_nonunit := λ χ a ha, χ.map_nonunit' a ha, }
 
+@[simp]
 lemma map_nonunit (χ : mul_char R R') {a : R} (ha : ¬ is_unit a) : χ a = 0 :=
 χ.map_nonunit' a ha
 
@@ -113,8 +114,8 @@ end
 /-- This is the conversion to `mul_char`s. -/
 noncomputable
 def of_unit_hom [decidable_pred (λ a : R, is_unit a)] (f : Rˣ →* R'ˣ) : mul_char R R' :=
-{ to_fun := λ x, if hx : is_unit x then f (is_unit.unit hx) else 0,
-  map_one' := by { have h1 : (is_unit.unit is_unit_one : Rˣ) = 1 := units.eq_iff.mp rfl,
+{ to_fun := λ x, if hx : is_unit x then f hx.unit else 0,
+  map_one' := by { have h1 : (is_unit_one.unit : Rˣ) = 1 := units.eq_iff.mp rfl,
                    simp  [h1, dif_pos, units.coe_eq_one, map_one, is_unit_one], },
   map_mul' :=
   begin
@@ -160,9 +161,11 @@ def equiv_to_unit_hom [decidable_pred (λ a : R, is_unit a)] : mul_char R R' ≃
 ### Commutative group structure on multiplicative characters
 -/
 
+@[simp]
 lemma map_one (χ : mul_char R R') : χ (1 : R) = 1 :=
 χ.map_one'
 
+@[simp]
 lemma map_zero [nontrivial R] (χ : mul_char R R') : χ (0 : R) = 0 :=
 by rw [map_nonunit χ not_is_unit_zero]
 
@@ -183,6 +186,7 @@ instance inhabited [decidable_pred (λ a : R, is_unit a)] : inhabited (mul_char 
 
 instance has_one [decidable_pred (λ a : R, is_unit a)] : has_one (mul_char R R') := ⟨trivial R R'⟩
 
+@[simp]
 lemma trivial_unit [decidable_pred (λ a : R, is_unit a)] {a : R} (ha : is_unit a) :
   (1 : mul_char R R') a = 1 :=
 begin
@@ -190,6 +194,7 @@ begin
   simp only [ha, mul_char.trivial, ite_eq_left_iff, not_true, forall_false_left],
 end
 
+@[simp]
 lemma trivial_nonunit [decidable_pred (λ a : R, is_unit a)] {a : R} (ha : ¬ is_unit a) :
   (1 : mul_char R R') a = 0 :=
 begin
@@ -210,6 +215,8 @@ def mul (χ χ' : mul_char R R') : mul_char R R' :=
 
 instance has_mul : has_mul (mul_char R R') := ⟨mul⟩
 
+lemma mul_apply (χ χ' : mul_char R R') (a : R) : (χ * χ') a = χ a * χ' a := rfl
+
 lemma coe_to_fun_mul (χ χ' : mul_char R R') : ⇑(χ * χ') = χ * χ' :=
 begin
   ext a,
@@ -217,6 +224,7 @@ begin
   simp only [mul, monoid_hom.to_fun_eq_coe, monoid_hom.mul_apply],
 end
 
+@[simp]
 lemma one_mul [decidable_pred (λ a : R, is_unit a)] (χ : mul_char R R') :
   (1 : mul_char R R') * χ = χ :=
 begin
@@ -224,6 +232,7 @@ begin
   rw [coe_to_fun_mul, pi.mul_apply, trivial_unit ha, one_mul],
 end
 
+@[simp]
 lemma mul_one [decidable_pred (λ a : R, is_unit a)] (χ : mul_char R R') : χ * 1 = χ :=
 begin
   ext a ha,
@@ -283,12 +292,8 @@ lemma inv_mul [decidable_pred (λ a : R, is_unit a)] (χ : mul_char R R') : (inv
 begin
   ext x hx,
   simp only [coe_to_fun_mul, pi.mul_apply, inv_spec],
-  have h : χ (ring.inverse x) * χ x = χ (ring.inverse x * x) :=
-  by { change χ.to_monoid_hom.to_fun (ring.inverse x) * χ.to_monoid_hom.to_fun x
-               = χ.to_monoid_hom.to_fun (ring.inverse x * x),
-       rw [χ.map_mul'], },
   haveI := is_unit.invertible hx,
-  rw [h, ring.inverse_invertible, inv_of_mul_self, map_one, trivial_unit hx],
+  rw [← map_mul, ring.inverse_invertible, inv_of_mul_self, map_one, trivial_unit hx],
 end
 
 noncomputable
@@ -300,8 +305,6 @@ noncomputable
 instance comm_group [decidable_pred (λ a : R, is_unit a)] : comm_group (mul_char R R') :=
 { ..group,
   ..comm_monoid }
-
-lemma mul_apply (χ χ' : mul_char R R') (a : R) : (χ * χ') a = χ a * χ' a := rfl
 
 /-- If `a` is a unit, then `(χ ^ n) a = (χ a) ^ n`. -/
 lemma pow_apply [decidable_pred (λ a : R, is_unit a)] (χ : mul_char R R') (n : ℕ)
@@ -385,22 +388,34 @@ begin
     rw [ring_hom.map_neg, ring_hom.map_one], },
 end
 
+/-- The inverse of a quadratic character is itself. →  -/
+lemma quadratic_char_inv {χ : mul_char R R'} (hχ : is_quadratic χ) : χ⁻¹ = χ :=
+begin
+  ext x hx,
+  change (inv χ) x = _,
+  rw [inv_spec],
+  haveI := is_unit.invertible hx,
+  apply_fun (λ a, a * χ x) using (is_unit.is_regular (is_unit.map χ hx)).right,
+  change χ _ * χ x = χ x * χ x,
+  rw [← map_mul, ring.inverse_invertible, inv_of_mul_self, map_one],
+  rcases hχ x with h₀ | h₁ | h₂,
+  { rw [h₀, mul_zero],
+    exact (is_unit_zero_iff.mp (cast (congr_arg is_unit h₀) (is_unit.map χ hx))).symm, },
+  { rw [h₁, ring.mul_one], },
+  { rw [h₂, neg_one_mul, neg_neg], },
+end
+
 /-- The square of a quadratic character is the trivial character. -/
-lemma quad_char_sq_eq_one [decidable_pred (λ a : R, is_unit a)] {χ : mul_char R R'} [nontrivial R']
+lemma quad_char_sq_eq_one [decidable_pred (λ a : R, is_unit a)] {χ : mul_char R R'}
  (hχ : is_quadratic χ) :
   χ ^ 2 = 1 :=
 begin
-  ext a ha,
-  rw [pow_apply χ 2 ha],
-  rcases hχ a with (h | h | h); rw [trivial_unit ha],
-  { have hu := is_unit.map χ ha,
-    rw h at hu ⊢,
-    exact false.rec _ (is_unit.ne_zero hu rfl), },
-  { rw [h, one_pow], },
-  { rw [h, neg_one_sq], },
+  rw [pow_two],
+  nth_rewrite 0 ← quadratic_char_inv hχ,
+  rw [mul_left_inv],
 end
 
-/-- The `p`th power of a quadratic character is itself, when `p` is the (prime) charactersitic
+/-- The `p`th power of a quadratic character is itself, when `p` is the (prime) characteristic
 of the target ring. -/
 lemma quad_char_pow_char [decidable_pred (λ a : R, is_unit a)] {χ : mul_char R R'}
  (hχ : is_quadratic χ) (p : ℕ) [hp : fact p.prime] [char_p R' p] :
@@ -419,29 +434,8 @@ lemma quad_char_pow_odd [decidable_pred (λ a : R, is_unit a)] {χ : mul_char R 
  (hχ : is_quadratic χ) {n : ℕ} (hn : n % 2 = 1) :
   χ ^ n = χ :=
 begin
-  ext x h,
-  rw [pow_apply _ _ h],
-  rcases hχ x with (hx | hx | hx); rw hx,
-  { rw [zero_pow (nat.odd_gt_zero (nat.odd_iff.mpr hn))], },
-  { rw [one_pow], },
-  { exact odd.neg_one_pow (nat.odd_iff.mpr hn), },
-end
-
-/-- The inverse of a quadratic character is itself. -/
-lemma quadratic_char_inv {χ : mul_char R R'} (hχ : is_quadratic χ) : χ⁻¹ = χ :=
-begin
-  ext x hx,
-  change (inv χ) x = _,
-  rw [inv_spec],
-  haveI := is_unit.invertible hx,
-  apply_fun (λ a, a * χ x) using (is_unit.is_regular (is_unit.map χ hx)).right,
-  change χ _ * χ x = χ x * χ x,
-  rw [← map_mul, ring.inverse_invertible, inv_of_mul_self, map_one],
-  rcases hχ x with h₀ | h₁ | h₂,
-  { rw [h₀, mul_zero],
-    exact (is_unit_zero_iff.mp (cast (congr_arg is_unit h₀) (is_unit.map χ hx))).symm, },
-  { rw [h₁, ring.mul_one], },
-  { rw [h₂, neg_one_mul, neg_neg], },
+  rw [← nat.div_add_mod n 2, hn,
+      pow_add, pow_mul, quad_char_sq_eq_one hχ, one_pow, pow_one, one_mul],
 end
 
 open_locale big_operators

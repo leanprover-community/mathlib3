@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
 import data.polynomial.degree.definitions
-
+import tactic.compute_degree
 /-!
 # Cancel the leading terms of two polynomials
 
@@ -57,20 +57,13 @@ begin
   rw [cancel_leads, sub_eq_add_neg, tsub_eq_zero_iff_le.mpr h, pow_zero, mul_one],
   by_cases h0 :
       C p.leading_coeff * q + -(C q.leading_coeff * X ^ (q.nat_degree - p.nat_degree) * p) = 0,
-  { convert hq,
-    simp only [h0, nat_degree_zero], },
+  { exact (le_of_eq (by simp only [h0, nat_degree_zero])).trans_lt hq },
   have hq0 : ¬ q = 0,
   { contrapose! hq,
     simp [hq] },
   apply lt_of_le_of_ne,
-  { rw [← with_bot.coe_le_coe, ← degree_eq_nat_degree h0, ← degree_eq_nat_degree hq0],
-    apply le_trans (degree_add_le _ _),
-    rw ← leading_coeff_eq_zero at hp hq0,
-    simp only [max_le_iff, degree_C hp, degree_C hq0, le_refl q.degree, true_and, nat.cast_with_bot,
-      nsmul_one, degree_neg, degree_mul, zero_add, degree_X, degree_pow],
-    rw leading_coeff_eq_zero at hp hq0,
-    rw [degree_eq_nat_degree hp, degree_eq_nat_degree hq0, ← with_bot.coe_add, with_bot.coe_le_coe,
-      tsub_add_cancel_of_le h], },
+  { compute_degree_le,
+    repeat { rwa nat.sub_add_cancel } },
   { contrapose! h0,
     rw [← leading_coeff_eq_zero, leading_coeff, h0, mul_assoc, mul_comm _ p,
       ← tsub_add_cancel_of_le h, add_comm _ p.nat_degree],

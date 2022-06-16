@@ -141,14 +141,25 @@ protected lemma has_basis_uniformity :
   (uniform_convergence.gen α β) :=
 (uniform_convergence.is_basis_gen α β (𝓤 β).as_basis).has_basis
 
+protected lemma has_basis_uniformity_of_basis {ι : Sort*} {p : ι → Prop} {s : ι → set (β × β)}
+  (h : (𝓤 β).has_basis p s) :
+  (𝓤 (α → β)).has_basis p (uniform_convergence.gen α β ∘ s) :=
+(uniform_convergence.has_basis_uniformity α β).to_has_basis
+  (λ U hU, let ⟨i, hi, hiU⟩ := h.mem_iff.mp hU in ⟨i, hi, λ uv huv x, hiU (huv x)⟩)
+  (λ i hi, ⟨s i, h.mem_of_mem hi, subset_refl _⟩)
+
 /-- Topology of uniform convergence -/
 protected def topological_space : topological_space (α → β) :=
 (uniform_convergence.uniform_space α β).to_topological_space
 
+protected lemma has_basis_nhds_of_basis {p : ι → Prop} {s : ι → set (β × β)}
+  (h : has_basis (𝓤 β) p s) :
+  (𝓝 f).has_basis p (λ i, {g | (g, f) ∈ uniform_convergence.gen α β (s i)}) :=
+nhds_basis_uniformity (uniform_convergence.has_basis_uniformity_of_basis α β h)
+
 protected lemma has_basis_nhds :
-  (𝓝 f).has_basis (λ V, V ∈ 𝓤 β)
-  (λ V, {g | (g, f) ∈ uniform_convergence.gen α β V}) :=
-nhds_basis_uniformity (uniform_convergence.has_basis_uniformity α β)
+  (𝓝 f).has_basis (λ V, V ∈ 𝓤 β) (λ V, {g | (g, f) ∈ uniform_convergence.gen α β V}) :=
+uniform_convergence.has_basis_nhds_of_basis  α β (filter.basis_sets _)
 
 variables {α}
 
@@ -323,8 +334,34 @@ end uniform_convergence
 
 namespace uniform_convergence_on
 
-variables (α β : Type*) {γ ι : Type*} [uniform_space β] (𝔖 : set (set α))
+variables {α β : Type*} {γ ι : Type*} [uniform_space β] (𝔖 : set (set α))
 variables {F : ι → α → β} {f : α → β} {s s' : set α} {x : α} {p : filter ι} {g : ι → α}
+
+ local notation `restr` := λ s b, @set.restrict α (λ _, β) s
+
+protected def gen (S : set α) (V : set (β × β)) : set ((α → β) × (α → β)) :=
+  {uv : (α → β) × (α → β) | ∀ x ∈ S, (uv.1 x, uv.2 x) ∈ V}
+
+protected lemma gen_eq_preimage_restrict (S : set α) (V : set (β × β)) :
+  uniform_convergence_on.gen S V =
+  (prod.map S.restrict S.restrict) ⁻¹' (uniform_convergence.gen S β V) :=
+begin
+  ext uv,
+  exact ⟨λ h ⟨x, hx⟩, h x hx, λ h x hx, h ⟨x, hx⟩⟩
+end
+
+protected lemma gen_mono {S S' : set α} {V V' : set (β × β)} (hS : S' ⊆ S) (hV : V ⊆ V') :
+  uniform_convergence_on.gen S V ⊆ uniform_convergence_on.gen S' V' :=
+λ uv h x hx, hV (h x $ hS hx)
+
+protected lemma is_basis_gen (h : 𝔖.nonempty) (h' : directed_on (⊆) 𝔖) :
+  is_basis (λ SV : set α × set (β × β), SV.1 ∈ 𝔖 ∧ SV.2 ∈ 𝓤 β)
+    (λ SV, uniform_convergence_on.gen SV.1 SV.2) :=
+⟨⟨⟨h.some, univ⟩, ⟨h.some_spec, univ_mem⟩⟩, λ U₁V₁ U₂V₂ h₁ h₂,
+  let ⟨U₃, h₃, h₁₃, h₂₃⟩ := h' U₁V₁.1 h₁.1 U₂V₂.1 h₂.1 in ⟨⟨U₃, U₁V₁.2 ∩ U₂V₂.2⟩,
+  ⟨⟨h₃, inter_mem h₁.2 h₂.2⟩, λ uv huv, ⟨λ x hx, (huv x (h₁₃ hx)).1, λ x hx, (huv x (h₂₃ hx)).2⟩⟩⟩⟩
+
+variables (α β)
 
 /-- Uniform structure of uniform convergence on the sets of `𝔖`. -/
 protected def uniform_space : uniform_space (α → β) :=
@@ -342,6 +379,36 @@ begin
   simp only [uniform_convergence_on.topological_space, to_topological_space_infi,
     to_topological_space_infi, to_topological_space_comap],
   refl
+end
+
+private lemma has_basis_uniformity_of_basis_aux₁ {p : ι → Prop} {s : ι → set (β × β)}
+  (hb : has_basis (𝓤 β) p s) (S : set α) :
+  (@uniformity (α → β) ((uniform_convergence.uniform_space S β).comap S.restrict)).has_basis
+  p (λ i, uniform_convergence_on.gen S (s i)) :=
+begin
+  simp_rw [uniform_convergence_on.gen_eq_preimage_restrict, uniformity_comap rfl],
+  exact (uniform_convergence.has_basis_uniformity_of_basis S β hb).comap _
+end
+
+private lemma has_basis_uniformity_of_basis_aux₂ (h : directed_on (⊆) 𝔖) {p : ι → Prop}
+  {s : ι → set (β × β)} (hb : has_basis (𝓤 β) p s) :
+  directed_on ((λ s : set α, (uniform_convergence.uniform_space s β).comap
+    (s.restrict : (α → β) → s → β)) ⁻¹'o ge) 𝔖 :=
+h.mono $ λ s t hst,
+  ((has_basis_uniformity_of_basis_aux₁ α β hb _).le_basis_iff
+    (has_basis_uniformity_of_basis_aux₁ α β hb _)).mpr
+  (λ V hV, ⟨V, hV, uniform_convergence_on.gen_mono hst subset_rfl⟩)
+
+protected lemma has_basis_uniformity_of_basis (h : 𝔖.nonempty) (h' : directed_on (⊆) 𝔖)
+  {p : ι → Prop} {s : ι → set (β × β)} (hb : has_basis (𝓤 β) p s) :
+  (@uniformity (α → β) (uniform_convergence_on.uniform_space α β 𝔖)).has_basis
+    (λ Si : set α × ι, Si.1 ∈ 𝔖 ∧ p Si.2)
+    (λ Si, uniform_convergence_on.gen Si.1 (s Si.2)) :=
+begin
+  simp only [infi_uniformity'],
+  exact has_basis_binfi_of_directed h (λ S, (@uniform_convergence_on.gen _ S) ∘ s) _
+    (λ S hS, has_basis_uniformity_of_basis_aux₁ α β hb S)
+    (has_basis_uniformity_of_basis_aux₂ α β 𝔖 h' hb)
 end
 
 protected lemma uniform_continuous_restrict (h : s ∈ 𝔖) :

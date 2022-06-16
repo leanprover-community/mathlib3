@@ -16,37 +16,51 @@ This file provides a typeclass `reflected_univ.{u}` to match a universe variable
 
 ## Main definitions
 
-* `reflect_univ.{u} : level`: Obtain the level of a universe by typeclass search
-* `tactic.interactive.reflect_name`: solve goals of the form `reflected (foo.{u v})` by searching
+* `reflected_univ.{u}`: A typeclass for reflecting the universe `u` to a `level`.
+* `reflect_univ.{u} : level`: Obtain the level of a universe by typeclass search.
+* `tactic.interactive.reflect_name`: solve goals of the form `reflected (@foo.{u v})` by searching
   for `reflected_univ.{u}` instances.
 
 -/
 
-
 /-- A typeclass to translate a universe argument into a `level`. Note that `level.mvar` and
-`level.param` are not supported. -/
+`level.param` are not supported.
+
+Note that the `instance_priority` linter will complain if instance of this class have the default
+priority, as it takes no arguments! Since it doesn't make any difference, we do what the linter
+asks. -/
 meta class {u} reflected_univ :=
 (lvl : level)
-meta def {u} reflect_univ [reflected_univ.{u}] : level :=
+
+universes u v w x y
+
+/-- Reflect a universe variable `u` into a `level` via typeclass search. -/
+meta def reflect_univ [reflected_univ.{u}] : level :=
 reflected_univ.lvl
 
+@[priority 100]
 meta instance reflect_univ.zero : reflected_univ.{0} :=
 ⟨level.zero⟩
 
-@[instance] meta def {u} reflect_univ.succ [reflected_univ.{u}] : reflected_univ.{u+1} :=
+@[priority 100]
+meta instance reflect_univ.succ [reflected_univ.{u}] : reflected_univ.{u+1} :=
 ⟨level.succ reflect_univ.{u}⟩
 
-@[instance] meta def {u v} reflect_univ.max [reflected_univ.{u}] [reflected_univ.{v}] :
+@[priority 100]
+meta instance reflect_univ.max [reflected_univ.{u}] [reflected_univ.{v}] :
   reflected_univ.{max u v} :=
 ⟨level.max reflect_univ.{u} reflect_univ.{v}⟩
 
-@[instance] meta def {u v} reflect_univ.imax [reflected_univ.{u}] [reflected_univ.{v}] :
+@[priority 100]
+meta instance reflect_univ.imax [reflected_univ.{u}] [reflected_univ.{v}] :
   reflected_univ.{imax u v} :=
 ⟨level.imax reflect_univ.{u} reflect_univ.{v}⟩
 
 section
 local attribute [semireducible] reflected
-/-- This definition is evil, as it circumvents the protection that `reflected` tried to enforce. -/
+/-- This definition circumvents the protection that `reflected` tried to enforce; so is private
+such that it is only used by `tactic.interactive.reflect_name` where we have enforced the protection
+manually. -/
 private meta def reflected.of {α : Sort*} {a : α} (e : expr) : reflected a := e
 end
 
@@ -64,8 +78,6 @@ do
   let e2 := ``(reflected.of %%e : %%tgt),
   e2 ← tactic.to_expr e2,
   tactic.exact e2
-
-universes u v w x y
 
 /-- Convenience helper for two consecutive `reflected.subst` applications -/
 meta def reflected.subst₂ {α : Sort u} {β : α → Sort v} {γ : Π a, β a → Sort w}

@@ -616,7 +616,7 @@ theorem is_compl.compl_eq (h : is_compl x y) : xᶜ = y :=
 instance boolean_algebra.core.to_has_precompl : has_precompl α := {
   compl := compl,
   compl_antitone' := λ _ _, is_compl_compl.antitone is_compl_compl,
-  compl_involutive' := λ x, is_compl_compl.symm.compl_eq}
+  compl_involutive' := λ x, is_compl_compl.symm.compl_eq }
 
 @[simp] theorem compl_inf_eq_bot : xᶜ ⊓ x = ⊥ :=
 eq.trans inf_comm inf_compl_eq_bot

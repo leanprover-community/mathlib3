@@ -88,8 +88,7 @@ by rw [dist_of_re_eq (conj_re z), conj_im, dist_comm, real.dist_eq, sub_neg_eq_a
   _root_.abs_mul, abs_of_pos (@two_pos ℝ _ _)]
 
 lemma dist_self_conj (z : ℂ) : dist z (conj z) = 2 * |z.im| :=
-by simp only [dist_eq, sub_conj, of_real_mul, of_real_bit0, of_real_one, abs_mul, abs_two,
-  abs_of_real, abs_I, mul_one]
+by rw [dist_comm, dist_conj_self]
 
 @[simp] lemma comap_abs_nhds_zero : filter.comap abs (𝓝 0) = 𝓝 0 := comap_norm_nhds_zero
 

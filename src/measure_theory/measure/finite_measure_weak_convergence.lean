@@ -475,7 +475,8 @@ by simp only [f.self_eq_nnreal_part_sub_nnreal_part_neg,
               pi.sub_apply, integral_sub, integrable_of_bounded_continuous_to_nnreal]
 
 lemma lintegral_lt_top_of_bounded_continuous_to_real
-  {α : Type*} [measurable_space α] [topological_space α] (μ : measure α) [is_finite_measure μ] (f : α →ᵇ ℝ) :
+  {α : Type*} [measurable_space α] [topological_space α] (μ : measure α) [is_finite_measure μ]
+  (f : α →ᵇ ℝ) :
   ∫⁻ x, ennreal.of_real (f x) ∂μ < ∞ :=
 lintegral_lt_top_of_bounded_continuous_to_nnreal _ f.nnreal_part
 

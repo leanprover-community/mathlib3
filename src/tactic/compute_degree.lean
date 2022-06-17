@@ -85,7 +85,7 @@ meta def guess_degree : expr → tactic expr
                               pure $ expr.mk_app `((*) : ℕ → ℕ → ℕ) [da, b]
 | (app `(⇑(polynomial.monomial %%n)) x) := pure n
 | e                        := do `(@polynomial %%R %%inst) ← infer_type e,
-                              pe ← to_expr ``(polynomial.nat_degree) tt ff,
+                              pe ← to_expr ``(@polynomial.nat_degree %%R %%inst) tt ff,
                               pure $ expr.mk_app pe [e]
 
 /--  `resolve_sum_step tf e` takes a boolean `tf` and an expression `e` as inputs.
@@ -95,7 +95,7 @@ It assumes that `e` is of the form `f.nat_degree ≤ d`,failing otherwise.
 * (a power of) `X`;
 * a monomial;
 * `C a`;
-* `0, 1` or `bit0 a, bit1 a` (to deal with numerals);
+* `0, 1` or `bit0 a, bit1 a` (to deal with numerals).
 
 The boolean `tf` determines whether `resolve_sum_step` aggressively simplifies powers.
 If `tf` is `false`, then `resolve_sum_step` will fail on powers other than `X ^ n`.
@@ -138,17 +138,17 @@ meta def resolve_sum_step (pows : bool) : expr → tactic unit
       refine ``(polynomial.nat_degree_pow_le.trans $
         (mul_comm _ _).le.trans ((nat.le_div_iff_mul_le' _).mp _))
     else failed
-  | e                := do ppe ← pp e, fail format!"'{e}' is not supported"
+  | e                := do ppe ← pp e, fail format!"'{ppe}' is not supported"
   end
 | e := do ppe ← pp e, fail format!("'resolve_sum_step' was called on\n" ++
   "{ppe}\nbut it expects `f.nat_degree ≤ d`")
 
-/--  `norm_assum` simply tries `norm_num, apply_instance` and `assumption`.
+/--  `norm_assum` simply tries `norm_num` and `assumption`.
 It is used to try to discharge as many as possible of the side-goals of `compute_degree_le`.
-Several side-goals are of the form `m ≤ n`, for natural numbers `m, n` or of the form `a ≠ 0`
-with `a` is a coefficient of the polynomial `f` in question. -/
+Several side-goals are of the form `m ≤ n`, for natural numbers `m, n` or of the form `c ≠ 0`,
+with `c` a coefficient of the polynomial `f` in question. -/
 meta def norm_assum : tactic unit :=
-try `[ norm_num <|> apply_instance ] >> try assumption
+try `[ norm_num ] >> try assumption
 
 /--  `eval_guessing n e` takes a natural number `n` and an expression `e` and gives an
 estimate for the evaluation of `eval_expr ℕ e`.  It is tailor made for estimating degrees of

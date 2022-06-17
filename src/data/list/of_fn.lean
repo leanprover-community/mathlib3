@@ -13,7 +13,7 @@ import data.list.join
 Theorems and lemmas for dealing with `list.of_fn`, which converts a function on `fin n` to a list
 of length `n`.
 
-## Main Statementss
+## Main Statements
 
 The main statements pertain to lists generated using `of_fn`
 

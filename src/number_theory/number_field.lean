@@ -6,12 +6,11 @@ Authors: Ashvni Narayanan, Anne Baanen
 
 import ring_theory.dedekind_domain.integral_closure
 import algebra.char_p.algebra
-import analysis.complex.polynomial
 
 /-!
 # Number fields
 This file defines a number field, the ring of integers corresponding to it and includes some
-basic facts about the embeddings into `ℂ` of a number field.
+basic facts about the embeddings into an algebraic closed field.
 
 ## Main definitions
  - `number_field` defines a number field as a field which has characteristic zero and is finite
@@ -23,7 +22,7 @@ basic facts about the embeddings into `ℂ` of a number field.
  - `lift`: for `L/K` an extension of number fields, any embedding of a number field `K`
     can be lifted to an embedding of `L`.
  - `eq_roots`: let `x ∈ K` with `K` number field, then the images of `x` by the embeddings
-    of `K` are exactly the roots in `ℂ` of the minimal polynomial of `x` over `ℚ`.
+    of `K` are exactly the roots of the minimal polynomial of `x` over `ℚ`.
 
 ## Implementation notes
 The definitions that involve a field of fractions choose a canonical field of fractions,
@@ -172,38 +171,28 @@ end adjoin_root
 
 namespace number_field.embeddings
 
-open set finite_dimensional complex
-open_locale complex_conjugate
+section number_field
+
+open set finite_dimensional polynomial
 
 variables {K L : Type*} [field K] [field L]
-section number_field
 variables [number_field K] [number_field L]  (x : K)
 
-/-- The equivalence between algebra maps from a number field to `ℂ` and plain
-ring morphisms between them. -/
-noncomputable def equiv_alg : (K →ₐ[ℚ] ℂ) ≃ (K →+* ℂ) :=
-{ to_fun := coe,
-  inv_fun := λ f : K →+* ℂ, alg_hom.mk' f (λ (c : ℚ) x, map_rat_smul f _ _),
-  left_inv  := λ x, alg_hom.ext  $ by simp only [forall_const, alg_hom.coe_to_ring_hom,
-                                                 eq_self_iff_true, alg_hom.coe_mk'],
-  right_inv := λ x, ring_hom.ext $ by simp only [forall_const, alg_hom.coe_to_ring_hom,
-                                                 eq_self_iff_true, alg_hom.coe_mk'] }
+variables {A : Type*} [field A] [char_zero A] [is_alg_closed A]
 
 /-- There are finitely many embeddings of a number field. -/
-noncomputable instance : fintype (K →+* ℂ) := fintype.of_equiv (K →ₐ[ℚ] ℂ) equiv_alg
+noncomputable instance : fintype (K →+* A) := fintype.of_equiv (K →ₐ[ℚ] A)
+ring_hom.equiv_rat_alg_hom
 
 /-- The number of embeddings of a number field is its finrank. -/
-lemma card_embeddings : fintype.card (K →+* ℂ) = finrank ℚ K :=
-by rw [fintype.of_equiv_card equiv_alg, alg_hom.card]
-
-open polynomial
+lemma card_embeddings : fintype.card (K →+* A) = finrank ℚ K :=
+by rw [fintype.of_equiv_card ring_hom.equiv_rat_alg_hom, alg_hom.card]
 
 /-- Any embeddings of a number field `K` can be extended to an embedding of an extension `L`. -/
-lemma lift {L : Type*} [field L] [number_field L] [algebra K L] (φ : K →+* ℂ) :
-  ∃ ψ : L →+* ℂ, φ = ψ.comp (algebra_map K L) :=
+lemma lift {L : Type*} [field L] [number_field L] [algebra K L] (φ : K →+* A) :
+  ∃ ψ : L →+* A, φ = ψ.comp (algebra_map K L) :=
 begin
-  letI : algebra K ℂ, from ring_hom.to_algebra φ,
-  letI : is_alg_closed ℂ, from complex.is_alg_closed,
+  letI : algebra K A, from ring_hom.to_algebra φ,
   have hS : algebra.is_algebraic K L,
   { show ∀ (a : L), is_algebraic K a,
     intro a,
@@ -213,7 +202,7 @@ begin
     split,
     simp only [ne.def, map_eq_zero, not_false_iff, hp.left],
     simp only [aeval_map, map_zero, hp.right], },
-  let ψ₀ : L →ₐ[K] ℂ := is_alg_closed.lift hS,
+  let ψ₀ : L →ₐ[K] A := is_alg_closed.lift hS,
   let ψ := ψ₀.to_ring_hom,
   use ψ,
   refine fun_like.ext φ (ψ.comp (algebra_map K L)) _,
@@ -225,7 +214,7 @@ end
 
 /-- For `x ∈ K`, with `K` a number field, the images of `x` by the embeddings of `K` are exactly
 the roots of the minimal polynomial of `x` over `ℚ` -/
-lemma eq_roots : range (λ φ : K →+* ℂ, φ x) = (minpoly ℚ x).root_set ℂ :=
+lemma eq_roots : range (λ φ : K →+* A, φ x) = (minpoly ℚ x).root_set A :=
 begin
   have hx : is_integral ℚ x, { exact is_separable.is_integral ℚ x },
   ext a,
@@ -248,11 +237,11 @@ begin
       suffices : (minpoly ℚ x) ≠ 0,
       { contrapose! this,
         simp only [polynomial.ext_iff, coeff_map, coeff_zero] at this ⊢,
-        suffices inj : function.injective (algebra_map ℚ ℂ),
-        { exact λ n : ℕ, inj (by rw [(this n), (algebra_map ℚ ℂ).map_zero]),},
-        exact (algebra_map ℚ ℂ).injective, },
+        suffices inj : function.injective (algebra_map ℚ A),
+        { exact λ n : ℕ, inj (by rw [(this n), (algebra_map ℚ A).map_zero]),},
+        exact (algebra_map ℚ A).injective, },
       exact minpoly.ne_zero hx, },
-    let ψ : Qx →+* ℂ := adjoin_root.lift (algebra_map ℚ ℂ) a hC,
+    let ψ : Qx →+* A := adjoin_root.lift (algebra_map ℚ A) a hC,
     letI : algebra Qx K,
     { exact ring_hom.to_algebra (adjoin_root.lift (algebra_map ℚ K) x hK), },
     obtain ⟨φ, hφ⟩ := lift ψ,
@@ -267,58 +256,4 @@ end
 
 end number_field
 
-variables (φ : K →* ℂ)
-
-/-- An embedding is real if its fixed by complex conjugation. -/
-def is_real (φ : K →+* ℂ) : Prop := conj ∘ φ = φ
-
-/-- An embedding is real if its not fixed by complex conjugation. -/
-def is_complex (φ : K →+* ℂ) : Prop := conj ∘ φ ≠ φ
-
-/-- Two embeddings are conjuate if `conj` takes one to the other. -/
-def are_conj (φ θ : K →+* ℂ) : Prop := conj ∘ φ = θ
-
-/-- An element of a number field is real if its image under any embedding is fixed by conj. -/
-def element_is_real (x : K) : Prop := ∀ φ : K →+* ℂ, conj (φ x) = φ x
-
-local notation `r1` := fintype.card { φ  : K →+* ℂ // is_real φ }
-
-local notation `c2` := fintype.card { φ  : K →+* ℂ // is_complex φ }
-
-lemma not_real_eq_complex (φ : K →+* ℂ) : is_real φ ↔ ¬ is_complex φ :=
-begin
-  rw [is_real, is_complex],
-  simp only [not_not],
-end
-
-lemma real_eq_rank_sub_complex [number_field K] :
-  r1 = finrank ℚ K  - c2 :=
-begin
-  rw ← card_embeddings,
-  simp_rw not_real_eq_complex,
-  exact fintype.card_subtype_compl _,
-end
-
-lemma elem_is_real_is_real (x : K) (h : element_is_real x) :
-   ∀  φ : K →+* ℂ, ∃ (r : ℝ), φ x = (r : ℂ) :=
-begin
-  intro φ,
-  simp_rw [element_is_real] at h,
-  have h1 := h φ,
-  rw eq_conj_iff_real at h1,
-  exact h1,
-end
-
 end number_field.embeddings
-
-namespace number_field
-
-open number_field.embeddings
-
-/-- A number field all of whose embeddings are real. -/
-def is_totally_real {K : Type*} [field K] : Prop := ∀ φ : K →+* ℂ, is_real φ
-
-/-- A number field all of whose embeddings are complex. -/
-def is_totally_complex {K : Type*} [field K] : Prop := ∀ φ : K →+* ℂ, is_complex φ
-
-end number_field

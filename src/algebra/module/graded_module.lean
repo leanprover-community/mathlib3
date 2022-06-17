@@ -30,16 +30,10 @@ variables [set_like σ M] [add_submonoid_class σ M] (𝓜 : ι → σ)
 
 namespace graded_module
 
-
-/--
-Given a graded `R`-algebra `A` graded by `𝓐 : ι → submodule R A` and a decomposition of `A`-module
-`M` into `𝓜 : ι → add_submonoid M`, we say that `M` is graded by `𝓜` if and only if the
-decomposition map `M → ⨁ i, 𝓜 i` is inverse to the canonical map `⨁ i, 𝓜 i → M`.
--/
-
 instance graded_algebra.to_graded_module [graded_algebra 𝓐] :
   set_like.has_graded_smul 𝓐 (λ i, (𝓐 i).to_add_submonoid) :=
 { smul_mem := λ i j x y hi hj, set_like.graded_monoid.mul_mem hi hj }
+
 /--
 `⨁ i, 𝓜 i` is also an `A`-module, via `a • z = decompose (a • redecompose z)` where `decompose` and
 `recompose` are the cannonical homomorphism `M → ⨁ i, 𝓜 i` and `⨁ i, 𝓜 i → M`.

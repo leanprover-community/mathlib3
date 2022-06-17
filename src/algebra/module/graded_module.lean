@@ -40,8 +40,7 @@ Given a graded `R`-algebra `A` graded by `𝓐 : ι → submodule R A` and a dec
 `M` into `𝓜 : ι → add_submonoid M`, we say that `M` is graded by `𝓜` if and only if the
 decomposition map `M → ⨁ i, 𝓜 i` is inverse to the canonical map `⨁ i, 𝓜 i → M`.
 -/
-class graded_module extends direct_sum.decomposition 𝓜 :=
-(smul_mem : ∀ ⦃i j : ι⦄ {a : A} {m : M} (hi : a ∈ 𝓐 i) (hj : m ∈ 𝓜 j), a • m ∈ 𝓜 (i + j))
+class graded_module extends direct_sum.decomposition 𝓜, set_like.has_graded_smul 𝓐 𝓜
 
 namespace graded_module
 

@@ -423,6 +423,10 @@ class set_like.has_graded_mul {S : Type*} [set_like S R] [has_mul R] [has_add ι
   (A : ι → S) : Prop :=
 (mul_mem : ∀ ⦃i j⦄ {gi gj}, gi ∈ A i → gj ∈ A j → gi * gj ∈ A (i + j))
 
+class set_like.has_graded_smul {S R N M : Type*} [set_like S R] [set_like N M]
+  [has_scalar R M] [has_add ι] (A : ι → S) (B : ι → N) : Prop :=
+(smul_mem : ∀ ⦃i j : ι⦄ {ai bj}, ai ∈ A i → bj ∈ B j → ai • bj ∈ B (i + j))
+
 instance set_like.ghas_mul {S : Type*} [set_like S R] [has_mul R] [has_add ι] (A : ι → S)
   [set_like.has_graded_mul A] :
   graded_monoid.ghas_mul (λ i, A i) :=

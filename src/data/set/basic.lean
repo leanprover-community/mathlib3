@@ -115,12 +115,12 @@ instance pi_set_coe.can_lift' (ι : Type u) (α : Type v) [ne : nonempty α] (s 
   can_lift (s → α) (ι → α) :=
 pi_set_coe.can_lift ι (λ _, α) s
 
-instance set_coe.can_lift (s : set α) : can_lift α s :=
-{ coe := coe,
-  cond := λ a, a ∈ s,
-  prf := λ a ha, ⟨⟨a, ha⟩, rfl⟩ }
-
 end set
+
+instance subtype.can_lift {α : Type*} (p : α → Prop) : can_lift α {x // p x} :=
+{ coe := coe,
+  cond := p,
+  prf := λ a ha, ⟨⟨a, ha⟩, rfl⟩ }
 
 section set_coe
 

@@ -175,6 +175,8 @@ end
 
 /-- If `C` holds for the `algebra_map` of `r : R` into `clifford_algebra Q`, the `ι` of `x : M`,
 and is preserved under addition and muliplication, then it holds for all of `clifford_algebra Q`.
+
+See also the stronger `clifford_algebra.left_induction` and `clifford_algebra.right_induction`.
 -/
 -- This proof closely follows `tensor_algebra.induction`
 @[elab_as_eliminator]

@@ -992,6 +992,19 @@ def curry_left_linear_map {n : ℕ} :
   (f.curry_left m).curry_left m = 0 :=
 ext $ λ x, f.map_eq_zero_of_eq _ (by simp) fin.zero_ne_one
 
+/-- A technical lemma to convert between indices of `fin n` and `fin m` -/
+lemma curry_left_dom_dom_congr_fin_cast {n n' : ℕ} (h : n + 1 = n' + 1)
+  (h2 : n = n' := nat.succ.inj h)
+  (f : alternating_map R' M'' N'' (fin (n + 1))) (m : M'') :
+  (dom_dom_congr (fin.cast h).to_equiv f).curry_left m =
+    dom_dom_congr (fin.cast h2).to_equiv (f.curry_left m) :=
+begin
+  ext,
+  refine congr_arg f (funext $ fin.cases _ $ λ i, _); dsimp,
+  { refl, },
+  { rw [fin.cast_succ_eq, matrix.cons_val_succ, matrix.cons_val_succ], }
+end
+
 /-- The space of constant maps is equivalent to the space of maps that are alternating with respect
 to an empty family. -/
 @[simps] def const_linear_equiv_of_is_empty [is_empty ι] :

@@ -152,23 +152,6 @@ noncomputable def transfer_center_pow' (h : (center G).index ≠ 0) : G →* cen
 
 section burnside_transfer
 
-lemma _root_.sylow.smul_le {p : ℕ} {G : Type*} [group G] (P : sylow p G) {H : subgroup G}
-   (hP : ↑P ≤ H) (h : H) : ↑(h • P) ≤ H :=
-begin
-  rintro - ⟨b, c, rfl⟩,
-  refine H.mul_mem (H.mul_mem h.2 (hP c)) (H.inv_mem h.2),
-end
-
-lemma sylow.smul_subtype {p : ℕ} {G : Type*} [group G] (P : sylow p G) {H : subgroup G}
-   (hP : ↑P ≤ H) (h : H) :
-    h • P.subtype hP = (h • P).subtype (P.smul_le hP h) :=
-begin
-  rw [eq_comm, sylow.ext_iff],
-  apply (h • P.subtype hP).3 ((h • P).subtype (P.smul_le hP h)).2,
-  rintro - ⟨a, b, rfl⟩,
-  exact ⟨(⟨a, b⟩ : P), b, rfl⟩,
-end
-
 lemma key_sylow_lemma {p : ℕ} [fact p.prime] {G : Type*} [group G] (g : G) [fintype (sylow p G)] (P : sylow p G)
   {x : G} (hx : x ∈ P.1.centralizer) (hy : g⁻¹ * x * g ∈ (P : subgroup G).centralizer) :
   ∃ n ∈ (P : subgroup G).normalizer, g⁻¹ * x * g = n⁻¹ * x * n :=

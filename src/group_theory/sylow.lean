@@ -519,7 +519,7 @@ lemma pow_dvd_card_of_pow_dvd_card [fintype G] {p n : ℕ} [hp : fact p.prime] (
 (hp.1.coprime_pow_of_not_dvd (not_dvd_index_sylow P
   index_ne_zero_of_fintype)).symm.dvd_of_dvd_mul_left ((index_mul_card P.1).symm ▸ hdvd)
 
-lemma dvd_card_of_dvd_card [fintype G] {p : ℕ} [hp : fact p.prime] (P : sylow p G)
+lemma dvd_card_of_dvd_card [fintype G] {p : ℕ} [fact p.prime] (P : sylow p G)
   (hdvd : p ∣ card G) : p ∣ card P :=
 begin
   rw ← pow_one p at hdvd,

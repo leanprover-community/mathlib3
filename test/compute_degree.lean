@@ -158,7 +158,7 @@ begin
 end
 
 end non_trivial_assumption
-
+example (n : ℕ) (h : 1 + n < 11) :
   degree (X ^ n + (X * monomial n 1 + X * X) + C a + C a * X ^ 10) ≤ 10 :=
 begin
   compute_degree_le,

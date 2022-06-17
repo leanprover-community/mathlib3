@@ -96,7 +96,7 @@ begin
       smul_eq_mul, mul_one, measure.map_apply hm measurable_set_Ici, sup_eq_right.2 ht],
     refl },
   simp_rw [hμ, integral_pow_nonneg_eq_integral_Ici_pow hX hm hint,
-    ← integral_mul_pow_eq_pow hp,
+    ← integral_mul_pow_eq_pow p hp,
     interval_integral.integral_const_mul, integral_mul_left],
   congr' 1,
   simp_rw ← integral_mul_left,

@@ -370,7 +370,7 @@ This formulation assumes:
  * integration is `lintegral`, i.e., the functions and their integrals are `ℝ≥0∞`-valued.
 -/
 lemma tendsto_lintegral_nn_filter_of_le_const {ι : Type*} {L : filter ι} [L.is_countably_generated]
-  (μ : finite_measure α) {fs : ι → (α →ᵇ ℝ≥0)} {c : ℝ≥0}
+  (μ : measure α) [is_finite_measure μ] {fs : ι → (α →ᵇ ℝ≥0)} {c : ℝ≥0}
   (fs_le_const : ∀ᶠ i in L, ∀ᵐ (a : α) ∂(μ : measure α), fs i a ≤ c) {f : α → ℝ≥0}
   (fs_lim : ∀ᵐ (a : α) ∂(μ : measure α), tendsto (λ i, fs i a) L (𝓝 (f a))) :
   tendsto (λ i, (∫⁻ a, fs i a ∂(μ : measure α))) L (𝓝 (∫⁻ a, (f a) ∂(μ : measure α))) :=
@@ -694,12 +694,12 @@ This formulation assumes:
 -/
 lemma measure_of_cont_bdd_of_tendsto_filter_indicator {ι : Type*} {L : filter ι}
   [L.is_countably_generated] [topological_space α] [opens_measurable_space α]
-  (μ : finite_measure α) {c : ℝ≥0} {E : set α} (E_mble : measurable_set E)
+  (μ : measure α) [is_finite_measure μ] {c : ℝ≥0} {E : set α} (E_mble : measurable_set E)
   (fs : ι → (α →ᵇ ℝ≥0)) (fs_bdd : ∀ᶠ i in L, ∀ᵐ (a : α) ∂(μ : measure α), fs i a ≤ c)
   (fs_lim : ∀ᵐ (a : α) ∂(μ : measure α),
             tendsto (λ (i : ι), (coe_fn : (α →ᵇ ℝ≥0) → (α → ℝ≥0)) (fs i) a) L
                     (𝓝 (indicator E (λ x, (1 : ℝ≥0)) a))) :
-  tendsto (λ n, lintegral (μ : measure α) (λ a, fs n a)) L (𝓝 ((μ : measure α) E)) :=
+  tendsto (λ n, lintegral μ (λ a, fs n a)) L (𝓝 (μ E)) :=
 begin
   convert finite_measure.tendsto_lintegral_nn_filter_of_le_const μ fs_bdd fs_lim,
   have aux : ∀ a, indicator E (λ x, (1 : ℝ≥0∞)) a = ↑(indicator E (λ x, (1 : ℝ≥0)) a),
@@ -716,11 +716,11 @@ A similar result with more general assumptions is `measure_of_cont_bdd_of_tendst
 -/
 lemma measure_of_cont_bdd_of_tendsto_indicator
   [topological_space α] [opens_measurable_space α]
-  (μ : finite_measure α) {c : ℝ≥0} {E : set α} (E_mble : measurable_set E)
+  (μ : measure α) [is_finite_measure μ] {c : ℝ≥0} {E : set α} (E_mble : measurable_set E)
   (fs : ℕ → (α →ᵇ ℝ≥0)) (fs_bdd : ∀ n a, fs n a ≤ c)
   (fs_lim : tendsto (λ (n : ℕ), (coe_fn : (α →ᵇ ℝ≥0) → (α → ℝ≥0)) (fs n))
             at_top (𝓝 (indicator E (λ x, (1 : ℝ≥0))))) :
-  tendsto (λ n, lintegral (μ : measure α) (λ a, fs n a)) at_top (𝓝 ((μ : measure α) E)) :=
+  tendsto (λ n, lintegral μ (λ a, fs n a)) at_top (𝓝 (μ E)) :=
 begin
   have fs_lim' : ∀ a, tendsto (λ (n : ℕ), (fs n a : ℝ≥0))
                  at_top (𝓝 (indicator E (λ x, (1 : ℝ≥0)) a)),
@@ -734,10 +734,10 @@ measure of the closed set if the thickening radii tend to zero.
 -/
 lemma tendsto_lintegral_thickened_indicator_of_is_closed
   {α : Type*} [measurable_space α] [pseudo_emetric_space α] [opens_measurable_space α]
-  (μ : finite_measure α) {F : set α} (F_closed : is_closed F) {δs : ℕ → ℝ}
+  (μ : measure α) [is_finite_measure μ] {F : set α} (F_closed : is_closed F) {δs : ℕ → ℝ}
   (δs_pos : ∀ n, 0 < δs n) (δs_lim : tendsto δs at_top (𝓝 0)) :
-  tendsto (λ n, lintegral (μ : measure α) (λ a, (thickened_indicator (δs_pos n) F a : ℝ≥0∞)))
-          at_top (𝓝 ((μ : measure α) F)) :=
+  tendsto (λ n, lintegral μ (λ a, (thickened_indicator (δs_pos n) F a : ℝ≥0∞)))
+          at_top (𝓝 (μ F)) :=
 begin
   apply measure_of_cont_bdd_of_tendsto_indicator μ F_closed.measurable_set
           (λ n, thickened_indicator (δs_pos n) F)
@@ -764,7 +764,8 @@ begin
   set δs := λ (n : ℕ), (1 : ℝ) / (n+1) with def_δs,
   have δs_pos : ∀ n, 0 < δs n, from λ n, nat.one_div_pos_of_nat,
   have δs_lim : tendsto δs at_top (𝓝 0), from tendsto_one_div_add_at_top_nhds_0_nat,
-  have key₁ := tendsto_lintegral_thickened_indicator_of_is_closed μ F_closed δs_pos δs_lim,
+  have key₁ := tendsto_lintegral_thickened_indicator_of_is_closed
+                  (μ : measure α) F_closed δs_pos δs_lim,
   have room₁ : (μ : measure α) F < (μ : measure α) F + ε / 2,
   { apply ennreal.lt_add_right (measure_lt_top (μ : measure α) F).ne
           ((ennreal.div_pos_iff.mpr

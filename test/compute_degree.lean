@@ -9,9 +9,7 @@ by compute_degree_le
 
 example {F} [ring F] {a : F} {n : ℕ} (h : n ≤ 10) :
   nat_degree (X ^ n + C a * X ^ 10 : F[X]) ≤ 10 :=
-begin
-  compute_degree_le,
-end
+by compute_degree_le
 
 example {F} [ring F] [nontrivial F] : degree (X ^ 4 + C (- 1) : F[X]) = 4 :=
 by compute_degree
@@ -170,9 +168,7 @@ end
 
 example {n : ℕ} (h : 1 + n < 11) :
   degree (X + (X * monomial 2 1 + X * X) ^ 2) ≤ 10 :=
-begin
-  compute_degree_le!,
-end
+by compute_degree_le!
 
 example {R : Type*} [semiring R] {n : ℕ} (a : R) (h : 1 + n ≤ 10) :
   degree (5 * X ^ 5 + (X * monomial n 1 + X * X) + C a + C a * X ^ 10) ≤ 10 :=

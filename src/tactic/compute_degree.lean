@@ -334,22 +334,9 @@ else
   fail "'compute_degree' works better with polynomials involving more than one term\n"
 
 
-end compute_degree
-
-namespace interactive
-open compute_degree
-setup_tactic_parser
-
-/--  `compute_degree_le` tries to solve a goal of the form `f.nat_degree ≤ d` or  `f.degree ≤ d`,
-where `d : ℕ` or `d : with_bot ℕ` and `f : R[X]`.
-
-If the given degree `d` is smaller than the one that the tactic computes,
-then the tactic suggests the degree that it computed.
-
-Using `compute_degree_le!` also recurses inside powers.
-Use it only if you know how to prove that exponents of terms other than `X ^ ??` are non-zero!
- -/
-meta def compute_degree_le (expos : bool) : tactic unit :=
+/--  `compute_degree_le_core` differs from `compute_degree_le` simply since it takes a `bool`
+input, instead of parsing a `!` token. -/
+meta def compute_degree_le_core (expos : bool) : tactic unit :=
 do t ← target,
   try $ refine ``(polynomial.degree_le_nat_degree.trans (with_bot.coe_le_coe.mpr _)),
   `(polynomial.nat_degree %%tl ≤ %%tr) ← target |
@@ -366,6 +353,24 @@ do t ← target,
     guard (os.length = 0) <|> fail "Goal did not change",
     try $ any_goals' norm_assum
 
+end compute_degree
+
+namespace interactive
+open compute_degree
+setup_tactic_parser
+
+/--  `compute_degree_le` tries to solve a goal of the form `f.nat_degree ≤ d` or  `f.degree ≤ d`,
+where `d : ℕ` or `d : with_bot ℕ` and `f : R[X]`.
+
+If the given degree `d` is smaller than the one that the tactic computes,
+then the tactic suggests the degree that it computed.
+
+Using `compute_degree_le!` also recurses inside powers.
+Use it only if you know how to prove that exponents of terms other than `X ^ ??` are non-zero!
+ -/
+meta def compute_degree_le (expos : parse (tk "!" )?) : tactic unit :=
+if expos.is_some then compute_degree_le_core tt else compute_degree_le_core ff
+
 /--  `compute_degree.with_lead lead` assumes that `lead` is an expression for the highest degree
 term of a polynomial and proceeds to try to close a goal of the form
 `f.nat_degree = d` or `f.degree = d`. -/
@@ -380,7 +385,7 @@ gts ← gs.mmap infer_type,
 -- * if the goal has the form `f.nat_degree ≤ d`, the tactic is `compute_degree_le`
 -- * otherwise, it is the tactic that tries `norm_num` and `assumption`
 is_ineq ← gts.mmap (λ t : expr, do match t with
-  | `(polynomial.nat_degree %%_ ≤ %%_) := return (compute_degree_le ff)
+  | `(polynomial.nat_degree %%_ ≤ %%_) := return $ compute_degree_le_core ff
   | _                                  := return norm_assum end),
 focus' is_ineq
 

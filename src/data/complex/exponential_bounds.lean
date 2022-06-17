@@ -41,7 +41,7 @@ lt_of_le_of_lt (sub_le_iff_le_add.1 (abs_sub_le_iff.1 exp_one_near_10).1) (by no
 /--
 A looser bound than `real.exp_one_lt_d9`, but this is sometimes more efficent for numerical computations
 -/
-lemma exp_one_lt_three : exp 1 < 3 := lt_trans (exp_one_lt_d9) (by norm_num)
+lemma exp_one_lt_three : exp 1 < 3 := exp_one_lt_d9.trans (by norm_num)
 
 lemma exp_neg_one_gt_d9 : 0.36787944116 < exp (-1) :=
 begin

@@ -7,10 +7,12 @@ Authors: Wojciech Nawrocki, Bhavik Mehta
 import category_theory.adjunction.basic
 import category_theory.monad.basic
 
-/-! # Kleisli category on a monad
+/-! # Kleisli category on a (co)monad
 
-This file defines the Kleisli category on a monad `(T, η_ T, μ_ T)`. It also defines the Kleisli
-adjunction which gives rise to the monad `(T, η_ T, μ_ T)`.
+This file defines the Kleisli category on a monad `(T, η_ T, μ_ T)` as well as the (co)Kleisli
+category on a comonad `(U, ε_ U, δ_ U)`. It also defines the Kleisli adjunction which gives rise to
+the monad `(T, η_ T, μ_ T)` as well as the (co)Kleisli adjucntion which gives rise to the comonad
+`(U, ε_ U, δ_ U)`.
 
 ## References
 * [Riehl, *Category theory in context*, Definition 5.2.9][riehl2017]

@@ -255,6 +255,11 @@ lemma continuous.const_cpow {b : ℂ} (hf : continuous f) (h : b ≠ 0 ∨ ∀ a
   continuous (λ x, b ^ f x) :=
 continuous_iff_continuous_at.2 $ λ a, (hf.continuous_at.const_cpow $ h.imp id $ λ h, h a)
 
+lemma continuous_on.cpow_const {b : ℂ} (hf : continuous_on f s)
+  (h : ∀ (a : α), a ∈ s → 0 < (f a).re ∨ (f a).im ≠ 0) :
+  continuous_on (λ x, (f x) ^ b) s :=
+hf.cpow continuous_on_const h
+
 end lim
 
 namespace real
@@ -1406,7 +1411,13 @@ lemma coe_rpow_def (x : ℝ≥0) (y : ℝ) :
   (x : ℝ≥0∞) ^ y = if x = 0 ∧ y < 0 then ⊤ else (x ^ y : ℝ≥0) := rfl
 
 @[simp] lemma rpow_one (x : ℝ≥0∞) : x ^ (1 : ℝ) = x :=
-by cases x; dsimp only [(^), rpow]; simp [zero_lt_one, not_lt_of_le zero_le_one]
+begin
+  cases x,
+  { exact dif_pos zero_lt_one },
+  { change ite _ _ _ = _,
+    simp,
+    exact λ _, zero_le_one.not_lt }
+end
 
 @[simp] lemma one_rpow (x : ℝ) : (1 : ℝ≥0∞) ^ x = 1 :=
 by { rw [← coe_one, coe_rpow_of_ne_zero one_ne_zero], simp }

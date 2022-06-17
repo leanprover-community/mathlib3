@@ -35,7 +35,9 @@ initial segment (or, equivalently, in any way). This total order is well founded
   `ordinal.lift.initial_seg`.
   For a version regiserting that it is a principal segment embedding if `u < v`, see
   `ordinal.lift.principal_seg`.
-* `ordinal.omega` is the first infinite ordinal. It is the order type of `ℕ`.
+* `ordinal.omega` or `ω` is the order type of `ℕ`. This definition is universe polymorphic:
+  `ordinal.omega.{u} : ordinal.{u}` (contrast with `ℕ : Type`, which lives in a specific
+  universe). In some cases the universe level has to be given explicitly.
 
 * `o₁ + o₂` is the order on the disjoint union of `o₁` and `o₂` obtained by declaring that
   every element of `o₁` is smaller than every element of `o₂`. The main properties of addition
@@ -427,7 +429,7 @@ parameter {σ : Type u}
 open function
 
 theorem nonempty_embedding_to_cardinal : nonempty (σ ↪ cardinal.{u}) :=
-embedding.total.resolve_left $ λ ⟨⟨f, hf⟩⟩,
+(embedding.total _ _).resolve_left $ λ ⟨⟨f, hf⟩⟩,
   let g : σ → cardinal.{u} := inv_fun f in
   let ⟨x, (hx : g x = 2 ^ sum g)⟩ := inv_fun_surjective hf (2 ^ sum g) in
   have g x ≤ sum g, from le_sum.{u u} g x,
@@ -492,23 +494,22 @@ def type (r : α → α → Prop) [wo : is_well_order α r] : ordinal :=
 def typein (r : α → α → Prop) [is_well_order α r] (a : α) : ordinal :=
 type (subrel r {b | r b a})
 
-theorem type_def (r : α → α → Prop) [wo : is_well_order α r] :
-  @eq ordinal ⟦⟨α, r, wo⟩⟧ (type r) := rfl
+@[simp] theorem type_def' (w : Well_order) : ⟦w⟧ = type w.r :=
+by { cases w, refl }
 
-@[simp] theorem type_def' (r : α → α → Prop) [is_well_order α r] {wo} :
-  @eq ordinal ⟦⟨α, r, wo⟩⟧ (type r) := rfl
+@[simp] theorem type_def (r) [wo : is_well_order α r] : (⟦⟨α, r, wo⟩⟧ : ordinal) = type r :=
+rfl
 
 theorem type_eq {α β} {r : α → α → Prop} {s : β → β → Prop}
-  [is_well_order α r] [is_well_order β s] :
-  type r = type s ↔ nonempty (r ≃r s) := quotient.eq
+  [is_well_order α r] [is_well_order β s] : type r = type s ↔ nonempty (r ≃r s) :=
+quotient.eq
+
+theorem _root_.rel_iso.ordinal_type_eq {α β} {r : α → α → Prop} {s : β → β → Prop}
+  [is_well_order α r] [is_well_order β s] (h : r ≃r s) :
+  type r = type s := type_eq.2 ⟨h⟩
 
 @[simp] theorem type_lt (o : ordinal) : type ((<) : o.out.α → o.out.α → Prop) = o :=
-begin
-  change type o.out.r = _,
-  refine eq.trans _ (quotient.out_eq o),
-  cases quotient.out o,
-  refl
-end
+(type_def' _).symm.trans $ quotient.out_eq o
 
 @[elab_as_eliminator] theorem induction_on {C : ordinal → Prop}
   (o : ordinal) (H : ∀ α r [is_well_order α r], by exactI C (type r)) : C o :=
@@ -741,12 +742,21 @@ theorem card_le_card {o₁ o₂ : ordinal} : o₁ ≤ o₂ → card o₁ ≤ car
 induction_on o₁ $ λ α r _, induction_on o₂ $ λ β s _ ⟨⟨⟨f, _⟩, _⟩⟩, ⟨f⟩
 
 instance : has_zero ordinal :=
-⟨⟦⟨pempty, empty_relation, by apply_instance⟩⟧⟩
+⟨@type pempty empty_relation _⟩
 
 instance : inhabited ordinal := ⟨0⟩
 
-theorem zero_eq_type_empty : 0 = @type empty empty_relation _ :=
-quotient.sound ⟨⟨empty_equiv_pempty.symm, λ _ _, iff.rfl⟩⟩
+@[simp] theorem type_eq_zero_of_empty (r) [is_well_order α r] [is_empty α] : type r = 0 :=
+(rel_iso.rel_iso_of_is_empty r _).ordinal_type_eq
+
+@[simp] theorem type_eq_zero_iff_is_empty [is_well_order α r] : type r = 0 ↔ is_empty α :=
+⟨λ h, let ⟨s⟩ := type_eq.1 h in s.to_equiv.is_empty, @type_eq_zero_of_empty α r _⟩
+
+theorem type_ne_zero_iff_nonempty [is_well_order α r] : type r ≠ 0 ↔ nonempty α :=
+by simp
+
+theorem type_ne_zero_of_nonempty (r) [is_well_order α r] [h : nonempty α] : type r ≠ 0 :=
+type_ne_zero_iff_nonempty.2 h
 
 @[simp] theorem card_zero : card 0 = 0 := rfl
 
@@ -782,7 +792,7 @@ instance is_empty_out_zero : is_empty (0 : ordinal).out.α :=
 out_empty_iff_eq_zero.2 rfl
 
 instance : has_one ordinal :=
-⟨⟦⟨punit, empty_relation, by apply_instance⟩⟧⟩
+⟨@type punit empty_relation _⟩
 
 theorem one_eq_type_unit : 1 = @type unit empty_relation _ :=
 quotient.sound ⟨⟨punit_equiv_punit, λ _ _, iff.rfl⟩⟩
@@ -806,31 +816,40 @@ theorem lift_type {α} (r : α → α → Prop) [is_well_order α r] :
   ∃ wo', lift (type r) = @type _ (@equiv.ulift.{v} α ⁻¹'o r) wo' :=
 ⟨_, rfl⟩
 
-theorem lift_umax : lift.{(max u v) u} = lift.{v u} :=
+/-- `lift.{(max u v) u}` equals `lift.{v u}`. Using `set_option pp.universes true` will make it much
+    easier to understand what's happening when using this lemma. -/
+@[simp] theorem lift_umax : lift.{(max u v) u} = lift.{v u} :=
 funext $ λ a, induction_on a $ λ α r _,
 quotient.sound ⟨(rel_iso.preimage equiv.ulift r).trans (rel_iso.preimage equiv.ulift r).symm⟩
 
-theorem lift_id' (a : ordinal) : lift a = a :=
-induction_on a $ λ α r _,
-quotient.sound ⟨rel_iso.preimage equiv.ulift r⟩
+/-- `lift.{(max v u) u}` equals `lift.{v u}`. Using `set_option pp.universes true` will make it much
+    easier to understand what's happening when using this lemma. -/
+@[simp] theorem lift_umax' : lift.{(max v u) u} = lift.{v u} := lift_umax
 
+/-- An ordinal lifted to a lower or equal universe equals itself. -/
+@[simp] theorem lift_id' (a : ordinal) : lift a = a :=
+induction_on a $ λ α r _, quotient.sound ⟨rel_iso.preimage equiv.ulift r⟩
+
+/-- An ordinal lifted to the same universe equals itself. -/
 @[simp] theorem lift_id : ∀ a, lift.{u u} a = a := lift_id'.{u u}
 
-@[simp]
-theorem lift_lift (a : ordinal) : lift.{w} (lift.{v} a) = lift.{(max v w)} a :=
+/-- An ordinal lifted to the zero universe equals itself. -/
+@[simp] theorem lift_uzero (a : ordinal.{u}) : lift.{0} a = a := lift_id'.{0 u} a
+
+@[simp] theorem lift_lift (a : ordinal) : lift.{w} (lift.{v} a) = lift.{max v w} a :=
 induction_on a $ λ α r _,
 quotient.sound ⟨(rel_iso.preimage equiv.ulift _).trans $
   (rel_iso.preimage equiv.ulift _).trans (rel_iso.preimage equiv.ulift _).symm⟩
 
 theorem lift_type_le {α : Type u} {β : Type v} {r s} [is_well_order α r] [is_well_order β s] :
-  lift.{(max v w)} (type r) ≤ lift.{(max u w)} (type s) ↔ nonempty (r ≼i s) :=
+  lift.{max v w} (type r) ≤ lift.{max u w} (type s) ↔ nonempty (r ≼i s) :=
 ⟨λ ⟨f⟩, ⟨(initial_seg.of_iso (rel_iso.preimage equiv.ulift r).symm).trans $
     f.trans (initial_seg.of_iso (rel_iso.preimage equiv.ulift s))⟩,
  λ ⟨f⟩, ⟨(initial_seg.of_iso (rel_iso.preimage equiv.ulift r)).trans $
     f.trans (initial_seg.of_iso (rel_iso.preimage equiv.ulift s).symm)⟩⟩
 
 theorem lift_type_eq {α : Type u} {β : Type v} {r s} [is_well_order α r] [is_well_order β s] :
-  lift.{(max v w)} (type r) = lift.{(max u w)} (type s) ↔ nonempty (r ≃r s) :=
+  lift.{max v w} (type r) = lift.{max u w} (type s) ↔ nonempty (r ≃r s) :=
 quotient.eq.trans
 ⟨λ ⟨f⟩, ⟨(rel_iso.preimage equiv.ulift r).symm.trans $
     f.trans (rel_iso.preimage equiv.ulift s)⟩,
@@ -838,11 +857,11 @@ quotient.eq.trans
     f.trans (rel_iso.preimage equiv.ulift s).symm⟩⟩
 
 theorem lift_type_lt {α : Type u} {β : Type v} {r s} [is_well_order α r] [is_well_order β s] :
-  lift.{(max v w)} (type r) < lift.{(max u w)} (type s) ↔ nonempty (r ≺i s) :=
-by haveI := @rel_embedding.is_well_order _ _ (@equiv.ulift.{(max v w)} α ⁻¹'o r)
-     r (rel_iso.preimage equiv.ulift.{(max v w)} r) _;
-   haveI := @rel_embedding.is_well_order _ _ (@equiv.ulift.{(max u w)} β ⁻¹'o s)
-     s (rel_iso.preimage equiv.ulift.{(max u w)} s) _; exact
+  lift.{max v w} (type r) < lift.{max u w} (type s) ↔ nonempty (r ≺i s) :=
+by haveI := @rel_embedding.is_well_order _ _ (@equiv.ulift.{max v w} α ⁻¹'o r)
+     r (rel_iso.preimage equiv.ulift.{max v w} r) _;
+   haveI := @rel_embedding.is_well_order _ _ (@equiv.ulift.{max u w} β ⁻¹'o s)
+     s (rel_iso.preimage equiv.ulift.{max u w} s) _; exact
 ⟨λ ⟨f⟩, ⟨(f.equiv_lt (rel_iso.preimage equiv.ulift r).symm).lt_le
     (initial_seg.of_iso (rel_iso.preimage equiv.ulift s))⟩,
  λ ⟨f⟩, ⟨(f.equiv_lt (rel_iso.preimage equiv.ulift r)).lt_le
@@ -860,10 +879,7 @@ by simp only [lt_iff_le_not_le, lift_le]
 
 @[simp] theorem lift_zero : lift 0 = 0 :=
 quotient.sound ⟨(rel_iso.preimage equiv.ulift _).trans
- ⟨pempty_equiv_pempty, λ a b, iff.rfl⟩⟩
-
-theorem zero_eq_lift_type_empty : 0 = lift.{u} (@type empty empty_relation _) :=
-by rw [← zero_eq_type_empty, lift_zero]
+ ⟨equiv_of_is_empty  _ _, λ a b, iff.rfl⟩⟩
 
 @[simp] theorem lift_one : lift 1 = 1 :=
 quotient.sound ⟨(rel_iso.preimage equiv.ulift _).trans
@@ -918,11 +934,11 @@ def lift.initial_seg : @initial_seg ordinal.{u} ordinal.{max u v} (<) (<) :=
 /-- `ω` is the first infinite ordinal, defined as the order type of `ℕ`. -/
 def omega : ordinal.{u} := lift $ @type ℕ (<) _
 
-localized "notation `ω` := ordinal.omega.{0}" in ordinal
+localized "notation `ω` := ordinal.omega" in ordinal
 
-theorem card_omega : card omega = cardinal.omega := rfl
+@[simp] theorem card_omega : card ω = ℵ₀ := rfl
 
-@[simp] theorem lift_omega : lift omega = omega := lift_lift _
+@[simp] theorem lift_omega : lift ω = ω := lift_lift _
 
 /-!
 ### Definition and first properties of addition on ordinals
@@ -937,8 +953,7 @@ the addition, together with properties of the other operations, are proved in
   every element of `o₁` is smaller than every element of `o₂`. -/
 instance : has_add ordinal.{u} :=
 ⟨λ o₁ o₂, quotient.lift_on₂ o₁ o₂
-  (λ ⟨α, r, wo⟩ ⟨β, s, wo'⟩, ⟦⟨α ⊕ β, sum.lex r s, by exactI sum.lex.is_well_order _ _⟩⟧
-    : Well_order → Well_order → ordinal) $
+  (λ ⟨α, r, wo⟩ ⟨β, s, wo'⟩, by exactI type (sum.lex r s)) $
   λ ⟨α₁, r₁, o₁⟩ ⟨α₂, r₂, o₂⟩ ⟨β₁, s₁, p₁⟩ ⟨β₂, s₂, p₂⟩ ⟨f⟩ ⟨g⟩,
   quot.sound ⟨rel_iso.sum_lex_congr f g⟩⟩
 
@@ -1100,7 +1115,7 @@ end, λ h, by simp_rw h⟩
   map_rel_iff' := by { rintros ⟨a, _⟩ ⟨b, _⟩, apply enum_lt_enum } }
 
 /-- The order isomorphism between ordinals less than `o` and `o.out.α`. -/
-@[simps] noncomputable def enum_iso_out (o : ordinal.{u}) : set.Iio o ≃o o.out.α :=
+@[simps] noncomputable def enum_iso_out (o : ordinal) : set.Iio o ≃o o.out.α :=
 { to_fun := λ ⟨o', h⟩, enum (<) o' (by rwa type_lt),
   inv_fun := λ x, ⟨typein (<) x, typein_lt_self x⟩,
   left_inv := λ ⟨o', h⟩, subtype.ext_val (typein_enum _ _),
@@ -1118,9 +1133,9 @@ rfl
 /-- `univ.{u v}` is the order type of the ordinals of `Type u` as a member
   of `ordinal.{v}` (when `u < v`). It is an inaccessible cardinal. -/
 @[nolint check_univs] -- intended to be used with explicit universe parameters
-def univ : ordinal.{max (u + 1) v} := lift.{v (u+1)} (@type ordinal.{u} (<) _)
+def univ : ordinal.{max (u + 1) v} := lift.{v (u+1)} (@type ordinal (<) _)
 
-theorem univ_id : univ.{u (u+1)} = @type ordinal.{u} (<) _ := lift_id _
+theorem univ_id : univ.{u (u+1)} = @type ordinal (<) _ := lift_id _
 
 @[simp] theorem lift_univ : lift.{w} univ.{u v} = univ.{u (max v w)} := lift_lift _
 
@@ -1151,12 +1166,12 @@ def lift.principal_seg : @principal_seg ordinal.{u} ordinal.{max (u+1) v} (<) (<
 end⟩
 
 @[simp] theorem lift.principal_seg_coe :
-  (lift.principal_seg.{u v} : ordinal → ordinal) = lift.{(max (u+1) v)} := rfl
+  (lift.principal_seg.{u v} : ordinal → ordinal) = lift.{max (u+1) v} := rfl
 
 @[simp] theorem lift.principal_seg_top : lift.principal_seg.top = univ := rfl
 
 theorem lift.principal_seg_top' :
-  lift.principal_seg.{u (u+1)}.top = @type ordinal.{u} (<) _ :=
+  lift.principal_seg.{u (u+1)}.top = @type ordinal (<) _ :=
 by simp only [lift.principal_seg_top, univ_id]
 
 /-! ### Minimum -/
@@ -1181,9 +1196,10 @@ let ⟨i, e⟩ := min_eq I (lift ∘ f) in
 by rw e; exact lift_le.2 (le_min.2 $ λ j, lift_le.1 $
 by have := min_le (lift ∘ f) j; rwa e at this)
 
+instance : order_bot ordinal := ⟨0, ordinal.zero_le⟩
+
 instance : conditionally_complete_linear_order_bot ordinal :=
-lt_wf.conditionally_complete_linear_order_with_bot 0 $ le_antisymm (ordinal.zero_le _) $
-  not_lt.1 (lt_wf.not_lt_min set.univ ⟨0, mem_univ _⟩ (mem_univ 0))
+lt_wf.conditionally_complete_linear_order_with_bot
 
 @[simp] lemma bot_eq_zero : (⊥ : ordinal) = 0 := rfl
 
@@ -1207,8 +1223,8 @@ end ordinal
 namespace cardinal
 open ordinal
 
-@[simp] theorem mk_ordinal_out (o : ordinal.{u}) : #(o.out.α) = o.card :=
-by { convert (ordinal.card_type (<)).symm, exact (ordinal.type_lt o).symm }
+@[simp] theorem mk_ordinal_out (o : ordinal) : #(o.out.α) = o.card :=
+(ordinal.card_type _).symm.trans $ by rw ordinal.type_lt
 
 /-- The ordinal corresponding to a cardinal `c` is the least ordinal
   whose cardinal is `c`. For the order-embedding version, see `ord.order_embedding`. -/
@@ -1298,15 +1314,14 @@ eq_of_forall_ge_iff $ λ o, le_iff_le_iff_lt_iff_lt.2 $ begin
     rwa [ordinal.lift_lt, lt_ord] }
 end
 
-lemma mk_ord_out (c : cardinal) : #c.ord.out.α = c :=
-by rw [←card_type (<), type_lt, card_ord]
+lemma mk_ord_out (c : cardinal) : #c.ord.out.α = c := by simp
 
 lemma card_typein_lt (r : α → α → Prop) [is_well_order α r] (x : α)
   (h : ord (#α) = type r) : card (typein r x) < #α :=
-by { rw [←ord_lt_ord, h], refine lt_of_le_of_lt (ord_card_le _) (typein_lt_type r x) }
+by { rw [←lt_ord, h], apply typein_lt_type }
 
 lemma card_typein_out_lt (c : cardinal) (x : c.ord.out.α) : card (typein (<) x) < c :=
-by { convert card_typein_lt (<) x _, rw [mk_ord_out], rw [type_lt, mk_ord_out] }
+by { rw ←lt_ord, apply typein_lt_self }
 
 lemma ord_injective : injective ord :=
 by { intros c c' h, rw [←card_ord c, ←card_ord c', h] }
@@ -1369,13 +1384,12 @@ theorem lt_univ' {c} : c < univ.{u v} ↔ ∃ c', c = lift.{(max (u+1) v) u} c' 
 end, λ ⟨c', e⟩, e.symm ▸ lift_lt_univ' _⟩
 
 theorem small_iff_lift_mk_lt_univ {α : Type u} :
-  small.{v} α ↔
-  (cardinal.lift (# α : cardinal.{u}) < univ.{v (max u (v + 1))}) :=
+  small.{v} α ↔ cardinal.lift (#α) < univ.{v (max u (v + 1))} :=
 begin
   rw lt_univ',
   split,
   { rintro ⟨β, e⟩,
-    exact ⟨# β, (lift_mk_eq.{u _ (v + 1)}.2 e)⟩ },
+    exact ⟨#β, lift_mk_eq.{u _ (v + 1)}.2 e⟩ },
   { rintro ⟨c, hc⟩,
     exact ⟨⟨c.out, lift_mk_eq.{u _ (v + 1)}.1 (hc.trans (congr rfl c.mk_out.symm))⟩⟩ }
 end

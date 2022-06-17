@@ -80,7 +80,7 @@ lemma union_right {t'} (h : is_metric_separated s t) (h' : is_metric_separated s
   is_metric_separated s (t ∪ t') ↔ is_metric_separated s t ∧ is_metric_separated s t' :=
 comm.trans $ union_left_iff.trans $ and_congr comm comm
 
-lemma finite_Union_left_iff {ι : Type*} {I : set ι} (hI : finite I) {s : ι → set X} {t : set X} :
+lemma finite_Union_left_iff {ι : Type*} {I : set ι} (hI : I.finite) {s : ι → set X} {t : set X} :
   is_metric_separated (⋃ i ∈ I, s i) t ↔ ∀ i ∈ I, is_metric_separated (s i) t :=
 begin
   refine finite.induction_on hI (by simp) (λ i I hi _ hI, _),
@@ -89,7 +89,7 @@ end
 
 alias finite_Union_left_iff ↔ _ is_metric_separated.finite_Union_left
 
-lemma finite_Union_right_iff {ι : Type*} {I : set ι} (hI : finite I) {s : set X} {t : ι → set X} :
+lemma finite_Union_right_iff {ι : Type*} {I : set ι} (hI : I.finite) {s : set X} {t : ι → set X} :
   is_metric_separated s (⋃ i ∈ I, t i) ↔ ∀ i ∈ I, is_metric_separated s (t i) :=
 by simpa only [@comm _ _ s] using finite_Union_left_iff hI
 

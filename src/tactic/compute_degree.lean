@@ -55,16 +55,14 @@ open expr
 
 /--  `guess_degree e` assumes that `e` is an expression in a polynomial ring, and makes an attempt
 at guessing the degree of `e`.  Heuristics for `guess_degree`:
-* `0, 1, C a`,         guessing `0`,
-* `polynomial.X`,      guessing `1`,
-*  `bit0 f, bit1 f`,   guessing `guess_degree f`,
-                                (this could give wrong results, e.g. `bit0 f = 0` if the
-                                 characteristic of the ground ring is `2`),
-* `f + g, f - g, - f`, guessing `max (guess_degree f) (guess_degree g)`,
-* `f * g`,             guessing `guess_degree f + guess_degree g`,
-* `f ^ n`,             guessing `guess_degree f * n`,
-* `monomial n r`,      guessing `n`,
-* `f` not as above,    guessing `f.nat_degree`.
+* `0, 1, C a`,      guessing `0`,
+* `polynomial.X`,   guessing `1`,
+*  `bit0/1 f, -f`,  guessing `guess_degree f`,
+* `f + g, f - g`,   guessing `max (guess_degree f) (guess_degree g)`,
+* `f * g`,          guessing `guess_degree f + guess_degree g`,
+* `f ^ n`,          guessing `guess_degree f * n`,
+* `monomial n r`,   guessing `n`,
+* `f` not as above, guessing `f.nat_degree`.
  -/
 meta def guess_degree : expr → tactic expr
 | `(has_zero.zero)         := pure `(0)
@@ -159,9 +157,9 @@ On the atoms of the process, `eval_guessing` tries to use `eval_expr ℕ`, resor
 
 For use with degree of polynomials, we mostly use `n = 0`. -/
 meta def eval_guessing (n : ℕ) : expr → tactic ℕ
-| `(%%a + %%b)   := do ca ← eval_guessing a, cb ← eval_guessing b, return $ ca + cb
-| `(%%a * %%b)   := do ca ← eval_guessing a, cb ← eval_guessing b, return $ ca * cb
-| `(max %%a %%b) := do ca ← eval_guessing a, cb ← eval_guessing b, return $ max ca cb
+| `(%%a + %%b)   := do [ca, cb] ← [a,b].mmap eval_guessing, return $ ca + cb
+| `(%%a * %%b)   := do [ca, cb] ← [a,b].mmap eval_guessing, return $ ca * cb
+| `(max %%a %%b) := do [ca, cb] ← [a,b].mmap eval_guessing, return $ max ca cb
 | e := do cond ← succeeds $ eval_expr ℕ e, if cond then eval_expr ℕ e else pure n
 
 /--  `compute_degree_le_core` differs from `compute_degree_le` simply since it takes a `bool`

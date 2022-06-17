@@ -30,8 +30,7 @@ variables [group A] [group B]
 lemma ker_eq_bot (f : A →* B) :
   f.ker = ⊥ ↔ function.injective f :=
 { mp := λ h1 x y h2, begin
-    rw [←div_eq_one, ←map_div, ←mem_ker] at h2,
-    rwa [h1, subgroup.mem_bot, div_eq_one] at h2,
+    rwa [←div_eq_one, ←map_div, ←mem_ker, h1, subgroup.mem_bot, div_eq_one] at h2,
   end,
   mpr := λ h, set_like.ext $ λ x, iff.trans (mem_ker _) $
     iff.trans begin
@@ -42,19 +41,15 @@ lemma ker_eq_bot (f : A →* B) :
 @[to_additive add_monoid_hom.range_eq_top]
 lemma range_eq_top (f : A →* B) :
   f.range = ⊤ ↔ function.surjective f :=
-{ mp := λ h x, begin
-    rcases show x ∈ f.range, from h.symm ▸ subgroup.mem_top _ with ⟨a, h⟩,
-    exact ⟨a, h⟩,
-  end,
-  mpr := λ h, set_like.ext $ λ x, iff.trans mem_range
-    ⟨λ _, trivial, λ _, h x⟩ }
+{ mp := λ h x, show x ∈ f.range, from h.symm ▸ subgroup.mem_top _,
+  mpr := λ h, set_like.ext $ λ x, iff.trans mem_range ⟨λ _, trivial, λ _, h x⟩ }
 
 @[to_additive add_monoid_hom.range_zero_eq_bot]
 lemma range_one_eq_bot :
   (1 : A →* B).range = ⊥ :=
 set_like.ext $ λ a, iff.trans monoid_hom.mem_range $
-  iff.trans (by simp only [one_apply, exists_const]; split; intros h; subst h)
-    subgroup.mem_bot.symm
+  iff.trans (by simp only [one_apply, exists_const]; split; intros h; subst h) subgroup.mem_bot.symm
+
 @[to_additive add_monoid_hom.ker_zero_eq_top]
 lemma ker_one_eq_top :
   (1 : A →* B).ker = ⊤ :=
@@ -147,9 +142,8 @@ local notation `SX'` := equiv.perm X'
 instance : has_scalar B X' :=
 { smul := λ b x, match x with
   | from_coset y := from_coset ⟨b *l y, begin
-    rcases y.2 with ⟨b', hb'⟩,
-    use b * b',
-    rw [←subtype.val_eq_coe, ←hb', left_coset_assoc],
+    rw [←subtype.val_eq_coe, ←y.2.some_spec, left_coset_assoc],
+    use b * y.2.some,
   end⟩
   | ∞ := ∞
   end }
@@ -218,10 +212,7 @@ equiv.swap_apply_left _ _
 
 lemma τ_apply_from_coset' (x : B) (hx : x ∈ f.range) :
   τ (from_coset ⟨x *l f.range.carrier, ⟨x, rfl⟩⟩) = ∞ :=
-begin
-  rw from_coset_eq_of_mem_range _ hx,
-  exact τ_apply_from_coset _,
-end
+(from_coset_eq_of_mem_range _ hx).symm ▸ τ_apply_from_coset _
 
 lemma τ_symm_apply_from_coset :
   (equiv.symm τ) (from_coset ⟨f.range.carrier, ⟨1, one_left_coset _⟩⟩) = ∞ :=
@@ -260,15 +251,14 @@ local notation `h` := H f
 The strategy is the following: assuming `epi f`
 * prove that `f.range = {x | h x = g x}`;
 * thus `f ≫ h = f ≫ g` so that `h = g`;
-* but if `f` is not surjective, then some `x ≠ f.range`, then `h x ≠ g x` at the coset `f.range`.
+* but if `f` is not surjective, then some `x ∉ f.range`, then `h x ≠ g x` at the coset `f.range`.
 -/
 
 lemma g_apply_from_coset (x : B) (y : X) :
   (g x) (from_coset y) =
   from_coset ⟨x *l y, begin
-    rcases y.2 with ⟨b, hb⟩,
-    rw [←subtype.val_eq_coe, ←hb, set.mem_range, left_coset_assoc],
-    use x * b,
+    rw [←subtype.val_eq_coe, ←y.2.some_spec, set.mem_range, left_coset_assoc],
+    use x * y.2.some,
   end⟩ := rfl
 
 lemma g_apply_infinity (x : B) :
@@ -300,8 +290,7 @@ begin
   rw [equiv.symm_swap],
   rw @equiv.swap_apply_of_ne_of_ne X' _
     (from_coset ⟨f.range.carrier, ⟨1, one_left_coset _⟩⟩) ∞
-    (from_coset ⟨b *l f.range.carrier, ⟨b, rfl⟩⟩)
-    (from_coset_ne_of_nin_range _ hb) (by simp),
+    (from_coset ⟨b *l f.range.carrier, ⟨b, rfl⟩⟩) (from_coset_ne_of_nin_range _ hb) (by simp),
   simp only [g_apply_from_coset, ←subtype.val_eq_coe, left_coset_assoc],
   exact equiv.swap_apply_of_ne_of_ne begin
     refine from_coset_ne_of_nin_range _ (λ r, hb _),
@@ -312,46 +301,35 @@ end
 
 lemma agree :
   f.range.carrier = {x | h x = g x} :=
-begin
-  ext b,
-  split,
-  { rintros ⟨a, rfl⟩,
-    change h (f a) = g (f a),
-    ext ⟨⟨_, ⟨y, rfl⟩⟩⟩,
-    { rw [g_apply_from_coset],
-      by_cases m : y ∈ f.range,
-      { rw [h_apply_from_coset' _ _ _ m, from_coset_eq_of_mem_range _ m],
-        change from_coset _ = from_coset ⟨f a *l (y *l _), _⟩,
-        simpa only [←from_coset_eq_of_mem_range _ (subgroup.mul_mem _ ⟨a, rfl⟩ m),
-          left_coset_assoc] },
-      { rw [h_apply_from_coset_nin_range _ _ ⟨_, rfl⟩ _ m],
-        simpa only [←subtype.val_eq_coe, left_coset_assoc], }, },
-    { rw [g_apply_infinity, h_apply_infinity _ _ ⟨_, rfl⟩], }, },
-  { rintros (hb : h b = g b),
-    have eq1 : (h b) (from_coset ⟨f.range.carrier, ⟨1, one_left_coset _⟩⟩) =
-      (from_coset ⟨f.range.carrier, ⟨1, one_left_coset _⟩⟩) := by simp [H, tau, g_apply_infinity],
-    have eq2 : (g b) (from_coset ⟨f.range.carrier, ⟨1, one_left_coset _⟩⟩) =
-      (from_coset ⟨b *l f.range.carrier, ⟨b, rfl⟩⟩) := rfl,
-    by_contra r,
-    exact (from_coset_ne_of_nin_range _ r).symm (by rw [←eq1, ←eq2, fun_like.congr_fun hb]), }
-end
+set.ext $ λ b,
+⟨begin
+  rintros ⟨a, rfl⟩,
+  change h (f a) = g (f a),
+  ext ⟨⟨_, ⟨y, rfl⟩⟩⟩,
+  { rw [g_apply_from_coset],
+    by_cases m : y ∈ f.range,
+    { rw [h_apply_from_coset' _ _ _ m, from_coset_eq_of_mem_range _ m],
+      change from_coset _ = from_coset ⟨f a *l (y *l _), _⟩,
+      simpa only [←from_coset_eq_of_mem_range _ (subgroup.mul_mem _ ⟨a, rfl⟩ m),
+        left_coset_assoc] },
+    { rw [h_apply_from_coset_nin_range _ _ ⟨_, rfl⟩ _ m],
+      simpa only [←subtype.val_eq_coe, left_coset_assoc], }, },
+  { rw [g_apply_infinity, h_apply_infinity _ _ ⟨_, rfl⟩], },
+end, λ (hb : h b = g b), classical.by_contradiction $ λ r, begin
+  have eq1 : (h b) (from_coset ⟨f.range.carrier, ⟨1, one_left_coset _⟩⟩) =
+    (from_coset ⟨f.range.carrier, ⟨1, one_left_coset _⟩⟩) := by simp [H, tau, g_apply_infinity],
+  have eq2 : (g b) (from_coset ⟨f.range.carrier, ⟨1, one_left_coset _⟩⟩) =
+    (from_coset ⟨b *l f.range.carrier, ⟨b, rfl⟩⟩) := rfl,
+  exact (from_coset_ne_of_nin_range _ r).symm (by rw [←eq1, ←eq2, fun_like.congr_fun hb]),
+end⟩
 
 lemma comp_eq : f ≫ (show B ⟶ Group.of SX', from g) = f ≫ h :=
-begin
-  ext1 a,
-  simp only [comp_apply, comp_apply],
-  have : f a ∈ f.range.carrier := ⟨a, rfl⟩,
-  rw [agree, set.mem_set_of_eq] at this,
-  rw this,
-end
-
-lemma g_eq_h [epi f] : g = h :=
-(cancel_epi f).1 $ comp_eq f
+fun_like.ext _ _ $ λ a,
+  by simp only [comp_apply, show h (f a) = _, from (by simp [←agree] : f a ∈ {b | h b = g b})]
 
 lemma g_ne_h (x : B) (hx : x ∉ f.range) :
   g ≠ h :=
-begin
-  intros r,
+λ r, begin
   replace r := fun_like.congr_fun (fun_like.congr_fun r x)
     ((from_coset ⟨f.range, ⟨1, one_left_coset _⟩⟩)),
   rw [H, g_apply_from_coset, monoid_hom.coe_mk, tau] at r,
@@ -364,14 +342,12 @@ end
 end surjective_of_epi_auxs
 
 lemma surjective_of_epi [epi f] : function.surjective f :=
-begin
-  by_contra r,
-  simp_rw [not_forall, not_exists] at r,
+classical.by_contradiction $ λ r, begin
+  push_neg at r,
   rcases r with ⟨b, hb⟩,
-  refine surjective_of_epi_auxs.g_ne_h f b (λ r, _) _,
-  { rcases r with ⟨c, hc⟩,
-    exact hb _ hc, },
-  apply surjective_of_epi_auxs.g_eq_h,
+  refine surjective_of_epi_auxs.g_ne_h f b _ ((cancel_epi f).1 (surjective_of_epi_auxs.comp_eq f)),
+  rintros ⟨c, hc⟩,
+  exact hb _ hc,
 end
 
 lemma epi_iff_surjective :

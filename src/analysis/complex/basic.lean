@@ -70,12 +70,25 @@ normed_space.restrict_scalars ℝ ℂ E
 
 lemma dist_eq (z w : ℂ) : dist z w = abs (z - w) := rfl
 
-lemma dist_self_conj (z : ℂ) : dist z (conj z) = 2 * |z.im| :=
-by simp only [dist_eq, sub_conj, of_real_mul, of_real_bit0, of_real_one, abs_mul, abs_two,
-  abs_of_real, abs_I, mul_one]
+lemma dist_eq_re_im (z w : ℂ) : dist z w = real.sqrt ((z.re - w.re) ^ 2 + (z.im - w.im) ^ 2) :=
+by { rw [sq, sq], refl }
+
+@[simp] lemma dist_mk (x₁ y₁ x₂ y₂ : ℝ) :
+  dist (mk x₁ y₁) (mk x₂ y₂) = real.sqrt ((x₁ - x₂) ^ 2 + (y₁ - y₂) ^ 2) :=
+dist_eq_re_im _ _
+
+lemma dist_of_re_eq {z w : ℂ} (h : z.re = w.re) : dist z w = dist z.im w.im :=
+by rw [dist_eq_re_im, h, sub_self, zero_pow two_pos, zero_add, real.sqrt_sq_eq_abs, real.dist_eq]
+
+lemma dist_of_im_eq {z w : ℂ} (h : z.im = w.im) : dist z w = dist z.re w.re :=
+by rw [dist_eq_re_im, h, sub_self, zero_pow two_pos, add_zero, real.sqrt_sq_eq_abs, real.dist_eq]
 
 lemma dist_conj_self (z : ℂ) : dist (conj z) z = 2 * |z.im| :=
-by rw [dist_comm, dist_self_conj]
+by rw [dist_of_re_eq (conj_re z), conj_im, dist_comm, real.dist_eq, sub_neg_eq_add, ← two_mul,
+  _root_.abs_mul, abs_of_pos (@two_pos ℝ _ _)]
+
+lemma dist_self_conj (z : ℂ) : dist z (conj z) = 2 * |z.im| :=
+by rw [dist_comm, dist_conj_self]
 
 @[simp] lemma comap_abs_nhds_zero : filter.comap abs (𝓝 0) = 𝓝 0 := comap_norm_nhds_zero
 

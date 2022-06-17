@@ -149,6 +149,7 @@ end
 
 variables [nontrivial α]
 
+-- Note, this lemma is false when `α` has exactly one element and boring when `α` is empty.
 lemma intersecting.is_max_iff_card_eq (hs : (s : set α).intersecting) :
   (∀ t : finset α, (t : set α).intersecting → s ⊆ t → s = t) ↔ 2 * s.card = fintype.card α :=
 begin

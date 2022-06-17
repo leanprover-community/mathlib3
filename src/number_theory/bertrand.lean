@@ -75,8 +75,6 @@ open real
 
 private lemma log_four_pos : 0 < log 4 := log_pos (by linarith)
 
-private lemma log_four_nonzero : log 4 ≠ 0 := log_four_pos.ne'
-
 private lemma four_eq_two_rpow_two : (4 : ℝ) = 2 ^ (2 : ℝ) := by norm_num
 
 private lemma log_four : log 4 = 2 * log 2 :=
@@ -140,11 +138,11 @@ lemma inequality3' {x : ℝ} (x_pos : 0 < x) :
   sqrt 2 * sqrt x * log x / (x * log 4) = (sqrt 2 / log 4) * log x / sqrt x :=
 begin
   have: x ≠ 0 := by linarith,
-  have: log 4 * sqrt x ≠ 0 := mul_ne_zero log_four_nonzero (sqrt_ne_zero'.mpr x_pos),
+  have: log 4 * sqrt x ≠ 0 := mul_ne_zero log_four_pos.ne' (sqrt_ne_zero'.mpr x_pos),
   field_simp,
   ring_nf,
   rw @sq_sqrt x (by linarith),
-  field_simp [log_four_nonzero],
+  field_simp [log_four_pos.ne'],
   ring_nf,
 end
 
@@ -181,7 +179,7 @@ end
 
 lemma equality4 (x : ℝ) (n_large : x ≠ 0) : 2 * x / 3 * log 4 / (x * log 4) = 2 / 3 :=
 begin
-  field_simp [log_four_nonzero],
+  field_simp [log_four_pos.ne'],
   ring,
 end
 

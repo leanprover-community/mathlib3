@@ -9,9 +9,9 @@ import category_theory.monad.basic
 
 /-! # Kleisli category on a (co)monad
 
-This file defines the Kleisli category on a monad `(T, η_ T, μ_ T)` as well as the (co)Kleisli
+This file defines the Kleisli category on a monad `(T, η_ T, μ_ T)` as well as the co-Kleisli
 category on a comonad `(U, ε_ U, δ_ U)`. It also defines the Kleisli adjunction which gives rise to
-the monad `(T, η_ T, μ_ T)` as well as the (co)Kleisli adjucntion which gives rise to the comonad
+the monad `(T, η_ T, μ_ T)` as well as the co-Kleisli adjunction which gives rise to the comonad
 `(U, ε_ U, δ_ U)`.
 
 ## References
@@ -24,7 +24,7 @@ universes v u -- morphism levels before object levels. See note [category_theory
 variables {C : Type u} [category.{v} C]
 
 /--
-The objects for the Kleisli category of the functor (usually monad) `T : C ⥤ C`, which are the same
+The objects for the Kleisli category of the monad `T : monad C`, which are the same
 thing as objects of the base category `C`.
 -/
 @[nolint unused_arguments]
@@ -95,6 +95,10 @@ nat_iso.of_components (λ X, iso.refl _) (λ X Y f, by { dsimp, simp })
 end adjunction
 end kleisli
 
+/--
+The objects for the co-Kleisli category of the comonad `U : monad C`, which are the same
+thing as objects of the base category `C`.
+-/
 @[nolint unused_arguments]
 def cokleisli (U : comonad C) := C
 
@@ -137,7 +141,7 @@ namespace adjunction
     simp only [category.assoc, nat_trans.naturality, functor.comp_map],
   end }
 
-/-- The coKleisli adjunction which gives rise to the monad `(U, ε_ U, δ_ U)`. -/
+/-- The co-Kleisli adjunction which gives rise to the monad `(U, ε_ U, δ_ U)`. -/
 def adj :  from_cokleisli U ⊣ to_cokleisli U :=
 adjunction.mk_of_hom_equiv
 { hom_equiv := λ X Y, equiv.refl (U.obj X ⟶ Y),

@@ -290,6 +290,10 @@ lemma Iio_subset_Iic_self : Iio a ⊆ Iic a := λ x hx, le_of_lt hx
 
 lemma Ico_subset_Ici_self : Ico a b ⊆ Ici a := λ x, and.left
 
+lemma Ioi_ssubset_Ici_self  : Ioi a ⊂ Ici a := ⟨Ioi_subset_Ici_self, λ h, lt_irrefl a (h le_rfl)⟩
+
+lemma Iio_ssubset_Iic_self : Iio a ⊂ Iic a := @Ioi_ssubset_Ici_self αᵒᵈ _ _
+
 lemma Icc_subset_Icc_iff (h₁ : a₁ ≤ b₁) :
   Icc a₁ b₁ ⊆ Icc a₂ b₂ ↔ a₂ ≤ a₁ ∧ b₁ ≤ b₂ :=
 ⟨λ h, ⟨(h ⟨le_rfl, h₁⟩).1, (h ⟨h₁, le_rfl⟩).2⟩,

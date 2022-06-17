@@ -50,7 +50,7 @@ This happens in `extract_deg_single_summand`.
 Third, we scan the summands of `f`, searching for one with highest guessed degree.  Here, if a
 guess is not a closed term of type `ℕ`, the tactic fails.  This could be improved, but is not
 currently in scope.  We return the first term with highest degree and the guessed degree.
-This happens in `extract_top_degree_term_and_deg`.
+This happens in `extract_top_degree_terms_and_deg`.
 
 Now, `compute_degree_le` chains together a few lemmas to conclude.  It guesses that the degree of a
 sum of terms is at most the degree of each individual term.
@@ -288,27 +288,30 @@ with `c` a coefficient of the polynomial `f` in question. -/
 meta def norm_assum : tactic unit :=
 try `[ norm_num ] >> try assumption
 
-/-- `extract_top_degree_term_and_deg e` takes an expression `e` looks for summands in `e`
+/-- `extract_top_degree_terms_and_deg e` takes an expression `e` looks for summands in `e`
 (assuming the Type of `e` is `R[X]`), and produces the pairs `(e',deg)`, where `e'` is
-a summand of `e` of maximal guessed degree equal to `deg`.
+the list of summands of `e` of maximal guessed degree equal to `deg`.
 
 The tactic fails if `e` contains no summand (this probably means something else went wrong
 somewhere else). -/
-meta def extract_top_degree_term_and_deg (e : expr) : tactic (expr × ℕ) :=
+meta def extract_top_degree_terms_and_deg (e : expr) : tactic (list expr × ℕ) :=
 do summ ← e.list_summands,
   gd ← summ.mmap guess_degree,
   nat_degs ← gd.mmap $ eval_guessing 0,
-  let summ_and_degs := summ.zip nat_degs in
-  match summ_and_degs.argmax (λ e : expr × ℕ, e.2) with
+  let summ_and_degs := summ.zip nat_degs,
+  let max_deg := summ_and_degs.argmax (λ e : expr × ℕ, e.2),
+  match max_deg with
   | none := fail
       "'`compute_degree`' could not find summands: something has gone very wrong!\n\n"
-  | (some first) := let maxs := summ_and_degs.filter (λ f, f.2 = first.2) in
-    if maxs.length ≠ 1 then do
-      ppf ← pp $ maxs.map prod.fst,
-      fail format!("the maximum degree '{first.2}' is guessed at the {maxs.length} terms\n" ++
-      "{ppf}:\n\n" ++
-      "'compute_degree' assumes that only one term has the top guessed degree\n")
-    else return first
+  | (some first) := return $
+    (prod.fst <$> summ_and_degs.filter (λ f : expr × ℕ, f.2 = first.2), first.2)
+--   let maxs := summ_and_degs.filter (λ f, f.2 = first.2) in
+--    if maxs.length ≠ 1 then do
+--      ppf ← pp $ maxs.map prod.fst,
+--      fail format!("the maximum degree '{first.2}' is guessed at the {maxs.length} terms\n" ++
+--      "{ppf}:\n\n" ++
+--      "'compute_degree' assumes that only one term has the top guessed degree\n")
+--    else return first
   end
 
 /--  These are the cases in which an easy lemma computes the degree. -/
@@ -353,6 +356,25 @@ end compute_degree
 
 namespace interactive
 open compute_degree
+
+/--  `compute_degree.with_lead lead` assumes that `lead` is an expression for the highest degree
+term of a polynomial and proceeds to try to close a goal of the form
+`f.nat_degree = d` or `f.degree = d`. -/
+meta def _root_.tactic.compute_degree.with_lead_ (lead : expr) : tactic unit := do
+move_op.with_errors ``((+)) [(ff, pexpr.of_expr lead)] none,
+refine ``(polynomial.nat_degree_add_left_succ _ %%lead _ _ _) <|>
+  single_term_suggestions,
+single_term_resolve lead,
+gs ← get_goals,
+gts ← gs.mmap infer_type,
+-- `is_ineq` is a list of tactics, one for each goal:
+-- * if the goal has the form `f.nat_degree ≤ d`, the tactic is `compute_degree_le`
+-- * otherwise, it is the tactic that tries `norm_num` and `assumption`
+is_ineq ← gts.mmap (λ t : expr, do match t with
+  | `(polynomial.nat_degree %%_ ≤ %%_) := return $ compute_degree_le_core ff
+  | _                                  := return norm_assum end),
+focus' is_ineq
+
 setup_tactic_parser
 
 /--  `compute_degree_le` tries to solve a goal of the form `f.nat_degree ≤ d` or  `f.degree ≤ d`,
@@ -370,8 +392,52 @@ if expos.is_some then compute_degree_le_core tt else compute_degree_le_core ff
 /--  `compute_degree.with_lead lead` assumes that `lead` is an expression for the highest degree
 term of a polynomial and proceeds to try to close a goal of the form
 `f.nat_degree = d` or `f.degree = d`. -/
-meta def _root_.tactic.compute_degree.with_lead (lead : expr) : tactic unit := do
-move_op.with_errors ``((+)) [(ff, pexpr.of_expr lead)] none,
+meta def _root_.tactic.compute_degree.with_lead (args : list expr) :
+  tactic unit := do
+let larg := args.map (λ e, (tt, pexpr.of_expr e)),
+move_op.with_errors ``((+)) larg none, trace target,
+match args with
+| [] := fail "oops, no terms of top degree?"
+| (a::as) := do
+  R ← infer_type a,
+  mad ← to_expr ``(@has_add.add %%R (infer_instance : has_add %%R) : %%R → %%R → %%R) tt ff,
+  mdeg ← to_expr ``(polynomial.nat_degree : @polynomial %%R (infer_instance : semiring %%R) → ℕ) tt ff,
+  meq ← to_expr ``((=) : ℕ → ℕ → Prop) tt ff,
+  --msum ← as.mfoldl (λ e, mk_app `eq [e]) a, trace msum,
+  let sum := as.foldl (λ e, mad.mk_app [e]) a, trace sum,
+  n ← get_unused_name "h",
+  let top_deg := expr.mk_app mdeg [sum],
+  `(polynomial.nat_degree %%pol = %%deg) ← target,
+  trace pol,
+  let top_eq := expr.mk_app meq [top_deg, deg],
+  neq ← assert n top_eq,
+  rotate,
+  toph ← get_local n,trace toph,
+  trace top_eq,
+  summands ← pol.list_summands | skip,trace summands,trace args,
+  (r::rest) ← summands.mfilter (λ e : expr, do
+    farg ← args.mfilter (λ g : expr, succeeds $ unify e g),
+    return (farg.length = 0)) | skip, trace rest,
+  let sum_rest := rest.foldl (λ e, mad.mk_app [e]) r,
+  let re_sum := mad.mk_app [sum, sum_rest], trace re_sum,
+  re_eq ← mk_app `eq [pol, re_sum],
+  trace re_eq,
+  (_, prf) ← solve_aux re_eq (`[simp only [add_assoc]]), --trace prf,
+  rewrite_target prf,
+  `[ rw nat_degree_add_eq_left_of_nat_degree_lt ] --,
+--  rewrite_target neq
+  --trace prf
+--  let rest := summands.filter (λ e : expr, e ∈ args.mfilter (λ g : expr, succeeds $ unify e g)), trace rest
+
+--  rest ← summands.mfilter (λ f, succeeds $ unify f a), trace rest
+end
+--  let rest := summands.filter (λ e, e ∉ args), trace rest
+  --let sum_rest := (rest).foldl (λ e, mad.mk_app [e]) r, trace sum_rest,
+#check list.band
+--  repeat $ rewrite_target add_assoc (X + X + X)
+#eval [4,5].filter (∈ [4])
+#check list.remove_all
+/-
 refine ``(polynomial.nat_degree_add_left_succ _ %%lead _ _ _) <|>
   single_term_suggestions,
 single_term_resolve lead,
@@ -384,6 +450,7 @@ is_ineq ← gts.mmap (λ t : expr, do match t with
   | `(polynomial.nat_degree %%_ ≤ %%_) := return $ compute_degree_le_core ff
   | _                                  := return norm_assum end),
 focus' is_ineq
+-/
 
 /--  `compute_degree` tries to solve a goal of the form `f.nat_degree = d` or  `f.degree = d`,
 where `d : ℕ` and `f` satisfies:
@@ -408,26 +475,26 @@ numbers, though this is mostly unimplemented still.
 
 The tactic also reports when it is used with non-closed natural numbers as exponents. -/
 meta def compute_degree : parse opt_pexpr_list → tactic unit
-| [] := do
-is_deg ← succeeds $ refine ``((polynomial.degree_eq_iff_nat_degree_eq_of_pos _).mpr _) >>
+| [] := do is_deg ← succeeds $ refine ``((polynomial.degree_eq_iff_nat_degree_eq_of_pos _).mpr _) >>
   interactive.rotate,
-`(polynomial.nat_degree %%tl = %%tr) ← target |
-  fail "Goal is not of the form\n`f.nat_degree = d` or `f.degree = d`",
-(lead,m') ← extract_top_degree_term_and_deg tl,
-td ← eval_expr ℕ tr,
-if m' ≠ td then do
-  pptl ← pp tl, ppm' ← pp m',
-  if is_deg then
-    fail sformat!"should the degree be '{m'}'?"
-  else
-   fail sformat!"should the nat_degree be '{m'}'?"
-else do tactic.compute_degree.with_lead lead
+  `(polynomial.nat_degree %%tl = %%tr) ← target |
+    fail "Goal is not of the form\n`f.nat_degree = d` or `f.degree = d`",
+  (lead, m') ← extract_top_degree_terms_and_deg tl,
+  td ← eval_expr ℕ tr,
+  if m' ≠ td then do
+    pptl ← pp tl, ppm' ← pp m',
+    if is_deg then
+      fail sformat!"should the degree be '{m'}'?"
+    else
+     fail sformat!"should the nat_degree be '{m'}'?"
+  else do
+    tactic.compute_degree.with_lead (lead)
 | [lead] := do `(polynomial.nat_degree %%tl = %%tr) ← target |
     fail "Goal is not of the form\n`f.nat_degree = d` or `f.degree = d`",
   tls ← tl.list_summands,
   lead ← to_expr lead,
   (lead :: hs) ← tls.mfilter $ λ e', succeeds $ unify lead e',
-  tactic.compute_degree.with_lead lead
+  tactic.compute_degree.with_lead [lead]
 | _  := fail "'compute_degree' only accepts one leading term"
 
 add_tactic_doc

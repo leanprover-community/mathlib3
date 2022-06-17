@@ -2,6 +2,29 @@ import tactic.compute_degree
 
 open polynomial tactic
 open_locale polynomial
+--set_option pp.all true
+example {F} [ring F] [nontrivial F] (a b c : F[X]) :
+  degree (1 * X + 3 * X + a + b + 2 * X + c : F[X]) = 1 :=
+begin
+  compute_degree,
+  refine eq.trans _ h,
+  congr,
+
+  convert h,
+  simp only [one_mul],
+  dsimp,
+  congr,
+  simp,
+  rw nat_degree_add_eq_left_of_nat_degree_lt,
+  --have : X + X + X + a + b + c = X + X + X + (a + b + c),
+  --
+  --refine (add_assoc (X + X + X : F[X]) _ _).trans _,
+  repeat { rw add_assoc (X + X + X) },
+
+end
+
+#exit
+
 
 example {R : Type*} [ring R] {p q : R[X]} (h : p.nat_degree + 1 ≤ q.nat_degree) :
   ( p * X : R[X]).nat_degree ≤ q.nat_degree :=

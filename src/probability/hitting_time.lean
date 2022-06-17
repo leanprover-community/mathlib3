@@ -181,6 +181,17 @@ begin
       λ hj, f.mono hj.2 _ ((hu j).measurable hs)) }
 end
 
+lemma stopped_value_hitting_mem [conditionally_complete_linear_order ι] [is_well_order ι (<)]
+  {u : ι → α → β} {s : set β} {n m : ι} {x : α} (h : ∃ j ∈ set.Icc n m, u j x ∈ s) :
+  stopped_value u (hitting u s n m) x ∈ s :=
+begin
+  simp only [stopped_value, hitting, if_pos h],
+  obtain ⟨j, hj₁, hj₂⟩ := h,
+  have : Inf (set.Icc n m ∩ {i | u i x ∈ s}) ∈ set.Icc n m ∩ {i | u i x ∈ s} :=
+    Inf_mem (set.nonempty_of_mem ⟨hj₁, hj₂⟩),
+  exact this.2,
+end
+
 section complete_lattice
 
 variables [complete_lattice ι] {u : ι → α → β} {s : set β} {f : filtration ι m}

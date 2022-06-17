@@ -444,8 +444,14 @@ protected def boolean_algebra {α} [decidable_eq α] [lattice α] [bounded_order
   [is_simple_order α] : boolean_algebra α :=
 { compl := λ x, if x = ⊥ then ⊤ else ⊥,
   sdiff := λ x y, if x = ⊤ ∧ y = ⊥ then ⊤ else ⊥,
-  sdiff_eq := λ x y, by rcases eq_bot_or_eq_top x with rfl | rfl;
-      simp [bot_ne_top, has_sdiff.sdiff, compl],
+  sdiff_eq := λ x y, begin
+    obtain ⟨rfl | rfl, rfl | rfl⟩ := ⟨eq_bot_or_eq_top x, eq_bot_or_eq_top y⟩,
+    { simp},
+    { simp},
+    { simp only [sdiff, eq_self_iff_true, if_true, true_and, top_inf_eq],
+      exact (ite_eq_left_iff.mpr (λ h, (h rfl).elim)).symm},
+    simp [sdiff],
+  end,
   inf_compl_le_bot := λ x, begin
       rcases eq_bot_or_eq_top x with rfl | rfl,
       { simp },

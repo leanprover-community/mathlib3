@@ -268,17 +268,25 @@ coe_injective.no_zero_smul_divisors _ rfl coe_fn_smul
 end module
 
 section
-variables (R N)
+variables (R M)
 
-/-- The evaluation map from `ι → N` to `N` at a given `i` is alternating when `ι` is subsingleton.
+/-- The evaluation map from `ι → M` to `M` at a given `i` is alternating when `ι` is subsingleton.
 -/
 @[simps]
-def of_subsingleton [subsingleton ι] (i : ι) : alternating_map R N N ι :=
+def of_subsingleton [subsingleton ι] (i : ι) : alternating_map R M M ι :=
 { to_fun := function.eval i,
   map_eq_zero_of_eq' := λ v i j hv hij, (hij $ subsingleton.elim _ _).elim,
-  ..multilinear_map.of_subsingleton R N i }
+  ..multilinear_map.of_subsingleton R M i }
+
+/-- The constant map is alternating when `ι` is empty. -/
+@[simps {fully_applied := ff}]
+def const_of_is_empty [is_empty ι] (m : N) : alternating_map R M N ι :=
+{ to_fun := function.const _ m,
+  map_eq_zero_of_eq' := λ v, is_empty_elim,
+  ..multilinear_map.const_of_is_empty R m }
 
 end
+
 
 end alternating_map
 
@@ -485,6 +493,22 @@ begin
   obtain ⟨hij, _⟩ := finset.mem_erase.mp hj,
   rw [f.map_smul, f.map_update_self _ hij.symm, smul_zero],
 end
+
+section fin
+open fin
+
+/-- A version of `multilinear_map.cons_add` for `alternating_map`. -/
+lemma map_vec_cons_add {n : ℕ} (f : alternating_map R M N (fin n.succ)) (m : fin n → M) (x y : M) :
+  f (matrix.vec_cons (x+y) m) = f (matrix.vec_cons x m) + f (matrix.vec_cons y m) :=
+f.to_multilinear_map.cons_add _ _ _
+
+/-- A version of `multilinear_map.cons_smul` for `alternating_map`. -/
+lemma map_vec_cons_smul {n : ℕ} (f : alternating_map R M N (fin n.succ)) (m : fin n → M)
+  (c : R) (x : M) :
+  f (matrix.vec_cons (c • x) m) = c • f (matrix.vec_cons x m) :=
+f.to_multilinear_map.cons_smul _ _ _
+
+end fin
 
 end alternating_map
 
@@ -870,3 +894,47 @@ begin
 end
 
 end basis
+
+/-! ### Currying -/
+
+section currying
+
+variables
+  {R' : Type*} {M'' N'' : Type*}
+  [comm_semiring R'] [add_comm_monoid M''] [add_comm_monoid N'']
+  [module R' M''] [module R' N'']
+
+namespace alternating_map
+
+/-- Given an alternating map `f` in `n+1` variables, split the first variable to obtain
+a linear map into alternating maps in `n` variables, given by `x ↦ (m ↦ f (matrix.vec_cons x m))`.
+
+This is `multilinear_map.curry_left` for `alternating_map`. -/
+@[simps]
+def curry_left {n : ℕ} :
+  alternating_map R' M'' N'' (fin n.succ) →ₗ[R'] M'' →ₗ[R'] alternating_map R' M'' N'' (fin n) :=
+{ to_fun := λ f,
+  { to_fun := λ m,
+    { to_fun    := λ v, f (matrix.vec_cons m v),
+      map_eq_zero_of_eq' := λ v i j hv hij, f.map_eq_zero_of_eq _
+        (by rwa [matrix.cons_val_succ, matrix.cons_val_succ]) ((fin.succ_injective _).ne hij),
+      .. f.to_multilinear_map.curry_left m },
+    map_add' := λ m₁ m₂, ext $ λ v, f.map_vec_cons_add _ _ _,
+    map_smul' := λ r m, ext $ λ v, f.map_vec_cons_smul _ _ _ },
+  map_add' := λ f₁ f₂, rfl,
+  map_smul' := λ f₁ f₂, rfl }
+
+/-- The space of constant maps is equivalent to the space of maps that are alternating with respect
+to an empty family. -/
+@[simps] def const_linear_equiv_of_is_empty [is_empty ι] :
+  N'' ≃ₗ[R'] alternating_map R' M'' N'' ι :=
+{ to_fun    := alternating_map.const_of_is_empty R' M'',
+  map_add'  := λ x y, rfl,
+  map_smul' := λ t x, rfl,
+  inv_fun   := λ f, f 0,
+  left_inv  := λ _, rfl,
+  right_inv := λ f, ext $ λ x, alternating_map.congr_arg f $ subsingleton.elim _ _ }
+
+end alternating_map
+
+end currying

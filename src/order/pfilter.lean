@@ -141,7 +141,7 @@ ideal.sup_mem_iff
 
 end semilattice_inf
 
-section complete_semilattice_Inf_stuff
+section complete_semilattice_Inf
 
 variables [complete_semilattice_Inf P] {F : pfilter P}
 

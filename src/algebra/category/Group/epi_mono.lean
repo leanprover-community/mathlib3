@@ -131,16 +131,49 @@ local notation `X` := set.range (function.swap left_coset f.range.carrier)
 /--
 Define `X'` to be the set of all right cosets with an extra point at "infinity".
 -/
+@[nolint has_inhabited_instance]
 inductive X_with_infinity
 | from_coset : set.range (function.swap left_coset f.range.carrier) → X_with_infinity
 | infinity : X_with_infinity
+
 
 open X_with_infinity equiv.perm
 open_locale coset
 
 local notation `X'` := X_with_infinity f
-local notation `⊙` := X_with_infinity.infinity
+local notation `∞` := X_with_infinity.infinity
 local notation `SX'` := equiv.perm X'
+
+instance : has_scalar B X' :=
+{ smul := λ b x, match x with
+  | from_coset y := from_coset ⟨b *l y, begin
+    rcases y.2 with ⟨b', hb'⟩,
+    use b * b',
+    rw [←subtype.val_eq_coe, ←hb', left_coset_assoc],
+  end⟩
+  | ∞ := ∞
+  end }
+
+lemma mul_smul (b b' : B) (x : X') :
+  (b * b') • x = b • b' • x :=
+match x with
+| from_coset y := begin
+  change from_coset _ = from_coset _,
+  simp only [←subtype.val_eq_coe, left_coset_assoc],
+end
+| ∞ := rfl
+end
+
+lemma one_smul (x : X') :
+  (1 : B) • x = x :=
+match x with
+| from_coset y := begin
+  change from_coset _ = from_coset _,
+  simp only [←subtype.val_eq_coe, one_left_coset, subtype.ext_iff_val],
+end
+| ∞ := rfl
+end
+
 
 noncomputable instance : decidable_eq X' := classical.dec_eq _
 
@@ -148,26 +181,26 @@ noncomputable instance : decidable_eq X' := classical.dec_eq _
 Let `τ` be the permutation on `X'` exchanging `f.range` and the point at infinity.
 -/
 noncomputable def tau : SX' := equiv.swap
-(from_coset ⟨f.range.carrier, ⟨1, one_left_coset _⟩⟩) ⊙
+(from_coset ⟨f.range.carrier, ⟨1, one_left_coset _⟩⟩) ∞
 
 local notation `τ` := tau f
 
 lemma τ_apply_infinity :
-  τ ⊙ = from_coset ⟨f.range.carrier, ⟨1, one_left_coset _⟩⟩ :=
+  τ ∞ = from_coset ⟨f.range.carrier, ⟨1, one_left_coset _⟩⟩ :=
 begin
   dunfold tau,
   rw [equiv.swap_apply_right],
 end
 
 lemma τ_apply_from_coset :
-  τ (from_coset ⟨f.range.carrier, ⟨1, one_left_coset _⟩⟩) = ⊙ :=
+  τ (from_coset ⟨f.range.carrier, ⟨1, one_left_coset _⟩⟩) = ∞ :=
 begin
   dunfold tau,
   rw [equiv.swap_apply_left],
 end
 
 lemma τ_apply_from_coset' (x : B) (hx : x ∈ f.range) :
-  τ (from_coset ⟨x *l f.range.carrier, ⟨x, rfl⟩⟩) = ⊙ :=
+  τ (from_coset ⟨x *l f.range.carrier, ⟨x, rfl⟩⟩) = ∞ :=
 begin
   convert τ_apply_from_coset _,
   ext b,
@@ -183,14 +216,14 @@ begin
 end
 
 lemma τ_symm_apply_from_coset :
-  (equiv.symm τ) (from_coset ⟨f.range.carrier, ⟨1, one_left_coset _⟩⟩) = ⊙ :=
+  (equiv.symm τ) (from_coset ⟨f.range.carrier, ⟨1, one_left_coset _⟩⟩) = ∞ :=
 begin
   dunfold tau,
   rw [equiv.symm_swap, equiv.swap_apply_left],
 end
 
 lemma τ_symm_apply_infinity :
-  (equiv.symm τ) ⊙ = from_coset ⟨f.range.carrier, ⟨1, one_left_coset _⟩⟩ :=
+  (equiv.symm τ) ∞ = from_coset ⟨f.range.carrier, ⟨1, one_left_coset _⟩⟩ :=
 begin
   dunfold tau,
   rw [equiv.symm_swap, equiv.swap_apply_right],
@@ -202,58 +235,12 @@ point at infinity to point at infinity and sending coset `y` to `β *l y`.
 -/
 def G : B ⟶ Group.of SX' :=
 { to_fun := λ β,
-  { to_fun := λ x,
-      match x with
-      | from_coset y := from_coset ⟨β *l y, begin
-        rcases y.2 with ⟨b, hb⟩,
-        rw [subtype.val_eq_coe] at hb,
-        rw [←hb, set.mem_range, left_coset_assoc],
-        use β * b,
-      end⟩
-      | ⊙ := ⊙
-      end,
-    inv_fun := λ x,
-      match x with
-      | from_coset y := from_coset ⟨β⁻¹ *l y, begin
-        rcases y.2 with ⟨b, hb⟩,
-        rw [subtype.val_eq_coe] at hb,
-        rw [←hb, set.mem_range, left_coset_assoc],
-        use β⁻¹ * b,
-      end⟩
-      | ⊙ := ⊙
-      end,
-    left_inv := λ x,
-      match x with
-      | from_coset y := begin
-        change from_coset ⟨_, _⟩ = _,
-        simp
-      end
-      | ⊙ := rfl
-      end,
-    right_inv := λ x,
-      match x with
-      | from_coset y := begin
-        change from_coset _ = _,
-        simp
-      end
-      | ⊙ := rfl
-      end },
-  map_one' := begin
-    ext x,
-    rcases x with ⟨⟨_, ⟨y, rfl⟩⟩⟩,
-    { simp only [equiv.coe_fn_mk, equiv.perm.coe_one, id.def],
-      change from_coset _ = _,
-      simp },
-    { refl },
-  end,
-  map_mul' := λ b1 b2, begin
-    ext x,
-    rcases x with ⟨⟨_, ⟨y, rfl⟩⟩⟩,
-    { simp only [equiv.coe_fn_mk, equiv.perm.coe_mul, function.comp_app],
-      change from_coset _ = from_coset _,
-      simp only [left_coset_assoc, subtype.coe_mk, subtype.mk_eq_mk, mul_assoc], },
-    { refl },
-  end }
+  { to_fun := λ x, β • x,
+    inv_fun := λ x, β⁻¹ • x,
+    left_inv := λ x, by dsimp only; rw [←mul_smul, mul_left_inv, one_smul],
+    right_inv := λ x, by dsimp only; rw [←mul_smul, mul_right_inv, one_smul] },
+  map_one' := by ext; simp [one_smul],
+  map_mul' := λ b1 b2, by ext x; simp [mul_smul] }
 
 local notation `g` := G f
 
@@ -262,14 +249,8 @@ Define `h : B ⟶ S(X')` to be `τ g τ⁻¹`
 -/
 noncomputable def H : B ⟶ Group.of SX':=
 { to_fun := λ β, (equiv.trans (equiv.symm τ) (g β)).trans τ,
-  map_one' := begin
-    ext x,
-    simp
-  end,
-  map_mul' := λ b1 b2, begin
-    ext x,
-    simp
-  end }
+  map_one' := by ext; simp,
+  map_mul' := λ b1 b2, by ext; simp }
 
 local notation `h` := H f
 
@@ -290,10 +271,10 @@ lemma g_apply_from_coset (x : B) (y : X) :
   end⟩ := rfl
 
 lemma g_apply_infinity (x : B) :
-  (g x).to_fun ⊙ = ⊙ := rfl
+  (g x).to_fun ∞ = ∞ := rfl
 
 lemma h_apply_infinity (x : B) (hx : x ∈ f.range) :
-  (h x).to_fun ⊙ = ⊙ :=
+  (h x).to_fun ∞ = ∞ :=
 begin
   dunfold H,
   simp only [monoid_hom.coe_mk, equiv.to_fun_as_coe, equiv.coe_trans, function.comp_app],
@@ -342,7 +323,7 @@ begin
   simp only [monoid_hom.coe_mk, equiv.to_fun_as_coe, equiv.coe_trans, function.comp_app],
   rw [equiv.symm_swap],
   rw @equiv.swap_apply_of_ne_of_ne X' _
-    (from_coset ⟨f.range.carrier, ⟨1, one_left_coset _⟩⟩) ⊙
+    (from_coset ⟨f.range.carrier, ⟨1, one_left_coset _⟩⟩) ∞
     (from_coset ⟨b *l f.range.carrier, ⟨b, rfl⟩⟩) begin
       intro r,
       simp only [subtype.mk_eq_mk] at r,

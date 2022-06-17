@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Violeta Hernández Palacios
 -/
 
-import set_theory.game.pgame
-import set_theory.ordinal.basic
+import set_theory.game.basic
+import set_theory.ordinal.natural_ops
 
 /-!
 # Ordinals as games
@@ -27,6 +27,7 @@ open pgame
 
 local infix ` ≈ ` := equiv
 local infix ` ⧏ `:50 := lf
+local infix ` ♯ `:65 := ordinal.nadd
 
 namespace ordinal
 
@@ -109,5 +110,31 @@ to_pgame_injective.eq_iff
 { to_fun := ordinal.to_pgame,
   inj' := to_pgame_injective,
   map_rel_iff' := @to_pgame_le_iff }
+
+/-- The sum of ordinals as games corresponds to natural addition of ordinals. -/
+theorem to_pgame_add : ∀ a b : ordinal.{u}, a.to_pgame + b.to_pgame ≈ (a ♯ b).to_pgame
+| a b := begin
+  refine ⟨le_iff_forall_lf.2 ⟨λ i, _, is_empty_elim⟩, le_iff_forall_lf.2 ⟨λ i, _, is_empty_elim⟩⟩,
+  { apply left_moves_add_cases i;
+    intro i;
+    let wf := to_left_moves_to_pgame_symm_lt i;
+    try { rw add_move_left_inl }; try { rw add_move_left_inr };
+    rw [to_pgame_move_left', lf_congr_left (to_pgame_add _ _), to_pgame_lf_iff],
+    { exact nadd_lt_nadd_right wf _ },
+    { exact nadd_lt_nadd_left wf _ } },
+  { rw to_pgame_move_left',
+    rcases lt_nadd_iff.1 (to_left_moves_to_pgame_symm_lt i) with ⟨c, hc, hc'⟩ | ⟨c, hc, hc'⟩;
+    rw [←to_pgame_le_iff, ←le_congr_right (to_pgame_add _ _)] at hc';
+    apply lf_of_le_of_lf hc',
+    { apply add_lf_add_right,
+      rwa to_pgame_lf_iff },
+    { apply add_lf_add_left,
+      rwa to_pgame_lf_iff } }
+end
+using_well_founded { dec_tac := `[solve_by_elim [psigma.lex.left, psigma.lex.right]] }
+
+@[simp] theorem to_pgame_add_mk (a b : ordinal) :
+  ⟦a.to_pgame⟧ + ⟦b.to_pgame⟧ = ⟦(a ♯ b).to_pgame⟧ :=
+quot.sound (to_pgame_add a b)
 
 end ordinal

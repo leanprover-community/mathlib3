@@ -93,6 +93,8 @@ open_locale topological_space ennreal nnreal bounded_continuous_function
 
 namespace measure_theory
 
+namespace finite_measure
+
 section finite_measure
 /-! ### Finite measures
 
@@ -110,10 +112,8 @@ variables {α : Type*} [measurable_space α]
 
 /-- Finite measures are defined as the subtype of measures that have the property of being finite
 measures (i.e., their total mass is finite). -/
-def finite_measure (α : Type*) [measurable_space α] : Type* :=
+def _root_.measure_theory.finite_measure (α : Type*) [measurable_space α] : Type* :=
 {μ : measure α // is_finite_measure μ}
-
-namespace finite_measure
 
 /-- A finite measure can be interpreted as a measure. -/
 instance : has_coe (finite_measure α) (measure_theory.measure α) := coe_subtype
@@ -350,8 +350,6 @@ begin
            ennreal.tendsto_coe, ennreal.to_nnreal_coe],
 end
 
-end finite_measure -- namespace
-
 end finite_measure -- section
 
 section finite_measure_bounded_convergence
@@ -359,8 +357,6 @@ section finite_measure_bounded_convergence
 
 This section is about bounded convergence theorems for finite measures.
 -/
-
-namespace finite_measure
 
 variables {α : Type*} [measurable_space α] [topological_space α] [opens_measurable_space α]
 
@@ -419,7 +415,7 @@ lemma tendsto_test_against_nn_filter_of_le_const {ι : Type*} {L : filter ι}
 begin
   apply (ennreal.tendsto_to_nnreal
          (lintegral_lt_top_of_bounded_continuous_to_nnreal (μ : measure α) f).ne).comp,
-  exact finite_measure.tendsto_lintegral_nn_filter_of_le_const μ fs_le_const fs_lim,
+  exact tendsto_lintegral_nn_filter_of_le_const μ fs_le_const fs_lim,
 end
 
 /-- A bounded convergence theorem for a finite measure:
@@ -438,8 +434,6 @@ lemma tendsto_test_against_nn_of_le_const {μ : finite_measure α}
 tendsto_test_against_nn_filter_of_le_const
   (eventually_of_forall (λ n, eventually_of_forall (fs_le_const n))) (eventually_of_forall fs_lim)
 
-end finite_measure -- namespace
-
 end finite_measure_bounded_convergence -- section
 
 section finite_measure_convergence_by_bounded_continuous_functions
@@ -448,8 +442,6 @@ section finite_measure_convergence_by_bounded_continuous_functions
 In this section we characterize the weak convergence of finite measures by the most common
 (defining) condition of convergence of integrals of all bounded continuous real-valued functions.
 -/
-
-namespace finite_measure
 
 variables {α : Type*} [measurable_space α] [topological_space α] [opens_measurable_space α]
 
@@ -561,9 +553,9 @@ begin
   exact tendsto.sub tends_pos tends_neg,
 end
 
-end finite_measure -- namespace
-
 end finite_measure_convergence_by_bounded_continuous_functions -- section
+
+end finite_measure -- namespace
 
 section probability_measure
 /-! ### Probability measures

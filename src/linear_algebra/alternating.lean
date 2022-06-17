@@ -911,18 +911,29 @@ a linear map into alternating maps in `n` variables, given by `x ↦ (m ↦ f (m
 
 This is `multilinear_map.curry_left` for `alternating_map`. -/
 @[simps]
-def curry_left {n : ℕ} :
+def curry_left {n : ℕ} (f : alternating_map R' M'' N'' (fin n.succ)) :
+  M'' →ₗ[R'] alternating_map R' M'' N'' (fin n) :=
+{ to_fun := λ m,
+  { to_fun    := λ v, f (matrix.vec_cons m v),
+    map_eq_zero_of_eq' := λ v i j hv hij, f.map_eq_zero_of_eq _
+      (by rwa [matrix.cons_val_succ, matrix.cons_val_succ]) ((fin.succ_injective _).ne hij),
+    .. f.to_multilinear_map.curry_left m },
+  map_add' := λ m₁ m₂, ext $ λ v, f.map_vec_cons_add _ _ _,
+  map_smul' := λ r m, ext $ λ v, f.map_vec_cons_smul _ _ _ }
+
+/-- `alternating_map.curry_left` as a `linear_map`. This is a separate definition as dot notation
+does not work for this version. -/
+@[simps]
+def curry_left_linear_map {n : ℕ} :
   alternating_map R' M'' N'' (fin n.succ) →ₗ[R'] M'' →ₗ[R'] alternating_map R' M'' N'' (fin n) :=
-{ to_fun := λ f,
-  { to_fun := λ m,
-    { to_fun    := λ v, f (matrix.vec_cons m v),
-      map_eq_zero_of_eq' := λ v i j hv hij, f.map_eq_zero_of_eq _
-        (by rwa [matrix.cons_val_succ, matrix.cons_val_succ]) ((fin.succ_injective _).ne hij),
-      .. f.to_multilinear_map.curry_left m },
-    map_add' := λ m₁ m₂, ext $ λ v, f.map_vec_cons_add _ _ _,
-    map_smul' := λ r m, ext $ λ v, f.map_vec_cons_smul _ _ _ },
+{ to_fun := λ f, f.curry_left,
   map_add' := λ f₁ f₂, rfl,
   map_smul' := λ f₁ f₂, rfl }
+
+/-- Currying with the same element twice gives the zero map. -/
+@[simp] lemma curry_left_same {n : ℕ} (f : alternating_map R' M'' N'' (fin n.succ.succ)) (m : M'') :
+  (f.curry_left m).curry_left m = 0 :=
+ext $ λ x, f.map_eq_zero_of_eq _ (by simp) fin.zero_ne_one
 
 /-- The space of constant maps is equivalent to the space of maps that are alternating with respect
 to an empty family. -/

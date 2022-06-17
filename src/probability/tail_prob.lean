@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kexing Ying
 -/
 import probability.notation
-import measure_theory.integral.interval_integral
+import analysis.special_functions.integrals
 
 /-!
 
@@ -25,51 +25,7 @@ namespace measure_theory
 
 open measure_space topological_space
 
-variables {α : Type*} [measurable_space α] {μ : measure α}
-  {X : α → ℝ} {p : ℕ}
-
-lemma interval_integral_pow (p : ℕ) (x : ℝ) :
-  ∫ t in 0..x, t ^ p = (p + 1 : ℝ)⁻¹ * x ^ (p + 1) :=
-begin
-  have : deriv (λ t, (p + 1 : ℝ)⁻¹ * t ^ (p + 1)) = (λ t : ℝ, t ^ p),
-  { ext y,
-    simp only [←mul_assoc, deriv_const_mul_field', deriv_pow'', differentiable_at_id',
-      nat.cast_add, nat.cast_one, nat.add_succ_sub_one, add_zero, deriv_id'', mul_one],
-    rw [inv_mul_cancel, one_mul],
-    norm_cast,
-    exact p.succ_ne_zero },
-  rw [interval_integral.integral_deriv_eq_sub' _ this _ (continuous_pow p).continuous_on],
-  { simp only [zero_pow', ne.def, nat.succ_ne_zero, not_false_iff, mul_zero, sub_zero] },
-  { rintro t ht,
-    simp only [differentiable_at.mul, differentiable_at_const, differentiable_at.pow,
-      differentiable_at_id'] }
-end
-
-lemma interval_integral_mul_pow_eq_pow (hp : 0 < p) (x : ℝ) :
-  ∫ t in 0..x, ↑p * t ^ (p - 1) = x ^ p :=
-begin
-  rw [interval_integral.integral_const_mul, interval_integral_pow],
-  norm_cast,
-  rw [nat.sub_add_cancel (nat.succ_le_iff.2 hp), ← mul_assoc, mul_inv_cancel, one_mul],
-  norm_cast,
-  exact hp.ne.symm
-end
-
-lemma set_integral_indicator {E : Type*} [normed_group E] [normed_space ℝ E]
-  [complete_space E] {s t : set α} (ht : measurable_set t) (f : α → E) :
-  ∫ x in s, t.indicator f x ∂μ = ∫ x in s ∩ t, f x ∂μ :=
-by rw [integral_indicator ht, measure.restrict_restrict ht, set.inter_comm]
-
-lemma set_integral_indicator' {E : Type*} [normed_group E] [normed_space ℝ E]
-  [complete_space E] {s t : set α} (ht : measurable_set t) (f : α → α → E) :
-  ∫ x in s, t.indicator (f x) x ∂μ = ∫ x in s ∩ t, f x x ∂μ :=
-begin
-  rw ← set_integral_indicator ht,
-  refl,
-end
-
-lemma set.eq_on_of_eq (s : set ℝ) {f g : ℝ → ℝ} (hf : f = g) : s.eq_on f g :=
-by rw hf
+variables {α : Type*} [measurable_space α] {μ : measure α} {X : α → ℝ} {p : ℕ}
 
 lemma measurable_set_prod_Icc : measurable_set {x : ℝ × ℝ | x.1 ∈ set.Icc 0 x.2} :=
 begin
@@ -140,7 +96,7 @@ begin
       smul_eq_mul, mul_one, measure.map_apply hm measurable_set_Ici, sup_eq_right.2 ht],
     refl },
   simp_rw [hμ, integral_pow_nonneg_eq_integral_Ici_pow hX hm hint,
-    ← interval_integral_mul_pow_eq_pow hp,
+    ← integral_mul_pow_eq_pow hp,
     interval_integral.integral_const_mul, integral_mul_left],
   congr' 1,
   simp_rw ← integral_mul_left,
@@ -174,7 +130,7 @@ begin
           { rw [integral_Icc_eq_integral_Ioc, ← interval_integral.integral_of_le hy,
               set.indicator_of_mem,
               (by rw nat.sub_add_cancel (nat.succ_le_iff.2 hp) : p = p - 1 + 1),
-              (by norm_cast : (↑(p - 1 + 1) : ℝ) = ↑(p - 1) + 1), ← interval_integral_pow (p - 1)],
+              (by norm_cast : (↑(p - 1 + 1) : ℝ) = ↑(p - 1) + 1), ← integral_pow' (p - 1)],
             { refine interval_integral.integral_congr (λ x hx, _),
               obtain ⟨hx, -⟩ := hx,
               rw min_eq_left hy at hx,

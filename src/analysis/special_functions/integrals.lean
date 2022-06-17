@@ -268,6 +268,20 @@ end
 @[simp] lemma integral_pow : ∫ x in a..b, x ^ n = (b ^ (n + 1) - a ^ (n + 1)) / (n + 1) :=
 by simpa using integral_zpow (or.inl (int.coe_nat_nonneg n))
 
+lemma integral_pow' :
+  ∫ t in 0..b, t ^ n = (n + 1 : ℝ)⁻¹ * b ^ (n + 1) :=
+by simp [div_eq_inv_mul]
+
+lemma integral_mul_pow_eq_pow (hp : 0 < n) :
+  ∫ t in 0..b, ↑n * t ^ (n - 1) = b ^ n :=
+begin
+  rw [integral_const_mul, integral_pow'],
+  norm_cast,
+  rw [nat.sub_add_cancel (nat.succ_le_iff.2 hp), ← mul_assoc, mul_inv_cancel, one_mul],
+  norm_cast,
+  exact hp.ne.symm
+end
+
 /-- Integral of `|x - a| ^ n` over `Ι a b`. This integral appears in the proof of the
 Picard-Lindelöf/Cauchy-Lipschitz theorem. -/
 lemma integral_pow_abs_sub_interval_oc :

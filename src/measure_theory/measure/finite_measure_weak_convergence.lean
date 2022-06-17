@@ -200,7 +200,7 @@ measurable_coe_nnreal_ennreal.comp f.continuous.measurable
 
 lemma _root_.measure_theory.lintegral_lt_top_of_bounded_continuous_to_nnreal
   (μ : measure α) [is_finite_measure μ] (f : α →ᵇ ℝ≥0) :
-  ∫⁻ x, f x ∂(μ : measure α) < ∞ :=
+  ∫⁻ x, f x ∂μ < ∞ :=
 begin
   apply is_finite_measure.lintegral_lt_top_of_bounded_to_ennreal,
   use nndist f 0,
@@ -455,7 +455,7 @@ variables {α : Type*} [measurable_space α] [topological_space α] [opens_measu
 
 lemma integrable_of_bounded_continuous_to_nnreal
   (μ : measure α) [is_finite_measure μ] (f : α →ᵇ ℝ≥0) :
-  integrable ((coe : ℝ≥0 → ℝ) ∘ ⇑f) (μ : measure α) :=
+  integrable ((coe : ℝ≥0 → ℝ) ∘ ⇑f) μ :=
 begin
   refine ⟨(nnreal.continuous_coe.comp f.continuous).measurable.ae_strongly_measurable, _⟩,
   simp only [has_finite_integral, nnreal.nnnorm_eq],

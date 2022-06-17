@@ -38,7 +38,10 @@ around a sum.
 
 * Add support for `neg/div/inv` in additive/multiplicative groups?
 * Customize error messages to mention `move_add/move_mul` instead of `move_op`?
-* Add different operations other than `+` and `*`?
+* Add different operations other than `+` and `*`?  E.g. `∪, ∩, ⊓, ⊔, ...`?
+  Should there be the desire for supporting more operations, it might make sense to extract
+  the `reflexivity <|> simp [add] <|> simp [mul]` block in `sorted_sum` to a separate tactic,
+  including all the lemmas used for the rearrangement to work.
 * Add functionality for moving terms across the two sides of an in/dis/equality.
   E.g. it might be desirable to have `to_lhs [a]` converting `b + c = a + d` to `- a + b + c = d`.
 * Add a non-recursive version for use in `conv` mode.
@@ -59,12 +62,13 @@ such operations, with complete disregard of the order in which these iterations 
 meta def list_explicit_args (f : expr) : tactic (list expr) :=
 tactic.fold_explicit_args f [] (λ ll e, return $ ll ++ [e])
 
-
 /--  `list_head_op op tt e` recurses into the expression `e` looking for first appearances of
 `op` as the head symbol of a subexpression.  Every time it finds one, it isolates it.
-Usually, `op` is a binary, associative operation.  E.g., if the operation is addition and the
-input expression is `3 / (2 + 4) + 2 * (0 + 2)`, `list_head_op` returns
-`[3 / (2 + 4) + 2 * (0 + 2), 2 + 4, 0 + 2]`.
+Usually, `op` is a binary, associative operation.  E.g.,
+```lean
+#eval trace $ list_head_op ``((+)) tt `(3 / (2 + 4) + 2 * (0 + 2))
+-- [3 / (2 + 4) + 2 * (0 + 2), 2 + 4, 0 + 2]
+```
 
 More in detail, `list_head_op` partially traverses an expression in search for a term that is an
 iterated application of `op` and produces a list of such terms.
@@ -98,28 +102,6 @@ meta def list_head_op (op : pexpr) : bool → expr → tactic (list expr)
   ec ← list_head_op tt e, fc ← list_head_op tt f, gc ← list_head_op tt g,
   return $ ec ++ fc ++ gc
 | bo e := return []
-
-/--  An auxiliary function to `list_binary_operands`:
-it takes an input `expr`, rather than a `pexpr`. -/
-meta def list_binary_operands_aux (f : expr) : expr → tactic (list expr)
-| x@(expr.app (expr.app g a) b) := do
-  some _ ← try_core (unify f g) | pure [x],
-  as ← list_binary_operands_aux a,
-  bs ← list_binary_operands_aux b,
-  pure (as ++ bs)
-| a                      := pure [a]
-
-/-- `list_binary_operands f x` produces a list of all the operands in `x`, ignoring associativity.
-The binary operation is the input `f`. -/
-meta def list_binary_operands (f : pexpr) (x : expr) : tactic (list expr) :=
-do
-  t ← infer_type x,
-  fe ← to_expr ``(%%f : %%t → %%t → %%t ),
-  list_binary_operands_aux fe x
-
-/--  Takes an `expr` and returns a list of its summands. -/
-meta def _root_.expr.list_summands (e : expr) : tactic (list expr) :=
-list_binary_operands ``((+)) e
 
 /--  Given a list `un` of `α`s and a list `bo` of `bool`s, return the sublist of `un`
 consisting of the entries of `un` whose corresponding entry in `bo` is `tt`.
@@ -170,8 +152,7 @@ lp.mmap $ λ x : α × pexpr, do
    `move_left_or_right`,
 3. we jam the third factor inside the first two.
 -/
-meta def final_sorting (lp : list (bool × pexpr)) (sl : list expr) :
-  tactic (list expr × list bool) :=
+meta def final_sort (lp : list (bool × pexpr)) (sl : list expr) : tactic (list expr × list bool) :=
 do
   lp_exp : list (bool × expr) ← snd_to_expr lp,
   (l1, l2, l3, is_unused) ← move_left_or_right lp_exp sl [],
@@ -181,14 +162,15 @@ do
 `bool × pexpr` (arising as the user-provided input to `move_op`) and an expression `e`.
 
 `sorted_sum hyp ll e` returns an ordered sum of the terms of `e`, where the order is
-determined using the `final_sorting` applied to `ll` and `e`.
+determined using the `final_sort` applied to `ll` and `e`.
 
 We use this function for expressions in an (additive) commutative semigroup. -/
 meta def sorted_sum (hyp : option name) (ll : list (bool × pexpr)) (f : pexpr) (e : expr) :
   tactic (list bool) :=
 do
-  lisu ← list_binary_operands f e,
-  (sli, is_unused) ← final_sorting ll lisu,
+  f ← to_expr f tt ff,
+  lisu ← tactic.list_binary_operands f e,
+  (sli, is_unused) ← final_sort ll lisu,
   match sli with
   | []       := return is_unused
   | (eₕ::es) := do
@@ -200,7 +182,7 @@ do
     h ← solve_aux e_eq $
       reflexivity <|>
       `[{ simp only [add_comm, add_assoc, add_left_comm], done, }] <|>
-      `[{ simp only [mul_comm, mul_assoc, mul_left_comm], done, }] |
+      `[{ simp only [mul_comm, mul_assoc, mul_left_comm], done, }] <|>
       fail format!"failed to prove:\n\n{e_eq_fmt}",
     match hyp with
     | some loc := do
@@ -303,7 +285,7 @@ match locat with
   | pes  := fail format!"'{pes}' are unused variables"
   end,
   assumption <|> try (tactic.reflexivity reducible)
-  end
+end
 
 namespace interactive
 

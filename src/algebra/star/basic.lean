@@ -249,22 +249,22 @@ instance star_ring.to_star_add_monoid [non_unital_semiring R] [star_ring R] : st
 
 /-- `star` as an `ring_equiv` from `R` to `Rᵐᵒᵖ` -/
 @[simps apply]
-def star_ring_equiv [non_unital_semiring R] [star_ring R] : R ≃+* Rᵐᵒᵖ :=
+def ring_equiv.star [non_unital_semiring R] [star_ring R] : R ≃+* Rᵐᵒᵖ :=
 { to_fun := λ x, mul_opposite.op (star x),
   ..star_add_equiv.trans (mul_opposite.op_add_equiv : R ≃+ Rᵐᵒᵖ),
   ..star_mul_equiv }
 
 @[simp, norm_cast] lemma star_nat_cast [semiring R] [star_ring R] (n : ℕ) :
   star (n : R) = n :=
-(congr_arg unop (map_nat_cast (star_ring_equiv : R ≃+* Rᵐᵒᵖ) n)).trans (unop_nat_cast _)
+(congr_arg unop (map_nat_cast (ring_equiv.star : R ≃+* Rᵐᵒᵖ) n)).trans (unop_nat_cast _)
 
 @[simp, norm_cast] lemma star_int_cast [ring R] [star_ring R] (z : ℤ) :
   star (z : R) = z :=
-(congr_arg unop ((star_ring_equiv : R ≃+* Rᵐᵒᵖ).to_ring_hom.map_int_cast z)).trans (unop_int_cast _)
+(congr_arg unop ((ring_equiv.star : R ≃+* Rᵐᵒᵖ).to_ring_hom.map_int_cast z)).trans (unop_int_cast _)
 
 @[simp, norm_cast] lemma star_rat_cast [division_ring R] [char_zero R] [star_ring R] (r : ℚ) :
   star (r : R) = r :=
-(congr_arg unop $ map_rat_cast (star_ring_equiv : R ≃+* Rᵐᵒᵖ) r).trans (unop_rat_cast _)
+(congr_arg unop $ map_rat_cast (ring_equiv.star : R ≃+* Rᵐᵒᵖ) r).trans (unop_rat_cast _)
 
 /-- `star` as a ring automorphism, for commutative `R`. -/
 @[simps apply]
@@ -301,12 +301,12 @@ alias star_ring_end_self_apply ← is_R_or_C.conj_conj
 
 @[simp] lemma star_inv' [division_ring R] [star_ring R] (x : R) : star (x⁻¹) = (star x)⁻¹ :=
 op_injective $
-  ((star_ring_equiv : R ≃+* Rᵐᵒᵖ).to_ring_hom.map_inv x).trans (op_inv (star x)).symm
+  ((ring_equiv.star : R ≃+* Rᵐᵒᵖ).to_ring_hom.map_inv x).trans (op_inv (star x)).symm
 
 @[simp] lemma star_zpow₀ [division_ring R] [star_ring R] (x : R) (z : ℤ) :
   star (x ^ z) = star x ^ z :=
 op_injective $
-  ((star_ring_equiv : R ≃+* Rᵐᵒᵖ).to_ring_hom.map_zpow x z).trans (op_zpow (star x) z).symm
+  ((ring_equiv.star : R ≃+* Rᵐᵒᵖ).to_ring_hom.map_zpow x z).trans (op_zpow (star x) z).symm
 
 /-- When multiplication is commutative, `star` preserves division. -/
 @[simp] lemma star_div' [field R] [star_ring R] (x y : R) : star (x / y) = star x / star y :=
@@ -468,3 +468,89 @@ end mul_opposite
 instance star_semigroup.to_opposite_star_module [comm_monoid R] [star_semigroup R] :
   star_module Rᵐᵒᵖ R :=
 ⟨λ r s, star_mul' s r.unop⟩
+
+section star_hom
+set_option old_structure_cmd true
+
+/-- `star_hom_class F R₁ R₂` states that `F` is a type of morphisms preserving
+the star operation.  -/
+class star_hom_class (F : Type*) (R₁ R₂ : out_param $ Type*) [has_star R₁] [has_star R₂]
+  extends fun_like F R₁ (λ _, R₂) :=
+(map_star : ∀ (f : F) (r : R₁), f (star r) = star (f r))
+
+export star_hom_class (map_star)
+
+/-- `star_ring_hom_class F R₁ R₂` states that `F` is a type of ring homomorphisms that preserve
+the star operation.  -/
+class star_ring_hom_class (F : Type*) (R₁ R₂ : out_param $ Type*)
+  [non_assoc_semiring R₁] [non_assoc_semiring R₂] [has_star R₁] [has_star R₂]
+  extends ring_hom_class F R₁ R₂, star_hom_class F R₁ R₂
+
+/-- A star ring homomorphism is a ring homomorphism that preserves the star operation.  -/
+structure star_ring_hom (R₁ R₂ : Type*) [non_assoc_semiring R₁] [non_assoc_semiring R₂]
+  [has_star R₁] [has_star R₂] extends R₁ →+* R₂ :=
+(map_star' : ∀ (r : R₁), to_fun (star r) = star (to_fun r))
+
+namespace star_ring_hom
+variables {R₁ : Type*} {R₂ : Type*}
+  [non_assoc_semiring R₁] [non_assoc_semiring R₂] [has_star R₁] [has_star R₂]
+
+instance : star_ring_hom_class (star_ring_hom R₁ R₂) R₁ R₂ :=
+{ coe := to_fun,
+  coe_injective' := λ f g h, by cases f; cases g; congr',
+  map_mul := λ f, f.map_mul',
+  map_one := λ f, f.map_one',
+  map_add := λ f, f.map_add',
+  map_zero := λ f, f.map_zero',
+  map_star := λ f, f.map_star' }
+
+/-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`
+directly.  -/
+instance : has_coe_to_fun (star_ring_hom R₁ R₂) (λ _, R₁ → R₂) := ⟨star_ring_hom.to_fun⟩
+
+initialize_simps_projections star_ring_hom (to_fun → apply)
+
+end star_ring_hom
+
+/-- `star_ring_equiv_class F R₁ R₂` states that `F` is a type of ring equivalences that preserve
+the star operation.  -/
+class star_ring_equiv_class (F : Type*) (R₁ R₂ : out_param $ Type*)
+  [has_mul R₁] [has_mul R₂] [has_add R₁] [has_add R₂] [has_star R₁] [has_star R₂]
+  extends ring_equiv_class F R₁ R₂ :=
+(map_star : ∀ (f : F) r, f (star r) = star (f r))
+
+@[priority 100] -- See note [lower instance priority]
+instance star_ring_equiv_class.to_star_ring_hom_class (F R₁ R₂ : Type*)
+  [non_assoc_semiring R₁] [non_assoc_semiring R₂] [has_star R₁] [has_star R₂]
+  [h : star_ring_equiv_class F R₁ R₂] : star_ring_hom_class F R₁ R₂ :=
+{ coe := coe_fn,
+  coe_injective' := fun_like.coe_injective,
+  map_zero := map_zero,
+  map_one := map_one,
+  ..h }
+
+/-- A star ring equivalence is a ring equivalence that preserves the star operation.  -/
+structure star_ring_equiv (R₁ R₂ : Type*)
+  [has_mul R₁] [has_mul R₂] [has_add R₁] [has_add R₂] [has_star R₁] [has_star R₂]
+  extends ring_equiv R₁ R₂ :=
+(map_star' : ∀ (r : R₁), to_fun (star r) = star (to_fun r))
+
+namespace star_ring_equiv
+variables {R₁ : Type*} {R₂ : Type*}
+  [has_mul R₁] [has_mul R₂] [has_add R₁] [has_add R₂] [has_star R₁] [has_star R₂]
+
+instance : star_ring_equiv_class (star_ring_equiv R₁ R₂) R₁ R₂ :=
+{ coe := to_fun,
+  inv := inv_fun,
+  coe_injective' := λ e f h₁ h₂, by { cases e, cases f, congr' },
+  left_inv := star_ring_equiv.left_inv,
+  right_inv := star_ring_equiv.right_inv,
+  map_mul := star_ring_equiv.map_mul',
+  map_add := star_ring_equiv.map_add',
+  map_star := star_ring_equiv.map_star' }
+
+instance : has_coe_to_fun (star_ring_equiv R₁ R₂) (λ _, R₁ → R₂) := ⟨star_ring_equiv.to_fun⟩
+
+end star_ring_equiv
+
+end star_hom

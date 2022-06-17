@@ -25,8 +25,11 @@ arguments of the same type.
 * `f.map_perm` expresses how `f` varies by a sign change under a permutation of its inputs.
 * An `add_comm_monoid`, `add_comm_group`, and `module` structure over `alternating_map`s that
   matches the definitions over `multilinear_map`s.
+* `multilinear_map.dom_dom_congr`, for permutating the elements within a family.
 * `multilinear_map.alternatization`, which makes an alternating map out of a non-alternating one.
 * `alternating_map.dom_coprod`, which behaves as a product between two alternating maps.
+* `alternating_map.curry_left`, for binding the leftmost argument of an alternating map indexed
+  by `fin n.succ`.
 
 ## Implementation notes
 `alternating_map` is defined in terms of `map_eq_zero_of_eq`, as this is easier to work with than
@@ -51,7 +54,7 @@ variables {N : Type*} [add_comm_monoid N] [module R N]
 variables {M' : Type*} [add_comm_group M'] [module R M']
 variables {N' : Type*} [add_comm_group N'] [module R N']
 
-variables {ι : Type*} [decidable_eq ι]
+variables {ι ι' : Type*} [decidable_eq ι] [decidable_eq ι']
 
 set_option old_structure_cmd true
 
@@ -467,10 +470,23 @@ lemma map_congr_perm [fintype ι] (σ : equiv.perm ι) :
   g v = σ.sign • g (v ∘ σ) :=
 by { rw [g.map_perm, smul_smul], simp }
 
-lemma coe_dom_dom_congr [fintype ι] (σ : equiv.perm ι) :
-  (g : multilinear_map R (λ _ : ι, M) N').dom_dom_congr σ
-    = σ.sign • (g : multilinear_map R (λ _ : ι, M) N') :=
-multilinear_map.ext $ λ v, g.map_perm v σ
+/-- Transfer the arguments to a map along an equivalence between argument indices.
+
+This is the alternating version of `multilinear_map.dom_dom_congr`. -/
+@[simps]
+def dom_dom_congr (σ : ι ≃ ι') (f : alternating_map R M N ι) : alternating_map R M N ι' :=
+{ to_fun := λ v, f (v ∘ σ),
+  map_eq_zero_of_eq' := λ v i j hv hij,
+    f.map_eq_zero_of_eq (v ∘ σ) (by simpa using hv) (σ.symm.injective.ne hij),
+  .. f.to_multilinear_map.dom_dom_congr σ }
+
+lemma dom_dom_congr_perm [fintype ι] (σ : equiv.perm ι) :
+  g.dom_dom_congr σ = σ.sign • g :=
+alternating_map.ext $ λ v, g.map_perm v σ
+
+@[norm_cast] lemma coe_dom_dom_congr [fintype ι] (σ : ι ≃ ι') :
+  ↑(f.dom_dom_congr σ) = (f : multilinear_map R (λ _ : ι, M) N).dom_dom_congr σ :=
+multilinear_map.ext $ λ v, rfl
 
 /-- If the arguments are linearly dependent then the result is `0`. -/
 lemma map_linear_dependent
@@ -576,8 +592,8 @@ lemma coe_alternatization [fintype ι] (a : alternating_map R M N' ι) :
   (↑a : multilinear_map R (λ ι, M) N').alternatization = nat.factorial (fintype.card ι) • a :=
 begin
   apply alternating_map.coe_injective,
-  simp_rw [multilinear_map.alternatization_def, coe_dom_dom_congr, smul_smul,
-    int.units_mul_self, one_smul, finset.sum_const, finset.card_univ, fintype.card_perm,
+  simp_rw [multilinear_map.alternatization_def, ←coe_dom_dom_congr, dom_dom_congr_perm, coe_smul,
+    smul_smul, int.units_mul_self, one_smul, finset.sum_const, finset.card_univ, fintype.card_perm,
     ←coe_multilinear_map, coe_smul],
 end
 

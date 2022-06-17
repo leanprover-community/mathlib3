@@ -113,4 +113,21 @@ def is_module [graded_module 𝓐 𝓜] : module A (⨁ i, 𝓜 i) :=
     simp only [map_zero, zero_smul],
   end }
 
+local attribute [instance] is_module
+
+/--
+`M` and `⨁ᵢ 𝓜ᵢ` are linearly equivalent as `A`-module.
+-/
+def linear_equiv [graded_module 𝓐 𝓜] :
+  M ≃ₗ[A] (⨁ i, 𝓜 i) :=
+{ to_fun := decompose 𝓐 𝓜,
+  map_add' := map_add _,
+  map_smul' := λ a m, begin
+    change _ = decompose 𝓐 𝓜 (a • _),
+    rw [add_equiv.symm_apply_apply],
+  end,
+  inv_fun := (decompose 𝓐 𝓜).symm,
+  left_inv := λ x, by rw [add_equiv.symm_apply_apply],
+  right_inv := λ x, by rw [add_equiv.apply_symm_apply] }
+
 end graded_module

@@ -75,12 +75,6 @@ open real
 
 private lemma log_four_pos : 0 < log 4 := log_pos (by linarith)
 
-private lemma exp_two_le_722 : exp 2 ≤ 722 :=
-calc exp 2 = (exp 1) ^ 2 : by rw [←exp_nat_mul 1 2]; simp
-    ... ≤ 3 ^ 2 :
-    pow_le_pow_of_le_left (exp_pos 1).le (le_of_lt exp_one_lt_three) 2
-  ... ≤ 722 : by norm_num
-
 namespace bertrand
 
 -- This is best possible; it is false for x = 99.
@@ -146,6 +140,12 @@ end
 lemma inequality3 {x : ℝ} (n_large : 722 ≤ x) : sqrt 2 * sqrt x * log x / (x * log 4) ≤ 1/4 :=
 begin
   have x_pos : 0 < x := by linarith,
+  have exp_two_le_722 : exp 2 ≤ 722 :=
+  calc
+  exp 2 = (exp 1) ^ 2 : by rw [←exp_nat_mul 1 2]; simp
+  ... ≤ 3 ^ 2 :
+      pow_le_pow_of_le_left (exp_pos 1).le (le_of_lt exp_one_lt_three) 2
+  ... ≤ 722 : by norm_num,
   rw [inequality3' x_pos],
   calc sqrt 2 / log 4 * log x / sqrt x
       = sqrt 2 / log 4 * (log x / sqrt x) : by rw mul_div_assoc

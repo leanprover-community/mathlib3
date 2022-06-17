@@ -1299,7 +1299,7 @@ def to_rat_alg_hom [ring R] [ring S] [algebra ℚ R] [algebra ℚ S] (f : R →+
 
 @[simp]
 lemma to_rat_alg_hom_to_ring_hom [ring R] [ring S] [algebra ℚ R] [algebra ℚ S]
-  (f : R →+* S) : (f : R →+* S).to_rat_alg_hom = f :=
+  (f : R →+* S) : ↑f.to_rat_alg_hom = f :=
 ring_hom.ext $ λ x, rfl
 
 end ring_hom

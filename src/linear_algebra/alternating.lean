@@ -924,8 +924,10 @@ namespace alternating_map
 
 /-- Given an alternating map `f` in `n+1` variables, split the first variable to obtain
 a linear map into alternating maps in `n` variables, given by `x ↦ (m ↦ f (matrix.vec_cons x m))`.
+It can be thought of as a map $Hom(\bigwedge^{n+1} M, N) \to Hom(M, Hom(\bigwedge^n M, N))$.
 
-This is `multilinear_map.curry_left` for `alternating_map`. -/
+This is `multilinear_map.curry_left` for `alternating_map`. See also
+`alternating_map.curry_left_linear_map`. -/
 @[simps]
 def curry_left {n : ℕ} (f : alternating_map R' M'' N'' (fin n.succ)) :
   M'' →ₗ[R'] alternating_map R' M'' N'' (fin n) :=

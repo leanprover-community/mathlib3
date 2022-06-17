@@ -179,6 +179,10 @@ e.left_inv' h
 @[simp, mfld_simps] lemma right_inv {x : β} (h : x ∈ e.target) : e (e.symm x) = x :=
 e.right_inv' h
 
+lemma eq_symm_apply {x : α} {y : β} (hx : x ∈ e.source) (hy : y ∈ e.target) :
+  x = e.symm y ↔ e x = y :=
+⟨λ h, by rw [← e.right_inv hy, h], λ h, by rw [← e.left_inv hx, h]⟩
+
 protected lemma maps_to : maps_to e e.source e.target := λ x, e.map_source
 lemma symm_maps_to : maps_to e.symm e.target e.source := e.symm.maps_to
 protected lemma left_inv_on : left_inv_on e.symm e e.source := λ x, e.left_inv

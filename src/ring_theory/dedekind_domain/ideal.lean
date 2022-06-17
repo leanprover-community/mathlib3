@@ -904,7 +904,10 @@ lemma ideal.count_normalized_factors_eq {p x : ideal R} [hp : p.is_prime] {n : �
   (normalized_factors x).count p = n :=
 count_normalized_factors_eq'
   ((eq_or_ne p 0).imp_right $ λ hp0, (ideal.prime_of_is_prime hp0 hp).irreducible)
-  (normalize_eq _) (ideal.dvd_iff_le.mpr hle) (mt ideal.le_of_dvd hlt)
+  (by { haveI : unique (ideal R)ˣ := ideal.unique_units, apply normalize_eq })
+  (by convert ideal.dvd_iff_le.mpr hle) (by convert mt ideal.le_of_dvd hlt)
+/- Warning: even though a pure term-mode proof typechecks (the `by convert` can simply be
+  removed), it's slower to the point of a possible timeout. -/
 
 end
 

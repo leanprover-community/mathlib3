@@ -7,6 +7,7 @@ Authors: Anne Baanen, Kexing Ying, Eric Wieser
 import algebra.invertible
 import linear_algebra.matrix.determinant
 import linear_algebra.matrix.bilinear_form
+import linear_algebra.matrix.symmetric
 
 /-!
 # Quadratic forms
@@ -475,20 +476,16 @@ no nontrivial distinguished commutative subring, use `associated'`, which gives 
 homomorphism (or more precisely a `ℤ`-linear map.) -/
 def associated_hom : quadratic_form R M →ₗ[S] bilin_form R M :=
 { to_fun := λ Q,
-  { bilin := λ x y, ⅟2 * polar Q x y,
-    bilin_add_left := λ x y z, by rw [← mul_add, polar_add_left],
-    bilin_smul_left := λ x y z, begin
-      have htwo : x * ⅟2 = ⅟2 * x := (commute.one_right x).bit0_right.inv_of_right,
-      simp only [polar_smul_left, ← mul_assoc, htwo]
-    end,
-    bilin_add_right := λ x y z, by rw [← mul_add, polar_add_right],
-    bilin_smul_right := λ x y z, begin
-      have htwo : x * ⅟2 = ⅟2 * x := (commute.one_right x).bit0_right.inv_of_right,
-      simp only [polar_smul_right, ← mul_assoc, htwo]
-    end },
-  map_add' := λ Q Q', by { ext, simp only [bilin_form.add_apply, coe_fn_mk, polar_add, coe_fn_add,
-    mul_add] },
-  map_smul' := λ s Q, by { ext, simp only [ring_hom.id_apply, polar_smul, algebra.mul_smul_comm,
+  ((•) : submonoid.center R → bilin_form R M → bilin_form R M)
+    (⟨⅟2, λ x, (commute.one_right x).bit0_right.inv_of_right⟩)
+    { bilin := polar Q,
+      bilin_add_left := polar_add_left,
+      bilin_smul_left := polar_smul_left,
+      bilin_add_right := polar_add_right,
+      bilin_smul_right := polar_smul_right },
+  map_add' := λ Q Q', by { ext, simp only [bilin_form.add_apply, bilin_form.smul_apply, coe_fn_mk,
+    polar_add, coe_fn_add, smul_add] },
+  map_smul' := λ s Q, by { ext, simp only [ring_hom.id_apply, polar_smul, smul_comm s,
     coe_fn_mk, coe_fn_smul, bilin_form.smul_apply] } }
 
 variables (Q : quadratic_form R M) (S)
@@ -678,6 +675,13 @@ open quadratic_form
 lemma quadratic_form.to_matrix'_smul (a : R₁) (Q : quadratic_form R₁ (n → R₁)) :
   (a • Q).to_matrix' = a • Q.to_matrix' :=
 by simp only [to_matrix', linear_equiv.map_smul, linear_map.map_smul]
+
+lemma quadratic_form.is_symm_to_matrix' (Q : quadratic_form R₁ (n → R₁)) :
+  Q.to_matrix'.is_symm :=
+begin
+  ext i j,
+  rw [to_matrix', bilin_form.to_matrix'_apply, bilin_form.to_matrix'_apply, associated_is_symm]
+end
 
 end
 

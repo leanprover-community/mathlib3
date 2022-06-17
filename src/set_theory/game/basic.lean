@@ -21,17 +21,15 @@ imply `x * z ≈ y * z`. Hence, multiplication is not a well-defined operation o
 the abelian group structure on games allows us to simplify many proofs for pre-games.
 -/
 
-open function
+open function pgame
 
 universes u
 
 local infix ` ≈ ` := pgame.equiv
+local infix ` ≡r `:50 := pgame.relabelling
 
 instance pgame.setoid : setoid pgame :=
-⟨λ x y, x ≈ y,
- λ x, pgame.equiv_refl _,
- λ x y, pgame.equiv_symm,
- λ x y z, pgame.equiv_trans⟩
+⟨(≈), equiv_refl, @pgame.equiv.symm, @pgame.equiv.trans⟩
 
 /-- The type of combinatorial games. In ZFC, a combinatorial game is constructed from
   two sets of combinatorial games that have been constructed at an earlier
@@ -43,13 +41,11 @@ instance pgame.setoid : setoid pgame :=
   `x ≈ y ↔ x ≤ y ∧ y ≤ x`. -/
 abbreviation game := quotient pgame.setoid
 
-open pgame
-
 namespace game
 
 instance : add_comm_group game :=
 { zero := ⟦0⟧,
-  neg := quot.lift (λ x, ⟦-x⟧) (λ x y h, quot.sound (@neg_congr x y h)),
+  neg := quot.lift (λ x, ⟦-x⟧) (λ x y h, quot.sound ((@neg_equiv_neg_iff x y).2 h)),
   add := quotient.lift₂ (λ x y : pgame, ⟦x + y⟧)
     (λ x₁ y₁ x₂ y₂ hx hy, quot.sound (pgame.add_congr hx hy)),
   add_zero := by { rintro ⟨x⟩, exact quot.sound (add_zero_equiv x) },
@@ -75,22 +71,35 @@ quotient.lift₂ lf (λ x₁ y₁ x₂ y₂ hx hy, propext (lf_congr hx hy))
 
 local infix ` ⧏ `:50 := lf
 
-/-- On `pgame`, simp-normal inequalities should use as few negations as possible. -/
+/-- On `game`, simp-normal inequalities should use as few negations as possible. -/
 @[simp] theorem not_le : ∀ {x y : game}, ¬ x ≤ y ↔ y ⧏ x :=
 by { rintro ⟨x⟩ ⟨y⟩, exact pgame.not_le }
 
-/-- On `pgame`, simp-normal inequalities should use as few negations as possible. -/
+/-- On `game`, simp-normal inequalities should use as few negations as possible. -/
 @[simp] theorem not_lf : ∀ {x y : game}, ¬ x ⧏ y ↔ y ≤ x :=
-by { rintro ⟨x⟩ ⟨y⟩, exact pgame.not_lf }
+by { rintro ⟨x⟩ ⟨y⟩, exact not_lf }
 
 instance : is_trichotomous game (⧏) :=
 ⟨by { rintro ⟨x⟩ ⟨y⟩, change _ ∨ ⟦x⟧ = ⟦y⟧ ∨ _, rw quotient.eq, apply lf_or_equiv_or_gf }⟩
+
+/-! It can be useful to use these lemmas to turn `pgame` inequalities into `game` inequalities, as
+the `add_comm_group` structure on `game` often simplifies many proofs. -/
+
+theorem _root_.pgame.le_iff_game_le {x y : pgame} : x ≤ y ↔ ⟦x⟧ ≤ ⟦y⟧ := iff.rfl
+theorem _root_.pgame.lf_iff_game_lf {x y : pgame} : pgame.lf x y ↔ ⟦x⟧ ⧏ ⟦y⟧ := iff.rfl
+theorem _root_.pgame.lt_iff_game_lt {x y : pgame} : x < y ↔ ⟦x⟧ < ⟦y⟧ := iff.rfl
+theorem _root_.pgame.equiv_iff_game_eq {x y : pgame} : x ≈ y ↔ ⟦x⟧ = ⟦y⟧ :=
+(@quotient.eq _ _ x y).symm
 
 /-- The fuzzy, confused, or incomparable relation on games.
 
 If `x ∥ 0`, then the first player can always win `x`. -/
 def fuzzy : game → game → Prop :=
 quotient.lift₂ fuzzy (λ x₁ y₁ x₂ y₂ hx hy, propext (fuzzy_congr hx hy))
+
+local infix ` ∥ `:50 := fuzzy
+
+theorem _root_.pgame.fuzzy_iff_game_fuzzy {x y : pgame} : pgame.fuzzy x y ↔ ⟦x⟧ ∥ ⟦y⟧ := iff.rfl
 
 instance covariant_class_add_le : covariant_class game game (+) (≤) :=
 ⟨by { rintro ⟨a⟩ ⟨b⟩ ⟨c⟩ h, exact @add_le_add_left _ _ _ _ b c h a }⟩
@@ -166,16 +175,16 @@ theorem right_moves_mul : ∀ (x y : pgame.{u}), (x * y).right_moves
 
 Even though these types are the same (not definitionally so), this is the preferred way to convert
 between them. -/
-def to_left_moves_mul {x y : pgame} : x.left_moves × y.left_moves ⊕ x.right_moves × y.right_moves
-  ≃ (x * y).left_moves :=
+def to_left_moves_mul {x y : pgame} :
+  x.left_moves × y.left_moves ⊕ x.right_moves × y.right_moves ≃ (x * y).left_moves :=
 equiv.cast (left_moves_mul x y).symm
 
 /-- Turns a left and a right move for `x` and `y` into a right move for `x * y` and vice versa.
 
 Even though these types are the same (not definitionally so), this is the preferred way to convert
 between them. -/
-def to_right_moves_mul {x y : pgame} : x.left_moves × y.right_moves ⊕ x.right_moves × y.left_moves
-  ≃ (x * y).right_moves :=
+def to_right_moves_mul {x y : pgame} :
+  x.left_moves × y.right_moves ⊕ x.right_moves × y.left_moves ≃ (x * y).right_moves :=
 equiv.cast (right_moves_mul x y).symm
 
 @[simp] lemma mk_mul_move_left_inl {xl xr yl yr} {xL xR yL yR} {i j} :
@@ -209,7 +218,7 @@ rfl
 by { cases x, cases y, refl }
 
 @[simp] lemma mk_mul_move_right_inr {xl xr yl yr} {xL xR yL yR} {i j} :
-  (mk xl xr xL xR * mk yl yr yL yR).move_right (sum.inr (i,j))
+  (mk xl xr xL xR * mk yl yr yL yR).move_right (sum.inr (i, j))
   = xR i * (mk yl yr yL yR) + (mk xl xr xL xR) * yL j - xR i * yL j :=
 rfl
 
@@ -218,24 +227,24 @@ rfl
    = x.move_right i * y + x * y.move_left j - x.move_right i * y.move_left j :=
 by { cases x, cases y, refl }
 
-lemma left_moves_mul_cases {x y : pgame} (k : (x * y).left_moves) :
-  (∃ ix iy, k = to_left_moves_mul (sum.inl ⟨ix, iy⟩)) ∨
-  ∃ jx jy, k = to_left_moves_mul (sum.inr ⟨jx, jy⟩) :=
+lemma left_moves_mul_cases {x y : pgame} (k) {P : (x * y).left_moves → Prop}
+  (hl : ∀ ix iy, P $ to_left_moves_mul (sum.inl ⟨ix, iy⟩))
+  (hr : ∀ jx jy, P $ to_left_moves_mul (sum.inr ⟨jx, jy⟩)) : P k :=
 begin
   rw ←to_left_moves_mul.apply_symm_apply k,
   rcases to_left_moves_mul.symm k with ⟨ix, iy⟩ | ⟨jx, jy⟩,
-  { exact or.inl ⟨ix, iy, rfl⟩ },
-  { exact or.inr ⟨jx, jy, rfl⟩ }
+  { apply hl },
+  { apply hr }
 end
 
-lemma right_moves_mul_cases {x y : pgame} (k : (x * y).right_moves) :
-  (∃ ix jy, k = to_right_moves_mul (sum.inl ⟨ix, jy⟩)) ∨
-  ∃ jx iy, k = to_right_moves_mul (sum.inr ⟨jx, iy⟩) :=
+lemma right_moves_mul_cases {x y : pgame} (k) {P : (x * y).right_moves → Prop}
+  (hl : ∀ ix jy, P $ to_right_moves_mul (sum.inl ⟨ix, jy⟩))
+  (hr : ∀ jx iy, P $ to_right_moves_mul (sum.inr ⟨jx, iy⟩)) : P k :=
 begin
   rw ←to_right_moves_mul.apply_symm_apply k,
-  rcases to_right_moves_mul.symm k with ⟨ix, jy⟩ | ⟨jx, iy⟩,
-  { exact or.inl ⟨ix, jy, rfl⟩ },
-  { exact or.inr ⟨jx, iy, rfl⟩ }
+  rcases to_right_moves_mul.symm k with ⟨ix, iy⟩ | ⟨jx, jy⟩,
+  { apply hl },
+  { apply hr }
 end
 
 theorem quot_mul_comm : Π (x y : pgame.{u}), ⟦x * y⟧ = ⟦y * x⟧
@@ -256,32 +265,29 @@ using_well_founded { dec_tac := pgame_wf_tac }
 theorem mul_comm_equiv (x y : pgame) : x * y ≈ y * x :=
 quotient.exact $ quot_mul_comm _ _
 
+instance is_empty_mul_zero_left_moves (x : pgame.{u}) : is_empty (x * 0).left_moves :=
+by { cases x, apply sum.is_empty }
+instance is_empty_mul_zero_right_moves (x : pgame.{u}) : is_empty (x * 0).right_moves :=
+by { cases x, apply sum.is_empty }
+instance is_empty_zero_mul_left_moves (x : pgame.{u}) : is_empty (0 * x).left_moves :=
+by { cases x, apply sum.is_empty }
+instance is_empty_zero_mul_right_moves (x : pgame.{u}) : is_empty (0 * x).right_moves :=
+by { cases x, apply sum.is_empty }
+
 /-- `x * 0` has exactly the same moves as `0`. -/
-def mul_zero_relabelling : Π (x : pgame), relabelling (x * 0) 0
-| (mk xl xr xL xR) :=
-⟨by fsplit; rintro (⟨_,⟨⟩⟩ | ⟨_,⟨⟩⟩),
- by fsplit; rintro (⟨_,⟨⟩⟩ | ⟨_,⟨⟩⟩),
- by rintro (⟨_,⟨⟩⟩ | ⟨_,⟨⟩⟩),
- by rintro ⟨⟩⟩
+def mul_zero_relabelling (x : pgame) : x * 0 ≡r 0 := relabelling.is_empty _
 
 /-- `x * 0` is equivalent to `0`. -/
-theorem mul_zero_equiv (x : pgame) : x * 0 ≈ 0 :=
-(mul_zero_relabelling x).equiv
+theorem mul_zero_equiv (x : pgame) : x * 0 ≈ 0 := (mul_zero_relabelling x).equiv
 
 @[simp] theorem quot_mul_zero (x : pgame) : ⟦x * 0⟧ = ⟦0⟧ :=
 @quotient.sound _ _ (x * 0) _ x.mul_zero_equiv
 
 /-- `0 * x` has exactly the same moves as `0`. -/
-def zero_mul_relabelling : Π (x : pgame), relabelling (0 * x) 0
-| (mk xl xr xL xR) :=
-⟨by fsplit; rintro (⟨⟨⟩,_⟩ | ⟨⟨⟩,_⟩),
- by fsplit; rintro (⟨⟨⟩,_⟩ | ⟨⟨⟩,_⟩),
- by rintro (⟨⟨⟩,_⟩ | ⟨⟨⟩,_⟩),
- by rintro ⟨⟩⟩
+def zero_mul_relabelling (x : pgame) : 0 * x ≡r 0 := relabelling.is_empty _
 
 /-- `0 * x` is equivalent to `0`. -/
-theorem zero_mul_equiv (x : pgame) : 0 * x ≈ 0 :=
-(zero_mul_relabelling x).equiv
+theorem zero_mul_equiv (x : pgame) : 0 * x ≈ 0 := (zero_mul_relabelling x).equiv
 
 @[simp] theorem quot_zero_mul (x : pgame) : ⟦0 * x⟧ = ⟦0⟧ :=
 @quotient.sound _ _ (0 * x) _ x.zero_mul_equiv

@@ -273,53 +273,69 @@ lemma realize_cast_le_of_eq {m n : ℕ} (h : m = n) {h' : m ≤ n} {φ : L.bound
   {v : α → M} {xs : fin n → M} :
   (φ.cast_le h').realize v xs ↔ φ.realize v (xs ∘ fin.cast h) :=
 begin
-  induction φ with _ _ _ _ _ _ _ _ _ _ _ ih1 ih2 k _ ih3 generalizing n xs h h',
-  { simp [cast_le, realize] },
-  { simp only [cast_le, realize, realize_bd_equal, term.realize_relabel, sum.elim_comp_map,
-      function.comp.right_id, cast_le_of_eq h], },
-  { simp only [cast_le, realize, realize_rel, term.realize_relabel, sum.elim_comp_map,
-      function.comp.right_id, cast_le_of_eq h] },
-  { simp only [cast_le, realize, ih1 h, ih2 h], },
-  { simp only [cast_le, realize, ih3 (nat.succ_inj'.2 h)],
-    refine forall_congr (λ x, iff_eq_eq.mpr (congr rfl (funext (last_cases _ (λ i, _))))),
-    { rw [function.comp_app, snoc_last, cast_last, snoc_last] },
-    { rw [function.comp_app, snoc_cast_succ, cast_cast_succ, snoc_cast_succ] } }
+  subst h,
+  simp only [cast_le_rfl, cast_refl, order_iso.coe_refl, function.comp.right_id],
+end
+
+lemma realize_map_term_rel_id [L'.Structure M]
+  {ft : ∀ n, L.term (α ⊕ fin n) → L'.term (β ⊕ fin n)}
+  {fr : ∀ n, L.relations n → L'.relations n}
+  {n} {φ : L.bounded_formula α n} {v : α → M} {v' : β → M} {xs : fin n → M}
+  (h1 : ∀ n (t : L.term (α ⊕ fin n)) (xs : fin n → M),
+    (ft n t).realize (sum.elim v' xs) = t.realize (sum.elim v xs))
+  (h2 : ∀ n (R : L.relations n) (x : fin n → M), rel_map (fr n R) x = rel_map R x) :
+  (φ.map_term_rel ft fr (λ _, id)).realize v' xs ↔ φ.realize v xs :=
+begin
+  induction φ with _ _ _ _ _ _ _ _ _ _ _ ih1 ih2 _ _ ih,
+  { refl },
+  { simp [map_term_rel, realize, h1] },
+  { simp [map_term_rel, realize, h1, h2] },
+  { simp [map_term_rel, realize, ih1, ih2], },
+  { simp only [map_term_rel, realize, ih, id.def] },
+end
+
+lemma realize_map_term_rel_add_cast_le [L'.Structure M]
+  {k : ℕ}
+  {ft : ∀ n, L.term (α ⊕ fin n) → L'.term (β ⊕ fin (k + n))}
+  {fr : ∀ n, L.relations n → L'.relations n}
+  {n} {φ : L.bounded_formula α n} (v : ∀ {n}, (fin (k + n) → M) → α → M) {v' : β → M}
+  (xs : fin (k + n) → M)
+  (h1 : ∀ n (t : L.term (α ⊕ fin n)) (xs' : fin (k + n) → M),
+    (ft n t).realize (sum.elim v' xs') =
+    t.realize (sum.elim (v xs') (xs' ∘ fin.nat_add _)))
+  (h2 : ∀ n (R : L.relations n) (x : fin n → M), rel_map (fr n R) x = rel_map R x)
+  (hv : ∀ n (xs : fin (k + n) → M) (x : M), @v (n+1) (snoc xs x : fin _ → M) = v xs):
+  (φ.map_term_rel ft fr (λ n, cast_le (add_assoc _ _ _).symm.le)).realize v' xs ↔
+    φ.realize (v xs) (xs ∘ fin.nat_add _) :=
+begin
+  induction φ with _ _ _ _ _ _ _ _ _ _ _ ih1 ih2 _ _ ih,
+  { refl },
+  { simp [map_term_rel, realize, h1] },
+  { simp [map_term_rel, realize, h1, h2] },
+  { simp [map_term_rel, realize, ih1, ih2], },
+  { simp [map_term_rel, realize, ih, hv] },
 end
 
 lemma realize_relabel {m n : ℕ}
   {φ : L.bounded_formula α n} {g : α → β ⊕ fin m} {v : β → M} {xs : fin (m + n) → M} :
   (φ.relabel g).realize v xs ↔
     φ.realize (sum.elim v (xs ∘ fin.cast_add n) ∘ g) (xs ∘ fin.nat_add m) :=
-begin
-  induction φ with _ _ _ _ _ _ _ _ _ _ _ ih1 ih2 n' _ ih3,
-  { refl },
-  { simp [realize, relabel] },
-  { simp [realize, relabel] },
-  { simp [realize, relabel, ih1, ih2] },
-  { simp only [ih3, realize, relabel],
-    refine forall_congr (λ a, (iff_eq_eq.mpr (congr (congr rfl (congr (congr rfl (congr rfl
-      (funext (λ i, (dif_pos _).trans rfl)))) rfl)) _))),
-    { ext i,
-      by_cases h : i.val < n',
-      { exact (dif_pos (nat.add_lt_add_left h m)).trans (dif_pos h).symm },
-      { exact (dif_neg (λ h', h (nat.lt_of_add_lt_add_left h'))).trans (dif_neg h).symm } } }
-end
+by rw [relabel, realize_map_term_rel_add_cast_le]; intros; simp
 
 lemma realize_lift_at {n n' m : ℕ} {φ : L.bounded_formula α n}
   {v : α → M} {xs : fin (n + n') → M} (hmn : m + n' ≤ n + 1) :
   (φ.lift_at n' m).realize v xs ↔ φ.realize v (xs ∘
     (λ i, if ↑i < m then fin.cast_add n' i else fin.add_nat n' i)) :=
 begin
+  rw lift_at,
   induction φ with _ _ _ _ _ _ _ _ _ _ _ ih1 ih2 k _ ih3,
-  { simp [lift_at, realize] },
-  { simp only [lift_at, realize, realize_bd_equal, realize_lift_at, sum.elim_comp_map,
-      function.comp.right_id] },
-  { simp only [lift_at, realize, realize_rel, realize_lift_at, sum.elim_comp_map,
-      function.comp.right_id] },
-  { simp only [lift_at, realize, ih1 hmn, ih2 hmn], },
+  { simp [realize, map_term_rel], },
+  { simp [realize, map_term_rel, realize_rel, realize_lift_at, sum.elim_comp_map], },
+  { simp [realize, map_term_rel, realize_rel, realize_lift_at, sum.elim_comp_map], },
+  { simp only [map_term_rel, realize, ih1 hmn, ih2 hmn] },
   { have h : k + 1 + n' = k + n'+ 1,
     { rw [add_assoc, add_comm 1 n', ← add_assoc], },
-    simp only [lift_at, realize, realize_cast_le_of_eq h, ih3 (hmn.trans k.succ.le_succ)],
+    simp only [map_term_rel, realize, realize_cast_le_of_eq h, ih3 (hmn.trans k.succ.le_succ)],
     refine forall_congr (λ x, iff_eq_eq.mpr (congr rfl (funext (fin.last_cases _ (λ i, _))))),
     { simp only [function.comp_app, coe_last, snoc_last],
       by_cases (k < m),
@@ -354,22 +370,15 @@ begin
   rw [if_pos i.is_lt],
 end
 
-@[simp] lemma realize_subst_aux {tf : α → L.term β} {v : β → M} {xs : fin n → M} :
-  (λ x, term.realize (sum.elim v xs) (sum.elim (term.relabel sum.inl ∘ tf) (var ∘ sum.inr) x)) =
-    sum.elim (λ (a : α), term.realize v (tf a)) xs :=
-funext (λ x, sum.cases_on x (λ x,
-  by simp only [sum.elim_inl, term.realize_relabel, sum.elim_comp_inl]) (λ x, rfl))
-
 lemma realize_subst {φ : L.bounded_formula α n} {tf : α → L.term β} {v : β → M} {xs : fin n → M} :
   (φ.subst tf).realize v xs ↔ φ.realize (λ a, (tf a).realize v) xs :=
-begin
-  induction φ with _ _ _ _ _ _ _ _ _ _ _ ih1 ih2 _ _ ih,
-  { refl },
-  { simp only [subst, bounded_formula.realize, realize_subst, realize_subst_aux] },
-  { simp only [subst, bounded_formula.realize, realize_subst, realize_subst_aux] },
-  { simp only [subst, realize_imp, ih1, ih2] },
-  { simp only [ih, subst, realize_all] }
-end
+realize_map_term_rel_id (λ n t x, begin
+  rw term.realize_subst,
+  rcongr a,
+  { cases a,
+    { simp only [sum.elim_inl, term.realize_relabel, sum.elim_comp_inl] },
+    { refl } }
+end) (by simp)
 
 @[simp] lemma realize_restrict_free_var [decidable_eq α] {n : ℕ} {φ : L.bounded_formula α n}
   {s : set α} (h : ↑φ.free_var_finset ⊆ s) {v : α → M} {xs : fin n → M} :
@@ -603,7 +612,22 @@ variables (L)
 /-- The complete theory of a structure `M` is the set of all sentences `M` satisfies. -/
 def complete_theory : L.Theory := { φ | M ⊨ φ }
 
-variables {L}
+variable (N)
+
+/-- Two structures are elementarily equivalent when they satisfy the same sentences. -/
+def elementarily_equivalent : Prop := L.complete_theory M = L.complete_theory N
+
+localized "notation A ` ≅[`:25 L `] ` B:50 := first_order.language.elementarily_equivalent L A B"
+  in first_order
+
+variables {L} {M} {N}
+
+@[simp] lemma mem_complete_theory {φ : sentence L} : φ ∈ L.complete_theory M ↔ M ⊨ φ := iff.rfl
+
+lemma elementarily_equivalent_iff : M ≅[L] N ↔ ∀ φ : L.sentence, M ⊨ φ ↔ N ⊨ φ :=
+by simp only [elementarily_equivalent, set.ext_iff, complete_theory, set.mem_set_of_eq]
+
+variables (M)
 
 /-- A model of a theory is a structure in which every sentence is realized as true. -/
 class Theory.model (T : L.Theory) : Prop :=
@@ -663,10 +687,10 @@ variables (M N)
 theorem realize_iff_of_model_complete_theory [N ⊨ L.complete_theory M] (φ : L.sentence) :
   N ⊨ φ ↔ M ⊨ φ :=
 begin
-  refine ⟨λ h, _, Theory.realize_sentence_of_mem (L.complete_theory M)⟩,
+  refine ⟨λ h, _, (L.complete_theory M).realize_sentence_of_mem⟩,
   contrapose! h,
   rw [← sentence.realize_not] at *,
-  exact Theory.realize_sentence_of_mem (L.complete_theory M) h,
+  exact (L.complete_theory M).realize_sentence_of_mem (mem_complete_theory.2 h)
 end
 
 variables {M N}
@@ -825,7 +849,7 @@ begin
 end
 
 @[simp] lemma model_infinite_theory_iff : M ⊨ L.infinite_theory ↔ infinite M :=
-by simp [infinite_theory, infinite_iff, omega_le]
+by simp [infinite_theory, infinite_iff, aleph_0_le]
 
 instance model_infinite_theory [h : infinite M] :
   M ⊨ L.infinite_theory :=
@@ -843,7 +867,7 @@ L.model_nonempty_theory_iff.2 h
 lemma model_distinct_constants_theory {M : Type w} [L[[α]].Structure M] (s : set α) :
   M ⊨ L.distinct_constants_theory s ↔ set.inj_on (λ (i : α), (L.con i : M)) s :=
 begin
-  simp only [distinct_constants_theory, set.compl_eq_compl, Theory.model_iff, set.mem_image,
+  simp only [distinct_constants_theory, Theory.model_iff, set.mem_image,
     set.mem_inter_eq, set.mem_prod, set.mem_compl_eq, prod.exists, forall_exists_index, and_imp],
   refine ⟨λ h a as b bs ab, _, _⟩,
   { contrapose! ab,

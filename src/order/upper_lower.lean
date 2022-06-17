@@ -288,9 +288,9 @@ variables {s : upper_set α} {a : α}
 @[simp] lemma compl_compl (s : upper_set α) : s.compl.compl = s := upper_set.ext $ compl_compl _
 
 @[simp] protected lemma compl_sup (s t : upper_set α) : (s ⊔ t).compl = s.compl ⊓ t.compl :=
-lower_set.ext compl_sup
+lower_set.ext (compl_sup _ _)
 @[simp] protected lemma compl_inf (s t : upper_set α) : (s ⊓ t).compl = s.compl ⊔ t.compl :=
-lower_set.ext compl_inf
+lower_set.ext (compl_inf _ _)
 @[simp] protected lemma compl_top : (⊤ : upper_set α).compl = ⊥ := lower_set.ext compl_univ
 @[simp] protected lemma compl_bot : (⊥ : upper_set α).compl = ⊤ := lower_set.ext compl_empty
 @[simp] protected lemma compl_Sup (S : set (upper_set α)) :
@@ -325,9 +325,9 @@ variables {s : lower_set α} {a : α}
 @[simp] lemma compl_compl (s : lower_set α) : s.compl.compl = s := lower_set.ext $ compl_compl _
 
 protected lemma compl_sup (s t : lower_set α) : (s ⊔ t).compl = s.compl ⊓ t.compl :=
-upper_set.ext compl_sup
+upper_set.ext (compl_sup _ _)
 protected lemma compl_inf (s t : lower_set α) : (s ⊓ t).compl = s.compl ⊔ t.compl :=
-upper_set.ext compl_inf
+upper_set.ext (compl_inf _ _)
 protected lemma compl_top : (⊤ : lower_set α).compl = ⊥ := upper_set.ext compl_univ
 protected lemma compl_bot : (⊥ : lower_set α).compl = ⊤ := upper_set.ext compl_empty
 protected lemma compl_Sup (S : set (lower_set α)) : (Sup S).compl = ⨅ s ∈ S, lower_set.compl s :=

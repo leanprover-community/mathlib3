@@ -95,8 +95,9 @@ ideal.mem_of_mem_of_le
 /-- The smallest filter containing a given element. -/
 def principal (p : P) : pfilter P := ⟨ideal.principal p⟩
 
-@[simp] lemma mem_def (x : P) (I : ideal Pᵒᵈ) : x ∈ ({dual := I} : pfilter P) ↔
-  order_dual.to_dual x ∈ I := iff.rfl
+@[simp] lemma mem_def (x : P) (I : ideal Pᵒᵈ) :
+  x ∈ (⟨I⟩ : pfilter P) ↔ order_dual.to_dual x ∈ I :=
+iff.rfl
 
 @[simp] lemma principal_le_iff {F : pfilter P} : principal x ≤ F ↔ x ∈ F :=
 ideal.principal_le_iff

@@ -49,12 +49,8 @@ notation `I^` := cube
 
 namespace cube
 
-@[continuity] lemma proj_continuous {n} (i : fin n) : continuous (λ f : I^n, f i) :=
-begin
-  apply continuous_infi_dom,
-  rw continuous_def,
-  exact λ s H, is_open_induced_iff'.2 ⟨s, H, rfl⟩
-end
+@[continuity] lemma proj_continuous (i : fin n) : continuous (λ f : I^n, f i) :=
+continuous_apply i
 
 /--
 The points of the `n`-dimensional cube with at least one projection equal to 0 or 1.
@@ -137,11 +133,9 @@ end gen_loop
 The `n`th homotopy group at `x` defined as the quotient of `gen_loop n x` by the
 `homotopic` relation.
 -/
+@[derive inhabited]
 def homotopy_group (n : ℕ) (x : X) : Type _ := quotient (gen_loop.homotopic.setoid n x)
 local notation `π` := homotopy_group
-
-instance homotopy_group.inhabited : inhabited (π n x) :=
-{ default :=  quotient.mk' gen_loop.const }
 
 /-- The 0-dimensional generalized loops based at `x` are in 1-1 correspondence with `X`. -/
 def gen_loop_zero_equiv : gen_loop 0 x ≃ X :=

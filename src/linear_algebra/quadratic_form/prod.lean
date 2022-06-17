@@ -31,10 +31,10 @@ forms specifically.
 
 universes u v w
 variables {ι : Type*} {R : Type*} {M₁ M₂ N₁ N₂ : Type*} {Mᵢ Nᵢ : ι → Type*}
-variables [ring R]
-variables [add_comm_group M₁] [add_comm_group M₂] [add_comm_group N₁] [add_comm_group N₂]
+variables [semiring R]
+variables [add_comm_monoid M₁] [add_comm_monoid M₂] [add_comm_monoid N₁] [add_comm_monoid N₂]
 variables [module R M₁] [module R M₂] [module R N₁] [module R N₂]
-variables [Π i, add_comm_group (Mᵢ i)] [Π i, add_comm_group (Nᵢ i)]
+variables [Π i, add_comm_monoid (Mᵢ i)] [Π i, add_comm_monoid (Nᵢ i)]
 variables [Π i, module R (Mᵢ i)] [Π i, module R (Nᵢ i)]
 
 namespace quadratic_form

@@ -178,7 +178,7 @@ do t ← target,
   if deg_bou < exp_deg
   then fail sformat!"the given polynomial has a term of expected degree\nat least '{exp_deg}'"
   else
-    repeat $ target >>= resolve_sum_step (if expos then tt else ff),
+    repeat $ target >>= resolve_sum_step expos,
     gs ← get_goals,
     os ← gs.mmap infer_type >>= list.mfilter (λ e, succeeds $ unify t e),
     guard (os.length = 0) <|> fail "Goal did not change",

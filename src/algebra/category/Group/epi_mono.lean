@@ -174,6 +174,29 @@ end
 | ∞ := rfl
 end
 
+lemma from_coset_eq_of_mem_range {b : B} (hb : b ∈ f.range) :
+  from_coset ⟨b *l f.range.carrier, ⟨b, rfl⟩⟩ =
+  from_coset ⟨f.range.carrier, ⟨1, one_left_coset _⟩⟩ :=
+begin
+  congr,
+  change b *l f.range = f.range,
+  nth_rewrite 1 [show (f.range : set B) = 1 *l f.range, from (one_left_coset _).symm],
+  rw [left_coset_eq_iff, mul_one],
+  exact subgroup.inv_mem _ hb,
+end
+
+lemma from_coset_ne_of_nin_range {b : B} (hb : b ∉ f.range) :
+  from_coset ⟨b *l f.range.carrier, ⟨b, rfl⟩⟩ ≠
+  from_coset ⟨f.range.carrier, ⟨1, one_left_coset _⟩⟩ :=
+begin
+  intros r,
+  simp only [subtype.mk_eq_mk] at r,
+  change b *l f.range = f.range at r,
+  nth_rewrite 1 [show (f.range : set B) = 1 *l f.range, from (one_left_coset _).symm] at r,
+  rw [left_coset_eq_iff, mul_one] at r,
+  exact hb (inv_inv b ▸ (subgroup.inv_mem _ r)),
+end
+
 
 noncomputable instance : decidable_eq X' := classical.dec_eq _
 
@@ -318,38 +341,14 @@ begin
   rw [equiv.symm_swap],
   rw @equiv.swap_apply_of_ne_of_ne X' _
     (from_coset ⟨f.range.carrier, ⟨1, one_left_coset _⟩⟩) ∞
-    (from_coset ⟨b *l f.range.carrier, ⟨b, rfl⟩⟩) begin
-      intro r,
-      simp only [subtype.mk_eq_mk] at r,
-      change b *l f.range = f.range at r,
-      have eq1 : (f.range : set B) = 1 *l f.range,
-      { rw one_left_coset, },
-      conv_rhs at r { rw eq1 },
-      rw [left_coset_eq_iff, mul_one] at r,
-      apply hb,
-      replace r : b⁻¹⁻¹ ∈ f.range := subgroup.inv_mem _ r,
-      rwa [inv_inv] at r,
-    end begin
-      simp only [ne.def, not_false_iff],
-    end,
+    (from_coset ⟨b *l f.range.carrier, ⟨b, rfl⟩⟩)
+    (from_coset_ne_of_nin_range _ hb) (by simp),
   simp only [g_apply_from_coset, ←subtype.val_eq_coe, left_coset_assoc],
   refine equiv.swap_apply_of_ne_of_ne begin
-    intro r,
-    simp only [subtype.mk_eq_mk] at r,
-    change x * b *l f.range = f.range at r,
-    have eq1 : (f.range : set B) = 1 *l f.range,
-    { rw one_left_coset, },
-    conv_rhs at r { rw eq1 },
-    rw [left_coset_eq_iff, mul_one] at r,
-    replace r : (x * b)⁻¹⁻¹ ∈ f.range := subgroup.inv_mem _ r,
-    rw inv_inv at r,
-    apply hb,
-    replace hx : x⁻¹ ∈ f.range := subgroup.inv_mem _ hx,
-    have := subgroup.mul_mem _ hx r,
-    rwa [←mul_assoc, mul_left_inv, one_mul] at this,
-  end begin
-    simp only [ne.def, not_false_iff],
-  end,
+    refine from_coset_ne_of_nin_range _ (λ r, hb _),
+    convert subgroup.mul_mem _ (subgroup.inv_mem _ hx) r,
+    rw [←mul_assoc, mul_left_inv, one_mul],
+  end (by simp),
 end
 
 lemma agree :
@@ -373,23 +372,19 @@ begin
       { rw [h_apply_from_coset_nin_range _ _ ⟨_, rfl⟩ _ m],
         simp only [←subtype.val_eq_coe, left_coset_assoc],
         refl, }, },
-    { rw [g_apply_infinity, h_apply_infinity],
-      exact ⟨_, rfl⟩, }, },
+    { rw [g_apply_infinity, h_apply_infinity _ _ ⟨_, rfl⟩], }, },
   { rintros (hb : h b = g b),
-    have eq1 : (h b).to_fun (from_coset ⟨f.range.carrier, ⟨1, one_left_coset _⟩⟩) =
+    have eq1 : (h b) (from_coset ⟨f.range.carrier, ⟨1, one_left_coset _⟩⟩) =
       (from_coset ⟨f.range.carrier, ⟨1, one_left_coset _⟩⟩),
     { dunfold H tau,
       simp only [equiv.symm_swap, monoid_hom.coe_mk, equiv.to_fun_as_coe, equiv.coe_trans,
         function.comp_app, equiv.swap_apply_left],
       rw [g_apply_infinity, equiv.swap_apply_right], },
-    have eq2 : (g b).to_fun (from_coset ⟨f.range.carrier, ⟨1, one_left_coset _⟩⟩) =
+    have eq2 : (g b) (from_coset ⟨f.range.carrier, ⟨1, one_left_coset _⟩⟩) =
       (from_coset ⟨b *l f.range.carrier, ⟨b, rfl⟩⟩),
-    { unfold G,
-      simp only [monoid_hom.coe_mk],
-      change from_coset _ = _,
-      refl, },
-    have eq3 : (h b).to_fun (from_coset ⟨f.range.carrier, ⟨1, one_left_coset _⟩⟩) =
-      (g b).to_fun (from_coset ⟨f.range.carrier, ⟨1, one_left_coset _⟩⟩),
+    { refl },
+    have eq3 : (h b) (from_coset ⟨f.range.carrier, ⟨1, one_left_coset _⟩⟩) =
+      (g b) (from_coset ⟨f.range.carrier, ⟨1, one_left_coset _⟩⟩),
     { simp only [equiv.to_fun_as_coe, hb], },
     rw [eq1, eq2] at eq3,
     simp only [subtype.mk_eq_mk] at eq3,

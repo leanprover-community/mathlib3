@@ -2559,6 +2559,10 @@ lemma tendsto.prod_mk {f : filter α} {g : filter β} {h : filter γ} {m₁ : α
   (h₁ : tendsto m₁ f g) (h₂ : tendsto m₂ f h) : tendsto (λ x, (m₁ x, m₂ x)) f (g ×ᶠ h) :=
 tendsto_inf.2 ⟨tendsto_comap_iff.2 h₁, tendsto_comap_iff.2 h₂⟩
 
+lemma tendsto_prod_swap {α1 α2 : Type*} {a1 : filter α1} {a2 : filter α2} :
+  tendsto (prod.swap : α1 × α2 → α2 × α1) (a1 ×ᶠ a2) (a2 ×ᶠ a1) :=
+tendsto_snd.prod_mk tendsto_fst
+
 lemma eventually.prod_inl {la : filter α} {p : α → Prop} (h : ∀ᶠ x in la, p x) (lb : filter β) :
   ∀ᶠ x in la ×ᶠ lb, p (x : α × β).1 :=
 tendsto_fst.eventually h
@@ -2598,6 +2602,9 @@ begin
   obtain ⟨t, ht, s, hs, hst⟩ := eventually_prod_iff.1 h,
   apply (ht.and hs).mono (λ x hx, hst hx.1 hx.2),
 end
+
+lemma tendsto_diag : tendsto (λ i, (i, i)) f (f ×ᶠ f) :=
+tendsto_iff_eventually.mpr (λ _ hpr, hpr.diag_of_prod)
 
 lemma prod_infi_left [nonempty ι] {f : ι → filter α} {g : filter β}:
   (⨅ i, f i) ×ᶠ g = (⨅ i, (f i) ×ᶠ g) :=

@@ -271,19 +271,19 @@ variables {ι : Type*} {l : filter ι} {f f' : ι → β → α} {g g' : β → 
 
 @[to_additive] lemma tendsto_uniformly_on.mul (hf : tendsto_uniformly_on f g l s)
   (hf' : tendsto_uniformly_on f' g' l s) : tendsto_uniformly_on (f * f') (g * g') l s :=
-λ u hu, (((hf.prod hf').comp' uniform_continuous_mul) u hu).diag_of_prod
+λ u hu, ((uniform_continuous_mul.comp_tendsto_uniformly_on (hf.prod hf')) u hu).diag_of_prod
 
 @[to_additive] lemma tendsto_uniformly_on.div (hf : tendsto_uniformly_on f g l s)
   (hf' : tendsto_uniformly_on f' g' l s) : tendsto_uniformly_on (f / f') (g / g') l s :=
-λ u hu, (((hf.prod hf').comp' uniform_continuous_div) u hu).diag_of_prod
+λ u hu, ((uniform_continuous_div.comp_tendsto_uniformly_on (hf.prod hf')) u hu).diag_of_prod
 
 @[to_additive] lemma uniform_cauchy_seq_on.mul (hf : uniform_cauchy_seq_on f l s)
   (hf' : uniform_cauchy_seq_on f' l s) : uniform_cauchy_seq_on (f * f') l s :=
-λ u hu, by simpa using (((hf.prod' hf').comp' uniform_continuous_mul) u hu)
+λ u hu, by simpa using ((uniform_continuous_mul.comp_uniform_cauchy_seq_on (hf.prod' hf')) u hu)
 
 @[to_additive] lemma uniform_cauchy_seq_on.div (hf : uniform_cauchy_seq_on f l s)
   (hf' : uniform_cauchy_seq_on f' l s) : uniform_cauchy_seq_on (f / f') l s :=
-λ u hu, by simpa using (((hf.prod' hf').comp' uniform_continuous_div) u hu)
+λ u hu, by simpa using ((uniform_continuous_div.comp_uniform_cauchy_seq_on (hf.prod' hf')) u hu)
 
 end uniform_convergence
 end uniform_group

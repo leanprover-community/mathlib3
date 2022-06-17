@@ -408,7 +408,7 @@ different name for typeclass inference. -/
 def total_space := bundle.total_space X.fiber
 
 /-- The projection from the total space of a smooth fiber bundle core, on its base. -/
-@[reducible, simp, mfld_simps] def proj : X.total_space → B := bundle.proj X.fiber
+@[reducible, simp, mfld_simps] def proj : X.total_space → B := bundle.total_space.proj
 
 /-- A `smooth_fiber_bundle_core` interpreted as a `topological_fiber_bundle_core`. -/
 @[simps (mfld_cfg)]

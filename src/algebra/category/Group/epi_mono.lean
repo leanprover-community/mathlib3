@@ -210,47 +210,26 @@ local notation `τ` := tau f
 
 lemma τ_apply_infinity :
   τ ∞ = from_coset ⟨f.range.carrier, ⟨1, one_left_coset _⟩⟩ :=
-begin
-  dunfold tau,
-  rw [equiv.swap_apply_right],
-end
+equiv.swap_apply_right _ _
 
 lemma τ_apply_from_coset :
   τ (from_coset ⟨f.range.carrier, ⟨1, one_left_coset _⟩⟩) = ∞ :=
-begin
-  dunfold tau,
-  rw [equiv.swap_apply_left],
-end
+equiv.swap_apply_left _ _
 
 lemma τ_apply_from_coset' (x : B) (hx : x ∈ f.range) :
   τ (from_coset ⟨x *l f.range.carrier, ⟨x, rfl⟩⟩) = ∞ :=
 begin
-  convert τ_apply_from_coset _,
-  ext b,
-  simp only [mem_left_coset_iff, subgroup.mem_carrier, monoid_hom.mem_range],
-  rcases hx with ⟨c, rfl⟩,
-  split,
-  { rintros ⟨a, ha⟩,
-    use c * a,
-    rw [map_mul, ha, ←mul_assoc, mul_right_inv (f c), one_mul], },
-  { rintros ⟨a, rfl⟩,
-    use c⁻¹ * a,
-    rw [map_mul, map_inv], },
+  rw from_coset_eq_of_mem_range _ hx,
+  exact τ_apply_from_coset _,
 end
 
 lemma τ_symm_apply_from_coset :
   (equiv.symm τ) (from_coset ⟨f.range.carrier, ⟨1, one_left_coset _⟩⟩) = ∞ :=
-begin
-  dunfold tau,
-  rw [equiv.symm_swap, equiv.swap_apply_left],
-end
+by rw [tau, equiv.symm_swap, equiv.swap_apply_left]
 
 lemma τ_symm_apply_infinity :
   (equiv.symm τ) ∞ = from_coset ⟨f.range.carrier, ⟨1, one_left_coset _⟩⟩ :=
-begin
-  dunfold tau,
-  rw [equiv.symm_swap, equiv.swap_apply_right],
-end
+by rw [tau, equiv.symm_swap, equiv.swap_apply_right]
 
 /--
 Let `g : B ⟶ S(X')` be defined as as such that, for any `β : B`, `g(β)` is the function sending
@@ -263,7 +242,7 @@ def G : B →* SX' :=
     left_inv := λ x, by dsimp only; rw [←mul_smul, mul_left_inv, one_smul],
     right_inv := λ x, by dsimp only; rw [←mul_smul, mul_right_inv, one_smul] },
   map_one' := by ext; simp [one_smul],
-  map_mul' := λ b1 b2, by ext x; simp [mul_smul] }
+  map_mul' := λ b1 b2, by ext; simp [mul_smul] }
 
 local notation `g` := G f
 
@@ -271,7 +250,7 @@ local notation `g` := G f
 Define `h : B ⟶ S(X')` to be `τ g τ⁻¹`
 -/
 noncomputable def H : B →* SX':=
-{ to_fun := λ β, (equiv.trans (equiv.symm τ) (g β)).trans τ,
+{ to_fun := λ β, ((τ).symm.trans (g β)).trans τ,
   map_one' := by ext; simp,
   map_mul' := λ b1 b2, by ext; simp }
 
@@ -288,8 +267,7 @@ lemma g_apply_from_coset (x : B) (y : X) :
   (g x) (from_coset y) =
   from_coset ⟨x *l y, begin
     rcases y.2 with ⟨b, hb⟩,
-    rw [subtype.val_eq_coe] at hb,
-    rw [←hb, set.mem_range, left_coset_assoc],
+    rw [←subtype.val_eq_coe, ←hb, set.mem_range, left_coset_assoc],
     use x * b,
   end⟩ := rfl
 
@@ -299,8 +277,7 @@ lemma g_apply_infinity (x : B) :
 lemma h_apply_infinity (x : B) (hx : x ∈ f.range) :
   (h x) ∞ = ∞ :=
 begin
-  dunfold H,
-  simp only [monoid_hom.coe_mk, equiv.to_fun_as_coe, equiv.coe_trans, function.comp_app],
+  simp only [H, monoid_hom.coe_mk, equiv.to_fun_as_coe, equiv.coe_trans, function.comp_app],
   rw [τ_symm_apply_infinity, g_apply_from_coset],
   simpa only [←subtype.val_eq_coe] using τ_apply_from_coset' f x hx,
 end
@@ -308,43 +285,25 @@ end
 lemma h_apply_from_coset (x : B) :
   (h x) (from_coset ⟨f.range.carrier, ⟨1, one_left_coset _⟩⟩) =
   from_coset ⟨f.range.carrier, ⟨1, one_left_coset _⟩⟩ :=
-begin
-  dunfold H,
-  simp only [monoid_hom.coe_mk, equiv.to_fun_as_coe, equiv.coe_trans, function.comp_app],
-  rw [τ_symm_apply_from_coset, g_apply_infinity, τ_apply_infinity],
-end
+by simp [H, τ_symm_apply_from_coset, g_apply_infinity, τ_apply_infinity]
 
 lemma h_apply_from_coset' (x : B) (b : B) (hb : b ∈ f.range):
   (h x) (from_coset ⟨b *l f.range.carrier, ⟨b, rfl⟩⟩) =
   from_coset ⟨b *l f.range.carrier, ⟨b, rfl⟩⟩ :=
-begin
-  have eq1 : b *l (monoid_hom.range f).carrier = (monoid_hom.range f).carrier,
-  { rcases hb with ⟨a, rfl⟩,
-    ext y,
-    simp only [mem_left_coset_iff, subgroup.mem_carrier, monoid_hom.mem_range],
-    split,
-    { rintros ⟨a', ha'⟩,
-      use a * a',
-      rw [map_mul, ha', ←mul_assoc, mul_right_inv, one_mul], },
-    { rintros ⟨a', rfl⟩,
-      use a⁻¹ * a',
-      rw [map_mul, map_inv], }, },
-  convert h_apply_from_coset f x,
-end
+(from_coset_eq_of_mem_range _ hb).symm ▸ h_apply_from_coset f x
 
 lemma h_apply_from_coset_nin_range (x : B) (hx : x ∈ f.range) (b : B) (hb : b ∉ f.range) :
   (h x) (from_coset ⟨b *l f.range.carrier, ⟨b, rfl⟩⟩) =
   from_coset ⟨(x * b) *l f.range.carrier, ⟨x * b, rfl⟩⟩ :=
 begin
-  dunfold H tau,
-  simp only [monoid_hom.coe_mk, equiv.to_fun_as_coe, equiv.coe_trans, function.comp_app],
+  simp only [H, tau, monoid_hom.coe_mk, equiv.to_fun_as_coe, equiv.coe_trans, function.comp_app],
   rw [equiv.symm_swap],
   rw @equiv.swap_apply_of_ne_of_ne X' _
     (from_coset ⟨f.range.carrier, ⟨1, one_left_coset _⟩⟩) ∞
     (from_coset ⟨b *l f.range.carrier, ⟨b, rfl⟩⟩)
     (from_coset_ne_of_nin_range _ hb) (by simp),
   simp only [g_apply_from_coset, ←subtype.val_eq_coe, left_coset_assoc],
-  refine equiv.swap_apply_of_ne_of_ne begin
+  exact equiv.swap_apply_of_ne_of_ne begin
     refine from_coset_ne_of_nin_range _ (λ r, hb _),
     convert subgroup.mul_mem _ (subgroup.inv_mem _ hx) r,
     rw [←mul_assoc, mul_left_inv, one_mul],
@@ -358,48 +317,31 @@ begin
   split,
   { rintros ⟨a, rfl⟩,
     change h (f a) = g (f a),
-    ext,
-    rcases x with ⟨⟨_, ⟨y, rfl⟩⟩⟩,
+    ext ⟨⟨_, ⟨y, rfl⟩⟩⟩,
     { rw [g_apply_from_coset],
       by_cases m : y ∈ f.range,
-      { rw [h_apply_from_coset' _ _ _ m],
-        simp only [←subtype.val_eq_coe],
-        congr' 1,
-        change y *l f.range = f a *l (y *l f.range),
-        rw [left_coset_assoc, left_coset_eq_iff],
-        refine subgroup.mul_mem _ (subgroup.inv_mem _ m)
-          (subgroup.mul_mem _ ⟨a, rfl⟩ m), },
+      { rw [h_apply_from_coset' _ _ _ m, from_coset_eq_of_mem_range _ m],
+        change from_coset _ = from_coset ⟨f a *l (y *l _), _⟩,
+        simpa only [←from_coset_eq_of_mem_range _ (subgroup.mul_mem _ ⟨a, rfl⟩ m),
+          left_coset_assoc] },
       { rw [h_apply_from_coset_nin_range _ _ ⟨_, rfl⟩ _ m],
-        simp only [←subtype.val_eq_coe, left_coset_assoc],
-        refl, }, },
+        simpa only [←subtype.val_eq_coe, left_coset_assoc], }, },
     { rw [g_apply_infinity, h_apply_infinity _ _ ⟨_, rfl⟩], }, },
   { rintros (hb : h b = g b),
     have eq1 : (h b) (from_coset ⟨f.range.carrier, ⟨1, one_left_coset _⟩⟩) =
-      (from_coset ⟨f.range.carrier, ⟨1, one_left_coset _⟩⟩),
-    { dunfold H tau,
-      simp only [equiv.symm_swap, monoid_hom.coe_mk, equiv.to_fun_as_coe, equiv.coe_trans,
-        function.comp_app, equiv.swap_apply_left],
-      rw [g_apply_infinity, equiv.swap_apply_right], },
+      (from_coset ⟨f.range.carrier, ⟨1, one_left_coset _⟩⟩) := by simp [H, tau, g_apply_infinity],
     have eq2 : (g b) (from_coset ⟨f.range.carrier, ⟨1, one_left_coset _⟩⟩) =
-      (from_coset ⟨b *l f.range.carrier, ⟨b, rfl⟩⟩),
-    { refl },
-    have eq3 : (h b) (from_coset ⟨f.range.carrier, ⟨1, one_left_coset _⟩⟩) =
-      (g b) (from_coset ⟨f.range.carrier, ⟨1, one_left_coset _⟩⟩),
-    { simp only [equiv.to_fun_as_coe, hb], },
-    rw [eq1, eq2] at eq3,
-    simp only [subtype.mk_eq_mk] at eq3,
-    change (f.range : set B) = b *l f.range at eq3,
-    rwa [show (f.range : set B) = 1 *l f.range, by rw one_left_coset _,
-      left_coset_assoc, left_coset_eq_iff, inv_one, one_mul, mul_one] at eq3 }
+      (from_coset ⟨b *l f.range.carrier, ⟨b, rfl⟩⟩) := rfl,
+    by_contra r,
+    exact (from_coset_ne_of_nin_range _ r).symm (by rw [←eq1, ←eq2, fun_like.congr_fun hb]), }
 end
 
 lemma comp_eq : f ≫ (show B ⟶ Group.of SX', from g) = f ≫ h :=
 begin
   ext1 a,
-  rw [comp_apply, comp_apply],
+  simp only [comp_apply, comp_apply],
   have : f a ∈ f.range.carrier := ⟨a, rfl⟩,
-  rw agree at this,
-  simp only [set.mem_set_of_eq] at this,
+  rw [agree, set.mem_set_of_eq] at this,
   rw this,
 end
 
@@ -410,24 +352,13 @@ lemma g_ne_h (x : B) (hx : x ∉ f.range) :
   g ≠ h :=
 begin
   intros r,
-  replace r : ∀ a, (g x) a = (h x) a,
-  { intros a,
-    simp only [equiv.to_fun_as_coe, r], },
-  specialize r (from_coset ⟨f.range, ⟨1, one_left_coset _⟩⟩),
+  replace r := fun_like.congr_fun (fun_like.congr_fun r x)
+    ((from_coset ⟨f.range, ⟨1, one_left_coset _⟩⟩)),
   rw [H, g_apply_from_coset, monoid_hom.coe_mk, tau] at r,
   simp only [monoid_hom.coe_range, subtype.coe_mk, equiv.symm_swap,
     equiv.to_fun_as_coe, equiv.coe_trans, function.comp_app] at r,
-  generalize_proofs h1 h2 at r,
-  rw [show from_coset ⟨set.range f, h2⟩ = from_coset ⟨f.range.carrier, h2⟩,
-    by simpa only [subtype.mk_eq_mk], equiv.swap_apply_left, g_apply_infinity,
-    equiv.swap_apply_right] at r,
-  simp only [subtype.mk_eq_mk] at r,
-  change x *l f.range = f.range at r,
-  rw [show (f.range : set B) = 1 *l f.range, from (one_left_coset _).symm,
-    left_coset_assoc, mul_one, left_coset_eq_iff, mul_one] at r,
-  replace r := subgroup.inv_mem _ r,
-  rw inv_inv at r,
-  exact hx r,
+  erw [equiv.swap_apply_left, g_apply_infinity, equiv.swap_apply_right] at r,
+  exact from_coset_ne_of_nin_range _ hx r,
 end
 
 end surjective_of_epi_auxs
@@ -452,6 +383,5 @@ lemma epi_iff_range_eq_top :
 iff.trans (epi_iff_surjective _) (subgroup.eq_top_iff' f.range).symm
 
 end Group
-
 
 end

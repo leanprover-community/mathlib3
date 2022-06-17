@@ -232,6 +232,10 @@ instance left_rel_decidable [decidable_pred (∈ s)] :
 normal subgroup, `α ⧸ s` is a group"]
 instance : has_quotient α (subgroup α) := ⟨λ s, quotient (left_rel s)⟩
 
+instance has_quotient.quotient.fintype' (G : Type*) [group G] [fintype G] (N : subgroup G)
+  [decidable_rel (@has_equiv.equiv _ (@setoid_has_equiv _ (quotient_group.left_rel N)))] :
+fintype (G ⧸ N) := quotient.fintype _
+
 /-- The equivalence relation corresponding to the partition of a group by right cosets of a
 subgroup. -/
 @[to_additive "The equivalence relation corresponding to the partition of a group by right cosets of

@@ -721,41 +721,6 @@ lemma has_basis.coprod {ι ι' : Type*} {pa : ι → Prop} {sa : ι → set α} 
 
 end two_types
 
-open equiv
-
-lemma prod_assoc (f : filter α) (g : filter β) (h : filter γ) :
-  map (prod_assoc α β γ) ((f ×ᶠ g) ×ᶠ h) = f ×ᶠ (g ×ᶠ h) :=
-begin
-  apply ((((basis_sets f).prod $ basis_sets g).prod $ basis_sets h).map _).eq_of_same_basis,
-  simpa only [prod_assoc_image, function.comp, and_assoc] using
-    ((basis_sets f).prod $ (basis_sets g).prod $ basis_sets h).comp_equiv (prod_assoc _ _ _)
-end
-
-theorem prod_assoc_symm (f : filter α) (g : filter β) (h : filter γ) :
-map (equiv.prod_assoc α β γ).symm (f.prod (g.prod h)) = (f.prod g).prod h :=
-begin
-  apply (((basis_sets f).prod ((basis_sets g).prod $ basis_sets h)).map _).eq_of_same_basis,
-  simpa only [equiv.prod_assoc_symm_image, function.comp, and_assoc] using
-    (((basis_sets f).prod $ basis_sets g).prod $ basis_sets h).comp_equiv
-      (equiv.prod_assoc _ _ _).symm,
-end
-
-lemma tendsto_prod_assoc {f : filter α} {g : filter β} {h : filter γ} :
-  tendsto (equiv.prod_assoc α β γ) (f ×ᶠ g ×ᶠ h) (f ×ᶠ (g ×ᶠ h)) :=
-begin
-  unfold tendsto,
-  rw prod_assoc,
-  exact rfl.le,
-end
-
-lemma tendsto_prod_assoc_symm {f : filter α} {g : filter β} {h : filter γ} :
-  tendsto (equiv.prod_assoc α β γ).symm (f ×ᶠ (g ×ᶠ h)) (f ×ᶠ g ×ᶠ h) :=
-begin
-  unfold tendsto,
-  rw prod_assoc_symm,
-  exact rfl.le,
-end
-
 end filter
 
 end sort

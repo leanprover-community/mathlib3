@@ -210,25 +210,8 @@ by simp_rw [uniform.tendsto_nhds_right, tendsto_uniformly_on, mem_singleton_iff,
 lemma filter.tendsto.tendsto_uniformly_on_const
   {g : ι → β} {b : β} (hg : tendsto g p (𝓝 b)) (s : set α) :
   tendsto_uniformly_on (λ n : ι, λ a : α, g n) (λ a : α, b) p s :=
-begin
-  rcases set.eq_empty_or_nonempty s with rfl | hs,
-  { exact tendsto_uniformly_on_empty, },
-
-  intros u hu,
-  rw tendsto_iff_eventually at hg,
-  simp,
-  let p := (λ c, ∀ y : α, y ∈ s → (b, c) ∈ u),
-  have hhp : ∀ c, ( ∀ y : α, y ∈ s → (b, c) ∈ u) = p c,
-  { intros c, simp [p], },
-  have hhp' : ∀ c, ((b, c) ∈ u) = p c,
-  { cases hs with x hx,
-    intros c, simp [p],
-    exact ⟨λ h y hy, h, λ h, h x hx⟩, },
-  conv { congr, funext, rw [hhp (g n), ←hhp' (g n)], },
-  apply @hg (λ c, (b, c) ∈ u),
-  rw eventually_iff,
-  exact mem_nhds_left b hu,
-end
+λ u hu, hg.eventually
+  (eventually_of_mem (mem_nhds_left b hu) (λ x hx y hy, hx) : ∀ᶠ x in 𝓝 b, ∀ y ∈ s, (b, x) ∈ u)
 
 lemma uniform_continuous_on.tendsto_uniformly [uniform_space α] [uniform_space γ]
   {x : α} {U : set α} (hU : U ∈ 𝓝 x)
@@ -327,25 +310,11 @@ begin
   intros u hu,
   rw [uniformity_prod_eq_prod, mem_map, mem_prod_iff] at hu,
   obtain ⟨v, hv, w, hw, hvw⟩ := hu,
-  simp only [mem_prod, prod_map, and_imp, prod.forall],
-
-  -- unfold some abstract nonsense
-  let fff := (equiv.prod_assoc _ _ _)
-    ∘ (prod.map (equiv.prod_assoc _ _ _).symm id)
-    ∘ (prod.map (prod.map id prod.swap ∘ (equiv.prod_assoc _ _ _)) id)
-    ∘ (equiv.prod_assoc (ι × ι') ι ι').symm,
-  have : tendsto fff (p ×ᶠ p' ×ᶠ (p ×ᶠ p')) (p ×ᶠ p ×ᶠ (p' ×ᶠ p')),
-  { apply tendsto_prod_assoc.comp,
-    apply (tendsto_prod_assoc_symm.prod_map tendsto_id).comp,
-    refine (((tendsto_id.prod_map tendsto_prod_swap).comp tendsto_prod_assoc).prod_map
-      tendsto_id).comp tendsto_prod_assoc_symm, },
-  apply (this.eventually ((h v hv).prod_mk (h' w hw))).mono,
+  simp_rw [mem_prod, prod_map, and_imp, prod.forall],
+  rw [← set.image_subset_iff] at hvw,
+  apply (tendsto_swap4_prod.eventually ((h v hv).prod_mk (h' w hw))).mono,
   intros x hx a b ha hb,
-  rw ←set.image_subset_iff at hvw,
-  refine set.mem_of_mem_of_subset _ hvw,
-  simp only [mem_image, mem_prod, prod.mk.inj_iff, prod.exists],
-  refine ⟨_, _, _, _, ⟨hx.1 a ha, hx.2 b hb⟩, _⟩,
-  simp [fff],
+  refine hvw ⟨_, mk_mem_prod (hx.1 a ha) (hx.2 b hb), rfl⟩,
 end
 
 lemma uniform_cauchy_seq_on.prod {ι' β' : Type*} [uniform_space β'] {F' : ι' → α → β'}

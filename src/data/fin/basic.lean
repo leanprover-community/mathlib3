@@ -587,6 +587,14 @@ end
   cast_le h i.succ = (cast_le (nat.succ_le_succ_iff.mp h) i).succ :=
 by simp [fin.eq_iff_veq]
 
+@[simp] lemma cast_le_cast_le {k m n} (km : k ≤ m) (mn : m ≤ n) (i : fin k) :
+  fin.cast_le mn (fin.cast_le km i) = fin.cast_le (km.trans mn) i :=
+fin.ext (by simp only [coe_cast_le])
+
+@[simp] lemma cast_le_comp_cast_le {k m n} (km : k ≤ m) (mn : m ≤ n) :
+  fin.cast_le mn ∘ fin.cast_le km = fin.cast_le (km.trans mn) :=
+funext (cast_le_cast_le km mn)
+
 /-- `cast eq i` embeds `i` into a equal `fin` type, see also `equiv.fin_congr`. -/
 def cast (eq : n = m) : fin n ≃o fin m :=
 { to_equiv := ⟨cast_le eq.le, cast_le eq.symm.le, λ a, eq_of_veq rfl, λ a, eq_of_veq rfl⟩,
@@ -838,6 +846,11 @@ ext $ add_comm _ _
 @[simp] lemma cast_add_nat {n : ℕ} (m : ℕ) (i : fin n) :
   cast (add_comm _ _) (add_nat m i) = nat_add m i :=
 ext $ add_comm _ _
+
+@[simp] lemma nat_add_last {m n : ℕ} : nat_add n (last m) = last (n + m) := rfl
+
+lemma nat_add_cast_succ {m n : ℕ} {i : fin m} :
+  nat_add n (cast_succ i) = cast_succ (nat_add n i) := rfl
 
 end succ
 

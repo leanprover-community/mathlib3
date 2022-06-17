@@ -59,6 +59,17 @@ begin
   exact le_hitting (lower_crossing_le n x) x,
 end
 
+-- lemma le_stopped_value_upper_crossing (n : ℕ) (x : α) :
+--   stopped_value f (upper_crossing a b f N n) x = N ∨
+--   a ≤ stopped_value f (upper_crossing a b f N n) x :=
+-- begin
+--   rw or_iff_not_imp_left,
+--   intro h,
+--   rw stopped_value,
+--   simp,
+--   rw stopped_value_hitting
+-- end
+
 end upcrossing
 
 end measure_theory

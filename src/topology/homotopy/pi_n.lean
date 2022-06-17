@@ -46,8 +46,8 @@ def cube (n:nat) : Type := fin n → I
 notation `I^` := cube
 
 namespace cube
-instance topology {n} : topological_space (I^n) :=
-  Pi.topological_space
+
+instance topology {n} : topological_space (I^n) := Pi.topological_space
 
 @[continuity] lemma proj_continuous {n} (i:fin n) : continuous (λ (f:I^n), f i) :=
 begin
@@ -61,7 +61,7 @@ end
 The points of the nth dimensional cube with a projection set to 0 or 1
 -/
 def boundary (n:nat) : set (I^n) :=
-  { y | ∃ i:fin n , y i = 0 ∨ y i = 1}
+{ y | ∃ i:fin n , y i = 0 ∨ y i = 1}
 
 /--
 The first projection of a non-zero dimensional cube
@@ -76,13 +76,13 @@ The projection to the last n coordinates from an n+1 dimensional cube
 @[simp] def tail {n} : I^(n+1) → I^n := λ c, fin.tail c
 
 instance unique_cube0 : unique (I^0) :=
-  { default := 0, uniq := by {intro a, ext1, exact x.elim0} }
+{ default := 0, uniq := by {intro a, ext1, exact x.elim0} }
 
 lemma one_indep {α} (f : fin 1 → α) (i j : fin 1) : f i = f j :=
-  by rw subsingleton.elim i j
+by rw subsingleton.elim i j
 
 lemma one_char {α} (x : fin 1 → α) : x = λ _, x 0 :=
-  by { ext, apply one_indep }
+by { ext, apply one_indep }
 
 end cube
 
@@ -90,17 +90,17 @@ end cube
 The nth dimensional generalized loops; functions `I^n → X` fixed at the boundary
 -/
 structure gen_loop (n : nat) (x : X) extends C(I^n,X) :=
-  (boundary : ∀ y ∈ cube.boundary n, to_fun y = x )
+(boundary : ∀ y ∈ cube.boundary n, to_fun y = x )
 
 namespace gen_loop
 
 instance fun_like : fun_like (gen_loop n x) (I^n) (λ _, X) :=
-  { coe := λ f, f.1,
-    coe_injective' :=
-    begin
-      intros f g hfg, cases f, cases g,
-      congr, ext1, exact congr_fun hfg _,
-    end }
+{ coe := λ f, f.1,
+  coe_injective' :=
+  begin
+    intros f g hfg, cases f, cases g,
+    congr, ext1, exact congr_fun hfg _,
+  end }
 
 @[ext] lemma ext (f g : gen_loop n x) (H : ∀ y, f y = g y) : f = g := fun_like.ext f g H
 
@@ -112,32 +112,32 @@ The constant `gen_loop` at x
 def const : gen_loop n x := ⟨⟨λ_x,by continuity⟩,λ_ _,rfl⟩
 
 instance inhabited : inhabited (gen_loop n x) :=
-  { default := const }
+{ default := const }
 
 /--
 Boundary-preserving homotopic relation between `gen_loop`s
 -/
 def homotopic (f g : gen_loop n x) : Prop :=
-  f.to_continuous_map.homotopic_rel g.to_continuous_map (cube.boundary n)
+f.to_continuous_map.homotopic_rel g.to_continuous_map (cube.boundary n)
 
 namespace homotopic
 section
 variables {f g h : gen_loop n x}
 
 @[refl] lemma refl (f : gen_loop n x) : homotopic f f :=
-  ⟨continuous_map.homotopy_rel.refl _ _⟩
+⟨continuous_map.homotopy_rel.refl _ _⟩
 
 @[symm] lemma symm (H : f.homotopic g) : g.homotopic f :=
-  H.map continuous_map.homotopy_rel.symm
+H.map continuous_map.homotopy_rel.symm
 
 @[trans] lemma trans (H0 : f.homotopic g) (H1 : g.homotopic h) : f.homotopic h :=
-  H0.map2 continuous_map.homotopy_rel.trans H1
+H0.map2 continuous_map.homotopy_rel.trans H1
 
 lemma equiv : equivalence (@homotopic X _ n x) :=
-  ⟨homotopic.refl, λ _ _, homotopic.symm, λ _ _ _, homotopic.trans⟩
+⟨homotopic.refl, λ _ _, homotopic.symm, λ _ _ _, homotopic.trans⟩
 
 instance setoid (n : nat) (x : X) : setoid (gen_loop n x) :=
-  ⟨homotopic, equiv⟩
+⟨homotopic, equiv⟩
 
 end
 end homotopic
@@ -152,7 +152,7 @@ def homotopy_group (n : nat) (x : X) : Type _ := quotient (gen_loop.homotopic.se
 notation `π` := homotopy_group
 
 instance homotopy_group.inhabited : inhabited (π n x) :=
-  { default :=  quotient.mk' gen_loop.const }
+{ default :=  quotient.mk' gen_loop.const }
 
 /--
 The 0th homotopy "group" is equivalent to the path components of `X`, aka the `zeroth_homotopy`

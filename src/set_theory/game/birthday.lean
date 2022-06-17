@@ -29,6 +29,8 @@ open ordinal
 
 namespace pgame
 
+local infix ` ≡r `:50 := relabelling
+
 /-- The birthday of a pre-game is inductively defined as the least strict upper bound of the
 birthdays of its left and right games. It may be thought as the "step" in which a certain game is
 constructed. -/
@@ -66,7 +68,7 @@ begin
     { exact hi.trans_lt (birthday_move_right_lt i) } }
 end
 
-theorem relabelling.birthday_congr : ∀ {x y : pgame.{u}}, relabelling x y → birthday x = birthday y
+theorem relabelling.birthday_congr : ∀ {x y : pgame.{u}}, x ≡r y → birthday x = birthday y
 | ⟨xl, xr, xL, xR⟩ ⟨yl, yr, yL, yR⟩ ⟨L, R, hL, hR⟩ := begin
   rw [birthday, birthday],
   congr' 1,
@@ -75,7 +77,7 @@ theorem relabelling.birthday_congr : ∀ {x y : pgame.{u}}, relabelling x y → 
     ext i,
     split },
   { rintro ⟨j, rfl⟩,
-    exact ⟨L j, (relabelling.birthday_congr (hL j)).symm⟩ },
+    exact ⟨L j, (hL j).birthday_congr.symm⟩ },
   { rintro ⟨j, rfl⟩,
     refine ⟨L.symm j, relabelling.birthday_congr _⟩,
     convert hL (L.symm j),
@@ -85,7 +87,7 @@ theorem relabelling.birthday_congr : ∀ {x y : pgame.{u}}, relabelling x y → 
     convert hR (R j),
     rw R.symm_apply_apply },
   { rintro ⟨j, rfl⟩,
-    exact ⟨R.symm j, relabelling.birthday_congr (hR j)⟩ }
+    exact ⟨R.symm j, (hR j).birthday_congr⟩ }
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 

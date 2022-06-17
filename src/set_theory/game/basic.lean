@@ -27,6 +27,7 @@ universes u
 
 local infix ` ≈ ` := pgame.equiv
 local infix ` ⧏ `:50 := pgame.lf
+local infix ` ≡r `:50 := pgame.relabelling
 
 instance pgame.setoid : setoid pgame :=
 ⟨(≈), equiv_refl, @pgame.equiv.symm, @pgame.equiv.trans⟩
@@ -265,32 +266,29 @@ using_well_founded { dec_tac := pgame_wf_tac }
 theorem mul_comm_equiv (x y : pgame) : x * y ≈ y * x :=
 quotient.exact $ quot_mul_comm _ _
 
+instance is_empty_mul_zero_left_moves (x : pgame.{u}) : is_empty (x * 0).left_moves :=
+by { cases x, apply sum.is_empty }
+instance is_empty_mul_zero_right_moves (x : pgame.{u}) : is_empty (x * 0).right_moves :=
+by { cases x, apply sum.is_empty }
+instance is_empty_zero_mul_left_moves (x : pgame.{u}) : is_empty (0 * x).left_moves :=
+by { cases x, apply sum.is_empty }
+instance is_empty_zero_mul_right_moves (x : pgame.{u}) : is_empty (0 * x).right_moves :=
+by { cases x, apply sum.is_empty }
+
 /-- `x * 0` has exactly the same moves as `0`. -/
-def mul_zero_relabelling : Π (x : pgame), relabelling (x * 0) 0
-| (mk xl xr xL xR) :=
-⟨by fsplit; rintro (⟨_,⟨⟩⟩ | ⟨_,⟨⟩⟩),
- by fsplit; rintro (⟨_,⟨⟩⟩ | ⟨_,⟨⟩⟩),
- by rintro (⟨_,⟨⟩⟩ | ⟨_,⟨⟩⟩),
- by rintro ⟨⟩⟩
+def mul_zero_relabelling (x : pgame) : x * 0 ≡r 0 := relabelling.is_empty _
 
 /-- `x * 0` is equivalent to `0`. -/
-theorem mul_zero_equiv (x : pgame) : x * 0 ≈ 0 :=
-(mul_zero_relabelling x).equiv
+theorem mul_zero_equiv (x : pgame) : x * 0 ≈ 0 := (mul_zero_relabelling x).equiv
 
 @[simp] theorem quot_mul_zero (x : pgame) : ⟦x * 0⟧ = ⟦0⟧ :=
 @quotient.sound _ _ (x * 0) _ x.mul_zero_equiv
 
 /-- `0 * x` has exactly the same moves as `0`. -/
-def zero_mul_relabelling : Π (x : pgame), relabelling (0 * x) 0
-| (mk xl xr xL xR) :=
-⟨by fsplit; rintro (⟨⟨⟩,_⟩ | ⟨⟨⟩,_⟩),
- by fsplit; rintro (⟨⟨⟩,_⟩ | ⟨⟨⟩,_⟩),
- by rintro (⟨⟨⟩,_⟩ | ⟨⟨⟩,_⟩),
- by rintro ⟨⟩⟩
+def zero_mul_relabelling (x : pgame) : 0 * x ≡r 0 := relabelling.is_empty _
 
 /-- `0 * x` is equivalent to `0`. -/
-theorem zero_mul_equiv (x : pgame) : 0 * x ≈ 0 :=
-(zero_mul_relabelling x).equiv
+theorem zero_mul_equiv (x : pgame) : 0 * x ≈ 0 := (zero_mul_relabelling x).equiv
 
 @[simp] theorem quot_zero_mul (x : pgame) : ⟦0 * x⟧ = ⟦0⟧ :=
 @quotient.sound _ _ (0 * x) _ x.zero_mul_equiv
@@ -551,9 +549,9 @@ theorem zero_lf_inv' : ∀ (x : pgame), 0 ⧏ inv' x
 | ⟨xl, xr, xL, xR⟩ := by { convert lf_mk _ _ inv_ty.zero, refl }
 
 /-- `inv' 0` has exactly the same moves as `1`. -/
-def inv'_zero : relabelling (inv' 0) 1 :=
+def inv'_zero : inv' 0 ≡r 1 :=
 begin
-  change relabelling (mk _ _ _ _) 1,
+  change mk _ _ _ _ ≡r 1,
   refine ⟨_, _, λ i, _, is_empty_elim⟩; dsimp,
   { apply equiv.equiv_punit },
   { apply equiv.equiv_pempty },
@@ -563,7 +561,7 @@ end
 theorem inv'_zero_equiv : inv' 0 ≈ 1 := inv'_zero.equiv
 
 /-- `inv' 1` has exactly the same moves as `1`. -/
-def inv'_one : relabelling (inv' 1) (1 : pgame.{u}) :=
+def inv'_one : inv' 1 ≡r (1 : pgame.{u}) :=
 begin
   change relabelling (mk _ _ _ _) 1,
   haveI : is_empty {i : punit.{u+1} // (0 : pgame.{u}) < 0},
@@ -594,9 +592,9 @@ theorem inv_eq_of_lf_zero {x : pgame} (h : x ⧏ 0) : x⁻¹ = -inv' (-x) :=
 (if_neg h.not_equiv).trans (if_neg h.not_gt)
 
 /-- `1⁻¹` has exactly the same moves as `1`. -/
-def inv_one : relabelling (1 : pgame)⁻¹ 1 :=
+def inv_one : 1⁻¹ ≡r 1 :=
 by { rw inv_eq_of_pos zero_lt_one, exact inv'_one }
 
-theorem inv_one_equiv : (1 : pgame)⁻¹ ≈ 1 := inv_one.equiv
+theorem inv_one_equiv : 1⁻¹ ≈ 1 := inv_one.equiv
 
 end pgame

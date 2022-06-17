@@ -26,8 +26,6 @@ open_locale topological_space filter
 
 variables {X Y : Type*}
 
-local notation x ` ⟶ ` p := tendsto x at_top (𝓝 p)
-
 /-! ### Sequential closures, sequential continuity, and sequential spaces. -/
 section topological_space
 variables [topological_space X] [topological_space Y]
@@ -35,36 +33,36 @@ variables [topological_space X] [topological_space Y]
 /-- The sequential closure of a set `s : set X` in a topological space `X` is
 the set of all `a : X` which arise as limit of sequences in `s`. -/
 def seq_closure (s : set X) : set X :=
-{a | ∃ x : ℕ → X, (∀ n : ℕ, x n ∈ s) ∧ (x ⟶ a)}
+{a | ∃ x : ℕ → X, (∀ n : ℕ, x n ∈ s) ∧ (tendsto x at_top (𝓝 a))}
 
-lemma subset_seq_closure {s : set α} : s ⊆ seq_closure s :=
+lemma subset_seq_closure {s : set X} : s ⊆ seq_closure s :=
 λ p hp, ⟨const ℕ p, λ _, hp, tendsto_const_nhds⟩
 
 /-- The sequential closure of a set is contained in the closure of that set.
 The converse is not true. -/
-lemma seq_closure_subset_closure {s : set α} : seq_closure s ⊆ closure s :=
+lemma seq_closure_subset_closure {s : set X} : seq_closure s ⊆ closure s :=
 λ p ⟨x, xM, xp⟩, mem_closure_of_tendsto xp (univ_mem' xM)
 
 /-- A set `s` is sequentially closed if for any converging sequence `x n` of elements of `s`,
 the limit belongs to `s` as well. -/
-def is_seq_closed (s : set α) : Prop :=
-∀ ⦃x : ℕ → α⦄ ⦃p : α⦄, (∀ n, x n ∈ s) → (x ⟶ p) → p ∈ s
+def is_seq_closed (s : set X) : Prop :=
+∀ ⦃x : ℕ → X⦄ ⦃p : X⦄, (∀ n, x n ∈ s) → (tendsto x at_top (𝓝 p)) → p ∈ s
 
 /-- The sequential closure of a sequentially closed set is the set itself. -/
-lemma is_seq_closed.seq_closure_eq {s : set α} (hs : is_seq_closed s) :
+lemma is_seq_closed.seq_closure_eq {s : set X} (hs : is_seq_closed s) :
   seq_closure s = s :=
 subset.antisymm (λ p ⟨x, hx, hp⟩, hs hx hp) subset_seq_closure
 
 /-- A set is sequentially closed if it is closed. -/
-protected lemma is_closed.is_seq_closed {s : set α} (hc : is_closed s) : is_seq_closed s :=
+protected lemma is_closed.is_seq_closed {s : set X} (hc : is_closed s) : is_seq_closed s :=
 λ u x hu hx, hc.mem_of_tendsto hx (eventually_of_forall hu)
 
 /-- A topological space is called a *Fréchet-Urysohn space*, if the sequential closure of any set
 is equal to its closure. -/
-class frechet_urysohn_space (α : Type*) [topological_space α] : Prop :=
-(closure_subset_seq_closure : ∀ s : set α, closure s ⊆ seq_closure s)
+class frechet_urysohn_space (X : Type*) [topological_space X] : Prop :=
+(closure_subset_seq_closure : ∀ s : set X, closure s ⊆ seq_closure s)
 
-lemma seq_closure_eq_closure [frechet_urysohn_space α] (s : set α) :
+lemma seq_closure_eq_closure [frechet_urysohn_space X] (s : set X) :
   seq_closure s = closure s :=
 seq_closure_subset_closure.antisymm $ frechet_urysohn_space.closure_subset_seq_closure s
 
@@ -74,8 +72,8 @@ that works for any pair of filters assuming that the filter in the domain is cou
 
 This property is equivalent to the definition of `frechet_urysohn_space`, see
 `frechet_urysohn_space.of_seq_tendsto_imp_tendsto`. -/
-lemma tendsto_nhds_iff_seq_tendsto [frechet_urysohn_space α] {f : α → β} {a : α} {b : β} :
-  tendsto f (𝓝 a) (𝓝 b) ↔ ∀ u : ℕ → α, (u ⟶ a) → (f ∘ u ⟶ b) :=
+lemma tendsto_nhds_iff_seq_tendsto [frechet_urysohn_space X] {f : X → Y} {a : X} {b : Y} :
+  tendsto f (𝓝 a) (𝓝 b) ↔ ∀ u : ℕ → X, (tendsto u at_top (𝓝 a)) → (tendsto (f ∘ u) at_top (𝓝 b)) :=
 begin
   refine ⟨λ hf u hu, hf.comp hu,
     λ h, ((nhds_basis_closeds _).tendsto_iff (nhds_basis_closeds _)).2 _⟩,
@@ -89,8 +87,9 @@ end
 /-- An alternative construction for `frechet_urysohn_space`: if sequential convergence implies
 convergence, then the space is a Fréchet-Urysohn space. -/
 lemma frechet_urysohn_space.of_seq_tendsto_imp_tendsto
-  (h : ∀ (f : α → Prop) (a : α), (∀ u : ℕ → α, (u ⟶ a) → (f ∘ u ⟶ f a)) → continuous_at f a) :
-  frechet_urysohn_space α :=
+  (h : ∀ (f : X → Prop) (a : X),
+    (∀ u : ℕ → X, tendsto u at_top (𝓝 a) → tendsto (f ∘ u) at_top (𝓝 (f a))) → continuous_at f a) :
+  frechet_urysohn_space X :=
 begin
   refine ⟨λ s x hcx, _⟩,
   specialize h (∉ s) x,
@@ -107,66 +106,66 @@ end
 /-- Every first-countable space is a Fréchet-Urysohn space. -/
 @[priority 100] -- see Note [lower instance priority]
 instance topological_space.first_countable_topology.frechet_urysohn_space
-  [first_countable_topology α] : frechet_urysohn_space α :=
+  [first_countable_topology X] : frechet_urysohn_space X :=
 frechet_urysohn_space.of_seq_tendsto_imp_tendsto $ λ f a, tendsto_iff_seq_tendsto.2
 
 /-- A sequential space is a space in which 'sequences are enough to probe the topology'. This can be
  formalised by demanding that the sequential closure and the closure coincide. The following
  statements show that other topological properties can be deduced from sequences in sequential
  spaces. -/
-class sequential_space (α : Type*) [topological_space α] : Prop :=
-(is_closed_of_seq : ∀ s : set α, is_seq_closed s → is_closed s)
+class sequential_space (X : Type*) [topological_space X] : Prop :=
+(is_closed_of_seq : ∀ s : set X, is_seq_closed s → is_closed s)
 
 /-- Every Fréchet-Urysohn space is a sequential space. -/
 @[priority 100] -- see Note [lower instance priority]
-instance frechet_urysohn_space.to_sequential_space [frechet_urysohn_space α] :
-  sequential_space α :=
+instance frechet_urysohn_space.to_sequential_space [frechet_urysohn_space X] :
+  sequential_space X :=
 ⟨λ s hs, by rw [← closure_eq_iff_is_closed, ← seq_closure_eq_closure, hs.seq_closure_eq]⟩
 
 /-- In a sequential space, a sequentially closed set is closed. -/
-protected lemma is_seq_closed.is_closed [sequential_space α] {s : set α} (hs : is_seq_closed s) :
+protected lemma is_seq_closed.is_closed [sequential_space X] {s : set X} (hs : is_seq_closed s) :
   is_closed s :=
 sequential_space.is_closed_of_seq s hs
 
 /-- In a sequential space, a set is closed iff it's sequentially closed. -/
-lemma is_seq_closed_iff_is_closed [sequential_space α] {M : set α} :
+lemma is_seq_closed_iff_is_closed [sequential_space X] {M : set X} :
   is_seq_closed M ↔ is_closed M :=
 ⟨is_seq_closed.is_closed, is_closed.is_seq_closed⟩
 
 /-- A function between topological spaces is sequentially continuous if it commutes with limit of
  convergent sequences. -/
-def seq_continuous (f : α → β) : Prop :=
-∀ ⦃x : ℕ → α⦄ ⦃p : α⦄, (x ⟶ p) → (f ∘ x ⟶ f p)
+def seq_continuous (f : X → Y) : Prop :=
+∀ ⦃x : ℕ → X⦄ ⦃p : X⦄, tendsto x at_top (𝓝 p) → tendsto (f ∘ x) at_top (𝓝 (f p))
 
 /-- The preimage of a sequentially closed set under a sequentially continuous map is sequentially
 closed. -/
-lemma is_seq_closed.preimage {f : α → β} {s : set β} (hs : is_seq_closed s)
+lemma is_seq_closed.preimage {f : X → Y} {s : set Y} (hs : is_seq_closed s)
   (hf : seq_continuous f) :
   is_seq_closed (f ⁻¹' s) :=
 λ x p hx hp, hs hx (hf hp)
 
 /- A continuous function is sequentially continuous. -/
-protected lemma continuous.seq_continuous {f : α → β} (hf : continuous f) :
+protected lemma continuous.seq_continuous {f : X → Y} (hf : continuous f) :
   seq_continuous f :=
 λ x p hx, (hf.tendsto p).comp hx
 
 /-- A sequentially continuous function defined on a sequential space is continuous. -/
-protected lemma seq_continuous.continuous [sequential_space α] {f : α → β} (hf : seq_continuous f) :
+protected lemma seq_continuous.continuous [sequential_space X] {f : X → Y} (hf : seq_continuous f) :
   continuous f :=
 continuous_iff_is_closed.mpr $ λ s hs, (hs.is_seq_closed.preimage hf).is_closed
 
 /-- If the domain of a function is a sequential space, then continuity of this function is
 equivalent to its sequential continuity. -/
-lemma continuous_iff_seq_continuous [sequential_space α] {f : α → β} :
+lemma continuous_iff_seq_continuous [sequential_space X] {f : X → Y} :
   continuous f ↔ seq_continuous f :=
 ⟨continuous.seq_continuous, seq_continuous.continuous⟩
 
-lemma quotient_map.sequential_space [sequential_space α] {f : α → β} (hf : quotient_map f) :
-  sequential_space β :=
+lemma quotient_map.sequential_space [sequential_space X] {f : X → Y} (hf : quotient_map f) :
+  sequential_space Y :=
 ⟨λ s hs, hf.is_closed_preimage.mp $ (hs.preimage $ hf.continuous.seq_continuous).is_closed⟩
 
 /-- The quotient of a sequential space is a sequential space. -/
-instance [sequential_space α] {s : setoid α} : sequential_space (quotient s) :=
+instance [sequential_space X] {s : setoid X} : sequential_space (quotient s) :=
 quotient_map_quot_mk.sequential_space
 
 end topological_space
@@ -177,8 +176,8 @@ variables [topological_space X]
 
 /-- A set `s` is sequentially compact if every sequence taking values in `s` has a
 converging subsequence. -/
-def is_seq_compact (s : set α) :=
-∀ ⦃u : ℕ → α⦄, (∀ n, u n ∈ s) → ∃ (x ∈ s) (φ : ℕ → ℕ), strict_mono φ ∧ tendsto (u ∘ φ) at_top (𝓝 x)
+def is_seq_compact (s : set X) :=
+∀ ⦃u : ℕ → X⦄, (∀ n, u n ∈ s) → ∃ (x ∈ s) (φ : ℕ → ℕ), strict_mono φ ∧ tendsto (u ∘ φ) at_top (𝓝 x)
 
 /-- A space `X` is sequentially compact if every sequence in `X` has a
 converging subsequence. -/
@@ -187,11 +186,11 @@ class seq_compact_space (X : Type*) [topological_space X] : Prop :=
 
 lemma is_seq_compact.subseq_of_frequently_in {s : set X} (hs : is_seq_compact s) {x : ℕ → X}
   (hx : ∃ᶠ n in at_top, x n ∈ s) :
-  ∃ (a ∈ s) (φ : ℕ → ℕ), strict_mono φ ∧ (x ∘ φ ⟶ a) :=
+  ∃ (a ∈ s) (φ : ℕ → ℕ), strict_mono φ ∧ tendsto (x ∘ φ) at_top (𝓝 a) :=
 let ⟨ψ, hψ, huψ⟩ := extraction_of_frequently_at_top hx, ⟨a, a_in, φ, hφ, h⟩ := hs huψ in
 ⟨a, a_in, ψ ∘ φ, hψ.comp hφ, h⟩
 
-lemma seq_compact_space.tendsto_subseq [seq_compact_space α] (u : ℕ → α) :
+lemma seq_compact_space.tendsto_subseq [seq_compact_space X] (u : ℕ → X) :
   ∃ x (φ : ℕ → ℕ), strict_mono φ ∧ tendsto (u ∘ φ) at_top (𝓝 x) :=
 let ⟨x, _, φ, mono, h⟩ := seq_compact_space.seq_compact_univ (λ n, mem_univ (u n)) in
 ⟨x, φ, mono, h⟩
@@ -200,17 +199,17 @@ section first_countable_topology
 variables [first_countable_topology X]
 open topological_space.first_countable_topology
 
-protected lemma is_compact.is_seq_compact {s : set α} (hs : is_compact s) : is_seq_compact s :=
+protected lemma is_compact.is_seq_compact {s : set X} (hs : is_compact s) : is_seq_compact s :=
 λ u u_in,
 let ⟨x, x_in, hx⟩ := @hs (map u at_top) _ (le_principal_iff.mpr (mem_map.2 $ univ_mem' u_in))
 in ⟨x, x_in, tendsto_subseq hx⟩
 
-lemma is_compact.tendsto_subseq' {s : set α} {u : ℕ → α} (hs : is_compact s)
+lemma is_compact.tendsto_subseq' {s : set X} {u : ℕ → X} (hs : is_compact s)
   (hu : ∃ᶠ n in at_top, u n ∈ s) :
   ∃ (x ∈ s) (φ : ℕ → ℕ), strict_mono φ ∧ tendsto (u ∘ φ) at_top (𝓝 x) :=
 hs.is_seq_compact.subseq_of_frequently_in hu
 
-lemma is_compact.tendsto_subseq {s : set α} {u : ℕ → α} (hs : is_compact s) (hu : ∀ n, u n ∈ s) :
+lemma is_compact.tendsto_subseq {s : set X} {u : ℕ → X} (hs : is_compact s) (hu : ∀ n, u n ∈ s) :
   ∃ (x ∈ s) (φ : ℕ → ℕ), strict_mono φ ∧ tendsto (u ∘ φ) at_top (𝓝 x) :=
 hs.is_seq_compact hu
 
@@ -219,7 +218,7 @@ instance first_countable_topology.seq_compact_of_compact [compact_space X] : seq
 ⟨compact_univ.is_seq_compact⟩
 
 lemma compact_space.tendsto_subseq [compact_space X] (x : ℕ → X) :
-  ∃ a (φ : ℕ → ℕ), strict_mono φ ∧ (x ∘ φ ⟶ a) :=
+  ∃ a (φ : ℕ → ℕ), strict_mono φ ∧ tendsto (x ∘ φ) at_top (𝓝 a) :=
 seq_compact_space.tendsto_subseq x
 
 end first_countable_topology
@@ -232,9 +231,9 @@ open uniform_space prod
 
 variables [uniform_space X] {s : set X}
 
-lemma is_seq_compact.exists_tendsto_of_frequently_mem (hs : is_seq_compact s) {u : ℕ → β}
+lemma is_seq_compact.exists_tendsto_of_frequently_mem (hs : is_seq_compact s) {u : ℕ → X}
   (hu : ∃ᶠ n in at_top, u n ∈ s) (huc : cauchy_seq u) :
-  ∃ x ∈ s, u ⟶ x :=
+  ∃ x ∈ s, tendsto u at_top (𝓝 x) :=
 begin
   rcases hs.subseq_of_frequently_in hu with ⟨x, hxs, φ, φ_mono, hx⟩,
   refine ⟨x, hxs, le_nhds_of_cauchy_adhp huc ((cluster_pt.of_le_nhds hx).mono _)⟩,
@@ -242,8 +241,8 @@ begin
   exact map_mono φ_mono.tendsto_at_top
 end
 
-lemma is_seq_compact.exists_tendsto (hs : is_seq_compact s) {u : ℕ → β} (hu : ∀ n, u n ∈ s)
-  (huc : cauchy_seq u) : ∃ x ∈ s, u ⟶ x :=
+lemma is_seq_compact.exists_tendsto (hs : is_seq_compact s) {u : ℕ → X} (hu : ∀ n, u n ∈ s)
+  (huc : cauchy_seq u) : ∃ x ∈ s, tendsto u at_top (𝓝 x) :=
 hs.exists_tendsto_of_frequently_mem (frequently_of_forall hu) huc
 
 /-- A sequentially compact set in a uniform space is totally bounded. -/
@@ -261,7 +260,7 @@ begin
   exact hu (φ $ N + 1) (φ N) (hφ $ lt_add_one N) (hN (N + 1) N N.le_succ le_rfl)
 end
 
-variables [is_countably_generated (𝓤 β)]
+variables [is_countably_generated (𝓤 X)]
 
 /-- A sequentially compact set in a uniform set with countably generated uniformity filter
 is complete. -/
@@ -307,8 +306,8 @@ compact_iff_totally_bounded_complete.2 ⟨hs.totally_bounded, hs.is_complete⟩
 protected lemma uniform_space.compact_iff_seq_compact : is_compact s ↔ is_seq_compact s :=
 ⟨λ H, H.is_seq_compact, λ H, H.is_compact⟩
 
-lemma uniform_space.compact_space_iff_seq_compact_space : compact_space β ↔ seq_compact_space β :=
-have key : is_compact (univ : set β) ↔ is_seq_compact univ := uniform_space.compact_iff_seq_compact,
+lemma uniform_space.compact_space_iff_seq_compact_space : compact_space X ↔ seq_compact_space X :=
+have key : is_compact (univ : set X) ↔ is_seq_compact univ := uniform_space.compact_iff_seq_compact,
 ⟨λ ⟨h⟩, ⟨key.mp h⟩, λ ⟨h⟩, ⟨key.mpr h⟩⟩
 
 end uniform_space_seq_compact
@@ -330,7 +329,7 @@ every bounded sequence has a converging subsequence. This version assumes only
 that the sequence is frequently in some bounded set. -/
 lemma tendsto_subseq_of_frequently_bounded (hs : bounded s)
   {x : ℕ → X} (hx : ∃ᶠ n in at_top, x n ∈ s) :
-  ∃ a ∈ closure s, ∃ φ : ℕ → ℕ, strict_mono φ ∧ (x ∘ φ ⟶ a) :=
+  ∃ a ∈ closure s, ∃ φ : ℕ → ℕ, strict_mono φ ∧ tendsto (x ∘ φ) at_top (𝓝 a) :=
 have hcs : is_seq_compact (closure s), from hs.is_compact_closure.is_seq_compact,
 have hu' : ∃ᶠ n in at_top, x n ∈ closure s, from hx.mono (λ n hn, subset_closure hn),
 hcs.subseq_of_frequently_in hu'
@@ -338,7 +337,7 @@ hcs.subseq_of_frequently_in hu'
 /-- A version of Bolzano-Weistrass: in a proper metric space (eg. $ℝ^n$),
 every bounded sequence has a converging subsequence. -/
 lemma tendsto_subseq_of_bounded (hs : bounded s) {x : ℕ → X} (hx : ∀ n, x n ∈ s) :
-  ∃ a ∈ closure s, ∃ φ : ℕ → ℕ, strict_mono φ ∧ (x ∘ φ ⟶ a) :=
+  ∃ a ∈ closure s, ∃ φ : ℕ → ℕ, strict_mono φ ∧ tendsto (x ∘ φ) at_top (𝓝 a) :=
 tendsto_subseq_of_frequently_bounded hs $ frequently_of_forall hx
 
 end metric_seq_compact

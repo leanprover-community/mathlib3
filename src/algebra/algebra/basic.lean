@@ -1299,7 +1299,7 @@ def to_rat_alg_hom [ring R] [ring S] [algebra ℚ R] [algebra ℚ S] (f : R →+
 
 @[simp]
 lemma to_rat_alg_hom_to_ring_hom [ring R] [ring S] [algebra ℚ R] [algebra ℚ S]
-  (f : R →+* S) : f.to_rat_alg_hom.to_ring_hom = f :=
+  (f : R →+* S) : ↑f.to_rat_alg_hom = f :=
 ring_hom.ext (by {intro x, refl, })
 
 end ring_hom
@@ -1313,13 +1313,14 @@ lemma alg_hom.to_ring_hom_to_rat_alg_hom [ring R] [ring S] [algebra ℚ R] [alge
   (f : R →ₐ[ℚ] S) : f.to_ring_hom.to_rat_alg_hom = f :=
 alg_hom.ext (by {intro x, refl, })
 
+/-- The equivalence between `ring_hom` and `ℚ`-algebra homomorphisms. -/
 @[simps]
 def ring_hom.equiv_rat_alg_hom [ring R] [ring S] [algebra ℚ R] [algebra ℚ S] :
-  (R →ₐ[ℚ] S) ≃ (R →+* S) :=
-{ to_fun := coe,
-  inv_fun := λ f : R →+* S, f.to_rat_alg_hom,
-  left_inv := alg_hom.to_ring_hom_to_rat_alg_hom,
-  right_inv := ring_hom.to_rat_alg_hom_to_ring_hom, }
+  (R →+* S) ≃ (R →ₐ[ℚ] S) :=
+{ to_fun := ring_hom.to_rat_alg_hom,
+  inv_fun := alg_hom.to_ring_hom,
+  left_inv := ring_hom.to_rat_alg_hom_to_ring_hom,
+  right_inv := alg_hom.to_ring_hom_to_rat_alg_hom, }
 
 end
 

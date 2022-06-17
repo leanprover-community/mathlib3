@@ -55,7 +55,7 @@ rfl
 
 lemma symm_diff_eq_xor (p q : Prop) : p ∆ q = xor p q := rfl
 
-lemma bool.symm_diff_eq_bxor : ∀ p q : bool, p ∆ q = bxor p q := dec_trivial
+@[simp] lemma bool.symm_diff_eq_bxor : ∀ p q : bool, p ∆ q = bxor p q := dec_trivial
 
 section generalized_boolean_algebra
 variables {α : Type*} [generalized_boolean_algebra α] (a b c d : α)

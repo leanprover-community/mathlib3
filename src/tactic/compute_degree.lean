@@ -208,7 +208,7 @@ meta def guess_degree : expr → tactic expr
                               pure $ expr.mk_app `((*) : ℕ → ℕ → ℕ) [da, b]
 | (app `(⇑(polynomial.monomial %%n)) x) := pure n
 | e                        := do `(@polynomial %%R %%inst) ← infer_type e,
-                              pe ← to_expr ``(polynomial.nat_degree) tt ff,
+                              pe ← to_expr ``(@polynomial.nat_degree %%R %%inst) tt ff,
                               pure $ expr.mk_app pe [e]
 
 /--  `eval_guessing n e` takes a natural number `n` and an expression `e` and gives an
@@ -233,7 +233,7 @@ It assumes that `e` is of the form `f.nat_degree ≤ d`,failing otherwise.
 * (a power of) `X`;
 * a monomial;
 * `C a`;
-* `0, 1` or `bit0 a, bit1 a` (to deal with numerals);
+* `0, 1` or `bit0 a, bit1 a` (to deal with numerals).
 
 The boolean `tf` determines whether `resolve_sum_step` aggressively simplifies powers.
 If `tf` is `false`, then `resolve_sum_step` will fail on powers other than `X ^ n`.
@@ -276,17 +276,17 @@ meta def resolve_sum_step (pows : bool) : expr → tactic unit
       refine ``(polynomial.nat_degree_pow_le.trans $
         (mul_comm _ _).le.trans ((nat.le_div_iff_mul_le' _).mp _))
     else failed
-  | e                := do ppe ← pp e, fail format!"'{e}' is not supported"
+  | e                := do ppe ← pp e, fail format!"'{ppe}' is not supported"
   end
 | e := do ppe ← pp e, fail format!("'resolve_sum_step' was called on\n" ++
   "{ppe}\nbut it expects `f.nat_degree ≤ d`")
 
-/--  `norm_assum` simply tries `norm_num, apply_instance` and `assumption`.
+/--  `norm_assum` simply tries `norm_num` and `assumption`.
 It is used to try to discharge as many as possible of the side-goals of `compute_degree_le`.
-Several side-goals are of the form `m ≤ n`, for natural numbers `m, n` or of the form `a ≠ 0`
-with `a` is a coefficient of the polynomial `f` in question. -/
+Several side-goals are of the form `m ≤ n`, for natural numbers `m, n` or of the form `c ≠ 0`,
+with `c` a coefficient of the polynomial `f` in question. -/
 meta def norm_assum : tactic unit :=
-try `[ norm_num <|> apply_instance ] >> try assumption
+try `[ norm_num ] >> try assumption
 
 /-- `extract_top_degree_term_and_deg e` takes an expression `e` looks for summands in `e`
 (assuming the Type of `e` is `R[X]`), and produces the pairs `(e',deg)`, where `e'` is
@@ -342,7 +342,7 @@ do t ← target,
   if deg_bou < exp_deg
   then fail sformat!"the given polynomial has a term of expected degree\nat least '{exp_deg}'"
   else
-    repeat $ target >>= resolve_sum_step (if expos then tt else ff),
+    repeat $ target >>= resolve_sum_step expos,
     gs ← get_goals,
     os ← gs.mmap infer_type >>= list.mfilter (λ e, succeeds $ unify t e),
     guard (os.length = 0) <|> fail "Goal did not change",

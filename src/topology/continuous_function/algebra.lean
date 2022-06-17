@@ -279,17 +279,17 @@ coe_injective.comm_group _ coe_one coe_mul coe_inv coe_div coe_pow coe_zpow
     rw continuous_iff_continuous_at,
     rintros ⟨f, g⟩,
     rw [continuous_at, tendsto_iff_forall_compact_tendsto_uniformly_on, nhds_prod_eq],
-    exactI λ K hK, ((tendsto_iff_forall_compact_tendsto_uniformly_on.mp filter.tendsto_id K hK).prod
-      (tendsto_iff_forall_compact_tendsto_uniformly_on.mp filter.tendsto_id K hK)).comp'
-      uniform_continuous_mul },
+    exactI λ K hK, uniform_continuous_mul.comp_tendsto_uniformly_on
+      ((tendsto_iff_forall_compact_tendsto_uniformly_on.mp filter.tendsto_id K hK).prod
+      (tendsto_iff_forall_compact_tendsto_uniformly_on.mp filter.tendsto_id K hK)), },
   continuous_inv := by
   { letI : uniform_space β := topological_group.to_uniform_space β,
     have : uniform_group β := topological_group_is_uniform,
     rw continuous_iff_continuous_at,
     intro f,
     rw [continuous_at, tendsto_iff_forall_compact_tendsto_uniformly_on],
-    exactI λ K hK, (tendsto_iff_forall_compact_tendsto_uniformly_on.mp filter.tendsto_id K hK).comp'
-      uniform_continuous_inv } }
+    exactI λ K hK, uniform_continuous_inv.comp_tendsto_uniformly_on
+      (tendsto_iff_forall_compact_tendsto_uniformly_on.mp filter.tendsto_id K hK), } }
 
 end continuous_map
 

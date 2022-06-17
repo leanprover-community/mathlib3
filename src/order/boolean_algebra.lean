@@ -613,6 +613,7 @@ is_compl.of_eq inf_compl_eq_bot sup_compl_eq_top
 theorem is_compl.compl_eq (h : is_compl x y) : xᶜ = y :=
 (h.right_unique is_compl_compl).symm
 
+@[priority 100]
 instance boolean_algebra.core.to_has_precompl : has_precompl α :=
 { compl := compl,
   compl_antitone' := λ _ _, is_compl_compl.antitone is_compl_compl,

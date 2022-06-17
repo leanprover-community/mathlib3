@@ -704,6 +704,7 @@ class has_precompl (α : Type*) [preorder α]  :=
 
 variables [preorder α] [has_precompl α] {x y z : α}
 
+@[priority 100]
 instance to_has_compl : has_compl α := ⟨has_precompl.compl⟩
 
 @[simp] lemma compl_compl (x : α) : xᶜᶜ = x :=  has_precompl.compl_involutive' x

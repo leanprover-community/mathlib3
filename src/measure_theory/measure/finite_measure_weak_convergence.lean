@@ -373,7 +373,7 @@ lemma tendsto_lintegral_nn_filter_of_le_const {ι : Type*} {L : filter ι} [L.is
   (μ : measure α) [is_finite_measure μ] {fs : ι → (α →ᵇ ℝ≥0)} {c : ℝ≥0}
   (fs_le_const : ∀ᶠ i in L, ∀ᵐ (a : α) ∂(μ : measure α), fs i a ≤ c) {f : α → ℝ≥0}
   (fs_lim : ∀ᵐ (a : α) ∂(μ : measure α), tendsto (λ i, fs i a) L (𝓝 (f a))) :
-  tendsto (λ i, (∫⁻ a, fs i a ∂(μ : measure α))) L (𝓝 (∫⁻ a, (f a) ∂(μ : measure α))) :=
+  tendsto (λ i, (∫⁻ a, fs i a ∂μ)) L (𝓝 (∫⁻ a, (f a) ∂μ)) :=
 begin
   simpa only using tendsto_lintegral_filter_of_dominated_convergence (λ _, c)
     (eventually_of_forall ((λ i, (ennreal.continuous_coe.comp (fs i).continuous).measurable)))
@@ -476,7 +476,7 @@ by simp only [f.self_eq_nnreal_part_sub_nnreal_part_neg,
 
 lemma lintegral_lt_top_of_bounded_continuous_to_real
   {α : Type*} [measurable_space α] [topological_space α] (μ : measure α) [is_finite_measure μ] (f : α →ᵇ ℝ) :
-  ∫⁻ x, ennreal.of_real (f x) ∂(μ : measure α) < ∞ :=
+  ∫⁻ x, ennreal.of_real (f x) ∂μ < ∞ :=
 lintegral_lt_top_of_bounded_continuous_to_nnreal _ f.nnreal_part
 
 theorem tendsto_if_forall_integral_tendsto {γ : Type*} {F : filter γ}
@@ -695,8 +695,8 @@ This formulation assumes:
 lemma measure_of_cont_bdd_of_tendsto_filter_indicator {ι : Type*} {L : filter ι}
   [L.is_countably_generated] [topological_space α] [opens_measurable_space α]
   (μ : measure α) [is_finite_measure μ] {c : ℝ≥0} {E : set α} (E_mble : measurable_set E)
-  (fs : ι → (α →ᵇ ℝ≥0)) (fs_bdd : ∀ᶠ i in L, ∀ᵐ (a : α) ∂(μ : measure α), fs i a ≤ c)
-  (fs_lim : ∀ᵐ (a : α) ∂(μ : measure α),
+  (fs : ι → (α →ᵇ ℝ≥0)) (fs_bdd : ∀ᶠ i in L, ∀ᵐ (a : α) ∂μ, fs i a ≤ c)
+  (fs_lim : ∀ᵐ (a : α) ∂μ,
             tendsto (λ (i : ι), (coe_fn : (α →ᵇ ℝ≥0) → (α → ℝ≥0)) (fs i) a) L
                     (𝓝 (indicator E (λ x, (1 : ℝ≥0)) a))) :
   tendsto (λ n, lintegral μ (λ a, fs n a)) L (𝓝 (μ E)) :=

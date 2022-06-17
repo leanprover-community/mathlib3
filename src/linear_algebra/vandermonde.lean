@@ -123,7 +123,7 @@ lemma det_vandermonde_eq_zero_iff [is_domain R] {n : ℕ} {v : fin n → R} :
 begin
   split,
   { simp only [det_vandermonde v, finset.prod_eq_zero_iff, sub_eq_zero, forall_exists_index],
-    exact λ i _ j h₁ h₂, ⟨j, i, h₂, (finset.mem_filter.mp h₁).2.ne'⟩ },
+    exact λ i _ j h₁ h₂, ⟨j, i, h₂, (mem_Ioi.mp h₁).ne'⟩ },
   { simp only [ne.def, forall_exists_index, and_imp],
     refine λ i j h₁ h₂, matrix.det_zero_of_row_eq h₂ (funext $ λ k, _),
     rw [vandermonde_apply, vandermonde_apply, h₁], }

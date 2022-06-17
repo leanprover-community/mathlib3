@@ -272,10 +272,8 @@ begin
   nth_rewrite 0 [←nat.factorization_prod_pow_eq_self hn],
   rw [finsupp.prod, nat.cast_prod, log_prod, finsupp.sum],
   simp_rw [nat.cast_pow, log_pow],
-  intros p hp,
   norm_cast,
-  apply pow_ne_zero,
-  exact (nat.prime_of_mem_factorization hp).ne_zero
+  exact λ p hp, pow_ne_zero _ (nat.prime_of_mem_factorization hp).ne_zero,
 end
 
 lemma tendsto_pow_log_div_mul_add_at_top (a b : ℝ) (n : ℕ) (ha : a ≠ 0) :

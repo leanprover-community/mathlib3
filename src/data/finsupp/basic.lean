@@ -1123,6 +1123,15 @@ fun_like.coe_injective.add_group _ coe_zero coe_add coe_neg coe_sub (λ _ _, rfl
 instance [add_comm_group G] : add_comm_group (α →₀ G) :=
 fun_like.coe_injective.add_comm_group _ coe_zero coe_add coe_neg coe_sub (λ _ _, rfl) (λ _ _, rfl)
 
+lemma single_add_single_eq_single_add_single [add_comm_monoid M]
+  {k l m n : α} {u v : M} (hu : u ≠ 0) (hv : v ≠ 0) :
+  single k u + single l v = single m u + single n v ↔
+  (k = m ∧ l = n) ∨ (u = v ∧ k = n ∧ l = m) ∨ (u + v = 0 ∧ k = l ∧ m = n) :=
+begin
+  simp_rw [fun_like.ext_iff, coe_add, single_eq_pi_single, ←funext_iff],
+  exact pi.single_add_single_eq_single_add_single hu hv,
+end
+
 lemma single_multiset_sum [add_comm_monoid M] (s : multiset M) (a : α) :
   single a s.sum = (s.map (single a)).sum :=
 multiset.induction_on s (single_zero _) $ λ a s ih,
@@ -2472,8 +2481,8 @@ lemma _root_.is_smul_regular.finsupp {_ : monoid R} [add_monoid M] [distrib_mul_
   (hk : is_smul_regular M k) : is_smul_regular (α →₀ M) k :=
 λ _ _ h, ext $ λ i, hk (congr_fun h i)
 
-instance [monoid R] [nonempty α] [add_monoid M] [distrib_mul_action R M] [has_faithful_scalar R M] :
-  has_faithful_scalar R (α →₀ M) :=
+instance [monoid R] [nonempty α] [add_monoid M] [distrib_mul_action R M] [has_faithful_smul R M] :
+  has_faithful_smul R (α →₀ M) :=
 { eq_of_smul_eq_smul := λ r₁ r₂ h, let ⟨a⟩ := ‹nonempty α› in eq_of_smul_eq_smul $ λ m : M,
     by simpa using congr_fun (h (single a m)) a }
 

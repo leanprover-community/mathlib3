@@ -399,20 +399,26 @@ end bot
 
 @[simp] theorem is_O_with_pure {x} : is_O_with c (pure x) f g ↔ ∥f x∥ ≤ c * ∥g x∥ := is_O_with_iff
 
-theorem is_O_with.join (h : is_O_with c l f g) (h' : is_O_with c l' f g) :
+theorem is_O_with.sup (h : is_O_with c l f g) (h' : is_O_with c l' f g) :
   is_O_with c (l ⊔ l') f g :=
 is_O_with.of_bound $ mem_sup.2 ⟨h.bound, h'.bound⟩
 
-theorem is_O_with.join' (h : is_O_with c l f g') (h' : is_O_with c' l' f g') :
+theorem is_O_with.sup' (h : is_O_with c l f g') (h' : is_O_with c' l' f g') :
   is_O_with (max c c') (l ⊔ l') f g' :=
 is_O_with.of_bound $
 mem_sup.2 ⟨(h.weaken $ le_max_left c c').bound, (h'.weaken $ le_max_right c c').bound⟩
 
-theorem is_O.join (h : f =O[l] g') (h' : f =O[l'] g') : f =O[l ⊔ l'] g' :=
-let ⟨c, hc⟩ := h.is_O_with, ⟨c', hc'⟩ := h'.is_O_with in (hc.join' hc').is_O
+theorem is_O.sup (h : f =O[l] g') (h' : f =O[l'] g') : f =O[l ⊔ l'] g' :=
+let ⟨c, hc⟩ := h.is_O_with, ⟨c', hc'⟩ := h'.is_O_with in (hc.sup' hc').is_O
 
-theorem is_o.join (h : f =o[l] g) (h' : f =o[l'] g) : f =o[l ⊔ l'] g :=
-is_o.of_is_O_with $ λ c cpos, (h.forall_is_O_with cpos).join (h'.forall_is_O_with cpos)
+theorem is_o.sup (h : f =o[l] g) (h' : f =o[l'] g) : f =o[l ⊔ l'] g :=
+is_o.of_is_O_with $ λ c cpos, (h.forall_is_O_with cpos).sup (h'.forall_is_O_with cpos)
+
+@[simp] lemma is_O_sup : f =O[l ⊔ l'] g' ↔ f =O[l] g' ∧ f =O[l'] g' :=
+⟨λ h, ⟨h.mono le_sup_left, h.mono le_sup_right⟩, λ h, h.1.sup h.2⟩
+
+@[simp] lemma is_o_sup : f =o[l ⊔ l'] g ↔ f =o[l] g ∧ f =o[l'] g :=
+⟨λ h, ⟨h.mono le_sup_left, h.mono le_sup_right⟩, λ h, h.1.sup h.2⟩
 
 /-! ### Simplification : norm -/
 
@@ -1084,10 +1090,16 @@ variables [normed_space 𝕜 E']
 
 theorem is_O_with.const_smul_left (h : is_O_with c l f' g) (c' : 𝕜) :
   is_O_with (∥c'∥ * c) l (λ x, c' • f' x) g :=
-by refine ((h.norm_left.const_mul_left (∥c'∥)).congr _ _ (λ _, rfl)).of_norm_left;
-    intros; simp only [norm_norm, norm_smul]
+is_O_with.of_norm_left $
+  by simpa only [← norm_smul, norm_norm] using h.norm_left.const_mul_left (∥c'∥)
 
-theorem is_O_const_smul_left_iff {c : 𝕜} (hc : c ≠ 0) :
+lemma is_O.const_smul_left (h : f' =O[l] g) (c : 𝕜) : (c • f') =O[l] g :=
+let ⟨b, hb⟩ := h.is_O_with in (hb.const_smul_left _).is_O
+
+lemma is_o.const_smul_left (h : f' =o[l] g) (c : 𝕜) : (c • f') =o[l] g :=
+is_o.of_norm_left $ by simpa only [← norm_smul] using h.norm_left.const_mul_left (∥c∥)
+
+theorem is_O_const_smul_left {c : 𝕜} (hc : c ≠ 0) :
   (λ x, c • f' x) =O[l] g ↔ f' =O[l] g :=
 begin
   have cne0 : ∥c∥ ≠ 0, from mt norm_eq_zero.mp hc,
@@ -1095,14 +1107,7 @@ begin
   rw [is_O_const_mul_left_iff cne0, is_O_norm_left],
 end
 
-theorem is_o_const_smul_left (h : f' =o[l] g) (c : 𝕜) :
-  (λ x, c • f' x) =o[l] g :=
-begin
-  refine ((h.norm_left.const_mul_left (∥c∥)).congr_left _).of_norm_left,
-  exact λ x, (norm_smul _ _).symm
-end
-
-theorem is_o_const_smul_left_iff {c : 𝕜} (hc : c ≠ 0) :
+theorem is_o_const_smul_left {c : 𝕜} (hc : c ≠ 0) :
   (λ x, c • f' x) =o[l] g ↔ f' =o[l] g :=
 begin
   have cne0 : ∥c∥ ≠ 0, from mt norm_eq_zero.mp hc,

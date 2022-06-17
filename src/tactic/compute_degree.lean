@@ -55,17 +55,16 @@ open expr
 
 /--  `guess_degree e` assumes that `e` is an expression in a polynomial ring, and makes an attempt
 at guessing the degree of `e`.  Heuristics for `guess_degree`:
-* `0, 1`,            guessing `0`,
-* `C a`,             guessing `0`,
-* `polynomial.X`,    guessing `1`,
-*  `bit0 f, bit1 f`, guessing `guess_degree f`,
-                              (this could give wrong results, e.g. `bit0 f = 0` if the
-                               characteristic of the ground ring is `2`),
-* `f + g`,           guessing `max (guess_degree f) (guess_degree g)`,
-* `f * g`,           guessing `guess_degree f + guess_degree g`,
-* `f ^ n`,           guessing `guess_degree f * n`,
-* `monomial n r`,    guessing `n`,
-* `f` not as above,  guessing `f.nat_degree`.
+* `0, 1, C a`,         guessing `0`,
+* `polynomial.X`,      guessing `1`,
+*  `bit0 f, bit1 f`,   guessing `guess_degree f`,
+                                (this could give wrong results, e.g. `bit0 f = 0` if the
+                                 characteristic of the ground ring is `2`),
+* `f + g, f - g, - f`, guessing `max (guess_degree f) (guess_degree g)`,
+* `f * g`,             guessing `guess_degree f + guess_degree g`,
+* `f ^ n`,             guessing `guess_degree f * n`,
+* `monomial n r`,      guessing `n`,
+* `f` not as above,    guessing `f.nat_degree`.
  -/
 meta def guess_degree : expr → tactic expr
 | `(has_zero.zero)         := pure `(0)

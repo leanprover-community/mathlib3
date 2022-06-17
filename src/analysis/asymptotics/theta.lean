@@ -17,7 +17,6 @@ open_locale topological_space
 
 namespace asymptotics
 
-
 variables {α : Type*} {β : Type*} {E : Type*} {F : Type*} {G : Type*}
   {E' : Type*} {F' : Type*} {G' : Type*}
   {E'' : Type*} {F'' : Type*} {G'' : Type*}
@@ -30,7 +29,7 @@ variables [semi_normed_ring R] [semi_normed_ring R']
 variables [normed_field 𝕜] [normed_field 𝕜']
 variables {c c' c₁ c₂ : ℝ} {f : α → E} {g : α → F} {k : α → G}
 variables {f' : α → E'} {g' : α → F'} {k' : α → G'}
-variables {f'' : α → E''} {g'' : α → F''} {k'' : α → G''}
+variables {f'' : α → E''} {g'' : α → F''}
 variables {l l' : filter α}
 
 /-- We say that `f` is `Θ(g)` along a filter `l` (notation: `f =Θ[l] g`) if `f =O[l] g` and

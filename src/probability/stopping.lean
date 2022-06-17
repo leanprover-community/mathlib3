@@ -1316,6 +1316,18 @@ begin
   simp only [h_not, if_false],
 end
 
+lemma le_hitting [conditionally_complete_linear_order ι]
+  {u : ι → α → β} {s : set β} {n m : ι} (hnm : n ≤ m) (x : α) :
+  n ≤ hitting u s n m x :=
+begin
+  by_cases ∃ j ∈ set.Icc n m, u j x ∈ s,
+  { simp_rw [hitting, if_pos h],
+    obtain ⟨j, hj₁, hj₂⟩ := h,
+    exact le_cInf ⟨j, hj₁, hj₂⟩ (λ i hi, hi.1.1) },
+  { simp_rw [hitting, if_neg h],
+    exact hnm }
+end
+
 lemma hitting_le [conditionally_complete_linear_order ι]
   {u : ι → α → β} {s : set β} {n m : ι} (x : α) :
   hitting u s n m x ≤ m :=

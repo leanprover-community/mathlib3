@@ -12,17 +12,52 @@ section upcrossing
 variables [preorder ι] [has_Inf ι]
 
 noncomputable
-def upper_crossing_aux (a : ℝ) (f : ℕ → α → ℝ) (N : ℕ) (c : ℕ) : α → ℕ :=
+def lower_crossing_aux (a : ℝ) (f : ℕ → α → ℝ) (c N : ℕ) : α → ℕ :=
 hitting f (set.Iic a) c N
 
 noncomputable
-def lower_crossing (a b : ℝ) (f : ℕ → α → ℝ) (N : ℕ) : ℕ → α → ℕ
+def upper_crossing (a b : ℝ) (f : ℕ → α → ℝ) (N : ℕ) : ℕ → α → ℕ
 | 0 := 0
-| (n + 1) := λ x, hitting f (set.Ici b) (upper_crossing_aux a f N (lower_crossing n x) x) N x
+| (n + 1) := λ x, hitting f (set.Ici b) (lower_crossing_aux a f (upper_crossing n x) N x) N x
 
 noncomputable
-def upper_crossing (a b : ℝ) (f : ℕ → α → ℝ) (N : ℕ) (n : ℕ) : α → ℕ :=
-λ x, hitting f (set.Iic a) (lower_crossing a b f N n x) N x
+def lower_crossing (a b : ℝ) (f : ℕ → α → ℝ) (N n : ℕ) : α → ℕ :=
+λ x, hitting f (set.Iic a) (upper_crossing a b f N n x) N x
+
+variables {a b : ℝ} {f : ℕ → α → ℝ} {N : ℕ}
+
+@[simp]
+lemma upper_crossing_zero : upper_crossing a b f N 0 = 0 := rfl
+
+@[simp]
+lemma lower_crossing_zero : lower_crossing a b f N 0 = hitting f (set.Iic a) 0 N := rfl
+
+@[simp]
+lemma upper_crossing_succ (n : ℕ) (x : α) :
+  upper_crossing a b f N (n + 1) x =
+  hitting f (set.Ici b) (lower_crossing_aux a f (upper_crossing a b f N n x) N x) N x :=
+by rw upper_crossing
+
+lemma upper_crossing_le (n : ℕ) (x : α) : upper_crossing a b f N n x ≤ N :=
+begin
+  cases n,
+  { simp only [upper_crossing_zero, zero_le, pi.zero_apply] },
+  { simp only [hitting_le x, upper_crossing_succ] },
+end
+
+lemma lower_crossing_le (n : ℕ) (x : α) : lower_crossing a b f N n x ≤ N :=
+by simp only [lower_crossing, hitting_le x]
+
+lemma lower_crossing_le_upper_crossing (n : ℕ) (x : α) :
+  upper_crossing a b f N n x ≤ lower_crossing a b f N n x :=
+by simp only [lower_crossing, le_hitting (upper_crossing_le n x) x]
+
+lemma upper_crossing_le_lower_crossing_succ (n : ℕ) (x : α) :
+  lower_crossing a b f N n x ≤ upper_crossing a b f N (n + 1) x :=
+begin
+  rw upper_crossing_succ,
+  exact le_hitting (lower_crossing_le n x) x,
+end
 
 end upcrossing
 

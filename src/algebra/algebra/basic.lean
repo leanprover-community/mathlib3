@@ -1310,7 +1310,7 @@ variables {R S : Type*}
 
 @[simp]
 lemma alg_hom.to_ring_hom_to_rat_alg_hom [ring R] [ring S] [algebra ℚ R] [algebra ℚ S]
-  (f : R →ₐ[ℚ] S) : f.to_ring_hom.to_rat_alg_hom = f :=
+  (f : R →ₐ[ℚ] S) : (f : R →+* S).to_rat_alg_hom = f :=
 alg_hom.ext (by {intro x, refl, })
 
 /-- The equivalence between `ring_hom` and `ℚ`-algebra homomorphisms. -/

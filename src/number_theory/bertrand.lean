@@ -77,9 +77,6 @@ private lemma log_four_pos : 0 < log 4 := log_pos (by linarith)
 
 private lemma four_eq_two_rpow_two : (4 : ℝ) = 2 ^ (2 : ℝ) := by norm_num
 
-private lemma log_four : log 4 = 2 * log 2 :=
-by rw [four_eq_two_rpow_two, log_rpow two_pos]
-
 private lemma exp_two_le_722 : exp 2 ≤ 722 :=
 calc exp 2 = (exp 1) ^ 2 : by rw [←exp_nat_mul 1 2]; simp
     ... ≤ 3 ^ 2 :

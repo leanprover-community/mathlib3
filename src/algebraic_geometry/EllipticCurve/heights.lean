@@ -10,7 +10,7 @@ import analysis.special_functions.log.basic
 import algebraic_geometry.EllipticCurve.torsion
 
 /-!
-# The Mordell-Weil theorem for an elliptic curve over the rationals
+# Heights on an elliptic curve over the rationals
 -/
 
 noncomputable theory
@@ -18,6 +18,9 @@ open_locale big_operators classical
 
 ----------------------------------------------------------------------------------------------------
 /-! ## Lemmas -/
+
+lemma int.coe_nat_max {m n : ℕ} : ((max m n : ℕ) : ℤ) = max m n :=
+by simpa only [← int.nat_cast_eq_coe_nat] using nat.cast_max
 
 lemma zero_le_three {α : Type} [ordered_semiring α] : (0 : α) ≤ 3 :=
 add_nonneg zero_le_two zero_le_one
@@ -408,8 +411,9 @@ open point
 
 section heights
 
-variables {E : EllipticCurve ℚ} {A B : ℤ}
-variables (ha₁ : E.a₁ = 0) (ha₂ : E.a₂ = 0) (ha₃ : E.a₃ = 0) (ha₄ : E.a₄ = A) (ha₆ : E.a₆ = B)
+variables {E : EllipticCurve ℚ}
+
+section height_def
 
 /-- The logarithmic height of a point on an elliptic curve over the rationals. -/
 def height : E⟮ℚ⟯ → ℝ
@@ -436,10 +440,16 @@ begin
     exact le_max_of_le_right (nat.one_le_cast.mpr $ nat.succ_le_of_lt x.pos) }
 end
 
+end height_def
+
+section height_le
+
 private def height_le_constant.function {C : ℝ} :
   {P : E⟮ℚ⟯ // height P ≤ C} → option (fin (2 * ⌊C.exp⌋₊ + 1) × fin (⌊C.exp⌋₊ + 1) × fin 2)
 | ⟨0         , _⟩ := none
 | ⟨some x y w, h⟩ := some ⟨(x.num + ⌊C.exp⌋).to_nat, x.denom, if y ≤ 0 then 0 else 1⟩
+
+variables {A B : ℤ} (ha₁ : E.a₁ = 0) (ha₃ : E.a₃ = 0)
 
 include ha₁ ha₃
 
@@ -498,47 +508,157 @@ end
 def height_le_constant.fintype (C : ℝ) : fintype {P : E⟮ℚ⟯ // height P ≤ C} :=
 fintype.of_injective height_le_constant.function $ height_le_constant.injective ha₁ ha₃
 
-include ha₂ ha₄ ha₆
+end height_le
 
-private lemma disc_ne_zero : 4 * A ^ 3 + 27 * B ^ 2 ≠ 0 :=
+section height_add
+
+variables (A B : ℤ) (x y : ℚ) (d : ℕ)
+
+private def C₀ : ℝ := (1 + |A| + |B| : ℝ).sqrt
+private def C₁ : ℤ := x.num * d ^ 2
+private def C₂ : ℤ := x.num ^ 2 + A * (d ^ 2) ^ 2
+private def C₃ : ℤ := A * x.num * d ^ 2 + 2 * B * (d ^ 2) ^ 2
+private def C₄ : ℤ := 2 * y.num * d
+private def C₅ : ℤ := (d ^ 2) ^ 2
+private def C₆ : ℤ := 2 * x.num * d ^ 2
+private def C₇ : ℤ := x.num ^ 2
+private def R₁ : ℝ := |C₁ x d| + |C₂ A x d| + |C₃ A B x d| + C₀ A B * |C₄ y d|
+private def R₂ : ℝ := |C₅ d| + |C₆ x d| + |C₇ x|
+
+variables {A B x y d} {x' y' : ℚ} {d' : ℕ}
+
+private lemma d_ne_zero (hxd : x.denom = d ^ 2) : (d : ℚ) ≠ 0 :=
+by { rw [nat.cast_ne_zero], rintro rfl, exact ne_zero_of_lt x.pos hxd }
+
+private lemma xd_ne_zero (hxd : x.denom = d ^ 2) (hxd' : x'.denom = d' ^ 2) (hx : x ≠ x') :
+  x.num * (d' : ℤ) ^ 2 - (d : ℤ) ^ 2 * x'.num ≠ 0 :=
 begin
-  push_cast [← @int.cast_ne_zero ℚ],
-  refine @right_ne_zero_of_mul _ _ (-16) _ _,
-  convert_to E.disc_unit.val ≠ 0,
-  { rw [E.disc_unit_eq, ha₁, ha₂, ha₃, ha₄, ha₆, disc_aux],
-    ring1 },
-  exact E.disc_unit.ne_zero
+  rw [← sub_ne_zero, ← rat.num_div_denom x, hxd, nat.cast_pow, ← rat.num_div_denom x', hxd',
+      nat.cast_pow, div_sub_div _ _ (pow_ne_zero 2 $ d_ne_zero hxd) $
+        pow_ne_zero 2 $ d_ne_zero hxd', div_ne_zero_iff] at hx,
+  simpa only [← @int.cast_ne_zero ℚ] with push_cast using hx.1
 end
 
-private lemma coeff_ne_zero : (A : ℝ) ≠ 0 ∨ (B : ℝ) ≠ 0 :=
+private lemma C_pos (hxd : x.denom = d ^ 2) : 0 < max (R₁ A B x y d) (R₂ x d) :=
 begin
-  by_cases hA : (A : ℝ) = 0,
-  { have hdisc : 4 * A ^ 3 + 27 * B ^ 2 ≠ 0 := disc_ne_zero ha₁ ha₂ ha₃ ha₄ ha₆,
-    push_cast [← @int.cast_ne_zero ℝ, hA, zero_pow three_pos, mul_zero, zero_add] at hdisc,
-    exact or.inr (ne_zero_pow two_ne_zero $ right_ne_zero_of_mul hdisc) },
-  { exact or.inl hA }
+  have hd : ((d : ℚ) : ℝ) ≠ 0 := rat.cast_ne_zero.mpr (d_ne_zero hxd),
+  rw [rat.cast_coe_nat, ← @pow_ne_zero_iff ℝ _ _ _ _ two_pos, ← nat.cast_pow,
+      ← @pow_ne_zero_iff ℝ _ _ _ _ two_pos, ← nat.cast_pow, ← abs_pos] at hd,
+  exact lt_max_of_lt_right
+    (add_pos_of_pos_of_nonneg (add_pos_of_pos_of_nonneg hd $ abs_nonneg _) $ abs_nonneg _)
 end
 
-lemma exists_constant_height_add_le_two_mul_height_add_constant (Q : E⟮ℚ⟯) :
+private lemma add_rw (w : y ^ 2 = x ^ 3 + A * x + B) (w' : y' ^ 2 = x' ^ 3 + A * x' + B)
+  (hxd : x.denom = d ^ 2) (hyd : y.denom = d ^ 3) (hxd' : x'.denom = d' ^ 2)
+  (hyd' : y'.denom = d' ^ 3) (hx : x ≠ x') : ((y - y') * (x - x')⁻¹) ^ 2 - x - x' = rat.mk
+    (x.num ^ 2 * C₁ x' d' + x.num * d ^ 2 * C₂ A x' d' + (d ^ 2) ^ 2 * C₃ A B x' d'
+      - y.num * d * C₄ y' d')
+    ((x.num * d' ^ 2 - d ^ 2 * x'.num) ^ 2) :=
+calc ((y - y') * (x - x')⁻¹) ^ 2 - x - x'
+      = (x ^ 3 + A * x + B - 2 * y * y' + (x' ^ 3 + A * x' + B) - (x + x') * (x - x') ^ 2)
+        / (x - x') ^ 2 :
+        by rw [← div_eq_mul_inv, div_pow, sub_sq, w, w', sub_sub, ← div_sub_div_same,
+                mul_div_cancel _ $ pow_ne_zero 2 $ sub_ne_zero_of_ne hx]
+  ... = (x.num ^ 2 * C₁ x' d' * (d ^ 2 / d ^ 2) ^ 2 * (d' ^ 2 / d' ^ 2)
+          + x.num * d ^ 2 * (x'.num ^ 2 * (d' ^ 2 / d' ^ 2) ^ 2 + A * (d' ^ 2) ^ 2)
+            * (d ^ 2 / d ^ 2)
+          + (d ^ 2) ^ 2 * (A * x'.num * d' ^ 2 * (d' ^ 2 / d' ^ 2) + 2 * B * (d' ^ 2) ^ 2)
+          - y.num * d * C₄ y' d' * (d ^ 3 / d ^ 3) * (d' ^ 3 / d' ^ 3))
+        / (x.num * d' ^ 2 - d ^ 2 * x'.num) ^ 2 :
+        begin
+          conv_lhs { rw [← rat.num_div_denom x, hxd, ← rat.num_div_denom y, hyd,
+                          ← rat.num_div_denom x', hxd', ← rat.num_div_denom y', hyd'] },
+          push_cast [C₁, C₄],
+          nth_rewrite_lhs 1 [div_sub_div _ _ (pow_ne_zero 2 $ d_ne_zero hxd) $
+                               pow_ne_zero 2 $ d_ne_zero hxd'],
+          rw [div_pow _ (d ^ 2 * d' ^ 2 : ℚ), div_div_eq_mul_div],
+          ring1
+        end
+  ... = rat.mk
+          (x.num ^ 2 * C₁ x' d' + x.num * d ^ 2 * C₂ A x' d' + (d ^ 2) ^ 2 * C₃ A B x' d'
+            - y.num * d * C₄ y' d')
+          ((x.num * d' ^ 2 - d ^ 2 * x'.num) ^ 2) :
+        by push_cast [C₁, C₂, C₃, C₄, div_self (pow_ne_zero _ $ d_ne_zero hxd),
+                      div_self (pow_ne_zero _ $ d_ne_zero hxd'), mul_one, one_pow, rat.mk_eq_div]
+
+private lemma w_le (w : y ^ 2 = x ^ 3 + A * x + B) (hxd : x.denom = d ^ 2) (hyd : y.denom = d ^ 3) :
+  (|y.num| * |d| : ℝ) ≤ max (|x.num|) (|d ^ 2|) ^ 2 * C₀ A B :=
+begin
+  have y_eq : (y.num ^ 2 : ℚ) = x.num ^ 3 + x.num * (d ^ 2) ^ 2 * A + (d ^ 2) ^ 3 * B :=
+  begin
+    conv_lhs { rw [← div_mul_cancel (y.num : ℚ) $ pow_ne_zero 3 $ d_ne_zero hxd, mul_pow, ← pow_mul,
+                   ← nat.cast_pow, ← hyd, rat.num_div_denom, w, ← rat.num_div_denom x, hxd,
+                   nat.cast_pow, div_pow, add_mul, add_mul, pow_mul',
+                   div_mul_cancel (x.num ^ 3 : ℚ) $ pow_ne_zero 3 $ pow_ne_zero 2 $ d_ne_zero hxd,
+                   pow_succ (d ^ 2 : ℚ), ← mul_assoc, mul_assoc (A : ℚ),
+                   div_mul_cancel (x.num : ℚ) $ pow_ne_zero 2 $ d_ne_zero hxd] },
+    ring1
+  end,
+  have y_le : (|y.num| : ℝ) ≤ max (|x.num| : ℝ).sqrt (|d|) ^ 3 * C₀ A B :=
+  begin
+    push_cast [← @rat.cast_inj ℝ] at y_eq,
+    rw [← real.sqrt_sq $ abs_nonneg _, pow_abs, y_eq,
+        ← real.sqrt_sq $ pow_nonneg (le_max_of_le_right $ abs_nonneg _) 3, ← pow_mul _ 3,
+        max_pow (real.sqrt_nonneg _) $ abs_nonneg _, pow_mul', real.sq_sqrt $ abs_nonneg _,
+        pow_mul', C₀, ← real.sqrt_mul $ le_max_of_le_left $ pow_nonneg (abs_nonneg _) 3],
+    apply real.sqrt_le_sqrt (le_trans' _ $ abs_add_three _ _ _),
+    simp only [abs_mul, abs_pow, mul_add, mul_one],
+    apply add_le_add_three,
+    { exact le_max_left _ _ },
+    { refine mul_le_mul_of_nonneg_right _ (abs_nonneg _),
+      by_cases hsq : (|x.num| : ℝ) ≤ |d| ^ 2,
+      { apply le_trans (mul_le_mul_of_nonneg_right hsq $ sq_nonneg _),
+        simpa only [← pow_succ] using le_max_right _ _ },
+      { refine le_trans
+          (mul_le_mul_of_nonneg_left
+            (pow_le_pow_of_le_left (sq_nonneg _) (le_of_lt $ lt_of_not_le hsq) 2) $
+            abs_nonneg _) _,
+        simpa only [← pow_succ] using le_max_left _ _ } },
+    { exact mul_le_mul_of_nonneg_right (le_max_right _ _) (abs_nonneg _) }
+  end,
+  have d_le : (|d| : ℝ) * max (|x.num| : ℝ).sqrt (|d|) ^ 3 ≤ max (|x.num|) (|↑d ^ 2|) ^ 2 :=
+  begin
+    by_cases hsq : (|x.num| : ℝ) ≤ |d ^ 2|,
+    { rw [max_eq_right hsq],
+      rw [← real.sqrt_le_sqrt_iff $ abs_nonneg _, abs_pow, real.sqrt_sq $ abs_nonneg _] at hsq,
+      simpa only [max_eq_right hsq, ← pow_succ, abs_pow, ← pow_mul] using le_refl _ },
+    { rw [max_eq_left_of_lt $ lt_of_not_le hsq],
+      nth_rewrite_rhs 0 [← real.sq_sqrt $ abs_nonneg _],
+      rw [not_le, ← real.sqrt_lt_sqrt_iff $ abs_nonneg _, abs_pow, real.sqrt_sq $ abs_nonneg _]
+        at hsq,
+      apply le_trans
+        (mul_le_mul_of_nonneg_right (le_of_lt hsq) $
+          pow_nonneg (le_max_of_le_right $ abs_nonneg _) 3),
+      simpa only [max_eq_left_of_lt hsq, ← pow_succ, ← pow_mul] using le_refl _ }
+  end,
+  apply le_trans (mul_le_mul_of_nonneg_right y_le $ abs_nonneg _),
+  rw [mul_comm, ← mul_assoc],
+  exact mul_le_mul_of_nonneg_right d_le (real.sqrt_nonneg _)
+end
+
+variables (ha₁ : E.a₁ = 0) (ha₂ : E.a₂ = 0) (ha₃ : E.a₃ = 0) (ha₄ : E.a₄ = A) (ha₆ : E.a₆ = B)
+
+include ha₁ ha₂ ha₃ ha₄ ha₆
+
+lemma exists_constant_height_add_le (Q : E⟮ℚ⟯) :
   ∃ C : ℝ, ∀ P : E⟮ℚ⟯, height (P + Q) ≤ 2 * height P + C :=
 begin
   cases Q with x' y' w',
   { exact ⟨0, λ P, by simpa only [EllipticCurve.zero_def, add_zero, two_mul]
                       using le_add_of_nonneg_left (height_nonneg P)⟩ },
-  { existsi [max (height $ some x' y' w') $
-             max (height $ EllipticCurve.dbl $ some x' y' w') $
-             real.log $ max (|x'.num * x'.denom| + |x'.num ^ 2 + A * x'.denom ^ 2|
-                              + |A * x'.num * x'.denom + 2 * B * x'.denom ^ 2|
-                              + (1 + |A| + |B| : ℝ).sqrt * |2 * y'.num * (x'.denom : ℝ).sqrt|)
-                            (|x'.denom ^ 2| + |2 * x'.num * x'.denom| + |x'.num ^ 2|)],
+  { have sw' := w',
+    simp only [ha₁, ha₂, ha₃, ha₄, ha₆, algebra_map_rat_rat, ring_hom.id_apply, zero_mul, add_zero]
+      at sw',
+    rcases padic_val_point.denom sw' with ⟨d', hxd', hyd'⟩,
+    existsi [max (height $ some x' y' w') $ max (height $ EllipticCurve.dbl $ some x' y' w') $
+             real.log $ max (R₁ A B x' y' d') $ R₂ x' d'],
     rintro (_ | ⟨x, y, w⟩),
     { simpa only [EllipticCurve.zero_def, zero_add, height_zero, mul_zero] using le_max_left _ _ },
     { have sw := w,
-      have sw' := w',
       conv_lhs { dsimp only [has_add.add] },
       unfold EllipticCurve.add,
       simp only [ha₁, ha₂, ha₃, ha₄, ha₆, algebra_map_rat_rat, ring_hom.id_apply, mul_zero,
-                 zero_mul, add_zero, sub_zero] at sw sw' ⊢,
+                 zero_mul, add_zero, sub_zero] at sw ⊢,
       split_ifs with hx hy,
       { by_cases hxy : ((y - y') * (x - x')⁻¹) ^ 2 - x - x' = 0,
         { rw [height_some, hxy, rat.num_zero, int.cast_zero, abs_zero, rat.denom_zero, nat.cast_one,
@@ -546,135 +666,29 @@ begin
           exact le_add_of_nonneg_of_le (mul_nonneg zero_le_two $ height_nonneg _)
             (le_max_of_le_left $ height_nonneg _) },
         rcases padic_val_point.denom sw with ⟨d, hxd, hyd⟩,
-        rcases padic_val_point.denom sw' with ⟨d', hxd', hyd'⟩,
-        have hd : (d : ℚ) ≠ 0 :=
-        by { rw [nat.cast_ne_zero], rintro rfl, exact ne_zero_of_lt x.pos hxd },
-        have hd' : (d' : ℚ) ≠ 0 :=
-        by { rw [nat.cast_ne_zero], rintro rfl, exact ne_zero_of_lt x'.pos hxd' },
-        have hdd' : x.num * (d' : ℤ) ^ 2 - (d : ℤ) ^ 2 * x'.num ≠ 0 :=
-        begin
-          rw [← sub_ne_zero, ← rat.num_div_denom x, hxd, nat.cast_pow, ← rat.num_div_denom x', hxd',
-              nat.cast_pow, div_sub_div _ _ (pow_ne_zero 2 hd) (pow_ne_zero 2 hd'), div_ne_zero_iff]
-            at hx,
-          simpa only [← @int.cast_ne_zero ℚ] with push_cast using hx.1
-        end,
-        have hpos : 0 < (|(d' ^ 2) ^ 2| + |2 * x'.num * d' ^ 2| + |x'.num ^ 2| : ℝ) :=
-        begin
-          push_cast [← @rat.cast_ne_zero ℝ] at hd',
-          rw [← @pow_ne_zero_iff ℝ _ _ _ _ two_pos, ← @pow_ne_zero_iff ℝ _ _ _ _ two_pos,
-              ← abs_pos] at hd',
-          exact add_pos_of_pos_of_nonneg (add_pos_of_pos_of_nonneg hd' $ abs_nonneg _)
-            (abs_nonneg _)
-        end,
-        have add_rw : ((y - y') * (x - x')⁻¹) ^ 2 - x - x' = rat.mk
-          (x.num ^ 2 * (x'.num * d' ^ 2) + x.num * d ^ 2 * (x'.num ^ 2 + A * (d' ^ 2) ^ 2)
-            + (d ^ 2) ^ 2 * (A * x'.num * d' ^ 2 + 2 * B * (d' ^ 2) ^ 2)
-            - y.num * d * (2 * y'.num * d'))
-          ((x.num * d' ^ 2 - d ^ 2 * x'.num) ^ 2) :=
-        calc ((y - y') * (x - x')⁻¹) ^ 2 - x - x'
-              = (x ^ 3 + A * x + B - 2 * y * y' + (x' ^ 3 + A * x' + B) - (x + x') * (x - x') ^ 2)
-                / (x - x') ^ 2 :
-                by rw [← div_eq_mul_inv, div_pow, sub_sq, sw, sw', sub_sub, ← div_sub_div_same,
-                       mul_div_cancel _ $ pow_ne_zero 2 $ sub_ne_zero_of_ne hx]
-          ... = (x.num ^ 2 * (x'.num * d' ^ 2) * (d ^ 2 / d ^ 2) ^ 2 * (d' ^ 2 / d' ^ 2)
-                  + x.num * d ^ 2 * (x'.num ^ 2 * (d' ^ 2 / d' ^ 2) ^ 2 + A * (d' ^ 2) ^ 2)
-                    * (d ^ 2 / d ^ 2)
-                  + (d ^ 2) ^ 2 * (A * x'.num * d' ^ 2 * (d' ^ 2 / d' ^ 2) + 2 * B * (d' ^ 2) ^ 2)
-                  - y.num * d * (2 * y'.num * d') * (d ^ 3 / d ^ 3) * (d' ^ 3 / d' ^ 3))
-                / (x.num * d' ^ 2 - d ^ 2 * x'.num) ^ 2 :
-                begin
-                  conv_lhs { rw [← rat.num_div_denom x, hxd, ← rat.num_div_denom y, hyd,
-                                 ← rat.num_div_denom x', hxd', ← rat.num_div_denom y', hyd'] },
-                  simp only [nat.cast_pow],
-                  nth_rewrite_lhs 1 [div_sub_div _ _ (pow_ne_zero 2 hd) (pow_ne_zero 2 hd')],
-                  rw [div_pow _ (d ^ 2 * d' ^ 2 : ℚ), div_div_eq_mul_div],
-                  ring1
-                end
-          ... = rat.mk
-                  (x.num ^ 2 * (x'.num * d' ^ 2) + x.num * d ^ 2 * (x'.num ^ 2 + A * (d' ^ 2) ^ 2)
-                    + (d ^ 2) ^ 2 * (A * x'.num * d' ^ 2 + 2 * B * (d' ^ 2) ^ 2)
-                    - y.num * d * (2 * y'.num * d'))
-                  ((x.num * d' ^ 2 - d ^ 2 * x'.num) ^ 2) :
-                by push_cast [div_self (pow_ne_zero _ hd), div_self (pow_ne_zero _ hd'), mul_one,
-                              one_pow, rat.mk_eq_div],
-        have sw_rw : (y.num ^ 2 : ℚ) = x.num ^ 3 + x.num * (d ^ 2) ^ 2 * A + (d ^ 2) ^ 3 * B :=
-        begin
-          conv_lhs { rw [← div_mul_cancel (y.num : ℚ) $ pow_ne_zero 3 hd, mul_pow, ← pow_mul,
-                         ← nat.cast_pow, ← hyd, rat.num_div_denom, sw, ← rat.num_div_denom x, hxd,
-                         nat.cast_pow, div_pow, add_mul, add_mul, pow_mul',
-                         div_mul_cancel (x.num ^ 3 : ℚ) $ pow_ne_zero 3 $ pow_ne_zero 2 hd,
-                         pow_succ (d ^ 2 : ℚ), ← mul_assoc, mul_assoc (A : ℚ),
-                         div_mul_cancel (x.num : ℚ) $ pow_ne_zero 2 hd] },
-          ring1
-        end,
-        have sw_le : (|y.num| : ℝ) ≤ max (|x.num| : ℝ).sqrt (|d|) ^ 3 * (1 + |A| + |B| : ℝ).sqrt :=
-        begin
-          push_cast [← @rat.cast_inj ℝ] at sw_rw,
-          rw [← real.sqrt_sq $ abs_nonneg _, pow_abs, sw_rw,
-              ← real.sqrt_sq $ pow_nonneg (le_max_of_le_right $ abs_nonneg _) 3, ← pow_mul _ 3,
-              max_pow (real.sqrt_nonneg _) $ abs_nonneg _, pow_mul', real.sq_sqrt $ abs_nonneg _,
-              pow_mul', ← real.sqrt_mul $ le_max_of_le_left $ pow_nonneg (abs_nonneg _) 3],
-          apply real.sqrt_le_sqrt (le_trans' _ $ abs_add_three _ _ _),
-          simp only [abs_mul, abs_pow, mul_add, mul_one],
-          apply add_le_add_three,
-          { exact le_max_left _ _ },
-          { refine mul_le_mul_of_nonneg_right _ (abs_nonneg _),
-            by_cases hsq : (|x.num| : ℝ) ≤ |d| ^ 2,
-            { apply le_trans (mul_le_mul_of_nonneg_right hsq $ sq_nonneg _),
-              simpa only [← pow_succ] using le_max_right _ _ },
-            { refine le_trans
-                (mul_le_mul_of_nonneg_left
-                  (pow_le_pow_of_le_left (sq_nonneg _) (le_of_lt $ lt_of_not_le hsq) 2) $
-                  abs_nonneg _) _,
-              simpa only [← pow_succ] using le_max_left _ _ } },
-          { exact mul_le_mul_of_nonneg_right (le_max_right _ _) (abs_nonneg _) }
-        end,
-        have y_le : (|y.num| * |↑d| : ℝ) ≤ max (|x.num|) (|d ^ 2|) ^ 2 * (1 + |A| + |B| : ℝ).sqrt :=
-        begin
-          apply le_trans (mul_le_mul_of_nonneg_right sw_le $ abs_nonneg _),
-          rw [mul_comm, ← mul_assoc],
-          apply mul_le_mul_of_nonneg_right _ (real.sqrt_nonneg _),
-          by_cases hsq : (|x.num| : ℝ) ≤ |d ^ 2|,
-          { rw [max_eq_right hsq],
-            rw [← real.sqrt_le_sqrt_iff $ abs_nonneg _, abs_pow,
-                real.sqrt_sq $ abs_nonneg _] at hsq,
-            simpa only [max_eq_right hsq, ← pow_succ, abs_pow, ← pow_mul] using le_refl _ },
-          { rw [max_eq_left_of_lt $ lt_of_not_le hsq],
-            nth_rewrite_rhs 0 [← real.sq_sqrt $ abs_nonneg _],
-            rw [not_le, ← real.sqrt_lt_sqrt_iff $ abs_nonneg _, abs_pow,
-                real.sqrt_sq $ abs_nonneg _] at hsq,
-            apply le_trans
-              (mul_le_mul_of_nonneg_right (le_of_lt hsq) $
-                pow_nonneg (le_max_of_le_right $ abs_nonneg _) 3),
-            simpa only [max_eq_left_of_lt hsq, ← pow_succ, ← pow_mul] using le_refl _ }
-        end,
         refine le_trans _ (add_le_add_left (le_max_of_le_right $ le_max_right _ _) _),
         nth_rewrite_rhs 0 [← nat.cast_two],
         rw [height_some, real.log_le_iff_le_exp $ height_pos _, real.exp_add, real.exp_nat_mul,
-            height_some, real.exp_log $ height_pos _, hxd', nat.cast_pow,
-            real.sqrt_sq $ nat.cast_nonneg _, real.exp_log $ lt_max_of_lt_right hpos, max_le_iff],
+            height_some, real.exp_log $ height_pos _, real.exp_log $ C_pos hxd', max_le_iff],
         split,
         { apply le_trans' ((mul_le_mul_left $ pow_pos (height_pos _) 2).mpr $ le_max_left _ _),
           rw [hxd, nat.cast_pow],
           calc (|(((y - y') * (x - x')⁻¹) ^ 2 - x - x').num| : ℝ)
-                ≤ (|x.num ^ 2 * (x'.num * d' ^ 2) + x.num * d ^ 2 * (x'.num ^ 2 + A * (d' ^ 2) ^ 2)
-                    + (d ^ 2) ^ 2 * (A * x'.num * d' ^ 2 + 2 * B * (d' ^ 2) ^ 2)
-                    - y.num * d * (2 * y'.num * d')| : ℤ) :
-                  by simpa only [← int.cast_abs, int.cast_le, add_rw]
-                     using int.le_of_dvd (abs_pos.mpr $ rat.mk_num_ne_zero_of_ne_zero hxy add_rw)
-                       ((abs_dvd_abs _ _).mpr $ rat.num_dvd _ $ pow_ne_zero 2 hdd')
-            ... ≤ |x.num| ^ 2 * |x'.num * d' ^ 2|
-                  + |x.num| * |d ^ 2| * |x'.num ^ 2 + A * (d' ^ 2) ^ 2|
-                  + |d ^ 2| ^ 2 * |A * x'.num * d' ^ 2 + 2 * B * (d' ^ 2) ^ 2|
-                  + |y.num| * |d| * |2 * y'.num * d'| :
+                ≤ (|x.num ^ 2 * C₁ x' d' + x.num * d ^ 2 * C₂ A x' d' + (d ^ 2) ^ 2 * C₃ A B x' d'
+                    - y.num * d * C₄ y' d'| : ℤ) :
+                  by simpa only [← int.cast_abs, int.cast_le, add_rw sw sw' hxd hyd hxd' hyd' hx]
+                     using int.le_of_dvd
+                       (abs_pos.mpr $ rat.mk_num_ne_zero_of_ne_zero hxy $
+                         add_rw sw sw' hxd hyd hxd' hyd' hx)
+                       ((abs_dvd_abs _ _).mpr $ rat.num_dvd _ $ pow_ne_zero 2 $
+                         xd_ne_zero hxd hxd' hx)
+            ... ≤ |x.num| ^ 2 * |C₁ x' d'| + |x.num| * |d ^ 2| * |C₂ A x' d'|
+                  + |d ^ 2| ^ 2 * |C₃ A B x' d'| + |y.num| * |d| * |C₄ y' d'| :
                   by simpa only [int.cast_le, ← abs_mul, pow_abs] with push_cast
                      using le_trans (abs_sub _ _) (add_le_add_right (abs_add_three _ _ _) _)
-            ... ≤ max (|x.num|) (|d ^ 2|) ^ 2
-                  * (|x'.num * d' ^ 2| + |x'.num ^ 2 + A * (d' ^ 2) ^ 2|
-                      + |A * x'.num * d' ^ 2 + 2 * B * (d' ^ 2) ^ 2|
-                      + (1 + |A| + |B| : ℝ).sqrt * |2 * y'.num * d'|) :
+            ... ≤ max (|x.num|) (|d ^ 2|) ^ 2 * R₁ A B x' y' d' :
                   begin
-                    simp only [mul_add, ← mul_assoc],
+                    simp only [R₁, mul_add, ← mul_assoc],
                     apply add_le_add,
                     { apply add_le_add_three,
                       { exact mul_le_mul_of_nonneg_right
@@ -687,26 +701,24 @@ begin
                       { exact mul_le_mul_of_nonneg_right
                           (pow_le_pow_of_le_left (abs_nonneg _) (le_max_right _ _) 2)
                           (abs_nonneg _) } },
-                    { exact mul_le_mul_of_nonneg_right y_le (abs_nonneg _) }
+                    { exact mul_le_mul_of_nonneg_right (w_le sw hxd hyd) (abs_nonneg _) }
                   end },
         { apply le_trans' ((mul_le_mul_left $ pow_pos (height_pos _) 2).mpr $ le_max_right _ _),
           rw [hxd, nat.cast_pow],
           calc (|(((y - y') * (x - x')⁻¹) ^ 2 - x - x').denom| : ℝ)
                 ≤ (|(x.num * d' ^ 2 - d ^ 2 * x'.num) ^ 2| : ℤ) :
-                  by simpa only [← int.cast_coe_nat, ← int.cast_abs, int.cast_le, add_rw]
-                     using int.le_of_dvd (abs_pos.mpr $ pow_ne_zero 2 hdd')
-                      ((abs_dvd_abs _ _).mpr $ rat.denom_dvd _ _)
-            ... ≤ |x.num ^ 2 * (d' ^ 2) ^ 2 - x.num * d ^ 2 * (2 * x'.num * d' ^ 2)
-                  + (d ^ 2) ^ 2 * x'.num ^ 2| :
-                  le_of_eq $ by { push_cast, congr' 1, ring1 }
-            ... ≤ |x.num| ^ 2 * |(d' ^ 2) ^ 2| + |x.num| * |d ^ 2| * |2 * x'.num * d' ^ 2|
-                  + |d ^ 2| ^ 2 * |x'.num ^ 2| :
+                  by simpa only [← int.cast_coe_nat, ← int.cast_abs, int.cast_le,
+                                 add_rw sw sw' hxd hyd hxd' hyd' hx]
+                     using int.le_of_dvd (abs_pos.mpr $ pow_ne_zero 2 $ xd_ne_zero hxd hxd' hx)
+                       ((abs_dvd_abs _ _).mpr $ rat.denom_dvd _ _)
+            ... ≤ |x.num ^ 2 * C₅ d' - x.num * d ^ 2 * C₆ x' d' + (d ^ 2) ^ 2 * C₇ x'| :
+                  le_of_eq $ by { push_cast [C₅, C₆, C₇], congr' 1, ring1 }
+            ... ≤ |x.num| ^ 2 * |C₅ d'| + |x.num| * |d ^ 2| * |C₆ x' d'| + |d ^ 2| ^ 2 * |C₇ x'| :
                   by simpa only [← abs_mul, pow_abs]
                      using le_trans (abs_add _ _) (add_le_add_right (abs_sub _ _) _)
-            ... ≤ max (|x.num|) (|d ^ 2|) ^ 2
-                  * (|(d' ^ 2) ^ 2| + |2 * x'.num * d' ^ 2| + |x'.num ^ 2| : ℝ) :
+            ... ≤ max (|x.num|) (|d ^ 2|) ^ 2 * R₂ x' d' :
                   begin
-                    simp only [mul_add],
+                    simp only [R₂, mul_add],
                     apply add_le_add_three,
                     { exact mul_le_mul_of_nonneg_right
                         (pow_le_pow_of_le_left (abs_nonneg _) (le_max_left _ _) 2) (abs_nonneg _) },
@@ -728,21 +740,210 @@ begin
                     (le_max_of_le_left $ height_nonneg _) } } }
 end
 
-lemma exists_constant_four_mul_height_le_height_two_smul_add_constant :
+end height_add
+
+section height_dbl
+
+variables (A B a b : ℤ)
+
+private def Δ : ℤ := 4 * A ^ 3 + 27 * B ^ 2
+private def F : ℤ := a ^ 4 - 2 * A * a ^ 2 * b ^ 2 - 8 * B * a * b ^ 3 + A ^ 2 * b ^ 4
+private def G : ℤ := 4 * (a ^ 3 * b + A * a * b ^ 3 + B * b ^ 4)
+private def f₁ : ℤ := 12 * (a ^ 2 * b) + 16 * A * b ^ 3
+private def g₁ : ℤ := 3 * a ^ 3 - 5 * A * (a * b ^ 2) - 27 * B * b ^ 3
+private def f₂ : ℤ :=
+4 * (4 * A ^ 3 + 27 * B ^ 2) * a ^ 3 - 4 * A ^ 2 * B * (a ^ 2 * b)
+  + 4 * A * (3 * A ^ 3 + 22 * B ^ 2) * (a * b ^ 2)
+  + 12 * B * (A ^ 3 + 8 * B ^ 2) * b ^ 3
+private def g₂ : ℤ :=
+-A ^ 2 * B * a ^ 3 - A * (5 * A ^ 3 + 32 * B ^ 2) * (a ^ 2 * b)
+  - 2 * B * (13 * A ^ 3 + 96 * B ^ 2) * (a * b ^ 2)
+  + 3 * A ^ 2 * (A ^ 3 + 8 * B ^ 2) * b ^ 3
+private def f₁' : ℤ := |12| + |16 * A|
+private def g₁' : ℤ := |3| + |5 * A| + |27 * B|
+private def f₂' : ℤ :=
+|4 * (4 * A ^ 3 + 27 * B ^ 2)| + |4 * A ^ 2 * B| + |4 * A * (3 * A ^ 3 + 22 * B ^ 2)|
+  + |12 * B * (A ^ 3 + 8 * B ^ 2)|
+private def g₂' : ℤ :=
+|(-A ^ 2 * B)| + |A * (5 * A ^ 3 + 32 * B ^ 2)| + |2 * B * (13 * A ^ 3 + 96 * B ^ 2)|
+  + |3 * A ^ 2 * (A ^ 3 + 8 * B ^ 2)|
+private def C : ℤ := max (max (f₁' A) $ g₁' A B) (max (f₂' A B) $ g₂' A B)
+
+variables {A B a b} {x y : ℚ}
+
+private lemma denom_ne_zero : (x.denom : ℚ) ≠ 0 := nat.cast_ne_zero.mpr $ ne_zero_of_lt x.pos
+
+private lemma x_mul_denom :
+  (x ^ 3 + A * x + B) * x.denom ^ 4
+    = x.num ^ 3 * x.denom + A * x.num * x.denom ^ 3 + B * x.denom ^ 4 :=
+begin
+  conv_lhs { congr, rw [← rat.num_div_denom x, div_pow, mul_div_assoc'], skip, rw [pow_succ] },
+  rw [add_mul, add_mul, ← mul_assoc, ← mul_div_right_comm, div_mul_cancel _ $
+        pow_ne_zero 3 denom_ne_zero, ← mul_assoc, div_mul_cancel _ denom_ne_zero, ← pow_succ]
+end
+
+private lemma C_pos : 0 < C A B :=
+lt_max_of_lt_left $ lt_max_of_lt_left $
+  add_pos_of_pos_of_nonneg (abs_pos_of_pos $ bit0_pos $ bit0_pos three_pos) $ abs_nonneg _
+
+private lemma x_ne_zero (w : y ^ 2 = x ^ 3 + A * x + B) (hy : 2 * y ≠ 0) :
+  2 ^ 2 * (x ^ 3 + A * x + B) ≠ 0 :=
+mul_ne_zero (pow_ne_zero 2 $ two_ne_zero) $ w ▸ pow_ne_zero 2 $ right_ne_zero_of_mul hy
+
+private lemma G_ne_zero (w : y ^ 2 = x ^ 3 + A * x + B) (hy : 2 * y ≠ 0) :
+  G A B x.num x.denom ≠ 0 :=
+begin
+  have hx : (x ^ 3 + A * x + B) * x.denom ^ 4 ≠ 0 :=
+  mul_ne_zero (right_ne_zero_of_mul $ x_ne_zero w hy) (pow_ne_zero 4 denom_ne_zero),
+  rw [x_mul_denom] at hx,
+  simpa only [G, ← @int.cast_ne_zero ℚ] with push_cast using mul_ne_zero four_ne_zero hx
+end
+
+private lemma dbl_rw (w : y ^ 2 = x ^ 3 + A * x + B) (hy : 2 * y ≠ 0) :
+  ((3 * x ^ 2 + A) * (2 * y)⁻¹) ^ 2 - 2 * x = rat.mk (F A B x.num x.denom) (G A B x.num x.denom) :=
+calc ((3 * x ^ 2 + A) * (2 * y)⁻¹) ^ 2 - 2 * x
+      = ((3 * x ^ 2 + A) ^ 2 - 2 * x * (2 ^ 2 * (x ^ 3 + A * x + B)))
+        / (2 ^ 2 * (x ^ 3 + A * x + B)) :
+        by rw [← div_eq_mul_inv, div_pow, mul_pow, w, ← div_sub_div_same,
+               mul_div_cancel _ $ x_ne_zero w hy]
+  ... = (x ^ 4 - 2 * A * x ^ 2 - 8 * B * x + A ^ 2) / (4 * (x ^ 3 + A * x + B)) :
+        by { norm_num1, ring1 }
+  ... = (x.num ^ 4 * (x.denom ^ 4 / x.denom ^ 4)
+          - 2 * A * x.num ^ 2 * x.denom ^ 2 * (x.denom ^ 2 / x.denom ^ 2)
+          - 8 * B * x.num * x.denom ^ 3 * (x.denom / x.denom) + A ^ 2 * x.denom ^ 4)
+        / (4 * (x.num ^ 3 * x.denom + A * x.num * x.denom ^ 3 + B * x.denom ^ 4)) :
+        begin
+          conv_lhs { rw [← mul_div_mul_right _ _ $ pow_ne_zero 4 denom_ne_zero], congr, congr,
+                     rw [← rat.num_div_denom x, div_pow, div_pow], skip, skip,
+                     rw [mul_assoc (4 : ℚ), x_mul_denom] },
+          ring1
+        end
+  ... = rat.mk (F A B x.num x.denom) (G A B x.num x.denom) :
+        by push_cast [F, G, div_self denom_ne_zero, div_self (pow_ne_zero _ denom_ne_zero), mul_one,
+                      rat.mk_eq_div]
+
+private lemma Δab_rw :
+  f₂ A B a b * F A B a b - g₂ A B a b * G A B a b = 4 * Δ A B * a ^ 7
+  ∧ f₁ A a b * F A B a b - g₁ A B a b * G A B a b = 4 * Δ A B * b ^ 7 :=
+by { unfold Δ F G f₁ g₁ f₂ g₂, split, all_goals { ring1 } }
+
+private lemma Δ_rw : (4 * Δ A B * x.num ^ 7).gcd (4 * Δ A B * x.denom ^ 7) = (4 * Δ A B).nat_abs :=
+begin
+  rw [int.gcd_mul_left, int.gcd_eq_one_iff_coprime.mpr, mul_one],
+  exact is_coprime.pow (int.coprime_iff_nat_coprime.mpr x.cop)
+end
+
+private lemma Δab_le :
+  max (|4 * Δ A B * a ^ 7|) (|4 * Δ A B * b ^ 7|)
+    ≤ 2 * (max (max (|f₁ A a b|) $ |g₁ A B a b|) (max (|f₂ A B a b|) $ |g₂ A B a b|)
+            * max (|F A B a b|) (|G A B a b|)) :=
+begin
+  rw [← Δab_rw.1, ← Δab_rw.2, max_mul_of_nonneg _ _ $ le_max_of_le_left $ abs_nonneg $ F A B a b,
+      mul_max_of_nonneg _ _ zero_le_two, max_comm],
+  apply max_le_max,
+  all_goals { apply le_trans (abs_sub _ _),
+              rw [abs_mul, abs_mul, two_mul],
+              exact add_le_add
+                (mul_le_mul (le_max_left _ _) (le_max_left _ _) (abs_nonneg _) $
+                  le_max_of_le_left $ abs_nonneg _)
+                (mul_le_mul (le_max_right _ _) (le_max_right _ _) (abs_nonneg _) $
+                  le_max_of_le_left $ abs_nonneg _) }
+end
+
+private lemma fg_le :
+  max (max (|f₁ A x.num x.denom|) $ |g₁ A B x.num x.denom|)
+    (max (|f₂ A B x.num x.denom|) $ |g₂ A B x.num x.denom|)
+    ≤ C A B * max (|x.num|) (|x.denom|) ^ 3 :=
+begin
+  simp only [C, f₁', g₁', f₂', g₂', add_mul,
+             max_mul_of_nonneg _ _ (pow_nonneg (le_max_of_le_left $ abs_nonneg x.num) 3)],
+  apply max_le_max,
+  all_goals { apply max_le_max },
+  any_goals { apply le_trans (abs_add _ _),
+              conv_lhs { congr, rw [abs_mul, abs_mul, abs_pow], skip, rw [abs_mul, abs_pow] },
+              apply add_le_add },
+  any_goals { refine le_trans (abs_sub _ _) (le_trans (add_le_add_right (abs_sub _ _) _) _),
+              conv_lhs { congr, congr, rw [abs_mul, abs_pow], skip,
+                         rw [abs_mul, abs_mul x.num, abs_pow], skip, rw [abs_mul, abs_pow] },
+              apply add_le_add_three },
+  any_goals { refine le_trans (abs_add_three _ _ _)
+                (le_trans (add_le_add_right (add_le_add_right (abs_sub _ _) _) _) _),
+              conv_lhs { congr, congr, congr, rw [abs_mul, abs_pow], skip,
+                         rw [abs_mul, abs_mul $ x.num ^ 2, abs_pow], skip,
+                         rw [abs_mul, abs_mul x.num, abs_pow], skip, rw [abs_mul, abs_pow] },
+              refine add_le_add_three (add_le_add _ _) _ _ },
+  any_goals { refine le_trans (abs_add _ _)
+                (le_trans (add_le_add_right (abs_sub _ _) _) $
+                  le_trans (add_le_add_right (add_le_add_right (abs_sub _ _) _) _) _),
+              conv_lhs { congr, congr, congr, rw [abs_mul, abs_pow], skip,
+                         rw [abs_mul, abs_mul $ x.num ^ 2, abs_pow], skip,
+                         rw [abs_mul, abs_mul x.num, abs_pow], skip, rw [abs_mul, abs_pow] },
+              refine add_le_add_three (add_le_add _ _) _ _ },
+  any_goals { exact mul_le_mul_of_nonneg_left
+                (pow_le_pow_of_le_left (abs_nonneg _) (le_max_left _ _) 3) (abs_nonneg _) },
+  any_goals { rw [pow_succ' $ max _ _],
+              exact mul_le_mul_of_nonneg_left
+                (mul_le_mul (pow_le_pow_of_le_left (abs_nonneg _) (le_max_left _ _) 2)
+                  (le_max_right _ _) (abs_nonneg _) $ sq_nonneg _) (abs_nonneg _) },
+  any_goals { rw [pow_succ $ max _ _],
+              exact mul_le_mul_of_nonneg_left
+                (mul_le_mul (le_max_left _ _)
+                  (pow_le_pow_of_le_left (abs_nonneg _) (le_max_right _ _) 2) (sq_nonneg _) $
+                  le_max_of_le_left $ abs_nonneg _) (abs_nonneg _) },
+  any_goals { exact mul_le_mul_of_nonneg_left
+                (pow_le_pow_of_le_left (abs_nonneg _) (le_max_right _ _) 3) (abs_nonneg _) }
+end
+
+variables (ha₁ : E.a₁ = 0) (ha₂ : E.a₂ = 0) (ha₃ : E.a₃ = 0) (ha₄ : E.a₄ = A) (ha₆ : E.a₆ = B)
+
+include ha₁ ha₂ ha₃ ha₄ ha₆
+
+private lemma Δ_ne_zero : 4 * Δ A B ≠ 0 :=
+begin
+  push_cast [Δ, ← @int.cast_ne_zero ℚ],
+  apply @right_ne_zero_of_mul _ _ (-4 : ℚ),
+  convert_to E.disc_unit.val ≠ 0,
+  { rw [E.disc_unit_eq, ha₁, ha₂, ha₃, ha₄, ha₆, disc_aux],
+    ring1 },
+  exact E.disc_unit.ne_zero
+end
+
+private lemma gcd_le (hy : 2 * y ≠ 0) :
+  (F A B x.num x.denom).gcd (G A B x.num x.denom) ≤ (4 * Δ A B).nat_abs :=
+begin
+  apply nat.le_of_dvd (int.nat_abs_pos_of_ne_zero $ Δ_ne_zero ha₁ ha₂ ha₃ ha₄ ha₆),
+  rw [← Δ_rw, ← Δab_rw.1, ← Δab_rw.2],
+  apply nat.dvd_gcd,
+  all_goals { exact int.dvd_nat_abs_of_of_nat_dvd
+                (dvd_sub (dvd_mul_of_dvd_right (int.gcd_dvd_left _ _) _) $
+                  dvd_mul_of_dvd_right (int.gcd_dvd_right _ _) _) }
+end
+
+private lemma FG_le (w : y ^ 2 = x ^ 3 + A * x + B) (hy : 2 * y ≠ 0) :
+  max (|F A B x.num x.denom|) (|G A B x.num x.denom|)
+    ≤ max (|(rat.mk (F A B x.num x.denom) $ G A B x.num x.denom).num|)
+        (|(rat.mk (F A B x.num x.denom) $ G A B x.num x.denom).denom|) * |4 * Δ A B| :=
+begin
+  simp only [int.abs_eq_nat_abs, ← int.coe_nat_max],
+  rw [← int.coe_nat_mul, int.coe_nat_le, ← nat.div_mul_cancel $ int.coe_nat_dvd_left.mp $
+        int.gcd_dvd_left _ $ G A B x.num x.denom, ← nat.div_mul_cancel $ int.coe_nat_dvd_left.mp $
+        int.gcd_dvd_right (F A B x.num x.denom) $ G _ _ _ _, ← max_mul_of_nonneg, rat.num_mk,
+      int.nat_abs_div _ _ $ dvd_mul_of_dvd_right (int.gcd_dvd_left _ _) _,
+      int.nat_abs_mul (G A B _ _).sign, int.nat_abs_sign, if_neg $ G_ne_zero w hy, one_mul,
+      int.nat_abs_of_nat, int.nat_abs_of_nat, rat.denom_mk, if_neg $ G_ne_zero w hy],
+  { exact nat.mul_le_mul_left _ (gcd_le ha₁ ha₂ ha₃ ha₄ ha₆ hy) },
+  { exact zero_le _ }
+end
+
+lemma exists_constant_le_height_dbl :
   ∃ C : ℝ, ∀ P : E⟮ℚ⟯, 4 * height P ≤ height (EllipticCurve.dbl P) + C :=
 begin
-  let f₁' : ℤ := |12| + |16 * A|,
-  let g₁' : ℤ := |3| + |5 * A| + |27 * B|,
-  let f₂' : ℤ := |4 * (4 * A ^ 3 + 27 * B ^ 2)| + |4 * A ^ 2 * B|
-                  + |4 * A * (3 * A ^ 3 + 22 * B ^ 2)| + |12 * B * (A ^ 3 + 8 * B ^ 2)|,
-  let g₂' : ℤ := |(-A ^ 2 * B)| + |A * (5 * A ^ 3 + 32 * B ^ 2)|
-                  + |2 * B * (13 * A ^ 3 + 96 * B ^ 2)| + |3 * A ^ 2 * (A ^ 3 + 8 * B ^ 2)|,
   existsi [max (4 * finset.max'
                 (finset.image (λ p : E⟮ℚ⟯[2], height p.val)
                   (set.finite.of_fintype set.univ).to_finset)
                 (by simp only [finset.nonempty.image_iff, set.finite.to_finset.nonempty,
                                set.univ_nonempty])) $
-           real.log (2 * max (max f₁' g₁') (max f₂' g₂') : ℤ)],
+           real.log (2 * C A B : ℤ)],
   rintro (_ | ⟨x, y, w⟩),
   { rw [EllipticCurve.zero_def, EllipticCurve.dbl_zero, height_zero, mul_zero, zero_add],
     exact le_max_of_le_left
@@ -756,200 +957,24 @@ begin
     all_goals { simp only [ha₁, ha₂, ha₃, ha₄, ha₆, algebra_map_rat_rat, ring_hom.id_apply,
                            mul_zero, zero_mul, add_zero, sub_zero] at sw ⊢ },
     split_ifs with hy,
-    { set Δ : ℤ  := 4 * A ^ 3 + 27 * B ^ 2 with hΔ,
-      set F : ℤ  := x.num ^ 4 - 2 * A * x.num ^ 2 * x.denom ^ 2 - 8 * B * x.num * x.denom ^ 3
-                    + A ^ 2 * x.denom ^ 4 with hF,
-      set G : ℤ  := 4 * (x.num ^ 3 * x.denom + A * x.num * x.denom ^ 3 + B * x.denom ^ 4) with hG,
-      set f₁ : ℤ := 12 * (x.num ^ 2 * x.denom) + 16 * A * x.denom ^ 3 with hf₁,
-      set g₁ : ℤ := 3 * x.num ^ 3 - 5 * A * (x.num * x.denom ^ 2) - 27 * B * x.denom ^ 3 with hg₁,
-      set f₂ : ℤ := 4 * Δ * x.num ^ 3 - 4 * A ^ 2 * B * (x.num ^ 2 * x.denom)
-                    + 4 * A * (3 * A ^ 3 + 22 * B ^ 2) * (x.num * x.denom ^ 2)
-                    + 12 * B * (A ^ 3 + 8 * B ^ 2) * x.denom ^ 3 with hf₂,
-      set g₂ : ℤ := -A ^ 2 * B * x.num ^ 3 - A * (5 * A ^ 3 + 32 * B ^ 2) * (x.num ^ 2 * x.denom)
-                    - 2 * B * (13 * A ^ 3 + 96 * B ^ 2) * (x.num * x.denom ^ 2)
-                    + 3 * A ^ 2 * (A ^ 3 + 8 * B ^ 2) * x.denom ^ 3 with hg₂,
-      have h4Δ : 4 * Δ ≠ 0 := mul_ne_zero four_ne_zero (disc_ne_zero ha₁ ha₂ ha₃ ha₄ ha₆),
-      have hd : (x.denom : ℚ) ≠ 0 := nat.cast_ne_zero.mpr (ne_zero_of_lt x.pos),
-      have hx : x ^ 3 + A * x + B ≠ 0 := sw ▸ pow_ne_zero 2 (right_ne_zero_of_mul hy),
-      have h4x : G ≠ 0 :=
-      begin
-        sorry
-      end,
-      have hpos : 0 < f₁' :=
-      add_pos_of_pos_of_nonneg (abs_pos_of_pos $ bit0_pos $ bit0_pos three_pos) (abs_nonneg _),
-      have hnum : f₂ * F - g₂ * G = 4 * Δ * x.num ^ 7 := by { rw [hf₂, hF, hg₂, hG, hΔ], ring1 },
-      have hdenom : f₁ * F - g₁ * G = 4 * Δ * x.denom ^ 7 :=
-      by { rw [hf₁, hF, hg₁, hG, hΔ], ring1 },
-      have hgcd : (4 * Δ * x.num ^ 7).gcd (4 * Δ * x.denom ^ 7) = (4 * Δ).nat_abs :=
-      begin
-        rw [int.gcd_mul_left, int.gcd_eq_one_iff_coprime.mpr, mul_one],
-        exact is_coprime.pow (int.coprime_iff_nat_coprime.mpr x.cop)
-      end,
-      have dbl_rw : ((3 * x ^ 2 + A) * (2 * y)⁻¹) ^ 2 - 2 * x = rat.mk F G :=
-      calc ((3 * x ^ 2 + A) * (2 * y)⁻¹) ^ 2 - 2 * x
-            = ((3 * x ^ 2 + A) ^ 2 - 2 * x * (2 ^ 2 * (x ^ 3 + A * x + B)))
-              / (2 ^ 2 * (x ^ 3 + A * x + B)) :
-              by rw [← div_eq_mul_inv, div_pow, mul_pow, sw, ← div_sub_div_same,
-                     mul_div_cancel _ $ mul_ne_zero (pow_ne_zero 2 $ @two_ne_zero ℚ _ _) hx]
-        ... = (x ^ 4 - 2 * A * x ^ 2 - 8 * B * x + A ^ 2) / (4 * (x ^ 3 + A * x + B)) :
-              by { norm_num1, ring1 }
-        ... = (x.num ^ 4 * (x.denom ^ 4 / x.denom ^ 4)
-                - 2 * A * x.num ^ 2 * x.denom ^ 2 * (x.denom ^ 2 / x.denom ^ 2)
-                - 8 * B * x.num * x.denom ^ 3 * (x.denom / x.denom) + A ^ 2 * x.denom ^ 4)
-              / (4 * (x.num ^ 3 * x.denom + A * x.num * x.denom ^ 3 + B * x.denom ^ 4)) :
-              begin
-                conv_lhs { rw [← rat.num_div_denom x, div_pow, div_pow,
-                               ← mul_div_mul_right _ _ $ mul_ne_zero hd $ pow_ne_zero 3 hd],
-                           congr, skip,
-                           rw [mul_assoc, add_mul, add_mul, div_pow, ← mul_assoc,
-                               ← mul_div_right_comm, div_mul_cancel _ $ pow_ne_zero 3 hd,
-                               mul_div_assoc', ← mul_assoc, div_mul_cancel _ hd, ← pow_succ] },
-                ring1
-              end
-        ... = rat.mk F G :
-              by push_cast [div_self hd, div_self (pow_ne_zero _ hd), mul_one, rat.mk_eq_div],
-      have dbl_le : max (|F|) (|G|) ≤ max (|(rat.mk F G).num|) (|(rat.mk F G).denom|) * |4 * Δ| :=
-      begin
-        simp only [int.abs_eq_nat_abs, ← int.nat_cast_eq_coe_nat, ← nat.cast_max, ← nat.cast_mul],
-        rw [nat.cast_le, ← nat.div_mul_cancel $ int.coe_nat_dvd_left.mp $ int.gcd_dvd_left F G,
-            ← nat.div_mul_cancel $ int.coe_nat_dvd_left.mp $ int.gcd_dvd_right F G,
-            ← max_mul_of_nonneg, rat.num_mk,
-            int.nat_abs_div _ _ $ dvd_mul_of_dvd_right (int.gcd_dvd_left _ _) _,
-            int.nat_abs_mul G.sign, int.nat_abs_sign, if_neg h4x, one_mul, int.nat_abs_of_nat,
-            int.nat_cast_eq_coe_nat, int.nat_abs_of_nat, rat.denom_mk, if_neg h4x],
-        any_goals { exact zero_le _ },
-        apply nat.mul_le_mul_left _ (nat.le_of_dvd (int.nat_abs_pos_of_ne_zero h4Δ) _),
-        rw [← hgcd, ← hnum, ← hdenom],
-        apply nat.dvd_gcd,
-        all_goals { exact int.dvd_nat_abs_of_of_nat_dvd
-                      (dvd_sub (dvd_mul_of_dvd_right (int.gcd_dvd_left _ _) _) $
-                        dvd_mul_of_dvd_right (int.gcd_dvd_right _ _) _) }
-      end,
-      have num_le : |4 * Δ * x.num ^ 7| ≤ 2 * (max (|f₂|) (|g₂|) * max (|F|) (|G|)) :=
-      begin
-        rw [← hnum],
-        apply le_trans (abs_sub _ _),
-        rw [abs_mul, abs_mul, two_mul],
-        exact add_le_add
-          (mul_le_mul (le_max_left _ _) (le_max_left _ _) (abs_nonneg _) $
-            le_max_of_le_left $ abs_nonneg _)
-          (mul_le_mul (le_max_right _ _) (le_max_right _ _) (abs_nonneg _) $
-            le_max_of_le_left $ abs_nonneg _)
-      end,
-      have denom_le : |4 * Δ * x.denom ^ 7| ≤ 2 * (max (|f₁|) (|g₁|) * max (|F|) (|G|)) :=
-      begin
-        rw [← hdenom],
-        apply le_trans (abs_sub _ _),
-        rw [abs_mul, abs_mul, two_mul],
-        exact add_le_add
-          (mul_le_mul (le_max_left _ _) (le_max_left _ _) (abs_nonneg _) $
-            le_max_of_le_left $ abs_nonneg _)
-          (mul_le_mul (le_max_right _ _) (le_max_right _ _) (abs_nonneg _) $
-            le_max_of_le_left $ abs_nonneg _)
-      end,
-      have f₁_le : |f₁| ≤ f₁' * max (|x.num|) (|x.denom|) ^ 3 :=
-      begin
-        apply le_trans (abs_add _ _),
-        rw [abs_mul, abs_mul, abs_pow, abs_mul, abs_pow],
-        simp only [add_mul],
-        apply add_le_add,
-        { rw [pow_succ' $ max _ _],
-          exact mul_le_mul_of_nonneg_left
-            (mul_le_mul (pow_le_pow_of_le_left (abs_nonneg _) (le_max_left _ _) 2)
-              (le_max_right _ _) (abs_nonneg _) $ sq_nonneg _) (abs_nonneg _) },
-        { exact mul_le_mul_of_nonneg_left
-            (pow_le_pow_of_le_left (abs_nonneg _) (le_max_right _ _) 3) (abs_nonneg _) }
-      end,
-      have g₁_le : |g₁| ≤ g₁' * max (|x.num|) (|x.denom|) ^ 3 :=
-      begin
-        refine le_trans (abs_sub _ _) (le_trans (add_le_add_right (abs_sub _ _) _) _),
-        conv_lhs { congr, congr, rw [abs_mul, abs_pow], skip, rw [abs_mul, abs_mul x.num, abs_pow],
-                   skip, rw [abs_mul, abs_pow] },
-        simp only [add_mul],
-        apply add_le_add_three,
-        { exact mul_le_mul_of_nonneg_left
-            (pow_le_pow_of_le_left (abs_nonneg _) (le_max_left _ _) 3) (abs_nonneg _) },
-        { rw [pow_succ $ max _ _],
-          exact mul_le_mul_of_nonneg_left
-            (mul_le_mul (le_max_left _ _)
-              (pow_le_pow_of_le_left (abs_nonneg _) (le_max_right _ _) 2) (sq_nonneg _) $
-              le_max_of_le_left $ abs_nonneg _) (abs_nonneg _) },
-        { exact mul_le_mul_of_nonneg_left
-            (pow_le_pow_of_le_left (abs_nonneg _) (le_max_right _ _) 3) (abs_nonneg _) }
-      end,
-      have f₂_le : |f₂| ≤ f₂' * max (|x.num|) (|x.denom|) ^ 3 :=
-      begin
-        refine le_trans (abs_add_three _ _ _)
-          (le_trans (add_le_add_right (add_le_add_right (abs_sub _ _) _) _) _),
-        conv_lhs { congr, congr, congr, rw [abs_mul, abs_pow], skip,
-                   rw [abs_mul, abs_mul $ x.num ^ 2, abs_pow], skip,
-                   rw [abs_mul, abs_mul x.num, abs_pow], skip, rw [abs_mul, abs_pow] },
-        simp only [add_mul],
-        apply add_le_add_three,
-        { apply add_le_add,
-          { exact mul_le_mul_of_nonneg_left
-              (pow_le_pow_of_le_left (abs_nonneg _) (le_max_left _ _) 3) (abs_nonneg _) },
-          { rw [pow_succ' $ max _ _],
-            exact mul_le_mul_of_nonneg_left
-              (mul_le_mul (pow_le_pow_of_le_left (abs_nonneg _) (le_max_left _ _) 2)
-                (le_max_right _ _) (abs_nonneg _) $ sq_nonneg _) (abs_nonneg _) } },
-        { rw [pow_succ $ max _ _],
-          exact mul_le_mul_of_nonneg_left
-            (mul_le_mul (le_max_left _ _)
-              (pow_le_pow_of_le_left (abs_nonneg _) (le_max_right _ _) 2) (sq_nonneg _) $
-              le_max_of_le_left $ abs_nonneg _) (abs_nonneg _) },
-        { exact mul_le_mul_of_nonneg_left
-            (pow_le_pow_of_le_left (abs_nonneg _) (le_max_right _ _) 3) (abs_nonneg _) }
-      end,
-      have g₂_le : |g₂| ≤ g₂' * max (|x.num|) (|x.denom|) ^ 3 :=
-      begin
-        refine le_trans (abs_add _ _)
-          (le_trans (add_le_add_right (abs_sub _ _) _) $
-            le_trans (add_le_add_right (add_le_add_right (abs_sub _ _) _) _) _),
-        conv_lhs { congr, congr, congr, rw [abs_mul, abs_pow], skip,
-                   rw [abs_mul, abs_mul $ x.num ^ 2, abs_pow], skip,
-                   rw [abs_mul, abs_mul x.num, abs_pow], skip, rw [abs_mul, abs_pow] },
-        simp only [add_mul],
-        apply add_le_add_three,
-        { apply add_le_add,
-          { exact mul_le_mul_of_nonneg_left
-              (pow_le_pow_of_le_left (abs_nonneg _) (le_max_left _ _) 3) (abs_nonneg _) },
-          { rw [pow_succ' $ max _ _],
-            exact mul_le_mul_of_nonneg_left
-              (mul_le_mul (pow_le_pow_of_le_left (abs_nonneg _) (le_max_left _ _) 2)
-                (le_max_right _ _) (abs_nonneg _) $ sq_nonneg _) (abs_nonneg _) } },
-        { rw [pow_succ $ max _ _],
-          exact mul_le_mul_of_nonneg_left
-            (mul_le_mul (le_max_left _ _)
-              (pow_le_pow_of_le_left (abs_nonneg _) (le_max_right _ _) 2) (sq_nonneg _) $
-              le_max_of_le_left $ abs_nonneg _) (abs_nonneg _) },
-        { exact mul_le_mul_of_nonneg_left
-            (pow_le_pow_of_le_left (abs_nonneg _) (le_max_right _ _) 3) (abs_nonneg _) }
-      end,
-      convert_to ((4 : ℕ) : ℝ) * _ ≤ _,
+    { convert_to ((4 : ℕ) : ℝ) * _ ≤ _,
       { rw [nat.cast_bit0, nat.cast_two] },
       refine le_trans _ (add_le_add_left (le_max_right _ _) _),
       rw [height_some, ← real.log_pow, real.log_le_iff_le_exp $ pow_pos (height_pos _) 4,
           ← int.cast_coe_nat, ← int.cast_abs, ← int.cast_abs, ← int.cast_max, ← int.cast_pow,
-          real.exp_add, height_some, real.exp_log $ height_pos _, dbl_rw, ← int.cast_coe_nat,
+          real.exp_add, height_some, real.exp_log $ height_pos _, dbl_rw sw hy, ← int.cast_coe_nat,
           ← int.cast_abs, ← int.cast_abs, ← int.cast_max, real.exp_log, ← int.cast_mul, int.cast_le,
           ← mul_le_mul_left $ pow_pos (height_pos' _) 3, ← pow_add,
           max_pow (abs_nonneg x.num) $ abs_nonneg _, pow_abs, pow_abs, mul_comm, mul_assoc,
-          mul_assoc, max_mul_of_nonneg _ _ $ pow_nonneg (le_max_of_le_left $ abs_nonneg x.num) 3,
-          max_mul_of_nonneg _ _ $ pow_nonneg (le_max_of_le_left $ abs_nonneg x.num) 3,
-          max_mul_of_nonneg _ _ $ pow_nonneg (le_max_of_le_left $ abs_nonneg x.num) 3,
-          mul_comm, mul_assoc, ← mul_le_mul_left $ abs_pos.mpr h4Δ,
-          mul_max_of_nonneg _ _ $ abs_nonneg $ 4 * Δ, ← abs_mul, ← abs_mul, mul_comm $ |_|,
-          mul_assoc (2 : ℤ), mul_assoc $ max _ _],
-      any_goals { exact int.cast_pos.mpr
-                    (mul_pos two_pos $ lt_max_of_lt_left $ lt_max_of_lt_left hpos) },
-      norm_num1,
-      apply le_trans (max_le_max num_le denom_le),
-      rw [← mul_max_of_nonneg _ _ zero_le_two, mul_le_mul_left $ @two_pos ℤ _ _,
-          ← max_mul_of_nonneg _ _ $ le_max_of_le_left $ abs_nonneg F, max_comm],
-      exact mul_le_mul (max_le_max (max_le_max f₁_le g₁_le) $ max_le_max f₂_le g₂_le) dbl_le
-        (le_max_of_le_left $ abs_nonneg _) (le_of_lt $ lt_max_of_lt_left $ lt_max_of_lt_left $
-                                              mul_pos hpos $ pow_pos (height_pos' _) 3) },
+          mul_assoc, mul_comm, ← mul_le_mul_left $ abs_pos.mpr $ Δ_ne_zero ha₁ ha₂ ha₃ ha₄ ha₆,
+          mul_max_of_nonneg _ _ $ abs_nonneg $ 4 * Δ A B, ← abs_mul, ← abs_mul, mul_comm $ |_|,
+          mul_assoc $ (2 : ℤ) * _, mul_assoc (2 : ℤ)],
+      any_goals { exact int.cast_pos.mpr (mul_pos two_pos C_pos) },
+      exact le_trans Δab_le
+        (mul_le_mul_of_nonneg_left
+          (mul_le_mul fg_le (FG_le ha₁ ha₂ ha₃ ha₄ ha₆ sw hy) (le_max_of_le_left $ abs_nonneg _) $
+            le_of_lt $ mul_pos C_pos $ pow_pos (height_pos' _) 3)
+          zero_le_two) },
     { rw [not_ne_iff, two_mul, add_self_eq_zero] at hy,
       subst hy,
       rw [height_zero, zero_add],
@@ -959,6 +984,8 @@ begin
             ⟨⟨some x 0 w, E₂_y rfl⟩, (set.finite.mem_to_finset _).mpr $ set.mem_univ _, rfl⟩)
           zero_le_four) } }
 end
+
+end height_dbl
 
 end heights
 

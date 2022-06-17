@@ -54,7 +54,7 @@ variables {N : Type*} [add_comm_monoid N] [module R N]
 variables {M' : Type*} [add_comm_group M'] [module R M']
 variables {N' : Type*} [add_comm_group N'] [module R N']
 
-variables {ι ι' : Type*} [decidable_eq ι] [decidable_eq ι']
+variables {ι ι' ι'' : Type*} [decidable_eq ι] [decidable_eq ι'] [decidable_eq ι'']
 
 set_option old_structure_cmd true
 
@@ -479,6 +479,9 @@ def dom_dom_congr (σ : ι ≃ ι') (f : alternating_map R M N ι) : alternating
   map_eq_zero_of_eq' := λ v i j hv hij,
     f.map_eq_zero_of_eq (v ∘ σ) (by simpa using hv) (σ.symm.injective.ne hij),
   .. f.to_multilinear_map.dom_dom_congr σ }
+
+lemma dom_dom_congr_trans (σ₁ : ι ≃ ι') (σ₂ : ι' ≃ ι'') (f : alternating_map R M N ι) :
+  f.dom_dom_congr (σ₁.trans σ₂) = (f.dom_dom_congr σ₁).dom_dom_congr σ₂ := rfl
 
 lemma dom_dom_congr_perm [fintype ι] (σ : equiv.perm ι) :
   g.dom_dom_congr σ = σ.sign • g :=

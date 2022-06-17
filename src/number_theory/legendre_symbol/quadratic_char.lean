@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Michael Stoll
 -/
 import number_theory.legendre_symbol.zmod_char
+import field_theory.finite.basic
 
 /-!
 # Quadratic characters of finite fields
@@ -122,7 +123,7 @@ begin
         mul_pow],
     cases finite_field.pow_dichotomy hF hb with hb' hb',
     { simp only [hb', mul_one, eq_self_iff_true, if_true], },
-    { have h := finite_field.neg_one_ne_one_of_char_ne_two hF, -- `-1 ≠ 1`
+    { have h := ring.neg_one_ne_one_of_char_ne_two hF, -- `-1 ≠ 1`
       simp only [hb', h, mul_neg, mul_one, if_false, ite_mul, neg_mul],
       cases finite_field.pow_dichotomy hF ha with ha' ha';
         simp only [ha', h, neg_neg, eq_self_iff_true, if_true, if_false], }, },
@@ -190,9 +191,10 @@ begin
         { exact eq_or_eq_neg_of_sq_eq_sq _ _, },
         { rintro (h₂ | h₂); rw h₂,
           simp only [neg_sq], }, },
-      simp only [h₁, finset.card_doubleton (finite_field.neg_ne_self_of_char_ne_two hF h₀),
-                 list.to_finset_cons, list.to_finset_nil, insert_emptyc_eq, int.coe_nat_succ,
-                 int.coe_nat_zero, zero_add], },
+      norm_cast,
+      rw  [h₁, list.to_finset_cons, list.to_finset_cons, list.to_finset_nil],
+      exact finset.card_doubleton
+              (ne.symm (mt (ring.eq_self_iff_eq_zero_of_char_ne_two hF).mp h₀)), },
     { rw quadratic_char_neg_one_iff_not_is_square.mpr h,
       simp only [int.coe_nat_eq_zero, finset.card_eq_zero, set.to_finset_card,
                  fintype.card_of_finset, set.mem_set_of_eq, add_left_neg],
@@ -249,7 +251,7 @@ begin
   { simp only [even.neg_one_pow h₂, eq_self_iff_true, if_true], },
   { simp only [odd.neg_one_pow h₂, ite_eq_right_iff],
     exact λ (hf : -1 = 1),
-            false.rec (1 = -1) (finite_field.neg_one_ne_one_of_char_ne_two hF hf), },
+            false.rec (1 = -1) (ring.neg_one_ne_one_of_char_ne_two hF hf), },
 end
 
 /-- The interpretation in terms of whether `-1` is a square in `F` -/

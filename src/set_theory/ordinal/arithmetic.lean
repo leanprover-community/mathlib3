@@ -153,17 +153,8 @@ by simp only [le_antisymm_iff, add_le_add_iff_right]
   exact ⟨f punit.star⟩
 end, λ e, by simp only [e, card_zero]⟩
 
-@[simp] theorem type_eq_zero_of_empty [is_well_order α r] [is_empty α] : type r = 0 :=
-card_eq_zero.symm.mpr (mk_eq_zero _)
-
-@[simp] theorem type_eq_zero_iff_is_empty [is_well_order α r] : type r = 0 ↔ is_empty α :=
-(@card_eq_zero (type r)).symm.trans mk_eq_zero_iff
-
-theorem type_ne_zero_iff_nonempty [is_well_order α r] : type r ≠ 0 ↔ nonempty α :=
-(not_congr (@card_eq_zero (type r))).symm.trans mk_ne_zero_iff
-
 protected lemma one_ne_zero : (1 : ordinal) ≠ 0 :=
-type_ne_zero_iff_nonempty.2 ⟨punit.star⟩
+type_ne_zero_of_nonempty _
 
 instance : nontrivial ordinal.{u} :=
 ⟨⟨1, 0, ordinal.one_ne_zero⟩⟩
@@ -360,6 +351,17 @@ end
 
 theorem out_no_max_of_succ_lt {o : ordinal} (ho : ∀ a < o, succ a < o) : no_max_order o.out.α :=
 ⟨has_succ_of_type_succ_lt (by rwa type_lt)⟩
+
+lemma bounded_singleton {r : α → α → Prop} [is_well_order α r] (hr : (type r).is_limit) (x) :
+  bounded r {x} :=
+begin
+  refine ⟨enum r (succ (typein r x)) (hr.2 _ (typein_lt_type r x)), _⟩,
+  intros b hb,
+  rw mem_singleton_iff.1 hb,
+  nth_rewrite 0 ←enum_typein r x,
+  rw @enum_lt_enum _ r,
+  apply lt_succ
+end
 
 lemma type_subrel_lt (o : ordinal.{u}) :
   type (subrel (<) {o' : ordinal | o' < o}) = ordinal.lift.{u+1} o :=

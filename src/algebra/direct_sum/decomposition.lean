@@ -37,8 +37,12 @@ section add_comm_monoid
 variables [decidable_eq ι] [add_comm_monoid M]
 variables [set_like σ M] [add_submonoid_class σ M] (ℳ : ι → σ)
 
-/-- M decomposition is a constructive version of `direct_sum.is_internal`, which comes with
-a constructive inverse to the canonical "recomposition". -/
+/-- A decomposition is an equivalence between an additive monoid `M` and a direct sum of additive
+submonoids `ℳ i` of that `M`, such that the "recomposition" is canonical. This definition also
+works for additive groups and modules.
+
+This is a version of `direct_sum.is_internal` which comes with a constructive inverse to the
+canonical "recomposition" rather than just a proof that the "recomposition" is bijective. -/
 class decomposition :=
 (decompose' : M → ⨁ i, ℳ i)
 (left_inv : function.left_inverse (direct_sum.coe_add_monoid_hom ℳ) decompose' )
@@ -115,11 +119,6 @@ map_sum (decompose_add_equiv ℳ) f s
   (decompose ℳ).symm (∑ i in s, f i) = ∑ i in s, (decompose ℳ).symm (f i) :=
 map_sum (decompose_add_equiv ℳ).symm f s
 
-/-- This instance produces the instance needed by `dfinsupp.support` -/
--- instance set_like_decidable_ne_zero [Π x : M, decidable (x ≠ 0)] :
---   Π i (x : ℳ i), decidable (x ≠ 0) :=
--- λ i x, decidable_of_iff _ add_submonoid_class.coe_eq_zero.not
-
 lemma sum_support_decompose [Π i (x : ℳ i), decidable (x ≠ 0)] (r : M) :
   ∑ i in (decompose ℳ r).support, (decompose ℳ r i : M) = r :=
 begin
@@ -131,7 +130,12 @@ end
 
 end add_comm_monoid
 
--- the `-` in the statements below doesn't resolve without this line
+/-- The `-` in the statements below doesn't resolve without this line.
+
+This seems to a be a problem of synthesized vs inferred typeclasses disagreeing. If we replace
+the statement of `decompose_neg` with `@eq (⨁ i, ℳ i) (decompose ℳ (-x)) (-decompose ℳ x)`
+instead of `decompose ℳ (-x) = -decompose ℳ x`, which forces the typeclasses needed by `⨁ i, ℳ i` to
+be found by unification rather than synthesis, then everything works fine without this instance. -/
 instance add_comm_group_set_like [add_comm_group M] [set_like σ M] [add_subgroup_class σ M]
   (ℳ : ι → σ) : add_comm_group (⨁ i, ℳ i) := by apply_instance
 

@@ -155,23 +155,23 @@ def pi0_equiv_path_components : π 0 x ≃ zeroth_homotopy X :=
 quotient.congr gen_loop_zero_equiv
 begin
   -- joined iff homotopic
-  intros, split; rintro ⟨H⟩; constructor,
+  intros, split; rintro ⟨H⟩,
   exacts
-  [ { to_fun := λ t, H ⟨t, fin.elim0⟩,
+  [⟨{ to_fun := λ t, H ⟨t, fin.elim0⟩,
       source' := (H.apply_zero _).trans (congr_arg a₁ matrix.zero_empty.symm),
-      target' := (H.apply_one _).trans (congr_arg a₂ matrix.zero_empty.symm) },
-    { to_fun := λ t0, H t0.fst,
+      target' := (H.apply_one _).trans (congr_arg a₂ matrix.zero_empty.symm) }⟩,
+   ⟨{ to_fun := λ t0, H t0.fst,
       map_zero_left' := λ _, by convert H.source,
       map_one_left' := λ _, by convert H.target,
-      prop' := λ _ _ ⟨i,_⟩, i.elim0 } ]
+      prop' := λ _ _ ⟨i,_⟩, i.elim0 }⟩]
 end
 
 /-- The 1-dimensional generalized loops based at `x` are in 1-1 correspondence with
   paths from `x` to itself. -/
 @[simps] def gen_loop_one_equiv_path_self : gen_loop 1 x ≃ path x x :=
 { to_fun := λ p, path.mk ⟨λ t, p (λ _, t), by {continuity, exact p.1.2}⟩
-      (p.boundary (λ _, 0) ⟨0, or.inl rfl⟩)
-      (p.boundary (λ _, 1) ⟨1, or.inr rfl⟩),
+    (p.boundary (λ _, 0) ⟨0, or.inl rfl⟩)
+    (p.boundary (λ _, 1) ⟨1, or.inr rfl⟩),
   inv_fun := λ p,
   { to_fun := λ c, p c.head,
     boundary := begin
@@ -190,19 +190,18 @@ begin
   refine equiv.trans _ (category_theory.groupoid.iso_equiv_hom _ _).symm,
   refine quotient.congr gen_loop_one_equiv_path_self _,
   -- homotopic iff homotopic
-  intros, split; rintros ⟨H⟩; constructor,
-  exact
-  { to_fun := λ tx, H (tx.fst, λ _, tx.snd),
-    map_zero_left' := λ _, by convert H.apply_zero _,
-    map_one_left' := λ _, by convert H.apply_one _,
-    prop' := λ t y iH, H.prop' _ _ ⟨0,iH⟩ },
-  exact
-  { to_fun := λ tx, H (tx.fst, tx.snd.head),
-    map_zero_left' := λ y, by { convert H.apply_zero _, exact y.one_char },
-    map_one_left' := λ y, by { convert H.apply_one _, exact y.one_char },
-    prop' := λ t y ⟨i, iH⟩, begin
-      cases unique.eq_default i, split,
-      { convert H.eq_fst _ _, exacts [y.one_char, iH] },
-      { convert H.eq_snd _ _, exacts [y.one_char, iH] },
-    end },
+  intros, split; rintros ⟨H⟩,
+  exacts
+  [⟨{ to_fun := λ tx, H (tx.fst, λ _, tx.snd),
+      map_zero_left' := λ _, by convert H.apply_zero _,
+      map_one_left' := λ _, by convert H.apply_one _,
+      prop' := λ t y iH, H.prop' _ _ ⟨0,iH⟩ }⟩,
+   ⟨{ to_fun := λ tx, H (tx.fst, tx.snd.head),
+      map_zero_left' := λ y, by { convert H.apply_zero _, exact y.one_char },
+      map_one_left' := λ y, by { convert H.apply_one _, exact y.one_char },
+      prop' := λ t y ⟨i, iH⟩, begin
+        cases unique.eq_default i, split,
+        { convert H.eq_fst _ _, exacts [y.one_char, iH] },
+        { convert H.eq_snd _ _, exacts [y.one_char, iH] },
+      end }⟩],
 end

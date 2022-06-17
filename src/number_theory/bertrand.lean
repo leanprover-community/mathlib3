@@ -70,7 +70,6 @@ and this is Clearly False for sufficiently large n.
 
 open_locale big_operators
 
-section real_inequalities
 open real
 
 private lemma log_four_pos : 0 < log 4 := log_pos (by linarith)
@@ -179,15 +178,11 @@ begin
   ring,
 end
 
-end bertrand
-
-open bertrand
-
 /--
 A reified version of the `bertrand_inequality` below.
 This is not best possible: it actually holds for 464 ≤ x.
 -/
-lemma real_bertrand_inequality {x : ℝ} (n_large : (722 : ℝ) ≤ x) :
+lemma real_main_inequality {x : ℝ} (n_large : (722 : ℝ) ≤ x) :
   x * (2 * x) ^ (sqrt (2 * x)) * 4 ^ (2 * x / 3) < 4 ^ x :=
 begin
   have v : 0 < (2 * x) ^ (sqrt (2 * x)) := rpow_pos_of_pos (by linarith) _,
@@ -211,12 +206,10 @@ begin
   { exact rpow_pos_of_pos four_pos _, },
 end
 
-end real_inequalities
-
 /--
 The inequality which contradicts Bertrand's postulate, for large enough `n`.
 -/
-lemma bertrand_inequality {n : ℕ} (n_large : 722 ≤ n) :
+lemma main_inequality {n : ℕ} (n_large : 722 ≤ n) :
   n * (2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3) ≤ 4 ^ n :=
 begin
   rw ←@nat.cast_le ℝ,
@@ -255,7 +248,7 @@ begin
                 { exact is_trans.swap (λ (x y : ℝ), y ≤ x), }, }, },
             { exact mul_pos n_pos (real.rpow_pos_of_pos fact2 _), },
           end
-  ... < 4 ^ (n : ℝ) : real_bertrand_inequality n_large_real,
+  ... < 4 ^ (n : ℝ) : real_main_inequality n_large_real,
 end
 
 /--
@@ -306,7 +299,7 @@ The bound splits the prime factors of `central_binom n` into those
 4. Between `n` and `2 * n`, which would not exist in the case where Bertrand's postulate is false.
 5. Above `2 * n`, which do not exist.
 -/
-lemma bertrand_central_binom_le (n : ℕ) (n_big : 2 < n)
+lemma central_binom_le_of_no_prime (n : ℕ) (n_big : 2 < n)
   (no_prime : ¬∃ (p : ℕ), nat.prime p ∧ n < p ∧ p ≤ 2 * n) :
   nat.central_binom n
     ≤ (2 * n) ^ (nat.sqrt (2 * n))
@@ -430,6 +423,8 @@ nat.central_binom n
         *
       4 ^ (2 * n / 3) : nat.mul_le_mul_left _ (primorial_le_4_pow (2 * n / 3))
 
+end bertrand
+
 /--
 Proves that Bertrand's postulate holds for all sufficiently large `n`.
 -/
@@ -443,9 +438,10 @@ begin
   have false_inequality : 4 ^ n < n * (2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3),
   calc 4 ^ n < n * nat.central_binom n : nat.four_pow_lt_mul_central_binom n (by linarith)
     ... ≤ n * ((2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3)) :
-          nat.mul_le_mul_of_nonneg_left (bertrand_central_binom_le n (by linarith) no_prime)
+          nat.mul_le_mul_of_nonneg_left
+            (bertrand.central_binom_le_of_no_prime n (by linarith) no_prime)
     ... = n * (2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3) : by ring,
-  exact not_le_of_lt false_inequality (bertrand_inequality n_big),
+  exact not_le_of_lt false_inequality (bertrand.main_inequality n_big),
 end
 
 /--

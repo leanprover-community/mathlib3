@@ -484,7 +484,7 @@ begin
         rw [one_mul, real.norm_eq_abs, _root_.abs_of_nonneg (real.log_nonneg hz')],
         refine le_trans _ (le_abs_self _),
         rw [← real.log_mul, real.log_le_log,
-          ← _root_.abs_of_nonneg (le_trans (@zero_le_one ℝ _) hz)],
+          ← _root_.abs_of_nonneg (le_trans zero_le_one hz)],
         exacts [abs_le_sqrt_two_mul_max z, one_pos.trans_le hz', (mul_pos h2 hm₀), h2.ne', hm₀.ne']
       end
   ... =o[l] re : is_o.add (is_o_const_left.2 $ or.inr $ tendsto_abs_at_top_at_top.comp hl₁) _,
@@ -1169,7 +1169,7 @@ lemma continuous_at_cpow_zero_of_re_pos {z : ℂ} (hz : 0 < z.re) :
   continuous_at (λ x : ℂ × ℂ, x.1 ^ x.2) (0, z) :=
 begin
   have hz₀ : z ≠ 0, from ne_of_apply_ne re hz.ne',
-  rw [continuous_at, zero_cpow hz₀, (is_Theta_cpow_rpow _ _ _ _).tendsto_zero_iff],
+  rw [continuous_at, zero_cpow hz₀, (is_Theta_cpow_rpow _ _).tendsto_zero_iff],
   { convert continuous_at_fst.norm.rpow (continuous_re.continuous_at.comp continuous_at_snd) _;
       simp [hz, hz.ne'] },
   { exact (continuous_im.comp continuous_snd).abs.continuous_at.is_bounded_under_le },

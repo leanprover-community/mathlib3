@@ -480,6 +480,9 @@ def dom_dom_congr (σ : ι ≃ ι') (f : alternating_map R M N ι) : alternating
     f.map_eq_zero_of_eq (v ∘ σ) (by simpa using hv) (σ.symm.injective.ne hij),
   .. f.to_multilinear_map.dom_dom_congr σ }
 
+@[simp] lemma dom_dom_congr_refl (f : alternating_map R M N ι) :
+  f.dom_dom_congr (equiv.refl ι) = f := ext $ λ v, rfl
+
 lemma dom_dom_congr_trans (σ₁ : ι ≃ ι') (σ₂ : ι' ≃ ι'') (f : alternating_map R M N ι) :
   f.dom_dom_congr (σ₁.trans σ₂) = (f.dom_dom_congr σ₁).dom_dom_congr σ₂ := rfl
 

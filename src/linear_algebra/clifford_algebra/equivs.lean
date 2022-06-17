@@ -152,8 +152,6 @@ begin
 end
 
 section
--- TODO: why is there trouble with `npow` without this?
-local attribute [semireducible] clifford_algebra
 /-- Intermediate result for `clifford_algebra_complex.equiv`: `ℂ` can be converted to
 `clifford_algebra_complex.Q` above can be converted to. -/
 def of_complex : ℂ →ₐ[ℝ] clifford_algebra Q :=

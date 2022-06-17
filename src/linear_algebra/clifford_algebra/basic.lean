@@ -156,7 +156,10 @@ begin
   simp only,
 end
 
-attribute [irreducible] clifford_algebra ι lift
+attribute [irreducible] ι lift
+-- Marking `clifford_algebra` irreducible makes our `ring` instances problematic.
+-- https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/algebra.2Esemiring_to_ring.20breaks.20semimodule.20typeclass.20lookup/near/212580241
+-- For now, we avoid this by not marking it irreducible.
 
 @[simp]
 theorem lift_comp_ι (g : clifford_algebra Q →ₐ[R] A) :

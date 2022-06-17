@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Heather Macbeth
 -/
 import analysis.complex.circle
+import analysis.normed_space.ball_action
 import analysis.inner_product_space.calculus
 import analysis.inner_product_space.pi_L2
 import geometry.manifold.algebra.lie_group

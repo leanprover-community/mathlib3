@@ -215,6 +215,24 @@ def map {X Y : Type*} [preorder X] [preorder Y] (φ : X →o Y) (𝓘 : ideal X)
   } }
 end
 
+@[simp] lemma mem_map {X Y : Type*} [preorder X] [preorder Y] {φ : X →o Y} {𝓘 : ideal X} {b : Y} :
+  b ∈ 𝓘.map φ ↔ ∃ a ∈ 𝓘.carrier, b ≤ φ a := iff.rfl
+
+lemma map_id {X : Type*} [preorder X] (𝓘 : ideal X) : map (order_hom.id : X →o X) 𝓘 = 𝓘 :=
+ext $ set.ext $ λ x, ⟨λ ⟨y, hy, hle⟩, 𝓘.lower hle hy, λ hx, ⟨x, hx, le_refl x⟩⟩
+
+lemma map_map {X Y Z : Type*} [preorder X] [preorder Y] [preorder Z]
+  {φ : X →o Y} {ψ : Y →o Z} (𝓘 : ideal X) : (𝓘.map φ).map ψ = 𝓘.map (ψ.comp φ) :=
+ext $ set.ext $ λ x, ⟨λ ⟨b, ⟨a, ha𝓘, hba⟩, hx_le⟩, ⟨a, ha𝓘, hx_le.trans $ ψ.mono hba⟩,
+  λ ⟨a, ha𝓘, hxle⟩, ⟨φ a, ⟨a, ha𝓘, le_refl (φ a)⟩, hxle⟩⟩
+
+lemma map_mono {X Y : Type*} [preorder X] [preorder Y] {φ : X →o Y} {𝓘₁ 𝓘₂ : ideal X}
+  (h : 𝓘₁ ≤ 𝓘₂) : 𝓘₁.map φ ≤ 𝓘₂.map φ :=
+begin
+  rintro y ⟨x, (hx₁ : x ∈ 𝓘₁), hy_le⟩,
+  refine ⟨x, h hx₁, hy_le⟩,
+end
+
 section order_bot
 variables [order_bot P]
 
@@ -326,6 +344,14 @@ instance : complete_lattice (ideal P) :=
     exact bInter_subset_of_mem hs,
   end) }
 
+/-
+
+### comap
+
+-/
+
+section comap_and_galois_connection
+
 /-- The comap on ideals induced by a morphism on the underlying types. -/
 def comap {X Y : Type*} [semilattice_sup X] [semilattice_sup Y] [order_bot X] [order_bot Y]
   (φ : sup_bot_hom X Y) (𝓙 : ideal Y) : ideal X :=
@@ -336,10 +362,63 @@ def comap {X Y : Type*} [semilattice_sup X] [semilattice_sup Y] [order_bot X] [o
   let ⟨y, hy, hy₁, hy₂⟩ := 𝓙.directed (φ x₁) hx₁ (φ x₂) hx₂ in
   ⟨𝓙.lower (by { rw (map_sup φ x₁ x₂), exact sup_le hy₁ hy₂ }) hy, by simp, by simp⟩, ⟩ }
 
-lemma gc {X Y : Type*} [semilattice_sup X] [semilattice_sup Y] [order_bot X] [order_bot Y]
-  (φ : sup_bot_hom X Y) :
-galois_connection (map { to_fun := φ, monotone' := φ.mono }) (comap φ) :=
+variables {X Y : Type*} [semilattice_sup X] [semilattice_sup Y] [order_bot X] [order_bot Y]
+  (φ : sup_bot_hom X Y) (𝓘 : ideal X) (𝓙 : ideal Y)
+
+-- move?
+def sup_bot_map (φ : sup_bot_hom X Y) (𝓘 : ideal X) : ideal Y := 𝓘.map (φ : X →o Y)
+
+variables {Z : Type*} [semilattice_sup Z] [order_bot Z] (ψ : sup_bot_hom Y Z)
+
+lemma sup_bot_map_map : (𝓘.sup_bot_map φ).sup_bot_map ψ = 𝓘.sup_bot_map (ψ.comp φ) :=
+map_map _
+
+lemma gc : galois_connection (sup_bot_map φ) (comap φ) :=
 λ 𝓘 𝓙, ⟨λ h x hx, h ⟨x, hx, le_refl _⟩, λ h y ⟨x, hx𝓘, hduality⟩, 𝓙.lower hduality $ h hx𝓘⟩
+
+def tendsto {X Y : Type*} [semilattice_sup X] [semilattice_sup Y] [order_bot X] [order_bot Y]
+  (φ : sup_bot_hom X Y) (𝓘 : ideal X) (𝓙 : ideal Y) : Prop := 𝓘.sup_bot_map φ ≤ 𝓙
+
+notation 𝓘 ` →ᶠ[`:25 φ:25 `] `:0 𝓙:0 := tendsto φ 𝓘 𝓙
+
+lemma tendsto_def : (𝓘 →ᶠ[φ] 𝓙) ↔ 𝓘.sup_bot_map φ ≤ 𝓙 := by refl
+
+lemma tendsto_iff_comap : (𝓘 →ᶠ[φ] 𝓙) ↔ 𝓘 ≤ 𝓙.comap φ := gc φ 𝓘 𝓙
+
+lemma tendsto_id : tendsto (sup_bot_hom.id X) 𝓘 𝓘 :=
+begin
+  intro x,
+  rintro ⟨a, (haI : a ∈ 𝓘), (h2 : x ≤ a)⟩,
+  exact 𝓘.lower h2 haI,
+end
+
+lemma tendsto_comp
+  -- let X, Y and Z be sets
+  {X Y Z : Type*}
+  -- and assume they're partial orders with some extra bells and whistles
+  -- like a `⊔` function and a `⊥` element and also a way to do infinite `⋂`s
+  -- called `Inf`. Yes I know it's illegible
+  [semilattice_sup X] [semilattice_sup Y] [semilattice_sup Z]
+  [order_bot X] [order_bot Y] [order_bot Z]
+  -- Now assume that φ : X → Y and ψ : Y → Z are maps that preserve all this
+  -- structure in a sensible way.
+  (φ : sup_bot_hom X Y) (ψ : sup_bot_hom Y Z)
+  -- and say we've got 3 ideals 𝓘 and 𝓙 and 𝓚 of `X`, `Y` and `Z` respectively
+  (𝓘 : ideal X) (𝓙 : ideal Y) (𝓚 : ideal Z)
+  -- Say something tends to `𝓙` along `φ`, and also that
+  -- `𝓙` tends to something along `ψ`.
+  (hIJ : 𝓘 →ᶠ[φ] 𝓙) (hJK : 𝓙 →ᶠ[ψ] 𝓚)
+  -- Then the theorem states that
+  :
+  -- the first thing tends to the last thing along the composite `φ ∘ ψ`.
+  𝓘 →ᶠ[ψ.comp φ] 𝓚 :=
+begin
+  refine le_trans _ hJK,
+  rw ← sup_bot_map_map,
+  exact map_mono hIJ,
+end
+
+end comap_and_galois_connection
 
 end semilattice_sup_order_bot
 

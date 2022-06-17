@@ -164,10 +164,6 @@ meta def single_term_resolve : expr → tactic unit
   assumption <|> interactive.exact ``(one_ne_zero) <|> skip
 | (app `(⇑(@polynomial.C %%R %%inst)) x) :=
   interactive.exact ``(polynomial.nat_degree_C _)
---| `(has_pow.pow (@polynomial.X %%R %%inst) %%n) :=
---  (nontriviality_by_assumption R <|>
---    fail format!"could not produce a 'nontrivial {R}' assumption") >>
---  refine ``(polynomial.nat_degree_X_pow %%n)
 | `(@has_pow.pow (@polynomial %%R %%nin) ℕ %%inst %%mX %%n) :=
   (nontriviality_by_assumption R <|>
     fail format!"could not produce a 'nontrivial {R}' assumption") >>
@@ -332,7 +328,6 @@ bo ← succeeds $ interactive.exact ``(polynomial.nat_degree_C_mul_X _ ‹_›),
 if bo then fail "Try this: exact polynomial.nat_degree_C_mul_X _ ‹_›"
 else
   fail "'compute_degree' works better with polynomials involving more than one term\n"
-
 
 /--  `compute_degree_le_core` differs from `compute_degree_le` simply since it takes a `bool`
 input, instead of parsing a `!` token. -/

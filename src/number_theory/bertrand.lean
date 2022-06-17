@@ -158,14 +158,13 @@ lemma inequality3 {x : ℝ} (n_large : 722 ≤ x) : sqrt 2 * sqrt x * log x / (x
 begin
   have x_pos : 0 < x := by linarith,
   rw [inequality3' x_pos],
-  have bound : log x / sqrt x ≤ log 722 / sqrt 722,
-  { exact log_div_sqrt_antitone_on exp_two_le_722 (le_trans exp_two_le_722 n_large) n_large, },
   calc sqrt 2 / log 4 * log x / sqrt x
       = sqrt 2 / log 4 * (log x / sqrt x) : by rw mul_div_assoc
   ... ≤ sqrt 2 / log 4 * (log 722 / sqrt 722) :
           begin
             rw mul_le_mul_left,
-            { exact bound, },
+            { exact log_div_sqrt_antitone_on exp_two_le_722
+                      (le_trans exp_two_le_722 n_large) n_large, },
             { exact div_pos (sqrt_pos.2 two_pos) log_four_pos, },
           end
   ... = log 722 / log 4 * sqrt 2 / sqrt 722 : by ring

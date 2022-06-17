@@ -3,8 +3,7 @@ Copyright (c) 2022. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Moritz Firsching, Fabian Kruse, Nikolas Kuhn
 -/
-import tactic
-import analysis.special_functions.log
+import analysis.special_functions.log.basic
 import analysis.special_functions.pow
 import algebra.big_operators.basic
 import algebra.big_operators.intervals
@@ -42,7 +41,6 @@ We use the fact that the series defined in part 1 converges againt a real number
 $a = \sqrt{\pi}$. Here the main ingredient is the convergence of the Wallis product.
 -/
 
-namespace stirling
 
 open_locale big_operators -- notation ∑ for finite sums
 open_locale classical real topological_space nnreal ennreal filter big_operators
@@ -51,6 +49,7 @@ open finset
 open nat
 open filter
 
+namespace stirling
 
 /-- TODO: Perhaps something to add as rat.cast_sum in more generality (see below) in mathlib?!-/
 lemma rat_cast_sum (s : finset ℕ) (f : ℕ → ℚ) :
@@ -271,10 +270,10 @@ begin
     refine has_sum.has_sum_of_sum_eq _ h_sum₀,
     intros,
     use u,
-    intros,
+    intros v' h,
     use v',
     split,
-    { exact ᾰ },
+    { exact h },
     { refine sum_congr rfl _, intros k hk, exact h_inner k },
   end,
   have h_sum : tendsto
@@ -328,9 +327,9 @@ begin
     have h_pow_succ := λ (k : ℕ),
       symm (pow_succ ((1 / (2 * ((n : ℝ) + 1) + 1)) ^ 2) k),
     have h_nonneg : 0 ≤ ((1 / (2 * (n.succ : ℝ) + 1)) ^ 2),
-    by { rw [cast_succ, one_div, inv_pow₀, inv_nonneg], norm_cast, exact zero_le', },
+    by { rw [cast_succ, one_div, inv_pow, inv_nonneg], norm_cast, exact zero_le', },
     have hlt : ((1 / (2 * (n.succ : ℝ) + 1)) ^ 2) < 1, by
-    { simp only [cast_succ, one_div, inv_pow₀],
+    { simp only [cast_succ, one_div, inv_pow],
       refine inv_lt_one _,
       norm_cast,
       simp only [nat.one_lt_pow_iff, ne.def, zero_eq_bit0, nat.one_ne_zero, not_false_iff,
@@ -346,10 +345,10 @@ begin
       refine has_sum.has_sum_of_sum_eq _ h_geom',
       intros,
       use u,
-      intros,
+      intros v' h,
       use v',
       split,
-      { exact ᾰ },
+      { exact h },
       { refine sum_congr rfl _, intros k hk, exact h_pow_succ k },
     end,
     norm_num,
@@ -361,7 +360,7 @@ begin
   begin
     intro k,
     have h_zero_le : 0 ≤ ((1 / (2 * (n.succ : ℝ) + 1)) ^ 2) ^ k.succ, by
-    { simp [cast_succ, one_div, inv_pow₀, inv_nonneg], norm_cast, exact zero_le', },
+    { simp [cast_succ, one_div, inv_pow, inv_nonneg], norm_cast, exact zero_le', },
     have h_left : 1 / (2 * (k.succ : ℝ) + 1) ≤ 1, by
     { simp only [cast_succ, one_div],
       refine inv_le_one _,

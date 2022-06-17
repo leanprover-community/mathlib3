@@ -417,7 +417,7 @@ protected lemma has_basis_uniformity (h : 𝔖.nonempty) (h' : directed_on (⊆)
     (λ SV, uniform_convergence_on.gen SV.1 SV.2) :=
 uniform_convergence_on.has_basis_uniformity_of_basis α β 𝔖 h h' (𝓤 β).basis_sets
 
-protected lemma has_basis_nhds_of_basis (h : 𝔖.nonempty) (h' : directed_on (⊆) 𝔖)
+protected lemma has_basis_nhds_of_basis (f) (h : 𝔖.nonempty) (h' : directed_on (⊆) 𝔖)
   {p : ι → Prop} {s : ι → set (β × β)} (hb : has_basis (𝓤 β) p s) :
   (@nhds (α → β) (uniform_convergence_on.topological_space α β 𝔖) f).has_basis
     (λ Si : set α × ι, Si.1 ∈ 𝔖 ∧ p Si.2)
@@ -427,11 +427,11 @@ begin
   exact nhds_basis_uniformity (uniform_convergence_on.has_basis_uniformity_of_basis α β 𝔖 h h' hb)
 end
 
-protected lemma has_basis_nhds (h : 𝔖.nonempty) (h' : directed_on (⊆) 𝔖) :
+protected lemma has_basis_nhds (f) (h : 𝔖.nonempty) (h' : directed_on (⊆) 𝔖) :
   (@nhds (α → β) (uniform_convergence_on.topological_space α β 𝔖) f).has_basis
     (λ SV : set α × set (β × β), SV.1 ∈ 𝔖 ∧ SV.2 ∈ 𝓤 β)
     (λ SV, {g | (g, f) ∈ uniform_convergence_on.gen SV.1 SV.2}) :=
-uniform_convergence_on.has_basis_nhds_of_basis α β 𝔖 h h' (filter.basis_sets _)
+uniform_convergence_on.has_basis_nhds_of_basis α β 𝔖 f h h' (filter.basis_sets _)
 
 protected lemma uniform_continuous_restrict (h : s ∈ 𝔖) :
   @uniform_continuous _ _ (uniform_convergence_on.uniform_space α β 𝔖)

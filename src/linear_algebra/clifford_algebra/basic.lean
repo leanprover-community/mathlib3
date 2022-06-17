@@ -15,6 +15,11 @@ import linear_algebra.quadratic_form.isometry
 We construct the Clifford algebra of a module `M` over a commutative ring `R`, equipped with
 a quadratic_form `Q`.
 
+Note that since the definition of `quadratic_form` permits us to generalize from modules to
+semimodules, and because `ring_quot` works on semirings, we make the same generalization here.
+This matches the level of generalization used by `exterior_algebra R M`, although neither
+generalization is common in the literature.
+
 ## Notation
 
 The Clifford algebra of the `R`-module `M` equipped with a quadratic_form `Q` is denoted as

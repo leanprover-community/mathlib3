@@ -613,8 +613,8 @@ is_compl.of_eq inf_compl_eq_bot sup_compl_eq_top
 theorem is_compl.compl_eq (h : is_compl x y) : xᶜ = y :=
 (h.right_unique is_compl_compl).symm
 
-instance boolean_algebra.core.to_has_precompl : has_precompl α := {
-  compl := compl,
+instance boolean_algebra.core.to_has_precompl : has_precompl α :=
+{ compl := compl,
   compl_antitone' := λ _ _, is_compl_compl.antitone is_compl_compl,
   compl_involutive' := λ x, is_compl_compl.symm.compl_eq }
 

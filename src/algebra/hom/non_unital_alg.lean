@@ -217,6 +217,20 @@ def inverse (f : A →ₙₐ[R] B) (g : B → A)
   (inverse f g h₁ h₂ : B → A) = g :=
 rfl
 
+section
+variables (R A)
+/-- The identity as a non-unital algebra homomorphism. -/
+protected def id : A →ₙₐ[R] A :=
+{ map_smul' := λ r x, by simp only [mul_hom.to_fun_eq_coe, mul_hom.id_apply],
+  ..mul_hom.id A,
+  ..add_monoid_hom.id A }
+
+@[simp] lemma coe_id : ⇑(non_unital_alg_hom.id R A) = id := rfl
+
+lemma id_apply (x : A) : non_unital_alg_hom.id R A x = x := rfl
+end
+
+
 /-! ### Operations on the product type
 
 Note that much of this is copied from [`linear_algebra/prod`](../../linear_algebra/prod). -/

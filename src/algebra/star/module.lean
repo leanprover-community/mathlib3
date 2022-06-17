@@ -112,14 +112,14 @@ by simp only [smul_sub, self_adjoint_part_apply_coe, smul_add, skew_adjoint_part
 
 variables (A)
 
---/-- The decomposition of elements of a star module into their self- and skew-adjoint parts,
---as a linear equivalence. -/
---@[simps] def star_module.decompose_prod_adjoint : A ≃ₗ[R] self_adjoint A × skew_adjoint A :=
---linear_equiv.of_linear
---  ((self_adjoint_part R).prod (skew_adjoint_part R))
---  ((self_adjoint.submodule R A).subtype.coprod (skew_adjoint.submodule R A).subtype)
---  (by ext; simp)
---  (linear_map.ext $ star_module.self_adjoint_part_add_skew_adjoint_part R)
+/-- The decomposition of elements of a star module into their self- and skew-adjoint parts,
+as a linear equivalence. -/
+@[simps] def star_module.decompose_prod_adjoint : A ≃ₗ[R] self_adjoint A × skew_adjoint A :=
+linear_equiv.of_linear
+  ((self_adjoint_part R).prod (skew_adjoint_part R))
+  ((self_adjoint.submodule R A).subtype.coprod (skew_adjoint.submodule R A).subtype)
+  (by ext; simp)
+  (linear_map.ext $ star_module.self_adjoint_part_add_skew_adjoint_part R)
 
 end star_linear_equiv
 
@@ -170,6 +170,90 @@ instance star_alg_equiv_class.to_star_alg_hom_class (F R A B : Type*)
   ..‹star_alg_equiv_class F R A B› }
 
 /-- A star algebra homomorphism is an algebra homomorphism that preserves the star operation.  -/
+structure non_unital_star_alg_hom (R A B : Type*)
+  [monoid R] [non_unital_non_assoc_semiring A] [non_unital_non_assoc_semiring B]
+  [distrib_mul_action R A] [distrib_mul_action R B] [has_star A] [has_star B]
+  extends A →ₙₐ[R] B :=
+(map_star' : ∀ (a : A), to_fun (star a) = star (to_fun a))
+
+notation A ` →ₙₐ⋆[`:25 R `] ` B := non_unital_star_alg_hom R A B
+
+namespace non_unital_star_alg_hom
+variables {R A B C D : Type*} [comm_semiring R]
+  [semiring A] [semiring B] [algebra R A] [algebra R B] [has_star A] [has_star B]
+  [semiring C] [semiring D] [algebra R C] [algebra R D] [has_star C] [has_star D]
+
+instance : non_unital_star_alg_hom_class (A →ₙₐ⋆[R] B) R A B :=
+{ coe := to_fun,
+  coe_injective' := λ f g h, by cases f; cases g; congr',
+  map_mul := λ f, f.map_mul',
+  map_add := λ f, f.map_add',
+  map_zero := λ f, f.map_zero',
+  map_star := λ f, f.map_star',
+  map_smul := λ f, f.map_smul' }
+
+/-- see Note [function coercion] -/
+instance : has_coe_to_fun (A →ₙₐ⋆[R] B) (λ _, A → B) := ⟨to_fun⟩
+
+@[simp] lemma to_fun_eq_coe (f : A →ₙₐ⋆[R] B) : f.to_fun = ⇑f := rfl
+
+initialize_simps_projections non_unital_star_alg_hom (to_fun → apply)
+
+instance coe_non_unital_alg_hom : has_coe (A →ₙₐ⋆[R] B) (A →ₙₐ[R] B) :=
+⟨non_unital_star_alg_hom.to_non_unital_alg_hom⟩
+
+@[simp] lemma to_non_unital_alg_hom_eq_coe (f : A →ₙₐ⋆[R] B)  : f.to_non_unital_alg_hom = f := rfl
+
+@[simp, norm_cast] lemma coe_fn_coe_non_unital_alg_hom (f : A →ₙₐ⋆[R] B) :
+  ((f : A →ₙₐ[R] B) : A → B) = f := rfl
+
+@[ext]
+theorem ext {φ₁ φ₂ : A →ₙₐ⋆[R] B} (H : ∀ x, φ₁ x = φ₂ x) : φ₁ = φ₂ := fun_like.ext _ _ H
+
+section
+variables (R A)
+protected def id : A →ₙₐ⋆[R] A :=
+{ map_star' := λ x, by { simp only [non_unital_alg_hom.to_fun_eq_coe, non_unital_alg_hom.coe_id,
+                                    id.def], },
+  ..non_unital_alg_hom.id R A }
+
+@[simp] lemma coe_id : ⇑(non_unital_star_alg_hom.id R A) = id := rfl
+
+lemma id_apply (x : A) : non_unital_star_alg_hom.id R A x = x := rfl
+end
+
+instance : has_one (A →ₙₐ⋆[R] A) :=
+⟨{  map_star' := λ x, by simp only [non_unital_alg_hom.to_fun_eq_coe, non_unital_alg_hom.coe_one,
+                                    id.def],
+    ..(1 : A →ₙₐ[R] A) }⟩
+
+@[simp] lemma coe_one : ((1 : A →ₙₐ⋆[R] A) : A → A) = id := rfl
+
+/-- Composition of non-unital star algebra homomorphisms. -/
+def comp (φ₁ : B →ₙₐ⋆[R] C) (φ₂ : A →ₙₐ⋆[R] B) : A →ₙₐ⋆[R] C :=
+{ map_star' := λ x, by simp only [map_star, to_non_unital_alg_hom_eq_coe,
+                                  non_unital_alg_hom.to_fun_eq_coe, non_unital_alg_hom.coe_comp,
+                                  coe_fn_coe_non_unital_alg_hom, function.comp_app],
+  .. φ₁.to_non_unital_alg_hom.comp ↑φ₂ }
+
+@[simp] lemma coe_comp (φ₁ : B →ₙₐ⋆[R] C) (φ₂ : A →ₙₐ⋆[R] B) : ⇑(φ₁.comp φ₂) = φ₁ ∘ φ₂ := rfl
+
+lemma comp_apply (φ₁ : B →ₙₐ⋆[R] C) (φ₂ : A →ₙₐ⋆[R] B) (p : A) : φ₁.comp φ₂ p = φ₁ (φ₂ p) := rfl
+
+@[simp] theorem comp_id (φ : A →ₙₐ⋆[R] B) : φ.comp (non_unital_star_alg_hom.id R A) = φ :=
+ext $ λ x, rfl
+
+@[simp] theorem id_comp (φ : A →ₙₐ⋆[R] B) : (non_unital_star_alg_hom.id R B).comp φ = φ :=
+ext $ λ x, rfl
+
+theorem comp_assoc (φ₁ : C →ₙₐ⋆[R] D) (φ₂ : B →ₙₐ⋆[R] C) (φ₃ : A →ₙₐ⋆[R] B) :
+  (φ₁.comp φ₂).comp φ₃ = φ₁.comp (φ₂.comp φ₃) :=
+ext $ λ x, rfl
+
+end non_unital_star_alg_hom
+
+
+/-- A star algebra homomorphism is an algebra homomorphism that preserves the star operation.  -/
 structure star_alg_hom (R A B : Type*)
   [comm_semiring R] [semiring A] [semiring B] [algebra R A] [algebra R B] [has_star A] [has_star B]
   extends A →ₐ[R] B :=
@@ -178,8 +262,9 @@ structure star_alg_hom (R A B : Type*)
 notation A ` →ₐ⋆[`:25 R `] ` B := star_alg_hom R A B
 
 namespace star_alg_hom
-variables {R A B : Type*}
+variables {R A B C D : Type*}
   [comm_semiring R] [semiring A] [semiring B] [algebra R A] [algebra R B] [has_star A] [has_star B]
+  [semiring C] [algebra R C] [has_star C] [semiring D] [algebra R D] [has_star D]
 
 instance : star_alg_hom_class (A →ₐ⋆[R] B) R A B :=
 { coe := to_fun,
@@ -198,6 +283,55 @@ instance : has_coe_to_fun (A →ₐ⋆[R] B) (λ _, A → B) := ⟨to_fun⟩
 
 initialize_simps_projections star_alg_hom (to_fun → apply)
 
+instance coe_alg_hom : has_coe (A →ₐ⋆[R] B) (A →ₐ[R] B) := ⟨star_alg_hom.to_alg_hom⟩
+
+@[simp] lemma to_alg_hom_eq_coe (f : A →ₐ⋆[R] B)  : f.to_alg_hom = f := rfl
+
+@[simp, norm_cast] lemma coe_fn_coe_alg_hom (f : A →ₐ⋆[R] B) :
+  ((f : A →ₐ[R] B) : A → B) = f := rfl
+
+instance coe_non_unital_star_alg_hom : has_coe (A →ₐ⋆[R] B) (A →ₙₐ⋆[R] B) :=
+⟨λ f, { map_smul' := map_smul f, ..f }⟩
+
+@[simp, norm_cast] lemma coe_fn_coe_non_unital_star_alg_hom (f : A →ₐ⋆[R] B) :
+  ((f : A →ₙₐ⋆[R] B) : A → B) = f := rfl
+
+@[ext]
+theorem ext {φ₁ φ₂ : A →ₐ⋆[R] B} (H : ∀ x, φ₁ x = φ₂ x) : φ₁ = φ₂ := fun_like.ext _ _ H
+
+section
+variables (R A)
+protected def id : A →ₐ⋆[R] A :=
+{ map_star' := λ x, by simp only [alg_hom.to_fun_eq_coe, alg_hom.coe_id, id.def],
+  ..alg_hom.id R A }
+
+@[simp] lemma coe_id : ⇑(star_alg_hom.id R A) = id := rfl
+
+@[simp] lemma id_to_star_alg_hom : (star_alg_hom.id R A : A →ₐ[R] A) = alg_hom.id _ _ := rfl
+end
+
+lemma id_apply (x : A) : star_alg_hom.id R A x = x := rfl
+
+/-- Composition of star algebra homomorphisms. -/
+def comp (φ₁ : B →ₐ⋆[R] C) (φ₂ : A →ₐ⋆[R] B) : A →ₐ⋆[R] C :=
+{ map_star' := λ x, by simp only [map_star, to_alg_hom_eq_coe, alg_hom.to_fun_eq_coe,
+                                  alg_hom.coe_comp, coe_fn_coe_alg_hom, function.comp_app],
+  .. φ₁.to_alg_hom.comp ↑φ₂ }
+
+@[simp] lemma coe_comp (φ₁ : B →ₐ⋆[R] C) (φ₂ : A →ₐ⋆[R] B) : ⇑(φ₁.comp φ₂) = φ₁ ∘ φ₂ := rfl
+
+lemma comp_apply (φ₁ : B →ₐ⋆[R] C) (φ₂ : A →ₐ⋆[R] B) (p : A) : φ₁.comp φ₂ p = φ₁ (φ₂ p) := rfl
+
+@[simp] theorem comp_id (φ : A →ₐ⋆[R] B) : φ.comp (star_alg_hom.id R A) = φ :=
+ext $ λ x, rfl
+
+@[simp] theorem id_comp (φ : A →ₐ⋆[R] B) : (star_alg_hom.id R B).comp φ = φ :=
+ext $ λ x, rfl
+
+theorem comp_assoc (φ₁ : C →ₐ⋆[R] D) (φ₂ : B →ₐ⋆[R] C) (φ₃ : A →ₐ⋆[R] B) :
+  (φ₁.comp φ₂).comp φ₃ = φ₁.comp (φ₂.comp φ₃) :=
+ext $ λ x, rfl
+
 end star_alg_hom
 
 structure star_alg_equiv (R A B : Type*)
@@ -208,8 +342,9 @@ structure star_alg_equiv (R A B : Type*)
 notation A ` ≃ₐ⋆[`:25 R `] ` B := star_alg_equiv R A B
 
 namespace star_alg_equiv
-variables {R A B : Type*}
+variables {R A B C : Type*}
   [comm_semiring R] [semiring A] [semiring B] [algebra R A] [algebra R B] [has_star A] [has_star B]
+  [semiring C] [algebra R C] [has_star C]
 
 instance : star_alg_equiv_class (A ≃ₐ⋆[R] B) R A B :=
 { coe := to_fun,
@@ -226,6 +361,23 @@ instance : star_alg_equiv_class (A ≃ₐ⋆[R] B) R A B :=
 instance : has_coe_to_fun (A ≃ₐ⋆[R] B) (λ _, A → B) := ⟨to_fun⟩
 
 @[simp] lemma to_fun_eq_coe (f : A ≃ₐ⋆[R] B) : f.to_fun = ⇑f := rfl
+
+instance has_coe_to_alg_equiv : has_coe (A ≃ₐ⋆[R] B) (A ≃ₐ[R] B) := ⟨star_alg_equiv.to_alg_equiv⟩
+
+@[simp] lemma to_alg_equiv_eq_coe (e : A ≃ₐ⋆[R] B): e.to_alg_equiv = e := rfl
+
+@[simp, norm_cast] lemma coe_alg_equiv (e : A ≃ₐ⋆[R] B) : ((e : A ≃ₐ[R] B) : A → B) = e := rfl
+
+instance has_coe_to_star_alg_hom : has_coe (A ≃ₐ⋆[R] B) (A →ₐ⋆[R] B) :=
+⟨λ e, { to_fun := e.to_fun,
+        map_one' := map_one e,
+        map_mul' := map_mul e,
+        map_zero' := map_zero e,
+        map_add' := map_add e,
+        commutes' := star_alg_hom_class.commutes e,
+        map_star' := map_star e }⟩
+
+@[simp, norm_cast] lemma coe_star_alg_hom (e : A ≃ₐ⋆[R] B) : ((e : A →ₐ⋆[R] B) : A → B) = e := rfl
 
 @[ext] lemma ext {f g : A ≃ₐ⋆[R] B} (h : ∀ a, f a = g a) : f = g := fun_like.ext f g h
 
@@ -264,39 +416,77 @@ equiv.bijective ⟨symm, symm, symm_symm, symm_symm⟩
 theorem left_inverse_symm (e : A ≃ₐ⋆[R] B) : function.left_inverse e.symm e := e.left_inv
 theorem right_inverse_symm (e : A ≃ₐ⋆[R] B) : function.right_inverse e.symm e := e.right_inv
 
+/-- Composition of star algebra equivalences. -/
+@[trans] def trans (e₁ : A ≃ₐ⋆[R] B) (e₂ : B ≃ₐ⋆[R] C) : A ≃ₐ⋆[R] C :=
+{ map_star' := λ a, by simp only [map_star, to_alg_equiv_eq_coe, alg_equiv.to_fun_eq_coe,
+                                  alg_equiv.trans_apply, coe_alg_equiv],
+  ..(e₁.to_alg_equiv.trans e₂.to_alg_equiv), }
+
+@[simp] lemma apply_symm_apply (e : A ≃ₐ⋆[R] B) : ∀ x, e (e.symm x) = x :=
+  e.to_alg_equiv.apply_symm_apply
+
+@[simp] lemma symm_apply_apply (e : A ≃ₐ⋆[R] B) : ∀ x, e.symm (e x) = x :=
+  e.to_alg_equiv.symm_apply_apply
+
+@[simp] lemma symm_trans_apply (e₁ : A ≃ₐ⋆[R] B) (e₂ : B ≃ₐ⋆[R] C) (x : C) :
+  (e₁.trans e₂).symm x = e₁.symm (e₂.symm x) := rfl
+
+@[simp] lemma coe_trans (e₁ : A ≃ₐ⋆[R] B) (e₂ : B ≃ₐ⋆[R] C) :
+  ⇑(e₁.trans e₂) = e₂ ∘ e₁ := rfl
+
+@[simp] lemma trans_apply (e₁ : A ≃ₐ⋆[R] B) (e₂ : B ≃ₐ⋆[R] C) (x : A) :
+  (e₁.trans e₂) x = e₂ (e₁ x) := rfl
+
+@[simp] lemma comp_symm (e : A ≃ₐ⋆[R] B) :
+  star_alg_hom.comp (e : A →ₐ⋆[R] B) ↑e.symm = star_alg_hom.id R B :=
+by { ext, simp }
+
+@[simp] lemma symm_comp (e : A ≃ₐ⋆[R] B) :
+  star_alg_hom.comp ↑e.symm (e : A →ₐ⋆[R] B) = star_alg_hom.id R A :=
+by { ext, simp }
+
+/-- If a star algebra morphism has an inverse, it is a algebra isomorphism. -/
+def of_star_alg_hom (f : A →ₐ⋆[R] B) (g : B →ₐ⋆[R] A) (h₁ : f.comp g = star_alg_hom.id R B)
+  (h₂ : g.comp f = star_alg_hom.id R A) : A ≃ₐ⋆[R] B :=
+{ to_fun    := f,
+  inv_fun   := g,
+  left_inv  := fun_like.ext_iff.1 h₂,
+  right_inv := fun_like.ext_iff.1 h₁,
+  ..f }
+
+lemma coe_star_alg_hom_of_star_alg_hom (f : A →ₐ⋆[R] B) (g : B →ₐ⋆[R] A) (h₁ h₂) :
+  ↑(of_star_alg_hom f g h₁ h₂) = f := star_alg_hom.ext $ λ _, rfl
+
+@[simp]
+lemma of_star_alg_hom_coe_star_alg_hom (f : A ≃ₐ⋆[R] B) (g : B →ₐ⋆[R] A) (h₁ h₂) :
+  of_star_alg_hom ↑f g h₁ h₂ = f := ext $ λ _, rfl
+
+lemma of_star_alg_hom_symm (f : A →ₐ⋆[R] B) (g : B →ₐ⋆[R] A) (h₁ h₂) :
+  (of_star_alg_hom f g h₁ h₂).symm = of_star_alg_hom g f h₂ h₁ := rfl
+
+/-- Promotes a bijective star algebra homomorphism to a star algebra equivalence. -/
+noncomputable def of_bijective (f : A →ₐ⋆[R] B) (hf : function.bijective f) : A ≃ₐ⋆[R] B :=
+{ .. ring_equiv.of_bijective (f : A →+* B) hf, .. f }
+
+@[simp] lemma coe_of_bijective {f : A →ₐ⋆[R] B} {hf : function.bijective f} :
+  (star_alg_equiv.of_bijective f hf : A → B) = f := rfl
+
+lemma of_bijective_apply {f : A →ₐ⋆[R] B} {hf : function.bijective f} (a : A) :
+  (star_alg_equiv.of_bijective f hf) a = f a := rfl
+
+@[simps mul one {attrs := []}] instance aut : group (A ≃ₐ⋆[R] A) :=
+{ mul := λ ϕ ψ, ψ.trans ϕ,
+  mul_assoc := λ ϕ ψ χ, rfl,
+  one := refl,
+  one_mul := λ ϕ, ext $ λ x, rfl,
+  mul_one := λ ϕ, ext $ λ x, rfl,
+  inv := symm,
+  mul_left_inv := λ ϕ, ext $ symm_apply_apply ϕ }
+
+@[simp] lemma one_apply (x : A) : (1 : A ≃ₐ⋆[R] A) x = x := rfl
+
+@[simp] lemma mul_apply (e₁ e₂ : A ≃ₐ⋆[R] A) (x : A) : (e₁ * e₂) x = e₁ (e₂ x) := rfl
+
 end star_alg_equiv
-
-/-- A star algebra homomorphism is an algebra homomorphism that preserves the star operation.  -/
-structure non_unital_star_alg_hom (R A B : Type*)
-  [monoid R] [non_unital_non_assoc_semiring A] [non_unital_non_assoc_semiring B]
-  [distrib_mul_action R A] [distrib_mul_action R B] [has_star A] [has_star B]
-  extends A →ₙₐ[R] B :=
-(map_star' : ∀ (a : A), to_fun (star a) = star (to_fun a))
-
-notation A ` →ₙₐ⋆[`:25 R `] ` B := non_unital_star_alg_hom R A B
-
-namespace non_unital_star_alg_hom
-variables {R A B : Type*} [comm_semiring R]
-  [semiring A] [semiring B] [algebra R A] [algebra R B] [has_star A] [has_star B]
-
-instance : non_unital_star_alg_hom_class (A →ₙₐ⋆[R] B) R A B :=
-{ coe := to_fun,
-  coe_injective' := λ f g h, by cases f; cases g; congr',
-  map_mul := λ f, f.map_mul',
-  map_add := λ f, f.map_add',
-  map_zero := λ f, f.map_zero',
-  map_star := λ f, f.map_star',
-  map_smul := λ f, f.map_smul' }
-
-/-- see Note [function coercion] -/
-instance : has_coe_to_fun (A →ₙₐ⋆[R] B) (λ _, A → B) := ⟨to_fun⟩
-
-@[simp] lemma to_fun_eq_coe (f : A →ₙₐ⋆[R] B) : f.to_fun = ⇑f := rfl
-
-initialize_simps_projections non_unital_star_alg_hom (to_fun → apply)
-
-end non_unital_star_alg_hom
-
-
 
 end star_hom

@@ -1,8 +1,18 @@
+/-
+Copyright (c) 2022 Yury Kudryashov. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Yury Kudryashov
+-/
 import analysis.complex.upper_half_plane.topology
 import analysis.special_functions.arsinh
 import geometry.euclidean.inversion
 
 /-!
+# Metric on the upper half-plane
+
+In this file we define a `metric_space` structure on the `upper_half_plane`. The distance is given
+by `dist z w = 2 * arsinh (dist (z : ℂ) w / (2 * real.sqrt (z.im * w.im)))`.
+
 -/
 
 noncomputable theory
@@ -105,6 +115,8 @@ begin
   exact div_nonneg dist_nonneg (mul_nonneg zero_le_two (sqrt_nonneg _))
 end
 
+/-- An auxiliary `metric_space` instance on the upper half-plane. This instance has bad projection
+to `topological_space`. We replace it later. -/
 def metric_space_aux : metric_space ℍ :=
 { dist := dist,
   dist_self := λ z, by rw [dist_eq, dist_self, zero_div, arsinh_zero, mul_zero],
@@ -206,6 +218,8 @@ begin
   ring
 end
 
+/-- Hyperbolic distance between two points is greater than or equal to the distance between the
+logarithms of their imaginary parts. -/
 lemma dist_log_im_le (z w : ℍ) : dist (log z.im) (log w.im) ≤ dist z w :=
 calc dist (log z.im) (log w.im) = @dist ℍ _ ⟨⟨0, z.im⟩, z.im_pos⟩ ⟨⟨0, w.im⟩, w.im_pos⟩ :
   eq.symm $ @dist_of_re_eq ⟨⟨0, z.im⟩, z.im_pos⟩ ⟨⟨0, w.im⟩, w.im_pos⟩ rfl
@@ -239,7 +253,8 @@ calc w.im * (1 - exp (-dist z w))
   by { rw [dist_center_dist, dist_self_center, ← real.cosh_sub_sinh], ring }
 ... ≤ dist (z : ℂ) w : sub_le_iff_le_add.2 $ dist_triangle _ _ _
 
-/-- The hyperbolic metric on the upper half plane. -/
+/-- The hyperbolic metric on the upper half plane. We ensure that the projection to
+`topological_space` is definitionally equal to the subtype topology. -/
 instance : metric_space ℍ := metric_space_aux.replace_topology $
 begin
   refine le_antisymm (continuous_id_iff_le.1 _) _,

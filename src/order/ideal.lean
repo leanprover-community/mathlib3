@@ -106,11 +106,6 @@ instance : partial_order (ideal P) := partial_order.lift coe set_like.coe_inject
 @[trans] lemma mem_of_mem_of_le {x : P} {I J : ideal P} : x ∈ I → I ≤ J → x ∈ J :=
 @set.mem_of_mem_of_subset P x I J
 
-section pushforwards_and_pullbacks
-
-#where
-end pushforwards_and_pullbacks
-
 /-- A proper ideal is one that is not the whole set.
     Note that the whole set might not be an ideal. -/
 @[mk_iff] class is_proper (I : ideal P) : Prop := (ne_univ : (I : set P) ≠ univ)
@@ -175,6 +170,42 @@ section order_bot
 variables [order_bot P]
 
 @[simp] lemma bot_mem (s : ideal P) : ⊥ ∈ s := s.lower bot_le s.nonempty.some_mem
+
+section pushforwards_and_pullbacks
+
+--variables [semilattice_sup α] [order_bot α]
+/-- The comap on ideals induced by a morphism on the underlying types. -/
+def comap {X Y : Type*} [semilattice_sup X] [semilattice_sup Y] [order_bot X] [order_bot Y] (φ : X →o Y)
+ (hφ_bot : φ ⊥ = ⊥) (hφ_sup : ∀{x₁ x₂}, φ (x₁ ⊔ x₂) = φ x₁ ⊔ (φ x₂))
+   (𝓙 : ideal Y) : ideal X :=
+{ carrier := φ ⁻¹' 𝓙.carrier,-- φ '' ℐ.carrier,--preimage φ ⁻¹' ℐ.carrier,
+  lower' := λ x₁ x₂ h, 𝓙.lower (φ.mono h),
+  nonempty' := ⟨⊥, (hφ_bot.symm ▸ bot_mem 𝓙 : φ ⊥ ∈ 𝓙)⟩,
+  directed' := begin rintro x₁ hx₁ x₂ hx₂, simp at *, refine ⟨x₁ ⊔ x₂, _⟩,
+  obtain ⟨y, hy, hy₁, hy₂⟩ := 𝓙.directed (φ x₁) hx₁ (φ x₂) hx₂,
+  refine ⟨𝓙.lower _ hy, by simp, by simp⟩,
+  rw hφ_sup,
+  exact sup_le hy₁ hy₂,
+  end }
+
+def map {X Y : Type*} [preorder X] [preorder Y] (φ : X →o Y) (𝓘 : ideal X) : ideal Y :=
+{ carrier := {y : Y | ∃ x ∈ 𝓘.carrier, y ≤ φ x},
+  lower' := λ y₁ y₂ hley ⟨x₁, hx₁, hle⟩, ⟨x₁, hx₁, hley.trans hle⟩,
+  nonempty' := begin
+    obtain ⟨x, hx⟩ := 𝓘.nonempty,
+    refine ⟨φ x, x, hx, le_refl _⟩,
+  end,
+  directed' := by { rintro y₁ ⟨x₁, (hx𝓘₁ : x₁ ∈ 𝓘), hy₁le⟩ y₂ ⟨x₂, (hx𝓘₂ : x₂ ∈ 𝓘), hy₂le⟩,
+    obtain ⟨x, (hx𝓘 : x ∈ 𝓘), h₁, h₂⟩ := 𝓘.directed x₁ hx𝓘₁ x₂ hx𝓘₂,
+    refine ⟨φ x, ⟨x, hx𝓘, (le_refl _)⟩, hy₁le.trans (φ.mono h₁), hy₂le.trans (φ.mono h₂)⟩,
+  } }
+
+lemma gc {X Y : Type*} [semilattice_sup X] [semilattice_sup Y] [order_bot X] [order_bot Y] (φ : X →o Y)
+(hφ_bot : φ ⊥ = ⊥) (hφ_sup : ∀{x₁ x₂}, φ (x₁ ⊔ x₂) = φ x₁ ⊔ (φ x₂)) :
+galois_connection (map φ) (comap φ hφ_bot @hφ_sup) :=
+λ 𝓘 𝓙, ⟨λ h x hx, h ⟨x, hx, le_refl _⟩, λ h y ⟨x, hx𝓘, hduality⟩, 𝓙.lower hduality $ h hx𝓘⟩
+
+end pushforwards_and_pullbacks
 
 end order_bot
 

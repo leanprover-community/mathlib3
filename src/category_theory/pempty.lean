@@ -1,23 +1,51 @@
--- Copyright (c) 2018 Scott Morrison. All rights reserved.
--- Released under Apache 2.0 license as described in the file LICENSE.
--- Authors: Scott Morrison
+/-
+Copyright (c) 2018 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Scott Morrison, Bhavik Mehta
+-/
+import category_theory.discrete_category
 
-import category_theory.functor
+/-!
+# The empty category
 
-universes v u -- declare the `v`'s first; see `category_theory.category` for an explanation
+Defines a category structure on `pempty`, and the unique functor `pempty ⥤ C` for any category `C`.
+-/
+
+universes w v u -- morphism levels before object levels. See note [category_theory universes].
 
 namespace category_theory
-
-instance pempty_category : small_category pempty :=
-{ hom  := λ X Y, pempty,
-  id   := by obviously,
-  comp := by obviously }
-
 namespace functor
-variables (C : Sort u) [𝒞 : category.{v} C]
-include 𝒞
 
-def empty : pempty ⥤ C := by tidy
+variables (C : Type u) [category.{v} C]
+
+/-- Equivalence between two empty categories. -/
+def empty_equivalence : discrete.{w} pempty ≌ discrete.{v} pempty :=
+equivalence.mk
+{ obj := pempty.elim ∘ discrete.as, map := λ x, x.as.elim }
+{ obj := pempty.elim ∘ discrete.as, map := λ x, x.as.elim }
+(by tidy) (by tidy)
+
+/-- The canonical functor out of the empty category. -/
+def empty : discrete.{w} pempty ⥤ C := discrete.functor pempty.elim
+
+variable {C}
+/-- Any two functors out of the empty category are isomorphic. -/
+def empty_ext (F G : discrete.{w} pempty ⥤ C) : F ≅ G :=
+discrete.nat_iso (λ x, x.as.elim)
+
+/--
+Any functor out of the empty category is isomorphic to the canonical functor from the empty
+category.
+-/
+def unique_from_empty (F : discrete.{w} pempty ⥤ C) : F ≅ empty C :=
+empty_ext _ _
+
+/--
+Any two functors out of the empty category are *equal*. You probably want to use
+`empty_ext` instead of this.
+-/
+lemma empty_ext' (F G : discrete.{w} pempty ⥤ C) : F = G :=
+functor.ext (λ x, x.as.elim) (λ x _ _, x.as.elim)
 
 end functor
 

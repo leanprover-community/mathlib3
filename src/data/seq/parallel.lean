@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2017 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro
+Authors: Mario Carneiro
 
 Parallel computation of a computable sequence of computations by
 a diagonal enumeration.
@@ -194,7 +194,7 @@ end
 
 theorem parallel_empty (S : wseq (computation α)) (h : S.head ~> none) :
 parallel S = empty _ :=
-eq_empty_of_not_terminates $ λ ⟨a, m⟩,
+eq_empty_of_not_terminates $ λ ⟨⟨a, m⟩⟩,
 let ⟨c, cs, ac⟩ := exists_of_mem_parallel m,
     ⟨n, nm⟩ := exists_nth_of_mem cs,
     ⟨c', h'⟩ := head_some_of_nth_some nm in by injection h h'
@@ -210,7 +210,7 @@ begin
     funext c, dsimp [id, function.comp], rw [←map_comp], exact (map_id _).symm },
   have pe := congr_arg parallel this, rw ←map_parallel at pe,
   have h' := h, rw pe at h',
-  haveI : terminates (parallel T) := (terminates_map_iff _ _).1 ⟨_, h'⟩,
+  haveI : terminates (parallel T) := (terminates_map_iff _ _).1 ⟨⟨_, h'⟩⟩,
   induction e : get (parallel T) with a' c,
   have : a ∈ c ∧ c ∈ S,
   { rcases exists_of_mem_map h' with ⟨d, dT, cd⟩,
@@ -229,7 +229,7 @@ theorem parallel_promises {S : wseq (computation α)} {a}
 
 theorem mem_parallel {S : wseq (computation α)} {a}
   (H : ∀ s ∈ S, s ~> a) {c} (cs : c ∈ S) (ac : a ∈ c) : a ∈ parallel S :=
-by haveI := terminates_of_mem ac; have := terminates_parallel cs;
+by haveI := terminates_of_mem ac; haveI := terminates_parallel cs;
    exact mem_of_promises _ (parallel_promises H)
 
 theorem parallel_congr_lem {S T : wseq (computation α)} {a}

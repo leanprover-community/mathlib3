@@ -1,10 +1,12 @@
 /-
 Copyright (c) 2019 Seul Baek. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Seul Baek
+Authors: Seul Baek
+-/
 
+/-
 Correctness lemmas for equality elimination.
-See 5.5 of http://www.decision-procedures.org/ for details.
+See 5.5 of <http://www.decision-procedures.org/> for details.
 -/
 
 import tactic.omega.clause
@@ -23,6 +25,7 @@ if (2 * (i % j)) < j
 then i % j
 else (i % j) - j
 
+local attribute [semireducible] int.nonneg
 lemma symmod_add_one_self {i : int} :
   0 < i → symmod i (i+1) = -1 :=
 begin
@@ -52,17 +55,17 @@ lemma symmod_eq {i j : int} :
   symmod i j = i - j * (symdiv i j) :=
 by rw [mul_symdiv_eq, sub_sub_cancel]
 
-/- (sgm v b as n) is the new value assigned to the nth variable
-   after a single step of equality elimination using valuation v,
-   term ⟨b, as⟩, and variable index n. If v satisfies the initial
-   constraint set, then (v ⟨n ↦ sgm v b as n⟩) satisfies the new
-   constraint set after equality elimination. -/
+/-- (sgm v b as n) is the new value assigned to the nth variable
+after a single step of equality elimination using valuation v,
+term ⟨b, as⟩, and variable index n. If v satisfies the initial
+constraint set, then (v ⟨n ↦ sgm v b as n⟩) satisfies the new
+constraint set after equality elimination. -/
 def sgm (v : nat → int) (b : int) (as : list int) (n : nat) :=
 let a_n : int := get n as in
 let m : int := a_n + 1 in
 ((symmod b m) + (coeffs.val v (as.map (λ x, symmod x m)))) / m
 
-local notation as ` {` m ` ↦ ` a `}` := set a as m
+open_locale list.func
 
 def rhs : nat → int → list int → term
 | n b as :=
@@ -94,7 +97,7 @@ lemma rhs_correct_aux {v : nat → int} {m : int} {as : list int} :
       simp only [hk, list.length_map] }
   end
 
-local notation v ` ⟨` m ` ↦ ` a `⟩` := update m a v
+open_locale omega
 
 lemma rhs_correct {v : nat → int}
   {b : int} {as : list int} (n : nat) :
@@ -188,13 +191,13 @@ begin
         a_n * coeffs.val_except n v (as.map (λ x, symmod x m))) :
           begin
             simp only [term.val, rhs, mul_add, m, a_n,
-              add_assoc, add_left_inj, add_comm, add_left_comm],
+              add_assoc, add_right_inj, add_comm, add_left_comm],
             rw [← coeffs.val_except_add_eq n,
               get_set, update_eq, mul_add],
             apply fun_mono_2,
             { rw coeffs.val_except_eq_val_except
               update_eq_of_ne (get_set_eq_of_ne _) },
-            simp only [m], ring,
+            ring,
           end
   ... = -(m * a_n * sgm v b as n) + (b + a_n * (symmod b m))
         + coeffs.val_except n v (as.map (λ a_i, a_i + a_n * (symmod a_i m))) :
@@ -202,9 +205,7 @@ begin
           apply fun_mono_2 rfl,
           simp only [coeffs.val_except, mul_add],
           repeat {rw ← coeffs.val_between_map_mul},
-          have h4 : ∀ {a b c d : int},
-            a + b + (c + d) = (a + c) + (b + d),
-          { intros, ring }, rw h4,
+          rw add_add_add_comm,
           have h5 : add as (list.map (has_mul.mul a_n)
             (list.map (λ (x : ℤ), symmod x (get n as + 1)) as)) =
             list.map (λ (a_i : ℤ), a_i + a_n * symmod a_i m) as,
@@ -284,9 +285,8 @@ begin
   rw [h3, ← coeffs.val_except_add_eq n], ring
 end
 
-/- The type of equality elimination rules. -/
-
-@[derive has_reflect]
+/-- The type of equality elimination rules. -/
+@[derive has_reflect, derive inhabited]
 inductive ee : Type
 | drop   : ee
 | nondiv : int → ee
@@ -311,6 +311,7 @@ meta instance has_to_format : has_to_format ee := ⟨λ x, x.repr⟩
 
 end ee
 
+/-- Apply a given sequence of equality elimination steps to a clause. -/
 def eq_elim : list ee → clause → clause
 | []     ([], les)     := ([],les)
 | []     ((_::_), les) := ([],[])
@@ -428,6 +429,7 @@ lemma sat_eq_elim :
     { apply h2 _ h4 }
   end
 
+/-- If the result of equality elimination is unsatisfiable, the original clause is unsatisfiable. -/
 lemma unsat_of_unsat_eq_elim (ee : list ee) (c : clause) :
   (eq_elim ee c).unsat → c.unsat :=
 by {intros h1 h2, apply h1, apply sat_eq_elim h2}

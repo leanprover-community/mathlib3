@@ -6,17 +6,13 @@ Authors: Simon Hudon
 Provides a `subtype_instance` tactic which builds instances for algebraic substructures
 (sub-groups, sub-rings...).
 -/
-
-import data.string
-import tactic.interactive tactic.algebra
-import data.subtype data.set.basic
+import tactic.basic
 open tactic expr name list
 
 namespace tactic
 
+setup_tactic_parser
 open tactic.interactive (get_current_field refine_struct)
-open lean lean.parser
-open interactive
 
 /-- makes the substructure axiom name from field name, by postfacing with `_mem`-/
 def mk_mem_name (sub : name) : name → name
@@ -28,7 +24,7 @@ do
   field ← get_current_field,
   b ← target >>= is_prop,
   if b then  do
-    `[simp [subtype.ext], dsimp [set.set_coe_eq_subtype]],
+    `[simp [subtype.ext_iff_val], dsimp [set.coe_eq_subtype]],
     intros,
     applyc field; assumption
   else do
@@ -63,7 +59,7 @@ class is_submonoid (s : set α) : Prop :=
 
 instance subtype.monoid {s : set α} [is_submonoid s] : monoid s :=
 by subtype_instance
-````
+```
 -/
 meta def subtype_instance :=
 do t ← target,
@@ -75,6 +71,12 @@ do t ← target,
          field_names := [],
          sources := src.map to_pexpr },
    refine_struct inst ; derive_field_subtype
+
+add_tactic_doc
+{ name := "subtype_instance",
+  category := doc_category.tactic,
+  decl_names := [``subtype_instance],
+  tags := ["type class", "structures"] }
 
 end interactive
 

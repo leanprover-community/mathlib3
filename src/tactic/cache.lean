@@ -3,68 +3,60 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-open lean.parser
+import tactic.doc_commands
+/-!
+# Instance cache tactics
 
-local postfix `?`:9001 := optional
-local postfix *:9001 := many
+For performance reasons, Lean does not automatically update its database
+of class instances during a proof. The group of tactics in this file
+helps to force such updates.
 
-namespace tactic
-/-- Reset the instance cache for the main goal. -/
-meta def reset_instance_cache : tactic unit := unfreeze_local_instances
+-/
 
-namespace interactive
-open interactive interactive.types
+open tactic.interactive
 
-/-- Unfreeze local instances, which allows us to revert
-  instances in the context. -/
-meta def unfreezeI := tactic.unfreeze_local_instances
+/--
+For performance reasons, Lean does not automatically update its database
+of class instances during a proof. The group of tactics described below
+helps to force such updates. For a simple (but very artificial) example,
+consider the function `default` from the core library. It has type
+`Π (α : Sort u) [inhabited α], α`, so one can use `default` only if Lean
+can find a registered instance of `inhabited α`. Because the database of
+such instance is not automatically updated during a proof, the following
+attempt won't work (Lean will not pick up the instance from the local
+context):
+```lean
+def my_id (α : Type) : α → α :=
+begin
+  intro x,
+  have : inhabited α := ⟨x⟩,
+  exact default, -- Won't work!
+end
+```
+However, it will work, producing the identity function, if one replaces `have`
+by its variant `haveI` described below.
 
-/-- Reset the instance cache. This allows any new instances
-  added to the context to be used in typeclass inference. -/
-meta def resetI := reset_instance_cache
+* `resetI`: Reset the instance cache. This allows any instances
+  currently in the context to be used in typeclass inference.
 
-/-- Like `intro`, but uses the introduced variable
-  in typeclass inference. -/
-meta def introI (p : parse ident_?) : tactic unit :=
-intro p >> reset_instance_cache
+* `unfreezingI { tac }`: Unfreeze local instances while executing the tactic `tac`.
 
-/-- Like `intros`, but uses the introduced variable(s)
-  in typeclass inference. -/
-meta def introsI (p : parse ident_*) : tactic unit :=
-intros p >> reset_instance_cache
+* `introI`/`introsI`: `intro`/`intros` followed by `resetI`. Like
+  `intro`/`intros`, but uses the introduced variable in typeclass inference.
 
-/-- Used to add typeclasses to the context so that they can
-  be used in typeclass inference. The syntax is the same as `have`,
-  but the proof-omitted version is not supported. For
-  this one must write `have : t, { <proof> }, resetI, <proof>`. -/
-meta def haveI (h : parse ident?) (q₁ : parse (tk ":" *> texpr)?) (q₂ : parse (tk ":=" *> texpr)) : tactic unit :=
-do h ← match h with
-  | none   := get_unused_name "_inst"
-  | some a := return a
-  end,
-  «have» (some h) q₁ (some q₂),
-  match q₁ with
-  | none    := swap >> reset_instance_cache >> swap
-  | some p₂ := reset_instance_cache
-  end
+* `casesI`: like `cases`, but can also be used with instance arguments.
 
-/-- Used to add typeclasses to the context so that they can
-  be used in typeclass inference. The syntax is the same as `let`. -/
-meta def letI (h : parse ident?) (q₁ : parse (tk ":" *> texpr)?) (q₂ : parse $ (tk ":=" *> texpr)?) : tactic unit :=
-do h ← match h with
-  | none   := get_unused_name "_inst"
-  | some a := return a
-  end,
-  «let» (some h) q₁ q₂,
-  match q₁ with
-  | none    := swap >> reset_instance_cache >> swap
-  | some p₂ := reset_instance_cache
-  end
+* `substI`: like `subst`, but can also substitute in type-class arguments
 
-/-- Like `exact`, but uses all variables in the context
-  for typeclass inference. -/
-meta def exactI (q : parse texpr) : tactic unit :=
-reset_instance_cache >> exact q
+* `haveI`/`letI`: `have`/`let` followed by `resetI`. Used to add typeclasses
+  to the context so that they can be used in typeclass inference.
 
-end interactive
-end tactic
+* `exactI`: `resetI` followed by `exact`. Like `exact`, but uses all
+  variables in the context for typeclass inference.
+-/
+add_tactic_doc
+{ name        := "Instance cache tactics",
+  category    := doc_category.tactic,
+  decl_names  := [``resetI, ``unfreezingI, ``casesI, ``substI, ``introI, ``introsI, ``haveI, ``letI,
+                  ``exactI],
+  tags        := ["type class", "context management"] }

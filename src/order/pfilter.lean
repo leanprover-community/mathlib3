@@ -157,7 +157,7 @@ def Inf_gi : galois_coinsertion (λ x, order_dual.to_dual (principal x))
   u_l_le := λ s, Inf_le $ mem_principal.2 $ le_refl s,
   choice_eq := λ _ _, rfl }
 
-end complete_semilattice_Inf_stuff
+end complete_semilattice_Inf
 
 end pfilter
 

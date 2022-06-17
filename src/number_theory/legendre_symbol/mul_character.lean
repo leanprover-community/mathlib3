@@ -316,6 +316,16 @@ begin
   { rw [pow_succ, pow_succ, mul_apply, ih], },
 end
 
+/-- If `n` is positive, then `(χ ^ n) a = (χ a) ^ n`. -/
+lemma pow_apply' [decidable_pred (λ a : R, is_unit a)] (χ : mul_char R R') {n : ℕ} (hn : n ≠ 0)
+ (a : R) :
+  (χ ^ n) a = (χ a) ^ n :=
+begin
+  by_cases ha : is_unit a,
+  { exact pow_apply χ n ha, },
+  { rw [map_nonunit (χ ^ n) ha, map_nonunit χ ha, zero_pow (nat.pos_of_ne_zero hn)], },
+end
+
 /-!
 ### Properties of multiplicative characters
 -/

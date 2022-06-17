@@ -77,13 +77,6 @@ private lemma log_four_pos : 0 < log 4 := log_pos (by linarith)
 
 private lemma log_four_nonzero : log 4 ≠ 0 := log_four_pos.ne'
 
-private lemma log_1024_div_log_4 : log 1024 / log 4 = 5 :=
-begin
-  have h : (1024 : ℝ) = 4 ^ (5 : ℝ) := by norm_num,
-  rw [div_eq_iff log_four_nonzero, h, log_rpow],
-  linarith,
-end
-
 private lemma four_eq_two_rpow_two : (4 : ℝ) = 2 ^ (2 : ℝ) := by norm_num
 
 private lemma log_four : log 4 = 2 * log 2 :=

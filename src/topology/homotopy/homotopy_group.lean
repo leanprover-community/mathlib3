@@ -69,8 +69,7 @@ The projection to the last `n` coordinates from an `n+1` dimensional cube.
 -/
 @[simp] def tail {n} : I^(n+1) → I^n := λ c, fin.tail c
 
-instance unique_cube0 : unique (I^0) :=
-{ default := 0, uniq := by {intro a, ext1, exact x.elim0} }
+instance unique_cube0 : unique (I^0) := pi.unique_of_is_empty _
 
 lemma one_indep {α} (f : fin 1 → α) (i j : fin 1) : f i = f j :=
 by rw subsingleton.elim i j

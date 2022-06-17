@@ -143,6 +143,7 @@ local notation `π` := homotopy_group
 instance homotopy_group.inhabited : inhabited (π n x) :=
 { default :=  quotient.mk' gen_loop.const }
 
+/-- The 0-dimensional generalized loops based at `x` are in 1-1 correspondence with `X`. -/
 def gen_loop_zero_equiv : gen_loop 0 x ≃ X :=
 { to_fun := λ f, f 0,
   inv_fun := λ x, ⟨continuous_map.const _ x, λ _ ⟨f0,_⟩, f0.elim0⟩,

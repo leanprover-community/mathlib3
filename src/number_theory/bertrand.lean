@@ -75,8 +75,6 @@ open real
 
 private lemma log_four_pos : 0 < log 4 := log_pos (by linarith)
 
-private lemma four_eq_two_rpow_two : (4 : ℝ) = 2 ^ (2 : ℝ) := by norm_num
-
 private lemma exp_two_le_722 : exp 2 ≤ 722 :=
 calc exp 2 = (exp 1) ^ 2 : by rw [←exp_nat_mul 1 2]; simp
     ... ≤ 3 ^ 2 :
@@ -121,6 +119,7 @@ calc log x / (x * log 4) = (log x / x) / log 4 : by field_simp
 lemma inequality2 {x : ℝ} (n_large : 313 ≤ x) : sqrt 2 * sqrt x * log 2 / (x * log 4) ≤ 0.04 :=
 begin
   have x_pos : 0 < x := by linarith,
+  have four_eq_two_rpow_two : (4 : ℝ) = 2 ^ (2 : ℝ) := by norm_num,
   rw [div_le_iff (mul_pos x_pos log_four_pos), ←mul_assoc, four_eq_two_rpow_two, log_rpow two_pos,
       ←mul_assoc, mul_le_mul_right (log_pos one_lt_two), ←le_div_iff (sqrt_pos.mpr x_pos),
       mul_comm _ x, mul_assoc, mul_comm x, mul_div_assoc, div_sqrt, mul_comm],

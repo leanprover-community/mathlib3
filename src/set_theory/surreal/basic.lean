@@ -88,8 +88,8 @@ begin
   refine numeric_rec (λ yl yr yL yR hy oyl oyr IHyl IHyr, _),
   rw [mk_lf_mk, mk_lf_mk], rintro (⟨i, h₁⟩ | ⟨j, h₁⟩) (⟨i, h₂⟩ | ⟨j, h₂⟩),
   { exact IHxl _ _ (oyl _) (move_left_lf_of_le _ h₁) (move_left_lf_of_le _ h₂) },
-  { exact (le_trans h₂ h₁).not_lf (lf_of_lt (hy _ _)) },
-  { exact (le_trans h₁ h₂).not_lf (lf_of_lt (hx _ _)) },
+  { exact (le_trans h₂ h₁).not_gf (lf_of_lt (hy _ _)) },
+  { exact (le_trans h₁ h₂).not_gf (lf_of_lt (hx _ _)) },
   { exact IHxr _ _ (oyr _) (lf_move_right_of_le _ h₁) (lf_move_right_of_le _ h₂) },
 end
 
@@ -110,24 +110,19 @@ theorem lf_iff_lt {x y : pgame} (ox : numeric x) (oy : numeric y) : x ⧏ y ↔ 
 theorem le_iff_forall_lt {x y : pgame} (ox : x.numeric) (oy : y.numeric) :
   x ≤ y ↔ (∀ i, x.move_left i < y) ∧ ∀ j, x < y.move_right j :=
 begin
-  rw le_iff_forall_lf,
-  refine and_congr _ _;
-    refine forall_congr (λ i, (lf_iff_lt _ _));
-    apply_rules [numeric.move_left, numeric.move_right]
+  refine le_iff_forall_lf.trans (and_congr _ _);
+  refine forall_congr (λ i, lf_iff_lt _ _);
+  apply_rules [numeric.move_left, numeric.move_right]
 end
 
-theorem le_of_forall_lt {x y : pgame} (ox : x.numeric) (oy : y.numeric) :
-  ((∀ i, x.move_left i < y) ∧ ∀ j, x < y.move_right j) → x ≤ y :=
-(le_iff_forall_lt ox oy).2
-
 /-- Definition of `x < y` on numeric pre-games, in terms of `≤` -/
-theorem lt_iff_forall_le {x y : pgame} (ox : x.numeric) (oy : y.numeric) :
+theorem lt_iff_exists_le {x y : pgame} (ox : x.numeric) (oy : y.numeric) :
   x < y ↔ (∃ i, x ≤ y.move_left i) ∨ ∃ j, x.move_right j ≤ y :=
-by rw [←lf_iff_lt ox oy, lf_iff_forall_le]
+by rw [←lf_iff_lt ox oy, lf_iff_exists_le]
 
-theorem lt_of_forall_le {x y : pgame} (ox : x.numeric) (oy : y.numeric) :
+theorem lt_of_exists_le {x y : pgame} (ox : x.numeric) (oy : y.numeric) :
   ((∃ i, x ≤ y.move_left i) ∨ ∃ j, x.move_right j ≤ y) → x < y :=
-(lt_iff_forall_le ox oy).2
+(lt_iff_exists_le ox oy).2
 
 /-- The definition of `x < y` on numeric pre-games, in terms of `<` two moves later. -/
 theorem lt_def {x y : pgame} (ox : x.numeric) (oy : y.numeric) : x < y ↔
@@ -204,10 +199,6 @@ lemma numeric.sub {x y : pgame} (ox : numeric x) (oy : numeric y) : numeric (x -
 theorem numeric_nat : Π (n : ℕ), numeric n
 | 0 := numeric_zero
 | (n + 1) := (numeric_nat n).add numeric_one
-
-/-- The pre-game `half` is numeric. -/
-theorem numeric_half : numeric half :=
-⟨λ _ _, zero_lt_one, λ _, numeric_zero, λ _, numeric_one⟩
 
 /-- Ordinal games are numeric. -/
 theorem numeric_to_pgame (o : ordinal) : o.to_pgame.numeric :=

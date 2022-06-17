@@ -73,27 +73,29 @@ open_locale big_operators
 section real_inequalities
 open real
 
-lemma log_four_pos : 0 < log 4 := log_pos (by linarith)
+private lemma log_four_pos : 0 < log 4 := log_pos (by linarith)
 
-lemma log_four_nonzero : log 4 ≠ 0 := log_four_pos.ne'
+private lemma log_four_nonzero : log 4 ≠ 0 := log_four_pos.ne'
 
-lemma log_1024_div_log_4 : log 1024 / log 4 = 5 :=
+private lemma log_1024_div_log_4 : log 1024 / log 4 = 5 :=
 begin
   have h : (1024 : ℝ) = 4 ^ (5 : ℝ) := by norm_num,
   rw [div_eq_iff log_four_nonzero, h, log_rpow],
   linarith,
 end
 
-lemma four_eq_two_rpow_two : (4 : ℝ) = 2 ^ (2 : ℝ) := by norm_num
+private lemma four_eq_two_rpow_two : (4 : ℝ) = 2 ^ (2 : ℝ) := by norm_num
 
-lemma log_four : log 4 = 2 * log 2 :=
+private lemma log_four : log 4 = 2 * log 2 :=
 by rw [four_eq_two_rpow_two, log_rpow two_pos]
 
-lemma exp_two_le_722 : exp 2 ≤ 722 :=
+private lemma exp_two_le_722 : exp 2 ≤ 722 :=
 calc exp 2 = (exp 1) ^ 2 : by rw [←exp_nat_mul 1 2]; simp
     ... ≤ 3 ^ 2 :
     pow_le_pow_of_le_left (exp_pos 1).le (le_of_lt exp_one_lt_three) 2
   ... ≤ 722 : by norm_num
+
+namespace bertrand
 
 -- This is best possible; it is false for x = 99.
 lemma inequality1 {x : ℝ} (n_large : 100 ≤ x) : log x / (x * log 4) ≤ 1/30 :=
@@ -189,6 +191,10 @@ begin
   field_simp [log_four_nonzero],
   ring,
 end
+
+end bertrand
+
+open bertrand
 
 /--
 A reified version of the `bertrand_inequality` below.

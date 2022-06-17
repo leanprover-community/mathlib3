@@ -125,8 +125,8 @@ variables [decidable_eq α] {s : finset α} {a : α}
 instance : boolean_algebra (finset α) :=
 { compl := λ s, univ \ s,
   inf_compl_le_bot := λ s x hx, by simpa using hx,
-  top_le_sup_compl := λ s x hx, by simp,
-  sdiff_eq := λ s t, by simp [ext_iff, compl],
+  top_le_sup_compl := λ s x hx, by {simp, },
+  sdiff_eq := λ s t, by {show s \ t = s ⊓ (univ \ t), ext, simp},
   ..finset.order_top,
   ..finset.order_bot,
   ..finset.generalized_boolean_algebra }
@@ -146,9 +146,9 @@ set.ext $ λ x, mem_compl
 
 @[simp] lemma inter_compl (s : finset α) : s ∩ sᶜ = ∅ := inf_compl_eq_bot
 
-@[simp] lemma compl_union (s t : finset α) : (s ∪ t)ᶜ = sᶜ ∩ tᶜ := compl_sup
+@[simp] lemma compl_union (s t : finset α) : (s ∪ t)ᶜ = sᶜ ∩ tᶜ := compl_sup s t
 
-@[simp] lemma compl_inter (s t : finset α) : (s ∩ t)ᶜ = sᶜ ∪ tᶜ := compl_inf
+@[simp] lemma compl_inter (s t : finset α) : (s ∩ t)ᶜ = sᶜ ∪ tᶜ := compl_inf s t
 
 @[simp] lemma compl_erase : (s.erase a)ᶜ = insert a sᶜ :=
 by { ext, simp only [or_iff_not_imp_left, mem_insert, not_and, mem_compl, mem_erase] }

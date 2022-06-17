@@ -359,10 +359,7 @@ lemma uniform_cauchy_seq_on.prod' {β' : Type*} [uniform_space β'] {F' : ι →
   uniform_cauchy_seq_on (λ (i : ι) a, (F i a, F' i a)) p s :=
 begin
   intros u hu,
-  have hh : tendsto (λ x : ι, (x, x)) p (p ×ᶠ p),
-  { rw tendsto_iff_eventually,
-    intros pr hpr,
-    exact hpr.diag_of_prod, },
+  have hh : tendsto (λ x : ι, (x, x)) p (p ×ᶠ p), { exact tendsto_diag, },
   exact (hh.prod_map hh).eventually ((h.prod h') u hu),
 end
 

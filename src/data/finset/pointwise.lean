@@ -843,7 +843,8 @@ localized "attribute [instance] finset.distrib_mul_action_finset
 
 end instances
 
-lemma pairwise_disjoint_smul_iff [decidable_eq α] [left_cancel_semigroup α] {s t : finset α} :
+lemma pairwise_disjoint_smul_iff [decidable_eq α] [left_cancel_semigroup α] {s : set α}
+  {t : finset α} :
   (s : set α).pairwise_disjoint (• t) ↔
     ((s : set α) ×ˢ (t : set α) : set (α × α)).inj_on (λ p, p.1 * p.2) :=
 by simp_rw [←pairwise_disjoint_coe, coe_smul_finset, set.pairwise_disjoint_smul_iff]

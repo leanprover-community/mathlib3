@@ -385,6 +385,8 @@ noncomputable def bUnion_eq_sigma_of_disjoint {s : set ι} {f : ι → set α}
 (equiv.set_congr (bUnion_eq_Union _ _)).trans $ Union_eq_sigma_of_disjoint $
   λ ⟨i, hi⟩ ⟨j, hj⟩ ne, h hi hj $ λ eq, ne $ subtype.eq eq
 
+/-- The partial images of a binary function `f` whose partial evaluations are injective are pairwise
+disjoint iff `f` is injective . -/
 lemma pairwise_disjoint_image_right_iff {f : α → β → γ} {s : set α} {t : set β}
   (hf : ∀ a ∈ s, injective (f a)) :
   s.pairwise_disjoint (λ a, f a '' t) ↔ (s ×ˢ t : set (α × β)).inj_on (λ p, f p.1 p.2) :=
@@ -399,6 +401,8 @@ begin
     exact h (congr_arg prod.fst $ hs (mk_mem_prod hx ha) (mk_mem_prod hy hb) hab) }
 end
 
+/-- The partial images of a binary function `f` whose partial evaluations are injective are pairwise
+disjoint iff `f` is injective . -/
 lemma pairwise_disjoint_image_left_iff {f : α → β → γ} {s : set α} {t : set β}
   (hf : ∀ b ∈ t, injective (λ a, f a b)) :
   t.pairwise_disjoint (λ b, (λ a, f a b) '' s) ↔ (s ×ˢ t : set (α × β)).inj_on (λ p, f p.1 p.2) :=

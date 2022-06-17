@@ -470,6 +470,8 @@ lemma map_congr_perm [fintype ι] (σ : equiv.perm ι) :
   g v = σ.sign • g (v ∘ σ) :=
 by { rw [g.map_perm, smul_smul], simp }
 
+section dom_dom_congr
+
 /-- Transfer the arguments to a map along an equivalence between argument indices.
 
 This is the alternating version of `multilinear_map.dom_dom_congr`. -/
@@ -486,6 +488,35 @@ def dom_dom_congr (σ : ι ≃ ι') (f : alternating_map R M N ι) : alternating
 lemma dom_dom_congr_trans (σ₁ : ι ≃ ι') (σ₂ : ι' ≃ ι'') (f : alternating_map R M N ι) :
   f.dom_dom_congr (σ₁.trans σ₂) = (f.dom_dom_congr σ₁).dom_dom_congr σ₂ := rfl
 
+@[simp] lemma dom_dom_congr_zero (σ : ι ≃ ι') :
+  (0 : alternating_map R M N ι).dom_dom_congr σ = 0 :=
+rfl
+
+@[simp] lemma dom_dom_congr_add (σ : ι ≃ ι') (f g : alternating_map R M N ι) :
+  (f + g).dom_dom_congr σ = f.dom_dom_congr σ + g.dom_dom_congr σ :=
+rfl
+
+/-- `alternating_map.dom_dom_congr` as an equivalence.
+
+This is declared separately because it does not work with dot notation. -/
+@[simps apply symm_apply]
+def dom_dom_congr_equiv (σ : ι ≃ ι') :
+  alternating_map R M N ι ≃+ alternating_map R M N ι' :=
+{ to_fun := dom_dom_congr σ,
+  inv_fun := dom_dom_congr σ.symm,
+  left_inv := λ f, by { ext, simp [function.comp] },
+  right_inv := λ m, by { ext, simp [function.comp] },
+  map_add' := dom_dom_congr_add σ }
+
+/-- The results of applying `dom_dom_congr` to two maps are equal if and only if those maps are. -/
+@[simp] lemma dom_dom_congr_eq_iff (σ : ι ≃ ι') (f g : alternating_map R M N ι) :
+  f.dom_dom_congr σ = g.dom_dom_congr σ ↔ f = g :=
+(dom_dom_congr_equiv σ : _ ≃+ alternating_map R M N ι').apply_eq_iff_eq
+
+@[simp] lemma dom_dom_congr_eq_zero_iff (σ : ι ≃ ι') (f : alternating_map R M N ι) :
+  f.dom_dom_congr σ = 0 ↔ f = 0 :=
+(dom_dom_congr_equiv σ : alternating_map R M N ι ≃+ alternating_map R M N ι').map_eq_zero_iff
+
 lemma dom_dom_congr_perm [fintype ι] (σ : equiv.perm ι) :
   g.dom_dom_congr σ = σ.sign • g :=
 alternating_map.ext $ λ v, g.map_perm v σ
@@ -493,6 +524,8 @@ alternating_map.ext $ λ v, g.map_perm v σ
 @[norm_cast] lemma coe_dom_dom_congr [fintype ι] (σ : ι ≃ ι') :
   ↑(f.dom_dom_congr σ) = (f : multilinear_map R (λ _ : ι, M) N).dom_dom_congr σ :=
 multilinear_map.ext $ λ v, rfl
+
+end dom_dom_congr
 
 /-- If the arguments are linearly dependent then the result is `0`. -/
 lemma map_linear_dependent

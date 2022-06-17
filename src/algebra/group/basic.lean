@@ -628,6 +628,16 @@ by rw [div_eq_iff_eq_mul, div_mul_eq_mul_div, div_eq_iff_eq_mul', mul_div_assoc]
 
 end comm_group
 
+section subtraction_comm_monoid
+variables {M : Type u} [subtraction_comm_monoid M]
+
+lemma bit0_sub (a b : M) : bit0 (a - b) = bit0 a - bit0 b :=
+sub_add_sub_comm _ _ _ _
+lemma bit1_sub [has_one M] (a b : M) : bit1 (a - b) = bit1 a - bit0 b :=
+(congr_arg (+ (1 : M)) $ bit0_sub a b : _).trans $ sub_add_eq_add_sub _ _ _
+
+end subtraction_comm_monoid
+
 section commutator
 
 /-- The commutator of two elements `g₁` and `g₂`. -/

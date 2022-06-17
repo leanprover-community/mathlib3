@@ -359,6 +359,9 @@
   author : Chris Hughes
 90:
   title  : Stirling’s Formula
+  links  :
+    mathlib archive: https://github.com/leanprover-community/mathlib/blob/master/archive/100-theorems-list/90_stirlings_formula.lean
+  authors: Moritz Firsching, Fabian Kruse, Nikolas Kuhn
 91:
   title  : The Triangle Inequality
   decl   : norm_add_le

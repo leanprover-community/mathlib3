@@ -1182,7 +1182,7 @@ begin
     exact ⟨abs_eq_neg_self.mpr (le_of_lt h), h⟩ }
 end
 
-lemma max_zero_add_max_neg_zero_eq_abs_self (a : α) :
+@[simp] lemma max_zero_add_max_neg_zero_eq_abs_self (a : α) :
   max a 0 + max (-a) 0 = |a| :=
 begin
   symmetry,

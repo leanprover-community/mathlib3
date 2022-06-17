@@ -1053,6 +1053,17 @@ by rw [lintegral_const, measure.restrict_apply_univ]
 lemma set_lintegral_one (s) : ∫⁻ a in s, 1 ∂μ = μ s :=
 by rw [set_lintegral_const, one_mul]
 
+lemma set_lintegral_const_lt_top [is_finite_measure μ] (s : set α) {c : ℝ≥0∞} (hc : c ≠ ∞) :
+  ∫⁻ a in s, c ∂μ < ∞ :=
+begin
+  rw lintegral_const,
+  exact ennreal.mul_lt_top hc (measure_ne_top (μ.restrict s) univ),
+end
+
+lemma lintegral_const_lt_top [is_finite_measure μ] {c : ℝ≥0∞} (hc : c ≠ ∞) :
+  ∫⁻ a, c ∂μ < ∞ :=
+by simpa only [measure.restrict_univ] using set_lintegral_const_lt_top univ hc
+
 section
 
 variable (μ)

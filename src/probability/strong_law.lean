@@ -407,13 +407,11 @@ begin
         exact continuous_const.mul continuous_id' },
       { calc 2 / (↑k + 1) * x ^ 2 = (x / (k+1)) * (2 * x) : by ring_exp
         ... ≤ 1 * (2 * x) :
-          begin
-            apply mul_le_mul_of_nonneg_right _
-              (mul_nonneg zero_le_two ((nat.cast_nonneg k).trans hx.1.le)),
+          mul_le_mul_of_nonneg_right begin
             apply (div_le_one _).2 hx.2,
             simp only [nat.cast_add, nat.cast_one],
             linarith only [show (0 : ℝ) ≤ k, from  nat.cast_nonneg k],
-          end
+          end (mul_nonneg zero_le_two ((nat.cast_nonneg k).trans hx.1.le))
         ... = 2 * x : by rw one_mul }
     end
   ... = 2 * ∫ x in (0 : ℝ)..K, x ∂ρ :
@@ -424,11 +422,10 @@ begin
       refl
     end
   ... ≤ 2 * 𝔼[X] :
-    begin
-      apply mul_le_mul_of_nonneg_left _ zero_le_two,
+    mul_le_mul_of_nonneg_left begin
       rw ← integral_truncation_eq_interval_integral_of_nonneg hint.1 hnonneg,
       exact integral_truncation_le_integral_of_nonneg hint hnonneg,
-    end
+    end zero_le_two
 end
 
 end moment_estimates

@@ -318,23 +318,6 @@ rel_embedding.ext $ funext_iff.1 $ strict_mono_unique f.strict_mono g.strict_mon
 
 end
 
-/-- A function `f` on `fin n` is strictly monotone if and only if `f i < f (i+1)` for all `i`. -/
-lemma strict_mono_iff_lt_succ {α : Type*} [preorder α] {f : fin n → α} :
-  strict_mono f ↔ ∀ i (h : i + 1 < n), f ⟨i, lt_of_le_of_lt (nat.le_succ i) h⟩ < f ⟨i+1, h⟩ :=
-begin
-  split,
-  { assume H i hi,
-    apply H,
-    exact nat.lt_succ_self _ },
-  { assume H,
-    have A : ∀ i j (h : i < j) (h' : j < n), f ⟨i, lt_trans h h'⟩ < f ⟨j, h'⟩,
-    { assume i j h h',
-      induction h with k h IH,
-      { exact H _ _ },
-      { exact lt_trans (IH (nat.lt_of_succ_lt h')) (H _ _) } },
-    assume i j hij,
-    convert A (i : ℕ) (j : ℕ) hij j.2; ext; simp only [subtype.coe_eta] }
-end
 
 end order
 
@@ -604,6 +587,14 @@ end
   cast_le h i.succ = (cast_le (nat.succ_le_succ_iff.mp h) i).succ :=
 by simp [fin.eq_iff_veq]
 
+@[simp] lemma cast_le_cast_le {k m n} (km : k ≤ m) (mn : m ≤ n) (i : fin k) :
+  fin.cast_le mn (fin.cast_le km i) = fin.cast_le (km.trans mn) i :=
+fin.ext (by simp only [coe_cast_le])
+
+@[simp] lemma cast_le_comp_cast_le {k m n} (km : k ≤ m) (mn : m ≤ n) :
+  fin.cast_le mn ∘ fin.cast_le km = fin.cast_le (km.trans mn) :=
+funext (cast_le_cast_le km mn)
+
 /-- `cast eq i` embeds `i` into a equal `fin` type, see also `equiv.fin_congr`. -/
 def cast (eq : n = m) : fin n ≃o fin m :=
 { to_equiv := ⟨cast_le eq.le, cast_le eq.symm.le, λ a, eq_of_veq rfl, λ a, eq_of_veq rfl⟩,
@@ -855,6 +846,11 @@ ext $ add_comm _ _
 @[simp] lemma cast_add_nat {n : ℕ} (m : ℕ) (i : fin n) :
   cast (add_comm _ _) (add_nat m i) = nat_add m i :=
 ext $ add_comm _ _
+
+@[simp] lemma nat_add_last {m n : ℕ} : nat_add n (last m) = last (n + m) := rfl
+
+lemma nat_add_cast_succ {m n : ℕ} {i : fin m} :
+  nat_add n (cast_succ i) = cast_succ (nat_add n i) := rfl
 
 end succ
 
@@ -1151,6 +1147,42 @@ begin
 end
 
 end rec
+
+lemma lift_fun_iff_succ {α : Type*} (r : α → α → Prop) [is_trans α r] {f : fin (n + 1) → α} :
+  ((<) ⇒ r) f f ↔ ∀ i : fin n, r (f i.cast_succ) (f i.succ) :=
+begin
+  split,
+  { intros H i,
+    exact H i.cast_succ_lt_succ },
+  { refine λ H i, fin.induction _ _,
+    { exact λ h, (h.not_le (zero_le i)).elim },
+    { intros j ihj hij,
+      rw [← le_cast_succ_iff] at hij,
+      rcases hij.eq_or_lt with rfl|hlt,
+      exacts [H j, trans (ihj hlt) (H j)] } }
+end
+
+/-- A function `f` on `fin (n + 1)` is strictly monotone if and only if `f i < f (i + 1)`
+for all `i`. -/
+lemma strict_mono_iff_lt_succ {α : Type*} [preorder α] {f : fin (n + 1) → α} :
+  strict_mono f ↔ ∀ i : fin n, f i.cast_succ < f i.succ :=
+lift_fun_iff_succ (<)
+
+/-- A function `f` on `fin (n + 1)` is monotone if and only if `f i ≤ f (i + 1)` for all `i`. -/
+lemma monotone_iff_le_succ {α : Type*} [preorder α] {f : fin (n + 1) → α} :
+  monotone f ↔ ∀ i : fin n, f i.cast_succ ≤ f i.succ :=
+monotone_iff_forall_lt.trans $ lift_fun_iff_succ (≤)
+
+/-- A function `f` on `fin (n + 1)` is strictly antitone if and only if `f (i + 1) < f i`
+for all `i`. -/
+lemma strict_anti_iff_succ_lt {α : Type*} [preorder α] {f : fin (n + 1) → α} :
+  strict_anti f ↔ ∀ i : fin n, f i.succ < f i.cast_succ :=
+lift_fun_iff_succ (>)
+
+/-- A function `f` on `fin (n + 1)` is antitone if and only if `f (i + 1) ≤ f i` for all `i`. -/
+lemma antitone_iff_succ_le {α : Type*} [preorder α] {f : fin (n + 1) → α} :
+  antitone f ↔ ∀ i : fin n, f i.succ ≤ f i.cast_succ :=
+antitone_iff_forall_lt.trans $ lift_fun_iff_succ (≥)
 
 section add_group
 

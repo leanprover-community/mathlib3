@@ -78,7 +78,7 @@ lemma quasiconvex_on.convex [is_directed β (≤)] (hf : quasiconvex_on 𝕜 s f
 λ x y hx hy a b ha hb hab,
   let ⟨z, hxz, hyz⟩ := exists_ge_ge (f x) (f y) in (hf _ ⟨hx, hxz⟩ ⟨hy, hyz⟩ ha hb hab).1
 
-lemma quasiconcave_on.convex [is_directed β (swap (≤))] (hf : quasiconcave_on 𝕜 s f) : convex 𝕜 s :=
+lemma quasiconcave_on.convex [is_directed β (≥)] (hf : quasiconcave_on 𝕜 s f) : convex 𝕜 s :=
 hf.dual.convex
 
 end ordered_add_comm_monoid

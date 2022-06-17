@@ -183,6 +183,14 @@ le_sup_right.lt_iff_ne.trans $ not_congr right_eq_sup
 lemma left_or_right_lt_sup (h : a ≠ b) : (a < a ⊔ b ∨ b < a ⊔ b) :=
 h.not_le_or_not_le.symm.imp left_lt_sup.2 right_lt_sup.2
 
+theorem le_iff_exists_sup : a ≤ b ↔ ∃ c, b = a ⊔ c :=
+begin
+  split,
+  { intro h, exact ⟨b, (sup_eq_right.mpr h).symm⟩ },
+  { rintro ⟨c, (rfl : _ = _ ⊔ _)⟩,
+    exact le_sup_left }
+end
+
 theorem sup_le_sup (h₁ : a ≤ b) (h₂ : c ≤ d) : a ⊔ c ≤ b ⊔ d :=
 sup_le (le_sup_of_le_left h₁) (le_sup_of_le_right h₂)
 

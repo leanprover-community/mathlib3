@@ -110,10 +110,40 @@ class linear_ordered_add_comm_monoid (α : Type*)
 class linear_ordered_comm_monoid (α : Type*)
   extends linear_order α, ordered_comm_monoid α.
 
+/-- Typeclass for expressing that the `0` of a type is less or equal to its `1`. -/
+class zero_le_one_class (α : Type*) [has_zero α] [has_one α] [has_le α] :=
+(zero_le_one : (0 : α) ≤ 1)
+
+@[simp] lemma zero_le_one [has_zero α] [has_one α] [has_le α] [zero_le_one_class α] : (0 : α) ≤ 1 :=
+zero_le_one_class.zero_le_one
+
+/- `zero_le_one` with an explicit type argument. -/
+lemma zero_le_one' (α) [has_zero α] [has_one α] [has_le α] [zero_le_one_class α] : (0 : α) ≤ 1 :=
+zero_le_one
+
+lemma zero_le_two [preorder α] [has_one α] [add_zero_class α] [zero_le_one_class α]
+  [covariant_class α α (+) (≤)] : (0 : α) ≤ 2 :=
+add_nonneg zero_le_one zero_le_one
+
+lemma one_le_two [has_le α] [has_one α] [add_zero_class α] [zero_le_one_class α]
+  [covariant_class α α (+) (≤)] : (1 : α) ≤ 2 :=
+calc 1 = 1 + 0 : (add_zero 1).symm
+   ... ≤ 1 + 1 : add_le_add_left zero_le_one _
+
+lemma one_le_two' [has_le α] [has_one α] [add_zero_class α] [zero_le_one_class α]
+  [covariant_class α α (swap (+)) (≤)] : (1 : α) ≤ 2 :=
+calc 1 = 0 + 1 : (zero_add 1).symm
+   ... ≤ 1 + 1 : add_le_add_right zero_le_one _
+
 /-- A linearly ordered commutative monoid with a zero element. -/
 class linear_ordered_comm_monoid_with_zero (α : Type*)
   extends linear_ordered_comm_monoid α, comm_monoid_with_zero α :=
 (zero_le_one : (0 : α) ≤ 1)
+
+@[priority 100]
+instance linear_ordered_comm_monoid_with_zero.zero_le_one_class
+  [h : linear_ordered_comm_monoid_with_zero α] : zero_le_one_class α :=
+{ ..h }
 
 /-- A linearly ordered commutative monoid with an additively absorbing `⊤` element.
   Instances should include number systems with an infinite element adjoined.` -/
@@ -312,7 +342,8 @@ end with_zero
 @[protect_proj, ancestor ordered_add_comm_monoid has_bot]
 class canonically_ordered_add_monoid (α : Type*) extends ordered_add_comm_monoid α, has_bot α :=
 (bot_le : ∀ x : α, ⊥ ≤ x)
-(le_iff_exists_add : ∀ a b : α, a ≤ b ↔ ∃ c, b = a + c)
+(exists_add_of_le : ∀ {a b : α}, a ≤ b → ∃ c, b = a + c)
+(le_self_add : ∀ a b : α, a ≤ a + b)
 
 @[priority 100]  -- see Note [lower instance priority]
 instance canonically_ordered_add_monoid.to_order_bot (α : Type u)
@@ -331,37 +362,41 @@ instance canonically_ordered_add_monoid.to_order_bot (α : Type u)
 @[protect_proj, ancestor ordered_comm_monoid has_bot, to_additive]
 class canonically_ordered_monoid (α : Type*) extends ordered_comm_monoid α, has_bot α :=
 (bot_le : ∀ x : α, ⊥ ≤ x)
-(le_iff_exists_mul : ∀ a b : α, a ≤ b ↔ ∃ c, b = a * c)
+(exists_mul_of_le : ∀ {a b : α}, a ≤ b → ∃ c, b = a * c)
+(le_self_mul : ∀ a b : α, a ≤ a * b)
 
 @[priority 100, to_additive]  -- see Note [lower instance priority]
 instance canonically_ordered_monoid.to_order_bot (α : Type u)
   [h : canonically_ordered_monoid α] : order_bot α :=
 { ..h }
 
+@[priority 100, to_additive]  -- see Note [lower instance priority]
+instance canonically_ordered_monoid.has_exists_mul_of_le (α : Type u)
+  [h : canonically_ordered_monoid α] : has_exists_mul_of_le α :=
+{ ..h }
+
 section canonically_ordered_monoid
 
 variables [canonically_ordered_monoid α] {a b c d : α}
 
-@[to_additive]
-lemma le_iff_exists_mul : a ≤ b ↔ ∃c, b = a * c :=
-canonically_ordered_monoid.le_iff_exists_mul a b
+@[to_additive] lemma le_self_mul : a ≤ a * c := canonically_ordered_monoid.le_self_mul _ _
+@[to_additive] lemma le_mul_self : a ≤ b * a := by { rw mul_comm, exact le_self_mul }
+
+@[to_additive] lemma self_le_mul_right (a b : α) : a ≤ a * b := le_self_mul
+@[to_additive] lemma self_le_mul_left (a b : α) : a ≤ b * a := le_mul_self
 
 @[to_additive]
-lemma le_iff_exists_mul' : a ≤ b ↔ ∃c, b = c * a :=
+lemma le_iff_exists_mul : a ≤ b ↔ ∃ c, b = a * c :=
+⟨exists_mul_of_le, by { rintro ⟨c, rfl⟩, exact le_self_mul }⟩
+
+@[to_additive]
+lemma le_iff_exists_mul' : a ≤ b ↔ ∃ c, b = c * a :=
 by simpa only [mul_comm _ a] using le_iff_exists_mul
-
-@[to_additive]
-lemma self_le_mul_right (a b : α) : a ≤ a * b :=
-le_iff_exists_mul.mpr ⟨b, rfl⟩
-
-@[to_additive]
-lemma self_le_mul_left (a b : α) : a ≤ b * a :=
-by { rw [mul_comm], exact self_le_mul_right a b }
 
 @[simp, to_additive zero_le] lemma one_le (a : α) : 1 ≤ a :=
 le_iff_exists_mul.mpr ⟨a, (one_mul _).symm⟩
 
-@[simp, to_additive] lemma bot_eq_one : (⊥ : α) = 1 :=
+@[to_additive] lemma bot_eq_one : (⊥ : α) = 1 :=
 le_antisymm bot_le (one_le ⊥)
 
 @[simp, to_additive] lemma mul_eq_one_iff : a * b = 1 ↔ a = 1 ∧ b = 1 :=
@@ -390,15 +425,9 @@ end
 calc a = 1 * a : by simp
   ... ≤ b * c : mul_le_mul' (one_le _) h
 
-@[to_additive] lemma le_mul_self : a ≤ b * a :=
-le_mul_left (le_refl a)
-
 @[to_additive] lemma le_mul_right (h : a ≤ b) : a ≤ b * c :=
 calc a = a * 1 : by simp
   ... ≤ b * c : mul_le_mul' h (one_le _)
-
-@[to_additive] lemma le_self_mul : a ≤ a * c :=
-le_mul_right (le_refl a)
 
 @[to_additive]
 lemma lt_iff_exists_mul [covariant_class α α (*) (<)] : a < b ↔ ∃ c > 1, b = a * c :=
@@ -411,35 +440,31 @@ begin
   { rw [← (self_le_mul_right a c).lt_iff_ne], apply lt_mul_of_one_lt_right' }
 end
 
+instance with_zero.has_exists_add_of_le {α} [has_add α] [preorder α] [has_exists_add_of_le α] :
+  has_exists_add_of_le (with_zero α) :=
+⟨λ a b, begin
+  apply with_zero.cases_on a,
+  { exact λ _, ⟨b, (zero_add b).symm⟩ },
+  apply with_zero.cases_on b,
+  { exact λ b' h, (with_bot.not_coe_le_bot _ h).elim },
+  rintro a' b' h,
+  obtain ⟨c, rfl⟩ := exists_add_of_le (with_zero.coe_le_coe.1 h),
+  exact ⟨c, rfl⟩,
+end⟩
+
 -- This instance looks absurd: a monoid already has a zero
 /-- Adding a new zero to a canonically ordered additive monoid produces another one. -/
 instance with_zero.canonically_ordered_add_monoid {α : Type u} [canonically_ordered_add_monoid α] :
   canonically_ordered_add_monoid (with_zero α) :=
-{ le_iff_exists_add := λ a b, begin
+{ le_self_add := λ a b, begin
     apply with_zero.cases_on a,
-    { exact iff_of_true bot_le ⟨b, (zero_add b).symm⟩ },
+    { exact bot_le },
     apply with_zero.cases_on b,
-    { intro b',
-      refine iff_of_false (mt (le_antisymm bot_le) (by simp)) (not_exists.mpr (λ c, _)),
-      apply with_zero.cases_on c;
-      simp [←with_zero.coe_add] },
-    { simp only [le_iff_exists_add, with_zero.coe_le_coe],
-      intros,
-      split; rintro ⟨c, h⟩,
-      { exact ⟨c, congr_arg coe h⟩ },
-      { induction c using with_zero.cases_on,
-        { refine ⟨0, _⟩,
-          simpa using h },
-        { refine ⟨c, _⟩,
-          simpa [←with_zero.coe_add] using h } } }
+    { exact λ b', le_rfl },
+    { exact λ a' b', with_zero.coe_le_coe.2 le_self_add }
   end,
   .. with_zero.order_bot,
-  .. with_zero.ordered_add_comm_monoid zero_le }
-
-@[priority 100, to_additive]
-instance canonically_ordered_monoid.has_exists_mul_of_le (α : Type u)
-  [canonically_ordered_monoid α] : has_exists_mul_of_le α :=
-{ exists_mul_of_le := λ a b hab, le_iff_exists_mul.mp hab }
+  .. with_zero.ordered_add_comm_monoid zero_le, ..with_zero.has_exists_add_of_le }
 
 end canonically_ordered_monoid
 
@@ -492,6 +517,12 @@ min_eq_left (one_le a)
 @[simp, to_additive]
 lemma min_one (a : α) : min a 1 = 1 :=
 min_eq_right (one_le a)
+
+/-- In a linearly ordered monoid, we are happy for `bot_eq_one` to be a `@[simp]` lemma. -/
+@[simp, to_additive
+  "In a linearly ordered monoid, we are happy for `bot_eq_zero` to be a `@[simp]` lemma"]
+lemma bot_eq_one' : (⊥ : α) = 1 :=
+bot_eq_one
 
 end canonically_linear_ordered_monoid
 
@@ -789,9 +820,8 @@ instance [ordered_cancel_comm_monoid M] [ordered_cancel_comm_monoid N] :
 
 @[to_additive] instance [canonically_ordered_monoid α] [canonically_ordered_monoid β] :
   canonically_ordered_monoid (α × β) :=
-{ le_iff_exists_mul := λ a b,
-    ⟨exists_mul_of_le, by { rintro ⟨c, rfl⟩, exact ⟨le_self_mul, le_self_mul⟩ }⟩,
-  .. prod.ordered_comm_monoid, .. prod.order_bot _ _ }
+{ le_self_mul := λ a b, ⟨le_self_mul, le_self_mul⟩,
+  ..prod.ordered_comm_monoid, ..prod.order_bot _ _, ..prod.has_exists_mul_of_le }
 
 end prod
 
@@ -818,6 +848,9 @@ trans eq_comm coe_eq_one
 
 @[simp, to_additive] theorem top_ne_one : ⊤ ≠ (1 : with_top α) .
 @[simp, to_additive] theorem one_ne_top : (1 : with_top α) ≠ ⊤ .
+
+instance [has_zero α] [has_le α] [zero_le_one_class α] : zero_le_one_class (with_top α) :=
+⟨some_le_some.2 zero_le_one⟩
 
 end has_one
 
@@ -1017,23 +1050,25 @@ instance [linear_ordered_add_comm_monoid α] :
   ..with_top.ordered_add_comm_monoid,
   ..option.nontrivial }
 
-instance [canonically_ordered_add_monoid α] : canonically_ordered_add_monoid (with_top α) :=
-{ le_iff_exists_add := assume a b,
-  match a, b with
+instance [has_le α] [has_add α] [has_exists_add_of_le α] : has_exists_add_of_le (with_top α) :=
+⟨λ a b, match a, b with
   | ⊤, ⊤ := by simp
-  | (a : α), ⊤ := by { simp only [true_iff, le_top], refine ⟨⊤, _⟩, refl }
-  | (a : α), (b : α) := begin
-      rw [with_top.coe_le_coe, le_iff_exists_add],
-      split,
-      { rintro ⟨c, rfl⟩,
-        refine ⟨c, _⟩, norm_cast },
-      { intro h,
-        exact match b, h with _, ⟨some c, rfl⟩ := ⟨_, rfl⟩ end }
+  | (a : α), ⊤ := λ _, ⟨⊤, rfl⟩
+  | (a : α), (b : α) := λ h, begin
+      obtain ⟨c, rfl⟩ := exists_add_of_le (with_top.coe_le_coe.1 h),
+      exact ⟨c, rfl⟩
     end
-  | ⊤, (b : α) := by simp
+  | ⊤, (b : α) := λ h, (not_top_le_coe _ h).elim
+end⟩
+
+instance [canonically_ordered_add_monoid α] : canonically_ordered_add_monoid (with_top α) :=
+{ le_self_add := λ a b, match a, b with
+  | ⊤, ⊤ := le_rfl
+  | (a : α), ⊤ := le_top
+  | (a : α), (b : α) := with_top.coe_le_coe.2 le_self_add
+  | ⊤, (b : α) := le_rfl
   end,
-  .. with_top.order_bot,
-  .. with_top.ordered_add_comm_monoid }
+  ..with_top.order_bot, ..with_top.ordered_add_comm_monoid, ..with_top.has_exists_add_of_le }
 
 instance [canonically_linear_ordered_add_monoid α] :
   canonically_linear_ordered_add_monoid (with_top α) :=
@@ -1087,7 +1122,11 @@ instance [add_semigroup α] : add_semigroup (with_bot α) := with_top.add_semigr
 instance [add_comm_semigroup α] : add_comm_semigroup (with_bot α) := with_top.add_comm_semigroup
 instance [add_zero_class α] : add_zero_class (with_bot α) := with_top.add_zero_class
 instance [add_monoid α] : add_monoid (with_bot α) := with_top.add_monoid
-instance [add_comm_monoid α] : add_comm_monoid (with_bot α) :=  with_top.add_comm_monoid
+instance [add_comm_monoid α] : add_comm_monoid (with_bot α) := with_top.add_comm_monoid
+
+instance [has_zero α] [has_one α] [has_le α] [zero_le_one_class α] :
+  zero_le_one_class (with_bot α) :=
+⟨some_le_some.2 zero_le_one⟩
 
 -- `by norm_cast` proves this lemma, so I did not tag it with `norm_cast`
 @[to_additive]
@@ -1250,12 +1289,13 @@ instance [has_mul α] [has_le α] [has_exists_mul_of_le α] : has_exists_add_of_
 ⟨@exists_mul_of_le α _ _ _⟩
 
 instance [canonically_ordered_add_monoid α] : canonically_ordered_monoid (multiplicative α) :=
-{ le_iff_exists_mul := @le_iff_exists_add α _,
-  ..multiplicative.ordered_comm_monoid, ..multiplicative.order_bot }
+{ le_self_mul := @le_self_add α _,
+  ..multiplicative.ordered_comm_monoid, ..multiplicative.order_bot,
+  ..multiplicative.has_exists_mul_of_le }
 
 instance [canonically_ordered_monoid α] : canonically_ordered_add_monoid (additive α) :=
-{ le_iff_exists_add := @le_iff_exists_mul α _,
-  ..additive.ordered_add_comm_monoid, ..additive.order_bot }
+{ le_self_add := @le_self_mul α _,
+  ..additive.ordered_add_comm_monoid, ..additive.order_bot, ..additive.has_exists_add_of_le }
 
 instance [canonically_linear_ordered_add_monoid α] :
   canonically_linear_ordered_monoid (multiplicative α) :=

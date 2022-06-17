@@ -318,6 +318,14 @@ begin
   exact is_closed_bUnion hs (λ i hi, is_closed_singleton)
 end
 
+lemma topological_space.is_topological_basis.exists_mem_of_ne
+  [t1_space α] {b : set (set α)} (hb : is_topological_basis b) {x y : α} (h : x ≠ y) :
+  ∃ a ∈ b, x ∈ a ∧ y ∉ a :=
+begin
+  rcases hb.is_open_iff.1 is_open_ne x h with ⟨a, ab, xa, ha⟩,
+  exact ⟨a, ab, xa, λ h, ha h rfl⟩,
+end
+
 lemma filter.coclosed_compact_le_cofinite [t1_space α] :
   filter.coclosed_compact α ≤ filter.cofinite :=
 λ s hs, compl_compl s ▸ hs.is_compact.compl_mem_coclosed_compact_of_is_closed hs.is_closed

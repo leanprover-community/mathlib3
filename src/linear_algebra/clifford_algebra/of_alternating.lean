@@ -19,10 +19,13 @@ variables {R M A : Type*} [field R] [add_comm_group M] [ring A] [module R M] [al
 def alternating_map.to_exterior_hom {n : ℕ} (f : alternating_map R M A (fin n)) :
   clifford_algebra (0 : quadratic_form R M) →ₗ[R] A :=
 begin
+  -- start by reminding lean how to find instances under binders
   letI : Π (i : fin n.succ), module R (alternating_map R M A (fin ↑i)) :=
     λ i, alternating_map.module,
   letI : module R (Π i : fin n.succ, alternating_map R M A (fin i)) :=
     @pi.module (fin n.succ) (λ i, alternating_map R M A (fin i)) R _ _ (by apply_instance),
+  -- We'll recurse over sequences of `n + 1` alternating maps, taking between `0` and `n` (incusive)
+  -- arguments. Our final result will be the value of the map taking 0 arguments.
   suffices :
     clifford_algebra (0 : quadratic_form R M)
       →ₗ[R] (Π i : fin n.succ, alternating_map R M A (fin i)),
@@ -31,16 +34,22 @@ begin
     haveI : is_empty (fin ↑(0 : fin n.succ)) := fin.is_empty,
     refine alternating_map.const_linear_equiv_of_is_empty.symm },
   refine clifford_algebra.foldr (0 : quadratic_form R M) _ _ _,
-  { refine linear_map.mk₂ R (λ m f, _)
+  { -- our recursive step turns `![f₀, f₁, ..., fₙ₋₁, fₙ]` into `![f₁ m, f₂ m, ..., fₙ m, 0]`, where
+    -- `f₁ m` here is shorthand for partial application via `f₁.curry_left m`. The slight snag is we
+    -- have to cast our arity from `succ ↑i` to `↑i.succ`, which makes our later proof awful.
+    refine linear_map.mk₂ R (λ m f, _)
       (λ m₁ m₂ f, _) (λ c m f, _) (λ m f₁ f₂, _) (λ c m f, _),
     refine fin.snoc (λ i, _) 0,
     { have f' := (f (fin.succ i)).dom_dom_congr (fin.cast $ fin.coe_succ _).to_equiv,
       refine f'.curry_left m },
-      all_goals { ext i : 1, refine fin.last_cases _ _ i; clear i; [skip, intro i];
-        simp only [pi.add_apply, pi.smul_apply, fin.snoc_last, fin.snoc_cast_succ, zero_add,
-          smul_zero, map_add, map_smul]; refl },
-       },
-  { intros m x,
+    -- prove that map is linear
+    all_goals { ext i : 1, refine fin.last_cases _ _ i; clear i; [skip, intro i];
+      simp only [pi.add_apply, pi.smul_apply, fin.snoc_last, fin.snoc_cast_succ, zero_add,
+        smul_zero, map_add, map_smul]; refl } },
+  { -- when applied twice with the same `m`, this recursive step obviously produces 0; either
+    -- because we appended zeros on the last two elements, or because of
+    -- `alternating_map.curry_left_same`.
+    intros m x,
     dsimp only [linear_map.mk₂_apply, quadratic_form.coe_fn_zero, pi.zero_apply],
     simp_rw zero_smul,
     ext i : 1,

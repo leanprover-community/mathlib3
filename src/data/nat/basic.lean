@@ -1490,12 +1490,12 @@ by unfold bodd div2; cases bodd_div2 n; refl
 ⟨λ h, (@nat.bit1_inj 0 n h).symm, λ h, by subst h⟩
 
 theorem bit_add : ∀ (b : bool) (n m : ℕ), bit b (n + m) = bit ff n + bit b m
-| tt := bit0_add _ _
-| ff := bit1_add _ _
+| tt := bit1_add
+| ff := bit0_add
 
 theorem bit_add' : ∀ (b : bool) (n m : ℕ), bit b (n + m) = bit b n + bit ff m
-| tt := bit0_add _ _
-| ff := bit1_add' _ _
+| tt := bit1_add'
+| ff := bit0_add
 
 protected theorem bit0_le {n m : ℕ} (h : n ≤ m) : bit0 n ≤ bit0 m :=
 add_le_add h h

@@ -117,13 +117,13 @@ by simp only [mul_left_comm, mul_comm]
 end comm_semigroup
 
 section add_comm_semigroup
-variables {M : Type u} [add_comm_semigroup M] (a b : M)
+variables {M : Type u} [add_comm_semigroup M]
 
-lemma bit0_add : bit0 (a + b) = bit0 a + bit0 b :=
+lemma bit0_add (a b : M) : bit0 (a + b) = bit0 a + bit0 b :=
 add_add_add_comm _ _ _ _
-lemma bit1_add [has_one M] : bit1 (a + b) = bit0 a + bit1 b :=
+lemma bit1_add [has_one M] (a b : M) : bit1 (a + b) = bit0 a + bit1 b :=
 (congr_arg (+ (1 : M)) $ bit0_add a b : _).trans (add_assoc _ _ _)
-lemma bit1_add' [has_one M] : bit1 (a + b) = bit1 a + bit0 b :=
+lemma bit1_add' [has_one M] (a b : M) : bit1 (a + b) = bit1 a + bit0 b :=
 by rw [add_comm, bit1_add, add_comm]
 
 end add_comm_semigroup

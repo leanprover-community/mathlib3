@@ -522,6 +522,10 @@ def inv_val {l r} (L : l → pgame) (R : r → pgame)
 | _ (inv_ty.right₁ i j) := (1 + (L i - mk l r L R) * inv_val j) * IHl i
 | _ (inv_ty.right₂ i j) := (1 + (R i - mk l r L R) * inv_val j) * IHr i
 
+@[simp] theorem inv_val_zero {l r : Type u} (L : l → pgame) (R : r → pgame) (IHl IHr) :
+  inv_val L R IHl IHr inv_ty.zero = 0 :=
+rfl
+
 @[simp] theorem inv_val_is_empty {l r : Type u} {b} (L R IHl IHr) (i : inv_ty l r b)
   [is_empty l] [is_empty r] : inv_val L R IHl IHr i = 0 :=
 begin
@@ -545,32 +549,106 @@ def inv' : pgame → pgame
   ⟨inv_ty l' r ff, inv_ty l' r tt,
     inv_val L' R IHl' IHr, inv_val L' R IHl' IHr⟩
 
+@[simp] theorem inv'_def {l r L R} : inv' ⟨l, r, L, R⟩ =
+  ⟨inv_ty {i // 0 < L i} r ff, inv_ty {i // 0 < L i} r tt,
+    inv_val (λ i, L i.1) R (λ i, inv' (L i.1)) (λ i, inv' (R i)),
+    inv_val (λ i, L i.1) R (λ i, inv' (L i.1)) (λ i, inv' (R i))⟩ := rfl
+
+theorem left_moves_inv' :
+  ∀ x, (inv' x).left_moves = inv_ty {i // 0 < x.move_left i} x.right_moves ff
+| ⟨l, r, L, R⟩ := rfl
+
+theorem right_moves_inv' :
+  ∀ x, (inv' x).right_moves = inv_ty {i // 0 < x.move_left i} x.right_moves tt
+| ⟨l, r, L, R⟩ := rfl
+
+/-- Creates a left move for `inv' x` from its indexing type and vice versa.
+
+Even though these types are the same (not definitionally so), this is the preferred way to convert
+between them. -/
+def to_left_moves_inv' {x : pgame} :
+  inv_ty {i // 0 < x.move_left i} x.right_moves ff ≃ (inv' x).left_moves :=
+equiv.cast (left_moves_inv' x).symm
+
+/-- Creates a right move for `inv' x` from its indexing type and vice versa.
+
+Even though these types are the same (not definitionally so), this is the preferred way to convert
+between them. -/
+def to_right_moves_inv' {x : pgame} :
+  inv_ty {i // 0 < x.move_left i} x.right_moves tt ≃ (inv' x).right_moves :=
+equiv.cast (right_moves_inv' x).symm
+
+lemma move_left_inv' {x : pgame} (j) :
+  (inv' x).move_left (to_left_moves_inv' j) =
+    inv_val (λ i : {i // _}, x.move_left i.1) x.move_right
+    (λ i, inv' (x.move_left i.1)) (λ i, inv' (x.move_right i)) j :=
+by { cases x, refl }
+
+@[simp] lemma move_left_inv'' {x : pgame} (j) :
+  (inv' x).move_left j =
+    inv_val (λ i : {i // _}, x.move_left i.1) x.move_right
+    (λ i, inv' (x.move_left i.1)) (λ i, inv' (x.move_right i)) (to_left_moves_inv'.symm j) :=
+by { cases x, refl }
+
+lemma move_right_inv' {x : pgame} (j) :
+  (inv' x).move_right (to_right_moves_inv' j) =
+    inv_val (λ i : {i // _}, x.move_left i.1) x.move_right
+    (λ i, inv' (x.move_left i.1)) (λ i, inv' (x.move_right i)) j :=
+by { cases x, refl }
+
+@[simp] lemma move_right_inv'' {x : pgame} (j) :
+  (inv' x).move_right j =
+    inv_val (λ i : {i // _}, x.move_left i.1) x.move_right
+    (λ i, inv' (x.move_left i.1)) (λ i, inv' (x.move_right i)) (to_right_moves_inv'.symm j) :=
+by { cases x, refl }
+
 theorem zero_lf_inv' : ∀ (x : pgame), 0 ⧏ inv' x
 | ⟨xl, xr, xL, xR⟩ := by { convert lf_mk _ _ inv_ty.zero, refl }
 
+instance unique_left_moves_inv'_zero : unique (inv' 0).left_moves :=
+to_left_moves_inv'.symm.unique
+
+@[simp] theorem default_inv'_zero_left_moves : (default : (inv' 0).left_moves) = inv_ty.zero :=
+rfl
+
+@[simp] theorem to_left_moves_inv'_zero_symm (j : (inv' 0).left_moves) :
+  to_left_moves_inv'.symm j = inv_ty.zero :=
+by simp
+
+theorem inv'_zero_move_left (j) : (inv' 0).move_left j = 0 :=
+by simp
+
+instance is_empty_right_moves_inv'_zero : is_empty (inv' 0).right_moves :=
+by { rw right_moves_inv', apply_instance }
+
 /-- `inv' 0` has exactly the same moves as `1`. -/
 def inv'_zero : inv' 0 ≡r 1 :=
-begin
-  change mk _ _ _ _ ≡r 1,
-  refine ⟨_, _, λ i, _, is_empty_elim⟩; dsimp,
-  { apply equiv.equiv_punit },
-  { apply equiv.equiv_pempty },
-  { simp }
-end
+⟨equiv.equiv_of_unique _ _, equiv.equiv_pempty _, λ i, by simp, is_empty_elim⟩
 
 theorem inv'_zero_equiv : inv' 0 ≈ 1 := inv'_zero.equiv
 
+instance is_empty_punit_subtype_zero_pos : is_empty {i : punit.{u+1} // (0 : pgame.{u}) < 0} :=
+by { rw lt_self_iff_false, apply_instance }
+
+instance unique_left_moves_inv'_one : unique (inv' (1 : pgame.{u})).left_moves :=
+pgame.unique_inv_ty _ _
+
+@[simp] theorem default_inv'_one_left_moves : (default : (inv' 1).left_moves) = inv_ty.zero :=
+rfl
+
+@[simp] theorem to_left_moves_inv'_one_symm (j : (inv' 1).left_moves) :
+  to_left_moves_inv'.symm j = inv_ty.zero :=
+by { rw unique.eq_default j, simp }
+
+theorem inv'_one_move_left (j) : (inv' (1 : pgame.{u})).move_left j = 0 :=
+by simp
+
+instance is_empty_right_moves_inv'_one : is_empty (inv' 1).right_moves :=
+by { rw right_moves_inv', dsimp, apply_instance }
+
 /-- `inv' 1` has exactly the same moves as `1`. -/
 def inv'_one : inv' 1 ≡r (1 : pgame.{u}) :=
-begin
-  change relabelling (mk _ _ _ _) 1,
-  haveI : is_empty {i : punit.{u+1} // (0 : pgame.{u}) < 0},
-  { rw lt_self_iff_false, apply_instance },
-  refine ⟨_, _, λ i, _, is_empty_elim⟩; dsimp,
-  { apply equiv.equiv_punit },
-  { apply equiv.equiv_pempty },
-  { simp }
-end
+⟨equiv.equiv_punit _, equiv.equiv_pempty _, λ i, by simp, is_empty_elim⟩
 
 theorem inv'_one_equiv : inv' 1 ≈ 1 := inv'_one.equiv
 

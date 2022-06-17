@@ -171,42 +171,6 @@ variables [order_bot P]
 
 @[simp] lemma bot_mem (s : ideal P) : ⊥ ∈ s := s.lower bot_le s.nonempty.some_mem
 
-section pushforwards_and_pullbacks
-
---variables [semilattice_sup α] [order_bot α]
-/-- The comap on ideals induced by a morphism on the underlying types. -/
-def comap {X Y : Type*} [semilattice_sup X] [semilattice_sup Y] [order_bot X] [order_bot Y] (φ : X →o Y)
- (hφ_bot : φ ⊥ = ⊥) (hφ_sup : ∀{x₁ x₂}, φ (x₁ ⊔ x₂) = φ x₁ ⊔ (φ x₂))
-   (𝓙 : ideal Y) : ideal X :=
-{ carrier := φ ⁻¹' 𝓙.carrier,-- φ '' ℐ.carrier,--preimage φ ⁻¹' ℐ.carrier,
-  lower' := λ x₁ x₂ h, 𝓙.lower (φ.mono h),
-  nonempty' := ⟨⊥, (hφ_bot.symm ▸ bot_mem 𝓙 : φ ⊥ ∈ 𝓙)⟩,
-  directed' := begin rintro x₁ hx₁ x₂ hx₂, simp at *, refine ⟨x₁ ⊔ x₂, _⟩,
-  obtain ⟨y, hy, hy₁, hy₂⟩ := 𝓙.directed (φ x₁) hx₁ (φ x₂) hx₂,
-  refine ⟨𝓙.lower _ hy, by simp, by simp⟩,
-  rw hφ_sup,
-  exact sup_le hy₁ hy₂,
-  end }
-
-def map {X Y : Type*} [preorder X] [preorder Y] (φ : X →o Y) (𝓘 : ideal X) : ideal Y :=
-{ carrier := {y : Y | ∃ x ∈ 𝓘.carrier, y ≤ φ x},
-  lower' := λ y₁ y₂ hley ⟨x₁, hx₁, hle⟩, ⟨x₁, hx₁, hley.trans hle⟩,
-  nonempty' := begin
-    obtain ⟨x, hx⟩ := 𝓘.nonempty,
-    refine ⟨φ x, x, hx, le_refl _⟩,
-  end,
-  directed' := by { rintro y₁ ⟨x₁, (hx𝓘₁ : x₁ ∈ 𝓘), hy₁le⟩ y₂ ⟨x₂, (hx𝓘₂ : x₂ ∈ 𝓘), hy₂le⟩,
-    obtain ⟨x, (hx𝓘 : x ∈ 𝓘), h₁, h₂⟩ := 𝓘.directed x₁ hx𝓘₁ x₂ hx𝓘₂,
-    refine ⟨φ x, ⟨x, hx𝓘, (le_refl _)⟩, hy₁le.trans (φ.mono h₁), hy₂le.trans (φ.mono h₂)⟩,
-  } }
-
-lemma gc {X Y : Type*} [semilattice_sup X] [semilattice_sup Y] [order_bot X] [order_bot Y] (φ : X →o Y)
-(hφ_bot : φ ⊥ = ⊥) (hφ_sup : ∀{x₁ x₂}, φ (x₁ ⊔ x₂) = φ x₁ ⊔ (φ x₂)) :
-galois_connection (map φ) (comap φ hφ_bot @hφ_sup) :=
-λ 𝓘 𝓙, ⟨λ h x hx, h ⟨x, hx, le_refl _⟩, λ h y ⟨x, hx𝓘, hduality⟩, 𝓙.lower hduality $ h hx𝓘⟩
-
-end pushforwards_and_pullbacks
-
 end order_bot
 
 section order_top
@@ -238,6 +202,17 @@ instance [inhabited P] : inhabited (ideal P) := ⟨ideal.principal default⟩
 
 @[simp] lemma mem_principal : x ∈ principal y ↔ x ≤ y := iff.rfl
 
+def map {X Y : Type*} [preorder X] [preorder Y] (φ : X →o Y) (𝓘 : ideal X) : ideal Y :=
+{ carrier := {y : Y | ∃ x ∈ 𝓘.carrier, y ≤ φ x},
+  lower' := λ y₁ y₂ hley ⟨x₁, hx₁, hle⟩, ⟨x₁, hx₁, hley.trans hle⟩,
+  nonempty' := begin
+    obtain ⟨x, hx⟩ := 𝓘.nonempty,
+    refine ⟨φ x, x, hx, le_refl _⟩,
+  end,
+  directed' := by { rintro y₁ ⟨x₁, (hx𝓘₁ : x₁ ∈ 𝓘), hy₁le⟩ y₂ ⟨x₂, (hx𝓘₂ : x₂ ∈ 𝓘), hy₂le⟩,
+    obtain ⟨x, (hx𝓘 : x ∈ 𝓘), h₁, h₂⟩ := 𝓘.directed x₁ hx𝓘₁ x₂ hx𝓘₂,
+    refine ⟨φ x, ⟨x, hx𝓘, (le_refl _)⟩, hy₁le.trans (φ.mono h₁), hy₂le.trans (φ.mono h₂)⟩,
+  } }
 end
 
 section order_bot
@@ -350,6 +325,21 @@ instance : complete_lattice (ideal P) :=
     rw [←coe_subset_coe, coe_Inf],
     exact bInter_subset_of_mem hs,
   end) }
+
+/-- The comap on ideals induced by a morphism on the underlying types. -/
+def comap {X Y : Type*} [semilattice_sup X] [semilattice_sup Y] [order_bot X] [order_bot Y]
+  (φ : sup_bot_hom X Y) (𝓙 : ideal Y) : ideal X :=
+{ carrier := φ ⁻¹' 𝓙.carrier,
+  lower' := λ x₁ x₂ h, 𝓙.lower (order_hom_class.mono φ h),
+  nonempty' := ⟨⊥, show φ ⊥ ∈ 𝓙, from (map_bot φ).symm ▸ bot_mem 𝓙⟩,
+  directed' := λ x₁ hx₁ x₂ hx₂, ⟨x₁ ⊔ x₂,
+  let ⟨y, hy, hy₁, hy₂⟩ := 𝓙.directed (φ x₁) hx₁ (φ x₂) hx₂ in
+  ⟨𝓙.lower (by { rw (map_sup φ x₁ x₂), exact sup_le hy₁ hy₂ }) hy, by simp, by simp⟩, ⟩ }
+
+lemma gc {X Y : Type*} [semilattice_sup X] [semilattice_sup Y] [order_bot X] [order_bot Y]
+  (φ : sup_bot_hom X Y) :
+galois_connection (map { to_fun := φ, monotone' := φ.mono }) (comap φ) :=
+λ 𝓘 𝓙, ⟨λ h x hx, h ⟨x, hx, le_refl _⟩, λ h y ⟨x, hx𝓘, hduality⟩, 𝓙.lower hduality $ h hx𝓘⟩
 
 end semilattice_sup_order_bot
 

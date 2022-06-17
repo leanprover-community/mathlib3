@@ -454,16 +454,8 @@ begin
   exact lintegral_lt_top_of_bounded_continuous_to_nnreal _ f,
 end
 
-lemma integrable_of_bounded_continuous_to_nnreal' (μ : finite_measure α) (f : α →ᵇ ℝ≥0) :
-  integrable ((coe : ℝ≥0 → ℝ) ∘ ⇑f) (μ : measure α) :=
-begin
-  refine ⟨(nnreal.continuous_coe.comp f.continuous).measurable.ae_strongly_measurable, _⟩,
-  simp only [has_finite_integral, nnreal.nnnorm_eq],
-  exact lintegral_lt_top_of_bounded_continuous_to_nnreal _ f,
-end
-
-lemma integrable_of_bounded_continuous_to_real (μ : finite_measure α) (f : α →ᵇ ℝ) :
-  integrable ⇑f (μ : measure α) :=
+lemma integrable_of_bounded_continuous_to_real (μ : measure α) [is_finite_measure μ] (f : α →ᵇ ℝ) :
+  integrable ⇑f μ :=
 begin
   refine ⟨f.continuous.measurable.ae_strongly_measurable, _⟩,
   have aux : (coe : ℝ≥0 → ℝ) ∘ ⇑f.nnnorm = (λ x, ∥f x∥),
@@ -477,15 +469,13 @@ begin
 end
 
 lemma bounded_continuous_function.integral_eq_integral_nnreal_part_sub
-  (μ : finite_measure α) (f : α →ᵇ ℝ) :
-  ∫ x, f x ∂(μ : measure α) =
-      ∫ x, f.nnreal_part x ∂(μ : measure α)
-    - ∫ x, (-f).nnreal_part x ∂(μ : measure α) :=
+  (μ : measure α) [is_finite_measure μ] (f : α →ᵇ ℝ) :
+  ∫ x, f x ∂μ = ∫ x, f.nnreal_part x ∂μ - ∫ x, (-f).nnreal_part x ∂μ :=
 by simp only [f.self_eq_nnreal_part_sub_nnreal_part_neg,
               pi.sub_apply, integral_sub, integrable_of_bounded_continuous_to_nnreal]
 
 lemma lintegral_lt_top_of_bounded_continuous_to_real
-  {α : Type*} [measurable_space α] [topological_space α] (μ : finite_measure α) (f : α →ᵇ ℝ) :
+  {α : Type*} [measurable_space α] [topological_space α] (μ : measure α) [is_finite_measure μ] (f : α →ᵇ ℝ) :
   ∫⁻ x, ennreal.of_real (f x) ∂(μ : measure α) < ∞ :=
 lintegral_lt_top_of_bounded_continuous_to_nnreal _ f.nnreal_part
 
@@ -518,8 +508,8 @@ begin
 end
 
 lemma bounded_continuous_function.nnreal.to_real_lintegral_eq_integral
-  {μ : finite_measure α} (f : α →ᵇ ℝ≥0) :
-  (∫⁻ x, (f x : ℝ≥0∞) ∂(μ : measure α)).to_real = (∫ x, (f x) ∂(μ : measure α)) :=
+  {μ : measure α} [is_finite_measure μ] (f : α →ᵇ ℝ≥0) :
+  (∫⁻ x, (f x : ℝ≥0∞) ∂μ).to_real = (∫ x, (f x) ∂μ) :=
 begin
   rw integral_eq_lintegral_of_nonneg_ae _
      (nnreal.continuous_coe.comp f.continuous).measurable.ae_strongly_measurable,

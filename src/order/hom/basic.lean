@@ -891,7 +891,7 @@ instance order_dual.has_precompl : has_precompl αᵒᵈ :=
   compl_antitone' := λ a b h, @has_precompl.compl_antitone' α _ _ b a h,
   compl_involutive' := has_precompl.compl_involutive' }
 
-/-- Taking complements as an order isomorphism to the order dual. -/
+/-- Taking (pre-)complements as an order isomorphism to the order dual. -/
 @[simps]
 def order_iso.compl : α ≃o αᵒᵈ :=
 { to_fun := order_dual.to_dual ∘ compl,

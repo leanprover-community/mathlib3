@@ -689,7 +689,8 @@ export has_compl (compl)
 postfix `ᶜ`:(max+1) := compl
 
 /-- The `precompl` typeclass applies to types with a `preorder` that admit an order-reversing
-involution. Such an involution is more general than a `boolean_algebra` complement, but
+involution. In the case of a lattice, these are sometimes referred to as 'i-lattices' or 'lattices
+with involution'. Such an involution is more general than a `boolean_algebra` complement, but
 retains many of its properties, which are proved here. For convenience, we adopt the `ᶜ` notation.
 Other than a boolean algebra, an example is the subspace lattice of the vector space `𝕂ⁿ` for
 `𝕂` of nonzero characteristic, where for each subspace `W` we have
@@ -707,11 +708,11 @@ instance to_has_compl : has_compl α := ⟨has_precompl.compl⟩
 
 @[simp] lemma compl_compl (x : α) : xᶜᶜ = x :=  has_precompl.compl_involutive' x
 
-lemma compl_eq_comm : xᶜ = y ↔ yᶜ = x :=
+lemma compl_eq_iff_compl_eq : xᶜ = y ↔ yᶜ = x :=
 by {rw [eq_comm], exact has_precompl.compl_involutive'.eq_iff.symm}
 
-lemma eq_compl_comm : x = yᶜ ↔ y = xᶜ :=
-by rw [← compl_compl x, compl_eq_comm, compl_compl, compl_compl]
+lemma eq_compl_iff_eq_compl : x = yᶜ ↔ y = xᶜ :=
+by rw [← compl_compl x, compl_eq_iff_compl_eq, compl_compl, compl_compl]
 
 lemma compl_le_compl (hxy : x ≤ y) : yᶜ ≤ xᶜ := has_precompl.compl_antitone' _ _ hxy
 
@@ -720,21 +721,21 @@ by {rw [←compl_compl x, ←compl_compl y], exact compl_le_compl hx,}
 
 lemma compl_le_compl_iff_le : xᶜ ≤ yᶜ ↔ y ≤ x := ⟨le_of_compl_le, compl_le_compl⟩
 
-lemma le_compl_comm : x ≤ yᶜ ↔ y ≤ xᶜ := by rw [←compl_le_compl_iff_le, compl_compl]
+lemma le_compl_iff_le_compl : x ≤ yᶜ ↔ y ≤ xᶜ := by rw [←compl_le_compl_iff_le, compl_compl]
 
-lemma compl_le_comm : xᶜ ≤ y ↔ yᶜ ≤ x := by rw [←compl_le_compl_iff_le, compl_compl]
+lemma compl_le_iff_compl_le : xᶜ ≤ y ↔ yᶜ ≤ x := by rw [←compl_le_compl_iff_le, compl_compl]
 
-lemma compl_inj {x y : α} (h : xᶜ = yᶜ) : x = y := has_precompl.compl_involutive'.injective h
+lemma compl_inj (h : xᶜ = yᶜ) : x = y := has_precompl.compl_involutive'.injective h
 
 lemma compl_lt_iff : xᶜ < yᶜ ↔ y < x := by simp [lt_iff_le_not_le, compl_le_compl_iff_le]
 
-lemma lt_compl_comm : x < yᶜ ↔ y < xᶜ := by rw [←compl_lt_iff, compl_compl]
+lemma lt_compl_iff_lt_compl : x < yᶜ ↔ y < xᶜ := by rw [←compl_lt_iff, compl_compl]
 
-lemma compl_lt_comm : xᶜ < y ↔ yᶜ < x := by rw [←compl_lt_iff, compl_compl]
+lemma compl_lt_iff_compl_lt : xᶜ < y ↔ yᶜ < x := by rw [←compl_lt_iff, compl_compl]
 
-lemma le_compl_of_le_compl (h : y ≤ xᶜ) : x ≤ yᶜ := le_compl_comm.mp h
+lemma le_compl_of_le_compl (h : y ≤ xᶜ) : x ≤ yᶜ := le_compl_iff_le_compl.mp h
 
-lemma compl_le_of_compl_le (h : yᶜ ≤ x) : xᶜ ≤ y := compl_le_comm.mp h
+lemma compl_le_of_compl_le (h : yᶜ ≤ x) : xᶜ ≤ y := compl_le_iff_compl_le.mp h
 
 @[simp] lemma compl_involutive : function.involutive (compl : α → α) := compl_compl
 

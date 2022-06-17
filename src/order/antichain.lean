@@ -153,11 +153,11 @@ lemma to_dual [has_le α] (hs : is_antichain (≤) s) : @is_antichain αᵒᵈ (
 
 lemma to_dual_iff [has_le α] : is_antichain (≤) s ↔ @is_antichain αᵒᵈ (≤) s := ⟨to_dual, to_dual⟩
 
-lemma image_compl [boolean_algebra α] (hs : is_antichain (≤) s) :
+lemma image_compl [preorder α] [has_precompl α] (hs : is_antichain (≤) s) :
   is_antichain (≤) (compl '' s) :=
 (hs.image_embedding (order_iso.compl α).to_order_embedding).flip
 
-lemma preimage_compl [boolean_algebra α] (hs : is_antichain (≤) s) :
+lemma preimage_compl [preorder α] [has_precompl α] (hs : is_antichain (≤) s) :
   is_antichain (≤) (compl ⁻¹' s) :=
 λ a ha a' ha' hne hle, hs ha' ha (λ h, hne (compl_inj_iff.mp h.symm)) (compl_le_compl hle)
 

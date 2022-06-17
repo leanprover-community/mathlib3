@@ -913,7 +913,7 @@ ext $ λ x, and_iff_not_or_not
 
 @[simp] theorem compl_union_self (s : set α) : sᶜ ∪ s = univ := by rw [union_comm, union_compl_self]
 
-theorem compl_subset_comm {s t : set α} : sᶜ ⊆ t ↔ tᶜ ⊆ s := @compl_le_comm _ _ _ s t
+theorem compl_subset_comm {s t : set α} : sᶜ ⊆ t ↔ tᶜ ⊆ s := @compl_le_iff_compl_le _ _ _ s t
 
 @[simp] lemma compl_subset_compl {s t : set α} : sᶜ ⊆ tᶜ ↔ t ⊆ s := @compl_le_compl_iff_le _ _ _ s t
 
@@ -1418,7 +1418,7 @@ by { simp only [eq_empty_iff_forall_not_mem],
 lemma preimage_compl_eq_image_compl [preorder α] [has_precompl α] (S : set α) :
   compl ⁻¹' S = compl '' S :=
 set.ext (λ x, ⟨λ h, ⟨xᶜ,h, compl_compl x⟩,
-  λ h, exists.elim h (λ y hy, (compl_eq_comm.mp hy.2).symm.subst hy.1)⟩)
+  λ h, exists.elim h (λ y hy, (compl_eq_iff_compl_eq.mp hy.2).symm.subst hy.1)⟩)
 
 theorem mem_compl_image [preorder α] [has_precompl α] (t : α) (S : set α) :
   t ∈ compl '' S ↔ tᶜ ∈ S :=

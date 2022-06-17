@@ -544,14 +544,13 @@ end
 
 @[simp] lemma compl_inf [has_precompl α] (x y : α) : (x ⊓ y)ᶜ = xᶜ ⊔ yᶜ :=
 begin
-  refine le_antisymm _
-    (sup_le (by simp [compl_le_compl_iff_le]) (by simp [compl_le_compl_iff_le])),
-  rw [compl_le_comm, le_inf_iff, compl_le_comm, @compl_le_comm _ _ _ _ y],
+  refine le_antisymm _ (sup_le (by simp [compl_le_compl_iff_le]) (by simp [compl_le_compl_iff_le])),
+  rw [compl_le_iff_compl_le, le_inf_iff, compl_le_iff_compl_le, @compl_le_iff_compl_le _ _ _ _ y],
   exact ⟨le_sup_left, le_sup_right⟩,
 end
 
 @[simp] lemma compl_sup [has_precompl α] (x y : α) : (x ⊔ y)ᶜ = xᶜ ⊓ yᶜ :=
-by rw [compl_eq_comm, compl_inf, compl_compl, compl_compl]
+by rw [compl_eq_iff_compl_eq, compl_inf, compl_compl, compl_compl]
 
 end lattice
 

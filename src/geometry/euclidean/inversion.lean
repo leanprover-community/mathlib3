@@ -66,9 +66,9 @@ formula accidentally works for `x = c`. -/
 lemma dist_center_inversion (c x : P) (R : ℝ) : dist c (inversion c R x) = R ^ 2 / dist c x :=
 by rw [dist_comm c, dist_comm c, dist_inversion_center]
 
-lemma inversion_involutive (c : P) {R : ℝ} (hR : R ≠ 0) : involutive (inversion c R) :=
+@[simp] lemma inversion_inversion (c : P) {R : ℝ} (hR : R ≠ 0) (x : P) :
+  inversion c R (inversion c R x) = x :=
 begin
-  intro x,
   rcases eq_or_ne x c with rfl|hne,
   { rw [inversion_self, inversion_self] },
   { rw [inversion, dist_inversion_center, inversion_vsub_center, smul_smul, ← mul_pow,
@@ -77,9 +77,8 @@ begin
     exact pow_ne_zero _ hR }
 end
 
-@[simp] lemma inversion_inversion (c : P) {R : ℝ} (hR : R ≠ 0) (x : P) :
-  inversion c R (inversion c R x) = x :=
-inversion_involutive c hR x
+lemma inversion_involutive (c : P) {R : ℝ} (hR : R ≠ 0) : involutive (inversion c R) :=
+inversion_inversion c hR
 
 lemma inversion_surjective (c : P) {R : ℝ} (hR : R ≠ 0) : surjective (inversion c R) :=
 (inversion_involutive c hR).surjective

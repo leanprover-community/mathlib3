@@ -5,8 +5,6 @@ Authors: Rémy Degenne
 -/
 import algebra.big_operators.intervals
 import measure_theory.measure.measure_space
-import measure_theory.pi_system
-import algebra.big_operators.intervals
 
 /-!
 # Independence of sets of sets and measure spaces (σ-algebras)

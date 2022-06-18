@@ -521,7 +521,7 @@ lemma dom_dom_congr_perm [fintype ι] (σ : equiv.perm ι) :
   g.dom_dom_congr σ = σ.sign • g :=
 alternating_map.ext $ λ v, g.map_perm v σ
 
-@[norm_cast] lemma coe_dom_dom_congr [fintype ι] (σ : ι ≃ ι') :
+@[norm_cast] lemma coe_dom_dom_congr (σ : ι ≃ ι') :
   ↑(f.dom_dom_congr σ) = (f : multilinear_map R (λ _ : ι, M) N).dom_dom_congr σ :=
 multilinear_map.ext $ λ v, rfl
 

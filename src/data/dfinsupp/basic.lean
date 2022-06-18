@@ -1302,6 +1302,26 @@ by { rcases f, refl }
   f.extend_with a (some i) = f i :=
 by { rcases f, refl }
 
+@[simp] lemma extend_with_single_zero [decidable_eq ι] [Π i, has_zero (α i)]
+  (i : ι) (x : α (some i)) :
+  (single i x).extend_with 0 = single (some i) x :=
+begin
+  ext (_ | j),
+  { rw [extend_with_none, single_eq_of_ne (option.some_ne_none _)] },
+  { rw extend_with_some,
+    obtain rfl | hij := decidable.eq_or_ne i j,
+    { rw [single_eq_same, single_eq_same] },
+    { rw [single_eq_of_ne hij, single_eq_of_ne ((option.some_injective _).ne hij)] }, },
+end
+
+@[simp] lemma extend_with_zero [decidable_eq ι] [Π i, has_zero (α i)] (x : α none) :
+  (0 : Π₀ i, α (some i)).extend_with x = single none x :=
+begin
+  ext (_ | j),
+  { rw [extend_with_none, single_eq_same] },
+  { rw [extend_with_some, single_eq_of_ne (option.some_ne_none _).symm, zero_apply] },
+end
+
 include dec
 /-- Bijection obtained by separating the term of index `none` of a dfinsupp over `option ι`.
 

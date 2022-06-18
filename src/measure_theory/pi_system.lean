@@ -295,20 +295,17 @@ begin
   { rw [ht1_eq, ht2_eq],
     simp_rw [← set.inf_eq_inter, g],
     ext1 x,
-    simp,
-    split,
-    { intros h i hi_mem_union,
-      split_ifs; simp [h, h_1, h_2], },
-    { intros h,
-      split,
-      { intros i hi1,
-        specialize h i (or.inl hi1),
-        rw if_pos hi1 at h,
-        exact h.1, },
-      { intros i hi2,
-        specialize h i (or.inr hi2),
-        rw if_pos hi2 at h,
-        exact h.2, }, }, },
+    simp only [inf_eq_inter, mem_inter_eq, mem_Inter, finset.mem_union],
+    refine ⟨λ h i hi_mem_union, _, λ h, ⟨λ i hi1, _, λ i hi2, _⟩⟩,
+    { split_ifs,
+      exacts [⟨h.1 i h_1, h.2 i h_2⟩, ⟨h.1 i h_1, set.mem_univ _⟩,
+        ⟨set.mem_univ _, h.2 i h_2⟩, ⟨set.mem_univ _, set.mem_univ _⟩], },
+    { specialize h i (or.inl hi1),
+      rw if_pos hi1 at h,
+      exact h.1, },
+    { specialize h i (or.inr hi2),
+      rw if_pos hi2 at h,
+      exact h.2, }, },
   refine ⟨λ n hn, _, h_inter_eq⟩,
   simp_rw g,
   split_ifs with hn1 hn2,
@@ -318,9 +315,8 @@ begin
       from (set.not_nonempty_iff_eq_empty.mpr h_empty) h_nonempty,
     refine le_antisymm (set.Inter_subset_of_subset n _) (set.empty_subset _),
     refine set.Inter_subset_of_subset hn _,
-    suffices h_gn_eq : g n = f1 n ∩ f2 n, by rw [h_gn_eq, h],
-    simp_rw g,
-    simp only [if_true, hn1, hn2], },
+    simp_rw [g, if_pos hn1, if_pos hn2],
+    exact h.subset, },
   { simp [hf1m n hn1], },
   { simp [hf2m n h], },
   { exact absurd hn (by simp [hn1, h]), },
@@ -331,9 +327,8 @@ lemma generate_from_pi_Union_Inter_le {α ι} {m : measurable_space α}
   (hpis : ∀ n, s n = generate_from (π n)) :
   generate_from (pi_Union_Inter π S) ≤ m :=
 begin
-  refine generate_from_le (λ t ht, _),
-  rcases ht with ⟨ht_p, ht_p_mem, ft, hft_mem_pi, ht_eq⟩,
-  rw ht_eq,
+  refine generate_from_le _,
+  rintros t ⟨ht_p, ht_p_mem, ft, hft_mem_pi, rfl⟩,
   refine finset.measurable_set_bInter _ (λ x hx_mem, (h x) _ _),
   rw hpis x,
   exact measurable_set_generate_from (hft_mem_pi x hx_mem),
@@ -343,13 +338,11 @@ lemma subset_pi_Union_Inter {α ι} {π : ι → set (set α)} {S : set (finset 
   (h_univ : ∀ i, set.univ ∈ (π i)) {i : ι} {s : finset ι} (hsS : s ∈ S) (his : i ∈ s) :
   π i ⊆ pi_Union_Inter π S :=
 begin
-  refine λ t ht_pii, ⟨s, hsS, (λ j, ite (j = i) t set.univ), _⟩,
-  split,
-  { intros m h_pm,
-    split_ifs,
+  refine λ t ht_pii, ⟨s, hsS, (λ j, ite (j = i) t set.univ), ⟨λ m h_pm, _, _⟩⟩,
+  { split_ifs,
     { rwa h, },
     { exact h_univ m, }, },
-  { ext,
+  { ext1 x,
     simp_rw set.mem_Inter,
     split; intro hx,
     { intros j h_p_j,
@@ -361,9 +354,9 @@ end
 
 lemma mem_pi_Union_Inter_of_measurable_set {α ι} (m : ι → measurable_space α)
   {S : set (finset ι)} {i : ι} {t : finset ι} (htS : t ∈ S) (hit : i ∈ t) (s : set α)
-  (hs : @measurable_set _ (m i) s) :
-  s ∈ pi_Union_Inter (λ n, (m n).measurable_set') S :=
-subset_pi_Union_Inter (λ i, @measurable_set.univ α (m i)) htS hit hs
+  (hs : measurable_set[m i] s) :
+  s ∈ pi_Union_Inter (λ n, {s | measurable_set[m n] s}) S :=
+subset_pi_Union_Inter (λ i, measurable_set.univ) htS hit hs
 
 lemma le_generate_from_pi_Union_Inter {α ι} {m : measurable_space α}
   {π : ι → set (set α)} (S : set (finset ι)) (h_univ : ∀ n, set.univ ∈ (π n)) {x : ι}
@@ -372,25 +365,20 @@ lemma le_generate_from_pi_Union_Inter {α ι} {m : measurable_space α}
 by { rw hpix, exact generate_from_mono (subset_pi_Union_Inter h_univ htS hxt), }
 
 lemma measurable_set_supr_of_mem_pi_Union_Inter {α ι} (m : ι → measurable_space α)
-  (S : set (finset ι)) (t : set α) (ht : t ∈ pi_Union_Inter (λ n, (m n).measurable_set') S) :
-  @measurable_set _ (⨆ i (hi : ∃ s ∈ S, i ∈ s), m i) t :=
+  (S : set (finset ι)) (t : set α) (ht : t ∈ pi_Union_Inter (λ n, {s | measurable_set[m n] s}) S) :
+  measurable_set[⨆ i (hi : ∃ s ∈ S, i ∈ s), m i] t :=
 begin
-  rw [pi_Union_Inter, set.mem_set_of_eq] at ht,
-  rcases ht with ⟨pt, hpt, ft, ht_m, ht_eq⟩,
-  have h_i : ∀ i, i ∈ pt → (⨆ i (hi : ∃ s ∈ S, i ∈ s), m i).measurable_set' (ft i),
-  { intros i hi,
-    have h_le : m i ≤ (⨆ i (hi : ∃ s ∈ S, i ∈ s), m i),
-    { have hi' : ∃ s ∈ S, i ∈ s, from ⟨pt, hpt, hi⟩,
-      exact le_supr₂ i hi', },
-    exact h_le (ft i) (ht_m i hi), },
-  subst ht_eq,
-  exact @finset.measurable_set_bInter _ _
-    ((⨆ i (hi : ∃ s ∈ S, i ∈ s), m i)) _ pt (λ i hipt, h_i i hipt),
+  rcases ht with ⟨pt, hpt, ft, ht_m, rfl⟩,
+  refine pt.measurable_set_bInter (λ i hi, _),
+  suffices h_le : m i ≤ (⨆ i (hi : ∃ s ∈ S, i ∈ s), m i), from h_le (ft i) (ht_m i hi),
+  have hi' : ∃ s ∈ S, i ∈ s, from ⟨pt, hpt, hi⟩,
+  exact le_supr₂ i hi',
 end
 
 lemma generate_from_pi_Union_Inter_measurable_space {α ι} (m : ι → measurable_space α)
   (S : set (finset ι)) :
-  generate_from (pi_Union_Inter (λ n, (m n).measurable_set') S) = ⨆ i (hi : ∃ p ∈ S, i ∈ p), m i :=
+  generate_from (pi_Union_Inter (λ n, {s | measurable_set[m n] s}) S)
+    = ⨆ i (hi : ∃ p ∈ S, i ∈ p), m i :=
 begin
   refine le_antisymm _ _,
   { rw ← @generate_from_measurable_set α (⨆ i (hi : ∃ p ∈ S, i ∈ p), m i),

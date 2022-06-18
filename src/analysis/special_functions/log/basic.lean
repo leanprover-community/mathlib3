@@ -75,6 +75,12 @@ end
 @[simp] lemma log_neg_eq_log (x : ℝ) : log (-x) = log x :=
 by rw [← log_abs x, ← log_abs (-x), abs_neg]
 
+lemma sinh_log {x : ℝ} (hx : 0 < x) : sinh (log x) = (x - x⁻¹) / 2 :=
+by rw [sinh_eq, exp_neg, exp_log hx]
+
+lemma cosh_log {x : ℝ} (hx : 0 < x) : cosh (log x) = (x + x⁻¹) / 2 :=
+by rw [cosh_eq, exp_neg, exp_log hx]
+
 lemma surj_on_log' : surj_on log (Iio 0) univ :=
 λ x _, ⟨-exp x, neg_lt_zero.2 $ exp_pos x, by rw [log_neg_eq_log, log_exp]⟩
 

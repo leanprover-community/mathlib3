@@ -50,6 +50,9 @@ end
 @[simp] lemma Inf_empty : Inf ∅ = 0 :=
 by { rw Inf_eq_zero, right, refl }
 
+@[simp] lemma infi_of_empty {ι : Sort*} [is_empty ι] (f : ι → ℕ) : infi f = 0 :=
+by rw [infi_of_empty', Inf_empty]
+
 lemma Inf_mem {s : set ℕ} (h : s.nonempty) : Inf s ∈ s :=
 by { rw [nat.Inf_def h], exact nat.find_spec h }
 

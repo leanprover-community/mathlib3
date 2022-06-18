@@ -3,7 +3,7 @@ Copyright (c) 2019 Zhouhang Zhou. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou, Sébastien Gouëzel, Frédéric Dupuis
 -/
-import algebra.direct_sum.module
+import algebra.direct_sum.decomposition
 import analysis.complex.basic
 import analysis.convex.uniform
 import analysis.normed_space.bounded_linear_maps
@@ -1988,12 +1988,12 @@ begin
 end
 
 include dec_ι
-lemma direct_sum.is_internal.collected_basis_orthonormal {V : ι → submodule 𝕜 E}
+lemma direct_sum.collected_basis_orthonormal (V : ι → submodule 𝕜 E)
   (hV : @orthogonal_family 𝕜 _ _ _ _ (λ i, V i) _ (λ i, (V i).subtypeₗᵢ))
-  (hV_sum : direct_sum.is_internal (λ i, V i))
+  [direct_sum.decomposition V]
   {α : ι → Type*}
   {v_family : Π i, basis (α i) 𝕜 (V i)} (hv_family : ∀ i, orthonormal 𝕜 (v_family i)) :
-  orthonormal 𝕜 (hV_sum.collected_basis v_family) :=
+  orthonormal 𝕜 (direct_sum.collected_basis V v_family) :=
 by simpa using hV.orthonormal_sigma_orthonormal hv_family
 
 end orthogonal_family

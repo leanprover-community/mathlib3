@@ -18,11 +18,10 @@ basic facts about the embeddings into an algebraic closed field.
  - `ring_of_integers` defines the ring of integers (or number ring) corresponding to a number field
     as the integral closure of ℤ in the number field.
 
-## Main Results
- - `lift`: for `L/K` an extension of number fields, any embedding of a number field `K`
-    can be lifted to an embedding of `L`.
- - `eq_roots`: let `x ∈ K` with `K` number field, then the images of `x` by the embeddings
-    of `K` are exactly the roots of the minimal polynomial of `x` over `ℚ`.
+## Main Result
+ - `eq_roots`: let `x ∈ K` with `K` number field and let `A` be an algebraic closed field of
+    char. 0, then the images of `x` by the embeddings of `K` in `A` are exactly the roots in
+    `A` of the minimal polynomial of `x` over `ℚ`.
 
 ## Implementation notes
 The definitions that involve a field of fractions choose a canonical field of fractions,
@@ -195,11 +194,10 @@ the roots of the minimal polynomial of `x` over `ℚ` -/
 lemma eq_roots : range (λ φ : K →+* A, φ x) = (minpoly ℚ x).root_set A :=
 begin
   have hx : is_integral ℚ x, { exact is_separable.is_integral ℚ x },
-  ext a,
-  split,
+  ext a, split,
   { rintro ⟨φ, hφ⟩,
     rw [mem_root_set_iff, ←hφ],
-    let ψ := ring_hom.to_rat_alg_hom φ,
+    let ψ := ring_hom.equiv_rat_alg_hom φ,
     show (aeval (ψ x)) (minpoly ℚ x) = 0,
     { rw aeval_alg_hom_apply ψ x (minpoly ℚ x),
       simp only [minpoly.aeval, map_zero] },
@@ -211,13 +209,8 @@ begin
     have hA : (aeval a) (minpoly ℚ x) = 0,
     { rw [aeval_def, ←eval_map, ←mem_root_set_iff'],
       exact ha,
-      suffices : (minpoly ℚ x) ≠ 0,
-      { contrapose! this,
-        simp only [polynomial.ext_iff, coeff_map, coeff_zero] at this ⊢,
-        suffices inj : function.injective (algebra_map ℚ A),
-        { exact λ n : ℕ, inj (by rw [(this n), (algebra_map ℚ A).map_zero]),},
-        exact (algebra_map ℚ A).injective, },
-      exact minpoly.ne_zero hx, },
+      refine polynomial.monic.ne_zero _,
+      exact polynomial.monic.map (algebra_map ℚ A) (minpoly.monic hx), },
     let ψ : Qx →+* A := adjoin_root.lift (algebra_map ℚ A) a hA,
     letI : algebra Qx A, { exact ring_hom.to_algebra ψ },
     letI : algebra Qx K,

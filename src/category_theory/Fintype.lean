@@ -7,6 +7,7 @@ Authors: Bhavik Mehta, Adam Topaz
 import category_theory.concrete_category.basic
 import category_theory.full_subcategory
 import category_theory.skeletal
+import category_theory.elementwise
 import data.fin.basic
 import data.fintype.basic
 
@@ -43,11 +44,26 @@ instance : category Fintype := induced_category.category bundled.α
 @[derive [full, faithful], simps]
 def incl : Fintype ⥤ Type* := induced_functor _
 
-instance : concrete_category Fintype := ⟨incl⟩
+instance concrete_category_Fintype : concrete_category Fintype := ⟨incl⟩
 
 @[simp] lemma id_apply (X : Fintype) (x : X) : (𝟙 X : X → X) x = x := rfl
 @[simp] lemma comp_apply {X Y Z : Fintype} (f : X ⟶ Y) (g : Y ⟶ Z) (x : X) :
   (f ≫ g) x = g (f x) := rfl
+
+/-- Equivalences between finite types are the same as isomorphisms in `Fintype`. -/
+-- See `equiv_equiv_iso` in the root namespace for the analogue in `Type`.
+@[simps]
+def equiv_equiv_iso {A B : Fintype} : (A ≃ B) ≃ (A ≅ B) :=
+{ to_fun := λ e,
+  { hom := e,
+    inv := e.symm, },
+  inv_fun := λ i,
+  { to_fun := i.hom,
+    inv_fun := i.inv,
+    left_inv := iso.hom_inv_id_apply i,
+    right_inv := iso.inv_hom_id_apply i, },
+  left_inv := by tidy,
+  right_inv := by tidy, }
 
 universe u
 /--

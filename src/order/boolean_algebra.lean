@@ -647,6 +647,25 @@ is_compl_top_bot.compl_eq
 @[simp] theorem compl_bot : ⊥ᶜ = (⊤:α) :=
 is_compl_bot_top.compl_eq
 
+@[simp] theorem compl_compl (x : α) : xᶜᶜ = x :=
+is_compl_compl.symm.compl_eq
+
+theorem compl_comp_compl : compl ∘ compl = @id α := funext compl_compl
+
+@[simp] theorem compl_involutive : function.involutive (compl : α → α) := compl_compl
+
+theorem compl_bijective : function.bijective (compl : α → α) :=
+compl_involutive.bijective
+
+theorem compl_surjective : function.surjective (compl : α → α) :=
+compl_involutive.surjective
+
+theorem compl_injective : function.injective (compl : α → α) :=
+compl_involutive.injective
+
+@[simp] theorem compl_inj_iff : xᶜ = yᶜ ↔ x = y :=
+compl_injective.eq_iff
+
 theorem is_compl.compl_eq_iff (h : is_compl x y) : zᶜ = y ↔ z = x :=
 h.compl_eq ▸ compl_inj_iff
 

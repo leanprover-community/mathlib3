@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
 import category_theory.adjunction.fully_faithful
-import category_theory.reflects_isomorphisms
+import category_theory.functor.reflects_isomorphisms
 import category_theory.epi_mono
 
 /-!

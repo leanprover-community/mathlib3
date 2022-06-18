@@ -65,7 +65,7 @@ end
 lemma germ_injective_of_is_integral [is_integral X] {U : opens X.carrier} (x : U) :
   function.injective (X.presheaf.germ x) :=
 begin
-  rw ring_hom.injective_iff,
+  rw injective_iff_map_eq_zero,
   intros y hy,
   rw ← (X.presheaf.germ x).map_zero at hy,
   obtain ⟨W, hW, iU, iV, e⟩ := X.presheaf.germ_eq _ x.prop x.prop _ _ hy,

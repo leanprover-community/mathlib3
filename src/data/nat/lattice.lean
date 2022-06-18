@@ -152,10 +152,10 @@ lemma supr_lt_succ' (u : ℕ → α) (n : ℕ) : (⨆ k < n + 1, u k) = u 0 ⊔ 
 by { rw ← sup_supr_nat_succ, simp }
 
 lemma infi_lt_succ (u : ℕ → α) (n : ℕ) : (⨅ k < n + 1, u k) = (⨅ k < n, u k) ⊓ u n :=
-@supr_lt_succ (order_dual α) _ _ _
+@supr_lt_succ αᵒᵈ _ _ _
 
 lemma infi_lt_succ' (u : ℕ → α) (n : ℕ) : (⨅ k < n + 1, u k) = u 0 ⊓ (⨅ k < n, u (k + 1)) :=
-@supr_lt_succ' (order_dual α) _ _ _
+@supr_lt_succ' αᵒᵈ _ _ _
 
 end
 

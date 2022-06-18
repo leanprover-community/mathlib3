@@ -5,7 +5,8 @@ Authors: Anne Baanen
 -/
 
 import ring_theory.algebraic
-import ring_theory.localization
+import ring_theory.localization.at_prime
+import ring_theory.localization.integral
 
 /-!
 # Ideals over/under ideals
@@ -111,7 +112,7 @@ lemma exists_nonzero_mem_of_ne_bot {P : ideal R[X]}
 begin
   obtain ⟨m, hm⟩ := submodule.nonzero_mem_of_bot_lt (bot_lt_iff_ne_bot.mpr Pb),
   refine ⟨m, submodule.coe_mem m, λ pp0, hm (submodule.coe_eq_zero.mp _)⟩,
-  refine (ring_hom.injective_iff (polynomial.map_ring_hom (quotient.mk (P.comap C)))).mp _ _ pp0,
+  refine (injective_iff_map_eq_zero (polynomial.map_ring_hom (quotient.mk (P.comap C)))).mp _ _ pp0,
   refine map_injective _ ((quotient.mk (P.comap C)).injective_iff_ker_eq_bot.mpr _),
   rw [mk_ker],
   exact (submodule.eq_bot_iff _).mpr (λ x hx, hP x (mem_comap.mp hx)),
@@ -136,7 +137,7 @@ begin
     quotient.mk_algebra_map, is_scalar_tower.algebra_map_apply _ (R ⧸ p),
     quotient.algebra_map_eq],
   { intro hx,
-    exact (algebra_map (R ⧸ p) (S ⧸ P)).injective_iff.mp h _ hx },
+    exact (injective_iff_map_eq_zero (algebra_map (R ⧸ p) (S ⧸ P))).mp h _ hx },
   { intro hx,
     rw [hx, ring_hom.map_zero] },
 end
@@ -164,6 +165,12 @@ instance quotient.tower_quotient_map_quotient [algebra R S] :
 is_scalar_tower.of_algebra_map_eq $ λ x,
 by rw [quotient.algebra_map_eq, quotient.algebra_map_quotient_map_quotient,
        quotient.mk_algebra_map]
+
+instance quotient_map_quotient.is_noetherian [algebra R S] [is_noetherian R S] (I : ideal R) :
+  is_noetherian (R ⧸ I) (S ⧸ ideal.map (algebra_map R S) I) :=
+is_noetherian_of_tower R $
+is_noetherian_of_surjective S (ideal.quotient.mkₐ R _).to_linear_map $
+linear_map.range_eq_top.mpr ideal.quotient.mk_surjective
 
 end comm_ring
 

@@ -123,16 +123,14 @@ variables [module.finite K L]  [is_alg_closed E]
 /-- Over a field, if `b` is a basis, then `algebra.discr K b ≠ 0`. -/
 lemma discr_not_zero_of_basis [is_separable K L] (b : basis ι K L) : discr K b ≠ 0 :=
 begin
-  by_cases h : nonempty ι,
-  { classical,
-    have := span_eq_top_of_linear_independent_of_card_eq_finrank b.linear_independent
+  casesI is_empty_or_nonempty ι,
+  { simp [discr] },
+  { have := span_eq_top_of_linear_independent_of_card_eq_finrank b.linear_independent
       (finrank_eq_card_basis b).symm,
     rw [discr_def, trace_matrix_def],
     simp_rw [← basis.mk_apply b.linear_independent this],
     rw [← trace_matrix_def, trace_matrix_of_basis, ← bilin_form.nondegenerate_iff_det_ne_zero],
-    exact trace_form_nondegenerate _ _  },
-  letI := not_nonempty_iff.1 h,
-  simp [discr],
+    exact trace_form_nondegenerate _ _ },
 end
 
 /-- Over a field, if `b` is a basis, then `algebra.discr K b` is a unit. -/
@@ -163,7 +161,7 @@ begin
 end
 
 /-- A variation of `of_power_basis_eq_prod`. -/
-lemma of_power_basis_eq_prod' [is_separable K L] (e : fin pb.dim ≃ (L →ₐ[K] E)) :
+lemma discr_power_basis_eq_prod' [is_separable K L] (e : fin pb.dim ≃ (L →ₐ[K] E)) :
   algebra_map K E (discr K pb.basis) =
   ∏ i : fin pb.dim, ∏ j in finset.univ.filter (λ j, i < j),
   -((e j pb.gen- (e i pb.gen)) * (e i pb.gen- (e j pb.gen))) :=
@@ -176,12 +174,12 @@ end
 local notation `n` := finrank K L
 
 /-- A variation of `of_power_basis_eq_prod`. -/
-lemma of_power_basis_eq_prod'' [is_separable K L] (e : fin pb.dim ≃ (L →ₐ[K] E)) :
+lemma discr_power_basis_eq_prod'' [is_separable K L] (e : fin pb.dim ≃ (L →ₐ[K] E)) :
   algebra_map K E (discr K pb.basis) =
   (-1) ^ (n * (n - 1) / 2) * ∏ i : fin pb.dim, ∏ j in finset.univ.filter (λ j, i < j),
   ((e j pb.gen- (e i pb.gen)) * (e i pb.gen- (e j pb.gen))) :=
 begin
-  rw [of_power_basis_eq_prod' _ _ _ e],
+  rw [discr_power_basis_eq_prod' _ _ _ e],
   simp_rw [λ i j, neg_eq_neg_one_mul ((e j pb.gen- (e i pb.gen)) * (e i pb.gen- (e j pb.gen))),
     prod_mul_distrib],
   congr,
@@ -203,13 +201,13 @@ begin
   have hle : 1 ≤ pb.dim,
   { rw [← hn, nat.one_le_iff_ne_zero, ← zero_lt_iff, finite_dimensional.finrank_pos_iff],
     apply_instance },
-  rw [hn, nat.cast_dvd h₂ hne, nat.cast_mul, nat.cast_sub hle],
+  rw [hn, nat.cast_div h₂ hne, nat.cast_mul, nat.cast_sub hle],
   field_simp,
   ring,
 end
 
 /-- Formula for the discriminant of a power basis using the norm of the field extension. -/
-lemma of_power_basis_eq_norm [is_separable K L] : discr K pb.basis =
+lemma discr_power_basis_eq_norm [is_separable K L] : discr K pb.basis =
   (-1) ^ (n * (n - 1) / 2) * (norm K (aeval pb.gen (minpoly K pb.gen).derivative)) :=
 begin
   let E := algebraic_closure L,
@@ -228,13 +226,13 @@ begin
 
   apply (algebra_map K E).injective,
   rw [ring_hom.map_mul, ring_hom.map_pow, ring_hom.map_neg, ring_hom.map_one,
-    of_power_basis_eq_prod'' _ _ _ e],
+    discr_power_basis_eq_prod'' _ _ _ e],
   congr,
   rw [norm_eq_prod_embeddings, fin.prod_filter_lt_mul_neg_eq_prod_off_diag],
   conv_rhs { congr, skip, funext,
     rw [← aeval_alg_hom_apply, aeval_root_derivative_of_splits (minpoly.monic
       (is_separable.is_integral K pb.gen)) (is_alg_closed.splits_codomain _) (hroots σ),
-      ← finset.prod_mk _ (multiset.nodup_erase_of_nodup _ hnodup)] },
+      ← finset.prod_mk _ (hnodup.erase _)] },
   rw [prod_sigma', prod_sigma'],
   refine prod_bij (λ i hi, ⟨e i.2, e i.1 pb.gen⟩) (λ i hi, _) (λ i hi, by simp at hi)
     (λ i j hi hj hij, _) (λ σ hσ, _),
@@ -258,7 +256,7 @@ begin
     { replace h := alg_hom.congr_fun (equiv.injective _ h) pb.gen,
       rw [power_basis.lift_gen] at h,
       rw [← h] at hσ,
-      refine multiset.mem_erase_of_nodup hnodup hσ, },
+      exact hnodup.not_mem_erase hσ },
     all_goals { simp } }
 end
 

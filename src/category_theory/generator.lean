@@ -79,7 +79,7 @@ def is_codetecting (𝒢 : set C) : Prop :=
 
 section dual
 
-lemma is_separating_op_iff {𝒢 : set C} : is_separating 𝒢.op ↔ is_coseparating 𝒢 :=
+lemma is_separating_op_iff (𝒢 : set C) : is_separating 𝒢.op ↔ is_coseparating 𝒢 :=
 begin
   refine ⟨λ h𝒢 X Y f g hfg, _, λ h𝒢 X Y f g hfg, _⟩,
   { refine quiver.hom.op_inj (h𝒢 _ _ (λ G hG h, quiver.hom.unop_inj _)),
@@ -103,7 +103,7 @@ by rw [← is_separating_op_iff, set.unop_op]
 lemma is_separating_unop_iff (𝒢 : set Cᵒᵖ) : is_separating 𝒢.unop ↔ is_coseparating 𝒢 :=
 by rw [← is_coseparating_op_iff, set.unop_op]
 
-lemma is_detecting_op_iff {𝒢 : set C} : is_detecting 𝒢.op ↔ is_codetecting 𝒢 :=
+lemma is_detecting_op_iff (𝒢 : set C) : is_detecting 𝒢.op ↔ is_codetecting 𝒢 :=
 begin
   refine ⟨λ h𝒢 X Y f hf, _, λ h𝒢 X Y f hf, _⟩,
   { refine (is_iso_op_iff _).1 (h𝒢 _ (λ G hG h, _)),
@@ -116,7 +116,7 @@ begin
     exact quiver.hom.unop_inj (by simpa only using hy) }
 end
 
-lemma is_codetecting_op_iff {𝒢 : set C} : is_codetecting 𝒢.op ↔ is_detecting 𝒢 :=
+lemma is_codetecting_op_iff (𝒢 : set C) : is_codetecting 𝒢.op ↔ is_detecting 𝒢 :=
 begin
   refine ⟨λ h𝒢 X Y f hf, _, λ h𝒢 X Y f hf, _⟩,
   { refine (is_iso_op_iff _).1 (h𝒢 _ (λ G hG h, _)),
@@ -129,7 +129,7 @@ begin
     exact quiver.hom.unop_inj (by simpa only using hy) }
 end
 
-lemma is_detecting_unop_iff {𝒢 : set Cᵒᵖ} : is_detecting 𝒢.unop ↔ is_codetecting 𝒢 :=
+lemma is_detecting_unop_iff (𝒢 : set Cᵒᵖ) : is_detecting 𝒢.unop ↔ is_codetecting 𝒢 :=
 by rw [← is_codetecting_op_iff, set.unop_op]
 
 lemma is_codetecting_unop_iff {𝒢 : set Cᵒᵖ} : is_codetecting 𝒢.unop ↔ is_detecting 𝒢 :=
@@ -173,7 +173,7 @@ by simpa only [← is_detecting_op_iff, ← is_separating_op_iff] using is_separ
 
 end
 
-lemma is_detecting_iff_is_separating [has_equalizers C] [balanced C] {𝒢 : set C} :
+lemma is_detecting_iff_is_separating [has_equalizers C] [balanced C] (𝒢 : set C) :
   is_detecting 𝒢 ↔ is_separating 𝒢 :=
 ⟨is_detecting.is_separating, is_separating.is_detecting⟩
 
@@ -293,58 +293,58 @@ is_separating.is_detecting
 lemma is_cospearator.is_codetector [balanced C] {G : C} : is_coseparator G → is_codetector G :=
 is_coseparating.is_codetecting
 
-lemma is_separator_def {G : C} :
+lemma is_separator_def (G : C) :
   is_separator G ↔ ∀ ⦃X Y : C⦄ (f g : X ⟶ Y), (∀ h : G ⟶ X, h ≫ f = h ≫ g) → f = g :=
 ⟨λ hG X Y f g hfg, hG _ _ $ λ H hH h, by { obtain rfl := set.mem_singleton_iff.1 hH, exact hfg h },
  λ hG X Y f g hfg, hG _ _ $ λ h, hfg _ (set.mem_singleton _) _⟩
 
 lemma is_separator.def {G : C} :
   is_separator G → ∀ ⦃X Y : C⦄ (f g : X ⟶ Y), (∀ h : G ⟶ X, h ≫ f = h ≫ g) → f = g :=
-is_separator_def.1
+(is_separator_def _).1
 
-lemma is_coseparator_def {G : C} :
+lemma is_coseparator_def (G : C) :
   is_coseparator G ↔ ∀ ⦃X Y : C⦄ (f g : X ⟶ Y), (∀ h : Y ⟶ G, f ≫ h = g ≫ h) → f = g :=
 ⟨λ hG X Y f g hfg, hG _ _ $ λ H hH h, by { obtain rfl := set.mem_singleton_iff.1 hH, exact hfg h },
  λ hG X Y f g hfg, hG _ _ $ λ h, hfg _ (set.mem_singleton _) _⟩
 
 lemma is_coseparator.def {G : C} :
   is_coseparator G → ∀ ⦃X Y : C⦄ (f g : X ⟶ Y), (∀ h : Y ⟶ G, f ≫ h = g ≫ h) → f = g :=
-is_coseparator_def.1
+(is_coseparator_def _).1
 
-lemma is_detector_def {G : C} :
+lemma is_detector_def (G : C) :
   is_detector G ↔ ∀ ⦃X Y : C⦄ (f : X ⟶ Y), (∀ h : G ⟶ Y, ∃! h', h' ≫ f = h) → is_iso f :=
 ⟨λ hG X Y f hf, hG _ $ λ H hH h, by { obtain rfl := set.mem_singleton_iff.1 hH, exact hf h },
  λ hG X Y f hf, hG _ $ λ h, hf _ (set.mem_singleton _) _⟩
 
 lemma is_detector.def {G : C} :
   is_detector G → ∀ ⦃X Y : C⦄ (f : X ⟶ Y), (∀ h : G ⟶ Y, ∃! h', h' ≫ f = h) → is_iso f :=
-is_detector_def.1
+(is_detector_def _).1
 
-lemma is_codetector_def {G : C} :
+lemma is_codetector_def (G : C) :
   is_codetector G ↔ ∀ ⦃X Y : C⦄ (f : X ⟶ Y), (∀ h : X ⟶ G, ∃! h', f ≫ h' = h) → is_iso f :=
 ⟨λ hG X Y f hf, hG _ $ λ H hH h, by { obtain rfl := set.mem_singleton_iff.1 hH, exact hf h },
  λ hG X Y f hf, hG _ $ λ h, hf _ (set.mem_singleton _) _⟩
 
 lemma is_codetector.def {G : C} :
   is_codetector G → ∀ ⦃X Y : C⦄ (f : X ⟶ Y), (∀ h : X ⟶ G, ∃! h', f ≫ h' = h) → is_iso f :=
-is_codetector_def.1
+(is_codetector_def _).1
 
-lemma is_separator_iff_faithful_coyoneda_obj {G : C} :
+lemma is_separator_iff_faithful_coyoneda_obj (G : C) :
   is_separator G ↔ faithful (coyoneda.obj (op G)) :=
 ⟨λ hG, ⟨λ X Y f g hfg, hG.def _ _ (congr_fun hfg)⟩,
- λ h, is_separator_def.2 $ λ X Y f g hfg,
+ λ h, (is_separator_def _).2 $ λ X Y f g hfg,
   by exactI (coyoneda.obj (op G)).map_injective (funext hfg)⟩
 
-lemma is_coseparator_iff_faithful_yoneda_obj {G : C} :
+lemma is_coseparator_iff_faithful_yoneda_obj (G : C) :
   is_coseparator G ↔ faithful (yoneda.obj G) :=
 ⟨λ hG, ⟨λ X Y f g hfg, quiver.hom.unop_inj (hG.def _ _ (congr_fun hfg))⟩,
- λ h, is_coseparator_def.2 $ λ X Y f g hfg, quiver.hom.op_inj $
+ λ h, (is_coseparator_def _).2 $ λ X Y f g hfg, quiver.hom.op_inj $
   by exactI (yoneda.obj G).map_injective (funext hfg)⟩
 
-lemma is_detector_iff_reflects_isomorphisms_coyoneda_obj {G : C} :
+lemma is_detector_iff_reflects_isomorphisms_coyoneda_obj (G : C) :
   is_detector G ↔ reflects_isomorphisms (coyoneda.obj (op G)) :=
 begin
-  refine ⟨λ hG, ⟨λ X Y f hf, hG.def _ (λ h, _)⟩, λ h, is_detector_def.2 (λ X Y f hf, _)⟩,
+  refine ⟨λ hG, ⟨λ X Y f hf, hG.def _ (λ h, _)⟩, λ h, (is_detector_def _).2 (λ X Y f hf, _)⟩,
   { rw [is_iso_iff_bijective, function.bijective_iff_exists_unique] at hf,
     exact hf h },
   { suffices : is_iso ((coyoneda.obj (op G)).map f),
@@ -352,10 +352,10 @@ begin
     rwa [is_iso_iff_bijective, function.bijective_iff_exists_unique] }
 end
 
-lemma is_codetector_iff_reflects_isomorphisms_yoneda_obj {G : C} :
+lemma is_codetector_iff_reflects_isomorphisms_yoneda_obj (G : C) :
   is_codetector G ↔ reflects_isomorphisms (yoneda.obj G) :=
 begin
-  refine ⟨λ hG, ⟨λ X Y f hf, _ ⟩, λ h, is_codetector_def.2 (λ X Y f hf, _)⟩,
+  refine ⟨λ hG, ⟨λ X Y f hf, _ ⟩, λ h, (is_codetector_def _).2 (λ X Y f hf, _)⟩,
   { refine (is_iso_unop_iff _).1 (hG.def _ _),
     rwa [is_iso_iff_bijective, function.bijective_iff_exists_unique] at hf },
   { rw ← is_iso_op_iff,

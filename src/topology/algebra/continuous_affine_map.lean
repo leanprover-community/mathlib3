@@ -206,12 +206,8 @@ instance : has_neg (P →A[R] W) :=
 lemma neg_apply (f : P →A[R] W) (x : P) : (-f) x = -(f x) := rfl
 
 instance : add_comm_group (P →A[R] W) :=
-{ add := (+),
-  zero := 0,
-  neg := has_neg.neg,
-  sub := has_sub.sub,
-  .. (coe_injective.add_comm_group _ coe_zero coe_add coe_neg coe_sub :
-    add_comm_group (P →A[R] W)) }
+coe_injective.add_comm_group _ coe_zero coe_add coe_neg coe_sub
+  (λ _ _, coe_smul _ _) (λ _ _, coe_smul _ _)
 
 instance [monoid S] [distrib_mul_action S W] [smul_comm_class R S W]
   [has_continuous_const_smul S W] :

@@ -38,13 +38,17 @@ instance : inhabited Groupoid := ⟨bundled.of (single_obj punit)⟩
 
 instance str (C : Groupoid.{v u}) : groupoid.{v u} C.α := C.str
 
+instance : has_coe_to_sort Groupoid Type* := bundled.has_coe_to_sort
+
 /-- Construct a bundled `Groupoid` from the underlying type and the typeclass. -/
 def of (C : Type u) [groupoid.{v} C] : Groupoid.{v u} := bundled.of C
 
+@[simp] lemma coe_of (C : Type u) [groupoid C] : (of C : Type u) = C := rfl
+
 /-- Category structure on `Groupoid` -/
 instance category : large_category.{max v u} Groupoid.{v u} :=
-{ hom := λ C D, C.α ⥤ D.α,
-  id := λ C, 𝟭 C.α,
+{ hom := λ C D, C ⥤ D,
+  id := λ C, 𝟭 C,
   comp := λ C D E F G, F ⋙ G,
   id_comp' := λ C D F, by cases F; refl,
   comp_id' := λ C D F, by cases F; refl,
@@ -58,7 +62,7 @@ def objects : Groupoid.{v u} ⥤ Type u :=
 
 /-- Forgetting functor to `Cat` -/
 def forget_to_Cat : Groupoid.{v u} ⥤ Cat.{v u} :=
-{ obj := λ C, Cat.of C.α,
+{ obj := λ C, Cat.of C,
   map := λ C D, id }
 
 instance forget_to_Cat_full : full forget_to_Cat :=
@@ -70,38 +74,38 @@ instance forget_to_Cat_faithful : faithful forget_to_Cat := { }
 which sometimes helps in applying simp lemmas -/
 lemma hom_to_functor {C D E : Groupoid.{v u}} (f : C ⟶ D) (g : D ⟶ E) : f ≫ g = f ⋙ g := rfl
 
+/-- Converts identity in the category of groupoids to the functor identity -/
+lemma id_to_functor {C : Groupoid.{v u}} : 𝟭 C = 𝟙 C := rfl
+
 section products
 
-/-- The cone for the product of a family of groupoids indexed by J is a limit cone -/
-@[simps]
-def pi_limit_cone {J : Type u} (F : discrete J ⥤ Groupoid.{u u}) :
-  limits.limit_cone F :=
-{ cone :=
-    { X := @of (Π j : J, (F.obj j).α) _,
-      π := { app := λ j : J, category_theory.pi.eval _ j, } },
-  is_limit :=
-  { lift := λ s, functor.pi' s.π.app,
-    fac' := by { intros, simp [hom_to_functor], },
-    uniq' :=
-    begin
-      intros s m w,
-      apply functor.pi_ext,
-      intro j, specialize w j,
-      simpa,
-    end } }
+local attribute [tidy] tactic.discrete_cases
 
-/-- `pi_limit_cone` reinterpreted as a fan -/
-abbreviation pi_limit_fan {J : Type u} (F : J → Groupoid.{u u}) : limits.fan F :=
-(pi_limit_cone (discrete.functor F)).cone
+/-- Construct the product over an indexed family of groupoids, as a fan. -/
+def pi_limit_fan ⦃J : Type u⦄ (F : J → Groupoid.{u u}) : limits.fan F :=
+limits.fan.mk (@of (Π j : J, F j) _) (λ j, category_theory.pi.eval _ j)
+
+/-- The product fan over an indexed family of groupoids, is a limit cone. -/
+def pi_limit_fan_is_limit ⦃J : Type u⦄ (F : J → Groupoid.{u u}) :
+  limits.is_limit (pi_limit_fan F) :=
+limits.mk_fan_limit (pi_limit_fan F)
+(λ s, functor.pi' (λ j, s.proj j))
+(by { intros, dunfold pi_limit_fan, simp [hom_to_functor], })
+begin
+  intros s m w,
+  apply functor.pi_ext,
+  intro j, specialize w j,
+  simpa,
+end
 
 instance has_pi : limits.has_products Groupoid.{u u} :=
-λ J, { has_limit := λ F, { exists_limit := nonempty.intro (pi_limit_cone F) } }
+limits.has_products_of_limit_fans pi_limit_fan pi_limit_fan_is_limit
 
 /-- The product of a family of groupoids is isomorphic
 to the product object in the category of Groupoids -/
-noncomputable def pi_iso_pi (J : Type u) (f : J → Groupoid.{u u}) : @of (Π j, (f j).α) _ ≅ ∏ f :=
+noncomputable def pi_iso_pi (J : Type u) (f : J → Groupoid.{u u}) : @of (Π j, f j) _ ≅ ∏ f :=
 limits.is_limit.cone_point_unique_up_to_iso
-  (pi_limit_cone (discrete.functor f)).is_limit
+  (pi_limit_fan_is_limit f)
   (limits.limit.is_limit (discrete.functor f))
 
 @[simp]

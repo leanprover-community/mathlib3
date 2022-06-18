@@ -44,7 +44,7 @@ def is_homogeneous [comm_semiring R] (φ : mv_polynomial σ R) (n : ℕ) :=
 variables (σ R)
 
 /-- The submodule of homogeneous `mv_polynomial`s of degree `n`. -/
-noncomputable def homogeneous_submodule [comm_semiring R] (n : ℕ) :
+def homogeneous_submodule [comm_semiring R] (n : ℕ) :
   submodule R (mv_polynomial σ R) :=
 { carrier := { x | x.is_homogeneous n },
   smul_mem' := λ r a ha c hc, begin
@@ -152,7 +152,7 @@ lemma is_homogeneous_X (i : σ) :
   is_homogeneous (X i : mv_polynomial σ R) 1 :=
 begin
   apply is_homogeneous_monomial,
-  simp only [finsupp.support_single_ne_zero one_ne_zero, finset.sum_singleton],
+  simp only [finsupp.support_single_ne_zero _ one_ne_zero, finset.sum_singleton],
   exact finsupp.single_eq_same
 end
 
@@ -303,6 +303,23 @@ begin
   suffices : φ.total_degree < d.support.sum d → 0 = coeff d φ,
     by simpa [coeff_sum, coeff_homogeneous_component],
   exact λ h, (coeff_eq_zero_of_total_degree_lt h).symm
+end
+
+lemma homogeneous_component_homogeneous_polynomial (m n : ℕ)
+  (p : mv_polynomial σ R) (h : p ∈ homogeneous_submodule σ R n) :
+  homogeneous_component m p = if m = n then p else 0 :=
+begin
+  simp only [mem_homogeneous_submodule] at h,
+  ext x,
+  rw coeff_homogeneous_component,
+  by_cases zero_coeff : coeff x p = 0,
+  { split_ifs,
+    all_goals { simp only [zero_coeff, coeff_zero], }, },
+  { rw h zero_coeff,
+    simp only [show n = m ↔ m = n, from eq_comm],
+    split_ifs with h1,
+    { refl },
+    { simp only [coeff_zero] } }
 end
 
 end homogeneous_component

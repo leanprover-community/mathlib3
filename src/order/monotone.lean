@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Mario Carneiro, Yaël Dillies
 -/
 import order.compare
-import order.order_dual
+import order.max
 import order.rel_classes
 
 /-!
@@ -56,7 +56,7 @@ monotone, strictly monotone, antitone, strictly antitone, increasing, strictly i
 decreasing, strictly decreasing
 -/
 
-open function
+open function order_dual
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w} {r : α → α → Prop}
@@ -100,92 +100,79 @@ end monotone_def
 
 /-! ### Monotonicity on the dual order
 
-Strictly many of the `*_on.dual` lemmas in this section should use `of_dual ⁻¹' s` instead of `s`,
+Strictly, many of the `*_on.dual` lemmas in this section should use `of_dual ⁻¹' s` instead of `s`,
 but right now this is not possible as `set.preimage` is not defined yet, and importing it creates
 an import cycle.
+
+Often, you should not need the rewriting lemmas. Instead, you probably want to add `.dual`,
+`.dual_left` or `.dual_right` to your `monotone`/`antitone` hypothesis.
 -/
 
 section order_dual
-open order_dual
+
 variables [preorder α] [preorder β] {f : α → β} {s : set α}
 
-protected theorem monotone.dual (hf : monotone f) : monotone (to_dual ∘ f ∘ of_dual) :=
-λ a b h, hf h
+@[simp] lemma monotone_comp_of_dual_iff : monotone (f ∘ of_dual) ↔ antitone f := forall_swap
+@[simp] lemma antitone_comp_of_dual_iff : antitone (f ∘ of_dual) ↔ monotone f := forall_swap
+@[simp] lemma monotone_to_dual_comp_iff : monotone (to_dual ∘ f) ↔ antitone f := iff.rfl
+@[simp] lemma antitone_to_dual_comp_iff : antitone (to_dual ∘ f) ↔ monotone f := iff.rfl
 
-protected lemma monotone.dual_left (hf : monotone f) : antitone (f ∘ of_dual) :=
-λ a b h, hf h
+@[simp] lemma monotone_on_comp_of_dual_iff : monotone_on (f ∘ of_dual) s ↔ antitone_on f s :=
+forall₂_swap
+@[simp] lemma antitone_on_comp_of_dual_iff : antitone_on (f ∘ of_dual) s ↔ monotone_on f s :=
+forall₂_swap
+@[simp] lemma monotone_on_to_dual_comp_iff : monotone_on (to_dual ∘ f) s ↔ antitone_on f s :=
+iff.rfl
+@[simp] lemma antitone_on_to_dual_comp_iff : antitone_on (to_dual ∘ f) s ↔ monotone_on f s :=
+iff.rfl
 
-protected lemma monotone.dual_right (hf : monotone f) : antitone (to_dual ∘ f) :=
-λ a b h, hf h
+@[simp] lemma strict_mono_comp_of_dual_iff : strict_mono (f ∘ of_dual) ↔ strict_anti f :=
+forall_swap
+@[simp] lemma strict_anti_comp_of_dual_iff : strict_anti (f ∘ of_dual) ↔ strict_mono f :=
+forall_swap
+@[simp] lemma strict_mono_to_dual_comp_iff : strict_mono (to_dual ∘ f) ↔ strict_anti f := iff.rfl
+@[simp] lemma strict_anti_to_dual_comp_iff : strict_anti (to_dual ∘ f) ↔ strict_mono f := iff.rfl
 
-protected theorem antitone.dual (hf : antitone f) : antitone (to_dual ∘ f ∘ of_dual) :=
-λ a b h, hf h
+@[simp] lemma strict_mono_on_comp_of_dual_iff :
+  strict_mono_on (f ∘ of_dual) s ↔ strict_anti_on f s := forall₂_swap
+@[simp] lemma strict_anti_on_comp_of_dual_iff :
+  strict_anti_on (f ∘ of_dual) s ↔ strict_mono_on f s := forall₂_swap
+@[simp] lemma strict_mono_on_to_dual_comp_iff :
+  strict_mono_on (to_dual ∘ f) s ↔ strict_anti_on f s := iff.rfl
+@[simp] lemma strict_anti_on_to_dual_comp_iff :
+  strict_anti_on (to_dual ∘ f) s ↔ strict_mono_on f s := iff.rfl
 
-protected lemma antitone.dual_left (hf : antitone f) : monotone (f ∘ of_dual) :=
-λ a b h, hf h
+protected lemma monotone.dual (hf : monotone f) : monotone (to_dual ∘ f ∘ of_dual) := swap hf
+protected lemma antitone.dual (hf : antitone f) : antitone (to_dual ∘ f ∘ of_dual) := swap hf
+protected lemma monotone_on.dual (hf : monotone_on f s) : monotone_on (to_dual ∘ f ∘ of_dual) s :=
+swap₂ hf
+protected lemma antitone_on.dual (hf : antitone_on f s) : antitone_on (to_dual ∘ f ∘ of_dual) s :=
+swap₂ hf
+protected lemma strict_mono.dual (hf : strict_mono f) : strict_mono (to_dual ∘ f ∘ of_dual) :=
+swap hf
+protected lemma strict_anti.dual (hf : strict_anti f) : strict_anti (to_dual ∘ f ∘ of_dual) :=
+swap hf
+protected lemma strict_mono_on.dual (hf : strict_mono_on f s) :
+  strict_mono_on (to_dual ∘ f ∘ of_dual) s := swap₂ hf
+protected lemma strict_anti_on.dual (hf : strict_anti_on f s) :
+  strict_anti_on (to_dual ∘ f ∘ of_dual) s := swap₂ hf
 
-protected lemma antitone.dual_right (hf : antitone f) : monotone (to_dual ∘ f) :=
-λ a b h, hf h
-
-protected theorem monotone_on.dual (hf : monotone_on f s) : monotone_on (to_dual ∘ f ∘ of_dual) s :=
-λ a ha b hb, hf hb ha
-
-protected lemma monotone_on.dual_left (hf : monotone_on f s) : antitone_on (f ∘ of_dual) s :=
-λ a ha b hb, hf hb ha
-
-protected lemma monotone_on.dual_right (hf : monotone_on f s) : antitone_on (to_dual ∘ f) s :=
-λ a ha b hb, hf ha hb
-
-protected theorem antitone_on.dual (hf : antitone_on f s) : antitone_on (to_dual ∘ f ∘ of_dual) s :=
-λ a ha b hb, hf hb ha
-
-protected lemma antitone_on.dual_left (hf : antitone_on f s) : monotone_on (f ∘ of_dual) s :=
-λ a ha b hb, hf hb ha
-
-protected lemma antitone_on.dual_right (hf : antitone_on f s) : monotone_on (to_dual ∘ f) s :=
-λ a ha b hb, hf ha hb
-
-protected theorem strict_mono.dual (hf : strict_mono f) : strict_mono (to_dual ∘ f ∘ of_dual) :=
-λ a b h, hf h
-
-protected lemma strict_mono.dual_left (hf : strict_mono f) : strict_anti (f ∘ of_dual) :=
-λ a b h, hf h
-
-protected lemma strict_mono.dual_right (hf : strict_mono f) : strict_anti (to_dual ∘ f) :=
-λ a b h, hf h
-
-protected theorem strict_anti.dual (hf : strict_anti f) : strict_anti (to_dual ∘ f ∘ of_dual) :=
-λ a b h, hf h
-
-protected lemma strict_anti.dual_left (hf : strict_anti f) : strict_mono (f ∘ of_dual) :=
-λ a b h, hf h
-
-protected lemma strict_anti.dual_right (hf : strict_anti f) : strict_mono (to_dual ∘ f) :=
-λ a b h, hf h
-
-protected theorem strict_mono_on.dual (hf : strict_mono_on f s) :
-  strict_mono_on (to_dual ∘ f ∘ of_dual) s :=
-λ a ha b hb, hf hb ha
-
-protected lemma strict_mono_on.dual_left (hf : strict_mono_on f s) :
-  strict_anti_on (f ∘ of_dual) s :=
-λ a ha b hb, hf hb ha
-
-protected lemma strict_mono_on.dual_right (hf : strict_mono_on f s) :
-  strict_anti_on (to_dual ∘ f) s :=
-λ a ha b hb, hf ha hb
-
-protected theorem strict_anti_on.dual (hf : strict_anti_on f s) :
-  strict_anti_on (to_dual ∘ f ∘ of_dual) s :=
-λ a ha b hb, hf hb ha
-
-protected lemma strict_anti_on.dual_left (hf : strict_anti_on f s) :
-  strict_mono_on (f ∘ of_dual) s :=
-λ a ha b hb, hf hb ha
-
-protected lemma strict_anti_on.dual_right (hf : strict_anti_on f s) :
-  strict_mono_on (to_dual ∘ f) s :=
-λ a ha b hb, hf ha hb
+alias antitone_comp_of_dual_iff ↔ _ monotone.dual_left
+alias monotone_comp_of_dual_iff ↔ _ antitone.dual_left
+alias antitone_to_dual_comp_iff ↔ _ monotone.dual_right
+alias monotone_to_dual_comp_iff ↔ _ antitone.dual_right
+alias antitone_on_comp_of_dual_iff ↔ _ monotone_on.dual_left
+alias monotone_on_comp_of_dual_iff ↔ _ antitone_on.dual_left
+alias antitone_on_to_dual_comp_iff ↔ _ monotone_on.dual_right
+alias monotone_on_to_dual_comp_iff ↔ _ antitone_on.dual_right
+alias strict_anti_comp_of_dual_iff ↔ _ strict_mono.dual_left
+alias strict_mono_comp_of_dual_iff ↔ _ strict_anti.dual_left
+alias strict_anti_to_dual_comp_iff ↔ _ strict_mono.dual_right
+alias strict_mono_to_dual_comp_iff ↔ _ strict_anti.dual_right
+alias strict_anti_on_comp_of_dual_iff ↔ _ strict_mono_on.dual_left
+alias strict_mono_on_comp_of_dual_iff ↔ _ strict_anti_on.dual_left
+alias strict_anti_on_to_dual_comp_iff ↔ _ strict_mono_on.dual_right
+alias strict_mono_on_to_dual_comp_iff ↔ _ strict_anti_on.dual_right
 
 end order_dual
 
@@ -352,7 +339,19 @@ lemma injective_of_le_imp_le [partial_order α] [preorder β] (f : α → β)
 λ x y hxy, (h hxy.le).antisymm (h hxy.ge)
 
 section preorder
-variables [preorder α] [preorder β] {f g : α → β}
+variables [preorder α] [preorder β] {f g : α → β} {a : α}
+
+lemma strict_mono.is_max_of_apply (hf : strict_mono f) (ha : is_max (f a)) : is_max a :=
+of_not_not $ λ h, let ⟨b, hb⟩ := not_is_max_iff.1 h in (hf hb).not_is_max ha
+
+lemma strict_mono.is_min_of_apply (hf : strict_mono f) (ha : is_min (f a)) : is_min a :=
+of_not_not $ λ h, let ⟨b, hb⟩ := not_is_min_iff.1 h in (hf hb).not_is_min ha
+
+lemma strict_anti.is_max_of_apply (hf : strict_anti f) (ha : is_min (f a)) : is_max a :=
+of_not_not $ λ h, let ⟨b, hb⟩ := not_is_max_iff.1 h in (hf hb).not_is_min ha
+
+lemma strict_anti.is_min_of_apply (hf : strict_anti f) (ha : is_max (f a)) : is_min a :=
+of_not_not $ λ h, let ⟨b, hb⟩ := not_is_min_iff.1 h in (hf hb).not_is_max ha
 
 protected lemma strict_mono.ite' (hf : strict_mono f) (hg : strict_mono g) {p : α → Prop}
   [decidable_pred p] (hp : ∀ ⦃x y⦄, x < y → p y → p x)
@@ -464,6 +463,30 @@ lemma strict_anti.comp_strict_mono_on (hg : strict_anti g) (hf : strict_mono_on 
 
 end composition
 
+namespace list
+
+section fold
+
+theorem foldl_monotone [preorder α] {f : α → β → α} (H : ∀ b, monotone (λ a, f a b)) (l : list β) :
+  monotone (λ a, l.foldl f a) :=
+list.rec_on l (λ _ _, id) (λ i l hl _ _ h, hl (H _ h))
+
+theorem foldr_monotone [preorder β] {f : α → β → β} (H : ∀ a, monotone (f a)) (l : list α) :
+  monotone (λ b, l.foldr f b) :=
+λ _ _ h, list.rec_on l h (λ i l hl, H i hl)
+
+theorem foldl_strict_mono [preorder α] {f : α → β → α} (H : ∀ b, strict_mono (λ a, f a b))
+  (l : list β) : strict_mono (λ a, l.foldl f a) :=
+list.rec_on l (λ _ _, id) (λ i l hl _ _ h, hl (H _ h))
+
+theorem foldr_strict_mono [preorder β] {f : α → β → β} (H : ∀ a, strict_mono (f a)) (l : list α) :
+  strict_mono (λ b, l.foldr f b) :=
+λ _ _ h, list.rec_on l h (λ i l hl, H i hl)
+
+end fold
+
+end list
+
 /-! ### Monotonicity in linear orders  -/
 
 section linear_order
@@ -534,7 +557,7 @@ protected theorem strict_mono_on.compares (hf : strict_mono_on f s) {a b : α} (
 protected theorem strict_anti_on.compares (hf : strict_anti_on f s) {a b : α} (ha : a ∈ s)
   (hb : b ∈ s) {o : ordering} :
   o.compares (f a) (f b) ↔ o.compares b a :=
-order_dual.dual_compares.trans $ hf.dual_right.compares hb ha
+to_dual_compares_to_dual.trans $ hf.dual_right.compares hb ha
 
 protected theorem strict_mono.compares (hf : strict_mono f) {a b : α} {o : ordering} :
   o.compares (f a) (f b) ↔ o.compares a b :=
@@ -580,6 +603,27 @@ lemma antitone.strict_anti_iff_injective (hf : antitone f) :
 ⟨λ h, h.injective, hf.strict_anti_of_injective⟩
 
 end partial_order
+
+/-!
+### Strictly monotone functions and `cmp`
+-/
+
+variables [linear_order β] {f : α → β} {s : set α} {x y : α}
+
+lemma strict_mono_on.cmp_map_eq (hf : strict_mono_on f s) (hx : x ∈ s) (hy : y ∈ s) :
+  cmp (f x) (f y) = cmp x y :=
+((hf.compares hx hy).2 (cmp_compares x y)).cmp_eq
+
+lemma strict_mono.cmp_map_eq (hf : strict_mono f) (x y : α) : cmp (f x) (f y) = cmp x y :=
+(hf.strict_mono_on set.univ).cmp_map_eq trivial trivial
+
+lemma strict_anti_on.cmp_map_eq (hf : strict_anti_on f s) (hx : x ∈ s) (hy : y ∈ s) :
+  cmp (f x) (f y) = cmp y x :=
+hf.dual_right.cmp_map_eq hy hx
+
+lemma strict_anti.cmp_map_eq (hf : strict_anti f) (x y : α) : cmp (f x) (f y) = cmp y x :=
+(hf.strict_anti_on set.univ).cmp_map_eq trivial trivial
+
 end linear_order
 
 /-! ### Monotonicity in `ℕ` and `ℤ` -/
@@ -614,17 +658,44 @@ lemma monotone_nat_of_le_succ {f : ℕ → α} (hf : ∀ n, f n ≤ f (n + 1)) :
   monotone f :=
 nat.rel_of_forall_rel_succ_of_le (≤) hf
 
-lemma antitone_nat_of_succ_le {f : ℕ → α} (hf : ∀ n, f (n + 1) ≤ f n) :
-  antitone f :=
-@monotone_nat_of_le_succ (order_dual α) _ _ hf
+lemma antitone_nat_of_succ_le {f : ℕ → α} (hf : ∀ n, f (n + 1) ≤ f n) : antitone f :=
+@monotone_nat_of_le_succ αᵒᵈ _ _ hf
 
-lemma strict_mono_nat_of_lt_succ {f : ℕ → α} (hf : ∀ n, f n < f (n + 1)) :
-  strict_mono f :=
+lemma strict_mono_nat_of_lt_succ {f : ℕ → α} (hf : ∀ n, f n < f (n + 1)) : strict_mono f :=
 nat.rel_of_forall_rel_succ_of_lt (<) hf
 
-lemma strict_anti_nat_of_succ_lt {f : ℕ → α} (hf : ∀ n, f (n + 1) < f n) :
-  strict_anti f :=
-@strict_mono_nat_of_lt_succ (order_dual α) _ f hf
+lemma strict_anti_nat_of_succ_lt {f : ℕ → α} (hf : ∀ n, f (n + 1) < f n) : strict_anti f :=
+@strict_mono_nat_of_lt_succ αᵒᵈ _ f hf
+
+namespace nat
+
+/-- If `α` is a preorder with no maximal elements, then there exists a strictly monotone function
+`ℕ → α` with any prescribed value of `f 0`. -/
+lemma exists_strict_mono' [no_max_order α] (a : α) : ∃ f : ℕ → α, strict_mono f ∧ f 0 = a :=
+begin
+  have := (λ x : α, exists_gt x),
+  choose g hg,
+  exact ⟨λ n, nat.rec_on n a (λ _, g), strict_mono_nat_of_lt_succ $ λ n, hg _, rfl⟩
+end
+
+/-- If `α` is a preorder with no maximal elements, then there exists a strictly antitone function
+`ℕ → α` with any prescribed value of `f 0`. -/
+lemma exists_strict_anti' [no_min_order α] (a : α) : ∃ f : ℕ → α, strict_anti f ∧ f 0 = a :=
+exists_strict_mono' (order_dual.to_dual a)
+
+variable (α)
+
+/-- If `α` is a nonempty preorder with no maximal elements, then there exists a strictly monotone
+function `ℕ → α`. -/
+lemma exists_strict_mono [nonempty α] [no_max_order α] : ∃ f : ℕ → α, strict_mono f :=
+let ⟨a⟩ := ‹nonempty α›, ⟨f, hf, hfa⟩ := exists_strict_mono' a in ⟨f, hf⟩
+
+/-- If `α` is a nonempty preorder with no minimal elements, then there exists a strictly antitone
+function `ℕ → α`. -/
+lemma exists_strict_anti [nonempty α] [no_min_order α] : ∃ f : ℕ → α, strict_anti f :=
+exists_strict_mono αᵒᵈ
+
+end nat
 
 lemma int.rel_of_forall_rel_succ_of_lt (r : β → β → Prop) [is_trans β r]
   {f : ℤ → β} (h : ∀ n, r (f n) (f (n + 1))) ⦃a b : ℤ⦄ (hab : a < b) : r (f a) (f b) :=
@@ -651,6 +722,32 @@ int.rel_of_forall_rel_succ_of_lt (<) hf
 
 lemma strict_anti_int_of_succ_lt {f : ℤ → α} (hf : ∀ n, f (n + 1) < f n) : strict_anti f :=
 int.rel_of_forall_rel_succ_of_lt (>) hf
+
+namespace int
+
+variables (α) [nonempty α] [no_min_order α] [no_max_order α]
+
+/-- If `α` is a nonempty preorder with no minimal or maximal elements, then there exists a strictly
+monotone function `f : ℤ → α`. -/
+lemma exists_strict_mono : ∃ f : ℤ → α, strict_mono f :=
+begin
+  inhabit α,
+  rcases nat.exists_strict_mono' (default : α) with ⟨f, hf, hf₀⟩,
+  rcases nat.exists_strict_anti' (default : α) with ⟨g, hg, hg₀⟩,
+  refine ⟨λ n, int.cases_on n f (λ n, g (n + 1)), strict_mono_int_of_lt_succ _⟩,
+  rintro (n|_|n),
+  { exact hf n.lt_succ_self },
+  { show g 1 < f 0,
+    rw [hf₀, ← hg₀],
+    exact hg nat.zero_lt_one },
+  { exact hg (nat.lt_succ_self _) }
+end
+
+/-- If `α` is a nonempty preorder with no minimal or maximal elements, then there exists a strictly
+antitone function `f : ℤ → α`. -/
+lemma exists_strict_anti : ∃ f : ℤ → α, strict_anti f := exists_strict_mono αᵒᵈ
+
+end int
 
 -- TODO@Yael: Generalize the following four to succ orders
 /-- If `f` is a monotone function from `ℕ` to a preorder such that `x` lies between `f n` and

@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
 import algebra.big_operators.basic
-import order.locally_finite
 import order.atoms
+import order.locally_finite
 import order.sup_indep
 
 /-!
@@ -13,6 +13,9 @@ import order.sup_indep
 
 In this file, we define finite partitions. A finpartition of `a : α` is a finite set of pairwise
 disjoint parts `parts : finset α` which does not contain `⊥` and whose supremum is `a`.
+
+Finpartitions of a finset are at the heart of Szemerédi's regularity lemma. They are also studied
+purely order theoretically in Sperner theory.
 
 ## Constructions
 
@@ -150,7 +153,7 @@ def _root_.is_atom.unique_finpartition (ha : is_atom a) : unique (finpartition a
 { default := indiscrete ha.1,
   uniq := λ P, begin
     have h : ∀ b ∈ P.parts, b = a,
-    { exact λ b hb, (eq_bot_or_eq_of_le_atom ha $ P.le hb).resolve_left (P.ne_bot hb) },
+    { exact λ b hb, (ha.le_iff.mp $ P.le hb).resolve_left (P.ne_bot hb) },
     ext b,
     refine iff.trans ⟨h b, _⟩ mem_singleton.symm,
     rintro rfl,
@@ -202,8 +205,21 @@ instance [decidable (a = ⊥)] : order_top (finpartition a) :=
     { exact λ b hb, ⟨a, mem_singleton_self _, P.le hb⟩ }
   end }
 
-end order
+lemma parts_top_subset (a : α) [decidable (a = ⊥)] : (⊤ : finpartition a).parts ⊆ {a} :=
+begin
+  intros b hb,
+  change b ∈ finpartition.parts (dite _ _ _) at hb,
+  split_ifs at hb,
+  { simp only [copy_parts, empty_parts, not_mem_empty] at hb,
+    exact hb.elim },
+  { exact hb }
+end
 
+lemma parts_top_subsingleton (a : α) [decidable (a = ⊥)] :
+  ((⊤ : finpartition a).parts : set α).subsingleton :=
+set.subsingleton_of_subset_singleton $ λ b hb, mem_singleton.1 $ parts_top_subset _ hb
+
+end order
 end lattice
 
 section distrib_lattice

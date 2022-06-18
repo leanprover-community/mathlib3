@@ -7,7 +7,7 @@ Authors: Eric Wieser, Utensil Song
 import algebra.ring_quot
 import linear_algebra.tensor_algebra.basic
 import linear_algebra.exterior_algebra.basic
-import linear_algebra.quadratic_form.basic
+import linear_algebra.quadratic_form.isometry
 
 /-!
 # Clifford Algebras
@@ -164,6 +164,8 @@ end
 
 /-- If `C` holds for the `algebra_map` of `r : R` into `clifford_algebra Q`, the `ι` of `x : M`,
 and is preserved under addition and muliplication, then it holds for all of `clifford_algebra Q`.
+
+See also the stronger `clifford_algebra.left_induction` and `clifford_algebra.right_induction`.
 -/
 -- This proof closely follows `tensor_algebra.induction`
 @[elab_as_eliminator]
@@ -225,6 +227,11 @@ calc  ι Q a * ι Q b + ι Q b * ι Q a
         by rw [←ring_hom.map_sub, ←ring_hom.map_sub]
 ... = algebra_map R _ (quadratic_form.polar Q a b) : rfl
 
+@[simp]
+lemma ι_range_map_lift (f : M →ₗ[R] A) (cond : ∀ m, f m * f m = algebra_map _ _ (Q m)) :
+  (ι Q).range.map (lift Q ⟨f, cond⟩).to_linear_map = f.range :=
+by rw [←linear_map.range_comp, ι_comp_lift]
+
 section map
 
 variables {M₁ M₂ M₃ : Type*}
@@ -264,6 +271,11 @@ begin
     alg_hom.id_apply],
   rw [map_apply_ι, map_apply_ι, map_apply_ι, linear_map.comp_apply],
 end
+
+@[simp]
+lemma ι_range_map_map (f : M₁ →ₗ[R] M₂) (hf : ∀ m, Q₂ (f m) = Q₁ m) :
+  (ι Q₁).range.map (map Q₁ Q₂ f hf).to_linear_map = f.range.map (ι Q₂) :=
+(ι_range_map_lift _ _).trans (linear_map.range_comp _ _)
 
 variables {Q₁ Q₂ Q₃}
 

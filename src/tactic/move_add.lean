@@ -80,12 +80,12 @@ appear.  Once `list_head_op` finds a term whose head symbol is not `op`,
 it reverts the boolean to `tt`, so that the recursion can isolate further sums later in the
 expression. -/
 meta def list_head_op (op : pexpr) : bool → expr → tactic (list expr)
-| bo (expr.app F b) := do
+| bo F'@(expr.app F b) := do
   op ← to_expr op tt ff,
   if F.get_app_fn.const_name = op.get_app_fn.const_name then do
     Fargs ← list_explicit_args F,
     ac ← (Fargs ++ [b]).mmap $ list_head_op ff,
-    if bo then return $ [F.mk_app [b]] ++ ac.join
+    if bo then return $ [F'] ++ ac.join
     else return ac.join
   else do
     Fc ← list_head_op tt F, bc ← list_head_op tt b,

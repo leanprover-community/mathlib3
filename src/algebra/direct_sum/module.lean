@@ -280,36 +280,6 @@ lemma is_internal.submodule_independent (h : is_internal A) :
   complete_lattice.independent A :=
 complete_lattice.independent_of_dfinsupp_lsum_injective _ h.injective
 
-/-- Given an internal direct sum decomposition of a module `M`, and a basis for each of the
-components of the direct sum, the disjoint union of these bases is a basis for `M`. -/
-noncomputable def is_internal.collected_basis
-  (h : is_internal A) {α : ι → Type*} (v : Π i, basis (α i) R (A i)) :
-  basis (Σ i, α i) R M :=
-{ repr :=
-    (linear_equiv.of_bijective (direct_sum.coe_linear_map A) h.injective h.surjective).symm ≪≫ₗ
-      (dfinsupp.map_range.linear_equiv (λ i, (v i).repr)) ≪≫ₗ
-      (sigma_finsupp_lequiv_dfinsupp R).symm }
-
-@[simp] lemma is_internal.collected_basis_coe
-  (h : is_internal A) {α : ι → Type*} (v : Π i, basis (α i) R (A i)) :
-  ⇑(h.collected_basis v) = λ a : Σ i, (α i), ↑(v a.1 a.2) :=
-begin
-  funext a,
-  simp only [is_internal.collected_basis, to_module, coe_linear_map,
-    add_equiv.to_fun_eq_coe, basis.coe_of_repr, basis.repr_symm_apply, dfinsupp.lsum_apply_apply,
-    dfinsupp.map_range.linear_equiv_apply, dfinsupp.map_range.linear_equiv_symm,
-    dfinsupp.map_range_single, finsupp.total_single, linear_equiv.of_bijective_apply,
-    linear_equiv.symm_symm, linear_equiv.symm_trans_apply, one_smul,
-    sigma_finsupp_add_equiv_dfinsupp_apply, sigma_finsupp_equiv_dfinsupp_single,
-    sigma_finsupp_lequiv_dfinsupp_apply],
-  convert dfinsupp.sum_add_hom_single (λ i, (A i).subtype.to_add_monoid_hom) a.1 (v a.1 a.2),
-end
-
-lemma is_internal.collected_basis_mem
-  (h : is_internal A) {α : ι → Type*} (v : Π i, basis (α i) R (A i)) (a : Σ i, α i) :
-  h.collected_basis v a ∈ A a.1 :=
-by simp
-
 /-- When indexed by only two distinct elements, `direct_sum.is_internal` implies
 the two submodules are complementary. Over a `ring R`, this is true as an iff, as
 `direct_sum.is_internal_iff_is_compl`. --/

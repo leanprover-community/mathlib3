@@ -211,10 +211,18 @@ section basis
 /-- The direct sum of free modules is free.
 
 Note that while this is stated for `dfinsupp` not `direct_sum`, the types are defeq. -/
-noncomputable def basis {η : ι → Type*} (b : Π i, basis (η i) R (M i)) :
+protected noncomputable def basis {η : ι → Type*} (b : Π i, basis (η i) R (M i)) :
   basis (Σ i, η i) R (Π₀ i, M i) :=
 basis.of_repr ((map_range.linear_equiv (λ i, (b i).repr)).trans
   (sigma_finsupp_lequiv_dfinsupp R).symm)
+
+@[simp] lemma basis_apply [decidable_eq ι] {η : ι → Type*} (b : Π i, basis (η i) R (M i))
+  (x : Σ i, η i) :
+  dfinsupp.basis b x = single x.fst (b x.fst x.snd) :=
+begin
+  simp [dfinsupp.basis],
+  congr,
+end
 
 end basis
 

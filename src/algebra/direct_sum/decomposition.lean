@@ -175,6 +175,27 @@ def decompose_linear_equiv : M ≃ₗ[R] ⨁ i, ℳ i := linear_equiv.symm
 @[simp] lemma decompose_smul (r : R) (x : M) : decompose ℳ (r • x) = r • decompose ℳ x :=
 map_smul (decompose_linear_equiv ℳ) r x
 
+
+/-- Given an internal direct sum decomposition of a module `M`, and a basis for each of the
+components of the direct sum, the disjoint union of these bases is a basis for `M`. -/
+noncomputable def collected_basis
+  {α : ι → Type*} (v : Π i, basis (α i) R (ℳ i)) :
+  basis (Σ i, α i) R M :=
+(dfinsupp.basis v).map (decompose_linear_equiv ℳ).symm
+
+@[simp] lemma collected_basis_coe
+  {α : ι → Type*} (v : Π i, basis (α i) R (ℳ i)) :
+  ⇑(collected_basis ℳ v) = λ a : Σ i, (α i), ↑(v a.1 a.2) :=
+begin
+  funext a,
+  rw [collected_basis, basis.map_apply, dfinsupp.basis_apply],
+  exact decompose_symm_of _ _,
+end
+
+lemma collected_basis_mem {α : ι → Type*} (v : Π i, basis (α i) R (ℳ i)) (a : Σ i, α i) :
+  collected_basis ℳ v a ∈ ℳ a.1 :=
+by simp
+
 end module
 
 end direct_sum

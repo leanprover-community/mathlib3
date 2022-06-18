@@ -37,6 +37,8 @@ uniform convergence, strong dual
 
 -/
 
+open_locale topological_space
+
 section group
 
 variables {α G : Type*} [group G] [uniform_space G] [uniform_group G] {𝔖 : set $ set α}
@@ -74,13 +76,30 @@ variables {α 𝕜 E : Type*} [semi_normed_comm_ring 𝕜] [add_comm_group E] [m
 local attribute [-instance] Pi.uniform_space
 local attribute [-instance] Pi.topological_space
 
-protected def uniform_convergence_on.module_filter_basis : module_filter_basis 𝕜 H :=
-{ to_filter_basis :=
-    ((uniform_convergence_on.has_basis_nhds α E 𝔖 0 h𝔖₁ h𝔖₂).comap coe).is_basis.filter_basis, }
+include h𝔖₁ h𝔖₂
 
 lemma goal (h : ∀ u ∈ H, ∀ s ∈ 𝔖, bornology.is_vonN_bounded 𝕜 (u '' s)) :
   @has_continuous_smul 𝕜 H _ _
   ((uniform_convergence_on.topological_space α E 𝔖).induced (coe : H → α → E)) :=
-sorry
+begin
+  letI : uniform_space (α → E) := uniform_convergence_on.uniform_space α E 𝔖,
+  haveI : uniform_add_group (α → E) := uniform_convergence_on.uniform_add_group,
+  haveI : topological_add_group H := topological_add_group_induced
+    (linear_map.id.dom_restrict H : H →ₗ[𝕜] α → E),
+  have : (𝓝 0 : filter H).has_basis _ _,
+  { rw [nhds_induced, submodule.coe_zero],
+    exact ((uniform_convergence_on.has_basis_nhds α E 𝔖 0 h𝔖₁ h𝔖₂).comap (coe : H → α → E)) },
+  refine has_continuous_smul.of_basis_zero this _ _ _,
+  { rintros ⟨S, V⟩ ⟨hS, hV⟩, sorry },
+  sorry,
+  { rintros ⟨u, hu⟩ ⟨S, V⟩ ⟨hS, hV⟩,
+    let V' := {e : E | (e, (0 : E)) ∈ V},
+    have hV' : V' ∈ (𝓝 0 : filter E) := sorry,
+    rcases h u hu S hS hV' with ⟨r, hrpos, hr⟩,
+    rw metric.eventually_nhds_iff_ball,
+    refine ⟨r⁻¹, inv_pos.mpr hrpos, λ a ha x hx, _⟩,
+    rw mem_ball_zero_iff at ha,
+    sorry }
+end
 
 end module

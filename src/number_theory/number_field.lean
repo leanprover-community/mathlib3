@@ -178,32 +178,17 @@ open set finite_dimensional polynomial
 variables {K L : Type*} [field K] [field L]
 variables [number_field K] [number_field L]  (x : K)
 
-variables {A : Type*} [field A] [char_zero A] [is_alg_closed A]
+variables {A : Type*} [field A] [char_zero A]
 
 /-- There are finitely many embeddings of a number field. -/
 noncomputable instance : fintype (K →+* A) := fintype.of_equiv (K →ₐ[ℚ] A)
 ring_hom.equiv_rat_alg_hom.symm
 
+variables [is_alg_closed A]
+
 /-- The number of embeddings of a number field is its finrank. -/
 lemma card_embeddings : fintype.card (K →+* A) = finrank ℚ K :=
 by rw [fintype.of_equiv_card ring_hom.equiv_rat_alg_hom.symm, alg_hom.card]
-
-/-- Any embeddings of a number field `K` can be extended to an embedding of an extension `L`. -/
-lemma lift {L : Type*} [field L] [number_field L] [algebra K L] (φ : K →+* A) :
-  ∃ ψ : L →+* A, φ = ψ.comp (algebra_map K L) :=
-begin
-  letI : algebra K A, from ring_hom.to_algebra φ,
-  have hS : algebra.is_algebraic K L,
-  { refine algebra.is_algebraic_of_larger_base ℚ K _,
-    exact number_field.is_algebraic _, },
-  let ψ₀ : L →ₐ[K] A := is_alg_closed.lift hS,
-  let ψ := ψ₀.to_ring_hom,
-  use ψ,
-  ext,
-  show φ x = ψ₀ ((algebra_map K L) x),
-  rw alg_hom.commutes ψ₀ x,
-  exact rfl,
-end
 
 /-- For `x ∈ K`, with `K` a number field, the images of `x` by the embeddings of `K` are exactly
 the roots of the minimal polynomial of `x` over `ℚ` -/
@@ -224,7 +209,7 @@ begin
     haveI : irreducible (minpoly ℚ x), { exact minpoly.irreducible hx },
     haveI : number_field Qx := by apply_instance,
     have hK : (aeval x) (minpoly ℚ x) = 0, { exact minpoly.aeval _ _, },
-    have hC : (aeval a) (minpoly ℚ x) = 0,
+    have hA : (aeval a) (minpoly ℚ x) = 0,
     { rw [aeval_def, ←eval_map, ←mem_root_set_iff'],
       exact ha,
       suffices : (minpoly ℚ x) ≠ 0,
@@ -234,17 +219,20 @@ begin
         { exact λ n : ℕ, inj (by rw [(this n), (algebra_map ℚ A).map_zero]),},
         exact (algebra_map ℚ A).injective, },
       exact minpoly.ne_zero hx, },
-    let ψ : Qx →+* A := adjoin_root.lift (algebra_map ℚ A) a hC,
+    let ψ : Qx →+* A := adjoin_root.lift (algebra_map ℚ A) a hA,
+    letI : algebra Qx A, { exact ring_hom.to_algebra ψ },
     letI : algebra Qx K,
     { exact ring_hom.to_algebra (adjoin_root.lift (algebra_map ℚ K) x hK), },
-    obtain ⟨φ, hφ⟩ := lift ψ,
+    let φ₀ : K →ₐ[Qx] A := is_alg_closed.lift _,
+    let φ := φ₀.to_ring_hom,
     use φ,
     rw (_ : x = (algebra_map Qx K) (adjoin_root.root (minpoly ℚ x))),
     rw (_ : a = ψ (adjoin_root.root (minpoly ℚ x))),
-    simp only [congr_fun, hφ, ring_hom.coe_comp],
-    exact (adjoin_root.lift_root hC).symm,
+    refine alg_hom.commutes _ _,
+    exact (adjoin_root.lift_root hA).symm,
     exact (adjoin_root.lift_root hK).symm,
-    apply_instance, },
+    refine algebra.is_algebraic_of_larger_base ℚ Qx _,
+    exact number_field.is_algebraic _, },
 end
 
 end number_field

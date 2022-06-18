@@ -327,10 +327,10 @@ theorem lf_move_right_of_le {x y : pgame} (j) (h : x ≤ y) : x ⧏ y.move_right
 (le_iff_forall_lf.1 h).2 j
 
 theorem lf_of_move_right_le {x y : pgame} {j} (h : x.move_right j ≤ y) : x ⧏ y :=
-(lf_iff_exists_le.2 $ or.inr ⟨j, h⟩)
+lf_iff_exists_le.2 $ or.inr ⟨j, h⟩
 
 theorem lf_of_le_move_left {x y : pgame} {i} (h : x ≤ y.move_left i) : x ⧏ y :=
-(lf_iff_exists_le.2 $ or.inl ⟨i, h⟩)
+lf_iff_exists_le.2 $ or.inl ⟨i, h⟩
 
 theorem lf_of_le_mk {xl xr xL xR y} : ∀ i, mk xl xr xL xR ≤ y → xL i ⧏ y :=
 @move_left_lf_of_le (mk _ _ _ _) y

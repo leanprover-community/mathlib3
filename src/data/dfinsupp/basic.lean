@@ -1076,6 +1076,17 @@ by { ext, rw [add_apply, comap_domain_apply, comap_domain_apply, comap_domain_ap
   comap_domain h hh (r • f) = r • comap_domain h hh f :=
 by { ext, rw [smul_apply, comap_domain_apply, smul_apply, comap_domain_apply] }
 
+@[simp] lemma comap_domain_single [decidable_eq ι] [decidable_eq κ] [Π i, has_zero (β i)]
+  (h : κ → ι) (hh : function.injective h) (k : κ) (x : β (h k)) :
+  comap_domain h hh (single (h k) x) = single k x :=
+begin
+  ext,
+  rw comap_domain_apply,
+  obtain rfl | hik := decidable.eq_or_ne i k,
+  { rw [single_eq_same, single_eq_same] },
+  { rw [single_eq_of_ne hik.symm, single_eq_of_ne (hh.ne hik.symm)] },
+end
+
 omit dec
 /--A computable version of comap_domain when an explicit left inverse is provided.-/
 def comap_domain'[Π i, has_zero (β i)] (h : κ → ι) {h' : ι → κ} (hh' : function.left_inverse h' h) :
@@ -1107,6 +1118,17 @@ by { ext, rw [add_apply, comap_domain'_apply, comap_domain'_apply, comap_domain'
   (hh' : function.left_inverse h' h) (r : γ) (f : Π₀ i, β i) :
   comap_domain' h hh' (r • f) = r • comap_domain' h hh' f :=
 by { ext, rw [smul_apply, comap_domain'_apply, smul_apply, comap_domain'_apply] }
+
+@[simp] lemma comap_domain'_single [decidable_eq ι] [decidable_eq κ] [Π i, has_zero (β i)]
+  (h : κ → ι) {h' : ι → κ} (hh' : function.left_inverse h' h) (k : κ) (x : β (h k)) :
+  comap_domain' h hh' (single (h k) x) = single k x :=
+begin
+  ext,
+  rw comap_domain'_apply,
+  obtain rfl | hik := decidable.eq_or_ne i k,
+  { rw [single_eq_same, single_eq_same] },
+  { rw [single_eq_of_ne hik.symm, single_eq_of_ne (hh'.injective.ne hik.symm)] },
+end
 
 /-- Reindexing terms of a dfinsupp.
 

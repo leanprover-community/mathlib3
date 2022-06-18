@@ -44,10 +44,7 @@ $a = \sqrt{\pi}$. Here the main ingredient is the convergence of the Wallis prod
 
 open_locale big_operators -- notation ∑ for finite sums
 open_locale classical real topological_space nnreal ennreal filter big_operators
-open real
-open finset
-open nat
-open filter
+open  finset filter nat real
 
 namespace stirling
 
@@ -125,10 +122,10 @@ begin
 end
 
 /--
-Define `an n` as $\frac{n!}{\sqrt{2n}/(\frac{n}{e})^n$.
+Define `stirling_seq n` as $\frac{n!}{\sqrt{2n}/(\frac{n}{e})^n$.
 Stirling's formula states that this sequence has limit $\sqrt(π)$.
 -/
-noncomputable def an (n : ℕ) : ℝ := (n.factorial : ℝ) / ((sqrt(2 * n) * ((n / (exp 1))) ^ n))
+noncomputable def stirling_seq (n : ℕ) : ℝ := (n.factorial : ℝ) / ((sqrt(2 * n) * ((n / (exp 1))) ^ n))
 
 /-- The function `log(1 + x) - log(1 - x)` has a power series expansion with k-th term
 `2 * x^(2 * k + 1) / (2 * k + 1)`, valid for `|x| < 1`. -/
@@ -163,7 +160,7 @@ end
 For any natural number `n ≠ 0`, we have the identity
 `log((n + 1) / n) = log(1 + 1 / (2*n + 1)) - log(1 - 1/(2*n + 1))`.
 -/
-lemma aux_log (n : ℕ) (hn : n ≠ 0) :
+lemma log_succ_div_eq_log_sub (n : ℕ) (hn : n ≠ 0) :
   log (n.succ / n) = log (1 + 1 / (2 * n + 1)) - log (1 - 1 / (2 * n + 1)) :=
 begin
   have : (2 : ℝ) * n + 1 ≠ 0, by { norm_cast, exact (2 * n).succ_ne_zero, },
@@ -178,7 +175,7 @@ end
 For any natural number `n`, the expression `log((n + 1) / n)` has the series expansion
 $\sum_{k=0}^{\infty}\frac{2}{2k+1}(\frac{1}{2n+1})^{2k+1}$.
 -/
-lemma power_series_ln (n : ℕ) (hn : n ≠ 0) : has_sum (λ (k : ℕ),
+lemma power_series_log_succ_div (n : ℕ) (hn : n ≠ 0) : has_sum (λ (k : ℕ),
   (2 : ℝ) * (1 / (2 * (k : ℝ) + 1)) * ((1 / (2 * (n : ℝ) + 1)) ^ (2 * k + 1)))
   (log ((n.succ : ℝ) / (n : ℝ))) :=
  begin
@@ -187,31 +184,32 @@ lemma power_series_ln (n : ℕ) (hn : n ≠ 0) : has_sum (λ (k : ℕ),
   { rw [abs_of_pos, div_lt_one]; norm_cast,
     any_goals {linarith}, /- can not use brackets for single goal, bc of any_goals -/
     { exact div_pos one_pos (cast_pos.mpr (2 * n).succ_pos) }, },
-  rw aux_log n (hn),
+  rw log_succ_div_eq_log_sub n (hn),
   exact log_sum_plus_minus (1 / (2 * (n : ℝ) + 1)) h₁,
  end
 
 /--
-`bn n` is log of `an n`.
+`log_stirling_seq n` is log of `stirling_seq n`.
 -/
-noncomputable def bn (n : ℕ) : ℝ := log (an n)
+noncomputable def log_stirling_seq (n : ℕ) : ℝ := log (stirling_seq n)
 
 /--
 For each natural number `n ≠ 0`, we have $0<\sqrt{2n}$.
 -/
 lemma zero_lt_sqrt_two_n (n : ℕ) (hn : n ≠ 0) : 0 < sqrt (2 * (n : ℝ)) :=
-   real.sqrt_pos.mpr (mul_pos two_pos (cast_pos.mpr (zero_lt_iff.mpr hn)))
+real.sqrt_pos.mpr (mul_pos two_pos (cast_pos.mpr (zero_lt_iff.mpr hn)))
 
 /--
-We have the expression `bn (n+1) = log(n + 1)! - 1 / 2 * log(2 * n) - n * log ((n + 1) / e)`.
+We have the expression
+`log_stirling_seq (n+1) = log(n + 1)! - 1 / 2 * log(2 * n) - n * log ((n + 1) / e)`.
 -/
-lemma bn_formula (n : ℕ): bn n.succ = (log (n.succ.factorial : ℝ)) -
+lemma log_stirling_seq_formula (n : ℕ): log_stirling_seq n.succ = (log (n.succ.factorial : ℝ)) -
   1 / (2 : ℝ) * (log (2 * (n.succ : ℝ))) - (n.succ : ℝ) * log ((n.succ : ℝ) / (exp 1)) :=
 begin
   have h3, from (lt_iff_le_and_ne.mp (zero_lt_sqrt_two_n n.succ (succ_ne_zero n))).right,
   have h4 : 0 ≠ ((n.succ : ℝ) / exp 1) ^ n.succ, from
     ne_of_lt ((pow_pos (div_pos (cast_pos.mpr n.succ_pos ) (exp_pos 1)) (n.succ))),
-  rw [bn, an, log_div, log_mul, sqrt_eq_rpow, log_rpow, log_pow],
+  rw [log_stirling_seq, stirling_seq, log_div, log_mul, sqrt_eq_rpow, log_rpow, log_pow],
   { linarith },
   { exact (zero_lt_mul_left zero_lt_two).mpr (cast_lt.mpr n.succ_pos),},
   { exact h3.symm, },
@@ -222,21 +220,21 @@ end
 
 
 /--
-The sequence `bn (m + 1) - bn (m + 2)` has the series expansion
+The sequence `log_stirling_seq (m + 1) - log_stirling_seq (m + 2)` has the series expansion
    `∑ 1 / (2 * (k + 1) + 1) * (1 / 2 * (m + 1) + 1)^(2 * (k + 1))`
 -/
-lemma bn_diff_has_sum (m : ℕ) :
+lemma log_stirling_seq_diff_has_sum (m : ℕ) :
   has_sum (λ (k : ℕ), (1 : ℝ) / (2 * k.succ + 1) * ((1 / (2 * m.succ + 1)) ^ 2) ^ (k.succ))
-  ((bn m.succ) - (bn m.succ.succ)) :=
+  ((log_stirling_seq m.succ) - (log_stirling_seq m.succ.succ)) :=
 begin
-  have hx : ∀ (n : ℕ), (bn n.succ) - (bn n.succ.succ) =
+  have hx : ∀ (n : ℕ), (log_stirling_seq n.succ) - (log_stirling_seq n.succ.succ) =
     ((n.succ : ℝ) + 1 / (2 : ℝ)) * log(((n.succ.succ) : ℝ) / (n.succ : ℝ)) - 1 :=
   begin
     intro n,
     have h_reorder : ∀ {a b c d e f : ℝ}, a - 1 / (2 : ℝ) * b - c - (d - 1 / (2 : ℝ) * e - f) =
       (a - d) - 1 / (2 : ℝ) * (b - e) - (c - f),
     by {intros, ring_nf},
-    rw [bn_formula, bn_formula, h_reorder],
+    rw [log_stirling_seq_formula, log_stirling_seq_formula, h_reorder],
     repeat {rw [log_div, factorial_succ]},
     push_cast,
     repeat {rw log_mul},
@@ -247,7 +245,7 @@ begin
     any_goals {exact factorial_ne_zero n},
     any_goals {exact exp_ne_zero 1},
   end,
-  have h_sum₀, from power_series_ln m.succ (succ_ne_zero m),
+  have h_sum₀, from power_series_log_succ_div m.succ (succ_ne_zero m),
   have h_nonzero : (m.succ : ℝ) + 1 / (2 : ℝ) ≠ 0,
   by {rw cast_succ, field_simp, norm_cast, linarith}, --there has to be a better way...
   rw has_sum_mul_left_iff h_nonzero at h_sum₀,
@@ -299,14 +297,14 @@ begin
     ((summable_nat_add_iff 1).mpr (has_sum.summable h_sum₁))).mpr h_sum,
 end
 
-/-- The sequence `bn` is monotone decreasing -/
-lemma bn_antitone : ∀ (n m : ℕ), n ≤ m → bn m.succ ≤ bn n.succ :=
+/-- The sequence `log_stirling_seq` is monotone decreasing -/
+lemma log_stirling_seq_antitone : ∀ (n m : ℕ), n ≤ m → log_stirling_seq m.succ ≤ log_stirling_seq n.succ :=
 begin
   apply antitone_nat_of_succ_le,
   intro n,
   refine sub_nonneg.mp _,
   rw ← succ_eq_add_one,
-  refine has_sum.nonneg _ (bn_diff_has_sum n),
+  refine has_sum.nonneg _ (log_stirling_seq_diff_has_sum n),
   norm_num,
   simp only [one_div],
   intro m,
@@ -315,10 +313,10 @@ begin
 end
 
 /--
-We have the bound  `bn n - bn (n+1) ≤ 1/(2n+1)^2* 1/(1-(1/2n+1)^2)`.
+We have the bound  `log_stirling_seq n - log_stirling_seq (n+1) ≤ 1/(2n+1)^2* 1/(1-(1/2n+1)^2)`.
 -/
-lemma bn_diff_le_geo_sum : ∀ (n : ℕ),
-  bn n.succ - bn n.succ.succ ≤ (1 / (2 * n.succ + 1)) ^ 2 / (1 - (1 / (2 * n.succ + 1)) ^ 2) :=
+lemma log_stirling_seq_diff_le_geo_sum : ∀ (n : ℕ),
+  log_stirling_seq n.succ - log_stirling_seq n.succ.succ ≤ (1 / (2 * n.succ + 1)) ^ 2 / (1 - (1 / (2 * n.succ + 1)) ^ 2) :=
 begin
   intro n,
   have g : has_sum (λ (k : ℕ), ((1 / (2 * (n.succ : ℝ) + 1)) ^ 2) ^ k.succ)
@@ -368,14 +366,14 @@ begin
       exact (le_add_iff_nonneg_left 1).mpr zero_le', },
     exact mul_le_of_le_one_left h_zero_le h_left,
   end,
-  exact has_sum_le hab (bn_diff_has_sum n) g,
+  exact has_sum_le hab (log_stirling_seq_diff_has_sum n) g,
 end
 
 /--
-We have the bound  `bn n - bn (n+1)` ≤ 1/(4n(n+1))
+We have the bound  `log_stirling_seq n - log_stirling_seq (n+1)` ≤ 1/(4n(n+1))
 -/
-lemma bn_sub_bn_succ : ∀ (n : ℕ),
-bn n.succ - bn n.succ.succ ≤ 1 / (4 * n.succ * n.succ.succ) :=
+lemma log_stirling_seq_sub_log_stirling_seq_succ : ∀ (n : ℕ),
+log_stirling_seq n.succ - log_stirling_seq n.succ.succ ≤ 1 / (4 * n.succ * n.succ.succ) :=
 begin
   intro n,
   have h₁ : 0 < 4 * (n.succ : ℝ) * (n.succ.succ : ℝ), by
@@ -393,7 +391,7 @@ begin
       linarith,
       refine lt_add_of_pos_left 1 ((1 : ℕ).succ_mul_pos (succ_pos n)), },
   end,
-  refine le_trans (bn_diff_le_geo_sum n) ((le_div_iff' h₁).mpr _),
+  refine le_trans (log_stirling_seq_diff_le_geo_sum n) ((le_div_iff' h₁).mpr _),
   rw mul_div (4 * (n.succ : ℝ) * (n.succ.succ : ℝ))
     ((1 / (2 * (n.succ : ℝ) + 1)) ^ 2) (1 - (1 / (2 * (n.succ : ℝ) + 1)) ^ 2),
   refine (div_le_one h₂).mpr _,
@@ -418,16 +416,18 @@ begin
   linarith,
 end
 
-/-- For any `n`, we have `bn 1 - bn n ≤ 1/4` -/
-lemma bn_bounded_aux : ∀ (n : ℕ), bn 1 - bn n.succ ≤ 1 / 4 :=
+/-- For any `n`, we have `log_stirling_seq 1 - log_stirling_seq n ≤ 1/4` -/
+lemma log_stirling_seq_bounded_aux : ∀ (n : ℕ), log_stirling_seq 1 - log_stirling_seq n.succ ≤ 1 / 4 :=
 begin
-  let bn' : (ℕ → ℝ) := λ (k : ℕ), bn k.succ,
+  let log_stirling_seq' : (ℕ → ℝ) := λ (k : ℕ), log_stirling_seq k.succ,
   intro n,
   calc
-  bn 1 - bn n.succ = bn' 0 - bn' n : rfl
-   ... = ∑ k in range n, (bn' k - bn' (k + 1))          : by rw ← (sum_range_sub' bn' n)
-   ... = ∑ k in range n, (bn k.succ - bn k.succ.succ)   : rfl
-   ... ≤ ∑ k in range n, 1 / (4 * k.succ * k.succ.succ) : sum_le_sum (λ k, λ hk, bn_sub_bn_succ k)
+  log_stirling_seq 1 - log_stirling_seq n.succ = log_stirling_seq' 0 - log_stirling_seq' n : rfl
+   ... = ∑ k in range n, (log_stirling_seq' k - log_stirling_seq' (k + 1)) :
+     by rw ← (sum_range_sub' log_stirling_seq' n)
+   ... = ∑ k in range n, (log_stirling_seq k.succ - log_stirling_seq k.succ.succ) : rfl
+   ... ≤ ∑ k in range n, 1 / (4 * k.succ * k.succ.succ) :
+     sum_le_sum (λ k, λ hk, log_stirling_seq_sub_log_stirling_seq_succ k)
    ... = ∑ k in range n, (1 / 4) * (1 / (k.succ * k.succ.succ)) :
    begin
      have hi : ∀ (k : ℕ), (1 : ℝ) / (4 * k.succ * k.succ.succ) =
@@ -454,14 +454,15 @@ begin
    ... = 1 / 4 : by rw mul_one,
 end
 
-/-- The sequence `bn` is bounded below by `3/4 - 1/2 * log 2`  for `n ≥ 1`. -/
-lemma bn_bounded_by_constant : ∀ (n : ℕ), 3 / (4 : ℝ) - 1 / 2 * log 2 ≤ bn n.succ :=
+/-- The sequence `log_stirling_seq` is bounded below by `3/4 - 1/2 * log 2`  for `n ≥ 1`. -/
+lemma log_stirling_seq_bounded_by_constant : ∀ (n : ℕ), 3 / (4 : ℝ) - 1 / 2 * log 2
+≤ log_stirling_seq n.succ :=
 begin
   intro n,
   calc
-  bn n.succ ≥ bn 1 - 1 / 4 : sub_le.mp (bn_bounded_aux n)
+  log_stirling_seq n.succ ≥ log_stirling_seq 1 - 1 / 4 : sub_le.mp (log_stirling_seq_bounded_aux n)
    ... = (log ((1 : ℕ).factorial) - 1 / 2 * log (2 * (1 : ℕ)) - (1 : ℕ) *
-          log ((1 : ℕ) / (exp 1))) - 1 / 4 : by rw bn_formula 0
+          log ((1 : ℕ) / (exp 1))) - 1 / 4 : by rw log_stirling_seq_formula 0
    ... = 0 - 1 / 2 * log 2 - log (1 / (exp 1)) - 1 / 4 :
       by simp only [factorial_one, cast_one, log_one, one_div, mul_one, log_inv, log_exp, mul_neg]
    ... = -1 / 2 * log 2 - log (1 / (exp 1)) - 1 / 4 : by ring
@@ -470,87 +471,79 @@ begin
    ... = 3 / (4 : ℝ) - 1 / 2 * log 2 : by ring,
 end
 
-/-- The sequence `bn` is bounded below. -/
-lemma bn_has_lower_bound : (lower_bounds (set.range (λ (k : ℕ), bn k.succ))).nonempty :=
-begin
-   use 3 / (4 : ℝ) - 1 / 2 * log 2,
-   intros,
-   rw lower_bounds,
-   rw [set.mem_set_of_eq],
-   simp only [set.mem_range, forall_apply_eq_imp_iff', forall_exists_index],
-   exact bn_bounded_by_constant,
-end
-
 /--
-Any sequence `bn` of real numbers that is monotone decreasing and bounded below has
+Any sequence `b` of real numbers that is monotone decreasing and bounded below has
 a limit in the real numbers.
 -/
-lemma monotone_convergence (bn : ℕ → ℝ) (h_sd : ∀ (n m : ℕ), n ≤ m → bn m ≤ bn n)
-  (h_bounded : (lower_bounds (set.range bn)).nonempty) : ∃ (m : ℝ), tendsto bn at_top (𝓝 m) :=
+lemma monotone_convergence (b : ℕ → ℝ) (h_sd : ∀ (n m : ℕ), n ≤ m → b m ≤ b n)
+  (h_bounded : (lower_bounds (set.range b)).nonempty) : ∃ (m : ℝ), tendsto b at_top (𝓝 m) :=
 begin
- use Inf (set.range bn),
- exact tendsto_at_top_is_glb h_sd (real.is_glb_Inf (set.range bn)
-   (set.range_nonempty bn) h_bounded),
+ use Inf (set.range b),
+ exact tendsto_at_top_is_glb h_sd (real.is_glb_Inf (set.range b)
+   (set.range_nonempty b) h_bounded),
 end
 
-/-- The sequence `an` is positive for `n > 0`  -/
-lemma an'_pos : ∀ (n : ℕ), 0 < an n.succ :=
+/-- The sequence `stirling_seq` is positive for `n > 0`  -/
+lemma stirling_seq'_pos : ∀ (n : ℕ), 0 < stirling_seq n.succ :=
  (λ n, div_pos (cast_pos.mpr (factorial_pos n.succ))
     (mul_pos ((real.sqrt_pos).mpr (mul_pos two_pos (cast_pos.mpr (succ_pos n))))
     (pow_pos (div_pos (cast_pos.mpr (succ_pos n)) (exp_pos 1)) n.succ)))
 
 /--
-The sequence `an` has the explicit lower bound exp (3/4 - 1/2 * log 2)
+The sequence `stirling_seq` has the explicit lower bound exp (3/4 - 1/2 * log 2)
 -/
-lemma an'_bounded_by_pos_constant : ∀ (n : ℕ), exp (3 / (4 : ℝ) - 1 / 2 * log 2) ≤ an n.succ :=
+lemma stirling_seq'_bounded_by_pos_constant :
+∀ (n : ℕ), exp (3 / (4 : ℝ) - 1 / 2 * log 2) ≤ stirling_seq n.succ :=
 begin
   intro n,
-  rw ← (le_log_iff_exp_le (an'_pos n)),
-  exact bn_bounded_by_constant n,
+  rw ← (le_log_iff_exp_le (stirling_seq'_pos n)),
+  exact log_stirling_seq_bounded_by_constant n,
 end
 
-/-- The sequence `an` is monotone decreasing -/
-lemma an'_antitone : ∀ (n m : ℕ), n ≤ m → an m.succ ≤ an n.succ :=
-  (λ n, λ m, λ h, (log_le_log (an'_pos m) (an'_pos n)).mp (bn_antitone n m h))
+/-- The sequence `stirling_seq` is monotone decreasing -/
+lemma stirling_seq'_antitone : ∀ (n m : ℕ), n ≤ m → stirling_seq m.succ ≤ stirling_seq n.succ :=
+  (λ n, λ m, λ h, (log_le_log (stirling_seq'_pos m) (stirling_seq'_pos n)).mp
+  (log_stirling_seq_antitone n m h))
 
 /-- The sequence `an` has a lower bound -/
-lemma an'_has_lower_bound : (lower_bounds (set.range (λ (k : ℕ), an k.succ))).nonempty :=
+lemma stirling_seq'_bdd_below : bdd_below (set.range (λ (k : ℕ), stirling_seq k.succ)) :=
 begin
    use exp (3 / (4 : ℝ) - 1 / 2 * log 2),
    intros,
    rw lower_bounds,
    simp only [set.mem_range, forall_exists_index, forall_apply_eq_imp_iff', set.mem_set_of_eq],
-   exact an'_bounded_by_pos_constant,
+   exact stirling_seq'_bounded_by_pos_constant,
 end
 
-/-- The sequence `an` converges to a real number -/
-lemma an_has_limit_a : ∃ (a : ℝ), tendsto (λ (n : ℕ), an n) at_top (𝓝 a) :=
+/-- The sequence `stirling_seq` converges to a real number -/
+lemma stirling_seq_has_limit_a : ∃ (a : ℝ), tendsto (λ (n : ℕ), stirling_seq n) at_top (𝓝 a) :=
 begin
-  have ha := monotone_convergence (λ (k : ℕ), an k.succ) an'_antitone an'_has_lower_bound,
+  have ha := monotone_convergence (λ (k : ℕ), stirling_seq k.succ)
+  stirling_seq'_antitone stirling_seq'_bdd_below,
   cases ha with x hx,
-  rw ← tendsto_succ an x at hx,
+  rw ← tendsto_succ stirling_seq x at hx,
   use x,
   exact hx,
 end
 
-/-- The limit `a` of the sequence `an` satisfies `0 < a` -/
-lemma an_has_pos_limit_a : ∃ (a : ℝ), 0 < a ∧ tendsto (λ (n : ℕ), an n) at_top (𝓝 a) :=
+/-- The limit `a` of the sequence `stirling_seq` satisfies `0 < a` -/
+lemma stirling_seq_has_pos_limit_a : ∃ (a : ℝ), 0 < a ∧ tendsto (λ (n : ℕ), stirling_seq n) at_top (𝓝 a) :=
 begin
-  have h := an_has_limit_a,
+  have h := stirling_seq_has_limit_a,
   cases h with a ha,
   use a,
   split,
-  { let an' : ℕ → ℝ := λ n, an n.succ,
-    rw tendsto_succ an a at ha,
-    have e_lower_bound : exp (3 / (4 : ℝ) - 1 / 2 * log 2) ∈ lower_bounds (set.range an') :=
+  { let stirling_seq' : ℕ → ℝ := λ n, stirling_seq n.succ,
+    rw tendsto_succ stirling_seq a at ha,
+    have e_lower_bound : exp (3 / (4 : ℝ) - 1 / 2 * log 2) ∈ lower_bounds (set.range stirling_seq') :=
     begin
       intros x hx,
       rw [set.mem_range] at hx,
       cases hx with k hk,
       rw ← hk,
-      exact an'_bounded_by_pos_constant k,
+      exact stirling_seq'_bounded_by_pos_constant k,
     end,
-    exact gt_of_ge_of_gt ((le_is_glb_iff (is_glb_of_tendsto_at_top an'_antitone ha)).mpr
+    exact gt_of_ge_of_gt ((le_is_glb_iff (is_glb_of_tendsto_at_top stirling_seq'_antitone ha)).mpr
       e_lower_bound) (3 / 4 - 1 / 2 * log 2).exp_pos },
   { exact ha },
 end
@@ -723,32 +716,33 @@ begin
     ring_nf }, --this one might be quite heavy without "generalize" before
 end
 
-/-- For `n : ℕ`, define `wn n` as `2^(4*n) * n!^4 / ((2*n)!^2 * (2*n + 1))` -/
-noncomputable def wn (n : ℕ) : ℝ :=
+/-- For `n : ℕ`, define `w n` as `2^(4*n) * n!^4 / ((2*n)!^2 * (2*n + 1))` -/
+noncomputable def w (n : ℕ) : ℝ :=
   ((2 : ℝ) ^ (4 * n) * (n.factorial) ^ 4) / ((((2 * n).factorial) ^ 2) * (2 * (n : ℝ) + 1))
 
-/-- The sequence `wn n`converges to `π/2`-/
-lemma wallis_consequence : tendsto (λ (n : ℕ), wn n) at_top (𝓝 (π/2)) :=
+/-- The sequence `w n` converges to `π/2` -/
+lemma wallis_consequence : tendsto (λ (n : ℕ), w n) at_top (𝓝 (π/2)) :=
 begin
   convert equality1,
-  simp only [equation6, equation3, wn, equation4', equation5', wn],
+  simp only [equation6, equation3, w, equation4', equation5', w],
 end
 
 /--
-If a sequence  `an` has a limit `A`, then the subsequence of only even terms has the same limit
+If a sequence  `a` has a limit `A`, then the subsequence of only even terms has the same limit
 -/
-lemma sub_seq_tendsto {an : ℕ → ℝ} {A : ℝ} (h : tendsto an at_top (𝓝 A)) :
-  tendsto (λ (n : ℕ), an (2 * n)) at_top (𝓝 A) :=
+lemma sub_seq_tendsto {a : ℕ → ℝ} {A : ℝ} (h : tendsto a at_top (𝓝 A)) :
+  tendsto (λ (n : ℕ), a (2 * n)) at_top (𝓝 A) :=
 h.comp (tendsto_id.const_mul_at_top' two_pos)
 
-/-- For `n : ℕ`, define `cn n` as √2n * (n/e)^(4n) *2^(4n) / ((√4n (2n/e)^(2n))^2 * (2n+1)) -/
-noncomputable def cn (n : ℕ) : ℝ := ((sqrt (2 * n) * ((n / (exp 1)) ^ n)) ^ 4) * 2 ^ (4 * n) /
+/-- For `n : ℕ`, define `c n` as
+$\sqrt{2n}(\frac{n}{e})^{4n}*\frac{2^{4n}}{(\sqrt{4n}(\frac{2n}{e})^(2n))^2 * (2n+1)}$ -/
+noncomputable def c (n : ℕ) : ℝ := ((sqrt (2 * n) * ((n / (exp 1)) ^ n)) ^ 4) * 2 ^ (4 * n) /
   (((sqrt (4 * n) * (((2 * n) / (exp 1))) ^ (2 * n))) ^ 2 * (2 * n + 1))
 
-/-- For any `n :ℕ`, we have `cn n` = n/(2n+1)-/
-lemma rest_cancel (n : ℕ) : (n : ℝ) / (2 * n + 1) = cn n :=
+/-- For any `n : ℕ`, we have `c n` = n / (2 * n + 1) -/
+lemma rest_cancel (n : ℕ) : (n : ℝ) / (2 * n + 1) = c n :=
 begin
-  rw cn,
+  rw c,
   have h₀ : 4 = 2 * 2, by refl,
   rw [mul_pow, mul_pow, h₀, pow_mul, sq_sqrt, sq_sqrt],
   { cases n,
@@ -766,8 +760,8 @@ begin
   all_goals {norm_cast, linarith},
 end
 
-/-- The sequence `cn n` has limit `1/2`-/
-lemma rest_has_limit_one_half : tendsto (λ (n : ℕ), cn n) at_top (𝓝 (1 / 2)) :=
+/-- The sequence `c n` has limit `1/2` -/
+lemma rest_has_limit_one_half : tendsto (λ (n : ℕ), c n) at_top (𝓝 (1 / 2)) :=
 begin
   apply (tendsto.congr rest_cancel),
   have h : tendsto (λ (k : ℕ), (((k : ℝ) / (2 * (k : ℝ) + 1))⁻¹))
@@ -795,20 +789,23 @@ begin
 end
 
 /--
-Suppose the sequence `an` (defined above) has a nonzero limit `a ≠ 0`.
-Then the sequence `1/ (an n)^2` has the limit `1/a^2`.
+Suppose the sequence `stirling_seq` (defined above) has a nonzero limit `a ≠ 0`.
+Then the sequence `1/(log_stirling_seq n)^2` has the limit `1/a^2`.
 -/
-lemma an_aux3 (a : ℝ) (hane : a ≠ 0) (ha : tendsto (λ (n : ℕ), an n) at_top (𝓝 a)) :
-  tendsto (λ (n : ℕ), (1 / (an n)) ^ 2) at_top (𝓝 ((1 / a) ^ 2)) :=
+lemma stirling_seq_aux3 (a : ℝ) (hane : a ≠ 0) (ha : tendsto (λ (n : ℕ), stirling_seq n) at_top (𝓝 a)) :
+  tendsto (λ (n : ℕ), (1 / (stirling_seq n)) ^ 2) at_top (𝓝 ((1 / a) ^ 2)) :=
 begin
- convert tendsto.pow (tendsto.congr (λ n, (one_div (an n)).symm) (tendsto.inv₀ ha hane)) 2,
+ convert tendsto.pow (tendsto.congr (λ n, (one_div (stirling_seq n)).symm)
+   (tendsto.inv₀ ha hane)) 2,
  rw [one_div],
 end
 
-/-- For any `n ≠ 0`, we have the identity `(an n)^4/ (an (2n))^2 * (cn n) = wn n`. -/
-lemma expand_in_limit (n : ℕ) (hn : n ≠ 0) : (an n) ^ 4 * (1 / (an (2 * n))) ^ 2 * cn n = wn n :=
+/-- For any `n ≠ 0`, we have the identity
+`(stirling_seq n)^4/(stirling_seq (2*n))^2 * (c n) = w n`. -/
+lemma expand_in_limit (n : ℕ) (hn : n ≠ 0) :
+  (stirling_seq n) ^ 4 * (1 / (stirling_seq (2 * n))) ^ 2 * c n = w n :=
 begin
-  rw [an, an, cn, wn],
+  rw [stirling_seq, stirling_seq, c, w],
   have : (4 : ℝ) = (2 : ℝ) * 2, by norm_cast,
   rw this,
   rw [cast_mul 2 n, cast_two, ←mul_assoc],
@@ -828,28 +825,30 @@ begin
   ring_nf,
 end
 
-/-- For any `n : ℕ`, we have the identity (an n+1)^4/ (an (2(n+1)))^2 * (cn n+1) = wn n+1. -/
+/-- For any `n : ℕ`, we have the identity
+(stirling_seq n+1)^4/ (stirling_seq (2(n+1)))^2 * (c n+1) = w n+1. -/
 lemma expand_in_limit' (n : ℕ) :
-  (an n.succ) ^ 4 * (1 / (an (2 * n.succ))) ^ 2 * cn n.succ = wn n.succ :=
+  (stirling_seq n.succ) ^ 4 * (1 / (stirling_seq (2 * n.succ))) ^ 2 * c n.succ = w n.succ :=
   expand_in_limit n.succ (succ_ne_zero n)
 
 /--
-Suppose the sequence `an` (defined above) has the limit `a ≠ 0`.
-Then the sequence `wn` has limit `a^2/2`
+Suppose the sequence `stirling_seq` (defined above) has the limit `a ≠ 0`.
+Then the sequence `w` has limit `a^2/2`
 -/
-lemma second_wallis_limit (a : ℝ) (hane : a ≠ 0) (ha : tendsto an at_top (𝓝 a)) :
-  tendsto wn at_top (𝓝 (a ^ 2 / 2)):=
+lemma second_wallis_limit (a : ℝ) (hane : a ≠ 0) (ha : tendsto stirling_seq at_top (𝓝 a)) :
+  tendsto w at_top (𝓝 (a ^ 2 / 2)):=
 begin
-  rw tendsto_succ wn (a ^ 2 / 2),
+  rw tendsto_succ w (a ^ 2 / 2),
   apply tendsto.congr expand_in_limit',
-  let qn := λ (n : ℕ), an n ^ 4 * (1 / an (2 * n)) ^ 2 * cn n,
+  let qn := λ (n : ℕ), stirling_seq n ^ 4 * (1 / stirling_seq (2 * n)) ^ 2 * c n,
   have hqn :
-    ∀ (n : ℕ), qn n.succ = an n.succ ^ 4 * (1 / an (2 * n.succ)) ^ 2 * cn n.succ := by tauto,
+    ∀ (n : ℕ), qn n.succ = stirling_seq n.succ ^ 4 * (1 / stirling_seq (2 * n.succ)) ^ 2 * c n.succ
+    := by tauto,
   apply tendsto.congr hqn,
   rw ←tendsto_succ qn (a ^ 2 / 2),
-  have has : tendsto (λ (n : ℕ), an n ^ 4 * (1 / an (2 * n)) ^ 2) at_top (𝓝 (a ^ 2)) :=
+  have has : tendsto (λ (n : ℕ), stirling_seq n ^ 4 * (1 / stirling_seq (2 * n)) ^ 2) at_top (𝓝 (a ^ 2)) :=
   begin
-    convert tendsto.mul (tendsto.pow ha 4) (sub_seq_tendsto (an_aux3 a hane ha)),
+    convert tendsto.mul (tendsto.pow ha 4) (sub_seq_tendsto (stirling_seq_aux3 a hane ha)),
     field_simp,
     ring_nf,
   end,
@@ -857,10 +856,10 @@ begin
   rw [one_div, div_eq_mul_inv],
 end
 
-/-- Stirling's Formula -/
-lemma an_has_limit_sqrt_pi : tendsto (λ (n : ℕ), an n) at_top (𝓝 (sqrt π)) :=
+/-- **Stirling's Formula** -/
+lemma stirling_seq_has_limit_sqrt_pi : tendsto (λ (n : ℕ), stirling_seq n) at_top (𝓝 (sqrt π)) :=
 begin
-  have ha := an_has_pos_limit_a,
+  have ha := stirling_seq_has_pos_limit_a,
   cases ha with a ha,
   cases ha with hapos halimit,
   have hπ : π / 2 = a ^ 2 / 2 := tendsto_nhds_unique wallis_consequence

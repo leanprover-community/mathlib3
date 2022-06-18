@@ -152,10 +152,8 @@ begin
       = sqrt 2 / log 4 * (log x / sqrt x) : by rw mul_div_assoc
   ... ≤ sqrt 2 / log 4 * (log 722 / sqrt 722) :
           begin
-            rw mul_le_mul_left,
-            { exact log_div_sqrt_antitone_on exp_two_le_722
-                      (le_trans exp_two_le_722 n_large) n_large, },
-            { exact div_pos (sqrt_pos.2 two_pos) log_four_pos, },
+            rw mul_le_mul_left (div_pos (sqrt_pos.2 two_pos) log_four_pos),
+            exact log_div_sqrt_antitone_on exp_two_le_722 (le_trans exp_two_le_722 n_large) n_large,
           end
   ... = log 722 / log 4 * sqrt 2 / sqrt 722 : by ring
   ... ≤ 1 / 4 :
@@ -196,8 +194,7 @@ begin
   -- Discharge most of the side goals
   repeat { linarith, },
   { rw ←div_lt_one,
-    simp only [add_div, mul_add, add_mul, add_div, ←add_assoc],
-    simp only [zero_le_one, sqrt_mul, zero_le_bit0],
+    simp only [add_div, mul_add, add_mul, add_div, ←add_assoc, zero_le_one, sqrt_mul, zero_le_bit0],
     { rw [equality4 x (by linarith)],
       have x_100 : 100 ≤ x := by linarith,
       have x_313 : 313 ≤ x := by linarith,
@@ -227,8 +224,7 @@ begin
   have n_pos : 0 < (n : ℝ),
   { rw ←cast_zero, norm_num, linarith, },
   have fact2 : 0 < 2 * (n : ℝ) := by linarith,
-  simp only [cast_bit0, cast_add, cast_one, cast_mul, cast_pow],
-  simp only [←real.rpow_nat_cast],
+  simp only [cast_bit0, cast_add, cast_one, cast_mul, cast_pow, ←real.rpow_nat_cast],
   apply le_of_lt,
   calc
   (n : ℝ) * (2 * (n : ℝ)) ^ (sqrt (2 * n) : ℝ) * 4 ^ (((2 * n / 3) : ℕ) : ℝ)
@@ -250,9 +246,7 @@ begin
             { refine real.rpow_le_rpow_of_exponent_le one_le_four _,
               { apply trans cast_div_le,
                 { apply le_of_eq,
-                  congr,
-                  { simp only [cast_bit0, cast_one, cast_mul], },
-                  { simp only [cast_bit1, cast_one], }, },
+                  simp only [cast_bit0, cast_bit1, cast_one, cast_mul], },
                 { exact is_trans.swap (λ (x y : ℝ), y ≤ x), }, }, },
             { exact mul_pos n_pos (real.rpow_pos_of_pos fact2 _), },
           end
@@ -284,8 +278,7 @@ begin
   have x_le_two_mul_n : x ≤ 2 * n,
   { apply le_two_mul_of_factorization_central_binom_pos,
     contrapose! h,
-    rw [nat.le_zero_iff] at h,
-    rw h,
+    rw nat.eq_zero_of_le_zero h,
     exact pow_zero x, },
   apply no_prime,
   -- ⟨x, ⟨hx, ⟨_, x_le_two_mul_n⟩⟩⟩,
@@ -402,8 +395,7 @@ central_binom n
           intros x _ x_prime h,
           split,
           { exact le_of_lt (nat.prime.one_lt x_prime), },
-          { rw lt_succ_iff,
-            rw le_sqrt',
+          { rw [lt_succ_iff, le_sqrt'],
             exact le_of_lt h, },
         end
 ... = (2 * n) ^ (sqrt (2 * n))

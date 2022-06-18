@@ -427,6 +427,7 @@ instance : lie_group (𝓡 1) circle :=
   end,
   smooth_inv := begin
     apply cont_mdiff.cod_restrict_sphere,
+    simp only [← coe_inv_circle, coe_inv_circle_eq_conj],
     exact complex.conj_cle.cont_diff.cont_mdiff.comp cont_mdiff_coe_sphere
   end }
 

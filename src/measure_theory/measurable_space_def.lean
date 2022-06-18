@@ -323,10 +323,6 @@ iff.intro
   generate_from {s : set α | measurable_set s} = ‹_› :=
 le_antisymm (generate_from_le $ λ _, id) $ λ s, measurable_set_generate_from
 
-lemma generate_from_measurable_set' (m : measurable_space α) :
-  generate_from m.measurable_set' = m :=
-generate_from_measurable_set
-
 /-- If `g` is a collection of subsets of `α` such that the `σ`-algebra generated from `g` contains
 the same sets as `g`, then `g` was already a `σ`-algebra. -/
 protected def mk_of_closure (g : set (set α)) (hg : {t | measurable_set[generate_from g] t} = g) :

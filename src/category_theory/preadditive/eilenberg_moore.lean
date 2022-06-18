@@ -25,6 +25,7 @@ variables (C : Type u₁) [category.{v₁} C] [preadditive C] (T : monad C)
 open category_theory.limits preadditive
 
 /-- The category of algebras over an additive monad on a preadditive category is preadditive. -/
+@[simps]
 instance monad.algebra_preadditive : preadditive (monad.algebra T) :=
 { hom_group := λ F G,
   { add := λ α β,

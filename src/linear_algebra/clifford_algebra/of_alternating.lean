@@ -32,7 +32,7 @@ by apply_instance
 
 /-- Build a map out of the exterior algebra given a collection of alternating maps acting on each
 exterior power -/
-def exterior_algebra.lift_direct_sum {n : ℕ} :
+def exterior_algebra.lift_direct_sum :
   (⨁ i, alternating_map R M N (fin i)) →ₗ[R] clifford_algebra (0 : quadratic_form R M) →ₗ[R] N :=
 begin
   suffices :
@@ -67,6 +67,34 @@ begin
       linear_map.flip_apply, alternating_map.curry_left_linear_map_apply,
       alternating_map.curry_left_same, direct_sum.zero_apply], }
 end
+
+@[simp]
+lemma exterior_algebra.lift_direct_sum_of (i : ℕ) (f : alternating_map R M N (fin i))
+  (v : fin i → M) :
+  exterior_algebra.lift_direct_sum (direct_sum.of _ i f)
+    ((list.of_fn v).map (clifford_algebra.ι (0 : quadratic_form R M))).prod = f v :=
+begin
+  rw exterior_algebra.lift_direct_sum,
+  dsimp [direct_sum.component],
+  induction i generalizing v,
+  sorry { dsimp,
+    rw [clifford_algebra.foldr_one, direct_sum.of_eq_same, subsingleton.elim 0 v] },
+  rw [list.of_fn_succ', list.map_concat, list.prod_concat, clifford_algebra.foldr_mul,
+    clifford_algebra.foldr_ι, linear_map.mk₂_apply, dfinsupp.comap_domain'_apply],
+  have := i_ih (f.curry_left (v 0)) (λ i, v (nat.succ i)),
+  -- rw [list.of_fn_succ, list.map_cons, list.prod_cons, clifford_algebra.foldr_mul,
+  --   clifford_algebra.foldr_ι, linear_map.mk₂_apply, dfinsupp.map_range_apply,
+  --   dfinsupp.comap_domain'_apply, linear_map.flip_apply,
+  --   alternating_map.curry_left_linear_map_apply,
+  --   alternating_map.curry_left_apply_apply, matrix.zero_empty],
+  -- have := i_ih (f.curry_left (v 0)) (λ i, v (nat.succ i)),
+  -- simp at this,
+  -- dsimp,
+  -- rw clifford_algebra.foldr_algebra_map,
+  -- simp,
+  -- congr' 1,
+end
+
 
 /-- TODO: reimplement this with `exterior_algebra.lift_direct_sum`. -/
 def alternating_map.to_exterior_hom {n : ℕ} (f : alternating_map R M N (fin n)) :

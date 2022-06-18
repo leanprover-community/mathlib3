@@ -67,8 +67,7 @@ for ease of testing as:
 
 ```lean
 /- ... -/
-  shrink := λ ⟨x,y,h⟩, (λ ⟨x,y⟩, { x := x, y := x + y, h := /- proof -/}) <$> shrink (x, y - x)
-}
+  shrink := λ ⟨x,y,h⟩, (λ ⟨x,y⟩, { x := x, y := x + y, h := /- proof -/}) <$> shrink (x, y - x) }
 ```
 
 Again, we take advantage of the fact that other types have useful
@@ -244,7 +243,7 @@ instance default_printable_prop {p} : printable_prop p :=
 class testable (p : Prop) :=
 (run [] (cfg : slim_check_cfg) (minimize : bool) : gen (test_result p))
 
-open list
+open _root_.list
 
 open test_result
 
@@ -428,14 +427,14 @@ instance test_forall_in_list
                                        right, apply h' })
                                  rs
                                  (combine (psum.inr
-                                  $ by { intros j h, simp only [ball_cons,named_binder],
+                                  $ by { intros j h, simp only [ball_cons, named_binder],
                                          split ; assumption, } ) hp)
       | gave_up n := do
          rs ← @testable.run _ (test_forall_in_list xs) cfg min,
          match rs with
          | (success _) := return $ gave_up n
          | (failure Hce xs n) := return $ failure
-                      (by { simp only [ball_cons,named_binder],
+                      (by { simp only [ball_cons, named_binder],
                             apply not_and_of_not_right _ Hce, }) xs n
          | (gave_up n') := return $ gave_up (n + n')
          end
@@ -549,10 +548,11 @@ instance prop_var_testable (β : Prop → Prop) [I : ∀ b : bool, testable (β 
     (named_binder var $ Π b : bool, β b) _ cfg min⟩
 
 @[priority 3000]
-instance unused_var_testable (β) [inhabited α] [testable β] : testable (named_binder var $ Π x : α, β) :=
+instance unused_var_testable (β) [inhabited α] [testable β] :
+  testable (named_binder var $ Π x : α, β) :=
 ⟨ λ cfg min, do
   r ← testable.run β cfg min,
-  pure $ convert_counter_example ($ default _) r (psum.inr $ λ x _, x) ⟩
+  pure $ convert_counter_example ($ default) r (psum.inr $ λ x _, x) ⟩
 
 @[priority 2000]
 instance subtype_var_testable {p : α → Prop}
@@ -640,7 +640,7 @@ instance bool.printable_prop (b : bool) : printable_prop b :=
 
 section io
 
-open nat
+open _root_.nat
 variable {p : Prop}
 
 /-- Execute `cmd` and repeat every time the result is `gave_up` (at most
@@ -693,7 +693,7 @@ end
 
 namespace tactic
 
-open tactic expr
+open _root_.tactic expr
 
 /-!
 ## Decorations

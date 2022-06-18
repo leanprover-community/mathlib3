@@ -99,8 +99,8 @@ begin
     { rw H_symm at hH, solve_by_elim },
     { solve_by_elim },
     -- The final two cases are very similar.
-    all_goals {
-      -- Consider the quadratic equation that (a,b) satisfies.
+    all_goals
+    { -- Consider the quadratic equation that (a,b) satisfies.
       rw H_quad at hH,
       -- We find the other root of the equation, and Vieta's formulas.
       rcases Vieta_formula_quadratic hH with ⟨c, h_root, hV₁, hV₂⟩,

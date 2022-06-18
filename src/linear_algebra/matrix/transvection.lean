@@ -3,17 +3,18 @@ Copyright (c) 2021 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
+import data.matrix.basis
+import data.matrix.dmatrix
 import linear_algebra.matrix.determinant
 import linear_algebra.matrix.trace
 import linear_algebra.matrix.reindex
 import tactic.field_simp
-import data.matrix.basis
 
 /-!
 # Transvections
 
 Transvections are matrices of the form `1 + std_basis_matrix i j c`, where `std_basis_matrix i j c`
-is the basic matrix with a `1` at position `(i, j)`. Multiplying by such a transvection on the left
+is the basic matrix with a `c` at position `(i, j)`. Multiplying by such a transvection on the left
 (resp. on the right) amounts to adding `c` times the `j`-th row to to the `i`-th row
 (resp `c` times the `i`-th column to the `j`-th column). Therefore, they are useful to present
 algorithms operating on rows and columns.
@@ -89,7 +90,7 @@ lemma update_row_eq_transvection (c : R) :
     transvection i j c :=
 begin
   ext a b,
-  by_cases ha : i = a; by_cases hb : j = b,
+  by_cases ha : i = a, by_cases hb : j = b,
   { simp only [update_row, transvection, ha, hb, function.update_same, std_basis_matrix.apply_same,
       pi.add_apply, one_apply_eq, pi.smul_apply, mul_one, algebra.id.smul_eq_mul], },
   { simp only [update_row, transvection, ha, hb, std_basis_matrix.apply_of_ne, function.update_same,
@@ -98,9 +99,6 @@ begin
   { simp only [update_row, transvection, ha, ne.symm ha, std_basis_matrix.apply_of_ne, add_zero,
       algebra.id.smul_eq_mul, function.update_noteq, ne.def, not_false_iff, dmatrix.add_apply,
       pi.smul_apply, mul_zero, false_and] },
-  { simp only [update_row, transvection, ha, hb, ne.symm ha, std_basis_matrix.apply_of_ne, add_zero,
-      algebra.id.smul_eq_mul, function.update_noteq, ne.def, not_false_iff, and_self,
-      dmatrix.add_apply, pi.smul_apply, mul_zero] }
 end
 
 lemma transvection_mul_transvection_same (h : i ≠ j) (c d : R) :

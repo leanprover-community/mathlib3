@@ -3,7 +3,7 @@ Copyright (c) 2020 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import geometry.manifold.smooth_manifold_with_corners
+import geometry.manifold.charted_space
 
 /-!
 # Local properties invariant under a groupoid

@@ -4,10 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
 import category_theory.over
-import category_theory.limits.preserves.basic
-import category_theory.limits.creates
-import category_theory.limits.shapes.binary_products
 import category_theory.monad.algebra
+import category_theory.limits.shapes.binary_products
 
 /-!
 # Algebras for the coproduct monad
@@ -79,7 +77,7 @@ end
 
 section
 
-open monad
+open _root_.monad
 variable [has_binary_coproducts C]
 
 /-- `X ⨿ -` has a monad structure. This is sometimes called the either monad. -/

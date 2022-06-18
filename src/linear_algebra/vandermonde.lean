@@ -115,11 +115,26 @@ begin
       simp },
     { intros i j,
       simp only [smul_eq_mul, pi.add_apply, fin.coe_succ, fin.coe_cast_succ, pi.smul_apply],
-      rw [finset.sum_range_succ, add_comm, nat.sub_self, pow_zero, mul_one, finset.mul_sum],
+      rw [finset.sum_range_succ, add_comm, tsub_self, pow_zero, mul_one, finset.mul_sum],
       congr' 1,
       refine finset.sum_congr rfl (λ i' hi', _),
       rw [mul_left_comm (v 0), nat.succ_sub, pow_succ],
       exact nat.lt_succ_iff.mp (finset.mem_range.mp hi') } }
 end
+
+lemma det_vandermonde_eq_zero_iff [is_domain R] {n : ℕ} {v : fin n → R} :
+  det (vandermonde v) = 0 ↔ ∃ (i j : fin n), v i = v j ∧ i ≠ j :=
+begin
+  split,
+  { simp only [det_vandermonde v, finset.prod_eq_zero_iff, sub_eq_zero, forall_exists_index],
+    exact λ i _ j h₁ h₂, ⟨j, i, h₂, (finset.mem_filter.mp h₁).2.ne'⟩ },
+  { simp only [ne.def, forall_exists_index, and_imp],
+    refine λ i j h₁ h₂, matrix.det_zero_of_row_eq h₂ (funext $ λ k, _),
+    rw [vandermonde_apply, vandermonde_apply, h₁], }
+end
+
+lemma det_vandermonde_ne_zero_iff [is_domain R] {n : ℕ} {v : fin n → R} :
+  det (vandermonde v) ≠ 0 ↔ function.injective v :=
+by simpa only [det_vandermonde_eq_zero_iff, ne.def, not_exists, not_and, not_not]
 
 end matrix

@@ -5,7 +5,7 @@ Authors: Kenny Lau, Eric Wieser
 -/
 
 import algebra.char_p.basic
-import algebra.ring_quot
+import ring_theory.ideal.quotient
 
 /-!
 # Characteristic of quotients rings
@@ -16,9 +16,9 @@ universes u v
 namespace char_p
 
 theorem quotient (R : Type u) [comm_ring R] (p : ℕ) [hp1 : fact p.prime] (hp2 : ↑p ∈ nonunits R) :
-  char_p (ideal.span {p} : ideal R).quotient p :=
-have hp0 : (p : (ideal.span {p} : ideal R).quotient) = 0,
-  from (ideal.quotient.mk (ideal.span {p} : ideal R)).map_nat_cast p ▸
+  char_p (R ⧸ (ideal.span {p} : ideal R)) p :=
+have hp0 : (p : R ⧸ (ideal.span {p} : ideal R)) = 0,
+  from map_nat_cast (ideal.quotient.mk (ideal.span {p} : ideal R)) p ▸
     ideal.quotient.eq_zero_iff_mem.2 (ideal.subset_span $ set.mem_singleton _),
 ring_char.of_eq $ or.resolve_left ((nat.dvd_prime hp1.1).1 $ ring_char.dvd hp0) $ λ h1,
 hp2 $ is_unit_iff_dvd_one.2 $ ideal.mem_span_singleton.1 $ ideal.quotient.eq_zero_iff_mem.1 $
@@ -28,10 +28,10 @@ hp2 $ is_unit_iff_dvd_one.2 $ ideal.mem_span_singleton.1 $ ideal.quotient.eq_zer
 inherits the characteristic of the underlying ring. -/
 lemma quotient' {R : Type*} [comm_ring R] (p : ℕ) [char_p R p] (I : ideal R)
   (h : ∀ x : ℕ, (x : R) ∈ I → (x : R) = 0) :
-  char_p I.quotient p :=
+  char_p (R ⧸ I) p :=
 ⟨λ x, begin
-  rw [←cast_eq_zero_iff R p x, ←(ideal.quotient.mk I).map_nat_cast],
-  refine quotient.eq'.trans (_ : ↑x - 0 ∈ I ↔ _),
+  rw [←cast_eq_zero_iff R p x, ←map_nat_cast (ideal.quotient.mk I)],
+  refine ideal.quotient.eq.trans (_ : ↑x - 0 ∈ I ↔ _),
   rw sub_zero,
   exact ⟨h x, λ h', h'.symm ▸ I.zero_mem⟩,
 end⟩

@@ -47,11 +47,11 @@ variables [has_zero β] [preorder β] {s t : set α} {f g : α → β} {a : α} 
 lemma indicator_eventually_le_indicator (h : f ≤ᶠ[l ⊓ 𝓟 s] g) :
   indicator s f ≤ᶠ[l] indicator s g :=
 (eventually_inf_principal.1 h).mono $ assume a h,
-indicator_rel_indicator (le_refl _) h
+indicator_rel_indicator le_rfl h
 
 end order
 
-lemma tendsto_indicator_of_monotone {ι} [preorder ι] [has_zero β]
+lemma monotone.tendsto_indicator {ι} [preorder ι] [has_zero β]
   (s : ι → set α) (hs : monotone s) (f : α → β) (a : α) :
   tendsto (λi, indicator (s i) f a) at_top (pure $ indicator (⋃ i, s i) f a) :=
 begin
@@ -65,8 +65,8 @@ begin
     apply indicator_of_not_mem, simpa only [not_exists, mem_Union] }
 end
 
-lemma tendsto_indicator_of_antimono {ι} [preorder ι] [has_zero β]
-  (s : ι → set α) (hs : ∀⦃i j⦄, i ≤ j → s j ⊆ s i) (f : α → β) (a : α) :
+lemma antitone.tendsto_indicator {ι} [preorder ι] [has_zero β]
+  (s : ι → set α) (hs : antitone s) (f : α → β) (a : α) :
   tendsto (λi, indicator (s i) f a) at_top (pure $ indicator (⋂ i, s i) f a) :=
 begin
   by_cases h : ∃i, a ∉ s i,
@@ -83,6 +83,34 @@ lemma tendsto_indicator_bUnion_finset {ι} [has_zero β] (s : ι → set α) (f 
   tendsto (λ (n : finset ι), indicator (⋃i∈n, s i) f a) at_top (pure $ indicator (Union s) f a) :=
 begin
   rw Union_eq_Union_finset s,
-  refine tendsto_indicator_of_monotone (λ n : finset ι, ⋃ i ∈ n, s i) _ f a,
+  refine monotone.tendsto_indicator (λ n : finset ι, ⋃ i ∈ n, s i) _ f a,
   exact λ t₁ t₂, bUnion_subset_bUnion_left
+end
+
+lemma filter.eventually_eq.support [has_zero β] {f g : α → β} {l : filter α}
+  (h : f =ᶠ[l] g) :
+  function.support f =ᶠ[l] function.support g :=
+begin
+  filter_upwards [h] with x hx,
+  rw eq_iff_iff,
+  change f x ≠ 0 ↔ g x ≠ 0,
+  rw hx,
+end
+
+lemma filter.eventually_eq.indicator [has_zero β] {l : filter α} {f g : α → β} {s : set α}
+  (hfg : f =ᶠ[l] g) :
+  s.indicator f =ᶠ[l] s.indicator g :=
+begin
+  filter_upwards [hfg] with x hx,
+  by_cases x ∈ s,
+  { rwa [indicator_of_mem h, indicator_of_mem h] },
+  { rw [indicator_of_not_mem h, indicator_of_not_mem h] }
+end
+
+lemma filter.eventually_eq.indicator_zero [has_zero β] {l : filter α}
+  {f : α → β} {s : set α} (hf : f =ᶠ[l] 0) :
+  s.indicator f =ᶠ[l] 0 :=
+begin
+  refine hf.indicator.trans _,
+  rw indicator_zero'
 end

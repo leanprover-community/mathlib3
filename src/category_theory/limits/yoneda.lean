@@ -121,4 +121,28 @@ in
     exact (w j),
   end }
 
+variables {D : Type u} [small_category D]
+
+instance yoneda_functor_preserves_limits : preserves_limits (@yoneda D _) :=
+begin
+  apply preserves_limits_of_evaluation,
+  intro K,
+  change preserves_limits (coyoneda.obj K),
+  apply_instance
+end
+
+instance coyoneda_functor_preserves_limits : preserves_limits (@coyoneda D _) :=
+begin
+  apply preserves_limits_of_evaluation,
+  intro K,
+  change preserves_limits (yoneda.obj K),
+  apply_instance
+end
+
+instance yoneda_functor_reflects_limits : reflects_limits (@yoneda D _) :=
+limits.fully_faithful_reflects_limits _
+
+instance coyoneda_functor_reflects_limits : reflects_limits (@coyoneda D _) :=
+limits.fully_faithful_reflects_limits _
+
 end category_theory

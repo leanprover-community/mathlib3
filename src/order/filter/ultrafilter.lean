@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Jeremy Avigad, Yury Kudryashov
 -/
 import order.filter.cofinite
+import order.zorn
 
 /-!
 # Ultrafilters
@@ -21,7 +22,7 @@ In this file we define
 universes u v
 variables {α : Type u} {β : Type v}
 
-open set zorn filter function
+open set filter function
 open_locale classical filter
 
 /-- An ultrafilter is a minimal (maximal in the set order) proper filter. -/
@@ -49,8 +50,11 @@ instance ne_bot (f : ultrafilter α) : ne_bot (f : filter α) := f.ne_bot'
 lemma coe_injective : injective (coe : ultrafilter α → filter α)
 | ⟨f, h₁, h₂⟩ ⟨g, h₃, h₄⟩ rfl := by congr
 
+lemma eq_of_le {f g : ultrafilter α} (h : (f : filter α) ≤ g) : f = g :=
+coe_injective (g.unique h)
+
 @[simp, norm_cast] lemma coe_le_coe {f g : ultrafilter α} : (f : filter α) ≤ g ↔ f = g :=
-⟨λ h, coe_injective $ g.unique h, λ h, h ▸ le_rfl⟩
+⟨λ h, eq_of_le h, λ h, h ▸ le_rfl⟩
 
 @[simp, norm_cast] lemma coe_inj : (f : filter α) = g ↔ f = g := coe_injective.eq_iff
 
@@ -106,11 +110,11 @@ lemma eventually_not : (∀ᶠ x in f, ¬p x) ↔ ¬∀ᶠ x in f, p x := compl_
 lemma eventually_imp : (∀ᶠ x in f, p x → q x) ↔ (∀ᶠ x in f, p x) → ∀ᶠ x in f, q x :=
 by simp only [imp_iff_not_or, eventually_or, eventually_not]
 
-lemma finite_sUnion_mem_iff {s : set (set α)} (hs : finite s) : ⋃₀ s ∈ f ↔ ∃t∈s, t ∈ f :=
+lemma finite_sUnion_mem_iff {s : set (set α)} (hs : s.finite) : ⋃₀ s ∈ f ↔ ∃t∈s, t ∈ f :=
 finite.induction_on hs (by simp) $ λ a s ha hs his,
   by simp [union_mem_iff, his, or_and_distrib_right, exists_or_distrib]
 
-lemma finite_bUnion_mem_iff {is : set β} {s : β → set α} (his : finite is) :
+lemma finite_bUnion_mem_iff {is : set β} {s : β → set α} (his : is.finite) :
   (⋃i∈is, s i) ∈ f ↔ ∃i∈is, s i ∈ f :=
 by simp only [← sUnion_image, finite_sUnion_mem_iff (his.image s), bex_image_iff]
 
@@ -147,7 +151,20 @@ instance : has_pure ultrafilter :=
 
 @[simp] lemma mem_pure {a : α} {s : set α} : s ∈ (pure a : ultrafilter α) ↔ a ∈ s := iff.rfl
 
-instance [inhabited α] : inhabited (ultrafilter α) := ⟨pure (default _)⟩
+instance [inhabited α] : inhabited (ultrafilter α) := ⟨pure default⟩
+instance [nonempty α] : nonempty (ultrafilter α) := nonempty.map pure infer_instance
+
+lemma eq_principal_of_finite_mem {f : ultrafilter α} {s : set α} (h : s.finite) (h' : s ∈ f) :
+  ∃ x ∈ s, (f : filter α) = pure x :=
+begin
+  rw ← bUnion_of_singleton s at h',
+  rcases (ultrafilter.finite_bUnion_mem_iff h).mp h' with ⟨a, has, haf⟩,
+  use [a, has],
+  change (f : filter α) = (pure a : ultrafilter α),
+  rw [ultrafilter.coe_inj, ← ultrafilter.coe_le_coe],
+  change (f : filter α) ≤ pure a,
+  rwa [← principal_singleton, le_principal_iff]
+end
 
 /-- Monadic bind for ultrafilters, coming from the one on filters
 defined in terms of map and join.-/
@@ -155,15 +172,15 @@ def bind (f : ultrafilter α) (m : α → ultrafilter β) : ultrafilter β :=
 of_compl_not_mem_iff (bind ↑f (λ x, ↑(m x))) $ λ s,
   by simp only [mem_bind', mem_coe, ← compl_mem_iff_not_mem, compl_set_of, compl_compl]
 
-instance ultrafilter.has_bind : has_bind ultrafilter := ⟨@ultrafilter.bind⟩
-instance ultrafilter.functor : functor ultrafilter := { map := @ultrafilter.map }
-instance ultrafilter.monad : monad ultrafilter := { map := @ultrafilter.map }
+instance has_bind : has_bind ultrafilter := ⟨@ultrafilter.bind⟩
+instance functor : functor ultrafilter := { map := @ultrafilter.map }
+instance monad : monad ultrafilter := { map := @ultrafilter.map }
 
 section
 
 local attribute [instance] filter.monad filter.is_lawful_monad
 
-instance ultrafilter.is_lawful_monad : is_lawful_monad ultrafilter :=
+instance is_lawful_monad : is_lawful_monad ultrafilter :=
 { id_map := assume α f, coe_injective (id_map f.1),
   pure_bind := assume α β a f, coe_injective (pure_bind a (coe ∘ f)),
   bind_assoc := assume α β γ f m₁ m₂, coe_injective (filter_eq rfl),
@@ -178,14 +195,14 @@ begin
   let r : τ → τ → Prop := λt₁ t₂, t₂.val ≤ t₁.val,
   haveI                := nonempty_of_ne_bot f,
   let top : τ          := ⟨f, h, le_refl f⟩,
-  let sup : Π(c:set τ), chain r c → τ :=
+  let sup : Π(c:set τ), is_chain r c → τ :=
     λc hc, ⟨⨅a:{a:τ // a ∈ insert top c}, a.1,
       infi_ne_bot_of_directed
-        (directed_of_chain $ chain_insert hc $ λ ⟨b, _, hb⟩ _ _, or.inl hb)
+        (is_chain.directed $ hc.insert $ λ ⟨b, _, hb⟩ _ _, or.inl hb)
         (assume ⟨⟨a, ha, _⟩, _⟩, ha),
-      infi_le_of_le ⟨top, mem_insert _ _⟩ (le_refl _)⟩,
-  have : ∀c (hc: chain r c) a (ha : a ∈ c), r a (sup c hc),
-    from assume c hc a ha, infi_le_of_le ⟨a, mem_insert_of_mem _ ha⟩ (le_refl _),
+      infi_le_of_le ⟨top, mem_insert _ _⟩ le_rfl⟩,
+  have : ∀ c (hc : is_chain r c) a (ha : a ∈ c), r a (sup c hc),
+    from assume c hc a ha, infi_le_of_le ⟨a, mem_insert_of_mem _ ha⟩ le_rfl,
   have : (∃ (u : τ), ∀ (a : τ), r u a → r a u),
     from exists_maximal_of_chains_bounded (assume c hc, ⟨sup c hc, this c hc⟩)
       (assume f₁ f₂ f₃ h₁ h₂, le_trans h₂ h₁),
@@ -230,11 +247,14 @@ end
 end ultrafilter
 
 namespace filter
+variables {f : filter α} {s : set α} {a : α}
 
 open ultrafilter
 
-lemma mem_iff_ultrafilter {s : set α} {f : filter α} :
-  s ∈ f ↔ ∀ g : ultrafilter α, ↑g ≤ f → s ∈ g :=
+protected lemma ne_bot.le_pure_iff (hf : f.ne_bot) : f ≤ pure a ↔ f = pure a :=
+⟨ultrafilter.unique (pure a), le_of_eq⟩
+
+lemma mem_iff_ultrafilter : s ∈ f ↔ ∀ g : ultrafilter α, ↑g ≤ f → s ∈ g :=
 begin
   refine ⟨λ hf g hg, hg hf, λ H, by_contra $ λ hf, _⟩,
   set g : filter ↥sᶜ := comap coe f,
@@ -299,3 +319,40 @@ compl_compl s ▸ hf.compl_mem_hyperfilter
 end hyperfilter
 
 end filter
+
+namespace ultrafilter
+
+open filter
+
+variables {m : α → β} {s : set α} {g : ultrafilter β}
+
+lemma comap_inf_principal_ne_bot_of_image_mem (h : m '' s ∈ g) :
+  (filter.comap m g ⊓ 𝓟 s).ne_bot :=
+filter.comap_inf_principal_ne_bot_of_image_mem g.ne_bot h
+
+/-- Ultrafilter extending the inf of a comapped ultrafilter and a principal ultrafilter. -/
+noncomputable def of_comap_inf_principal (h : m '' s ∈ g) : ultrafilter α :=
+@of _ (filter.comap m g ⊓ 𝓟 s) (comap_inf_principal_ne_bot_of_image_mem h)
+
+lemma of_comap_inf_principal_mem (h : m '' s ∈ g) : s ∈ of_comap_inf_principal h :=
+begin
+  let f := filter.comap m g ⊓ 𝓟 s,
+  haveI : f.ne_bot := comap_inf_principal_ne_bot_of_image_mem h,
+  have : s ∈ f := mem_inf_of_right (mem_principal_self s),
+  exact le_def.mp (of_le _) s this
+end
+
+lemma of_comap_inf_principal_eq_of_map (h : m '' s ∈ g) :
+  (of_comap_inf_principal h).map m = g :=
+begin
+  let f := filter.comap m g ⊓ 𝓟 s,
+  haveI : f.ne_bot := comap_inf_principal_ne_bot_of_image_mem h,
+  apply eq_of_le,
+  calc filter.map m (of f) ≤ filter.map m f : map_mono (of_le _)
+  ... ≤ (filter.map m $ filter.comap m g) ⊓ filter.map m (𝓟 s) : map_inf_le
+  ... = (filter.map m $ filter.comap m g) ⊓ (𝓟 $ m '' s) : by rw map_principal
+  ... ≤ g ⊓ (𝓟 $ m '' s) : inf_le_inf_right _ map_comap_le
+  ... = g : inf_of_le_left (le_principal_iff.mpr h)
+end
+
+end ultrafilter

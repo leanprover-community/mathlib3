@@ -12,8 +12,8 @@ In this file we define finite hereditary lists. This is useful for calculations 
 
 We distinguish two kinds of ZFA lists:
 * Atoms. Directly correspond to an element of the original type.
-* Proper ZFA lists. Can thought of (but aren't implemented) as a list of ZFA lists (not necessarily
-  proper).
+* Proper ZFA lists. Can be thought of (but aren't implemented) as a list of ZFA lists (not
+  necessarily proper).
 
 For example, `lists ℕ` contains stuff like `23`, `[]`, `[37]`, `[1, [[2], 3], 4]`.
 
@@ -62,7 +62,7 @@ namespace lists'
 
 instance [inhabited α] : ∀ b, inhabited (lists' α b)
 | tt := ⟨nil⟩
-| ff := ⟨atom (default _)⟩
+| ff := ⟨atom default⟩
 
 /-- Appending a ZFA list to a proper ZFA prelist. -/
 def cons : lists α → lists' α tt → lists' α tt
@@ -92,8 +92,8 @@ suffices ∀ b (h : tt = b) (l : lists' α b),
   of_list (to_list l') = l', from this _ rfl,
 λ b h l, begin
   induction l, {cases h}, {exact rfl},
-  case lists'.cons' : b a l IH₁ IH₂ {
-    intro, change l' with cons' a l,
+  case lists'.cons' : b a l IH₁ IH₂
+  { intro, change l' with cons' a l,
     simpa [cons] using IH₂ rfl }
 end
 
@@ -360,8 +360,8 @@ with mem.decidable : ∀ (a : lists α) (l : lists' α tt), decidable (a ∈ l)
   refine decidable_of_iff' (a ~ ⟨_, b⟩ ∨ a ∈ l₂) _,
   rw ← lists'.mem_cons, refl
 end
-using_well_founded {
-  rel_tac := λ _ _, `[exact ⟨_, measure_wf equiv.decidable_meas⟩],
+using_well_founded
+{ rel_tac := λ _ _, `[exact ⟨_, measure_wf equiv.decidable_meas⟩],
   dec_tac := `[assumption] }
 
 end decidable

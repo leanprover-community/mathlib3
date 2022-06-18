@@ -4,8 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Simon Hudon
 -/
 import control.functor.multivariate
-import data.pfunctor.univariate
-import data.sigma
+import data.pfunctor.univariate.basic
 
 /-!
 # Multivariate polynomial functors.
@@ -38,11 +37,11 @@ def map {α β : typevec n} (f : α ⟹ β) : P.obj α → P.obj β :=
 λ ⟨a, g⟩, ⟨a, typevec.comp f g⟩
 
 instance : inhabited (mvpfunctor n) :=
-⟨ ⟨default _, λ _, default _⟩ ⟩
+⟨⟨default, default⟩⟩
 
 instance obj.inhabited {α : typevec n} [inhabited P.A] [Π i, inhabited (α i)] :
   inhabited (P.obj α) :=
-⟨ ⟨default _, λ _ _, default _⟩ ⟩
+⟨ ⟨default, λ _ _, default⟩ ⟩
 
 instance : mvfunctor P.obj :=
 ⟨@mvpfunctor.map n P⟩

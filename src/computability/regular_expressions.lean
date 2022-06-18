@@ -3,8 +3,6 @@ Copyright (c) 2020 Fox Thomson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fox Thomson
 -/
-import data.fintype.basic
-import data.finset.basic
 import tactic.rcases
 import computability.language
 
@@ -15,14 +13,17 @@ This file contains the formal definition for regular expressions and basic lemma
 regular expressions in terms of formal language theory. Note this is different to regex's used in
 computer science such as the POSIX standard.
 
-TODO
+## TODO
+
 * Show that this regular expressions and DFA/NFA's are equivalent.
 * `attribute [pattern] has_mul.mul` has been added into this file, it could be moved.
 -/
 
+open list set
+
 universe u
 
-variables {α : Type u} [dec : decidable_eq α]
+variables {α β γ : Type*} [dec : decidable_eq α]
 
 /--
 This is the definition of regular expressions. The names used here is to mirror the definition
@@ -43,6 +44,7 @@ inductive regular_expression (α : Type u) : Type u
 | star : regular_expression → regular_expression
 
 namespace regular_expression
+variables {a b : α}
 
 instance : inhabited (regular_expression α) := ⟨zero⟩
 
@@ -50,6 +52,7 @@ instance : has_add (regular_expression α) := ⟨plus⟩
 instance : has_mul (regular_expression α) := ⟨comp⟩
 instance : has_one (regular_expression α) := ⟨epsilon⟩
 instance : has_zero (regular_expression α) := ⟨zero⟩
+instance : has_pow (regular_expression α) ℕ := ⟨λ n r, npow_rec r n⟩
 
 attribute [pattern] has_mul.mul
 
@@ -60,7 +63,7 @@ attribute [pattern] has_mul.mul
 @[simp] lemma comp_def (P Q : regular_expression α) : comp P Q = P * Q := rfl
 
 /-- `matches P` provides a language which contains all strings that `P` matches -/
-def matches : regular_expression α → language α
+@[simp] def matches : regular_expression α → language α
 | 0 := 0
 | 1 := 1
 | (char a) := {[a]}
@@ -68,13 +71,18 @@ def matches : regular_expression α → language α
 | (P * Q) := P.matches * Q.matches
 | (star P) := P.matches.star
 
-@[simp] lemma matches_zero_def : (0 : regular_expression α).matches = 0 := rfl
-@[simp] lemma matches_epsilon_def : (1 : regular_expression α).matches = 1 := rfl
-@[simp] lemma matches_add_def (P Q : regular_expression α) :
+@[simp] lemma matches_zero : (0 : regular_expression α).matches = 0 := rfl
+@[simp] lemma matches_epsilon : (1 : regular_expression α).matches = 1 := rfl
+@[simp] lemma matches_char (a : α) : (char a).matches = {[a]} := rfl
+@[simp] lemma matches_add (P Q : regular_expression α) :
   (P + Q).matches = P.matches + Q.matches := rfl
-@[simp] lemma matches_mul_def (P Q : regular_expression α) :
+@[simp] lemma matches_mul (P Q : regular_expression α) :
   (P * Q).matches = P.matches * Q.matches := rfl
-@[simp] lemma matches_star_def (P : regular_expression α) : P.star.matches = P.matches.star := rfl
+@[simp] lemma matches_pow (P : regular_expression α) :
+  ∀ n : ℕ, (P ^ n).matches = P.matches ^ n
+| 0 := matches_epsilon
+| (n + 1) := (matches_mul _ _).trans $ eq.trans (congr_arg _ (matches_pow n)) (pow_succ _ _).symm
+@[simp] lemma matches_star (P : regular_expression α) : P.star.matches = P.matches.star := rfl
 
 /-- `match_epsilon P` is true if and only if `P` matches the empty string -/
 def match_epsilon : regular_expression α → bool
@@ -101,6 +109,15 @@ def deriv : regular_expression α → α → regular_expression α
     deriv P a * Q
 | (star P) a := deriv P a * star P
 
+@[simp] lemma deriv_zero (a : α) : deriv 0 a = 0 := rfl
+@[simp] lemma deriv_one (a : α) : deriv 1 a = 0 := rfl
+@[simp] lemma deriv_char_self (a : α) : deriv (char a) a = 1 := if_pos rfl
+@[simp] lemma deriv_char_of_ne (h : a ≠ b) : deriv (char a) b = 0 := if_neg h
+@[simp] lemma deriv_add (P Q : regular_expression α) (a : α) :
+  deriv (P + Q) a = deriv P a + deriv Q a := rfl
+@[simp] lemma deriv_star (P : regular_expression α) (a : α) :
+  deriv (P.star) a = deriv P a * star P := rfl
+
 /-- `P.rmatch x` is true if and only if `P` matches `x`. This is a computable definition equivalent
   to `matches`. -/
 def rmatch : regular_expression α → list α → bool
@@ -108,10 +125,10 @@ def rmatch : regular_expression α → list α → bool
 | P (a::as) := rmatch (P.deriv a) as
 
 @[simp] lemma zero_rmatch (x : list α) : rmatch 0 x = ff :=
-by induction x; simp [rmatch, match_epsilon, deriv, *]
+by induction x; simp [rmatch, match_epsilon, *]
 
 lemma one_rmatch_iff (x : list α) : rmatch 1 x ↔ x = [] :=
-by induction x; simp [rmatch, match_epsilon, deriv, *]
+by induction x; simp [rmatch, match_epsilon, *]
 
 lemma char_rmatch_iff (a : α) (x : list α) : rmatch (char a) x ↔ x = [a] :=
 begin
@@ -133,9 +150,7 @@ lemma add_rmatch_iff (P Q : regular_expression α) (x : list α) :
   (P + Q).rmatch x ↔ P.rmatch x ∨ Q.rmatch x :=
 begin
   induction x with _ _ ih generalizing P Q,
-  { repeat {rw rmatch},
-    rw match_epsilon,
-    finish },
+  { simp only [rmatch, match_epsilon, bor_coe_iff] },
   { repeat {rw rmatch},
     rw deriv,
     exact ih _ _ }
@@ -156,7 +171,7 @@ begin
       subst ht,
       subst hu,
       repeat {rw rmatch at h₂},
-      finish } },
+      simp [h₂] } },
   { rw [rmatch, deriv],
     split_ifs with hepsilon,
     { rw [add_rmatch_iff, ih],
@@ -171,20 +186,22 @@ begin
           rw ←h at hQ,
           exact hQ },
         { left,
-          refine ⟨ t, u, by finish, _, hQ ⟩,
+          simp only [list.cons_append] at h,
+          refine ⟨ t, u, h.2, _, hQ ⟩,
           rw rmatch at hP,
           convert hP,
-          finish } } },
+          exact h.1 } } },
     { rw ih,
       split;
       rintro ⟨ t, u, h, hP, hQ ⟩,
       { exact ⟨ a :: t, u, by tauto ⟩ },
       { cases t with b t,
         { contradiction },
-        { refine ⟨ t, u, by finish, _, hQ ⟩,
+        { simp only [list.cons_append] at h,
+          refine ⟨ t, u, h.2, _, hQ ⟩,
           rw rmatch at hP,
           convert hP,
-          finish } } } }
+          exact h.1 } } } }
 end
 
 lemma star_rmatch_iff (P : regular_expression α) : ∀ (x : list α),
@@ -212,7 +229,7 @@ begin
       rcases hu with ⟨ S', hsum, helem ⟩,
       use (a :: t) :: S',
       split,
-      { finish },
+      { simp [hs, hsum] },
       { intros t' ht',
         cases ht' with ht' ht',
         { rw ht',
@@ -225,26 +242,26 @@ begin
       cases S with t' U,
       { exact ⟨ [], [], by tauto ⟩ },
       { cases t' with b t,
-        { finish },
-        refine ⟨ t, U.join, by finish, _, _ ⟩,
-        { specialize helem (b :: t) _,
-          { finish },
+        { simp only [forall_eq_or_imp, list.mem_cons_iff] at helem,
+          simp only [eq_self_iff_true, not_true, ne.def, false_and] at helem,
+          cases helem },
+        simp only [list.join, list.cons_append] at hsum,
+        refine ⟨ t, U.join, hsum.2, _, _ ⟩,
+        { specialize helem (b :: t) (by simp),
           rw rmatch at helem,
           convert helem.2,
-          finish },
+          exact hsum.1 },
         { have hwf : U.join.length < (list.cons a x).length,
-          { rw hsum,
-            simp only
-              [list.join, list.length_append, list.cons_append, list.length_join, list.length],
+          { rw [hsum.1, hsum.2],
+            simp only [list.length_append, list.length_join, list.length],
             apply A },
           rw IH _ hwf,
           refine ⟨ U, rfl, λ t h, helem t _ ⟩,
           right,
           assumption } } } }
 end
-using_well_founded {
-  rel_tac := λ _ _, `[exact ⟨(λ L₁ L₂ : list _, L₁.length < L₂.length), inv_image.wf _ nat.lt_wf⟩]
-}
+using_well_founded
+{ rel_tac := λ _ _, `[exact ⟨(λ L₁ L₂ : list _, L₁.length < L₂.length), inv_image.wf _ nat.lt_wf⟩] }
 
 @[simp] lemma rmatch_iff_matches (P : regular_expression α) :
   ∀ x : list α, P.rmatch x ↔ x ∈ P.matches :=
@@ -257,20 +274,20 @@ begin
     try {rw plus_def},
     try {rw comp_def},
     rw matches },
-  case zero : {
-    rw zero_rmatch,
+  case zero :
+  { rw zero_rmatch,
     tauto },
-  case epsilon : {
-    rw one_rmatch_iff,
+  case epsilon :
+  { rw one_rmatch_iff,
     refl },
-  case char : {
-    rw char_rmatch_iff,
+  case char :
+  { rw char_rmatch_iff,
     refl },
-  case plus : _ _ ih₁ ih₂ {
-    rw [add_rmatch_iff, ih₁, ih₂],
+  case plus : _ _ ih₁ ih₂
+  { rw [add_rmatch_iff, ih₁, ih₂],
     refl },
-  case comp : P Q ih₁ ih₂ {
-    simp only [mul_rmatch_iff, comp_def, language.mul_def, exists_and_distrib_left, set.mem_image2,
+  case comp : P Q ih₁ ih₂
+  { simp only [mul_rmatch_iff, comp_def, language.mul_def, exists_and_distrib_left, set.mem_image2,
       set.image_prod],
     split,
     { rintro ⟨ x, y, hsum, hmatch₁, hmatch₂ ⟩,
@@ -281,8 +298,8 @@ begin
       rw ←ih₁ at hmatch₁,
       rw ←ih₂ at hmatch₂,
       exact ⟨ x, y, hsum.symm, hmatch₁, hmatch₂ ⟩ } },
-  case star : _ ih {
-    rw [star_rmatch_iff, language.star_def_nonempty],
+  case star : _ ih
+  { rw [star_rmatch_iff, language.star_def_nonempty],
     split,
     all_goals
     { rintro ⟨ S, hx, hS ⟩,
@@ -302,5 +319,53 @@ begin
   rw ←rmatch_iff_matches,
   exact eq.decidable _ _
 end
+
+omit dec
+
+/-- Map the alphabet of a regular expression. -/
+@[simp] def map (f : α → β) : regular_expression α → regular_expression β
+| 0 := 0
+| 1 := 1
+| (char a) := char (f a)
+| (R + S) := map R + map S
+| (R * S) := map R * map S
+| (star R) := star (map R)
+
+@[simp] protected lemma map_pow (f : α → β) (P : regular_expression α) :
+  ∀ n : ℕ, map f (P ^ n) = map f P ^ n
+| 0 := rfl
+| (n + 1) := (congr_arg ((*) (map f P)) (map_pow n) : _)
+
+@[simp] lemma map_id : ∀ (P : regular_expression α), P.map id = P
+| 0 := rfl
+| 1 := rfl
+| (char a) := rfl
+| (R + S) := by simp_rw [map, map_id]
+| (R * S) := by simp_rw [map, map_id]
+| (star R) := by simp_rw [map, map_id]
+
+@[simp] lemma map_map (g : β → γ) (f : α → β) :
+  ∀ (P : regular_expression α), (P.map f).map g = P.map (g ∘ f)
+| 0 := rfl
+| 1 := rfl
+| (char a) := rfl
+| (R + S) := by simp_rw [map, map_map]
+| (R * S) := by simp_rw [map, map_map]
+| (star R) := by simp_rw [map, map_map]
+
+/-- The language of the map is the map of the language. -/
+@[simp] lemma matches_map (f : α → β) :
+  ∀ P : regular_expression α, (P.map f).matches = language.map f P.matches
+| 0 := (map_zero _).symm
+| 1 := (map_one _).symm
+| (char a) := by { rw eq_comm, exact image_singleton }
+| (R + S) := by simp only [matches_map, map, matches_add, map_add]
+| (R * S) := by simp only [matches_map, map, matches_mul, map_mul]
+| (star R) := begin
+    simp_rw [map, matches, matches_map],
+    rw [language.star_eq_supr_pow, language.star_eq_supr_pow],
+    simp_rw ←map_pow,
+    exact image_Union.symm,
+  end
 
 end regular_expression

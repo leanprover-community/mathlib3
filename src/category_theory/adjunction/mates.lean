@@ -5,7 +5,6 @@ Authors: Bhavik Mehta
 -/
 import category_theory.adjunction.basic
 import category_theory.conj
-import category_theory.yoneda
 
 /-!
 # Mate of natural transformations

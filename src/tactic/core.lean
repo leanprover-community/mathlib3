@@ -3,26 +3,49 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Simon Hudon, Scott Morrison, Keeley Hoek
 -/
-import data.dlist.basic
-import logic.function.basic
 import control.basic
+import data.dlist.basic
 import meta.expr
-import meta.rb_map
-import data.bool
-import tactic.binder_matching
-import tactic.lean_core_docs
-import tactic.interactive_expr
 import system.io
+import tactic.binder_matching
+import tactic.interactive_expr
+import tactic.lean_core_docs
+import tactic.project_dir
 
-universe variable u
+universe u
 
 attribute [derive [has_reflect, decidable_eq]] tactic.transparency
 
+-- Rather than import data.prod.lex here, we can get away with defining the order by hand.
 instance : has_lt pos :=
-{ lt := λ x y, (x.line, x.column) < (y.line, y.column) }
+{ lt := λ x y, x.line < y.line ∨ x.line = y.line ∧ x.column < y.column }
+
+namespace tactic
+
+/-- Reflexivity conversion: given `e` returns `(e, ⊢ e = e)` -/
+meta def refl_conv (e : expr) : tactic (expr × expr) :=
+do p ← mk_eq_refl e, return (e, p)
+
+/-- Turns a conversion tactic into one that always succeeds, where failure is interpreted as a
+proof by reflexivity. -/
+meta def or_refl_conv (tac : expr → tactic (expr × expr))
+  (e : expr) : tactic (expr × expr) := tac e <|> refl_conv e
+
+/-- Transitivity conversion: given two conversions (which take an
+expression `e` and returns `(e', ⊢ e = e')`), produces another
+conversion that combines them with transitivity, treating failures
+as reflexivity conversions. -/
+meta def trans_conv (t₁ t₂ : expr → tactic (expr × expr)) (e : expr) :
+  tactic (expr × expr) :=
+(do (e₁, p₁) ← t₁ e,
+  (do (e₂, p₂) ← t₂ e₁,
+    p ← mk_eq_trans p₁ p₂, return (e₂, p)) <|>
+  return (e₁, p₁)) <|> t₂ e
+
+end tactic
+open tactic
 
 namespace expr
-open tactic
 
 /-- Given an expr `α` representing a type with numeral structure,
 `of_nat α n` creates the `α`-valued numeral expression corresponding to `n`. -/
@@ -40,6 +63,13 @@ protected meta def of_int (α : expr) : ℤ → tactic expr
 | -[1+ n] := do
   e ← expr.of_nat α (n+1),
   tactic.mk_app ``has_neg.neg [e]
+
+/-- Convert a list of expressions to an expression denoting the list of those expressions. -/
+meta def of_list (α : expr) : list expr → tactic expr
+| [] := tactic.mk_app ``list.nil [α]
+| (x :: xs) := do
+  exs ← of_list xs,
+  tactic.mk_app ``list.cons [α, x, exs]
 
 /-- Generates an expression of the form `∃(args), inner`. `args` is assumed to be a list of local
 constants. When possible, `p ∧ q` is used instead of `∃(_ : p), q`. -/
@@ -83,6 +113,26 @@ meta def kreplace (e old new : expr) (md := semireducible) (unify := tt)
   pure $ e.instantiate_var new
 
 end expr
+
+namespace name
+
+/--
+`pre.contains_sorry_aux nm` checks whether `sorry` occurs in the value of the declaration `nm`
+or (recusively) in any declarations occurring in the value of `nm` with namespace `pre`.
+Auxiliary function for `name.contains_sorry`. -/
+meta def contains_sorry_aux (pre : name) : name → tactic bool | nm := do
+  env ← get_env,
+  decl ← get_decl nm,
+  ff ← return decl.value.contains_sorry | return tt,
+  (decl.value.list_names_with_prefix pre).mfold ff $
+    λ n b, if b then return tt else n.contains_sorry_aux
+
+/-- `nm.contains_sorry` checks whether `sorry` occurs in the value of the declaration `nm` or
+  in any declarations `nm._proof_i` (or to be more precise: any declaration in namespace `nm`).
+  See also `expr.contains_sorry`. -/
+meta def contains_sorry (nm : name) : tactic bool := nm.contains_sorry_aux nm
+
+end name
 
 namespace interaction_monad
 open result
@@ -198,7 +248,7 @@ private meta def add_local_consts_as_local_hyps_aux
 meta def add_local_consts_as_local_hyps (vars : list expr) : tactic (list (expr × expr)) :=
 /- The `list.reverse` below is a performance optimisation since the list of available variables
    reported by the system is often mostly the reverse of the order in which they are dependent. -/
-add_local_consts_as_local_hyps_aux [] vars.reverse.erase_dup
+add_local_consts_as_local_hyps_aux [] vars.reverse.dedup
 
 private meta def get_expl_pi_arity_aux : expr → tactic nat
 | (expr.pi n bi d b) :=
@@ -544,14 +594,14 @@ Returns `tt` if any types were successfully changed.
 -/
 meta def replace_at (tac : expr → tactic (expr × expr)) (hs : list expr) (tgt : bool) :
   tactic bool :=
-do to_remove ← hs.mfilter $ λ h, do {
-    h_type ← infer_type h,
+do to_remove ← hs.mfilter $ λ h, do
+  { h_type ← infer_type h,
     succeeds $ do
       (new_h_type, pr) ← tac h_type,
       assert h.local_pp_name new_h_type,
       mk_eq_mp pr h >>= tactic.exact },
-  goal_simplified ← succeeds $ do {
-    guard tgt,
+  goal_simplified ← succeeds $ do
+  { guard tgt,
     (new_t, pr) ← target >>= tac,
     replace_target new_t pr },
   to_remove.mmap' (λ h, try (clear h)),
@@ -712,8 +762,8 @@ meta def subst' (h : expr) : tactic unit := do
   e ← do { -- we first find the variable being substituted away
     t ← infer_type h,
     let (f, args) := t.get_app_fn_args,
-    if (f.const_name = `eq ∨ f.const_name = `heq) then do {
-      let lhs := args.inth 1,
+    if (f.const_name = `eq ∨ f.const_name = `heq) then do
+    { let lhs := args.inth 1,
       let rhs := args.ilast,
       if rhs.is_local_constant then return rhs else
       if lhs.is_local_constant then return lhs else fail
@@ -927,36 +977,29 @@ meta def apply_list_expr (opt : apply_cfg) : list (tactic expr) → tactic unit
 | (h::t) := (do e ← h, interactive.concat_tags (apply e opt)) <|> apply_list_expr t
 
 /--
-Constructs a list of `tactic expr` given a list of p-expressions, as follows:
-- if the p-expression is the name of a theorem, use `i_to_expr_for_apply` on it
-- if the p-expression is a user attribute, add all the theorems with this attribute
-  to the list.
-
-We need to return a list of `tactic expr`, rather than just `expr`, because these expressions
-will be repeatedly applied against goals, and we need to ensure that metavariables don't get stuck.
+Given the name of a user attribute, produces a list of `tactic expr`s, each of which is the
+application of `i_to_expr_for_apply` to a declaration with that attribute.
 -/
-meta def build_list_expr_for_apply : list pexpr → tactic (list (tactic expr))
-| [] := return []
-| (h::t) := do
-  tail ← build_list_expr_for_apply t,
-  a ← i_to_expr_for_apply h,
-  (do l ← attribute.get_instances (expr.const_name a),
-      m ← l.mmap (λ n, _root_.to_pexpr <$> mk_const n),
-      -- We reverse the list of lemmas marked with an attribute,
-      -- on the assumption that lemmas proved earlier are more often applicable
-      -- than lemmas proved later. This is a performance optimization.
-      build_list_expr_for_apply (m.reverse ++ t))
-  <|> return ((i_to_expr_for_apply h) :: tail)
+meta def resolve_attribute_expr_list (attr_name : name) : tactic (list (tactic expr)) := do
+  l ← attribute.get_instances attr_name,
+  list.map i_to_expr_for_apply <$> list.reverse <$> l.mmap resolve_name
 
-/--`apply_rules hs n`: apply the list of rules `hs` (given as pexpr) and `assumption` on the
-first goal and the resulting subgoals, iteratively, at most `n` times.
+
+/--`apply_rules args attrs n`: apply the lists of rules `args` (given as pexprs) and `attrs` (given
+as names of attributes) and `the tactic assumption` on the first goal and the resulting subgoals,
+iteratively, at most `n` times.
 
 Unlike `solve_by_elim`, `apply_rules` does not do any backtracking, and just greedily applies
 a lemma from the list until it can't.
  -/
-meta def apply_rules (hs : list pexpr) (n : nat) (opt : apply_cfg) : tactic unit :=
-do l ← lock_tactic_state $ build_list_expr_for_apply hs,
-   iterate_at_most_on_subgoals n (assumption <|> apply_list_expr opt l)
+meta def apply_rules (args : list pexpr) (attrs : list name) (n : nat) (opt : apply_cfg) :
+  tactic unit := do
+  attr_exprs ← lock_tactic_state $ attrs.mfoldl
+    (λ l n, list.append l <$> resolve_attribute_expr_list n) [],
+  let args_exprs := args.map i_to_expr_for_apply ++ attr_exprs,
+-- `args_exprs` is a list of `tactic expr`, rather than just `expr`, because these expressions will
+-- be repeatedly applied against goals, and we need to ensure that metavariables don't get stuck.
+   iterate_at_most_on_subgoals n (assumption <|> apply_list_expr opt args_exprs)
 
 /-- `replace h p` elaborates the pexpr `p`, clears the existing hypothesis named `h` from the local
 context, and adds a new hypothesis named `h`. The type of this hypothesis is the type of `p`.
@@ -1095,7 +1138,7 @@ and fail otherwise.
 meta def sorry_if_contains_sorry : tactic unit :=
 do
   g ← target,
-  guard g.contains_sorry <|> fail "goal does not contain `sorrry`",
+  guard g.contains_sorry <|> fail "goal does not contain `sorry`",
   tactic.admit
 
 /-- Fail if the target contains a metavariable. -/
@@ -1365,8 +1408,8 @@ do /- First, in order to get `to_expr e` to resolve declared `variables`, we add
       we then obtain from `fe` via `expr.list_local_consts` (which, importantly, is not defined for
       `pexpr`s). -/
    vars ← list_available_include_vars,
-   fake_es ← lean.parser.of_tactic $ lock_tactic_state $ do {
-     /- Note that `add_local_consts_as_local_hyps` returns the mappings it generated, but we discard
+   fake_es ← lean.parser.of_tactic $ lock_tactic_state $ do
+   { /- Note that `add_local_consts_as_local_hyps` returns the mappings it generated, but we discard
         them on this first pass. (We return the mappings generated by our second invocation of this
         function below.) -/
      add_local_consts_as_local_hyps vars,
@@ -1401,8 +1444,8 @@ do /- First, in order to get `to_expr e` to resolve declared `variables`, we add
 
    /- Capture a tactic state where both of these kinds of variables have been added as local
       hypotheses, and resolve `e` against this state with `to_expr`, this time for real. -/
-   lean.parser.of_tactic $ do {
-      mappings ← add_local_consts_as_local_hyps all_implicitly_included_vars,
+   lean.parser.of_tactic $ do
+    { mappings ← add_local_consts_as_local_hyps all_implicitly_included_vars,
       ts ← get_state,
       return (ts, mappings) }
 
@@ -1446,7 +1489,7 @@ instance : monad id :=
      fs ← expanded_field_list cl,
      let fs := fs.map prod.snd,
      let fs := format.intercalate (",\n  " : format) $ fs.map (λ fn, format!"{fn} := _"),
-     let out := format.to_string format!"{{ {fs} }",
+     let out := format.to_string format!"{{ {fs} }}",
      return [(out,"")] }
 
 add_tactic_doc
@@ -1665,7 +1708,7 @@ sum.inr : ℕ → ℤ ⊕ ℕ
             c ← strip_prefix c,
             pure format!"\n{c} : {t}\n" },
      fs ← format.intercalate ", " <$> cs.mmap (strip_prefix >=> pure ∘ to_fmt),
-     let out := format.to_string format!"{{! {fs} !}",
+     let out := format.to_string format!"{{! {fs} !}}",
      trace (format.join ts).to_string,
      return [(out,"")] }
 
@@ -1676,11 +1719,18 @@ add_tactic_doc
   tags                     := ["goal information"] }
 
 /-- Makes the declaration `classical.prop_decidable` available to type class inference.
-This asserts that all propositions are decidable, but does not have computational content. -/
-meta def classical : tactic unit :=
-do h ← get_unused_name `_inst,
-   mk_const `classical.prop_decidable >>= note h none,
-   reset_instance_cache
+This asserts that all propositions are decidable, but does not have computational content.
+
+The `aggressive` argument controls whether the instance is added globally, where it has low
+priority, or in the local context, where it has very high priority. -/
+meta def classical (aggressive : bool := ff) : tactic unit :=
+if aggressive then do
+  h ← get_unused_name `_inst,
+  mk_const `classical.prop_decidable >>= note h none,
+  reset_instance_cache
+else do
+  -- Turn on the `prop_decidable` instance. `9` is what we use in the `classical` locale
+  tactic.set_basic_attribute `instance `classical.prop_decidable ff (some 9)
 
 open expr
 
@@ -1741,8 +1791,8 @@ form `f ∘ g = h` for reasoning about higher-order functions.",
        let l : expr := expr.const lmm $ lvls.map level.param,
        t ← infer_type l >>= instantiate_mvars,
        t' ← mk_higher_order_type t,
-       (_,pr) ← solve_aux t' $ do {
-         intros, applyc ``_root_.funext, intro1, applyc lmm; assumption },
+       (_,pr) ← solve_aux t' $ do
+       { intros, applyc ``_root_.funext, intro1, applyc lmm; assumption },
        pr ← instantiate_mvars pr,
        lmm' ← higher_order_attr.get_param lmm,
        lmm' ← (flip name.update_prefix lmm.get_prefix <$> lmm') <|> pure lmm.add_prime,
@@ -1862,9 +1912,9 @@ It does *not* use the `namespace` command, so it will typically be used after
 meta def setup_tactic_parser_cmd (_ : interactive.parse $ tk "setup_tactic_parser") :
   lean.parser unit :=
 emit_code_here "
-open lean
-open lean.parser
-open interactive interactive.types
+open _root_.lean
+open _root_.lean.parser
+open _root_.interactive _root_.interactive.types
 
 local postfix `?`:9001 := optional
 local postfix *:9001 := many .
@@ -2087,7 +2137,7 @@ See `proof_state`, `goal` and `get_proof_state`.
 meta def get_proof_state_after (tac : tactic unit) : tactic (option proof_state) :=
 try_core $ retrieve $ tac >> get_proof_state
 
-open lean interactive
+open lean _root_.interactive
 
 /-- A type alias for `tactic format`, standing for "pretty print format". -/
 meta def pformat := tactic format
@@ -2165,11 +2215,20 @@ meta def trace_macro (_ : parse $ tk "trace!") (s : string) : parser pexpr :=
 do e ← pformat_macro () s,
    pure ``((%%e : pformat) >>= trace)
 
+/-- A hackish way to get the `src` directory of any project.
+  Requires as argument any declaration name `n` in that project, and `k`, the number of characters
+  in the path of the file where `n` is declared not part of the `src` directory.
+  Example: For `mathlib_dir_locator` this is the length of `tactic/project_dir.lean`, so `23`.
+  Note: does not work in the file where `n` is declared. -/
+meta def get_project_dir (n : name) (k : ℕ) : tactic string :=
+do e ← get_env,
+  s ← e.decl_olean n <|>
+fail!"Did not find declaration {n}. This command does not work in the file where {n} is declared.",
+  return $ s.popn_back k
+
 /-- A hackish way to get the `src` directory of mathlib. -/
 meta def get_mathlib_dir : tactic string :=
-do e ← get_env,
-  s ← e.decl_olean `tactic.reset_instance_cache,
-  return $ s.popn_back 17
+get_project_dir `mathlib_dir_locator 23
 
 /-- Checks whether a declaration with the given name is declared in mathlib.
 If you want to run this tactic many times, you should use `environment.is_prefix_of_file` instead,
@@ -2339,7 +2398,7 @@ ns.mfirst (λ nm, do
   return nm) <|> fail!"'{attr_name}' is not a user attribute."
 
 /-- A tactic to set either a basic attribute or a user attribute.
-  If the the user attribute has a parameter, the default value will be used.
+  If the user attribute has a parameter, the default value will be used.
   This tactic raises an error if there is no `inhabited` instance for the parameter type. -/
 meta def set_attribute (attr_name : name) (c_name : name) (persistent := tt)
   (prio : option nat := none) : tactic unit := do
@@ -2352,7 +2411,7 @@ then do
   user_attr_nm ← get_user_attribute_name attr_name,
   user_attr_const ← mk_const user_attr_nm,
   tac ← eval_pexpr (tactic unit)
-    ``(user_attribute.set %%user_attr_const %%c_name (default _) %%persistent) <|>
+    ``(user_attribute.set %%user_attr_const %%c_name default %%persistent) <|>
     fail! ("Cannot set attribute @[{attr_name}].\n" ++
       "The corresponding user attribute {user_attr_nm} " ++
       "has a parameter without a default value.\n" ++

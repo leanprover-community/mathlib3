@@ -3,11 +3,10 @@ Copyright (c) 2021 Rémy Degenne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
+import measure_theory.measure.measure_space_def
 import tactic.auto_cases
 import tactic.tidy
 import tactic.with_local_reducibility
-import tactic.show_term
-import measure_theory.measure.measure_space_def
 /-!
 # Tactics for measure theory
 
@@ -132,21 +131,23 @@ meta def measurability_tactics (md : transparency := semireducible) : list (tact
                         >> pure "apply_assumption",
   goal_is_not_measurable >> intro1
                         >>= λ ns, pure ("intro " ++ ns.to_string),
-  apply_rules [``(measurability)] 50 { md := md }
-                        >> pure "apply_rules measurability",
+  apply_rules [] [``measurability] 50 { md := md }
+                        >> pure "apply_rules with measurability",
   apply_measurable.comp >> pure "refine measurable.comp _ _",
   apply_measurable.comp_ae_measurable
                         >> pure "refine measurable.comp_ae_measurable _ _",
   `[ refine measurable.ae_measurable _ ]
-                        >> pure "refine measurable.ae_measurable _"
+                        >> pure "refine measurable.ae_measurable _",
+  `[ refine measurable.ae_strongly_measurable _ ]
+                        >> pure "refine measurable.ae_strongly_measurable _"
 ]
 
 namespace interactive
 setup_tactic_parser
 
 /--
-Solve goals of the form `measurable f`, `ae_measurable f μ` or `measurable_set s`.
-`measurability?` reports back the proof term it found.
+Solve goals of the form `measurable f`, `ae_measurable f μ`, `ae_strongly_measurable f μ` or
+`measurable_set s`. `measurability?` reports back the proof term it found.
 -/
 meta def measurability
   (bang : parse $ optional (tk "!")) (trace : parse $ optional (tk "?")) (cfg : tidy.cfg := {}) :
@@ -160,8 +161,9 @@ trace_fn measurability_core
 meta def measurability' : tactic unit := measurability none none {}
 
 /--
-`measurability` solves goals of the form `measurable f`, `ae_measurable f μ` or `measurable_set s`
-by applying lemmas tagged with the `measurability` user attribute.
+`measurability` solves goals of the form `measurable f`, `ae_measurable f μ`,
+`ae_strongly_measurable f μ` or `measurable_set s` by applying lemmas tagged with the
+`measurability` user attribute.
 
 You can also use `measurability!`, which applies lemmas with `{ md := semireducible }`.
 The default behaviour is more conservative, and only unfolds `reducible` definitions
@@ -173,8 +175,7 @@ add_tactic_doc
 { name := "measurability / measurability'",
   category := doc_category.tactic,
   decl_names := [`tactic.interactive.measurability, `tactic.interactive.measurability'],
-  tags := ["lemma application"]
-}
+  tags := ["lemma application"] }
 
 end interactive
 

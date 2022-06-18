@@ -3,9 +3,11 @@ Copyright (c) 2020 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
-import category_theory.adjunction
+import category_theory.adjunction.limits
+import category_theory.adjunction.opposites
 import category_theory.elements
 import category_theory.limits.functor_category
+import category_theory.limits.kan_extension
 import category_theory.limits.preserves.limits
 import category_theory.limits.shapes.terminal
 import category_theory.limits.types
@@ -22,7 +24,7 @@ This adjunction is used to show that every presheaf is a colimit of representabl
 Further, the left adjoint `colimit_adj.extend_along_yoneda : (Cᵒᵖ ⥤ Type u) ⥤ ℰ` satisfies
 `yoneda ⋙ L ≅ A`, that is, an extension of `A : C ⥤ ℰ` to `(Cᵒᵖ ⥤ Type u) ⥤ ℰ` through
 `yoneda : C ⥤ Cᵒᵖ ⥤ Type u`. It is the left Kan extension of `A` along the yoneda embedding,
-sometimes known as the Yoneda extension.
+sometimes known as the Yoneda extension, as proved in `extend_along_yoneda_iso_Kan`.
 
 `unique_extension_along_yoneda` shows `extend_along_yoneda` is unique amongst cocontinuous functors
 with this property, establishing the presheaf category as the free cocompletion of a small category.
@@ -84,7 +86,7 @@ It is shown in `restrict_yoneda_hom_equiv_natural` that this is a natural biject
 def restrict_yoneda_hom_equiv (P : Cᵒᵖ ⥤ Type u₁) (E : ℰ)
   {c : cocone ((category_of_elements.π P).left_op ⋙ A)} (t : is_colimit c) :
   (c.X ⟶ E) ≃ (P ⟶ (restricted_yoneda A).obj E) :=
-(t.hom_iso' E).to_equiv.trans
+((ulift_trivial _).symm ≪≫ t.hom_iso' E).to_equiv.trans
 { to_fun := λ k,
   { app := λ c p, k.1 (opposite.op ⟨_, p⟩),
     naturality' := λ c c' f, funext $ λ p,
@@ -139,6 +141,18 @@ adjunction.left_adjoint_of_equiv
 lemma extend_along_yoneda_obj (P : Cᵒᵖ ⥤ Type u₁) : (extend_along_yoneda A).obj P =
 colimit ((category_of_elements.π P).left_op ⋙ A) := rfl
 
+lemma extend_along_yoneda_map {X Y : Cᵒᵖ ⥤ Type u₁} (f : X ⟶ Y) :
+  (extend_along_yoneda A).map f = colimit.pre ((category_of_elements.π Y).left_op ⋙ A)
+    (category_of_elements.map f).op :=
+begin
+  ext J,
+  erw colimit.ι_pre ((category_of_elements.π Y).left_op ⋙ A) (category_of_elements.map f).op,
+  dsimp only [extend_along_yoneda, restrict_yoneda_hom_equiv,
+    is_colimit.hom_iso', is_colimit.hom_iso, ulift_trivial],
+  simpa
+end
+
+
 /--
 Show `extend_along_yoneda` is left adjoint to `restricted_yoneda`.
 
@@ -164,7 +178,8 @@ def is_initial (A : C) : is_initial (elements.initial A) :=
     simp_rw ← m.2,
     dsimp [elements.initial],
     simp,
-  end }
+  end,
+  fac' := by rintros s ⟨⟨⟩⟩, }
 
 /--
 `extend_along_yoneda A` is an extension of `A` to the presheaf category along the yoneda embedding.
@@ -172,7 +187,7 @@ def is_initial (A : C) : is_initial (elements.initial A) :=
 property (up to isomorphism).
 
 The first part of [MM92], Chapter I, Section 5, Corollary 4.
-See Property 1 of https://ncatlab.org/nlab/show/Yoneda+extension#properties.
+See Property 1 of <https://ncatlab.org/nlab/show/Yoneda+extension#properties>.
 -/
 def is_extension_along_yoneda : (yoneda : C ⥤ Cᵒᵖ ⥤ Type u₁) ⋙ extend_along_yoneda A ≅ A :=
 nat_iso.of_components
@@ -195,9 +210,65 @@ end
 instance : preserves_colimits (extend_along_yoneda A) :=
 (yoneda_adjunction A).left_adjoint_preserves_colimits
 
+/--
+Show that the images of `X` after `extend_along_yoneda` and `Lan yoneda` are indeed isomorphic.
+This follows from `category_theory.category_of_elements.costructured_arrow_yoneda_equivalence`.
+-/
+@[simps] def extend_along_yoneda_iso_Kan_app (X) :
+  (extend_along_yoneda A).obj X ≅ ((Lan yoneda : (_ ⥤ ℰ) ⥤ _).obj A).obj X :=
+let eq := category_of_elements.costructured_arrow_yoneda_equivalence X in
+{ hom := colimit.pre (Lan.diagram (yoneda : C ⥤ _ ⥤ Type u₁) A X) eq.functor,
+  inv := colimit.pre ((category_of_elements.π X).left_op ⋙ A) eq.inverse,
+  hom_inv_id' :=
+  begin
+    erw colimit.pre_pre ((category_of_elements.π X).left_op ⋙ A) eq.inverse,
+    transitivity colimit.pre ((category_of_elements.π X).left_op ⋙ A) (𝟭 _),
+    congr,
+    { exact congr_arg functor.op (category_of_elements.from_to_costructured_arrow_eq X) },
+    { ext, simp only [colimit.ι_pre], erw category.comp_id, congr }
+  end,
+  inv_hom_id' :=
+  begin
+    erw colimit.pre_pre (Lan.diagram (yoneda : C ⥤ _ ⥤ Type u₁) A X) eq.functor,
+    transitivity colimit.pre (Lan.diagram (yoneda : C ⥤ _ ⥤ Type u₁) A X) (𝟭 _),
+    congr,
+    { exact category_of_elements.to_from_costructured_arrow_eq X },
+    { ext, simp only [colimit.ι_pre], erw category.comp_id, congr }
+  end }
+
+/--
+Verify that `extend_along_yoneda` is indeed the left Kan extension along the yoneda embedding.
+-/
+@[simps]
+def extend_along_yoneda_iso_Kan : extend_along_yoneda A ≅ (Lan yoneda : (_ ⥤ ℰ) ⥤ _).obj A :=
+nat_iso.of_components (extend_along_yoneda_iso_Kan_app A)
+begin
+  intros X Y f, simp,
+  rw extend_along_yoneda_map,
+  erw colimit.pre_pre (Lan.diagram (yoneda : C ⥤ _ ⥤ Type u₁) A Y) (costructured_arrow.map f),
+  erw colimit.pre_pre (Lan.diagram (yoneda : C ⥤ _ ⥤ Type u₁) A Y)
+    (category_of_elements.costructured_arrow_yoneda_equivalence Y).functor,
+  congr' 1,
+  apply category_of_elements.costructured_arrow_yoneda_equivalence_naturality,
+end
+
+/-- extending `F ⋙ yoneda` along the yoneda embedding is isomorphic to `Lan F.op`. -/
+@[simps] def extend_of_comp_yoneda_iso_Lan {D : Type u₁} [small_category D] (F : C ⥤ D) :
+  extend_along_yoneda (F ⋙ yoneda) ≅ Lan F.op :=
+adjunction.nat_iso_of_right_adjoint_nat_iso
+  (yoneda_adjunction (F ⋙ yoneda))
+  (Lan.adjunction (Type u₁) F.op)
+  (iso_whisker_right curried_yoneda_lemma' ((whiskering_left Cᵒᵖ Dᵒᵖ (Type u₁)).obj F.op : _))
+
 end colimit_adj
 
 open colimit_adj
+
+/-- `F ⋙ yoneda` is naturally isomorphic to `yoneda ⋙ Lan F.op`. -/
+@[simps] def comp_yoneda_iso_yoneda_comp_Lan {D : Type u₁} [small_category D] (F : C ⥤ D) :
+  F ⋙ yoneda ≅ yoneda ⋙ Lan F.op :=
+(is_extension_along_yoneda (F ⋙ yoneda)).symm ≪≫
+  iso_whisker_left yoneda (extend_of_comp_yoneda_iso_Lan F)
 
 /--
 Since `extend_along_yoneda A` is adjoint to `restricted_yoneda A`, if we use `A = yoneda`

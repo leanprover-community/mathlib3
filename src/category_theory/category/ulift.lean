@@ -3,9 +3,9 @@ Copyright (c) 2021 Adam Topaz. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Topaz
 -/
-import category_theory.category
+import category_theory.category.basic
 import category_theory.equivalence
-import category_theory.filtered
+import category_theory.eq_to_hom
 
 /-!
 # Basic API for ulift
@@ -45,21 +45,21 @@ variables {C : Type u₁} [category.{v₁} C]
 
 /-- The functorial version of `ulift.up`. -/
 @[simps]
-def ulift.up : C ⥤ (ulift.{u₂} C) :=
+def ulift.up_functor : C ⥤ (ulift.{u₂} C) :=
 { obj := ulift.up,
   map := λ X Y f, f }
 
 /-- The functorial version of `ulift.down`. -/
 @[simps]
-def ulift.down : (ulift.{u₂} C) ⥤ C :=
+def ulift.down_functor : (ulift.{u₂} C) ⥤ C :=
 { obj := ulift.down,
   map := λ X Y f, f }
 
 /-- The categorical equivalence between `C` and `ulift C`. -/
 @[simps]
 def ulift.equivalence : C ≌ (ulift.{u₂} C) :=
-{ functor := ulift.up,
-  inverse := ulift.down,
+{ functor := ulift.up_functor,
+  inverse := ulift.down_functor,
   unit_iso :=
   { hom := 𝟙 _,
     inv := 𝟙 _ },
@@ -73,12 +73,6 @@ def ulift.equivalence : C ≌ (ulift.{u₂} C) :=
   hom_inv_id' := by {ext, change (𝟙 _) ≫ (𝟙 _) = 𝟙 _, simp},
   inv_hom_id' := by {ext, change (𝟙 _) ≫ (𝟙 _) = 𝟙 _, simp} },
   functor_unit_iso_comp' := λ X, by {change (𝟙 X) ≫ (𝟙 X) = 𝟙 X, simp} }
-
-instance [is_filtered C] : is_filtered (ulift.{u₂} C) :=
-is_filtered.of_equivalence ulift.equivalence
-
-instance [is_cofiltered C] : is_cofiltered (ulift.{u₂} C) :=
-is_cofiltered.of_equivalence ulift.equivalence
 
 section ulift_hom
 
@@ -122,12 +116,6 @@ def ulift_hom.equiv : C ≌ ulift_hom C :=
   unit_iso := nat_iso.of_components (λ A, eq_to_iso rfl) (by tidy),
   counit_iso := nat_iso.of_components (λ A, eq_to_iso rfl) (by tidy) }
 
-instance [is_filtered C] : is_filtered (ulift_hom C) :=
-is_filtered.of_equivalence ulift_hom.equiv
-
-instance [is_cofiltered C] : is_cofiltered (ulift_hom C) :=
-is_cofiltered.of_equivalence ulift_hom.equiv
-
 end ulift_hom
 
 /-- `as_small C` is a small category equivalent to `C`.
@@ -144,7 +132,7 @@ end ulift_hom
 def {w v u} as_small (C : Type u) [category.{v} C] := ulift.{max w v} C
 
 instance : small_category (as_small.{w₁} C) :=
-{ hom := λ X Y, ulift.{(max w₁ u₁)} $ X.down ⟶ Y.down,
+{ hom := λ X Y, ulift.{max w₁ u₁} $ X.down ⟶ Y.down,
   id := λ X, ⟨𝟙 _⟩,
   comp := λ X Y Z f g, ⟨f.down ≫ g.down⟩ }
 
@@ -170,10 +158,9 @@ def as_small.equiv : C ≌ as_small C :=
 
 instance [inhabited C] : inhabited (as_small C) := ⟨⟨arbitrary _⟩⟩
 
-instance [is_filtered C] : is_filtered (as_small C) :=
-is_filtered.of_equivalence as_small.equiv
-
-instance [is_cofiltered C] : is_cofiltered (as_small C) :=
-is_cofiltered.of_equivalence as_small.equiv
+/-- The equivalence between `C` and `ulift_hom (ulift C)`. -/
+def {v' u' v u} ulift_hom_ulift_category.equiv (C : Type u) [category.{v} C] :
+  C ≌ ulift_hom.{v'} (ulift.{u'} C) :=
+ulift.equivalence.trans ulift_hom.equiv
 
 end category_theory

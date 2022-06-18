@@ -14,7 +14,7 @@ This file defines exposed sets and exposed points for sets in a real vector spac
 
 An exposed subset of `A` is a subset of `A` that is the set of all maximal points of a functional
 (a continuous linear map `E → 𝕜`) over `A`. By convention, `∅` is an exposed subset of all sets.
-This allows for better functioriality of the definition (the intersection of two exposed subsets is
+This allows for better functoriality of the definition (the intersection of two exposed subsets is
 exposed, faces of a polytope form a bounded lattice).
 This is an analytic notion of "being on the side of". It is stronger than being extreme (see
 `is_exposed.is_extreme`), but weaker (for exposed points) than being a vertex.
@@ -74,10 +74,10 @@ begin
   exact hx.1,
 end
 
-@[refl] lemma refl (A : set E) : is_exposed 𝕜 A A :=
+@[refl] protected lemma refl (A : set E) : is_exposed 𝕜 A A :=
 λ ⟨w, hw⟩, ⟨0, subset.antisymm (λ x hx, ⟨hx, λ y hy, by exact le_refl 0⟩) (λ x hx, hx.1)⟩
 
-lemma antisymm (hB : is_exposed 𝕜 A B) (hA : is_exposed 𝕜 B A) :
+protected lemma antisymm (hB : is_exposed 𝕜 A B) (hA : is_exposed 𝕜 B A) :
   A = B :=
 hA.subset.antisymm hB.subset
 
@@ -113,7 +113,7 @@ begin
     (λ x hx, ⟨hx.1, λ y hy, (hw.2 y hy).trans hx.2⟩)⟩,
 end
 
-lemma inter (hB : is_exposed 𝕜 A B) (hC : is_exposed 𝕜 A C) :
+protected lemma inter (hB : is_exposed 𝕜 A B) (hC : is_exposed 𝕜 A C) :
   is_exposed 𝕜 A (B ∩ C) :=
 begin
   rintro ⟨w, hwB, hwC⟩,
@@ -164,12 +164,12 @@ begin
   exact hC.inter_left hCA,
 end
 
-protected lemma is_extreme [normed_space ℝ E]  (hAB : is_exposed ℝ A B) :
-  is_extreme ℝ A B :=
+protected lemma is_extreme (hAB : is_exposed 𝕜 A B) :
+  is_extreme 𝕜 A B :=
 begin
-  refine ⟨hAB.subset, λ x₁ x₂ hx₁A hx₂A x hxB hx, _⟩,
+  refine ⟨hAB.subset, λ x₁ hx₁A x₂ hx₂A x hxB hx, _⟩,
   obtain ⟨l, rfl⟩ := hAB ⟨x, hxB⟩,
-  have hl : convex_on univ l := l.to_linear_map.convex_on convex_univ,
+  have hl : convex_on 𝕜 univ l := l.to_linear_map.convex_on convex_univ,
   have hlx₁ := hxB.2 x₁ hx₁A,
   have hlx₂ := hxB.2 x₂ hx₂A,
   refine ⟨⟨hx₁A, λ y hy, _⟩, ⟨hx₂A, λ y hy, _⟩⟩,
@@ -179,25 +179,25 @@ begin
     exact hxB.2 y hy }
 end
 
-protected lemma convex [normed_space ℝ E] (hAB : is_exposed ℝ A B) (hA : convex ℝ A) :
-  convex ℝ B :=
+protected lemma convex (hAB : is_exposed 𝕜 A B) (hA : convex 𝕜 A) :
+  convex 𝕜 B :=
 begin
   obtain rfl | hB := B.eq_empty_or_nonempty,
   { exact convex_empty },
   obtain ⟨l, rfl⟩ := hAB hB,
   exact λ x₁ x₂ hx₁ hx₂ a b ha hb hab, ⟨hA hx₁.1 hx₂.1 ha hb hab, λ y hy,
-    ((l.to_linear_map.concave_on convex_univ).concave_le _
+    ((l.to_linear_map.concave_on convex_univ).convex_ge _
     ⟨mem_univ _, hx₁.2 y hy⟩ ⟨mem_univ _, hx₂.2 y hy⟩ ha hb hab).2⟩,
 end
 
-lemma is_closed [normed_space ℝ E] (hAB : is_exposed ℝ A B) (hA : is_closed A) :
+protected lemma is_closed [order_closed_topology 𝕜] (hAB : is_exposed 𝕜 A B) (hA : is_closed A) :
   is_closed B :=
 begin
   obtain ⟨l, a, rfl⟩ := hAB.eq_inter_halfspace,
   exact hA.is_closed_le continuous_on_const l.continuous.continuous_on,
 end
 
-lemma is_compact [normed_space ℝ E] (hAB : is_exposed ℝ A B) (hA : is_compact A) :
+protected lemma is_compact [order_closed_topology 𝕜] (hAB : is_exposed 𝕜 A B) (hA : is_compact A) :
   is_compact B :=
 compact_of_is_closed_subset hA (hAB.is_closed hA.is_closed) hAB.subset
 
@@ -237,7 +237,7 @@ begin
   exact ⟨hl.1.1, l, λ y hy, ⟨hl.1.2 y hy, λ hxy, hl.2 y ⟨hy, λ z hz, (hl.1.2 z hz).trans hxy⟩⟩⟩,
 end
 
-lemma exposed_points_subset_extreme_points [normed_space ℝ E] :
-  A.exposed_points ℝ ⊆ A.extreme_points ℝ :=
+lemma exposed_points_subset_extreme_points :
+  A.exposed_points 𝕜 ⊆ A.extreme_points 𝕜 :=
 λ x hx, mem_extreme_points_iff_extreme_singleton.2
   (mem_exposed_points_iff_exposed_singleton.1 hx).is_extreme

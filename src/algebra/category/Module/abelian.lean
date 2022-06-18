@@ -3,6 +3,7 @@ Copyright (c) 2020 Markus Himmel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Markus Himmel
 -/
+import linear_algebra.isomorphisms
 import algebra.category.Module.kernels
 import algebra.category.Module.limits
 import category_theory.abelian.exact
@@ -25,7 +26,7 @@ variables {R : Type u} [ring R] {M N : Module.{v} R} (f : M ⟶ N)
 
 /-- In the category of modules, every monomorphism is normal. -/
 def normal_mono (hf : mono f) : normal_mono f :=
-{ Z := of R f.range.quotient,
+{ Z := of R (N ⧸ f.range),
   g := f.range.mkq,
   w := linear_map.range_mkq_comp _,
   is_limit :=
@@ -68,11 +69,11 @@ def normal_epi (hf : epi f) : normal_epi f :=
 
 /-- The category of R-modules is abelian. -/
 instance : abelian (Module R) :=
-{ has_finite_products := ⟨by apply_instance⟩,
-  has_kernels := by apply_instance,
+{ has_finite_products := ⟨λ J _, limits.has_limits_of_shape_of_has_limits⟩,
+  has_kernels := limits.has_kernels_of_has_equalizers (Module R),
   has_cokernels := has_cokernels_Module,
-  normal_mono := λ X Y, normal_mono,
-  normal_epi := λ X Y, normal_epi }
+  normal_mono_of_mono := λ X Y, normal_mono,
+  normal_epi_of_epi := λ X Y, normal_epi }
 
 variables {O : Module.{v} R} (g : N ⟶ O)
 

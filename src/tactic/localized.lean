@@ -3,6 +3,7 @@ Copyright (c) 2019 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
+import meta.rb_map
 import tactic.core
 
 /-!
@@ -20,8 +21,8 @@ The code is inspired by code from Gabriel Ebner from the
 open lean lean.parser interactive tactic native
 
 @[user_attribute]
-meta def localized_attr : user_attribute (rb_lmap name string) unit := {
-  name := "_localized",
+meta def localized_attr : user_attribute (rb_lmap name string) unit :=
+{ name := "_localized",
   descr := "(interal) attribute that flags localized commands",
   parser := failed,
   cache_cfg := ⟨λ ns, (do dcls ← ns.mmap (λ n, mk_const n >>= eval_expr (name × string)),
@@ -114,7 +115,7 @@ do cmds ← get_localized ns, cmds.mmap' trace
 -- the priority of decidability instances that make Lean run through all the algebraic hierarchy
 -- whenever it wants to solve a decidability question
 localized "attribute [instance, priority 9] classical.prop_decidable" in classical
-localized "attribute [instance, priority 8] eq.decidable decidable_eq_of_decidable_le" in classical
+localized "attribute [instance, priority 8] eq.decidable" in classical
 
 
 localized "postfix `?`:9001 := optional" in parser

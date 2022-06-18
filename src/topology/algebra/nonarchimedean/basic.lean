@@ -3,10 +3,9 @@ Copyright (c) 2021 Ashwin Iyengar. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Buzzard, Johan Commelin, Ashwin Iyengar, Patrick Massot
 -/
-import topology.algebra.ring
-import topology.algebra.open_subgroup
-import data.set.basic
 import group_theory.subgroup.basic
+import topology.algebra.open_subgroup
+import topology.algebra.ring
 
 /-!
 # Nonarchimedean Topology
@@ -72,7 +71,7 @@ lemma nonarchimedean_of_emb (f : G →* H) (emb : open_embedding f) : nonarchime
   contains the cartesian product of an open neighborhood in each group. -/
 @[to_additive nonarchimedean_add_group.prod_subset]
 lemma prod_subset {U} (hU : U ∈ nhds (1 : G × K)) :
-  ∃ (V : open_subgroup G) (W : open_subgroup K), (V : set G).prod (W : set K) ⊆ U :=
+  ∃ (V : open_subgroup G) (W : open_subgroup K), (V : set G) ×ˢ (W : set K) ⊆ U :=
 begin
   erw [nhds_prod_eq, filter.mem_prod_iff] at hU,
   rcases hU with ⟨U₁, hU₁, U₂, hU₂, h⟩,
@@ -88,7 +87,7 @@ end
   contains the cartesian square of an open neighborhood in the group. -/
 @[to_additive nonarchimedean_add_group.prod_self_subset]
 lemma prod_self_subset {U} (hU : U ∈ nhds (1 : G × G)) :
-  ∃ (V : open_subgroup G), (V : set G).prod (V : set G) ⊆ U :=
+  ∃ (V : open_subgroup G), (V : set G) ×ˢ (V : set G) ⊆ U :=
 let ⟨V, W, h⟩ := prod_subset hU in
   ⟨V ⊓ W, by {refine set.subset.trans (set.prod_mono _ _) ‹_›; simp}⟩
 

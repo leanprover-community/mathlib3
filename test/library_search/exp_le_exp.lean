@@ -1,5 +1,5 @@
 import tactic.suggest
-import analysis.special_functions.exp_log
+import analysis.special_functions.exp
 
 open real
 

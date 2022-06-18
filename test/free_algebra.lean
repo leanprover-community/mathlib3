@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
 
-import linear_algebra.exterior_algebra
+import linear_algebra.exterior_algebra.basic
 import linear_algebra.clifford_algebra
 
 /-!

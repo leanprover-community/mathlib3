@@ -3,8 +3,8 @@ Copyright (c) 2018 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Mario Carneiro, Simon Hudon
 -/
-import data.pfunctor.univariate
 import data.pfunctor.multivariate.basic
+import data.pfunctor.univariate.M
 
 /-!
 # The M construction as a multivariate polynomial functor.
@@ -40,7 +40,8 @@ that `A` is a possibly infinite tree.
 
 ## Reference
 
- * [Jeremy Avigad, Mario M. Carneiro and Simon Hudon, *Data Types as Quotients of Polynomial Functors*][avigad-carneiro-hudon2019]
+ * Jeremy Avigad, Mario M. Carneiro and Simon Hudon.
+   [*Data Types as Quotients of Polynomial Functors*][avigad-carneiro-hudon2019]
 -/
 
 universe u
@@ -66,7 +67,7 @@ instance M.path.inhabited (x : P.last.M) {i} [inhabited (P.drop.B x.head i)] :
 ⟨ M.path.root _ (pfunctor.M.head x) (pfunctor.M.children x)
   (pfunctor.M.cases_on' x $
     by intros; simp [pfunctor.M.dest_mk]; ext; rw pfunctor.M.children_mk; refl) _
-    (default _) ⟩
+    default ⟩
 
 /-- Polynomial functor of the M-type of `P`. `A` is a data-less
 possibly infinite tree whereas, for a given `a : A`, `B a` is a valid
@@ -218,8 +219,8 @@ begin
   cases x with a₁ f₁,
   cases y with a₂ f₂,
   dsimp [Mp] at *,
-  have : a₁ = a₂, {
-    refine pfunctor.M.bisim
+  have : a₁ = a₂,
+  { refine pfunctor.M.bisim
       (λ a₁ a₂, ∃ x y, R x y ∧ x.1 = a₁ ∧ y.1 = a₂) _ _ _
       ⟨⟨a₁, f₁⟩, ⟨a₂, f₂⟩, r, rfl, rfl⟩,
     rintro _ _ ⟨⟨a₁, f₁⟩, ⟨a₂, f₂⟩, r, rfl, rfl⟩,
@@ -230,8 +231,8 @@ begin
     exact ⟨_, _, _, rfl, rfl, λ b, ⟨_, _, h' b, rfl, rfl⟩⟩ },
   subst this, congr' with i p,
   induction p with x a f h' i c x a f h' i c p IH generalizing f₁ f₂;
-  try {
-    rcases h _ _ r with ⟨a', f', f₁', f₂', e₁, e₂, h''⟩,
+  try
+  { rcases h _ _ r with ⟨a', f', f₁', f₂', e₁, e₂, h''⟩,
     rcases M.bisim_lemma P e₁ with ⟨g₁', e₁', rfl, rfl⟩,
     rcases M.bisim_lemma P e₂ with ⟨g₂', e₂', e₃, rfl⟩,
     cases h'.symm.trans e₁',
@@ -260,8 +261,8 @@ begin
   replace h₁ := congr_fun (congr_fun h₁ fin2.fz) i,
   simp [(⊚),append_fun,split_fun] at h₁,
   replace h₁ := quot.exact _  h₁,
-  rw relation.eqv_gen_iff_of_equivalence at h₁,
-  exact h₁, exact h₀
+  rw h₀.eqv_gen_iff at h₁,
+  exact h₁,
 end
 
 theorem M.bisim' {α : typevec n} (R : P.M α → P.M α → Prop)

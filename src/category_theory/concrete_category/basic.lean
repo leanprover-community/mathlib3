@@ -70,8 +70,8 @@ instance : has_coe_to_sort X := concrete_category.has_coe_to_sort X
 ```
 -/
 def concrete_category.has_coe_to_sort (C : Type v) [category C] [concrete_category C] :
-  has_coe_to_sort C :=
-{ S := Type u, coe := (concrete_category.forget C).obj }
+  has_coe_to_sort C (Type u) :=
+⟨(concrete_category.forget C).obj⟩
 
 section
 local attribute [instance] concrete_category.has_coe_to_sort
@@ -82,9 +82,8 @@ variables {C : Type v} [category C] [concrete_category C]
 
 /-- Usually a bundled hom structure already has a coercion to function
 that works with different universes. So we don't use this as a global instance. -/
-def concrete_category.has_coe_to_fun {X Y : C} : has_coe_to_fun (X ⟶ Y) :=
-{ F   := λ f, X → Y,
-  coe := λ f, (forget _).map f }
+def concrete_category.has_coe_to_fun {X Y : C} : has_coe_to_fun (X ⟶ Y) (λ f, X → Y) :=
+⟨λ f, (forget _).map f⟩
 
 local attribute [instance] concrete_category.has_coe_to_fun
 
@@ -118,13 +117,6 @@ congr_fun ((forget _).map_id X) x
 @[simp] lemma comp_apply {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) (x : X) :
   (f ≫ g) x = g (f x) :=
 congr_fun ((forget _).map_comp _ _) x
-
-@[simp] lemma coe_hom_inv_id {X Y : C} (f : X ≅ Y) (x : X) :
-  f.inv (f.hom x) = x :=
-congr_fun ((forget C).map_iso f).hom_inv_id x
-@[simp] lemma coe_inv_hom_id {X Y : C} (f : X ≅ Y) (y : Y) :
-  f.hom (f.inv y) = y :=
-congr_fun ((forget C).map_iso f).inv_hom_id y
 
 lemma concrete_category.congr_hom {X Y : C} {f g : X ⟶ Y} (h : f = g) (x : X) : f x = g x :=
 congr_fun (congr_arg (λ f : X ⟶ Y, (f : X → Y)) h) x
@@ -176,6 +168,15 @@ instance induced_category.has_forget₂ {C : Type v} {D : Type v'} [category D] 
   (f : C → D) :
   has_forget₂ (induced_category D f) D :=
 { forget₂ := induced_functor f,
+  forget_comp := rfl }
+
+instance full_subcategory.concrete_category {C : Type v} [category C] [concrete_category C]
+  (Z : C → Prop) : concrete_category {X : C // Z X} :=
+{ forget := full_subcategory_inclusion Z ⋙ forget C }
+
+instance full_subcategory.has_forget₂ {C : Type v} [category C] [concrete_category C]
+  (Z : C → Prop) : has_forget₂ {X : C // Z X} C :=
+{ forget₂ := full_subcategory_inclusion Z,
   forget_comp := rfl }
 
 /--

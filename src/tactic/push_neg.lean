@@ -7,7 +7,6 @@ A tactic pushing negations into an expression
 -/
 
 import logic.basic
-import algebra.order.basic
 
 open tactic expr
 
@@ -168,7 +167,7 @@ lemma imp_of_not_imp_not (P Q : Prop) : (¬ Q → ¬ P) → (P → Q) :=
 
 /-- Matches either an identifier "h" or a pair of identifiers "h with k" -/
 meta def name_with_opt : lean.parser (name × option name) :=
-prod.mk <$> ident <*> (some <$> (tk "with" >> ident) <|> return none)
+prod.mk <$> ident <*> (some <$> (tk "with" *> ident) <|> return none)
 
 /--
 Transforms the goal into its contrapositive.

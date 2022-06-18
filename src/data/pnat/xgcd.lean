@@ -211,7 +211,7 @@ theorem step_v (hr : u.r ≠ 0) : u.step.v = (u.v).swap :=
 begin
   let ha : u.r + u.b * u.q = u.a := u.rq_eq,
   let hr : (u.r - 1) + 1 = u.r :=
-    (add_comm _ 1).trans (nat.add_sub_of_le (nat.pos_of_ne_zero hr)),
+    (add_comm _ 1).trans (add_tsub_cancel_of_le (nat.pos_of_ne_zero hr)),
   ext,
   { change ((u.y * u.q + u.z) * u.b + u.y * (u.r - 1 + 1) : ℕ) = u.y * u.a + u.z * u.b,
     rw [← ha, hr], ring },

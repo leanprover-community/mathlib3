@@ -100,6 +100,12 @@ lemma mul : map_fun f (x * y) = map_fun f x * map_fun f y := by map_fun_tac
 
 lemma neg : map_fun f (-x) = -map_fun f x := by map_fun_tac
 
+lemma nsmul (n : ℕ) : map_fun f (n • x) = n • map_fun f x := by map_fun_tac
+
+lemma zsmul (z : ℤ) : map_fun f (z • x) = z • map_fun f x := by map_fun_tac
+
+lemma pow (n : ℕ) : map_fun f (x^ n) = map_fun f x ^ n := by map_fun_tac
+
 end map_fun
 
 end witt_vector
@@ -120,6 +126,9 @@ fn ← to_expr ```(%%fn : fin _ → ℕ → R),
   witt_vector.has_mul witt_mul
   witt_vector.has_sub witt_sub
   witt_vector.has_add witt_add
+  witt_vector.has_nat_scalar witt_nsmul
+  witt_vector.has_int_scalar witt_zsmul
+  witt_vector.has_nat_pow witt_pow
   ],
 to_expr ```(congr_fun (congr_arg (@peval R _ %%k) (witt_structure_int_prop p %%φ n)) %%fn) >>=
   note `this none,
@@ -166,6 +175,15 @@ by ghost_fun_tac (X 0 * X 1) ![x.coeff, y.coeff]
 private lemma ghost_fun_neg : ghost_fun (-x) = - ghost_fun x :=
 by ghost_fun_tac (-X 0) ![x.coeff]
 
+private lemma ghost_fun_nsmul (m : ℕ) : ghost_fun (m • x) = m • ghost_fun x :=
+by ghost_fun_tac (m • X 0) ![x.coeff]
+
+private lemma ghost_fun_zsmul (m : ℤ) : ghost_fun (m • x) = m • ghost_fun x :=
+by ghost_fun_tac (m • X 0) ![x.coeff]
+
+private lemma ghost_fun_pow (m : ℕ) : ghost_fun (x ^ m) = ghost_fun x ^ m :=
+by ghost_fun_tac (X 0 ^ m) ![x.coeff]
+
 end ghost_fun
 
 variables (p) (R)
@@ -198,16 +216,19 @@ local attribute [instance]
 private def comm_ring_aux₁ : comm_ring (𝕎 (mv_polynomial R ℚ)) :=
 (ghost_equiv' p (mv_polynomial R ℚ)).injective.comm_ring (ghost_fun)
   ghost_fun_zero ghost_fun_one ghost_fun_add ghost_fun_mul ghost_fun_neg ghost_fun_sub
+  ghost_fun_nsmul ghost_fun_zsmul ghost_fun_pow
 
 local attribute [instance]
 private def comm_ring_aux₂ : comm_ring (𝕎 (mv_polynomial R ℤ)) :=
 (map_fun.injective _ $ map_injective (int.cast_ring_hom ℚ) int.cast_injective).comm_ring _
   (map_fun.zero _) (map_fun.one _) (map_fun.add _) (map_fun.mul _) (map_fun.neg _) (map_fun.sub _)
+  (map_fun.nsmul _) (map_fun.zsmul _) (map_fun.pow _)
 
 /-- The commutative ring structure on `𝕎 R`. -/
 instance : comm_ring (𝕎 R) :=
 (map_fun.surjective _ $ counit_surjective _).comm_ring (map_fun $ mv_polynomial.counit _)
   (map_fun.zero _) (map_fun.one _) (map_fun.add _) (map_fun.mul _) (map_fun.neg _) (map_fun.sub _)
+  (map_fun.nsmul _) (map_fun.zsmul _) (map_fun.pow _)
 
 variables {p R}
 
@@ -246,6 +267,8 @@ lemma ghost_component_apply (n : ℕ) (x : 𝕎 R) : ghost_component n x = aeval
 
 @[simp] lemma ghost_map_apply (x : 𝕎 R) (n : ℕ) : ghost_map x n = ghost_component n x := rfl
 
+section invertible
+
 variables (p R) [invertible (p : R)]
 
 /-- `witt_vector.ghost_map` is a ring isomorphism when `p` is invertible in `R`. -/
@@ -256,5 +279,20 @@ def ghost_equiv : 𝕎 R ≃+* (ℕ → R) :=
 
 lemma ghost_map.bijective_of_invertible : function.bijective (ghost_map : 𝕎 R → ℕ → R) :=
 (ghost_equiv p R).bijective
+
+end invertible
+
+/-- `witt_vector.coeff x 0` as a `ring_hom` -/
+@[simps]
+def constant_coeff : 𝕎 R →+* R :=
+{ to_fun := λ x, x.coeff 0,
+  map_zero' := by simp,
+  map_one' := by simp,
+  map_add' := add_coeff_zero,
+  map_mul' := mul_coeff_zero }
+
+instance [nontrivial R] : nontrivial (𝕎 R) :=
+constant_coeff.domain_nontrivial
+
 
 end witt_vector

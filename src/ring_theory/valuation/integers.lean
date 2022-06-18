@@ -28,7 +28,7 @@ def integer : subring R :=
 { carrier := { x | v x ≤ 1 },
   one_mem' := le_of_eq v.map_one,
   mul_mem' := λ x y hx hy, trans_rel_right (≤) (v.map_mul x y) (mul_le_one' hx hy),
-  zero_mem' := trans_rel_right (≤) v.map_zero zero_le_one',
+  zero_mem' := trans_rel_right (≤) v.map_zero zero_le_one,
   add_mem' := λ x y hx hy, le_trans (v.map_add x y) (max_le hx hy),
   neg_mem' := λ x hx, trans_rel_right (≤) (v.map_neg x) hx }
 
@@ -70,7 +70,7 @@ lemma is_unit_of_one {x : O} (hx : is_unit (algebra_map O R x)) (hvx : v (algebr
   is_unit x :=
 let ⟨u, hu⟩ := hx in
 have h1 : v u ≤ 1, from hu.symm ▸ hv.2 x,
-have h2 : v (u⁻¹ : units R) ≤ 1,
+have h2 : v (u⁻¹ : Rˣ) ≤ 1,
   by rw [← one_mul (v _), ← hvx, ← v.map_mul, ← hu, u.mul_inv, hu, hvx, v.map_one],
 let ⟨r1, hr1⟩ := hv.3 h1, ⟨r2, hr2⟩ := hv.3 h2 in
 ⟨⟨r1, r2, hv.1 $ by rw [ring_hom.map_mul, ring_hom.map_one, hr1, hr2, units.mul_inv],
@@ -102,7 +102,7 @@ classical.by_cases (λ hy : algebra_map O F y = 0, have hx : x = 0,
 have v ((algebra_map O F y)⁻¹ * algebra_map O F x) ≤ 1,
   by { rw [← v.map_one, ← inv_mul_cancel hy, v.map_mul, v.map_mul], exact mul_le_mul_left' h _ },
 let ⟨z, hz⟩ := hv.3 this in
-⟨z, hv.1 $ ((algebra_map O F).map_mul y z).symm ▸ hz.symm ▸ (mul_inv_cancel_left' hy _).symm⟩
+⟨z, hv.1 $ ((algebra_map O F).map_mul y z).symm ▸ hz.symm ▸ (mul_inv_cancel_left₀ hy _).symm⟩
 
 lemma dvd_iff_le {x y : O} : x ∣ y ↔ v (algebra_map O F y) ≤ v (algebra_map O F x) :=
 ⟨hv.le_of_dvd, hv.dvd_of_le⟩

@@ -6,18 +6,20 @@ Authors: Johannes Hölzl, Mitchell Rowett, Scott Morrison, Johan Commelin, Mario
 -/
 import group_theory.subgroup.basic
 import deprecated.submonoid
-/-!
-# Unbundled subgroups
 
-This file defines unbundled multiplicative and additive subgroups `is_subgroup` and
-`is_add_subgroup`. These are not the preferred way to talk about subgroups and should
-not be used for any new projects. The preferred way in mathlib are the bundled
-versions `subgroup G` and `add_subgroup G`.
+/-!
+# Unbundled subgroups (deprecated)
+
+This file is deprecated, and is no longer imported by anything in mathlib other than other
+deprecated files, and test files. You should not need to import it.
+
+This file defines unbundled multiplicative and additive subgroups. Instead of using this file,
+please use `subgroup G` and `add_subgroup A`, defined in `group_theory.subgroup.basic`.
 
 ## Main definitions
 
-`is_add_subgroup (S : set G)` : the predicate that `S` is the underlying subset of an additive
-subgroup of `G`. The bundled variant `add_subgroup G` should be used in preference to this.
+`is_add_subgroup (S : set A)` : the predicate that `S` is the underlying subset of an additive
+subgroup of `A`. The bundled variant `add_subgroup A` should be used in preference to this.
 
 `is_subgroup (S : set G)` : the predicate that `S` is the underlying subset of a subgroup
 of `G`. The bundled variant `subgroup G` should be used in preference to this.
@@ -259,7 +261,6 @@ end is_subgroup
 -- Homomorphism subgroups
 namespace is_group_hom
 open is_submonoid is_subgroup
-open is_mul_hom (map_mul)
 
 /-- `ker f : set G` is the underlying subset of the kernel of a map `G → H`. -/
 @[to_additive "`ker f : set A` is the underlying subset of the kernel of a map `A → B`"]
@@ -275,7 +276,7 @@ variables [group G] [group H]
 lemma one_ker_inv {f : G → H} (hf : is_group_hom f) {a b : G} (h : f (a * b⁻¹) = 1) : f a = f b :=
 begin
   rw [hf.map_mul, hf.map_inv] at h,
-  rw [←inv_inv (f b), eq_inv_of_mul_eq_one h]
+  rw [←inv_inv (f b), eq_inv_of_mul_eq_one_left h]
 end
 
 @[to_additive]
@@ -283,7 +284,7 @@ lemma one_ker_inv' {f : G → H} (hf : is_group_hom f) {a b : G} (h : f (a⁻¹ 
 begin
   rw [hf.map_mul, hf.map_inv] at h,
   apply inv_injective,
-  rw eq_inv_of_mul_eq_one h
+  rw eq_inv_of_mul_eq_one_left h
 end
 
 @[to_additive]
@@ -330,7 +331,8 @@ local attribute [simp] one_mem inv_mem mul_mem is_normal_subgroup.normal
 lemma preimage {f : G → H} (hf : is_group_hom f) {s : set H} (hs : is_subgroup s) :
   is_subgroup (f ⁻¹' s) :=
 by { refine {..};
-     simp [hs.one_mem, hs.mul_mem, hs.inv_mem, hf.map_mul, hf.map_one, hf.map_inv, @inv_mem H _ s]
+     simp [hs.one_mem, hs.mul_mem, hs.inv_mem, hf.map_mul, hf.map_one, hf.map_inv,
+           inv_mem_class.inv_mem]
      {contextual := tt} }
 
 @[to_additive]
@@ -352,7 +354,7 @@ begin
   intros a₁ a₂ hfa,
   simp [ext_iff, ker, is_subgroup.trivial] at h,
   have ha : a₁ * a₂⁻¹ = 1, by rw ←h; exact hf.inv_ker_one hfa,
-  rw [eq_inv_of_mul_eq_one ha, inv_inv a₂]
+  rw [eq_inv_of_mul_eq_one_left ha, inv_inv a₂]
 end
 
 @[to_additive]
@@ -424,7 +426,7 @@ theorem subset_closure {s : set G} : s ⊆ closure s := λ a, mem_closure
 
 @[to_additive]
 theorem closure_subset {s t : set G} (ht : is_subgroup t) (h : s ⊆ t) : closure s ⊆ t :=
-assume a ha, by induction ha; simp [h _, *, ht.one_mem, ht.mul_mem, inv_mem_iff]
+assume a ha, by induction ha; simp [h _, *, ht.one_mem, ht.mul_mem, is_subgroup.inv_mem_iff]
 
 @[to_additive]
 lemma closure_subset_iff {s t : set G} (ht : is_subgroup t) : closure s ⊆ t ↔ s ⊆ t :=
@@ -447,7 +449,7 @@ in_closure.rec_on h
   (λ x _ ⟨L, HL1, HL2⟩, ⟨L.reverse.map has_inv.inv,
     λ x hx, let ⟨y, hy1, hy2⟩ := list.exists_of_mem_map hx in
       hy2 ▸ or.imp id (by rw [inv_inv]; exact id) (HL1 _ $ list.mem_reverse.1 hy1).symm,
-      HL2 ▸ list.rec_on L one_inv.symm (λ hd tl ih,
+      HL2 ▸ list.rec_on L inv_one.symm (λ hd tl ih,
         by rw [list.reverse_cons, list.map_append, list.prod_append, ih, list.map_singleton,
             list.prod_cons, list.prod_nil, mul_one, list.prod_cons, mul_inv_rev])⟩)
   (λ x y hx hy ⟨L1, HL1, HL2⟩ ⟨L2, HL3, HL4⟩, ⟨L1 ++ L2, list.forall_mem_append.2 ⟨HL1, HL3⟩,
@@ -489,7 +491,7 @@ set.subset.antisymm
       (λ x hx, or.cases_on hx (λ hx, monoid.subset_closure $ or.inr $
         show x⁻¹⁻¹ ∈ s, from (inv_inv x).symm ▸ hx)
         (λ hx, monoid.subset_closure $ or.inl hx))
-      ((@one_inv G _).symm ▸ is_submonoid.one_mem (monoid.closure.is_submonoid _))
+      ((@inv_one G _).symm ▸ is_submonoid.one_mem (monoid.closure.is_submonoid _))
       (λ x y hx hy ihx ihy,
         (mul_inv_rev x y).symm ▸ is_submonoid.mul_mem (monoid.closure.is_submonoid _) ihy ihx) }
     (set.subset.trans (set.subset_union_left _ _) monoid.subset_closure))
@@ -539,7 +541,7 @@ end
 
 theorem conjugates_of_set_subset' {s t : set G} (ht : is_normal_subgroup t) (h : s ⊆ t) :
   conjugates_of_set s ⊆ t :=
-set.bUnion_subset (λ x H, conjugates_of_subset ht (h H))
+set.Union₂_subset (λ x H, conjugates_of_subset ht (h H))
 
 /-- The normal closure of a set s is the subgroup closure of all the conjugates of
 elements of s. It is the smallest normal subgroup containing s. -/

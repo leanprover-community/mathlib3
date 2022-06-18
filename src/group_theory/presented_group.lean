@@ -30,7 +30,7 @@ variables {α : Type}
 /-- Given a set of relations, rels, over a type `α`, presented_group constructs the group with
 generators `x : α` and relations `rels` as a quotient of free_group `α`.-/
 def presented_group (rels : set (free_group α)) : Type :=
-quotient_group.quotient $ subgroup.normal_closure rels
+free_group α ⧸ subgroup.normal_closure rels
 
 namespace presented_group
 

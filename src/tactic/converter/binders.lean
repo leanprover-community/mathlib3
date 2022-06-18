@@ -5,7 +5,7 @@ Authors: Johannes Hölzl
 
 Binder elimination
 -/
-import order
+import order.complete_lattice
 
 namespace old_conv
 open tactic monad

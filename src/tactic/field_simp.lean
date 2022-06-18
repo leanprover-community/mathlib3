@@ -25,7 +25,7 @@ meta def field_simp.ne_zero : tactic unit := do
   end
 
 namespace interactive
-open interactive interactive.types
+setup_tactic_parser
 
 /--
 The goal of `field_simp` is to reduce an expression in a field to an expression of the form `n / d`
@@ -43,7 +43,7 @@ If the goal is an equality, this simpset will also clear the denominators, so th
 can normally be concluded by an application of `ring` or `ring_exp`.
 
 `field_simp [hx, hy]` is a short form for
-`simp [-one_div, -mul_eq_zero, hx, hy] with field_simps {discharger := [field_simp.ne_zero]}`
+`simp [-one_div, -mul_eq_zero, hx, hy] with field_simps {discharger := tactic.field_simp.ne_zero}`
 
 Note that this naive algorithm will not try to detect common factors in denominators to reduce the
 complexity of the resulting expression. Instead, it relies on the ability of `ring` to handle

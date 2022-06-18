@@ -1,4 +1,4 @@
-import system.random.basic
+import control.random
 import data.nat.prime
 import data.zmod.basic
 

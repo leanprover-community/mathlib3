@@ -3,10 +3,10 @@ Copyright (c) 2021 Henry Swanson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Henry Swanson
 -/
-import data.equiv.basic
-import data.equiv.option
 import dynamics.fixed_points.basic
 import group_theory.perm.option
+import logic.equiv.basic
+import logic.equiv.option
 
 /-!
 # Derangements on types
@@ -51,9 +51,9 @@ calc
       : begin
         refine (perm.subtype_equiv_subtype_perm p).subtype_equiv (λ f, ⟨λ hf a hfa ha, _, _⟩),
         { refine hf ⟨a, ha⟩ (subtype.ext _),
-          rw [mem_fixed_points, is_fixed_pt, perm.subtype_equiv_subtype_perm] at hfa,
-          dsimp at hfa,
-          rwa equiv.perm.of_subtype_apply_of_mem at hfa },
+          rwa [mem_fixed_points, is_fixed_pt, perm.subtype_equiv_subtype_perm, @coe_fn_coe_base',
+               equiv.coe_fn_mk, subtype.coe_mk, equiv.perm.of_subtype_apply_of_mem]
+            at hfa },
         rintro hf ⟨a, ha⟩ hfa,
         refine hf _ _ ha,
         change perm.subtype_equiv_subtype_perm p f a = a,
@@ -141,8 +141,7 @@ begin
       simp only [perm.decompose_option_symm_apply, swap_apply_self, perm.coe_mul],
       cases x,
       { simp },
-      simp only [equiv_functor.map_equiv_apply, equiv_functor.map,
-                  option.map_eq_map, option.map_some'],
+      simp only [equiv.option_congr_apply, option.map_some'],
       by_cases x_vs_a : x = a,
       { rw [x_vs_a, swap_apply_right], apply option.some_ne_none },
       have ne_1 : some x ≠ none := option.some_ne_none _,

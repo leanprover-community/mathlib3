@@ -11,7 +11,6 @@ import category_theory.monad.limits
 import topology.urysohns_lemma
 
 /-!
-
 # The category of Compact Hausdorff Spaces
 
 We construct the category of compact Hausdorff spaces.
@@ -28,7 +27,7 @@ introduced.
 
 -/
 
-universe u
+universes v u
 
 open category_theory
 
@@ -42,7 +41,7 @@ namespace CompHaus
 
 instance : inhabited CompHaus := ⟨{to_Top := { α := pempty }}⟩
 
-instance : has_coe_to_sort CompHaus := ⟨Type*, λ X, X.to_Top⟩
+instance : has_coe_to_sort CompHaus Type* := ⟨λ X, X.to_Top⟩
 instance {X : CompHaus} : compact_space X := X.is_compact
 instance {X : CompHaus} : t2_space X := X.is_hausdorff
 
@@ -100,7 +99,7 @@ end CompHaus
 def CompHaus_to_Top : CompHaus.{u} ⥤ Top.{u} := induced_functor _
 
 instance CompHaus.forget_reflects_isomorphisms : reflects_isomorphisms (forget CompHaus.{u}) :=
-⟨by introsI A B f hf; exact CompHaus.is_iso_of_bijective _ ((is_iso_iff_bijective ⇑f).mp hf)⟩
+⟨by introsI A B f hf; exact CompHaus.is_iso_of_bijective _ ((is_iso_iff_bijective f).mp hf)⟩
 
 /--
 (Implementation) The object part of the compactification functor from topological spaces to
@@ -132,9 +131,9 @@ noncomputable def stone_cech_equivalence (X : Top.{u}) (Y : CompHaus.{u}) :
   end,
   right_inv :=
   begin
-    rintro ⟨f : ↥X ⟶ Y, hf : continuous f⟩,
+    rintro ⟨f : (X : Type*) ⟶ Y, hf : continuous f⟩,
     ext,
-    exact congr_fun (stone_cech_extend_extends hf) x,
+    exact congr_fun (stone_cech_extend_extends hf) _,
   end }
 
 /--
@@ -166,7 +165,7 @@ namespace CompHaus
 
 /-- An explicit limit cone for a functor `F : J ⥤ CompHaus`, defined in terms of
 `Top.limit_cone`. -/
-def limit_cone {J : Type u} [small_category J] (F : J ⥤ CompHaus.{u}) :
+def limit_cone {J : Type v} [small_category J] (F : J ⥤ CompHaus.{max v u}) :
   limits.cone F :=
 { X :=
   { to_Top := (Top.limit_cone (F ⋙ CompHaus_to_Top)).X,
@@ -194,7 +193,7 @@ def limit_cone {J : Type u} [small_category J] (F : J ⥤ CompHaus.{u}) :
       simp only [comp_apply, functor.const.obj_map, id_apply], exact (hx f).symm, } } }
 
 /-- The limit cone `CompHaus.limit_cone F` is indeed a limit cone. -/
-def limit_cone_is_limit {J : Type u} [small_category J] (F : J ⥤ CompHaus.{u}) :
+def limit_cone_is_limit {J : Type v} [small_category J] (F : J ⥤ CompHaus.{max v u}) :
   limits.is_limit (limit_cone F) :=
 { lift := λ S,
     (Top.limit_cone_is_limit (F ⋙ CompHaus_to_Top)).lift (CompHaus_to_Top.map_cone S),

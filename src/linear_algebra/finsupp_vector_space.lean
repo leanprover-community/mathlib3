@@ -4,9 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 
-import data.mv_polynomial
 import linear_algebra.dimension
-import linear_algebra.direct_sum.finsupp
 import linear_algebra.finite_dimensional
 import linear_algebra.std_basis
 
@@ -30,6 +28,8 @@ local attribute [instance, priority 100] classical.prop_decidable
 open set linear_map submodule
 open_locale cardinal
 
+universes u v w
+
 namespace finsupp
 
 section ring
@@ -52,10 +52,8 @@ begin
       simp only [supr_singleton],
       rw range_coe,
       apply range_comp_subset_range },
-    { refine supr_le_supr (λ i, supr_le_supr _),
-      intros hi,
-      rw span_le,
-      rw range_coe,
+    { refine supr₂_mono (λ i hi, _),
+      rw [span_le, range_coe],
       apply range_comp_subset_range } }
 end
 
@@ -88,7 +86,8 @@ basis.of_repr
       by { ext ⟨i, x⟩,
            simp only [coe_mk, linear_equiv.apply_symm_apply, comap_domain_apply] },
     map_add' := λ g h, by { ext ⟨i, x⟩, simp only [coe_mk, add_apply, linear_equiv.map_add] },
-    map_smul' := λ c h, by { ext ⟨i, x⟩, simp only [coe_mk, smul_apply, linear_equiv.map_smul] } }
+    map_smul' := λ c h, by { ext ⟨i, x⟩, simp only [coe_mk, smul_apply, linear_equiv.map_smul,
+                                                    ring_hom.id_apply] } }
 
 @[simp] lemma basis_repr {φ : ι → Type*} (b : ∀ i, basis (φ i) R M)
   (g : ι →₀ M) (ix) :
@@ -120,17 +119,14 @@ funext $ λ i, basis.apply_eq_iff.mpr rfl
 end ring
 
 section dim
-universes u v
 variables {K : Type u} {V : Type v} {ι : Type v}
 variables [field K] [add_comm_group V] [module K V]
 
 lemma dim_eq : module.rank K (ι →₀ V) = #ι * module.rank K V :=
 begin
   let bs := basis.of_vector_space K V,
-  rw [← cardinal.lift_inj, cardinal.lift_mul, ← bs.mk_eq_dim,
-      ← (finsupp.basis (λa:ι, bs)).mk_eq_dim, ← cardinal.sum_mk,
-      ← cardinal.lift_mul, cardinal.lift_inj],
-  { simp only [cardinal.mk_image_eq (single_injective.{u u} _), cardinal.sum_const] }
+  rw [← bs.mk_eq_dim'', ← (finsupp.basis (λa:ι, bs)).mk_eq_dim'',
+    cardinal.mk_sigma, cardinal.sum_const']
 end
 
 end dim
@@ -138,11 +134,6 @@ end dim
 end finsupp
 
 section module
-/- We use `universe variables` instead of `universes` here because universes introduced by the
-   `universes` keyword do not get replaced by metavariables once a lemma has been proven. So if you
-   prove a lemma using universe `u`, you can only apply it to universe `u` in other lemmas of the
-   same section. -/
-universe variables u v w
 variables {K : Type u} {V V₁ V₂ : Type v} {V' : Type w}
 variables [field K]
 variables [add_comm_group V] [module K V]
@@ -151,7 +142,6 @@ variables [add_comm_group V₂] [module K V₂]
 variables [add_comm_group V'] [module K V']
 
 open module
-
 
 lemma equiv_of_dim_eq_lift_dim
   (h : cardinal.lift.{w} (module.rank K V) = cardinal.lift.{v} (module.rank K V')) :
@@ -189,7 +179,6 @@ end
 end module
 
 section module
-universes u
 
 open module
 
@@ -205,12 +194,12 @@ begin
     ... = _ : by rw [← cardinal.lift_inj.1 hs.mk_eq_dim, cardinal.power_def]
 end
 
-lemma cardinal_lt_omega_of_finite_dimensional [fintype K] [finite_dimensional K V] :
-  #V < ω :=
+lemma cardinal_lt_aleph_0_of_finite_dimensional [fintype K] [finite_dimensional K V] : #V < ℵ₀ :=
 begin
+  letI : is_noetherian K V := is_noetherian.iff_fg.2 infer_instance,
   rw cardinal_mk_eq_cardinal_mk_field_pow_dim K V,
-  exact cardinal.power_lt_omega (cardinal.lt_omega_iff_fintype.2 ⟨infer_instance⟩)
-    (is_noetherian.dim_lt_omega K V),
+  exact cardinal.power_lt_aleph_0 (cardinal.lt_aleph_0_of_fintype K)
+    (is_noetherian.dim_lt_aleph_0 K V),
 end
 
 end module

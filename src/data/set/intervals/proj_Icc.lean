@@ -42,6 +42,21 @@ by simp [proj_Icc, hx, h]
 @[simp] lemma proj_Icc_right : proj_Icc a b h b = ⟨b, right_mem_Icc.2 h⟩ :=
 proj_Icc_of_right_le h le_rfl
 
+lemma proj_Icc_eq_left (h : a < b) : proj_Icc a b h.le x = ⟨a, left_mem_Icc.mpr h.le⟩ ↔ x ≤ a :=
+begin
+  refine ⟨λ h', _, proj_Icc_of_le_left _⟩,
+  simp_rw [subtype.ext_iff_val, proj_Icc, max_eq_left_iff, min_le_iff, h.not_le, false_or] at h',
+  exact h'
+end
+
+lemma proj_Icc_eq_right (h : a < b) : proj_Icc a b h.le x = ⟨b, right_mem_Icc.mpr h.le⟩ ↔ b ≤ x :=
+begin
+  refine ⟨λ h', _, proj_Icc_of_right_le _⟩,
+  simp_rw [subtype.ext_iff_val, proj_Icc] at h',
+  have := ((max_choice _ _).resolve_left (by simp [h.ne', h'])).symm.trans h',
+  exact min_eq_left_iff.mp this
+end
+
 lemma proj_Icc_of_mem (hx : x ∈ Icc a b) : proj_Icc a b h x = ⟨x, hx⟩ :=
 by simp [proj_Icc, hx.1, hx.2]
 
@@ -60,7 +75,7 @@ lemma proj_Icc_surjective : surjective (proj_Icc a b h) :=
 lemma monotone_proj_Icc : monotone (proj_Icc a b h) :=
 λ x y hxy, max_le_max le_rfl $ min_le_min le_rfl hxy
 
-lemma strict_mono_incr_on_proj_Icc : strict_mono_incr_on (proj_Icc a b h) (Icc a b) :=
+lemma strict_mono_on_proj_Icc : strict_mono_on (proj_Icc a b h) (Icc a b) :=
 λ x hx y hy hxy, by simpa only [proj_Icc_of_mem, hx, hy]
 
 /-- Extend a function `[a, b] → β` to a map `α → β`. -/
@@ -69,7 +84,7 @@ f ∘ proj_Icc a b h
 
 @[simp] lemma Icc_extend_range (f : Icc a b → β) :
   range (Icc_extend h f) = range f :=
-by simp [Icc_extend, range_comp f]
+by simp only [Icc_extend, range_comp f, range_proj_Icc, range_id']
 
 lemma Icc_extend_of_le_left (f : Icc a b → β) (hx : x ≤ a) :
   Icc_extend h f x = f ⟨a, left_mem_Icc.2 h⟩ :=
@@ -104,6 +119,6 @@ variables [preorder β] {a b : α} (h : a ≤ b) {f : Icc a b → β}
 lemma monotone.Icc_extend (hf : monotone f) : monotone (Icc_extend h f) :=
 hf.comp $ monotone_proj_Icc h
 
-lemma strict_mono.strict_mono_incr_on_Icc_extend (hf : strict_mono f) :
-  strict_mono_incr_on (Icc_extend h f) (Icc a b) :=
-hf.comp_strict_mono_incr_on (strict_mono_incr_on_proj_Icc h)
+lemma strict_mono.strict_mono_on_Icc_extend (hf : strict_mono f) :
+  strict_mono_on (Icc_extend h f) (Icc a b) :=
+hf.comp_strict_mono_on (strict_mono_on_proj_Icc h)

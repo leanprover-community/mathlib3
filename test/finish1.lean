@@ -2,11 +2,14 @@
 Copyright (c) 2016 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad
-
-Examples to test finish. (The designations "clarify," "safe," "iauto," etc. are
-from a previous tableau prover.)
 -/
 import tactic.finish
+
+/-!
+# Examples to test `finish`
+
+The designations "clarify," "safe," "iauto," etc. are from a previous tableau prover.
+-/
 open auto
 
 section

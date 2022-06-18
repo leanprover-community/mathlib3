@@ -6,13 +6,37 @@ Authors: Johannes Hölzl
 import tactic.lint
 import tactic.ext
 
+/-!
+# Sigma types
+
+This file proves basic results about sigma types.
+
+A sigma type is a dependent pair type. Like `α × β` but where the type of the second component
+depends on the first component. This can be seen as a generalization of the sum type `α ⊕ β`:
+* `α ⊕ β` is made of stuff which is either of type `α` or `β`.
+* Given `α : ι → Type*`, `sigma α` is made of stuff which is of type `α i` for some `i : ι`. One
+  effectively recovers a type isomorphic to `α ⊕ β` by taking a `ι` with exactly two elements. See
+  `equiv.sum_equiv_sigma_bool`.
+
+`Σ x, A x` is notation for `sigma A` (note the difference with the big operator `∑`).
+`Σ x y z ..., A x y z ...` is notation for `Σ x, Σ y, Σ z, ..., A x y z ...`. Here we have
+`α : Type*`, `β : α → Type*`, `γ : Π a : α, β a → Type*`, ...,
+`A : Π (a : α) (b : β a) (c : γ a b) ..., Type*`  with `x : α` `y : β x`, `z : γ x y`, ...
+
+## Notes
+
+The definition of `sigma` takes values in `Type*`. This effectively forbids `Prop`- valued sigma
+types. To that effect, we have `psigma`, which takes value in `Sort*` and carries a more complicated
+universe signature in consequence.
+-/
+
 section sigma
 variables {α α₁ α₂ : Type*} {β : α → Type*} {β₁ : α₁ → Type*} {β₂ : α₂ → Type*}
 
 namespace sigma
 
-instance [inhabited α] [inhabited (β (default α))] : inhabited (sigma β) :=
-⟨⟨default α, default (β (default α))⟩⟩
+instance [inhabited α] [inhabited (β default)] : inhabited (sigma β) :=
+⟨⟨default, default⟩⟩
 
 instance [h₁ : decidable_eq α] [h₂ : ∀a, decidable_eq (β a)] : decidable_eq (sigma β)
 | ⟨a₁, b₁⟩ ⟨a₂, b₂⟩ := match a₁, b₁, a₂, b₂, h₁ a₁ a₂ with
@@ -71,10 +95,9 @@ lemma function.injective.sigma_map {f₁ : α₁ → α₂} {f₂ : Πa, β₁ a
   function.injective (sigma.map f₁ f₂)
 | ⟨i, x⟩ ⟨j, y⟩ h :=
 begin
-  have : i = j, from h₁ (sigma.mk.inj_iff.mp h).1,
-  subst j,
-  have : x = y, from h₂ i (eq_of_heq (sigma.mk.inj_iff.mp h).2),
-  subst y
+  obtain rfl : i = j, from h₁ (sigma.mk.inj_iff.mp h).1,
+  obtain rfl : x = y, from h₂ i (eq_of_heq (sigma.mk.inj_iff.mp h).2),
+  refl
 end
 
 lemma function.surjective.sigma_map {f₁ : α₁ → α₂} {f₂ : Πa, β₁ a → β₂ (f₁ a)}
@@ -138,8 +161,8 @@ psigma.cases_on a f
 
 @[simp] theorem elim_val {γ} (f : ∀ a, β a → γ) (a b) : psigma.elim f ⟨a, b⟩ = f a b := rfl
 
-instance [inhabited α] [inhabited (β (default α))] : inhabited (psigma β) :=
-⟨⟨default α, default (β (default α))⟩⟩
+instance [inhabited α] [inhabited (β default)] : inhabited (psigma β) :=
+⟨⟨default, default⟩⟩
 
 instance [h₁ : decidable_eq α] [h₂ : ∀a, decidable_eq (β a)] : decidable_eq (psigma β)
 | ⟨a₁, b₁⟩ ⟨a₂, b₂⟩ := match a₁, b₁, a₂, b₂, h₁ a₁ a₂ with

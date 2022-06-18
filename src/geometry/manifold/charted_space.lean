@@ -216,7 +216,7 @@ def id_groupoid (H : Type u) [topological_space H] : structure_groupoid H :=
   end,
   symm' := λe he, begin
     cases (mem_union _ _ _).1 he with E E,
-    { finish },
+    { simp [mem_singleton_iff.mp E] },
     { right,
       simpa only [e.to_local_equiv.image_source_eq_target.symm] with mfld_simps using E},
   end,
@@ -268,8 +268,7 @@ instance : order_bot (structure_groupoid H) :=
       assume x hx,
       rw [hf, mem_empty_eq] at hx,
       exact hx.elim }
-  end,
-  ..structure_groupoid.partial_order }
+  end }
 
 instance (H : Type u) [topological_space H] : inhabited (structure_groupoid H) :=
 ⟨id_groupoid H⟩
@@ -362,8 +361,7 @@ pregroupoid.groupoid (continuous_pregroupoid H)
 /-- Every structure groupoid is contained in the groupoid of all local homeomorphisms -/
 instance : order_top (structure_groupoid H) :=
 { top    := continuous_groupoid H,
-  le_top := λ u f hf, by { split; exact dec_trivial },
-  ..structure_groupoid.partial_order }
+  le_top := λ u f hf, by { split; exact dec_trivial } }
 
 /-- A groupoid is closed under restriction if it contains all restrictions of its element local
 homeomorphisms to open subsets of the source. -/
@@ -406,8 +404,7 @@ def id_restr_groupoid : structure_groupoid H :=
   eq_on_source' := begin
     rintros e e' ⟨s, hs, hse⟩ hee',
     exact ⟨s, hs, setoid.trans hee' hse⟩,
-  end
-}
+  end }
 
 lemma id_restr_groupoid_mem {s : set H} (hs : is_open s) :
   of_set s hs ∈ @id_restr_groupoid H _ := ⟨s, hs, by refl⟩
@@ -500,22 +497,6 @@ variables (H) [topological_space H] [topological_space M] [charted_space H M]
 lemma mem_chart_target (x : M) : chart_at H x x ∈ (chart_at H x).target :=
 (chart_at H x).map_source (mem_chart_source _ _)
 
-/-- If a topological space admits an atlas with locally compact charts, then the space itself
-is locally compact. -/
-lemma charted_space.locally_compact [locally_compact_space H] : locally_compact_space M :=
-begin
-  have : ∀ (x : M), (𝓝 x).has_basis
-      (λ s, s ∈ 𝓝 (chart_at H x x) ∧ is_compact s ∧ s ⊆ (chart_at H x).target)
-      (λ s, (chart_at H x).symm '' s),
-  { intro x,
-    rw [← (chart_at H x).symm_map_nhds_eq (mem_chart_source H x)],
-    exact ((compact_basis_nhds (chart_at H x x)).has_basis_self_subset
-      (is_open.mem_nhds (chart_at H x).open_target (mem_chart_target H x))).map _ },
-  refine locally_compact_space_of_has_basis this _,
-  rintro x s ⟨h₁, h₂, h₃⟩,
-  exact h₂.image_of_continuous_on ((chart_at H x).continuous_on_symm.mono h₃)
-end
-
 open topological_space
 
 lemma charted_space.second_countable_of_countable_cover [second_countable_topology H]
@@ -538,6 +519,24 @@ begin
     countable_cover_nhds_of_sigma_compact
       (λ x : M, is_open.mem_nhds (chart_at H x).open_source (mem_chart_source H x)),
   exact charted_space.second_countable_of_countable_cover H hsU hsc
+end
+
+variable (M)
+
+/-- If a topological space admits an atlas with locally compact charts, then the space itself
+is locally compact. -/
+lemma charted_space.locally_compact [locally_compact_space H] : locally_compact_space M :=
+begin
+  have : ∀ (x : M), (𝓝 x).has_basis
+      (λ s, s ∈ 𝓝 (chart_at H x x) ∧ is_compact s ∧ s ⊆ (chart_at H x).target)
+      (λ s, (chart_at H x).symm '' s),
+  { intro x,
+    rw [← (chart_at H x).symm_map_nhds_eq (mem_chart_source H x)],
+    exact ((compact_basis_nhds (chart_at H x x)).has_basis_self_subset
+      (is_open.mem_nhds (chart_at H x).open_target (mem_chart_target H x))).map _ },
+  refine locally_compact_space_of_has_basis this _,
+  rintro x s ⟨h₁, h₂, h₃⟩,
+  exact h₂.image_of_continuous_on ((chart_at H x).continuous_on_symm.mono h₃)
 end
 
 end
@@ -580,7 +579,7 @@ prod.topological_space
 /- Next lemma shows up often when dealing with derivatives, register it as simp. -/
 @[simp, mfld_simps] lemma model_prod_range_prod_id
   {H : Type*} {H' : Type*} {α : Type*} (f : H → α) :
-  range (λ (p : model_prod H H'), (f p.1, p.2)) = set.prod (range f) univ :=
+  range (λ (p : model_prod H H'), (f p.1, p.2)) = range f ×ˢ (univ : set H') :=
 by rw prod_range_univ_eq
 
 end
@@ -732,16 +731,11 @@ end charted_space_core
 section has_groupoid
 variables [topological_space H] [topological_space M] [charted_space H M]
 
-section
-set_option old_structure_cmd true
-
 /-- A charted space has an atlas in a groupoid `G` if the change of coordinates belong to the
 groupoid -/
 class has_groupoid {H : Type*} [topological_space H] (M : Type*) [topological_space M]
   [charted_space H M] (G : structure_groupoid H) : Prop :=
 (compatible [] : ∀{e e' : local_homeomorph M H}, e ∈ atlas H M → e' ∈ atlas H M → e.symm ≫ₕ e' ∈ G)
-
-end
 
 /-- Reformulate in the `structure_groupoid` namespace the compatibility condition of charts in a
 charted space admitting a structure groupoid, to make it more easily accessible with dot

@@ -5,12 +5,14 @@ Authors: Scott Morrison, Justus Springer
 -/
 import category_theory.limits.preserves.basic
 import category_theory.filtered
-import category_theory.limits.types
 
 /-!
 # Preservation of filtered colimits and cofiltered limits.
 Typically forgetful functors from algebraic categories preserve filtered colimits
 (although not general colimits). See e.g. `algebra/category/Mon/filtered_colimits`.
+
+## Future work
+This could be generalised to allow diagrams in lower universes.
 -/
 
 open category_theory

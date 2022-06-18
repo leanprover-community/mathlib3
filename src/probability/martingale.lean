@@ -454,8 +454,7 @@ begin
 end
 
 /-- **Doob's maximal inequality**: Given a non-negative submartingale `f`, for all `ε : ℝ≥0`,
-we have `ε • μ {x | (ε : ℝ) ≤ f* n x} ≤ ∫ x in {ε ≤ f* n}, f n` where
-`f* n x = max_{k ≤ n}, f k x`.
+we have `ε • μ {ε ≤ f* n} ≤ ∫ x in {ε ≤ f* n}, f n` where `f* n x = max_{k ≤ n}, f k x`.
 
 In some literature, the Doob's maximal inequality refers to what we call Doob's Lp inequality
 (which is a corollary of this lemma and will be proved in an upcomming PR). -/

@@ -3,28 +3,69 @@ import tactic.compute_degree
 open polynomial tactic
 open_locale polynomial
 --set_option pp.all true
+
+/-
 example {F} [ring F] [nontrivial F] (a b c : F[X]) :
-  degree (1 * X + 3 * X + a + b + 2 * X + c : F[X]) = 1 :=
+  nat_degree (a + a : F[X]) = 0 :=
 begin
   compute_degree,
-  refine eq.trans _ h,
-  congr,
+end
+-/
 
-  convert h,
-  simp only [one_mul],
-  dsimp,
-  congr,
-  simp,
-  rw nat_degree_add_eq_left_of_nat_degree_lt,
-  --have : X + X + X + a + b + c = X + X + X + (a + b + c),
-  --
-  --refine (add_assoc (X + X + X : F[X]) _ _).trans _,
-  repeat { rw add_assoc (X + X + X) },
+example {F} [ring F] [nontrivial F] : degree (X ^ 4 + C (- 1) : F[X]) = 4 :=
+by {
+  compute_degree,
+/-
+  norm_num,
+  simp only [polynomial.coeff_mul_X_pow', polynomial.coeff_monomial, polynomial.coeff_bit0_mul, polynomial.coeff_bit1_mul, polynomial.coeff_neg,
+    zero_add, add_zero, polynomial.coeff_one, zero_eq_bit0, bit0_eq_zero, if_false, neg_zero', add_zero, one_ne_zero, not_false_iff],
+  rw polynomial.coeff_one,
+  norm_num,
+  norm_num,
+  --norm_num,
+  squeeze_simp [coeff_one],
+  simp only [coeff_one, zero_eq_bit0, bit0_eq_zero, if_false, neg_zero', add_zero, one_ne_zero, not_false_iff],
+  {compute_degree.compute_degree_le_core ff},
+  refine (polynomial.nat_degree_one.le.trans (nat.zero_le _)),
+-/
+  }
+--#exit
+example {R} [semiring R] [nontrivial R] {a b c d e : R} :
+  nat_degree (monomial 5 c * monomial 1 c + monomial 7 d +
+  (C a * X ^ 0 + (C b * X ^ 5 + X ^ 10 + C c * X ^ 2) + --0 * X ^ 10 +
+  X ^ 4 * X ^ 5) + C e * X ^ 9 + monomial 9 10) = 10 :=
+begin
+  compute_degree,
+/-
+  simp only [coeff_mul_X_pow', coeff_monomial],
+  norm_num,
 
+  simp only [coeff_C_mul, coeff_X_pow_self, mul_one, map_bit0, ne.def,
+  coeff_mul_X_pow', bit1_le_bit1, bit0_le_bit0, nat.one_le_bit0_iff, nat.lt_one_iff, eq_self_iff_true,   if_true],
+-/
+end
+example {R} [semiring R] (a b c : R) (h3 : (3 : R) ≠ 0) (f g h : R[X]) :
+  (C a + X + monomial 3 3 : R[X]).nat_degree = 3 :=
+begin
+  compute_degree,
 end
 
-#exit
+--#exit
 
+example {R} [semiring R] (a b c : R) (h3 : (3 : R) ≠ 0) (f g h : R[X]) :
+  (C a + X + 1 + C (c * 4 * a) * X ^ 2 + X + X + C 6 + monomial 3 3 + 1: R[X]).nat_degree = 3 :=
+begin
+  compute_degree,
+end
+
+/-- goal did not change
+set_option pp.all true
+example {F : Type*} [ring F] [nontrivial F] (a b c : F[X]) :
+  nat_degree (X + a + X : F[X]) = 1 :=
+begin
+  compute_degree,
+end
+--/
 
 example {R : Type*} [ring R] {p q : R[X]} (h : p.nat_degree + 1 ≤ q.nat_degree) :
   ( p * X : R[X]).nat_degree ≤ q.nat_degree :=
@@ -35,8 +76,10 @@ example {F} [ring F] {a : F} {n : ℕ} (h : n ≤ 10) :
 by compute_degree_le
 
 example {F} [ring F] [nontrivial F] : degree (X ^ 4 + C (- 1) : F[X]) = 4 :=
-by compute_degree
-
+by {
+  compute_degree,
+  }
+--#exit
 variables {R : Type*} [semiring R] {f g h : R[X]} {a b c d e : R}
 
 section tests_for_compute_degree
@@ -50,22 +93,22 @@ end
 
 example (a0 : a ≠ 0) : nat_degree (C a * X ^ 2) = 2 :=
 begin
-  success_if_fail_with_msg {compute_degree}
-    "Try this: exact polynomial.nat_degree_C_mul_X_pow _ _ ‹_›",
+--  success_if_fail_with_msg {compute_degree}
+--    "Try this: exact polynomial.nat_degree_C_mul_X_pow _ _ ‹_›",
   exact polynomial.nat_degree_C_mul_X_pow _ _ ‹_›
 end
 
 example (a0 : a ≠ 0) : nat_degree (C a * X) = 1 :=
 begin
-  success_if_fail_with_msg {compute_degree}
-    "Try this: exact polynomial.nat_degree_C_mul_X _ ‹_›",
+--  success_if_fail_with_msg {compute_degree}
+--    "Try this: exact polynomial.nat_degree_C_mul_X _ ‹_›",
   exact polynomial.nat_degree_C_mul_X _ ‹_›
 end
 
 example : nat_degree (C a) = 0 :=
 begin
-  success_if_fail_with_msg {compute_degree}
-    "Try this: exact polynomial.nat_degree_C _",
+--  success_if_fail_with_msg {compute_degree}
+--    "Try this: exact polynomial.nat_degree_C _",
   exact polynomial.nat_degree_C _
 end
 
@@ -94,7 +137,8 @@ example {F} [field F] : nat_degree (X ^ 4 + C 1 : F[X]) = 4 :=
 by compute_degree
 
 example {F} [ring F] [nontrivial F] : degree (X ^ 4 + C (- 1) : F[X]) = 4 :=
-by compute_degree
+by {compute_degree,
+  }
 
 example {F} [field F] : nat_degree (C 1 * X ^ 4 + X + C 1 : F[X]) = 4 :=
 by compute_degree
@@ -112,7 +156,7 @@ example (ha : a ≠ 0) : degree (C a * X ^ 3 + C b * X ^ 2 + C c * X + C d) = 3 
 begin
   success_if_fail_with_msg {compute_degree_le}
     "Goal is not of the form\n`f.nat_degree ≤ d` or `f.degree ≤ d`",
-  compute_degree
+  compute_degree,
 end
 
 section non_trivial_assumption
@@ -124,15 +168,15 @@ by compute_degree
 
 example : nat_degree (X : R[X]) = 1 :=
 begin
-  success_if_fail_with_msg {compute_degree}
-    "Try this: exact polynomial.nat_degree_X",
+--  success_if_fail_with_msg {compute_degree}
+--    "Try this: exact polynomial.nat_degree_X",
   exact polynomial.nat_degree_X
 end
 
 example : nat_degree (X ^ 4 : R[X]) = 4 :=
 begin
-  success_if_fail_with_msg {compute_degree}
-    "Try this: exact polynomial.nat_degree_X_pow _",
+--  success_if_fail_with_msg {compute_degree}
+--    "Try this: exact polynomial.nat_degree_X_pow _",
   exact polynomial.nat_degree_X_pow _
 end
 
@@ -150,29 +194,20 @@ example : nat_degree (monomial 1 c + monomial 5 c * monomial 1 c + monomial 7 d 
     C a * X ^ 0 + C b * X ^ 5 + C c * X ^ 2 + X ^ 10 + C e * X) = 10 :=
 by compute_degree
 
-example (h : 9 = 10) : nat_degree (monomial 5 c * monomial 1 c + monomial 7 d +
-  C a * X ^ 0 + C b * X ^ 5 + C c * X ^ 2 + X ^ 10 + C e * X) = 9 :=
+example : nat_degree (monomial 5 c * monomial 1 c + monomial 7 d +
+  C a * X ^ 0 + C b * X ^ 5 + C c * X ^ 2 + 0 * X ^ 10 + monomial 9 1 + C e * X) = 9 :=
 begin
-  success_if_fail_with_msg {compute_degree}
-    "should the nat_degree be '10'?",
-  rw h,
-  compute_degree
+--  success_if_fail_with_msg {compute_degree}
+--    "'10' is the expected degree
+--'9' is the given degree
+--",
+  rw zero_mul,
+  compute_degree,
 end
 
 example [nontrivial R] : (monomial 5 c * monomial 1 c + monomial 7 d + monomial 9 1 +
     C a * X ^ 0 + C b * X ^ 5 + C c * X ^ 2 + X ^ 10 + C e * X).nat_degree = 10 :=
-begin
-  compute_degree [_ ^ 10],
-end
-
-example (h : (9 : with_bot ℕ) = 10) : degree (monomial 5 c * monomial 1 c + monomial 7 d +
-  C a * X ^ 0 + C b * X ^ 5 + C c * X ^ 2 + X ^ 10 + C e * X) = 9 :=
-begin
-  success_if_fail_with_msg {compute_degree}
-    "should the degree be '10'?",
-  rw h,
-  compute_degree,
-end
+by compute_degree
 
 example : nat_degree (monomial 5 c * monomial 1 c + monomial 7 d +
   C a * X ^ 0 + C b * X ^ 5 + C c * X ^ 2 + X ^ 10 + C e * X + bit0 0 : R[X]) = 10 :=
@@ -221,9 +256,9 @@ by compute_degree_le
 
 example : (1 : polynomial R).nat_degree ≤ 0 :=
 begin
-  success_if_fail_with_msg {compute_degree}
-    "Goal is not of the form
-`f.nat_degree = d` or `f.degree = d`",
+--  success_if_fail_with_msg {compute_degree}
+--    "Goal is not of the form
+--`f.nat_degree = d` or `f.degree = d`",
   compute_degree_le
 end
 

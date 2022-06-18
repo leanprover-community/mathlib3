@@ -96,7 +96,7 @@ measure `μ` (defined on a third σ-algebra) if for any sets `t₁ ∈ m₁, t�
 `μ (t₁ ∩ t₂) = μ (t₁) * μ (t₂)` -/
 def indep {α} (m₁ m₂ : measurable_space α) [measurable_space α] (μ : measure α . volume_tac) :
   Prop :=
-indep_sets ({s | measurable_set[m₁] s}) ({s | measurable_set[m₂] s}) μ
+indep_sets {s | measurable_set[m₁] s} {s | measurable_set[m₂] s} μ
 
 /-- A family of sets is independent if the family of measurable space structures they generate is
 independent. For a set `s`, the generated measurable space has measurable sets `∅, s, sᶜ, univ`. -/
@@ -316,34 +316,31 @@ lemma pi_system_indep_insert {π : ι → set (set α)} {a : ι} {S : finset ι}
 begin
   rintros t1 t2 ⟨s, hs_mem, ft1, hft1_mem, ht1_eq⟩ ht2_mem_pia,
   rw set.mem_singleton_iff at hs_mem,
-  simp_rw hs_mem at hft1_mem,
-  let f := λ n, ite (n = a) t2 (ite (n ∈ S) (ft1 n) set.univ),
-  have h_f_mem : ∀ n ∈ insert a S, f n ∈ π n,
-  { intros n hn_mem,
-    simp_rw [f],
-    cases (finset.mem_insert.mp hn_mem) with hn_mem hn_mem,
+  subst hs_mem,
+  let f := λ n, ite (n = a) t2 (ite (n ∈ s) (ft1 n) set.univ),
+  have h_f_mem : ∀ n ∈ insert a s, f n ∈ π n,
+  { intros n hn_mem_insert,
+    simp_rw f,
+    cases (finset.mem_insert.mp hn_mem_insert) with hn_mem hn_mem,
     { simp [hn_mem, ht2_mem_pia], },
-    { have hn_ne_a : n ≠ a, by { intro hna, rw hna at hn_mem, exact haS hn_mem, },
+    { have hn_ne_a : n ≠ a, by { rintro rfl, exact haS hn_mem, },
       simp [hn_ne_a, hn_mem, hft1_mem n hn_mem], }, },
-  have h_f_mem_pi : ∀ n ∈ S, f n ∈ π n, from λ x hxS, h_f_mem x (by simp [hxS]),
-  have h_t1 : t1 = ⋂ n ∈ S, f n,
-  { suffices h_forall : ∀ n ∈ S, f n = ft1 n,
+  have h_f_mem_pi : ∀ n ∈ s, f n ∈ π n, from λ x hxS, h_f_mem x (by simp [hxS]),
+  have h_t1 : t1 = ⋂ n ∈ s, f n,
+  { suffices h_forall : ∀ n ∈ s, f n = ft1 n,
     { rw ht1_eq,
       congr' with n x,
-      congr' with _,
-      { rw hs_mem, },
-      { intros _ hnS _,
-        simp only [(h_forall n hnS).symm], }, },
+      congr' with hns y,
+      simp only [(h_forall n hns).symm], },
     intros n hnS,
-    have hn_ne_a : n ≠ a, by { intro hna, rw hna at hnS, exact haS hnS, },
-    simp_rw [f],
-    simp [hnS, hn_ne_a], },
-  have h_μ_t1 : μ t1 = ∏ n in S, μ (f n), by rw [h_t1, ←hp_ind S h_f_mem_pi],
+    have hn_ne_a : n ≠ a, by { rintro rfl, exact haS hnS, },
+    simp_rw [f, if_pos hnS, if_neg hn_ne_a], },
+  have h_μ_t1 : μ t1 = ∏ n in s, μ (f n), by rw [h_t1, ←hp_ind s h_f_mem_pi],
   have h_t2 : t2 = f a, by { simp_rw [f], simp, },
-  have h_μ_inter : μ (t1 ∩ t2) = ∏ n in insert a S, μ (f n),
-  { have h_t1_inter_t2 : t1 ∩ t2 = ⋂ n ∈ insert a S, f n,
+  have h_μ_inter : μ (t1 ∩ t2) = ∏ n in insert a s, μ (f n),
+  { have h_t1_inter_t2 : t1 ∩ t2 = ⋂ n ∈ insert a s, f n,
       by rw [h_t1, h_t2, finset.set_bInter_insert, set.inter_comm],
-    rw [h_t1_inter_t2, ←hp_ind (insert a S) h_f_mem], },
+    rw [h_t1_inter_t2, ←hp_ind (insert a s) h_f_mem], },
   rw [h_μ_inter, finset.prod_insert haS, h_t2, mul_comm, h_μ_t1],
 end
 
@@ -356,22 +353,21 @@ theorem Indep_sets.Indep [is_probability_measure μ] (m : ι → measurable_spac
 begin
   refine finset.induction (by simp [measure_univ]) _,
   intros a S ha_notin_S h_rec f hf_m,
-  have hf_m_S : ∀ x ∈ S, (m x).measurable_set' (f x), from λ x hx, hf_m x (by simp [hx]),
+  have hf_m_S : ∀ x ∈ S, measurable_set[m x] (f x) := λ x hx, hf_m x (by simp [hx]),
   rw [finset.set_bInter_insert, finset.prod_insert ha_notin_S, ←h_rec hf_m_S],
   let p := pi_Union_Inter π {S},
   set m_p := generate_from p with hS_eq_generate,
   have h_indep : indep m_p (m a) μ,
-  { have hp : is_pi_system p,
-      from is_pi_system_pi_Union_Inter π h_pi {S} (sup_closed_singleton S),
-    have hm_p : m_p ≤ m0, from generate_from_pi_Union_Inter_le h_le π {S} h_generate,
+  { have hp : is_pi_system p := is_pi_system_pi_Union_Inter π h_pi {S} (sup_closed_singleton S),
+    have hm_p : m_p ≤ m0 := generate_from_pi_Union_Inter_le h_le π {S} h_generate,
     exact indep_sets.indep hm_p (h_le a) hp (h_pi a) hS_eq_generate (h_generate a)
       (pi_system_indep_insert hp_ind ha_notin_S), },
   refine h_indep.symm (f a) (⋂ n ∈ S, f n) (hf_m a (finset.mem_insert_self a S)) _,
   have h_le_p : ∀ i ∈ S, m i ≤ m_p,
     from λ n hn, le_generate_from_pi_Union_Inter {S} hp_univ (set.mem_singleton _) hn
       (h_generate n),
-  have h_S_f : ∀ i ∈ S, m_p.measurable_set' (f i), from λ i hi, (h_le_p i hi) (f i) (hf_m_S i hi),
-  exact @finset.measurable_set_bInter α ι m_p f _ (λ i hi, h_S_f i hi),
+  have h_S_f : ∀ i ∈ S, measurable_set[m_p] (f i) := λ i hi, (h_le_p i hi) (f i) (hf_m_S i hi),
+  exact S.measurable_set_bInter h_S_f,
 end
 
 end from_pi_systems_to_measurable_spaces

@@ -51,10 +51,10 @@ by {rw [eq_comm], exact invo_involutive'.eq_iff.symm}
 lemma eq_invo_iff_eq_invo : x = yⁱ ↔ y = xⁱ :=
 by rw [← invo_invo x, invo_eq_iff_invo_eq, invo_invo, invo_invo]
 
-lemma invo_le_invo (hxy : x ≤ y) : yⁱ ≤ xⁱ := invo_antitone' _ _ hxy
+lemma invo_le_invo (h : x ≤ y) : yⁱ ≤ xⁱ := invo_antitone' _ _ h
 
-lemma le_of_invo_le (hx : xⁱ ≤ yⁱ) : y ≤ x :=
-by {rw [←invo_invo x, ←invo_invo y], exact invo_le_invo hx,}
+lemma le_of_invo_le (h : xⁱ ≤ yⁱ) : y ≤ x :=
+by {rw [←invo_invo x, ←invo_invo y], exact invo_le_invo h,}
 
 lemma invo_le_invo_iff_le : xⁱ ≤ yⁱ ↔ y ≤ x := ⟨le_of_invo_le, invo_le_invo⟩
 

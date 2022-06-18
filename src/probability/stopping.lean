@@ -423,6 +423,74 @@ end
 
 end preorder
 
+section countable_stopping_time
+
+namespace is_stopping_time
+
+variables [partial_order ι] {τ : α → ι} {f : filtration ι m}
+
+protected lemma measurable_set_eq_of_countable
+  (hτ : is_stopping_time f τ) (h_countable : (set.range τ).countable) (i : ι) :
+  measurable_set[f i] {a | τ a = i} :=
+begin
+  have : {a | τ a = i} = {a | τ a ≤ i} \ (⋃ (j ∈ set.range τ) (hj : j < i), {a | τ a ≤ j}),
+  { ext1 a,
+    simp only [set.mem_set_of_eq, set.mem_range, set.Union_exists, set.Union_Union_eq',
+      set.mem_diff, set.mem_Union, exists_prop, not_exists, not_and, not_le],
+    split; intro h,
+    { simp only [h, lt_iff_le_not_le, le_refl, and_imp, imp_self, implies_true_iff, and_self], },
+    { have h_lt_or_eq : τ a < i ∨ τ a = i := lt_or_eq_of_le h.1,
+      rcases h_lt_or_eq with h_lt | rfl,
+      { exfalso,
+        exact h.2 a h_lt (le_refl (τ a)), },
+      { refl, }, }, },
+  rw this,
+  refine (hτ.measurable_set_le i).diff _,
+  refine measurable_set.bUnion h_countable (λ j hj, _),
+  by_cases hji : j < i,
+  { simp only [hji, set.Union_true],
+    exact f.mono hji.le _ (hτ.measurable_set_le j), },
+  { simp only [hji, set.Union_false],
+    exact @measurable_set.empty _ (f i), },
+end
+
+protected lemma measurable_set_eq_of_encodable [encodable ι] (hτ : is_stopping_time f τ) (i : ι) :
+  measurable_set[f i] {a | τ a = i} :=
+hτ.measurable_set_eq_of_countable (set.countable_encodable _) i
+
+protected lemma measurable_set_lt_of_countable
+  (hτ : is_stopping_time f τ) (h_countable : (set.range τ).countable) (i : ι) :
+  measurable_set[f i] {a | τ a < i} :=
+begin
+  have : {a | τ a < i} = {a | τ a ≤ i} \ {a | τ a = i},
+  { ext1 x, simp [lt_iff_le_and_ne], },
+  rw this,
+  exact (hτ.measurable_set_le i).diff (hτ.measurable_set_eq_of_countable h_countable i),
+end
+
+protected lemma measurable_set_lt_of_encodable [encodable ι] (hτ : is_stopping_time f τ) (i : ι) :
+  measurable_set[f i] {a | τ a < i} :=
+hτ.measurable_set_lt_of_countable (set.countable_encodable _) i
+
+protected lemma measurable_set_ge_of_countable {ι} [linear_order ι] {τ : α → ι} {f : filtration ι m}
+  (hτ : is_stopping_time f τ) (h_countable : (set.range τ).countable) (i : ι) :
+  measurable_set[f i] {a | i ≤ τ a} :=
+begin
+  have : {x | i ≤ τ x} = {x | τ x < i}ᶜ,
+  { ext1 x, simp only [set.mem_set_of_eq, set.mem_compl_eq, not_lt], },
+  rw this,
+  exact (hτ.measurable_set_lt_of_countable h_countable i).compl,
+end
+
+protected lemma measurable_set_ge_of_encodable {ι} [linear_order ι] {τ : α → ι} {f : filtration ι m}
+  [encodable ι] (hτ : is_stopping_time f τ) (i : ι) :
+  measurable_set[f i] {a | i ≤ τ a} :=
+hτ.measurable_set_ge_of_countable (set.countable_encodable _) i
+
+end is_stopping_time
+
+end countable_stopping_time
+
 section linear_order
 variables [linear_order ι] {f : filtration ι m} {τ : α → ι}
 
@@ -510,68 +578,6 @@ lemma is_stopping_time.measurable_set_lt_le (hτ : is_stopping_time f τ) {i j :
 f.mono hle _ $ hτ.measurable_set_lt i
 
 end topological_space
-
-section countable
-
-namespace is_stopping_time
-
-protected lemma measurable_set_eq_of_countable
-  (hτ : is_stopping_time f τ) (h_countable : (set.range τ).countable) (i : ι) :
-  measurable_set[f i] {a | τ a = i} :=
-begin
-  have : {a | τ a = i} = {a | τ a ≤ i} \ (⋃ (j ∈ set.range τ) (hj : j < i), {a | τ a ≤ j}),
-  { ext1 a,
-    simp only [set.mem_set_of_eq, set.mem_range, set.Union_exists, set.Union_Union_eq',
-      set.mem_diff, set.mem_Union, exists_prop, not_exists, not_and, not_le],
-    split; intro h,
-    { rw h,
-      simp only [le_refl, imp_self, implies_true_iff, and_self], },
-    { exact le_antisymm h.1 (le_of_not_lt (λ h_lt, lt_irrefl (τ a) (h.2 a h_lt))), }, },
-  rw this,
-  refine (hτ.measurable_set_le i).diff _,
-  refine measurable_set.bUnion h_countable (λ j hj, _),
-  by_cases hji : j < i,
-  { simp only [hji, set.Union_true],
-    exact f.mono hji.le _ (hτ.measurable_set_le j), },
-  { simp only [hji, set.Union_false],
-    exact @measurable_set.empty _ (f i), },
-end
-
-protected lemma measurable_set_eq_of_encodable [encodable ι] (hτ : is_stopping_time f τ) (i : ι) :
-  measurable_set[f i] {a | τ a = i} :=
-hτ.measurable_set_eq_of_countable (set.countable_encodable _) i
-
-protected lemma measurable_set_lt_of_countable
-  (hτ : is_stopping_time f τ) (h_countable : (set.range τ).countable) (i : ι) :
-  measurable_set[f i] {a | τ a < i} :=
-begin
-  have : {a | τ a < i} = {a | τ a ≤ i} \ {a | τ a = i},
-  { ext1 x, simp [lt_iff_le_and_ne], },
-  rw this,
-  exact (hτ.measurable_set_le i).diff (hτ.measurable_set_eq_of_countable h_countable i),
-end
-
-protected lemma measurable_set_lt_of_encodable [encodable ι] (hτ : is_stopping_time f τ) (i : ι) :
-  measurable_set[f i] {a | τ a < i} :=
-hτ.measurable_set_lt_of_countable (set.countable_encodable _) i
-
-protected lemma measurable_set_ge_of_countable
-  (hτ : is_stopping_time f τ) (h_countable : (set.range τ).countable) (i : ι) :
-  measurable_set[f i] {a | i ≤ τ a} :=
-begin
-  have : {x | i ≤ τ x} = {x | τ x < i}ᶜ,
-  { ext1 x, simp only [set.mem_set_of_eq, set.mem_compl_eq, not_lt], },
-  rw this,
-  exact (hτ.measurable_set_lt_of_countable h_countable i).compl,
-end
-
-protected lemma measurable_set_ge_of_encodable [encodable ι] (hτ : is_stopping_time f τ) (i : ι) :
-  measurable_set[f i] {a | i ≤ τ a} :=
-hτ.measurable_set_ge_of_countable (set.countable_encodable _) i
-
-end is_stopping_time
-
-end countable
 
 end linear_order
 

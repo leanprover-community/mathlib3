@@ -49,6 +49,7 @@ instance monad.algebra_preadditive : preadditive (monad.algebra T) :=
 variables (U : comonad C) [functor.additive (U : C ⥤ C)]
 
 /-- The category of coalgebras over an additive comonad on a preadditive category is preadditive. -/
+@[simps]
 instance comonad.coalgebra_preadditive : preadditive (comonad.coalgebra U) :=
 { hom_group := λ F G,
   { add := λ α β,

@@ -509,7 +509,7 @@ begin
 end
 
 lemma bounded_continuous_function.nnreal.to_real_lintegral_eq_integral
-  {μ : measure α} [is_finite_measure μ] (f : α →ᵇ ℝ≥0) :
+  {μ : measure α} (f : α →ᵇ ℝ≥0) :
   (∫⁻ x, (f x : ℝ≥0∞) ∂μ).to_real = (∫ x, (f x) ∂μ) :=
 begin
   rw integral_eq_lintegral_of_nonneg_ae _

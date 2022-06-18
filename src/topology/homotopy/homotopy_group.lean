@@ -71,11 +71,8 @@ The projection to the last `n` coordinates from an `n+1` dimensional cube.
 
 instance unique_cube0 : unique (I^0) := pi.unique_of_is_empty _
 
-lemma one_indep {α} (f : fin 1 → α) (i j : fin 1) : f i = f j :=
-by rw subsingleton.elim i j
-
-lemma one_char {α} (x : fin 1 → α) : x = λ _, x 0 :=
-by { ext, apply one_indep }
+lemma one_char (f : I^1) : f = λ _, f 0 :=
+by { ext, rwa (subsingleton.elim x 0) }
 
 end cube
 

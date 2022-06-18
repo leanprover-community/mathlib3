@@ -100,7 +100,7 @@ lemma comap_eq_generate_from (m : measurable_space β) (f : α → β) :
 begin
   have : {t | ∃ s, measurable_set s ∧ f ⁻¹' s = t} = (m.comap f).measurable_set' := rfl,
   rw this,
-  exact generate_from_measurable_set.symm,
+  convert generate_from_measurable_set.symm,
 end
 
 @[simp] lemma comap_id : m.comap id = m :=

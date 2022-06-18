@@ -179,7 +179,7 @@ begin
 end
 
 /--
-A reified version of the `bertrand_inequality` below.
+A reified version of the `bertrand.main_inequality` below.
 This is not best possible: it actually holds for 464 ≤ x.
 -/
 lemma real_main_inequality {x : ℝ} (n_large : (722 : ℝ) ≤ x) :

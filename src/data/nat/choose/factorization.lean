@@ -143,26 +143,15 @@ lemma choose_factorization_prod_pow (n k : ℕ) (hkn : k ≤ n) :
   ∏ p in (finset.range (n + 1)),
     p ^ ((nat.choose n k).factorization p)
   = choose n k :=
-calc
-∏ p in (finset.range (n + 1)), p ^ ((nat.choose n k).factorization p)
-  = ∏ p in (nat.choose n k).factorization.support, p ^ ((nat.choose n k).factorization p) :
-    begin
-      apply eq.symm,
-      apply finset.prod_subset,
-      { rw finset.subset_iff,
-        intros p hp,
-        simp only [finset.mem_filter, finset.mem_range],
-        { rw lt_add_one_iff,
-          rw finsupp.mem_support_iff at hp,
-          contrapose! hp,
-          apply factorization_choose_eq_zero_of_lt hp, }, },
-      { intros p hp hp',
-        rw finsupp.mem_support_iff at hp',
-        simp only [not_not] at hp',
-        rw hp',
-        simp only [eq_self_iff_true, pow_zero], }
-    end
-... = choose n k : factorization_prod_pow_eq_self (ne_of_lt (choose_pos hkn)).symm
+begin
+  nth_rewrite_rhs 0 ←factorization_prod_pow_eq_self (choose_pos hkn).ne',
+  rw eq_comm,
+  apply finset.prod_subset,
+  { intros p hp,
+    refine finset.mem_filter.2 ⟨finset.mem_range_succ_iff.2 _, prime_of_mem_factorization hp⟩,
+    simpa using (mt factorization_choose_eq_zero_of_lt) (finsupp.mem_support_iff.1 hp) },
+  { intros p _ h2, simp [not_not.1 (mt finsupp.mem_support_iff.2 h2)] },
+end
 
 lemma central_binom_factorization_prod_pow (n : ℕ) :
   ∏ p in (finset.range (2 * n + 1)),

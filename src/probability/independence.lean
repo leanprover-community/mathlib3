@@ -372,13 +372,13 @@ begin
   have hSg_pi : is_pi_system Sg,
   { rintros s ⟨s', hs', rfl⟩ t ⟨t', ht', rfl⟩ hst_nonempty,
     exact ⟨s' ∩ t', hs'.inter ht', rfl⟩, },
-  have hSf_gen : generate_from Sf = mβ.comap f := (mβ.comap_eq_generate_from f).symm,
-  have hSg_gen : generate_from Sg = mβ'.comap g := (mβ'.comap_eq_generate_from g).symm,
+  have hSf_gen : mβ.comap f = generate_from Sf := mβ.comap_eq_generate_from f,
+  have hSg_gen : mβ'.comap g = generate_from Sg := mβ'.comap_eq_generate_from g,
   rw indep_fun,
   split; intro h,
-  { rw [← hSf_gen, ← hSg_gen] at h,
+  { rw [hSf_gen, hSg_gen] at h,
     exact indep.indep_sets h, },
-  { exact indep_sets.indep hf.comap_le hg.comap_le hSf_pi hSg_pi hSf_gen.symm hSg_gen.symm h, },
+  { exact indep_sets.indep hf.comap_le hg.comap_le hSf_pi hSg_pi hSf_gen hSg_gen h, },
 end
 
 lemma indep_fun_iff_indep_set_preimage {mβ : measurable_space β} {mβ' : measurable_space β'}

@@ -125,7 +125,8 @@ end
 Define `stirling_seq n` as $\frac{n!}{\sqrt{2n}/(\frac{n}{e})^n$.
 Stirling's formula states that this sequence has limit $\sqrt(π)$.
 -/
-noncomputable def stirling_seq (n : ℕ) : ℝ := (n.factorial : ℝ) / ((sqrt(2 * n) * ((n / (exp 1))) ^ n))
+noncomputable def stirling_seq (n : ℕ) : ℝ :=
+(n.factorial : ℝ) / ((sqrt(2 * n) * ((n / (exp 1))) ^ n))
 
 /-- The function `log(1 + x) - log(1 - x)` has a power series expansion with k-th term
 `2 * x^(2 * k + 1) / (2 * k + 1)`, valid for `|x| < 1`. -/
@@ -298,7 +299,8 @@ begin
 end
 
 /-- The sequence `log_stirling_seq` is monotone decreasing -/
-lemma log_stirling_seq_antitone : ∀ (n m : ℕ), n ≤ m → log_stirling_seq m.succ ≤ log_stirling_seq n.succ :=
+lemma log_stirling_seq_antitone :
+∀ (n m : ℕ), n ≤ m → log_stirling_seq m.succ ≤ log_stirling_seq n.succ :=
 begin
   apply antitone_nat_of_succ_le,
   intro n,
@@ -316,7 +318,8 @@ end
 We have the bound  `log_stirling_seq n - log_stirling_seq (n+1) ≤ 1/(2n+1)^2* 1/(1-(1/2n+1)^2)`.
 -/
 lemma log_stirling_seq_diff_le_geo_sum : ∀ (n : ℕ),
-  log_stirling_seq n.succ - log_stirling_seq n.succ.succ ≤ (1 / (2 * n.succ + 1)) ^ 2 / (1 - (1 / (2 * n.succ + 1)) ^ 2) :=
+  log_stirling_seq n.succ - log_stirling_seq n.succ.succ ≤
+  (1 / (2 * n.succ + 1)) ^ 2 / (1 - (1 / (2 * n.succ + 1)) ^ 2) :=
 begin
   intro n,
   have g : has_sum (λ (k : ℕ), ((1 / (2 * (n.succ : ℝ) + 1)) ^ 2) ^ k.succ)
@@ -417,7 +420,8 @@ begin
 end
 
 /-- For any `n`, we have `log_stirling_seq 1 - log_stirling_seq n ≤ 1/4` -/
-lemma log_stirling_seq_bounded_aux : ∀ (n : ℕ), log_stirling_seq 1 - log_stirling_seq n.succ ≤ 1 / 4 :=
+lemma log_stirling_seq_bounded_aux : ∀ (n : ℕ),
+log_stirling_seq 1 - log_stirling_seq n.succ ≤ 1 / 4 :=
 begin
   let log_stirling_seq' : (ℕ → ℝ) := λ (k : ℕ), log_stirling_seq k.succ,
   intro n,
@@ -527,7 +531,8 @@ begin
 end
 
 /-- The limit `a` of the sequence `stirling_seq` satisfies `0 < a` -/
-lemma stirling_seq_has_pos_limit_a : ∃ (a : ℝ), 0 < a ∧ tendsto (λ (n : ℕ), stirling_seq n) at_top (𝓝 a) :=
+lemma stirling_seq_has_pos_limit_a : ∃ (a : ℝ), 0 < a ∧ tendsto (λ (n : ℕ), stirling_seq n)
+at_top (𝓝 a) :=
 begin
   have h := stirling_seq_has_limit_a,
   cases h with a ha,
@@ -535,7 +540,8 @@ begin
   split,
   { let stirling_seq' : ℕ → ℝ := λ n, stirling_seq n.succ,
     rw tendsto_succ stirling_seq a at ha,
-    have e_lower_bound : exp (3 / (4 : ℝ) - 1 / 2 * log 2) ∈ lower_bounds (set.range stirling_seq') :=
+    have e_lower_bound :
+    exp (3 / (4 : ℝ) - 1 / 2 * log 2) ∈ lower_bounds (set.range stirling_seq') :=
     begin
       intros x hx,
       rw [set.mem_range] at hx,
@@ -792,7 +798,8 @@ end
 Suppose the sequence `stirling_seq` (defined above) has a nonzero limit `a ≠ 0`.
 Then the sequence `1/(log_stirling_seq n)^2` has the limit `1/a^2`.
 -/
-lemma stirling_seq_aux3 (a : ℝ) (hane : a ≠ 0) (ha : tendsto (λ (n : ℕ), stirling_seq n) at_top (𝓝 a)) :
+lemma stirling_seq_aux3 (a : ℝ) (hane : a ≠ 0)
+  (ha : tendsto (λ (n : ℕ), stirling_seq n) at_top (𝓝 a)) :
   tendsto (λ (n : ℕ), (1 / (stirling_seq n)) ^ 2) at_top (𝓝 ((1 / a) ^ 2)) :=
 begin
  convert tendsto.pow (tendsto.congr (λ n, (one_div (stirling_seq n)).symm)
@@ -846,7 +853,8 @@ begin
     := by tauto,
   apply tendsto.congr hqn,
   rw ←tendsto_succ qn (a ^ 2 / 2),
-  have has : tendsto (λ (n : ℕ), stirling_seq n ^ 4 * (1 / stirling_seq (2 * n)) ^ 2) at_top (𝓝 (a ^ 2)) :=
+  have has : tendsto (λ (n : ℕ), stirling_seq n ^ 4 * (1 / stirling_seq (2 * n)) ^ 2)
+    at_top (𝓝 (a ^ 2)) :=
   begin
     convert tendsto.mul (tendsto.pow ha 4) (sub_seq_tendsto (stirling_seq_aux3 a hane ha)),
     field_simp,

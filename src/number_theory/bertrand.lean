@@ -265,21 +265,21 @@ factorization of the central binomial coefficent only has factors at most `2 * n
 -/
 lemma central_binom_factorization_small (n : nat) (n_large : 2 < n)
   (no_prime: ¬∃ (p : ℕ), p.prime ∧ n < p ∧ p ≤ 2 * n) :
-  ∏ p in (finset.range (2 * n / 3 + 1)).filter nat.prime,
+  ∏ p in (finset.range (2 * n / 3 + 1)),
     p ^ ((central_binom n).factorization p)
   =
-  ∏ p in (finset.range (2 * n + 1)).filter nat.prime,
+  ∏ p in (finset.range (2 * n + 1)),
     p ^ ((central_binom n).factorization p) :=
 begin
   apply finset.prod_subset,
-  { apply finset.filter_subset_filter,
+  { -- apply finset.filter_subset_filter,
     rw [finset.range_subset, add_le_add_iff_right],
     apply nat.div_le_of_le_mul,
     linarith, },
   intro x,
-  rw [finset.mem_filter, finset.mem_filter, finset.mem_range, finset.mem_range],
+  rw [finset.mem_range, finset.mem_range],
   intros hx h2x,
-  simp only [hx.right, and_true, not_lt] at h2x,
+  simp only [hx, and_true, not_lt] at h2x,
   by_contradiction,
   have x_le_two_mul_n : x ≤ 2 * n,
   { apply le_two_mul_of_factorization_central_binom_pos,
@@ -287,7 +287,9 @@ begin
     rw [nat.le_zero_iff] at h,
     rw h,
     exact pow_zero x, },
-  apply no_prime ⟨x, ⟨hx.right, ⟨_, x_le_two_mul_n⟩⟩⟩,
+  apply no_prime,
+  -- ⟨x, ⟨hx, ⟨_, x_le_two_mul_n⟩⟩⟩,
+  use x,
   cases le_or_gt x n with x_le_n n_lt_x,
   { rw [add_one, succ_le_iff, div_lt_iff_lt_mul' three_pos, mul_comm x] at h2x,
     have x_non_div :=
@@ -295,7 +297,10 @@ begin
     rw [x_non_div, pow_zero] at h,
     simp only [eq_self_iff_true, not_true] at h,
     exfalso, exact h, },
-  { exact n_lt_x, },
+  { have : x.prime,
+  { contrapose! h,
+    simp [h], },
+    exact ⟨this, n_lt_x, x_le_two_mul_n⟩, },
 end
 
 /--
@@ -307,50 +312,66 @@ The bound splits the prime factors of `central_binom n` into those
 4. Between `n` and `2 * n`, which would not exist in the case where Bertrand's postulate is false.
 5. Above `2 * n`, which do not exist.
 -/
-lemma central_binom_le_of_no_prime (n : ℕ) (n_big : 2 < n)
+lemma central_binom_le_of_no_bertrand_prime (n : ℕ) (n_big : 2 < n)
   (no_prime : ¬∃ (p : ℕ), nat.prime p ∧ n < p ∧ p ≤ 2 * n) :
   central_binom n
     ≤ (2 * n) ^ (sqrt (2 * n))
       * 4 ^ (2 * n / 3) :=
 calc
 central_binom n
-    = ∏ p in finset.filter nat.prime (finset.range (2 * n + 1)),
+    = ∏ p in (finset.range (2 * n + 1)),
         p ^ ((central_binom n).factorization p) : n.central_binom_factorization_prod_pow.symm
-... = (∏ p in (finset.range (2 * n / 3 + 1)).filter nat.prime,
+... = (∏ p in (finset.range (2 * n / 3 + 1)),
           p ^ ((central_binom n).factorization p)) :
           (central_binom_factorization_small n (by linarith) no_prime).symm
-... = (∏ p in (finset.range (2 * n / 3 + 1)).filter nat.prime,
+... = (∏ p in (finset.range (2 * n / 3 + 1)),
           if p ≤ sqrt (2 * n)
           then p ^ ((central_binom n).factorization p)
           else p ^ ((central_binom n).factorization p)) : by simp only [if_t_t]
-... = (∏ p in ((finset.range (2 * n / 3 + 1)).filter nat.prime).filter (≤ sqrt (2 * n)),
+... = (∏ p in ((finset.range (2 * n / 3 + 1))).filter (≤ sqrt (2 * n)),
           p ^ ((central_binom n).factorization p))
         *
-      (∏ p in ((finset.range (2 * n / 3 + 1)).filter nat.prime).filter (λ p, ¬p ≤ sqrt (2 * n)),
+      (∏ p in ((finset.range (2 * n / 3 + 1))).filter (λ p, ¬p ≤ sqrt (2 * n)),
           p ^ ((central_binom n).factorization p)) : finset.prod_ite _ _
-... = (∏ p in ((finset.range (2 * n / 3 + 1)).filter nat.prime).filter (≤ sqrt (2 * n)),
+... = (∏ p in ((finset.range (2 * n / 3 + 1))).filter (≤ sqrt (2 * n)),
           p ^ ((central_binom n).factorization p))
         *
-      (∏ p in ((finset.range (2 * n / 3 + 1)).filter nat.prime).filter (> sqrt (2 * n)),
+      (∏ p in ((finset.range (2 * n / 3 + 1))).filter (> sqrt (2 * n)),
           p ^ ((central_binom n).factorization p)) :
         by simp only [not_le, finset.filter_congr_decidable]
+... = (∏ p in ((finset.range (2 * n / 3 + 1)).filter nat.prime).filter (≤ sqrt (2 * n)),
+          p ^ ((central_binom n).factorization p))
+        *
+      (∏ p in ((finset.range (2 * n / 3 + 1))).filter (> sqrt (2 * n)),
+          p ^ ((central_binom n).factorization p)) :
+        begin
+          congr' 1,
+          symmetry,
+          apply finset.prod_subset,
+          apply finset.filter_subset_filter,
+          apply finset.filter_subset,
+          simp only [finset.mem_filter, finset.mem_range, finset.mem_Ico],
+          intros x hx hx',
+          have not_prime_x : ¬ nat.prime x, tauto,
+          simp [not_prime_x],
+        end
 ... ≤ (∏ p in ((finset.range (2 * n / 3 + 1)).filter nat.prime).filter (≤ sqrt (2 * n)), 2 * n)
         *
-      (∏ p in ((finset.range (2 * n / 3 + 1)).filter nat.prime).filter (> sqrt (2 * n)),
+      (∏ p in ((finset.range (2 * n / 3 + 1))).filter (> sqrt (2 * n)),
           p ^ ((central_binom n).factorization p)) :
         begin
           refine (nat.mul_le_mul_right _ _),
-          refine finset.prod_le_prod'' _,
+          refine (finset.prod_le_prod'' _),
           intros i hyp,
           exact pow_factorization_choose_le (by linarith),
         end
 ... = (2 * n) ^ (((finset.range (2 * n / 3 + 1)).filter nat.prime).filter (≤ sqrt (2 * n))).card
       *
-      (∏ p in ((finset.range (2 * n / 3 + 1)).filter nat.prime).filter (> sqrt (2 * n)),
+      (∏ p in ((finset.range (2 * n / 3 + 1))).filter (> sqrt (2 * n)),
           p ^ ((central_binom n).factorization p)) : by simp only [finset.prod_const]
 ... = (2 * n) ^ (((finset.range (2 * n / 3 + 1)).filter nat.prime).filter (λ p, p ^ 2 < 2 * n)).card
       *
-      (∏ p in ((finset.range (2 * n / 3 + 1)).filter nat.prime).filter (> sqrt (2 * n)),
+      (∏ p in ((finset.range (2 * n / 3 + 1))).filter (> sqrt (2 * n)),
           p ^ ((central_binom n).factorization p)) :
         begin
           congr' 3,
@@ -368,7 +389,7 @@ central_binom n
         end
 ... ≤ (2 * n) ^ (sqrt (2 * n))
         *
-      (∏ p in ((finset.range (2 * n / 3 + 1)).filter nat.prime).filter (> sqrt (2 * n)),
+      (∏ p in ((finset.range (2 * n / 3 + 1))).filter (> sqrt (2 * n)),
           p ^ ((central_binom n).factorization p)) :
         begin
           refine (nat.mul_le_mul_right _ _),
@@ -386,6 +407,21 @@ central_binom n
             rw le_sqrt',
             exact le_of_lt h, },
         end
+... = (2 * n) ^ (sqrt (2 * n))
+        *
+      (∏ p in ((finset.range (2 * n / 3 + 1)).filter nat.prime).filter (> sqrt (2 * n)),
+          p ^ ((central_binom n).factorization p)) :
+        begin
+          congr' 1,
+          symmetry,
+          apply finset.prod_subset,
+          apply finset.filter_subset_filter,
+          apply finset.filter_subset,
+          simp only [finset.mem_filter, finset.mem_range, finset.mem_Ico],
+          intros x hx hx',
+          have not_prime_x : ¬ nat.prime x, tauto,
+          simp [not_prime_x],
+        end
 ... ≤ (2 * n) ^ (sqrt (2 * n))
         *
       (∏ p in ((finset.range (2 * n / 3 + 1)).filter nat.prime).filter (> sqrt (2 * n)),
@@ -394,14 +430,15 @@ central_binom n
         refine nat.mul_le_mul_left _ _,
         { refine finset.prod_le_prod'' _,
           simp only [finset.mem_filter, finset.mem_range],
-          rintros i ⟨⟨_, i_prime⟩, sqrt_two_n_lt_i⟩,
+          rintros i ⟨hi, sqrt_two_n_lt_i⟩,
           refine pow_le_pow _ _,
           { cases le_or_gt 1 i,
             { exact h, },
             { have i_zero : i = 0, by linarith,
-              rw i_zero at i_prime,
+              rw i_zero at *,
               exfalso,
-              exact nat.not_prime_zero i_prime, }, },
+              simp at sqrt_two_n_lt_i,
+              exact sqrt_two_n_lt_i, }, },
           { refine nat.factorization_choose_le_one _,
             exact (@sqrt_lt' (2 * n) i).1 sqrt_two_n_lt_i, }, },
       end
@@ -449,7 +486,7 @@ begin
   calc 4 ^ n < n * nat.central_binom n : nat.four_pow_lt_mul_central_binom n (by linarith)
     ... ≤ n * ((2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3)) :
           nat.mul_le_mul_of_nonneg_left
-            (bertrand.central_binom_le_of_no_prime n (by linarith) no_prime)
+            (bertrand.central_binom_le_of_no_bertrand_prime n (by linarith) no_prime)
     ... = n * (2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3) : by ring,
   exact not_le_of_lt false_inequality (bertrand.main_inequality n_big),
 end

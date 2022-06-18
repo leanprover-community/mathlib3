@@ -1194,50 +1194,52 @@ by { simp only [fin_std_orthonormal_basis, basis.coe_reindex], assumption }, -- 
 (std_orthonormal_basis_orthonormal 𝕜 E).comp _ (equiv.injective _)
 
 section subordinate_orthonormal_basis
-open direct_sum
+namespace direct_sum
 variables {n : ℕ} (hn : finrank 𝕜 E = n) {ι : Type*} [fintype ι] [decidable_eq ι]
-  {V : ι → submodule 𝕜 E} (hV : is_internal V)
+  (V : ι → submodule 𝕜 E) [decomposition V]
 
 /-- Exhibit a bijection between `fin n` and the index set of a certain basis of an `n`-dimensional
 inner product space `E`.  This should not be accessed directly, but only via the subsequent API. -/
-@[irreducible] def direct_sum.is_internal.sigma_orthonormal_basis_index_equiv :
+@[irreducible] def sigma_orthonormal_basis_index_equiv :
   (Σ i, orthonormal_basis_index 𝕜 (V i)) ≃ fin n :=
-let b := hV.collected_basis (λ i, std_orthonormal_basis 𝕜 (V i)) in
+let b := collected_basis V (λ i, std_orthonormal_basis 𝕜 (V i)) in
 fintype.equiv_fin_of_card_eq $ (finite_dimensional.finrank_eq_card_basis b).symm.trans hn
 
 /-- An `n`-dimensional `inner_product_space` equipped with a decomposition as an internal direct
 sum has an orthonormal basis indexed by `fin n` and subordinate to that direct sum. -/
-@[irreducible] def direct_sum.is_internal.subordinate_orthonormal_basis :
+@[irreducible] def subordinate_orthonormal_basis :
   basis (fin n) 𝕜 E :=
-(hV.collected_basis (λ i, std_orthonormal_basis 𝕜 (V i))).reindex
-  (hV.sigma_orthonormal_basis_index_equiv hn)
+(collected_basis V (λ i, std_orthonormal_basis 𝕜 (V i))).reindex
+  (sigma_orthonormal_basis_index_equiv hn V)
 
 /-- An `n`-dimensional `inner_product_space` equipped with a decomposition as an internal direct
 sum has an orthonormal basis indexed by `fin n` and subordinate to that direct sum. This function
 provides the mapping by which it is subordinate. -/
-def direct_sum.is_internal.subordinate_orthonormal_basis_index (a : fin n) : ι :=
-((hV.sigma_orthonormal_basis_index_equiv hn).symm a).1
+def subordinate_orthonormal_basis_index (a : fin n) : ι :=
+((sigma_orthonormal_basis_index_equiv hn V).symm a).1
 
 /-- The basis constructed in `orthogonal_family.subordinate_orthonormal_basis` is orthonormal. -/
-lemma direct_sum.is_internal.subordinate_orthonormal_basis_orthonormal
+lemma subordinate_orthonormal_basis_orthonormal
   (hV' : @orthogonal_family 𝕜 _ _ _ _ (λ i, V i) _ (λ i, (V i).subtypeₗᵢ)) :
-  orthonormal 𝕜 (hV.subordinate_orthonormal_basis hn) :=
+  orthonormal 𝕜 (subordinate_orthonormal_basis hn V) :=
 begin
-  simp only [direct_sum.is_internal.subordinate_orthonormal_basis, basis.coe_reindex],
-  have : orthonormal 𝕜 (hV.collected_basis (λ i, std_orthonormal_basis 𝕜 (V i))) :=
-    hV.collected_basis_orthonormal hV' (λ i, std_orthonormal_basis_orthonormal 𝕜 (V i)),
+  simp only [subordinate_orthonormal_basis, basis.coe_reindex],
+  have : orthonormal 𝕜 (collected_basis V (λ i, std_orthonormal_basis 𝕜 (V i))) :=
+    collected_basis_orthonormal V hV' (λ i, std_orthonormal_basis_orthonormal 𝕜 (V i)),
   exact this.comp _ (equiv.injective _),
 end
 
 /-- The basis constructed in `orthogonal_family.subordinate_orthonormal_basis` is subordinate to
 the `orthogonal_family` in question. -/
-lemma direct_sum.is_internal.subordinate_orthonormal_basis_subordinate (a : fin n) :
-  hV.subordinate_orthonormal_basis hn a ∈ V (hV.subordinate_orthonormal_basis_index hn a) :=
-by simpa only [direct_sum.is_internal.subordinate_orthonormal_basis, basis.coe_reindex]
-  using hV.collected_basis_mem (λ i, std_orthonormal_basis 𝕜 (V i))
-    ((hV.sigma_orthonormal_basis_index_equiv hn).symm a)
+lemma is_internal.subordinate_orthonormal_basis_subordinate (a : fin n) :
+  subordinate_orthonormal_basis hn V a ∈ V (subordinate_orthonormal_basis_index hn V a) :=
+by simpa only [subordinate_orthonormal_basis, basis.coe_reindex]
+  using collected_basis_mem V (λ i, std_orthonormal_basis 𝕜 (V i))
+    ((sigma_orthonormal_basis_index_equiv hn V).symm a)
 
-attribute [irreducible] direct_sum.is_internal.subordinate_orthonormal_basis_index
+attribute [irreducible] subordinate_orthonormal_basis_index
+
+end direct_sum
 
 end subordinate_orthonormal_basis
 

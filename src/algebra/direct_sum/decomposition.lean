@@ -59,6 +59,13 @@ instance : subsingleton (decomposition ℳ) :=
   exact function.left_inverse.eq_right_inverse xr yl,
 end⟩
 
+/-- Noncomputably promote the propositional `direct_sum.is_internal` to the data-carrying
+`decomposition ℳ`. -/
+noncomputable def is_internal.decomposition (h : direct_sum.is_internal ℳ) : decomposition ℳ :=
+{ decompose' := function.surj_inv h.surjective,
+  left_inv := function.right_inverse_surj_inv h.surjective,
+  right_inv := function.left_inverse_surj_inv h }
+
 variables [decomposition ℳ]
 
 protected lemma decomposition.is_internal : direct_sum.is_internal ℳ :=

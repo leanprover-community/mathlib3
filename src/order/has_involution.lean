@@ -28,7 +28,6 @@ Provide instances other than the one from `boolean_algebra`.
 
 universe u
 
-
 class has_involution (α : Type u) [preorder α]  :=
 (invo : α → α)
 (invo_antitone' : ∀ (x y : α), x ≤ y → invo y ≤ invo x)
@@ -75,7 +74,7 @@ lemma le_invo_of_le_invo (h : y ≤ xⁱ) : x ≤ yⁱ := le_invo_iff_le_invo.mp
 
 lemma invo_le_of_invo_le (h : yⁱ ≤ x) : xⁱ ≤ y := invo_le_iff_invo_le.mp h
 
-lemma invo_involutive : function.involutive (has_involution.invo : α → α) := invo_invo
+lemma invo_involutive : function.involutive (invo : α → α) := invo_invo
 
 lemma invo_bijective : function.bijective (invo : α → α) := invo_involutive.bijective
 
@@ -83,27 +82,30 @@ lemma invo_surjective : function.surjective (invo : α → α) := invo_involutiv
 
 lemma invo_injective : function.injective (invo : α → α) := invo_involutive.injective
 
-lemma invo_antitone : antitone (invo: α → α) := λ a b, invo_le_invo
+lemma invo_antitone : antitone (invo: α → α) := λ _ _, invo_le_invo
 
 @[simp] lemma invo_inj_iff : xⁱ = yⁱ ↔ x = y := invo_injective.eq_iff
 
 lemma invo_comp_invo : invo ∘ invo = @id α := funext invo_invo
 
+/-- Taking the involution as an order isomorphism to the order dual. -/
+@[simps]
+def order_iso.invo (α) [preorder α] [has_involution α] : α ≃o αᵒᵈ :=
+{ to_fun := λ x, order_dual.to_dual (xⁱ),
+  inv_fun := invo ∘ order_dual.of_dual,
+  left_inv := invo_invo,
+  right_inv := invo_invo,
+  map_rel_iff' := λ _ _, invo_le_invo_iff_le }
+
+@[priority 100]
+instance order_dual.has_involution : has_involution αᵒᵈ :=
+{ invo := λ x, order_dual.to_dual (order_dual.of_dual x)ⁱ,
+  invo_antitone' := λ a b h, @invo_antitone' α _ _ b a h,
+  invo_involutive' := invo_involutive' }
+
+lemma invo_strict_anti : strict_anti (invo : α → α) := (order_iso.invo α).strict_mono
+
 end preorder
-
-section lattice
-
-variables [lattice α] [has_involution α]
-
-@[simp] lemma invo_inf (x y : α) : (x ⊓ y)ⁱ = xⁱ ⊔ yⁱ :=
-le_antisymm (invo_le_iff_invo_le.mpr (le_inf (invo_le_iff_invo_le.mp le_sup_left)
-    ((invo_le_iff_invo_le.mp le_sup_right))))
-      (sup_le (invo_le_invo inf_le_left) (invo_le_invo inf_le_right))
-
-@[simp] lemma invo_sup (x y : α) : (x ⊔ y)ⁱ = xⁱ ⊓ yⁱ :=
-by rw [invo_eq_iff_invo_eq, invo_inf, invo_invo, invo_invo]
-
-end lattice
 
 section boolean_algebra
 
@@ -115,38 +117,83 @@ instance boolean_algebra.to_has_involution [boolean_algebra α] : has_involution
 
 end boolean_algebra
 
-section hom
+section lattice
 
-variables (α) [preorder α] [has_involution α]
+variables [lattice α] [has_involution α] {x y : α}
 
-instance order_dual.has_involution : has_involution αᵒᵈ :=
-{ invo := λ x, order_dual.to_dual (order_dual.of_dual x)ⁱ,
-  invo_antitone' := λ a b h, @invo_antitone' α _ _ b a h,
-  invo_involutive' := invo_involutive' }
+lemma invo_sup : (x ⊔ y)ⁱ = xⁱ ⊓ yⁱ := @order_iso.map_sup α αᵒᵈ _ _ (order_iso.invo α) x y
 
-/-- Taking the involution as an order isomorphism to the order dual. -/
-@[simps]
-def order_iso.invo : α ≃o αᵒᵈ :=
-{ to_fun := order_dual.to_dual ∘ invo,
-  inv_fun := invo ∘ order_dual.of_dual,
-  left_inv := invo_invo,
-  right_inv := invo_invo,
-  map_rel_iff' := λ _ _, invo_le_invo_iff_le }
+lemma invo_inf : (x ⊓ y)ⁱ = xⁱ ⊔ yⁱ := @order_iso.map_inf α αᵒᵈ _ _ (order_iso.invo α) x y
 
-lemma invo_strict_anti : strict_anti (invo : α → α) := (order_iso.invo α).strict_mono
+end lattice
 
-end hom
+section image
 
-section antichain
+variables [preorder α] [has_involution α] {s : set α} {x y : α}
 
-variables [preorder α] [has_involution α] {s : set α}
+open set order_dual
 
-lemma image_invo (hs : is_antichain (≤) s) :
-  is_antichain (≤) (invo '' s) :=
+lemma image_invo_eq_preimage_invo : invo '' s = invo ⁻¹' s :=
+ext (λ x, ⟨by {rintro ⟨x',hx',rfl⟩, rwa [←invo_invo x'] at hx'}, λ h, ⟨xⁱ, ⟨h, invo_invo x⟩⟩⟩)
+
+@[simp] lemma invo_invo_image : invo '' (invo '' s) = s := by {ext, simp}
+
+lemma mem_image_invo {x : α} {s : set α} : x ∈ invo '' s ↔ xⁱ ∈ s :=
+by {rw image_invo_eq_preimage_invo, refl}
+
+lemma mem_image_invo' {x : α} {P : α → Prop} : (invo '' P) x ↔ P xⁱ := mem_image_invo
+
+lemma mem_preimage_invo' {x : α} {P : α → Prop} : (invo ⁻¹' P) x ↔ P xⁱ :=
+by rw [←image_invo_eq_preimage_invo, mem_image_invo']
+
+lemma is_antichain.image_invo (hs : is_antichain (≤) s) : is_antichain (≤) (invo '' s) :=
 (hs.image_embedding (order_iso.invo α).to_order_embedding).flip
 
-lemma preimage_invo (hs : is_antichain (≤) s) :
-  is_antichain (≤) (invo ⁻¹' s) :=
-λ a ha a' ha' hne hle, hs ha' ha (λ h, hne (invo_inj_iff.mp h.symm)) (invo_le_invo hle)
+lemma is_antichain.preimage_invo (hs : is_antichain (≤) s) : is_antichain (≤) (invo ⁻¹' s) :=
+image_invo_eq_preimage_invo.subst hs.image_invo
 
-end antichain
+@[simp] lemma preimage_invo_Iic : invo ⁻¹' (Iic x) = Ici xⁱ := ext (λ _, invo_le_iff_invo_le)
+
+@[simp] lemma preimage_invo_Ici : invo ⁻¹' (Ici x) = Iic xⁱ := ext (λ _, le_invo_iff_le_invo)
+
+@[simp] lemma preimage_invo_Iio : invo ⁻¹' (Iio x) = Ioi xⁱ := ext (λ _, invo_lt_iff_invo_lt)
+
+@[simp] lemma preimage_invo_Ioi : invo ⁻¹' (Ioi x) = Iio xⁱ := ext (λ _, lt_invo_iff_lt_invo)
+
+@[simp] lemma preimage_invo_Icc : invo ⁻¹' (Icc x y) = Icc yⁱ xⁱ :=
+by simp [←Iic_inter_Ici, inter_comm]
+
+@[simp] lemma preimage_invo_Ioo : invo ⁻¹' (Ioo x y) = Ioo yⁱ xⁱ :=
+by simp [←Iio_inter_Ioi, inter_comm]
+
+@[simp] lemma preimage_invo_Ico : invo ⁻¹' (Ico x y) = Ioc yⁱ xⁱ :=
+by simp [←Iio_inter_Ici, ←Iic_inter_Ioi, inter_comm]
+
+@[simp] lemma preimage_invo_Ioc : invo ⁻¹' (Ioc x y) = Ico yⁱ xⁱ :=
+by simp [←Iio_inter_Ici, ←Iic_inter_Ioi, inter_comm]
+
+@[simp] lemma image_invo_Iic : invo '' (Iic x) = Ici xⁱ :=
+by rw [image_invo_eq_preimage_invo, preimage_invo_Iic]
+
+@[simp] lemma image_invo_Ici : invo '' (Ici x) = Iic xⁱ :=
+by rw [image_invo_eq_preimage_invo, preimage_invo_Ici]
+
+@[simp] lemma image_invo_Iio : invo '' (Iio x) = Ioi xⁱ :=
+by rw [image_invo_eq_preimage_invo, preimage_invo_Iio]
+
+@[simp] lemma image_invo_Ioi : invo '' (Ioi x) = Iio xⁱ :=
+by rw [image_invo_eq_preimage_invo, preimage_invo_Ioi]
+
+@[simp] lemma image_invo_Icc : invo '' (Icc x y) = Icc yⁱ xⁱ :=
+by rw [image_invo_eq_preimage_invo, preimage_invo_Icc]
+
+@[simp] lemma image_invo_Ioo : invo '' (Ioo x y) = Ioo yⁱ xⁱ :=
+by rw [image_invo_eq_preimage_invo, preimage_invo_Ioo]
+
+@[simp] lemma image_invo_Ioc : invo '' (Ioc x y) = Ico yⁱ xⁱ :=
+by rw [image_invo_eq_preimage_invo, preimage_invo_Ioc]
+
+@[simp] lemma image_invo_Ico : invo '' (Ico x y) = Ioc yⁱ xⁱ :=
+by rw [image_invo_eq_preimage_invo, preimage_invo_Ico]
+
+end image

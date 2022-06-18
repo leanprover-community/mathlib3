@@ -2646,6 +2646,22 @@ def emetric_space.to_metric_space {α : Type u} [e : emetric_space α] (h : ∀x
   metric_space α :=
 emetric_space.to_metric_space_of_dist (λx y, ennreal.to_real (edist x y)) h (λx y, rfl)
 
+/-- Build a new metric space from an old one where the bundled bornology structure is provably
+(but typically non-definitionaly) equal to some given bornology structure.
+See Note [forgetful inheritance].
+-/
+def metric_space.replace_bornology {α} [B : bornology α] (m : metric_space α)
+  (H : ∀ s, @is_bounded _ B s ↔ @is_bounded _ pseudo_metric_space.to_bornology s) :
+  metric_space α :=
+{ to_bornology := B,
+  .. pseudo_metric_space.replace_bornology _ H,
+  .. m }
+
+lemma metric_space.replace_bornology_eq {α} [m : metric_space α] [B : bornology α]
+  (H : ∀ s, @is_bounded _ B s ↔ @is_bounded _ pseudo_metric_space.to_bornology s) :
+  metric_space.replace_bornology _ H = m :=
+by { ext, refl }
+
 /-- Metric space structure pulled back by an injective function. Injectivity is necessary to
 ensure that `dist x y = 0` only if `x = y`. -/
 def metric_space.induced {γ β} (f : γ → β) (hf : function.injective f)

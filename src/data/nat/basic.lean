@@ -90,8 +90,8 @@ instance nat.order_bot : order_bot ℕ :=
 { bot := 0, bot_le := nat.zero_le }
 
 instance : canonically_ordered_comm_semiring ℕ :=
-{ le_iff_exists_add := λ a b, ⟨λ h, let ⟨c, hc⟩ := nat.le.dest h in ⟨c, hc.symm⟩,
-                               λ ⟨c, hc⟩, hc.symm ▸ nat.le_add_right _ _⟩,
+{ exists_add_of_le := λ a b h, (nat.le.dest h).imp $ λ _, eq.symm,
+  le_self_add := nat.le_add_right,
   eq_zero_or_eq_zero_of_mul_eq_zero   := λ a b, nat.eq_zero_of_mul_eq_zero,
   .. nat.nontrivial,
   .. nat.order_bot,
@@ -1288,6 +1288,15 @@ lemma dvd_left_injective : function.injective ((∣) : ℕ → ℕ → Prop) :=
 
 lemma div_lt_div_of_lt_of_dvd {a b d : ℕ} (hdb : d ∣ b) (h : a < b) : a / d < b / d :=
 by { rw nat.lt_div_iff_mul_lt hdb, exact lt_of_le_of_lt (mul_div_le a d) h }
+
+lemma mul_add_mod (a b c : ℕ) : (a * b + c) % b = c % b :=
+by simp [nat.add_mod]
+
+lemma mul_add_mod_of_lt {a b c : ℕ} (h : c < b) : (a * b + c) % b = c :=
+by rw [nat.mul_add_mod, nat.mod_eq_of_lt h]
+
+lemma pred_eq_self_iff {n : ℕ} : n.pred = n ↔ n = 0 :=
+by { cases n; simp [(nat.succ_ne_self _).symm] }
 
 /-! ### `find` -/
 section find

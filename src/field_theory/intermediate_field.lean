@@ -345,7 +345,7 @@ alg_hom.ext $ λ x, subtype.ext rfl
   (x : E) : inclusion hFG (inclusion hEF x) = inclusion (le_trans hEF hFG) x :=
 subtype.ext rfl
 
-@[simp] lemma coe_inclusion {E F : intermediate_field K L} (hEF : E ≤ F)  (e : E) :
+@[simp] lemma coe_inclusion {E F : intermediate_field K L} (hEF : E ≤ F) (e : E) :
   (inclusion hEF e : L) = e := rfl
 
 variables {S}

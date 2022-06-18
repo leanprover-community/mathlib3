@@ -5,7 +5,6 @@ Authors: Johannes Hölzl, Martin Zinkevich
 -/
 import measure_theory.measurable_space_def
 import data.equiv.encodable.lattice
-import data.finset.intervals
 
 /-!
 # Induction principles for measurable sets, related to π-systems and λ-systems.
@@ -363,7 +362,7 @@ lemma le_generate_from_pi_Union_Inter {α ι} {m : measurable_space α}
   {π : ι → set (set α)} (S : set (finset ι)) (h_univ : ∀ n, set.univ ∈ (π n)) {x : ι}
   {t : finset ι} (htS : t ∈ S) (hxt : x ∈ t) (hpix : m = measurable_space.generate_from (π x)) :
   m ≤ generate_from (pi_Union_Inter π S) :=
-by { rw hpix, exact generate_from_le_generate_from (subset_pi_Union_Inter h_univ htS hxt), }
+by { rw hpix, exact generate_from_mono (subset_pi_Union_Inter h_univ htS hxt), }
 
 lemma measurable_set_supr_of_mem_pi_Union_Inter {α ι} (m : ι → measurable_space α)
   (S : set (finset ι)) (t : set α) (ht : t ∈ pi_Union_Inter (λ n, (m n).measurable_set') S) :
@@ -388,11 +387,11 @@ lemma generate_from_pi_Union_Inter_measurable_space {α ι} (m : ι → measurab
 begin
   refine le_antisymm _ _,
   { rw ← @generate_from_measurable_set α (⨆ i (hi : ∃ p ∈ S, i ∈ p), m i),
-    exact generate_from_le_generate_from (measurable_set_supr_of_mem_pi_Union_Inter m S), },
+    exact generate_from_mono (measurable_set_supr_of_mem_pi_Union_Inter m S), },
   { refine bsupr_le (λ i hi, _),
     rcases hi with ⟨p, hpS, hpi⟩,
     rw ← @generate_from_measurable_set α (m i),
-    exact generate_from_le_generate_from (mem_pi_Union_Inter_of_measurable_set m hpS hpi), },
+    exact generate_from_mono (mem_pi_Union_Inter_of_measurable_set m hpS hpi), },
 end
 
 end Union_Inter

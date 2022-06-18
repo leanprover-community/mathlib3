@@ -30,9 +30,11 @@ instance direct_sum.alternating_map_module :
   module R (⨁ i, alternating_map R M N (fin i)) :=
 by apply_instance
 
+namespace exterior_algebra
+
 /-- Build a map out of the exterior algebra given a collection of alternating maps acting on each
 exterior power -/
-def exterior_algebra.lift_direct_sum :
+def lift_direct_sum :
   (⨁ i, alternating_map R M N (fin i)) →ₗ[R] clifford_algebra (0 : quadratic_form R M) →ₗ[R] N :=
 begin
   suffices :
@@ -42,7 +44,7 @@ begin
   { refine linear_map.compr₂ this _,
     refine linear_equiv.to_linear_map _ ∘ₗ direct_sum.component R ℕ _ 0,
     exact alternating_map.const_linear_equiv_of_is_empty.symm },
-  refine clifford_algebra.foldr _ _ _,
+  refine clifford_algebra.foldl _ _ _,
   { -- our recursive step turns `![f₀, f₁, ..., fₙ₋₁, fₙ]` into `![f₁ m, f₂ m, ..., fₙ m, 0]`, where
     -- `f₁ m` here is shorthand for partial application via `f₁.curry_left m`.
     refine linear_map.mk₂ R (λ m f, _)
@@ -69,107 +71,50 @@ begin
 end
 
 @[simp]
-lemma exterior_algebra.lift_direct_sum_of (i : ℕ) (f : alternating_map R M N (fin i))
+lemma lift_direct_sum_of {i : ℕ} (f : alternating_map R M N (fin i))
   (v : fin i → M) :
-  exterior_algebra.lift_direct_sum (direct_sum.of _ i f)
-    ((list.of_fn v).map (clifford_algebra.ι (0 : quadratic_form R M))).prod = f v :=
+  lift_direct_sum (direct_sum.of _ i f)
+    ((list.of_fn $ λ i, clifford_algebra.ι (0 : quadratic_form R M) (v i))).prod = f v :=
 begin
-  rw exterior_algebra.lift_direct_sum,
+  rw lift_direct_sum,
   dsimp [direct_sum.component],
   induction i generalizing v,
-  sorry { dsimp,
-    rw [clifford_algebra.foldr_one, direct_sum.of_eq_same, subsingleton.elim 0 v] },
-  rw [list.of_fn_succ', list.map_concat, list.prod_concat, clifford_algebra.foldr_mul,
-    clifford_algebra.foldr_ι, linear_map.mk₂_apply, dfinsupp.comap_domain'_apply],
-  have := i_ih (f.curry_left (v 0)) (λ i, v (nat.succ i)),
-  -- rw [list.of_fn_succ, list.map_cons, list.prod_cons, clifford_algebra.foldr_mul,
-  --   clifford_algebra.foldr_ι, linear_map.mk₂_apply, dfinsupp.map_range_apply,
-  --   dfinsupp.comap_domain'_apply, linear_map.flip_apply,
-  --   alternating_map.curry_left_linear_map_apply,
-  --   alternating_map.curry_left_apply_apply, matrix.zero_empty],
-  -- have := i_ih (f.curry_left (v 0)) (λ i, v (nat.succ i)),
-  -- simp at this,
-  -- dsimp,
-  -- rw clifford_algebra.foldr_algebra_map,
-  -- simp,
-  -- congr' 1,
+  { dsimp,
+    rw [clifford_algebra.foldl_one, direct_sum.of_eq_same, subsingleton.elim 0 v] },
+  { rw [list.of_fn_succ, list.prod_cons, clifford_algebra.foldl_mul,
+      clifford_algebra.foldl_ι, linear_map.mk₂_apply, direct_sum.of,
+      dfinsupp.single_add_hom_apply, dfinsupp.comap_domain'_single, dfinsupp.map_range_single,
+      linear_map.flip_apply, alternating_map.curry_left_linear_map_apply],
+    specialize i_ih (f.curry_left (v 0)) (λ i, v (i.succ)),
+    refine i_ih.trans (alternating_map.congr_arg f _),
+    exact matrix.cons_head_tail _ }
 end
 
+@[simp]
+lemma lift_direct_sum_of_one (f : alternating_map R M N (fin 0)) :
+  lift_direct_sum (direct_sum.of (λ i, alternating_map R M N (fin i)) 0 f)
+    (1 : clifford_algebra (0 : quadratic_form R M)) = f ![] :=
+lift_direct_sum_of f ![]
+
+@[simp]
+lemma lift_direct_sum_of_algebra_map (f : alternating_map R M N (fin 0)) (r : R) :
+  lift_direct_sum (direct_sum.of (λ i, alternating_map R M N (fin i)) 0 f)
+    (algebra_map _ (clifford_algebra (0 : quadratic_form R M)) r) = r • f ![] :=
+by rw [algebra.algebra_map_eq_smul_one, map_smul, lift_direct_sum_of_one]
+
+@[simp]
+lemma lift_direct_sum_of_ι (f : alternating_map R M N (fin 1)) (m : M) :
+  lift_direct_sum (direct_sum.of (λ i, alternating_map R M N (fin i)) 1 f)
+    (clifford_algebra.ι (0 : quadratic_form R M) m) = f ![m] :=
+begin
+  convert lift_direct_sum_of f ![m] using 2,
+  rw [list.of_fn_succ, list.of_fn_zero, list.prod_singleton, matrix.cons_val_fin_one],
+end
+
+end exterior_algebra
 
 /-- TODO: reimplement this with `exterior_algebra.lift_direct_sum`. -/
+@[simp]
 def alternating_map.to_exterior_hom {n : ℕ} (f : alternating_map R M N (fin n)) :
   clifford_algebra (0 : quadratic_form R M) →ₗ[R] N :=
-begin
-  -- start by reminding lean how to find instances under binders
-  letI : Π (i : fin n.succ), module R (alternating_map R M N (fin ↑i)) :=
-    λ i, alternating_map.module,
-  letI : module R (Π i : fin n.succ, alternating_map R M N (fin i)) :=
-    @pi.module (fin n.succ) (λ i, alternating_map R M N (fin i)) R _ _ (by apply_instance),
-  -- We'll recurse over sequences of `n + 1` alternating maps, taking between `0` and `n` (incusive)
-  -- arguments. Our final result will be the value of the map taking 0 arguments.
-  suffices :
-    clifford_algebra (0 : quadratic_form R M)
-      →ₗ[R] (Π i : fin n.succ, alternating_map R M N (fin i)),
-  { refine _ ∘ₗ linear_map.proj (0 : fin n.succ) ∘ₗ this,
-    refine linear_equiv.to_linear_map _,
-    haveI : is_empty (fin ↑(0 : fin n.succ)) := fin.is_empty,
-    refine alternating_map.const_linear_equiv_of_is_empty.symm },
-  refine clifford_algebra.foldr (0 : quadratic_form R M) _ _ _,
-  { -- our recursive step turns `![f₀, f₁, ..., fₙ₋₁, fₙ]` into `![f₁ m, f₂ m, ..., fₙ m, 0]`, where
-    -- `f₁ m` here is shorthand for partial application via `f₁.curry_left m`. The slight snag is we
-    -- have to cast our arity from `succ ↑i` to `↑i.succ`, which makes our later proof awful.
-    refine linear_map.mk₂ R (λ m f, _)
-      (λ m₁ m₂ f, _) (λ c m f, _) (λ m f₁ f₂, _) (λ c m f, _),
-    refine fin.snoc (λ i, _) 0,
-    { have f' := (f (fin.succ i)).dom_dom_congr (fin.cast $ fin.coe_succ _).to_equiv,
-      refine f'.curry_left m },
-    -- prove that map is linear
-    all_goals { ext i : 1, refine fin.last_cases _ _ i; clear i; [skip, intro i];
-      simp only [pi.add_apply, pi.smul_apply, fin.snoc_last, fin.snoc_cast_succ, zero_add,
-        smul_zero, map_add, map_smul]; refl } },
-  { -- when applied twice with the same `m`, this recursive step obviously produces 0; either
-    -- because we appended zeros on the last two elements, or because of
-    -- `alternating_map.curry_left_same`.
-    intros m x,
-    dsimp only [linear_map.mk₂_apply, quadratic_form.coe_fn_zero, pi.zero_apply],
-    simp_rw zero_smul,
-    ext i : 1,
-    refine fin.last_cases _ _ i; clear i; dsimp only [pi.zero_apply],
-    { rw [fin.snoc_last] },
-    intro i,
-    simp_rw [fin.snoc_cast_succ],
-    generalize_proofs _ hi',
-    revert hi',
-    generalize hi'' : fin.succ i = i'',
-    revert hi'',
-    refine fin.last_cases _ (λ i''', _) i''; intros hi' hi'',
-    { rw [fin.snoc_last], ext i, exact eq.refl (0 : N) },
-    change (i''' : ℕ) = i + 1 at hi'',
-    simp_rw [fin.snoc_cast_succ],
-    dsimp,
-    rw [←alternating_map.curry_left_dom_dom_congr_fin_cast, alternating_map.curry_left_same],
-    rw hi'' },
-  exact pi.single (fin.last _) f,
-end
-
-@[simp]
-lemma alternating_map.to_exterior_hom_algebra_map (f : alternating_map R M N (fin 0)) (r : R) :
-  f.to_exterior_hom (algebra_map _ _ r) = r • f ![] :=
-begin
-  dsimp [alternating_map.to_exterior_hom],
-  rw clifford_algebra.foldr_algebra_map,
-  simp,
-  congr' 1,
-end
-
-@[simp]
-lemma alternating_map.to_exterior_hom_ι (f : alternating_map R M N (fin 1)) (m : M) :
-  f.to_exterior_hom (clifford_algebra.ι _ m) = f ![m] :=
-begin
-  dsimp [alternating_map.to_exterior_hom],
-  rw clifford_algebra.foldr_ι,
-  dsimp,
-  rw fin.snoc,
-  simp,
-  congr' 1,
-end
+exterior_algebra.lift_direct_sum $ direct_sum.of _ n f

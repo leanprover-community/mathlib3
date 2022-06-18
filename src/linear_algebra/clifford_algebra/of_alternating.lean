@@ -14,21 +14,74 @@ Note this is currently expressed in terms of `clifford_algebra (0 : quadratic_fo
 has more API.
 -/
 
-variables {R M A : Type*} [field R] [add_comm_group M] [ring A] [module R M] [algebra R A]
+variables {R M N : Type*} [comm_ring R] [add_comm_group M] [ring N] [module R M] [module R N]
 
-def alternating_map.to_exterior_hom {n : ℕ} (f : alternating_map R M A (fin n)) :
-  clifford_algebra (0 : quadratic_form R M) →ₗ[R] A :=
+open_locale direct_sum
+
+instance alternating_map.module_add_comm_group {ι : Type*} [decidable_eq ι] :
+  module R (alternating_map R M N ι) :=
+by apply_instance
+
+instance direct_sum.alternating_map_add_comm_group :
+  add_comm_group (⨁ i, alternating_map R M N (fin i)) :=
+@dfinsupp.add_comm_group ℕ (λ i, alternating_map R M N (fin i)) _
+
+instance direct_sum.alternating_map_module :
+  module R (⨁ i, alternating_map R M N (fin i)) :=
+by apply_instance
+
+/-- Build a map out of the exterior algebra given a collection of alternating maps acting on each
+exterior power -/
+def exterior_algebra.lift_direct_sum {n : ℕ} :
+  (⨁ i, alternating_map R M N (fin i)) →ₗ[R] clifford_algebra (0 : quadratic_form R M) →ₗ[R] N :=
+begin
+  suffices :
+    (⨁ i, alternating_map R M N (fin i))
+      →ₗ[R] clifford_algebra (0 : quadratic_form R M)
+      →ₗ[R] (⨁ i, alternating_map R M N (fin i)),
+  { refine linear_map.compr₂ this _,
+    refine linear_equiv.to_linear_map _ ∘ₗ direct_sum.component R ℕ _ 0,
+    exact alternating_map.const_linear_equiv_of_is_empty.symm },
+  refine clifford_algebra.foldr _ _ _,
+  { -- our recursive step turns `![f₀, f₁, ..., fₙ₋₁, fₙ]` into `![f₁ m, f₂ m, ..., fₙ m, 0]`, where
+    -- `f₁ m` here is shorthand for partial application via `f₁.curry_left m`.
+    refine linear_map.mk₂ R (λ m f, _)
+      (λ m₁ m₂ f, _) (λ c m f, _) (λ m f₁ f₂, _) (λ c m f, _),
+    { refine dfinsupp.map_range.linear_map
+        (λ i : ℕ, (alternating_map.curry_left_linear_map.flip m
+          : alternating_map R M N (fin i.succ) →ₗ[R] alternating_map R M N (fin i)))
+          _,
+      refine (dfinsupp.comap_domain' nat.succ nat.pred_succ f : _), },
+    all_goals { ext i, simp only [dfinsupp.map_range.linear_map_apply, dfinsupp.map_range_apply,
+      linear_map.flip_apply, dfinsupp.comap_domain'_apply, dfinsupp.add_apply, dfinsupp.smul_apply,
+      linear_map.add_apply, linear_map.smul_apply, map_add, map_smul] }, },
+  { -- when applied twice with the same `m`, this recursive step obviously produces 0; either
+    -- because we appended zeros on the last two elements, or because of
+    -- `alternating_map.curry_left_same`.
+    intros m x,
+    dsimp only [linear_map.mk₂_apply, quadratic_form.coe_fn_zero, pi.zero_apply],
+    simp_rw zero_smul,
+    ext i : 1,
+    simp_rw [dfinsupp.map_range.linear_map_apply, dfinsupp.map_range_apply,
+      dfinsupp.comap_domain'_apply, dfinsupp.map_range_apply, dfinsupp.comap_domain'_apply,
+      linear_map.flip_apply, alternating_map.curry_left_linear_map_apply,
+      alternating_map.curry_left_same, direct_sum.zero_apply], }
+end
+
+/-- TODO: reimplement this with `exterior_algebra.lift_direct_sum`. -/
+def alternating_map.to_exterior_hom {n : ℕ} (f : alternating_map R M N (fin n)) :
+  clifford_algebra (0 : quadratic_form R M) →ₗ[R] N :=
 begin
   -- start by reminding lean how to find instances under binders
-  letI : Π (i : fin n.succ), module R (alternating_map R M A (fin ↑i)) :=
+  letI : Π (i : fin n.succ), module R (alternating_map R M N (fin ↑i)) :=
     λ i, alternating_map.module,
-  letI : module R (Π i : fin n.succ, alternating_map R M A (fin i)) :=
-    @pi.module (fin n.succ) (λ i, alternating_map R M A (fin i)) R _ _ (by apply_instance),
+  letI : module R (Π i : fin n.succ, alternating_map R M N (fin i)) :=
+    @pi.module (fin n.succ) (λ i, alternating_map R M N (fin i)) R _ _ (by apply_instance),
   -- We'll recurse over sequences of `n + 1` alternating maps, taking between `0` and `n` (incusive)
   -- arguments. Our final result will be the value of the map taking 0 arguments.
   suffices :
     clifford_algebra (0 : quadratic_form R M)
-      →ₗ[R] (Π i : fin n.succ, alternating_map R M A (fin i)),
+      →ₗ[R] (Π i : fin n.succ, alternating_map R M N (fin i)),
   { refine _ ∘ₗ linear_map.proj (0 : fin n.succ) ∘ₗ this,
     refine linear_equiv.to_linear_map _,
     haveI : is_empty (fin ↑(0 : fin n.succ)) := fin.is_empty,
@@ -62,7 +115,7 @@ begin
     generalize hi'' : fin.succ i = i'',
     revert hi'',
     refine fin.last_cases _ (λ i''', _) i''; intros hi' hi'',
-    { rw [fin.snoc_last], ext i, exact eq.refl (0 : A) },
+    { rw [fin.snoc_last], ext i, exact eq.refl (0 : N) },
     change (i''' : ℕ) = i + 1 at hi'',
     simp_rw [fin.snoc_cast_succ],
     dsimp,
@@ -72,7 +125,7 @@ begin
 end
 
 @[simp]
-lemma alternating_map.to_exterior_hom_algebra_map (f : alternating_map R M A (fin 0)) (r : R) :
+lemma alternating_map.to_exterior_hom_algebra_map (f : alternating_map R M N (fin 0)) (r : R) :
   f.to_exterior_hom (algebra_map _ _ r) = r • f ![] :=
 begin
   dsimp [alternating_map.to_exterior_hom],
@@ -82,7 +135,7 @@ begin
 end
 
 @[simp]
-lemma alternating_map.to_exterior_hom_ι (f : alternating_map R M A (fin 1)) (m : M) :
+lemma alternating_map.to_exterior_hom_ι (f : alternating_map R M N (fin 1)) (m : M) :
   f.to_exterior_hom (clifford_algebra.ι _ m) = f ![m] :=
 begin
   dsimp [alternating_map.to_exterior_hom],

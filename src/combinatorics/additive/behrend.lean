@@ -61,7 +61,7 @@ def box (n d : ℕ) : finset (fin n → ℕ) := fintype.pi_finset $ λ _, range 
 lemma mem_box : x ∈ box n d ↔ ∀ i, x i < d := by simp only [box, fintype.mem_pi_finset, mem_range]
 
 @[simp] lemma card_box : (box n d).card = d ^ n := by simp [box]
-@[simp] lemma box_zero : box n 0 = ∅ := by simp [box]
+@[simp] lemma box_zero : box (n + 1) 0 = ∅ := by simp [box]
 
 /-- The intersection of the sphere of radius `sqrt k` with the integer points in the positive
 quadrant. -/
@@ -70,16 +70,15 @@ def sphere (n d k : ℕ) : finset (fin n → ℕ) := (box n d).filter $ λ x, �
 lemma sphere_zero_subset : sphere n d 0 ⊆ 0 :=
 λ x, by simp [sphere, function.funext_iff] {contextual := tt}
 
-@[simp] lemma sphere_zero (n k : ℕ) : sphere n 0 k = ∅ := by simp [sphere]
+@[simp] lemma sphere_zero_right (n k : ℕ) : sphere (n + 1) 0 k = ∅ := by simp [sphere]
 
 lemma sphere_subset_box : sphere n d k ⊆ box n d := filter_subset _ _
 
 lemma norm_of_mem_sphere {n d k : ℕ} {x : fin n → ℕ} (hx : x ∈ sphere n d k) :
-  ∥@id (euclidean_space ℝ (fin n)) (coe ∘ x : fin n → ℝ)∥ = sqrt k :=
+  ∥(pi_Lp.equiv 2 _).symm (coe ∘ x : fin n → ℝ)∥ = sqrt k :=
 begin
   rw euclidean_space.norm_eq,
-  congr',
-  change ∑ (i : fin n), ∥(x i : ℝ)∥ ^ 2 = k,
+  dsimp,
   simp_rw [norm_coe_nat, ←cast_pow, ←cast_sum, (mem_filter.1 hx).2],
 end
 
@@ -174,21 +173,23 @@ begin
 end
 
 lemma sum_lt (hd : 0 < d) : ∑ i : fin n, (d - 1) * (2 * d - 1) ^ (i : ℕ) < (2 * d - 1) ^ n :=
-begin
-  rw sum_eq,
-  exact (nat.div_le_self _ 2).trans_lt (pred_lt (pow_pos (hd.trans_le $ le_succ_mul_sub _ _) _).ne')
-end
+sum_eq.trans_lt $ (nat.div_le_self _ 2).trans_lt $ pred_lt
+  (pow_pos (hd.trans_le $ le_succ_mul_sub _ _) _).ne'
 
 lemma card_sphere_le_roth_number_nat (n d k : ℕ) :
   (sphere n d k).card ≤ roth_number_nat ((2 * d - 1) ^ n) :=
 begin
-  obtain rfl | hd := eq_or_ne d 0,
+  cases n,
+  { refine (card_le_univ _).trans_eq _,
+    rw pow_zero,
+    exact fintype.card_unique },
+  obtain rfl | hd := @eq_zero_or_pos _ _ d,
   { by simp },
   refine add_salem_spencer_image_sphere.le_roth_number_nat _ _ (card_image_of_inj_on _),
   { simp only [subset_iff, mem_image, and_imp, forall_exists_index, mem_range,
       forall_apply_eq_imp_iff₂, sphere, mem_filter],
     rintro _ x hx _ rfl,
-    exact (map_le_of_mem_box hx).trans_lt (digits_sum_le $ pos_iff_ne_zero.2 hd) },
+    exact (map_le_of_mem_box hx).trans_lt (sum_lt hd) },
   refine map_inj_on.mono (λ x, _),
   simp only [mem_coe, sphere, mem_filter, mem_box, and_imp],
   exact λ h _ i, (h i).trans_le (le_succ_mul_sub _ _),

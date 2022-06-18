@@ -1732,6 +1732,7 @@ lemma sup_closed_of_linear_order [linear_order α] (s : set α) : sup_closed s :
 sup_closed_of_totally_ordered s (λ x y hxs hys, le_total y x)
 
 end sup_closed
+
 open set
 
 variables [complete_lattice β]

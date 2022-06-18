@@ -243,8 +243,6 @@ def Q : quadratic_form R (R × R) :=
 @[simp]
 lemma Q_apply (v : R × R) : Q c₁ c₂ v = c₁ * (v.1 * v.1) + c₂ * (v.2 * v.2) := rfl
 
-local attribute [semireducible] clifford_algebra
-
 /-- The quaternion basis vectors within the algebra. -/
 @[simps i j k]
 def quaternion_basis :

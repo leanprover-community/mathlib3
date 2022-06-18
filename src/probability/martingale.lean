@@ -442,7 +442,7 @@ begin
     refine stopped_value_hitting_mem _,
     simp only [set.mem_set_of_eq, exists_prop, hn],
     exact real.exists_of_le_supr_subtype (set.finite_le_nat n) ⟨0, nat.zero_le _⟩ hx },
-  have h := set_integral_le_const (measurable_set_le measurable_const (measurable_csupr_le
+  have h := set_integral_const_le (measurable_set_le measurable_const (measurable_csupr_le
     (λ n, (hsub.strongly_measurable n).measurable.le (𝒢.le n)) _))
     (measure_ne_top _ _) this
     (integrable.integrable_on (integrable_stopped_value (hitting_is_stopping_time

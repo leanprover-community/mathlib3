@@ -16,6 +16,9 @@ The most important results are the induction formulas `fin.prod_univ_cast_succ`
 and `fin.prod_univ_succ`, and the formula `fin.prod_const` for the product of a
 constant function. These results have variants for sums instead of products.
 
+## Main declarations
+
+* `fin_function_fin_equiv`: An explicit equivalence between `fin n → fin m` and `fin (m ^ n)`.
 -/
 
 open_locale big_operators
@@ -138,6 +141,40 @@ lemma prod_trunc {M : Type*} [comm_monoid M] {a b : ℕ} (f : fin (a+b) → M)
 by simpa only [prod_univ_add, fintype.prod_eq_one _ hf, mul_one]
 
 end fin
+
+/-- Equivalence between `fin n → fin m` and `fin (m ^ n)`. -/
+def fin_function_fin_equiv {m n : ℕ} : (fin n → fin m) ≃ fin (m ^ n) :=
+equiv.of_right_inverse_of_card_le
+  (le_of_eq $ by simp_rw [fintype.card_fun, fintype.card_fin])
+  (λ f, ⟨∑ i, f i * m ^ (i : ℕ), begin
+    induction n with n ih generalizing f,
+    { simp },
+    cases m,
+    { exact is_empty_elim (f $ fin.last _) },
+    simp_rw [fin.sum_univ_cast_succ, fin.coe_cast_succ, fin.coe_last],
+    refine (add_lt_add_of_lt_of_le (ih _) $ mul_le_mul_right' (fin.is_le _) _).trans_eq _,
+    rw [←one_add_mul, add_comm, pow_succ],
+  end⟩)
+  (λ a b, ⟨a / m ^ (b : ℕ) % m, begin
+      cases n,
+      { exact b.elim0 },
+      cases m,
+      { rw zero_pow n.succ_pos at a,
+        exact a.elim0 },
+      { exact nat.mod_lt _ m.succ_pos }
+    end⟩) $ λ a, begin
+    dsimp,
+    induction n with n ih generalizing a,
+    { haveI : subsingleton (fin (m ^ 0)) := (equiv.cast $ congr_arg fin $ pow_zero _).subsingleton,
+      haveI : subsingleton {i // i < m ^ 0} :=
+      , (equiv.cast $ congr_arg fin $ pow_zero _).subsingleton,
+      exact subsingleton.elim _ _ },
+    simp_rw [fin.forall_iff, fin.ext_iff, subtype.coe_mk] at ih,
+    ext,
+    simp_rw [subtype.coe_mk, fin.sum_univ_succ, fin.coe_zero, fin.coe_succ, pow_zero, nat.div_one,
+      mul_one, pow_succ, ←nat.div_div_eq_div_mul, mul_left_comm _ m, ←mul_sum],
+    rw [ih _ (nat.div_lt_of_lt_mul a.prop), nat.mod_add_div],
+  end
 
 namespace list
 

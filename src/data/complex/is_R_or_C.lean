@@ -240,7 +240,7 @@ end
 variables (K)
 /-- Conjugation as a ring equivalence. This is used to convert the inner product into a
 sesquilinear product. -/
-abbreviation conj_to_ring_equiv : K ≃+* Kᵐᵒᵖ := ring_equiv.star
+abbreviation conj_to_ring_equiv : K ≃+* Kᵐᵒᵖ := star_ring_equiv
 
 variables {K}
 

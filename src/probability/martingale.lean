@@ -444,12 +444,12 @@ begin
     exact real.exists_of_le_supr_subtype (set.finite_le_nat n) ⟨0, nat.zero_le _⟩ hx },
   have h := set_integral_le_const (measurable_set_le measurable_const (measurable_csupr_le
     (λ n, (hsub.strongly_measurable n).measurable.le (𝒢.le n)) _))
-    (measure_lt_top _ _).ne this
+    (measure_ne_top _ _) this
     (integrable.integrable_on (integrable_stopped_value (hitting_is_stopping_time
       hsub.adapted measurable_set_Ici) hsub.integrable hitting_le)),
   rw [ennreal.le_of_real_iff_to_real_le, ennreal.to_real_smul],
   { exact h },
-  { exact (ennreal.mul_lt_top (by simp) (measure_lt_top _ _).ne).ne },
+  { exact ennreal.mul_ne_top (by simp) (measure_ne_top _ _) },
   { exact le_trans (mul_nonneg ε.coe_nonneg ennreal.to_real_nonneg) h }
 end
 
@@ -495,7 +495,7 @@ begin
         (measurable_set_lt (measurable_csupr_le
           (λ n, (hsub.strongly_measurable n).measurable.le (𝒢.le n)) _) measurable_const) _)),
       intros x hx,
-      simp at hx,
+      rw set.mem_set_of_eq at hx,
       have : hitting f {y : ℝ | ↑ε ≤ y} 0 n x = n,
       { simp only [hitting, set.mem_set_of_eq, exists_prop, pi.coe_nat, nat.cast_id,
           ite_eq_right_iff, forall_exists_index, and_imp],

@@ -347,9 +347,8 @@ central_binom n
         begin
           congr' 1,
           symmetry,
-          apply finset.prod_subset,
-          apply finset.filter_subset_filter,
-          apply finset.filter_subset,
+          refine finset.prod_subset
+                  (finset.filter_subset_filter _ (finset.filter_subset nat.prime _)) _,
           simp only [finset.mem_filter, finset.mem_range, finset.mem_Ico],
           intros x hx hx',
           have not_prime_x : ¬ nat.prime x, tauto,
@@ -414,9 +413,8 @@ central_binom n
         begin
           congr' 1,
           symmetry,
-          apply finset.prod_subset,
-          apply finset.filter_subset_filter,
-          apply finset.filter_subset,
+          refine finset.prod_subset
+                  (finset.filter_subset_filter _ (finset.filter_subset nat.prime _)) _,
           simp only [finset.mem_filter, finset.mem_range, finset.mem_Ico],
           intros x hx hx',
           have not_prime_x : ¬ nat.prime x, tauto,

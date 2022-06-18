@@ -74,6 +74,29 @@ def germ_setoid (l : filter α) (β : Type*) : setoid (α → β) :=
 /-- The space of germs of functions `α → β` at a filter `l`. -/
 def germ (l : filter α) (β : Type*) : Type* := quotient (germ_setoid l β)
 
+/-- Setoid used to define the filter product. This is a dependent version of
+  `filter.germ_setoid`. -/
+def product_setoid (l : filter α) (ε : α → Type*) : setoid (Π a, ε a) :=
+{ r := λ f g, ∀ᶠ a in l, f a = g a,
+  iseqv := ⟨λ _, eventually_of_forall (λ _, rfl),
+    λ _ _ h, h.mono (λ _, eq.symm),
+    λ x y z h1 h2, h1.congr (h2.mono (λ x hx, hx ▸ iff.rfl))⟩ }
+
+/-- The filter product `Π (a : α), ε a` at a filter `l`. This is a dependent version of
+  `filter.germ`. -/
+@[protected] def product (l : filter α) (ε : α → Type*) : Type* := quotient (product_setoid l ε)
+
+namespace product
+
+variables {ε : α → Type*}
+
+instance : has_coe_t (Π a, ε a) (l.product ε) := ⟨quotient.mk'⟩
+
+instance [Π a, inhabited (ε a)] : inhabited (l.product ε) :=
+⟨(↑(λ a, (default : ε a)) : l.product ε)⟩
+
+end product
+
 namespace germ
 
 instance : has_coe_t (α → β) (germ l β) := ⟨quotient.mk'⟩

@@ -74,9 +74,9 @@ variables [decidable_eq n] [decidable_eq p] [decidable_eq q] [decidable_eq l]
 variables [comm_ring R]
 
 @[simp] lemma matrix_trace_commutator_zero [fintype n] (X Y : matrix n n R) :
-  matrix.trace n R R ⁅X, Y⁆ = 0 :=
-calc _ = matrix.trace n R R (X ⬝ Y) - matrix.trace n R R (Y ⬝ X) : linear_map.map_sub _ _ _
-   ... = matrix.trace n R R (X ⬝ Y) - matrix.trace n R R (X ⬝ Y) :
+  matrix.trace ⁅X, Y⁆ = 0 :=
+calc _ = matrix.trace (X ⬝ Y) - matrix.trace (Y ⬝ X) : trace_sub _ _
+   ... = matrix.trace (X ⬝ Y) - matrix.trace (X ⬝ Y) :
      congr_arg (λ x, _ - x) (matrix.trace_mul_comm Y X)
    ... = 0 : sub_self _
 
@@ -85,7 +85,7 @@ namespace special_linear
 /-- The special linear Lie algebra: square matrices of trace zero. -/
 def sl [fintype n] : lie_subalgebra R (matrix n n R) :=
 { lie_mem' := λ X Y _ _, linear_map.mem_ker.2 $ matrix_trace_commutator_zero _ _ _ _,
-  ..linear_map.ker (matrix.trace n R R) }
+  ..linear_map.ker (matrix.trace_linear_map n R R) }
 
 lemma sl_bracket [fintype n] (A B : sl n R) : ⁅A, B⁆.val = A.val ⬝ B.val - B.val ⬝ A.val := rfl
 
@@ -97,7 +97,7 @@ variables {n} [fintype n] (i j : n)
 basis of sl n R. -/
 def Eb (h : j ≠ i) : sl n R :=
 ⟨matrix.std_basis_matrix i j (1 : R),
-  show matrix.std_basis_matrix i j (1 : R) ∈ linear_map.ker (matrix.trace n R R),
+  show matrix.std_basis_matrix i j (1 : R) ∈ linear_map.ker (matrix.trace_linear_map n R R),
   from matrix.std_basis_matrix.trace_zero i j (1 : R) h⟩
 
 @[simp] lemma Eb_val (h : j ≠ i) : (Eb R i j h).val = matrix.std_basis_matrix i j 1 := rfl

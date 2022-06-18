@@ -143,6 +143,14 @@ funext $ λ x, sum.cases_on x (λ _, rfl) (λ _, rfl)
   sum.elim (f ∘ inl) (f ∘ inr) = f :=
 funext $ λ x, sum.cases_on x (λ _, rfl) (λ _, rfl)
 
+lemma elim_comp_map {α β γ δ ε : Sort*} {f₁ : α → β} {f₂ : β → ε} {g₁ : γ → δ} {g₂ : δ → ε} :
+  sum.elim f₂ g₂ ∘ sum.map f₁ g₁ = sum.elim (f₂ ∘ f₁) (g₂ ∘ g₁) :=
+begin
+  ext (_|_),
+  { rw [function.comp_app, map_inl, elim_inl, elim_inl] },
+  { rw [function.comp_app, map_inr, elim_inr, elim_inr] },
+end
+
 open function (update update_eq_iff update_comp_eq_of_injective update_comp_eq_of_forall_ne)
 
 @[simp] lemma update_elim_inl [decidable_eq α] [decidable_eq (α ⊕ β)] {f : α → γ} {g : β → γ}
@@ -317,9 +325,9 @@ have aca : ∀ a, acc (lex r s) (inl a), from λ a, lex_acc_inl (ha.apply a),
 end lex
 end sum
 
-namespace function
-
 open sum
+
+namespace function
 
 lemma injective.sum_elim {f : α → γ} {g : β → γ}
   (hf : injective f) (hg : injective g) (hfg : ∀ a b, f a ≠ g b) :
@@ -340,3 +348,20 @@ lemma surjective.sum_map {f : α → β} {g : α' → β'} (hf : surjective f) (
 | (inr y) := let ⟨x, hx⟩ := hg y in ⟨inr x, congr_arg inr hx⟩
 
 end function
+
+/-!
+### Ternary sum
+
+Abbreviations for the maps from the summands to `α ⊕ β ⊕ γ`. This is useful for pattern-matching.
+-/
+
+namespace sum3
+
+/-- The map from the first summand into a ternary sum. -/
+@[pattern, simp, reducible] def in₀ (a) : α ⊕ β ⊕ γ := inl a
+/-- The map from the second summand into a ternary sum. -/
+@[pattern, simp, reducible] def in₁ (b) : α ⊕ β ⊕ γ := inr $ inl b
+/-- The map from the third summand into a ternary sum. -/
+@[pattern, simp, reducible] def in₂ (c) : α ⊕ β ⊕ γ := inr $ inr c
+
+end sum3

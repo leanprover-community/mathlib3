@@ -66,8 +66,8 @@ variables [is_domain k] [char_p k p] [perfect_ring k p]
 /-! ### Frobenius-linear maps -/
 
 /-- The Frobenius automorphism of `k` induces an automorphism of `K`. -/
-def fraction_ring.frobenius : K(p, k) ≃+* K(p, k) := is_fraction_ring.field_equiv_of_ring_equiv
-  (ring_equiv.of_bijective _ (witt_vector.frobenius_bijective p k))
+def fraction_ring.frobenius : K(p, k) ≃+* K(p, k) :=
+is_fraction_ring.field_equiv_of_ring_equiv (frobenius_equiv p k)
 
 /-- The Frobenius automorphism of `k` induces an endomorphism of `K`. For notation purposes. -/
 def fraction_ring.frobenius_ring_hom : K(p, k) →+* K(p, k) := fraction_ring.frobenius p k
@@ -176,15 +176,15 @@ begin
     intros ha',
     apply this,
     simp only [←ha, ha', zero_smul] },
-  obtain ⟨b, hb, m, (hmb : φ(p, k) b * a = p ^ m * b)⟩ :=
-    witt_vector.exists_frobenius_solution_fraction_ring p ha,
+  obtain ⟨b, hb, m, hmb⟩ := witt_vector.exists_frobenius_solution_fraction_ring p ha,
+  replace hmb : φ(p, k) b * a = p ^ m * b := by convert hmb,
   use m,
   let F₀ : standard_one_dim_isocrystal p k m →ₗ[K(p,k)] V :=
     linear_map.to_span_singleton K(p, k) V x,
   let F : standard_one_dim_isocrystal p k m ≃ₗ[K(p,k)] V,
   { refine linear_equiv.of_bijective F₀ _ _,
     { rw ← linear_map.ker_eq_bot,
-      exact linear_equiv.ker_to_span_singleton K(p, k) V hx },
+      exact linear_map.ker_to_span_singleton K(p, k) V hx },
     { rw ← linear_map.range_eq_top,
       rw ← (finrank_eq_one_iff_of_nonzero x hx).mp h_dim,
       rw linear_map.span_singleton_eq_range } },
@@ -192,14 +192,12 @@ begin
   intros c,
   rw [linear_equiv.trans_apply, linear_equiv.trans_apply,
       linear_equiv.smul_of_ne_zero_apply, linear_equiv.smul_of_ne_zero_apply,
-      show F (units.mk0 b hb • Φ(p,k) c) = _, from linear_equiv.map_smul _ _ _,
-      show F (units.mk0 b hb • c) = _, from linear_equiv.map_smul _ _ _],
-  simp only [hax, units.coe_mk0, linear_equiv.of_bijective_apply,
-    linear_map.to_span_singleton_apply, linear_equiv.map_smulₛₗ,
-    standard_one_dim_isocrystal.frobenius_apply, algebra.id.smul_eq_mul],
+      linear_equiv.map_smul, linear_equiv.map_smul],
+  simp only [hax, linear_equiv.of_bijective_apply, linear_map.to_span_singleton_apply,
+    linear_equiv.map_smulₛₗ, standard_one_dim_isocrystal.frobenius_apply, algebra.id.smul_eq_mul],
   simp only [←mul_smul],
   congr' 1,
-  linear_combination (hmb, φ(p,k) c),
+  linear_combination φ(p,k) c * hmb,
 end
 
 end witt_vector

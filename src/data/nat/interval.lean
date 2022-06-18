@@ -81,8 +81,10 @@ by rw [Ioc_eq_range', list.card_to_finset, (list.nodup_range' _ _).dedup, list.l
 @[simp] lemma card_Ioo : (Ioo a b).card = b - a - 1 :=
 by rw [Ioo_eq_range', list.card_to_finset, (list.nodup_range' _ _).dedup, list.length_range']
 
-@[simp] lemma card_Iic : (Iic b).card = b + 1 := by rw [Iic, card_Icc, bot_eq_zero, tsub_zero]
-@[simp] lemma card_Iio : (Iio b).card = b := by rw [Iio, card_Ico, bot_eq_zero, tsub_zero]
+@[simp] lemma card_Iic : (Iic b).card = b + 1 :=
+by rw [Iic_eq_Icc, card_Icc, bot_eq_zero, tsub_zero]
+
+@[simp] lemma card_Iio : (Iio b).card = b := by rw [Iio_eq_Ico, card_Ico, bot_eq_zero, tsub_zero]
 
 @[simp] lemma card_fintype_Icc : fintype.card (set.Icc a b) = b + 1 - a :=
 by rw [fintype.card_of_finset, card_Icc]
@@ -120,6 +122,9 @@ by { ext x, rw [mem_Ico, mem_Ioc, succ_le_iff, lt_succ_iff] }
 
 @[simp] lemma Ico_pred_singleton {a : ℕ} (h : 0 < a) : Ico (a - 1) a = {a - 1} :=
 by rw [←Icc_pred_right _ h, Icc_self]
+
+@[simp] lemma Ioc_succ_singleton : Ioc b (b + 1) = {b+1} :=
+by rw [← nat.Icc_succ_left, Icc_self]
 
 variables {a b c}
 

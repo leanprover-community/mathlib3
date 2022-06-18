@@ -44,8 +44,8 @@ open function
 open_locale classical big_operators
 
 /-- `ℤ` with its usual ring structure is not a field. -/
-lemma int.not_is_field : ¬ is_field ℤ := 
-λ h, int.not_even_one $ (h.mul_inv_cancel two_ne_zero).imp $ λ a, eq.symm
+lemma int.not_is_field : ¬ is_field ℤ :=
+λ h, int.not_even_one $ (h.mul_inv_cancel two_ne_zero).imp $ λ a, (by rw ← two_mul; exact eq.symm)
 
 namespace number_field
 
@@ -111,8 +111,8 @@ begin
   have h_inj : function.injective ⇑(algebra_map ℤ (𝓞 K)),
   { exact ring_hom.injective_int (algebra_map ℤ (𝓞 K)) },
   intro hf,
-  exact int.not_is_field ((is_integral.is_field_iff_is_field
-    (is_integral_closure.is_integral_algebra ℤ K) h_inj).mpr hf)
+  exact int.not_is_field
+    (((is_integral_closure.is_integral_algebra ℤ K).is_field_iff_is_field h_inj).mpr hf)
 end
 
 instance [number_field K] : is_dedekind_domain (𝓞 K) :=

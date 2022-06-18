@@ -65,7 +65,7 @@ begin
   obtain ⟨y', z, eq⟩ := mem_localization_localization_submodule.mp y.prop,
   rw [is_scalar_tower.algebra_map_apply R S T, eq, ring_hom.map_mul, is_unit.mul_iff],
   exact ⟨is_localization.map_units T y',
-    (is_localization.map_units _ z).map (algebra_map S T : S →* T)⟩,
+    (is_localization.map_units _ z).map (algebra_map S T)⟩,
 end
 
 lemma localization_localization_surj [is_localization N T] (x : T) :

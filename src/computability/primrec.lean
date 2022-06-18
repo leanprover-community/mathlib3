@@ -3,8 +3,8 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.equiv.list
 import data.list.join
+import logic.equiv.list
 import logic.function.iterate
 
 /-!
@@ -1026,7 +1026,7 @@ def subtype {p : α → Prop} [decidable_pred p]
 instance fin {n} : primcodable (fin n) :=
 @of_equiv _ _
   (subtype $ nat_lt.comp primrec.id (const n))
-  (equiv.fin_equiv_subtype _)
+  (equiv.refl _)
 
 instance vector {n} : primcodable (vector α n) :=
 subtype ((@primrec.eq _ _ nat.decidable_eq).comp list_length (const _))

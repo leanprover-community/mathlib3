@@ -30,11 +30,11 @@ it is always a subgroup, and if the `n`th cyclotomic polynomial is irreducible, 
 
 ## TODO
 
-* `zeta_pow_power_basis` is not sufficiently general; the correct solution is some
-  `power_basis.map_conjugate`, but figuring out the exact correct assumptions + proof for this is
-  mathematically nontrivial. (Current thoughts: the ideal of polynomials with α as a root is equal
-  to the ideal of polynomials with β as a root, which, in an integrally closed domain, reduces
-  to the usual condition that they are the roots of each others' minimal polynomials.)
+* We currently can get away with the fact that the power of a primitive root is a primitive root,
+  but the correct long-term solution for computing other explicit Galois groups is creating
+  `power_basis.map_conjugate`; but figuring out the exact correct assumptions + proof for this is
+  mathematically nontrivial. (Current thoughts: the correct condition is that the annihilating
+  ideal of both elements is equal. This may not hold in an ID, and definitely holds in an ICD.)
 
 -/
 
@@ -44,6 +44,8 @@ variables {n : ℕ+} (K : Type*) [field K] {L : Type*} [field L] {μ : L} (hμ :
           [algebra K L] [is_cyclotomic_extension {n} K L]
 
 open polynomial ne_zero is_cyclotomic_extension
+
+open_locale cyclotomic
 
 namespace is_primitive_root
 
@@ -141,7 +143,7 @@ let hζ := (zeta_primitive_root n K L).eq_pow_of_pow_eq_one hμ.pow_eq_one n.pos
 lemma from_zeta_aut_spec [ne_zero ((n : ℕ) : K)] : from_zeta_aut hμ h (zeta n K L) = μ :=
 begin
   simp_rw [from_zeta_aut, aut_equiv_pow_symm_apply],
-  generalize_proofs _ hζ h _ hμ _,
+  generalize_proofs _ _ hζ h _ hμ _,
   rw [←hζ.power_basis_gen K] {occs := occurrences.pos [4]},
   rw [power_basis.equiv_of_minpoly_gen, hμ.power_basis_gen K],
   convert h.some_spec.some_spec,
@@ -153,8 +155,6 @@ end is_cyclotomic_extension
 section gal
 
 variables (h : irreducible (cyclotomic n K)) {K}
-
-local attribute [instance] splitting_field_X_pow_sub_one splitting_field_cyclotomic
 
 /-- `is_cyclotomic_extension.aut_equiv_pow` repackaged in terms of `gal`. Asserts that the
 Galois group of `cyclotomic n K` is equivalent to `(zmod n)ˣ` if `n` does not divide the

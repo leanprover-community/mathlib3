@@ -63,7 +63,7 @@ instance normed_lattice_add_comm_group_to_ordered_add_comm_group {α : Type*}
 Let `α` be a normed group with a partial order. Then the order dual is also a normed group.
 -/
 @[priority 100] -- see Note [lower instance priority]
-instance {α : Type*} : Π [normed_group α], normed_group (order_dual α) := id
+instance {α : Type*} : Π [normed_group α], normed_group αᵒᵈ := id
 
 variables {α : Type*} [normed_lattice_add_comm_group α]
 open lattice_ordered_comm_group
@@ -84,7 +84,7 @@ Let `α` be a normed lattice ordered group, then the order dual is also a
 normed lattice ordered group.
 -/
 @[priority 100] -- see Note [lower instance priority]
-instance : normed_lattice_add_comm_group (order_dual α) :=
+instance : normed_lattice_add_comm_group αᵒᵈ :=
 { add_le_add_left := begin
     intros a b h₁ c,
     rw ← order_dual.dual_le,
@@ -150,7 +150,7 @@ end
 instance normed_lattice_add_comm_group_has_continuous_sup {α : Type*}
   [normed_lattice_add_comm_group α] :
   has_continuous_sup α :=
-order_dual.has_continuous_sup (order_dual α)
+order_dual.has_continuous_sup αᵒᵈ
 
 /--
 Let `α` be a normed lattice ordered group. Then `α` is a topological lattice in the norm topology.

@@ -28,6 +28,7 @@ Provide instances other than the one from `boolean_algebra`.
 
 universe u
 
+/-- An antitone involution on a preorder -/
 class has_involution (α : Type u) [preorder α]  :=
 (invo : α → α)
 (invo_antitone' : ∀ (x y : α), x ≤ y → invo y ≤ invo x)

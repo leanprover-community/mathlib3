@@ -182,11 +182,11 @@ variables {A : Type*} [field A] [char_zero A] [is_alg_closed A]
 
 /-- There are finitely many embeddings of a number field. -/
 noncomputable instance : fintype (K →+* A) := fintype.of_equiv (K →ₐ[ℚ] A)
-ring_hom.equiv_rat_alg_hom
+ring_hom.equiv_rat_alg_hom.symm
 
 /-- The number of embeddings of a number field is its finrank. -/
 lemma card_embeddings : fintype.card (K →+* A) = finrank ℚ K :=
-by rw [fintype.of_equiv_card ring_hom.equiv_rat_alg_hom, alg_hom.card]
+by rw [fintype.of_equiv_card ring_hom.equiv_rat_alg_hom.symm, alg_hom.card]
 
 /-- Any embeddings of a number field `K` can be extended to an embedding of an extension `L`. -/
 lemma lift {L : Type*} [field L] [number_field L] [algebra K L] (φ : K →+* A) :

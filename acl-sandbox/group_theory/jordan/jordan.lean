@@ -17,7 +17,32 @@ import .index_normal
 
 A proof of theorems of Jordan regarding primitive permutation groups
 
-This mostly follows the book of Wielandt, *Finite permutation groups* -/
+This mostly follows the book of Wielandt, *Finite permutation groups*
+
+- `is_two_pretransitive_weak_jordan` and `is_two_preprimitive_weak_jordan`
+are technical lemmas that prove 2-pretransitivity / 2-preprimitivity
+for some group actions (Wielandt, 13.1)
+
+- `is_multiply_preprimitive_jordan` is a multiple preprimitivity criterion of Jordan (1871)
+for a preprimitive action: the hypothesis is the preprimitivity
+of the sub_mul_action of `fixing_subgroup s` (Wielandt, 13.2)
+
+- `jordan_swap` proves that a primitive subgroup of a permutation group that contains a
+swap is equal to the full permutation group (Wielandt, 13.3)
+
+- `jordan_three_cycle` proves that a primitive subgroup of a permutation group that contains a
+3-cycle contains the alternating group (Wielandt, 13.3)
+
+## TODO
+
+- Prove `jordan_prime_cycle` that a primitive subgroup of a permutation group that contains
+a cycle of prime order contains the alternating group (Wielandt, 13.9 )
+
+- Prove the stronger versions of the technical lemmas of Jordan. (Wielandt, 13.1')
+
+- Golf the proofs of the technical lemmas (prove them at the same time, or find
+an adequate induction lemma)
+-/
 
 
 open mul_action
@@ -329,7 +354,7 @@ end
 
 
 /-- A criterion due to Jordan for being 2-pretransitive (Wielandt, 13.1) -/
-theorem is_two_pretransitive_weak {n : ℕ} :
+theorem is_two_pretransitive_weak_jordan {n : ℕ} :
   ∀ {α : Type*} [fintype α]
     {G : Type*} [group G] [by exactI mul_action G α],
   by exactI ∀ (hG : is_preprimitive G α)
@@ -428,7 +453,7 @@ begin
       rw ← nat.succ_lt_succ_iff, rw ← hm, rw ← hsn,
       apply set.card_lt_card,
       split,
-      rw set.le_eq_subset, apply set.inter_subset_left,
+      apply set.inter_subset_left,
       intro hst, apply hgb, apply set.inter_subset_right s,
       apply hst, exact hb,
 
@@ -497,15 +522,14 @@ begin
         apply and.intro rfl,
         apply set.card_lt_card,
         split,
-        rw set.le_eq_subset, apply set.inter_subset_left,
+        apply set.inter_subset_left,
         intro hst,
         rw set.mem_compl_iff at hb,
         simp only [set.smul_compl_set, set.mem_compl_eq, set.not_not_mem] at hgb,
         suffices : s = g • s,
         { apply hb, rw this, exact hgb },
         apply set.eq_of_subset_of_card_le,
-        { rw [set.le_eq_subset] at hst,
-          refine subset_trans hst _,
+        { refine subset_trans hst _,
           apply set.inter_subset_right },
         { apply le_of_eq,
           apply smul_set_card_eq }  },
@@ -663,7 +687,7 @@ theorem is_two_preprimitive_weak_jordan {n : ℕ} :
       rw ← nat.succ_lt_succ_iff, rw ← hm, rw ← hsn,
       apply set.card_lt_card,
       split,
-      rw set.le_eq_subset, apply set.inter_subset_left,
+      apply set.inter_subset_left,
       intro hst, apply hgb, apply set.inter_subset_right s,
       apply hst, exact hb,
 
@@ -728,15 +752,14 @@ theorem is_two_preprimitive_weak_jordan {n : ℕ} :
         apply and.intro rfl,
         apply set.card_lt_card,
         split,
-        rw set.le_eq_subset, apply set.inter_subset_left,
+        apply set.inter_subset_left,
         intro hst,
         rw set.mem_compl_iff at hb,
         simp only [set.smul_compl_set, set.mem_compl_eq, set.not_not_mem] at hgb,
         suffices : s = g • s,
         { apply hb, rw this, exact hgb },
         apply set.eq_of_subset_of_card_le,
-        { rw [set.le_eq_subset] at hst,
-          refine subset_trans hst _,
+        { refine subset_trans hst _,
           apply set.inter_subset_right },
         { apply le_of_eq,
           apply smul_set_card_eq }  },
@@ -1147,6 +1170,12 @@ begin
   apply is_pretransitive_of_cycle hg,
   exact equiv.perm.is_three_cycle.is_cycle h3g
 end
+
+
+theorem jordan_prime_cycle (hG : is_preprimitive G α)
+  {p : nat} (hp : prime p) (hp' : p + 3 ≤ fintype.card α)
+  {g : equiv.perm α} (hgc : equiv.perm.is_cycle g) (hgp : fintype.card g.support = p)
+  (hg : g ∈ G) : alternating_group α ≤ G := sorry
 
 end Jordan'
 

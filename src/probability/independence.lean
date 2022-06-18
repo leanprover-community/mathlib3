@@ -344,7 +344,52 @@ end indep_set
 
 section indep_fun
 
-variables {α β β' γ γ' : Type*} {mα : measurable_space α} {μ : measure α}
+/-! ### Independence of random variables
+
+-/
+
+variables {α β β' γ γ' : Type*} {mα : measurable_space α} {μ : measure α} {f : α → β} {g : α → β'}
+
+lemma indep_fun_iff_measure_inter_preimage_eq_mul
+  {mβ : measurable_space β} {mβ' : measurable_space β'} [is_probability_measure μ]
+  (hf : measurable f) (hg : measurable g) :
+  indep_fun f g μ
+    ↔ ∀ s t, measurable_set s → measurable_set t
+      → μ (f ⁻¹' s ∩ g ⁻¹' t) = μ (f ⁻¹' s) * μ (g ⁻¹' t) :=
+begin
+  let Sf := {t1 | ∃ s, measurable_set s ∧ f ⁻¹' s = t1},
+  let Sg := {t1 | ∃ t, measurable_set t ∧ g ⁻¹' t = t1},
+  suffices : indep_fun f g μ ↔ indep_sets Sf Sg μ,
+  { refine this.trans _,
+    simp_rw [indep_sets, Sf, Sg, set.mem_set_of_eq],
+    split; intro h,
+    { exact λ s t hs ht, h (f ⁻¹' s) (g ⁻¹' t) ⟨s, hs, rfl⟩ ⟨t, ht, rfl⟩, },
+    { rintros t1 t2 ⟨s, hs, rfl⟩ ⟨t, ht, rfl⟩,
+      exact h s t hs ht, }, },
+  have hSf_pi : is_pi_system Sf,
+  { rintros s ⟨s', hs', rfl⟩ t ⟨t', ht', rfl⟩ hst_nonempty,
+    exact ⟨s' ∩ t', hs'.inter ht', rfl⟩, },
+  have hSg_pi : is_pi_system Sg,
+  { rintros s ⟨s', hs', rfl⟩ t ⟨t', ht', rfl⟩ hst_nonempty,
+    exact ⟨s' ∩ t', hs'.inter ht', rfl⟩, },
+  have hSf_gen : generate_from Sf = mβ.comap f := (mβ.comap_eq_generate_from f).symm,
+  have hSg_gen : generate_from Sg = mβ'.comap g := (mβ'.comap_eq_generate_from g).symm,
+  rw indep_fun,
+  split; intro h,
+  { rw [← hSf_gen, ← hSg_gen] at h,
+    exact indep.indep_sets h, },
+  { exact indep_sets.indep hf.comap_le hg.comap_le hSf_pi hSg_pi hSf_gen.symm hSg_gen.symm h, },
+end
+
+lemma indep_fun_iff_indep_set_preimage {mβ : measurable_space β} {mβ' : measurable_space β'}
+  [is_probability_measure μ] (hf : measurable f) (hg : measurable g) :
+  indep_fun f g μ ↔ ∀ s t, measurable_set s → measurable_set t → indep_set (f ⁻¹' s) (g ⁻¹' t) μ :=
+begin
+  refine (indep_fun_iff_measure_inter_preimage_eq_mul hf hg).trans _,
+  split; intros h s t hs ht; specialize h s t hs ht,
+  { rwa indep_set_iff_measure_inter_eq_mul (hf hs) (hg ht) μ, },
+  { rwa ← indep_set_iff_measure_inter_eq_mul (hf hs) (hg ht) μ, },
+end
 
 lemma indep_fun.ae_eq {mβ : measurable_space β} {f g f' g' : α → β}
   (hfg : indep_fun f g μ) (hf : f =ᵐ[μ] f') (hg : g =ᵐ[μ] g') :
@@ -358,8 +403,7 @@ begin
 end
 
 lemma indep_fun.comp {mβ : measurable_space β} {mβ' : measurable_space β'}
-  {mγ : measurable_space γ} {mγ' : measurable_space γ'}
-  {f : α → β} {g : α → β'} {φ : β → γ} {ψ : β' → γ'}
+  {mγ : measurable_space γ} {mγ' : measurable_space γ'} {φ : β → γ} {ψ : β' → γ'}
   (hfg : indep_fun f g μ) (hφ : measurable φ) (hψ : measurable ψ) :
   indep_fun (φ ∘ f) (ψ ∘ g) μ :=
 begin

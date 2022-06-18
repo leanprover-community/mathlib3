@@ -313,6 +313,10 @@ assume t (ht : generate_measurable s t), ht.rec_on h
   (assume s _ hs, measurable_set_compl m s hs)
   (assume f _ hf, measurable_set_Union m f hf)
 
+lemma generate_from_measurable_set' (m : measurable_space α) :
+  generate_from m.measurable_set' = m :=
+le_antisymm (generate_from_le (λ t ht, ht)) (λ s hs, measurable_set_generate_from hs)
+
 lemma generate_from_le_iff {s : set (set α)} (m : measurable_space α) :
   generate_from s ≤ m ↔ s ⊆ {t | measurable_set[m] t} :=
 iff.intro

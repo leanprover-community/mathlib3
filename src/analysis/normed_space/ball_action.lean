@@ -8,6 +8,12 @@ import analysis.normed_space.basic
 
 /-!
 # Multiplicative actions of/on balls and spheres
+
+Let `E` be a normed vector space over a normed field `𝕜`. In this file we define the following
+multiplicative actions.
+
+- The closed unit ball in `𝕜` acts on open balls and closed balls in `E`.
+- The unit sphere in `𝕜` acts on open balls, closed balls, and spheres in `E`.
 -/
 open metric set
 variables {𝕜 E : Type*} [normed_field 𝕜] [semi_normed_group E] [normed_space 𝕜 E] {r : ℝ}

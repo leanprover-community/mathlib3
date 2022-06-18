@@ -11,7 +11,8 @@ import analysis.normed.group.ball_sphere
 
 In this file we define algebraic structures (`semigroup`, `comm_semigroup`, `monoid`, `comm_monoid`,
 `group`, `comm_group`) on `metric.ball (0 : 𝕜) 1`, `metric.closed_ball (0 : 𝕜) 1`, and
-`metric.sphere (0 : 𝕜) 1`.
+`metric.sphere (0 : 𝕜) 1`. In each case we use the weakest possible typeclass assumption on `𝕜`,
+from `non_unital_semi_normed_ring` to `normed_field`.
 -/
 
 open set metric

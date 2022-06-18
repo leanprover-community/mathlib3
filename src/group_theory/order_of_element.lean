@@ -307,8 +307,9 @@ end
 
 @[to_additive exists_add_order_of_eq_prime_pow_iff]
 lemma exists_order_of_eq_prime_pow_iff :
-  (∃ k : ℕ, order_of x = p ^ k) ↔ (∃ m : ℕ, x ^ (p : ℕ) ^ m = 1) := ⟨
-  λ ⟨k, hk⟩, ⟨k, by rw [←hk, pow_order_of_eq_one]⟩, λ ⟨_, hm⟩, begin
+  (∃ k : ℕ, order_of x = p ^ k) ↔ (∃ m : ℕ, x ^ (p : ℕ) ^ m = 1) :=
+⟨λ ⟨k, hk⟩, ⟨k, by rw [←hk, pow_order_of_eq_one]⟩, λ ⟨_, hm⟩,
+begin
   obtain ⟨k, _, hk⟩ := (nat.dvd_prime_pow hp.elim).mp (order_of_dvd_of_pow_eq_one hm),
   exact ⟨k, hk⟩,
 end⟩

@@ -195,7 +195,8 @@ include hp
 
 /-- The `p`-primary component is the submonoid of elements with order prime-power of `p`. -/
 @[to_additive
-  "The `p`-primary component is the submonoid of elements with additive order prime-power of `p`."]
+  "The `p`-primary component is the submonoid of elements with additive order prime-power of `p`.",
+  simps]
 def primary_component : submonoid G :=
 { carrier := {g | ∃ n : ℕ, order_of g = p ^ n},
   one_mem' := ⟨0, by rw [pow_zero, order_of_one]⟩,
@@ -212,14 +213,14 @@ variables {G} {p}
 @[to_additive "Elements of the `p`-primary component have additive order `p^n` for some `n`"]
 lemma primary_component.exists_order_of_eq_prime_pow (g : comm_monoid.primary_component G p) :
   ∃ n : ℕ, order_of g = p ^ n :=
-by simpa only [comm_monoid.primary_component, subtype.val_eq_coe,
-               set.mem_set_of_eq, submonoid.mem_mk, order_of_submonoid] using g.property
+by simpa [primary_component] using g.property
 
 /-- The `p`- and `q`-primary components are disjoint for `p ≠ q`. -/
 @[to_additive "The `p`- and `q`-primary components are disjoint for `p ≠ q`."]
 lemma primary_component.disjoint {p' : ℕ} [hp' : fact p'.prime] (hne : p ≠ p') :
   disjoint (comm_monoid.primary_component G p) (comm_monoid.primary_component G p') :=
-submonoid.disjoint_def.mpr $ λ g hgp hgp', begin
+submonoid.disjoint_def.mpr $ λ g hgp hgp',
+begin
   obtain ⟨n, hn⟩ := primary_component.exists_order_of_eq_prime_pow ⟨g, set_like.mem_coe.mp hgp⟩,
   obtain ⟨n', hn'⟩ := primary_component.exists_order_of_eq_prime_pow ⟨g, set_like.mem_coe.mp hgp'⟩,
   have := mt (eq_of_prime_pow_eq (nat.prime_iff.mp hp.out) (nat.prime_iff.mp hp'.out)),
@@ -276,7 +277,8 @@ include hp
 
 /-- The `p`-primary component is the subgroup of elements with order prime-power of `p`. -/
 @[to_additive
-  "The `p`-primary component is the subgroup of elements with additive order prime-power of `p`."]
+  "The `p`-primary component is the subgroup of elements with additive order prime-power of `p`.",
+  simps]
 def primary_component : subgroup G :=
 { comm_monoid.primary_component G p with inv_mem' := λ g ⟨n, hn⟩, ⟨n, (order_of_inv g).trans hn⟩ }
 

@@ -122,14 +122,14 @@ meta def list_head_op (op : pexpr) : bool → expr → tactic (list expr)
 
 /-
 meta def list_head_op (op : pexpr) : bool → expr → tactic (list expr)
-| bo (expr.app F b) := do
+| bo F'@(expr.app F b) := do
   op ← to_expr op tt ff,
 --  cond ← succeeds $ unify F.get_app_fn op.get_app_fn,
 --  if cond then do
   if F.get_app_fn.const_name = op.get_app_fn.const_name then do
     Fargs ← list_explicit_args F,
     ac ← (Fargs ++ [b]).mmap $ list_head_op ff,
-    if bo then return $ [F.mk_app [b]] ++ ac.join
+    if bo then return $ [F'] ++ ac.join
     else return ac.join
   else do
     Fc ← list_head_op tt F, bc ← list_head_op tt b,

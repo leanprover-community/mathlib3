@@ -364,6 +364,13 @@ meta def lambdas : list expr → expr → tactic expr
 `list_binary_operands f x` breaks `x` apart into successions of applications of `f` until this can
 no longer be done and returns a list of the leaves of the process.
 
+This matches `f` up to semireducible unification. In particular, it will match applications of the
+same polymorphic function with different type-class arguments.
+
+E.g., if `i1` and `i2` are both instances of `has_add T` and
+`e := has_add.add T i1 x (has_add.add T i2 y z)`, then ``list_binary_operands `((+) : T → T → T) e``
+returns `[x, y, z]`.
+
 For example:
 ```lean
 #eval list_binary_operands `(@has_add.add ℕ _) `(3 + (4 * 5 + 6) + 7 / 3) >>= tactic.trace

@@ -287,7 +287,7 @@ lemma is_pi_system_pi_Union_Inter {α ι} (π : ι → set (set α))
   (hpi : ∀ x, is_pi_system (π x)) (S : set (finset ι)) (h_sup : sup_closed S) :
   is_pi_system (pi_Union_Inter π S) :=
 begin
-  rintros t1 t2 ⟨p1, hp1S, f1, hf1m, ht1_eq⟩ ⟨p2, hp2S, f2, hf2m, ht2_eq⟩ h_nonempty,
+  rintros t1 ⟨p1, hp1S, f1, hf1m, ht1_eq⟩ t2 ⟨p2, hp2S, f2, hf2m, ht2_eq⟩ h_nonempty,
   simp_rw [pi_Union_Inter, set.mem_set_of_eq],
   let g := λ n, (ite (n ∈ p1) (f1 n) set.univ) ∩ (ite (n ∈ p2) (f2 n) set.univ),
   use [p1 ∪ p2, h_sup p1 p2 hp1S hp2S, g],
@@ -305,7 +305,7 @@ begin
   refine ⟨λ n hn, _, h_inter_eq⟩,
   simp_rw g,
   split_ifs with hn1 hn2,
-  { refine hpi n (f1 n) (f2 n) (hf1m n hn1) (hf2m n hn2) (set.ne_empty_iff_nonempty.mp (λ h, _)),
+  { refine hpi n (f1 n) (hf1m n hn1) (f2 n) (hf2m n hn2) (set.ne_empty_iff_nonempty.mp (λ h, _)),
     rw h_inter_eq at h_nonempty,
     suffices h_empty : (⋂ i ∈ p1 ∪ p2, g i) = ∅,
       from (set.not_nonempty_iff_eq_empty.mpr h_empty) h_nonempty,

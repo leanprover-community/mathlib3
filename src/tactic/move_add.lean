@@ -79,9 +79,53 @@ but with the boolean set to `ff`.  This prevents partial operands of a large exp
 appear.  Once `list_head_op` finds a term whose head symbol is not `op`,
 it reverts the boolean to `tt`, so that the recursion can isolate further sums later in the
 expression. -/
+
+meta def list_head_op (op : pexpr) : bool → expr → tactic (list expr)
+/-
+| bo x@(expr.app (expr.app g a) b) := do
+  as ← list_binary_operands a,
+  bs ← list_binary_operands b,
+  pure (as ++ bs)
+| a                      := pure [a]
+-/
+| bo (expr.app F b) := match F with
+  | (expr.app g a) := do
+    op ← to_expr op tt ff,
+    some _ ← try_core (unify op g) | (do Fc ← list_head_op tt F, bc ← list_head_op tt b,
+                                      return $ Fc ++ bc),
+
+--  op ← to_expr op tt ff,
+--  cond ← succeeds $ unify F.get_app_fn op.get_app_fn,
+--  if cond then do
+--  if F.get_app_fn.const_name = op.get_app_fn.const_name then do
+    Fargs ← list_explicit_args F,
+    ac ← (Fargs ++ [b]).mmap $ list_head_op ff,
+    if bo then return $ [F.mk_app [b]] ++ ac.join
+    else return ac.join
+  | _ := do Fc ← list_head_op tt F, bc ← list_head_op tt b,
+    return $ Fc ++ bc
+  end
+
+--  else do
+| bo (expr.lam _ _ e f) := do
+  ec ← list_head_op tt e, fc ← list_head_op tt f,
+  return $ ec ++ fc
+| bo (expr.pi  _ _ e f) := do
+  ec ← list_head_op tt e, fc ← list_head_op tt f,
+  return $ ec ++ fc
+| bo (expr.mvar  _ _ e) := do
+  list_head_op tt e >>= return
+| bo (expr.elet _ e f g) := do
+  ec ← list_head_op tt e, fc ← list_head_op tt f, gc ← list_head_op tt g,
+  return $ ec ++ fc ++ gc
+| bo e := return []
+
+/-
 meta def list_head_op (op : pexpr) : bool → expr → tactic (list expr)
 | bo (expr.app F b) := do
   op ← to_expr op tt ff,
+--  cond ← succeeds $ unify F.get_app_fn op.get_app_fn,
+--  if cond then do
   if F.get_app_fn.const_name = op.get_app_fn.const_name then do
     Fargs ← list_explicit_args F,
     ac ← (Fargs ++ [b]).mmap $ list_head_op ff,
@@ -102,6 +146,7 @@ meta def list_head_op (op : pexpr) : bool → expr → tactic (list expr)
   ec ← list_head_op tt e, fc ← list_head_op tt f, gc ← list_head_op tt g,
   return $ ec ++ fc ++ gc
 | bo e := return []
+-/
 
 /--  Given a list `un` of `α`s and a list `bo` of `bool`s, return the sublist of `un`
 consisting of the entries of `un` whose corresponding entry in `bo` is `tt`.

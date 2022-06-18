@@ -82,13 +82,13 @@ variables {R : Type*} [semiring R] (a : polynomial R)
 * `dg` should be dealt with by `compute_degree_le`.
 -/
 lemma nat_degree_add_left_succ (n : ℕ) (f g : polynomial R)
-  (df : f.nat_degree = n + 1) (dg : g.nat_degree ≤ n) :
-  (f + g).nat_degree = n + 1 :=
+  (df : f.nat_degree = n.succ) (dg : g.nat_degree ≤ n) :
+  (f + g).nat_degree = n.succ :=
 by rwa nat_degree_add_eq_left_of_nat_degree_lt (dg.trans_lt (nat.lt_of_succ_le df.ge))
 
 lemma nat_degree_add_right_succ (n : ℕ) (f g : polynomial R)
-  (df : f.nat_degree ≤ n) (dg : g.nat_degree = n + 1) :
-  (f + g).nat_degree = n + 1 :=
+  (df : f.nat_degree ≤ n) (dg : g.nat_degree = n.succ) :
+  (f + g).nat_degree = n.succ :=
 by rwa nat_degree_add_eq_right_of_nat_degree_lt (df.trans_lt (nat.lt_of_succ_le dg.ge))
 
 lemma nat_degree_sub_le_iff_left {R : Type*} [ring R] {n : ℕ} (p q : polynomial R)
@@ -242,6 +242,22 @@ meta def guess_degree : expr → tactic expr
                               pe ← to_expr ``(@polynomial.nat_degree %%R %%inst) tt ff,
                               pure $ expr.mk_app pe [e]
 
+meta def guess_degree_to_nat : expr → ℕ
+| `(has_zero.zero)         := 0
+| `(has_one.one)           := 0
+| `(- %%f)                 := guess_degree_to_nat f
+| (app `(⇑polynomial.C) x) := 0
+| `(polynomial.X)          := 1
+| `(bit0 %%a)              := guess_degree_to_nat a
+| `(bit1 %%a)              := guess_degree_to_nat a
+| `(%%a + %%b)             := max (guess_degree_to_nat a) (guess_degree_to_nat b)
+| `(%%a - %%b)             := max (guess_degree_to_nat a) (guess_degree_to_nat b)
+| `(%%a * %%b)             := (guess_degree_to_nat a) + (guess_degree_to_nat b)
+| `(%%a ^ %%b)             := let bn := b.to_nat.get_or_else 0 in
+                              (guess_degree_to_nat a) * bn
+| (app `(⇑(polynomial.monomial %%n)) x) := n.to_nat.get_or_else 0
+| e                        := 0
+
 /--  `eval_guessing n e` takes a natural number `n` and an expression `e` and gives an
 estimate for the evaluation of `eval_expr ℕ e`.  It is tailor made for estimating degrees of
 polynomials.
@@ -324,9 +340,11 @@ meta def compute_step (deg : ℕ) : expr → tactic unit
 | `(%%l + %%r) := do [dle, dre] ← [l, r].mmap guess_degree,
   [dl, dr] ← [dle, dre].mmap $ eval_guessing 0,
   if dr < deg then do
+    --`[ rw polynomial.nat_degree_add_left_succ ]
     refine ``(polynomial.nat_degree_add_left_succ _ %%l %%r _ _)
   else
   if dl < deg then do
+    --`[ rw polynomial.nat_degree_add_right_succ ]
     refine ``(polynomial.nat_degree_add_right_succ _ %%l %%r _ _)
   else
     fail "sorry, there are two or more terms of highest expected degree"
@@ -467,15 +485,7 @@ end compute_degree
 --#check to_nat
 namespace interactive
 open compute_degree
-#check polynomial.coeff_mul_X_pow'
-#check polynomial.coeff_monomial
-#check polynomial.coeff_bit0_mul
-#check polynomial.coeff_bit1_mul
-#check polynomial.coeff_neg
-#check zero_add
-#check add_zero
-#check polynomial.coeff_neg
-
+/-
 #check polynomial.coeff_mul_X_pow'
 #check polynomial.coeff_monomial
 #check polynomial.coeff_bit0_mul
@@ -491,9 +501,10 @@ open compute_degree
 #check add_zero
 #check one_ne_zero
 #check not_false_iff
+-/
 
 
-meta def compute_degree : tactic unit :=
+meta def compute_degree_1 : tactic unit :=
 do try $ ( refine ``((polynomial.degree_eq_iff_nat_degree_eq_of_pos _).mpr _) >>
     rotate ),
    `(@polynomial.nat_degree %%R %%inst %%pol = %%deg) ← target,
@@ -540,12 +551,12 @@ do try $ ( refine ``((polynomial.degree_eq_iff_nat_degree_eq_of_pos _).mpr _) >>
     ]],
     try $ any_goals' assumption
 
-meta def compute_degree_1 : tactic unit :=
+meta def compute_degree : tactic unit :=
 do try $ ( refine ``((polynomial.degree_eq_iff_nat_degree_eq_of_pos _).mpr _) >>
     rotate ),
   single_term_suggestions,
   t ← target,
-  `(polynomial.nat_degree %%pol = %%degv) ← target |
+  `(@polynomial.nat_degree %%R %%inst %%pol = %%degv) ← target |
   fail "Goal is not of the form\n`f.nat_degree = d` or `f.degree = d`",
   gde ← guess_degree pol,
   deg ← eval_guessing 0 gde,
@@ -553,14 +564,28 @@ do try $ ( refine ``((polynomial.degree_eq_iff_nat_degree_eq_of_pos _).mpr _) >>
   guard (deg = degvn) <|>
   ( do ppe ← pp deg, ppg ← pp degvn,
     fail sformat!("'{ppe}' is the expected degree\n" ++ "'{ppg}' is the given degree\n") ),
-  repeat $
+  ad ← to_expr ``(@has_add.add (@polynomial %%R %%inst) (infer_instance : has_add (@polynomial %%R %%inst) )) tt ff,
+--  ad ← to_expr ``(has_add.add : (@polynomial %%R %%inst) → (@polynomial %%R %%inst) → (@polynomial %%R %%inst)) tt ff,
+  summ ← list_binary_operands ad pol,
+  --let top_degs := prod.mk tt <$> (summ.filter (λ t, guess_degree_to_nat t = deg)).map to_pexpr,
+  --let iters := summ.length - top_degs.length,
+  let low_degs := (prod.mk ff <$> (summ.filter (λ t, guess_degree_to_nat t < deg)).map to_pexpr),
+  let iters := low_degs.length,
+  trace iters,
+  move_op.with_errors (to_pexpr ad) low_degs none,target >>= trace,
+  iterate_at_most iters $
   ( do `(polynomial.nat_degree %%po = _) ← target,
     compute_step deg po ),
+  any_goals' $ try $
+    (do `(polynomial.nat_degree %%po = _) ← target, single_term_resolve po),
   check_target_changes t,
   any_goals' $ try $ compute_degree_le_core ff,
-  `(polynomial.nat_degree %%pol = %%degv) ← target,
-  any_goals' $ try $ single_term_resolve pol,
-  try $ any_goals' norm_assum
+--  `(polynomial.nat_degree %%pol = %%degv) ← target,
+  skip
+  --gs ← get_goals,
+  --gt ← gs.mmap infer_type,
+  --gt.mmap expr.instantiate_univ_params,
+--  try $ any_goals' norm_assum
 
 /--  `compute_degree.with_lead lead` assumes that `lead` is an expression for the highest degree
 term of a polynomial and proceeds to try to close a goal of the form

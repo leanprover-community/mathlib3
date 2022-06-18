@@ -76,14 +76,13 @@ begin
   refl,
 end }
 
-/-
- -/lemma of_stabilizer_def (a : α) :
+lemma of_stabilizer.def (a : α) :
   (sub_mul_action.of_stabilizer M a).carrier = { a }ᶜ := rfl
 
-lemma of_stabilizer_mem_iff (a : α) {x : α} :
+lemma of_stabilizer.mem_iff (a : α) {x : α} :
   x ∈ sub_mul_action.of_stabilizer M a ↔ x ≠ a := iff.rfl
 
-lemma of_stabilizer_neq (a : α) {x : ↥(sub_mul_action.of_stabilizer M a)} :
+lemma of_stabilizer.neq (a : α) {x : ↥(sub_mul_action.of_stabilizer M a)} :
   ↑x ≠ a := x.prop
 
 instance of_stabilizer_lift (a : α) :
@@ -104,23 +103,22 @@ begin
   rw (mem_fixing_subgroup_iff M).mp (set_like.coe_mem c⁻¹) (c • x) hcx,
   exact hcx,
 end }
-/-
-lemma of_fixing_subgroup_def {s : set α} :
+
+lemma of_fixing_subgroup.def {s : set α} :
   (sub_mul_action.of_fixing_subgroup M s).carrier = sᶜ := rfl
 
 lemma of_fixing_subgroup.mem_iff {s : set α} {x : α} :
   x ∈ sub_mul_action.of_fixing_subgroup M s ↔ x ∉ s := iff.rfl
 
-lemma sub_mul_action_of_fixing_subgroup_not_mem {s : set α}
+lemma sub_mul_action_of_fixing_subgroup.not_mem {s : set α}
   (x : sub_mul_action.of_fixing_subgroup M s) :
   ↑x ∉ s := x.prop
- -/
+
 end complements
 
 end sub_mul_action
 
 section fixing_subgroup
-
 
 variables (M : Type*) [group M] {α : Type*} [mul_action M α]
 
@@ -180,13 +178,334 @@ to_fun := λ x, ↑x,
 map_smul' := λ g x, rfl }
  -/
 
-def sub_mul_action_of_fixing_subgroup_empty_bihom :
+variable (α)
+def sub_mul_action.of_fixing_subgroup_empty_map :
   let φ := (fixing_subgroup M (∅ : set α)).subtype in
   sub_mul_action.of_fixing_subgroup M (∅ : set α) →ₑ[φ] α := {
   to_fun := λ x, x,
   map_smul' := λ g x, rfl }
 
+lemma sub_mul_action.of_fixing_subgroup_empty_map_bijective :
+  function.bijective (sub_mul_action.of_fixing_subgroup_empty_map M α) :=
+begin
+  split,
+  { rintros ⟨x,hx⟩ ⟨y, hy⟩ hxy,
+    simp only [subtype.mk_eq_mk],
+    exact hxy },
+  { intro x, use x,
+    rw sub_mul_action.of_fixing_subgroup.mem_iff,
+    exact set.not_mem_empty x,
+    refl }
+end
 
+lemma sub_mul_action.of_fixing_subgroup_empty_map_scalars_surjective :
+  function.surjective (fixing_subgroup M (∅ : set α)).subtype :=
+begin
+  intro g,
+  use g, rw mem_fixing_subgroup_iff,
+  intros x hx, exfalso, simpa using hx,
+  refl
+end
+
+variable {α}
+
+def sub_mul_action.of_fixing_subgroup_of_stabilizer.map
+  (a : α) (s : set (sub_mul_action.of_stabilizer M a)) :
+  let φ : fixing_subgroup M (insert a (coe '' s : set α)) → fixing_subgroup (stabilizer M a) s :=
+  λ m, ⟨⟨(m : M),
+    begin
+      apply (mem_fixing_subgroup_iff M).mp m.prop,
+      apply set.mem_insert
+    end ⟩, λ ⟨x, hx⟩,
+    begin
+      simp only [← set_like.coe_eq_coe],
+      refine (mem_fixing_subgroup_iff M).mp m.prop _ _,
+      apply set.mem_insert_of_mem,
+      exact ⟨x, hx, rfl⟩,
+    end ⟩
+  in sub_mul_action.of_fixing_subgroup M (insert a (coe '' s : set α)) →ₑ[φ]
+    (sub_mul_action.of_fixing_subgroup (stabilizer M a) s) := {
+to_fun := λ x, ⟨⟨(x : α), begin
+  rintro (h : (x : α) = a),
+  apply (sub_mul_action.of_fixing_subgroup.mem_iff M).mp x.prop,
+  rw h, apply set.mem_insert,
+  end⟩,
+  λ h, (sub_mul_action.of_fixing_subgroup.mem_iff M).mp x.prop $
+    set.mem_insert_of_mem _ ⟨⟨(x : α), _⟩, ⟨h, rfl⟩⟩⟩,
+map_smul' := λ m x, rfl
+}
+
+lemma sub_mul_action.of_fixing_subgroup_of_stabilizer.map_bijective
+  (a : α) (s : set (sub_mul_action.of_stabilizer M a)) :
+  function.bijective (sub_mul_action.of_fixing_subgroup_of_stabilizer.map M a s) :=
+begin
+  split,
+  { rintros ⟨x, hx⟩ ⟨y, hy⟩ h,
+    simp only [subtype.mk_eq_mk],
+    suffices hx : x = ↑((sub_mul_action.of_fixing_subgroup_of_stabilizer.map M a s) ⟨x, hx⟩),
+    suffices hy : y = ↑((sub_mul_action.of_fixing_subgroup_of_stabilizer.map M a s) ⟨y, hy⟩),
+    rw hx, rw hy, rw h,
+    refl, refl },
+  { rintro ⟨⟨x, hx1⟩, hx2⟩,
+    refine ⟨⟨x, _⟩, rfl⟩,
+    -- ⊢ x ∈ sub_mul_action_of_fixing_subgroup M (insert a (coe '' s))
+    rw sub_mul_action.of_fixing_subgroup.mem_iff,
+    intro h, cases set.mem_insert_iff.mp h,
+    { rw sub_mul_action.of_stabilizer.mem_iff at hx1, exact hx1 h_1 },
+    { rw sub_mul_action.of_fixing_subgroup.mem_iff at hx2,
+      apply hx2,
+      obtain ⟨x1, hx1', rfl⟩ := h_1,
+      simp only [set_like.eta],
+      exact hx1' } },
+end
+
+lemma sub_mul_action.of_fixing_subgroup_of_stabilizer.scalar_map_bijective
+  (a : α) (s : set (sub_mul_action.of_stabilizer M a)) :
+  function.bijective (sub_mul_action.of_fixing_subgroup_of_stabilizer.map M a s).to_scalar_map :=
+begin
+  split,
+  { rintros ⟨m, hm⟩ ⟨n, hn⟩ hmn,
+    rw [← set_like.coe_eq_coe, ← set_like.coe_eq_coe, ← coe_coe] at hmn,
+    simp only [subtype.mk_eq_mk],
+    exact hmn },
+  { rintro ⟨⟨m, hm⟩, hm'⟩,
+    use m, swap, refl,
+    rw mem_fixing_subgroup_iff,
+    intros x hx,
+    cases set.mem_insert_iff.mp hx with hx hx,
+    { -- x = a
+      rw hx, exact mem_stabilizer_iff.mp hm },
+    { -- x ∈ coe '' s
+      obtain ⟨y, hy, rfl⟩ := (set.mem_image _ _ _).mp  hx,
+      rw mem_fixing_subgroup_iff at hm',
+      let hz := hm' y hy,
+      rw [← set_like.coe_eq_coe, sub_mul_action.coe_smul_of_tower] at hz,
+      exact hz } }
+end
+
+
+
+/-- If the fixing_subgroup of `s` is `G`, then the fixing_subgroup of `g • x` is `gGg⁻¹`. -/
+lemma fixing_subgroup_smul_eq_fixing_subgroup_map_conj (g : M) (s : set α) :
+  (fixing_subgroup M (g • s) = (fixing_subgroup M s).map (mul_aut.conj g).to_monoid_hom) :=
+begin
+  ext h,
+  split,
+  { intro hh,
+    use (mul_aut.conj g⁻¹) h,
+    simp,
+    split,
+    rintro ⟨x, hx⟩,
+    simp only [subtype.coe_mk, ← smul_smul],
+    rw inv_smul_eq_iff,
+    simpa only [subtype.coe_mk] using hh ⟨_, set.smul_mem_smul_set hx⟩,
+    group,  },
+  { rintro ⟨k, hk, rfl⟩,
+    rintro ⟨x, hx⟩,
+    simp only [mul_equiv.coe_to_monoid_hom, mul_aut.conj_apply, subtype.coe_mk, ← smul_smul],
+    rw smul_eq_iff_eq_inv_smul,
+    exact hk ⟨_, set.mem_smul_set_iff_inv_smul_mem.mp hx⟩ }
+end
+
+def sub_mul_action.of_fixing_subgroup.conj_map {s t : set α} {g : M} (hst : g • s = t) :
+  let φ : fixing_subgroup M s → fixing_subgroup M t :=
+λ ⟨m, hm⟩, ⟨(mul_aut.conj g) m,
+begin
+  rw ← hst,
+  rw fixing_subgroup_smul_eq_fixing_subgroup_map_conj ,
+  use m, apply and.intro hm, refl,
+end⟩ in sub_mul_action.of_fixing_subgroup M s →ₑ[φ] sub_mul_action.of_fixing_subgroup M t := {
+to_fun := λ ⟨x, hx⟩, ⟨g • x,
+begin
+  intro hgxt, apply hx,
+  rw ← hst at hgxt,
+  exact set.smul_mem_smul_set_iff.mp  hgxt,
+end⟩,
+map_smul' := λ ⟨m, hm⟩ ⟨x, hx⟩,
+begin
+  rw ← set_like.coe_eq_coe,
+  change g • m • x = (mul_aut.conj g m) • g • x,
+  simp only [mul_aut.conj_apply, mul_smul, inv_smul_smul],
+end }
+
+lemma sub_mul_action.of_fixing_subgroup.conj_map_bijective {s t : set α} {g : M}
+  (hst : g • s = t) :
+  function.bijective (sub_mul_action.of_fixing_subgroup.conj_map M hst) :=
+begin
+  split,
+  { rintros ⟨x, hx⟩ ⟨y, hy⟩ hxy,
+    simp only [subtype.mk_eq_mk],
+    rw ← set_like.coe_eq_coe at hxy,
+    change g • x = g • y at hxy,
+    apply (mul_action.injective g) hxy },
+  { rintro ⟨x, hx⟩,
+    have hst' : g⁻¹ • t = s, {
+      apply symm, rw ← inv_smul_eq_iff, rw inv_inv,
+      exact hst },
+    use (sub_mul_action.of_fixing_subgroup.conj_map M hst') ⟨x, hx⟩,
+    rw ← set_like.coe_eq_coe,
+    change g • g⁻¹ • x = x,
+    rw [← mul_smul, mul_inv_self, one_smul] }
+end
+
+
+def sub_mul_action.of_stabilizer.conj_map {a b : α} {g : M} (hab : g • a = b) :
+let φ : stabilizer M a → stabilizer M b := λ ⟨m, hm⟩, ⟨(mul_aut.conj g) m,
+begin
+  rw ← hab, rw stabilizer_smul_eq_stabilizer_map_conj ,
+  use m, apply and.intro hm, refl,
+  end⟩ in sub_mul_action.of_stabilizer M a →ₑ[φ] sub_mul_action.of_stabilizer M b := {
+to_fun := λ ⟨x, hx⟩, ⟨g • x,
+begin
+  intro hy,
+  simp only [set.mem_singleton_iff] at hy,
+  rw ← hab at hy,
+  apply hx,
+  simp only [set.mem_singleton_iff],
+  exact mul_action.injective g hy,
+end⟩,
+map_smul' := λ ⟨m, hm⟩ ⟨x, hx⟩,
+begin
+  rw ← set_like.coe_eq_coe,
+  simp only [sub_mul_action.coe_smul_of_tower],
+  change g • m • x = (mul_aut.conj g m) • g • x,
+  simp only [mul_aut.conj_apply, mul_smul, inv_smul_smul],
+end }
+
+def sub_mul_action.of_stabilizer.conj_map_bijective {a b : α} {g : M} (hab : g • a = b) :
+  function.bijective (sub_mul_action.of_stabilizer.conj_map M hab) :=
+begin
+  split,
+  { rintros ⟨x, hx⟩ ⟨y, hy⟩ hxy,
+    simp only [subtype.mk_eq_mk],
+    rw ← set_like.coe_eq_coe at hxy,
+    change g • x = g • y at hxy,
+    apply (mul_action.injective g) hxy },
+  { rintro ⟨x, hx⟩,
+    use (sub_mul_action.of_stabilizer.conj_map M (inv_smul_eq_iff.mpr hab.symm)) ⟨x, hx⟩,
+    rw ← set_like.coe_eq_coe,
+    change g • g⁻¹ • x = x,
+    simp only [smul_inv_smul] }
+end
+
+
+def sub_mul_action.of_fixing_subgroup_union.map (s t : set α) :
+let φ : fixing_subgroup M (s ∪ t) →
+  fixing_subgroup (fixing_subgroup M s) (coe ⁻¹' t : set (sub_mul_action.of_fixing_subgroup M s)) :=
+λ ⟨m, hm⟩, ⟨⟨m,
+begin
+  rw [fixing_subgroup_union, subgroup.mem_inf] at hm,
+  exact hm.left
+end⟩,
+begin
+  rintro ⟨⟨x, hx⟩, hx'⟩,
+  simp only [set.mem_preimage] at hx',
+  simp only [← set_like.coe_eq_coe, subtype.coe_mk, sub_mul_action.coe_smul_of_tower],
+  rw [fixing_subgroup_union, subgroup.mem_inf] at hm,
+  exact hm.right ⟨x, hx'⟩
+ end⟩ in sub_mul_action.of_fixing_subgroup M (s ∪ t) →ₑ[φ]
+    (sub_mul_action.of_fixing_subgroup (fixing_subgroup M s)
+      (coe ⁻¹' t : set(sub_mul_action.of_fixing_subgroup M s))) := {
+to_fun := λ x, ⟨⟨x, λ hx, x.prop (set.mem_union_left t hx)⟩, λ hx, x.prop
+begin
+  apply set.mem_union_right s,
+  simpa only [set.mem_preimage, subtype.coe_mk] using hx
+end⟩,
+map_smul' := λ ⟨m, hm⟩ ⟨x, hx⟩,
+begin
+  rw [← set_like.coe_eq_coe, ← set_like.coe_eq_coe, ← coe_coe],
+  refl
+end }
+
+lemma sub_mul_action.of_fixing_subgroup_union.map_def (s t : set α)
+  (x : sub_mul_action.of_fixing_subgroup M (s ∪ t)) :
+  ((sub_mul_action.of_fixing_subgroup_union.map M s t) x : α) = x := rfl
+
+lemma sub_mul_action.of_fixing_subgroup_union.map_bijective (s t : set α) :
+  function.bijective (sub_mul_action.of_fixing_subgroup_union.map M s t) :=
+begin
+  split,
+  { intros a b h,
+    simp only [coe_coe, ← set_like.coe_eq_coe],
+    simp only [← set_like.coe_eq_coe] at h,
+    exact h },
+  { rintro ⟨⟨a, ha⟩, ha'⟩, use a,
+    { intro hy, cases (set.mem_union a s t).mp hy,
+      exact ha h,
+      apply ha', simp only [set.mem_preimage, sub_mul_action.coe_mk], exact h },
+    refl }
+end
+
+/-- The equivariant map on sub_mul_action.of_fixing_subgroup given a set inclusion -/
+def sub_mul_action.of_fixing_subgroup.map_of_inclusion {s t : set α} (hst : t ⊆ s) :
+let φ : fixing_subgroup M s → fixing_subgroup M t := λ ⟨m, hm⟩, ⟨m,
+begin
+  apply fixing_subgroup_antitone,
+  exact hst, exact hm
+end⟩
+in sub_mul_action.of_fixing_subgroup M s →ₑ[φ] sub_mul_action.of_fixing_subgroup M t := {
+to_fun := λ ⟨x, hx⟩, ⟨x, λ h, hx (hst h)⟩,
+map_smul' := λ ⟨m, hm⟩ ⟨x, hx⟩, rfl }
+
+/-- The equivariant map between sub_mul_action.of_stabilizer
+  and .of_fixing_subgroup of the singleton -/
+def sub_mul_action.of_fixing_subgroup_of_singleton.map (a : α)  :
+let φ : fixing_subgroup M ({a} : set α) →  stabilizer M a :=
+  λ ⟨m, hm⟩, ⟨m, ((mem_fixing_subgroup_iff M).mp hm) a (set.mem_singleton a)⟩
+in (sub_mul_action.of_fixing_subgroup M ({a} : set α)) →ₑ[φ]
+  (sub_mul_action.of_stabilizer M a) := {
+to_fun := λ ⟨x, hx⟩, ⟨x, by simpa using hx⟩,
+map_smul' := λ ⟨m, hm⟩ ⟨x, hx⟩, rfl  }
+
+lemma sub_mul_action.of_fixing_subgroup_of_singleton.map_bijective (a : α) :
+  function.bijective (sub_mul_action.of_fixing_subgroup_of_singleton.map M a) :=
+begin
+  split,
+  { rintros ⟨x, hx⟩ ⟨y, hy⟩ hxy, exact hxy },
+  { rintro ⟨x, hx⟩, use x, refl },
+end
+
+def sub_mul_action.of_fixing_subgroup_of_eq.map {s t : set α} (hst : s = t) :
+let φ: fixing_subgroup M s → fixing_subgroup M t :=  λ ⟨m, hm⟩, ⟨m, begin rw ← hst, exact hm end⟩
+in sub_mul_action.of_fixing_subgroup M s →ₑ[φ] sub_mul_action.of_fixing_subgroup M t := {
+to_fun := λ ⟨x, hx⟩, ⟨x, begin rw ← hst, exact hx end⟩,
+map_smul' := λ ⟨m, hm⟩ ⟨x, hx⟩, rfl }
+
+
+lemma sub_mul_action.of_fixing_subgroup_of_eq.map_def {s t : set α} (hst : s = t) :
+  ∀ (x : α) (hx : x ∈ sub_mul_action.of_fixing_subgroup M s),
+  (((sub_mul_action.of_fixing_subgroup_of_eq.map M hst) ⟨x, hx⟩) : α) = x := λ x hx, rfl
+
+lemma sub_mul_action.of_fixing_subgroup_of_eq.to_scalar_map_def {s t : set α} (hst : s = t)
+  (g : M)  (hg : g ∈ fixing_subgroup M s) :
+  g = (sub_mul_action.of_fixing_subgroup_of_eq.map M hst).to_scalar_map
+    (⟨g, hg⟩ : fixing_subgroup M s) := rfl
+
+lemma sub_mul_action.of_fixing_subgroup_of_eq.map_bijective {s t : set α} (hst : s = t) :
+  function.bijective (sub_mul_action.of_fixing_subgroup_of_eq.map M hst) :=
+begin
+  split,
+  { rintros ⟨x, hx⟩ ⟨y, hy⟩ hxy,
+    rw ← set_like.coe_eq_coe at hxy ⊢,
+    simp only [set_like.coe_mk],
+    simp only [sub_mul_action.of_fixing_subgroup_of_eq.map_def M hst] at hxy,
+    rw hxy },
+  { rintro ⟨x, hxt⟩,
+    use x, rw hst, exact hxt,
+    refl },
+end
+
+lemma sub_mul_action.of_fixing_subgroup_of_eq.to_scalar_map_bijective {s t : set α} (hst : s = t) :
+  function.bijective (sub_mul_action.of_fixing_subgroup_of_eq.map M hst).to_scalar_map :=
+begin
+  split,
+  { rintros ⟨g, hg⟩ ⟨k, hk⟩ hgk,
+    rw [← set_like.coe_eq_coe] at hgk ⊢,
+    simp only [set_like.coe_mk],
+    exact hgk },
+  { rintro ⟨k, hk⟩, use k, rw hst, exact hk,
+    refl }
+end
 
 
 end equivariant_map

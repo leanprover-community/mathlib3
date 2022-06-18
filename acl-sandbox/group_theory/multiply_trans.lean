@@ -1152,7 +1152,8 @@ begin
       exact @set.subsingleton_of_subsingleton _ hα B} },
   -- Important case : 2 ≤ #α
   let hα' := id hα,
-  rw [not_le, ← cardinal.succ_le, ← cardinal.nat_succ] at hα',
+  rw not_le at hα',
+  simp only [← order.succ_le_iff, ← cardinal.nat_succ] at hα',
   change  ↑2 ≤ #α  at hα',
   apply is_preprimitive.mk,
   rw is_pretransitive_iff_is_one_pretransitive,

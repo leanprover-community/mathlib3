@@ -20,6 +20,8 @@ import .for_mathlib.extensions
 import set_theory.cardinal.finite
 import group_theory.index
 import group_theory.group_action.embedding
+import group_theory.specific_groups.alternating
+import .index_normal
 
 /-
 
@@ -153,8 +155,24 @@ action on (fin n ↪ α) is pretransitive -/
 def is_multiply_pretransitive (n : ℕ) :=
   is_pretransitive M (fin n ↪ α)
 
-variables {M α}
+/-- The equivariant map from (fin 1 ↪ α) to α -/
+def fin_one_to_map : (fin 1 ↪ α) →[M] α := {
+  to_fun := λ x, x ⟨0, nat.one_pos⟩,
+  map_smul' := λ m x, rfl }
 
+lemma fin_one_to_map_bijective : function.bijective (fin_one_to_map M α) :=
+begin
+  split,
+  { intros x y hxy,
+    ext i,
+    rw (fin.eq_zero i), exact hxy },
+  { intro a, use λ _, a,
+    { intros i j hij,
+      rw [fin.eq_zero i, fin.eq_zero j] },
+    refl }
+end
+
+variables {M α}
 
 lemma is_multiply_pretransitive_of_subgroup {n : ℕ} {K : subgroup M}
   (h : is_multiply_pretransitive K α n) : is_multiply_pretransitive M α n :=
@@ -384,20 +402,8 @@ end
 lemma is_pretransitive_iff_is_one_pretransitive :
   is_pretransitive M α ↔ is_multiply_pretransitive M α 1 :=
 begin
-  let j : (fin 1 ↪ α) →[M] α := {
-  to_fun := λ x, x ⟨0, nat.one_pos⟩,
-  map_smul' := λ m x, rfl },
-  have : function.bijective j,
-  { split,
-    { intros x y hxy,
-      ext i,
-      rw (fin.eq_zero i), exact hxy },
-    { intro a, use λ _, a,
-      { intros i j hij,
-        rw [fin.eq_zero i, fin.eq_zero j] },
-      refl } },
   unfold is_multiply_pretransitive,
-  rw is_pretransitive_of_bijective_map_iff (function.surjective_id) this,
+  rw is_pretransitive_of_bijective_map_iff (function.surjective_id) (fin_one_to_map_bijective M α)
 end
 
 /-- An n-pretransitive action is m-pretransitive for any m ≤ n -/
@@ -444,7 +450,7 @@ begin
       refine may_extend_with (x.trans (subtype _)) a _,
       rintro ⟨u, hu⟩,
       simp only [to_fun_eq_coe, trans_apply, function.embedding.coe_subtype] at hu,
-      exact (sub_mul_action.of_stabilizer_neq M a) hu },
+      exact (sub_mul_action.of_stabilizer.neq M a) hu },
 
     intros x y,
     obtain ⟨x', hx', hx'a⟩ := this x,
@@ -480,14 +486,11 @@ begin
       have zgx : ∀ (i : fin n),
         g • (x i) ∈ sub_mul_action.of_stabilizer M a,
       { rintros ⟨i, hi⟩,
-        change _ ∈  (sub_mul_action.of_stabilizer M a).carrier ,
-        rw sub_mul_action.of_stabilizer_def,
-        simp only [set.mem_compl_eq, set.mem_singleton_iff],
+        rw sub_mul_action.of_stabilizer.mem_iff,
         rw ← hgx,
-        simp only [← smul_apply],
-        intro h, apply ne_of_lt hi,
-        let h' := function.embedding.injective (g • x) h,
-        simpa using h' },
+        simp only [fin.coe_eq_cast_succ, fin.cast_succ_mk, ne.def, smul_left_cancel_iff,
+          embedding_like.apply_eq_iff_eq],
+        exact ne_of_lt hi },
       let x1 : fin n → sub_mul_action.of_stabilizer M a :=
         λ i, ⟨g • (x i), zgx i⟩,
       use x1,
@@ -554,7 +557,7 @@ begin
       refine may_extend_with (x.trans (subtype _)) a _,
       rintro ⟨u, hu⟩,
       simp only [to_fun_eq_coe, trans_apply, function.embedding.coe_subtype] at hu,
-      exact (sub_mul_action.of_stabilizer_neq M a) hu },
+      exact (sub_mul_action.of_stabilizer.neq M a) hu },
 
     intros x y,
     obtain ⟨x', hx', hx'a⟩ := this x,
@@ -591,14 +594,11 @@ begin
       have zgx : ∀ (i : fin n),
         g • (x i) ∈ sub_mul_action.of_stabilizer M a,
       { rintros ⟨i, hi⟩,
-        change _ ∈  (sub_mul_action.of_stabilizer M a).carrier ,
-        rw sub_mul_action.of_stabilizer_def,
-        simp only [set.mem_compl_eq, set.mem_singleton_iff],
+        rw sub_mul_action.of_stabilizer.mem_iff,
         rw ← hgx,
-        simp only [← smul_apply],
-        intro h, apply ne_of_lt hi,
-        let h' := function.embedding.injective (g • x) h,
-        simpa using h' },
+        simp only [fin.coe_eq_cast_succ, fin.cast_succ_mk, ne.def, smul_left_cancel_iff,
+          embedding_like.apply_eq_iff_eq],
+        exact ne_of_lt hi },
       let x1 : fin n → sub_mul_action.of_stabilizer M a :=
         λ i, ⟨g • (x i), zgx i⟩,
       use x1,
@@ -638,19 +638,19 @@ end
 
 /-- The fixator of a subset of cardinal d in a k-transitive action
 acts (k-d) transitively on the remaining -/
-lemma remaining_transitivity (d : ℕ) (s : set α) [fintype s] (hs : fintype.card s = d)
+lemma remaining_transitivity (d : ℕ) (s : set α) (hs : enat.card s = d)
   (n : ℕ)
   (h : is_multiply_pretransitive M α n) :
   is_multiply_pretransitive
-    (fixing_subgroup M (s : set α))
-    (sub_mul_action.of_fixing_subgroup M (s : set α)) (n-d) :=
+    (fixing_subgroup M s)
+    (sub_mul_action.of_fixing_subgroup M s) (n-d) :=
 begin
   cases le_total d n with hdn hnd,
   { apply is_pretransitive.mk,
     intros x y,
     let h_eq := h.exists_smul_eq,
 
-    obtain ⟨z⟩ := gimme_some_equiv hs.symm,
+    obtain ⟨z⟩ := gimme_some_equiv' hs.symm,
 
     have hd' : n = (n - d) + d := (nat.sub_add_cancel hdn).symm,
 
@@ -718,7 +718,7 @@ begin
   have hat' : (coe '' t' : set α) = s.erase a,
   { simp only [subtype.image_preimage_coe, finset.coe_erase, set_like.mem_coe,
     set.inter_eq_left_iff_subset, set.diff_singleton_subset_iff],
-    simp_rw sub_mul_action.of_stabilizer_mem_iff,
+    simp_rw sub_mul_action.of_stabilizer.mem_iff,
     intros x _,
     simp only [set.mem_insert_iff],
     cases em (x = a) with hx hx,
@@ -786,7 +786,7 @@ begin
     exact hz,
 
     change fintype.card (sub_mul_action.of_stabilizer M a).carrier = _,
-    rw [sub_mul_action.of_stabilizer_def, fintype.card_compl_set, set.card_singleton] },
+    rw [sub_mul_action.of_stabilizer.def, fintype.card_compl_set, set.card_singleton] },
 
   { -- s.nonempty
     rw [← finset.card_pos, hs], exact succ_pos k },
@@ -882,7 +882,368 @@ begin
 end
 
 
+section finite
+variable  [fintype α]
+
+variable (α)
+
+/-- The permutation group on α is fintype.card α-pretransitive -/
+theorem equiv_perm_is_fully_pretransitive :
+  mul_action.is_multiply_pretransitive (equiv.perm α) α (fintype.card α):=
+begin
+  apply is_pretransitive.mk,
+  intros x y,
+  let x' := equiv.of_bijective x.to_fun _,
+  let y' := equiv.of_bijective y.to_fun _,
+  use x'.symm.trans y',
+  ext i,
+  simp only [function.embedding.smul_apply, equiv.perm.smul_def, equiv.coe_trans,
+    function.comp_app, equiv.of_bijective_apply, function.embedding.to_fun_eq_coe,
+    embedding_like.apply_eq_iff_eq],
+  exact x'.left_inv i,
+  all_goals { rw fintype.bijective_iff_injective_and_card, split },
+  any_goals { try {exact fintype.card_fin (fintype.card α) } },
+  exact embedding_like.injective y,
+  exact embedding_like.injective x,
+end
+
+variable {α}
+lemma aux_lt_iff_lt_or_eq {m n : ℕ} (hmn : m < n) : (m < n - 1) ∨ (m = n - 1) :=
+begin
+  rw nat.lt_iff_le_not_le,
+  cases dec_em (m = n - 1) with h h',
+  { exact or.intro_right _ h },
+  { apply or.intro_left, apply and.intro,
+    { exact nat.le_pred_of_lt hmn},
+    { intro h, apply h',
+      exact nat.le_antisymm (nat.le_pred_of_lt hmn) h } },
+end
+
+
+/-- A subgroup of equiv.perm α is ⊤ iff it is (fintype.card α - 1)-pretransitive -/
+theorem is_fully_minus_one_pretransitive_iff {G : subgroup (equiv.perm α)}
+  (hmt : is_multiply_pretransitive ↥G α (fintype.card α - 1)) :
+  G = ⊤ :=
+begin
+  let j : fin (fintype.card α - 1) ↪ fin (fintype.card α) :=
+    (fin.cast_le ((fintype.card α).sub_le 1)).to_embedding,
+  rw eq_top_iff, intros k _,
+  let x : fin(fintype.card α) ↪ α := (fintype.equiv_fin_of_card_eq rfl).symm.to_embedding,
+  let hmt_eq := hmt.exists_smul_eq,
+  let x' := j.trans x,
+  obtain ⟨g, hg'⟩ := hmt_eq x' (k • x'),
+  suffices : k = g, { rw this, exact set_like.coe_mem g },
+
+  have hx : ∀ (x : fin(fintype.card α) ↪ α), function.surjective x.to_fun,
+  { intro x,
+    suffices : function.bijective x.to_fun, exact this.right,
+    rw fintype.bijective_iff_injective_and_card,
+    exact ⟨embedding_like.injective x, fintype.card_fin (fintype.card α)⟩ },
+
+  have hgk' : ∀ (i : fin (fintype.card α)) (hi : i.val < fintype.card α - 1), (g • x) i = (k • x) i,
+  { intros i hi,
+    simpa using congr_fun (congr_arg coe_fn hg') ⟨i.val, hi⟩ },
+  have hgk : ∀ (i : fin (fintype.card α)), (g • x) i = (k • x) i,
+  { intro i,
+    cases aux_lt_iff_lt_or_eq i.prop with hi hi,
+    { exact hgk' i hi },
+    { obtain ⟨j, hxj : (k • x) j = (g • x) i⟩ := hx (k • x) ((g • x) i),
+      cases aux_lt_iff_lt_or_eq j.prop with hj hj,
+      { exfalso,
+        suffices : i = j,
+        { rw [← this, ← hi] at hj, refine lt_irrefl _ hj },
+        apply embedding_like.injective (g • x),
+        rw hgk' j hj, rw hxj },
+      { rw ← hxj,
+        apply congr_arg,
+        apply fin.ext,
+        rw [hi, hj] } } },
+
+  apply equiv.perm.ext, intro a,
+  obtain ⟨i, rfl⟩ := (hx x) a,
+  let zi := hgk i,
+  simp only [function.embedding.smul_apply, equiv.perm.smul_def] at zi,
+  simp only [function.embedding.to_fun_eq_coe],
+  rw ← zi,
+  refl
+end
+
+variable (α)
+/-- The alternating group on α is (fintype.card α - 2)-pretransitive -/
+theorem alternating_group_is_fully_minus_two_pretransitive :
+  mul_action.is_multiply_pretransitive (alternating_group α) α (fintype.card α - 2) :=
+begin
+  cases lt_or_ge (fintype.card α) 2 with h2 h2,
+  { rw nat.sub_eq_zero_of_le (le_of_lt h2),
+    apply is_zero_pretransitive },
+  -- fintype.card α ≥ 2
+  obtain ⟨n,hn⟩ := nat.le.dest h2,
+  have hn' : fintype.card α - 2 = n := norm_num.sub_nat_pos (fintype.card α) 2 n hn,
+  rw add_comm at hn,
+  have hn_le : n ≤ fintype.card α, { rw ← hn, exact le_self_add },
+
+  apply is_pretransitive.mk,
+  rw hn',
+  intros x y,
+
+  obtain ⟨x', hx'⟩ :=
+    may_extend hn_le (le_of_eq (enat.of_fintype α).symm) x,
+  obtain ⟨y', hy'⟩ :=
+    may_extend hn_le (le_of_eq (enat.of_fintype α).symm) y,
+  let heq := (equiv_perm_is_fully_pretransitive α).exists_smul_eq,
+  obtain ⟨g, hg⟩ := heq x' y',
+  cases int.units_eq_one_or g.sign with h h,
+  { use ⟨g, equiv.perm.mem_alternating_group.mpr h⟩,
+    ext i,
+    simp only [function.embedding.smul_apply],
+    rw [← hx', ← hy', ← hg],
+    refl },
+  { have hg'1 : n + 1 < fintype.card α,
+    { rw ← hn, exact nat.lt.base (n + 1) },
+    have hg'2 : n < fintype.card α,
+    { apply lt_trans _ hg'1, exact lt_add_one n },
+
+    let g' := equiv.swap (y'.to_fun ⟨n+1, hg'1⟩) (y'.to_fun ⟨n, hg'2⟩),
+
+    have hg' : g'.sign = -1,
+    { rw equiv.perm.is_swap.sign_eq,
+      unfold equiv.perm.is_swap,
+      use (y'.to_fun ⟨n+1, hg'1⟩), use (y'.to_fun ⟨n, hg'2⟩),
+      split,
+      { intro h,
+        let h' := function.embedding.injective y' h,
+        simp only [subtype.mk_eq_mk] at h',
+        exact nat.succ_ne_self _ h' },
+      refl },
+
+    use g' * g,
+    { rw equiv.perm.mem_alternating_group,
+      simp only [equiv.perm.sign_mul, h, hg'],
+      norm_num },
+    ext i, simp only [function.embedding.smul_apply],
+    rw [← hx', ← hy', ← hg],
+
+      simp only [function.embedding.trans_apply, rel_embedding.coe_fn_to_embedding,
+        function.embedding.smul_apply, equiv.perm.smul_def],
+
+    change (g' * g) • _ = _,
+    rw ← smul_smul,
+    simp,
+    change (equiv.swap (y'.to_fun ⟨n+1, hg'1⟩) (y'.to_fun ⟨n, hg'2⟩))  _ = _,
+
+    refine equiv.swap_apply_of_ne_of_ne _ _,
+    { rw ← hg,
+      intro h,
+      simp only [function.embedding.to_fun_eq_coe, function.embedding.smul_apply,
+        equiv.perm.smul_def, embedding_like.apply_eq_iff_eq] at h,
+      let h' := fin.veq_of_eq h,
+      simp only [fin.val_eq_coe, fin.coe_cast_le] at h',
+      let hi := i.prop,
+      rw h' at hi,
+      simpa only [add_lt_iff_neg_left, not_lt_zero'] using hi } ,
+    { rw ← hg,
+      intro h,
+      simp only [function.embedding.to_fun_eq_coe, function.embedding.smul_apply,
+        equiv.perm.smul_def, embedding_like.apply_eq_iff_eq] at h,
+      let h' := fin.veq_of_eq h,
+      simp only [fin.val_eq_coe, fin.coe_cast_le] at h',
+      let hi := i.prop,
+      rw h' at hi,
+      simpa only [lt_self_iff_false] using hi} },
+end
+/-
+
+variable {α}
+lemma aux_lt_iff_lt_or_eq {m n : ℕ} (hmn : m < n) : (m < n - 1) ∨ (m = n - 1) :=
+begin
+  rw nat.lt_iff_le_not_le,
+  cases dec_em (m = n - 1) with h h',
+  { exact or.intro_right _ h },
+  { apply or.intro_left, apply and.intro,
+    { exact nat.le_pred_of_lt hmn},
+    { intro h, apply h',
+      exact nat.le_antisymm (nat.le_pred_of_lt hmn) h } },
+end
+
+
+/-- A subgroup of equiv.perm α is ⊤ iff it is (fintype.card α - 1)-pretransitive -/
+theorem is_fully_minus_one_pretransitive_iff {G : subgroup (equiv.perm α)}
+  (hmt : is_multiply_pretransitive ↥G α (fintype.card α - 1)) :
+  G = ⊤ :=
+begin
+  let j : fin (fintype.card α - 1) ↪ fin (fintype.card α) :=
+    (fin.cast_le ((fintype.card α).sub_le 1)).to_embedding,
+  rw eq_top_iff, intros k _,
+  let x : fin(fintype.card α) ↪ α := (fintype.equiv_fin_of_card_eq rfl).symm.to_embedding,
+  let hmt_eq := hmt.exists_smul_eq,
+  let x' := j.trans x,
+  obtain ⟨g, hg'⟩ := hmt_eq x' (k • x'),
+  suffices : k = g, { rw this, exact set_like.coe_mem g },
+
+  have hx : ∀ (x : fin(fintype.card α) ↪ α), function.surjective x.to_fun,
+  { intro x,
+    suffices : function.bijective x.to_fun, exact this.right,
+    rw fintype.bijective_iff_injective_and_card,
+    exact ⟨embedding_like.injective x, fintype.card_fin (fintype.card α)⟩ },
+
+  have hgk' : ∀ (i : fin (fintype.card α)) (hi : i.val < fintype.card α - 1), (g • x) i = (k • x) i,
+  { intros i hi,
+    simpa using congr_fun (congr_arg coe_fn hg') ⟨i.val, hi⟩ },
+  have hgk : ∀ (i : fin (fintype.card α)), (g • x) i = (k • x) i,
+  { intro i,
+    cases aux_lt_iff_lt_or_eq i.prop with hi hi,
+    { exact hgk' i hi },
+    { obtain ⟨j, hxj : (k • x) j = (g • x) i⟩ := hx (k • x) ((g • x) i),
+      cases aux_lt_iff_lt_or_eq j.prop with hj hj,
+      { exfalso,
+        suffices : i = j,
+        { rw [← this, ← hi] at hj, refine lt_irrefl _ hj },
+        apply embedding_like.injective (g • x),
+        rw hgk' j hj, rw hxj },
+      { rw ← hxj,
+        apply congr_arg,
+        apply fin.ext,
+        rw [hi, hj] } } },
+
+  apply equiv.perm.ext, intro a,
+  obtain ⟨i, rfl⟩ := (hx x) a,
+  let zi := hgk i,
+  simp only [function.embedding.smul_apply, equiv.perm.smul_def] at zi,
+  simp only [function.embedding.to_fun_eq_coe],
+  rw ← zi,
+  refl
+end
+
+variable (α)
+/-- The alternating group on α is (fintype.card α - 2)-pretransitive -/
+theorem alternating_group_is_fully_minus_two_pretransitive :
+  mul_action.is_multiply_pretransitive (alternating_group α) α (fintype.card α - 2) :=
+begin
+  cases lt_or_ge (fintype.card α) 2 with h2 h2,
+  { rw nat.sub_eq_zero_of_le (le_of_lt h2),
+    apply is_zero_pretransitive },
+  -- fintype.card α ≥ 2
+  obtain ⟨n,hn⟩ := nat.le.dest h2,
+  have hn' : fintype.card α - 2 = n := norm_num.sub_nat_pos (fintype.card α) 2 n hn,
+  rw add_comm at hn,
+  have hn_le : n ≤ fintype.card α, { rw ← hn, exact le_self_add },
+
+  apply is_pretransitive.mk,
+  rw hn',
+  intros x y,
+
+  obtain ⟨x', hx'⟩ :=
+    may_extend hn_le (le_of_eq (enat.of_fintype α).symm) x,
+  obtain ⟨y', hy'⟩ :=
+    may_extend hn_le (le_of_eq (enat.of_fintype α).symm) y,
+  let heq := (equiv_perm_is_fully_pretransitive α).exists_smul_eq,
+  obtain ⟨g, hg⟩ := heq x' y',
+  cases int.units_eq_one_or g.sign with h h,
+  { use ⟨g, equiv.perm.mem_alternating_group.mpr h⟩,
+    ext i,
+    simp only [function.embedding.smul_apply],
+    rw [← hx', ← hy', ← hg],
+    refl },
+  { have hg'1 : n + 1 < fintype.card α,
+    { rw ← hn, exact nat.lt.base (n + 1) },
+    have hg'2 : n < fintype.card α,
+    { apply lt_trans _ hg'1, exact lt_add_one n },
+
+    let g' := equiv.swap (y'.to_fun ⟨n+1, hg'1⟩) (y'.to_fun ⟨n, hg'2⟩),
+
+    have hg' : g'.sign = -1,
+    { rw equiv.perm.is_swap.sign_eq,
+      unfold equiv.perm.is_swap,
+      use (y'.to_fun ⟨n+1, hg'1⟩), use (y'.to_fun ⟨n, hg'2⟩),
+      split,
+      { intro h,
+        let h' := function.embedding.injective y' h,
+        simp only [subtype.mk_eq_mk] at h',
+        exact nat.succ_ne_self _ h' },
+      refl },
+
+    use g' * g,
+    { rw equiv.perm.mem_alternating_group,
+      simp only [equiv.perm.sign_mul, h, hg'],
+      norm_num },
+    ext i, simp only [function.embedding.smul_apply],
+    rw [← hx', ← hy', ← hg],
+
+      simp only [function.embedding.trans_apply, rel_embedding.coe_fn_to_embedding,
+        function.embedding.smul_apply, equiv.perm.smul_def],
+
+    change (g' * g) • _ = _,
+    rw ← smul_smul,
+    simp,
+    change (equiv.swap (y'.to_fun ⟨n+1, hg'1⟩) (y'.to_fun ⟨n, hg'2⟩))  _ = _,
+
+    refine equiv.swap_apply_of_ne_of_ne _ _,
+    { rw ← hg,
+      intro h,
+      simp only [function.embedding.to_fun_eq_coe, function.embedding.smul_apply,
+        equiv.perm.smul_def, embedding_like.apply_eq_iff_eq] at h,
+      let h' := fin.veq_of_eq h,
+      simp only [fin.val_eq_coe, fin.coe_cast_le] at h',
+      let hi := i.prop,
+      rw h' at hi,
+      simpa only [add_lt_iff_neg_left, not_lt_zero'] using hi } ,
+    { rw ← hg,
+      intro h,
+      simp only [function.embedding.to_fun_eq_coe, function.embedding.smul_apply,
+        equiv.perm.smul_def, embedding_like.apply_eq_iff_eq] at h,
+      let h' := fin.veq_of_eq h,
+      simp only [fin.val_eq_coe, fin.coe_cast_le] at h',
+      let hi := i.prop,
+      rw h' at hi,
+      simpa only [lt_self_iff_false] using hi} },
+end
+
+ -/
+
+/-- A subgroup the equiv.perm α contains the alternating group iff
+  it is (fintype.card α - 2)-pretransitive -/
+theorem is_full_minus_two_pretransitive_iff
+  {G : subgroup (equiv.perm α)}
+  (hmt : is_multiply_pretransitive ↥G α (fintype.card α - 2)) :
+  alternating_group α ≤ G :=
+begin
+  cases nat.lt_or_ge (fintype.card α) 2 with hα1 hα,
+  { -- fintype.card α  < 2
+    rw nat.lt_succ_iff at hα1,
+    suffices : alternating_group α = ⊥, rw this, exact bot_le,
+    rw ← subgroup.card_le_one_iff_eq_bot,
+    suffices : fintype.card ↥(alternating_group α) ≤ fintype.card (equiv.perm α),
+    { apply le_trans this,
+      rw fintype.card_perm,
+      exact nat.factorial_le hα1 },
+    apply fintype.card_subtype_le },
+
+  suffices : ∃ (s : set α), fintype.card s = fintype.card α - 2,
+  obtain ⟨s, hs⟩ := this,
+  rw ← hs at hmt,
+  let hyp := index_of_fixing_subgroup_of_multiply_pretransitive G α s hmt,
+  rw [hs, (nat.sub_sub_self hα), nat.factorial_two] at hyp,
+
+  let hyp' := nat.mul_le_mul_right 2
+    (nat.le_of_dvd (begin rw fintype.card_pos_iff, use 1, end)
+      (subgroup.index_dvd_card  (fixing_subgroup G s))),
+  rw [hyp, mul_comm] at hyp',
+
+  apply large_subgroup_of_perm_contains_alternating,
+  rw fintype.card_equiv (equiv.refl _) , exact hyp',
+
+  obtain ⟨s, hs⟩ := finset.exists_smaller_set (⊤: finset α)
+    (fintype.card α - 2) (nat.sub_le _ _),
+  use s,
+  simp only [finset.coe_sort_coe, fintype.card_coe],
+  exact hs.right,
+end
+
+end finite
+
 end multiple_transitivity
+
 end mul_action
+
 
 #lint

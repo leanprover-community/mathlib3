@@ -246,7 +246,7 @@ begin
     rw [← finset.card_eq_iff_eq_univ, ← nat.card_eq_fintype_card, hH2],
     apply finset.card_doubleton,
     intro h1k, apply hk,
-    simpa [quotient_group.eq', one_inv, one_mul] using h1k },
+    simpa [quotient_group.eq', inv_one, one_mul] using h1k },
 
   intros k g hk,
   split,
@@ -255,7 +255,7 @@ begin
         rw [quot2k _ hk, set.top_eq_univ], apply set.mem_univ,
     simp only [set.mem_insert_iff, set.mem_singleton_iff] at this,
     cases this with this this,
-    { rw [eq_comm, quotient_group.eq', one_inv, one_mul] at this, exact this },
+    { rw [eq_comm, quotient_group.eq', inv_one, one_mul] at this, exact this },
     { rw [eq_comm, quotient_group.eq', ← mul_assoc, mul_left_inv, one_mul] at this,
       exfalso,
       exact hg' this } },

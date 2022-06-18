@@ -48,6 +48,27 @@ begin
   exact hα,
 end
 
+
+lemma gimme_some_equiv' {m : ℕ} (hα : ↑m = enat.card α) :
+  ∃ (x : fin m ≃ α), true :=
+begin
+  suffices : ∃ (x' : ulift (fin m) ≃ α), true,
+  { obtain ⟨x'⟩ := this, use equiv.ulift.symm.trans x' },
+  rw [exists_true_iff_nonempty, ← cardinal.eq],
+  simp only [cardinal.mk_fintype, fintype.card_ulift, fintype.card_fin, nat.cast_inj],
+  unfold enat.card at hα,
+  cases lt_or_ge (cardinal.mk α) (cardinal.aleph_0),
+  { obtain ⟨n, hn⟩ := (cardinal.lt_aleph_0.1 h),
+    simp only [hn, cardinal.to_enat_cast, enat.coe_inj] at hα,
+    rw hα,
+    exact hn.symm },
+  { exfalso,
+    rw ge_iff_le at h,
+    refine (ne_of_lt _) hα,
+    rw cardinal.to_enat_apply_of_aleph_0_le h,
+    exact enat.coe_lt_top m }
+end
+
 /-- Given an embedding and a strict nat.card inequality, get another element  -/
 lemma gimme_another {m : ℕ} (x : fin m → α) (hα : ↑m < enat.card α) :
   ∃ (a : α), a ∉ set.range x :=

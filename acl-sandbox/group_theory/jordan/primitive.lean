@@ -129,7 +129,7 @@ begin
 end
 
 lemma is_preprimitive_of_surjective_map
-  {φ : M → N} {f : α →ₑ[φ] β} (hf : function.surjective f.to_fun)
+  {φ : M → N} {f : α →ₑ[φ] β} (hf : function.surjective f)
   (h : is_preprimitive M α) : is_preprimitive N β :=
 begin
   let h.htb := h.has_trivial_blocks,
@@ -140,7 +140,6 @@ begin
     rw ← (set.image_preimage_eq B hf),
     apply is_trivial_block_of_surjective_map hf,
     apply h.htb,
-    simp only [equivariant_map.to_fun_eq_coe],
     apply is_block_preimage,
     exact hB }
 end
@@ -201,7 +200,7 @@ begin
   { rw [← set.ne_univ_iff_exists_not_mem, ← set.top_eq_univ],
     exact hNX },
   obtain ⟨a, ha⟩ := this,
-  rw ← mul_action.orbit.is_pretransitive_iff N a,
+  rw ← mul_action.orbit.is_pretransitive_iff a,
   apply or.resolve_left (hGX.has_trivial_blocks (orbit.is_block_of_normal nN a)),
   intro h,
   apply ha, simp only [mem_fixed_points], intro n,
@@ -309,6 +308,7 @@ variables {N β : Type*} [group N] [mul_action N β]
 
 open_locale classical big_operators pointwise
 
+/-- A pretransitive action on a set of prime order is preprimitive -/
 lemma is_preprimitive_of_prime [fintype α] (hGX : is_pretransitive M α)
   (hp : nat.prime (fintype.card α)) : is_preprimitive M α :=
 begin
@@ -329,7 +329,9 @@ begin
   exact set_fintype set.univ,
 end
 
-theorem is_primitive_of_large_image
+/-- The target of an equivariant map of large image is preprimitive
+is the source is -/
+theorem is_preprimitive_of_large_image
   [fintype β] (htβ : is_pretransitive N β)
   {φ : M → N} {f : α →ₑ[φ] β}
   (hM : is_preprimitive M α)
@@ -395,6 +397,42 @@ begin
   -- the types are identical, but not the proofs that they are finite
   refine le_trans _ (le_trans (set.card_le_of_subset h') _),
   all_goals { apply le_of_eq, apply fintype.card_congr', refl }
+end
+
+
+/-- Theorem of Rudio (Wieland, 1964, Th. 8.1) -/
+theorem rudio (hpGX : is_preprimitive M α)
+  (A : set α) (hfA : A.finite) (hA : A.nonempty) (hA' : A ≠ ⊤)
+  (a b : α) (h : a ≠ b):  ∃ (g : M), a ∈ g • A ∧ b ∉ g • A :=
+begin
+  let B := ⋂ (g : M) (ha : a ∈ g • A), (g • A),
+  suffices : b ∉ B,
+  { rw set.mem_Inter at this,
+    simpa only [set.mem_Inter, not_forall, exists_prop] using this,
+  },
+  suffices : B = {a},
+  { rw this, rw set.mem_singleton_iff, exact ne.symm h },
+  have ha : a ∈ B,
+  { rw set.mem_Inter, intro g, simp only [set.mem_Inter, imp_self] },
+  -- B is a block hence is a trivial block
+  cases hpGX.has_trivial_blocks (is_block.of_subset hpGX.to_is_pretransitive a A hfA) with hyp hyp,
+  { -- B.subsingleton
+    apply set.subsingleton.eq_singleton_of_mem hyp,
+    rw set.mem_Inter, intro g, simp only [set.mem_Inter, imp_self] },
+  { -- B = ⊤ : contradiction
+    change B = ⊤ at hyp,
+    exfalso, apply hA',
+    suffices : ∃ (g : M), a ∈ g • A,
+    { obtain ⟨g, hg⟩ := this,
+      have : B ≤ g • A,
+      { rw set.le_eq_subset, exact set.bInter_subset_of_mem hg },
+      rw [hyp, top_le_iff, ← eq_inv_smul_iff] at this,
+      rw [this, set.top_eq_univ, set.smul_set_univ] },
+    -- ∃ (g : M), a ∈ g • A
+    obtain ⟨x, hx⟩ := hA,
+    let htGX := hpGX.to_is_pretransitive.exists_smul_eq,
+    obtain ⟨g, hg⟩ := htGX x a,
+    use g, use x, exact ⟨hx, hg⟩ },
 end
 
 end finite

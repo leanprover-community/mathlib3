@@ -13,7 +13,7 @@ import group_theory.group_action.basic
 
 Given `mul_action G X` where `G` is a group,
 
-- `is_pretransitive_base G a` shows that `is_pretransitive G X`
+- `is_pretransitive.mk_base G a` shows that `is_pretransitive G X`
 iff every element is translated from `a`
 
 - `orbit.is_pretransitive_iff G a` shows that `is_pretransitive G X`
@@ -32,7 +32,9 @@ namespace mul_action
 open mul_action
 
 /-- An action is pretransitive iff every element is translated from a given one-/
-lemma is_pretransitive_base (a : X) :
+variable{G}
+
+lemma is_pretransitive.mk_base_iff (a : X) :
   is_pretransitive G X ↔ ∀ (x : X), ∃ (g : G), g • a = x :=
 begin
   split,
@@ -48,11 +50,23 @@ begin
     exact hy }
 end
 
+lemma is_pretransitive.mk_base (a : X) (hG : ∀ (x : X), ∃ (g : G), g • a = x) :
+  is_pretransitive G X :=
+begin
+  apply is_pretransitive.mk,
+  intros x y,
+  obtain ⟨g, hx⟩ := hG x,
+  obtain ⟨h, hy⟩ := hG y,
+  use h * g⁻¹,
+  rw ← hx, rw [smul_smul, inv_mul_cancel_right],
+  exact hy
+end
+
 /-- An action is pretransitive iff the orbit of every given element is full -/
 lemma orbit.is_pretransitive_iff (a : X) :
   orbit G a = ⊤ ↔ is_pretransitive G X :=
 begin
-  rw is_pretransitive_base G a,
+  rw is_pretransitive.mk_base_iff a,
   rw set.ext_iff ,
   apply forall_congr,
   intro x,

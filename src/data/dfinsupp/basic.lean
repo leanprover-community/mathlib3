@@ -1076,7 +1076,7 @@ by { ext, rw [add_apply, comap_domain_apply, comap_domain_apply, comap_domain_ap
   comap_domain h hh (r • f) = r • comap_domain h hh f :=
 by { ext, rw [smul_apply, comap_domain_apply, smul_apply, comap_domain_apply] }
 
-@[simp] lemma comap_domain_single [decidable_eq ι] [decidable_eq κ] [Π i, has_zero (β i)]
+@[simp] lemma comap_domain_single [decidable_eq κ] [Π i, has_zero (β i)]
   (h : κ → ι) (hh : function.injective h) (k : κ) (x : β (h k)) :
   comap_domain h hh (single (h k) x) = single k x :=
 begin
@@ -1204,6 +1204,23 @@ begin
       sigma_curry_apply, smul_apply]
 end
 
+@[simp] lemma sigma_curry_single [Π i j, has_zero (δ i j)] (ij : Σ i, α i) (x : δ ij.1 ij.2) :
+  sigma_curry (single ij x) = single ij.1 (single ij.2 x : Π₀ j, δ ij.1 j) :=
+begin
+  obtain ⟨i, j⟩ := ij,
+  ext i' j',
+  dsimp only,
+  rw sigma_curry_apply,
+  obtain rfl | hi := eq_or_ne i i',
+  { rw single_eq_same,
+    obtain rfl | hj := eq_or_ne j j',
+    { rw [single_eq_same, single_eq_same] },
+    { rw [single_eq_of_ne, single_eq_of_ne hj],
+      simpa using hj }, },
+  { rw [single_eq_of_ne, single_eq_of_ne hi, zero_apply],
+    simpa using hi },
+end
+
 /--The natural map between `Π₀ i (j : α i), δ i j` and `Π₀ (i : Σ i, α i), δ i.1 i.2`, inverse of
 `curry`.-/
 noncomputable def sigma_uncurry [Π i j, has_zero (δ i j)] (f : Π₀ i j, δ i j) :
@@ -1235,6 +1252,22 @@ by { ext ⟨i, j⟩, rw [add_apply, sigma_uncurry_apply,
   sigma_uncurry (r • f) = r • sigma_uncurry f :=
 by { ext ⟨i, j⟩, rw [smul_apply, sigma_uncurry_apply,
     sigma_uncurry_apply, @smul_apply _ _ (λ i, Π₀ j, δ i j) _ _ _, smul_apply] }
+
+@[simp] lemma sigma_uncurry_single [Π i j, has_zero (δ i j)] (i) (j : α i) (x : δ i j) :
+  sigma_uncurry (single i (single j x : Π₀ (j : α i), δ i j)) = single ⟨i, j⟩ x:=
+begin
+  ext ⟨i', j'⟩,
+  dsimp only,
+  rw sigma_uncurry_apply,
+  obtain rfl | hi := eq_or_ne i i',
+  { rw single_eq_same,
+    obtain rfl | hj := eq_or_ne j j',
+    { rw [single_eq_same, single_eq_same] },
+    { rw [single_eq_of_ne hj, single_eq_of_ne],
+      simpa using hj }, },
+  { rw [single_eq_of_ne hi, single_eq_of_ne, zero_apply],
+    simpa using hi },
+end
 
 /--The natural bijection between `Π₀ (i : Σ i, α i), δ i.1 i.2` and `Π₀ i (j : α i), δ i j`.
 

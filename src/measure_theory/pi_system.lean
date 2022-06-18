@@ -374,7 +374,7 @@ begin
   { intros i hi,
     have h_le : m i ≤ (⨆ i (hi : ∃ s ∈ S, i ∈ s), m i),
     { have hi' : ∃ s ∈ S, i ∈ s, from ⟨pt, hpt, hi⟩,
-      exact le_bsupr i hi', },
+      exact le_supr₂ i hi', },
     exact h_le (ft i) (ht_m i hi), },
   subst ht_eq,
   exact @finset.measurable_set_bInter _ _
@@ -388,7 +388,7 @@ begin
   refine le_antisymm _ _,
   { rw ← @generate_from_measurable_set α (⨆ i (hi : ∃ p ∈ S, i ∈ p), m i),
     exact generate_from_mono (measurable_set_supr_of_mem_pi_Union_Inter m S), },
-  { refine bsupr_le (λ i hi, _),
+  { refine supr₂_le (λ i hi, _),
     rcases hi with ⟨p, hpS, hpi⟩,
     rw ← @generate_from_measurable_set α (m i),
     exact generate_from_mono (mem_pi_Union_Inter_of_measurable_set m hpS hpi), },

@@ -444,26 +444,26 @@ def tail [has_Sup α] [has_Inf α] (s : ℕ → α) : α := ⨅ n, ⨆ i ≥ n, 
 
 variables [complete_lattice α]
 
-lemma le_head_n (s : ℕ → α) (hnm : n < m) : s n ≤ ⨆ j < m, s j := le_bsupr n hnm
+lemma le_head_n (s : ℕ → α) (hnm : n < m) : s n ≤ ⨆ j < m, s j := le_supr₂ n hnm
 
 lemma head_n_le (s : ℕ → α) (n : ℕ) (h_le : ∀ n, s n ≤ x) : (⨆ i < n, s i) ≤ x :=
-bsupr_le (λ i hi, h_le i)
+supr₂_le (λ i hi, h_le i)
 
 lemma head_n_mono (s : ℕ → α) (h : n ≤ m) : (⨆ i < n, s i) ≤ ⨆ i < m, s i :=
-bsupr_le_bsupr' (λ i hi, lt_of_lt_of_le hi h)
+bsupr_mono (λ i hi, lt_of_lt_of_le hi h)
 
 lemma supr_eq_supr_head_n (s : ℕ → α) : supr s = ⨆ n, ⨆ i < n, s i :=
 le_antisymm (supr_le (λ i, le_trans (le_head_n s (nat.lt_succ_self i))
     (le_supr (λ i, (⨆ j < i, s j)) (i+1))))
-  (supr_le (λ i, bsupr_le_supr (λ n, n < i) (λ n, s n)))
+  (supr_le (λ i, supr₂_le_supr (λ n, n < i) (λ n, s n)))
 
-lemma le_tail_n (s : ℕ → α) (hnm : m ≤ n) : s n ≤ ⨆ i ≥ m, s i := le_bsupr n hnm
+lemma le_tail_n (s : ℕ → α) (hnm : m ≤ n) : s n ≤ ⨆ i ≥ m, s i := le_supr₂ n hnm
 
 lemma tail_n_le (s : ℕ → α) (n : ℕ) (h_le : ∀ n, s n ≤ x) : (⨆ i ≥ n, s i) ≤ x :=
-bsupr_le (λ i hi, (h_le i))
+supr₂_le (λ i hi, (h_le i))
 
 lemma tail_n_le_supr (s : ℕ → α) (n : ℕ) : (⨆ i ≥ n, s i) ≤ supr s :=
-bsupr_le_supr (λ i, i ≥ n) (λ i, (s i))
+supr₂_le_supr (λ i, i ≥ n) (λ i, (s i))
 
 lemma tail_le_tail_n (s : ℕ → α) (n : ℕ) : tail s ≤ ⨆ i ≥ n, s i :=
 infi_le (λ n, ⨆ i ≥ n, s i) n
@@ -586,12 +586,8 @@ lemma aux_p2_remove_ite (N r : ℕ) {p2 : finset ℕ} (f : ℕ → ennreal)
   (hp2 : p2 = finset.Ico N (N + r)) :
   (∏ n in finset.range (N + r), ite (n ∈ p2) (f n) 1) = ∏ n in finset.Ico N (N + r), f n :=
 begin
-  simp_rw [hp2, finset.Ico.mem],
+  simp_rw [hp2, finset.mem_Ico],
   rw ←prod_Ico_ite N r f,
-  --it looks like refl, but the `decidable` arguments of the ite are different.
-  congr,
-  ext1 n,
-  congr,
 end
 
 lemma aux_t1_inter_t2 (N r : ℕ) (f1 f2 : ℕ → set α) (p1 p2 : finset ℕ)
@@ -654,7 +650,7 @@ begin
     split_ifs,
     { exfalso,
       rw [hp1, finset.mem_range] at h,
-      rw [hp2, finset.Ico.mem] at h_1,
+      rw [hp2, finset.mem_Ico] at h_1,
       linarith, },
     all_goals { simp [measure_univ], }, },
   simp_rw h_μg,
@@ -691,16 +687,27 @@ lemma is_pi_system_monotone_Union (p : ℕ → set (set α)) (hp_pi : ∀ n, is_
   (hp_mono : ∀ n m : ℕ, n ≤ m → p n ⊆ p m) :
   is_pi_system (⋃ n, p n) :=
 begin
-  intros t1 t2 ht1 ht2 h,
+  intros t1 ht1 t2 ht2 h,
   rw set.mem_Union at ht1 ht2 ⊢,
   cases ht1 with n ht1,
   cases ht2 with m ht2,
   cases le_or_lt n m with h_le h_lt,
-  { exact ⟨m, hp_pi m t1 t2 (set.mem_of_mem_of_subset ht1 (hp_mono n m h_le)) ht2 h⟩, },
-  { exact ⟨n, hp_pi n t1 t2 ht1 (set.mem_of_mem_of_subset ht2 (hp_mono m n (le_of_lt h_lt))) h⟩, },
+  { exact ⟨m, hp_pi m t1 (set.mem_of_mem_of_subset ht1 (hp_mono n m h_le)) t2 ht2 h⟩, },
+  { exact ⟨n, hp_pi n t1 ht1 t2 (set.mem_of_mem_of_subset ht2 (hp_mono m n (le_of_lt h_lt))) h⟩, },
 end
 
 variables [is_probability_measure μ] {s : ℕ → measurable_space α}
+
+lemma sup_closed_finset_Ico_right (N : ℕ) :
+  sup_closed {s : finset ℕ | ∃ r : ℕ, s = finset.Ico N (N+r+1)} :=
+begin
+  refine sup_closed_of_totally_ordered _ _,
+  rintros s1 s2 ⟨r1, hs1⟩ ⟨r2, hs2⟩,
+  rw [hs1, hs2],
+  cases le_total r1 r2,
+  { exact or.inr (finset.Ico_subset_Ico le_rfl (by simp [h])), },
+  { exact or.inl (finset.Ico_subset_Ico le_rfl (by simp [h])), },
+end
 
 lemma head_n_indep_tail_n (h_le : ∀ n, s n ≤ m0) (h_indep : Indep s μ) (N : ℕ) :
   indep (⨆ n < N, s n) (⨆ i ≥ N, s i) μ :=
@@ -719,7 +726,7 @@ begin
   let p_tail := pi_Union_Inter (λ n, (s n).measurable_set') S_tail,
   have h_pi_tail : is_pi_system p_tail,
     from is_pi_system_pi_Union_Inter (λ n, (s n).measurable_set') h_pi S_tail
-      (by convert sup_closed_tail_finset_set N),
+      (by convert sup_closed_finset_Ico_right N),
   have h_generate_tail : (⨆ i ≥ N, s i) = generate_from p_tail,
     from tail_n_eq_generate_from_Union_Inter_Ico s N,
   -- if these π-systems are independent, head and tail are independent

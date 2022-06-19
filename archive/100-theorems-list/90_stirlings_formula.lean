@@ -298,9 +298,8 @@ begin
     ((summable_nat_add_iff 1).mpr (has_sum.summable h_sum₁))).mpr h_sum,
 end
 
-/-- The sequence `log_stirling_seq` is monotone decreasing -/
-lemma log_stirling_seq_antitone :
-∀ (n m : ℕ), n ≤ m → log_stirling_seq m.succ ≤ log_stirling_seq n.succ :=
+/-- The sequence `log_stirling_seq ∘ succ` is monotone decreasing -/
+lemma log_stirling_seq'_antitone : antitone (log_stirling_seq ∘ succ) :=
 begin
   apply antitone_nat_of_succ_le,
   intro n,
@@ -488,10 +487,10 @@ begin
 end
 
 /-- The sequence `stirling_seq` is positive for `n > 0`  -/
-lemma stirling_seq'_pos : ∀ (n : ℕ), 0 < stirling_seq n.succ :=
- (λ n, div_pos (cast_pos.mpr (factorial_pos n.succ))
-    (mul_pos ((real.sqrt_pos).mpr (mul_pos two_pos (cast_pos.mpr (succ_pos n))))
-    (pow_pos (div_pos (cast_pos.mpr (succ_pos n)) (exp_pos 1)) n.succ)))
+lemma stirling_seq'_pos (n : ℕ): 0 < stirling_seq n.succ :=
+ (λ m : ℕ, div_pos ((cast_pos.mpr (factorial_pos m.succ)): (0:ℝ) < _)
+    (mul_pos ((real.sqrt_pos).mpr (mul_pos two_pos (cast_pos.mpr (succ_pos m))))
+    (pow_pos (div_pos (cast_pos.mpr (succ_pos m)) (exp_pos 1)) m.succ))) n
 
 /--
 The sequence `stirling_seq` has the explicit lower bound exp (3/4 - 1/2 * log 2)
@@ -504,10 +503,10 @@ begin
   exact log_stirling_seq_bounded_by_constant n,
 end
 
-/-- The sequence `stirling_seq` is monotone decreasing -/
-lemma stirling_seq'_antitone : ∀ (n m : ℕ), n ≤ m → stirling_seq m.succ ≤ stirling_seq n.succ :=
+/-- The sequence `stirling_seq ∘ succ` is monotone decreasing -/
+lemma stirling_seq'_antitone : antitone (stirling_seq ∘ succ) :=
   (λ n, λ m, λ h, (log_le_log (stirling_seq'_pos m) (stirling_seq'_pos n)).mp
-  (log_stirling_seq_antitone n m h))
+  (log_stirling_seq'_antitone h))
 
 /-- The sequence `an` has a lower bound -/
 lemma stirling_seq'_bdd_below : bdd_below (set.range (λ (k : ℕ), stirling_seq k.succ)) :=

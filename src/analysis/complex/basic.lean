@@ -80,15 +80,33 @@ dist_eq_re_im _ _
 lemma dist_of_re_eq {z w : ℂ} (h : z.re = w.re) : dist z w = dist z.im w.im :=
 by rw [dist_eq_re_im, h, sub_self, zero_pow two_pos, zero_add, real.sqrt_sq_eq_abs, real.dist_eq]
 
+lemma nndist_of_re_eq {z w : ℂ} (h : z.re = w.re) : nndist z w = nndist z.im w.im :=
+nnreal.eq $ dist_of_re_eq h
+
+lemma edist_of_re_eq {z w : ℂ} (h : z.re = w.re) : edist z w = edist z.im w.im :=
+by rw [edist_nndist, edist_nndist, nndist_of_re_eq h]
+
 lemma dist_of_im_eq {z w : ℂ} (h : z.im = w.im) : dist z w = dist z.re w.re :=
 by rw [dist_eq_re_im, h, sub_self, zero_pow two_pos, add_zero, real.sqrt_sq_eq_abs, real.dist_eq]
+
+lemma nndist_of_im_eq {z w : ℂ} (h : z.im = w.im) : nndist z w = nndist z.re w.re :=
+nnreal.eq $ dist_of_im_eq h
+
+lemma edist_of_im_eq {z w : ℂ} (h : z.im = w.im) : edist z w = edist z.re w.re :=
+by rw [edist_nndist, edist_nndist, nndist_of_im_eq h]
 
 lemma dist_conj_self (z : ℂ) : dist (conj z) z = 2 * |z.im| :=
 by rw [dist_of_re_eq (conj_re z), conj_im, dist_comm, real.dist_eq, sub_neg_eq_add, ← two_mul,
   _root_.abs_mul, abs_of_pos (@two_pos ℝ _ _)]
 
+lemma nndist_conj_self (z : ℂ) : nndist (conj z) z = 2 * real.nnabs z.im :=
+nnreal.eq $ by rw [← dist_nndist, nnreal.coe_mul, nnreal.coe_two, real.coe_nnabs, dist_conj_self]
+
 lemma dist_self_conj (z : ℂ) : dist z (conj z) = 2 * |z.im| :=
 by rw [dist_comm, dist_conj_self]
+
+lemma nndist_self_conj (z : ℂ) : nndist z (conj z) = 2 * real.nnabs z.im :=
+by rw [nndist_comm, nndist_conj_self]
 
 @[simp] lemma comap_abs_nhds_zero : filter.comap abs (𝓝 0) = 𝓝 0 := comap_norm_nhds_zero
 

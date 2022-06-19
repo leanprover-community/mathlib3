@@ -193,7 +193,7 @@ by rw [fintype.of_equiv_card ring_hom.equiv_rat_alg_hom.symm, alg_hom.card]
 the roots of the minimal polynomial of `x` over `ℚ` -/
 lemma eq_roots : range (λ φ : K →+* A, φ x) = (minpoly ℚ x).root_set A :=
 begin
-  have hx : is_integral ℚ x, { exact is_separable.is_integral ℚ x },
+  have hx : is_integral ℚ x := is_separable.is_integral ℚ x,
   ext a, split,
   { rintro ⟨φ, hφ⟩,
     rw [mem_root_set_iff, ←hφ],

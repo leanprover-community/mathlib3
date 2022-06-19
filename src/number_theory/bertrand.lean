@@ -226,7 +226,6 @@ begin
   { rw ←cast_zero, norm_num, linarith, },
   have fact2 : 0 < 2 * (n : ℝ) := by linarith,
   simp only [cast_bit0, cast_add, cast_one, cast_mul, cast_pow, ←real.rpow_nat_cast],
-  apply le_of_lt,
   calc
   (n : ℝ) * (2 * (n : ℝ)) ^ (sqrt (2 * n) : ℝ) * 4 ^ (((2 * n / 3) : ℕ) : ℝ)
       ≤ (n : ℝ) * (2 * n : ℝ) ^ (real.sqrt (2 * (n : ℝ))) * 4 ^ (((2 * n / 3) : ℕ) : ℝ) :

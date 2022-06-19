@@ -72,8 +72,6 @@ end
 
 /-- Ring homomorphism from `R[x]` to `adjoin_root f` sending `X` to the `root`. -/
 def mk : R[X] →+* adjoin_root f := ideal.quotient.mk _
-
-
 @[elab_as_eliminator]
 theorem induction_on {C : adjoin_root f → Prop} (x : adjoin_root f)
   (ih : ∀ p : R[X], C (mk f p)) : C x :=

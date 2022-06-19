@@ -511,4 +511,5 @@ fintype_of_ker_le_range ((top_equiv : _ ≃* G).to_monoid_hom.comp $ inclusion l
 @[to_additive "If `F` and `coker(F →+ G)` are finite, then `G` is finite."]
 noncomputable def fintype_of_dom_of_coker [normal f.range] [fintype $ G ⧸ f.range] : fintype G :=
 fintype_of_ker_le_range _ (mk' f.range) $ λ x, (eq_one_iff x).mp
+
 end group

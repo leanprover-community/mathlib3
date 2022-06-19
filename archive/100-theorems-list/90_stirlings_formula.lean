@@ -207,16 +207,16 @@ We have the expression
 lemma log_stirling_seq_formula (n : ℕ): log_stirling_seq n.succ = (log (n.succ.factorial : ℝ)) -
   1 / (2 : ℝ) * (log (2 * (n.succ : ℝ))) - (n.succ : ℝ) * log ((n.succ : ℝ) / (exp 1)) :=
 begin
-  have h3, from (lt_iff_le_and_ne.mp (zero_lt_sqrt_two_n n.succ (succ_ne_zero n))).right,
+  have h3, from (sqrt_ne_zero'.mpr (mul_pos two_pos (cast_pos.mpr (succ_pos n)))),
   have h4 : 0 ≠ ((n.succ : ℝ) / exp 1) ^ n.succ, from
     ne_of_lt ((pow_pos (div_pos (cast_pos.mpr n.succ_pos ) (exp_pos 1)) (n.succ))),
   rw [log_stirling_seq, stirling_seq, log_div, log_mul, sqrt_eq_rpow, log_rpow, log_pow],
   { linarith },
   { exact (zero_lt_mul_left zero_lt_two).mpr (cast_lt.mpr n.succ_pos),},
-  { exact h3.symm, },
+  { exact h3, },
   { exact h4.symm, },
   { exact cast_ne_zero.mpr n.succ.factorial_ne_zero, },
-  { apply (mul_ne_zero h3.symm h4.symm), },
+  { apply (mul_ne_zero h3 h4.symm), },
 end
 
 
@@ -819,7 +819,8 @@ begin
   rw sqrt_mul (mul_self_nonneg 2) (n : ℝ),
   rw sqrt_mul_self zero_le_two,
   have h₀ : (n : ℝ) ≠ 0, from cast_ne_zero.mpr hn,
-  have h₁ : sqrt (2 * (n : ℝ)) ≠ 0, from (ne_of_lt (zero_lt_sqrt_two_n n hn)).symm,
+  have h₁ : sqrt (2 * (n : ℝ)) ≠ 0,
+  from (sqrt_ne_zero'.mpr (mul_pos two_pos (cast_pos.mpr (zero_lt_iff.mpr hn)))),
   have h₂ : (exp 1) ≠ 0, from exp_ne_zero 1,
   have h₃ : ((2 * n).factorial : ℝ) ≠ 0, from cast_ne_zero.mpr (factorial_ne_zero (2 * n)),
   have h₄ : sqrt (n : ℝ) ≠ 0, from sqrt_ne_zero'.mpr (cast_pos.mpr (zero_lt_iff.mpr hn)),

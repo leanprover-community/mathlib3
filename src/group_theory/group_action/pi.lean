@@ -38,6 +38,7 @@ instance has_scalar' {g : I → Type*} [Π i, has_scalar (f i) (g i)] :
 lemma smul_apply' {g : I → Type*} [∀ i, has_scalar (f i) (g i)] (s : Π i, f i) (x : Π i, g i) :
   (s • x) i = s i • x i :=
 rfl
+
 instance is_scalar_tower {α β : Type*}
   [has_scalar α β] [Π i, has_scalar β $ f i] [Π i, has_scalar α $ f i]
   [Π i, is_scalar_tower α β (f i)] : is_scalar_tower α β (Π i : I, f i) :=

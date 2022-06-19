@@ -43,6 +43,9 @@ mul_mem_class.to_comm_semigroup (subsemigroup.unit_ball 𝕜)
 instance [non_unital_semi_normed_ring 𝕜] : has_distrib_neg (ball (0 : 𝕜) 1) :=
 subtype.coe_injective.has_distrib_neg (coe : ball (0 : 𝕜) 1 → 𝕜) (λ _, rfl) (λ _ _, rfl)
 
+@[simp, norm_cast] lemma coe_mul_unit_ball [non_unital_semi_normed_ring 𝕜] (x y : ball (0 : 𝕜) 1) :
+  ↑(x * y) = (x * y : 𝕜) := rfl
+
 /-- Closed unit ball in a non unital semi normed ring as a bundled `subsemigroup`. -/
 def subsemigroup.unit_closed_ball (𝕜 : Type*) [non_unital_semi_normed_ring 𝕜] :
   subsemigroup 𝕜 :=
@@ -63,6 +66,10 @@ instance [non_unital_semi_normed_ring 𝕜] : has_continuous_mul (closed_ball (0
 ⟨continuous_subtype_mk _ $ continuous.mul (continuous_subtype_val.comp continuous_fst)
   (continuous_subtype_val.comp continuous_snd)⟩
 
+@[simp, norm_cast]
+lemma coe_mul_unit_closed_ball [non_unital_semi_normed_ring 𝕜] (x y : closed_ball (0 : 𝕜) 1) :
+  ↑(x * y) = (x * y : 𝕜) := rfl
+
 /-- Closed unit ball in a semi normed ring as a bundled `submonoid`. -/
 def submonoid.unit_closed_ball (𝕜 : Type*) [semi_normed_ring 𝕜] [norm_one_class 𝕜] :
   submonoid 𝕜 :=
@@ -75,6 +82,10 @@ submonoid_class.to_monoid (submonoid.unit_closed_ball 𝕜)
 
 instance [semi_normed_comm_ring 𝕜] [norm_one_class 𝕜] : comm_monoid (closed_ball (0 : 𝕜) 1) :=
 submonoid_class.to_comm_monoid (submonoid.unit_closed_ball 𝕜)
+
+@[simp, norm_cast]
+lemma coe_one_unit_closed_ball [semi_normed_ring 𝕜] [norm_one_class 𝕜] :
+  ((1 : closed_ball (0 : 𝕜) 1) : 𝕜) = 1 := rfl
 
 /-- Unit sphere in a normed division ring as a bundled `submonoid`. -/
 def submonoid.unit_sphere (𝕜 : Type*) [normed_division_ring 𝕜] : submonoid 𝕜 :=
@@ -90,6 +101,13 @@ instance [normed_division_ring 𝕜] : group (sphere (0 : 𝕜) 1) :=
 
 instance [normed_division_ring 𝕜] : has_distrib_neg (sphere (0 : 𝕜) 1) :=
 subtype.coe_injective.has_distrib_neg (coe : sphere (0 : 𝕜) 1 → 𝕜) (λ _, rfl) (λ _ _, rfl)
+
+@[simp, norm_cast]
+lemma coe_one_unit_sphere [normed_division_ring 𝕜] : ((1 : sphere (0 : 𝕜) 1) : 𝕜) = 1 := rfl
+
+@[simp, norm_cast]
+lemma coe_mul_unit_sphere [normed_division_ring 𝕜] (x y : sphere (0 : 𝕜) 1) :
+  ↑(x * y) = (x * y : 𝕜) := rfl
 
 /-- Monoid homomorphism from the unit sphere to the group of units. -/
 def unit_sphere_to_units (𝕜 : Type*) [normed_division_ring 𝕜] : sphere (0 : 𝕜) 1 →* units 𝕜 :=

@@ -505,9 +505,8 @@ by simp only [mem_cons, or_imp_distrib, forall_and_distrib, forall_eq]
 
 @[simp] lemma nonempty_cons (h : a ∉ s) : (cons a s h).nonempty := ⟨a, mem_cons.2 $ or.inl rfl⟩
 
-@[simp] lemma nonempty_mk_coe : ∀ {l : list α} {hl}, (⟨↑l, hl⟩ : finset α).nonempty ↔ l ≠ []
-| []       hl := by simp
-| (a :: l) hl := by simp [← multiset.cons_coe]
+@[simp] lemma nonempty_mk {m : multiset α} {hm} : (⟨m, hm⟩ : finset α).nonempty ↔ m ≠ 0 :=
+by induction m using multiset.induction_on; simp
 
 @[simp] lemma coe_cons {a s h} : (@cons α a s h : set α) = insert a s := by { ext, simp }
 

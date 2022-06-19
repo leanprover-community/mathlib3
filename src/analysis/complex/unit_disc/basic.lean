@@ -5,18 +5,22 @@ Authors: Yury Kudryashov
 -/
 import analysis.complex.circle
 import analysis.normed_space.ball_action
+import group_theory.subsemigroup.membership
 
 /-!
 -/
-open set function
+open set function metric
+open_locale big_operators
 noncomputable theory
 
 local notation `conj'` := star_ring_end ℂ
 
 namespace complex
 
+#check pi.list_prod_apply
+
 @[derive [comm_semigroup, has_distrib_neg, λ α, has_coe α ℂ]]
-def unit_disc : Type := metric.ball (0 : ℂ) 1
+def unit_disc : Type := ball (0 : ℂ) 1
 localized "notation `𝔻` := complex.unit_disc" in unit_disc
 
 namespace unit_disc
@@ -40,6 +44,10 @@ lemma one_add_coe_ne_zero (z : 𝔻) : (1 + z : ℂ) ≠ 0 :=
 mt neg_eq_iff_add_eq_zero.2 z.coe_ne_neg_one.symm
 
 @[simp, norm_cast] lemma coe_mul (z w : 𝔻) : ↑(z * w) = (z * w : ℂ) := rfl
+
+@[simp] lemma coe_foldl_mul (z : 𝔻) (l : list 𝔻) :
+  ((l.foldl (*) z : 𝔻) : ℂ) = ((z :: l).map coe).prod :=
+list.coe_foldl_mul z l
 
 def mk (z : ℂ) (hz : abs z < 1) : 𝔻 := ⟨z, mem_ball_zero_iff.2 hz⟩
 
@@ -65,7 +73,21 @@ instance : semigroup_with_zero 𝔻 :=
 
 instance circle_action : mul_action circle 𝔻 := mul_action_sphere_ball
 
+instance is_scalar_tower_circle_circle : is_scalar_tower circle circle 𝔻 :=
+is_scalar_tower_sphere_sphere_ball
+
+instance is_scalar_tower_circle : is_scalar_tower circle 𝔻 𝔻 :=
+is_scalar_tower_sphere_ball_ball
+
+instance smul_comm_class_circle : smul_comm_class circle 𝔻 𝔻 :=
+smul_comm_class_sphere_ball_ball
+
 @[simp, norm_cast] lemma coe_smul_circle (z : circle) (w : 𝔻) : ↑(z • w) = (z * w : ℂ) := rfl
+
+instance closed_ball_action : mul_action (closed_ball (0 : ℂ) 1) 𝔻 := mul_action_closed_ball_ball
+
+@[simp, norm_cast]
+lemma coe_smul_closed_ball (z : closed_ball (0 : ℂ) 1) (w : 𝔻) : ↑(z • w) = (z * w : ℂ) := rfl
 
 def re (z : 𝔻) : ℝ := re z
 
@@ -174,7 +196,106 @@ def shift_equiv (z : 𝔻) : 𝔻 ≃ 𝔻 :=
   left_inv := shift_neg_apply_shift z,
   right_inv := shift_apply_shift_neg z }
 
+def is_fin_blaschke_prod (n : ℕ) (f : 𝔻 → 𝔻) : Prop :=
+∃ (c : circle) (z : 𝔻) (zs : list 𝔻),
+  n = zs.length + 1 ∧ f = c • (zs.map shift).foldl (*) (shift z)
 
+namespace is_fin_blaschke_prod
+
+variables {m n : ℕ} {f g : 𝔻 → 𝔻}
+
+lemma ne_zero (h : is_fin_blaschke_prod n f) : n ≠ 0 :=
+begin
+  rcases h with ⟨c, z, zs, rfl, -⟩,
+  apply nat.succ_ne_zero
+end
+
+lemma mk_one (c : circle) (z : 𝔻) : is_fin_blaschke_prod 1 (c • shift z) :=
+⟨c, z, [], rfl, rfl⟩
+
+lemma mk_shift (z : 𝔻) : is_fin_blaschke_prod 1 (shift z) :=
+one_smul circle (shift z) ▸ mk_one 1 z
+
+protected lemma mul (hf : is_fin_blaschke_prod m f) (hg : is_fin_blaschke_prod n g) :
+  is_fin_blaschke_prod (m + n) (f * g) :=
+begin
+  rcases hf with ⟨cf, zf, zsf, rfl, rfl⟩,
+  rcases hg with ⟨cg, zg, zsg, rfl, rfl⟩,
+  refine ⟨cf * cg, zf, zg :: (zsf ++ zsg), _, _⟩,
+  { rw [list.length_cons, list.length_append, add_add_add_comm] },
+  { ext w : 2,
+    simp only [pi.mul_apply, pi.smul_apply, coe_mul, coe_smul_circle, pi.list_foldl_mul_apply,
+      coe_foldl_mul],
+    simp only [list.map_cons, list.map_map, (∘), list.prod_cons, list.map_append, list.prod_append,
+      coe_mul_unit_sphere, mul_assoc, mul_comm, mul_left_comm] }
+end
+
+lemma mul_shift (hf : is_fin_blaschke_prod n f) (z : 𝔻) :
+  is_fin_blaschke_prod (n + 1) (f * shift z) :=
+hf.mul (mk_shift z)
+
+lemma foldl_mul {α} {l : list α} (ns : α → ℕ) (fs : α → 𝔻 → 𝔻) (hf : is_fin_blaschke_prod n f)
+  (hl : ∀ x ∈ l, is_fin_blaschke_prod (ns x) (fs x)) :
+  is_fin_blaschke_prod (n + (l.map ns).sum) ((l.map fs).foldl (*) f) :=
+begin
+  induction l with a l ihl generalizing n f,
+  { exact hf },
+  { rw [list.forall_mem_cons] at hl,
+    rw [list.map_cons, list.sum_cons, ← add_assoc, list.map_cons, list.foldl_cons],
+    exact ihl hl.2 (hf.mul hl.1) }
+end
+
+lemma foldl_mul' {α} {l : list α} (ns : α → ℕ) (fs : α → 𝔻 → 𝔻) (hf : is_fin_blaschke_prod n f)
+  (hl : ∀ x ∈ l, is_fin_blaschke_prod (ns x) (fs x)) :
+  is_fin_blaschke_prod (n + (l.map ns).sum) (λ w, (l.map $ λ x, fs x w).foldl (*) (f w)) :=
+begin
+  convert hf.foldl_mul ns fs hl,
+  ext1 w,
+  rw [pi.list_foldl_mul_apply, list.map_map]
+end
+
+lemma succ_iff : is_fin_blaschke_prod (n + 2) f ↔
+  ∃ g z, is_fin_blaschke_prod (n + 1) g ∧ f = g * shift z :=
+begin
+  refine ⟨_, λ ⟨g, z, hg, hf⟩, hf.symm ▸ hg.mul_shift z⟩,
+  rintro ⟨c, z, zs, hn, rfl⟩,
+  rw [bit0, ← add_assoc, add_left_inj] at hn,
+  cases zs with z' zs, { exact (nat.succ_ne_zero _ hn).elim },
+  rw [list.length_cons, add_left_inj] at hn, subst n,
+  refine ⟨_, z, ⟨c, z', zs, rfl, rfl⟩, _⟩,
+  haveI : is_scalar_tower ↥circle (𝔻 → 𝔻) (𝔻 → 𝔻) := pi.is_scalar_tower',
+  rw [list.map_cons, list.foldl_cons, list.foldl_assoc, mul_comm, smul_mul_assoc],
+end
+
+protected lemma smul (hf : is_fin_blaschke_prod n f) (c : circle) :
+  is_fin_blaschke_prod n (c • f) :=
+begin
+  rcases hf with ⟨c', z, zs, rfl, rfl⟩,
+  exact ⟨c * c', z, zs, rfl, smul_smul _ _ _⟩
+end
+
+lemma comp_shift (hf : is_fin_blaschke_prod n f) (z : 𝔻) :
+  is_fin_blaschke_prod n (f ∘ shift z) :=
+begin
+  rcases hf with ⟨c, z', zs, rfl, rfl⟩,
+  simp only [(∘), pi.smul_apply, pi.list_foldl_mul_apply, list.map_map, shift_apply_shift,
+    add_comm _ 1],
+  convert (foldl_mul' (λ _, 1) (λ z', shift_comp_coeff z' z • shift (shift z z')) (mk_one _ _)
+    (λ x hx, mk_one _ _)).smul c,
+   rw [list.map_const, list.sum_repeat, smul_eq_mul, mul_one]
+end
+
+lemma comp_smul (hf : is_fin_blaschke_prod n f) (c : circle) :
+  is_fin_blaschke_prod n (λ x, f (c • x)) :=
+begin
+  rcases hf with ⟨c', z', zs, rfl, rfl⟩,
+  simp only [(∘), pi.smul_apply, pi.list_foldl_mul_apply, list.map_map, shift_apply_smul,
+    add_comm _ 1],
+  convert (foldl_mul' 1 (λ z', c • shift (c⁻¹ • z')) (mk_one _ _) (λ x hx, mk_one _ _)).smul c',
+  rw [pi.one_def, list.map_const, list.sum_repeat, smul_eq_mul, mul_one]
+end
+
+end is_fin_blaschke_prod
 
 end unit_disc
 

@@ -18,6 +18,13 @@ open_locale big_operators
 namespace pi
 
 @[to_additive]
+lemma list_foldl_mul_apply {α : Type*} {β : α → Type*} [Πa, has_mul (β a)] (a : α) (f : Π a, β a)
+  (l : list (Π a, β a)) :
+  (l.foldl (*) f) a = (l.map (λ g : Π a, β a, g a)).foldl (*) (f a) :=
+eq.symm $ (list.foldl_map _ _ _ _).trans $ list.foldl_hom l (λ g : Π a, β a, g a) (*)
+  (λ y g, y * g a) _ $ λ g₁ g₂, rfl
+
+@[to_additive]
 lemma list_prod_apply {α : Type*} {β : α → Type*} [Πa, monoid (β a)] (a : α) (l : list (Πa, β a)) :
   l.prod a = (l.map (λf:Πa, β a, f a)).prod :=
 (eval_monoid_hom β a).map_list_prod _

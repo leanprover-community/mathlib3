@@ -208,6 +208,63 @@ begin
   exact neg_neg_of_pos (inv_pos.2 $ sq_pos_of_ne_zero _ hx.ne),
 end
 
+section sqrt_mul_log
+
+lemma deriv_sqrt_mul_log (x : ℝ) (hx : 0 < x) :
+  deriv (λ x, sqrt x * log x) x = (2 + log x) / (2 * sqrt x) :=
+begin
+  simp only [sqrt_eq_rpow],
+  refine (deriv_mul (has_deriv_at_rpow_const (or.inl hx.ne')).differentiable_at
+    (differentiable_at_log hx.ne')).trans _,
+  rw [deriv_rpow_const (or.inl hx.ne'), deriv_log, add_div, div_mul_eq_div_div, div_self
+    (show (2 : ℝ) ≠ (0: ℝ), from two_ne_zero), ←rpow_neg_one, ←rpow_add hx,
+    one_div (x ^ (1 / 2 : ℝ)), ←rpow_neg hx.le, add_comm],
+  refine congr_arg2 (+) (by norm_num) _,
+  rw [div_eq_inv_mul (log x), mul_inv, ←rpow_neg hx.le],
+  apply congr_arg (λ y, y * log x),
+  norm_num,
+end
+
+lemma deriv2_sqrt_mul_log (x : ℝ) (hx : 0 < x) :
+  deriv^[2] (λ x, sqrt x * log x) x = -log x / (4 * sqrt x ^ 3) :=
+begin
+  rw [function.iterate_succ, function.iterate_one, function.comp_app,
+      ←deriv_within_of_open is_open_Ioi (set.mem_Ioi.mpr hx)],
+  refine (deriv_within_congr (unique_diff_on_Ioi 0 x hx) deriv_sqrt_mul_log
+    (deriv_sqrt_mul_log x hx)).trans _,
+  simp only [sqrt_eq_rpow],
+  rw [deriv_within_of_open is_open_Ioi (set.mem_Ioi.mpr hx), deriv_div, deriv_const_add,
+      deriv_log, deriv_const_mul, deriv_rpow_const (or.inl hx.ne')],
+  { rw [one_div, mul_inv_cancel_left₀ (show (2 : ℝ) ≠ (0 : ℝ), from two_ne_zero),
+      mul_comm x⁻¹, mul_assoc, ←rpow_neg_one x, ←rpow_add hx, ←sub_eq_add_neg,
+      ←sub_mul, sub_add_cancel', ←mul_div],
+    apply congr_arg ((*) (-log x)),
+    rw [mul_pow, mul_inv, div_eq_mul_inv, mul_inv, mul_comm, mul_assoc, ←inv_pow, ←inv_pow,
+      ←rpow_neg hx.le, sq, sq, ←rpow_add hx, ←rpow_add hx, pow_succ, sq, ←rpow_add hx,
+      ←rpow_add hx, ←rpow_neg hx.le],
+    norm_num },
+  { exact (has_deriv_at_rpow_const (or.inl hx.ne')).differentiable_at },
+  { apply differentiable_at.const_add,
+    exact differentiable_at_log hx.ne' },
+  { apply differentiable_at.const_mul,
+    exact (has_deriv_at_rpow_const (or.inl hx.ne')).differentiable_at },
+  { exact ne_of_gt (mul_pos two_pos (rpow_pos_of_pos hx 0.5)) },
+end
+
+lemma strict_concave_on_sqrt_mul_log_Ioi : strict_concave_on ℝ (set.Ioi 1) (λ x, sqrt x * log x) :=
+begin
+  refine strict_concave_on_open_of_deriv2_neg (convex_Ioi 1) is_open_Ioi
+    (λ x hx, differentiable_within_at_of_deriv_within_ne_zero _) (λ x hx, _),
+  { rw [deriv_within_of_open is_open_Ioi hx, deriv_sqrt_mul_log x (zero_lt_one.trans hx)],
+    refine div_ne_zero _ (mul_ne_zero two_ne_zero (sqrt_ne_zero'.mpr (zero_lt_one.trans hx))),
+    linarith [log_pos hx] },
+  { rw deriv2_sqrt_mul_log x (zero_lt_one.trans hx),
+    exact div_neg_of_neg_of_pos (neg_neg_of_pos (log_pos hx))
+      (mul_pos four_pos (pow_pos (sqrt_pos.mpr (zero_lt_one.trans hx)) 3)) },
+end
+
+end sqrt_mul_log
+
 open_locale real
 
 lemma strict_concave_on_sin_Icc : strict_concave_on ℝ (Icc 0 π) sin :=

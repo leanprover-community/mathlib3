@@ -860,6 +860,10 @@ instance : boolean_algebra bool := boolean_algebra.of_core
   top_le_sup_compl := λ a, a.bor_bnot_self.ge,
   ..bool.linear_order, ..bool.bounded_order }
 
+@[simp] lemma bool.sup_eq_bor : (⊔) = bor := rfl
+@[simp] lemma bool.inf_eq_band : (⊓) = band := rfl
+@[simp] lemma bool.compl_eq_bnot : has_compl.compl = bnot := rfl
+
 section lift
 
 /-- Pullback a `generalized_boolean_algebra` along an injection. -/

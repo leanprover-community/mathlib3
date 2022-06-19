@@ -66,8 +66,9 @@ tactic.fold_explicit_args f [] (λ ll e, return $ ll ++ [e])
 `op` as the head symbol of a subexpression.  Every time it finds one, it isolates it.
 Usually, `op` is a binary, associative operation.  E.g.,
 ```lean
-#eval trace $ list_head_op ``((+)) tt `(3 / (2 + 4) + 2 * (0 + 2))
--- [3 / (2 + 4) + 2 * (0 + 2), 2 + 4, 0 + 2]
+#eval trace $ list_head_op ``((+)) tt `(0 / (1 + 2) + (3 * (4 + 5) + 6) * (7 + 8 * (9 + 10)))
+-- [0 / (1 + 2) + (3 * (4 + 5) + 6) * (7 + 8 * (9 + 10)),
+-- 1 + 2, 3 * (4 + 5) + 6, 4 + 5, 7 + 8 * (9 + 10), 9 + 10]
 ```
 
 More in detail, `list_head_op` partially traverses an expression in search for a term that is an

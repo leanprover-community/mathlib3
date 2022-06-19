@@ -831,8 +831,10 @@ begin
     { apply_instance } }
 end
 
+/-- If `f₀, f₁, f₂, ...` and `g₀, g₁, g₂, ...` are both convergent then so is the `ℤ`-indexed
+sequence: `..., g₂, g₁, g₀, f₀, f₁, f₂, ...`. -/
 lemma has_sum.int_rec {b : α} {f g : ℕ → α} (hf : has_sum f a) (hg : has_sum g b) :
-  @has_sum α _ _ _ (@int.rec (λ _, α) f g) (a + b) :=
+  @has_sum α _ _ _ (@int.rec (λ _, α) f g : ℤ → α) (a + b) :=
 begin
   -- note this proof works for any two-case inductive
   have h₁ : injective (coe : ℕ → ℤ) := @int.of_nat.inj,
@@ -841,21 +843,21 @@ begin
   { split,
     { rintros _ ⟨⟨i, rfl⟩, ⟨j, ⟨⟩⟩⟩ },
     { rintros (i | j) h,
-      exact or.inl ⟨_, rfl⟩,
-      exact or.inr ⟨_, rfl⟩ } },
+      exacts [or.inl ⟨_, rfl⟩, or.inr ⟨_, rfl⟩] } },
   exact has_sum.add_is_compl this (h₁.has_sum_range_iff.mpr hf) (h₂.has_sum_range_iff.mpr hg),
 end
 
 lemma has_sum.nonneg_add_neg {b : α} {f : ℤ → α}
-  (hnonneg : has_sum (λ n : ℕ, f n) a) (hneg : has_sum (λ n, f (-[1+ n])) b) :
+  (hnonneg : has_sum (λ n : ℕ, f n) a) (hneg : has_sum (λ (n : ℕ), f (-n.succ)) b) :
   has_sum f (a + b) :=
 begin
+  simp_rw ← int.neg_succ_of_nat_coe at hneg,
   convert hnonneg.int_rec hneg using 1,
   ext (i | j); refl,
 end
 
 lemma has_sum.pos_add_zero_add_neg {b : α} {f : ℤ → α}
-  (hpos : has_sum (λ n:ℕ, f(n + 1)) a) (hneg : has_sum (λ n:ℕ, f(-n - 1)) b) :
+  (hpos : has_sum (λ n:ℕ, f(n + 1)) a) (hneg : has_sum (λ (n : ℕ), f (-n.succ)) b) :
   has_sum f (a + f 0 + b) :=
 begin
   have : ∀ g : ℕ → α, has_sum (λ k, g (k + 1)) a → has_sum g (a + g 0),
@@ -1295,16 +1297,13 @@ lemma tsum_comm [t1_space α] {f : β → γ → α} (h : summable (function.unc
 tsum_comm' h h.prod_factor h.prod_symm.prod_factor
 
 lemma has_sum.sum_nat_of_sum_int [t2_space α] {f : ℤ → α} (hf : has_sum f a) :
-  has_sum (λ n:ℕ, f(n + 1) + f(-n - 1)) (a - f 0) :=
+  has_sum (λ n:ℕ, f(n + 1) + f(-n.succ)) (a - f 0) :=
 begin
-  have : summable (λ n:ℕ, f(n + 1)),
-  { refine (hf.summable).comp_injective _, intros x1 x2, simp },
-  cases this with b1 h1,
-  have : summable (λ n:ℕ, f(-n-1)),
-  { refine (hf.summable).comp_injective _, intros x1 x2, simp },
-  cases this with b2 h2,
-  convert h1.add h2,
-  rw [hf.unique (h1.pos_add_zero_add_neg h2), add_comm, ←add_assoc, add_sub_cancel, add_comm],
+  obtain ⟨b₁, h₁⟩ : summable (λ n : ℕ, f(n + 1)) := hf.summable.comp_injective (λ x₁ x₂, by simp),
+  obtain ⟨b₂, h₂⟩ : summable (λ n : ℕ, f(-n.succ)) := hf.summable.comp_injective (λ x₁ x₂, by simp),
+  convert h₁.add h₂,
+  rw hf.unique (h₁.pos_add_zero_add_neg h₂),
+  abel,
 end
 
 end uniform_group

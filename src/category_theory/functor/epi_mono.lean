@@ -70,7 +70,7 @@ instance reflects_epimorphisms_comp (F : C ⥤ D) (G : D ⥤ E) [reflects_epimor
   [reflects_epimorphisms G] : reflects_epimorphisms (F ⋙ G) :=
 { reflects := λ X Y f h, (F.epi_of_epi_map (G.epi_of_epi_map h)) }
 
-lemma preserves_monomorphisms.of_iso (F G : C ⥤ D) [preserves_monomorphisms F] (α : F ≅ G) :
+lemma preserves_monomorphisms.of_iso {F G : C ⥤ D} [preserves_monomorphisms F] (α : F ≅ G) :
   preserves_monomorphisms G :=
 { preserves := λ X Y f h,
   begin
@@ -79,7 +79,12 @@ lemma preserves_monomorphisms.of_iso (F G : C ⥤ D) [preserves_monomorphisms F]
     rw [iso.eq_inv_comp, iso.app_hom, iso.app_hom, nat_trans.naturality]
   end }
 
-lemma preserves_epimorphisms.of_iso (F G : C ⥤ D) [preserves_epimorphisms F] (α : F ≅ G) :
+lemma preserves_monomorphisms.iso_iff {F G : C ⥤ D} (α : F ≅ G) :
+  preserves_monomorphisms F ↔ preserves_monomorphisms G :=
+⟨λ h, by exactI preserves_monomorphisms.of_iso α,
+ λ h, by exactI preserves_monomorphisms.of_iso α.symm⟩
+
+lemma preserves_epimorphisms.of_iso {F G : C ⥤ D} [preserves_epimorphisms F] (α : F ≅ G) :
   preserves_epimorphisms G :=
 { preserves := λ X Y f h,
   begin
@@ -88,7 +93,12 @@ lemma preserves_epimorphisms.of_iso (F G : C ⥤ D) [preserves_epimorphisms F] (
     rw [iso.eq_inv_comp, iso.app_hom, iso.app_hom, nat_trans.naturality]
   end }
 
-lemma reflects_monomorphisms.of_iso (F G : C ⥤ D) [reflects_monomorphisms F] (α : F ≅ G) :
+lemma preserves_epimorphisms.iso_iff {F G : C ⥤ D} (α : F ≅ G) :
+  preserves_epimorphisms F ↔ preserves_epimorphisms G :=
+⟨λ h, by exactI preserves_epimorphisms.of_iso α,
+ λ h, by exactI preserves_epimorphisms.of_iso α.symm⟩
+
+lemma reflects_monomorphisms.of_iso {F G : C ⥤ D} [reflects_monomorphisms F] (α : F ≅ G) :
   reflects_monomorphisms G :=
 { reflects := λ X Y f h,
   begin
@@ -98,7 +108,12 @@ lemma reflects_monomorphisms.of_iso (F G : C ⥤ D) [reflects_monomorphisms F] (
     rw [← category.assoc, iso.eq_comp_inv, iso.app_hom, iso.app_hom, nat_trans.naturality]
   end }
 
-lemma reflects_epimorphisms.of_iso (F G : C ⥤ D) [reflects_epimorphisms F] (α : F ≅ G) :
+lemma reflects_monomorphisms.iso_iff {F G : C ⥤ D} (α : F ≅ G) :
+  reflects_monomorphisms F ↔ reflects_monomorphisms G :=
+⟨λ h, by exactI reflects_monomorphisms.of_iso α,
+ λ h, by exactI reflects_monomorphisms.of_iso α.symm⟩
+
+lemma reflects_epimorphisms.of_iso {F G : C ⥤ D} [reflects_epimorphisms F] (α : F ≅ G) :
   reflects_epimorphisms G :=
 { reflects := λ X Y f h,
   begin
@@ -107,6 +122,10 @@ lemma reflects_epimorphisms.of_iso (F G : C ⥤ D) [reflects_epimorphisms F] (α
     convert (epi_comp _ _ : epi ((α.app X).hom ≫ G.map f ≫ (α.app Y).inv)),
     rw [← category.assoc, iso.eq_comp_inv, iso.app_hom, iso.app_hom, nat_trans.naturality]
   end }
+
+lemma reflects_epimorphisms.iso_iff {F G : C ⥤ D} (α : F ≅ G) :
+  reflects_epimorphisms F ↔ reflects_epimorphisms G :=
+⟨λ h, by exactI reflects_epimorphisms.of_iso α, λ h, by exactI reflects_epimorphisms.of_iso α.symm⟩
 
 lemma preserves_epimorphsisms_of_adjunction {F : C ⥤ D} {G : D ⥤ C} (adj : F ⊣ G) :
  preserves_epimorphisms F :=

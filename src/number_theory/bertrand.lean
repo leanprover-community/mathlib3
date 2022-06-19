@@ -250,7 +250,7 @@ begin
                 { exact is_trans.swap (λ (x y : ℝ), y ≤ x), }, }, },
             { exact mul_pos n_pos (real.rpow_pos_of_pos fact2 _), },
           end
-  ... < 4 ^ (n : ℝ) : real_main_inequality n_large_real,
+  ... ≤ 4 ^ (n : ℝ) : real_main_inequality n_large_real,
 end
 
 /--

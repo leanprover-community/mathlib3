@@ -5,7 +5,6 @@ Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Sébasti
   Rémy Degenne, David Loeffler
 -/
 import analysis.special_functions.complex.log
-import analysis.asymptotics.theta
 
 /-!
 # Power function on `ℂ`, `ℝ`, `ℝ≥0`, and `ℝ≥0∞`
@@ -459,7 +458,7 @@ lemma is_Theta_cpow_rpow (hl_im : is_bounded_under (≤) l (λ x, |(g x).im|))
   (hl : ∀ᶠ x in l, f x = 0 → re (g x) = 0 → g x = 0):
   (λ x, f x ^ g x) =Θ[l] (λ x, abs (f x) ^ (g x).re) :=
 calc (λ x, f x ^ g x) =Θ[l] (λ x, abs (f x) ^ (g x).re / real.exp (arg (f x) * im (g x))) :
-  is_Theta_of_norm_eq' $ hl.mono $ λ x, abs_cpow_of_imp
+  is_Theta_of_norm_eventually_eq' $ hl.mono $ λ x, abs_cpow_of_imp
 ... =Θ[l] (λ x, abs (f x) ^ (g x).re / (1 : ℝ)) :
   (is_Theta_refl _ _).div (is_Theta_exp_arg_mul_im hl_im)
 ... =ᶠ[l] (λ x, abs (f x) ^ (g x).re) : by simp only [of_real_one, div_one]

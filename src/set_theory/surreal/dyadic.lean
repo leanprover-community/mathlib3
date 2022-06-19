@@ -102,7 +102,8 @@ begin
                              ... < pow_half n      : pow_half_succ_lt_pow_half n } },
     { cases n, { rintro ⟨ ⟩ },
       rintro ⟨ ⟩,
-      refine lf_of_exists_le (or.inr ⟨sum.inl punit.star, _⟩),
+      apply lf_of_move_right_le,
+      swap, exact sum.inl default,
       calc  pow_half n.succ + pow_half (n.succ + 1)
           ≤ pow_half n.succ + pow_half n.succ : add_le_add_left (pow_half_succ_le_pow_half _) _
       ... ≈ pow_half n                        : hn _ (nat.lt_succ_self n) },

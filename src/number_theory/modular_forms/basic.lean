@@ -143,8 +143,6 @@ def slash_action (k : ℤ) : mul_action (mul_opposite GL(2, ℝ)⁺) (ℍ → �
   one_smul := by {dsimp, apply slash_mul_one,},
   mul_smul := by { intros A B f, dsimp,  simp  [slash_right_action],},}
 
---localized "notation f ` ∣(`:100 k `, `γ`  )` := (slash_action k) γ • f" in modular_form
-
 /--The space of functions that are modular-/
 def weakly_modular_submodule (k : ℤ) (Γ : subgroup SL(2,ℤ)) : submodule ℂ (ℍ → ℂ) :=
   {carrier := { f : (ℍ → ℂ) | ∀ (γ : Γ), (f ∣[k] (γ : GL(2, ℝ)⁺)) = f },

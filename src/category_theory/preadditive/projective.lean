@@ -26,6 +26,7 @@ noncomputable theory
 
 open category_theory
 open category_theory.limits
+open opposite
 
 universes v u
 
@@ -125,6 +126,13 @@ instance {β : Type v} (g : β → C) [has_zero_morphisms C] [has_biproduct g]
   [∀ b, projective (g b)] : projective (⨁ g) :=
 { factors := λ E X' f e epi, by exactI
   ⟨biproduct.desc (λ b, factor_thru (biproduct.ι g b ≫ f) e), by tidy⟩, }
+
+lemma projective_iff_preserves_epimorphisms_coyoneda_obj (P : C) :
+  projective P ↔ (coyoneda.obj (op P)).preserves_epimorphisms :=
+⟨λ hP, ⟨λ X Y f hf, (epi_iff_surjective _).2 $ λ g, have projective (unop (op P)), from hP,
+  by exactI ⟨factor_thru g f, factor_thru_comp _ _⟩⟩,
+ λ h, ⟨λ E X f e he, by exactI (epi_iff_surjective _).1
+  (infer_instance : epi ((coyoneda.obj (op P)).map e)) f⟩⟩
 
 section enough_projectives
 variables [enough_projectives C]

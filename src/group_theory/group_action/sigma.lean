@@ -9,6 +9,12 @@ import group_theory.group_action.defs
 # Sigma instances for additive and multiplicative actions
 
 This file defines instances for arbitrary sum of additive and multiplicative actions.
+
+## See also
+
+* `group_theory.group_action.pi`
+* `group_theory.group_action.prod`
+* `group_theory.group_action.sum`
 -/
 
 variables {ι : Type*} {M N : Type*} {α : ι → Type*}
@@ -34,14 +40,14 @@ instance [Π i, has_scalar Mᵐᵒᵖ (α i)] [Π i, is_central_scalar M (α i)]
   is_central_scalar M (Σ i, α i) :=
 ⟨λ a x, by { cases x, rw [smul_mk, smul_mk, op_smul_eq_smul] }⟩
 
--- This is not an instance because `i` becomes a metavariable
-@[to_additive] lemma has_faithful_smul' [has_faithful_smul M (α i)] :
+/-- This is not an instance because `i` becomes a metavariable -/
+@[to_additive] protected lemma has_faithful_smul' [has_faithful_smul M (α i)] :
   has_faithful_smul M (Σ i, α i) :=
 ⟨λ x y h, eq_of_smul_eq_smul $ λ a : α i, heq_iff_eq.1 (ext_iff.1 $ h $ mk i a).2⟩
 
 @[to_additive] instance [nonempty ι] [Π i, has_faithful_smul M (α i)] :
   has_faithful_smul M (Σ i, α i) :=
-nonempty.elim ‹_› $ λ i, has_faithful_smul' i
+nonempty.elim ‹_› $ λ i, sigma.has_faithful_smul' i
 
 end has_scalar
 

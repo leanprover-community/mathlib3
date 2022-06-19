@@ -299,8 +299,7 @@ def functor_of_nat_trans {F G : C ⥤ C} (α : F ⟶ G) : coalgebra F ⥤ coalge
   { V := V.1,
     str := V.str ≫ α.app V.1 },
   map := λ V₀ V₁ f, { f := f.1,
-      h' := begin rw [category.assoc, ← α.naturality, ← category.assoc, f.h, category.assoc] end },
-}
+      h' := begin rw [category.assoc, ← α.naturality, ← category.assoc, f.h, category.assoc] end } }
 
 /-- The identity transformation induces the identity endofunctor on the category of coalgebras. -/
 @[simps {rhs_md := semireducible}]

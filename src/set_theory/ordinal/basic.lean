@@ -816,18 +816,27 @@ theorem lift_type {α} (r : α → α → Prop) [is_well_order α r] :
   ∃ wo', lift (type r) = @type _ (@equiv.ulift.{v} α ⁻¹'o r) wo' :=
 ⟨_, rfl⟩
 
-theorem lift_umax : lift.{(max u v) u} = lift.{v u} :=
+/-- `lift.{(max u v) u}` equals `lift.{v u}`. Using `set_option pp.universes true` will make it much
+    easier to understand what's happening when using this lemma. -/
+@[simp] theorem lift_umax : lift.{(max u v) u} = lift.{v u} :=
 funext $ λ a, induction_on a $ λ α r _,
 quotient.sound ⟨(rel_iso.preimage equiv.ulift r).trans (rel_iso.preimage equiv.ulift r).symm⟩
 
-theorem lift_id' (a : ordinal) : lift a = a :=
-induction_on a $ λ α r _,
-quotient.sound ⟨rel_iso.preimage equiv.ulift r⟩
+/-- `lift.{(max v u) u}` equals `lift.{v u}`. Using `set_option pp.universes true` will make it much
+    easier to understand what's happening when using this lemma. -/
+@[simp] theorem lift_umax' : lift.{(max v u) u} = lift.{v u} := lift_umax
 
+/-- An ordinal lifted to a lower or equal universe equals itself. -/
+@[simp] theorem lift_id' (a : ordinal) : lift a = a :=
+induction_on a $ λ α r _, quotient.sound ⟨rel_iso.preimage equiv.ulift r⟩
+
+/-- An ordinal lifted to the same universe equals itself. -/
 @[simp] theorem lift_id : ∀ a, lift.{u u} a = a := lift_id'.{u u}
 
-@[simp]
-theorem lift_lift (a : ordinal) : lift.{w} (lift.{v} a) = lift.{max v w} a :=
+/-- An ordinal lifted to the zero universe equals itself. -/
+@[simp] theorem lift_uzero (a : ordinal.{u}) : lift.{0} a = a := lift_id'.{0 u} a
+
+@[simp] theorem lift_lift (a : ordinal) : lift.{w} (lift.{v} a) = lift.{max v w} a :=
 induction_on a $ λ α r _,
 quotient.sound ⟨(rel_iso.preimage equiv.ulift _).trans $
   (rel_iso.preimage equiv.ulift _).trans (rel_iso.preimage equiv.ulift _).symm⟩
@@ -944,8 +953,7 @@ the addition, together with properties of the other operations, are proved in
   every element of `o₁` is smaller than every element of `o₂`. -/
 instance : has_add ordinal.{u} :=
 ⟨λ o₁ o₂, quotient.lift_on₂ o₁ o₂
-  (λ ⟨α, r, wo⟩ ⟨β, s, wo'⟩, ⟦⟨α ⊕ β, sum.lex r s, by exactI sum.lex.is_well_order _ _⟩⟧
-    : Well_order → Well_order → ordinal) $
+  (λ ⟨α, r, wo⟩ ⟨β, s, wo'⟩, by exactI type (sum.lex r s)) $
   λ ⟨α₁, r₁, o₁⟩ ⟨α₂, r₂, o₂⟩ ⟨β₁, s₁, p₁⟩ ⟨β₂, s₂, p₂⟩ ⟨f⟩ ⟨g⟩,
   quot.sound ⟨rel_iso.sum_lex_congr f g⟩⟩
 

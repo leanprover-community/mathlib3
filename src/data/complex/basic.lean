@@ -574,6 +574,18 @@ abs_abv_sub_le_abv_sub abs
 lemma abs_le_abs_re_add_abs_im (z : ℂ) : abs z ≤ |z.re| + |z.im| :=
 by simpa [re_add_im] using abs_add z.re (z.im * I)
 
+lemma abs_le_sqrt_two_mul_max (z : ℂ) : abs z ≤ real.sqrt 2 * max (|z.re|) (|z.im|) :=
+begin
+  cases z with x y,
+  simp only [abs, norm_sq_mk, ← sq],
+  wlog hle : |x| ≤ |y| := le_total (|x|) (|y|) using [x y, y x] tactic.skip,
+  { calc real.sqrt (x ^ 2 + y ^ 2) ≤ real.sqrt (y ^ 2 + y ^ 2) :
+      real.sqrt_le_sqrt (add_le_add_right (sq_le_sq.2 hle) _)
+    ... = real.sqrt 2 * max (|x|) (|y|) :
+      by rw [max_eq_right hle, ← two_mul, real.sqrt_mul two_pos.le, real.sqrt_sq_eq_abs] },
+  { rwa [add_comm, max_comm] }
+end
+
 lemma abs_re_div_abs_le_one (z : ℂ) : |z.re / z.abs| ≤ 1 :=
 if hz : z = 0 then by simp [hz, zero_le_one]
 else by { simp_rw [_root_.abs_div, abs_abs, div_le_iff (abs_pos.2 hz), one_mul, abs_re_le_abs] }

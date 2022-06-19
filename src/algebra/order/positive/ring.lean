@@ -1,9 +1,9 @@
 /-
 Copyright (c) 2022 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Yury Kudryashov, other
+Authors: Yury Kudryashov
 -/
-import algebra.field_power
+import algebra.order.ring
 
 /-!
 # Algebraic structures on the set of positive numbers
@@ -71,7 +71,7 @@ instance covariant_class_add_le [add_monoid M] [partial_order M] [covariant_clas
 
 section mul
 
-variables [ordered_semiring R] [linear_ordered_field K]
+variables [ordered_semiring R]
 
 instance : has_mul {x : R // 0 < x} := ⟨λ x y, ⟨x * y, mul_pos x.2 y.2⟩⟩
 
@@ -92,10 +92,6 @@ instance [nontrivial R] : has_one {x : R // 0 < x} := ⟨⟨1, one_pos⟩⟩
 instance [nontrivial R] : monoid {x : R // 0 < x} :=
 subtype.coe_injective.monoid _ coe_one coe_mul coe_pow
 
-instance : has_inv {x : K // 0 < x} := ⟨λ x, ⟨x⁻¹, inv_pos.2 x.2⟩⟩
-
-@[simp] lemma coe_inv (x : {x : K // 0 < x}) : ↑x⁻¹ = (x⁻¹ : K) := rfl
-
 end mul
 
 section mul_comm
@@ -105,20 +101,17 @@ instance [ordered_comm_semiring R] [nontrivial R] : ordered_comm_monoid {x : R /
   .. subtype.partial_order _,
   .. subtype.coe_injective.comm_monoid (coe : {x : R // 0 < x} → R) coe_one coe_mul coe_pow }
 
-instance [linear_ordered_comm_ring R] [nontrivial R] :
-  linear_ordered_comm_monoid {x : R // 0 < x} :=
-{ .. subtype.linear_order _, .. positive.subtype.ordered_comm_monoid }
-
-variables [linear_ordered_field K]
-
-instance : has_pow {x : K // 0 < x} ℤ :=
-⟨λ x n, ⟨x ^ n, zpow_pos_of_pos x.2 _⟩⟩
-
-@[simp] lemma coe_zpow (x : {x : K // 0 < x}) (n : ℤ) : ↑(x ^ n) = (x ^ n : K) := rfl
-
-instance : linear_ordered_comm_group {x : K // 0 < x} :=
-{ mul_left_inv := λ a, subtype.ext $ inv_mul_cancel a.2.ne',
-  .. positive.subtype.has_inv, .. positive.subtype.linear_ordered_comm_monoid }
+/-- If `R` is a nontrivial linear ordered commutative semiring, then `{x : R // 0 < x}` is a linear
+ordered cancellative commutative monoid. We don't have a typeclass for linear ordered commutative
+semirings, so we assume `[linear_ordered_semiring R] [is_commutative R (*)] instead. -/
+instance [linear_ordered_semiring R] [is_commutative R (*)] [nontrivial R] :
+  linear_ordered_cancel_comm_monoid {x : R // 0 < x} :=
+{ mul_left_cancel := λ a b c h, subtype.ext $ (strict_mono_mul_left_of_pos a.2).injective $
+    by convert congr_arg subtype.val h,
+  le_of_mul_le_mul_left := λ a b c h, subtype.coe_le_coe.1 $ (mul_le_mul_left a.2).1 h,
+  .. subtype.linear_order _,
+  .. @positive.subtype.ordered_comm_monoid R
+    { mul_comm := is_commutative.comm, .. ‹linear_ordered_semiring R› } _  }
 
 end mul_comm
 

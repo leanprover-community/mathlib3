@@ -363,16 +363,12 @@ begin
   rw [this, ←mul_assoc],
 end
 
-lemma coprime_of_div_pow_factorization {n p : ℕ} (hp : nat.prime p) (hn : n ≠ 0) :
-  coprime p (n / p ^ n.factorization p) :=
-(or_iff_left (not_dvd_div_pow_factorization hp hn)).mp $ coprime_or_dvd_of_prime hp _
-
 lemma p_val_nat_div_coprime (a p : ℕ) (ha : a ≠ 0 ) (hp : nat.prime p) :
   coprime p (a/ p^(padic_val_nat p a)) :=
 begin
   haveI : fact p.prime, exact {out := hp},
   rw padic_val_nat_eq_factorization p a,
-  apply coprime_of_div_pow_factorization hp (ha),
+  apply nat.coprime_of_div_pow_factorization hp (ha),
 end
 
 /-- An induction principle. -/

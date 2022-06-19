@@ -150,8 +150,7 @@ begin
   { intros p hp,
     rw finset.mem_range,
     contrapose! hp,
-    rw [finsupp.mem_support_iff, @factorization_choose_eq_zero_of_lt p n k hp],
-    simp only [eq_self_iff_true, not_true, ne.def, not_false_iff], },
+    rw [finsupp.mem_support_iff, not_not, factorization_choose_eq_zero_of_lt hp] },
   { intros p _ h2, simp [not_not.1 (mt finsupp.mem_support_iff.2 h2)] },
 end
 

@@ -64,14 +64,14 @@ begin
     upper_half_plane.coe_smul, units.coe_mul, matrix.mul_eq_mul, matrix.det_mul,
     upper_half_plane.smul_aux, upper_half_plane.smul_aux', subtype.coe_mk] at *,
   field_simp,
-  ring_nf,
   have : (((↑(↑A : GL (fin 2) ℝ) : (matrix (fin 2) (fin 2) ℝ)).det : ℂ) *
     ((↑(↑B : GL (fin 2) ℝ) : (matrix (fin 2) (fin 2) ℝ)).det : ℂ))^(k-1) =
-    ((↑(↑B : GL (fin 2) ℝ) : (matrix (fin 2) (fin 2) ℝ)).det : ℂ)^(k-1) *
-    ((↑(↑A : GL (fin 2) ℝ) : (matrix (fin 2) (fin 2) ℝ)).det : ℂ)^(k-1) ,
-    by {simp_rw [←mul_zpow, mul_comm]},
-  simp_rw [this, ← mul_assoc, ←mul_zpow],
-  end
+    ((↑(↑A : GL (fin 2) ℝ) : (matrix (fin 2) (fin 2) ℝ)).det : ℂ)^(k-1) *
+    ((↑(↑B : GL (fin 2) ℝ) : (matrix (fin 2) (fin 2) ℝ)).det : ℂ)^(k-1) ,
+    by {simp_rw [←mul_zpow]},
+  simp_rw [this, ← mul_assoc,  ←mul_zpow],
+end
+
 
 lemma slash_add (k : ℤ) (A : GL(2, ℝ)⁺) (f g : ℍ → ℂ) :
   (f + g) ∣[k] A = (f ∣[k] A) + (g ∣[k] A) :=
@@ -136,6 +136,14 @@ begin
     matrix.special_linear_group.det_coe], },
   simp_rw [slash_mul, this, one_smul],
 end
+
+/--The weight `k` action of `GL(2, ℝ)⁺` on functions `f : ℍ → ℂ`. -/
+def slash_action (k : ℤ) : mul_action (mul_opposite GL(2, ℝ)⁺) (ℍ → ℂ) :=
+{ smul := λ A, slash k (mul_opposite.unop A),
+  one_smul := by {dsimp, apply slash_mul_one,},
+  mul_smul := by { intros A B f, dsimp,  simp  [slash_right_action],},}
+
+--localized "notation f ` ∣(`:100 k `, `γ`  )` := (slash_action k) γ • f" in modular_form
 
 /--The space of functions that are modular-/
 def weakly_modular_submodule (k : ℤ) (Γ : subgroup SL(2,ℤ)) : submodule ℂ (ℍ → ℂ) :=

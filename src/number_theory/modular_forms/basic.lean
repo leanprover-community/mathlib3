@@ -10,7 +10,7 @@ import linear_algebra.special_linear_group
 import algebra.direct_sum.ring
 import number_theory.modular
 import geometry.manifold.mfderiv
-import number_theory.modular_forms.functions_bounded_at_inf
+import analysis.complex.upper_half_plane.functions_bounded_at_inf
 
 /-!
 # Modular forms

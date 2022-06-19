@@ -153,18 +153,12 @@ instance pi.unique_of_is_empty [is_empty α] (β : α → Sort v) :
 { default := is_empty_elim,
   uniq := λ f, funext is_empty_elim }
 
-lemma congr_arg_heq_of_subsingleton [subsingleton α] {β : α → Sort v}
-  (f : Π a, β a) (i j : α) : f i == f j := by rw subsingleton.elim i j
-
-lemma congr_arg_of_subsingleton [subsingleton α]
-  (f : α → β) (i j : α) : f i = f j := by rw subsingleton.elim i j
-
-lemma eq_const_of_unique [unique α] (f : α → β) : f = λ _, f default :=
-by { ext, apply congr_arg_of_subsingleton }
+lemma eq_const_of_unique [unique α] (f : α → β) : f = function.const α (f default) :=
+by { ext x, rw subsingleton.elim x default }
 
 lemma heq_const_of_unique [unique α] {β : α → Sort v}
-  (f : Π a, β a) : f == λ a : α, f default :=
-function.hfunext rfl (λ i _ _, by rw subsingleton.elim i default)
+  (f : Π a, β a) : f == function.const α (f default) :=
+function.hfunext rfl $ λ i _ _, by rw subsingleton.elim i default
 
 namespace function
 

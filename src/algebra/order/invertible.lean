@@ -15,7 +15,7 @@ variables {α : Type*} [linear_ordered_semiring α] {a : α}
 @[simp] lemma inv_of_pos [invertible a] : 0 < ⅟a ↔ 0 < a :=
 begin
   have : 0 < a * ⅟a, by simp only [mul_inv_of_self, zero_lt_one],
-  exact ⟨λ h, pos_of_mul_pos_right this h.le, λ h, pos_of_mul_pos_left this h.le⟩
+  exact ⟨λ h, pos_of_mul_pos_left this h.le, λ h, pos_of_mul_pos_right this h.le⟩
 end
 
 @[simp] lemma inv_of_nonpos [invertible a] : ⅟a ≤ 0 ↔ a ≤ 0 :=
@@ -24,7 +24,7 @@ by simp only [← not_lt, inv_of_pos]
 @[simp] lemma inv_of_nonneg [invertible a] : 0 ≤ ⅟a ↔ 0 ≤ a :=
 begin
   have : 0 < a * ⅟a, by simp only [mul_inv_of_self, zero_lt_one],
-  exact ⟨λ h, (pos_of_mul_pos_right this h).le, λ h, (pos_of_mul_pos_left this h).le⟩
+  exact ⟨λ h, (pos_of_mul_pos_left this h).le, λ h, (pos_of_mul_pos_right this h).le⟩
 end
 
 @[simp] lemma inv_of_lt_zero [invertible a] : ⅟a < 0 ↔ a < 0 :=

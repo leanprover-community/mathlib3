@@ -125,7 +125,7 @@ lemma le_one' {t : I} : t ≤ 1 := t.2.2
 lemma mul_pos_mem_iff {a t : ℝ} (ha : 0 < a) : a * t ∈ I ↔ t ∈ set.Icc (0 : ℝ) (1/a) :=
 begin
   split; rintros ⟨h₁, h₂⟩; split,
-  { exact nonneg_of_mul_nonneg_left h₁ ha },
+  { exact nonneg_of_mul_nonneg_right h₁ ha },
   { rwa [le_div_iff ha, mul_comm] },
   { exact mul_nonneg ha.le h₁ },
   { rwa [le_div_iff ha, mul_comm] at h₂ }

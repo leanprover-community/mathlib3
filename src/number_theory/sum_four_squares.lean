@@ -181,7 +181,7 @@ m.mod_two_eq_zero_or_one.elim
         from (char_p.int_cast_eq_zero_iff (zmod m) m _).1 $ by { simp [sub_eq_add_neg], ring },
       let ⟨s, hs⟩ := hawbxcydz, ⟨t, ht⟩ := haxbwczdy, ⟨u, hu⟩ := haybzcwdx, ⟨v, hv⟩ := hazbycxdw in
       have hn_nonneg : 0 ≤ n,
-        from nonneg_of_mul_nonneg_left
+        from nonneg_of_mul_nonneg_right
           (by { erw [← hn], repeat {try {refine add_nonneg _ _}, try {exact sq_nonneg _}} })
           (int.coe_nat_pos.2 hm0.1),
       have hnm : n.nat_abs < m,

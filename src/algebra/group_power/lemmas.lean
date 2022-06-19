@@ -472,7 +472,7 @@ lemma sign_cases_of_C_mul_pow_nonneg {C r : R} (h : ∀ n : ℕ, 0 ≤ C * r ^ n
 begin
   have : 0 ≤ C, by simpa only [pow_zero, mul_one] using h 0,
   refine this.eq_or_lt.elim (λ h, or.inl h.symm) (λ hC, or.inr ⟨hC, _⟩),
-  refine nonneg_of_mul_nonneg_left _ hC,
+  refine nonneg_of_mul_nonneg_right _ hC,
   simpa only [pow_one] using h 1
 end
 

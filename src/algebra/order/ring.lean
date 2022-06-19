@@ -629,43 +629,43 @@ begin
     mul_neg_of_neg_of_pos ha (nab ha.le)]
 end
 
-lemma pos_of_mul_pos_left (h : 0 < a * b) (ha : 0 ≤ a) : 0 < b :=
-((pos_and_pos_or_neg_and_neg_of_mul_pos h).resolve_right $ λ h, h.1.not_le ha).2
-
-lemma pos_of_mul_pos_right (h : 0 < a * b) (hb : 0 ≤ b) : 0 < a :=
+lemma pos_of_mul_pos_left (h : 0 < a * b) (hb : 0 ≤ b) : 0 < a :=
 ((pos_and_pos_or_neg_and_neg_of_mul_pos h).resolve_right $ λ h, h.2.not_le hb).1
 
+lemma pos_of_mul_pos_right (h : 0 < a * b) (ha : 0 ≤ a) : 0 < b :=
+((pos_and_pos_or_neg_and_neg_of_mul_pos h).resolve_right $ λ h, h.1.not_le ha).2
+
 lemma pos_iff_pos_of_mul_pos (hab : 0 < a * b) : 0 < a ↔ 0 < b :=
-⟨pos_of_mul_pos_left hab ∘ le_of_lt, pos_of_mul_pos_right hab ∘ le_of_lt⟩
+⟨pos_of_mul_pos_right hab ∘ le_of_lt, pos_of_mul_pos_left hab ∘ le_of_lt⟩
 
-lemma neg_of_mul_pos_left (h : 0 < a * b) (ha : a ≤ 0) : b < 0 :=
-((pos_and_pos_or_neg_and_neg_of_mul_pos h).resolve_left $ λ h, h.1.not_le ha).2
-
-lemma neg_of_mul_pos_right (h : 0 < a * b) (ha : b ≤ 0) : a < 0 :=
+lemma neg_of_mul_pos_left (h : 0 < a * b) (ha : b ≤ 0) : a < 0 :=
 ((pos_and_pos_or_neg_and_neg_of_mul_pos h).resolve_left $ λ h, h.2.not_le ha).1
 
+lemma neg_of_mul_pos_right (h : 0 < a * b) (ha : a ≤ 0) : b < 0 :=
+((pos_and_pos_or_neg_and_neg_of_mul_pos h).resolve_left $ λ h, h.1.not_le ha).2
+
 lemma neg_iff_neg_of_mul_pos (hab : 0 < a * b) : a < 0 ↔ b < 0 :=
-⟨neg_of_mul_pos_left hab ∘ le_of_lt, neg_of_mul_pos_right hab ∘ le_of_lt⟩
+⟨neg_of_mul_pos_right hab ∘ le_of_lt, neg_of_mul_pos_left hab ∘ le_of_lt⟩
 
-lemma nonneg_of_mul_nonneg_left (h : 0 ≤ a * b) (h1 : 0 < a) : 0 ≤ b :=
-le_of_not_gt (assume h2 : b < 0, (mul_neg_of_pos_of_neg h1 h2).not_le h)
+lemma nonneg_of_mul_nonneg_left (h : 0 ≤ a * b) (hb : 0 < b) : 0 ≤ a :=
+le_of_not_gt $ λ ha, (mul_neg_of_neg_of_pos ha hb).not_le h
 
-lemma nonneg_of_mul_nonneg_right (h : 0 ≤ a * b) (h1 : 0 < b) : 0 ≤ a :=
-le_of_not_gt (assume h2 : a < 0, (mul_neg_of_neg_of_pos h2 h1).not_le h)
+lemma nonneg_of_mul_nonneg_right (h : 0 ≤ a * b) (ha : 0 < a) : 0 ≤ b :=
+le_of_not_gt $ λ hb, (mul_neg_of_pos_of_neg ha hb).not_le h
 
-lemma neg_of_mul_neg_left (h : a * b < 0) (h1 : 0 ≤ a) : b < 0 :=
+lemma neg_of_mul_neg_left (h : a * b < 0) (hb : 0 ≤ b) : a < 0 :=
 by haveI := @linear_order.decidable_le α _; exact
-lt_of_not_ge (assume h2 : b ≥ 0, (decidable.mul_nonneg h1 h2).not_lt h)
+lt_of_not_ge (λ ha : a ≥ 0, (decidable.mul_nonneg ha hb).not_lt h)
 
-lemma neg_of_mul_neg_right (h : a * b < 0) (h1 : 0 ≤ b) : a < 0 :=
+lemma neg_of_mul_neg_right (h : a * b < 0) (ha : 0 ≤ a) : b < 0 :=
 by haveI := @linear_order.decidable_le α _; exact
-lt_of_not_ge (assume h2 : a ≥ 0, (decidable.mul_nonneg h2 h1).not_lt h)
+lt_of_not_ge (assume hb : b ≥ 0, (decidable.mul_nonneg ha hb).not_lt h)
 
-lemma nonpos_of_mul_nonpos_left (h : a * b ≤ 0) (h1 : 0 < a) : b ≤ 0 :=
-le_of_not_gt (assume h2 : b > 0, (mul_pos h1 h2).not_le h)
+lemma nonpos_of_mul_nonpos_left (h : a * b ≤ 0) (hb : 0 < b) : a ≤ 0 :=
+le_of_not_gt (assume ha : a > 0, (mul_pos ha hb).not_le h)
 
-lemma nonpos_of_mul_nonpos_right (h : a * b ≤ 0) (h1 : 0 < b) : a ≤ 0 :=
-le_of_not_gt (assume h2 : a > 0, (mul_pos h2 h1).not_le h)
+lemma nonpos_of_mul_nonpos_right (h : a * b ≤ 0) (ha : 0 < a) : b ≤ 0 :=
+le_of_not_gt (assume hb : b > 0, (mul_pos ha hb).not_le h)
 
 @[simp] lemma mul_le_mul_left (h : 0 < c) : c * a ≤ c * b ↔ a ≤ b :=
 by haveI := @linear_order.decidable_le α _; exact
@@ -768,11 +768,11 @@ mul_lt_mul_left hb
 
 theorem mul_nonneg_iff_right_nonneg_of_pos (ha : 0 < a) : 0 ≤ a * b ↔ 0 ≤ b :=
 by haveI := @linear_order.decidable_le α _; exact
-⟨λ h, nonneg_of_mul_nonneg_left h ha, λ h, decidable.mul_nonneg ha.le h⟩
+⟨λ h, nonneg_of_mul_nonneg_right h ha, λ h, decidable.mul_nonneg ha.le h⟩
 
 theorem mul_nonneg_iff_left_nonneg_of_pos (hb : 0 < b) : 0 ≤ a * b ↔ 0 ≤ a :=
 by haveI := @linear_order.decidable_le α _; exact
-⟨λ h, nonneg_of_mul_nonneg_right h hb, λ h, decidable.mul_nonneg h hb.le⟩
+⟨λ h, nonneg_of_mul_nonneg_left h hb, λ h, decidable.mul_nonneg h hb.le⟩
 
 lemma mul_le_iff_le_one_left (hb : 0 < b) : a * b ≤ b ↔ a ≤ 1 :=
 ⟨ λ h, le_of_not_lt (mt (lt_mul_iff_one_lt_left hb).2 h.not_lt),
@@ -788,8 +788,6 @@ lemma mul_le_iff_le_one_right (hb : 0 < b) : b * a ≤ b ↔ a ≤ 1 :=
 lemma mul_lt_iff_lt_one_right (hb : 0 < b) : b * a < b ↔ a < 1 :=
 lt_iff_lt_of_le_iff_le $ le_mul_iff_one_le_right hb
 
--- TODO: `left` and `right` for these two lemmas are backwards compared to `neg_of_mul_pos`
--- lemmas.
 lemma nonpos_of_mul_nonneg_left (h : 0 ≤ a * b) (hb : b < 0) : a ≤ 0 :=
 le_of_not_gt (λ ha, absurd h (mul_neg_of_pos_of_neg ha hb).not_le)
 
@@ -821,7 +819,7 @@ have ∀ {u : αˣ}, (0 : α) < u → (0 : α) < ↑u⁻¹ := λ u h,
 
 @[simp] lemma units.inv_neg {u : αˣ} : ↑u⁻¹ < (0 : α) ↔ ↑u < (0 : α) :=
 have ∀ {u : αˣ}, ↑u < (0 : α) → ↑u⁻¹ < (0 : α) := λ u h,
-  neg_of_mul_pos_left (by exact (u.mul_inv.symm ▸ zero_lt_one)) h.le,
+  neg_of_mul_pos_right (by exact (u.mul_inv.symm ▸ zero_lt_one)) h.le,
 ⟨this, this⟩
 
 end linear_ordered_semiring
@@ -1267,10 +1265,10 @@ by haveI := @linear_order.decidable_le α _; exact
 lt_of_not_ge (λ hb, absurd h (decidable.mul_nonneg_of_nonpos_of_nonpos ha hb).not_lt)
 
 lemma neg_iff_pos_of_mul_neg (hab : a * b < 0) : a < 0 ↔ 0 < b :=
-⟨pos_of_mul_neg_right hab ∘ le_of_lt, neg_of_mul_neg_right hab ∘ le_of_lt⟩
+⟨pos_of_mul_neg_right hab ∘ le_of_lt, neg_of_mul_neg_left hab ∘ le_of_lt⟩
 
 lemma pos_iff_neg_of_mul_neg (hab : a * b < 0) : 0 < a ↔ b < 0 :=
-⟨neg_of_mul_neg_left hab ∘ le_of_lt, pos_of_mul_neg_left hab ∘ le_of_lt⟩
+⟨neg_of_mul_neg_right hab ∘ le_of_lt, pos_of_mul_neg_left hab ∘ le_of_lt⟩
 
 /-- The sum of two squares is zero iff both elements are zero. -/
 lemma mul_self_add_mul_self_eq_zero {x y : α} : x * x + y * y = 0 ↔ x = 0 ∧ y = 0 :=

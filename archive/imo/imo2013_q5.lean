@@ -108,7 +108,7 @@ begin
   have h_f_denom_pos :=
     calc (0 : ℝ) < q.denom : nat.cast_pos.mpr q.pos
       ... ≤ f q.denom : H4 q.denom q.pos,
-  exact pos_of_mul_pos_right hmul_pos h_f_denom_pos.le,
+  exact pos_of_mul_pos_left hmul_pos h_f_denom_pos.le,
 end
 
 lemma fx_gt_xm1 {f : ℚ → ℝ} {x : ℚ} (hx : 1 ≤ x)

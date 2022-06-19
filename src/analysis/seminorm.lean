@@ -257,7 +257,7 @@ have h: 0 ≤ 2 * p x, from
 calc 0 = p (x + (- x)) : by rw [add_neg_self, map_zero]
 ...    ≤ p x + p (-x)  : p.triangle _ _
 ...    = 2 * p x : by rw [p.neg, two_mul],
-nonneg_of_mul_nonneg_left h zero_lt_two
+nonneg_of_mul_nonneg_right h zero_lt_two
 
 lemma sub_rev (x y : E) : p (x - y) = p (y - x) := by rw [←neg_sub, p.neg]
 

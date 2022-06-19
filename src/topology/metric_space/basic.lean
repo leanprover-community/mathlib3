@@ -141,7 +141,7 @@ private theorem pseudo_metric_space.dist_nonneg' {α} {x y : α} (dist : α → 
 have 2 * dist x y ≥ 0,
   from calc 2 * dist x y = dist x y + dist y x : by rw [dist_comm x y, two_mul]
     ... ≥ 0 : by rw ← dist_self x; apply dist_triangle,
-nonneg_of_mul_nonneg_left this zero_lt_two
+nonneg_of_mul_nonneg_right this zero_lt_two
 
 /-- This tactic is used to populate `pseudo_metric_space.edist_dist` when the default `edist` is
 used. -/

@@ -942,7 +942,7 @@ def div_nat (i : fin (m * n)) : fin m :=
 
 /-- Compute `i % n`, where `n` is a `nat` and inferred the type of `i`. -/
 def mod_nat (i : fin (m * n)) : fin n :=
-⟨i % n, nat.mod_lt _ $ pos_of_mul_pos_left ((nat.zero_le i).trans_lt i.is_lt) m.zero_le⟩
+⟨i % n, nat.mod_lt _ $ pos_of_mul_pos_right ((nat.zero_le i).trans_lt i.is_lt) m.zero_le⟩
 
 @[simp] lemma coe_mod_nat (i : fin (m * n)) : (i.mod_nat : ℕ) = i % n := rfl
 

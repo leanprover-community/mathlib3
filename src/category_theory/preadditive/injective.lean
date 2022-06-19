@@ -167,13 +167,7 @@ lemma injective_iff_preserves_epimorphisms_yoneda_obj (J : C) :
   injective J ↔ (yoneda.obj J).preserves_epimorphisms :=
 begin
   rw [injective_iff_projective_op, projective.projective_iff_preserves_epimorphisms_coyoneda_obj],
-  let : coyoneda.obj (op (op J)) ≅ yoneda.obj J,
-  { fapply nat_iso.of_components,
-    { intro X,
-      exact (op_equiv _ _).to_iso },
-    { exact λ X Y f, rfl } },
-
-
+  exact functor.preserves_epimorphisms.iso_iff (coyoneda.obj_op_op _)
 end
 
 section enough_injectives

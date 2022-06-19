@@ -143,7 +143,7 @@ by simpa only [prod_univ_add, fintype.prod_eq_one _ hf, mul_one]
 end fin
 
 /-- Equivalence between `fin n → fin m` and `fin (m ^ n)`. -/
-def fin_function_fin_equiv {m n : ℕ} : (fin n → fin m) ≃ fin (m ^ n) :=
+@[simps] def fin_function_fin_equiv {m n : ℕ} : (fin n → fin m) ≃ fin (m ^ n) :=
 equiv.of_right_inverse_of_card_le
   (le_of_eq $ by simp_rw [fintype.card_fun, fintype.card_fin])
   (λ f, ⟨∑ i, f i * m ^ (i : ℕ), begin
@@ -165,9 +165,7 @@ equiv.of_right_inverse_of_card_le
     end⟩) $ λ a, begin
     dsimp,
     induction n with n ih generalizing a,
-    { haveI : subsingleton (fin (m ^ 0)) := (equiv.cast $ congr_arg fin $ pow_zero _).subsingleton,
-      haveI : subsingleton {i // i < m ^ 0} :=
-      , (equiv.cast $ congr_arg fin $ pow_zero _).subsingleton,
+    { haveI : subsingleton (fin (m ^ 0)) := (fin.cast $ pow_zero _).to_equiv.subsingleton,
       exact subsingleton.elim _ _ },
     simp_rw [fin.forall_iff, fin.ext_iff, subtype.coe_mk] at ih,
     ext,
@@ -175,6 +173,14 @@ equiv.of_right_inverse_of_card_le
       mul_one, pow_succ, ←nat.div_div_eq_div_mul, mul_left_comm _ m, ←mul_sum],
     rw [ih _ (nat.div_lt_of_lt_mul a.prop), nat.mod_add_div],
   end
+
+lemma fin_function_fin_equiv_single {m n : ℕ} (i : fin n) (j : fin (m + 1)) :
+  (fin_function_fin_equiv (pi.single i j) : ℕ) = j * (m + 1) ^ (i : ℕ) :=
+begin
+  rw [fin_function_fin_equiv_apply_coe, fintype.sum_eq_single i, pi.single_eq_same],
+  rintro x hx,
+  rw [pi.single_eq_of_ne hx, fin.coe_zero, zero_mul],
+end
 
 namespace list
 

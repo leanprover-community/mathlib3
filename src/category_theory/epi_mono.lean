@@ -32,48 +32,6 @@ instance op_mono_of_epi {A B : C} (f : A ⟶ B) [epi f] : mono f.op :=
 instance op_epi_of_mono {A B : C} (f : A ⟶ B) [mono f] : epi f.op :=
 ⟨λ Z g h eq, quiver.hom.unop_inj ((cancel_mono f).1 (quiver.hom.op_inj eq))⟩
 
-section
-variables {D : Type u₂} [category.{v₂} D]
-
-lemma left_adjoint_preserves_epi {F : C ⥤ D} {G : D ⥤ C} (adj : F ⊣ G)
-  {X Y : C} {f : X ⟶ Y} (hf : epi f) : epi (F.map f) :=
-begin
-  constructor,
-  intros Z g h H,
-  replace H := congr_arg (adj.hom_equiv X Z) H,
-  rwa [adj.hom_equiv_naturality_left, adj.hom_equiv_naturality_left,
-    cancel_epi, equiv.apply_eq_iff_eq] at H
-end
-
-lemma right_adjoint_preserves_mono {F : C ⥤ D} {G : D ⥤ C} (adj : F ⊣ G)
-  {X Y : D} {f : X ⟶ Y} (hf : mono f) : mono (G.map f) :=
-begin
-  constructor,
-  intros Z g h H,
-  replace H := congr_arg (adj.hom_equiv Z Y).symm H,
-  rwa [adj.hom_equiv_naturality_right_symm, adj.hom_equiv_naturality_right_symm,
-    cancel_mono, equiv.apply_eq_iff_eq] at H
-end
-
-instance is_equivalence.epi_map {F : C ⥤ D} [is_left_adjoint F] {X Y : C} {f : X ⟶ Y}
-  [h : epi f] : epi (F.map f) :=
-left_adjoint_preserves_epi (adjunction.of_left_adjoint F) h
-
-instance is_equivalence.mono_map {F : C ⥤ D} [is_right_adjoint F] {X Y : C} {f : X ⟶ Y}
-  [h : mono f] : mono (F.map f) :=
-right_adjoint_preserves_mono (adjunction.of_right_adjoint F) h
-
-lemma faithful_reflects_epi (F : C ⥤ D) [faithful F] {X Y : C} {f : X ⟶ Y}
-  (hf : epi (F.map f)) : epi f :=
-⟨λ Z g h H, F.map_injective $
-  by rw [←cancel_epi (F.map f), ←F.map_comp, ←F.map_comp, H]⟩
-
-lemma faithful_reflects_mono (F : C ⥤ D) [faithful F] {X Y : C} {f : X ⟶ Y}
-  (hf : mono (F.map f)) : mono f :=
-⟨λ Z g h H, F.map_injective $
-  by rw [←cancel_mono (F.map f), ←F.map_comp, ←F.map_comp, H]⟩
-end
-
 /--
 A split monomorphism is a morphism `f : X ⟶ Y` admitting a retraction `retraction f : Y ⟶ X`
 such that `f ≫ retraction f = 𝟙 X`.

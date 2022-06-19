@@ -630,8 +630,8 @@ include H
 local notation `forget` := SheafedSpace.forget_to_PresheafedSpace
 open category_theory.limits.walking_cospan
 
-instance : mono f := faithful_reflects_mono forget
-  (show @mono (PresheafedSpace C) _ _ _ f, by apply_instance)
+instance : mono f :=
+forget .mono_of_mono_map (show @mono (PresheafedSpace C) _ _ _ f, by apply_instance)
 
 instance forget_map_is_open_immersion :
   PresheafedSpace.is_open_immersion (forget .map f) := ⟨H.base_open, H.c_iso⟩
@@ -862,8 +862,7 @@ instance comp (g : Z ⟶ Y) [LocallyRingedSpace.is_open_immersion g] :
   LocallyRingedSpace.is_open_immersion (f ≫ g) := PresheafedSpace.is_open_immersion.comp f.1 g.1
 
 instance mono : mono f :=
-faithful_reflects_mono (LocallyRingedSpace.forget_to_SheafedSpace)
-  (show mono f.1, by apply_instance)
+LocallyRingedSpace.forget_to_SheafedSpace.mono_of_mono_map (show mono f.1, by apply_instance)
 
 instance : SheafedSpace.is_open_immersion (LocallyRingedSpace.forget_to_SheafedSpace.map f) := H
 
@@ -1405,8 +1404,7 @@ include H
 local notation `forget` := Scheme.forget_to_LocallyRingedSpace
 
 instance mono : mono f :=
-faithful_reflects_mono (induced_functor _)
-  (show @mono LocallyRingedSpace _ _ _ f, by apply_instance)
+(induced_functor _).mono_of_mono_map (show @mono LocallyRingedSpace _ _ _ f, by apply_instance)
 
 instance forget_map_is_open_immersion : LocallyRingedSpace.is_open_immersion (forget .map f) :=
 ⟨H.base_open, H.c_iso⟩

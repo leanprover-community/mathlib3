@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Johannes Hölzl, Reid Barton, Sean Leather, Yury Kudryashov
 -/
 import category_theory.types
-import category_theory.epi_mono
+import category_theory.functor.epi_mono
 
 /-!
 # Concrete categories
@@ -127,12 +127,12 @@ congr_arg (f : X → Y) h
 /-- In any concrete category, injective morphisms are monomorphisms. -/
 lemma concrete_category.mono_of_injective {X Y : C} (f : X ⟶ Y) (i : function.injective f) :
   mono f :=
-faithful_reflects_mono (forget C) ((mono_iff_injective f).2 i)
+(forget C).mono_of_mono_map ((mono_iff_injective f).2 i)
 
 /-- In any concrete category, surjective morphisms are epimorphisms. -/
 lemma concrete_category.epi_of_surjective {X Y : C} (f : X ⟶ Y) (s : function.surjective f) :
   epi f :=
-faithful_reflects_epi (forget C) ((epi_iff_surjective f).2 s)
+(forget C).epi_of_epi_map ((epi_iff_surjective f).2 s)
 
 @[simp] lemma concrete_category.has_coe_to_fun_Type {X Y : Type u} (f : X ⟶ Y) :
   coe_fn f = f :=

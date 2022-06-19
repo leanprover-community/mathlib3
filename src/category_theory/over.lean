@@ -6,7 +6,7 @@ Authors: Johan Commelin, Bhavik Mehta
 import category_theory.structured_arrow
 import category_theory.punit
 import category_theory.functor.reflects_isomorphisms
-import category_theory.epi_mono
+import category_theory.functor.epi_mono
 
 /-!
 # Over and under categories
@@ -147,7 +147,7 @@ The converse does not hold without additional assumptions on the underlying cate
 -/
 -- TODO: Show the converse holds if `T` has binary products or pushouts.
 lemma epi_of_epi_left {f g : over X} (k : f ⟶ g) [hk : epi k.left] : epi k :=
-faithful_reflects_epi (forget X) hk
+(forget X).epi_of_epi_map hk
 
 /--
 If `k.left` is a monomorphism, then `k` is a monomorphism. In other words, `over.forget X` reflects
@@ -157,7 +157,7 @@ The converse of `category_theory.over.mono_left_of_mono`.
 This lemma is not an instance, to avoid loops in type class inference.
 -/
 lemma mono_of_mono_left {f g : over X} (k : f ⟶ g) [hk : mono k.left] : mono k :=
-faithful_reflects_mono (forget X) hk
+(forget X).mono_of_mono_map hk
 
 /--
 If `k` is a monomorphism, then `k.left` is a monomorphism. In other words, `over.forget X` preserves

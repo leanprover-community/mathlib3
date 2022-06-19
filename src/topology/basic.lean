@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro, Jeremy Avigad
 -/
 import order.filter.ultrafilter
 import order.filter.partial
+import order.filter.small_sets
 import algebra.support
 
 /-!
@@ -1203,6 +1204,24 @@ lemma locally_finite.comp_injective {ι} {f : β → set α} {g : ι → β} (hf
   (hg : function.injective g) : locally_finite (f ∘ g) :=
 λ x, let ⟨t, htx, htf⟩ := hf x in ⟨t, htx, htf.preimage (hg.inj_on _)⟩
 
+lemma locally_finite.eventually_finite {f : β → set α} (hf : locally_finite f) (x : α) :
+  ∀ᶠ s in (𝓝 x).small_sets, {i | (f i ∩ s).nonempty}.finite :=
+eventually_small_sets.2 $ let ⟨s, hsx, hs⟩ := hf x in
+  ⟨s, hsx, λ t hts, hs.subset $ λ i hi, hi.out.mono $ inter_subset_inter_right _ hts⟩
+
+lemma locally_finite.sum_elim {γ} {f : β → set α} {g : γ → set α} (hf : locally_finite f)
+  (hg : locally_finite g) : locally_finite (sum.elim f g) :=
+begin
+  intro x,
+  obtain ⟨s, hsx, hsf, hsg⟩ :
+    ∃ s, s ∈ 𝓝 x ∧ {i | (f i ∩ s).nonempty}.finite ∧ {j | (g j ∩ s).nonempty}.finite,
+    from ((𝓝 x).frequently_small_sets_mem.and_eventually
+      ((hf.eventually_finite x).and (hg.eventually_finite x))).exists,
+  refine ⟨s, hsx, _⟩,
+  convert (hsf.image sum.inl).union (hsg.image sum.inr) using 1,
+  ext (i|j); simp
+end
+
 lemma locally_finite.closure {f : β → set α} (hf : locally_finite f) :
   locally_finite (λ i, closure (f i)) :=
 begin
@@ -1362,6 +1381,11 @@ lemma continuous_at.iterate {f : α → α} {x : α} (hf : continuous_at f x) (h
 nat.rec_on n continuous_at_id $ λ n ihn,
 show continuous_at (f^[n] ∘ f) x,
 from continuous_at.comp (hx.symm ▸ ihn) hf
+
+lemma locally_finite.preimage_continuous {ι} {f : ι → set α} {g : β → α} (hf : locally_finite f)
+  (hg : continuous g) : locally_finite (λ i, g ⁻¹' (f i)) :=
+λ x, let ⟨s, hsx, hs⟩ := hf (g x)
+  in ⟨g ⁻¹' s, hg.continuous_at hsx, hs.subset $ λ i ⟨y, hy⟩, ⟨g y, hy⟩⟩
 
 lemma continuous_iff_is_closed {f : α → β} :
   continuous f ↔ (∀s, is_closed s → is_closed (f ⁻¹' s)) :=

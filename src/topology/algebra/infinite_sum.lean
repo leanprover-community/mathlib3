@@ -862,8 +862,7 @@ lemma has_sum.pos_add_zero_add_neg {b : α} {f : ℤ → α}
 begin
   have : ∀ g : ℕ → α, has_sum (λ k, g (k + 1)) a → has_sum g (a + g 0),
   { intros g hg, simpa using (has_sum_nat_add_iff _).mp hg },
-  refine (this (λ n, f n) hpos).nonneg_add_neg _,
-  convert hneg, simp_rw int.neg_succ_of_nat_coe',
+  exact (this (λ n, f n) hpos).nonneg_add_neg hneg,
 end
 
 end subtype

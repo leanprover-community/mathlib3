@@ -390,6 +390,8 @@ def coalgebra.to_algebra_of (adj : F ⊣ G) : coalgebra G ⥤ algebra F :=
       map := λ V₁ V₂ f, { f := f.1,
                           h' := (F_f_comp_adj_hom_equiv_eq_adj_hom_equiv_comp_f adj V₁ V₂ f) } }
 
+/-- Given an adjunction, assigning to an algebra over the left adjoint a coalgebra over its right
+adjoint and going back is isomorphic to the identity functor. -/
 def alg_coalg_equiv.unit_iso (adj : F ⊣ G) :
   𝟭 (algebra F) ≅ (algebra.to_coalgebra_of adj) ⋙ (coalgebra.to_algebra_of adj) :=
 { hom := { app := λ A, { f := (𝟙 A.1),
@@ -408,7 +410,8 @@ def alg_coalg_equiv.unit_iso (adj : F ⊣ G) :
                                      erw category.comp_id, end,
                 inv_hom_id' := begin dsimp, ext1, dsimp, ext1, dsimp, ext1, dsimp,
                                      erw category.comp_id, refl, end }
-
+/-- Given an adjunction, assigning to a coalgebra over the right adjoint an algebra over the left
+adjoint and going back is isomorphic to the identity functor. -/
 def alg_coalg_equiv.counit_iso (adj : F ⊣ G) :
   (coalgebra.to_algebra_of adj) ⋙ (algebra.to_coalgebra_of adj) ≅ 𝟭 (coalgebra G) :=
 { hom := { app := λ V, { f := (𝟙 V.1),

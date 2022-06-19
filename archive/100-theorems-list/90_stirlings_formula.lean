@@ -565,21 +565,14 @@ This is the term appearing inside the Wallis product
 noncomputable def wallis_inside_prod (n : ℕ) : ℝ :=
   (((2 : ℝ) * n) / (2 * n - 1)) * ((2 * n) / (2 * n + 1))
 
-/--
-We can shift the indexing in a product.
- -/
-lemma aux1 (k : ℕ) : ∏ i in range k, (wallis_inside_prod (1 + i)) =
-    ∏ i in Ico 1 k.succ, wallis_inside_prod i :=
-begin
-  rw [range_eq_Ico],
-  rw prod_Ico_add wallis_inside_prod 0 k 1,
-end
-
 /-- The Wallis product $\prod_{n=1}^k \frac{2n}{2n-1}\frac{2n}{2n+1}$
   converges to `π/2` as `k → ∞` -/
 lemma equality1: tendsto (λ (k : ℕ), ∏ i in Ico 1 k.succ, wallis_inside_prod i) at_top (𝓝 (π/2)) :=
 begin
-  rw ← tendsto_congr (aux1),
+  have :(∀ k: ℕ,  ∏ i in range k, (wallis_inside_prod (1 + i)) =
+    ∏ i in Ico 1 k.succ, wallis_inside_prod i),
+  by {intro k, rw [range_eq_Ico, prod_Ico_add wallis_inside_prod 0 k 1]},
+  rw ← tendsto_congr this,
   have h : ∀ i,
   wallis_inside_prod (1 + i) = (((2 : ℝ) * i + 2) / (2 * i + 1)) * ((2 * i + 2) / (2 * i + 3)) :=
   begin

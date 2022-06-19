@@ -210,11 +210,9 @@ begin
   simp only [nhds_prod_eq],
   refine (nhds_basis_Ico_inv_nat_pos x).to_has_basis.prod'
     (nhds_basis_Ico_inv_nat_pos y).to_has_basis (λ i j hi hj, _),
-  refine ⟨max i j, lt_max_iff.2 $ or.inl hi, Ico_subset_Ico_right _, Ico_subset_Ico_right _⟩,
-  { exact add_le_add_left
-      (one_div_le_one_div_of_le (nat.cast_pos.2 hk₀) $ nat.mono_cast $ le_max_left _ _) _ },
-  { exact add_le_add_left
-      (one_div_le_one_div_of_le (nat.cast_pos.2 hl₀) $ nat.mono_cast $ le_max_right _ _) _ }
+  refine ⟨max i j, lt_max_iff.2 $ or.inl hi, Ico_subset_Ico_right _, Ico_subset_Ico_right _⟩;
+    refine add_le_add_left (one_div_le_one_div_of_le (nat.cast_pos.2 ‹_›) $ nat.mono_cast _) _,
+  exacts [le_max_left _ _, le_max_right _ _],
 end
 
 lemma not_normal_space_prod : ¬normal_space (ℝₗ × ℝₗ) :=

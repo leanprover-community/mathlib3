@@ -204,7 +204,7 @@ begin
     exact minpoly.ne_zero hx, },
   { intro ha,
     let Qx := adjoin_root (minpoly ℚ x),
-    haveI : irreducible (minpoly ℚ x), { exact minpoly.irreducible hx },
+    haveI : irreducible (minpoly ℚ x) := minpoly.irreducible hx,
     have hK : (aeval x) (minpoly ℚ x) = 0, { exact minpoly.aeval _ _, },
     have hA : (aeval a) (minpoly ℚ x) = 0,
     { rw [aeval_def, ←eval_map, ←mem_root_set_iff'],

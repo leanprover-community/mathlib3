@@ -440,37 +440,37 @@ In this section, we prove that any event in the tail σ-algebra has probability 
 
 section lattice
 
-variables {α ι : Type*} {n m : ℕ} {x : α}
+variables {α ι : Type*} [preorder ι] {n m : ι} {x : α}
 
 /-- TODO: rename, or find existing equivalent definition -/
-def tail [has_Sup α] [has_Inf α] (s : ℕ → α) : α := ⨅ n, ⨆ i ≥ n, s i
+def tail [has_Sup α] [has_Inf α] (s : ι → α) : α := ⨅ n, ⨆ i ≥ n, s i
 
 variables [complete_lattice α]
 
-lemma le_head_n (s : ℕ → α) (hnm : n < m) : s n ≤ ⨆ j < m, s j := le_supr₂ n hnm
+lemma le_head_n (s : ι → α) (hnm : n < m) : s n ≤ ⨆ j < m, s j := le_supr₂ n hnm
 
-lemma head_n_le (s : ℕ → α) (n : ℕ) (h_le : ∀ n, s n ≤ x) : (⨆ i < n, s i) ≤ x :=
+lemma head_n_le (s : ι → α) (n : ι) (h_le : ∀ n, s n ≤ x) : (⨆ i < n, s i) ≤ x :=
 supr₂_le (λ i hi, h_le i)
 
-lemma head_n_mono (s : ℕ → α) (h : n ≤ m) : (⨆ i < n, s i) ≤ ⨆ i < m, s i :=
-bsupr_mono (λ i hi, lt_of_lt_of_le hi h)
+lemma head_n_mono (s : ι → α) (h : n ≤ m) : (⨆ i < n, s i) ≤ ⨆ i < m, s i :=
+bsupr_mono (λ i hi, hi.trans_le h)
 
-lemma supr_eq_supr_head_n (s : ℕ → α) : supr s = ⨆ n, ⨆ i < n, s i :=
+lemma supr_eq_supr_head_n (s : ℕ → α) : (⨆ n, s n) = ⨆ n, ⨆ i < n, s i :=
 le_antisymm (supr_le (λ i, le_trans (le_head_n s (nat.lt_succ_self i))
     (le_supr (λ i, (⨆ j < i, s j)) (i+1))))
   (supr_le (λ i, supr₂_le_supr (λ n, n < i) (λ n, s n)))
 
-lemma tail_n_le (s : ℕ → α) (n : ℕ) (h_le : ∀ n, s n ≤ x) : (⨆ i ≥ n, s i) ≤ x :=
+lemma tail_n_le (s : ι → α) (n : ι) (h_le : ∀ n, s n ≤ x) : (⨆ i ≥ n, s i) ≤ x :=
 supr₂_le (λ i hi, h_le i)
 
-lemma tail_n_le_supr (s : ℕ → α) (n : ℕ) : (⨆ i ≥ n, s i) ≤ supr s :=
+lemma tail_n_le_supr (s : ι → α) (n : ι) : (⨆ i ≥ n, s i) ≤ ⨆ n, s n :=
 supr₂_le_supr (λ i, i ≥ n) (λ i, (s i))
 
-lemma tail_le_tail_n (s : ℕ → α) (n : ℕ) : tail s ≤ ⨆ i ≥ n, s i :=
+lemma tail_le_tail_n (s : ι → α) (n : ι) : tail s ≤ ⨆ i ≥ n, s i :=
 infi_le (λ n, ⨆ i ≥ n, s i) n
 
-lemma tail_le {s : ℕ → α} (h_le : ∀ n, s n ≤ x) : tail s ≤ x :=
-(tail_le_tail_n s 0).trans (tail_n_le s 0 h_le)
+lemma tail_le [h : nonempty ι] {s : ι → α} (h_le : ∀ n, s n ≤ x) : tail s ≤ x :=
+(tail_le_tail_n s h.some).trans (tail_n_le s h.some h_le)
 
 end lattice
 
@@ -586,24 +586,22 @@ lemma measurable_set.ite' {m0 : measurable_space α} {s t : set α} {p : Prop}
   measurable_set (ite p s t) :=
 by { split_ifs, exacts [hs h, ht h], }
 
-lemma head_n_indep_tail_n_pi_systems [is_probability_measure μ] (s : ℕ → measurable_space α)
-  (h_indep : Indep s μ) (N : ℕ)
-  (pi : ℕ → set (set α)) (hpis : pi = λ n, {t | measurable_set[s n] t}) :
-  indep_sets (pi_Union_Inter pi {finset.range N})
-    (pi_Union_Inter pi {p : finset ℕ | ∃ r : ℕ, p = finset.Icc N (N + r)}) μ :=
+lemma indep_sets_head_n_tail_n_pi_systems [is_probability_measure μ] (s : ℕ → measurable_space α)
+  (h_indep : Indep s μ) (N : ℕ) :
+  indep_sets (pi_Union_Inter (λ n, {t | measurable_set[s n] t}) {finset.range N})
+    (pi_Union_Inter (λ n, {t | measurable_set[s n] t})
+      {p : finset ℕ | ∃ r : ℕ, p = finset.Icc N (N + r)}) μ :=
 begin
   rintros t1 t2 ⟨p1, hp1, f1, ht1_m, ht1_eq⟩ ⟨p2, ⟨r, rfl⟩, f2, ht2_m, ht2_eq⟩,
   rw set.mem_singleton_iff at hp1,
   simp_rw [hp1] at *,
   let g := λ i, ite (i ∈ finset.range N) (f1 i) set.univ
     ∩ ite (i ∈ finset.Icc N (N + r)) (f2 i) set.univ,
-  have hf1m : ∀ n ∈ finset.range N, measurable_set[s n] (f1 n), by rwa hpis at ht1_m,
-  have hf2m : ∀ n ∈ finset.Icc N (N + r), measurable_set[s n] (f2 n), by rwa hpis at ht2_m,
   have h_P_inter : μ (t1 ∩ t2) = ∏ n in finset.range (N + r + 1), μ (g n),
   { have hgm : ∀ i, i ∈ finset.range (N + r + 1) → measurable_set[s i] (g i),
     { refine (λ i _, measurable_set.inter _ _),
-      { convert measurable_set.ite' (hf1m i) (λ _, measurable_set.univ), },
-      { convert measurable_set.ite' (hf2m i) (λ _, measurable_set.univ), }, },
+      { convert measurable_set.ite' (ht1_m i) (λ _, measurable_set.univ), },
+      { convert measurable_set.ite' (ht2_m i) (λ _, measurable_set.univ), }, },
     rw [ht1_eq, ht2_eq, aux_t1_inter_t2 N r f1 f2, ← h_indep (finset.range (N+r+1)) hgm], },
   rw h_P_inter,
   have h_μg : ∀ n, μ (g n)
@@ -611,10 +609,10 @@ begin
   { intro n,
     simp_rw g,
     split_ifs,
-    { rw [finset.mem_range] at h,
-      rw [finset.mem_Icc] at h_1,
+    { rw finset.mem_range at h,
+      rw finset.mem_Icc at h_1,
       exact absurd h_1.1 (not_le.mpr h), },
-    all_goals { simp [measure_univ], }, },
+    all_goals { simp only [measure_univ, one_mul, mul_one, set.inter_univ, set.univ_inter], }, },
   simp_rw h_μg,
   have h1 : (∏ x in finset.range (N + r + 1), ite (x ∈ finset.range N) (μ (f1 x)) 1)
     = ∏ x in finset.range N, μ (f1 x),
@@ -624,38 +622,29 @@ begin
     = ∏ x in finset.Icc N (N + r), μ (f2 x),
   { simp_rw [add_assoc],
     exact prod_range_ite_range_le N (r + 1) (λ n, μ (f2 n)), },
-  rw [finset.prod_mul_distrib, h1, h2, ht1_eq, ← h_indep (finset.range N) hf1m,
-    ht2_eq, ← h_indep (finset.Icc N (N + r)) hf2m],
+  rw [finset.prod_mul_distrib, h1, h2, ht1_eq, ← h_indep (finset.range N) ht1_m,
+    ht2_eq, ← h_indep (finset.Icc N (N + r)) ht2_m],
 end
 
-lemma generate_from_supr_generate_from {ι : Type*} (s : ι → set (set α)) :
-  (⨆ n, generate_from (s n)) = generate_from (⨆ n, {t | measurable_set[generate_from (s n)] t}) :=
-((@measurable_space.gi_generate_from α).l_supr_u (λ n, generate_from (s n))).symm
+lemma generate_from_Union_measurable_set {ι : Type*} (s : ι → measurable_space α) :
+  generate_from (⋃ n, {t | measurable_set[s n] t}) = ⨆ n, s n :=
+(@measurable_space.gi_generate_from α).l_supr_u s
 
 lemma supr_eq_generate_from_Union_head_n (s : ℕ → measurable_space α) :
-  supr s = generate_from (⋃ n, {t | measurable_set[⨆ i < n, s i] t}) :=
-begin
-  rw supr_eq_supr_head_n,
-  have h_eq : ∀ n, (⨆ i < n, s i) = generate_from {t | measurable_set[⨆ i < n, s i] t},
-    from (λ n,(@generate_from_measurable_set α (⨆ i < n, s i)).symm),
-  have h_left : (⨆ n, ⨆ i < n, s i) = ⨆ n, generate_from {t | measurable_set[⨆ i < n, s i] t},
-    by { congr, exact funext (λ n, h_eq n), },
-  rw [h_left, generate_from_supr_generate_from (λ n, {t | measurable_set[⨆ i < n, s i] t})],
-  congr,
-  exact funext (λ n, by rw ← h_eq n),
-end
+  (⨆ n, s n) = generate_from (⋃ n, {t | measurable_set[⨆ i < n, s i] t}) :=
+by rw [supr_eq_supr_head_n, generate_from_Union_measurable_set]
 
-lemma is_pi_system_monotone_Union (p : ℕ → set (set α)) (hp_pi : ∀ n, is_pi_system (p n))
-  (hp_mono : ∀ n m : ℕ, n ≤ m → p n ⊆ p m) :
+lemma is_pi_system_Union_of_monotone {ι} [linear_order ι] (p : ι → set (set α))
+  (hp_pi : ∀ n, is_pi_system (p n)) (hp_mono : ∀ n m : ι, n ≤ m → p n ⊆ p m) :
   is_pi_system (⋃ n, p n) :=
 begin
   intros t1 ht1 t2 ht2 h,
   rw set.mem_Union at ht1 ht2 ⊢,
   cases ht1 with n ht1,
   cases ht2 with m ht2,
-  cases le_or_lt n m with h_le h_lt,
+  cases le_total n m with h_le h_le,
   { exact ⟨m, hp_pi m t1 (set.mem_of_mem_of_subset ht1 (hp_mono n m h_le)) t2 ht2 h⟩, },
-  { exact ⟨n, hp_pi n t1 ht1 t2 (set.mem_of_mem_of_subset ht2 (hp_mono m n (le_of_lt h_lt))) h⟩, },
+  { exact ⟨n, hp_pi n t1 ht1 t2 (set.mem_of_mem_of_subset ht2 (hp_mono m n h_le)) h⟩, },
 end
 
 variables [is_probability_measure μ] {s : ℕ → measurable_space α}
@@ -683,23 +672,23 @@ begin
       (by convert sup_closed_singleton (finset.range N)),
   have h_generate_head : (⨆ n < N, s n) = generate_from p_head,
     from head_n_eq_generate_from_Union_Inter_range s N,
-  let S_tail := {p : finset ℕ | ∃ r : ℕ, p = finset.Icc N (N + r)},
-  let p_tail := pi_Union_Inter (λ n, {t | measurable_set[s n] t}) S_tail,
+  let p_tail := pi_Union_Inter (λ n, {t | measurable_set[s n] t})
+    {p : finset ℕ | ∃ r : ℕ, p = finset.Icc N (N + r)},
   have h_pi_tail : is_pi_system p_tail,
-    from is_pi_system_pi_Union_Inter (λ n, {t | measurable_set[s n] t}) h_pi S_tail
+    from is_pi_system_pi_Union_Inter (λ n, {t | measurable_set[s n] t}) h_pi
+      {p : finset ℕ | ∃ r : ℕ, p = finset.Icc N (N + r)}
       (by convert sup_closed_finset_Icc_right N),
   have h_generate_tail : (⨆ i ≥ N, s i) = generate_from p_tail,
     from tail_n_eq_generate_from_Union_Inter_Icc s N,
-  -- if these π-systems are independent, head and tail are independent
+  -- if these π-systems are independent, then head and tail are independent
   refine indep_sets.indep (head_n_le s N h_le) (tail_n_le s N h_le)
     h_pi_head h_pi_tail h_generate_head h_generate_tail _,
-  exact head_n_indep_tail_n_pi_systems s h_indep N (λ n, {t | measurable_set[s n] t}) rfl,
+  exact indep_sets_head_n_tail_n_pi_systems s h_indep N,
 end
 
 lemma head_n_indep_tail (h_le : ∀ n, s n ≤ m0) (h_indep : Indep s μ) (n : ℕ) :
   indep (⨆ i < n, s i) (tail s) μ :=
-indep.symm (indep_of_indep_of_le_left (indep.symm (head_n_indep_tail_n h_le h_indep n))
-  (tail_le_tail_n s n))
+indep_of_indep_of_le_right (head_n_indep_tail_n h_le h_indep n) (tail_le_tail_n s n)
 
 lemma supr_indep_tail (h_le : ∀ n, s n ≤ m0) (h_indep : Indep s μ) :
   indep (⨆ n, s n) (tail s) μ :=
@@ -710,22 +699,22 @@ begin
   have h_generate_n : ∀ n, (⨆ i < n, s i) = generate_from (p n),
     from λ n, (@generate_from_measurable_set α (⨆ i < n, s i)).symm,
   have hp_mono : ∀ n m, n ≤ m → p n ⊆ p m, from (λ n m hnm, head_n_mono s hnm),
-  have h_pi : is_pi_system (⋃ n, p n), from is_pi_system_monotone_Union p hp hp_mono,
-  let p' := {t : set α | measurable_set[tail s] t},
-  have hp'_pi : is_pi_system p', from @is_pi_system_measurable_set α (tail s),
-  have h_generate' : tail s = generate_from p',
+  have hp_supr_pi : is_pi_system (⋃ n, p n), from is_pi_system_Union_of_monotone p hp hp_mono,
+  let p_tail := {t : set α | measurable_set[tail s] t},
+  have hp_tail_pi : is_pi_system p_tail, from @is_pi_system_measurable_set α (tail s),
+  have h_generate_tail : tail s = generate_from p_tail,
     from (@generate_from_measurable_set α (tail s)).symm,
   -- the π-systems defined are independent
-  have h_indep_n : ∀ n, indep_sets (p n) p' μ,
+  have h_indep_n : ∀ n, indep_sets (p n) p_tail μ,
   { intro n,
     have h_sigma_indep : indep (⨆ i < n, s i) (tail s) μ,
       from head_n_indep_tail h_le h_indep n,
-    rw [h_generate_n n, h_generate'] at h_sigma_indep,
+    rw [h_generate_n n, h_generate_tail] at h_sigma_indep,
     exact indep.indep_sets h_sigma_indep, },
-  have h_pi_system_indep : indep_sets (⋃ n, p n) p' μ, from indep_sets.Union h_indep_n,
+  have h_pi_system_indep : indep_sets (⋃ n, p n) p_tail μ, from indep_sets.Union h_indep_n,
   -- now go from π-systems to σ-algebras
-  exact indep_sets.indep (supr_le h_le) (tail_le h_le) h_pi hp'_pi
-    (supr_eq_generate_from_Union_head_n s) h_generate' h_pi_system_indep,
+  exact indep_sets.indep (supr_le h_le) (tail_le h_le) hp_supr_pi hp_tail_pi
+    (supr_eq_generate_from_Union_head_n s) h_generate_tail h_pi_system_indep,
 end
 
 lemma tail_indep_tail (h_le : ∀ n, s n ≤ m0) (h_indep : Indep s μ) :

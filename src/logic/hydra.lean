@@ -105,8 +105,6 @@ end two_rels
 section hydra
 open game_add multiset
 
-variable (r : α → α → Prop)
-
 /-- The relation that specifies valid moves in our hydra game. `cut_expand r s' s`
   means that `s'` is obtained by removing one head `a ∈ s` and adding back an arbitrary
   multiset `t` of heads such that all `a' ∈ t` satisfy `r a' a`.
@@ -121,10 +119,21 @@ variable (r : α → α → Prop)
 
   The lemma `relation.cut_expand_iff` below converts between this convenient definition
   and the direct translation when `r` is irreflexive. -/
-def cut_expand (s' s : multiset α) : Prop :=
+def cut_expand (r : α → α → Prop) (s' s : multiset α) : Prop :=
 ∃ (t : multiset α) (a : α), (∀ a' ∈ t, r a' a) ∧ s' + {a} = s + t
 
-lemma cut_expand_iff [decidable_eq α] {r} (hr : irreflexive r) {s' s : multiset α} :
+variable {r : α → α → Prop}
+
+theorem cut_expand_singleton {s x} (h : ∀ x' ∈ s, r x' x) : cut_expand r s {x} :=
+⟨s, x, h, add_comm s _⟩
+
+theorem cut_expand_singleton_singleton {x' x} (h : r x' x) : cut_expand r {x'} {x} :=
+cut_expand_singleton (λ a h, by rwa mem_singleton.1 h)
+
+theorem cut_expand_add_left {t u} (s) : cut_expand r (s + t) (s + u) ↔ cut_expand r t u :=
+exists₂_congr $ λ _ _, and_congr iff.rfl $ by rw [add_assoc, add_assoc, add_left_cancel_iff]
+
+lemma cut_expand_iff [decidable_eq α] (hr : irreflexive r) {s' s : multiset α} :
   cut_expand r s' s ↔ ∃ (t : multiset α) a, (∀ a' ∈ t, r a' a) ∧ a ∈ s ∧ s' = s.erase a + t :=
 begin
   simp_rw [cut_expand, add_singleton_eq_iff],
@@ -136,9 +145,12 @@ begin
     exact ⟨ht, mem_add.2 (or.inl h), (t.erase_add_left_pos h).symm⟩ },
 end
 
+theorem not_cut_expand_zero (hr : irreflexive r) (s) : ¬ cut_expand r s 0 :=
+by { classical, rw cut_expand_iff hr, rintro ⟨_, _, _, ⟨⟩, _⟩ }
+
 /-- For any relation `r` on `α`, multiset addition `multiset α × multiset α → multiset α` is a
   fibration between the game sum of `cut_expand r` with itself and `cut_expand r` itself. -/
-lemma cut_expand_fibration :
+lemma cut_expand_fibration (r : α → α → Prop) :
   fibration (game_add (cut_expand r) (cut_expand r)) (cut_expand r) (λ s, s.1 + s.2) :=
 begin
   rintro ⟨s₁, s₂⟩ s ⟨t, a, hr, he⟩, dsimp at he ⊢,
@@ -152,15 +164,13 @@ begin
     { rw [add_assoc, erase_add_right_pos _ h] } },
 end
 
-variable {r}
-
 /-- A multiset is accessible under `cut_expand` if all its singleton subsets are,
   assuming `r` is irreflexive. -/
 lemma acc_of_singleton (hi : irreflexive r) {s : multiset α} :
   (∀ a ∈ s, acc (cut_expand r) {a}) → acc (cut_expand r) s :=
 begin
-  refine multiset.induction _ _ s, classical,
-  { exact λ _, acc.intro 0 $ λ s, by { rw cut_expand_iff hi, rintro ⟨_, _, _, ⟨⟩, _⟩ } },
+  refine multiset.induction _ _ s,
+  { exact λ _, acc.intro 0 $ λ s h, (not_cut_expand_zero hi s h).elim },
   { intros a s ih hacc, rw ← s.singleton_add a,
     exact ((hacc a $ s.mem_cons_self a).game_add $ ih $ λ a ha,
       hacc a $ mem_cons_of_mem ha).of_fibration _ (cut_expand_fibration r) },

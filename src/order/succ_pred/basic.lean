@@ -508,7 +508,7 @@ lemma Ici_pred (a : α) : Ici (pred a) = insert (pred a) (Ici a) := ext $ λ _, 
 lemma Ioi_pred_eq_insert_of_not_is_min (ha : ¬ is_min a) :
   Ioi (pred a) = insert a (Ioi a) :=
 begin
-  ext x, simp only [insert, set.insert, mem_set_of, @eq_comm _ x a],
+  ext x, simp only [insert, mem_set_of, @eq_comm _ x a],
   exact pred_lt_iff_eq_or_lt_of_not_is_min ha
 end
 

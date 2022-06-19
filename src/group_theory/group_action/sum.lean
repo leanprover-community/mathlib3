@@ -8,7 +8,7 @@ import group_theory.group_action.defs
 /-!
 # Sum instances for additive and multiplicative actions
 
-This file defines instances for binary sum of additive and multiplicative actions.
+This file defines instances for additive and multiplicative actions on the binary `sum` type.
 -/
 
 variables {M N P α β γ : Type*}
@@ -53,8 +53,8 @@ end has_scalar
 
 @[to_additive] instance {m : monoid M} [mul_action M α] [mul_action M β] : mul_action M (α ⊕ β) :=
 { mul_smul := λ a b x,
-  by { cases x, exacts [congr_arg inl (mul_smul _ _ _), congr_arg inr (mul_smul _ _ _)] },
+    by { cases x, exacts [congr_arg inl (mul_smul _ _ _), congr_arg inr (mul_smul _ _ _)] },
   one_smul := λ x,
-  by { cases x, exacts [congr_arg inl (one_smul _ _), congr_arg inr (one_smul _ _)] } }
+    by { cases x, exacts [congr_arg inl (one_smul _ _), congr_arg inr (one_smul _ _)] } }
 
 end sum

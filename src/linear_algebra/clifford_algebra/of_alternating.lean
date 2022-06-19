@@ -69,16 +69,19 @@ begin
       subsingleton.elim 0 v] },
   { rw [list.of_fn_succ, list.prod_cons, clifford_algebra.foldl_mul,
       clifford_algebra.foldl_ι, linear_map.mk₂_apply],
+    -- The elaborator doesn't count the arguments properly if we don't add the `_`s...
+    have : ∀ (v0 : M) (i' : ℕ),
+      (@pi.single _ (λ k, alternating_map R M N (fin k)) _ _ i.succ f i'.succ).curry_left v0 =
+        @pi.single _ _ _ _ i (f.curry_left v0) i',
+    { intros v0 i',
+      obtain rfl | hii' := decidable.eq_or_ne i' i,
+      { rw [pi.single_eq_same, pi.single_eq_same] },
+      { rw [pi.single_eq_of_ne hii', pi.single_eq_of_ne (nat.succ_injective.ne hii'),
+          ←alternating_map.curry_left_linear_map_apply, linear_map.map_zero₂] } },
+    simp_rw this,
     specialize ih (f.curry_left (matrix.vec_head v)) (matrix.vec_tail v),
-    rw [alternating_map.curry_left_apply_apply, matrix.cons_head_tail] at ih,
-    -- we're missing the lemmas needed to push `single` through linear maps, so we have to work
-    -- casewise.
-    convert ih using 4,
-    ext i' : 1,
-    obtain rfl | hii' := decidable.eq_or_ne i' i,
-    { rw [pi.single_eq_same, pi.single_eq_same, matrix.vec_head] },
-    { rw [pi.single_eq_of_ne hii', pi.single_eq_of_ne (nat.succ_injective.ne hii'),
-        ←alternating_map.curry_left_linear_map_apply, map_zero, linear_map.zero_apply] } }
+    rw [alternating_map.curry_left_apply_apply, matrix.cons_head_tail, matrix.vec_head] at ih,
+    exact ih }
 end
 
 @[simp]

@@ -186,7 +186,7 @@ ring_hom.equiv_rat_alg_hom.symm
 variables [is_alg_closed A]
 
 /-- The number of embeddings of a number field is its finrank. -/
-lemma card_embeddings : fintype.card (K →+* A) = finrank ℚ K :=
+lemma card : fintype.card (K →+* A) = finrank ℚ K :=
 by rw [fintype.of_equiv_card ring_hom.equiv_rat_alg_hom.symm, alg_hom.card]
 
 /-- For `x ∈ K`, with `K` a number field, the images of `x` by the embeddings of `K` are exactly

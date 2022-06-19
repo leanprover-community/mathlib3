@@ -1088,7 +1088,6 @@ calc dist ((R / ∥x∥) ^ 2 • x) ((R / ∥y∥) ^ 2 • y)
   by rw [sqrt_mul (sq_nonneg _), sqrt_sq (norm_nonneg _),
     sqrt_sq (div_nonneg (sq_nonneg _) (mul_nonneg (norm_nonneg _) (norm_nonneg _))), dist_eq_norm]
 
-
 @[priority 100] -- See note [lower instance priority]
 instance inner_product_space.to_uniform_convex_space : uniform_convex_space F :=
 ⟨λ ε hε, begin

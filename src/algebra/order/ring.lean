@@ -123,22 +123,16 @@ calc  a + 1 ≤ a + a : add_le_add_left a1 a
 addition is monotone and multiplication by a positive number is strictly monotone. -/
 @[protect_proj]
 class ordered_semiring (α : Type u) extends semiring α, ordered_cancel_add_comm_monoid α :=
-(zero_le_one : 0 ≤ (1 : α))
-(mul_lt_mul_of_pos_left :  ∀ a b c : α, a < b → 0 < c → c * a < c * b)
+(zero_le_one : (0 : α) ≤ 1)
+(mul_lt_mul_of_pos_left  : ∀ a b c : α, a < b → 0 < c → c * a < c * b)
 (mul_lt_mul_of_pos_right : ∀ a b c : α, a < b → 0 < c → a * c < b * c)
+
+@[priority 100] instance ordered_semiring.zero_le_one_class [h : ordered_semiring α] :
+  zero_le_one_class α :=
+{ ..h }
 
 section ordered_semiring
 variables [ordered_semiring α] {a b c d : α}
-
-@[simp] lemma zero_le_one : 0 ≤ (1:α) :=
-ordered_semiring.zero_le_one
-
-lemma zero_le_two : 0 ≤ (2:α) :=
-add_nonneg zero_le_one zero_le_one
-
-lemma one_le_two : 1 ≤ (2:α) :=
-calc (1:α) = 0 + 1 : (zero_add _).symm
-       ... ≤ 1 + 1 : add_le_add_right zero_le_one _
 
 section nontrivial
 
@@ -513,6 +507,36 @@ calc a * b ≤ b : decidable.mul_le_of_le_one_left hb0 ha
 lemma mul_lt_one_of_nonneg_of_lt_one_right : a ≤ 1 → 0 ≤ b → b < 1 → a * b < 1 :=
 by classical; exact decidable.mul_lt_one_of_nonneg_of_lt_one_right
 
+section has_exists_add_of_le
+variables [has_exists_add_of_le α]
+
+/-- Binary **rearrangement inequality**. -/
+lemma mul_add_mul_le_mul_add_mul (hab : a ≤ b) (hcd : c ≤ d) : a * d + b * c ≤ a * c + b * d :=
+begin
+  obtain ⟨b, rfl⟩ := exists_add_of_le hab,
+  obtain ⟨d, rfl⟩ := exists_add_of_le hcd,
+  rw [mul_add, add_right_comm, mul_add, ←add_assoc],
+  exact add_le_add_left (mul_le_mul_of_nonneg_right hab $ (le_add_iff_nonneg_right _).1 hcd) _,
+end
+
+/-- Binary **rearrangement inequality**. -/
+lemma mul_add_mul_le_mul_add_mul' (hba : b ≤ a) (hdc : d ≤ c) : a • d + b • c ≤ a • c + b • d :=
+by { rw [add_comm (a • d), add_comm (a • c)], exact mul_add_mul_le_mul_add_mul hba hdc }
+
+/-- Binary strict **rearrangement inequality**. -/
+lemma mul_add_mul_lt_mul_add_mul (hab : a < b) (hcd : c < d) : a * d + b * c < a * c + b * d :=
+begin
+  obtain ⟨b, rfl⟩ := exists_add_of_le hab.le,
+  obtain ⟨d, rfl⟩ := exists_add_of_le hcd.le,
+  rw [mul_add, add_right_comm, mul_add, ←add_assoc],
+  exact add_lt_add_left (mul_lt_mul_of_pos_right hab $ (lt_add_iff_pos_right _).1 hcd) _,
+end
+
+/-- Binary **rearrangement inequality**. -/
+lemma mul_add_mul_lt_mul_add_mul' (hba : b < a) (hdc : d < c) : a • d + b • c < a • c + b • d :=
+by { rw [add_comm (a • d), add_comm (a • c)], exact mul_add_mul_lt_mul_add_mul hba hdc }
+
+end has_exists_add_of_le
 end ordered_semiring
 
 section ordered_comm_semiring

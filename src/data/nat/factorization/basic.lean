@@ -90,8 +90,18 @@ prime.pos (prime_of_mem_factorization hp)
 lemma le_of_mem_factorization {n p : ℕ} (h : p ∈ n.factorization.support) : p ≤ n :=
 le_of_mem_factors (factor_iff_mem_factorization.mp h)
 
+@[simp]
 lemma factorization_eq_zero_of_non_prime (n : ℕ) {p : ℕ} (hp : ¬p.prime) : n.factorization p = 0 :=
 not_mem_support_iff.1 (mt prime_of_mem_factorization hp)
+
+lemma factorization_eq_zero_of_lt {n p : ℕ} (h : n < p) : n.factorization p = 0 :=
+finsupp.not_mem_support_iff.mp (mt le_of_mem_factorization (not_le_of_lt h))
+
+@[simp] lemma factorization_zero_right (n : ℕ) : n.factorization 0 = 0 :=
+factorization_eq_zero_of_non_prime _ not_prime_zero
+
+@[simp] lemma factorization_one_right (n : ℕ) : n.factorization 1 = 0 :=
+factorization_eq_zero_of_non_prime _ not_prime_one
 
 lemma dvd_of_factorization_pos {n p : ℕ} (hn : n.factorization p ≠ 0) : p ∣ n :=
 dvd_of_mem_factors (factor_iff_mem_factorization.1 (mem_support_iff.2 hn))
@@ -311,6 +321,10 @@ begin
     nat.factorization_div (nat.pow_factorization_dvd n p)],
   simp [hp.factorization],
 end
+
+lemma coprime_of_div_pow_factorization {n p : ℕ} (hp : prime p) (hn : n ≠ 0) :
+  coprime p (n / p ^ n.factorization p) :=
+(or_iff_left (not_dvd_div_pow_factorization hp hn)).mp $ coprime_or_dvd_of_prime hp _
 
 lemma dvd_iff_div_factorization_eq_tsub {d n : ℕ} (hd : d ≠ 0) (hdn : d ≤ n) :
   d ∣ n ↔ (n / d).factorization = n.factorization - d.factorization :=

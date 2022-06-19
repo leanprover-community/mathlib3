@@ -69,7 +69,7 @@ open_locale classical
 
 noncomputable theory
 
-universes u v w x
+universes u v w
 variables {α β : Type u}
 
 /-- The equivalence relation on types given by equivalence (bijective correspondence) of types.
@@ -145,19 +145,27 @@ map ulift (λ α β e, equiv.ulift.trans $ e.trans equiv.ulift.symm) c
 
 @[simp] theorem mk_ulift (α) : #(ulift.{v u} α) = lift.{v} (#α) := rfl
 
-theorem lift_umax : lift.{(max u v) u} = lift.{v u} :=
+/-- `lift.{(max u v) u}` equals `lift.{v u}`. Using `set_option pp.universes true` will make it much
+    easier to understand what's happening when using this lemma. -/
+@[simp] theorem lift_umax : lift.{(max u v) u} = lift.{v u} :=
 funext $ λ a, induction_on a $ λ α, (equiv.ulift.trans equiv.ulift.symm).cardinal_eq
 
-theorem lift_umax' : lift.{(max v u) u} = lift.{v u} := lift_umax
+/-- `lift.{(max v u) u}` equals `lift.{v u}`. Using `set_option pp.universes true` will make it much
+    easier to understand what's happening when using this lemma. -/
+@[simp] theorem lift_umax' : lift.{(max v u) u} = lift.{v u} := lift_umax
 
-theorem lift_id' (a : cardinal.{max u v}) : lift.{u} a = a :=
+/-- A cardinal lifted to a lower or equal universe equals itself. -/
+@[simp] theorem lift_id' (a : cardinal.{max u v}) : lift.{u} a = a :=
 induction_on a $ λ α, mk_congr equiv.ulift
 
+/-- A cardinal lifted to the same universe equals itself. -/
 @[simp] theorem lift_id (a : cardinal) : lift.{u u} a = a := lift_id'.{u u} a
+
+/-- A cardinal lifted to the zero universe equals itself. -/
 @[simp] theorem lift_uzero (a : cardinal.{u}) : lift.{0} a = a := lift_id'.{0 u} a
 
 @[simp] theorem lift_lift (a : cardinal) :
-  lift.{w} (lift.{v} a) = lift.{(max v w)} a :=
+  lift.{w} (lift.{v} a) = lift.{max v w} a :=
 induction_on a $ λ α,
 (equiv.ulift.trans $ equiv.ulift.trans equiv.ulift.symm).cardinal_eq
 
@@ -200,7 +208,7 @@ theorem out_embedding {c c' : cardinal} : c ≤ c' ↔ nonempty (c.out ↪ c'.ou
 by { transitivity _, rw [←quotient.out_eq c, ←quotient.out_eq c'], refl }
 
 theorem lift_mk_le {α : Type u} {β : Type v} :
-  lift.{(max v w)} (#α) ≤ lift.{(max u w)} (#β) ↔ nonempty (α ↪ β) :=
+  lift.{(max v w)} (#α) ≤ lift.{max u w} (#β) ↔ nonempty (α ↪ β) :=
 ⟨λ ⟨f⟩, ⟨embedding.congr equiv.ulift equiv.ulift f⟩,
  λ ⟨f⟩, ⟨embedding.congr equiv.ulift.symm equiv.ulift.symm f⟩⟩
 
@@ -213,7 +221,7 @@ theorem lift_mk_le' {α : Type u} {β : Type v} :
 lift_mk_le.{u v 0}
 
 theorem lift_mk_eq {α : Type u} {β : Type v} :
-  lift.{(max v w)} (#α) = lift.{(max u w)} (#β) ↔ nonempty (α ≃ β) :=
+  lift.{max v w} (#α) = lift.{max u w} (#β) ↔ nonempty (α ≃ β) :=
 quotient.eq.trans
 ⟨λ ⟨f⟩, ⟨equiv.ulift.symm.trans $ f.trans equiv.ulift⟩,
  λ ⟨f⟩, ⟨equiv.ulift.trans $ f.trans equiv.ulift.symm⟩⟩
@@ -272,7 +280,7 @@ instance : has_one cardinal.{u} := ⟨#punit⟩
 instance : nontrivial cardinal.{u} := ⟨⟨1, 0, mk_ne_zero _⟩⟩
 
 lemma mk_eq_one (α : Type u) [unique α] : #α = 1 :=
-mk_congr equiv_punit_of_unique
+(equiv.equiv_punit α).cardinal_eq
 
 theorem le_one_iff_subsingleton {α : Type u} : #α ≤ 1 ↔ subsingleton α :=
 ⟨λ ⟨f⟩, ⟨λ a b, f.injective (subsingleton.elim _ _)⟩,
@@ -434,12 +442,12 @@ instance : canonically_ordered_comm_semiring cardinal.{u} :=
 { bot                   := 0,
   bot_le                := cardinal.zero_le,
   add_le_add_left       := λ a b, add_le_add_left,
-  le_iff_exists_add     := λ a b, ⟨induction_on₂ a b $ λ α β ⟨⟨f, hf⟩⟩,
+  exists_add_of_le     := λ a b, induction_on₂ a b $ λ α β ⟨⟨f, hf⟩⟩,
     have (α ⊕ ((range f)ᶜ : set β)) ≃ β, from
       (equiv.sum_congr (equiv.of_injective f hf) (equiv.refl _)).trans $
       (equiv.set.sum_compl (range f)),
     ⟨#↥(range f)ᶜ, mk_congr this.symm⟩,
-    λ ⟨c, e⟩, add_zero a ▸ e.symm ▸ add_le_add_left (cardinal.zero_le _) _⟩,
+  le_self_add := λ a b, (add_zero a).ge.trans $ add_le_add_left (cardinal.zero_le _) _,
   eq_zero_or_eq_zero_of_mul_eq_zero := λ a b, induction_on₂ a b $ λ α β,
     by simpa only [mul_def, mk_eq_zero_iff, is_empty_prod] using id,
   ..cardinal.comm_semiring, ..cardinal.partial_order }
@@ -504,19 +512,17 @@ protected theorem lt_wf : @well_founded cardinal.{u} (<) :=
   let ι := {c : cardinal // ¬ acc (<) c},
   let f : ι → cardinal := subtype.val,
   haveI hι : nonempty ι := ⟨⟨_, h⟩⟩,
-  have := classical.some_spec (embedding.min_injective (λ i, (f i).out)),
-  cases classical.some (embedding.min_injective (λ i, (f i).out)) with c hc,
-  cases this with h,
+  obtain ⟨⟨c : cardinal, hc : ¬acc (<) c⟩, ⟨h_1 : Π j, (f ⟨c, hc⟩).out ↪ (f j).out⟩⟩ :=
+    embedding.min_injective (λ i, (f i).out),
   apply hc (acc.intro _ (λ j h', classical.by_contradiction (λ hj, h'.2 _))),
-  have : #_ ≤ #_ := ⟨h ⟨j, hj⟩⟩,
-  simpa [mk_out] using this
+  have : #_ ≤ #_ := ⟨h_1 ⟨j, hj⟩⟩,
+  simpa only [f, mk_out] using this
 end⟩
 
 instance : has_well_founded cardinal.{u} := ⟨(<), cardinal.lt_wf⟩
 
 instance : conditionally_complete_linear_order_bot cardinal :=
-cardinal.lt_wf.conditionally_complete_linear_order_with_bot 0 $ (cardinal.zero_le _).antisymm $
-  not_lt.1 (cardinal.lt_wf.not_lt_min set.univ ⟨0, mem_univ _⟩ (mem_univ 0))
+cardinal.lt_wf.conditionally_complete_linear_order_with_bot
 
 instance wo : @is_well_order cardinal.{u} (<) := ⟨cardinal.lt_wf⟩
 
@@ -724,7 +730,7 @@ le_antisymm
   (succ_le_of_lt $ lift_lt.2 $ lt_succ a)
 
 @[simp] theorem lift_umax_eq {a : cardinal.{u}} {b : cardinal.{v}} :
-  lift.{(max v w)} a = lift.{(max u w)} b ↔ lift.{v} a = lift.{u} b :=
+  lift.{max v w} a = lift.{max u w} b ↔ lift.{v} a = lift.{u} b :=
 by rw [←lift_lift, ←lift_lift, lift_inj]
 
 @[simp] theorem lift_min {a b : cardinal} : lift (min a b) = min (lift a) (lift b) :=
@@ -770,9 +776,9 @@ if bounded by the lift of some cardinal from the larger supremum.
 -/
 lemma lift_sup_le_lift_sup
   {ι : Type v} {ι' : Type v'} (f : ι → cardinal.{max v w}) (f' : ι' → cardinal.{max v' w'})
-  (g : ι → ι') (h : ∀ i, lift.{(max v' w')} (f i) ≤ lift.{(max v w)} (f' (g i))) :
-  lift.{(max v' w')} (sup f) ≤ lift.{(max v w)} (sup f') :=
-lift_sup_le.{(max v' w')} f _ (λ i, (h i).trans $ by { rw lift_le, apply le_sup })
+  (g : ι → ι') (h : ∀ i, lift.{max v' w'} (f i) ≤ lift.{max v w} (f' (g i))) :
+  lift.{max v' w'} (sup f) ≤ lift.{max v w} (sup f') :=
+lift_sup_le.{max v' w'} f _ (λ i, (h i).trans $ by { rw lift_le, apply le_sup })
 
 /-- A variant of `lift_sup_le_lift_sup` with universes specialized via `w = v` and `w' = v'`.
 This is sometimes necessary to avoid universe unification issues. -/
@@ -964,9 +970,19 @@ begin
   rintro (rfl|rfl|⟨ha,hb⟩); simp only [*, mul_lt_aleph_0, aleph_0_pos, zero_mul, mul_zero]
 end
 
+/-- See also `cardinal.aleph_0_le_mul_iff`. -/
 lemma aleph_0_le_mul_iff {a b : cardinal} : ℵ₀ ≤ a * b ↔ a ≠ 0 ∧ b ≠ 0 ∧ (ℵ₀ ≤ a ∨ ℵ₀ ≤ b) :=
 let h := (@mul_lt_aleph_0_iff a b).not in
 by rwa [not_lt, not_or_distrib, not_or_distrib, not_and_distrib, not_lt, not_lt] at h
+
+/-- See also `cardinal.aleph_0_le_mul_iff'`. -/
+lemma aleph_0_le_mul_iff' {a b : cardinal.{u}} : ℵ₀ ≤ a * b ↔ a ≠ 0 ∧ ℵ₀ ≤ b ∨ ℵ₀ ≤ a ∧ b ≠ 0 :=
+begin
+  have : ∀ {a : cardinal.{u}}, ℵ₀ ≤ a → a ≠ 0, from λ a, ne_bot_of_le_ne_bot aleph_0_ne_zero,
+  simp only [aleph_0_le_mul_iff, and_or_distrib_left, and_iff_right_of_imp this,
+    @and.left_comm (a ≠ 0)],
+  simp only [and.comm, or.comm]
+end
 
 lemma mul_lt_aleph_0_iff_of_ne_zero {a b : cardinal} (ha : a ≠ 0) (hb : b ≠ 0) :
   a * b < ℵ₀ ↔ a < ℵ₀ ∧ b < ℵ₀ :=
@@ -979,13 +995,9 @@ end
 
 lemma eq_one_iff_unique {α : Type*} :
   #α = 1 ↔ subsingleton α ∧ nonempty α :=
-calc #α = 1 ↔ #α ≤ 1 ∧ ¬#α < 1 : eq_iff_le_not_lt
+calc #α = 1 ↔ #α ≤ 1 ∧ 1 ≤ #α : le_antisymm_iff
         ... ↔ subsingleton α ∧ nonempty α :
-begin
-  apply and_congr le_one_iff_subsingleton,
-  push_neg,
-  rw [one_le_iff_ne_zero, mk_ne_zero_iff]
-end
+  le_one_iff_subsingleton.and (one_le_iff_ne_zero.trans mk_ne_zero_iff)
 
 theorem infinite_iff {α : Type u} : infinite α ↔ ℵ₀ ≤ #α :=
 by rw [←not_lt, lt_aleph_0_iff_fintype, not_nonempty_iff, is_empty_fintype]
@@ -1106,18 +1118,17 @@ by rw [←to_nat_lift, lift_mk_eq.mpr ⟨e⟩, to_nat_lift]
 @[simp] lemma to_nat_mul (x y : cardinal) : (x * y).to_nat = x.to_nat * y.to_nat :=
 begin
   rcases eq_or_ne x 0 with rfl | hx1,
-  { rw [comm_semiring.mul_comm, mul_zero, zero_to_nat, nat.zero_mul] },
+  { rw [zero_mul, zero_to_nat, zero_mul] },
   rcases eq_or_ne y 0 with rfl | hy1,
-  { rw [zero_to_nat, mul_zero, mul_zero, zero_to_nat] },
-  refine nat_cast_injective (eq.trans _ (nat.cast_mul _ _).symm),
+  { rw [mul_zero, zero_to_nat, mul_zero] },
   cases lt_or_le x ℵ₀ with hx2 hx2,
   { cases lt_or_le y ℵ₀ with hy2 hy2,
-    { rw [cast_to_nat_of_lt_aleph_0, cast_to_nat_of_lt_aleph_0 hx2, cast_to_nat_of_lt_aleph_0 hy2],
-      exact mul_lt_aleph_0 hx2 hy2 },
-    { rw [cast_to_nat_of_aleph_0_le hy2, mul_zero, cast_to_nat_of_aleph_0_le],
-      exact not_lt.mp (mt (mul_lt_aleph_0_iff_of_ne_zero hx1 hy1).mp (λ h, not_lt.mpr hy2 h.2)) } },
-  { rw [cast_to_nat_of_aleph_0_le hx2, zero_mul, cast_to_nat_of_aleph_0_le],
-    exact not_lt.mp (mt (mul_lt_aleph_0_iff_of_ne_zero hx1 hy1).mp (λ h, not_lt.mpr hx2 h.1)) },
+    { lift x to ℕ using hx2, lift y to ℕ using hy2,
+      rw [← nat.cast_mul, to_nat_cast, to_nat_cast, to_nat_cast] },
+    { rw [to_nat_apply_of_aleph_0_le hy2, mul_zero, to_nat_apply_of_aleph_0_le],
+      exact aleph_0_le_mul_iff'.2 (or.inl ⟨hx1, hy2⟩) } },
+  { rw [to_nat_apply_of_aleph_0_le hx2, zero_mul, to_nat_apply_of_aleph_0_le],
+    exact aleph_0_le_mul_iff'.2 (or.inr ⟨hx2, hy1⟩) },
 end
 
 @[simp] lemma to_nat_add_of_lt_aleph_0 {a : cardinal.{u}} {b : cardinal.{v}}
@@ -1257,7 +1268,7 @@ lemma mk_range_eq_of_injective {α : Type u} {β : Type v} {f : α → β} (hf :
 lift_mk_eq'.mpr ⟨(equiv.of_injective f hf).symm⟩
 
 lemma mk_range_eq_lift {α : Type u} {β : Type v} {f : α → β} (hf : injective f) :
-  lift.{(max u w)} (# (range f)) = lift.{(max v w)} (# α) :=
+  lift.{max u w} (# (range f)) = lift.{max v w} (# α) :=
 lift_mk_eq.mpr ⟨(equiv.of_injective f hf).symm⟩
 
 theorem mk_image_eq {α β : Type u} {f : α → β} {s : set α} (hf : injective f) :
@@ -1282,7 +1293,7 @@ lemma mk_sUnion_le {α : Type u} (A : set (set α)) :
 by { rw sUnion_eq_Union, apply mk_Union_le }
 
 lemma mk_bUnion_le {ι α : Type u} (A : ι → set α) (s : set ι) :
-  #(⋃(x ∈ s), A x) ≤ #s * cardinal.sup.{u u} (λ x : s, #(A x.1)) :=
+  #(⋃ x ∈ s, A x) ≤ #s * cardinal.sup.{u u} (λ x : s, #(A x.1)) :=
 by { rw bUnion_eq_Union, apply mk_Union_le }
 
 lemma finset_card_lt_aleph_0 (s : finset α) : #(↑s : set α) < ℵ₀ :=
@@ -1322,7 +1333,7 @@ mk_congr (equiv.set.sum_compl s)
 lemma mk_le_mk_of_subset {α} {s t : set α} (h : s ⊆ t) : #s ≤ #t :=
 ⟨set.embedding_of_subset s t h⟩
 
-lemma mk_subtype_mono {p q : α → Prop} (h : ∀x, p x → q x) : #{x // p x} ≤ #{x // q x} :=
+lemma mk_subtype_mono {p q : α → Prop} (h : ∀ x, p x → q x) : #{x // p x} ≤ #{x // q x} :=
 ⟨embedding_of_subset _ _ h⟩
 
 lemma mk_union_le_aleph_0 {α} {P Q : set α} : #((P ∪ Q : set α)) ≤ ℵ₀ ↔ #P ≤ ℵ₀ ∧ #Q ≤ ℵ₀ :=

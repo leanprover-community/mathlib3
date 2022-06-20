@@ -11,7 +11,7 @@ import algebra.direct_sum.decomposition
 # Graded Module
 
 Given an `R`-algebra `A` graded by `𝓐`, a graded `A`-module `M` is expressed as
-`direct_sum.decomposition 𝓜` and `set_like.has_graded_smul 𝓐 𝓜`.
+`direct_sum.decomposition 𝓜` and `set_like.has_graded_scalar 𝓐 𝓜`.
 Then `⨁ i, 𝓜 i` is an `A`-module and is isomorphic to `M`.
 
 ## Tags
@@ -31,7 +31,7 @@ variables [set_like σ M] [add_submonoid_class σ M] (𝓜 : ι → σ)
 namespace graded_module
 
 instance graded_algebra.to_graded_module [graded_algebra 𝓐] :
-  set_like.has_graded_smul 𝓐 (λ i, (𝓐 i).to_add_submonoid) :=
+  set_like.has_graded_scalar 𝓐 (λ i, (𝓐 i).to_add_submonoid) :=
 { smul_mem := λ i j x y hi hj, set_like.graded_monoid.mul_mem hi hj }
 
 /--

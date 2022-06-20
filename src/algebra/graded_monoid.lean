@@ -98,7 +98,7 @@ def mk {A : ι → Type*} : Π i, A i → graded_monoid A := sigma.mk
 /-! ### Typeclasses -/
 section defs
 
-variables (A : ι → Type*)
+variables (A : ι → Type*) (M : ι → Type*)
 
 /-- A graded version of `has_one`, which must be of grade 0. -/
 class ghas_one [has_zero ι] :=
@@ -113,10 +113,17 @@ instance ghas_one.to_has_one [has_zero ι] [ghas_one A] : has_one (graded_monoid
 class ghas_mul [has_add ι] :=
 (mul {i j} : A i → A j → A (i + j))
 
+class ghas_scalar [has_add ι] :=
+(smul {i j} : A i → M j → M (i + j))
+
 /-- `ghas_mul` implies `has_mul (graded_monoid A)`. -/
 instance ghas_mul.to_has_mul [has_add ι] [ghas_mul A] :
   has_mul (graded_monoid A) :=
 ⟨λ (x y : graded_monoid A), ⟨_, ghas_mul.mul x.snd y.snd⟩⟩
+
+instance ghas_scalar.to_has_scalar [has_add ι] [ghas_scalar A M] :
+  has_scalar (graded_monoid A) (graded_monoid M) :=
+⟨λ (x : graded_monoid A) (y : graded_monoid M), ⟨_, ghas_scalar.smul x.snd y.snd⟩⟩
 
 lemma mk_mul_mk [has_add ι] [ghas_mul A] {i j} (a : A i) (b : A j) :
   mk i a * mk j b = mk (i + j) (ghas_mul.mul a b) :=
@@ -423,9 +430,14 @@ class set_like.has_graded_mul {S : Type*} [set_like S R] [has_mul R] [has_add ι
   (A : ι → S) : Prop :=
 (mul_mem : ∀ ⦃i j⦄ {gi gj}, gi ∈ A i → gj ∈ A j → gi * gj ∈ A (i + j))
 
-class set_like.has_graded_smul {S R N M : Type*} [set_like S R] [set_like N M]
+class set_like.has_graded_scalar {S R N M : Type*} [set_like S R] [set_like N M]
   [has_scalar R M] [has_add ι] (A : ι → S) (B : ι → N) : Prop :=
 (smul_mem : ∀ ⦃i j : ι⦄ {ai bj}, ai ∈ A i → bj ∈ B j → ai • bj ∈ B (i + j))
+
+instance set_like.ghas_scalar {S R N M : Type*} [set_like S R] [set_like N M]
+  [has_scalar R M] [has_add ι] (A : ι → S) (B : ι → N) [set_like.has_graded_scalar A B] :
+  graded_monoid.ghas_scalar (λ i, A i) (λ i, B i) :=
+{ smul := λ i j a b, ⟨(a : R) • b, set_like.has_graded_scalar.smul_mem a.2 b.2⟩ }
 
 instance set_like.ghas_mul {S : Type*} [set_like S R] [has_mul R] [has_add ι] (A : ι → S)
   [set_like.has_graded_mul A] :

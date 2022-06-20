@@ -76,6 +76,40 @@ by {induction G, exact digraph.handshake G, refl}
 
 end basic
 
+structure walk' (G : graph V E) :=
+(endpoints : V → V)
+
+inductive walk (G : graph V E) : V → V → Type (max u v)
+| nil {x : V} : walk x x
+| cons (a : V) {x y : V} (e : E) (h : G.ends_are e a x) (p : walk x y) : walk a y
+
+attribute [refl] walk.nil
+
+variables (G : graph V E)
+
+def reachable (u v : V) : Prop := nonempty (G.walk u v)
+
+namespace walk
+variables {G}
+
+/-- The concatenation of two compatible walks. -/
+@[trans]
+def append : Π {u v w : V}, G.walk u v → G.walk v w → G.walk u w
+| _ _ _ nil q := q
+| _ _ _ (cons a e h p) q := cons a e h (p.append q)
+
+@[refl] protected lemma reachable.refl (u : V) : G.reachable u u := by { fsplit, refl }
+protected lemma reachable.rfl {u : V} : G.reachable u u := reachable.refl _
+
+@[trans] protected lemma reachable.trans {u v w : V}
+  (huv : G.reachable u v) (hvw : G.reachable v w) :
+  G.reachable u w :=
+huv.elim (λ puv, hvw.elim (λ pvw, ⟨puv.append pvw⟩))
+
+
+-- not an equivalence because you don't have symmetry in directed graphs lol
+
+end walk
 
 -- inductive walk (G : graph V E) : V → V → Type (max u v)
 -- | nil {x : V} : walk x x

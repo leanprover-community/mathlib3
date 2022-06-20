@@ -355,7 +355,7 @@ finset.nonempty.card_pos (G.ends_finset_nonempty e)
 
 lemma card_ends_finset_eq_one_of_loop (h : G.is_loop e):
   (G.ends_finset e).card = 1 :=
-by {rw is_loop at h, rw [ends_finset,h,finset.pair_self_eq, finset.card_singleton], }
+by {rw is_loop at h, rw [ends_finset,h,finset.pair_eq_singleton, finset.card_singleton], }
 
 lemma loop_of_card_ends_finset_eq_one (h : (G.ends_finset e).card = 1):
   G.is_loop e :=
@@ -378,7 +378,8 @@ lemma nonloop_of_card_ends_finset_eq_two (h : (G.ends_finset e).card = 2):
 begin
   rw is_loop, intro h_loop,
   rw [ends_finset, h_loop] at h,
-  simp only [finset.pair_self_eq, finset.card_singleton, nat.one_ne_bit0] at h,
+  rw finset.pair_eq_singleton at h,
+  simp only [finset.pair_eq_singleton, finset.card_singleton, nat.one_ne_bit0] at h,
   assumption,
 end
 

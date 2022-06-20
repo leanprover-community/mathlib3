@@ -47,7 +47,7 @@ possible values of a nonzero `j`. Otherwise, when `q ≥ n+2`, all the compositi
 def higher_faces_vanish {Y : C} {n : ℕ} (q : ℕ) (φ : Y ⟶ X _[n+1]) : Prop :=
 ∀ (j : fin (n+1)), (n+1 ≤ (j : ℕ) + q) → φ ≫ X.δ j.succ = 0
 
-lemma downgrade_vanishing {Y : C} {n : ℕ} {q : ℕ} {φ : Y ⟶ X _[n+1]}
+lemma higher_faces_vanish_of_succ {Y : C} {n : ℕ} {q : ℕ} {φ : Y ⟶ X _[n+1]}
   (v : higher_faces_vanish (q+1) φ) : higher_faces_vanish q φ :=
 λ j hj, v j (by simpa only [← add_assoc] using le_add_right hj)
 

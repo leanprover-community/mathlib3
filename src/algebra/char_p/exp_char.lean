@@ -52,16 +52,13 @@ theorem char_eq_exp_char_iff (p q : ℕ) [hp : char_p R p] [hq : exp_char R q] :
   p = q ↔ p.prime :=
 begin
   casesI hq with q hq_one hq_prime,
-  { split,
+  { apply iff_of_false,
     { unfreezingI {rintro rfl},
-      exact false.elim (one_ne_zero (hp.eq R (char_p.of_char_zero R))) },
+      exact one_ne_zero (hp.eq R (char_p.of_char_zero R)) },
     { intro pprime,
       rw (char_p.eq R hp infer_instance : p = 0) at pprime,
-      exact false.elim (nat.not_prime_zero pprime) } },
-  { split,
-    { intro hpq, rw hpq, exact hq_prime, },
-    { intro _,
-      exact char_p.eq R hp hq_hchar } },
+      exact nat.not_prime_zero pprime } },
+  { exact ⟨λ hpq, hpq.symm ▸ hq_prime, λ _, char_p.eq R hp hq_hchar⟩ },
 end
 
 section nontrivial

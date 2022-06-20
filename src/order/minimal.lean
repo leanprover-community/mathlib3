@@ -27,7 +27,7 @@ variables {α : Type*} (r r₁ r₂ : α → α → Prop) (s t : set α) (a : α
 /-- Turns a set into an antichain by keeping only the "maximal" elements. -/
 def maximals : set α := {a ∈ s | ∀ ⦃b⦄, b ∈ s → r a b → a = b}
 
-/-- Turns a set into an antichain by keeping only the "maximal" elements. -/
+/-- Turns a set into an antichain by keeping only the "minimal" elements. -/
 def minimals : set α := {a ∈ s | ∀ ⦃b⦄, b ∈ s → r b a → a = b}
 
 lemma maximals_subset : maximals r s ⊆ s := sep_subset _ _
@@ -84,10 +84,10 @@ lemma inter_maximals_subset : s ∩ maximals r t ⊆ maximals r (s ∩ t) :=
 lemma inter_minimals_subset : s ∩ minimals r t ⊆ minimals r (s ∩ t) := inter_maximals_subset
 
 lemma _root_.is_antichain.maximals_eq (h : is_antichain r s) : maximals r s = s :=
-(maximals_subset _ _).antisymm $ λ a ha, ⟨ha, λ b, h.eq_of_related ha⟩
+(maximals_subset _ _).antisymm $ λ a ha, ⟨ha, λ b, h.eq ha⟩
 
 lemma _root_.is_antichain.minimals_eq (h : is_antichain r s) : minimals r s = s :=
-(minimals_subset _ _).antisymm $ λ a ha, ⟨ha, λ b, h.eq_of_related' ha⟩
+(minimals_subset _ _).antisymm $ λ a ha, ⟨ha, λ b, h.eq' ha⟩
 
 @[simp] lemma maximals_idem : maximals r (maximals r s) = maximals r s :=
 (maximals_antichain _ _).maximals_eq
@@ -129,3 +129,18 @@ eq_singleton_iff_unique_mem.2 ⟨h.mem_minimals, λ b hb, hb.2 h.1 $ h.2 hb.1⟩
 
 lemma is_greatest.maximals_eq (h : is_greatest s a) : maximals (≤) s = {a} :=
 eq_singleton_iff_unique_mem.2 ⟨h.mem_maximals, λ b hb, hb.2 h.1 $ h.2 hb.1⟩
+
+lemma is_antichain.max_lower_set_of (hs : is_antichain (≤) s) :
+  maximals (≤) {x | ∃ y ∈ s, x ≤ y} = s :=
+begin
+  ext x,
+  simp only [maximals, exists_prop, mem_set_of_eq, forall_exists_index, and_imp, sep_set_of],
+  refine ⟨λ h, exists.elim h.1 (λ y hy, ((h.2 _ hy.1 rfl.le hy.2).symm.subst hy.1)),
+    λ h, ⟨⟨x,h,rfl.le⟩,λ b y hy hby hxy, _⟩⟩,
+  have : x = y := by_contra (λ h_eq, (hs h hy h_eq (hxy.trans hby)).elim),
+  exact hxy.antisymm (this.symm.subst hby),
+end
+
+lemma is_antichain.min_upper_set_of (hs : is_antichain (≤) s) :
+  minimals (≤) {x | ∃ y ∈ s, y ≤ x} = s :=
+hs.to_dual.max_lower_set_of

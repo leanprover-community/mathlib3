@@ -117,14 +117,11 @@ begin
     by simp only [this, norm],
   ext r,
   split,
-  { rintros ⟨m, hm : mk' S m = x, rfl⟩,
-    subst hm,
+  { rintros ⟨m, rfl : mk' S m = x, rfl⟩,
     rw ← norm_neg,
     exact ⟨-m, by simp only [(mk' S).map_neg, set.mem_set_of_eq], rfl⟩ },
   { rintros ⟨m, hm : mk' S m = -x, rfl⟩,
-    use -m,
-    simp at hm,
-    simp [hm], }
+    exact ⟨-m, by simpa [eq_comm] using eq_neg_iff_eq_neg.mp ((mk'_apply _ _).symm.trans hm)⟩ }
 end
 
 lemma quotient_norm_sub_rev {S : add_subgroup M} (x y : M ⧸ S) : ∥x - y∥ = ∥y - x∥ :=
@@ -268,7 +265,7 @@ lemma quotient_nhd_basis (S : add_subgroup M) :
     linarith },
   { rintros ⟨ε, ε_pos, h⟩,
     have : (mk' S) '' (ball (0 : M) ε) ⊆ {x | ∥x∥ < ε},
-    { rintros - ⟨x, x_in, rfl⟩,
+    { rintros _ ⟨x, x_in, rfl⟩,
       rw mem_ball_zero_iff at x_in,
       exact lt_of_le_of_lt (quotient_norm_mk_le S x) x_in },
     apply filter.mem_of_superset _ (set.subset.trans this h),
@@ -413,7 +410,7 @@ end
 lemma norm_trivial_quotient_mk (S : add_subgroup M)
   (h : (S.topological_closure : set M) = set.univ) : ∥S.normed_mk∥ = 0 :=
 begin
-  refine le_antisymm (op_norm_le_bound _ (le_refl _) (λ x, _)) (norm_nonneg _),
+  refine le_antisymm (op_norm_le_bound _ le_rfl (λ x, _)) (norm_nonneg _),
   have hker : x ∈ (S.normed_mk).ker.topological_closure,
   { rw [S.ker_normed_mk],
     exact set.mem_of_eq_of_mem h trivial },

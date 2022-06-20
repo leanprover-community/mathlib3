@@ -50,6 +50,9 @@ end
 @[simp] lemma Inf_empty : Inf ∅ = 0 :=
 by { rw Inf_eq_zero, right, refl }
 
+@[simp] lemma infi_of_empty {ι : Sort*} [is_empty ι] (f : ι → ℕ) : infi f = 0 :=
+by rw [infi_of_empty', Inf_empty]
+
 lemma Inf_mem {s : set ℕ} (h : s.nonempty) : Inf s ∈ s :=
 by { rw [nat.Inf_def h], exact nat.find_spec h }
 
@@ -84,7 +87,7 @@ begin
   split,
   { intro H,
     rw [eq_Ici_of_nonempty_of_upward_closed (nonempty_of_Inf_eq_succ H) hs, H, mem_Ici, mem_Ici],
-    exact ⟨le_refl _, k.not_succ_le_self⟩, },
+    exact ⟨le_rfl, k.not_succ_le_self⟩, },
   { rintro ⟨H, H'⟩,
     rw [Inf_def (⟨_, H⟩ : s.nonempty), find_eq_iff],
     exact ⟨H, λ n hnk hns, H' $ hs n k (lt_succ_iff.mp hnk) hns⟩, },
@@ -152,10 +155,10 @@ lemma supr_lt_succ' (u : ℕ → α) (n : ℕ) : (⨆ k < n + 1, u k) = u 0 ⊔ 
 by { rw ← sup_supr_nat_succ, simp }
 
 lemma infi_lt_succ (u : ℕ → α) (n : ℕ) : (⨅ k < n + 1, u k) = (⨅ k < n, u k) ⊓ u n :=
-@supr_lt_succ (order_dual α) _ _ _
+@supr_lt_succ αᵒᵈ _ _ _
 
 lemma infi_lt_succ' (u : ℕ → α) (n : ℕ) : (⨅ k < n + 1, u k) = u 0 ⊓ (⨅ k < n, u (k + 1)) :=
-@supr_lt_succ' (order_dual α) _ _ _
+@supr_lt_succ' αᵒᵈ _ _ _
 
 end
 

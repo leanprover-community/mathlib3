@@ -57,7 +57,7 @@ by rw [mem_circle_iff_abs, complex.abs, real.sqrt_eq_one]
 
 @[simp] lemma norm_sq_eq_of_mem_circle (z : circle) : norm_sq z = 1 := by simp [norm_sq_eq_abs]
 
-lemma nonzero_of_mem_circle (z : circle) : (z:ℂ) ≠ 0 := nonzero_of_mem_unit_sphere z
+lemma ne_zero_of_mem_circle (z : circle) : (z:ℂ) ≠ 0 := ne_zero_of_mem_unit_sphere z
 
 instance : comm_group circle :=
 { inv := λ z, ⟨conj (z : ℂ), by simp⟩,
@@ -70,7 +70,7 @@ lemma coe_inv_circle_eq_conj (z : circle) : ↑(z⁻¹) = conj (z : ℂ) := rfl
 @[simp] lemma coe_inv_circle (z : circle) : ↑(z⁻¹) = (z : ℂ)⁻¹ :=
 begin
   rw coe_inv_circle_eq_conj,
-  apply eq_inv_of_mul_right_eq_one,
+  apply eq_inv_of_mul_eq_one_right,
   rw [mul_comm, ← complex.norm_sq_eq_conj_mul_self],
   simp,
 end
@@ -81,7 +81,7 @@ show ↑(z * w⁻¹) = (z:ℂ) * w⁻¹, by simp
 /-- The elements of the circle embed into the units. -/
 @[simps]
 def circle.to_units : circle →* units ℂ :=
-{ to_fun := λ x, units.mk0 x $ nonzero_of_mem_circle _,
+{ to_fun := λ x, units.mk0 x $ ne_zero_of_mem_circle _,
   map_one' := units.ext rfl,
   map_mul' := λ x y, units.ext rfl }
 
@@ -122,3 +122,6 @@ def exp_map_circle_hom : ℝ →+ (additive circle) :=
 @[simp] lemma exp_map_circle_sub (x y : ℝ) :
   exp_map_circle (x - y) = exp_map_circle x / exp_map_circle y :=
 exp_map_circle_hom.map_sub x y
+
+@[simp] lemma exp_map_circle_neg (x : ℝ) : exp_map_circle (-x) = (exp_map_circle x)⁻¹ :=
+exp_map_circle_hom.map_neg x

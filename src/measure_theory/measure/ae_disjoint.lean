@@ -53,8 +53,17 @@ protected lemma symmetric : symmetric (ae_disjoint μ) := λ s t h, h.symm
 
 protected lemma comm : ae_disjoint μ s t ↔ ae_disjoint μ t s := ⟨λ h, h.symm, λ h, h.symm⟩
 
-lemma _root_.disjoint.ae_disjoint (h : disjoint s t) : ae_disjoint μ s t :=
+protected lemma _root_.disjoint.ae_disjoint (h : disjoint s t) : ae_disjoint μ s t :=
 by rw [ae_disjoint, disjoint_iff_inter_eq_empty.1 h, measure_empty]
+
+protected lemma _root_.pairwise.ae_disjoint {f : ι → set α} (hf : pairwise (disjoint on f)) :
+  pairwise (ae_disjoint μ on f) :=
+hf.mono $ λ i j h, h.ae_disjoint
+
+protected lemma _root_.set.pairwise_disjoint.ae_disjoint {f : ι → set α} {s : set ι}
+  (hf : s.pairwise_disjoint f) :
+  s.pairwise (ae_disjoint μ on f) :=
+hf.mono' $ λ i j h, h.ae_disjoint
 
 lemma mono_ae (h : ae_disjoint μ s t) (hu : u ≤ᵐ[μ] s) (hv : v ≤ᵐ[μ] t) : ae_disjoint μ u v :=
 measure_mono_null_ae (hu.inter hv) h
@@ -82,6 +91,16 @@ union_left_iff.mpr ⟨hs, ht⟩
 lemma union_right (ht : ae_disjoint μ s t) (hu : ae_disjoint μ s u) : ae_disjoint μ s (t ∪ u) :=
 union_right_iff.2 ⟨ht, hu⟩
 
+lemma diff_ae_eq_left (h : ae_disjoint μ s t) : (s \ t : set α) =ᵐ[μ] s :=
+@diff_self_inter _ s t ▸ diff_null_ae_eq_self h
+
+lemma diff_ae_eq_right (h : ae_disjoint μ s t) : (t \ s : set α) =ᵐ[μ] t := h.symm.diff_ae_eq_left
+
+lemma measure_diff_left (h : ae_disjoint μ s t) : μ (s \ t) = μ s := measure_congr h.diff_ae_eq_left
+
+lemma measure_diff_right (h : ae_disjoint μ s t) : μ (t \ s) = μ t :=
+measure_congr h.diff_ae_eq_right
+
 /-- If `s` and `t` are `μ`-a.e. disjoint, then `s \ u` and `t` are disjoint for some measurable null
 set `u`. -/
 lemma exists_disjoint_diff (h : ae_disjoint μ s t) :
@@ -95,5 +114,8 @@ measure_mono_null (inter_subset_right _ _) h
 lemma of_null_left (h : μ s = 0) : ae_disjoint μ s t := (of_null_right h).symm
 
 end ae_disjoint
+
+lemma ae_disjoint_compl_left : ae_disjoint μ sᶜ s := (@disjoint_compl_left _ s _).ae_disjoint
+lemma ae_disjoint_compl_right : ae_disjoint μ s sᶜ := (@disjoint_compl_right _ s _).ae_disjoint
 
 end measure_theory

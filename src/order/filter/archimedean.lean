@@ -99,21 +99,25 @@ instance at_bot_countably_generated_of_archimedean [linear_ordered_ring R] [arch
   (at_bot : filter R).is_countably_generated :=
 at_bot_countable_basis_of_archimedean.is_countably_generated
 
-variables [linear_ordered_semiring R] [archimedean R]
+namespace filter
+
 variables {l : filter α} {f : α → R} {r : R}
+
+section linear_ordered_semiring
+
+variables [linear_ordered_semiring R] [archimedean R]
 
 /-- If a function tends to infinity along a filter, then this function multiplied by a positive
 constant (on the left) also tends to infinity. The archimedean assumption is convenient to get a
 statement that works on `ℕ`, `ℤ` and `ℝ`, although not necessary (a version in ordered fields is
 given in `filter.tendsto.const_mul_at_top`). -/
-lemma filter.tendsto.const_mul_at_top' (hr : 0 < r) (hf : tendsto f l at_top) :
+lemma tendsto.const_mul_at_top' (hr : 0 < r) (hf : tendsto f l at_top) :
   tendsto (λx, r * f x) l at_top :=
 begin
   apply tendsto_at_top.2 (λb, _),
   obtain ⟨n : ℕ, hn : 1 ≤ n • r⟩ := archimedean.arch 1 hr,
   rw nsmul_eq_mul' at hn,
-  filter_upwards [tendsto_at_top.1 hf (n * max b 0)],
-  assume x hx,
+  filter_upwards [tendsto_at_top.1 hf (n * max b 0)] with x hx,
   calc b ≤ 1 * max b 0 : by { rw [one_mul], exact le_max_left _ _ }
   ... ≤ (r * n) * max b 0 : mul_le_mul_of_nonneg_right hn (le_max_right _ _)
   ... = r * (n * max b 0) : by rw [mul_assoc]
@@ -124,16 +128,118 @@ end
 constant (on the right) also tends to infinity. The archimedean assumption is convenient to get a
 statement that works on `ℕ`, `ℤ` and `ℝ`, although not necessary (a version in ordered fields is
 given in `filter.tendsto.at_top_mul_const`). -/
-lemma filter.tendsto.at_top_mul_const' (hr : 0 < r) (hf : tendsto f l at_top) :
+lemma tendsto.at_top_mul_const' (hr : 0 < r) (hf : tendsto f l at_top) :
   tendsto (λx, f x * r) l at_top :=
 begin
   apply tendsto_at_top.2 (λb, _),
   obtain ⟨n : ℕ, hn : 1 ≤ n • r⟩ := archimedean.arch 1 hr,
   have hn' : 1 ≤ (n : R) * r, by rwa nsmul_eq_mul at hn,
-  filter_upwards [tendsto_at_top.1 hf (max b 0 * n)],
-  assume x hx,
+  filter_upwards [tendsto_at_top.1 hf (max b 0 * n)] with x hx,
   calc b ≤ max b 0 * 1 : by { rw [mul_one], exact le_max_left _ _ }
   ... ≤ max b 0 * (n * r) : mul_le_mul_of_nonneg_left hn' (le_max_right _ _)
   ... = (max b 0 * n) * r : by rw [mul_assoc]
   ... ≤ f x * r : mul_le_mul_of_nonneg_right hx (le_of_lt hr)
 end
+
+end linear_ordered_semiring
+
+section linear_ordered_ring
+
+variables [linear_ordered_ring R] [archimedean R]
+
+/-- See also `filter.tendsto.at_top_mul_neg_const` for a version of this lemma for
+`linear_ordered_field`s which does not require the `archimedean` assumption. -/
+lemma tendsto.at_top_mul_neg_const' (hr : r < 0) (hf : tendsto f l at_top) :
+  tendsto (λx, f x * r) l at_bot :=
+begin
+  have h : (λ x, f x * -r) = -λ x, f x * r, { ext, simp, },
+  rw tendsto_at_bot_iff_tends_to_neg_at_top,
+  exact h ▸ tendsto.at_top_mul_const' (neg_pos.mpr hr) hf,
+end
+
+/-- See also `filter.tendsto.at_bot_mul_const` for a version of this lemma for
+`linear_ordered_field`s which does not require the `archimedean` assumption. -/
+lemma tendsto.at_bot_mul_const' (hr : 0 < r) (hf : tendsto f l at_bot) :
+  tendsto (λx, f x * r) l at_bot :=
+begin
+  have h : (λ x, (-f) x * r) = -λ x, f x * r, { ext, simp, },
+  rw tendsto_at_bot_iff_tends_to_neg_at_top at hf ⊢,
+  exact h ▸  tendsto.at_top_mul_const' hr hf,
+end
+
+/-- See also `filter.tendsto.at_bot_mul_neg_const` for a version of this lemma for
+`linear_ordered_field`s which does not require the `archimedean` assumption. -/
+lemma tendsto.at_bot_mul_neg_const' (hr : r < 0) (hf : tendsto f l at_bot) :
+  tendsto (λx, f x * r) l at_top :=
+begin
+  have h : (λ x, (-f) x * r) = -λ x, f x * r, { ext, simp, },
+  rw tendsto_at_bot_iff_tends_to_neg_at_top at hf,
+  rw tendsto_at_top_iff_tends_to_neg_at_bot,
+  exact h ▸ tendsto.at_top_mul_neg_const' hr hf,
+end
+
+end linear_ordered_ring
+
+section linear_ordered_cancel_add_comm_monoid
+
+variables [linear_ordered_cancel_add_comm_monoid R] [archimedean R]
+
+lemma tendsto.at_top_nsmul_const {f : α → ℕ} (hr : 0 < r) (hf : tendsto f l at_top) :
+  tendsto (λ x, f x • r) l at_top :=
+begin
+  refine tendsto_at_top.mpr (λ s, _),
+  obtain ⟨n : ℕ, hn : s ≤ n • r⟩ := archimedean.arch s hr,
+  exact (tendsto_at_top.mp hf n).mono (λ a ha, hn.trans (nsmul_le_nsmul hr.le ha)),
+end
+
+end linear_ordered_cancel_add_comm_monoid
+
+section linear_ordered_add_comm_group
+
+variables [linear_ordered_add_comm_group R] [archimedean R]
+
+lemma tendsto.at_top_nsmul_neg_const {f : α → ℕ} (hr : r < 0) (hf : tendsto f l at_top) :
+  tendsto (λ x, f x • r) l at_bot :=
+begin
+  have h : (λ x, f x • -r) = -λ x, f x • r, { ext, simp, },
+  rw tendsto_at_bot_iff_tends_to_neg_at_top,
+  exact h ▸ tendsto.at_top_nsmul_const (neg_pos.mpr hr) hf,
+end
+
+lemma tendsto.at_top_zsmul_const {f : α → ℤ} (hr : 0 < r) (hf : tendsto f l at_top) :
+  tendsto (λ x, f x • r) l at_top :=
+begin
+  refine tendsto_at_top.mpr (λ s, _),
+  obtain ⟨n : ℕ, hn : s ≤ n • r⟩ := archimedean.arch s hr,
+  replace hn : s ≤ (n : ℤ) • r, { simpa, },
+  exact (tendsto_at_top.mp hf n).mono (λ a ha, hn.trans (zsmul_le_zsmul hr.le ha)),
+end
+
+lemma tendsto.at_top_zsmul_neg_const {f : α → ℤ} (hr : r < 0) (hf : tendsto f l at_top) :
+  tendsto (λ x, f x • r) l at_bot :=
+begin
+  have h : (λ x, f x • -r) = -λ x, f x • r, { ext, simp [zsmul_neg], },
+  rw tendsto_at_bot_iff_tends_to_neg_at_top,
+  exact h ▸ tendsto.at_top_zsmul_const (neg_pos.mpr hr) hf,
+end
+
+lemma tendsto.at_bot_zsmul_const {f : α → ℤ} (hr : 0 < r) (hf : tendsto f l at_bot) :
+  tendsto (λ x, f x • r) l at_bot :=
+begin
+  have h : (λ x, (-f) x • r) = -λ x, f x • r, { ext, simp, },
+  rw tendsto_at_bot_iff_tends_to_neg_at_top at hf ⊢,
+  exact h ▸ tendsto.at_top_zsmul_const hr hf,
+end
+
+lemma tendsto.at_bot_zsmul_neg_const {f : α → ℤ} (hr : r < 0) (hf : tendsto f l at_bot) :
+  tendsto (λ x, f x • r) l at_top :=
+begin
+  have h : (λ x, (-f) x • r) = -λ x, f x • r, { ext, simp, },
+  rw tendsto_at_bot_iff_tends_to_neg_at_top at hf,
+  rw tendsto_at_top_iff_tends_to_neg_at_bot,
+  exact h ▸ tendsto.at_top_zsmul_neg_const hr hf,
+end
+
+end linear_ordered_add_comm_group
+
+end filter

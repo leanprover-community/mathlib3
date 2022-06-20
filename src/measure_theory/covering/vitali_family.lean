@@ -203,6 +203,10 @@ begin
   exact ⟨1, zero_lt_one⟩
 end
 
+lemma eventually_filter_at_measurable_set (x : α) :
+  ∀ᶠ a in v.filter_at x, measurable_set a :=
+by { filter_upwards [v.eventually_filter_at_mem_sets x] with _ ha using v.measurable_set' _ _ ha }
+
 lemma frequently_filter_at_iff {x : α} {P : set α → Prop} :
   (∃ᶠ a in v.filter_at x, P a) ↔ ∀ (ε > (0 : ℝ)), ∃ a ∈ v.sets_at x, a ⊆ closed_ball x ε ∧ P a :=
 by simp only [filter.frequently, eventually_filter_at_iff, not_exists, exists_prop, not_and,

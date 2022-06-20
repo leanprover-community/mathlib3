@@ -31,7 +31,7 @@ not hard but quite a pain to go about as there are many cases to consider.
 * https://en.wikipedia.org/wiki/Quasiconvex_function
 -/
 
-open function set
+open function order_dual set
 
 variables {𝕜 E F β : Type*}
 
@@ -62,17 +62,9 @@ quasiconvex_on 𝕜 s f ∧ quasiconcave_on 𝕜 s f
 
 variables {𝕜 s f}
 
-lemma quasiconvex_on.dual (hf : quasiconvex_on 𝕜 s f) :
-  @quasiconcave_on 𝕜 E (order_dual β) _ _ _ _ s f :=
-hf
-
-lemma quasiconcave_on.dual (hf : quasiconcave_on 𝕜 s f) :
-  @quasiconvex_on 𝕜 E (order_dual β) _ _ _ _ s f :=
-hf
-
-lemma quasilinear_on.dual (hf : quasilinear_on 𝕜 s f) :
-  @quasilinear_on 𝕜 E (order_dual β) _ _ _ _ s f :=
-⟨hf.2, hf.1⟩
+lemma quasiconvex_on.dual : quasiconvex_on 𝕜 s f → quasiconcave_on 𝕜 s (to_dual ∘ f) := id
+lemma quasiconcave_on.dual : quasiconcave_on 𝕜 s f → quasiconvex_on 𝕜 s (to_dual ∘ f) := id
+lemma quasilinear_on.dual : quasilinear_on 𝕜 s f → quasilinear_on 𝕜 s (to_dual ∘ f) := and.swap
 
 lemma convex.quasiconvex_on_of_convex_le (hs : convex 𝕜 s) (h : ∀ r, convex 𝕜 {x | f x ≤ r}) :
   quasiconvex_on 𝕜 s f :=
@@ -80,13 +72,13 @@ lemma convex.quasiconvex_on_of_convex_le (hs : convex 𝕜 s) (h : ∀ r, convex
 
 lemma convex.quasiconcave_on_of_convex_ge (hs : convex 𝕜 s) (h : ∀ r, convex 𝕜 {x | r ≤ f x}) :
   quasiconcave_on 𝕜 s f :=
-@convex.quasiconvex_on_of_convex_le 𝕜 E (order_dual β) _ _ _ _ _ _ hs h
+@convex.quasiconvex_on_of_convex_le 𝕜 E βᵒᵈ _ _ _ _ _ _ hs h
 
 lemma quasiconvex_on.convex [is_directed β (≤)] (hf : quasiconvex_on 𝕜 s f) : convex 𝕜 s :=
 λ x y hx hy a b ha hb hab,
   let ⟨z, hxz, hyz⟩ := exists_ge_ge (f x) (f y) in (hf _ ⟨hx, hxz⟩ ⟨hy, hyz⟩ ha hb hab).1
 
-lemma quasiconcave_on.convex [is_directed β (swap (≤))] (hf : quasiconcave_on 𝕜 s f) : convex 𝕜 s :=
+lemma quasiconcave_on.convex [is_directed β (≥)] (hf : quasiconcave_on 𝕜 s f) : convex 𝕜 s :=
 hf.dual.convex
 
 end ordered_add_comm_monoid
@@ -122,7 +114,7 @@ lemma quasiconcave_on_iff_min_le :
   quasiconcave_on 𝕜 s f ↔ convex 𝕜 s ∧
     ∀ ⦃x y : E⦄, x ∈ s → y ∈ s → ∀ ⦃a b : 𝕜⦄, 0 ≤ a → 0 ≤ b → a + b = 1 →
       min (f x) (f y) ≤ f (a • x + b • y) :=
-@quasiconvex_on_iff_le_max 𝕜 E (order_dual β) _ _ _ _ _ _
+@quasiconvex_on_iff_le_max 𝕜 E βᵒᵈ _ _ _ _ _ _
 
 lemma quasilinear_on_iff_mem_interval :
   quasilinear_on 𝕜 s f ↔ convex 𝕜 s ∧

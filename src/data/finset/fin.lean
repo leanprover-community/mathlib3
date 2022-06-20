@@ -35,7 +35,7 @@ set.eq_univ_of_forall mem_fin_range
 /-- Given a finset `s` of `ℕ` contained in `{0,..., n-1}`, the corresponding finset in `fin n`
 is `s.attach_fin h` where `h` is a proof that all elements of `s` are less than `n`. -/
 def attach_fin (s : finset ℕ) {n : ℕ} (h : ∀ m ∈ s, m < n) : finset (fin n) :=
-⟨s.1.pmap (λ a ha, ⟨a, ha⟩) h, multiset.nodup_pmap (λ _ _ _ _, fin.veq_of_eq) s.2⟩
+⟨s.1.pmap (λ a ha, ⟨a, ha⟩) h, s.nodup.pmap $ λ _ _ _ _, fin.veq_of_eq⟩
 
 @[simp] lemma mem_attach_fin {n : ℕ} {s : finset ℕ} (h : ∀ m ∈ s, m < n) {a : fin n} :
   a ∈ s.attach_fin h ↔ (a : ℕ) ∈ s :=

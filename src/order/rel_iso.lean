@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import algebra.group.defs
-import data.equiv.set
-import data.fun_like
+import data.fun_like.basic
 import logic.embedding
+import logic.equiv.set
 import order.rel_classes
 
 /-!
@@ -74,7 +74,7 @@ lemma map_inf [semilattice_inf α] [linear_order β]
 lemma map_sup [semilattice_sup α] [linear_order β]
   [rel_hom_class F ((>) : β → β → Prop) ((>) : α → α → Prop)]
   (a : F) (m n : β) : a (m ⊔ n) = a m ⊔ a n :=
-@map_inf (order_dual α) (order_dual β) _ _ _ _ _ _ _
+@map_inf αᵒᵈ βᵒᵈ _ _ _ _ _ _ _
 
 protected theorem is_irrefl [rel_hom_class F r s] (f : F) : ∀ [is_irrefl β s], is_irrefl α r
 | ⟨H⟩ := ⟨λ a h, H _ (map_rel f h)⟩
@@ -486,6 +486,10 @@ lemma mul_apply (e₁ e₂ : r ≃r r) (x : α) : (e₁ * e₂) x = e₁ (e₂ x
 
 @[simp] lemma apply_inv_self (e : r ≃r r) (x) : e (e⁻¹ x) = x := e.apply_symm_apply x
 
+/-- Two relations on empty types are isomorphic. -/
+def rel_iso_of_is_empty (r : α → α → Prop) (s : β → β → Prop) [is_empty α] [is_empty β] : r ≃r s :=
+⟨equiv.equiv_of_is_empty α β, is_empty_elim⟩
+
 end rel_iso
 
 /-- `subrel r p` is the inherited relation on a subset. -/
@@ -504,9 +508,20 @@ protected def rel_embedding (r : α → α → Prop) (p : set α) :
 @[simp] theorem rel_embedding_apply (r : α → α → Prop) (p a) :
   subrel.rel_embedding r p a = a.1 := rfl
 
-instance (r : α → α → Prop) [is_well_order α r]
-  (p : set α) : is_well_order p (subrel r p) :=
+instance (r : α → α → Prop) [is_well_order α r] (p : set α) : is_well_order p (subrel r p) :=
 rel_embedding.is_well_order (subrel.rel_embedding r p)
+
+instance (r : α → α → Prop) [is_refl α r] (p : set α) : is_refl p (subrel r p) :=
+⟨λ x, @is_refl.refl α r _ x⟩
+
+instance (r : α → α → Prop) [is_symm α r] (p : set α) : is_symm p (subrel r p) :=
+⟨λ x y, @is_symm.symm α r _ x y⟩
+
+instance (r : α → α → Prop) [is_trans α r] (p : set α) : is_trans p (subrel r p) :=
+⟨λ x y z, @is_trans.trans α r _ x y z⟩
+
+instance (r : α → α → Prop) [is_irrefl α r] (p : set α) : is_irrefl p (subrel r p) :=
+⟨λ x, @is_irrefl.irrefl α r _ x⟩
 
 end subrel
 

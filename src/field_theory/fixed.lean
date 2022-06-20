@@ -100,7 +100,7 @@ polynomial.induction_on p
   (λ n x ih, by rw [smul_mul', polynomial.smul_C, smul, smul_pow', polynomial.smul_X])
 
 instance : algebra (fixed_points.subfield M F) F :=
-algebra.of_subring (fixed_points.subfield M F).to_subring
+by apply_instance
 
 theorem coe_algebra_map :
   algebra_map (fixed_points.subfield M F) F = subfield.subtype (fixed_points.subfield M F) :=
@@ -249,8 +249,8 @@ dim_le $ λ s hs, by simpa only [dim_fun', cardinal.mk_finset, finset.coe_sort_c
     (linear_independent_smul_of_linear_independent G F hs)
 
 instance : finite_dimensional (fixed_points.subfield G F) F :=
-is_noetherian.iff_fg.1 $ is_noetherian.iff_dim_lt_omega.2 $
-lt_of_le_of_lt (dim_le_card G F) (cardinal.nat_lt_omega _)
+is_noetherian.iff_fg.1 $ is_noetherian.iff_dim_lt_aleph_0.2 $
+lt_of_le_of_lt (dim_le_card G F) (cardinal.nat_lt_aleph_0 _)
 
 lemma finrank_le_card : finrank (fixed_points.subfield G F) F ≤ fintype.card G :=
 begin
@@ -280,8 +280,8 @@ noncomputable instance alg_hom.fintype (K : Type u) (V : Type v) (W : Type w)
   [field K] [field V] [algebra K V] [finite_dimensional K V]
             [field W] [algebra K W] [finite_dimensional K W] :
   fintype (V →ₐ[K] W) :=
-classical.choice $ cardinal.lt_omega_iff_fintype.1 $
-lt_of_le_of_lt (cardinal_mk_alg_hom K V W) (cardinal.nat_lt_omega _)
+classical.choice $ cardinal.lt_aleph_0_iff_fintype.1 $
+lt_of_le_of_lt (cardinal_mk_alg_hom K V W) (cardinal.nat_lt_aleph_0 _)
 
 noncomputable instance alg_equiv.fintype (K : Type u) (V : Type v)
   [field K] [field V] [algebra K V] [finite_dimensional K V] :
@@ -296,7 +296,7 @@ fintype_card_le_finrank_of_linear_independent $ linear_independent_to_linear_map
 namespace fixed_points
 
 theorem finrank_eq_card (G : Type u) (F : Type v) [group G] [field F]
-  [fintype G] [mul_semiring_action G F] [has_faithful_scalar G F] :
+  [fintype G] [mul_semiring_action G F] [has_faithful_smul G F] :
   finrank (fixed_points.subfield G F) F = fintype.card G :=
 le_antisymm (fixed_points.finrank_le_card G F) $
 calc  fintype.card G
@@ -307,7 +307,7 @@ calc  fintype.card G
 
 /-- `mul_semiring_action.to_alg_hom` is bijective. -/
 theorem to_alg_hom_bijective (G : Type u) (F : Type v) [group G] [field F]
-  [fintype G] [mul_semiring_action G F] [has_faithful_scalar G F] :
+  [fintype G] [mul_semiring_action G F] [has_faithful_smul G F] :
   function.bijective (mul_semiring_action.to_alg_hom _ _ : G → F →ₐ[subfield G F] F) :=
 begin
   rw fintype.bijective_iff_injective_and_card,
@@ -321,7 +321,7 @@ end
 
 /-- Bijection between G and algebra homomorphisms that fix the fixed points -/
 def to_alg_hom_equiv (G : Type u) (F : Type v) [group G] [field F]
-  [fintype G] [mul_semiring_action G F] [has_faithful_scalar G F] :
+  [fintype G] [mul_semiring_action G F] [has_faithful_smul G F] :
     G ≃ (F →ₐ[fixed_points.subfield G F] F) :=
 equiv.of_bijective _ (to_alg_hom_bijective G F)
 

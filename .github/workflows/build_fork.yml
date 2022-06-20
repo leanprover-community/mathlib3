@@ -120,6 +120,10 @@ jobs:
         if: always() && steps.build.outputs.started == 'true' && ${{ 0 }}
         run: rm /tmp/tmp-* || true
 
+      - name: clean up working directory and elan
+        if: always() && ${{ 0 }}
+        run: rm -rf * $HOME/.elan
+
   lint:
     name: Lint mathlib (fork)
     runs-on: ubuntu-latest
@@ -144,14 +148,18 @@ jobs:
       - name: install elan
         run: |
           set -o pipefail
-          curl https://raw.githubusercontent.com/Kha/elan/master/elan-init.sh -sSf | sh -s -- --default-toolchain none -y
+          curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh -s -- --default-toolchain none -y
           ~/.elan/bin/lean --version
           echo "$HOME/.elan/bin" >> $GITHUB_PATH
 
       - name: lint
         run: |
           ./scripts/mk_all.sh
-          lean --run scripts/lint_mathlib.lean
+          lean --run scripts/lint_mathlib.lean --github
+
+      - name: clean up working directory and elan
+        if: always() && ${{ 0 }}
+        run: rm -rf * $HOME/.elan
 
   tests:
     name: Run tests (fork)
@@ -177,7 +185,7 @@ jobs:
       - name: install elan
         run: |
           set -o pipefail
-          curl https://raw.githubusercontent.com/Kha/elan/master/elan-init.sh -sSf | sh -s -- --default-toolchain none -y
+          curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh -s -- --default-toolchain none -y
           ~/.elan/bin/lean --version
           echo "$HOME/.elan/bin" >> $GITHUB_PATH
 
@@ -204,7 +212,7 @@ jobs:
 
       - name: install trepplein
         run: |
-          trepplein_version=1.0
+          trepplein_version=1.1
           wget https://github.com/gebner/trepplein/releases/download/v$trepplein_version/trepplein-$trepplein_version.zip
           unzip trepplein-$trepplein_version.zip
           echo $PWD/trepplein-$trepplein_version/bin >>$GITHUB_PATH
@@ -220,6 +228,10 @@ jobs:
           python3 scripts/yaml_check.py docs/100.yaml docs/overview.yaml docs/undergrad.yaml
           bash scripts/mk_all.sh
           lean --run scripts/yaml_check.lean
+
+      - name: clean up working directory and elan
+        if: always() && ${{ 0 }}
+        run: rm -rf * $HOME/.elan
 
   final:
     name: Post-CI job (fork)

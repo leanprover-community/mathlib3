@@ -479,7 +479,7 @@ begin
   rw [root_multiplicity, root_multiplicity, dif_neg hp0, dif_neg hmap],
   simp only [not_not, nat.lt_find_iff, nat.le_find_iff],
   intros m hm,
-  have := ring_hom.map_dvd (map_ring_hom f) (hm m le_rfl),
+  have := (map_ring_hom f).map_dvd (hm m le_rfl),
   simpa only [coe_map_ring_hom, map_pow, map_sub, map_X, map_C],
 end
 
@@ -491,7 +491,7 @@ begin
   apply le_antisymm (le_root_multiplicity_map hmap a),
   rw [root_multiplicity, root_multiplicity, dif_neg hp0, dif_neg hmap],
   simp only [not_not, nat.lt_find_iff, nat.le_find_iff],
-  intros m hm, rw ← map_dvd_map f hf (monic.pow (monic_X_sub_C a) _),
+  intros m hm, rw ← map_dvd_map f hf ((monic_X_sub_C a).pow _),
   convert hm m le_rfl,
   simp only [polynomial.map_pow, polynomial.map_sub, map_pow, map_sub, map_X, map_C],
 end
@@ -503,7 +503,7 @@ begin
   { rcases h with ⟨h_w, rfl⟩,
     rw [multiset.count_map_eq_count' f _ hf, count_roots],
     exact (eq_root_multiplicity_map hf h_w).le },
-  { suffices : multiset.count a (multiset.map f p.roots) = 0,
+  { suffices : (multiset.map f p.roots).count a = 0,
     { rw this, exact zero_le _, },
     rw [multiset.count_map, multiset.card_eq_zero, multiset.filter_eq_nil],
     rintro k hk rfl,
@@ -707,27 +707,24 @@ begin
   rwa [degree_X_sub_C, nat.with_bot.one_le_iff_zero_lt]
 end
 
+lemma eq_leading_coeff_mul_of_monic_of_dvd_of_nat_degree_le (hp : p.monic) (hdiv : p ∣ q)
+  (hdeg : q.nat_degree ≤ p.nat_degree) : q = C q.leading_coeff * p :=
+begin
+  obtain ⟨r, hr⟩ := hdiv,
+  obtain (rfl|hq) := eq_or_ne q 0, {simp},
+  have rzero : r ≠ 0 := λ h, by simpa [h, hq] using hr,
+  rw [hr, nat_degree_mul hp.ne_zero rzero] at hdeg,
+  have hdegeq : r.nat_degree = 0 := (add_right_inj _).1 (le_antisymm hdeg $ nat.le.intro rfl),
+  rw [mul_comm, eq_C_of_nat_degree_eq_zero hdegeq] at hr,
+  convert hr, convert leading_coeff_C _ using 1,
+  rw [hr, leading_coeff_mul, hp.leading_coeff, mul_one],
+end
+
 lemma eq_of_monic_of_dvd_of_nat_degree_le (hp : p.monic) (hq : q.monic) (hdiv : p ∣ q)
   (hdeg : q.nat_degree ≤ p.nat_degree) : q = p :=
 begin
-  obtain ⟨r, hr⟩ := hdiv,
-  have rzero : r ≠ 0,
-  { intro h,
-    simpa [h, monic.ne_zero hq] using hr },
-  rw [hr, nat_degree_mul (monic.ne_zero hp) rzero] at hdeg,
-  have hdegeq : p.nat_degree + r.nat_degree = p.nat_degree,
-  { suffices hdegle : p.nat_degree ≤ p.nat_degree + r.nat_degree,
-    { exact le_antisymm hdeg hdegle },
-    exact nat.le.intro rfl },
-  replace hdegeq := eq_C_of_nat_degree_eq_zero (((@add_right_inj _ _ p.nat_degree) _ 0).1 hdegeq),
-  suffices hlead : 1 = r.leading_coeff,
-  { have hcoeff := leading_coeff_C (r.coeff 0),
-    rw [← hdegeq, ← hlead] at hcoeff,
-    rw [← hcoeff, C_1] at hdegeq,
-    rwa [hdegeq, mul_one] at hr },
-  have hprod : q.leading_coeff = p.leading_coeff * r.leading_coeff,
-  { simp only [hr, leading_coeff_mul] },
-  rwa [monic.leading_coeff hp, monic.leading_coeff hq, one_mul] at hprod
+  convert eq_leading_coeff_mul_of_monic_of_dvd_of_nat_degree_le hp hdiv hdeg,
+  rw [hq.leading_coeff, C_1, one_mul],
 end
 
 end comm_ring

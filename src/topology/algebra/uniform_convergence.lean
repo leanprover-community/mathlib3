@@ -37,6 +37,7 @@ uniform convergence, strong dual
 
 -/
 
+open filter
 open_locale topological_space
 
 section group
@@ -52,6 +53,14 @@ protected lemma uniform_convergence.uniform_group :
   uniform_group (α → G) :=
 ⟨(uniform_convergence.postcomp_uniform_continuous uniform_continuous_div).comp
   uniform_convergence.uniform_equiv_prod_arrow.symm.uniform_continuous⟩
+
+@[to_additive]
+protected lemma uniform_convergence.has_basis_nhds_one_of_basis {ι : Type*} {p : ι → Prop}
+  {s : ι → set G} (h : (𝓝 1 : filter G).has_basis p s) :
+  (𝓝 1 : filter (α → G)).has_basis p (λ i, {f : α → G | ∀ x, f x ∈ s i}) :=
+begin
+  --refine uniform_convergence.has_basis_nhds_of_basis
+end
 
 local attribute [-instance] uniform_convergence.uniform_space
 
@@ -90,11 +99,14 @@ begin
   { rw [nhds_induced, submodule.coe_zero],
     exact ((uniform_convergence_on.has_basis_nhds α E 𝔖 0 h𝔖₁ h𝔖₂).comap (coe : H → α → E)) },
   refine has_continuous_smul.of_basis_zero this _ _ _,
-  { rintros ⟨S, V⟩ ⟨hS, hV⟩, sorry },
+  { have : tendsto (λ kx : (𝕜 × E), kx.1 • kx.2) (𝓝 0) (𝓝 $ (0 : 𝕜) • 0) :=
+      continuous_smul.tendsto (0 : 𝕜 × E),
+    rw zero_smul at this,
+    rintros ⟨S, V⟩ ⟨hS, hV⟩,  },
   sorry,
   { rintros ⟨u, hu⟩ ⟨S, V⟩ ⟨hS, hV⟩,
     let V' := {e : E | (e, (0 : E)) ∈ V},
-    have hV' : V' ∈ (𝓝 0 : filter E) := sorry,
+    have hV' : V' ∈ (𝓝 0 : filter E) := mem_nhds_right 0 hV,
     rcases h u hu S hS hV' with ⟨r, hrpos, hr⟩,
     rw metric.eventually_nhds_iff_ball,
     refine ⟨r⁻¹, inv_pos.mpr hrpos, λ a ha x hx, _⟩,

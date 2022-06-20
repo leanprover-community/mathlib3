@@ -27,6 +27,8 @@ universe u
 
 open ordinal
 
+open_locale natural_ops pgame
+
 namespace pgame
 
 /-- The birthday of a pre-game is inductively defined as the least strict upper bound of the

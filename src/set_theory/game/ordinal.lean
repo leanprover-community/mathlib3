@@ -25,9 +25,7 @@ universe u
 
 open pgame
 
-open_locale pgame
-
-local infix ` ♯ `:65 := ordinal.nadd
+open_locale natural_ops pgame
 
 namespace ordinal
 

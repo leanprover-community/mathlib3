@@ -200,8 +200,8 @@ lemma coe_to_even_reverse_involute (x : clifford_algebra Q) :
 begin
   induction x using clifford_algebra.induction,
   case h_grade0 : r { simp only [alg_hom.commutes, subalgebra.coe_algebra_map, reverse.commutes] },
-  case h_grade1 : m {
-    simp only [involute_ι, subalgebra.coe_neg, to_even_ι, reverse.map_mul,
+  case h_grade1 : m
+  { simp only [involute_ι, subalgebra.coe_neg, to_even_ι, reverse.map_mul,
       reverse_v, reverse_e0, reverse_ι, neg_e0_mul_v, map_neg] },
   case h_mul : x y hx hy { simp only [map_mul, subalgebra.coe_mul, reverse.map_mul, hx, hy] },
   case h_add : x y hx hy { simp only [map_add, subalgebra.coe_add, hx, hy] },
@@ -237,15 +237,17 @@ def even_equiv_even_neg : clifford_algebra.even Q ≃ₐ[R] clifford_algebra.eve
 alg_equiv.of_alg_hom
   (even_to_neg Q)
   (even_of_neg Q)
-  (by {
+  (begin
     ext m₁ m₂ : 3,
     dsimp only [linear_map.compr₂_apply, alg_hom.to_linear_map_apply, alg_hom.comp_apply,
                 alg_hom.id_apply],
-    rw [even_of_neg_ι, map_neg, even_to_neg_ι, neg_neg] })
-  (by {
+    rw [even_of_neg_ι, map_neg, even_to_neg_ι, neg_neg]
+  end)
+  (begin
     ext m₁ m₂ : 3,
     dsimp only [linear_map.compr₂_apply, alg_hom.to_linear_map_apply, alg_hom.comp_apply,
                 alg_hom.id_apply],
-    rw [even_to_neg_ι, map_neg, even_of_neg_ι, neg_neg] })
+    rw [even_to_neg_ι, map_neg, even_of_neg_ι, neg_neg]
+  end)
 
 end clifford_algebra

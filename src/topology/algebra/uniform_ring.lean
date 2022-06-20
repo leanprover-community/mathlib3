@@ -154,7 +154,7 @@ instance : comm_ring (completion R) :=
 instance ring_completion.algebra : algebra R (completion R) :=
 (uniform_space.completion.coe_ring_hom : R →+* (completion R)).to_algebra
 
-@[simp] lemma ring_completion.algebra_smul_eq (r : R) (x : (completion R)) :
+lemma ring_completion.algebra_smul_eq (r : R) (x : (completion R)) :
   r • x = (r : completion R) * x :=
 rfl
 

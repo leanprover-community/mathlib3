@@ -347,7 +347,7 @@ begin
   { simp only [←support_factorization, factorization_gcd hn0 hm0, finsupp.support_inf] },
 end
 
-lemma totient_mul_general (a b : ℕ) : φ (a.gcd b) * φ (a * b) = φ a * φ b * (a.gcd b) :=
+lemma totient_gcd_mul_totient_mul (a b : ℕ) : φ (a.gcd b) * φ (a * b) = φ a * φ b * (a.gcd b) :=
 begin
   have shuffle : ∀ a1 a2 b1 b2 c1 c2 : ℕ, b1 ∣ a1 → b2 ∣ a2 →
     (a1/b1 * c1) * (a2/b2 * c2) = (a1*a2)/(b1*b2) * (c1*c2),
@@ -364,12 +364,12 @@ begin
   exact mul_dvd_mul (prod_prime_factors_dvd a) (prod_prime_factors_dvd b)
 end
 
-lemma totient_super_multiplicative (a b : ℕ) : a.totient * b.totient ≤ (a * b).totient :=
+lemma totient_super_multiplicative (a b : ℕ) : φ a * φ b ≤ φ (a * b) :=
 begin
   let d := a.gcd b,
   by_cases ha0 : a = 0, { simp [ha0] },
   have hd0 : 0 < d, { apply nat.pos_of_ne_zero, contrapose! ha0, exact (gcd_eq_zero_iff.1 ha0).1 },
-  rw [←mul_le_mul_right hd0, ←totient_mul_general a b, mul_comm],
+  rw [←mul_le_mul_right hd0, ←totient_gcd_mul_totient_mul a b, mul_comm],
   apply mul_le_mul_left' (nat.totient_le d),
 end
 

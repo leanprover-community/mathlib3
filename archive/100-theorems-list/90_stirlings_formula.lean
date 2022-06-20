@@ -355,17 +355,6 @@ begin
   exact sub_le.mp (h n),
 end
 
-/--
-Any sequence `b` of real numbers that is monotone decreasing and bounded below has
-a limit in the real numbers.
--/
-lemma monotone_convergence (b : ℕ → ℝ) (h_sd : ∀ (n m : ℕ), n ≤ m → b m ≤ b n)
-  (h_bounded : (lower_bounds (set.range b)).nonempty) : ∃ (m : ℝ), tendsto b at_top (𝓝 m) :=
-begin
-  use Inf (set.range b),
-  exact tendsto_at_top_is_glb h_sd (real.is_glb_Inf (set.range b) (set.range_nonempty b) h_bounded),
-end
-
 /-- The sequence `stirling_seq` is positive for `n > 0`  -/
 lemma stirling_seq'_pos (n : ℕ): 0 < stirling_seq n.succ :=
 begin

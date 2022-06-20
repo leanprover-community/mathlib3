@@ -385,38 +385,6 @@ begin
     simp [←factorization_le_iff_dvd he_pos hd_pos, h1, hea', heb'] },
 end
 
-lemma div_factorization_pos {q r : ℕ} (hr : nat.prime r) (hq : q ≠ 0) :
-  q / (r ^ (q.factorization r)) ≠ 0 :=
-begin
-  set n := q.factorization r,
-  set a := q / (r ^ n),
-  apply mt (nat.div_eq_zero_iff (pow_pos (nat.prime.pos hr) _)).1,
-  exact not_lt.mpr (nat.le_of_dvd (pos_iff_ne_zero.mpr hq) (nat.pow_factorization_dvd q r)),
-end
-
-lemma ne_dvd_factorization_div {q r : ℕ} (hr : nat.prime r) (hq : q ≠ 0) :
-  ¬(r ∣ (q / (r ^ (q.factorization r)))) :=
-begin
-  set n := q.factorization r,
-  set a := q / (r ^ n),
-  by_contradiction r_dvd_a,
-
-  have a_fact_r_pos : a.factorization r ≠ 0 := ne_of_gt (
-    nat.prime.factorization_pos_of_dvd hr (div_factorization_pos hr hq) r_dvd_a),
-
-  have a_fact_r_zero: a.factorization r = 0 :=
-  calc  a.factorization r
-    = (q.factorization - (r ^ n).factorization) r     : by rw ←nat.factorization_div (
-                                                        nat.pow_factorization_dvd q r)
-    ... = q.factorization r - (r ^ n).factorization r : (nat.factorization q).tsub_apply
-                                                        (r ^ n).factorization r
-    ... = n - (finsupp.single r n) r                  : by rw nat.prime.factorization_pow hr
-    ... = n - n                                       : by rw [finsupp.single_eq_same, tsub_self]
-    ... = 0                                           : tsub_self n,
-
-  exact absurd a_fact_r_zero a_fact_r_pos,
-end
-
 /-! ### Factorization and coprimes -/
 
 /-- For coprime `a` and `b`, the power of `p` in `a * b` is the sum of the powers in `a` and `b` -/

@@ -1326,7 +1326,7 @@ namespace fintype
 set on a finite type are finite.) -/
 @[simps] noncomputable def finset_equiv_set [fintype α] : finset α ≃ set α :=
 { to_fun := coe,
-  inv_fun := by classical; exact λ s, s.to_finset,
+  inv_fun := by { classical, exact λ s, s.to_finset },
   left_inv := λ s, by convert finset.to_finset_coe s,
   right_inv := λ s, s.coe_to_finset }
 

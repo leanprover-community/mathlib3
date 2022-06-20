@@ -707,20 +707,23 @@ begin
   rwa [degree_X_sub_C, nat.with_bot.one_le_iff_zero_lt]
 end
 
-lemma eq_leading_coeff_mul_of_monic_of_dvd_of_nat_degree_le (hp : p.monic) (hdiv : p ∣ q)
+lemma eq_leading_coeff_mul_of_monic_of_dvd_of_nat_degree_le {R} [comm_ring R]
+  {p q : R[X]} (hp : p.monic) (hdiv : p ∣ q)
   (hdeg : q.nat_degree ≤ p.nat_degree) : q = C q.leading_coeff * p :=
 begin
   obtain ⟨r, hr⟩ := hdiv,
   obtain (rfl|hq) := eq_or_ne q 0, {simp},
   have rzero : r ≠ 0 := λ h, by simpa [h, hq] using hr,
-  rw [hr, nat_degree_mul hp.ne_zero rzero] at hdeg,
+  rw [hr, nat_degree_mul'] at hdeg, swap,
+  { rw [hp.leading_coeff, one_mul, leading_coeff_ne_zero], exact rzero },
   have hdegeq : r.nat_degree = 0 := (add_right_inj _).1 (le_antisymm hdeg $ nat.le.intro rfl),
   rw [mul_comm, eq_C_of_nat_degree_eq_zero hdegeq] at hr,
   convert hr, convert leading_coeff_C _ using 1,
-  rw [hr, leading_coeff_mul, hp.leading_coeff, mul_one],
+  rw [hr, leading_coeff_mul_monic hp],
 end
 
-lemma eq_of_monic_of_dvd_of_nat_degree_le (hp : p.monic) (hq : q.monic) (hdiv : p ∣ q)
+lemma eq_of_monic_of_dvd_of_nat_degree_le {R} [comm_ring R]
+  {p q : R[X]} (hp : p.monic) (hq : q.monic) (hdiv : p ∣ q)
   (hdeg : q.nat_degree ≤ p.nat_degree) : q = p :=
 begin
   convert eq_leading_coeff_mul_of_monic_of_dvd_of_nat_degree_le hp hdiv hdeg,

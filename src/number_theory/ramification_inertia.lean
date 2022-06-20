@@ -17,13 +17,13 @@ import ring_theory.localization.module
 
 Given `P : ideal S` lying over `p : ideal R` for the ring extension `f : R →+* S`
 (assuming `P` and `p` are prime or maximal where needed),
-the **ramification index** `ramification_idx f p P` is the multiplicity of `P` in `map f p`,
-and the **inertia degree** `inertia_deg f p P` is the degree of the field extension
+the **ramification index** `ideal.ramification_idx f p P` is the multiplicity of `P` in `map f p`,
+and the **inertia degree** `ideal.inertia_deg f p P` is the degree of the field extension
 `(S / P) : (R / p)`.
 
 ## TODO (#12287)
 
-The main theorem `sum_ramification_inertia` states that for all coprime `P` lying over `p`,
+The main theorem `ideal.sum_ramification_inertia` states that for all coprime `P` lying over `p`,
 `Σ P, ramification_idx f p P * inertia_deg f p P` equals the degree of the field extension
 `Frac(S) : Frac(R)`.
 
@@ -39,6 +39,8 @@ We will try to relax the above hypotheses as much as possible.
 
 -/
 
+namespace ideal
+
 universes u v
 
 variables {R : Type u} [comm_ring R]
@@ -46,7 +48,6 @@ variables {S : Type v} [comm_ring S] (f : R →+* S)
 variables (p : ideal R) (P : ideal S)
 
 open finite_dimensional
-open ideal
 open unique_factorization_monoid
 
 section dec_eq
@@ -204,3 +205,5 @@ begin
 end
 
 end dec_eq
+
+end ideal

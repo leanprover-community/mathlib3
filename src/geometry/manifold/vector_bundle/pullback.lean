@@ -5,7 +5,7 @@ Authors: Floris van Doorn
 -/
 
 import topology.vector_bundle.pullback
-import geometry.manifold.vector_bundle
+import geometry.manifold.vector_bundle.basic
 
 /-!
 # Pullbacks of smooth vector bundles

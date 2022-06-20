@@ -62,47 +62,65 @@ If there is no largest such `n` (e.g. because `p = ⊥`), then `ramification_idx
 defined to be 0.
 -/
 noncomputable def ramification_idx : ℕ :=
-if h : ∃ n, map f p ≤ P ^ n ∧ ¬ map f p ≤ P ^ (n + 1)
-then nat.find h
-else 0
+Sup {n | map f p ≤ P ^ n}
 
 variables {f p P}
 
-lemma ramification_idx_eq_find (h : ∃ n, map f p ≤ P ^ n ∧ ¬ map f p ≤ P ^ (n + 1)) :
+lemma ramification_idx_eq_find (h : ∃ n, ∀ k, map f p ≤ P ^ k → k ≤ n) :
   ramification_idx f p P = nat.find h :=
-dif_pos h
+nat.Sup_def h
+
+lemma ramification_idx_eq_zero (h : ∀ n : ℕ, ∃ k, map f p ≤ P ^ k ∧ n < k) :
+  ramification_idx f p P = 0 :=
+dif_neg (by push_neg; exact h)
 
 lemma ramification_idx_spec {n : ℕ} (hle : map f p ≤ P ^ n) (hgt : ¬ map f p ≤ P ^ (n + 1)) :
   ramification_idx f p P = n :=
 begin
-  rw ramification_idx_eq_find ⟨n, hle, hgt⟩,
-  refine le_antisymm (nat.find_min' _ ⟨hle, hgt⟩) (le_of_not_gt (λ (h : nat.find _ < n), _)),
-  obtain ⟨hle', hgt'⟩ := nat.find_spec ⟨n, and.intro hle hgt⟩,
-  exact hgt' (hle.trans (ideal.pow_le_pow h))
+  have : ∀ (k : ℕ), map f p ≤ P ^ k → k ≤ n,
+  { intros k hk,
+    refine le_of_not_lt (λ hnk, _),
+    exact hgt (hk.trans (ideal.pow_le_pow hnk)) },
+  rw ramification_idx_eq_find ⟨n, this⟩,
+  { refine le_antisymm (nat.find_min' _ this) (le_of_not_gt (λ (h : nat.find _ < n), _)),
+    obtain this' := nat.find_spec ⟨n, this⟩,
+    exact h.not_le (this' _ hle) },
+end
+
+lemma ramification_idx_lt {n : ℕ} (hgt : ¬ (map f p ≤ P ^ n)) :
+  ramification_idx f p P < n :=
+begin
+  cases n,
+  { simpa using hgt },
+  rw nat.lt_succ_iff,
+  have : ∀ k, map f p ≤ P ^ k → k ≤ n,
+  { refine λ k hk, le_of_not_lt (λ hnk, _),
+    exact hgt (hk.trans (ideal.pow_le_pow hnk)) },
+  rw ramification_idx_eq_find ⟨n, this⟩,
+  exact nat.find_min' ⟨n, this⟩ this
 end
 
 @[simp] lemma ramification_idx_bot : ramification_idx f ⊥ P = 0 :=
-dif_neg $ not_exists.mpr $ λ n hn, hn.2 (ideal.map_bot.le.trans bot_le)
+dif_neg $ not_exists.mpr $ λ n hn, n.lt_succ_self.not_le (hn _ (by simp))
 
 @[simp] lemma ramification_idx_of_not_le (h : ¬ map f p ≤ P) : ramification_idx f p P = 0 :=
-begin
-  rw [ramification_idx, dif_pos, nat.find_eq_zero ⟨0, _⟩];
-    rw [zero_add, pow_zero, pow_one, ideal.one_eq_top];
-    exact ⟨le_top, h⟩
-end
+ramification_idx_spec (by simp) (by simpa using h)
 
 lemma ramification_idx_ne_zero {e : ℕ} (he : e ≠ 0)
   (hle : map f p ≤ P ^ e) (hnle : ¬ map f p ≤ P ^ (e + 1)):
   ramification_idx f p P ≠ 0 :=
 by rwa ramification_idx_spec hle hnle
 
-lemma le_pow_ramification_idx_of_ne_zero (h : ramification_idx f p P ≠ 0) :
-  map f p ≤ P ^ ramification_idx f p P :=
+lemma le_pow_of_le_ramification_idx {n : ℕ} (hn : n ≤ ramification_idx f p P) :
+  map f p ≤ P ^ n :=
 begin
-  rw ramification_idx at ⊢ h, split_ifs at ⊢ h with hex,
-  swap, contradiction,
-  exact (nat.find_spec hex).1
+  contrapose! hn,
+  exact ramification_idx_lt hn
 end
+
+lemma le_pow_ramification_idx :
+  map f p ≤ P ^ ramification_idx f p P :=
+le_pow_of_le_ramification_idx (le_refl _)
 
 namespace is_dedekind_domain
 
@@ -138,10 +156,6 @@ begin
     exists_mem_normalized_factors_of_dvd hp0 hPirr (ideal.dvd_iff_le.mpr le),
   rwa [multiset.count_ne_zero, associated_iff_eq.mp P'_eq],
 end
-
-lemma le_pow_ramification_idx (hp0 : map f p ≠ ⊥) (hP : P.is_prime) (le : map f p ≤ P) :
-  map f p ≤ P ^ ramification_idx f p P :=
-le_pow_ramification_idx_of_ne_zero (is_dedekind_domain.ramification_idx_ne_zero hp0 hP le)
 
 end is_dedekind_domain
 

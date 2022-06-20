@@ -17,7 +17,7 @@ not a complement in the stronger sense because `compl W` can intersect `W`.
 
 ## Main declarations
 
-* `involution_lattice`: Lattice with an involutive antitone pseudocomplement.
+* `involution_lattice`: Lattice with an antitone involution.
 
 ## Notation
 
@@ -218,9 +218,9 @@ lemma is_antichain.preimage_compl (hs : is_antichain (≤) s) : is_antichain (�
 image_compl_eq_preimage_invo.subst hs.image_invo
 
 @[simp] lemma preimage_compl_Iic : compl ⁻¹' Iic a = Ici aᶜ := ext $ λ _, compl_le_iff_compl_le
-@[simp] lemma preimage_compl_Ici : compl ⁻¹' Ici a = Iic aᶜ := ext $ λ _, le_compl_iff_le_invo
+@[simp] lemma preimage_compl_Ici : compl ⁻¹' Ici a = Iic aᶜ := ext $ λ _, le_compl_iff_le_compl
 @[simp] lemma preimage_compl_Iio : compl ⁻¹' Iio a = Ioi aᶜ := ext $ λ _, compl_lt_iff_compl_lt
-@[simp] lemma preimage_compl_Ioi : compl ⁻¹' Ioi a = Iio aᶜ := ext $ λ _, lt_compl_iff_lt_invo
+@[simp] lemma preimage_compl_Ioi : compl ⁻¹' Ioi a = Iio aᶜ := ext $ λ _, lt_compl_iff_lt_compl
 
 @[simp] lemma preimage_compl_Icc : compl ⁻¹' Icc a b = Icc bᶜ aᶜ :=
 by simp [←Iic_inter_Ici, inter_comm]

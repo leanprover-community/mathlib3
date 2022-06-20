@@ -42,6 +42,8 @@ Proof from the Book" by John McCuan:
 boolean ring, generalized boolean algebra, boolean algebra, symmetric differences
 -/
 
+open function
+
 /-- The symmetric difference operator on a type with `⊔` and `\` is `(A \ B) ⊔ (B \ A)`. -/
 def symm_diff {α : Type*} [has_sup α] [has_sdiff α] (A B : α) : α := (A \ B) ⊔ (B \ A)
 
@@ -133,6 +135,24 @@ begin
   { exact h.symm_diff_eq_sup, },
 end
 
+@[simp] lemma le_symm_diff_iff_left : a ≤ a ∆ b ↔ disjoint a b :=
+begin
+  refine ⟨λ h, _, λ h, _⟩,
+  { rw symm_diff_eq_sup_sdiff_inf at h,
+    exact (le_sdiff_iff.1 $ inf_le_of_left_le h).le },
+  { rw h.symm_diff_eq_sup,
+    exact le_sup_left }
+end
+
+@[simp] lemma le_symm_diff_iff_right : b ≤ a ∆ b ↔ disjoint a b :=
+begin
+  refine ⟨λ h, _, λ h, _⟩,
+  { rw symm_diff_eq_sup_sdiff_inf at h,
+    exact (le_sdiff_iff.1 $ inf_le_of_right_le h).le },
+  { rw h.symm_diff_eq_sup,
+    exact le_sup_right }
+end
+
 lemma symm_diff_symm_diff_left :
   a ∆ b ∆ c = (a \ (b ⊔ c)) ⊔ (b \ (a ⊔ c)) ⊔ (c \ (a ⊔ b)) ⊔ (a ⊓ b ⊓ c) :=
 calc a ∆ b ∆ c = ((a ∆ b) \ c) ⊔ (c \ (a ∆ b))   : symm_diff_def _ _
@@ -164,31 +184,49 @@ lemma symm_diff_right_comm : a ∆ b ∆ c = a ∆ c ∆ b := by simp_rw [symm_d
 lemma symm_diff_symm_diff_symm_diff_comm : (a ∆ b) ∆ (c ∆ d) = (a ∆ c) ∆ (b ∆ d) :=
 by simp_rw [symm_diff_assoc, symm_diff_left_comm]
 
+lemma symm_diff_triangle : a ∆ c ≤ a ∆ b ⊔ b ∆ c :=
+begin
+  refine (sup_le_sup (sdiff_triangle a b c) $ sdiff_triangle _ b _).trans_eq _,
+  rw [@sup_comm _ _ (c \ b), sup_sup_sup_comm],
+  refl,
+end
+
 @[simp] lemma symm_diff_symm_diff_self : a ∆ (a ∆ b) = b := by simp [←symm_diff_assoc]
 
 @[simp] lemma symm_diff_symm_diff_self' : a ∆ b ∆ a = b :=
 by rw [symm_diff_comm, ←symm_diff_assoc, symm_diff_self, bot_symm_diff]
 
-@[simp] lemma symm_diff_right_inj : a ∆ b = a ∆ c ↔ b = c :=
-begin
-  split; intro h,
-  { have H1 := congr_arg ((∆) a) h,
-    rwa [symm_diff_symm_diff_self, symm_diff_symm_diff_self] at H1, },
-  { rw h, },
-end
+namespace equiv
 
-@[simp] lemma symm_diff_left_inj : a ∆ b = c ∆ b ↔ a = c :=
-by rw [symm_diff_comm a b, symm_diff_comm c b, symm_diff_right_inj]
+/-- Symmetric difference by `a` as an equivalence. -/
+protected def symm_diff (a : α) : α ≃ α :=
+{ to_fun := (∆) a,
+  inv_fun := λ b, b ∆ a,
+  left_inv := symm_diff_symm_diff_self' _,
+  right_inv := λ b, by rw [←symm_diff_assoc, symm_diff_symm_diff_self'] }
+
+@[simp] lemma coe_symm_diff (a : α) : ⇑(equiv.symm_diff a) =  (∆) a := rfl
+@[simp] lemma symm_diff_apply (a b : α) : equiv.symm_diff a b = a ∆ b := rfl
+@[simp] lemma symm_diff_symm (a : α) : (equiv.symm_diff a).symm = equiv.symm_diff a :=
+ext $ λ b, symm_diff_comm _ _
+
+end equiv
+
+lemma symm_diff_left_injective (a : α): injective ((∆) a) := (equiv.symm_diff a).injective
+lemma symm_diff_right_injective (a : α): injective (∆ a) := (equiv.symm_diff a).symm.injective
+
+@[simp] lemma symm_diff_left_inj : a ∆ b = a ∆ c ↔ b = c := (symm_diff_left_injective _).eq_iff
+@[simp] lemma symm_diff_right_inj : a ∆ b = c ∆ b ↔ a = c := (symm_diff_right_injective _).eq_iff
 
 @[simp] lemma symm_diff_eq_left : a ∆ b = a ↔ b = ⊥ :=
 calc a ∆ b = a ↔ a ∆ b = a ∆ ⊥ : by rw symm_diff_bot
-           ... ↔     b = ⊥     : by rw symm_diff_right_inj
+           ... ↔     b = ⊥     : by rw symm_diff_left_inj
 
 @[simp] lemma symm_diff_eq_right : a ∆ b = b ↔ a = ⊥ := by rw [symm_diff_comm, symm_diff_eq_left]
 
 @[simp] lemma symm_diff_eq_bot : a ∆ b = ⊥ ↔ a = b :=
 calc a ∆ b = ⊥ ↔ a ∆ b = a ∆ a : by rw symm_diff_self
-           ... ↔     a = b     : by rw [symm_diff_right_inj, eq_comm]
+           ... ↔     a = b     : by rw [symm_diff_left_inj, eq_comm]
 
 @[simp] lemma symm_diff_symm_diff_inf : a ∆ b ∆ (a ⊓ b) = a ⊔ b :=
 by rw [symm_diff_eq_iff_sdiff_eq (symm_diff_le_sup _ _), sup_sdiff_symm_diff]

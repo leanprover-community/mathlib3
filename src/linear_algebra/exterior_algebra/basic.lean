@@ -325,6 +325,15 @@ variables {R}
 lemma ι_multi_apply {n : ℕ} (v : fin n → M) :
   ι_multi R n v = (list.of_fn $ λ i, ι R (v i)).prod := rfl
 
+lemma ι_multi_succ_curry_left {n : ℕ} (m : M) :
+  (ι_multi R n.succ).curry_left m =
+    (algebra.lmul_left R (ι R m)).comp_alternating_map (ι_multi R n) :=
+alternating_map.ext $ λ v, (congr_arg list.prod (list.of_fn_succ _)).trans $
+  list.prod_cons.trans $ congr_arg ((*) (ι R m)) $ begin
+  simp_rw [matrix.cons_val_succ],
+  refl,
+end
+
 end exterior_algebra
 
 namespace tensor_algebra

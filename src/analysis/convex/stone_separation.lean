@@ -66,9 +66,11 @@ begin
   have hz : ∀ i, z i ∈ ({p, q, az • x + bz • y} : set E),
   { rintro i,
     fin_cases i; simp [z] },
-  convert finset.center_mass_mem_convex_hull (finset.univ : finset (fin 3)) (λ i _, hw₀ i) (by rwa hw) (λ i _, hz i),
+  convert finset.center_mass_mem_convex_hull (finset.univ : finset (fin 3)) (λ i _, hw₀ i)
+    (by rwa hw) (λ i _, hz i),
   rw finset.center_mass,
-  simp_rw [div_eq_inv_mul, hw, mul_assoc, mul_smul (az * av + bz * au)⁻¹, ←smul_add, add_assoc, ←mul_assoc],
+  simp_rw [div_eq_inv_mul, hw, mul_assoc, mul_smul (az * av + bz * au)⁻¹, ←smul_add, add_assoc,
+    ←mul_assoc],
   congr' 3,
   rw [←mul_smul, ←mul_rotate, mul_right_comm, mul_smul, ←mul_smul _ av, mul_rotate, mul_smul _ bz,
     ←smul_add],

@@ -228,11 +228,17 @@ lemma log_stirling_seq_diff_has_sum (m : ℕ) :
   has_sum (λ (k : ℕ), (1 : ℝ) / (2 * k.succ + 1) * ((1 / (2 * m.succ + 1)) ^ 2) ^ (k.succ))
   ((log_stirling_seq m.succ) - (log_stirling_seq m.succ.succ)) :=
 begin
-  have hx : ∀ (n : ℕ), (log_stirling_seq n.succ) - (log_stirling_seq n.succ.succ) =
-    ((n.succ : ℝ) + 1 / (2 : ℝ)) * log(((n.succ.succ) : ℝ) / (n.succ : ℝ)) - 1 :=
-  begin
-    intro n,
-    have h_reorder : ∀ {a b c d e f : ℝ}, a - 1 / (2 : ℝ) * b - c - (d - 1 / (2 : ℝ) * e - f) =
+  change
+    has_sum ((λ (b : ℕ), 1 / (2 * (b : ℝ) + 1) * ((1 / (2 * (m.succ : ℝ) + 1)) ^ 2) ^ b) ∘ succ) _,
+  rw has_sum_nat_add_iff 1,
+  convert (power_series_log_succ_div m.succ (succ_ne_zero m)).mul_left ((m.succ : ℝ) + 1 / (2 : ℝ)),
+  { ext k,
+    rw [← pow_mul, pow_add],
+    have : 2 * (k : ℝ) + 1     ≠ 0, by {norm_cast, exact succ_ne_zero (2*k)},
+    have : 2 * (m.succ :ℝ) + 1 ≠ 0, by {norm_cast, exact succ_ne_zero (2*m.succ)},
+    field_simp,
+    ring },
+  { have h_reorder : ∀ {a b c d e f : ℝ}, a - 1 / (2 : ℝ) * b - c - (d - 1 / (2 : ℝ) * e - f) =
       (a - d) - 1 / (2 : ℝ) * (b - e) - (c - f),
     by {intros, ring_nf},
     rw [log_stirling_seq_formula, log_stirling_seq_formula, h_reorder],
@@ -243,59 +249,10 @@ begin
     ring_nf,
     all_goals {norm_cast},
     all_goals {try {refine mul_ne_zero _ _}, try {exact succ_ne_zero _}},
-    any_goals {exact factorial_ne_zero n},
+    any_goals {exact factorial_ne_zero m},
     any_goals {exact exp_ne_zero 1},
-  end,
-  have h_sum₀, from power_series_log_succ_div m.succ (succ_ne_zero m),
-  have h_nonzero : (m.succ : ℝ) + 1 / (2 : ℝ) ≠ 0,
-  by {rw cast_succ, field_simp, norm_cast, linarith}, --there has to be a better way...
-  rw has_sum_mul_left_iff h_nonzero at h_sum₀,
-  have h_inner : ∀ (b : ℕ) , (((m.succ : ℝ) + 1 / 2) * (2 * (1 / (2 * (b : ℝ) + 1)) *
-      (1 / (2 * (m.succ : ℝ) + 1)) ^ (2 * b + 1)))
-      = (1 : ℝ) / (2 * (b : ℝ) + 1) * ((1 / (2 * m.succ + 1)) ^ 2) ^ b :=
-  begin
-    intro b,
-    rw [← pow_mul, pow_add],
-    have : 2 * (b : ℝ) + 1     ≠ 0, by {norm_cast, exact succ_ne_zero (2*b)},
-    have : 2 * (m.succ :ℝ) + 1 ≠ 0, by {norm_cast, exact succ_ne_zero (2*m.succ)},
-    field_simp,
-    rw mul_comm _ (2 : ℝ),
-    exact mul_rotate' _ _ _,
-  end,
-  have h_sum₁ : has_sum (λ (b : ℕ),
-    ((1 : ℝ) / (2 * (b : ℝ) + 1) * ((1 / (2 * m.succ + 1)) ^ 2) ^ b))
-    (((m.succ : ℝ) + 1 / 2) * log ((m.succ.succ : ℝ) / (m.succ : ℝ))) :=
-  begin
-    refine has_sum.has_sum_of_sum_eq _ h_sum₀,
-    intros,
-    use u,
-    intros v' h,
-    use v',
-    split,
-    { exact h },
-    { refine sum_congr rfl _, intros k hk, exact h_inner k },
-  end,
-  have h_sum : tendsto
-    (λ (n : ℕ), ∑ (k : ℕ) in range n.succ,
-    (λ (b : ℕ), 1 / (2 * (b : ℝ) + 1) * ((1 / (2 * (m.succ : ℝ) + 1)) ^ 2) ^ b) k)
-    at_top (𝓝 (((m.succ : ℝ) + 1 / 2) * log ((m.succ.succ : ℝ) / (m.succ : ℝ)))) :=
-    (has_sum.tendsto_sum_nat h_sum₁).comp (tendsto_add_at_top_nat 1),
-  have split_zero : ∀ (n : ℕ), ∑ (k : ℕ) in range n.succ,
-    1 / (2 * (k : ℝ) + 1) * ((1 / (2 * (m.succ : ℝ) + 1)) ^ 2) ^ k =
-    (∑ (k : ℕ) in range n,
-    1 / (2 * (k.succ : ℝ) + 1) * ((1 / (2 * (m.succ : ℝ) + 1)) ^ 2) ^ k.succ) + 1 := by
-    { intro n,
-      rw sum_range_succ' (λ (k : ℕ),
-        1 / (2 * (k : ℝ) + 1) * ((1 / (2 * (m.succ : ℝ) + 1)) ^ 2) ^ k) n,
-      dsimp only [], --beta reduce functions
-      rw [pow_zero, mul_one, cast_zero, mul_zero, zero_add, div_one] },
-  replace h_sum := tendsto.congr split_zero h_sum,
-  replace h_sum := tendsto.add_const (-1) h_sum,
-  simp only [add_neg_cancel_right] at h_sum, --beta reduce and rw?
-  rw tactic.ring.add_neg_eq_sub _ (1 : ℝ) at h_sum,
-  rw ← hx at h_sum,
-  exact (summable.has_sum_iff_tendsto_nat $
-    (summable_nat_add_iff 1).mpr $ has_sum.summable h_sum₁).mpr h_sum,
+    simp },
+  { apply_instance }
 end
 
 /-- The sequence `log_stirling_seq ∘ succ` is monotone decreasing -/
@@ -334,33 +291,14 @@ begin
       norm_cast,
       simp only [nat.one_lt_pow_iff, ne.def, zero_eq_bit0, nat.one_ne_zero, not_false_iff,
         lt_add_iff_pos_left, canonically_ordered_comm_semiring.mul_pos, succ_pos', and_self], },
-    have h_geom := has_sum_geometric_of_lt_1 h_nonneg hlt,
-    have h_geom' := has_sum.mul_left ((1 / (2 * (n.succ : ℝ) + 1)) ^ 2) h_geom,
-    norm_num at h_geom',
-    norm_num at h_pow_succ,
-    have h_geom'' :
-      has_sum (λ (b : ℕ), (1 / ((2 * ((n : ℝ) + 1) + 1) ^ 2) ^ b.succ))
-      (1 / (2 * ((n : ℝ) + 1) + 1) ^ 2 * (1 - 1 / (2 * ((n : ℝ) + 1) + 1) ^ 2)⁻¹) :=
-    begin
-      refine has_sum.has_sum_of_sum_eq _ h_geom',
-      intros,
-      use u,
-      intros v' h,
-      use v',
-      split,
-      { exact h },
-      { refine sum_congr rfl _, intros k hk, exact h_pow_succ k },
-    end,
-    norm_num,
-    exact h_geom'',
+    exact (has_sum_geometric_of_lt_1 h_nonneg hlt).mul_left ((1 / (2 * (n.succ : ℝ) + 1)) ^ 2)
   end,
   have hab :
     ∀ (k : ℕ), (1 / (2 * (k.succ : ℝ) + 1)) * ((1 / (2 * (n.succ : ℝ) + 1)) ^ 2) ^ k.succ ≤
     ((1 / (2 * (n.succ : ℝ) + 1)) ^ 2) ^ k.succ :=
   begin
     intro k,
-    have h_zero_le : 0 ≤ ((1 / (2 * (n.succ : ℝ) + 1)) ^ 2) ^ k.succ, by
-    { simp [cast_succ, one_div, inv_pow, inv_nonneg], norm_cast, exact zero_le', },
+    have h_zero_le : 0 ≤ ((1 / (2 * (n.succ : ℝ) + 1)) ^ 2) ^ k.succ := pow_nonneg h_nonneg _,
     have h_left : 1 / (2 * (k.succ : ℝ) + 1) ≤ 1, by
     { simp only [cast_succ, one_div],
       refine inv_le_one _,
@@ -374,48 +312,21 @@ end
 /--
 We have the bound  `log_stirling_seq n - log_stirling_seq (n+1)` ≤ 1/(4n(n+1))
 -/
-lemma log_stirling_seq_sub_log_stirling_seq_succ : ∀ (n : ℕ),
-log_stirling_seq n.succ - log_stirling_seq n.succ.succ ≤ 1 / (4 * n.succ * n.succ.succ) :=
+lemma log_stirling_seq_sub_log_stirling_seq_succ (n : ℕ) :
+  log_stirling_seq n.succ - log_stirling_seq n.succ.succ ≤ 1 / (4 * n.succ * n.succ.succ) :=
 begin
-  intro n,
-  have h₁ : 0 < 4 * (n.succ : ℝ) * (n.succ.succ : ℝ), by
-  { norm_cast, simp only [canonically_ordered_comm_semiring.mul_pos, succ_pos', and_self], },
-  have h₂ : 0 < 1 - (1 / (2 * (n.succ : ℝ) + 1)) ^ 2 :=
-  begin
-    refine sub_pos.mpr _,
-    refine (sq_lt_one_iff _).mpr _,
-    { rw one_div,
-      refine inv_nonneg.mpr _,
-      norm_cast,
-      exact zero_le (2 * succ n + 1) },
-    { refine (div_lt_one _).mpr _,
-      all_goals {norm_cast},
-      linarith,
-      refine lt_add_of_pos_left 1 ((1 : ℕ).succ_mul_pos (succ_pos n)), },
-  end,
-  refine le_trans (log_stirling_seq_diff_le_geo_sum n) ((le_div_iff' h₁).mpr _),
-  rw mul_div (4 * (n.succ : ℝ) * (n.succ.succ : ℝ))
-    ((1 / (2 * (n.succ : ℝ) + 1)) ^ 2) (1 - (1 / (2 * (n.succ : ℝ) + 1)) ^ 2),
-  refine (div_le_one h₂).mpr _,
-  norm_num,
-  rw mul_div,
-  have h₃: 0 < (2 * ((n : ℝ) + 1) + 1) ^ 2 :=
-  begin
-    rw sq,
-    norm_cast,
-    simp only [canonically_ordered_comm_semiring.mul_pos,
-    succ_pos', and_self],
-  end,
-  refine (div_le_iff' h₃).mpr _,
-  rw mul_sub,
-  norm_num,
-  refine le_sub.mp _,
-  rw mul_one_div,
-  refine (div_le_iff' h₃).mpr ((le_mul_iff_one_le_right h₃).mpr
-    (le_sub_iff_add_le.mpr _)),
-  norm_cast,
-  rw sq,
-  linarith,
+  have h₁ : 0 < 4 * ((n:ℝ) + 1) * (((n:ℝ) + 1) + 1) := by nlinarith [@cast_nonneg ℝ _ n],
+  have h₃ : 0 < (2 * ((n:ℝ) + 1) + 1) ^ 2 := by linarith,
+  have h₂ : 0 < 1 - (1 / (2 * ((n:ℝ) + 1) + 1)) ^ 2,
+  { rw ← mul_lt_mul_right h₃,
+    have H : 0 < (2 * ((n:ℝ) + 1) + 1) ^ 2 - 1 := by linarith,
+    convert H using 1; field_simp [h₃.ne'] },
+  refine le_trans (log_stirling_seq_diff_le_geo_sum n) _,
+  push_cast at *,
+  rw div_le_div_iff h₂ h₁,
+  rw ← mul_le_mul_right h₃,
+  have H : 4 * ((n:ℝ) + 1) * (n + 1 + 1) ≤ (2 * (↑n + 1) + 1) ^ 2 - 1 := by linarith,
+  convert H using 1; field_simp [h₃.ne'],
 end
 
 /-- For any `n`, we have `log_stirling_seq 1 - log_stirling_seq n ≤ 1/4` -/
@@ -487,17 +398,19 @@ end
 
 /-- The sequence `stirling_seq` is positive for `n > 0`  -/
 lemma stirling_seq'_pos (n : ℕ): 0 < stirling_seq n.succ :=
-  div_pos ((cast_pos.mpr (factorial_pos n.succ)): (0:ℝ) < _) $
-    mul_pos (real.sqrt_pos.mpr $ mul_pos two_pos $ cast_pos.mpr (succ_pos n)) $
-      pow_pos (div_pos (cast_pos.mpr (succ_pos n)) (exp_pos 1)) n.succ
+begin
+  apply_rules [cast_pos.mpr, factorial_pos, exp_pos, pow_pos, div_pos, mul_pos, real.sqrt_pos.mpr,
+    two_pos, succ_pos];
+  apply_instance
+end
 
 /--
-The sequence `stirling_seq` has the explicit lower bound exp (3/4 - 1/2 * log 2)
+The sequence `stirling_seq` has a positive lower bound (in fact, `exp (3/4 - 1/2 * log 2)`)
 -/
 lemma stirling_seq'_bounded_by_pos_constant :
-∀ (n : ℕ), exp (3 / (4 : ℝ) - 1 / 2 * log 2) ≤ stirling_seq n.succ :=
+  ∃ a, 0 < a ∧ ∀ n : ℕ, a ≤ stirling_seq n.succ :=
 begin
-  intro n,
+  refine ⟨exp (3 / (4 : ℝ) - 1 / 2 * log 2), exp_pos _, λ n, _⟩,
   rw ← le_log_iff_exp_le (stirling_seq'_pos n),
   exact log_stirling_seq_bounded_by_constant n,
 end
@@ -506,49 +419,15 @@ end
 lemma stirling_seq'_antitone : antitone (stirling_seq ∘ succ) :=
 λ n m h, (log_le_log (stirling_seq'_pos m) (stirling_seq'_pos n)).mp (log_stirling_seq'_antitone h)
 
-/-- The sequence `an` has a lower bound -/
-lemma stirling_seq'_bdd_below : bdd_below (set.range (λ (k : ℕ), stirling_seq k.succ)) :=
-begin
-  use exp (3 / (4 : ℝ) - 1 / 2 * log 2),
-  intros,
-  rw lower_bounds,
-  simp only [set.mem_range, forall_exists_index, forall_apply_eq_imp_iff', set.mem_set_of_eq],
-  exact stirling_seq'_bounded_by_pos_constant,
-end
-
-/-- The sequence `stirling_seq` converges to a real number -/
-lemma stirling_seq_has_limit_a : ∃ (a : ℝ), tendsto (λ (n : ℕ), stirling_seq n) at_top (𝓝 a) :=
-begin
-  have ha := monotone_convergence (λ (k : ℕ), stirling_seq k.succ)
-  stirling_seq'_antitone stirling_seq'_bdd_below,
-  cases ha with x hx,
-  rw ← tendsto_succ stirling_seq x at hx,
-  use x,
-  exact hx,
-end
-
 /-- The limit `a` of the sequence `stirling_seq` satisfies `0 < a` -/
-lemma stirling_seq_has_pos_limit_a : ∃ (a : ℝ), 0 < a ∧ tendsto (λ (n : ℕ), stirling_seq n)
-at_top (𝓝 a) :=
+lemma stirling_seq_has_pos_limit_a :
+  ∃ (a : ℝ), 0 < a ∧ tendsto (λ (n : ℕ), stirling_seq n) at_top (𝓝 a) :=
 begin
-  have h := stirling_seq_has_limit_a,
-  cases h with a ha,
-  use a,
-  split,
-  { let stirling_seq' : ℕ → ℝ := λ n, stirling_seq n.succ,
-    rw tendsto_succ stirling_seq a at ha,
-    have e_lower_bound :
-    exp (3 / (4 : ℝ) - 1 / 2 * log 2) ∈ lower_bounds (set.range stirling_seq') :=
-    begin
-      intros x hx,
-      rw [set.mem_range] at hx,
-      cases hx with k hk,
-      rw ← hk,
-      exact stirling_seq'_bounded_by_pos_constant k,
-    end,
-    exact gt_of_ge_of_gt ((le_is_glb_iff (is_glb_of_tendsto_at_top stirling_seq'_antitone ha)).mpr
-      e_lower_bound) (3 / 4 - 1 / 2 * log 2).exp_pos },
-  { exact ha },
+  obtain ⟨x, x_pos, hx⟩ := stirling_seq'_bounded_by_pos_constant,
+  have hx' : x ∈ lower_bounds (set.range (stirling_seq ∘ succ)) := by simpa [lower_bounds] using hx,
+  refine ⟨_, lt_of_lt_of_le x_pos (le_cInf (set.range_nonempty _) hx'), _⟩,
+  rw tendsto_succ,
+  exact tendsto_at_top_cinfi stirling_seq'_antitone ⟨x, hx'⟩,
 end
 
 /-!

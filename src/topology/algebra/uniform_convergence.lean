@@ -10,7 +10,7 @@ import topology.algebra.filter_basis
 /-!
 # Algebraic facts about the topology of uniform convergence
 
-This file contaains algrebraic compatibility results about the uniform structure of uniform
+This file contains algrebraic compatibility results about the uniform structure of uniform
 convergence / `𝔖`-convergence. They will mostly be useful for defining strong topologies on the
 space of continuous linear maps between two topological vector spaces.
 

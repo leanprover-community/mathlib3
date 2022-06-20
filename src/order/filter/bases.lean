@@ -433,6 +433,62 @@ lemma has_basis_infi {ι : Type*} {ι' : ι → Type*} {l : ι → filter α}
     exact (bInter_mem hI₁).mpr (λ i hi, mem_infi_of_mem i $ (hl i).mem_of_mem $ hI₂ _ hi) }
 end⟩
 
+lemma has_basis_infi_of_directed' {ι : Type*} {ι' : ι → Sort*}
+  [nonempty ι]
+  {l : ι → filter α} (s : Π i, (ι' i) → set α) (p : Π i, (ι' i) → Prop)
+  (hl : ∀ i, (l i).has_basis (p i) (s i)) (h : directed (≥) l) :
+  (⨅ i, l i).has_basis (λ (ii' : Σ i, ι' i), p ii'.1 ii'.2) (λ ii', s ii'.1 ii'.2) :=
+begin
+  refine ⟨λ t, _⟩,
+  rw [mem_infi_of_directed h, sigma.exists],
+  exact exists_congr (λ i, (hl i).mem_iff)
+end
+
+lemma has_basis_infi_of_directed {ι : Type*} {ι' : Sort*}
+  [nonempty ι]
+  {l : ι → filter α} (s : ι → ι' → set α) (p : ι → ι' → Prop)
+  (hl : ∀ i, (l i).has_basis (p i) (s i)) (h : directed (≥) l) :
+  (⨅ i, l i).has_basis (λ (ii' : ι × ι'), p ii'.1 ii'.2) (λ ii', s ii'.1 ii'.2) :=
+begin
+  refine ⟨λ t, _⟩,
+  rw [mem_infi_of_directed h, prod.exists],
+  exact exists_congr (λ i, (hl i).mem_iff)
+end
+
+lemma has_basis_binfi_of_directed' {ι : Type*} {ι' : ι → Sort*}
+  {dom : set ι} (hdom : dom.nonempty)
+  {l : ι → filter α} (s : Π i, (ι' i) → set α) (p : Π i, (ι' i) → Prop)
+  (hl : ∀ i ∈ dom, (l i).has_basis (p i) (s i)) (h : directed_on (l ⁻¹'o ge) dom) :
+  (⨅ i ∈ dom, l i).has_basis (λ (ii' : Σ i, ι' i), ii'.1 ∈ dom ∧ p ii'.1 ii'.2)
+    (λ ii', s ii'.1 ii'.2) :=
+begin
+  refine ⟨λ t, _⟩,
+  rw [mem_binfi_of_directed h hdom, sigma.exists],
+  refine exists_congr (λ i, ⟨_, _⟩),
+  { rintros ⟨hi, hti⟩,
+    rcases (hl i hi).mem_iff.mp hti with ⟨b, hb, hbt⟩,
+    exact ⟨b, ⟨hi, hb⟩, hbt⟩ },
+  { rintros ⟨b, ⟨hi, hb⟩, hibt⟩,
+    exact ⟨hi, (hl i hi).mem_iff.mpr ⟨b, hb, hibt⟩⟩ }
+end
+
+lemma has_basis_binfi_of_directed {ι : Type*} {ι' : Sort*}
+  {dom : set ι} (hdom : dom.nonempty)
+  {l : ι → filter α} (s : ι → ι' → set α) (p : ι → ι' → Prop)
+  (hl : ∀ i ∈ dom, (l i).has_basis (p i) (s i)) (h : directed_on (l ⁻¹'o ge) dom) :
+  (⨅ i ∈ dom, l i).has_basis (λ (ii' : ι × ι'), ii'.1 ∈ dom ∧ p ii'.1 ii'.2)
+    (λ ii', s ii'.1 ii'.2) :=
+begin
+  refine ⟨λ t, _⟩,
+  rw [mem_binfi_of_directed h hdom, prod.exists],
+  refine exists_congr (λ i, ⟨_, _⟩),
+  { rintros ⟨hi, hti⟩,
+    rcases (hl i hi).mem_iff.mp hti with ⟨b, hb, hbt⟩,
+    exact ⟨b, ⟨hi, hb⟩, hbt⟩ },
+  { rintros ⟨b, ⟨hi, hb⟩, hibt⟩,
+    exact ⟨hi, (hl i hi).mem_iff.mpr ⟨b, hb, hibt⟩⟩ }
+end
+
 lemma has_basis_principal (t : set α) : (𝓟 t).has_basis (λ i : unit, true) (λ i, t) :=
 ⟨λ U, by simp⟩
 
@@ -720,16 +776,6 @@ lemma has_basis.coprod {ι ι' : Type*} {pa : ι → Prop} {sa : ι → set α} 
 (hla.comap prod.fst).sup (hlb.comap prod.snd)
 
 end two_types
-
-open equiv
-
-lemma prod_assoc (f : filter α) (g : filter β) (h : filter γ) :
-  map (prod_assoc α β γ) ((f ×ᶠ g) ×ᶠ h) = f ×ᶠ (g ×ᶠ h) :=
-begin
-  apply ((((basis_sets f).prod $ basis_sets g).prod $ basis_sets h).map _).eq_of_same_basis,
-  simpa only [prod_assoc_image, function.comp, and_assoc] using
-    ((basis_sets f).prod $ (basis_sets g).prod $ basis_sets h).comp_equiv (prod_assoc _ _ _)
-end
 
 end filter
 

@@ -360,6 +360,33 @@ meta def lambdas : list expr → expr → tactic expr
   pure $ expr.lam pp info t (expr.abstract_local f' uniq)
 | _ f := pure f
 
+/--  Given an expression `f` (likely a binary operation) and a further expression `x`, calling
+`list_binary_operands f x` breaks `x` apart into successions of applications of `f` until this can
+no longer be done and returns a list of the leaves of the process.
+
+This matches `f` up to semireducible unification. In particular, it will match applications of the
+same polymorphic function with different type-class arguments.
+
+E.g., if `i1` and `i2` are both instances of `has_add T` and
+`e := has_add.add T i1 x (has_add.add T i2 y z)`, then ``list_binary_operands `((+) : T → T → T) e``
+returns `[x, y, z]`.
+
+For example:
+```lean
+#eval list_binary_operands `(@has_add.add ℕ _) `(3 + (4 * 5 + 6) + 7 / 3) >>= tactic.trace
+-- [3, 4 * 5, 6, 7 / 3]
+#eval list_binary_operands `(@list.append ℕ) `([1, 2] ++ [3, 4] ++ (1 :: [])) >>= tactic.trace
+-- [[1, 2], [3, 4], [1]]
+```
+-/
+meta def list_binary_operands (f : expr) : expr → tactic (list expr)
+| x@(expr.app (expr.app g a) b) := do
+  some _ ← try_core (unify f g) | pure [x],
+  as ← list_binary_operands a,
+  bs ← list_binary_operands b,
+  pure (as ++ bs)
+| a                      := pure [a]
+
 -- TODO: move to `declaration` namespace in `meta/expr.lean`
 /-- `mk_theorem n ls t e` creates a theorem declaration with name `n`, universe parameters named
 `ls`, type `t`, and body `e`. -/

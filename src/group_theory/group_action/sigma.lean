@@ -40,9 +40,9 @@ instance [Π i, has_scalar Mᵐᵒᵖ (α i)] [Π i, is_central_scalar M (α i)]
   is_central_scalar M (Σ i, α i) :=
 ⟨λ a x, by { cases x, rw [smul_mk, smul_mk, op_smul_eq_smul] }⟩
 
-/-- This is not an instance because `i` becomes a metavariable -/
-@[to_additive] protected lemma has_faithful_smul' [has_faithful_smul M (α i)] :
-  has_faithful_smul M (Σ i, α i) :=
+/-- This is not an instance because `i` becomes a metavariable. -/
+@[to_additive "This is not an instance because `i` becomes a metavariable."]
+protected lemma has_faithful_smul' [has_faithful_smul M (α i)] : has_faithful_smul M (Σ i, α i) :=
 ⟨λ x y h, eq_of_smul_eq_smul $ λ a : α i, heq_iff_eq.1 (ext_iff.1 $ h $ mk i a).2⟩
 
 @[to_additive] instance [nonempty ι] [Π i, has_faithful_smul M (α i)] :

@@ -78,14 +78,6 @@ lemma coe_sub (a b : α) : ((a - b : α) : completion α) = a - b :=
 lemma coe_add (a b : α) : ((a + b : α) : completion α) = a + b :=
 (map₂_coe_coe a b (+) uniform_continuous_add).symm
 
-@[norm_cast]
-lemma coe_nsmul (n : ℕ) (a : α) : ((n • a : α) : completion α) = n • a :=
-(map_coe (uniform_continuous_const_nsmul n) a).symm
-
-@[norm_cast]
-lemma coe_zsmul (n : ℤ) (a : α) : ((n • a : α) : completion α) = n • a :=
-(map_coe (uniform_continuous_const_zsmul n) a).symm
-
 instance : add_monoid (completion α) :=
 { zero_add     := assume a, completion.induction_on a
    (is_closed_eq (continuous_map₂ continuous_const continuous_id) continuous_id)
@@ -106,7 +98,7 @@ instance : add_monoid (completion α) :=
       by repeat { rw_mod_cast add_assoc }),
   nsmul := (•),
   nsmul_zero' := λ a, completion.induction_on a (is_closed_eq continuous_map continuous_const)
-    (λ a, by { rw_mod_cast zero_smul, refl} ),
+    (λ a, by rw [←coe_smul, ←coe_zero, zero_smul]),
   nsmul_succ' := λ n a, completion.induction_on a
     (is_closed_eq continuous_map $ continuous_map₂ continuous_id continuous_map)
     (λ a, by rw_mod_cast succ_nsmul ),
@@ -126,8 +118,8 @@ instance : sub_neg_monoid (completion α) :=
                           from sub_neg_monoid.zsmul_succ' n a) ),
   zsmul_neg' := λ n a, completion.induction_on a
     (is_closed_eq continuous_map $ completion.continuous_map.comp continuous_map)
-    (λ a, by rw [←coe_zsmul, ←coe_zsmul, ←coe_neg, show -[1+ n] • a = -((n.succ : ℤ) • a),
-                                                   from sub_neg_monoid.zsmul_neg' n a]),
+    (λ a, by rw [←coe_smul, ←coe_smul, ←coe_neg, show -[1+ n] • a = -((n.succ : ℤ) • a),
+                                                 from sub_neg_monoid.zsmul_neg' n a]),
   .. completion.add_monoid, .. completion.has_neg, .. completion.has_sub }
 
 instance : add_group (completion α) :=

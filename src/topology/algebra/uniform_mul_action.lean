@@ -6,15 +6,18 @@ Authors: Yury G. Kudryashov
 import algebra.hom.group_instances
 import topology.algebra.uniform_group
 import topology.uniform_space.completion
--- import topology.algebra.group_completion
 
 /-!
 # Multiplicative action on the completion of a uniform space
 
 In this file we define typeclasses `has_uniform_continuous_const_vadd` and
 `has_uniform_continuous_const_smul` and prove that a multiplicative action on `X` with uniformly
-continuous `(•) c` can be extended to a multiplicative action on `uniform_space.completion X`. We
-also provide similar instances `distrib_mul_action`, `mul_action_with_zero`, and `module`.
+continuous `(•) c` can be extended to a multiplicative action on `uniform_space.completion X`.
+
+In later files once the additive group structure is set up, we provide
+* `uniform_space.completion.distrib_mul_action`
+* `uniform_space.completion.mul_action_with_zero`
+* `uniform_space.completion.module`
 -/
 
 universes u v w x y z
@@ -35,6 +38,14 @@ class has_uniform_continuous_const_smul [uniform_space X] [has_scalar M X] : Pro
 
 export has_uniform_continuous_const_vadd (uniform_continuous_const_vadd)
   has_uniform_continuous_const_smul (uniform_continuous_const_smul)
+
+instance add_monoid.has_uniform_continuous_const_smul_nat [add_group X] [uniform_add_group X] :
+  has_uniform_continuous_const_smul ℕ X :=
+⟨uniform_continuous_const_nsmul⟩
+
+instance add_group.has_uniform_continuous_const_smul_int [add_group X] [uniform_add_group X] :
+  has_uniform_continuous_const_smul ℤ X :=
+⟨uniform_continuous_const_zsmul⟩
 
 section has_scalar
 

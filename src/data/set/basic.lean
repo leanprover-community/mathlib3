@@ -316,27 +316,26 @@ protected noncomputable def nonempty.some (h : s.nonempty) : α := classical.som
 
 protected lemma nonempty.some_mem (h : s.nonempty) : h.some ∈ s := classical.some_spec h
 
-lemma nonempty.mono (ht : s ⊆ t) (hs : s.nonempty) : t.nonempty := hs.imp ht
+lemma nonempty.mono (ht : s ⊆ t) : s.nonempty → t.nonempty := λ ⟨_, h⟩, ⟨_, ht h⟩
 
 lemma nonempty_of_not_subset (h : ¬s ⊆ t) : (s \ t).nonempty :=
-let ⟨x, xs, xt⟩ := not_subset.1 h in ⟨x, xs, xt⟩
+let ⟨_, xs, xt⟩ := not_subset.1 h in ⟨_, xs, xt⟩
 
-lemma nonempty_of_ssubset (ht : s ⊂ t) : (t \ s).nonempty :=
-nonempty_of_not_subset ht.2
+lemma nonempty_of_ssubset (ht : s ⊂ t) : (t \ s).nonempty := nonempty_of_not_subset ht.2
 
-lemma nonempty.of_diff (h : (s \ t).nonempty) : s.nonempty := h.imp $ λ _, and.left
+lemma nonempty.of_diff : (s \ t).nonempty → s.nonempty := λ ⟨_, h⟩, ⟨_, h.1⟩
 
 lemma nonempty_of_ssubset' (ht : s ⊂ t) : t.nonempty := (nonempty_of_ssubset ht).of_diff
 
-lemma nonempty.inl (hs : s.nonempty) : (s ∪ t).nonempty := hs.imp $ λ _, or.inl
+lemma nonempty.inl : s.nonempty → (s ∪ t).nonempty := λ ⟨_, h⟩, ⟨_, or.inl h⟩
 
-lemma nonempty.inr (ht : t.nonempty) : (s ∪ t).nonempty := ht.imp $ λ _, or.inr
+lemma nonempty.inr : t.nonempty → (s ∪ t).nonempty := λ ⟨_, h⟩, ⟨_, or.inr h⟩
 
 @[simp] lemma union_nonempty : (s ∪ t).nonempty ↔ s.nonempty ∨ t.nonempty := exists_or_distrib
 
-lemma nonempty.left (h : (s ∩ t).nonempty) : s.nonempty := h.imp $ λ _, and.left
+lemma nonempty.left : (s ∩ t).nonempty → s.nonempty := λ ⟨_, h, _⟩, ⟨_, h⟩
 
-lemma nonempty.right (h : (s ∩ t).nonempty) : t.nonempty := h.imp $ λ _, and.right
+lemma nonempty.right : (s ∩ t).nonempty → t.nonempty := λ ⟨_, _, h⟩, ⟨_, h⟩
 
 @[simp] lemma inter_nonempty : (s ∩ t).nonempty ↔ ∃ x, x ∈ s ∧ x ∈ t := iff.rfl
 
@@ -349,18 +348,17 @@ by simp_rw [inter_nonempty, exists_prop, and_comm]
 lemma nonempty_iff_univ_nonempty : nonempty α ↔ (univ : set α).nonempty :=
 ⟨λ ⟨x⟩, ⟨x, trivial⟩, λ ⟨x, _⟩, ⟨x⟩⟩
 
-@[simp] lemma univ_nonempty : ∀ [h : nonempty α], (univ : set α).nonempty
-| ⟨x⟩ := ⟨x, trivial⟩
+lemma nonempty_of_nonempty_subtype [nonempty s] : s.nonempty :=
+nonempty_subtype.mp ‹_›
 
-lemma nonempty.to_subtype (h : s.nonempty) : nonempty s :=
-nonempty_subtype.2 h
+@[simp] lemma univ_nonempty [nonempty α] : (univ : set α).nonempty :=
+nonempty_iff_univ_nonempty.mp (by assumption)
+
+lemma nonempty.to_subtype (h : s.nonempty) : nonempty s := nonempty_subtype.2 h
 
 instance [nonempty α] : nonempty (set.univ : set α) := set.univ_nonempty.to_subtype
 
 @[simp] lemma nonempty_insert (a : α) (s : set α) : (insert a s).nonempty := ⟨a, or.inl rfl⟩
-
-lemma nonempty_of_nonempty_subtype [nonempty s] : s.nonempty :=
-nonempty_subtype.mp ‹_›
 
 /-! ### Lemmas about the empty set -/
 

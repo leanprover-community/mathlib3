@@ -84,10 +84,10 @@ begin
       polynomial.map_nat_cast, polynomial.eval_mul, polynomial.eval_nat_cast, nat.cast_eq_zero] },
   convert ((s _).comp _ t).const_mul ((2 * π) ^ k) using 1,
   rcases nat.eq_zero_or_pos k with hk|hk,
-  { rw hk, simp,},
-  rw bernoulli_fun, ring_nf, congr' 1,
-  rw mul_comm, congr' 1, field_simp [two_pi_pos.ne'],
-  rw [←pow_succ', nat.sub_add_cancel hk],
+  { rw hk, simp, },
+  have : (2 * π) ^ k = (2 * π) ^ (k - 1) * (2 * π),
+  { conv_lhs { rw [←nat.sub_add_cancel hk, pow_succ] }, ring,  },
+  rw [bernoulli_fun, this], field_simp [two_pi_pos.ne'], ring,
 end
 
 lemma continuous_bernoulli_fun (k : ℕ) : continuous (bernoulli_fun k) :=
@@ -130,8 +130,9 @@ begin
   have d2 : ∀ x:ℂ, has_deriv_at (λ y, I / n * exp (-n * I * y) : ℂ → ℂ) (exp (-n * I * x)) x,
   { intro x,
     suffices : has_deriv_at (λ y, exp (-n * I * y) : ℂ → ℂ) (exp (-n * I * x) * (-n * I)) x,
-    { convert has_deriv_at.const_mul (I / n) this, ring_nf,
-      rw [mul_inv_cancel (int.cast_ne_zero.mpr hn : (n : ℂ) ≠ 0), I_sq], ring, },
+    { convert has_deriv_at.const_mul (I / n) this,
+      field_simp [(int.cast_ne_zero.mpr hn : (n : ℂ) ≠ 0)],
+      ring_nf, rw I_sq, ring, },
     refine has_deriv_at.comp x (complex.has_deriv_at_exp (-n * I * x)) _,
     simpa using (has_deriv_at_const x (-↑n * I)).mul (has_deriv_at_id x), },
   replace d2 : ∀ x:ℝ, has_deriv_at (λ y, I / n * exp (-n * I * y) : ℝ → ℂ)
@@ -369,8 +370,8 @@ begin
   have := (zeta_value0 k hk).sum_nat_of_sum_int,
   simp only [int.cast_add, int.cast_coe_nat, int.cast_one, int.cast_sub, int.cast_neg,
     int.cast_zero] at this,
-  have aux : ∀ (n:ℕ), (-(n:ℝ) - 1) ^ (2 * k) = ((n:ℝ) + 1) ^ (2 * k),
-  { intro n, rw [pow_mul, pow_mul, neg_sub_left, neg_sq, add_comm],},
+  have aux : ∀ (n:ℕ), (-((n.succ) : ℝ)) ^ (2 * k) = ((n:ℝ) + 1) ^ (2 * k),
+  { intro n, rw [pow_mul, pow_mul, nat.cast_succ, neg_sq, add_comm],},
   simp_rw [aux, ←mul_two] at this,
   convert (this.div_const 2) using 1,
   { ext1, simp, },

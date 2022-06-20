@@ -720,15 +720,25 @@ linear_map.mk_continuous₂
                                    function.comp_app, pi.smul_apply] }))
   1 $ λ f g, by simpa only [one_mul] using op_norm_comp_le f g
 
-variables {𝕜 E F G}
+variables {𝕜 σ₁₂ σ₂₃ E F G}
 
 include σ₁₃
 
 @[simp] lemma compSL_apply (f : F →SL[σ₂₃] G) (g : E →SL[σ₁₂] F) :
   compSL E F G σ₁₂ σ₂₃ f g = f.comp g := rfl
 
+lemma _root_.continuous.const_clm_comp {X} [topological_space X] {f : X → E →SL[σ₁₂] F}
+  (hf : continuous f) (g : F →SL[σ₂₃] G) : continuous (λ x, g.comp (f x) : X → E →SL[σ₁₃] G) :=
+(compSL E F G σ₁₂ σ₂₃ g).continuous.comp hf
+
+-- Giving the implicit argument speeds up elaboration significantly
+lemma _root_.continuous.clm_comp_const {X} [topological_space X] {g : X → F →SL[σ₂₃] G}
+  (hg : continuous g) (f : E →SL[σ₁₂] F) : continuous (λ x, (g x).comp f : X → E →SL[σ₁₃] G) :=
+(@continuous_linear_map.flip _ _ _ _ _ (E →SL[σ₁₃] G) _ _ _ _ _ _ _ _ _ _ _ _ _
+  (compSL E F G σ₁₂ σ₂₃) f).continuous.comp hg
+
 omit σ₁₃
-variables (𝕜 E Fₗ Gₗ)
+variables (𝕜 σ₁₂ σ₂₃ E Fₗ Gₗ)
 
 /-- Composition of continuous linear maps as a continuous bilinear map. -/
 def compL : (Fₗ →L[𝕜] Gₗ) →L[𝕜] (E →L[𝕜] Fₗ) →L[𝕜] (E →L[𝕜] Gₗ) :=
@@ -1767,18 +1777,20 @@ variables [ring_hom_isometric σ₁₃] [ring_hom_isometric σ₁₂]
 variables [ring_hom_isometric σ₃₄]
 
 include σ₂₁ σ₃₄ σ₁₃ σ₂₄
+
 /-- A pair of continuous (semi)linear equivalences generates an continuous (semi)linear equivalence
 between the spaces of continuous (semi)linear maps. -/
+@[simps apply symm_apply]
 def arrow_congrSL (e₁₂ : E ≃SL[σ₁₂] F) (e₄₃ : H ≃SL[σ₄₃] G) :
   (E →SL[σ₁₄] H) ≃SL[σ₄₃] (F →SL[σ₂₃] G) :=
-{ map_add' := λ f g, by simp only [equiv.to_fun_as_coe, add_comp, comp_add,
-    continuous_linear_equiv.arrow_congr_equiv_apply],
-  map_smul' := λ t f, by simp only [equiv.to_fun_as_coe, smul_comp, comp_smulₛₗ,
-    continuous_linear_equiv.arrow_congr_equiv_apply],
-  continuous_to_fun := (compSL F H G σ₂₄ σ₄₃ e₄₃).continuous.comp
-    (continuous_linear_map.flip (compSL F E H σ₂₁ σ₁₄) e₁₂.symm).continuous,
-  continuous_inv_fun := (compSL E G H σ₁₃ σ₃₄ e₄₃.symm).continuous.comp
-    (continuous_linear_map.flip (compSL E F G σ₁₂ σ₂₃) e₁₂).continuous,
+{ -- given explicitly to help `simps`
+  to_fun := λ L, (e₄₃ : H →SL[σ₄₃] G).comp (L.comp (e₁₂.symm : F →SL[σ₂₁] E)),
+  -- given explicitly to help `simps`
+  inv_fun := λ L, (e₄₃.symm : G →SL[σ₃₄] H).comp (L.comp (e₁₂ : E →SL[σ₁₂] F)),
+  map_add' := λ f g, by rw [add_comp, comp_add],
+  map_smul' := λ t f, by rw [smul_comp, comp_smulₛₗ],
+  continuous_to_fun := (continuous_id.clm_comp_const _).const_clm_comp _,
+  continuous_inv_fun := (continuous_id.clm_comp_const _).const_clm_comp _,
   .. e₁₂.arrow_congr_equiv e₄₃, }
 
 omit σ₂₁ σ₃₄ σ₁₃ σ₂₄

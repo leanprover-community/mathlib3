@@ -652,7 +652,7 @@ begin
     exact add_add_add_comm _ _ _ _ }
 end
 
-lemma convex_open_segment (x y : E) : convex 𝕜 (open_segment 𝕜 x y) :=
+lemma convex_open_segment (a b : E) : convex 𝕜 (open_segment 𝕜 a b) :=
 begin
   rw convex_iff_open_segment_subset,
   rintro p q ⟨ap, bp, hap, hbp, habp, rfl⟩ ⟨aq, bq, haq, hbq, habq, rfl⟩ z ⟨a, b, ha, hb, hab, rfl⟩,

@@ -7,7 +7,7 @@ Authors: Eric Wieser, Utensil Song
 import algebra.ring_quot
 import linear_algebra.tensor_algebra.basic
 import linear_algebra.exterior_algebra.basic
-import linear_algebra.quadratic_form.basic
+import linear_algebra.quadratic_form.isometry
 
 /-!
 # Clifford Algebras
@@ -164,6 +164,8 @@ end
 
 /-- If `C` holds for the `algebra_map` of `r : R` into `clifford_algebra Q`, the `ι` of `x : M`,
 and is preserved under addition and muliplication, then it holds for all of `clifford_algebra Q`.
+
+See also the stronger `clifford_algebra.left_induction` and `clifford_algebra.right_induction`.
 -/
 -- This proof closely follows `tensor_algebra.induction`
 @[elab_as_eliminator]

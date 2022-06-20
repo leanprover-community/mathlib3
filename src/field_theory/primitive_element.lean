@@ -112,7 +112,7 @@ begin
       { rw ← add_sub_cancel α (c • β),
         exact F⟮γ⟯.sub_mem (mem_adjoin_simple_self F γ) (F⟮γ⟯.to_subalgebra.smul_mem β_in_Fγ c) },
       exact λ x hx, by cases hx; cases hx; cases hx; assumption },
-    { rw adjoin_le_iff,
+    { rw [adjoin_le_iff, set.le_eq_subset],
       change {γ} ⊆ _,
       rw set.singleton_subset_iff,
       have α_in_Fαβ : α ∈ F⟮α, β⟯ := subset_adjoin F {α, β} (set.mem_insert α {β}),

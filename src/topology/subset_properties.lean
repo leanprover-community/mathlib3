@@ -220,7 +220,7 @@ let ⟨t, ht⟩ := hs.elim_finite_subcover (λ i, (Z i)ᶜ) (λ i, (hZc i).is_op
 family of sets, then `f i ∩ s` is nonempty only for a finitely many `i`. -/
 lemma locally_finite.finite_nonempty_inter_compact {ι : Type*} {f : ι → set α}
   (hf : locally_finite f) {s : set α} (hs : is_compact s) :
-  finite {i | (f i ∩ s).nonempty} :=
+  {i | (f i ∩ s).nonempty}.finite :=
 begin
   choose U hxU hUf using hf,
   rcases hs.elim_nhds_subcover U (λ x _, hxU x) with ⟨t, -, hsU⟩,
@@ -283,7 +283,7 @@ is_compact.nonempty_Inter_of_directed_nonempty_compact_closed Z hZd hZn hZc hZcl
 /-- For every open cover of a compact set, there exists a finite subcover. -/
 lemma is_compact.elim_finite_subcover_image {b : set ι} {c : ι → set α}
   (hs : is_compact s) (hc₁ : ∀ i ∈ b, is_open (c i)) (hc₂ : s ⊆ ⋃ i ∈ b, c i) :
-  ∃ b' ⊆ b, finite b' ∧ s ⊆ ⋃ i ∈ b', c i :=
+  ∃ b' ⊆ b, set.finite b' ∧ s ⊆ ⋃ i ∈ b', c i :=
 begin
   rcases hs.elim_finite_subcover (λ i, c i : b → set α) _ _ with ⟨d, hd⟩;
     [skip, simpa using hc₁, simpa using hc₂],
@@ -387,7 +387,7 @@ lemma is_compact_singleton {a : α} : is_compact ({a} : set α) :=
 lemma set.subsingleton.is_compact {s : set α} (hs : s.subsingleton) : is_compact s :=
 subsingleton.induction_on hs is_compact_empty $ λ x, is_compact_singleton
 
-lemma set.finite.compact_bUnion {s : set ι} {f : ι → set α} (hs : finite s)
+lemma set.finite.compact_bUnion {s : set ι} {f : ι → set α} (hs : s.finite)
   (hf : ∀ i ∈ s, is_compact (f i)) :
   is_compact (⋃ i ∈ s, f i) :=
 is_compact_of_finite_subcover $ assume ι U hUo hsU,
@@ -417,7 +417,7 @@ lemma compact_Union {f : ι → set α} [fintype ι]
   (h : ∀ i, is_compact (f i)) : is_compact (⋃ i, f i) :=
 by rw ← bUnion_univ; exact finite_univ.compact_bUnion (λ i _, h i)
 
-lemma set.finite.is_compact (hs : finite s) : is_compact s :=
+lemma set.finite.is_compact (hs : s.finite) : is_compact s :=
 bUnion_of_singleton s ▸ hs.compact_bUnion (λ _ _, is_compact_singleton)
 
 lemma is_compact.finite_of_discrete [discrete_topology α] {s : set α} (hs : is_compact s) :
@@ -739,14 +739,14 @@ let ⟨t, ht⟩ := finite_cover_nhds_interior hU in ⟨t, univ_subset_iff.1 $ ht
 many nonempty elements. -/
 lemma locally_finite.finite_nonempty_of_compact {ι : Type*} [compact_space α] {f : ι → set α}
   (hf : locally_finite f) :
-  finite {i | (f i).nonempty} :=
+  {i | (f i).nonempty}.finite :=
 by simpa only [inter_univ]  using hf.finite_nonempty_inter_compact compact_univ
 
 /-- If `α` is a compact space, then a locally finite family of nonempty sets of `α` can have only
 finitely many elements, `set.finite` version. -/
 lemma locally_finite.finite_of_compact {ι : Type*} [compact_space α] {f : ι → set α}
   (hf : locally_finite f) (hne : ∀ i, (f i).nonempty) :
-  finite (univ : set ι) :=
+  (univ : set ι).finite :=
 by simpa only [hne] using hf.finite_nonempty_of_compact
 
 /-- If `α` is a compact space, then a locally finite family of nonempty sets of `α` can have only
@@ -1103,9 +1103,8 @@ begin
       { exact is_open_sUnion (λ _ h, (hc h).2.1) },
       { convert_to (⋂(U : {U // U ∈ c}), U.1ᶜ).nonempty,
         { ext,
-          simp only [not_exists, exists_prop, not_and, set.mem_Inter, subtype.forall,
-            set.mem_set_of_eq, set.mem_compl_eq, subtype.val_eq_coe],
-          refl, },
+          simp only [not_exists, exists_prop, not_and, set.mem_Inter, subtype.forall, mem_set_of_eq,
+            mem_compl_eq, mem_sUnion] },
         apply is_compact.nonempty_Inter_of_directed_nonempty_compact_closed,
         { rintros ⟨U, hU⟩ ⟨U', hU'⟩,
           obtain ⟨V, hVc, hVU, hVU'⟩ := hz.directed_on U hU U' hU',

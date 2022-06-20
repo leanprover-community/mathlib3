@@ -384,7 +384,7 @@ by simp_rw lower_set.compl_infi
 
 end lower_set
 
-/- #### Duals -/
+/-! #### Duals -/
 
 /-- An `upper_set` as a `lower_set` in the dual order. -/
 protected def upper_set.to_dual (s : upper_set α) : lower_set αᵒᵈ :=
@@ -396,50 +396,55 @@ protected def upper_set.of_dual (s : upper_set αᵒᵈ) : lower_set α :=
 
 namespace upper_set
 
-@[simp] protected lemma coe_to_dual (s : upper_set α) :
+@[simp] lemma coe_to_dual (s : upper_set α) :
   (s.to_dual : set αᵒᵈ) = order_dual.of_dual ⁻¹' s := rfl
-@[simp] protected lemma coe_of_dual (s : upper_set αᵒᵈ) :
+@[simp] lemma coe_of_dual (s : upper_set αᵒᵈ) :
   (s.of_dual : set α) = order_dual.to_dual ⁻¹' s := rfl
 
-@[simp] protected lemma to_dual_bot : (⊥ : upper_set α).to_dual = ⊥ := rfl
-@[simp] protected lemma to_dual_top : (⊤ : upper_set α).to_dual = ⊤ := rfl
-@[simp] protected lemma of_dual_bot : (⊥ : upper_set αᵒᵈ).to_dual = ⊥ := rfl
-@[simp] protected lemma of_dual_top : (⊤ : upper_set αᵒᵈ).to_dual = ⊤ := rfl
+@[simp] lemma mem_to_dual_iff {x : αᵒᵈ} {s : lower_set α} :
+  x ∈ s.to_dual ↔ (of_dual x) ∈ s := iff.rfl
+@[simp] lemma mem_of_dual_iff {x : α} {s : lower_set αᵒᵈ} :
+  x ∈ s.of_dual ↔ (to_dual x) ∈ s := iff.rfl
 
-@[simp] protected lemma to_dual_inf (s t : upper_set α) :
+@[simp] lemma to_dual_bot : (⊥ : upper_set α).to_dual = ⊥ := rfl
+@[simp] lemma to_dual_top : (⊤ : upper_set α).to_dual = ⊤ := rfl
+@[simp] lemma of_dual_bot : (⊥ : upper_set αᵒᵈ).to_dual = ⊥ := rfl
+@[simp] lemma of_dual_top : (⊤ : upper_set αᵒᵈ).to_dual = ⊤ := rfl
+
+@[simp] lemma to_dual_inf (s t : upper_set α) :
   (s ⊓ t).to_dual = s.to_dual ⊓ t.to_dual := rfl
-@[simp] protected lemma to_dual_sup (s t : upper_set α) :
+@[simp] lemma to_dual_sup (s t : upper_set α) :
   (s ⊓ t).to_dual = s.to_dual ⊓ t.to_dual := rfl
-@[simp] protected lemma of_dual_inf (s t : upper_set αᵒᵈ) :
+@[simp] lemma of_dual_inf (s t : upper_set αᵒᵈ) :
   (s ⊓ t).of_dual = s.of_dual ⊓ t.of_dual := rfl
-@[simp] protected lemma of_dual_sup (s t : upper_set αᵒᵈ) :
+@[simp] lemma of_dual_sup (s t : upper_set αᵒᵈ) :
   (s ⊔ t).of_dual = s.of_dual ⊔ t.of_dual := rfl
 
-@[simp] protected lemma to_dual_Inf (S : set (upper_set α)) :
+@[simp] lemma to_dual_Inf (S : set (upper_set α)) :
   (Inf S).to_dual = Inf (upper_set.to_dual '' S) := set_like.coe_injective (by simpa)
-@[simp] protected lemma to_dual_Sup (S : set (upper_set α)) :
+@[simp] lemma to_dual_Sup (S : set (upper_set α)) :
   (Sup S).to_dual = Sup (upper_set.to_dual '' S) := set_like.coe_injective (by simp)
-@[simp] protected lemma of_dual_Inf (S : set (upper_set αᵒᵈ)) :
+@[simp] lemma of_dual_Inf (S : set (upper_set αᵒᵈ)) :
   (Inf S).of_dual = Inf (upper_set.of_dual '' S) := set_like.coe_injective (by simpa)
-@[simp] protected lemma of_dual_Sup (S : set (upper_set αᵒᵈ)) :
+@[simp] lemma of_dual_Sup (S : set (upper_set αᵒᵈ)) :
   (Sup S).of_dual = Sup (upper_set.of_dual '' S) := set_like.coe_injective (by simp)
 
-@[simp] protected lemma to_dual_supr (f : ι → upper_set α) :
+@[simp] lemma to_dual_supr (f : ι → upper_set α) :
   (⨆ i, f i).to_dual = ⨆ i, (f i).to_dual := set_like.coe_injective (by simp)
-@[simp] protected lemma to_dual_infi (f : ι → upper_set α) :
+@[simp] lemma to_dual_infi (f : ι → upper_set α) :
   (⨅ i, f i).to_dual = ⨅ i, (f i).to_dual := set_like.coe_injective (by simpa)
-@[simp] protected lemma of_dual_supr (f : ι → upper_set αᵒᵈ) :
+@[simp] lemma of_dual_supr (f : ι → upper_set αᵒᵈ) :
   (⨆ i, f i).of_dual = ⨆ i, (f i).of_dual := set_like.coe_injective (by simp)
-@[simp] protected lemma of_dual_infi (f : ι → upper_set αᵒᵈ) :
+@[simp] lemma of_dual_infi (f : ι → upper_set αᵒᵈ) :
   (⨅ i, f i).of_dual = ⨅ i, (f i).of_dual := set_like.coe_injective (by simpa)
 
-@[simp] protected lemma to_dual_infi₂ (f : Π i, κ i → upper_set α) :
+@[simp] lemma to_dual_infi₂ (f : Π i, κ i → upper_set α) :
   (⨅ i j, f i j).to_dual = (⨅ i j, (f i j).to_dual) := set_like.coe_injective (by simp)
-@[simp] protected lemma to_dual_supr₂ (f : Π i, κ i → upper_set α) :
+@[simp] lemma to_dual_supr₂ (f : Π i, κ i → upper_set α) :
   (⨆ i j, f i j).to_dual = (⨆ i j, (f i j).to_dual) := set_like.coe_injective (by simp)
-@[simp] protected lemma of_dual_infi₂ (f : Π i, κ i → upper_set αᵒᵈ) :
+@[simp] lemma of_dual_infi₂ (f : Π i, κ i → upper_set αᵒᵈ) :
   (⨅ i j, f i j).of_dual = (⨅ i j, (f i j).of_dual) := set_like.coe_injective (by simp)
-@[simp] protected lemma of_dual_supr₂ (f : Π i, κ i → upper_set αᵒᵈ) :
+@[simp] lemma of_dual_supr₂ (f : Π i, κ i → upper_set αᵒᵈ) :
   (⨆ i j, f i j).of_dual = (⨆ i j, (f i j).of_dual) := set_like.coe_injective (by simp)
 
 end upper_set
@@ -453,50 +458,55 @@ protected def to_dual (s : lower_set α) : upper_set αᵒᵈ := ⟨of_dual ⁻�
 protected def of_dual (s : lower_set αᵒᵈ) : upper_set α :=
   ⟨(order_dual.to_dual : α → αᵒᵈ) ⁻¹' s, s.lower.to_dual⟩
 
-@[simp] protected lemma coe_to_dual (s : lower_set α) :
+@[simp] lemma coe_to_dual (s : lower_set α) :
   (s.to_dual : set αᵒᵈ) = order_dual.of_dual ⁻¹' s := rfl
-@[simp] protected lemma coe_of_dual (s : lower_set αᵒᵈ) :
+@[simp] lemma coe_of_dual (s : lower_set αᵒᵈ) :
   (s.of_dual : set α) = order_dual.to_dual ⁻¹' s := rfl
 
-@[simp] protected lemma to_dual_bot : (⊥ : lower_set α).to_dual = ⊥ := rfl
-@[simp] protected lemma to_dual_top : (⊤ : lower_set α).to_dual = ⊤ := rfl
-@[simp] protected lemma of_dual_bot : (⊥ : lower_set αᵒᵈ).to_dual = ⊥ := rfl
-@[simp] protected lemma of_dual_top : (⊤ : lower_set αᵒᵈ).to_dual = ⊤ := rfl
+@[simp] lemma mem_to_dual_iff {x : αᵒᵈ} {s : upper_set α} :
+  x ∈ s.to_dual ↔ (of_dual x) ∈ s := iff.rfl
+@[simp] lemma mem_of_dual_iff {x : α} {s : upper_set αᵒᵈ} :
+  x ∈ s.of_dual ↔ (to_dual x) ∈ s := iff.rfl
 
-@[simp] protected lemma to_dual_inf (s t : lower_set α) :
+@[simp] lemma to_dual_bot : (⊥ : lower_set α).to_dual = ⊥ := rfl
+@[simp] lemma to_dual_top : (⊤ : lower_set α).to_dual = ⊤ := rfl
+@[simp] lemma of_dual_bot : (⊥ : lower_set αᵒᵈ).to_dual = ⊥ := rfl
+@[simp] lemma of_dual_top : (⊤ : lower_set αᵒᵈ).to_dual = ⊤ := rfl
+
+@[simp] lemma to_dual_inf (s t : lower_set α) :
   (s ⊓ t).to_dual = s.to_dual ⊓ t.to_dual := rfl
-@[simp] protected lemma to_dual_sup (s t : lower_set α) :
+@[simp] lemma to_dual_sup (s t : lower_set α) :
   (s ⊓ t).to_dual = s.to_dual ⊓ t.to_dual := rfl
-@[simp] protected lemma of_dual_inf (s t : lower_set αᵒᵈ) :
+@[simp] lemma of_dual_inf (s t : lower_set αᵒᵈ) :
   (s ⊓ t).of_dual = s.of_dual ⊓ t.of_dual := rfl
-@[simp] protected lemma of_dual_sup (s t : lower_set αᵒᵈ) :
+@[simp] lemma of_dual_sup (s t : lower_set αᵒᵈ) :
   (s ⊔ t).of_dual = s.of_dual ⊔ t.of_dual := rfl
 
-@[simp] protected lemma to_dual_Inf (S : set (lower_set α)) :
+@[simp] lemma to_dual_Inf (S : set (lower_set α)) :
   (Inf S).to_dual = Inf (lower_set.to_dual '' S) := set_like.coe_injective (by simpa)
-@[simp] protected lemma to_dual_Sup (S : set (lower_set α)) :
+@[simp] lemma to_dual_Sup (S : set (lower_set α)) :
   (Sup S).to_dual = Sup (lower_set.to_dual '' S) := set_like.coe_injective (by simp)
-@[simp] protected lemma of_dual_Inf (S : set (lower_set αᵒᵈ)) :
+@[simp] lemma of_dual_Inf (S : set (lower_set αᵒᵈ)) :
   (Inf S).of_dual = Inf (lower_set.of_dual '' S) := set_like.coe_injective (by simpa)
-@[simp] protected lemma of_dual_Sup (S : set (lower_set αᵒᵈ)) :
+@[simp] lemma of_dual_Sup (S : set (lower_set αᵒᵈ)) :
   (Sup S).of_dual = Sup (lower_set.of_dual '' S) := set_like.coe_injective (by simp)
 
-@[simp] protected lemma to_dual_supr (f : ι → lower_set α) :
+@[simp] lemma to_dual_supr (f : ι → lower_set α) :
   (⨆ i, f i).to_dual = ⨆ i, (f i).to_dual := set_like.coe_injective (by simp)
-@[simp] protected lemma to_dual_infi (f : ι → lower_set α) :
+@[simp] lemma to_dual_infi (f : ι → lower_set α) :
   (⨅ i, f i).to_dual = ⨅ i, (f i).to_dual := set_like.coe_injective (by simpa)
-@[simp] protected lemma of_dual_supr (f : ι → lower_set αᵒᵈ) :
+@[simp] lemma of_dual_supr (f : ι → lower_set αᵒᵈ) :
   (⨆ i, f i).of_dual = ⨆ i, (f i).of_dual := set_like.coe_injective (by simp)
-@[simp] protected lemma of_dual_infi (f : ι → lower_set αᵒᵈ) :
+@[simp] lemma of_dual_infi (f : ι → lower_set αᵒᵈ) :
   (⨅ i, f i).of_dual = ⨅ i, (f i).of_dual := set_like.coe_injective (by simpa)
 
-@[simp] protected lemma to_dual_infi₂ (f : Π i, κ i → lower_set α) :
+@[simp] lemma to_dual_infi₂ (f : Π i, κ i → lower_set α) :
   (⨅ i j, f i j).to_dual = (⨅ i j, (f i j).to_dual) := set_like.coe_injective (by simp)
-@[simp] protected lemma to_dual_supr₂ (f : Π i, κ i → lower_set α) :
+@[simp] lemma to_dual_supr₂ (f : Π i, κ i → lower_set α) :
   (⨆ i j, f i j).to_dual = (⨆ i j, (f i j).to_dual) := set_like.coe_injective (by simp)
-@[simp] protected lemma of_dual_infi₂ (f : Π i, κ i → lower_set αᵒᵈ) :
+@[simp] lemma of_dual_infi₂ (f : Π i, κ i → lower_set αᵒᵈ) :
   (⨅ i j, f i j).of_dual = (⨅ i j, (f i j).of_dual) := set_like.coe_injective (by simp)
-@[simp] protected lemma of_dual_supr₂ (f : Π i, κ i → lower_set αᵒᵈ) :
+@[simp] lemma of_dual_supr₂ (f : Π i, κ i → lower_set αᵒᵈ) :
   (⨆ i j, f i j).of_dual = (⨆ i j, (f i j).of_dual) := set_like.coe_injective (by simp)
 
 end lower_set
@@ -507,6 +517,8 @@ end lower_set
 @[simp] lemma lower_set.to_dual_of_dual (s : lower_set α) : s.to_dual.of_dual = s := by {ext,simp}
 
 end has_le
+
+/-! #### Images -/
 
 section map
 
@@ -530,7 +542,7 @@ section preorder
 variables [preorder α] [preorder β] [order_hom_class F α β]
 
 /-- The preimage of an `upper_set` under an `order_hom`-like function, as an `upper_set` -/
-def upper_set.comap (t : upper_set β) (φ : F) : upper_set α := ⟨φ ⁻¹' t, t.upper.comap φ⟩
+protected def upper_set.comap (t : upper_set β) (φ : F) : upper_set α := ⟨φ ⁻¹' t, t.upper.comap φ⟩
 
 /-- The preimage of an `lower_set` under an `order_hom`-like function, as a `lower_set` -/
 def lower_set.comap (t : lower_set β) (φ : F) : lower_set α := ⟨φ ⁻¹' t, t.lower.comap φ⟩
@@ -547,11 +559,11 @@ section boolean_algebra
 
 variables [boolean_algebra α]
 
-namespace upper_set
-
 /-- The preimage of an `upper_set` under complementation, as a `lower_set`-/
-protected def map_compl (s : upper_set α) : lower_set α :=
+def upper_set.map_compl (s : upper_set α) : lower_set α :=
 ⟨has_compl.compl ⁻¹' (s : set α), λ x y h hx, s.upper (compl_le_compl h) hx⟩
+
+namespace upper_set
 
 @[simp] lemma coe_map_compl (s : upper_set α) : (s.map_compl : set α) = has_compl.compl ⁻¹' s := rfl
 
@@ -564,11 +576,11 @@ protected def map_compl (s : upper_set α) : lower_set α :=
   (s ⊓ t).map_compl = s.map_compl ⊓ t.map_compl := rfl
 
 @[simp] lemma map_compl_Inf (S : set (upper_set α)) :
-  (Inf S).map_compl = Inf (map_compl '' S) :=
+  (Inf S).map_compl = Inf (upper_set.map_compl '' S) :=
 set_like.coe_injective (by simp [preimage_Inter])
 
 @[simp] lemma map_compl_Sup (S : set (upper_set α)) :
-  (Sup S).map_compl = Sup (map_compl '' S) :=
+  (Sup S).map_compl = Sup (upper_set.map_compl '' S) :=
 set_like.coe_injective (by simp)
 
 @[simp] lemma map_compl_supr (f : ι → upper_set α) : (⨆ i, f i).map_compl = ⨆ i, (f i).map_compl :=
@@ -583,6 +595,7 @@ set_like.coe_injective (by simp)
   (⨆ i j, f i j).map_compl = (⨆ i j, (f i j).map_compl) :=
 set_like.coe_injective (by simp)
 
+@[simp] lemma mem_map_compl_iff {x : α} {s : upper_set α} : x ∈ s.map_compl ↔ xᶜ ∈ s := iff.rfl
 
 end upper_set
 
@@ -594,17 +607,20 @@ namespace lower_set
 
 @[simp] lemma coe_map_compl (s : lower_set α) : (s.map_compl : set α) = has_compl.compl ⁻¹' s := rfl
 
+@[simp] lemma map_compl_bot : (⊥ : lower_set α).map_compl = ⊥ := rfl
+@[simp] lemma map_compl_top : (⊤ : lower_set α).map_compl = ⊤ := rfl
+
 @[simp] lemma map_compl_inf (s t : lower_set α) :
   (s ⊓ t).map_compl = s.map_compl ⊓ t.map_compl := rfl
 @[simp] lemma map_compl_sup (s t : lower_set α) :
   (s ⊓ t).map_compl = s.map_compl ⊓ t.map_compl := rfl
 
 @[simp] lemma map_compl_Inf (S : set (lower_set α)) :
-  (Inf S).map_compl = Inf (map_compl '' S) :=
+  (Inf S).map_compl = Inf (lower_set.map_compl '' S) :=
 set_like.coe_injective (by simp [preimage_Inter])
 
 @[simp] lemma map_compl_Sup (S : set (lower_set α)) :
-  (Sup S).map_compl = Sup (map_compl '' S) :=
+  (Sup S).map_compl = Sup (lower_set.map_compl '' S) :=
 set_like.coe_injective (by simp)
 
 @[simp] lemma map_compl_supr (f : ι → lower_set α) : (⨆ i, f i).map_compl = ⨆ i, (f i).map_compl :=
@@ -618,6 +634,8 @@ set_like.coe_injective (by simp)
 @[simp] lemma map_compl_supr₂ (f : Π i, κ i → lower_set α) :
   (⨆ i j, f i j).map_compl = (⨆ i j, (f i j).map_compl) :=
 set_like.coe_injective (by simp)
+
+@[simp] lemma mem_map_compl_iff {x : α} {s : lower_set α} : x ∈ s.map_compl ↔ xᶜ ∈ s := iff.rfl
 
 end lower_set
 

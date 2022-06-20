@@ -98,30 +98,6 @@ begin
 -/
 
 /--
-A sequence of real numbers `an n` has limit `a`, if and only if only if the shifted
-sequence given by `an n.succ` has the limit `a`.
--/
-lemma tendsto_succ (an : ℕ → ℝ) (a : ℝ) : tendsto an at_top (𝓝 a) ↔
-  tendsto (λ n : ℕ, (an n.succ)) at_top (𝓝 a) :=
-begin
-  nth_rewrite_rhs 0 ← tendsto_map'_iff,
-  have h : map succ at_top = at_top :=
-  begin
-    rw map_at_top_eq_of_gc pred 1,
-    { exact @succ_le_succ, },
-    { intros a b hb,
-      cases (exists_eq_succ_of_ne_zero (one_le_iff_ne_zero.mp hb)) with d hd,
-      rw [hd, pred_succ],
-      exact succ_le_succ_iff, },
-    { intros b hb,
-      cases (exists_eq_succ_of_ne_zero (one_le_iff_ne_zero.mp hb)) with d hd,
-      rw hd,
-      rw pred_succ, },
-  end,
-  rw h,
-end
-
-/--
 Define `stirling_seq n` as $\frac{n!}{\sqrt{2n}/(\frac{n}{e})^n$.
 Stirling's formula states that this sequence has limit $\sqrt(π)$.
 -/
@@ -428,7 +404,7 @@ begin
   obtain ⟨x, x_pos, hx⟩ := stirling_seq'_bounded_by_pos_constant,
   have hx' : x ∈ lower_bounds (set.range (stirling_seq ∘ succ)) := by simpa [lower_bounds] using hx,
   refine ⟨_, lt_of_lt_of_le x_pos (le_cInf (set.range_nonempty _) hx'), _⟩,
-  rw tendsto_succ,
+  rw ←filter.tendsto_add_at_top_iff_nat 1,
   exact tendsto_at_top_cinfi stirling_seq'_antitone ⟨x, hx'⟩,
 end
 
@@ -717,14 +693,14 @@ Then the sequence `w` has limit `a^2/2`
 lemma second_wallis_limit (a : ℝ) (hane : a ≠ 0) (ha : tendsto stirling_seq at_top (𝓝 a)) :
   tendsto w at_top (𝓝 (a ^ 2 / 2)):=
 begin
-  rw tendsto_succ w (a ^ 2 / 2),
+  rw ←(filter.tendsto_add_at_top_iff_nat 1),
   apply tendsto.congr expand_in_limit',
   let qn := λ (n : ℕ), stirling_seq n ^ 4 * (1 / stirling_seq (2 * n)) ^ 2 * c n,
   have hqn :
     ∀ (n : ℕ), qn n.succ = stirling_seq n.succ ^ 4 * (1 / stirling_seq (2 * n.succ)) ^ 2 * c n.succ
     := by tauto,
   apply tendsto.congr hqn,
-  rw ←tendsto_succ qn (a ^ 2 / 2),
+  rw filter.tendsto_add_at_top_iff_nat 1,
   have has : tendsto (λ (n : ℕ), stirling_seq n ^ 4 * (1 / stirling_seq (2 * n)) ^ 2)
     at_top (𝓝 (a ^ 2)) :=
   begin

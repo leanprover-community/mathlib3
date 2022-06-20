@@ -44,7 +44,7 @@ local attribute [instance] monoidal_of_has_finite_products
 An object `X` is *exponentiable* if `(X × -)` is a left adjoint.
 We define this as being `closed` in the cartesian monoidal structure.
 -/
-abbreviation exponentiable {C : Type u} [category.{v} C] [has_finite_products.{0} C] (X : C) :=
+abbreviation exponentiable {C : Type u} [category.{v} C] [has_finite_products C] (X : C) :=
 closed X
 
 /--
@@ -52,7 +52,7 @@ If `X` and `Y` are exponentiable then `X ⨯ Y` is.
 This isn't an instance because it's not usually how we want to construct exponentials, we'll usually
 prove all objects are exponential uniformly.
 -/
-def binary_product_exponentiable {C : Type u} [category.{v} C] [has_finite_products.{0} C] {X Y : C}
+def binary_product_exponentiable {C : Type u} [category.{v} C] [has_finite_products C] {X Y : C}
   (hX : exponentiable X) (hY : exponentiable Y) : exponentiable (X ⨯ Y) :=
 tensor_closed hX hY
 
@@ -61,7 +61,7 @@ The terminal object is always exponentiable.
 This isn't an instance because most of the time we'll prove cartesian closed for all objects
 at once, rather than just for this one.
 -/
-def terminal_exponentiable {C : Type u} [category.{v} C] [has_finite_products.{0} C] :
+def terminal_exponentiable {C : Type u} [category.{v} C] [has_finite_products C] :
   exponentiable ⊤_ C :=
 unit_closed
 
@@ -69,12 +69,12 @@ unit_closed
 A category `C` is cartesian closed if it has finite products and every object is exponentiable.
 We define this as `monoidal_closed` with respect to the cartesian monoidal structure.
 -/
-abbreviation cartesian_closed (C : Type u) [category.{v} C] [has_finite_products.{0} C] :=
+abbreviation cartesian_closed (C : Type u) [category.{v} C] [has_finite_products C] :=
 monoidal_closed C
 
 variables {C : Type u} [category.{v} C] (A B : C) {X X' Y Y' Z : C}
 
-variables [has_finite_products.{0} C] [exponentiable A]
+variables [has_finite_products C] [exponentiable A]
 
 /-- This is (-)^A. -/
 abbreviation exp : C ⥤ C :=
@@ -328,7 +328,7 @@ initial_mono B initial_is_initial
 variables {D : Type u₂} [category.{v} D]
 section functor
 
-variables [has_finite_products.{0} D]
+variables [has_finite_products D]
 
 /--
 Transport the property of being cartesian closed across an equivalence of categories.

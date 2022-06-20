@@ -182,8 +182,8 @@ variables {C : Type u₁} [category.{v₁} C] {D : Type u₂} [category.{v₁} D
 
 /-- If `F : C ⥤ D` preserves finite colimits, then `F.op : Cᵒᵖ ⥤ Dᵒᵖ` preserves finite
     limits. -/
-def preserves_finite_limits_op (F : C ⥤ D) [preserves_finite_colimits_of_size.{w} F] :
-  preserves_finite_limits_of_size.{w} F.op :=
+def preserves_finite_limits_op (F : C ⥤ D) [preserves_finite_colimits F] :
+  preserves_finite_limits F.op :=
 { preserves_finite_limits := λ J _ _, by exactI preserves_limits_of_shape_op J F }
 
 /-- If `F : C ⥤ Dᵒᵖ` preserves finite colimits, then `F.left_op : Cᵒᵖ ⥤ D` preserves finite

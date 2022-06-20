@@ -275,8 +275,7 @@ begin
   apply_instance
 end
 
-lemma has_finite_coproducts_opposite [has_finite_products.{u₂} C] :
-  has_finite_coproducts.{u₂} Cᵒᵖ :=
+lemma has_finite_coproducts_opposite [has_finite_products C] : has_finite_coproducts Cᵒᵖ :=
 { out := λ J 𝒟, begin
     resetI,
     haveI : has_limits_of_shape (discrete J)ᵒᵖ C :=
@@ -284,8 +283,7 @@ lemma has_finite_coproducts_opposite [has_finite_products.{u₂} C] :
     apply_instance,
   end }
 
-lemma has_finite_products_opposite [has_finite_coproducts.{u₂} C] :
-  has_finite_products.{u₂} Cᵒᵖ :=
+lemma has_finite_products_opposite [has_finite_coproducts C] : has_finite_products Cᵒᵖ :=
 { out := λ J 𝒟, begin
     resetI,
     haveI : has_colimits_of_shape (discrete J)ᵒᵖ C :=

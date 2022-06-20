@@ -30,8 +30,7 @@ example {B : C} [has_pullbacks C] : has_pullbacks (over B) := by apply_instance
 /-- Make sure we can derive equalizers in `over B`. -/
 example {B : C} [has_equalizers C] : has_equalizers (over B) := by apply_instance
 
-instance has_finite_limits {B : C} [has_finite_wide_pullbacks.{w} C] :
-  has_finite_limits_of_size.{w} (over B) :=
+instance has_finite_limits {B : C} [has_finite_wide_pullbacks C] : has_finite_limits (over B) :=
 begin
   apply @finite_limits_from_equalizers_and_finite_products _ _ _ _,
   { exact construct_products.over_finite_products_of_finite_wide_pullbacks, },

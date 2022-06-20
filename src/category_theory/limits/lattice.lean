@@ -46,12 +46,12 @@ def finite_colimit_cocone [semilattice_sup α] [order_bot α] (F : J ⥤ α) : c
 
 @[priority 100] -- see Note [lower instance priority]
 instance has_finite_limits_of_semilattice_inf_order_top [semilattice_inf α] [order_top α] :
-  has_finite_limits_of_size.{w} α :=
+  has_finite_limits α :=
 ⟨λ J 𝒥₁ 𝒥₂, by exactI { has_limit := λ F, has_limit.mk (finite_limit_cone F) }⟩
 
 @[priority 100] -- see Note [lower instance priority]
 instance has_finite_colimits_of_semilattice_sup_order_bot [semilattice_sup α] [order_bot α] :
-  has_finite_colimits_of_size.{w} α :=
+  has_finite_colimits α :=
 ⟨λ J 𝒥₁ 𝒥₂, by exactI { has_colimit := λ F, has_colimit.mk (finite_colimit_cocone F) }⟩
 
 /--

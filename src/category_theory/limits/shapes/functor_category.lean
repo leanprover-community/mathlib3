@@ -20,12 +20,11 @@ universes v₁ v₂ u₁ u₂ w
 variables {C : Type u₁} [category.{v₁} C]
 variables {D : Type u₂} [category.{v₂} D]
 
-instance functor_category_has_finite_limits [has_finite_limits_of_size.{w} D] :
-  has_finite_limits_of_size.{w} (C ⥤ D) :=
+instance functor_category_has_finite_limits [has_finite_limits D] : has_finite_limits (C ⥤ D) :=
 { out := λ J _ _, by exactI infer_instance, }
 
-instance functor_category_has_finite_colimits [has_finite_colimits_of_size.{w} D] :
-  has_finite_colimits_of_size.{w} (C ⥤ D) :=
+instance functor_category_has_finite_colimits [has_finite_colimits D] :
+  has_finite_colimits (C ⥤ D) :=
 { out := λ J _ _, by exactI infer_instance, }
 
 end category_theory.limits

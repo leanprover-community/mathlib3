@@ -141,7 +141,7 @@ Any category with finite products and equalizers has all finite limits.
 See <https://stacks.math.columbia.edu/tag/002O>.
 -/
 lemma finite_limits_from_equalizers_and_finite_products
-  [has_finite_products.{w} C] [has_equalizers C] : has_finite_limits_of_size.{w} C :=
+  [has_finite_products C] [has_equalizers C] : has_finite_limits C :=
 ⟨λ J _ _, { has_limit := λ F, by exactI has_limit_of_equalizer_and_product F }⟩
 
 variables {D : Type u₂} [category.{v₂} D]
@@ -199,10 +199,10 @@ end
 
 /-- If G preserves equalizers and finite products, it preserves finite limits. -/
 def preserves_finite_limits_of_preserves_equalizers_and_finite_products
-  [has_equalizers C] [has_finite_products.{w} C]
+  [has_equalizers C] [has_finite_products C]
   (G : C ⥤ D) [preserves_limits_of_shape walking_parallel_pair G]
-  [∀ (J : Type w) [fintype J], preserves_limits_of_shape (discrete J) G] :
-  preserves_finite_limits_of_size.{w} G :=
+  [∀ (J : Type) [fintype J], preserves_limits_of_shape (discrete J) G] :
+  preserves_finite_limits G :=
 ⟨λ _ _ _, by exactI preserves_limit_of_preserves_equalizers_and_product G⟩
 
 /-- If G preserves equalizers and products, it preserves all limits. -/
@@ -326,7 +326,7 @@ Any category with finite coproducts and coequalizers has all finite colimits.
 See <https://stacks.math.columbia.edu/tag/002Q>.
 -/
 lemma finite_colimits_from_coequalizers_and_finite_coproducts
-  [has_finite_coproducts.{w} C] [has_coequalizers C] : has_finite_colimits_of_size.{w} C :=
+  [has_finite_coproducts C] [has_coequalizers C] : has_finite_colimits C :=
 ⟨λ J _ _, { has_colimit := λ F, by exactI has_colimit_of_coequalizer_and_coproduct F }⟩
 
 noncomputable theory
@@ -383,10 +383,10 @@ end
 
 /-- If G preserves coequalizers and finite coproducts, it preserves finite colimits. -/
 def preserves_finite_colimits_of_preserves_coequalizers_and_finite_coproducts
-  [has_coequalizers C] [has_finite_coproducts.{w} C]
+  [has_coequalizers C] [has_finite_coproducts C]
   (G : C ⥤ D) [preserves_colimits_of_shape walking_parallel_pair G]
-  [∀ J [fintype J], preserves_colimits_of_shape (discrete.{w} J) G] :
-  preserves_finite_colimits_of_size.{w} G :=
+  [∀ J [fintype J], preserves_colimits_of_shape (discrete.{0} J) G] :
+  preserves_finite_colimits G :=
 ⟨λ _ _ _, by exactI preserves_colimit_of_preserves_coequalizers_and_coproduct G⟩
 
 /-- If G preserves coequalizers and coproducts, it preserves all colimits. -/

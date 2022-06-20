@@ -8,19 +8,21 @@ import topology.vector_bundle.basic
 import analysis.normed_space.operator_norm
 
 /-!
-# The topological vector bundle of continuous linear maps
+# The topological vector bundle of continuous (semi)linear maps
 
-We define the topological vector bundle of continuous (special) linear maps between two
-vector bundles over the same base. We define
+We define the topological vector bundle of continuous (semi)linear maps between two
+vector bundles over the same base.
+Given bundles `E₁ E₂ : B → Type*`, we define
+`bundle.continuous_linear_map 𝕜 E₁ E₂ := λ x, E₁ x →SL[𝕜] E₂ x`.
+If the `E₁` and `E₂` are topological vector bundles with fibers `F₁` and `F₂`, then this will
+be a topological vector bundle with fiber `F₁ →SL[𝕜] F₂`.
+The topology is inherited from the norm-topology on, without the need to define the strong
+topology on continuous linear maps between general topological vector spaces.
 
+## Main Definitions
 
-A similar construction (which is yet to be formalized) can be done for the vector bundle of
-continuous linear maps from `E₁ x` to `E₂ x` with fiber a type synonym
-`bundle.continuous_linear_map 𝕜 E₁ E₂ x := (E₁ x →L[𝕜] E₂ x)` (and with the
-topology inherited from the norm-topology on `F₁ →L[R] F₂`, without the need to define the strong
-topology on continuous linear maps between general topological vector spaces).  Likewise for tensor
-products of topological vector bundles, exterior algebras, and so on, where the topology can be
-defined using a norm on the fiber model if this helps.
+* `bundle.continuous_linear_map.topological_vector_bundle`: continuous semilinear maps between
+  vector bundles form a vector bundle.
 
 -/
 
@@ -87,12 +89,14 @@ variables [ring_hom_isometric σ]
 
 namespace pretrivialization
 
-/-- The coordinate change function between two trivializations of the vector bundle of
-continuous linear maps. -/
+/-- Assume `eᵢ` and `eᵢ'` are trivializations of the bundles `Eᵢ` over base `B` with fiber `Fᵢ`
+(`i ∈ {1,2}`), then `continuous_linear_map_coord_change σ e₁ e₁' e₂ e₂'` is the coordinate change
+function between the two induced (pre)trivializations
+`pretrivialization.continuous_linear_map σ e₁ e₂` and
+`pretrivialization.continuous_linear_map σ e₁' e₂'` of `bundle.continuous_linear_map`. -/
 def continuous_linear_map_coord_change (b : B) : (F₁ →SL[σ] F₂) →L[𝕜₂] F₁ →SL[σ] F₂ :=
 ((e₁'.coord_change e₁ b).symm.arrow_congrSL (e₂.coord_change e₂' b) :
   (F₁ →SL[σ] F₂) ≃L[𝕜₂] F₁ →SL[σ] F₂)
-
 
 variables {σ e₁ e₁' e₂ e₂'}
 variables [Π x : B, topological_space (E₁ x)] [topological_vector_bundle 𝕜₁ F₁ E₁]
@@ -120,10 +124,11 @@ end
 variables (σ e₁ e₁' e₂ e₂')
 variables [Π x, has_continuous_add (E₂ x)] [Π x, has_continuous_smul 𝕜₂ (E₂ x)]
 
-/-- Given trivializations `e₁`, `e₂` for vector bundles `E₁`, `E₂` over a base `B`, the induced
-pretrivialization for the continuous `σ`-semilinear maps from `E₁` to `E₂`.  That is, the map which
-will later become a trivialization, after this direct sum is equipped with the right topological
-vector bundle structure. -/
+/-- Given trivializations `e₁`, `e₂` for vector bundles `E₁`, `E₂` over a base `B`,
+`pretrivialization.continuous_linear_map σ e₁ e₂` is the induced pretrivialization for the
+continuous `σ`-semilinear maps from `E₁` to `E₂`. That is, the map which will later become a
+trivialization, after the bundle of continuous semilinear maps is equipped with the right
+topological vector bundle structure. -/
 def continuous_linear_map :
   pretrivialization 𝕜₂ (F₁ →SL[σ] F₂) (bundle.continuous_linear_map σ F₁ E₁ F₂ E₂) :=
 { to_fun := λ p, ⟨p.1, (e₂.continuous_linear_map_at p.1).comp $ p.2.comp $ e₁.symmL p.1⟩,
@@ -234,7 +239,7 @@ instance : topological_space (total_space (bundle.continuous_linear_map σ F₁ 
   σ F₁ E₁ F₂ E₂).total_space_topology
 
 /-- The continuous `σ`-semilinear_maps between two vector bundles form a vector bundle. -/
-instance bundle.continuous_linear_map.topological_vector_bundle :
+instance _root_.bundle.continuous_linear_map.topological_vector_bundle :
   topological_vector_bundle 𝕜₂ (F₁ →SL[σ] F₂) (bundle.continuous_linear_map σ F₁ E₁ F₂ E₂) :=
 (bundle.continuous_linear_map.topological_vector_prebundle
   σ F₁ E₁ F₂ E₂).to_topological_vector_bundle

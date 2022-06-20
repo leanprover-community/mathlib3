@@ -41,15 +41,17 @@ by { rw ←image_inv, exact ((order_iso.inv α).map_cInf' hs₀ hs₁).symm }
 @[to_additive] lemma cInf_inv (hs₀ : s.nonempty) (hs₁ : bdd_above s) : Inf s⁻¹ = (Sup s)⁻¹ :=
 by { rw ←image_inv, exact ((order_iso.inv α).map_cSup' hs₀ hs₁).symm }
 
-@[to_additive] lemma cSup_mul :
-  s.nonempty → bdd_above s → t.nonempty → bdd_above t → Sup (s * t) = Sup s * Sup t :=
-cSup_image2_eq_cSup_cSup (λ _, (order_iso.mul_right _).to_galois_connection) $
-  λ _, (order_iso.mul_left _).to_galois_connection
+@[to_additive] lemma cSup_mul (hs₀ : s.nonempty) (hs₁ : bdd_above s) (ht₀ : t.nonempty)
+  (ht₁ : bdd_above t) :
+  Sup (s * t) = Sup s * Sup t :=
+cSup_image2_eq_cSup_cSup (λ _, (order_iso.mul_right _).to_galois_connection)
+  (λ _, (order_iso.mul_left _).to_galois_connection) hs₀ hs₁ ht₀ ht₁
 
-@[to_additive] lemma cInf_mul :
-  s.nonempty → bdd_below s → t.nonempty → bdd_below t → Inf (s * t) = Inf s * Inf t :=
-cInf_image2_eq_cInf_cInf (λ _, (order_iso.mul_right _).symm.to_galois_connection) $
-  λ _, (order_iso.mul_left _).symm.to_galois_connection
+@[to_additive] lemma cInf_mul (hs₀ : s.nonempty) (hs₁ : bdd_below s) (ht₀ : t.nonempty)
+  (ht₁ : bdd_below t) :
+  Inf (s * t) = Inf s * Inf t :=
+cInf_image2_eq_cInf_cInf (λ _, (order_iso.mul_right _).symm.to_galois_connection)
+  (λ _, (order_iso.mul_left _).symm.to_galois_connection) hs₀ hs₁ ht₀ ht₁
 
 @[to_additive] lemma cSup_div (hs₀ : s.nonempty) (hs₁ : bdd_above s) (ht₀ : t.nonempty)
   (ht₁ : bdd_below t) :

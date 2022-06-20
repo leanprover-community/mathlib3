@@ -306,9 +306,10 @@ begin
 end
 
 /-- For any `n`, we have `log_stirling_seq 1 - log_stirling_seq n ≤ 1/4` -/
-lemma log_stirling_seq_bounded_aux : ∀ (n : ℕ),
-log_stirling_seq 1 - log_stirling_seq n.succ ≤ 1 / 4 :=
+lemma log_stirling_seq_bounded_aux : ∃ (c : ℝ), ∀ (n : ℕ),
+log_stirling_seq 1 - log_stirling_seq n.succ ≤ c :=
 begin
+  use (1/4 : ℝ),
   let log_stirling_seq' : (ℕ → ℝ) := λ (k : ℕ), log_stirling_seq k.succ,
   intro n,
   calc
@@ -347,18 +348,11 @@ end
 /-- The sequence `log_stirling_seq` is bounded below for `n ≥ 1`. -/
 lemma log_stirling_seq_bounded_by_constant : ∃ c, ∀ (n : ℕ), c ≤ log_stirling_seq n.succ :=
 begin
-  use 3 / (4 : ℝ) - 1 / 2 * log 2,
+  have h := log_stirling_seq_bounded_aux,
+  cases h with d h,
+  use log_stirling_seq 1 - d,
   intro n,
-  calc
-  log_stirling_seq n.succ ≥ log_stirling_seq 1 - 1 / 4 : sub_le.mp (log_stirling_seq_bounded_aux n)
-    ... = (log ((1 : ℕ).factorial) - 1 / 2 * log (2 * (1 : ℕ)) - (1 : ℕ) *
-          log ((1 : ℕ) / (exp 1))) - 1 / 4 : by rw log_stirling_seq_formula 0
-    ... = 0 - 1 / 2 * log 2 - log (1 / (exp 1)) - 1 / 4 :
-    by simp only [factorial_one, cast_one, log_one, one_div, mul_one, log_inv, log_exp, mul_neg]
-    ... = -1 / 2 * log 2 - log (1 / (exp 1)) - 1 / 4 : by ring
-    ... = -1 / 2 * log 2 + 1 - 1 / 4  : by simp only [one_div, log_inv, log_exp, sub_neg_eq_add]
-    ... = -1 / 2 * log 2 + 3 / 4      : by ring
-    ... = 3 / (4 : ℝ) - 1 / 2 * log 2 : by ring,
+  exact sub_le.mp (h n),
 end
 
 /--

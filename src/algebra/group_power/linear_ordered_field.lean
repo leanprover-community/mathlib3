@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import algebra.group_power.lemmas
-import data.nat.cast_field
+import data.nat.cast
 /-!
 # Lemmas about power operations on fields
 

@@ -19,8 +19,9 @@ In this file, we obtain the technical lemmas that are used in the file
 `P q : K[X] ⟶ K[X]` with respect to face maps (see `homotopies.lean` for the
 role of these endomorphisms in the overall strategy of proof).
 
-The main lemma in this file is `higher_faces_vanish_induction`. It is based
-on two technical lemmas `Hσφ_eq_neg_σδφ` and `Hσφ_eq_zero`.
+The main lemma in this file is `higher_faces_vanish.induction`. It is based
+on two technical lemmas `higher_faces_vanish.comp_Hσ_eq` and
+`higher_faces_vanish.comp_Hσ_eq_zero`.
 
 -/
 
@@ -39,19 +40,28 @@ namespace dold_kan
 variables {C : Type*} [category C] [preadditive C]
 variables {X : simplicial_object C}
 
-/-- We shall say that a morphism `φ : Y ⟶ X _[n+1]` satisfies `higher_faces_vanish q φ`
+/-- A morphism `φ : Y ⟶ X _[n+1]` satisfies `higher_faces_vanish q φ`
 when the compositions `φ ≫ X.δ j` are `0` for `j ≥ max 1 (n+2-q)`. When `q ≤ n+1`,
 it basically means that the composition `φ ≫ X.δ j` are `0` for the `q` highest
 possible values of a nonzero `j`. Otherwise, when `q ≥ n+2`, all the compositions
-`φ ≫ X.δ j` for nonzero `j` vanish. -/
+`φ ≫ X.δ j` for nonzero `j` vanish. See also the lemma `comp_P_eq_self_iff` in
+`projections.lean` which states that `higher_faces_vanish q φ` is equivalent to
+the identity `φ ≫ (P q).f (n+1) = φ`. -/
 def higher_faces_vanish {Y : C} {n : ℕ} (q : ℕ) (φ : Y ⟶ X _[n+1]) : Prop :=
 ∀ (j : fin (n+1)), (n+1 ≤ (j : ℕ) + q) → φ ≫ X.δ j.succ = 0
 
-lemma higher_faces_vanish_of_succ {Y : C} {n : ℕ} {q : ℕ} {φ : Y ⟶ X _[n+1]}
+namespace higher_faces_vanish
+
+lemma of_succ {Y : C} {n q : ℕ} {φ : Y ⟶ X _[n+1]}
   (v : higher_faces_vanish (q+1) φ) : higher_faces_vanish q φ :=
 λ j hj, v j (by simpa only [← add_assoc] using le_add_right hj)
 
-lemma Hσφ_eq_neg_σδφ {Y : C} {n a q : ℕ} (hnaq : n=a+q) {φ : Y ⟶ X _[n+1]}
+lemma of_comp {Y Z : C} {q n : ℕ} {φ : Y ⟶ X _[n+1]}
+  (v : higher_faces_vanish q φ) (f : Z ⟶ Y) :
+  higher_faces_vanish q (f ≫ φ) := λ j hj,
+by rw [assoc, v j hj, comp_zero]
+
+lemma comp_Hσ_eq {Y : C} {n a q : ℕ} (hnaq : n=a+q) {φ : Y ⟶ X _[n+1]}
   (v : higher_faces_vanish q φ) : φ ≫ (Hσ q).f (n+1) =
   - φ ≫ X.δ ⟨a+1, nat.succ_lt_succ (nat.lt_succ_iff.mpr (nat.le.intro hnaq.symm))⟩ ≫
     X.σ ⟨a, nat.lt_succ_iff.mpr (nat.le.intro hnaq.symm)⟩ :=
@@ -66,26 +76,24 @@ begin
   /- cleaning up the first sum -/
   rw [← fin.sum_congr' _ (hnaq_shift 2).symm, fin.sum_trunc], swap,
   { rintro ⟨k, hk⟩,
-    convert zsmul_zero _,
-    convert zero_comp,
+    suffices : φ ≫ X.δ (⟨a+2+k, by linarith⟩ : fin (n+2)) = 0,
+    { simp only [this, fin.nat_add_mk, fin.cast_mk, zero_comp, smul_zero], },
     convert v ⟨a+k+1, by linarith⟩ (by { rw fin.coe_mk, linarith, }),
-    ext,
-    simp only [fin.nat_add_mk, fin.cast_mk, fin.coe_mk, fin.succ_mk],
+    rw [nat.succ_eq_add_one],
     linarith, },
   /- cleaning up the second sum -/
   rw [← fin.sum_congr' _ (hnaq_shift 3).symm, @fin.sum_trunc _ _ (a+3)], swap,
   { rintros ⟨k, hk⟩,
-    convert zsmul_zero _,
-    simp only [fin.nat_add_mk, fin.cast_mk, assoc],
+    suffices : φ ≫ X.σ ⟨a+1, by linarith⟩ ≫ X.δ ⟨a+3+k, by linarith⟩ = 0,
+    { dsimp, rw [assoc, this, smul_zero], },
     let i : fin (n+1) := ⟨a+1+k, by linarith⟩,
     have h : fin.cast_succ (⟨a+1, by linarith⟩ : fin (n+1)) < i.succ,
     { simp only [fin.lt_iff_coe_lt_coe, fin.cast_succ_mk, fin.coe_mk, fin.succ_mk],
       linarith, },
     have δσ_rel := δ_comp_σ_of_gt X h,
     conv_lhs at δσ_rel
-    { simp only [fin.cast_succ_mk, fin.succ_mk, fin.succ_mk,
-        show a+1+k+1+1 = a+3+k, by linarith], },
-    rw [δσ_rel, ← assoc, v i, zero_comp],
+    { simp only [fin.cast_succ_mk, fin.succ_mk, show a+1+k+1+1 = a+3+k, by linarith], },
+      rw [δσ_rel, ← assoc, v i, zero_comp],
     simp only [i, fin.coe_mk],
     linarith, },
   /- leaving out three specific terms -/
@@ -101,15 +109,11 @@ begin
       add_comm a c, h3, add_zero, h1], },
   apply simplif,
   { /- b=f -/
-    have eq : (-1 : ℤ)^(a+1) * (-1 : ℤ)^a = -1,
-    { rw ← pow_add,
-      apply odd.neg_one_pow,
-      use a,
-      linarith, },
-    simp only [eq, neg_smul, one_zsmul], },
+    rw [← pow_add, odd.neg_one_pow, neg_smul, one_zsmul],
+    use a,
+    linarith, },
   { /- d+e = 0 -/
-    let b : fin (n+2) := ⟨a+1, nat.succ_lt_succ $ nat.lt_succ_iff.mpr $
-      nat.le.intro hnaq.symm⟩,
+    let b : fin (n+2) := ⟨a+1, by linarith⟩,
     have eq₁ : X.σ b ≫ X.δ (fin.cast_succ b) = 𝟙 _ := δ_comp_σ_self _,
     have eq₂ : X.σ b ≫ X.δ b.succ = 𝟙 _ := δ_comp_σ_succ _,
     simp only [b, fin.cast_succ_mk, fin.succ_mk] at eq₁ eq₂,
@@ -130,7 +134,7 @@ begin
     ring_exp, },
 end
 
-lemma Hσφ_eq_zero {Y : C} {n q : ℕ} (hqn : n<q) {φ : Y ⟶ X _[n+1]}
+lemma comp_Hσ_eq_zero {Y : C} {n q : ℕ} (hqn : n<q) {φ : Y ⟶ X _[n+1]}
   (v : higher_faces_vanish q φ) : φ ≫ (Hσ q).f (n+1) = 0 :=
 begin
   simp only [Hσ, homotopy.null_homotopic_map'_f (c_mk (n+2) (n+1) rfl) (c_mk (n+1) n rfl)],
@@ -156,7 +160,7 @@ begin
       simp only [← assoc, v j (by linarith), zero_comp], }, },
 end
 
-lemma higher_faces_vanish_induction {Y : C} {n q : ℕ} {φ : Y ⟶ X _[n+1]}
+lemma induction {Y : C} {n q : ℕ} {φ : Y ⟶ X _[n+1]}
   (v : higher_faces_vanish q φ) : higher_faces_vanish (q+1) (φ ≫ (𝟙 _ + Hσ q).f (n+1)) :=
 begin
   intros j hj₁,
@@ -164,17 +168,14 @@ begin
   simp only [comp_add, add_comp, comp_id],
   -- when n < q, the result follows immediately from the assumption
   by_cases hqn : n<q,
-  { rw [Hσφ_eq_zero hqn v, zero_comp, add_zero, v j (by linarith)], },
+  { rw [comp_Hσ_eq_zero hqn v, zero_comp, add_zero, v j (by linarith)], },
   -- we now assume that n≥q, and write n=a+q
   cases nat.le.dest (not_lt.mp hqn) with a ha,
-  rw [Hσφ_eq_neg_σδφ (show n=a+q, by linarith) v,
-    neg_comp, add_neg_eq_zero, assoc, assoc],
+  rw [comp_Hσ_eq (show n=a+q, by linarith) v, neg_comp, add_neg_eq_zero, assoc, assoc],
   cases n with m hm,
   -- the boundary case n=0
-  { simp only [nat.eq_zero_of_add_eq_zero_left ha, fin.eq_zero j,
-      fin.mk_zero, fin.mk_one],
-    rw [δ_comp_σ_succ],
-    simp only [fin.succ_zero_eq_one, comp_id], },
+  { simpa only [nat.eq_zero_of_add_eq_zero_left ha, fin.eq_zero j,
+      fin.mk_zero, fin.mk_one, δ_comp_σ_succ, comp_id], },
   -- in the other case, we need to write n as m+1
   -- then, we first consider the particular case j = a
   by_cases hj₂ : a = (j : ℕ),
@@ -212,6 +213,8 @@ begin
     slice_rhs 2 3 { rw [hj₄, δ_comp_δ_self], },
     simp only [← assoc, v j (by linarith), zero_comp], },
 end
+
+end higher_faces_vanish
 
 end dold_kan
 

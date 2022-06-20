@@ -27,6 +27,8 @@ open pgame
 
 open_locale pgame
 
+local infix ` ♯ `:65 := ordinal.nadd
+
 namespace ordinal
 
 /-- Converts an ordinal into the corresponding pre-game. -/

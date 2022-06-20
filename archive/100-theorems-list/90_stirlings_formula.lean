@@ -80,8 +80,7 @@ begin
     rw sq_pos_iff,
     exact nonzero_of_invertible ↑(succ k),
   end,
-  have g:= partial_sum_le_tsum summable_inverse_squares h,
-  cases g with d g,
+  cases partial_sum_le_tsum summable_inverse_squares h with d g,
   use d,
   intro n,
   exact g (range n),
@@ -282,31 +281,32 @@ begin
 end
 
 /--
-We have the bound  `log_stirling_seq n - log_stirling_seq (n+1)` ≤ 1/(4n(n+1))
+We have the bound  `log_stirling_seq n - log_stirling_seq (n+1)` ≤ 1/(4 n^2)
 -/
 lemma log_stirling_seq_sub_log_stirling_seq_succ (n : ℕ) :
-  log_stirling_seq n.succ - log_stirling_seq n.succ.succ ≤ 1 / (4 * n.succ * n.succ.succ) :=
+  log_stirling_seq n.succ - log_stirling_seq n.succ.succ ≤ 1 / (4 * n.succ ^ 2) :=
 begin
-  have h₁ : 0 < 4 * ((n:ℝ) + 1) * (((n:ℝ) + 1) + 1) := by nlinarith [@cast_nonneg ℝ _ n],
-  have h₃ : 0 < (2 * ((n:ℝ) + 1) + 1) ^ 2 := by linarith,
+  have h₁ : 0 < 4 * ((n:ℝ) + 1)^2 := by nlinarith [@cast_nonneg ℝ _ n],
+  have h₃ : 0 < (2 * ((n:ℝ) + 1) + 1) ^ 2 := by nlinarith [@cast_nonneg ℝ _ n ],
   have h₂ : 0 < 1 - (1 / (2 * ((n:ℝ) + 1) + 1)) ^ 2,
   { rw ← mul_lt_mul_right h₃,
-    have H : 0 < (2 * ((n:ℝ) + 1) + 1) ^ 2 - 1 := by linarith,
+    have H : 0 < (2 * ((n:ℝ) + 1) + 1) ^ 2 - 1 := by nlinarith [@cast_nonneg ℝ _ n ],
     convert H using 1; field_simp [h₃.ne'] },
   refine le_trans (log_stirling_seq_diff_le_geo_sum n) _,
   push_cast at *,
   rw div_le_div_iff h₂ h₁,
-  rw ← mul_le_mul_right h₃,
-  have H : 4 * ((n:ℝ) + 1) * (n + 1 + 1) ≤ (2 * (↑n + 1) + 1) ^ 2 - 1 := by linarith,
-  convert H using 1; field_simp [h₃.ne'],
+  field_simp [h₃.ne'],
+  rw div_le_div_right h₃,
+  ring_nf,
+  norm_cast,
+  linarith,
 end
 
-/-- For any `n`, we have `log_stirling_seq 1 - log_stirling_seq n ≤ 1/4` -/
+/-- For any `n`, we have `log_stirling_seq 1 - log_stirling_seq n ≤ 1/4 * ∑' 1/k^2`  -/
 lemma log_stirling_seq_bounded_aux : ∃ (c : ℝ), ∀ (n : ℕ),
 log_stirling_seq 1 - log_stirling_seq n.succ ≤ c :=
 begin
-  have h := partial_sum_inverse_squares,
-  cases h with d h,
+  cases partial_sum_inverse_squares with d h,
   use (1/4 * d : ℝ),
   let log_stirling_seq' : (ℕ → ℝ) := λ (k : ℕ), log_stirling_seq k.succ,
   intro n,
@@ -315,47 +315,27 @@ begin
     ... = ∑ k in range n, (log_stirling_seq' k - log_stirling_seq' (k + 1)) :
     by rw ← (sum_range_sub' log_stirling_seq' n)
     ... = ∑ k in range n, (log_stirling_seq k.succ - log_stirling_seq k.succ.succ) : rfl
-    ... ≤ ∑ k in range n, 1 / (4 * k.succ * k.succ.succ) :
-    sum_le_sum (λ k, λ hk, log_stirling_seq_sub_log_stirling_seq_succ k)
-    ... = ∑ k in range n, (1 / 4) * (1 / (k.succ * k.succ.succ)) :
+    ... ≤ ∑ k in range n,  1 / (4 * k.succ^2) :
+    sum_le_sum (λ k hk, log_stirling_seq_sub_log_stirling_seq_succ k)
+    ... = ∑ k in range n, (1 / 4) * (1 / (k.succ^2)) :
     begin
-      have hi : ∀ (k : ℕ), (1 : ℝ) / (4 * k.succ * k.succ.succ) =
-      (1 / 4) * (1 / (k.succ * k.succ.succ)) :=
+      have hi : ∀ (k : ℕ), (1 : ℝ) / (4 * k.succ^2) =
+      (1 / 4) * (1 / k.succ^2) :=
       begin
         intro k,
         norm_cast,
         field_simp,
-        simp only [one_div, inv_inj],
-        ring_nf,
       end,
-      refine sum_congr rfl (λ k, λ hk, hi k),
+      refine sum_congr rfl (λ k hk, hi k),
     end
-    ... = 1 / 4 * ∑ k in range n, 1 / (k.succ * k.succ.succ) : by rw mul_sum
-    ... ≤ 1 / 4 * ∑ k in range n, 1 / (k.succ)^2 :
-    begin
-      refine (mul_le_mul_left _).mpr _, { exact one_div_pos.mpr four_pos, },
-      refine sum_le_sum _,
-      intros k h,
-      repeat { rw [←inv_eq_one_div] },
-      refine (inv_le_inv _ _).mpr _,
-      all_goals {norm_cast},
-      { exact (zero_lt_mul_left (zero_lt_succ k)).mpr (zero_lt_succ k.succ), },
-      { exact pow_pos (zero_lt_succ k) 2, },
-      { rw pow_two,
-      exact mul_le_mul' rfl.ge (succ k).le_succ, },
-    end
-    ... ≤ 1 / 4 * d :
-    begin
-     refine (mul_le_mul_left _).mpr _, { exact one_div_pos.mpr four_pos, },
-     exact h n,
-    end
+    ... = 1 / 4 * ∑ k in range n, 1 / k.succ ^ 2 : by rw mul_sum
+    ... ≤ 1 / 4 * d : (mul_le_mul_left (one_div_pos.mpr (@four_pos ℝ _ _))).mpr (h n),
 end
 
 /-- The sequence `log_stirling_seq` is bounded below for `n ≥ 1`. -/
 lemma log_stirling_seq_bounded_by_constant : ∃ c, ∀ (n : ℕ), c ≤ log_stirling_seq n.succ :=
 begin
-  have h := log_stirling_seq_bounded_aux,
-  cases h with d h,
+  obtain ⟨d, h⟩ := log_stirling_seq_bounded_aux,
   use log_stirling_seq 1 - d,
   intro n,
   exact sub_le.mp (h n),
@@ -375,8 +355,7 @@ The sequence `stirling_seq` has a positive lower bound (in fact, `exp (3/4 - 1/2
 lemma stirling_seq'_bounded_by_pos_constant :
   ∃ a, 0 < a ∧ ∀ n : ℕ, a ≤ stirling_seq n.succ :=
 begin
-  have h := log_stirling_seq_bounded_by_constant,
-  cases h with c h,
+  cases log_stirling_seq_bounded_by_constant with c h,
   refine ⟨ exp c, exp_pos _, λ n, _⟩,
   rw ← le_log_iff_exp_le (stirling_seq'_pos n),
   exact h n,
@@ -704,9 +683,7 @@ end
 /-- **Stirling's Formula** -/
 lemma stirling_seq_has_limit_sqrt_pi : tendsto (λ (n : ℕ), stirling_seq n) at_top (𝓝 (sqrt π)) :=
 begin
-  have ha := stirling_seq_has_pos_limit_a,
-  cases ha with a ha,
-  cases ha with hapos halimit,
+  obtain ⟨a, hapos, halimit⟩ := stirling_seq_has_pos_limit_a,
   have hπ : π / 2 = a ^ 2 / 2 := tendsto_nhds_unique wallis_consequence
     (second_wallis_limit a (ne_of_gt hapos) halimit),
   field_simp at hπ,

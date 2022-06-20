@@ -262,7 +262,7 @@ theorem is_maximal_def {N : submodule R M} : N.is_maximal ↔ is_coatom N := ⟨
 theorem is_maximal.ne_top {N : submodule R M} (h : N.is_maximal) : N ≠ ⊤ := (is_maximal_def.1 h).1
 
 theorem is_maximal.eq_of_le {L N : submodule R M}
-  (hN : N.is_maximal) (hL : L ≠ ⊤) (NL : N ≤L) : N = L :=
+  (hN : N.is_maximal) (hL : L ≠ ⊤) (NL : N ≤ L) : N = L :=
 eq_iff_le_not_lt.2 ⟨NL, λ h, hL (hN.1.2 _ h)⟩
 
 end submodule

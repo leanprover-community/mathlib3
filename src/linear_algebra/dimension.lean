@@ -235,7 +235,7 @@ variables [nontrivial R]
 
 lemma {m} cardinal_lift_le_dim_of_linear_independent
   {ι : Type w} {v : ι → M} (hv : linear_independent R v) :
-  cardinal.lift.{(max v m)} (#ι) ≤ cardinal.lift.{(max w m)} (module.rank R M) :=
+  cardinal.lift.{max v m} (#ι) ≤ cardinal.lift.{max w m} (module.rank R M) :=
 begin
   apply le_trans,
   { exact cardinal.lift_mk_le.mpr
@@ -284,6 +284,22 @@ begin
 end
 
 variables {R M}
+
+/-- A linearly-independent family of vectors in a module over a non-trivial ring must be finite if
+the module is Noetherian. -/
+lemma linear_independent.finite_of_is_noetherian [is_noetherian R M]
+  {v : ι → M} (hv : linear_independent R v) : finite ι :=
+begin
+  have hwf := is_noetherian_iff_well_founded.mp (by apply_instance : is_noetherian R M),
+  refine complete_lattice.well_founded.finite_of_independent hwf hv.independent (λ i contra, _),
+  apply hv.ne_zero i,
+  have : v i ∈ R ∙ v i := submodule.mem_span_singleton_self (v i),
+  rwa [contra, submodule.mem_bot] at this,
+end
+
+lemma linear_independent.set_finite_of_is_noetherian [is_noetherian R M]
+  {s : set M} (hi : linear_independent R (coe : s → M)) : s.finite :=
+⟨@fintype.of_finite _ hi.finite_of_is_noetherian⟩
 
 /--
 Over any nontrivial ring, the existence of a finite spanning set implies that any basis is finite.
@@ -490,9 +506,9 @@ theorem mk_eq_mk_of_basis (v : basis ι R M) (v' : basis ι' R M) :
   cardinal.lift.{w'} (#ι) = cardinal.lift.{w} (#ι') :=
 begin
   haveI := nontrivial_of_invariant_basis_number R,
-  by_cases h : #ι < ω,
+  by_cases h : #ι < ℵ₀,
   { -- `v` is a finite basis, so by `basis_fintype_of_finite_spans` so is `v'`.
-    haveI : fintype ι := (cardinal.lt_omega_iff_fintype.mp h).some,
+    haveI : fintype ι := (cardinal.lt_aleph_0_iff_fintype.mp h).some,
     haveI : fintype (range v) := set.fintype_range ⇑v,
     haveI := basis_fintype_of_finite_spans _ v.span_eq v',
     -- We clean up a little:
@@ -513,7 +529,7 @@ begin
     haveI : infinite ι' := cardinal.infinite_iff.mpr (begin
       apply cardinal.lift_le.{w' w}.mp,
       have p := (cardinal.lift_le.mpr h).trans w₁,
-      rw cardinal.lift_omega at ⊢ p,
+      rw cardinal.lift_aleph_0 at ⊢ p,
       exact p,
     end),
     have w₂ :=
@@ -521,10 +537,10 @@ begin
     exact le_antisymm w₁ w₂, }
 end
 
-/-- Given two basis indexed by `ι` and `ι'` of an `R`-module, where `R` satisfies the invariant
+/-- Given two bases indexed by `ι` and `ι'` of an `R`-module, where `R` satisfies the invariant
 basis number property, an equiv `ι ≃ ι' `. -/
 def basis.index_equiv (v : basis ι R M) (v' : basis ι' R M) : ι ≃ ι' :=
-nonempty.some (cardinal.lift_mk_eq.1 (cardinal.lift_max.2 (mk_eq_mk_of_basis v v')))
+nonempty.some (cardinal.lift_mk_eq.1 (cardinal.lift_umax_eq.2 (mk_eq_mk_of_basis v v')))
 
 theorem mk_eq_mk_of_basis' {ι' : Type w} (v : basis ι R M) (v' : basis ι' R M) :
   #ι = #ι' :=
@@ -599,7 +615,7 @@ begin
       rw hJ at this,
       replace : v.repr (v i) ∈ (finsupp.supported R R (⋃ j, S j)) := this trivial,
       rw [v.repr_self, finsupp.mem_supported,
-        finsupp.support_single_ne_zero one_ne_zero] at this,
+        finsupp.support_single_ne_zero _ one_ne_zero] at this,
       { subst b,
         rcases mem_Union.1 (this (finset.mem_singleton_self _)) with ⟨j, hj⟩,
         exact mem_Union.2 ⟨j, (mem_image _ _ _).2 ⟨i, hj, rfl⟩⟩ },
@@ -608,8 +624,8 @@ begin
     suffices : #(⋃ j, S' j) < #(range v),
     { exact not_le_of_lt this ⟨set.embedding_of_subset _ _ hs⟩ },
     refine lt_of_le_of_lt (le_trans cardinal.mk_Union_le_sum_mk
-      (cardinal.sum_le_sum _ (λ _, ω) _)) _,
-    { exact λ j, le_of_lt (cardinal.lt_omega_iff_finite.2 $ (finset.finite_to_set _).image _) },
+      (cardinal.sum_le_sum _ (λ _, ℵ₀) _)) _,
+    { exact λ j, le_of_lt (cardinal.lt_aleph_0_iff_finite.2 $ (finset.finite_to_set _).image _) },
     { simpa } },
 end
 
@@ -689,26 +705,6 @@ begin
   rw s,
   exact le_top,
 end
-
-/-- A linearly-independent family of vectors in a module over a ring satisfying the strong rank
-condition must be finite if the module is Noetherian. -/
-noncomputable def fintype_of_is_noetherian_linear_independent [is_noetherian R M]
-  {v : ι → M} (hi : linear_independent R v) : fintype ι :=
-begin
-  have hfg : (⊤ : submodule R M).fg,
-  { exact is_noetherian_def.mp infer_instance ⊤, },
-  rw submodule.fg_def at hfg,
-  choose s hs hs' using hfg,
-  haveI : fintype s := hs.fintype,
-  apply linear_independent_fintype_of_le_span_fintype v hi s,
-  simp only [hs', set.subset_univ, submodule.top_coe, set.le_eq_subset],
-end
-
-/-- A linearly-independent subset of a module over a ring satisfying the strong rank condition
-must be finite if the module is Noetherian. -/
-lemma finite_of_is_noetherian_linear_independent [is_noetherian R M]
-  {s : set M} (hi : linear_independent R (coe : s → M)) : s.finite :=
-⟨fintype_of_is_noetherian_linear_independent hi⟩
 
 /--
 An auxiliary lemma for `linear_independent_le_basis`:
@@ -839,29 +835,29 @@ begin
 end
 
 theorem {m} basis.mk_eq_dim' (v : basis ι R M) :
-  cardinal.lift.{(max v m)} (#ι) = cardinal.lift.{(max w m)} (module.rank R M) :=
+  cardinal.lift.{max v m} (#ι) = cardinal.lift.{max w m} (module.rank R M) :=
 by simpa using v.mk_eq_dim
 
 /-- If a module has a finite dimension, all bases are indexed by a finite type. -/
-lemma basis.nonempty_fintype_index_of_dim_lt_omega {ι : Type*}
-  (b : basis ι R M) (h : module.rank R M < ω) :
+lemma basis.nonempty_fintype_index_of_dim_lt_aleph_0 {ι : Type*}
+  (b : basis ι R M) (h : module.rank R M < ℵ₀) :
   nonempty (fintype ι) :=
 by rwa [← cardinal.lift_lt, ← b.mk_eq_dim,
-        -- ensure `omega` has the correct universe
-        cardinal.lift_omega, ← cardinal.lift_omega.{u_1 v},
-        cardinal.lift_lt, cardinal.lt_omega_iff_fintype] at h
+        -- ensure `aleph_0` has the correct universe
+        cardinal.lift_aleph_0, ← cardinal.lift_aleph_0.{u_1 v},
+        cardinal.lift_lt, cardinal.lt_aleph_0_iff_fintype] at h
 
 /-- If a module has a finite dimension, all bases are indexed by a finite type. -/
-noncomputable def basis.fintype_index_of_dim_lt_omega {ι : Type*}
-  (b : basis ι R M) (h : module.rank R M < ω) :
+noncomputable def basis.fintype_index_of_dim_lt_aleph_0 {ι : Type*}
+  (b : basis ι R M) (h : module.rank R M < ℵ₀) :
   fintype ι :=
-classical.choice (b.nonempty_fintype_index_of_dim_lt_omega h)
+classical.choice (b.nonempty_fintype_index_of_dim_lt_aleph_0 h)
 
 /-- If a module has a finite dimension, all bases are indexed by a finite set. -/
-lemma basis.finite_index_of_dim_lt_omega {ι : Type*} {s : set ι}
-  (b : basis s R M) (h : module.rank R M < ω) :
+lemma basis.finite_index_of_dim_lt_aleph_0 {ι : Type*} {s : set ι}
+  (b : basis s R M) (h : module.rank R M < ℵ₀) :
   s.finite :=
-finite_def.2 (b.nonempty_fintype_index_of_dim_lt_omega h)
+finite_def.2 (b.nonempty_fintype_index_of_dim_lt_aleph_0 h)
 
 lemma dim_span {v : ι → M} (hv : linear_independent R v) :
   module.rank R ↥(span R (range v)) = #(range v) :=
@@ -919,9 +915,9 @@ variables [division_ring K] [add_comm_group V] [module K V] [add_comm_group V₁
 variables {K V}
 
 /-- If a vector space has a finite dimension, the index set of `basis.of_vector_space` is finite. -/
-lemma basis.finite_of_vector_space_index_of_dim_lt_omega (h : module.rank K V < ω) :
+lemma basis.finite_of_vector_space_index_of_dim_lt_aleph_0 (h : module.rank K V < ℵ₀) :
   (basis.of_vector_space_index K V).finite :=
-finite_def.2 $ (basis.of_vector_space K V).nonempty_fintype_index_of_dim_lt_omega h
+finite_def.2 $ (basis.of_vector_space K V).nonempty_fintype_index_of_dim_lt_aleph_0 h
 
 variables [add_comm_group V'] [module K V']
 
@@ -980,10 +976,10 @@ begin
 end
 
 lemma dim_span_of_finset (s : finset V) :
-  module.rank K (span K (↑s : set V)) < ω :=
+  module.rank K (span K (↑s : set V)) < ℵ₀ :=
 calc module.rank K (span K (↑s : set V)) ≤ #(↑s : set V) : dim_span_le ↑s
                              ... = s.card : by rw [finset.coe_sort_coe, cardinal.mk_finset]
-                             ... < ω : cardinal.nat_lt_omega _
+                             ... < ℵ₀ : cardinal.nat_lt_aleph_0 _
 
 theorem dim_prod : module.rank K (V × V₁) = module.rank K V + module.rank K V₁ :=
 begin

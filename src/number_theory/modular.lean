@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alex Kontorovich, Heather Macbeth, Marc Masdeu
 -/
 
-import analysis.complex.upper_half_plane
+import analysis.complex.upper_half_plane.basic
 import linear_algebra.general_linear_group
 import analysis.matrix
 
@@ -477,9 +477,8 @@ begin
   let c : ℝ := (c' : ℝ),
   suffices : 3 * c^2 < 4,
   { rw [← int.cast_pow, ← int.cast_three, ← int.cast_four, ← int.cast_mul, int.cast_lt] at this,
-    replace this : c'^2 ≤ 1^2, { linarith, },
-    rw ← abs_one,
-    exact abs_le_abs_of_sq_le_sq this, },
+    replace this : c' ^ 2 ≤ 1 ^ 2, { linarith, },
+    rwa [sq_le_sq, abs_one] at this },
   suffices : c ≠ 0 → 9 * c^4 < 16,
   { rcases eq_or_ne c 0 with hc | hc,
     { rw hc, norm_num, },

@@ -9,6 +9,7 @@ import order.order_iso_nat
 import order.sup_indep
 import order.zorn
 import data.finset.order
+import data.finite.basic
 
 /-!
 # Compactness properties for complete lattices
@@ -227,6 +228,36 @@ alias well_founded_iff_is_Sup_finite_compact ↔ _ is_Sup_finite_compact.well_fo
 alias is_Sup_finite_compact_iff_is_sup_closed_compact ↔
       _ is_sup_closed_compact.is_Sup_finite_compact
 alias is_sup_closed_compact_iff_well_founded ↔ _ well_founded.is_sup_closed_compact
+
+variables {α}
+
+lemma well_founded.finite_of_set_independent (h : well_founded ((>) : α → α → Prop))
+  {s : set α} (hs : set_independent s) : s.finite :=
+begin
+  classical,
+  refine set.not_infinite.mp (λ contra, _),
+  obtain ⟨t, ht₁, ht₂⟩ := well_founded.is_Sup_finite_compact α h s,
+  replace contra : ∃ (x : α), x ∈ s ∧ x ≠ ⊥ ∧ x ∉ t,
+  { have : (s \ (insert ⊥ t : finset α)).infinite := contra.diff (finset.finite_to_set _),
+    obtain ⟨x, hx₁, hx₂⟩ := this.nonempty,
+    exact ⟨x, hx₁, by simpa [not_or_distrib] using hx₂⟩, },
+  obtain ⟨x, hx₀, hx₁, hx₂⟩ := contra,
+  replace hs : x ⊓ Sup s = ⊥,
+  { have := hs.mono (by simp [ht₁, hx₀, -set.union_singleton] : ↑t ∪ {x} ≤ s) (by simp : x ∈ _),
+    simpa [disjoint, hx₂, ← t.sup_id_eq_Sup, ← ht₂] using this, },
+  apply hx₁,
+  rw [← hs, eq_comm, inf_eq_left],
+  exact le_Sup hx₀,
+end
+
+lemma well_founded.finite_of_independent (hwf : well_founded ((>) : α → α → Prop))
+  {ι : Type*} {t : ι → α} (ht : independent t) (h_ne_bot : ∀ i, t i ≠ ⊥) : finite ι :=
+begin
+  suffices : (set.range t).finite,
+  { haveI : finite (set.range t) := finite.of_fintype this.fintype,
+    exact finite.of_equiv (set.range t) (equiv.of_injective _ (ht.injective h_ne_bot)).symm, },
+  exact well_founded.finite_of_set_independent hwf ht.set_indepdent_range,
+end
 
 end complete_lattice
 

@@ -31,11 +31,11 @@ the main constructions deal with continuous group morphisms.
 
 noncomputable theory
 
-universes u v
+variables {M R α β : Type*}
 
 section group
 open uniform_space Cauchy filter set
-variables {α : Type u} [uniform_space α]
+variables [uniform_space α]
 
 instance [has_zero α] : has_zero (completion α) := ⟨(0 : α)⟩
 instance [has_neg α] : has_neg (completion α) := ⟨completion.map (λa, -a : α → α)⟩
@@ -51,7 +51,7 @@ open uniform_space
 
 section has_zero
 
-instance {α M} [uniform_space α] [monoid_with_zero M] [has_zero α] [mul_action_with_zero M α]
+instance [uniform_space α] [monoid_with_zero M] [has_zero α] [mul_action_with_zero M α]
   [has_uniform_continuous_const_smul M α] :
   mul_action_with_zero M (completion α) :=
 { smul := (•),
@@ -63,8 +63,7 @@ instance {α M} [uniform_space α] [monoid_with_zero M] [has_zero α] [mul_actio
 end has_zero
 
 section uniform_add_group
-open uniform_space uniform_space.completion
-variables {α : Type*} [uniform_space α] [add_group α] [uniform_add_group α]
+variables [uniform_space α] [add_group α] [uniform_add_group α]
 
 @[norm_cast]
 lemma coe_neg (a : α) : ((- a : α) : completion α) = - a :=
@@ -153,7 +152,7 @@ continuous_coe α
 end uniform_add_group
 
 section uniform_add_comm_group
-variables {α : Type*} [uniform_space α] [add_comm_group α] [uniform_add_group α]
+variables [uniform_space α] [add_comm_group α] [uniform_add_group α]
 
 instance : add_comm_group (completion α) :=
 { add_comm  := assume a b, completion.induction_on₂ a b
@@ -162,7 +161,7 @@ instance : add_comm_group (completion α) :=
     (assume x y, by { change ↑x + ↑y = ↑y + ↑x, rw [← coe_add, ← coe_add, add_comm]}),
   .. completion.add_group }
 
-instance {R} [semiring R] [module R α] [has_uniform_continuous_const_smul R α] :
+instance [semiring R] [module R α] [has_uniform_continuous_const_smul R α] :
   module R (completion α) :=
 { smul := (•),
   add_smul := λ a b, ext' (continuous_const_smul _)
@@ -174,8 +173,8 @@ end uniform_add_comm_group
 end uniform_space.completion
 
 section add_monoid_hom
-variables {α β : Type*} [uniform_space α] [add_group α] [uniform_add_group α]
-                        [uniform_space β] [add_group β] [uniform_add_group β]
+variables [uniform_space α] [add_group α] [uniform_add_group α]
+          [uniform_space β] [add_group β] [uniform_add_group β]
 
 open uniform_space uniform_space.completion
 

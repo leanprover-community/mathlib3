@@ -5,6 +5,7 @@ Authors: Patrick Massot, Johannes Hölzl
 -/
 import topology.algebra.group_completion
 import topology.algebra.ring
+import algebra.algebra.basic
 
 /-!
 # Completion of topological rings:
@@ -149,6 +150,31 @@ instance : comm_ring (completion R) :=
                     (continuous_snd.mul continuous_fst))
       (assume a b, by rw [← coe_mul, ← coe_mul, mul_comm]),
  ..completion.ring }
+
+instance ring_completion.algebra : algebra R (completion R) :=
+(uniform_space.completion.coe_ring_hom : R →+* (completion R)).to_algebra
+
+@[simp] lemma ring_completion.algebra_smul_eq (r : R) (x : (completion R)) :
+  r • x = (r : completion R) * x :=
+rfl
+
+section algebra
+variables (S : Type*) [comm_ring S] [algebra S R]
+
+instance ring_completion.algebra' : algebra S (completion R) :=
+((uniform_space.completion.coe_ring_hom : R →+* completion R).comp (algebra_map S R)).to_algebra
+
+@[simp] lemma ring_completion.algebra'_smul_eq (s : S) (x : completion R) :
+  s • x = (algebra_map S R s : completion R) * x :=
+rfl
+
+instance ring_completion.is_scalar_tower : is_scalar_tower S R (completion R) :=
+⟨λ r k x,
+begin
+  simp only [←mul_assoc, algebra.smul_def, map_mul],
+  congr,
+end⟩
+end algebra
 
 end uniform_space.completion
 

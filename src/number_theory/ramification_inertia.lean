@@ -66,14 +66,16 @@ if h : ∃ n, map f p ≤ P ^ n ∧ ¬ map f p ≤ P ^ (n + 1)
 then nat.find h
 else 0
 
+variables {f p P}
+
 lemma ramification_idx_eq_find (h : ∃ n, map f p ≤ P ^ n ∧ ¬ map f p ≤ P ^ (n + 1)) :
   ramification_idx f p P = nat.find h :=
 dif_pos h
 
-lemma ramification_idx_spec (n : ℕ) (hle : map f p ≤ P ^ n) (hgt : ¬ map f p ≤ P ^ (n + 1)) :
+lemma ramification_idx_spec {n : ℕ} (hle : map f p ≤ P ^ n) (hgt : ¬ map f p ≤ P ^ (n + 1)) :
   ramification_idx f p P = n :=
 begin
-  rw ramification_idx_eq_find f p P ⟨n, hle, hgt⟩,
+  rw ramification_idx_eq_find ⟨n, hle, hgt⟩,
   refine le_antisymm (nat.find_min' _ ⟨hle, hgt⟩) (le_of_not_gt (λ (h : nat.find _ < n), _)),
   obtain ⟨hle', hgt'⟩ := nat.find_spec ⟨n, and.intro hle hgt⟩,
   exact hgt' (hle.trans (ideal.pow_le_pow h))
@@ -92,9 +94,7 @@ end
 lemma ramification_idx_ne_zero {e : ℕ} (he : e ≠ 0)
   (hle : map f p ≤ P ^ e) (hnle : ¬ map f p ≤ P ^ (e + 1)):
   ramification_idx f p P ≠ 0 :=
-by rwa ramification_idx_spec f p P e hle hnle
-
-variables {f p P}
+by rwa ramification_idx_spec hle hnle
 
 lemma le_pow_ramification_idx_of_ne_zero (h : ramification_idx f p P ≠ 0) :
   map f p ≤ P ^ ramification_idx f p P :=
@@ -113,7 +113,7 @@ lemma ramification_idx_eq_normalized_factors_count
   ramification_idx f p P = (normalized_factors (map f p)).count P :=
 begin
   have hPirr := (ideal.prime_of_is_prime hP0 hP).irreducible,
-  refine ramification_idx_spec _ _ _ _ (ideal.le_of_dvd _) (mt ideal.dvd_iff_le.mpr _);
+  refine ramification_idx_spec (ideal.le_of_dvd _) (mt ideal.dvd_iff_le.mpr _);
     rw [dvd_iff_normalized_factors_le_normalized_factors (pow_ne_zero _ hP0) hp0,
         normalized_factors_pow, normalized_factors_irreducible hPirr, normalize_eq,
         multiset.nsmul_singleton, ← multiset.le_count_iff_repeat_le],

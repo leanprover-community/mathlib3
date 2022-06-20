@@ -341,6 +341,28 @@ lemma is_coseparator_iff_faithful_yoneda_obj (G : C) :
  λ h, (is_coseparator_def _).2 $ λ X Y f g hfg, quiver.hom.op_inj $
   by exactI (yoneda.obj G).map_injective (funext hfg)⟩
 
+lemma is_separator_iff_epi [has_coproducts C] (G : C) :
+  is_separator G ↔ ∀ (A : C), epi (sigma.desc (λ (f : G ⟶ A), f)) :=
+begin
+  rw is_separator_def,
+  refine ⟨λ h A, ⟨λ Z u v huv, h _ _ (λ i, _)⟩, λ h X Y f g hh, _⟩,
+  { simpa using (sigma.ι _ i) ≫= huv },
+  { haveI := h X,
+    refine (cancel_epi (sigma.desc (λ (f : G ⟶ X), f))).1 (colimit.hom_ext (λ j, _)),
+    simpa using hh j.as }
+end
+
+lemma is_coseparator_iff_mono [has_products C] (G : C) :
+  is_coseparator G ↔ ∀ (A : C), mono (pi.lift (λ (f : A ⟶ G), f)) :=
+begin
+  rw is_coseparator_def,
+  refine ⟨λ h A, ⟨λ Z u v huv, h _ _ (λ i, _)⟩, λ h X Y f g hh, _⟩,
+  { simpa using huv =≫ (pi.π _ i) },
+  { haveI := h Y,
+    refine (cancel_mono (pi.lift (λ (f : Y ⟶ G), f))).1 (limit.hom_ext (λ j, _)),
+    simpa using hh j.as }
+end
+
 lemma is_detector_iff_reflects_isomorphisms_coyoneda_obj (G : C) :
   is_detector G ↔ reflects_isomorphisms (coyoneda.obj (op G)) :=
 begin

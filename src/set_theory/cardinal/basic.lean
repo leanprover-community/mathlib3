@@ -827,10 +827,7 @@ theorem lift_mk_fin (n : ℕ) : lift (#(fin n)) = n := by simp
 lemma mk_of_finset {α : Type u} {s : finset α} : #s = ↑(finset.card s) := by simp
 
 @[simp] lemma mk_finset_of_fintype [fintype α] : #(finset α) = 2 ^ #α :=
-begin
-  rw ←mk_set,
-  apply equiv.cardinal_eq,
-end
+by { rw ←mk_set, exact fintype.equiv_set_on_fintype.cardinal_eq }
 
 theorem card_le_of_finset {α} (s : finset α) : (s.card : cardinal) ≤ #α :=
 begin

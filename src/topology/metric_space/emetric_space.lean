@@ -495,12 +495,14 @@ def ball (x : α) (ε : ℝ≥0∞) : set α := {y | edist y x < ε}
 
 @[simp] theorem mem_ball : y ∈ ball x ε ↔ edist y x < ε := iff.rfl
 
-theorem mem_ball' : y ∈ ball x ε ↔ edist x y < ε := by rw edist_comm; refl
+theorem mem_ball' : y ∈ ball x ε ↔ edist x y < ε := by {rw edist_comm, refl}
 
 /-- `emetric.closed_ball x ε` is the set of all points `y` with `edist y x ≤ ε` -/
 def closed_ball (x : α) (ε : ℝ≥0∞) := {y | edist y x ≤ ε}
 
 @[simp] theorem mem_closed_ball : y ∈ closed_ball x ε ↔ edist y x ≤ ε := iff.rfl
+
+theorem mem_closed_ball' : y ∈ closed_ball x ε ↔ edist x y ≤ ε := by {rw edist_comm, refl}
 
 @[simp] theorem closed_ball_top (x : α) : closed_ball x ∞ = univ :=
 eq_univ_of_forall $ λ y, le_top
@@ -518,7 +520,11 @@ theorem mem_closed_ball_self : x ∈ closed_ball x ε :=
 show edist x x ≤ ε, by rw edist_self; exact bot_le
 
 theorem mem_ball_comm : x ∈ ball y ε ↔ y ∈ ball x ε :=
-by simp [edist_comm]
+by {rw mem_ball', refl}
+
+theorem mem_closed_ball_comm : x ∈ closed_ball y ε ↔ y ∈ closed_ball x ε :=
+by {rw mem_closed_ball', refl}
+
 
 theorem ball_subset_ball (h : ε₁ ≤ ε₂) : ball x ε₁ ⊆ ball x ε₂ :=
 λ y (yx : _ < ε₁), lt_of_lt_of_le yx h

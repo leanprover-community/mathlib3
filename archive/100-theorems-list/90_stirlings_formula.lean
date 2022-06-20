@@ -278,14 +278,13 @@ lemma log_stirling_seq_diff_le_geo_sum : ∀ (n : ℕ),
   (1 / (2 * n.succ + 1)) ^ 2 / (1 - (1 / (2 * n.succ + 1)) ^ 2) :=
 begin
   intro n,
-  have h_nonneg : 0 ≤ ((1 / (2 * (n.succ : ℝ) + 1)) ^ 2),
-    by { rw [cast_succ, one_div, inv_pow, inv_nonneg], norm_cast, exact zero_le', },
   have g : has_sum (λ (k : ℕ), ((1 / (2 * (n.succ : ℝ) + 1)) ^ 2) ^ k.succ)
     ((1 / (2 * n.succ + 1)) ^ 2 / (1 - (1 / (2 * n.succ + 1)) ^ 2)) :=
   begin
     have h_pow_succ := λ (k : ℕ),
       symm (pow_succ ((1 / (2 * ((n : ℝ) + 1) + 1)) ^ 2) k),
-
+    have h_nonneg : 0 ≤ ((1 / (2 * (n.succ : ℝ) + 1)) ^ 2),
+    by { rw [cast_succ, one_div, inv_pow, inv_nonneg], norm_cast, exact zero_le', },
     have hlt : ((1 / (2 * (n.succ : ℝ) + 1)) ^ 2) < 1, by
     { simp only [cast_succ, one_div, inv_pow],
       refine inv_lt_one _,
@@ -369,10 +368,10 @@ begin
     ... = 1 / 4 : by rw mul_one,
 end
 
-/-- The sequence `log_stirling_seq` is bounded below by `3/4 - 1/2 * log 2`  for `n ≥ 1`. -/
-lemma log_stirling_seq_bounded_by_constant : ∀ (n : ℕ), 3 / (4 : ℝ) - 1 / 2 * log 2
-≤ log_stirling_seq n.succ :=
+/-- The sequence `log_stirling_seq` is bounded below for `n ≥ 1`. -/
+lemma log_stirling_seq_bounded_by_constant : ∃ c, ∀ (n : ℕ), c ≤ log_stirling_seq n.succ :=
 begin
+  use 3 / (4 : ℝ) - 1 / 2 * log 2,
   intro n,
   calc
   log_stirling_seq n.succ ≥ log_stirling_seq 1 - 1 / 4 : sub_le.mp (log_stirling_seq_bounded_aux n)
@@ -411,9 +410,11 @@ The sequence `stirling_seq` has a positive lower bound (in fact, `exp (3/4 - 1/2
 lemma stirling_seq'_bounded_by_pos_constant :
   ∃ a, 0 < a ∧ ∀ n : ℕ, a ≤ stirling_seq n.succ :=
 begin
-  refine ⟨exp (3 / (4 : ℝ) - 1 / 2 * log 2), exp_pos _, λ n, _⟩,
+  have h := log_stirling_seq_bounded_by_constant,
+  cases h with c h,
+  refine ⟨ exp c, exp_pos _, λ n, _⟩,
   rw ← le_log_iff_exp_le (stirling_seq'_pos n),
-  exact log_stirling_seq_bounded_by_constant n,
+  exact h n,
 end
 
 /-- The sequence `stirling_seq ∘ succ` is monotone decreasing -/

@@ -39,9 +39,6 @@ We will try to relax the above hypotheses as much as possible.
 
 -/
 
-open_locale big_operators
-open_locale non_zero_divisors
-
 universes u v
 
 variables {R : Type u} [comm_ring R]

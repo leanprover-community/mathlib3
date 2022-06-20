@@ -104,6 +104,10 @@ instance : inhabited (filter_basis ℕ) :=
     exact le_of_max_le_right p_in,
   end }⟩
 
+/-- View a filter as a filter basis. -/
+def filter.as_basis (f : filter α) : filter_basis α :=
+⟨f.sets, ⟨univ, univ_mem⟩, λ x y hx hy, ⟨x ∩ y, inter_mem hx hy, subset_rfl⟩⟩
+
 /-- `is_basis p s` means the image of `s` bounded by `p` is a filter basis. -/
 protected structure filter.is_basis (p : ι → Prop) (s : ι → set α) : Prop :=
 (nonempty : ∃ i, p i)
@@ -200,7 +204,7 @@ variables {l l' : filter α} {p : ι → Prop} {s : ι → set α} {t : set α} 
   {p' : ι' → Prop} {s' : ι' → set α} {i' : ι'}
 
 lemma has_basis_generate (s : set (set α)) :
-  (generate s).has_basis (λ t, finite t ∧ t ⊆ s) (λ t, ⋂₀ t) :=
+  (generate s).has_basis (λ t, set.finite t ∧ t ⊆ s) (λ t, ⋂₀ t) :=
 ⟨begin
   intro U,
   rw mem_generate_iff,
@@ -210,7 +214,7 @@ end⟩
 
 /-- The smallest filter basis containing a given collection of sets. -/
 def filter_basis.of_sets (s : set (set α)) : filter_basis α :=
-{ sets := sInter '' { t | finite t ∧ t ⊆ s},
+{ sets := sInter '' { t | set.finite t ∧ t ⊆ s},
   nonempty := ⟨univ, ∅, ⟨⟨finite_empty, empty_subset s⟩, sInter_empty⟩⟩,
   inter_sets := begin
     rintros _ _ ⟨a, ⟨fina, suba⟩, rfl⟩ ⟨b, ⟨finb, subb⟩, rfl⟩,
@@ -272,7 +276,7 @@ lemma has_basis.eq_generate (h : l.has_basis p s) : l = generate { U | ∃ i, p 
 by rw [← h.is_basis.filter_eq_generate, h.filter_eq]
 
 lemma generate_eq_generate_inter (s : set (set α)) :
-  generate s = generate (sInter '' { t | finite t ∧ t ⊆ s}) :=
+  generate s = generate (sInter '' { t | set.finite t ∧ t ⊆ s}) :=
 by erw [(filter_basis.of_sets s).generate, ← (has_basis_generate s).filter_eq] ; refl
 
 lemma of_sets_filter_eq_generate (s : set (set α)) : (filter_basis.of_sets s).filter = generate s :=
@@ -330,6 +334,9 @@ by simp only [not_exists, not_and, ← ne_empty_iff_nonempty]
 
 lemma basis_sets (l : filter α) : l.has_basis (λ s : set α, s ∈ l) id :=
 ⟨λ t, exists_mem_subset_iff.symm⟩
+
+lemma as_basis_filter (f : filter α) : f.as_basis.filter = f :=
+by ext t; exact exists_mem_subset_iff
 
 lemma has_basis_self {l : filter α} {P : set α → Prop} :
   has_basis l (λ s, s ∈ l ∧ P s) id ↔ ∀ t ∈ l, ∃ r ∈ l, P r ∧ r ⊆ t :=
@@ -408,9 +415,9 @@ lemma has_basis.inf {ι ι' : Type*} {p : ι → Prop} {s : ι → set α} {p' :
 (hl.inf' hl').to_has_basis (λ i hi, ⟨⟨i.1, i.2⟩, hi, subset.rfl⟩)
   (λ i hi, ⟨⟨i.1, i.2⟩, hi, subset.rfl⟩)
 
-lemma has_basis_infi {ι : Sort*} {ι' : ι → Type*} {l : ι → filter α}
+lemma has_basis_infi {ι : Type*} {ι' : ι → Type*} {l : ι → filter α}
   {p : Π i, ι' i → Prop} {s : Π i, ι' i → set α} (hl : ∀ i, (l i).has_basis (p i) (s i)) :
-  (⨅ i, l i).has_basis (λ If : set ι × Π i, ι' i, finite If.1 ∧ ∀ i ∈ If.1, p i (If.2 i))
+  (⨅ i, l i).has_basis (λ If : set ι × Π i, ι' i, If.1.finite ∧ ∀ i ∈ If.1, p i (If.2 i))
     (λ If : set ι × Π i, ι' i, ⋂ i ∈ If.1, s i (If.2 i)) :=
 ⟨begin
   intro t,
@@ -553,7 +560,7 @@ end⟩
 /-- If `s : ι → set α` is an indexed family of sets, then finite intersections of `s i` form a basis
 of `⨅ i, 𝓟 (s i)`.  -/
 lemma has_basis_infi_principal_finite {ι : Type*} (s : ι → set α) :
-  (⨅ i, 𝓟 (s i)).has_basis (λ t : set ι, finite t) (λ t, ⋂ i ∈ t, s i) :=
+  (⨅ i, 𝓟 (s i)).has_basis (λ t : set ι, t.finite) (λ t, ⋂ i ∈ t, s i) :=
 begin
   refine ⟨λ U, (mem_infi_finite _).trans _⟩,
   simp only [infi_principal_finset, mem_Union, mem_principal, exists_prop,
@@ -713,16 +720,6 @@ lemma has_basis.coprod {ι ι' : Type*} {pa : ι → Prop} {sa : ι → set α} 
 (hla.comap prod.fst).sup (hlb.comap prod.snd)
 
 end two_types
-
-open equiv
-
-lemma prod_assoc (f : filter α) (g : filter β) (h : filter γ) :
-  map (prod_assoc α β γ) ((f ×ᶠ g) ×ᶠ h) = f ×ᶠ (g ×ᶠ h) :=
-begin
-  apply ((((basis_sets f).prod $ basis_sets g).prod $ basis_sets h).map _).eq_of_same_basis,
-  simpa only [prod_assoc_image, function.comp, and_assoc] using
-    ((basis_sets f).prod $ (basis_sets g).prod $ basis_sets h).comp_equiv (prod_assoc _ _ _)
-end
 
 end filter
 

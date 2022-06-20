@@ -9,11 +9,12 @@ import set_theory.ordinal.arithmetic
 /-!
 # Natural operations on ordinals
 
-The goal of this file is to define natural addition and multiplication on ordinals, and provide a
-basic API. The natural addition of two ordinals `a ♯ b` is recursively defined as the least ordinal
-greater than `a' ♯ b` and `a ♯ b'` for `a' < a` and `b' < b`. The natural multiplication `a ⨳ b` is
-likewise recursively defined as the least ordinal such that `a ⨳ b ♯ a' ⨳ b'` is greater than
-`a' ⨳ b ♯ a ⨳ b'` for any `a' < a` and `b' < b`.
+The goal of this file is to define natural addition and multiplication on ordinals, also known as
+the Hessenberg sum and product, and provide a basic API. The natural addition of two ordinals
+`a ♯ b` is recursively defined as the least ordinal greater than `a' ♯ b` and `a ♯ b'` for `a' < a`
+and `b' < b`. The natural multiplication `a ⨳ b` is likewise recursively defined as the least
+ordinal such that `a ⨳ b ♯ a' ⨳ b'` is greater than `a' ⨳ b ♯ a ⨳ b'` for any `a' < a` and
+`b' < b`.
 
 These operations form a rich algebraic structure: they're commutative, associative, preserve order,
 have the usual `0` and `1` from ordinals, and distribute over one another.
@@ -40,7 +41,7 @@ between both types, we attempt to prove and state most results on `ordinal`.
 
 universes u v
 
-open function
+open function order
 
 noncomputable theory
 
@@ -69,7 +70,11 @@ variables {a b c : nat_ordinal.{u}}
 instance : has_zero nat_ordinal := ⟨to_nat_ordinal 0⟩
 instance : inhabited nat_ordinal := ⟨0⟩
 instance : has_one nat_ordinal := ⟨to_nat_ordinal 1⟩
+instance : succ_order nat_ordinal := ordinal.succ_order
+
+theorem lt_wf : @well_founded nat_ordinal (<) := ordinal.lt_wf
 instance : has_well_founded nat_ordinal := ordinal.has_well_founded
+instance : is_well_order nat_ordinal (<) := ordinal.has_lt.lt.is_well_order
 
 @[simp] theorem to_ordinal_zero : to_ordinal 0 = 0 := rfl
 @[simp] theorem to_ordinal_one : to_ordinal 1 = 1 := rfl
@@ -79,6 +84,8 @@ instance : has_well_founded nat_ordinal := ordinal.has_well_founded
 
 @[simp] theorem to_ordinal_max : (max a b).to_ordinal = max a.to_ordinal b.to_ordinal := rfl
 @[simp] theorem to_ordinal_min : (min a b).to_ordinal = min a.to_ordinal b.to_ordinal := rfl
+
+theorem succ_def (a : nat_ordinal) : succ a = (a.to_ordinal + 1).to_nat_ordinal := rfl
 
 /-- A recursor for `nat_ordinal`. Use as `induction x using nat_ordinal.rec`. -/
 protected def rec {β : nat_ordinal → Sort*} (h : Π a, β (to_nat_ordinal a)) : Π a, β a :=
@@ -110,9 +117,9 @@ variables {a b c : ordinal.{u}}
 
 /-! ### Natural addition -/
 
-/-- Natural addition on ordinals `a ♯ b` is recursively defined as the least ordinal greater than
-`a' ♯ b` and `a ♯ b'` for all `a' < a` and `b' < b`. In contrast to normal ordinal addition, it is
-commutative.
+/-- Natural addition on ordinals `a ♯ b`, also known as the Hessenberg sum, is recursively defined
+as the least ordinal greater than `a' ♯ b` and `a ♯ b'` for all `a' < a` and `b' < b`. In contrast
+to normal ordinal addition, it is commutative.
 
 Natural addition can equivalently be characterized as the ordinal resulting from adding up
 corresponding coefficients in the Cantor normal forms of `a` and `b`. -/
@@ -136,10 +143,10 @@ theorem nadd_le_iff : b ♯ c ≤ a ↔ (∀ b' < b, b' ♯ c < a) ∧ ∀ c' < 
 by { rw nadd_def, simp [blsub_le_iff] }
 
 theorem nadd_lt_nadd_left (h : b < c) (a) : a ♯ b < a ♯ c :=
-by { rw nadd_def a c, exact lt_max_of_lt_right (lt_blsub.{u u} _ b h) }
+lt_nadd_iff.2 (or.inr ⟨b, h, le_rfl⟩)
 
 theorem nadd_lt_nadd_right (h : b < c) (a) : b ♯ a < c ♯ a :=
-by { rw nadd_def c, exact lt_max_of_lt_left (lt_blsub.{u u} _ b h) }
+lt_nadd_iff.2 (or.inl ⟨b, h, le_rfl⟩)
 
 theorem nadd_le_nadd_left (h : b ≤ c) (a) : a ♯ b ≤ a ♯ c :=
 begin
@@ -155,23 +162,22 @@ begin
   { exact le_rfl }
 end
 
-variables (a b c)
+variables (a b)
 
 theorem nadd_comm : ∀ a b, a ♯ b = b ♯ a
 | a b := begin
   rw [nadd_def, nadd_def, max_comm],
-  congr;
-  ext c hc;
+  congr; ext c hc;
   apply nadd_comm
 end
 using_well_founded { dec_tac := `[solve_by_elim [psigma.lex.left, psigma.lex.right]] }
 
-theorem blsub_nadd_of_mono {f : Π c < a ♯ b, nat_ordinal.{max u v}}
+theorem blsub_nadd_of_mono {f : Π c < a ♯ b, ordinal.{max u v}}
   (hf : ∀ {i j} hi hj, i ≤ j → f i hi ≤ f j hj) : blsub _ f = max
   (blsub.{u v} a (λ a' ha', f (a' ♯ b) $ nadd_lt_nadd_right ha' b))
   (blsub.{u v} b (λ b' hb', f (a ♯ b') $ nadd_lt_nadd_left hb' a)) :=
 begin
-  apply le_antisymm (blsub_le_iff.2 (λ i h, _)) (max_le _ _),
+  apply (blsub_le_iff.2 (λ i h, _)).antisymm (max_le _ _),
   { rcases lt_nadd_iff.1 h with ⟨a', ha', hi⟩ | ⟨b', hb', hi⟩,
     { exact lt_max_of_lt_left ((hf h (nadd_lt_nadd_right ha' b) hi).trans_lt (lt_blsub _ _ _)) },
     { exact lt_max_of_lt_right ((hf h (nadd_lt_nadd_left hb' a) hi).trans_lt (lt_blsub _ _ _)) } },
@@ -184,8 +190,7 @@ end
 theorem nadd_assoc : ∀ a b c, a ♯ b ♯ c = a ♯ (b ♯ c)
 | a b c := begin
   rw [nadd_def a (b ♯ c), nadd_def, blsub_nadd_of_mono, blsub_nadd_of_mono, max_assoc],
-  { congr;
-    ext d hd;
+  { congr; ext d hd;
     apply nadd_assoc },
   { exact λ i j _ _ h, nadd_le_nadd_left h a },
   { exact λ i j _ _ h, nadd_le_nadd_right h c }
@@ -209,20 +214,23 @@ begin
   induction a using ordinal.induction with a IH,
   rw [nadd_def, blsub_one, nadd_zero, max_eq_right_iff, blsub_le_iff],
   intros i hi,
-  rwa [IH i hi, succ_lt_succ]
+  rwa [IH i hi, succ_lt_succ_iff]
 end
 
 @[simp] theorem one_nadd : 1 ♯ a = succ a :=
 by rw [nadd_comm, nadd_one]
 
-theorem nadd_succ : a ♯ (succ b) = succ (a ♯ b) :=
+theorem nadd_succ : a ♯ succ b = succ (a ♯ b) :=
 by rw [←nadd_one (a ♯ b), nadd_assoc, nadd_one]
+
+theorem succ_nadd : succ a ♯ b = succ (a ♯ b) :=
+by rw [←one_nadd (a ♯ b), ←nadd_assoc, one_nadd]
 
 @[simp] theorem nadd_nat (n : ℕ) : a ♯ n = a + n :=
 begin
   induction n with n hn,
   { simp },
-  { rw [nat.cast_succ, ←succ_eq_add_one, nadd_succ, add_succ, hn] }
+  { rw [nat.cast_succ, add_one_eq_succ, nadd_succ, add_succ, hn] }
 end
 
 @[simp] theorem nat_nadd (n : ℕ) : ↑n ♯ a = a + n :=
@@ -230,10 +238,10 @@ by rw [nadd_comm, nadd_nat]
 
 theorem add_le_nadd : a + b ≤ a ♯ b :=
 begin
-  apply ordinal.limit_rec_on b,
+  apply b.limit_rec_on,
   { simp },
   { intros c h,
-    rwa [add_succ, nadd_succ, succ_le_succ] },
+    rwa [add_succ, nadd_succ, succ_le_succ_iff] },
   { intros c hc H,
     rw [←is_normal.blsub_eq.{u u} (add_is_normal a) hc, blsub_le_iff],
     exact λ i hi, (H i hi).trans_lt (nadd_lt_nadd_left hi a) }
@@ -270,6 +278,8 @@ instance : ordered_cancel_add_comm_monoid nat_ordinal :=
   add_zero := nadd_zero,
   add_comm := nadd_comm,
   ..nat_ordinal.linear_order }
+
+@[simp] theorem add_one_eq_succ : ∀ a : nat_ordinal, a + 1 = succ a := nadd_one
 
 @[simp] theorem to_ordinal_cast_nat (n : ℕ) : to_ordinal n = n :=
 begin

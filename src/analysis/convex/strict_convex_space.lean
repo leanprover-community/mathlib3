@@ -311,7 +311,7 @@ calc f (x + y) = (2⁻¹ : ℝ) • (2 : ℝ) • f (x + y) : by simp
 
 /-- An isometry of real normed spaces with strictly convex codomain is a linear isometry if it
 maps 0 to 0.  Unlike Mazur-Ulam, this does not require the isometry to be surjective.  -/
-def linear_isometry_of_map_zero {f : F → E} (hi : isometry f) (h0 : f 0 = 0) :
+def linear_isometry_of_map_zero (f : F → E) (hi : isometry f) (h0 : f 0 = 0) :
   F →ₗᵢ[ℝ] E :=
 { to_fun := f,
   map_add' := hi.map_add_of_map_zero h0,
@@ -320,7 +320,7 @@ def linear_isometry_of_map_zero {f : F → E} (hi : isometry f) (h0 : f 0 = 0) :
 
 @[simp] lemma coe_linear_isometry_of_map_zero {f : F → E} (hi : isometry f)
   (h0 : f 0 = 0) :
-  ⇑(hi.linear_isometry_of_map_zero h0) = f :=
+  ⇑(hi.linear_isometry_of_map_zero f h0) = f :=
 rfl
 
 variables {PF : Type*} {PE : Type*} [metric_space PF] [metric_space PE]
@@ -332,11 +332,11 @@ the codomain, induces a linear isometry at any point.  Unlike Mazur-Ulam, this d
 the isometry to be surjective.  -/
 def linear_isometry_at {f : PF → PE} (hi : isometry f) (p : PF) : F →ₗᵢ[ℝ] E :=
 linear_isometry_of_map_zero
-  (show isometry (λ x : F, f (x +ᵥ p) -ᵥ f p), begin
+  (λ x : F, f (x +ᵥ p) -ᵥ f p) begin
     intros x y,
     simp_rw [edist_dist, dist_vsub_cancel_right, hi.dist_eq, dist_eq_norm_vsub,
              vadd_vsub_vadd_cancel_right, vsub_eq_sub]
-   end) (by simp)
+   end (by simp)
 
 @[simp] lemma coe_linear_isometry_at {f : PF → PE} (hi : isometry f) (p : PF) :
   ⇑(hi.linear_isometry_at p) = λ x : F, f (x +ᵥ p) -ᵥ f p :=

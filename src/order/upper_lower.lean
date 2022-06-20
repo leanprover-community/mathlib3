@@ -386,15 +386,15 @@ end lower_set
 
 /-! #### Duals -/
 
+namespace upper_set
+
 /-- An `upper_set` as a `lower_set` in the dual order. -/
-protected def upper_set.to_dual (s : upper_set α) : lower_set αᵒᵈ :=
+protected def to_dual (s : upper_set α) : lower_set αᵒᵈ :=
   ⟨of_dual ⁻¹' s, s.upper.of_dual⟩
 
 /-- An `upper_set` in the dual order as a `lower_set`. -/
-protected def upper_set.of_dual (s : upper_set αᵒᵈ) : lower_set α :=
+protected def of_dual (s : upper_set αᵒᵈ) : lower_set α :=
   ⟨order_dual.to_dual ⁻¹' s, s.upper.to_dual⟩
-
-namespace upper_set
 
 @[simp] lemma coe_to_dual (s : upper_set α) :
   (s.to_dual : set αᵒᵈ) = order_dual.of_dual ⁻¹' s := rfl
@@ -463,9 +463,9 @@ protected def of_dual (s : lower_set αᵒᵈ) : upper_set α :=
 @[simp] lemma coe_of_dual (s : lower_set αᵒᵈ) :
   (s.of_dual : set α) = order_dual.to_dual ⁻¹' s := rfl
 
-@[simp] lemma mem_to_dual_iff {x : αᵒᵈ} {s : upper_set α} :
+@[simp] lemma mem_to_dual_iff {x : αᵒᵈ} {s : lower_set α} :
   x ∈ s.to_dual ↔ (of_dual x) ∈ s := iff.rfl
-@[simp] lemma mem_of_dual_iff {x : α} {s : upper_set αᵒᵈ} :
+@[simp] lemma mem_of_dual_iff {x : α} {s : lower_set αᵒᵈ} :
   x ∈ s.of_dual ↔ (to_dual x) ∈ s := iff.rfl
 
 @[simp] lemma to_dual_bot : (⊥ : lower_set α).to_dual = ⊥ := rfl

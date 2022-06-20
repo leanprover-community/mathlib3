@@ -238,3 +238,149 @@ lemma norm_midpoint_lt_iff (h : ∥x∥ = ∥y∥) : ∥(1/2 : ℝ) • (x + y)�
 by rw [norm_smul, real.norm_of_nonneg (one_div_nonneg.2 zero_le_two), ←inv_eq_one_div,
     ←div_eq_inv_mul, div_lt_iff (@zero_lt_two ℝ _ _), mul_two, ←not_same_ray_iff_of_norm_eq h,
     not_same_ray_iff_norm_add_lt, h]
+
+namespace isometry
+
+variables {F : Type*} [normed_group F] [normed_space ℝ F]
+
+lemma map_neg_of_map_zero {f : F → E} (hi : isometry f) (h0 : f 0 = 0) (x : F) :
+  f (-x) = -(f x) :=
+begin
+  have hn : ∥f (-x)∥ = ∥-(f x)∥,
+  { rw [hi.norm_map_of_map_zero h0, norm_neg, norm_neg, hi.norm_map_of_map_zero h0] },
+  rw [←same_ray_iff_of_norm_eq hn, same_ray_iff_norm_add, ←sub_eq_add_neg, ←dist_eq_norm,
+      hi.dist_eq, dist_eq_norm, hi.norm_map_of_map_zero h0, norm_neg, norm_neg,
+      hi.norm_map_of_map_zero h0, sub_eq_add_neg, ←neg_add, norm_neg],
+  exact (same_ray.refl x).norm_add
+end
+
+lemma map_smul_nonneg_of_map_zero {f : F → E} (hi : isometry f) (h0 : f 0 = 0) {r : ℝ}
+  (hr : 0 ≤ r) (x : F) :
+  f (r • x) = r • f x :=
+begin
+  have hn : ∥f (r • x)∥ = ∥r • f x∥,
+  { rw [hi.norm_map_of_map_zero h0, norm_smul, norm_smul,
+        hi.norm_map_of_map_zero h0] },
+  rw ←same_ray_iff_of_norm_eq hn,
+  refine same_ray.nonneg_smul_right _ hr,
+  rw [same_ray_iff_norm_add, ←neg_neg (f x), ←sub_eq_add_neg, ←hi.map_neg_of_map_zero h0,
+      ←dist_eq_norm, hi.dist_eq, dist_eq_norm, sub_neg_eq_add, norm_neg,
+      hi.norm_map_of_map_zero h0, hi.norm_map_of_map_zero h0, norm_neg],
+  exact (same_ray_nonneg_smul_left x hr).norm_add
+end
+
+lemma map_smul_of_map_zero {f : F → E} (hi : isometry f) (h0 : f 0 = 0) (r : ℝ) (x : F) :
+  f (r • x) = r • f x :=
+begin
+  rcases le_or_lt 0 r with (h|h),
+  { exact hi.map_smul_nonneg_of_map_zero h0 h x },
+  { rw [←neg_neg r, neg_smul, hi.map_neg_of_map_zero h0, neg_smul (-r)],
+    congr,
+    rw ←neg_pos at h,
+    exact hi.map_smul_nonneg_of_map_zero h0 h.le x }
+end
+
+lemma map_add_eq_smul_sub_map_sub {f : F → E} (hi : isometry f) (x y : F) :
+  f (x + y) = (2 : ℕ) • f x - f (x - y) :=
+begin
+  set g : F → E := λ v, f (x + v) - f x with hg,
+  have hg0 : g 0 = 0, { rw hg, simp },
+  have hfg : ∀ v, f (x + v) = g v + f x, { simp [hg] },
+  have hig : isometry g,
+  { intros u v, simp [hg, hi.edist_eq] },
+  rw [sub_eq_add_neg x, hfg, hfg, hig.map_neg_of_map_zero hg0],
+  abel
+end
+
+lemma map_add_eq_smul_sub_map_sub_rev {f : F → E} (hi : isometry f) (x y : F) :
+  f (x + y) = (2 : ℕ) • f y - f (y - x) :=
+by rw [add_comm, hi.map_add_eq_smul_sub_map_sub]
+
+lemma map_add_of_map_zero {f : F → E} (hi : isometry f) (h0 : f 0 = 0) (x y : F):
+  f (x + y) = f x + f y :=
+calc f (x + y) = (2⁻¹ : ℝ) • (2 : ℝ) • f (x + y) : by simp
+     ...       = (2⁻¹ : ℝ) • (f (x + y) + f (x + y)) : by simp [two_smul]
+     ...       = (2⁻¹ : ℝ) • ((2 : ℕ) • f x - f (x - y) + ((2 : ℕ) • f y - f (y - x))) :
+      by rw [←hi.map_add_eq_smul_sub_map_sub, ←hi.map_add_eq_smul_sub_map_sub_rev]
+     ...       = f x + f y :
+      begin
+        rw [←neg_sub x, hi.map_neg_of_map_zero h0, sub_neg_eq_add, sub_add_add_cancel, smul_add,
+            two_smul, two_smul, ←two_smul ℝ (f x), ←two_smul ℝ (f y), ←mul_smul, ←mul_smul],
+        simp
+      end
+
+/-- An isometry of real normed spaces with strictly convex codomain is a linear isometry if it
+maps 0 to 0.  Unlike Mazur-Ulam, this does not require the isometry to be surjective.  -/
+def linear_isometry_of_map_zero {f : F → E} (hi : isometry f) (h0 : f 0 = 0) :
+  F →ₗᵢ[ℝ] E :=
+{ to_fun := f,
+  map_add' := hi.map_add_of_map_zero h0,
+  map_smul' := hi.map_smul_of_map_zero h0,
+  norm_map' := hi.norm_map_of_map_zero h0 }
+
+@[simp] lemma coe_linear_isometry_of_map_zero {f : F → E} (hi : isometry f)
+  (h0 : f 0 = 0) :
+  ⇑(hi.linear_isometry_of_map_zero h0) = f :=
+rfl
+
+variables {PF : Type*} {PE : Type*} [metric_space PF] [metric_space PE]
+variables [normed_add_torsor F PF] [normed_add_torsor E PE]
+include E F
+
+/-- An isometry of `normed_add_torsor`s for real normed spaces, strictly convex in the case of
+the codomain, induces a linear isometry at any point.  Unlike Mazur-Ulam, this does not require
+the isometry to be surjective.  -/
+def linear_isometry_at {f : PF → PE} (hi : isometry f) (p : PF) : F →ₗᵢ[ℝ] E :=
+linear_isometry_of_map_zero
+  (show isometry (λ x : F, f (x +ᵥ p) -ᵥ f p), begin
+    intros x y,
+    simp_rw [edist_dist, dist_vsub_cancel_right, hi.dist_eq, dist_eq_norm_vsub,
+             vadd_vsub_vadd_cancel_right, vsub_eq_sub]
+   end) (by simp)
+
+@[simp] lemma coe_linear_isometry_at {f : PF → PE} (hi : isometry f) (p : PF) :
+  ⇑(hi.linear_isometry_at p) = λ x : F, f (x +ᵥ p) -ᵥ f p :=
+rfl
+
+lemma linear_isometry_at_apply {f : PF → PE} (hi : isometry f) (p : PF) (v : F) :
+  hi.linear_isometry_at p v = f (v +ᵥ p) -ᵥ f p :=
+rfl
+
+lemma linear_isometry_at_apply_vsub {f : PF → PE} (hi : isometry f)
+  (p₁ p₂ : PF) :
+  hi.linear_isometry_at p₁ (p₂ -ᵥ p₁) +ᵥ f p₁ = f p₂ :=
+by simp
+
+lemma linear_isometry_at_eq {f : PF → PE} (hi : isometry f) (p₁ p₂ : PF) :
+  hi.linear_isometry_at p₁ = hi.linear_isometry_at p₂ :=
+begin
+  ext x,
+  rw [hi.linear_isometry_at_apply, hi.linear_isometry_at_apply,
+      ←hi.linear_isometry_at_apply_vsub p₁ (x +ᵥ p₂), ←hi.linear_isometry_at_apply_vsub p₁ p₂,
+      vadd_vsub_vadd_cancel_right, ←linear_isometry.map_sub, hi.linear_isometry_at_apply,
+      vsub_sub_vsub_cancel_right, vadd_vsub]
+end
+
+/-- An isometry of `normed_add_torsor`s for real normed spaces, strictly convex in the case of
+the codomain, is an affine isometry.  Unlike Mazur-Ulam, this does not require the isometry to
+be surjective.  -/
+noncomputable def affine_isometry_of_strict_convex_space {f : PF → PE} (hi : isometry f) :
+  PF →ᵃⁱ[ℝ] PE :=
+{ to_fun := f,
+  linear := (hi.linear_isometry_at (classical.arbitrary PF)).to_linear_map,
+  map_vadd' := λ p v, begin
+    rw hi.linear_isometry_at_eq (classical.arbitrary PF) p,
+    simp
+  end,
+  norm_map := (hi.linear_isometry_at _).norm_map }
+
+@[simp] lemma coe_affine_isometry_of_strict_convex_space {f : PF → PE} (hi : isometry f) :
+  ⇑(hi.affine_isometry_of_strict_convex_space) = f :=
+rfl
+
+lemma affine_isometry_of_strict_convex_space_apply {f : PF → PE} (hi : isometry f)
+  (p : PF) :
+  hi.affine_isometry_of_strict_convex_space p = f p :=
+rfl
+
+end isometry

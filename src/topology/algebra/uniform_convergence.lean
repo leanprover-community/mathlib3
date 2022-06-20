@@ -20,16 +20,22 @@ space of continuous linear maps between two topological vector spaces.
   uniform convergence makes `α → G` an uniform group
 * `uniform_convergence_on.uniform_group` : if `G` is a uniform group, then the uniform structure of
   `𝔖`-convergence, for any `𝔖 : set (set α)`, makes `α → G` an uniform group
+* `uniform_convergence_on.has_continuous_smul_of_image_bounded` : let `E` be a TVS,
+  `𝔖 : set (set α)` and `H` a submodule of `α → E`. If the image of any `S ∈ 𝔖` by any `u ∈ H` is
+  bounded (in the sense of `bornology.is_vonN_bounded`), then `H`, equipped with the topology of
+  `𝔖`-convergence, is a TVS.
 
 ## TODO
 
-* Let `E` be a TVS, `𝔖 : set (set α)` and `H` a submodule of `α → E`. If the image of any `S ∈ 𝔖`
-  by any `u ∈ H` is bounded (in the sense of `bornology.is_vonN_bounded`), then `H`, equipped with
-  the topology of `𝔖`-convergence, is a TVS.
+* `uniform_convergence_on.has_continuous_smul_of_image_bounded` unnecessarily asks for `𝔖` to be
+  nonempty and directed. This will be easy to solve once we know that replacing `𝔖` by its
+  ***noncovering*** bornology (i.e ***not*** what `bornology` currently refers to in mathlib)
+  doesn't change the topology.
 
 ## References
 
 * [N. Bourbaki, *General Topology*][bourbaki1966]
+* [N. Bourbaki, *Topological Vector Spaces*][bourbaki1987]
 
 ## Tags
 
@@ -38,7 +44,7 @@ uniform convergence, strong dual
 -/
 
 open filter
-open_locale topological_space
+open_locale topological_space pointwise
 
 section group
 
@@ -56,11 +62,22 @@ protected lemma uniform_convergence.uniform_group :
 
 @[to_additive]
 protected lemma uniform_convergence.has_basis_nhds_one_of_basis {ι : Type*} {p : ι → Prop}
-  {s : ι → set G} (h : (𝓝 1 : filter G).has_basis p s) :
-  (𝓝 1 : filter (α → G)).has_basis p (λ i, {f : α → G | ∀ x, f x ∈ s i}) :=
+  {b : ι → set G} (h : (𝓝 1 : filter G).has_basis p b) :
+  (𝓝 1 : filter (α → G)).has_basis p (λ i, {f : α → G | ∀ x, f x ∈ b i}) :=
 begin
-  --refine uniform_convergence.has_basis_nhds_of_basis
+  have := h.comap (λ p : G × G, p.1 / p.2),
+  rw ← uniformity_eq_comap_nhds_one_swapped at this,
+  convert uniform_convergence.has_basis_nhds_of_basis α _ 1 this,
+  ext i f,
+  simp [uniform_convergence.gen]
 end
+
+@[to_additive]
+protected lemma uniform_convergence.has_basis_nhds_one :
+  (𝓝 1 : filter (α → G)).has_basis
+    (λ V : set G, V ∈ (𝓝 1 : filter G))
+    (λ V, {f : α → G | ∀ x, f x ∈ V}) :=
+uniform_convergence.has_basis_nhds_one_of_basis (basis_sets _)
 
 local attribute [-instance] uniform_convergence.uniform_space
 
@@ -74,11 +91,34 @@ begin
           uniform_convergence_on.uniform_equiv_prod_arrow.symm.uniform_continuous⟩
 end
 
+@[to_additive]
+protected lemma uniform_convergence_on.has_basis_nhds_one_of_basis {ι : Type*} (𝔖 : set $ set α)
+  (h𝔖₁ : 𝔖.nonempty) (h𝔖₂ : directed_on (⊆) 𝔖) {p : ι → Prop}
+  {b : ι → set G} (h : (𝓝 1 : filter G).has_basis p b) :
+  (@nhds (α → G) (uniform_convergence_on.topological_space α G 𝔖) 1).has_basis
+    (λ Si : set α × ι, Si.1 ∈ 𝔖 ∧ p Si.2)
+    (λ Si, {f : α → G | ∀ x ∈ Si.1, f x ∈ b Si.2}) :=
+begin
+  have := h.comap (λ p : G × G, p.1 / p.2),
+  rw ← uniformity_eq_comap_nhds_one_swapped at this,
+  convert uniform_convergence_on.has_basis_nhds_of_basis α _ 𝔖 1 h𝔖₁ h𝔖₂ this,
+  ext i f,
+  simp [uniform_convergence_on.gen]
+end
+
+@[to_additive]
+protected lemma uniform_convergence_on.has_basis_nhds_one (𝔖 : set $ set α)
+  (h𝔖₁ : 𝔖.nonempty) (h𝔖₂ : directed_on (⊆) 𝔖) :
+  (@nhds (α → G) (uniform_convergence_on.topological_space α G 𝔖) 1).has_basis
+    (λ SV : set α × set G, SV.1 ∈ 𝔖 ∧ SV.2 ∈ (𝓝 1 : filter G))
+    (λ SV, {f : α → G | ∀ x ∈ SV.1, f x ∈ SV.2}) :=
+uniform_convergence_on.has_basis_nhds_one_of_basis 𝔖 h𝔖₁ h𝔖₂ (basis_sets _)
+
 end group
 
 section module
 
-variables {α 𝕜 E : Type*} [semi_normed_comm_ring 𝕜] [add_comm_group E] [module 𝕜 E]
+variables {α 𝕜 E : Type*} [normed_field 𝕜] [add_comm_group E] [module 𝕜 E]
   [uniform_space E] [uniform_add_group E] [has_continuous_smul 𝕜 E] {𝔖 : set $ set α}
   (h𝔖₁ : 𝔖.nonempty) (h𝔖₂ : directed_on (⊆) 𝔖) (H : submodule 𝕜 (α → E))
 
@@ -87,7 +127,11 @@ local attribute [-instance] Pi.topological_space
 
 include h𝔖₁ h𝔖₂
 
-lemma goal (h : ∀ u ∈ H, ∀ s ∈ 𝔖, bornology.is_vonN_bounded 𝕜 (u '' s)) :
+/-- Let `E` be a TVS, `𝔖 : set (set α)` and `H` a submodule of `α → E`. If the image of any `S ∈ 𝔖`
+by any `u ∈ H` is bounded (in the sense of `bornology.is_vonN_bounded`), then `H`, equipped with
+the topology of `𝔖`-convergence, is a TVS. -/
+lemma uniform_convergence_on.has_continuous_smul_of_image_bounded
+  (h : ∀ u ∈ H, ∀ s ∈ 𝔖, bornology.is_vonN_bounded 𝕜 (u '' s)) :
   @has_continuous_smul 𝕜 H _ _
   ((uniform_convergence_on.topological_space α E 𝔖).induced (coe : H → α → E)) :=
 begin
@@ -97,21 +141,38 @@ begin
     (linear_map.id.dom_restrict H : H →ₗ[𝕜] α → E),
   have : (𝓝 0 : filter H).has_basis _ _,
   { rw [nhds_induced, submodule.coe_zero],
-    exact ((uniform_convergence_on.has_basis_nhds α E 𝔖 0 h𝔖₁ h𝔖₂).comap (coe : H → α → E)) },
+    exact ((uniform_convergence_on.has_basis_nhds_zero 𝔖 h𝔖₁ h𝔖₂).comap (coe : H → α → E)) },
   refine has_continuous_smul.of_basis_zero this _ _ _,
-  { have : tendsto (λ kx : (𝕜 × E), kx.1 • kx.2) (𝓝 0) (𝓝 $ (0 : 𝕜) • 0) :=
+  { rintros ⟨S, V⟩ ⟨hS, hV⟩,
+    have : tendsto (λ kx : (𝕜 × E), kx.1 • kx.2) (𝓝 (0, 0)) (𝓝 $ (0 : 𝕜) • 0) :=
       continuous_smul.tendsto (0 : 𝕜 × E),
-    rw zero_smul at this,
-    rintros ⟨S, V⟩ ⟨hS, hV⟩,  },
-  sorry,
+    rw [zero_smul, nhds_prod_eq] at this,
+    have := this hV,
+    rw [mem_map, mem_prod_iff] at this,
+    rcases this with ⟨U, hU, W, hW, hUW⟩,
+    refine ⟨U, hU, ⟨S, W⟩, ⟨hS, hW⟩, _⟩,
+    rw set.smul_subset_iff,
+    exact λ a ha f hf x hx, hUW (⟨ha, hf x hx⟩ : (a, (f : α → E) x) ∈ U ×ˢ W) },
+  { rintros a ⟨S, V⟩ ⟨hS, hV⟩,
+    have : tendsto (λ x : E, a • x) (𝓝 0) (𝓝 $ a • 0) := tendsto_id.const_smul a,
+    rw [smul_zero] at this,
+    exact ⟨⟨S, ((•) a) ⁻¹' V⟩, ⟨hS, this hV⟩, λ f hf x hx, hf x hx⟩ },
   { rintros ⟨u, hu⟩ ⟨S, V⟩ ⟨hS, hV⟩,
-    let V' := {e : E | (e, (0 : E)) ∈ V},
-    have hV' : V' ∈ (𝓝 0 : filter E) := mem_nhds_right 0 hV,
-    rcases h u hu S hS hV' with ⟨r, hrpos, hr⟩,
+    rcases h u hu S hS hV with ⟨r, hrpos, hr⟩,
     rw metric.eventually_nhds_iff_ball,
     refine ⟨r⁻¹, inv_pos.mpr hrpos, λ a ha x hx, _⟩,
-    rw mem_ball_zero_iff at ha,
-    sorry }
+    by_cases ha0 : a = 0,
+    { rw ha0,
+      simp [mem_of_mem_nhds hV] },
+    { rw mem_ball_zero_iff at ha,
+      push_cast,
+      rw pi.smul_apply,
+      have : u x ∈ a⁻¹ • V,
+      { have ha0 : 0<∥a∥ := norm_pos_iff.mpr ha0,
+        refine (hr a⁻¹ _) (set.mem_image_of_mem u hx),
+        rw [norm_inv, le_inv hrpos ha0],
+        exact ha.le },
+      rwa set.mem_inv_smul_set_iff₀ ha0 at this } }
 end
 
 end module

@@ -953,7 +953,8 @@ begin
   { exact coe_lt_coe.2 (add_lt_add_left (coe_lt_coe.1 h) _) }
 end
 
-protected lemma add_lt_add_right [has_lt α] [covariant_class α α (swap (+)) (<)] (ha : a ≠ ⊤) (h : b < c) :
+protected lemma add_lt_add_right [has_lt α] [covariant_class α α (swap (+)) (<)]
+  (ha : a ≠ ⊤) (h : b < c) :
   b + a < c + a :=
 begin
   lift a to α using ha,

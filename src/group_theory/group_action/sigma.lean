@@ -25,7 +25,7 @@ section has_scalar
 variables [Π i, has_scalar M (α i)] [Π i, has_scalar N (α i)] (a : M) (i : ι) (b : α i)
   (x : Σ i, α i)
 
-@[to_additive sum.has_vadd] instance : has_scalar M (Σ i, α i) := ⟨λ a, sigma.map id $ λ i, (•) a⟩
+@[to_additive sigma.has_vadd] instance : has_scalar M (Σ i, α i) := ⟨λ a, sigma.map id $ λ i, (•) a⟩
 
 @[to_additive] lemma smul_def : a • x = x.map id (λ i, (•) a) := rfl
 @[simp, to_additive] lemma smul_mk : a • mk i b = ⟨i, a • b⟩ := rfl

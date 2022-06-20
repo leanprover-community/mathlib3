@@ -484,6 +484,30 @@ run_cmd tactic.add_doc_string `alg_hom.to_ring_hom "Reinterpret an `alg_hom` as 
 infixr ` →ₐ `:25 := alg_hom _
 notation A ` →ₐ[`:25 R `] ` B := alg_hom R A B
 
+/-- `alg_hom_class F R A B` asserts `F` is a type of bundled algebra homomorphisms
+from `A` to `B`.  -/
+class alg_hom_class (F : Type*) (R : out_param Type*) (A : out_param Type*) (B : out_param Type*)
+  [comm_semiring R] [semiring A] [semiring B] [algebra R A] [algebra R B]
+  extends ring_hom_class F A B :=
+(commutes : ∀ (f : F) (r : R), f (algebra_map R A r) = algebra_map R B r)
+
+-- `R` becomes a metavariable but that's fine because it's an `out_param`
+attribute [nolint dangerous_instance] alg_hom_class.to_ring_hom_class
+
+attribute [simp] alg_hom_class.commutes
+
+namespace alg_hom_class
+
+variables {R : Type*} {A : Type*} {B : Type*} [comm_semiring R] [semiring A] [semiring B]
+  [algebra R A] [algebra R B]
+
+@[priority 100] -- see Note [lower instance priority]
+instance {F : Type*} [alg_hom_class F R A B] : linear_map_class F R A B :=
+{ map_smulₛₗ := λ f r x, by simp only [algebra.smul_def, map_mul, commutes, ring_hom.id_apply],
+  ..‹alg_hom_class F R A B› }
+
+end alg_hom_class
+
 namespace alg_hom
 
 variables {R : Type u} {A : Type v} {B : Type w} {C : Type u₁} {D : Type v₁}
@@ -499,13 +523,14 @@ initialize_simps_projections alg_hom (to_fun → apply)
 
 @[simp] lemma to_fun_eq_coe (f : A →ₐ[R] B) : f.to_fun = f := rfl
 
-instance : ring_hom_class (A →ₐ[R] B) A B :=
+instance : alg_hom_class (A →ₐ[R] B) R A B :=
 { coe := to_fun,
   coe_injective' := λ f g h, by { cases f, cases g, congr' },
   map_add := map_add',
   map_zero := map_zero',
   map_mul := map_mul',
-  map_one := map_one' }
+  map_one := map_one',
+  commutes := λ f, f.commutes' }
 
 instance coe_ring_hom : has_coe (A →ₐ[R] B) (A →+* B) := ⟨alg_hom.to_ring_hom⟩
 
@@ -560,26 +585,22 @@ theorem commutes (r : R) : φ (algebra_map R A r) = algebra_map R B r := φ.comm
 theorem comp_algebra_map : (φ : A →+* B).comp (algebra_map R A) = algebra_map R B :=
 ring_hom.ext $ φ.commutes
 
-lemma map_add (r s : A) : φ (r + s) = φ r + φ s := map_add _ _ _
-lemma map_zero : φ 0 = 0 := map_zero _
-lemma map_mul (x y) : φ (x * y) = φ x * φ y := map_mul _ _ _
-lemma map_one : φ 1 = 1 := map_one _
-lemma map_pow (x : A) (n : ℕ) : φ (x ^ n) = (φ x) ^ n :=
-map_pow _ _ _
+protected lemma map_add (r s : A) : φ (r + s) = φ r + φ s := map_add _ _ _
+protected lemma map_zero : φ 0 = 0 := map_zero _
+protected lemma map_mul (x y) : φ (x * y) = φ x * φ y := map_mul _ _ _
+protected lemma map_one : φ 1 = 1 := map_one _
+protected lemma map_pow (x : A) (n : ℕ) : φ (x ^ n) = (φ x) ^ n := map_pow _ _ _
 
-@[simp] lemma map_smul (r : R) (x : A) : φ (r • x) = r • φ x :=
-by simp only [algebra.smul_def, map_mul, commutes]
+@[simp] protected lemma map_smul (r : R) (x : A) : φ (r • x) = r • φ x := map_smul _ _ _
 
-lemma map_sum {ι : Type*} (f : ι → A) (s : finset ι) :
-  φ (∑ x in s, f x) = ∑ x in s, φ (f x) :=
-φ.to_ring_hom.map_sum f s
+protected lemma map_sum {ι : Type*} (f : ι → A) (s : finset ι) :
+  φ (∑ x in s, f x) = ∑ x in s, φ (f x) := map_sum _ _ _
 
-lemma map_finsupp_sum {α : Type*} [has_zero α] {ι : Type*} (f : ι →₀ α) (g : ι → α → A) :
-  φ (f.sum g) = f.sum (λ i a, φ (g i a)) :=
-φ.map_sum _ _
+protected lemma map_finsupp_sum {α : Type*} [has_zero α] {ι : Type*} (f : ι →₀ α) (g : ι → α → A) :
+  φ (f.sum g) = f.sum (λ i a, φ (g i a)) := map_finsupp_sum _ _ _
 
-lemma map_bit0 (x) : φ (bit0 x) = bit0 (φ x) := map_bit0 _ _
-lemma map_bit1 (x) : φ (bit1 x) = bit1 (φ x) := map_bit1 _ _
+protected lemma map_bit0 (x) : φ (bit0 x) = bit0 (φ x) := map_bit0 _ _
+protected lemma map_bit1 (x) : φ (bit1 x) = bit1 (φ x) := map_bit1 _ _
 
 /-- If a `ring_hom` is `R`-linear, then it is an `alg_hom`. -/
 def mk' (f : A →+* B) (h : ∀ (c : R) x, f (c • x) = c • f x) : A →ₐ[R] B :=
@@ -630,8 +651,8 @@ ext $ λ x, rfl
 /-- R-Alg ⥤ R-Mod -/
 def to_linear_map : A →ₗ[R] B :=
 { to_fun := φ,
-  map_add' := φ.map_add,
-  map_smul' := φ.map_smul }
+  map_add' := map_add _,
+  map_smul' := map_smul _ }
 
 @[simp] lemma to_linear_map_apply (p : A) : φ.to_linear_map p = φ p := rfl
 
@@ -697,17 +718,14 @@ section comm_semiring
 variables [comm_semiring R] [comm_semiring A] [comm_semiring B]
 variables [algebra R A] [algebra R B] (φ : A →ₐ[R] B)
 
-lemma map_multiset_prod (s : multiset A) :
-  φ s.prod = (s.map φ).prod :=
-φ.to_ring_hom.map_multiset_prod s
+protected lemma map_multiset_prod (s : multiset A) :
+  φ s.prod = (s.map φ).prod := map_multiset_prod _ _
 
-lemma map_prod {ι : Type*} (f : ι → A) (s : finset ι) :
-  φ (∏ x in s, f x) = ∏ x in s, φ (f x) :=
-φ.to_ring_hom.map_prod f s
+protected lemma map_prod {ι : Type*} (f : ι → A) (s : finset ι) :
+  φ (∏ x in s, f x) = ∏ x in s, φ (f x) := map_prod _ _ _
 
-lemma map_finsupp_prod {α : Type*} [has_zero α] {ι : Type*} (f : ι →₀ α) (g : ι → α → A) :
-  φ (f.prod g) = f.prod (λ i a, φ (g i a)) :=
-φ.map_prod _ _
+protected lemma map_finsupp_prod {α : Type*} [has_zero α] {ι : Type*} (f : ι →₀ α) (g : ι → α → A) :
+  φ (f.prod g) = f.prod (λ i a, φ (g i a)) := map_finsupp_prod _ _ _
 
 end comm_semiring
 
@@ -716,8 +734,8 @@ section ring
 variables [comm_semiring R] [ring A] [ring B]
 variables [algebra R A] [algebra R B] (φ : A →ₐ[R] B)
 
-lemma map_neg (x) : φ (-x) = -φ x := map_neg _ _
-lemma map_sub (x y) : φ (x - y) = φ x - φ y := map_sub _ _ _
+protected lemma map_neg (x) : φ (-x) = -φ x := map_neg _ _
+protected lemma map_sub (x y) : φ (x - y) = φ x - φ y := map_sub _ _ _
 
 @[simp] lemma map_int_cast (n : ℤ) : φ n = n :=
 φ.to_ring_hom.map_int_cast n
@@ -757,6 +775,30 @@ attribute [nolint doc_blame] alg_equiv.to_mul_equiv
 
 notation A ` ≃ₐ[`:50 R `] ` A' := alg_equiv R A A'
 
+/-- `alg_equiv_class F R A B` states that `F` is a type of algebra structure preserving
+  equivalences. You should extend this class when you extend `alg_equiv`. -/
+class alg_equiv_class (F : Type*) (R A B : out_param Type*)
+  [comm_semiring R] [semiring A] [semiring B] [algebra R A] [algebra R B]
+  extends ring_equiv_class F A B :=
+(commutes : ∀ (f : F) (r : R), f (algebra_map R A r) = algebra_map R B r)
+
+-- `R` becomes a metavariable but that's fine because it's an `out_param`
+attribute [nolint dangerous_instance] alg_equiv_class.to_ring_equiv_class
+
+namespace alg_equiv_class
+
+@[priority 100] -- See note [lower instance priority]
+instance to_alg_hom_class (F R A B : Type*)
+  [comm_semiring R] [semiring A] [semiring B] [algebra R A] [algebra R B]
+  [h : alg_equiv_class F R A B] : alg_hom_class F R A B :=
+{ coe := coe_fn,
+  coe_injective' := fun_like.coe_injective,
+  map_zero := map_zero,
+  map_one := map_one,
+  .. h }
+
+end alg_equiv_class
+
 namespace alg_equiv
 
 variables {R : Type u} {A₁ : Type v} {A₂ : Type w} {A₃ : Type u₁}
@@ -767,12 +809,13 @@ variables [comm_semiring R] [semiring A₁] [semiring A₂] [semiring A₃]
 variables [algebra R A₁] [algebra R A₂] [algebra R A₃]
 variables (e : A₁ ≃ₐ[R] A₂)
 
-instance : ring_equiv_class (A₁ ≃ₐ[R] A₂) A₁ A₂ :=
+instance : alg_equiv_class (A₁ ≃ₐ[R] A₂) R A₁ A₂ :=
 { coe := to_fun,
   inv := inv_fun,
   coe_injective' := λ f g h₁ h₂, by { cases f, cases g, congr' },
   map_add := map_add',
   map_mul := map_mul',
+  commutes := commutes',
   left_inv := left_inv,
   right_inv := right_inv }
 
@@ -856,7 +899,7 @@ lemma coe_alg_hom_injective : function.injective (coe : (A₁ ≃ₐ[R] A₂) �
 lemma coe_ring_hom_commutes : ((e : A₁ →ₐ[R] A₂) : A₁ →+* A₂) = ((e : A₁ ≃+* A₂) : A₁ →+* A₂) :=
 rfl
 
-protected lemma map_pow : ∀ (x : A₁) (n : ℕ), e (x ^ n) = (e x) ^ n := e.to_alg_hom.map_pow
+protected lemma map_pow : ∀ (x : A₁) (n : ℕ), e (x ^ n) = (e x) ^ n := map_pow _
 protected lemma injective : function.injective e := equiv_like.injective e
 protected lemma surjective : function.surjective e := equiv_like.surjective e
 protected lemma bijective : function.bijective e := equiv_like.bijective e
@@ -1136,11 +1179,11 @@ variables [algebra R A₁] [algebra R A₂] (e : A₁ ≃ₐ[R] A₂)
 
 lemma map_prod {ι : Type*} (f : ι → A₁) (s : finset ι) :
   e (∏ x in s, f x) = ∏ x in s, e (f x) :=
-e.to_alg_hom.map_prod f s
+map_prod _ f s
 
 lemma map_finsupp_prod {α : Type*} [has_zero α] {ι : Type*} (f : ι →₀ α) (g : ι → α → A₁) :
   e (f.prod g) = f.prod (λ i a, e (g i a)) :=
-e.to_alg_hom.map_finsupp_prod f g
+map_finsupp_prod _ f g
 
 end comm_semiring
 
@@ -1248,12 +1291,38 @@ def to_int_alg_hom [ring R] [ring S] [algebra ℤ R] [algebra ℤ S] (f : R →+
   (f : R →+* S) (r : ℚ) : f (algebra_map ℚ R r) = algebra_map ℚ S r :=
 ring_hom.ext_iff.1 (subsingleton.elim (f.comp (algebra_map ℚ R)) (algebra_map ℚ S)) r
 
-/-- Reinterpret a `ring_hom` as a `ℚ`-algebra homomorphism. -/
+/-- Reinterpret a `ring_hom` as a `ℚ`-algebra homomorphism. This actually yields an equivalence,
+see `ring_hom.equiv_rat_alg_hom`. -/
 def to_rat_alg_hom [ring R] [ring S] [algebra ℚ R] [algebra ℚ S] (f : R →+* S) :
   R →ₐ[ℚ] S :=
 { commutes' := f.map_rat_algebra_map, .. f }
 
+@[simp]
+lemma to_rat_alg_hom_to_ring_hom [ring R] [ring S] [algebra ℚ R] [algebra ℚ S]
+  (f : R →+* S) : ↑f.to_rat_alg_hom = f :=
+ring_hom.ext $ λ x, rfl
+
 end ring_hom
+
+section
+
+variables {R S : Type*}
+
+@[simp]
+lemma alg_hom.to_ring_hom_to_rat_alg_hom [ring R] [ring S] [algebra ℚ R] [algebra ℚ S]
+  (f : R →ₐ[ℚ] S) : (f : R →+* S).to_rat_alg_hom = f :=
+alg_hom.ext $ λ x, rfl
+
+/-- The equivalence between `ring_hom` and `ℚ`-algebra homomorphisms. -/
+@[simps]
+def ring_hom.equiv_rat_alg_hom [ring R] [ring S] [algebra ℚ R] [algebra ℚ S] :
+  (R →+* S) ≃ (R →ₐ[ℚ] S) :=
+{ to_fun := ring_hom.to_rat_alg_hom,
+  inv_fun := alg_hom.to_ring_hom,
+  left_inv := ring_hom.to_rat_alg_hom_to_ring_hom,
+  right_inv := alg_hom.to_ring_hom_to_rat_alg_hom, }
+
+end
 
 section rat
 

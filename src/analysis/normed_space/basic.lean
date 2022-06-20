@@ -3,7 +3,7 @@ Copyright (c) 2018 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Johannes Hölzl
 -/
-import analysis.normed.normed_field
+import analysis.normed.field.basic
 import analysis.normed.group.infinite_sum
 import data.matrix.basic
 import topology.sequences
@@ -18,7 +18,7 @@ about these definitions.
 variables {α : Type*} {β : Type*} {γ : Type*} {ι : Type*}
 
 noncomputable theory
-open filter metric
+open filter metric function set
 open_locale topological_space big_operators nnreal ennreal uniformity pointwise
 
 section semi_normed_group
@@ -109,8 +109,8 @@ hg.op_zero_is_bounded_under_le hf (flip (•)) (λ x y, ((norm_smul y x).trans (
 theorem closure_ball [normed_space ℝ E] (x : E) {r : ℝ} (hr : r ≠ 0) :
   closure (ball x r) = closed_ball x r :=
 begin
-  refine set.subset.antisymm closure_ball_subset_closed_ball (λ y hy, _),
-  have : continuous_within_at (λ c : ℝ, c • (y - x) + x) (set.Ico 0 1) 1 :=
+  refine subset.antisymm closure_ball_subset_closed_ball (λ y hy, _),
+  have : continuous_within_at (λ c : ℝ, c • (y - x) + x) (Ico 0 1) 1 :=
     ((continuous_id.smul continuous_const).add continuous_const).continuous_within_at,
   convert this.mem_closure _ _,
   { rw [one_smul, sub_add_cancel] },
@@ -135,19 +135,19 @@ theorem interior_closed_ball [normed_space ℝ E] (x : E) {r : ℝ} (hr : r ≠ 
 begin
   cases hr.lt_or_lt with hr hr,
   { rw [closed_ball_eq_empty.2 hr, ball_eq_empty.2 hr.le, interior_empty] },
-  refine set.subset.antisymm _ ball_subset_interior_closed_ball,
+  refine subset.antisymm _ ball_subset_interior_closed_ball,
   intros y hy,
   rcases (mem_closed_ball.1 $ interior_subset hy).lt_or_eq with hr|rfl, { exact hr },
   set f : ℝ → E := λ c : ℝ, c • (y - x) + x,
-  suffices : f ⁻¹' closed_ball x (dist y x) ⊆ set.Icc (-1) 1,
+  suffices : f ⁻¹' closed_ball x (dist y x) ⊆ Icc (-1) 1,
   { have hfc : continuous f := (continuous_id.smul continuous_const).add continuous_const,
     have hf1 : (1:ℝ) ∈ f ⁻¹' (interior (closed_ball x $ dist y x)), by simpa [f],
-    have h1 : (1:ℝ) ∈ interior (set.Icc (-1:ℝ) 1) :=
+    have h1 : (1:ℝ) ∈ interior (Icc (-1:ℝ) 1) :=
       interior_mono this (preimage_interior_subset_interior_preimage hfc hf1),
     contrapose h1,
     simp },
   intros c hc,
-  rw [set.mem_Icc, ← abs_le, ← real.norm_eq_abs, ← mul_le_mul_right hr],
+  rw [mem_Icc, ← abs_le, ← real.norm_eq_abs, ← mul_le_mul_right hr],
   simpa [f, dist_eq_norm, norm_smul] using hc
 end
 
@@ -278,6 +278,29 @@ gives some more context. -/
 @[priority 100]
 instance normed_space.to_module' : module α F := normed_space.to_module
 
+section surj
+
+variables (E) [normed_space ℝ E] [nontrivial E]
+
+lemma exists_norm_eq {c : ℝ} (hc : 0 ≤ c) : ∃ x : E, ∥x∥ = c :=
+begin
+  rcases exists_ne (0 : E) with ⟨x, hx⟩,
+  rw ← norm_ne_zero_iff at hx,
+  use c • ∥x∥⁻¹ • x,
+  simp [norm_smul, real.norm_of_nonneg hc, hx]
+end
+
+@[simp] lemma range_norm : range (norm : E → ℝ) = Ici 0 :=
+subset.antisymm (range_subset_iff.2 norm_nonneg) (λ _, exists_norm_eq E)
+
+lemma nnnorm_surjective : surjective (nnnorm : E → ℝ≥0) :=
+λ c, (exists_norm_eq E c.coe_nonneg).imp $ λ x h, nnreal.eq h
+
+@[simp] lemma range_nnnorm : range (nnnorm : E → ℝ≥0) = univ :=
+(nnnorm_surjective E).range_eq
+
+end surj
+
 theorem interior_closed_ball' [normed_space ℝ E] [nontrivial E] (x : E) (r : ℝ) :
   interior (closed_ball x r) = ball x r :=
 begin
@@ -319,7 +342,7 @@ begin
   rwa norm_pos_iff
 end
 
-protected lemma normed_space.unbounded_univ : ¬bounded (set.univ : set E) :=
+protected lemma normed_space.unbounded_univ : ¬bounded (univ : set E) :=
 λ h, let ⟨R, hR⟩ := bounded_iff_forall_norm_le.1 h, ⟨x, hx⟩ := normed_space.exists_lt_norm 𝕜 E R
 in hx.not_le (hR x trivial)
 

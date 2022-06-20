@@ -54,9 +54,21 @@ def im (z : ℍ) := (z : ℂ).im
 /-- Real part -/
 def re (z : ℍ) := (z : ℂ).re
 
+/-- Constructor for `upper_half_plane`. It is useful if `⟨z, h⟩` makes Lean use a wrong
+typeclass instance. -/
+def mk (z : ℂ) (h : 0 < z.im) : ℍ := ⟨z, h⟩
+
 @[simp] lemma coe_im (z : ℍ) : (z : ℂ).im = z.im := rfl
 
 @[simp] lemma coe_re (z : ℍ) : (z : ℂ).re = z.re := rfl
+
+@[simp] lemma mk_re (z : ℂ) (h : 0 < z.im) : (mk z h).re = z.re := rfl
+@[simp] lemma mk_im (z : ℂ) (h : 0 < z.im) : (mk z h).im = z.im := rfl
+@[simp] lemma coe_mk (z : ℂ) (h : 0 < z.im) : (mk z h : ℂ) = z := rfl
+@[simp] lemma mk_coe (z : ℍ) (h : 0 < (z : ℂ).im := z.2) : mk z h = z := subtype.eta z h
+
+lemma re_add_im (z : ℍ) : (z.re + z.im * complex.I : ℂ) = z :=
+complex.re_add_im z
 
 lemma im_pos (z : ℍ) : 0 < z.im := z.2
 

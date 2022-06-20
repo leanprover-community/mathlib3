@@ -114,7 +114,7 @@ to_pgame_injective.eq_iff
 /-- The sum of ordinals as games corresponds to natural addition of ordinals. -/
 theorem to_pgame_add : ∀ a b : ordinal.{u}, a.to_pgame + b.to_pgame ≈ (a ♯ b).to_pgame
 | a b := begin
-  refine ⟨le_iff_forall_lf.2 ⟨λ i, _, is_empty_elim⟩, le_iff_forall_lf.2 ⟨λ i, _, is_empty_elim⟩⟩,
+  refine ⟨le_of_forall_lf (λ i, _) is_empty_elim, le_of_forall_lf (λ i, _) is_empty_elim⟩,
   { apply left_moves_add_cases i;
     intro i;
     let wf := to_left_moves_to_pgame_symm_lt i;

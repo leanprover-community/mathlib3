@@ -336,8 +336,8 @@ begin
 end
 
 lemma gcd_prod_double_counting {β : Type*} [comm_monoid β] (m n : ℕ) (f : ℕ → β) :
-    (∏ (x : ℕ) in (m.gcd n).factors.to_finset, f x) * ∏ (x : ℕ) in (m * n).factors.to_finset, f x
-     = (∏ (x : ℕ) in m.factors.to_finset, f x) * ∏ (x : ℕ) in n.factors.to_finset, f x :=
+  (m.gcd n).factors.to_finset.prod f * (m * n).factors.to_finset.prod f
+    = m.factors.to_finset.prod f * n.factors.to_finset.prod f :=
 begin
   rcases eq_or_ne n 0 with rfl | hm0, { simp },
   rcases eq_or_ne m 0 with rfl | hn0, { simp },

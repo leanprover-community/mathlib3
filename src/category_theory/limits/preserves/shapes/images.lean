@@ -32,7 +32,7 @@ variables [Π {X Y Z : A} (f : X ⟶ Z) (g : Y ⟶ Z), preserves_limit (cospan f
 variables [Π {X Y Z : A} (f : X ⟶ Y) (g : X ⟶ Z), preserves_colimit (span f g) L]
 
 /--
-If a functor preserves span and cospan.
+If a functor preserves span and cospan, then it preserves images.
 -/
 def iso {X Y : A} (f : X ⟶ Y) : image (L.map f) ≅ L.obj (image f) :=
 have aux1 : strong_epi_mono_factorisation (L.map f) :=

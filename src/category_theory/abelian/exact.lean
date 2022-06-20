@@ -307,7 +307,7 @@ instance reflects_exact_sequences_of_preserves_zero_morphisms_of_faithful (F : C
 
 end functor
 
-section abelian
+namespace functor
 
 open limits abelian
 
@@ -318,7 +318,7 @@ variables [has_zero_object A] [has_zero_morphisms A] [has_images A] [has_equaliz
 variables [has_cokernels A] [abelian B]
 variables (L : A ⥤ B) [preserves_finite_limits L] [preserves_finite_colimits L]
 
-lemma exact_of_exact_functor {X Y Z : A} (f : X ⟶ Y) (g : Y ⟶ Z) (e1 : exact f g) :
+lemma map_exact {X Y Z : A} (f : X ⟶ Y) (g : Y ⟶ Z) (e1 : exact f g) :
   exact (L.map f) (L.map g) :=
 begin
   let hcoker := is_colimit_of_has_cokernel_of_preserves_colimit L f,
@@ -327,6 +327,6 @@ begin
   rw [fork.ι_of_ι, cofork.π_of_π, ← L.map_comp, kernel_comp_cokernel _ _ e1, L.map_zero]
 end
 
-end abelian
+end functor
 
 end category_theory

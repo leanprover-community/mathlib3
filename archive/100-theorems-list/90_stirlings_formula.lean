@@ -3,6 +3,7 @@ Copyright (c) 2022. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Moritz Firsching, Fabian Kruse, Nikolas Kuhn
 -/
+import analysis.p_series
 import analysis.special_functions.log.basic
 import analysis.special_functions.pow
 import algebra.big_operators.basic
@@ -48,11 +49,42 @@ open  finset filter nat real
 
 namespace stirling
 
-/-- **Sum inverses of squares** -/
+
+lemma partial_sum_le_tsum {a: ℕ → ℝ} (h : summable a) (g: ∀ (n:ℕ), 0 ≤ a n):
+∃ (c:ℝ), ∀ (s : finset ℕ), s.sum a ≤ c :=
+begin
+  use tsum a,
+  intro s,
+  refine sum_le_tsum _ _ h,
+  { intros b hb,
+    exact g b, },
+end
+
+lemma summable_inverse_squares :
+summable (λ (k : ℕ), (1 : ℝ) / ((k.succ))^(2)) :=
+begin
+  have g := (summable_nat_add_iff 1).mpr (real.summable_one_div_nat_rpow.mpr one_lt_two),
+  norm_cast at *,
+  exact g,
+end
+
+/-- **Partial sum inverses of squares** -/
 lemma partial_sum_inverse_squares :
  ∃ c, ∀ n, ∑ k in range n, (1 : ℝ) / (k.succ)^2 ≤ c :=
 begin
-  sorry,
+  have h : ∀ (k : ℕ), 0 ≤ (1 : ℝ) / (k.succ)^2 :=
+  begin
+    intro k,
+    apply le_of_lt,
+    rw one_div_pos,
+    rw sq_pos_iff,
+    exact nonzero_of_invertible ↑(succ k),
+  end,
+  have g:= partial_sum_le_tsum summable_inverse_squares h,
+  cases g with d g,
+  use d,
+  intro n,
+  exact g (range n),
 end
 
 

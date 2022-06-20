@@ -79,6 +79,9 @@ def floor : α → ℕ := floor_semiring.floor
 /-- `⌈a⌉₊` is the least natural `n` such that `a ≤ n` -/
 def ceil : α → ℕ := floor_semiring.ceil
 
+@[simp] lemma floor_nat : (nat.floor : ℕ → ℕ) = id := rfl
+@[simp] lemma ceil_nat : (nat.ceil : ℕ → ℕ) = id := rfl
+
 notation `⌊` a `⌋₊` := nat.floor a
 notation `⌈` a `⌉₊` := nat.ceil a
 
@@ -93,7 +96,12 @@ lemma le_floor (h : (n : α) ≤ a) : n ≤ ⌊a⌋₊ := (le_floor_iff $ n.cast
 
 lemma floor_lt (ha : 0 ≤ a) : ⌊a⌋₊ < n ↔ a < n := lt_iff_lt_of_le_iff_le $ le_floor_iff ha
 
+lemma floor_lt_one (ha : 0 ≤ a) : ⌊a⌋₊ < 1 ↔ a < 1 :=
+(floor_lt ha).trans $ by rw nat.cast_one
+
 lemma lt_of_floor_lt (h : ⌊a⌋₊ < n) : a < n := lt_of_not_le $ λ h', (le_floor h').not_lt h
+
+lemma lt_one_of_floor_lt_one (h : ⌊a⌋₊ < 1) : a < 1 := by exact_mod_cast lt_of_floor_lt h
 
 lemma floor_le (ha : 0 ≤ a) : (⌊a⌋₊ : α) ≤ a := (le_floor_iff ha).1 le_rfl
 
@@ -127,6 +135,9 @@ begin
   { exact le_floor_iff ha }
 end
 
+@[simp] lemma one_le_floor_iff (x : α) : 1 ≤ ⌊x⌋₊ ↔ 1 ≤ x :=
+by exact_mod_cast (@le_floor_iff' α _ _ x 1 one_ne_zero)
+
 lemma floor_lt' (hn : n ≠ 0) : ⌊a⌋₊ < n ↔ a < n := lt_iff_lt_of_le_iff_le $ le_floor_iff' hn
 
 lemma floor_pos : 0 < ⌊a⌋₊ ↔ 1 ≤ a :=
@@ -139,6 +150,9 @@ lemma lt_of_lt_floor (h : n < ⌊a⌋₊) : ↑n < a :=
 (nat.cast_lt.2 h).trans_le $ floor_le (pos_of_floor_pos $ (nat.zero_le n).trans_lt h).le
 
 lemma floor_le_of_le (h : a ≤ n) : ⌊a⌋₊ ≤ n := le_imp_le_iff_lt_imp_lt.2 lt_of_lt_floor h
+
+lemma floor_le_one_of_le_one (h : a ≤ 1) : ⌊a⌋₊ ≤ 1 :=
+floor_le_of_le $ h.trans_eq $ nat.cast_one.symm
 
 @[simp] lemma floor_eq_zero : ⌊a⌋₊ = 0 ↔ a < 1 :=
 by { rw [←lt_one_iff, ←@cast_one α], exact floor_lt' nat.one_ne_zero }
@@ -179,6 +193,8 @@ lemma ceil_mono : monotone (ceil : α → ℕ) := gc_ceil_coe.monotone_l
 eq_of_forall_ge_iff $ λ a, ceil_le.trans nat.cast_le
 
 @[simp] lemma ceil_zero : ⌈(0 : α)⌉₊ = 0 := ceil_coe 0
+
+@[simp] lemma ceil_one : ⌈(1 : α)⌉₊ = 1 := by rw [←nat.cast_one, ceil_coe]
 
 @[simp] lemma ceil_eq_zero : ⌈a⌉₊ = 0 ↔ a ≤ 0 := le_zero_iff.symm.trans ceil_le
 
@@ -379,6 +395,10 @@ def ceil : α → ℤ := floor_ring.ceil
 
 /-- `int.fract a`, the fractional part of `a`, is `a` minus its floor. -/
 def fract (a : α) : α := a - floor a
+
+@[simp] lemma floor_int : (int.floor : ℤ → ℤ) = id := rfl
+@[simp] lemma ceil_int : (int.ceil : ℤ → ℤ) = id := rfl
+@[simp] lemma fract_int : (int.fract : ℤ → ℤ) = 0 := funext $ λ x, by simp [fract]
 
 notation `⌊` a `⌋` := int.floor a
 notation `⌈` a `⌉` := int.ceil a
@@ -621,6 +641,8 @@ lemma ceil_pos : 0 < ⌈a⌉ ↔ 0 < a := lt_ceil
 
 @[simp] lemma ceil_zero : ⌈(0 : α)⌉ = 0 := ceil_coe 0
 
+@[simp] lemma ceil_one : ⌈(1 : α)⌉ = 1 := by rw [←int.cast_one, ceil_coe]
+
 lemma ceil_nonneg (ha : 0 ≤ a) : 0 ≤ ⌈a⌉ :=
 by exact_mod_cast ha.trans (le_ceil a)
 
@@ -685,6 +707,9 @@ instance _root_.floor_ring.to_floor_semiring : floor_semiring α :=
 lemma int.floor_to_nat (a : α) : ⌊a⌋.to_nat = ⌊a⌋₊ := rfl
 
 lemma int.ceil_to_nat  (a : α) : ⌈a⌉.to_nat = ⌈a⌉₊ := rfl
+
+@[simp] lemma nat.floor_int : (nat.floor : ℤ → ℕ) = int.to_nat := rfl
+@[simp] lemma nat.ceil_int : (nat.ceil : ℤ → ℕ) = int.to_nat := rfl
 
 variables {a : α}
 

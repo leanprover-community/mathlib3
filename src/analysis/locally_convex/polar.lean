@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Moritz Doll, Kalle Kytölä
 -/
 
-import analysis.normed.normed_field
+import analysis.normed.field.basic
 import analysis.convex.basic
 import linear_algebra.sesquilinear_form
 import topology.algebra.module.weak_dual
@@ -106,7 +106,7 @@ lemma polar_weak_closed (s : set E) :
 begin
   rw polar_eq_Inter,
   refine is_closed_Inter (λ x, is_closed_Inter (λ _, _)),
-  exact is_closed_le (eval_continuous B.flip x).norm continuous_const,
+  exact is_closed_le (weak_bilin.eval_continuous B.flip x).norm continuous_const,
 end
 
 end normed_ring

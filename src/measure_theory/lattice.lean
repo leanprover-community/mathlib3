@@ -63,23 +63,19 @@ variables {M : Type*} [measurable_space M]
 section order_dual
 
 @[priority 100]
-instance order_dual.has_measurable_sup [has_inf M] [has_measurable_inf M] :
-  has_measurable_sup (order_dual M) :=
+instance [has_inf M] [has_measurable_inf M] : has_measurable_sup Mᵒᵈ :=
 ⟨@measurable_const_inf M _ _ _, @measurable_inf_const M _ _ _⟩
 
 @[priority 100]
-instance order_dual.has_measurable_inf [has_sup M] [has_measurable_sup M] :
-  has_measurable_inf (order_dual M) :=
+instance [has_sup M] [has_measurable_sup M] : has_measurable_inf Mᵒᵈ :=
 ⟨@measurable_const_sup M _ _ _, @measurable_sup_const M _ _ _⟩
 
 @[priority 100]
-instance order_dual.has_measurable_sup₂ [has_inf M] [has_measurable_inf₂ M] :
-  has_measurable_sup₂ (order_dual M) :=
+instance [has_inf M] [has_measurable_inf₂ M] : has_measurable_sup₂ Mᵒᵈ :=
 ⟨@measurable_inf M _ _ _⟩
 
 @[priority 100]
-instance order_dual.has_measurable_inf₂ [has_sup M] [has_measurable_sup₂ M] :
-  has_measurable_inf₂ (order_dual M) :=
+instance [has_sup M] [has_measurable_sup₂ M] : has_measurable_inf₂ Mᵒᵈ :=
 ⟨@measurable_sup M _ _ _⟩
 
 end order_dual

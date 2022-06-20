@@ -54,7 +54,7 @@ instance : has_add Cauchy :=
 instance : has_neg Cauchy :=
 ⟨λ x, quotient.lift_on x (λ f, mk (-f)) $
   λ f₁ f₂ hf, quotient.sound $
-  by simpa [(≈), setoid.r] using neg_lim_zero hf⟩
+  by simpa [neg_sub', (≈), setoid.r] using neg_lim_zero hf⟩
 
 @[simp] theorem mk_neg (f : cau_seq β abv) : -mk f = mk (-f) := rfl
 
@@ -204,7 +204,7 @@ lim_eq_of_equiv_const $ setoid.refl _
 
 lemma lim_add (f g : cau_seq β abv) : lim f + lim g = lim (f + g) :=
 eq_lim_of_const_equiv $ show lim_zero (const abv (lim f + lim g) - (f + g)),
-  by rw [const_add, add_sub_comm];
+  by rw [const_add, add_sub_add_comm];
   exact add_lim_zero (setoid.symm (equiv_lim f)) (setoid.symm (equiv_lim g))
 
 lemma lim_mul_lim (f g : cau_seq β abv) : lim f * lim g = lim (f * g) :=

@@ -115,11 +115,11 @@ section trace
 variables [fintype m] [fintype n]
 variables (R) [semiring α] [semiring R] [module R α]
 
-lemma sum_hadamard_eq : ∑ (i : m) (j : n), (A ⊙ B) i j = trace m R α (A ⬝ Bᵀ) :=
+lemma sum_hadamard_eq : ∑ (i : m) (j : n), (A ⊙ B) i j = trace (A ⬝ Bᵀ) :=
 rfl
 
 lemma dot_product_vec_mul_hadamard [decidable_eq m] [decidable_eq n] (v : m → α) (w : n → α) :
-  dot_product (vec_mul v (A ⊙ B)) w = trace m R α (diagonal v ⬝ A ⬝ (B ⬝ diagonal w)ᵀ) :=
+  dot_product (vec_mul v (A ⊙ B)) w = trace (diagonal v ⬝ A ⬝ (B ⬝ diagonal w)ᵀ) :=
 begin
   rw [←sum_hadamard_eq, finset.sum_comm],
   simp [dot_product, vec_mul, finset.sum_mul, mul_assoc],

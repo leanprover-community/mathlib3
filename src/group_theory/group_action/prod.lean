@@ -16,6 +16,12 @@ scalar multiplication as a homomorphism from `α × β` to `β`.
 
 * `smul_mul_hom`/`smul_monoid_hom`: Scalar multiplication bundled as a multiplicative/monoid
   homomorphism.
+
+## See also
+
+* `group_theory.group_action.pi`
+* `group_theory.group_action.sigma`
+* `group_theory.group_action.sum`
 -/
 
 variables {M N P α β : Type*}
@@ -46,14 +52,14 @@ instance [has_scalar Mᵐᵒᵖ α] [has_scalar Mᵐᵒᵖ β] [is_central_scala
   is_central_scalar M (α × β) :=
 ⟨λ r m, prod.ext (op_smul_eq_smul _ _) (op_smul_eq_smul _ _)⟩
 
-@[to_additive has_faithful_vadd_left]
-instance has_faithful_scalar_left [has_faithful_scalar M α] [nonempty β] :
-  has_faithful_scalar M (α × β) :=
+@[to_additive]
+instance has_faithful_smul_left [has_faithful_smul M α] [nonempty β] :
+  has_faithful_smul M (α × β) :=
 ⟨λ x y h, let ⟨b⟩ := ‹nonempty β› in eq_of_smul_eq_smul $ λ a : α, by injection h (a, b)⟩
 
-@[to_additive has_faithful_vadd_right]
-instance has_faithful_scalar_right [nonempty α] [has_faithful_scalar M β] :
-  has_faithful_scalar M (α × β) :=
+@[to_additive]
+instance has_faithful_smul_right [nonempty α] [has_faithful_smul M β] :
+  has_faithful_smul M (α × β) :=
 ⟨λ x y h, let ⟨a⟩ := ‹nonempty α› in eq_of_smul_eq_smul $ λ b : β, by injection h (a, b)⟩
 
 end

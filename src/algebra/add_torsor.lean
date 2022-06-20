@@ -114,6 +114,9 @@ equal. -/
 @[simp] lemma vsub_eq_zero_iff_eq {p1 p2 : P} : p1 -ᵥ p2 = (0 : G) ↔ p1 = p2 :=
 iff.intro eq_of_vsub_eq_zero (λ h, h ▸ vsub_self _)
 
+lemma vsub_ne_zero {p q : P} : p -ᵥ q ≠ (0 : G) ↔ p ≠ q :=
+not_congr vsub_eq_zero_iff_eq
+
 /-- Cancellation adding the results of two subtractions. -/
 @[simp] lemma vsub_add_vsub_cancel (p1 p2 p3 : P) : p1 -ᵥ p2 + (p2 -ᵥ p3) = (p1 -ᵥ p3) :=
 begin
@@ -125,9 +128,12 @@ end
 of subtracting them. -/
 @[simp] lemma neg_vsub_eq_vsub_rev (p1 p2 : P) : -(p1 -ᵥ p2) = (p2 -ᵥ p1) :=
 begin
-  refine neg_eq_of_add_eq_zero (vadd_right_cancel p1 _),
+  refine neg_eq_of_add_eq_zero_right (vadd_right_cancel p1 _),
   rw [vsub_add_vsub_cancel, vsub_self],
 end
+
+lemma vadd_vsub_eq_sub_vsub (g : G) (p q : P) : g +ᵥ p -ᵥ q = g - (q -ᵥ p) :=
+by rw [vadd_vsub_assoc, sub_eq_add_neg, neg_vsub_eq_vsub_rev]
 
 /-- Subtracting the result of adding a group element produces the same result
 as subtracting the points and subtracting that group element. -/

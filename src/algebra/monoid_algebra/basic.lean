@@ -43,7 +43,7 @@ Similarly, I attempted to just define
 -/
 
 noncomputable theory
-open_locale classical big_operators
+open_locale big_operators
 
 open finset finsupp
 
@@ -207,20 +207,24 @@ def lift_nc_ring_hom (f : k →+* R) (g : G →* R) (h_comm : ∀ x y, commute (
 
 end semiring
 
-instance [comm_semiring k] [comm_monoid G] : comm_semiring (monoid_algebra k G) :=
+instance [comm_semiring k] [comm_semigroup G] : non_unital_comm_semiring (monoid_algebra k G) :=
 { mul_comm := assume f g,
   begin
     simp only [mul_def, finsupp.sum, mul_comm],
     rw [finset.sum_comm],
     simp only [mul_comm]
   end,
-  .. monoid_algebra.semiring }
+  .. monoid_algebra.non_unital_semiring }
 
 instance [semiring k] [nontrivial k] [nonempty G]: nontrivial (monoid_algebra k G) :=
 finsupp.nontrivial
 
 /-! #### Derived instances -/
 section derived_instances
+
+instance [comm_semiring k] [comm_monoid G] : comm_semiring (monoid_algebra k G) :=
+{ .. monoid_algebra.non_unital_comm_semiring,
+  .. monoid_algebra.semiring }
 
 instance [semiring k] [subsingleton k] : unique (monoid_algebra k G) :=
 finsupp.unique_of_right
@@ -244,8 +248,13 @@ instance [ring k] [monoid G] : ring (monoid_algebra k G) :=
 { .. monoid_algebra.non_unital_non_assoc_ring,
   .. monoid_algebra.semiring }
 
+instance [comm_ring k] [comm_semigroup G] : non_unital_comm_ring (monoid_algebra k G) :=
+{ .. monoid_algebra.non_unital_comm_semiring,
+  .. monoid_algebra.non_unital_ring }
+
 instance [comm_ring k] [comm_monoid G] : comm_ring (monoid_algebra k G) :=
-{ mul_comm := mul_comm, .. monoid_algebra.ring}
+{ .. monoid_algebra.non_unital_comm_ring,
+  .. monoid_algebra.ring }
 
 variables {S : Type*}
 
@@ -261,9 +270,9 @@ instance [semiring R] [semiring k] [module R k] :
   module R (monoid_algebra k G) :=
 finsupp.module G k
 
-instance [monoid R] [semiring k] [distrib_mul_action R k] [has_faithful_scalar R k] [nonempty G] :
-  has_faithful_scalar R (monoid_algebra k G) :=
-finsupp.has_faithful_scalar
+instance [monoid R] [semiring k] [distrib_mul_action R k] [has_faithful_smul R k] [nonempty G] :
+  has_faithful_smul R (monoid_algebra k G) :=
+finsupp.has_faithful_smul
 
 instance [monoid R] [monoid S] [semiring k] [distrib_mul_action R k] [distrib_mul_action S k]
   [has_scalar R S] [is_scalar_tower R S k] :
@@ -293,7 +302,7 @@ section misc_theorems
 variables [semiring k]
 local attribute [reducible] monoid_algebra
 
-lemma mul_apply [has_mul G] (f g : monoid_algebra k G) (x : G) :
+lemma mul_apply [decidable_eq G] [has_mul G] (f g : monoid_algebra k G) (x : G) :
   (f * g) x = (f.sum $ λa₁ b₁, g.sum $ λa₂ b₂, if a₁ * a₂ = x then b₁ * b₂ else 0) :=
 begin
   rw [mul_def],
@@ -303,7 +312,7 @@ end
 lemma mul_apply_antidiagonal [has_mul G] (f g : monoid_algebra k G) (x : G) (s : finset (G × G))
   (hs : ∀ {p : G × G}, p ∈ s ↔ p.1 * p.2 = x) :
   (f * g) x = ∑ p in s, (f p.1 * g p.2) :=
-let F : G × G → k := λ p, if p.1 * p.2 = x then f p.1 * g p.2 else 0 in
+let F : G × G → k := λ p, by classical; exact if p.1 * p.2 = x then f p.1 * g p.2 else 0 in
 calc (f * g) x = (∑ a₁ in f.support, ∑ a₂ in g.support, F (a₁, a₂)) :
   mul_apply f g x
 ... = ∑ p in f.support.product g.support, F p : finset.sum_product.symm
@@ -319,7 +328,7 @@ calc (f * g) x = (∑ a₁ in f.support, ∑ a₂ in g.support, F (a₁, a₂)) 
     { rw [hp hps h1, mul_zero] }
   end
 
-lemma support_mul [has_mul G] (a b : monoid_algebra k G) :
+lemma support_mul [has_mul G] [decidable_eq G] (a b : monoid_algebra k G) :
   (a * b).support ⊆ a.support.bUnion (λa₁, b.support.bUnion $ λa₂, {a₁ * a₂}) :=
 subset.trans support_sum $ bUnion_mono $ assume a₁ _,
   subset.trans support_sum $ bUnion_mono $ assume a₂ _, support_single_subset
@@ -394,6 +403,7 @@ Note the order of the elements of the product are reversed compared to the argum
 lemma mul_single_apply_aux [has_mul G] (f : monoid_algebra k G) {r : k}
   {x y z : G} (H : ∀ a, a * x = z ↔ a = y) :
   (f * single x r) z = f y * r :=
+by classical; exact
 have A : ∀ a₁ b₁, (single x r).sum (λ a₂ b₂, ite (a₁ * a₂ = z) (b₁ * b₂) 0) =
   ite (a₁ * x = z) (b₁ * r) 0,
 from λ a₁ b₁, sum_single_index $ by simp,
@@ -416,18 +426,20 @@ begin
     rw [mul_single_apply_aux f (λ _, mul_left_inj x)],
     simp [hr] },
   { push_neg at H,
+    classical,
     simp [mul_apply, H] }
 end
 
 lemma single_mul_apply_aux [has_mul G] (f : monoid_algebra k G) {r : k} {x y z : G}
   (H : ∀ a, x * a = y ↔ a = z) :
   (single x r * f) y = r * f z :=
+by classical; exact (
 have f.sum (λ a b, ite (x * a = y) (0 * b) 0) = 0, by simp,
 calc (single x r * f) y = sum f (λ a b, ite (x * a = y) (r * b) 0) :
-  (mul_apply _ _ _).trans $ sum_single_index this
+  (mul_apply _ _ _).trans $ sum_single_index (by exact this)
 ... = f.sum (λ a b, ite (a = z) (r * b) 0) : by simp only [H]
 ... = if z ∈ f.support then (r * f z) else 0 : f.support.sum_ite_eq' _ _
-... = _ : by split_ifs with h; simp at h; simp [h]
+... = _ : by split_ifs with h; simp at h; simp [h])
 
 lemma single_one_mul_apply [mul_one_class G] (f : monoid_algebra k G) (r : k) (x : G) :
   (single 1 r * f) x = r * f x :=
@@ -443,6 +455,7 @@ begin
     rw [single_mul_apply_aux f (λ _, mul_right_inj x)],
     simp [hr] },
   { push_neg at H,
+    classical,
     simp [mul_apply, H] }
 end
 
@@ -468,6 +481,7 @@ instance is_scalar_tower_self [is_scalar_tower R k k] :
 ⟨λ t a b,
 begin
   ext m,
+  classical,
   simp only [mul_apply, finsupp.smul_sum, smul_ite, smul_mul_assoc, sum_smul_index', zero_mul,
      if_t_t, implies_true_iff, eq_self_iff_true, sum_zero, coe_smul, smul_eq_mul, pi.smul_apply,
      smul_zero],
@@ -783,8 +797,8 @@ local attribute [reducible] monoid_algebra
 lemma prod_single [comm_semiring k] [comm_monoid G]
   {s : finset ι} {a : ι → G} {b : ι → k} :
   (∏ i in s, single (a i) (b i)) = single (∏ i in s, a i) (∏ i in s, b i) :=
-finset.induction_on s rfl $ λ a s has ih, by rw [prod_insert has, ih,
-  single_mul_single, prod_insert has, prod_insert has]
+finset.cons_induction_on s rfl $ λ a s has ih, by rw [prod_cons has, ih,
+  single_mul_single, prod_cons has, prod_cons has]
 
 end
 
@@ -1041,15 +1055,20 @@ def lift_nc_ring_hom (f : k →+* R) (g : multiplicative G →* R)
 
 end semiring
 
-instance [comm_semiring k] [add_comm_monoid G] : comm_semiring (add_monoid_algebra k G) :=
+instance [comm_semiring k] [add_comm_semigroup G] :
+  non_unital_comm_semiring (add_monoid_algebra k G) :=
 { mul_comm := @mul_comm (monoid_algebra k $ multiplicative G) _,
-  .. add_monoid_algebra.semiring }
+  .. add_monoid_algebra.non_unital_semiring }
 
 instance [semiring k] [nontrivial k] [nonempty G] : nontrivial (add_monoid_algebra k G) :=
 finsupp.nontrivial
 
 /-! #### Derived instances -/
 section derived_instances
+
+instance [comm_semiring k] [add_comm_monoid G] : comm_semiring (add_monoid_algebra k G) :=
+{ .. add_monoid_algebra.non_unital_comm_semiring,
+  .. add_monoid_algebra.semiring }
 
 instance [semiring k] [subsingleton k] : unique (add_monoid_algebra k G) :=
 finsupp.unique_of_right
@@ -1073,8 +1092,13 @@ instance [ring k] [add_monoid G] : ring (add_monoid_algebra k G) :=
 { .. add_monoid_algebra.non_unital_non_assoc_ring,
   .. add_monoid_algebra.semiring }
 
+instance [comm_ring k] [add_comm_semigroup G] : non_unital_comm_ring (add_monoid_algebra k G) :=
+{ .. add_monoid_algebra.non_unital_comm_semiring,
+  .. add_monoid_algebra.non_unital_ring }
+
 instance [comm_ring k] [add_comm_monoid G] : comm_ring (add_monoid_algebra k G) :=
-{ mul_comm := mul_comm, .. add_monoid_algebra.ring}
+{ .. add_monoid_algebra.non_unital_comm_ring,
+  .. add_monoid_algebra.ring }
 
 variables {S : Type*}
 
@@ -1082,9 +1106,9 @@ instance [monoid R] [semiring k] [distrib_mul_action R k] :
   distrib_mul_action R (add_monoid_algebra k G) :=
 finsupp.distrib_mul_action G k
 
-instance [monoid R] [semiring k] [distrib_mul_action R k] [has_faithful_scalar R k] [nonempty G] :
-  has_faithful_scalar R (add_monoid_algebra k G) :=
-finsupp.has_faithful_scalar
+instance [monoid R] [semiring k] [distrib_mul_action R k] [has_faithful_smul R k] [nonempty G] :
+  has_faithful_smul R (add_monoid_algebra k G) :=
+finsupp.has_faithful_smul
 
 instance [semiring R] [semiring k] [module R k] : module R (add_monoid_algebra k G) :=
 finsupp.module G k
@@ -1113,18 +1137,18 @@ section misc_theorems
 
 variables [semiring k]
 
-lemma mul_apply [has_add G] (f g : add_monoid_algebra k G) (x : G) :
+lemma mul_apply [decidable_eq G] [has_add G] (f g : add_monoid_algebra k G) (x : G) :
   (f * g) x = (f.sum $ λa₁ b₁, g.sum $ λa₂ b₂, if a₁ + a₂ = x then b₁ * b₂ else 0) :=
-@monoid_algebra.mul_apply k (multiplicative G) _ _ _ _ _
+@monoid_algebra.mul_apply k (multiplicative G) _ _ _ _ _ _
 
 lemma mul_apply_antidiagonal [has_add G] (f g : add_monoid_algebra k G) (x : G) (s : finset (G × G))
   (hs : ∀ {p : G × G}, p ∈ s ↔ p.1 + p.2 = x) :
   (f * g) x = ∑ p in s, (f p.1 * g p.2) :=
 @monoid_algebra.mul_apply_antidiagonal k (multiplicative G) _ _ _ _ _ s @hs
 
-lemma support_mul [has_add G] (a b : add_monoid_algebra k G) :
+lemma support_mul [decidable_eq G] [has_add G] (a b : add_monoid_algebra k G) :
   (a * b).support ⊆ a.support.bUnion (λa₁, b.support.bUnion $ λa₂, {a₁ + a₂}) :=
-@monoid_algebra.support_mul k (multiplicative G) _ _ _ _
+@monoid_algebra.support_mul k (multiplicative G) _ _ _ _ _
 
 lemma single_mul_single [has_add G] {a₁ a₂ : G} {b₁ b₂ : k} :
   (single a₁ b₁ * single a₂ b₂ : add_monoid_algebra k G) = single (a₁ + a₂) (b₁ * b₂) :=
@@ -1541,8 +1565,8 @@ variable {ι : Type ui}
 lemma prod_single [comm_semiring k] [add_comm_monoid G]
   {s : finset ι} {a : ι → G} {b : ι → k} :
   (∏ i in s, single (a i) (b i)) = single (∑ i in s, a i) (∏ i in s, b i) :=
-finset.induction_on s rfl $ λ a s has ih, by rw [prod_insert has, ih,
-  single_mul_single, sum_insert has, prod_insert has]
+finset.cons_induction_on s rfl $ λ a s has ih, by rw [prod_cons has, ih,
+  single_mul_single, sum_cons has, prod_cons has]
 
 end
 

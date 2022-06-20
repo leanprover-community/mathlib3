@@ -38,8 +38,8 @@ def strongly_measurable_at_filter (f : α → β) (l : filter α) (μ : measure 
 ⟨∅, mem_bot, by simp⟩
 
 protected lemma strongly_measurable_at_filter.eventually (h : strongly_measurable_at_filter f l μ) :
-  ∀ᶠ s in l.lift' powerset, ae_strongly_measurable f (μ.restrict s) :=
-(eventually_lift'_powerset' $ λ s t, ae_strongly_measurable.mono_set).2 h
+  ∀ᶠ s in l.small_sets, ae_strongly_measurable f (μ.restrict s) :=
+(eventually_small_sets' $ λ s t, ae_strongly_measurable.mono_set).2 h
 
 protected lemma strongly_measurable_at_filter.filter_mono
   (h : strongly_measurable_at_filter f l μ) (h' : l' ≤ l) :
@@ -157,7 +157,7 @@ begin
   simp,
 end
 
-@[simp] lemma integrable_on_finite_Union {s : set β} (hs : finite s)
+@[simp] lemma integrable_on_finite_Union {s : set β} (hs : s.finite)
   {t : β → set α} : integrable_on f (⋃ i ∈ s, t i) μ ↔ ∀ i ∈ s, integrable_on f (t i) μ :=
 begin
   apply hs.induction_on,
@@ -246,15 +246,15 @@ begin
 end
 
 /-- We say that a function `f` is *integrable at filter* `l` if it is integrable on some
-set `s ∈ l`. Equivalently, it is eventually integrable on `s` in `l.lift' powerset`. -/
+set `s ∈ l`. Equivalently, it is eventually integrable on `s` in `l.small_sets`. -/
 def integrable_at_filter (f : α → E) (l : filter α) (μ : measure α . volume_tac) :=
 ∃ s ∈ l, integrable_on f s μ
 
 variables {l l' : filter α}
 
 protected lemma integrable_at_filter.eventually (h : integrable_at_filter f l μ) :
-  ∀ᶠ s in l.lift' powerset, integrable_on f s μ :=
-by { refine (eventually_lift'_powerset' $ λ s t hst ht, _).2 h, exact ht.mono_set hst }
+  ∀ᶠ s in l.small_sets, integrable_on f s μ :=
+iff.mpr (eventually_small_sets' $ λ s t hst ht, ht.mono_set hst) h
 
 lemma integrable_at_filter.filter_mono (hl : l ≤ l') (hl' : integrable_at_filter f l' μ) :
   integrable_at_filter f l μ :=
@@ -289,9 +289,9 @@ lemma measure.finite_at_filter.integrable_at_filter {l : filter α} [is_measurab
   (hf : l.is_bounded_under (≤) (norm ∘ f)) :
   integrable_at_filter f l μ :=
 begin
-  obtain ⟨C, hC⟩ : ∃ C, ∀ᶠ s in (l.lift' powerset), ∀ x ∈ s, ∥f x∥ ≤ C,
-    from hf.imp (λ C hC, eventually_lift'_powerset.2 ⟨_, hC, λ t, id⟩),
-  rcases (hfm.eventually.and (hμ.eventually.and hC)).exists_measurable_mem_of_lift'
+  obtain ⟨C, hC⟩ : ∃ C, ∀ᶠ s in l.small_sets, ∀ x ∈ s, ∥f x∥ ≤ C,
+    from hf.imp (λ C hC, eventually_small_sets.2 ⟨_, hC, λ t, id⟩),
+  rcases (hfm.eventually.and (hμ.eventually.and hC)).exists_measurable_mem_of_small_sets
     with ⟨s, hsl, hsm, hfm, hμ, hC⟩,
   refine ⟨s, hsl, ⟨hfm, has_finite_integral_restrict_of_bounded hμ _⟩⟩,
   exact C,
@@ -355,13 +355,13 @@ end
 /-- A function which is continuous on a separable set `s` is almost everywhere strongly measurable
 with respect to `μ.restrict s`. -/
 lemma continuous_on.ae_strongly_measurable_of_is_separable
-  [topological_space α] [metrizable_space α] [opens_measurable_space α]
-  [topological_space β] [metrizable_space β]
+  [topological_space α] [pseudo_metrizable_space α] [opens_measurable_space α]
+  [topological_space β] [pseudo_metrizable_space β]
   {f : α → β} {s : set α} {μ : measure α} (hf : continuous_on f s) (hs : measurable_set s)
   (h's : topological_space.is_separable s) :
   ae_strongly_measurable f (μ.restrict s) :=
 begin
-  letI := metrizable_space_metric α,
+  letI := pseudo_metrizable_space_pseudo_metric α,
   borelize β,
   rw ae_strongly_measurable_iff_ae_measurable_separable,
   refine ⟨hf.ae_measurable hs, f '' s, hf.is_separable_image h's, _⟩,
@@ -372,7 +372,7 @@ end
 respect to `μ.restrict s` when either the source space or the target space is second-countable. -/
 lemma continuous_on.ae_strongly_measurable
   [topological_space α] [topological_space β] [h : second_countable_topology_either α β]
-  [opens_measurable_space α] [metrizable_space β]
+  [opens_measurable_space α] [pseudo_metrizable_space β]
   {f : α → β} {s : set α} {μ : measure α} (hf : continuous_on f s) (hs : measurable_set s) :
   ae_strongly_measurable f (μ.restrict s) :=
 begin
@@ -390,7 +390,7 @@ begin
 end
 
 lemma continuous_on.integrable_at_nhds_within_of_is_separable
-  [topological_space α] [metrizable_space α]
+  [topological_space α] [pseudo_metrizable_space α]
   [opens_measurable_space α] {μ : measure α} [is_locally_finite_measure μ]
   {a : α} {t : set α} {f : α → E} (hft : continuous_on f t) (ht : measurable_set t)
   (h't : topological_space.is_separable t) (ha : a ∈ t) :
@@ -415,7 +415,7 @@ end
 /-- If a function is continuous on an open set `s`, then it is strongly measurable at the filter
 `𝓝 x` for all `x ∈ s` if either the source space or the target space is second-countable. -/
 lemma continuous_on.strongly_measurable_at_filter [topological_space α]
-  [opens_measurable_space α] [topological_space β] [metrizable_space β]
+  [opens_measurable_space α] [topological_space β] [pseudo_metrizable_space β]
   [second_countable_topology_either α β] {f : α → β} {s : set α} {μ : measure α}
   (hs : is_open s) (hf : continuous_on f s) :
   ∀ x ∈ s, strongly_measurable_at_filter f (𝓝 x) μ :=
@@ -428,7 +428,7 @@ lemma continuous_at.strongly_measurable_at_filter
 continuous_on.strongly_measurable_at_filter hs $ continuous_at.continuous_on hf
 
 lemma continuous.strongly_measurable_at_filter [topological_space α] [opens_measurable_space α]
-  [topological_space β] [metrizable_space β] [second_countable_topology_either α β]
+  [topological_space β] [pseudo_metrizable_space β] [second_countable_topology_either α β]
   {f : α → β} (hf : continuous f) (μ : measure α) (l : filter α) :
   strongly_measurable_at_filter f l μ :=
 hf.strongly_measurable.strongly_measurable_at_filter
@@ -436,7 +436,7 @@ hf.strongly_measurable.strongly_measurable_at_filter
 /-- If a function is continuous on a measurable set `s`, then it is measurable at the filter
   `𝓝[s] x` for all `x`. -/
 lemma continuous_on.strongly_measurable_at_filter_nhds_within {α β : Type*} [measurable_space α]
-  [topological_space α] [opens_measurable_space α] [topological_space β] [metrizable_space β]
+  [topological_space α] [opens_measurable_space α] [topological_space β] [pseudo_metrizable_space β]
   [second_countable_topology_either α β] {f : α → β} {s : set α} {μ : measure α}
   (hf : continuous_on f s) (hs : measurable_set s) (x : α) :
   strongly_measurable_at_filter f (𝓝[s] x) μ :=

@@ -673,9 +673,7 @@ lemma set_to_simple_func_const (T : set α → F →L[ℝ] F') (hT_empty : T ∅
   simple_func.set_to_simple_func T (simple_func.const α x) = T univ x :=
 begin
   casesI hα : is_empty_or_nonempty α,
-  { have h_univ_empty : (univ : set α) = ∅,
-    { haveI : unique (set α) := unique_empty,
-      exact subsingleton.elim (univ : set α) (∅ : set α), },
+  { have h_univ_empty : (univ : set α) = ∅, from subsingleton.elim _ _,
     rw [h_univ_empty, hT_empty],
     simp only [set_to_simple_func, continuous_linear_map.zero_apply, sum_empty,
       range_eq_empty_of_is_empty], },
@@ -696,7 +694,7 @@ lemma norm_eq_sum_mul (f : α →₁ₛ[μ] G) :
   ∥f∥ = ∑ x in (to_simple_func f).range, (μ ((to_simple_func f) ⁻¹' {x})).to_real * ∥x∥ :=
 begin
   rw [norm_to_simple_func, snorm_one_eq_lintegral_nnnorm],
-  have h_eq := simple_func.map_apply (λ x, (nnnorm x : ℝ≥0∞)) (to_simple_func f),
+  have h_eq := simple_func.map_apply (λ x, (∥x∥₊ : ℝ≥0∞)) (to_simple_func f),
   dsimp only at h_eq,
   simp_rw ← h_eq,
   rw [simple_func.lintegral_eq_lintegral, simple_func.map_lintegral, ennreal.to_real_sum],

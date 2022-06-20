@@ -174,6 +174,17 @@ begin
   exact ⟨y, ys, le_antisymm (inf_edist_le_edist_of_mem ys) (by rwa le_inf_edist)⟩
 end
 
+lemma exists_pos_forall_le_edist (hs : is_compact s) (hs' : s.nonempty) (ht : is_closed t)
+  (hst : disjoint s t) :
+  ∃ r, 0 < r ∧ ∀ (x ∈ s) (y ∈ t), r ≤ edist x y :=
+begin
+  obtain ⟨x, hx, h⟩ : ∃ x ∈ s, ∀ y ∈ s, inf_edist x t ≤ inf_edist y t :=
+    hs.exists_forall_le hs' continuous_inf_edist.continuous_on,
+  refine ⟨inf_edist x t, pos_iff_ne_zero.2 $ λ H, hst ⟨hx, _⟩, λ y hy, le_inf_edist.1 $ h y hy⟩,
+  rw ←ht.closure_eq,
+  exact mem_closure_iff_inf_edist_zero.2 H,
+end
+
 end inf_edist --section
 
 /-! ### The Hausdorff distance as a function into `ℝ≥0∞`. -/
@@ -877,7 +888,7 @@ end thickening --section
 
 section cthickening
 
-variables [pseudo_emetric_space α] {δ ε : ℝ} {s : set α} {x : α}
+variables [pseudo_emetric_space α] {δ ε : ℝ} {s t : set α} {x : α}
 
 open emetric
 
@@ -1023,6 +1034,37 @@ by simp_rw [thickening, inf_edist_closure]
 @[simp] lemma cthickening_closure : cthickening δ (closure s) = cthickening δ s :=
 by simp_rw [cthickening, inf_edist_closure]
 
+open ennreal
+
+lemma _root_.disjoint.exists_thickenings (hst : disjoint s t) (hs : is_compact s)
+  (ht : is_closed t) :
+  ∃ δ, 0 < δ ∧ disjoint (thickening δ s) (thickening δ t) :=
+begin
+  obtain rfl | hs' := s.eq_empty_or_nonempty,
+  { simp_rw thickening_empty,
+    exact ⟨1, zero_lt_one, empty_disjoint _⟩ },
+  obtain ⟨r, hr, h⟩ := exists_pos_forall_le_edist hs hs' ht hst,
+  refine ⟨(min 1 (r/2)).to_real, to_real_pos (lt_min ennreal.zero_lt_one $ half_pos hr.ne').ne'
+    (min_lt_of_left_lt one_lt_top).ne, _⟩,
+  rintro z ⟨hzs, hzt⟩,
+  rw mem_thickening_iff_exists_edist_lt at hzs hzt,
+  obtain ⟨x, hx, hzx⟩ := hzs,
+  obtain ⟨y, hy, hzy⟩ := hzt,
+  refine (((h _ hx _ hy).trans $ edist_triangle_left _ _ _).trans_lt $
+    ennreal.add_lt_add hzx hzy).not_le _,
+  rw ←two_mul,
+  exact ennreal.mul_le_of_le_div' (of_real_to_real_le.trans $ min_le_right _ _),
+end
+
+lemma _root_.disjoint.exists_cthickenings (hst : disjoint s t) (hs : is_compact s)
+  (ht : is_closed t) :
+  ∃ δ, 0 < δ ∧ disjoint (cthickening δ s) (cthickening δ t) :=
+begin
+  obtain ⟨δ, hδ, h⟩ := hst.exists_thickenings hs ht,
+  refine ⟨δ / 2, half_pos hδ, h.mono _ _⟩;
+    exact (cthickening_subset_thickening' hδ (half_lt_self hδ) _),
+end
+
 lemma cthickening_eq_Inter_cthickening' {δ : ℝ}
   (s : set ℝ) (hsδ : s ⊆ Ioi δ) (hs : ∀ ε, δ < ε → (s ∩ (Ioc δ ε)).nonempty) (E : set α) :
   cthickening δ E = ⋂ ε ∈ s, cthickening ε E :=
@@ -1153,6 +1195,7 @@ begin
   exact mem_bUnion yE D2,
 end
 
+/-- For the equality, see `inf_edist_cthickening`. -/
 lemma inf_edist_le_inf_edist_cthickening_add :
   inf_edist x s ≤ inf_edist x (cthickening δ s) + ennreal.of_real δ :=
 begin
@@ -1164,10 +1207,58 @@ begin
     (tsub_add_cancel_of_le $ le_self_add.trans (lt_tsub_iff_left.1 hxy).le).le),
 end
 
+/-- For the equality, see `inf_edist_thickening`. -/
 lemma inf_edist_le_inf_edist_thickening_add :
   inf_edist x s ≤ inf_edist x (thickening δ s) + ennreal.of_real δ :=
 inf_edist_le_inf_edist_cthickening_add.trans $
   add_le_add_right (inf_edist_anti $ thickening_subset_cthickening _ _) _
+
+/-- For the equality, see `thickening_thickening`. -/
+@[simp] lemma thickening_thickening_subset (ε δ : ℝ) (s : set α) :
+  thickening ε (thickening δ s) ⊆ thickening (ε + δ) s :=
+begin
+  obtain hε | hε := le_total ε 0,
+  { simp only [thickening_of_nonpos hε, empty_subset] },
+  obtain hδ | hδ := le_total δ 0,
+  { simp only [thickening_of_nonpos hδ, thickening_empty, empty_subset] },
+  intros x,
+  simp_rw [mem_thickening_iff_exists_edist_lt, ennreal.of_real_add hε hδ],
+  exact λ ⟨y, ⟨z, hz, hy⟩, hx⟩, ⟨z, hz, (edist_triangle _ _ _).trans_lt $ ennreal.add_lt_add hx hy⟩,
+end
+
+/-- For the equality, see `thickening_cthickening`. -/
+@[simp] lemma thickening_cthickening_subset (ε : ℝ) (hδ : 0 ≤ δ) (s : set α) :
+  thickening ε (cthickening δ s) ⊆ thickening (ε + δ) s :=
+begin
+  obtain hε | hε := le_total ε 0,
+  { simp only [thickening_of_nonpos hε, empty_subset] },
+  intro x,
+  simp_rw [mem_thickening_iff_exists_edist_lt, mem_cthickening_iff, ←inf_edist_lt_iff,
+    ennreal.of_real_add hε hδ],
+  rintro ⟨y, hy, hxy⟩,
+  exact inf_edist_le_edist_add_inf_edist.trans_lt
+    (ennreal.add_lt_add_of_lt_of_le (hy.trans_lt ennreal.of_real_lt_top).ne hxy hy),
+end
+
+/-- For the equality, see `cthickening_thickening`. -/
+@[simp] lemma cthickening_thickening_subset (hε : 0 ≤ ε) (δ : ℝ) (s : set α) :
+  cthickening ε (thickening δ s) ⊆ cthickening (ε + δ) s :=
+begin
+  obtain hδ | hδ := le_total δ 0,
+  { simp only [thickening_of_nonpos hδ, cthickening_empty, empty_subset] },
+  intro x,
+  simp_rw [mem_cthickening_iff, ennreal.of_real_add hε hδ],
+  exact λ hx, inf_edist_le_inf_edist_thickening_add.trans (add_le_add_right hx _),
+end
+
+/-- For the equality, see `cthickening_cthickening`. -/
+@[simp] lemma cthickening_cthickening_subset (hε : 0 ≤ ε) (hδ : 0 ≤ δ) (s : set α) :
+  cthickening ε (cthickening δ s) ⊆ cthickening (ε + δ) s :=
+begin
+  intro x,
+  simp_rw [mem_cthickening_iff, ennreal.of_real_add hε hδ],
+  exact λ hx, inf_edist_le_inf_edist_cthickening_add.trans (add_le_add_right hx _),
+end
 
 end cthickening --section
 

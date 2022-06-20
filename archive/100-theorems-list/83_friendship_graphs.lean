@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson, Jalex Stark, Kyle Miller
 -/
 import combinatorics.simple_graph.adj_matrix
-import linear_algebra.matrix.charpoly.coeff
+import linear_algebra.matrix.charpoly.finite_field
 import data.int.modeq
 import data.zmod.basic
 import tactic.interval_cases
@@ -76,7 +76,7 @@ theorem adj_matrix_sq_of_ne {v w : V} (hvw : v ≠ w) :
   ((G.adj_matrix R) ^ 2) v w = 1 :=
 begin
   rw [sq, ← nat.cast_one, ← hG hvw],
-  simp [common_neighbors, neighbor_finset_eq_filter, finset.filter_filter, finset.filter_inter,
+  simp [common_neighbors, neighbor_finset_eq_filter, finset.filter_filter,
     and_comm, ← neighbor_finset_def],
 end
 
@@ -256,7 +256,7 @@ begin
   -- but the trace is 1 mod p when computed the other way
   rw adj_matrix_pow_mod_p_of_regular hG dmod hd hp2,
   dunfold fintype.card at Vmod,
-  simp only [matrix.trace, diag_apply, mul_one, nsmul_eq_mul, linear_map.coe_mk, sum_const],
+  simp only [matrix.trace, matrix.diag, mul_one, nsmul_eq_mul, linear_map.coe_mk, sum_const],
   rw [Vmod, ← nat.cast_one, zmod.nat_coe_zmod_eq_zero_iff_dvd, nat.dvd_one,
     nat.min_fac_eq_one_iff],
   linarith,

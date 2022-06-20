@@ -732,7 +732,7 @@ instance [semiring R] : semiring (hahn_series Γ R) :=
   .. hahn_series.non_assoc_semiring,
   .. hahn_series.non_unital_semiring }
 
-instance [comm_semiring R] : comm_semiring (hahn_series Γ R) :=
+instance [non_unital_comm_semiring R] : non_unital_comm_semiring (hahn_series Γ R) :=
 { mul_comm := λ x y, begin
     ext,
     simp_rw [mul_coeff, mul_comm],
@@ -751,6 +751,10 @@ instance [comm_semiring R] : comm_semiring (hahn_series Γ R) :=
         ne.def, set.mem_set_of_eq] at ha ⊢,
       exact ⟨(add_comm _ _).trans ha.1, ha.2.2, ha.2.1⟩ }
   end,
+  .. hahn_series.non_unital_semiring }
+
+instance [comm_semiring R] : comm_semiring (hahn_series Γ R) :=
+{ .. hahn_series.non_unital_comm_semiring,
   .. hahn_series.semiring }
 
 instance [non_unital_non_assoc_ring R] : non_unital_non_assoc_ring (hahn_series Γ R) :=
@@ -768,6 +772,10 @@ instance [non_assoc_ring R] : non_assoc_ring (hahn_series Γ R) :=
 instance [ring R] : ring (hahn_series Γ R) :=
 { .. hahn_series.semiring,
   .. hahn_series.add_comm_group }
+
+instance [non_unital_comm_ring R] : non_unital_comm_ring (hahn_series Γ R) :=
+{ .. hahn_series.non_unital_comm_semiring,
+  .. hahn_series.non_unital_ring }
 
 instance [comm_ring R] : comm_ring (hahn_series Γ R) :=
 { .. hahn_series.comm_semiring,
@@ -1171,19 +1179,7 @@ end algebra
 
 section valuation
 
-variables [linear_ordered_add_comm_group Γ] [ring R] [is_domain R]
-
-instance : linear_ordered_comm_group (multiplicative Γ) :=
-{ .. (infer_instance : linear_order (multiplicative Γ)),
-  .. (infer_instance : ordered_comm_group (multiplicative Γ)) }
-
-instance : linear_ordered_comm_group_with_zero (with_zero (multiplicative Γ)) :=
-{ zero_le_one := with_zero.zero_le 1,
-  .. (with_zero.ordered_comm_monoid),
-  .. (infer_instance : linear_order (with_zero (multiplicative Γ))),
-  .. (infer_instance : comm_group_with_zero (with_zero (multiplicative Γ))) }
-
-variables (Γ) (R)
+variables (Γ R) [linear_ordered_add_comm_group Γ] [ring R] [is_domain R]
 
 /-- The additive valuation on `hahn_series Γ R`, returning the smallest index at which
   a Hahn Series has a nonzero coefficient, or `⊤` for the 0 series.  -/
@@ -1398,7 +1394,7 @@ instance : has_scalar (hahn_series Γ R) (summable_family Γ R α) :=
       exact λ a ha, (set.add_subset_add (set.subset.refl _) (set.subset_Union _ a)) ha,
     end,
     finite_co_support' := λ g, begin
-      refine ((add_antidiagonal x.is_pwo_support s.is_pwo_Union_support g).finite_to_set.bUnion
+      refine ((add_antidiagonal x.is_pwo_support s.is_pwo_Union_support g).finite_to_set.bUnion'
         (λ ij hij, _)).subset (λ a ha, _),
       { exact λ ij hij, function.support (λ a, (s a).coeff ij.2) },
       { apply s.finite_co_support },
@@ -1476,10 +1472,8 @@ def of_finsupp (f : α →₀ (hahn_series Γ R)) :
       intros g hg,
       obtain ⟨a, ha⟩ := set.mem_Union.1 hg,
       have haf : a ∈ f.support,
-      { rw finsupp.mem_support_iff,
-        contrapose! ha,
-        rw [ha, support_zero],
-        exact set.not_mem_empty _ },
+      { rw [finsupp.mem_support_iff, ← support_nonempty_iff],
+        exact ⟨g, ha⟩ },
       have h : (λ i, (f i).support) a ≤ _ := le_sup haf,
       exact h ha,
     end,

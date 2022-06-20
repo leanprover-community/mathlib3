@@ -97,8 +97,8 @@ left_inv_eq_right_inv (inv_of_mul_self _) hac
 lemma inv_of_eq_left_inv [monoid α] {a b : α} [invertible a] (hac : b * a = 1) : ⅟a = b :=
 (left_inv_eq_right_inv hac (mul_inv_of_self _)).symm
 
-lemma invertible_unique {α : Type u} [monoid α] (a b : α) (h : a = b)
-  [invertible a] [invertible b] :
+lemma invertible_unique {α : Type u} [monoid α] (a b : α) [invertible a] [invertible b]
+  (h : a = b) :
   ⅟a = ⅟b :=
 by { apply inv_of_eq_right_inv, rw [h, mul_inv_of_self], }
 
@@ -138,8 +138,7 @@ Prefer `casesI h.nonempty_invertible` over `letI := h.invertible` if you want to
 noncomputable def is_unit.invertible [monoid α] {a : α} (h : is_unit a) : invertible a :=
 classical.choice h.nonempty_invertible
 
-@[simp]
-lemma nonempty_invertible_iff_is_unit [monoid α] (a : α) :
+@[simp] lemma nonempty_invertible_iff_is_unit [monoid α] (a : α) :
   nonempty (invertible a) ↔ is_unit a :=
 ⟨nonempty.rec $ @is_unit_of_invertible _ _ _, is_unit.nonempty_invertible⟩
 
@@ -171,22 +170,24 @@ inv_of_eq_right_inv (by simp)
 
 @[simp] lemma inv_of_two_add_inv_of_two [non_assoc_semiring α] [invertible (2 : α)] :
   (⅟2 : α) + (⅟2 : α) = 1 :=
-by simp only [←two_mul, mul_inv_of_self]
+by rw [←two_mul, mul_inv_of_self]
 
 /-- `a` is the inverse of `⅟a`. -/
 instance invertible_inv_of [has_one α] [has_mul α] {a : α} [invertible a] : invertible (⅟a) :=
 ⟨ a, mul_inv_of_self a, inv_of_mul_self a ⟩
 
-@[simp] lemma inv_of_inv_of [monoid α] {a : α} [invertible a] [invertible (⅟a)] :
-  ⅟(⅟a) = a :=
+@[simp] lemma inv_of_inv_of [monoid α] (a : α) [invertible a] [invertible (⅟a)] : ⅟(⅟a) = a :=
 inv_of_eq_right_inv (inv_of_mul_self _)
+
+@[simp] lemma inv_of_inj [monoid α] {a b : α} [invertible a] [invertible b] :
+  ⅟ a = ⅟ b ↔ a = b :=
+⟨invertible_unique _ _, invertible_unique _ _⟩
 
 /-- `⅟b * ⅟a` is the inverse of `a * b` -/
 def invertible_mul [monoid α] (a b : α) [invertible a] [invertible b] : invertible (a * b) :=
 ⟨ ⅟b * ⅟a, by simp [←mul_assoc], by simp [←mul_assoc] ⟩
 
-@[simp]
-lemma inv_of_mul [monoid α] (a b : α) [invertible a] [invertible b] [invertible (a * b)] :
+@[simp] lemma inv_of_mul [monoid α] (a b : α) [invertible a] [invertible b] [invertible (a * b)] :
   ⅟(a * b) = ⅟b * ⅟a :=
 inv_of_eq_right_inv (by simp [←mul_assoc])
 
@@ -260,12 +261,10 @@ def invertible_inv {a : α} [invertible a] : invertible (a⁻¹) :=
 
 end group_with_zero
 
-/--
-Monoid homs preserve invertibility.
--/
-def invertible.map {R : Type*} {S : Type*} [monoid R] [monoid S] (f : R →* S)
-  (r : R) [invertible r] :
+/-- Monoid homs preserve invertibility. -/
+def invertible.map {R : Type*} {S : Type*} {F : Type*} [mul_one_class R] [mul_one_class S]
+  [monoid_hom_class F R S] (f : F) (r : R) [invertible r] :
   invertible (f r) :=
 { inv_of := f (⅟r),
-  inv_of_mul_self := by rw [← f.map_mul, inv_of_mul_self, f.map_one],
-  mul_inv_of_self := by rw [← f.map_mul, mul_inv_of_self, f.map_one] }
+  inv_of_mul_self := by rw [←map_mul, inv_of_mul_self, map_one],
+  mul_inv_of_self := by rw [←map_mul, mul_inv_of_self, map_one] }

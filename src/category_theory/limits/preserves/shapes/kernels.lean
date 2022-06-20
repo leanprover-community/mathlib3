@@ -197,13 +197,13 @@ is_colimit.cocone_point_unique_up_to_iso
   (colimit.is_colimit _)
 
 @[simp]
-lemma preserves_cokernel.iso_hom :
+lemma preserves_cokernel.iso_inv :
   (preserves_cokernel.iso G f).inv = cokernel_comparison f G :=
 rfl
 
 instance : is_iso (cokernel_comparison f G) :=
 begin
-  rw ← preserves_cokernel.iso_hom,
+  rw ← preserves_cokernel.iso_inv,
   apply_instance
 end
 

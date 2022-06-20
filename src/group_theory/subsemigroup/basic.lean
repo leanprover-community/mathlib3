@@ -359,7 +359,7 @@ end subsemigroup
 
 namespace mul_hom
 
-variables [mul_one_class N]
+variables [has_mul N]
 
 open subsemigroup
 

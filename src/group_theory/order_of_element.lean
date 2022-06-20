@@ -7,7 +7,7 @@ import algebra.hom.iterate
 import data.nat.modeq
 import data.set.pointwise
 import dynamics.periodic_pts
-import group_theory.quotient_group
+import group_theory.index
 
 /-!
 # Order of an element
@@ -305,6 +305,15 @@ begin
   rwa is_periodic_pt_mul_iff_pow_eq_one,
 end
 
+@[to_additive exists_add_order_of_eq_prime_pow_iff]
+lemma exists_order_of_eq_prime_pow_iff :
+  (∃ k : ℕ, order_of x = p ^ k) ↔ (∃ m : ℕ, x ^ (p : ℕ) ^ m = 1) :=
+⟨λ ⟨k, hk⟩, ⟨k, by rw [←hk, pow_order_of_eq_one]⟩, λ ⟨_, hm⟩,
+begin
+  obtain ⟨k, _, hk⟩ := (nat.dvd_prime_pow hp.elim).mp (order_of_dvd_of_pow_eq_one hm),
+  exact ⟨k, hk⟩,
+end⟩
+
 omit hp
 -- An example on how to determine the order of an element of a finite group.
 example : order_of (-1 : ℤˣ) = 2 :=
@@ -317,25 +326,10 @@ end monoid_add_monoid
 section cancel_monoid
 variables [left_cancel_monoid G] (x y)
 
-@[to_additive]
-lemma pow_injective_aux (h : n ≤ m)
-  (hm : m < order_of x) (eq : x ^ n = x ^ m) : n = m :=
-by_contradiction $ assume ne : n ≠ m,
-  have h₁ : m - n > 0, from nat.pos_of_ne_zero (by simp [tsub_eq_iff_eq_add_of_le h, ne.symm]),
-  have h₂ : m = n + (m - n) := (add_tsub_cancel_of_le h).symm,
-  have h₃ : x ^ (m - n) = 1,
-    by { rw [h₂, pow_add] at eq, apply mul_left_cancel, convert eq.symm, exact mul_one (x ^ n) },
-  have le : order_of x ≤ m - n, from order_of_le_of_pow_eq_one h₁ h₃,
-  have lt : m - n < order_of x,
-    from (tsub_lt_iff_left h).mpr $ nat.lt_add_left _ _ _ hm,
-  lt_irrefl _ (le.trans_lt lt)
-
 @[to_additive nsmul_injective_of_lt_add_order_of]
 lemma pow_injective_of_lt_order_of
   (hn : n < order_of x) (hm : m < order_of x) (eq : x ^ n = x ^ m) : n = m :=
-(le_total n m).elim
-  (assume h, pow_injective_aux x h hm eq)
-  (assume h, (pow_injective_aux x h hn eq.symm).symm)
+eq_of_lt_minimal_period_of_iterate_eq hn hm (by simpa only [mul_left_iterate, mul_one])
 
 @[to_additive mem_multiples_iff_mem_range_add_order_of']
 lemma mem_powers_iff_mem_range_order_of' [decidable_eq G] (hx : 0 < order_of x) :
@@ -363,7 +357,7 @@ variables [group G] [add_group A] {x a} {i : ℤ}
 lemma is_of_fin_order.inv {x : G} (hx : is_of_fin_order x) : is_of_fin_order x⁻¹ :=
 (is_of_fin_order_iff_pow_eq_one _).mpr $ begin
   rcases (is_of_fin_order_iff_pow_eq_one x).mp hx with ⟨n, npos, hn⟩,
-  refine ⟨n, npos, by simp_rw [inv_pow, hn, one_inv]⟩,
+  refine ⟨n, npos, by simp_rw [inv_pow, hn, inv_one]⟩,
 end
 
 /-- Inverses of elements of finite order have finite order. -/
@@ -636,8 +630,7 @@ begin
 end
 
 @[to_additive add_order_eq_card_zmultiples]
-lemma order_eq_card_zpowers [decidable_eq G] :
-  order_of x = fintype.card (subgroup.zpowers x : set G) :=
+lemma order_eq_card_zpowers [decidable_eq G] : order_of x = fintype.card (zpowers x) :=
 (fintype.card_fin (order_of x)).symm.trans (fintype.card_eq.2 ⟨fin_equiv_zpowers x⟩)
 
 open quotient_group
@@ -670,6 +663,10 @@ end
 @[simp, to_additive card_nsmul_eq_zero] lemma pow_card_eq_one : x ^ fintype.card G = 1 :=
 let ⟨m, hm⟩ := @order_of_dvd_card_univ _ x _ _ in
 by simp [hm, pow_mul, pow_order_of_eq_one]
+
+@[to_additive] lemma subgroup.pow_index_mem {G : Type*} [group G] (H : subgroup G)
+  [fintype (G ⧸ H)] [normal H] (g : G) : g ^ index H ∈ H :=
+by rw [←eq_one_iff, quotient_group.coe_pow H, index_eq_card, pow_card_eq_one]
 
 @[to_additive] lemma pow_eq_mod_card (n : ℕ) :
   x ^ n = x ^ (n % fintype.card G) :=
@@ -766,11 +763,9 @@ have one_mem : (1 : G) ∈ (S ^ fintype.card G) := by
   rw ← pow_card_eq_one,
   exact set.pow_mem_pow ha (fintype.card G) },
 subgroup_of_idempotent (S ^ (fintype.card G)) ⟨1, one_mem⟩ begin
-  classical,
-  refine (set.eq_of_subset_of_card_le
-    (λ b hb, (congr_arg (∈ _) (one_mul b)).mp (set.mul_mem_mul one_mem hb)) (ge_of_eq _)).symm,
-  change _ = fintype.card (_ * _ : set G),
-  rw [←pow_add, group.card_pow_eq_card_pow_card_univ S (fintype.card G) le_rfl,
+  classical!,
+  refine (set.eq_of_subset_of_card_le (set.subset_mul_left _ one_mem) (ge_of_eq _)).symm,
+  simp_rw [← pow_add, group.card_pow_eq_card_pow_card_univ S (fintype.card G) le_rfl,
       group.card_pow_eq_card_pow_card_univ S (fintype.card G + fintype.card G) le_add_self],
 end
 

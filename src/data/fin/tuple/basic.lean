@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Yury Kudryashov, Sébastien Gouëzel, Chris Hughes
 -/
 import data.fin.basic
-import order.pilex
+import data.pi.lex
+
 /-!
 # Operation on tuples
 
@@ -166,7 +167,7 @@ forall_fin_succ.trans $ and_congr iff.rfl $ forall_congr $ λ j, by simp [tail]
 
 lemma cons_le [Π i, preorder (α i)] {x : α 0} {q : Π i, α i} {p : Π i : fin n, α i.succ} :
   cons x p ≤ q ↔ x ≤ q 0 ∧ p ≤ tail q :=
-@le_cons  _ (λ i, order_dual (α i)) _ x q p
+@le_cons  _ (λ i, (α i)ᵒᵈ) _ x q p
 
 lemma cons_le_cons [Π i, preorder (α i)] {x₀ y₀ : α 0} {x y : Π i : fin n, α (i.succ)} :
   cons x₀ x ≤ cons y₀ y ↔ x₀ ≤ y₀ ∧ x ≤ y :=
@@ -257,6 +258,27 @@ funext (λ i, by rw [function.comp_app, snoc_cast_succ])
 
 @[simp] lemma snoc_last : snoc p x (last n) = x :=
 by { simp [snoc] }
+
+@[simp] lemma snoc_comp_nat_add {n m : ℕ} {α : Sort*} (f : fin (m + n) → α) (a : α) :
+  (snoc f a : fin _ → α) ∘ (nat_add m : fin (n + 1) → fin (m + n + 1)) = snoc (f ∘ nat_add m) a :=
+begin
+  ext i,
+  refine fin.last_cases _ (λ i, _) i,
+  { simp only [function.comp_app],
+    rw [snoc_last, nat_add_last, snoc_last] },
+  { simp only [function.comp_app],
+    rw [snoc_cast_succ, nat_add_cast_succ, snoc_cast_succ] }
+end
+
+@[simp] lemma snoc_cast_add {α : fin (n + m + 1) → Type*}
+  (f : Π i : fin (n + m), α (cast_succ i)) (a : α (last (n + m)))
+  (i : fin n) :
+  (snoc f a) (cast_add (m + 1) i) = f (cast_add m i) :=
+dif_pos _
+
+@[simp] lemma snoc_comp_cast_add {n m : ℕ} {α : Sort*} (f : fin (n + m) → α) (a : α) :
+  (snoc f a : fin _ → α) ∘ cast_add (m + 1) = f ∘ cast_add m :=
+funext (snoc_cast_add f a)
 
 /-- Updating a tuple and adding an element at the end commute. -/
 @[simp] lemma snoc_update : snoc (update p i y) x = update (snoc p x) i.cast_succ y :=

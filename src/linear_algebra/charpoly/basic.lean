@@ -6,6 +6,7 @@ Authors: Riccardo Brasca
 
 import linear_algebra.free_module.finite.basic
 import linear_algebra.matrix.charpoly.coeff
+import field_theory.minpoly
 
 /-!
 
@@ -29,6 +30,7 @@ variables [add_comm_group M] [module R M] [module.free R M] [module.finite R M] 
 open_locale classical matrix polynomial
 
 noncomputable theory
+
 
 open module.free polynomial matrix
 

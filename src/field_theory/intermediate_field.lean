@@ -213,7 +213,7 @@ begin
   classical,
   induction finset.univ using finset.induction_on with i s hi H,
   { simp },
-  { rw [finset.sum_insert hi, add_submonoid_class.coe_add, H, finset.sum_insert hi] }
+  { rw [finset.sum_insert hi, add_mem_class.coe_add, H, finset.sum_insert hi] }
 end
 
 @[simp, norm_cast]
@@ -222,7 +222,7 @@ begin
   classical,
   induction finset.univ using finset.induction_on with i s hi H,
   { simp },
-  { rw [finset.prod_insert hi, submonoid_class.coe_mul, H, finset.prod_insert hi] }
+  { rw [finset.prod_insert hi, mul_mem_class.coe_mul, H, finset.prod_insert hi] }
 end
 
 /-! `intermediate_field`s inherit structure from their `subalgebra` coercions. -/
@@ -280,9 +280,17 @@ set_like.coe_injective $ set.image_image _ _ _
 /-- Given an equivalence `e : L ≃ₐ[K] L'` of `K`-field extensions and an intermediate
 field `E` of `L/K`, `intermediate_field_equiv_map e E` is the induced equivalence
 between `E` and `E.map e` -/
-@[simps] def intermediate_field_map (e : L ≃ₐ[K] L') (E : intermediate_field K L) :
+def intermediate_field_map (e : L ≃ₐ[K] L') (E : intermediate_field K L) :
   E ≃ₐ[K] (E.map e.to_alg_hom) :=
 e.subalgebra_map E.to_subalgebra
+
+/- We manually add these two simp lemmas because `@[simps]` before `intermediate_field_map`
+  led to a timeout. -/
+@[simp] lemma intermediate_field_map_apply_coe (e : L ≃ₐ[K] L') (E : intermediate_field K L)
+  (a : E) : ↑(intermediate_field_map e E a) = e a := rfl
+
+@[simp] lemma intermediate_field_map_symm_apply_coe (e : L ≃ₐ[K] L') (E : intermediate_field K L)
+  (a : E.map e.to_alg_hom) : ↑((intermediate_field_map e E).symm a) = e.symm a := rfl
 
 /-- The embedding from an intermediate field of `L / K` to `L`. -/
 def val : S →ₐ[K] L :=
@@ -299,8 +307,8 @@ lemma aeval_coe {R : Type*} [comm_ring R] [algebra R K] [algebra R L]
   [is_scalar_tower R K L] (x : S) (P : R[X]) : aeval (x : L) P = aeval x P :=
 begin
   refine polynomial.induction_on' P (λ f g hf hg, _) (λ n r, _),
-  { rw [aeval_add, aeval_add, add_submonoid_class.coe_add, hf, hg] },
-  { simp only [submonoid_class.coe_mul, aeval_monomial, submonoid_class.coe_pow,
+  { rw [aeval_add, aeval_add, add_mem_class.coe_add, hf, hg] },
+  { simp only [mul_mem_class.coe_mul, aeval_monomial, submonoid_class.coe_pow,
                mul_eq_mul_right_iff],
     left, refl }
 end

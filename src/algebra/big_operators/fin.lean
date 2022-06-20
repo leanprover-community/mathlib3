@@ -61,13 +61,9 @@ is the product of `f x`, for some `x : fin (n + 1)` times the remaining product 
 @[to_additive
 /- A sum of a function `f : fin (n + 1) → β` over all `fin (n + 1)`
 is the sum of `f x`, for some `x : fin (n + 1)` plus the remaining product -/]
-theorem prod_univ_succ_above [comm_monoid β] {n : ℕ} (f : fin (n + 1) → β)
-  (x : fin (n + 1)) :
+theorem prod_univ_succ_above [comm_monoid β] {n : ℕ} (f : fin (n + 1) → β) (x : fin (n + 1)) :
   ∏ i, f i = f x * ∏ i : fin n, f (x.succ_above i) :=
-begin
-  rw [fintype.prod_eq_mul_prod_compl x, ← image_succ_above_univ, prod_image],
-  exact λ _ _ _ _ h, x.succ_above.injective h
-end
+by rw [univ_succ_above, prod_cons, finset.prod_map, rel_embedding.coe_fn_to_embedding]
 
 /-- A product of a function `f : fin (n + 1) → β` over all `fin (n + 1)`
 is the product of `f 0` plus the remaining product -/
@@ -86,6 +82,10 @@ is the sum of `f (fin.last n)` plus the remaining sum -/]
 theorem prod_univ_cast_succ [comm_monoid β] {n : ℕ} (f : fin (n + 1) → β) :
   ∏ i, f i = (∏ i : fin n, f i.cast_succ) * f (last n) :=
 by simpa [mul_comm] using prod_univ_succ_above f (last n)
+
+@[to_additive] lemma prod_cons [comm_monoid β] {n : ℕ} (x : β) (f : fin n → β) :
+  ∏ i : fin n.succ, (cons x f : fin n.succ → β) i = x * ∏ i : fin n, f i :=
+by simp_rw [prod_univ_succ, cons_zero, cons_succ]
 
 @[to_additive sum_univ_one] theorem prod_univ_one [comm_monoid β] (f : fin 1 → β) :
   ∏ i, f i = f 0 :=
@@ -181,11 +181,7 @@ end
 lemma alternating_sum_eq_finset_sum {G : Type*} [add_comm_group G] :
   ∀ (L : list G), alternating_sum L = ∑ i : fin L.length, (-1 : ℤ) ^ (i : ℕ) • L.nth_le i i.is_lt
 | [] := by { rw [alternating_sum, finset.sum_eq_zero], rintro ⟨i, ⟨⟩⟩ }
-| (g :: []) :=
-begin
-  show g = ∑ i : fin 1, (-1 : ℤ) ^ (i : ℕ) • [g].nth_le i i.2,
-  rw [fin.sum_univ_succ], simp,
-end
+| (g :: []) := by simp
 | (g :: h :: L) :=
 calc g + -h + L.alternating_sum
     = g + -h + ∑ i : fin L.length, (-1 : ℤ) ^ (i : ℕ) • L.nth_le i i.2 :

@@ -99,7 +99,7 @@ intros; trivial <|> simp only [eq_iff_true_of_subsingleton]
 
 instance : canonically_ordered_add_monoid punit :=
 by refine
-{ le_iff_exists_add := λ _ _, iff_of_true _ ⟨star, subsingleton.elim _ _⟩,
+{ exists_add_of_le := λ _ _ _, ⟨star, subsingleton.elim _ _⟩,
   .. punit.comm_ring, .. punit.complete_boolean_algebra, .. };
 intros; trivial
 

@@ -364,4 +364,13 @@ begin
   exact mul_dvd_mul (prod_prime_factors_dvd a) (prod_prime_factors_dvd b)
 end
 
+lemma totient_super_multiplicative (a b : ℕ) : a.totient * b.totient ≤ (a * b).totient :=
+begin
+  let d := a.gcd b,
+  by_cases ha0 : a = 0, { simp [ha0] },
+  have hd0 : 0 < d, { apply nat.pos_of_ne_zero, contrapose! ha0, exact (gcd_eq_zero_iff.1 ha0).1 },
+  rw [←mul_le_mul_right hd0, ←totient_mul_general a b, mul_comm],
+  apply mul_le_mul_left' (nat.totient_le d),
+end
+
 end nat

@@ -27,8 +27,6 @@ variables {R M N N' : Type*}
 variables [comm_ring R] [add_comm_group M] [add_comm_group N] [add_comm_group N']
 variables [module R M] [module R N] [module R N']
 
-open_locale direct_sum
-
 -- This instance can't be found where it's needed if we don't remind lean that it exists.
 instance alternating_map.module_add_comm_group {ι : Type*} [decidable_eq ι] :
   module R (alternating_map R M N ι) :=
@@ -49,18 +47,14 @@ begin
     refine linear_equiv.to_linear_map _ ∘ₗ linear_map.proj 0,
     exact alternating_map.const_linear_equiv_of_is_empty.symm },
   refine clifford_algebra.foldl _ _ _,
-  { -- our recursive step turns `![f₀, f₁, ..., fₙ₋₁, fₙ]` into `![f₁ m, f₂ m, ..., fₙ m, 0]`, where
-    -- `f₁ m` here is shorthand for partial application via `f₁.curry_left m`.
-    refine linear_map.mk₂ R (λ m f i, (f i.succ).curry_left m)
-      (λ m₁ m₂ f, _) (λ c m f, _) (λ m f₁ f₂, _) (λ c m f, _),
+  { refine linear_map.mk₂ R
+      (λ m f i, (f i.succ).curry_left m) (λ m₁ m₂ f, _) (λ c m f, _) (λ m f₁ f₂, _) (λ c m f, _),
     all_goals {
       ext i : 1,
-      simp_rw ←alternating_map.curry_left_linear_map_apply,
-      simp only [map_smul, map_add, pi.add_apply, pi.smul_apply, linear_map.add_apply,
+      simp only [map_smul, map_add, pi.add_apply, pi.smul_apply, alternating_map.curry_left_add,
+        alternating_map.curry_left_smul, map_add, map_smul, linear_map.add_apply,
         linear_map.smul_apply] } },
-  { -- when applied twice with the same `m`, this recursive step obviously produces 0; either
-    -- because we appended zeros on the last two elements, or because of
-    -- `alternating_map.curry_left_same`.
+  { -- when applied twice with the same `m`, this recursive step produces 0
     intros m x,
     dsimp only [linear_map.mk₂_apply, quadratic_form.coe_fn_zero, pi.zero_apply],
     simp_rw zero_smul,

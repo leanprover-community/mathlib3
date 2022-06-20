@@ -278,13 +278,14 @@ lemma log_stirling_seq_diff_le_geo_sum : ∀ (n : ℕ),
   (1 / (2 * n.succ + 1)) ^ 2 / (1 - (1 / (2 * n.succ + 1)) ^ 2) :=
 begin
   intro n,
+  have h_nonneg : 0 ≤ ((1 / (2 * (n.succ : ℝ) + 1)) ^ 2),
+    by { rw [cast_succ, one_div, inv_pow, inv_nonneg], norm_cast, exact zero_le', },
   have g : has_sum (λ (k : ℕ), ((1 / (2 * (n.succ : ℝ) + 1)) ^ 2) ^ k.succ)
     ((1 / (2 * n.succ + 1)) ^ 2 / (1 - (1 / (2 * n.succ + 1)) ^ 2)) :=
   begin
     have h_pow_succ := λ (k : ℕ),
       symm (pow_succ ((1 / (2 * ((n : ℝ) + 1) + 1)) ^ 2) k),
-    have h_nonneg : 0 ≤ ((1 / (2 * (n.succ : ℝ) + 1)) ^ 2),
-    by { rw [cast_succ, one_div, inv_pow, inv_nonneg], norm_cast, exact zero_le', },
+
     have hlt : ((1 / (2 * (n.succ : ℝ) + 1)) ^ 2) < 1, by
     { simp only [cast_succ, one_div, inv_pow],
       refine inv_lt_one _,

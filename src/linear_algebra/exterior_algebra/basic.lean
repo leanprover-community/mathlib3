@@ -60,8 +60,7 @@ variables {M}
 /--
 The canonical linear map `M →ₗ[R] exterior_algebra R M`.
 -/
-@[reducible]
-def ι : M →ₗ[R] exterior_algebra R M := by exact clifford_algebra.ι _
+@[reducible] def ι : M →ₗ[R] exterior_algebra R M := by exact clifford_algebra.ι _
 
 variables {R}
 

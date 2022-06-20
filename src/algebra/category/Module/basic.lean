@@ -3,12 +3,13 @@ Copyright (c) 2019 Robert A. Spencer. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert A. Spencer, Markus Himmel
 -/
-import algebra.category.Group.basic
+import algebra.category.Group.preadditive
 import category_theory.limits.shapes.kernels
 import category_theory.linear
 import category_theory.elementwise
 import linear_algebra.basic
 import category_theory.conj
+import category_theory.preadditive.additive_functor
 
 /-!
 # The category of `R`-modules
@@ -255,6 +256,8 @@ instance : preadditive (Module.{v} R) :=
     show (f + f') ≫ g = f ≫ g + f' ≫ g, by { ext, simp },
   comp_add' := λ P Q R f g g',
     show f ≫ (g + g') = f ≫ g + f ≫ g', by { ext, simp } }
+
+instance forget₂_AddCommGroup_additive : (forget₂ (Module.{v} R) AddCommGroup).additive := {}
 
 section
 variables {S : Type u} [comm_ring S]

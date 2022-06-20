@@ -198,14 +198,15 @@ by rw [symm_diff_comm, ←symm_diff_assoc, symm_diff_self, bot_symm_diff]
 
 namespace equiv
 
-/-- Symmetric difference by `a` as an equivalence. -/
+/-- Symmetric difference by `a` as an equivalence. We make `equiv.symm_diff a b` and
+`(equiv.symm_diff a).symm b` defeq to `a ∆ b` and `b ∆ a` for convenience. -/
 protected def symm_diff (a : α) : α ≃ α :=
 { to_fun := (∆) a,
   inv_fun := λ b, b ∆ a,
   left_inv := symm_diff_symm_diff_self' _,
   right_inv := λ b, by rw [←symm_diff_assoc, symm_diff_symm_diff_self'] }
 
-@[simp] lemma coe_symm_diff (a : α) : ⇑(equiv.symm_diff a) =  (∆) a := rfl
+@[simp] lemma coe_symm_diff (a : α) : ⇑(equiv.symm_diff a) = (∆) a := rfl
 @[simp] lemma symm_diff_apply (a b : α) : equiv.symm_diff a b = a ∆ b := rfl
 @[simp] lemma symm_diff_symm (a : α) : (equiv.symm_diff a).symm = equiv.symm_diff a :=
 ext $ λ b, symm_diff_comm _ _

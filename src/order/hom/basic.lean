@@ -565,6 +565,9 @@ e.to_equiv.image_symm_image s
 lemma image_eq_preimage (e : α ≃o β) (s : set α) : e '' s = e.symm ⁻¹' s :=
 e.to_equiv.image_eq_preimage s
 
+lemma preimage_eq_image_symm (e : α ≃o β) (s : set β) : e ⁻¹' s = e.symm '' s :=
+(e.symm.image_eq_preimage s).symm
+
 @[simp] lemma preimage_symm_preimage (e : α ≃o β) (s : set α) : e ⁻¹' (e.symm ⁻¹' s) = s :=
 e.to_equiv.preimage_symm_preimage s
 

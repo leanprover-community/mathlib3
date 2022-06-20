@@ -335,4 +335,32 @@ begin
   rw [sub_mul, one_mul, mul_comm, mul_inv_cancel hp', cast_pred hp],
 end
 
+lemma gcd_prod_double_counting {β : Type*} [comm_monoid β] (m n : ℕ) (f : ℕ → β) :
+    (∏ (x : ℕ) in (m.gcd n).factors.to_finset, f x) * ∏ (x : ℕ) in (m * n).factors.to_finset, f x = (∏ (x : ℕ) in m.factors.to_finset, f x) * ∏ (x : ℕ) in n.factors.to_finset, f x :=
+begin
+  rcases eq_or_ne n 0 with rfl | hm0, { simp },
+  rcases eq_or_ne m 0 with rfl | hn0, { simp },
+  rw [←@prod_union_inter _ _ m.factors.to_finset n.factors.to_finset, mul_comm],
+  congr,
+  { apply factors_mul_to_finset; assumption },
+  { simp only [←support_factorization, factorization_gcd hn0 hm0, finsupp.support_inf] },
+end
+
+lemma totient_mul_general (a b : ℕ) : φ (a.gcd b) * φ (a * b) = φ a * φ b * (a.gcd b) :=
+begin
+  have shuffle : ∀ a1 a2 b1 b2 c1 c2 : ℕ, b1 ∣ a1 → b2 ∣ a2 →
+    (a1/b1 * c1) * (a2/b2 * c2) = (a1*a2)/(b1*b2) * (c1*c2),
+  { intros a1 a2 b1 b2 c1 c2 h1 h2,
+    calc
+      (a1/b1 * c1) * (a2/b2 * c2) = ((a1/b1) * (a2/b2)) * (c1*c2) : by apply mul_mul_mul_comm
+      ... = (a1*a2)/(b1*b2) * (c1*c2) : by { congr' 1, exact div_mul_div_comm h1 h2 } },
+  simp only [totient_eq_div_factors_mul],
+  rw shuffle _ _,
+  rw shuffle _ _,
+  rotate, repeat { apply prod_prime_factors_dvd },
+  simp only [gcd_prod_double_counting],
+  rw [eq_comm, mul_comm, ←mul_assoc, ←nat.mul_div_assoc],
+  exact mul_dvd_mul (prod_prime_factors_dvd a) (prod_prime_factors_dvd b)
+end
+
 end nat

@@ -106,11 +106,8 @@ lemma one_smul [decidable_eq ι] [graded_algebra 𝓐]
   (1 : A) • b = b :=
 have of_congr : ∀ {i i' : ι} (h1 : i = i') {x : 𝓜 i} {y : 𝓜 i'} (h2 : x.1 = y.1),
   direct_sum.of _ i x = direct_sum.of _ i' y,
-begin
-  rintros i i' rfl x y h2,
-  congr,
-  rwa subtype.ext_iff_val
-end,
+from λ _ _ h1 x y h2,
+  direct_sum.of_congr _ h1 $ by subst h1; exact heq_of_eq (subtype.ext_iff_val.2 h2),
 have eq0 : direct_sum.decompose_add_equiv 𝓐 (1 : A) = direct_sum.of _ 0 _ :=
   direct_sum.decompose_coe 𝓐 (⟨1, set_like.graded_monoid.one_mem⟩ : 𝓐 0),
 suffices h : (scalar_hom 𝓐 𝓜).comp (direct_sum.decompose_add_equiv 𝓐).to_add_monoid_hom 1 b = b,
@@ -129,11 +126,8 @@ have m : ∀ x, x ∈ supr 𝓐,
 from λ x, (graded_algebra.is_internal 𝓐).submodule_supr_eq_top.symm ▸ submodule.mem_top,
 have of_congr : ∀ {i i' : ι} (h1 : i = i') {x : 𝓜 i} {y : 𝓜 i'} (h2 : x.1 = y.1),
   direct_sum.of _ i x = direct_sum.of _ i' y,
-begin
-  rintros i i' rfl x y h2,
-  congr,
-  rwa subtype.ext_iff_val
-end,
+from λ _ _ h1 x y h2,
+  direct_sum.of_congr _ h1 $ by subst h1; exact heq_of_eq (subtype.ext_iff_val.2 h2),
 begin
   unfold has_scalar.smul,
   induction c using direct_sum.induction_on with i c x y hx hy,

@@ -1070,7 +1070,7 @@ begin
   refine is_O_with.of_bound (h.bound.mp (h₀.mono $ λ x h₀ hle, _)),
   cases eq_or_ne (f x) 0 with hx hx,
   { simp only [hx, h₀ hx, inv_zero, norm_zero, mul_zero] },
-  { have hc : 0 < c, from pos_of_mul_pos_right ((norm_pos_iff.2 hx).trans_le hle) (norm_nonneg _),
+  { have hc : 0 < c, from pos_of_mul_pos_left ((norm_pos_iff.2 hx).trans_le hle) (norm_nonneg _),
     replace hle := inv_le_inv_of_le (norm_pos_iff.2 hx) hle,
     simpa only [norm_inv, mul_inv, ← div_eq_inv_mul, div_le_iff hc] using hle }
 end

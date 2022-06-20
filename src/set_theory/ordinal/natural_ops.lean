@@ -5,6 +5,7 @@ Authors: Violeta Hernández Palacios
 -/
 
 import set_theory.ordinal.arithmetic
+import tactic.abel
 
 /-!
 # Natural operations on ordinals
@@ -298,6 +299,9 @@ namespace ordinal
 
 local infix ` ♯ `:65 := nadd
 
+theorem nadd_eq_add (a b : ordinal) : a ♯ b = (a.to_nat_ordinal + b.to_nat_ordinal).to_ordinal :=
+rfl
+
 @[simp] theorem to_nat_ordinal_cast_nat (n : ℕ) : to_nat_ordinal n = n :=
 by { rw ←to_ordinal_cast_nat n, refl }
 
@@ -356,12 +360,14 @@ theorem nadd_right_comm : ∀ a b c, a ♯ b ♯ c = a ♯ c ♯ b :=
 
 variables {a b c d : ordinal.{u}}
 
-/-- Natural multiplication on ordinals `a ⨳ b` is recursively defined as the least ordinal such that
-`a ⨳ b + a' ⨳ b'` is greater than `a' ⨳ b + a ⨳ b'` for all `a' < a` and `b < b'`. In contrast to
-normal ordinal multiplication, it is commutative.
+/-- Natural multiplication on ordinals `a ⨳ b`, also known as the Hessenberg product, is recursively
+defined as the least ordinal such that `a ⨳ b + a' ⨳ b'` is greater than `a' ⨳ b + a ⨳ b'` for all
+`a' < a` and `b < b'`. In contrast to normal ordinal multiplication, it is commutative and
+distributive (over natural addition).
 
 Natural multiplication can equivalently be characterized as the ordinal resulting from multiplying
-the Cantor normal forms of `a` and `b` as if they were polynomials in `ω`. -/
+the Cantor normal forms of `a` and `b` as if they were polynomials in `ω`. Addition of exponents is
+done via natural addition. -/
 noncomputable def nmul : ordinal.{u} → ordinal.{u} → ordinal.{u}
 | a b := Inf {c | ∀ (a' < a) (b' < b), nmul a' b ♯ nmul a b' < c ♯ nmul a' b'}
 using_well_founded { dec_tac := `[solve_by_elim [psigma.lex.left, psigma.lex.right]] }
@@ -394,7 +400,7 @@ end
 theorem lt_nmul_iff : c < a ⨳ b ↔ ∃ (a' < a) (b' < b), c ♯ a' ⨳ b' ≤ a' ⨳ b ♯ a ⨳ b' :=
 begin
   refine ⟨λ h, _, _⟩,
-  { rw nmul_def at h,
+  { rw nmul at h,
     simpa using not_mem_of_lt_cInf h ⟨0, λ _ _, bot_le⟩ },
   { rintros ⟨a', ha, b', hb, h⟩,
     have := h.trans_lt (nmul_nadd_lt ha hb),
@@ -406,7 +412,7 @@ by { rw ←not_iff_not, simp [lt_nmul_iff] }
 
 theorem nmul_comm : ∀ (a b), a ⨳ b = b ⨳ a
 | a b := begin
-  rw [nmul_def, nmul_def],
+  rw [nmul, nmul],
   congr, ext x, split;
   intros H c hc d hd,
   { rw [nadd_comm, ←nmul_comm, ←nmul_comm a, ←nmul_comm d],
@@ -422,19 +428,17 @@ by { rw [←ordinal.le_zero, nmul_le_iff], exact λ  _ _ a ha, (ordinal.not_lt_z
 @[simp] theorem zero_nmul (a) : 0 ⨳ a = 0 :=
 by rw [nmul_comm, nmul_zero]
 
-@[simp] theorem nmul_one (a) : a ⨳ 1 = a :=
-begin
-  induction a using ordinal.induction with a IH,
-  apply le_antisymm,
-  { rw nmul_le_iff,
-    intros b hb c hc,
-    rw lt_one_iff_zero at hc,
-    subst hc,
-    simp [hb, IH b hb] },
-  { rw [nmul_def, le_cInf_iff'' (nmul_nonempty _ _)],
-    apply λ b H, le_of_forall_lt (λ c hc, _),
-    simpa [IH c hc] using H c hc 0 zero_lt_one }
+@[simp] theorem nmul_one : ∀ a, a ⨳ 1 = a
+| a := begin
+  rw nmul,
+  simp only [lt_one_iff_zero, forall_eq, nmul_zero, nadd_zero],
+  convert cInf_Ici,
+  ext b,
+  refine ⟨λ H, le_of_forall_lt (λ c hc, _), λ ha c hc, _⟩,
+  { simpa only [nmul_one] using H c hc },
+  { simpa only [nmul_one] using hc.trans_le ha }
 end
+using_well_founded { dec_tac := `[assumption] }
 
 @[simp] theorem one_nmul (a) : 1 ⨳ a = a :=
 by rw [nmul_comm, nmul_one]
@@ -500,20 +504,18 @@ theorem nmul_nadd_lt₃' {a' b' c' : ordinal} (ha : a' < a) (hb : b' < b) (hc : 
   a' ⨳ (b ⨳ c) ♯ a ⨳ (b' ⨳ c) ♯ a ⨳ (b ⨳ c') ♯ a' ⨳ (b' ⨳ c') <
   a ⨳ (b ⨳ c) ♯ a' ⨳ (b' ⨳ c) ♯ a' ⨳ (b ⨳ c') ♯ a ⨳ (b' ⨳ c') :=
 begin
-  have := nmul_nadd_lt ha (nmul_nadd_lt hb hc),
-  simp only [nmul_nadd, ←nadd_assoc] at this,
-  rwa [nadd_right_comm (a' ⨳ _), nadd_right_comm, nadd_right_comm (a ⨳ _),
-    nadd_right_comm _ (a ⨳ (b' ⨳ c'))] at this
+  simp only [nmul_comm _ (_ ⨳ _)],
+  convert nmul_nadd_lt₃ hb hc ha using 1;
+  { simp only [nadd_eq_add, to_ordinal_to_nat_ordinal], abel }
 end
 
 theorem nmul_nadd_le₃' {a' b' c' : ordinal} (ha : a' ≤ a) (hb : b' ≤ b) (hc : c' ≤ c) :
   a' ⨳ (b ⨳ c) ♯ a ⨳ (b' ⨳ c) ♯ a ⨳ (b ⨳ c') ♯ a' ⨳ (b' ⨳ c') ≤
   a ⨳ (b ⨳ c) ♯ a' ⨳ (b' ⨳ c) ♯ a' ⨳ (b ⨳ c') ♯ a ⨳ (b' ⨳ c') :=
 begin
-  have := nmul_nadd_le ha (nmul_nadd_le hb hc),
-  simp only [nmul_nadd, ←nadd_assoc] at this,
-  rwa [nadd_right_comm (a' ⨳ _), nadd_right_comm, nadd_right_comm (a ⨳ _),
-    nadd_right_comm _ (a ⨳ (b' ⨳ c'))] at this
+  simp only [nmul_comm _ (_ ⨳ _)],
+  convert nmul_nadd_le₃ hb hc ha using 1;
+  { simp only [nadd_eq_add, to_ordinal_to_nat_ordinal], abel }
 end
 
 theorem lt_nmul_iff₃ : d < a ⨳ b ⨳ c ↔ ∃ (a' < a) (b' < b) (c' < c),
@@ -529,7 +531,7 @@ begin
     rw [nadd_left_comm, nadd_left_comm d, nadd_left_comm, nadd_le_nadd_iff_left,
       nadd_left_comm (a ⨳ b' ⨳ c), nadd_left_comm (a' ⨳ b ⨳ c), nadd_left_comm (a ⨳ b ⨳ c'),
       nadd_le_nadd_iff_left, nadd_left_comm (a ⨳ b ⨳ c'), nadd_left_comm (a ⨳ b ⨳ c')] at this,
-    simpa [nadd_assoc] },
+    simpa only [nadd_assoc] },
   { rintro ⟨a', ha, b', hb, c', hc, h⟩,
     have := h.trans_lt (nmul_nadd_lt₃ ha hb hc),
     repeat { rwa nadd_lt_nadd_iff_right at this } }
@@ -544,20 +546,10 @@ theorem lt_nmul_iff₃' : d < a ⨳ (b ⨳ c) ↔ ∃ (a' < a) (b' < b) (c' < c)
   d ♯ a' ⨳ (b' ⨳ c) ♯ a' ⨳ (b ⨳ c') ♯ a ⨳ (b' ⨳ c') ≤
   a' ⨳ (b ⨳ c) ♯ a ⨳ (b' ⨳ c) ♯ a ⨳ (b ⨳ c') ♯ a' ⨳ (b' ⨳ c') :=
 begin
-  refine ⟨λ h, _, _⟩,
-  { rcases lt_nmul_iff.1 h with ⟨a', ha, e, he, H₁⟩,
-    rcases lt_nmul_iff.1 he with ⟨b', hb, c', hc, H₂⟩,
-    refine ⟨a', ha, b', hb, c', hc, _⟩,
-    have := nadd_le_nadd H₁ (nmul_nadd_le ha.le H₂),
-    simp only [nmul_nadd, nadd_assoc] at this,
-    rw [nadd_left_comm, nadd_left_comm (a' ⨳ (b ⨳ c)), nadd_left_comm (a ⨳ (b ⨳ c')),
-      nadd_left_comm (a ⨳ (b' ⨳ c)), nadd_left_comm (a' ⨳ (b ⨳ c)), nadd_left_comm (a ⨳ e),
-      nadd_le_nadd_iff_left, nadd_left_comm (a' ⨳ (b ⨳ c')), nadd_left_comm (a' ⨳ (b' ⨳ c)),
-      nadd_left_comm d, nadd_le_nadd_iff_left] at this,
-    simpa [nadd_assoc] },
-  { rintro ⟨a', ha, b', hb, c', hc, h⟩,
-    have := h.trans_lt (nmul_nadd_lt₃' ha hb hc),
-    repeat { rwa nadd_lt_nadd_iff_right at this } }
+  simp only [nmul_comm _ (_ ⨳ _), lt_nmul_iff₃, nadd_eq_add, to_ordinal_to_nat_ordinal],
+  split; rintro ⟨b', hb, c', hc, a', ha, h⟩,
+  { use [a', ha, b', hb, c', hc], convert h using 1; abel },
+  { use [c', hc, a', ha, b', hb], convert h using 1; abel }
 end
 
 theorem nmul_le_iff₃' : a ⨳ (b ⨳ c) ≤ d ↔ ∀ (a' < a) (b' < b) (c' < c),
@@ -598,7 +590,7 @@ instance : ordered_comm_semiring nat_ordinal :=
   one_mul := one_nmul,
   mul_one := nmul_one,
   mul_comm := nmul_comm,
-  zero_le_one := zero_le_one,
+  zero_le_one := @zero_le_one ordinal _ _ _ _,
   mul_lt_mul_of_pos_left := λ a b c, nmul_lt_nmul_of_pos_left,
   mul_lt_mul_of_pos_right := λ a b c, nmul_lt_nmul_of_pos_right,
   ..nat_ordinal.ordered_cancel_add_comm_monoid,
@@ -611,10 +603,13 @@ namespace ordinal
 local infix ` ♯ `:65 := nadd
 local infix ` ⨳ `:70 := nmul
 
-theorem nmul_nadd_one : ∀ a b, a ⨳ (b ♯ 1) = a ⨳ b ♯ a := @_root_.mul_add_one nat_ordinal _
-theorem nadd_one_nmul : ∀ a b, (a ♯ 1) ⨳ b = a ⨳ b ♯ b := @add_one_mul nat_ordinal _
-theorem nmul_succ (a b) : a ⨳ (succ b) = a ⨳ b ♯ a := by rw [←nadd_one, nmul_nadd_one]
-theorem succ_nmul (a b) : (succ a) ⨳ b = a ⨳ b ♯ b := by rw [←nadd_one, nadd_one_nmul]
+theorem nmul_eq_mul (a b : ordinal) : a ⨳ b = (a.to_nat_ordinal * b.to_nat_ordinal).to_ordinal :=
+rfl
+
+theorem nmul_nadd_one : ∀ a b, a ⨳ (b ♯ 1) = a ⨳ b ♯ a := @mul_add_one nat_ordinal _ _ _
+theorem nadd_one_nmul : ∀ a b, (a ♯ 1) ⨳ b = a ⨳ b ♯ b := @add_one_mul nat_ordinal _ _ _
+theorem nmul_succ (a b) : a ⨳ succ b = a ⨳ b ♯ a := by rw [←nadd_one, nmul_nadd_one]
+theorem succ_nmul (a b) : succ a ⨳ b = a ⨳ b ♯ b := by rw [←nadd_one, nadd_one_nmul]
 theorem nmul_add_one : ∀ a b, a ⨳ (b + 1) = a ⨳ b ♯ a := nmul_succ
 theorem add_one_nmul : ∀ a b, (a + 1) ⨳ b = a ⨳ b ♯ b := succ_nmul
 

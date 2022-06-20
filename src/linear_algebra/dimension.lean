@@ -720,7 +720,7 @@ lemma linear_independent_le_infinite_basis
   #κ ≤ #ι :=
 begin
   by_contradiction,
-  rw [not_le, ← cardinal.mk_finset_eq_mk ι] at h,
+  rw [not_le, ← cardinal.mk_finset_of_infinite ι] at h,
   let Φ := λ k : κ, (b.repr (v k)).support,
   obtain ⟨s, w : infinite ↥(Φ ⁻¹' {s})⟩ := cardinal.exists_infinite_fiber Φ h (by apply_instance),
   let v' := λ k : Φ ⁻¹' {s}, v k,
@@ -982,7 +982,7 @@ end
 lemma dim_span_of_finset (s : finset V) :
   module.rank K (span K (↑s : set V)) < ℵ₀ :=
 calc module.rank K (span K (↑s : set V)) ≤ #(↑s : set V) : dim_span_le ↑s
-                             ... = s.card : by rw [finset.coe_sort_coe, cardinal.mk_finset]
+                             ... = s.card : by rw [finset.coe_sort_coe, cardinal.mk_of_finset]
                              ... < ℵ₀ : cardinal.nat_lt_aleph_0 _
 
 theorem dim_prod : module.rank K (V × V₁) = module.rank K V + module.rank K V₁ :=

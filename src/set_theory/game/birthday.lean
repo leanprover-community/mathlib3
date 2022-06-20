@@ -27,7 +27,7 @@ universe u
 
 open ordinal
 
-open_locale natural_ops pgame
+open_locale pgame
 
 namespace pgame
 

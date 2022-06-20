@@ -39,7 +39,7 @@ local prefix `↑ₘ`:1024 := @coe _ (matrix (fin 2) (fin 2) _) _
 local notation `GL(` n `, ` R `)`⁺ := matrix.GL_pos (fin n) R
 
 /-- The open upper half plane -/
-@[derive [topological_space, λ α, has_coe α ℂ]]
+@[derive [λ α, has_coe α ℂ]]
 def upper_half_plane := {point : ℂ // 0 < point.im}
 
 localized "notation `ℍ` := upper_half_plane" in upper_half_plane

@@ -151,14 +151,14 @@ protected lemma has_basis_uniformity_of_basis {ι : Sort*} {p : ι → Prop} {s 
 protected def topological_space : topological_space (α → β) :=
 (uniform_convergence.uniform_space α β).to_topological_space
 
-protected lemma has_basis_nhds_of_basis {p : ι → Prop} {s : ι → set (β × β)}
+protected lemma has_basis_nhds_of_basis (f) {p : ι → Prop} {s : ι → set (β × β)}
   (h : has_basis (𝓤 β) p s) :
   (𝓝 f).has_basis p (λ i, {g | (g, f) ∈ uniform_convergence.gen α β (s i)}) :=
 nhds_basis_uniformity (uniform_convergence.has_basis_uniformity_of_basis α β h)
 
-protected lemma has_basis_nhds :
+protected lemma has_basis_nhds (f) :
   (𝓝 f).has_basis (λ V, V ∈ 𝓤 β) (λ V, {g | (g, f) ∈ uniform_convergence.gen α β V}) :=
-uniform_convergence.has_basis_nhds_of_basis  α β (filter.basis_sets _)
+uniform_convergence.has_basis_nhds_of_basis α β f (filter.basis_sets _)
 
 variables {α}
 
@@ -278,7 +278,7 @@ protected lemma tendsto_iff_tendsto_uniformly :
   tendsto_uniformly F f p :=
 begin
   letI : uniform_space (α → β) := uniform_convergence.uniform_space α β,
-  rw [(uniform_convergence.has_basis_nhds α β).tendsto_right_iff, tendsto_uniformly],
+  rw [(uniform_convergence.has_basis_nhds α β f).tendsto_right_iff, tendsto_uniformly],
   split;
   { intros h U hU,
     filter_upwards [h (prod.swap ⁻¹' U) (tendsto_swap_uniformity hU)],
@@ -333,11 +333,10 @@ end uniform_convergence
 
 namespace uniform_convergence_on
 
-variables {α β : Type*} {γ ι : Type*} [uniform_space β] (𝔖 : set (set α))
+variables {α β : Type*} {γ ι : Type*}
 variables {F : ι → α → β} {f : α → β} {s s' : set α} {x : α} {p : filter ι} {g : ι → α}
 
- local notation `restr` := λ s b, @set.restrict α (λ _, β) s
-
+/-- Basis sets for the uniformity of `𝔖`-convergence -/
 protected def gen (S : set α) (V : set (β × β)) : set ((α → β) × (α → β)) :=
   {uv : (α → β) × (α → β) | ∀ x ∈ S, (uv.1 x, uv.2 x) ∈ V}
 
@@ -353,14 +352,16 @@ protected lemma gen_mono {S S' : set α} {V V' : set (β × β)} (hS : S' ⊆ S)
   uniform_convergence_on.gen S V ⊆ uniform_convergence_on.gen S' V' :=
 λ uv h x hx, hV (h x $ hS hx)
 
-protected lemma is_basis_gen (h : 𝔖.nonempty) (h' : directed_on (⊆) 𝔖) :
-  is_basis (λ SV : set α × set (β × β), SV.1 ∈ 𝔖 ∧ SV.2 ∈ 𝓤 β)
+protected lemma is_basis_gen (𝔖 : set (set α)) (h : 𝔖.nonempty) (h' : directed_on (⊆) 𝔖)
+  (𝓑 : filter_basis $ β × β) :
+  is_basis (λ SV : set α × set (β × β), SV.1 ∈ 𝔖 ∧ SV.2 ∈ 𝓑)
     (λ SV, uniform_convergence_on.gen SV.1 SV.2) :=
-⟨⟨⟨h.some, univ⟩, ⟨h.some_spec, univ_mem⟩⟩, λ U₁V₁ U₂V₂ h₁ h₂,
-  let ⟨U₃, h₃, h₁₃, h₂₃⟩ := h' U₁V₁.1 h₁.1 U₂V₂.1 h₂.1 in ⟨⟨U₃, U₁V₁.2 ∩ U₂V₂.2⟩,
-  ⟨⟨h₃, inter_mem h₁.2 h₂.2⟩, λ uv huv, ⟨λ x hx, (huv x (h₁₃ hx)).1, λ x hx, (huv x (h₂₃ hx)).2⟩⟩⟩⟩
+⟨h.prod 𝓑.nonempty, λ U₁V₁ U₂V₂ h₁ h₂,
+  let ⟨U₃, hU₃, hU₁₃, hU₂₃⟩ := h' U₁V₁.1 h₁.1 U₂V₂.1 h₂.1 in
+  let ⟨V₃, hV₃, hV₁₂₃⟩ := 𝓑.inter_sets h₁.2 h₂.2 in ⟨⟨U₃, V₃⟩, ⟨⟨hU₃, hV₃⟩, λ uv huv,
+    ⟨(λ x hx, (hV₁₂₃ $ huv x $ hU₁₃ hx).1), (λ x hx, (hV₁₂₃ $ huv x $ hU₂₃ hx).2)⟩⟩⟩⟩
 
-variables (α β)
+variables (α β) [uniform_space β] (𝔖 : set (set α))
 
 /-- Uniform structure of uniform convergence on the sets of `𝔖`. -/
 protected def uniform_space : uniform_space (α → β) :=
@@ -405,13 +406,12 @@ protected lemma has_basis_uniformity_of_basis (h : 𝔖.nonempty) (h' : directed
     (λ Si, uniform_convergence_on.gen Si.1 (s Si.2)) :=
 begin
   simp only [infi_uniformity'],
-  exact has_basis_binfi_of_directed h (λ S, (@uniform_convergence_on.gen α β _ S) ∘ s) _
+  exact has_basis_binfi_of_directed h (λ S, (@uniform_convergence_on.gen α β S) ∘ s) _
     (λ S hS, has_basis_uniformity_of_basis_aux₁ α β hb S)
     (has_basis_uniformity_of_basis_aux₂ α β 𝔖 h' hb)
 end
 
-protected lemma has_basis_uniformity (h : 𝔖.nonempty) (h' : directed_on (⊆) 𝔖) {p : ι → Prop}
-  {s : ι → set (β × β)} (hb : has_basis (𝓤 β) p s) :
+protected lemma has_basis_uniformity (h : 𝔖.nonempty) (h' : directed_on (⊆) 𝔖) :
   (@uniformity (α → β) (uniform_convergence_on.uniform_space α β 𝔖)).has_basis
     (λ SV : set α × set (β × β), SV.1 ∈ 𝔖 ∧ SV.2 ∈ 𝓤 β)
     (λ SV, uniform_convergence_on.gen SV.1 SV.2) :=

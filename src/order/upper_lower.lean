@@ -401,9 +401,9 @@ namespace upper_set
 @[simp] lemma coe_of_dual (s : upper_set αᵒᵈ) :
   (s.of_dual : set α) = order_dual.to_dual ⁻¹' s := rfl
 
-@[simp] lemma mem_to_dual_iff {x : αᵒᵈ} {s : lower_set α} :
+@[simp] lemma mem_to_dual_iff {x : αᵒᵈ} {s : upper_set α} :
   x ∈ s.to_dual ↔ (of_dual x) ∈ s := iff.rfl
-@[simp] lemma mem_of_dual_iff {x : α} {s : lower_set αᵒᵈ} :
+@[simp] lemma mem_of_dual_iff {x : α} {s : upper_set αᵒᵈ} :
   x ∈ s.of_dual ↔ (to_dual x) ∈ s := iff.rfl
 
 @[simp] lemma to_dual_bot : (⊥ : upper_set α).to_dual = ⊥ := rfl

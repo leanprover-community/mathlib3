@@ -48,7 +48,7 @@ open  finset filter nat real
 
 namespace stirling
 
-/-- **Sum of products of consecutive reciprocals** -/
+/-- **Sum inverses of squares** -/
 lemma partial_sum_inverse_squares :
  ∃ c, ∀ n, ∑ k in range n, (1 : ℝ) / (k.succ)^2 ≤ c :=
 begin

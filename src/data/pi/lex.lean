@@ -44,24 +44,7 @@ basic API, just in case -/
 notation `Πₗ` binders `, ` r:(scoped p, lex (Π i, p i)) := r
 
 @[simp] lemma to_lex_apply (x : Π i, β i) (i : ι) : to_lex x i = x i := rfl
-@[simp] lemma of_lex_apply (x : Πₗ i, β i) (i : ι) : of_lex x i = x i := rfl
-
-lemma is_trichotomous_lex [∀ i, is_trichotomous (β i) s] (wf : well_founded r) :
-  is_trichotomous (Π i, β i) (pi.lex r @s) :=
-{ trichotomous := λ a b,
-    begin
-      cases eq_or_ne a b with hab hab,
-      { exact or.inr (or.inl hab) },
-      { rw function.ne_iff at hab,
-        let i := wf.min _ hab,
-        have hri : ∀ j, r j i → a j = b j,
-        { intro j, rw ← not_imp_not,
-          exact λ h', wf.not_lt_min _ _ h' },
-        have hne : a i ≠ b i, from wf.min_mem _ hab,
-        cases (trichotomous (a i) (b i) : s (a i) (b i) ∨ a i = b i ∨ s (b i) (a i)) with hi hi,
-        exacts [or.inl ⟨i, hri, hi⟩,
-          or.inr $ or.inr $ ⟨i, λ j hj, (hri j hj).symm, hi.resolve_left hne⟩] },
-    end }
+@[simp] lemma of_lex_apply (x : lex (Π i, β i)) (i : ι) : of_lex x i = x i := rfl
 
 lemma is_trichotomous_lex [∀ i, is_trichotomous (β i) s] (wf : well_founded r) :
   is_trichotomous (Π i, β i) (pi.lex r @s) :=
@@ -83,7 +66,7 @@ lemma is_trichotomous_lex [∀ i, is_trichotomous (β i) s] (wf : well_founded r
 instance [has_lt ι] [Π a, has_lt (β a)] : has_lt (lex (Π i, β i)) := ⟨pi.lex (<) (λ _, (<))⟩
 
 instance lex.is_strict_order [linear_order ι] [∀ a, partial_order (β a)] :
-  is_strict_order (Πₗ i, β i) (<) :=
+  is_strict_order (lex (Π i, β i)) (<) :=
 { irrefl := λ a ⟨k, hk₁, hk₂⟩, lt_irrefl (a k) hk₂,
   trans :=
     begin
@@ -94,7 +77,7 @@ instance lex.is_strict_order [linear_order ι] [∀ a, partial_order (β a)] :
         ⟨N₂, λ j hj, (lt_N₁ _ (hj.trans H)).trans (lt_N₂ _ hj), (lt_N₁ _ H).symm ▸ b_lt_c⟩]
     end }
 
-instance [linear_order ι] [Π a, partial_order (β a)] : partial_order (Πₗ i, β i) :=
+instance [linear_order ι] [Π a, partial_order (β a)] : partial_order (lex (Π i, β i)) :=
 partial_order_of_SO (<)
 
 /-- `Πₗ i, α i` is a linear order if the original order is well-founded. -/
@@ -132,7 +115,7 @@ instance [linear_order ι] [is_well_order ι (<)] [Π a, linear_order (β a)]
 --we might want the analog of `pi.ordered_cancel_comm_monoid` as well in the future
 @[to_additive]
 instance lex.ordered_comm_group [linear_order ι] [∀ a, ordered_comm_group (β a)] :
-  ordered_comm_group (Πₗ i, β i) :=
+  ordered_comm_group (lex (Π i, β i)) :=
 { mul_le_mul_left := λ x y hxy z,
     hxy.elim
       (λ hxyz, hxyz ▸ le_rfl)

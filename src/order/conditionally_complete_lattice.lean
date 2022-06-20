@@ -133,7 +133,7 @@ section
 open_locale classical
 
 /-- A well founded linear order is conditionally complete, with a bottom element. -/
-@[reducible] noncomputable def well_founded.conditionally_complete_linear_order_bot
+@[reducible] noncomputable def is_well_order.conditionally_complete_linear_order_bot
   (α : Type*) [i₁ : linear_order α] [i₂ : order_bot α] [h : is_well_order α (<)] :
   conditionally_complete_linear_order_bot α :=
 { Inf := λ s, if hs : s.nonempty then h.wf.min s hs else ⊥,

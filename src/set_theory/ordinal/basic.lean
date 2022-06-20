@@ -1192,7 +1192,7 @@ by rw e; exact lift_le.2 (le_min.2 $ λ j, lift_le.1 $
 by have := min_le (lift ∘ f) j; rwa e at this)
 
 instance : conditionally_complete_linear_order_bot ordinal :=
-well_founded.conditionally_complete_linear_order_bot _
+is_well_order.conditionally_complete_linear_order_bot _
 
 @[simp] lemma bot_eq_zero : (⊥ : ordinal) = 0 := rfl
 

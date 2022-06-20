@@ -372,7 +372,7 @@ noncomputable def nmul : ordinal.{u} → ordinal.{u} → ordinal.{u}
 | a b := Inf {c | ∀ (a' < a) (b' < b), nmul a' b ♯ nmul a b' < c ♯ nmul a' b'}
 using_well_founded { dec_tac := `[solve_by_elim [psigma.lex.left, psigma.lex.right]] }
 
-local infix ` ⨳ `:70 := nmul
+localized "infix ` ⨳ `:70 := ordinal.nmul" in natural_ops
 
 theorem nmul_def (a b : ordinal) :
   a ⨳ b = Inf {c | ∀ (a' < a) (b' < b), a' ⨳ b ♯ a ⨳ b' < c ♯ a' ⨳ b'} :=
@@ -598,10 +598,9 @@ instance : ordered_comm_semiring nat_ordinal :=
 
 end nat_ordinal
 
-namespace ordinal
+open_locale natural_ops
 
-local infix ` ♯ `:65 := nadd
-local infix ` ⨳ `:70 := nmul
+namespace ordinal
 
 theorem nmul_eq_mul (a b : ordinal) : a ⨳ b = (a.to_nat_ordinal * b.to_nat_ordinal).to_ordinal :=
 rfl

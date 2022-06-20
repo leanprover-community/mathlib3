@@ -21,7 +21,7 @@ open finset
 
 namespace polynomial
 universes u v w z
-variables {R : Type u} {S : Type v} {T : Type w} {A : Type z} {a b : R} {n : ℕ}
+variables {R : Type u} {S : Type v} {T : Type w} {a b : R} {n : ℕ}
 
 section comm_ring
 variables [comm_ring R] {p q : R[X]}
@@ -470,9 +470,9 @@ calc ((roots ((X : R[X]) ^ n - C a)).card : with_bot ℕ)
 
 section
 
-variables {K L : Type*} [comm_ring K] [comm_ring L]
+variables {A B : Type*} [comm_ring A] [comm_ring B]
 
-lemma le_root_multiplicity_map {p : K[X]} {f : K →+* L} (hmap : map f p ≠ 0) (a : K) :
+lemma le_root_multiplicity_map {p : A[X]} {f : A →+* B} (hmap : map f p ≠ 0) (a : A) :
   root_multiplicity a p ≤ root_multiplicity (f a) (map f p) :=
 begin
   have hp0 : p ≠ 0 := λ h, hmap (h.symm ▸ polynomial.map_zero f),
@@ -483,8 +483,8 @@ begin
   simpa only [coe_map_ring_hom, map_pow, map_sub, map_X, map_C],
 end
 
-lemma eq_root_multiplicity_map {p : K[X]} {f : K →+* L} (hf : function.injective f)
-  (a : K) : root_multiplicity a p = root_multiplicity (f a) (map f p) :=
+lemma eq_root_multiplicity_map {p : A[X]} {f : A →+* B} (hf : function.injective f)
+  (a : A) : root_multiplicity a p = root_multiplicity (f a) (map f p) :=
 begin
   by_cases hp0 : p = 0, { simp only [hp0, root_multiplicity_zero, polynomial.map_zero], },
   have hmap : map f p ≠ 0, { simpa only [polynomial.map_zero] using (map_injective f hf).ne hp0, },
@@ -496,8 +496,8 @@ begin
   simp only [polynomial.map_pow, polynomial.map_sub, map_pow, map_sub, map_X, map_C],
 end
 
-lemma count_map_roots [is_domain K] {p : K[X]} {f : K →+* L} (hf : function.injective f)
-  (a : L) : count a (multiset.map f p.roots) ≤ root_multiplicity a (map f p) :=
+lemma count_map_roots [is_domain A] {p : A[X]} {f : A →+* B} (hf : function.injective f)
+  (a : B) : count a (multiset.map f p.roots) ≤ root_multiplicity a (map f p) :=
 begin
   by_cases h : ∃ t, f t = a,
   { rcases h with ⟨h_w, rfl⟩,
@@ -510,8 +510,8 @@ begin
     exact h ⟨k, rfl⟩, },
 end
 
-lemma roots_map_of_injective_card_eq_total_degree [is_domain K] [is_domain L] {p : K[X]}
-  {f : K →+* L} (hf : function.injective f) (hroots : p.roots.card = p.nat_degree) :
+lemma roots_map_of_injective_card_eq_total_degree [is_domain A] [is_domain B] {p : A[X]}
+  {f : A →+* B} (hf : function.injective f) (hroots : p.roots.card = p.nat_degree) :
   multiset.map f p.roots = (map f p).roots :=
 begin
   by_cases hp0 : p = 0, { simp only [hp0, roots_zero, multiset.map_zero, polynomial.map_zero], },

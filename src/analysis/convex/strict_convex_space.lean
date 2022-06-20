@@ -378,7 +378,7 @@ noncomputable def affine_isometry_of_strict_convex_space {f : PF → PE} (hi : i
   ⇑(hi.affine_isometry_of_strict_convex_space) = f :=
 rfl
 
-lemma affine_isometry_of_strict_convex_space_apply {f : PF → PE} (hi : isometry f)
+@[simp] lemma affine_isometry_of_strict_convex_space_apply {f : PF → PE} (hi : isometry f)
   (p : PF) :
   hi.affine_isometry_of_strict_convex_space p = f p :=
 rfl

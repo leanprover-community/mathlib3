@@ -3,9 +3,9 @@ Copyright (c) 2018 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Johannes Hölzl
 -/
+import algebra.algebra.basic
 import topology.algebra.group_completion
 import topology.algebra.ring
-import algebra.algebra.basic
 
 /-!
 # Completion of topological rings:
@@ -151,33 +151,45 @@ instance : comm_ring (completion R) :=
       (assume a b, by rw [← coe_mul, ← coe_mul, mul_comm]),
  ..completion.ring }
 
-instance ring_completion.algebra : algebra R (completion R) :=
+namespace ring_completion
+
+instance : algebra R (completion R) :=
 (uniform_space.completion.coe_ring_hom : R →+* (completion R)).to_algebra
 
-lemma ring_completion.algebra_smul_eq (r : R) (x : (completion R)) :
+lemma algebra_smul_eq (r : R) (x : (completion R)) :
   r • x = (r : completion R) * x :=
 rfl
 
 section algebra
-variables (S : Type*) [comm_ring S] [algebra S R]
+variables (S : Type*) [comm_semiring S] [algebra S R]
 
-instance ring_completion.algebra' : algebra S (completion R) :=
+instance algebra' : algebra S (completion R) :=
 ((uniform_space.completion.coe_ring_hom : R →+* completion R).comp (algebra_map S R)).to_algebra
 
-@[simp] lemma ring_completion.algebra'_smul_eq (s : S) (x : completion R) :
+@[simp] lemma algebra'_smul_eq (s : S) (x : completion R) :
   s • x = (algebra_map S R s : completion R) * x :=
 rfl
 
-instance ring_completion.is_scalar_tower : is_scalar_tower S R (completion R) :=
+lemma coe_algebra_map (s : S) :
+  (algebra_map S R s : completion R) = algebra_map S (completion R) s :=
+rfl
+
+lemma coe_smul  (s : S) (r : R) :
+  ((s • r : R) : completion R) = (s • r : completion R) :=
+by rw [algebra'_smul_eq, ← coe_mul, algebra.smul_def]
+
+instance is_scalar_tower : is_scalar_tower S R (completion R) :=
 ⟨λ r k x,
 begin
   simp only [←mul_assoc, algebra.smul_def, map_mul],
   congr,
 end⟩
+
 end algebra
 
-end uniform_space.completion
+end ring_completion
 
+end uniform_space.completion
 
 namespace uniform_space
 variables {α : Type*}

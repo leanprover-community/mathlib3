@@ -777,16 +777,6 @@ lemma has_basis.coprod {ι ι' : Type*} {pa : ι → Prop} {sa : ι → set α} 
 
 end two_types
 
-open equiv
-
-lemma prod_assoc (f : filter α) (g : filter β) (h : filter γ) :
-  map (prod_assoc α β γ) ((f ×ᶠ g) ×ᶠ h) = f ×ᶠ (g ×ᶠ h) :=
-begin
-  apply ((((basis_sets f).prod $ basis_sets g).prod $ basis_sets h).map _).eq_of_same_basis,
-  simpa only [prod_assoc_image, function.comp, and_assoc] using
-    ((basis_sets f).prod $ (basis_sets g).prod $ basis_sets h).comp_equiv (prod_assoc _ _ _)
-end
-
 end filter
 
 end sort

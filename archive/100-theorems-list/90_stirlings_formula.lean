@@ -73,8 +73,9 @@ end
 
 /-- **Sum of products of consecutive reciprocals** -/
 lemma partial_sum_consecutive_reciprocals :
- ∀ n, ∑ k in range n, (1 : ℚ) / (k.succ * (k.succ.succ)) ≤ 1 :=
+ ∃ c, ∀ n, ∑ k in range n, (1 : ℚ) / (k.succ * (k.succ.succ)) ≤ c :=
 begin
+  use 1,
   intro n,
   rw [← (mul_le_mul_left (zero_lt_two)), mul_sum], swap, { exact rat.nontrivial },
   { have h : ∀ (k : ℕ), k ∈ (range n) →
@@ -309,7 +310,9 @@ end
 lemma log_stirling_seq_bounded_aux : ∃ (c : ℝ), ∀ (n : ℕ),
 log_stirling_seq 1 - log_stirling_seq n.succ ≤ c :=
 begin
-  use (1/4 : ℝ),
+  have h := partial_sum_consecutive_reciprocals,
+  cases h with d h,
+  use (1/4 * d : ℝ),
   let log_stirling_seq' : (ℕ → ℝ) := λ (k : ℕ), log_stirling_seq k.succ,
   intro n,
   calc
@@ -333,16 +336,14 @@ begin
       refine sum_congr rfl (λ k, λ hk, hi k),
     end
     ... = 1 / 4 * ∑ k in range n, 1 / (k.succ * k.succ.succ) : by rw mul_sum
-    ... ≤ 1 / 4 * 1 :
+    ... ≤ 1 / 4 * d :
     begin
       refine (mul_le_mul_left _).mpr _,
       { exact div_pos one_pos four_pos },
-      { convert rat.cast_le.mpr (partial_sum_consecutive_reciprocals n),
+      { convert rat.cast_le.mpr (h n),
         rw rat_cast_sum,
-        push_cast,
-        exact rat.cast_one.symm },
-    end
-    ... = 1 / 4 : by rw mul_one,
+        push_cast, },
+    end,
 end
 
 /-- The sequence `log_stirling_seq` is bounded below for `n ≥ 1`. -/

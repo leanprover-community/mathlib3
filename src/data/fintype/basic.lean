@@ -1323,8 +1323,8 @@ set on a finite type are finite.) -/
 @[simps] noncomputable def equiv_set_on_fintype [fintype α] : finset α ≃ set α :=
 { to_fun := coe,
   inv_fun := by classical; exact λ s, s.to_finset,
-  left_inv := λ A, by { ext, rw [set.mem_to_finset, finset.mem_coe] },
-  right_inv := λ A, by rw [set.coe_to_finset] }
+  left_inv := λ s, by { ext, rw [set.mem_to_finset, finset.mem_coe] },
+  right_inv := λ s, by rw set.coe_to_finset }
 
 lemma card_lt_of_surjective_not_injective [fintype α] [fintype β] (f : α → β)
   (h : function.surjective f) (h' : ¬function.injective f) : card β < card α :=

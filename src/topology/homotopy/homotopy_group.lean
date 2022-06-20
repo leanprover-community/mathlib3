@@ -4,9 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Roberto Alvarez
 -/
 
-import topology.homotopy.basic
-import topology.path_connected
-import topology.unit_interval
 import algebraic_topology.fundamental_groupoid.fundamental_group
 
 /-!
@@ -72,7 +69,7 @@ The projection to the last `n` coordinates from an `n+1` dimensional cube.
 instance unique_cube0 : unique (I^0) := pi.unique_of_is_empty _
 
 lemma one_char (f : I^1) : f = λ _, f 0 :=
-by { ext, rwa (subsingleton.elim x 0) }
+by { ext, rwa subsingleton.elim x 0 }
 
 end cube
 

@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Bryan Gin-ge Chen
 -/
 import order.bounded_order
+import order.involution_lattice
+
 /-!
 # (Generalized) Boolean algebras
 
@@ -580,14 +582,6 @@ end generalized_boolean_algebra
 ### Boolean algebras
 -/
 
-
-/-- Set / lattice complement -/
-@[notation_class] class has_compl (α : Type*) := (compl : α → α)
-
-export has_compl (compl)
-
-postfix `ᶜ`:(max+1) := compl
-
 /-- This class contains the core axioms of a Boolean algebra. The `boolean_algebra` class extends
 both this class and `generalized_boolean_algebra`, see Note [forgetful inheritance].
 
@@ -637,76 +631,20 @@ theorem eq_compl_iff_is_compl : x = yᶜ ↔ is_compl x y :=
 theorem compl_eq_iff_is_compl : xᶜ = y ↔ is_compl x y :=
 ⟨λ h, by { rw ←h, exact is_compl_compl }, is_compl.compl_eq⟩
 
-theorem compl_eq_comm : xᶜ = y ↔ yᶜ = x :=
-by rw [eq_comm, compl_eq_iff_is_compl, eq_compl_iff_is_compl]
-
-theorem eq_compl_comm : x = yᶜ ↔ y = xᶜ :=
-by rw [eq_comm, compl_eq_iff_is_compl, eq_compl_iff_is_compl]
-
 theorem disjoint_compl_right : disjoint x xᶜ := is_compl_compl.disjoint
 theorem disjoint_compl_left : disjoint xᶜ x := disjoint_compl_right.symm
+
+@[priority 100]
+instance boolean_algebra.core.to_involution_lattice : involution_lattice α :=
+{ compl := compl,
+  compl_antitone' := λ _ _, is_compl_compl.antitone is_compl_compl,
+  compl_involutive' := λ x, is_compl_compl.symm.compl_eq }
 
 theorem compl_unique (i : x ⊓ y = ⊥) (s : x ⊔ y = ⊤) : xᶜ = y :=
 (is_compl.of_eq i s).compl_eq
 
-@[simp] theorem compl_top : ⊤ᶜ = (⊥:α) :=
-is_compl_top_bot.compl_eq
-
-@[simp] theorem compl_bot : ⊥ᶜ = (⊤:α) :=
-is_compl_bot_top.compl_eq
-
-@[simp] theorem compl_compl (x : α) : xᶜᶜ = x :=
-is_compl_compl.symm.compl_eq
-
-theorem compl_comp_compl : compl ∘ compl = @id α := funext compl_compl
-
-@[simp] theorem compl_involutive : function.involutive (compl : α → α) := compl_compl
-
-theorem compl_bijective : function.bijective (compl : α → α) :=
-compl_involutive.bijective
-
-theorem compl_surjective : function.surjective (compl : α → α) :=
-compl_involutive.surjective
-
-theorem compl_injective : function.injective (compl : α → α) :=
-compl_involutive.injective
-
-@[simp] theorem compl_inj_iff : xᶜ = yᶜ ↔ x = y :=
-compl_injective.eq_iff
-
 theorem is_compl.compl_eq_iff (h : is_compl x y) : zᶜ = y ↔ z = x :=
-h.compl_eq ▸ compl_inj_iff
-
-@[simp] theorem compl_eq_top : xᶜ = ⊤ ↔ x = ⊥ :=
-is_compl_bot_top.compl_eq_iff
-
-@[simp] theorem compl_eq_bot : xᶜ = ⊥ ↔ x = ⊤ :=
-is_compl_top_bot.compl_eq_iff
-
-@[simp] theorem compl_inf : (x ⊓ y)ᶜ = xᶜ ⊔ yᶜ :=
-(is_compl_compl.inf_sup is_compl_compl).compl_eq
-
-@[simp] theorem compl_sup : (x ⊔ y)ᶜ = xᶜ ⊓ yᶜ :=
-(is_compl_compl.sup_inf is_compl_compl).compl_eq
-
-theorem compl_le_compl (h : y ≤ x) : xᶜ ≤ yᶜ :=
-is_compl_compl.antitone is_compl_compl h
-
-@[simp] theorem compl_le_compl_iff_le : yᶜ ≤ xᶜ ↔ x ≤ y :=
-⟨assume h, by have h := compl_le_compl h; simp at h; assumption,
-  compl_le_compl⟩
-
-theorem le_compl_of_le_compl (h : y ≤ xᶜ) : x ≤ yᶜ :=
-by simpa only [compl_compl] using compl_le_compl h
-
-theorem compl_le_of_compl_le (h : yᶜ ≤ x) : xᶜ ≤ y :=
-by simpa only [compl_compl] using compl_le_compl h
-
-theorem le_compl_iff_le_compl : y ≤ xᶜ ↔ x ≤ yᶜ :=
-⟨le_compl_of_le_compl, le_compl_of_le_compl⟩
-
-theorem compl_le_iff_compl_le : xᶜ ≤ y ↔ yᶜ ≤ x :=
-⟨compl_le_of_compl_le, compl_le_of_compl_le⟩
+h.compl_eq ▸ compl_inj
 
 theorem disjoint_iff_le_compl_right : disjoint x y ↔ x ≤ yᶜ :=
 by {rw is_compl.disjoint_left_iff is_compl_compl}
@@ -782,9 +720,6 @@ boolean_algebra.of_core
   top_le_sup_compl := λ _, inf_compl_eq_bot.ge,
   ..order_dual.distrib_lattice α, ..order_dual.bounded_order α }
 
-@[simp] lemma of_dual_compl (a : αᵒᵈ) : of_dual aᶜ = (of_dual a)ᶜ := rfl
-@[simp] lemma to_dual_compl (a : α) : to_dual aᶜ = (to_dual a)ᶜ := rfl
-
 theorem sdiff_eq : x \ y = x ⊓ yᶜ := boolean_algebra.sdiff_eq x y
 
 @[simp] theorem sdiff_compl : x \ yᶜ = x ⊓ y := by rw [sdiff_eq, compl_compl]
@@ -808,30 +743,8 @@ boolean_algebra.of_core
   .. Prop.distrib_lattice,
   .. Prop.bounded_order }
 
-instance pi.has_sdiff {ι : Type u} {α : ι → Type v} [∀ i, has_sdiff (α i)] :
-  has_sdiff (Π i, α i) :=
-⟨λ x y i, x i \ y i⟩
-
-lemma pi.sdiff_def {ι : Type u} {α : ι → Type v} [∀ i, has_sdiff (α i)] (x y : Π i, α i) :
-  (x \ y) = λ i, x i \ y i := rfl
-
-@[simp]
-lemma pi.sdiff_apply {ι : Type u} {α : ι → Type v} [∀ i, has_sdiff (α i)] (x y : Π i, α i) (i : ι) :
-  (x \ y) i = x i \ y i := rfl
-
-instance pi.has_compl {ι : Type u} {α : ι → Type v} [∀ i, has_compl (α i)] :
-  has_compl (Π i, α i) :=
-⟨λ x i, (x i)ᶜ⟩
-
-lemma pi.compl_def {ι : Type u} {α : ι → Type v} [∀ i, has_compl (α i)] (x : Π i, α i) :
-  xᶜ = λ i, (x i)ᶜ := rfl
-
 instance is_irrefl.compl (r) [is_irrefl α r] : is_refl α rᶜ := ⟨@irrefl α r _⟩
 instance is_refl.compl (r) [is_refl α r] : is_irrefl α rᶜ := ⟨λ a, not_not_intro (refl a)⟩
-
-@[simp]
-lemma pi.compl_apply {ι : Type u} {α : ι → Type v} [∀ i, has_compl (α i)] (x : Π i, α i) (i : ι)  :
-  xᶜ i = (x i)ᶜ := rfl
 
 instance pi.boolean_algebra {ι : Type u} {α : ι → Type v} [∀ i, boolean_algebra (α i)] :
   boolean_algebra (Π i, α i) :=

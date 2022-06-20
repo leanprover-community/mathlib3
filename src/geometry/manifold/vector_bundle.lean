@@ -47,7 +47,7 @@ open smooth_vector_bundle
 
 namespace smooth_vector_bundle.trivialization
 
-variables {𝕜 I I' F E } (e : trivialization I I' F E) {x : total_space E} {b : B} {y : E b}
+variables {𝕜 I I' F E} (e : trivialization I I' F E) {x : total_space E} {b : B} {y : E b}
 
 /-- Natural identification as a `trivialization` of a topological vector bundle. -/
 def to_topological : topological_vector_bundle.trivialization 𝕜 F E :=
@@ -225,7 +225,7 @@ namespace smooth_vector_bundle
   z ∈ (trivialization_at I I' F E z.1).source :=
 by { rw smooth_fiber_bundle.trivialization.mem_source, apply mem_base_set_trivialization_at }
 
-variables {𝕜 F E}
+variables {𝕜 I I' F E}
 
 -- dangerous as instance
 def to_topological : topological_vector_bundle 𝕜 F E :=

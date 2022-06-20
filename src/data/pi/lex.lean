@@ -63,6 +63,23 @@ lemma is_trichotomous_lex [∀ i, is_trichotomous (β i) s] (wf : well_founded r
           or.inr $ or.inr $ ⟨i, λ j hj, (hri j hj).symm, hi.resolve_left hne⟩] },
     end }
 
+lemma is_trichotomous_lex [∀ i, is_trichotomous (β i) s] (wf : well_founded r) :
+  is_trichotomous (Π i, β i) (pi.lex r @s) :=
+{ trichotomous := λ a b,
+    begin
+      cases eq_or_ne a b with hab hab,
+      { exact or.inr (or.inl hab) },
+      { rw function.ne_iff at hab,
+        let i := wf.min _ hab,
+        have hri : ∀ j, r j i → a j = b j,
+        { intro j, rw ← not_imp_not,
+          exact λ h', wf.not_lt_min _ _ h' },
+        have hne : a i ≠ b i, from wf.min_mem _ hab,
+        cases trichotomous_of s (a i) (b i) with hi hi,
+        exacts [or.inl ⟨i, hri, hi⟩,
+          or.inr $ or.inr $ ⟨i, λ j hj, (hri j hj).symm, hi.resolve_left hne⟩] },
+    end }
+
 instance [has_lt ι] [Π a, has_lt (β a)] : has_lt (lex (Π i, β i)) := ⟨pi.lex (<) (λ _, (<))⟩
 
 instance lex.is_strict_order [linear_order ι] [∀ a, partial_order (β a)] :

@@ -85,39 +85,7 @@ mk_Iio_eq_continuum a
 
 /-- The cardinality of the interval (-∞, a]. -/
 lemma mk_Iic_real (a : ℝ) : #(Iic a) = 𝔠 :=
-<<<<<<< HEAD
 mk_Iic_eq_continuum a
-||||||| e68fcf8ded
-le_antisymm (mk_real ▸ mk_set_le _) (mk_Iio_real a ▸ mk_le_mk_of_subset Iio_subset_Iic_self)
-
-/-- The cardinality of the interval (a, b). -/
-lemma mk_Ioo_real {a b : ℝ} (h : a < b) : #(Ioo a b) = 𝔠 :=
-begin
-  refine le_antisymm (mk_real ▸ mk_set_le _) _,
-  have h1 : #((λ x, x - a) '' Ioo a b) ≤ #(Ioo a b) := mk_image_le,
-  refine le_trans _ h1,
-  rw [image_sub_const_Ioo, sub_self],
-  replace h := sub_pos_of_lt h,
-  have h2 : #(has_inv.inv '' Ioo 0 (b - a)) ≤ #(Ioo 0 (b - a)) := mk_image_le,
-  refine le_trans _ h2,
-  rw [image_inv_Ioo_0_left h, mk_Ioi_real]
-end
-=======
-le_antisymm (mk_real ▸ mk_set_le _) (mk_Iio_real a ▸ mk_le_mk_of_subset Iio_subset_Iic_self)
-
-/-- The cardinality of the interval (a, b). -/
-lemma mk_Ioo_real {a b : ℝ} (h : a < b) : #(Ioo a b) = 𝔠 :=
-begin
-  refine le_antisymm (mk_real ▸ mk_set_le _) _,
-  have h1 : #((λ x, x - a) '' Ioo a b) ≤ #(Ioo a b) := mk_image_le,
-  refine le_trans _ h1,
-  rw [image_sub_const_Ioo, sub_self],
-  replace h := sub_pos_of_lt h,
-  have h2 : #(has_inv.inv '' Ioo 0 (b - a)) ≤ #(Ioo 0 (b - a)) := mk_image_le,
-  refine le_trans _ h2,
-  rw [image_inv, inv_Ioo_0_left h, mk_Ioi_real]
-end
->>>>>>> master
 
 /-- The cardinality of the interval [a, b). -/
 lemma mk_Ico_real {a b : ℝ} (h : a < b) : #(Ico a b) = 𝔠 :=

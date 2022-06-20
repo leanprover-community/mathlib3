@@ -10,9 +10,9 @@ import set_theory.cardinal.ordinal
 # Cardinality of W-types
 
 This file proves some theorems about the cardinality of W-types. The main result is
-`cardinal_mk_le_max_omega_of_fintype` which says that if for any `a : α`,
+`cardinal_mk_le_max_aleph_0_of_fintype` which says that if for any `a : α`,
 `β a` is finite, then the cardinality of `W_type β` is at most the maximum of the
-cardinality of `α` and `cardinal.omega`.
+cardinality of `α` and `ℵ₀`.
 This can be used to prove theorems about the cardinality of algebraic constructions such as
 polynomials. There is a surjection from a `W_type` to `mv_polynomial` for example, and
 this surjection can be used to put an upper bound on the cardinality of `mv_polynomial`.
@@ -50,8 +50,8 @@ begin
 end
 
 /-- If, for any `a : α`, `β a` is finite, then the cardinality of `W_type β`
-  is at most the maximum of the cardinality of `α` and `ω`  -/
-lemma cardinal_mk_le_max_omega_of_fintype [Π a, fintype (β a)] : #(W_type β) ≤ max (#α) ω :=
+  is at most the maximum of the cardinality of `α` and `ℵ₀`  -/
+lemma cardinal_mk_le_max_aleph_0_of_fintype [Π a, fintype (β a)] : #(W_type β) ≤ max (#α) ℵ₀ :=
 (is_empty_or_nonempty α).elim
   (begin
     introI h,
@@ -59,7 +59,7 @@ lemma cardinal_mk_le_max_omega_of_fintype [Π a, fintype (β a)] : #(W_type β) 
     exact zero_le _
   end) $
 λ hn,
-let m := max (#α) ω in
+let m := max (#α) ℵ₀ in
 cardinal_mk_le_of_le $
 calc cardinal.sum (λ a : α, m ^ #(β a))
     ≤ #α * cardinal.sup.{u u}
@@ -70,7 +70,7 @@ calc cardinal.sum (λ a : α, m ^ #(β a))
   mul_le_mul' (le_max_left _ _) le_rfl
 ... = m : mul_eq_left.{u} (le_max_right _ _)
   (cardinal.sup_le (λ i, begin
-    cases lt_omega.1 (lt_omega_of_fintype (β i)) with n hn,
+    cases lt_aleph_0.1 (lt_aleph_0_of_fintype (β i)) with n hn,
     rw [hn],
     exact power_nat_le (le_max_right _ _)
   end))
@@ -81,7 +81,7 @@ calc cardinal.sum (λ a : α, m ^ #(β a))
       refine le_trans _ (le_sup _ a),
       rw [← @power_zero m],
       exact power_le_power_left (pos_iff_ne_zero.1
-        (lt_of_lt_of_le omega_pos (le_max_right _ _))) (zero_le _)
+        (lt_of_lt_of_le aleph_0_pos (le_max_right _ _))) (zero_le _)
     end))
 
 end W_type

@@ -367,10 +367,7 @@ has_fderiv_within_at_inter h
 lemma has_deriv_within_at.union (hs : has_deriv_within_at f f' s x)
   (ht : has_deriv_within_at f f' t x) :
   has_deriv_within_at f f' (s ∪ t) x :=
-begin
-  simp only [has_deriv_within_at, nhds_within_union],
-  exact hs.join ht,
-end
+hs.has_fderiv_within_at.union ht.has_fderiv_within_at
 
 lemma has_deriv_within_at.nhds_within (h : has_deriv_within_at f f' s x)
   (ht : s ∈ 𝓝[t] x) : has_deriv_within_at f f' t x :=
@@ -813,6 +810,14 @@ lemma deriv_within_smul (hxs : unique_diff_within_at 𝕜 s x)
 lemma deriv_smul (hc : differentiable_at 𝕜 c x) (hf : differentiable_at 𝕜 f x) :
   deriv (λ y, c y • f y) x = c x • deriv f x + (deriv c x) • f x :=
 (hc.has_deriv_at.smul hf.has_deriv_at).deriv
+
+theorem has_strict_deriv_at.smul_const
+  (hc : has_strict_deriv_at c c' x) (f : F) :
+  has_strict_deriv_at (λ y, c y • f) (c' • f) x :=
+begin
+  have := hc.smul (has_strict_deriv_at_const x f),
+  rwa [smul_zero, zero_add] at this,
+end
 
 theorem has_deriv_within_at.smul_const
   (hc : has_deriv_within_at c c' s x) (f : F) :

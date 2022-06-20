@@ -716,10 +716,10 @@ begin
   have rzero : r ≠ 0 := λ h, by simpa [h, hq] using hr,
   rw [hr, nat_degree_mul'] at hdeg, swap,
   { rw [hp.leading_coeff, one_mul, leading_coeff_ne_zero], exact rzero },
-  have hdegeq : r.nat_degree = 0 := (add_right_inj _).1 (le_antisymm hdeg $ nat.le.intro rfl),
-  rw [mul_comm, eq_C_of_nat_degree_eq_zero hdegeq] at hr,
-  convert hr, convert leading_coeff_C _ using 1,
-  rw [hr, leading_coeff_mul_monic hp],
+  rw [mul_comm, @eq_C_of_nat_degree_eq_zero _ _ r] at hr,
+  { convert hr, convert leading_coeff_C _ using 1,
+    rw [hr, leading_coeff_mul_monic hp] },
+  { exact (add_right_inj _).1 (le_antisymm hdeg $ nat.le.intro rfl) },
 end
 
 lemma eq_of_monic_of_dvd_of_nat_degree_le {R} [comm_ring R]

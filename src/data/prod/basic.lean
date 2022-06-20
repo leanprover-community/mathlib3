@@ -223,16 +223,16 @@ lemma surjective.prod_map (hf : surjective f) (hg : surjective g) : surjective (
 lemma bijective.prod_map (hf : bijective f) (hg : bijective g) : bijective (map f g) :=
 ⟨hf.1.prod_map hg.1, hf.2.prod_map hg.2⟩
 
-lemma involutive.prod_map {f : α → α} {g : β → β} (hf : involutive f) (hg : involutive g) :
-  involutive (map f g) :=
-λ a, by rw [prod.map_map, hf.comp_self, hg.comp_self, prod.map_id, id]
-
 lemma left_inverse.prod_map (hf : left_inverse f₁ f₂) (hg : left_inverse g₁ g₂) :
-  left_inverse (prod.map f₁ g₁) (prod.map f₂ g₂) :=
+  left_inverse (map f₁ g₁) (map f₂ g₂) :=
 λ a, by rw [prod.map_map, hf.comp_eq_id, hg.comp_eq_id, map_id, id]
 
-lemma right_inverse.prod_map (hf : right_inverse f₁ f₂) (hg : right_inverse g₁ g₂) :
-  right_inverse (prod.map f₁ g₁) (prod.map f₂ g₂) :=
-λ a, by rw [prod.map_map, hf.comp_eq_id, hg.comp_eq_id, map_id, id]
+lemma right_inverse.prod_map :
+  right_inverse f₁ f₂ → right_inverse g₁ g₂ → right_inverse (map f₁ g₁) (map f₂ g₂) :=
+left_inverse.prod_map
+
+lemma involutive.prod_map {f : α → α} {g : β → β} :
+  involutive f → involutive g → involutive (map f g) :=
+left_inverse.prod_map
 
 end function

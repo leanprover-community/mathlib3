@@ -117,7 +117,7 @@ begin
     (λ h, not_le.2 hab $ le_trans (stopped_value_upper_crossing hn) _),
   simp only [stopped_value],
   rw ← h,
-  refine stopped_value_lower_crossing (h.symm ▸ hn),
+  exact stopped_value_lower_crossing (h.symm ▸ hn),
 end
 
 lemma upper_crossing_lt_succ (hab : a < b) (hn : upper_crossing a b f N (n + 1) x ≠ N) :
@@ -166,19 +166,58 @@ begin
   exact hn.ne (upper_crossing_stabilize (not_le.1 hn').le hk)
 end
 
+lemma upper_crossing_lt_nonempty (hN : 0 < N) : {n | upper_crossing a b f N n x < N}.nonempty :=
+⟨0, hN⟩
+
 /-- The number of upcrossings (strictly) before time `N`. -/
 noncomputable
 def upcrossing (a b : ℝ) (f : ℕ → α → ℝ) (N : ℕ) (x : α) : ℕ :=
 Sup {n | upper_crossing a b f N n x < N}
 
-lemma le_sub_of_le_upcrossing (hn : n ≤ upcrossing a b f N x) :
+-- move
+lemma nat.Sup_mem {s : set ℕ} (hs₁ : s.nonempty) (hs₂ : bdd_above s) : Sup s ∈ s :=
+begin
+  classical,
+  rw bdd_above_iff_exists_ge 0 at hs₂,
+  obtain ⟨k, -, hk⟩ := hs₂,
+  rw nat.Sup_def ⟨k, hk⟩,
+  cases hs₁ with n hn,
+  have hspec := nat.find_spec ⟨k, hk⟩ n hn,
+  by_cases hfind : nat.find ⟨k, hk⟩ = 0,
+  { rw [hfind, nat.le_zero_iff] at hspec,
+    rw hspec at hn,
+    rwa hfind },
+  { have hmin := nat.find_min ⟨k, hk⟩ (nat.pred_lt hfind),
+    push_neg at hmin,
+    obtain ⟨m, hm₁, hm₂ : order.pred _ < m⟩ := hmin,
+    rw order.pred_lt_iff_eq_or_lt_of_not_is_min at hm₂,
+    { obtain ⟨rfl, hm₂⟩ := hm₂,
+      { exact hm₁ },
+      { exact false.elim (not_lt.2 (nat.find_spec ⟨k, hk⟩ m hm₁) hm₂) } },
+    rw is_min_iff_eq_bot,
+    exact hfind }
+end
+
+lemma upper_crossing_lt_of_le_upcrossing
+  (hN : 0 < N) (hab : a < b) (hn : n ≤ upcrossing a b f N x) :
+  upper_crossing a b f N n x < N :=
+begin
+  have : upper_crossing a b f N (upcrossing a b f N x) x < N :=
+    nat.Sup_mem (upper_crossing_lt_nonempty hN) (upper_crossing_lt_bdd_above hab),
+  exact lt_of_le_of_lt (upper_crossing_mono hn) this,
+end
+
+lemma lower_crossing_lt_of_le_upcrossing
+  (hN : 0 < N) (hab : a < b) (hn : n + 1 ≤ upcrossing a b f N x) :
+  lower_crossing a b f N n x < N :=
+lt_of_le_of_lt lower_crossing_le_upper_crossing_succ (upper_crossing_lt_of_le_upcrossing hN hab hn)
+
+lemma le_sub_of_le_upcrossing (hN : 0 < N) (hab : a < b) (hn : n + 1 ≤ upcrossing a b f N x) :
   b - a ≤
   stopped_value f (upper_crossing a b f N (n + 1)) x -
   stopped_value f (lower_crossing a b f N n) x :=
-begin
-  rw upcrossing at hn,
-  sorry
-end
+sub_le_sub (stopped_value_upper_crossing (upper_crossing_lt_of_le_upcrossing hN hab hn).ne)
+  (stopped_value_lower_crossing (lower_crossing_lt_of_le_upcrossing hN hab hn).ne)
 
 end upcrossing
 

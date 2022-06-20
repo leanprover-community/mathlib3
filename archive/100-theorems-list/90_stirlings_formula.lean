@@ -48,49 +48,12 @@ open  finset filter nat real
 
 namespace stirling
 
-/-- TODO: Perhaps something to add as rat.cast_sum in more generality (see below) in mathlib?!-/
-lemma rat_cast_sum (s : finset ℕ) (f : ℕ → ℚ) :
-  ↑(∑ n in s, f n : ℚ) = (∑ n in s, (f n : ℝ)) :=
-  (rat.cast_hom ℝ).map_sum f s
--- @[simp, norm_cast] lemma rat_cast_sum [add_comm_monoid β] [has_one β]
--- (s : finset α) (f : α → ℚ) :
--- ↑(∑ x in s, f x : ℚ) = (∑ x in s, (f x : β)) := by sorry
-
-/-- **Sum of the Reciprocals of the Triangular Numbers**
- (copied from archive)
- TODO: include in some form mathlib or figure out how to import it from archive/ --/
-lemma inverse_triangle_sum :
-  ∀ n, ∑ k in range n, (2 : ℚ) / (k * (k + 1)) = if n = 0 then 0 else 2 - (2 : ℚ) / n :=
-begin
-  refine sum_range_induction _ _ (if_pos rfl) _,
-  rintro (_|n), { rw [if_neg, if_pos]; norm_num },
-  simp_rw [if_neg (succ_ne_zero _), succ_eq_add_one],
-  have A : (n + 1 + 1 : ℚ) ≠ 0, by { norm_cast, norm_num },
-  push_cast,
-  field_simp [cast_add_one_ne_zero],
-  ring,
-end
-
 /-- **Sum of products of consecutive reciprocals** -/
-lemma partial_sum_consecutive_reciprocals :
- ∃ c, ∀ n, ∑ k in range n, (1 : ℚ) / (k.succ * (k.succ.succ)) ≤ c :=
+lemma partial_sum_inverse_squares :
+ ∃ c, ∀ n, ∑ k in range n, (1 : ℝ) / (k.succ)^2 ≤ c :=
 begin
-  use 1,
-  intro n,
-  rw [← (mul_le_mul_left (zero_lt_two)), mul_sum], swap, { exact rat.nontrivial },
-  { have h : ∀ (k : ℕ), k ∈ (range n) →
-      2 * ((1 : ℚ) / (k.succ * (k.succ.succ))) = 2 / (k.succ * (k.succ.succ)),
-      by { intros k hk, rw [mul_div], rw [mul_one (2 : ℚ)] },
-    rw sum_congr rfl h,
-    have h₁ := inverse_triangle_sum n.succ,
-    rw sum_range_succ' at h₁,
-    norm_num at *,
-    rw h₁,
-    rw [sub_le_self_iff],
-    refine (le_div_iff _).mpr (_),
-    { exact (cast_lt.mpr n.succ_pos), },
-    { rw [zero_mul], exact zero_le_two, } },
- end
+  sorry,
+end
 
 
 /-!
@@ -310,7 +273,7 @@ end
 lemma log_stirling_seq_bounded_aux : ∃ (c : ℝ), ∀ (n : ℕ),
 log_stirling_seq 1 - log_stirling_seq n.succ ≤ c :=
 begin
-  have h := partial_sum_consecutive_reciprocals,
+  have h := partial_sum_inverse_squares,
   cases h with d h,
   use (1/4 * d : ℝ),
   let log_stirling_seq' : (ℕ → ℝ) := λ (k : ℕ), log_stirling_seq k.succ,
@@ -336,14 +299,24 @@ begin
       refine sum_congr rfl (λ k, λ hk, hi k),
     end
     ... = 1 / 4 * ∑ k in range n, 1 / (k.succ * k.succ.succ) : by rw mul_sum
+    ... ≤ 1 / 4 * ∑ k in range n, 1 / (k.succ)^2 :
+    begin
+      refine (mul_le_mul_left _).mpr _, { exact one_div_pos.mpr four_pos, },
+      refine sum_le_sum _,
+      intros k h,
+      repeat { rw [←inv_eq_one_div] },
+      refine (inv_le_inv _ _).mpr _,
+      all_goals {norm_cast},
+      { exact (zero_lt_mul_left (zero_lt_succ k)).mpr (zero_lt_succ k.succ), },
+      { exact pow_pos (zero_lt_succ k) 2, },
+      { rw pow_two,
+      exact mul_le_mul' rfl.ge (succ k).le_succ, },
+    end
     ... ≤ 1 / 4 * d :
     begin
-      refine (mul_le_mul_left _).mpr _,
-      { exact div_pos one_pos four_pos },
-      { convert rat.cast_le.mpr (h n),
-        rw rat_cast_sum,
-        push_cast, },
-    end,
+     refine (mul_le_mul_left _).mpr _, { exact one_div_pos.mpr four_pos, },
+     exact h n,
+    end
 end
 
 /-- The sequence `log_stirling_seq` is bounded below for `n ≥ 1`. -/

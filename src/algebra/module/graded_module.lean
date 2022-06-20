@@ -62,6 +62,9 @@ lemma ghas_scalar.add_smul
   @graded_monoid.ghas_scalar.smul ι (λ i, 𝓐 i) (λ i, 𝓜 i) _ _ i j b c :=
 subtype.ext_iff_val.2 $ (add_smul _ _ _ : (a + b : A) • _ = (a : A) • _ + (b : A) • _)
 
+/--
+The bi-additive morphism `𝓐 i → 𝓜 j → 𝓜 (i + j)` given by `(a, m) ↦ a • m`
+-/
 def gscalar_hom
   [@set_like.has_graded_scalar ι _ A _ M _ _ _ _ 𝓐 𝓜] {i j} :
   𝓐 i →+ 𝓜 j →+ 𝓜 (i + j) :=
@@ -72,6 +75,10 @@ def gscalar_hom
   map_zero' := add_monoid_hom.ext $ ghas_scalar.zero_smul _ _,
   map_add' := λ x y, add_monoid_hom.ext $ ghas_scalar.add_smul _ _ _ _ }
 
+/--
+The canonical morphism `(⨁ i, 𝓐 i) →+ (⨁ i, 𝓜 i) →+ ⨁ i, 𝓜 i` lifting the bi-additive map given
+by `(a, m) ↦ a • m`
+-/
 def scalar_hom [decidable_eq ι]
   [@set_like.has_graded_scalar ι _ A _ M _ _ _ _ 𝓐 𝓜] :
   (⨁ i, 𝓐 i) →+ (⨁ i, 𝓜 i) →+ ⨁ i, 𝓜 i :=
@@ -92,6 +99,10 @@ begin
   refl,
 end
 
+/--
+Since `A ≃+ ⨁ i, 𝓐 i`, the map `(⨁ i, 𝓐 i) →+ (⨁ i, 𝓜 i) →+ ⨁ i, 𝓜 i` defines a scalar
+multiplication of `A` on `⨁ i, 𝓜 i`
+-/
 def has_scalar [decidable_eq ι] [direct_sum.decomposition 𝓐]
   [@set_like.has_graded_scalar ι _ A _ M _ _ _ _ 𝓐 𝓜] :
   has_scalar A (⨁ i, 𝓜 i) :=
@@ -175,6 +186,10 @@ begin
   rw [map_zero],
 end
 
+/--
+The scalar multiplication of `A` on `⨁ i, 𝓜 i` from `(⨁ i, 𝓐 i) →+ (⨁ i, 𝓜 i) →+ ⨁ i, 𝓜 i` is
+distributive.
+-/
 def distrib_mul_action [decidable_eq ι] [graded_algebra 𝓐]
   [@set_like.has_graded_scalar ι _ A _ M _ _ _ _ 𝓐 𝓜] :
   distrib_mul_action A (⨁ i, 𝓜 i) :=
@@ -204,6 +219,10 @@ begin
   simp only [map_zero, add_monoid_hom.zero_apply],
 end
 
+/--
+The scalar multiplication of `A` on `⨁ i, 𝓜 i` from `(⨁ i, 𝓐 i) →+ (⨁ i, 𝓜 i) →+ ⨁ i, 𝓜 i`
+turns `⨁ i, 𝓜 i` into an `A`-module
+-/
 def is_module [decidable_eq ι] [graded_algebra 𝓐]
   [@set_like.has_graded_scalar ι _ A _ M _ _ _ _ 𝓐 𝓜] :
   module A (⨁ i, 𝓜 i) :=
@@ -213,6 +232,9 @@ def is_module [decidable_eq ι] [graded_algebra 𝓐]
 
 local attribute [instance] graded_module.is_module
 
+/--
+`⨁ i, 𝓜 i` and `M` are isomorphic as `A`-modules.
+-/
 def linear_equiv [decidable_eq ι] [graded_algebra 𝓐]
   [@set_like.has_graded_scalar ι _ A _ M _ _ _ _ 𝓐 𝓜]
   [direct_sum.decomposition 𝓜] :

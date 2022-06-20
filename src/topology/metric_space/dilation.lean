@@ -87,9 +87,13 @@ lemma ext_iff {f g : dilation α β} : f = g ↔ ∀ x, f x = g x := fun_like.ex
 
 /-- Copy of a `dilation` with a new `to_fun` equal to the old one. Useful to fix definitional
 equalities. -/
+@[simps { fully_applied := ff }]
 protected def copy (f : dilation α β) (f' : α → β) (h : f' = ⇑f) : dilation α β :=
 { to_fun := f',
-  edist_eq'' := h.symm ▸ f.edist_eq'' }
+  edist_eq' := h.symm ▸ f.edist_eq' }
+
+lemma coe_eq_self (f : dilation α β) {f' : α → β} (h : f' = f) : f.copy f' h = f :=
+fun_like.ext' h
 
 /-- The ratio of a dilation `f`. If the ratio is undefined (i.e., the distance between any two
 points in `α` is either zero or infinity), then we choose one as the ratio. -/

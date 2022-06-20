@@ -214,6 +214,12 @@ variables [preorder α]
 section preorder
 variables [preorder β] {f : α → β} {a b : α}
 
+/-!
+These four lemmas are there to strip off the semi-implicit arguments `⦃a b : α⦄`. This is useful
+when you do not want to apply a `monotone` assumption (i.e. your goal is `a ≤ b → f a ≤ f b`).
+However if you find yourself writing `hf.imp h`, then you should have written `hf h` instead.
+-/
+
 lemma monotone.imp (hf : monotone f) (h : a ≤ b) : f a ≤ f b := hf h
 lemma antitone.imp (hf : antitone f) (h : a ≤ b) : f b ≤ f a := hf h
 lemma strict_mono.imp (hf : strict_mono f) (h : a < b) : f a < f b := hf h

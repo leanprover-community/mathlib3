@@ -40,6 +40,7 @@ instance [has_zero α] : has_zero (completion α) := ⟨(0 : α)⟩
 instance [has_neg α] : has_neg (completion α) := ⟨completion.map (λa, -a : α → α)⟩
 instance [has_add α] : has_add (completion α) := ⟨completion.map₂ (+)⟩
 instance [has_sub α] : has_sub (completion α) := ⟨completion.map₂ has_sub.sub⟩
+instance {R} [has_scalar R α] : has_scalar R (completion α) := ⟨λ r, completion.map ((•) r)⟩
 
 @[norm_cast]
 lemma uniform_space.completion.coe_zero [has_zero α] : ((0 : α) : completion α) = 0 := rfl
@@ -62,6 +63,14 @@ lemma coe_sub (a b : α) : ((a - b : α) : completion α) = a - b :=
 lemma coe_add (a b : α) : ((a + b : α) : completion α) = a + b :=
 (map₂_coe_coe a b (+) uniform_continuous_add).symm
 
+@[norm_cast]
+lemma coe_nsmul (n : ℕ) (a : α) : ((n • a : α) : completion α) = n • a :=
+(map_coe (uniform_continuous_const_nsmul n) a).symm
+
+@[norm_cast]
+lemma coe_zsmul (n : ℤ) (a : α) : ((n • a : α) : completion α) = n • a :=
+(map_coe (uniform_continuous_const_zsmul n) a).symm
+
 instance : add_monoid (completion α) :=
 { zero_add     := assume a, completion.induction_on a
    (is_closed_eq (continuous_map₂ continuous_const continuous_id) continuous_id)
@@ -80,13 +89,30 @@ instance : add_monoid (completion α) :=
           (continuous_snd.comp continuous_snd))))
     (assume a b c, show (a : completion α) + b + c = a + (b + c),
       by repeat { rw_mod_cast add_assoc }),
-  .. completion.has_zero, .. completion.has_neg, ..completion.has_add, .. completion.has_sub }
+  nsmul := (•),
+  nsmul_zero' := λ a, completion.induction_on a (is_closed_eq continuous_map continuous_const)
+    (λ a, by { rw_mod_cast zero_smul, refl} ),
+  nsmul_succ' := λ n a, completion.induction_on a
+    (is_closed_eq continuous_map $ continuous_map₂ continuous_id continuous_map)
+    (λ a, by rw_mod_cast succ_nsmul ),
+  .. completion.has_zero, ..completion.has_add, }
 
 instance : sub_neg_monoid (completion α) :=
 { sub_eq_add_neg := λ a b, completion.induction_on₂ a b
     (is_closed_eq (continuous_map₂ continuous_fst continuous_snd)
       (continuous_map₂ continuous_fst (completion.continuous_map.comp continuous_snd)))
    (λ a b, by exact_mod_cast congr_arg coe (sub_eq_add_neg a b)),
+  zsmul := (•),
+  zsmul_zero' := λ a, completion.induction_on a (is_closed_eq continuous_map continuous_const)
+    (λ a, by { rw_mod_cast zero_smul, refl} ),
+  zsmul_succ' := λ n a, completion.induction_on a
+    (is_closed_eq continuous_map $ continuous_map₂ continuous_id continuous_map)
+    (λ a, by rw_mod_cast (show int.of_nat n.succ • a = a + int.of_nat n • a,
+                          from sub_neg_monoid.zsmul_succ' n a) ),
+  zsmul_neg' := λ n a, completion.induction_on a
+    (is_closed_eq continuous_map $ completion.continuous_map.comp continuous_map)
+    (λ a, by rw [←coe_zsmul, ←coe_zsmul, ←coe_neg, show -[1+ n] • a = -((n.succ : ℤ) • a),
+                                                   from sub_neg_monoid.zsmul_neg' n a]),
   .. completion.add_monoid, .. completion.has_neg, .. completion.has_sub }
 
 instance : add_group (completion α) :=

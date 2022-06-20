@@ -3,7 +3,10 @@ Copyright (c) 2022 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
-import topology.algebra.group_completion
+import algebra.hom.group_instances
+import topology.algebra.uniform_group
+import topology.uniform_space.completion
+-- import topology.algebra.group_completion
 
 /-!
 # Multiplicative action on the completion of a uniform space
@@ -101,33 +104,6 @@ end has_scalar
   one_smul := ext' (continuous_const_smul _) continuous_id $ λ a, by rw [← coe_smul, one_smul],
   mul_smul := λ x y, ext' (continuous_const_smul _) ((continuous_const_smul _).const_smul _) $
     λ a, by simp only [← coe_smul, mul_smul] }
-
-instance [monoid_with_zero M] [has_zero X] [mul_action_with_zero M X]
-  [has_uniform_continuous_const_smul M X] :
-  mul_action_with_zero M (completion X) :=
-{ smul := (•),
-  smul_zero := λ r, by rw [← coe_zero, ← coe_smul, mul_action_with_zero.smul_zero r],
-  zero_smul := ext' (continuous_const_smul _) continuous_const $ λ a,
-    by rw [← coe_smul, zero_smul, coe_zero],
-  .. completion.mul_action M X }
-
-instance [monoid M] [add_group N] [distrib_mul_action M N] [uniform_space N]
-  [uniform_add_group N] [has_uniform_continuous_const_smul M N] :
-  distrib_mul_action M (completion N) :=
-{ smul := (•),
-  smul_add := λ r x y, induction_on₂ x y
-    (is_closed_eq ((continuous_fst.add continuous_snd).const_smul _)
-      ((continuous_fst.const_smul _).add (continuous_snd.const_smul _)))
-    (λ a b, by simp only [← coe_add, ← coe_smul, smul_add]),
-  smul_zero := λ r, by rw [← coe_zero, ← coe_smul, smul_zero r],
-  .. completion.mul_action M N }
-
-instance [semiring R] [add_comm_group M] [module R M] [uniform_space M] [uniform_add_group M]
-  [has_uniform_continuous_const_smul R M] : module R (completion M) :=
-{ smul := (•),
-  add_smul := λ a b, ext' (continuous_const_smul _)
-    ((continuous_const_smul _).add (continuous_const_smul _)) $ λ x, by { norm_cast, rw add_smul },
-  .. completion.distrib_mul_action R M, .. completion.mul_action_with_zero R M }
 
 end completion
 

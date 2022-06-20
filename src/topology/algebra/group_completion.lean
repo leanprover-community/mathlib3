@@ -5,6 +5,7 @@ Authors: Patrick Massot, Johannes Hölzl
 -/
 import algebra.hom.group_instances
 import topology.algebra.uniform_group
+import topology.algebra.uniform_mul_action
 import topology.uniform_space.completion
 
 /-!
@@ -40,13 +41,27 @@ instance [has_zero α] : has_zero (completion α) := ⟨(0 : α)⟩
 instance [has_neg α] : has_neg (completion α) := ⟨completion.map (λa, -a : α → α)⟩
 instance [has_add α] : has_add (completion α) := ⟨completion.map₂ (+)⟩
 instance [has_sub α] : has_sub (completion α) := ⟨completion.map₂ has_sub.sub⟩
-instance {R} [has_scalar R α] : has_scalar R (completion α) := ⟨λ r, completion.map ((•) r)⟩
 
 @[norm_cast]
 lemma uniform_space.completion.coe_zero [has_zero α] : ((0 : α) : completion α) = 0 := rfl
 end group
 
 namespace uniform_space.completion
+open uniform_space
+
+section has_zero
+
+instance {α M} [uniform_space α] [monoid_with_zero M] [has_zero α] [mul_action_with_zero M α]
+  [has_uniform_continuous_const_smul M α] :
+  mul_action_with_zero M (completion α) :=
+{ smul := (•),
+  smul_zero := λ r, by rw [← coe_zero, ← coe_smul, mul_action_with_zero.smul_zero r],
+  zero_smul := ext' (continuous_const_smul _) continuous_const $ λ a,
+    by rw [← coe_smul, zero_smul, coe_zero],
+  .. completion.mul_action M α }
+
+end has_zero
+
 section uniform_add_group
 open uniform_space uniform_space.completion
 variables {α : Type*} [uniform_space α] [add_group α] [uniform_add_group α]
@@ -124,6 +139,16 @@ instance : add_group (completion α) :=
 instance : uniform_add_group (completion α) :=
 ⟨uniform_continuous_map₂ has_sub.sub⟩
 
+instance {M} [monoid M] [distrib_mul_action M α] [has_uniform_continuous_const_smul M α] :
+  distrib_mul_action M (completion α) :=
+{ smul := (•),
+  smul_add := λ r x y, induction_on₂ x y
+    (is_closed_eq ((continuous_fst.add continuous_snd).const_smul _)
+      ((continuous_fst.const_smul _).add (continuous_snd.const_smul _)))
+    (λ a b, by simp only [← coe_add, ← coe_smul, smul_add]),
+  smul_zero := λ r, by rw [← coe_zero, ← coe_smul, smul_zero r],
+  .. completion.mul_action M α }
+
 /-- The map from a group to its completion as a group hom. -/
 @[simps] def to_compl : α →+ completion α :=
 { to_fun := coe,
@@ -133,17 +158,26 @@ instance : uniform_add_group (completion α) :=
 lemma continuous_to_compl : continuous (to_compl : α → completion α) :=
 continuous_coe α
 
-variables {β : Type v} [uniform_space β] [add_group β] [uniform_add_group β]
+end uniform_add_group
 
-instance {α : Type u} [uniform_space α] [add_comm_group α] [uniform_add_group α] :
-  add_comm_group (completion α) :=
+section uniform_add_comm_group
+variables {α : Type*} [uniform_space α] [add_comm_group α] [uniform_add_group α]
+
+instance : add_comm_group (completion α) :=
 { add_comm  := assume a b, completion.induction_on₂ a b
     (is_closed_eq (continuous_map₂ continuous_fst continuous_snd)
       (continuous_map₂ continuous_snd continuous_fst))
     (assume x y, by { change ↑x + ↑y = ↑y + ↑x, rw [← coe_add, ← coe_add, add_comm]}),
   .. completion.add_group }
 
-end uniform_add_group
+instance {R} [semiring R] [module R α] [has_uniform_continuous_const_smul R α] :
+  module R (completion α) :=
+{ smul := (•),
+  add_smul := λ a b, ext' (continuous_const_smul _)
+    ((continuous_const_smul _).add (continuous_const_smul _)) $ λ x, by { norm_cast, rw add_smul },
+  .. completion.distrib_mul_action, .. completion.mul_action_with_zero }
+
+end uniform_add_comm_group
 
 end uniform_space.completion
 

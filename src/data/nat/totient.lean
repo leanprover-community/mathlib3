@@ -335,7 +335,7 @@ begin
   rw [sub_mul, one_mul, mul_comm, mul_inv_cancel hp', cast_pred hp],
 end
 
-lemma gcd_prod_double_counting {β : Type*} [comm_monoid β] (m n : ℕ) (f : ℕ → β) :
+lemma prod_factors_gcd_mul_prod_factors_mul {β : Type*} [comm_monoid β] (m n : ℕ) (f : ℕ → β) :
   (m.gcd n).factors.to_finset.prod f * (m * n).factors.to_finset.prod f
     = m.factors.to_finset.prod f * n.factors.to_finset.prod f :=
 begin
@@ -359,7 +359,7 @@ begin
   rw shuffle _ _,
   rw shuffle _ _,
   rotate, repeat { apply prod_prime_factors_dvd },
-  simp only [gcd_prod_double_counting],
+  simp only [prod_factors_gcd_mul_prod_factors_mul],
   rw [eq_comm, mul_comm, ←mul_assoc, ←nat.mul_div_assoc],
   exact mul_dvd_mul (prod_prime_factors_dvd a) (prod_prime_factors_dvd b)
 end

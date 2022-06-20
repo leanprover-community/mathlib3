@@ -1,5 +1,5 @@
 /-
-Copyright (c) 2021 Anne Baanen. All rights reserved.
+Copyright (c) 2022 Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
 -/
@@ -15,9 +15,9 @@ import ring_theory.localization.module
 /-!
 # Ramification index and inertia degree
 
-If `P : ideal S` lies over `p : ideal R` for the ring extension `f : R →+* S`
-(assuming `P` and `p` are prime or maximal where needed).
-The **ramification index** `ramification_idx f p P` is the multiplicity of `P` in `map f p`,
+Given `P : ideal S` lying over `p : ideal R` for the ring extension `f : R →+* S`
+(assuming `P` and `p` are prime or maximal where needed),
+the **ramification index** `ramification_idx f p P` is the multiplicity of `P` in `map f p`,
 and the **inertia degree** `inertia_deg f p P` is the degree of the field extension
 `(S / P) : (R / p)`.
 

@@ -203,10 +203,10 @@ instance : pseudo_metric_space (hamm β) :=
                           { rintros ⟨_, hε, hs⟩ ⟨_, _⟩ hab, rw mem_id_rel at hab, rw hab,
                             refine hs (lt_of_eq_of_lt _ hε), exact_mod_cast hamm_dist_self _ }],
   to_bornology        :=  ⟨⊥, bot_le⟩,
-  cobounded_sets      :=  by ext; push_cast;
-                          simp only [filter.mem_sets, filter.mem_bot, true_iff];
-                          refine ⟨fintype.card ι, λ _ _ _ _, _⟩;
-                          exact_mod_cast hamm_dist_le_card_fintype,
+  cobounded_sets      :=  by  ext; push_cast;
+                              refine iff_of_true  (filter.mem_sets.mpr filter.mem_bot)
+                                                  ⟨fintype.card ι, λ _ _ _ _, _⟩;
+                              exact_mod_cast hamm_dist_le_card_fintype,
   ..hamm.has_dist }
 
 instance : metric_space (hamm β) :=

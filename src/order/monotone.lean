@@ -815,7 +815,7 @@ lemma antitone.prod_map (hf : antitone f) (hg : antitone g) : antitone (prod.map
 end preorder
 
 section partial_order
-variables [partial_order α] [partial_order β] [partial_order γ] [partial_order δ]
+variables [partial_order α] [partial_order β] [preorder γ] [preorder δ]
   {f : α → γ} {g : β → δ}
 
 lemma strict_mono.prod_map (hf : strict_mono f) (hg : strict_mono g) : strict_mono (prod.map f g) :=

@@ -62,14 +62,19 @@ namespace set
 /-! ### Complete lattice and complete Boolean algebra instances -/
 
 instance : has_Inf (set α) := ⟨λ s, {a | ∀ t ∈ s, a ∈ t}⟩
-instance : has_Sup (set α) := ⟨sUnion⟩
+instance : has_Sup (set α) := ⟨λ s, {a | ∃ t ∈ s, a ∈ t}⟩
 
 /-- Intersection of a set of sets. -/
 def sInter (S : set (set α)) : set α := Inf S
 
+/-- Union of a set of sets. -/
+def sUnion (S : set (set α)) : set α := Sup S
+
 prefix `⋂₀ `:110 := sInter
+prefix `⋃₀ `:110 := sUnion
 
 @[simp] theorem mem_sInter {x : α} {S : set (set α)} : x ∈ ⋂₀ S ↔ ∀ t ∈ S, x ∈ t := iff.rfl
+@[simp] theorem mem_sUnion {x : α} {S : set (set α)} : x ∈ ⋃₀ S ↔ ∃ t ∈ S, x ∈ t := iff.rfl
 
 /-- Indexed union of a family of sets -/
 def Union (s : ι → set β) : set β := supr s
@@ -111,8 +116,6 @@ lemma mem_Inter_of_mem {s : ι → set α} {a : α} (h : ∀ i, a ∈ s i) : a �
 lemma mem_Inter₂_of_mem {s : Π i, κ i → set α} {a : α} (h : ∀ i j, a ∈ s i j) : a ∈ ⋂ i j, s i j :=
 mem_Inter₂.2 h
 
-theorem mem_sUnion {x : α} {S : set (set α)} : x ∈ ⋃₀ S ↔ ∃ t ∈ S, x ∈ t := iff.rfl
-
 instance : complete_boolean_algebra (set α) :=
 { Sup    := Sup,
   Inf    := Inf,
@@ -122,8 +125,7 @@ instance : complete_boolean_algebra (set α) :=
   Inf_le := λ s t t_in a h, h _ t_in,
   infi_sup_le_sup_Inf := λ s S x, iff.mp $ by simp [forall_or_distrib_left],
   inf_Sup_le_supr_inf := λ s S x, iff.mp $ by simp [exists_and_distrib_left],
-  .. set.boolean_algebra,
-  .. pi.complete_lattice }
+  .. set.boolean_algebra }
 
 /-- `set.image` is monotone. See `set.image_image` for the statement in terms of `⊆`. -/
 lemma monotone_image {f : α → β} : monotone (image f) :=

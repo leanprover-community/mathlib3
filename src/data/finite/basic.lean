@@ -247,6 +247,7 @@ by { haveI := fintype.of_finite α, simp [fintype.card_eq_zero_iff] }
 
 end finite
 
+/-- This instance also provides `[finite s]` for `s : set α`. -/
 instance subtype.finite {α : Sort*} [finite α] {p : α → Prop} : finite {x // p x} :=
 finite.of_injective coe subtype.coe_injective
 

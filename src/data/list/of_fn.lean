@@ -5,6 +5,7 @@ Authors: Mario Carneiro
 -/
 import data.fin.basic
 import data.list.basic
+import data.list.join
 
 /-!
 # Lists from functions
@@ -12,9 +13,9 @@ import data.list.basic
 Theorems and lemmas for dealing with `list.of_fn`, which converts a function on `fin n` to a list
 of length `n`.
 
-## Main Definitions
+## Main Statements
 
-The main definitions pertain to lists generated using `of_fn`
+The main statements pertain to lists generated using `of_fn`
 
 - `list.length_of_fn`, which tells us the length of such a list
 - `list.nth_of_fn`, which tells us the nth element of such a list
@@ -76,6 +77,14 @@ begin
   simp only [d_array.rev_iterate_aux, of_fn_aux, IH]
 end
 
+@[congr]
+theorem of_fn_congr {m n : ℕ} (h : m = n) (f : fin m → α) :
+  of_fn f = of_fn (λ i : fin n, f (fin.cast h.symm i)) :=
+begin
+  subst h,
+  simp_rw [fin.cast_refl, order_iso.refl_apply],
+end
+
 /-- `of_fn` on an empty domain is the empty list. -/
 @[simp] theorem of_fn_zero (f : fin 0 → α) : of_fn f = [] := rfl
 
@@ -87,6 +96,45 @@ begin
   intros, induction m with m IH generalizing l, {refl},
   rw [of_fn_aux, IH], refl
 end
+
+theorem of_fn_succ' {n} (f : fin (succ n) → α) :
+  of_fn f = (of_fn (λ i, f i.cast_succ)).concat (f (fin.last _)) :=
+begin
+  induction n with n IH,
+  { rw [of_fn_zero, concat_nil, of_fn_succ, of_fn_zero], refl },
+  { rw [of_fn_succ, IH, of_fn_succ, concat_cons, fin.cast_succ_zero],
+    congr' 3,
+    simp_rw [fin.cast_succ_fin_succ], }
+end
+
+/-- Note this matches the convention of `list.of_fn_succ'`, putting the `fin m` elements first. -/
+theorem of_fn_add {m n} (f : fin (m + n) → α) :
+  list.of_fn f = list.of_fn (λ i, f (fin.cast_add n i)) ++ list.of_fn (λ j, f (fin.nat_add m j)) :=
+begin
+  induction n with n IH,
+  { rw [of_fn_zero, append_nil, fin.cast_add_zero, fin.cast_refl], refl },
+  { rw [of_fn_succ', of_fn_succ', IH, append_concat], refl, },
+end
+
+/-- This breaks a list of `m*n` items into `m` groups each containing `n` elements. -/
+theorem of_fn_mul {m n} (f : fin (m * n) → α) :
+  list.of_fn f = list.join (list.of_fn $ λ i : fin m, list.of_fn $ λ j : fin n,
+  f ⟨i * n + j,
+    calc ↑i * n + j < (i + 1) *n : (add_lt_add_left j.prop _).trans_eq (add_one_mul _ _).symm
+                ... ≤ _ : nat.mul_le_mul_right _ i.prop⟩) :=
+begin
+  induction m with m IH,
+  { simp_rw [of_fn_zero, zero_mul, of_fn_zero, join], },
+  { simp_rw [of_fn_succ', succ_mul, join_concat, of_fn_add, IH], refl, },
+end
+
+/-- This breaks a list of `m*n` items into `n` groups each containing `m` elements. -/
+theorem of_fn_mul' {m n} (f : fin (m * n) → α) :
+  list.of_fn f = list.join (list.of_fn $ λ i : fin n, list.of_fn $ λ j : fin m,
+  f ⟨m * i + j,
+    calc m * i + j < m * (i + 1) : (add_lt_add_left j.prop _).trans_eq (mul_add_one _ _).symm
+               ... ≤ _ : nat.mul_le_mul_left _ i.prop⟩) :=
+by simp_rw [mul_comm m n, mul_comm m, of_fn_mul, fin.cast_mk]
 
 theorem of_fn_nth_le : ∀ l : list α, of_fn (λ i, nth_le l i i.2) = l
 | [] := rfl

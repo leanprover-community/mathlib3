@@ -21,7 +21,7 @@ open finset
 
 namespace polynomial
 universes u v w z
-variables {R : Type u} {S : Type v} {T : Type w} {A : Type z} {a b : R} {n : ℕ}
+variables {R : Type u} {S : Type v} {T : Type w} {a b : R} {n : ℕ}
 
 section comm_ring
 variables [comm_ring R] {p q : R[X]}
@@ -468,38 +468,50 @@ calc ((roots ((X : R[X]) ^ n - C a)).card : with_bot ℕ)
       ≤ degree ((X : R[X]) ^ n - C a) : card_roots (X_pow_sub_C_ne_zero hn a)
   ... = n : degree_X_pow_sub_C hn a
 
-lemma le_root_multiplicity_map {K L : Type*} [comm_ring K]
-  [comm_ring L] {p : K[X]} {f : K →+* L} (hf : function.injective f) (a : K) :
+section
+
+variables {A B : Type*} [comm_ring A] [comm_ring B]
+
+lemma le_root_multiplicity_map {p : A[X]} {f : A →+* B} (hmap : map f p ≠ 0) (a : A) :
   root_multiplicity a p ≤ root_multiplicity (f a) (map f p) :=
 begin
-  by_cases hp0 : p = 0, { simp only [hp0, root_multiplicity_zero, polynomial.map_zero], },
-  have hmap : map f p ≠ 0, { simpa only [polynomial.map_zero] using (map_injective f hf).ne hp0, },
+  have hp0 : p ≠ 0 := λ h, hmap (h.symm ▸ polynomial.map_zero f),
   rw [root_multiplicity, root_multiplicity, dif_neg hp0, dif_neg hmap],
   simp only [not_not, nat.lt_find_iff, nat.le_find_iff],
   intros m hm,
-  have := ring_hom.map_dvd (map_ring_hom f) (hm m le_rfl),
+  have := (map_ring_hom f).map_dvd (hm m le_rfl),
   simpa only [coe_map_ring_hom, map_pow, map_sub, map_X, map_C],
 end
 
-lemma count_map_roots {K L : Type*} [comm_ring K] [is_domain K]
-  [comm_ring L] {p : K[X]} {f : K →+* L} (hf : function.injective f)
-  (a : L) :
-  count a (multiset.map f p.roots) ≤ root_multiplicity a (map f p) :=
+lemma eq_root_multiplicity_map {p : A[X]} {f : A →+* B} (hf : function.injective f)
+  (a : A) : root_multiplicity a p = root_multiplicity (f a) (map f p) :=
+begin
+  by_cases hp0 : p = 0, { simp only [hp0, root_multiplicity_zero, polynomial.map_zero], },
+  have hmap : map f p ≠ 0, { simpa only [polynomial.map_zero] using (map_injective f hf).ne hp0, },
+  apply le_antisymm (le_root_multiplicity_map hmap a),
+  rw [root_multiplicity, root_multiplicity, dif_neg hp0, dif_neg hmap],
+  simp only [not_not, nat.lt_find_iff, nat.le_find_iff],
+  intros m hm, rw ← map_dvd_map f hf ((monic_X_sub_C a).pow _),
+  convert hm m le_rfl,
+  simp only [polynomial.map_pow, polynomial.map_sub, map_pow, map_sub, map_X, map_C],
+end
+
+lemma count_map_roots [is_domain A] {p : A[X]} {f : A →+* B} (hf : function.injective f)
+  (a : B) : count a (multiset.map f p.roots) ≤ root_multiplicity a (map f p) :=
 begin
   by_cases h : ∃ t, f t = a,
   { rcases h with ⟨h_w, rfl⟩,
     rw [multiset.count_map_eq_count' f _ hf, count_roots],
-    exact le_root_multiplicity_map hf h_w },
-  { suffices : multiset.count a (multiset.map f p.roots) = 0,
+    exact (eq_root_multiplicity_map hf h_w).le },
+  { suffices : (multiset.map f p.roots).count a = 0,
     { rw this, exact zero_le _, },
     rw [multiset.count_map, multiset.card_eq_zero, multiset.filter_eq_nil],
     rintro k hk rfl,
     exact h ⟨k, rfl⟩, },
 end
 
-lemma roots_map_of_injective_card_eq_total_degree {K L : Type*} [comm_ring K] [is_domain K]
-  [comm_ring L] [is_domain L] {p : K[X]} {f : K →+* L} (hf : function.injective f)
-  (hroots : p.roots.card = p.nat_degree) :
+lemma roots_map_of_injective_card_eq_total_degree [is_domain A] [is_domain B] {p : A[X]}
+  {f : A →+* B} (hf : function.injective f) (hroots : p.roots.card = p.nat_degree) :
   multiset.map f p.roots = (map f p).roots :=
 begin
   by_cases hp0 : p = 0, { simp only [hp0, roots_zero, multiset.map_zero, polynomial.map_zero], },
@@ -507,6 +519,8 @@ begin
   apply multiset.eq_of_le_of_card_le,
   { simpa only [multiset.le_iff_count, count_roots] using count_map_roots hf },
   { simpa only [multiset.card_map, hroots] using (card_roots' _).trans (nat_degree_map_le f p) },
+end
+
 end
 
 section nth_roots
@@ -693,27 +707,27 @@ begin
   rwa [degree_X_sub_C, nat.with_bot.one_le_iff_zero_lt]
 end
 
-lemma eq_of_monic_of_dvd_of_nat_degree_le (hp : p.monic) (hq : q.monic) (hdiv : p ∣ q)
-  (hdeg : q.nat_degree ≤ p.nat_degree) : q = p :=
+lemma eq_leading_coeff_mul_of_monic_of_dvd_of_nat_degree_le {R} [comm_ring R]
+  {p q : R[X]} (hp : p.monic) (hdiv : p ∣ q)
+  (hdeg : q.nat_degree ≤ p.nat_degree) : q = C q.leading_coeff * p :=
 begin
   obtain ⟨r, hr⟩ := hdiv,
-  have rzero : r ≠ 0,
-  { intro h,
-    simpa [h, monic.ne_zero hq] using hr },
-  rw [hr, nat_degree_mul (monic.ne_zero hp) rzero] at hdeg,
-  have hdegeq : p.nat_degree + r.nat_degree = p.nat_degree,
-  { suffices hdegle : p.nat_degree ≤ p.nat_degree + r.nat_degree,
-    { exact le_antisymm hdeg hdegle },
-    exact nat.le.intro rfl },
-  replace hdegeq := eq_C_of_nat_degree_eq_zero (((@add_right_inj _ _ p.nat_degree) _ 0).1 hdegeq),
-  suffices hlead : 1 = r.leading_coeff,
-  { have hcoeff := leading_coeff_C (r.coeff 0),
-    rw [← hdegeq, ← hlead] at hcoeff,
-    rw [← hcoeff, C_1] at hdegeq,
-    rwa [hdegeq, mul_one] at hr },
-  have hprod : q.leading_coeff = p.leading_coeff * r.leading_coeff,
-  { simp only [hr, leading_coeff_mul] },
-  rwa [monic.leading_coeff hp, monic.leading_coeff hq, one_mul] at hprod
+  obtain (rfl|hq) := eq_or_ne q 0, {simp},
+  have rzero : r ≠ 0 := λ h, by simpa [h, hq] using hr,
+  rw [hr, nat_degree_mul'] at hdeg, swap,
+  { rw [hp.leading_coeff, one_mul, leading_coeff_ne_zero], exact rzero },
+  rw [mul_comm, @eq_C_of_nat_degree_eq_zero _ _ r] at hr,
+  { convert hr, convert leading_coeff_C _ using 1,
+    rw [hr, leading_coeff_mul_monic hp] },
+  { exact (add_right_inj _).1 (le_antisymm hdeg $ nat.le.intro rfl) },
+end
+
+lemma eq_of_monic_of_dvd_of_nat_degree_le {R} [comm_ring R]
+  {p q : R[X]} (hp : p.monic) (hq : q.monic) (hdiv : p ∣ q)
+  (hdeg : q.nat_degree ≤ p.nat_degree) : q = p :=
+begin
+  convert eq_leading_coeff_mul_of_monic_of_dvd_of_nat_degree_le hp hdiv hdeg,
+  rw [hq.leading_coeff, C_1, one_mul],
 end
 
 end comm_ring

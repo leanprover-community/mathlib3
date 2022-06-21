@@ -124,7 +124,7 @@ begin
   rcases (balanced_hull_mem_iff _ _).mp hx with ⟨r, hr, hx⟩,
   rcases mem_smul_set.mp hx with ⟨y, hy, hx⟩,
   rw ←hx,
-  exact balanced_mem ht (h hy) hr,
+  exact balanced_iff_mem.mp ht (h hy) hr,
 end
 
 end has_scalar
@@ -227,7 +227,7 @@ begin
   rw balanced_core_aux_mem_iff,
   intros r hr,
   rw mem_smul_set_iff_inv_smul_mem₀ (norm_pos_iff.mp (lt_of_lt_of_le zero_lt_one hr)),
-  refine h (balanced_mem ht hx _),
+  refine h (balanced_iff_mem.mp ht hx _),
   rw norm_inv,
   exact inv_le_one hr,
 end

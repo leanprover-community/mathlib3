@@ -66,11 +66,10 @@ lemma independent_iff_independent' {ι : Type*} (f : ι → ℙ K V) : independe
 begin
   unfold independent', split; intro h,
   { cases h with f hf hi,
-    simp_rw [submodule_mk, complete_lattice.independent_iff_linear_independent_of_ne_zero hf],
-    exact hi },
+    simpa [submodule_mk, complete_lattice.independent_iff_linear_independent_of_ne_zero hf] },
   { rw independent_iff,
     refine complete_lattice.independent.linear_independent (projectivization.submodule ∘ f) h _ _,
-    { intro i, simp_rw [function.comp_app], rw ← mk_rep (f i), rw submodule_mk, rw mk_rep (f i),
+    { intro i, rw [function.comp_app projectivization.submodule f i, submodule_eq],
       exact submodule.mem_span_singleton_self ((f i).rep) },
     { intro i, rw function.comp_app, exact rep_nonzero (f i) } },
 end

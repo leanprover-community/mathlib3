@@ -367,8 +367,8 @@ end
 lemma totient_super_multiplicative (a b : ℕ) : φ a * φ b ≤ φ (a * b) :=
 begin
   let d := a.gcd b,
-  by_cases ha0 : a = 0, { simp [ha0] },
-  have hd0 : 0 < d, { apply nat.pos_of_ne_zero, contrapose! ha0, exact (gcd_eq_zero_iff.1 ha0).1 },
+  rcases (zero_le a).eq_or_lt with rfl | ha0, { simp },
+  have hd0 : 0 < d, from nat.gcd_pos_of_pos_left _ ha0,
   rw [←mul_le_mul_right hd0, ←totient_gcd_mul_totient_mul a b, mul_comm],
   apply mul_le_mul_left' (nat.totient_le d),
 end

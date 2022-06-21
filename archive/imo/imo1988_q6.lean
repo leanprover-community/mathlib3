@@ -226,7 +226,7 @@ begin
       { rw [← sub_eq_zero, ← h_root],
         ring, },
       rw hzx at hpos,
-      replace hpos : z * x + 1 > 0 := pos_of_mul_pos_right hpos (int.coe_zero_le k),
+      replace hpos : z * x + 1 > 0 := pos_of_mul_pos_left hpos (int.coe_zero_le k),
       replace hpos : z * x ≥ 0 := int.le_of_lt_add_one hpos,
       apply nonneg_of_mul_nonneg_left hpos (by exact_mod_cast hx), },
     { contrapose! hV₀ with x_lt_z,

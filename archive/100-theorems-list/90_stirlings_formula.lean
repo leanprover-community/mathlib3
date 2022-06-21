@@ -44,15 +44,6 @@ open  finset filter nat real
 
 namespace stirling
 
-/-- The sum of inverse squares converges. -/
-lemma summable_inverse_squares :
-summable (λ (k : ℕ), (1 : ℝ) / ((k.succ))^(2)) :=
-begin
-  have g := (summable_nat_add_iff 1).mpr (real.summable_one_div_nat_rpow.mpr one_lt_two),
-  norm_cast at *,
-  exact g,
-end
-
 /-!
  ### Part 1
  https://proofwiki.org/wiki/Stirling%27s_Formula#Part_1
@@ -284,7 +275,8 @@ begin
     ... ≤ 1 / 4 * d :
     begin
       refine (mul_le_mul_left _).mpr _, { exact one_div_pos.mpr four_pos, },
-      refine sum_le_tsum (range n) (λ k _, _) summable_inverse_squares,
+      refine sum_le_tsum (range n) (λ k _, _)
+        ((summable_nat_add_iff 1).mpr (real.summable_one_div_nat_pow.mpr one_lt_two)),
       apply le_of_lt,
       rw one_div_pos,
       rw sq_pos_iff,

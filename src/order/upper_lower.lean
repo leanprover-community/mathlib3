@@ -535,6 +535,11 @@ def lower_set.map (s : lower_set α) (φ : F) : lower_set β := ⟨φ '' s, s.lo
 @[simp] lemma upper_set.coe_map (s : upper_set α) (φ : F) : (s.map φ : set β) = φ '' s := rfl
 @[simp] lemma lower_set.coe_map (s : lower_set α) (φ : F) : (s.map φ : set β) = φ '' s := rfl
 
+@[simp] lemma upper_set.mem_map_iff {s : upper_set α} {x : β} {φ : F} :
+  x ∈ s.map φ ↔ ∃ y, y ∈ s ∧ φ y = x := iff.rfl
+@[simp] lemma lower_set.mem_map_iff {s : lower_set α} {x : β} {φ : F} :
+  x ∈ s.map φ ↔ ∃ y, y ∈ s ∧ φ y = x := iff.rfl
+
 end has_le
 
 section preorder
@@ -552,6 +557,12 @@ def lower_set.comap (t : lower_set β) (φ : F) : lower_set α := ⟨φ ⁻¹' t
 
 @[simp] lemma lower_set.coe_comap (t : lower_set β) (φ : F) :
   ((t.comap φ : lower_set α) : set α) = φ ⁻¹' t := rfl
+
+@[simp] lemma upper_set.mem_comap_iff {t : upper_set β} {φ : F} {x : α} :
+  x ∈ (t.comap φ : upper_set α) ↔ φ x ∈ t := iff.rfl
+
+@[simp] lemma lower_set.mem_comap_iff {t : lower_set β} {φ : F} {x : α} :
+  x ∈ (t.comap φ : lower_set α) ↔ φ x ∈ t := iff.rfl
 
 end preorder
 

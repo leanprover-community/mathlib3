@@ -359,9 +359,9 @@ begin
   simp only [totient_eq_div_factors_mul],
   rw [shuffle, shuffle],
   rotate, repeat { apply prod_prime_factors_dvd },
-  simp only [prod_factors_gcd_mul_prod_factors_mul],
-  rw [eq_comm, mul_comm, ←mul_assoc, ←nat.mul_div_assoc],
-  exact mul_dvd_mul (prod_prime_factors_dvd a) (prod_prime_factors_dvd b)
+  { simp only [prod_factors_gcd_mul_prod_factors_mul],
+    rw [eq_comm, mul_comm, ←mul_assoc, ←nat.mul_div_assoc],
+    exact mul_dvd_mul (prod_prime_factors_dvd a) (prod_prime_factors_dvd b) }
 end
 
 lemma totient_super_multiplicative (a b : ℕ) : φ a * φ b ≤ φ (a * b) :=

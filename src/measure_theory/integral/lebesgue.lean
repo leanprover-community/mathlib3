@@ -2028,8 +2028,11 @@ begin
   have hm : measurable_set {x | f x ≤ g x}, from measurable_set_le hf hg,
   rw [← lintegral_add_compl (λ x, max (f x) (g x)) hm],
   simp only [← compl_set_of, ← not_le],
-  refine congr_arg2 (+) (set_lintegral_congr_fun hm _) (set_lintegral_congr_fun hm.compl _),
-  exacts [ae_of_all _ (λ x, max_eq_right), ae_of_all _ (λ x hx, max_eq_left (not_le.1 hx).le)]
+  exact congr_arg2 (+)
+    (set_lintegral_congr_fun hm
+      (ae_of_all _ (λ x, @max_eq_right ℝ≥0∞ _ _ _)))
+    (set_lintegral_congr_fun hm.compl
+      (ae_of_all _ (λ x (hx : ¬ _ ≤ _), max_eq_left (not_le.1 hx).le)))
 end
 
 lemma set_lintegral_max {f g : α → ℝ≥0∞} (hf : measurable f) (hg : measurable g) (s : set α) :

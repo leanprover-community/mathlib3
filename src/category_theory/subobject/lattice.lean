@@ -654,12 +654,12 @@ variables [well_powered C] [has_wide_pullbacks C] [has_images C] [has_coproducts
   [initial_mono_class C]
 
 instance {B : C} : complete_lattice (subobject B) :=
-{ Inf := Inf,
-  Inf_le := Inf_le,
+{ Inf_le := Inf_le,
   le_Inf := le_Inf,
-  Sup := Sup,
   le_Sup := le_Sup,
   Sup_le := Sup_le,
+  ..subobject.has_Inf,
+  ..subobject.has_Sup,
   ..subobject.semilattice_inf,
   ..subobject.semilattice_sup,
   ..subobject.bounded_order,

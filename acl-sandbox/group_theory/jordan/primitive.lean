@@ -25,15 +25,20 @@ import .equivariant_map
 import .sub_mul_actions
 import .for_mathlib.partitions
 import .maximal_subgroups
+import .for_mathlib.commutators
 import .blocks
 
 
 /-!
 # Primitive actions
 
+## Definitions
+
 - The structure `is_preprimitive G X` that says that the action of a type `G`
 on a type `T` (defined by an instance `has_scalar G X`) is *preprimitive*, namely,
 it is pretransitive and the only blocks are ⊤ and subsingletons.
+(The pretransitivity assumption is essentially trivial, because orbits are blocks,
+unless the action itself is trivial.)
 
 The notion which is introduced in classical groups is restricted to `mul_action` of groups.
 In fact, it may be irrelevant if the action is degenerate,
@@ -44,7 +49,36 @@ which assumes moreover that `X` is not empty.
 - We prove some straightforward theorems that relate preprimitivity under equivariant maps,
 for images and preimages.
 
--
+## Relation with stabilizers
+
+- `is_preprimitive_of_block_order` relates primitivity and the fact that the inclusion
+order on blocks containing is simple.
+
+- `maximal_stabilizer_iff_preprimitive` proves that an action is preprimitive iff the stabilizers
+of points are maximal subgroups.
+
+## Relation with normal subgroups
+
+- `pretransitive_of_normal_of_preprimitive` : Given a preprimitive action,
+a normal subgroup acting nontrivially acts pretransitively
+
+## Particular results for actions on finite types
+
+- `is_preprimitive_of_prime` : a pretransitive action on a finite type of prime cardinal
+is preprimitive
+
+- `is_preprimitive_of_large_image`: Given an equivariant map from a preprimitive action,
+if the image is at least twice the codomain, then the codomain is preprimitive
+
+- `rudio`: Given a preprimitive action, two points and a finite set A, find a translate
+that contains one of them and not the other one.
+(The proof relies on `is_block.of_subset` that itself requires finiteness of A,
+but I don't know whether the theorem does…)
+
+## Iwasawa criterion
+
+- `commutator_le_iwasawa` and `is_simple_iwasawa` prove the Iwasawa criterion for simplicity
+
 -/
 open mul_action
 
@@ -235,7 +269,9 @@ begin
   rw set.top_eq_univ, apply set.mem_univ,
 end
 
-theorem is_preprimitive_of_block_order (htGX : is_pretransitive G X) [nontrivial X] (a : X) :
+/-- A pretransitive action on a nontrivial type is preprimitive iff
+the set of blocks containing a given element is a simple order -/
+theorem is_preprimitive_iff_is_simple_order_blocks (htGX : is_pretransitive G X) [nontrivial X] (a : X) :
   is_preprimitive G X ↔ is_simple_order {B : set X // a ∈ B ∧ is_block G B}  :=
 begin
   haveI : nontrivial {B : set X // a ∈ B ∧ is_block G B} :=
@@ -265,11 +301,11 @@ end
 
 /-- An pretransitive action is preprimitive
   iff the stabilizer of any point is a maximal subgroup (Wielandt, th. 7.5) -/
-theorem maximal_stabilizer_iff_primitive [hnX : nontrivial X] [htGX : is_pretransitive G X]
+theorem maximal_stabilizer_iff_preprimitive [hnX : nontrivial X] [htGX : is_pretransitive G X]
   (a : X) : (stabilizer G a).is_maximal ↔ is_preprimitive G X :=
 begin
   let s := stabilizer_block_equiv htGX a,
-  rw is_preprimitive_of_block_order G htGX a,
+  rw is_preprimitive_iff_is_simple_order_blocks G htGX a,
   rw subgroup.is_maximal_def,
   rw ← set.is_simple_order_Ici_iff_is_coatom,
   simp only [is_simple_order_iff_is_coatom_bot],
@@ -277,12 +313,24 @@ begin
   rw order_iso.map_bot,
 end
 
+/- -- Not so useful
+/-- In a preprimitive action, stabilizers are maximal subgroups -/
+lemma has_maximal_stabilizers_of_preprimitive [hnX : nontrivial X] (hpGX : is_preprimitive G X)
+  (a : X) : (stabilizer G a).is_maximal :=
+begin
+  haveI : is_pretransitive G X := hpGX.to_is_pretransitive,
+  rw maximal_stabilizer_iff_preprimitive,
+  exact hpGX,
+end
+-/
+
 end stabilizer
 
 section normal
 
 variables {M : Type*} [group M] {α : Type*} [mul_action M α]
 
+/-- If a subgroup acts nontrivially, then the type is nontrivial -/
 lemma isnontrivial_of_nontrivial_action {N : subgroup M} (h : fixed_points N α ≠ ⊤) :
   nontrivial α :=
 begin
@@ -315,6 +363,7 @@ begin
     rw set.subsingleton.eq_singleton_of_mem h (mul_action.mem_orbit_self a) },
 end
 
+/-
 /-- If the action of M on α is primitive,
 then for any normal subgroup N that acts nontrivially,
 any a : α, the groups N and (stabilizer G a) generate M.
@@ -328,12 +377,9 @@ begin
   haveI : nontrivial α := isnontrivial_of_nontrivial_action hNX,
   -- Using that stabilizers are maximal, we reduce the assertion to contradicting
   -- an inclusion N ≤ stabilizer M a
-  rw [← maximal_stabilizer_iff_primitive M a, subgroup.is_maximal_def, is_coatom] at is_prim,
+  rw [← maximal_stabilizer_iff_preprimitive M a, subgroup.is_maximal_def, is_coatom] at is_prim,
   apply is_prim.right (N ⊔ (mul_action.stabilizer M a)),
-  rw lt_iff_le_not_le,
-  apply and.intro le_sup_right,
-  intro hz,
-  simp only [sup_le_iff, le_refl, and_true] at hz,
+  rw right_lt_sup, intro hz,
   -- The contradiction come from the hypothesis that N acts nontrivially
   apply hNX,
   -- Synthetically, N = g • N • g⁻¹ is contained in stabilizer M (g • a),
@@ -354,6 +400,56 @@ begin
   apply nN.conj_mem g _ h,
   exact hg
 end
+
+lemma normal_core_of_stabilizer_acts_trivially (trans: is_pretransitive M α) (a: α) :
+  mul_action.fixed_points (stabilizer M a).normal_core α = ⊤  :=
+begin
+  let trans_eq := trans.exists_smul_eq,
+  rw eq_top_iff,
+/-  apply (fixing_subgroup_fixed_points_gc M α).le_u,
+  simp only [set.top_eq_univ, function.comp_app, order_dual.to_dual_le],
+-/
+  intros x _,
+  rw mem_fixed_points, rintro ⟨g, hg⟩,
+  change g • x = x,
+  obtain ⟨k, hk⟩ := trans_eq x a,
+  rw smul_eq_iff_eq_inv_smul at hk,
+  rw hk,
+  rw ← smul_eq_iff_eq_inv_smul,
+  simp only [← mul_smul, ← mul_assoc],
+  rw ← mem_stabilizer_iff,
+  apply subgroup.normal_core_le,
+  apply (stabilizer M a).normal_core_normal.conj_mem,
+  exact hg
+end
+
+example (N K : subgroup M) (h : K < K ⊔ N) : ¬ (N ≤ K) :=
+begin
+exact left_lt_sup.mp h
+end
+
+
+lemma prim_to_full' (is_prim: is_preprimitive M α)
+  (a: α) {N : subgroup M} (nN : subgroup.normal N) (hNX : mul_action.fixed_points N α ≠ ⊤) :
+  N ⊔ (mul_action.stabilizer M a) = ⊤ :=
+begin
+  haveI : is_pretransitive M α := is_prim.to_is_pretransitive,
+  resetI,
+  let is_pretrans := is_prim.to_is_pretransitive.exists_smul_eq,
+  haveI : nontrivial α := isnontrivial_of_nontrivial_action hNX,
+  let is_prim' := id is_prim,
+  rw [← maximal_stabilizer_iff_preprimitive M a, subgroup.is_maximal_def, is_coatom] at is_prim,
+  apply is_prim.right (N ⊔ (mul_action.stabilizer M a)),
+  rw right_lt_sup, intro hz, apply hNX,
+  rw ← N.normal_core_eq_self,
+  rw eq_top_iff,
+  refine le_trans _ ((fixed_points_subgroup_antitone M α) (subgroup.normal_core_mono hz)),
+  simp only,
+  rw normal_core_of_stabilizer_acts_trivially is_prim'.to_is_pretransitive,
+  exact le_of_eq rfl
+end
+
+-/
 
 end normal
 
@@ -499,50 +595,10 @@ section iwasawa
 open_locale big_operators pointwise
 
 variables {M : Type*} [group M] {α : Type*} [mul_action M α]
-/-
-
-/-- An auxiliary lemma, variant of normal_mul' ,
-with an explicit N.normal hypothesis,
-so that the typeclass inference machine works.
--/
-lemma normal_mul' (N : subgroup M) (nN : N.normal) (K : subgroup M)
-    (h : N ⊔ K = ⊤) (g : M) : ∃ (n : N) (k : K), g = n * k :=
-begin
-    have hg : g ∈ ↑(N ⊔ K), { rw h, exact subgroup.mem_top g,},
-    rw [subgroup.normal_mul, set.mem_mul] at hg,
-    obtain ⟨x, y, hx, hy, hxy⟩ := hg,
-    use x, exact hx, use y, exact hy, rw eq_comm at hxy, exact hxy,
-end
-
-/-- If the action of G on X is primitive,
-then any normal subgroup N that acts nontrivially acts transitively.
--/
-lemma prim_to_transitive (is_prim: is_primitive G X)
-  (N : subgroup G) (nN : N.normal) (hNX : mul_action.fixed_points N X ≠ ⊤) :
-  mul_action.is_pretransitive N X :=
-begin
-    apply mul_action.is_pretransitive.mk,
-    intros x y,
-
-    have : ∀ (g:G), ∃(n:N) (k:mul_action.stabilizer G x), g = n * k
-    := normal_mul'  G (N:subgroup G) nN (mul_action.stabilizer G x: subgroup G)
-        (prim_to_full G X is_prim x N nN hNX) ,
-
-    let is_pretrans := (is_transitive.to_is_pretransitive
-        (is_primitive.to_is_transitive is_prim)).exists_smul_eq,
-    obtain ⟨g₁, hg₁⟩ :=  is_pretrans x y,
-    obtain ⟨h, k, hk⟩ := this g₁  ,
-    use h,
-
-    have k' := mul_action.mem_stabilizer_iff.1 (subtype.mem k),
-    rw ← k',
-    rw hk at hg₁, rw mul_smul at hg₁, assumption,
-end
- -/
 
 variables (M α)
 /-- The structure underlying the Iwasawa criterion -/
-structure has_iwasawa_structure :=
+structure iwasawa_structure :=
   (T : α → subgroup M)
   (is_comm: ∀ (x: α), (T x).is_commutative)
   (is_conj: ∀ (g: M), ∀ (x : α), T (g • x) = mul_aut.conj g • (T x))
@@ -550,43 +606,49 @@ structure has_iwasawa_structure :=
 
 /- Variante de la structure d'Iwasawa :
 * M action primitive sur α
-* x : α
-* A := T x, sous-groupe commutatif de G
-* g • x = x → mul_aut.conj g A = A
+* a : α
+* A := T a, sous-groupe commutatif de G
+* g • a = a → mul_aut.conj g A = A
+* stabilizer M a ≤ normalizer A
 * subgroup.normal_closure A = ⊤
+
+Ou encore : (?)
+* A : subgroup M, commutative
+* normalizer A maximal
+* subgroup.normal_closure A = ⊤
+
 -/
 
 variables {M α}
 /-- The Iwasawa criterion : If a primitive action of a group G on X
 has an Iwasawa structure, then any normal subgroup that acts nontrivially
 contains the group of commutators. -/
-theorem Iwasawa_mk (is_prim: is_preprimitive M α) (IwaS : has_iwasawa_structure M α)
+theorem commutator_le_iwasawa (is_prim: is_preprimitive M α) (IwaS : iwasawa_structure M α)
   {N : subgroup M} (nN : N.normal) (hNX : mul_action.fixed_points N α ≠ ⊤) :
   commutator M ≤ N :=
 begin
   haveI is_transN : is_pretransitive N α := pretransitive_of_normal_of_preprimitive nN is_prim hNX,
-
   haveI ntα : nontrivial α := (isnontrivial_of_nontrivial_action hNX),
-  obtain a := nontrivial.to_nonempty.some,
-
-  refine contains_commutators_of N nN (IwaS.T x) _ (IwaS.is_comm x),
+  obtain a : α := nontrivial.to_nonempty.some,
+  refine contains_commutators_of N nN (IwaS.T a) _ (IwaS.is_comm a),
   -- by contains_commutators_of, it suffices to prove that N ⊔ IwaS.T x = ⊤
-  rw [eq_top_iff, ←IwaS.is_generator, supr_le_iff],
-  intro y,
-  obtain ⟨g, rfl⟩ := mul_action.exists_smul_eq N x y,
-  rw [subgroup.smul_def, IwaS.is_conj g x],
+  rw [eq_top_iff, ← IwaS.is_generator, supr_le_iff],
+  intro x,
+  obtain ⟨g, rfl⟩ := mul_action.exists_smul_eq N a x,
+  rw [subgroup.smul_def, IwaS.is_conj g a],
   rintros _ ⟨k, hk, rfl⟩,
-  have hg' : ↑g ∈ N ⊔ IwaS.T x := subgroup.mem_sup_left (subtype.mem g),
-  have hk' : k ∈ N ⊔ IwaS.T x := subgroup.mem_sup_right hk,
-  exact (N ⊔ IwaS.T x).mul_mem ((N ⊔ IwaS.T x).mul_mem hg' hk') ((N ⊔ IwaS.T x).inv_mem hg'),
+  have hg' : ↑g ∈ N ⊔ IwaS.T a := subgroup.mem_sup_left (subtype.mem g),
+  have hk' : k ∈ N ⊔ IwaS.T a := subgroup.mem_sup_right hk,
+  exact (N ⊔ IwaS.T a).mul_mem ((N ⊔ IwaS.T a).mul_mem hg' hk') ((N ⊔ IwaS.T a).inv_mem hg'),
 end
 
-theorem is_simple (is_nontrivial : nontrivial G) (is_perfect : commutator G = ⊤)
-  (is_prim : is_primitive G X) (is_faithful : has_faithful_scalar G X)
-  (IwaS : has_iwasawa_structure G X) : is_simple_group G :=
+/-- The Iwasawa criterion for simplicity -/
+theorem is_simple_iwasawa (is_nontrivial : nontrivial M) (is_perfect : commutator M = ⊤)
+  (is_prim : is_preprimitive M α) (is_faithful : has_faithful_smul M α)
+  (IwaS : iwasawa_structure M α) : is_simple_group M :=
 begin
   refine ⟨is_nontrivial.exists_pair_ne, λ N nN, _⟩,
-  cases (or_iff_not_imp_left.mpr (Iwasawa_mk G X is_prim IwaS N nN)),
+  cases (or_iff_not_imp_left.mpr (commutator_le_iwasawa is_prim IwaS nN)),
   { refine or.inl (N.eq_bot_iff_forall.mpr (λ n hn, _)),
     apply is_faithful.eq_of_smul_eq_smul,
     intro x,

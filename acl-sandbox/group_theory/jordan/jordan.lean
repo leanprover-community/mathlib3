@@ -231,7 +231,7 @@ begin
       rw [← nat.cast_two, ← nat.cast_one, enat.coe_lt_coe ],
       norm_num },
 
-    rw maximal_stabilizer_iff_primitive G α a,
+    rw maximal_stabilizer_iff_preprimitive G α a,
     apply is_preprimitive_of_two_pretransitive,
     exact hG'
 end
@@ -960,9 +960,9 @@ end Jordan
 section Jordan'
 
 open mul_action
-open_locale pointwise classical
+open_locale pointwise
 
-variables {α : Type*} [fintype α]
+variables {α : Type*} [fintype α] [decidable_eq α]
 variable {G : subgroup (equiv.perm α)}
 
 lemma eq_s2_of_nontrivial (hα : fintype.card α ≤ 2) (hG : nontrivial G) :
@@ -1054,7 +1054,7 @@ by rw [← equiv.perm.lcm_cycle_type, h.cycle_type, multiset.lcm_singleton, norm
 
 /-- A primitive permutation group that contains a swap is the full permutation group (Jordan)-/
 theorem jordan_swap (hG : is_preprimitive G α)
-  {g : equiv.perm α} (h2g : equiv.perm.is_swap g) (hg : g ∈ G) : G = ⊤  :=
+  (g : equiv.perm α) (h2g : equiv.perm.is_swap g) (hg : g ∈ G) : G = ⊤  :=
 begin
   cases nat.lt_or_ge (fintype.card α) 3 with hα3 hα3,
   { -- trivial case : fintype.card α ≤ 2

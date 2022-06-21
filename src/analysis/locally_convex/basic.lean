@@ -132,9 +132,20 @@ def balanced (A : set E) := ∀ a : 𝕜, ∥a∥ ≤ 1 → a • A ⊆ A
 
 variables {𝕜}
 
+@[simp] lemma balanced_empty : balanced 𝕜 (∅ : set E) :=
+λ _ _, by { rw smul_set_empty }
+
 lemma balanced_mem {s : set E} (hs : balanced 𝕜 s) {x : E} (hx : x ∈ s) {a : 𝕜} (ha : ∥a∥ ≤ 1) :
   a • x ∈ s :=
 mem_of_subset_of_mem (hs a ha) (smul_mem_smul_set hx)
+
+lemma balanced_iff_mem : balanced 𝕜 s ↔ ∀ {x : E} (hx : x ∈ s) {a : 𝕜} (ha : ∥a∥ ≤ 1), a • x ∈ s :=
+begin
+  refine ⟨λ h x hx a ha, set.mem_of_subset_of_mem (h a ha) (set.smul_mem_smul_set hx), _⟩,
+  rintros h a ha x ⟨y, hy, hx⟩,
+  rw ←hx,
+  exact h hy ha,
+end
 
 lemma balanced_univ : balanced 𝕜 (univ : set E) := λ a ha, subset_univ _
 
@@ -149,6 +160,18 @@ lemma balanced.inter (hA : balanced 𝕜 A) (hB : balanced 𝕜 B) : balanced �
 begin
   rintro a ha _ ⟨x, ⟨hx₁, hx₂⟩, rfl⟩,
   exact ⟨hA _ ha ⟨_, hx₁, rfl⟩, hB _ ha ⟨_, hx₂, rfl⟩⟩,
+end
+
+lemma balanced.Inter_finset {t : finset ι} {f : ι → set E}
+  (h : ∀ i ∈ t, balanced 𝕜 (f i)) : balanced 𝕜 (⋂ (i ∈ t), f i) :=
+begin
+  classical,
+  induction t using finset.induction_on with i t ht hi,
+  { simp only [Inter_false, Inter_univ], exact balanced_univ, },
+  rw [finset.set_bInter_insert],
+  refine balanced.inter (h i (by simp)) (hi (λ i' hi', h i' _)),
+  rw [finset.mem_insert],
+  exact or.intro_right _ hi',
 end
 
 end has_scalar
@@ -192,6 +215,9 @@ end normed_comm_ring
 section normed_field
 variables [normed_field 𝕜] [normed_ring 𝕝] [normed_space 𝕜 𝕝] [add_comm_group E] [module 𝕜 E]
   [smul_with_zero 𝕝 E] [is_scalar_tower 𝕜 𝕝 E] {s t u v A B : set E} {a b : 𝕜}
+
+lemma balanced.symmetric (h : balanced 𝕜 A) {x : E} (hx : x ∈ A) : -x ∈ A :=
+by { convert (balanced_iff_mem.mp h) hx (by rw [norm_neg, norm_one]), rw [neg_smul, one_smul] }
 
 /-- Scalar multiplication (by possibly different types) of a balanced set is monotone. -/
 lemma balanced.smul_mono (hs : balanced 𝕝 s) {a : 𝕝} {b : 𝕜} (h : ∥a∥ ≤ ∥b∥) : a • s ⊆ b • s :=

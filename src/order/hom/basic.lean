@@ -166,13 +166,13 @@ instance : order_hom_class (α →o β) α β :=
   coe_injective' := λ f g h, by { cases f, cases g, congr' },
   map_rel := λ f, f.monotone }
 
-lemma coe_eq (f : α →o β) : coe f = f := by ext ; refl
-
 @[simp] lemma to_fun_eq_coe {f : α →o β} : f.to_fun = f := rfl
 @[simp] lemma coe_fun_mk {f : α → β} (hf : _root_.monotone f) : (mk f hf : α → β) = f := rfl
 
 @[ext] -- See library note [partially-applied ext lemmas]
 lemma ext (f g : α →o β) (h : (f : α → β) = g) : f = g := fun_like.coe_injective h
+
+lemma coe_eq (f : α →o β) : coe f = f := by ext ; refl
 
 /-- One can lift an unbundled monotone function to a bundled one. -/
 instance : can_lift (α → β) (α →o β) :=

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alex Kontorovich, Heather Macbeth, Marc Masdeu
 -/
 
-import analysis.complex.upper_half_plane
+import analysis.complex.upper_half_plane.basic
 import linear_algebra.general_linear_group
 import analysis.matrix
 

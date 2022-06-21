@@ -432,6 +432,45 @@ begin
   simp only [set.mem_to_finset, mem_neighbor_set],
 end
 
+/-! ## Subgraphs of subgraphs -/
+
+/-- Given a subgraph of a subgraph of `G`, construct a subgraph of `G`. -/
+@[simps]
+protected def coe_subgraph {G' : G.subgraph} (G'' : G'.coe.subgraph) : G.subgraph :=
+{ verts := coe '' G''.verts,
+  adj := λ v w, ∃ (hv : v ∈ G'.verts) (hw : w ∈ G'.verts), G''.adj ⟨v, hv⟩ ⟨w, hw⟩,
+  adj_sub := λ v w,
+    by { simp_rw [bex_imp_distrib], refine λ _ _ h, G'.adj_sub _, simpa using G''.adj_sub h },
+  edge_vert := begin
+    simp only [set.mem_image, set_coe.exists, subtype.coe_mk, exists_and_distrib_right,
+      exists_eq_right, bex_imp_distrib],
+    intros v w hv hw h,
+    exact ⟨hv, G''.edge_vert h⟩,
+  end }
+
+/-- Given a subgraph of `G`, restrict it to being a subgraph of another subgraph `G'` by
+taking the portion of `G` that intersects `G'`. -/
+@[simps]
+protected def restrict {G' : G.subgraph} (G'' : G.subgraph) : G'.coe.subgraph :=
+{ verts := coe ⁻¹' G''.verts,
+  adj := λ v w, G'.adj v w ∧ G''.adj v w,
+  adj_sub := by simp { contextual := tt },
+  edge_vert := by { rintro ⟨v, hv⟩ ⟨w, hw⟩, simp, intros _ h, exact G''.edge_vert h } }
+
+lemma restrict_coe_subgraph {G' : G.subgraph} (G'' : G'.coe.subgraph) :
+  G''.coe_subgraph.restrict = G'' :=
+begin
+  ext,
+  { simp },
+  { simp only [restrict_adj, subtype.coe_prop, coe_subgraph_adj, subtype.coe_eta, exists_true_left,
+      and_iff_right_iff_imp],
+    apply G''.adj_sub, }
+end
+
+lemma coe_subgraph_injective (G' : G.subgraph) :
+  function.injective (subgraph.coe_subgraph : G'.coe.subgraph → G.subgraph) :=
+function.left_inverse.injective restrict_coe_subgraph
+
 /-! ## Edge deletion -/
 
 /-- Given a subgraph `G'` and a set of vertex pairs, remove all of the corresponding edges

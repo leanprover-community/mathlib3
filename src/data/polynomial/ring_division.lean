@@ -737,7 +737,7 @@ lemma is_coprime_X_sub_C_of_is_unit_sub {R} [comm_ring R] {a b : R}
 ⟨-C h.unit⁻¹.val, C h.unit⁻¹.val, by { rw [neg_mul_comm, ← left_distrib, neg_add_eq_sub,
   sub_sub_sub_cancel_left, ← C_sub, ← C_mul], convert C_1, exact h.coe_inv_mul }⟩
 
-theorem pairwise_coprime_X_sub_C {α : Type u} [field α] {I : Type v} {s : I → α}
+theorem pairwise_coprime_X_sub_C {K} [field K] {I : Type v} {s : I → K}
   (H : function.injective s) : pairwise (is_coprime on (λ i : I, X - C (s i))) :=
 λ i j hij, is_coprime_X_sub_C_of_is_unit_sub (sub_ne_zero_of_ne $ H.ne hij).is_unit
 
@@ -765,12 +765,9 @@ end
 /-- A monic polynomial `p` that has as many roots as its degree
 can be written `p = ∏(X - a)`, for `a` in `p.roots`. -/
 lemma prod_multiset_X_sub_C_of_monic_of_roots_card_eq
-  (hmonic : p.monic) (hroots : p.roots.card = p.nat_degree) :
+  (hp : p.monic) (hroots : p.roots.card = p.nat_degree) :
   (p.roots.map (λ (a : R), X - C a)).prod = p :=
-begin
-  convert C_leading_coeff_mul_prod_multiset_X_sub_C hroots,
-  rw [hmonic.leading_coeff, C_1, one_mul],
-end
+by {convert C_leading_coeff_mul_prod_multiset_X_sub_C hroots, rw [hp.leading_coeff, C_1, one_mul] }
 
 end comm_ring
 

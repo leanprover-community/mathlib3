@@ -119,15 +119,15 @@ have of_congr : ∀ {i i' : ι} (h1 : i = i') {x : 𝓜 i} {y : 𝓜 i'} (h2 : x
   direct_sum.of _ i x = direct_sum.of _ i' y,
 from λ _ _ h1 x y h2,
   direct_sum.of_congr _ h1 $ by subst h1; exact heq_of_eq (subtype.ext_iff_val.2 h2),
-have eq0 : direct_sum.decompose_add_equiv 𝓐 (1 : A) = direct_sum.of _ 0 _ :=
-  direct_sum.decompose_coe 𝓐 (⟨1, set_like.graded_monoid.one_mem⟩ : 𝓐 0),
-suffices h : (scalar_hom 𝓐 𝓜).comp (direct_sum.decompose_add_equiv 𝓐).to_add_monoid_hom 1 b = b,
-from h, direct_sum.induction_on b (by rw [map_zero]) (λ i b, begin
-    rw [add_monoid_hom.comp_apply, add_equiv.coe_to_add_monoid_hom, eq0, scalar_hom_of_of],
-    refine of_congr (zero_add _) _,
-    change (1 : A) • b.1 = _,
-    rw one_smul,
-  end) $ λ x y hx hy, by rw [map_add, hx, hy]
+begin
+  unfold has_scalar.smul,
+  refine direct_sum.induction_on b (by rw [map_zero]) _ (λ x y hx hy, by rw [map_add, hx, hy]),
+  intros i b,
+  rw [add_monoid_hom.comp_apply, add_equiv.coe_to_add_monoid_hom,
+    show direct_sum.decompose_add_equiv 𝓐 (1 : A) = direct_sum.of _ 0 _, from
+    direct_sum.decompose_coe 𝓐 (⟨1, set_like.graded_monoid.one_mem⟩ : 𝓐 0), scalar_hom_of_of],
+  exact of_congr (zero_add _) (by convert (one_smul _ _ : (1 : A) • b.1 = b.1)),
+end
 
 lemma mul_smul [decidable_eq ι] [graded_algebra 𝓐]
   [@set_like.has_graded_scalar ι _ A _ M _ _ _ _ 𝓐 𝓜]
@@ -172,19 +172,13 @@ lemma smul_add [decidable_eq ι] [graded_algebra 𝓐]
   [@set_like.has_graded_scalar ι _ A _ M _ _ _ _ 𝓐 𝓜]
   (a : A) (b c : ⨁ i, 𝓜 i) :
   a • (b + c) = a • b + a • c :=
-begin
-  unfold has_scalar.smul,
-  rw [map_add],
-end
+by unfold has_scalar.smul; simp
 
 lemma smul_zero [decidable_eq ι] [graded_algebra 𝓐]
   [@set_like.has_graded_scalar ι _ A _ M _ _ _ _ 𝓐 𝓜]
   (a : A) :
   a • (0 : ⨁ i, 𝓜 i) = 0 :=
-begin
-  unfold has_scalar.smul,
-  rw [map_zero],
-end
+by unfold has_scalar.smul; simp
 
 /--
 The scalar multiplication of `A` on `⨁ i, 𝓜 i` from `(⨁ i, 𝓐 i) →+ (⨁ i, 𝓜 i) →+ ⨁ i, 𝓜 i` is
@@ -205,19 +199,13 @@ lemma add_smul [decidable_eq ι] [graded_algebra 𝓐]
   [@set_like.has_graded_scalar ι _ A _ M _ _ _ _ 𝓐 𝓜]
   (a b : A) (c : ⨁ i, 𝓜 i) :
   (a + b) • c = a • c + b • c :=
-begin
-  unfold has_scalar.smul,
-  simp only [map_add, add_monoid_hom.add_apply],
-end
+by unfold has_scalar.smul; simp
 
 lemma zero_smul [decidable_eq ι] [graded_algebra 𝓐]
   [@set_like.has_graded_scalar ι _ A _ M _ _ _ _ 𝓐 𝓜]
   (a : ⨁ i, 𝓜 i) :
   (0 : A) • a = 0 :=
-begin
-  unfold has_scalar.smul,
-  simp only [map_zero, add_monoid_hom.zero_apply],
-end
+by unfold has_scalar.smul; simp
 
 /--
 The scalar multiplication of `A` on `⨁ i, 𝓜 i` from `(⨁ i, 𝓐 i) →+ (⨁ i, 𝓜 i) →+ ⨁ i, 𝓜 i`
@@ -246,15 +234,12 @@ from λ x, (graded_algebra.is_internal 𝓐).submodule_supr_eq_top.symm ▸ subm
   map_smul' := λ x y, begin
     classical,
     rw [← direct_sum.sum_support_decompose 𝓐 x, map_sum, finset.sum_smul, map_sum,
-      finset.sum_smul, finset.sum_congr rfl],
-    intros i hi,
+      finset.sum_smul, finset.sum_congr rfl (λ i hi, _)],
     rw [ring_hom.id_apply, ← direct_sum.sum_support_decompose 𝓜 y, map_sum, finset.smul_sum,
-      map_sum, finset.smul_sum, finset.sum_congr rfl],
-    intros j hj,
+      map_sum, finset.smul_sum, finset.sum_congr rfl (λ j hj, _)],
     unfold has_scalar.smul,
     rw [add_monoid_hom.comp_apply, add_equiv.coe_to_add_monoid_hom],
-    simp only [direct_sum.decompose_add_equiv_apply, direct_sum.decompose_coe],
-    rw [scalar_hom_of_of],
+    simp only [direct_sum.decompose_add_equiv_apply, direct_sum.decompose_coe, scalar_hom_of_of],
     convert direct_sum.decompose_coe 𝓜 _,
     refl,
   end,

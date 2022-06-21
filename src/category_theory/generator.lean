@@ -5,6 +5,7 @@ Authors: Markus Himmel
 -/
 import category_theory.balanced
 import category_theory.limits.opposites
+import category_theory.limits.shapes.zero_morphisms
 import data.set.opposite
 
 /-!
@@ -49,7 +50,7 @@ We
 
 -/
 
-universes v u
+universes w v u
 
 open category_theory.limits opposite
 
@@ -340,6 +341,83 @@ lemma is_coseparator_iff_faithful_yoneda_obj (G : C) :
 ⟨λ hG, ⟨λ X Y f g hfg, quiver.hom.unop_inj (hG.def _ _ (congr_fun hfg))⟩,
  λ h, (is_coseparator_def _).2 $ λ X Y f g hfg, quiver.hom.op_inj $
   by exactI (yoneda.obj G).map_injective (funext hfg)⟩
+
+section zero_morphisms
+variables [has_zero_morphisms C]
+
+lemma is_separator_coprod (G H : C) [has_binary_coproduct G H] :
+  is_separator (G ⨿ H) ↔ is_separating ({G, H} : set C) :=
+begin
+  refine ⟨λ h X Y u v huv, _, λ h, (is_separator_def _).2 (λ X Y u v huv, h _ _ (λ Z hZ g, _))⟩,
+  { refine h.def _ _ (λ g, coprod.hom_ext _ _),
+    { simpa using huv G (by simp) (coprod.inl ≫ g) },
+    { simpa using huv H (by simp) (coprod.inr ≫ g) } },
+  { simp only [set.mem_insert_iff, set.mem_singleton_iff] at hZ,
+    unfreezingI { rcases hZ with rfl|rfl },
+    { simpa using coprod.inl ≫= huv (coprod.desc g 0) },
+    { simpa using coprod.inr ≫= huv (coprod.desc 0 g) } }
+end
+
+lemma is_separator_coprod_of_is_separator_left (G H : C) [has_binary_coproduct G H]
+  (hG : is_separator G) : is_separator (G ⨿ H) :=
+(is_separator_coprod _ _).2 $ is_separating.mono hG $ by simp
+
+lemma is_separator_coprod_of_is_separator_right (G H : C) [has_binary_coproduct G H]
+  (hH : is_separator H) : is_separator (G ⨿ H) :=
+(is_separator_coprod _ _).2 $ is_separating.mono hH $ by simp
+
+lemma is_separator_sigma {β : Type w} (f : β → C) [has_coproduct f] :
+  is_separator (∐ f) ↔ is_separating (set.range f) :=
+begin
+  refine ⟨λ h X Y u v huv, _, λ h, (is_separator_def _).2 (λ X Y u v huv, h _ _ (λ Z hZ g, _))⟩,
+  { refine h.def _ _ (λ g, colimit.hom_ext (λ b, _)),
+    simpa using huv (f b.as) (by simp) (colimit.ι (discrete.functor f) _ ≫ g) },
+  { obtain ⟨b, rfl⟩ := set.mem_range.1 hZ,
+    classical,
+    simpa using sigma.ι f b ≫= huv (sigma.desc (pi.single b g)) }
+end
+
+lemma is_separator_sigma_of_is_separator {β : Type w} (f : β → C) [has_coproduct f]
+  (b : β) (hb : is_separator (f b)) : is_separator (∐ f) :=
+(is_separator_sigma _).2 $ is_separating.mono hb $ by simp
+
+lemma is_coseparator_prod (G H : C) [has_binary_product G H] :
+  is_coseparator (G ⨯ H) ↔ is_coseparating ({G, H} : set C) :=
+begin
+  refine ⟨λ h X Y u v huv, _, λ h, (is_coseparator_def _).2 (λ X Y u v huv, h _ _ (λ Z hZ g, _))⟩,
+  { refine h.def _ _ (λ g, prod.hom_ext _ _),
+    { simpa using huv G (by simp) (g ≫ limits.prod.fst) },
+    { simpa using huv H (by simp) (g ≫ limits.prod.snd) } },
+  { simp only [set.mem_insert_iff, set.mem_singleton_iff] at hZ,
+    unfreezingI { rcases hZ with rfl|rfl },
+    { simpa using huv (prod.lift g 0) =≫ limits.prod.fst },
+    { simpa using huv (prod.lift 0 g) =≫ limits.prod.snd } }
+end
+
+lemma is_coseparator_prod_of_is_coseparator_left (G H : C) [has_binary_product G H]
+  (hG : is_coseparator G) : is_coseparator (G ⨯ H) :=
+(is_coseparator_prod _ _).2 $ is_coseparating.mono hG $ by simp
+
+lemma is_coseparator_prod_of_is_coseparator_right (G H : C) [has_binary_product G H]
+  (hH : is_coseparator H) : is_coseparator (G ⨯ H) :=
+(is_coseparator_prod _ _).2 $ is_coseparating.mono hH $ by simp
+
+lemma is_coseparator_pi {β : Type w} (f : β → C) [has_product f] :
+  is_coseparator (∏ f) ↔ is_coseparating (set.range f) :=
+begin
+  refine ⟨λ h X Y u v huv, _, λ h, (is_coseparator_def _).2 (λ X Y u v huv, h _ _ (λ Z hZ g, _))⟩,
+  { refine h.def _ _ (λ g, limit.hom_ext (λ b, _)),
+    simpa using huv (f b.as) (by simp) (g ≫ limit.π (discrete.functor f) _ ) },
+  { obtain ⟨b, rfl⟩ := set.mem_range.1 hZ,
+    classical,
+    simpa using huv (pi.lift (pi.single b g)) =≫ pi.π f b }
+end
+
+lemma is_coseparator_pi_of_is_coseparator {β : Type w} (f : β → C) [has_product f]
+  (b : β) (hb : is_coseparator (f b)) : is_coseparator (∏ f) :=
+(is_coseparator_pi _).2 $ is_coseparating.mono hb $ by simp
+
+end zero_morphisms
 
 lemma is_detector_iff_reflects_isomorphisms_coyoneda_obj (G : C) :
   is_detector G ↔ reflects_isomorphisms (coyoneda.obj (op G)) :=

@@ -217,8 +217,9 @@ end
 lemma coe_factor_order_iso_map_eq_one_iff {m u : associates M} {n : associates N}
   (hu' : u ≤ m) (d : {l : associates M // l ≤ m} ≃o {l : associates N // l ≤ n}) :
   (d ⟨u, hu'⟩ : associates N) = 1 ↔ u = 1 :=
-⟨λ hu, by { rw (show u = ↑(d.symm ⟨↑(d ⟨u, hu'⟩), (d ⟨u, hu'⟩).prop⟩), by simp only [subtype.coe_eta,
-  order_iso.symm_apply_apply, subtype.coe_mk]), convert factor_order_iso_map_one_eq_bot d.symm },
+⟨λ hu, by { rw (show u = ↑(d.symm ⟨↑(d ⟨u, hu'⟩), (d ⟨u, hu'⟩).prop⟩), by simp only
+    [subtype.coe_eta, order_iso.symm_apply_apply, subtype.coe_mk]),
+  convert factor_order_iso_map_one_eq_bot d.symm },
   λ hu, by {simp_rw hu, convert factor_order_iso_map_one_eq_bot d } ⟩
 
 section

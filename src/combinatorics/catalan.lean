@@ -1,6 +1,41 @@
+/-
+Copyright (c) 2022 Julian Kuelshammer. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Julian Kuelshammer
+-/
 import data.nat.choose.central
 import algebra.big_operators.fin
 import tactic.field_simp
+
+/-!
+# Catalan numbers
+
+The Catalan numbers (http://oeis.org/A000108) are probably the most ubiquitous sequence of integers
+in mathematics. They enumerate several important objects like binary trees, Dyck paths, and
+triangulations of convex polygons.
+
+## Main definitions
+
+* `catalan n`: the `n`th Catalan number, defined recursively as
+               `catalan (n + 1) = ∑ i : fin n.succ, catalan i * catalan (n - i)`.
+* `catalan' n`: the `n`th Catalan number, defined explicitly as
+               `catalan' n = 1 / (n + 1) * nat.central_binom n`.
+
+## Main results
+
+* `catalan_defs_agree`: The fact that the two definitions both give the same sequence.
+
+## Implementation details
+
+The proof of the equality of the two definitions follows
+https://math.stackexchange.com/questions/3304415/catalan-numbers-algebraic-proof-of-the-recurrence-relation
+
+## TODO
+
+* Prove that the Catalan numbers enumerate many interesting objects.
+* Generalise to Catalan numbers associated to arbitrary Coxeter groups.
+
+-/
 
 open_locale big_operators
 open finset
@@ -68,7 +103,7 @@ rw ← @mul_right_inj' _ _ (n - i + 1 : ℚ) _ _ (by exact_mod_cast (n - i).succ
   simp only [mul_assoc],
   rw ← mul_sub,
   congr,
-  ring,
+  ring_nf,
   field_simp,
   rw div_self,
   { have h : ((n : ℚ) + (-(i : ℚ) + 1)) * (i + 1) = (i + 1) * n + (-i ^ 2 + 1),

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alex J. Best, Yaël Dillies
 -/
 import algebra.order.hom.ring
+import algebra.order.pointwise
 import analysis.special_functions.pow
 
 /-!
@@ -47,65 +48,9 @@ variables {F α β : Type*}
 open function set
 open_locale pointwise
 
-@[to_additive] lemma cSup_mul [conditionally_complete_linear_order α] [comm_group α]
-  [covariant_class α α (swap (*)) (≤)] [covariant_class α α (*) (≤)] (s t : set α)
-  (hs₀ : s.nonempty) (ht₀ : t.nonempty) (hs₁ : bdd_above s) (ht₁ : bdd_above t) :
-  Sup (s * t) = Sup s * Sup t :=
-begin
-  refine cSup_eq_of_forall_le_of_forall_lt_exists_gt (hs₀.mul ht₀) _ (λ a ha, _),
-  { rintro f ⟨a, b, ha, hb, rfl⟩,
-    exact mul_le_mul' (le_cSup hs₁ ha) (le_cSup ht₁ hb) },
-  { obtain ⟨b, hb, hab⟩ := exists_lt_of_lt_cSup hs₀ (div_lt_iff_lt_mul.2 ha),
-    obtain ⟨c, hc, hbc⟩ := exists_lt_of_lt_cSup ht₀ (div_lt''.1 hab),
-    exact ⟨b * c, mul_mem_mul hb hc, div_lt_iff_lt_mul'.1 hbc⟩ }
-end
-
-@[to_additive] lemma cInf_mul [conditionally_complete_linear_order α] [comm_group α]
-  [covariant_class α α (swap (*)) (≤)] [covariant_class α α (*) (≤)] (s t : set α)
-  (hs₀ : s.nonempty) (ht₀ : t.nonempty) (hs₁ : bdd_below s) (ht₁ : bdd_below t) :
-  Inf (s * t) = Inf s * Inf t :=
-begin
-  refine cInf_eq_of_forall_ge_of_forall_gt_exists_lt (hs₀.mul ht₀) _ (λ a ha, _),
-  { rintro f ⟨a, b, ha, hb, rfl⟩,
-    exact mul_le_mul' (cInf_le hs₁ ha) (cInf_le ht₁ hb) },
-  { obtain ⟨b, hb, hab⟩ := exists_lt_of_cInf_lt hs₀ (lt_div_iff_mul_lt.2 ha),
-    obtain ⟨c, hc, hbc⟩ := exists_lt_of_cInf_lt ht₀ (lt_div''.1 hab),
-    exact ⟨b * c, mul_mem_mul hb hc, lt_div_iff_mul_lt'.1 hbc⟩ }
-end
-
-@[simp] lemma map_rat_cast [division_ring α] [division_ring β] [char_zero α] [ring_hom_class F α β]
-  (f : F) (q : ℚ) :
-  f q = q :=
-ring_hom.map_rat_cast (f : α →+* β) _
-
-lemma order_ring_iso.to_order_ring_hom_injective [non_assoc_semiring α] [preorder α]
-  [non_assoc_semiring β] [preorder β] :
-  injective (order_ring_iso.to_order_ring_hom : (α ≃+*o β) → α →+*o β) :=
-λ f g h, fun_like.coe_injective $ by convert fun_like.ext'_iff.1 h
-
-lemma lt_of_mul_self_lt_mul_self [linear_ordered_semiring α] {a b : α} (hb : 0 ≤ b)
-  (h : a * a < b * b) : a < b :=
-by { simp_rw ←sq at h, exact lt_of_pow_lt_pow _ hb h }
-
-/-- There is at most one ring homomorphism from a linear ordered field to an archimedean linear
-ordered field. -/
-instance [linear_ordered_field α] [linear_ordered_field β] [archimedean β] :
-  subsingleton (α →+*o β) :=
-⟨λ f g, begin
-  ext x,
-  by_contra' h,
-  wlog h : f x < g x using [f g, g f],
-  { exact ne.lt_or_lt h },
-  obtain ⟨q, hf, hg⟩ := exists_rat_btwn h,
-  rw ←map_rat_cast f at hf,
-  rw ←map_rat_cast g at hg,
-  exact (lt_asymm ((order_hom_class.mono g).reflect_lt hg) $
-    (order_hom_class.mono f).reflect_lt hf).elim,
-end⟩
-
-instance [linear_ordered_field α] [linear_ordered_field β] [archimedean β] :
-  subsingleton (α ≃+*o β) :=
-order_ring_iso.to_order_ring_hom_injective.subsingleton
+lemma lt_of_mul_self_lt_mul_self [linear_ordered_semiring α] {a b : α} (hb : 0 ≤ b) :
+  a * a < b * b → a < b :=
+by { simp_rw ←sq, exact lt_of_pow_lt_pow _ hb }
 
 noncomputable theory
 open real
@@ -139,11 +84,7 @@ begin
   have : (0 : α) < q₂ := (le_max_right _ _).trans_lt hx₂,
   norm_cast at hq₁₂ this,
   obtain ⟨q, hq, hq₁, hq₂⟩ := exists_rat_sq_btwn_rat hq₁₂ this,
-  refine ⟨q, hq, (le_max_left _ _).trans_lt $ hx₁.trans _, _⟩,
-  { exact_mod_cast hq₁ },
-  { transitivity (q₂ : α),
-    exact_mod_cast hq₂,
-    exact hy₂ }
+  refine ⟨q, hq, (le_max_left _ _).trans_lt $ hx₁.trans _, hy₂.trans' _⟩; assumption_mod_cast
 end
 
 end move
@@ -167,17 +108,13 @@ class conditionally_complete_linear_ordered_field (α : Type*)
 @[priority 100] -- see Note [lower instance priority]
 instance conditionally_complete_linear_ordered_field.to_archimedean
   [conditionally_complete_linear_ordered_field α] : archimedean α :=
-archimedean_iff_nat_lt.mpr
-  begin
-    by_contra' h,
-    have : ∀ b, b ∈ range (coe : ℕ → α) → b ≤ Sup (range (coe : ℕ → α)) - 1,
-    { obtain ⟨x, h⟩ := h,
-      rintro b ⟨n, rfl⟩,
-      rw le_sub_iff_add_le,
-      exact le_cSup ⟨x, forall_range_iff.2 h⟩ ⟨n + 1, nat.cast_succ n⟩ },
-    replace := cSup_le (range_nonempty (coe : ℕ → α)) this,
-    linarith,
-  end
+archimedean_iff_nat_lt.2 begin
+  by_contra' h,
+  obtain ⟨x, h⟩ := h,
+  have := cSup_le (range_nonempty (coe : ℕ → α)) (forall_range_iff.2 $ λ n, le_sub_iff_add_le.2 $
+    le_cSup ⟨x, forall_range_iff.2 h⟩ ⟨n + 1, nat.cast_succ n⟩),
+  linarith,
+end
 
 /-- The reals are a conditionally complete linearly ordered field. -/
 instance : conditionally_complete_linear_ordered_field ℝ :=
@@ -236,23 +173,17 @@ lemma cut_map_nonempty (a : α) : (cut_map β a).nonempty :=  nonempty.image _ $
 lemma cut_map_bdd_above (a : α) : bdd_above (cut_map β a) :=
 begin
   obtain ⟨q, hq⟩ := exists_rat_gt a,
-  use q,
-  rintro _ ⟨r, hr, rfl⟩,
-  exact_mod_cast (hq.trans' hr).le,
+  exact ⟨q, ball_image_iff.2 $ λ r hr, by exact_mod_cast (hq.trans' hr).le⟩,
 end
 
 lemma cut_map_add (a b : α) : cut_map β (a + b) = cut_map β a + cut_map β b :=
 begin
-  ext,
-  split,
-  { rintro ⟨q, hq, rfl⟩,
-    rw [mem_set_of_eq, ←sub_lt_iff_lt_add] at hq,
+  refine (image_subset_iff.2 $ λ q hq, _).antisymm _,
+  { rw [mem_set_of_eq, ←sub_lt_iff_lt_add] at hq,
     obtain ⟨q₁, hq₁q, hq₁ab⟩ := exists_rat_btwn hq,
-    refine ⟨q₁, q - q₁, _, _, add_sub_cancel'_right _ _⟩; try {norm_cast};
-    rwa coe_mem_cut_map_iff,
-    push_cast,
-    exact sub_lt.mp hq₁q },
-  { rintro ⟨_, _, ⟨qa, ha, rfl⟩, ⟨qb, hb, rfl⟩, rfl⟩,
+    refine ⟨q₁, q - q₁, _, _, add_sub_cancel'_right _ _⟩; try {norm_cast}; rwa coe_mem_cut_map_iff,
+    exact_mod_cast sub_lt.mp hq₁q },
+  { rintro _ ⟨_, _, ⟨qa, ha, rfl⟩, ⟨qb, hb, rfl⟩, rfl⟩,
     refine ⟨qa + qb, _, by norm_cast⟩,
     rw [mem_set_of_eq, cast_add],
     exact add_lt_add ha hb }
@@ -329,8 +260,8 @@ by rw [induced_map_induced_map, induced_map_self]
 lemma induced_map_add (x y : α) : induced_map α β (x + y) = induced_map α β x + induced_map α β y :=
 begin
   rw [induced_map, cut_map_add],
-  exact cSup_add _ _ (cut_map_nonempty β x) (cut_map_nonempty β y)
-   (cut_map_bdd_above β x) (cut_map_bdd_above β y),
+  exact cSup_add (cut_map_nonempty β x) (cut_map_bdd_above β x) (cut_map_nonempty β y)
+    (cut_map_bdd_above β y),
 end
 
 variables {α β}
@@ -415,6 +346,8 @@ def induced_order_ring_iso : β ≃+*o γ :=
 order_ring_iso.ext induced_map_self
 
 open order_ring_iso
+
+local attribute [instance] order_ring_hom.subsingleton order_ring_iso.subsingleton_left
 
 /-- There is a unique ordered ring homomorphism from an archimedean linear ordered field to a
 conditionally complete linear ordered field. -/

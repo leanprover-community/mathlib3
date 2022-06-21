@@ -357,8 +357,7 @@ begin
       (a1/b1 * c1) * (a2/b2 * c2) = ((a1/b1) * (a2/b2)) * (c1*c2) : by apply mul_mul_mul_comm
       ... = (a1*a2)/(b1*b2) * (c1*c2) : by { congr' 1, exact div_mul_div_comm h1 h2 } },
   simp only [totient_eq_div_factors_mul],
-  rw shuffle _ _,
-  rw shuffle _ _,
+  rw [shuffle, shuffle],
   rotate, repeat { apply prod_prime_factors_dvd },
   simp only [prod_factors_gcd_mul_prod_factors_mul],
   rw [eq_comm, mul_comm, ←mul_assoc, ←nat.mul_div_assoc],

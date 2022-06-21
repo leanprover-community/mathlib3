@@ -47,9 +47,8 @@ open function order
 noncomputable theory
 
 /-- A type synonym for ordinals with natural addition and multiplication. -/
+@[derive [has_zero, inhabited, has_one, linear_order, succ_order, has_well_founded]]
 def nat_ordinal : Type* := ordinal
-
-instance : linear_order nat_ordinal := ordinal.linear_order
 
 /-- The identity function between `ordinal` and `nat_ordinal`. -/
 @[pattern] def ordinal.to_nat_ordinal : ordinal ≃o nat_ordinal := order_iso.refl _
@@ -66,13 +65,7 @@ variables {a b c : nat_ordinal.{u}}
 @[simp] theorem to_ordinal_symm_eq : nat_ordinal.to_ordinal.symm = ordinal.to_nat_ordinal := rfl
 @[simp] theorem to_ordinal_to_nat_ordinal (a : nat_ordinal) : a.to_ordinal.to_nat_ordinal = a := rfl
 
-instance : has_zero nat_ordinal := ⟨to_nat_ordinal 0⟩
-instance : inhabited nat_ordinal := ⟨0⟩
-instance : has_one nat_ordinal := ⟨to_nat_ordinal 1⟩
-instance : succ_order nat_ordinal := ordinal.succ_order
-
 theorem lt_wf : @well_founded nat_ordinal (<) := ordinal.lt_wf
-instance : has_well_founded nat_ordinal := ordinal.has_well_founded
 instance : is_well_order nat_ordinal (<) := ordinal.has_lt.lt.is_well_order
 
 @[simp] theorem to_ordinal_zero : to_ordinal 0 = 0 := rfl
@@ -126,7 +119,7 @@ noncomputable def nadd : ordinal → ordinal → ordinal
   (blsub.{u u} b $ λ b' h, nadd a b')
 using_well_founded { dec_tac := `[solve_by_elim [psigma.lex.left, psigma.lex.right]] }
 
-local infix ` ♯ `:65 := nadd
+localized "infix ` ♯ `:65 := ordinal.nadd" in natural_ops
 
 theorem nadd_def (a b : ordinal) : a ♯ b = max
   (blsub.{u u} a $ λ a' h, a' ♯ b)
@@ -291,9 +284,9 @@ end nat_ordinal
 
 open nat_ordinal
 
-namespace ordinal
+open_locale natural_ops
 
-local infix ` ♯ `:65 := nadd
+namespace ordinal
 
 @[simp] theorem to_nat_ordinal_cast_nat (n : ℕ) : to_nat_ordinal n = n :=
 by { rw ←to_ordinal_cast_nat n, refl }

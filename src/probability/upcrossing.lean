@@ -303,36 +303,35 @@ begin
   { exact min_le_of_left_le ((sub_le_sub_iff_left _).2 (stopped_value_lower_crossing h)) },
 end
 
-lemma foo (hN : 0 < N) (hab : a < b) :
-  (b - a) * upcrossing a b f N x - min (f N x - a) 0 ≤
-  ∑ k in finset.range N, (stopped_value f (upper_crossing a b f N (k + 1)) x -
-    stopped_value f (lower_crossing a b f N k) x) :=
-begin
-  rw ← finset.sum_range_add_sum_Ico _ (upcrossing_le f x hN hab),
-  have : ∀ (m : ℕ), m ∈ finset.Ico (upcrossing a b f N x) N →
-    stopped_value f (upper_crossing a b f N (m + 1)) x -
-    stopped_value f (lower_crossing a b f N m) x = 0,
-  { rintro m hm,
-    rw [finset.mem_Ico, le_iff_eq_or_lt] at hm,
-    obtain (hm | hm) := hm,
-    { subst hm,
-      sorry
+-- lemma foo (hN : 0 < N) (hab : a < b) :
+--   (b - a) * upcrossing a b f N x + min (f N x - a) 0 ≤
+--   ∑ k in finset.range N, (stopped_value f (upper_crossing a b f N (k + 1)) x -
+--     stopped_value f (lower_crossing a b f N k) x) :=
+-- begin
+--   rw ← finset.sum_range_add_sum_Ico _ (upcrossing_le f x hN hab),
+--   have : ∀ (m : ℕ), m ∈ finset.Ico (upcrossing a b f N x) N →
+--     stopped_value f (upper_crossing a b f N (m + 1)) x -
+--     stopped_value f (lower_crossing a b f N m) x = 0,
+--   { rintro m hm,
+--     rw [finset.mem_Ico, le_iff_eq_or_lt] at hm,
+--     obtain (hm | hm) := hm,
+--     { subst hm,
+--       sorry
 
-    },
-    { sorry }
-  },
-  sorry,
-end
+--     },
+--     { sorry }
+--   },
+--   sorry,
+-- end
 
-lemma foo' (hN : 0 < N) (hab : a < b) :
-  (b - a) * upcrossing a b f N x ≤
-  stopped_value f (upper_crossing a b f N 1) x - a +
-  ∑ k in finset.Ico 1 N, (stopped_value f (upper_crossing a b f N (k + 1)) x -
-    stopped_value f (lower_crossing a b f N k) x) :=
-begin
-  sorry,
-end
-
+-- lemma foo' (hN : 0 < N) (hab : a < b) :
+--   (b - a) * upcrossing a b f N x ≤
+--   stopped_value f (upper_crossing a b f N 1) x - a +
+--   ∑ k in finset.Ico 1 N, (stopped_value f (upper_crossing a b f N (k + 1)) x -
+--     stopped_value f (lower_crossing a b f N k) x) :=
+-- begin
+--   sorry,
+-- end
 
 end upcrossing
 

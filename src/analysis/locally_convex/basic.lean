@@ -135,10 +135,6 @@ variables {𝕜}
 @[simp] lemma balanced_empty : balanced 𝕜 (∅ : set E) :=
 λ _ _, by { rw smul_set_empty }
 
-lemma balanced_mem {s : set E} (hs : balanced 𝕜 s) {x : E} (hx : x ∈ s) {a : 𝕜} (ha : ∥a∥ ≤ 1) :
-  a • x ∈ s :=
-mem_of_subset_of_mem (hs a ha) (smul_mem_smul_set hx)
-
 lemma balanced_iff_mem : balanced 𝕜 s ↔ ∀ {x : E} (hx : x ∈ s) {a : 𝕜} (ha : ∥a∥ ≤ 1), a • x ∈ s :=
 begin
   refine ⟨λ h x hx a ha, set.mem_of_subset_of_mem (h a ha) (set.smul_mem_smul_set hx), _⟩,

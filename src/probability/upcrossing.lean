@@ -253,7 +253,16 @@ begin
   exact lt_of_le_of_lt (upper_crossing_mono hn) this,
 end
 
-lemma upcrossing_le (hN : 0 < N) (hab : a < b) : upcrossing a b f N x ≤ N :=
+lemma upper_crossing_eq_of_upcrossing_lt
+  (hab : a < b) (hn : upcrossing a b f N x < n) :
+  upper_crossing a b f N n x = N :=
+begin
+  refine le_antisymm upper_crossing_le (not_lt.1 _),
+  convert not_mem_of_cSup_lt hn (upper_crossing_lt_bdd_above hab),
+end
+
+lemma upcrossing_le (f : ℕ → α → ℝ) (x : α) (hN : 0 < N) (hab : a < b) :
+  upcrossing a b f N x ≤ N :=
 begin
   refine cSup_le ⟨0, hN⟩ (λ n (hn : _ < _), _),
   by_contra hnN,
@@ -261,18 +270,18 @@ begin
 end
 
 lemma lower_crossing_lt_of_le_upcrossing
-  (hN : 0 < N) (hab : a < b) (hn : n + 1 ≤ upcrossing a b f N x) :
+  (hN : 0 < N) (hab : a < b) (hn : n < upcrossing a b f N x) :
   lower_crossing a b f N n x < N :=
 lt_of_le_of_lt lower_crossing_le_upper_crossing_succ (upper_crossing_lt_of_le_upcrossing hN hab hn)
 
-lemma le_sub_of_le_upcrossing (hN : 0 < N) (hab : a < b) (hn : n + 1 ≤ upcrossing a b f N x) :
+lemma le_sub_of_le_upcrossing (hN : 0 < N) (hab : a < b) (hn : n < upcrossing a b f N x) :
   b - a ≤
   stopped_value f (upper_crossing a b f N (n + 1)) x -
   stopped_value f (lower_crossing a b f N n) x :=
 sub_le_sub (stopped_value_upper_crossing (upper_crossing_lt_of_le_upcrossing hN hab hn).ne)
   (stopped_value_lower_crossing (lower_crossing_lt_of_le_upcrossing hN hab hn).ne)
 
-lemma sub_eq_zero_of_upcrossing_le (hab : a < b) (hn : upcrossing a b f N x < n) :
+lemma sub_eq_zero_of_upcrossing_lt (hab : a < b) (hn : upcrossing a b f N x < n) :
   stopped_value f (upper_crossing a b f N (n + 1)) x -
   stopped_value f (lower_crossing a b f N n) x = 0 :=
 begin
@@ -284,21 +293,42 @@ begin
     lower_crossing_stabilize' le_rfl (le_trans this upper_crossing_le_lower_crossing)]
 end
 
-lemma foo (hN : 0 < N) (hab : a < b) :
-  (b - a) * upcrossing a b f N x ≤
-  ∑ n in finset.range N,
-    stopped_value f (upper_crossing a b f N (n + 1)) x -
-    stopped_value f (lower_crossing a b f N n) x :=
+lemma le_sub_stopped_value_upcrossing (hab : a < b) :
+  min (f N x - a) 0 ≤ stopped_value f (upper_crossing a b f N (upcrossing a b f N x + 1)) x -
+  stopped_value f (lower_crossing a b f N (upcrossing a b f N x)) x :=
 begin
+  simp only [stopped_value, upper_crossing_eq_of_upcrossing_lt hab (nat.lt_succ_self _)],
+  by_cases h : lower_crossing a b f N (upcrossing a b f N x) x = N,
+  { simp [h] },
+  { exact min_le_of_left_le ((sub_le_sub_iff_left _).2 (stopped_value_lower_crossing h)) },
+end
+
+lemma foo (hN : 0 < N) (hab : a < b) :
+  (b - a) * upcrossing a b f N x - min (f N x - a) 0 ≤
+  ∑ k in finset.range N, (stopped_value f (upper_crossing a b f N (k + 1)) x -
+    stopped_value f (lower_crossing a b f N k) x) :=
+begin
+  rw ← finset.sum_range_add_sum_Ico _ (upcrossing_le f x hN hab),
+  have : ∀ (m : ℕ), m ∈ finset.Ico (upcrossing a b f N x) N →
+    stopped_value f (upper_crossing a b f N (m + 1)) x -
+    stopped_value f (lower_crossing a b f N m) x = 0,
+  { rintro m hm,
+    rw [finset.mem_Ico, le_iff_eq_or_lt] at hm,
+    obtain (hm | hm) := hm,
+    { subst hm,
+      sorry
+
+    },
+    { sorry }
+  },
   sorry,
 end
 
 lemma foo' (hN : 0 < N) (hab : a < b) :
   (b - a) * upcrossing a b f N x ≤
   stopped_value f (upper_crossing a b f N 1) x - a +
-  ∑ n in finset.Ico 1 N,
-    stopped_value f (upper_crossing a b f N (n + 1)) x -
-    stopped_value f (lower_crossing a b f N n) x :=
+  ∑ k in finset.Ico 1 N, (stopped_value f (upper_crossing a b f N (k + 1)) x -
+    stopped_value f (lower_crossing a b f N k) x) :=
 begin
   sorry,
 end

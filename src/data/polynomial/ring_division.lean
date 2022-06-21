@@ -6,6 +6,8 @@ Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker, Johan Co
 import data.polynomial.algebra_map
 import data.polynomial.degree.lemmas
 import data.polynomial.div
+import ring_theory.localization.fraction_ring
+import algebra.polynomial.big_operators
 
 /-!
 # Theory of univariate polynomials
@@ -730,6 +732,43 @@ begin
   rw [hq.leading_coeff, C_1, one_mul],
 end
 
+lemma is_coprime_X_sub_C_of_is_unit_sub {R} [comm_ring R] {a b : R}
+  (h : is_unit (a - b)) : is_coprime (X - C a) (X - C b) :=
+⟨-C h.unit⁻¹.val, C h.unit⁻¹.val, by { rw [neg_mul_comm, ← left_distrib, neg_add_eq_sub,
+  sub_sub_sub_cancel_left, ← C_sub, ← C_mul], convert C_1, exact h.coe_inv_mul }⟩
+
+theorem pairwise_coprime_X_sub_C {K} [field K] {I : Type v} {s : I → K}
+  (H : function.injective s) : pairwise (is_coprime on (λ i : I, X - C (s i))) :=
+λ i j hij, is_coprime_X_sub_C_of_is_unit_sub (sub_ne_zero_of_ne $ H.ne hij).is_unit
+
+/-- A polynomial `p` that has as many roots as its degree
+can be written `p = p.leading_coeff * ∏(X - a)`, for `a` in `p.roots`. -/
+lemma C_leading_coeff_mul_prod_multiset_X_sub_C (hroots : p.roots.card = p.nat_degree) :
+  C p.leading_coeff * (p.roots.map (λ (a : R), X - C a)).prod = p :=
+begin
+  symmetry, classical,
+  apply eq_leading_coeff_mul_of_monic_of_dvd_of_nat_degree_le,
+  { exact monic_multiset_prod_of_monic _ _ (λ a _, monic_X_sub_C a) },
+  { rw ← map_dvd_map _ (is_fraction_ring.injective R $ fraction_ring R),
+    swap, { exact monic_multiset_prod_of_monic _ _ (λ a _, monic_X_sub_C a) },
+    rw [finset.prod_multiset_map_count, polynomial.map_prod],
+    refine finset.prod_dvd_of_coprime (λ a _ b _ h, _) (λ a _, _),
+    { simp_rw [polynomial.map_pow, polynomial.map_sub, map_C, map_X],
+      exact (pairwise_coprime_X_sub_C (is_fraction_ring.injective R $ fraction_ring R) _ _ h).pow },
+    { rw count_roots, exact polynomial.map_dvd _ (pow_root_multiplicity_dvd p a) } },
+  { rw [nat_degree_multiset_prod_of_monic, multiset.map_map],
+    { convert hroots.symm.le, convert multiset.sum_repeat 1 _,
+      { convert multiset.map_const _ 1, ext, apply nat_degree_X_sub_C }, { simp } },
+    { intros f hf, obtain ⟨a, ha, rfl⟩ := multiset.mem_map.1 hf, exact monic_X_sub_C a } },
+end
+
+/-- A monic polynomial `p` that has as many roots as its degree
+can be written `p = ∏(X - a)`, for `a` in `p.roots`. -/
+lemma prod_multiset_X_sub_C_of_monic_of_roots_card_eq
+  (hp : p.monic) (hroots : p.roots.card = p.nat_degree) :
+  (p.roots.map (λ (a : R), X - C a)).prod = p :=
+by {convert C_leading_coeff_mul_prod_multiset_X_sub_C hroots, rw [hp.leading_coeff, C_1, one_mul] }
+
 end comm_ring
 
 section
@@ -743,7 +782,7 @@ begin
   have dz := degree_eq_zero_of_is_unit H,
   rw degree_map_eq_of_leading_coeff_ne_zero at dz,
   { rw eq_C_of_degree_eq_zero dz,
-    refine is_unit.map (C : R →+* R[X]) _,
+    refine is_unit.map C _,
     convert hf,
     rw (degree_eq_iff_nat_degree_eq _).1 dz,
     rintro rfl,
@@ -769,27 +808,14 @@ lemma monic.irreducible_of_irreducible_map (f : R[X])
   (h_mon : monic f) (h_irr : irreducible (map φ f)) :
   irreducible f :=
 begin
-  fsplit,
-  { intro h,
-    exact h_irr.not_unit (is_unit.map (map_ring_hom φ) h), },
-  { intros a b h,
-
-    have q := (leading_coeff_mul a b).symm,
-    rw ←h at q,
-    dsimp [monic] at h_mon,
-    rw h_mon at q,
-    have au : is_unit a.leading_coeff := is_unit_of_mul_eq_one _ _ q,
-    rw mul_comm at q,
-    have bu : is_unit b.leading_coeff := is_unit_of_mul_eq_one _ _ q,
-    clear q h_mon,
-
-    have h' := congr_arg (map φ) h,
-    simp only [polynomial.map_mul] at h',
-    cases h_irr.is_unit_or_is_unit h' with w w,
-    { left,
-      exact is_unit_of_is_unit_leading_coeff_of_is_unit_map _ _ au w, },
-    { right,
-      exact is_unit_of_is_unit_leading_coeff_of_is_unit_map _ _ bu w, }, }
+  refine ⟨h_irr.not_unit ∘ is_unit.map (map_ring_hom φ), λ a b h, _⟩,
+  dsimp [monic] at h_mon,
+  have q := (leading_coeff_mul a b).symm,
+  rw [←h, h_mon] at q,
+  refine (h_irr.is_unit_or_is_unit $ (congr_arg (map φ) h).trans (polynomial.map_mul φ)).imp _ _;
+    apply is_unit_of_is_unit_leading_coeff_of_is_unit_map;
+    apply is_unit_of_mul_eq_one,
+  { exact q }, { rw mul_comm, exact q },
 end
 
 end

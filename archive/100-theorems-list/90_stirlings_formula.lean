@@ -100,35 +100,34 @@ begin
 end
 
 /--
-For any natural number `n ≠ 0`, we have the identity
-`log((n + 1) / n) = log(1 + 1 / (2*n + 1)) - log(1 - 1/(2*n + 1))`.
+For any positive real number `a`, we have the identity
+`log((a + 1) / a) = log(1 + 1 / (2*a + 1)) - log(1 - 1/(2*a + 1))`.
 -/
-lemma log_succ_div_eq_log_sub (n : ℕ) (hn : n ≠ 0) :
-  log (n.succ / n) = log (1 + 1 / (2 * n + 1)) - log (1 - 1 / (2 * n + 1)) :=
+lemma log_succ_div_eq_log_sub (a : ℝ) (h : 0 < a) :
+  log ((a + 1) / a) = log (1 + 1 / (2 * a + 1)) - log (1 - 1 / (2 * a + 1)) :=
 begin
-  have : (2 : ℝ) * n + 1 ≠ 0, by { norm_cast, exact (2 * n).succ_ne_zero, },
+  have h₀: (2 : ℝ) * a + 1 ≠ 0, by { linarith, },
+  have h₁: a ≠ 0 := ne_of_gt h,
   rw ← log_div,
-  suffices h, from congr_arg log h,
-    all_goals {field_simp [cast_ne_zero.mpr]}, /- all_goals prevents using brackets here -/
-  { ring },
-  { norm_cast, exact succ_ne_zero (2 * n + 1) },
+  suffices g, from congr_arg log g,
+  all_goals { field_simp, },
+  all_goals { linarith, },
 end
 
 /--
-For any natural number `n`, the expression `log((n + 1) / n)` has the series expansion
-$\sum_{k=0}^{\infty}\frac{2}{2k+1}(\frac{1}{2n+1})^{2k+1}$.
+For any positive real number `a`, the expression `log((a + 1) / a)` has the series expansion
+$\sum_{k=0}^{\infty}\frac{2}{2k+1}(\frac{1}{2a+1})^{2k+1}$.
 -/
-lemma power_series_log_succ_div (n : ℕ) (hn : n ≠ 0) : has_sum (λ (k : ℕ),
-  (2 : ℝ) * (1 / (2 * (k : ℝ) + 1)) * ((1 / (2 * (n : ℝ) + 1)) ^ (2 * k + 1)))
-  (log ((n.succ : ℝ) / (n : ℝ))) :=
+lemma power_series_log_succ_div (a : ℝ) (h : 0 < a) : has_sum (λ (k : ℕ),
+  (2 : ℝ) * (1 / (2 * (k : ℝ) + 1)) * ((1 / (2 * (a : ℝ) + 1)) ^ (2 * k + 1)))
+  (log ((a + 1) / a)) :=
  begin
-  have h₀ : (0 < n), from zero_lt_iff.mpr hn,
-  have h₁ : |1 / (2 * (n : ℝ) + 1)| < 1, by --in library??
-  { rw [abs_of_pos, div_lt_one]; norm_cast,
+  have h₁ : |1 / (2 * a + 1)| < 1, by --in library??
+  { rw [abs_of_pos, div_lt_one],
     any_goals {linarith}, /- can not use brackets for single goal, bc of any_goals -/
-    { exact div_pos one_pos (cast_pos.mpr (2 * n).succ_pos) }, },
-  rw log_succ_div_eq_log_sub n (hn),
-  exact log_sum_plus_minus (1 / (2 * (n : ℝ) + 1)) h₁,
+    {refine div_pos one_pos _, linarith, }, },
+  rw log_succ_div_eq_log_sub a (h),
+  exact log_sum_plus_minus (1 / (2 * a + 1)) h₁,
  end
 
 /--
@@ -166,7 +165,7 @@ begin
   change
     has_sum ((λ (b : ℕ), 1 / (2 * (b : ℝ) + 1) * ((1 / (2 * (m.succ : ℝ) + 1)) ^ 2) ^ b) ∘ succ) _,
   rw has_sum_nat_add_iff 1,
-  convert (power_series_log_succ_div m.succ (succ_ne_zero m)).mul_left ((m.succ : ℝ) + 1 / (2 : ℝ)),
+  convert (power_series_log_succ_div m.succ (cast_pos.mpr (succ_pos m))).mul_left ((m.succ : ℝ) + 1 / (2 : ℝ)),
   { ext k,
     rw [← pow_mul, pow_add],
     have : 2 * (k : ℝ) + 1     ≠ 0, by {norm_cast, exact succ_ne_zero (2*k)},

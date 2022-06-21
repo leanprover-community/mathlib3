@@ -839,19 +839,14 @@ have μ.to_outer_measure ≤ Inf (to_outer_measure '' m) :=
 
 instance [measurable_space α] : complete_lattice (measure α) :=
 { bot := 0,
-  bot_le := λ a s hs, by exact bot_le,
-  Inf_le := λ s a, measure_Inf_le,
-  le_Inf := λ s a, measure_le_Inf,
-/- Adding an explicit `top` makes `leanchecker` fail, see lean#364, disable for now
-
-  top := (⊤ : outer_measure α).to_measure (by rw [outer_measure.top_caratheodory]; exact le_top),
+  bot_le := λ a s hs, bot_le,
+  top := (⊤ : outer_measure α).to_measure $ by { rw outer_measure.top_caratheodory, exact le_top },
   le_top := λ a s hs,
-    by cases s.eq_empty_or_nonempty with h  h;
+    by cases s.eq_empty_or_nonempty with h h;
       simp [h, to_measure_apply ⊤ _ hs, outer_measure.top_apply],
--/
-  ..(by apply_instance : partial_order (measure α)),
-  ..(by apply_instance : has_Inf (measure α))
-  ..complete_lattice_of_Inf (measure α) }
+  ..measure.has_Inf,
+  ..measure.partial_order,
+  ..complete_lattice_of_Inf (measure α) $ λ s, ⟨λ a, measure_Inf_le, λ a, measure_le_Inf⟩ }
 
 end Inf
 

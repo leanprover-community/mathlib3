@@ -398,16 +398,16 @@ noncomputable def is_unit.unit [monoid M] {a : M} (h : is_unit a) : Mˣ :=
 lemma is_unit.unit_of_coe_units [monoid M] {a : Mˣ} (h : is_unit (a : M)) : h.unit = a :=
 units.ext $ rfl
 
-@[to_additive]
+@[simp, to_additive]
 lemma is_unit.unit_spec [monoid M] {a : M} (h : is_unit a) : ↑h.unit = a :=
 rfl
 
-@[to_additive]
+@[simp, to_additive]
 lemma is_unit.coe_inv_mul [monoid M] {a : M} (h : is_unit a) :
   ↑(h.unit)⁻¹ * a = 1 :=
 units.mul_inv _
 
-@[to_additive]
+@[simp, to_additive]
 lemma is_unit.mul_coe_inv [monoid M] {a : M} (h : is_unit a) :
   a * ↑(h.unit)⁻¹ = 1 :=
 begin

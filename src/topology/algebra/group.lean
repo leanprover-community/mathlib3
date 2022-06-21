@@ -1419,12 +1419,8 @@ The supremum of two group topologies `s` and `t` is the infimum of the family of
 topologies contained in the intersection of `s` and `t`. -/
 @[to_additive]
 instance : complete_lattice (group_topology α) :=
-{ inf := (⊓),
-  top := ⊤,
-  bot := ⊥,
-  ..group_topology.bounded_order,
+{ ..group_topology.bounded_order,
   ..group_topology.semilattice_inf,
-  ..group_topology.has_Inf,
   ..group_topology.partial_order,
   ..complete_lattice_of_Inf (group_topology α) $ λ S, ⟨
     λ a haS, to_topological_space_le.1 $ Inf_le ⟨a, haS, rfl⟩,

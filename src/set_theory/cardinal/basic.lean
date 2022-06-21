@@ -824,7 +824,7 @@ by rw [←lift_nat_cast.{v} n, lift_inj]
 
 theorem lift_mk_fin (n : ℕ) : lift (#(fin n)) = n := by simp
 
-lemma mk_of_finset {α : Type u} {s : finset α} : #s = ↑(finset.card s) := by simp
+lemma mk_coe_finset {α : Type u} {s : finset α} : #s = ↑(finset.card s) := by simp
 
 lemma mk_finset_of_fintype [fintype α] : #(finset α) = 2 ^ℕ fintype.card α := by simp
 
@@ -1309,7 +1309,7 @@ begin
     lift s to finset α using lt_aleph_0_iff_finite.1 (h.symm ▸ nat_lt_aleph_0 n),
     simpa using h },
   { rintro ⟨t, rfl, rfl⟩,
-    exact mk_of_finset }
+    exact mk_coe_finset }
 end
 
 theorem mk_union_add_mk_inter {α : Type u} {S T : set α} :
@@ -1437,7 +1437,7 @@ begin
   contrapose! h,
   calc # α = # (set.univ : set α) : mk_univ.symm
     ... ≤ # l.to_finset           : mk_le_mk_of_subset (λ x _, list.mem_to_finset.mpr (h x))
-    ... = l.to_finset.card        : cardinal.mk_of_finset
+    ... = l.to_finset.card        : cardinal.mk_coe_finset
     ... ≤ l.length                : cardinal.nat_cast_le.mpr (list.to_finset_card_le l),
 end
 

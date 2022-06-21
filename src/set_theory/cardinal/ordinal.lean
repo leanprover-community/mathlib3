@@ -757,8 +757,8 @@ begin
   classical,
   lift s to finset α using finite.of_fintype s,
   lift t to finset β using finite.of_fintype t,
-  simp only [finset.coe_sort_coe, mk_of_finset, lift_nat_cast, nat.cast_inj] at h2,
-  simp only [← finset.coe_compl, finset.coe_sort_coe, mk_of_finset, finset.card_compl,
+  simp only [finset.coe_sort_coe, mk_coe_finset, lift_nat_cast, nat.cast_inj] at h2,
+  simp only [← finset.coe_compl, finset.coe_sort_coe, mk_coe_finset, finset.card_compl,
     lift_nat_cast, nat.cast_inj, h1, h2]
 end
 

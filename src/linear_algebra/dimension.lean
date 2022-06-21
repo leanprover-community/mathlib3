@@ -982,7 +982,7 @@ end
 lemma dim_span_of_finset (s : finset V) :
   module.rank K (span K (↑s : set V)) < ℵ₀ :=
 calc module.rank K (span K (↑s : set V)) ≤ #(↑s : set V) : dim_span_le ↑s
-                             ... = s.card : by rw [finset.coe_sort_coe, cardinal.mk_of_finset]
+                             ... = s.card : by rw [finset.coe_sort_coe, cardinal.mk_coe_finset]
                              ... < ℵ₀ : cardinal.nat_lt_aleph_0 _
 
 theorem dim_prod : module.rank K (V × V₁) = module.rank K V + module.rank K V₁ :=

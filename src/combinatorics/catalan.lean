@@ -40,6 +40,8 @@ https://math.stackexchange.com/questions/3304415/catalan-numbers-algebraic-proof
 open_locale big_operators
 open finset
 
+/-- The recursive definition of the sequence of Catalan numbers:
+`catalan (n + 1) = ∑ i : fin n.succ, catalan i * catalan (n - i)` -/
 def catalan : ℕ → ℕ
 | 0       := 1
 | (n + 1) := ∑ i : fin n.succ, have _ := i.2, have _ := nat.lt_succ_iff.mpr (n.sub_le i),
@@ -50,17 +52,18 @@ def catalan : ℕ → ℕ
 lemma catalan_succ (n : ℕ) : catalan (n + 1) = ∑ i : fin n.succ, catalan i * catalan (n - i) :=
 by rw catalan
 
+/-- The explicit definition of the sequence of Catalan numbers via the central binomial
+coefficient.-/
 def catalan' (n : ℕ) :  ℚ :=
 1 / (n + 1) * nat.central_binom n
 
 @[simp] lemma catalan'_zero : catalan' 0 = 1 :=
 begin rw catalan', simp, end
 
+/-- A helper sequence that can be used to prove the equality of the recursive and the explicit
+definition using a telescoping sum argument. -/
 private def gosper_catalan (n j : ℕ) : ℚ :=
 nat.central_binom j * nat.central_binom (n - j) * (2 * j - n) / (2 * n * (n + 1))
-
-lemma trick {a b c : ℕ} (h : b ≤ a) : a + c - (b + c) = a - b :=
-begin exact nat.add_sub_add_right a c b end
 
 lemma gosper_trick (n i : ℕ) (h : i ≤ n) :
 gosper_catalan (n+1) (i+1) - gosper_catalan (n+1) i = catalan' i * catalan' (n - i) :=

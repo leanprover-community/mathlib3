@@ -166,24 +166,31 @@ end adjoin_root
 
 namespace number_field.embeddings
 
-section number_field
+section fintype
 
 open set finite_dimensional polynomial
 
-variables {K L : Type*} [field K] [field L]
-variables [number_field K] [number_field L]  (x : K)
-
-variables {A : Type*} [field A] [char_zero A]
+variables (A : Type*) [field A] [char_zero A]
+variables (K : Type*) [field K] [number_field K]
 
 /-- There are finitely many embeddings of a number field. -/
-noncomputable instance : fintype (K →+* A) := fintype.of_equiv (K →ₐ[ℚ] A)
-ring_hom.equiv_rat_alg_hom.symm
+noncomputable instance : fintype (K →+* A) :=
+fintype.of_equiv (K →ₐ[ℚ] A) ring_hom.equiv_rat_alg_hom.symm
 
 variables [is_alg_closed A]
 
 /-- The number of embeddings of a number field is its finrank. -/
 lemma card : fintype.card (K →+* A) = finrank ℚ K :=
 by rw [fintype.of_equiv_card ring_hom.equiv_rat_alg_hom.symm, alg_hom.card]
+
+end fintype
+
+section roots
+
+open set finite_dimensional polynomial
+
+variables (A : Type*) [field A] [char_zero A] [is_alg_closed A]
+variables {K : Type*} [field K] [number_field K] (x : K)
 
 /-- For `x ∈ K`, with `K` a number field, the images of `x` by the embeddings of `K` are exactly
 the roots of the minimal polynomial of `x` over `ℚ` -/
@@ -221,6 +228,37 @@ begin
     exact (adjoin_root.lift_root hK).symm, },
 end
 
-end number_field
+instance : algebra (adjoin_root (minpoly ℚ x)) K := sorry
+
+lemma to_be_named {a : A} : a ∈ (minpoly ℚ x).root_set A →
+  fintype.card {  φ : K →+* A | φ x = a }.to_finset = finrank (adjoin_root (minpoly ℚ x)) K :=
+begin
+  haveI : irreducible (minpoly ℚ x), { sorry, },
+  intro ha,
+  have h1 : _, from eq_roots A x,
+  rw ←h1 at ha,
+  obtain ⟨φ, hφ⟩ := ha,
+  let Qx := adjoin_root (minpoly ℚ x),
+  have hA : (aeval a) (minpoly ℚ x) = 0, { sorry, },
+  letI : algebra Qx A := ring_hom.to_algebra (adjoin_root.lift (algebra_map ℚ A) a hA),
+  letI : finite_dimensional Qx K, { sorry },
+  suffices : fintype.card ( K →ₐ[Qx] A ) = fintype.card {  φ : K →+* A | φ x = a }.to_finset,
+  { have h4 : _, from alg_hom.card Qx K A,
+    rw ←h4,
+    rw this, },
+  apply fintype.card_congr,
+  refine equiv.of_bijective _ _,
+  intro f,
+  use f.to_ring_hom,
+  simp only [alg_hom.to_ring_hom_eq_coe, mem_to_finset, mem_set_of_eq, alg_hom.coe_to_ring_hom],
+  rw ←hφ,
+  rw (_ : x = (algebra_map Qx K) (adjoin_root.root (minpoly ℚ x))),
+  rw alg_hom.commutes,
+
+  sorry,
+  sorry,
+end
+
+end roots
 
 end number_field.embeddings

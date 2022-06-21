@@ -837,10 +837,10 @@ le_antisymm le_top (le_infi $ λ i, false.elim i)
 lemma supr_true {s : true → α} : supr s = s trivial := supr_pos trivial
 lemma infi_true {s : true → α} : infi s = s trivial := infi_pos trivial
 
-@[simp] lemma supr_exists {p : ι → Prop} {f : Exists p → α} : supr f = ⨆ i h, f ⟨i, h⟩ :=
+lemma supr_exists {p : ι → Prop} {f : Exists p → α} : supr f = ⨆ i h, f ⟨i, h⟩ :=
 le_antisymm (supr_le $ λ ⟨i, h⟩, le_supr₂ i h) (supr₂_le $ λ i h, le_supr _ _)
 
-@[simp] lemma infi_exists : ∀ {p : ι → Prop} {f : Exists p → α}, infi f = ⨅ i h, f ⟨i, h⟩ :=
+lemma infi_exists : ∀ {p : ι → Prop} {f : Exists p → α}, infi f = ⨅ i h, f ⟨i, h⟩ :=
 @supr_exists αᵒᵈ _ _
 
 lemma supr_and {p q : Prop} {s : p ∧ q → α} : supr s = ⨆ h₁ h₂, s ⟨h₁, h₂⟩ :=
@@ -984,7 +984,7 @@ theorem supr_extend_bot {e : ι → β} (he : injective e) (f : ι → α) :
   (⨆ j, extend e f ⊥ j) = supr f :=
 begin
   rw supr_split _ (λ j, ∃ i, e i = j),
-  simp [extend_apply he, extend_apply', @supr_comm _ β ι] { contextual := tt }
+  simp [extend_apply he, extend_apply', @supr_comm _ β ι, supr_exists] { contextual := tt }
 end
 
 theorem infi_extend_top : ∀ {e : ι → β} (he : injective e) (f : ι → α),

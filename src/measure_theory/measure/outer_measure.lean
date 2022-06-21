@@ -673,7 +673,7 @@ theorem bounded_by_eq_of_function (m_empty : m ∅ = 0) (s : set α) :
 begin
   have : (λ s : set α, ⨆ (h : s.nonempty), m s) = m,
   { ext1 t, cases t.eq_empty_or_nonempty with h h; simp [h, empty_not_nonempty, m_empty] },
-  simp_rw [bounded_by, this]
+  simp [bounded_by, this]
 end
 
 theorem bounded_by_apply (s : set α) :
@@ -701,9 +701,7 @@ lemma smul_bounded_by {c : ℝ≥0∞} (hc : c ≠ ∞) : c • bounded_by m = b
 begin
   simp only [bounded_by, smul_of_function hc],
   congr' 1 with s : 1,
-  rcases s.eq_empty_or_nonempty with rfl|hs,
-  { simp * },
-  { simp only [*, pi.smul_apply, csupr_pos] }
+  rcases s.eq_empty_or_nonempty with rfl|hs; simp *
 end
 
 lemma comap_bounded_by {β} (f : β → α)

@@ -107,16 +107,14 @@ end
 def circle_measure : measure circle :=
   (ennreal.of_real (1 / (2 * π)) • volume).map circle_m_equiv
 
-lemma circle_measure_univ : circle_measure univ = 1 :=
-begin
+instance : is_probability_measure circle_measure :=
+⟨begin
   dsimp only [circle_measure],
   rw [circle_m_equiv.map_apply, preimage_univ, measure.smul_apply, id.smul_eq_mul,
     ←volume_image_subtype_coe (@measurable_set_Ioc ℝ _ _ _ _ _ _ _), image_univ,
     subtype.range_coe, real.volume_Ioc, ←ennreal.of_real_mul (one_div_nonneg.mpr two_pi_pos.le)],
   ring_nf, field_simp [real.pi_ne_zero],
-end
-
-instance : is_probability_measure circle_measure := ⟨circle_measure_univ⟩
+end⟩
 
 instance : measure_space circle := { volume := circle_measure,  .. circle.measurable_space }
 

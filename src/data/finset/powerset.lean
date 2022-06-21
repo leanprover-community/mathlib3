@@ -249,9 +249,9 @@ by simp [finset.powerset_len, map_pmap, pmap_eq_map, map_id']
 theorem powerset_len_map {β : Type*} (f : α ↪ β) (n : ℕ) (s : finset α) :
   powerset_len n (s.map f) = (powerset_len n s).map (map_embedding f).to_embedding :=
 eq_of_veq $ multiset.map_injective (@eq_of_veq _) $
-  by simp_rw [map_val_val_powerset_len, finset.powerset_len, multiset.powerset_len_map, map_val,
-    multiset.map_pmap, rel_embedding.coe_fn_to_embedding, map_embedding_apply, map_val, pmap_eq_map,
-    multiset.powerset_len_map]
+  by simp_rw [map_val_val_powerset_len, map_val, multiset.map_map, function.comp,
+      rel_embedding.coe_fn_to_embedding, map_embedding_apply, map_val, ←multiset.map_map _ val,
+      map_val_val_powerset_len, multiset.powerset_len_map]
 
 end powerset_len
 end finset

@@ -113,6 +113,8 @@ instance ghas_one.to_has_one [has_zero ι] [ghas_one A] : has_one (graded_monoid
 class ghas_mul [has_add ι] :=
 (mul {i j} : A i → A j → A (i + j))
 
+/-- A graded version of `has_scalar`. Scalar multiplication combines grades additively, i.e.
+if `a ∈ A i` and `m ∈ M j`, then `a • b` must be in `M (i + j)`-/
 class ghas_scalar [has_add ι] :=
 (smul {i j} : A i → M j → M (i + j))
 
@@ -430,6 +432,7 @@ class set_like.has_graded_mul {S : Type*} [set_like S R] [has_mul R] [has_add ι
   (A : ι → S) : Prop :=
 (mul_mem : ∀ ⦃i j⦄ {gi gj}, gi ∈ A i → gj ∈ A j → gi * gj ∈ A (i + j))
 
+/-- A version of `graded_monoid.ghas_scalar` for internally graded objects. -/
 class set_like.has_graded_scalar {S R N M : Type*} [set_like S R] [set_like N M]
   [has_scalar R M] [has_add ι] (A : ι → S) (B : ι → N) : Prop :=
 (smul_mem : ∀ ⦃i j : ι⦄ {ai bj}, ai ∈ A i → bj ∈ B j → ai • bj ∈ B (i + j))

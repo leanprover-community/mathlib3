@@ -1323,12 +1323,18 @@ by rw [←e.equiv_of_fintype_self_embedding_to_embedding, univ_map_equiv_to_embe
 namespace fintype
 
 /-- Given `fintype α`, `finset_equiv_set` is the equiv between `finset α` and `set α`. (All
-set on a finite type are finite.) -/
-@[simps] noncomputable def finset_equiv_set [fintype α] : finset α ≃ set α :=
+sets on a finite type are finite.) -/
+noncomputable def finset_equiv_set [fintype α] : finset α ≃ set α :=
 { to_fun := coe,
   inv_fun := by { classical, exact λ s, s.to_finset },
   left_inv := λ s, by convert finset.to_finset_coe s,
   right_inv := λ s, s.coe_to_finset }
+
+@[simp] lemma finset_equiv_set_apply [fintype α] (s : finset α) : finset_equiv_set s = s := rfl
+
+@[simp] lemma finset_equiv_set_symm_apply [fintype α] (s : set α) [fintype s] :
+  finset_equiv_set.symm s = s.to_finset :=
+by convert rfl
 
 lemma card_lt_of_surjective_not_injective [fintype α] [fintype β] (f : α → β)
   (h : function.surjective f) (h' : ¬function.injective f) : card β < card α :=

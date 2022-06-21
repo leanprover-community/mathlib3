@@ -590,11 +590,11 @@ mem_of_superset (ball_mem_nhds x ε0) ball_subset_closed_ball
 
 theorem ball_prod_same [pseudo_emetric_space β] (x : α) (y : β) (r : ℝ≥0∞) :
   ball x r ×ˢ ball y r = ball (x, y) r :=
-ext $ λ z, max_lt_iff.symm
+ext $ λ z, (@max_lt_iff ℝ≥0∞ _ _ _ _).symm
 
 theorem closed_ball_prod_same [pseudo_emetric_space β] (x : α) (y : β) (r : ℝ≥0∞) :
   closed_ball x r ×ˢ closed_ball y r = closed_ball (x, y) r :=
-ext $ λ z, max_le_iff.symm
+ext $ λ z, (@max_le_iff ℝ≥0∞ _ _ _ _).symm
 
 /-- ε-characterization of the closure in pseudoemetric spaces -/
 theorem mem_closure_iff :

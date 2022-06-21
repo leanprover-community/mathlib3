@@ -551,6 +551,21 @@ def principal_unit_group_order_embedding :
 lemma principal_units_le_units : A.principal_unit_group ≤ A.unit_group :=
 λ a h, by {simpa using A.valuation.map_one_add_of_lt h}
 
+/-- The principal unit group agrees with the kernel of the canonical map from
+the units of `A` to the units of the residue field of `A`. -/
+def principal_unit_group_equiv :
+  A.principal_unit_group ≃*
+  (units.map (local_ring.residue A).to_monoid_hom).ker :=
+sorry
+
+@[simp]
+lemma principal_unit_group_equiv_apply (a : A.principal_unit_group) :
+  (principal_unit_group_equiv A a : K) = a := sorry -- rfl
+
+@[simp]
+lemma principal_unit_group_symm_apply (a : (units.map (local_ring.residue A).to_monoid_hom).ker) :
+  (A.principal_unit_group_equiv.symm a : K) = a := sorry -- rfl
+
 end principal_unit_group
 
 end valuation_subring

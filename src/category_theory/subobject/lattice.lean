@@ -567,8 +567,8 @@ end)⟩
 /--
 When `[well_powered C]` and `[has_wide_pullbacks C]`, `subobject A` has arbitrary infimums.
 -/
-def Inf {A : C} (s : set (subobject A)) : subobject A :=
-subobject.mk (wide_pullback_ι s)
+instance {A : C} : has_Inf (subobject A) :=
+⟨λ s, subobject.mk (wide_pullback_ι s)⟩
 
 lemma Inf_le {A : C} (s : set (subobject A)) (f ∈ s) :
   Inf s ≤ f :=
@@ -613,10 +613,10 @@ variables [has_images C]
 
 /-- When `[well_powered C] [has_images C] [has_coproducts C]`,
 `subobject A` has arbitrary supremums. -/
-def Sup {A : C} (s : set (subobject A)) : subobject A :=
-subobject.mk (image.ι (small_coproduct_desc s))
+instance {A : C} : has_Sup (subobject A) :=
+⟨λ s, subobject.mk (image.ι (small_coproduct_desc s))⟩
 
-lemma le_Sup {A : C} (s : set (subobject A)) (f ∈ s)  :
+lemma le_Sup {A : C} (s : set (subobject A)) (f ∈ s) :
   f ≤ Sup s :=
 begin
   fapply le_of_comm,

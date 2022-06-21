@@ -1009,7 +1009,7 @@ apply_nolint group_filter_basis.is_topological_group to_additive_doc
 
 -- topology/algebra/group.lean
 apply_nolint filter.tendsto.inv to_additive_doc
-apply_nolint group_topology.complete_semilattice_Inf to_additive_doc
+apply_nolint group_topology.complete_lattice to_additive_doc
 apply_nolint group_topology.continuous_inv' to_additive_doc
 apply_nolint group_topology.continuous_mul' to_additive_doc
 apply_nolint group_topology.has_Inf to_additive_doc

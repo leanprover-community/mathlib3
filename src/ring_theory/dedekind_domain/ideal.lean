@@ -863,7 +863,7 @@ section
 
 open ideal
 
-variables {R} {A} [is_domain R] [is_dedekind_domain A] {I : ideal R} {J : ideal A}
+variables {R} {A} [is_dedekind_domain A] {I : ideal R} {J : ideal A}
 
 /-- The map from ideals of `R` dividing `I` to the ideals of `A` dividing `J` induced by
   a homomorphism `f : R/I →+* A/J` -/
@@ -898,7 +898,6 @@ order_hom.ext _ _ (funext $ λ X, by simp only [ideal_factors_fun_of_quot_hom, m
   subtype.coe_eta] )
 
 variables {B : Type*} [comm_ring B] [is_domain B] [is_dedekind_domain B] {L : ideal B}
-variable [is_dedekind_domain R]
 
 lemma ideal_factors_fun_of_quot_hom_comp
   {f : R ⧸ I →+* A ⧸ J}  {g : A ⧸ J →+* B ⧸ L} (hf : function.surjective f)
@@ -913,6 +912,8 @@ begin
     ideal_factors_fun_of_quot_hom,  order_hom.coe_fun_mk, subtype.mk_eq_mk, subtype.coe_mk,
     map_comap_of_surjective J^.quotient.mk quotient.mk_surjective, map_map],
 end
+
+variables [is_domain R] [is_dedekind_domain R]
 
 /-- The bijection between ideals of `R` dividing `I` and the ideals of `A` dividing `J` induced by
   an isomorphism `f : R/I ≅ A/J`. -/

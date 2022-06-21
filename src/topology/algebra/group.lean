@@ -1422,19 +1422,16 @@ instance : complete_lattice (group_topology α) :=
 { inf := (⊓),
   top := ⊤,
   bot := ⊥,
-  Inf_le := λ S a haS, to_topological_space_le.1 $ Inf_le ⟨a, haS, rfl⟩,
-  le_Inf :=
-  begin
-    intros S a hab,
-    apply topological_space.complete_lattice.le_Inf,
-    rintros _ ⟨b, hbS, rfl⟩,
-    exact hab b hbS,
-  end,
   ..group_topology.bounded_order,
   ..group_topology.semilattice_inf,
   ..group_topology.has_Inf,
   ..group_topology.partial_order
-  ..complete_lattice_of_complete_semilattice_Inf _ }
+  ..complete_lattice_of_Inf (group_topology α) $ λ S, ⟨
+    λ a haS, to_topological_space_le.1 $ Inf_le ⟨a, haS, rfl⟩,
+    λ a hab, topological_space.complete_lattice.le_Inf $ begin
+      rintros _ ⟨b, hbS, rfl⟩,
+      exact hab b hbS
+    end⟩ }
 
 /--  Given `f : α → β` and a topology on `α`, the coinduced group topology on `β` is the finest
 topology such that `f` is continuous and `β` is a topological group. -/

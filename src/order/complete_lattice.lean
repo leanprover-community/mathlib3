@@ -103,7 +103,7 @@ instance : complete_lattice my_T :=
   ..complete_lattice_of_Inf my_T _ }
 ```
 -/
-def complete_lattice_of_Inf {α : Type*} [H1 : partial_order α]
+def complete_lattice_of_Inf (α : Type*) [H1 : partial_order α]
   [H2 : has_Inf α] (is_glb_Inf : ∀ s : set α, is_glb s (Inf s)) :
   complete_lattice α :=
 { bot := Inf univ,
@@ -140,7 +140,7 @@ instance : complete_lattice my_T :=
   ..complete_lattice_of_Sup my_T _ }
 ```
 -/
-def complete_lattice_of_Sup {α : Type*} [H1 : partial_order α]
+def complete_lattice_of_Sup (α : Type*) [H1 : partial_order α]
   [H2 : has_Sup α] (is_lub_Sup : ∀ s : set α, is_lub s (Sup s)) :
   complete_lattice α :=
 { top := Sup univ,

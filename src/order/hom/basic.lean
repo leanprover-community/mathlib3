@@ -166,6 +166,8 @@ instance : order_hom_class (α →o β) α β :=
   coe_injective' := λ f g h, by { cases f, cases g, congr' },
   map_rel := λ f, f.monotone }
 
+lemma coe_eq (f : α →o β) : coe f = f := by ext ; refl
+
 @[simp] lemma to_fun_eq_coe {f : α →o β} : f.to_fun = f := rfl
 @[simp] lemma coe_fun_mk {f : α → β} (hf : _root_.monotone f) : (mk f hf : α → β) = f := rfl
 

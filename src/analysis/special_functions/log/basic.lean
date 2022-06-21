@@ -265,15 +265,15 @@ begin
   simp [ha, ih hf.2, log_mul hf.1 (finset.prod_ne_zero_iff.2 hf.2)],
 end
 
-lemma log_nat_eq_factorization_sum {n : ℕ} : log n = n.factorization.sum (λ p t, t * log p) :=
+lemma log_nat_eq_sum_factorization {n : ℕ} : log n = n.factorization.sum (λ p t, t * log p) :=
 begin
   rcases eq_or_ne n 0 with rfl | hn,
   { simp },
   nth_rewrite 0 [←nat.factorization_prod_pow_eq_self hn],
-  rw [finsupp.prod, nat.cast_prod, log_prod, finsupp.sum],
+  rw [finsupp.prod, nat.cast_prod, log_prod _ _ (λ p hp, _), finsupp.sum],
   simp_rw [nat.cast_pow, log_pow],
-  norm_cast,
-  exact λ p hp, pow_ne_zero _ (nat.prime_of_mem_factorization hp).ne_zero,
+  { norm_cast,
+    exact pow_ne_zero _ (nat.prime_of_mem_factorization hp).ne_zero },
 end
 
 lemma tendsto_pow_log_div_mul_add_at_top (a b : ℝ) (n : ℕ) (ha : a ≠ 0) :

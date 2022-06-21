@@ -549,9 +549,11 @@ begin
 end
 
 @[priority 100] -- see Note [lower instance priority]
-noncomputable instance : fintype $ ideal K :=
-{ elems := {⊥, ⊤},
+instance : fintype $ ideal K :=
+{ elems := finset.cons ⊥ {⊤} $ finset.mem_singleton.not.mpr bot_ne_top,
   complete := λ I, by simp [eq_bot_or_top], }
+
+@[simp] lemma card_ideal : fintype.card (ideal K) = 2 := rfl
 
 lemma _root_.right_ideal.eq_bot_or_top (I : right_ideal K) : I = ⊥ ∨ I = ⊤ :=
 begin
@@ -567,6 +569,8 @@ end
 instance : fintype $ right_ideal K :=
 { elems := finset.cons ⊥ {⊤} $ finset.mem_singleton.not.mpr bot_ne_top,
   complete := λ I, by simp [right_ideal.eq_bot_or_top], }
+
+@[simp] lemma card_right_ideal : fintype.card (ideal K) = 2 := rfl
 
 lemma eq_bot_of_prime [h : I.is_prime] : I = ⊥ :=
 or_iff_not_imp_right.mp I.eq_bot_or_top h.1

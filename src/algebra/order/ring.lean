@@ -458,7 +458,7 @@ lemma strict_mono.mul_monotone (hf : strict_mono f) (hg : monotone g) (hf0 : ∀
   strict_mono (λ x, f x * g x) :=
 decidable.strict_mono_mul_monotone hf hg hf0 hg0
 
-lemma monotone_mul_strict_mono (hf : monotone f) (hg : strict_mono g) (hf0 : ∀ x, 0 < f x)
+lemma monotone.mul_strict_mono (hf : monotone f) (hg : strict_mono g) (hf0 : ∀ x, 0 < f x)
   (hg0 : ∀ x, 0 ≤ g x) :
   strict_mono (λ x, f x * g x) :=
 decidable.monotone_mul_strict_mono hf hg hf0 hg0

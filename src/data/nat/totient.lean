@@ -92,22 +92,16 @@ open zmod
 
 /-- Note this takes an explicit `fintype ((zmod n)ˣ)` argument to avoid trouble with instance
 diamonds. -/
-@[simp] lemma _root_.zmod.card_units_eq_totient (n : ℕ) [fact (0 < n)] [fintype ((zmod n)ˣ)] :
+@[simp] lemma _root_.zmod.card_units_eq_totient (n : ℕ) [h : fact (0 < n)] [fintype ((zmod n)ˣ)] :
   fintype.card ((zmod n)ˣ) = φ n :=
 calc fintype.card ((zmod n)ˣ) = fintype.card {x : zmod n // x.val.coprime n} :
   fintype.card_congr zmod.units_equiv_coprime
 ... = φ n :
 begin
-  apply finset.card_congr (λ (a : {x : zmod n // x.val.coprime n}) _, a.1.val),
-  { intro a, simp [(a : zmod n).val_lt, a.prop.symm] {contextual := tt} },
-  { intros _ _ _ _ h, rw subtype.ext_iff_val, apply val_injective, exact h, },
-  { intros b hb,
-    rw [finset.mem_filter, finset.mem_range] at hb,
-    refine ⟨⟨b, _⟩, finset.mem_univ _, _⟩,
-    { let u := unit_of_coprime b hb.2.symm,
-      exact val_coe_unit_coprime u },
-    { show zmod.val (b : zmod n) = b,
-      rw [val_nat_cast, nat.mod_eq_of_lt hb.1], } }
+  unfreezingI { obtain ⟨m, rfl⟩ : ∃ m, n = m + 1 := exists_eq_succ_of_ne_zero h.out.ne' },
+  simp only [totient, finset.card_eq_sum_ones, fintype.card_subtype, finset.sum_filter,
+    ← fin.sum_univ_eq_sum_range, @nat.coprime_comm (m + 1)],
+  refl
 end
 
 lemma totient_even {n : ℕ} (hn : 2 < n) : even n.totient :=

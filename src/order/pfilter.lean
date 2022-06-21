@@ -141,9 +141,9 @@ ideal.sup_mem_iff
 
 end semilattice_inf
 
-section complete_semilattice_Inf
+section complete_semilattice
 
-variables [complete_semilattice_Inf P] {F : pfilter P}
+variables [complete_semilattice P] {F : pfilter P}
 
 lemma Inf_gc : galois_connection (λ x, order_dual.to_dual (principal x))
   (λ F, Inf (order_dual.of_dual F : pfilter P)) :=
@@ -157,7 +157,7 @@ def Inf_gi : galois_coinsertion (λ x, order_dual.to_dual (principal x))
   u_l_le := λ s, Inf_le $ mem_principal.2 $ le_refl s,
   choice_eq := λ _ _, rfl }
 
-end complete_semilattice_Inf
+end complete_semilattice
 
 end pfilter
 

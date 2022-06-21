@@ -596,12 +596,6 @@ begin
     simp, },
 end
 
-instance {B : C} : complete_semilattice_Inf (subobject B) :=
-{ Inf := Inf,
-  Inf_le := Inf_le,
-  le_Inf := le_Inf,
-  ..subobject.partial_order B }
-
 end Inf
 
 section Sup
@@ -653,12 +647,6 @@ begin
     simp, },
 end
 
-instance {B : C} : complete_semilattice_Sup (subobject B) :=
-{ Sup := Sup,
-  le_Sup := le_Sup,
-  Sup_le := Sup_le,
-  ..subobject.partial_order B }
-
 end Sup
 
 section complete_lattice
@@ -666,11 +654,16 @@ variables [well_powered C] [has_wide_pullbacks C] [has_images C] [has_coproducts
   [initial_mono_class C]
 
 instance {B : C} : complete_lattice (subobject B) :=
-{ ..subobject.semilattice_inf,
+{ Inf := Inf,
+  Inf_le := Inf_le,
+  le_Inf := le_Inf,
+  Sup := Sup,
+  le_Sup := le_Sup,
+  Sup_le := Sup_le,
+  ..subobject.semilattice_inf,
   ..subobject.semilattice_sup,
   ..subobject.bounded_order,
-  ..subobject.complete_semilattice_Inf,
-  ..subobject.complete_semilattice_Sup, }
+  ..subobject.partial_order B }
 
 end complete_lattice
 

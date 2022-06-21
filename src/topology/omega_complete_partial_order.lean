@@ -125,7 +125,7 @@ begin
   cases hf, specialize hf_h c,
   simp only [not_below, order_hom.coe_fun_mk, eq_iff_iff, mem_set_of_eq] at hf_h,
   rw [← not_iff_not],
-  simp only [ωSup_le_iff, hf_h, ωSup, supr, Sup, complete_lattice.Sup, complete_semilattice_Sup.Sup,
+  simp only [ωSup_le_iff, hf_h, ωSup, supr, Sup, complete_lattice.Sup,
     exists_prop, mem_range, order_hom.coe_fun_mk, chain.map_coe, function.comp_app,
     eq_iff_iff, not_forall],
   tauto,

@@ -837,15 +837,11 @@ have μ.to_outer_measure ≤ Inf (to_outer_measure '' m) :=
   le_Inf $ ball_image_of_ball $ λ μ hμ, to_outer_measure_le.2 $ h _ hμ,
 λ s hs, by rw [Inf_apply hs, ← to_outer_measure_apply]; exact this s
 
-instance [measurable_space α] : complete_semilattice_Inf (measure α) :=
-{ Inf_le := λ s a, measure_Inf_le,
-  le_Inf := λ s a, measure_le_Inf,
-  ..(by apply_instance : partial_order (measure α)),
-  ..(by apply_instance : has_Inf (measure α)), }
-
 instance [measurable_space α] : complete_lattice (measure α) :=
 { bot := 0,
   bot_le := λ a s hs, by exact bot_le,
+  Inf_le := λ s a, measure_Inf_le,
+  le_Inf := λ s a, measure_le_Inf,
 /- Adding an explicit `top` makes `leanchecker` fail, see lean#364, disable for now
 
   top := (⊤ : outer_measure α).to_measure (by rw [outer_measure.top_caratheodory]; exact le_top),
@@ -853,7 +849,9 @@ instance [measurable_space α] : complete_lattice (measure α) :=
     by cases s.eq_empty_or_nonempty with h  h;
       simp [h, to_measure_apply ⊤ _ hs, outer_measure.top_apply],
 -/
-  .. complete_lattice_of_complete_semilattice_Inf (measure α) }
+  ..(by apply_instance : partial_order (measure α)),
+  ..(by apply_instance : has_Inf (measure α))
+  ..complete_lattice_of_Inf (measure α) }
 
 end Inf
 

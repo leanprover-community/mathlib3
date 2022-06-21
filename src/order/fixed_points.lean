@@ -220,32 +220,24 @@ instance : semilattice_inf (fixed_points f) :=
 { inf := λ x y, f.prev_fixed (x ⊓ y) (f.map_inf_fixed_points_le x y),
   .. subtype.partial_order _, .. (order_dual.semilattice_inf (fixed_points f.dual))  }
 
-instance : complete_semilattice_Sup (fixed_points f) :=
-{ Sup := λ s, f.next_fixed (Sup (coe '' s))
-    (f.le_map_Sup_subset_fixed_points (coe '' s) (λ z ⟨x, hx⟩, hx.2 ▸ x.2)),
-  le_Sup := λ s x hx, subtype.coe_le_coe.1 $ le_trans (le_Sup $ set.mem_image_of_mem _ hx)
-    (f.le_next_fixed _),
-  Sup_le := λ s x hx, f.next_fixed_le _ $ Sup_le $ set.ball_image_iff.2 hx,
-  .. subtype.partial_order _ }
-
-instance : complete_semilattice_Inf (fixed_points f) :=
-{ Inf := λ s, f.prev_fixed (Inf (coe '' s))
-    (f.map_Inf_subset_fixed_points_le (coe '' s) (λ z ⟨x, hx⟩, hx.2 ▸ x.2)),
-  le_Inf := λ s x hx, f.le_prev_fixed _ $ le_Inf $ set.ball_image_iff.2 hx,
-  Inf_le := λ s x hx, subtype.coe_le_coe.1 $ le_trans (f.prev_fixed_le _)
-    (Inf_le $ set.mem_image_of_mem _ hx),
-  .. subtype.partial_order _ }
-
 /-- **Knaster-Tarski Theorem**: The fixed points of `f` form a complete lattice. -/
 instance : complete_lattice (fixed_points f) :=
 { top := ⟨f.gfp, f.is_fixed_pt_gfp⟩,
   bot := ⟨f.lfp, f.is_fixed_pt_lfp⟩,
   le_top := λ x, f.le_gfp x.2.ge,
   bot_le := λ x, f.lfp_le x.2.le,
+  Inf := λ s, f.prev_fixed (Inf (coe '' s))
+    (f.map_Inf_subset_fixed_points_le (coe '' s) (λ z ⟨x, hx⟩, hx.2 ▸ x.2)),
+  le_Inf := λ s x hx, f.le_prev_fixed _ $ le_Inf $ set.ball_image_iff.2 hx,
+  Inf_le := λ s x hx, subtype.coe_le_coe.1 $ le_trans (f.prev_fixed_le _)
+    (Inf_le $ set.mem_image_of_mem _ hx),
+  Sup := λ s, f.next_fixed (Sup (coe '' s))
+    (f.le_map_Sup_subset_fixed_points (coe '' s) (λ z ⟨x, hx⟩, hx.2 ▸ x.2)),
+  le_Sup := λ s x hx, subtype.coe_le_coe.1 $ le_trans (le_Sup $ set.mem_image_of_mem _ hx)
+    (f.le_next_fixed _),
+  Sup_le := λ s x hx, f.next_fixed_le _ $ Sup_le $ set.ball_image_iff.2 hx,
   .. subtype.partial_order _,
   .. fixed_points.semilattice_sup f,
-  .. fixed_points.semilattice_inf f,
-  .. fixed_points.complete_semilattice_Sup f,
-  .. fixed_points.complete_semilattice_Inf f }
+  .. fixed_points.semilattice_inf f }
 
 end fixed_points

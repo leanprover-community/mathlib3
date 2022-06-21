@@ -384,33 +384,6 @@ partial_order.lift ring_topology.to_topological_space $ ext
 
 local notation `cont` := @continuous _ _
 
-private def def_Inf (S : set (ring_topology α)) : ring_topology α :=
-let Inf_S' := Inf (to_topological_space '' S) in
-{ to_topological_space := Inf_S',
-  continuous_add       :=
-  begin
-    apply continuous_Inf_rng,
-    rintros _ ⟨⟨t, tr⟩, haS, rfl⟩, resetI,
-    have h := continuous_Inf_dom (set.mem_image_of_mem to_topological_space haS) continuous_id,
-    have h_continuous_id := @continuous.prod_map _ _ _ _ t t Inf_S' Inf_S' _ _ h h,
-    exact @continuous.comp _ _ _ (id _) (id _) t _ _ continuous_add h_continuous_id,
-  end,
-  continuous_mul       :=
-  begin
-    apply continuous_Inf_rng,
-    rintros _ ⟨⟨t, tr⟩, haS, rfl⟩, resetI,
-    have h := continuous_Inf_dom (set.mem_image_of_mem to_topological_space haS) continuous_id,
-    have h_continuous_id := @continuous.prod_map _ _ _ _ t t Inf_S' Inf_S' _ _ h h,
-    exact @continuous.comp _ _ _ (id _) (id _) t _ _ continuous_mul h_continuous_id,
-  end,
-  continuous_neg       :=
-  begin
-    apply continuous_Inf_rng,
-    rintros _ ⟨⟨t, tr⟩, haS, rfl⟩, resetI,
-    have h := continuous_Inf_dom (set.mem_image_of_mem to_topological_space haS) continuous_id,
-    exact @continuous.comp _ _ _ (id _) (id _) t _ _ continuous_neg h,
-  end }
-
 /-- Ring topologies on `α` form a complete lattice, with `⊥` the discrete topology and `⊤` the
 indiscrete topology.
 

@@ -1036,7 +1036,7 @@ exactly one connected component.
 
 There is a `has_coe_to_fun` instance so that `h u v` can be used instead
 of `h.preconnected u v`. -/
-@[protect_proj]
+@[protect_proj, mk_iff]
 structure connected : Prop :=
 (preconnected : G.preconnected)
 [nonempty : nonempty V]

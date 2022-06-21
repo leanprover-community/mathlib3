@@ -707,7 +707,7 @@ library_note "is_R_or_C instance"
     simp [re_add_im a, algebra.smul_def, algebra_map_eq_of_real]
   end⟩⟩
 
-variables (K) (E : Type*) [normed_group E] [normed_space K E]
+variables (K) (E) [normed_group E] [normed_space K E]
 
 /-- A finite dimensional vector space Over an `is_R_or_C` is a proper metric space.
 

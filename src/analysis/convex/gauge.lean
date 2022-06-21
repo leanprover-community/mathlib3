@@ -41,7 +41,7 @@ open_locale pointwise
 
 noncomputable theory
 
-variables {𝕜 E : Type*}
+variables {𝕜 E F : Type*}
 
 section add_comm_group
 variables [add_comm_group E] [module ℝ E]
@@ -300,7 +300,7 @@ variables [is_R_or_C 𝕜] [module 𝕜 E] [module ℝ E] [is_scalar_tower ℝ �
 lemma gauge_balanced (hs : balanced 𝕜 s) (r : 𝕜) (x : E) : gauge s (r • x) =
   gauge s (∥r∥ • x) :=
 begin
-  have h'' : ∥r∥ • x = (∥r∥ : 𝕜) • x := coe_smul' _ _,
+  have h'' : ∥r∥ • x = (∥r∥ : 𝕜) • x := is_R_or_C.coe_smul' _ _,
   rw h'',
   simp_rw [gauge_def'],
   by_cases h : r = 0,
@@ -309,8 +309,8 @@ begin
   ext r',
   simp only [mem_sep_eq, mem_Ioi, and.congr_right_iff],
   intros hr',
-  simp_rw [←smul_assoc, coe_smul],
-  rw balanced_iff at hs,
+  simp_rw [←smul_assoc, is_R_or_C.coe_smul],
+  rw balanced_iff_mem at hs,
   split,
   { intros h',
     specialize hs _ h' (∥r∥/r) _,
@@ -328,8 +328,7 @@ begin
       simp [h],
     end,
     rw hr at hs,
-    exact hs,
-  },
+    exact hs },
   intros h',
   specialize hs _ h' (r/∥r∥) _,
   { simp only [norm_div, is_R_or_C.norm_coe_norm],
@@ -439,6 +438,19 @@ end
 { to_fun := gauge s,
   smul' := λ r x, by rw [gauge_smul hs₀, real.norm_eq_abs, smul_eq_mul]; apply_instance,
   triangle' := gauge_add_le hs₁ hs₂ }
+
+section is_R_or_C
+variables [add_comm_group F] [is_R_or_C 𝕜] [module ℝ F] [module 𝕜 F] [is_scalar_tower ℝ 𝕜 F]
+variables {s' : set F}
+
+/-- `gauge s` as a seminorm over is_R_or_C when `s` is balanced, convex and absorbent. -/
+@[simps] def gauge_seminorm' (hs₀ : balanced 𝕜 s') (hs₁ : convex ℝ s') (hs₂ : absorbent ℝ s') :
+  seminorm 𝕜 F :=
+{ to_fun := gauge s',
+  smul' := λ r x, by rw [gauge_smul' hs₀, smul_eq_mul],
+  triangle' := gauge_add_le hs₁ hs₂ }
+
+end is_R_or_C
 
 section gauge_seminorm
 variables {hs₀ : ∀ x ∈ s, -x ∈ s} {hs₁ : convex ℝ s} {hs₂ : absorbent ℝ s}

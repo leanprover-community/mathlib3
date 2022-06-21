@@ -9,6 +9,12 @@ import group_theory.group_action.defs
 # Sum instances for additive and multiplicative actions
 
 This file defines instances for additive and multiplicative actions on the binary `sum` type.
+
+## See also
+
+* `group_theory.group_action.pi`
+* `group_theory.group_action.prod`
+* `group_theory.group_action.sigma`
 -/
 
 variables {M N P α β γ : Type*}

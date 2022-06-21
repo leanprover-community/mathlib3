@@ -37,15 +37,14 @@ instance graded_algebra.to_graded_module [decidable_eq ι] [graded_algebra 𝓐]
 lemma ghas_scalar.smul_zero
   [set_like σ M] [add_submonoid_class σ M] [set_like.has_graded_scalar 𝓐 𝓜]
   {i j} (a : 𝓐 i) :
-  @graded_monoid.ghas_scalar.smul ι (λ i, 𝓐 i) (λ i, 𝓜 i) _ _ i j a 0 = 0 :=
+  @graded_monoid.ghas_scalar.smul ι _ (λ i, 𝓜 i) _ _ i j a 0 = 0 :=
 subtype.ext_iff_val.2 $ (smul_zero _ : (a : A) • 0 = (0 : M))
 
 lemma ghas_scalar.smul_add
   [set_like σ M] [add_submonoid_class σ M] [set_like.has_graded_scalar 𝓐 𝓜]
   {i j} (a : 𝓐 i) (b c : 𝓜 j) :
-  @graded_monoid.ghas_scalar.smul ι (λ i, 𝓐 i) (λ i, 𝓜 i) _ _ i j a (b + c) =
-  @graded_monoid.ghas_scalar.smul ι (λ i, 𝓐 i) (λ i, 𝓜 i) _ _ i j a b +
-  @graded_monoid.ghas_scalar.smul ι (λ i, 𝓐 i) (λ i, 𝓜 i) _ _ i j a c :=
+  @graded_monoid.ghas_scalar.smul ι _ (λ i, 𝓜 i) _ _ i j a (b + c) =
+  graded_monoid.ghas_scalar.smul a b + graded_monoid.ghas_scalar.smul a c :=
 subtype.ext_iff_val.2 $ (smul_add _ _ _ : (a : A) • (b + c : M) = (a : A) • b + (a : A) • c)
 
 lemma ghas_scalar.zero_smul
@@ -58,8 +57,7 @@ lemma ghas_scalar.add_smul
   [set_like σ M] [add_submonoid_class σ M] [set_like.has_graded_scalar 𝓐 𝓜]
   {i j} (a b : 𝓐 i) (c : 𝓜 j) :
   @graded_monoid.ghas_scalar.smul ι (λ i, 𝓐 i) (λ i, 𝓜 i) _ _ i j (a + b) c =
-  @graded_monoid.ghas_scalar.smul ι (λ i, 𝓐 i) (λ i, 𝓜 i) _ _ i j a c +
-  @graded_monoid.ghas_scalar.smul ι (λ i, 𝓐 i) (λ i, 𝓜 i) _ _ i j b c :=
+  graded_monoid.ghas_scalar.smul a c + graded_monoid.ghas_scalar.smul b c :=
 subtype.ext_iff_val.2 $ (add_smul _ _ _ : (a + b : A) • _ = (a : A) • _ + (b : A) • _)
 
 /--

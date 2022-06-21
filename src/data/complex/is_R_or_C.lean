@@ -70,7 +70,7 @@ end
 
 mk_simp_attribute is_R_or_C_simps "Simp attribute for lemmas about `is_R_or_C`"
 
-variables {K : Type*} [is_R_or_C K]
+variables {K E : Type*} [is_R_or_C K]
 
 namespace is_R_or_C
 
@@ -82,6 +82,14 @@ See Note [coercion into rings], or `data/nat/cast.lean` for more details. -/
 
 lemma of_real_alg (x : ℝ) : (x : K) = x • (1 : K) :=
 algebra.algebra_map_eq_smul_one x
+
+lemma coe_smul (r : ℝ) (z : K) : r • z = (r : K) * z :=
+by rw [is_R_or_C.of_real_alg, ←smul_eq_mul, smul_assoc, smul_eq_mul, one_mul]
+
+lemma coe_smul' [add_comm_group E] [module K E] [module ℝ E] [is_scalar_tower ℝ K E]
+  (r : ℝ) (x : E) : r • x = (r : K) • x :=
+by rw [is_R_or_C.of_real_alg, smul_one_smul]
+
 
 lemma algebra_map_eq_of_real : ⇑(algebra_map ℝ K) = coe := rfl
 

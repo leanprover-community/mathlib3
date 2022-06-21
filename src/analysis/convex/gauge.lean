@@ -6,6 +6,7 @@ Authors: Yaël Dillies, Bhavik Mehta
 import analysis.convex.star
 import analysis.normed_space.pointwise
 import analysis.seminorm
+import data.complex.is_R_or_C
 import tactic.congrm
 
 /-!
@@ -40,7 +41,7 @@ open_locale pointwise
 
 noncomputable theory
 
-variables {E : Type*}
+variables {𝕜 E : Type*}
 
 section add_comm_group
 variables [add_comm_group E] [module ℝ E]
@@ -291,6 +292,73 @@ begin
 end
 
 end linear_ordered_field
+
+section is_R_or_C
+
+variables [is_R_or_C 𝕜] [module 𝕜 E] [module ℝ E] [is_scalar_tower ℝ 𝕜 E]
+
+lemma gauge_balanced (hs : balanced 𝕜 s) (r : 𝕜) (x : E) : gauge s (r • x) =
+  gauge s (∥r∥ • x) :=
+begin
+  have h'' : ∥r∥ • x = (∥r∥ : 𝕜) • x := coe_smul' _ _,
+  rw h'',
+  simp_rw [gauge_def'],
+  by_cases h : r = 0,
+  { rw h, simp only [norm_zero, is_R_or_C.of_real_zero]},
+  apply congr_arg _,
+  ext r',
+  simp only [mem_sep_eq, mem_Ioi, and.congr_right_iff],
+  intros hr',
+  simp_rw [←smul_assoc, coe_smul],
+  rw balanced_iff at hs,
+  split,
+  { intros h',
+    specialize hs _ h' (∥r∥/r) _,
+    { simp only [norm_div, is_R_or_C.norm_coe_norm],
+      exact div_self_le_one (∥r∥) },
+    rw ←smul_assoc at hs,
+    rw smul_eq_mul at hs,
+    have hr : (↑∥r∥ / r * (↑r'⁻¹ * r)) = ↑r'⁻¹ * ↑∥r∥ :=
+    begin
+      ring_nf,
+      simp only [is_R_or_C.of_real_inv, mul_eq_mul_right_iff, is_R_or_C.of_real_eq_zero,
+        norm_eq_zero],
+      left,
+      rw [mul_comm, ←mul_assoc],
+      simp [h],
+    end,
+    rw hr at hs,
+    exact hs,
+  },
+  intros h',
+  specialize hs _ h' (r/∥r∥) _,
+  { simp only [norm_div, is_R_or_C.norm_coe_norm],
+    exact div_self_le_one (∥r∥) },
+  rw ←smul_assoc at hs,
+  rw smul_eq_mul at hs,
+  have hr : r / ↑∥r∥ * (↑r'⁻¹ * ↑∥r∥) = ↑r'⁻¹ * r :=
+  begin
+    ring_nf,
+    simp only [is_R_or_C.of_real_inv, mul_eq_mul_right_iff],
+    left,
+    rw [mul_comm, ←mul_assoc],
+    simp[h],
+  end,
+  rw hr at hs,
+  exact hs,
+end
+
+/-- If `s` is balanced, then the Minkowski functional
+  is ℂ-homogeneous. -/
+lemma gauge_smul' {s : set E} (hs : balanced 𝕜 s) (r : 𝕜) (x : E) :
+  gauge s (r • x) = ∥r∥ • gauge s x :=
+begin
+  rw ←gauge_smul_of_nonneg (norm_nonneg r),
+  exact gauge_balanced hs _ _,
+  apply_instance,
+end
+
+end is_R_or_C
 
 section topological_space
 variables [topological_space E] [has_continuous_smul ℝ E]

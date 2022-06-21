@@ -185,66 +185,61 @@ end order_dual
 section
 variables [complete_lattice α] {s t : set α} {a b : α}
 
-@[ematch] theorem Inf_le : a ∈ s → Inf s ≤ a := complete_lattice.Inf_le s a
 @[ematch] theorem le_Sup : a ∈ s → a ≤ Sup s := complete_lattice.le_Sup s a
+@[ematch] theorem Inf_le : a ∈ s → Inf s ≤ a := complete_lattice.Inf_le s a
 
-theorem le_Inf : (∀ b ∈ s, a ≤ b) → a ≤ Inf s := complete_lattice.le_Inf s a
 theorem Sup_le : (∀ b ∈ s, b ≤ a) → Sup s ≤ a := complete_lattice.Sup_le s a
+theorem le_Inf : (∀ b ∈ s, a ≤ b) → a ≤ Inf s := complete_lattice.le_Inf s a
 
-lemma is_glb_Inf (s : set α) : is_glb s (Inf s) := ⟨λ a, Inf_le, λ a, le_Inf⟩
 lemma is_lub_Sup (s : set α) : is_lub s (Sup s) := ⟨λ x, le_Sup, λ x, Sup_le⟩
+lemma is_glb_Inf (s : set α) : is_glb s (Inf s) := ⟨λ a, Inf_le, λ a, le_Inf⟩
 
-lemma is_glb.Inf_eq (h : is_glb s a) : Inf s = a := (is_glb_Inf s).unique h
 lemma is_lub.Sup_eq (h : is_lub s a) : Sup s = a := (is_lub_Sup s).unique h
-
-theorem Inf_le_of_le (hb : b ∈ s) (h : b ≤ a) : Inf s ≤ a :=
-le_trans (Inf_le hb) h
+lemma is_glb.Inf_eq (h : is_glb s a) : Inf s = a := (is_glb_Inf s).unique h
 
 theorem le_Sup_of_le (hb : b ∈ s) (h : a ≤ b) : a ≤ Sup s :=
 le_trans h (le_Sup hb)
 
-theorem Inf_le_Inf (h : s ⊆ t) : Inf t ≤ Inf s :=
-(is_glb_Inf s).mono (is_glb_Inf t) h
+theorem Inf_le_of_le (hb : b ∈ s) (h : b ≤ a) : Inf s ≤ a :=
+le_trans (Inf_le hb) h
 
 theorem Sup_le_Sup (h : s ⊆ t) : Sup s ≤ Sup t :=
 (is_lub_Sup s).mono (is_lub_Sup t) h
 
-@[simp] theorem le_Inf_iff : a ≤ Inf s ↔ ∀ b ∈ s, a ≤ b :=
-le_is_glb_iff (is_glb_Inf s)
+theorem Inf_le_Inf (h : s ⊆ t) : Inf t ≤ Inf s :=
+(is_glb_Inf s).mono (is_glb_Inf t) h
 
 @[simp] theorem Sup_le_iff : Sup s ≤ a ↔ ∀ b ∈ s, b ≤ a :=
 is_lub_le_iff (is_lub_Sup s)
 
-lemma Inf_le_iff : Inf s ≤ a ↔ ∀ b ∈ lower_bounds s, b ≤ a :=
-⟨λ h b hb, le_trans (le_Inf hb) h, λ hb, hb _ (λ x, Inf_le)⟩
+@[simp] theorem le_Inf_iff : a ≤ Inf s ↔ ∀ b ∈ s, a ≤ b :=
+le_is_glb_iff (is_glb_Inf s)
 
 lemma le_Sup_iff : a ≤ Sup s ↔ ∀ b ∈ upper_bounds s, a ≤ b :=
 ⟨λ h b hb, le_trans h (Sup_le hb), λ hb, hb _ (λ x, le_Sup)⟩
 
-lemma infi_le_iff {s : ι → α} : infi s ≤ a ↔ ∀ b, (∀ i, b ≤ s i) → b ≤ a :=
-by simp [infi, Inf_le_iff, lower_bounds]
+lemma Inf_le_iff : Inf s ≤ a ↔ ∀ b ∈ lower_bounds s, b ≤ a :=
+⟨λ h b hb, le_trans (le_Inf hb) h, λ hb, hb _ (λ x, Inf_le)⟩
 
 lemma le_supr_iff {s : ι → α} : a ≤ supr s ↔ ∀ b, (∀ i, s i ≤ b) → a ≤ b :=
 by simp [supr, le_Sup_iff, upper_bounds]
 
-theorem Inf_le_Inf_of_forall_exists_le (h : ∀ x ∈ s, ∃ y ∈ t, y ≤ x) : Inf t ≤ Inf s :=
-le_of_forall_le begin
-  simp only [le_Inf_iff],
-  introv h₀ h₁,
-  rcases h _ h₁ with ⟨y, hy, hy'⟩,
-  solve_by_elim [le_trans _ hy']
-end
+lemma infi_le_iff {s : ι → α} : infi s ≤ a ↔ ∀ b, (∀ i, b ≤ s i) → b ≤ a :=
+by simp [infi, Inf_le_iff, lower_bounds]
 
 theorem Sup_le_Sup_of_forall_exists_le (h : ∀ x ∈ s, ∃ y ∈ t, x ≤ y) : Sup s ≤ Sup t :=
 le_Sup_iff.2 $ λ b hb, Sup_le $ λ a ha, let ⟨c, hct, hac⟩ := h a ha in hac.trans (hb hct)
 
-/- We generalize this to conditionally complete lattices in `cInf_singleton`. -/
-theorem Inf_singleton {a : α} : Inf {a} = a :=
-is_glb_singleton.Inf_eq
+theorem Inf_le_Inf_of_forall_exists_le : (∀ x ∈ s, ∃ y ∈ t, y ≤ x) → Inf t ≤ Inf s :=
+@Sup_le_Sup_of_forall_exists_le αᵒᵈ _ _ _
 
 /- We generalize this to conditionally complete lattices in `cSup_singleton`. -/
 theorem Sup_singleton {a : α} : Sup {a} = a :=
 is_lub_singleton.Sup_eq
+
+/- We generalize this to conditionally complete lattices in `cInf_singleton`. -/
+theorem Inf_singleton {a : α} : Inf {a} = a :=
+is_glb_singleton.Inf_eq
 
 theorem Inf_le_Sup (hs : s.nonempty) : Inf s ≤ Sup s :=
 is_glb_le_is_lub (is_glb_Inf s) (is_lub_Sup s) hs

@@ -1076,6 +1076,17 @@ by { ext, rw [add_apply, comap_domain_apply, comap_domain_apply, comap_domain_ap
   comap_domain h hh (r • f) = r • comap_domain h hh f :=
 by { ext, rw [smul_apply, comap_domain_apply, smul_apply, comap_domain_apply] }
 
+@[simp] lemma comap_domain_single [decidable_eq κ] [Π i, has_zero (β i)]
+  (h : κ → ι) (hh : function.injective h) (k : κ) (x : β (h k)) :
+  comap_domain h hh (single (h k) x) = single k x :=
+begin
+  ext,
+  rw comap_domain_apply,
+  obtain rfl | hik := decidable.eq_or_ne i k,
+  { rw [single_eq_same, single_eq_same] },
+  { rw [single_eq_of_ne hik.symm, single_eq_of_ne (hh.ne hik.symm)] },
+end
+
 omit dec
 /--A computable version of comap_domain when an explicit left inverse is provided.-/
 def comap_domain'[Π i, has_zero (β i)] (h : κ → ι) {h' : ι → κ} (hh' : function.left_inverse h' h) :
@@ -1107,6 +1118,17 @@ by { ext, rw [add_apply, comap_domain'_apply, comap_domain'_apply, comap_domain'
   (hh' : function.left_inverse h' h) (r : γ) (f : Π₀ i, β i) :
   comap_domain' h hh' (r • f) = r • comap_domain' h hh' f :=
 by { ext, rw [smul_apply, comap_domain'_apply, smul_apply, comap_domain'_apply] }
+
+@[simp] lemma comap_domain'_single [decidable_eq ι] [decidable_eq κ] [Π i, has_zero (β i)]
+  (h : κ → ι) {h' : ι → κ} (hh' : function.left_inverse h' h) (k : κ) (x : β (h k)) :
+  comap_domain' h hh' (single (h k) x) = single k x :=
+begin
+  ext,
+  rw comap_domain'_apply,
+  obtain rfl | hik := decidable.eq_or_ne i k,
+  { rw [single_eq_same, single_eq_same] },
+  { rw [single_eq_of_ne hik.symm, single_eq_of_ne (hh'.injective.ne hik.symm)] },
+end
 
 /-- Reindexing terms of a dfinsupp.
 
@@ -1182,6 +1204,23 @@ begin
       sigma_curry_apply, smul_apply]
 end
 
+@[simp] lemma sigma_curry_single [Π i j, has_zero (δ i j)] (ij : Σ i, α i) (x : δ ij.1 ij.2) :
+  sigma_curry (single ij x) = single ij.1 (single ij.2 x : Π₀ j, δ ij.1 j) :=
+begin
+  obtain ⟨i, j⟩ := ij,
+  ext i' j',
+  dsimp only,
+  rw sigma_curry_apply,
+  obtain rfl | hi := eq_or_ne i i',
+  { rw single_eq_same,
+    obtain rfl | hj := eq_or_ne j j',
+    { rw [single_eq_same, single_eq_same] },
+    { rw [single_eq_of_ne, single_eq_of_ne hj],
+      simpa using hj }, },
+  { rw [single_eq_of_ne, single_eq_of_ne hi, zero_apply],
+    simpa using hi },
+end
+
 /--The natural map between `Π₀ i (j : α i), δ i j` and `Π₀ (i : Σ i, α i), δ i.1 i.2`, inverse of
 `curry`.-/
 noncomputable def sigma_uncurry [Π i j, has_zero (δ i j)] (f : Π₀ i j, δ i j) :
@@ -1213,6 +1252,22 @@ by { ext ⟨i, j⟩, rw [add_apply, sigma_uncurry_apply,
   sigma_uncurry (r • f) = r • sigma_uncurry f :=
 by { ext ⟨i, j⟩, rw [smul_apply, sigma_uncurry_apply,
     sigma_uncurry_apply, @smul_apply _ _ (λ i, Π₀ j, δ i j) _ _ _, smul_apply] }
+
+@[simp] lemma sigma_uncurry_single [Π i j, has_zero (δ i j)] (i) (j : α i) (x : δ i j) :
+  sigma_uncurry (single i (single j x : Π₀ (j : α i), δ i j)) = single ⟨i, j⟩ x:=
+begin
+  ext ⟨i', j'⟩,
+  dsimp only,
+  rw sigma_uncurry_apply,
+  obtain rfl | hi := eq_or_ne i i',
+  { rw single_eq_same,
+    obtain rfl | hj := eq_or_ne j j',
+    { rw [single_eq_same, single_eq_same] },
+    { rw [single_eq_of_ne hj, single_eq_of_ne],
+      simpa using hj }, },
+  { rw [single_eq_of_ne hi, single_eq_of_ne, zero_apply],
+    simpa using hi },
+end
 
 /--The natural bijection between `Π₀ (i : Σ i, α i), δ i.1 i.2` and `Π₀ i (j : α i), δ i j`.
 
@@ -1246,6 +1301,26 @@ by { rcases f, refl }
 @[simp] lemma extend_with_some [Π i, has_zero (α i)] (f : Π₀ i, α (some i)) (a : α none) (i : ι) :
   f.extend_with a (some i) = f i :=
 by { rcases f, refl }
+
+@[simp] lemma extend_with_single_zero [decidable_eq ι] [Π i, has_zero (α i)]
+  (i : ι) (x : α (some i)) :
+  (single i x).extend_with 0 = single (some i) x :=
+begin
+  ext (_ | j),
+  { rw [extend_with_none, single_eq_of_ne (option.some_ne_none _)] },
+  { rw extend_with_some,
+    obtain rfl | hij := decidable.eq_or_ne i j,
+    { rw [single_eq_same, single_eq_same] },
+    { rw [single_eq_of_ne hij, single_eq_of_ne ((option.some_injective _).ne hij)] }, },
+end
+
+@[simp] lemma extend_with_zero [decidable_eq ι] [Π i, has_zero (α i)] (x : α none) :
+  (0 : Π₀ i, α (some i)).extend_with x = single none x :=
+begin
+  ext (_ | j),
+  { rw [extend_with_none, single_eq_same] },
+  { rw [extend_with_some, single_eq_of_ne (option.some_ne_none _).symm, zero_apply] },
+end
 
 include dec
 /-- Bijection obtained by separating the term of index `none` of a dfinsupp over `option ι`.

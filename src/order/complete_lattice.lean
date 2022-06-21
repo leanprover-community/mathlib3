@@ -235,6 +235,9 @@ le_of_forall_le begin
   solve_by_elim [le_trans _ hy']
 end
 
+theorem Sup_le_Sup_of_forall_exists_le (h : ∀ x ∈ s, ∃ y ∈ t, x ≤ y) : Sup s ≤ Sup t :=
+le_Sup_iff.2 $ λ b hb, Sup_le $ λ a ha, let ⟨c, hct, hac⟩ := h a ha in hac.trans (hb hct)
+
 /- We generalize this to conditionally complete lattices in `cInf_singleton`. -/
 theorem Inf_singleton {a : α} : Inf {a} = a :=
 is_glb_singleton.Inf_eq
@@ -242,9 +245,6 @@ is_glb_singleton.Inf_eq
 /- We generalize this to conditionally complete lattices in `cSup_singleton`. -/
 theorem Sup_singleton {a : α} : Sup {a} = a :=
 is_lub_singleton.Sup_eq
-
-theorem Sup_le_Sup_of_forall_exists_le (h : ∀ x ∈ s, ∃ y ∈ t, x ≤ y) : Sup s ≤ Sup t :=
-le_Sup_iff.2 $ λ b hb, Sup_le $ λ a ha, let ⟨c, hct, hac⟩ := h a ha in hac.trans (hb hct)
 
 theorem Inf_le_Sup (hs : s.nonempty) : Inf s ≤ Sup s :=
 is_glb_le_is_lub (is_glb_Inf s) (is_lub_Sup s) hs

@@ -139,7 +139,7 @@ lemma ratio_unique [dilation_class F α β] {f : F} {x y : α} {r : ℝ≥0}
   r = ratio f :=
 begin
   have h := edist_eq f x y,
-  rwa [hr, ennreal.mul_eq_mul_right hxy.1 hxy.2, ennreal.coe_eq_coe] at h,
+  rwa [hr, ennreal.mul_eq_mul_right h₀ htop, ennreal.coe_eq_coe] at h,
 end
 
 /-- The `ratio` is equal to the distance ratio for any two points

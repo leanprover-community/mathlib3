@@ -580,7 +580,7 @@ begin
   exact hf.le_left_of_right_le' hy hx hb ha hab hfx,
 end
 
-lemma concave_on.le_right_of_left_le' (hf : concave_on 𝕜 s f) {x y : E} {a b : 𝕜}
+lemma concave_on.right_le_of_le_left' (hf : concave_on 𝕜 s f) {x y : E} {a b : 𝕜}
   (hx : x ∈ s) (hy : y ∈ s) (ha : 0 ≤ a) (hb : 0 < b) (hab : a + b = 1)
   (hfx : f (a • x + b • y) ≤ f x) :
   f y ≤ f (a • x + b • y) :=
@@ -607,7 +607,7 @@ begin
   exact hf.le_right_of_left_le' hx hy ha.le hb hab hxz,
 end
 
-lemma concave_on.le_right_of_left_le (hf : concave_on 𝕜 s f) {x y z : E} (hx : x ∈ s)
+lemma concave_on.right_le_of_le_left (hf : concave_on 𝕜 s f) {x y z : E} (hx : x ∈ s)
   (hy : y ∈ s) (hz : z ∈ open_segment 𝕜 x y) (hxz : f z ≤ f x) :
   f y ≤ f z :=
 hf.dual.le_right_of_left_le hx hy hz hxz
@@ -914,7 +914,7 @@ lemma convex_on.le_left_of_right_le'' (hf : convex_on 𝕜 s f) (hx : x ∈ s) (
 hxy.eq_or_lt.elim (λ hxy, (congr_arg f hxy).ge)
   (λ hxy, hf.le_left_of_right_le hx hz (Ioo_subset_open_segment ⟨hxy, hyz⟩) h)
 
-lemma concave_on.le_right_of_left_le'' (hf : concave_on 𝕜 s f) (hx : x ∈ s) (hz : z ∈ s)
+lemma concave_on.right_le_of_le_left'' (hf : concave_on 𝕜 s f) (hx : x ∈ s) (hz : z ∈ s)
   (hxy : x < y) (hyz : y ≤ z) (h : f y ≤ f x) : f z ≤ f y :=
 hf.dual.le_right_of_left_le'' hx hz hxy hyz h
 

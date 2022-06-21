@@ -5,6 +5,8 @@ Authors: Hanting Zhang
 -/
 import ring_theory.polynomial.basic
 import ring_theory.polynomial.symmetric
+import data.fintype.card
+import algebra.big_operators
 
 /-!
 # Vieta's Formula
@@ -101,3 +103,150 @@ begin
 end
 
 end mv_polynomial
+
+section xfr
+
+variables {R : Type*} [comm_semiring R] [decidable_eq R]
+
+lemma multiset.antidiagonal_powerset {α : Type*} [decidable_eq α] (s : multiset α) :
+  s.antidiagonal =
+      (multiset.map (λ (t : multiset α), ((t, s - t) : multiset α × multiset α)) s.powerset) :=
+begin
+  refine s.induction_on _ _,
+  simp only [multiset.antidiagonal_zero, multiset.powerset_zero, zero_tsub,
+    multiset.map_singleton],
+  intros a s hs,
+  rw [multiset.antidiagonal_cons, multiset.powerset_cons, multiset.map_add, hs, multiset.map_map],
+  suffices : multiset.map (λ (x : multiset α), (x, a ::ₘ (s - x))) s.powerset
+    = multiset.map (λ (t : multiset α), (t, a ::ₘ s - t)) s.powerset,
+  { simpa only [_root_.prod_map, id.def, multiset.map_map, function.comp_app, multiset.sub_cons,
+    multiset.erase_cons_head, add_left_inj], },
+  rw multiset.map_congr (eq.refl _),
+  intros _ ht,
+  rw prod.mk.inj_iff,
+  split, refl,
+  refine multiset.ext' _,
+  intro _,
+  rw [multiset.count_cons, multiset.count_sub, multiset.count_sub, multiset.count_cons],
+  exact tsub_add_eq_add_tsub (multiset.count_le_of_le _ (multiset.mem_powerset.mp ht)),
+end
+
+lemma multiset.count_nil_powerset {α : Type*} [decidable_eq (multiset α)] (s : multiset α) :
+  multiset.count (0 : multiset α) s.powerset = 1 :=
+begin
+  refine s.induction_on _ _,
+  simp only [multiset.powerset_zero, multiset.count_singleton_self],
+  intros _ _ hs,
+  rw [multiset.powerset_cons, multiset.count_add, hs],
+  simp only [multiset.count_eq_zero_of_not_mem, multiset.mem_map, multiset.cons_ne_zero,
+    and_false, exists_false, not_false_iff],
+end
+
+lemma multiset.powerset_len_eq_filter {α : Type*} [decidable_eq α] (s : multiset α) :
+  ∀ k : ℕ, multiset.powerset_len k s = multiset.filter (λ t, multiset.card t = k) s.powerset :=
+begin
+  refine s.induction _ _,
+  intro k,
+  cases k ; { refl, },
+  intros a s hk k,
+  cases k,
+  { rw [multiset.powerset_len_zero_left, multiset.powerset_cons, multiset.filter_add],
+    rw (_ : multiset.filter (λ (t : multiset α), multiset.card t = 0) s.powerset = {0}),
+    rw (_ : multiset.filter (λ (t : multiset α), multiset.card t = 0)
+      (multiset.map (multiset.cons a) s.powerset) = 0),
+    { rwa add_zero, },
+    { rw multiset.filter_eq_nil,
+      intros t ht,
+      rw multiset.card_eq_zero,
+      obtain ⟨r, hr⟩ := multiset.mem_map.mp ht,
+      rw ←hr.right,
+      exact multiset.cons_ne_zero, },
+    { ext r,
+      rw multiset.count_filter,
+      by_cases (r = 0),
+      simp only [h, eq_self_iff_true, if_true, multiset.count_singleton_self,
+         multiset.count_nil_powerset s, multiset.card_zero],
+      simp only [h, if_false, multiset.count_eq_zero_of_not_mem, multiset.mem_singleton,
+        not_false_iff, multiset.card_eq_zero], }},
+  { rw [multiset.powerset_len_cons, multiset.powerset_cons, multiset.filter_add],
+    rw [hk k, hk k.succ, add_right_inj],
+    rw [multiset.map_filter, multiset.map_congr],
+    { congr, ext t,
+      simp only [function.comp_app, multiset.card_cons, add_left_inj 1], },
+    { intros _ _, refl, }}
+end
+
+lemma multiset.powerset_sum_powerset_len {α : Type*} [decidable_eq α] (s : multiset α) :
+  s.powerset = ∑ (k:ℕ) in finset.range (s.card+1), multiset.powerset_len k s :=
+begin
+  have : s.powerset =
+    ∑ (k:ℕ) in finset.range (s.card+1), multiset.filter (λ t, multiset.card t = k) s.powerset,
+  { ext a,
+    rw ←multiset.count_sum,
+    have t0 : multiset.card a ∈ range (multiset.card s + 1),
+    rw (finset.sum_erase_add (range (multiset.card s + 1)) _ t0),
+     },
+  rw this,
+  have : _, from (λ k ∈ (finset.range (s.card+1)), multiset.powerset_len_eq_filter s k),
+  rw finset.sum_congr (eq.refl (finset.range (s.card+1))) this,
+  ext t,
+  by_cases hts : t ≤ s,
+  swap,
+  { rw [multiset.count_sum', finset.sum_eq_zero],
+    simp only [hts, multiset.count_eq_zero_of_not_mem, multiset.mem_powerset, not_false_iff],
+    intros x hx,
+    simp only [multiset.count_filter, hts, multiset.count_eq_zero_of_not_mem, multiset.mem_powerset,
+     not_false_iff, if_t_t], },
+
+  have t0 : multiset.card t ∈ range (multiset.card s + 1),
+  { have t1 : _, from multiset.card_le_of_le hts,
+    simp only [mem_range],
+    have t2 : _, from lt_add_one (multiset.card s),
+    exact lt_of_le_of_lt t1 t2, },
+  rw (finset.sum_erase_add (range (multiset.card s + 1)) _ t0).symm,
+  rw multiset.count_add,
+  rw ( _ :  multiset.count t (∑ (x : ℕ) in (range (multiset.card s + 1)).erase (multiset.card t),
+     multiset.filter (λ (t : multiset α), multiset.card t = x) s.powerset) = 0),
+  rw ( _ : multiset.count t (multiset.filter (λ (t_1 : multiset α),
+    multiset.card t_1 = multiset.card t) s.powerset) = multiset.count t s.powerset),
+  ring,
+  { rw multiset.count_filter,
+    simp only [eq_self_iff_true, if_true], },
+  rw multiset.count_sum',
+  rw finset.sum_eq_zero,
+  intros x hx,
+  simp [multiset.mem_powerset],
+  simp only [*, forall_true_left, mem_erase, ne.def, mem_range] at *,
+  exact ne.symm hx.left,
+end
+
+
+lemma multiset.map_sum {α : Type*} {β : Type*} {ι : Type*} [decidable_eq ι] (s : finset ι) (f : α → β)
+  (g : ι → multiset α) :
+  ∑ (j : ι) in s, (multiset.map f (g j)) = (multiset.map f ∑ (j : ι) in s, g j) :=
+begin
+  refine finset.induction_on s _ _,
+  simp only [finset.sum_empty, multiset.map_zero],
+  intros _ _ ha hs,
+  simp only [ha,hs, sum_insert, not_false_iff, multiset.map_add],
+end
+
+def multiset.esymm (s : multiset R) (n : ℕ) : R := ((s.powerset_len n).map multiset.prod).sum
+
+lemma multiset.prod_X_add_C_eq_sum_esymm (s : multiset R) :
+  (s.map (λ r, polynomial.C r + polynomial.X)).prod = ∑ j in range (s.card + 1),
+  (polynomial.C (multiset.esymm s j) * polynomial.X ^ (s.card - j)) :=
+begin
+  classical,
+  rw [multiset.prod_map_add, multiset.antidiagonal_powerset, multiset.map_map,
+     multiset.powerset_sum_powerset_len, ←multiset.map_sum, multiset.sum_sum],
+  refine finset.sum_congr begin congr end (λ j hj, _),
+  rw [function.comp, multiset.esymm, ←multiset.sum_hom', ←multiset.sum_map_mul_right],
+  rw multiset.map_congr (eq.refl _),
+  intros x hx,
+  rw multiset.mem_powerset_len at hx,
+  rw [multiset.map_const, multiset.prod_repeat, multiset.prod_hom'],
+  simp only [hx, multiset.map_id', multiset.card_sub, multiset.mem_powerset_len],
+end
+
+end xfr

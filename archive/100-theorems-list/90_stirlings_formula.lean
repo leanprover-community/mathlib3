@@ -49,17 +49,7 @@ open  finset filter nat real
 
 namespace stirling
 
-
-lemma partial_sum_le_tsum {a: ℕ → ℝ} (h : summable a) (g: ∀ (n:ℕ), 0 ≤ a n):
-∃ (c:ℝ), ∀ (s : finset ℕ), s.sum a ≤ c :=
-begin
-  use tsum a,
-  intro s,
-  refine sum_le_tsum _ _ h,
-  { intros b hb,
-    exact g b, },
-end
-
+/-- The sum of inverse squares converges. -/
 lemma summable_inverse_squares :
 summable (λ (k : ℕ), (1 : ℝ) / ((k.succ))^(2)) :=
 begin
@@ -67,25 +57,6 @@ begin
   norm_cast at *,
   exact g,
 end
-
-/-- **Partial sum inverses of squares** -/
-lemma partial_sum_inverse_squares :
- ∃ c, ∀ n, ∑ k in range n, (1 : ℝ) / (k.succ)^2 ≤ c :=
-begin
-  have h : ∀ (k : ℕ), 0 ≤ (1 : ℝ) / (k.succ)^2 :=
-  begin
-    intro k,
-    apply le_of_lt,
-    rw one_div_pos,
-    rw sq_pos_iff,
-    exact nonzero_of_invertible ↑(succ k),
-  end,
-  cases partial_sum_le_tsum summable_inverse_squares h with d g,
-  use d,
-  intro n,
-  exact g (range n),
-end
-
 
 /-!
  ### Part 1
@@ -166,12 +137,6 @@ lemma power_series_log_succ_div (n : ℕ) (hn : n ≠ 0) : has_sum (λ (k : ℕ)
 noncomputable def log_stirling_seq (n : ℕ) : ℝ := log (stirling_seq n)
 
 /--
-For each natural number `n ≠ 0`, we have $0<\sqrt{2n}$.
--/
-lemma zero_lt_sqrt_two_n (n : ℕ) (hn : n ≠ 0) : 0 < sqrt (2 * (n : ℝ)) :=
-real.sqrt_pos.mpr $ mul_pos two_pos $ cast_pos.mpr (zero_lt_iff.mpr hn)
-
-/--
 We have the expression
 `log_stirling_seq (n+1) = log(n + 1)! - 1 / 2 * log(2 * n) - n * log ((n + 1) / e)`.
 -/
@@ -189,7 +154,6 @@ begin
   { exact cast_ne_zero.mpr n.succ.factorial_ne_zero, },
   { apply (mul_ne_zero h3 h4.symm), },
 end
-
 
 /--
 The sequence `log_stirling_seq (m + 1) - log_stirling_seq (m + 2)` has the series expansion
@@ -306,7 +270,7 @@ end
 lemma log_stirling_seq_bounded_aux : ∃ (c : ℝ), ∀ (n : ℕ),
 log_stirling_seq 1 - log_stirling_seq n.succ ≤ c :=
 begin
-  cases partial_sum_inverse_squares with d h,
+  let d := ∑' k : ℕ, (1 : ℝ) / (k.succ)^2,
   use (1/4 * d : ℝ),
   let log_stirling_seq' : (ℕ → ℝ) := λ (k : ℕ), log_stirling_seq k.succ,
   intro n,
@@ -314,22 +278,23 @@ begin
   log_stirling_seq 1 - log_stirling_seq n.succ = log_stirling_seq' 0 - log_stirling_seq' n : rfl
     ... = ∑ k in range n, (log_stirling_seq' k - log_stirling_seq' (k + 1)) :
     by rw ← (sum_range_sub' log_stirling_seq' n)
-    ... = ∑ k in range n, (log_stirling_seq k.succ - log_stirling_seq k.succ.succ) : rfl
-    ... ≤ ∑ k in range n,  1 / (4 * k.succ^2) :
-    sum_le_sum (λ k hk, log_stirling_seq_sub_log_stirling_seq_succ k)
-    ... = ∑ k in range n, (1 / 4) * (1 / (k.succ^2)) :
+    ... ≤ ∑ k in range n, (1/4) * (1 / (k.succ)^2) :
     begin
-      have hi : ∀ (k : ℕ), (1 : ℝ) / (4 * k.succ^2) =
-      (1 / 4) * (1 / k.succ^2) :=
-      begin
-        intro k,
-        norm_cast,
-        field_simp,
-      end,
-      refine sum_congr rfl (λ k hk, hi k),
+      apply sum_le_sum,
+      intros k hk,
+      convert log_stirling_seq_sub_log_stirling_seq_succ k using 1,
+      field_simp,
     end
     ... = 1 / 4 * ∑ k in range n, 1 / k.succ ^ 2 : by rw mul_sum
-    ... ≤ 1 / 4 * d : (mul_le_mul_left (one_div_pos.mpr (@four_pos ℝ _ _))).mpr (h n),
+    ... ≤ 1 / 4 * d :
+    begin
+      refine (mul_le_mul_left _).mpr _, { exact one_div_pos.mpr four_pos, },
+      refine sum_le_tsum (range n) (λ k _, _) summable_inverse_squares,
+      apply le_of_lt,
+      rw one_div_pos,
+      rw sq_pos_iff,
+      exact nonzero_of_invertible ↑(succ k)
+    end
 end
 
 /-- The sequence `log_stirling_seq` is bounded below for `n ≥ 1`. -/

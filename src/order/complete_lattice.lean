@@ -361,7 +361,7 @@ by { rw set.eq_singleton_iff_nonempty_unique_mem, rw Sup_eq_bot at h_sup, exact 
 
 lemma eq_singleton_top_of_Inf_eq_top_of_nonempty : ∀ {s : set α}
   (h_inf : Inf s = ⊤) (hne : s.nonempty), s = {⊤} :=
-@eq_singleton_bot_of_Sup_eq_bot_of_nonempty αᵒᵈ _ 
+@eq_singleton_bot_of_Sup_eq_bot_of_nonempty αᵒᵈ _
 
 /--Introduction rule to prove that `b` is the supremum of `s`: it suffices to check that `b`
 is larger than all elements of `s`, and that this is not the case of any `w < b`.
@@ -754,13 +754,13 @@ end
   (⨆ x, ⨆ h : x = b, f x h) = f b rfl :=
 (@le_supr₂ _ _ _ _ f b rfl).antisymm' (supr_le $ λ c, supr_le $ by { rintro rfl, refl })
 
-@[simp] theorem supr_supr_eq_right {b : β} {f : Π x : β, b = x → α} :
-  (⨆ x, ⨆ h : b = x, f x h) = f b rfl :=
-(le_supr₂ b rfl).antisymm' (supr₂_le $ λ c, by { rintro rfl, refl })
-
 @[simp] theorem infi_infi_eq_left : ∀ {b : β} {f : Π x : β, x = b → α},
   (⨅ x, ⨅ h : x = b, f x h) = f b rfl :=
 @supr_supr_eq_left αᵒᵈ _ _
+
+@[simp] theorem supr_supr_eq_right {b : β} {f : Π x : β, b = x → α} :
+  (⨆ x, ⨆ h : b = x, f x h) = f b rfl :=
+(le_supr₂ b rfl).antisymm' (supr₂_le $ λ c, by { rintro rfl, refl })
 
 @[simp] theorem infi_infi_eq_right : ∀ {b : β} {f : Π x : β, b = x → α},
   (⨅ x, ⨅ h : b = x, f x h) = f b rfl :=
@@ -1243,10 +1243,10 @@ namespace prod
 variables (α β)
 
 instance [has_Sup α] [has_Sup β] : has_Sup (α × β) :=
-⟨λs, (Sup (prod.fst '' s), Sup (prod.snd '' s))⟩
+⟨λ s, (Sup (prod.fst '' s), Sup (prod.snd '' s))⟩
 
 instance [has_Inf α] [has_Inf β] : has_Inf (α × β) :=
-⟨λs, (Inf (prod.fst '' s), Inf (prod.snd '' s))⟩
+⟨λ s, (Inf (prod.fst '' s), Inf (prod.snd '' s))⟩
 
 instance [complete_lattice α] [complete_lattice β] : complete_lattice (α × β) :=
 { le_Sup := λ s p hab, ⟨le_Sup $ mem_image_of_mem _ hab, le_Sup $ mem_image_of_mem _ hab⟩,

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Moritz Firsching, Fabian Kruse, Nikolas Kuhn
 -/
 import analysis.p_series
-import analysis.special_functions.log.basic
+import analysis.special_functions.log.deriv
 import analysis.special_functions.pow
 import algebra.big_operators.basic
 import algebra.big_operators.intervals
@@ -55,50 +55,6 @@ Stirling's formula states that this sequence has limit $\sqrt(π)$.
 -/
 noncomputable def stirling_seq (n : ℕ) : ℝ :=
 (n.factorial : ℝ) / ((sqrt(2 * n) * ((n / (exp 1))) ^ n))
-
-/-- The function `log(1 + x) - log(1 - x)` has a power series expansion with k-th term
-`2 * x^(2 * k + 1) / (2 * k + 1)`, valid for `|x| < 1`. -/
-lemma log_sum_plus_minus (x : ℝ) (hx : |x| < 1) : has_sum (λ k : ℕ,
-  (2 : ℝ) * (1 / (2 * (k : ℝ) + 1)) * (x ^ (2 * k + 1))) (log (1 + x) - log(1 - x)) :=
-begin
- have h₁, from has_sum_pow_div_log_of_abs_lt_1 hx,
-  have h₂, from has_sum_pow_div_log_of_abs_lt_1 (eq.trans_lt (abs_neg x) hx),
-  replace h₂ := (has_sum_mul_left_iff  (λ h : ( -1 = (0:ℝ)), one_ne_zero $ neg_eq_zero.mp h)).mp h₂,
-  rw [neg_one_mul, neg_neg, sub_neg_eq_add 1 x] at h₂,
-  have h₃, from has_sum.add h₂ h₁,
-  rw [tactic.ring.add_neg_eq_sub] at h₃,
-  let term := (λ n :ℕ, ((-1) * ((-x) ^ (n + 1) / ((n : ℝ) + 1)) + (x ^ (n + 1) / ((n : ℝ) + 1)))),
-  let two_mul := (λ (n : ℕ), (2 * n)),
-  rw ←function.injective.has_sum_iff (mul_right_injective two_pos) _ at h₃,
-  { suffices h_term_eq_goal :
-    (term ∘ two_mul) = (λ k : ℕ, 2 * (1 / (2 * (k : ℝ) + 1)) * x ^ (2 * k  + 1)),
-    by {rw h_term_eq_goal at h₃, exact h₃},
-    apply funext,
-    intro n,
-    rw [function.comp_app],
-    dsimp only [two_mul, term],
-    rw odd.neg_pow (⟨n, rfl⟩ : odd (2 * n + 1)) x,
-    rw [neg_one_mul, neg_div, neg_neg, cast_mul, cast_two],
-    ring },
-  { intros m hm,
-    rw [range_two_mul, set.mem_set_of_eq] at hm,
-    rw [even.neg_pow (even_succ.mpr hm), succ_eq_add_one, neg_one_mul, neg_add_self] },
-end
-
-/--
-For any positive real number `a`, we have the identity
-`log((a + 1) / a) = log(1 + 1 / (2*a + 1)) - log(1 - 1/(2*a + 1))`.
--/
-lemma log_succ_div_eq_log_sub (a : ℝ) (h : 0 < a) :
-  log ((a + 1) / a) = log (1 + 1 / (2 * a + 1)) - log (1 - 1 / (2 * a + 1)) :=
-begin
-  have h₀: (2 : ℝ) * a + 1 ≠ 0, by { linarith, },
-  have h₁: a ≠ 0 := ne_of_gt h,
-  rw ← log_div,
-  suffices g, from congr_arg log g,
-  all_goals { field_simp, },
-  all_goals { linarith, },
-end
 
 /--
 For any positive real number `a`, the expression `log((a + 1) / a)` has the series expansion

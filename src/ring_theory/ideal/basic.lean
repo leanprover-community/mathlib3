@@ -20,7 +20,9 @@ Note that over commutative rings, left ideals and two-sided ideals are equivalen
 
 ## Implementation notes
 
-`ideal R` is implemented using `submodule R R`, where `•` is interpreted as `*`.
+ * `ideal R` is implemented using `submodule R R`, where `•` is interpreted as `*`.
+ * `right_ideal R` is implemented using `submodule Rᵐᵒᵖ R`, where `•` is interpreted as `*` but
+   reversed (i.e., if `(r : Rᵐᵒᵖ) (s : R)` then `r • s = s * (mul_opposite.unop r)`).
 
 ## TODO
 
@@ -553,9 +555,20 @@ instance : fintype $ ideal K :=
 { elems := finset.cons ⊥ {⊤} $ finset.mem_singleton.not.mpr bot_ne_top,
   complete := λ I, by simp [eq_bot_or_top], }
 
-@[simp] lemma card_ideal : fintype.card (ideal K) = 2 := rfl
+@[simp] lemma card_of_division_ring : fintype.card (ideal K) = 2 := rfl
 
-lemma _root_.right_ideal.eq_bot_or_top (I : right_ideal K) : I = ⊥ ∨ I = ⊤ :=
+lemma eq_bot_of_prime [h : I.is_prime] : I = ⊥ :=
+or_iff_not_imp_right.mp I.eq_bot_or_top h.1
+
+lemma bot_is_maximal : is_maximal (⊥ : ideal K) :=
+⟨⟨λ h, absurd ((eq_top_iff_one (⊤ : ideal K)).mp rfl) (by rw ← h; simp),
+λ I hI, or_iff_not_imp_left.mp (eq_bot_or_top I) (ne_of_gt hI)⟩⟩
+
+end ideal
+
+namespace right_ideal
+
+lemma eq_bot_or_top (I : right_ideal K) : I = ⊥ ∨ I = ⊤ :=
 begin
   rw [or_iff_not_imp_right, ← ne.def, right_ideal.ne_top_iff_one],
   intros h1,
@@ -570,16 +583,9 @@ instance : fintype $ right_ideal K :=
 { elems := finset.cons ⊥ {⊤} $ finset.mem_singleton.not.mpr bot_ne_top,
   complete := λ I, by simp [right_ideal.eq_bot_or_top], }
 
-@[simp] lemma card_right_ideal : fintype.card (ideal K) = 2 := rfl
+@[simp] lemma card_of_division_ring : fintype.card (ideal K) = 2 := rfl
 
-lemma eq_bot_of_prime [h : I.is_prime] : I = ⊥ :=
-or_iff_not_imp_right.mp I.eq_bot_or_top h.1
-
-lemma bot_is_maximal : is_maximal (⊥ : ideal K) :=
-⟨⟨λ h, absurd ((eq_top_iff_one (⊤ : ideal K)).mp rfl) (by rw ← h; simp),
-λ I hI, or_iff_not_imp_left.mp (eq_bot_or_top I) (ne_of_gt hI)⟩⟩
-
-end ideal
+end right_ideal
 
 end division_ring
 

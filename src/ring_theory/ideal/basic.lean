@@ -564,8 +564,8 @@ begin
 end
 
 @[priority 100] -- see Note [lower instance priority]
-noncomputable instance : fintype $ right_ideal K :=
-{ elems := {⊥, ⊤},
+instance : fintype $ right_ideal K :=
+{ elems := finset.cons ⊥ {⊤} $ finset.mem_singleton.not.mpr bot_ne_top,
   complete := λ I, by simp [right_ideal.eq_bot_or_top], }
 
 lemma eq_bot_of_prime [h : I.is_prime] : I = ⊥ :=

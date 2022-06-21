@@ -76,7 +76,7 @@ lemma zero_locus_vanishing_ideal_le (V : set (σ → k)) :
 λ V hV p hp, hp V hV
 
 theorem zero_locus_vanishing_ideal_galois_connection :
-  @galois_connection (ideal (mv_polynomial σ k)) (order_dual (set (σ → k))) _ _
+  @galois_connection (ideal (mv_polynomial σ k)) (set (σ → k))ᵒᵈ _ _
     zero_locus vanishing_ideal :=
 λ I V, ⟨λ h, le_trans (le_vanishing_ideal_zero_locus I) (vanishing_ideal_anti_mono h),
   λ h, le_trans (zero_locus_anti_mono h) (zero_locus_vanishing_ideal_le V)⟩
@@ -91,7 +91,7 @@ begin
   have : mv_polynomial σ k ⧸ vanishing_ideal {x} ≃+* k := ring_equiv.of_bijective
     (ideal.quotient.lift _ (eval x) (λ p h, (mem_vanishing_ideal_singleton_iff x p).mp h))
     begin
-      refine ⟨(ring_hom.injective_iff _).mpr (λ p hp, _), λ z,
+      refine ⟨(injective_iff_map_eq_zero _).mpr (λ p hp, _), λ z,
         ⟨(ideal.quotient.mk (vanishing_ideal {x} : ideal (mv_polynomial σ k))) (C z), by simp⟩⟩,
       obtain ⟨q, rfl⟩ := quotient.mk_surjective p,
       rwa [ideal.quotient.lift_mk, ← mem_vanishing_ideal_singleton_iff,

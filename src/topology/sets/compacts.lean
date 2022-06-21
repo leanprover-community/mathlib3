@@ -42,6 +42,13 @@ instance : set_like (compacts α) α :=
 
 lemma compact (s : compacts α) : is_compact (s : set α) := s.compact'
 
+instance (K : compacts α) : compact_space K := is_compact_iff_compact_space.1 K.compact
+
+instance : can_lift (set α) (compacts α) :=
+{ coe := coe,
+  cond := is_compact,
+  prf := λ K hK, ⟨⟨K, hK⟩, rfl⟩ }
+
 @[ext] protected lemma ext {s t : compacts α} (h : (s : set α) = t) : s = t := set_like.ext' h
 
 @[simp] lemma coe_mk (s : set α) (h) : (mk s h : set α) = s := rfl
@@ -142,7 +149,7 @@ instance [inhabited α] : inhabited (nonempty_compacts α) :=
 ⟨{ carrier := {default}, compact' := is_compact_singleton, nonempty' := singleton_nonempty _ }⟩
 
 instance to_compact_space {s : nonempty_compacts α} : compact_space s :=
-⟨is_compact_iff_is_compact_univ.1 s.compact⟩
+is_compact_iff_compact_space.1 s.compact
 
 instance to_nonempty {s : nonempty_compacts α} : nonempty s := s.nonempty.to_subtype
 
@@ -165,9 +172,12 @@ lemma compact (s : positive_compacts α) : is_compact (s : set α) := s.compact'
 lemma interior_nonempty (s : positive_compacts α) : (interior (s : set α)).nonempty :=
 s.interior_nonempty'
 
+protected lemma nonempty (s : positive_compacts α) : (s : set α).nonempty :=
+s.interior_nonempty.mono interior_subset
+
 /-- Reinterpret a positive compact as a nonempty compact. -/
 def to_nonempty_compacts (s : positive_compacts α) : nonempty_compacts α :=
-⟨s.to_compacts, s.interior_nonempty.mono interior_subset⟩
+⟨s.to_compacts, s.nonempty⟩
 
 @[ext] protected lemma ext {s t : positive_compacts α} (h : (s : set α) = t) : s = t :=
 set_like.ext' h
@@ -177,6 +187,7 @@ set_like.ext' h
 instance : has_sup (positive_compacts α) :=
 ⟨λ s t, ⟨s.to_compacts ⊔ t.to_compacts,
   s.interior_nonempty.mono $ interior_mono $ subset_union_left _ _⟩⟩
+
 instance [compact_space α] [nonempty α] : has_top (positive_compacts α) :=
 ⟨⟨⊤, interior_univ.symm.subst univ_nonempty⟩⟩
 
@@ -190,12 +201,15 @@ order_top.lift (coe : _ → set α) (λ _ _, id) rfl
 @[simp] lemma coe_top [compact_space α] [nonempty α] :
   (↑(⊤ : positive_compacts α) : set α) = univ := rfl
 
+lemma _root_.exists_positive_compacts_subset [locally_compact_space α] {U : set α} (ho : is_open U)
+  (hn : U.nonempty) : ∃ K : positive_compacts α, ↑K ⊆ U :=
+let ⟨x, hx⟩ := hn, ⟨K, hKc, hxK, hKU⟩ := exists_compact_subset ho hx in ⟨⟨⟨K, hKc⟩, ⟨x, hxK⟩⟩, hKU⟩
+
 instance [compact_space α] [nonempty α] : inhabited (positive_compacts α) := ⟨⊤⟩
 
 /-- In a nonempty locally compact space, there exists a compact set with nonempty interior. -/
-instance [locally_compact_space α] [nonempty α] : nonempty (positive_compacts α) :=
-let ⟨s, hs⟩ := exists_compact_subset is_open_univ $ mem_univ (classical.arbitrary α) in
-  ⟨{ carrier := s, compact' := hs.1, interior_nonempty' := ⟨_, hs.2.1⟩ }⟩
+instance nonempty' [locally_compact_space α] [nonempty α] : nonempty (positive_compacts α) :=
+nonempty_of_exists $ exists_positive_compacts_subset is_open_univ univ_nonempty
 
 end positive_compacts
 

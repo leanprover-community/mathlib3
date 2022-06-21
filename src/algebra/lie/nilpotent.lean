@@ -5,6 +5,7 @@ Authors: Oliver Nash
 -/
 import algebra.lie.solvable
 import algebra.lie.quotient
+import algebra.lie.centralizer
 import linear_algebra.eigenspace
 import ring_theory.nilpotent
 
@@ -45,7 +46,7 @@ expression of the fact that the terms of the Lie submodule's lower central serie
 submodules of the enclosing Lie module.
 
 See also `lie_module.lower_central_series_eq_lcs_comap` and
-`lie_module.lower_central_series_map_eq_lcs` below. -/
+`lie_module.lower_central_series_map_eq_lcs` below, as well as `lie_submodule.ucs`. -/
 def lcs : lie_submodule R L M → lie_submodule R L M := (λ N, ⁅(⊤ : lie_ideal R L), N⁆)^[k]
 
 @[simp] lemma lcs_zero (N : lie_submodule R L M) : N.lcs 0 = N := rfl
@@ -170,6 +171,11 @@ end
 steps). -/
 class is_nilpotent : Prop :=
 (nilpotent : ∃ k, lower_central_series R L M k = ⊥)
+
+/-- See also `lie_module.is_nilpotent_iff_exists_ucs_eq_top`. -/
+lemma is_nilpotent_iff :
+  is_nilpotent R L M ↔ ∃ k, lower_central_series R L M k = ⊥ :=
+⟨λ h, h.nilpotent, λ h, ⟨h⟩⟩
 
 @[priority 100]
 instance trivial_is_nilpotent [is_trivial L M] : is_nilpotent R L M :=
@@ -323,6 +329,77 @@ end
 
 end lie_module
 
+namespace lie_submodule
+
+variables {N₁ N₂ : lie_submodule R L M}
+
+/-- The upper (aka ascending) central series.
+
+See also `lie_submodule.lcs`. -/
+def ucs (k : ℕ) : lie_submodule R L M → lie_submodule R L M :=
+centralizer^[k]
+
+@[simp] lemma ucs_zero : N.ucs 0 = N := rfl
+
+@[simp] lemma ucs_succ (k : ℕ) :
+  N.ucs (k + 1) = (N.ucs k).centralizer :=
+function.iterate_succ_apply' centralizer k N
+
+@[mono] lemma ucs_mono (k : ℕ) (h : N₁ ≤ N₂) :
+  N₁.ucs k ≤ N₂.ucs k :=
+begin
+  induction k with k ih, { simpa, },
+  simp only [ucs_succ],
+  mono,
+end
+
+lemma ucs_eq_self_of_centralizer_eq_self (h : N₁.centralizer = N₁) (k : ℕ) :
+  N₁.ucs k = N₁ :=
+by { induction k with k ih, { simp, }, { rwa [ucs_succ, ih], }, }
+
+/-- If a Lie module `M` contains a self-centralizing Lie submodule `N`, then all terms of the upper
+central series of `M` are contained in `N`.
+
+An important instance of this situation arises from a Cartan subalgebra `H ⊆ L` with the roles of
+`L`, `M`, `N` played by `H`, `L`, `H`, respectively. -/
+lemma ucs_le_of_centralizer_eq_self (h : N₁.centralizer = N₁) (k : ℕ) :
+  (⊥ : lie_submodule R L M).ucs k ≤ N₁ :=
+by { rw ← ucs_eq_self_of_centralizer_eq_self h k, mono, simp, }
+
+lemma lcs_add_le_iff (l k : ℕ) :
+  N₁.lcs (l + k) ≤ N₂ ↔ N₁.lcs l ≤ N₂.ucs k :=
+begin
+  revert l,
+  induction k with k ih, { simp, },
+  intros l,
+  rw [(by abel : l + (k + 1) = l + 1 + k), ih, ucs_succ, lcs_succ, top_lie_le_iff_le_centralizer],
+end
+
+lemma lcs_le_iff (k : ℕ) :
+  N₁.lcs k ≤ N₂ ↔ N₁ ≤ N₂.ucs k :=
+by { convert lcs_add_le_iff 0 k, rw zero_add, }
+
+lemma gc_lcs_ucs (k : ℕ):
+  galois_connection (λ (N : lie_submodule R L M), N.lcs k) (λ (N : lie_submodule R L M), N.ucs k) :=
+λ N₁ N₂, lcs_le_iff k
+
+lemma ucs_eq_top_iff (k : ℕ) : N.ucs k = ⊤ ↔ lie_module.lower_central_series R L M k ≤ N :=
+by { rw [eq_top_iff, ← lcs_le_iff], refl, }
+
+lemma _root_.lie_module.is_nilpotent_iff_exists_ucs_eq_top :
+  lie_module.is_nilpotent R L M ↔ ∃ k, (⊥ : lie_submodule R L M).ucs k = ⊤ :=
+by { rw lie_module.is_nilpotent_iff, exact exists_congr (λ k, by simp [ucs_eq_top_iff]), }
+
+lemma ucs_comap_incl (k : ℕ) :
+  ((⊥ : lie_submodule R L M).ucs k).comap N.incl = (⊥ : lie_submodule R L N).ucs k :=
+by { induction k with k ih, { exact N.ker_incl, }, { simp [← ih], }, }
+
+lemma is_nilpotent_iff_exists_self_le_ucs :
+  lie_module.is_nilpotent R L N ↔ ∃ k, N ≤ (⊥ : lie_submodule R L M).ucs k :=
+by simp_rw [lie_module.is_nilpotent_iff_exists_ucs_eq_top, ← ucs_comap_incl, comap_incl_eq_top]
+
+end lie_submodule
+
 section morphisms
 
 open lie_module function
@@ -379,7 +456,7 @@ end
 
 @[simp] lemma lie_module.is_nilpotent_of_top_iff :
   is_nilpotent R (⊤ : lie_subalgebra R L) M ↔ is_nilpotent R L M :=
-equiv.lie_module_is_nilpotent_iff lie_subalgebra.top_equiv_self (1 : M ≃ₗ[R] M) (λ x m, rfl)
+equiv.lie_module_is_nilpotent_iff lie_subalgebra.top_equiv (1 : M ≃ₗ[R] M) (λ x m, rfl)
 
 end morphisms
 
@@ -544,7 +621,7 @@ begin
 end
 
 instance [h : lie_algebra.is_nilpotent R L] : lie_algebra.is_nilpotent R (⊤ : lie_subalgebra R L) :=
-lie_subalgebra.top_equiv_self.nilpotent_iff_equiv_nilpotent.mpr h
+lie_subalgebra.top_equiv.nilpotent_iff_equiv_nilpotent.mpr h
 
 end nilpotent_algebras
 

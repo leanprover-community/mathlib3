@@ -57,7 +57,7 @@ instance has_forget_to_Bipointed : has_forget₂ BoundedOrder Bipointed :=
 
 /-- `order_dual` as a functor. -/
 @[simps] def dual : BoundedOrder ⥤ BoundedOrder :=
-{ obj := λ X, of (order_dual X), map := λ X Y, bounded_order_hom.dual }
+{ obj := λ X, of Xᵒᵈ, map := λ X Y, bounded_order_hom.dual }
 
 /-- Constructs an equivalence between bounded orders from an order isomorphism between them. -/
 @[simps] def iso.mk {α β : BoundedOrder.{u}} (e : α ≃o β) : α ≅ β :=

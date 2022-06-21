@@ -234,7 +234,7 @@ lemma Indep.indep {α ι} {m : ι → measurable_space α} [measurable_space α]
   (h_indep : Indep m μ) {i j : ι} (hij : i ≠ j) :
   indep (m i) (m j) μ :=
 begin
-  change indep_sets ((λ x, (m x).measurable_set') i) ((λ x, (m x).measurable_set') j) μ,
+  change indep_sets ((λ x, measurable_set[m x]) i) ((λ x, measurable_set[m x]) j) μ,
   exact Indep_sets.indep_sets h_indep hij,
 end
 
@@ -269,7 +269,7 @@ section from_pi_systems_to_measurable_spaces
 private lemma indep_sets.indep_aux {α} {m2 : measurable_space α}
   {m : measurable_space α} {μ : measure α} [is_probability_measure μ] {p1 p2 : set (set α)}
   (h2 : m2 ≤ m) (hp2 : is_pi_system p2) (hpm2 : m2 = generate_from p2)
-  (hyp : indep_sets p1 p2 μ) {t1 t2 : set α} (ht1 : t1 ∈ p1) (ht2m : m2.measurable_set' t2) :
+  (hyp : indep_sets p1 p2 μ) {t1 t2 : set α} (ht1 : t1 ∈ p1) (ht2m : measurable_set[m2] t2) :
   μ (t1 ∩ t2) = μ t1 * μ t2 :=
 begin
   let μ_inter := μ.restrict t1,
@@ -279,7 +279,7 @@ begin
   haveI : is_finite_measure μ_inter := @restrict.is_finite_measure α _ t1 μ ⟨measure_lt_top μ t1⟩,
   rw [set.inter_comm, ←@measure.restrict_apply α _ μ t1 t2 (h2 t2 ht2m)],
   refine ext_on_measurable_space_of_generate_finite m p2 (λ t ht, _) h2 hpm2 hp2 h_univ ht2m,
-  have ht2 : m.measurable_set' t,
+  have ht2 : measurable_set[m] t,
   { refine h2 _ _,
     rw hpm2,
     exact measurable_set_generate_from ht, },
@@ -301,7 +301,7 @@ begin
   haveI : is_finite_measure μ_inter := @restrict.is_finite_measure α _ t2 μ ⟨measure_lt_top μ t2⟩,
   rw [mul_comm, ←@measure.restrict_apply α _ μ t2 t1 (h1 t1 ht1)],
   refine ext_on_measurable_space_of_generate_finite m p1 (λ t ht, _) h1 hpm1 hp1 h_univ ht1,
-  have ht1 : m.measurable_set' t,
+  have ht1 : measurable_set[m] t,
   { refine h1 _ _,
     rw hpm1,
     exact measurable_set_generate_from ht, },
@@ -341,5 +341,34 @@ lemma indep_sets.indep_set_of_mem (hs : s ∈ S) (ht : t ∈ T) (hs_meas : measu
 (indep_set_iff_measure_inter_eq_mul hs_meas ht_meas μ).mpr (h_indep s t hs ht)
 
 end indep_set
+
+section indep_fun
+
+variables {α β β' γ γ' : Type*} {mα : measurable_space α} {μ : measure α}
+
+lemma indep_fun.ae_eq {mβ : measurable_space β} {f g f' g' : α → β}
+  (hfg : indep_fun f g μ) (hf : f =ᵐ[μ] f') (hg : g =ᵐ[μ] g') :
+  indep_fun f' g' μ :=
+begin
+  rintro _ _ ⟨A, hA, rfl⟩ ⟨B, hB, rfl⟩,
+  have h1 : f ⁻¹' A =ᵐ[μ] f' ⁻¹' A := hf.fun_comp A,
+  have h2 : g ⁻¹' B =ᵐ[μ] g' ⁻¹' B := hg.fun_comp B,
+  rw [←measure_congr h1, ←measure_congr h2, ←measure_congr (h1.inter h2)],
+  exact hfg _ _ ⟨_, hA, rfl⟩ ⟨_, hB, rfl⟩
+end
+
+lemma indep_fun.comp {mβ : measurable_space β} {mβ' : measurable_space β'}
+  {mγ : measurable_space γ} {mγ' : measurable_space γ'}
+  {f : α → β} {g : α → β'} {φ : β → γ} {ψ : β' → γ'}
+  (hfg : indep_fun f g μ) (hφ : measurable φ) (hψ : measurable ψ) :
+  indep_fun (φ ∘ f) (ψ ∘ g) μ :=
+begin
+  rintro _ _ ⟨A, hA, rfl⟩ ⟨B, hB, rfl⟩,
+  apply hfg,
+  { exact ⟨φ ⁻¹' A, hφ hA, set.preimage_comp.symm⟩ },
+  { exact ⟨ψ ⁻¹' B, hψ hB, set.preimage_comp.symm⟩ }
+end
+
+end indep_fun
 
 end probability_theory

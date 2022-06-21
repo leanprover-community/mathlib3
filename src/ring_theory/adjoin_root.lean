@@ -227,18 +227,18 @@ lemma is_integral_root' (hg : g.monic) : is_integral R (root g) :=
 /-- `adjoin_root.mod_by_monic_hom` sends the equivalence class of `f` mod `g` to `f %ₘ g`.
 
 This is a well-defined right inverse to `adjoin_root.mk`, see `adjoin_root.mk_left_inverse`. -/
-def mod_by_monic_hom [nontrivial R] (hg : g.monic) :
+def mod_by_monic_hom (hg : g.monic) :
   adjoin_root g →ₗ[R] R[X] :=
-(submodule.liftq _ (polynomial.mod_by_monic_hom hg)
+(submodule.liftq _ (polynomial.mod_by_monic_hom g)
   (λ f (hf : f ∈ (ideal.span {g}).restrict_scalars R),
     (mem_ker_mod_by_monic hg).mpr (ideal.mem_span_singleton.mp hf))).comp $
 (submodule.quotient.restrict_scalars_equiv R (ideal.span {g} : ideal R[X]))
   .symm.to_linear_map
 
-@[simp] lemma mod_by_monic_hom_mk [nontrivial R] (hg : g.monic) (f : R[X]) :
+@[simp] lemma mod_by_monic_hom_mk (hg : g.monic) (f : R[X]) :
   mod_by_monic_hom hg (mk g f) = f %ₘ g := rfl
 
-lemma mk_left_inverse [nontrivial R] (hg : g.monic) :
+lemma mk_left_inverse (hg : g.monic) :
   function.left_inverse (mk g) (mod_by_monic_hom hg) :=
 λ f, induction_on g f $ λ f, begin
   rw [mod_by_monic_hom_mk hg, mk_eq_mk, mod_by_monic_eq_sub_mul_div _ hg,
@@ -246,12 +246,12 @@ lemma mk_left_inverse [nontrivial R] (hg : g.monic) :
   apply dvd_mul_right
 end
 
-lemma mk_surjective [nontrivial R] (hg : g.monic) : function.surjective (mk g) :=
+lemma mk_surjective (hg : g.monic) : function.surjective (mk g) :=
 (mk_left_inverse hg).surjective
 
 /-- The elements `1, root g, ..., root g ^ (d - 1)` form a basis for `adjoin_root g`,
 where `g` is a monic polynomial of degree `d`. -/
-@[simps] def power_basis_aux' [nontrivial R] (hg : g.monic) :
+@[simps] def power_basis_aux' (hg : g.monic) :
   basis (fin g.nat_degree) R (adjoin_root g) :=
 basis.of_equiv_fun
 { to_fun := λ f i, (mod_by_monic_hom hg f).coeff i,
@@ -265,6 +265,7 @@ basis.of_equiv_fun
          rw [mod_by_monic_eq_sub_mul_div _ hg, sub_sub_cancel],
          exact dvd_mul_right _ _ }),
   right_inv := λ x, funext $ λ i, begin
+    nontriviality R,
     simp only [mod_by_monic_hom_mk],
     rw [(mod_by_monic_eq_self_iff hg).mpr, finset_sum_coeff, finset.sum_eq_single i];
       try { simp only [coeff_monomial, eq_self_iff_true, if_true] },
@@ -279,8 +280,7 @@ basis.of_equiv_fun
 
 /-- The power basis `1, root g, ..., root g ^ (d - 1)` for `adjoin_root g`,
 where `g` is a monic polynomial of degree `d`. -/
-@[simps] def power_basis' [nontrivial R] (hg : g.monic) :
-  power_basis R (adjoin_root g) :=
+@[simps] def power_basis' (hg : g.monic) : power_basis R (adjoin_root g) :=
 { gen := root g,
   dim := g.nat_degree,
   basis := power_basis_aux' hg,
@@ -415,5 +415,80 @@ def equiv (f : F[X]) (hf : f ≠ 0) :
 end field
 
 end equiv
+
+section
+
+open ideal double_quot polynomial
+
+variables [comm_ring R] (I : ideal R) (f : polynomial R)
+
+/-- The natural isomorphism `R[α]/(I[α]) ≅ R[α]/((I[x] ⊔ (f)) / (f))` for `α` a root of
+`f : polynomial R` and `I : ideal R`.
+
+See `adjoin_root.quot_map_of_equiv` for the isomorphism with `(R/I)[X] / (f mod I)`. -/
+def quot_map_of_equiv_quot_map_C_map_span_mk :
+  adjoin_root f ⧸ I.map (of f) ≃+* adjoin_root f ⧸ (I.map C).map (span {f})^.quotient.mk :=
+ideal.quot_equiv_of_eq (by rw [of, adjoin_root.mk, ideal.map_map])
+
+@[simp]
+lemma quot_map_of_equiv_quot_map_C_map_span_mk_mk (x : adjoin_root f) :
+  quot_map_of_equiv_quot_map_C_map_span_mk I f (ideal.quotient.mk (I.map (of f)) x) =
+    ideal.quotient.mk _ x :=
+rfl
+
+/-- The natural isomorphism `R[α]/((I[x] ⊔ (f)) / (f)) ≅ (R[x]/I[x])/((f) ⊔ I[x] / I[x])`
+  for `α` a root of `f : polynomial R` and `I : ideal R`-/
+def quot_map_C_map_span_mk_equiv_quot_map_C_quot_map_span_mk :
+  (adjoin_root f) ⧸ ((I.map (C : R →+* R[X]))).map (span {f})^.quotient.mk ≃+*
+    (R[X] ⧸ map C I) ⧸ (span {f}).map (I.map C)^.quotient.mk :=
+quot_quot_equiv_comm (span ({f} : set (polynomial R))) (I.map (C : R →+* polynomial R))
+
+@[simp]
+lemma quot_map_C_map_span_mk_equiv_quot_map_C_quot_map_span_mk_mk (p : R[X]) :
+  quot_map_C_map_span_mk_equiv_quot_map_C_quot_map_span_mk I f (ideal.quotient.mk _ (mk f p)) =
+    quot_quot_mk (I.map C) (span {f}) p :=
+rfl
+
+/-- The natural isomorphism `(R/I)[x]/(f mod I) ≅ (R[x]/I*R[x])/(f mod I[x])` where
+  `f : polynomial R` and `I : ideal R`-/
+def polynomial.quot_quot_equiv_comm :
+  (R ⧸ I)[X] ⧸ span ({f.map (I^.quotient.mk)} : set (polynomial (R ⧸ I))) ≃+*
+    (R[X] ⧸ map C I) ⧸ span ({(ideal.quotient.mk (I.map C)) f} : set (R[X] ⧸ map C I)) :=
+quotient_equiv (span ({f.map (I^.quotient.mk)} : set (polynomial (R ⧸ I))))
+  (span {ideal.quotient.mk (I.map polynomial.C) f})
+  (polynomial_quotient_equiv_quotient_polynomial I)
+  (by rw [map_span, set.image_singleton, ring_equiv.coe_to_ring_hom,
+    polynomial_quotient_equiv_quotient_polynomial_map_mk I f])
+
+@[simp]
+lemma polynomial.quot_quot_equiv_comm_mk_mk (p : R[X]) :
+  (polynomial.quot_quot_equiv_comm I f).symm (ideal.quotient.mk _ (ideal.quotient.mk _ p)) =
+    (ideal.quotient.mk  _ (p.map I^.quotient.mk)) :=
+by simp only [polynomial.quot_quot_equiv_comm, quotient_equiv_symm_mk,
+  polynomial_quotient_equiv_quotient_polynomial_symm_mk]
+
+/-- The natural isomorphism `R[α]/I[α] ≅ (R/I)[X]/(f mod I)` for `α` a root of `f : polynomial R`
+  and `I : ideal R`-/
+def quot_map_of_equiv : (adjoin_root f) ⧸ (I.map (of f)) ≃+*
+  polynomial (R ⧸ I) ⧸ (span ({f.map (I^.quotient.mk)} : set (polynomial (R ⧸ I)))) :=
+(quot_map_of_equiv_quot_map_C_map_span_mk I f).trans
+  ((quot_map_C_map_span_mk_equiv_quot_map_C_quot_map_span_mk I f).trans
+  ((ideal.quot_equiv_of_eq
+  (show (span ({f} : set (polynomial R))).map (I.map (C : R →+* polynomial R))^.quotient.mk =
+    span ({(ideal.quotient.mk (I.map polynomial.C)) f} : set (polynomial R ⧸ map C I)),
+    from by rw [map_span, set.image_singleton])).trans
+  (polynomial.quot_quot_equiv_comm I f).symm))
+
+@[simp]
+lemma quot_adjoin_root_equiv_quot_polynomial_quot_mk_of (p : R[X]) :
+  quot_map_of_equiv I f (ideal.quotient.mk (I.map (of f)) (mk f p)) =
+    ideal.quotient.mk (span ({f.map (I^.quotient.mk)} : set (polynomial (R ⧸ I))))
+    (p.map I^.quotient.mk) :=
+by rw [quot_map_of_equiv, ring_equiv.trans_apply, ring_equiv.trans_apply, ring_equiv.trans_apply,
+    quot_map_of_equiv_quot_map_C_map_span_mk_mk,
+    quot_map_C_map_span_mk_equiv_quot_map_C_quot_map_span_mk_mk,quot_quot_mk, ring_hom.comp_apply,
+    quot_equiv_of_eq_mk, polynomial.quot_quot_equiv_comm_mk_mk]
+
+end
 
 end adjoin_root

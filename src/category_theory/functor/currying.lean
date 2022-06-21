@@ -106,6 +106,12 @@ equivalence.mk uncurry curry
 @[simps]
 def flip_iso_curry_swap_uncurry (F : C ⥤ D ⥤ E) :
   F.flip ≅ curry.obj (prod.swap _ _ ⋙ uncurry.obj F) :=
-nat_iso.of_components (λ d, nat_iso.of_components (λ c, eq_to_iso rfl) $ by tidy) $ by tidy
+nat_iso.of_components (λ d, nat_iso.of_components (λ c, iso.refl _) (by tidy)) (by tidy)
+
+/-- The uncurrying of `F.flip` is isomorphic to
+swapping the factors followed by the uncurrying of `F`. -/
+@[simps]
+def uncurry_obj_flip (F : C ⥤ D ⥤ E) : uncurry.obj F.flip ≅ prod.swap _ _ ⋙ uncurry.obj F :=
+nat_iso.of_components (λ p, iso.refl _) (by tidy)
 
 end category_theory

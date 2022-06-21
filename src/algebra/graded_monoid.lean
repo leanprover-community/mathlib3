@@ -5,7 +5,6 @@ Authors: Eric Wieser
 -/
 import algebra.group.inj_surj
 import data.list.big_operators
-import data.list.prod_monoid
 import data.list.range
 import group_theory.group_action.defs
 import group_theory.submonoid.basic
@@ -70,7 +69,7 @@ provides the `Prop` typeclasses:
 Strictly this last class is unecessary as it has no fields not present in its parents, but it is
 included for convenience. Note that there is no need for `graded_ring` or similar, as all the
 information it would contain is already supplied by `graded_monoid` when `A` is a collection
-of additively-closed set_like objects such as `submodules`. These constructions are explored in
+of additively-closed set_like objects such as `submodule`s. These constructions are explored in
 `algebra.direct_sum.internal`.
 
 This file also contains the definition of `set_like.homogeneous_submonoid A`, which is, as the name

@@ -3,10 +3,10 @@ Copyright (c) 2019 Oliver Nash. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
-import tactic.noncomm_ring
-import data.equiv.module
+import algebra.module.equiv
 import data.bracket
 import linear_algebra.basic
+import tactic.noncomm_ring
 
 /-!
 # Lie algebras
@@ -417,6 +417,9 @@ by { ext, refl }
 
 @[simp] lemma symm_apply_apply (e : L₁ ≃ₗ⁅R⁆ L₂) : ∀ x, e.symm (e x) = x :=
   e.to_linear_equiv.symm_apply_apply
+
+@[simp]
+theorem refl_symm : (refl : L₁ ≃ₗ⁅R⁆ L₁).symm = refl := rfl
 
 /-- Lie algebra equivalences are transitive. -/
 @[trans]

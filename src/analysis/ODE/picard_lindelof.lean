@@ -184,19 +184,17 @@ begin
   refine (complete_space_iff_is_complete_range
     uniform_inducing_to_continuous_map).2 (is_closed.is_complete _),
   rw [range_to_continuous_map, set_of_and],
-  refine (is_closed_eq (continuous_map.continuous_evalx _) continuous_const).inter _,
+  refine (is_closed_eq (continuous_map.continuous_eval_const _) continuous_const).inter _,
   have : is_closed {f : Icc v.t_min v.t_max → E | lipschitz_with v.C f} :=
     is_closed_set_of_lipschitz_with v.C,
   exact this.preimage continuous_map.continuous_coe
 end
 
-variables [measurable_space E] [borel_space E]
-
 lemma interval_integrable_v_comp (t₁ t₂ : ℝ) :
   interval_integrable f.v_comp volume t₁ t₂ :=
 (f.continuous_v_comp).interval_integrable _ _
 
-variables [second_countable_topology E] [complete_space E]
+variables [complete_space E]
 
 /-- The Picard-Lindelöf operator. This is a contracting map on `picard_lindelof.fun_space v` such
 that the fixed point of this map is the solution of the corresponding ODE.
@@ -224,7 +222,8 @@ begin
   have : has_deriv_within_at (λ t : ℝ, ∫ τ in v.t₀..t, f.v_comp τ) (f.v_comp t)
     (Icc v.t_min v.t_max) t,
     from integral_has_deriv_within_at_right (f.interval_integrable_v_comp _ _)
-      (f.continuous_v_comp.measurable_at_filter _ _) f.continuous_v_comp.continuous_within_at,
+      (f.continuous_v_comp.strongly_measurable_at_filter _ _)
+      f.continuous_v_comp.continuous_within_at,
   rw v_comp_apply_coe at this,
   refine this.congr_of_eventually_eq_of_mem _ t.coe_prop,
   filter_upwards [self_mem_nhds_within] with _ ht',
@@ -252,7 +251,7 @@ begin
   ... = (v.L * |t - v.t₀|) ^ (n + 1) / (n + 1)! * d : _,
   simp_rw [mul_pow, div_eq_mul_inv, mul_assoc, measure_theory.integral_mul_left,
     measure_theory.integral_mul_right, integral_pow_abs_sub_interval_oc, div_eq_mul_inv,
-    pow_succ (v.L : ℝ), nat.factorial_succ, nat.cast_mul, nat.cast_succ, mul_inv₀, mul_assoc]
+    pow_succ (v.L : ℝ), nat.factorial_succ, nat.cast_mul, nat.cast_succ, mul_inv, mul_assoc]
 end
 
 lemma dist_iterate_next_apply_le (f₁ f₂ : fun_space v) (n : ℕ) (t : Icc v.t_min v.t_max) :
@@ -276,10 +275,9 @@ end
 
 end fun_space
 
-variables [second_countable_topology E] [complete_space E]
+variables [complete_space E]
 
 section
-variables [measurable_space E] [borel_space E]
 
 lemma exists_contracting_iterate :
   ∃ (N : ℕ) K, contracting_with K ((fun_space.next : v.fun_space → v.fun_space)^[N]) :=
@@ -302,7 +300,6 @@ lemma exists_solution :
   ∃ f : ℝ → E, f v.t₀ = v.x₀ ∧ ∀ t ∈ Icc v.t_min v.t_max,
     has_deriv_within_at f (v t (f t)) (Icc v.t_min v.t_max) t :=
 begin
-  letI : measurable_space E := borel E, haveI : borel_space E := ⟨rfl⟩,
   rcases v.exists_fixed with ⟨f, hf⟩,
   refine ⟨f ∘ v.proj, _, λ t ht, _⟩,
   { simp only [(∘), proj_coe, f.map_t₀] },
@@ -315,7 +312,7 @@ end picard_lindelof
 
 /-- Picard-Lindelöf (Cauchy-Lipschitz) theorem. -/
 lemma exists_forall_deriv_within_Icc_eq_of_lipschitz_of_continuous
-  [complete_space E] [second_countable_topology E]
+  [complete_space E]
   {v : ℝ → E → E} {t_min t₀ t_max : ℝ} (ht₀ : t₀ ∈ Icc t_min t_max)
   (x₀ : E) {C R : ℝ} (hR : 0 ≤ R) {L : ℝ≥0}
   (Hlip : ∀ t ∈ Icc t_min t_max, lipschitz_on_with L (v t) (closed_ball x₀ R))

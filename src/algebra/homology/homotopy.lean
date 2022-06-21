@@ -56,6 +56,7 @@ begin
   exact preadditive.comp_add _ _ _ _ _ _,
 end
 
+@[simp]
 lemma d_next_eq_d_from_from_next [has_zero_object V] (f : Π i j, C.X i ⟶ D.X j) (i : ι) :
   d_next i f = C.d_from i ≫ from_next i f :=
 begin
@@ -121,6 +122,7 @@ begin
   exact preadditive.add_comp _ _ _ _ _ _,
 end
 
+@[simp]
 lemma prev_d_eq_to_prev_d_to [has_zero_object V] (f : Π i j, C.X i ⟶ D.X j) (j : ι) :
   prev_d j f = to_prev j f ≫ D.d_to j :=
 begin
@@ -147,7 +149,7 @@ begin
     simp, },
 end
 
-@[simp] lemma to_prev'_comp_right (f : Π i j, C.X i ⟶ D.X j) (g : D ⟶ E) (j : ι) :
+@[simp] lemma prev_d_comp_right (f : Π i j, C.X i ⟶ D.X j) (g : D ⟶ E) (j : ι) :
   prev_d j (λ i j, f i j ≫ g.f j) = prev_d j f ≫ g.f j :=
 begin
   dsimp [prev_d],
@@ -240,7 +242,7 @@ def trans {e f g : C ⟶ D} (h : homotopy e f) (k : homotopy f g) : homotopy e g
 
 /-- the sum of two homotopies is a homotopy between the sum of the respective morphisms. -/
 @[simps]
-def add {f₁ g₁ f₂ g₂: C ⟶ D}
+def add {f₁ g₁ f₂ g₂ : C ⟶ D}
   (h₁ : homotopy f₁ g₁) (h₂ : homotopy f₂ g₂) : homotopy (f₁+f₂) (g₁+g₂) :=
 { hom := h₁.hom + h₂.hom,
   zero' := λ i j hij, by
@@ -256,7 +258,7 @@ def comp_right {e f : C ⟶ D} (h : homotopy e f) (g : D ⟶ E) : homotopy (e �
 { hom := λ i j, h.hom i j ≫ g.f j,
   zero' := λ i j w, by rw [h.zero i j w, zero_comp],
   comm := λ i, by simp only [h.comm i, d_next_comp_right, preadditive.add_comp,
-    to_prev'_comp_right, comp_f], }
+    prev_d_comp_right, comp_f], }
 
 /-- homotopy is closed under composition (on the left) -/
 @[simps]
@@ -321,7 +323,7 @@ null_homotopic_map hom ≫ g = null_homotopic_map (λ i j, hom i j ≫ g.f j) :=
 begin
   ext n,
   dsimp [null_homotopic_map],
-  simp only [preadditive.add_comp, d_next_comp_right, to_prev'_comp_right],
+  simp only [preadditive.add_comp, d_next_comp_right, prev_d_comp_right],
 end
 
 /-- Compatibility of `null_homotopic_map'` with the postcomposition by a morphism
@@ -827,9 +829,7 @@ instance : inhabited (homotopy_equiv C C) := ⟨refl C⟩
 
 end homotopy_equiv
 
-variables [has_equalizers V] [has_cokernels V] [has_images V] [has_image_maps V]
-
-variable [has_zero_object V]
+variables [has_equalizers V] [has_cokernels V] [has_images V] [has_image_maps V] [has_zero_object V]
 
 /--
 Homotopic maps induce the same map on homology.

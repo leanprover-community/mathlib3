@@ -1057,9 +1057,10 @@ meta def prove_zpow (ic zc nc : instance_cache) (a : expr) (na : ℚ) (b : expr)
   match match_sign b with
   | sum.inl b := do
     (zc, nc, b', hb) ← prove_nat_uncast zc nc b,
+    (nc, b0) ← prove_pos nc b',
     (ic, c, h) ← prove_pow a na ic b',
     (ic, c', hc) ← c.to_rat >>= prove_inv ic c,
-    (ic, p) ← ic.mk_app ``zpow_neg [a, b, b', c, c', hb, h, hc],
+    (ic, p) ← ic.mk_app ``zpow_neg [a, b, b', c, c', b0, hb, h, hc],
     pure (ic, zc, nc, c', p)
   | sum.inr ff := do
     (ic, o) ← ic.mk_app ``has_one.one [],
@@ -1076,7 +1077,7 @@ meta def prove_zpow (ic zc nc : instance_cache) (a : expr) (na : ℚ) (b : expr)
 meta def eval_pow : expr → tactic (expr × expr)
 | `(@has_pow.pow %%α _ %%m %%e₁ %%e₂) := do
   n₁ ← e₁.to_rat,
-  c ← infer_type e₁ >>= mk_instance_cache,
+  c ← mk_instance_cache α,
   match m with
   | `(@monoid.has_pow %%_ %%_) := prod.snd <$> prove_pow e₁ n₁ c e₂
   | `(@div_inv_monoid.has_pow %%_ %%_) := do
@@ -1107,6 +1108,12 @@ prod.mk `(false) <$> mk_app ``eq_false_intro [p]
 
 theorem not_refl_false_intro {α} (a : α) : (a ≠ a) = false :=
 eq_false_intro $ not_not_intro rfl
+
+@[nolint ge_or_gt] -- see Note [nolint_ge]
+theorem gt_intro {α} [has_lt α] (a b : α) (c) (h : a < b = c) : b > a = c := h
+
+@[nolint ge_or_gt] -- see Note [nolint_ge]
+theorem ge_intro {α} [has_le α] (a b : α) (c) (h : a ≤ b = c) : b ≥ a = c := h
 
 /-- Evaluates the inequality operations `=`,`<`,`>`,`≤`,`≥`,`≠` on numerals. -/
 meta def eval_ineq : expr → tactic (expr × expr)
@@ -1139,8 +1146,12 @@ meta def eval_ineq : expr → tactic (expr × expr)
   c ← infer_type e₁ >>= mk_instance_cache,
   if n₁ = n₂ then mk_eq_refl e₁ >>= true_intro
   else do (_, p) ← prove_ne c e₁ e₂ n₁ n₂, false_intro p
-| `(%%e₁ > %%e₂) := mk_app ``has_lt.lt [e₂, e₁] >>= eval_ineq
-| `(%%e₁ ≥ %%e₂) := mk_app ``has_le.le [e₂, e₁] >>= eval_ineq
+| `(%%e₁ > %%e₂) := do
+  (e, p) ← mk_app ``has_lt.lt [e₂, e₁] >>= eval_ineq,
+  prod.mk e <$> mk_app ``gt_intro [e₂, e₁, e, p]
+| `(%%e₁ ≥ %%e₂) := do
+  (e, p) ← mk_app ``has_le.le [e₂, e₁] >>= eval_ineq,
+  prod.mk e <$> mk_app ``ge_intro [e₂, e₁, e, p]
 | `(%%e₁ ≠ %%e₂) := do
   n₁ ← e₁.to_rat, n₂ ← e₂.to_rat,
   c ← infer_type e₁ >>= mk_instance_cache,
@@ -1386,17 +1397,17 @@ additional reduction procedures. -/
 meta def get_step : tactic (expr → tactic (expr × expr)) := norm_num.attr.get_cache
 
 /-- Simplify an expression bottom-up using `step` to simplify the subexpressions. -/
-meta def derive' (step : expr → tactic (expr × expr))
-  : expr → tactic (expr × expr) | e :=
-do e ← instantiate_mvars e,
-   (_, e', pr) ←
-    ext_simplify_core () {} simp_lemmas.mk (λ _, failed) (λ _ _ _ _ _, failed)
-      (λ _ _ _ _ e,
-        do (new_e, pr) ← step e,
-           guard (¬ new_e =ₐ e),
-           return ((), new_e, some pr, tt))
-      `eq e,
-    return (e', pr)
+meta def derive' (step : expr → tactic (expr × expr)) : expr → tactic (expr × expr)
+| e := do
+  e ← instantiate_mvars e,
+  (_, e', pr) ← ext_simplify_core
+    () {} simp_lemmas.mk (λ _, failed) (λ _ _ _ _ _, failed)
+    (λ _ _ _ _ e, do
+      (new_e, pr) ← step e,
+      guard (¬ new_e =ₐ e),
+      pure ((), new_e, some pr, tt))
+    `eq e,
+  pure (e', pr)
 
 /-- Simplify an expression bottom-up using the default `norm_num` set to simplify the
 subexpressions. -/
@@ -1423,6 +1434,23 @@ meta def tactic.norm_num (step : expr → tactic (expr × expr))
 repeat1 $ orelse' (tactic.norm_num1 step l) $
 interactive.simp_core {} (tactic.norm_num1 step (interactive.loc.ns [none]))
   ff (simp_arg_type.except ``one_div :: hs) [] l >> skip
+
+/-- Carry out similar operations as `tactic.norm_num` but on an `expr` rather than a location.
+Given an expression `e`, returns `(e', ⊢ e = e')`.
+The `no_dflt`, `hs`, and `attr_names` are passed on to `simp`.
+Unlike `norm_num`, this tactic does not fail. -/
+meta def _root_.expr.norm_num (step : expr → tactic (expr × expr))
+  (no_dflt : bool := ff) (hs : list simp_arg_type := []) (attr_names : list name := []) :
+  expr → tactic (expr × expr) :=
+let simp_step (e : expr) := do
+      (e', p, _) ← e.simp {} (tactic.norm_num1 step (interactive.loc.ns [none]))
+                   no_dflt attr_names (simp_arg_type.except ``one_div :: hs),
+      return (e', p)
+in or_refl_conv $ λ e, do
+  (e', p') ← norm_num.derive' step e <|> simp_step e,
+  (e'', p'') ← _root_.expr.norm_num e',
+  p ← mk_eq_trans p' p'',
+  return (e'', p)
 
 namespace tactic.interactive
 open norm_num interactive interactive.types
@@ -1524,6 +1552,9 @@ namespace tactic
 
 setup_tactic_parser
 
+/- With this option, turn off the messages if the result is exactly `true` -/
+declare_trace silence_norm_num_if_true
+
 /--
 The basic usage is `#norm_num e`, where `e` is an expression,
 which will print the `norm_num` form of `e`.
@@ -1558,7 +1589,7 @@ do
   (ts, mappings) ← synthesize_tactic_state_with_variables_as_hyps (e :: hs_es),
 
   /- Enter the `tactic` monad, *critically* using the synthesized tactic state `ts`. -/
-  simp_result ← lean.parser.of_tactic $ λ _, do
+  result ← lean.parser.of_tactic $ λ _, do
   { /- Resolve the local variables added by the parser to `e` (when it was parsed) against the local
        hypotheses added to the `ts : tactic_state` which we are using. -/
     e ← to_expr e,
@@ -1580,15 +1611,13 @@ do
        -/
     let hs := hs.map $ λ sat, sat.replace_subexprs mappings,
 
-    /- Try simplifying the expression, like in `#simp`  -/
-    e ← prod.fst <$> e.simp {fail_if_unchanged := ff} failed no_dflt attr_names hs,
-    /- Try applying `norm_num` with the default `norm_num` set, allowing it to fail to simplify. -/
-    e ← prod.fst <$> norm_num.derive e <|> return e,
-    return e } ts,
+    /- Try simplifying the expression. -/
+    step ← norm_num.get_step,
+    prod.fst <$> e.norm_num step no_dflt hs attr_names } ts,
 
   /- Trace the result. -/
-  when (¬ is_trace_enabled_for `silence_simp_if_true ∨ simp_result ≠ expr.const `true [])
-    (trace simp_result)
+  when (¬ is_trace_enabled_for `silence_norm_num_if_true ∨ result ≠ expr.const `true [])
+    (trace result)
 
 add_tactic_doc
 { name                     := "#norm_num",

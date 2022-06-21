@@ -165,7 +165,8 @@ begin
   change
     has_sum ((λ (b : ℕ), 1 / (2 * (b : ℝ) + 1) * ((1 / (2 * (m.succ : ℝ) + 1)) ^ 2) ^ b) ∘ succ) _,
   rw has_sum_nat_add_iff 1,
-  convert (power_series_log_succ_div m.succ (cast_pos.mpr (succ_pos m))).mul_left ((m.succ : ℝ) + 1 / (2 : ℝ)),
+  convert (power_series_log_succ_div m.succ (cast_pos.mpr (succ_pos m))).mul_left
+    ((m.succ : ℝ) + 1 / (2 : ℝ)),
   { ext k,
     rw [← pow_mul, pow_add],
     have : 2 * (k : ℝ) + 1     ≠ 0, by {norm_cast, exact succ_ne_zero (2*k)},

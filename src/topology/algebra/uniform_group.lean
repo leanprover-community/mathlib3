@@ -145,6 +145,54 @@ namespace subgroup
 
 end subgroup
 
+section lattice_ops
+
+variables {ι : Sort*} [group α] [group β] {us : set (uniform_space α)}
+  (h : ∀ u ∈ us, @uniform_group α u _) {us' : ι → uniform_space α}
+  (h' : ∀ i, @uniform_group α (us' i) _) {u₁ u₂ : uniform_space α}
+  (h₁ : @uniform_group α u₁ _) (h₂ : @topological_group G t₂ _)
+  {t : topological_space H} [topological_group H] {F : Type*}
+  [monoid_hom_class F G H] (f : F)
+
+@[to_additive] lemma topological_group_Inf :
+  @topological_group G (Inf ts) _ :=
+{ continuous_inv := @has_continuous_inv.continuous_inv G (Inf ts) _
+    (@has_continuous_inv_Inf _ _ _
+      (λ t ht, @topological_group.to_has_continuous_inv G t _ (h t ht))),
+  continuous_mul := @has_continuous_mul.continuous_mul G (Inf ts) _
+    (@has_continuous_mul_Inf _ _ _
+      (λ t ht, @topological_group.to_has_continuous_mul G t _ (h t ht))) }
+
+include h'
+
+@[to_additive] lemma topological_group_infi :
+  @topological_group G (⨅ i, ts' i) _ :=
+by {rw ← Inf_range, exact topological_group_Inf (set.forall_range_iff.mpr h')}
+
+omit h'
+
+include h₁ h₂
+
+@[to_additive] lemma topological_group_inf :
+  @topological_group G (t₁ ⊓ t₂) _ :=
+by {rw inf_eq_infi, refine topological_group_infi (λ b, _), cases b; assumption}
+
+omit h₁ h₂
+
+@[to_additive] lemma topological_group_induced :
+  @topological_group G (t.induced f) _ :=
+{ continuous_inv :=
+    begin
+      letI : topological_space G := t.induced f,
+      refine continuous_induced_rng _,
+      simp_rw [function.comp, map_inv],
+      exact continuous_inv.comp (continuous_induced_dom : continuous f)
+    end,
+  continuous_mul := @has_continuous_mul.continuous_mul G (t.induced f) _
+    (@has_continuous_mul_induced G H _ _ t _ _ _ f) }
+
+end lattice_ops
+
 section
 variables (α)
 

@@ -222,13 +222,13 @@ lemma symm_diff_right_injective (a : α) : injective ((∆) a) := (equiv.symm_di
 
 @[simp] lemma symm_diff_eq_left : a ∆ b = a ↔ b = ⊥ :=
 calc a ∆ b = a ↔ a ∆ b = a ∆ ⊥ : by rw symm_diff_bot
-           ... ↔     b = ⊥     : by rw symm_diff_left_inj
+           ... ↔     b = ⊥     : by rw symm_diff_right_inj
 
 @[simp] lemma symm_diff_eq_right : a ∆ b = b ↔ a = ⊥ := by rw [symm_diff_comm, symm_diff_eq_left]
 
 @[simp] lemma symm_diff_eq_bot : a ∆ b = ⊥ ↔ a = b :=
 calc a ∆ b = ⊥ ↔ a ∆ b = a ∆ a : by rw symm_diff_self
-           ... ↔     a = b     : by rw [symm_diff_left_inj, eq_comm]
+           ... ↔     a = b     : by rw [symm_diff_right_inj, eq_comm]
 
 @[simp] lemma symm_diff_symm_diff_inf : a ∆ b ∆ (a ⊓ b) = a ⊔ b :=
 by rw [symm_diff_eq_iff_sdiff_eq (symm_diff_le_sup _ _), sup_sdiff_symm_diff]

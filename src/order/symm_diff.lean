@@ -21,6 +21,7 @@ The symmetric difference is the addition operator in the Boolean ring structure 
 ## Main declarations
 
 * `symm_diff`: the symmetric difference operator, defined as `(A \ B) ⊔ (B \ A)`
+* `equiv.symm_diff`: Symmetric difference by `a` as an `equiv`.
 
 In generalized Boolean algebras, the symmetric difference operator is:
 
@@ -213,11 +214,11 @@ ext $ λ b, symm_diff_comm _ _
 
 end equiv
 
-lemma symm_diff_left_injective (a : α): injective ((∆) a) := (equiv.symm_diff a).injective
-lemma symm_diff_right_injective (a : α): injective (∆ a) := (equiv.symm_diff a).symm.injective
+lemma symm_diff_left_injective (a : α) : injective (∆ a) := (equiv.symm_diff a).symm.injective
+lemma symm_diff_right_injective (a : α) : injective ((∆) a) := (equiv.symm_diff a).injective
 
-@[simp] lemma symm_diff_left_inj : a ∆ b = a ∆ c ↔ b = c := (symm_diff_left_injective _).eq_iff
-@[simp] lemma symm_diff_right_inj : a ∆ b = c ∆ b ↔ a = c := (symm_diff_right_injective _).eq_iff
+@[simp] lemma symm_diff_left_inj : a ∆ b = c ∆ b ↔ a = c := (symm_diff_left_injective _).eq_iff
+@[simp] lemma symm_diff_right_inj : a ∆ b = a ∆ c ↔ b = c := (symm_diff_right_injective _).eq_iff
 
 @[simp] lemma symm_diff_eq_left : a ∆ b = a ↔ b = ⊥ :=
 calc a ∆ b = a ↔ a ∆ b = a ∆ ⊥ : by rw symm_diff_bot

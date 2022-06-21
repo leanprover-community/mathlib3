@@ -852,12 +852,12 @@ lemma infi_and : ∀ {p q : Prop} {s : p ∧ q → α}, infi s = ⨅ h₁ h₂, 
 /-- The symmetric case of `supr_and`, useful for rewriting into a supremum over a conjunction -/
 lemma supr_and' {p q : Prop} {s : p → q → α} :
   (⨆ (h₁ : p) (h₂ : q), s h₁ h₂) = ⨆ (h : p ∧ q), s h.1 h.2 :=
-by { symmetry, exact supr_and }
+eq.symm supr_and
 
 /-- The symmetric case of `infi_and`, useful for rewriting into a infimum over a conjunction -/
 lemma infi_and' {p q : Prop} {s : p → q → α} :
   (⨅ (h₁ : p) (h₂ : q), s h₁ h₂) = ⨅ (h : p ∧ q), s h.1 h.2 :=
-by { symmetry, exact infi_and }
+eq.symm infi_and 
 
 theorem supr_or {p q : Prop} {s : p ∨ q → α} :
   supr s = (⨆ i, s (or.inl i)) ⊔ (⨆ j, s (or.inr j)) :=

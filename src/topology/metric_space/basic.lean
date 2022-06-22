@@ -2000,7 +2000,7 @@ open topological_space
 /-- A pseudometric space is second countable if, for every `ε > 0`, there is a countable set which
 is `ε`-dense. -/
 lemma second_countable_of_almost_dense_set
-  (H : ∀ε > (0 : ℝ), ∃ s : set α, countable s ∧ (∀x, ∃y ∈ s, dist x y ≤ ε)) :
+  (H : ∀ε > (0 : ℝ), ∃ s : set α, s.countable ∧ (∀x, ∃y ∈ s, dist x y ≤ ε)) :
   second_countable_topology α :=
 begin
   refine emetric.second_countable_of_almost_dense_set (λ ε ε0, _),

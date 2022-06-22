@@ -1204,15 +1204,18 @@ begin
   exact mul_self_eq_one_iff
 end
 
-/-
-Some lemmas for `field_simp` to deal with (inverses of) units and partial division `/ₚ`.
+/-!
+### `field_simp`
+
+Some lemmas for `tactic.field_simp` to deal with partial division `/ₚ`.
 -/
 section field_simp
 
 @[field_simps] lemma neg_divp' [ring α] (b : α) (a : αˣ) : -(b /ₚ a) = (-b) /ₚ a :=
 by simp [divp]
 
-@[field_simps] lemma divp_add_divp_same [ring α] (a b : α) (c : αˣ) : a /ₚ c + b /ₚ c = (a + b) /ₚ c :=
+@[field_simps] lemma divp_add_divp_same [ring α] (a b : α) (c : αˣ) :
+  a /ₚ c + b /ₚ c = (a + b) /ₚ c :=
 by simp [divp, add_mul]
 
 @[field_simps] lemma add_divp' [ring α] (a b : α) (c : αˣ)  : b + a /ₚ c = (b * c + a) /ₚ c :=

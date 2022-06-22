@@ -111,15 +111,24 @@ rw ← nat.succ_pred_eq_of_pos h,
 exact two_dvd_central_binom_succ n.pred,
 end
 
+/-- A crucial lemma to ensure that Catalan numbers can be defined via their explicit formula
+  `catalan n = n.central_binom / (n + 1)`. -/
 lemma succ_dvd_central_binom (n : ℕ) : (n + 1) ∣ n.central_binom :=
 begin
 cases eq_zero_or_eq_succ_pred n,
 { rw h,
   exact ⟨1, by simp⟩ },
-{ rw h,
-  cases even_or_odd n,
-  sorry,
-  sorry, }
+{ nth_rewrite 1 h,
+  { have h_s : (n+1).coprime (2*n+1),
+    { rw [two_mul,add_assoc, coprime_add_self_right, coprime_self_add_left],
+      exact coprime_one_left n },
+    apply coprime.dvd_of_dvd_mul_left h_s,
+    apply dvd_of_mul_dvd_mul_left zero_lt_two,
+    rw [← h, ← mul_assoc, ← succ_mul_central_binom_succ, mul_comm],
+    apply mul_dvd_mul,
+    { refl },
+    { rw ← even_iff_two_dvd,
+      exact two_dvd_central_binom_succ n } } }
 end
 
 end nat

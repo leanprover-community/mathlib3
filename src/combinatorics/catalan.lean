@@ -94,30 +94,31 @@ rw [← neg_add, sub_neg_eq_add, add_comm (1 : ℚ) _, sub_add_cancel, ← div_d
   { exact_mod_cast n.succ_ne_zero } },
 end
 
-lemma s (a b c : ℕ) (h : (a / b : ℚ) = c) : a / b = c :=
-begin
-have h' : b ∣ a,
-{ use c,
-  rw ← h, sorry },
-exact_mod_cast h,
-end
-
 theorem catalan_eq_central_binom_div (n : ℕ) :
-  (catalan n : ℚ) = nat.central_binom n / (n + 1) :=
+  catalan n = nat.central_binom n / (n + 1) :=
 begin
+  suffices : (catalan n : ℚ) = nat.central_binom n / (n + 1),
+  { have h : (n + 1) ∣ nat.central_binom n,
+    { sorry },
+    exact_mod_cast this },
   induction n using nat.case_strong_induction_on with d hd,
   { simp, },
   { simp_rw [catalan_succ, nat.cast_sum, nat.cast_mul],
-    transitivity (∑ i : fin d.succ, (nat.central_binom i / (i + 1)) * (nat.central_binom (d - i) / (d - i + 1)) : ℚ),
+    transitivity (∑ i : fin d.succ, (nat.central_binom i / (i + 1)) * (nat.central_binom (d - i) /
+                  (d - i + 1)) : ℚ),
     refine sum_congr rfl (λ i _, _),
-    push_cast,
-    rw [←hd _ i.is_le],
-    rw [←hd _ tsub_le_self],
+    { congr,
+      exact_mod_cast hd i i.is_le,
+      rw_mod_cast hd (d - i),
+      simp,
+      sorry,
+      exact tsub_le_self, },
     { transitivity ∑ i : fin d.succ, (gosper_catalan (d + 1) (i + 1) - gosper_catalan (d + 1) i),
+      { refine sum_congr rfl (λ i _, _),
+        rw gosper_trick i.is_le,
+        sorry,
+        },
       { rw [← sum_range (λi, gosper_catalan (d + 1) (i + 1) - gosper_catalan (d + 1) i),
             sum_range_sub, nat.succ_eq_add_one],
-        exact (gosper_catalan_sub_eq_catalan' d).symm, },
-      refine sum_congr rfl (λ i _, _),
-      exact gosper_trick d i (i.is_le), },
-     },
+        exact_mod_cast (gosper_catalan_sub_eq_catalan' d) } } }
 end

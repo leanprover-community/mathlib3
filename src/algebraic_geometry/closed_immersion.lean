@@ -8,7 +8,6 @@ import algebraic_geometry.presheafed_space
 noncomputable theory
 
 namespace algebraic_geometry
-
 open topological_space category_theory opposite
 open category_theory.limits
 
@@ -21,7 +20,7 @@ Closed immersion between presheafed spaces.
 class PresheafedSpace.is_closed_immersion {X Y : PresheafedSpace C} (f : X ⟶ Y) :=
 (base_closed : closed_embedding f.base)
 (continuous_inverse : continuous $ set.range_splitting f.base)
-(c_epi : ∀ U : opens X, epi f.c)
+(c_epi : epi f.c)
 
 def PresheafedSpace.is_closed_immersion.homeomorph {X Y : PresheafedSpace C} (f : X ⟶ Y)
   [hf: PresheafedSpace.is_closed_immersion f] :

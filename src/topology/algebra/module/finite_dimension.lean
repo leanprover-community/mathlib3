@@ -303,6 +303,10 @@ def to_continuous_linear_map : (E →ₗ[𝕜] F') ≃ₗ[𝕜] E →L[𝕜] F' 
 @[simp] lemma coe_to_continuous_linear_map_symm :
   ⇑(to_continuous_linear_map : (E →ₗ[𝕜] F') ≃ₗ[𝕜] E →L[𝕜] F').symm = coe := rfl
 
+@[simp] lemma det_to_continuous_linear_map (f : E →ₗ[𝕜] E) :
+  f.to_continuous_linear_map.det = f.det :=
+rfl
+
 end linear_map
 
 namespace linear_equiv

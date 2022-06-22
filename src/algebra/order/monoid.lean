@@ -170,8 +170,7 @@ zero_lt_two.ne'
 
 lemma one_lt_two : (1 : α) < 2 :=
 calc 1 = 1 + 0 : (add_zero 1).symm
-   ... < 1 + 1 : add_lt_add_left zero_lt_one _
-   ... = 2     : one_add_one_eq_two
+   ... < 1 + 1 : add_lt_add_left zero_lt_one 1
 
 lemma zero_lt_three : (0 : α) < 3 := add_pos zero_lt_two zero_lt_one
 
@@ -201,8 +200,7 @@ zero_lt_two'.ne'
 
 lemma one_lt_two' : (1 : α) < 2 :=
 calc 1 = 0 + 1 : (zero_add 1).symm
-   ... < 1 + 1 : add_lt_add_right zero_lt_one _
-   ... = 2     : one_add_one_eq_two
+   ... < 1 + 1 : add_lt_add_right zero_lt_one 1
 
 lemma zero_lt_three' : (0 : α) < 3 := right.add_pos zero_lt_two' zero_lt_one
 

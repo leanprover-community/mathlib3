@@ -397,7 +397,7 @@ variables {n : ℕ} {x : α}
 lemma geom_sum_pos [ordered_semiring α] (hx : 0 < x) (hn : n ≠ 0) : 0 < ∑ i in range n, x ^ i :=
 begin
   refine nat.le_induction _ _ _ (show 1 ≤ n, from hn.bot_lt),
-  { simp [@@zero_lt_one _ (nontrivial_of_lt _ _ hx)] },
+  { simp [@@zero_lt_one _ (nontrivial_of_lt _ _ hx) _ _] },
   intros k hk,
   rw [geom_sum_succ'],
   apply add_pos (pow_pos hx _)

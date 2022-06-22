@@ -5,16 +5,9 @@ open_locale polynomial
 universe u
 --set_option pp.all true
 --instance {F : Type*} [comm_semiring F] : has_add (polynomial F) := by refine polynomial.has_add
-example {F : Type u} [comm_semiring F] : nat_degree (1 + X : F[X]) = 1 :=
-by {
-  compute_degree,
---  move_add _,
---  rw add_comm,
---  refine (nat_degree_add_left_succ 0 _ _ _ _).trans _,
-  norm_num,
-}
+example {F : Type u} [comm_semiring F] [nontrivial F] : nat_degree (1 + X : F[X]) = 1 :=
+by compute_degree
 
-#exit
 /-
 example {F} [ring F] [nontrivial F] (a b c : F[X]) :
   nat_degree (a + a : F[X]) = 0 :=
@@ -22,55 +15,31 @@ begin
   compute_degree,
 end
 -/
-example {F : Type*} [semiring F] : nat_degree (X + X + 1 : F[X]) = 0 + 1 :=
-by {
-  refine (nat_degree_add_left_succ 0 (X+ X : F[X]) 1 _ _).trans _,
-  norm_num,
-  sorry,
-  sorry,
-  sorry
-}
-
-example {F : Type*} [semiring F] : nat_degree (X + 1 + X : F[X]) = 0 + 1 :=
-by {
-  move_add [← X, ← X],
-  norm_num,
-  sorry
-}
-
-example {F : Type*} [semiring F] : nat_degree (X ^ 4 + 1 + X ^ 4 : F[X]) = 4 :=
-by {
+example {F : Type*} [semiring F] (h2 : (2 : F) ≠ 0) : nat_degree (X + 1 + X + 1 : F[X]) = 0 + 1 :=
+begin
   compute_degree,
-  norm_num,
-  move_add [← X, ← X],
-  refine (nat_degree_add_left_succ 0 _ _ _ _).trans _,
-  norm_num,
---  compute_degree,
---  norm_num,
-  rotate,
-  {compute_degree_le},
-  rw add_comm,
---  norm_num,
   rw ← two_mul,
   compute_degree,
-  --rotate,norm_num,
-  do `(polynomial.nat_degree %%l = %%r) ← target,
-    compute_degree.single_term_resolve l,
-    trace l
---  compute_degree,
---  norm_num
-}
+  norm_num,
+  assumption,
+end
 
-example {F : Type*} [ring F] [nontrivial F] : degree (X + (- 3) + X : F[X]) = 1 :=
-by {
+example {F : Type*} [ring F] (h2 : (2 : F) ≠ 0) : degree (X ^ 4 + (- 3) + X ^ 4 : F[X]) = 4 :=
+begin
+  compute_degree,
+--  norm_num, --times out, but does not using `{F : Type u}` or `[semiring F]`.
+  rw ← two_mul,
   compute_degree,
   norm_num,
-}
+  assumption,
+  norm_num,
+end
+
 #exit
 example : (X ^ 4 + 1 + X ^ 4 : polynomial ℕ).nat_degree = 1 + 1 + 1 + 1 :=
 by {
   compute_degree,
-  norm_num,
+  norm_num,  -- no timeout using `ℕ[X]`
   move_add (1 : ℕ[X]),
   }
 --#exit

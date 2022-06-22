@@ -305,34 +305,41 @@ variables {M : Type*} [group M] {α : Type*} [mul_action M α]
 variables {N β : Type*} [group N] [mul_action N β]
 
 lemma is_pretransitive_of_surjective_map
-  {φ : M → N} {f : α →ₑ[φ] β} (hf : function.surjective f.to_fun)
+  {φ : M → N} {f : α →ₑ[φ] β} (hf : function.surjective f)
   (h : is_pretransitive M α) : is_pretransitive N β :=
 begin
   apply mul_action.is_pretransitive.mk,
   intros x y, let h_eq := h.exists_smul_eq,
   obtain ⟨x', rfl⟩ := hf x,
   obtain ⟨y', rfl⟩ := hf y,
-  obtain ⟨g, hg⟩ := h_eq x' y',
-  use φ g,
-  rw [← f.map_smul', hg]
+  obtain ⟨g, rfl⟩ := h_eq x' y',
+  use φ g, simp only [equivariant_map.map_smul]
 end
+
+/-
+lemma _root_.mul_action.is_pretransitive.exists_smul_eq' (hN : is_pretransitive M α) :
+  ∀ (x y : α), ∃ (g : M), g • x = y :=
+begin
+sorry
+end -/
 
 lemma is_pretransitive_of_bijective_map_iff
   {φ : M → N} {f : α →ₑ[φ] β}
   (hφ : function.surjective φ)
-  (hf : function.bijective f.to_fun) :
+  (hf : function.bijective f) :
   is_pretransitive M α ↔ is_pretransitive N β :=
 begin
   split,
   apply is_pretransitive_of_surjective_map hf.surjective,
-  { intro hN, let hN_heq := hN.exists_smul_eq,
+  { introI hN,
+  -- let hN_heq := hN.exists_smul_eq,
     apply is_pretransitive.mk,
     intros x y,
-    obtain ⟨k, hk⟩ := hN_heq (f x) (f y),
+    obtain ⟨k, hk⟩ := exists_smul_eq N (f x) (f y),
     obtain ⟨g, rfl⟩ := hφ k,
     use g,
     apply hf.injective,
-    simp only [equivariant_map.to_fun_eq_coe, f.map_smul', hk] }
+    simp only [hk, equivariant_map.map_smul] }
 end
 
 end pretransitivity

@@ -122,9 +122,8 @@ section fixing_subgroup
 
 variables (M : Type*) [group M] {α : Type*} [mul_action M α]
 
-
 lemma fixing_subgroup_of_insert (a : α) (s : set (sub_mul_action.of_stabilizer M a)) :
-  fixing_subgroup M (set.insert a (coe '' s)) =
+  fixing_subgroup M (insert a (coe '' s : set α)) =
   (subgroup.map (subgroup.subtype _) (fixing_subgroup ↥(stabilizer M a) s) : subgroup M) :=
 begin
   ext m,
@@ -139,7 +138,7 @@ begin
       intros y hy,
       rw mem_fixing_subgroup_iff at hm,
 
-      let t : set α := set.insert a (coe '' s),
+      let t : set α := insert a (coe '' s),
       suffices : ↑y ∈ t,
       { rw ← set_like.coe_eq_coe,
         conv_rhs { rw ← hm ↑y this},
@@ -241,6 +240,7 @@ lemma sub_mul_action.of_fixing_subgroup_of_stabilizer.map_bijective
 begin
   split,
   { rintros ⟨x, hx⟩ ⟨y, hy⟩ h,
+  -- PROVE A LEMMA THAT DOES THIS AUTOMATICALLY
     simp only [subtype.mk_eq_mk],
     suffices hx : x = ↑((sub_mul_action.of_fixing_subgroup_of_stabilizer.map M a s) ⟨x, hx⟩),
     suffices hy : y = ↑((sub_mul_action.of_fixing_subgroup_of_stabilizer.map M a s) ⟨y, hy⟩),

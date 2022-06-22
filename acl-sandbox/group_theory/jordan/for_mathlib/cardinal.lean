@@ -183,6 +183,15 @@ begin
   rw cardinal.mk_fintype,
   simp only [cardinal.to_enat_cast]
 end
+/-
+lemma is_finite_of_card (α : Type) {n : ℕ} (hα : enat.card α = n) :
+  fintype α :=
+begin
+  cases (fintype_or_infinite α) with h h; resetI,
+  exact h,
+  rw enat.card_eq_top_of_infinite at hα,
+  exfalso, apply enat.coe_ne_top n, rw hα,
+end -/
 
 end enat
 

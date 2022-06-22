@@ -650,8 +650,8 @@ begin
     intros x y,
     let h_eq := h.exists_smul_eq,
 
-    obtain ⟨z⟩ := gimme_some_equiv' hs.symm,
-
+    obtain ⟨z'⟩ := (equiv_fin_of_enat_card_eq hs),
+    let z := z'.symm,
     have hd' : n = (n - d) + d := (nat.sub_add_cancel hdn).symm,
 
     obtain ⟨x' : fin n ↪ α, hx'1, hx'2⟩ := may_extend_with' z.to_embedding hd' x,
@@ -734,8 +734,8 @@ begin
   -- change (fixing_subgroup M ↑(insert a t)).index * _ = _,
   rw ← hat',
 
-  have : insert a (coe '' t') = set.insert a (coe '' t'),
-  refl, rw this,
+  -- have : insert a (coe '' t') = set.insert a (coe '' t'),
+  -- refl, rw this,
   rw fixing_subgroup_of_insert,
 
   --   H.relindex K = (H.subgroup_of K).index = (K : H ⊓ K)
@@ -813,20 +813,22 @@ begin
   cases le_or_gt (enat.card α) 1 with hα hα,
   -- Trivial case where subsingleton α
   { rw enat.card_le_one_iff_subsingleton at hα,
-    apply is_preprimitive.mk,
+    haveI : is_pretransitive M α,
     { apply is_pretransitive.mk,
       intros x y, use 1, exact subsingleton_iff.mp hα _ _ },
+    apply is_preprimitive.mk,
     { intros B hB,
       apply or.intro_left,
       exact @set.subsingleton_of_subsingleton _ hα B } },
   -- Important case : 2 ≤ #α
   let hα' := id hα, rw gt_iff_lt at hα',
   rw [← cast_one, ← enat.succ_le_iff] at hα',
-  apply is_preprimitive.mk,
-  rw is_pretransitive_iff_is_one_pretransitive,
-  apply is_multiply_pretransitive_of_higher M α h2 _ hα',
+  haveI : is_pretransitive M α,
+  { rw is_pretransitive_iff_is_one_pretransitive,
+    apply is_multiply_pretransitive_of_higher M α h2 _ hα',
+    norm_num },
 
-  norm_num,
+  apply is_preprimitive.mk,
   intros B hB,
   cases le_or_gt (enat.card B) 1 with h h,
   { -- Case : subsingleton
@@ -883,9 +885,21 @@ end
 
 
 section finite
-variable  [fintype α]
 
 variable (α)
+
+/-- The permutation group on α is pretransitive -/
+lemma equiv.perm.is_pretransitive :
+  mul_action.is_pretransitive (equiv.perm α) α :=
+begin
+  apply is_pretransitive.mk,
+  intros x y,
+  use equiv.swap x y,
+  simp only [equiv.perm.smul_def],
+  rw equiv.swap_apply_left x y
+end
+
+variable  [fintype α]
 
 /-- The permutation group on α is fintype.card α-pretransitive -/
 theorem equiv_perm_is_fully_pretransitive :
@@ -921,7 +935,7 @@ end
 
 
 /-- A subgroup of equiv.perm α is ⊤ iff it is (fintype.card α - 1)-pretransitive -/
-theorem is_fully_minus_one_pretransitive_iff {G : subgroup (equiv.perm α)}
+theorem eq_top_of_is_full_minus_one_pretransitive {G : subgroup (equiv.perm α)}
   (hmt : is_multiply_pretransitive ↥G α (fintype.card α - 1)) :
   G = ⊤ :=
 begin
@@ -1199,10 +1213,10 @@ begin
 end
 
  -/
-
-/-- A subgroup the equiv.perm α contains the alternating group iff
-  it is (fintype.card α - 2)-pretransitive -/
-theorem is_full_minus_two_pretransitive_iff
+variable {α}
+/-- A subgroup of equiv.perm α which is (fintype.card α - 2)-pretransitive
+  contains the alternating group  -/
+theorem alternating_group_le_of_full_minus_two_pretransitive
   {G : subgroup (equiv.perm α)}
   (hmt : is_multiply_pretransitive ↥G α (fintype.card α - 2)) :
   alternating_group α ≤ G :=

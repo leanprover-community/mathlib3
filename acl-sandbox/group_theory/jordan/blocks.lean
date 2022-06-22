@@ -433,7 +433,7 @@ def is_block_system (B : set (set X)) :=
 variable {G}
 -- The following proof is absurdly complicated !
 /-- Translates of a block form a `block_system` -/
-lemma is_block_system.of_block (hGX : mul_action.is_pretransitive G X)
+lemma is_block_system.of_block [hGX : mul_action.is_pretransitive G X]
   {B : set X} (hB : is_block G B) (hBe : B.nonempty) :
   is_block_system G (set.range (λ (g : G), g • B)) :=
 begin
@@ -445,8 +445,7 @@ begin
     exact hx },
   { intro a,
     obtain ⟨b : X, hb : b ∈ B⟩ := hBe,
-    let hGX_exists := hGX.exists_smul_eq,
-    obtain ⟨g, hab⟩ := hGX_exists b a,
+    obtain ⟨g, hab⟩ := exists_smul_eq G b a,
     have hg : a ∈ g • B,
     { change a ∈ (λ b, g • b) '' B,
       rw set.mem_image, use b, exact ⟨hb, hab⟩ },
@@ -535,10 +534,9 @@ section stabilizer
 
 /-- The orbit of a under a subgroup containing the stabilizer of a
  is a block -/
-lemma is_block_of_suborbit (htGX : is_pretransitive G X) {H : subgroup G} {a : X}
-  (hH : stabilizer G a ≤ H) : is_block G (mul_action.orbit H a) :=
+lemma is_block_of_suborbit {H : subgroup G} {a : X} (hH : stabilizer G a ≤ H) :
+  is_block G (mul_action.orbit H a) :=
 begin
-  let hGX_exists := htGX.exists_smul_eq,
   rw is_block.mk_subset, intros g b,
   rintro ⟨h,rfl⟩,
   simp,
@@ -576,11 +574,10 @@ begin
 end
 
 /-- A block is the orbit of a under its stabilizer -/
-lemma block_of_stabilizer_of_block  (htGX : is_pretransitive G X)
+lemma block_of_stabilizer_of_block  [htGX : is_pretransitive G X]
   {B : set X} (hB : is_block G B) {a : X} (ha : a ∈ B) :
   mul_action.orbit (stabilizer G B) a = B :=
 begin
-  let htGX_exists := htGX.exists_smul_eq,
   ext, split,
   { -- rw mul_action.mem_orbit_iff, intro h,
     rintro ⟨k, rfl⟩,
@@ -589,7 +586,7 @@ begin
     let zk : k • a ∈ k • B := set.smul_mem_smul_set_iff.mpr ha,
     rw z at zk, exact zk },
   intro hx,
-  obtain ⟨k, rfl⟩ := htGX_exists a x,
+  obtain ⟨k, rfl⟩ := exists_smul_eq G a x,
   use k,
   { rw mem_stabilizer_iff,
     exact is_block.def_mem hB a k ha hx },
@@ -597,11 +594,10 @@ begin
 end
 
 /-- A subgroup containing the stabilizer of a is the stabilizer of the orbit of a under that subgroup -/
-lemma stabilizer_of_block_of_stabilizer (htGX : is_pretransitive G X)
+lemma stabilizer_of_block_of_stabilizer
   {a : X} {H : subgroup G} (hH : stabilizer G a ≤ H) :
   stabilizer G (orbit H a) = H :=
 begin
-  let htGX_exists := htGX.exists_smul_eq,
   ext g, split,
   { intro hg, rw mem_stabilizer_iff at hg,
     suffices : g • a ∈ orbit H a,
@@ -622,23 +618,23 @@ end
 
 /-- Order equivalence between blocks in X containing a point a
  and subgroups of G containing the stabilizer of a (Wielandt, th. 7.5)-/
-def stabilizer_block_equiv (htGX : is_pretransitive G X) (a : X) :
+def stabilizer_block_equiv [htGX : is_pretransitive G X] (a : X) :
   { B : set X // a ∈ B ∧ is_block G B } ≃o set.Ici (stabilizer G a) := {
 to_fun := λ ⟨B, ha, hB⟩, ⟨stabilizer G B, stabilizer_of_block hB ha⟩,
 inv_fun := λ ⟨H, hH⟩, ⟨mul_action.orbit H a,
-mul_action.mem_orbit_self a, is_block_of_suborbit htGX hH⟩,
+mul_action.mem_orbit_self a, is_block_of_suborbit hH⟩,
 left_inv := λ ⟨B, ha, hB⟩,
-  (id (propext subtype.mk_eq_mk)).mpr (block_of_stabilizer_of_block htGX hB ha),
+  (id (propext subtype.mk_eq_mk)).mpr (block_of_stabilizer_of_block hB ha),
 right_inv := λ ⟨H, hH⟩,
-  (id (propext subtype.mk_eq_mk)).mpr (stabilizer_of_block_of_stabilizer htGX hH),
+  (id (propext subtype.mk_eq_mk)).mpr (stabilizer_of_block_of_stabilizer hH),
 map_rel_iff' :=
 begin
 rintro ⟨B, ha, hB⟩, rintro ⟨B', ha', hB'⟩,
 simp only [equiv.coe_fn_mk, subtype.mk_le_mk, set.le_eq_subset],
 split,
 { intro hBB',
-  rw ← block_of_stabilizer_of_block htGX hB ha,
-  rw ← block_of_stabilizer_of_block htGX hB' ha',
+  rw ← block_of_stabilizer_of_block hB ha,
+  rw ← block_of_stabilizer_of_block hB' ha',
   intro x, rintro ⟨k, rfl⟩, use k, apply hBB', exact set_like.coe_mem k,
   refl },
 { intro hBB',
@@ -662,11 +658,11 @@ open_locale classical
 /-- The cardinality of the ambient is the product of
   of the cardinality of a block
   by the cardinality of the set of iterates of that block -/
-lemma card_of_block_mul_card_of_orbit_of [hfX : fintype X] (hGX : is_pretransitive G X)
+lemma card_of_block_mul_card_of_orbit_of [hfX : fintype X] [hGX : is_pretransitive G X]
   {B : set X} (hB : is_block G B) (hB_ne : B.nonempty) :
   fintype.card B * fintype.card (set.range (λ (g : G), g • B)) = fintype.card X :=
 begin
-  rw setoid.is_partition.card_eq_sum_parts (is_block_system.of_block hGX hB hB_ne).left,
+  rw setoid.is_partition.card_eq_sum_parts (is_block_system.of_block hB hB_ne).left,
   rw [finset.sum_congr rfl _, finset.sum_const (fintype.card ↥B),
     nsmul_eq_mul, nat.cast_id, mul_comm],
   { rw ← set.to_finset_card },
@@ -679,16 +675,16 @@ begin
 end
 
 /-- The cardinality of a block divides the cardinality of the ambient type -/
-lemma card_of_block_divides [hfX : fintype X] (hGX : is_pretransitive G X)
+lemma card_of_block_divides [hfX : fintype X] [hGX : is_pretransitive G X]
   {B : set X} (hB : is_block G B) (hB_ne : B.nonempty) :
   fintype.card B ∣ fintype.card X :=
 begin
-  rw ← card_of_block_mul_card_of_orbit_of hGX hB hB_ne,
+  rw ← card_of_block_mul_card_of_orbit_of hB hB_ne,
   simp only [dvd_mul_right],
 end
 
 /-- A too large block is equal to ⊤ -/
-lemma is_top_of_large_block [hfX : fintype X] (hGX : is_pretransitive G X)
+lemma is_top_of_large_block [hfX : fintype X] [hGX : is_pretransitive G X]
   {B : set X} (hB : is_block G B) (hB' : fintype.card X < 2 * fintype.card B) :
   B = ⊤ :=
 begin
@@ -699,7 +695,7 @@ begin
   have : B.nonempty,
   { rw [← set.nonempty_coe_sort, ← fintype.card_pos_iff],
     exact h },
-  obtain ⟨k, h⟩ := card_of_block_divides hGX hB this,
+  obtain ⟨k, h⟩ := card_of_block_divides hB this,
   cases nat.lt_or_ge k 2 with hk hk,
   rw nat.lt_succ_iff at hk,
   cases lt_or_eq_of_le hk with hk hk,
@@ -715,7 +711,7 @@ begin
 end
 
 /-- If a block has too much translates, it is a singleton  -/
-lemma is_top_of_small_block [hfX : fintype X] (hGX : is_pretransitive G X)
+lemma is_top_of_small_block [hfX : fintype X] [hGX : is_pretransitive G X]
   {B : set X} (hB : is_block G B)
   (hX : nontrivial X)
   (hB' :  fintype.card X < 2 * fintype.card (set.range (λ g : G, (g • B : set X)))) :
@@ -738,7 +734,7 @@ begin
       apply set.range_const_subset hx },
     intros s t, rw ← subtype.coe_inj,
     simp only [this] },
-  let hk := card_of_block_mul_card_of_orbit_of  hGX hB h,
+  let hk := card_of_block_mul_card_of_orbit_of hB h,
   cases nat.lt_or_ge (fintype.card B) 2 with hb hb,
   rwa nat.lt_succ_iff at hb,
   exfalso,
@@ -749,10 +745,9 @@ end
 -- TODO : Is the assumption B.finite necessary ?
 /-- The intersection of the translates of a *finite* subset which contain a given point
 is a block (Wielandt, th. 7.3 )-/
-lemma is_block.of_subset (hGX : is_pretransitive G X) (a : X) (B : set X) (hfB : B.finite) :
+lemma is_block.of_subset [hGX : is_pretransitive G X] (a : X) (B : set X) (hfB : B.finite) :
   is_block G (⋂ (k : G) (hg : a ∈ k • B), k • B) :=
 begin
-  let hGX_exists := hGX.exists_smul_eq,
   let B' := (⋂ (k : G) (hg : a ∈ k • B), k • B),
   cases set.eq_empty_or_nonempty B with hfB_e hfB_ne,
   { suffices : (⋂ (k : G) (hg : a ∈ k • B), k • B) = set.univ,
@@ -766,7 +761,7 @@ begin
 
   have hfB' : B'.finite,
   { obtain ⟨b, hb : b ∈ B⟩ := hfB_ne,
-    obtain ⟨k, hk : k • b = a⟩ := hGX_exists b a,
+    obtain ⟨k, hk : k • b = a⟩ := exists_smul_eq G b a,
     have hk' : a ∈ k • B, use b, exact ⟨hb, hk⟩,
     apply set.finite.subset _ (hB'₀ k hk'),
     apply set.finite.map,
@@ -810,7 +805,7 @@ begin
   intros g hg,
   rw set.ne_empty_iff_nonempty at hg,
   obtain ⟨b : X, hb' : b ∈ g • B', hb : b ∈ B'⟩ := set.nonempty_def.mp hg,
-  obtain ⟨k : G, hk : k • a = b⟩ := hGX_exists a b,
+  obtain ⟨k : G, hk : k • a = b⟩ := exists_smul_eq G a b,
   have hak : a ∈ k⁻¹ • B',
   { use b, apply and.intro hb, rw [← hk, inv_smul_smul] },
   have hagk : a ∈ (k⁻¹ * g) • B',

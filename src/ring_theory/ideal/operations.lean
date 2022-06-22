@@ -431,6 +431,19 @@ begin
   rwa [finset.coe_univ, set.pairwise_univ]
 end
 
+lemma sup_eq_top_iff_is_coprime {R : Type*} [comm_semiring R] (x y : R) :
+  span ({x} : set R) ⊔ span {y} = ⊤ ↔ is_coprime x y :=
+begin
+  rw [eq_top_iff_one, submodule.mem_sup],
+  split,
+  { rintro ⟨u, hu, v, hv, h1⟩,
+    rw mem_span_singleton' at hu hv,
+    rw [← hu.some_spec, ← hv.some_spec] at h1,
+    exact ⟨_, _, h1⟩ },
+  { exact λ ⟨u, v, h1⟩,
+      ⟨_, mem_span_singleton'.mpr ⟨_, rfl⟩, _, mem_span_singleton'.mpr ⟨_, rfl⟩, h1⟩ },
+end
+
 theorem mul_le_inf : I * J ≤ I ⊓ J :=
 mul_le.2 $ λ r hri s hsj, ⟨I.mul_mem_right s hri, J.mul_mem_left r hsj⟩
 

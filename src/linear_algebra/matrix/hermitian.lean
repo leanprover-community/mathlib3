@@ -11,7 +11,7 @@ This file defines hermitian matrices and some basic results about them.
 
 ## Main definition
 
- * `matrix.is_hermitian `: a matrix `A : matrix n n α` is hermitian if `Aᴴ = A`.
+ * `matrix.is_hermitian` : a matrix `A : matrix n n α` is hermitian if `Aᴴ = A`.
 
 ## Tags
 

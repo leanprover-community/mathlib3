@@ -137,6 +137,7 @@ begin
   simp_rw [slash_mul, this, one_smul],
 end
 
+/--A general version of the slash action of the space of modular forms.-/
 class slash_action (β : Type*) (G : Type*) (α : Type*) [group G] [ring α] [has_scalar ℂ α] :=
   (map : β → G → α → α)
   (mul_zero :  ∀ (k : β) (g : G), map k g 0 = 0)
@@ -153,6 +154,7 @@ instance : slash_action ℤ GL(2, ℝ)⁺ (ℍ → ℂ) :=
    smul_action := by {apply smul_slash},
    add_action := by {apply slash_add},}
 
+/--Slash_action induced by a monoid homomorphism.-/
 def implied_slash_action { β : Type*} {G : Type*} {H : Type*} {α : Type*} [group G] [ring α]
   [has_scalar ℂ α] [group H] [slash_action β G α] (h : H →* G) : slash_action β H α :=
 {map := (λ k g a, slash_action.map k (h(g)) a),
@@ -162,18 +164,13 @@ def implied_slash_action { β : Type*} {G : Type*} {H : Type*} {α : Type*} [gro
     smul_action := by {intros k g a z, apply slash_action.smul_action, },
     add_action := by {intros k g a b, apply slash_action.add_action, },}
 
-def subgroup_hom (Γ : subgroup SL(2,ℤ)) : Γ →* GL(2, ℝ)⁺ :=
-monoid_hom.comp (matrix.special_linear_group.to_GL_pos)
-(monoid_hom.comp (matrix.special_linear_group.map (int.cast_ring_hom ℝ)) (subgroup.subtype Γ) )
-
-def SL_hom : SL(2, ℤ) →* GL(2, ℝ)⁺ :=
-monoid_hom.comp (matrix.special_linear_group.to_GL_pos)
-  (matrix.special_linear_group.map (int.cast_ring_hom ℝ))
-
 instance subgroup_action (Γ : subgroup SL(2,ℤ)) : slash_action ℤ Γ (ℍ → ℂ) :=
-  implied_slash_action (subgroup_hom Γ)
+  implied_slash_action (monoid_hom.comp (matrix.special_linear_group.to_GL_pos)
+(monoid_hom.comp (matrix.special_linear_group.map (int.cast_ring_hom ℝ)) (subgroup.subtype Γ) ))
 
-instance SL_action : slash_action ℤ SL(2,ℤ) (ℍ → ℂ) := implied_slash_action SL_hom
+instance SL_action : slash_action ℤ SL(2,ℤ) (ℍ → ℂ) :=
+implied_slash_action (monoid_hom.comp (matrix.special_linear_group.to_GL_pos)
+  (matrix.special_linear_group.map (int.cast_ring_hom ℝ)))
 
 local notation f `∣[`:73 k:0, A `]`  :72 := slash_action.map k A f
 

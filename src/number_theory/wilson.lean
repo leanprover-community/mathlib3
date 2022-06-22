@@ -26,7 +26,7 @@ open_locale nat
 namespace nat
 
 /-- For `n > 1`, `(n-1)!` is congruent to `-1` modulo `n` only if n is prime. --/
-lemma prime_if_fac_equiv_neg_one
+lemma prime_of_fac_equiv_neg_one
   {n : ℕ} (h : ((n - 1)! : zmod n) = -1) (h1 : 1 < n) : prime n :=
 begin
   by_contradiction h2,
@@ -40,7 +40,7 @@ end
 theorem prime_iff_fac_equiv_neg_one {n : ℕ} (h : 1 < n) :
   prime n ↔ ((n - 1)! : zmod n) = -1 :=
 begin
-  refine ⟨λ h1, _, λ h2, prime_if_fac_equiv_neg_one h2 h⟩,
+  refine ⟨λ h1, _, λ h2, prime_of_fac_equiv_neg_one h2 h⟩,
   haveI := fact.mk h1,
   exact zmod.wilsons_lemma n,
 end

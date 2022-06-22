@@ -50,7 +50,7 @@ lemma dist_eq_norm_vsub (x y : P) : dist x y = ∥x -ᵥ y∥ := normed_add_tors
 
 /-- The distance equals the norm of subtracting two points. In this
 lemma, it is necessary to have `V` as an explicit argument; otherwise
-`rw dist_eq_norm_vsub` sometimes doesn't work. -/
+`rw dist_eq_norm_vsub'` sometimes doesn't work. -/
 lemma dist_eq_norm_vsub' (x y : P) : dist x y = ∥y -ᵥ x∥ :=
 (dist_comm _ _).trans (dist_eq_norm_vsub _ _ _)
 

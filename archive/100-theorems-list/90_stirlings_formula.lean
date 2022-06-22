@@ -57,22 +57,6 @@ noncomputable def stirling_seq (n : ℕ) : ℝ :=
 (n.factorial : ℝ) / (sqrt(2 * n) * (n / exp 1) ^ n)
 
 /--
-For any positive real number `a`, the expression `log((a + 1) / a)` has the series expansion
-$\sum_{k=0}^{\infty}\frac{2}{2k+1}(\frac{1}{2a+1})^{2k+1}$.
--/
-lemma power_series_log_succ_div (a : ℝ) (h : 0 < a) : has_sum (λ k : ℕ,
-  (2 : ℝ) * (1 / (2 * (k : ℝ) + 1)) * (1 / (2 * (a : ℝ) + 1)) ^ (2 * k + 1))
-  (log ((a + 1) / a)) :=
- begin
-  have h₁ : |1 / (2 * a + 1)| < 1, by --in library??
-  { rw [abs_of_pos, div_lt_one],
-    any_goals {linarith}, /- can not use brackets for single goal, bc of any_goals -/
-    {refine div_pos one_pos _, linarith, }, },
-  rw log_succ_div_eq_log_sub a (h),
-  exact log_sum_plus_minus (1 / (2 * a + 1)) h₁,
- end
-
-/--
 `log_stirling_seq n` is log of `stirling_seq n`.
 -/
 noncomputable def log_stirling_seq (n : ℕ) : ℝ := log (stirling_seq n)
@@ -191,11 +175,11 @@ We have the bound  `log_stirling_seq n - log_stirling_seq (n+1)` ≤ 1/(4 n^2)
 lemma log_stirling_seq_sub_log_stirling_seq_succ (n : ℕ) :
   log_stirling_seq n.succ - log_stirling_seq n.succ.succ ≤ 1 / (4 * n.succ ^ 2) :=
 begin
-  have h₁ : 0 < 4 * ((n:ℝ) + 1) ^ 2 := by nlinarith [@cast_nonneg ℝ _ n],
-  have h₃ : 0 < (2 * ((n:ℝ) + 1) + 1) ^ 2 := by nlinarith [@cast_nonneg ℝ _ n ],
-  have h₂ : 0 < 1 - (1 / (2 * ((n:ℝ) + 1) + 1)) ^ 2,
+  have h₁ : 0 < 4 * ((n : ℝ) + 1) ^ 2 := by nlinarith [@cast_nonneg ℝ _ n],
+  have h₃ : 0 < (2 * ((n : ℝ) + 1) + 1) ^ 2 := by nlinarith [@cast_nonneg ℝ _ n ],
+  have h₂ : 0 < 1 - (1 / (2 * ((n : ℝ) + 1) + 1)) ^ 2,
   { rw ← mul_lt_mul_right h₃,
-    have H : 0 < (2 * ((n:ℝ) + 1) + 1) ^ 2 - 1 := by nlinarith [@cast_nonneg ℝ _ n ],
+    have H : 0 < (2 * ((n : ℝ) + 1) + 1) ^ 2 - 1 := by nlinarith [@cast_nonneg ℝ _ n ],
     convert H using 1; field_simp [h₃.ne'] },
   refine le_trans (log_stirling_seq_diff_le_geo_sum n) _,
   push_cast at *,

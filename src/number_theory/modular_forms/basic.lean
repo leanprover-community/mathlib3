@@ -139,30 +139,30 @@ end
 
 /--A general version of the slash action of the space of modular forms.-/
 class slash_action (β : Type*) (G : Type*) (α : Type*) [group G] [ring α] [has_scalar ℂ α] :=
-  (map : β → G → α → α)
-  (mul_zero :  ∀ (k : β) (g : G), map k g 0 = 0)
-  (one_mul : ∀ (k : β) (a : α) , map k 1 a = a)
-  (right_action : ∀ (k : β) (g h : G) (a : α), map k h (map k g a) = map k (g * h) a )
-  (smul_action : ∀ (k : β)  (g : G) (a : α) (z : ℂ), map k g (z • a) = z • (map k g a))
-  (add_action : ∀ (k : β) (g : G) (a b : α), map k g (a + b) = map k g a + map k g b)
+(map : β → G → α → α)
+(mul_zero :  ∀ (k : β) (g : G), map k g 0 = 0)
+(one_mul : ∀ (k : β) (a : α) , map k 1 a = a)
+(right_action : ∀ (k : β) (g h : G) (a : α), map k h (map k g a) = map k (g * h) a )
+(smul_action : ∀ (k : β)  (g : G) (a : α) (z : ℂ), map k g (z • a) = z • (map k g a))
+(add_action : ∀ (k : β) (g : G) (a b : α), map k g (a + b) = map k g a + map k g b)
 
 instance : slash_action ℤ GL(2, ℝ)⁺ (ℍ → ℂ) :=
-{map := slash,
-   mul_zero := by {intros k g, rw slash, simp only [pi.zero_apply, zero_mul], refl, },
-   one_mul := by {apply slash_mul_one,},
-   right_action := by {apply slash_right_action},
-   smul_action := by {apply smul_slash},
-   add_action := by {apply slash_add},}
+{ map := slash,
+  mul_zero := by {intros k g, rw slash, simp only [pi.zero_apply, zero_mul], refl, },
+  one_mul := by {apply slash_mul_one,},
+  right_action := by {apply slash_right_action},
+  smul_action := by {apply smul_slash},
+  add_action := by {apply slash_add},}
 
 /--Slash_action induced by a monoid homomorphism.-/
 def implied_slash_action { β : Type*} {G : Type*} {H : Type*} {α : Type*} [group G] [ring α]
   [has_scalar ℂ α] [group H] [slash_action β G α] (h : H →* G) : slash_action β H α :=
-{map := (λ k g a, slash_action.map k (h(g)) a),
-    mul_zero := by {intros k g, apply slash_action.mul_zero k (h g), },
-    one_mul := by {intros k a, simp only [map_one], apply slash_action.one_mul,},
-    right_action := by {simp only [map_mul], intros k g gg a, apply slash_action.right_action,},
-    smul_action := by {intros k g a z, apply slash_action.smul_action, },
-    add_action := by {intros k g a b, apply slash_action.add_action, },}
+{ map := (λ k g a, slash_action.map k (h(g)) a),
+  mul_zero := by {intros k g, apply slash_action.mul_zero k (h g), },
+  one_mul := by {intros k a, simp only [map_one], apply slash_action.one_mul,},
+  right_action := by {simp only [map_mul], intros k g gg a, apply slash_action.right_action,},
+  smul_action := by {intros k g a z, apply slash_action.smul_action, },
+  add_action := by {intros k g a b, apply slash_action.add_action, }, }
 
 instance subgroup_action (Γ : subgroup SL(2,ℤ)) : slash_action ℤ Γ (ℍ → ℂ) :=
   implied_slash_action (monoid_hom.comp (matrix.special_linear_group.to_GL_pos)

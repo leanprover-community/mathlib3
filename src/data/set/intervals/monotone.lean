@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import data.set.intervals.disjoint
-import data.nat.succ_pred
+import order.succ_pred.basic
 import tactic.field_simp
 
 /-!

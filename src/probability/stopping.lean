@@ -232,18 +232,19 @@ def adapted (f : filtration ι m) (u : ι → α → β) : Prop :=
 
 namespace adapted
 
-lemma add [has_add β] [has_continuous_add β] (hu : adapted f u) (hv : adapted f v) :
+@[protected] lemma add [has_add β] [has_continuous_add β] (hu : adapted f u) (hv : adapted f v) :
   adapted f (u + v) :=
 λ i, (hu i).add (hv i)
 
-lemma neg [add_group β] [topological_add_group β] (hu : adapted f u) : adapted f (-u) :=
+@[protected] lemma neg [add_group β] [topological_add_group β] (hu : adapted f u) :
+  adapted f (-u) :=
 λ i, (hu i).neg
 
-lemma smul [has_scalar ℝ β] [has_continuous_smul ℝ β] (c : ℝ) (hu : adapted f u) :
+@[protected] lemma smul [has_scalar ℝ β] [has_continuous_smul ℝ β] (c : ℝ) (hu : adapted f u) :
   adapted f (c • u) :=
 λ i, (hu i).const_smul c
 
-lemma measurable {i j : ι} (hf : adapted f u) (hij : i ≤ j) :
+@[protected] lemma measurable {i j : ι} (hf : adapted f u) (hij : i ≤ j) :
   strongly_measurable[f j] (u i) :=
 strongly_measurable.mono (hf i) (f.mono hij)
 

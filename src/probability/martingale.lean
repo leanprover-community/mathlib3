@@ -264,8 +264,6 @@ begin
     set_integral_condexp (ℱ.le i) (hint j) hs],
 end
 
-end
-
 namespace supermartingale
 
 lemma sub_submartingale [preorder E] [covariant_class E E (+) (≤)]

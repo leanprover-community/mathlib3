@@ -11,7 +11,7 @@ import analysis.special_functions.log.deriv
 
 This file proves Theorem 90 from the [100 Theorem List] <https://www.cs.ru.nl/~freek/100/>.
 It states that $n!$ grows asymptotically like $\sqrt{2\pi n}(\frac{n}{e})^n$.
-
+TODO: Add Part 2 to complete the proof
 
 ## Proof outline
 

@@ -334,7 +334,7 @@ instance insert_empty {α : Type*} : insert (∅ : set α) :=
 { insert := λ x, @singleton _ _ set.has_singleton x }
 
 @[priority 900]
-instance nonempty_insert {α : Type*} (s : set α) : insert s :=
+instance insert_nonempty {α : Type*} (s : set α) : insert s :=
 { insert := λ x, has_insert.insert x s }
 
 notation K`⟮`:std.prec.max_plus l:(foldr `, ` (h t, insert.insert t h) ∅) `⟯` := adjoin K l

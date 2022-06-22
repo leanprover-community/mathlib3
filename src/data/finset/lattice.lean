@@ -968,12 +968,12 @@ lemma min'_subset {s t : finset α} (H : s.nonempty) (hst : s ⊆ t) :
 min'_le _ _ (hst (s.min'_mem H))
 
 lemma max'_insert (a : α) (s : finset α) (H : s.nonempty) :
-  (insert a s).max' (s.nonempty_insert a) = max (s.max' H) a :=
+  (insert a s).max' (s.insert_nonempty a) = max (s.max' H) a :=
 (is_greatest_max' _ _).unique $
   by { rw [coe_insert, max_comm], exact (is_greatest_max' _ _).insert _ }
 
 lemma min'_insert (a : α) (s : finset α) (H : s.nonempty) :
-  (insert a s).min' (s.nonempty_insert a) = min (s.min' H) a :=
+  (insert a s).min' (s.insert_nonempty a) = min (s.min' H) a :=
 (is_least_min' _ _).unique $
   by { rw [coe_insert, min_comm], exact (is_least_min' _ _).insert _ }
 

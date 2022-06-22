@@ -312,6 +312,7 @@ def comp_alternating_map (g : N →ₗ[R] N₂) : alternating_map R M N ι →+ 
 @[simp] lemma coe_comp_alternating_map (g : N →ₗ[R] N₂) (f : alternating_map R M N ι) :
   ⇑(g.comp_alternating_map f) = g ∘ f := rfl
 
+@[simp]
 lemma comp_alternating_map_apply (g : N →ₗ[R] N₂) (f : alternating_map R M N ι) (m : ι → M) :
   g.comp_alternating_map f m = g (f m) := rfl
 
@@ -955,9 +956,10 @@ end basis
 section currying
 
 variables
-  {R' : Type*} {M'' N'' : Type*}
-  [comm_semiring R'] [add_comm_monoid M''] [add_comm_monoid N'']
-  [module R' M''] [module R' N'']
+  {R' : Type*} {M'' M₂'' N'' N₂'': Type*}
+  [comm_semiring R']
+  [add_comm_monoid M''] [add_comm_monoid M₂''] [add_comm_monoid N''] [add_comm_monoid N₂'']
+  [module R' M''] [module R' M₂''] [module R' N''] [module R' N₂'']
 
 namespace alternating_map
 
@@ -978,19 +980,42 @@ def curry_left {n : ℕ} (f : alternating_map R' M'' N'' (fin n.succ)) :
   map_add' := λ m₁ m₂, ext $ λ v, f.map_vec_cons_add _ _ _,
   map_smul' := λ r m, ext $ λ v, f.map_vec_cons_smul _ _ _ }
 
+@[simp] lemma curry_left_zero {n : ℕ} :
+  curry_left (0 : alternating_map R' M'' N'' (fin n.succ)) = 0 := rfl
+
+@[simp] lemma curry_left_add {n : ℕ} (f g : alternating_map R' M'' N'' (fin n.succ)) :
+  curry_left (f + g) = curry_left f + curry_left g := rfl
+
+@[simp] lemma curry_left_smul {n : ℕ} (r : R') (f : alternating_map R' M'' N'' (fin n.succ)) :
+  curry_left (r • f) = r • curry_left f := rfl
+
 /-- `alternating_map.curry_left` as a `linear_map`. This is a separate definition as dot notation
 does not work for this version. -/
 @[simps]
 def curry_left_linear_map {n : ℕ} :
   alternating_map R' M'' N'' (fin n.succ) →ₗ[R'] M'' →ₗ[R'] alternating_map R' M'' N'' (fin n) :=
 { to_fun := λ f, f.curry_left,
-  map_add' := λ f₁ f₂, rfl,
-  map_smul' := λ f₁ f₂, rfl }
+  map_add' := curry_left_add,
+  map_smul' := curry_left_smul }
 
 /-- Currying with the same element twice gives the zero map. -/
 @[simp] lemma curry_left_same {n : ℕ} (f : alternating_map R' M'' N'' (fin n.succ.succ)) (m : M'') :
   (f.curry_left m).curry_left m = 0 :=
 ext $ λ x, f.map_eq_zero_of_eq _ (by simp) fin.zero_ne_one
+
+@[simp] lemma curry_left_comp_alternating_map {n : ℕ} (g : N'' →ₗ[R'] N₂'')
+  (f : alternating_map R' M'' N'' (fin n.succ)) (m : M'') :
+  (g.comp_alternating_map f).curry_left m = g.comp_alternating_map (f.curry_left m) :=
+rfl
+
+@[simp] lemma curry_left_comp_linear_map {n : ℕ} (g : M₂'' →ₗ[R'] M'')
+  (f : alternating_map R' M'' N'' (fin n.succ)) (m : M₂'') :
+  (f.comp_linear_map g).curry_left m = (f.curry_left (g m)).comp_linear_map g :=
+ext $ λ v, congr_arg f $ funext $ begin
+  refine fin.cases _ _,
+  { refl },
+  { simp }
+end
 
 /-- The space of constant maps is equivalent to the space of maps that are alternating with respect
 to an empty family. -/

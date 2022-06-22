@@ -227,7 +227,7 @@ by rw [degree_eq_nat_degree p_ne_zero, nat_degree_eq_card_roots hsplit]
 theorem roots_map {f : K[X]} (hf : f.splits $ ring_hom.id K) :
   (f.map i).roots = f.roots.map i :=
 (roots_map_of_injective_card_eq_total_degree i.injective $
-  by { convert (nat_degree_eq_card_roots hf).symm, rw map_id }).symm .
+  by { convert (nat_degree_eq_card_roots hf).symm, rw map_id }).symm
 
 lemma eq_prod_roots_of_splits {p : K[X]} {i : K →+* L} (hsplit : splits i p) :
   p.map i = C (i p.leading_coeff) * ((p.map i).roots.map (λ a, X - C a)).prod :=

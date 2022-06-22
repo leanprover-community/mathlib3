@@ -23,11 +23,9 @@ the abelian group structure on games allows us to simplify many proofs for pre-g
 
 open function pgame
 
-universes u
+open_locale pgame
 
-local infix ` ≈ ` := pgame.equiv
-local infix ` ⧏ `:50 := pgame.lf
-local infix ` ≡r `:50 := pgame.relabelling
+universes u
 
 instance pgame.setoid : setoid pgame :=
 ⟨(≈), equiv_refl, @pgame.equiv.symm, @pgame.equiv.trans⟩

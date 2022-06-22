@@ -5,19 +5,21 @@ Authors: Moritz Firsching, Fabian Kruse, Nikolas Kuhn
 -/
 import analysis.p_series
 import analysis.special_functions.log.deriv
+import analysis.special_functions.pow
+import data.real.pi.wallis
 
 /-!
 # Stirling's formula
 
 This file proves Theorem 90 from the [100 Theorem List] <https://www.cs.ru.nl/~freek/100/>.
 It states that $n!$ grows asymptotically like $\sqrt{2\pi n}(\frac{n}{e})^n$.
-TODO: Add Part 2 to complete the proof
 
 ## Proof outline
 
 The proof follows: <https://proofwiki.org/wiki/Stirling%27s_Formula>.
 
 We proceed in two parts.
+
 ### Part 1
 We consider the fraction sequence $a_n$ of fractions $n!$ over $\sqrt{2n}(\frac{n}{e})^n$ and
 proves that this sequence converges against a real, positve number $a$. For this the two main
@@ -30,7 +32,7 @@ We use the fact that the series defined in part 1 converges againt a real number
 $a = \sqrt{\pi}$. Here the main ingredient is the convergence of the Wallis product.
 -/
 
-open_locale topological_space big_operators
+open_locale big_operators real topological_space
 open finset filter nat real
 
 namespace stirling
@@ -245,7 +247,7 @@ end
 -/
 
 /--
-Define `wallis_inside_prod n` as `2 * n / (2 * n - 1) * 2 * n/(2 * n + 1)`.
+Define `wallis_inside_prod n` as `2 * n / (2 * n - 1) * 2 * n / (2 * n + 1)`.
 This is the term appearing inside the Wallis product
 -/
 noncomputable def wallis_inside_prod (n : ℕ) : ℝ :=
@@ -253,16 +255,15 @@ noncomputable def wallis_inside_prod (n : ℕ) : ℝ :=
 
 /-- The Wallis product $\prod_{n=1}^k \frac{2n}{2n-1}\frac{2n}{2n+1}$
   converges to `π/2` as `k → ∞` -/
-lemma equality1: tendsto (λ (k : ℕ), ∏ i in Ico 1 k.succ, wallis_inside_prod i) at_top (𝓝 (π/2)) :=
+lemma equality1 : tendsto (λ (k : ℕ), ∏ i in Ico 1 k.succ, wallis_inside_prod i) at_top (𝓝 (π/2)) :=
 begin
-  have :(∀ k: ℕ,  ∏ i in range k, (wallis_inside_prod (1 + i)) =
+  have : (∀ k : ℕ,  ∏ i in range k, (wallis_inside_prod (1 + i)) =
     ∏ i in Ico 1 k.succ, wallis_inside_prod i),
   by {intro k, rw [range_eq_Ico, prod_Ico_add wallis_inside_prod 0 k 1]},
   rw ← tendsto_congr this,
   have h : ∀ i,
-  wallis_inside_prod (1 + i) = (((2 : ℝ) * i + 2) / (2 * i + 1)) * ((2 * i + 2) / (2 * i + 3)) :=
-  begin
-    intro i,
+  wallis_inside_prod (1 + i) = (((2 : ℝ) * i + 2) / (2 * i + 1)) * ((2 * i + 2) / (2 * i + 3)),
+  { intro i,
     rw [wallis_inside_prod, cast_add, cast_one],
     have hl : (2 : ℝ) * (1 + (i : ℝ)) / (2 * (1 + (i : ℝ)) - 1) =
       (2 * (i : ℝ) + 2) / (2 * (i : ℝ) + 1), by
@@ -270,8 +271,7 @@ begin
     have hr : (2 : ℝ) * (1 + (i : ℝ)) / (2 * (1 + (i : ℝ)) + 1) =
       ((2 * (i : ℝ) + 2) / (2 * (i : ℝ) + 3)), by
     { refine congr (congr_arg has_div.div _) _; ring_nf, },
-    rw [hl, hr],
-  end,
+    rw [hl, hr], },
   have h_prod : ∀ k, ∏ (m : ℕ) in range k, wallis_inside_prod (1 + m) =
     ∏ (m : ℕ) in range k, (((2 : ℝ) * m + 2) / (2 * m + 1)) * ((2 * m + 2) / (2 * m + 3)), by
   { intro k, rw prod_congr (refl (range k)) _, intros x hx, exact h x, },
@@ -303,7 +303,7 @@ end
 $\prod_{k=1}^n \frac{2n}{2n-1}\frac{2n}{2n+1}
   = \frac{1}{2n+1} \prod_{k=1}^n \frac{(2k)^2}{(2*k-1)^2}$
 -/
-lemma equation3 (n : ℕ): ∏ k in Ico 1 n.succ, wallis_inside_prod k =
+lemma equation3 (n : ℕ) : ∏ k in Ico 1 n.succ, wallis_inside_prod k =
   (1 : ℝ) / (2 * n + 1) * ∏ k in Ico 1 n.succ, ((2 : ℝ) * k) ^ 2 / (2 * k - 1) ^ 2 :=
 begin
   induction n with d hd,
@@ -449,22 +449,18 @@ lemma rest_has_limit_one_half : tendsto (λ (n : ℕ), c n) at_top (𝓝 (1 / 2)
 begin
   apply (tendsto.congr rest_cancel),
   have h : tendsto (λ (k : ℕ), (((k : ℝ) / (2 * (k : ℝ) + 1))⁻¹))
-    at_top (𝓝 (((1 : ℝ) / 2))⁻¹) :=
-  begin
-    have hsucc : tendsto (λ (k : ℕ), (((k.succ : ℝ) / (2 * (k.succ : ℝ) + 1))⁻¹)) at_top
-      (𝓝 (((1 : ℝ) / 2))⁻¹) :=
-    begin
-      have hx : ∀ (k : ℕ), (2 : ℝ) + k.succ⁻¹ = ((k.succ : ℝ) / (2 * k.succ + 1))⁻¹, by
+    at_top (𝓝 (((1 : ℝ) / 2))⁻¹),
+  { have hsucc : tendsto (λ (k : ℕ), (((k.succ : ℝ) / (2 * (k.succ : ℝ) + 1))⁻¹)) at_top
+      (𝓝 (((1 : ℝ) / 2))⁻¹),
+    { have hx : ∀ (k : ℕ), (2 : ℝ) + k.succ⁻¹ = ((k.succ : ℝ) / (2 * k.succ + 1))⁻¹, by
       { intro k, have hxne : (k.succ : ℝ) ≠ 0 := nonzero_of_invertible (k.succ : ℝ), field_simp, },
       simp only [one_div, inv_inv],
       apply (tendsto.congr hx),
       have g := tendsto.add tendsto_const_nhds ((tendsto_add_at_top_iff_nat 1).mpr
         (tendsto_inverse_at_top_nhds_0_nat)),
       rw [add_zero] at g,
-      exact g,
-    end,
-    exact (tendsto_add_at_top_iff_nat 1).mp hsucc,
-  end,
+      exact g, },
+    exact (tendsto_add_at_top_iff_nat 1).mp hsucc, },
   have h2: ((1 : ℝ) / 2)⁻¹ ≠ 0, by
     simp only [one_div, inv_inv, ne.def, bit0_eq_zero, one_ne_zero, not_false_iff],
   convert tendsto.inv₀ h h2,
@@ -497,15 +493,15 @@ begin
   rw sqrt_mul (mul_self_nonneg 2) (n : ℝ),
   rw sqrt_mul_self zero_le_two,
   have h₀ : (n : ℝ) ≠ 0, from cast_ne_zero.mpr hn,
-  have h₁ : sqrt (2 * (n : ℝ)) ≠ 0,
-  from (sqrt_ne_zero'.mpr $ mul_pos two_pos $ cast_pos.mpr (zero_lt_iff.mpr hn)),
+  have h₁ : sqrt (2 * (n : ℝ)) ≠ 0, from
+    (sqrt_ne_zero'.mpr $ mul_pos two_pos $ cast_pos.mpr (zero_lt_iff.mpr hn)),
   have h₂ : (exp 1) ≠ 0, from exp_ne_zero 1,
   have h₃ : ((2 * n).factorial : ℝ) ≠ 0, from cast_ne_zero.mpr (factorial_ne_zero (2 * n)),
   have h₄ : sqrt (n : ℝ) ≠ 0, from sqrt_ne_zero'.mpr (cast_pos.mpr (zero_lt_iff.mpr hn)),
-  have h₅ : (((2 * n) : ℕ) : ℝ) ≠ 0,
-    from cast_ne_zero.mpr (mul_ne_zero two_ne_zero hn),
-  have h₆ : sqrt (4 * (n : ℝ)) ≠ 0,
-    from sqrt_ne_zero'.mpr (mul_pos four_pos $ cast_pos.mpr (zero_lt_iff.mpr hn)),
+  have h₅ : (((2 * n) : ℕ) : ℝ) ≠ 0, from
+    cast_ne_zero.mpr (mul_ne_zero two_ne_zero hn),
+  have h₆ : sqrt (4 * (n : ℝ)) ≠ 0, from
+    sqrt_ne_zero'.mpr (mul_pos four_pos $ cast_pos.mpr (zero_lt_iff.mpr hn)),
   have h₇ : 2 * (n : ℝ) + 1 ≠ 0, by {norm_cast, exact succ_ne_zero (2*n)},
   field_simp,
   ring_nf,
@@ -533,12 +529,10 @@ begin
   apply tendsto.congr hqn,
   rw filter.tendsto_add_at_top_iff_nat 1,
   have has : tendsto (λ (n : ℕ), stirling_seq n ^ 4 * (1 / stirling_seq (2 * n)) ^ 2)
-    at_top (𝓝 (a ^ 2)) :=
-  begin
-    convert tendsto.mul (tendsto.pow ha 4) (sub_seq_tendsto (stirling_seq_aux3 a hane ha)),
+    at_top (𝓝 (a ^ 2)),
+  { convert tendsto.mul (tendsto.pow ha 4) (sub_seq_tendsto (stirling_seq_aux3 a hane ha)),
     field_simp,
-    ring_nf,
-  end,
+    ring_nf, },
   convert tendsto.mul has rest_has_limit_one_half,
   rw [one_div, div_eq_mul_inv],
 end

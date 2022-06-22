@@ -458,7 +458,7 @@ char_zero_of_inj_zero $ λ n h,
 by rwa [← of_real_nat_cast, of_real_eq_zero, nat.cast_eq_zero] at h
 
 theorem re_eq_add_conj (z : K) : ↑(re z) = (z + conj z) / 2 :=
-by rw [add_conj, mul_div_cancel_left ((re z):K) two_ne_zero']
+by rw [add_conj, mul_div_cancel_left ((re z):K) two_ne_zero'']
 
 theorem im_eq_conj_sub (z : K) : ↑(im z) = I * (conj z - z) / 2 :=
 begin

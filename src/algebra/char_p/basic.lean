@@ -477,8 +477,8 @@ end char_p
 section
 
 /-- We have `2 ≠ 0` in a nontrivial ring whose characteristic is not `2`. -/
--- Note: there is `two_ne_zero` (assuming `[ordered_semiring]`)
--- and `two_ne_zero'`(assuming `[char_zero]`), which both don't fit the needs here.
+-- Note: there's `two_ne_zero` and `two_ne_zero'` (assuming a well-behaved `<`), as well as
+-- and `two_ne_zero''` (assuming `char_zero`), which both don't fit the needs here.
 @[protected]
 lemma ring.two_ne_zero {R : Type*} [non_assoc_semiring R] [nontrivial R] (hR : ring_char R ≠ 2) :
   (2 : R) ≠ 0 :=

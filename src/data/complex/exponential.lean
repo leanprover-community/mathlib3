@@ -485,10 +485,10 @@ by rw [← of_real_exp_of_real_re, of_real_im]
 lemma exp_of_real_re (x : ℝ) : (exp x).re = real.exp x := rfl
 
 lemma two_sinh : 2 * sinh x = exp x - exp (-x) :=
-mul_div_cancel' _ two_ne_zero'
+mul_div_cancel' _ two_ne_zero''
 
 lemma two_cosh : 2 * cosh x = exp x + exp (-x) :=
-mul_div_cancel' _ two_ne_zero'
+mul_div_cancel' _ two_ne_zero''
 
 @[simp] lemma sinh_zero : sinh 0 = 0 := by simp [sinh]
 
@@ -500,10 +500,10 @@ private lemma sinh_add_aux {a b c d : ℂ} :
 
 lemma sinh_add : sinh (x + y) = sinh x * cosh y + cosh x * sinh y :=
 begin
-  rw [← mul_right_inj' (@two_ne_zero' ℂ _ _ _), two_sinh,
+  rw [← mul_right_inj' (@two_ne_zero'' ℂ _ _ _), two_sinh,
       exp_add, neg_add, exp_add, eq_comm,
       mul_add, ← mul_assoc, two_sinh, mul_left_comm, two_sinh,
-      ← mul_right_inj' (@two_ne_zero' ℂ _ _ _), mul_add,
+      ← mul_right_inj' (@two_ne_zero'' ℂ _ _ _), mul_add,
       mul_left_comm, two_cosh, ← mul_assoc, two_cosh],
   exact sinh_add_aux
 end
@@ -518,10 +518,10 @@ private lemma cosh_add_aux {a b c d : ℂ} :
 
 lemma cosh_add : cosh (x + y) = cosh x * cosh y + sinh x * sinh y :=
 begin
-  rw [← mul_right_inj' (@two_ne_zero' ℂ _ _ _), two_cosh,
+  rw [← mul_right_inj' (@two_ne_zero'' ℂ _ _ _), two_cosh,
       exp_add, neg_add, exp_add, eq_comm,
       mul_add, ← mul_assoc, two_cosh, ← mul_assoc, two_sinh,
-      ← mul_right_inj' (@two_ne_zero' ℂ _ _ _), mul_add,
+      ← mul_right_inj' (@two_ne_zero'' ℂ _ _ _), mul_add,
       mul_left_comm, two_cosh, mul_left_comm, two_sinh],
   exact cosh_add_aux
 end
@@ -585,7 +585,7 @@ by rw [← of_real_tanh_of_real_re, of_real_im]
 lemma tanh_of_real_re (x : ℝ) : (tanh x).re = real.tanh x := rfl
 
 @[simp] lemma cosh_add_sinh : cosh x + sinh x = exp x :=
-by rw [← mul_right_inj' (@two_ne_zero' ℂ _ _ _), mul_add,
+by rw [← mul_right_inj' (@two_ne_zero'' ℂ _ _ _), mul_add,
        two_cosh, two_sinh, add_add_sub_cancel, two_mul]
 
 @[simp] lemma sinh_add_cosh : sinh x + cosh x = exp x :=
@@ -598,7 +598,7 @@ sub_eq_iff_eq_add.2 (sinh_add_cosh x).symm
 sub_eq_iff_eq_add.2 (cosh_add_sinh x).symm
 
 @[simp] lemma cosh_sub_sinh : cosh x - sinh x = exp (-x) :=
-by rw [← mul_right_inj' (@two_ne_zero' ℂ _ _ _), mul_sub,
+by rw [← mul_right_inj' (@two_ne_zero'' ℂ _ _ _), mul_sub,
        two_cosh, two_sinh, add_sub_sub_cancel, two_mul]
 
 @[simp] lemma sinh_sub_cosh : sinh x - cosh x = -exp (-x) :=
@@ -654,18 +654,18 @@ end
 by simp [sin, sub_eq_add_neg, exp_neg, (neg_div _ _).symm, add_mul]
 
 lemma two_sin : 2 * sin x = (exp (-x * I) - exp (x * I)) * I :=
-mul_div_cancel' _ two_ne_zero'
+mul_div_cancel' _ two_ne_zero''
 
 lemma two_cos : 2 * cos x = exp (x * I) + exp (-x * I) :=
-mul_div_cancel' _ two_ne_zero'
+mul_div_cancel' _ two_ne_zero''
 
 lemma sinh_mul_I : sinh (x * I) = sin x * I :=
-by rw [← mul_right_inj' (@two_ne_zero' ℂ _ _ _), two_sinh,
+by rw [← mul_right_inj' (@two_ne_zero'' ℂ _ _ _), two_sinh,
        ← mul_assoc, two_sin, mul_assoc, I_mul_I, mul_neg_one,
        neg_sub, neg_mul_eq_neg_mul]
 
 lemma cosh_mul_I : cosh (x * I) = cos x :=
-by rw [← mul_right_inj' (@two_ne_zero' ℂ _ _ _), two_cosh,
+by rw [← mul_right_inj' (@two_ne_zero'' ℂ _ _ _), two_cosh,
        two_cos, neg_mul_eq_neg_mul]
 
 lemma tanh_mul_I : tanh (x * I) = tan x * I :=
@@ -830,7 +830,7 @@ lemma sin_two_mul : sin (2 * x) = 2 * sin x * cos x :=
 by rw [two_mul, sin_add, two_mul, add_mul, mul_comm]
 
 lemma cos_sq : cos x ^ 2 = 1 / 2 + cos (2 * x) / 2 :=
-by simp [cos_two_mul, div_add_div_same, mul_div_cancel_left, two_ne_zero', -one_div]
+by simp [cos_two_mul, div_add_div_same, mul_div_cancel_left, two_ne_zero'', -one_div]
 
 lemma cos_sq' : cos x ^ 2 = 1 - sin x ^ 2 :=
 by rw [←sin_sq_add_cos_sq x, add_sub_cancel']
@@ -1077,7 +1077,7 @@ by rw ← of_real_inj; simp [sin_three_mul]
 /-- The definition of `sinh` in terms of `exp`. -/
 lemma sinh_eq (x : ℝ) : sinh x = (exp x - exp (-x)) / 2 :=
 eq_div_of_mul_eq two_ne_zero $ by rw [sinh, exp, exp, complex.of_real_neg, complex.sinh, mul_two,
-    ← complex.add_re, ← mul_two, div_mul_cancel _ (two_ne_zero' : (2 : ℂ) ≠ 0), complex.sub_re]
+    ← complex.add_re, ← mul_two, div_mul_cancel _ (two_ne_zero'' : (2 : ℂ) ≠ 0), complex.sub_re]
 
 @[simp] lemma sinh_zero : sinh 0 = 0 := by simp [sinh]
 
@@ -1090,7 +1090,7 @@ by rw ← of_real_inj; simp [sinh_add]
 /-- The definition of `cosh` in terms of `exp`. -/
 lemma cosh_eq (x : ℝ) : cosh x = (exp x + exp (-x)) / 2 :=
 eq_div_of_mul_eq two_ne_zero $ by rw [cosh, exp, exp, complex.of_real_neg, complex.cosh, mul_two,
-    ← complex.add_re, ← mul_two, div_mul_cancel _ (two_ne_zero' : (2 : ℂ) ≠ 0), complex.add_re]
+    ← complex.add_re, ← mul_two, div_mul_cancel _ (two_ne_zero'' : (2 : ℂ) ≠ 0), complex.add_re]
 
 @[simp] lemma cosh_zero : cosh 0 = 1 := by simp [cosh]
 
@@ -1462,7 +1462,7 @@ lemma cos_bound {x : ℝ} (hx : |x| ≤ 1) :
 calc |cos x - (1 - x ^ 2 / 2)| = abs (complex.cos x - (1 - x ^ 2 / 2)) :
   by rw ← abs_of_real; simp [of_real_bit0, of_real_one, of_real_inv]
 ... = abs ((complex.exp (x * I) + complex.exp (-x * I) - (2 - x ^ 2)) / 2) :
-  by simp [complex.cos, sub_div, add_div, neg_div, div_self (@two_ne_zero' ℂ _ _ _)]
+  by simp [complex.cos, sub_div, add_div, neg_div, div_self (@two_ne_zero'' ℂ _ _ _)]
 ... = abs (((complex.exp (x * I) - ∑ m in range 4, (x * I) ^ m / m!) +
     ((complex.exp (-x * I) - ∑ m in range 4, (-x * I) ^ m / m!))) / 2) :
   congr_arg abs (congr_arg (λ x : ℂ, x / 2) begin
@@ -1487,7 +1487,7 @@ lemma sin_bound {x : ℝ} (hx : |x| ≤ 1) :
 calc |sin x - (x - x ^ 3 / 6)| = abs (complex.sin x - (x - x ^ 3 / 6)) :
   by rw ← abs_of_real; simp [of_real_bit0, of_real_one, of_real_inv]
 ... = abs (((complex.exp (-x * I) - complex.exp (x * I)) * I - (2 * x - x ^ 3 / 3)) / 2) :
-  by simp [complex.sin, sub_div, add_div, neg_div, mul_div_cancel_left _ (@two_ne_zero' ℂ _ _ _),
+  by simp [complex.sin, sub_div, add_div, neg_div, mul_div_cancel_left _ (@two_ne_zero'' ℂ _ _ _),
     div_div, show (3 : ℂ) * 2 = 6, by norm_num]
 ... = abs ((((complex.exp (-x * I) - ∑ m in range 4, (-x * I) ^ m / m!) -
     (complex.exp (x * I) - ∑ m in range 4, (x * I) ^ m / m!)) * I) / 2) :

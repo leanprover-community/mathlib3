@@ -75,7 +75,7 @@ function.left_inverse.injective rotation_of_rotation
 lemma linear_isometry.re_apply_eq_re_of_add_conj_eq (f : ℂ →ₗᵢ[ℝ] ℂ)
   (h₃ : ∀ z, z + conj z = f z + conj (f z)) (z : ℂ) : (f z).re = z.re :=
 by simpa [ext_iff, add_re, add_im, conj_re, conj_im, ←two_mul,
-         (show (2 : ℝ) ≠ 0, by simp [two_ne_zero'])] using (h₃ z).symm
+         (show (2 : ℝ) ≠ 0, by simp [two_ne_zero''])] using (h₃ z).symm
 
 lemma linear_isometry.im_apply_eq_im_or_neg_of_re_apply_eq_re {f : ℂ →ₗᵢ[ℝ] ℂ}
   (h₂ : ∀ z, (f z).re = z.re) (z : ℂ) :

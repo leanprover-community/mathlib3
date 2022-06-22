@@ -201,15 +201,8 @@ begin
   exact const_lt
 end
 
-protected theorem zero_lt_one : (0 : ℝ) < 1 :=
-by convert of_rat_lt.2 zero_lt_one; simp
-
-protected theorem mul_pos {a b : ℝ} : 0 < a → 0 < b → 0 < a * b :=
-begin
-  induction a using real.ind_mk with a,
-  induction b using real.ind_mk with b,
-  simpa only [mk_lt, mk_pos, ← mk_mul] using cau_seq.mul_pos
-end
+instance : zero_lt_one_class ℝ :=
+⟨by { convert of_rat_lt.2 zero_lt_one, simp }⟩
 
 instance : ordered_comm_ring ℝ :=
 { add_le_add_left :=
@@ -219,8 +212,12 @@ instance : ordered_comm_ring ℝ :=
     { simp },
     { exact λ c, or.inr ((add_lt_add_iff_left c).2 ‹_›) }
   end,
-  zero_le_one := le_of_lt real.zero_lt_one,
-  mul_pos     := @real.mul_pos,
+  zero_le_one := zero_le_one,
+  mul_pos     := λ a b, begin
+    induction a using real.ind_mk with a,
+    induction b using real.ind_mk with b,
+    simpa only [mk_lt, mk_pos, ← mk_mul] using cau_seq.mul_pos
+  end,
   .. real.comm_ring, .. real.partial_order, .. real.semiring }
 
 instance : ordered_ring ℝ               := by apply_instance

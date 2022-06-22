@@ -130,8 +130,8 @@ theorem eq_of_cmp_eq : ∀ {o₁ o₂}, cmp o₁ o₂ = ordering.eq → o₁ = o
   simp
 end
 
-theorem zero_lt_one : (0 : onote) < 1 :=
-by rw [lt_def, repr, repr_one]; exact zero_lt_one
+instance : zero_lt_one_class onote :=
+⟨by { rw [lt_def, repr, repr_one], exact zero_lt_one }⟩
 
 /-- `NF_below o b` says that `o` is a normal form ordinal notation
   satisfying `repr o < ω ^ b`. -/

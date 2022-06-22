@@ -293,12 +293,13 @@ example : no_max_order ℝ≥0 := by apply_instance
 
 /-- If `a` is a nonnegative real number, then the closed interval `[0, a]` in `ℝ` is order
 isomorphic to the interval `set.Iic a`. -/
-def order_iso_Icc_zero_coe (a : ℝ≥0) : set.Icc (0 : ℝ) a ≃o set.Iic a :=
-{ to_fun := λ x, ⟨⟨x, x.2.1⟩, x.2.2⟩,
-  inv_fun := λ x, ⟨x, x.1.2, x.2⟩,
-  left_inv := λ x, subtype.ext rfl,
-  right_inv := λ x, by simp,
+@[simps apply_coe_coe] def order_iso_Icc_zero_coe (a : ℝ≥0) : set.Icc (0 : ℝ) a ≃o set.Iic a :=
+{ to_equiv := equiv.set.sep (set.Ici 0) (λ x, x ≤ a),
   map_rel_iff' := λ x y, iff.rfl }
+
+@[simp] lemma order_iso_Icc_zero_coe_symm_apply_coe (a : ℝ≥0) (b : set.Iic a) :
+  ((order_iso_Icc_zero_coe a).symm b : ℝ) = b :=
+rfl
 
 -- note we need the `@` to make the `has_mem.mem` have a sensible type
 lemma coe_image {s : set ℝ≥0} : coe '' s = {x : ℝ | ∃ h : 0 ≤ x, @has_mem.mem (ℝ≥0) _ _ ⟨x, h⟩ s} :=

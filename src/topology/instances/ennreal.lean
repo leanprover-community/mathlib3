@@ -38,7 +38,7 @@ instance : t2_space ℝ≥0∞ := by apply_instance -- short-circuit type class 
 instance : normal_space ℝ≥0∞ := normal_of_compact_t2
 
 instance : second_countable_topology ℝ≥0∞ :=
-order_iso_unit_interval.to_homeomorph.embedding.second_countable_topology
+order_iso_unit_interval_birational.to_homeomorph.embedding.second_countable_topology
 
 lemma embedding_coe : embedding (coe : ℝ≥0 → ℝ≥0∞) :=
 ⟨⟨begin

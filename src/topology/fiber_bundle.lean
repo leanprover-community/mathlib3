@@ -1052,20 +1052,31 @@ end
 @[simp, mfld_simps] lemma local_triv_apply (p : Z.total_space) :
   (Z.local_triv i) p = ⟨p.1, Z.coord_change (Z.index_at p.1) i p.1 p.2⟩ := rfl
 
+@[simp, mfld_simps] lemma local_triv_at_apply (p : Z.total_space) :
+  ((Z.local_triv_at p.1) p) = ⟨p.1, p.2⟩ :=
+by { rw [local_triv_at, local_triv_apply, coord_change_self], exact Z.mem_base_set_at p.1 }
+
+@[simp, mfld_simps] lemma local_triv_at_apply_mk (b : B) (a : F) :
+  ((Z.local_triv_at b) ⟨b, a⟩) = ⟨b, a⟩ :=
+Z.local_triv_at_apply _
+
 @[simp, mfld_simps] lemma mem_local_triv_source (p : Z.total_space) :
   p ∈ (Z.local_triv i).source ↔ p.1 ∈ (Z.local_triv i).base_set := iff.rfl
+
+@[simp, mfld_simps] lemma mem_local_triv_at_source (p : Z.total_space) (b : B) :
+  p ∈ (Z.local_triv_at b).source ↔ p.1 ∈ (Z.local_triv_at b).base_set := iff.rfl
 
 @[simp, mfld_simps] lemma mem_local_triv_target (p : B × F) :
   p ∈ (Z.local_triv i).target ↔ p.1 ∈ (Z.local_triv i).base_set :=
 trivialization.mem_target _
 
-@[simp, mfld_simps] lemma local_triv_symm_fst (p : B × F) :
+@[simp, mfld_simps] lemma mem_local_triv_at_target (p : B × F) (b : B) :
+  p ∈ (Z.local_triv_at b).target ↔ p.1 ∈ (Z.local_triv_at b).base_set :=
+trivialization.mem_target _
+
+@[simp, mfld_simps] lemma local_triv_symm_apply (p : B × F) :
   (Z.local_triv i).to_local_homeomorph.symm p =
     ⟨p.1, Z.coord_change i (Z.index_at p.1) p.1 p.2⟩ := rfl
-
-@[simp, mfld_simps] lemma local_triv_at_apply (b : B) (a : F) :
-  ((Z.local_triv_at b) ⟨b, a⟩) = ⟨b, a⟩ :=
-by { rw [local_triv_at, local_triv_apply, coord_change_self], exact Z.mem_base_set_at b }
 
 @[simp, mfld_simps] lemma mem_local_triv_at_base_set (b : B) :
   b ∈ (Z.local_triv_at b).base_set :=

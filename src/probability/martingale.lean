@@ -504,7 +504,7 @@ begin
   refine submartingale_of_condexp_sub_nonneg_nat hadp hint (λ i, _),
   simp only [← finset.sum_Ico_eq_sub _ (nat.le_succ _), finset.sum_apply, pi.mul_apply,
     pi.sub_apply, nat.Ico_succ_singleton, finset.sum_singleton],
-  exact eventually_le.trans (eventually.mul_nonneg (eventually_of_forall (hnonneg _))
+  exact eventually_le.trans (eventually_le.mul_nonneg (eventually_of_forall (hnonneg _))
     (hf.condexp_sub_nonneg (nat.le_succ _))) (condexp_measurable_mul (hξ _)
     ((hf.integrable _).sub (hf.integrable _)) (((hf.integrable _).sub (hf.integrable _)).bdd_mul
     (hξbdd _))).symm.le,

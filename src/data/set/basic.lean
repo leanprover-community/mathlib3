@@ -689,7 +689,7 @@ theorem insert_union : insert a s ∪ t = insert a (s ∪ t) := ext $ λ x, or.a
 
 @[simp] theorem union_insert : s ∪ insert a t = insert a (s ∪ t) := ext $ λ x, or.left_comm
 
-@[simp] lemma insert_nonempty (a : α) (s : set α) : (insert a s).nonempty := ⟨a, or.inl rfl⟩
+@[simp] theorem insert_nonempty (a : α) (s : set α) : (insert a s).nonempty := ⟨a, or.inl rfl⟩
 
 instance (a : α) (s : set α) : nonempty (insert a s : set α) := (insert_nonempty a s).to_subtype
 

@@ -460,28 +460,29 @@ lemma eq_iff_nonunits {A B : valuation_subring K} :
 nonunits_injective.eq_iff.symm
 
 /-- `A.nonunits` agrees with the maximal ideal of `A`. -/
-def maximal_ideal_equiv : A.nonunits ≃ local_ring.maximal_ideal A :=
+def nonunits_equiv_maximal_ideal : A.nonunits ≃ local_ring.maximal_ideal A :=
 { to_fun := λ a, ⟨⟨a,(A.valuation_le_one_iff _).1 (le_of_lt a.2)⟩,(A.valuation_lt_one_iff _).2 a.2⟩,
   inv_fun := λ a, ⟨a,(A.valuation_lt_one_iff _).1 a.2⟩,
   left_inv := λ a, by { ext, refl },
   right_inv := λ a, by { ext, refl } }
 
 @[simp]
-lemma coe_maximal_ideal_equiv_apply (a : A.nonunits) :
-  (A.maximal_ideal_equiv a : K) = a := rfl
+lemma coe_nonunits_equiv_maximal_ideal_apply (a : A.nonunits) :
+  (A.nonunits_equiv_maximal_ideal a : K) = a := rfl
 
 @[simp]
-lemma coe_maximal_ideal_equiv_symm_apply (a : local_ring.maximal_ideal A) :
-  (A.maximal_ideal_equiv.symm a : K) = a := rfl
+lemma coe_nonunits_equiv_maximal_ideal_symm_apply (a : local_ring.maximal_ideal A) :
+  (A.nonunits_equiv_maximal_ideal.symm a : K) = a := rfl
 
 @[simp]
-lemma maximal_ideal_equiv_map_mul (a b : A.nonunits) :
-  A.maximal_ideal_equiv (a * b) = (A.maximal_ideal_equiv a : A) • A.maximal_ideal_equiv b := rfl
+lemma nonunits_equiv_maximal_ideal_map_mul (a b : A.nonunits) :
+  A.nonunits_equiv_maximal_ideal (a * b) =
+  (A.nonunits_equiv_maximal_ideal a : A) • A.nonunits_equiv_maximal_ideal b := rfl
 
 @[simp]
-lemma maximal_ideal_equiv_symm_map_smul (a b : local_ring.maximal_ideal A) :
-  A.maximal_ideal_equiv.symm ((a : A) • b) =
-  A.maximal_ideal_equiv.symm a * A.maximal_ideal_equiv.symm b := rfl
+lemma nonunits_equiv_maximal_ideal_symm_map_smul (a b : local_ring.maximal_ideal A) :
+  A.nonunits_equiv_maximal_ideal.symm ((a : A) • b) =
+  A.nonunits_equiv_maximal_ideal.symm a * A.nonunits_equiv_maximal_ideal.symm b := rfl
 
 end nonunits
 

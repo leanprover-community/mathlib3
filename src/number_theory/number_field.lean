@@ -211,7 +211,7 @@ begin
       exact ha,
       refine polynomial.monic.ne_zero _,
       exact polynomial.monic.map (algebra_map ℚ A) (minpoly.monic hx), },
-    let ψ : Qx →+* A := adjoin_root.lift (algebra_map ℚ A) a hA,
+    let ψ : Qx →+* A := by convert adjoin_root.lift (algebra_map ℚ A) a hA,
     letI : algebra Qx A := ring_hom.to_algebra ψ,
     letI : algebra Qx K := ring_hom.to_algebra (adjoin_root.lift (algebra_map ℚ K) x hK),
     let φ₀ : K →ₐ[Qx] A := is_alg_closed.lift _,

@@ -294,7 +294,8 @@ meta def resolve_sum_step (pows : bool) : expr → tactic unit
 | `(polynomial.nat_degree %%tl ≤ %%tr) := do `(@polynomial %%R %%inst) ← infer_type tl,
   match tl with
   | `(%%tl1 + %%tl2) := do
-      refine ``((polynomial.nat_degree_add_le_iff_left (%%tl1 : polynomial %%R) (%%tl2 : polynomial %%R) _).mpr _)
+      refine ``((polynomial.nat_degree_add_le_iff_left
+        (%%tl1 : polynomial %%R) (%%tl2 : polynomial %%R) _).mpr _)
   | `(%%tl1 - %%tl2) := do
       refine ``((polynomial.nat_degree_sub_le_iff_left _ _ _).mpr _)
   | `(%%tl1 * %%tl2) := do
@@ -434,7 +435,8 @@ do `(%%a + %%b ≠ 0) ← target,
 --    trace "*****************************",
 --    trace small_deg,
 --  (ne::rest) ← summ.mfilter
---    (λ e, do de ← guess_degree e, nd ← eval_guessing 0 de, return (nd < tar_deg : bool)) | trace "nonono",
+--    (λ e, do de ← guess_degree e, nd ← eval_guessing 0 de, return (nd < tar_deg : bool)) |
+--       trace "nonono",
 --    trace ne,
 --  remove_one_coeff ne
 --  trace small_deg,
@@ -538,8 +540,10 @@ do try $ ( refine ``((polynomial.degree_eq_iff_nat_degree_eq_of_pos _).mpr _) >>
 --  target >>= trace,
    --try $
 --    `[ simp [ polynomial.coeff_one ]],
-     try $ any_goals' `[ simp only [polynomial.coeff_C, polynomial.coeff_mul_X_pow', polynomial.coeff_monomial, polynomial.coeff_bit0_mul, polynomial.coeff_bit1_mul, polynomial.coeff_neg,
-    zero_add, add_zero, polynomial.coeff_one, zero_eq_bit0, bit0_eq_zero, if_false, neg_zero', add_zero, one_ne_zero, not_false_iff] ],
+     try $ any_goals' `[ simp only [polynomial.coeff_C, polynomial.coeff_mul_X_pow',
+      polynomial.coeff_monomial, polynomial.coeff_bit0_mul, polynomial.coeff_bit1_mul,
+      polynomial.coeff_neg, zero_add, add_zero, polynomial.coeff_one, zero_eq_bit0, bit0_eq_zero,
+      if_false, neg_zero', add_zero, one_ne_zero, not_false_iff] ],
   try $ any_goals' `[ norm_num ],
 --  gs ← get_goals,
 --  gt ← gs.mmap infer_type,
@@ -564,8 +568,10 @@ do try $ ( refine ``((polynomial.degree_eq_iff_nat_degree_eq_of_pos _).mpr _) >>
   guard (deg = degvn) <|>
   ( do ppe ← pp deg, ppg ← pp degvn,
     fail sformat!("'{ppe}' is the expected degree\n" ++ "'{ppg}' is the given degree\n") ),
-  ad ← to_expr ``(@has_add.add (@polynomial %%R %%inst) (infer_instance : has_add (@polynomial %%R %%inst) )) tt ff,
---  ad ← to_expr ``(has_add.add : (@polynomial %%R %%inst) → (@polynomial %%R %%inst) → (@polynomial %%R %%inst)) tt ff,
+  ad ← to_expr ``(@has_add.add (@polynomial %%R %%inst)
+    (infer_instance : has_add (@polynomial %%R %%inst) )) tt ff,
+--  ad ← to_expr ``(has_add.add :
+--    (@polynomial %%R %%inst) → (@polynomial %%R %%inst) → (@polynomial %%R %%inst)) tt ff,
   summ ← list_binary_operands ad pol,
   --let top_degs := prod.mk tt <$> (summ.filter (λ t, guess_degree_to_nat t = deg)).map to_pexpr,
   --let iters := summ.length - top_degs.length,
@@ -676,7 +682,8 @@ match args with
 --  rewrite_target toph
 --  rewrite_target neq
   --trace prf
---  let rest := summands.filter (λ e : expr, e ∈ args.mfilter (λ g : expr, succeeds $ unify e g)), trace rest
+--  let rest := summands.filter (λ e : expr, e ∈ args.mfilter (λ g : expr, succeeds $ unify e g)),
+--   trace rest
 
 --  rest ← summands.mfilter (λ f, succeeds $ unify f a), trace rest
 end
@@ -761,3 +768,4 @@ add_tactic_doc
 end interactive
 
 end tactic
+ u

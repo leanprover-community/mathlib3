@@ -416,8 +416,7 @@ begin
 end
 
 /-- `is_unit x` is decidable if we can decide if `x` comes from `Mˣ`. -/
-instance [monoid M] (x : M) : Π [decidable (∃ u : Mˣ, ↑u = x)], decidable (is_unit x) :=
-id
+instance [monoid M] (x : M) [h : decidable (∃ u : Mˣ, ↑u = x)] : decidable (is_unit x) := h
 
 section monoid
 variables [monoid M] {a b c : M}

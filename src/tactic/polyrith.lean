@@ -21,7 +21,6 @@ it can only be used with a working internet connection, and with a local install
 
 ## Notation
 * This file uses the local notation `exmap` for `list (expr × ℕ)`.
-* This file uses the local notation `reduc` for `transparency.reducible`.
 
 ## Implementation Notes
 
@@ -370,8 +369,6 @@ from the context (and from the list of hypotheses and proof terms specified by t
 and converts them into `poly` objects.
 -/
 
-local notation `reduc` := transparency.reducible
-
 /--
 A tactic that takes an `expr`, and, if it is an equality of the
 form `lhs = rhs`, returns the expr given by `lhs - rhs`-/
@@ -391,7 +388,7 @@ meta def parse_target_to_poly : tactic (exmap × poly × expr) :=
 do
   e@`(@eq %%R _ _) ← target,
   left_side ← equality_to_left_side e,
-  (m, p) ← poly_form_of_expr reduc [] left_side,
+  (m, p) ← poly_form_of_expr transparency.reducible [] left_side,
   return (m, p, R)
 
 /--
@@ -404,7 +401,7 @@ of the list.
 meta def fold_function: (exmap × list poly) → expr → tactic (exmap × list poly)
 | (m, poly_list) new_exp :=
 do
-  (m', new_poly) ← poly_form_of_expr reduc m new_exp,
+  (m', new_poly) ← poly_form_of_expr transparency.reducible m new_exp,
   return (m', poly_list ++ [new_poly])
 
 /--

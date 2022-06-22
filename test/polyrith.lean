@@ -104,21 +104,34 @@ end
 /-!
 ### With trace enabled
 Here, the tactic will trace the command that gets sent to sage,
-and so the tactic will not succeed
+and so the tactic will not prove the goal. `linear_combination`
+is called manually to prevent errors.
 -/
 
 set_option trace.polyrith true
 
 example (x y : ℝ) (h1 : x + 2 = -3) (h2 : y = 10) :
   -y + 2*x + 4 = -16 :=
-by polyrith
+begin
+  polyrith,
+  linear_combination 2 * h1 - h2,
+end
 
 example (a b c : ℤ) (h1 : a = b) (h2 : b = 1) :
   c * a + b = c * b + 1 :=
-by polyrith
+begin
+  polyrith,
+  linear_combination c * h1 + h2,
+end
 
 example (a b c d : ℚ) (h : a + b = 0) (h2: b + c = 0): a + b + c + d = 0 :=
-by polyrith only [term c d, h]
+begin
+  polyrith only [term c d, h],
+  linear_combination term c d + h,
+end
 
 example (a b : ℚ) (h : ∀ p q : ℚ, p = q) : 3*a + qc = 3*b + 2*qc :=
-by polyrith [h a b, hqc]
+begin
+  polyrith [h a b, hqc],
+  linear_combination 3 * h a b + hqc,
+end

@@ -152,13 +152,12 @@ lemma map_esymm (n : ℕ) (f : R →+* S) : map f (esymm σ R n) = esymm σ S n 
 by simp_rw [esymm, map_sum, map_prod, map_X]
 
 lemma rename_esymm (n : ℕ) (e : σ ≃ τ) : rename e (esymm σ R n) = esymm τ R n :=
-begin
-  have : univ.map e.to_embedding = univ, { ext, simp },
-  simp_rw [esymm, map_sum, map_prod, rename_X, ←equiv.to_embedding_apply, ←finset.prod_map,
-    ←equiv.finset_congr_apply, ←equiv.to_embedding_apply,
-    ←finset.sum_map _ _ (λ x, finset.prod x (X : τ → mv_polynomial τ R)),
-    equiv.finset_congr_to_embedding, ←finset.powerset_len_map, this],
-end
+calc rename e (esymm σ R n)
+     = ∑ x in powerset_len n univ, ∏ i in x, X (e i)
+       : by simp_rw [esymm, map_sum, map_prod, rename_X]
+ ... = ∑ t in powerset_len n (univ.map e.to_embedding), ∏ i in t, X i
+       : by simp [finset.powerset_len_map]
+ ... = ∑ t in powerset_len n univ, ∏ i in t, X i : by rw finset.map_univ_equiv
 
 lemma esymm_is_symmetric (n : ℕ) : is_symmetric (esymm σ R n) :=
 by { intro, rw rename_esymm }

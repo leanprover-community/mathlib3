@@ -21,6 +21,16 @@ variables {α : Type u} {x y : ulift.{v} α}
 
 namespace ulift
 
+@[simp] lemma cast_nat_down [add_monoid_with_one α] :
+  ∀ (n : ℕ), (n : ulift α).down = n
+| 0 := rfl
+| (n + 1) := rfl
+
+@[simp] lemma cast_int_down [add_group_with_one α] :
+  ∀ (n : ℤ), (n : ulift α).down = n
+| (int.of_nat n) := rfl
+| -[1+ n] := rfl
+
 instance mul_zero_class [mul_zero_class α] : mul_zero_class (ulift α) :=
 by refine_struct { zero := (0 : ulift α), mul := (*), .. }; tactic.pi_instance_derive_field
 
@@ -104,8 +114,14 @@ by refine_struct { .. ulift.ring };
 tactic.pi_instance_derive_field
 
 instance field [field α] : field (ulift α) :=
-begin refine_struct { zero := (0 : ulift α), inv := has_inv.inv, div := has_div.div,
-  zpow := λ n a, ulift.up (a.down ^ n),
+begin
+  have of_rat_mk : ∀ a b h1 h2, ulift.up (field.of_rat ⟨a, b, h1, h2⟩ : α) = ↑a * (↑b)⁻¹,
+  { intros a b h1 h2,
+    ext,
+    rw [field.of_rat_mk', mul_down, inv_down, cast_nat_down, cast_int_down] },
+  refine_struct { zero := (0 : ulift α), inv := has_inv.inv, div := has_div.div,
+  zpow := λ n a, ulift.up (a.down ^ n), of_rat := λ a, ulift.up (field.of_rat a),
+  of_rat_mk' := of_rat_mk, qsmul := λ a b, ulift.up (field.qsmul a b.down),
   .. @ulift.nontrivial α _, .. ulift.comm_ring }; tactic.pi_instance_derive_field,
   -- `mul_inv_cancel` requires special attention: it leaves the goal `∀ {a}, a ≠ 0 → a * a⁻¹ = 1`.
   cases a,

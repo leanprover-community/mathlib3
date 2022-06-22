@@ -271,7 +271,7 @@ begin
   { simp },
   nth_rewrite 0 [←nat.factorization_prod_pow_eq_self hn],
   rw [finsupp.prod, nat.cast_prod, log_prod _ _ (λ p hp, _), finsupp.sum],
-  simp_rw [nat.cast_pow, log_pow],
+  { simp_rw [nat.cast_pow, log_pow] },
   { norm_cast,
     exact pow_ne_zero _ (nat.prime_of_mem_factorization hp).ne_zero },
 end

@@ -12,7 +12,7 @@ import algebra.order.field
 
 Some results on integer powers of elements of a linear ordered field.
 These results are in their own file because they depend both on
-`linear_ordered_field` and on `zpow`; neither should be obviously
+`linear_ordered_field` and on the API for `zpow`; neither should be obviously
 an ancestor of the other.
 -/
 

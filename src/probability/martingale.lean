@@ -241,7 +241,24 @@ hf.sub_supermartingale hg.supermartingale
 
 end submartingale
 
-section
+section temp
+
+variables {m : measurable_space α} {ξ ζ : α → ℝ}
+
+lemma condexp_measurable_mul
+  (hξm : strongly_measurable[m] ξ) (hζ : integrable ζ μ)
+  -- (hξ : integrable ξ μ) hopefully won't need this
+  (hζξ : integrable (ξ * ζ) μ) :
+  μ[ξ * ζ | m] =ᵐ[μ] ξ * μ[ζ | m] :=
+sorry
+
+lemma integrable.bdd_mul (hζ : integrable ζ μ) (hξ : ∃ C, ∀ x, |ξ x| ≤ C) :
+  integrable (ξ * ζ) μ :=
+sorry
+
+end temp
+
+section submartingale
 
 lemma submartingale_of_set_integral_le [is_finite_measure μ]
   {f : ι → α → ℝ} (hadp : adapted ℱ f) (hint : ∀ i, integrable (f i) μ)
@@ -263,6 +280,30 @@ begin
     integral_sub' integrable_condexp.integrable_on (hint i).integrable_on, sub_nonneg,
     set_integral_condexp (ℱ.le i) (hint j) hs],
 end
+
+lemma submartingale_of_condexp_sub_nonneg [is_finite_measure μ]
+  {f : ι → α → ℝ} (hadp : adapted ℱ f) (hint : ∀ i, integrable (f i) μ)
+  (hf : ∀ i j, i ≤ j → 0 ≤ᵐ[μ] μ[f j - f i| ℱ i]) :
+  submartingale f ℱ μ :=
+begin
+  refine ⟨hadp, λ i j hij, _, hint⟩,
+  rw [← condexp_of_strongly_measurable (ℱ.le _) (hadp _) (hint _), eventually_le_iff_sub_nonneg],
+  exact eventually_le.trans (hf i j hij) (condexp_sub (hint _) (hint _)).le,
+  apply_instance
+end
+
+lemma submartingale.condexp_sub_nonneg [is_finite_measure μ]
+  {f : ι → α → ℝ} (hf : submartingale f ℱ μ) {i j : ι} (hij : i ≤ j) :
+  0 ≤ᵐ[μ] μ[f j - f i| ℱ i] :=
+begin
+  refine eventually_le.trans _ (condexp_sub (hf.integrable _) (hf.integrable _)).symm.le,
+  rw ← eventually_le_iff_sub_nonneg,
+  rw condexp_of_strongly_measurable (ℱ.le _) (hf.adapted _) (hf.integrable _),
+  exact hf.2.1 i j hij,
+  apply_instance
+end
+
+end submartingale
 
 namespace supermartingale
 
@@ -356,6 +397,17 @@ begin
   exact set_integral_mono_ae (hint i).integrable_on integrable_condexp.integrable_on (hf i),
 end
 
+lemma submartingale_of_condexp_sub_nonneg_nat [is_finite_measure μ]
+  {f : ℕ → α → ℝ} (hadp : adapted 𝒢 f) (hint : ∀ i, integrable (f i) μ)
+  (hf : ∀ i, 0 ≤ᵐ[μ] μ[f (i + 1) - f i | 𝒢 i]) :
+  submartingale f 𝒢 μ :=
+begin
+  refine submartingale_nat hadp hint (λ i, _),
+  rw [← condexp_of_strongly_measurable (𝒢.le _) (hadp _) (hint _), eventually_le_iff_sub_nonneg],
+  exact eventually_le.trans (hf i) (condexp_sub (hint _) (hint _)).le,
+  apply_instance
+end
+
 namespace submartingale
 
 lemma integrable_stopped_value [has_le E] {f : ℕ → α → E} (hf : submartingale f 𝒢 μ) {τ : α → ℕ}
@@ -428,6 +480,35 @@ lemma submartingale_iff_expected_stopped_value_mono [is_finite_measure μ]
     μ[stopped_value f τ] ≤ μ[stopped_value f π] :=
 ⟨λ hf _ _ hτ hπ hle ⟨N, hN⟩, hf.expected_stopped_value_mono hτ hπ hle hN,
  submartingale_of_expected_stopped_value_mono hadp hint⟩
+
+lemma submartingale.sum_mul_sub [is_finite_measure μ] {ξ f : ℕ → α → ℝ}
+  (hf : submartingale f 𝒢 μ) (hξ : adapted 𝒢 (λ n, ξ (n + 1)))
+  (hbdd : ∃ R, ∀ n x, ξ n x ≤ R) (hnonneg : ∀ n x, 0 ≤ ξ n x) :
+  submartingale (λ n : ℕ, ∑ k in finset.range n, ξ (k + 1) * (f (k + 1) - f k)) 𝒢 μ :=
+begin
+  have hξbdd : ∀ i, ∃ (C : ℝ), ∀ (x : α), |ξ (i + 1) x| ≤ C,
+  { obtain ⟨C, hC⟩ := hbdd,
+    intro i,
+    refine ⟨C, λ x, abs_le.2 ⟨le_trans (neg_le.1 (le_trans _ (hC 0 x))) (hnonneg _ _), hC _ _⟩⟩,
+    rw neg_zero,
+    exact hnonneg 0 x },
+  have hint : ∀ m, integrable (∑ k in finset.range m, ξ (k + 1) * (f (k + 1) - f k)) μ :=
+    λ m, integrable_finset_sum' _
+      (λ i hi, integrable.bdd_mul ((hf.integrable _).sub (hf.integrable _)) (hξbdd _)),
+  have hadp : adapted 𝒢 (λ (n : ℕ), ∑ (k : ℕ) in finset.range n, ξ (k + 1) * (f (k + 1) - f k)),
+  { intro m,
+    refine finset.strongly_measurable_sum' _ (λ i hi, _),
+    rw finset.mem_range at hi,
+    exact (hξ.measurable hi.le).mul
+      ((hf.adapted.measurable (nat.succ_le_of_lt hi)).sub (hf.adapted.measurable hi.le)) },
+  refine submartingale_of_condexp_sub_nonneg_nat hadp hint (λ i, _),
+  simp only [← finset.sum_Ico_eq_sub _ (nat.le_succ _), finset.sum_apply, pi.mul_apply,
+    pi.sub_apply, nat.Ico_succ_singleton, finset.sum_singleton],
+  exact eventually_le.trans (eventually.mul_nonneg (eventually_of_forall (hnonneg _))
+    (hf.condexp_sub_nonneg (nat.le_succ _))) (condexp_measurable_mul (hξ _)
+    ((hf.integrable _).sub (hf.integrable _)) (((hf.integrable _).sub (hf.integrable _)).bdd_mul
+    (hξbdd _))).symm.le,
+end
 
 end nat
 

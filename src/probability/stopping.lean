@@ -243,6 +243,10 @@ lemma smul [has_scalar ℝ β] [has_continuous_smul ℝ β] (c : ℝ) (hu : adap
   adapted f (c • u) :=
 λ i, (hu i).const_smul c
 
+lemma measurable {i j : ι} (hf : adapted f u) (hij : i ≤ j) :
+  strongly_measurable[f j] (u i) :=
+strongly_measurable.mono (hf i) (f.mono hij)
+
 end adapted
 
 variable (β)

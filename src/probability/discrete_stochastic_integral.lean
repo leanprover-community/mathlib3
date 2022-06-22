@@ -117,11 +117,10 @@ begin
   refine submartingale_of_condexp_sub_nonneg_nat hadp hint (λ i, _),
   simp only [← finset.sum_Ico_eq_sub _ (nat.le_succ _), finset.sum_apply, pi.mul_apply,
     pi.sub_apply, nat.Ico_succ_singleton, finset.sum_singleton],
-  have : μ[ξ (i + 1) * (f (i + 1) - f i)|ℱ i] =ᵐ[μ] ξ (i + 1) * μ[f (i + 1) - f i|ℱ i] :=
-    condexp_measurable_mul (hξ _) ((hf.integrable _).sub (hf.integrable _))
-      (((hf.integrable _).sub (hf.integrable _)).bdd_mul (hξbdd _)),
   exact eventually_le.trans (eventually.mul_nonneg (eventually_of_forall (hnonneg _))
-    (hf.condexp_sub_nonneg (nat.le_succ _))) this.symm.le,
+    (hf.condexp_sub_nonneg (nat.le_succ _))) (condexp_measurable_mul (hξ _)
+    ((hf.integrable _).sub (hf.integrable _)) (((hf.integrable _).sub (hf.integrable _)).bdd_mul
+    (hξbdd _))).symm.le,
 end
 
 end measure_theory

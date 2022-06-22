@@ -2830,13 +2830,13 @@ end int
 
 namespace rat
 
-@[simp, norm_cast] lemma cast_finsupp_prod [division_ring R] (g : α → M → ℚ) :
-  (↑(f.prod g) : R) = f.prod (λ a b, g a b) :=
-cast_prod _ _
-
-@[simp, norm_cast] lemma cast_finsupp_sum [field R] (g : α → M → ℚ) :
+@[simp, norm_cast] lemma cast_finsupp_sum [division_ring R] [char_zero R] (g : α → M → ℚ) :
   (↑(f.sum g) : R) = f.sum (λ a b, g a b) :=
 cast_sum _ _
+
+@[simp, norm_cast] lemma cast_finsupp_prod [field R] [char_zero R] (g : α → M → ℚ) :
+  (↑(f.prod g) : R) = f.prod (λ a b, g a b) :=
+cast_prod _ _
 
 end rat
 end cast_finsupp

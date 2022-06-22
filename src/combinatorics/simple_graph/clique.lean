@@ -159,7 +159,8 @@ alias clique_set_eq_empty_iff ↔ _ simple_graph.clique_free.clique_set
 
 attribute [protected] clique_free.clique_set
 
-lemma clique_set_mono (h : G ≤ H) : G.clique_set n ⊆ H.clique_set n := λ _, is_n_clique.mono h
+@[mono] lemma clique_set_mono (h : G ≤ H) : G.clique_set n ⊆ H.clique_set n :=
+λ _, is_n_clique.mono h
 
 end clique_set
 
@@ -186,7 +187,7 @@ attribute [protected] clique_free.clique_finset
 
 variables {G} [decidable_rel H.adj]
 
-lemma clique_finset_mono (h : G ≤ H) : G.clique_finset n ⊆ H.clique_finset n :=
+@[mono] lemma clique_finset_mono (h : G ≤ H) : G.clique_finset n ⊆ H.clique_finset n :=
 monotone_filter_right _ $ λ _, is_n_clique.mono h
 
 end clique_finset

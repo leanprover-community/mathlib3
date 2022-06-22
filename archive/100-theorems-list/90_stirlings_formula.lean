@@ -49,7 +49,7 @@ noncomputable def log_stirling_seq (n : ℕ) : ℝ := log (stirling_seq n)
 We have the expression
 `log_stirling_seq (n + 1) = log(n + 1)! - 1 / 2 * log(2 * n) - n * log ((n + 1) / e)`.
 -/
-lemma log_stirling_seq_formula (n : ℕ): log_stirling_seq n.succ = log n.succ.factorial -
+lemma log_stirling_seq_formula (n : ℕ) : log_stirling_seq n.succ = log n.succ.factorial -
   1 / 2 * log (2 * n.succ) - n.succ * log (n.succ / exp 1) :=
 begin
   have h3, from sqrt_ne_zero'.mpr (mul_pos two_pos $ cast_pos.mpr (succ_pos n)),
@@ -75,7 +75,7 @@ begin
   change
     has_sum ((λ b : ℕ, 1 / (2 * (b : ℝ) + 1) * ((1 / (2 * m.succ + 1)) ^ 2) ^ b) ∘ succ) _,
   rw has_sum_nat_add_iff 1,
-  convert (power_series_log_succ_div (cast_pos.mpr (succ_pos m))).mul_left
+  convert (power_series_log_succ_div m.succ (cast_pos.mpr $ succ_pos m)).mul_left
     ((m.succ : ℝ) + 1 / 2),
   { ext k,
     rw [← pow_mul, pow_add],
@@ -84,8 +84,8 @@ begin
     field_simp,
     ring },
   { have h_reorder : ∀ {a b c d e f : ℝ}, a - 1 / 2 * b - c - (d - 1 / 2 * e - f) =
-      (a - d) - 1 / 2  * (b - e) - (c - f),
-    by {intros, ring_nf},
+      (a - d) - 1 / 2  * (b - e) - (c - f), by
+    { intros, ring_nf },
     rw [log_stirling_seq_formula, log_stirling_seq_formula, h_reorder],
     repeat {rw [log_div, factorial_succ]},
     push_cast,
@@ -93,10 +93,11 @@ begin
     rw log_exp,
     ring_nf,
     all_goals {norm_cast},
+    { rw [range_one, sum_singleton, mul_zero, zero_add, cast_one, pow_zero, one_mul, inv_one,
+        sub_self, add_zero] },
     all_goals {try {refine mul_ne_zero _ _}, try {exact succ_ne_zero _}},
     any_goals {exact factorial_ne_zero m},
-    any_goals {exact exp_ne_zero 1},
-    simp },
+    any_goals {exact exp_ne_zero 1} },
   { apply_instance }
 end
 
@@ -118,15 +119,14 @@ end
 /--
 We have the bound  `log_stirling_seq n - log_stirling_seq (n+1) ≤ 1/(2n+1)^2* 1/(1-(1/2n+1)^2)`.
 -/
-lemma log_stirling_seq_diff_le_geo_sum : ∀ (n : ℕ),
+lemma log_stirling_seq_diff_le_geo_sum (n : ℕ) :
   log_stirling_seq n.succ - log_stirling_seq n.succ.succ ≤
   (1 / (2 * n.succ + 1)) ^ 2 / (1 - (1 / (2 * n.succ + 1)) ^ 2) :=
 begin
-  intro n,
-  have h_nonneg : 0 ≤ ((1 / (2 * (n.succ : ℝ) + 1)) ^ 2),
-  by { rw [cast_succ, one_div, inv_pow, inv_nonneg], norm_cast, exact zero_le', },
+  have h_nonneg : 0 ≤ ((1 / (2 * (n.succ : ℝ) + 1)) ^ 2), by
+  { rw [cast_succ, one_div, inv_pow, inv_nonneg], norm_cast, exact zero_le', },
   have g : has_sum (λ k : ℕ, ((1 / (2 * (n.succ : ℝ) + 1)) ^ 2) ^ k.succ)
-    ((1 / (2 * n.succ + 1)) ^ 2 / (1 - (1 / (2 * n.succ + 1)) ^ 2)),
+    ((1 / (2 * n.succ + 1)) ^ 2 / (1 - (1 / (2 * n.succ + 1)) ^ 2)), by
   { have h_pow_succ := λ k : ℕ,
       symm (pow_succ ((1 / (2 * ((n : ℝ) + 1) + 1)) ^ 2) k),
     have hlt : (1 / (2 * (n.succ : ℝ) + 1)) ^ 2 < 1, by
@@ -136,13 +136,12 @@ begin
       simp only [nat.one_lt_pow_iff, ne.def, zero_eq_bit0, nat.one_ne_zero, not_false_iff,
         lt_add_iff_pos_left, canonically_ordered_comm_semiring.mul_pos, succ_pos', and_self], },
     exact (has_sum_geometric_of_lt_1 h_nonneg hlt).mul_left ((1 / (2 * (n.succ : ℝ) + 1)) ^ 2) },
-  have hab :
-    ∀ (k : ℕ), (1 / (2 * (k.succ : ℝ) + 1)) * ((1 / (2 * n.succ + 1)) ^ 2) ^ k.succ ≤
-    ((1 / (2 * n.succ + 1)) ^ 2) ^ k.succ,
+  have hab : ∀ (k : ℕ), (1 / (2 * (k.succ : ℝ) + 1)) * ((1 / (2 * n.succ + 1)) ^ 2) ^ k.succ ≤
+    ((1 / (2 * n.succ + 1)) ^ 2) ^ k.succ, by
   { intro k,
     have h_zero_le : 0 ≤ ((1 / (2 * (n.succ : ℝ) + 1)) ^ 2) ^ k.succ := pow_nonneg h_nonneg _,
     have h_left : 1 / (2 * (k.succ : ℝ) + 1) ≤ 1, by
-    { simp only [cast_succ, one_div],
+    { rw [cast_succ, one_div],
       refine inv_le_one _,
       norm_cast,
       exact (le_add_iff_nonneg_left 1).mpr zero_le', },
@@ -174,16 +173,16 @@ end
 
 /-- For any `n`, we have `log_stirling_seq 1 - log_stirling_seq n ≤ 1/4 * ∑' 1/k^2`  -/
 lemma log_stirling_seq_bounded_aux : ∃ (c : ℝ), ∀ (n : ℕ),
-log_stirling_seq 1 - log_stirling_seq n.succ ≤ c :=
+  log_stirling_seq 1 - log_stirling_seq n.succ ≤ c :=
 begin
-  let d := ∑' k : ℕ, (1 : ℝ) / (k.succ)^2,
+  let d := ∑' k : ℕ, (1 : ℝ) / k.succ ^ 2,
   use (1 / 4 * d : ℝ),
   let log_stirling_seq' : ℕ → ℝ := λ k : ℕ, log_stirling_seq k.succ,
   intro n,
   calc
   log_stirling_seq 1 - log_stirling_seq n.succ = log_stirling_seq' 0 - log_stirling_seq' n : rfl
-    ... = ∑ k in range n, (log_stirling_seq' k - log_stirling_seq' (k + 1)) :
-    by rw ← (sum_range_sub' log_stirling_seq' n)
+    ... = ∑ k in range n, (log_stirling_seq' k - log_stirling_seq' (k + 1)) : by
+      rw ← sum_range_sub' log_stirling_seq' n
     ... ≤ ∑ k in range n, (1/4) * (1 / k.succ^2) : by
     { apply sum_le_sum,
       intros k hk,
@@ -210,7 +209,7 @@ begin
 end
 
 /-- The sequence `stirling_seq` is positive for `n > 0`  -/
-lemma stirling_seq'_pos (n : ℕ): 0 < stirling_seq n.succ :=
+lemma stirling_seq'_pos (n : ℕ) : 0 < stirling_seq n.succ :=
 begin
   apply_rules [cast_pos.mpr, factorial_pos, exp_pos, pow_pos, div_pos, mul_pos, real.sqrt_pos.mpr,
     two_pos, succ_pos];
@@ -220,8 +219,7 @@ end
 /--
 The sequence `stirling_seq` has a positive lower bound (in fact, `exp (3/4 - 1/2 * log 2)`)
 -/
-lemma stirling_seq'_bounded_by_pos_constant :
-  ∃ a, 0 < a ∧ ∀ n : ℕ, a ≤ stirling_seq n.succ :=
+lemma stirling_seq'_bounded_by_pos_constant : ∃ a, 0 < a ∧ ∀ n : ℕ, a ≤ stirling_seq n.succ :=
 begin
   cases log_stirling_seq_bounded_by_constant with c h,
   refine ⟨exp c, exp_pos _, λ n, _⟩,

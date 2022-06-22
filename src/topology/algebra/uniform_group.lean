@@ -147,49 +147,36 @@ end subgroup
 
 section lattice_ops
 
-variables {ι : Sort*} [group α] [group β] {us : set (uniform_space α)}
-  (h : ∀ u ∈ us, @uniform_group α u _) {us' : ι → uniform_space α}
-  (h' : ∀ i, @uniform_group α (us' i) _) {u₁ u₂ : uniform_space α}
-  (h₁ : @uniform_group α u₁ _) (h₂ : @topological_group G t₂ _)
-  {t : topological_space H} [topological_group H] {F : Type*}
-  [monoid_hom_class F G H] (f : F)
+variables [group β]
 
-@[to_additive] lemma topological_group_Inf :
-  @topological_group G (Inf ts) _ :=
-{ continuous_inv := @has_continuous_inv.continuous_inv G (Inf ts) _
-    (@has_continuous_inv_Inf _ _ _
-      (λ t ht, @topological_group.to_has_continuous_inv G t _ (h t ht))),
-  continuous_mul := @has_continuous_mul.continuous_mul G (Inf ts) _
-    (@has_continuous_mul_Inf _ _ _
-      (λ t ht, @topological_group.to_has_continuous_mul G t _ (h t ht))) }
+@[to_additive] lemma uniform_group_Inf {us : set (uniform_space β)}
+  (h : ∀ u ∈ us, @uniform_group β u _) :
+  @uniform_group β (Inf us) _ :=
+{ uniform_continuous_div := uniform_continuous_Inf_rng (λ u hu, uniform_continuous_Inf_dom₂ hu hu
+  (@uniform_group.uniform_continuous_div β u _ (h u hu))) }
 
-include h'
+@[to_additive] lemma uniform_group_infi {ι : Sort*} {us' : ι → uniform_space β}
+  (h' : ∀ i, @uniform_group β (us' i) _) :
+  @uniform_group β (⨅ i, us' i) _ :=
+by {rw ← Inf_range, exact uniform_group_Inf (set.forall_range_iff.mpr h')}
 
-@[to_additive] lemma topological_group_infi :
-  @topological_group G (⨅ i, ts' i) _ :=
-by {rw ← Inf_range, exact topological_group_Inf (set.forall_range_iff.mpr h')}
+@[to_additive] lemma uniform_group_inf {u₁ u₂ : uniform_space β}
+  (h₁ : @uniform_group β u₁ _) (h₂ : @uniform_group β u₂ _) :
+  @uniform_group β (u₁ ⊓ u₂) _ :=
+by {rw inf_eq_infi, refine uniform_group_infi (λ b, _), cases b; assumption}
 
-omit h'
-
-include h₁ h₂
-
-@[to_additive] lemma topological_group_inf :
-  @topological_group G (t₁ ⊓ t₂) _ :=
-by {rw inf_eq_infi, refine topological_group_infi (λ b, _), cases b; assumption}
-
-omit h₁ h₂
-
-@[to_additive] lemma topological_group_induced :
-  @topological_group G (t.induced f) _ :=
-{ continuous_inv :=
+@[to_additive] lemma uniform_group_comap {γ : Type*} [group γ] {u : uniform_space γ}
+  [uniform_group γ] {F : Type*} [monoid_hom_class F β γ] (f : F) :
+  @uniform_group β (u.comap f) _ :=
+{ uniform_continuous_div :=
     begin
-      letI : topological_space G := t.induced f,
-      refine continuous_induced_rng _,
-      simp_rw [function.comp, map_inv],
-      exact continuous_inv.comp (continuous_induced_dom : continuous f)
-    end,
-  continuous_mul := @has_continuous_mul.continuous_mul G (t.induced f) _
-    (@has_continuous_mul_induced G H _ _ t _ _ _ f) }
+      letI : uniform_space β := u.comap f,
+      refine uniform_continuous_comap' _,
+      simp_rw [function.comp, map_div],
+      change uniform_continuous ((λ p : γ × γ, p.1 / p.2) ∘ (prod.map f f)),
+      exact uniform_continuous_div.comp
+        (uniform_continuous_comap.prod_map uniform_continuous_comap),
+    end }
 
 end lattice_ops
 

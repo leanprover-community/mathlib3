@@ -65,15 +65,8 @@ def polynomial_to_string(p):
     return poly_terms_string(out)
 '''
 
+# future extensions may change behavior depending on the base type
 def type_str(type):
-    # if type == "rat":
-    #     return "QQ"
-    # elif type == "int":
-    #     return "ZZ"
-    # elif type == "real":
-    #     return "RR"
-    # elif type == "complex":
-    #     return "CC"
     return "QQ"
 
 def var_names(var_list_string):

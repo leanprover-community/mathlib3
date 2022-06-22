@@ -15,9 +15,9 @@ This file includes `simp` lemmas for applying operations in `data.matrix.basic` 
 of the matrix notation `![a, b] = vec_cons a (vec_cons b vec_empty)` defined in
 `data.fin.vec_notation`.
 
-This also provides the new notation `!ₘ[a, b; c, d] = matrix.of ![![a, b], ![c, d]]`.
-This notation also works for empty matrices; `!ₘ[,,,] : matrix (fin 0) (fin 3)` and
-`!ₘ[;;;] : matrix (fin 3) (fin 0)`.
+This also provides the new notation `!![a, b; c, d] = matrix.of ![![a, b], ![c, d]]`.
+This notation also works for empty matrices; `!![,,,] : matrix (fin 0) (fin 3)` and
+`!![;;;] : matrix (fin 3) (fin 0)`.
 
 ## Implementation notes
 
@@ -28,8 +28,12 @@ already appears in the input.
 
 ## Notations
 
-We reuse notation `![a, b]` for `vec_cons a (vec_cons b vec_empty)`. It is a localized notation in
-the `matrix` locale.
+This file provide notation `!![a, b; c, d]` for matrices, which corresponds to
+`matrix.of ![![a, b], ![c, d]]`.
+A parser for `a, b; c, d`-style strings is provided as `matrix.entry_parser`, while
+`matrix.notation` provides the hook for the `!!` notation.
+Note that in lean 3 the pretty-printer will not show `!!` notation, instead showing the version
+with `matrix.of`.
 
 ## Examples
 
@@ -53,19 +57,17 @@ open interactive.types
 private meta def sep_by' {α : Type} : parser unit → parser α → parser (list α)
 | s p := do
   fst ← p,
-  s >> do {
-    rest ← sep_by' s p <|> pure ([]),
-    pure (fst :: rest)
-  } <|> pure [fst]
+  some () ← optional s | pure [fst],
+  some rest ← optional (sep_by' s p) | pure [fst],
+  pure (fst :: rest)
 
 /-- A version of `many` that requires at least one -/
 private meta def at_least_one {α : Type} (p : parser α) : parser (list α) :=
 list.cons <$> p <*> (many p)
 
-/-- Auxiliary parsing helper, returning a list of lists if the matrix has at least one row,
-or the number of columns if the matrix has zero rows. -/
+/-- Parse the entries of a matrix -/
 meta def entry_parser {α : Type} (p : parser α) :
-  parser (Σ m n, vector (vector α n) m) :=
+  parser (Σ m n, fin m → fin n → α) :=
 do
   -- a list of lists if the matrix has at least one row, or the number of columns if the matrix has
   -- zero rows.
@@ -79,66 +81,44 @@ do
   | (sum.inl l) := do
     h :: tl ← pure l,
     let n := h.length,
-    l : list (vector α n) ← tl.mmap (λ row,
+    l : list (vector α n) ← l.mmap (λ row,
       if h : row.length = n then
         pure (⟨row, h⟩ : vector α n)
       else
         interaction_monad.fail "Rows must be of equal length"),
-    pure ⟨l.length, n, ⟨l, rfl⟩⟩
+    pure ⟨l.length, n, λ i j, (l.nth_le _ i.prop).nth j⟩
   | (sum.inr n) :=
-    pure ⟨0, n, vector.nil⟩
+    pure ⟨0, n, fin_zero_elim⟩
   end
 
-reserve  notation `!ₘ[`
+meta instance matrix.entry_parser.has_reflect {α : Type} [has_reflect α] [reflected α] :
+  has_reflect (Σ (m n : ℕ), fin m → fin n → α) :=
+@sigma.reflect ℕ (λ m, Σ n, matrix (fin m) (fin n) α) _ _ _ $ λ i,
+  @sigma.reflect ℕ _ _ _ _ (λ j, infer_instance)
 
-meta instance sigma.reflect {α : Type*} (β : α → Type)
-  [reflected α] [reflected β] [hα : has_reflect α] [hβ : Π i, has_reflect (β i)] :
-  has_reflect (Σ a, β a) :=
-λ ⟨a, b⟩, (`(sigma.mk.{0 0}).subst (hα a)).subst (hβ _ b)
-
-
-meta instance sigma.reflect₂ {α β : Type} (γ : α → β → Type)
-  [reflected α] [reflected β] [reflected γ] [hα : has_reflect α] [hβ : has_reflect β]
-  [hγ : Π i j, has_reflect (γ i j)] :
-  has_reflect (Σ a b, γ a b) :=
-@sigma.reflect _ (λ a, Σ b, γ a b) _ _ _ $ λ a,
-  @sigma.reflect _ (λ b, γ a b) _ _ _ $ λ b, hγ a b
-
-meta instance foo : has_reflect (Σ m n, vector (vector pexpr n) m) :=
-@sigma.reflect ℕ (λ m, Σ n, vector (vector pexpr n) m) _ _ _ $ λ m : ℕ,
-  @sigma.reflect ℕ (λ n, vector (vector pexpr n) m) _ _ _ $ λ n, by apply_instance
+reserve  notation `!![`
 
 @[user_notation]
-meta def «notation» (_ : parse $ tk "!ₘ[")
-  (entries : parse (entry_parser (parser.pexpr 1))) : parser pexpr :=
--- | (sum.inl l) := do
---   let m := l.length,
---   h :: tl ← pure l,
---   let n := h.length,
---   tl.mfoldl (λ n row,
---     if row.length ≠ h.length then
---       interaction_monad.fail "Rows must of equal length"
---     else pure ()) (),
---   let rows := l.foldr (λ row m_out,
---     let row := row.foldr (λ xij row_out, ``(matrix.vec_cons %%xij %%row_out)) ``(![]) in
---     ``(matrix.vec_cons %%row %%m_out)) ``(![]) in
---   pure ``(@matrix.of (fin %%m) (fin %%n) _ %%rows)
--- | (sum.inr n) :=
---   pure ``(@matrix.of (fin 0) (fin %%n) _ (vec_empty))
-
-#exit
+meta def «notation» (_ : parse $ tk "!![")
+  (val : parse (entry_parser (parser.pexpr 1) <* tk "]")) : parser pexpr :=
+do
+  let ⟨m, n, entries⟩ := val,
+  let entry_vals := pi_fin.to_pexpr (pi_fin.to_pexpr ∘ entries),
+  pure (expr.app ``(@matrix.of (fin %%m) (fin %%n) _) entry_vals)
 
 end parser
+
+variables (a b : ℕ)
 
 /-- Use `![...]` notation for displaying a `fin`-indexed matrix, for example:
 
 ```
-#eval !ₘ[1, 2; 3, 4] + !ₘ[3, 4; 5, 6]  -- !ₘ[4, 6; 8, 10]
+#eval !![1, 2; 3, 4] + !![3, 4; 5, 6]  -- !![4, 6; 8, 10]
 ```
 -/
 instance [has_repr α] : has_repr (matrix (fin m) (fin n) α) :=
 { repr := λ f,
-  "!ₘ[" ++ (string.intercalate "; " $ (list.fin_range m).map $ λ i,
+  "!![" ++ (string.intercalate "; " $ (list.fin_range m).map $ λ i,
     string.intercalate ", " $ (list.fin_range n).map (λ j, repr (f i j)))  ++ "]" }
 
 @[simp] lemma cons_val' (v : n' → α) (B : fin m → n' → α) (i j) :
@@ -335,18 +315,18 @@ section one
 
 variables [has_zero α] [has_one α]
 
-lemma one_fin_two : (1 : matrix (fin 2) (fin 2) α) = !ₘ[1, 0; 0, 1] :=
+lemma one_fin_two : (1 : matrix (fin 2) (fin 2) α) = !![1, 0; 0, 1] :=
 by { ext i j, fin_cases i; fin_cases j; refl }
 
-lemma one_fin_three : (1 : matrix (fin 3) (fin 3) α) = !ₘ[1, 0, 0; 0, 1, 0; 0, 0, 1] :=
+lemma one_fin_three : (1 : matrix (fin 3) (fin 3) α) = !![1, 0, 0; 0, 1, 0; 0, 0, 1] :=
 by { ext i j, fin_cases i; fin_cases j; refl }
 
 end one
 
 lemma mul_fin_two [add_comm_monoid α] [has_mul α] (a₁₁ a₁₂ a₂₁ a₂₂ b₁₁ b₁₂ b₂₁ b₂₂ : α) :
-  !ₘ[a₁₁, a₁₂;
-     a₂₁, a₂₂] ⬝ !ₘ[b₁₁, b₁₂;
-                    b₂₁, b₂₂] = !ₘ[a₁₁ * b₁₁ + a₁₂ * b₂₁, a₁₁ * b₁₂ + a₁₂ * b₂₂;
+  !![a₁₁, a₁₂;
+     a₂₁, a₂₂] ⬝ !![b₁₁, b₁₂;
+                    b₂₁, b₂₂] = !![a₁₁ * b₁₁ + a₁₂ * b₂₁, a₁₁ * b₁₂ + a₁₂ * b₂₂;
                                    a₂₁ * b₁₁ + a₂₂ * b₂₁, a₂₁ * b₁₂ + a₂₂ * b₂₂] :=
 begin
   ext i j,
@@ -355,12 +335,12 @@ end
 
 lemma mul_fin_three [add_comm_monoid α] [has_mul α]
   (a₁₁ a₁₂ a₁₃ a₂₁ a₂₂ a₂₃ a₃₁ a₃₂ a₃₃ b₁₁ b₁₂ b₁₃ b₂₁ b₂₂ b₂₃ b₃₁ b₃₂ b₃₃ : α) :
-  !ₘ[a₁₁, a₁₂, a₁₃;
+  !![a₁₁, a₁₂, a₁₃;
      a₂₁, a₂₂, a₂₃;
-     a₃₁, a₃₂, a₃₃] ⬝ !ₘ[b₁₁, b₁₂, b₁₃;
+     a₃₁, a₃₂, a₃₃] ⬝ !![b₁₁, b₁₂, b₁₃;
                          b₂₁, b₂₂, b₂₃;
                          b₃₁, b₃₂, b₃₃] =
-  !ₘ[a₁₁*b₁₁ + a₁₂*b₂₁ + a₁₃*b₃₁, a₁₁*b₁₂ + a₁₂*b₂₂ + a₁₃*b₃₂, a₁₁*b₁₃ + a₁₂*b₂₃ + a₁₃*b₃₃;
+  !![a₁₁*b₁₁ + a₁₂*b₂₁ + a₁₃*b₃₁, a₁₁*b₁₂ + a₁₂*b₂₂ + a₁₃*b₃₂, a₁₁*b₁₃ + a₁₂*b₂₃ + a₁₃*b₃₃;
      a₂₁*b₁₁ + a₂₂*b₂₁ + a₂₃*b₃₁, a₂₁*b₁₂ + a₂₂*b₂₂ + a₂₃*b₃₂, a₂₁*b₁₃ + a₂₂*b₂₃ + a₂₃*b₃₃;
      a₃₁*b₁₁ + a₃₂*b₂₁ + a₃₃*b₃₁, a₃₁*b₁₂ + a₃₂*b₂₂ + a₃₃*b₃₂, a₃₁*b₁₃ + a₃₂*b₂₃ + a₃₃*b₃₃] :=
 begin

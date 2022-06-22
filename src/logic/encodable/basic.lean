@@ -5,7 +5,7 @@ Authors: Leonardo de Moura, Mario Carneiro
 -/
 import logic.equiv.nat
 import order.directed
-import combinatorics.countable
+import data.countable.basic
 import order.rel_iso
 
 /-!

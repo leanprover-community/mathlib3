@@ -24,7 +24,9 @@ casting lemmas showing the well-behavedness of this injection.
 rat, rationals, field, ℚ, numerator, denominator, num, denom, cast, coercion, casting
 -/
 
-variables {F α β : Type*}
+open_locale big_operators
+
+variables {F ι α β : Type*}
 
 namespace rat
 open_locale rat
@@ -199,30 +201,50 @@ cast_add _ _
   ((bit1 n : ℚ) : α) = bit1 n :=
 by rw [bit1, cast_add, cast_one, cast_bit0]; refl
 
-variable (α)
+variables (α) [char_zero α]
 
 /-- Coercion `ℚ → α` as a `ring_hom`. -/
-def cast_hom [char_zero α] : ℚ →+* α := ⟨coe, cast_one, cast_mul, cast_zero, cast_add⟩
+def cast_hom : ℚ →+* α := ⟨coe, cast_one, cast_mul, cast_zero, cast_add⟩
 
 variable {α}
 
-@[simp] lemma coe_cast_hom [char_zero α] : ⇑(cast_hom α) = coe := rfl
+@[simp] lemma coe_cast_hom : ⇑(cast_hom α) = coe := rfl
 
-@[simp, norm_cast] theorem cast_inv [char_zero α] (n) : ((n⁻¹ : ℚ) : α) = n⁻¹ :=
-(cast_hom α).map_inv _
+@[simp, norm_cast] theorem cast_inv (n) : ((n⁻¹ : ℚ) : α) = n⁻¹ := (cast_hom α).map_inv _
+@[simp, norm_cast] theorem cast_div (m n) : ((m / n : ℚ) : α) = m / n := (cast_hom α).map_div _ _
 
-@[simp, norm_cast] theorem cast_div [char_zero α] (m n) :
-  ((m / n : ℚ) : α) = m / n :=
-(cast_hom α).map_div _ _
-
-@[norm_cast] theorem cast_mk [char_zero α] (a b : ℤ) : ((a /. b) : α) = a / b :=
+@[norm_cast] theorem cast_mk (a b : ℤ) : ((a /. b) : α) = a / b :=
 by simp only [mk_eq_div, cast_div, cast_coe_int]
 
-@[simp, norm_cast] theorem cast_pow [char_zero α] (q) (k : ℕ) :
-  ((q ^ k : ℚ) : α) = q ^ k :=
+@[simp, norm_cast] theorem cast_pow (q) (k : ℕ) : ((q ^ k : ℚ) : α) = q ^ k :=
 (cast_hom α).map_pow q k
 
+@[simp, norm_cast] lemma cast_list_sum (s : list ℚ) : (↑(s.sum) : α) = (s.map coe).sum :=
+map_list_sum (rat.cast_hom α) _
+
+@[simp, norm_cast] lemma cast_multiset_sum (s : multiset ℚ) : (↑(s.sum) : α) = (s.map coe).sum :=
+map_multiset_sum (rat.cast_hom α) _
+
+@[simp, norm_cast] lemma cast_sum (s : finset ι) (f : ι → ℚ) :
+  (↑(∑ i in s, f i) : α) = ∑ i in s, f i :=
+map_sum (rat.cast_hom α) _ _
+
+@[simp, norm_cast] lemma cast_list_prod (s : list ℚ) : (↑(s.prod) : α) = (s.map coe).prod :=
+map_list_prod (rat.cast_hom α) _
+
 end with_div_ring
+
+section field
+variables [field α] [char_zero α]
+
+@[simp, norm_cast] lemma cast_multiset_prod (s : multiset ℚ) : (↑(s.prod) : α) = (s.map coe).prod :=
+map_multiset_prod (rat.cast_hom α) _
+
+@[simp, norm_cast] lemma cast_prod (s : finset ι) (f : ι → ℚ) :
+  (↑(∏ i in s, f i) : α) = ∏ i in s, f i :=
+map_prod (rat.cast_hom α) _ _
+
+end field
 
 @[simp, norm_cast] theorem cast_nonneg [linear_ordered_field α] : ∀ {n : ℚ}, 0 ≤ (n : α) ↔ 0 ≤ n
 | ⟨n, d, h, c⟩ :=

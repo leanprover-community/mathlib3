@@ -156,7 +156,7 @@ calc rename e (esymm σ R n)
      = ∑ x in powerset_len n univ, ∏ i in x, X (e i)
        : by simp_rw [esymm, map_sum, map_prod, rename_X]
  ... = ∑ t in powerset_len n (univ.map e.to_embedding), ∏ i in t, X i
-       : by simp [finset.powerset_len_map]
+       : by simp [finset.powerset_len_map, -finset.map_univ_equiv]
  ... = ∑ t in powerset_len n univ, ∏ i in t, X i : by rw finset.map_univ_equiv
 
 lemma esymm_is_symmetric (n : ℕ) : is_symmetric (esymm σ R n) :=

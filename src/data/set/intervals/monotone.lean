@@ -202,7 +202,7 @@ begin
     { exact ih this _ h } }
 end
 
-lemma strict_mono_on_nat_Icc_of_lt_succ {n : α} {φ : α → α}
+lemma strict_mono_on_Icc_of_lt_succ {n : α} {φ : α → α}
   (hφ : ∀ m, order.succ m ≤ n → φ m < φ (order.succ m)) :
   strict_mono_on φ (set.Icc ⊥ n) :=
 begin

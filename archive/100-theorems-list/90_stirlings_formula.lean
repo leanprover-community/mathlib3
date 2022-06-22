@@ -164,8 +164,7 @@ begin
       refine inv_le_one _,
       norm_cast,
       exact (le_add_iff_nonneg_left 1).mpr zero_le', },
-    exact mul_le_of_le_one_left h_zero_le h_left,
-  end,
+    exact mul_le_of_le_one_left h_zero_le h_left, },
   exact has_sum_le hab (log_stirling_seq_diff_has_sum n) g,
 end
 

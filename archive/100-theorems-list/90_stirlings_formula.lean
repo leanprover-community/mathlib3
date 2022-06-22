@@ -73,7 +73,7 @@ lemma log_stirling_seq_diff_has_sum (m : ℕ) :
   (log_stirling_seq m.succ - log_stirling_seq m.succ.succ) :=
 begin
   change
-    has_sum ((λ (b : ℕ), 1 / (2 * (b : ℝ) + 1) * ((1 / (2 * m.succ + 1)) ^ 2) ^ b) ∘ succ) _,
+    has_sum ((λ b : ℕ, 1 / (2 * (b : ℝ) + 1) * ((1 / (2 * m.succ + 1)) ^ 2) ^ b) ∘ succ) _,
   rw has_sum_nat_add_iff 1,
   convert (power_series_log_succ_div m.succ (cast_pos.mpr (succ_pos m))).mul_left
     ((m.succ : ℝ) + 1 / 2),
@@ -125,10 +125,10 @@ begin
   intro n,
   have h_nonneg : 0 ≤ ((1 / (2 * (n.succ : ℝ) + 1)) ^ 2),
   by { rw [cast_succ, one_div, inv_pow, inv_nonneg], norm_cast, exact zero_le', },
-  have g : has_sum (λ (k : ℕ), ((1 / (2 * (n.succ : ℝ) + 1)) ^ 2) ^ k.succ)
+  have g : has_sum (λ k : ℕ, ((1 / (2 * (n.succ : ℝ) + 1)) ^ 2) ^ k.succ)
     ((1 / (2 * n.succ + 1)) ^ 2 / (1 - (1 / (2 * n.succ + 1)) ^ 2)) :=
   begin
-    have h_pow_succ := λ (k : ℕ),
+    have h_pow_succ := λ k : ℕ,
       symm (pow_succ ((1 / (2 * ((n : ℝ) + 1) + 1)) ^ 2) k),
     have hlt : (1 / (2 * (n.succ : ℝ) + 1)) ^ 2 < 1, by
     { simp only [cast_succ, one_div, inv_pow],
@@ -180,7 +180,7 @@ log_stirling_seq 1 - log_stirling_seq n.succ ≤ c :=
 begin
   let d := ∑' k : ℕ, (1 : ℝ) / (k.succ)^2,
   use (1 / 4 * d : ℝ),
-  let log_stirling_seq' : ℕ → ℝ := λ (k : ℕ), log_stirling_seq k.succ,
+  let log_stirling_seq' : ℕ → ℝ := λ k : ℕ, log_stirling_seq k.succ,
   intro n,
   calc
   log_stirling_seq 1 - log_stirling_seq n.succ = log_stirling_seq' 0 - log_stirling_seq' n : rfl

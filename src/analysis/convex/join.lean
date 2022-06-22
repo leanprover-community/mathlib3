@@ -168,7 +168,7 @@ end
 
 lemma convex_join_segments (a b c d : E) :
   convex_join 𝕜 (segment 𝕜 a b) (segment 𝕜 c d) = convex_hull 𝕜 {a, b, c, d} :=
-by simp only [convex_hull_insert, insert_nonempty, singleton_nonempty, convex_hull_pair,
+by simp only [convex_hull_insert, nonempty_insert, singleton_nonempty, convex_hull_pair,
     ←convex_join_assoc, convex_join_singletons]
 
 lemma convex_join_segment_singleton (a b c : E) :

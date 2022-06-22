@@ -395,7 +395,7 @@ theorem le_cInf_inter : bdd_below s → bdd_below t → (s ∩ t).nonempty →
 /-- The supremum of insert a s is the maximum of a and the supremum of s, if s is
 nonempty and bounded above.-/
 theorem cSup_insert (hs : bdd_above s) (sne : s.nonempty) : Sup (insert a s) = a ⊔ Sup s :=
-((is_lub_cSup sne hs).insert a).cSup_eq (insert_nonempty a s)
+((is_lub_cSup sne hs).insert a).cSup_eq (nonempty_insert a s)
 
 /-- The infimum of insert a s is the minimum of a and the infimum of s, if s is
 nonempty and bounded below.-/

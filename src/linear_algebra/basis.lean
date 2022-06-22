@@ -1207,6 +1207,68 @@ theorem vector_space.card_fintype [fintype K] [fintype V] :
   ∃ n : ℕ, card V = (card K) ^ n :=
 ⟨card (basis.of_vector_space_index K V), module.card_fintype (basis.of_vector_space K V)⟩
 
+section atoms_of_submodule_lattice
+
+variables {K V}
+
+/-- For a module over a division ring, the span of a nonzero element is an atom of the
+lattice of submodules. -/
+lemma nonzero_span_atom (v : V) (hv : v ≠ 0) : is_atom (span K {v} : submodule K V) :=
+begin
+  split,
+  { rw submodule.ne_bot_iff, exact ⟨v, ⟨mem_span_singleton_self v, hv⟩⟩ },
+  { intros T hT, by_contra, apply hT.2,
+    change (span K {v}) ≤ T,
+    simp_rw [span_singleton_le_iff_mem, ← ne.def, submodule.ne_bot_iff] at *,
+    rcases h with ⟨s, ⟨hs, hz⟩⟩,
+    cases (mem_span_singleton.1 (hT.1 hs)) with a ha,
+    have h : a ≠ 0, by { intro h, rw [h, zero_smul] at ha, exact hz ha.symm },
+    apply_fun (λ x, a⁻¹ • x) at ha,
+    simp_rw [← mul_smul, inv_mul_cancel h, one_smul, ha] at *, exact smul_mem T _ hs},
+end
+
+/-- For a module over a division ring, the atoms of its lattice of submodules are the
+spans of its nonzero elements. -/
+lemma atom_iff_nonzero_span (W : submodule K V) :
+  is_atom W ↔ ∃ (v : V) (hv : v ≠ 0), W = span K {v} :=
+begin
+  split; intro h,
+  { cases h with hbot h,
+    rcases ((submodule.ne_bot_iff W).1 hbot) with ⟨v, ⟨hW, hv⟩⟩,
+    refine ⟨v, ⟨hv, _⟩⟩,
+    by_contra heq,
+    specialize h (span K {v}),
+    rw [span_singleton_eq_bot, lt_iff_le_and_ne] at h,
+    exact hv (h ⟨(span_singleton_le_iff_mem v W).2 hW, ne.symm heq⟩) },
+  { rcases h with ⟨v, ⟨hv, rfl⟩⟩, exact nonzero_span_atom v hv },
+end
+
+/-- For a module over a division ring, any submodule is equal to the supremum of the
+spans of the submodule's nonzero elements. -/
+lemma submodule_eq_Sup_le_atoms (W : submodule K V) :
+  W = Sup {T : submodule K V | ∃ (v : V) (hv : v ∈ W) (hz : v ≠ 0), T = span K {v}} :=
+begin
+  let S := {T : submodule K V | ∃ (v : V) (hv : v ∈ W) (hz : v ≠ 0), T = span K {v}},
+  apply le_antisymm,
+  { intros w hw, by_cases h : w = 0,
+    { rw h, simp },
+    { exact @le_Sup _ _ S _ ⟨w, ⟨hw, ⟨h, rfl⟩⟩⟩ w (mem_span_singleton_self w) } },
+  { rw Sup_le_iff, rintros S ⟨_, ⟨_, ⟨_, rfl⟩⟩⟩, rwa span_singleton_le_iff_mem }
+end
+
+/-- For a module over a division ring, the lattice of its submodules is atomistic. -/
+instance : is_atomistic (submodule K V) :=
+{ eq_Sup_atoms :=
+  begin
+    intro W,
+    use {T : submodule K V | ∃ (v : V) (hv : v ∈ W) (hz : v ≠ 0), T = span K {v}},
+    split,
+    { exact submodule_eq_Sup_le_atoms W },
+    { rintros _ ⟨w, ⟨_, ⟨hw, rfl⟩⟩⟩, exact nonzero_span_atom w hw }
+  end }
+
+end atoms_of_submodule_lattice
+
 end division_ring
 
 section field

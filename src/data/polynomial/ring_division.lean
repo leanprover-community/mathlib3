@@ -795,16 +795,16 @@ end
 
 /-- A polynomial `p` that has as many roots as its degree
 can be written `p = p.leading_coeff * ∏(X - a)`, for `a` in `p.roots`. -/
-lemma C_leading_coeff_mul_prod_multiset_X_sub_C (hroots : p.nat_degree ≤ p.roots.card) :
+lemma C_leading_coeff_mul_prod_multiset_X_sub_C (hroots : p.roots.card = p.nat_degree) :
   C p.leading_coeff * (p.roots.map (λ a, X - C a)).prod = p :=
 (eq_leading_coeff_mul_of_monic_of_dvd_of_nat_degree_le monic_prod_multiset_X_sub_C
   (prod_multiset_X_sub_C_dvd p) $
-  le_of_le_of_eq hroots $ (nat_degree_multiset_prod_X_sub_C_eq_card _).symm).symm
+  ((nat_degree_multiset_prod_X_sub_C_eq_card _).trans hroots).ge).symm
 
 /-- A monic polynomial `p` that has as many roots as its degree
 can be written `p = ∏(X - a)`, for `a` in `p.roots`. -/
-lemma prod_multiset_X_sub_C_of_monic_of_roots_card_ge
-  (hp : p.monic) (hroots : p.nat_degree ≤ p.roots.card) :
+lemma prod_multiset_X_sub_C_of_monic_of_roots_card_eq
+  (hp : p.monic) (hroots : p.roots.card = p.nat_degree) :
   (p.roots.map (λ a, X - C a)).prod = p :=
 by { convert C_leading_coeff_mul_prod_multiset_X_sub_C hroots, rw [hp.leading_coeff, C_1, one_mul] }
 

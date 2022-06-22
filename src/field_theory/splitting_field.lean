@@ -234,7 +234,7 @@ lemma eq_prod_roots_of_splits {p : K[X]} {i : K →+* L} (hsplit : splits i p) :
 begin
   rw ← leading_coeff_map, symmetry,
   apply C_leading_coeff_mul_prod_multiset_X_sub_C,
-  rw nat_degree_map, exact (nat_degree_eq_card_roots hsplit).le,
+  rw nat_degree_map, exact (nat_degree_eq_card_roots hsplit).symm,
 end
 
 lemma eq_prod_roots_of_splits_id {p : K[X]}
@@ -316,7 +316,7 @@ begin
     rw splits_iff_exists_multiset (ring_hom.id K),
     use p.roots,
     simp only [ring_hom.id_apply, map_id],
-    exact (C_leading_coeff_mul_prod_multiset_X_sub_C hroots.ge).symm },
+    exact (C_leading_coeff_mul_prod_multiset_X_sub_C hroots).symm },
 end
 
 lemma aeval_root_derivative_of_splits [algebra K L] {P : K[X]} (hmo : P.monic)

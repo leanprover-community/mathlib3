@@ -49,8 +49,8 @@ noncomputable def log_stirling_seq (n : ℕ) : ℝ := log (stirling_seq n)
 We have the expression
 `log_stirling_seq (n + 1) = log(n + 1)! - 1 / 2 * log(2 * n) - n * log ((n + 1) / e)`.
 -/
-lemma log_stirling_seq_formula (n : ℕ): log_stirling_seq n.succ = log (n.succ.factorial : ℝ) -
-  1 / (2 : ℝ) * (log (2 * (n.succ : ℝ))) - (n.succ : ℝ) * log ((n.succ : ℝ) / exp 1) :=
+lemma log_stirling_seq_formula (n : ℕ): log_stirling_seq n.succ = log n.succ.factorial -
+  1 / 2 * log (2 * n.succ) - n.succ * log (n.succ / exp 1) :=
 begin
   have h3, from sqrt_ne_zero'.mpr (mul_pos two_pos $ cast_pos.mpr (succ_pos n)),
   have h4 : 0 ≠ ((n.succ : ℝ) / exp 1) ^ n.succ, from
@@ -73,18 +73,18 @@ lemma log_stirling_seq_diff_has_sum (m : ℕ) :
   (log_stirling_seq m.succ - log_stirling_seq m.succ.succ) :=
 begin
   change
-    has_sum ((λ (b : ℕ), 1 / (2 * (b : ℝ) + 1) * ((1 / (2 * (m.succ : ℝ) + 1)) ^ 2) ^ b) ∘ succ) _,
+    has_sum ((λ (b : ℕ), 1 / (2 * (b : ℝ) + 1) * ((1 / (2 * m.succ + 1)) ^ 2) ^ b) ∘ succ) _,
   rw has_sum_nat_add_iff 1,
   convert (power_series_log_succ_div m.succ (cast_pos.mpr (succ_pos m))).mul_left
-    ((m.succ : ℝ) + 1 / (2 : ℝ)),
+    ((m.succ : ℝ) + 1 / 2),
   { ext k,
     rw [← pow_mul, pow_add],
     have : 2 * (k : ℝ) + 1 ≠ 0, by {norm_cast, exact succ_ne_zero (2*k)},
     have : 2 * (m.succ : ℝ) + 1 ≠ 0, by {norm_cast, exact succ_ne_zero (2*m.succ)},
     field_simp,
     ring },
-  { have h_reorder : ∀ {a b c d e f : ℝ}, a - 1 / (2 : ℝ) * b - c - (d - 1 / (2 : ℝ) * e - f) =
-      (a - d) - 1 / (2 : ℝ) * (b - e) - (c - f),
+  { have h_reorder : ∀ {a b c d e f : ℝ}, a - 1 / 2 * b - c - (d - 1 / 2 * e - f) =
+      (a - d) - 1 / 2  * (b - e) - (c - f),
     by {intros, ring_nf},
     rw [log_stirling_seq_formula, log_stirling_seq_formula, h_reorder],
     repeat {rw [log_div, factorial_succ]},
@@ -139,8 +139,8 @@ begin
     exact (has_sum_geometric_of_lt_1 h_nonneg hlt).mul_left ((1 / (2 * (n.succ : ℝ) + 1)) ^ 2)
   end,
   have hab :
-    ∀ (k : ℕ), (1 / (2 * (k.succ : ℝ) + 1)) * ((1 / (2 * (n.succ : ℝ) + 1)) ^ 2) ^ k.succ ≤
-    ((1 / (2 * (n.succ : ℝ) + 1)) ^ 2) ^ k.succ,
+    ∀ (k : ℕ), (1 / (2 * (k.succ : ℝ) + 1)) * ((1 / (2 * n.succ + 1)) ^ 2) ^ k.succ ≤
+    ((1 / (2 * n.succ + 1)) ^ 2) ^ k.succ,
   { intro k,
     have h_zero_le : 0 ≤ ((1 / (2 * (n.succ : ℝ) + 1)) ^ 2) ^ k.succ := pow_nonneg h_nonneg _,
     have h_left : 1 / (2 * (k.succ : ℝ) + 1) ≤ 1, by

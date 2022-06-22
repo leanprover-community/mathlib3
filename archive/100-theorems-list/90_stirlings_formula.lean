@@ -5,18 +5,6 @@ Authors: Moritz Firsching, Fabian Kruse, Nikolas Kuhn
 -/
 import analysis.p_series
 import analysis.special_functions.log.deriv
-import analysis.special_functions.pow
-import algebra.big_operators.basic
-import algebra.big_operators.intervals
-import data.finset.sum
-import data.fintype.basic
-import data.real.basic
-import data.real.pi.wallis
-import order.filter
-import order.filter.basic
-import order.bounded_order
-import topology.instances.real
-import topology.instances.ennreal
 
 /-!
 # Stirling's formula

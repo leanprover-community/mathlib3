@@ -25,9 +25,7 @@ ingredients are
  - use the series expansion of $\log(1 + x)$.
 -/
 
-
-open_locale big_operators -- notation ∑ for finite sums
-open_locale classical real topological_space nnreal ennreal filter big_operators
+open_locale topological_space big_operators
 open finset filter nat real
 
 namespace stirling
@@ -44,9 +42,7 @@ Stirling's formula states that this sequence has limit $\sqrt(π)$.
 noncomputable def stirling_seq (n : ℕ) : ℝ :=
 (n.factorial : ℝ) / (sqrt(2 * n) * (n / exp 1) ^ n)
 
-/--
-`log_stirling_seq n` is log of `stirling_seq n`.
--/
+/-- Define `log_stirling_seq n` as the log of `stirling_seq n`. -/
 noncomputable def log_stirling_seq (n : ℕ) : ℝ := log (stirling_seq n)
 
 /--
@@ -83,7 +79,7 @@ begin
     ((m.succ : ℝ) + 1 / (2 : ℝ)),
   { ext k,
     rw [← pow_mul, pow_add],
-    have : 2 * (k : ℝ) + 1     ≠ 0, by {norm_cast, exact succ_ne_zero (2*k)},
+    have : 2 * (k : ℝ) + 1 ≠ 0, by {norm_cast, exact succ_ne_zero (2*k)},
     have : 2 * (m.succ : ℝ) + 1 ≠ 0, by {norm_cast, exact succ_ne_zero (2*m.succ)},
     field_simp,
     ring },

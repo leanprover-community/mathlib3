@@ -79,26 +79,17 @@ begin
     - 2 * i.central_binom * (n + 1) * (n + 2) * (i - (n - i) - 1) * (i + 1) * h₂,
 end
 
-lemma gosper_catalan_sub_eq_catalan' (n : ℕ) :
+private lemma gosper_catalan_sub_eq_central_binom_div (n : ℕ) :
   gosper_catalan (n + 1) (n + 1) - gosper_catalan (n + 1) 0 = nat.central_binom (n + 1) / (n + 2) :=
 begin
 have : (n:ℚ) + 1 ≠ 0 := by exact_mod_cast n.succ_ne_zero,
 have : (n:ℚ) + 1 + 1 ≠ 0 := by exact_mod_cast (n + 1).succ_ne_zero,
-have : 2 ≠ 0 := two_ne_zero,
+have h : (n:ℚ) + 2 ≠ 0 := by exact_mod_cast (n + 1).succ_ne_zero,
 simp only [gosper_catalan, nat.sub_zero, nat.central_binom_zero, nat.sub_self],
+rw ← mul_right_inj' h,
 push_cast,
 field_simp,
-sorry
-/-simp only [gosper_catalan, tsub_self, nat.central_binom_zero, nat.cast_one, mul_one, nat.cast_add,
-  tsub_zero, one_mul, nat.cast_zero, mul_zero, zero_sub, neg_add_rev, div_sub_div_same, ← mul_sub,
-  ← mul_div],
-congr,
-rw [← neg_add, sub_neg_eq_add, add_comm (1 : ℚ) _, sub_add_cancel, ← div_div, div_self,
-    inv_eq_one_div, add_assoc],
-{ refl },
-{ apply mul_ne_zero,
-  { exact two_ne_zero },
-  { exact_mod_cast n.succ_ne_zero } },-/
+ring,
 end
 
 theorem catalan_eq_central_binom_div (n : ℕ) :
@@ -126,5 +117,5 @@ begin
         },
       { rw [← sum_range (λi, gosper_catalan (d + 1) (i + 1) - gosper_catalan (d + 1) i),
             sum_range_sub, nat.succ_eq_add_one],
-        exact_mod_cast (gosper_catalan_sub_eq_catalan' d) } } }
+        exact_mod_cast (gosper_catalan_sub_eq_central_binom_div d) } } }
 end

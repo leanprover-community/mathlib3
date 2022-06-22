@@ -1450,7 +1450,7 @@ begin
   exact @uniform_continuous.comp _ _ _ (id _) (id _) _ _ _ h h_unif_cont_id,
 end
 
-/-- A version of `continuous_inf_dom_right` for binary functions -/
+/-- A version of `uniform_continuous_inf_dom_right` for binary functions -/
 lemma uniform_continuous_inf_dom_right₂ {α β γ} {f : α → β → γ}
   {ua1 ua2 : uniform_space α} {ub1 ub2 : uniform_space β} {uc1 : uniform_space γ}
   (h : by haveI := ua2; haveI := ub2; exact uniform_continuous (λ p : α × β, f p.1 p.2)) :
@@ -1463,7 +1463,7 @@ begin
   exact @uniform_continuous.comp _ _ _ (id _) (id _) _ _ _ h h_unif_cont_id,
 end
 
-/-- A version of `continuous_Inf_dom` for binary functions -/
+/-- A version of `uniform_continuous_Inf_dom` for binary functions -/
 lemma uniform_continuous_Inf_dom₂ {α β γ} {f : α → β → γ}
   {uas : set (uniform_space α)} {ubs : set (uniform_space β)}
   {ua : uniform_space α} {ub : uniform_space β} {uc : uniform_space γ}

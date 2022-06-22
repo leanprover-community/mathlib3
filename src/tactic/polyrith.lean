@@ -1,9 +1,9 @@
 /-
 Copyright (c) 2022 Dhruv Bhatia. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Dhruv Bhatia.
+Authors: Dhruv Bhatia
 -/
-import tactic
+import tactic.linear_combination
 import data.buffer.parser
 
 /-!
@@ -33,9 +33,9 @@ to the user to find a collection of good coefficients. The `polyrith` tactic aut
 process using the theory of Groebner bases.
 
 Polyrith does this by first parsing the relevant hypotheses into a form that Python can understand.
-It then calls a Python file that uses the SageMath API to compute the coefficients. These coefficients
-are then sent back to Lean, which parses them into pexprs. The information is then given to the
-`linear_combination` tactic, which completes the process by checking the certificate.
+It then calls a Python file that uses the SageMath API to compute the coefficients. These
+coefficients are then sent back to Lean, which parses them into pexprs. The information is then
+given to the `linear_combination` tactic, which completes the process by checking the certificate.
 
 ## References
 
@@ -84,6 +84,7 @@ meta instance : has_mul poly := ⟨poly.mul⟩
 meta instance : has_pow poly ℕ := ⟨poly.pow⟩
 meta instance : has_repr poly := ⟨poly.mk_string⟩
 meta instance : has_to_format poly := ⟨to_fmt ∘ poly.mk_string⟩
+meta instance : inhabited poly := ⟨poly.const 0⟩
 
 
 /-!
@@ -207,6 +208,8 @@ An error message returned from Sage has a kind and a message.
 structure sage_error :=
 (kind : string)
 (message : string)
+
+instance : inhabited sage_error := ⟨⟨ "", ""⟩⟩
 
 open parser
 
@@ -348,14 +351,16 @@ meta def sage_output_parser : parser (sage_error ⊕ list poly) :=
 meta def parser_output_checker : string ⊕ (sage_error ⊕ list poly) → tactic (list poly)
 | (sum.inl s) := fail!"polyrith failed to parse the output from Sage.\n\n{s}"
 | (sum.inr (sum.inr poly_list)) := return poly_list
-| (sum.inr (sum.inl err)) := fail!"polyrith failed to retrieve a solution from Sage! {err.kind}: {err.message}"
+| (sum.inr (sum.inl err))
+  := fail!"polyrith failed to retrieve a solution from Sage! {err.kind}: {err.message}"
 
 /--
 A tactic that uses the above defined parsers to convert
 the sage output `string` to a `list poly`
 -/
 meta def convert_sage_output : string → tactic (list poly)
-|s := (let sage_stuff := sage_output_parser.run_string (remove_trailing_whitespace s) in parser_output_checker sage_stuff)
+|s := (let sage_stuff := sage_output_parser.run_string (remove_trailing_whitespace s)
+  in parser_output_checker sage_stuff)
 
 
 /-!
@@ -439,7 +444,8 @@ The tactic returns the names of these hypotheses (as `expr`s),
 an `exmap` updated with information from all these hypotheses,
 and a list of these hypotheses converted into `poly` objects.
 -/
-meta def parse_ctx_to_polys : expr → exmap → bool → list pexpr → tactic (list expr × exmap × list poly)
+meta def parse_ctx_to_polys : expr → exmap → bool → list pexpr →
+  tactic (list expr × exmap × list poly)
 | expt m only_on hyps:=
 do
   hyps ← hyps.mmap $ λ e, i_to_expr e,
@@ -462,7 +468,7 @@ This tactic calls python from the command line with the args in `arg_list`.
 The output printed to the console is returned as a `string`.
 -/
 meta def sage_output (arg_list : list string := []) : tactic string :=
-let args := ["src/tactic/polyrith/polyrith_sage.py"] ++ arg_list in
+let args := ["scripts/polyrith_sage.py"] ++ arg_list in
 do
   s ← tactic.unsafe_run_io $ io.cmd { cmd := "python3", args := args},
   return s
@@ -550,7 +556,8 @@ do
   sleep 10, -- otherwise can lead to weird errors when actively editing code with polyrith calls
   (m, p, R) ← parse_target_to_poly,
   (eq_names, m, polys) ← parse_ctx_to_polys R m only_on hyps,
-  let args := [to_string R, (get_var_names m).to_string, (polys.map poly.mk_string).to_string, p.mk_string],
+  let args := [to_string R, (get_var_names m).to_string,
+    (polys.map poly.mk_string).to_string, p.mk_string],
   let args := to_string (is_trace_enabled_for `polyrith) :: args,
   sage_out ← sage_output args,
   if is_trace_enabled_for `polyrith then
@@ -561,7 +568,8 @@ do
   let eq_names_pexpr := eq_names.map to_pexpr,
   coeffs_as_expr ← coeffs_as_pexpr.mmap $ λ e, to_expr ``(%%e : %%R),
   linear_combo.linear_combination eq_names_pexpr coeffs_as_pexpr,
-  let components := (eq_names.zip coeffs_as_expr).filter $ λ pr, bnot $ pr.2.is_app_of `has_zero.zero,
+  let components := (eq_names.zip coeffs_as_expr).filter
+    $ λ pr, bnot $ pr.2.is_app_of `has_zero.zero,
   expr_string ← components_to_lc_format components,
   let cmd : format := "linear_combination " ++ format.nest 2 (format.group expr_string),
   trace!"Try this: {cmd}"

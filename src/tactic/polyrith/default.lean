@@ -1,1 +1,0 @@
-import tactic.polyrith.polyrith

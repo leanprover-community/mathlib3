@@ -42,6 +42,10 @@ simultaneously. This will make for a fun and challenging project.
 
 The branch `surreal_mul` contains some progress on this proof.
 
+### Todo
+
+- Define the field structure on the surreals.
+
 ## References
 
 * [Conway, *On numbers and games*][conway2001]
@@ -300,12 +304,8 @@ def to_game : surreal →+o game :=
   monotone' := by { rintros ⟨_, _⟩ ⟨_, _⟩, exact id } }
 
 theorem zero_to_game : to_game 0 = 0 := rfl
-
 @[simp] theorem one_to_game : to_game 1 = 1 := rfl
-
-@[simp] theorem nat_to_game : ∀ n : ℕ, to_game n = n
-| 0       := rfl
-| (n + 1) := by simp [nat_to_game n]
+@[simp] theorem nat_to_game : ∀ n : ℕ, to_game n = n := map_nat_cast' _ one_to_game
 
 end surreal
 
@@ -320,7 +320,3 @@ noncomputable def to_surreal : ordinal ↪o surreal :=
   map_rel_iff' := @to_pgame_le_iff }
 
 end ordinal
-
--- We conclude with some ideas for further work on surreals; these would make fun projects.
-
--- TODO define the field structure on the surreals

@@ -1327,7 +1327,12 @@ end
 section rat
 
 instance algebra_rat {α} [division_ring α] [char_zero α] : algebra ℚ α :=
-(rat.cast_hom α).to_algebra' $ λ r x, r.cast_commute x
+{ smul := division_ring.qsmul,
+  smul_def' := division_ring.qsmul_eq_mul',
+  .. (rat.cast_hom α).to_algebra' $ λ r x, r.cast_commute x }
+
+/-- The two `algebra ℚ ℚ` instances should coincide. -/
+example : algebra_rat = algebra.id ℚ := rfl
 
 @[simp] theorem algebra_map_rat_rat : algebra_map ℚ ℚ = ring_hom.id ℚ :=
 subsingleton.elim _ _

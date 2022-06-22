@@ -6,6 +6,7 @@ Authors: Patrick Stevens, Thomas Browning
 
 import data.nat.choose.basic
 import data.nat.choose.sum
+import data.nat.parity
 
 /-!
 # Central binomial coefficients
@@ -97,19 +98,28 @@ lemma four_pow_le_two_mul_self_mul_central_binom : ∀ (n : ℕ) (n_pos : 0 < n)
 calc 4 ^ n ≤ n * central_binom n : (four_pow_lt_mul_central_binom _ le_add_self).le
 ... ≤ 2 * n * central_binom n    : by { rw [mul_assoc], refine le_mul_of_pos_left zero_lt_two }
 
-lemma two_dvd_central_binom_succ (n : ℕ) : 2 ∣ central_binom (n + 1) :=
+lemma two_dvd_central_binom_succ (n : ℕ) : even (central_binom (n + 1)) :=
 begin
 use (n+1+n).choose n,
 rw [central_binom_eq_two_mul_choose, two_mul, ← add_assoc, choose_succ_succ, choose_symm_add,
     ← two_mul],
 end
 
-lemma two_dvd_central_binom_of_one_le {n : ℕ} (h : 0 < n) : 2 ∣ central_binom n :=
+lemma two_dvd_central_binom_of_one_le {n : ℕ} (h : 0 < n) : even (central_binom n) :=
 begin
 rw ← nat.succ_pred_eq_of_pos h,
 exact two_dvd_central_binom_succ n.pred,
 end
 
-lemma succ_dvd_central_binom (n : ℕ)
+lemma succ_dvd_central_binom (n : ℕ) : (n + 1) ∣ n.central_binom :=
+begin
+cases eq_zero_or_eq_succ_pred n,
+{ rw h,
+  exact ⟨1, by simp⟩ },
+{ rw h,
+  cases even_or_odd n,
+  sorry,
+  sorry, }
+end
 
 end nat

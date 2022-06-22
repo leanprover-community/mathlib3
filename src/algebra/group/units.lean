@@ -255,10 +255,10 @@ mul_assoc _ _ _
 @[simp] theorem divp_left_inj (u : αˣ) {a b : α} : a /ₚ u = b /ₚ u ↔ a = b :=
 units.mul_left_inj _
 
-theorem divp_divp_eq_divp_mul (x : α) (u₁ u₂ : αˣ) : (x /ₚ u₁) /ₚ u₂ = x /ₚ (u₂ * u₁) :=
+@[field_simps] theorem divp_divp_eq_divp_mul (x : α) (u₁ u₂ : αˣ) : (x /ₚ u₁) /ₚ u₂ = x /ₚ (u₂ * u₁) :=
 by simp only [divp, mul_inv_rev, units.coe_mul, mul_assoc]
 
-theorem divp_eq_iff_mul_eq {x : α} {u : αˣ} {y : α} : x /ₚ u = y ↔ y * u = x :=
+@[field_simps] theorem divp_eq_iff_mul_eq {x : α} {u : αˣ} {y : α} : x /ₚ u = y ↔ y * u = x :=
 u.mul_left_inj.symm.trans $ by rw [divp_mul_cancel]; exact ⟨eq.symm, eq.symm⟩
 
 theorem divp_eq_one_iff_eq {a : α} {u : αˣ} : a /ₚ u = 1 ↔ a = u :=
@@ -267,19 +267,42 @@ theorem divp_eq_one_iff_eq {a : α} {u : αˣ} : a /ₚ u = 1 ↔ a = u :=
 @[simp] theorem one_divp (u : αˣ) : 1 /ₚ u = ↑u⁻¹ :=
 one_mul _
 
+/-- These two lemmas are mainly for `field_simp` to deal with inverses of units. -/
+@[field_simps] lemma inv_eq_one_divp (u : αˣ) :
+  ↑u⁻¹ = 1 /ₚ u :=
+by rw one_divp
+
+/--
+These two lemmas are mainly for `field_simp` to deal with inverses of units.
+This second lemma is important because `field_simp` likes to rewrite inverses as
+`↑(1/u)` before the above lemma could be applied.
+-/
+@[field_simps] lemma inv_eq_one_divp' (u : αˣ) :
+  ((1 / u : αˣ) : α) = 1 /ₚ u :=
+by simp only [one_div, one_divp]
+
+@[field_simps] lemma mul_divp_assoc' (x y : α) (u : αˣ) : x * (y /ₚ u) = (x * y) /ₚ u :=
+(divp_assoc x y u).symm
+
 end monoid
 
 section comm_monoid
 
 variables [comm_monoid α]
 
-theorem divp_eq_divp_iff {x y : α} {ux uy : αˣ} :
+@[field_simps] theorem divp_eq_divp_iff {x y : α} {ux uy : αˣ} :
   x /ₚ ux = y /ₚ uy ↔ x * uy = y * ux :=
 by rw [divp_eq_iff_mul_eq, mul_comm, ← divp_assoc, divp_eq_iff_mul_eq, mul_comm y ux]
 
-theorem divp_mul_divp (x y : α) (ux uy : αˣ) :
+@[field_simps] theorem divp_mul_divp (x y : α) (ux uy : αˣ) :
   (x /ₚ ux) * (y /ₚ uy) = (x * y) /ₚ (ux * uy) :=
 by rw [← divp_divp_eq_divp_mul, divp_assoc, mul_comm x, divp_assoc, mul_comm]
+
+@[field_simps] lemma divp_mul_eq_mul_divp (x y : α) (u : αˣ) : x /ₚ u * y = x * y /ₚ u :=
+begin
+ simp only [divp, mul_assoc],
+ rw mul_comm _ y,
+end
 
 end comm_monoid
 

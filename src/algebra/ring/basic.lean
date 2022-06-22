@@ -1203,3 +1203,46 @@ begin
   push_cast,
   exact mul_self_eq_one_iff
 end
+
+/-
+Some lemmas for `field_simp` to deal with (inverses of) units and partial division `/ₚ`.
+-/
+section field_simp
+
+@[field_simps] lemma neg_divp' [ring α] (b : α) (a : αˣ) : -(b /ₚ a) = (-b) /ₚ a :=
+by simp [divp]
+
+@[field_simps] lemma divp_add_divp_same [ring α] (a b : α) (c : αˣ) : a /ₚ c + b /ₚ c = (a + b) /ₚ c :=
+by simp [divp, add_mul]
+
+@[field_simps] lemma add_divp' [ring α] (a b : α) (c : αˣ)  : b + a /ₚ c = (b * c + a) /ₚ c :=
+by simp [divp, add_mul]
+
+@[field_simps] lemma sub_divp' [ring α] (a b : α) (c : αˣ) : b - a /ₚ c = (b * c - a) /ₚ c :=
+by simp [divp, sub_mul]
+
+@[field_simps] lemma divp_add' [ring α] (a b : α) (c : αˣ) : a /ₚ c + b = (a + b * c) /ₚ c :=
+by simp [divp, add_mul]
+
+@[field_simps] lemma divp_sub' [ring α] (a b : α) (c : αˣ) : a /ₚ c - b = (a - b * c) /ₚ c :=
+begin
+  simp only [divp, sub_mul, sub_right_inj],
+  assoc_rw [units.mul_inv, mul_one],
+end
+
+@[field_simps] lemma divp_add_divp [comm_ring α] (a c : α) (b d : αˣ) :
+a /ₚ b + c /ₚ d = (a * d + b * c) /ₚ (b * d) :=
+begin
+  simp [divp, add_mul],
+  rw [mul_assoc _ c, mul_comm ↑b],
+  assoc_rw [units.mul_inv, units.mul_inv, mul_one, mul_one],
+end
+
+@[field_simps] lemma divp_sub_divp [comm_ring α] (a c : α) (b d : αˣ) :
+  (a /ₚ b) - (c /ₚ d) = ((a * d) - (b * c)) /ₚ (b * d) :=
+begin
+  rw [sub_eq_add_neg, sub_eq_add_neg, neg_divp', ←mul_neg ↑b c],
+  exact divp_add_divp a (-c) b d,
+end
+
+end field_simp

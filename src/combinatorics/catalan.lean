@@ -82,7 +82,14 @@ end
 lemma gosper_catalan_sub_eq_catalan' (n : ℕ) :
   gosper_catalan (n + 1) (n + 1) - gosper_catalan (n + 1) 0 = nat.central_binom (n + 1) / (n + 2) :=
 begin
-simp only [gosper_catalan, tsub_self, nat.central_binom_zero, nat.cast_one, mul_one, nat.cast_add,
+have : (n:ℚ) + 1 ≠ 0 := by exact_mod_cast n.succ_ne_zero,
+have : (n:ℚ) + 1 + 1 ≠ 0 := by exact_mod_cast (n + 1).succ_ne_zero,
+have : 2 ≠ 0 := two_ne_zero,
+simp only [gosper_catalan, nat.sub_zero, nat.central_binom_zero, nat.sub_self],
+push_cast,
+field_simp,
+sorry
+/-simp only [gosper_catalan, tsub_self, nat.central_binom_zero, nat.cast_one, mul_one, nat.cast_add,
   tsub_zero, one_mul, nat.cast_zero, mul_zero, zero_sub, neg_add_rev, div_sub_div_same, ← mul_sub,
   ← mul_div],
 congr,
@@ -91,15 +98,14 @@ rw [← neg_add, sub_neg_eq_add, add_comm (1 : ℚ) _, sub_add_cancel, ← div_d
 { refl },
 { apply mul_ne_zero,
   { exact two_ne_zero },
-  { exact_mod_cast n.succ_ne_zero } },
+  { exact_mod_cast n.succ_ne_zero } },-/
 end
 
 theorem catalan_eq_central_binom_div (n : ℕ) :
   catalan n = nat.central_binom n / (n + 1) :=
 begin
   suffices : (catalan n : ℚ) = nat.central_binom n / (n + 1),
-  { have h : (n + 1) ∣ nat.central_binom n,
-    { sorry },
+  { have h := nat.succ_dvd_central_binom n,
     exact_mod_cast this },
   induction n using nat.case_strong_induction_on with d hd,
   { simp, },

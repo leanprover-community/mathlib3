@@ -40,7 +40,7 @@ around a sum.
 * Customize error messages to mention `move_add/move_mul` instead of `move_op`?
 * Add different operations other than `+` and `*`?  E.g. `∪, ∩, ⊓, ⊔, ...`?
   Should there be the desire for supporting more operations, it might make sense to extract
-  the `reflexivity <|> simp [add] <|> simp [mul]` block in `sorted_sum` to a separate tactic,
+  the `simp [add] <|> simp [mul]` block in `with_errors` to a separate tactic,
   including all the lemmas used for the rearrangement to work.
 * Add functionality for moving terms across the two sides of an in/dis/equality.
   E.g. it might be desirable to have `to_lhs [a]` converting `b + c = a + d` to `- a + b + c = d`.
@@ -89,8 +89,8 @@ are superfluous. -/
 meta def move_left_or_right : list (bool × expr) → list expr → list bool →
   tactic (list expr × list expr × list expr × list bool)
 | [] sl is_unused      := return ([], [], sl, is_unused)
-| (be::l) sl is_unused :=
-  do (ex :: hs) ← sl.mfilter $ λ e', succeeds $ unify be.2 e' |
+| (be::l) sl is_unused := do
+    (ex :: hs) ← sl.mfilter $ λ e', succeeds $ unify be.2 e' |
     move_left_or_right l sl (is_unused.append [tt]),
   (l1, l2, l3, is_unused) ← move_left_or_right l (sl.erase ex) (is_unused.append [ff]),
   if be.1 then return (ex::l1, l2, l3, is_unused) else return (l1, ex::l2, l3, is_unused)
@@ -147,8 +147,7 @@ meta def reorder_oper (op : pexpr) (lp : list (bool × pexpr)) :
   op ← to_expr op tt ff,
   cond ← is_given_op op F',
   if cond then do
-    sl ← list_binary_operands op F',
-    (sort_list, is_unused) ← final_sort lp sl,
+    (sort_list, is_unused) ← list_binary_operands op F' >>= final_sort lp,
     sort_all ← sort_list.mmap $ reorder_oper ([lu, is_unused].transpose.map list.band),
     let (recs, list_unused) := sort_all.unzip,
     let summed := (recs.drop 1).foldl (λ e f, op.mk_app [e, f]) ((recs.nth 0).get_or_else `(0)),
@@ -182,11 +181,11 @@ The list of booleans records which variable in `ll` has been unified in the appl
 This definition is useful to streamline error catching. -/
 meta def with_errors (op : pexpr) (lp : list (bool × pexpr)) (na : option name) :
   tactic (bool × list bool) :=
-do nn ← get_unused_name,
-  (thyp, hyploc) ←  -- hyploc is only meaningful in the "is some" branch
+do (thyp, hyploc) ←  -- hyploc is only meaningful in the "is some" branch
   if na.is_none then do t ← target, return (t, t)
   else
-  ( do hl ← get_local (na.get_or_else nn),
+  ( do nn ← get_unused_name,
+      hl ← get_local (na.get_or_else nn),
       th ← infer_type hl,
       return (th, hl)),
   (reordered, is_unused) ← reorder_oper op lp (lp.map (λ _, tt)) thyp,
@@ -362,7 +361,7 @@ move_op args locat ``((+))
 replace addition with multiplication throughout. ;-) -/
 meta def move_mul (args : parse move_pexpr_list_or_texpr) (locat : parse location) :
   tactic unit :=
-move_op args locat ``((has_mul.mul))
+move_op args locat ``(has_mul.mul)
 
 add_tactic_doc
 { name := "move_add",

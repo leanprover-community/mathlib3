@@ -136,9 +136,9 @@ begin
   { rw [hst, cond_count_empty_meas, measure.coe_zero, pi.zero_apply, zero_mul,
       cond_count_eq_zero_iff hs, ← set.inter_assoc, hst, set.empty_inter] },
   rw [cond_count, cond_count, cond_apply _ hs.measurable_set, cond_apply _ hs.measurable_set,
-    cond_apply _ (hs.inter_of_left _).measurable_set,
-    mul_comm _ (measure.count (s ∩ t)), ← mul_assoc, mul_comm _ (measure.count (s ∩ t)),
-    ← mul_assoc, ennreal.mul_inv_cancel, one_mul, mul_comm, set.inter_assoc],
+    cond_apply _ (hs.inter_of_left _).measurable_set],
+  move_mul [← measure.count (s ∩ t), (measure.count s)⁻¹],
+  rw [ennreal.mul_inv_cancel, one_mul, set.inter_assoc],
   { rwa ← measure.count_eq_zero_iff at hst },
   { exact (measure.count_apply_lt_top.2 $ hs.inter_of_left _).ne }
 end
@@ -158,7 +158,7 @@ begin
   exacts [htu.mono inf_le_right inf_le_right, (hs.inter_of_left _).measurable_set],
 end
 
-lemma cond_count_compl (hs : s.finite) (hs' : s.nonempty) :
+lemma cond_count_compl (t : set α) (hs : s.finite) (hs' : s.nonempty) :
   cond_count s t + cond_count s tᶜ = 1 :=
 begin
   rw [← cond_count_union hs disjoint_compl_right, set.union_compl_self,
@@ -177,10 +177,8 @@ begin
   rw [cond_count, cond_count, cond_count, cond_apply _ hs.measurable_set,
     cond_apply _ ht.measurable_set, cond_apply _ (hs.union ht).measurable_set,
     cond_apply _ (hs.union ht).measurable_set, cond_apply _ (hs.union ht).measurable_set],
-  conv_lhs { rw [set.union_inter_cancel_left, set.union_inter_cancel_right,
-      mul_comm (measure.count (s ∪ t))⁻¹, mul_comm (measure.count (s ∪ t))⁻¹,
-      ← mul_assoc, ← mul_assoc, mul_comm _ (measure.count s), mul_comm _ (measure.count t),
-      ← mul_assoc, ← mul_assoc] },
+  rw [set.union_inter_cancel_left, set.union_inter_cancel_right],
+  move_mul [← measure.count s, ← (measure.count s)⁻¹, ← measure.count t, ← (measure.count t)⁻¹],
   rw [ennreal.mul_inv_cancel, ennreal.mul_inv_cancel, one_mul, one_mul, ← add_mul,
     ← measure_union, set.union_inter_distrib_right, mul_comm],
   exacts [hst.mono inf_le_left inf_le_left, (ht.inter_of_left _).measurable_set,
@@ -189,7 +187,7 @@ begin
 end
 
 /-- A version of the law of total probability for counting probabilites. -/
-lemma cond_count_add_compl_eq (hs : s.finite) :
+lemma cond_count_add_compl_eq (u t : set α) (hs : s.finite) :
   cond_count (s ∩ u) t * cond_count s u + cond_count (s ∩ uᶜ) t * cond_count s uᶜ =
   cond_count s t :=
 begin

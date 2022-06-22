@@ -382,6 +382,48 @@ meta def is_num_eq : expr → expr → bool
 
 end expr
 
+/-! ### Declarations about `pexpr` -/
+
+namespace pexpr
+
+/--
+If `e` is an annotation of `frozen_name` to `expr.const n`,
+`e.get_frozen_name` returns `n`.
+Otherwise, returns `name.anonymous`.
+-/
+meta def get_frozen_name (e : pexpr) : name :=
+match e.is_annotation with
+| some (`frozen_name, expr.const n _) := n
+| _ := name.anonymous
+end
+
+/--
+If `e : pexpr` is a sequence of applications `f e₁ e₂ ... eₙ`,
+`e.get_app_fn_args` returns `(f, [e₁, ... eₙ])`.
+See also `expr.get_app_fn_args`.
+-/
+meta def get_app_fn_args : pexpr → opt_param (list pexpr) [] → pexpr × list pexpr
+| (expr.app e1 e2) r := get_app_fn_args e1 (e2::r)
+| e1 r := (e1, r)
+
+/--
+If `e : pexpr` is a sequence of applications `f e₁ e₂ ... eₙ`,
+`e.get_app_fn` returns `f`.
+See also `expr.get_app_fn`.
+-/
+meta def get_app_fn : pexpr → list pexpr :=
+prod.snd ∘ get_app_fn_args
+
+/--
+If `e : pexpr` is a sequence of applications `f e₁ e₂ ... eₙ`,
+`e.get_app_args` returns `[e₁, ... eₙ]`.
+See also `expr.get_app_args`.
+-/
+meta def get_app_args : pexpr → list pexpr :=
+prod.snd ∘ get_app_fn_args
+
+end pexpr
+
 /-! ### Declarations about `expr` -/
 
 namespace expr
@@ -537,11 +579,6 @@ meta def to_implicit_binder : expr → expr
 | (lam n _ d b) := lam n binder_info.implicit d b
 | (pi n _ d b) := pi n binder_info.implicit d b
 | e  := e
-
-/--  Takes an `expr` and returns a list of its summands. -/
-meta def list_summands : expr → list expr
-| `(has_add.add %%a %%b) := a.list_summands ++ b.list_summands
-| a                      := [a]
 
 /-- Returns a list of all local constants in an expression (without duplicates). -/
 meta def list_local_consts (e : expr) : list expr :=

@@ -412,17 +412,16 @@ begin
   by_cases h : n+1 ≤ c,
   { refine ⟨a ^ (c - (n + 1)) * s.sum ^ ((s.card + 1) * n + 1 - c) *
       (((s.card + 1) * n + 1).choose c), 0, submodule.zero_mem _, _⟩,
-    rw mul_comm _ (a ^ (n + 1)),
-    simp_rw ← mul_assoc,
+    move_mul ← (a ^ (n + 1)),
     rw [← pow_add, add_zero, add_tsub_cancel_of_le h], },
   { use 0,
     simp_rw [zero_mul, zero_add],
     refine ⟨_,_,rfl⟩,
     replace h : c ≤ n := nat.lt_succ_iff.mp (not_le.mp h),
-    have : (s.card + 1) * n + 1 - c = s.card * n + 1 + (n - c),
-    { rw [add_mul, one_mul, add_assoc, add_comm n 1, ← add_assoc, add_tsub_assoc_of_le h] },
-    rw [this, pow_add],
-    simp_rw [mul_assoc, mul_comm (s.sum ^ (s.card * n + 1)), ← mul_assoc],
+    rw nat.succ_mul,
+    move_add n at ⊢ hs,
+    rw [add_tsub_assoc_of_le h, pow_add],
+    move_mul [← _ ^ _, _ ^ _],
     exact mul_mem_left _ _ hs }
 end
 

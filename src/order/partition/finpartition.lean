@@ -153,7 +153,7 @@ def _root_.is_atom.unique_finpartition (ha : is_atom a) : unique (finpartition a
 { default := indiscrete ha.1,
   uniq := λ P, begin
     have h : ∀ b ∈ P.parts, b = a,
-    { exact λ b hb, (eq_bot_or_eq_of_le_atom ha $ P.le hb).resolve_left (P.ne_bot hb) },
+    { exact λ b hb, (ha.le_iff.mp $ P.le hb).resolve_left (P.ne_bot hb) },
     ext b,
     refine iff.trans ⟨h b, _⟩ mem_singleton.symm,
     rintro rfl,

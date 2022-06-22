@@ -400,7 +400,10 @@ alias neg_one_sq ← neg_one_pow_two
 end has_distrib_neg
 
 section ring
-variable [ring R]
+variables [ring R] {a b : R}
+
+protected lemma commute.sq_sub_sq (h : commute a b) : a ^ 2 - b ^ 2 = (a + b) * (a - b) :=
+by rw [sq, sq, h.mul_self_sub_mul_self_eq]
 
 @[simp]
 lemma neg_one_pow_mul_eq_zero_iff {n : ℕ} {r : R} : (-1)^n * r = 0 ↔ r = 0 :=
@@ -410,20 +413,25 @@ by rcases neg_one_pow_eq_or R n; simp [h]
 lemma mul_neg_one_pow_eq_zero_iff {n : ℕ} {r : R} : r * (-1)^n = 0 ↔ r = 0 :=
 by rcases neg_one_pow_eq_or R n; simp [h]
 
+variables [no_zero_divisors R]
+
+protected lemma commute.sq_eq_sq_iff_eq_or_eq_neg (h : commute a b) :
+  a ^ 2 = b ^ 2 ↔ a = b ∨ a = -b :=
+by rw [←sub_eq_zero, h.sq_sub_sq, mul_eq_zero, add_eq_zero_iff_eq_neg, sub_eq_zero, or_comm]
+
+@[simp] lemma sq_eq_one_iff : a^2 = 1 ↔ a = 1 ∨ a = -1 :=
+by rw [←(commute.one_right a).sq_eq_sq_iff_eq_or_eq_neg, one_pow]
+
+lemma sq_ne_one_iff : a^2 ≠ 1 ↔ a ≠ 1 ∧ a ≠ -1 := sq_eq_one_iff.not.trans not_or_distrib
+
 end ring
 
 section comm_ring
 variables [comm_ring R]
 
-lemma sq_sub_sq (a b : R) : a ^ 2 - b ^ 2 = (a + b) * (a - b) :=
-by rw [sq, sq, mul_self_sub_mul_self]
+lemma sq_sub_sq (a b : R) : a ^ 2 - b ^ 2 = (a + b) * (a - b) := (commute.all a b).sq_sub_sq
 
 alias sq_sub_sq ← pow_two_sub_pow_two
-
-lemma eq_or_eq_neg_of_sq_eq_sq [no_zero_divisors R] (a b : R) (h : a ^ 2 = b ^ 2) :
-  a = b ∨ a = -b :=
-by rwa [← add_eq_zero_iff_eq_neg, ← sub_eq_zero, or_comm, ← mul_eq_zero,
-        ← sq_sub_sq a b, sub_eq_zero]
 
 lemma sub_sq (a b : R) : (a - b) ^ 2 = a ^ 2 - 2 * a * b + b ^ 2 :=
 by rw [sub_eq_add_neg, add_sq, neg_sq, mul_neg, ← sub_eq_add_neg]
@@ -433,16 +441,22 @@ alias sub_sq ← sub_pow_two
 lemma sub_sq' (a b : R) : (a - b) ^ 2 = a ^ 2 + b ^ 2 - 2 * a * b :=
 by rw [sub_eq_add_neg, add_sq', neg_sq, mul_neg, ← sub_eq_add_neg]
 
+variables [no_zero_divisors R] {a b : R}
+
+lemma sq_eq_sq_iff_eq_or_eq_neg : a ^ 2 = b ^ 2 ↔ a = b ∨ a = -b :=
+(commute.all a b).sq_eq_sq_iff_eq_or_eq_neg
+
+lemma eq_or_eq_neg_of_sq_eq_sq (a b : R) : a ^ 2 = b ^ 2 → a = b ∨ a = -b :=
+sq_eq_sq_iff_eq_or_eq_neg.1
+
 /- Copies of the above comm_ring lemmas for `units R`. -/
 namespace units
 
-lemma eq_or_eq_neg_of_sq_eq_sq [no_zero_divisors R] (a b : Rˣ) (h : a ^ 2 = b ^ 2) :
-  a = b ∨ a = -b :=
-begin
-  refine (eq_or_eq_neg_of_sq_eq_sq _ _ _).imp (λ h, units.ext h) (λ h, units.ext h),
-  replace h := congr_arg (coe : Rˣ → R) h,
-  rwa [units.coe_pow, units.coe_pow] at h,
-end
+protected lemma sq_eq_sq_iff_eq_or_eq_neg {a b : Rˣ} : a ^ 2 = b ^ 2 ↔ a = b ∨ a = -b :=
+by simp_rw [ext_iff, coe_pow, sq_eq_sq_iff_eq_or_eq_neg, units.coe_neg]
+
+protected lemma eq_or_eq_neg_of_sq_eq_sq (a b : Rˣ) (h : a ^ 2 = b ^ 2) : a = b ∨ a = -b :=
+units.sq_eq_sq_iff_eq_or_eq_neg.1 h
 
 end units
 

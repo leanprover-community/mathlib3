@@ -137,8 +137,7 @@ example (R : CommMon.{u}) : R ⟶ R :=
     exact x * x
   end ,
   map_one' := by simp,
-  map_mul' := λ x y,
-  begin rw [mul_assoc x y (x * y), ←mul_assoc y x y, mul_comm y x, mul_assoc, mul_assoc], end, }
+  map_mul' := λ x y, by move_mul [y, y] }
 
 variables {X Y : Type u}
 

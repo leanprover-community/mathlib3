@@ -213,7 +213,10 @@ fork.mk_hom (F.map (eq_to_hom (supr_eq_of_mem_grothendieck U R hR)).op)
 instance is_iso_postcompose_diagram_fork_hom_hom
   (hR : sieve.generate R ∈ opens.grothendieck_topology X U) :
   is_iso (postcompose_diagram_fork_hom F U R hR).hom :=
-begin rw postcompose_diagram_fork_hom_hom, apply eq_to_hom.is_iso, end
+begin
+  rw [postcompose_diagram_fork_hom_hom, eq_to_hom_map],
+  apply eq_to_hom.is_iso,
+end
 
 instance is_iso_postcompose_diagram_fork_hom
   (hR : sieve.generate R ∈ opens.grothendieck_topology X U) :

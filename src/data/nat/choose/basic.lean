@@ -120,16 +120,14 @@ begin
   calc
     n.choose k * k.choose s * ((n - k)! * (k - s)! * s!)
         = n.choose k * (k.choose s * s! * (k - s)!) * (n - k)!
-        : by rw [mul_assoc, mul_assoc, mul_assoc, mul_assoc _ s!, mul_assoc, mul_comm (n - k)!,
-              mul_comm s!]
+        : by move_mul [(k - s)!, s!]
     ... = n!
         : by rw [choose_mul_factorial_mul_factorial hsk, choose_mul_factorial_mul_factorial hkn]
     ... = n.choose s * s! * ((n - s).choose (k - s) * (k - s)! * (n - s - (k - s))!)
         : by rw [choose_mul_factorial_mul_factorial (tsub_le_tsub_right hkn _),
               choose_mul_factorial_mul_factorial (hsk.trans hkn)]
     ... = n.choose s * (n - s).choose (k - s) * ((n - k)! * (k - s)! * s!)
-        : by rw [tsub_tsub_tsub_cancel_right hsk, mul_assoc, mul_left_comm s!, mul_assoc,
-              mul_comm (k - s)!, mul_comm s!, mul_right_comm, ←mul_assoc]
+        : by { rw [tsub_tsub_tsub_cancel_right hsk], move_mul [(k - s)!, s!] }
 end
 
 theorem choose_eq_factorial_div_factorial {n k : ℕ} (hk : k ≤ n) :

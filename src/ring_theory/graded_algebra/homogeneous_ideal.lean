@@ -128,7 +128,7 @@ begin
   have mem₁ : (graded_algebra.decompose 𝒜 r k : A) * x ∈ 𝒜 (k + i) := graded_monoid.mul_mem
     (submodule.coe_mem _) hi,
   erw [graded_algebra.proj_apply, graded_algebra.decompose_of_mem 𝒜 mem₁,
-    coe_of_submodule_apply 𝒜, submodule.coe_mk],
+    coe_of_apply, submodule.coe_mk],
   split_ifs,
   { exact I.mul_mem_left _ hx₂ },
   { exact I.zero_mem },

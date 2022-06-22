@@ -37,13 +37,13 @@ def box_prod (G : simple_graph α) (H : simple_graph β) : simple_graph (α × �
 
 infix ` □ `:70 := box_prod
 
-lemma box_prod_adj : (G □ H).adj x y ↔ G.adj x.1 y.1 ∧ x.2 = y.2 ∨ H.adj x.2 y.2 ∧ x.1 = y.1 :=
-iff.rfl
+@[simp] lemma box_prod_adj :
+  (G □ H).adj x y ↔ G.adj x.1 y.1 ∧ x.2 = y.2 ∨ H.adj x.2 y.2 ∧ x.1 = y.1 := iff.rfl
 
-lemma box_prod_adj_left : (G □ H).adj (a₁, b) (a₂, b) ↔ G.adj a₁ a₂ :=
+@[simp] lemma box_prod_adj_left : (G □ H).adj (a₁, b) (a₂, b) ↔ G.adj a₁ a₂ :=
 by rw [box_prod_adj, and_iff_left rfl, or_iff_left (λ h : H.adj b b ∧ _, h.1.ne rfl)]
 
-lemma box_prod_adj_right : (G □ H).adj (a, b₁) (a, b₂) ↔ H.adj b₁ b₂ :=
+@[simp] lemma box_prod_adj_right : (G □ H).adj (a, b₁) (a, b₂) ↔ H.adj b₁ b₂ :=
 by rw [box_prod_adj, and_iff_left rfl, or_iff_right (λ h : G.adj a a ∧ _, h.1.ne rfl)]
 
 variables (G H I)

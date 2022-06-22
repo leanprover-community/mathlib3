@@ -134,39 +134,8 @@ class ordered_semiring (α : Type u) extends semiring α, ordered_cancel_add_com
 section ordered_semiring
 variables [ordered_semiring α] {a b c d : α}
 
-section nontrivial
-
-variables [nontrivial α]
-
-@[simp] lemma zero_lt_one : 0 < (1 : α) :=
-lt_of_le_of_ne zero_le_one zero_ne_one
-
-lemma zero_lt_two : 0 < (2:α) := add_pos zero_lt_one zero_lt_one
-
-@[field_simps] lemma two_ne_zero : (2:α) ≠ 0 :=
-zero_lt_two.ne'
-
-lemma one_lt_two : 1 < (2:α) :=
-calc (2:α) = 1+1 : one_add_one_eq_two
-     ...   > 1+0 : add_lt_add_left zero_lt_one _
-     ...   = 1   : add_zero 1
-
-lemma zero_lt_three : 0 < (3:α) := add_pos zero_lt_two zero_lt_one
-
-@[field_simps] lemma three_ne_zero : (3:α) ≠ 0 :=
-zero_lt_three.ne'
-
-lemma zero_lt_four : 0 < (4:α) := add_pos zero_lt_two zero_lt_two
-
-@[field_simps] lemma four_ne_zero : (4:α) ≠ 0 :=
-zero_lt_four.ne'
-
-alias zero_lt_one ← one_pos
-alias zero_lt_two ← two_pos
-alias zero_lt_three ← three_pos
-alias zero_lt_four ← four_pos
-
-end nontrivial
+instance ordered_semiring.zero_le_one_class [nontrivial α] : zero_lt_one_class α :=
+⟨lt_of_le_of_ne zero_le_one zero_ne_one⟩
 
 lemma mul_lt_mul_of_pos_left (h₁ : a < b) (h₂ : 0 < c) : c * a < c * b :=
 ordered_semiring.mul_lt_mul_of_pos_left a b c h₁ h₂

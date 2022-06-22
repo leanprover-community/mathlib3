@@ -135,6 +135,93 @@ lemma one_le_two' [has_le α] [has_one α] [add_zero_class α] [zero_le_one_clas
 calc 1 = 0 + 1 : (zero_add 1).symm
    ... ≤ 1 + 1 : add_le_add_right zero_le_one _
 
+/-- Typeclass for expressing that the `0` of a type is less to its `1`. -/
+class zero_lt_one_class (α : Type*) [has_zero α] [has_one α] [has_lt α] :=
+(zero_lt_one : (0 : α) < 1)
+
+@[simp] lemma zero_lt_one [has_zero α] [has_one α] [has_lt α] [zero_lt_one_class α] : (0 : α) < 1 :=
+zero_lt_one_class.zero_lt_one
+
+alias zero_lt_one ← one_pos
+
+/- `zero_lt_one` with an explicit type argument. -/
+lemma zero_lt_one' (α) [has_zero α] [has_one α] [has_lt α] [zero_lt_one_class α] : (0 : α) < 1 :=
+zero_lt_one
+
+alias zero_lt_one' ← one_pos'
+
+@[priority 100] instance zero_lt_one_class.zero_le_one_class
+  [has_zero α] [has_one α] [preorder α] [zero_lt_one_class α] : zero_le_one_class α :=
+⟨zero_lt_one.le⟩
+
+section basic_ineq
+
+variables [has_one α] [preorder α] [add_zero_class α] [zero_lt_one_class α]
+
+section covariant_add
+
+variable [covariant_class α α (+) (<)]
+
+lemma zero_lt_two : (0 : α) < 2 :=
+add_pos zero_lt_one zero_lt_one
+
+@[field_simps] lemma two_ne_zero : (2 : α) ≠ 0 :=
+zero_lt_two.ne'
+
+lemma one_lt_two : (1 : α) < 2 :=
+calc 1 = 1 + 0 : (add_zero 1).symm
+   ... < 1 + 1 : add_lt_add_left zero_lt_one _
+   ... = 2     : one_add_one_eq_two
+
+lemma zero_lt_three : (0 : α) < 3 := add_pos zero_lt_two zero_lt_one
+
+@[field_simps] lemma three_ne_zero : (3 : α) ≠ 0 :=
+zero_lt_three.ne'
+
+lemma zero_lt_four : (0 : α) < 4 := add_pos zero_lt_two zero_lt_two
+
+@[field_simps] lemma four_ne_zero : (4 : α) ≠ 0 :=
+zero_lt_four.ne'
+
+alias zero_lt_two ← two_pos
+alias zero_lt_three ← three_pos
+alias zero_lt_four ← four_pos
+
+end covariant_add
+
+section covariant_swap_add
+
+variable [covariant_class α α (swap (+)) (<)]
+
+lemma zero_lt_two' : (0 : α) < 2 :=
+right.add_pos zero_lt_one zero_lt_one
+
+@[field_simps] lemma two_ne_zero' : (2 : α) ≠ 0 :=
+zero_lt_two'.ne'
+
+lemma one_lt_two' : (1 : α) < 2 :=
+calc 1 = 0 + 1 : (zero_add 1).symm
+   ... < 1 + 1 : add_lt_add_right zero_lt_one _
+   ... = 2     : one_add_one_eq_two
+
+lemma zero_lt_three' : (0 : α) < 3 := right.add_pos zero_lt_two' zero_lt_one
+
+@[field_simps] lemma three_ne_zero' : (3 : α) ≠ 0 :=
+zero_lt_three'.ne'
+
+lemma zero_lt_four' : (0 : α) < 4 := right.add_pos zero_lt_two' zero_lt_two'
+
+@[field_simps] lemma four_ne_zero' : (4 : α) ≠ 0 :=
+zero_lt_four'.ne'
+
+alias zero_lt_two' ← two_pos'
+alias zero_lt_three' ← three_pos'
+alias zero_lt_four' ← four_pos'
+
+end covariant_swap_add
+
+end basic_ineq
+
 /-- A linearly ordered commutative monoid with a zero element. -/
 class linear_ordered_comm_monoid_with_zero (α : Type*)
   extends linear_ordered_comm_monoid α, comm_monoid_with_zero α :=

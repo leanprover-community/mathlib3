@@ -70,10 +70,7 @@ def type_str(type):
     return "QQ"
 
 def var_names(var_list_string):
-    out = ""
-    var_list_string = var_list_string[1:-1]
-    var_names = var_list_string.replace(" ", "")
-    return var_names
+    return var_list_string[1:-1].replace(" ", "")
 
 def create_query(type: str, var_list, eq_list, goal_type):
     query = f'''

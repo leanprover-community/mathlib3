@@ -20,8 +20,8 @@ local context. Note: since this tactic uses SageMath via an API call done in Pyt
 it can only be used with a working internet connection, and with a local installation of Python.
 
 ## Notation
-This file uses the local notation `exmap` for `list (expr × ℕ)`.
-This file uses the local notation `reduc` for `transparency.reducible`.
+* This file uses the local notation `exmap` for `list (expr × ℕ)`.
+* This file uses the local notation `reduc` for `transparency.reducible`.
 
 ## Implementation Notes
 
@@ -58,12 +58,12 @@ A datatype representing the semantics of multivariable polynomials.
 Each `poly` can be converted into a string.
 -/
 inductive poly
-|const: ℚ → poly
-|var: ℕ → poly
-|add: poly → poly → poly
-|sub: poly → poly → poly
-|mul: poly → poly → poly
-|pow : poly → ℕ → poly
+| const: ℚ → poly
+| var: ℕ → poly
+| add: poly → poly → poly
+| sub: poly → poly → poly
+| mul: poly → poly → poly
+| pow : poly → ℕ → poly
 
 /--
 This converts a poly object into a string representing it. The string
@@ -205,11 +205,10 @@ a `poly` object. This is used later on to convert the coefficients given by Sage
 /--
 An error message returned from Sage has a kind and a message.
 -/
+@[derive inhabited]
 structure sage_error :=
 (kind : string)
 (message : string)
-
-instance : inhabited sage_error := ⟨⟨ "", ""⟩⟩
 
 open parser
 
@@ -359,7 +358,7 @@ A tactic that uses the above defined parsers to convert
 the sage output `string` to a `list poly`
 -/
 meta def convert_sage_output : string → tactic (list poly)
-|s := (let sage_stuff := sage_output_parser.run_string (remove_trailing_whitespace s)
+| s := (let sage_stuff := sage_output_parser.run_string (remove_trailing_whitespace s)
   in parser_output_checker sage_stuff)
 
 
@@ -591,6 +590,25 @@ is suggested to the user.
   `h1`, `h2`, `h3`, and proofs `t1`, `t2`, `t3`. It will ignore the rest of the local context.
 
 Note: This tactic only works with a working internet connection.
+
+Examples:
+
+```
+example (x y : ℚ) (h1 : x*y + 2*x = 1) (h2 : x = y) :
+  x*y = -2*y + 1 :=
+by polyrith
+-- Try this: linear_combination h1 - 2 * h2
+
+example (x y z w : ℚ) (hzw : z = w) : x*z + 2*y*z = x*w + 2*y*w :=
+by polyrith
+-- Try this: linear_combination (2 * y + x) * hzw
+
+constant scary : ∀ a b : ℚ, a + b = 0
+
+example (a b c d : ℚ) (h : a + b = 0) (h2: b + c = 0) : a + b + c + d = 0 :=
+by polyrith only [scary c d, h]
+-- Try this: linear_combination scary c d + h
+```
 -/
 meta def _root_.tactic.interactive.polyrith (restr : parse (tk "only")?)
   (hyps : parse pexpr_list?) : tactic unit :=

@@ -355,10 +355,6 @@ nonempty_subtype.2 h
 
 instance [nonempty α] : nonempty (set.univ : set α) := set.univ_nonempty.to_subtype
 
-@[simp] lemma insert_nonempty (a : α) (s : set α) : (insert a s).nonempty := ⟨a, or.inl rfl⟩
-
-instance (a : α) (s : set α) : nonempty (insert a s : set α) := (insert_nonempty a s).to_subtype
-
 lemma nonempty_of_nonempty_subtype [nonempty s] : s.nonempty :=
 nonempty_subtype.mp ‹_›
 
@@ -692,6 +688,10 @@ insert_eq_of_mem $ mem_insert _ _
 theorem insert_union : insert a s ∪ t = insert a (s ∪ t) := ext $ λ x, or.assoc
 
 @[simp] theorem union_insert : s ∪ insert a t = insert a (s ∪ t) := ext $ λ x, or.left_comm
+
+@[simp] lemma insert_nonempty (a : α) (s : set α) : (insert a s).nonempty := ⟨a, or.inl rfl⟩
+
+instance (a : α) (s : set α) : nonempty (insert a s : set α) := (insert_nonempty a s).to_subtype
 
 lemma insert_inter_distrib (a : α) (s t : set α) : insert a (s ∩ t) = insert a s ∩ insert a t :=
 ext $ λ y, or_and_distrib_left

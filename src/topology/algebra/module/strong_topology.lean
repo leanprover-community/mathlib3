@@ -58,7 +58,7 @@ def strong_uniformity [uniform_space F] [uniform_add_group F]
   (strong_uniformity 𝕜 E F 𝔖).to_topological_space = strong_topology 𝕜 E F 𝔖 :=
 rfl
 
-lemma strong_topology.uniform_add_group [uniform_space F] [uniform_add_group F]
+lemma strong_uniformity.uniform_add_group [uniform_space F] [uniform_add_group F]
   (𝔖 : set $ set E) : @uniform_add_group _ (strong_uniformity 𝕜 E F 𝔖) _ :=
 begin
   letI : uniform_space (E → F) := uniform_convergence_on.uniform_space E F 𝔖,
@@ -76,8 +76,21 @@ begin
   letI : uniform_space F := topological_add_group.to_uniform_space F,
   haveI : uniform_add_group F := topological_add_group_is_uniform,
   letI : uniform_space (E →L[𝕜] F) := strong_uniformity 𝕜 E F 𝔖,
-  haveI : uniform_add_group (E →L[𝕜] F) := strong_topology.uniform_add_group 𝕜 E F 𝔖,
+  haveI : uniform_add_group (E →L[𝕜] F) := strong_uniformity.uniform_add_group 𝕜 E F 𝔖,
   apply_instance
+end
+
+lemma strong_topology.has_continuous_smul [topological_space F] [topological_add_group F]
+  [has_continuous_smul 𝕜 F] (𝔖 : set $ set E) (h𝔖₁ : 𝔖.nonempty) (h𝔖₂ : directed_on (⊆) 𝔖)
+  (h𝔖₃ : ∀ S ∈ 𝔖, bornology.is_vonN_bounded 𝕜 S) :
+  @has_continuous_smul 𝕜 (E →L[𝕜] F) _ _ (strong_topology 𝕜 E F 𝔖) :=
+begin
+
+  letI : uniform_space F := topological_add_group.to_uniform_space F,
+  letI : uniform_space (E → F) := uniform_convergence_on.uniform_space E F 𝔖,
+  haveI : has_continuous_smul 𝕜 (E → F) :=
+    uniform_convergence_on.has_continuous_smul_of_image_bounded h𝔖₁,
+
 end
 
 end general
@@ -97,7 +110,7 @@ instance [uniform_space F] [uniform_add_group F] : uniform_space (E →L[𝕜] F
 strong_uniformity 𝕜 E F {S | bornology.is_vonN_bounded 𝕜 S}
 
 instance [uniform_space F] [uniform_add_group F] : uniform_add_group (E →L[𝕜] F) :=
-strong_topology.uniform_add_group 𝕜 E F _
+strong_uniformity.uniform_add_group 𝕜 E F _
 
 end bounded_sets
 

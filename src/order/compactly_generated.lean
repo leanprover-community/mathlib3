@@ -256,7 +256,7 @@ begin
   suffices : (set.range t).finite,
   { haveI : finite (set.range t) := finite.of_fintype this.fintype,
     exact finite.of_equiv (set.range t) (equiv.of_injective _ (ht.injective h_ne_bot)).symm, },
-  exact well_founded.finite_of_set_independent hwf ht.set_indepdent_range,
+  exact well_founded.finite_of_set_independent hwf ht.set_independent_range,
 end
 
 end complete_lattice

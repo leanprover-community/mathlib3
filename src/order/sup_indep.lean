@@ -278,7 +278,7 @@ begin
   exact (ht i').mono_right (bsupr_mono $ λ j' hij, mt (congr_arg f) hij),
 end
 
-lemma independent.set_indepdent_range (ht : independent t) :
+lemma independent.set_independent_range (ht : independent t) :
   set_independent $ range t :=
 begin
   rw set_independent_iff,

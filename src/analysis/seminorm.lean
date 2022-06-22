@@ -173,7 +173,39 @@ lemma lt_def (p q : add_monoid_seminorm E) : p < q ↔ (p : E → ℝ) < q := if
 noncomputable instance : semilattice_sup (add_monoid_seminorm E) :=
 function.injective.semilattice_sup _ fun_like.coe_injective coe_sup
 
-noncomputable instance : has_inf (add_monoid_seminorm E) :=
+section add_comm_group
+variable [add_comm_group G]
+
+variables (q : add_monoid_seminorm G)
+
+@[simp]
+protected lemma neg (x : G) : q (-x) = q x :=
+by apply q.eq_of_add_eq_zero'; rw [add_left_neg]
+
+protected lemma sub_le (x y : G) : q (x - y) ≤ q x + q y :=
+calc
+  q (x - y)
+      = q (x + -y) : by rw sub_eq_add_neg
+  ... ≤ q x + q (-y) : q.add_le x (-y)
+  ... = q x + q y : by rw q.neg
+
+lemma sub_rev (x y : G) : q (x - y) = q (y - x) :=
+by rw [←neg_sub, q.neg]
+
+/-- The direct path from 0 to y is shorter than the path with x "inserted" in between. -/
+lemma le_insert (x y : G) : q y ≤ q x + q (x - y) :=
+calc q y = q (x - (x - y)) : by rw sub_sub_cancel
+... ≤ q x + q (x - y) : q.sub_le  _ _
+
+/-- The direct path from 0 to x is shorter than the path with y "inserted" in between. -/
+lemma le_insert' (x y : G) : q x ≤ q y + q (x - y) :=
+by { rw sub_rev, exact le_insert _ _ _ }
+
+private lemma bdd_below_range_add (x : G) (p q : add_monoid_seminorm G) :
+  bdd_below (range (λ (u : G), p u + q (x - u))) :=
+by { use 0, rintro _ ⟨x, rfl⟩, exact add_nonneg (p.nonneg _) (q.nonneg _) }
+
+/-  noncomputable instance : has_inf (add_monoid_seminorm E) :=
 { inf := λ p q,
   { to_fun    := λ x, ⨅ (u v : E) (h : x = u + v), p u + q v,
     map_zero' := begin
@@ -184,16 +216,67 @@ noncomputable instance : has_inf (add_monoid_seminorm E) :=
     apply le_cinfi,
     intro z,
     casesI is_empty_or_nonempty (x = y + z) with he hne,
-    { sorry },
+    { unfold infi, apply le_of_eq,
+      symmetry,
+      convert real.Inf_empty,
+    --rw real.Inf_def,
+      sorry },
     { exact le_cinfi (λ hx, add_nonneg (p.nonneg _) (q.nonneg _)), }
     end,
     add_le'   := λ x y, sorry,
     eq_of_add_eq_zero' := λ x y hxy, sorry }}
 
-/- @[simp] lemma inf_apply (p q : add_monoid_seminorm G) (x : G) :
+    #exit  -/
+
+noncomputable instance : has_inf (add_monoid_seminorm G) :=
+{ inf := λ p q,
+  { to_fun    := λ x, ⨅ u : G, p u + q (x-u),
+    map_zero' := cinfi_eq_of_forall_ge_of_forall_gt_exists_lt
+        (λ x, add_nonneg (p.nonneg _) (q.nonneg _))
+        (λ r hr, ⟨0, by simpa [sub_zero, p.map_zero, q.map_zero, add_zero] using hr⟩),
+    nonneg'   := λ x, le_cinfi (λ x, add_nonneg (p.nonneg _) (q.nonneg _)),
+    add_le'   := λ x y, begin
+      refine le_cinfi_add_cinfi (λ u v, _),
+      apply cinfi_le_of_le (bdd_below_range_add _ _ _) (v+u), dsimp only,
+      convert add_le_add (p.add_le v u) (q.add_le (y-v) (x-u)) using 1,
+      { rw show x + y - (v + u) = y - v + (x - u), by abel },
+      { abel },
+    end,
+    eq_of_add_eq_zero' := λ x y hxy,
+    begin
+      have : (⨅ (u : G), p u + q (y - u) : ℝ) = ⨅ (u : G), p (- u) + q (y + u),
+      { apply le_antisymm,
+        { apply le_cinfi,
+          intro v,
+          rw ← sub_neg_eq_add y v,
+          apply cinfi_le _ (-v),
+          use 0, rw mem_lower_bounds,
+          intros r hr,
+          obtain ⟨z, hz⟩ := mem_range.mp hr,
+          rw ← hz,
+          exact add_nonneg (p.nonneg _) (q.nonneg _), },
+        { apply le_cinfi,
+          intro v,
+          rw sub_eq_add_neg y v,
+          nth_rewrite 0 ← neg_neg v,
+          apply cinfi_le _ (-v),
+          use 0, rw mem_lower_bounds,
+          intros r hr,
+          obtain ⟨z, hz⟩ := mem_range.mp hr,
+          rw ← hz,
+          exact add_nonneg (p.nonneg _) (q.nonneg _), }},
+      rw this,
+      apply congr_arg,
+      ext u,
+      have hu : x - u + (y + u) = 0,
+      { rw [add_comm y, ← add_assoc, sub_eq_add_neg, neg_add_cancel_right], exact hxy },
+      rw [p.neg, q.eq_of_add_eq_zero _ _ hu],
+    end }}
+
+@[simp] lemma inf_apply (p q : add_monoid_seminorm G) (x : G) :
   (p ⊓ q) x = ⨅ u : G, p u + q (x-u) := rfl
 
-noncomputable instance [add_comm_group G] : lattice (add_monoid_seminorm G) :=
+noncomputable instance : lattice (add_monoid_seminorm G) :=
 { inf := (⊓),
   inf_le_left := λ p q x, begin
     apply cinfi_le_of_le (bdd_below_range_add _ _ _) x,
@@ -204,8 +287,10 @@ noncomputable instance [add_comm_group G] : lattice (add_monoid_seminorm G) :=
     simp only [sub_self, map_zero, zero_add, sub_zero],
   end,
   le_inf := λ a b c hab hac x,
-    le_cinfi $ λ u, le_trans (a.le_insert' (by sorry) _ _) (add_le_add (hab _) (hac _)),
-  ..add_monoid_seminorm.semilattice_sup } -/
+    le_cinfi $ λ u, le_trans (a.le_insert' _ _) (add_le_add (hab _) (hac _)),
+  ..add_monoid_seminorm.semilattice_sup }
+
+end add_comm_group
 
 section comp
 variables [add_monoid F] [add_monoid G]
@@ -572,25 +657,21 @@ by { use 0, rintro _ ⟨x, rfl⟩, exact add_nonneg (p.nonneg _) (q.nonneg _) }
 
 noncomputable instance : has_inf (seminorm 𝕜 E) :=
 { inf := λ p q,
-begin
-  refine seminorm.of (λ x, ⨅ u : E, p u + q (x-u)) _ _,
-  { intros x y,
-    refine le_cinfi_add_cinfi (λ u v, _),
-    apply cinfi_le_of_le (bdd_below_range_add _ _ _) (v + u), dsimp only,
-    convert add_le_add (p.add_le v u) (q.add_le (y-v) (x-u)) using 1,
-    { rw show x + y - (v + u) = y - v + (x - u), by abel },
-    { abel }},
-  { intros a x,
-    obtain rfl | ha := eq_or_ne a 0,
-    { rw [norm_zero, zero_mul, zero_smul],
-      refine cinfi_eq_of_forall_ge_of_forall_gt_exists_lt
-        (λ i, add_nonneg (p.nonneg _) (q.nonneg _))
-        (λ x hx, ⟨0, by rwa [map_zero, sub_zero, map_zero, add_zero]⟩) },
-    simp_rw [real.mul_infi_of_nonneg (norm_nonneg a), mul_add, ←p.smul, ←q.smul, smul_sub],
-    refine function.surjective.infi_congr ((•) a⁻¹ : E → E) (λ u, ⟨a • u, inv_smul_smul₀ ha u⟩)
-      (λ u, _),
-    rw smul_inv_smul₀ ha },
-end }
+  { to_fun  := λ x, ⨅ u : E, p u + q (x-u),
+    smul' :=
+    begin
+      intros a x,
+      obtain rfl | ha := eq_or_ne a 0,
+      { rw [norm_zero, zero_mul, zero_smul],
+        refine cinfi_eq_of_forall_ge_of_forall_gt_exists_lt
+          (λ i, add_nonneg (p.nonneg _) (q.nonneg _))
+          (λ x hx, ⟨0, by rwa [map_zero, sub_zero, map_zero, add_zero]⟩) },
+      simp_rw [real.mul_infi_of_nonneg (norm_nonneg a), mul_add, ←p.smul, ←q.smul, smul_sub],
+      refine function.surjective.infi_congr ((•) a⁻¹ : E → E) (λ u, ⟨a • u, inv_smul_smul₀ ha u⟩)
+        (λ u, _),
+      rw smul_inv_smul₀ ha
+    end,
+    ..(p.to_add_monoid_seminorm ⊓ q.to_add_monoid_seminorm) }}
 
 @[simp] lemma inf_apply (p q : seminorm 𝕜 E) (x : E) : (p ⊓ q) x = ⨅ u : E, p u + q (x-u) := rfl
 
@@ -867,16 +948,12 @@ end seminorm
 /-! ### The norm as a seminorm -/
 
 section norm_seminorm
-variables (𝕜) {E} [normed_field 𝕜] [semi_normed_group E] [normed_space 𝕜 E] {r : ℝ}
-
-lemma norm_eq_of_add_eq_zero {x y : E} (hxy : x + y = 0) : ∥ x ∥ = ∥ y ∥ :=
-by rw [add_eq_zero_iff_eq_neg.mp hxy, norm_neg]
-
-variable (E)
+variables (𝕜) (E) [normed_field 𝕜] [semi_normed_group E] [normed_space 𝕜 E] {r : ℝ}
 
 /-- The norm of a seminormed group as an add_monoid seminorm. -/
 def norm_add_monoid_seminorm : add_monoid_seminorm E :=
-⟨norm, norm_zero, norm_nonneg, norm_add_le, λ x y hxy, norm_eq_of_add_eq_zero hxy⟩
+⟨norm, norm_zero, norm_nonneg, norm_add_le,
+  λ x y hxy, by rw [add_eq_zero_iff_eq_neg.mp hxy, norm_neg]⟩
 
 @[simp] lemma coe_norm_add_monoid_seminorm : ⇑(norm_add_monoid_seminorm E) = norm := rfl
 

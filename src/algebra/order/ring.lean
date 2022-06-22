@@ -127,14 +127,13 @@ class ordered_semiring (α : Type u) extends semiring α, ordered_cancel_add_com
 (mul_lt_mul_of_pos_left  : ∀ a b c : α, a < b → 0 < c → c * a < c * b)
 (mul_lt_mul_of_pos_right : ∀ a b c : α, a < b → 0 < c → a * c < b * c)
 
-@[priority 100] instance ordered_semiring.zero_le_one_class [h : ordered_semiring α] :
-  zero_le_one_class α :=
-{ ..h }
-
 section ordered_semiring
 variables [ordered_semiring α] {a b c d : α}
 
-instance ordered_semiring.zero_le_one_class [nontrivial α] : zero_lt_one_class α :=
+@[priority 100] instance ordered_semiring.zero_le_one_class : zero_le_one_class α :=
+{ zero_le_one := ordered_semiring.zero_le_one }
+
+@[priority 100] instance ordered_semiring.zero_lt_one_class [nontrivial α] : zero_lt_one_class α :=
 ⟨lt_of_le_of_ne zero_le_one zero_ne_one⟩
 
 lemma mul_lt_mul_of_pos_left (h₁ : a < b) (h₂ : 0 < c) : c * a < c * b :=
@@ -543,13 +542,6 @@ class linear_ordered_semiring (α : Type u)
 
 section linear_ordered_semiring
 variables [linear_ordered_semiring α] {a b c d : α}
-
--- `norm_num` expects the lemma stating `0 < 1` to have a single typeclass argument
--- (see `norm_num.prove_pos_nat`).
--- Rather than working out how to relax that assumption,
--- we provide a synonym for `zero_lt_one` (which needs both `ordered_semiring α` and `nontrivial α`)
--- with only a `linear_ordered_semiring` typeclass argument.
-lemma zero_lt_one' : 0 < (1 : α) := zero_lt_one
 
 lemma lt_of_mul_lt_mul_left (h : c * a < c * b) (hc : 0 ≤ c) : a < b :=
 by haveI := @linear_order.decidable_le α _; exact lt_of_not_ge
@@ -1143,10 +1135,10 @@ lemma mul_self_nonneg (a : α) : 0 ≤ a * a :=
 abs_mul_self a ▸ abs_nonneg _
 
 @[simp] lemma neg_le_self_iff : -a ≤ a ↔ 0 ≤ a :=
-by simp [neg_le_iff_add_nonneg, ← two_mul, mul_nonneg_iff, zero_le_one, (@zero_lt_two α _ _).not_le]
+by simp [neg_le_iff_add_nonneg, ← two_mul, mul_nonneg_iff, zero_le_one, zero_lt_two.not_le]
 
 @[simp] lemma neg_lt_self_iff : -a < a ↔ 0 < a :=
-by simp [neg_lt_iff_pos_add, ← two_mul, mul_pos_iff, zero_lt_one, (@zero_lt_two α _ _).not_lt]
+by simp [neg_lt_iff_pos_add, ← two_mul, mul_pos_iff, zero_lt_one, zero_lt_two.not_lt]
 
 @[simp] lemma le_neg_self_iff : a ≤ -a ↔ a ≤ 0 :=
 calc a ≤ -a ↔ -(-a) ≤ -a : by rw neg_neg

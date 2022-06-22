@@ -56,8 +56,7 @@ instance : add_comm_group game :=
 instance : has_one game := ⟨⟦1⟧⟩
 instance : inhabited game := ⟨0⟩
 
-instance : zero_lt_one_class game :=
-⟨zero_lt_one' pgame⟩
+instance : zero_lt_one_class game := ⟨zero_lt_one' pgame⟩
 
 instance : partial_order game :=
 { le := quotient.lift₂ (λ x y, x ≤ y) (λ x₁ y₁ x₂ y₂ hx hy, propext (le_congr hx hy)),

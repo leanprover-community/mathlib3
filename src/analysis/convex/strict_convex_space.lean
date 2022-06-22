@@ -247,38 +247,31 @@ variables [normed_add_torsor F PF] [normed_add_torsor E PE]
 
 include E
 
-lemma eq_smul_vadd_of_dist_eq_mul_of_dist_eq_mul {x y z : PE} (hxy : dist x y = r * dist x z)
+lemma eq_line_map_of_dist_eq_mul_of_dist_eq_mul {x y z : PE} (hxy : dist x y = r * dist x z)
   (hyz : dist y z = (1 - r) * dist x z) :
-  y = r • (z -ᵥ x) +ᵥ x :=
+  y = affine_map.line_map x z r :=
 begin
-  rw [dist_comm x y, dist_comm x z] at hxy,
-  rw [dist_comm y z, dist_comm x z] at hyz,
-  simp_rw dist_eq_norm_vsub E at hxy hyz,
-  rw eq_vadd_iff_vsub_eq,
-  by_cases hzx : z = x,
-  { simpa [hzx] using hxy },
-  { have hr0 : 0 ≤ r,
-    { by_contra hr,
-      rw not_le at hr,
-      have hxy' : ∥y -ᵥ x∥ < 0,
-      { rw hxy,
-        exact mul_neg_of_neg_of_pos hr (norm_pos_iff.2 (vsub_ne_zero.2 hzx)) },
-      exact (norm_nonneg _).not_lt hxy' },
-    have hxy' : ∥y -ᵥ x∥ = ∥r • (z -ᵥ x)∥,
-    { rw [hxy, norm_smul, real.norm_eq_abs, abs_of_nonneg hr0] },
-    have hr1 : 0 ≤ 1 - r,
-    { by_contra hr1,
-      rw not_le at hr1,
-      have hyz' : ∥z -ᵥ y∥ < 0,
-      { rw hyz,
-        exact mul_neg_of_neg_of_pos hr1 (norm_pos_iff.2 (vsub_ne_zero.2 hzx)) },
-      exact (norm_nonneg _).not_lt hyz' },
-    rw ←same_ray_iff_of_norm_eq hxy',
-    refine same_ray.nonneg_smul_right _ hr0,
-    rw [same_ray_comm, same_ray_iff_norm_sub, vsub_sub_vsub_cancel_right, hyz, hxy],
-    nth_rewrite 1 [←one_mul ∥z -ᵥ x∥],
-    rw ←sub_mul,
-    exact (abs_of_nonneg (mul_nonneg hr1 (norm_nonneg _))).symm }
+  have : y -ᵥ x ∈ [(0 : E) -[ℝ] z -ᵥ x],
+  { rw [← dist_add_dist_eq_iff, dist_zero_left, dist_vsub_cancel_right, ← dist_eq_norm_vsub',
+      ← dist_eq_norm_vsub', hxy, hyz, ← add_mul, add_sub_cancel'_right, one_mul] },
+  rcases eq_or_ne x z with rfl|hne,
+  { obtain rfl : y = x, by simpa,
+    simp },
+  { rw [← dist_ne_zero] at hne,
+    rcases this with ⟨a, b, ha, hb, hab, H⟩,
+    rw [smul_zero, zero_add] at H,
+    have H' := congr_arg norm H,
+    rw [norm_smul, real.norm_of_nonneg hb, ← dist_eq_norm_vsub', ← dist_eq_norm_vsub', hxy,
+      mul_left_inj' hne] at H',
+    rw [affine_map.line_map_apply, ← H', H, vsub_vadd] },
+end
+
+lemma eq_midpoint_of_dist_eq_half {x y z : PE} (hx : dist x y = dist x z / 2)
+  (hy : dist y z = dist x z / 2) : y = midpoint ℝ x z :=
+begin
+  apply eq_line_map_of_dist_eq_mul_of_dist_eq_mul,
+  { rwa [inv_of_eq_inv, ← div_eq_inv_mul] },
+  { rwa [inv_of_eq_inv, ← one_div, sub_half, one_div, ← div_eq_inv_mul] }
 end
 
 include F
@@ -290,15 +283,11 @@ noncomputable def affine_isometry_of_strict_convex_space {f : PF → PE} (hi : i
   PF →ᵃⁱ[ℝ] PE :=
 { norm_map := λ x, by simp [affine_map.of_map_midpoint, ←dist_eq_norm_vsub E, hi.dist_eq],
   ..affine_map.of_map_midpoint f (λ x y, begin
-    simp_rw [midpoint, inv_of_eq_inv, affine_map.line_map_apply],
-    refine eq_smul_vadd_of_dist_eq_mul_of_dist_eq_mul _ _,
-    { simp only [hi.dist_eq, dist_eq_norm_vsub F, vsub_vadd_eq_vsub_sub, vsub_self, zero_sub,
-                 ←neg_smul, ←smul_neg, neg_vsub_eq_vsub_rev, norm_smul, norm_inv, real.norm_two] },
-    { simp only [hi.dist_eq, dist_eq_norm_vsub F, vadd_vsub_assoc, ←neg_vsub_eq_vsub_rev x y,
-                 smul_neg, ←neg_smul],
-      nth_rewrite 1 ←one_smul ℝ (x -ᵥ y),
-      rw [←add_smul, norm_smul],
-      norm_num }
+    apply eq_midpoint_of_dist_eq_half,
+    { rw [hi.dist_eq, hi.dist_eq, dist_left_midpoint, real.norm_of_nonneg zero_le_two,
+        div_eq_inv_mul] },
+    { rw [hi.dist_eq, hi.dist_eq, dist_midpoint_right, real.norm_of_nonneg zero_le_two,
+        div_eq_inv_mul] },
   end) hi.continuous }
 
 @[simp] lemma coe_affine_isometry_of_strict_convex_space {f : PF → PE} (hi : isometry f) :

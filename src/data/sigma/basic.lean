@@ -148,6 +148,12 @@ by cases x; refl
 lemma prod.snd_to_sigma {α β} (x : α × β) : (prod.to_sigma x).snd = x.snd :=
 by cases x; refl
 
+-- we generate this manually as `@[derive has_reflect]` fails
+meta instance sigma.reflect {α : Type} (β : α → Type)
+  [reflected α] [reflected β] [hα : has_reflect α] [hβ : Π i, has_reflect (β i)] :
+  has_reflect (Σ a, β a) :=
+λ ⟨a, b⟩, (`(sigma.mk.{0 0}).subst `(a)).subst `(b)
+
 end sigma
 
 section psigma

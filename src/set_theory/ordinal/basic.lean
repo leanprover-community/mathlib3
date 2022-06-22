@@ -763,6 +763,9 @@ type_ne_zero_iff_nonempty.2 h
 protected theorem zero_le (o : ordinal) : 0 ≤ o :=
 induction_on o $ λ α r _, ⟨⟨⟨embedding.of_is_empty, is_empty_elim⟩, is_empty_elim⟩⟩
 
+instance : order_bot ordinal :=
+⟨0, ordinal.zero_le⟩
+
 @[simp] protected theorem le_zero {o : ordinal} : o ≤ 0 ↔ o = 0 :=
 by simp only [le_antisymm_iff, ordinal.zero_le, and_true]
 
@@ -816,18 +819,27 @@ theorem lift_type {α} (r : α → α → Prop) [is_well_order α r] :
   ∃ wo', lift (type r) = @type _ (@equiv.ulift.{v} α ⁻¹'o r) wo' :=
 ⟨_, rfl⟩
 
-theorem lift_umax : lift.{(max u v) u} = lift.{v u} :=
+/-- `lift.{(max u v) u}` equals `lift.{v u}`. Using `set_option pp.universes true` will make it much
+    easier to understand what's happening when using this lemma. -/
+@[simp] theorem lift_umax : lift.{(max u v) u} = lift.{v u} :=
 funext $ λ a, induction_on a $ λ α r _,
 quotient.sound ⟨(rel_iso.preimage equiv.ulift r).trans (rel_iso.preimage equiv.ulift r).symm⟩
 
-theorem lift_id' (a : ordinal) : lift a = a :=
-induction_on a $ λ α r _,
-quotient.sound ⟨rel_iso.preimage equiv.ulift r⟩
+/-- `lift.{(max v u) u}` equals `lift.{v u}`. Using `set_option pp.universes true` will make it much
+    easier to understand what's happening when using this lemma. -/
+@[simp] theorem lift_umax' : lift.{(max v u) u} = lift.{v u} := lift_umax
 
+/-- An ordinal lifted to a lower or equal universe equals itself. -/
+@[simp] theorem lift_id' (a : ordinal) : lift a = a :=
+induction_on a $ λ α r _, quotient.sound ⟨rel_iso.preimage equiv.ulift r⟩
+
+/-- An ordinal lifted to the same universe equals itself. -/
 @[simp] theorem lift_id : ∀ a, lift.{u u} a = a := lift_id'.{u u}
 
-@[simp]
-theorem lift_lift (a : ordinal) : lift.{w} (lift.{v} a) = lift.{max v w} a :=
+/-- An ordinal lifted to the zero universe equals itself. -/
+@[simp] theorem lift_uzero (a : ordinal.{u}) : lift.{0} a = a := lift_id'.{0 u} a
+
+@[simp] theorem lift_lift (a : ordinal) : lift.{w} (lift.{v} a) = lift.{max v w} a :=
 induction_on a $ λ α r _,
 quotient.sound ⟨(rel_iso.preimage equiv.ulift _).trans $
   (rel_iso.preimage equiv.ulift _).trans (rel_iso.preimage equiv.ulift _).symm⟩
@@ -1187,10 +1199,8 @@ let ⟨i, e⟩ := min_eq I (lift ∘ f) in
 by rw e; exact lift_le.2 (le_min.2 $ λ j, lift_le.1 $
 by have := min_le (lift ∘ f) j; rwa e at this)
 
-instance : order_bot ordinal := ⟨0, ordinal.zero_le⟩
-
 instance : conditionally_complete_linear_order_bot ordinal :=
-lt_wf.conditionally_complete_linear_order_with_bot
+is_well_order.conditionally_complete_linear_order_bot _
 
 @[simp] lemma bot_eq_zero : (⊥ : ordinal) = 0 := rfl
 

@@ -65,7 +65,8 @@ begin
   letI : uniform_space (E →L[𝕜] F) := strong_uniformity 𝕜 E F 𝔖,
   haveI : uniform_add_group (E → F) := uniform_convergence_on.uniform_add_group,
   rw [strong_uniformity, uniform_space.replace_topology_eq],
-  sorry
+  let φ : (E →L[𝕜] F) →+ E → F := ⟨(coe_fn : (E →L[𝕜] F) → E → F), rfl, λ _ _, rfl⟩,
+  exact uniform_add_group_comap φ
 end
 
 lemma strong_topology.topological_add_group [topological_space F] [topological_add_group F]

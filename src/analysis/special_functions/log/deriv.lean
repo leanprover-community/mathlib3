@@ -15,7 +15,7 @@ that the series `∑' n : ℕ, x ^ (n + 1) / (n + 1)` converges to `(-real.log (
 
 ## Tags
 
-logarighm, derivative
+logarithm, derivative
 -/
 
 open filter finset set
@@ -209,7 +209,7 @@ begin
       exact mul_div_cancel_left _ (nat.cast_add_one_pos i).ne' },
     field_simp [F, this, geom_sum_eq (ne_of_lt hy.2),
                 sub_ne_zero_of_ne (ne_of_gt hy.2), sub_ne_zero_of_ne (ne_of_lt hy.2)],
-    ring },
+    ring_nf },
   -- second step: show that the derivative of `F` is small
   have B : ∀ y ∈ Icc (-|x|) (|x|), |deriv F y| ≤ |x|^n / (1 - |x|),
   { assume y hy,
@@ -288,7 +288,7 @@ begin
       dsimp only [term],
       rw [odd.neg_pow (⟨n, rfl⟩ : odd (2 * n + 1)) x, neg_one_mul, neg_div, neg_neg, nat.cast_mul,
         nat.cast_two],
-      ring },
+      ring_nf },
   { intros m hm,
     rw [range_two_mul, set.mem_set_of_eq] at hm,
     rw [even.neg_pow (nat.even_succ.mpr hm), nat.succ_eq_add_one, neg_one_mul, neg_add_self] },

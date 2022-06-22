@@ -253,12 +253,12 @@ begin
   show summable (λ (n : ℕ), x ^ (n + 1) / (n + 1)),
   { refine summable_of_norm_bounded _ (summable_geometric_of_lt_1 (abs_nonneg _) h) (λ i, _),
     calc ∥x ^ (i + 1) / (i + 1)∥
-    = |x| ^ (i+1) / (i+1) :
+    = |x| ^ (i + 1) / (i + 1) :
       begin
         have : (0 : ℝ) ≤ i + 1 := le_of_lt (nat.cast_add_one_pos i),
         rw [norm_eq_abs, abs_div, ← pow_abs, abs_of_nonneg this],
       end
-    ... ≤ |x| ^ (i+1) / (0 + 1) :
+    ... ≤ |x| ^ (i + 1) / (0 + 1) :
       begin
         apply_rules [div_le_div_of_le_left, pow_nonneg, abs_nonneg, add_le_add_right,
           i.cast_nonneg],
@@ -270,23 +270,22 @@ end
 
 /-- Power series expansion of `log(1 + x) - log(1 - x)` for `|x| < 1`. -/
 lemma has_sum_log_sub_log_of_abs_lt_1 {x : ℝ} (h : |x| < 1) :
-  has_sum (λ k : ℕ, (2 : ℝ) * (1 / (2 * k + 1)) * (x ^ (2 * k + 1))) (log (1 + x) - log(1 - x)) :=
+  has_sum (λ k : ℕ, (2 : ℝ) * (1 / (2 * k + 1)) * x ^ (2 * k + 1)) (log (1 + x) - log(1 - x)) :=
 begin
   have h₁ := has_sum_pow_div_log_of_abs_lt_1 h,
   have h₂ := has_sum_pow_div_log_of_abs_lt_1 (eq.trans_lt (abs_neg x) h),
-  replace h₂ := (has_sum_mul_left_iff  (λ h : ( -1 = (0:ℝ)), one_ne_zero $ neg_eq_zero.mp h)).mp h₂,
+  replace h₂ := (has_sum_mul_left_iff (λ h : (-1 = (0 : ℝ)), one_ne_zero $ neg_eq_zero.mp h)).mp h₂,
   rw [neg_one_mul, neg_neg, sub_neg_eq_add 1 x] at h₂,
   have h₃, from has_sum.add h₂ h₁,
   rw ←sub_eq_add_neg at h₃,
-  let term := λ n : ℕ, (-1) * ((-x) ^ (n + 1) / ((n : ℝ) + 1))+ x ^ (n + 1) / (n + 1),
-  let two_mul := λ n : ℕ, 2 * n,
+  let term := λ n : ℕ, (-1) * ((-x) ^ (n + 1) / ((n : ℝ) + 1)) + x ^ (n + 1) / (n + 1),
   rw ←function.injective.has_sum_iff (nat.mul_right_injective two_pos) _ at h₃,
   { suffices h_term_eq_goal :
-    (term ∘ two_mul) = (λ k : ℕ, 2 * (1 / (2 * (k : ℝ) + 1)) * x ^ (2 * k  + 1)),
+    term ∘ (*) 2 = λ k : ℕ, 2 * (1 / (2 * k + 1)) * x ^ (2 * k + 1),
     { rw h_term_eq_goal at h₃, exact h₃ },
     apply funext (λ n, _),
     rw [function.comp_app],
-    dsimp only [two_mul, term],
+    dsimp only [term],
     rw [odd.neg_pow (⟨n, rfl⟩ : odd (2 * n + 1)) x, neg_one_mul, neg_div, neg_neg, nat.cast_mul,
       nat.cast_two],
     ring },
@@ -310,8 +309,8 @@ begin
 end
 
 /-- Power series expansion of `log ((a + 1) / a)`. -/
-theorem power_series_log_succ_div (a : ℝ) (h : 0 < a) : has_sum (λ (k : ℕ),
-  (2 : ℝ) * (1 / (2 * k + 1)) * ((1 / (2 * a + 1)) ^ (2 * k + 1)))
+theorem power_series_log_succ_div {a : ℝ} (h : 0 < a) : has_sum (λ k : ℕ,
+  (2 : ℝ) * (1 / (2 * k + 1)) * (1 / (2 * a + 1)) ^ (2 * k + 1))
   (log ((a + 1) / a)) :=
  begin
   have h₁ : |1 / (2 * a + 1)| < 1, by

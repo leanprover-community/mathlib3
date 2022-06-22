@@ -35,7 +35,7 @@ namespace finset
 /-- ELements of `𝒜` that do not contain `a`. -/
 def non_member_slice (𝒜 : finset (finset α)) (a : α) : finset (finset α) := 𝒜.filter $ λ s, a ∉ s
 
-/-- Image of the eLements of `𝒜` which contain `a` under removing `a`. Finsets that do not contain
+/-- Image of the elements of `𝒜` which contain `a` under removing `a`. Finsets that do not contain
 `a` such that `insert a s ∈ 𝒜`. -/
 def member_slice (𝒜 : finset (finset α)) (a : α) : finset (finset α) :=
 (𝒜.filter $ λ s, a ∈ s).image $ λ s, erase s a

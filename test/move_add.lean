@@ -26,9 +26,12 @@ begin
   move_mul ← a at *,  -- `move_mul` closes the goal, since, after rearranging, it tries `assumption`
 end
 
-example {R : Type*} [comm_semigroup R] {a b c d e f g : R} :
-  a * b = b * a :=
-by move_mul [a]
+example (h : b + a = b + c + a) : a + b = a + b + c :=
+by move_add [a]
+
+example {R : Type*} [comm_semigroup R] {a b : R} :
+  ∀ x : R, ∃ y : R, a * x * b * y = x * y * b * a :=
+by { move_mul [a, b], exact λ x, ⟨x, rfl⟩ }
 
 example {R : Type*} [has_add R] [comm_semigroup R] {a b c d e f g : R} :
   a * (b * c * a) * ((d * e) * e) * f * g = (c * b * a) * (e * (e * d)) * g * f * a :=

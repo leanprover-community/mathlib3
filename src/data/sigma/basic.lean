@@ -192,6 +192,14 @@ by { cases x₀, cases x₁, cases h₀, cases h₁, refl }
 lemma ext_iff {x₀ x₁ : psigma β} : x₀ = x₁ ↔ x₀.1 = x₁.1 ∧ x₀.2 == x₁.2 :=
 by { cases x₀, cases x₁, exact psigma.mk.inj_iff }
 
+@[simp] theorem «forall» {p : (Σ' a, β a) → Prop} :
+  (∀ x, p x) ↔ (∀ a b, p ⟨a, b⟩) :=
+⟨assume h a b, h ⟨a, b⟩, assume h ⟨a, b⟩, h a b⟩
+
+@[simp] theorem «exists» {p : (Σ' a, β a) → Prop} :
+  (∃ x, p x) ↔ (∃ a b, p ⟨a, b⟩) :=
+⟨assume ⟨⟨a, b⟩, h⟩, ⟨a, b, h⟩, assume ⟨a, b, h⟩, ⟨⟨a, b⟩, h⟩⟩
+
 /-- A specialized ext lemma for equality of psigma types over an indexed subtype. -/
 @[ext]
 lemma subtype_ext {β : Sort*} {p : α → β → Prop} :

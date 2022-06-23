@@ -182,6 +182,12 @@ eq_univ_of_forall $ hf.forall.2 $ λ _, mem_image_of_mem _ $ mem_univ _
 
 end boolean_algebra
 
+lemma map_univ_of_surjective [fintype β] {f : β ↪ α} (hf : surjective f) : univ.map f = univ :=
+eq_univ_of_forall $ hf.forall.2 $ λ _, mem_map_of_mem _ $ mem_univ _
+
+@[simp] lemma map_univ_equiv [fintype β] (f : β ≃ α) : univ.map f.to_embedding = univ :=
+map_univ_of_surjective f.surjective
+
 @[simp] lemma univ_inter [decidable_eq α] (s : finset α) :
   univ ∩ s = s := ext $ λ a, by simp
 

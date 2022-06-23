@@ -240,6 +240,11 @@ namespace adapted
   adapted f (-u) :=
 λ i, (hu i).neg
 
+@[protected] lemma sub [add_group β] [topological_add_group β]
+  (hu : adapted f u) (hv : adapted f v) :
+  adapted f (u - v) :=
+(sub_eq_add_neg u v).symm ▸ hu.add hv.neg
+
 @[protected] lemma smul [has_scalar ℝ β] [has_continuous_smul ℝ β] (c : ℝ) (hu : adapted f u) :
   adapted f (c • u) :=
 λ i, (hu i).const_smul c
@@ -253,6 +258,9 @@ lemma strongly_measurable_le {i j : ι} (hf : adapted f u) (hij : i ≤ j) :
 (hf i).mono (f.mono hij)
 
 end adapted
+
+lemma adapted_const (f : filtration ι m) (x : β) : adapted f (λ _ _, x) :=
+λ i, strongly_measurable_const
 
 variable (β)
 lemma adapted_zero [has_zero β] (f : filtration ι m) : adapted f (0 : ι → α → β) :=

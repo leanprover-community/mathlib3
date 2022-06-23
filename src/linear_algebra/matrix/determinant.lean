@@ -718,6 +718,8 @@ det_is_empty
 /-- Determinant of 1x1 matrix -/
 lemma det_fin_one (A : matrix (fin 1) (fin 1) R) : det A = A 0 0  := det_unique A
 
+lemma det_fin_one_mk (a : R) : det ![![a]] = a := det_fin_one _
+
 /-- Determinant of 2x2 matrix -/
 lemma det_fin_two (A : matrix (fin 2) (fin 2) R) :
   det A = A 0 0 * A 1 1 - A 0 1 * A 1 0 :=
@@ -725,6 +727,10 @@ begin
   simp [matrix.det_succ_row_zero, fin.sum_univ_succ],
   ring
 end
+
+@[simp] lemma det_fin_two_mk (a b c d : R) :
+  matrix.det ![![a, b], ![c, d]] = a * d - b * c :=
+det_fin_two _
 
 /-- Determinant of 3x3 matrix -/
 lemma det_fin_three (A : matrix (fin 3) (fin 3) R) :

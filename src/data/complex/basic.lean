@@ -160,6 +160,10 @@ lemma mul_I_im (z : ℂ) : (z * I).im = z.re := by simp
 lemma I_mul_re (z : ℂ) : (I * z).re = -z.im := by simp
 lemma I_mul_im (z : ℂ) : (I * z).im = z.re := by simp
 
+@[simp] lemma equiv_real_prod_symm_apply (p : ℝ × ℝ) :
+  equiv_real_prod.symm p = p.1 + p.2 * I :=
+by { ext; simp }
+
 /-! ### Commutative ring instance and lemmas -/
 
 /- We use a nonstandard formula for the `ℕ` and `ℤ` actions to make sure there is no

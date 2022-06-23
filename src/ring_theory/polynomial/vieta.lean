@@ -9,8 +9,8 @@ import ring_theory.polynomial.symmetric
 /-!
 # Vieta's Formula
 
-The main result is `polynomial.prod_X_add_C_eq_sum_esymm`, which shows that the product of linear terms
-`λ + X i` is equal to a linear combination of the symmetric polynomials `esymm σ R j`.
+The main result is `polynomial.prod_X_add_C_eq_sum_esymm`, which shows that the product of linear
+terms `λ + X i` is equal to a linear combination of the symmetric polynomials `esymm σ R j`.
 
 ## Implementation Notes:
 

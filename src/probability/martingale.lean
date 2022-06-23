@@ -283,25 +283,31 @@ end
 
 lemma submartingale_of_condexp_sub_nonneg [is_finite_measure μ]
   {f : ι → α → ℝ} (hadp : adapted ℱ f) (hint : ∀ i, integrable (f i) μ)
-  (hf : ∀ i j, i ≤ j → 0 ≤ᵐ[μ] μ[f j - f i| ℱ i]) :
+  (hf : ∀ i j, i ≤ j → 0 ≤ᵐ[μ] μ[f j - f i | ℱ i]) :
   submartingale f ℱ μ :=
 begin
   refine ⟨hadp, λ i j hij, _, hint⟩,
-  rw [← condexp_of_strongly_measurable (ℱ.le _) (hadp _) (hint _), eventually_le_iff_sub_nonneg],
+  rw [← condexp_of_strongly_measurable (ℱ.le _) (hadp _) (hint _), ← eventually_sub_nonneg],
   exact eventually_le.trans (hf i j hij) (condexp_sub (hint _) (hint _)).le,
   apply_instance
 end
 
 lemma submartingale.condexp_sub_nonneg [is_finite_measure μ]
   {f : ι → α → ℝ} (hf : submartingale f ℱ μ) {i j : ι} (hij : i ≤ j) :
-  0 ≤ᵐ[μ] μ[f j - f i| ℱ i] :=
+  0 ≤ᵐ[μ] μ[f j - f i | ℱ i] :=
 begin
   refine eventually_le.trans _ (condexp_sub (hf.integrable _) (hf.integrable _)).symm.le,
-  rw ← eventually_le_iff_sub_nonneg,
-  rw condexp_of_strongly_measurable (ℱ.le _) (hf.adapted _) (hf.integrable _),
+  rw [eventually_sub_nonneg,
+    condexp_of_strongly_measurable (ℱ.le _) (hf.adapted _) (hf.integrable _)],
   exact hf.2.1 i j hij,
   apply_instance
 end
+
+lemma submartingale_iff_condexp_sub_nonneg [is_finite_measure μ] {f : ι → α → ℝ} :
+  submartingale f ℱ μ ↔ adapted ℱ f ∧ (∀ i, integrable (f i) μ) ∧ ∀ i j, i ≤ j →
+  0 ≤ᵐ[μ] μ[f j - f i | ℱ i] :=
+⟨λ h, ⟨h.adapted, h.integrable, λ i j, h.condexp_sub_nonneg⟩,
+ λ ⟨hadp, hint, h⟩, submartingale_of_condexp_sub_nonneg hadp hint h⟩
 
 end submartingale
 
@@ -403,7 +409,7 @@ lemma submartingale_of_condexp_sub_nonneg_nat [is_finite_measure μ]
   submartingale f 𝒢 μ :=
 begin
   refine submartingale_nat hadp hint (λ i, _),
-  rw [← condexp_of_strongly_measurable (𝒢.le _) (hadp _) (hint _), eventually_le_iff_sub_nonneg],
+  rw [← condexp_of_strongly_measurable (𝒢.le _) (hadp _) (hint _), ← eventually_sub_nonneg],
   exact eventually_le.trans (hf i) (condexp_sub (hint _) (hint _)).le,
   apply_instance
 end

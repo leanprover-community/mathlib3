@@ -8,8 +8,6 @@ namespace measure_theory
 
 variables {α : Type*} {m0 : measurable_space α} {μ : measure α}
 
-section upcrossing
-
 /-- `lower_crossing_aux a f c N` is the first time `f` reached below `a` after time `c` before
 time `N`. -/
 noncomputable
@@ -268,10 +266,13 @@ lemma adapted.is_stopping_time_lower_crossing (hf : adapted ℱ f) :
   is_stopping_time ℱ (lower_crossing a b f N n) :=
 hf.is_stopping_time_crossing.2
 
+/-- `upcrossing_strat a b f N n` is 1 if `n` is between a consecutive pair of lower and upper
+crossing and is 0 otherwise. `upcrossing_strat` is shifted by one index so that it is adapted
+rather than predictable. -/
 noncomputable
 def upcrossing_strat (a b : ℝ) (f : ℕ → α → ℝ) (N n : ℕ) (x : α) : ℝ :=
 ∑ k in finset.range N,
-  (set.Ico (lower_crossing a b f N k x) (upper_crossing a b f N k x)).indicator 1 n
+  (set.Ico (lower_crossing a b f N k x) (upper_crossing a b f N (k + 1) x)).indicator 1 n
 
 lemma upcrossing_strat_nonneg : 0 ≤ upcrossing_strat a b f N n x :=
 finset.sum_nonneg (λ i hi, set.indicator_nonneg (λ x hx, zero_le_one) _)
@@ -289,11 +290,15 @@ begin
   { intros i hi j hj hij,
     rw set.Ico_disjoint_Ico,
     obtain (hij' | hij') := lt_or_gt_of_ne hij,
-    { rw [min_eq_left (upper_crossing_mono hij'.le), max_eq_right (lower_crossing_mono hij'.le)],
-      refine le_trans upper_crossing_le_lower_crossing (lower_crossing_mono hij'.le) },
+    { rw [min_eq_left (upper_crossing_mono (nat.succ_le_succ hij'.le)),
+        max_eq_right (lower_crossing_mono hij'.le)],
+      refine le_trans upper_crossing_le_lower_crossing (lower_crossing_mono
+        (nat.succ_le_of_lt hij')) },
     { rw gt_iff_lt at hij',
-      rw [min_eq_right (upper_crossing_mono hij'.le), max_eq_left (lower_crossing_mono hij'.le)],
-      refine le_trans upper_crossing_le_lower_crossing (lower_crossing_mono hij'.le) } }
+      rw [min_eq_right (upper_crossing_mono (nat.succ_le_succ hij'.le)),
+        max_eq_left (lower_crossing_mono hij'.le)],
+      refine le_trans upper_crossing_le_lower_crossing
+        (lower_crossing_mono (nat.succ_le_of_lt hij')) } }
 end
 
 lemma adapted.upcrossing_strat_adapted (hf : adapted ℱ f) :
@@ -301,7 +306,8 @@ lemma adapted.upcrossing_strat_adapted (hf : adapted ℱ f) :
 begin
   intro n,
   change strongly_measurable[ℱ n] (λ x, ∑ k in finset.range N,
-    ({n | lower_crossing a b f N k x ≤ n} ∩ {n | n < upper_crossing a b f N k x}).indicator 1 n),
+    ({n | lower_crossing a b f N k x ≤ n} ∩
+     {n | n < upper_crossing a b f N (k + 1) x}).indicator 1 n),
   refine finset.strongly_measurable_sum _ (λ i hi,
     strongly_measurable_const.indicator ((hf.is_stopping_time_lower_crossing n).inter _)),
   simp_rw ← not_le,
@@ -327,7 +333,7 @@ begin
     simp [upcrossing_strat_le_one] }
 end
 
-lemma sum_mul_upcrossing_strat_le [is_finite_measure μ] (hf : submartingale f ℱ μ) :
+lemma submartingale.sum_mul_upcrossing_strat_le [is_finite_measure μ] (hf : submartingale f ℱ μ) :
   μ[∑ k in finset.range n, upcrossing_strat a b f N k * (f (k + 1) - f k)] ≤
   μ[f n] - μ[f 0] :=
 begin
@@ -350,8 +356,6 @@ begin
   refine le_trans h₁ _,
   simp_rw [finset.sum_range_sub, integral_sub' (hf.integrable _) (hf.integrable _)],
 end
-
-#exit
 
 /-- The number of upcrossings (strictly) before time `N`. -/
 noncomputable
@@ -387,7 +391,7 @@ begin
   exact hn.ne (upper_crossing_eq_of_bound_le hab hN (not_le.1 hnN).le),
 end
 
-lemma lower_crossing_lt_of_le_upcrossing
+lemma lower_crossing_lt_of_lt_upcrossing
   (hN : 0 < N) (hab : a < b) (hn : n < upcrossing a b f N x) :
   lower_crossing a b f N n x < N :=
 lt_of_le_of_lt lower_crossing_le_upper_crossing_succ (upper_crossing_lt_of_le_upcrossing hN hab hn)
@@ -397,7 +401,7 @@ lemma le_sub_of_le_upcrossing (hN : 0 < N) (hab : a < b) (hn : n < upcrossing a 
   stopped_value f (upper_crossing a b f N (n + 1)) x -
   stopped_value f (lower_crossing a b f N n) x :=
 sub_le_sub (stopped_value_upper_crossing (upper_crossing_lt_of_le_upcrossing hN hab hn).ne)
-  (stopped_value_lower_crossing (lower_crossing_lt_of_le_upcrossing hN hab hn).ne)
+  (stopped_value_lower_crossing (lower_crossing_lt_of_lt_upcrossing hN hab hn).ne)
 
 lemma sub_eq_zero_of_upcrossing_lt (hab : a < b) (hn : upcrossing a b f N x < n) :
   stopped_value f (upper_crossing a b f N (n + 1)) x -
@@ -411,16 +415,90 @@ begin
     lower_crossing_stabilize' le_rfl (le_trans this upper_crossing_le_lower_crossing)]
 end
 
-lemma le_sub_stopped_value_upcrossing (hab : a < b) :
-  min (f N x - a) 0 ≤ stopped_value f (upper_crossing a b f N (upcrossing a b f N x + 1)) x -
-  stopped_value f (lower_crossing a b f N (upcrossing a b f N x)) x :=
+-- lemma le_sub_stopped_value_upcrossing (hab : a < b) :
+--   min (f N x - a) 0 ≤ stopped_value f (upper_crossing a b f N (upcrossing a b f N x + 1)) x -
+--   stopped_value f (lower_crossing a b f N (upcrossing a b f N x)) x :=
+-- begin
+--   simp only [stopped_value, upper_crossing_eq_of_upcrossing_lt hab (nat.lt_succ_self _)],
+--   by_cases h : lower_crossing a b f N (upcrossing a b f N x) x = N,
+--   { simp [h] },
+--   { exact min_le_of_left_le ((sub_le_sub_iff_left _).2 (stopped_value_lower_crossing h)) },
+-- end
+
+lemma mul_upcrossing_le (hf : a ≤ f N x) (hN : 0 < N) (hab : a < b) :
+  (b - a) * upcrossing a b f N x ≤
+  ∑ k in finset.range N, upcrossing_strat a b f N k x * (f (k + 1) - f k) x :=
 begin
-  simp only [stopped_value, upper_crossing_eq_of_upcrossing_lt hab (nat.lt_succ_self _)],
-  by_cases h : lower_crossing a b f N (upcrossing a b f N x) x = N,
-  { simp [h] },
-  { exact min_le_of_left_le ((sub_le_sub_iff_left _).2 (stopped_value_lower_crossing h)) },
+  classical,
+  simp_rw [upcrossing_strat, finset.sum_mul, ← set.indicator_mul_left, pi.one_apply,
+    pi.sub_apply, one_mul],
+  rw finset.sum_comm,
+  have h₁ : ∀ k, ∑ n in finset.range N,
+    (set.Ico (lower_crossing a b f N k x) (upper_crossing a b f N (k + 1) x)).indicator
+    (λ m, f (m + 1) x - f m x) n =
+    stopped_value f (upper_crossing a b f N (k + 1)) x -
+    stopped_value f (lower_crossing a b f N k) x,
+  { intro k,
+    rw [finset.sum_indicator_eq_sum_filter, (_ : (finset.filter
+      (λ i, i ∈ set.Ico (lower_crossing a b f N k x) (upper_crossing a b f N (k + 1) x))
+      (finset.range N)) =
+      finset.Ico (lower_crossing a b f N k x) (upper_crossing a b f N (k + 1) x)),
+      finset.sum_Ico_eq_add_neg _ lower_crossing_le_upper_crossing_succ,
+      finset.sum_range_sub (λ n, f n x), finset.sum_range_sub (λ n, f n x), neg_sub,
+      sub_add_sub_cancel],
+    { refl },
+    { ext i,
+      simp only [set.mem_Ico, finset.mem_filter, finset.mem_range, finset.mem_Ico,
+        and_iff_right_iff_imp, and_imp],
+      exact λ _ h, lt_of_lt_of_le h upper_crossing_le } },
+  simp_rw [h₁],
+  have h₂ : ∑ k in finset.range (upcrossing a b f N x), (b - a) ≤
+    ∑ k in finset.range N,
+    (stopped_value f (upper_crossing a b f N (k + 1)) x -
+    stopped_value f (lower_crossing a b f N k) x),
+  { calc ∑ k in finset.range (upcrossing a b f N x), (b - a)
+       ≤ ∑ k in finset.range (upcrossing a b f N x),
+          (stopped_value f (upper_crossing a b f N (k + 1)) x -
+           stopped_value f (lower_crossing a b f N k) x) :
+    begin
+      refine finset.sum_le_sum (λ i hi, le_sub_of_le_upcrossing hN hab _),
+      rwa finset.mem_range at hi,
+    end
+    ...≤ ∑ k in finset.range N,
+          (stopped_value f (upper_crossing a b f N (k + 1)) x -
+           stopped_value f (lower_crossing a b f N k) x) :
+    begin
+      refine finset.sum_le_sum_of_subset_of_nonneg
+        (finset.range_subset.2 (upcrossing_le f x hN hab)) (λ i _ hi, _),
+      by_cases hi' : i = upcrossing a b f N x,
+      { subst hi',
+        simp only [stopped_value],
+        rw upper_crossing_eq_of_upcrossing_lt hab (nat.lt_succ_self _),
+        by_cases heq : lower_crossing a b f N (upcrossing a b f N x) x = N,
+        { rw [heq, sub_self] },
+        { rw sub_nonneg,
+          exact le_trans (stopped_value_lower_crossing heq) hf } },
+      { rw sub_eq_zero_of_upcrossing_lt hab,
+        rw [finset.mem_range, not_lt] at hi,
+        exact lt_of_le_of_ne hi (ne.symm hi') },
+    end },
+  refine le_trans _ h₂,
+  rw [finset.sum_const, finset.card_range, nsmul_eq_mul, mul_comm],
 end
 
-end upcrossing
+lemma integral_mul_upcrossing_le_integral [is_finite_measure μ]
+  (hf : submartingale f ℱ μ) (hfN : ∀ x, a ≤ f N x) (hfzero : 0 ≤ f 0) (hN : 0 < N) (hab : a < b) :
+  (b - a) * μ[upcrossing a b f N] ≤ μ[f N] :=
+calc (b - a) * μ[upcrossing a b f N]
+     ≤ μ[∑ k in finset.range N, upcrossing_strat a b f N k * (f (k + 1) - f k)] :
+begin
+  rw ← integral_mul_left,
+  refine integral_mono _ ((hf.sum_upcrossing_strat_mul a b N).integrable N) _,
+  { sorry }, -- nonnegative and bounded above by an integrable function
+  { intro x,
+    simpa using mul_upcrossing_le (hfN x) hN hab }
+end
+  ...≤ μ[f N] - μ[f 0] : hf.sum_mul_upcrossing_strat_le
+  ...≤ μ[f N] : (sub_le_self_iff _).2 (integral_nonneg hfzero)
 
 end measure_theory

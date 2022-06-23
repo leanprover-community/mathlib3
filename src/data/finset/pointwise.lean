@@ -503,7 +503,7 @@ variables [group α] [division_monoid β] [monoid_hom_class F α β] (m : F) {s 
 /-! Note that `finset` is not a `group` because `s / s ≠ 1` in general. -/
 
 @[simp, to_additive] lemma one_mem_div_iff : (1 : α) ∈ s / t ↔ ¬ disjoint s t :=
-by rw [←mem_coe, disjoint_iff_disjoint_coe, coe_div, set.one_mem_div_iff]
+by rw [←mem_coe, ←disjoint_coe, coe_div, set.one_mem_div_iff]
 
 @[to_additive] lemma not_one_mem_div_iff : (1 : α) ∉ s / t ↔ disjoint s t :=
 one_mem_div_iff.not_left
@@ -835,6 +835,26 @@ function.injective.mul_distrib_mul_action ⟨coe, coe_one, coe_mul⟩ coe_inject
 
 localized "attribute [instance] finset.distrib_mul_action_finset
   finset.mul_distrib_mul_action_finset" in pointwise
+
+instance [decidable_eq α] [has_zero α] [has_mul α] [no_zero_divisors α] :
+  no_zero_divisors (finset α) :=
+coe_injective.no_zero_divisors _ coe_zero coe_mul
+
+instance [has_zero α] [has_zero β] [has_scalar α β] [no_zero_smul_divisors α β] :
+  no_zero_smul_divisors (finset α) (finset β) :=
+⟨λ s t h, begin
+  by_contra' H,
+  have hst : (s • t).nonempty := h.symm.subst zero_nonempty,
+  simp_rw [←hst.of_smul_left.subset_zero_iff, ←hst.of_smul_right.subset_zero_iff, not_subset,
+    mem_zero] at H,
+  obtain ⟨⟨a, hs, ha⟩, b, ht, hb⟩ := H,
+  have := subset_of_eq h,
+  exact (eq_zero_or_eq_zero_of_smul_eq_zero $ mem_zero.1 $ this $ smul_mem_smul hs ht).elim ha hb,
+end⟩
+
+instance no_zero_smul_divisors_finset [has_zero α] [has_zero β] [has_scalar α β]
+  [no_zero_smul_divisors α β] : no_zero_smul_divisors α (finset β) :=
+coe_injective.no_zero_smul_divisors _ coe_zero coe_smul_finset
 
 end instances
 end finset

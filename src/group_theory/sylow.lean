@@ -177,6 +177,13 @@ lemma sylow.coe_subgroup_smul {g : G} {P : sylow p G} :
 lemma sylow.coe_smul {g : G} {P : sylow p G} :
   ↑(g • P) = mul_aut.conj g • (P : set G) := rfl
 
+lemma sylow.smul_le {P : sylow p G} {H : subgroup G} (hP : ↑P ≤ H) (h : H) : ↑(h • P) ≤ H :=
+subgroup.conj_smul_le_of_le hP h
+
+lemma sylow.smul_subtype {P : sylow p G} {H : subgroup G} (hP : ↑P ≤ H) (h : H) :
+  h • P.subtype hP = (h • P).subtype (sylow.smul_le hP h) :=
+sylow.ext (subgroup.conj_smul_subgroup_of hP h)
+
 lemma sylow.smul_eq_iff_mem_normalizer {g : G} {P : sylow p G} :
   g • P = P ↔ g ∈ (P : subgroup G).normalizer :=
 begin
@@ -519,6 +526,12 @@ begin
   have key := P.pow_dvd_card_of_pow_dvd_card hdvd,
   rwa pow_one at key,
 end
+
+/-- Sylow subgroups are Hall subgroups. -/
+lemma card_coprime_index [fintype G] {p : ℕ} [hp : fact p.prime] (P : sylow p G) :
+  (card P).coprime (index (P : subgroup G)) :=
+let ⟨n, hn⟩ := is_p_group.iff_card.mp P.2 in
+hn.symm ▸ (hp.1.coprime_pow_of_not_dvd (not_dvd_index_sylow P index_ne_zero_of_fintype)).symm
 
 lemma ne_bot_of_dvd_card [fintype G] {p : ℕ} [hp : fact p.prime] (P : sylow p G)
   (hdvd : p ∣ card G) : (P : subgroup G) ≠ ⊥ :=

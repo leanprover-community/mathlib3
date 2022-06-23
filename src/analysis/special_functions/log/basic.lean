@@ -75,6 +75,12 @@ end
 @[simp] lemma log_neg_eq_log (x : ℝ) : log (-x) = log x :=
 by rw [← log_abs x, ← log_abs (-x), abs_neg]
 
+lemma sinh_log {x : ℝ} (hx : 0 < x) : sinh (log x) = (x - x⁻¹) / 2 :=
+by rw [sinh_eq, exp_neg, exp_log hx]
+
+lemma cosh_log {x : ℝ} (hx : 0 < x) : cosh (log x) = (x + x⁻¹) / 2 :=
+by rw [cosh_eq, exp_neg, exp_log hx]
+
 lemma surj_on_log' : surj_on log (Iio 0) univ :=
 λ x _, ⟨-exp x, neg_lt_zero.2 $ exp_pos x, by rw [log_neg_eq_log, log_exp]⟩
 
@@ -189,6 +195,9 @@ begin
     neg_mul_eq_neg_mul],
 end
 
+lemma log_sqrt {x : ℝ} (hx : 0 ≤ x) : log (sqrt x) = log x / 2 :=
+by { rw [eq_div_iff, mul_comm, ← nat.cast_two, ← log_pow, sq_sqrt hx], exact two_ne_zero }
+
 lemma log_le_sub_one_of_pos {x : ℝ} (hx : 0 < x) : log x ≤ x - 1 :=
 begin
   rw le_sub_iff_add_le,
@@ -249,11 +258,10 @@ open_locale big_operators
 lemma log_prod {α : Type*} (s : finset α) (f : α → ℝ) (hf : ∀ x ∈ s, f x ≠ 0):
   log (∏ i in s, f i) = ∑ i in s, log (f i) :=
 begin
-  classical,
-  induction s using finset.induction_on with a s ha ih,
+  induction s using finset.cons_induction_on with a s ha ih,
   { simp },
-  simp only [finset.mem_insert, forall_eq_or_imp] at hf,
-  simp [ha, ih hf.2, log_mul hf.1 (finset.prod_ne_zero_iff.2 hf.2)],
+  { rw [finset.forall_mem_cons] at hf,
+    simp [ih hf.2, log_mul hf.1 (finset.prod_ne_zero_iff.2 hf.2)] }
 end
 
 lemma tendsto_pow_log_div_mul_add_at_top (a b : ℝ) (n : ℕ) (ha : a ≠ 0) :

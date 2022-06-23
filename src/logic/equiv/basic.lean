@@ -357,16 +357,24 @@ equiv_of_is_empty  α _
 def equiv_empty_equiv (α : Sort u) : (α ≃ empty) ≃ is_empty α :=
 ⟨λ e, function.is_empty e, @equiv_empty α, λ e, ext $ λ x, (e x).elim, λ p, rfl⟩
 
-/-- The `Sort` of proofs of a true proposition is equivalent to `punit`. -/
-def prop_equiv_punit {p : Prop} (h : p) : p ≃ punit :=
-⟨λ x, (), λ x, h, λ _, rfl, λ ⟨⟩, rfl⟩
-
 /-- The `Sort` of proofs of a false proposition is equivalent to `pempty`. -/
 def prop_equiv_pempty {p : Prop} (h : ¬p) : p ≃ pempty :=
 @equiv_pempty p $ is_empty.prop_iff.2 h
 
-/-- `true` is equivalent to `punit`. -/
-def true_equiv_punit : true ≃ punit := prop_equiv_punit trivial
+/-- If both `α` and `β` have a unique element, then `α ≃ β`. -/
+def equiv_of_unique (α β : Sort*) [unique α] [unique β] : α ≃ β :=
+{ to_fun := default,
+  inv_fun := default,
+  left_inv := λ _, subsingleton.elim _ _,
+  right_inv := λ _, subsingleton.elim _ _ }
+
+/-- If `α` has a unique element, then it is equivalent to any `punit`. -/
+def equiv_punit (α : Sort*) [unique α] : α ≃ punit.{v} :=
+equiv_of_unique α _
+
+/-- The `Sort` of proofs of a true proposition is equivalent to `punit`. -/
+def prop_equiv_punit {p : Prop} (h : p) : p ≃ punit :=
+@equiv_punit p $ unique_prop h
 
 /-- `ulift α` is equivalent to `α`. -/
 @[simps apply symm_apply {fully_applied := ff}]
@@ -385,6 +393,14 @@ def pprod_equiv_prod {α β : Type*} : pprod α β ≃ α × β :=
   inv_fun := λ x, ⟨x.1, x.2⟩,
   left_inv := λ ⟨x, y⟩, rfl,
   right_inv := λ ⟨x, y⟩, rfl }
+
+/-- `pprod α β` is equivalent to `plift α × plift β` -/
+@[simps apply symm_apply]
+def pprod_equiv_prod_plift {α β : Sort*} : pprod α β ≃ plift α × plift β :=
+{ to_fun := λ x, (plift.up x.1, plift.up x.2),
+  inv_fun := λ x, ⟨x.1.down, x.2.down⟩,
+  left_inv := λ ⟨x, y⟩, rfl,
+  right_inv := λ ⟨⟨x⟩, ⟨y⟩⟩, rfl }
 
 /-- equivalence of propositions is the same as iff -/
 def of_iff {P Q : Prop} (h : P ↔ Q) : P ≃ Q :=
@@ -587,6 +603,14 @@ section
 @[simps] def punit_prod (α : Type*) : punit.{u+1} × α ≃ α :=
 calc punit × α ≃ α × punit : prod_comm _ _
            ... ≃ α         : prod_punit _
+
+/-- Any `unique` type is a right identity for type product up to equivalence. -/
+def prod_unique (α β : Type*) [unique β] : α × β ≃ α :=
+((equiv.refl α).prod_congr $ equiv_punit β).trans $ prod_punit α
+
+/-- Any `unique` type is a left identity for type product up to equivalence. -/
+def unique_prod (α β : Type*) [unique β] : β × α ≃ α :=
+((equiv_punit β).prod_congr $ equiv.refl α).trans $ punit_prod α
 
 /-- `empty` type is a right absorbing element for type product up to an equivalence. -/
 def prod_empty (α : Type*) : α × empty ≃ empty :=
@@ -909,6 +933,16 @@ def Pi_congr_right {α} {β₁ β₂ : α → Sort*} (F : Π a, β₁ a ≃ β�
 ⟨λ H a, F a (H a), λ H a, (F a).symm (H a),
  λ H, funext $ by simp, λ H, funext $ by simp⟩
 
+/-- Given `φ : α → β → Sort*`, we have an equivalence between `Π a b, φ a b` and `Π b a, φ a b`.
+This is `function.swap` as an `equiv`. -/
+@[simps apply]
+def Pi_comm {α β} (φ : α → β → Sort*) : (Π a b, φ a b) ≃ (Π b a, φ a b) :=
+⟨swap, swap, λ x, rfl, λ y, rfl⟩
+
+@[simp] lemma Pi_comm_symm {α β} {φ : α → β → Sort*} :
+  (Pi_comm φ).symm = (Pi_comm $ swap φ) :=
+rfl
+
 /-- Dependent `curry` equivalence: the type of dependent functions on `Σ i, β i` is equivalent
 to the type of dependent functions of two arguments (i.e., functions to the space of functions).
 
@@ -923,9 +957,15 @@ def Pi_curry {α} {β : α → Sort*} (γ : Π a, β a → Sort*) :
 end
 
 section
+
 /-- A `psigma`-type is equivalent to the corresponding `sigma`-type. -/
 @[simps apply symm_apply] def psigma_equiv_sigma {α} (β : α → Type*) : (Σ' i, β i) ≃ Σ i, β i :=
 ⟨λ a, ⟨a.1, a.2⟩, λ a, ⟨a.1, a.2⟩, λ ⟨a, b⟩, rfl, λ ⟨a, b⟩, rfl⟩
+
+/-- A `psigma`-type is equivalent to the corresponding `sigma`-type. -/
+@[simps apply symm_apply] def psigma_equiv_sigma_plift {α} (β : α → Sort*) :
+  (Σ' i, β i) ≃ Σ i : plift α, plift (β i.down) :=
+⟨λ a, ⟨plift.up a.1, plift.up a.2⟩, λ a, ⟨a.1.down, a.2.down⟩, λ ⟨a, b⟩, rfl, λ ⟨⟨a⟩, ⟨b⟩⟩, rfl⟩
 
 /-- A family of equivalences `Π a, β₁ a ≃ β₂ a` generates an equivalence between `Σ' a, β₁ a` and
 `Σ' a, β₂ a`. -/
@@ -1995,17 +2035,6 @@ lemma function.injective.swap_comp [decidable_eq α] [decidable_eq β] {f : α �
   (hf : function.injective f) (x y : α) :
   equiv.swap (f x) (f y) ∘ f = f ∘ equiv.swap x y :=
 funext $ λ z, hf.swap_apply _ _ _
-
-/-- If both `α` and `β` are singletons, then `α ≃ β`. -/
-def equiv_of_unique_of_unique [unique α] [unique β] : α ≃ β :=
-{ to_fun := default,
-  inv_fun := default,
-  left_inv := λ _, subsingleton.elim _ _,
-  right_inv := λ _, subsingleton.elim _ _ }
-
-/-- If `α` is a singleton, then it is equivalent to any `punit`. -/
-def equiv_punit_of_unique [unique α] : α ≃ punit.{v} :=
-equiv_of_unique_of_unique
 
 /-- If `α` is a subsingleton, then it is equivalent to `α × α`. -/
 def subsingleton_prod_self_equiv {α : Type*} [subsingleton α] : α × α ≃ α :=

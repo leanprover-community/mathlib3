@@ -811,6 +811,14 @@ lemma deriv_smul (hc : differentiable_at 𝕜 c x) (hf : differentiable_at 𝕜 
   deriv (λ y, c y • f y) x = c x • deriv f x + (deriv c x) • f x :=
 (hc.has_deriv_at.smul hf.has_deriv_at).deriv
 
+theorem has_strict_deriv_at.smul_const
+  (hc : has_strict_deriv_at c c' x) (f : F) :
+  has_strict_deriv_at (λ y, c y • f) (c' • f) x :=
+begin
+  have := hc.smul (has_strict_deriv_at_const x f),
+  rwa [smul_zero, zero_add] at this,
+end
+
 theorem has_deriv_within_at.smul_const
   (hc : has_deriv_within_at c c' s x) (f : F) :
   has_deriv_within_at (λ y, c y • f) (c' • f) s x :=

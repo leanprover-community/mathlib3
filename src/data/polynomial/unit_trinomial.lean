@@ -187,7 +187,7 @@ namespace is_unit_trinomial
 
 lemma irreducible_aux1 {k m n : ℕ} {u v w : ℤ}
   (hkm : k < m) (hmn : m < n)
-  (hu : is_unit u) (hv : is_unit v) (hw : is_unit w)
+  (hu : is_unit u) (hw : is_unit w)
   (hp : p = C u * X ^ k + C v * X ^ m + C w * X ^ n) :
   C v * (C u * X ^ (m + n) + C w * X ^ (n - m + k + n)) =
     ⟨finsupp.filter (set.Ioo (k + n) (n + n)) (p * p.mirror).to_finsupp⟩ :=
@@ -228,8 +228,8 @@ begin
   let f : polynomial ℤ → polynomial ℤ :=
   λ p, ⟨finsupp.filter (set.Ioo (k + n) (n + n)) p.to_finsupp⟩,
   replace h := congr_arg f h,
-  replace h := (irreducible_aux1 hkm hmn hu hv hw hp).trans h,
-  replace h := h.trans (irreducible_aux1 hkm' hmn' hu hv hw hq).symm,
+  replace h := (irreducible_aux1 hkm hmn hu hw hp).trans h,
+  replace h := h.trans (irreducible_aux1 hkm' hmn' hu hw hq).symm,
   rw (is_unit_C.mpr hv).mul_right_inj at h,
   rw binomial_eq_binomial hu.ne_zero hw.ne_zero at h,
   simp only [add_left_inj] at h,

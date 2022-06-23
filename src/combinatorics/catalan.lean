@@ -27,13 +27,14 @@ triangulations of convex polygons.
 
 ## Implementation details
 
-The proof of the equality of the two definitions follows
+The proof of `catalan_eq_central_binom_div` follows
 https://math.stackexchange.com/questions/3304415/catalan-numbers-algebraic-proof-of-the-recurrence-relation
 
 ## TODO
 
 * Prove that the Catalan numbers enumerate many interesting objects.
-* Generalise to Catalan numbers associated to arbitrary Coxeter groups.
+* Provide the many variants of Catalan numbers, e.g. associated to complex reflection groups,
+  Fuss-Catalan, etc.
 
 -/
 

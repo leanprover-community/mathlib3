@@ -204,19 +204,3 @@ lemma monoid_with_zero_hom.map_zpow {G₀ G₀' : Type*} [group_with_zero G₀] 
     rw [zpow_neg_succ_of_nat, zpow_neg_succ_of_nat],
     exact ((f.map_inv _).trans $ congr_arg _ $ f.to_monoid_hom.map_pow x _)
   end
-
--- I haven't been able to find a better home for this:
--- it belongs with other lemmas on `linear_ordered_field`, but
--- we need to wait until `zpow` has been defined in this file.
-section
-variables {R : Type*} [linear_ordered_field R] {a : R}
-
-lemma pow_minus_two_nonneg : 0 ≤ a^(-2 : ℤ) :=
-begin
-  simp only [inv_nonneg, zpow_neg],
-  change 0 ≤ a ^ ((2 : ℕ) : ℤ),
-  rw zpow_coe_nat,
-  apply sq_nonneg,
-end
-
-end

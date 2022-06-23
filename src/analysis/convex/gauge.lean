@@ -310,41 +310,8 @@ begin
   simp only [mem_sep_eq, mem_Ioi, and.congr_right_iff],
   intros hr',
   simp_rw [←smul_assoc, is_R_or_C.coe_smul],
-  rw balanced_iff_mem at hs,
-  split,
-  { intros h',
-    specialize hs _ h' (∥r∥/r) _,
-    { simp only [norm_div, is_R_or_C.norm_coe_norm],
-      exact div_self_le_one (∥r∥) },
-    rw ←smul_assoc at hs,
-    rw smul_eq_mul at hs,
-    have hr : (↑∥r∥ / r * (↑r'⁻¹ * r)) = ↑r'⁻¹ * ↑∥r∥ :=
-    begin
-      ring_nf,
-      simp only [is_R_or_C.of_real_inv, mul_eq_mul_right_iff, is_R_or_C.of_real_eq_zero,
-        norm_eq_zero],
-      left,
-      rw [mul_comm, ←mul_assoc],
-      simp [h],
-    end,
-    rw hr at hs,
-    exact hs },
-  intros h',
-  specialize hs _ h' (r/∥r∥) _,
-  { simp only [norm_div, is_R_or_C.norm_coe_norm],
-    exact div_self_le_one (∥r∥) },
-  rw ←smul_assoc at hs,
-  rw smul_eq_mul at hs,
-  have hr : r / ↑∥r∥ * (↑r'⁻¹ * ↑∥r∥) = ↑r'⁻¹ * r :=
-  begin
-    ring_nf,
-    simp only [is_R_or_C.of_real_inv, mul_eq_mul_right_iff],
-    left,
-    rw [mul_comm, ←mul_assoc],
-    simp[h],
-  end,
-  rw hr at hs,
-  exact hs,
+  refine hs.mem_smul_iff _,
+  simp,
 end
 
 /-- If `s` is balanced, then the Minkowski functional

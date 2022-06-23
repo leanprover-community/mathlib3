@@ -11,6 +11,7 @@ import algebra.direct_sum.ring
 import number_theory.modular
 import geometry.manifold.mfderiv
 import analysis.complex.upper_half_plane.functions_bounded_at_inf
+import number_theory.modular_forms.slash_actions
 
 /-!
 # Modular forms
@@ -41,78 +42,38 @@ local notation `GL(` n `, ` R `)`⁺ := matrix.GL_pos (fin n) R
 
 local notation `SL(` n `, ` R `)` := matrix.special_linear_group (fin n) R
 
-variable (M : GL(2, ℝ)⁺)
-
-/--The weight `k` action of `GL(2, ℝ)⁺` on functions `f : ℍ → ℂ`. -/
-def slash : ℤ → GL(2, ℝ)⁺ → (ℍ → ℂ) → (ℍ → ℂ) := λ k γ f,
-  (λ (x : ℍ), f (γ • x) * (((↑ₘ γ).det) : ℝ)^(k-1) * (upper_half_plane.denom γ x)^(-k))
+variables (Γ : subgroup SL(2,ℤ)) (k : ℤ)
 
 namespace modular_forms
 
-variables {Γ : subgroup SL(2,ℤ)} {k: ℤ} (f : (ℍ → ℂ))
+local notation f `∣[`:73 k:0, A `]`  :72 := slash_action.map ℂ k A f
 
-localized "notation f ` ∣[`:100 k `]`:0 γ :100 := slash k γ f" in modular_form
+@[simp]
+lemma slash_action_eq_slash (k : ℤ) (A : Γ) (f : ℍ → ℂ) : f ∣[k, A] = slash k A f := by {refl}
 
-lemma slash_right_action (k : ℤ) (A B : GL(2, ℝ)⁺) (f : ℍ → ℂ) :
-  (f ∣[k] A) ∣[k] B = f ∣[k] (A * B) :=
-begin
-  ext1,
-  simp_rw [slash,(upper_half_plane.denom_cocycle A B x)],
-  have e3 : (A * B) • x = A • B • x , by { convert (upper_half_plane.mul_smul' A B x), } ,
-  rw e3,
-  simp only [upper_half_plane.num, upper_half_plane.denom, of_real_mul, subgroup.coe_mul, coe_coe,
-    upper_half_plane.coe_smul, units.coe_mul, matrix.mul_eq_mul, matrix.det_mul,
-    upper_half_plane.smul_aux, upper_half_plane.smul_aux', subtype.coe_mk] at *,
-  field_simp,
-  have : (((↑(↑A : GL (fin 2) ℝ) : (matrix (fin 2) (fin 2) ℝ)).det : ℂ) *
-    ((↑(↑B : GL (fin 2) ℝ) : (matrix (fin 2) (fin 2) ℝ)).det : ℂ))^(k-1) =
-    ((↑(↑A : GL (fin 2) ℝ) : (matrix (fin 2) (fin 2) ℝ)).det : ℂ)^(k-1) *
-    ((↑(↑B : GL (fin 2) ℝ) : (matrix (fin 2) (fin 2) ℝ)).det : ℂ)^(k-1) ,
-    by {simp_rw [←mul_zpow]},
-  simp_rw [this, ← mul_assoc,  ←mul_zpow],
-end
+@[simp]
+lemma slash_action_eq_slash' (k : ℤ) (A : SL(2, ℤ)) (f : ℍ → ℂ) : f ∣[k, A] = slash k A f :=
+by {refl}
 
+/--The space of functions that are modular-/
+def weakly_modular_submodule (k : ℤ) (Γ : subgroup SL(2,ℤ)) : submodule ℂ (ℍ → ℂ) :=
+  {carrier := { f : (ℍ → ℂ) | ∀ (γ : Γ), (f  ∣[k, γ]) = f },
+  zero_mem' := by {apply slash_action.mul_zero },
+  add_mem' := by {  intros f g hf hg γ,
+    rw [slash_action.add_action k γ f g, hf γ, hg γ], },
+  smul_mem' := by { intros c f hf γ,
+    have : (c • f) ∣[k, γ] = c • (f ∣[k, γ]), by {apply slash_action.smul_action},
+    rw (hf γ) at this,
+    apply this,} }
 
-lemma slash_add (k : ℤ) (A : GL(2, ℝ)⁺) (f g : ℍ → ℂ) :
-  (f + g) ∣[k] A = (f ∣[k] A) + (g ∣[k] A) :=
-begin
-  simp only [slash, pi.add_apply, matrix.general_linear_group.coe_det_apply, subtype.val_eq_coe,
-    coe_coe],
-  ext1,
-  simp only [pi.add_apply],
-  ring,
-end
-
-lemma slash_mul_one (k : ℤ) (f : ℍ → ℂ) : (f ∣[k] 1) = f :=
-begin
- simp_rw slash,
- ext1,
- simp,
-end
-
---Need to make the API better because of this
-lemma slash_mul_one_SL2 (k : ℤ) (f : ℍ → ℂ) : (f ∣[k] (1 : SL(2, ℤ))) = f :=
-begin
-  have : ((1 : SL(2, ℤ)) : GL(2, ℝ)⁺) = (1 : GL(2, ℝ)⁺),
-    by { ext, simp, },
-  rw this,
-  apply slash_mul_one,
-end
-
-lemma smul_slash (k : ℤ) (A : GL(2, ℝ)⁺) (f : ℍ → ℂ) (c : ℂ) : (c • f) ∣[k] A = c • (f ∣[k] A) :=
-begin
-  ext1,
-  simp_rw slash,
-  simp only [slash, algebra.id.smul_eq_mul, matrix.general_linear_group.coe_det_apply,
-    pi.smul_apply, subtype.val_eq_coe, coe_coe],
-  ring,
-end
+lemma wmodular_mem (k : ℤ) (Γ : subgroup SL(2,ℤ)) (f : ℍ → ℂ) :
+  f ∈ (weakly_modular_submodule k Γ) ↔ ∀ (γ : Γ), (f ∣[k, γ]) = f := iff.rfl
 
 lemma slash_mul (k1 k2 : ℤ) (A : GL(2, ℝ)⁺) (f g : ℍ → ℂ) :
-  (f * g) ∣[k1+k2] A = (((↑ₘ A).det) : ℝ) • (f ∣[k1] A) * (g ∣[k2] A) :=
+  (f * g) ∣[k1+k2, A] = (((↑ₘ A).det) : ℝ) • (f ∣[k1, A]) * (g ∣[k2, A]) :=
 begin
   ext1,
-  simp only [slash, matrix.general_linear_group.coe_det_apply, subtype.val_eq_coe, ←mul_assoc],
+  simp only [slash_action.map, slash, matrix.general_linear_group.coe_det_apply, subtype.val_eq_coe, ←mul_assoc],
   have h1 : ((((↑ₘ A).det) : ℝ)^(k1 + k2 - 1) : ℂ) =
   (((↑ₘ A).det) : ℝ) * (((↑ₘ A).det) : ℝ)^(k1 - 1) * (((↑ₘ A).det) : ℝ)^(k2 - 1),
   by {simp only [mul_assoc, matrix.general_linear_group.coe_det_apply, subtype.val_eq_coe, coe_coe],
@@ -129,72 +90,15 @@ begin
 end
 
 lemma slash_mul_SL2 (k1 k2 : ℤ) (A : SL(2,ℤ)) (f g : ℍ → ℂ) :
-  (f * g) ∣[k1 + k2] A = (f ∣[k1] A) * (g ∣[k2] A) :=
+  (f * g) ∣[k1 + k2, A] = (f ∣[k1, A]) * (g ∣[k2, A]) :=
 begin
   have : (((↑ₘ(A : GL(2,ℝ)⁺)).det) : ℝ) = 1,
   { simp only [coe_coe,matrix.special_linear_group.coe_GL_pos_coe_GL_coe_matrix,
     matrix.special_linear_group.det_coe], },
-  simp_rw [slash_mul, this, one_smul],
+  have hs := slash_mul k1 k2 A f g,
+  simp_rw [this, one_smul] at hs,
+  convert hs,
 end
-
-/--A general version of the slash action of the space of modular forms.-/
-class slash_action (β : Type*) (G : Type*) (α : Type*) [group G] [ring α] [has_scalar ℂ α] :=
-(map : β → G → α → α)
-(mul_zero :  ∀ (k : β) (g : G), map k g 0 = 0)
-(one_mul : ∀ (k : β) (a : α) , map k 1 a = a)
-(right_action : ∀ (k : β) (g h : G) (a : α), map k h (map k g a) = map k (g * h) a )
-(smul_action : ∀ (k : β)  (g : G) (a : α) (z : ℂ), map k g (z • a) = z • (map k g a))
-(add_action : ∀ (k : β) (g : G) (a b : α), map k g (a + b) = map k g a + map k g b)
-
-instance : slash_action ℤ GL(2, ℝ)⁺ (ℍ → ℂ) :=
-{ map := slash,
-  mul_zero := by {intros k g, rw slash, simp only [pi.zero_apply, zero_mul], refl, },
-  one_mul := by {apply slash_mul_one,},
-  right_action := by {apply slash_right_action},
-  smul_action := by {apply smul_slash},
-  add_action := by {apply slash_add},}
-
-/--Slash_action induced by a monoid homomorphism.-/
-def implied_slash_action { β : Type*} {G : Type*} {H : Type*} {α : Type*} [group G] [ring α]
-  [has_scalar ℂ α] [group H] [slash_action β G α] (h : H →* G) : slash_action β H α :=
-{ map := (λ k g a, slash_action.map k (h(g)) a),
-  mul_zero := by {intros k g, apply slash_action.mul_zero k (h g), },
-  one_mul := by {intros k a, simp only [map_one], apply slash_action.one_mul,},
-  right_action := by {simp only [map_mul], intros k g gg a, apply slash_action.right_action,},
-  smul_action := by {intros k g a z, apply slash_action.smul_action, },
-  add_action := by {intros k g a b, apply slash_action.add_action, }, }
-
-instance subgroup_action (Γ : subgroup SL(2,ℤ)) : slash_action ℤ Γ (ℍ → ℂ) :=
-  implied_slash_action (monoid_hom.comp (matrix.special_linear_group.to_GL_pos)
-(monoid_hom.comp (matrix.special_linear_group.map (int.cast_ring_hom ℝ)) (subgroup.subtype Γ) ))
-
-instance SL_action : slash_action ℤ SL(2,ℤ) (ℍ → ℂ) :=
-implied_slash_action (monoid_hom.comp (matrix.special_linear_group.to_GL_pos)
-  (matrix.special_linear_group.map (int.cast_ring_hom ℝ)))
-
-local notation f `∣[`:73 k:0, A `]`  :72 := slash_action.map k A f
-
-@[simp]
-lemma slash_action_eq_slash (k : ℤ) (A : Γ) (f : ℍ → ℂ) : f ∣[k, A] = slash k A f := by {refl}
-
-@[simp]
-lemma slash_action_eq_slash' (k : ℤ) (A : SL(2, ℤ)) (f : ℍ → ℂ) : f ∣[k, A] = slash k A f :=
-by {refl}
-
-
-/--The space of functions that are modular-/
-def weakly_modular_submodule (k : ℤ) (Γ : subgroup SL(2,ℤ)) : submodule ℂ (ℍ → ℂ) :=
-  {carrier := { f : (ℍ → ℂ) | ∀ (γ : Γ), (f  ∣[k, γ]) = f },
-  zero_mem' := by {apply slash_action.mul_zero },
-  add_mem' := by {  intros f g hf hg γ,
-    rw [slash_action.add_action k γ f g, hf γ, hg γ], },
-  smul_mem' := by { intros c f hf γ,
-    have : (c • f) ∣[k, γ] = c • (f ∣[k, γ]), by {apply slash_action.smul_action},
-    rw (hf γ) at this,
-    apply this,} }
-
-lemma wmodular_mem (k : ℤ) (Γ : subgroup SL(2,ℤ)) (f : ℍ → ℂ) :
-  f ∈ (weakly_modular_submodule k Γ) ↔ ∀ (γ : Γ), (f ∣[k, γ]) = f := iff.rfl
 
 lemma slash_mul_subgroup (k1 k2 : ℤ) (Γ : subgroup SL(2,ℤ)) (A : Γ) (f g : ℍ → ℂ) :
   (f * g) ∣[k1+k2, A] = (f ∣[k1, A]) * (g ∣[k2, A]) :=
@@ -343,7 +247,7 @@ lemma mul_modform (k_1 k_2 : ℤ) (Γ : subgroup SL(2,ℤ)) (f g : ℍ → ℂ)
 begin
   refine ⟨mdifferentiable_mul hf.1 hg.1, mul_modular _ _ _ _ _ hf.2 hg.2, _⟩,
   intro A,
-  rw [slash_action_eq_slash', slash_mul_SL2 k_1 k_2 A f g],
+  rw [slash_mul_SL2 k_1 k_2 A f g],
   exact prod_of_bound_is_bound (hf.infinity A) (hg.infinity A),
 end
 

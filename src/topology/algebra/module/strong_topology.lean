@@ -90,8 +90,8 @@ begin
   letI : topological_space (E → F) := uniform_convergence_on.topological_space E F 𝔖,
   letI : topological_space (E →L[𝕜] F) := strong_topology 𝕜 E F 𝔖,
   let φ : (E →L[𝕜] F) →ₗ[𝕜] E → F := ⟨(coe_fn : (E →L[𝕜] F) → E → F), λ _ _, rfl, λ _ _, rfl⟩,
-  refine uniform_convergence_on.has_continuous_smul_induced_of_image_bounded 𝕜 E F (E →L[𝕜] F)
-    h𝔖₁ h𝔖₂ φ ⟨rfl⟩ (λ u s hs, sorry),
+  exact uniform_convergence_on.has_continuous_smul_induced_of_image_bounded 𝕜 E F (E →L[𝕜] F)
+    h𝔖₁ h𝔖₂ φ ⟨rfl⟩ (λ u s hs, (h𝔖₃ s hs).image u)
 end
 
 end general
@@ -106,6 +106,13 @@ strong_topology 𝕜 E F {S | bornology.is_vonN_bounded 𝕜 S}
 
 instance [topological_space F] [topological_add_group F] : topological_add_group (E →L[𝕜] F) :=
 strong_topology.topological_add_group 𝕜 E F _
+
+instance [topological_space F] [topological_add_group F] [has_continuous_smul 𝕜 F] :
+  has_continuous_smul 𝕜 (E →L[𝕜] F) :=
+strong_topology.has_continuous_smul 𝕜 E F {S | bornology.is_vonN_bounded 𝕜 S}
+  ⟨∅, bornology.is_vonN_bounded_empty 𝕜 E⟩
+  (λ s₁ h₁ s₂ h₂, ⟨s₁ ∪ s₂, h₁.union h₂, s₁.subset_union_left s₂, s₁.subset_union_right s₂⟩)
+  (λ s hs, hs)
 
 instance [uniform_space F] [uniform_add_group F] : uniform_space (E →L[𝕜] F) :=
 strong_uniformity 𝕜 E F {S | bornology.is_vonN_bounded 𝕜 S}

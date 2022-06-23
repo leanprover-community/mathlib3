@@ -207,7 +207,7 @@ begin
     suffices : measurable (λ x, c * ν (prod.mk x ⁻¹' s)),
     { simpa [lintegral_indicator _ (m hs)] },
     exact (measurable_measure_prod_mk_left hs).const_mul _ },
-  { rintro f g - hf hg h2f h2g, simp_rw [pi.add_apply, lintegral_add (hf.comp m) (hg.comp m)],
+  { rintro f g - hf hg h2f h2g, simp_rw [pi.add_apply, lintegral_add_left (hf.comp m)],
     exact h2f.add h2g },
   { intros f hf h2f h3f,
     have := measurable_supr h3f,
@@ -557,9 +557,9 @@ end
 
 end measure
 
-namespace measure_preserving
-
 open measure
+
+namespace measure_preserving
 
 variables {δ : Type*} [measurable_space δ] {μa : measure α} {μb : measure β}
   {μc : measure γ} {μd : measure δ}
@@ -603,6 +603,34 @@ hf.skew_product this $ filter.eventually_of_forall $ λ _, hg.map_eq
 
 end measure_preserving
 
+namespace quasi_measure_preserving
+
+lemma prod_of_right {f : α × β → γ} {μ : measure α} {ν : measure β} {τ : measure γ}
+  (hf : measurable f) [sigma_finite ν]
+  (h2f : ∀ᵐ x ∂μ, quasi_measure_preserving (λ y, f (x, y)) ν τ) :
+  quasi_measure_preserving f (μ.prod ν) τ :=
+begin
+  refine ⟨hf, _⟩,
+  refine absolutely_continuous.mk (λ s hs h2s, _),
+  simp_rw [map_apply hf hs, prod_apply (hf hs), preimage_preimage,
+    lintegral_congr_ae (h2f.mono (λ x hx, hx.preimage_null h2s)), lintegral_zero],
+end
+
+lemma prod_of_left {α β γ} [measurable_space α] [measurable_space β]
+  [measurable_space γ] {f : α × β → γ} {μ : measure α} {ν : measure β} {τ : measure γ}
+  (hf : measurable f) [sigma_finite μ] [sigma_finite ν]
+  (h2f : ∀ᵐ y ∂ν, quasi_measure_preserving (λ x, f (x, y)) μ τ) :
+  quasi_measure_preserving f (μ.prod ν) τ :=
+begin
+  rw [← prod_swap],
+  convert (quasi_measure_preserving.prod_of_right (hf.comp measurable_swap) h2f).comp
+    ((measurable_swap.measure_preserving (ν.prod μ)).symm measurable_equiv.prod_comm)
+    .quasi_measure_preserving,
+  ext ⟨x, y⟩, refl,
+end
+
+end quasi_measure_preserving
+
 end measure_theory
 
 open measure_theory.measure
@@ -625,6 +653,16 @@ hf.comp_measurable' measurable_fst prod_fst_absolutely_continuous
 
 lemma ae_measurable.snd [sigma_finite ν] {f : β → γ}
   (hf : ae_measurable f ν) : ae_measurable (λ (z : α × β), f z.2) (μ.prod ν) :=
+hf.comp_measurable' measurable_snd prod_snd_absolutely_continuous
+
+lemma measure_theory.ae_strongly_measurable.fst {γ} [topological_space γ] [sigma_finite ν]
+  {f : α → γ} (hf : ae_strongly_measurable f μ) :
+  ae_strongly_measurable (λ (z : α × β), f z.1) (μ.prod ν) :=
+hf.comp_measurable' measurable_fst prod_fst_absolutely_continuous
+
+lemma measure_theory.ae_strongly_measurable.snd {γ} [topological_space γ] [sigma_finite ν]
+  {f : β → γ} (hf : ae_strongly_measurable f ν) :
+  ae_strongly_measurable (λ (z : α × β), f z.2) (μ.prod ν) :=
 hf.comp_measurable' measurable_snd prod_snd_absolutely_continuous
 
 /-- The Bochner integral is a.e.-measurable.
@@ -667,8 +705,7 @@ begin
     simp [lintegral_indicator, m hs, hs, lintegral_const_mul, measurable_measure_prod_mk_left hs,
       prod_apply] },
   { rintro f g - hf hg h2f h2g,
-    simp [lintegral_add, measurable.lintegral_prod_right', hf.comp m, hg.comp m,
-      hf, hg, h2f, h2g] },
+    simp [lintegral_add_left, measurable.lintegral_prod_right', hf.comp m, hf, h2f, h2g] },
   { intros f hf h2f h3f,
     have kf : ∀ x n, measurable (λ y, f n (x, y)) := λ x n, (hf n).comp m,
     have k2f : ∀ x, monotone (λ n y, f n (x, y)) := λ x i j hij y, h2f hij (x, y),

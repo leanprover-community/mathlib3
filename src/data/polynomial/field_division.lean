@@ -181,7 +181,7 @@ have hg : g ≠ 0, from λ hg, by { rw [hp, hg, mul_zero] at hp1, exact not_moni
 or.imp (λ hf, is_unit_of_mul_eq_one _ _ hf) (λ hg, is_unit_of_mul_eq_one _ _ hg) $
 hp3 (f * C f.leading_coeff⁻¹) (g * C g.leading_coeff⁻¹)
   (monic_mul_leading_coeff_inv hf) (monic_mul_leading_coeff_inv hg) $
-by rw [mul_assoc, mul_left_comm _ g, ← mul_assoc, ← C_mul, ← mul_inv₀, ← leading_coeff_mul,
+by rw [mul_assoc, mul_left_comm _ g, ← mul_assoc, ← C_mul, ← mul_inv, ← leading_coeff_mul,
     ← hp, monic.def.1 hp1, inv_one, C_1, mul_one]⟩⟩
 
 /-- Division of polynomials. See `polynomial.div_by_monic` for more details.-/
@@ -418,7 +418,7 @@ lemma div_C_mul : p / (C a * q) = C a⁻¹ * (p / q) :=
 begin
   by_cases ha : a = 0,
   { simp [ha] },
-  simp only [div_def, leading_coeff_mul, mul_inv₀,
+  simp only [div_def, leading_coeff_mul, mul_inv,
     leading_coeff_C, C.map_mul, mul_assoc],
   congr' 3,
   rw [mul_left_comm q, ← mul_assoc, ← C.map_mul, mul_inv_cancel ha,
@@ -469,14 +469,6 @@ theorem degree_pos_of_irreducible (hp : irreducible p) : 0 < p.degree :=
 lt_of_not_ge $ λ hp0, have _ := eq_C_of_degree_le_zero hp0,
   not_irreducible_C (p.coeff 0) $ this ▸ hp
 
-theorem pairwise_coprime_X_sub {α : Type u} [field α] {I : Type v}
-  {s : I → α} (H : function.injective s) :
-  pairwise (is_coprime on (λ i : I, polynomial.X - polynomial.C (s i))) :=
-λ i j hij, have h : s j - s i ≠ 0, from sub_ne_zero_of_ne $ function.injective.ne H hij.symm,
-⟨polynomial.C (s j - s i)⁻¹, -polynomial.C (s j - s i)⁻¹,
-by rw [neg_mul, ← sub_eq_add_neg, ← mul_sub, sub_sub_sub_cancel_left,
-    ← polynomial.C_sub, ← polynomial.C_mul, inv_mul_cancel h, polynomial.C_1]⟩
-
 /-- If `f` is a polynomial over a field, and `a : K` satisfies `f' a ≠ 0`,
 then `f / (X - a)` is coprime with `X - a`.
 Note that we do not assume `f a = 0`, because `f / (X - a) = (f - f a) / (X - a)`. -/
@@ -504,7 +496,7 @@ lemma prod_multiset_X_sub_C_dvd (p : R[X]) :
 begin
   rw prod_multiset_root_eq_finset_root,
   have hcoprime : pairwise (is_coprime on λ (a : R), polynomial.X - C (id a)) :=
-    pairwise_coprime_X_sub function.injective_id,
+    pairwise_coprime_X_sub_C function.injective_id,
   have H : pairwise (is_coprime on λ (a : R), (polynomial.X - C (id a)) ^ (root_multiplicity a p)),
   { intros a b hdiff, exact (hcoprime a b hdiff).pow },
   apply finset.prod_dvd_of_coprime (H.set_pairwise (↑(multiset.to_finset p.roots) : set R)),

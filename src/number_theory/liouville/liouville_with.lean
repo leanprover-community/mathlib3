@@ -111,7 +111,7 @@ begin
   refine ⟨r.denom ^ p * (|r| * C), (tendsto_id.nsmul_at_top r.pos).frequently (hC.mono _)⟩,
   rintro n ⟨hn, m, hne, hlt⟩,
   have A : (↑(r.num * m) : ℝ) / ↑(r.denom • id n) = (m / n) * r,
-    by simp [← div_mul_div_comm₀, ← r.cast_def, mul_comm],
+    by simp [← div_mul_div_comm, ← r.cast_def, mul_comm],
   refine ⟨r.num * m, _, _⟩,
   { rw A, simp [hne, hr] },
   { rw [A, ← sub_mul, abs_mul],

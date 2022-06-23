@@ -5,7 +5,7 @@ Authors: Anne Baanen
 -/
 
 import linear_algebra.matrix.bilinear_form
-import linear_algebra.matrix.charpoly.coeff
+import linear_algebra.matrix.charpoly.minpoly
 import linear_algebra.determinant
 import linear_algebra.vandermonde
 import linear_algebra.trace
@@ -396,7 +396,7 @@ begin
     trace_form_apply, algebra.smul_mul_assoc],
   rw [mul_comm (b x), ← smul_def],
   ring_nf,
-  simp,
+  simp [mul_comm],
 end
 
 lemma trace_matrix_of_matrix_mul_vec [fintype κ] (b : κ → B) (P : matrix κ κ A) :

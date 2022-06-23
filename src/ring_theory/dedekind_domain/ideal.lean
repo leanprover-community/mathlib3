@@ -184,7 +184,7 @@ begin
     ((generator (I : submodule R₁ K))⁻¹)) hI).symm
 end
 
-@[simp] lemma one_inv : (1⁻¹ : fractional_ideal R₁⁰ K) = 1 :=
+@[simp] lemma inv_one : (1⁻¹ : fractional_ideal R₁⁰ K) = 1 :=
 fractional_ideal.div_one
 
 end fractional_ideal
@@ -428,7 +428,7 @@ lemma mul_inv_cancel_of_le_one [h : is_dedekind_domain A]
 begin
   -- Handle a few trivial cases.
   by_cases hI1 : I = ⊤,
-  { rw [hI1, coe_ideal_top, one_mul, fractional_ideal.one_inv] },
+  { rw [hI1, coe_ideal_top, one_mul, fractional_ideal.inv_one] },
   by_cases hNF : is_field A,
   { letI := hNF.to_field, rcases hI1 (I.eq_bot_or_top.resolve_left hI0) },
   -- We'll show a contradiction with `exists_not_mem_one_of_ne_bot`:
@@ -673,6 +673,13 @@ theorem ideal.prime_iff_is_prime {P : ideal A} (hP : P ≠ ⊥) :
   prime P ↔ is_prime P :=
 ⟨ideal.is_prime_of_prime, ideal.prime_of_is_prime hP⟩
 
+/-- In a Dedekind domain, the the prime ideals are the zero ideal together with the prime elements
+of the monoid with zero `ideal A`. -/
+theorem ideal.is_prime_iff_bot_or_prime {P : ideal A} :
+  is_prime P ↔ P = ⊥ ∨ prime P :=
+⟨λ hp, (eq_or_ne P ⊥).imp_right $ λ hp0, (ideal.prime_of_is_prime hp0 hp),
+ λ hp, hp.elim (λ h, h.symm ▸ ideal.bot_prime) ideal.is_prime_of_prime⟩
+
 lemma ideal.strict_anti_pow (I : ideal A) (hI0 : I ≠ ⊥) (hI1 : I ≠ ⊤) :
   strict_anti ((^) I : ℕ → ideal A) :=
 strict_anti_nat_of_succ_lt $ λ e, ideal.dvd_not_unit_iff_lt.mp
@@ -899,11 +906,15 @@ section
 
 open_locale classical
 
-lemma ideal.count_normalized_factors_eq {p x : ideal R} (hp0 : p ≠ ⊥) [hp : p.is_prime] {n : ℕ}
+lemma ideal.count_normalized_factors_eq {p x : ideal R} [hp : p.is_prime] {n : ℕ}
   (hle : x ≤ p^n) (hlt : ¬ (x ≤ p^(n+1))) :
   (normalized_factors x).count p = n :=
-count_normalized_factors_eq ((ideal.prime_iff_is_prime hp0).mpr hp).irreducible (normalize_eq _)
-  (ideal.dvd_iff_le.mpr hle) (mt ideal.le_of_dvd hlt)
+count_normalized_factors_eq'
+  ((ideal.is_prime_iff_bot_or_prime.mp hp).imp_right prime.irreducible)
+  (by { haveI : unique (ideal R)ˣ := ideal.unique_units, apply normalize_eq })
+  (by convert ideal.dvd_iff_le.mpr hle) (by convert mt ideal.le_of_dvd hlt)
+/- Warning: even though a pure term-mode proof typechecks (the `by convert` can simply be
+  removed), it's slower to the point of a possible timeout. -/
 
 end
 

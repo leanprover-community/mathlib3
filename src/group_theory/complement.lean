@@ -241,6 +241,13 @@ noncomputable def to_equiv (hS : S ∈ subgroup.left_transversals (H : set G)) :
   quotient.mk' (to_equiv hS q : G) = q :=
 (to_equiv hS).symm_apply_apply q
 
+@[to_additive] lemma to_equiv_apply {f : G ⧸ H → G} (hf : ∀ q, (f q : G ⧸ H) = q) (q : G ⧸ H) :
+  (to_equiv (range_mem_left_transversals hf) q : G) = f q :=
+begin
+  refine (subtype.ext_iff.mp _).trans (subtype.coe_mk (f q) ⟨q, rfl⟩),
+  exact (to_equiv (range_mem_left_transversals hf)).apply_eq_iff_eq_symm_apply.mpr (hf q).symm,
+end
+
 /-- A left transversal can be viewed as a function mapping each element of the group
   to the chosen representative from that left coset. -/
 @[to_additive "A left transversal can be viewed as a function mapping each element of the group
@@ -269,6 +276,14 @@ noncomputable def to_equiv (hS : S ∈ subgroup.right_transversals (H : set G)) 
 @[to_additive] lemma mk'_to_equiv (hS : S ∈ subgroup.right_transversals (H : set G))
   (q : quotient (quotient_group.right_rel H)) : quotient.mk' (to_equiv hS q : G) = q :=
 (to_equiv hS).symm_apply_apply q
+
+@[to_additive] lemma to_equiv_apply {f : quotient (quotient_group.right_rel H) → G}
+  (hf : ∀ q, quotient.mk' (f q) = q) (q : quotient (quotient_group.right_rel H)) :
+  (to_equiv (range_mem_right_transversals hf) q : G) = f q :=
+begin
+  refine (subtype.ext_iff.mp _).trans (subtype.coe_mk (f q) ⟨q, rfl⟩),
+  exact (to_equiv (range_mem_right_transversals hf)).apply_eq_iff_eq_symm_apply.mpr (hf q).symm,
+end
 
 /-- A right transversal can be viewed as a function mapping each element of the group
   to the chosen representative from that right coset. -/
@@ -387,7 +402,7 @@ begin
   refine ⟨⟨h⁻¹, h * g, hh'⟩, inv_mul_cancel_left h g, _⟩,
   rintros ⟨h', g, hg : g • a = a⟩ rfl,
   specialize h1 (h * h') (by rwa [mul_smul, smul_def h', ←hg, ←mul_smul, hg]),
-  refine prod.ext (eq_inv_of_eq_inv (eq_inv_of_mul_eq_one h1)) (subtype.ext _),
+  refine prod.ext (eq_inv_of_mul_eq_one_right h1) (subtype.ext _),
   rwa [subtype.ext_iff, coe_one, coe_mul, ←self_eq_mul_left, mul_assoc ↑h ↑h' g] at h1,
 end
 

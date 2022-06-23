@@ -134,7 +134,7 @@ lemma trans {R : Type*} (A B : Type*) [comm_semiring R] [comm_semiring A] [algeb
       ht, submodule.restrict_scalars_top]⟩⟩
 
 @[priority 100] -- see Note [lower instance priority]
-instance finite_type {R : Type*} (A : Type*) [comm_semiring R] [comm_semiring A]
+instance finite_type {R : Type*} (A : Type*) [comm_semiring R] [semiring A]
   [algebra R A] [hRA : finite R A] : algebra.finite_type R A :=
 ⟨subalgebra.fg_of_submodule_fg hRA.1⟩
 
@@ -143,6 +143,11 @@ end algebra
 end finite
 
 end module
+
+instance module.finite.tensor_product [comm_semiring R]
+  [add_comm_monoid M] [module R M] [add_comm_monoid N] [module R N]
+  [hM : module.finite R M] [hN : module.finite R N] : module.finite R (tensor_product R M N) :=
+{ out := (tensor_product.map₂_mk_top_top_eq_top R M N).subst (hM.out.map₂ _ hN.out) }
 
 namespace algebra
 
@@ -702,7 +707,7 @@ lemma of'_mem_span [nontrivial R] {m : M} {S : set M} :
 begin
   refine ⟨λ h, _, λ h, submodule.subset_span $ set.mem_image_of_mem (of R M) h⟩,
   rw [of', ← finsupp.supported_eq_span_single, finsupp.mem_supported,
-    finsupp.support_single_ne_zero (@one_ne_zero R _ (by apply_instance))] at h,
+    finsupp.support_single_ne_zero _ (@one_ne_zero R _ (by apply_instance))] at h,
   simpa using h
 end
 
@@ -858,7 +863,7 @@ lemma of_mem_span_of_iff [nontrivial R] {m : M} {S : set M} :
 begin
   refine ⟨λ h, _, λ h, submodule.subset_span $ set.mem_image_of_mem (of R M) h⟩,
   rw [of, monoid_hom.coe_mk, ← finsupp.supported_eq_span_single, finsupp.mem_supported,
-    finsupp.support_single_ne_zero (@one_ne_zero R _ (by apply_instance))] at h,
+    finsupp.support_single_ne_zero _ (@one_ne_zero R _ (by apply_instance))] at h,
   simpa using h
 end
 

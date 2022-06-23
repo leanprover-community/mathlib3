@@ -9,30 +9,26 @@ import tactic.abel
 /-!
 # Combinatorial games.
 
-In this file we define the quotient of pre-games by the equivalence relation `p ≈ q ↔ p ≤ q ∧ q ≤
-p`, and construct an instance `add_comm_group game`, as well as an instance `partial_order game`
-(although note carefully the warning that the `<` field in this instance is not the usual relation
-on combinatorial games).
+In this file we define the quotient of pre-games by the equivalence relation
+`p ≈ q ↔ p ≤ q ∧ q ≤ p` (its `antisymmetrization`), and construct an instance `add_comm_group game`,
+as well as an instance `partial_order game`.
 
 ## Multiplication on pre-games
 
 We define the operations of multiplication and inverse on pre-games, and prove a few basic theorems
-about them. Multiplication is not well-behaved under equivalence of pre-games i.e. `x.equiv y` does
-not imply `(x*z).equiv (y*z)`. Hence, multiplication is not a well-defined operation on games.
-Nevertheless, the abelian group structure on games allows us to simplify many proofs for pre-games.
+about them. Multiplication is not well-behaved under equivalence of pre-games i.e. `x ≈ y` does not
+imply `x * z ≈ y * z`. Hence, multiplication is not a well-defined operation on games. Nevertheless,
+the abelian group structure on games allows us to simplify many proofs for pre-games.
 -/
 
-open function
+open function pgame
+
+open_locale pgame
 
 universes u
 
-local infix ` ≈ ` := pgame.equiv
-
 instance pgame.setoid : setoid pgame :=
-⟨λ x y, x ≈ y,
- λ x, pgame.equiv_refl _,
- λ x y, pgame.equiv_symm,
- λ x y z, pgame.equiv_trans⟩
+⟨(≈), equiv_refl, @pgame.equiv.symm, @pgame.equiv.trans⟩
 
 /-- The type of combinatorial games. In ZFC, a combinatorial game is constructed from
   two sets of combinatorial games that have been constructed at an earlier
@@ -44,69 +40,65 @@ instance pgame.setoid : setoid pgame :=
   `x ≈ y ↔ x ≤ y ∧ y ≤ x`. -/
 abbreviation game := quotient pgame.setoid
 
-open pgame
-
 namespace game
 
-instance : has_le game :=
-⟨quotient.lift₂ (λ x y, x ≤ y) (λ x₁ y₁ x₂ y₂ hx hy, propext (le_congr hx hy))⟩
-
--- Adding `@[refl]` and `@[trans]` attributes here would override the ones on
--- `preorder.le_refl` and `preorder.le_trans`, which breaks all non-`game` uses of `≤`!
-theorem le_rfl : ∀ {x : game}, x ≤ x :=
-by { rintro ⟨x⟩, exact pgame.le_rfl }
-theorem le_refl (x : game) : x ≤ x :=
-le_rfl
-theorem le_trans : ∀ x y z : game, x ≤ y → y ≤ z → x ≤ z :=
-by { rintro ⟨x⟩ ⟨y⟩ ⟨z⟩, apply pgame.le_trans }
-theorem le_antisymm : ∀ x y : game, x ≤ y → y ≤ x → x = y :=
-by { rintro ⟨x⟩ ⟨y⟩ h₁ h₂, apply quot.sound, exact ⟨h₁, h₂⟩ }
-
-/-- This instance is incompatible with that provided by `game.partial_order`, which is why it's made
-into a `def` instead. -/
-instance : has_lt game :=
-⟨quotient.lift₂ (λ x y, x < y) (λ x₁ y₁ x₂ y₂ hx hy, propext (lt_congr hx hy))⟩
-
-@[simp] theorem not_le : ∀ {x y : game}, ¬ x ≤ y ↔ y < x :=
-by { rintro ⟨x⟩ ⟨y⟩, exact not_le }
-
-@[simp] theorem not_lt : ∀ {x y : game}, ¬ x < y ↔ y ≤ x :=
-by { rintro ⟨x⟩ ⟨y⟩, exact not_lt }
-
-instance : has_zero game := ⟨⟦0⟧⟩
-instance : inhabited game := ⟨0⟩
-instance : has_one game := ⟨⟦1⟧⟩
-
-/-- The negation of `{L | R}` is `{-R | -L}`. -/
-instance : has_neg game :=
-⟨quot.lift (λ x, ⟦-x⟧) (λ x y h, quot.sound (@neg_congr x y h))⟩
-
-/-- The sum of `x = {xL | xR}` and `y = {yL | yR}` is `{xL + y, x + yL | xR + y, x + yR}`. -/
-instance : has_add game :=
-⟨quotient.lift₂ (λ x y : pgame, ⟦x + y⟧) (λ x₁ y₁ x₂ y₂ hx hy, quot.sound (pgame.add_congr hx hy))⟩
-
-instance : add_semigroup game.{u} :=
-{ add_assoc := by { rintros ⟨x⟩ ⟨y⟩ ⟨z⟩, exact quot.sound add_assoc_equiv },
-  ..game.has_add }
-
-instance : add_monoid game :=
-{ add_zero := by { rintro ⟨x⟩, exact quot.sound (add_zero_equiv x) },
-  zero_add := by { rintro ⟨x⟩, exact quot.sound (zero_add_equiv x) },
-  ..game.has_zero,
-  ..game.add_semigroup }
-
-instance : add_group game :=
-{ add_left_neg := by { rintro ⟨x⟩, exact quot.sound (add_left_neg_equiv x) },
-  ..game.has_neg,
-  ..game.add_monoid }
-
-instance : add_comm_semigroup game :=
-{ add_comm := by { rintros ⟨x⟩ ⟨y⟩, exact quot.sound add_comm_equiv },
-  ..game.add_semigroup }
-
 instance : add_comm_group game :=
-{ ..game.add_comm_semigroup,
-  ..game.add_group }
+{ zero := ⟦0⟧,
+  neg := quot.lift (λ x, ⟦-x⟧) (λ x y h, quot.sound ((@neg_equiv_neg_iff x y).2 h)),
+  add := quotient.lift₂ (λ x y : pgame, ⟦x + y⟧)
+    (λ x₁ y₁ x₂ y₂ hx hy, quot.sound (pgame.add_congr hx hy)),
+  add_zero := by { rintro ⟨x⟩, exact quot.sound (add_zero_equiv x) },
+  zero_add := by { rintro ⟨x⟩, exact quot.sound (zero_add_equiv x) },
+  add_assoc := by { rintros ⟨x⟩ ⟨y⟩ ⟨z⟩, exact quot.sound add_assoc_equiv },
+  add_left_neg := by { rintro ⟨x⟩, exact quot.sound (add_left_neg_equiv x) },
+  add_comm := by { rintros ⟨x⟩ ⟨y⟩, exact quot.sound add_comm_equiv } }
+
+instance : has_one game := ⟨⟦1⟧⟩
+instance : inhabited game := ⟨0⟩
+
+instance : partial_order game :=
+{ le := quotient.lift₂ (λ x y, x ≤ y) (λ x₁ y₁ x₂ y₂ hx hy, propext (le_congr hx hy)),
+  le_refl := by { rintro ⟨x⟩, exact le_refl x },
+  le_trans := by { rintro ⟨x⟩ ⟨y⟩ ⟨z⟩, exact @le_trans _ _ x y z },
+  le_antisymm := by { rintro ⟨x⟩ ⟨y⟩ h₁ h₂, apply quot.sound, exact ⟨h₁, h₂⟩ } }
+
+/-- The less or fuzzy relation on games.
+
+If `0 ⧏ x` (less or fuzzy with), then Left can win `x` as the first player. -/
+def lf : game → game → Prop :=
+quotient.lift₂ lf (λ x₁ y₁ x₂ y₂ hx hy, propext (lf_congr hx hy))
+
+local infix ` ⧏ `:50 := lf
+
+/-- On `game`, simp-normal inequalities should use as few negations as possible. -/
+@[simp] theorem not_le : ∀ {x y : game}, ¬ x ≤ y ↔ y ⧏ x :=
+by { rintro ⟨x⟩ ⟨y⟩, exact pgame.not_le }
+
+/-- On `game`, simp-normal inequalities should use as few negations as possible. -/
+@[simp] theorem not_lf : ∀ {x y : game}, ¬ x ⧏ y ↔ y ≤ x :=
+by { rintro ⟨x⟩ ⟨y⟩, exact not_lf }
+
+instance : is_trichotomous game (⧏) :=
+⟨by { rintro ⟨x⟩ ⟨y⟩, change _ ∨ ⟦x⟧ = ⟦y⟧ ∨ _, rw quotient.eq, apply lf_or_equiv_or_gf }⟩
+
+/-! It can be useful to use these lemmas to turn `pgame` inequalities into `game` inequalities, as
+the `add_comm_group` structure on `game` often simplifies many proofs. -/
+
+theorem _root_.pgame.le_iff_game_le {x y : pgame} : x ≤ y ↔ ⟦x⟧ ≤ ⟦y⟧ := iff.rfl
+theorem _root_.pgame.lf_iff_game_lf {x y : pgame} : pgame.lf x y ↔ ⟦x⟧ ⧏ ⟦y⟧ := iff.rfl
+theorem _root_.pgame.lt_iff_game_lt {x y : pgame} : x < y ↔ ⟦x⟧ < ⟦y⟧ := iff.rfl
+theorem _root_.pgame.equiv_iff_game_eq {x y : pgame} : x ≈ y ↔ ⟦x⟧ = ⟦y⟧ :=
+(@quotient.eq _ _ x y).symm
+
+/-- The fuzzy, confused, or incomparable relation on games.
+
+If `x ∥ 0`, then the first player can always win `x`. -/
+def fuzzy : game → game → Prop :=
+quotient.lift₂ fuzzy (λ x₁ y₁ x₂ y₂ hx hy, propext (fuzzy_congr hx hy))
+
+local infix ` ∥ `:50 := fuzzy
+
+theorem _root_.pgame.fuzzy_iff_game_fuzzy {x y : pgame} : pgame.fuzzy x y ↔ ⟦x⟧ ∥ ⟦y⟧ := iff.rfl
 
 instance covariant_class_add_le : covariant_class game game (+) (≤) :=
 ⟨by { rintro ⟨a⟩ ⟨b⟩ ⟨c⟩ h, exact @add_le_add_left _ _ _ _ b c h a }⟩
@@ -120,27 +112,13 @@ instance covariant_class_add_lt : covariant_class game game (+) (<) :=
 instance covariant_class_swap_add_lt : covariant_class game game (swap (+)) (<) :=
 ⟨by { rintro ⟨a⟩ ⟨b⟩ ⟨c⟩ h, exact @add_lt_add_right _ _ _ _ b c h a }⟩
 
--- While it is very tempting to define a `partial_order` on games, and prove
--- that games form an `ordered_add_comm_group`, it is a bit dangerous.
+theorem add_lf_add_right : ∀ {b c : game} (h : b ⧏ c) (a), b + a ⧏ c + a :=
+by { rintro ⟨b⟩ ⟨c⟩ h ⟨a⟩, apply add_lf_add_right h }
 
--- The relations `≤` and `<` on games do not satisfy
--- `lt_iff_le_not_le : ∀ a b : α, a < b ↔ (a ≤ b ∧ ¬ b ≤ a)`
--- (Consider `a = 0`, `b = star`.)
--- (`lt_iff_le_not_le` is satisfied by surreal numbers, however.)
--- Thus we can not use `<` when defining a `partial_order`.
+theorem add_lf_add_left : ∀ {b c : game} (h : b ⧏ c) (a), a + b ⧏ a + c :=
+by { rintro ⟨b⟩ ⟨c⟩ h ⟨a⟩, apply add_lf_add_left h }
 
--- Because of this issue, we define the `partial_order` and `ordered_add_comm_group` instances,
--- but do not actually mark them as instances, for safety.
-
-/-- The `<` operation provided by this partial order is not the usual `<` on games! -/
-def partial_order : partial_order game :=
-{ le_refl := le_refl,
-  le_trans := le_trans,
-  le_antisymm := le_antisymm,
-  ..game.has_le }
-
-/-- The `<` operation provided by this `ordered_add_comm_group` is not the usual `<` on games! -/
-def ordered_add_comm_group : ordered_add_comm_group game :=
+instance ordered_add_comm_group : ordered_add_comm_group game :=
 { add_le_add_left := @add_le_add_left _ _ _ game.covariant_class_add_le,
   ..game.add_comm_group,
   ..game.partial_order }
@@ -196,16 +174,16 @@ theorem right_moves_mul : ∀ (x y : pgame.{u}), (x * y).right_moves
 
 Even though these types are the same (not definitionally so), this is the preferred way to convert
 between them. -/
-def to_left_moves_mul {x y : pgame} : x.left_moves × y.left_moves ⊕ x.right_moves × y.right_moves
-  ≃ (x * y).left_moves :=
+def to_left_moves_mul {x y : pgame} :
+  x.left_moves × y.left_moves ⊕ x.right_moves × y.right_moves ≃ (x * y).left_moves :=
 equiv.cast (left_moves_mul x y).symm
 
 /-- Turns a left and a right move for `x` and `y` into a right move for `x * y` and vice versa.
 
 Even though these types are the same (not definitionally so), this is the preferred way to convert
 between them. -/
-def to_right_moves_mul {x y : pgame} : x.left_moves × y.right_moves ⊕ x.right_moves × y.left_moves
-  ≃ (x * y).right_moves :=
+def to_right_moves_mul {x y : pgame} :
+  x.left_moves × y.right_moves ⊕ x.right_moves × y.left_moves ≃ (x * y).right_moves :=
 equiv.cast (right_moves_mul x y).symm
 
 @[simp] lemma mk_mul_move_left_inl {xl xr yl yr} {xL xR yL yR} {i j} :
@@ -239,7 +217,7 @@ rfl
 by { cases x, cases y, refl }
 
 @[simp] lemma mk_mul_move_right_inr {xl xr yl yr} {xL xR yL yR} {i j} :
-  (mk xl xr xL xR * mk yl yr yL yR).move_right (sum.inr (i,j))
+  (mk xl xr xL xR * mk yl yr yL yR).move_right (sum.inr (i, j))
   = xR i * (mk yl yr yL yR) + (mk xl xr xL xR) * yL j - xR i * yL j :=
 rfl
 
@@ -247,6 +225,26 @@ rfl
    (x * y).move_right (to_right_moves_mul (sum.inr (i, j)))
    = x.move_right i * y + x * y.move_left j - x.move_right i * y.move_left j :=
 by { cases x, cases y, refl }
+
+lemma left_moves_mul_cases {x y : pgame} (k) {P : (x * y).left_moves → Prop}
+  (hl : ∀ ix iy, P $ to_left_moves_mul (sum.inl ⟨ix, iy⟩))
+  (hr : ∀ jx jy, P $ to_left_moves_mul (sum.inr ⟨jx, jy⟩)) : P k :=
+begin
+  rw ←to_left_moves_mul.apply_symm_apply k,
+  rcases to_left_moves_mul.symm k with ⟨ix, iy⟩ | ⟨jx, jy⟩,
+  { apply hl },
+  { apply hr }
+end
+
+lemma right_moves_mul_cases {x y : pgame} (k) {P : (x * y).right_moves → Prop}
+  (hl : ∀ ix jy, P $ to_right_moves_mul (sum.inl ⟨ix, jy⟩))
+  (hr : ∀ jx iy, P $ to_right_moves_mul (sum.inr ⟨jx, iy⟩)) : P k :=
+begin
+  rw ←to_right_moves_mul.apply_symm_apply k,
+  rcases to_right_moves_mul.symm k with ⟨ix, iy⟩ | ⟨jx, jy⟩,
+  { apply hl },
+  { apply hr }
+end
 
 theorem quot_mul_comm : Π (x y : pgame.{u}), ⟦x * y⟧ = ⟦y * x⟧
 | (mk xl xr xL xR) (mk yl yr yL yR) :=
@@ -266,32 +264,29 @@ using_well_founded { dec_tac := pgame_wf_tac }
 theorem mul_comm_equiv (x y : pgame) : x * y ≈ y * x :=
 quotient.exact $ quot_mul_comm _ _
 
+instance is_empty_mul_zero_left_moves (x : pgame.{u}) : is_empty (x * 0).left_moves :=
+by { cases x, apply sum.is_empty }
+instance is_empty_mul_zero_right_moves (x : pgame.{u}) : is_empty (x * 0).right_moves :=
+by { cases x, apply sum.is_empty }
+instance is_empty_zero_mul_left_moves (x : pgame.{u}) : is_empty (0 * x).left_moves :=
+by { cases x, apply sum.is_empty }
+instance is_empty_zero_mul_right_moves (x : pgame.{u}) : is_empty (0 * x).right_moves :=
+by { cases x, apply sum.is_empty }
+
 /-- `x * 0` has exactly the same moves as `0`. -/
-def mul_zero_relabelling : Π (x : pgame), relabelling (x * 0) 0
-| (mk xl xr xL xR) :=
-⟨by fsplit; rintro (⟨_,⟨⟩⟩ | ⟨_,⟨⟩⟩),
- by fsplit; rintro (⟨_,⟨⟩⟩ | ⟨_,⟨⟩⟩),
- by rintro (⟨_,⟨⟩⟩ | ⟨_,⟨⟩⟩),
- by rintro ⟨⟩⟩
+def mul_zero_relabelling (x : pgame) : x * 0 ≡r 0 := relabelling.is_empty _
 
 /-- `x * 0` is equivalent to `0`. -/
-theorem mul_zero_equiv (x : pgame) : x * 0 ≈ 0 :=
-(mul_zero_relabelling x).equiv
+theorem mul_zero_equiv (x : pgame) : x * 0 ≈ 0 := (mul_zero_relabelling x).equiv
 
 @[simp] theorem quot_mul_zero (x : pgame) : ⟦x * 0⟧ = ⟦0⟧ :=
 @quotient.sound _ _ (x * 0) _ x.mul_zero_equiv
 
 /-- `0 * x` has exactly the same moves as `0`. -/
-def zero_mul_relabelling : Π (x : pgame), relabelling (0 * x) 0
-| (mk xl xr xL xR) :=
-⟨by fsplit; rintro (⟨⟨⟩,_⟩ | ⟨⟨⟩,_⟩),
- by fsplit; rintro (⟨⟨⟩,_⟩ | ⟨⟨⟩,_⟩),
- by rintro (⟨⟨⟩,_⟩ | ⟨⟨⟩,_⟩),
- by rintro ⟨⟩⟩
+def zero_mul_relabelling (x : pgame) : 0 * x ≡r 0 := relabelling.is_empty _
 
 /-- `0 * x` is equivalent to `0`. -/
-theorem zero_mul_equiv (x : pgame) : 0 * x ≈ 0 :=
-(zero_mul_relabelling x).equiv
+theorem zero_mul_equiv (x : pgame) : 0 * x ≈ 0 := (zero_mul_relabelling x).equiv
 
 @[simp] theorem quot_zero_mul (x : pgame) : ⟦0 * x⟧ = ⟦0⟧ :=
 @quotient.sound _ _ (0 * x) _ x.zero_mul_equiv
@@ -505,7 +500,14 @@ inductive inv_ty (l r : Type u) : bool → Type u
 | right₁ : l → inv_ty ff → inv_ty tt
 | right₂ : r → inv_ty tt → inv_ty tt
 
+instance (l r : Type u) [is_empty l] [is_empty r] : is_empty (inv_ty l r tt) :=
+⟨by rintro (_|_|_|a|a); exact is_empty_elim a⟩
+
 instance (l r : Type u) : inhabited (inv_ty l r ff) := ⟨inv_ty.zero⟩
+
+instance unique_inv_ty (l r : Type u) [is_empty l] [is_empty r] : unique (inv_ty l r ff) :=
+{ uniq := by { rintro (a|a|a), refl, all_goals { exact is_empty_elim a } },
+  ..inv_ty.inhabited l r }
 
 /-- Because the two halves of the definition of `inv` produce more elements
 of each side, we have to define the two families inductively.
@@ -517,6 +519,14 @@ def inv_val {l r} (L : l → pgame) (R : r → pgame)
 | _ (inv_ty.left₂ i j) := (1 + (L i - mk l r L R) * inv_val j) * IHl i
 | _ (inv_ty.right₁ i j) := (1 + (L i - mk l r L R) * inv_val j) * IHl i
 | _ (inv_ty.right₂ i j) := (1 + (R i - mk l r L R) * inv_val j) * IHr i
+
+@[simp] theorem inv_val_is_empty {l r : Type u} {b} (L R IHl IHr) (i : inv_ty l r b)
+  [is_empty l] [is_empty r] : inv_val L R IHl IHr i = 0 :=
+begin
+  cases i with a _ a _ a _ a,
+  { refl },
+  all_goals { exact is_empty_elim a }
+end
 
 /-- The inverse of a positive surreal number `x = {L | R}` is
 given by `x⁻¹ = {0,
@@ -533,10 +543,56 @@ def inv' : pgame → pgame
   ⟨inv_ty l' r ff, inv_ty l' r tt,
     inv_val L' R IHl' IHr, inv_val L' R IHl' IHr⟩
 
-/-- The inverse of a surreal number in terms of the inverse on positive surreals. -/
+theorem zero_lf_inv' : ∀ (x : pgame), 0 ⧏ inv' x
+| ⟨xl, xr, xL, xR⟩ := by { convert lf_mk _ _ inv_ty.zero, refl }
+
+/-- `inv' 0` has exactly the same moves as `1`. -/
+def inv'_zero : inv' 0 ≡r 1 :=
+begin
+  change mk _ _ _ _ ≡r 1,
+  refine ⟨_, _, λ i, _, is_empty_elim⟩; dsimp,
+  { apply equiv.equiv_punit },
+  { apply equiv.equiv_pempty },
+  { simp }
+end
+
+theorem inv'_zero_equiv : inv' 0 ≈ 1 := inv'_zero.equiv
+
+/-- `inv' 1` has exactly the same moves as `1`. -/
+def inv'_one : inv' 1 ≡r (1 : pgame.{u}) :=
+begin
+  change relabelling (mk _ _ _ _) 1,
+  haveI : is_empty {i : punit.{u+1} // (0 : pgame.{u}) < 0},
+  { rw lt_self_iff_false, apply_instance },
+  refine ⟨_, _, λ i, _, is_empty_elim⟩; dsimp,
+  { apply equiv.equiv_punit },
+  { apply equiv.equiv_pempty },
+  { simp }
+end
+
+theorem inv'_one_equiv : inv' 1 ≈ 1 := inv'_one.equiv
+
+/-- The inverse of a pre-game in terms of the inverse on positive pre-games. -/
 noncomputable instance : has_inv pgame :=
-⟨by { classical, exact λ x, if x = 0 then 0 else if 0 < x then inv' x else inv' (-x) }⟩
+⟨by { classical, exact λ x, if x ≈ 0 then 0 else if 0 < x then inv' x else -inv' (-x) }⟩
 
 noncomputable instance : has_div pgame := ⟨λ x y, x * y⁻¹⟩
+
+theorem inv_eq_of_equiv_zero {x : pgame} (h : x ≈ 0) : x⁻¹ = 0 := if_pos h
+
+@[simp] theorem inv_zero : (0 : pgame)⁻¹ = 0 :=
+inv_eq_of_equiv_zero (equiv_refl _)
+
+theorem inv_eq_of_pos {x : pgame} (h : 0 < x) : x⁻¹ = inv' x :=
+(if_neg h.lf.not_equiv').trans (if_pos h)
+
+theorem inv_eq_of_lf_zero {x : pgame} (h : x ⧏ 0) : x⁻¹ = -inv' (-x) :=
+(if_neg h.not_equiv).trans (if_neg h.not_gt)
+
+/-- `1⁻¹` has exactly the same moves as `1`. -/
+def inv_one : 1⁻¹ ≡r 1 :=
+by { rw inv_eq_of_pos zero_lt_one, exact inv'_one }
+
+theorem inv_one_equiv : 1⁻¹ ≈ 1 := inv_one.equiv
 
 end pgame

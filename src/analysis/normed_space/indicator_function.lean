@@ -15,7 +15,7 @@ This file contains a few simple lemmas about `set.indicator` and `norm`.
 indicator, norm
 -/
 
-variables {α E : Type*} [normed_group E] {s t : set α} (f : α → E) (a : α)
+variables {α E : Type*} [semi_normed_group E] {s t : set α} (f : α → E) (a : α)
 
 open set
 

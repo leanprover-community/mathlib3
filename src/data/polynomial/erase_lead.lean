@@ -347,11 +347,8 @@ end
 lemma card_support_eq_one : f.support.card = 1 ↔ ∃ (k : ℕ) (x : R) (hx : x ≠ 0), f = C x * X ^ k :=
 begin
   refine ⟨λ h, _, _⟩,
-  { obtain hf := card_support_eq_zero.mp (erase_lead_card_support h),
-    refine ⟨f.nat_degree, f.leading_coeff, _, _⟩,
-    { rw [ne, leading_coeff_eq_zero, ←card_support_eq_zero, h],
-      exact one_ne_zero },
-    { conv_lhs { rw [←f.erase_lead_add_C_mul_X_pow, hf, zero_add] } } },
+  { obtain ⟨k, x, hk, hx, rfl⟩ := card_support_eq.mp h,
+    exact ⟨k 0, x 0, hx 0, fin.sum_univ_one _⟩ },
   { rintros ⟨k, x, hx, rfl⟩,
     rw [support_C_mul_X_pow k hx, card_singleton] },
 end
@@ -360,13 +357,11 @@ lemma card_support_eq_two : f.support.card = 2 ↔ ∃ (k m : ℕ) (hkm : k < m)
   (x y : R) (hx : x ≠ 0) (hy : y ≠ 0), f = C x * X ^ k + C y * X ^ m :=
 begin
   refine ⟨λ h, _, _⟩,
-  { obtain ⟨k, x, hx, hf⟩ := card_support_eq_one.mp (erase_lead_card_support h),
-    refine ⟨k, f.nat_degree, _, x, f.leading_coeff, hx, _, _⟩,
-    { refine lt_of_le_of_lt _ (erase_lead_nat_degree_lt h.ge),
-      rw [hf, nat_degree_C_mul_X_pow k x hx] },
-    { rw [ne, leading_coeff_eq_zero, ←card_support_eq_zero, h],
-      exact two_ne_zero },
-    { rw [←hf, erase_lead_add_C_mul_X_pow] } },
+  { obtain ⟨k, x, hk, hx, rfl⟩ := card_support_eq.mp h,
+    refine ⟨k 0, k 1, hk _, x 0, x 1, hx 0, hx 1, _⟩,
+    { exact fin.lt_iff_coe_lt_coe.mpr zero_lt_one },
+    rw [fin.sum_univ_cast_succ, fin.sum_univ_one],
+    refl },
   { rintros ⟨k, m, hkm, x, y, hx, hy, rfl⟩,
     exact card_support_binomial hkm.ne hx hy },
 end
@@ -376,14 +371,12 @@ lemma card_support_eq_three : f.support.card = 3 ↔
     f = C x * X ^ k + C y * X ^ m + C z * X ^ n :=
 begin
   refine ⟨λ h, _, _⟩,
-  { obtain ⟨k, m, hkm, x, y, hx, hy, hf⟩ := card_support_eq_two.mp (erase_lead_card_support h),
-    refine ⟨k, m, f.nat_degree, hkm, _, x, y, f.leading_coeff, hx, hy, _, _⟩,
-    { refine lt_of_le_of_lt _ (erase_lead_nat_degree_lt (le_trans (nat.le_succ 2) h.ge)),
-      rw [hf, nat_degree_add_eq_right_of_nat_degree_lt, nat_degree_C_mul_X_pow m y hy],
-      rwa [nat_degree_C_mul_X_pow k x hx, nat_degree_C_mul_X_pow m y hy] },
-    { rw [ne, leading_coeff_eq_zero, ←card_support_eq_zero, h],
-      exact three_ne_zero },
-    { rw [←hf, erase_lead_add_C_mul_X_pow] } },
+  { obtain ⟨k, x, hk, hx, rfl⟩ := card_support_eq.mp h,
+    refine ⟨k 0, k 1, k 2, hk _, hk _, x 0, x 1, x 2, hx 0, hx 1, hx 2, _⟩,
+    { exact fin.lt_iff_coe_lt_coe.mpr zero_lt_one },
+    { exact fin.lt_iff_coe_lt_coe.mpr one_lt_two },
+    rw [fin.sum_univ_cast_succ, fin.sum_univ_cast_succ, fin.sum_univ_one],
+    refl },
   { rintros ⟨k, m, n, hkm, hmn, x, y, z, hx, hy, hz, rfl⟩,
     exact card_support_trinomial hkm hmn hx hy hz },
 end

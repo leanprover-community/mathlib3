@@ -1057,9 +1057,10 @@ meta def prove_zpow (ic zc nc : instance_cache) (a : expr) (na : ℚ) (b : expr)
   match match_sign b with
   | sum.inl b := do
     (zc, nc, b', hb) ← prove_nat_uncast zc nc b,
+    (nc, b0) ← prove_pos nc b',
     (ic, c, h) ← prove_pow a na ic b',
     (ic, c', hc) ← c.to_rat >>= prove_inv ic c,
-    (ic, p) ← ic.mk_app ``zpow_neg [a, b, b', c, c', hb, h, hc],
+    (ic, p) ← ic.mk_app ``zpow_neg [a, b, b', c, c', b0, hb, h, hc],
     pure (ic, zc, nc, c', p)
   | sum.inr ff := do
     (ic, o) ← ic.mk_app ``has_one.one [],
@@ -1076,7 +1077,7 @@ meta def prove_zpow (ic zc nc : instance_cache) (a : expr) (na : ℚ) (b : expr)
 meta def eval_pow : expr → tactic (expr × expr)
 | `(@has_pow.pow %%α _ %%m %%e₁ %%e₂) := do
   n₁ ← e₁.to_rat,
-  c ← infer_type e₁ >>= mk_instance_cache,
+  c ← mk_instance_cache α,
   match m with
   | `(@monoid.has_pow %%_ %%_) := prod.snd <$> prove_pow e₁ n₁ c e₂
   | `(@div_inv_monoid.has_pow %%_ %%_) := do
@@ -1396,17 +1397,17 @@ additional reduction procedures. -/
 meta def get_step : tactic (expr → tactic (expr × expr)) := norm_num.attr.get_cache
 
 /-- Simplify an expression bottom-up using `step` to simplify the subexpressions. -/
-meta def derive' (step : expr → tactic (expr × expr))
-  : expr → tactic (expr × expr) | e :=
-do e ← instantiate_mvars e,
-   (_, e', pr) ←
-    ext_simplify_core () {} simp_lemmas.mk (λ _, failed) (λ _ _ _ _ _, failed)
-      (λ _ _ _ _ e,
-        do (new_e, pr) ← step e,
-           guard (¬ new_e =ₐ e),
-           return ((), new_e, some pr, tt))
-      `eq e,
-    return (e', pr)
+meta def derive' (step : expr → tactic (expr × expr)) : expr → tactic (expr × expr)
+| e := do
+  e ← instantiate_mvars e,
+  (_, e', pr) ← ext_simplify_core
+    () {} simp_lemmas.mk (λ _, failed) (λ _ _ _ _ _, failed)
+    (λ _ _ _ _ e, do
+      (new_e, pr) ← step e,
+      guard (¬ new_e =ₐ e),
+      pure ((), new_e, some pr, tt))
+    `eq e,
+  pure (e', pr)
 
 /-- Simplify an expression bottom-up using the default `norm_num` set to simplify the
 subexpressions. -/

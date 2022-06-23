@@ -8,20 +8,26 @@ import analysis.complex.polynomial
 import data.polynomial.mirror
 import ring_theory.roots_of_unity
 
+/-!
+# Unit Trinomials
+
+This file defines irreducible trinomials and proves an irreducibility criterion.
+
+## Main definitions
+
+- `polynomial.is_unit_trinomial`
+
+## Main results
+
+- `polynomial.irreducible_of_coprime`: An irreducibility criterion for unit trinomials.
+
+TODO: Irreducibility of x^n-x-1
+-/
+
 namespace polynomial
 open_locale polynomial
 
 open finset
-
-section semiring
-
-variables {R : Type*} [semiring R] {p : R[X]}
-
--- PRed
-lemma card_support_eq_three : p.support.card = 3 ↔ ∃ (k m n : ℕ) (hkm : k < m) (hmn : m < n)
-  (x y z : R) (hx : x ≠ 0) (hy : y ≠ 0) (hz : z ≠ 0), p = C x * X ^ k + C y * X ^ m + C z * X ^ n := sorry
-
-end semiring
 
 section semiring
 
@@ -179,8 +185,10 @@ by rw [is_unit_trinomial_iff', is_unit_trinomial_iff', h]
 
 namespace is_unit_trinomial
 
-lemma irreducible_aux1 {k m n : ℕ} {u v w : ℤ} (hkm : k < m) (hmn : m < n) (hu : is_unit u)
-  (hv : is_unit v) (hw : is_unit w) (hp : p = C u * X ^ k + C v * X ^ m + C w * X ^ n) :
+lemma irreducible_aux1 {k m n : ℕ} {u v w : ℤ}
+  (hkm : k < m) (hmn : m < n)
+  (hu : is_unit u) (hv : is_unit v) (hw : is_unit w)
+  (hp : p = C u * X ^ k + C v * X ^ m + C w * X ^ n) :
   C v * (C u * X ^ (m + n) + C w * X ^ (n - m + k + n)) =
     ⟨finsupp.filter (set.Ioo (k + n) (n + n)) (p * p.mirror).to_finsupp⟩ :=
 begin

@@ -490,11 +490,7 @@ by { ext, simp }
 
 protected lemma set_forall_iff {α β} (e : α ≃ β) {p : set α → Prop} :
   (∀ a, p a) ↔ (∀ a, p (e ⁻¹' a)) :=
-by simpa [equiv.image_eq_preimage] using (equiv.set.congr e).forall_congr_left'
-
-protected lemma preimage_sUnion {α β} (f : α ≃ β) {s : set (set β)} :
-  f ⁻¹' (⋃₀ s) = ⋃₀ (_root_.set.image f ⁻¹' s) :=
-by { ext x, simp [(equiv.set.congr f).symm.exists_congr_left] }
+e.injective.preimage_surjective.forall
 
 lemma preimage_pi_equiv_pi_subtype_prod_symm_pi {α : Type*} {β : α → Type*}
   (p : α → Prop) [decidable_pred p] (s : Π i, set (β i)) :

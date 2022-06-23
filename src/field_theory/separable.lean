@@ -262,7 +262,7 @@ lemma separable_prod_X_sub_C_iff' {ι : Sort*} {f : ι → F} {s : finset ι} :
   (∏ i in s, (X - C (f i))).separable ↔ (∀ (x ∈ s) (y ∈ s), f x = f y → x = y) :=
 ⟨λ hfs x hx y hy hfxy, hfs.inj_of_prod_X_sub_C hx hy hfxy,
 λ H, by { rw ← prod_attach, exact separable_prod' (λ x hx y hy hxy,
-    @pairwise_coprime_X_sub _ _ { x // x ∈ s } (λ x, f x)
+    @pairwise_coprime_X_sub_C _ _ { x // x ∈ s } (λ x, f x)
       (λ x y hxy, subtype.eq $ H x.1 x.2 y.1 y.2 hxy) _ _ hxy)
   (λ _ _, separable_X_sub_C) }⟩
 

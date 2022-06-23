@@ -255,21 +255,20 @@ noncomputable def wallis_inside_prod (n : ℕ) : ℝ :=
 
 /-- The Wallis product $\prod_{n=1}^k \frac{2n}{2n-1}\frac{2n}{2n+1}$
   converges to `π/2` as `k → ∞` -/
-lemma equality1 : tendsto (λ (k : ℕ), ∏ i in Ico 1 k.succ, wallis_inside_prod i) at_top (𝓝 (π/2)) :=
+lemma equality1 :
+tendsto (λ n : ℕ, ∏ k in Ico 1 n.succ, wallis_inside_prod k) at_top (𝓝 (π / 2)) :=
 begin
-  have : (∀ k : ℕ,  ∏ i in range k, (wallis_inside_prod (1 + i)) =
-    ∏ i in Ico 1 k.succ, wallis_inside_prod i),
-  by {intro k, rw [range_eq_Ico, prod_Ico_add wallis_inside_prod 0 k 1]},
+  have : (∀ n : ℕ,  ∏ k in range n, (wallis_inside_prod (1 + k)) =
+    ∏ k in Ico 1 n.succ, wallis_inside_prod k),
+  by {intro n, rw [range_eq_Ico, prod_Ico_add wallis_inside_prod 0 n 1]},
   rw ← tendsto_congr this,
-  have h : ∀ i,
-  wallis_inside_prod (1 + i) = (((2 : ℝ) * i + 2) / (2 * i + 1)) * ((2 * i + 2) / (2 * i + 3)),
-  { intro i,
+  have h : ∀ k : ℕ,
+  wallis_inside_prod (1 + k) = (((2 : ℝ) * k + 2) / (2 * k + 1)) * ((2 * k + 2) / (2 * k + 3)),
+  { intro k,
     rw [wallis_inside_prod, cast_add, cast_one],
-    have hl : (2 : ℝ) * (1 + (i : ℝ)) / (2 * (1 + (i : ℝ)) - 1) =
-      (2 * (i : ℝ) + 2) / (2 * (i : ℝ) + 1), by
-    { refine congr (congr_arg has_div.div _) _; ring_nf, },
-    have hr : (2 : ℝ) * (1 + (i : ℝ)) / (2 * (1 + (i : ℝ)) + 1) =
-      ((2 * (i : ℝ) + 2) / (2 * (i : ℝ) + 3)), by
+    have hl : (2 : ℝ) * (1 + (k : ℝ)) / (2 * (1 + k) - 1) = (2 * (k : ℝ) + 2) / (2 * k + 1), by
+      { refine congr (congr_arg has_div.div _) _; ring_nf, },
+    have hr : (2 : ℝ) * (1 + k) / (2 * (1 + k) + 1) = ((2 * (k : ℝ) + 2) / (2 * k + 3)), by
     { refine congr (congr_arg has_div.div _) _; ring_nf, },
     rw [hl, hr], },
   have h_prod : ∀ k, ∏ (m : ℕ) in range k, wallis_inside_prod (1 + m) =
@@ -280,11 +279,11 @@ begin
 end
 
 /--
-For any `n : ℕ` satisfying `n > 0` and any `r : ℝ`, we have
+For any `n : ℕ` and any `r : ℝ`, we have
 r * (2 * n)^2 / ((2 * n + 1) * (2 * n - 1)^2) =
 r / (2* (n - 1) + 1) * 2 * n / (2 * n- 1) * 2n /(2n + 1)
 -/
-lemma aux2 (r : ℝ) (n : ℕ) : 1 / (((2 * n.succ + 1) : ℕ) : ℝ) *
+lemma aux_cast_fraction (r : ℝ) (n : ℕ) : 1 / (((2 * n.succ + 1) : ℕ) : ℝ) *
   (r * (((((2 * n.succ) ^ 2) : ℕ ): ℝ) / ((((2 * n.succ) : ℕ) : ℝ) - 1) ^ 2)) =
   (1 / (((2 * n + 1) : ℕ) : ℝ) * r) * ((((2 * n.succ) : ℕ) : ℝ) / ((((2 * n.succ) : ℕ) : ℝ) - 1) *
   ((((2 * n.succ) : ℕ) : ℝ) / (((2 * n.succ + 1) : ℕ) : ℝ))) :=
@@ -314,7 +313,7 @@ begin
     rw [prod_Ico_succ_top, hd, wallis_inside_prod],
     symmetry,
     rw prod_Ico_succ_top,
-    {norm_cast,rw aux2, },
+    {norm_cast, rw aux_cast_fraction, },
     all_goals {apply zero_lt_succ} },
 end
 
@@ -397,7 +396,7 @@ begin
     have : 2 * ((d : ℝ) + 1) ≠ 0, by {norm_cast, exact mul_ne_zero two_ne_zero (succ_ne_zero d)},
     field_simp,
     rw [mul_succ 4 d, pow_add _ (4 * d) 4],
-    ring_nf }, --this one might be quite heavy without "generalize" before
+    ring_nf, },
 end
 
 /-- For `n : ℕ`, define `w n` as `2^(4*n) * n!^4 / ((2*n)!^2 * (2*n + 1))` -/
@@ -410,13 +409,6 @@ begin
   convert equality1,
   simp only [equation6, equation3, w, equation4', equation5', w],
 end
-
-/--
-If a sequence  `a` has a limit `A`, then the subsequence of only even terms has the same limit
--/
-lemma sub_seq_tendsto {a : ℕ → ℝ} {A : ℝ} (h : tendsto a at_top (𝓝 A)) :
-  tendsto (λ (n : ℕ), a (2 * n)) at_top (𝓝 A) :=
-h.comp (tendsto_id.const_mul_at_top' two_pos)
 
 /-- For `n : ℕ`, define `c n` as
 $\sqrt{2n}(\frac{n}{e})^{4n}*\frac{2^{4n}}{(\sqrt{4n}(\frac{2n}{e})^(2n))^2 * (2n+1)}$ -/
@@ -530,7 +522,8 @@ begin
   rw filter.tendsto_add_at_top_iff_nat 1,
   have has : tendsto (λ (n : ℕ), stirling_seq n ^ 4 * (1 / stirling_seq (2 * n)) ^ 2)
     at_top (𝓝 (a ^ 2)),
-  { convert tendsto.mul (tendsto.pow ha 4) (sub_seq_tendsto (stirling_seq_aux3 a hane ha)),
+  { convert tendsto.mul (tendsto.pow ha 4)
+      ((stirling_seq_aux3 a hane ha).comp (tendsto_id.const_mul_at_top' two_pos)),
     field_simp,
     ring_nf, },
   convert tendsto.mul has rest_has_limit_one_half,
@@ -538,7 +531,7 @@ begin
 end
 
 /-- **Stirling's Formula** -/
-lemma stirling_seq_has_limit_sqrt_pi : tendsto (λ (n : ℕ), stirling_seq n) at_top (𝓝 (sqrt π)) :=
+theorem stirling_seq_has_limit_sqrt_pi : tendsto (λ (n : ℕ), stirling_seq n) at_top (𝓝 (sqrt π)) :=
 begin
   obtain ⟨a, hapos, halimit⟩ := stirling_seq_has_pos_limit_a,
   have hπ : π / 2 = a ^ 2 / 2 := tendsto_nhds_unique wallis_consequence

@@ -90,7 +90,7 @@ meta def move_left_or_right : list (bool × expr) → list expr → list bool �
   tactic (list expr × list expr × list expr × list bool)
 | [] sl is_unused      := return ([], [], sl, is_unused)
 | (be::l) sl is_unused := do
-    (ex :: hs) ← sl.mfilter $ λ e', succeeds $ unify be.2 e' |
+    (ex :: _) ← sl.mfilter $ λ e', succeeds $ unify be.2 e' |
     move_left_or_right l sl (is_unused.append [tt]),
   (l1, l2, l3, is_unused) ← move_left_or_right l (sl.erase ex) (is_unused.append [ff]),
   if be.1 then return (ex::l1, l2, l3, is_unused) else return (l1, ex::l2, l3, is_unused)
@@ -110,7 +110,7 @@ do
 /-- `is_given_op op e` checks if the head term of `e` is the binary operation `op`, returning
 `tt` if this is the case and `ff` otherwise. -/
 meta def is_given_op (op : expr) : expr → tactic bool
-| (expr.app (expr.app F a) b) := succeeds $ (unify op F)
+| (expr.app (expr.app F a) b) := succeeds $ unify op F
 | _ := return ff
 
 /-- `reorder_oper op lp boos e` converts an expression `e` to a similar looking one.
@@ -181,16 +181,16 @@ The list of booleans records which variable in `ll` has been unified in the appl
 This definition is useful to streamline error catching. -/
 meta def with_errors (op : pexpr) (lp : list (bool × pexpr)) (na : option name) :
   tactic (bool × list bool) :=
-do (thyp, hyploc) ←  -- hyploc is only meaningful in the "is some" branch
+do (thyp, hyploc) ←  -- hyploc is only meaningful in the "is some/else" branch
   if na.is_none then do t ← target, return (t, t)
   else
-  ( do nn ← get_unused_name,
+  (do nn ← get_unused_name,
       hl ← get_local (na.get_or_else nn),
       th ← infer_type hl,
       return (th, hl)),
   (reordered, is_unused) ← reorder_oper op lp (lp.map (λ _, tt)) thyp,
-  uni ← succeeds $ unify reordered thyp,
-  if uni then return (tt, is_unused) else do
+  unify reordered thyp >> return (tt, is_unused) <|> do
+  -- the current `do` block takes place where the reordered expression is not equal to the original
   neq ← mk_app `eq [thyp, reordered],
   pre ← pp reordered,
   (_, prf) ← solve_aux neq $
@@ -198,13 +198,8 @@ do (thyp, hyploc) ←  -- hyploc is only meaningful in the "is some" branch
     `[{ simp only [mul_comm, mul_assoc, mul_left_comm], done }] <|>
     fail format!("the associative/commutative lemmas used do not suffice to prove that " ++
     "the initial goal equals:\n\n{pre}\n"),
-  cond ← if na.is_none then
-  (do refine ``(eq.mpr %%prf _),
-    nt ← target,
-    succeeds $ unify nt thyp )
-  else (do replace_hyp hyploc reordered prf,
-          succeeds $ unify hyploc thyp),
-  return (cond, is_unused)
+  if na.is_none then refine ``(eq.mpr %%prf _) else replace_hyp hyploc reordered prf >> skip,
+  return (ff, is_unused)
 
 section parsing_arguments_for_move_op
 setup_tactic_parser
@@ -235,39 +230,27 @@ Currently, the tactic uses only `add/mul_comm, add/mul_assoc, add/mul_left_comm`
 operations will not actually work.
 -/
 meta def move_op (args : parse move_pexpr_list_or_texpr) (locat : parse location) (op : pexpr) :
-  tactic unit :=
-match locat with
-| loc.wildcard := do
-  ctx ← local_context,
-  err_rep ← ctx.mmap (λ e, with_errors op args e.local_pp_name),
-  er_t ← with_errors op args none,
-  if ff ∉ er_t.1::err_rep.map (λ e, e.1) then
-    fail "'move_op at *' changed nothing" else skip,
-  let li_unused := er_t.2::err_rep.map (λ e, e.2),
-  let li_unused_clear := li_unused.filter (≠ []),
-  let li_tf_vars := li_unused_clear.transpose.map list.band,
-  match (return_unused args li_tf_vars).map (λ e : bool × pexpr, e.2) with
-  | []   := skip
-  | [pe] := fail format!"'{pe}' is an unused variable"
-  | pes  := fail format!"'{pes}' are unused variables"
+  tactic unit := do
+locas ← locat.get_locals,
+tg ← target,
+let locas_with_tg := if locat.include_goal then locas ++ [tg] else locas,
+ner ← locas_with_tg.mmap (λ e, with_errors op args e.local_pp_name <|> with_errors op args none),
+let (unch_tgts, unus_vars) := ner.unzip,
+let str_unva := match
+  (return_unused args (unus_vars.transpose.map list.band)).map (λ e : bool × pexpr, e.2) with
+  | []   := ""
+  | [pe] := "'" ++ to_string pe ++"' is an unused variable"
+  | pes  := "'" ++ to_string pes ++"' are unused variables"
   end,
-  assumption <|> try (tactic.reflexivity reducible)
-| loc.ns names := do
-  err_rep ← names.mmap $ with_errors op args,
-  let conds := err_rep.map (λ e, e.1),
-  linames ← (return_unused names conds).reduce_option.mmap get_local,
-  if linames ≠ [] then fail format!"'{linames}' did not change" else skip,
-  if none ∈ return_unused names conds then fail "Goal did not change" else skip,
-  let li_unused       := (err_rep.map (λ e, e.2)),
-  let li_unused_clear := li_unused.filter (≠ []),
-  let li_tf_vars      := li_unused_clear.transpose.map list.band,
-  match (return_unused args li_tf_vars).map (λ e : bool × pexpr, e.2) with
-  | []   := skip
-  | [pe] := fail format!"'{pe}' is an unused variable"
-  | pes  := fail format!"'{pes}' are unused variables"
+let str_tgts := match locat with
+  | loc.wildcard := if unch_tgts.band then "'move_op at *' changed nothing" else ""
+  | loc.ns names := let linames := return_unused locas unch_tgts in
+      (if none ∈ return_unused names unch_tgts then "Goal did not change\n" else "") ++
+      (if linames ≠ [] then ("'" ++ to_string linames.reverse ++ "' did not change") else "")
   end,
-  assumption <|> try (tactic.reflexivity reducible)
-end
+guard (str_tgts ++ str_unva = "") <|>
+  fail (if str_tgts.length = 0 then str_unva else str_tgts ++ "\n" ++ str_unva),
+assumption <|> try (tactic.reflexivity reducible)
 
 namespace interactive
 

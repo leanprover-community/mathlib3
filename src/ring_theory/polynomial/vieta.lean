@@ -76,8 +76,8 @@ by simp only [esymm, eval_sum, eval_prod, eval_X, map_sum, map_prod]
 /-- Vieta's formula for the coefficients of the product of linear terms `X + r i`,
 The `k`th coefficient is `∑ t in powerset_len (card σ - k) (univ : finset σ), ∏ i in t, r i`,
 i.e. the symmetric polynomial `esymm σ R (card σ - k)` of the constant terms `r i`. -/
-lemma prod_X_add_C_coeff (r : σ → R) (k : ℕ) (h : k ≤ card σ):
-  polynomial.coeff (∏ i : σ, (polynomial.C (r i) + polynomial.X)) k =
+lemma prod_X_add_C_coeff (r : σ → R) (k : ℕ) (h : k ≤ card σ) :
+  (∏ i : σ, (polynomial.C (r i) + polynomial.X)).coeff k =
   ∑ t in powerset_len (card σ - k) (univ : finset σ), ∏ i in t, r i :=
 begin
   have hk : filter (λ (x : ℕ), k = card σ - x) (range (card σ + 1)) = {card σ - k} :=

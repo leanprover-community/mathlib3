@@ -673,6 +673,13 @@ theorem ideal.prime_iff_is_prime {P : ideal A} (hP : P ≠ ⊥) :
   prime P ↔ is_prime P :=
 ⟨ideal.is_prime_of_prime, ideal.prime_of_is_prime hP⟩
 
+/-- In a Dedekind domain, the the prime ideals are the zero ideal together with the prime elements
+of the monoid with zero `ideal A`. -/
+theorem ideal.is_prime_iff_bot_or_prime {P : ideal A} :
+  is_prime P ↔ P = ⊥ ∨ prime P :=
+⟨λ hp, (eq_or_ne P ⊥).imp_right $ λ hp0, (ideal.prime_of_is_prime hp0 hp),
+ λ hp, hp.elim (λ h, h.symm ▸ ideal.bot_prime) ideal.is_prime_of_prime⟩
+
 lemma ideal.strict_anti_pow (I : ideal A) (hI0 : I ≠ ⊥) (hI1 : I ≠ ⊤) :
   strict_anti ((^) I : ℕ → ideal A) :=
 strict_anti_nat_of_succ_lt $ λ e, ideal.dvd_not_unit_iff_lt.mp
@@ -899,10 +906,11 @@ section
 
 open_locale classical
 
-lemma ideal.count_normalized_factors_eq {p x : ideal R} (hp0 : p ≠ ⊥) [hp : p.is_prime] {n : ℕ}
+lemma ideal.count_normalized_factors_eq {p x : ideal R} [hp : p.is_prime] {n : ℕ}
   (hle : x ≤ p^n) (hlt : ¬ (x ≤ p^(n+1))) :
   (normalized_factors x).count p = n :=
-count_normalized_factors_eq ((ideal.prime_iff_is_prime hp0).mpr hp).irreducible
+count_normalized_factors_eq'
+  ((ideal.is_prime_iff_bot_or_prime.mp hp).imp_right prime.irreducible)
   (by { haveI : unique (ideal R)ˣ := ideal.unique_units, apply normalize_eq })
   (by convert ideal.dvd_iff_le.mpr hle) (by convert mt ideal.le_of_dvd hlt)
 /- Warning: even though a pure term-mode proof typechecks (the `by convert` can simply be

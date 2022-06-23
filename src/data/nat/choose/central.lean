@@ -100,26 +100,26 @@ calc 4 ^ n ≤ n * central_binom n : (four_pow_lt_mul_central_binom _ le_add_sel
 
 lemma two_dvd_central_binom_succ (n : ℕ) : even (central_binom (n + 1)) :=
 begin
-use (n+1+n).choose n,
-rw [central_binom_eq_two_mul_choose, two_mul, ← add_assoc, choose_succ_succ, choose_symm_add,
-    ← two_mul],
+  use (n+1+n).choose n,
+  rw [central_binom_eq_two_mul_choose, two_mul, ← add_assoc, choose_succ_succ, choose_symm_add,
+      ← two_mul],
 end
 
 lemma two_dvd_central_binom_of_one_le {n : ℕ} (h : 0 < n) : even (central_binom n) :=
 begin
-rw ← nat.succ_pred_eq_of_pos h,
-exact two_dvd_central_binom_succ n.pred,
+  rw ← nat.succ_pred_eq_of_pos h,
+  exact two_dvd_central_binom_succ n.pred,
 end
 
 /-- A crucial lemma to ensure that Catalan numbers can be defined via their explicit formula
   `catalan n = n.central_binom / (n + 1)`. -/
 lemma succ_dvd_central_binom (n : ℕ) : (n + 1) ∣ n.central_binom :=
 begin
-cases eq_zero_or_eq_succ_pred n,
-{ rw h,
-  exact ⟨1, by simp⟩ },
-{ nth_rewrite 1 h,
-  { have h_s : (n+1).coprime (2*n+1),
+  cases eq_zero_or_eq_succ_pred n,
+  { rw h,
+    exact ⟨1, by simp⟩ },
+  { nth_rewrite 1 h,
+    have h_s : (n+1).coprime (2*n+1),
     { rw [two_mul,add_assoc, coprime_add_self_right, coprime_self_add_left],
       exact coprime_one_left n },
     apply coprime.dvd_of_dvd_mul_left h_s,
@@ -128,7 +128,7 @@ cases eq_zero_or_eq_succ_pred n,
     apply mul_dvd_mul,
     { refl },
     { rw ← even_iff_two_dvd,
-      exact two_dvd_central_binom_succ n } } }
+      exact two_dvd_central_binom_succ n } }
 end
 
 end nat

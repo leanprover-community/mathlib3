@@ -52,6 +52,8 @@ def catalan : ℕ → ℕ
 lemma catalan_succ (n : ℕ) : catalan (n + 1) = ∑ i : fin n.succ, catalan i * catalan (n - i) :=
 by rw catalan
 
+@[simp] lemma catalan_one : catalan 1 = 1 := by simp [catalan_succ]
+
 /-- A helper sequence that can be used to prove the equality of the recursive and the explicit
 definition using a telescoping sum argument. -/
 private def gosper_catalan (n j : ℕ) : ℚ :=
@@ -82,14 +84,12 @@ end
 private lemma gosper_catalan_sub_eq_central_binom_div (n : ℕ) :
   gosper_catalan (n + 1) (n + 1) - gosper_catalan (n + 1) 0 = nat.central_binom (n + 1) / (n + 2) :=
 begin
-have : (n:ℚ) + 1 ≠ 0 := by exact_mod_cast n.succ_ne_zero,
-have : (n:ℚ) + 1 + 1 ≠ 0 := by exact_mod_cast (n + 1).succ_ne_zero,
-have h : (n:ℚ) + 2 ≠ 0 := by exact_mod_cast (n + 1).succ_ne_zero,
-simp only [gosper_catalan, nat.sub_zero, nat.central_binom_zero, nat.sub_self],
-rw ← mul_right_inj' h,
-push_cast,
-field_simp,
-ring,
+  have : (n:ℚ) + 1 ≠ 0 := by exact_mod_cast n.succ_ne_zero,
+  have : (n:ℚ) + 1 + 1 ≠ 0 := by exact_mod_cast (n + 1).succ_ne_zero,
+  have h : (n:ℚ) + 2 ≠ 0 := by exact_mod_cast (n + 1).succ_ne_zero,
+  simp only [gosper_catalan, nat.sub_zero, nat.central_binom_zero, nat.sub_self],
+  field_simp,
+  ring,
 end
 
 theorem catalan_eq_central_binom_div (n : ℕ) :
@@ -117,3 +117,9 @@ begin
             sum_range_sub, nat.succ_eq_add_one],
         exact_mod_cast (gosper_catalan_sub_eq_central_binom_div d) } } }
 end
+
+lemma catalan_two : catalan 2 = 2 :=
+by norm_num [catalan_eq_central_binom_div, nat.central_binom, nat.choose]
+
+lemma catalan_three : catalan 3 = 5 :=
+by norm_num [catalan_eq_central_binom_div, nat.central_binom, nat.choose]

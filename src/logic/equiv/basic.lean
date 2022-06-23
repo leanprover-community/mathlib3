@@ -394,6 +394,14 @@ def pprod_equiv_prod {α β : Type*} : pprod α β ≃ α × β :=
   left_inv := λ ⟨x, y⟩, rfl,
   right_inv := λ ⟨x, y⟩, rfl }
 
+/-- `pprod α β` is equivalent to `plift α × plift β` -/
+@[simps apply symm_apply]
+def pprod_equiv_prod_plift {α β : Sort*} : pprod α β ≃ plift α × plift β :=
+{ to_fun := λ x, (plift.up x.1, plift.up x.2),
+  inv_fun := λ x, ⟨x.1.down, x.2.down⟩,
+  left_inv := λ ⟨x, y⟩, rfl,
+  right_inv := λ ⟨⟨x⟩, ⟨y⟩⟩, rfl }
+
 /-- equivalence of propositions is the same as iff -/
 def of_iff {P Q : Prop} (h : P ↔ Q) : P ≃ Q :=
 { to_fun := h.mp,
@@ -941,9 +949,15 @@ def Pi_curry {α} {β : α → Sort*} (γ : Π a, β a → Sort*) :
 end
 
 section
+
 /-- A `psigma`-type is equivalent to the corresponding `sigma`-type. -/
 @[simps apply symm_apply] def psigma_equiv_sigma {α} (β : α → Type*) : (Σ' i, β i) ≃ Σ i, β i :=
 ⟨λ a, ⟨a.1, a.2⟩, λ a, ⟨a.1, a.2⟩, λ ⟨a, b⟩, rfl, λ ⟨a, b⟩, rfl⟩
+
+/-- A `psigma`-type is equivalent to the corresponding `sigma`-type. -/
+@[simps apply symm_apply] def psigma_equiv_sigma_plift {α} (β : α → Sort*) :
+  (Σ' i, β i) ≃ Σ i : plift α, plift (β i.down) :=
+⟨λ a, ⟨plift.up a.1, plift.up a.2⟩, λ a, ⟨a.1.down, a.2.down⟩, λ ⟨a, b⟩, rfl, λ ⟨⟨a⟩, ⟨b⟩⟩, rfl⟩
 
 /-- A family of equivalences `Π a, β₁ a ≃ β₂ a` generates an equivalence between `Σ' a, β₁ a` and
 `Σ' a, β₂ a`. -/

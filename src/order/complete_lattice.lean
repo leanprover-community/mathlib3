@@ -339,8 +339,8 @@ le_trans (le_of_eq (trans top_inf_eq.symm Inf_insert.symm)) (Inf_le_Inf h)
 (Sup_le_Sup (diff_subset _ _)).antisymm $ Sup_le_Sup_of_subset_insert_bot $
   subset_insert_diff_singleton _ _
 
-@[simp] theorem Inf_diff_singleton_top : ∀ s : set α, Inf (s \ {⊤}) = Inf s :=
-@Sup_diff_singleton_bot αᵒᵈ _
+@[simp] theorem Inf_diff_singleton_top (s : set α) : Inf (s \ {⊤}) = Inf s :=
+@Sup_diff_singleton_bot αᵒᵈ _ s
 
 theorem Sup_pair {a b : α} : Sup {a, b} = a ⊔ b :=
 (@is_lub_pair α _ a b).Sup_eq
@@ -352,16 +352,14 @@ theorem Inf_pair {a b : α} : Inf {a, b} = a ⊓ b :=
 ⟨λ h a ha, bot_unique $ h ▸ le_Sup ha,
   λ h, bot_unique $ Sup_le $ λ a ha, le_bot_iff.2 $ h a ha⟩
 
-@[simp] theorem Inf_eq_top : Inf s = ⊤ ↔ ∀ a ∈ s, a = ⊤ :=
-@Sup_eq_bot αᵒᵈ _ _
+@[simp] theorem Inf_eq_top : Inf s = ⊤ ↔ ∀ a ∈ s, a = ⊤ := @Sup_eq_bot αᵒᵈ _ _
 
 lemma eq_singleton_bot_of_Sup_eq_bot_of_nonempty {s : set α}
   (h_sup : Sup s = ⊥) (hne : s.nonempty) : s = {⊥} :=
 by { rw set.eq_singleton_iff_nonempty_unique_mem, rw Sup_eq_bot at h_sup, exact ⟨hne, h_sup⟩, }
 
-lemma eq_singleton_top_of_Inf_eq_top_of_nonempty : ∀ {s : set α}
-  (h_inf : Inf s = ⊤) (hne : s.nonempty), s = {⊤} :=
-@eq_singleton_bot_of_Sup_eq_bot_of_nonempty αᵒᵈ _
+lemma eq_singleton_top_of_Inf_eq_top_of_nonempty : Inf s = ⊤ → s.nonempty → s = {⊤} :=
+@eq_singleton_bot_of_Sup_eq_bot_of_nonempty αᵒᵈ _ _
 
 /--Introduction rule to prove that `b` is the supremum of `s`: it suffices to check that `b`
 is larger than all elements of `s`, and that this is not the case of any `w < b`.
@@ -391,8 +389,7 @@ lemma Sup_eq_top : Sup s = ⊤ ↔ ∀ b < ⊤, ∃ a ∈ s, b < a :=
 ⟨λ h b hb, by rwa [←h, lt_Sup_iff] at hb,
   λ h, top_unique $ le_of_not_gt $ λ h', let ⟨a, ha, h⟩ := h _ h' in (h.trans_le $ le_Sup ha).false⟩
 
-lemma Inf_eq_bot : Inf s = ⊥ ↔ ∀ b > ⊥, ∃ a ∈ s, a < b :=
-@Sup_eq_top αᵒᵈ _ _
+lemma Inf_eq_bot : Inf s = ⊥ ↔ ∀ b > ⊥, ∃ a ∈ s, a < b := @Sup_eq_top αᵒᵈ _ _
 
 lemma lt_supr_iff {f : ι → α} : a < supr f ↔ ∃ i, a < f i := lt_Sup_iff.trans exists_range_iff
 lemma infi_lt_iff {f : ι → α} : infi f < a ↔ ∃ i, f i < a := Inf_lt_iff.trans exists_range_iff
@@ -767,13 +764,13 @@ le_antisymm (supr_le $ λ ⟨i, h⟩, le_supr₂ i h) (supr₂_le $ λ i h, le_s
 theorem infi_subtype : ∀ {p : ι → Prop} {f : subtype p → α}, infi f = (⨅ i (h : p i), f ⟨i, h⟩) :=
 @supr_subtype αᵒᵈ _ _
 
-lemma supr_subtype' {p : ι → Prop} {f : ∀ i, p i → α} :
-  (⨆ i (h : p i), f i h) = (⨆ x : subtype p, f x x.property) :=
+lemma supr_subtype' {p : ι → Prop} {f : Π i, p i → α} :
+  (⨆ i h, f i h) = ⨆ x : subtype p, f x x.property :=
 (@supr_subtype _ _ _ p (λ x, f x.val x.property)).symm
 
-lemma infi_subtype' : ∀ {p : ι → Prop} {f : ∀ i, p i → α},
+lemma infi_subtype' {p : ι → Prop} {f : ∀ i, p i → α} :
   (⨅ i (h : p i), f i h) = (⨅ x : subtype p, f x x.property) :=
-@supr_subtype' αᵒᵈ _ _
+(@infi_subtype _ _ _ p (λ x, f x.val x.property)).symm
 
 lemma supr_subtype'' {ι} (s : set ι) (f : ι → α) : (⨆ i : s, f i) = ⨆ (t : ι) (H : t ∈ s), f t :=
 supr_subtype
@@ -908,8 +905,8 @@ theorem Inf_image {s : set β} {f : β → α} : Inf (f '' s) = ⨅ a ∈ s, f a
 theorem supr_emptyset {f : β → α} : (⨆ x ∈ (∅ : set β), f x) = ⊥ := by simp
 theorem infi_emptyset {f : β → α} : (⨅ x ∈ (∅ : set β), f x) = ⊤ := by simp
 
-theorem supr_univ {f : β → α} : (⨆ x ∈ (univ : set β), f x) = supr f := by simp
-theorem infi_univ {f : β → α} : (⨅ x ∈ (univ : set β), f x) = infi f := by simp
+theorem supr_univ {f : β → α} : (⨆ x ∈ (univ : set β), f x) = ⨆ x, f x := by simp
+theorem infi_univ {f : β → α} : (⨅ x ∈ (univ : set β), f x) = ⨅ x, f x := by simp
 
 theorem supr_union {f : β → α} {s t : set β} :
   (⨆ x ∈ s ∪ t, f x) = (⨆ x ∈ s, f x) ⊔ (⨆ x ∈ t, f x) :=
@@ -945,7 +942,7 @@ eq.trans supr_union $ congr_arg (λ x, x ⊔ (⨆ x ∈ s, f x)) supr_supr_eq_le
 
 theorem infi_insert {f : β → α} {s : set β} {b : β} :
   (⨅ x ∈ insert b s, f x) = f b ⊓ (⨅ x ∈ s, f x) :=
-@supr_insert αᵒᵈ _ _ _ _ _
+eq.trans infi_union $ congr_arg (λ x, x ⊓ (⨅ x ∈ s, f x)) infi_infi_eq_left
 
 theorem supr_singleton {f : β → α} {b : β} : (⨆ x ∈ (singleton b : set β), f x) = f b :=
 by simp
@@ -1271,7 +1268,7 @@ lemma le_supr_inf_supr (f g : ι → α) : (⨆ i, f i ⊓ g i) ≤ (⨆ i, f i)
 le_inf (supr_mono $ λ i, inf_le_left) (supr_mono $ λ i, inf_le_right)
 
 lemma infi_sup_infi_le (f g : ι → α) : (⨅ i, f i) ⊔ (⨅ i, g i) ≤ ⨅ i, f i ⊔ g i :=
-@le_supr_inf_supr αᵒᵈ _ _ _ _
+@le_supr_inf_supr αᵒᵈ ι _ f g
 
 lemma disjoint_Sup_left {a : set α} {b : α} (d : disjoint (Sup a) b) {i} (hi : i ∈ a) :
   disjoint i b :=

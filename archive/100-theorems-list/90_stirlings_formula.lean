@@ -270,26 +270,6 @@ begin
   linarith,
 end
 
-/--
-For any `n : ℕ` and any `r : ℝ`, we have
-r * (2 * n)^2 / ((2 * n + 1) * (2 * n - 1)^2) =
-r / (2* (n - 1) + 1) * 2 * n / (2 * n- 1) * 2n /(2n + 1)
--/
-lemma aux_cast_fraction (r : ℝ) (n : ℕ) : 1 / (((2 * n.succ + 1) : ℕ) : ℝ) *
-  (r * (((((2 * n.succ) ^ 2) : ℕ ): ℝ) / ((((2 * n.succ) : ℕ) : ℝ) - 1) ^ 2)) =
-  (1 / (((2 * n + 1) : ℕ) : ℝ) * r) * ((((2 * n.succ) : ℕ) : ℝ) / ((((2 * n.succ) : ℕ) : ℝ) - 1) *
-  ((((2 * n.succ) : ℕ) : ℝ) / (((2 * n.succ + 1) : ℕ) : ℝ))) :=
-begin
-  by_cases h : r = 0,
-  { repeat {rw h},
-    rw [zero_mul, mul_zero, mul_zero, zero_mul] },
-  { have : 2 * ((n : ℝ) + 1) + 1 ≠ 0, by {norm_cast, exact succ_ne_zero _},
-    have : 2 * (n : ℝ) + 1 ≠ 0, by {norm_cast, exact succ_ne_zero _},
-    have : 2 * ((n : ℝ) + 1) - 1 ≠ 0, by {ring_nf, norm_cast, exact succ_ne_zero _},
-    field_simp,
-    ring_nf },
-end
-
 /-- For any `n : ℕ`, we have
 $\prod_{k=1}^n \frac{2n}{2n-1}\frac{2n}{2n+1}
   = \frac{1}{2n+1} \prod_{k=1}^n \frac{(2k)^2}{(2*k-1)^2}$
@@ -298,19 +278,27 @@ lemma equation3 (n : ℕ) : ∏ k in Ico 1 n.succ, wallis_inside_prod k =
   (1 : ℝ) / (2 * n + 1) * ∏ k in Ico 1 n.succ, ((2 : ℝ) * k) ^ 2 / (2 * k - 1) ^ 2 :=
 begin
   induction n with d hd,
-  { simp only [Ico_self, prod_empty, cast_zero, mul_zero,
-    zero_add, div_one, mul_one] },
+  { rw [Ico_self, prod_empty, prod_empty, cast_zero, mul_zero,
+    zero_add, div_one, one_mul] },
   { rw [succ_eq_add_one],
     norm_cast,
     rw [prod_Ico_succ_top, hd, wallis_inside_prod],
     symmetry,
     rw prod_Ico_succ_top,
-    {norm_cast, rw aux_cast_fraction, },
+    { norm_cast,
+      rw mul_left_comm,
+      nth_rewrite_rhs 1 mul_comm,
+      nth_rewrite_rhs 0 mul_assoc,
+      congr' 1,
+      have : 2 * ((d : ℝ) + 1) + 1 ≠ 0, by {norm_cast, exact succ_ne_zero _},
+      have : 2 * (d : ℝ) + 1 ≠ 0, by {norm_cast, exact succ_ne_zero _},
+      have : 2 * ((d : ℝ) + 1) - 1 ≠ 0, by {ring_nf, norm_cast, exact succ_ne_zero _},
+      field_simp, ring_nf, },
     all_goals {apply zero_lt_succ} },
 end
 
 /--  For any `n : ℕ` with `n ≠ 0`, we have
-`(2* n)^2 / (2*n - 1)^2 = (2 * n)^2 / (2 * n - 1)^2*(2*n)^2 / (2*n)^2` -/
+`(2 * n) ^2 / (2 * n - 1)^2 = (2 * n)^2 / (2 * n - 1)^2 * (2 * n)^2 / (2 * n)^2` -/
 lemma equation4 (n : ℕ) (hn : n ≠ 0) : ((2 : ℝ) * n) ^ 2 / (2 * n - 1) ^ 2 =
   ((2 : ℝ) * n) ^ 2 / (2 * n - 1) ^ 2 * ((2 * n) ^ 2 / (2 * n) ^ 2) :=
 begin

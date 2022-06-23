@@ -1861,6 +1861,11 @@ lemma mem_map' (f : α ↪ β) {a} {s : finset α} : f a ∈ s.map f ↔ a ∈ s
 
 lemma mem_map_of_mem (f : α ↪ β) {a} {s : finset α} : a ∈ s → f a ∈ s.map f := (mem_map' _).2
 
+lemma forall_mem_map {f : α ↪ β} {s : finset α} {p : Π a, a ∈ s.map f → Prop} :
+  (∀ y ∈ s.map f, p y H) ↔ ∀ x ∈ s, p (f x) (mem_map_of_mem _ H) :=
+⟨λ h y hy, h (f y) (mem_map_of_mem _ hy), λ h x hx,
+  by { obtain ⟨y, hy, rfl⟩ := mem_map.1 hx, exact h _ hy }⟩
+
 lemma apply_coe_mem_map (f : α ↪ β) (s : finset α) (x : s) : f x ∈ s.map f :=
 mem_map_of_mem f x.prop
 
@@ -1909,6 +1914,20 @@ lemma map_injective (f : α ↪ β) : injective (map f) := (map_embedding f).inj
 theorem map_filter {p : β → Prop} [decidable_pred p] :
   (s.map f).filter p = (s.filter (p ∘ f)).map f :=
 eq_of_veq (map_filter _ _ _)
+
+/-- A helper lemma to produce a default proof for `finset.map_disj_union`. -/
+theorem map_disj_union_aux {f : α ↪ β} {s₁ s₂ : finset α} :
+  (∀ a, a ∈ s₁ → a ∉ s₂) ↔ ∀ a, a ∈ map f s₁ → a ∉ map f s₂ :=
+by simp_rw [forall_mem_map, mem_map']
+
+theorem map_disj_union {f : α ↪ β} (s₁ s₂ : finset α) (h) (h' := map_disj_union_aux.1 h) :
+  (s₁.disj_union s₂ h).map f = (s₁.map f).disj_union (s₂.map f) h' :=
+eq_of_veq $ multiset.map_add _ _ _
+
+/-- A version of `finset.map_disj_union` for writing in the other direction. -/
+theorem map_disj_union' {f : α ↪ β} (s₁ s₂ : finset α) (h') (h := map_disj_union_aux.2 h') :
+  (s₁.disj_union s₂ h).map f = (s₁.map f).disj_union (s₂.map f) h' :=
+map_disj_union _ _ _
 
 theorem map_union [decidable_eq α] [decidable_eq β]
   {f : α ↪ β} (s₁ s₂ : finset α) : (s₁ ∪ s₂).map f = s₁.map f ∪ s₂.map f :=

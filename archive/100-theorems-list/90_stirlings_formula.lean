@@ -270,115 +270,6 @@ begin
   linarith,
 end
 
-/-- For any `n : ℕ`, we have
-$\prod_{k=1}^n \frac{2n}{2n-1}\frac{2n}{2n+1}
-  = \frac{1}{2n+1} \prod_{k=1}^n \frac{(2k)^2}{(2*k-1)^2}$
--/
-lemma equation3 (n : ℕ) : ∏ k in Ico 1 n.succ, wallis_inside_prod k =
-  (1 : ℝ) / (2 * n + 1) * ∏ k in Ico 1 n.succ, ((2 : ℝ) * k) ^ 2 / (2 * k - 1) ^ 2 :=
-begin
-  induction n with d hd,
-  { rw [Ico_self, prod_empty, prod_empty, cast_zero, mul_zero,
-    zero_add, div_one, one_mul] },
-  { rw [succ_eq_add_one],
-    norm_cast,
-    rw [prod_Ico_succ_top, hd, wallis_inside_prod],
-    symmetry,
-    rw prod_Ico_succ_top,
-    { norm_cast,
-      rw mul_left_comm,
-      nth_rewrite_rhs 1 mul_comm,
-      nth_rewrite_rhs 0 mul_assoc,
-      congr' 1,
-      have : 2 * ((d : ℝ) + 1) + 1 ≠ 0, by {norm_cast, exact succ_ne_zero _},
-      have : 2 * (d : ℝ) + 1 ≠ 0, by {norm_cast, exact succ_ne_zero _},
-      have : 2 * ((d : ℝ) + 1) - 1 ≠ 0, by {ring_nf, norm_cast, exact succ_ne_zero _},
-      field_simp, ring_nf, },
-    all_goals {apply zero_lt_succ} },
-end
-
-/--  For any `n : ℕ` with `n ≠ 0`, we have
-`(2 * n) ^2 / (2 * n - 1)^2 = (2 * n)^2 / (2 * n - 1)^2 * (2 * n)^2 / (2 * n)^2` -/
-lemma equation4 (n : ℕ) (hn : n ≠ 0) : ((2 : ℝ) * n) ^ 2 / (2 * n - 1) ^ 2 =
-  ((2 : ℝ) * n) ^ 2 / (2 * n - 1) ^ 2 * ((2 * n) ^ 2 / (2 * n) ^ 2) :=
-begin
-  have h : ((2 : ℝ) * n) ^ 2 ≠ 0,
-    from pow_ne_zero 2 (mul_ne_zero two_ne_zero (cast_ne_zero.mpr hn)),
-  rw div_self h, rw mul_one,
-end
-
-/--
-For any `n : ℕ`, we have
-`1/(2n+1)*∏_{k=1}^n (2k)^2/(2k-1)^2 = 1/(2n+1) ∏_{k=1}^n (2k)^2/(2k-1)^2 * (2k)^2/(2k)^2`.
--/
-lemma equation4' (n : ℕ) : 1 / (2 * (n : ℝ) + 1) * ∏ k in Ico 1 n.succ,
-  ((2 : ℝ) * k) ^ 2 / (2 * k - 1) ^ 2 =
-  1 / (2 * (n : ℝ) + 1) * ∏ k in Ico 1 n.succ,
-  ((2 : ℝ) * k) ^ 2 / (2 * k - 1) ^ 2 * ((2 * k) ^ 2 / (2 * k) ^ 2) :=
-begin
-  rw prod_congr rfl,
-  intros d hd,
-  rw ← equation4,
-  rw mem_Ico at hd,
-  exact one_le_iff_ne_zero.mp hd.left,
-end
-
-/--
-For any `n : ℕ`, we have
-`(2n)^2/(2n-1)^2 * (2n)^2/(2n)^2 = 2^4 * n^4 / ((2n-1)*(2n))^2`.
--/
-lemma equation5 (n : ℕ) : ((2 : ℝ) * n) ^ 2 / (2 * n - 1) ^ 2 * ((2 * n) ^ 2 / (2 * n) ^ 2) =
-  ((2 : ℝ) ^ 4 * n ^ 4) / ((2 * n - 1) * (2 * n)) ^ 2 :=
-begin
-  cases n with d hd,
-  { rw [cast_zero, mul_zero, zero_pow two_pos, zero_div, zero_mul],
-    rw [zero_pow four_pos, mul_zero, zero_div], },
-  { have : 2 * (d.succ : ℝ) - 1 ≠ 0, by
-    { rw [cast_succ], ring_nf, norm_cast, exact succ_ne_zero (2*d), },
-    have : (d.succ : ℝ) ≠ 0 := cast_ne_zero.mpr (succ_ne_zero d),
-    field_simp,
-    ring_nf, },
-end
-
-/--
-For any `n : ℕ`, we have
-`1/(2n+1) ∏_{k=1}^n (2k)^2/(2k-1)^2*(2k)^2/(2k)^2 = 1/(2n+1) ∏_{k=1}^n 2^4 k^4/ ((2k-1)(2k))^2`.
--/
-lemma equation5' (n : ℕ) : 1 / (2 * (n : ℝ) + 1) * ∏ k in Ico 1 n.succ,
-  ((2 : ℝ) * k) ^ 2 / (2 * k - 1) ^ 2 * ((2 * k) ^ 2 / (2 * k) ^ 2) =
-  1 / (2 * (n : ℝ) + 1) * ∏ k in Ico 1 n.succ,
-  ((2 : ℝ) ^ 4 * k ^ 4) / ((2 * k - 1) * (2 * k)) ^ 2 :=
-begin
-  rw prod_congr rfl, intros d hd, rw ← equation5,
-end
-
-/--
-For any `n : ℕ`, we have
-`1/(2n+1) ∏_{k=1}^n 2^4 k^4/ ((2k-1)(2k))^2 = 2^(4n)*(n!)^4/((2n)!^2 *(2n+1))` .
--/
-lemma equation6 (n : ℕ) : 1 / ((2 : ℝ) * n + 1) * ∏ (k : ℕ) in Ico 1 n.succ,
-  (2 : ℝ) ^ 4 * k ^ 4 / ((2 * k - 1) * (2 * k)) ^ 2 =
-  (2 : ℝ) ^ (4 * n) * n.factorial ^ 4 / ((2 * n).factorial ^ 2 * (2 * n + 1)) :=
-begin
-  induction n with d hd,
-  { rw [Ico_self, prod_empty, cast_zero, mul_zero, mul_zero, mul_zero, factorial_zero],
-    rw [zero_add, pow_zero, cast_one, one_pow, one_pow, mul_one, mul_one] },
-  { replace hd := congr_arg (has_mul.mul (2* (d : ℝ) + 1)) hd,
-    have : 2 * (d : ℝ) + 1 ≠ 0, by {norm_cast, exact succ_ne_zero (2 * d)},
-    rw [← mul_assoc, mul_one_div_cancel this, one_mul] at hd,
-    rw [prod_Ico_succ_top (succ_le_succ (zero_le d)), hd, mul_succ 2],
-    repeat {rw factorial_succ},
-    have : 2 * (d : ℝ) + 1 + 1 ≠ 0, by {norm_cast, exact succ_ne_zero (2 * d + 1)},
-    have : 2 * (d.succ : ℝ) + 1 ≠ 0, by {norm_cast, exact succ_ne_zero (2 * d.succ)},
-    have : 2 * ((d : ℝ) + 1) + 1 ≠ 0, by {norm_cast, exact succ_ne_zero (2 * (d + 1))},
-    have : ((2 * d).factorial : ℝ) ≠ 0, by {norm_cast, exact factorial_ne_zero (2 * d)},
-    have : 2 * ((d : ℝ) + 1) - 1 ≠ 0, by {ring_nf, norm_cast, exact succ_ne_zero (2 * d)},
-    have : 2 * ((d : ℝ) + 1) ≠ 0, by {norm_cast, exact mul_ne_zero two_ne_zero (succ_ne_zero d)},
-    field_simp,
-    rw [mul_succ 4 d, pow_add _ (4 * d) 4],
-    ring_nf, },
-end
-
 /-- For `n : ℕ`, define `w n` as `2^(4*n) * n!^4 / ((2*n)!^2 * (2*n + 1))` -/
 noncomputable def w (n : ℕ) : ℝ :=
   ((2 : ℝ) ^ (4 * n) * (n.factorial) ^ 4) / ((((2 * n).factorial) ^ 2) * (2 * (n : ℝ) + 1))
@@ -387,7 +278,29 @@ noncomputable def w (n : ℕ) : ℝ :=
 lemma wallis_consequence : tendsto (λ (n : ℕ), w n) at_top (𝓝 (π/2)) :=
 begin
   convert equality1,
-  simp only [equation6, equation3, w, equation4', equation5', w],
+  ext n,
+  induction n with d hd,
+  { rw [w, Ico_self, cast_zero, prod_empty, mul_zero, mul_zero, pow_zero, factorial_zero, cast_one,
+      one_pow, one_pow, mul_zero, zero_add, mul_one, div_one], },
+  rw [prod_Ico_succ_top, ← hd, w, w, wallis_inside_prod],
+  repeat {rw mul_succ},
+  rw [factorial_succ, factorial_succ, factorial_succ],
+  push_cast,
+  rw [zero_add, one_add_one_eq_two],
+  rw [pow_two, pow_two, pow_add],
+  have : 2 * ((d : ℝ) + 1) + 1 ≠ 0, by {norm_cast, exact succ_ne_zero _},
+  have : 2 * (d : ℝ) + 1 ≠ 0, by {norm_cast, exact succ_ne_zero _},
+  have : 2 * ((d : ℝ) + 1) - 1 ≠ 0, by {ring_nf, norm_cast, exact succ_ne_zero _},
+  have : 2 * (d : ℝ) + 1 + 1 ≠ 0, by {norm_cast, exact succ_ne_zero _},
+  have : (_ ≠ (0 : ℝ)) := cast_ne_zero.mpr (factorial_ne_zero (2 * d)),
+  have : ((2 * d).factorial : ℝ) * ((2 * d).factorial : ℝ) * (2 * (d : ℝ) + 1) ≠ 0, by
+    apply_rules [mul_ne_zero],
+  have : (2 * (d : ℝ) + 1 + 1) * ((2 * ↑d + 1) * ↑((2 * d).factorial)) *
+        ((2 * ↑d + 1 + 1) * ((2 * ↑d + 1) * ↑((2 * d).factorial))) * (2 * (↑d + 1) + 1) ≠ 0, by
+    apply_rules [mul_ne_zero],
+  field_simp,
+  ring_nf,
+  exact succ_le_succ (zero_le d),
 end
 
 /-- For `n : ℕ`, define `c n` as

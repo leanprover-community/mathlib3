@@ -225,7 +225,7 @@ lemma is_conj.eq_of_mem_center_right {g h : M} (H : is_conj g h) (Hh : h ∈ set
 -- move this
 lemma mem_orbit_conj_act_iff {G : Type*} [group G] (g h : G) :
   g ∈ orbit (conj_act G) h ↔ is_conj g h :=
-by { rw [is_conj.comm, is_conj_iff, mem_orbit_iff], exact iff.rfl }
+by { rw [is_conj_comm, is_conj_iff, mem_orbit_iff], exact iff.rfl }
 
 -- move this
 lemma orbit_rel_r (X : Type*) [mul_action G X] :
@@ -297,7 +297,7 @@ begin
   { rintros ⟨g⟩ hg, refine ⟨g, _, rfl⟩,
     dsimp [noncenter] at hg, rw not_not at hg,
     intro h, rw ← mul_inv_eq_iff_eq_mul, refine hg _ mem_carrier_mk, rw mem_carrier_iff_mk_eq,
-    apply mk_eq_mk_iff_is_conj.2, rw [is_conj.comm, is_conj_iff], exact ⟨h, rfl⟩, }
+    apply mk_eq_mk_iff_is_conj.2, rw [is_conj_comm, is_conj_iff], exact ⟨h, rfl⟩, }
 end
 
 end conj_classes

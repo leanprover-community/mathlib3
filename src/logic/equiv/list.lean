@@ -119,7 +119,8 @@ by { classical, exact (fintype.trunc_encodable α).out }
 
 @[priority 100]
 instance _root_.finite.countable [finite α] : countable α :=
-by { haveI := fintype.of_finite α, haveI := fintype.to_encodable α, exact encodable.countable }
+let ⟨n, ⟨e⟩⟩ := finite.exists_equiv_fin α
+in ⟨⟨e.to_embedding.trans $ function.embedding.subtype _⟩⟩
 
 /-- If `α` is encodable, then so is `vector α n`. -/
 instance _root_.vector.encodable [encodable α] {n} : encodable (vector α n) := subtype.encodable

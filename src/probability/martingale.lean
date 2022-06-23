@@ -266,7 +266,7 @@ end
 
 lemma submartingale_of_condexp_sub_nonneg [is_finite_measure μ]
   {f : ι → α → ℝ} (hadp : adapted ℱ f) (hint : ∀ i, integrable (f i) μ)
-  (hf : ∀ i j, i ≤ j → 0 ≤ᵐ[μ] μ[f j - f i| ℱ i]) :
+  (hf : ∀ i j, i ≤ j → 0 ≤ᵐ[μ] μ[f j - f i | ℱ i]) :
   submartingale f ℱ μ :=
 begin
   refine ⟨hadp, λ i j hij, _, hint⟩,
@@ -277,7 +277,7 @@ end
 
 lemma submartingale.condexp_sub_nonneg [is_finite_measure μ]
   {f : ι → α → ℝ} (hf : submartingale f ℱ μ) {i j : ι} (hij : i ≤ j) :
-  0 ≤ᵐ[μ] μ[f j - f i| ℱ i] :=
+  0 ≤ᵐ[μ] μ[f j - f i | ℱ i] :=
 begin
   refine eventually_le.trans _ (condexp_sub (hf.integrable _) (hf.integrable _)).symm.le,
   rw [eventually_sub_nonneg,
@@ -288,7 +288,7 @@ end
 
 lemma submartingale_iff_condexp_sub_nonneg [is_finite_measure μ] {f : ι → α → ℝ} :
   submartingale f ℱ μ ↔ adapted ℱ f ∧ (∀ i, integrable (f i) μ) ∧ ∀ i j, i ≤ j →
-  0 ≤ᵐ[μ] μ[f j - f i| ℱ i] :=
+  0 ≤ᵐ[μ] μ[f j - f i | ℱ i] :=
 ⟨λ h, ⟨h.adapted, h.integrable, λ i j, h.condexp_sub_nonneg⟩,
  λ ⟨hadp, hint, h⟩, submartingale_of_condexp_sub_nonneg hadp hint h⟩
 

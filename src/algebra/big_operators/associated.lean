@@ -55,11 +55,8 @@ multiset.induction_on s (by simp [mt is_unit_iff_dvd_one.2 hp.not_unit])
   (λ a s ih hs hps, begin
     rw [multiset.prod_cons] at hps,
     cases hp.dvd_or_dvd hps with h h,
-    { use [a, by simp],
-      cases h with u hu,
-      cases (((hs a (multiset.mem_cons.2 (or.inl rfl))).irreducible)
-        .is_unit_or_is_unit hu).resolve_left hp.not_unit with v hv,
-      exact ⟨v, by simp [hu, hv]⟩ },
+    { have hap := hs a (multiset.mem_cons.2 (or.inl rfl)),
+      exact ⟨a, multiset.mem_cons_self a _, hp.associated_of_dvd hap h⟩ },
     { rcases ih (λ r hr, hs _ (multiset.mem_cons.2 (or.inr hr))) h with ⟨q, hq₁, hq₂⟩,
       exact ⟨q, multiset.mem_cons.2 (or.inr hq₁), hq₂⟩ }
   end)
@@ -110,7 +107,11 @@ section comm_monoid
 variables [comm_monoid α]
 
 theorem prod_mk {p : multiset α} : (p.map associates.mk).prod = associates.mk p.prod :=
-multiset.induction_on p (by simp; refl) $ assume a s ih, by simp [ih]; refl
+multiset.induction_on p (by simp) $ λ a s ih, by simp [ih, associates.mk_mul_mk]
+
+theorem finset_prod_mk {p : finset β} {f : β → α} :
+  ∏ i in p, associates.mk (f i) = associates.mk (∏ i in p, f i) :=
+by rw [finset.prod_eq_multiset_prod, ← multiset.map_map, prod_mk, ← finset.prod_eq_multiset_prod]
 
 theorem rel_associated_iff_map_eq_map {p q : multiset α} :
   multiset.rel associated p q ↔ p.map associates.mk = q.map associates.mk :=

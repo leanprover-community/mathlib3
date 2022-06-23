@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 
-import data.nat.cast
+import data.nat.cast_field
 import data.fintype.basic
 import tactic.wlog
 
@@ -224,5 +224,9 @@ lemma ring_hom.char_zero_iff {ϕ : R →+* S} (hϕ : function.injective ϕ) :
   char_zero R ↔ char_zero S :=
 ⟨λ hR, ⟨λ a b h, by rwa [←@nat.cast_inj R _ _ hR, ←hϕ.eq_iff, map_nat_cast ϕ, map_nat_cast ϕ]⟩,
   λ hS, by exactI ϕ.char_zero⟩
+
+lemma ring_hom.injective_nat (f : ℕ →+* R) [char_zero R] :
+  function.injective f :=
+subsingleton.elim (nat.cast_ring_hom _) f ▸ nat.cast_injective
 
 end ring_hom

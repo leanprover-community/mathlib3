@@ -3,6 +3,7 @@ Copyright (c) 2020 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anatole Dedecker, Sébastien Gouëzel, Yury G. Kudryashov, Dylan MacKenzie, Patrick Massot
 -/
+import algebra.order.field
 import analysis.asymptotics.asymptotics
 import analysis.specific_limits.basic
 
@@ -82,18 +83,18 @@ by simpa [(@zero_lt_one ℤ _ _).not_le] using @continuous_at_zpow _ _ (-1) x
 end normed_field
 
 lemma is_o_pow_pow_of_lt_left {r₁ r₂ : ℝ} (h₁ : 0 ≤ r₁) (h₂ : r₁ < r₂) :
-  is_o (λ n : ℕ, r₁ ^ n) (λ n, r₂ ^ n) at_top :=
+  (λ n : ℕ, r₁ ^ n) =o[at_top] (λ n, r₂ ^ n) :=
 have H : 0 < r₂ := h₁.trans_lt h₂,
 is_o_of_tendsto (λ n hn, false.elim $ H.ne' $ pow_eq_zero hn) $
   (tendsto_pow_at_top_nhds_0_of_lt_1 (div_nonneg h₁ (h₁.trans h₂.le)) ((div_lt_one H).2 h₂)).congr
     (λ n, div_pow _ _ _)
 
 lemma is_O_pow_pow_of_le_left {r₁ r₂ : ℝ} (h₁ : 0 ≤ r₁) (h₂ : r₁ ≤ r₂) :
-  is_O (λ n : ℕ, r₁ ^ n) (λ n, r₂ ^ n) at_top :=
+  (λ n : ℕ, r₁ ^ n) =O[at_top] (λ n, r₂ ^ n) :=
 h₂.eq_or_lt.elim (λ h, h ▸ is_O_refl _ _) (λ h, (is_o_pow_pow_of_lt_left h₁ h).is_O)
 
 lemma is_o_pow_pow_of_abs_lt_left {r₁ r₂ : ℝ} (h : |r₁| < |r₂|) :
-  is_o (λ n : ℕ, r₁ ^ n) (λ n, r₂ ^ n) at_top :=
+  (λ n : ℕ, r₁ ^ n) =o[at_top] (λ n, r₂ ^ n) :=
 begin
   refine (is_o.of_norm_left _).of_norm_right,
   exact (is_o_pow_pow_of_lt_left (abs_nonneg r₁) h).congr (pow_abs r₁) (pow_abs r₂)
@@ -114,10 +115,10 @@ end
 NB: For backwards compatibility, if you add more items to the list, please append them at the end of
 the list. -/
 lemma tfae_exists_lt_is_o_pow (f : ℕ → ℝ) (R : ℝ) :
-  tfae [∃ a ∈ Ioo (-R) R, is_o f (pow a) at_top,
-    ∃ a ∈ Ioo 0 R, is_o f (pow a) at_top,
-    ∃ a ∈ Ioo (-R) R, is_O f (pow a) at_top,
-    ∃ a ∈ Ioo 0 R, is_O f (pow a) at_top,
+  tfae [∃ a ∈ Ioo (-R) R, f =o[at_top] pow a,
+    ∃ a ∈ Ioo 0 R, f =o[at_top] (pow a),
+    ∃ a ∈ Ioo (-R) R, f =O[at_top] pow a,
+    ∃ a ∈ Ioo 0 R, f =O[at_top] pow a,
     ∃ (a < R) C (h₀ : 0 < C ∨ 0 < R), ∀ n, |f n| ≤ C * a ^ n,
     ∃ (a ∈ Ioo 0 R) (C > 0), ∀ n, |f n| ≤ C * a ^ n,
     ∃ a < R, ∀ᶠ n in at_top, |f n| ≤ a ^ n,
@@ -168,14 +169,14 @@ end
 
 /-- For any natural `k` and a real `r > 1` we have `n ^ k = o(r ^ n)` as `n → ∞`. -/
 lemma is_o_pow_const_const_pow_of_one_lt {R : Type*} [normed_ring R] (k : ℕ) {r : ℝ} (hr : 1 < r) :
-  is_o (λ n, n ^ k : ℕ → R) (λ n, r ^ n) at_top :=
+  (λ n, n ^ k : ℕ → R) =o[at_top] (λ n, r ^ n) :=
 begin
   have : tendsto (λ x : ℝ, x ^ k) (𝓝[>] 1) (𝓝 1),
     from ((continuous_id.pow k).tendsto' (1 : ℝ) 1 (one_pow _)).mono_left inf_le_left,
   obtain ⟨r' : ℝ, hr' : r' ^ k < r, h1 : 1 < r'⟩ :=
     ((this.eventually (gt_mem_nhds hr)).and self_mem_nhds_within).exists,
   have h0 : 0 ≤ r' := zero_le_one.trans h1.le,
-  suffices : is_O _ (λ n : ℕ, (r' ^ k) ^ n) at_top,
+  suffices : (λ n, n ^ k : ℕ → R) =O[at_top] (λ n : ℕ, (r' ^ k) ^ n),
     from this.trans_is_o (is_o_pow_pow_of_lt_left (pow_nonneg h0 _) hr'),
   conv in ((r' ^ _) ^ _) { rw [← pow_mul, mul_comm, pow_mul] },
   suffices : ∀ n : ℕ, ∥(n : R)∥ ≤ (r' - 1)⁻¹ * ∥(1 : R)∥ * ∥r' ^ n∥,
@@ -187,21 +188,21 @@ end
 
 /-- For a real `r > 1` we have `n = o(r ^ n)` as `n → ∞`. -/
 lemma is_o_coe_const_pow_of_one_lt {R : Type*} [normed_ring R] {r : ℝ} (hr : 1 < r) :
-  is_o (coe : ℕ → R) (λ n, r ^ n) at_top :=
+  (coe : ℕ → R) =o[at_top] (λ n, r ^ n) :=
 by simpa only [pow_one] using is_o_pow_const_const_pow_of_one_lt 1 hr
 
 /-- If `∥r₁∥ < r₂`, then for any naturak `k` we have `n ^ k r₁ ^ n = o (r₂ ^ n)` as `n → ∞`. -/
 lemma is_o_pow_const_mul_const_pow_const_pow_of_norm_lt {R : Type*} [normed_ring R] (k : ℕ)
   {r₁ : R} {r₂ : ℝ} (h : ∥r₁∥ < r₂) :
-  is_o (λ n, n ^ k * r₁ ^ n : ℕ → R) (λ n, r₂ ^ n) at_top :=
+  (λ n, n ^ k * r₁ ^ n : ℕ → R) =o[at_top] (λ n, r₂ ^ n) :=
 begin
   by_cases h0 : r₁ = 0,
   { refine (is_o_zero _ _).congr' (mem_at_top_sets.2 $ ⟨1, λ n hn, _⟩) eventually_eq.rfl,
     simp [zero_pow (zero_lt_one.trans_le hn), h0] },
   rw [← ne.def, ← norm_pos_iff] at h0,
-  have A : is_o (λ n, n ^ k : ℕ → R) (λ n, (r₂ / ∥r₁∥) ^ n) at_top,
+  have A : (λ n, n ^ k : ℕ → R) =o[at_top] (λ n, (r₂ / ∥r₁∥) ^ n),
     from is_o_pow_const_const_pow_of_one_lt k ((one_lt_div h0).2 h),
-  suffices : is_O (λ n, r₁ ^ n) (λ n, ∥r₁∥ ^ n) at_top,
+  suffices : (λ n, r₁ ^ n) =O[at_top] (λ n, ∥r₁∥ ^ n),
     by simpa [div_mul_cancel _ (pow_pos h0 _).ne'] using A.mul_is_O this,
   exact is_O.of_bound 1 (by simpa using eventually_norm_pow_le r₁)
 end

@@ -100,9 +100,6 @@ lemma finite_iff_nonempty_fintype (α : Type*) :
 lemma not_finite_iff_infinite {α : Type*} : ¬ finite α ↔ infinite α :=
 by rw [← is_empty_fintype, finite_iff_nonempty_fintype, not_nonempty_iff]
 
-lemma not_finite_iff_infinite {α : Type*} : ¬ finite α ↔ infinite α :=
-by rw [← is_empty_fintype, finite_iff_nonempty_fintype, not_nonempty_iff]
-
 lemma finite_or_infinite (α : Type*) :
   finite α ∨ infinite α :=
 begin

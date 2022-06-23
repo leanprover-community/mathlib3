@@ -352,7 +352,7 @@ theorem Inf_pair {a b : α} : Inf {a, b} = a ⊓ b :=
 ⟨λ h a ha, bot_unique $ h ▸ le_Sup ha,
   λ h, bot_unique $ Sup_le $ λ a ha, le_bot_iff.2 $ h a ha⟩
 
-@[simp] theorem Inf_eq_top : Inf s = ⊤ ↔ ∀ a ∈ s, a = ⊤ := @Sup_eq_bot αᵒᵈ _ _
+@[simp] lemma Inf_eq_top : Inf s = ⊤ ↔ ∀ a ∈ s, a = ⊤ := @Sup_eq_bot αᵒᵈ _ _
 
 lemma eq_singleton_bot_of_Sup_eq_bot_of_nonempty {s : set α}
   (h_sup : Sup s = ⊥) (hne : s.nonempty) : s = {⊥} :=
@@ -367,7 +367,7 @@ See `cSup_eq_of_forall_le_of_forall_lt_exists_gt` for a version in conditionally
 lattices. -/
 theorem Sup_eq_of_forall_le_of_forall_lt_exists_gt (h₁ : ∀ a ∈ s, a ≤ b)
   (h₂ : ∀ w, w < b → ∃ a ∈ s, w < a) : Sup s = b :=
-eq_of_le_of_not_lt (Sup_le h₁) $ λ h, let ⟨a, ha, ha'⟩ := h₂ _ h in ((le_Sup ha).trans_lt ha').false
+(Sup_le h₁).eq_of_not_lt $ λ h, let ⟨a, ha, ha'⟩ := h₂ _ h in ((le_Sup ha).trans_lt ha').false
 
 /--Introduction rule to prove that `b` is the infimum of `s`: it suffices to check that `b`
 is smaller than all elements of `s`, and that this is not the case of any `w > b`.
@@ -386,7 +386,7 @@ lemma lt_Sup_iff : b < Sup s ↔ ∃ a ∈ s, b < a := lt_is_lub_iff $ is_lub_Su
 lemma Inf_lt_iff : Inf s < b ↔ ∃ a ∈ s, a < b := is_glb_lt_iff $ is_glb_Inf s
 
 lemma Sup_eq_top : Sup s = ⊤ ↔ ∀ b < ⊤, ∃ a ∈ s, b < a :=
-⟨λ h b hb, by rwa [←h, lt_Sup_iff] at hb,
+⟨λ h b hb, lt_Sup_iff.1 $ hb.trans_eq h.symm,
   λ h, top_unique $ le_of_not_gt $ λ h', let ⟨a, ha, h⟩ := h _ h' in (h.trans_le $ le_Sup ha).false⟩
 
 lemma Inf_eq_bot : Inf s = ⊥ ↔ ∀ b > ⊥, ∃ a ∈ s, a < b := @Sup_eq_top αᵒᵈ _ _

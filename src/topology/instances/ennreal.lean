@@ -634,7 +634,7 @@ have Inf ((λb, ↑r - b) '' range b) = ↑r - (⨆i, b i),
     (assume x _ y _, tsub_le_tsub (le_refl (r : ℝ≥0∞)))
     (range_nonempty _)
     (ennreal.tendsto_coe_sub.comp (tendsto_id' inf_le_left)),
-by rw [eq, ←this, Inf_image, infi_range]
+by rw [eq, ←this]; simp [Inf_image, infi_range, -mem_range]; exact le_rfl
 
 lemma exists_countable_dense_no_zero_top :
   ∃ (s : set ℝ≥0∞), countable s ∧ dense s ∧ 0 ∉ s ∧ ∞ ∉ s :=

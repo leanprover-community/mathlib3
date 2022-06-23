@@ -94,7 +94,11 @@ nonempty.some $ let ⟨n, ⟨e⟩⟩ := finite.exists_equiv_fin α in ⟨fintype
 
 lemma finite_iff_nonempty_fintype (α : Type*) :
   finite α ↔ nonempty (fintype α) :=
-⟨λ _, by exactI ⟨fintype.of_finite α⟩, λ ⟨_⟩, by exactI infer_instance⟩
+⟨λ h, let ⟨k, ⟨e⟩⟩ := @finite.exists_equiv_fin α h in ⟨fintype.of_equiv _ e.symm⟩,
+  λ ⟨_⟩, by exactI infer_instance⟩
+
+lemma not_finite_iff_infinite {α : Type*} : ¬ finite α ↔ infinite α :=
+by rw [← is_empty_fintype, finite_iff_nonempty_fintype, not_nonempty_iff]
 
 lemma not_finite_iff_infinite {α : Type*} : ¬ finite α ↔ infinite α :=
 by rw [← is_empty_fintype, finite_iff_nonempty_fintype, not_nonempty_iff]

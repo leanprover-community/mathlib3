@@ -545,7 +545,6 @@ instance : order_bot (sup_bot_hom α β) := { bot := ⟨⊥, rfl⟩, bot_le := �
 @[simp] lemma sup_apply (f g : sup_bot_hom α β) (a : α) : (f ⊔ g) a = f a ⊔ g a := rfl
 @[simp] lemma bot_apply (a : α) : (⊥ : sup_bot_hom α β) a = ⊥ := rfl
 
--- for dot notation
 lemma mono {X Y : Type*} [has_bot X] [has_bot Y] [semilattice_sup X]
   [semilattice_sup Y] (φ : sup_bot_hom X Y) : monotone (φ : X → Y) :=
 λ a b h, by rw [← sup_eq_right, ← map_sup, sup_eq_right.mpr h]

@@ -32,6 +32,7 @@ von Neumann-bounded sets.
 
 variables {𝕜 E ι : Type*}
 
+open filter
 open_locale topological_space pointwise
 
 namespace bornology
@@ -92,6 +93,27 @@ lemma is_vonN_bounded.of_topological_space_le {t t' : topological_space E} (h : 
 λ V hV, hs $ (le_iff_nhds t t').mp h 0 hV
 
 end multiple_topologies
+
+section image
+
+variables {F : Type*} [normed_division_ring 𝕜] [add_comm_group E] [module 𝕜 E]
+  [add_comm_group F] [module 𝕜 F] [topological_space E] [topological_space F]
+
+/-- A continuous linear image of a bounded set is bounded. -/
+lemma is_vonN_bounded.image {s : set E} (hs : is_vonN_bounded 𝕜 s) (f : E →L[𝕜] F) :
+  is_vonN_bounded 𝕜 (f '' s) :=
+begin
+  have := f.continuous.tendsto 0,
+  rw map_zero at this,
+  intros V hV,
+  rcases hs (this hV) with ⟨r, hrpos, hr⟩,
+  refine ⟨r, hrpos, λ a ha, _⟩,
+  have : a ≠ 0 := norm_pos_iff.mp (hrpos.trans_le ha),
+  rw [set.image_subset_iff, continuous_linear_map.preimage_smul_set _ this.is_unit],
+  exact hr a ha
+end
+
+end image
 
 section normed_field
 

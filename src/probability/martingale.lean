@@ -243,18 +243,46 @@ end submartingale
 
 section temp
 
-variables {m : measurable_space α} {ξ ζ : α → ℝ}
+variables {m : measurable_space α}
 
-lemma condexp_measurable_mul
-  (hξm : strongly_measurable[m] ξ) (hζ : integrable ζ μ)
+-- Remy said he will prove this next week
+lemma condexp_measurable_mul {ξ ζ : α → ℝ} (hξm : strongly_measurable[m] ξ) (hζ : integrable ζ μ)
   -- (hξ : integrable ξ μ) hopefully won't need this
   (hζξ : integrable (ξ * ζ) μ) :
   μ[ξ * ζ | m] =ᵐ[μ] ξ * μ[ζ | m] :=
 sorry
 
-lemma integrable.bdd_mul (hζ : integrable ζ μ) (hξ : ∃ C, ∀ x, |ξ x| ≤ C) :
-  integrable (ξ * ζ) μ :=
-sorry
+lemma measure_is_empty {α : Type*} [is_empty α] [measurable_space α] (μ : measure α) :
+  μ = 0 :=
+begin
+  ext1 s hs,
+  rw [set.eq_empty_of_is_empty s, measure_empty],
+  refl
+end
+
+variables {F : Type*} [normed_division_ring F]
+
+lemma integrable.bdd_mul {ξ ζ : α → F} (hζ : integrable ζ μ) (hξ : ae_strongly_measurable ξ μ)
+  (hξbdd : ∃ C, ∀ x, ∥ξ x∥ ≤ C) :
+  integrable (λ x, ξ x * ζ x) μ :=
+begin
+  by_cases hα : nonempty α,
+  { refine ⟨hξ.mul hζ.1, _⟩,
+    obtain ⟨C, hC⟩ := hξbdd,
+    have hCnonneg : 0 ≤ C := le_trans (norm_nonneg _) (hC hα.some),
+    have : (λ x, ∥ξ x * ζ x∥₊) ≤ λ x, ⟨C, hCnonneg⟩ * ∥ζ x∥₊,
+    { intro x,
+      simp only [nnnorm_mul],
+      exact mul_le_mul_of_nonneg_right (hC x) (zero_le _) },
+    refine lt_of_le_of_lt (lintegral_mono_nnreal this) _,
+    simp only [ennreal.coe_mul],
+    rw lintegral_const_mul' _ _ ennreal.coe_ne_top,
+    exact ennreal.mul_lt_top ennreal.coe_ne_top (ne_of_lt hζ.2) },
+  { rw not_nonempty_iff at hα,
+    haveI := hα,
+    rw measure_is_empty μ,
+    exact integrable_zero_measure }
+end
 
 end temp
 
@@ -500,20 +528,22 @@ begin
     exact hnonneg 0 x },
   have hint : ∀ m, integrable (∑ k in finset.range m, ξ k * (f (k + 1) - f k)) μ :=
     λ m, integrable_finset_sum' _
-      (λ i hi, integrable.bdd_mul ((hf.integrable _).sub (hf.integrable _)) (hξbdd _)),
+      (λ i hi, integrable.bdd_mul ((hf.integrable _).sub (hf.integrable _))
+      hξ.strongly_measurable.ae_strongly_measurable (hξbdd _)),
   have hadp : adapted 𝒢 (λ (n : ℕ), ∑ (k : ℕ) in finset.range n, ξ k * (f (k + 1) - f k)),
   { intro m,
     refine finset.strongly_measurable_sum' _ (λ i hi, _),
     rw finset.mem_range at hi,
-    exact (hξ.measurable hi.le).mul
-      ((hf.adapted.measurable (nat.succ_le_of_lt hi)).sub (hf.adapted.measurable hi.le)) },
+    exact (hξ.strongly_measurable_le hi.le).mul
+      ((hf.adapted.strongly_measurable_le (nat.succ_le_of_lt hi)).sub
+      (hf.adapted.strongly_measurable_le hi.le)) },
   refine submartingale_of_condexp_sub_nonneg_nat hadp hint (λ i, _),
   simp only [← finset.sum_Ico_eq_sub _ (nat.le_succ _), finset.sum_apply, pi.mul_apply,
     pi.sub_apply, nat.Ico_succ_singleton, finset.sum_singleton],
-  exact eventually_le.trans (eventually_le.mul_nonneg (eventually_of_forall (hnonneg _))
+  refine eventually_le.trans (eventually_le.mul_nonneg (eventually_of_forall (hnonneg _))
     (hf.condexp_sub_nonneg (nat.le_succ _))) (condexp_measurable_mul (hξ _)
     ((hf.integrable _).sub (hf.integrable _)) (((hf.integrable _).sub (hf.integrable _)).bdd_mul
-    (hξbdd _))).symm.le,
+    hξ.strongly_measurable.ae_strongly_measurable (hξbdd _))).symm.le,
 end
 
 /-- Given a discrete submartingale `f` and a predicatable process `ξ` (i.e. `ξ (n + 1)` is adapted)

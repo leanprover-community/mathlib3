@@ -244,9 +244,13 @@ namespace adapted
   adapted f (c • u) :=
 λ i, (hu i).const_smul c
 
-@[protected] lemma measurable {i j : ι} (hf : adapted f u) (hij : i ≤ j) :
+@[protected] lemma strongly_measurable {i : ι} (hf : adapted f u) :
+  strongly_measurable[m] (u i) :=
+(hf i).mono (f.le i)
+
+lemma strongly_measurable_le {i j : ι} (hf : adapted f u) (hij : i ≤ j) :
   strongly_measurable[f j] (u i) :=
-strongly_measurable.mono (hf i) (f.mono hij)
+(hf i).mono (f.mono hij)
 
 end adapted
 

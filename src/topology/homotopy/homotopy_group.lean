@@ -46,6 +46,8 @@ notation `I^` := cube
 
 namespace cube
 
+instance locally_compact_space : locally_compact_space (I^ n) := sorry
+
 @[continuity] lemma proj_continuous (i : fin n) : continuous (λ f : I^n, f i) :=
 continuous_apply i
 
@@ -70,7 +72,22 @@ instance unique_cube0 : unique (I^0) := pi.unique_of_is_empty _
 
 lemma one_char (f : I^1) : f = λ _, f 0 := by convert eq_const_of_unique f
 
+def fold : I×I^n ≃ₜ I^(n+1) :=
+begin
+  refine
+  { to_fun := λ t, fin.cons t.fst t.snd,
+    inv_fun := λ tn, ⟨tn.head, tn.tail⟩,
+    left_inv := by {rintros ⟨t,tn⟩, simp only [head, tail, fin.cons_zero, fin.tail_cons]},
+    right_inv := by {rintros t, simp only [head, tail, fin.cons_self_tail]},
+    continuous_to_fun := _,
+    continuous_inv_fun := _ },
+  all_goals {sorry}
+end
+
 end cube
+
+def loop_space (X) [topological_space X] (x:X) := path x x
+local notation `Ω` := loop_space
 
 /--
 The `n`-dimensional generalized loops; functions `I^n → X` that send the boundary to the base point.
@@ -79,6 +96,9 @@ structure gen_loop (n : ℕ) (x : X) extends C(I^n, X) :=
 (boundary : ∀ y ∈ cube.boundary n, to_fun y = x)
 
 namespace gen_loop
+
+instance topological_space : topological_space (gen_loop n x) :=
+by exact topological_space.induced (gen_loop.to_continuous_map) (by apply_instance)
 
 instance fun_like : fun_like (gen_loop n x) (I^n) (λ _, X) :=
 { coe := λ f, f.1,
@@ -92,6 +112,8 @@ instance fun_like : fun_like (gen_loop n x) (I^n) (λ _, X) :=
 The constant `gen_loop` at `x`.
 -/
 def const : gen_loop n x := ⟨continuous_map.const _ x, λ _ _, rfl⟩
+
+@[simp] lemma const_eq {t} : (@const X _ n x) t = x := rfl
 
 instance inhabited : inhabited (gen_loop n x) := { default := const }
 
@@ -119,6 +141,76 @@ instance setoid (n : ℕ) (x : X) : setoid (gen_loop n x) := ⟨homotopic, equiv
 end
 end homotopic
 
+def to_path : gen_loop (n+1) x → Ω (gen_loop n x) const :=
+begin
+  rintros ⟨g,gH⟩, refine path.mk ⟨_,_⟩ _ _,
+  intro t, refine
+  ⟨continuous_map.curry (continuous_map.comp g ⟨cube.fold.to_fun,cube.fold.continuous_to_fun⟩) t,_⟩,
+  rintros y ⟨i,iH⟩, simp, apply gH, use i.succ, unfold cube.fold, simpa,
+  sorry,
+  simp, ext, simp, apply gH, use 0, left, refl,
+  simp, ext, simp, apply gH, use 0, right, refl,
+end
+
+def from_path : Ω (gen_loop n x) const → gen_loop (n+1) x := --sorry
+begin
+  rintros ⟨p,H₀,H₁⟩, refine ⟨_,_⟩,
+  refine continuous_map.comp _ ⟨cube.fold.inv_fun,cube.fold.continuous_inv_fun⟩,
+  refine continuous_map.uncurry ⟨λ t, (p t).to_continuous_map, by continuity⟩,
+  rintros y ⟨i,iH⟩, simp, sorry
+end
+
+def path_equiv : gen_loop (n+1) x ≃ Ω (gen_loop n x) const  :=
+{ to_fun := to_path,
+  inv_fun := from_path,
+  left_inv := sorry, --λ _, by { ext, unfold to_path, unfold from_path,
+    -- simp only [mk_apply, continuous_map.coe_mk,
+    -- cube.head, cube.tail, path.coe_mk, fin.cons_self_tail]} ,
+  right_inv := sorry --λ _, by { ext, unfold to_path, unfold from_path,
+    -- simp only [cube.head, cube.tail, mk_apply, continuous_map.coe_mk,
+    -- fin.cons_zero, fin.tail_cons, path.coe_mk] }
+    }
+
+lemma homotopic_iff {p q : gen_loop (n+1) x} : p.homotopic q ↔ p.to_path.homotopic q.to_path :=
+begin
+  split,
+  { rintros Hpq, cases Hpq, constructor,
+  exact
+    { to_fun := λ t,
+      { to_fun := λ tn, Hpq ⟨t.fst,fin.cons t.snd tn⟩,
+        continuous_to_fun := sorry,
+        boundary :=
+        begin
+          rintros tn ⟨i,iH⟩, simp only,
+          rw Hpq.eq_fst,
+          apply p.boundary,
+          all_goals {use i.succ, rwa fin.cons_succ}
+        end },
+      continuous_to_fun := sorry,
+      map_zero_left' := by {intro, ext, unfold to_path, simpa},
+      map_one_left' := by {intro, ext, unfold to_path, simpa},
+      prop' :=
+      begin
+        rintros t₀ t₁ ⟨H|H⟩,
+        { simp, ext, simp, rw Hpq.eq_fst,
+          apply p.boundary, all_goals {use 0, rw fin.cons_zero, left, refl}},
+        cases H, simp, ext, simp, rw Hpq.eq_fst,
+        apply p.boundary, all_goals {use 0, rw fin.cons_zero, right, refl}
+      end },
+  },
+  { rintros Hpq, cases Hpq, constructor, refine
+    { to_fun := _,
+      continuous_to_fun := _,
+      map_zero_left' := _,
+      map_one_left' := _,
+      prop' := _ },
+      rintros ⟨t,tn⟩, refine Hpq ⟨t,tn.head⟩ tn.tail,
+      all_goals {sorry}}
+end
+
+def concat : gen_loop (n+1) x → gen_loop (n+1) x → gen_loop (n+1) x :=
+λ p q, from_path (p.to_path.trans q.to_path)
+
 end gen_loop
 
 /--
@@ -128,6 +220,114 @@ The `n`th homotopy group at `x` defined as the quotient of `gen_loop n x` by the
 @[derive inhabited]
 def homotopy_group (n : ℕ) (x : X) : Type _ := quotient (gen_loop.homotopic.setoid n x)
 local notation `π` := homotopy_group
+
+namespace homotopy_group
+def concat : π (n+1) x → π (n+1) x → π (n+1) x :=
+begin
+  refine (quotient.map₂' gen_loop.concat _),
+  rintros p₀ p₁ ⟨Hp,hp⟩ q₀ q₁ ⟨Hq,hq⟩, constructor,
+  refine ⟨_,_⟩, --apply continuous_map.homotopy_rel.trans,
+  -- unfold gen_loop.concat, simp, fconstructor;
+  -- refine continuous_map.homotopy.hcomp _ _,
+  -- unfold (gen_loop.path_equiv.symm),
+  sorry
+  -- Hq Hp,
+end
+instance has_mul : has_mul (π (n+1) x) := ⟨concat⟩
+local infix `⋆`:60 := concat
+
+def concat_assoc (p q r : π (n+1) x) : ((p ⋆ q) ⋆ r) = (p ⋆ (q ⋆ r)) :=
+begin
+  refine (quotient.induction_on₃ p q r _), intros a b c, refine (quotient.sound _),
+  constructor, refine ⟨_,_⟩,
+  unfold gen_loop.concat, simp, refine path.homotopy.trans_assoc _ _ _,
+  sorry
+end
+
+def const : π n x := quotient.mk' gen_loop.const
+
+instance has_one : has_one (π n x) := ⟨const⟩
+
+local notation `𝟙` := const
+
+lemma concat_const (p: π (n+1) x) : p ⋆ 𝟙 = p :=
+  begin
+    induction p using quotient.induction_on,
+    -- simp,
+    apply quotient.eq.2, constructor,
+    -- refine ⟨⟨⟨_,_⟩,_,_⟩,_⟩,
+    -- { exact λ⟨t,y⟩, if (y 0:ℝ)≤(1+t)/2
+    --     then extend_fst p (fin.tail y) (2/(1+t)*(y 0))
+    --     else extend_fst (@pre_const _ _ x (n+1)) (fin.tail y) (2/(1+t)*(y 0)-1) },
+    -- { simp,  sorry },
+    -- { intro y, unfold pre_concat, simp },
+    -- intro y, simp, sorry,
+    sorry
+  end
+
+lemma const_concat (p: π (n+1) x) : 𝟙 ⋆ p = p :=
+  begin
+    induction p using quotient.induction_on,
+    apply quotient.eq.2, constructor,
+    -- refine ⟨⟨⟨_,_⟩,_,_⟩,_⟩,
+    -- { exact λ⟨t,y⟩, if (y 0:ℝ)≤(1-t)/2
+    --     then extend_fst (@pre_const _ _ x (n+1)) (fin.tail y) (2/(1+t)*(y 0))
+    --     else extend_fst p (fin.tail y) (2/(1+t)*(y 0)-(1-t)) },
+    -- { simp,  sorry },
+    -- { intro y, unfold pre_concat, simp },
+    -- intro y, simp, sorry,
+    sorry
+  end
+
+def reverse {n':nat} : π (n'+1) x -> π (n'+1) x
+  := begin refine (quotient.map' _ _);
+    -- { rintros p, refine ⟨⟨(λy,p (fin.cons (unit_interval.symm (y 0)) (fin.tail y))),by {simp, sorry}⟩,_⟩,
+    --   rintros y ⟨i,Hy⟩, simp, apply p.boundary, use i, revert i Hy, refine (fin.cases _ _ ),
+    --   rw fin.cons_zero, intro H, cases H; rw H, right, simp, left, simp,
+    --   intros i H, rw fin.cons_succ, exact H },
+    -- intros p q Hpq, cases Hpq, constructor, refine ⟨⟨_,_,_⟩,_⟩,
+    sorry
+  end
+instance has_inv : has_inv (π (n+1) x) := ⟨reverse⟩
+local postfix `⁻¹`:65 := has_inv.inv
+
+lemma reverse_concat (p: π (n+1) x) : (p⁻¹) ⋆ p = 𝟙 :=
+  begin
+    induction p using quotient.induction_on,
+    apply quotient.eq.2, constructor,
+    sorry
+  end
+lemma concat_reverse (p: π (n+1) x) : p ⋆ (p⁻¹)  = 𝟙 :=
+  begin
+    sorry
+  end
+
+instance group : group (π (n+1) x) := {
+  mul := concat,
+  mul_assoc := concat_assoc,
+  one := const,
+  one_mul := const_concat,
+  mul_one := concat_const,
+  npow := npow_rec,
+  npow_zero' := λ _, rfl,
+  npow_succ' := λ _ _, rfl,
+  inv := reverse,
+  div := λ a b, a⋆(b⁻¹),
+  div_eq_mul_inv := by {intros, refl},
+  zpow := zpow_rec,
+  zpow_zero' := λ _, rfl,
+  zpow_succ' := λ _ _, rfl,
+  zpow_neg' := λ _ _, rfl,
+  mul_left_inv := reverse_concat
+}
+
+instance comm_group : comm_group (π (n+2) x) :=
+begin
+  sorry
+  -- apply group_theory.eckmann_hilton,
+end
+
+end homotopy_group
 
 /-- The 0-dimensional generalized loops based at `x` are in 1-1 correspondence with `X`. -/
 def gen_loop_zero_equiv : gen_loop 0 x ≃ X :=

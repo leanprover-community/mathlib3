@@ -9,7 +9,7 @@ import order.order_iso_nat
 import order.sup_indep
 import order.zorn
 import data.finset.order
-import data.finite.basic
+import data.finite.default
 
 /-!
 # Compactness properties for complete lattices

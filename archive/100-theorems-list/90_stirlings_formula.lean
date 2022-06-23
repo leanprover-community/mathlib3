@@ -323,34 +323,34 @@ begin
     have h₃ : (n.succ : ℝ) ≠ 0, by exact cast_ne_zero.mpr (succ_ne_zero n),
     field_simp,
     repeat {rw [← pow_mul]},
-    rw [← h₀, mul_assoc 2 n.succ 2, mul_left_comm 2 n.succ 2, ← h₀],
-    rw [mul_pow (2 : ℝ) _ (n.succ * 4), mul_comm 4 n.succ],
+    rw [← h₀, mul_assoc 2 n.succ 2, mul_left_comm 2 n.succ 2, ← h₀, mul_pow (2 : ℝ) _ (n.succ * 4),
+      mul_comm 4 n.succ],
     ring_nf }, },
-  all_goals {norm_cast, linarith},
+  { norm_cast, linarith },
+  { norm_cast, linarith },
 end
 
 /-- The sequence `c n` has limit `1/2` -/
 lemma rest_has_limit_one_half : tendsto (λ (n : ℕ), c n) at_top (𝓝 (1 / 2)) :=
 begin
   apply (tendsto.congr rest_cancel),
-  have h : tendsto (λ (k : ℕ), (((k : ℝ) / (2 * (k : ℝ) + 1))⁻¹))
-    at_top (𝓝 (((1 : ℝ) / 2))⁻¹),
-  { have hsucc : tendsto (λ (k : ℕ), (((k.succ : ℝ) / (2 * (k.succ : ℝ) + 1))⁻¹)) at_top
-      (𝓝 (((1 : ℝ) / 2))⁻¹),
-    { have hx : ∀ (k : ℕ), (2 : ℝ) + k.succ⁻¹ = ((k.succ : ℝ) / (2 * k.succ + 1))⁻¹, by
-      { intro k, have hxne : (k.succ : ℝ) ≠ 0 := nonzero_of_invertible (k.succ : ℝ), field_simp, },
-      simp only [one_div, inv_inv],
-      apply (tendsto.congr hx),
-      have g := tendsto.add tendsto_const_nhds ((tendsto_add_at_top_iff_nat 1).mpr
-        (tendsto_inverse_at_top_nhds_0_nat)),
-      rw [add_zero] at g,
-      exact g, },
-    exact (tendsto_add_at_top_iff_nat 1).mp hsucc, },
-  have h2: ((1 : ℝ) / 2)⁻¹ ≠ 0, by
-    simp only [one_div, inv_inv, ne.def, bit0_eq_zero, one_ne_zero, not_false_iff],
-  convert tendsto.inv₀ h h2,
-  { simp only [inv_inv, one_div] },
-  { rw inv_inv },
+  rw one_div,
+  suffices h : tendsto (λ n : ℕ, (2 * ↑n + 1) / ( n : ℝ)) at_top (𝓝 2), by
+  { convert (tendsto.inv₀ h two_ne_zero),
+    funext,
+    rw inv_div, },
+  have h : tendsto (λ n : ℕ, 2 + 1 / (n : ℝ)) at_top (𝓝 2), by
+  { rw [← add_zero (2 : ℝ)],
+     convert tendsto.add tendsto_const_nhds _,
+     { exact (add_zero 2).symm },
+     { apply_instance },
+     exact tendsto_const_div_at_top_nhds_0_nat 1,
+     },
+  rw ← tendsto_add_at_top_iff_nat 1 at h ⊢,
+  convert h,
+  funext,
+  rw [add_div _ (1 : ℝ), ←mul_div,
+    div_self  (cast_ne_zero.mpr (succ_ne_zero n) : ((n + 1) : ℝ) ≠ 0), mul_one],
 end
 
 /--

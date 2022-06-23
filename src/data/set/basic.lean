@@ -117,11 +117,6 @@ pi_set_coe.can_lift ι (λ _, α) s
 
 end set
 
-instance subtype.can_lift {α : Type*} (p : α → Prop) : can_lift α {x // p x} :=
-{ coe := coe,
-  cond := p,
-  prf := λ a ha, ⟨⟨a, ha⟩, rfl⟩ }
-
 section set_coe
 
 variables {α : Type u}

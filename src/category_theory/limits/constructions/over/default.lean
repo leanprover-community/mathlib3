@@ -25,10 +25,25 @@ variable {X : C}
 namespace category_theory.over
 
 /-- Make sure we can derive pullbacks in `over B`. -/
-example {B : C} [has_pullbacks C] : has_pullbacks (over B) := by apply_instance
+instance {B : C} [has_pullbacks C] : has_pullbacks (over B) :=
+begin
+  letI : has_limits_of_shape (ulift_hom.{v} (ulift.{v} walking_cospan)) C :=
+    has_limits_of_shape_of_equivalence (ulift_hom_ulift_category.equiv.{v} _),
+  haveI : is_connected (ulift_hom.{v v} (ulift walking_cospan)), { sorry },
+  letI : category_theory.category (ulift_hom.{v v} (ulift.{v 0} walking_cospan)) := infer_instance,
+  exact has_limits_of_shape_of_equivalence (ulift_hom_ulift_category.equiv.{v v} _).symm,
+end
 
 /-- Make sure we can derive equalizers in `over B`. -/
-example {B : C} [has_equalizers C] : has_equalizers (over B) := by apply_instance
+instance {B : C} [has_equalizers C] : has_equalizers (over B) :=
+begin
+  letI : has_limits_of_shape (ulift_hom.{v} (ulift.{v} walking_parallel_pair)) C :=
+    has_limits_of_shape_of_equivalence (ulift_hom_ulift_category.equiv.{v} _),
+  haveI : is_connected (ulift_hom.{v v} (ulift walking_parallel_pair)), { sorry },
+  letI : category_theory.category (ulift_hom.{v v} (ulift.{v 0} walking_parallel_pair)) :=
+    infer_instance,
+  exact has_limits_of_shape_of_equivalence (ulift_hom_ulift_category.equiv.{v v} _).symm,
+end
 
 instance has_finite_limits {B : C} [has_finite_wide_pullbacks C] : has_finite_limits (over B) :=
 begin
@@ -45,9 +60,9 @@ begin
   apply @limits_from_equalizers_and_products _ _ _ _,
   { exact construct_products.over_products_of_wide_pullbacks },
   { apply @has_equalizers_of_pullbacks_and_binary_products _ _ _ _,
-    { haveI : has_pullbacks C := ⟨by apply_instance⟩,
+    { haveI : has_pullbacks C := sorry,
       exact construct_products.over_binary_product_of_pullback },
-    { apply_instance, } }
+    { sorry, } }
 end
 
 end category_theory.over

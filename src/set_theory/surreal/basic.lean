@@ -3,6 +3,8 @@ Copyright (c) 2019 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Scott Morrison
 -/
+
+import algebra.order.hom.monoid
 import set_theory.game.ordinal
 
 /-!
@@ -39,6 +41,10 @@ The difficulty lies in the length of the proof and the number of theorems that n
 simultaneously. This will make for a fun and challenging project.
 
 The branch `surreal_mul` contains some progress on this proof.
+
+### Todo
+
+- Define the field structure on the surreals.
 
 ## References
 
@@ -290,6 +296,17 @@ noncomputable instance : linear_ordered_add_comm_group surreal :=
   decidable_le := classical.dec_rel _,
   ..surreal.ordered_add_comm_group }
 
+/-- Casts a `surreal` number into a `game`. -/
+def to_game : surreal →+o game :=
+{ to_fun := lift (λ x _, ⟦x⟧) (λ x y ox oy, quot.sound),
+  map_zero' := rfl,
+  map_add' := by { rintros ⟨_, _⟩ ⟨_, _⟩, refl },
+  monotone' := by { rintros ⟨_, _⟩ ⟨_, _⟩, exact id } }
+
+theorem zero_to_game : to_game 0 = 0 := rfl
+@[simp] theorem one_to_game : to_game 1 = 1 := rfl
+@[simp] theorem nat_to_game : ∀ n : ℕ, to_game n = n := map_nat_cast' _ one_to_game
+
 end surreal
 
 open surreal
@@ -303,8 +320,3 @@ noncomputable def to_surreal : ordinal ↪o surreal :=
   map_rel_iff' := @to_pgame_le_iff }
 
 end ordinal
-
--- We conclude with some ideas for further work on surreals; these would make fun projects.
-
--- TODO define the inclusion of groups `surreal → game`
--- TODO define the field structure on the surreals

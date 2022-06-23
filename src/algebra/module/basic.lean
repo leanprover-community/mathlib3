@@ -496,13 +496,14 @@ lemma function.injective.no_zero_smul_divisors {R M N : Type*} [has_zero R] [has
 ⟨λ c m h,
   or.imp_right (@hf _ _) $ h0.symm ▸ eq_zero_or_eq_zero_of_smul_eq_zero (by rw [←hs, h, h0])⟩
 
+@[priority 100] -- See note [lower instance priority]
+instance no_zero_divisors.to_no_zero_smul_divisors [has_zero R] [has_mul R] [no_zero_divisors R] :
+  no_zero_smul_divisors R R :=
+⟨λ c x, eq_zero_or_eq_zero_of_mul_eq_zero⟩
+
 section module
 
 variables [semiring R] [add_comm_monoid M] [module R M]
-
-instance no_zero_smul_divisors.of_no_zero_divisors [no_zero_divisors R] :
-  no_zero_smul_divisors R R :=
-⟨λ c x, no_zero_divisors.eq_zero_or_eq_zero_of_mul_eq_zero⟩
 
 @[simp]
 theorem smul_eq_zero [no_zero_smul_divisors R M] {c : R} {x : M} :
@@ -603,7 +604,7 @@ section division_ring
 variables [division_ring R] [add_comm_group M] [module R M]
 
 @[priority 100] -- see note [lower instance priority]
-instance no_zero_smul_divisors.of_division_ring : no_zero_smul_divisors R M :=
+instance division_ring.to_no_zero_smul_divisors : no_zero_smul_divisors R M :=
 ⟨λ c x h, or_iff_not_imp_left.2 $ λ hc, (smul_eq_zero_iff_eq' hc).1 h⟩
 
 end division_ring

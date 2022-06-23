@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Lacker, Keeley Hoek, Scott Morrison
 -/
 import tactic.rewrite_search
-import data.rat.basic
+import data.rat.defs
 import data.real.basic
 
 /-

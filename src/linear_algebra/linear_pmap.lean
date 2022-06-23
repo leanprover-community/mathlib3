@@ -36,7 +36,7 @@ structure linear_pmap (R : Type u) [ring R] (E : Type v) [add_comm_group E] [mod
 (domain : submodule R E)
 (to_fun : domain →ₗ[R] F)
 
-variables {R : Type*} [ring R] {E : Type*} [add_comm_group E] [module R E]
+variables {R R' S T : Type*} [ring R] {E : Type*} [add_comm_group E] [module R E]
   {F : Type*} [add_comm_group F] [module R F]
   {G : Type*} [add_comm_group G] [module R G]
 
@@ -49,6 +49,17 @@ instance : has_coe_to_fun (linear_pmap R E F) (λ f : linear_pmap R E F, f.domai
 
 @[simp] lemma to_fun_eq_coe (f : linear_pmap R E F) (x : f.domain) :
   f.to_fun x = f x := rfl
+
+@[ext] lemma ext {f g : linear_pmap R E F} (h : f.domain = g.domain)
+  (h' : ∀ ⦃x : f.domain⦄ ⦃y : g.domain⦄ (h : (x:E) = y), f x = g y) : f = g :=
+begin
+  rcases f with ⟨f_dom, f⟩,
+  rcases g with ⟨g_dom, g⟩,
+  change f_dom = g_dom at h,
+  subst g_dom,
+  obtain rfl : f = g := linear_map.ext (λ x, h' rfl),
+  refl,
+end
 
 @[simp] lemma map_zero (f : linear_pmap R E F) : f 0 = 0 := f.to_fun.map_zero
 
@@ -297,6 +308,44 @@ begin
   have hx : x = 0, from subtype.eq (hxy.trans $ congr_arg _ hy),
   simp [*]
 end
+
+section smul
+
+variables [comm_ring R'] [module R' E] [module R' F]
+variables [comm_ring S] [module S F] [smul_comm_class R' S F]
+variables [comm_ring T] [module T F] [smul_comm_class R' T F]
+
+instance : has_scalar S (linear_pmap R' E F) :=
+⟨λ a f,
+  { domain := f.domain,
+    to_fun := a • f.to_fun }⟩
+
+@[simp] lemma smul_apply (a : S) (f : linear_pmap R' E F) (x : ((a • f).domain)) :
+  (a • f) x = a • f x := rfl
+
+lemma coe_smul (a : S) (f : linear_pmap R' E F) : ⇑(a • f) = a • f := rfl
+
+instance : smul_comm_class R' S (linear_pmap R' E F) :=
+⟨λ a b f,
+begin
+  ext,
+  { refl },
+  intros x y hxy,
+  simp_rw smul_apply,
+  rw [subtype.eq hxy, smul_comm]
+end⟩
+
+instance [has_scalar T S] [is_scalar_tower T S F] : is_scalar_tower T S (linear_pmap R' E F) :=
+⟨λ a b f,
+begin
+  ext,
+  { refl },
+  intros x y hxy,
+  simp_rw smul_apply,
+  rw [subtype.eq hxy, smul_assoc]
+end⟩
+
+end smul
 
 section
 

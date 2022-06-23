@@ -258,11 +258,10 @@ open_locale big_operators
 lemma log_prod {α : Type*} (s : finset α) (f : α → ℝ) (hf : ∀ x ∈ s, f x ≠ 0):
   log (∏ i in s, f i) = ∑ i in s, log (f i) :=
 begin
-  classical,
-  induction s using finset.induction_on with a s ha ih,
+  induction s using finset.cons_induction_on with a s ha ih,
   { simp },
-  simp only [finset.mem_insert, forall_eq_or_imp] at hf,
-  simp [ha, ih hf.2, log_mul hf.1 (finset.prod_ne_zero_iff.2 hf.2)],
+  { rw [finset.forall_mem_cons] at hf,
+    simp [ih hf.2, log_mul hf.1 (finset.prod_ne_zero_iff.2 hf.2)] }
 end
 
 lemma tendsto_pow_log_div_mul_add_at_top (a b : ℝ) (n : ℕ) (ha : a ≠ 0) :

@@ -18,11 +18,9 @@ impartial.
 
 universe u
 
-namespace pgame
+open_locale pgame
 
-local infix ` ⧏ `:50 := lf
-local infix ` ≈ ` := equiv
-local infix ` ∥ `:50 := fuzzy
+namespace pgame
 
 /-- The definition for a impartial game, defined using Conway induction. -/
 def impartial_aux : pgame → Prop
@@ -64,7 +62,7 @@ instance move_right_impartial {G : pgame} [h : G.impartial] (j : G.right_moves) 
   (G.move_right j).impartial :=
 (impartial_def.1 h).2.2 j
 
-theorem impartial_congr : ∀ {G H : pgame} (e : relabelling G H) [G.impartial], H.impartial
+theorem impartial_congr : ∀ {G H : pgame} (e : G ≡r H) [G.impartial], H.impartial
 | G H e := begin
   introI h,
   rw impartial_def,

@@ -3,6 +3,7 @@ Copyright (c) 2020 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anatole Dedecker, Sébastien Gouëzel, Yury G. Kudryashov, Dylan MacKenzie, Patrick Massot
 -/
+import algebra.order.field_pow
 import analysis.asymptotics.asymptotics
 import analysis.specific_limits.basic
 

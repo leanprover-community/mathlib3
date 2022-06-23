@@ -786,6 +786,10 @@ by rw is_O_with; refl
 lemma is_O_principal {s : set α} : f =O[𝓟 s] g ↔ ∃ c, ∀ x ∈ s, ∥f x∥ ≤ c * ∥g x∥ :=
 by rw is_O_iff; refl
 
+section
+
+variable (𝕜)
+
 theorem is_O_with_const_one (c : E) (l : filter α) : is_O_with ∥c∥ l (λ x : α, c) (λ x, (1 : 𝕜)) :=
 begin
   refine (is_O_with_const_const c _ l).congr_const _,
@@ -794,15 +798,11 @@ begin
 end
 
 theorem is_O_const_one (c : E) (l : filter α) : (λ x : α, c) =O[l] (λ x, (1 : 𝕜)) :=
-(is_O_with_const_one c l).is_O
-
-section
-
-variable (𝕜)
+(is_O_with_const_one 𝕜 c l).is_O
 
 theorem is_o_const_iff_is_o_one {c : F''} (hc : c ≠ 0) :
   f =o[l] (λ x, c) ↔ f =o[l] (λ x, (1:𝕜)) :=
-⟨λ h, h.trans_is_O $ is_O_const_one c l, λ h, h.trans_is_O $ is_O_const_const _ hc _⟩
+⟨λ h, h.trans_is_O $ is_O_const_one 𝕜 c l, λ h, h.trans_is_O $ is_O_const_const _ hc _⟩
 
 end
 

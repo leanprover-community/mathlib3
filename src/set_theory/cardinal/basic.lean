@@ -145,15 +145,23 @@ map ulift (λ α β e, equiv.ulift.trans $ e.trans equiv.ulift.symm) c
 
 @[simp] theorem mk_ulift (α) : #(ulift.{v u} α) = lift.{v} (#α) := rfl
 
-theorem lift_umax : lift.{(max u v) u} = lift.{v u} :=
+/-- `lift.{(max u v) u}` equals `lift.{v u}`. Using `set_option pp.universes true` will make it much
+    easier to understand what's happening when using this lemma. -/
+@[simp] theorem lift_umax : lift.{(max u v) u} = lift.{v u} :=
 funext $ λ a, induction_on a $ λ α, (equiv.ulift.trans equiv.ulift.symm).cardinal_eq
 
-theorem lift_umax' : lift.{(max v u) u} = lift.{v u} := lift_umax
+/-- `lift.{(max v u) u}` equals `lift.{v u}`. Using `set_option pp.universes true` will make it much
+    easier to understand what's happening when using this lemma. -/
+@[simp] theorem lift_umax' : lift.{(max v u) u} = lift.{v u} := lift_umax
 
-theorem lift_id' (a : cardinal.{max u v}) : lift.{u} a = a :=
+/-- A cardinal lifted to a lower or equal universe equals itself. -/
+@[simp] theorem lift_id' (a : cardinal.{max u v}) : lift.{u} a = a :=
 induction_on a $ λ α, mk_congr equiv.ulift
 
+/-- A cardinal lifted to the same universe equals itself. -/
 @[simp] theorem lift_id (a : cardinal) : lift.{u u} a = a := lift_id'.{u u} a
+
+/-- A cardinal lifted to the zero universe equals itself. -/
 @[simp] theorem lift_uzero (a : cardinal.{u}) : lift.{0} a = a := lift_id'.{0 u} a
 
 @[simp] theorem lift_lift (a : cardinal) :
@@ -513,10 +521,10 @@ end⟩
 
 instance : has_well_founded cardinal.{u} := ⟨(<), cardinal.lt_wf⟩
 
-instance : conditionally_complete_linear_order_bot cardinal :=
-cardinal.lt_wf.conditionally_complete_linear_order_with_bot
-
 instance wo : @is_well_order cardinal.{u} (<) := ⟨cardinal.lt_wf⟩
+
+instance : conditionally_complete_linear_order_bot cardinal :=
+is_well_order.conditionally_complete_linear_order_bot _
 
 @[simp] theorem Inf_empty : Inf (∅ : set cardinal.{u}) = 0 :=
 dif_neg not_nonempty_empty
@@ -1009,14 +1017,14 @@ lemma denumerable_iff {α : Type u} : nonempty (denumerable α) ↔ #α = ℵ₀
 @[simp] lemma mk_denumerable (α : Type u) [denumerable α] : #α = ℵ₀ :=
 denumerable_iff.1 ⟨‹_›⟩
 
-@[simp] lemma mk_set_le_aleph_0 (s : set α) : #s ≤ ℵ₀ ↔ countable s :=
+@[simp] lemma mk_set_le_aleph_0 (s : set α) : #s ≤ ℵ₀ ↔ s.countable :=
 begin
   rw [countable_iff_exists_injective], split,
   { rintro ⟨f'⟩, cases embedding.trans f' equiv.ulift.to_embedding with f hf, exact ⟨f, hf⟩ },
   { rintro ⟨f, hf⟩, exact ⟨embedding.trans ⟨f, hf⟩ equiv.ulift.symm.to_embedding⟩ }
 end
 
-@[simp] lemma mk_subtype_le_aleph_0 (p : α → Prop) : #{x // p x} ≤ ℵ₀ ↔ countable {x | p x} :=
+@[simp] lemma mk_subtype_le_aleph_0 (p : α → Prop) : #{x // p x} ≤ ℵ₀ ↔ {x | p x}.countable :=
 mk_set_le_aleph_0 _
 
 @[simp] lemma aleph_0_add_aleph_0 : ℵ₀ + ℵ₀ = ℵ₀ := mk_denumerable _

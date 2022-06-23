@@ -3,6 +3,8 @@ Copyright (c) 2019 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Scott Morrison
 -/
+
+import algebra.order.hom.monoid
 import set_theory.game.ordinal
 
 /-!
@@ -39,6 +41,10 @@ The difficulty lies in the length of the proof and the number of theorems that n
 simultaneously. This will make for a fun and challenging project.
 
 The branch `surreal_mul` contains some progress on this proof.
+
+### Todo
+
+- Define the field structure on the surreals.
 
 ## References
 
@@ -88,8 +94,8 @@ begin
   refine numeric_rec (λ yl yr yL yR hy oyl oyr IHyl IHyr, _),
   rw [mk_lf_mk, mk_lf_mk], rintro (⟨i, h₁⟩ | ⟨j, h₁⟩) (⟨i, h₂⟩ | ⟨j, h₂⟩),
   { exact IHxl _ _ (oyl _) (move_left_lf_of_le _ h₁) (move_left_lf_of_le _ h₂) },
-  { exact (le_trans h₂ h₁).not_lf (lf_of_lt (hy _ _)) },
-  { exact (le_trans h₁ h₂).not_lf (lf_of_lt (hx _ _)) },
+  { exact (le_trans h₂ h₁).not_gf (lf_of_lt (hy _ _)) },
+  { exact (le_trans h₁ h₂).not_gf (lf_of_lt (hx _ _)) },
   { exact IHxr _ _ (oyr _) (lf_move_right_of_le _ h₁) (lf_move_right_of_le _ h₂) },
 end
 
@@ -110,24 +116,19 @@ theorem lf_iff_lt {x y : pgame} (ox : numeric x) (oy : numeric y) : x ⧏ y ↔ 
 theorem le_iff_forall_lt {x y : pgame} (ox : x.numeric) (oy : y.numeric) :
   x ≤ y ↔ (∀ i, x.move_left i < y) ∧ ∀ j, x < y.move_right j :=
 begin
-  rw le_iff_forall_lf,
-  refine and_congr _ _;
-    refine forall_congr (λ i, (lf_iff_lt _ _));
-    apply_rules [numeric.move_left, numeric.move_right]
+  refine le_iff_forall_lf.trans (and_congr _ _);
+  refine forall_congr (λ i, lf_iff_lt _ _);
+  apply_rules [numeric.move_left, numeric.move_right]
 end
 
-theorem le_of_forall_lt {x y : pgame} (ox : x.numeric) (oy : y.numeric) :
-  ((∀ i, x.move_left i < y) ∧ ∀ j, x < y.move_right j) → x ≤ y :=
-(le_iff_forall_lt ox oy).2
-
 /-- Definition of `x < y` on numeric pre-games, in terms of `≤` -/
-theorem lt_iff_forall_le {x y : pgame} (ox : x.numeric) (oy : y.numeric) :
+theorem lt_iff_exists_le {x y : pgame} (ox : x.numeric) (oy : y.numeric) :
   x < y ↔ (∃ i, x ≤ y.move_left i) ∨ ∃ j, x.move_right j ≤ y :=
-by rw [←lf_iff_lt ox oy, lf_iff_forall_le]
+by rw [←lf_iff_lt ox oy, lf_iff_exists_le]
 
-theorem lt_of_forall_le {x y : pgame} (ox : x.numeric) (oy : y.numeric) :
+theorem lt_of_exists_le {x y : pgame} (ox : x.numeric) (oy : y.numeric) :
   ((∃ i, x ≤ y.move_left i) ∨ ∃ j, x.move_right j ≤ y) → x < y :=
-(lt_iff_forall_le ox oy).2
+(lt_iff_exists_le ox oy).2
 
 /-- The definition of `x < y` on numeric pre-games, in terms of `<` two moves later. -/
 theorem lt_def {x y : pgame} (ox : x.numeric) (oy : y.numeric) : x < y ↔
@@ -295,6 +296,17 @@ noncomputable instance : linear_ordered_add_comm_group surreal :=
   decidable_le := classical.dec_rel _,
   ..surreal.ordered_add_comm_group }
 
+/-- Casts a `surreal` number into a `game`. -/
+def to_game : surreal →+o game :=
+{ to_fun := lift (λ x _, ⟦x⟧) (λ x y ox oy, quot.sound),
+  map_zero' := rfl,
+  map_add' := by { rintros ⟨_, _⟩ ⟨_, _⟩, refl },
+  monotone' := by { rintros ⟨_, _⟩ ⟨_, _⟩, exact id } }
+
+theorem zero_to_game : to_game 0 = 0 := rfl
+@[simp] theorem one_to_game : to_game 1 = 1 := rfl
+@[simp] theorem nat_to_game : ∀ n : ℕ, to_game n = n := map_nat_cast' _ one_to_game
+
 end surreal
 
 open surreal
@@ -308,8 +320,3 @@ noncomputable def to_surreal : ordinal ↪o surreal :=
   map_rel_iff' := @to_pgame_le_iff }
 
 end ordinal
-
--- We conclude with some ideas for further work on surreals; these would make fun projects.
-
--- TODO define the inclusion of groups `surreal → game`
--- TODO define the field structure on the surreals

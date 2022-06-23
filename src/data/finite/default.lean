@@ -1,1 +1,1 @@
-import data.finite.set
+import data.finite.card

@@ -245,7 +245,7 @@ section temp
 
 variables {m : measurable_space α}
 
--- Remy said he will prove this next week
+-- Remy will prove this sometime after after this week
 lemma condexp_measurable_mul {ξ ζ : α → ℝ} (hξm : strongly_measurable[m] ξ) (hζ : integrable ζ μ)
   -- (hξ : integrable ξ μ) hopefully won't need this
   (hζξ : integrable (ξ * ζ) μ) :

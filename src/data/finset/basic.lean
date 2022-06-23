@@ -1861,6 +1861,11 @@ lemma mem_map' (f : α ↪ β) {a} {s : finset α} : f a ∈ s.map f ↔ a ∈ s
 
 lemma mem_map_of_mem (f : α ↪ β) {a} {s : finset α} : a ∈ s → f a ∈ s.map f := (mem_map' _).2
 
+lemma forall_mem_map {f : α ↪ β} {s : finset α} {p : Π a, a ∈ s.map f → Prop} :
+  (∀ y ∈ s.map f, p y H) ↔ ∀ x ∈ s, p (f x) (mem_map_of_mem _ H) :=
+⟨λ h y hy, h (f y) (mem_map_of_mem _ hy), λ h x hx,
+  by { obtain ⟨y, hy, rfl⟩ := mem_map.1 hx, exact h _ hy }⟩
+
 lemma apply_coe_mem_map (f : α ↪ β) (s : finset α) (x : s) : f x ∈ s.map f :=
 mem_map_of_mem f x.prop
 
@@ -1913,14 +1918,7 @@ eq_of_veq (map_filter _ _ _)
 /-- A helper lemma to produce a default proof for `finset.map_disj_union`. -/
 theorem map_disj_union_aux {f : α ↪ β} {s₁ s₂ : finset α} :
   (∀ a, a ∈ s₁ → a ∉ s₂) ↔ (∀ a, a ∈ map f s₁ → a ∉ map f s₂) :=
-begin
-  split; intros h a h₁ h₂,
-  { obtain ⟨x₁, hx₁, rfl⟩ := finset.mem_map.1 h₁,
-    obtain ⟨x₂, hx₂, h₁₂⟩ := finset.mem_map.1 h₂,
-    obtain rfl := f.injective h₁₂,
-    exact h _ hx₁ hx₂ },
-  { exact h (f a) (mem_map_of_mem _ h₁) (mem_map_of_mem _ h₂) }
-end
+by simp_rw [forall_mem_map, mem_map']
 
 theorem map_disj_union {f : α ↪ β} (s₁ s₂ : finset α)
   (h : ∀ a, a ∈ s₁ → a ∉ s₂) (h' : ∀ a, a ∈ map f s₁ → a ∉ map f s₂ := map_disj_union_aux.1 h) :

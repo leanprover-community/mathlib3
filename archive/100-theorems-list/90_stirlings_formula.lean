@@ -256,26 +256,18 @@ noncomputable def wallis_inside_prod (n : ℕ) : ℝ :=
 /-- The Wallis product $\prod_{n=1}^k \frac{2n}{2n-1}\frac{2n}{2n+1}$
   converges to `π/2` as `k → ∞` -/
 lemma equality1 :
-tendsto (λ n : ℕ, ∏ k in Ico 1 n.succ, wallis_inside_prod k) at_top (𝓝 (π / 2)) :=
+  tendsto (λ (k : ℕ), ∏ i in Ico 1 k.succ, wallis_inside_prod i) at_top (𝓝 (π / 2)) :=
 begin
-  have : (∀ n : ℕ,  ∏ k in range n, (wallis_inside_prod (1 + k)) =
-    ∏ k in Ico 1 n.succ, wallis_inside_prod k),
-  by {intro n, rw [range_eq_Ico, prod_Ico_add wallis_inside_prod 0 n 1]},
-  rw ← tendsto_congr this,
-  have h : ∀ k : ℕ,
-  wallis_inside_prod (1 + k) = (((2 : ℝ) * k + 2) / (2 * k + 1)) * ((2 * k + 2) / (2 * k + 3)),
-  { intro k,
-    rw [wallis_inside_prod, cast_add, cast_one],
-    have hl : (2 : ℝ) * (1 + (k : ℝ)) / (2 * (1 + k) - 1) = (2 * (k : ℝ) + 2) / (2 * k + 1), by
-      { refine congr (congr_arg has_div.div _) _; ring_nf, },
-    have hr : (2 : ℝ) * (1 + k) / (2 * (1 + k) + 1) = ((2 * (k : ℝ) + 2) / (2 * k + 3)), by
-    { refine congr (congr_arg has_div.div _) _; ring_nf, },
-    rw [hl, hr], },
-  have h_prod : ∀ k, ∏ (m : ℕ) in range k, wallis_inside_prod (1 + m) =
-    ∏ (m : ℕ) in range k, (((2 : ℝ) * m + 2) / (2 * m + 1)) * ((2 * m + 2) / (2 * m + 3)), by
-  { intro k, rw prod_congr (refl (range k)) _, intros x hx, exact h x, },
-  rw tendsto_congr h_prod,
-  exact tendsto_prod_pi_div_two,
+  convert tendsto_prod_pi_div_two,
+  funext,
+  rw [range_eq_Ico, ← prod_Ico_add _ 0 k 1],
+  congr,
+  funext,
+  rw wallis_inside_prod,
+  push_cast,
+  rw [zero_add, mul_add, mul_one, add_comm, ← add_sub, add_assoc],
+  congr,
+  linarith,
 end
 
 /--

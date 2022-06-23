@@ -1335,7 +1335,7 @@ lemma infi_insert_update {x : α} {t : finset α} (f : α → β) {s : β} (hx :
 
 lemma supr_bUnion (s : finset γ) (t : γ → finset α) (f : α → β) :
   (⨆ y ∈ s.bUnion t, f y) = ⨆ (x ∈ s) (y ∈ t x), f y :=
-by simp [@supr_comm _ α, supr_and, supr_exists]
+by simp [@supr_comm _ α, supr_and]
 
 lemma infi_bUnion (s : finset γ) (t : γ → finset α) (f : α → β) :
   (⨅ y ∈ s.bUnion t, f y) = ⨅ (x ∈ s) (y ∈ t x), f y :=

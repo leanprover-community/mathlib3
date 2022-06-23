@@ -675,7 +675,6 @@ begin
   { ext1 t, cases t.eq_empty_or_nonempty with h h; simp [h, empty_not_nonempty, m_empty] },
   simp [bounded_by, this]
 end
-
 theorem bounded_by_apply (s : set α) :
   bounded_by m s = ⨅ (t : ℕ → set α) (h : s ⊆ Union t), ∑' n, ⨆ (h : (t n).nonempty), m (t n) :=
 by simp [bounded_by, of_function_apply]

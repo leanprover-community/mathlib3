@@ -337,7 +337,7 @@ le_trans (le_of_eq (trans top_inf_eq.symm Inf_insert.symm)) (Inf_le_Inf h)
 
 @[simp] theorem Sup_diff_singleton_bot (s : set α) : Sup (s \ {⊥}) = Sup s :=
 (Sup_le_Sup (diff_subset _ _)).antisymm $ Sup_le_Sup_of_subset_insert_bot $
-  subset_insert_diff_singleton _ s
+  subset_insert_diff_singleton _ _
 
 @[simp] theorem Inf_diff_singleton_top : ∀ s : set α, Inf (s \ {⊤}) = Inf s :=
 @Sup_diff_singleton_bot αᵒᵈ _
@@ -409,14 +409,14 @@ variables [has_Sup α] {f g : ι → α}
 lemma Sup_range : Sup (range f) = supr f := rfl
 lemma Sup_eq_supr' (s : set α) : Sup s = ⨆ a : s, a := by rw [supr, subtype.range_coe]
 
-lemma supr_congr (h : ∀ i, f i = g i) : supr f = ⨆ i, g i := congr_arg _ $ funext h
+lemma supr_congr (h : ∀ i, f i = g i) : (⨆ i, f i) = ⨆ i, g i := congr_arg _ $ funext h
 
 lemma function.surjective.supr_comp {f : ι → ι'} (hf : surjective f) (g : ι' → α) :
   (⨆ x, g (f x)) = ⨆ y, g y :=
 by simp only [supr, hf.range_comp]
 
 protected lemma function.surjective.supr_congr {g : ι' → α} (h : ι → ι') (h1 : surjective h)
-  (h2 : ∀ x, g (h x) = f x) : supr f = ⨆ y, g y :=
+  (h2 : ∀ x, g (h x) = f x) : (⨆ x, f x) = ⨆ y, g y :=
 by { convert h1.supr_comp g, exact (funext h2).symm }
 
 @[congr] lemma supr_congr_Prop {p q : Prop} {f₁ : p → α} {f₂ : q → α} (pq : p ↔ q)
@@ -437,7 +437,7 @@ variables [has_Inf α] {f g : ι → α}
 lemma Inf_range : Inf (range f) = infi f := rfl
 lemma Inf_eq_infi' : ∀ s : set α, Inf s = ⨅ a : s, a := @Sup_eq_supr' αᵒᵈ _
 
-lemma infi_congr (h : ∀ i, f i = g i) : infi f = ⨅ i, g i := congr_arg _ $ funext h
+lemma infi_congr (h : ∀ i, f i = g i) : (⨅ i, f i) = ⨅ i, g i := congr_arg _ $ funext h
 
 lemma function.surjective.infi_comp : ∀ {f : ι → ι'} (hf : surjective f) (g : ι' → α),
   (⨅ x, g (f x)) = ⨅ y, g y :=
@@ -505,10 +505,10 @@ supr_le $ λ i, supr_le $ h i
 lemma le_infi₂ {f : Π i, κ i → α} (h : ∀ i j, a ≤ f i j) : a ≤ ⨅ i j, f i j :=
 le_infi $ λ i, le_infi $ h i
 
-lemma supr₂_le_supr (κ : ι → Sort*) (f : ι → α) : (⨆ i (j : κ i), f i) ≤ supr f :=
+lemma supr₂_le_supr (κ : ι → Sort*) (f : ι → α) : (⨆ i (j : κ i), f i) ≤ ⨆ i, f i :=
 supr₂_le $ λ i j, le_supr f i
 
-lemma infi_le_infi₂ (κ : ι → Sort*) (f : ι → α) : infi f ≤ ⨅ i (j : κ i), f i :=
+lemma infi_le_infi₂ (κ : ι → Sort*) (f : ι → α) : (⨅ i, f i) ≤ ⨅ i (j : κ i), f i :=
 le_infi₂ $ λ i j, infi_le f i
 
 lemma supr_mono (h : ∀ i, f i ≤ g i) : supr f ≤ supr g := supr_le $ λ i, le_supr_of_le i $ h i
@@ -650,22 +650,15 @@ lemma monotone.map_Inf_le [complete_lattice β] {s : set α} {f : α → β} (hf
   f (Inf s) ≤ ⨅ a ∈ s, f a :=
 hf.dual_left.map_Sup_le
 
-lemma supr_const_le : (⨆ (h : ι), a) ≤ a :=
-supr_le (λ _, le_rfl)
+lemma supr_const_le : (⨆ i : ι, a) ≤ a := supr_le $ λ _, le_rfl
+lemma le_infi_const : a ≤ ⨅ i : ι, a := le_infi $ λ _, le_rfl
 
-lemma le_infi_const : a ≤ (⨅ (h : ι), a) :=
-le_infi (λ _, le_rfl)
+/- We generalize this to conditionally complete lattices in `csupr_const` and `cinfi_const`. -/
+theorem supr_const [nonempty ι] : (⨆ b : ι, a) = a := by rw [supr, range_const, Sup_singleton]
+theorem infi_const [nonempty ι] : (⨅ b : ι, a) = a := @supr_const αᵒᵈ _ _ a _
 
-/- We generalize this to conditionally complete lattices in `csupr_const`. -/
-theorem supr_const [nonempty ι] : (⨆ b : ι, a) = a :=
-by rw [supr, range_const, Sup_singleton]
-
-/- We generalize this to conditionally complete lattices in `cinfi_const`. -/
-theorem infi_const [nonempty ι] : (⨅ b : ι, a) = a :=
-@supr_const αᵒᵈ _ _ a _
-
-@[simp] lemma supr_bot : (⨆ i : ι, ⊥ : α) = ⊥ := bot_unique $ supr_le $ λ i, le_rfl
-@[simp] lemma infi_top : (⨅ i : ι, ⊤ : α) = ⊤ := @supr_bot αᵒᵈ _ _
+@[simp] lemma supr_bot : (⨆ i : ι, ⊥ : α) = ⊥ := bot_unique supr_const_le
+@[simp] lemma infi_top : (⨅ i : ι, ⊤ : α) = ⊤ := top_unique le_infi_const
 
 @[simp] lemma supr_eq_bot : supr s = ⊥ ↔ ∀ i, s i = ⊥ := Sup_eq_bot.trans forall_range_iff
 @[simp] lemma infi_eq_top : infi s = ⊤ ↔ ∀ i, s i = ⊤ := Inf_eq_top.trans forall_range_iff
@@ -788,13 +781,12 @@ supr_subtype
 lemma infi_subtype'' {ι} (s : set ι) (f : ι → α) : (⨅ i : s, f i) = ⨅ (t : ι) (H : t ∈ s), f t :=
 infi_subtype
 
-theorem supr_sup_eq {f g : ι → α} : (⨆ x, f x ⊔ g x) = supr f ⊔ (⨆ x, g x) :=
+theorem supr_sup_eq : (⨆ x, f x ⊔ g x) = (⨆ x, f x) ⊔ (⨆ x, g x) :=
 le_antisymm
   (supr_le $ λ i, sup_le_sup (le_supr _ _) $ le_supr _ _)
   (sup_le (supr_mono $ λ i, le_sup_left) $ supr_mono $ λ i, le_sup_right)
 
-theorem infi_inf_eq : ∀ {f g : ι → α}, (⨅ x, f x ⊓ g x) = infi f ⊓ (⨅ x, g x) :=
-@supr_sup_eq αᵒᵈ _ _
+theorem infi_inf_eq : (⨅ x, f x ⊓ g x) = (⨅ x, f x) ⊓ (⨅ x, g x) := @supr_sup_eq αᵒᵈ _ _ _ _
 
 /- TODO: here is another example where more flexible pattern matching
    might help.
@@ -805,17 +797,17 @@ begin
 end
 -/
 
-lemma supr_sup [h : nonempty ι] {f : ι → α} {a : α} : supr f ⊔ a = (⨆ x, f x ⊔ a) :=
+lemma supr_sup [nonempty ι] {f : ι → α} {a : α} : (⨆ x, f x) ⊔ a = ⨆ x, f x ⊔ a :=
 by rw [supr_sup_eq, supr_const]
 
-lemma infi_inf [h : nonempty ι] : ∀ {f : ι → α} {a : α}, infi f ⊓ a = (⨅ x, f x ⊓ a) :=
-@supr_sup αᵒᵈ _ _ _
+lemma infi_inf [nonempty ι] {f : ι → α} {a : α} : (⨅ x, f x) ⊓ a = ⨅ x, f x ⊓ a :=
+by rw [infi_inf_eq, infi_const]
 
-lemma sup_supr [nonempty ι] {f : ι → α} {a : α} : a ⊔ supr f = (⨆ x, a ⊔ f x) :=
-by { rw [sup_comm, supr_sup], simp [sup_comm] }
+lemma sup_supr [nonempty ι] {f : ι → α} {a : α} : a ⊔ (⨆ x, f x) = ⨆ x, a ⊔ f x :=
+by rw [supr_sup_eq, supr_const]
 
-lemma inf_infi [nonempty ι] : ∀ {f : ι → α} {a : α}, a ⊓ infi f = (⨅ x, a ⊓ f x) :=
-@sup_supr αᵒᵈ _ _ _
+lemma inf_infi [nonempty ι] {f : ι → α} {a : α} : a ⊓ (⨅ x, f x) = ⨅ x, a ⊓ f x :=
+by rw [infi_inf_eq, infi_const]
 
 lemma binfi_inf {p : ι → Prop} {f : Π i (hi : p i), α} {a : α} (h : ∃ i, p i) :
   (⨅ i (h : p i), f i h) ⊓ a = ⨅ i (h : p i), f i h ⊓ a :=
@@ -837,17 +829,16 @@ le_antisymm le_top (le_infi $ λ i, false.elim i)
 lemma supr_true {s : true → α} : supr s = s trivial := supr_pos trivial
 lemma infi_true {s : true → α} : infi s = s trivial := infi_pos trivial
 
-lemma supr_exists {p : ι → Prop} {f : Exists p → α} : supr f = ⨆ i h, f ⟨i, h⟩ :=
+lemma supr_exists {p : ι → Prop} {f : Exists p → α} : (⨆ x, f x)  = ⨆ i h, f ⟨i, h⟩ :=
 le_antisymm (supr_le $ λ ⟨i, h⟩, le_supr₂ i h) (supr₂_le $ λ i h, le_supr _ _)
 
-lemma infi_exists : ∀ {p : ι → Prop} {f : Exists p → α}, infi f = ⨅ i h, f ⟨i, h⟩ :=
-@supr_exists αᵒᵈ _ _
+lemma infi_exists {p : ι → Prop} {f : Exists p → α} : (⨅ x, f x)  = ⨅ i h, f ⟨i, h⟩ :=
+@supr_exists αᵒᵈ _ _ _ _
 
 lemma supr_and {p q : Prop} {s : p ∧ q → α} : supr s = ⨆ h₁ h₂, s ⟨h₁, h₂⟩ :=
 le_antisymm (supr_le $ λ ⟨i, h⟩, le_supr₂ i h) (supr₂_le $ λ i h, le_supr _ _)
 
-lemma infi_and : ∀ {p q : Prop} {s : p ∧ q → α}, infi s = ⨅ h₁ h₂, s ⟨h₁, h₂⟩ :=
-@supr_and αᵒᵈ _
+lemma infi_and {p q : Prop} {s : p ∧ q → α} : infi s = ⨅ h₁ h₂, s ⟨h₁, h₂⟩ := @supr_and αᵒᵈ _ _ _ _
 
 /-- The symmetric case of `supr_and`, useful for rewriting into a supremum over a conjunction -/
 lemma supr_and' {p q : Prop} {s : p → q → α} :
@@ -857,10 +848,10 @@ eq.symm supr_and
 /-- The symmetric case of `infi_and`, useful for rewriting into a infimum over a conjunction -/
 lemma infi_and' {p q : Prop} {s : p → q → α} :
   (⨅ (h₁ : p) (h₂ : q), s h₁ h₂) = ⨅ (h : p ∧ q), s h.1 h.2 :=
-eq.symm infi_and 
+eq.symm infi_and
 
 theorem supr_or {p q : Prop} {s : p ∨ q → α} :
-  supr s = (⨆ i, s (or.inl i)) ⊔ (⨆ j, s (or.inr j)) :=
+  (⨆ x, s x) = (⨆ i, s (or.inl i)) ⊔ (⨆ j, s (or.inr j)) :=
 le_antisymm
   (supr_le $ λ i, match i with
   | or.inl i := le_sup_of_le_left $ le_supr _ i
@@ -908,9 +899,7 @@ lemma infi_range : ∀ {g : β → α} {f : ι → β}, (⨅ b ∈ range f, g b)
 theorem Sup_image {s : set β} {f : β → α} : Sup (f '' s) = ⨆ a ∈ s, f a :=
 by rw [← supr_subtype'', Sup_image']
 
-theorem Inf_image : ∀ {s : set β} {f : β → α}, Inf (f '' s) = ⨅ a ∈ s, f a :=
-@Sup_image αᵒᵈ _ _
-
+theorem Inf_image {s : set β} {f : β → α} : Inf (f '' s) = ⨅ a ∈ s, f a := @Sup_image αᵒᵈ _ _ _ _
 
 /-
 ### supr and infi under set constructions
@@ -924,11 +913,11 @@ theorem infi_univ {f : β → α} : (⨅ x ∈ (univ : set β), f x) = infi f :=
 
 theorem supr_union {f : β → α} {s t : set β} :
   (⨆ x ∈ s ∪ t, f x) = (⨆ x ∈ s, f x) ⊔ (⨆ x ∈ t, f x) :=
-by simp only [← supr_sup_eq, supr_or]
+by simp_rw [mem_union, supr_or, supr_sup_eq]
 
-theorem infi_union : ∀ {f : β → α} {s t : set β},
+theorem infi_union {f : β → α} {s t : set β} :
   (⨅ x ∈ s ∪ t, f x) = (⨅ x ∈ s, f x) ⊓ (⨅ x ∈ t, f x) :=
-@supr_union αᵒᵈ _ _
+@supr_union αᵒᵈ _ _ _ _ _
 
 lemma supr_split (f : β → α) (p : β → Prop) :
   supr f = (⨆ i (h : p i), f i) ⊔ (⨆ i (h : ¬ p i), f i) :=
@@ -945,20 +934,20 @@ lemma infi_split_single : ∀ (f : β → α) (i₀ : β), infi f = f i₀ ⊓ (
 @supr_split_single αᵒᵈ _ _
 
 theorem supr_le_supr_of_subset {f : β → α} {s t : set β} (h : s ⊆ t) :
-  (⨆ x ∈ s, f x) ≤ (⨆ x ∈ t, f x) :=
+  (⨆ x ∈ s, f x) ≤ ⨆ x ∈ t, f x :=
 by { rw [(union_eq_self_of_subset_left h).symm, supr_union], exact le_sup_left }
 
-theorem infi_le_infi_of_subset : ∀ {f : β → α} {s t : set β} (h : s ⊆ t),
-  (⨅ x ∈ t, f x) ≤ (⨅ x ∈ s, f x) :=
-@supr_le_supr_of_subset αᵒᵈ _ _
+theorem infi_le_infi_of_subset  {f : β → α} {s t : set β} :
+  s ⊆ t → (⨅ x ∈ t, f x) ≤ ⨅ x ∈ s, f x :=
+@supr_le_supr_of_subset αᵒᵈ _ _ _ _ _
 
 theorem supr_insert {f : β → α} {s : set β} {b : β} :
   (⨆ x ∈ insert b s, f x) = f b ⊔ (⨆ x ∈ s, f x) :=
 eq.trans supr_union $ congr_arg (λ x, x ⊔ (⨆ x ∈ s, f x)) supr_supr_eq_left
 
-theorem infi_insert : ∀ {f : β → α} {s : set β} {b : β},
+theorem infi_insert {f : β → α} {s : set β} {b : β} :
   (⨅ x ∈ insert b s, f x) = f b ⊓ (⨅ x ∈ s, f x) :=
-@supr_insert αᵒᵈ _ _
+@supr_insert αᵒᵈ _ _ _ _ _
 
 theorem supr_singleton {f : β → α} {b : β} : (⨆ x ∈ (singleton b : set β), f x) = f b :=
 by simp
@@ -981,7 +970,7 @@ lemma infi_image : ∀ {γ} {f : β → γ} {g : γ → α} {t : set β},
 @supr_image αᵒᵈ _ _
 
 theorem supr_extend_bot {e : ι → β} (he : injective e) (f : ι → α) :
-  (⨆ j, extend e f ⊥ j) = supr f :=
+  (⨆ j, extend e f ⊥ j) = ⨆ i, f i :=
 begin
   rw supr_split _ (λ j, ∃ i, e i = j),
   simp [extend_apply he, extend_apply', @supr_comm _ β ι, supr_exists] { contextual := tt }
@@ -1024,55 +1013,53 @@ by simpa only [range_comp, subtype.range_coe, infi_subtype'] using @is_glb_infi 
 lemma is_lub_bsupr {s : set β} {f : β → α} : is_lub (f '' s) (⨆ x ∈ s, f x) :=
 by simpa only [range_comp, subtype.range_coe, supr_subtype'] using @is_lub_supr α s _ (f ∘ coe)
 
-theorem supr_sigma {p : β → Type*} {f : sigma p → α} : supr f = (⨆ i (h : p i), f ⟨i, h⟩) :=
+theorem supr_sigma {p : β → Type*} {f : sigma p → α} : (⨆ x, f x) = ⨆ i j, f ⟨i, j⟩ :=
 eq_of_forall_ge_iff $ λ c, by simp only [supr_le_iff, sigma.forall]
 
-theorem infi_sigma : ∀ {p : β → Type*} {f : sigma p → α}, infi f = (⨅ i (h : p i), f ⟨i, h⟩) :=
-@supr_sigma αᵒᵈ _ _
+theorem infi_sigma {p : β → Type*} {f : sigma p → α} : (⨅ x, f x) = ⨅ i j, f ⟨i, j⟩ :=
+@supr_sigma αᵒᵈ _ _ _ _
 
 theorem supr_prod {f : β × γ → α} : supr f = (⨆ i j, f (i, j)) :=
 eq_of_forall_ge_iff $ λ c, by simp only [supr_le_iff, prod.forall]
 
-theorem infi_prod : ∀ {f : β × γ → α}, infi f = (⨅ i j, f (i, j)) :=
-@supr_prod αᵒᵈ _ _ _
+theorem infi_prod {f : β × γ → α} : infi f = (⨅ i j, f (i, j)) := @supr_prod αᵒᵈ _ _ _ _
 
 lemma bsupr_prod {f : β × γ → α} {s : set β} {t : set γ} :
   (⨆ x ∈ s ×ˢ t, f x) = ⨆ (a ∈ s) (b ∈ t), f (a, b) :=
 by { simp_rw [supr_prod, mem_prod, supr_and], exact supr_congr (λ _, supr_comm) }
 
-lemma binfi_prod : ∀ {f : β × γ → α} {s : set β} {t : set γ},
+lemma binfi_prod {f : β × γ → α} {s : set β} {t : set γ} :
   (⨅ x ∈ s ×ˢ t, f x) = ⨅ (a ∈ s) (b ∈ t), f (a, b) :=
-@bsupr_prod αᵒᵈ _ _ _
+@bsupr_prod αᵒᵈ _ _ _ _ _ _
 
-theorem supr_sum {γ : Type*} {f : β ⊕ γ → α} :
-  supr f = (⨆ i, f (sum.inl i)) ⊔ (⨆ j, f (sum.inr j)) :=
+theorem supr_sum {f : β ⊕ γ → α} :
+  (⨆ x, f x) = (⨆ i, f (sum.inl i)) ⊔ (⨆ j, f (sum.inr j)) :=
 eq_of_forall_ge_iff $ λ c, by simp only [sup_le_iff, supr_le_iff, sum.forall]
 
-theorem infi_sum : ∀ {γ : Type*} {f : β ⊕ γ → α},
-  infi f = (⨅ i, f (sum.inl i)) ⊓ (⨅ j, f (sum.inr j)) :=
-@supr_sum αᵒᵈ _ _
+theorem infi_sum {f : β ⊕ γ → α} : (⨅ x, f x) = (⨅ i, f (sum.inl i)) ⊓ (⨅ j, f (sum.inr j)) :=
+@supr_sum αᵒᵈ _ _ _ _
 
-theorem supr_option (f : option β → α) : supr f = f none ⊔ ⨆ b, f (option.some b) :=
+theorem supr_option (f : option β → α) : (⨆ o, f o) = f none ⊔ ⨆ b, f (option.some b) :=
 eq_of_forall_ge_iff $ λ c, by simp only [supr_le_iff, sup_le_iff, option.forall]
 
-theorem infi_option : ∀ (f : option β → α), infi f = f none ⊓ ⨅ b, f (option.some b) :=
-@supr_option αᵒᵈ _ _
+theorem infi_option (f : option β → α) : (⨅ o, f o) = f none ⊓ ⨅ b, f (option.some b) :=
+@supr_option αᵒᵈ _ _ _
 
 /-- A version of `supr_option` useful for rewriting right-to-left. -/
 lemma supr_option_elim (a : α) (f : β → α) : (⨆ o : option β, o.elim a f) = a ⊔ ⨆ b, f b :=
 by simp [supr_option]
 
 /-- A version of `infi_option` useful for rewriting right-to-left. -/
-lemma infi_option_elim : ∀ (a : α) (f : β → α), (⨅ o : option β, o.elim a f) = a ⊓ ⨅ b, f b :=
-@supr_option_elim αᵒᵈ _ _
+lemma infi_option_elim (a : α) (f : β → α) : (⨅ o : option β, o.elim a f) = a ⊓ ⨅ b, f b :=
+@supr_option_elim αᵒᵈ _ _ _ _
 
 /-- When taking the supremum of `f : ι → α`, the elements of `ι` on which `f` gives `⊥` can be
 dropped, without changing the result. -/
-lemma supr_ne_bot_subtype (f : ι → α) : (⨆ i : {i // f i ≠ ⊥}, f i) = supr f :=
+lemma supr_ne_bot_subtype (f : ι → α) : (⨆ i : {i // f i ≠ ⊥}, f i) = ⨆ i, f i :=
 begin
   by_cases htriv : ∀ i, f i = ⊥,
   { simp only [supr_bot, (funext htriv : f = _)] },
-  refine (supr_comp_le f _).antisymm (supr_mono' (λ i, _)),
+  refine (supr_comp_le f _).antisymm (supr_mono' $ λ i, _),
   by_cases hi : f i = ⊥,
   { rw hi,
     obtain ⟨i₀, hi₀⟩ := not_forall.mp htriv,
@@ -1145,10 +1132,10 @@ end
 section complete_linear_order
 variables [complete_linear_order α]
 
-lemma supr_eq_top (f : ι → α) : supr f = ⊤ ↔ (∀ b < ⊤, ∃ i, b < f i) :=
+lemma supr_eq_top (f : ι → α) : supr f = ⊤ ↔ ∀ b < ⊤, ∃ i, b < f i :=
 by simp only [← Sup_range, Sup_eq_top, set.exists_range_iff]
 
-lemma infi_eq_bot (f : ι → α) : infi f = ⊥ ↔ (∀ b > ⊥, ∃ i, f i < b) :=
+lemma infi_eq_bot (f : ι → α) : infi f = ⊥ ↔ ∀ b > ⊥, ∃ i, f i < b :=
 by simp only [← Inf_range, Inf_eq_bot, set.exists_range_iff]
 
 end complete_linear_order
@@ -1205,12 +1192,12 @@ lemma Inf_apply {α : Type*} {β : α → Type*} [Π i, has_Inf (β i)]
 rfl
 
 @[simp] lemma supr_apply {α : Type*} {β : α → Type*} {ι : Sort*} [Π i, has_Sup (β i)]
-  {f : ι → Π a, β a} {a : α} : supr f a = ⨆ i, f i a :=
+  {f : ι → Π a, β a} {a : α} : (⨆ i, f i) a = ⨆ i, f i a :=
 by rw [supr, Sup_apply, supr, supr, ← image_eq_range (λ f : Π i, β i, f a) (range f), ← range_comp]
 
-@[simp] lemma infi_apply {α : Type*} {β : α → Type*} {ι : Sort*} [Π i, has_Inf (β i)] :
-  ∀ {f : ι → Π a, β a} {a : α}, infi f a = ⨅ i, f i a :=
-@supr_apply α (λ i, (β i)ᵒᵈ) _ _
+@[simp] lemma infi_apply {α : Type*} {β : α → Type*} {ι : Sort*} [Π i, has_Inf (β i)]
+  {f : ι → Π a, β a} {a : α} : (⨅ i, f i) a = ⨅ i, f i a :=
+@supr_apply α (λ i, (β i)ᵒᵈ) _ _ _ _
 
 lemma unary_relation_Sup_iff {α : Type*} (s : set (α → Prop)) {a : α} :
   Sup s a ↔ ∃ r : α → Prop, r ∈ s ∧ r a :=
@@ -1283,11 +1270,11 @@ le_infi₂ $ λ i h, sup_le_sup_right (Inf_le h) _
 lemma supr_inf_le_Sup_inf : (⨆ b ∈ s, b ⊓ a) ≤ Sup s ⊓ a :=
 @Inf_sup_le_infi_sup αᵒᵈ _ _ _
 
-lemma le_supr_inf_supr (f g : ι → α) : (⨆ i, f i ⊓ g i) ≤ supr f ⊓ (⨆ i, g i) :=
+lemma le_supr_inf_supr (f g : ι → α) : (⨆ i, f i ⊓ g i) ≤ (⨆ i, f i) ⊓ (⨆ i, g i) :=
 le_inf (supr_mono $ λ i, inf_le_left) (supr_mono $ λ i, inf_le_right)
 
-lemma infi_sup_infi_le : ∀ (f g : ι → α), infi f ⊔ (⨅ i, g i) ≤ ⨅ i, f i ⊔ g i :=
-@le_supr_inf_supr αᵒᵈ _ _
+lemma infi_sup_infi_le (f g : ι → α) : (⨅ i, f i) ⊔ (⨅ i, g i) ≤ ⨅ i, f i ⊔ g i :=
+@le_supr_inf_supr αᵒᵈ _ _ _ _
 
 lemma disjoint_Sup_left {a : set α} {b : α} (d : disjoint (Sup a) b) {i} (hi : i ∈ a) :
   disjoint i b :=

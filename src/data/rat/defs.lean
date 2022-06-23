@@ -345,6 +345,7 @@ protected def inv : ℚ → ℚ
 | ⟨-[1+ n], d, h, c⟩ := ⟨-d, n+1, n.succ_pos, nat.coprime.symm $ by simp; exact c⟩
 
 instance : has_inv ℚ := ⟨rat.inv⟩
+instance : has_div ℚ := ⟨λ a b, a * b⁻¹⟩
 
 @[simp] theorem inv_def {a b : ℤ} : (a /. b)⁻¹ = b /. a :=
 begin
@@ -451,10 +452,10 @@ The `field` structure and any field-specific lemmas can be found in `data.rat.ba
 
 instance : comm_ring ℚ :=
 { zero             := 0,
-  add              := rat.add,
-  neg              := rat.neg,
+  add              := (+),
+  neg              := has_neg.neg,
   one              := 1,
-  mul              := rat.mul,
+  mul              := has_mul.mul,
   zero_add         := rat.zero_add,
   add_zero         := rat.add_zero,
   add_comm         := rat.add_comm,
@@ -475,7 +476,8 @@ instance : comm_group_with_zero ℚ :=
 { zero := 0,
   one := 1,
   mul := (*),
-  inv := rat.inv,
+  inv := has_inv.inv,
+  div := (/),
   exists_pair_ne   := ⟨0, 1, rat.zero_ne_one⟩,
   inv_zero := rfl,
   mul_inv_cancel := rat.mul_inv_cancel,

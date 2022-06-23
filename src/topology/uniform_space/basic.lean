@@ -518,7 +518,10 @@ lemma ball_subset_of_comp_subset {V W : set (β × β)} {x y} (h : x ∈ ball y 
 λ z z_in, h' (mem_ball_comp h z_in)
 
 lemma ball_mono {V W : set (β × β)} (h : V ⊆ W) (x : β) : ball x V ⊆ ball x W :=
-by tauto
+preimage_mono h
+
+lemma ball_inter (x : β) (V W : set (β × β)) : ball x (V ∩ W) = ball x V ∩ ball x W :=
+preimage_inter
 
 lemma ball_inter_left (x : β) (V W : set (β × β)) : ball x (V ∩ W) ⊆ ball x V :=
 ball_mono (inter_subset_left V W) x
@@ -1055,9 +1058,9 @@ instance : has_inf (uniform_space α) :=
         (le_trans (lift'_mono inf_le_left le_rfl) u₁.comp)
         (le_trans (lift'_mono inf_le_right le_rfl) u₂.comp) }) $
     eq_of_nhds_eq_nhds $ λ a, begin
-      rw [nhds_inf, nhds_eq_uniformity, nhds_eq_uniformity, ←lift'_inf, nhds_eq_uniformity],
-      { refl },
-      { exact λ a b, preimage_inter },
+      rw [nhds_inf, nhds_eq_uniformity, nhds_eq_uniformity, ←lift'_inf _ _ (ball_inter _),
+        nhds_eq_uniformity],
+      refl
     end ⟩
 
 instance : complete_lattice (uniform_space α) :=
@@ -1213,7 +1216,7 @@ begin
   change (infi u).uniformity.lift' (preimage $ prod.mk a) = _,
   rw [infi_uniformity, lift'_infi_of_map_univ _ preimage_univ],
   { simp only [nhds_eq_uniformity], refl },
-  { exact λ a b, preimage_inter }
+  { exact ball_inter _ }
 end
 
 lemma to_topological_space_Inf {s : set (uniform_space α)} :

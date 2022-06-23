@@ -3,8 +3,7 @@ Copyright (c) 2022 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import logic.embedding
-import data.nat.pairing
+import data.nat.basic
 
 /-!
 # Countable `Sort*`s and `Type*`s
@@ -60,36 +59,25 @@ protected lemma equiv.countable [countable β] (e : α ≃ β) : countable α :=
 lemma equiv.countable_iff (e : α ≃ β) : countable α ↔ countable β :=
 ⟨λ h, @equiv.countable _ _ h e.symm, λ h, @equiv.countable _ _ h e⟩
 
+instance {β : Type v} [countable β] : countable (ulift.{u} β) :=
+equiv.ulift.injective.countable
+
 /-!
 ### Operations on and `Sort*`s
 -/
 
 instance [countable α] : countable (plift α) := equiv.plift.injective.countable
 
-instance [countable α] [countable β] : countable (pprod α β) :=
-let ⟨f⟩ := nonempty_embedding_nat α, ⟨g⟩ := nonempty_embedding_nat β in
-((f.pprod_map g).trans (equiv.pprod_equiv_prod.trans nat.mkpair_equiv).to_embedding).countable
-
-instance {π : α → Sort*} [countable α] [∀ a, countable (π a)] : countable (Σ' a, π a) :=
-begin
-  cases nonempty_embedding_nat α with f,
-  set g : Π a : α, π a ↪ ℕ := λ a, (nonempty_embedding_nat (π a)).some,
-  refine ⟨⟨⟨λ x, nat.mkpair (f x.1) (g x.1 x.2), _⟩⟩⟩,
-  rintro ⟨a₁, b₁⟩ ⟨a₂, b₂⟩ h,
-  simp only [nat.mkpair_eq_mkpair, embedding.apply_eq_iff_eq] at h,
-  rcases h with ⟨rfl, h⟩,
-  obtain rfl : b₁ = b₂ := (g a₁).injective h,
-  refl
-end
-
 @[priority 100]
 instance subsingleton.to_countable [subsingleton α] : countable α :=
 ⟨⟨⟨λ _, 0, λ x y h, subsingleton.elim x y⟩⟩⟩
 
+instance : countable punit.{u} := subsingleton.to_countable
+
 instance Prop.countable' (p : Prop) : countable p := subsingleton.to_countable
 
 instance bool.countable : countable bool :=
-⟨⟨⟨λ b, cond b 0 1, bool.injective_iff.2 one_ne_zero⟩⟩⟩
+⟨⟨⟨λ b, cond b 0 1, bool.injective_iff.2 nat.one_ne_zero⟩⟩⟩
 
 instance : countable Prop := equiv.Prop_equiv_bool.countable
 
@@ -111,6 +99,9 @@ begin
   exacts [h ▸ rfl, h.elim, h.elim, h ▸ rfl]
 end
 
+instance [countable α] {r : α → α → Prop} : countable (quot r) := (surjective_quot_mk r).countable
+instance [countable α] {s : setoid α} : countable (quotient s) := quot.countable
+
 end sort
 
 /-!
@@ -124,12 +115,3 @@ instance [countable α] [countable β] : countable (α ⊕ β) :=
 
 instance [countable α] : countable (option α) :=
 (equiv.option_equiv_sum_punit α).countable
-
-instance [countable β] : countable (ulift.{u} β) :=
-equiv.ulift.injective.countable
-
-instance [countable α] [countable β] : countable (α × β) :=
-equiv.pprod_equiv_prod.symm.countable
-
-instance {π : α → Type*} [countable α] [∀ a, countable (π a)] : countable (Σ a, π a) :=
-(equiv.psigma_equiv_sigma π).symm.countable

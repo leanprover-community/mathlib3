@@ -54,6 +54,8 @@ theorem encode_injective [encodable α] : function.injective (@encode α _)
 @[simp] lemma encode_inj [encodable α] {a b : α} : encode a = encode b ↔ a = b :=
 encode_injective.eq_iff
 
+@[priority 900] instance [encodable α] : countable α := encode_injective.countable
+
 lemma surjective_decode_iget (α : Type*) [encodable α] [inhabited α] :
   surjective (λ n, (encodable.decode α n).iget) :=
 λ x, ⟨encodable.encode x, by simp_rw [encodable.encodek]⟩
@@ -299,36 +301,58 @@ by cases a; refl
 
 end subtype
 
-instance _root_.fin.encodable (n) : encodable (fin n) :=
-subtype.encodable
-
-instance _root_.int.encodable : encodable ℤ :=
-of_equiv _ equiv.int_equiv_nat
-
-instance _root_.pnat.encodable : encodable ℕ+ :=
-of_equiv _ equiv.pnat_equiv_nat
-
-/-- The lift of an encodable type is encodable. -/
-instance _root_.ulift.encodable [encodable α] : encodable (ulift α) :=
-of_equiv _ equiv.ulift
-
-/-- The lift of an encodable type is encodable. -/
-instance _root_.plift.encodable [encodable α] : encodable (plift α) :=
-of_equiv _ equiv.plift
-
 /-- If `β` is encodable and there is an injection `f : α → β`, then `α` is encodable as well. -/
 noncomputable def of_inj [encodable β] (f : α → β) (hf : injective f) : encodable α :=
 of_left_injection f (partial_inv f) (λ x, (partial_inv_of_injective hf _ _).2 rfl)
 
+/-- If `α` is countable, then it has a (non-canonical) `encodable` structure. -/
+noncomputable def of_countable (α : Type*) [countable α] : encodable α :=
+nonempty.some $ let ⟨e⟩ := nonempty_embedding_nat α in ⟨of_inj e e.injective⟩
+
+@[simp] lemma nonempty_encodable : nonempty (encodable α) ↔ countable α :=
+⟨λ ⟨h⟩, @encodable.countable α h, λ h, ⟨@of_countable _ h⟩⟩
+
 end encodable
+
+instance (n) : encodable (fin n) := subtype.encodable
+
+instance : encodable ℤ := encodable.of_equiv _ equiv.int_equiv_nat
+instance : countable ℤ := encodable.countable
+
+instance : encodable ℕ+ := encodable.of_equiv _ equiv.pnat_equiv_nat
+instance : countable ℕ+ := encodable.countable
+
+/-- The lift of an encodable type is encodable. -/
+instance {α} [encodable α] : encodable (ulift α) := encodable.of_equiv _ equiv.ulift
+
+/-- The lift of an encodable type is encodable. -/
+instance {α} [encodable α] : encodable (plift α) := encodable.of_equiv _ equiv.plift
+
+section countable
+
+instance {α β : Type*} [countable α] [countable β] : countable (α × β) :=
+by { haveI := encodable.of_countable α, haveI := encodable.of_countable β, apply_instance }
+
+instance {α β : Sort*} [countable α] [countable β] : countable (pprod α β) :=
+equiv.pprod_equiv_prod_plift.countable
+
+instance {α : Type*} {β : α → Type*} [countable α] [∀ a, countable (β a)] : countable (Σ a, β a) :=
+by { haveI := encodable.of_countable α, haveI := λ a, encodable.of_countable (β a), apply_instance }
+
+instance {α : Sort*} {β : α → Sort*} [countable α] [∀ a, countable (β a)] : countable (Σ' a, β a) :=
+(equiv.psigma_equiv_sigma_plift β).countable
+
+end countable
 
 section ulower
 local attribute [instance, priority 100] encodable.decidable_range_encode
 
 /-- `ulower α : Type` is an equivalent type in the lowest universe, given `encodable α`. -/
-@[derive decidable_eq, derive encodable]
+@[derive [decidable_eq, encodable]]
 def ulower (α : Type*) [encodable α] : Type :=
 set.range (encodable.encode : α → ℕ)
+
+instance {α : Type*} [encodable α] : countable (ulower α) := subtype.countable
 
 end ulower
 
@@ -421,8 +445,6 @@ There is a total ordering on the elements of an encodable type, induced by the m
 /-- The `encode` function, viewed as an embedding. -/
 def encode' (α) [encodable α] : α ↪ ℕ :=
 ⟨encodable.encode, encodable.encode_injective⟩
-
-@[priority 200] instance {α} [encodable α] : countable α := ⟨⟨encode' α⟩⟩
 
 instance {α} [encodable α] : is_trans _ (encode' α ⁻¹'o (≤)) :=
 (rel_embedding.preimage _ _).is_trans

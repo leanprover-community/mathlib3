@@ -5,6 +5,7 @@ Authors: Mario Carneiro
 -/
 import data.finset.sort
 import logic.denumerable
+import data.finite.basic
 
 /-!
 # Equivalences involving `list`-like types
@@ -40,6 +41,9 @@ def decode_list : ℕ → option (list α)
 instance _root_.list.encodable : encodable (list α) :=
 ⟨encode_list, decode_list, λ l,
   by induction l with a l IH; simp [encode_list, decode_list, unpair_mkpair, encodek, *]⟩
+
+instance _root_.list.countable {α : Type*} [countable α] : countable (list α) :=
+by { haveI := encodable.of_countable α, apply_instance }
 
 @[simp] theorem encode_list_nil : encode (@nil α) = 0 := rfl
 @[simp] theorem encode_list_cons (a : α) (l : list α) :
@@ -88,6 +92,10 @@ instance _root_.multiset.encodable : encodable (multiset α) :=
 ⟨encode_multiset, decode_multiset,
  λ s, by simp [encode_multiset, decode_multiset, encodek]⟩
 
+/-- If `α` is countable, then so is `multiset α`. -/
+instance _root_.multiset.countable {α : Type*} [countable α] : countable (multiset α) :=
+quotient.countable
+
 end finset
 
 /-- A listable type with decidable equality is encodable. -/
@@ -110,11 +118,14 @@ noncomputable def _root_.fintype.to_encodable (α : Type*) [fintype α] : encoda
 by { classical, exact (fintype.trunc_encodable α).out }
 
 @[priority 100]
-instance _root_.fintype.countable [fintype α] : countable α :=
-by { haveI := fintype.encodable α, exact encodable.countable }
+instance _root_.finite.countable [finite α] : countable α :=
+by { haveI := fintype.of_finite α, haveI := fintype.to_encodable α, exact encodable.countable }
 
 /-- If `α` is encodable, then so is `vector α n`. -/
 instance _root_.vector.encodable [encodable α] {n} : encodable (vector α n) := subtype.encodable
+
+/-- If `α` is countable, then so is `vector α n`. -/
+instance _root_.vector.countable [countable α] {n} : countable (vector α n) := subtype.countable
 
 /-- If `α` is encodable, then so is `fin n → α`. -/
 instance fin_arrow [encodable α] {n} : encodable (fin n → α) :=
@@ -127,11 +138,19 @@ of_equiv _ (equiv.pi_equiv_subtype_sigma (fin n) π)
 instance _root_.array.encodable [encodable α] {n} : encodable (array n α) :=
 of_equiv _ (equiv.array_equiv_fin _ _)
 
+/-- If `α` is countable, then so is `array n α`. -/
+instance _root_.array.countable [countable α] {n} : countable (array n α) :=
+by { haveI := encodable.of_countable α, apply_instance }
+
 /-- If `α` is encodable, then so is `finset α`. -/
 instance _root_.finset.encodable [encodable α] : encodable (finset α) :=
 by haveI := decidable_eq_of_encodable α; exact
  of_equiv {s : multiset α // s.nodup}
   ⟨λ ⟨a, b⟩, ⟨a, b⟩, λ ⟨a, b⟩, ⟨a, b⟩, λ ⟨a, b⟩, rfl, λ ⟨a, b⟩, rfl⟩
+
+/-- If `α` is countable, then so is `finset α`. -/
+instance _root_.finset.countable [countable α] : countable (finset α) :=
+by { haveI := encodable.of_countable α, apply_instance }
 
 -- TODO: Unify with `fintype_pi` and find a better name
 /-- When `α` is finite and `β` is encodable, `α → β` is encodable too. Because the encoding is not
@@ -149,6 +168,18 @@ def fintype_pi (α : Type*) (π : α → Type*) [decidable_eq α] [fintype α] [
 (fintype.trunc_encodable α).bind $ λ a,
   (@fintype_arrow α (Σa, π a) _ _ (@sigma.encodable _ _ a _)).bind $ λ f,
   trunc.mk $ @encodable.of_equiv _ _ (@subtype.encodable _ _ f _) (equiv.pi_equiv_subtype_sigma α π)
+
+/-- If `α` is finite and each `π a`, `a : α`, is countable, then `Π a, π a` is countable. -/
+instance _root_.pi.countable {α : Sort*} {π : α → Sort*} [finite α] [∀ a, countable (π a)] :
+  countable (Π a, π a) :=
+begin
+  haveI := fintype.of_finite (plift α),
+  haveI := λ a, encodable.of_countable (plift (π a)),
+  haveI H : countable (Π a : plift α, plift (π (equiv.plift a))),
+  { rcases fintype_pi (plift α) (λ a, plift (π a.down)) with ⟨H⟩,
+    exact @encodable.countable _ H },
+  exact (equiv.plift.Pi_congr (λ a, equiv.plift)).symm.countable
+end
 
 /-- The elements of a `fintype` as a sorted list. -/
 def sorted_univ (α) [fintype α] [encodable α] : list α :=

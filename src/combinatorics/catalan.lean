@@ -58,8 +58,8 @@ private def gosper_catalan (n j : ℕ) : ℚ :=
 nat.central_binom j * nat.central_binom (n - j) * (2 * j - n) / (2 * n * (n + 1))
 
 private lemma gosper_trick {n i : ℕ} (h : i ≤ n) :
-gosper_catalan (n+1) (i+1) - gosper_catalan (n+1) i =
-nat.central_binom i / (i + 1) * nat.central_binom (n - i) / (n - i + 1) :=
+  gosper_catalan (n+1) (i+1) - gosper_catalan (n+1) i =
+  nat.central_binom i / (i + 1) * nat.central_binom (n - i) / (n - i + 1) :=
 begin
   have : (n:ℚ) + 1 ≠ 0 := by exact_mod_cast n.succ_ne_zero,
   have : (n:ℚ) + 1 + 1 ≠ 0 := by exact_mod_cast (n + 1).succ_ne_zero,

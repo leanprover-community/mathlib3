@@ -110,9 +110,8 @@ section
 -- the expression we use here is equivalent.
 local attribute [semireducible] reflected
 meta instance reflect : has_reflect ℤ :=
-int.mk_numeral `(by apply_instance : has_zero ℤ)
-  `(by apply_instance : has_one ℤ) `(by apply_instance : has_add ℤ)
-  `(by apply_instance : has_neg ℤ) `(by apply_instance : has_div ℤ)
+int.mk_numeral `(ℤ) `(by apply_instance : has_zero ℤ) `(by apply_instance : has_one ℤ)
+                    `(by apply_instance : has_add ℤ) `(by apply_instance : has_neg ℤ)
 end
 
 attribute [simp] int.coe_nat_add int.coe_nat_mul int.coe_nat_zero int.coe_nat_one int.coe_nat_succ

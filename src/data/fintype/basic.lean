@@ -786,6 +786,17 @@ instance (n : ℕ) : fintype (fin n) :=
 
 lemma fin.univ_def (n : ℕ) : (univ : finset (fin n)) = finset.fin_range n := rfl
 
+@[simp] theorem multiset.map_of_fin_card (s : multiset α) :
+  (univ : finset (fin s.card)).val.map s.of_fin_card = s :=
+begin
+  conv_rhs { rw ← s.coe_to_list },
+  convert multiset.coe_map _ _,
+  convert ← s.to_list.map_nth_le.symm,
+  { exact s.length_to_list },
+  { rw fin.heq_fun_iff s.length_to_list, intro, refl },
+  { exact s.length_to_list },
+end
+
 @[simp] theorem fintype.card_fin (n : ℕ) : fintype.card (fin n) = n :=
 list.length_fin_range n
 

@@ -138,21 +138,13 @@ end
 
 @[simp] lemma le_symm_diff_iff_left : a ≤ a ∆ b ↔ disjoint a b :=
 begin
-  refine ⟨λ h, _, λ h, _⟩,
-  { rw symm_diff_eq_sup_sdiff_inf at h,
-    exact (le_sdiff_iff.1 $ inf_le_of_left_le h).le },
-  { rw h.symm_diff_eq_sup,
-    exact le_sup_left }
+  refine ⟨λ h, _, λ h, h.symm_diff_eq_sup.symm ▸ le_sup_left⟩,
+  rw symm_diff_eq_sup_sdiff_inf at h,
+  exact (le_sdiff_iff.1 $ inf_le_of_left_le h).le,
 end
 
 @[simp] lemma le_symm_diff_iff_right : b ≤ a ∆ b ↔ disjoint a b :=
-begin
-  refine ⟨λ h, _, λ h, _⟩,
-  { rw symm_diff_eq_sup_sdiff_inf at h,
-    exact (le_sdiff_iff.1 $ inf_le_of_right_le h).le },
-  { rw h.symm_diff_eq_sup,
-    exact le_sup_right }
-end
+by rw [symm_diff_comm, le_symm_diff_iff_left, disjoint.comm]
 
 lemma symm_diff_symm_diff_left :
   a ∆ b ∆ c = (a \ (b ⊔ c)) ⊔ (b \ (a ⊔ c)) ⊔ (c \ (a ⊔ b)) ⊔ (a ⊓ b ⊓ c) :=
@@ -203,7 +195,7 @@ namespace equiv
 `(equiv.symm_diff a).symm b` defeq to `a ∆ b` and `b ∆ a` for convenience. -/
 protected def symm_diff (a : α) : α ≃ α :=
 { to_fun := (∆) a,
-  inv_fun := λ b, b ∆ a,
+  inv_fun := (∆ a),
   left_inv := symm_diff_symm_diff_self' _,
   right_inv := λ b, by rw [←symm_diff_assoc, symm_diff_symm_diff_self'] }
 

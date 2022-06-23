@@ -255,7 +255,7 @@ end
 lemma balanced.smul_eq (hA : balanced 𝕜 A) (ha : ∥a∥ = 1) : a • A = A :=
 (hA _ ha.le).antisymm $ hA.subset_smul ha.ge
 
-lemma balanced_mem_smul_iff (hs : balanced 𝕜 A) {x : E} {a b : 𝕜} (h : ∥a∥ = ∥b∥) :
+lemma balanced.mem_smul_iff (hs : balanced 𝕜 A) {x : E} {a b : 𝕜} (h : ∥a∥ = ∥b∥) :
   a • x ∈ A ↔ b • x ∈ A :=
 begin
   by_cases ha : a = 0,

@@ -435,26 +435,26 @@ section has_Inf
 variables [has_Inf α] {f g : ι → α}
 
 lemma Inf_range : Inf (range f) = infi f := rfl
-lemma Inf_eq_infi' : ∀ s : set α, Inf s = ⨅ a : s, a := @Sup_eq_supr' αᵒᵈ _
+lemma Inf_eq_infi' (s : set α) : Inf s = ⨅ a : s, a := @Sup_eq_supr' αᵒᵈ _ _
 
 lemma infi_congr (h : ∀ i, f i = g i) : (⨅ i, f i) = ⨅ i, g i := congr_arg _ $ funext h
 
-lemma function.surjective.infi_comp : ∀ {f : ι → ι'} (hf : surjective f) (g : ι' → α),
+lemma function.surjective.infi_comp {f : ι → ι'} (hf : surjective f) (g : ι' → α) :
   (⨅ x, g (f x)) = ⨅ y, g y :=
-@function.surjective.supr_comp αᵒᵈ _ _ _
+@function.surjective.supr_comp αᵒᵈ _ _  _ f hf g
 
-lemma function.surjective.infi_congr : ∀ {g : ι' → α} (h : ι → ι') (h1 : surjective h)
-  (h2 : ∀ x, g (h x) = f x), infi f = ⨅ y, g y :=
-@function.surjective.supr_congr αᵒᵈ _ _ _ _
+lemma function.surjective.infi_congr {g : ι' → α} (h : ι → ι') (h1 : surjective h)
+  (h2 : ∀ x, g (h x) = f x) : (⨅ x, f x) = ⨅ y, g y :=
+@function.surjective.supr_congr αᵒᵈ _ _ _ _ _ h h1 h2
 
-@[congr]lemma infi_congr_Prop : ∀ {p q : Prop} {f₁ : p → α} {f₂ : q → α}
-  (pq : p ↔ q) (f : ∀ x, f₁ (pq.mpr x) = f₂ x), infi f₁ = infi f₂ :=
-@supr_congr_Prop αᵒᵈ _
+@[congr]lemma infi_congr_Prop {p q : Prop} {f₁ : p → α} {f₂ : q → α}
+  (pq : p ↔ q) (f : ∀ x, f₁ (pq.mpr x) = f₂ x) : infi f₁ = infi f₂ :=
+@supr_congr_Prop αᵒᵈ _ p q f₁ f₂ pq f
 
-lemma infi_range' : ∀ (g : β → α) (f : ι → β), (⨅ b : range f, g b) = ⨅ i, g (f i) :=
-@supr_range' αᵒᵈ _ _ _
+lemma infi_range' (g : β → α) (f : ι → β) : (⨅ b : range f, g b) = ⨅ i, g (f i) :=
+@supr_range' αᵒᵈ _ _ _ _ _
 
-lemma Inf_image' : ∀ {s : set β} {f : β → α}, Inf (f '' s) = ⨅ a : s, f a := @Sup_image' αᵒᵈ _ _
+lemma Inf_image' {s : set β} {f : β → α} : Inf (f '' s) = ⨅ a : s, f a := @Sup_image' αᵒᵈ _ _ _ _
 
 end has_Inf
 
@@ -694,9 +694,9 @@ Sup_eq_of_forall_le_of_forall_lt_exists_gt (forall_range_iff.mpr h₁)
 is smaller than `f i` for all `i`, and that this is not the case of any `w>b`.
 See `cinfi_eq_of_forall_ge_of_forall_gt_exists_lt` for a version in conditionally complete
 lattices. -/
-theorem infi_eq_of_forall_ge_of_forall_gt_exists_lt : ∀ {f : ι → α} (h₁ : ∀ i, b ≤ f i)
-  (h₂ : ∀ w, b < w → (∃ i, f i < w)), (⨅ (i : ι), f i) = b :=
-@supr_eq_of_forall_le_of_forall_lt_exists_gt αᵒᵈ _ _ _
+theorem infi_eq_of_forall_ge_of_forall_gt_exists_lt :
+  (∀ i, b ≤ f i) → (∀ w, b < w → ∃ i, f i < w) → (⨅ i, f i) = b :=
+@supr_eq_of_forall_le_of_forall_lt_exists_gt αᵒᵈ _ _ _ _
 
 lemma supr_eq_dif {p : Prop} [decidable p] (a : p → α) :
   (⨆ h : p, a h) = if h : p then a h else ⊥ :=
@@ -747,17 +747,17 @@ end
   (⨆ x, ⨆ h : x = b, f x h) = f b rfl :=
 (@le_supr₂ _ _ _ _ f b rfl).antisymm' (supr_le $ λ c, supr_le $ by { rintro rfl, refl })
 
-@[simp] theorem infi_infi_eq_left : ∀ {b : β} {f : Π x : β, x = b → α},
+@[simp] theorem infi_infi_eq_left {b : β} {f : Π x : β, x = b → α} :
   (⨅ x, ⨅ h : x = b, f x h) = f b rfl :=
-@supr_supr_eq_left αᵒᵈ _ _
+@supr_supr_eq_left αᵒᵈ _ _ _ _
 
 @[simp] theorem supr_supr_eq_right {b : β} {f : Π x : β, b = x → α} :
   (⨆ x, ⨆ h : b = x, f x h) = f b rfl :=
 (le_supr₂ b rfl).antisymm' (supr₂_le $ λ c, by { rintro rfl, refl })
 
-@[simp] theorem infi_infi_eq_right : ∀ {b : β} {f : Π x : β, b = x → α},
+@[simp] theorem infi_infi_eq_right {b : β} {f : Π x : β, b = x → α} :
   (⨅ x, ⨅ h : b = x, f x h) = f b rfl :=
-@supr_supr_eq_right αᵒᵈ _ _
+@supr_supr_eq_right αᵒᵈ _ _ _ _
 
 attribute [ematch] le_refl
 
@@ -859,9 +859,9 @@ le_antisymm
   end)
   (sup_le (supr_comp_le _ _) (supr_comp_le _ _))
 
-theorem infi_or : ∀ {p q : Prop} {s : p ∨ q → α},
-  infi s = (⨅ h : p, s (or.inl h)) ⊓ (⨅ h : q, s (or.inr h)) :=
-@supr_or αᵒᵈ _
+theorem infi_or {p q : Prop} {s : p ∨ q → α} :
+  (⨅ x, s x) = (⨅ i, s (or.inl i)) ⊓ (⨅ j, s (or.inr j)) :=
+@supr_or αᵒᵈ _ _ _ _
 
 section
 
@@ -920,26 +920,24 @@ theorem infi_union {f : β → α} {s t : set β} :
 @supr_union αᵒᵈ _ _ _ _ _
 
 lemma supr_split (f : β → α) (p : β → Prop) :
-  supr f = (⨆ i (h : p i), f i) ⊔ (⨆ i (h : ¬ p i), f i) :=
+  (⨆ i, f i) = (⨆ i (h : p i), f i) ⊔ (⨆ i (h : ¬ p i), f i) :=
 by simpa [classical.em] using @supr_union _ _ _ f {i | p i} {i | ¬ p i}
 
 lemma infi_split : ∀ (f : β → α) (p : β → Prop),
-  infi f = (⨅ i (h : p i), f i) ⊓ (⨅ i (h : ¬ p i), f i) :=
+  (⨅ i, f i) = (⨅ i (h : p i), f i) ⊓ (⨅ i (h : ¬ p i), f i) :=
 @supr_split αᵒᵈ _ _
 
-lemma supr_split_single (f : β → α) (i₀ : β) : supr f = f i₀ ⊔ (⨆ i (h : i ≠ i₀), f i) :=
+lemma supr_split_single (f : β → α) (i₀ : β) : (⨆ i, f i) = f i₀ ⊔ ⨆ i (h : i ≠ i₀), f i :=
 by { convert supr_split _ _, simp }
 
-lemma infi_split_single : ∀ (f : β → α) (i₀ : β), infi f = f i₀ ⊓ (⨅ i (h : i ≠ i₀), f i) :=
-@supr_split_single αᵒᵈ _ _
+lemma infi_split_single (f : β → α) (i₀ : β) : (⨅ i, f i) = f i₀ ⊓ ⨅ i (h : i ≠ i₀), f i :=
+@supr_split_single αᵒᵈ _ _ _ _
 
-theorem supr_le_supr_of_subset {f : β → α} {s t : set β} (h : s ⊆ t) :
-  (⨆ x ∈ s, f x) ≤ ⨆ x ∈ t, f x :=
-by { rw [(union_eq_self_of_subset_left h).symm, supr_union], exact le_sup_left }
+lemma supr_le_supr_of_subset {f : β → α} {s t : set β} : s ⊆ t → (⨆ x ∈ s, f x) ≤ ⨆ x ∈ t, f x :=
+bsupr_mono
 
-theorem infi_le_infi_of_subset  {f : β → α} {s t : set β} :
-  s ⊆ t → (⨅ x ∈ t, f x) ≤ ⨅ x ∈ s, f x :=
-@supr_le_supr_of_subset αᵒᵈ _ _ _ _ _
+lemma infi_le_infi_of_subset {f : β → α} {s t : set β} : s ⊆ t → (⨅ x ∈ t, f x) ≤ ⨅ x ∈ s, f x :=
+binfi_mono
 
 theorem supr_insert {f : β → α} {s : set β} {b : β} :
   (⨆ x ∈ insert b s, f x) = f b ⊔ (⨆ x ∈ s, f x) :=
@@ -976,9 +974,8 @@ begin
   simp [extend_apply he, extend_apply', @supr_comm _ β ι, supr_exists] { contextual := tt }
 end
 
-theorem infi_extend_top : ∀ {e : ι → β} (he : injective e) (f : ι → α),
-  (⨅ j, extend e f ⊤ j) = infi f :=
-@supr_extend_bot αᵒᵈ _ _ _
+lemma infi_extend_top {e : ι → β} (he : injective e) (f : ι → α) : (⨅ j, extend e f ⊤ j) = infi f :=
+@supr_extend_bot αᵒᵈ _ _ _ _ he _
 
 /-!
 ### `supr` and `infi` under `Type`
@@ -1019,10 +1016,10 @@ eq_of_forall_ge_iff $ λ c, by simp only [supr_le_iff, sigma.forall]
 theorem infi_sigma {p : β → Type*} {f : sigma p → α} : (⨅ x, f x) = ⨅ i j, f ⟨i, j⟩ :=
 @supr_sigma αᵒᵈ _ _ _ _
 
-theorem supr_prod {f : β × γ → α} : supr f = (⨆ i j, f (i, j)) :=
+theorem supr_prod {f : β × γ → α} : (⨆ x, f x) = ⨆ i j, f (i, j) :=
 eq_of_forall_ge_iff $ λ c, by simp only [supr_le_iff, prod.forall]
 
-theorem infi_prod {f : β × γ → α} : infi f = (⨅ i j, f (i, j)) := @supr_prod αᵒᵈ _ _ _ _
+theorem infi_prod {f : β × γ → α} : (⨅ x, f x)  = ⨅ i j, f (i, j) := @supr_prod αᵒᵈ _ _ _ _
 
 lemma bsupr_prod {f : β × γ → α} {s : set β} {t : set γ} :
   (⨆ x ∈ s ×ˢ t, f x) = ⨆ (a ∈ s) (b ∈ t), f (a, b) :=

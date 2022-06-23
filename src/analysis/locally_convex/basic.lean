@@ -255,6 +255,25 @@ end
 lemma balanced.smul_eq (hA : balanced 𝕜 A) (ha : ∥a∥ = 1) : a • A = A :=
 (hA _ ha.le).antisymm $ hA.subset_smul ha.ge
 
+lemma balanced_mem_smul_iff (hs : balanced 𝕜 A) {x : E} {a b : 𝕜} (h : ∥a∥ = ∥b∥) :
+  a • x ∈ A ↔ b • x ∈ A :=
+begin
+  by_cases ha : a = 0,
+  { rw [ha, norm_zero, @comm _ (=), norm_eq_zero] at h,
+    rw [ha, h] },
+  have hb' : ¬∥b∥ = 0 := ne_of_eq_of_ne (eq.symm h) (norm_ne_zero_iff.mpr ha),
+  have hb : ¬b = 0 := norm_ne_zero_iff.mp hb',
+  split,
+  { intros h',
+    rw [←inv_mul_cancel_right₀ ha b, ←smul_eq_mul, smul_assoc],
+    refine balanced_iff_mem.mp hs h' _,
+    simp[h, hb'] },
+  { intros h',
+    rw [←inv_mul_cancel_right₀ hb a, ←smul_eq_mul, smul_assoc],
+    refine balanced_iff_mem.mp hs h' _,
+    simp[h, hb'] },
+end
+
 lemma absorbs.inter (hs : absorbs 𝕜 s u) (ht : absorbs 𝕜 t u) : absorbs 𝕜 (s ∩ t) u :=
 begin
   obtain ⟨a, ha, hs⟩ := hs,

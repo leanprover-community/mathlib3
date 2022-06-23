@@ -1440,6 +1440,20 @@ h.mono $ λ x, mt
   (s \ s' : set α) ≤ᶠ[l] (t \ t' : set α) :=
 h.inter h'.compl
 
+lemma eventually_le.mul_le_mul [ordered_semiring β] {l : filter α} {f₁ f₂ g₁ g₂ : α → β}
+  (hf : f₁ ≤ᶠ[l] f₂) (hg : g₁ ≤ᶠ[l] g₂) (hg₀ : 0 ≤ᶠ[l] g₁) (hf₀ : 0 ≤ᶠ[l] f₂) :
+  f₁ * g₁ ≤ᶠ[l] f₂ * g₂ :=
+by filter_upwards [hf, hg, hg₀, hf₀] with x using mul_le_mul
+
+lemma eventually_le.mul_nonneg [ordered_semiring β] {l : filter α} {f g : α → β}
+  (hf : 0 ≤ᶠ[l] f) (hg : 0 ≤ᶠ[l] g) :
+  0 ≤ᶠ[l] f * g :=
+by filter_upwards [hf, hg] with x using mul_nonneg
+
+lemma eventually_sub_nonneg [ordered_ring β] {l : filter α} {f g : α → β} :
+  0 ≤ᶠ[l] g - f ↔ f ≤ᶠ[l] g :=
+eventually_congr $ eventually_of_forall $ λ x, sub_nonneg
+
 lemma join_le {f : filter (filter α)} {l : filter α} (h : ∀ᶠ m in f, m ≤ l) : join f ≤ l :=
 λ s hs, h.mono $ λ m hm, hm hs
 

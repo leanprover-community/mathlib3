@@ -431,9 +431,14 @@ instance : order_bot (multiset α) :=
   bot_le                := multiset.zero_le }
 
 instance : canonically_ordered_add_monoid (multiset α) :=
-{ le_iff_exists_add     := @le_iff_exists_add _,
+{ le_self_add := le_add_right,
+  exists_add_of_le := λ a b h, le_induction_on h $ λ l₁ l₂ s,
+    let ⟨l, p⟩ := s.exists_perm_append in ⟨l, quot.sound p⟩,
   ..multiset.order_bot,
   ..multiset.ordered_cancel_add_comm_monoid }
+
+/-- This is a `rfl` and `simp` version of `bot_eq_zero`. -/
+@[simp] theorem bot_eq_zero : (⊥ : multiset α) = 0 := rfl
 
 @[simp] theorem cons_add (a : α) (s t : multiset α) : a ::ₘ s + t = a ::ₘ (s + t) :=
 by rw [← singleton_add, ← singleton_add, add_assoc]

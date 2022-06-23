@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro, Jeremy Avigad
 -/
 import order.filter.ultrafilter
 import order.filter.partial
+import order.filter.small_sets
 import algebra.support
 
 /-!
@@ -76,9 +77,9 @@ def topological_space.of_closed {α : Type u} (T : set (set α))
   topological_space α :=
 { is_open := λ X, Xᶜ ∈ T,
   is_open_univ := by simp [empty_mem],
-  is_open_inter := λ s t hs ht, by simpa [set.compl_inter] using union_mem sᶜ hs tᶜ ht,
+  is_open_inter := λ s t hs ht, by simpa only [compl_inter] using union_mem sᶜ hs tᶜ ht,
   is_open_sUnion := λ s hs,
-    by rw set.compl_sUnion; exact sInter_mem (set.compl '' s)
+    by rw set.compl_sUnion; exact sInter_mem (compl '' s)
     (λ z ⟨y, hy, hz⟩, by simpa [hz.symm] using hs y hy) }
 
 section topological_space
@@ -233,7 +234,7 @@ def interior (s : set α) : set α := ⋃₀ {t | is_open t ∧ t ⊆ s}
 
 lemma mem_interior {s : set α} {x : α} :
   x ∈ interior s ↔ ∃ t ⊆ s, is_open t ∧ x ∈ t :=
-by simp only [interior, mem_set_of_eq, exists_prop, and_assoc, and.left_comm]
+by simp only [interior, mem_sUnion, mem_set_of_eq, exists_prop, and_assoc, and.left_comm]
 
 @[simp] lemma is_open_interior {s : set α} : is_open (interior s) :=
 is_open_sUnion $ assume t ⟨h₁, h₂⟩, h₁
@@ -1203,6 +1204,24 @@ lemma locally_finite.comp_injective {ι} {f : β → set α} {g : ι → β} (hf
   (hg : function.injective g) : locally_finite (f ∘ g) :=
 λ x, let ⟨t, htx, htf⟩ := hf x in ⟨t, htx, htf.preimage (hg.inj_on _)⟩
 
+lemma locally_finite.eventually_finite {f : β → set α} (hf : locally_finite f) (x : α) :
+  ∀ᶠ s in (𝓝 x).small_sets, {i | (f i ∩ s).nonempty}.finite :=
+eventually_small_sets.2 $ let ⟨s, hsx, hs⟩ := hf x in
+  ⟨s, hsx, λ t hts, hs.subset $ λ i hi, hi.out.mono $ inter_subset_inter_right _ hts⟩
+
+lemma locally_finite.sum_elim {γ} {f : β → set α} {g : γ → set α} (hf : locally_finite f)
+  (hg : locally_finite g) : locally_finite (sum.elim f g) :=
+begin
+  intro x,
+  obtain ⟨s, hsx, hsf, hsg⟩ :
+    ∃ s, s ∈ 𝓝 x ∧ {i | (f i ∩ s).nonempty}.finite ∧ {j | (g j ∩ s).nonempty}.finite,
+    from ((𝓝 x).frequently_small_sets_mem.and_eventually
+      ((hf.eventually_finite x).and (hg.eventually_finite x))).exists,
+  refine ⟨s, hsx, _⟩,
+  convert (hsf.image sum.inl).union (hsg.image sum.inr) using 1,
+  ext (i|j); simp
+end
+
 lemma locally_finite.closure {f : β → set α} (hf : locally_finite f) :
   locally_finite (λ i, closure (f i)) :=
 begin
@@ -1362,6 +1381,11 @@ lemma continuous_at.iterate {f : α → α} {x : α} (hf : continuous_at f x) (h
 nat.rec_on n continuous_at_id $ λ n ihn,
 show continuous_at (f^[n] ∘ f) x,
 from continuous_at.comp (hx.symm ▸ ihn) hf
+
+lemma locally_finite.preimage_continuous {ι} {f : ι → set α} {g : β → α} (hf : locally_finite f)
+  (hg : continuous g) : locally_finite (λ i, g ⁻¹' (f i)) :=
+λ x, let ⟨s, hsx, hs⟩ := hf (g x)
+  in ⟨g ⁻¹' s, hg.continuous_at hsx, hs.subset $ λ i ⟨y, hy⟩, ⟨g y, hy⟩⟩
 
 lemma continuous_iff_is_closed {f : α → β} :
   continuous f ↔ (∀s, is_closed s → is_closed (f ⁻¹' s)) :=
@@ -1531,13 +1555,9 @@ lemma dense_range.exists_mem_open (hf : dense_range f) {s : set β} (ho : is_ope
 exists_range_iff.1 $ hf.exists_mem_open ho hs
 
 lemma dense_range.mem_nhds {f : κ → β} (h : dense_range f) {b : β} {U : set β}
-  (U_in : U ∈ nhds b) : ∃ a, f a ∈ U :=
-begin
-  rcases (mem_closure_iff_nhds.mp
-    ((dense_range_iff_closure_range.mp h).symm ▸ mem_univ b : b ∈ closure (range f)) U U_in)
-    with ⟨_, h, a, rfl⟩,
-  exact ⟨a, h⟩
-end
+  (U_in : U ∈ 𝓝 b) : ∃ a, f a ∈ U :=
+let ⟨a, ha⟩ := h.exists_mem_open is_open_interior ⟨b, mem_interior_iff_mem_nhds.2 U_in⟩
+in ⟨a, interior_subset ha⟩
 
 end dense_range
 
@@ -1560,7 +1580,7 @@ However, lemmas with this conclusion are not nice to use in practice because
 1. They confuse the elaborator. The following two examples fail, because of limitations in the
   elaboration process.
   ```
-  variables {M : Type*} [has_mul M] [topological_space M] [has_continuous_mul M]
+  variables {M : Type*} [has_add M] [topological_space M] [has_continuous_add M]
   example : continuous (λ x : M, x + x) :=
   continuous_add.comp _
 

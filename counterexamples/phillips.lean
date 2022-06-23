@@ -212,7 +212,7 @@ def restrict (f : bounded_additive_measure α) (t : set α) : bounded_additive_m
 /-- There is a maximal countable set of positive measure, in the sense that any countable set
 not intersecting it has nonpositive measure. Auxiliary lemma to prove `exists_discrete_support`. -/
 lemma exists_discrete_support_nonpos (f : bounded_additive_measure α) :
-  ∃ (s : set α), countable s ∧ (∀ t, countable t → f (t \ s) ≤ 0) :=
+  ∃ (s : set α), s.countable ∧ (∀ t : set α, t.countable → f (t \ s) ≤ 0) :=
 begin
   /- The idea of the proof is to construct the desired set inductively, adding at each step a
   countable set with close to maximal measure among those points that have not already been chosen.
@@ -227,7 +227,7 @@ begin
   by_contra' h,
   -- We will formulate things in terms of the type of countable subsets of `α`, as this is more
   -- convenient to formalize the inductive construction.
-  let A : set (set α) := {t | countable t},
+  let A : set (set α) := {t | t.countable},
   let empty : A := ⟨∅, countable_empty⟩,
   haveI : nonempty A := ⟨empty⟩,
   -- given a countable set `s`, one can find a set `t` in its complement with measure close to
@@ -290,7 +290,7 @@ begin
 end
 
 lemma exists_discrete_support (f : bounded_additive_measure α) :
-  ∃ (s : set α), countable s ∧ (∀ t, countable t → f (t \ s) = 0) :=
+  ∃ s : set α, s.countable ∧ (∀ t : set α, t.countable → f (t \ s) = 0) :=
 begin
   rcases f.exists_discrete_support_nonpos with ⟨s₁, s₁_count, h₁⟩,
   rcases (-f).exists_discrete_support_nonpos with ⟨s₂, s₂_count, h₂⟩,
@@ -312,10 +312,10 @@ def discrete_support (f : bounded_additive_measure α) : set α :=
 (exists_discrete_support f).some
 
 lemma countable_discrete_support (f : bounded_additive_measure α) :
-  countable f.discrete_support :=
+  f.discrete_support.countable :=
 (exists_discrete_support f).some_spec.1
 
-lemma apply_countable (f : bounded_additive_measure α) (t : set α) (ht : countable t) :
+lemma apply_countable (f : bounded_additive_measure α) (t : set α) (ht : t.countable) :
   f (t \ f.discrete_support) = 0 :=
 (exists_discrete_support f).some_spec.2 t ht
 
@@ -343,7 +343,7 @@ lemma discrete_part_apply (f : bounded_additive_measure α) (s : set α) :
   f.discrete_part s = f (f.discrete_support ∩ s) := rfl
 
 lemma continuous_part_apply_eq_zero_of_countable (f : bounded_additive_measure α)
-  (s : set α) (hs : countable s) : f.continuous_part s = 0 :=
+  (s : set α) (hs : s.countable) : f.continuous_part s = 0 :=
 begin
   simp [continuous_part],
   convert f.apply_countable s hs using 2,
@@ -352,7 +352,7 @@ begin
 end
 
 lemma continuous_part_apply_diff (f : bounded_additive_measure α)
-  (s t : set α) (hs : countable s) : f.continuous_part (t \ s) = f.continuous_part t :=
+  (s t : set α) (hs : s.countable) : f.continuous_part (t \ s) = f.continuous_part t :=
 begin
   conv_rhs { rw ← diff_union_inter t s },
   rw [additive, self_eq_add_right],
@@ -449,7 +449,7 @@ We need the continuum hypothesis to construct it.
 -/
 
 theorem sierpinski_pathological_family (Hcont : #ℝ = aleph 1) :
-  ∃ (f : ℝ → set ℝ), (∀ x, countable (univ \ f x)) ∧ (∀ y, countable {x | y ∈ f x}) :=
+  ∃ (f : ℝ → set ℝ), (∀ x, (univ \ f x).countable) ∧ (∀ y, {x : ℝ | y ∈ f x}.countable) :=
 begin
   rcases cardinal.ord_eq ℝ with ⟨r, hr, H⟩,
   resetI,
@@ -477,10 +477,10 @@ contained in only countably many of them. -/
 def spf (Hcont : #ℝ = aleph 1) (x : ℝ) : set ℝ :=
 (sierpinski_pathological_family Hcont).some x
 
-lemma countable_compl_spf (Hcont : #ℝ = aleph 1) (x : ℝ) : countable (univ \ spf Hcont x) :=
+lemma countable_compl_spf (Hcont : #ℝ = aleph 1) (x : ℝ) : (univ \ spf Hcont x).countable :=
 (sierpinski_pathological_family Hcont).some_spec.1 x
 
-lemma countable_spf_mem (Hcont : #ℝ = aleph 1) (y : ℝ) : countable {x | y ∈ spf Hcont x} :=
+lemma countable_spf_mem (Hcont : #ℝ = aleph 1) (y : ℝ) : {x | y ∈ spf Hcont x}.countable :=
 (sierpinski_pathological_family Hcont).some_spec.2 y
 
 /-!
@@ -516,7 +516,7 @@ begin
 end
 
 lemma countable_ne (Hcont : #ℝ = aleph 1) (φ : (discrete_copy ℝ →ᵇ ℝ) →L[ℝ] ℝ) :
-  countable {x | φ.to_bounded_additive_measure.continuous_part univ ≠ φ (f Hcont x)} :=
+  {x | φ.to_bounded_additive_measure.continuous_part univ ≠ φ (f Hcont x)}.countable :=
 begin
   have A : {x | φ.to_bounded_additive_measure.continuous_part univ ≠ φ (f Hcont x)}
     ⊆ {x | φ.to_bounded_additive_measure.discrete_support ∩ spf Hcont x ≠ ∅},

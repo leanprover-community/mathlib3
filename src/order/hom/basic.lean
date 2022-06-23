@@ -377,10 +377,6 @@ protected def with_top_map (f : α →o β) : with_top α →o with_top β :=
 
 end order_hom
 
-lemma order_hom_class.comp_apply [preorder α] [preorder β] [preorder γ] {F G : Type*}
-  [order_hom_class F α β] [order_hom_class G β γ] (f : F) (g : G) {a : α} :
-  (g : β →o γ).comp (f : α →o β) a = g (f a) := rfl
-
 /-- Embeddings of partial orders that preserve `<` also preserve `≤`. -/
 def rel_embedding.order_embedding_of_lt_embedding [partial_order α] [partial_order β]
   (f : ((<) : α → α → Prop) ↪r ((<) : β → β → Prop)) :
@@ -663,8 +659,8 @@ def of_hom_inv {F G : Type*} [order_hom_class F α β] [order_hom_class G β α]
   left_inv := fun_like.congr_fun h₂,
   right_inv := fun_like.congr_fun h₁,
   map_rel_iff' := λ a b, ⟨λ h, by { replace h := map_rel g h, rwa [equiv.coe_fn_mk,
-    ← @order_hom_class.comp_apply α β α _ _ _ F G _ _ f g, ← @order_hom_class.comp_apply α β α _
-      _ _ F G _ _ f g, h₂] at h },
+    (show g (f a) = (g : β →o α).comp (f : α →o β) a, from rfl),
+    (show g (f b) = (g : β →o α).comp (f : α →o β) b, from rfl), h₂] at h },
     λ h, (f : α →o β).monotone h⟩ }
 
 /-- Order isomorphism between two equal sets. -/

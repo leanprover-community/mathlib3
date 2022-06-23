@@ -1338,7 +1338,7 @@ end
 by simpa only [div_eq_mul_inv, one_mul] using sub_half one_ne_top
 
 /-- The birational order isomorphism between `ℝ≥0∞` and the unit interval `set.Iic (1 : ℝ≥0∞)`. -/
-def order_iso_Iic_one_birational : ℝ≥0∞ ≃o Iic (1 : ℝ≥0∞) :=
+@[simps apply_coe] def order_iso_Iic_one_birational : ℝ≥0∞ ≃o Iic (1 : ℝ≥0∞) :=
 begin
   refine strict_mono.order_iso_of_right_inverse (λ x, ⟨(x⁻¹ + 1)⁻¹, inv_le_one.2 $ le_add_self⟩)
     (λ x y hxy, _) (λ x, (x⁻¹ - 1)⁻¹) (λ x, subtype.ext _),
@@ -1346,6 +1346,10 @@ begin
   { have : (1 : ℝ≥0∞) ≤ x⁻¹, from one_le_inv.2 x.2,
     simp only [inv_inv, subtype.coe_mk, tsub_add_cancel_of_le this] }
 end
+
+@[simp] lemma order_iso_Iic_one_birational_symm_apply (x : Iic (1 : ℝ≥0∞)) :
+  order_iso_Iic_one_birational.symm x = (x⁻¹ - 1)⁻¹ :=
+rfl
 
 /-- Order isomorphism between an initial interval in `ℝ≥0∞` and an initial interval in `ℝ≥0`. -/
 @[simps apply_coe] def order_iso_Iic_coe (a : ℝ≥0) : Iic (a : ℝ≥0∞) ≃o Iic a :=
@@ -1364,6 +1368,10 @@ order_iso.symm
 def order_iso_unit_interval_birational : ℝ≥0∞ ≃o Icc (0 : ℝ) 1 :=
 order_iso_Iic_one_birational.trans $ (order_iso_Iic_coe 1).trans $
   (nnreal.order_iso_Icc_zero_coe 1).symm
+
+@[simp] lemma order_iso_unit_interval_birational_apply_coe (x : ℝ≥0∞) :
+  (order_iso_unit_interval_birational x : ℝ) = (x⁻¹ + 1)⁻¹.to_real :=
+rfl
 
 lemma exists_inv_nat_lt {a : ℝ≥0∞} (h : a ≠ 0) :
   ∃n:ℕ, (n:ℝ≥0∞)⁻¹ < a :=

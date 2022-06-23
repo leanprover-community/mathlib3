@@ -255,6 +255,15 @@ by rw [h]; exact fold_congr
 attribute [congr] finset.sum_congr
 
 @[to_additive]
+lemma prod_disj_union (h) :
+  (∏ x in s₁.disj_union s₂ h, f x) = (∏ x in s₁, f x) * (∏ x in s₂, f x) :=
+begin
+  refine eq.trans _ (fold_disj_union h),
+  rw one_mul,
+  refl,
+end
+
+@[to_additive]
 lemma prod_union_inter [decidable_eq α] :
   (∏ x in (s₁ ∪ s₂), f x) * (∏ x in (s₁ ∩ s₂), f x) = (∏ x in s₁, f x) * (∏ x in s₂, f x) :=
 fold_union_inter

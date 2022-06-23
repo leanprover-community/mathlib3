@@ -14,10 +14,6 @@ import tactic.by_contra
 
 open_locale nnreal big_operators polynomial
 
-/-- The ring homomorphism associated to an inclusion of subrings. -/
-def subring.inclusion' {R : Type*} [ring R] {S T : subring R} (h : S ≤ T) : S →+* T :=
-S.subtype.cod_restrict' _ (λ x, h x.2)
-
 namespace little_wedderburn
 
 variables (D : Type*) [division_ring D]
@@ -160,7 +156,7 @@ begin
     simp only [set.mem_to_finset, conj_classes.quot_mk_eq_mk] at hx,
     exact (conj_classes.mk_bij_on (units D)).1 Hx hx },
   letI : field Zx := hD.field _ hZx,
-  letI : algebra Z Zx := (subring.inclusion' $ subring.center_le_centralizer (x : D)).to_algebra,
+  letI : algebra Z Zx := (subring.inclusion $ subring.center_le_centralizer (x : D)).to_algebra,
   let d := finrank Z Zx,
   have card_Zx : fintype.card Zx = q ^ d := card_eq_pow_finrank,
   have h1qd : 1 ≤ q ^ d, { rw ← card_Zx, exact fintype.card_pos },

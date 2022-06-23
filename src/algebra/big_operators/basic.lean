@@ -254,8 +254,8 @@ lemma prod_congr (h : s₁ = s₂) : (∀ x ∈ s₂, f x = g x) → s₁.prod f
 by rw [h]; exact fold_congr
 attribute [congr] finset.sum_congr
 
-@[to_additive] lemma prod_disj_union (h) :
-  ∏ x in s₁.disj_union s₂ h, f x = (∏ x in s₁, f x) * ∏ x in s₂, f x :=
+@[to_additive]
+lemma prod_disj_union (h) : ∏ x in s₁.disj_union s₂ h, f x = (∏ x in s₁, f x) * ∏ x in s₂, f x :=
 by { refine eq.trans _ (fold_disj_union h), rw one_mul, refl }
 
 @[to_additive]

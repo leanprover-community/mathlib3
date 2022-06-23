@@ -91,7 +91,7 @@ protected lemma nonneg : 0 ≤ p x := p.nonneg' _
 protected lemma add_le : p (x + y) ≤ p x + p y := p.add_le' _ _
 @[simp] protected lemma neg : p (- x) = p x := p.neg' _
 
-/-- Any action on `ℝ` which factors through `ℝ≥0` applies to an add_monoid seminorm. -/
+/-- Any action on `ℝ` which factors through `ℝ≥0` applies to an `add_group_seminorm`. -/
 instance [has_scalar R ℝ] [has_scalar R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ] :
   has_scalar R (add_group_seminorm E) :=
 { smul := λ r p,

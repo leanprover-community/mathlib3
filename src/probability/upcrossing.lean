@@ -6,11 +6,9 @@ open_locale nnreal ennreal measure_theory probability_theory big_operators
 
 namespace measure_theory
 
-variables {α ι : Type*} {m0 : measurable_space α} {μ : measure α}
+variables {α : Type*} {m0 : measurable_space α} {μ : measure α}
 
 section upcrossing
-
-variables [preorder ι] [has_Inf ι]
 
 /-- `lower_crossing_aux a f c N` is the first time `f` reached below `a` after time `c` before
 time `N`. -/
@@ -39,11 +37,18 @@ lemma upper_crossing_zero : upper_crossing a b f N 0 = 0 := rfl
 @[simp]
 lemma lower_crossing_zero : lower_crossing a b f N 0 = hitting f (set.Iic a) 0 N := rfl
 
-@[simp]
 lemma upper_crossing_succ :
   upper_crossing a b f N (n + 1) x =
   hitting f (set.Ici b) (lower_crossing_aux a f (upper_crossing a b f N n x) N x) N x :=
 by rw upper_crossing
+
+lemma upper_crossing_succ_eq (x : α) :
+  upper_crossing a b f N (n + 1) x =
+  hitting f (set.Ici b) (lower_crossing a b f N n x) N x :=
+begin
+  simp only [upper_crossing_succ],
+  refl,
+end
 
 lemma upper_crossing_le : upper_crossing a b f N n x ≤ N :=
 begin
@@ -234,6 +239,42 @@ lemma upper_crossing_eq_of_bound_le (hab : a < b) (hN : 0 < N) (hn : N ≤ n) :
   upper_crossing a b f N n x = N :=
 le_antisymm upper_crossing_le
   ((le_trans (upper_crossing_bound_eq f N x hab hN).symm.le (upper_crossing_mono hn)))
+
+variables {ℱ : filtration ℕ m0}
+
+lemma adapted.is_stopping_time_crossing (hf : adapted ℱ f) :
+  is_stopping_time ℱ (upper_crossing a b f N n) ∧ is_stopping_time ℱ (lower_crossing a b f N n) :=
+begin
+  induction n with k ih,
+  { refine ⟨is_stopping_time_const _ 0, _⟩,
+    simp [hitting_is_stopping_time hf measurable_set_Iic] },
+  { obtain ⟨ih₁, ih₂⟩ := ih,
+    have : is_stopping_time ℱ (upper_crossing a b f N (k + 1)),
+    { intro n,
+      simp_rw upper_crossing_succ_eq,
+      exact is_stopping_time_hitting_is_stopping_time ih₂ (λ _, lower_crossing_le)
+        measurable_set_Ici hf _ },
+    refine ⟨this, _⟩,
+    { intro n,
+      exact is_stopping_time_hitting_is_stopping_time this (λ _, upper_crossing_le)
+        measurable_set_Iic hf _ } }
+end
+
+lemma adapted.is_stopping_time_upper_crossing (hf : adapted ℱ f) :
+  is_stopping_time ℱ (upper_crossing a b f N n) :=
+hf.is_stopping_time_crossing.1
+
+lemma adapted.is_stopping_time_lower_crossing (hf : adapted ℱ f) :
+  is_stopping_time ℱ (lower_crossing a b f N n) :=
+hf.is_stopping_time_crossing.2
+
+
+noncomputable
+def upcrossing_strat (a b : ℝ) (f : ℕ → α → ℝ) (N n : ℕ) (x : α) : ℝ :=
+∑ k in finset.range N,
+  (set.Ico (lower_crossing a b f N k x) (upper_crossing a b f N k x)).indicator 1 n
+
+#exit
 
 /-- The number of upcrossings (strictly) before time `N`. -/
 noncomputable

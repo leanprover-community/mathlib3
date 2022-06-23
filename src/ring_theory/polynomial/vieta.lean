@@ -104,7 +104,7 @@ begin
     mv_polynomial.eval_prod, mv_polynomial.eval_X, add_zero, sum_const_zero],
 end
 
-lemma multiset_prod_C_add_X_coeff (s : multiset R) (k : ℕ) (h : k ≤ s.card) :
+lemma _root_.multiset.prod_C_add_X_coeff (s : multiset R) (k : ℕ) (h : k ≤ s.card) :
   (s.map (λ r, polynomial.C r + polynomial.X)).prod.coeff k =
   ((s.powerset_len (s.card - k)).map multiset.prod).sum :=
 begin
@@ -120,7 +120,7 @@ lemma _root_.multiset.prod_X_sub_C_coeff {R} [comm_ring R] (s : multiset R) (k :
   (h : k ≤ s.card) : (s.map (λ r, polynomial.X - polynomial.C r)).prod.coeff k =
   (-1) ^ (s.card - k) * ((s.powerset_len (s.card - k)).map multiset.prod).sum :=
 begin
-  convert multiset_prod_C_add_X_coeff (s.map (λ x, -x)) k _ using 2,
+  convert (s.map (λ x, -x)).prod_C_add_X_coeff k _ using 2,
   { rw multiset.map_map, congr, ext1, rw [sub_eq_add_neg, ← C_neg, add_comm] },
   all_goals { rw multiset.card_map }, swap, { exact h },
   { rw [← multiset.sum_map_mul_left, multiset.powerset_len_map, multiset.map_map],

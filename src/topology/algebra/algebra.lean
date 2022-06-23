@@ -157,6 +157,6 @@ section division_ring
 instance division_ring.has_continuous_const_smul_rat
   {A} [division_ring A] [topological_space A] [has_continuous_mul A] [char_zero A] :
   has_continuous_const_smul ℚ A :=
-⟨λ r, continuous_const.mul continuous_id⟩
+⟨λ r, by { simpa only [algebra.smul_def] using continuous_const.mul continuous_id }⟩
 
 end division_ring

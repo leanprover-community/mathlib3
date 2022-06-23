@@ -241,7 +241,7 @@ hf.sub_supermartingale hg.supermartingale
 
 end submartingale
 
-section
+section submartingale
 
 lemma submartingale_of_set_integral_le [is_finite_measure μ]
   {f : ι → α → ℝ} (hadp : adapted ℱ f) (hint : ∀ i, integrable (f i) μ)
@@ -264,7 +264,29 @@ begin
     set_integral_condexp (ℱ.le i) (hint j) hs],
 end
 
+lemma submartingale_of_condexp_sub_nonneg [is_finite_measure μ]
+  {f : ι → α → ℝ} (hadp : adapted ℱ f) (hint : ∀ i, integrable (f i) μ)
+  (hf : ∀ i j, i ≤ j → 0 ≤ᵐ[μ] μ[f j - f i| ℱ i]) :
+  submartingale f ℱ μ :=
+begin
+  refine ⟨hadp, λ i j hij, _, hint⟩,
+  rw [← condexp_of_strongly_measurable (ℱ.le _) (hadp _) (hint _), ← eventually_sub_nonneg],
+  exact eventually_le.trans (hf i j hij) (condexp_sub (hint _) (hint _)).le,
+  apply_instance
 end
+
+lemma submartingale.condexp_sub_nonneg [is_finite_measure μ]
+  {f : ι → α → ℝ} (hf : submartingale f ℱ μ) {i j : ι} (hij : i ≤ j) :
+  0 ≤ᵐ[μ] μ[f j - f i| ℱ i] :=
+begin
+  refine eventually_le.trans _ (condexp_sub (hf.integrable _) (hf.integrable _)).symm.le,
+  rw [eventually_sub_nonneg,
+    condexp_of_strongly_measurable (ℱ.le _) (hf.adapted _) (hf.integrable _)],
+  exact hf.2.1 i j hij,
+  apply_instance
+end
+
+end submartingale
 
 namespace supermartingale
 
@@ -334,6 +356,40 @@ end submartingale
 section nat
 
 variables {𝒢 : filtration ℕ m0}
+
+lemma submartingale_of_set_integral_le_succ [is_finite_measure μ]
+  {f : ℕ → α → ℝ} (hadp : adapted 𝒢 f) (hint : ∀ i, integrable (f i) μ)
+  (hf : ∀ i, ∀ s : set α, measurable_set[𝒢 i] s → ∫ x in s, f i x ∂μ ≤ ∫ x in s, f (i + 1) x ∂μ) :
+  submartingale f 𝒢 μ :=
+begin
+  refine submartingale_of_set_integral_le hadp hint (λ i j hij s hs, _),
+  induction hij with k hk₁ hk₂,
+  { exact le_rfl },
+  { exact le_trans hk₂ (hf k s (𝒢.mono hk₁ _ hs)) }
+end
+
+lemma submartingale_nat [is_finite_measure μ]
+  {f : ℕ → α → ℝ} (hadp : adapted 𝒢 f) (hint : ∀ i, integrable (f i) μ)
+  (hf : ∀ i, f i ≤ᵐ[μ] μ[f (i + 1) | 𝒢 i]) :
+  submartingale f 𝒢 μ :=
+begin
+  refine submartingale_of_set_integral_le_succ hadp hint (λ i s hs, _),
+  have : ∫ x in s, f (i + 1) x ∂μ = ∫ x in s, μ[f (i + 1)|𝒢 i] x ∂μ :=
+    (set_integral_condexp (𝒢.le i) (hint _) hs).symm,
+  rw this,
+  exact set_integral_mono_ae (hint i).integrable_on integrable_condexp.integrable_on (hf i),
+end
+
+lemma submartingale_of_condexp_sub_nonneg_nat [is_finite_measure μ]
+  {f : ℕ → α → ℝ} (hadp : adapted 𝒢 f) (hint : ∀ i, integrable (f i) μ)
+  (hf : ∀ i, 0 ≤ᵐ[μ] μ[f (i + 1) - f i | 𝒢 i]) :
+  submartingale f 𝒢 μ :=
+begin
+  refine submartingale_nat hadp hint (λ i, _),
+  rw [← condexp_of_strongly_measurable (𝒢.le _) (hadp _) (hint _), ← eventually_sub_nonneg],
+  exact eventually_le.trans (hf i) (condexp_sub (hint _) (hint _)).le,
+  apply_instance
+end
 
 namespace submartingale
 

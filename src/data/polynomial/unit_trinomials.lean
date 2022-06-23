@@ -332,9 +332,9 @@ lemma selmer_irreducible {n : ℕ} (hn : 1 < n) : irreducible (X ^ n - X - 1 : �
 begin
   let p : ℤ[X] := X ^ n - X - 1,
   have hp : is_unit_trinomial p,
-  { refine ⟨0, 1, n, zero_lt_one, hn, 1, -1, -1, is_unit_one, is_unit_one.neg, is_unit_one.neg, _⟩,
+  { refine ⟨0, 1, n, zero_lt_one, hn, -1, -1, 1, is_unit_one.neg, is_unit_one.neg, is_unit_one, _⟩,
     rw [C_neg, neg_mul, neg_mul, C_1, one_mul, one_mul, one_mul, pow_zero, pow_one],
-    sorry },
+    rw [←neg_add, add_comm, add_comm 1 X, ←sub_eq_add_neg, sub_add_eq_sub_sub] },
   /-refine hp.irreducible_of_not_aeval _ _,
   { rw [map_sub, map_sub, map_pow, aeval_X, aeval_one, zero_pow (zero_lt_one.trans hn), sub_zero,
         zero_sub, ne, neg_eq_zero],

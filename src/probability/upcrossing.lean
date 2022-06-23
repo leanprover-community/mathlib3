@@ -415,16 +415,6 @@ begin
     lower_crossing_stabilize' le_rfl (le_trans this upper_crossing_le_lower_crossing)]
 end
 
--- lemma le_sub_stopped_value_upcrossing (hab : a < b) :
---   min (f N x - a) 0 ≤ stopped_value f (upper_crossing a b f N (upcrossing a b f N x + 1)) x -
---   stopped_value f (lower_crossing a b f N (upcrossing a b f N x)) x :=
--- begin
---   simp only [stopped_value, upper_crossing_eq_of_upcrossing_lt hab (nat.lt_succ_self _)],
---   by_cases h : lower_crossing a b f N (upcrossing a b f N x) x = N,
---   { simp [h] },
---   { exact min_le_of_left_le ((sub_le_sub_iff_left _).2 (stopped_value_lower_crossing h)) },
--- end
-
 lemma mul_upcrossing_le (hf : a ≤ f N x) (hN : 0 < N) (hab : a < b) :
   (b - a) * upcrossing a b f N x ≤
   ∑ k in finset.range N, upcrossing_strat a b f N k x * (f (k + 1) - f k) x :=

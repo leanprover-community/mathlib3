@@ -268,11 +268,42 @@ lemma adapted.is_stopping_time_lower_crossing (hf : adapted ℱ f) :
   is_stopping_time ℱ (lower_crossing a b f N n) :=
 hf.is_stopping_time_crossing.2
 
-
 noncomputable
 def upcrossing_strat (a b : ℝ) (f : ℕ → α → ℝ) (N n : ℕ) (x : α) : ℝ :=
 ∑ k in finset.range N,
   (set.Ico (lower_crossing a b f N k x) (upper_crossing a b f N k x)).indicator 1 n
+
+lemma upcrossing_strat_nonneg : 0 ≤ upcrossing_strat a b f N n x :=
+finset.sum_nonneg (λ i hi, set.indicator_nonneg (λ x hx, zero_le_one) _)
+
+lemma upcrossing_strat_bdd : upcrossing_strat a b f N n x ≤ N :=
+begin
+  have : ∀ i, i ∈ finset.range N →
+    (set.Ico (lower_crossing a b f N i x) (upper_crossing a b f N i x)).indicator 1 n ≤
+    (1 : ℕ → ℝ) i,
+  { intros i hi,
+    exact set.indicator_le_self' (λ _ _, zero_le_one) _ },
+  refine le_trans (finset.sum_le_sum this) _,
+  simp,
+end
+
+lemma adapted.upcrossing_strat_adapted (hf : adapted ℱ f) :
+  adapted ℱ (upcrossing_strat a b f N) :=
+begin
+  intro n,
+  change strongly_measurable[ℱ n] (λ x, ∑ k in finset.range N,
+    ({n | lower_crossing a b f N k x ≤ n} ∩ {n | n < upper_crossing a b f N k x}).indicator 1 n),
+  refine finset.strongly_measurable_sum _ (λ i hi,
+    strongly_measurable_const.indicator ((hf.is_stopping_time_lower_crossing n).inter _)),
+  simp_rw ← not_le,
+  exact (hf.is_stopping_time_upper_crossing n).compl,
+end
+
+lemma submartingale.sum_mul_upcrossing_strat [is_finite_measure μ] (hf : submartingale f ℱ μ) :
+  submartingale
+    (λ n : ℕ, ∑ k in finset.range n, upcrossing_strat a b f N k * (f (k + 1) - f k)) ℱ μ :=
+hf.sum_mul_sub hf.adapted.upcrossing_strat_adapted
+  ⟨N, λ _ _, upcrossing_strat_bdd⟩ (λ _ _, upcrossing_strat_nonneg)
 
 #exit
 

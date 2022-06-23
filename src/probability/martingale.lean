@@ -286,6 +286,12 @@ begin
   apply_instance
 end
 
+lemma submartingale_iffcondexp_sub_nonneg [is_finite_measure μ] {f : ι → α → ℝ} :
+  submartingale f ℱ μ ↔ adapted ℱ f ∧ (∀ i, integrable (f i) μ) ∧ ∀ i j, i ≤ j →
+  0 ≤ᵐ[μ] μ[f j - f i| ℱ i] :=
+⟨λ h, ⟨h.adapted, h.integrable, λ i j, h.condexp_sub_nonneg⟩,
+ λ ⟨hadp, hint, h⟩, submartingale_of_condexp_sub_nonneg hadp hint h⟩
+
 end submartingale
 
 namespace supermartingale

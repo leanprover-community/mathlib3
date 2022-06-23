@@ -354,7 +354,7 @@ conditionally complete linear ordered field. -/
 instance : unique (α →+*o β) := unique_of_subsingleton $ induced_order_ring_hom α β
 
 /-- There is a unique ordered ring isomorphism between two conditionally complete linear ordered
-field. -/
+fields. -/
 instance : unique (β ≃+*o γ) := unique_of_subsingleton $ induced_order_ring_iso β γ
 
 end induced_map

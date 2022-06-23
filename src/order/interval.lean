@@ -77,7 +77,8 @@ lemma to_dual_prod_injective : injective (to_dual_prod : nonempty_interval α �
 λ a b, (ext_iff _ _).2
 
 instance [is_empty α] : is_empty (nonempty_interval α) := ⟨λ a, is_empty_elim a.fst⟩
-instance [subsingleton α] : subsingleton (nonempty_interval α) := to_dual_prod_injective.subsingleton
+instance [subsingleton α] : subsingleton (nonempty_interval α) :=
+to_dual_prod_injective.subsingleton
 
 instance : has_le (nonempty_interval α) := ⟨λ a b, b.fst ≤ a.fst ∧ a.snd ≤ b.snd⟩
 
@@ -103,7 +104,8 @@ instance : preorder (nonempty_interval α) := preorder.lift to_dual_prod
 /-- `{a}` as an interval. -/
 @[simps] def pure (a : α) : nonempty_interval α := ⟨⟨a, a⟩, le_rfl⟩
 
-lemma pure_injective : injective (pure : α → nonempty_interval α) := λ a b, congr_arg $ prod.fst ∘ to_prod
+lemma pure_injective : injective (pure : α → nonempty_interval α) :=
+λ a b, congr_arg $ prod.fst ∘ to_prod
 
 @[simp] lemma dual_pure (a : α) : (pure a).dual = pure (to_dual a) := rfl
 
@@ -119,7 +121,8 @@ instance [nontrivial α] : nontrivial (nonempty_interval α) := pure_injective.n
 @[simp] lemma map_map (g : β →o γ) (f : α →o β) (a : nonempty_interval α) :
   (a.map f).map g = a.map (g.comp f) := rfl
 
-@[simp] lemma dual_map (f : α →o β) (a : nonempty_interval α) : (a.map f).dual = a.dual.map f.dual := rfl
+@[simp] lemma dual_map (f : α →o β) (a : nonempty_interval α) :
+  (a.map f).dual = a.dual.map f.dual := rfl
 
 variables [bounded_order α]
 

@@ -466,10 +466,6 @@ do `(lucas_lehmer_test %%p) ← target,
    t ← to_expr ``(2^%%`(p) - 1 = %%`(M)),
    v ← to_expr ``(by norm_num : 2^%%`(p) - 1 = %%`(M)),
    w ← assertv `w t v,
-   -- This used to creates something like `w : 2^5 - 1 = int.of_nat 31`.
-   -- Do we still need this?
-   `[simp only [int.coe_nat_zero, int.coe_nat_succ,
-       int.of_nat_eq_coe, zero_add, int.coe_nat_bit1] at w],
    -- base case
    t ← to_expr ``(s_mod %%`(p) 0 = 4),
    v ← to_expr ``(by norm_num [lucas_lehmer.s_mod] : s_mod %%`(p) 0 = 4),
@@ -496,7 +492,9 @@ is out of reach with the current implementation.
 
 There's still low hanging fruit available to do faster computations
 based on the formula
-  n ≡ (n % 2^p) + (n / 2^p) [MOD 2^p - 1]
+```
+n ≡ (n % 2^p) + (n / 2^p) [MOD 2^p - 1]
+```
 and the fact that `% 2^p` and `/ 2^p` can be very efficient on the binary representation.
 Someone should do this, too!
 -/

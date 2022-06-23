@@ -265,7 +265,7 @@ begin
   simp [ha, ih hf.2, log_mul hf.1 (finset.prod_ne_zero_iff.2 hf.2)],
 end
 
-lemma log_nat_eq_sum_factorization {n : ℕ} : log n = n.factorization.sum (λ p t, t * log p) :=
+lemma log_nat_eq_sum_factorization (n : ℕ) : log n = n.factorization.sum (λ p t, t * log p) :=
 begin
   rcases eq_or_ne n 0 with rfl | hn,
   { simp },

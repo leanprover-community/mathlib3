@@ -962,7 +962,7 @@ theorem supr_extend_bot {e : ι → β} (he : injective e) (f : ι → α) :
   (⨆ j, extend e f ⊥ j) = ⨆ i, f i :=
 begin
   rw supr_split _ (λ j, ∃ i, e i = j),
-  simp [extend_apply he, extend_apply', @supr_comm _ β ι, supr_exists] { contextual := tt }
+  simp [extend_apply he, extend_apply', @supr_comm _ β ι] { contextual := tt }
 end
 
 lemma infi_extend_top {e : ι → β} (he : injective e) (f : ι → α) : (⨅ j, extend e f ⊤ j) = infi f :=

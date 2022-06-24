@@ -808,6 +808,29 @@ instance : has_neg αˣ := ⟨λu, ⟨-↑u, -↑u⁻¹, by simp, by simp⟩ ⟩
 
 instance : has_distrib_neg αˣ := units.ext.has_distrib_neg _ units.coe_neg units.coe_mul
 
+@[field_simps] lemma neg_divp' (a : α) (u : αˣ) : -(a /ₚ u) = (-a) /ₚ u :=
+by simp only [divp, neg_mul]
+
+@[field_simps] lemma divp_add_divp_same (a b : α) (u : αˣ) :
+  a /ₚ u + b /ₚ u = (a + b) /ₚ u :=
+by simp only [divp, add_mul]
+
+@[field_simps] lemma add_divp' (a b : α) (u : αˣ)  : b + a /ₚ u = (b * u + a) /ₚ u :=
+by simp [divp, add_mul, units.mul_inv_cancel_right]
+
+@[field_simps] lemma sub_divp' (a b : α) (u : αˣ) : b - a /ₚ u = (b * u - a) /ₚ u :=
+by simp only [divp, sub_mul, units.mul_inv_cancel_right]
+
+@[field_simps] lemma divp_add' (a b : α) (u : αˣ) : a /ₚ u + b = (a + b * u) /ₚ u :=
+by simp only [divp, add_mul, units.mul_inv_cancel_right]
+
+@[field_simps] lemma divp_sub' (a b : α) (u : αˣ) : a /ₚ u - b = (a - b * u) /ₚ u :=
+begin
+  simp only [divp, sub_mul, sub_right_inj],
+  assoc_rw [units.mul_inv, mul_one],
+end
+
+
 end units
 
 lemma is_unit.neg [ring α] {a : α} : is_unit a → is_unit (-a)
@@ -1194,58 +1217,31 @@ lemma mul_self_eq_one_iff [non_assoc_ring R] [no_zero_divisors R] {a : R} :
   a * a = 1 ↔ a = 1 ∨ a = -1 :=
 by rw [←(commute.one_right a).mul_self_eq_mul_self_iff, mul_one]
 
+namespace units
+
+@[field_simps] lemma divp_add_divp [comm_ring α] (a b : α) (u₁ u₂ : αˣ) :
+a /ₚ u₁ + b /ₚ u₂ = (a * u₂ + u₁ * b) /ₚ (u₁ * u₂) :=
+begin
+  simp [divp, add_mul],
+  rw [mul_comm (↑u₁ * b), mul_comm b],
+  assoc_rw [mul_inv, mul_inv, mul_one, mul_one],
+end
+
+@[field_simps] lemma divp_sub_divp [comm_ring α] (a b : α) (u₁ u₂ : αˣ) :
+  (a /ₚ u₁) - (b /ₚ u₂) = ((a * u₂) - (u₁ * b)) /ₚ (u₁ * u₂) :=
+begin
+  rw [sub_eq_add_neg, sub_eq_add_neg, neg_divp', ←mul_neg ↑u₁ b],
+  exact divp_add_divp a (-b) u₁ u₂,
+end
+
 /-- In the unit group of an integral domain, a unit is its own inverse iff the unit is one or
   one's additive inverse. -/
-lemma units.inv_eq_self_iff [ring R] [no_zero_divisors R] (u : Rˣ) : u⁻¹ = u ↔ u = 1 ∨ u = -1 :=
+lemma inv_eq_self_iff [ring R] [no_zero_divisors R] (u : Rˣ) : u⁻¹ = u ↔ u = 1 ∨ u = -1 :=
 begin
   rw inv_eq_iff_mul_eq_one,
-  simp only [units.ext_iff],
+  simp only [ext_iff],
   push_cast,
   exact mul_self_eq_one_iff
 end
 
-/-!
-### `field_simp`
-
-Some lemmas for `tactic.field_simp` to deal with partial division `/ₚ`.
--/
-section field_simp
-
-@[field_simps] lemma neg_divp' [ring α] (b : α) (a : αˣ) : -(b /ₚ a) = (-b) /ₚ a :=
-by simp [divp]
-
-@[field_simps] lemma divp_add_divp_same [ring α] (a b : α) (c : αˣ) :
-  a /ₚ c + b /ₚ c = (a + b) /ₚ c :=
-by simp [divp, add_mul]
-
-@[field_simps] lemma add_divp' [ring α] (a b : α) (c : αˣ)  : b + a /ₚ c = (b * c + a) /ₚ c :=
-by simp [divp, add_mul]
-
-@[field_simps] lemma sub_divp' [ring α] (a b : α) (c : αˣ) : b - a /ₚ c = (b * c - a) /ₚ c :=
-by simp [divp, sub_mul]
-
-@[field_simps] lemma divp_add' [ring α] (a b : α) (c : αˣ) : a /ₚ c + b = (a + b * c) /ₚ c :=
-by simp [divp, add_mul]
-
-@[field_simps] lemma divp_sub' [ring α] (a b : α) (c : αˣ) : a /ₚ c - b = (a - b * c) /ₚ c :=
-begin
-  simp only [divp, sub_mul, sub_right_inj],
-  assoc_rw [units.mul_inv, mul_one],
-end
-
-@[field_simps] lemma divp_add_divp [comm_ring α] (a c : α) (b d : αˣ) :
-a /ₚ b + c /ₚ d = (a * d + b * c) /ₚ (b * d) :=
-begin
-  simp [divp, add_mul],
-  rw [mul_assoc _ c, mul_comm ↑b],
-  assoc_rw [units.mul_inv, units.mul_inv, mul_one, mul_one],
-end
-
-@[field_simps] lemma divp_sub_divp [comm_ring α] (a c : α) (b d : αˣ) :
-  (a /ₚ b) - (c /ₚ d) = ((a * d) - (b * c)) /ₚ (b * d) :=
-begin
-  rw [sub_eq_add_neg, sub_eq_add_neg, neg_divp', ←mul_neg ↑b c],
-  exact divp_add_divp a (-c) b d,
-end
-
-end field_simp
+end units

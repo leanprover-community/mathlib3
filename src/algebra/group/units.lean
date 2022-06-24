@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2017 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Kenny Lau, Mario Carneiro, Johannes Hölzl, Chris Hughes, Jens Wagemaker
+Authors: Kenny Lau, Mario Carneiro, Johannes Hölzl, Chris Hughes, Jens Wagemaker, Jon Eugster
 -/
 import algebra.group.basic
 import logic.nontrivial
@@ -262,6 +262,9 @@ by simp only [divp, mul_inv_rev, units.coe_mul, mul_assoc]
 @[field_simps] theorem divp_eq_iff_mul_eq {x : α} {u : αˣ} {y : α} : x /ₚ u = y ↔ y * u = x :=
 u.mul_left_inj.symm.trans $ by rw [divp_mul_cancel]; exact ⟨eq.symm, eq.symm⟩
 
+@[field_simps] theorem eq_divp_iff_mul_eq {x : α} {u : αˣ} {y : α} : x = y /ₚ u ↔ x * u = y :=
+by rw [eq_comm, divp_eq_iff_mul_eq]
+
 theorem divp_eq_one_iff_eq {a : α} {u : αˣ} : a /ₚ u = 1 ↔ a = u :=
 (units.mul_left_inj u).symm.trans $ by rw [divp_mul_cancel, one_mul]
 
@@ -269,8 +272,7 @@ theorem divp_eq_one_iff_eq {a : α} {u : αˣ} : a /ₚ u = 1 ↔ a = u :=
 one_mul _
 
 /-- Mainly used for `field_simp` to deal with inverses of units. -/
-@[field_simps] lemma inv_eq_one_divp (u : αˣ) :
-  ↑u⁻¹ = 1 /ₚ u :=
+@[field_simps] lemma inv_eq_one_divp (u : αˣ) : ↑u⁻¹ = 1 /ₚ u :=
 by rw one_divp
 
 /--
@@ -281,6 +283,13 @@ as a first step.
 @[field_simps] lemma inv_eq_one_divp' (u : αˣ) :
   ((1 / u : αˣ) : α) = 1 /ₚ u :=
 by rw [one_div, one_divp]
+
+/--
+`field_simp` moves division inside `αˣ` to the right, and needs this lemma
+to lift calculation to `α`
+-/
+@[field_simps] lemma coe_div_eq_divp (u₁ u₂ : αˣ) : ↑(u₁ / u₂) = ↑u₁ /ₚ u₂ :=
+by rw [divp, division_def, units.coe_mul]
 
 @[field_simps] lemma mul_divp_assoc' (x y : α) (u : αˣ) : x * (y /ₚ u) = (x * y) /ₚ u :=
 (divp_assoc x y u).symm

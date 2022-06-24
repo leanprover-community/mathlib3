@@ -227,7 +227,7 @@ begin
   rw balanced_core_aux_mem_iff,
   intros r hr,
   rw mem_smul_set_iff_inv_smul_mem₀ (norm_pos_iff.mp (lt_of_lt_of_le zero_lt_one hr)),
-  refine h (balanced_iff_mem.mp ht hx _),
+  refine h (ht.smul_mem _ hx),
   rw norm_inv,
   exact inv_le_one hr,
 end

@@ -138,6 +138,10 @@ variables {𝕜}
 lemma balanced_iff_smul_mem : balanced 𝕜 s ↔ ∀ ⦃a : 𝕜⦄, ∥a∥ ≤ 1 → ∀ ⦃x : E⦄, x ∈ s → a • x ∈ s :=
 forall₂_congr $ λ a ha, smul_set_subset_iff
 
+lemma balanced.smul_mem (hs : balanced 𝕜 s) {a : 𝕜} (ha : ∥a∥ ≤ 1) {x : E} (hx : x ∈ s) :
+  a • x ∈ s :=
+balanced_iff_smul_mem.mp hs ha hx
+
 lemma balanced_univ : balanced 𝕜 (univ : set E) := λ a ha, subset_univ _
 
 lemma balanced.union (hA : balanced 𝕜 A) (hB : balanced 𝕜 B) : balanced 𝕜 (A ∪ B) :=
@@ -153,7 +157,7 @@ begin
   exact ⟨hA _ ha ⟨_, hx₁, rfl⟩, hB _ ha ⟨_, hx₂, rfl⟩⟩,
 end
 
-lemma balanced.Inter_finset {t : finset ι} {f : ι → set E}
+lemma balanced_Inter_finset {t : finset ι} {f : ι → set E}
   (h : ∀ i ∈ t, balanced 𝕜 (f i)) : balanced 𝕜 (⋂ (i ∈ t), f i) :=
 begin
   classical,
@@ -207,9 +211,6 @@ section normed_field
 variables [normed_field 𝕜] [normed_ring 𝕝] [normed_space 𝕜 𝕝] [add_comm_group E] [module 𝕜 E]
   [smul_with_zero 𝕝 E] [is_scalar_tower 𝕜 𝕝 E] {s t u v A B : set E} {a b : 𝕜}
 
-lemma balanced.symmetric (h : balanced 𝕜 A) {x : E} (hx : x ∈ A) : -x ∈ A :=
-by { convert (balanced_iff_smul_mem.mp h) (by rw [norm_neg, norm_one]) hx, rw [neg_smul, one_smul] }
-
 /-- Scalar multiplication (by possibly different types) of a balanced set is monotone. -/
 lemma balanced.smul_mono (hs : balanced 𝕝 s) {a : 𝕝} {b : 𝕜} (h : ∥a∥ ≤ ∥b∥) : a • s ⊆ b • s :=
 begin
@@ -250,7 +251,7 @@ end
 lemma balanced.smul_eq (hA : balanced 𝕜 A) (ha : ∥a∥ = 1) : a • A = A :=
 (hA _ ha.le).antisymm $ hA.subset_smul ha.ge
 
-lemma balanced.mem_smul_iff (hs : balanced 𝕜 A) {x : E} {a b : 𝕜} (h : ∥a∥ = ∥b∥) :
+lemma balanced.mem_smul_iff (hA : balanced 𝕜 A) {x : E} {a b : 𝕜} (h : ∥a∥ = ∥b∥) :
   a • x ∈ A ↔ b • x ∈ A :=
 begin
   obtain rfl | hb := eq_or_ne b 0,
@@ -259,9 +260,12 @@ begin
   have ha : a ≠ 0 := norm_ne_zero_iff.1 (ne_of_eq_of_ne h $ norm_ne_zero_iff.2 hb),
   split; intro h'; [rw ←inv_mul_cancel_right₀ ha b, rw ←inv_mul_cancel_right₀ hb a];
   { rw [←smul_eq_mul, smul_assoc],
-    refine balanced_iff_smul_mem.mp hs _ h',
+    refine balanced_iff_smul_mem.mp hA _ h',
     simp [←h, ha] }
 end
+
+lemma balanced.neg_mem_iff (hA : balanced 𝕜 A) {x : E} : x ∈ A ↔ -x ∈ A :=
+by { convert hA.mem_smul_iff (norm_neg (1 : 𝕜)).symm; simp only [neg_smul, one_smul] }
 
 lemma absorbs.inter (hs : absorbs 𝕜 s u) (ht : absorbs 𝕜 t u) : absorbs 𝕜 (s ∩ t) u :=
 begin

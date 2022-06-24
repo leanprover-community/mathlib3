@@ -119,7 +119,7 @@ graded_algebra.of_alg_hom (even_odd Q)
       alg_hom.id_apply],
     rw [lift_ι_apply, graded_algebra.ι_apply, direct_sum.coe_alg_hom_of, subtype.coe_mk],
   end)
-  (lift_ι_eq Q)
+  (by exact lift_ι_eq Q)
 
 lemma supr_ι_range_eq_top : (⨆ i : ℕ, (ι Q).range ^ i) = ⊤ :=
 begin

@@ -484,9 +484,10 @@ def card : multiset α →+ ℕ :=
 @[simp] theorem length_to_list (s : multiset α) : s.to_list.length = s.card :=
 by rw [← coe_card, coe_to_list]
 
-/-- Index the elements of a multiset `s` using a function from the finite type `fin s.card`. -/
-noncomputable def of_fin_card (s : multiset α) (n : fin s.card) : α :=
-s.to_list.nth_le n.1 (by { rw s.length_to_list, exact n.2 })
+/-- Enumerate the elements of a multiset `s` using a function from `fin s.card`,
+  once you choose an ordering `l` on `s`. -/
+def enum_of_fin_card (s : multiset α) {l : list α} (h : (l : multiset α) = s)
+  (n : fin s.card) : α := l.nth_le n.1 (by { subst h, exact n.2 })
 
 @[simp] theorem card_zero : @card α 0 = 0 := rfl
 

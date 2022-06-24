@@ -82,7 +82,7 @@ notation `_₄` := congrm_fun_4
 /--  Replaces a "function underscore" input to `congrm` into the correct expression,
 read off from the left-hand-side of the target expression. -/
 meta def convert_to_explicit (pat lhs : expr) : tactic expr :=
-if pat.get_app_fn.const_name.to_string.to_list.take 18 = "tactic.congrm_fun_".to_list
+if pat.get_app_fn.const_name.to_string.starts_with "tactic.congrm_fun_"
 then
   pat.list_explicit_args >>= replace_explicit_args lhs
 else

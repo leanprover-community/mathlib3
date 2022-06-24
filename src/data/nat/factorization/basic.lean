@@ -475,9 +475,7 @@ begin
   refine h (p^n) a ((hp'.one_lt).trans_le (le_self_pow (prime.one_lt hp').le (succ_le_iff.mpr hn)))
     _ _ (hp _ _ hp' hn) hPa,
   { contrapose! hpa,
-    rcases lt_or_eq_of_le hpa with ha | rfl,
-    { simp [lt_one_iff.1 ha] },
-    { simpa using ha1 } },
+    simp [lt_one_iff.1 (lt_of_le_of_ne hpa ha1)] },
   simpa [hn, prime.coprime_iff_not_dvd hp'],
 end
 

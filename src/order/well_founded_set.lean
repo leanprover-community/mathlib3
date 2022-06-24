@@ -440,7 +440,7 @@ begin
 end
 
 @[simp]
-theorem fintype.is_pwo [fintype α] : s.is_pwo := (finite.of_fintype s).is_pwo
+theorem fintype.is_pwo [fintype α] : s.is_pwo := (finite_of_subtype s).is_pwo
 
 @[simp]
 theorem is_pwo_empty : is_pwo (∅ : set α) :=

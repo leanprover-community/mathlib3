@@ -446,10 +446,10 @@ fintype.of_finset (finset.Ioc a b) (λ x, by rw [finset.mem_Ioc, mem_Ioc])
 instance fintype_Ioo : fintype (Ioo a b) :=
 fintype.of_finset (finset.Ioo a b) (λ x, by rw [finset.mem_Ioo, mem_Ioo])
 
-lemma finite_Icc : (Icc a b).finite := set.finite_of_fintype _
-lemma finite_Ico : (Ico a b).finite := set.finite_of_fintype _
-lemma finite_Ioc : (Ioc a b).finite := set.finite_of_fintype _
-lemma finite_Ioo : (Ioo a b).finite := set.finite_of_fintype _
+lemma finite_Icc : (Icc a b).finite := finite_of_subtype _
+lemma finite_Ico : (Ico a b).finite := finite_of_subtype _
+lemma finite_Ioc : (Ioc a b).finite := finite_of_subtype _
+lemma finite_Ioo : (Ioo a b).finite := finite_of_subtype _
 
 end preorder
 
@@ -462,8 +462,8 @@ fintype.of_finset (finset.Ici a) (λ x, by rw [finset.mem_Ici, mem_Ici])
 instance fintype_Ioi : fintype (Ioi a) :=
 fintype.of_finset (finset.Ioi a) (λ x, by rw [finset.mem_Ioi, mem_Ioi])
 
-lemma finite_Ici : (Ici a).finite := set.finite_of_fintype _
-lemma finite_Ioi : (Ioi a).finite := set.finite_of_fintype _
+lemma finite_Ici : (Ici a).finite := finite_of_subtype _
+lemma finite_Ioi : (Ioi a).finite := finite_of_subtype _
 
 end order_top
 
@@ -476,8 +476,8 @@ fintype.of_finset (finset.Iic b) (λ x, by rw [finset.mem_Iic, mem_Iic])
 instance fintype_Iio : fintype (Iio b) :=
 fintype.of_finset (finset.Iio b) (λ x, by rw [finset.mem_Iio, mem_Iio])
 
-lemma finite_Iic : (Iic b).finite := set.finite_of_fintype _
-lemma finite_Iio : (Iio b).finite := set.finite_of_fintype _
+lemma finite_Iic : (Iic b).finite := finite_of_subtype _
+lemma finite_Iio : (Iio b).finite := finite_of_subtype _
 
 end order_bot
 
@@ -497,12 +497,12 @@ noncomputable def locally_finite_order.of_finite_Icc (h : ∀ a b : α, (set.Icc
   (λ a b, (h a b).to_finset)
   (λ a b x, by rw [set.finite.mem_to_finset, set.mem_Icc])
 
-/-- A fintype is noncomputably a locally finite order. -/
-noncomputable def fintype.to_locally_finite_order [fintype α] : locally_finite_order α :=
-{ finset_Icc := λ a b, (set.finite.of_fintype (set.Icc a b)).to_finset,
-  finset_Ico := λ a b, (set.finite.of_fintype (set.Ico a b)).to_finset,
-  finset_Ioc := λ a b, (set.finite.of_fintype (set.Ioc a b)).to_finset,
-  finset_Ioo := λ a b, (set.finite.of_fintype (set.Ioo a b)).to_finset,
+/-- A finite type is noncomputably a locally finite order. -/
+noncomputable def finite.to_locally_finite_order [finite α] : locally_finite_order α :=
+{ finset_Icc := λ a b, (set.finite_of_subtype (set.Icc a b)).to_finset,
+  finset_Ico := λ a b, (set.finite_of_subtype (set.Ico a b)).to_finset,
+  finset_Ioc := λ a b, (set.finite_of_subtype (set.Ioc a b)).to_finset,
+  finset_Ioo := λ a b, (set.finite_of_subtype (set.Ioo a b)).to_finset,
   finset_mem_Icc := λ a b x, by rw [set.finite.mem_to_finset, set.mem_Icc],
   finset_mem_Ico := λ a b x, by rw [set.finite.mem_to_finset, set.mem_Ico],
   finset_mem_Ioc := λ a b x, by rw [set.finite.mem_to_finset, set.mem_Ioc],

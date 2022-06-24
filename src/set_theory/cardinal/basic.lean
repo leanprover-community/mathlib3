@@ -616,10 +616,11 @@ end⟩
 
 theorem bdd_above_image (f : cardinal.{u} → cardinal.{max u v}) {s : set cardinal.{u}}
   (hs : bdd_above s) : bdd_above (f '' s) :=
-begin
-  rw bdd_above_iff_small at hs ⊢,
-  exact @small_lift _ (@small_image _ _ f s hs)
-end
+by { rw bdd_above_iff_small at hs ⊢, exactI small_lift _ }
+
+theorem bdd_above_range_comp {ι : Type u} {f : ι → cardinal.{v}} (hf : bdd_above (range f))
+  (g : cardinal.{v} → cardinal.{max v w}) : bdd_above (range (g ∘ f)) :=
+by { rw range_comp, exact bdd_above_image g hf }
 
 theorem supr_le_sum {ι} (f : ι → cardinal) : supr f ≤ sum f :=
 csupr_le' $ le_sum _
@@ -743,6 +744,42 @@ end
 lemma lift_supr {ι : Type v} {f : ι → cardinal.{w}} (hf : bdd_above (range f)) :
   lift.{u} (supr f) = ⨆ i, lift.{u} (f i) :=
 by rw [supr, supr, lift_Sup hf, ←range_comp]
+
+/-- To prove that the lift of a supremum is bounded by some cardinal `t`,
+it suffices to show that the lift of each cardinal is bounded by `t`. -/
+lemma lift_supr_le {ι : Type v} {f : ι → cardinal.{w}} {t : cardinal} (hf : bdd_above (range f))
+  (w : ∀ i, lift.{u} (f i) ≤ t) : lift.{u} (supr f) ≤ t :=
+by { rw lift_supr hf, exact csupr_le' w }
+
+@[simp] lemma lift_supr_le_iff {ι : Type v} {f : ι → cardinal.{w}} (hf : bdd_above (range f))
+  {t : cardinal} : lift.{u} (supr f) ≤ t ↔ ∀ i, lift.{u} (f i) ≤ t :=
+by { rw lift_supr hf, exact csupr_le_iff' (bdd_above_range_comp hf _) }
+
+universes v' w'
+
+/--
+To prove an inequality between the lifts to a common universe of two different supremums,
+it suffices to show that the lift of each cardinal from the smaller supremum
+if bounded by the lift of some cardinal from the larger supremum.
+-/
+lemma lift_sup_le_lift_sup
+  {ι : Type v} {ι' : Type v'} {f : ι → cardinal.{w}} {f' : ι' → cardinal.{w'}}
+  (hf : bdd_above (range f)) (hf' : bdd_above (range f'))
+  {g : ι → ι'} (h : ∀ i, lift.{w'} (f i) ≤ lift.{w} (f' (g i))) :
+  lift.{w'} (supr f) ≤ lift.{w} (supr f') :=
+begin
+  rw [lift_supr hf, lift_supr hf'],
+  exact csupr_mono' (bdd_above_range_comp hf' _) (λ i, ⟨_, h i⟩)
+end
+
+/-- A variant of `lift_sup_le_lift_sup` with universes specialized via `w = v` and `w' = v'`.
+This is sometimes necessary to avoid universe unification issues. -/
+lemma lift_sup_le_lift_sup'
+  {ι : Type v} {ι' : Type v'} {f : ι → cardinal.{v}} {f' : ι' → cardinal.{v'}}
+  (hf : bdd_above (range f)) (hf' : bdd_above (range f'))
+  (g : ι → ι') (h : ∀ i, lift.{v'} (f i) ≤ lift.{v} (f' (g i))) :
+  lift.{v'} (supr f) ≤ lift.{v} (supr f') :=
+lift_sup_le_lift_sup hf hf' h
 
 /-- `ℵ₀` is the smallest infinite cardinal. -/
 def aleph_0 : cardinal.{u} := lift (#ℕ)

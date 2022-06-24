@@ -22,7 +22,7 @@ is that when `C = Type`, filtered colimits commute with finite limits.
 * [Stacks: Filtered colimits](https://stacks.math.columbia.edu/tag/002W)
 -/
 
-universes v₂ v u
+universes v u
 
 open category_theory
 

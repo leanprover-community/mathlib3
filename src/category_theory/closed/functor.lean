@@ -38,7 +38,7 @@ universes v u u'
 variables {C : Type u} [category.{v} C]
 variables {D : Type u'} [category.{v} D]
 
-variables [has_finite_products.{0} C] [has_finite_products.{0} D]
+variables [has_finite_products C] [has_finite_products D]
 
 variables (F : C ⥤ D) {L : D ⥤ C}
 

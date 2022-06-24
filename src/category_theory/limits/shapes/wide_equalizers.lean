@@ -641,7 +641,6 @@ lemma has_wide_coequalizers_of_has_colimit_parallel_family
   has_wide_coequalizers.{w} C :=
 λ J, { has_colimit := λ F, has_colimit_of_iso (diagram_iso_parallel_family F) }
 
-set_option pp.universes true
 @[priority 10]
 instance has_equalizers_of_has_wide_equalizers [has_wide_equalizers.{w} C] : has_equalizers C :=
 has_limits_of_shape_of_equivalence.{w} walking_parallel_family_equiv_walking_parallel_pair

@@ -298,14 +298,6 @@ is_lub_le_iff (is_lub_cSup hs hb)
 theorem le_cInf_iff (hb : bdd_below s) (hs : s.nonempty) : a ≤ Inf s ↔ ∀ b ∈ s, a ≤ b :=
 le_is_glb_iff (is_glb_cInf hs hb)
 
-theorem csupr_le_iff [nonempty ι] {f : ι → α} {a : α} (hf : bdd_above (range f)) :
-  supr f ≤ a ↔ ∀ i, f i ≤ a :=
-(cSup_le_iff hf (range_nonempty f)).trans $ by simp
-
-theorem le_cinfi_iff [nonempty ι] {f : ι → α} {a : α} (hf : bdd_below (range f)) :
-  a ≤ infi f ↔ ∀ i, a ≤ f i :=
-(le_cInf_iff hf (range_nonempty f)).trans $ by simp
-
 lemma cSup_lower_bounds_eq_cInf {s : set α} (h : bdd_below s) (hs : s.nonempty) :
   Sup (lower_bounds s) = Inf s :=
 (is_lub_cSup h $ hs.mono $ λ x hx y hy, hy hx).unique (is_glb_cInf hs h).is_lub

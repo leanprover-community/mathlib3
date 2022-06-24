@@ -266,8 +266,7 @@ monoid_hom.mk' (λ χ, χ.restrict_normal E) (λ ω χ, (χ.restrict_normal_tran
 
 variables (F K E) [algebra K E] [is_scalar_tower F K E]
 
-/-- If `E/K/F` is a tower of fields with `K/F` normal then we have an equivalence
- (K →ₐ[F] E) ≃ (K ≃ₐ[F] K). -/
+/-- If `E/K/F` is a tower of fields with `K/F` normal then `alg_hom.restrict_normal'` is an equivalence. -/
 def normal.alg_hom_equiv_aut [normal F K] : (K →ₐ[F] E) ≃ (K ≃ₐ[F] K) :=
 { to_fun := λ σ, alg_hom.restrict_normal' σ K,
   inv_fun := λ σ, (is_scalar_tower.to_alg_hom F K E).comp σ.to_alg_hom,

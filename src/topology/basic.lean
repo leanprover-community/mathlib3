@@ -84,7 +84,7 @@ def topological_space.of_closed {α : Type u} (T : set (set α))
 
 section topological_space
 
-variables {α : Type u} {β : Type v} {ι : Sort w} {a : α} {s s₁ s₂ : set α} {p p₁ p₂ : α → Prop}
+variables {α : Type u} {β : Type v} {ι : Sort w} {a : α} {s s₁ s₂ t : set α} {p p₁ p₂ : α → Prop}
 
 @[ext]
 lemma topological_space_eq : ∀ {f g : topological_space α}, f.is_open = g.is_open → f = g
@@ -601,14 +601,12 @@ lemma closure_eq_interior_union_frontier (s : set α) : closure s = interior s �
 lemma closure_eq_self_union_frontier (s : set α) : closure s = s ∪ frontier s :=
 (union_diff_cancel' interior_subset subset_closure).symm
 
-lemma is_open.inter_frontier_eq_empty_of_disjoint {s t : set α} (ht : is_open t)
-  (hd : disjoint s t) :
-  t ∩ frontier s = ∅ :=
-begin
-  rw [inter_comm, ← subset_compl_iff_disjoint],
-  exact subset.trans frontier_subset_closure (closure_minimal (λ _, disjoint_left.1 hd)
-    (is_closed_compl_iff.2 ht))
-end
+lemma disjoint.frontier_left (ht : is_open t) (hd : disjoint s t) : disjoint (frontier s) t :=
+subset_compl_iff_disjoint_right.1 $ frontier_subset_closure.trans $ closure_minimal
+  (λ _, disjoint_left.1 hd) $ is_closed_compl_iff.2 ht
+
+lemma disjoint.frontier_right (hs : is_open s) (hd : disjoint s t) : disjoint s (frontier t) :=
+(hd.symm.frontier_left hs).symm
 
 lemma frontier_eq_inter_compl_interior {s : set α} :
   frontier s = (interior s)ᶜ ∩ (interior (sᶜ))ᶜ :=

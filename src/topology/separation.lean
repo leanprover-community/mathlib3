@@ -1109,13 +1109,13 @@ ext $ assume p, iff.intro
   (assume ⟨x, hx⟩, show p.1 = p.2, by rw ←hx)
 
 lemma prod_subset_compl_diagonal_iff_disjoint {α : Type*} {s t : set α} :
-  s ×ˢ t ⊆ {p:α×α | p.1 = p.2}ᶜ ↔ s ∩ t = ∅ :=
+  s ×ˢ t ⊆ {p : α × α | p.1 = p.2}ᶜ ↔ disjoint s t :=
 by rw [eq_empty_iff_forall_not_mem, subset_compl_comm,
        diagonal_eq_range_diagonal_map, range_subset_iff]; simp
 
 lemma compact_compact_separated [t2_space α] {s t : set α}
-  (hs : is_compact s) (ht : is_compact t) (hst : s ∩ t = ∅) :
-  ∃u v : set α, is_open u ∧ is_open v ∧ s ⊆ u ∧ t ⊆ v ∧ u ∩ v = ∅ :=
+  (hs : is_compact s) (ht : is_compact t) (hst : disjoint s t) :
+  ∃ u v : set α, is_open u ∧ is_open v ∧ s ⊆ u ∧ t ⊆ v ∧ disjoint u v :=
 by simp only [prod_subset_compl_diagonal_iff_disjoint.symm] at ⊢ hst;
    exact generalized_tube_lemma hs ht is_closed_diagonal.is_open_compl hst
 
@@ -1123,10 +1123,8 @@ by simp only [prod_subset_compl_diagonal_iff_disjoint.symm] at ⊢ hst;
 lemma is_compact.is_closed [t2_space α] {s : set α} (hs : is_compact s) : is_closed s :=
 is_open_compl_iff.1 $ is_open_iff_forall_mem_open.mpr $ assume x hx,
   let ⟨u, v, uo, vo, su, xv, uv⟩ :=
-    compact_compact_separated hs (is_compact_singleton : is_compact {x})
-      (by rwa [inter_comm, ←subset_compl_iff_disjoint, singleton_subset_iff]) in
-  have v ⊆ sᶜ, from
-    subset_compl_comm.mp (subset.trans su (subset_compl_iff_disjoint.mpr uv)),
+    compact_compact_separated hs is_compact_singleton (disjoint_singleton_right.2 hx) in
+  have v ⊆ sᶜ, from (uv.mono_left su).subset_compl_right,
 ⟨v, this, vo, by simpa using xv⟩
 
 @[simp] lemma filter.coclosed_compact_eq_cocompact [t2_space α] :
@@ -1229,8 +1227,7 @@ lemma locally_compact_of_compact_nhds [t2_space α] (h : ∀ x : α, ∃ s, s �
     compact_compact_separated is_compact_singleton (is_compact.diff kc uo)
       (by rw [singleton_inter_eq_empty]; exact λ h, h.2 xu) in
   have wn : wᶜ ∈ 𝓝 x, from
-   mem_nhds_iff.mpr
-     ⟨v, subset_compl_iff_disjoint.mpr vw, vo, singleton_subset_iff.mp xv⟩,
+   mem_nhds_iff.mpr ⟨v, vw.subset_compl_right, vo, singleton_subset_iff.mp xv⟩,
   ⟨k \ w,
    filter.inter_mem kx wn,
    subset.trans (diff_subset_comm.mp kuw) un,
@@ -1364,7 +1361,7 @@ eq_empty_of_subset_empty $ λ z ⟨hzv, hzs⟩, by { rw htu, exact ⟨hvt hzv, h
 instance regular_space.t2_5_space [regular_space α] : t2_5_space α :=
 ⟨λ x y hxy,
 let ⟨U, V, hU, hV, hh_1, hh_2, hUV⟩ := t2_space.t2 x y hxy,
-  hxcV := not_not.mpr ((interior_maximal (subset_compl_iff_disjoint.mpr hUV) hU) hh_1),
+  hxcV := not_not.mpr (interior_maximal hUV.subset_compl_right hU hh_1),
   ⟨R, hR, hh⟩ := regular_space.regular is_closed_closure (by rwa closure_eq_compl_interior_compl),
   ⟨A, hA, hhh⟩ := mem_nhds_iff.1 (filter.inf_principal_eq_bot.1 hh.2) in
 ⟨A, V, hhh.1, hV, subset_eq_empty ((closure V).inter_subset_inter_left
@@ -1595,12 +1592,12 @@ begin
     (λ Z : {Z : set α // is_clopen Z ∧ x ∈ Z}, Z) (λ Z, Z.2.1.2)),
   rw [←not_imp_not, not_forall, not_nonempty_iff_eq_empty, inter_comm] at H1,
   have huv_union := subset.trans hab (union_subset_union hau hbv),
-  rw [← compl_compl (u ∪ v), subset_compl_iff_disjoint] at huv_union,
+  rw disjoint_iff_subset_compl_right at huv_union,
   cases H1 huv_union with Zi H2,
   refine ⟨(⋂ (U ∈ Zi), subtype.val U), _, _, _⟩,
   { exact is_clopen_bInter (λ Z hZ, Z.2.1) },
   { exact mem_Inter₂.2 (λ Z hZ, Z.2.2) },
-  { rwa [not_nonempty_iff_eq_empty, inter_comm, ←subset_compl_iff_disjoint, compl_compl] at H2 }
+  { rwa disjoint_iff_subset_compl_left at H2 }
 end
 
 section profinite

@@ -708,11 +708,20 @@ theorem le_compl_iff_le_compl : y ≤ xᶜ ↔ x ≤ yᶜ :=
 theorem compl_le_iff_compl_le : xᶜ ≤ y ↔ yᶜ ≤ x :=
 ⟨compl_le_of_compl_le, compl_le_of_compl_le⟩
 
-theorem disjoint_iff_le_compl_right : disjoint x y ↔ x ≤ yᶜ :=
-by {rw is_compl.disjoint_left_iff is_compl_compl}
+lemma le_compl_iff_disjoint_right : x ≤ yᶜ ↔ disjoint x y := is_compl_compl.le_right_iff
+lemma le_compl_iff_disjoint_left : y ≤ xᶜ ↔ disjoint x y :=
+le_compl_iff_disjoint_right.trans disjoint.comm
 
-theorem disjoint_iff_le_compl_left : disjoint x y ↔ y ≤ xᶜ :=
-by rw [disjoint.comm, disjoint_iff_le_compl_right]
+lemma disjoint_compl_left_iff : disjoint xᶜ y ↔ y ≤ x :=
+by rw [←le_compl_iff_disjoint_left, compl_compl]
+
+lemma disjoint_compl_right_iff : disjoint x yᶜ ↔ x ≤ y :=
+by rw [←le_compl_iff_disjoint_right, compl_compl]
+
+alias le_compl_iff_disjoint_right ↔ _ disjoint.le_compl_right
+alias le_compl_iff_disjoint_left ↔ _ disjoint.le_compl_left
+alias disjoint_compl_left_iff ↔ _ has_le.le.disjoint_compl_left
+alias disjoint_compl_right_iff ↔ _ has_le.le.disjoint_compl_right
 
 namespace boolean_algebra
 

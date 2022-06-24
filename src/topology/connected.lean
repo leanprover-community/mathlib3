@@ -330,24 +330,21 @@ theorem is_preconnected_closed_iff {s : set α} :
 ⟨begin
   rintros h t t' ht ht' htt' ⟨x, xs, xt⟩ ⟨y, ys, yt'⟩,
   by_contradiction h',
-  rw [← ne_empty_iff_nonempty, ne.def, not_not, ← subset_compl_iff_disjoint, compl_inter] at h',
+  rw [←not_disjoint_iff_nonempty_inter, ←subset_compl_iff_disjoint_right, compl_inter] at h',
   have xt' : x ∉ t', from (h' xs).elim (absurd xt) id,
   have yt : y ∉ t, from (h' ys).elim id (absurd yt'),
-  have := ne_empty_iff_nonempty.2 (h tᶜ t'ᶜ (is_open_compl_iff.2 ht)
-    (is_open_compl_iff.2 ht') h' ⟨y, ys, yt⟩ ⟨x, xs, xt'⟩),
-  rw [ne.def, ← compl_union, ← subset_compl_iff_disjoint, compl_compl] at this,
+  have := h tᶜ t'ᶜ (is_open_compl_iff.2 ht) (is_open_compl_iff.2 ht') h' ⟨y, ys, yt⟩ ⟨x, xs, xt'⟩,
+  rw [← compl_union, ← subset_compl_iff_disjoint_right, compl_compl] at this,
   contradiction
 end,
 begin
   rintros h u v hu hv huv ⟨x, xs, xu⟩ ⟨y, ys, yv⟩,
   by_contradiction h',
-  rw [← ne_empty_iff_nonempty, ne.def, not_not,
-    ← subset_compl_iff_disjoint, compl_inter] at h',
+  rw [←not_disjoint_iff_nonempty_inter, ← subset_compl_iff_disjoint_right, compl_inter] at h',
   have xv : x ∉ v, from (h' xs).elim (absurd xu) id,
   have yu : y ∉ u, from (h' ys).elim id (absurd yv),
-  have := ne_empty_iff_nonempty.2 (h uᶜ vᶜ (is_closed_compl_iff.2 hu)
-    (is_closed_compl_iff.2 hv) h' ⟨y, ys, yu⟩ ⟨x, xs, xv⟩),
-  rw [ne.def, ← compl_union, ← subset_compl_iff_disjoint, compl_compl] at this,
+  have := h uᶜ vᶜ (is_closed_compl_iff.2 hu) (is_closed_compl_iff.2 hv) h' ⟨y, ys, yu⟩ ⟨x, xs, xv⟩,
+  rw [← compl_union, disjoint_compl_iff_subset_right] at this,
   contradiction
 end⟩
 
@@ -1235,7 +1232,7 @@ begin
     totally_separated_space.is_totally_separated_univ α x (set.mem_univ x) y (set.mem_univ y) hxy,
   have clopen_U := is_clopen_inter_of_disjoint_cover_clopen (is_clopen_univ) f hU hV disj,
   rw univ_inter _ at clopen_U,
-  rw [←set.subset_compl_iff_disjoint, subset_compl_comm] at disj,
+  rw [←set.subset_compl_iff_disjoint_right, subset_compl_comm] at disj,
   exact ⟨U, clopen_U, Ux, disj Vy⟩,
 end
 

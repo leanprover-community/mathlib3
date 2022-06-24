@@ -1383,10 +1383,9 @@ begin
   refine ⟨is_open.inter h.1 ha, _⟩,
   have : is_closed (Z ∩ bᶜ) := is_closed.inter h.2 (is_closed_compl_iff.2 hb),
   convert this using 1,
-  apply subset.antisymm,
-  { exact inter_subset_inter_right Z (subset_compl_iff_disjoint.2 hab) },
-  { rintros x ⟨hx₁, hx₂⟩,
-    exact ⟨hx₁, by simpa [not_mem_of_mem_compl hx₂] using cover hx₁⟩ }
+  refine (inter_subset_inter_right Z hab.subset_compl_right).antisymm _,
+  rintro x ⟨hx₁, hx₂⟩,
+  exact ⟨hx₁, by simpa [not_mem_of_mem_compl hx₂] using cover hx₁⟩,
 end
 
 @[simp] lemma is_clopen_discrete [discrete_topology α] (x : set α) : is_clopen x :=

@@ -847,7 +847,7 @@ instance apply_module : module (module.End R M) M :=
 @[simp] protected lemma smul_def (f : module.End R M) (a : M) : f • a = f a := rfl
 
 /-- `linear_map.apply_module` is faithful. -/
-instance apply_has_faithful_scalar : has_faithful_scalar (module.End R M) M :=
+instance apply_has_faithful_smul : has_faithful_smul (module.End R M) M :=
 ⟨λ _ _, linear_map.ext⟩
 
 instance apply_smul_comm_class : smul_comm_class R (module.End R M) M :=

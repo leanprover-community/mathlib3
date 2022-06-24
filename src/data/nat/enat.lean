@@ -301,18 +301,11 @@ instance : ordered_add_comm_monoid enat :=
   ..enat.add_comm_monoid }
 
 instance : canonically_ordered_add_monoid enat :=
-{ le_iff_exists_add := λ a b, enat.cases_on b
-    (iff_of_true le_top ⟨⊤, (add_top _).symm⟩)
-    (λ b, enat.cases_on a
-      (iff_of_false (not_le_of_gt (coe_lt_top _))
-        (not_exists.2 (λ x, ne_of_lt (by rw [top_add]; exact coe_lt_top _))))
-      (λ a, ⟨λ h, ⟨(b - a : ℕ),
-          by rw [← nat.cast_add, coe_inj, add_comm, tsub_add_cancel_of_le (coe_le_coe.1 h)]⟩,
-        (λ ⟨c, hc⟩, enat.cases_on c
-          (λ hc, hc.symm ▸ show (a : enat) ≤ a + ⊤, by rw [add_top]; exact le_top)
-          (λ c (hc : (b : enat) = a + c),
-            coe_le_coe.2 (by rw [← nat.cast_add, coe_inj] at hc;
-              rw hc; exact nat.le_add_right _ _)) hc)⟩)),
+{ le_self_add := λ a b, enat.cases_on b (le_top.trans_eq (add_top _).symm) $ λ b, enat.cases_on a
+    (top_add _).ge $ λ a, (coe_le_coe.2 le_self_add).trans_eq (nat.cast_add _ _),
+  exists_add_of_le := λ a b, enat.cases_on b (λ _, ⟨⊤, (add_top _).symm⟩) $ λ b, enat.cases_on a
+    (λ h, ((coe_lt_top _).not_le h).elim) $ λ a h, ⟨(b - a : ℕ),
+        by rw [←nat.cast_add, coe_inj, add_comm, tsub_add_cancel_of_le (coe_le_coe.1 h)]⟩,
   ..enat.semilattice_sup,
   ..enat.order_bot,
   ..enat.ordered_add_comm_monoid }
@@ -476,11 +469,15 @@ noncomputable def with_top_add_equiv : enat ≃+ with_top ℕ :=
 
 end with_top_equiv
 
-lemma lt_wf : well_founded ((<) : enat → enat → Prop) :=
-show well_founded (λ a b : enat, a < b),
-by haveI := classical.dec; simp only [to_with_top_lt.symm] {eta := ff};
-    exact inv_image.wf _ (with_top.well_founded_lt nat.lt_wf)
+lemma lt_wf : @well_founded enat (<) :=
+begin
+  classical,
+  change well_founded (λ a b : enat, a < b),
+  simp_rw ←to_with_top_lt,
+  exact inv_image.wf _ (with_top.well_founded_lt nat.lt_wf)
+end
 
+instance : is_well_order enat (<) := ⟨lt_wf⟩
 instance : has_well_founded enat := ⟨(<), lt_wf⟩
 
 section find

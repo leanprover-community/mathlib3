@@ -291,6 +291,16 @@ example : canonically_ordered_comm_semiring ℝ≥0 := by apply_instance
 example : densely_ordered ℝ≥0 := by apply_instance
 example : no_max_order ℝ≥0 := by apply_instance
 
+/-- If `a` is a nonnegative real number, then the closed interval `[0, a]` in `ℝ` is order
+isomorphic to the interval `set.Iic a`. -/
+@[simps apply_coe_coe] def order_iso_Icc_zero_coe (a : ℝ≥0) : set.Icc (0 : ℝ) a ≃o set.Iic a :=
+{ to_equiv := equiv.set.sep (set.Ici 0) (λ x, x ≤ a),
+  map_rel_iff' := λ x y, iff.rfl }
+
+@[simp] lemma order_iso_Icc_zero_coe_symm_apply_coe (a : ℝ≥0) (b : set.Iic a) :
+  ((order_iso_Icc_zero_coe a).symm b : ℝ) = b :=
+rfl
+
 -- note we need the `@` to make the `has_mem.mem` have a sensible type
 lemma coe_image {s : set ℝ≥0} : coe '' s = {x : ℝ | ∃ h : 0 ≤ x, @has_mem.mem (ℝ≥0) _ _ ⟨x, h⟩ s} :=
 subtype.coe_image
@@ -317,6 +327,9 @@ by rw [supr, supr, coe_Sup, set.range_comp]
 @[norm_cast] lemma coe_Inf (s : set ℝ≥0) : (↑(Inf s) : ℝ) = Inf ((coe : ℝ≥0 → ℝ) '' s) :=
 eq.symm $ @subset_Inf_of_within ℝ (set.Ici 0) _ ⟨(0 : ℝ≥0)⟩ s $
   real.Inf_nonneg _ $ λ y ⟨x, _, hy⟩, hy ▸ x.2
+
+@[simp] lemma Inf_empty : Inf (∅ : set ℝ≥0) = 0 :=
+by rw [← nnreal.coe_eq_zero, coe_Inf, set.image_empty, real.Inf_empty]
 
 @[norm_cast] lemma coe_infi {ι : Sort*} (s : ι → ℝ≥0) : (↑(⨅ i, s i) : ℝ) = ⨅ i, (s i) :=
 by rw [infi, infi, coe_Inf, set.range_comp]
@@ -571,8 +584,6 @@ by simp [pos_iff_ne_zero]
 
 lemma div_pos {r p : ℝ≥0} (hr : 0 < r) (hp : 0 < p) : 0 < r / p :=
 by simpa only [div_eq_mul_inv] using mul_pos hr (inv_pos.2 hp)
-
-protected lemma mul_inv {r p : ℝ≥0} : (r * p)⁻¹ = p⁻¹ * r⁻¹ := nnreal.eq $ mul_inv_rev _ _
 
 lemma div_self_le (r : ℝ≥0) : r / r ≤ 1 := div_self_le_one (r : ℝ)
 

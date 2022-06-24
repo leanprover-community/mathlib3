@@ -84,6 +84,10 @@ def roots_of_unity (k : ℕ+) (M : Type*) [comm_monoid M] : subgroup Mˣ :=
 @[simp] lemma mem_roots_of_unity (k : ℕ+) (ζ : Mˣ) :
   ζ ∈ roots_of_unity k M ↔ ζ ^ (k : ℕ) = 1 := iff.rfl
 
+lemma mem_roots_of_unity' (k : ℕ+) (ζ : Mˣ) :
+  ζ ∈ roots_of_unity k M ↔ (ζ : M) ^ (k : ℕ) = 1 :=
+by { rw [mem_roots_of_unity], norm_cast }
+
 lemma roots_of_unity.coe_injective {n : ℕ+} : function.injective (coe : (roots_of_unity n M) → M) :=
 units.ext.comp (λ x y, subtype.ext)
 
@@ -231,6 +235,17 @@ begin
 end
 
 end is_domain
+
+section reduced
+
+variables (R) [comm_ring R] [is_reduced R]
+
+@[simp] lemma mem_roots_of_unity_prime_pow_mul_iff (p k : ℕ) (m : ℕ+) [hp : fact p.prime]
+  [char_p R p] {ζ : Rˣ} :
+  ζ ∈ roots_of_unity (⟨p, hp.1.pos⟩ ^ k * m) R ↔ ζ ∈ roots_of_unity m R :=
+by simp [mem_roots_of_unity']
+
+end reduced
 
 end roots_of_unity
 
@@ -588,6 +603,29 @@ begin
   { intros x hx,
     rw [mem_primitive_roots zero_lt_one, is_primitive_root.one_right_iff] at hx,
     exact hx }
+end
+
+lemma ne_zero' {n : ℕ+} (hζ : is_primitive_root ζ n) : ne_zero ((n : ℕ) : R) :=
+begin
+  let p := ring_char R,
+  have hfin := (multiplicity.finite_nat_iff.2 ⟨char_p.char_ne_one R p, n.pos⟩),
+  obtain ⟨m, hm⟩ := multiplicity.exists_eq_pow_mul_and_not_dvd hfin,
+  by_cases hp : p ∣ n,
+  { obtain ⟨k, hk⟩ := nat.exists_eq_succ_of_ne_zero (multiplicity.pos_of_dvd hfin hp).ne',
+    haveI hpri : fact p.prime :=
+      @char_p.char_is_prime_of_pos R _ _ _ p ⟨nat.pos_of_dvd_of_pos hp n.pos⟩ _,
+    have := hζ.pow_eq_one,
+    rw [hm.1, hk, pow_succ, mul_assoc, pow_mul', ← frobenius_def, ← frobenius_one p] at this,
+    exfalso,
+    have hpos : 0 < p ^ k * m,
+    { refine (mul_pos (pow_pos hpri.1.pos _) (nat.pos_of_ne_zero (λ h, _))),
+      have H := hm.1,
+      rw [h] at H,
+      simpa using H },
+    refine hζ.pow_ne_one_of_pos_of_lt hpos _ (frobenius_inj R p this),
+    { rw [hm.1, hk, pow_succ, mul_assoc, mul_comm p],
+      exact lt_mul_of_one_lt_right hpos hpri.1.one_lt } },
+  { exact ne_zero.of_not_dvd R hp }
 end
 
 end is_domain

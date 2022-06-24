@@ -430,4 +430,54 @@ end
 
 end weierstrass
 
+
+/-!
+### Star structures
+
+In this section, if `β` is a normed ⋆-group, then so is the space of
+continuous functions from `α` to `β`, by using the star operation pointwise.
+
+Furthermore, if `α` is compact and `β` is a C⋆-ring, then `C(α, β)` is a C⋆-ring.  -/
+
+section normed_space
+
+variables {α : Type*} {β : Type*}
+variables [topological_space α] [normed_group β] [star_add_monoid β] [normed_star_group β]
+
+lemma _root_.bounded_continuous_function.mk_of_compact_star [compact_space α] (f : C(α, β)) :
+  mk_of_compact (star f) = star (mk_of_compact f) := rfl
+
+instance [compact_space α] : normed_star_group C(α, β) :=
+{ norm_star := λ f, by rw [←bounded_continuous_function.norm_mk_of_compact,
+                          bounded_continuous_function.mk_of_compact_star, norm_star,
+                          bounded_continuous_function.norm_mk_of_compact] }
+
+end normed_space
+
+section cstar_ring
+
+variables {α : Type*} {β : Type*}
+variables [topological_space α] [normed_ring β] [star_ring β]
+
+instance [compact_space α] [cstar_ring β] : cstar_ring C(α, β) :=
+{ norm_star_mul_self :=
+  begin
+    intros f,
+    refine le_antisymm _ _,
+    { rw [←sq, continuous_map.norm_le _ (sq_nonneg _)],
+      intro x,
+      simp only [continuous_map.coe_mul, coe_star, pi.mul_apply, pi.star_apply,
+                 cstar_ring.norm_star_mul_self, ←sq],
+      refine sq_le_sq' _ _,
+      { linarith [norm_nonneg (f x), norm_nonneg f] },
+      { exact continuous_map.norm_coe_le_norm f x }, },
+    { rw [←sq, ←real.le_sqrt (norm_nonneg _) (norm_nonneg _),
+          continuous_map.norm_le _ (real.sqrt_nonneg _)],
+      intro x,
+      rw [real.le_sqrt (norm_nonneg _) (norm_nonneg _), sq, ←cstar_ring.norm_star_mul_self],
+      exact continuous_map.norm_coe_le_norm (star f * f) x },
+  end }
+
+end cstar_ring
+
 end continuous_map

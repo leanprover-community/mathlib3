@@ -6,6 +6,7 @@ Authors: Sébastien Gouëzel
 import analysis.calculus.mean_value
 import analysis.normed_space.multilinear
 import analysis.calculus.formal_multilinear_series
+import tactic.congrm
 
 /-!
 # Higher differentiability
@@ -173,6 +174,7 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
 {F : Type*} [normed_group F] [normed_space 𝕜 F]
 {G : Type*} [normed_group G] [normed_space 𝕜 G]
+{X : Type*} [normed_group X] [normed_space 𝕜 X]
 {s s₁ t u : set E} {f f₁ : E → F} {g : F → G} {x : E} {c : F}
 {b : E × F → G} {m n : with_top ℕ}
 
@@ -1026,8 +1028,7 @@ theorem cont_diff_on_succ_iff_fderiv_of_open {n : ℕ} (hs : is_open s) :
   differentiable_on 𝕜 f s ∧ cont_diff_on 𝕜 n (λ y, fderiv 𝕜 f y) s :=
 begin
   rw cont_diff_on_succ_iff_fderiv_within hs.unique_diff_on,
-  congr' 2,
-  rw ← iff_iff_eq,
+  congrm _ ∧ _,
   apply cont_diff_on_congr,
   assume x hx,
   exact fderiv_within_of_open hs hx
@@ -1058,8 +1059,7 @@ theorem cont_diff_on_top_iff_fderiv_of_open (hs : is_open s) :
   differentiable_on 𝕜 f s ∧ cont_diff_on 𝕜 ∞ (λ y, fderiv 𝕜 f y) s :=
 begin
   rw cont_diff_on_top_iff_fderiv_within hs.unique_diff_on,
-  congr' 2,
-  rw ← iff_iff_eq,
+  congrm _ ∧ _,
   apply cont_diff_on_congr,
   assume x hx,
   exact fderiv_within_of_open hs hx
@@ -1627,7 +1627,7 @@ lemma has_ftaylor_series_up_to_on.continuous_linear_map_comp (g : F →L[𝕜] G
   has_ftaylor_series_up_to_on n (g ∘ f) (λ x k, g.comp_continuous_multilinear_map (p x k)) s :=
 begin
   set L : Π m : ℕ, (E [×m]→L[𝕜] F) →L[𝕜] (E [×m]→L[𝕜] G) :=
-    λ m, continuous_linear_map.comp_continuous_multilinear_mapL g,
+    λ m, continuous_linear_map.comp_continuous_multilinear_mapL 𝕜 (λ _, E) F G g,
   split,
   { exact λ x hx, congr_arg g (hf.zero_eq x hx) },
   { intros m hm x hx,
@@ -1649,14 +1649,12 @@ end
 
 /-- Composition by continuous linear maps on the left preserves `C^n` functions in a domain
 at a point. -/
-lemma cont_diff_at.continuous_linear_map_comp (g : F →L[𝕜] G)
-  (hf : cont_diff_at 𝕜 n f x) :
+lemma cont_diff_at.continuous_linear_map_comp (g : F →L[𝕜] G) (hf : cont_diff_at 𝕜 n f x) :
   cont_diff_at 𝕜 n (g ∘ f) x :=
 cont_diff_within_at.continuous_linear_map_comp g hf
 
 /-- Composition by continuous linear maps on the left preserves `C^n` functions on domains. -/
-lemma cont_diff_on.continuous_linear_map_comp (g : F →L[𝕜] G)
-  (hf : cont_diff_on 𝕜 n f s) :
+lemma cont_diff_on.continuous_linear_map_comp (g : F →L[𝕜] G) (hf : cont_diff_on 𝕜 n f s) :
   cont_diff_on 𝕜 n (g ∘ f) s :=
 λ x hx, (hf x hx).continuous_linear_map_comp g
 
@@ -1885,14 +1883,12 @@ begin
     { have A : cont_diff_on 𝕜 n (λ y, g' (f y)) w :=
         IH g'_diff ((hf.of_le (with_top.coe_le_coe.2 (nat.le_succ n))).mono ws) wv,
       have B : cont_diff_on 𝕜 n f' w := f'_diff.mono wu,
-      have C : cont_diff_on 𝕜 n (λ y, (f' y, g' (f y))) w :=
-        cont_diff_on.prod B A,
-      have D : cont_diff_on 𝕜 n (λ(p : (Eu →L[𝕜] Fu) × (Fu →L[𝕜] Gu)), p.2.comp p.1) univ :=
+      have C : cont_diff_on 𝕜 n (λ y, (g' (f y), f' y)) w := A.prod B,
+      have D : cont_diff_on 𝕜 n (λ p : (Fu →L[𝕜] Gu) × (Eu →L[𝕜] Fu), p.1.comp p.2) univ :=
         is_bounded_bilinear_map_comp.cont_diff.cont_diff_on,
       exact IH D C (subset_univ _) } },
   { rw cont_diff_on_top at hf hg ⊢,
-    assume n,
-    apply Itop n (hg n) (hf n) st }
+    exact λ n, Itop n (hg n) (hf n) st }
 end
 
 /-- The composition of `C^n` functions on domains is `C^n`. -/
@@ -2128,6 +2124,16 @@ lemma cont_diff.comp₃ {g : E₁ × E₂ × E₃ → G} {f₁ : F → E₁} {f�
   (hg : cont_diff 𝕜 n g) (hf₁ : cont_diff 𝕜 n f₁) (hf₂ : cont_diff 𝕜 n f₂)
   (hf₃ : cont_diff 𝕜 n f₃) : cont_diff 𝕜 n (λ x, g (f₁ x, f₂ x, f₃ x)) :=
 hg.comp₂ hf₁ $ hf₂.prod hf₃
+
+lemma cont_diff.comp_cont_diff_on₂ {g : E₁ × E₂ → G} {f₁ : F → E₁} {f₂ : F → E₂} {s : set F}
+  (hg : cont_diff 𝕜 n g) (hf₁ : cont_diff_on 𝕜 n f₁ s) (hf₂ : cont_diff_on 𝕜 n f₂ s) :
+  cont_diff_on 𝕜 n (λ x, g (f₁ x, f₂ x)) s :=
+hg.comp_cont_diff_on $ hf₁.prod hf₂
+
+lemma cont_diff.comp_cont_diff_on₃ {g : E₁ × E₂ × E₃ → G} {f₁ : F → E₁} {f₂ : F → E₂} {f₃ : F → E₃}
+  {s : set F} (hg : cont_diff 𝕜 n g) (hf₁ : cont_diff_on 𝕜 n f₁ s) (hf₂ : cont_diff_on 𝕜 n f₂ s)
+  (hf₃ : cont_diff_on 𝕜 n f₃ s) : cont_diff_on 𝕜 n (λ x, g (f₁ x, f₂ x, f₃ x)) s :=
+hg.comp_cont_diff_on₂ hf₁ $ hf₂.prod hf₃
 
 end n_ary
 
@@ -2536,6 +2542,16 @@ cont_diff_const.prod cont_diff_id
 
 end prod_map
 
+lemma cont_diff.clm_comp {g : X → F →L[𝕜] G} {f : X → E →L[𝕜] F}
+  (hg : cont_diff 𝕜 n g) (hf : cont_diff 𝕜 n f) :
+  cont_diff 𝕜 n (λ x, (g x).comp (f x)) :=
+is_bounded_bilinear_map_comp.cont_diff.comp₂ hg hf
+
+lemma cont_diff_on.clm_comp {g : X → F →L[𝕜] G} {f : X → E →L[𝕜] F}
+  {s : set X} (hg : cont_diff_on 𝕜 n g s) (hf : cont_diff_on 𝕜 n f s) :
+  cont_diff_on 𝕜 n (λ x, (g x).comp (f x)) s :=
+is_bounded_bilinear_map_comp.cont_diff.comp_cont_diff_on₂ hg hf
+
 /-! ### Inversion in a complete normed algebra -/
 
 section algebra_inverse
@@ -2652,12 +2668,8 @@ begin
   rw this,
   -- `O₁` and `O₂` are `cont_diff`,
   -- so we reduce to proving that `ring.inverse` is `cont_diff`
-  have h₁ : cont_diff 𝕜 n O₁,
-    from is_bounded_bilinear_map_comp.cont_diff.comp
-      (cont_diff_const.prod cont_diff_id),
-  have h₂ : cont_diff 𝕜 n O₂,
-    from is_bounded_bilinear_map_comp.cont_diff.comp
-      (cont_diff_id.prod cont_diff_const),
+  have h₁ : cont_diff 𝕜 n O₁ := cont_diff_id.clm_comp cont_diff_const,
+  have h₂ : cont_diff 𝕜 n O₂ := cont_diff_const.clm_comp cont_diff_id,
   refine h₁.cont_diff_at.comp _ (cont_diff_at.comp _ _ h₂.cont_diff_at),
   convert cont_diff_at_ring_inverse 𝕜 (1 : (E →L[𝕜] E)ˣ),
   simp [O₂, one_def]
@@ -2724,6 +2736,18 @@ begin
     exact Itop n (cont_diff_at_top.mp hf n) }
 end
 
+/-- If `f` is an `n` times continuously differentiable homeomorphism,
+and if the derivative of `f` at each point is a continuous linear equivalence,
+then `f.symm` is `n` times continuously differentiable.
+
+This is one of the easy parts of the inverse function theorem: it assumes that we already have
+an inverse function. -/
+theorem homeomorph.cont_diff_symm [complete_space E] (f : E ≃ₜ F) {f₀' : E → E ≃L[𝕜] F}
+  (hf₀' : ∀ a, has_fderiv_at f (f₀' a : E →L[𝕜] F) a) (hf : cont_diff 𝕜 n (f : E → F)) :
+  cont_diff 𝕜 n (f.symm : F → E) :=
+cont_diff_iff_cont_diff_at.2 $ λ x,
+  f.to_local_homeomorph.cont_diff_at_symm (mem_univ x) (hf₀' _) hf.cont_diff_at
+
 /-- Let `f` be a local homeomorphism of a nondiscrete normed field, let `a` be a point in its
 target. if `f` is `n` times continuously differentiable at `f.symm a`, and if the derivative at
 `f.symm a` is nonzero, then `f.symm` is `n` times continuously differentiable at the point `a`.
@@ -2735,6 +2759,18 @@ theorem local_homeomorph.cont_diff_at_symm_deriv [complete_space 𝕜]
   (hf₀' : has_deriv_at f f₀' (f.symm a)) (hf : cont_diff_at 𝕜 n f (f.symm a)) :
   cont_diff_at 𝕜 n f.symm a :=
 f.cont_diff_at_symm ha (hf₀'.has_fderiv_at_equiv h₀) hf
+
+/-- Let `f` be an `n` times continuously differentiable homeomorphism of a nondiscrete normed field.
+Suppose that the derivative of `f` is never equal to zero. Then `f.symm` is `n` times continuously
+differentiable.
+
+This is one of the easy parts of the inverse function theorem: it assumes that we already have
+an inverse function. -/
+theorem homeomorph.cont_diff_symm_deriv [complete_space 𝕜] (f : 𝕜 ≃ₜ 𝕜) {f' : 𝕜 → 𝕜}
+  (h₀ : ∀ x, f' x ≠ 0) (hf' : ∀ x, has_deriv_at f (f' x) x) (hf : cont_diff 𝕜 n (f : 𝕜 → 𝕜)) :
+  cont_diff 𝕜 n (f.symm : 𝕜 → 𝕜) :=
+cont_diff_iff_cont_diff_at.2 $ λ x,
+  f.to_local_homeomorph.cont_diff_at_symm_deriv (h₀ _) (mem_univ x) (hf' _) hf.cont_diff_at
 
 end function_inverse
 
@@ -2964,8 +3000,7 @@ theorem cont_diff_on_succ_iff_deriv_of_open {n : ℕ} (hs : is_open s₂) :
   differentiable_on 𝕜 f₂ s₂ ∧ cont_diff_on 𝕜 n (deriv f₂) s₂ :=
 begin
   rw cont_diff_on_succ_iff_deriv_within hs.unique_diff_on,
-  congr' 2,
-  rw ← iff_iff_eq,
+  congrm _ ∧ _,
   apply cont_diff_on_congr,
   assume x hx,
   exact deriv_within_of_open hs hx
@@ -2996,8 +3031,7 @@ theorem cont_diff_on_top_iff_deriv_of_open (hs : is_open s₂) :
   differentiable_on 𝕜 f₂ s₂ ∧ cont_diff_on 𝕜 ∞ (deriv f₂) s₂ :=
 begin
   rw cont_diff_on_top_iff_deriv_within hs.unique_diff_on,
-  congr' 2,
-  rw ← iff_iff_eq,
+  congrm _ ∧ _,
   apply cont_diff_on_congr,
   assume x hx,
   exact deriv_within_of_open hs hx

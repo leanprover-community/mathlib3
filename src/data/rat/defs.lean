@@ -651,6 +651,26 @@ begin
   simp [division_def, coe_int_eq_mk, mul_def one_ne_zero d0]
 end
 
+lemma mk_mul_mk_cancel {x : ℤ} (hx : x ≠ 0) (n d : ℤ) : (n /. x) * (x /. d) = n /. d :=
+begin
+  by_cases hd : d = 0,
+  { rw hd,
+    simp},
+  rw [mul_def hx hd, mul_comm x, div_mk_div_cancel_left hx],
+end
+
+lemma mk_div_mk_cancel_left {x : ℤ} (hx : x ≠ 0) (n d : ℤ) : (n /. x) / (d /. x) = n /. d :=
+by rw [div_eq_mul_inv, inv_def, mk_mul_mk_cancel hx]
+
+lemma mk_div_mk_cancel_right {x : ℤ} (hx : x ≠ 0) (n d : ℤ) : (x /. n) / (x /. d) = d /. n :=
+by rw [div_eq_mul_inv, inv_def, mul_comm, mk_mul_mk_cancel hx]
+
+lemma coe_int_div_eq_mk {n d : ℤ} : (n : ℚ) / ↑d = n /. d :=
+begin
+  repeat {rw coe_int_eq_mk},
+  exact mk_div_mk_cancel_left one_ne_zero n d,
+end
+
 @[simp]
 theorem num_div_denom (r : ℚ) : (r.num / r.denom : ℚ) = r :=
 by rw [← int.cast_coe_nat, ← mk_eq_div, num_denom]
@@ -661,6 +681,57 @@ begin
   have : ((n : ℚ) / d) = rat.mk n d, by rw [←rat.mk_eq_div],
   exact rat.num_denom_mk d_ne_zero this
 end
+
+lemma mul_num_denom' (q r : ℚ) :
+  (q * r).num * q.denom * r.denom = q.num * r.num * (q * r).denom :=
+begin
+  let s := (q.num * r.num) /. (q.denom * r.denom : ℤ),
+  have hs : (q.denom * r.denom : ℤ) ≠ 0 := int.coe_nat_ne_zero_iff_pos.mpr (mul_pos q.pos r.pos),
+  obtain ⟨c, ⟨c_mul_num, c_mul_denom⟩⟩ :=
+    exists_eq_mul_div_num_and_eq_mul_div_denom (q.num * r.num) hs,
+  rw [c_mul_num, mul_assoc, mul_comm],
+  nth_rewrite 0 c_mul_denom,
+  repeat {rw mul_assoc},
+  apply mul_eq_mul_left_iff.2,
+  rw or_iff_not_imp_right,
+  intro c_pos,
+  have h : _ = s := @mul_def q.num q.denom r.num r.denom
+    (int.coe_nat_ne_zero_iff_pos.mpr q.pos)
+    (int.coe_nat_ne_zero_iff_pos.mpr  r.pos),
+  rw [num_denom, num_denom] at h,
+  rw h,
+  rw mul_comm,
+  apply rat.eq_iff_mul_eq_mul.mp,
+  rw ←mk_eq_div,
+end
+
+lemma add_num_denom' (q r : ℚ) :
+  (q + r).num * q.denom * r.denom = (q.num * r.denom + r.num * q.denom) * (q + r).denom :=
+begin
+  let s := mk (q.num * r.denom + r.num * q.denom) (q.denom * r.denom : ℤ),
+  have hs : (q.denom * r.denom : ℤ) ≠ 0 := int.coe_nat_ne_zero_iff_pos.mpr (mul_pos q.pos r.pos),
+  obtain ⟨c, ⟨c_mul_num, c_mul_denom⟩⟩ := exists_eq_mul_div_num_and_eq_mul_div_denom
+    (q.num * r.denom + r.num * q.denom) hs,
+  rw [c_mul_num, mul_assoc, mul_comm],
+  nth_rewrite 0 c_mul_denom,
+  repeat {rw mul_assoc},
+  apply mul_eq_mul_left_iff.2,
+  rw or_iff_not_imp_right,
+  intro c_pos,
+  have h : _ = s := @add_def q.num q.denom r.num r.denom
+    (int.coe_nat_ne_zero_iff_pos.mpr q.pos)
+    (int.coe_nat_ne_zero_iff_pos.mpr  r.pos),
+  rw [num_denom, num_denom] at h,
+  rw h,
+  rw mul_comm,
+  apply rat.eq_iff_mul_eq_mul.mp,
+  rw ←mk_eq_div,
+end
+
+lemma substr_num_denom' (q r : ℚ) :
+  (q - r).num * q.denom * r.denom = (q.num * r.denom - r.num * q.denom) * (q - r).denom :=
+by rw [sub_eq_add_neg, sub_eq_add_neg, ←neg_mul, ←num_neg_eq_neg_num, ←denom_neg_eq_denom r,
+  add_num_denom' q (-r)]
 
 theorem coe_int_eq_of_int (z : ℤ) : ↑z = of_int z :=
 (coe_int_eq_mk z).trans (of_int_eq_mk z).symm

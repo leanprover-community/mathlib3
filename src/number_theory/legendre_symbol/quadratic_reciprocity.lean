@@ -125,7 +125,7 @@ begin
   { have h₁ := quadratic_char_eq_pow_of_char_ne_two (by rwa ring_char_zmod_n p) ha,
     rw card p at h₁,
     rw h₁,
-    have h₂ := finite_field.neg_one_ne_one_of_char_ne_two (by rwa ring_char_zmod_n p),
+    have h₂ := ring.neg_one_ne_one_of_char_ne_two (by rwa ring_char_zmod_n p),
     cases pow_div_two_eq_neg_one_or_one p ha with h h,
     { rw [if_pos h, h, int.cast_one], },
     { rw [h, if_neg h₂, int.cast_neg, int.cast_one], } }

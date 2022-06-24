@@ -95,7 +95,7 @@ meta def move_left_or_right : list (bool × expr) → list expr → list bool �
   (l1, l2, l3, is_unused) ← move_left_or_right l (sl.erase ex) (is_unused.append [ff]),
   if be.1 then return (ex::l1, l2, l3, is_unused) else return (l1, ex::l2, l3, is_unused)
 
-/--  We combine `snd_to_expr` and `move_left_or_right`, and then some:
+/--  We adapt `move_left_or_right` to our goal:
 1. we convert a list pairs `bool × pexpr` to a list of pairs `bool × expr`,
 2. we use the extra input `sl : list expr` to perform the unification and sorting step
    `move_left_or_right`,

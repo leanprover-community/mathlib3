@@ -91,7 +91,8 @@ begin
   obtain ⟨u, hu, hCmax⟩ := C.exists_maximal
     (filter_nonempty_iff.2 ⟨∅, empty_mem_powerset _, set.pairwise_disjoint_empty⟩),
   rw [mem_filter, mem_powerset] at hu,
-  refine ⟨u, (card_mul_iff.2 $ pairwise_disjoint_smul_iff.1 hu.2).ge.trans (card_le_of_subset $ mul_subset_mul_right hu.1), λ a ha, _⟩,
+  refine ⟨u, (card_mul_iff.2 $ pairwise_disjoint_smul_iff.1 hu.2).ge.trans
+    (card_le_of_subset $ mul_subset_mul_right hu.1), λ a ha, _⟩,
   rw mul_div_assoc,
   by_cases hau : a ∈ u,
   { exact subset_mul_left _ ht.one_mem_div hau },

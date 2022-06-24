@@ -330,9 +330,7 @@ begin
 end
 
 theorem Gamma_eq_integral (s : ℂ) (hs : 0 < s.re) : Gamma s = Gamma_integral s :=
-begin
-  refine Gamma_eq_Gamma_aux s 0 (_ : _ < 0), norm_cast, linarith,
-end
+Gamma_eq_Gamma_aux s 0 (by { norm_cast, linarith })
 
 theorem Gamma_nat_eq_factorial (n : ℕ) : Gamma (n+1) = nat.factorial n :=
 begin

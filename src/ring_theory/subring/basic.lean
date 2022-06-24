@@ -513,16 +513,6 @@ mem_range.mpr ⟨x, rfl⟩
 lemma map_range : f.range.map g = (g.comp f).range :=
 by simpa only [range_eq_map] using (⊤ : subring R).map_map g f
 
--- TODO -- rename to `cod_restrict` when is_ring_hom is deprecated
-/-- Restrict the codomain of a ring homomorphism to a subring that includes the range. -/
-def cod_restrict' {R : Type u} {S : Type v} [ring R] [ring S] (f : R →+* S)
-  (s : subring S) (h : ∀ x, f x ∈ s) : R →+* s :=
-{ to_fun := λ x, ⟨f x, h x⟩,
-  map_add' := λ x y, subtype.eq $ f.map_add x y,
-  map_zero' := subtype.eq f.map_zero,
-  map_mul' := λ x y, subtype.eq $ f.map_mul x y,
-  map_one' := subtype.eq f.map_one }
-
 /-- The range of a ring homomorphism is a fintype, if the domain is a fintype.
 Note: this instance can form a diamond with `subtype.fintype` in the
   presence of `fintype S`. -/
@@ -908,16 +898,11 @@ variables {s : subring R}
 
 open subring
 
-/-- Restriction of a ring homomorphism to a subring of the domain. -/
-def restrict (f : R →+* S) (s : subring R) : s →+* S := f.comp s.subtype
-
-@[simp] lemma restrict_apply (f : R →+* S) (x : s) : f.restrict s x = f x := rfl
-
 /-- Restriction of a ring homomorphism to its range interpreted as a subsemiring.
 
 This is the bundled version of `set.range_factorization`. -/
 def range_restrict (f : R →+* S) : R →+* f.range :=
-f.cod_restrict' f.range $ λ x, ⟨x, rfl⟩
+f.cod_restrict f.range $ λ x, ⟨x, rfl⟩
 
 @[simp] lemma coe_range_restrict (f : R →+* S) (x : R) : (f.range_restrict x : S) = f x := rfl
 
@@ -972,7 +957,7 @@ open ring_hom
 
 /-- The ring homomorphism associated to an inclusion of subrings. -/
 def inclusion {S T : subring R} (h : S ≤ T) : S →+* T :=
-S.subtype.cod_restrict' _ (λ x, h x.2)
+S.subtype.cod_restrict _ (λ x, h x.2)
 
 @[simp] lemma range_subtype (s : subring R) : s.subtype.range = s :=
 set_like.coe_injective $ (coe_srange _).trans subtype.range_coe
@@ -1118,9 +1103,9 @@ instance
   is_scalar_tower S α β :=
 S.to_subsemiring.is_scalar_tower
 
-instance [has_scalar R α] [has_faithful_scalar R α] (S : subring R) :
-  has_faithful_scalar S α :=
-S.to_subsemiring.has_faithful_scalar
+instance [has_scalar R α] [has_faithful_smul R α] (S : subring R) :
+  has_faithful_smul S α :=
+S.to_subsemiring.has_faithful_smul
 
 /-- The action by a subring is the action by the underlying ring. -/
 instance [mul_action R α] (S : subring R) : mul_action S α :=

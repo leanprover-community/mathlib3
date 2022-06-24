@@ -99,13 +99,11 @@ class pseudo_emetric_space (α : Type u) extends has_edist α : Type u :=
   uniform_space_of_edist edist edist_self edist_comm edist_triangle)
 (uniformity_edist : 𝓤 α = ⨅ ε>0, 𝓟 {p:α×α | edist p.1 p.2 < ε} . control_laws_tac)
 
+attribute [priority 100, instance] pseudo_emetric_space.to_uniform_space
+
 /- Pseudoemetric spaces are less common than metric spaces. Therefore, we work in a dedicated
 namespace, while notions associated to metric spaces are mostly in the root namespace. -/
 variables [pseudo_emetric_space α]
-
-@[priority 100] -- see Note [lower instance priority]
-instance pseudo_emetric_space.to_uniform_space' : uniform_space α :=
-pseudo_emetric_space.to_uniform_space
 
 export pseudo_emetric_space (edist_self edist_comm edist_triangle)
 
@@ -497,12 +495,16 @@ def ball (x : α) (ε : ℝ≥0∞) : set α := {y | edist y x < ε}
 
 @[simp] theorem mem_ball : y ∈ ball x ε ↔ edist y x < ε := iff.rfl
 
-theorem mem_ball' : y ∈ ball x ε ↔ edist x y < ε := by rw edist_comm; refl
+theorem mem_ball' : y ∈ ball x ε ↔ edist x y < ε :=
+by rw [edist_comm, mem_ball]
 
 /-- `emetric.closed_ball x ε` is the set of all points `y` with `edist y x ≤ ε` -/
 def closed_ball (x : α) (ε : ℝ≥0∞) := {y | edist y x ≤ ε}
 
 @[simp] theorem mem_closed_ball : y ∈ closed_ball x ε ↔ edist y x ≤ ε := iff.rfl
+
+theorem mem_closed_ball' : y ∈ closed_ball x ε ↔ edist x y ≤ ε :=
+by rw [edist_comm, mem_closed_ball]
 
 @[simp] theorem closed_ball_top (x : α) : closed_ball x ∞ = univ :=
 eq_univ_of_forall $ λ y, le_top
@@ -520,7 +522,10 @@ theorem mem_closed_ball_self : x ∈ closed_ball x ε :=
 show edist x x ≤ ε, by rw edist_self; exact bot_le
 
 theorem mem_ball_comm : x ∈ ball y ε ↔ y ∈ ball x ε :=
-by simp [edist_comm]
+by rw [mem_ball', mem_ball]
+
+theorem mem_closed_ball_comm : x ∈ closed_ball y ε ↔ y ∈ closed_ball x ε :=
+by rw [mem_closed_ball', mem_closed_ball]
 
 theorem ball_subset_ball (h : ε₁ ≤ ε₂) : ball x ε₁ ⊆ ball x ε₂ :=
 λ y (yx : _ < ε₁), lt_of_lt_of_le yx h
@@ -653,8 +658,8 @@ section compact
 /-- For a set `s` in a pseudo emetric space, if for every `ε > 0` there exists a countable
 set that is `ε`-dense in `s`, then there exists a countable subset `t ⊆ s` that is dense in `s`. -/
 lemma subset_countable_closure_of_almost_dense_set (s : set α)
-  (hs : ∀ ε > 0, ∃ t : set α, countable t ∧ s ⊆ ⋃ x ∈ t, closed_ball x ε) :
-  ∃ t ⊆ s, (countable t ∧ s ⊆ closure t) :=
+  (hs : ∀ ε > 0, ∃ t : set α, t.countable ∧ s ⊆ ⋃ x ∈ t, closed_ball x ε) :
+  ∃ t ⊆ s, (t.countable ∧ s ⊆ closure t) :=
 begin
   rcases s.eq_empty_or_nonempty with rfl|⟨x₀, hx₀⟩,
   { exact ⟨∅, empty_subset _, countable_empty, empty_subset _⟩ },
@@ -681,7 +686,7 @@ end
 /-- A compact set in a pseudo emetric space is separable, i.e., it is a subset of the closure of a
 countable set.  -/
 lemma subset_countable_closure_of_compact {s : set α} (hs : is_compact s) :
-  ∃ t ⊆ s, (countable t ∧ s ⊆ closure t) :=
+  ∃ t ⊆ s, (t.countable ∧ s ⊆ closure t) :=
 begin
   refine subset_countable_closure_of_almost_dense_set s (λ ε hε, _),
   rcases totally_bounded_iff'.1 hs.totally_bounded ε hε with ⟨t, hts, htf, hst⟩,
@@ -713,7 +718,7 @@ end
 variable {α}
 
 lemma second_countable_of_almost_dense_set
-  (hs : ∀ ε > 0, ∃ t : set α, countable t ∧ (⋃ x ∈ t, closed_ball x ε) = univ) :
+  (hs : ∀ ε > 0, ∃ t : set α, t.countable ∧ (⋃ x ∈ t, closed_ball x ε) = univ) :
   second_countable_topology α :=
 begin
   suffices : separable_space α, by exactI uniform_space.second_countable_of_separable α,
@@ -835,10 +840,6 @@ class emetric_space (α : Type u) extends pseudo_emetric_space α : Type u :=
 (eq_of_edist_eq_zero : ∀ {x y : α}, edist x y = 0 → x = y)
 
 variables {γ : Type w} [emetric_space γ]
-
-@[priority 100] -- see Note [lower instance priority]
-instance emetric_space.to_uniform_space' : uniform_space γ :=
-pseudo_emetric_space.to_uniform_space
 
 export emetric_space (eq_of_edist_eq_zero)
 
@@ -983,7 +984,7 @@ namespace emetric
 
 /-- A compact set in an emetric space is separable, i.e., it is the closure of a countable set. -/
 lemma countable_closure_of_compact {s : set γ} (hs : is_compact s) :
-  ∃ t ⊆ s, (countable t ∧ s = closure t) :=
+  ∃ t ⊆ s, (t.countable ∧ s = closure t) :=
 begin
   rcases subset_countable_closure_of_compact hs with ⟨t, hts, htc, hsub⟩,
   exact ⟨t, hts, htc, subset.antisymm hsub (closure_minimal hts hs.is_closed)⟩

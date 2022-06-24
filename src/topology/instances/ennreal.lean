@@ -637,11 +637,26 @@ have Inf ((λb, ↑r - b) '' range b) = ↑r - (⨆i, b i),
 by rw [eq, ←this]; simp [Inf_image, infi_range, -mem_range]; exact le_rfl
 
 lemma exists_countable_dense_no_zero_top :
-  ∃ (s : set ℝ≥0∞), countable s ∧ dense s ∧ 0 ∉ s ∧ ∞ ∉ s :=
+  ∃ (s : set ℝ≥0∞), s.countable ∧ dense s ∧ 0 ∉ s ∧ ∞ ∉ s :=
 begin
-  obtain ⟨s, s_count, s_dense, hs⟩ : ∃ s : set ℝ≥0∞, countable s ∧ dense s ∧
+  obtain ⟨s, s_count, s_dense, hs⟩ : ∃ s : set ℝ≥0∞, s.countable ∧ dense s ∧
     (∀ x, is_bot x → x ∉ s) ∧ (∀ x, is_top x → x ∉ s) := exists_countable_dense_no_bot_top ℝ≥0∞,
   exact ⟨s, s_count, s_dense, λ h, hs.1 0 (by simp) h, λ h, hs.2 ∞ (by simp) h⟩,
+end
+
+lemma exists_lt_add_of_lt_add {x y z : ℝ≥0∞} (h : x < y + z) (hy : y ≠ 0) (hz : z ≠ 0) :
+  ∃ y' z', y' < y ∧ z' < z ∧ x < y' + z' :=
+begin
+  haveI : ne_bot (𝓝[<] y) := nhds_within_Iio_self_ne_bot' ⟨0, pos_iff_ne_zero.2 hy⟩,
+  haveI : ne_bot (𝓝[<] z) := nhds_within_Iio_self_ne_bot' ⟨0, pos_iff_ne_zero.2 hz⟩,
+  have A : tendsto (λ (p : ℝ≥0∞ × ℝ≥0∞), p.1 + p.2) ((𝓝[<] y).prod (𝓝[<] z)) (𝓝 (y + z)),
+  { apply tendsto.mono_left _ (filter.prod_mono nhds_within_le_nhds nhds_within_le_nhds),
+    rw ← nhds_prod_eq,
+    exact tendsto_add },
+  rcases (((tendsto_order.1 A).1 x h).and
+    (filter.prod_mem_prod self_mem_nhds_within self_mem_nhds_within)).exists
+    with ⟨⟨y', z'⟩, hx, hy', hz'⟩,
+  exact ⟨y', z', hy', hz', hx⟩,
 end
 
 end topological_space

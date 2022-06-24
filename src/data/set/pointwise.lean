@@ -762,7 +762,7 @@ begin
 end
 
 @[to_additive]
-lemma list_prod_singleton {M ι : Type*} [comm_monoid M] (s : list M) :
+lemma list_prod_singleton {M : Type*} [comm_monoid M] (s : list M) :
   (s.map $ λ i, ({i} : set M)).prod = {s.prod} :=
 (map_list_prod (singleton_monoid_hom : M →* set M) _).symm
 
@@ -789,7 +789,7 @@ begin
 end
 
 @[to_additive]
-lemma multiset_prod_singleton {M ι : Type*} [comm_monoid M] (s : multiset M) :
+lemma multiset_prod_singleton {M : Type*} [comm_monoid M] (s : multiset M) :
   (s.map $ λ i, ({i} : set M)).prod = {s.prod} :=
 (map_multiset_prod (singleton_monoid_hom : M →* set M) _).symm
 

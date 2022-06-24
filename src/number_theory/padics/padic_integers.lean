@@ -124,6 +124,7 @@ by refine_struct
 intros; try { refl }; ext; simp; ring
 
 instance : add_group_with_one ℤ_[p] :=
+-- TODO: define nat_cast/int_cast so that coe_coe and coe_coe_int are rfl
 { one := 1, .. padic_int.add_comm_group }
 
 instance : ring ℤ_[p] :=

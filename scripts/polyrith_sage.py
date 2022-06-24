@@ -106,6 +106,13 @@ def evaluate_in_sage(query: str, format=False) -> str:
         raise Exception(response)
 
 def main():
+    '''The system args contain the following:
+    0 - the path to this python file
+    1 - a string containing "tt" or "ff" depending on whether polyrith was called with trace enabled
+    2 - a string representing the base type of the target
+    3 - a list of all the variables to be used
+    4 - a list of the polynomial hypotheses/proof terms in terms of the variables
+    5 - a single polynomial representing the target'''
     command = create_query(sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5])
     final_query = polynomial_formatting_functions + "\n" + command
     if sys.argv[1] == 'tt': # trace enabled

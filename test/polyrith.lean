@@ -35,6 +35,15 @@ example (a b c d : ℚ) (h1 : a = 4) (h2 : 3 = b) (h3 : c*3 = d) (h4 : -d = a) :
   2*a - 3 + 9*c + 3*d = 8 - b + 3*d - 3*a :=
 by polyrith
 
+/-! ### Case with ambiguous identifiers-/
+
+example («def evil» y : ℤ) (h1 : 3*«def evil» + 2*y = 10):
+  3*«def evil» + 2*y = 10 :=
+by polyrith
+
+example («¥» y : ℤ) (h1 : 3*«¥» + 2*y = 10):
+  «¥» * (3*«¥» + 2*y) = 10 * «¥» :=
+by polyrith
 
 /-! ### Cases with arbitrary coefficients -/
 

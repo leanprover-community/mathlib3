@@ -820,10 +820,10 @@ by simpa only [inf_comm] using binfi_inf h
 lemma supr_true {s : true → α} : supr s = s trivial := supr_pos trivial
 lemma infi_true {s : true → α} : infi s = s trivial := infi_pos trivial
 
-@[simp] lemma supr_exists {p : ι → Prop} {f : Exists p → α} : supr f = ⨆ i h, f ⟨i, h⟩ :=
+@[simp] lemma supr_exists {p : ι → Prop} {f : Exists p → α} : (⨆ x, f x)  = ⨆ i h, f ⟨i, h⟩ :=
 le_antisymm (supr_le $ λ ⟨i, h⟩, le_supr₂ i h) (supr₂_le $ λ i h, le_supr _ _)
 
-@[simp] lemma infi_exists {p : ι → Prop} {f : Exists p → α} : infi f = ⨅ i h, f ⟨i, h⟩ :=
+@[simp] lemma infi_exists {p : ι → Prop} {f : Exists p → α} : (⨅ x, f x)  = ⨅ i h, f ⟨i, h⟩ :=
 @supr_exists αᵒᵈ _ _ _ _
 
 lemma supr_and {p q : Prop} {s : p ∧ q → α} : supr s = ⨆ h₁ h₂, s ⟨h₁, h₂⟩ :=

@@ -431,7 +431,7 @@ f.to_fun.graph.map (f.domain.subtype.prod_map linear_map.id)
 
 lemma mem_graph_iff' (f : linear_pmap R E F) {x : E × F} :
   x ∈ graph f ↔ ∃ (y : f.domain), (↑y, f y) = x :=
-by simp[graph]
+by simp [graph]
 
 @[simp] lemma mem_graph_iff (f : linear_pmap R E F) {x : E × F} :
   x ∈ graph f ↔ ∃ (y : f.domain), x.fst = ↑y ∧ x.snd = f y :=

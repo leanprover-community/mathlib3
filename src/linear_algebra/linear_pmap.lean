@@ -427,7 +427,7 @@ namespace linear_pmap
 
 /-- The graph of a `linear_pmap` viewed as a submodule on `E × F`. -/
 def graph (f : linear_pmap R E F) : submodule R (E × F) :=
-submodule.map (linear_map.prod_map f.domain.subtype linear_map.id) f.to_fun.graph
+f.to_fun.graph.map (linear_map.prod_map f.domain.subtype linear_map.id)
 
 lemma mem_graph_iff' (f : linear_pmap R E F) {x : E × F} :
   x ∈ graph f ↔ ∃ (y : f.domain), (↑y, f y) = x :=
@@ -439,7 +439,7 @@ begin
   rw mem_graph_iff',
   split; intro h; cases h with y h; use y,
   { exact ⟨congr_arg prod.fst h.symm, congr_arg prod.snd h.symm⟩ },
-  { exact prod.ext (eq.symm h.1) (eq.symm h.2) },
+  { exact prod.ext h.1.symm h.2.symm },
 end
 
 /-- The property that `f 0 = 0` in terms of the graph. -/
@@ -447,7 +447,7 @@ lemma graph_fst_eq_zero_snd (f : linear_pmap R E F) {x : E × F} (hx : x ∈ gra
   (hx' : x.fst = 0) :
   x.snd = 0 :=
 begin
-  rcases (mem_graph_iff f).mp hx with ⟨y,hx1,hx2⟩,
+  rcases f.mem_graph_iff.mp hx with ⟨y, hx1, hx2⟩,
   rw [hx1, submodule.coe_eq_zero] at hx',
   rw [hx2, hx', map_zero],
 end

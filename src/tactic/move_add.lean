@@ -181,7 +181,7 @@ The list of booleans records which variable in `ll` has been unified in the appl
 This definition is useful to streamline error catching. -/
 meta def with_errors (op : pexpr) (lp : list (bool × pexpr)) (na : option name) :
   tactic (bool × list bool) :=
-do (thyp, hyploc) ←  -- hyploc is only meaningful in the "is some/else" branch
+do (thyp, hyploc) ←  -- `hyploc` is only meaningful in the "is some/else" branch
   if na.is_none then do t ← target, return (t, t)
   else
   (do nn ← get_unused_name,

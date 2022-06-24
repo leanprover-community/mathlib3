@@ -335,15 +335,15 @@ subalgebra.inclusion hEF
 
 lemma inclusion_injective {E F : intermediate_field K L} (hEF : E ≤ F) :
   function.injective (inclusion hEF) :=
-λ _ _, subtype.ext ∘ subtype.mk.inj
+subalgebra.inclusion_injective hEF
 
 @[simp] lemma inclusion_self {E : intermediate_field K L}:
   inclusion (le_refl E) = alg_hom.id K E :=
-alg_hom.ext $ λ x, subtype.ext rfl
+subalgebra.inclusion_self
 
 @[simp] lemma inclusion_inclusion {E F G : intermediate_field K L} (hEF : E ≤ F) (hFG : F ≤ G)
   (x : E) : inclusion hFG (inclusion hEF x) = inclusion (le_trans hEF hFG) x :=
-subtype.ext rfl
+subalgebra.inclusion_inclusion hEF hFG x
 
 @[simp] lemma coe_inclusion {E F : intermediate_field K L} (hEF : E ≤ F) (e : E) :
   (inclusion hEF e : L) = e := rfl

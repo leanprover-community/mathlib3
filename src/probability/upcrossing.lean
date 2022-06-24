@@ -188,7 +188,7 @@ lemma upper_crossing_stabilize' (hnm : n ≤ m) (hn : N ≤ upper_crossing a b f
   upper_crossing a b f N m x = N :=
 upper_crossing_stabilize hnm (le_antisymm upper_crossing_le hn)
 
-section move
+section temp
 
 -- from #12509 **DELETE**
 lemma strict_mono.not_bdd_above_range {α β} [preorder α] [no_max_order α] [nonempty α] [preorder β]
@@ -198,48 +198,7 @@ begin
   sorry
 end
 
--- PRed: #14896
-lemma strict_mono_on.Icc_id_le {n : ℕ} {φ : ℕ → ℕ} (hφ : strict_mono_on φ (set.Icc 0 n)) :
-  ∀ m ≤ n, m ≤ φ m :=
-begin
-  induction n with k ih,
-  { simp },
-  { rintro m (hm : _ ≤ order.succ k),
-    have := strict_mono_on.mono hφ (set.Icc_subset_Icc_right (nat.le_succ _)),
-    obtain (rfl | h) := order.le_succ_iff_eq_or_le.1 hm,
-    { specialize ih this k le_rfl,
-      exact le_trans (order.succ_mono ih) (nat.succ_le_of_lt
-        (hφ ⟨zero_le _, nat.le_succ _⟩ ⟨zero_le _, le_refl k.succ⟩ (nat.lt_succ_self _))) },
-    { exact ih this _ h } }
-end
-
--- PRed: #14896
-@[simp]
-lemma strict_mono_on_singleton {α β : Type*} [preorder α] [preorder β] (f : α → β) (a : α) :
-  strict_mono_on f {a} :=
-λ i (hi : i = a) j (hj : j = a) hij, false.elim (hij.ne $ hj.symm ▸ hi)
-
--- PRed: #14896
-lemma strict_mono_on_nat_Icc_of_lt_succ {n : ℕ} {φ : ℕ → ℕ}
-  (hφ : ∀ m, m + 1 ≤ n → φ m < φ (m + 1)) :
-  strict_mono_on φ (set.Icc 0 n) :=
-begin
-  induction n with k ih,
-  { simp },
-  { rintro i ⟨-, hi⟩ j ⟨-, hj⟩ hij,
-    specialize ih (λ m hm, hφ _ (le_trans hm (nat.le_succ _))),
-    by_cases hj' : j = k.succ,
-    { subst hj',
-      rw nat.lt_succ_iff at hij,
-      exact lt_of_le_of_lt
-        (ih.monotone_on ⟨zero_le _, hij⟩ ⟨zero_le _, le_rfl⟩ hij) (hφ _ le_rfl) },
-    { have hj'' : j ≤ k,
-      { rw ← nat.lt_succ_iff,
-        exact lt_of_le_of_ne hj hj' },
-      exact ih ⟨zero_le _, le_trans hij.le hj''⟩ ⟨zero_le _, hj''⟩ hij } }
-end
-
-end move
+end temp
 
 -- `upper_crossing_bound_eq` provides an explicit bound
 lemma exists_upper_crossing_eq (f : ℕ → α → ℝ) (N : ℕ) (x : α) (hab : a < b) :

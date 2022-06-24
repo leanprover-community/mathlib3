@@ -74,7 +74,7 @@ variables {m m₁ m₂ : measurable_space α} {m' : measurable_space β} {f : α
 /-- The forward image of a measurable space under a function. `map f m` contains the sets
   `s : set β` whose preimage under `f` is measurable. -/
 protected def map (f : α → β) (m : measurable_space α) : measurable_space β :=
-{ measurable_set'      := λ s, m.measurable_set' $ f ⁻¹' s,
+{ measurable_set'      := λ s, measurable_set[m] $ f ⁻¹' s,
   measurable_set_empty := m.measurable_set_empty,
   measurable_set_compl := assume s hs, m.measurable_set_compl _ hs,
   measurable_set_Union := assume f hf, by { rw preimage_Union, exact m.measurable_set_Union _ hf }}
@@ -88,7 +88,7 @@ measurable_space.ext $ assume s, iff.rfl
 /-- The reverse image of a measurable space under a function. `comap f m` contains the sets
   `s : set α` such that `s` is the `f`-preimage of a measurable set in `β`. -/
 protected def comap (f : α → β) (m : measurable_space β) : measurable_space α :=
-{ measurable_set'      := λ s, ∃s', m.measurable_set' s' ∧ f ⁻¹' s' = s,
+{ measurable_set'      := λ s, ∃s', measurable_set[m] s' ∧ f ⁻¹' s' = s,
   measurable_set_empty := ⟨∅, m.measurable_set_empty, rfl⟩,
   measurable_set_compl := assume s ⟨s', h₁, h₂⟩, ⟨s'ᶜ, m.measurable_set_compl _ h₁, h₂ ▸ rfl⟩,
   measurable_set_Union := assume s hs,
@@ -259,7 +259,7 @@ hf (measurable_set_singleton 1).compl
 /-- If a function coincides with a measurable function outside of a countable set, it is
 measurable. -/
 lemma measurable.measurable_of_countable_ne [measurable_singleton_class α]
-  (hf : measurable f) (h : countable {x | f x ≠ g x}) : measurable g :=
+  (hf : measurable f) (h : set.countable {x | f x ≠ g x}) : measurable g :=
 begin
   assume t ht,
   have : g ⁻¹' t = (g ⁻¹' t ∩ {x | f x = g x}ᶜ) ∪ (g ⁻¹' t ∩ {x | f x = g x}),
@@ -676,7 +676,7 @@ end
 /- Even though we cannot use projection notation, we still keep a dot to be consistent with similar
   lemmas, like `measurable_set.prod`. -/
 @[measurability]
-lemma measurable_set.pi {s : set δ} {t : Π i : δ, set (π i)} (hs : countable s)
+lemma measurable_set.pi {s : set δ} {t : Π i : δ, set (π i)} (hs : s.countable)
   (ht : ∀ i ∈ s, measurable_set (t i)) :
   measurable_set (s.pi t) :=
 by { rw [pi_def], exact measurable_set.bInter hs (λ i hi, measurable_pi_apply _ (ht i hi)) }
@@ -686,7 +686,7 @@ lemma measurable_set.univ_pi [encodable δ] {t : Π i : δ, set (π i)}
 measurable_set.pi (countable_encodable _) (λ i _, ht i)
 
 lemma measurable_set_pi_of_nonempty
-  {s : set δ} {t : Π i, set (π i)} (hs : countable s)
+  {s : set δ} {t : Π i, set (π i)} (hs : s.countable)
   (h : (pi s t).nonempty) : measurable_set (pi s t) ↔ ∀ i ∈ s, measurable_set (t i) :=
 begin
   classical,
@@ -694,7 +694,7 @@ begin
   convert measurable_update f hst, rw [update_preimage_pi hi], exact λ j hj _, hf j hj
 end
 
-lemma measurable_set_pi {s : set δ} {t : Π i, set (π i)} (hs : countable s) :
+lemma measurable_set_pi {s : set δ} {t : Π i, set (π i)} (hs : s.countable) :
   measurable_set (pi s t) ↔ (∀ i ∈ s, measurable_set (t i)) ∨ pi s t = ∅ :=
 begin
   cases (pi s t).eq_empty_or_nonempty with h h,

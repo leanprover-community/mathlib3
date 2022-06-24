@@ -153,8 +153,8 @@ localized "attribute [instance] finset.has_mul finset.has_add" in pointwise
 @[to_additive]
 lemma mul_def : s * t = (s.product t).image (λ p : α × α, p.1 * p.2) := rfl
 
-@[to_additive add_image_prod]
-lemma image_mul_prod : (s.product t).image (λ x : α × α, x.fst * x.snd)  = s * t := rfl
+@[to_additive]
+lemma image_mul_product : (s.product t).image (λ x : α × α, x.fst * x.snd) = s * t := rfl
 
 @[to_additive]
 lemma mem_mul {x : α} : x ∈ s * t ↔ ∃ y z, y ∈ s ∧ z ∈ t ∧ y * z = x := mem_image₂
@@ -503,7 +503,7 @@ variables [group α] [division_monoid β] [monoid_hom_class F α β] (m : F) {s 
 /-! Note that `finset` is not a `group` because `s / s ≠ 1` in general. -/
 
 @[simp, to_additive] lemma one_mem_div_iff : (1 : α) ∈ s / t ↔ ¬ disjoint s t :=
-by rw [←mem_coe, disjoint_iff_disjoint_coe, coe_div, set.one_mem_div_iff]
+by rw [←mem_coe, ←disjoint_coe, coe_div, set.one_mem_div_iff]
 
 @[to_additive] lemma not_one_mem_div_iff : (1 : α) ∉ s / t ↔ disjoint s t :=
 one_mem_div_iff.not_left
@@ -717,6 +717,8 @@ subset_image₂
 
 end has_vsub
 
+open_locale pointwise
+
 /-! ### Translation/scaling of finsets -/
 
 section has_scalar
@@ -759,6 +761,9 @@ lemma smul_finset_singleton (b : β) : a • ({b} : finset β) = {a • b} := im
 @[to_additive] lemma smul_finset_union : a • (s₁ ∪ s₂) = a • s₁ ∪ a • s₂ := image_union _ _
 @[to_additive] lemma smul_finset_inter_subset : a • (s₁ ∩ s₂) ⊆ a • s₁ ∩ (a • s₂) :=
 image_inter_subset _ _ _
+
+@[simp] lemma bUnion_smul_finset (s : finset α) (t : finset β) : s.bUnion (• t) = s • t :=
+bUnion_image_left
 
 end has_scalar
 
@@ -836,5 +841,31 @@ function.injective.mul_distrib_mul_action ⟨coe, coe_one, coe_mul⟩ coe_inject
 localized "attribute [instance] finset.distrib_mul_action_finset
   finset.mul_distrib_mul_action_finset" in pointwise
 
+instance [decidable_eq α] [has_zero α] [has_mul α] [no_zero_divisors α] :
+  no_zero_divisors (finset α) :=
+coe_injective.no_zero_divisors _ coe_zero coe_mul
+
+instance [has_zero α] [has_zero β] [has_scalar α β] [no_zero_smul_divisors α β] :
+  no_zero_smul_divisors (finset α) (finset β) :=
+⟨λ s t h, begin
+  by_contra' H,
+  have hst : (s • t).nonempty := h.symm.subst zero_nonempty,
+  simp_rw [←hst.of_smul_left.subset_zero_iff, ←hst.of_smul_right.subset_zero_iff, not_subset,
+    mem_zero] at H,
+  obtain ⟨⟨a, hs, ha⟩, b, ht, hb⟩ := H,
+  have := subset_of_eq h,
+  exact (eq_zero_or_eq_zero_of_smul_eq_zero $ mem_zero.1 $ this $ smul_mem_smul hs ht).elim ha hb,
+end⟩
+
+instance no_zero_smul_divisors_finset [has_zero α] [has_zero β] [has_scalar α β]
+  [no_zero_smul_divisors α β] : no_zero_smul_divisors α (finset β) :=
+coe_injective.no_zero_smul_divisors _ coe_zero coe_smul_finset
+
 end instances
+
+lemma pairwise_disjoint_smul_iff [decidable_eq α] [left_cancel_semigroup α] {s : set α}
+  {t : finset α} :
+  s.pairwise_disjoint (• t) ↔ ((s : set α) ×ˢ (t : set α) : set (α × α)).inj_on (λ p, p.1 * p.2) :=
+by simp_rw [←pairwise_disjoint_coe, coe_smul_finset, set.pairwise_disjoint_smul_iff]
+
 end finset

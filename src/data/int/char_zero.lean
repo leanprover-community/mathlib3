@@ -3,11 +3,11 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.int.cast
 import algebra.char_zero
+import data.int.cast_field
 
 /-!
-# Injectivity of `int.cast` into characteristic zero rings.
+# Injectivity of `int.cast` into characteristic zero rings and fields.
 
 -/
 

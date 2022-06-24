@@ -135,13 +135,8 @@ variables {𝕜}
 @[simp] lemma balanced_empty : balanced 𝕜 (∅ : set E) :=
 λ _ _, by { rw smul_set_empty }
 
-lemma balanced_iff_mem : balanced 𝕜 s ↔ ∀ {x : E} (hx : x ∈ s) {a : 𝕜} (ha : ∥a∥ ≤ 1), a • x ∈ s :=
-begin
-  refine ⟨λ h x hx a ha, set.mem_of_subset_of_mem (h a ha) (set.smul_mem_smul_set hx), _⟩,
-  rintros h a ha x ⟨y, hy, hx⟩,
-  rw ←hx,
-  exact h hy ha,
-end
+lemma balanced_iff_smul_mem : balanced 𝕜 s ↔ ∀ ⦃a : 𝕜⦄, ∥a∥ ≤ 1 → ∀ ⦃x : E⦄, x ∈ s → a • x ∈ s :=
+forall₂_congr $ λ a ha, smul_set_subset_iff
 
 lemma balanced_univ : balanced 𝕜 (univ : set E) := λ a ha, subset_univ _
 
@@ -213,7 +208,7 @@ variables [normed_field 𝕜] [normed_ring 𝕝] [normed_space 𝕜 𝕝] [add_c
   [smul_with_zero 𝕝 E] [is_scalar_tower 𝕜 𝕝 E] {s t u v A B : set E} {a b : 𝕜}
 
 lemma balanced.symmetric (h : balanced 𝕜 A) {x : E} (hx : x ∈ A) : -x ∈ A :=
-by { convert (balanced_iff_mem.mp h) hx (by rw [norm_neg, norm_one]), rw [neg_smul, one_smul] }
+by { convert (balanced_iff_smul_mem.mp h) (by rw [norm_neg, norm_one]) hx, rw [neg_smul, one_smul] }
 
 /-- Scalar multiplication (by possibly different types) of a balanced set is monotone. -/
 lemma balanced.smul_mono (hs : balanced 𝕝 s) {a : 𝕝} {b : 𝕜} (h : ∥a∥ ≤ ∥b∥) : a • s ⊆ b • s :=
@@ -258,18 +253,14 @@ lemma balanced.smul_eq (hA : balanced 𝕜 A) (ha : ∥a∥ = 1) : a • A = A :
 lemma balanced.mem_smul_iff (hs : balanced 𝕜 A) {x : E} {a b : 𝕜} (h : ∥a∥ = ∥b∥) :
   a • x ∈ A ↔ b • x ∈ A :=
 begin
-  by_cases ha : a = 0,
-  { rw [ha, norm_zero, @comm _ (=), norm_eq_zero] at h,
-    rw [ha, h] },
-  have hb' : ¬∥b∥ = 0 := ne_of_eq_of_ne (eq.symm h) (norm_ne_zero_iff.mpr ha),
-  have hb : ¬b = 0 := norm_ne_zero_iff.mp hb',
-  split; intro h',
-  { rw [←inv_mul_cancel_right₀ ha b, ←smul_eq_mul, smul_assoc],
-    refine balanced_iff_mem.mp hs h' _,
-    simp[h, hb'] },
-  { rw [←inv_mul_cancel_right₀ hb a, ←smul_eq_mul, smul_assoc],
-    refine balanced_iff_mem.mp hs h' _,
-    simp[h, hb'] },
+  obtain rfl | hb := eq_or_ne b 0,
+  { rw [norm_zero, norm_eq_zero] at h,
+    rw h },
+  have ha : a ≠ 0 := norm_ne_zero_iff.1 (ne_of_eq_of_ne h $ norm_ne_zero_iff.2 hb),
+  split; intro h'; [rw ←inv_mul_cancel_right₀ ha b, rw ←inv_mul_cancel_right₀ hb a];
+  { rw [←smul_eq_mul, smul_assoc],
+    refine balanced_iff_smul_mem.mp hs _ h',
+    simp [←h, ha] }
 end
 
 lemma absorbs.inter (hs : absorbs 𝕜 s u) (ht : absorbs 𝕜 t u) : absorbs 𝕜 (s ∩ t) u :=

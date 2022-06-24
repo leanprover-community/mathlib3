@@ -880,7 +880,8 @@ variables {ι : Sort*} {κ : ι → Sort*} [has_scalar α β] {s t t₁ t₂ : s
 
 @[simp, to_additive] lemma smul_set_singleton : a • ({b} : set β) = {a • b} := image_singleton
 
-@[to_additive] lemma smul_set_mono (h : s ⊆ t) : a • s ⊆ a • t := image_subset _ h
+@[to_additive] lemma smul_set_mono : s ⊆ t → a • s ⊆ a • t := image_subset _
+@[to_additive] lemma smul_set_subset_iff : a • s ⊆ t ↔ ∀ ⦃b⦄, b ∈ s → a • b ∈ t := image_subset_iff
 
 @[to_additive] lemma smul_set_union : a • (t₁ ∪ t₂) = a • t₁ ∪ a • t₂ := image_union _ _ _
 

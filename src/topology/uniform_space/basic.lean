@@ -1442,6 +1442,7 @@ lemma uniform_continuous_inf_dom_left₂ {α β γ} {f : α → β → γ}
   (h : by haveI := ua1; haveI := ub1; exact uniform_continuous (λ p : α × β, f p.1 p.2)) :
   by haveI := ua1 ⊓ ua2; haveI := ub1 ⊓ ub2; exact uniform_continuous (λ p : α × β, f p.1 p.2) :=
 begin
+  -- proof essentially copied from ``continuous_inf_dom_left₂`
   have ha := @uniform_continuous_inf_dom_left _ _ id ua1 ua2 ua1 (@uniform_continuous_id _ (id _)),
   have hb := @uniform_continuous_inf_dom_left _ _ id ub1 ub2 ub1 (@uniform_continuous_id _ (id _)),
   have h_unif_cont_id := @uniform_continuous.prod_map _ _ _ _ (
@@ -1455,6 +1456,7 @@ lemma uniform_continuous_inf_dom_right₂ {α β γ} {f : α → β → γ}
   (h : by haveI := ua2; haveI := ub2; exact uniform_continuous (λ p : α × β, f p.1 p.2)) :
   by haveI := ua1 ⊓ ua2; haveI := ub1 ⊓ ub2; exact uniform_continuous (λ p : α × β, f p.1 p.2) :=
 begin
+  -- proof essentially copied from ``continuous_inf_dom_right₂`
   have ha := @uniform_continuous_inf_dom_right _ _ id ua1 ua2 ua2 (@uniform_continuous_id _ (id _)),
   have hb := @uniform_continuous_inf_dom_right _ _ id ub1 ub2 ub2 (@uniform_continuous_id _ (id _)),
   have h_unif_cont_id := @uniform_continuous.prod_map _ _ _ _
@@ -1471,6 +1473,7 @@ lemma uniform_continuous_Inf_dom₂ {α β γ} {f : α → β → γ}
   by haveI := Inf uas; haveI := Inf ubs;
     exact @uniform_continuous _ _ _ uc (λ p : α × β, f p.1 p.2) :=
 begin
+  -- proof essentially copied from ``continuous_Inf_dom`
   let t : uniform_space (α × β) := prod.uniform_space,
   have ha := uniform_continuous_Inf_dom ha uniform_continuous_id,
   have hb := uniform_continuous_Inf_dom hb uniform_continuous_id,

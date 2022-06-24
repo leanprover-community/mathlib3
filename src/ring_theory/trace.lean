@@ -363,7 +363,7 @@ lemma trace_eq_sum_automorphisms (x : L) [finite_dimensional K L] [is_galois K L
 begin
   apply no_zero_smul_divisors.algebra_map_injective L (algebraic_closure L),
   rw map_sum (algebra_map L (algebraic_closure L)),
-  rw ← fintype.sum_equiv (normal.alg_hom_equiv_aut K L (algebraic_closure L)),
+  rw ← fintype.sum_equiv (normal.alg_hom_equiv_aut K (algebraic_closure L) L),
   { rw ←trace_eq_sum_embeddings (algebraic_closure L),
     { simp only [algebra_map_eq_smul_one, smul_one_smul] },
     { exact is_galois.to_is_separable } },

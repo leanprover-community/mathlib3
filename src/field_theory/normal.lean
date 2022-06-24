@@ -263,6 +263,7 @@ alg_equiv.ext (λ _, (algebra_map E K₃).injective
 def alg_equiv.restrict_normal_hom [normal F E] : (K₁ ≃ₐ[F] K₁) →* (E ≃ₐ[F] E) :=
 monoid_hom.mk' (λ χ, χ.restrict_normal E) (λ ω χ, (χ.restrict_normal_trans ω E))
 
+variables (F E K₁)
 
 /-- If `K₁/E/F` is a tower of fields with `E/F` normal then `normal.alg_hom_equiv_aut` is an
  equivalence. -/

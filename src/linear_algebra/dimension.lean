@@ -490,10 +490,9 @@ theorem mk_eq_mk_of_basis (v : basis ι R M) (v' : basis ι' R M) :
   cardinal.lift.{w'} (#ι) = cardinal.lift.{w} (#ι') :=
 begin
   haveI := nontrivial_of_invariant_basis_number R,
-  by_cases h : #ι < ℵ₀,
+  casesI fintype_or_infinite ι,
   { -- `v` is a finite basis, so by `basis_fintype_of_finite_spans` so is `v'`.
-    haveI : fintype ι := (cardinal.lt_aleph_0_iff_fintype.mp h).some,
-    haveI : fintype (range v) := set.fintype_range ⇑v,
+    haveI : fintype (range v) := set.fintype_range v,
     haveI := basis_fintype_of_finite_spans _ v.span_eq v',
     -- We clean up a little:
     rw [cardinal.mk_fintype, cardinal.mk_fintype],
@@ -506,16 +505,10 @@ begin
     -- so by `infinite_basis_le_maximal_linear_independent`, `v'` is at least as big,
     -- and then applying `infinite_basis_le_maximal_linear_independent` again
     -- we see they have the same cardinality.
-    simp only [not_lt] at h,
-    haveI : infinite ι := cardinal.infinite_iff.mpr h,
     have w₁ :=
       infinite_basis_le_maximal_linear_independent' v _ v'.linear_independent v'.maximal,
-    haveI : infinite ι' := cardinal.infinite_iff.mpr (begin
-      apply cardinal.lift_le.{w' w}.mp,
-      have p := (cardinal.lift_le.mpr h).trans w₁,
-      rw cardinal.lift_aleph_0 at ⊢ p,
-      exact p,
-    end),
+    rcases cardinal.lift_mk_le'.mp w₁ with ⟨f⟩,
+    haveI : infinite ι' := infinite.of_injective f f.2,
     have w₂ :=
       infinite_basis_le_maximal_linear_independent' v' _ v.linear_independent v.maximal,
     exact le_antisymm w₁ w₂, }
@@ -609,7 +602,7 @@ begin
     { exact not_le_of_lt this ⟨set.embedding_of_subset _ _ hs⟩ },
     refine lt_of_le_of_lt (le_trans cardinal.mk_Union_le_sum_mk
       (cardinal.sum_le_sum _ (λ _, ℵ₀) _)) _,
-    { exact λ j, le_of_lt (cardinal.lt_aleph_0_iff_finite.2 $ (finset.finite_to_set _).image _) },
+    { exact λ j, (cardinal.lt_aleph_0_of_finite _).le },
     { simpa } },
 end
 
@@ -708,7 +701,7 @@ end
 must be finite if the module is Noetherian. -/
 lemma finite_of_is_noetherian_linear_independent [is_noetherian R M]
   {s : set M} (hi : linear_independent R (coe : s → M)) : s.finite :=
-⟨fintype_of_is_noetherian_linear_independent hi⟩
+by { haveI := fintype_of_is_noetherian_linear_independent hi, apply finite_of_subtype }
 
 /--
 An auxiliary lemma for `linear_independent_le_basis`:
@@ -843,25 +836,19 @@ theorem {m} basis.mk_eq_dim' (v : basis ι R M) :
 by simpa using v.mk_eq_dim
 
 /-- If a module has a finite dimension, all bases are indexed by a finite type. -/
-lemma basis.nonempty_fintype_index_of_dim_lt_aleph_0 {ι : Type*}
+lemma basis.finite_index_of_dim_lt_aleph_0 {ι : Type*}
   (b : basis ι R M) (h : module.rank R M < ℵ₀) :
-  nonempty (fintype ι) :=
+  finite ι :=
 by rwa [← cardinal.lift_lt, ← b.mk_eq_dim,
         -- ensure `aleph_0` has the correct universe
         cardinal.lift_aleph_0, ← cardinal.lift_aleph_0.{u_1 v},
-        cardinal.lift_lt, cardinal.lt_aleph_0_iff_fintype] at h
-
-/-- If a module has a finite dimension, all bases are indexed by a finite type. -/
-noncomputable def basis.fintype_index_of_dim_lt_aleph_0 {ι : Type*}
-  (b : basis ι R M) (h : module.rank R M < ℵ₀) :
-  fintype ι :=
-classical.choice (b.nonempty_fintype_index_of_dim_lt_aleph_0 h)
+        cardinal.lift_lt, cardinal.lt_aleph_0_iff_finite] at h
 
 /-- If a module has a finite dimension, all bases are indexed by a finite set. -/
-lemma basis.finite_index_of_dim_lt_aleph_0 {ι : Type*} {s : set ι}
+lemma basis.finite_set_index_of_dim_lt_aleph_0 {ι : Type*} {s : set ι}
   (b : basis s R M) (h : module.rank R M < ℵ₀) :
   s.finite :=
-finite_def.2 (b.nonempty_fintype_index_of_dim_lt_aleph_0 h)
+⟨b.finite_index_of_dim_lt_aleph_0 h⟩
 
 lemma dim_span {v : ι → M} (hv : linear_independent R v) :
   module.rank R ↥(span R (range v)) = #(range v) :=
@@ -921,7 +908,7 @@ variables {K V}
 /-- If a vector space has a finite dimension, the index set of `basis.of_vector_space` is finite. -/
 lemma basis.finite_of_vector_space_index_of_dim_lt_aleph_0 (h : module.rank K V < ℵ₀) :
   (basis.of_vector_space_index K V).finite :=
-finite_def.2 $ (basis.of_vector_space K V).nonempty_fintype_index_of_dim_lt_aleph_0 h
+(basis.of_vector_space K V).finite_set_index_of_dim_lt_aleph_0 h
 
 variables [add_comm_group V'] [module K V']
 

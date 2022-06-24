@@ -439,10 +439,11 @@ from λ x ⟨hx1, hx2⟩, ⟨x.1, prod.ext rfl $ eq.symm $ linear_map.mem_ker.1 
 submodule.map_comap_eq_self this ▸ (noetherian _).map _⟩
 
 instance is_noetherian_pi {R ι : Type*} {M : ι → Type*} [ring R]
-  [Π i, add_comm_group (M i)] [Π i, module R (M i)] [fintype ι]
+  [Π i, add_comm_group (M i)] [Π i, module R (M i)] [finite ι]
   [∀ i, is_noetherian R (M i)] : is_noetherian R (Π i, M i) :=
 begin
   haveI := classical.dec_eq ι,
+  casesI nonempty_fintype ι,
   suffices on_finset : ∀ s : finset ι, is_noetherian R (Π i : s, M i),
   { let coe_e := equiv.subtype_univ_equiv finset.mem_univ,
     letI : is_noetherian R (Π i : finset.univ, M (coe_e i)) := on_finset finset.univ,
@@ -484,7 +485,7 @@ end
 /-- A version of `is_noetherian_pi` for non-dependent functions. We need this instance because
 sometimes Lean fails to apply the dependent version in non-dependent settings (e.g., it fails to
 prove that `ι → ℝ` is finite dimensional over `ℝ`). -/
-instance is_noetherian_pi' {R ι M : Type*} [ring R] [add_comm_group M] [module R M] [fintype ι]
+instance is_noetherian_pi' {R ι M : Type*} [ring R] [add_comm_group M] [module R M] [finite ι]
   [is_noetherian R M] : is_noetherian R (ι → M) :=
 is_noetherian_pi
 

@@ -1366,7 +1366,7 @@ lemma is_clopen_Inter {β : Type*} [fintype β] {s : β → set α}
 
 lemma is_clopen_bInter {β : Type*} {s : finset β} {f : β → set α} (h : ∀ i ∈ s, is_clopen (f i)) :
   is_clopen (⋂ i ∈ s, f i) :=
-⟨ is_open_bInter ⟨finset_coe.fintype s⟩ (λ i hi, (h i hi).1),
+⟨ is_open_bInter s.finite_to_set (λ i hi, (h i hi).1),
   by {show is_closed (⋂ (i : β) (H : i ∈ (↑s : set β)), f i), rw bInter_eq_Inter,
     apply is_closed_Inter, rintro ⟨i, hi⟩, exact (h i hi).2}⟩
 

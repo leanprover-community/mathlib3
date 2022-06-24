@@ -61,6 +61,9 @@ end
 
 namespace finite
 
+lemma of_card_ne_zero (h : nat.card α ≠ 0) : finite α :=
+by_contra $ λ h', h $ by rw [nat.card_eq, dif_neg h']
+
 lemma card_eq [finite α] [finite β] : nat.card α = nat.card β ↔ nonempty (α ≃ β) :=
 by { haveI := fintype.of_finite α, haveI := fintype.of_finite β, simp [fintype.card_eq] }
 

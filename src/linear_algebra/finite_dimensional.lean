@@ -105,10 +105,10 @@ module.finite.of_surjective f w
 
 variables (K V)
 
-instance finite_dimensional_pi {ι} [fintype ι] : finite_dimensional K (ι → K) :=
+instance finite_dimensional_pi {ι : Type*} [_root_.finite ι] : finite_dimensional K (ι → K) :=
 iff_fg.1 is_noetherian_pi
 
-instance finite_dimensional_pi' {ι} [fintype ι] (M : ι → Type*)
+instance finite_dimensional_pi' {ι : Type*} [_root_.finite ι] (M : ι → Type*)
   [∀ i, add_comm_group (M i)] [∀ i, module K (M i)] [I : ∀ i, finite_dimensional K (M i)] :
   finite_dimensional K (Π i, M i) :=
 begin
@@ -123,21 +123,22 @@ module.fintype_of_fintype (@finset_basis K V _ _ _ (iff_fg.2 infer_instance))
 variables {K V}
 
 /-- If a vector space has a finite basis, then it is finite-dimensional. -/
-lemma of_fintype_basis {ι : Type w} [fintype ι] (h : basis ι K V) :
+lemma of_finite_basis {ι : Type w} [_root_.finite ι] (h : basis ι K V) :
   finite_dimensional K V :=
-⟨⟨finset.univ.image h, by { convert h.span_eq, simp } ⟩⟩
+by { casesI nonempty_fintype ι, exact ⟨⟨finset.univ.image h, by { convert h.span_eq, simp } ⟩⟩ }
 
 /-- If a vector space is `finite_dimensional`, all bases are indexed by a finite type -/
-noncomputable
-def fintype_basis_index {ι : Type*} [finite_dimensional K V] (b : basis ι K V) : fintype ι :=
+lemma finite_basis_index {ι : Type*} [finite_dimensional K V] (b : basis ι K V) :
+  _root_.finite ι :=
 begin
-  letI : is_noetherian K V := is_noetherian.iff_fg.2 infer_instance,
-  exact is_noetherian.fintype_basis_index b,
+  haveI : is_noetherian K V := is_noetherian.iff_fg.2 infer_instance,
+  exact is_noetherian.finite_basis_index b,
 end
 
 /-- If a vector space is `finite_dimensional`, `basis.of_vector_space` is indexed by
   a finite type.-/
-noncomputable instance [finite_dimensional K V] : fintype (basis.of_vector_space_index K V) :=
+instance finite_basis.of_vector_space_index [finite_dimensional K V] :
+  finite (basis.of_vector_space_index K V) :=
 begin
   letI : is_noetherian K V := is_noetherian.iff_fg.2 infer_instance,
   apply_instance
@@ -145,14 +146,14 @@ end
 
 /-- If a vector space has a basis indexed by elements of a finite set, then it is
 finite-dimensional. -/
-lemma of_finite_basis {ι : Type w} {s : set ι} (h : basis s K V) (hs : set.finite s) :
+lemma of_finite_set_basis {ι : Type w} {s : set ι} (h : basis s K V) (hs : set.finite s) :
   finite_dimensional K V :=
-by haveI := hs.fintype; exact of_fintype_basis h
+by { haveI := hs.to_subtype, exact of_finite_basis h }
 
 /-- If a vector space has a finite basis, then it is finite-dimensional, finset style. -/
 lemma of_finset_basis {ι : Type w} {s : finset ι} (h : basis s K V) :
   finite_dimensional K V :=
-of_finite_basis h s.finite_to_set
+of_finite_basis h
 
 /-- A subspace of a finite-dimensional space is also finite-dimensional. -/
 instance finite_dimensional_submodule [finite_dimensional K V] (S : submodule K V) :
@@ -167,7 +168,7 @@ end
 /-- A quotient of a finite-dimensional space is also finite-dimensional. -/
 instance finite_dimensional_quotient [finite_dimensional K V] (S : submodule K V) :
   finite_dimensional K (V ⧸ S) :=
-finite.of_surjective (submodule.mkq S) $ surjective_quot_mk _
+module.finite.of_surjective (submodule.mkq S) $ surjective_quot_mk _
 
 /-- The rank of a module as a natural number.
 
@@ -229,7 +230,7 @@ basis. -/
 lemma finrank_eq_card_basis {ι : Type w} [fintype ι] (h : basis ι K V) :
   finrank K V = fintype.card ι :=
 begin
-  haveI : finite_dimensional K V := of_fintype_basis h,
+  haveI : finite_dimensional K V := of_finite_basis h,
   have := dim_eq_card_basis h,
   rw ← finrank_eq_dim at this,
   exact_mod_cast this
@@ -240,8 +241,9 @@ end
 lemma finrank_eq_card_basis' [finite_dimensional K V] {ι : Type w} (h : basis ι K V) :
   (finrank K V : cardinal.{w}) = #ι :=
 begin
-  haveI : is_noetherian K V := iff_fg.2 infer_instance,
-  haveI : fintype ι := fintype_basis_index h,
+  haveI : is_noetherian K V := iff_fg.2 ‹_›,
+  haveI : finite ι := finite_basis_index h,
+  casesI nonempty_fintype ι,
   rw [cardinal.mk_fintype, finrank_eq_card_basis h]
 end
 
@@ -459,16 +461,13 @@ end
 
 /-- If `p` is an independent family of subspaces of a finite-dimensional space `V`, then the
 number of nontrivial subspaces in the family `p` is finite. -/
-noncomputable def _root_.complete_lattice.independent.fintype_ne_bot_of_finite_dimensional
+lemma _root_.complete_lattice.independent.finite_ne_bot_of_finite_dimensional
   [finite_dimensional K V] {ι : Type w} {p : ι → submodule K V}
   (hp : complete_lattice.independent p) :
-  fintype {i : ι // p i ≠ ⊥} :=
+  _root_.finite {i : ι // p i ≠ ⊥} :=
 begin
-  suffices : #{i // p i ≠ ⊥} < (ℵ₀ : cardinal.{w}),
-  { rw cardinal.lt_aleph_0_iff_fintype at this,
-    exact this.some },
-  refine lt_of_le_of_lt hp.subtype_ne_bot_le_finrank_aux _,
-  simp [cardinal.nat_lt_aleph_0],
+  rw [← cardinal.lt_aleph_0_iff_finite],
+  exact lt_of_le_of_lt hp.subtype_ne_bot_le_finrank_aux (cardinal.nat_lt_aleph_0 _),
 end
 
 /-- If `p` is an independent family of subspaces of a finite-dimensional space `V`, then the
@@ -676,22 +675,22 @@ begin
   rw h, norm_cast
 end
 
-lemma finrank_eq_zero_of_basis_imp_not_finite
-  (h : ∀ s : set V, basis.{v} (s : set V) K V → ¬ s.finite) : finrank K V = 0 :=
+lemma finrank_eq_zero_of_basis_imp_infinite
+  (h : ∀ s : set V, basis.{v} (s : set V) K V → s.infinite) : finrank K V = 0 :=
 dif_neg (λ dim_lt, h _ (basis.of_vector_space K V)
-  ((basis.of_vector_space K V).finite_index_of_dim_lt_aleph_0 dim_lt))
+  ((basis.of_vector_space K V).finite_set_index_of_dim_lt_aleph_0 dim_lt))
 
 lemma finrank_eq_zero_of_basis_imp_false
   (h : ∀ s : finset V, basis.{v} (s : set V) K V → false) : finrank K V = 0 :=
-finrank_eq_zero_of_basis_imp_not_finite (λ s b hs, h hs.to_finset (by { convert b, simp }))
+finrank_eq_zero_of_basis_imp_infinite $ λ s b hs, h hs.to_finset $ by rwa [set.finite.coe_to_finset]
 
 lemma finrank_eq_zero_of_not_exists_basis
   (h : ¬ (∃ s : finset V, nonempty (basis (s : set V) K V))) : finrank K V = 0 :=
 finrank_eq_zero_of_basis_imp_false (λ s b, h ⟨s, ⟨b⟩⟩)
 
 lemma finrank_eq_zero_of_not_exists_basis_finite
-  (h : ¬ ∃ (s : set V) (b : basis.{v} (s : set V) K V), s.finite) : finrank K V = 0 :=
-finrank_eq_zero_of_basis_imp_not_finite (λ s b hs, h ⟨s, b, hs⟩)
+  (h : ¬ ∃ (s : set V) (b : basis s K V), s.finite) : finrank K V = 0 :=
+finrank_eq_zero_of_basis_imp_infinite (λ s b hs, h ⟨s, b, hs⟩)
 
 lemma finrank_eq_zero_of_not_exists_basis_finset
   (h : ¬ ∃ (s : finset V), nonempty (basis s K V)) : finrank K V = 0 :=

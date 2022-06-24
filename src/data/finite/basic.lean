@@ -71,8 +71,11 @@ in this way to allow there to be `finite` instances for propositions.
 class inductive finite (α : Sort*) : Prop
 | intro {n : ℕ} : α ≃ fin n → finite
 
+lemma finite_iff_exists_equiv_fin {α : Sort*} : finite α ↔ ∃ n, nonempty (α ≃ fin n) :=
+⟨λ ⟨e⟩, ⟨_, ⟨e⟩⟩, λ ⟨n, ⟨e⟩⟩, ⟨e⟩⟩
+
 lemma finite.exists_equiv_fin (α : Sort*) [h : finite α] : ∃ (n : ℕ), nonempty (α ≃ fin n) :=
-by { casesI h with n f, exact ⟨n, ⟨f⟩⟩ }
+finite_iff_exists_equiv_fin.mp h
 
 lemma finite.of_equiv (α : Sort*) {β : Sort*} [h : finite α] (f : α ≃ β) : finite β :=
 by { casesI h with n e, exact finite.intro (f.symm.trans e) }
@@ -87,15 +90,17 @@ priority than ones coming from `fintype` instances. -/
 @[priority 900]
 instance finite.of_fintype' (α : Type*) [fintype α] : finite α := finite.of_fintype ‹_›
 
-/-- Noncomputably get a `fintype` instance from a `finite` instance. This is not an
-instance because we want `fintype` instances to be useful for computations. -/
-def fintype.of_finite (α : Type*) [finite α] : fintype α :=
-nonempty.some $ let ⟨n, ⟨e⟩⟩ := finite.exists_equiv_fin α in ⟨fintype.of_equiv _ e.symm⟩
-
 lemma finite_iff_nonempty_fintype (α : Type*) :
   finite α ↔ nonempty (fintype α) :=
 ⟨λ h, let ⟨k, ⟨e⟩⟩ := @finite.exists_equiv_fin α h in ⟨fintype.of_equiv _ e.symm⟩,
   λ ⟨_⟩, by exactI infer_instance⟩
+
+lemma nonempty_fintype (α : Type*) [finite α] : nonempty (fintype α) :=
+(finite_iff_nonempty_fintype α).mp ‹_›
+
+/-- Noncomputably get a `fintype` instance from a `finite` instance. This is not an
+instance because we want `fintype` instances to be useful for computations. -/
+def fintype.of_finite (α : Type*) [finite α] : fintype α := (nonempty_fintype α).some
 
 lemma not_finite_iff_infinite {α : Type*} : ¬ finite α ↔ infinite α :=
 by rw [← is_empty_fintype, finite_iff_nonempty_fintype, not_nonempty_iff]

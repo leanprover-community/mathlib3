@@ -5,7 +5,7 @@ Authors: Thomas Browning
 -/
 
 import group_theory.quotient_group
-import set_theory.cardinal.finite
+import data.finite.card
 
 /-!
 # Index of a Subgroup
@@ -263,8 +263,8 @@ by { rw index_eq_card, exact fintype.card_ne_zero }
 
 /-- Finite index implies finite quotient. -/
 @[to_additive "Finite index implies finite quotient."]
-noncomputable def fintype_of_index_ne_zero (hH : H.index ≠ 0) : fintype (G ⧸ H) :=
-(cardinal.lt_aleph_0_iff_fintype.mp (lt_of_not_ge (mt cardinal.to_nat_apply_of_aleph_0_le hH))).some
+lemma finite_quotient_of_index_ne_zero (hH : H.index ≠ 0) : finite (G ⧸ H) :=
+finite.of_card_ne_zero hH
 
 @[to_additive one_lt_index_of_ne_top]
 lemma one_lt_index_of_ne_top [fintype (G ⧸ H)] (hH : H ≠ ⊤) : 1 < H.index :=

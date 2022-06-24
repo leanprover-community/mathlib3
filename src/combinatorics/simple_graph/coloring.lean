@@ -100,8 +100,8 @@ setoid.is_partition_classes (setoid.ker C)
 lemma coloring.mem_color_classes {v : V} : C.color_class (C v) ∈ C.color_classes :=
 ⟨v, rfl⟩
 
-lemma coloring.color_classes_finite_of_fintype [fintype α] : C.color_classes.finite :=
-by { rw set.finite_def, apply setoid.nonempty_fintype_classes_ker, }
+lemma coloring.color_classes_finite [finite α] : C.color_classes.finite :=
+setoid.finite_classes_ker _
 
 lemma coloring.card_color_classes_le [fintype α] [fintype C.color_classes] :
   fintype.card C.color_classes ≤ fintype.card α :=

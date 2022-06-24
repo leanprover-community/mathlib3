@@ -2193,7 +2193,7 @@ le_antisymm (ord_le.2 $ le_rfl) $
 le_of_forall_lt $ λ o h, begin
   rcases ordinal.lt_lift_iff.1 h with ⟨o, rfl, h'⟩,
   rw [lt_ord, ←lift_card, ←lift_aleph_0.{0 u}, lift_lt, ←typein_enum (<) h'],
-  exact lt_aleph_0_iff_fintype.2 ⟨set.fintype_lt_nat _⟩
+  exact lt_aleph_0_iff_finite_set.2 (finite_lt_nat _)
 end
 
 @[simp] theorem add_one_of_aleph_0_le {c} (h : ℵ₀ ≤ c) : c + 1 = c :=

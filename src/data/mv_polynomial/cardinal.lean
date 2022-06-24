@@ -85,7 +85,7 @@ calc #(mv_polynomial_fun σ R) = #R + #σ + #(ulift bool) :
 ... ≤ max (max (max (max (#R) (#σ)) ℵ₀) (#(ulift bool))) ℵ₀ :
   max_le_max (max_le_max (add_le_max _ _) le_rfl) le_rfl
 ... ≤ _ : by simp only [max_comm ℵ₀, max_assoc, max_left_comm ℵ₀, max_self,
-            max_eq_left (lt_aleph_0_of_fintype (ulift.{u} bool)).le]
+            max_eq_left (lt_aleph_0_of_finite (ulift.{u} bool)).le]
 
 namespace mv_polynomial
 
@@ -95,7 +95,7 @@ lemma cardinal_mk_le_max {σ R : Type u} [comm_semiring R] :
   #(mv_polynomial σ R) ≤ max (max (#R) (#σ)) ℵ₀ :=
 calc #(mv_polynomial σ R) ≤ #(W_type (arity σ R)) :
   cardinal.mk_le_of_surjective to_mv_polynomial_surjective
-... ≤ max (#(mv_polynomial_fun σ R)) ℵ₀ : W_type.cardinal_mk_le_max_aleph_0_of_fintype
+... ≤ max (#(mv_polynomial_fun σ R)) ℵ₀ : W_type.cardinal_mk_le_max_aleph_0_of_finite
 ... ≤ _ : max_le_max cardinal_mv_polynomial_fun_le le_rfl
 ... ≤ _ : by simp only [max_assoc, max_self]
 

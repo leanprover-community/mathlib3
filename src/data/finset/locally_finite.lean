@@ -152,7 +152,8 @@ set.fintype_subset (set.Icc a b) $ λ x hx, ⟨ha hx, hb hx⟩
 
 lemma _root_.bdd_below.finite_of_bdd_above {s : set α} (h₀ : bdd_below s) (h₁ : bdd_above s) :
   s.finite :=
-let ⟨a, ha⟩ := h₀, ⟨b, hb⟩ := h₁ in by { classical, exact ⟨set.fintype_of_mem_bounds ha hb⟩ }
+let ⟨a, ha⟩ := h₀, ⟨b, hb⟩ := h₁
+in (Icc a b).finite_to_set.subset $ λ x hx, mem_Icc.2 ⟨ha hx, hb hx⟩
 
 section filter
 

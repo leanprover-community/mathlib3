@@ -195,6 +195,10 @@ by simp only [set.subset_def, mem_coe, mem_support_iff];
   equiv_fun_on_fintype.symm f = f :=
 by { ext, simp [equiv_fun_on_fintype], }
 
+lemma nonempty_equiv_fun_of_finite (α M : Type*) [finite α] [has_zero M] :
+  nonempty ((α →₀ M) ≃ (α → M)) :=
+by { casesI nonempty_fintype α, exact ⟨equiv_fun_on_fintype⟩ }
+
 /-- If `α` has a unique term,
 then the type of finitely supported functions `α →₀ β` is equivalent to `β`. -/
 @[simps] noncomputable

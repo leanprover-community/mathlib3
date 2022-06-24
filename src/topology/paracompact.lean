@@ -112,7 +112,7 @@ begin
   rcases compact_univ.elim_finite_subcover _ ho hu.ge with ⟨T, hT⟩,
   have := hT, simp only [subset_def, mem_Union] at this,
   choose i hiT hi using λ x, this x (mem_univ x),
-  refine ⟨(T : set ι), λ t, s t, λ t, ho _, _, locally_finite_of_fintype _, λ t, ⟨t, subset.rfl⟩⟩,
+  refine ⟨(T : set ι), λ t, s t, λ t, ho _, _, locally_finite_of_finite _, λ t, ⟨t, subset.rfl⟩⟩,
   simpa only [Union_coe_set, ← univ_subset_iff]
 end
 

@@ -170,7 +170,7 @@ theorem locally_finite.realizer.to_locally_finite [topological_space α]
   {F : realizer α} {f : β → set α} (R : locally_finite.realizer F f) :
   locally_finite f :=
 λ a, ⟨_, F.mem_nhds.2
-  ⟨(R.bas a).1, (R.bas a).2, subset.refl _⟩, ⟨R.sets a⟩⟩
+  ⟨R.bas a, (R.bas a).2, subset.refl _⟩, by { haveI := R.sets a, apply finite_of_subtype }⟩
 
 theorem locally_finite_iff_exists_realizer [topological_space α]
   (F : realizer α) {f : β → set α} : locally_finite f ↔ nonempty (locally_finite.realizer F f) :=

@@ -925,7 +925,7 @@ lemma supr_Inf_gen_nonempty {m : set (outer_measure α)} (h : m.nonempty) (t : s
 begin
   rcases t.eq_empty_or_nonempty with rfl|ht,
   { rcases h with ⟨μ, hμ⟩,
-    rw [eq_false_intro empty_not_nonempty, supr_false, eq_comm],
+    rw [eq_false_intro empty_not_nonempty, supr_of_empty, eq_comm],
     simp_rw [empty'],
     apply bot_unique,
     refine infi_le_of_le μ (infi_le _ hμ) },

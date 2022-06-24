@@ -813,7 +813,7 @@ noncomputable instance : complete_linear_order (with_top α) :=
 lemma coe_Sup {s : set α} (hb : bdd_above s) : (↑(Sup s) : with_top α) = ⨆ a ∈ s, ↑a :=
 begin
   cases s.eq_empty_or_nonempty with hs hs,
-  { rw [hs, cSup_empty], simp only [set.mem_empty_eq, supr_bot, supr_false], refl },
+  { rw [hs, cSup_empty], simp only [set.mem_empty_eq, supr_bot, supr_of_empty], refl },
   apply le_antisymm,
   { refine (coe_le_iff.2 $ λ b hb, cSup_le hs $ λ a has, coe_le_coe.1 $ hb ▸ _),
     exact le_supr₂_of_le a has le_rfl },

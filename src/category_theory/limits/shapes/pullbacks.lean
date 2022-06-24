@@ -26,7 +26,7 @@ open category_theory
 
 namespace category_theory.limits
 
-universes v₁ v₂ v u u₂
+universes w v₁ v₂ v u u₂
 
 local attribute [tidy] tactic.case_bash
 
@@ -1525,7 +1525,7 @@ instance has_cokernel_pair_of_epi [epi f] : has_pushout f f :=
 ⟨⟨⟨_, pushout_cocone.is_colimit_mk_id_id f⟩⟩⟩
 
 lemma inl_eq_inr_of_epi_eq [epi f] : (pushout.inl : _ ⟶ pushout f f) = pushout.inr :=
-((pushout_cocone.is_colimit_mk_id_id f).fac 
+((pushout_cocone.is_colimit_mk_id_id f).fac
     (get_colimit_cocone (span f f)).cocone left).symm.trans
   ((pushout_cocone.is_colimit_mk_id_id f).fac
     (get_colimit_cocone (span f f)).cocone right : _)
@@ -2170,5 +2170,12 @@ wide_pushout_shape_op_equiv _
 /-- The duality equivalence `walking_cospanᵒᵖ ≌ walking_span` -/
 def walking_cospan_op_equiv : walking_cospanᵒᵖ ≌ walking_span :=
 wide_pullback_shape_op_equiv _
+
+/-- Having wide pullback at any universe level implies having binary pullbacks. -/
+instance has_pullbacks_of_has_wide_pullbacks [has_wide_pullbacks.{w} C] : has_pullbacks C :=
+begin
+  haveI := has_wide_pullbacks_shrink.{0 w} C,
+  apply_instance
+end
 
 end category_theory.limits

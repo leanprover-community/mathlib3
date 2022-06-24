@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Bhavik Mehta
+Authors: Bhavik Mehta, Jakob von Raumer
 -/
 import category_theory.limits.has_limits
 import category_theory.thin
@@ -24,7 +24,7 @@ Typeclasses `has_wide_pullbacks` and `has_finite_wide_pullbacks` assert the exis
 pullbacks and finite wide pullbacks.
 -/
 
-universes w v u
+universes w w' v u
 
 open category_theory category_theory.limits opposite
 
@@ -115,6 +115,23 @@ def mk_cone {F : wide_pullback_shape J ⥤ C} {X : C}
     | (some j) := π j
     end,
     naturality' := λ j j' f, by { cases j; cases j'; cases f; unfold_aux; dsimp; simp [w], }, } }
+
+/-- Wide pullback diagrams of equivalent index types are equivlent. -/
+def equivalence_of_equiv (J' : Type w') (h : J ≃ J') :
+  category_theory.equivalence (wide_pullback_shape J) (wide_pullback_shape J') :=
+{ functor := wide_cospan none (λ j, some (h j)) (λ j, hom.term (h j)),
+  inverse := wide_cospan none (λ j, some (h.inv_fun j)) (λ j, hom.term (h.inv_fun j)),
+  unit_iso := nat_iso.of_components (λ j, by cases j; simp)
+    (λ j k f, by { simp only [eq_iff_true_of_subsingleton]}),
+  counit_iso := nat_iso.of_components (λ j, by cases j; simp)
+    (λ j k f, by { simp only [eq_iff_true_of_subsingleton]}) }
+
+/-- Lifting  universe and morphism levels preserves wide pullback diagrams. -/
+def ulift_equivalence :
+  category_theory.equivalence (ulift_hom.{w'} (ulift.{w'} (wide_pullback_shape J)))
+     (wide_pullback_shape (ulift.{w'} J)) :=
+(ulift_hom_ulift_category.equiv.{w' w' w w} (wide_pullback_shape J)).symm.trans
+  (equivalence_of_equiv _ (equiv.ulift.{w' w}.symm : J ≃ ulift.{w'} J))
 
 end wide_pullback_shape
 
@@ -444,5 +461,11 @@ def wide_pullback_shape_op_equiv : (wide_pullback_shape J)ᵒᵖ ≌ wide_pushou
   inverse := wide_pushout_shape_op J,
   unit_iso := (wide_pullback_shape_op_unop J).symm,
   counit_iso := wide_pushout_shape_unop_op J, }
+
+/-- If a category has wide pullbacks on a higher universe level it also has wide pullbacks
+on a lower universe level. -/
+lemma has_wide_pullbacks_shrink [has_wide_pullbacks.{max w w'} C] : has_wide_pullbacks.{w} C :=
+λ J, has_limits_of_shape_of_equivalence
+  (wide_pullback_shape.equivalence_of_equiv _ equiv.ulift.{w'})
 
 end category_theory.limits

@@ -268,10 +268,6 @@ lemma prod_union [decidable_eq α] (h : disjoint s₁ s₂) :
   (∏ x in (s₁ ∪ s₂), f x) = (∏ x in s₁, f x) * (∏ x in s₂, f x) :=
 by rw [←prod_union_inter, (disjoint_iff_inter_eq_empty.mp h)]; exact (mul_one _).symm
 
-@[to_additive] lemma prod_disj_union (h : ∀ ⦃a⦄, a ∈ s₁ → a ∉ s₂) :
-  ∏ x in s₁.disj_union s₂ h, f x = (∏ x in s₁, f x) * ∏ x in s₂, f x :=
-by { classical, rw [disj_union_eq_union, prod_union (disjoint_left.2 h)] }
-
 @[to_additive]
 lemma prod_filter_mul_prod_filter_not (s : finset α) (p : α → Prop) [decidable_pred p]
   [decidable_pred (λ x, ¬p x)] (f : α → β) :

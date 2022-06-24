@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Bhavik Mehta
+Authors: Bhavik Mehta, Jakob von Raumer
 -/
 import data.list.chain
 import category_theory.punit
@@ -165,18 +165,16 @@ begin
   rw [w j, w j'],
 end)
 
-instance [is_connected J] [hn : nonempty J] : is_connected (ulift_hom.{v₂} (ulift.{u₂} J)) :=
+/-- Lifting the universe level of morphisms and objects preserves connectedness. -/
+instance [hc : is_connected J] : is_connected (ulift_hom.{v₂} (ulift.{u₂} J)) :=
 begin
-  haveI : nonempty (ulift_hom.{v₂} (ulift.{u₂} J)), { simpa [ulift_hom] },
-  let j₀ : J := classical.choice hn,
-  fapply is_connected.of_induct,
-  { exact ⟨j₀⟩ },
-  { intros p hj₀ h j, cases j with j,
-    let p' : set J := ((λ (j : J), p {down := j}) : set J),
-    have hj₀' : j₀ ∈ p', { simp only [p'], exact hj₀ },
-    apply induct_on_objects (λ (j : J), p {down := j}) hj₀',
-    intros j₁ j₂ f, apply h,
-    exact (ulift_hom_ulift_category.equiv J).functor.map f }
+  haveI : nonempty (ulift_hom.{v₂} (ulift.{u₂} J)), { simp [ulift_hom, hc.is_nonempty] },
+  apply is_connected.of_induct,
+  rintros p hj₀ h ⟨j⟩,
+  let p' : set J := ((λ (j : J), p {down := j}) : set J),
+  have hj₀' : (classical.choice hc.is_nonempty) ∈ p', { simp only [p'], exact hj₀ },
+  apply induct_on_objects (λ (j : J), p {down := j}) hj₀'
+    (λ _ _ f, h ((ulift_hom_ulift_category.equiv J).functor.map f))
 end
 
 /--

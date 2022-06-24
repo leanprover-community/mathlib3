@@ -26,6 +26,33 @@ This files introduces:
 * `thickening δ s`, the open thickening by radius `δ` of a set `s` in a pseudo emetric space.
 * `cthickening δ s`, the closed thickening by radius `δ` of a set `s` in a pseudo emetric space.
 -/
+
+section
+variables {α : Type*}
+
+section
+variables [boolean_algebra α] {x y : α}
+
+lemma disjoint_compl_left_iff : disjoint xᶜ y ↔ y ≤ x :=
+by rw [disjoint_iff_le_compl_left, compl_compl]
+
+lemma disjoint_compl_right_iff : disjoint x yᶜ ↔ x ≤ y :=
+by rw [disjoint_iff_le_compl_right, compl_compl]
+
+alias disjoint_compl_left_iff ↔ _ has_le.le.disjoint_compl_left
+alias disjoint_compl_right_iff ↔ _ has_le.le.disjoint_compl_right
+
+end
+
+variables {s t : set α}
+
+lemma disjoint_compl_left_iff_subset : disjoint sᶜ t ↔ t ⊆ s := disjoint_compl_left_iff
+lemma disjoint_compl_right_iff_subset : disjoint s tᶜ ↔ s ⊆ t := disjoint_compl_right_iff
+
+alias disjoint_compl_left_iff_subset ↔ _ has_subset.subset.disjoint_compl_left
+alias disjoint_compl_right_iff_subset ↔ _ has_subset.subset.disjoint_compl_right
+end
+
 noncomputable theory
 open_locale classical nnreal ennreal topological_space
 universes u v w
@@ -1064,6 +1091,18 @@ begin
   refine ⟨δ / 2, half_pos hδ, h.mono _ _⟩;
     exact (cthickening_subset_thickening' hδ (half_lt_self hδ) _),
 end
+
+lemma _root_.is_compact.exists_thickening_subset_open (hs : is_compact s) (ht : is_open t)
+  (hst : s ⊆ t) :
+  ∃ δ, 0 < δ ∧ thickening δ s ⊆ t :=
+(hst.disjoint_compl_right.exists_thickenings hs ht.is_closed_compl).imp $ λ δ h,
+  ⟨h.1, disjoint_compl_right_iff_subset.1 $ h.2.mono_right $ self_subset_thickening h.1 _⟩
+
+lemma _root_.is_compact.exists_cthickening_subset_open (hs : is_compact s) (ht : is_open t)
+  (hst : s ⊆ t) :
+  ∃ δ, 0 < δ ∧ cthickening δ s ⊆ t :=
+(hst.disjoint_compl_right.exists_cthickenings hs ht.is_closed_compl).imp $ λ δ h,
+  ⟨h.1, disjoint_compl_right_iff_subset.1 $ h.2.mono_right $ self_subset_cthickening _⟩
 
 lemma cthickening_eq_Inter_cthickening' {δ : ℝ}
   (s : set ℝ) (hsδ : s ⊆ Ioi δ) (hs : ∀ ε, δ < ε → (s ∩ (Ioc δ ε)).nonempty) (E : set α) :

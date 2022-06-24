@@ -8,7 +8,13 @@ import analysis.complex.upper_half_plane.basic
 import linear_algebra.general_linear_group
 import linear_algebra.special_linear_group
 
-universes u v
+/-!
+# Slash actions
+
+This file defines a class of slash actions, which are families of right actions of a given group
+parametrized by some Type.  This is  modeled on the slash action of `GL_pos (fin 2) ℝ` on the space
+of modular forms.
+-/
 
 open complex upper_half_plane
 

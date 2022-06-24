@@ -73,6 +73,9 @@ def var_names(var_list_string):
     return var_list_string[1:-1].replace(" ", "")
 
 def create_query(type: str, var_list, eq_list, goal_type):
+    """ Create a query to invoke Sage's `MPolynomial_libsingular.lift`. See
+    https://github.com/sagemath/sage/blob/f8df80820dc7321dc9b18c9644c3b8315999670b/src/sage/rings/polynomial/multi_polynomial_libsingular.pyx#L4472-L4518
+    for a description of this method. """
     query = f'''
 {var_names(var_list)} = {type_str(type)}['{var_names(var_list)}'].gens()
 gens = {eq_list}
@@ -120,12 +123,13 @@ def main():
     else:
         try:
             output = evaluate_in_sage(final_query).replace("'", "")
+        except EvaluationError as e:
+            print(f'%{e.ename}%{e.evalue}')
+        else:
             output = output.replace(",", "")
             output = output.replace("[", "").replace("]", "").strip()
             output += " "
             print(output)
-        except EvaluationError as e:
-            print(f'%{e.ename}%{e.evalue}')
 
 
 if __name__ == "__main__":

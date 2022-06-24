@@ -493,11 +493,6 @@ end
   ...≤ μ[f N] - μ[f 0] : hf.sum_mul_upcrossing_strat_le
   ...≤ μ[f N] : (sub_le_self_iff _).2 (integral_nonneg hfzero)
 
-lemma submartingale.pos (hf : submartingale f ℱ μ) : submartingale (f⁺) ℱ μ :=
-begin
-  sorry
-end
-
 section
 
 open lattice_ordered_comm_group

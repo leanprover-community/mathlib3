@@ -243,6 +243,92 @@ lemma sub_martingale [preorder E] [covariant_class E E (+) (≤)]
   (hf : submartingale f ℱ μ) (hg : martingale g ℱ μ) : submartingale (f - g) ℱ μ :=
 hf.sub_supermartingale hg.supermartingale
 
+lemma eventually_le.max_le_max [linear_order E] {f₁ f₂ g₁ g₂ : α → E}
+  (hf : f₁ ≤ᵐ[μ] f₂) (hg : g₁ ≤ᵐ[μ] g₂) :
+  (λ x, max (f₁ x) (g₁ x)) ≤ᵐ[μ] (λ x, max (f₂ x) (g₂ x)) :=
+by filter_upwards [hf, hg] with x hfx hgx using max_le_max hfx hgx
+
+lemma eventually_le.max_le [linear_order E] {f g h : α → E}
+  (hf : f ≤ᵐ[μ] h) (hg : g ≤ᵐ[μ] h) :
+  (λ x, max (f x) (g x)) ≤ᵐ[μ] h :=
+by filter_upwards [hf, hg] with x hfx hgx using max_le hfx hgx
+
+lemma eventually_le.le_max_of_le_left [linear_order E] {f g h : α → E}
+  (hf : h ≤ᵐ[μ] f) :
+  h ≤ᵐ[μ] (λ x, max (f x) (g x)) :=
+by filter_upwards [hf] with x hfx using le_max_of_le_left hfx
+
+lemma eventually_le.le_max_of_le_right [linear_order E] {f g h : α → E}
+  (hg : h ≤ᵐ[μ] g) :
+  h ≤ᵐ[μ] (λ x, max (f x) (g x)) :=
+by filter_upwards [hg] with x hgx using le_max_of_le_right hgx
+
+-- move to `ae_nonneg_of_forall_set_integral_nonneg_of_finite_measure_of_strongly_measurable`
+lemma ae_le_of_forall_set_integral_le [is_finite_measure μ] {f g : α → ℝ}
+  (hfm : strongly_measurable f) (hgm : strongly_measurable g)
+  (hf : integrable f μ) (hg : integrable g μ)
+  (hf_le : ∀ s, measurable_set s → ∫ x in s, f x ∂μ ≤ ∫ x in s, g x ∂μ) :
+  f ≤ᵐ[μ] g :=
+begin
+  rw ← eventually_sub_nonneg,
+  refine ae_nonneg_of_forall_set_integral_nonneg_of_finite_measure_of_strongly_measurable
+    (hgm.sub hfm) (hg.sub hf) (λ s hs, _),
+  rw [integral_sub' hg.integrable_on hf.integrable_on, sub_nonneg],
+  exact hf_le s hs
+end
+
+-- move
+lemma condexp_mono {m : measurable_space α} [is_finite_measure μ] {f g : α → ℝ}
+  (hf : integrable f μ) (hg : integrable g μ) (hfg : f ≤ᵐ[μ] g) :
+  μ[f | m] ≤ᵐ[μ] μ[g | m] :=
+begin
+  by_cases hm : m ≤ m0,
+  { refine @ae_le_of_ae_le_trim _ _ _ _ _ _ hm _ _ (ae_le_of_forall_set_integral_le
+      strongly_measurable_condexp strongly_measurable_condexp
+      (integrable_condexp.trim hm strongly_measurable_condexp)
+      (integrable_condexp.trim hm strongly_measurable_condexp) (λ s hs, _)),
+    rw [← set_integral_trim hm strongly_measurable_condexp hs,
+      ← set_integral_trim hm strongly_measurable_condexp hs,
+      set_integral_condexp hm hf hs, set_integral_condexp hm hg hs],
+    exact @set_integral_mono_ae _ m0 _ _ _ _
+      (@integrable.integrable_on _ _ m0 _ _ _ _ hf)
+      (@integrable.integrable_on _ _ m0 _ _ _ _ hg) hfg },
+  { rw [condexp_of_not_le hm, condexp_of_not_le hm] }
+end
+
+-- move
+lemma integrable.sup {f g : α → ℝ} (hf : integrable f μ) (hg : integrable g μ) :
+  integrable (f ⊔ g) μ :=
+begin
+  refine integrable.mono' (hf.abs.add hg.abs) (hf.1.sup hg.1) (eventually_of_forall (λ x, _)),
+  simp only [pi.add_apply, real.norm_eq_abs, abs_le],
+  refine ⟨_, max_le
+    (le_add_of_le_of_nonneg (le_abs_self _) (abs_nonneg _))
+    (le_add_of_nonneg_of_le (abs_nonneg _) (le_abs_self _))⟩,
+  refine le_max_of_le_left _,
+  rw [neg_add', sub_le_iff_le_add],
+  exact le_trans (neg_abs_le_self _) (le_add_of_nonneg_right (abs_nonneg _)),
+end
+
+lemma sup [is_finite_measure μ]
+  {f g : ι → α → ℝ} (hf : submartingale f ℱ μ) (hg : submartingale g ℱ μ) :
+  submartingale (f ⊔ g) ℱ μ :=
+begin
+  refine ⟨λ i, @strongly_measurable.sup _ _ _ _ (ℱ i) _ _ _ (hf.adapted i) (hg.adapted i),
+    λ i j hij, _, λ i, integrable.sup (hf.integrable _) (hg.integrable _)⟩,
+  refine eventually_le.max_le _ _,
+  { exact eventually_le.trans (hf.2.1 i j hij)
+      (condexp_mono (hf.integrable _) (integrable.sup (hf.integrable j) (hg.integrable j))
+      (eventually_of_forall (λ x, le_max_left _ _))) },
+  { exact eventually_le.trans (hg.2.1 i j hij)
+      (condexp_mono (hg.integrable _) (integrable.sup (hf.integrable j) (hg.integrable j))
+      (eventually_of_forall (λ x, le_max_right _ _))) }
+end
+
+lemma pos [is_finite_measure μ] {f : ι → α → ℝ} (hf : submartingale f ℱ μ) :
+  submartingale (f⁺) ℱ μ :=
+hf.sup (martingale_zero _ _ _).submartingale
+
 end submartingale
 
 section temp

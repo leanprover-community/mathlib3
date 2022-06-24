@@ -283,12 +283,6 @@ def upcrossing_strat (a b : ℝ) (f : ℕ → α → ℝ) (N n : ℕ) (x : α) :
 lemma upcrossing_strat_nonneg : 0 ≤ upcrossing_strat a b f N n x :=
 finset.sum_nonneg (λ i hi, set.indicator_nonneg (λ x hx, zero_le_one) _)
 
--- move
-@[to_additive] lemma set.mul_indicator_finset_bUnion_apply {ι M} [comm_monoid M] (I : finset ι)
-  (s : ι → set α) {f : α → M} (h : ∀ (i ∈ I) (j ∈ I), i ≠ j → disjoint (s i) (s j)) (x : α) :
-  (⋃ i ∈ I, s i).mul_indicator f x = ∏ i in I, (s i).mul_indicator f x :=
-by rw set.mul_indicator_finset_bUnion I s h
-
 lemma upcrossing_strat_le_one : upcrossing_strat a b f N n x ≤ 1 :=
 begin
   rw [upcrossing_strat, ← set.indicator_finset_bUnion_apply],

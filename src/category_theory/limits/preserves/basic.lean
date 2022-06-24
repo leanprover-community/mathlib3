@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Scott Morrison, Reid Barton, Bhavik Mehta
+Authors: Scott Morrison, Reid Barton, Bhavik Mehta, Jakob von Raumer
 -/
 import category_theory.limits.has_limits
 
@@ -527,6 +527,38 @@ def reflects_limits_of_nat_iso {F G : C ⥤ D} (h : F ≅ G) [reflects_limits_of
   reflects_limits_of_size.{w' w} G :=
 { reflects_limits_of_shape := λ J 𝒥₁, by exactI reflects_limits_of_shape_of_nat_iso h }
 
+/-- Transfer reflection of limits along a equivalence in the shape. -/
+def reflects_limits_of_shape_of_equiv {J' : Type w₂} [category.{w₂'} J'] (e : J ≌ J')
+  (F : C ⥤ D) [reflects_limits_of_shape J F] :
+  reflects_limits_of_shape J' F :=
+{ reflects_limit := λ K,
+  { reflects := λ c t,
+    begin
+      apply is_limit.of_whisker_equivalence e,
+      apply is_limit_of_reflects F,
+      apply is_limit.of_whisker_equivalence e.symm,
+      let equ := (e.inv_fun_id_assoc (K ⋙ F)).symm.trans
+          (iso_whisker_left e.inverse (functor.associator e.functor K F)).symm,
+      apply (is_limit.postcompose_inv_equiv equ _).to_fun,
+      apply t.of_iso_limit,
+      fapply cones.ext,
+      { simp only [functor.map_cone_X, cones.postcompose_obj_X, cone.whisker_X] },
+      { intros j, dsimp, simp [← F.map_comp] }
+    end } }
+
+/--
+`reflects_limits_of_size_shrink.{w w'} F` tries to obtain `reflects_limits_of_size.{w w'} F`
+from some other `reflects_limits_of_size F`.
+-/
+lemma reflects_limits_of_size_shrink (F : C ⥤ D)
+  [reflects_limits_of_size.{(max w w₂) (max w' w₂')} F] : reflects_limits_of_size.{w w'} F :=
+⟨λ J hJ, by exactI reflects_limits_of_shape_of_equiv
+  (ulift_hom_ulift_category.equiv.{w₂ w₂'} J).symm F⟩
+
+lemma reflects_smallest_limits_of_reflects_limits
+  (F : C ⥤ D) [reflects_limits_of_size.{v₃ u₃} F] : reflects_limits_of_size.{0 0} F :=
+reflects_limits_of_size_shrink F
+
 /--
 If the limit of `F` exists and `G` preserves it, then if `G` reflects isomorphisms then it
 reflects the limit of `F`.
@@ -610,6 +642,38 @@ def reflects_colimits_of_shape_of_nat_iso {F G : C ⥤ D} (h : F ≅ G)
 def reflects_colimits_of_nat_iso {F G : C ⥤ D} (h : F ≅ G) [reflects_colimits_of_size.{w w'} F] :
   reflects_colimits_of_size.{w w'} G :=
 { reflects_colimits_of_shape := λ J 𝒥₁, by exactI reflects_colimits_of_shape_of_nat_iso h }
+
+/-- Transfer reflection of colimits along a equivalence in the shape. -/
+def reflects_colimits_of_shape_of_equiv {J' : Type w₂} [category.{w₂'} J'] (e : J ≌ J')
+  (F : C ⥤ D) [reflects_colimits_of_shape J F] :
+  reflects_colimits_of_shape J' F :=
+{ reflects_colimit := λ K,
+  { reflects := λ c t,
+    begin
+      apply is_colimit.of_whisker_equivalence e,
+      apply is_colimit_of_reflects F,
+      apply is_colimit.of_whisker_equivalence e.symm,
+      let equ := (e.inv_fun_id_assoc (K ⋙ F)).symm.trans
+          (iso_whisker_left e.inverse (functor.associator e.functor K F)).symm,
+      apply (is_colimit.precompose_hom_equiv equ _).to_fun,
+      apply t.of_iso_colimit,
+      fapply cocones.ext,
+      { simp only [functor.map_cocone_X, cocones.precompose_obj_X, cocone.whisker_X]},
+      { intros j, dsimp, simp [← F.map_comp] }
+    end } }
+
+/--
+`reflects_colimits_of_size_shrink.{w w'} F` tries to obtain `reflects_colimits_of_size.{w w'} F`
+from some other `reflects_colimits_of_size F`.
+-/
+lemma reflects_colimits_of_size_shrink (F : C ⥤ D)
+  [reflects_colimits_of_size.{(max w w₂) (max w' w₂')} F] : reflects_colimits_of_size.{w w'} F :=
+⟨λ J hJ, by exactI reflects_colimits_of_shape_of_equiv
+  (ulift_hom_ulift_category.equiv.{w₂ w₂'} J).symm F⟩
+
+lemma reflects_smallest_colimits_of_reflects_colimits
+  (F : C ⥤ D) [reflects_colimits_of_size.{v₃ u₃} F] : reflects_colimits_of_size.{0 0} F :=
+reflects_colimits_of_size_shrink F
 
 /--
 If the colimit of `F` exists and `G` preserves it, then if `G` reflects isomorphisms then it

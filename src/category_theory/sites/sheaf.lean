@@ -396,7 +396,7 @@ end multiequalizer_conditions
 
 section
 
-variables [has_products A]
+variables [has_products.{(max u₁ v₁)} A]
 
 /--
 The middle object of the fork diagram given in Equation (3) of [MM92], as well as the fork diagram
@@ -475,6 +475,7 @@ begin
     simp [fork.ι] }
 end
 
+set_option pp.universes true
 /-- The equalizer definition of a sheaf given by `is_sheaf'` is equivalent to `is_sheaf`. -/
 theorem is_sheaf_iff_is_sheaf' :
   is_sheaf J P ↔ is_sheaf' J P :=
@@ -503,7 +504,7 @@ end
 section concrete
 
 variables [has_pullbacks C]
-
+set_option pp.universes true
 /--
 For a concrete category `(A, s)` where the forgetful functor `s : A ⥤ Type v` preserves limits and
 reflects isomorphisms, and `A` has limits, an `A`-valued presheaf `P : Cᵒᵖ ⥤ A` is a sheaf iff its
@@ -525,8 +526,13 @@ begin
     is_sheaf_for_is_sheaf_for' P s U R,
   rw ←equiv.nonempty_congr this,
   split,
-  { exact nonempty.map (λ t, is_limit_of_preserves s t) },
-  { exact nonempty.map (λ t, is_limit_of_reflects s t) }
+  { haveI := preserves_smallest_limits_of_preserves_limits s,
+    exact nonempty.map (λ t, is_limit_of_preserves s t) },
+  { have : reflects_limits s,
+    { apply_instance },
+    have : reflects_limits_of_size.{0 0} s,
+    { sorry },
+    exact nonempty.map (λ t, is_limit_of_reflects s t) }
 end
 
 end concrete

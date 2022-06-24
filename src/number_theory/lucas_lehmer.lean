@@ -212,10 +212,13 @@ instance : monoid (X q) :=
   mul_one := λ x, by { ext; simp, },
   ..(infer_instance : has_mul (X q)) }
 
-instance : add_monoid_with_one (X q) :=
+instance : add_group_with_one (X q) :=
 { nat_cast := λ n, ⟨n, 0⟩,
-  nat_cast_zero := by simp [nat.cast],
+  nat_cast_zero := by simp,
   nat_cast_succ := by simp [nat.cast, monoid.one],
+  int_cast := λ n, ⟨n, 0⟩,
+  int_cast_of_nat := λ n, by simp; refl,
+  int_cast_neg_succ_of_nat := λ n, by ext; simp; refl,
   .. X.monoid, .. X.add_comm_group _ }
 
 lemma left_distrib (x y z : X q) : x * (y + z) = x * y + x * z :=
@@ -227,7 +230,7 @@ by { ext; { dsimp, ring }, }
 instance : ring (X q) :=
 { left_distrib := left_distrib,
   right_distrib := right_distrib,
-  .. X.add_monoid_with_one,
+  .. X.add_group_with_one,
   ..(infer_instance : add_comm_group (X q)),
   ..(infer_instance : monoid (X q)) }
 
@@ -238,19 +241,11 @@ instance : comm_ring (X q) :=
 instance [fact (1 < (q : ℕ))] : nontrivial (X q) :=
 ⟨⟨0, 1, λ h, by { injection h with h1 _, exact zero_ne_one h1 } ⟩⟩
 
-@[simp]
-lemma nat_coe_fst (n : ℕ) : (n : X q).fst = (n : zmod q) :=
-by induction n; simp *
-@[simp]
-lemma nat_coe_snd (n : ℕ) : (n : X q).snd = (0 : zmod q) :=
-by induction n; simp *
+@[simp] lemma nat_coe_fst (n : ℕ) : (n : X q).fst = (n : zmod q) := rfl
+@[simp] lemma nat_coe_snd (n : ℕ) : (n : X q).snd = (0 : zmod q) := rfl
 
-@[simp]
-lemma int_coe_fst (n : ℤ) : (n : X q).fst = (n : zmod q) :=
-by { induction n; simp, }
-@[simp]
-lemma int_coe_snd (n : ℤ) : (n : X q).snd = (0 : zmod q) :=
-by { induction n; simp, }
+@[simp] lemma int_coe_fst (n : ℤ) : (n : X q).fst = (n : zmod q) := rfl
+@[simp] lemma int_coe_snd (n : ℤ) : (n : X q).snd = (0 : zmod q) := rfl
 
 @[norm_cast]
 lemma coe_mul (n m : ℤ) : ((n * m : ℤ) : X q) = (n : X q) * (m : X q) :=

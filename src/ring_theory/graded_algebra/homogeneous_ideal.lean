@@ -175,11 +175,7 @@ begin
   apply le_antisymm (I.homogeneous_core'_le 𝒜) _,
   intros x hx,
   classical,
-<<<<<<< HEAD
-  rw ←graded_algebra.sum_support_decompose 𝒜 x,
-=======
   rw ←direct_sum.sum_support_decompose 𝒜 x,
->>>>>>> origin/master
   exact ideal.sum_mem _ (λ j hj, ideal.subset_span ⟨⟨_, is_homogeneous_coe _⟩, h _ hx, rfl⟩)
 end
 
@@ -453,11 +449,7 @@ lemma ideal.le_to_ideal_homogeneous_hull :
 begin
   intros r hr,
   classical,
-<<<<<<< HEAD
-  rw [←graded_algebra.sum_support_decompose 𝒜 r],
-=======
   rw [←direct_sum.sum_support_decompose 𝒜 r],
->>>>>>> origin/master
   refine ideal.sum_mem _ _, intros j hj,
   apply ideal.subset_span, use j, use ⟨r, hr⟩, refl,
 end

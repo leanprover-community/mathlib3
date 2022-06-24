@@ -17,11 +17,11 @@ statements about them. For a more extensive theory of fields, see the `field_the
 * `division_ring`: : Nontrivial ring with multiplicative inverses for nonzero elements.
 * `semifield`: Commutative division semiring.
 * `field`: Commutative division ring.
-* `is_field`: Predicate on a ring that it is a field, i.e. that the multiplication is commutative,
-  that it has more than one element and that all non-zero elements have a multiplicative inverse.
-  In contrast to `field`, which contains the data of a function associating to an element of the
-  field its multiplicative inverse, this predicate only assumes the existence and can therefore more
-  easily be used to e.g. transfer along ring isomorphisms.
+* `is_field`: Predicate on a (semi)ring that it is a (semi)field, i.e. that the multiplication is
+  commutative, that it has more than one element and that all non-zero elements have a
+  multiplicative inverse. In contrast to `field`, which contains the data of a function associating
+  to an element of the field its multiplicative inverse, this predicate only assumes the existence
+  and can therefore more easily be used to e.g. transfer along ring isomorphisms.
 
 ## Implementation details
 
@@ -227,32 +227,33 @@ end field
 
 section is_field
 
-/-- A predicate to express that a ring is a field.
+/-- A predicate to express that a (semi)ring is a (semi)field.
 
 This is mainly useful because such a predicate does not contain data,
 and can therefore be easily transported along ring isomorphisms.
 Additionaly, this is useful when trying to prove that
-a particular ring structure extends to a field. -/
-structure is_field (R : Type u) [ring R] : Prop :=
+a particular ring structure extends to a (semi)field. -/
+structure is_field (R : Type u) [semiring R] : Prop :=
 (exists_pair_ne : ∃ (x y : R), x ≠ y)
 (mul_comm : ∀ (x y : R), x * y = y * x)
 (mul_inv_cancel : ∀ {a : R}, a ≠ 0 → ∃ b, a * b = 1)
 
 /-- Transferring from field to is_field -/
-lemma field.to_is_field (R : Type u) [field R] : is_field R :=
+lemma field.to_is_field (R : Type u) [semifield R] : is_field R :=
 { mul_inv_cancel := λ a ha, ⟨a⁻¹, mul_inv_cancel ha⟩,
-  ..‹field R› }
+  ..‹semifield R› }
 
-@[simp] lemma is_field.nontrivial {R : Type u} [ring R] (h : is_field R) : nontrivial R :=
+@[simp] lemma is_field.nontrivial {R : Type u} [semiring R] (h : is_field R) : nontrivial R :=
 ⟨h.exists_pair_ne⟩
 
-@[simp] lemma not_is_field_of_subsingleton (R : Type u) [ring R] [subsingleton R] : ¬is_field R :=
+@[simp] lemma not_is_field_of_subsingleton (R : Type u) [semiring R] [subsingleton R] :
+  ¬is_field R :=
 λ h, let ⟨x, y, h⟩ := h.exists_pair_ne in h (subsingleton.elim _ _)
 
 open_locale classical
 
-/-- Transferring from is_field to field -/
-noncomputable def is_field.to_field {R : Type u} [ring R] (h : is_field R) : field R :=
+/-- Transferring from `is_field` to `semifield`. -/
+noncomputable def is_field.to_semifield {R : Type u} [semiring R] (h : is_field R) : semifield R :=
 { inv := λ a, if ha : a = 0 then 0 else classical.some (is_field.mul_inv_cancel h ha),
   inv_zero := dif_pos rfl,
   mul_inv_cancel := λ a ha,
@@ -260,7 +261,11 @@ noncomputable def is_field.to_field {R : Type u} [ring R] (h : is_field R) : fie
       convert classical.some_spec (is_field.mul_inv_cancel h ha),
       exact dif_neg ha
     end,
-  .. ‹ring R›, ..h }
+  .. ‹semiring R›, ..h }
+
+/-- Transferring from `is_field` to `field`. -/
+noncomputable def is_field.to_field {R : Type u} [ring R] (h : is_field R) : field R :=
+{ .. ‹ring R›, ..is_field.to_semifield h }
 
 /-- For each field, and for each nonzero element of said field, there is a unique inverse.
 Since `is_field` doesn't remember the data of an `inv` function and as such,

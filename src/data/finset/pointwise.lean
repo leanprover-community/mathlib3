@@ -863,8 +863,8 @@ coe_injective.no_zero_smul_divisors _ coe_zero coe_smul_finset
 
 end instances
 
-lemma pairwise_disjoint_smul_iff [decidable_eq α] [left_cancel_semigroup α] {s : set α}
-  {t : finset α} :
+@[to_additive] lemma pairwise_disjoint_smul_iff [decidable_eq α] [left_cancel_semigroup α]
+  {s : set α} {t : finset α} :
   s.pairwise_disjoint (• t) ↔ ((s : set α) ×ˢ (t : set α) : set (α × α)).inj_on (λ p, p.1 * p.2) :=
 by simp_rw [←pairwise_disjoint_coe, coe_smul_finset, set.pairwise_disjoint_smul_iff]
 

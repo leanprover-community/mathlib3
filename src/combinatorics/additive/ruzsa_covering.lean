@@ -16,30 +16,53 @@ with at most `(s + t).card/t.card` copies of `t - t`.
 Merge this file with other prerequisites to Freiman's theorem once we have them.
 -/
 
+section monoid
+variables {α β : Type*} [monoid α] [mul_action α β] {a : α}
+
+open function
+
+namespace units
+
+@[to_additive] protected lemma smul_left_injective (a : αˣ) : injective ((•) a : β → β) :=
+λ b c h, by simpa only [inv_smul_smul] using congr_arg (has_scalar.smul a⁻¹) h
+
+@[simp, to_additive] protected lemma smul_left_inj (a : αˣ) {b c : β} : a • b = a • c ↔ b = c :=
+a.smul_left_injective.eq_iff
+
+end units
+
+@[to_additive] protected lemma is_unit.smul_left_injective (h : is_unit a) :
+  injective ((•) a : β → β) :=
+h.unit.smul_left_injective
+
+@[to_additive] protected lemma is_unit.smul_left_inj (h : is_unit a) {b c : β} :
+  a • b = a • c ↔ b = c :=
+h.unit.smul_left_inj
+
+end monoid
+
+section group
+variables {α β : Type*} [group α] [mul_action α β] {a : α} {b c : β}
+
+open function
+
+@[to_additive] lemma smul_left_injective'' (a : α) : injective ((•) a : β → β) :=
+(group.is_unit _).smul_left_injective
+
+@[simp, to_additive] lemma smul_left_inj : a • b = a • c ↔ b = c := (group.is_unit _).smul_left_inj
+
+end group
+
 namespace finset
 variables {α β : Type*}
 
 open_locale pointwise
 
-section
-variables [decidable_eq α] [left_cancel_semigroup α] {s t : finset α}
-
-@[to_additive]
-lemma card_mul (h : (s : set α).pairwise_disjoint (• t)) : (s * t).card = s.card * t.card :=
-begin
-  rw [←image_mul_prod, product_eq_bUnion, bUnion_image],
-  simp_rw show ∀ a, (t.image $ λ b, (a, b)).image (λ x : α × α, x.fst * x.snd) = a • t, from
-    λ a, image_image,
-  rw [card_bUnion h, sum_const_nat (λ _ _, _)],
-  exact card_image_of_injective _ (mul_right_injective _),
-end
-
-end
-
 section mul_action
 variables [group α] [decidable_eq β] [mul_action α β] {s : finset β} (a : α) {b : β}
 
-@[simp, to_additive] lemma smul_mem_smul_iff : a • b ∈ a • s ↔ b ∈ s := by simp [mem_smul_finset]
+@[simp, to_additive] lemma smul_mem_smul_iff : a • b ∈ a • s ↔ b ∈ s :=
+(smul_left_injective'' _).mem_finset_image
 
 @[to_additive] lemma inv_smul_mem_iff : a⁻¹ • b ∈ s ↔ b ∈ a • s :=
 by rw [←smul_mem_smul_iff a, smul_inv_smul]
@@ -68,7 +91,7 @@ begin
   obtain ⟨u, hu, hCmax⟩ := C.exists_maximal
     (filter_nonempty_iff.2 ⟨∅, empty_mem_powerset _, set.pairwise_disjoint_empty⟩),
   rw [mem_filter, mem_powerset] at hu,
-  refine ⟨u, (card_mul hu.2).ge.trans (card_le_of_subset $ mul_subset_mul_right hu.1), λ a ha, _⟩,
+  refine ⟨u, (card_mul_iff.2 $ pairwise_disjoint_smul_iff.1 hu.2).ge.trans (card_le_of_subset $ mul_subset_mul_right hu.1), λ a ha, _⟩,
   rw mul_div_assoc,
   by_cases hau : a ∈ u,
   { exact subset_mul_left _ ht.one_mem_div hau },

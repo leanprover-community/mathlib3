@@ -1181,7 +1181,7 @@ end smul_with_zero
 section left_cancel_semigroup
 variables [left_cancel_semigroup α] {s t : set α}
 
-lemma pairwise_disjoint_smul_iff :
+@[to_additive] lemma pairwise_disjoint_smul_iff :
   s.pairwise_disjoint (• t) ↔ (s ×ˢ t : set (α × α)).inj_on (λ p, p.1 * p.2) :=
 pairwise_disjoint_image_right_iff $ λ _ _, mul_right_injective _
 

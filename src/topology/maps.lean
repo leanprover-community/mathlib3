@@ -384,7 +384,7 @@ lemma of_inverse {f : α → β} {f' : β → α}
   (h : continuous f') (l_inv : left_inverse f f') (r_inv : right_inverse f f') :
   is_closed_map f :=
 assume s hs,
-have f' ⁻¹' s = f '' s, by ext x; simp [mem_image_iff_of_inverse r_inv l_inv],
+have f' ⁻¹' s = f '' s, by ext x; simp [-set.mem_image, mem_image_iff_of_inverse r_inv l_inv],
 this ▸ hs.preimage h
 
 lemma of_nonempty {f : α → β} (h : ∀ s, is_closed s → s.nonempty → is_closed (f '' s)) :

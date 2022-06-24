@@ -175,7 +175,7 @@ begin
   refine rel_embedding.well_founded_iff_no_descending_seq.mpr ⟨λ a, _⟩,
   suffices : Sup (set.range a) ∈ set.range a,
   { obtain ⟨n, hn⟩ := set.mem_range.mp this,
-    have h' : Sup (set.range a) < a (n+1), { change _ > _, simp [← hn, a.map_rel_iff], },
+    have h' : Sup (set.range a) < a (n+1), { change _ > _, rw [← hn, a.map_rel_iff], simp },
     apply lt_irrefl (a (n+1)), apply lt_of_le_of_lt _ h', apply le_Sup, apply set.mem_range_self, },
   apply h (set.range a),
   { use a 37, apply set.mem_range_self, },

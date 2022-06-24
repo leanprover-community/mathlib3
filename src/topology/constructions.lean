@@ -1030,7 +1030,7 @@ begin
     { refine generate_open.basic _ ⟨_, assume a, _, rfl⟩,
       by_cases a ∈ i; simp [*, set.pi] at * },
     { have : f ∈ pi {a | a ∉ i} c, { simp [*, set.pi] at * },
-      simpa [pi_if, hf] } }
+      simpa [pi_if, hf, -set.mem_pi], } }
 end
 
 /-- Suppose `π i` is a family of topological spaces indexed by `i : ι`, and `X` is a type

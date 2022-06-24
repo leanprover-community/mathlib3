@@ -431,7 +431,8 @@ begin
     finprod_eq_prod_of_mul_support_to_finset_subset _ hg (finset.subset_union_right _ _),
     ← finset.prod_mul_distrib],
   refine finprod_eq_prod_of_mul_support_subset _ _,
-  simp [mul_support_mul]
+  simp only [finset.coe_union, set.finite.coe_to_finset],
+  refine mul_support_binop_subset _ (one_mul _) _ _,
 end
 
 /-- If the multiplicative supports of `f` and `g` are finite, then the product of `f i / g i`

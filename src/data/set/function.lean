@@ -822,8 +822,8 @@ lemma preimage_inv_fun_of_mem [n : nonempty α] {f : α → β} (hf : injective 
 begin
   ext x,
   rcases em (x ∈ range f) with ⟨a, rfl⟩|hx,
-  { simp [left_inverse_inv_fun hf _, hf.mem_set_image] },
-  { simp [mem_preimage, inv_fun_neg hx, h, hx] }
+  { simp [-set.mem_image, left_inverse_inv_fun hf _, hf.mem_set_image] },
+  { simp [-set.mem_range, mem_preimage, inv_fun_neg hx, h, hx] }
 end
 
 lemma preimage_inv_fun_of_not_mem [n : nonempty α] {f : α → β} (hf : injective f)

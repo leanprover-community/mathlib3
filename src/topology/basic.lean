@@ -91,20 +91,19 @@ lemma topological_space_eq : ∀ {f g : topological_space α}, f.is_open = g.is_
 | ⟨a, _, _, _⟩ ⟨b, _, _, _⟩ rfl := rfl
 
 section
-variables [t : topological_space α]
-include t
+variables [topological_space α]
 
 /-- `is_open s` means that `s` is open in the ambient topological space on `α` -/
-def is_open (s : set α) : Prop := topological_space.is_open t s
+def is_open (s : set α) : Prop := topological_space.is_open ‹_› s
 
 @[simp]
-lemma is_open_univ : is_open (univ : set α) := topological_space.is_open_univ t
+lemma is_open_univ : is_open (univ : set α) := topological_space.is_open_univ _
 
 lemma is_open.inter (h₁ : is_open s₁) (h₂ : is_open s₂) : is_open (s₁ ∩ s₂) :=
-topological_space.is_open_inter t s₁ s₂ h₁ h₂
+topological_space.is_open_inter _ s₁ s₂ h₁ h₂
 
 lemma is_open_sUnion {s : set (set α)} (h : ∀t ∈ s, is_open t) : is_open (⋃₀ s) :=
-topological_space.is_open_sUnion t s h
+topological_space.is_open_sUnion _ s h
 
 end
 

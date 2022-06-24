@@ -403,7 +403,7 @@ end complete_linear_order
 section has_Sup
 variables [has_Sup α] {f g : ι → α}
 
-lemma Sup_range : Sup (range f) = supr f := rfl
+@[simp] lemma Sup_range : Sup (range f) = supr f := rfl
 lemma Sup_eq_supr' (s : set α) : Sup s = ⨆ a : s, a := by rw [supr, subtype.range_coe]
 
 lemma supr_congr (h : ∀ i, f i = g i) : (⨆ i, f i) = ⨆ i, g i := congr_arg _ $ funext h
@@ -431,7 +431,7 @@ end has_Sup
 section has_Inf
 variables [has_Inf α] {f g : ι → α}
 
-lemma Inf_range : Inf (range f) = infi f := rfl
+@[simp] lemma Inf_range : Inf (range f) = infi f := rfl
 lemma Inf_eq_infi' (s : set α) : Inf s = ⨅ a : s, a := @Sup_eq_supr' αᵒᵈ _ _
 
 lemma infi_congr (h : ∀ i, f i = g i) : (⨅ i, f i) = ⨅ i, g i := congr_arg _ $ funext h
@@ -817,19 +817,13 @@ by simpa only [inf_comm] using binfi_inf h
 
 /-! ### `supr` and `infi` under `Prop` -/
 
-@[simp] theorem supr_false {s : false → α} : supr s = ⊥ :=
-le_antisymm (supr_le $ λ i, false.elim i) bot_le
-
-@[simp] theorem infi_false {s : false → α} : infi s = ⊤ :=
-le_antisymm le_top (le_infi $ λ i, false.elim i)
-
 lemma supr_true {s : true → α} : supr s = s trivial := supr_pos trivial
 lemma infi_true {s : true → α} : infi s = s trivial := infi_pos trivial
 
-@[simp] lemma supr_exists {p : ι → Prop} {f : Exists p → α} : (⨆ x, f x)  = ⨆ i h, f ⟨i, h⟩ :=
+lemma supr_exists {p : ι → Prop} {f : Exists p → α} : supr f = ⨆ i h, f ⟨i, h⟩ :=
 le_antisymm (supr_le $ λ ⟨i, h⟩, le_supr₂ i h) (supr₂_le $ λ i h, le_supr _ _)
 
-@[simp] lemma infi_exists {p : ι → Prop} {f : Exists p → α} : (⨅ x, f x)  = ⨅ i h, f ⟨i, h⟩ :=
+lemma infi_exists {p : ι → Prop} {f : Exists p → α} : infi f = ⨅ i h, f ⟨i, h⟩ :=
 @supr_exists αᵒᵈ _ _ _ _
 
 lemma supr_and {p q : Prop} {s : p ∧ q → α} : supr s = ⨆ h₁ h₂, s ⟨h₁, h₂⟩ :=
@@ -968,7 +962,7 @@ theorem supr_extend_bot {e : ι → β} (he : injective e) (f : ι → α) :
   (⨆ j, extend e f ⊥ j) = ⨆ i, f i :=
 begin
   rw supr_split _ (λ j, ∃ i, e i = j),
-  simp [extend_apply he, extend_apply', @supr_comm _ β ι] { contextual := tt }
+  simp [extend_apply he, extend_apply', @supr_comm _ β ι, supr_exists] { contextual := tt }
 end
 
 lemma infi_extend_top {e : ι → β} (he : injective e) (f : ι → α) : (⨅ j, extend e f ⊤ j) = infi f :=
@@ -978,18 +972,18 @@ lemma infi_extend_top {e : ι → β} (he : injective e) (f : ι → α) : (⨅ 
 ### `supr` and `infi` under `Type`
 -/
 
-theorem supr_of_empty' {α ι} [has_Sup α] [is_empty ι] (f : ι → α) :
+@[simp] theorem supr_of_empty' {α ι} [has_Sup α] [is_empty ι] (f : ι → α) :
   supr f = Sup (∅ : set α) :=
 congr_arg Sup (range_eq_empty f)
 
-theorem infi_of_empty' {α ι} [has_Inf α] [is_empty ι] (f : ι → α) :
+@[simp] theorem infi_of_empty' {α ι} [has_Inf α] [is_empty ι] (f : ι → α) :
   infi f = Inf (∅ : set α) :=
 congr_arg Inf (range_eq_empty f)
 
-theorem supr_of_empty [is_empty ι] (f : ι → α) : supr f = ⊥ :=
+@[simp] theorem supr_of_empty [is_empty ι] (f : ι → α) : supr f = ⊥ :=
 (supr_of_empty' f).trans Sup_empty
 
-theorem infi_of_empty [is_empty ι] (f : ι → α) : infi f = ⊤ := @supr_of_empty αᵒᵈ _ _ _ f
+@[simp] theorem infi_of_empty [is_empty ι] (f : ι → α) : infi f = ⊤ := @supr_of_empty αᵒᵈ _ _ _ f
 
 lemma supr_bool_eq {f : bool → α} : (⨆b:bool, f b) = f tt ⊔ f ff :=
 by rw [supr, bool.range_eq, Sup_pair, sup_comm]

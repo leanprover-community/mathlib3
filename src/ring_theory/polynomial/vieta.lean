@@ -131,8 +131,8 @@ end
 /-- Vieta's formula for the coefficients and the roots of a split polynomial.
   When `R` is a field, use `polynomial.splits_iff_card_roots` to derive the
   condition `hroots` from `p.splits (ring_hom.id R)`.  -/
-theorem vieta [comm_ring R] [is_domain R] (p : R[X]) (h0 : p ≠ 0) (k : ℕ)
-  (h : k ≤ p.nat_degree) (hroots : p.roots.card = p.nat_degree) :
+theorem vieta {R} [comm_ring R] [is_domain R] (p : R[X])
+  (hroots : p.roots.card = p.nat_degree) (k : ℕ) (h : k ≤ p.nat_degree) :
   p.coeff k = p.leading_coeff * (-1) ^ (p.nat_degree - k) *
     ((p.roots.powerset_len (p.nat_degree - k)).map multiset.prod).sum :=
 begin

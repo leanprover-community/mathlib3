@@ -854,8 +854,6 @@ class path_connected_space (X : Type*) [topological_space X] : Prop :=
 (nonempty : nonempty X)
 (joined : ∀ x y : X, joined x y)
 
-attribute [instance, priority 50] path_connected_space.nonempty
-
 lemma path_connected_space_iff_zeroth_homotopy :
   path_connected_space X ↔ nonempty (zeroth_homotopy X) ∧ subsingleton (zeroth_homotopy X) :=
 begin
@@ -899,6 +897,7 @@ lemma path_connected_space_iff_univ : path_connected_space X ↔ is_path_connect
 begin
   split,
   { introI h,
+    haveI := @path_connected_space.nonempty X _ _,
     inhabit X,
     refine ⟨default, mem_univ _, _⟩,
     simpa using path_connected_space.joined default },

@@ -170,7 +170,7 @@ meta def reorder_oper (op : pexpr) (lp : list (bool × pexpr)) :
   return (expr.macro ma lee, lb.transpose.map list.band)
 | lu e := pure (e, lu)
 
-/-- Parses the user input `ll` to `reorder_oper` at a single location, that could either be
+/-- Parses the user input `na` to `reorder_oper` at a single location, that could either be
 `none` (referring to the goal) or `some name` (referring to hypothesis `name`).  Replaces the
 given location by the rearranged one that `with_errors` receives from `reorder_oper`.
 Returns a pair consisting of a boolean and a further list of booleans.

@@ -146,7 +146,7 @@ by { refine fin.forall_fin_one.2 _ i, refl }
 lemma cons_fin_one (x : α) (u : fin 0 → α) : vec_cons x u = (λ _, x) :=
 funext (cons_val_fin_one x u)
 
-meta instance _root_.pi_fin.reflect {α : Type} [reflected α] [h : has_reflect α] :
+meta instance _root_.pi_fin.reflect {α : Type} [reflected _ α] [h : has_reflect α] :
   Π {n}, has_reflect (fin n → α)
 | 0 v := (subsingleton.elim vec_empty v).rec (`(λ a, @vec_empty.{0} a).subst `(α))
 | (n + 1) v := (cons_head_tail v).rec $

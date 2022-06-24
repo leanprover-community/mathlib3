@@ -485,10 +485,10 @@ calc (b - a) * μ[upcrossing a b f N]
      ≤ μ[∑ k in finset.range N, upcrossing_strat a b f N k * (f (k + 1) - f k)] :
 begin
   rw ← integral_mul_left,
-  refine integral_mono _ ((hf.sum_upcrossing_strat_mul a b N).integrable N) _,
-  { sorry }, -- nonnegative and bounded above by an integrable function
-  { intro x,
-    simpa using mul_upcrossing_le (hfN x) hN hab }
+  refine integral_mono_of_nonneg _ ((hf.sum_upcrossing_strat_mul a b N).integrable N) _,
+  { exact eventually_of_forall (λ x, mul_nonneg (sub_nonneg.2 hab.le) (nat.cast_nonneg _)) },
+  { refine eventually_of_forall (λ x, _),
+    simpa using mul_upcrossing_le (hfN x) hN hab },
 end
   ...≤ μ[f N] - μ[f 0] : hf.sum_mul_upcrossing_strat_le
   ...≤ μ[f N] : (sub_le_self_iff _).2 (integral_nonneg hfzero)

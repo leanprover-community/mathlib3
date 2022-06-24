@@ -234,7 +234,7 @@ meta def move_op (args : parse move_pexpr_list_or_texpr) (locat : parse location
 locas ← locat.get_locals,
 tg ← target,
 let locas_with_tg := if locat.include_goal then locas ++ [tg] else locas,
-ner ← locas_with_tg.mmap (λ e, with_errors op args e.local_pp_name <|> with_errors op args none),
+ner ← locas_with_tg.mmap (λ e, reorder_hyp op args e.local_pp_name <|> reorder_hyp op args none),
 let (unch_tgts, unus_vars) := ner.unzip,
 let str_unva := match
   (return_unused args (unus_vars.transpose.map list.band)).map (λ e : bool × pexpr, e.2) with

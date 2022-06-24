@@ -264,13 +264,12 @@ def alg_equiv.restrict_normal_hom [normal F E] : (K₁ ≃ₐ[F] K₁) →* (E �
 monoid_hom.mk' (λ χ, χ.restrict_normal E) (λ ω χ, (χ.restrict_normal_trans ω E))
 
 
-variables (F K E) [algebra K E] [is_scalar_tower F K E]
-
-/-- If `E/K/F` is a tower of fields with `K/F` normal then we have an equivalence
- (K →ₐ[F] E) ≃ (K ≃ₐ[F] K). -/
-def normal.alg_hom_equiv_aut [normal F K] : (K →ₐ[F] E) ≃ (K ≃ₐ[F] K) :=
-{ to_fun := λ σ, alg_hom.restrict_normal' σ K,
-  inv_fun := λ σ, (is_scalar_tower.to_alg_hom F K E).comp σ.to_alg_hom,
+/-- If `K₁/E/F` is a tower of fields with `E/F` normal then `normal.alg_hom_equiv_aut` is an
+ equivalence
+ (E →ₐ[F] K₁) ≃ (E ≃ₐ[F] E). -/
+@[simps] def normal.alg_hom_equiv_aut [normal F E] : (E →ₐ[F] K₁) ≃ (E ≃ₐ[F] E) :=
+{ to_fun := λ σ, alg_hom.restrict_normal' σ E,
+  inv_fun := λ σ, (is_scalar_tower.to_alg_hom F E K₁).comp σ.to_alg_hom,
   left_inv := λ σ, begin
     ext,
     simp[alg_hom.restrict_normal'],
@@ -278,7 +277,7 @@ def normal.alg_hom_equiv_aut [normal F K] : (K →ₐ[F] E) ≃ (K ≃ₐ[F] K) 
   right_inv := λ σ, begin
     ext,
     simp only [alg_hom.restrict_normal', alg_equiv.to_alg_hom_eq_coe, alg_equiv.coe_of_bijective],
-    apply no_zero_smul_divisors.algebra_map_injective K E,
+    apply no_zero_smul_divisors.algebra_map_injective E K₁,
     rw alg_hom.restrict_normal_commutes,
     simp,
   end }

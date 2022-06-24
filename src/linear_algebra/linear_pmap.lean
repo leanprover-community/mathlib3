@@ -427,7 +427,7 @@ namespace linear_pmap
 
 /-- The graph of a `linear_pmap` viewed as a submodule on `E × F`. -/
 def graph (f : linear_pmap R E F) : submodule R (E × F) :=
-f.to_fun.graph.map (linear_map.prod_map f.domain.subtype linear_map.id)
+f.to_fun.graph.map (f.domain.subtype.prod_map linear_map.id)
 
 lemma mem_graph_iff' (f : linear_pmap R E F) {x : E × F} :
   x ∈ graph f ↔ ∃ (y : f.domain), (↑y, f y) = x :=

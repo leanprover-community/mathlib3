@@ -239,6 +239,25 @@ lemma sub_martingale [preorder E] [covariant_class E E (+) (≤)]
   (hf : submartingale f ℱ μ) (hg : martingale g ℱ μ) : submartingale (f - g) ℱ μ :=
 hf.sub_supermartingale hg.supermartingale
 
+lemma sup [is_finite_measure μ]
+  {f g : ι → α → ℝ} (hf : submartingale f ℱ μ) (hg : submartingale g ℱ μ) :
+  submartingale (f ⊔ g) ℱ μ :=
+begin
+  refine ⟨λ i, @strongly_measurable.sup _ _ _ _ (ℱ i) _ _ _ (hf.adapted i) (hg.adapted i),
+    λ i j hij, _, λ i, integrable.sup (hf.integrable _) (hg.integrable _)⟩,
+  refine eventually_le.sup_le _ _,
+  { exact eventually_le.trans (hf.2.1 i j hij)
+      (condexp_mono (hf.integrable _) (integrable.sup (hf.integrable j) (hg.integrable j))
+      (eventually_of_forall (λ x, le_max_left _ _))) },
+  { exact eventually_le.trans (hg.2.1 i j hij)
+      (condexp_mono (hg.integrable _) (integrable.sup (hf.integrable j) (hg.integrable j))
+      (eventually_of_forall (λ x, le_max_right _ _))) }
+end
+
+lemma pos [is_finite_measure μ] {f : ι → α → ℝ} (hf : submartingale f ℱ μ) :
+  submartingale (f⁺) ℱ μ :=
+hf.sup (martingale_zero _ _ _).submartingale
+
 end submartingale
 
 section

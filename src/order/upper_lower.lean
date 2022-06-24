@@ -200,8 +200,10 @@ instance : inhabited (upper_set α) := ⟨⊥⟩
 @[simp] lemma coe_inf (s t : upper_set α) : (↑(s ⊓ t) : set α) = s ∩ t := rfl
 @[simp] lemma coe_Sup (S : set (upper_set α)) : (↑(Sup S) : set α) = ⋃ s ∈ S, ↑s := rfl
 @[simp] lemma coe_Inf (S : set (upper_set α)) : (↑(Inf S) : set α) = ⋂ s ∈ S, ↑s := rfl
-@[simp] lemma coe_supr (f : ι → upper_set α) : (↑(⨆ i, f i) : set α) = ⋃ i, f i := by simp [supr]
-@[simp] lemma coe_infi (f : ι → upper_set α) : (↑(⨅ i, f i) : set α) = ⋂ i, f i := by simp [infi]
+@[simp] lemma coe_supr (f : ι → upper_set α) : (↑(supr f) : set α) = ⋃ i, f i :=
+by { rw [supr, coe_Sup], simp }
+@[simp] lemma coe_infi (f : ι → upper_set α) : (↑(⨅ i, f i) : set α) = ⋂ i, f i :=
+by { rw [infi, coe_Inf], simp }
 @[simp] lemma coe_supr₂ (f : Π i, κ i → upper_set α) : (↑(⨆ i j, f i j) : set α) = ⋃ i j, f i j :=
 by simp_rw coe_supr
 @[simp] lemma coe_infi₂ (f : Π i, κ i → upper_set α) : (↑(⨅ i j, f i j) : set α) = ⋂ i j, f i j :=

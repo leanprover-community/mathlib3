@@ -6,6 +6,7 @@ Authors: Johannes Hölzl
 import topology.instances.nnreal
 import order.liminf_limsup
 import topology.metric_space.lipschitz
+import topology.algebra.order.monotone_continuity
 /-!
 # Extended non-negative reals
 -/
@@ -37,21 +38,7 @@ instance : t2_space ℝ≥0∞ := by apply_instance -- short-circuit type class 
 instance : normal_space ℝ≥0∞ := normal_of_compact_t2
 
 instance : second_countable_topology ℝ≥0∞ :=
-⟨⟨⋃q ≥ (0:ℚ), {{a : ℝ≥0∞ | a < real.to_nnreal q}, {a : ℝ≥0∞ | ↑(real.to_nnreal q) < a}},
-  (countable_encodable _).bUnion $ assume a ha, (countable_singleton _).insert _,
-  le_antisymm
-    (le_generate_from $ by simp [or_imp_distrib, is_open_lt', is_open_gt'] {contextual := tt})
-    (le_generate_from $ λ s h, begin
-      rcases h with ⟨a, hs | hs⟩;
-      [ rw show s = ⋃q∈{q:ℚ | 0 ≤ q ∧ a < real.to_nnreal q}, {b | ↑(real.to_nnreal q) < b},
-           from set.ext (assume b, by simp [hs, @ennreal.lt_iff_exists_rat_btwn a b, and_assoc]),
-        rw show s = ⋃q∈{q:ℚ | 0 ≤ q ∧ ↑(real.to_nnreal q) < a}, {b | b < ↑(real.to_nnreal q)},
-           from set.ext (assume b,
-             by simp [hs, @ennreal.lt_iff_exists_rat_btwn b a, and_comm, and_assoc])];
-      { apply is_open_Union, intro q,
-        apply is_open_Union, intro hq,
-        exact generate_open.basic _ (mem_bUnion hq.1 $ by simp) }
-    end)⟩⟩
+order_iso_unit_interval_birational.to_homeomorph.embedding.second_countable_topology
 
 lemma embedding_coe : embedding (coe : ℝ≥0 → ℝ≥0∞) :=
 ⟨⟨begin
@@ -499,13 +486,7 @@ lemma inv_liminf {ι : Sort*} {x : ι → ℝ≥0∞} {l : filter ι} :
   (l.liminf x)⁻¹ = l.limsup (λ i, (x i)⁻¹) :=
 by simp only [limsup_eq_infi_supr, inv_map_infi, inv_map_supr, liminf_eq_supr_infi]
 
-instance : has_continuous_inv ℝ≥0∞ :=
-{ continuous_inv :=
-  continuous_iff_continuous_at.2 $ λ a, tendsto_order.2
-  ⟨λ b hb, by simpa only [ennreal.lt_inv_iff_lt_inv]
-     using gt_mem_nhds (ennreal.lt_inv_iff_lt_inv.1 hb),
-   λ b hb, by simpa only [gt_iff_lt, ennreal.inv_lt_iff_inv_lt]
-     using lt_mem_nhds (ennreal.inv_lt_iff_inv_lt.1 hb)⟩ }
+instance : has_continuous_inv ℝ≥0∞ := ⟨order_iso.inv_ennreal.continuous⟩
 
 @[simp] protected lemma tendsto_inv_iff {f : filter α} {m : α → ℝ≥0∞} {a : ℝ≥0∞} :
   tendsto (λ x, (m x)⁻¹) f (𝓝 a⁻¹) ↔ tendsto m f (𝓝 a) :=

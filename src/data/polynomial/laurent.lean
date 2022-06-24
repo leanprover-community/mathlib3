@@ -336,7 +336,7 @@ end
 begin
   rcases f.exists_T_pow with ⟨n, f', hf⟩,
   rw [← mul_one f, ← T_zero, ← nat.cast_zero, ← nat.sub_self n, nat.cast_sub rfl.le, T_sub,
-    ← mul_assoc, int.nat_cast_eq_coe_nat, ← hf],
+    ← mul_assoc, ← hf],
   exact Qf,
 end
 

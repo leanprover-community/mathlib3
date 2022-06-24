@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import data.set.intervals.disjoint
+import order.succ_pred.basic
 import tactic.field_simp
 
 /-!
@@ -177,3 +178,49 @@ calc (⋃ x, Ioo (f x) (g x)) = (⋃ x, Ioi (f x)) ∩ ⋃ x, Iio (g x) :
 ... = Ioi a ∩ Iio b : congr_arg2 (∩) ha.Union_Ioi_eq hb.Union_Iio_eq
 
 end Union
+
+section succ_order
+
+variables {α : Type*} [partial_order α] [order_bot α]
+  [succ_order α] [is_succ_archimedean α] [no_max_order α]
+
+lemma strict_mono_on.Icc_id_le {n : α} {φ : α → α} (hφ : strict_mono_on φ (set.Icc ⊥ n)) :
+  ∀ m ≤ n, m ≤ φ m :=
+begin
+  revert hφ,
+  refine @succ.rec _ _ _ _ (λ n, strict_mono_on φ (set.Icc ⊥ n) → ∀ m, m ≤ n → m ≤ φ m)
+    ⊥ _ _ _ bot_le,
+  { simp_rw le_bot_iff,
+    rintro _ m rfl,
+    exact bot_le },
+  { rintro k h ih hφ m (hm : _ ≤ order.succ k),
+    have := strict_mono_on.mono hφ (set.Icc_subset_Icc_right (order.le_succ _)),
+    obtain (rfl | h) := order.le_succ_iff_eq_or_le.1 hm,
+    { specialize ih this k le_rfl,
+      exact le_trans (order.succ_mono ih) (order.succ_le_of_lt
+        (hφ ⟨bot_le, order.le_succ _⟩ ⟨bot_le, le_refl _⟩ (order.lt_succ _))) },
+    { exact ih this _ h } }
+end
+
+lemma strict_mono_on_Icc_of_lt_succ {n : α} {φ : α → α}
+  (hφ : ∀ m, order.succ m ≤ n → φ m < φ (order.succ m)) :
+  strict_mono_on φ (set.Icc ⊥ n) :=
+begin
+  revert hφ,
+  refine @succ.rec _ _ _ _
+    (λ n, (∀ m, order.succ m ≤ n → φ m < φ (order.succ m)) → strict_mono_on φ (set.Icc ⊥ n))
+    ⊥ _ _ _ bot_le,
+  { simp },
+  { rintro k h ih hφ i ⟨-, hi⟩ j ⟨-, hj⟩ hij,
+    specialize ih (λ m hm, hφ _ (le_trans hm (order.le_succ _))),
+    by_cases hj' : j = order.succ k,
+    { subst hj',
+      rw order.lt_succ_iff at hij,
+      exact lt_of_le_of_lt
+        (ih.monotone_on ⟨bot_le, hij⟩ ⟨bot_le, le_rfl⟩ hij) (hφ _ le_rfl) },
+    { have hj'' : j ≤ k,
+      { exact order.lt_succ_iff.1 (lt_of_le_of_ne hj hj') },
+      exact ih ⟨bot_le, le_trans hij.le hj''⟩ ⟨bot_le, hj''⟩ hij } }
+end
+
+end succ_order

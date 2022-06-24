@@ -103,10 +103,10 @@ variables {F : Type*} [normed_division_ring 𝕜] [add_comm_group E] [module �
 lemma is_vonN_bounded.image {s : set E} (hs : is_vonN_bounded 𝕜 s) (f : E →L[𝕜] F) :
   is_vonN_bounded 𝕜 (f '' s) :=
 begin
-  have := f.continuous.tendsto 0,
-  rw map_zero at this,
+  have f_tendsto_zero := f.continuous.tendsto 0,
+  rw map_zero at f_tendsto_zero,
   intros V hV,
-  rcases hs (this hV) with ⟨r, hrpos, hr⟩,
+  rcases hs (f_tendsto_zero hV) with ⟨r, hrpos, hr⟩,
   refine ⟨r, hrpos, λ a ha, _⟩,
   have : a ≠ 0 := norm_pos_iff.mp (hrpos.trans_le ha),
   rw [set.image_subset_iff, continuous_linear_map.preimage_smul_set _ this.is_unit],

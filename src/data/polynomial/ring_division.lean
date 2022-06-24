@@ -515,7 +515,7 @@ begin
   simp only [polynomial.map_pow, polynomial.map_sub, map_pow, map_sub, map_X, map_C],
 end
 
-lemma count_map_roots [is_domain A] {p : A[X]} {f : A →+* B} (hf : function.injective f)
+lemma count_map_roots [is_domain A] (p : A[X]) {f : A →+* B} (hf : function.injective f)
   (a : B) : count a (p.roots.map f) ≤ root_multiplicity a (map f p) :=
 begin
   by_cases h : ∃ t, f t = a,
@@ -815,7 +815,7 @@ section
 variables [semiring R] [comm_ring S] [is_domain S] (φ : R →+* S)
 
 lemma is_unit_of_is_unit_leading_coeff_of_is_unit_map
-  (f : R[X]) (hf : is_unit f.leading_coeff) (H : is_unit (map φ f)) :
+  {f : R[X]} (hf : is_unit f.leading_coeff) (H : is_unit (map φ f)) :
   is_unit f :=
 begin
   have dz := degree_eq_zero_of_is_unit H,

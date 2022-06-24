@@ -250,7 +250,7 @@ by rw [←aleph_zero, ←aleph_succ, ordinal.succ_zero]
 lemma aleph_0_lt_aleph_one : ℵ₀ < aleph 1 :=
 by { rw ←succ_aleph_0, apply lt_succ }
 
-lemma countable_iff_lt_aleph_one {α : Type*} (s : set α) : countable s ↔ #s < aleph 1 :=
+lemma countable_iff_lt_aleph_one {α : Type*} (s : set α) : s.countable ↔ #s < aleph 1 :=
 by rw [←succ_aleph_0, lt_succ_iff, mk_set_le_aleph_0]
 
 /-- Ordinals that are cardinals are unbounded. -/

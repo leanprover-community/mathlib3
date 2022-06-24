@@ -445,9 +445,6 @@ example : (mersenne 5).prime := lucas_lehmer_sufficiency 5 (by norm_num) dec_tri
 namespace lucas_lehmer
 open tactic
 
-meta instance nat_pexpr : has_to_pexpr ℕ := ⟨pexpr.of_expr ∘ λ n, reflect n⟩
-meta instance int_pexpr : has_to_pexpr ℤ := ⟨pexpr.of_expr ∘ λ n, reflect n⟩
-
 lemma s_mod_succ {p a i b c}
   (h1 : (2^p - 1 : ℤ) = a)
   (h2 : s_mod p i = b)
@@ -466,16 +463,16 @@ do `(lucas_lehmer_test %%p) ← target,
    p ← eval_expr ℕ p,
    -- Calculate the candidate Mersenne prime
    let M : ℤ := 2^p - 1,
-   t ← to_expr ``(2^%%p - 1 = %%M),
-   v ← to_expr ``(by norm_num : 2^%%p - 1 = %%M),
+   t ← to_expr ``(2^%%`(p) - 1 = %%`(M)),
+   v ← to_expr ``(by norm_num : 2^%%`(p) - 1 = %%`(M)),
    w ← assertv `w t v,
    -- Unfortunately this creates something like `w : 2^5 - 1 = int.of_nat 31`.
    -- We could make a better `has_to_pexpr ℤ` instance, or just:
    `[simp only [int.coe_nat_zero, int.coe_nat_succ,
        int.of_nat_eq_coe, zero_add, int.coe_nat_bit1] at w],
    -- base case
-   t ← to_expr ``(s_mod %%p 0 = 4),
-   v ← to_expr ``(by norm_num [lucas_lehmer.s_mod] : s_mod %%p 0 = 4),
+   t ← to_expr ``(s_mod %%`(p) 0 = 4),
+   v ← to_expr ``(by norm_num [lucas_lehmer.s_mod] : s_mod %%`(p) 0 = 4),
    h ← assertv `h t v,
    -- step case, repeated p-2 times
    iterate_exactly (p-2) `[replace h := lucas_lehmer.s_mod_succ w h (by { norm_num, refl })],

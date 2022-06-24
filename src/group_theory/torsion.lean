@@ -4,8 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Julian Berman
 -/
 
+import algebra.is_prime_pow
 import group_theory.exponent
 import group_theory.order_of_element
+import group_theory.p_group
 import group_theory.quotient_group
 import group_theory.submonoid.operations
 
@@ -188,6 +190,46 @@ lemma torsion.is_torsion : is_torsion $ torsion G :=
     by rw [mul_left_iterate, _root_.mul_one, submonoid.coe_pow,
            subtype.coe_mk, submonoid.coe_one, (is_periodic_pt_mul_iff_pow_eq_one _).mp hn]⟩
 
+variables (G) (p : ℕ) [hp : fact p.prime]
+include hp
+
+/-- The `p`-primary component is the submonoid of elements with order prime-power of `p`. -/
+@[to_additive
+  "The `p`-primary component is the submonoid of elements with additive order prime-power of `p`.",
+  simps]
+def primary_component : submonoid G :=
+{ carrier := {g | ∃ n : ℕ, order_of g = p ^ n},
+  one_mem' := ⟨0, by rw [pow_zero, order_of_one]⟩,
+  mul_mem' := λ g₁ g₂ hg₁ hg₂, exists_order_of_eq_prime_pow_iff.mpr $ begin
+    obtain ⟨m, hm⟩ := exists_order_of_eq_prime_pow_iff.mp hg₁,
+    obtain ⟨n, hn⟩ := exists_order_of_eq_prime_pow_iff.mp hg₂,
+    exact ⟨m + n, by rw [mul_pow, pow_add, pow_mul, hm, one_pow, monoid.one_mul,
+                         mul_comm, pow_mul, hn, one_pow]⟩,
+  end }
+
+variables {G} {p}
+
+/-- Elements of the `p`-primary component have order `p^n` for some `n`. -/
+@[to_additive "Elements of the `p`-primary component have additive order `p^n` for some `n`"]
+lemma primary_component.exists_order_of_eq_prime_pow (g : comm_monoid.primary_component G p) :
+  ∃ n : ℕ, order_of g = p ^ n :=
+by simpa [primary_component] using g.property
+
+/-- The `p`- and `q`-primary components are disjoint for `p ≠ q`. -/
+@[to_additive "The `p`- and `q`-primary components are disjoint for `p ≠ q`."]
+lemma primary_component.disjoint {p' : ℕ} [hp' : fact p'.prime] (hne : p ≠ p') :
+  disjoint (comm_monoid.primary_component G p) (comm_monoid.primary_component G p') :=
+submonoid.disjoint_def.mpr $ λ g hgp hgp',
+begin
+  obtain ⟨n, hn⟩ := primary_component.exists_order_of_eq_prime_pow ⟨g, set_like.mem_coe.mp hgp⟩,
+  obtain ⟨n', hn'⟩ := primary_component.exists_order_of_eq_prime_pow ⟨g, set_like.mem_coe.mp hgp'⟩,
+  have := mt (eq_of_prime_pow_eq (nat.prime_iff.mp hp.out) (nat.prime_iff.mp hp'.out)),
+  simp only [not_forall, exists_prop, not_lt, le_zero_iff, and_imp] at this,
+  rw [←order_of_submonoid, set_like.coe_mk] at hn hn',
+  have hnzero := this (hn.symm.trans hn') hne,
+  rwa [hnzero, pow_zero, order_of_eq_one_iff] at hn,
+end
+
 end comm_monoid
 
 open comm_monoid (torsion)
@@ -219,14 +261,35 @@ section comm_group
 
 variables (G) [comm_group G]
 
+namespace comm_group
+
 /-- The torsion subgroup of an abelian group. -/
-@[to_additive add_torsion "The torsion subgroup of an additive abelian group."]
+@[to_additive "The torsion subgroup of an additive abelian group."]
 def torsion : subgroup G := { comm_monoid.torsion G with inv_mem' := λ x, is_of_fin_order.inv }
 
 /-- The torsion submonoid of an abelian group equals the torsion subgroup as a submonoid. -/
 @[to_additive add_torsion_eq_add_torsion_submonoid
   "The additive torsion submonoid of an abelian group equals the torsion subgroup as a submonoid."]
 lemma torsion_eq_torsion_submonoid : comm_monoid.torsion G = (torsion G).to_submonoid := rfl
+
+variables (p : ℕ) [hp : fact p.prime]
+include hp
+
+/-- The `p`-primary component is the subgroup of elements with order prime-power of `p`. -/
+@[to_additive
+  "The `p`-primary component is the subgroup of elements with additive order prime-power of `p`.",
+  simps]
+def primary_component : subgroup G :=
+{ comm_monoid.primary_component G p with inv_mem' := λ g ⟨n, hn⟩, ⟨n, (order_of_inv g).trans hn⟩ }
+
+variables {G} {p}
+
+/-- The `p`-primary component is a `p` group. -/
+lemma primary_component.is_p_group : is_p_group p $ primary_component G p :=
+λ g, (propext exists_order_of_eq_prime_pow_iff.symm).mpr
+  (comm_monoid.primary_component.exists_order_of_eq_prime_pow g)
+
+end comm_group
 
 end comm_group
 
@@ -289,13 +352,14 @@ end group
 section comm_group
 
 open monoid (is_torsion_free)
+open comm_group (torsion)
 
 variables (G) [comm_group G]
 
 /-- Quotienting a group by its torsion subgroup yields a torsion free group. -/
 @[to_additive add_is_torsion_free.quotient_torsion
   "Quotienting a group by its additive torsion subgroup yields an additive torsion free group."]
-lemma is_torsion_free.quotient_torsion : is_torsion_free $ G ⧸ (torsion G) :=
+lemma is_torsion_free.quotient_torsion : is_torsion_free $ G ⧸ torsion G :=
 λ g hne hfin, hne $ begin
   induction g using quotient_group.induction_on',
   obtain ⟨m, mpos, hm⟩ := (is_of_fin_order_iff_pow_eq_one _).mp hfin,

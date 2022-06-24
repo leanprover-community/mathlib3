@@ -328,6 +328,13 @@ theorem frobenius_inj [comm_ring R] [is_reduced R]
   function.injective (frobenius R p) :=
 λ x h H, by { rw ← sub_eq_zero at H ⊢, rw ← frobenius_sub at H, exact is_reduced.eq_zero _ ⟨_,H⟩ }
 
+/-- If `ring_char R = 2`, where `R` is a finite reduced commutative ring,
+then every `a : R` is a square. -/
+lemma is_square_of_char_two' {R : Type*} [fintype R] [comm_ring R] [is_reduced R] [char_p R 2]
+ (a : R) : is_square a :=
+exists_imp_exists (λ b h, pow_two b ▸ eq.symm h) $
+  ((fintype.bijective_iff_injective_and_card _).mpr ⟨frobenius_inj R 2, rfl⟩).surjective a
+
 namespace char_p
 
 section
@@ -352,6 +359,25 @@ lemma ring_char_ne_zero_of_fintype [fintype R] : ring_char R ≠ 0 :=
 char_ne_zero_of_fintype R (ring_char R)
 
 end
+
+section comm_ring
+
+variables [comm_ring R] [is_reduced R] {R}
+
+@[simp]
+lemma pow_prime_pow_mul_eq_one_iff (p k m : ℕ) [fact p.prime]
+  [char_p R p] (x : R) :
+  x ^ (p ^ k * m) = 1 ↔ x ^ m = 1 :=
+begin
+  induction k with k hk,
+  { rw [pow_zero, one_mul] },
+  { refine ⟨λ h, _, λ h, _⟩,
+    { rw [pow_succ, mul_assoc, pow_mul', ← frobenius_def, ← frobenius_one p] at h,
+      exact hk.1 (frobenius_inj R p h) },
+    { rw [pow_mul', h, one_pow] } }
+end
+
+end comm_ring
 
 section semiring
 open nat
@@ -450,6 +476,37 @@ end char_p
 
 section
 
+/-- We have `2 ≠ 0` in a nontrivial ring whose characteristic is not `2`. -/
+-- Note: there is `two_ne_zero` (assuming `[ordered_semiring]`)
+-- and `two_ne_zero'`(assuming `[char_zero]`), which both don't fit the needs here.
+@[protected]
+lemma ring.two_ne_zero {R : Type*} [non_assoc_semiring R] [nontrivial R] (hR : ring_char R ≠ 2) :
+  (2 : R) ≠ 0 :=
+begin
+  rw [ne.def, (by norm_cast : (2 : R) = (2 : ℕ)), ring_char.spec, nat.dvd_prime nat.prime_two],
+  exact mt (or_iff_left hR).mp char_p.ring_char_ne_one,
+end
+
+/-- Characteristic `≠ 2` and nontrivial implies that `-1 ≠ 1`. -/
+-- We have `char_p.neg_one_ne_one`, which assumes `[ring R] (p : ℕ) [char_p R p] [fact (2 < p)]`.
+-- This is a version using `ring_char` instead.
+lemma ring.neg_one_ne_one_of_char_ne_two {R : Type*} [non_assoc_ring R] [nontrivial R]
+ (hR : ring_char R ≠ 2) :
+  (-1 : R) ≠ 1 :=
+λ h, ring.two_ne_zero hR (neg_eq_iff_add_eq_zero.mp h)
+
+/-- Characteristic `≠ 2` in a domain implies that `-a = a` iff `a = 0`. -/
+lemma ring.eq_self_iff_eq_zero_of_char_ne_two {R : Type*} [non_assoc_ring R] [nontrivial R]
+ [no_zero_divisors R] (hR : ring_char R ≠ 2) {a : R} :
+  -a = a ↔ a = 0 :=
+⟨λ h, (mul_eq_zero.mp $ (two_mul a).trans $ neg_eq_iff_add_eq_zero.mp h).resolve_left
+         (ring.two_ne_zero hR),
+ λ h, ((congr_arg (λ x, - x) h).trans neg_zero).trans h.symm⟩
+
+end
+
+section
+
 variables (R) [non_assoc_ring R] [fintype R] (n : ℕ)
 
 lemma char_p_of_ne_zero (hn : fintype.card R = n) (hR : ∀ i < n, (i : R) = 0 → i = 0) :
@@ -500,3 +557,32 @@ instance prod.char_p [char_p S p] : char_p (R × S) p :=
 by convert nat.lcm.char_p R S p p; simp
 
 end prod
+
+section
+
+/-- If two integers from `{0, 1, -1}` result in equal elements in a ring `R`
+that is nontrivial and of characteristic not `2`, then they are equal. -/
+lemma int.cast_inj_on_of_ring_char_ne_two {R : Type*} [non_assoc_ring R] [nontrivial R]
+  (hR : ring_char R ≠ 2) :
+  ({0, 1, -1} : set ℤ).inj_on (coe : ℤ → R) :=
+begin
+  intros a ha b hb h,
+  apply eq_of_sub_eq_zero,
+  by_contra hf,
+  change a = 0 ∨ a = 1 ∨ a = -1 at ha,
+  change b = 0 ∨ b = 1 ∨ b = -1 at hb,
+  have hh : a - b = 1 ∨ b - a = 1 ∨ a - b = 2 ∨ b - a = 2 := by
+  { rcases ha with ha | ha | ha; rcases hb with hb | hb | hb,
+    swap 5, swap 9, -- move goals with `a = b` to the front
+    iterate 3 { rw [ha, hb, sub_self] at hf, tauto, }, -- 6 goals remain
+    all_goals { rw [ha, hb], norm_num, }, },
+  have h' : ((a - b : ℤ) : R) = 0 := by exact_mod_cast sub_eq_zero_of_eq h,
+  have h'' : ((b - a : ℤ) : R) = 0 := by exact_mod_cast sub_eq_zero_of_eq h.symm,
+  rcases hh with hh | hh | hh | hh,
+  { rw [hh, (by norm_cast : ((1 : ℤ) : R) = 1)] at h', exact one_ne_zero h', },
+  { rw [hh, (by norm_cast : ((1 : ℤ) : R) = 1)] at h'', exact one_ne_zero h'', },
+  { rw [hh, (by norm_cast : ((2 : ℤ) : R) = 2)] at h', exact ring.two_ne_zero hR h', },
+  { rw [hh, (by norm_cast : ((2 : ℤ) : R) = 2)] at h'', exact ring.two_ne_zero hR h'', },
+end
+
+end

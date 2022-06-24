@@ -89,7 +89,7 @@ measure, almost everywhere, measure space, completion, null set, null measurable
 noncomputable theory
 
 open set filter (hiding map) function measurable_space topological_space (second_countable_topology)
-open_locale classical topological_space big_operators filter ennreal nnreal interval
+open_locale classical topological_space big_operators filter ennreal nnreal interval measure_theory
 
 variables {α β γ δ ι R R' : Type*}
 
@@ -137,7 +137,7 @@ lemma measure_add_measure_compl (h : measurable_set s) :
   μ s + μ sᶜ = μ univ :=
 by { rw [← measure_union' _ h, union_compl_self], exact disjoint_compl_right }
 
-lemma measure_bUnion₀ {s : set β} {f : β → set α} (hs : countable s)
+lemma measure_bUnion₀ {s : set β} {f : β → set α} (hs : s.countable)
   (hd : s.pairwise (ae_disjoint μ on f)) (h : ∀ b ∈ s, null_measurable_set (f b) μ) :
   μ (⋃ b ∈ s, f b) = ∑' p : s, μ (f p) :=
 begin
@@ -146,17 +146,17 @@ begin
   exact measure_Union₀ (hd.on_injective subtype.coe_injective $ λ x, x.2) (λ x, h x x.2)
 end
 
-lemma measure_bUnion {s : set β} {f : β → set α} (hs : countable s)
+lemma measure_bUnion {s : set β} {f : β → set α} (hs : s.countable)
   (hd : s.pairwise_disjoint f) (h : ∀ b ∈ s, measurable_set (f b)) :
   μ (⋃ b ∈ s, f b) = ∑' p : s, μ (f p) :=
 measure_bUnion₀ hs hd.ae_disjoint (λ b hb, (h b hb).null_measurable_set)
 
-lemma measure_sUnion₀ {S : set (set α)} (hs : countable S)
+lemma measure_sUnion₀ {S : set (set α)} (hs : S.countable)
   (hd : S.pairwise (ae_disjoint μ)) (h : ∀ s ∈ S, null_measurable_set s μ) :
   μ (⋃₀ S) = ∑' s : S, μ s :=
 by rw [sUnion_eq_bUnion, measure_bUnion₀ hs hd h]
 
-lemma measure_sUnion {S : set (set α)} (hs : countable S)
+lemma measure_sUnion {S : set (set α)} (hs : S.countable)
   (hd : S.pairwise disjoint) (h : ∀ s ∈ S, measurable_set s) :
   μ (⋃₀ S) = ∑' s : S, μ s :=
 by rw [sUnion_eq_bUnion, measure_bUnion hs hd h]
@@ -176,7 +176,7 @@ measure_bUnion_finset₀ hd.ae_disjoint (λ b hb, (hm b hb).null_measurable_set)
 
 /-- If `s` is a countable set, then the measure of its preimage can be found as the sum of measures
 of the fibers `f ⁻¹' {y}`. -/
-lemma tsum_measure_preimage_singleton {s : set β} (hs : countable s) {f : α → β}
+lemma tsum_measure_preimage_singleton {s : set β} (hs : s.countable) {f : α → β}
   (hf : ∀ y ∈ s, measurable_set (f ⁻¹' {y})) :
   ∑' b : s, μ (f ⁻¹' {↑b}) = μ (f ⁻¹' s) :=
 by rw [← set.bUnion_preimage_singleton, measure_bUnion hs (pairwise_disjoint_fiber _ _) hf]
@@ -299,7 +299,7 @@ end
 eq.symm $ measure_Union_congr_of_subset (λ b, subset_to_measurable _ _)
   (λ b, (measure_to_measurable _).le)
 
-lemma measure_bUnion_to_measurable {I : set β} (hc : countable I) (s : β → set α) :
+lemma measure_bUnion_to_measurable {I : set β} (hc : I.countable) (s : β → set α) :
   μ (⋃ b ∈ I, to_measurable μ (s b)) = μ (⋃ b ∈ I, s b) :=
 by { haveI := hc.to_encodable, simp only [bUnion_eq_Union, measure_Union_to_measurable] }
 
@@ -409,7 +409,7 @@ begin
   ... ≤ ⨆ n, μ (t n) : le_supr (μ ∘ t) N,
 end
 
-lemma measure_bUnion_eq_supr {s : ι → set α} {t : set ι} (ht : countable t)
+lemma measure_bUnion_eq_supr {s : ι → set α} {t : set ι} (ht : t.countable)
   (hd : directed_on ((⊆) on s) t) :
   μ (⋃ i ∈ t, s i) = ⨆ i ∈ t, μ (s i) :=
 begin
@@ -805,7 +805,7 @@ section Inf
 variables {m : set (measure α)}
 
 lemma Inf_caratheodory (s : set α) (hs : measurable_set s) :
-  (Inf (to_outer_measure '' m)).caratheodory.measurable_set' s :=
+  measurable_set[(Inf (to_outer_measure '' m)).caratheodory] s :=
 begin
   rw [outer_measure.Inf_eq_bounded_by_Inf_gen],
   refine outer_measure.bounded_by_caratheodory (λ t, _),
@@ -1354,7 +1354,7 @@ begin
     restrict_finset_bUnion_congr.2 (λ i hi, h i)],
 end
 
-lemma restrict_bUnion_congr {s : set ι} {t : ι → set α} (hc : countable s) :
+lemma restrict_bUnion_congr {s : set ι} {t : ι → set α} (hc : s.countable) :
   μ.restrict (⋃ i ∈ s, t i) = ν.restrict (⋃ i ∈ s, t i) ↔
     ∀ i ∈ s, μ.restrict (t i) = ν.restrict (t i) :=
 begin
@@ -1362,7 +1362,7 @@ begin
   simp only [bUnion_eq_Union, set_coe.forall', restrict_Union_congr]
 end
 
-lemma restrict_sUnion_congr {S : set (set α)} (hc : countable S) :
+lemma restrict_sUnion_congr {S : set (set α)} (hc : S.countable) :
   μ.restrict (⋃₀ S) = ν.restrict (⋃₀ S) ↔ ∀ s ∈ S, μ.restrict s = ν.restrict s :=
 by rw [sUnion_eq_bUnion, restrict_bUnion_congr hc]
 
@@ -1390,7 +1390,7 @@ alias ext_iff_of_Union_eq_univ ↔ _ measure_theory.measure.ext_of_Union_eq_univ
 
 /-- Two measures are equal if they have equal restrictions on a spanning collection of sets
   (formulated using `bUnion`). -/
-lemma ext_iff_of_bUnion_eq_univ {S : set ι} {s : ι → set α} (hc : countable S)
+lemma ext_iff_of_bUnion_eq_univ {S : set ι} {s : ι → set α} (hc : S.countable)
   (hs : (⋃ i ∈ S, s i) = univ) :
   μ = ν ↔ ∀ i ∈ S, μ.restrict (s i) = ν.restrict (s i) :=
 by rw [← restrict_bUnion_congr hc, hs, restrict_univ, restrict_univ]
@@ -1399,14 +1399,14 @@ alias ext_iff_of_bUnion_eq_univ ↔ _ measure_theory.measure.ext_of_bUnion_eq_un
 
 /-- Two measures are equal if they have equal restrictions on a spanning collection of sets
   (formulated using `sUnion`). -/
-lemma ext_iff_of_sUnion_eq_univ {S : set (set α)} (hc : countable S) (hs : (⋃₀ S) = univ) :
+lemma ext_iff_of_sUnion_eq_univ {S : set (set α)} (hc : S.countable) (hs : (⋃₀ S) = univ) :
   μ = ν ↔ ∀ s ∈ S, μ.restrict s = ν.restrict s :=
 ext_iff_of_bUnion_eq_univ hc $ by rwa ← sUnion_eq_bUnion
 
 alias ext_iff_of_sUnion_eq_univ ↔ _ measure_theory.measure.ext_of_sUnion_eq_univ
 
 lemma ext_of_generate_from_of_cover {S T : set (set α)}
-  (h_gen : ‹_› = generate_from S) (hc : countable T)
+  (h_gen : ‹_› = generate_from S) (hc : T.countable)
   (h_inter : is_pi_system S) (hU : ⋃₀ T = univ) (htop : ∀ t ∈ T, μ t ≠ ∞)
   (ST_eq : ∀ (t ∈ T) (s ∈ S), μ (s ∩ t) = ν (s ∩ t)) (T_eq : ∀ t ∈ T, μ t = ν t) :
   μ = ν :=
@@ -1432,7 +1432,7 @@ end
   This lemma is formulated using `sUnion`. -/
 lemma ext_of_generate_from_of_cover_subset {S T : set (set α)}
   (h_gen : ‹_› = generate_from S) (h_inter : is_pi_system S)
-  (h_sub : T ⊆ S) (hc : countable T) (hU : ⋃₀ T = univ) (htop : ∀ s ∈ T, μ s ≠ ∞)
+  (h_sub : T ⊆ S) (hc : T.countable) (hU : ⋃₀ T = univ) (htop : ∀ s ∈ T, μ s ≠ ∞)
   (h_eq : ∀ s ∈ S, μ s = ν s) :
   μ = ν :=
 begin
@@ -1700,6 +1700,18 @@ end
 begin
   rw [count_apply_finite ({a} : set α) (set.finite_singleton _), set.finite.to_finset],
   simp,
+end
+
+lemma count_injective_image [measurable_singleton_class β]
+  {f : β → α} (hf : function.injective f) (s : set β) :
+  count (f '' s) = count s :=
+begin
+  by_cases hs : s.finite,
+  { lift s to finset β using hs,
+    rw [← finset.coe_image, count_apply_finset, count_apply_finset, s.card_image_of_injective hf] },
+  rw count_apply_infinite hs,
+  rw ← (finite_image_iff $ hf.inj_on _) at hs,
+  rw count_apply_infinite hs,
 end
 
 end count
@@ -2072,7 +2084,7 @@ measure_set_of_frequently_eq_zero hs
 
 section intervals
 
-lemma bsupr_measure_Iic [preorder α] {s : set α} (hsc : countable s)
+lemma bsupr_measure_Iic [preorder α] {s : set α} (hsc : s.countable)
   (hst : ∀ x : α, ∃ y ∈ s, x ≤ y) (hdir : directed_on (≤) s) :
   (⨆ x ∈ s, μ (Iic x)) = μ univ :=
 begin
@@ -2335,7 +2347,7 @@ begin
 end
 
 lemma _root_.set.countable.measure_zero {α : Type*} {m : measurable_space α} {s : set α}
-  (h : countable s) (μ : measure α) [has_no_atoms μ] :
+  (h : s.countable) (μ : measure α) [has_no_atoms μ] :
   μ s = 0 :=
 begin
   rw [← bUnion_of_singleton s, ← nonpos_iff_eq_zero],
@@ -2344,7 +2356,7 @@ begin
 end
 
 lemma _root_.set.countable.ae_not_mem {α : Type*} {m : measurable_space α} {s : set α}
-  (h : countable s) (μ : measure α) [has_no_atoms μ] :
+  (h : s.countable) (μ : measure α) [has_no_atoms μ] :
   ∀ᵐ x ∂μ, x ∉ s :=
 by simpa only [ae_iff, not_not] using h.measure_zero μ
 
@@ -2648,7 +2660,7 @@ protected lemma is_countably_spanning (h : μ.finite_spanning_sets_in C) : is_co
 
 end finite_spanning_sets_in
 
-lemma sigma_finite_of_countable {S : set (set α)} (hc : countable S)
+lemma sigma_finite_of_countable {S : set (set α)} (hc : S.countable)
   (hμ : ∀ s ∈ S, μ s < ∞) (hU : ⋃₀ S = univ) :
   sigma_finite μ :=
 begin
@@ -2889,7 +2901,7 @@ lemma ext_on_measurable_space_of_generate_finite {α} (m₀ : measurable_space �
   {μ ν : measure α} [is_finite_measure μ]
   (C : set (set α)) (hμν : ∀ s ∈ C, μ s = ν s) {m : measurable_space α}
   (h : m ≤ m₀) (hA : m = measurable_space.generate_from C) (hC : is_pi_system C)
-  (h_univ : μ set.univ = ν set.univ) {s : set α} (hs : m.measurable_set' s) :
+  (h_univ : μ set.univ = ν set.univ) {s : set α} (hs : measurable_set[m] s) :
   μ s = ν s :=
 begin
   haveI : is_finite_measure ν := begin

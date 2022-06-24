@@ -11,6 +11,33 @@ import topology.metric_space.metrizable
 In this file we prove that a uniform space with countably generated uniformity filter is
 pseudometrizable: there exists a `pseudo_metric_space` structure that generates the same uniformity.
 The proof follows [Sergey Melikhov, Metrizable uniform spaces][melikhov2011].
+## Main definitions
+
+* `pseudo_metric_space.of_prenndist`: given a function `d : X → X → ℝ≥0` such that `d x x = 0` and
+  `d x y = d y x` for all `x y : X`, constructs the maximal pseudo metric space structure such that
+  `nndist x y ≤ d x y` for all `x y : X`.
+
+* `uniform_space.pseudo_metric_space`: given a uniform space `X` with countably generated `𝓤 X`,
+  constructs a `pseudo_metric_space X` instance that is compatible with the uniform space structure.
+
+* `uniform_space.metric_space`: given a T₀ uniform space `X` with countably generated `𝓤 X`,
+  constructs a `metric_space X` instance that is compatible with the uniform space structure.
+
+## Main statements
+
+* `uniform_space.metrizable_uniformity`: if `X` is a uniform space with countably generated `𝓤 X`,
+  then there exists a `pseudo_metric_space` structure that is compatible with this `uniform_space`
+  structure. Use `uniform_space.pseudo_metric_space` or `uniform_space.metric_space` instead.
+
+* `uniform_space.pseudo_metrizable_space`: a uniform space with countably generated `𝓤 X` is pseudo
+  metrizable.
+
+* `uniform_space.metrizable_space`: a T₀ uniform space with countably generated `𝓤 X` is
+  metrizable. This is not an instance to avoid loops.
+
+## Tags
+
+metrizable space, uniform space
 -/
 
 open set function metric list filter
@@ -139,7 +166,8 @@ end
 end pseudo_metric_space
 
 /-- If `X` is a uniform space with countably generated uniformity filter, there exists a
-`pseudo_metric_space` structure compatible with the `uniform_space` structure.  -/
+`pseudo_metric_space` structure compatible with the `uniform_space` structure. Use
+`uniform_space.pseudo_metric_space` or `uniform_space.metric_space` instead. -/
 protected lemma uniform_space.metrizable_uniformity (X : Type*) [uniform_space X]
   [is_countably_generated (𝓤 X)] :
   ∃ I : pseudo_metric_space X, I.to_uniform_space = ‹_› :=
@@ -216,11 +244,14 @@ protected noncomputable def uniform_space.metric_space (X : Type*) [uniform_spac
   [is_countably_generated (𝓤 X)] [t0_space X] : metric_space X :=
 @of_t0_pseudo_metric_space X (uniform_space.pseudo_metric_space X) _
 
+/-- A uniform space with countably generated `𝓤 X` is pseudo metrizable. -/
 @[priority 100]
 instance uniform_space.pseudo_metrizable_space [uniform_space X] [is_countably_generated (𝓤 X)] :
   topological_space.pseudo_metrizable_space X :=
 by { letI := uniform_space.pseudo_metric_space X, apply_instance }
 
+/-- A T₀ uniform space with countably generated `𝓤 X` is metrizable. This is not an instance to
+avoid loops. -/
 lemma uniform_space.metrizable_space [uniform_space X] [is_countably_generated (𝓤 X)] [t0_space X] :
   topological_space.metrizable_space X :=
 by { letI := uniform_space.metric_space X, apply_instance }

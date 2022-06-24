@@ -13,7 +13,7 @@ import linear_algebra.exterior_algebra.basic
 ## Main definitions
 
 * `exterior_algebra.lift_alternating`: construct a linear map out of the exterior algebra
-  out of alternating maps (corresponding to maps out of the exterior powers.
+  given alternating maps (corresponding to maps out of the exterior powers).
 * `exterior_algebra.lift_alternating_equiv`: the above as a linear equivalence
 
 ## Main results

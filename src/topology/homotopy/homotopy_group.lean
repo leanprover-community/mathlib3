@@ -5,6 +5,7 @@ Authors: Roberto Alvarez
 -/
 
 import algebraic_topology.fundamental_groupoid.fundamental_group
+import group_theory.eckmann_hilton
 
 /-!
 # `n`th homotopy group
@@ -59,14 +60,17 @@ def boundary (n : ℕ) : set (I^n) := {y | ∃ i, y i = 0 ∨ y i = 1}
 /--
 The first projection of a positive-dimensional cube.
 -/
-@[simp] def head {n} : I^(n+1) → I := λ c, c 0
+@[simp] def head : I^(n+1) → I := λ c, c 0
 
-@[continuity] lemma head.continuous {n} : continuous (@head n) := proj_continuous 0
+@[continuity] lemma head.continuous : continuous (@head n) := proj_continuous 0
 
 /--
 The projection to the last `n` coordinates from an `n+1` dimensional cube.
 -/
-@[simp] def tail {n} : I^(n+1) → I^n := λ c, fin.tail c
+@[simp] def tail : I^(n+1) → I^n := λ c, fin.tail c
+
+@[continuity] lemma tail.continuous : continuous (@tail n) := sorry
+-- begin continuity, end
 
 instance unique_cube0 : unique (I^0) := pi.unique_of_is_empty _
 
@@ -103,6 +107,8 @@ by exact topological_space.induced (gen_loop.to_continuous_map) (by apply_instan
 instance fun_like : fun_like (gen_loop n x) (I^n) (λ _, X) :=
 { coe := λ f, f.1,
   coe_injective' := λ ⟨⟨f, _⟩, _⟩ ⟨⟨g, _⟩, _⟩ h, by { congr, exact h } }
+
+@[continuity] lemma fun_like_cont (f : gen_loop n x): continuous (f.to_fun) := f.1.2
 
 @[ext] lemma ext (f g : gen_loop n x) (H : ∀ y, f y = g y) : f = g := fun_like.ext f g H
 
@@ -147,6 +153,7 @@ begin
   intro t, refine
   ⟨continuous_map.curry (continuous_map.comp g ⟨cube.fold.to_fun,cube.fold.continuous_to_fun⟩) t,_⟩,
   rintros y ⟨i,iH⟩, simp, apply gH, use i.succ, unfold cube.fold, simpa,
+  simp, --rw continuous_def, intros s sH, unfold is_open, unfold set.preimage, simp,
   sorry,
   simp, ext, simp, apply gH, use 0, left, refl,
   simp, ext, simp, apply gH, use 0, right, refl,
@@ -160,13 +167,16 @@ begin
   rintros y ⟨i,iH⟩, simp, sorry
 end
 
+lemma to_from (p : gen_loop (n+1) x) : from_path (to_path p) = p := sorry
+lemma from_to (p : Ω (gen_loop n x) const) : to_path (from_path p) = p := sorry
+
 def path_equiv : gen_loop (n+1) x ≃ Ω (gen_loop n x) const  :=
 { to_fun := to_path,
   inv_fun := from_path,
-  left_inv := sorry, --λ _, by { ext, unfold to_path, unfold from_path,
+  left_inv := to_from, --λ _, by { ext, unfold to_path, unfold from_path,
     -- simp only [mk_apply, continuous_map.coe_mk,
     -- cube.head, cube.tail, path.coe_mk, fin.cons_self_tail]} ,
-  right_inv := sorry --λ _, by { ext, unfold to_path, unfold from_path,
+  right_inv := from_to --λ _, by { ext, unfold to_path, unfold from_path,
     -- simp only [cube.head, cube.tail, mk_apply, continuous_map.coe_mk,
     -- fin.cons_zero, fin.tail_cons, path.coe_mk] }
     }
@@ -175,7 +185,7 @@ lemma homotopic_iff {p q : gen_loop (n+1) x} : p.homotopic q ↔ p.to_path.homot
 begin
   split,
   { rintros Hpq, cases Hpq, constructor,
-  exact
+    exact
     { to_fun := λ t,
       { to_fun := λ tn, Hpq ⟨t.fst,fin.cons t.snd tn⟩,
         continuous_to_fun := sorry,
@@ -187,8 +197,8 @@ begin
           all_goals {use i.succ, rwa fin.cons_succ}
         end },
       continuous_to_fun := sorry,
-      map_zero_left' := by {intro, ext, unfold to_path, simpa},
-      map_one_left' := by {intro, ext, unfold to_path, simpa},
+      map_zero_left' := by {intro, ext, unfold to_path, simp, sorry},
+      map_one_left' := by {intro, ext, unfold to_path, simp, sorry},
       prop' :=
       begin
         rintros t₀ t₁ ⟨H|H⟩,
@@ -211,6 +221,15 @@ end
 def concat : gen_loop (n+1) x → gen_loop (n+1) x → gen_loop (n+1) x :=
 λ p q, from_path (p.to_path.trans q.to_path)
 
+lemma concat2trans (p q : gen_loop (n+1) x) : (p.concat q).to_path = p.to_path.trans q.to_path :=
+by { unfold concat, rw from_to}
+
+lemma const_to_refl : (@const _ _ (n+1) x).to_path = path.refl (@const _ _ n x) :=
+begin
+  ext, unfold const, unfold to_path,
+  simp only [continuous_map.const_comp, path.coe_mk, mk_apply, continuous_map.curry_apply,
+    continuous_map.const_apply, path.refl_apply, const_eq],
+end
 end gen_loop
 
 /--
@@ -225,23 +244,23 @@ namespace homotopy_group
 def concat : π (n+1) x → π (n+1) x → π (n+1) x :=
 begin
   refine (quotient.map₂' gen_loop.concat _),
-  rintros p₀ p₁ ⟨Hp,hp⟩ q₀ q₁ ⟨Hq,hq⟩, constructor,
-  refine ⟨_,_⟩, --apply continuous_map.homotopy_rel.trans,
-  -- unfold gen_loop.concat, simp, fconstructor;
-  -- refine continuous_map.homotopy.hcomp _ _,
-  -- unfold (gen_loop.path_equiv.symm),
-  sorry
-  -- Hq Hp,
+  rintros p₀ p₁ Hp q₀ q₁ Hq,
+  apply gen_loop.homotopic_iff.2,
+  repeat {rw gen_loop.concat2trans},
+  apply path.homotopic.hcomp; apply gen_loop.homotopic_iff.1,
+  exacts [Hp, Hq],
 end
 instance has_mul : has_mul (π (n+1) x) := ⟨concat⟩
 local infix `⋆`:60 := concat
 
 def concat_assoc (p q r : π (n+1) x) : ((p ⋆ q) ⋆ r) = (p ⋆ (q ⋆ r)) :=
 begin
-  refine (quotient.induction_on₃ p q r _), intros a b c, refine (quotient.sound _),
-  constructor, refine ⟨_,_⟩,
-  unfold gen_loop.concat, simp, refine path.homotopy.trans_assoc _ _ _,
-  sorry
+  refine (quotient.induction_on₃ p q r _),
+  intros a b c, refine (quotient.sound _),
+  apply gen_loop.homotopic_iff.2,
+  repeat {rw gen_loop.concat2trans},
+  constructor,
+  apply path.homotopy.trans_assoc
 end
 
 def const : π n x := quotient.mk' gen_loop.const
@@ -251,58 +270,63 @@ instance has_one : has_one (π n x) := ⟨const⟩
 local notation `𝟙` := const
 
 lemma concat_const (p: π (n+1) x) : p ⋆ 𝟙 = p :=
-  begin
-    induction p using quotient.induction_on,
-    -- simp,
-    apply quotient.eq.2, constructor,
-    -- refine ⟨⟨⟨_,_⟩,_,_⟩,_⟩,
-    -- { exact λ⟨t,y⟩, if (y 0:ℝ)≤(1+t)/2
-    --     then extend_fst p (fin.tail y) (2/(1+t)*(y 0))
-    --     else extend_fst (@pre_const _ _ x (n+1)) (fin.tail y) (2/(1+t)*(y 0)-1) },
-    -- { simp,  sorry },
-    -- { intro y, unfold pre_concat, simp },
-    -- intro y, simp, sorry,
-    sorry
-  end
+begin
+  induction p using quotient.induction_on,
+  refine (quotient.sound _),
+  apply gen_loop.homotopic_iff.2,
+  repeat {rw gen_loop.concat2trans},
+  rw gen_loop.const_to_refl,
+  constructor,
+  apply path.homotopy.trans_refl,
+end
 
 lemma const_concat (p: π (n+1) x) : 𝟙 ⋆ p = p :=
-  begin
-    induction p using quotient.induction_on,
-    apply quotient.eq.2, constructor,
-    -- refine ⟨⟨⟨_,_⟩,_,_⟩,_⟩,
-    -- { exact λ⟨t,y⟩, if (y 0:ℝ)≤(1-t)/2
-    --     then extend_fst (@pre_const _ _ x (n+1)) (fin.tail y) (2/(1+t)*(y 0))
-    --     else extend_fst p (fin.tail y) (2/(1+t)*(y 0)-(1-t)) },
-    -- { simp,  sorry },
-    -- { intro y, unfold pre_concat, simp },
-    -- intro y, simp, sorry,
-    sorry
-  end
+begin
+  induction p using quotient.induction_on,
+  refine (quotient.sound _),
+  apply gen_loop.homotopic_iff.2,
+  repeat {rw gen_loop.concat2trans},
+  rw gen_loop.const_to_refl,
+  constructor,
+  apply path.homotopy.refl_trans,
+end
 
-def reverse {n':nat} : π (n'+1) x -> π (n'+1) x
-  := begin refine (quotient.map' _ _);
-    -- { rintros p, refine ⟨⟨(λy,p (fin.cons (unit_interval.symm (y 0)) (fin.tail y))),by {simp, sorry}⟩,_⟩,
-    --   rintros y ⟨i,Hy⟩, simp, apply p.boundary, use i, revert i Hy, refine (fin.cases _ _ ),
-    --   rw fin.cons_zero, intro H, cases H; rw H, right, simp, left, simp,
-    --   intros i H, rw fin.cons_succ, exact H },
-    -- intros p q Hpq, cases Hpq, constructor, refine ⟨⟨_,_,_⟩,_⟩,
-    sorry
-  end
+def reverse {n':nat} : π (n'+1) x → π (n'+1) x :=
+begin
+  refine (quotient.map' (λ p, gen_loop.from_path (p.to_path.symm)) _),
+  intros p q H,
+  apply gen_loop.homotopic_iff.2,
+  repeat {rw gen_loop.from_to},
+  apply nonempty.map path.homotopy.symm₂,
+  exact gen_loop.homotopic_iff.1 H
+end
 instance has_inv : has_inv (π (n+1) x) := ⟨reverse⟩
 local postfix `⁻¹`:65 := has_inv.inv
 
 lemma reverse_concat (p: π (n+1) x) : (p⁻¹) ⋆ p = 𝟙 :=
-  begin
-    induction p using quotient.induction_on,
-    apply quotient.eq.2, constructor,
-    sorry
-  end
+begin
+  induction p using quotient.induction_on,
+  refine (quotient.sound _),
+  apply gen_loop.homotopic_iff.2,
+  repeat {rw gen_loop.concat2trans},
+  rw gen_loop.const_to_refl,
+  repeat {rw gen_loop.from_to},
+  symmetry, constructor,
+  apply  path.homotopy.refl_symm_trans
+end
 lemma concat_reverse (p: π (n+1) x) : p ⋆ (p⁻¹)  = 𝟙 :=
-  begin
-    sorry
-  end
+begin
+  induction p using quotient.induction_on,
+  refine (quotient.sound _),
+  apply gen_loop.homotopic_iff.2,
+  repeat {rw gen_loop.concat2trans},
+  rw gen_loop.const_to_refl,
+  repeat {rw gen_loop.from_to},
+  symmetry, constructor,
+  apply  path.homotopy.refl_trans_symm
+end
 
-instance group : group (π (n+1) x) := {
+def is_group : group (π (n+1) x) := {
   mul := concat,
   mul_assoc := concat_assoc,
   one := const,
@@ -321,10 +345,22 @@ instance group : group (π (n+1) x) := {
   mul_left_inv := reverse_concat
 }
 
+def m₂ : π (n+2) x → π (n+2) x → π (n+2) x :=
+begin
+  refine (quotient.map₂' _ _),
+  {rintros H0 H1, refine ⟨_,_⟩; sorry},
+  rintros p₀ p₁ Hp q₀ q₁ Hq,
+  sorry
+end
+
+def unital : @eckmann_hilton.is_unital (π (n+2) x) m₂ const :=
+sorry
+
 instance comm_group : comm_group (π (n+2) x) :=
 begin
+  apply @ eckmann_hilton.comm_group _ _ _ unital is_group,
+  intros a b c d,
   sorry
-  -- apply group_theory.eckmann_hilton,
 end
 
 end homotopy_group

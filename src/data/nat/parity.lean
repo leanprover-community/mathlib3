@@ -121,9 +121,6 @@ theorem odd.sub_odd (hm : odd m) (hn : odd n) : even (m - n) :=
   (λ h, by simp only [even_sub' h, *])
   (λ h, by simp only [tsub_eq_zero_iff_le.mpr h, even_zero])
 
-@[parity_simps] theorem even_succ : even (succ n) ↔ ¬ even n :=
-by rw [succ_eq_add_one, even_add_one]
-
 @[parity_simps] theorem even_mul : even (m * n) ↔ even m ∨ even n :=
 by cases mod_two_eq_zero_or_one m with h₁ h₁;
    cases mod_two_eq_zero_or_one n with h₂ h₂;

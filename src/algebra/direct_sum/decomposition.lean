@@ -119,7 +119,7 @@ map_sum (decompose_add_equiv ℳ) f s
   (decompose ℳ).symm (∑ i in s, f i) = ∑ i in s, (decompose ℳ).symm (f i) :=
 map_sum (decompose_add_equiv ℳ).symm f s
 
-lemma sum_support_decompose [Π i (x : ℳ i), decidable (x ≠ 0)] (r : M) :
+lemma sum_support_decompose [decidable_eq M] (r : M) :
   ∑ i in (decompose ℳ r).support, (decompose ℳ r i : M) = r :=
 begin
   conv_rhs { rw [←(decompose ℳ).symm_apply_apply r,

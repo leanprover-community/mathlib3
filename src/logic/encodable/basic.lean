@@ -136,7 +136,7 @@ mem_decode₂
 
 @[simp] lemma decode₂_encode [encodable α] (a : α) :
   decode₂ α (encode a) = some a :=
-by { ext, simp [mem_decode₂, eq_comm] }
+by rw decode₂_eq_some
 
 theorem decode₂_ne_none_iff [encodable α] {n : ℕ} :
   decode₂ α n ≠ none ↔ n ∈ set.range (encode : α → ℕ) :=

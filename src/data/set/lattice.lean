@@ -1437,7 +1437,7 @@ end
 
 lemma Union_univ_pi (t : Π i, ι → set (π i)) :
   (⋃ (x : α → ι), pi univ (λ i, t i (x i))) = pi univ (λ i, ⋃ (j : ι), t i j) :=
-by { ext, simp [classical.skolem] }
+by { ext, simp only [mem_Union, mem_univ_pi, classical.skolem] }
 
 end pi
 

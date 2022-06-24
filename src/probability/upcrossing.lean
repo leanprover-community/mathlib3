@@ -153,7 +153,7 @@ begin
   sorry
 end
 
--- move to where `strict_mono_on.mono` is
+-- PRed: #14896
 lemma strict_mono_on.Icc_id_le {n : ℕ} {φ : ℕ → ℕ} (hφ : strict_mono_on φ (set.Icc 0 n)) :
   ∀ m ≤ n, m ≤ φ m :=
 begin
@@ -168,11 +168,13 @@ begin
     { exact ih this _ h } }
 end
 
+-- PRed: #14896
 @[simp]
 lemma strict_mono_on_singleton {α β : Type*} [preorder α] [preorder β] (f : α → β) (a : α) :
   strict_mono_on f {a} :=
 λ i (hi : i = a) j (hj : j = a) hij, false.elim (hij.ne $ hj.symm ▸ hi)
 
+-- PRed: #14896
 lemma strict_mono_on_nat_Icc_of_lt_succ {n : ℕ} {φ : ℕ → ℕ}
   (hφ : ∀ m, m + 1 ≤ n → φ m < φ (m + 1)) :
   strict_mono_on φ (set.Icc 0 n) :=
@@ -194,7 +196,7 @@ end
 
 end move
 
--- this lemma is redundent by `upper_crossing_bound_eq`
+-- this lemma is strictly weaker than `upper_crossing_bound_eq`
 lemma exists_upper_crossing_eq (f : ℕ → α → ℝ) (N : ℕ) (x : α) (hab : a < b) :
   ∃ n, upper_crossing a b f N n x = N :=
 begin
@@ -490,5 +492,90 @@ begin
 end
   ...≤ μ[f N] - μ[f 0] : hf.sum_mul_upcrossing_strat_le
   ...≤ μ[f N] : (sub_le_self_iff _).2 (integral_nonneg hfzero)
+
+lemma submartingale.pos (hf : submartingale f ℱ μ) : submartingale (f⁺) ℱ μ :=
+begin
+  sorry
+end
+
+section
+
+open lattice_ordered_comm_group
+
+@[to_additive]
+lemma lattice_ordered_comm_group.pos_of_one_lt_pos {α}  [linear_order α] [comm_group α]
+  {x : α} (hx : 1 < x⁺) : x⁺ = x :=
+begin
+  rw [m_pos_part_def, right_lt_sup, not_le] at hx,
+  rw [m_pos_part_def, sup_eq_left],
+  exact hx.le
+end
+
+end
+
+lemma crossing_pos_eq (hab : a < b) :
+  upper_crossing 0 (b - a) (λ n x, (f n x - a)⁺) N n = upper_crossing a b f N n ∧
+  lower_crossing 0 (b - a) (λ n x, (f n x - a)⁺) N n = lower_crossing a b f N n :=
+begin
+  have hab' : 0 < b - a := sub_pos.2 hab,
+  have hf : ∀ x i, b - a ≤ (f i x - a)⁺ ↔ b ≤ f i x,
+  { intros i x,
+    refine ⟨λ h, _, λ h, _⟩,
+    { rwa [← sub_le_sub_iff_right a,
+        ← lattice_ordered_comm_group.pos_of_pos_pos (lt_of_lt_of_le hab' h)] },
+    { rw ← sub_le_sub_iff_right a at h,
+      rwa lattice_ordered_comm_group.pos_of_nonneg _ (le_trans hab'.le h) } },
+  have hf' : ∀ x i, (f i x - a)⁺ ≤ 0 ↔ f i x ≤ a,
+  { intros x i,
+    rw [lattice_ordered_comm_group.pos_nonpos_iff, sub_nonpos] },
+  induction n with k ih,
+  { refine ⟨rfl, _⟩,
+    simp only [lower_crossing_zero, hitting, set.mem_Icc, set.mem_Iic],
+    ext x,
+    split_ifs with h₁ h₂ h₂,
+    { simp_rw [hf'] },
+    { simp_rw [set.mem_Iic, ← hf' _ _] at h₂,
+      exact false.elim (h₂ h₁) },
+    { simp_rw [set.mem_Iic, hf' _ _] at h₁,
+      exact false.elim (h₁ h₂) },
+    { refl } },
+  { have : upper_crossing 0 (b - a) (λ n x, (f n x - a)⁺) N (k + 1) =
+      upper_crossing a b f N (k + 1),
+    { ext x,
+      simp only [upper_crossing_succ_eq, ← ih.2, hitting, set.mem_Ici, tsub_le_iff_right],
+      split_ifs with h₁ h₂ h₂,
+      { simp_rw [← sub_le_iff_le_add, hf x] },
+      { simp_rw [set.mem_Ici, ← hf _ _] at h₂,
+        exact false.elim (h₂ h₁) },
+      { simp_rw [set.mem_Ici, hf _ _] at h₁,
+        exact false.elim (h₁ h₂) },
+      { refl } },
+    refine ⟨this, _⟩,
+    ext x,
+    simp only [lower_crossing, this, hitting, set.mem_Iic],
+    split_ifs with h₁ h₂ h₂,
+    { simp_rw [hf' x] },
+    { simp_rw [set.mem_Iic, ← hf' _ _] at h₂,
+      exact false.elim (h₂ h₁) },
+    { simp_rw [set.mem_Iic, hf' _ _] at h₁,
+      exact false.elim (h₁ h₂) },
+    { refl } }
+end
+
+lemma upcrossing_pos_eq (hab : a < b) :
+  upcrossing 0 (b - a) (λ n x, (f n x - a)⁺) N x = upcrossing a b f N x :=
+by simp_rw [upcrossing, (crossing_pos_eq hab).1]
+
+lemma integral_mul_upcrossing_le_integral_pos_part [is_finite_measure μ]
+  (hf : submartingale f ℱ μ) (hN : 0 < N) (hab : a < b) :
+  (b - a) * μ[upcrossing a b f N] ≤ μ[λ x, (f N x - a)⁺] :=
+begin
+  refine le_trans (le_of_eq _) (integral_mul_upcrossing_le_integral
+    (hf.sub_martingale (martingale_const _ _ _)).pos
+    (λ x, lattice_ordered_comm_group.pos_nonneg _)
+    (λ x, lattice_ordered_comm_group.pos_nonneg _) hN (sub_pos.2 hab)),
+  simp_rw [sub_zero, ← upcrossing_pos_eq hab],
+  refl,
+end
 
 end measure_theory

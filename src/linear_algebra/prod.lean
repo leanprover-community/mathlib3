@@ -800,3 +800,31 @@ end
 end graph
 
 end linear_map
+
+/-! ### Projections of submodules -/
+section projection
+
+namespace submodule
+
+variables [semiring R] [add_comm_monoid M] [add_comm_monoid M₂]
+  [module R M] [module R M₂]
+
+/-- The projection of a submodule onto the first component. -/
+def proj_fst (S : submodule R (M × M₂)) : submodule R M :=
+submodule.map (linear_map.fst R M M₂) S
+
+@[simp] lemma mem_proj_fst_iff {S : submodule R (M × M₂)} {x : M} :
+  x ∈ proj_fst S ↔ ∃ (y : M₂), (x,y) ∈ S :=
+by simp[proj_fst]
+
+/-- The projection of a submodule onto the second component. -/
+def proj_snd (S : submodule R (M × M₂)) : submodule R M₂ :=
+submodule.map (linear_map.snd R M M₂) S
+
+@[simp] lemma mem_proj_snd_iff {S : submodule R (M × M₂)} {y : M₂} :
+  y ∈ proj_snd S ↔ ∃ (x : M), (x,y) ∈ S :=
+by simp[proj_snd]
+
+end submodule
+
+end projection

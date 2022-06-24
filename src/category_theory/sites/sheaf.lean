@@ -528,10 +528,7 @@ begin
   split,
   { haveI := preserves_smallest_limits_of_preserves_limits s,
     exact nonempty.map (λ t, is_limit_of_preserves s t) },
-  { have : reflects_limits s,
-    { apply_instance },
-    have : reflects_limits_of_size.{0 0} s,
-    { sorry },
+  { haveI := reflects_smallest_limits_of_reflects_limits s,
     exact nonempty.map (λ t, is_limit_of_reflects s t) }
 end
 

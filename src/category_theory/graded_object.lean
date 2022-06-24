@@ -148,7 +148,7 @@ namespace graded_object
 -- If you're grading by things in higher universes, have fun!
 variables (β : Type)
 variables (C : Type u) [category.{v} C]
-variables [has_coproducts C]
+variables [has_coproducts.{0} C]
 
 section
 local attribute [tidy] tactic.discrete_cases
@@ -157,13 +157,38 @@ local attribute [tidy] tactic.discrete_cases
 The total object of a graded object is the coproduct of the graded components.
 -/
 noncomputable def total : graded_object β C ⥤ C :=
-{ obj := λ X, ∐ (λ i : ulift.{v} β, X i.down),
-  map := λ X Y f, limits.sigma.map (λ i, f i.down) }.
+{ obj := λ X, ∐ (λ i : β, X i),
+  map := λ X Y f, limits.sigma.map (λ i, f i) }.
 
 end
 
 variables [has_zero_morphisms C]
 
+/-
+[class_instances] caching instance for @mono ((λ (_x : β), C) i) _inst_1 (Y i)
+  ((@colim (discrete (ulift β)) (category_theory.discrete_category (ulift β)) C _inst_1 _).obj
+     (@discrete.functor C _inst_1 (ulift β) (λ (i : ulift β), Y i.down)))
+  (@colimit.ι (discrete (ulift β)) (category_theory.discrete_category (ulift β)) C _inst_1
+     (@discrete.functor C _inst_1 (ulift β) (λ (i : ulift β), Y i.down))
+     _
+     (@discrete.mk (ulift β) (@ulift.up β i)))
+@split_mono.mono ((λ (_x : β), C) i) _inst_1 (Y i)
+  ((@colim (discrete (ulift β)) (category_theory.discrete_category (ulift β)) C _inst_1 (_inst_2 (ulift β))).obj
+     (@discrete.functor C _inst_1 (ulift β) (λ (i : ulift β), Y i.down)))
+  (@colimit.ι (discrete (ulift β)) (category_theory.discrete_category (ulift β)) C _inst_1
+     (@discrete.functor C _inst_1 (ulift β) (λ (i : ulift β), Y i.down))
+     (@limits.has_colimit_of_has_colimits_of_shape C _inst_1 (discrete (ulift β))
+        (category_theory.discrete_category (ulift β))
+        (_inst_2 (ulift β))
+        (@discrete.functor C _inst_1 (ulift β) (λ (i : ulift β), Y i.down)))
+     (@discrete.mk (ulift β) (@ulift.up β i)))
+  (@limits.split_mono_sigma_ι ((λ (_x : β), C) i) _inst_1 (ulift β) _inst_3 (λ (i : ulift β), Y i.down)
+     (@limits.has_colimit_of_has_colimits_of_shape C _inst_1 (discrete (ulift β))
+        (category_theory.discrete_category (ulift β))
+        (_inst_2 (ulift β))
+        (@discrete.functor C _inst_1 (ulift β) (λ (i : ulift β), Y i.down)))
+     (@ulift.up β i))
+-/
 /--
 The `total` functor taking a graded object to the coproduct of its graded components is faithful.
 To prove this, we need to know that the coprojections into the coproduct are monomorphisms,
@@ -174,8 +199,9 @@ instance : faithful (total β C) :=
   begin
     classical,
     ext i,
-    replace w := sigma.ι (λ i : ulift.{v} β, X i.down) ⟨i⟩ ≫= w,
+    replace w := sigma.ι (λ i : β, X i) i ≫= w,
     erw [colimit.ι_map, colimit.ι_map] at w,
+    simp at *,
     exact mono.right_cancellation _ _ w,
   end }
 
@@ -187,7 +213,7 @@ noncomputable theory
 
 variables (β : Type)
 variables (C : Type (u+1)) [large_category C] [concrete_category C]
-  [has_coproducts C] [has_zero_morphisms C]
+  [has_coproducts.{0} C] [has_zero_morphisms C]
 
 instance : concrete_category (graded_object β C) :=
 { forget := total β C ⋙ forget C }

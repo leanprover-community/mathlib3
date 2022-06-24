@@ -1,5 +1,46 @@
+/-
+Copyright (c) 2021 Kexing Ying. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Kexing Ying
+-/
 import probability.hitting_time
 import probability.martingale
+
+/-!
+
+# Doob's upcrossing estimate
+
+Given a discrete real-valued submartingale $(f_n)_{n \in \mathbb{N}}$, denoting $U_N(a, b)$ the
+number of times $f_n$ crossed from below $a$ to above $b$ before time $N$, Doob's upcrossing
+estimate (also known as Doob's inequality) states that
+$$(b - a) \mathbb{E}[U_N(a, b)] \le \mathbb{E}[(f_N - a)^+].$$
+Doob's upcrossing estimate is an important inequality and is central in proving the martingale
+convergence theorems.
+
+## Main definitions
+
+* `measure_theory.upper_crossing a b f N n`: is the stopping time corresponding to `f` crossing
+  above `b` the `n`-th time.
+* `measure_theory.lower_crossing a b f N n`: is the stopping time corresponding to `f` crossing
+  below `a` the `n`-th time.
+* `measure_theory.upcrossing_strat a b f N`: is the predicatable process which is 1 if `n` is
+  between a consecutive pair of lower and upper crossing and is 0 otherwise. Intuitively
+  one might think of the `upcrossing_strat` as the strategy of buying 1 share whenever the process
+  crosses below `a` for the first time after selling and selling 1 share whenever the process
+  crosses above `b` for the first time after buying.
+* `measure_theory.upcrossing a b f N`: is the number of times `f` crosses from below `a` to above
+  `b` before time `N`.
+
+## Main results
+
+* `measure_theory.adapted.is_stopping_time_upper_crossing`: `upper_crossing` is a stopping time
+  whenever the process it is associated to is adapted.
+* `measure_theory.adapted.is_stopping_time_lower_crossing`: `lower_crossing` is a stopping time
+  whenever the process it is associated to is adapted.
+* `measure_theory.submartingale.integral_mul_upcrossing_le_integral_pos_part`: Doob's upcrossing
+  estimate.
+
+-/
 
 open topological_space filter
 open_locale nnreal ennreal measure_theory probability_theory big_operators
@@ -54,6 +95,10 @@ begin
   { simp only [upper_crossing_zero, zero_le, pi.zero_apply] },
   { simp only [hitting_le x, upper_crossing_succ] },
 end
+
+@[simp]
+lemma upper_crossing_zero' : upper_crossing a b f 0 n x = 0 :=
+nat.eq_zero_of_le_zero upper_crossing_le
 
 lemma lower_crossing_le : lower_crossing a b f N n x ≤ N :=
 by simp only [lower_crossing, hitting_le x]
@@ -196,7 +241,7 @@ end
 
 end move
 
--- this lemma is strictly weaker than `upper_crossing_bound_eq`
+-- `upper_crossing_bound_eq` provides an explicit bound
 lemma exists_upper_crossing_eq (f : ℕ → α → ℝ) (N : ℕ) (x : α) (hab : a < b) :
   ∃ n, upper_crossing a b f N n x = N :=
 begin
@@ -364,16 +409,17 @@ noncomputable
 def upcrossing (a b : ℝ) (f : ℕ → α → ℝ) (N : ℕ) (x : α) : ℕ :=
 Sup {n | upper_crossing a b f N n x < N}
 
--- Remy's proof.
-lemma nat.Sup_mem {s : set ℕ} (hs₁ : s.nonempty) (hs₂ : bdd_above s) : Sup s ∈ s :=
-set.nonempty.cSup_mem hs₁ ((order_bot.bdd_below _).finite_of_bdd_above hs₂)
+@[simp]
+lemma upcrossing_zero : upcrossing a b f 0 x = 0 :=
+by simp [upcrossing]
 
 lemma upper_crossing_lt_of_le_upcrossing
   (hN : 0 < N) (hab : a < b) (hn : n ≤ upcrossing a b f N x) :
   upper_crossing a b f N n x < N :=
 begin
   have : upper_crossing a b f N (upcrossing a b f N x) x < N :=
-    nat.Sup_mem (upper_crossing_lt_nonempty hN) (upper_crossing_lt_bdd_above hab),
+    (upper_crossing_lt_nonempty hN).cSup_mem
+    ((order_bot.bdd_below _).finite_of_bdd_above (upper_crossing_lt_bdd_above hab)),
   exact lt_of_le_of_lt (upper_crossing_mono hn) this,
 end
 
@@ -493,21 +539,6 @@ end
   ...≤ μ[f N] - μ[f 0] : hf.sum_mul_upcrossing_strat_le
   ...≤ μ[f N] : (sub_le_self_iff _).2 (integral_nonneg hfzero)
 
-section
-
-open lattice_ordered_comm_group
-
-@[to_additive]
-lemma lattice_ordered_comm_group.pos_of_one_lt_pos {α}  [linear_order α] [comm_group α]
-  {x : α} (hx : 1 < x⁺) : x⁺ = x :=
-begin
-  rw [m_pos_part_def, right_lt_sup, not_le] at hx,
-  rw [m_pos_part_def, sup_eq_left],
-  exact hx.le
-end
-
-end
-
 lemma crossing_pos_eq (hab : a < b) :
   upper_crossing 0 (b - a) (λ n x, (f n x - a)⁺) N n = upper_crossing a b f N n ∧
   lower_crossing 0 (b - a) (λ n x, (f n x - a)⁺) N n = lower_crossing a b f N n :=
@@ -561,7 +592,7 @@ lemma upcrossing_pos_eq (hab : a < b) :
   upcrossing 0 (b - a) (λ n x, (f n x - a)⁺) N x = upcrossing a b f N x :=
 by simp_rw [upcrossing, (crossing_pos_eq hab).1]
 
-lemma integral_mul_upcrossing_le_integral_pos_part [is_finite_measure μ]
+private lemma integral_mul_upcrossing_le_integral_pos_part'' [is_finite_measure μ]
   (hf : submartingale f ℱ μ) (hN : 0 < N) (hab : a < b) :
   (b - a) * μ[upcrossing a b f N] ≤ μ[λ x, (f N x - a)⁺] :=
 begin
@@ -571,6 +602,32 @@ begin
     (λ x, lattice_ordered_comm_group.pos_nonneg _) hN (sub_pos.2 hab)),
   simp_rw [sub_zero, ← upcrossing_pos_eq hab],
   refl,
+end
+
+private lemma integral_mul_upcrossing_le_integral_pos_part' [is_finite_measure μ]
+  (hf : submartingale f ℱ μ) (hab : a < b) :
+  (b - a) * μ[upcrossing a b f N] ≤ μ[λ x, (f N x - a)⁺] :=
+begin
+  by_cases hN : N = 0,
+  { subst hN,
+    simp only [upcrossing_zero, nat.cast_zero, integral_const, algebra.id.smul_eq_mul, mul_zero],
+    exact integral_nonneg (λ x, lattice_ordered_comm_group.pos_nonneg _) },
+  { exact integral_mul_upcrossing_le_integral_pos_part'' hf (zero_lt_iff.2 hN) hab }
+end
+
+/-- **Doob's upcrossing estimate**: given a real valued discrete submartingale `f` and real
+values `a` and `b`, we have `(b - a) * 𝔼[upcrossing a b f N] ≤ 𝔼[(f N - a)⁺]` where
+`upcrossing a b f N` is the number of times the process `f` crossed from below `a` to above
+`b` before the time `N`. -/
+lemma submartingale.integral_mul_upcrossing_le_integral_pos_part [is_finite_measure μ]
+  (hf : submartingale f ℱ μ) :
+  (b - a) * μ[upcrossing a b f N] ≤ μ[λ x, (f N x - a)⁺] :=
+begin
+  by_cases hab : a < b,
+  { exact integral_mul_upcrossing_le_integral_pos_part' hf hab },
+  { rw [not_lt, ← sub_nonpos] at hab,
+    exact le_trans (mul_nonpos_of_nonpos_of_nonneg hab (integral_nonneg (λ x, nat.cast_nonneg _)))
+      (integral_nonneg (λ x, lattice_ordered_comm_group.pos_nonneg _)) }
 end
 
 end measure_theory

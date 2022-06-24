@@ -229,7 +229,7 @@ begin
   { refine le_antisymm upper_crossing_le _,
     have hmono : strict_mono_on (λ n, upper_crossing a b f N n x)
       (set.Icc 0 (nat.find (exists_upper_crossing_eq f N x hab)).pred),
-    { refine strict_mono_on_nat_Icc_of_lt_succ (λ m (hm : _ ≤ order.pred _), _),
+    { refine strict_mono_on_Icc_of_lt_succ (λ m (hm : _ ≤ order.pred _), _),
       refine upper_crossing_lt_succ hab _,
       rw order.le_pred_iff_of_not_is_min at hm,
       { convert nat.find_min _ hm },

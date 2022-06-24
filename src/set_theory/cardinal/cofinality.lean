@@ -218,13 +218,15 @@ begin
 end
 
 @[simp] theorem lift_cof (o) : (cof o).lift = cof o.lift :=
-induction_on o $ begin introsI α r _,
+begin
+  refine induction_on o _,
+  introsI α r _,
   cases lift_type r with _ e, rw e,
   apply le_antisymm,
   { unfreezingI { refine le_cof_type.2 (λ S H, _) },
-    have : (#(ulift.up ⁻¹' S)).lift ≤ #S :=
-     ⟨⟨λ ⟨⟨x, h⟩⟩, ⟨⟨x⟩, h⟩,
-       λ ⟨⟨x, h₁⟩⟩ ⟨⟨y, h₂⟩⟩ e, by simp at e; congr; injection e⟩⟩,
+    have : (#(ulift.up ⁻¹' S)).lift ≤ #S,
+    { rw [← cardinal.lift_umax, ← cardinal.lift_id' (#S)],
+      exact mk_preimage_of_injective_lift ulift.up _ ulift.up_injective },
     refine (cardinal.lift_le.2 $ cof_type_le _).trans this,
     exact λ a, let ⟨⟨b⟩, bs, br⟩ := H ⟨a⟩ in ⟨b, bs, br⟩ },
   { rcases cof_eq r with ⟨S, H, e'⟩,
@@ -749,6 +751,56 @@ theorem is_strong_limit.is_limit {c} (H : is_strong_limit c) : is_limit c :=
 
 theorem is_limit_aleph_0 : is_limit ℵ₀ :=
 is_strong_limit_aleph_0.is_limit
+
+theorem mk_bounded_subset {α : Type*} (h : ∀ x < #α, 2 ^ x < #α) {r : α → α → Prop}
+  [is_well_order α r] (hr : (#α).ord = type r) : #{s : set α // bounded r s} = #α :=
+begin
+  rcases eq_or_ne (#α) 0 with ha | ha,
+  { rw ha,
+    haveI := mk_eq_zero_iff.1 ha,
+    rw mk_eq_zero_iff,
+    split,
+    rintro ⟨s, hs⟩,
+    exact (not_unbounded_iff s).2 hs (unbounded_of_is_empty s) },
+  have h' : is_strong_limit (#α) := ⟨ha, h⟩,
+  have ha := h'.is_limit.aleph_0_le,
+  apply le_antisymm,
+  { have : {s : set α | bounded r s} = ⋃ i, 𝒫 {j | r j i} := set_of_exists _,
+    rw [←coe_set_of, this],
+    convert mk_Union_le_sum_mk.trans ((sum_le_sup _).trans (mul_le_max_of_aleph_0_le_left ha)),
+    apply (max_eq_left $ sup_le $ λ i, _).symm,
+    rw mk_powerset,
+    apply (h'.two_power_lt _).le,
+    rw [coe_set_of, card_typein, ←lt_ord, hr],
+    apply typein_lt_type },
+  { refine @mk_le_of_injective α _ (λ x, subtype.mk {x} _) _,
+    { apply bounded_singleton,
+      rw ←hr,
+      apply ord_is_limit ha },
+    { intros a b hab,
+      simpa only [singleton_eq_singleton_iff] using hab } }
+end
+
+theorem mk_subset_mk_lt_cof {α : Type*} (h : ∀ x < #α, 2 ^ x < #α) :
+  #{s : set α // #s < cof (#α).ord} = #α :=
+begin
+  rcases eq_or_ne (#α) 0 with ha | ha,
+  { rw ha,
+    simp [λ s, (cardinal.zero_le s).not_lt] },
+  have h' : is_strong_limit (#α) := ⟨ha, h⟩,
+  rcases ord_eq α with ⟨r, wo, hr⟩,
+  haveI := wo,
+  apply le_antisymm,
+  { nth_rewrite_rhs 0 ←mk_bounded_subset h hr,
+    apply mk_le_mk_of_subset (λ s hs, _),
+    rw hr at hs,
+    exact lt_cof_type hs },
+  { refine @mk_le_of_injective α _ (λ x, subtype.mk {x} _) _,
+    { rw mk_singleton,
+      exact one_lt_aleph_0.trans_le (aleph_0_le_cof.2 (ord_is_limit h'.is_limit.aleph_0_le)) },
+    { intros a b hab,
+      simpa only [singleton_eq_singleton_iff] using hab } }
+end
 
 /-- A cardinal is regular if it is infinite and it equals its own cofinality. -/
 def is_regular (c : cardinal) : Prop :=

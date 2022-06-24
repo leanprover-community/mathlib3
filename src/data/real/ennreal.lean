@@ -75,7 +75,7 @@ variables {α : Type*} {β : Type*}
 /-- The extended nonnegative real numbers. This is usually denoted [0, ∞],
   and is relevant as the codomain of a measure. -/
 @[derive [
-  has_zero, add_comm_monoid, add_monoid_with_one,
+  has_zero, add_comm_monoid_with_one,
   canonically_ordered_comm_semiring, complete_linear_order, densely_ordered, nontrivial,
   canonically_linear_ordered_add_monoid, has_sub, has_ordered_sub,
   linear_ordered_add_comm_monoid_with_top]]

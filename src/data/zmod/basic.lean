@@ -134,6 +134,12 @@ instance comm_ring (n : ℕ) : comm_ring (zmod n) :=
   one := nat.cases_on n (1 : int) (λ n, (1 : fin n.succ)),
   one_mul := nat.cases_on n (@one_mul int _) (λ n, @one_mul (fin n.succ) _),
   mul_one := nat.cases_on n (@mul_one int _) (λ n, @mul_one (fin n.succ) _),
+  nat_cast := nat.cases_on n (coe : ℕ → ℤ) (λ n, (coe : ℕ → fin n.succ)),
+  nat_cast_zero := nat.cases_on n (@nat.cast_zero int _) (λ n, @nat.cast_zero (fin n.succ) _),
+  nat_cast_succ := nat.cases_on n (@nat.cast_succ int _) (λ n, @nat.cast_succ (fin n.succ) _),
+  int_cast := nat.cases_on n (coe : ℤ → ℤ) (λ n, (coe : ℤ → fin n.succ)),
+  int_cast_of_nat := nat.cases_on n (@int.cast_of_nat int _) (λ n, @int.cast_of_nat (fin n.succ) _),
+  int_cast_neg_succ_of_nat := nat.cases_on n (@int.cast_neg_succ_of_nat int _) (λ n, @int.cast_neg_succ_of_nat (fin n.succ) _),
   left_distrib := nat.cases_on n (@left_distrib int _ _ _) (λ n, @left_distrib (fin n.succ) _ _ _),
   right_distrib :=
     nat.cases_on n (@right_distrib int _ _ _) (λ n, @right_distrib (fin n.succ) _ _ _),

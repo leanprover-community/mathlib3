@@ -201,18 +201,19 @@ theorem map_lookup_eq_find (a : α) : ∀ l : list (sigma β),
   { simp [h, map_lookup_eq_find] }
 end
 
-theorem mem_lookup_iff {a : α} {b : β a} {l : list (sigma β)} (nd : l.nodupkeys) :
-  b ∈ lookup a l ↔ sigma.mk a b ∈ l :=
+theorem lookup_eq_some_iff {a : α} {b : β a} {l : list (sigma β)} (nd : l.nodupkeys) :
+  lookup a l = some b ↔ sigma.mk a b ∈ l :=
 ⟨of_mem_lookup, mem_lookup nd⟩
 
 theorem perm_lookup (a : α) {l₁ l₂ : list (sigma β)}
   (nd₁ : l₁.nodupkeys) (nd₂ : l₂.nodupkeys) (p : l₁ ~ l₂) : lookup a l₁ = lookup a l₂ :=
-by ext b; simp [mem_lookup_iff, nd₁, nd₂]; exact p.mem_iff
+by { ext b, simpa [lookup_eq_some_iff, nd₁, nd₂] using p.mem_iff }
 
 lemma lookup_ext {l₀ l₁ : list (sigma β)}
   (nd₀ : l₀.nodupkeys) (nd₁ : l₁.nodupkeys)
-  (h : ∀ x y, y ∈ l₀.lookup x ↔ y ∈ l₁.lookup x) : l₀ ~ l₁ :=
-mem_ext nd₀.nodup nd₁.nodup (λ ⟨a,b⟩, by rw [← mem_lookup_iff, ← mem_lookup_iff, h]; assumption)
+  (h : ∀ x, l₀.lookup x = l₁.lookup x) : l₀ ~ l₁ :=
+mem_ext nd₀.nodup nd₁.nodup $ λ ⟨a,b⟩,
+  by rw [← lookup_eq_some_iff, ← lookup_eq_some_iff, h]; assumption
 
 /-! ### `lookup_all` -/
 
@@ -303,7 +304,7 @@ begin
     { subst a', exact ⟨rfl, heq_of_eq $ nd.eq_of_mk_mem h h'⟩ },
     { refl } },
   { rintro ⟨a₁, b₁⟩ ⟨a₂, b₂⟩, dsimp [option.guard], split_ifs,
-    { subst a₁, rintro ⟨⟩, simp }, { rintro ⟨⟩ } },
+    { exact id }, { rintro ⟨⟩ } },
 end
 
 theorem keys_kreplace (a : α) (b : β a) : ∀ l : list (sigma β),

@@ -295,8 +295,8 @@ lookup_kunion_left
   a ∉ s₁ → lookup a (s₁ ∪ s₂) = lookup a s₂ :=
 lookup_kunion_right
 
-@[simp] theorem mem_lookup_union {a} {b : β a} {s₁ s₂ : alist β} :
-  b ∈ lookup a (s₁ ∪ s₂) ↔ b ∈ lookup a s₁ ∨ a ∉ s₁ ∧ b ∈ lookup a s₂ :=
+@[simp] theorem lookup_union_eq_some {a} {b : β a} {s₁ s₂ : alist β} :
+  lookup a (s₁ ∪ s₂) = some b ↔ lookup a s₁ = some b ∨ a ∉ s₁ ∧ lookup a s₂ = some b :=
 mem_lookup_kunion
 
 theorem mem_lookup_union_middle {a} {b : β a} {s₁ s₂ s₃ : alist β} :
@@ -309,7 +309,9 @@ by ext; simp
 
 theorem union_assoc {s₁ s₂ s₃ : alist β} : ((s₁ ∪ s₂) ∪ s₃).entries ~ (s₁ ∪ (s₂ ∪ s₃)).entries :=
 lookup_ext (alist.nodupkeys _) (alist.nodupkeys _)
-(by simp [decidable.not_or_iff_and_not,or_assoc,and_or_distrib_left,and_assoc])
+(λ x, show ((s₁ ∪ s₂) ∪ s₃).lookup _ = (s₁ ∪ (s₂ ∪ s₃)).lookup _,
+  from option.ext $ by simp [
+    decidable.not_or_iff_and_not,or_assoc,and_or_distrib_left,and_assoc])
 
 end
 
@@ -324,17 +326,20 @@ variables [decidable_eq α]
 theorem union_comm_of_disjoint {s₁ s₂ : alist β} (h : disjoint s₁ s₂) :
   (s₁ ∪ s₂).entries ~ (s₂ ∪ s₁).entries :=
 lookup_ext (alist.nodupkeys _) (alist.nodupkeys _)
-(begin
-   intros, simp,
-   split; intro h',
-   cases h',
-   { right, refine ⟨_,h'⟩,
-     apply h, rw [keys,← list.lookup_is_some,h'], exact rfl },
-   { left, rw h'.2 },
-   cases h',
-   { right, refine ⟨_,h'⟩, intro h'',
-     apply h _ h'', rw [keys,← list.lookup_is_some,h'], exact rfl },
-   { left, rw h'.2 },
+(λ x, begin
+  show (s₁ ∪ s₂).lookup _ = (s₂ ∪ s₁).lookup _,
+  ext y, simp_rw [option.mem_def, lookup_union_eq_some],
+  split; intro h',
+  cases h',
+  { right, refine ⟨_,h'⟩,
+    rw lookup at h',
+    apply h, rw [keys,← list.lookup_is_some,h'], exact rfl },
+  { left, rw h'.2 },
+  cases h',
+  { right, refine ⟨_,h'⟩, intro h'',
+    rw lookup at h',
+    apply h _ h'', rw [keys,← list.lookup_is_some,h'], exact rfl },
+  { left, rw h'.2 },
  end)
 
 end alist

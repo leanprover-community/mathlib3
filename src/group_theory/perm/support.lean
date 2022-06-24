@@ -392,7 +392,7 @@ lemma support_swap_mul_swap {x y z : α} (h : list.nodup [x, y, z]) :
   support (swap x y * swap y z) = {x, y, z} :=
 begin
   simp only [list.not_mem_nil, and_true, list.mem_cons_iff, not_false_iff, list.nodup_cons,
-             list.mem_singleton, and_self, list.nodup_nil] at h,
+             list.mem_singleton, and_self, list.nodup_nil, or_false] at h,
   push_neg at h,
   apply le_antisymm,
   { convert support_mul_le _ _,

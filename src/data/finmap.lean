@@ -203,7 +203,7 @@ decidable_of_iff _ lookup_is_some
 lemma mem_iff {a : α} {s : finmap β} : a ∈ s ↔ ∃ b, s.lookup a = some b :=
 induction_on s $ λ s,
 iff.trans list.mem_keys $ exists_congr $ λ b,
-(mem_lookup_iff s.nodupkeys).symm
+(lookup_eq_some_iff s.nodupkeys).symm
 
 lemma mem_of_lookup_eq_some {a : α} {b : β a} {s : finmap β} (h : s.lookup a = some b) : a ∈ s :=
 mem_iff.mpr ⟨_, h⟩
@@ -213,9 +213,7 @@ induction_on₂ s₁ s₂ $ λ s₁ s₂ h,
 begin
   simp only [alist.lookup, lookup_to_finmap] at h,
   rw [alist.to_finmap_eq],
-  apply lookup_ext s₁.nodupkeys s₂.nodupkeys,
-  intros x y,
-  rw h,
+  apply lookup_ext s₁.nodupkeys s₂.nodupkeys h,
 end
 
 /-! ### replace -/
@@ -407,7 +405,7 @@ end
 
 @[simp] theorem mem_lookup_union {a} {b : β a} {s₁ s₂ : finmap β} :
   b ∈ lookup a (s₁ ∪ s₂) ↔ b ∈ lookup a s₁ ∨ a ∉ s₁ ∧ b ∈ lookup a s₂ :=
-induction_on₂ s₁ s₂ $ λ s₁ s₂, mem_lookup_union
+induction_on₂ s₁ s₂ $ λ s₁ s₂, lookup_union_eq_some
 
 theorem mem_lookup_union_middle {a} {b : β a} {s₁ s₂ s₃ : finmap β} :
   b ∈ lookup a (s₁ ∪ s₃) → a ∉ s₂ → b ∈ lookup a (s₁ ∪ s₂ ∪ s₃) :=

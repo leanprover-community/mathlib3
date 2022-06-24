@@ -82,8 +82,11 @@ begin
   { simpa using h },
   { by_cases hx : x ∈ z :: l,
     { rw [form_perm_cons_cons, mul_apply, swap_apply_def],
-      split_ifs;
-      simp [IH _ _ hx] },
+      split_ifs,
+      { simp },
+      { simp },
+      { rw list.mem_cons_iff,
+        exact or.inr (IH _ _ hx), } },
     { replace h : x = y := or.resolve_right h hx,
       simp [form_perm_apply_of_not_mem _ _ hx, ←h] } }
 end
@@ -95,9 +98,8 @@ begin
   induction l with z l IH generalizing x y,
   { simpa using h },
   { by_cases hx : (z :: l).form_perm x ∈ z :: l,
-    { rw [list.form_perm_cons_cons, mul_apply, swap_apply_def] at h,
-      split_ifs at h;
-      simp [IH _ _ hx] },
+    { rw list.mem_cons_iff,
+      exact or.inr (IH _ _ hx) },
     { replace hx := (function.injective.eq_iff (equiv.injective _)).mp
         (list.form_perm_apply_of_not_mem _ _ hx),
       simp only [list.form_perm_cons_cons, hx, equiv.perm.coe_mul, function.comp_app,

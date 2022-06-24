@@ -209,8 +209,8 @@ none.get_or_else_of_not_dom not_none_dom d
 @[simp] lemma get_or_else_some (a : α) (d : α) [decidable (some a).dom] :
   get_or_else (some a) d = a := (some a).get_or_else_of_dom (some_dom a) d
 
-@[simp] theorem mem_to_option {o : part α} [decidable o.dom] {a : α} :
-  a ∈ to_option o ↔ a ∈ o :=
+@[simp] theorem to_option_eq_some {o : part α} [decidable o.dom] {a : α} :
+  to_option o = option.some a ↔ a ∈ o :=
 begin
   unfold to_option,
   by_cases h : o.dom; simp [h],
@@ -273,7 +273,7 @@ instance of_option_decidable : ∀ o : option α, decidable (of_option o).dom
 by cases o; refl
 
 @[simp] theorem of_to_option (o : part α) [decidable o.dom] : of_option (to_option o) = o :=
-ext $ λ a, mem_of_option.trans mem_to_option
+ext $ λ a, mem_of_option.trans to_option_eq_some
 
 /-- `part α` is (classically) equivalent to `option α`. -/
 noncomputable def equiv_option : part α ≃ option α :=

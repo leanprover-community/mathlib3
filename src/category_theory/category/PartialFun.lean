@@ -117,7 +117,7 @@ equivalence.mk PartialFun_to_Pointed Pointed_to_PartialFun
         { exact (hb rfl).elim },
         dsimp,
         simp_rw [part.mem_some_iff, subtype.mk_eq_mk, exists_prop, some_inj, exists_eq_right'],
-        refine part.mem_to_option.symm.trans _,
+        refine part.to_option_eq_some.symm.trans _,
         exact eq_comm,
       end)
   (nat_iso.of_components (λ X, Pointed.iso.mk

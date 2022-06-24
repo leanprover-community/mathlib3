@@ -396,7 +396,7 @@ begin
     have hi : (i : ℕ) < s.length,
     { conv_rhs { rw [← nat.succ_sub_one s.length, nat.succ_sub h] },
       exact i.2 },
-    simp [top, fin.ext_iff, (ne_of_lt hi)] },
+    simp [-set.mem_range, top, fin.ext_iff, (ne_of_lt hi)] },
   { intro h,
     exact mem_erase_top_of_ne_of_mem h.1 h.2 }
 end

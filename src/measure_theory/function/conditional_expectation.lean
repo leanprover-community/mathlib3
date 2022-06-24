@@ -2092,6 +2092,23 @@ begin
       (signed_measure.measurable_rn_deriv _ _).strongly_measurable },
 end
 
+lemma condexp_mono {m : measurable_space α} [is_finite_measure μ] {f g : α → ℝ}
+  (hf : integrable f μ) (hg : integrable g μ) (hfg : f ≤ᵐ[μ] g) :
+  μ[f | m] ≤ᵐ[μ] μ[g | m] :=
+begin
+  by_cases hm : m ≤ m0,
+  { refine @ae_le_of_ae_le_trim _ _ _ _ _ _ hm _ _ (ae_le_of_forall_set_integral_le
+      (integrable_condexp.trim hm strongly_measurable_condexp)
+      (integrable_condexp.trim hm strongly_measurable_condexp) (λ s hs, _)),
+    rw [← set_integral_trim hm strongly_measurable_condexp hs,
+      ← set_integral_trim hm strongly_measurable_condexp hs,
+      set_integral_condexp hm hf hs, set_integral_condexp hm hg hs],
+    exact @set_integral_mono_ae _ m0 _ _ _ _
+      (@integrable.integrable_on _ _ m0 _ _ _ _ hf)
+      (@integrable.integrable_on _ _ m0 _ _ _ _ hg) hfg },
+  { rw [condexp_of_not_le hm, condexp_of_not_le hm] }
+end
+
 end real
 
 section indicator

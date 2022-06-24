@@ -1454,6 +1454,26 @@ lemma eventually_sub_nonneg [ordered_ring β] {l : filter α} {f g : α → β} 
   0 ≤ᶠ[l] g - f ↔ f ≤ᶠ[l] g :=
 eventually_congr $ eventually_of_forall $ λ x, sub_nonneg
 
+lemma eventually_le.sup_le_sup [semilattice_sup β] {l : filter α} {f₁ f₂ g₁ g₂ : α → β}
+  (hf : f₁ ≤ᶠ[l] f₂) (hg : g₁ ≤ᶠ[l] g₂) :
+  f₁ ⊔ g₁ ≤ᶠ[l] f₂ ⊔ g₂ :=
+by filter_upwards [hf, hg] with x hfx hgx using sup_le_sup hfx hgx
+
+lemma eventually_le.sup_le [semilattice_sup β] {l : filter α} {f g h : α → β}
+  (hf : f ≤ᶠ[l] h) (hg : g ≤ᶠ[l] h) :
+  f ⊔ g ≤ᶠ[l] h :=
+by filter_upwards [hf, hg] with x hfx hgx using sup_le hfx hgx
+
+lemma eventually_le.le_sup_of_le_left [semilattice_sup β] {l : filter α} {f g h : α → β}
+  (hf : h ≤ᶠ[l] f) :
+  h ≤ᶠ[l] f ⊔ g :=
+by filter_upwards [hf] with x hfx using le_sup_of_le_left hfx
+
+lemma eventually_le.le_sup_of_le_right [semilattice_sup β] {l : filter α} {f g h : α → β}
+  (hg : h ≤ᶠ[l] g) :
+  h ≤ᶠ[l] f ⊔ g :=
+by filter_upwards [hg] with x hgx using le_sup_of_le_right hgx
+
 lemma join_le {f : filter (filter α)} {l : filter α} (h : ∀ᶠ m in f, m ≤ l) : join f ≤ l :=
 λ s hs, h.mono $ λ m hm, hm hs
 

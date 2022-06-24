@@ -69,11 +69,7 @@ calc cardinal.sum (λ a : α, m ^ #(β a))
       (λ a : α, m ^ #(β a)) :
   mul_le_mul' (le_max_left _ _) le_rfl
 ... = m : mul_eq_left.{u} (le_max_right _ _)
-  (cardinal.sup_le (λ i, begin
-    cases lt_aleph_0.1 (lt_aleph_0_of_fintype (β i)) with n hn,
-    rw [hn],
-    exact power_nat_le (le_max_right _ _)
-  end))
+  (cardinal.sup_le (λ i, pow_le (le_max_right _ _) (lt_aleph_0_of_fintype _)))
   (pos_iff_ne_zero.1 (order.succ_le_iff.1
     begin
       rw [succ_zero],

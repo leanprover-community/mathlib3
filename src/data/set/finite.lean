@@ -496,7 +496,6 @@ lemma finite_range_const {c : β} : (range (λ x : α, c)).finite :=
 
 end set_finite_constructors
 
-
 /-! ### Properties -/
 
 instance finite.inhabited : inhabited {s : set α // s.finite} := ⟨⟨∅, finite_empty⟩⟩
@@ -579,19 +578,12 @@ let ⟨I, Ifin, hI⟩ := finite_subset_Union tfin h in
 @[elab_as_eliminator]
 theorem finite.induction_on {C : set α → Prop} {s : set α} (h : s.finite)
   (H0 : C ∅) (H1 : ∀ {a s}, a ∉ s → set.finite s → C s → C (insert a s)) : C s :=
-let ⟨t⟩ := h in by exactI
-match s.to_finset, @mem_to_finset _ s _ with
-| ⟨l, nd⟩, al := begin
-    change ∀ a, a ∈ l ↔ a ∈ s at al,
-    clear _let_match _match t h, revert s nd al,
-    refine multiset.induction_on l _ (λ a l IH, _); intros s nd al,
-    { rw show s = ∅, from eq_empty_iff_forall_not_mem.2 (by simpa using al),
-      exact H0 },
-    { rw ← show insert a {x | x ∈ l} = s, from set.ext (by simpa using al),
-      cases multiset.nodup_cons.1 nd with m nd',
-      refine H1 _ ⟨finset.subtype.fintype ⟨l, nd'⟩⟩ (IH nd' (λ _, iff.rfl)),
-      exact m }
-  end
+begin
+  lift s to finset α using h,
+  induction s using finset.cons_induction_on with a s ha hs,
+  { rwa [finset.coe_empty] },
+  { rw [finset.coe_cons],
+    exact @H1 a s ha s.finite_to_set hs }
 end
 
 @[elab_as_eliminator]
@@ -631,7 +623,6 @@ lemma seq_of_forall_finite_exists  {γ : Type*}
 end⟩
 
 end
-
 
 /-! ### Cardinality -/
 

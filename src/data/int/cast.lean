@@ -5,6 +5,7 @@ Authors: Mario Carneiro
 -/
 import data.int.basic
 import data.nat.cast
+import algebra.field.basic
 import tactic.pi_instances
 
 /-!
@@ -33,8 +34,7 @@ variables {α : Type*}
 λ m, int.induction_on' m 0 (by simp) (λ k _ ih n, by simp [add_mul, ih])
   (λ k _ ih n, by simp [sub_mul, ih])
 
-@[simp, norm_cast] theorem cast_ite [has_zero α] [has_one α] [has_add α] [has_neg α]
-  (P : Prop) [decidable P] (m n : ℤ) :
+@[simp, norm_cast] theorem cast_ite [add_group_with_one α] (P : Prop) [decidable P] (m n : ℤ) :
   ((ite P m n : ℤ) : α) = ite P m n :=
 apply_ite _ _ _ _
 

@@ -439,7 +439,7 @@ begin
 end
 
 lemma roots_list_prod (L : list R[X]) :
-  ((0 : R[X]) ∉ L) → L.prod.roots = (L : multiset R[X]).bind roots :=
+  0 ∉ L → L.prod.roots = (L : multiset R[X]).bind roots :=
 list.rec_on L (λ _, roots_one) $ λ hd tl ih H,
 begin
   rw [list.mem_cons_iff, not_or_distrib] at H,
@@ -481,10 +481,10 @@ begin
 end
 
 lemma card_roots_X_pow_sub_C {n : ℕ} (hn : 0 < n) (a : R) :
-  (roots ((X : R[X]) ^ n - C a)).card ≤ n :=
+  (roots (X ^ n - C a)).card ≤ n :=
 with_bot.coe_le_coe.1 $
-calc ((roots ((X : R[X]) ^ n - C a)).card : with_bot ℕ)
-      ≤ degree ((X : R[X]) ^ n - C a) : card_roots (X_pow_sub_C_ne_zero hn a)
+calc ((roots (X ^ n - C a)).card : with_bot ℕ)
+      ≤ degree (X ^ n - C a) : card_roots (X_pow_sub_C_ne_zero hn a)
   ... = n : degree_X_pow_sub_C hn a
 
 section
@@ -529,24 +529,13 @@ begin
     exact h ⟨k, rfl⟩, },
 end
 
-lemma roots_map_of_injective_card_eq_total_degree [is_domain A] [is_domain B] {p : A[X]}
-  {f : A →+* B} (hf : function.injective f) (hroots : p.roots.card = p.nat_degree) :
-  p.roots.map f = (map f p).roots :=
-begin
-  by_cases hp0 : p = 0, { simp only [hp0, roots_zero, multiset.map_zero, polynomial.map_zero], },
-  have hmap : map f p ≠ 0, { simpa only [polynomial.map_zero] using (map_injective f hf).ne hp0, },
-  apply multiset.eq_of_le_of_card_le,
-  { simpa only [multiset.le_iff_count, count_roots] using count_map_roots hf },
-  { simpa only [multiset.card_map, hroots] using (card_roots' _).trans (nat_degree_map_le f p) },
-end
-
 end
 
 section nth_roots
 
 /-- `nth_roots n a` noncomputably returns the solutions to `x ^ n = a`-/
 def nth_roots (n : ℕ) (a : R) : multiset R :=
-roots ((X : R[X]) ^ n - C a)
+roots (X ^ n - C a)
 
 @[simp] lemma mem_nth_roots {n : ℕ} (hn : 0 < n) {a x : R} :
   x ∈ nth_roots n a ↔ x ^ n = a :=
@@ -559,7 +548,7 @@ by simp only [empty_eq_zero, pow_zero, nth_roots, ← C_1, ← C_sub, roots_C]
 lemma card_nth_roots (n : ℕ) (a : R) :
   (nth_roots n a).card ≤ n :=
 if hn : n = 0
-then if h : (X : R[X]) ^ n - C a = 0
+then if h : X ^ n - C a = 0
   then by simp only [nat.zero_le, nth_roots, roots, h, dif_pos rfl, empty_eq_zero, card_zero]
   else with_bot.coe_le_coe.1 (le_trans (card_roots h)
    (by { rw [hn, pow_zero, ← C_1, ← ring_hom.map_sub ],
@@ -807,6 +796,29 @@ lemma prod_multiset_X_sub_C_of_monic_of_roots_card_eq
   (hp : p.monic) (hroots : p.roots.card = p.nat_degree) :
   (p.roots.map (λ a, X - C a)).prod = p :=
 by { convert C_leading_coeff_mul_prod_multiset_X_sub_C hroots, rw [hp.leading_coeff, C_1, one_mul] }
+
+variables [comm_ring S] [is_domain S] {f : R →+* S}
+
+lemma roots_map_le_of_map_ne_zero (hf : map f p ≠ 0) : p.roots.map f ≤ (map f p).roots :=
+begin
+  convert roots.le_of_dvd hf (map_dvd f $ prod_multiset_X_sub_C_dvd p),
+  convert (roots_multiset_prod_X_sub_C _).symm, swap, apply_instance,
+  rw [polynomial.map_multiset_prod, multiset.map_map, multiset.map_map],
+  congr, ext1, rw [function.comp_app, polynomial.map_sub, map_C, map_X],
+end
+
+lemma roots_map_of_map_ne_zero_card_eq_nat_degree (hf : map f p ≠ 0)
+  (hroots : p.roots.card = p.nat_degree) : p.roots.map f = (map f p).roots :=
+multiset.eq_of_le_of_card_le (roots_map_le_of_map_ne_zero hf) $ (card_roots' _).trans $
+  (nat_degree_map_le f p).trans $ hroots.ge.trans $ (multiset.card_map f _).ge
+
+lemma roots_map_of_injective_card_eq_nat_degree (hf : function.injective f)
+  (hroots : p.roots.card = p.nat_degree) : p.roots.map f = (map f p).roots :=
+begin
+  by_cases hp0 : p = 0, { simp only [hp0, roots_zero, multiset.map_zero, polynomial.map_zero], },
+  have hmap : map f p ≠ 0, { simpa only [polynomial.map_zero] using (map_injective f hf).ne hp0, },
+  exact roots_map_of_map_ne_zero_card_eq_nat_degree hmap hroots,
+end
 
 end comm_ring
 

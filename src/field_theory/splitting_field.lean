@@ -194,7 +194,7 @@ lemma roots_ne_zero_of_splits {f : K[X]} (hs : splits i f) (hf0 : nat_degree f �
   (f.map i).roots ≠ 0 :=
 let ⟨x, hx⟩ := exists_root_of_splits i hs (λ h, hf0 $ nat_degree_eq_of_degree_eq_some h) in
 λ h, by { rw ← eval_map at hx,
-  cases h.subst ((mem_roots _).2 hx), exact map_ne_zero (λ h, (h.subst hf0) rfl) }
+  cases h.subst ((mem_roots $ map_ne_zero _).2 hx), exact λ h, h.subst hf0 rfl }
 
 /-- Pick a root of a polynomial that splits. -/
 def root_of_splits {f : K[X]} (hf : f.splits i) (hfd : f.degree ≠ 0) : L :=
@@ -226,7 +226,7 @@ by rw [degree_eq_nat_degree p_ne_zero, nat_degree_eq_card_roots hsplit]
 
 theorem roots_map {f : K[X]} (hf : f.splits $ ring_hom.id K) :
   (f.map i).roots = f.roots.map i :=
-(roots_map_of_injective_card_eq_total_degree i.injective $
+(roots_map_of_injective_card_eq_nat_degree i.injective $
   by { convert (nat_degree_eq_card_roots hf).symm, rw map_id }).symm
 
 lemma eq_prod_roots_of_splits {p : K[X]} {i : K →+* L} (hsplit : splits i p) :

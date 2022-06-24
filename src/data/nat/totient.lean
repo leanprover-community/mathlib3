@@ -335,19 +335,6 @@ begin
   rw [sub_mul, one_mul, mul_comm, mul_inv_cancel hp', cast_pred hp],
 end
 
-@[to_additive sum_factors_gcd_add_sum_factors_mul]
-lemma prod_factors_gcd_mul_prod_factors_mul {β : Type*} [comm_monoid β] (m n : ℕ) (f : ℕ → β) :
-  (m.gcd n).factors.to_finset.prod f * (m * n).factors.to_finset.prod f
-    = m.factors.to_finset.prod f * n.factors.to_finset.prod f :=
-begin
-  rcases eq_or_ne n 0 with rfl | hm0, { simp },
-  rcases eq_or_ne m 0 with rfl | hn0, { simp },
-  rw [←@prod_union_inter _ _ m.factors.to_finset n.factors.to_finset, mul_comm],
-  congr,
-  { apply factors_mul_to_finset; assumption },
-  { simp only [←support_factorization, factorization_gcd hn0 hm0, finsupp.support_inf] },
-end
-
 lemma totient_gcd_mul_totient_mul (a b : ℕ) : φ (a.gcd b) * φ (a * b) = φ a * φ b * (a.gcd b) :=
 begin
   have shuffle : ∀ a1 a2 b1 b2 c1 c2 : ℕ, b1 ∣ a1 → b2 ∣ a2 →

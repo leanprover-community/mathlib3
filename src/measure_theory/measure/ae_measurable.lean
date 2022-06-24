@@ -165,7 +165,7 @@ begin
   refine ⟨g, _, _, _⟩,
   { exact measurable.piecewise (measurable_set_to_measurable _ _)
       measurable_const H.measurable_mk },
-  { rintros - ⟨x, rfl⟩,
+  { rintros _ ⟨x, rfl⟩,
     by_cases hx : x ∈ s,
     { simpa [g, hx] using h₀.some_mem },
     { simp only [g, hx, piecewise_eq_of_not_mem, not_false_iff],

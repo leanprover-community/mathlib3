@@ -360,6 +360,25 @@ char_ne_zero_of_fintype R (ring_char R)
 
 end
 
+section comm_ring
+
+variables [comm_ring R] [is_reduced R] {R}
+
+@[simp]
+lemma pow_prime_pow_mul_eq_one_iff (p k m : ℕ) [fact p.prime]
+  [char_p R p] (x : R) :
+  x ^ (p ^ k * m) = 1 ↔ x ^ m = 1 :=
+begin
+  induction k with k hk,
+  { rw [pow_zero, one_mul] },
+  { refine ⟨λ h, _, λ h, _⟩,
+    { rw [pow_succ, mul_assoc, pow_mul', ← frobenius_def, ← frobenius_one p] at h,
+      exact hk.1 (frobenius_inj R p h) },
+    { rw [pow_mul', h, one_pow] } }
+end
+
+end comm_ring
+
 section semiring
 open nat
 

@@ -6,6 +6,7 @@ Authors: Sébastien Gouëzel
 import analysis.calculus.mean_value
 import analysis.normed_space.multilinear
 import analysis.calculus.formal_multilinear_series
+import tactic.congrm
 
 /-!
 # Higher differentiability
@@ -1027,8 +1028,7 @@ theorem cont_diff_on_succ_iff_fderiv_of_open {n : ℕ} (hs : is_open s) :
   differentiable_on 𝕜 f s ∧ cont_diff_on 𝕜 n (λ y, fderiv 𝕜 f y) s :=
 begin
   rw cont_diff_on_succ_iff_fderiv_within hs.unique_diff_on,
-  congr' 2,
-  rw ← iff_iff_eq,
+  congrm _ ∧ _,
   apply cont_diff_on_congr,
   assume x hx,
   exact fderiv_within_of_open hs hx
@@ -1059,8 +1059,7 @@ theorem cont_diff_on_top_iff_fderiv_of_open (hs : is_open s) :
   differentiable_on 𝕜 f s ∧ cont_diff_on 𝕜 ∞ (λ y, fderiv 𝕜 f y) s :=
 begin
   rw cont_diff_on_top_iff_fderiv_within hs.unique_diff_on,
-  congr' 2,
-  rw ← iff_iff_eq,
+  congrm _ ∧ _,
   apply cont_diff_on_congr,
   assume x hx,
   exact fderiv_within_of_open hs hx
@@ -2738,6 +2737,18 @@ begin
     exact Itop n (cont_diff_at_top.mp hf n) }
 end
 
+/-- If `f` is an `n` times continuously differentiable homeomorphism,
+and if the derivative of `f` at each point is a continuous linear equivalence,
+then `f.symm` is `n` times continuously differentiable.
+
+This is one of the easy parts of the inverse function theorem: it assumes that we already have
+an inverse function. -/
+theorem homeomorph.cont_diff_symm [complete_space E] (f : E ≃ₜ F) {f₀' : E → E ≃L[𝕜] F}
+  (hf₀' : ∀ a, has_fderiv_at f (f₀' a : E →L[𝕜] F) a) (hf : cont_diff 𝕜 n (f : E → F)) :
+  cont_diff 𝕜 n (f.symm : F → E) :=
+cont_diff_iff_cont_diff_at.2 $ λ x,
+  f.to_local_homeomorph.cont_diff_at_symm (mem_univ x) (hf₀' _) hf.cont_diff_at
+
 /-- Let `f` be a local homeomorphism of a nondiscrete normed field, let `a` be a point in its
 target. if `f` is `n` times continuously differentiable at `f.symm a`, and if the derivative at
 `f.symm a` is nonzero, then `f.symm` is `n` times continuously differentiable at the point `a`.
@@ -2749,6 +2760,18 @@ theorem local_homeomorph.cont_diff_at_symm_deriv [complete_space 𝕜]
   (hf₀' : has_deriv_at f f₀' (f.symm a)) (hf : cont_diff_at 𝕜 n f (f.symm a)) :
   cont_diff_at 𝕜 n f.symm a :=
 f.cont_diff_at_symm ha (hf₀'.has_fderiv_at_equiv h₀) hf
+
+/-- Let `f` be an `n` times continuously differentiable homeomorphism of a nondiscrete normed field.
+Suppose that the derivative of `f` is never equal to zero. Then `f.symm` is `n` times continuously
+differentiable.
+
+This is one of the easy parts of the inverse function theorem: it assumes that we already have
+an inverse function. -/
+theorem homeomorph.cont_diff_symm_deriv [complete_space 𝕜] (f : 𝕜 ≃ₜ 𝕜) {f' : 𝕜 → 𝕜}
+  (h₀ : ∀ x, f' x ≠ 0) (hf' : ∀ x, has_deriv_at f (f' x) x) (hf : cont_diff 𝕜 n (f : 𝕜 → 𝕜)) :
+  cont_diff 𝕜 n (f.symm : 𝕜 → 𝕜) :=
+cont_diff_iff_cont_diff_at.2 $ λ x,
+  f.to_local_homeomorph.cont_diff_at_symm_deriv (h₀ _) (mem_univ x) (hf' _) hf.cont_diff_at
 
 end function_inverse
 
@@ -2978,8 +3001,7 @@ theorem cont_diff_on_succ_iff_deriv_of_open {n : ℕ} (hs : is_open s₂) :
   differentiable_on 𝕜 f₂ s₂ ∧ cont_diff_on 𝕜 n (deriv f₂) s₂ :=
 begin
   rw cont_diff_on_succ_iff_deriv_within hs.unique_diff_on,
-  congr' 2,
-  rw ← iff_iff_eq,
+  congrm _ ∧ _,
   apply cont_diff_on_congr,
   assume x hx,
   exact deriv_within_of_open hs hx
@@ -3010,8 +3032,7 @@ theorem cont_diff_on_top_iff_deriv_of_open (hs : is_open s₂) :
   differentiable_on 𝕜 f₂ s₂ ∧ cont_diff_on 𝕜 ∞ (deriv f₂) s₂ :=
 begin
   rw cont_diff_on_top_iff_deriv_within hs.unique_diff_on,
-  congr' 2,
-  rw ← iff_iff_eq,
+  congrm _ ∧ _,
   apply cont_diff_on_congr,
   assume x hx,
   exact deriv_within_of_open hs hx

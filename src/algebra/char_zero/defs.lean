@@ -21,8 +21,6 @@ from the natural numbers into it is injective.
 
 ## TODO
 
-* Once order of a group is defined for infinite additive monoids redefine or at least connect to
-  order of `1` in the additive monoid with one.
 * Unify with `char_p` (possibly using an out-parameter)
 -/
 

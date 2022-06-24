@@ -18,12 +18,6 @@ with `1`.
 ## Main statements
 
 * Characteristic zero implies that the additive monoid is infinite.
-
-## TODO
-
-* Once order of a group is defined for infinite additive monoids redefine or at least connect to
-  order of `1` in the additive monoid with one.
-* Unify with `char_p` (possibly using an out-parameter)
 -/
 
 namespace nat

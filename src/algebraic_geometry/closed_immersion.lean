@@ -9,6 +9,14 @@ import algebraic_geometry.locally_ringed_space
 import algebraic_geometry.Scheme
 import algebraic_geometry.pullbacks
 
+/-!
+# Closed Immersion
+
+This files defines closed immersions in the category of (pre)sheafed spaces, locally ringed spaces
+and schemes.
+-/
+
+
 noncomputable theory
 
 namespace algebraic_geometry

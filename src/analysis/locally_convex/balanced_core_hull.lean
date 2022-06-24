@@ -124,7 +124,7 @@ begin
   rcases (balanced_hull_mem_iff _ _).mp hx with ⟨r, hr, hx⟩,
   rcases mem_smul_set.mp hx with ⟨y, hy, hx⟩,
   rw ←hx,
-  exact balanced_iff_mem.mp ht (h hy) hr,
+  exact ht.smul_mem hr (h hy),
 end
 
 end has_scalar
@@ -138,8 +138,8 @@ begin
   split; intro h,
   { cases h with x hx,
     have h' : balanced 𝕜 (balanced_core 𝕜 s) := balanced_core_balanced s,
-    have h'' := h' 0 (has_le.le.trans norm_zero.le zero_le_one),
-    refine mem_of_subset_of_mem (subset.trans h'' (balanced_core_subset s)) _,
+    have h'' := h' 0 (norm_zero.le.trans zero_le_one),
+    refine mem_of_subset_of_mem (h''.trans (balanced_core_subset s)) _,
     exact mem_smul_set.mpr ⟨x, hx, zero_smul _ _⟩ },
   refine nonempty_of_mem (mem_of_subset_of_mem _ (mem_singleton 0)),
   exact balanced.subset_core_of_subset zero_singleton_balanced (singleton_subset_iff.mpr h),

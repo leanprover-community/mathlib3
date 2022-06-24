@@ -132,11 +132,11 @@ lemma coe_coe [add_group_with_one R] {f : arithmetic_function ℕ} :
   ((f : arithmetic_function ℤ) : arithmetic_function R) = f :=
 by { ext, simp, }
 
-@[simp] lemma nat_coe_one [add_zero_class R] [has_one R] :
+@[simp] lemma nat_coe_one [add_monoid_with_one R] :
   ((1 : arithmetic_function ℕ) : arithmetic_function R) = 1 :=
 by { ext n, simp [one_apply] }
 
-@[simp] lemma int_coe_one [add_monoid R] [has_one R] [has_neg R] :
+@[simp] lemma int_coe_one [add_group_with_one R] :
   ((1 : arithmetic_function ℤ) : arithmetic_function R) = 1 :=
 by { ext n, simp [one_apply] }
 

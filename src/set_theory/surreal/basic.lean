@@ -50,6 +50,7 @@ universes u
 
 local infix ` ≈ ` := pgame.equiv
 local infix ` ⧏ `:50 := pgame.lf
+local infix ` ♯ `:65 := ordinal.nadd
 
 namespace pgame
 
@@ -260,12 +261,25 @@ instance : has_add surreal  :=
   (λ (x y : pgame) (ox) (oy), ⟦⟨x + y, ox.add oy⟩⟧)
   (λ x₁ y₁ x₂ y₂ _ _ _ _ hx hy, quotient.sound (pgame.add_congr hx hy))⟩
 
+theorem mk_add {a b} (ha : numeric a) (hb : numeric b) :
+  mk (a + b) (ha.add hb) = mk a ha + mk b hb := rfl
+
+@[simp] lemma mk_nat_cast : ∀ n : ℕ, mk n (numeric_nat n) = n
+| 0       := rfl
+| (n + 1) := begin
+  simp_rw nat.cast_succ,
+  rw [mk_add (numeric_nat n) numeric_one, mk_nat_cast],
+  refl
+end
+
 /-- Negation for surreal numbers is inherited from pre-game negation:
 the negation of `{L | R}` is `{-R | -L}`. -/
 instance : has_neg surreal  :=
 ⟨surreal.lift
   (λ x ox, ⟦⟨-x, ox.neg⟩⟧)
   (λ _ _ _ _ a, quotient.sound (pgame.neg_equiv_neg_iff.2 a))⟩
+
+@[simp] theorem mk_neg {a} (h : numeric (-a)) : mk (-a) h = - mk a (by simpa using h.neg) := rfl
 
 instance : ordered_add_comm_group surreal :=
 { add               := (+),
@@ -284,6 +298,9 @@ instance : ordered_add_comm_group surreal :=
   le_antisymm       := by { rintros ⟨_⟩ ⟨_⟩ h₁ h₂, exact quotient.sound ⟨h₁, h₂⟩ },
   add_le_add_left   := by { rintros ⟨_⟩ ⟨_⟩ hx ⟨_⟩, exact @add_le_add_left pgame _ _ _ _ _ hx _ } }
 
+theorem mk_sub {a b} (ha : numeric a) (hb : numeric b) :
+  mk (a - b) (ha.sub hb) = mk a ha - mk b hb := rfl
+
 noncomputable instance : linear_ordered_add_comm_group surreal :=
 { le_total := by rintro ⟨⟨x, ox⟩⟩ ⟨⟨y, oy⟩⟩; classical; exact
     or_iff_not_imp_left.2 (λ h, (pgame.not_le.1 h).le oy ox),
@@ -291,18 +308,6 @@ noncomputable instance : linear_ordered_add_comm_group surreal :=
   ..surreal.ordered_add_comm_group }
 
 end surreal
-
-open surreal
-
-namespace ordinal
-
-/-- Converts an ordinal into the corresponding surreal. -/
-noncomputable def to_surreal : ordinal ↪o surreal :=
-{ to_fun := λ o, mk _ (numeric_to_pgame o),
-  inj' := λ a b h, to_pgame_equiv_iff.1 (quotient.exact h),
-  map_rel_iff' := @to_pgame_le_iff }
-
-end ordinal
 
 -- We conclude with some ideas for further work on surreals; these would make fun projects.
 

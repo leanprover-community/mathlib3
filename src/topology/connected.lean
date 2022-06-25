@@ -330,21 +330,24 @@ theorem is_preconnected_closed_iff {s : set α} :
 ⟨begin
   rintros h t t' ht ht' htt' ⟨x, xs, xt⟩ ⟨y, ys, yt'⟩,
   by_contradiction h',
-  rw [←not_disjoint_iff_nonempty_inter, ←subset_compl_iff_disjoint_right, compl_inter] at h',
+  rw [← ne_empty_iff_nonempty, ne.def, not_not, ← subset_compl_iff_disjoint, compl_inter] at h',
   have xt' : x ∉ t', from (h' xs).elim (absurd xt) id,
   have yt : y ∉ t, from (h' ys).elim id (absurd yt'),
-  have := h tᶜ t'ᶜ (is_open_compl_iff.2 ht) (is_open_compl_iff.2 ht') h' ⟨y, ys, yt⟩ ⟨x, xs, xt'⟩,
-  rw [← compl_union, ← subset_compl_iff_disjoint_right, compl_compl] at this,
+  have := ne_empty_iff_nonempty.2 (h tᶜ t'ᶜ (is_open_compl_iff.2 ht)
+    (is_open_compl_iff.2 ht') h' ⟨y, ys, yt⟩ ⟨x, xs, xt'⟩),
+  rw [ne.def, ← compl_union, ← subset_compl_iff_disjoint, compl_compl] at this,
   contradiction
 end,
 begin
   rintros h u v hu hv huv ⟨x, xs, xu⟩ ⟨y, ys, yv⟩,
   by_contradiction h',
-  rw [←not_disjoint_iff_nonempty_inter, ← subset_compl_iff_disjoint_right, compl_inter] at h',
+  rw [← ne_empty_iff_nonempty, ne.def, not_not,
+    ← subset_compl_iff_disjoint, compl_inter] at h',
   have xv : x ∉ v, from (h' xs).elim (absurd xu) id,
   have yu : y ∉ u, from (h' ys).elim id (absurd yv),
-  have := h uᶜ vᶜ (is_closed_compl_iff.2 hu) (is_closed_compl_iff.2 hv) h' ⟨y, ys, yu⟩ ⟨x, xs, xv⟩,
-  rw [← compl_union, disjoint_compl_iff_subset_right] at this,
+  have := ne_empty_iff_nonempty.2 (h uᶜ vᶜ (is_closed_compl_iff.2 hu)
+    (is_closed_compl_iff.2 hv) h' ⟨y, ys, yu⟩ ⟨x, xs, xv⟩),
+  rw [ne.def, ← compl_union, ← subset_compl_iff_disjoint, compl_compl] at this,
   contradiction
 end⟩
 
@@ -889,7 +892,7 @@ for every cover by two closed sets that are disjoint,
 it is contained in one of the two covering sets. -/
 theorem is_preconnected_iff_subset_of_fully_disjoint_closed {s : set α} (hs : is_closed s) :
   is_preconnected s ↔
-  ∀ (u v : set α) (hu : is_closed u) (hv : is_closed v) (hss : s ⊆ u ∪ v) (huv : disjoint u v),
+  ∀ (u v : set α) (hu : is_closed u) (hv : is_closed v) (hss : s ⊆ u ∪ v) (huv : u ∩ v = ∅),
   s ⊆ u ∨ s ⊆ v :=
 begin
   split,
@@ -977,7 +980,9 @@ begin
     dsimp only,
     cases fiber_decomp (f a) (mem_preimage.1 hat),
     { exact h },
-    { cases (nonempty_of_mem $ mem_inter hau $ h rfl).not_disjoint uv_disj } },
+    { exfalso,
+      rw ←not_nonempty_iff_eq_empty at uv_disj,
+      exact uv_disj (nonempty_of_mem (mem_inter hau (h rfl))) } },
   -- This proof is exactly the same as the above (modulo some symmetry)
   have T₂_v : f ⁻¹' T₂ = (f ⁻¹' connected_component t) ∩ v,
   { apply eq_of_subset_of_subset,
@@ -1182,7 +1187,7 @@ section totally_separated
 by two disjoint open sets covering `s`. -/
 def is_totally_separated (s : set α) : Prop :=
 ∀ x ∈ s, ∀ y ∈ s, x ≠ y → ∃ u v : set α, is_open u ∧ is_open v ∧
-  x ∈ u ∧ y ∈ v ∧ s ⊆ u ∪ v ∧ disjoint u v
+  x ∈ u ∧ y ∈ v ∧ s ⊆ u ∪ v ∧ u ∩ v = ∅
 
 theorem is_totally_separated_empty : is_totally_separated (∅ : set α) :=
 λ x, false.elim
@@ -1196,7 +1201,7 @@ begin
   intros t hts ht x x_in y y_in,
   by_contra h,
   obtain ⟨u : set α, v : set α, hu : is_open u, hv : is_open v,
-          hxu : x ∈ u, hyv : y ∈ v, hs : s ⊆ u ∪ v, huv⟩ :=
+          hxu : x ∈ u, hyv : y ∈ v, hs : s ⊆ u ∪ v, huv : u ∩ v = ∅⟩ :=
     H x (hts x_in) y (hts y_in) h,
   have : (t ∩ u).nonempty → (t ∩ v).nonempty → (t ∩ (u ∩ v)).nonempty :=
     ht _ _ hu hv (subset.trans hts hs),
@@ -1230,7 +1235,7 @@ begin
     totally_separated_space.is_totally_separated_univ α x (set.mem_univ x) y (set.mem_univ y) hxy,
   have clopen_U := is_clopen_inter_of_disjoint_cover_clopen (is_clopen_univ) f hU hV disj,
   rw univ_inter _ at clopen_U,
-  rw [←set.subset_compl_iff_disjoint_right, subset_compl_comm] at disj,
+  rw [←set.subset_compl_iff_disjoint, subset_compl_comm] at disj,
   exact ⟨U, clopen_U, Ux, disj Vy⟩,
 end
 

@@ -16,6 +16,10 @@ This file provides basic results about all the `finset.Ixx`, which are defined i
 This file was originally only about `finset.Ico a b` where `a b : ℕ`. No care has yet been taken to
 generalize these lemmas properly and many lemmas about `Icc`, `Ioc`, `Ioo` are missing. In general,
 what's to do is taking the lemmas in `data.x.intervals` and abstract away the concrete structure.
+
+Complete the API. See
+https://github.com/leanprover-community/mathlib/pull/14448#discussion_r906109235
+for some ideas.
 -/
 
 open_locale big_operators

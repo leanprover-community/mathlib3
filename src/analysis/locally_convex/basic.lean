@@ -138,9 +138,7 @@ variables {𝕜}
 lemma balanced_iff_smul_mem : balanced 𝕜 s ↔ ∀ ⦃a : 𝕜⦄, ∥a∥ ≤ 1 → ∀ ⦃x : E⦄, x ∈ s → a • x ∈ s :=
 forall₂_congr $ λ a ha, smul_set_subset_iff
 
-lemma balanced.smul_mem (hs : balanced 𝕜 s) {a : 𝕜} (ha : ∥a∥ ≤ 1) {x : E} (hx : x ∈ s) :
-  a • x ∈ s :=
-balanced_iff_smul_mem.mp hs ha hx
+alias balanced.smul_mem ↔ balanced.smul_mem _
 
 lemma balanced_univ : balanced 𝕜 (univ : set E) := λ a ha, subset_univ _
 

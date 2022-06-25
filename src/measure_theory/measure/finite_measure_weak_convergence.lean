@@ -98,14 +98,14 @@ namespace finite_measure
 section finite_measure
 /-! ### Finite measures
 
-In this section we define the `Type` of `finite_measure α`, when `α` measurable space. Finite
+In this section we define the `Type` of `finite_measure α`, when `α` is a measurable space. Finite
 measures on `α` are a module over `ℝ≥0`.
 
 If `α` is moreover a topological space and the sigma algebra on `α` is finer than the Borel sigma
 algebra (i.e. `[opens_measurable_space α]`), then `finite_measure α` is equipped with the topology
 of weak convergence of measures. This is implemented by defining a pairing of finite measures `μ`
 on `α` with continuous bounded nonnegative functions `f : α →ᵇ ℝ≥0` via integration, and using the
-associated weak topology.
+associated weak topology (essentially the weak-star topology on the dual of `α →ᵇ ℝ≥0`).
 -/
 
 variables {α : Type*} [measurable_space α]
@@ -439,8 +439,8 @@ end finite_measure_bounded_convergence -- section
 section finite_measure_convergence_by_bounded_continuous_functions
 /-! ### Weak convergence of finite measures with bounded continuous real-valued functions
 
-In this section we characterize the weak convergence of finite measures by the most common
-(defining) condition of convergence of integrals of all bounded continuous real-valued functions.
+In this section we characterize the weak convergence of finite measures by the usual (defining)
+condition that the integrals of all bounded continuous real-valued functions converge.
 -/
 
 variables {α : Type*} [measurable_space α] [topological_space α] [opens_measurable_space α]
@@ -454,7 +454,8 @@ begin
   exact lintegral_lt_top_of_bounded_continuous_to_nnreal _ f,
 end
 
-lemma integrable_of_bounded_continuous_to_real (μ : measure α) [is_finite_measure μ] (f : α →ᵇ ℝ) :
+lemma integrable_of_bounded_continuous_to_real
+  (μ : measure α) [is_finite_measure μ] (f : α →ᵇ ℝ) :
   integrable ⇑f μ :=
 begin
   refine ⟨f.continuous.measurable.ae_strongly_measurable, _⟩,
@@ -468,7 +469,7 @@ begin
   { exact eventually_of_forall (λ x, norm_nonneg (f x)), },
 end
 
-lemma bounded_continuous_function.integral_eq_integral_nnreal_part_sub
+lemma _root_.bounded_continuous_function.integral_eq_integral_nnreal_part_sub
   (μ : measure α) [is_finite_measure μ] (f : α →ᵇ ℝ) :
   ∫ x, f x ∂μ = ∫ x, f.nnreal_part x ∂μ - ∫ x, (-f).nnreal_part x ∂μ :=
 by simp only [f.self_eq_nnreal_part_sub_nnreal_part_neg,
@@ -480,10 +481,10 @@ lemma lintegral_lt_top_of_bounded_continuous_to_real
   ∫⁻ x, ennreal.of_real (f x) ∂μ < ∞ :=
 lintegral_lt_top_of_bounded_continuous_to_nnreal _ f.nnreal_part
 
-theorem tendsto_of_forall_integral_tendsto {γ : Type*} {F : filter γ}
-  {μs : γ → finite_measure α} {μ : finite_measure α}
-  (h : (∀ (f : α →ᵇ ℝ), tendsto (λ i, (∫ x, (f x) ∂(μs(i) : measure α)))
-        F (𝓝 ((∫ x, (f x) ∂(μ : measure α)))))) :
+theorem tendsto_of_forall_integral_tendsto
+  {γ : Type*} {F : filter γ} {μs : γ → finite_measure α} {μ : finite_measure α}
+  (h : (∀ (f : α →ᵇ ℝ),
+       tendsto (λ i, (∫ x, (f x) ∂(μs(i) : measure α))) F (𝓝 ((∫ x, (f x) ∂(μ : measure α)))))) :
   tendsto μs F (𝓝 μ) :=
 begin
   apply (@finite_measure.tendsto_iff_forall_lintegral_tendsto α _ _ _ γ F μs μ).mpr,
@@ -520,8 +521,8 @@ end
 
 /-- A characterization of weak convergence in terms of integrals of bounded continuous
 real-valued functions. -/
-theorem tendsto_iff_forall_integral_tendsto {γ : Type*} {F : filter γ}
-  {μs : γ → finite_measure α} {μ : finite_measure α} :
+theorem tendsto_iff_forall_integral_tendsto
+  {γ : Type*} {F : filter γ} {μs : γ → finite_measure α} {μ : finite_measure α} :
   tendsto μs F (𝓝 μ) ↔
   ∀ (f : α →ᵇ ℝ),
     tendsto (λ i, (∫ x, (f x) ∂(μs i : measure α))) F (𝓝 ((∫ x, (f x) ∂(μ : measure α)))) :=
@@ -656,10 +657,9 @@ lemma tendsto_nhds_iff_to_finite_measures_tendsto_nhds {δ : Type*}
   tendsto μs F (𝓝 μ₀) ↔ tendsto (to_finite_measure ∘ μs) F (𝓝 (μ₀.to_finite_measure)) :=
 embedding.tendsto_nhds_iff (probability_measure.to_finite_measure_embedding α)
 
-/-- The usual definition of weak convergence of probability measures is given in terms of sequences
-of probability measures: it is the requirement that the integrals of all continuous bounded
-functions against members of the sequence converge. This version is a characterization using
-nonnegative bounded continuous functions. -/
+/-- A characterization of weak convergence of probability measures by the condition that the
+integrals of every continuous bounded nonnegative function converge to the integral of the function
+against the limit measure. -/
 theorem tendsto_iff_forall_lintegral_tendsto {γ : Type*} {F : filter γ}
   {μs : γ → probability_measure α} {μ : probability_measure α} :
   tendsto μs F (𝓝 μ) ↔
@@ -668,6 +668,20 @@ theorem tendsto_iff_forall_lintegral_tendsto {γ : Type*} {F : filter γ}
 begin
   rw tendsto_nhds_iff_to_finite_measures_tendsto_nhds,
   exact finite_measure.tendsto_iff_forall_lintegral_tendsto,
+end
+
+/-- The characterization of weak convergence of probability measures by the usual (defining)
+condition that the integrals of every continuous bounded function converge to the integral of the
+function against the limit measure. -/
+theorem tendsto_iff_forall_integral_tendsto
+  {γ : Type*} {F : filter γ} {μs : γ → probability_measure α} {μ : probability_measure α} :
+  tendsto μs F (𝓝 μ) ↔
+  ∀ (f : α →ᵇ ℝ),
+    tendsto (λ i, (∫ x, (f x) ∂(μs i : measure α))) F (𝓝 ((∫ x, (f x) ∂(μ : measure α)))) :=
+begin
+  rw tendsto_nhds_iff_to_finite_measures_tendsto_nhds,
+  rw finite_measure.tendsto_iff_forall_integral_tendsto,
+  simp only [coe_comp_to_finite_measure_eq_coe],
 end
 
 end probability_measure -- namespace

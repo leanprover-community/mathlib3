@@ -749,6 +749,8 @@ theorem relabelling.ge {x y : pgame} (r : x ≡r y) : y ≤ x := r.symm.restrict
 /-- A relabelling lets us prove equivalence of games. -/
 theorem relabelling.equiv {x y : pgame} (r : x ≡r y) : x ≈ y := ⟨r.le, r.ge⟩
 
+theorem relabelling.equiv' {x y : pgame} (r : x ≡r y) : y ≈ x := ⟨r.ge, r.le⟩
+
 /-- Transitivity of relabelling. -/
 @[trans] def relabelling.trans : Π {x y z : pgame}, x ≡r y → y ≡r z → x ≡r z
 | ⟨xl, xr, xL, xR⟩ ⟨yl, yr, yL, yR⟩ ⟨zl, zr, zL, zR⟩ ⟨L₁, R₁, hL₁, hR₁⟩ ⟨L₂, R₂, hL₂, hR₂⟩ :=
@@ -758,9 +760,6 @@ theorem relabelling.equiv {x y : pgame} (r : x ≡r y) : x ≈ y := ⟨r.le, r.g
 /-- Any game without left or right moves is a relabelling of 0. -/
 def relabelling.is_empty (x : pgame) [is_empty x.left_moves] [is_empty x.right_moves] : x ≡r 0 :=
 ⟨equiv.equiv_pempty _, equiv.equiv_pempty _, is_empty_elim, is_empty_elim⟩
-
-theorem equiv.is_empty (x : pgame) [is_empty x.left_moves] [is_empty x.right_moves] : x ≈ 0 :=
-(relabelling.is_empty x).equiv
 
 instance {x y : pgame} : has_coe (x ≡r y) (x ≈ y) := ⟨relabelling.equiv⟩
 

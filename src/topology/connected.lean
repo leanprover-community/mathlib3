@@ -329,23 +329,23 @@ theorem is_preconnected_closed_iff {s : set α} :
     (s ∩ t).nonempty → (s ∩ t').nonempty → (s ∩ (t ∩ t')).nonempty :=
 ⟨begin
   rintros h t t' ht ht' htt' ⟨x, xs, xt⟩ ⟨y, ys, yt'⟩,
-  by_contradiction h',
-  rw [←not_disjoint_iff_nonempty_inter, ←subset_compl_iff_disjoint_right, compl_inter] at h',
-  have xt' : x ∉ t', from (h' xs).elim (absurd xt) id,
-  have yt : y ∉ t, from (h' ys).elim id (absurd yt'),
-  have := h tᶜ t'ᶜ (is_open_compl_iff.2 ht) (is_open_compl_iff.2 ht') h' ⟨y, ys, yt⟩ ⟨x, xs, xt'⟩,
-  rw [← compl_union, ← subset_compl_iff_disjoint_right, compl_compl] at this,
-  contradiction
+  rw [←not_disjoint_iff_nonempty_inter, ←subset_compl_iff_disjoint_right, compl_inter],
+  intros h',
+  have xt' : x ∉ t', from (h' xs).resolve_left (absurd xt),
+  have yt : y ∉ t, from (h' ys).resolve_right (absurd yt'),
+  have := h _ _ ht.is_open_compl ht'.is_open_compl h' ⟨y, ys, yt⟩ ⟨x, xs, xt'⟩,
+  rw ←compl_union at this,
+  exact this.ne_empty htt'.disjoint_compl_right.inter_eq,
 end,
 begin
   rintros h u v hu hv huv ⟨x, xs, xu⟩ ⟨y, ys, yv⟩,
-  by_contradiction h',
-  rw [←not_disjoint_iff_nonempty_inter, ← subset_compl_iff_disjoint_right, compl_inter] at h',
+  rw [←not_disjoint_iff_nonempty_inter, ←subset_compl_iff_disjoint_right, compl_inter],
+  intros h',
   have xv : x ∉ v, from (h' xs).elim (absurd xu) id,
   have yu : y ∉ u, from (h' ys).elim id (absurd yv),
-  have := h uᶜ vᶜ (is_closed_compl_iff.2 hu) (is_closed_compl_iff.2 hv) h' ⟨y, ys, yu⟩ ⟨x, xs, xv⟩,
-  rw [← compl_union, disjoint_compl_iff_subset_right] at this,
-  contradiction
+  have := h _ _ hu.is_closed_compl hv.is_closed_compl h' ⟨y, ys, yu⟩ ⟨x, xs, xv⟩,
+  rw ←compl_union at this,
+  exact this.ne_empty huv.disjoint_compl_right.inter_eq,
 end⟩
 
 lemma inducing.is_preconnected_image [topological_space β] {s : set α} {f : α → β}
@@ -895,8 +895,7 @@ begin
   split,
   { intros h u v hu hv hss huv,
     apply is_preconnected_iff_subset_of_disjoint_closed.1 h u v hu hv hss,
-    rw huv,
-    exact inter_empty s },
+    rw [huv.inter_eq, inter_empty] },
   intro H,
   rw is_preconnected_iff_subset_of_disjoint_closed,
   intros u v hu hv hss huv,
@@ -905,10 +904,8 @@ begin
   simp only [subset.refl, and_true] at H1,
   apply H1 (is_closed.inter hu hs) (is_closed.inter hv hs),
   { rw ←inter_distrib_right,
-    apply subset_inter_iff.2,
-    exact ⟨hss, subset.refl s⟩ },
-  { rw [inter_comm v s, inter_assoc, ←inter_assoc s, inter_self s,
-        inter_comm, inter_assoc, inter_comm v u, huv] }
+    exact subset_inter hss subset.rfl },
+  { rwa [disjoint_iff_inter_eq_empty, ←inter_inter_distrib_right, inter_comm] }
 end
 
 lemma is_clopen.connected_component_subset {x} (hs : is_clopen s) (hx : x ∈ s) :
@@ -962,8 +959,7 @@ begin
   { intros t' ht',
     apply is_preconnected_iff_subset_of_disjoint_closed.1 (connected_fibers t').2 u v hu hv,
     { exact subset.trans (hf.preimage_subset_preimage_iff.2 (singleton_subset_iff.2 ht')) huv },
-    rw uv_disj,
-    exact inter_empty _ },
+    rw [uv_disj.inter_eq, inter_empty] },
 
   have T₁_u : f ⁻¹' T₁ = (f ⁻¹' connected_component t) ∩ u,
   { apply eq_of_subset_of_subset,
@@ -990,9 +986,7 @@ begin
     { exact mem_preimage.1 hat },
     dsimp only,
     cases fiber_decomp (f a) (mem_preimage.1 hat),
-    { exfalso,
-      rw ←not_nonempty_iff_eq_empty at uv_disj,
-      exact uv_disj (nonempty_of_mem (mem_inter (h rfl) hav)) },
+    { cases (nonempty_of_mem (mem_inter (h rfl) hav)).not_disjoint uv_disj },
     { exact h } },
 
   -- Now we show T₁, T₂ are closed, cover connected_component t and are disjoint.
@@ -1006,18 +1000,10 @@ begin
     { left, exact ⟨ht', htu⟩ },
     right, exact ⟨ht', htv⟩ },
 
-  have T_disjoint : T₁ ∩ T₂ = ∅,
-  { rw ←image_preimage_eq (T₁ ∩ T₂) hf,
-    suffices : f ⁻¹' (T₁ ∩ T₂) = ∅,
-    { rw this, exact image_empty _ },
-    rw [preimage_inter, T₁_u, T₂_v],
-    rw inter_comm at uv_disj,
-    conv
-    { congr,
-      rw [inter_assoc],
-      congr, skip,
-      rw [←inter_assoc, inter_comm, ←inter_assoc, uv_disj, empty_inter], },
-    exact inter_empty _ },
+  have T_disjoint : disjoint T₁ T₂,
+  { refine disjoint.of_preimage hf _,
+    rw [T₁_u, T₂_v, disjoint_iff_inter_eq_empty, ←inter_inter_distrib_left, uv_disj.inter_eq,
+      inter_empty] },
 
   -- Now we do cases on whether (connected_component t) is a subset of T₁ or T₂ to show
   -- that the preimage is a subset of u or v.
@@ -1198,10 +1184,8 @@ begin
   obtain ⟨u : set α, v : set α, hu : is_open u, hv : is_open v,
           hxu : x ∈ u, hyv : y ∈ v, hs : s ⊆ u ∪ v, huv⟩ :=
     H x (hts x_in) y (hts y_in) h,
-  have : (t ∩ u).nonempty → (t ∩ v).nonempty → (t ∩ (u ∩ v)).nonempty :=
-    ht _ _ hu hv (subset.trans hts hs),
-  obtain ⟨z, hz : z ∈ t ∩ (u ∩ v)⟩ := this ⟨x, x_in, hxu⟩ ⟨y, y_in, hyv⟩,
-  simpa [huv] using hz
+  refine (ht _ _ hu hv (hts.trans hs) ⟨x, x_in, hxu⟩ ⟨y, y_in, hyv⟩).ne_empty _,
+  rw [huv.inter_eq, inter_empty],
 end
 
 alias is_totally_disconnected_of_is_totally_separated ← is_totally_separated.is_totally_disconnected

@@ -1459,7 +1459,7 @@ We define some lemmas in the `disjoint` namespace to be able to use projection n
 
 section disjoint
 
-variables {s t u : set α}
+variables {s t u : set α} {f : α → β}
 
 namespace disjoint
 
@@ -1489,6 +1489,10 @@ hab.left_le_of_le_sup_left h
 
 lemma preimage {α β} (f : α → β) {s t : set β} (h : disjoint s t) : disjoint (f ⁻¹' s) (f ⁻¹' t) :=
 λ x hx, h hx
+
+lemma of_preimage (hf : surjective f) (h : disjoint (f ⁻¹' s) (f ⁻¹' t)) : disjoint s t :=
+by rw [disjoint_iff_inter_eq_empty, ←image_preimage_eq (_ ∩ _) hf, preimage_inter, h.inter_eq,
+  image_empty]
 
 end disjoint
 
@@ -1578,9 +1582,8 @@ lemma disjoint_image_of_injective {f : α → β} (hf : injective f) {s t : set 
   (hd : disjoint s t) : disjoint (f '' s) (f '' t) :=
 disjoint_image_image $ λ x hx y hy, hf.ne $ λ H, set.disjoint_iff.1 hd ⟨hx, H.symm ▸ hy⟩
 
-lemma disjoint_preimage {s t : set β} (hd : disjoint s t) (f : α → β) :
-  disjoint (f ⁻¹' s) (f ⁻¹' t) :=
-λ x hx, hd hx
+lemma disjoint_preimage_iff (hf : surjective f) : disjoint (f ⁻¹' s) (f ⁻¹' t) ↔ disjoint s t :=
+⟨disjoint.of_preimage hf, disjoint.preimage _⟩
 
 lemma preimage_eq_empty {f : α → β} {s : set β} (h : disjoint s (range f)) :
   f ⁻¹' s = ∅ :=

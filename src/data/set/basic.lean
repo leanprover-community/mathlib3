@@ -864,6 +864,13 @@ end
 lemma eq_empty_of_ssubset_singleton {s : set α} {x : α} (hs : s ⊂ {x}) : s = ∅ :=
 ssubset_singleton_iff.1 hs
 
+/-! ### Disjointness -/
+
+lemma _root_.disjoint.inter_eq : disjoint s t → s ∩ t = ∅ := disjoint.eq_bot
+
+lemma disjoint_left : disjoint s t ↔ ∀ ⦃a⦄, a ∈ s → a ∉ t := forall_congr $ λ _, not_and
+lemma disjoint_right : disjoint s t ↔ ∀ ⦃a⦄, a ∈ t → a ∉ s := by rw [disjoint.comm, disjoint_left]
+
 /-! ### Lemmas about complement -/
 
 lemma compl_def (s : set α) : sᶜ = {x | x ∉ s} := rfl
@@ -955,8 +962,6 @@ forall_congr $ λ x, and_imp.trans $ imp_congr_right $ λ _, imp_iff_not_or
 
 lemma inter_compl_nonempty_iff {s t : set α} : (s ∩ tᶜ).nonempty ↔ ¬ s ⊆ t :=
 (not_subset.trans $ exists_congr $ by exact λ x, by simp [mem_compl]).symm
-
-lemma _root_.disjoint.inter_eq : disjoint s t → s ∩ t = ∅ := disjoint.eq_bot
 
 /-! ### Lemmas about set difference -/
 

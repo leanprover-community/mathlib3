@@ -118,30 +118,34 @@ end group
 
 section module
 
-variables {α 𝕜 E : Type*} [normed_field 𝕜] [add_comm_group E] [module 𝕜 E]
-  [uniform_space E] [uniform_add_group E] [has_continuous_smul 𝕜 E] {𝔖 : set $ set α}
-  (h𝔖₁ : 𝔖.nonempty) (h𝔖₂ : directed_on (⊆) 𝔖) (H : submodule 𝕜 (α → E))
-
 local attribute [-instance] Pi.uniform_space
 local attribute [-instance] Pi.topological_space
 
-include h𝔖₁ h𝔖₂
-
 /-- Let `E` be a TVS, `𝔖 : set (set α)` and `H` a submodule of `α → E`. If the image of any `S ∈ 𝔖`
 by any `u ∈ H` is bounded (in the sense of `bornology.is_vonN_bounded`), then `H`, equipped with
-the topology of `𝔖`-convergence, is a TVS. -/
-lemma uniform_convergence_on.has_continuous_smul_of_image_bounded
-  (h : ∀ u ∈ H, ∀ s ∈ 𝔖, bornology.is_vonN_bounded 𝕜 (u '' s)) :
-  @has_continuous_smul 𝕜 H _ _
-  ((uniform_convergence_on.topological_space α E 𝔖).induced (coe : H → α → E)) :=
+the topology of `𝔖`-convergence, is a TVS.
+
+For convenience, we don't litteraly ask for `H : submodule (α → E)`. Instead, we prove the result
+for any vector space `H` equipped with a linear inducing to `α → E`, which is often easier to use.
+We also state the `submodule` version as
+`uniform_convergence_on.has_continuous_smul_submodule_of_image_bounded`. -/
+lemma uniform_convergence_on.has_continuous_smul_induced_of_image_bounded (𝕜 α E H : Type*)
+  {hom : Type*} [normed_field 𝕜] [add_comm_group H] [module 𝕜 H] [add_comm_group E] [module 𝕜 E]
+  [topological_space H] [uniform_space E] [uniform_add_group E] [has_continuous_smul 𝕜 E]
+  {𝔖 : set $ set α} (h𝔖₁ : 𝔖.nonempty) (h𝔖₂ : directed_on (⊆) 𝔖)
+  [linear_map_class hom 𝕜 H (α → E)] (φ : hom)
+  (hφ : @inducing _ _ _ (uniform_convergence_on.topological_space α E 𝔖) φ)
+  (h : ∀ u : H, ∀ s ∈ 𝔖, bornology.is_vonN_bounded 𝕜 ((φ u : α → E) '' s)) :
+  has_continuous_smul 𝕜 H :=
 begin
   letI : uniform_space (α → E) := uniform_convergence_on.uniform_space α E 𝔖,
   haveI : uniform_add_group (α → E) := uniform_convergence_on.uniform_add_group,
-  haveI : topological_add_group H := topological_add_group_induced
-    (linear_map.id.dom_restrict H : H →ₗ[𝕜] α → E),
+  haveI : topological_add_group H,
+  { rw hφ.induced,
+    exact topological_add_group_induced φ },
   have : (𝓝 0 : filter H).has_basis _ _,
-  { rw [nhds_induced, submodule.coe_zero],
-    exact ((uniform_convergence_on.has_basis_nhds_zero 𝔖 h𝔖₁ h𝔖₂).comap (coe : H → α → E)) },
+  { rw [hφ.induced, nhds_induced, map_zero],
+    exact ((uniform_convergence_on.has_basis_nhds_zero 𝔖 h𝔖₁ h𝔖₂).comap φ) },
   refine has_continuous_smul.of_basis_zero this _ _ _,
   { rintros ⟨S, V⟩ ⟨hS, hV⟩,
     have : tendsto (λ kx : (𝕜 × E), kx.1 • kx.2) (𝓝 (0, 0)) (𝓝 $ (0 : 𝕜) • 0) :=
@@ -152,27 +156,51 @@ begin
     rcases this with ⟨U, hU, W, hW, hUW⟩,
     refine ⟨U, hU, ⟨S, W⟩, ⟨hS, hW⟩, _⟩,
     rw set.smul_subset_iff,
-    exact λ a ha f hf x hx, hUW (⟨ha, hf x hx⟩ : (a, (f : α → E) x) ∈ U ×ˢ W) },
+    intros a ha u hu x hx,
+    rw smul_hom_class.map_smul,
+    exact hUW (⟨ha, hu x hx⟩ : (a, φ u x) ∈ U ×ˢ W) },
   { rintros a ⟨S, V⟩ ⟨hS, hV⟩,
     have : tendsto (λ x : E, a • x) (𝓝 0) (𝓝 $ a • 0) := tendsto_id.const_smul a,
     rw [smul_zero] at this,
-    exact ⟨⟨S, ((•) a) ⁻¹' V⟩, ⟨hS, this hV⟩, λ f hf x hx, hf x hx⟩ },
-  { rintros ⟨u, hu⟩ ⟨S, V⟩ ⟨hS, hV⟩,
-    rcases h u hu S hS hV with ⟨r, hrpos, hr⟩,
+    refine ⟨⟨S, ((•) a) ⁻¹' V⟩, ⟨hS, this hV⟩, λ f hf x hx, _⟩,
+    rw [smul_hom_class.map_smul],
+    exact hf x hx },
+  { rintros u ⟨S, V⟩ ⟨hS, hV⟩,
+    rcases h u S hS hV with ⟨r, hrpos, hr⟩,
     rw metric.eventually_nhds_iff_ball,
     refine ⟨r⁻¹, inv_pos.mpr hrpos, λ a ha x hx, _⟩,
     by_cases ha0 : a = 0,
     { rw ha0,
       simp [mem_of_mem_nhds hV] },
     { rw mem_ball_zero_iff at ha,
-      push_cast,
-      rw pi.smul_apply,
-      have : u x ∈ a⁻¹ • V,
+      rw [smul_hom_class.map_smul, pi.smul_apply],
+      have : φ u x ∈ a⁻¹ • V,
       { have ha0 : 0<∥a∥ := norm_pos_iff.mpr ha0,
-        refine (hr a⁻¹ _) (set.mem_image_of_mem u hx),
+        refine (hr a⁻¹ _) (set.mem_image_of_mem (φ u) hx),
         rw [norm_inv, le_inv hrpos ha0],
         exact ha.le },
       rwa set.mem_inv_smul_set_iff₀ ha0 at this } }
+end
+
+/-- Let `E` be a TVS, `𝔖 : set (set α)` and `H` a submodule of `α → E`. If the image of any `S ∈ 𝔖`
+by any `u ∈ H` is bounded (in the sense of `bornology.is_vonN_bounded`), then `H`, equipped with
+the topology of `𝔖`-convergence, is a TVS.
+
+If you have a hard time using this lemma, try the one above instead. -/
+lemma uniform_convergence_on.has_continuous_smul_submodule_of_image_bounded (𝕜 α E : Type*)
+  [normed_field 𝕜] [add_comm_group E] [module 𝕜 E]
+  [uniform_space E] [uniform_add_group E] [has_continuous_smul 𝕜 E] {𝔖 : set $ set α}
+  (h𝔖₁ : 𝔖.nonempty) (h𝔖₂ : directed_on (⊆) 𝔖) (H : submodule 𝕜 (α → E))
+  (h : ∀ u ∈ H, ∀ s ∈ 𝔖, bornology.is_vonN_bounded 𝕜 (u '' s)) :
+  @has_continuous_smul 𝕜 H _ _
+  ((uniform_convergence_on.topological_space α E 𝔖).induced (coe : H → α → E)) :=
+begin
+  letI : uniform_space (α → E) := uniform_convergence_on.uniform_space α E 𝔖,
+  haveI : uniform_add_group (α → E) := uniform_convergence_on.uniform_add_group,
+  haveI : topological_add_group H := topological_add_group_induced
+    (linear_map.id.dom_restrict H : H →ₗ[𝕜] α → E),
+  exact uniform_convergence_on.has_continuous_smul_induced_of_image_bounded 𝕜 α E H h𝔖₁ h𝔖₂
+    (linear_map.id.dom_restrict H : H →ₗ[𝕜] α → E) inducing_coe (λ ⟨u, hu⟩, h u hu)
 end
 
 end module

@@ -40,6 +40,10 @@ convergence theorems.
 * `measure_theory.submartingale.integral_mul_upcrossing_le_integral_pos_part`: Doob's upcrossing
   estimate.
 
+### References
+
+We mostly follow the proof from [Kallenberg, *Foundations of modern probability*][kallenberg2021]
+
 -/
 
 open topological_space filter
@@ -48,6 +52,58 @@ open_locale nnreal ennreal measure_theory probability_theory big_operators
 namespace measure_theory
 
 variables {α : Type*} {m0 : measurable_space α} {μ : measure α}
+
+/-!
+
+## Proof outline
+
+In the section, we will denote $U_N(a, b)$ the number of upcrossings of $(f_n)$ from below $a$ to
+above $b$ before time $N$.
+
+To define $U_N(a, b)$, we will construct two stopping times corresponding to when $(f_n)$ crosses
+below $a$ and above $b$. Namely, we define
+$$\sigma_n := \inf \{n \ge \tau_n \mid f_n \le a\} \wedge N;$$
+$$\tau_{n + 1} := \inf \{n \ge \sigma_n \mid f_n \le a\} \wedge N.$$
+These are `lower_crossing` and `upper_crossing` in our formalization which are defined using
+`measure_theory.hitting` allowing us to specify a starting and ending time.
+Then, we simply define $U_N(a, b) := \sup \{n \mid \tau_n < N\}$.
+
+Fixing $a < b \in \mathbb{R}$, we will first prove the theorem in the special case that
+$0 \le f_0$ and $a \le f_N$. In particular, we will show
+$$(b - a) \mathbb{E}[U_N(a, b)] \le \mathbb{E}[f_N].$$
+This is `measure_theory.integral_mul_upcrossing_le_integral` in our formalization.
+
+To prove this, we use the fact that given a non-negative, bounded, predictable process $(C_n)$
+(i.e. $(C_{n + 1})$ is adapted), $(C \bullet f)_n := \sum_{k \le n} C_{k + 1}(f_{k + 1} - f_k)$ is
+a submartingale if $(f_n)$ is.
+
+Define $C_n := \sum_{k \le n} \mathbf{1}_{[\sigma_k, \tau_{k + 1})}(n)$. It is easy to see that
+$(1 - C_n)$ is non-negative, bounded and predictable, and hence, given a submartingale $(f_n)$,
+$(1 - C) \bullet f$ is also a submartingale. Thus, by the submartingale property,
+$0 \le \mathbb{E}[((1 - C) \bullet f)_0] \le \mathbb{E}[((1 - C) \bullet f)_N]$ implying
+$$\mathbb{E}[(C \bullet f)_N] \le \mathbb{E}[(1 \bullet f)_N] = \mathbb{E}[f_N] - \mathbb{E}[f_0].$$
+
+Furthermore,
+\begin{align}
+    (C \bullet f)_N & =
+      \sum_{n \le N} \sum_{k \le N} \mathbf{1}_{[\sigma_k, \tau_{k + 1})}(n)(f_{n + 1} - f_n)\\
+    & = \sum_{k \le N} \sum_{n \le N} \mathbf{1}_{[\sigma_k, \tau_{k + 1})}(n)(f_{n + 1} - f_n)\\
+    & = \sum_{k \le N} (f_{\sigma_k + 1} - f_{\sigma_k} + f_{\sigma_k + 2} - f_{\sigma_k + 1}
+      + \cdots + f_{\tau_{k + 1}} - f_{\tau_{k + 1} - 1})\\
+    & = \sum_{k \le N} (f_{\tau_{k + 1}} - f_{\sigma_k})
+      \ge \sum_{k < U_N(a, b)} (b - a) = (b - a) U_N(a, b)
+\end{align}
+where the inequality follows since for all $k < U_N(a, b)$,
+$f_{\tau_{k + 1}} - f_{\sigma_k} \ge b - a$ while for all $k > U_N(a, b)$,
+$f_{\tau_{k + 1}} = f_{\sigma_k} = f_N$ and
+$f_{\tau_{U_N(a, b) + 1}} - f_{\sigma_{U_N(a, b)}} = f_N - a \ge 0$. Hence, we have
+$$(b - a) \mathbb{E}[U_N(a, b)] \le \mathbb{E}[(C \bullet f)_N]
+  \le \mathbb{E}[f_N] - \mathbb{E}[f_0] \le \mathbb{E}[f_N],$$
+as required.
+
+To obtain the general case, we simply apply the above to $((f_n - a)^+)_n$.
+
+-/
 
 /-- `lower_crossing_aux a f c N` is the first time `f` reached below `a` after time `c` before
 time `N`. -/

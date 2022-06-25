@@ -111,6 +111,8 @@ variables {a b c : ordinal.{u}}
 
 /-! ### Natural addition -/
 
+attribute [irreducible] nat_ordinal
+
 /-- Natural addition on ordinals `a ♯ b`, also known as the Hessenberg sum, is recursively defined
 as the least ordinal greater than `a' ♯ b` and `a ♯ b'` for all `a' < a` and `b' < b`. In contrast
 to normal ordinal addition, it is commutative.
@@ -243,6 +245,10 @@ end
 
 end ordinal
 
+open_locale natural_ops
+
+attribute [reducible] nat_ordinal
+
 open ordinal
 
 namespace nat_ordinal
@@ -279,16 +285,12 @@ instance : ordered_cancel_add_comm_monoid nat_ordinal :=
 begin
   induction n with n hn,
   { refl },
-  { change nadd (to_ordinal n) 1 = n + 1,
-    rw hn,
-    apply nadd_one }
+  { apply congr_arg (λ x, x ♯ 1) hn }
 end
 
 end nat_ordinal
 
 open nat_ordinal
-
-open_locale natural_ops
 
 namespace ordinal
 
@@ -350,6 +352,8 @@ theorem nadd_right_comm : ∀ a b c, a ♯ b ♯ c = a ♯ c ♯ b :=
 @add_right_comm nat_ordinal _
 
 /-! ### Natural multiplication -/
+
+attribute [irreducible] nat_ordinal
 
 variables {a b c d : ordinal.{u}}
 
@@ -566,6 +570,8 @@ using_well_founded { dec_tac := `[solve_by_elim [psigma.lex.left, psigma.lex.rig
 
 end ordinal
 
+attribute [reducible] nat_ordinal
+
 open ordinal
 
 namespace nat_ordinal
@@ -600,8 +606,8 @@ rfl
 
 theorem nmul_nadd_one : ∀ a b, a ⨳ (b ♯ 1) = a ⨳ b ♯ a := @mul_add_one nat_ordinal _ _ _
 theorem nadd_one_nmul : ∀ a b, (a ♯ 1) ⨳ b = a ⨳ b ♯ b := @add_one_mul nat_ordinal _ _ _
-theorem nmul_succ (a b) : a ⨳ succ b = a ⨳ b ♯ a := by rw [←nadd_one, nmul_nadd_one]
-theorem succ_nmul (a b) : succ a ⨳ b = a ⨳ b ♯ b := by rw [←nadd_one, nadd_one_nmul]
+theorem nmul_succ (a b : ordinal) : a ⨳ @succ ordinal _ _ b = a ⨳ b ♯ a := by rw [←nadd_one, nmul_nadd_one]
+theorem succ_nmul (a b : ordinal) : @succ ordinal _ _ a ⨳ b = a ⨳ b ♯ b := by rw [←nadd_one, nadd_one_nmul]
 theorem nmul_add_one : ∀ a b, a ⨳ (b + 1) = a ⨳ b ♯ a := nmul_succ
 theorem add_one_nmul : ∀ a b, (a + 1) ⨳ b = a ⨳ b ♯ b := succ_nmul
 

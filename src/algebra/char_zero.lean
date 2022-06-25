@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 
-import data.nat.cast
+import data.nat.cast_field
 import data.fintype.basic
 import tactic.wlog
 

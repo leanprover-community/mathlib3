@@ -399,7 +399,7 @@ end
 
 lemma basic_open_basic_open_is_basic_open {X : Scheme} {U : opens X.carrier}
   (hU : is_affine_open U) (f : X.presheaf.obj (op U)) (g : X.presheaf.obj (op $ X.basic_open f)) :
-    ∃ f' : X.presheaf.obj (op U), X.basic_open f' = X.basic_open g :=
+  ∃ f' : X.presheaf.obj (op U), X.basic_open f' = X.basic_open g :=
 begin
   haveI := is_localization_basic_open hU f,
   obtain ⟨x, ⟨_, n, rfl⟩, rfl⟩ := is_localization.surj' (submonoid.powers f) g,

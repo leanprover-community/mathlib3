@@ -72,14 +72,7 @@ def factorization (n : ℕ) : ℕ →₀ ℕ :=
 
 lemma multiplicity_eq_factorization {n p : ℕ} (pp : p.prime) (hn : n ≠ 0) :
   multiplicity p n = n.factorization p :=
-begin
-  have hdom : (multiplicity p n).dom,
-  { rw multiplicity.nat.multiplicity_dom_iff, split, exact hn,
-    simp [factorization, pp, coe_mk, if_true, @padic_val_nat_def p (fact_iff.mpr pp) n hn], },
-  simp [factorization, pp],
-  rw part.get_or_else_of_dom (multiplicity p n) hdom,
-  simp,
-end
+by simp [factorization, pp, (padic_val_nat_def' pp.ne_one hn.bot_lt)]
 
 lemma padic_val_nat_eq_factorization (p n : ℕ) [hp : fact p.prime] :
   padic_val_nat p n = n.factorization p :=

@@ -47,8 +47,12 @@ open function order
 noncomputable theory
 
 /-- A type synonym for ordinals with natural addition and multiplication. -/
-@[derive [has_zero, inhabited, has_one, linear_order, succ_order, has_well_founded]]
+@[irreducible, derive [has_zero, inhabited, has_one, linear_order, succ_order, has_well_founded]]
 def nat_ordinal : Type* := ordinal
+
+section semireducible
+
+local attribute [semireducible] nat_ordinal
 
 /-- The identity function between `ordinal` and `nat_ordinal`. -/
 @[pattern] def ordinal.to_nat_ordinal : ordinal ≃o nat_ordinal := order_iso.refl _
@@ -59,6 +63,8 @@ def nat_ordinal : Type* := ordinal
 open ordinal
 
 namespace nat_ordinal
+
+open ordinal
 
 variables {a b c : nat_ordinal.{u}}
 
@@ -91,8 +97,6 @@ end nat_ordinal
 
 namespace ordinal
 
-variables {a b c : ordinal.{u}}
-
 @[simp] theorem to_nat_ordinal_symm_eq : to_nat_ordinal.symm = nat_ordinal.to_ordinal := rfl
 @[simp] theorem to_nat_ordinal_to_ordinal (a : ordinal) : a.to_nat_ordinal.to_ordinal = a := rfl
 
@@ -102,12 +106,18 @@ variables {a b c : ordinal.{u}}
 @[simp] theorem to_nat_ordinal_eq_zero (a) : to_nat_ordinal a = 0 ↔ a = 0 := iff.rfl
 @[simp] theorem to_nat_ordinal_eq_one (a) : to_nat_ordinal a = 1 ↔ a = 1 := iff.rfl
 
-@[simp] theorem to_nat_ordinal_max :
+@[simp] theorem to_nat_ordinal_max (a b : ordinal) :
   to_nat_ordinal (max a b) = max a.to_nat_ordinal b.to_nat_ordinal := rfl
-@[simp] theorem to_nat_ordinal_min :
+@[simp] theorem to_nat_ordinal_min (a b : ordinal) :
   (linear_order.min a b).to_nat_ordinal = linear_order.min a.to_nat_ordinal b.to_nat_ordinal := rfl
 
-attribute [irreducible] nat_ordinal
+end ordinal
+
+end semireducible
+
+namespace ordinal
+
+variables {a b c : ordinal.{u}}
 
 /-- Natural addition on ordinals `a ♯ b`, also known as the Hessenberg sum, is recursively defined
 as the least ordinal greater than `a' ♯ b` and `a ♯ b'` for all `a' < a` and `b' < b`. In contrast
@@ -243,11 +253,13 @@ end ordinal
 
 open_locale natural_ops
 
-attribute [reducible] nat_ordinal
+section semireducible
 
-open ordinal
+local attribute [semireducible] nat_ordinal
 
 namespace nat_ordinal
+
+open ordinal
 
 instance : has_add nat_ordinal := ⟨nadd⟩
 
@@ -281,17 +293,16 @@ instance : ordered_cancel_add_comm_monoid nat_ordinal :=
 begin
   induction n with n hn,
   { refl },
-  { apply congr_arg (λ x, x ♯ 1) hn }
+  { change to_ordinal n ♯ 1 = n + 1,
+    rw [hn, nadd_one], refl }
 end
 
 end nat_ordinal
 
-open nat_ordinal
-
 namespace ordinal
 
 @[simp] theorem to_nat_ordinal_cast_nat (n : ℕ) : to_nat_ordinal n = n :=
-by { rw ←to_ordinal_cast_nat n, refl }
+by { rw ←nat_ordinal.to_ordinal_cast_nat n, refl }
 
 theorem lt_of_nadd_lt_nadd_left : ∀ {a b c}, a ♯ b < a ♯ c → b < c :=
 @lt_of_add_lt_add_left nat_ordinal _ _ _
@@ -321,3 +332,5 @@ theorem nadd_right_cancel_iff : ∀ {a b c}, b ♯ a = c ♯ a ↔ b = c :=
 @add_right_cancel_iff nat_ordinal _
 
 end ordinal
+
+end semireducible

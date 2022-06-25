@@ -343,7 +343,7 @@ begin
   convert PresheafedSpace.is_open_immersion.c_iso ((opens.map f.base).obj U),
 end
 
-lemma is_affine_open.from_Spec_preimage_basic_open {X : Scheme} {U : opens X.carrier}
+lemma is_affine_open.opens_map_from_Spec_basic_open {X : Scheme} {U : opens X.carrier}
   (hU : is_affine_open U) (f : X.presheaf.obj (op U)) :
   (opens.map hU.from_Spec.val.base).obj (X.basic_open f) =
     RingedSpace.basic_open _ (Spec_Γ_identity.inv.app (X.presheaf.obj $ op U) f) :=
@@ -365,7 +365,7 @@ def basic_open_sections_to_affine {X : Scheme} {U : opens X.carrier} (hU : is_af
     (Scheme.Spec.obj $ op $ X.presheaf.obj (op U)).presheaf.obj
       (op $ Scheme.basic_open _ $ Spec_Γ_identity.inv.app (X.presheaf.obj (op U)) f) :=
 hU.from_Spec.1.c.app (op $ X.basic_open f) ≫ (Scheme.Spec.obj $ op $ X.presheaf.obj (op U))
-  .presheaf.map (eq_to_hom $ (hU.from_Spec_preimage_basic_open f).symm).op
+  .presheaf.map (eq_to_hom $ (hU.opens_map_from_Spec_basic_open f).symm).op
 
 instance {X : Scheme} {U : opens X.carrier} (hU : is_affine_open U)
   (f : X.presheaf.obj (op U)) : is_iso (basic_open_sections_to_affine hU f) :=

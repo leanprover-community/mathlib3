@@ -86,7 +86,7 @@ by rw [exp_sub, div_eq_one_iff_eq (exp_ne_zero _)]
 lemma exp_eq_exp_iff_exists_int {x y : ℂ} : exp x = exp y ↔ ∃ n : ℤ, x = y + n * ((2 * π) * I) :=
 by simp only [exp_eq_exp_iff_exp_sub_eq_one, exp_eq_one_iff, sub_eq_iff_eq_add']
 
-@[simp] lemma countable_preimage_exp {s : set ℂ} : countable (exp ⁻¹' s) ↔ countable s :=
+@[simp] lemma countable_preimage_exp {s : set ℂ} : (exp ⁻¹' s).countable ↔ s.countable :=
 begin
   refine ⟨λ hs, _, λ hs, _⟩,
   { refine ((hs.image exp).insert 0).mono _,

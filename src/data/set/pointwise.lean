@@ -863,6 +863,10 @@ image2_Inter₂_subset_right _ _ _
 
 @[to_additive] lemma finite.smul : s.finite → t.finite → (s • t).finite := finite.image2 _
 
+@[simp, to_additive] lemma bUnion_smul_set (s : set α) (t : set β) :
+  (⋃ a ∈ s, a • t) = s • t :=
+Union_image_left _
+
 end has_scalar
 
 section has_scalar_set
@@ -1173,6 +1177,15 @@ begin
 end
 
 end smul_with_zero
+
+section left_cancel_semigroup
+variables [left_cancel_semigroup α] {s t : set α}
+
+lemma pairwise_disjoint_smul_iff :
+  s.pairwise_disjoint (• t) ↔ (s ×ˢ t : set (α × α)).inj_on (λ p, p.1 * p.2) :=
+pairwise_disjoint_image_right_iff $ λ _ _, mul_right_injective _
+
+end left_cancel_semigroup
 
 section group
 variables [group α] [mul_action α β] {s t A B : set β} {a : α} {x : β}

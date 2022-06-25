@@ -1044,7 +1044,7 @@ begin
   { simp only [h'b, ennreal.inv_zero, ennreal.coe_ne_top, with_top.mul_top, ne.def, not_false_iff,
                mul_zero, ennreal.coe_zero, ennreal.inv_eq_zero] },
   rw [← ennreal.coe_mul, ← ennreal.coe_inv, ← ennreal.coe_inv h'a, ← ennreal.coe_inv h'b,
-      ← ennreal.coe_mul, nnreal.mul_inv, mul_comm],
+      ← ennreal.coe_mul, mul_inv_rev, mul_comm],
   simp [h'a, h'b],
 end
 
@@ -1291,7 +1291,7 @@ end
 lemma inv_two_add_inv_two : (2:ℝ≥0∞)⁻¹ + 2⁻¹ = 1 :=
 by rw [← two_mul, ← div_eq_mul_inv, div_self two_ne_zero two_ne_top]
 
-lemma inv_three_add_inv_three : (3 : ℝ≥0∞)⁻¹ + 3⁻¹ +3⁻¹ = 1 :=
+lemma inv_three_add_inv_three : (3 : ℝ≥0∞)⁻¹ + 3⁻¹ + 3⁻¹ = 1 :=
 begin
   rw [show (3 : ℝ≥0∞)⁻¹ + 3⁻¹ + 3⁻¹ = 3 * 3⁻¹, by ring, ← div_eq_mul_inv, ennreal.div_self];
   simp,
@@ -1336,6 +1336,42 @@ end
 
 @[simp] lemma one_sub_inv_two : (1:ℝ≥0∞) - 2⁻¹ = 2⁻¹ :=
 by simpa only [div_eq_mul_inv, one_mul] using sub_half one_ne_top
+
+/-- The birational order isomorphism between `ℝ≥0∞` and the unit interval `set.Iic (1 : ℝ≥0∞)`. -/
+@[simps apply_coe] def order_iso_Iic_one_birational : ℝ≥0∞ ≃o Iic (1 : ℝ≥0∞) :=
+begin
+  refine strict_mono.order_iso_of_right_inverse (λ x, ⟨(x⁻¹ + 1)⁻¹, inv_le_one.2 $ le_add_self⟩)
+    (λ x y hxy, _) (λ x, (x⁻¹ - 1)⁻¹) (λ x, subtype.ext _),
+  { simpa only [subtype.mk_lt_mk, inv_lt_inv, ennreal.add_lt_add_iff_right one_ne_top] },
+  { have : (1 : ℝ≥0∞) ≤ x⁻¹, from one_le_inv.2 x.2,
+    simp only [inv_inv, subtype.coe_mk, tsub_add_cancel_of_le this] }
+end
+
+@[simp] lemma order_iso_Iic_one_birational_symm_apply (x : Iic (1 : ℝ≥0∞)) :
+  order_iso_Iic_one_birational.symm x = (x⁻¹ - 1)⁻¹ :=
+rfl
+
+/-- Order isomorphism between an initial interval in `ℝ≥0∞` and an initial interval in `ℝ≥0`. -/
+@[simps apply_coe] def order_iso_Iic_coe (a : ℝ≥0) : Iic (a : ℝ≥0∞) ≃o Iic a :=
+order_iso.symm
+{ to_fun := λ x, ⟨x, coe_le_coe.2 x.2⟩,
+  inv_fun := λ x, ⟨ennreal.to_nnreal x, coe_le_coe.1 $ coe_to_nnreal_le_self.trans x.2⟩,
+  left_inv := λ x, subtype.ext $ to_nnreal_coe,
+  right_inv := λ x, subtype.ext $ coe_to_nnreal (ne_top_of_le_ne_top coe_ne_top x.2),
+  map_rel_iff' := λ x y, by simp only [equiv.coe_fn_mk, subtype.mk_le_mk, coe_coe, coe_le_coe,
+    subtype.coe_le_coe] }
+
+@[simp] lemma order_iso_Iic_coe_symm_apply_coe (a : ℝ≥0) (b : Iic a) :
+  ((order_iso_Iic_coe a).symm b : ℝ≥0∞) = b := rfl
+
+/-- An order isomorphism between the extended nonnegative real numbers and the unit interval. -/
+def order_iso_unit_interval_birational : ℝ≥0∞ ≃o Icc (0 : ℝ) 1 :=
+order_iso_Iic_one_birational.trans $ (order_iso_Iic_coe 1).trans $
+  (nnreal.order_iso_Icc_zero_coe 1).symm
+
+@[simp] lemma order_iso_unit_interval_birational_apply_coe (x : ℝ≥0∞) :
+  (order_iso_unit_interval_birational x : ℝ) = (x⁻¹ + 1)⁻¹.to_real :=
+rfl
 
 lemma exists_inv_nat_lt {a : ℝ≥0∞} (h : a ≠ 0) :
   ∃n:ℕ, (n:ℝ≥0∞)⁻¹ < a :=

@@ -602,7 +602,7 @@ begin
     { exact not_le_of_lt this ⟨set.embedding_of_subset _ _ hs⟩ },
     refine lt_of_le_of_lt (le_trans cardinal.mk_Union_le_sum_mk
       (cardinal.sum_le_sum _ (λ _, ℵ₀) _)) _,
-    { exact λ j, (cardinal.lt_aleph_0_of_finite _).le },
+    { exact λ j, (cardinal.lt_aleph_0_of_fintype _).le },
     { simpa } },
 end
 

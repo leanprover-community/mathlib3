@@ -352,10 +352,10 @@ begin
     have : k ≠ 0,
     { simpa only [inv_inv] using inv_ne_zero (ne_zero_of_mem_of_unit hk), },
     lift k to 𝕜ˣ using is_unit_iff_ne_zero.mpr this,
-    rw ←units.coe_inv' k at hk,
+    rw ←units.coe_inv k at hk,
     exact inv_mem_iff.mp hk },
   { lift k to 𝕜ˣ using is_unit_iff_ne_zero.mpr (ne_zero_of_mem_of_unit hk),
-    simpa only [units.coe_inv'] using inv_mem_iff.mp hk, }
+    simpa only [units.coe_inv] using inv_mem_iff.mp hk, }
 end
 
 open polynomial

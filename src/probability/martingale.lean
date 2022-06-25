@@ -252,38 +252,6 @@ lemma condexp_measurable_mul {ξ ζ : α → ℝ} (hξm : strongly_measurable[m]
   μ[ξ * ζ | m] =ᵐ[μ] ξ * μ[ζ | m] :=
 sorry
 
-lemma measure_is_empty {α : Type*} [is_empty α] [measurable_space α] (μ : measure α) :
-  μ = 0 :=
-begin
-  ext1 s hs,
-  rw [set.eq_empty_of_is_empty s, measure_empty],
-  refl
-end
-
-variables {F : Type*} [normed_division_ring F]
-
-lemma integrable.bdd_mul {ξ ζ : α → F} (hζ : integrable ζ μ) (hξ : ae_strongly_measurable ξ μ)
-  (hξbdd : ∃ C, ∀ x, ∥ξ x∥ ≤ C) :
-  integrable (λ x, ξ x * ζ x) μ :=
-begin
-  by_cases hα : nonempty α,
-  { refine ⟨hξ.mul hζ.1, _⟩,
-    obtain ⟨C, hC⟩ := hξbdd,
-    have hCnonneg : 0 ≤ C := le_trans (norm_nonneg _) (hC hα.some),
-    have : (λ x, ∥ξ x * ζ x∥₊) ≤ λ x, ⟨C, hCnonneg⟩ * ∥ζ x∥₊,
-    { intro x,
-      simp only [nnnorm_mul],
-      exact mul_le_mul_of_nonneg_right (hC x) (zero_le _) },
-    refine lt_of_le_of_lt (lintegral_mono_nnreal this) _,
-    simp only [ennreal.coe_mul],
-    rw lintegral_const_mul' _ _ ennreal.coe_ne_top,
-    exact ennreal.mul_lt_top ennreal.coe_ne_top (ne_of_lt hζ.2) },
-  { rw not_nonempty_iff at hα,
-    haveI := hα,
-    rw measure_is_empty μ,
-    exact integrable_zero_measure }
-end
-
 end temp
 
 section submartingale

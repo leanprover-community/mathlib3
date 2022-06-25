@@ -507,7 +507,7 @@ begin
   simpa only [←aux, ←auxs] using h f₀,
 end
 
-lemma bounded_continuous_function.nnreal.to_real_lintegral_eq_integral
+lemma _root_.bounded_continuous_function.nnreal.to_real_lintegral_eq_integral
   (f : α →ᵇ ℝ≥0) (μ : measure α) :
   (∫⁻ x, (f x : ℝ≥0∞) ∂μ).to_real = (∫ x, f x ∂μ) :=
 begin

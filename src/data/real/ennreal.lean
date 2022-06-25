@@ -1154,7 +1154,7 @@ end
 lemma div_le_iff_le_mul (hb0 : b ≠ 0 ∨ c ≠ ∞) (hbt : b ≠ ∞ ∨ c ≠ 0) : a / b ≤ c ↔ a ≤ c * b :=
 begin
   suffices : a * b⁻¹ ≤ c ↔ a ≤ c / b⁻¹, by simpa [div_eq_mul_inv],
-  refine (le_div_iff_mul_le).symm; simpa
+  refine (le_div_iff_mul_le _ _).symm; simpa
 end
 
 lemma lt_div_iff_mul_lt (hb0 : b ≠ 0 ∨ c ≠ ∞) (hbt : b ≠ ∞ ∨ c ≠ 0) : c < a / b ↔ c * b < a :=

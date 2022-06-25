@@ -60,8 +60,6 @@ local attribute [semireducible] nat_ordinal
 /-- The identity function between `nat_ordinal` and `ordinal`. -/
 @[pattern] def nat_ordinal.to_ordinal : nat_ordinal ≃o ordinal := order_iso.refl _
 
-open ordinal
-
 namespace nat_ordinal
 
 open ordinal

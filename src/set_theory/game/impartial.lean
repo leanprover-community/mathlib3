@@ -69,47 +69,57 @@ theorem impartial_imp : ∀ {x y : pgame} (r : x ≡r y) (h : impartial x), impa
   (λ j, impartial_imp (r.move_right j) (h.move_right _))
 using_well_founded { dec_tac := pgame_wf_tac }
 
-instance impartial_add : ∀ (G H : pgame) [G.impartial] [H.impartial], (G + H).impartial
-| G H :=
-begin
-  introsI hG hH,
-  rw impartial_def,
-  refine ⟨(add_congr (neg_equiv_self _) (neg_equiv_self _)).trans
-    (neg_add_relabelling _ _).equiv.symm, λ k, _, λ k, _⟩,
-  { apply left_moves_add_cases k,
-    all_goals
-    { intro i, simp only [add_move_left_inl, add_move_left_inr],
-      apply impartial_add } },
-  { apply right_moves_add_cases k,
-    all_goals
-    { intro i, simp only [add_move_right_inl, add_move_right_inr],
-      apply impartial_add } }
-end
-using_well_founded { dec_tac := pgame_wf_tac }
+theorem impartial_congr {x y : pgame} (r : x ≡r y) : impartial x ↔ impartial y :=
+⟨r.impartial_imp, r.symm.impartial_imp⟩
 
 end relabelling
 
-instance impartial_neg : ∀ (G : pgame) [G.impartial], (-G).impartial
-| G :=
+theorem equiv_of_le_of_impartial {x y : pgame} (hx : impartial x) (hy : impartial y) (h : x ≤ y) :
+  x ≈ y :=
 begin
-  introI hG,
-  rw impartial_def,
-  refine ⟨_, λ i, _, λ i, _⟩,
+  use h,
+  rw ←neg_le_neg at h,
+end
+
+namespace impartial
+
+theorem neg : ∀ {x}, impartial x → impartial (-x)
+| x := λ h, begin
+  apply mk _ (λ i, _) (λ j, _),
   { rw neg_neg,
-    exact (neg_equiv_self G).symm },
+    exact h.neg_equiv_self.symm },
   { rw move_left_neg',
-    apply impartial_neg },
+    exact (h.move_right _).neg },
   { rw move_right_neg',
-    apply impartial_neg }
+    exact (h.move_left _).neg }
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 
-variables (G : pgame) [impartial G]
+theorem add : ∀ {x y : pgame}, impartial x → impartial y → impartial (x + y)
+| x y hx hy := begin
+  refine mk ((add_congr hx.neg_equiv_self hy.neg_equiv_self).trans
+    (neg_add_relabelling _ _).equiv.symm) (λ k, _) (λ k, _),
+  { apply left_moves_add_cases k,
+    all_goals
+    { intro i, simp only [add_move_left_inl, add_move_left_inr],
+      apply add;
+      solve_by_elim [impartial.move_left, impartial.move_right] } },
+  { apply right_moves_add_cases k,
+    all_goals
+    { intro j, simp only [add_move_right_inl, add_move_right_inr],
+      apply add;
+      solve_by_elim [impartial.move_left, impartial.move_right] } }
+end
+using_well_founded { dec_tac := pgame_wf_tac }
 
-lemma nonpos : ¬ 0 < G :=
+variables {x : pgame} (hx : impartial x)
+include hx
+
+lemma nonpos : ¬ 0 < x :=
 λ h, begin
+apply (h.trans _).false,
   have h' := neg_lt_neg_iff.2 h,
-  rw [pgame.neg_zero, lt_congr_left (neg_equiv_self G).symm] at h',
+  rw [pgame.neg_zero, lt_congr_left hx.neg_equiv_self.symm] at h',
   exact (h.trans h').false
 end
 

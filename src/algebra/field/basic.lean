@@ -238,10 +238,13 @@ structure is_field (R : Type u) [semiring R] : Prop :=
 (mul_comm : ∀ (x y : R), x * y = y * x)
 (mul_inv_cancel : ∀ {a : R}, a ≠ 0 → ∃ b, a * b = 1)
 
-/-- Transferring from field to is_field -/
-lemma field.to_is_field (R : Type u) [semifield R] : is_field R :=
+/-- Transferring from `semifield` to `is_field`. -/
+lemma semifield.to_is_field (R : Type u) [semifield R] : is_field R :=
 { mul_inv_cancel := λ a ha, ⟨a⁻¹, mul_inv_cancel ha⟩,
   ..‹semifield R› }
+
+/-- Transferring from `field` to `is_field`. -/
+lemma field.to_is_field (R : Type u) [field R] : is_field R := semifield.to_is_field _
 
 @[simp] lemma is_field.nontrivial {R : Type u} [semiring R] (h : is_field R) : nontrivial R :=
 ⟨h.exists_pair_ne⟩

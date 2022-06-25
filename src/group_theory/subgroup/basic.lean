@@ -1648,7 +1648,9 @@ def _root_.group.comm_group_of_center_eq_top (h : center G = ⊤) : comm_group G
 { mul_comm := by { rw eq_top_iff' at h, intros x y, exact h y x },
   .. (_ : group G) }
 
-lemma _root_.group.center_eq_top_of_comm {H : Type*} [group H] (h : ∀ a b : H, a * b = b * a) : subgroup.center H = ⊤ :=
+/-- The center of an abelian group is ⊤ -/
+lemma _root_.group.center_eq_top_of_comm {H : Type*} [group H] (h : ∀ a b : H, a * b = b * a) :
+subgroup.center H = ⊤ :=
 begin
   rw subgroup.eq_top_iff',
   intros x y,

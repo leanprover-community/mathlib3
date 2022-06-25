@@ -40,18 +40,24 @@ instance pgame.setoid : setoid pgame :=
   `x ≈ y ↔ x ≤ y ∧ y ≤ x`. -/
 abbreviation game := quotient pgame.setoid
 
+theorem pgame.equiv.game_eq {x y : pgame} (h : x ≈ y) : ⟦x⟧ = ⟦y⟧ :=
+quot.sound h
+
+theorem pgame.relabelling.game_eq {x y : pgame} (h : x ≡r y) : ⟦x⟧ = ⟦y⟧ :=
+h.equiv.game_eq
+
 namespace game
 
 instance : add_comm_group game :=
 { zero := ⟦0⟧,
-  neg := quot.lift (λ x, ⟦-x⟧) (λ x y h, quot.sound ((@neg_equiv_neg_iff x y).2 h)),
+  neg := quot.lift (λ x, ⟦-x⟧) (λ x y h, ((@neg_equiv_neg_iff x y).2 h).game_eq),
   add := quotient.lift₂ (λ x y : pgame, ⟦x + y⟧)
-    (λ x₁ y₁ x₂ y₂ hx hy, quot.sound (pgame.add_congr hx hy)),
-  add_zero := by { rintro ⟨x⟩, exact quot.sound (add_zero_equiv x) },
-  zero_add := by { rintro ⟨x⟩, exact quot.sound (zero_add_equiv x) },
-  add_assoc := by { rintros ⟨x⟩ ⟨y⟩ ⟨z⟩, exact quot.sound add_assoc_equiv },
-  add_left_neg := by { rintro ⟨x⟩, exact quot.sound (add_left_neg_equiv x) },
-  add_comm := by { rintros ⟨x⟩ ⟨y⟩, exact quot.sound add_comm_equiv } }
+    (λ x₁ y₁ x₂ y₂ hx hy, (pgame.add_congr hx hy).game_eq),
+  add_zero := by { rintro ⟨x⟩, exact (add_zero_relabelling x).game_eq },
+  zero_add := by { rintro ⟨x⟩, exact (zero_add_relabelling x).game_eq },
+  add_assoc := by { rintros ⟨x⟩ ⟨y⟩ ⟨z⟩, exact (add_assoc_relabelling x y z).game_eq },
+  add_left_neg := by { rintro ⟨x⟩, exact (add_left_neg_equiv x).game_eq },
+  add_comm := by { rintros ⟨x⟩ ⟨y⟩, exact (add_comm_relabelling x y).game_eq } }
 
 instance : has_one game := ⟨⟦1⟧⟩
 instance : inhabited game := ⟨0⟩
@@ -60,7 +66,7 @@ instance : partial_order game :=
 { le := quotient.lift₂ (λ x y, x ≤ y) (λ x₁ y₁ x₂ y₂ hx hy, propext (le_congr hx hy)),
   le_refl := by { rintro ⟨x⟩, exact le_refl x },
   le_trans := by { rintro ⟨x⟩ ⟨y⟩ ⟨z⟩, exact @le_trans _ _ x y z },
-  le_antisymm := by { rintro ⟨x⟩ ⟨y⟩ h₁ h₂, apply quot.sound, exact ⟨h₁, h₂⟩ } }
+  le_antisymm := by { rintro ⟨x⟩ ⟨y⟩ h₁ h₂, exact quot.sound ⟨h₁, h₂⟩ } }
 
 /-- The less or fuzzy relation on games.
 
@@ -133,6 +139,7 @@ namespace pgame
 
 @[simp] lemma quot_sub (a b : pgame) : ⟦a - b⟧ = ⟦a⟧ - ⟦b⟧ := rfl
 
+/-- The lemma `pgame.equiv_of_mk_equiv` written in terms of quotients. -/
 theorem quot_eq_of_mk_quot_eq {x y : pgame}
   (L : x.left_moves ≃ y.left_moves) (R : y.right_moves ≃ x.right_moves)
   (hl : ∀ i, ⟦x.move_left i⟧ = ⟦y.move_left (L i)⟧)

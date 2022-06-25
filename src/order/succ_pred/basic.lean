@@ -177,7 +177,7 @@ lemma le_of_lt_succ {a b : α} : a < succ b → a ≤ b := succ_order.le_of_lt_s
 @[simp] lemma lt_succ_iff_not_is_max : a < succ a ↔ ¬ is_max a :=
 ⟨not_is_max_of_lt, λ ha, (le_succ a).lt_of_not_le $ λ h, ha $ max_of_succ_le h⟩
 
-alias lt_succ_iff_not_is_max ↔ _ order.lt_succ_of_not_is_max
+alias lt_succ_iff_not_is_max ↔ _ lt_succ_of_not_is_max
 
 lemma wcovby_succ (a : α) : a ⩿ succ a :=
 ⟨le_succ a, λ b hb, (succ_le_of_lt hb).not_lt⟩
@@ -233,8 +233,8 @@ lemma succ_le_iff : succ a ≤ b ↔ a < b := succ_le_iff_of_not_is_max $ not_is
 lemma succ_lt_succ_iff : succ a < succ b ↔ a < b :=
 lt_iff_lt_of_le_iff_le' succ_le_succ_iff succ_le_succ_iff
 
-alias succ_le_succ_iff ↔ order.le_of_succ_le_succ _
-alias succ_lt_succ_iff ↔ order.lt_of_succ_lt_succ order.succ_lt_succ
+alias succ_le_succ_iff ↔ le_of_succ_le_succ _
+alias succ_lt_succ_iff ↔ lt_of_succ_lt_succ succ_lt_succ
 
 lemma succ_strict_mono : strict_mono (succ : α → α) := λ a b, succ_lt_succ
 
@@ -316,7 +316,7 @@ by simp_rw [eq_iff_le_not_lt, succ_le_succ_iff, succ_lt_succ_iff]
 lemma succ_injective : injective (succ : α → α) := λ a b, succ_eq_succ_iff.1
 lemma succ_ne_succ_iff : succ a ≠ succ b ↔ a ≠ b := succ_injective.ne_iff
 
-alias succ_ne_succ_iff ↔ _ order.succ_ne_succ
+alias succ_ne_succ_iff ↔ _ succ_ne_succ
 
 lemma lt_succ_iff_eq_or_lt : a < succ b ↔ a = b ∨ a < b := lt_succ_iff.trans le_iff_eq_or_lt
 
@@ -399,7 +399,7 @@ lemma le_of_pred_lt {a b : α} : pred a < b → a ≤ b := pred_order.le_of_pred
 @[simp] lemma pred_lt_iff_not_is_min : pred a < a ↔ ¬ is_min a :=
 ⟨not_is_min_of_lt, λ ha, (pred_le a).lt_of_not_le $ λ h, ha $ min_of_le_pred h⟩
 
-alias pred_lt_iff_not_is_min ↔ _ order.pred_lt_of_not_is_min
+alias pred_lt_iff_not_is_min ↔ _ pred_lt_of_not_is_min
 
 lemma pred_wcovby (a : α) : pred a ⩿ a :=
 ⟨pred_le a, λ b hb, (le_of_pred_lt hb).not_lt⟩
@@ -448,8 +448,8 @@ lemma le_pred_iff : a ≤ pred b ↔ a < b := le_pred_iff_of_not_is_min $ not_is
 @[simp] lemma pred_lt_pred_iff : pred a < pred b ↔ a < b :=
 by simp_rw [lt_iff_le_not_le, pred_le_pred_iff]
 
-alias pred_le_pred_iff ↔ order.le_of_pred_le_pred _
-alias pred_lt_pred_iff ↔ order.lt_of_pred_lt_pred pred_lt_pred
+alias pred_le_pred_iff ↔ le_of_pred_le_pred _
+alias pred_lt_pred_iff ↔ lt_of_pred_lt_pred pred_lt_pred
 
 lemma pred_strict_mono : strict_mono (pred : α → α) := λ a b, pred_lt_pred
 
@@ -527,7 +527,7 @@ by simp_rw [eq_iff_le_not_lt, pred_le_pred_iff, pred_lt_pred_iff]
 lemma pred_injective : injective (pred : α → α) := λ a b, pred_eq_pred_iff.1
 lemma pred_ne_pred_iff : pred a ≠ pred b ↔ a ≠ b := pred_injective.ne_iff
 
-alias pred_ne_pred_iff ↔ _ order.pred_ne_pred
+alias pred_ne_pred_iff ↔ _ pred_ne_pred
 
 lemma pred_lt_iff_eq_or_lt : pred a < b ↔ a = b ∨ a < b := pred_lt_iff.trans le_iff_eq_or_lt
 

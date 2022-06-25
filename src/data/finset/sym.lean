@@ -58,7 +58,7 @@ by rw [finset.sym2, image_eq_empty, product_eq_empty, or_self]
 @[simp] lemma sym2_nonempty : s.sym2.nonempty ↔ s.nonempty :=
 by rw [finset.sym2, nonempty.image_iff, nonempty_product, and_self]
 
-alias sym2_nonempty ↔ _ finset.nonempty.sym2
+alias sym2_nonempty ↔ _ nonempty.sym2
 
 attribute [protected] finset.nonempty.sym2
 
@@ -139,7 +139,7 @@ end
 @[simp] lemma sym_nonempty : (s.sym n).nonempty ↔ n = 0 ∨ s.nonempty :=
 by simp_rw [nonempty_iff_ne_empty, ne.def, sym_eq_empty, not_and_distrib, not_ne_iff]
 
-alias sym2_nonempty ↔ _ finset.nonempty.sym2
+alias sym2_nonempty ↔ _ nonempty.sym2
 
 attribute [protected] finset.nonempty.sym2
 

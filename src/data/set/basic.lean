@@ -1753,7 +1753,7 @@ lemma exists_subtype_range_iff {p : range f → Prop} :
 theorem range_iff_surjective : range f = univ ↔ surjective f :=
 eq_univ_iff_forall
 
-alias range_iff_surjective ↔ _ function.surjective.range_eq
+alias range_iff_surjective ↔ _ _root_.function.surjective.range_eq
 
 @[simp] theorem image_univ {f : α → β} : f '' univ = range f :=
 by { ext, simp [image, range] }

@@ -125,7 +125,7 @@ begin
       exacts [or.inl $ (congr_arg f hc.symm).trans h, or.inr ⟨c, hc, h⟩] } }
 end
 
-alias mem_map ↔ list.exists_of_mem_map _
+alias mem_map ↔ exists_of_mem_map _
 
 theorem mem_map_of_mem (f : α → β) {a : α} {l : list α} (h : a ∈ l) : f a ∈ map f l :=
 mem_map.2 ⟨a, h, rfl⟩

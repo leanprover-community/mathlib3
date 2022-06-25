@@ -331,7 +331,7 @@ protected def nonempty (s : finset α) : Prop := ∃ x:α, x ∈ s
 
 @[simp] lemma nonempty_coe_sort (s : finset α) : nonempty ↥s ↔ s.nonempty := nonempty_subtype
 
-alias coe_nonempty ↔ _ finset.nonempty.to_set
+alias coe_nonempty ↔ _ nonempty.to_set
 
 lemma nonempty.bex {s : finset α} (h : s.nonempty) : ∃ x:α, x ∈ s := h
 
@@ -1955,7 +1955,7 @@ eq_of_veq $ multiset.map_cons f a s.val
 @[simp] lemma map_nonempty : (s.map f).nonempty ↔ s.nonempty :=
 by rw [nonempty_iff_ne_empty, nonempty_iff_ne_empty, ne.def, map_eq_empty]
 
-alias map_nonempty ↔ _ finset.nonempty.map
+alias map_nonempty ↔ _ nonempty.map
 
 lemma attach_map_val {s : finset α} : s.attach.map (embedding.subtype _) = s :=
 eq_of_veq $ by rw [map_val, attach_val]; exact attach_map_val _

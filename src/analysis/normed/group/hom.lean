@@ -243,8 +243,8 @@ lemma mk_normed_group_hom_norm_le' (f : V₁ →+ V₂) {C : ℝ} (h : ∀x, ∥
 op_norm_le_bound _ (le_max_right _ _) $ λ x, (h x).trans $
   mul_le_mul_of_nonneg_right (le_max_left _ _) (norm_nonneg x)
 
-alias mk_normed_group_hom_norm_le ← add_monoid_hom.mk_normed_group_hom_norm_le
-alias mk_normed_group_hom_norm_le' ← add_monoid_hom.mk_normed_group_hom_norm_le'
+alias mk_normed_group_hom_norm_le ← _root_.add_monoid_hom.mk_normed_group_hom_norm_le
+alias mk_normed_group_hom_norm_le' ← _root_.add_monoid_hom.mk_normed_group_hom_norm_le'
 
 /-! ### Addition of normed group homs -/
 

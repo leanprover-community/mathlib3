@@ -36,7 +36,7 @@ lemma step_bound_mono : monotone step_bound :=
 lemma step_bound_pos_iff {n : ℕ} : 0 < step_bound n ↔ 0 < n :=
 zero_lt_mul_right $ pow_pos (by norm_num) _
 
-alias step_bound_pos_iff ↔ _ szemeredi_regularity.step_bound_pos
+alias step_bound_pos_iff ↔ _ step_bound_pos
 
 variables {α : Type*} [decidable_eq α] [fintype α] {P : finpartition (univ : finset α)}
   {u : finset α} {ε : ℝ}

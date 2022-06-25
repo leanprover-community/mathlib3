@@ -385,8 +385,8 @@ by { rw ←pgame.not_le at h₂ ⊢, exact λ h₃, h₂ (h₃.trans h₁) }
 @[trans] theorem lf_of_lf_of_le {x y z : pgame} (h₁ : x ⧏ y) (h₂ : y ≤ z) : x ⧏ z :=
 by { rw ←pgame.not_le at h₁ ⊢, exact λ h₃, h₁ (h₂.trans h₃) }
 
-alias lf_of_le_of_lf ← has_le.le.trans_lf
-alias lf_of_lf_of_le ← pgame.lf.trans_le
+alias lf_of_le_of_lf ← _root_.has_le.le.trans_lf
+alias lf_of_lf_of_le ← lf.trans_le
 
 @[trans] theorem lf_of_lt_of_lf {x y z : pgame} (h₁ : x < y) (h₂ : y ⧏ z) : x ⧏ z :=
 h₁.le.trans_lf h₂
@@ -394,8 +394,8 @@ h₁.le.trans_lf h₂
 @[trans] theorem lf_of_lf_of_lt {x y z : pgame} (h₁ : x ⧏ y) (h₂ : y < z) : x ⧏ z :=
 h₁.trans_le h₂.le
 
-alias lf_of_lt_of_lf ← has_lt.lt.trans_lf
-alias lf_of_lf_of_lt ← pgame.lf.trans_lt
+alias lf_of_lt_of_lf ← _root_.has_lt.lt.trans_lf
+alias lf_of_lf_of_lt ← lf.trans_lt
 
 theorem move_left_lf {x : pgame} (i) : x.move_left i ⧏ x :=
 move_left_lf_of_le i le_rfl
@@ -416,7 +416,7 @@ theorem lt_of_le_of_lf {x y : pgame} (h₁ : x ≤ y) (h₂ : x ⧏ y) : x < y :
 lt_iff_le_and_lf.2 ⟨h₁, h₂⟩
 
 theorem lf_of_lt {x y : pgame} (h : x < y) : x ⧏ y := (lt_iff_le_and_lf.1 h).2
-alias lf_of_lt ← has_lt.lt.lf
+alias lf_of_lt ← _root_.has_lt.lt.lf
 
 /-- This special case of `pgame.le_of_forall_lf` is useful when dealing with surreals, where `<` is
 preferred over `⧏`. -/
@@ -624,7 +624,7 @@ theorem lf_iff_lt_or_fuzzy {x y : pgame} : x ⧏ y ↔ x < y ∨ x ∥ y :=
 by { simp only [lt_iff_le_and_lf, fuzzy, ←pgame.not_le], tauto! }
 
 theorem lf_of_fuzzy {x y : pgame} (h : x ∥ y) : x ⧏ y := lf_iff_lt_or_fuzzy.2 (or.inr h)
-alias lf_of_fuzzy ← pgame.fuzzy.lf
+alias lf_of_fuzzy ← fuzzy.lf
 
 theorem lt_or_fuzzy_of_lf {x y : pgame} : x ⧏ y → x < y ∨ x ∥ y :=
 lf_iff_lt_or_fuzzy.1

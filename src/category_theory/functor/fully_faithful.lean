@@ -194,14 +194,14 @@ variables {F G}
 lemma faithful.of_comp_iso {H : C ⥤ E} [ℋ : faithful H] (h : F ⋙ G ≅ H) : faithful F :=
 @faithful.of_comp _ _ _ _ _ _ F G (faithful.of_iso h.symm)
 
-alias faithful.of_comp_iso ← category_theory.iso.faithful_of_comp
+alias faithful.of_comp_iso ← _root_.category_theory.iso.faithful_of_comp
 
 -- We could prove this from `faithful.of_comp_iso` using `eq_to_iso`,
 -- but that would introduce a cyclic import.
 lemma faithful.of_comp_eq {H : C ⥤ E} [ℋ : faithful H] (h : F ⋙ G = H) : faithful F :=
 @faithful.of_comp _ _ _ _ _ _ F G (h.symm ▸ ℋ)
 
-alias faithful.of_comp_eq ← eq.faithful_of_comp
+alias faithful.of_comp_eq ← _root_.eq.faithful_of_comp
 
 variables (F G)
 

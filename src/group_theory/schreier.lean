@@ -108,7 +108,8 @@ lemma exists_finset_card_le_mul (hH : H.index ≠ 0) {S : finset G} (hS : closur
 begin
   haveI : decidable_eq G := classical.dec_eq G,
   obtain ⟨R₀, hR : R₀ ∈ right_transversals (H : set G), hR1⟩ := exists_right_transversal (1 : G),
-  haveI : fintype (G ⧸ H) := fintype_of_index_ne_zero hH,
+  haveI : finite (G ⧸ H) := finite_quotient_of_index_ne_zero hH,
+  casesI nonempty_fintype (G ⧸ H),
   haveI : fintype R₀ := fintype.of_equiv _ (mem_right_transversals.to_equiv hR),
   let R : finset G := set.to_finset R₀,
   replace hR : (R : set G) ∈ right_transversals (H : set G) := by rwa set.coe_to_finset,

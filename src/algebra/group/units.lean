@@ -116,9 +116,10 @@ lemma copy_eq (u : αˣ) (val hv inv hi) :
   u.copy val hv inv hi = u :=
 ext hv
 
--- Needs priority `<100` to make division `[comm_ring α] (a b : αˣ) : a / b` work properly.
+-- Needs priority `< 100` to make division of units in `[comm_ring α]` work properly.
 /-- Units of a monoid form a group. -/
-@[to_additive "Additive units of an additive monoid form an additive group.", priority 70] instance : group αˣ :=
+@[to_additive "Additive units of an additive monoid form an additive group.", priority 70]
+instance : group αˣ :=
 { mul := λ u₁ u₂, ⟨u₁.val * u₂.val, u₂.inv * u₁.inv,
     by rw [mul_assoc, ← mul_assoc u₂.val, val_inv, one_mul, val_inv],
     by rw [mul_assoc, ← mul_assoc u₁.inv, inv_val, one_mul, inv_val]⟩,

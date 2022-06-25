@@ -93,10 +93,10 @@ begin
   refine numeric_rec (λ xl xr xL xR hx oxl oxr IHxl IHxr, _) x ox y oy,
   refine numeric_rec (λ yl yr yL yR hy oyl oyr IHyl IHyr, _),
   rw [mk_lf_mk, mk_lf_mk], rintro (⟨i, h₁⟩ | ⟨j, h₁⟩) (⟨i, h₂⟩ | ⟨j, h₂⟩),
-  { exact IHxl _ _ (oyl _) (move_left_lf_of_le _ h₁) (move_left_lf_of_le _ h₂) },
+  { exact IHxl _ _ (oyl _) (h₁.move_left_lf _) (h₂.move_left_lf _) },
   { exact (le_trans h₂ h₁).not_gf (lf_of_lt (hy _ _)) },
   { exact (le_trans h₁ h₂).not_gf (lf_of_lt (hx _ _)) },
-  { exact IHxr _ _ (oyr _) (lf_move_right_of_le _ h₁) (lf_move_right_of_le _ h₂) },
+  { exact IHxr _ _ (oyr _) (h₁.lf_move_right _) (h₂.lf_move_right _) },
 end
 
 theorem le_of_lf {x y : pgame} (h : x ⧏ y) (ox : numeric x) (oy : numeric y) : x ≤ y :=

@@ -2619,6 +2619,9 @@ rfl
   e.finset_congr.trans (e'.finset_congr) = (e.trans e').finset_congr :=
 by { ext, simp [-finset.mem_map, -equiv.trans_to_embedding] }
 
+lemma finset_congr_to_embedding (e : α ≃ β) :
+  e.finset_congr.to_embedding = (finset.map_embedding e.to_embedding).to_embedding := rfl
+
 /--
 Inhabited types are equivalent to `option β` for some `β` by identifying `default α` with `none`.
 -/

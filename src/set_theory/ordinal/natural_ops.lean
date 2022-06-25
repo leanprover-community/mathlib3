@@ -115,11 +115,10 @@ end ordinal
 
 end semireducible
 
-/-! ### Natural addition -/
+/-! We place the definitions of `nadd` and `nmul` before actually developing their API, as this
+guarantees we only need to open the `natural_ops` locale once. -/
 
 namespace ordinal
-
-variables {a b c : ordinal.{u}}
 
 /-- Natural addition on ordinals `a ♯ b`, also known as the Hessenberg sum, is recursively defined
 as the least ordinal greater than `a' ♯ b` and `a ♯ b'` for all `a' < a` and `b' < b`. In contrast
@@ -134,6 +133,30 @@ noncomputable def nadd : ordinal → ordinal → ordinal
 using_well_founded { dec_tac := `[solve_by_elim [psigma.lex.left, psigma.lex.right]] }
 
 localized "infix ` ♯ `:65 := ordinal.nadd" in natural_ops
+
+/-- Natural multiplication on ordinals `a ⨳ b`, also known as the Hessenberg product, is recursively
+defined as the least ordinal such that `a ⨳ b + a' ⨳ b'` is greater than `a' ⨳ b + a ⨳ b'` for all
+`a' < a` and `b < b'`. In contrast to normal ordinal multiplication, it is commutative and
+distributive (over natural addition).
+
+Natural multiplication can equivalently be characterized as the ordinal resulting from multiplying
+the Cantor normal forms of `a` and `b` as if they were polynomials in `ω`. Addition of exponents is
+done via natural addition. -/
+noncomputable def nmul : ordinal.{u} → ordinal.{u} → ordinal.{u}
+| a b := Inf {c | ∀ (a' < a) (b' < b), nmul a' b ♯ nmul a b' < c ♯ nmul a' b'}
+using_well_founded { dec_tac := `[solve_by_elim [psigma.lex.left, psigma.lex.right]] }
+
+localized "infix ` ⨳ `:70 := ordinal.nmul" in natural_ops
+
+end ordinal
+
+open_locale natural_ops
+
+/-! ### Natural addition -/
+
+namespace ordinal
+
+variables {a b c : ordinal.{u}}
 
 theorem nadd_def (a b : ordinal) : a ♯ b = max
   (blsub.{u u} a $ λ a' h, a' ♯ b)
@@ -253,8 +276,6 @@ end
 
 end ordinal
 
-open_locale natural_ops
-
 section semireducible
 
 local attribute [semireducible] nat_ordinal
@@ -369,20 +390,6 @@ end semireducible
 namespace ordinal
 
 variables {a b c d : ordinal.{u}}
-
-/-- Natural multiplication on ordinals `a ⨳ b`, also known as the Hessenberg product, is recursively
-defined as the least ordinal such that `a ⨳ b + a' ⨳ b'` is greater than `a' ⨳ b + a ⨳ b'` for all
-`a' < a` and `b < b'`. In contrast to normal ordinal multiplication, it is commutative and
-distributive (over natural addition).
-
-Natural multiplication can equivalently be characterized as the ordinal resulting from multiplying
-the Cantor normal forms of `a` and `b` as if they were polynomials in `ω`. Addition of exponents is
-done via natural addition. -/
-noncomputable def nmul : ordinal.{u} → ordinal.{u} → ordinal.{u}
-| a b := Inf {c | ∀ (a' < a) (b' < b), nmul a' b ♯ nmul a b' < c ♯ nmul a' b'}
-using_well_founded { dec_tac := `[solve_by_elim [psigma.lex.left, psigma.lex.right]] }
-
-localized "infix ` ⨳ `:70 := ordinal.nmul" in natural_ops
 
 theorem nmul_def (a b : ordinal) :
   a ⨳ b = Inf {c | ∀ (a' < a) (b' < b), a' ⨳ b ♯ a ⨳ b' < c ♯ a' ⨳ b'} :=
@@ -582,8 +589,6 @@ end
 using_well_founded { dec_tac := `[solve_by_elim [psigma.lex.left, psigma.lex.right]] }
 
 end ordinal
-
-open_locale natural_ops
 
 section semireducible
 

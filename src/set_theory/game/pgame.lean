@@ -770,7 +770,7 @@ instance {x y : pgame} : has_coe (x ≡r y) (x ≈ y) := ⟨relabelling.equiv⟩
 
 /-- Replace the types indexing the next moves for Left and Right by equivalent types. -/
 def relabel {x : pgame} {xl' xr'} (el : x.left_moves ≃ xl') (er : xr' ≃ x.right_moves) : pgame :=
-⟨xl', xr', λ i, x.move_left (el.symm i), λ j, x.move_right (er j)⟩
+⟨xl', xr', x.move_left ∘ el.symm, x.move_right ∘ er⟩
 
 @[simp] lemma relabel_move_left' {x : pgame} {xl' xr'}
   (el : x.left_moves ≃ xl') (er : xr' ≃ x.right_moves) (i : xl') :

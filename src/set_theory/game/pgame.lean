@@ -332,18 +332,6 @@ lf_iff_exists_le.2 $ or.inr ⟨j, h⟩
 theorem lf_of_le_move_left {x y : pgame} {i} (h : x ≤ y.move_left i) : x ⧏ y :=
 lf_iff_exists_le.2 $ or.inl ⟨i, h⟩
 
-theorem lf_of_le_mk {xl xr xL xR y} : ∀ i, mk xl xr xL xR ≤ y → xL i ⧏ y :=
-@move_left_lf_of_le (mk _ _ _ _) y
-
-theorem lf_of_mk_le {x yl yr yL yR} : ∀ j, x ≤ mk yl yr yL yR → x ⧏ yR j :=
-@lf_move_right_of_le x (mk _ _ _ _)
-
-theorem mk_lf_of_le {xl xr y j} (xL) {xR : xr → pgame} : xR j ≤ y → mk xl xr xL xR ⧏ y :=
-@lf_of_move_right_le (mk _ _ _ _) y j
-
-theorem lf_mk_of_le {x yl yr} {yL : yl → pgame} (yR) {i} : x ≤ yL i → x ⧏ mk yl yr yL yR :=
-@lf_of_le_move_left x (mk _ _ _ _) i
-
 private theorem le_trans_aux
   {xl xr} {xL : xl → pgame} {xR : xr → pgame}
   {yl yr} {yL : yl → pgame} {yR : yr → pgame}

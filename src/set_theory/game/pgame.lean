@@ -726,14 +726,32 @@ def mk' {x y : pgame} (L : y.left_moves ≃ x.left_moves) (R : x.right_moves ≃
 ⟨L.symm, R.symm, λ i, by simpa using hL (L.symm i), λ j, by simpa using hR (R.symm j)⟩
 
 /-- The equivalence between left moves of `x` and `y` given by the relabelling. -/
-def left_moves {x y : pgame} : Π x ≡r y, x.left_moves ≃ y.left_moves
-| _ ⟨L, R, hL, hR⟩ := L
+def left_moves_equiv {x y : pgame} : Π (r : x ≡r y), x.left_moves ≃ y.left_moves
+| ⟨L, R, hL, hR⟩ := L
 
 /-- The equivalence between right moves of `y` and `x` given by the relabelling. -/
-def right_moves {x y : pgame} : Π x ≡r y, y.right_moves ≃ x.right_moves
-| _ ⟨L, R, hL, hR⟩ := R
+def right_moves_equiv {x y : pgame} : Π (r : x ≡r y), y.right_moves ≃ x.right_moves
+| ⟨L, R, hL, hR⟩ := R
 
-theorem move_left 
+/-- A left move of `x` is a relabelling of a left move of `y`. -/
+def move_left {x y : pgame} : ∀ (r : x ≡r y) (i : x.left_moves),
+  x.move_left i ≡r y.move_left (r.left_moves_equiv i)
+| ⟨L, R, hL, hR⟩ := hL
+
+/-- A left move of `x` is a relabelling of a left move of `y`. -/
+def move_left_symm {x y : pgame} : ∀ (r : x ≡r y) (i : y.left_moves),
+  x.move_left (r.left_moves_equiv.symm i) ≡r y.move_left i
+| ⟨L, R, hL, hR⟩ i := by simpa using hL (L.symm i)
+
+/-- A right move of `x` is a relabelling of a right move of `y`. -/
+def move_right {x y : pgame} : ∀ (r : x ≡r y) (i : y.right_moves),
+  x.move_right (r.right_moves_equiv i) ≡r y.move_right i
+| ⟨L, R, hL, hR⟩ := hR
+
+/-- A left move of `x` is a relabelling of a left move of `y`. -/
+def move_right_symm {x y : pgame} : ∀ (r : x ≡r y) (i : x.right_moves),
+  x.move_right i ≡r y.move_right (r.right_moves_equiv.symm i)
+| ⟨L, R, hL, hR⟩ i := by simpa using hR (R.symm i)
 
 /-- If `x` is a relabelling of `y`, then `x` is a restriction of `y`. -/
 def restricted : Π {x y : pgame} (r : x ≡r y), restricted x y
@@ -802,7 +820,7 @@ by simp
 /-- The game obtained by relabelling the next moves is a relabelling of the original game. -/
 def relabel_relabelling {x : pgame} {xl' xr'} (el : x.left_moves ≃ xl') (er : xr' ≃ x.right_moves) :
   x ≡r relabel el er :=
-relabelling.mk el er (λ i, by simp) (λ j, by simp)
+⟨el, er, λ i, by simp, λ j, by simp⟩
 
 /-- The negation of `{L | R}` is `{-R | -L}`. -/
 def neg : pgame → pgame
@@ -897,7 +915,7 @@ by simp
 /-- If `x` has the same moves as `y`, then `-x` has the sames moves as `-y`. -/
 def relabelling.neg_congr : ∀ {x y : pgame}, x ≡r y → -x ≡r -y
 | ⟨xl, xr, xL, xR⟩ ⟨yl, yr, yL, yR⟩ ⟨L, R, hL, hR⟩ :=
-relabelling.mk' R L (λ j, relabelling.neg_congr (hR j)) (λ i, relabelling.neg_congr (hL i))
+relabelling.mk' R L (λ j, (hR j).neg_congr) (λ i, (hL i).neg_congr)
 
 private theorem neg_le_lf_neg_iff :
   Π {x y : pgame.{u}}, (-y ≤ -x ↔ x ≤ y) ∧ (-y ⧏ -x ↔ x ⧏ y)

@@ -69,22 +69,17 @@ begin
 end
 
 theorem relabelling.birthday_congr : ∀ {x y : pgame.{u}}, x ≡r y → birthday x = birthday y
-| ⟨xl, xr, xL, xR⟩ ⟨yl, yr, yL, yR⟩ ⟨L, R, hL, hR⟩ := begin
-  rw [birthday, birthday],
+| ⟨xl, xr, xL, xR⟩ ⟨yl, yr, yL, yR⟩ r := begin
+  unfold birthday,
   congr' 1,
   all_goals
   { apply lsub_eq_of_range_eq.{u u u},
-    ext i,
-    split },
+    ext i, split },
   all_goals { rintro ⟨j, rfl⟩ },
-  { exact ⟨L j, (hL j).birthday_congr.symm⟩ },
-  { refine ⟨L.symm j, relabelling.birthday_congr _⟩,
-    convert hL (L.symm j),
-    rw L.apply_symm_apply },
-  { refine ⟨R.symm j, (relabelling.birthday_congr _).symm⟩,
-    convert hR (R.symm j),
-    rw R.apply_symm_apply },
-  { exact ⟨R j, (hR j).birthday_congr⟩ }
+  { exact ⟨_, (r.move_left j).birthday_congr.symm⟩ },
+  { exact ⟨_, (r.move_left_symm j).birthday_congr⟩ },
+  { exact ⟨_, (r.move_right_symm j).birthday_congr.symm⟩ },
+  { exact ⟨_, (r.move_right j).birthday_congr⟩ }
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 

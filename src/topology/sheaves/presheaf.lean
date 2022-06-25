@@ -211,7 +211,7 @@ begin
   dsimp[id], simp, dsimp[colimit_of_diagram_terminal],
   delta Lan.diagram,
   refine eq.trans _ (category.id_comp _),
-  rw ← ℱ.map_id,
+  simp_rw ← ℱ.map_id,
   congr,
   any_goals { apply subsingleton.helim },
   all_goals { simp }

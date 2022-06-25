@@ -1510,8 +1510,7 @@ alias not_disjoint_iff_nonempty_inter ↔ _ set.nonempty.not_disjoint
 lemma disjoint_or_nonempty_inter (s t : set α) : disjoint s t ∨ (s ∩ t).nonempty :=
 (em _).imp_right not_disjoint_iff_nonempty_inter.mp
 
-lemma disjoint_left : disjoint s t ↔ ∀ {a}, a ∈ s → a ∉ t :=
-show (∀ x, ¬(x ∈ s ∩ t)) ↔ _, from ⟨λ h a, not_and.1 $ h a, λ h a, not_and.2 $ h a⟩
+lemma disjoint_left : disjoint s t ↔ ∀ ⦃a⦄, a ∈ s → a ∉ t := forall_congr $ λ _, not_and
 
 theorem disjoint_right : disjoint s t ↔ ∀ {a}, a ∈ t → a ∉ s :=
 by rw [disjoint.comm, disjoint_left]

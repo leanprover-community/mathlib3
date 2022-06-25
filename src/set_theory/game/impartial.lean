@@ -31,21 +31,27 @@ def impartial : pgame → Prop
 | x := x ≈ -x ∧ (∀ i, impartial (x.move_left i)) ∧ ∀ j, impartial (x.move_right j)
 using_well_founded { dec_tac := pgame_wf_tac }
 
+theorem impartial_def {x} :
+  impartial x ↔ x ≈ -x ∧ (∀ i, impartial (x.move_left i)) ∧ ∀ j, impartial (x.move_right j) :=
+by rw impartial
+
 namespace impartial
 
+theorem mk {x} (h₁ : x ≈ -x) (h₂ : ∀ i, impartial (x.move_left i))
+  (h₃ : ∀ j, impartial (x.move_right j)) : impartial x :=
+impartial_def.2 ⟨h₁, h₂, h₃⟩
+
 theorem neg_equiv_self {x} (h : impartial x) : x ≈ -x :=
-by { rw impartial at h, exact h.1 }
+(impartial_def.1 h).1
 
 theorem mk_neg_eq_self {x} (h : impartial x) : -⟦x⟧ = ⟦x⟧ :=
 quot.sound h.neg_equiv_self.symm
 
-theorem move_left {x} (h : impartial x) (i : x.left_moves) :
-  (x.move_left i).impartial :=
-by { rw impartial at h, exact h.2.1 i }
+theorem move_left {x} (h : impartial x) : ∀ i, (x.move_left i).impartial :=
+(impartial_def.1 h).2.1
 
-theorem move_right {x} (h : impartial x) (i : x.right_moves) :
-  (x.move_right i).impartial :=
-by { rw impartial at h, exact h.2.2 i }
+theorem move_right {x} (h : impartial x) : ∀ i, (x.move_right i).impartial :=
+(impartial_def.1 h).2.2
 
 end impartial
 
@@ -57,17 +63,10 @@ by { rw impartial, simpa using impartial_zero }
 
 namespace relabelling
 
-theorem impartial_imp : ∀ {G H : pgame} (e : G ≡r H) [G.impartial], H.impartial
-| G H e := begin
-  introI h,
-  rw impartial_def,
-  refine ⟨e.symm.equiv.trans ((neg_equiv_self G).trans (neg_equiv_neg_iff.2 e.equiv)),
-    λ i, _, λ j, _⟩;
-  cases e with _ _ L R hL hR,
-  { convert impartial_congr (hL (L.symm i)),
-    rw equiv.apply_symm_apply },
-  { exact impartial_congr (hR j) }
-end
+theorem impartial_imp : ∀ {x y : pgame} (r : x ≡r y) (h : impartial x), impartial y
+| x y r := λ h, impartial.mk ((r.equiv'.trans h.neg_equiv_self).trans (neg_equiv_neg_iff.2 r.equiv))
+  (λ i, impartial_imp (r.move_left_symm i) (h.move_left _))
+  (λ j, impartial_imp (r.move_right j) (h.move_right _))
 using_well_founded { dec_tac := pgame_wf_tac }
 
 instance impartial_add : ∀ (G H : pgame) [G.impartial] [H.impartial], (G + H).impartial

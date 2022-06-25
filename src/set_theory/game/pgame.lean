@@ -792,7 +792,8 @@ theorem le (r : x ≡r y) : x ≤ y := r.restricted.le
 theorem ge (r : x ≡r y) : y ≤ x := r.symm.restricted.le
 
 /-- A relabelling lets us prove equivalence of games. -/
-theorem equiv (r : x ≡r y) : x ≈ y := ⟨r.le, r.ge⟩
+theorem equiv  (r : x ≡r y) : x ≈ y := ⟨r.le, r.ge⟩
+theorem equiv' (r : x ≡r y) : y ≈ x := ⟨r.ge, r.le⟩
 
 theorem relabelling.equiv' {x y : pgame} (r : x ≡r y) : y ≈ x := ⟨r.ge, r.le⟩
 

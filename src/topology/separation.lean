@@ -1555,10 +1555,9 @@ begin
   -- in whichever of u or v x lies in and hence will be a subset of either a or b.
   suffices : ∃ (Z : set α), is_clopen Z ∧ x ∈ Z ∧ Z ⊆ u ∪ v,
   { cases this with Z H,
-    rw [disjoint_iff_inter_eq_empty] at huv,
     have H1 := is_clopen_inter_of_disjoint_cover_clopen H.1 H.2.2 hu hv huv,
     rw [union_comm] at H,
-    have H2 := is_clopen_inter_of_disjoint_cover_clopen H.1 H.2.2 hv hu (inter_comm u v ▸ huv),
+    have H2 := is_clopen_inter_of_disjoint_cover_clopen H.1 H.2.2 hv hu huv.symm,
     by_cases (x ∈ u),
     -- The x ∈ u case.
     { left,

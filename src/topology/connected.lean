@@ -889,7 +889,7 @@ for every cover by two closed sets that are disjoint,
 it is contained in one of the two covering sets. -/
 theorem is_preconnected_iff_subset_of_fully_disjoint_closed {s : set α} (hs : is_closed s) :
   is_preconnected s ↔
-  ∀ (u v : set α) (hu : is_closed u) (hv : is_closed v) (hss : s ⊆ u ∪ v) (huv : u ∩ v = ∅),
+  ∀ (u v : set α) (hu : is_closed u) (hv : is_closed v) (hss : s ⊆ u ∪ v) (huv : disjoint u v),
   s ⊆ u ∨ s ⊆ v :=
 begin
   split,
@@ -977,9 +977,7 @@ begin
     dsimp only,
     cases fiber_decomp (f a) (mem_preimage.1 hat),
     { exact h },
-    { exfalso,
-      rw ←not_nonempty_iff_eq_empty at uv_disj,
-      exact uv_disj (nonempty_of_mem (mem_inter hau (h rfl))) } },
+    { cases (nonempty_of_mem $ mem_inter hau $ h rfl).not_disjoint uv_disj } },
   -- This proof is exactly the same as the above (modulo some symmetry)
   have T₂_v : f ⁻¹' T₂ = (f ⁻¹' connected_component t) ∩ v,
   { apply eq_of_subset_of_subset,
@@ -1184,7 +1182,7 @@ section totally_separated
 by two disjoint open sets covering `s`. -/
 def is_totally_separated (s : set α) : Prop :=
 ∀ x ∈ s, ∀ y ∈ s, x ≠ y → ∃ u v : set α, is_open u ∧ is_open v ∧
-  x ∈ u ∧ y ∈ v ∧ s ⊆ u ∪ v ∧ u ∩ v = ∅
+  x ∈ u ∧ y ∈ v ∧ s ⊆ u ∪ v ∧ disjoint u v
 
 theorem is_totally_separated_empty : is_totally_separated (∅ : set α) :=
 λ x, false.elim
@@ -1198,7 +1196,7 @@ begin
   intros t hts ht x x_in y y_in,
   by_contra h,
   obtain ⟨u : set α, v : set α, hu : is_open u, hv : is_open v,
-          hxu : x ∈ u, hyv : y ∈ v, hs : s ⊆ u ∪ v, huv : u ∩ v = ∅⟩ :=
+          hxu : x ∈ u, hyv : y ∈ v, hs : s ⊆ u ∪ v, huv⟩ :=
     H x (hts x_in) y (hts y_in) h,
   have : (t ∩ u).nonempty → (t ∩ v).nonempty → (t ∩ (u ∩ v)).nonempty :=
     ht _ _ hu hv (subset.trans hts hs),

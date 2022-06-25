@@ -918,6 +918,8 @@ lemma subset_compl_iff_disjoint_right : s ⊆ tᶜ ↔ disjoint s t :=
 lemma disjoint_compl_left_iff_subset : disjoint sᶜ t ↔ t ⊆ s := disjoint_compl_left_iff
 lemma disjoint_compl_right_iff_subset : disjoint s tᶜ ↔ s ⊆ t := disjoint_compl_right_iff
 
+alias subset_compl_iff_disjoint_right ↔ _ disjoint.subset_compl_right
+alias subset_compl_iff_disjoint_left ↔ _ disjoint.subset_compl_left
 alias disjoint_compl_left_iff_subset ↔ _ has_subset.subset.disjoint_compl_left
 alias disjoint_compl_right_iff_subset ↔ _ has_subset.subset.disjoint_compl_right
 
@@ -1470,7 +1472,7 @@ theorem mem_image_iff_of_inverse {f : α → β} {g : β → α} {b : β} {s : s
 by rw image_eq_preimage_of_inverse h₁ h₂; refl
 
 theorem image_compl_subset {f : α → β} {s : set α} (H : injective f) : f '' sᶜ ⊆ (f '' s)ᶜ :=
-subset_compl_iff_disjoint_left.2 $ by simp [disjoint, image_inter H]
+disjoint.subset_compl_left $ by simp [disjoint, image_inter H]
 
 theorem subset_image_compl {f : α → β} {s : set α} (H : surjective f) : (f '' s)ᶜ ⊆ f '' sᶜ :=
 compl_subset_iff_union.2 $

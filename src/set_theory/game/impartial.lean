@@ -22,47 +22,42 @@ open_locale pgame
 
 namespace pgame
 
-/-- The definition for a impartial game, defined using Conway induction. -/
-def impartial_aux : pgame → Prop
-| G := G ≈ -G ∧ (∀ i, impartial_aux (G.move_left i)) ∧ ∀ j, impartial_aux (G.move_right j)
+/-- An impartial pre-game is equivalent to its negation, and all of its options are impartial too.
+
+Note that this is **not** the standard definition of an impartial game, which requires the stronger
+condition `x = -x`. However, this weaker notion of impartiality suffices to prove Sprague-Grundy.
+-/
+def impartial : pgame → Prop
+| x := x ≈ -x ∧ (∀ i, impartial (x.move_left i)) ∧ ∀ j, impartial (x.move_right j)
 using_well_founded { dec_tac := pgame_wf_tac }
-
-lemma impartial_aux_def {G : pgame} : G.impartial_aux ↔ G ≈ -G ∧
-  (∀ i, impartial_aux (G.move_left i)) ∧ ∀ j, impartial_aux (G.move_right j) :=
-by rw impartial_aux
-
-/-- A typeclass on impartial games. -/
-class impartial (G : pgame) : Prop := (out : impartial_aux G)
-
-lemma impartial_iff_aux {G : pgame} : G.impartial ↔ G.impartial_aux :=
-⟨λ h, h.1, λ h, ⟨h⟩⟩
-
-lemma impartial_def {G : pgame} : G.impartial ↔ G ≈ -G ∧
-  (∀ i, impartial (G.move_left i)) ∧ ∀ j, impartial (G.move_right j) :=
-by simpa only [impartial_iff_aux] using impartial_aux_def
 
 namespace impartial
 
-instance impartial_zero : impartial 0 :=
-by { rw impartial_def, dsimp, simp }
+theorem neg_equiv_self {x} (h : impartial x) : x ≈ -x :=
+by { rw impartial at h, exact h.1 }
 
-instance impartial_star : impartial star :=
-by { rw impartial_def, simpa using impartial.impartial_zero }
+theorem mk_neg_eq_self {x} (h : impartial x) : -⟦x⟧ = ⟦x⟧ :=
+quot.sound h.neg_equiv_self.symm
 
-lemma neg_equiv_self (G : pgame) [h : G.impartial] : G ≈ -G := (impartial_def.1 h).1
+theorem move_left {x} (h : impartial x) (i : x.left_moves) :
+  (x.move_left i).impartial :=
+by { rw impartial at h, exact h.2.1 i }
 
-@[simp] lemma mk_neg_equiv_self (G : pgame) [h : G.impartial] : -⟦G⟧ = ⟦G⟧ :=
-quot.sound (neg_equiv_self G).symm
+theorem move_right {x} (h : impartial x) (i : x.right_moves) :
+  (x.move_right i).impartial :=
+by { rw impartial at h, exact h.2.2 i }
 
-instance move_left_impartial {G : pgame} [h : G.impartial] (i : G.left_moves) :
-  (G.move_left i).impartial :=
-(impartial_def.1 h).2.1 i
+end impartial
 
-instance move_right_impartial {G : pgame} [h : G.impartial] (j : G.right_moves) :
-  (G.move_right j).impartial :=
-(impartial_def.1 h).2.2 j
+theorem impartial_zero : impartial 0 :=
+by { rw impartial, simp [is_empty.forall_iff] }
 
-theorem impartial_congr : ∀ {G H : pgame} (e : G ≡r H) [G.impartial], H.impartial
+theorem impartial_star : impartial star :=
+by { rw impartial, simpa using impartial_zero }
+
+namespace relabelling
+
+theorem impartial_imp : ∀ {G H : pgame} (e : G ≡r H) [G.impartial], H.impartial
 | G H e := begin
   introI h,
   rw impartial_def,
@@ -92,6 +87,8 @@ begin
       apply impartial_add } }
 end
 using_well_founded { dec_tac := pgame_wf_tac }
+
+end relabelling
 
 instance impartial_neg : ∀ (G : pgame) [G.impartial], (-G).impartial
 | G :=

@@ -45,15 +45,8 @@ namespace nat
 -- TODO move to padic_val.lean after #13576 merged
 lemma dvd_iff_padic_val_nat_ne_zero {p n : ℕ} [fact p.prime] (hn0 : n ≠ 0) :
   (p ∣ n) ↔ padic_val_nat p n ≠ 0 :=
-begin
-  split,
-  { intros h H,
-    have := one_le_padic_val_nat_of_dvd (nat.pos_of_ne_zero hn0) h,
-    linarith },
-  { intros h,
-    apply dvd_of_one_le_padic_val_nat,
-    exact one_le_iff_ne_zero.mpr h },
-end
+⟨λ h, one_le_iff_ne_zero.mp (one_le_padic_val_nat_of_dvd hn0.bot_lt h),
+ λ h, not_not.1 (mt padic_val_nat.eq_zero_of_not_dvd h)⟩
 
 /-- `n.factorization` is the finitely supported function `ℕ →₀ ℕ`
  mapping each prime factor of `n` to its multiplicity in `n`. -/

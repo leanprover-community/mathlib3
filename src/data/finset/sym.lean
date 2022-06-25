@@ -60,7 +60,7 @@ by rw [finset.sym2, nonempty.image_iff, nonempty_product, and_self]
 
 alias sym2_nonempty ↔ _ nonempty.sym2
 
-attribute [protected] finset.nonempty.sym2
+attribute [protected] nonempty.sym2
 
 @[simp] lemma sym2_univ [fintype α] : (univ : finset α).sym2 = univ := rfl
 
@@ -141,7 +141,7 @@ by simp_rw [nonempty_iff_ne_empty, ne.def, sym_eq_empty, not_and_distrib, not_ne
 
 alias sym2_nonempty ↔ _ nonempty.sym2
 
-attribute [protected] finset.nonempty.sym2
+attribute [protected] nonempty.sym2
 
 @[simp] lemma sym_univ [fintype α] (n : ℕ) : (univ : finset α).sym n = univ :=
 eq_univ_iff_forall.2 $ λ s, mem_sym_iff.2 $ λ a _, mem_univ _

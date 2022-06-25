@@ -147,7 +147,7 @@ def short_of_relabelling : Π {x y : pgame.{u}} (R : relabelling x y) (S : short
 begin
   resetI,
   haveI := fintype.of_equiv _ L,
-  haveI := fintype.of_equiv _ R,
+  haveI := fintype.of_equiv _ R.symm,
   exact short.mk'
     (λ i, by { rw ←(L.right_inv i), apply short_of_relabelling (rL (L.symm i)) infer_instance, })
     (λ j, short_of_relabelling (rR j) infer_instance)

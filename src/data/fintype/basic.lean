@@ -98,9 +98,7 @@ fintype.complete x
 lemma eq_univ_iff_forall : s = univ ↔ ∀ x, x ∈ s := by simp [ext_iff]
 lemma eq_univ_of_forall  : (∀ x, x ∈ s) → s = univ := eq_univ_iff_forall.2
 
-@[simp] lemma coe_univ : ↑(univ : finset α) = (set.univ : set α) :=
-by ext; simp
-
+@[simp, norm_cast] lemma coe_univ : ↑(univ : finset α) = (set.univ : set α) := by ext; simp
 @[simp, norm_cast] lemma coe_eq_univ : (s : set α) = set.univ ↔ s = univ :=
 by rw [←coe_univ, coe_inj]
 

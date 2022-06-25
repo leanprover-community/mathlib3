@@ -9,7 +9,6 @@ import ring_theory.int.basic
 import tactic.basic
 import tactic.ring_exp
 import number_theory.divisors
-import data.nat.factorization.basic
 
 /-!
 # p-adic Valuation

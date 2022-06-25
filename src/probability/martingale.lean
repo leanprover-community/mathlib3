@@ -412,13 +412,6 @@ section maximal
 
 open finset
 
-lemma measurable_range_sup' {f : ℕ → α → ℝ} (hf : ∀ n, measurable[m0] (f n)) (n : ℕ) :
-  measurable (λ x, (range (n + 1)).sup' nonempty_range_succ (λ k, f k x)) :=
-begin
-  sorry
-end
--- measurable_csupr_real (set.finite_le_nat n) hf
-
 -- We use the spelling `⨆ x : {x // p x}, f x` because it behaves better than
 -- `⨆ x (h : p x), f x` in the case `f` is `ℝ`-valued. The two spellings are equal when `f` is
 -- non-negative.
@@ -438,8 +431,9 @@ begin
     refine stopped_value_hitting_mem _,
     simp only [set.mem_set_of_eq, exists_prop, hn],
     exact let ⟨j, hj₁, hj₂⟩ := hx in ⟨j, hj₁, hj₂⟩ },
-  have h := set_integral_const_le (measurable_set_le measurable_const (measurable_range_sup'
-    (λ n, (hsub.strongly_measurable n).measurable.le (𝒢.le n)) _)) (measure_ne_top _ _) this
+  have h := set_integral_const_le (measurable_set_le measurable_const
+    (finset.measurable_range_sup'' (λ n _, (hsub.strongly_measurable n).measurable.le (𝒢.le n))))
+    (measure_ne_top _ _) this
     (integrable.integrable_on (integrable_stopped_value (hitting_is_stopping_time
      hsub.adapted measurable_set_Ici) hsub.integrable hitting_le)),
   rw [ennreal.le_of_real_iff_to_real_le, ennreal.to_real_smul],
@@ -476,8 +470,8 @@ begin
         simp only [le_or_lt, true_iff] },
       { rintro x ⟨hx₁ : _ ≤ _, hx₂ : _ < _⟩,
         exact (not_le.2 hx₂) hx₁ },
-      { exact (measurable_set_lt (measurable_range_sup'
-          (λ n, (hsub.strongly_measurable n).measurable.le (𝒢.le n)) _) measurable_const) },
+      { exact (measurable_set_lt (finset.measurable_range_sup''
+          (λ n _, (hsub.strongly_measurable n).measurable.le (𝒢.le n))) measurable_const) },
       exacts [(hsub.integrable _).integrable_on, (hsub.integrable _).integrable_on,
         integral_nonneg (hnonneg _), integral_nonneg (hnonneg _)] },
     rwa [hadd, ennreal.add_le_add_iff_right ennreal.of_real_ne_top] at this },
@@ -493,8 +487,8 @@ begin
         (ennreal.of_real_le_of_real (set_integral_mono_on (hsub.integrable n).integrable_on
         (integrable.integrable_on (integrable_stopped_value
           (hitting_is_stopping_time hsub.adapted measurable_set_Ici) hsub.integrable hitting_le))
-        (measurable_set_lt (measurable_range_sup'
-          (λ n, (hsub.strongly_measurable n).measurable.le (𝒢.le n)) _) measurable_const) _)),
+        (measurable_set_lt (finset.measurable_range_sup''
+          (λ n _, (hsub.strongly_measurable n).measurable.le (𝒢.le n))) measurable_const) _)),
       intros x hx,
       rw set.mem_set_of_eq at hx,
       have : hitting f {y : ℝ | ↑ε ≤ y} 0 n x = n,
@@ -515,8 +509,8 @@ begin
         simp only [le_or_lt, iff_true] },
       { rintro x ⟨hx₁ : _ ≤ _, hx₂ : _ < _⟩,
         exact (not_le.2 hx₂) hx₁ },
-      { exact (measurable_set_lt (measurable_range_sup'
-          (λ n, (hsub.strongly_measurable n).measurable.le (𝒢.le n)) _) measurable_const) },
+      { exact (measurable_set_lt (finset.measurable_range_sup''
+          (λ n _, (hsub.strongly_measurable n).measurable.le (𝒢.le n))) measurable_const) },
       { exact (integrable.integrable_on (integrable_stopped_value
           (hitting_is_stopping_time hsub.adapted measurable_set_Ici) hsub.integrable hitting_le)) },
       { exact (integrable.integrable_on (integrable_stopped_value

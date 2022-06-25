@@ -1292,6 +1292,37 @@ measurable_limsup' hf at_top_countable_basis (λ i, countable_encodable _)
 
 end complete_linear_order
 
+section semilattice_sup
+
+open finset
+
+variables {α' : Type*} [measurable_space α'] [semilattice_sup α'] [has_measurable_sup₂ α']
+
+lemma _root_.finset.measurable_sup' {ι : Type*} {s : finset ι} (hs : s.nonempty)
+  {f : ι → δ → α'} (hf : ∀ n ∈ s, measurable (f n)) :
+  measurable (s.sup' hs f) :=
+finset.sup'_induction hs _ (λ f hf g hg, hf.sup hg) (λ n hn, hf n hn)
+
+lemma _root_.finset.measurable_range_sup'
+  {f : ℕ → δ → α'} {n : ℕ} (hf : ∀ k ≤ n, measurable (f k)) :
+  measurable ((range (n + 1)).sup' nonempty_range_succ f) :=
+begin
+  simp_rw ← nat.lt_succ_iff at hf,
+  refine finset.measurable_sup' _ _,
+  simpa [finset.mem_range],
+end
+
+lemma _root_.finset.measurable_range_sup''
+  {f : ℕ → δ → α'} {n : ℕ} (hf : ∀ k ≤ n, measurable (f k)) :
+  measurable (λ x, (range (n + 1)).sup' nonempty_range_succ (λ k, f k x)) :=
+begin
+  convert finset.measurable_range_sup' hf,
+  ext x,
+  simp,
+end
+
+end semilattice_sup
+
 section conditionally_complete_linear_order
 
 variables [conditionally_complete_linear_order α] [order_topology α] [second_countable_topology α]
@@ -1306,12 +1337,6 @@ begin
     simp_rw [preimage, mem_Iic, cSup_le_iff (bdd _) (h2s.image _), ball_image_iff, set_of_forall],
     exact measurable_set.bInter hs (λ i hi, measurable_set_le (hf i) measurable_const) }
 end
-
-lemma _root_.finset.measurable_sup' {ι α' : Type*}
-  [measurable_space α'] [semilattice_sup α'] [has_measurable_sup₂ α']
-  {s : finset ι} (hs : s.nonempty) {f : ι → δ → α'} (hf : ∀ n ∈ s , measurable (f n)) :
-  measurable (s.sup' hs f) :=
-finset.sup'_induction hs _ (λ f hf g hg, hf.sup hg) (λ n hn, hf n hn)
 
 lemma _root_.finset.supr_subtype_eq_sup' {α β γ : Type*} [conditionally_complete_linear_order γ]
   {p : α → Prop} (hp : {x | p x}.finite) (hemp : {y | p y}.nonempty) {f : α → β → γ} (x : β) :

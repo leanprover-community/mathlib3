@@ -103,7 +103,16 @@ by rw [abs_eq_nat_abs, sign_mul_nat_abs]
 @[simp] lemma default_eq_zero : default = (0 : ℤ) := rfl
 
 meta instance : has_to_format ℤ := ⟨λ z, to_string z⟩
-meta instance : has_reflect ℤ := by tactic.mk_has_reflect_instance
+
+section
+-- Note that here we are disabling the "safety" of reflected, to allow us to reuse `int.mk_numeral`.
+-- The usual way to provide the required `reflected` instance would be via rewriting to prove that
+-- the expression we use here is equivalent.
+local attribute [semireducible] reflected
+meta instance reflect : has_reflect ℤ :=
+int.mk_numeral `(ℤ) `(by apply_instance : has_zero ℤ) `(by apply_instance : has_one ℤ)
+                    `(by apply_instance : has_add ℤ) `(by apply_instance : has_neg ℤ)
+end
 
 attribute [simp] int.coe_nat_add int.coe_nat_mul int.coe_nat_zero int.coe_nat_one int.coe_nat_succ
 attribute [simp] int.of_nat_eq_coe int.bodd
@@ -221,7 +230,7 @@ le_sub_iff_add_le
   λ a0, (abs_eq_zero.mpr a0).le.trans_lt zero_lt_one⟩
 
 lemma abs_le_one_iff {a : ℤ} : |a| ≤ 1 ↔ a = 0 ∨ a = 1 ∨ a = -1 :=
-by rw [le_iff_lt_or_eq, abs_lt_one_iff, abs_eq (@zero_le_one ℤ _)]
+by rw [le_iff_lt_or_eq, abs_lt_one_iff, abs_eq (zero_le_one' ℤ)]
 
 lemma one_le_abs {z : ℤ} (h₀: z ≠ 0) : 1 ≤ |z| :=
 add_one_le_iff.mpr (abs_pos.mpr h₀)
@@ -1315,6 +1324,13 @@ begin
   { exact is_unit_one.neg }
 end
 
+lemma is_unit_eq_or_eq_neg {a b : ℤ} (ha : is_unit a) (hb : is_unit b) : a = b ∨ a = -b :=
+begin
+  rcases is_unit_eq_one_or hb with rfl | rfl,
+  { exact is_unit_eq_one_or ha },
+  { rwa [or_comm, neg_neg, ←is_unit_iff] },
+end
+
 lemma eq_one_or_neg_one_of_mul_eq_one {z w : ℤ} (h : z * w = 1) : z = 1 ∨ z = -1 :=
 is_unit_iff.mp (is_unit_of_mul_eq_one z w h)
 
@@ -1329,6 +1345,8 @@ end
 
 theorem is_unit_iff_nat_abs_eq {n : ℤ} : is_unit n ↔ n.nat_abs = 1 :=
 by simp [nat_abs_eq_iff, is_unit_iff]
+
+alias is_unit_iff_nat_abs_eq ↔ is_unit.nat_abs_eq _
 
 lemma is_unit_iff_abs_eq {x : ℤ} : is_unit x ↔ abs x = 1 :=
 by rw [is_unit_iff_nat_abs_eq, abs_eq_nat_abs, ←int.coe_nat_one, coe_nat_inj']
@@ -1358,6 +1376,16 @@ by rw [←units.coe_mul, units_mul_self, units.coe_one]
 
 @[simp] lemma neg_one_pow_ne_zero {n : ℕ} : (-1 : ℤ)^n ≠ 0 :=
 pow_ne_zero _ (abs_pos.mp trivial)
+
+lemma is_unit_add_is_unit_eq_is_unit_add_is_unit {a b c d : ℤ}
+  (ha : is_unit a) (hb : is_unit b) (hc : is_unit c) (hd : is_unit d) :
+  a + b = c + d ↔ a = c ∧ b = d ∨ a = d ∧ b = c :=
+begin
+  rw is_unit_iff at ha hb hc hd,
+  cases ha; cases hb; cases hc; cases hd;
+  subst ha; subst hb; subst hc; subst hd;
+  tidy,
+end
 
 /-! ### bitwise ops -/
 
@@ -1603,6 +1631,13 @@ begin
   rw [←abs_lt_one_iff, ←mul_lt_iff_lt_one_right (abs_pos.mpr hm), ←abs_mul],
   exact lt_of_lt_of_le h2 (le_abs_self m),
 end
+
+lemma sq_eq_one_of_sq_lt_four {x : ℤ} (h1 : x ^ 2 < 4) (h2 : x ≠ 0) : x ^ 2 = 1 :=
+sq_eq_one_iff.mpr ((abs_eq (zero_le_one' ℤ)).mp (le_antisymm (lt_add_one_iff.mp
+  (abs_lt_of_sq_lt_sq h1 zero_le_two)) (sub_one_lt_iff.mp (abs_pos.mpr h2))))
+
+lemma sq_eq_one_of_sq_le_three {x : ℤ} (h1 : x ^ 2 ≤ 3) (h2 : x ≠ 0) : x ^ 2 = 1 :=
+sq_eq_one_of_sq_lt_four (lt_of_le_of_lt h1 (lt_add_one 3)) h2
 
 end int
 

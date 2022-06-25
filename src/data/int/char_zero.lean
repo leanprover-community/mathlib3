@@ -3,11 +3,11 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.int.cast
 import algebra.char_zero
+import data.int.cast_field
 
 /-!
-# Injectivity of `int.cast` into characteristic zero rings.
+# Injectivity of `int.cast` into characteristic zero rings and fields.
 
 -/
 
@@ -46,6 +46,6 @@ end
 
 end int
 
-lemma ring_hom.injective_int {α : Type*} [ring α] (f : ℤ →+* α) [char_zero α] :
+lemma ring_hom.injective_int {α : Type*} [non_assoc_ring α] (f : ℤ →+* α) [char_zero α] :
   function.injective f :=
 subsingleton.elim (int.cast_ring_hom _) f ▸ int.cast_injective

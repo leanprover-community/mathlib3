@@ -146,7 +146,7 @@ end
 
 /- TODO: Once there is sufficient API for bornology, we should get a nice filter / asymptotics
 version of this, for example: `tendsto (resolvent a) (cobounded 𝕜) (𝓝 0)` or more specifically
-`is_O (resolvent a) (λ z, z⁻¹) (cobounded 𝕜)`. -/
+`(resolvent a) =O[cobounded 𝕜] (λ z, z⁻¹)`. -/
 lemma norm_resolvent_le_forall (a : A) :
   ∀ ε > 0, ∃ R > 0, ∀ z : 𝕜, R ≤ ∥z∥ → ∥resolvent a z∥ ≤ ε :=
 begin
@@ -163,7 +163,7 @@ begin
   replace hz := inv_le_of_inv_le min_pos hz,
   rcases (⟨units.mk0 z hnz, units.coe_mk0 hnz⟩ : is_unit z) with ⟨z, rfl⟩,
   have lt_δ : ∥z⁻¹ • a∥ < δ,
-  { rw [units.smul_def, norm_smul, units.coe_inv', norm_inv],
+  { rw [units.smul_def, norm_smul, units.coe_inv, norm_inv],
     calc ∥(z : 𝕜)∥⁻¹ * ∥a∥ ≤ δ * (∥a∥ + 1)⁻¹ * ∥a∥
         : mul_le_mul_of_nonneg_right (hz.trans (min_le_left _ _)) (norm_nonneg _)
     ...                   < δ
@@ -171,7 +171,7 @@ begin
                exact mul_lt_mul_of_pos_left
                  ((inv_mul_lt_iff ha₁).mpr ((mul_one (∥a∥ + 1)).symm ▸ (lt_add_one _))) δ_pos } },
   rw [←inv_smul_smul z (resolvent a (z : 𝕜)), units_smul_resolvent_self, resolvent,
-    algebra.algebra_map_eq_smul_one, one_smul, units.smul_def, norm_smul, units.coe_inv', norm_inv],
+    algebra.algebra_map_eq_smul_one, one_smul, units.smul_def, norm_smul, units.coe_inv, norm_inv],
   calc _ ≤ ε * c⁻¹ * c : mul_le_mul (hz.trans (min_le_right _ _)) (hδ (mem_ball_zero_iff.mpr lt_δ))
                            (norm_nonneg _) (mul_pos hε (inv_pos.mpr c_pos)).le
   ...    = _           : inv_mul_cancel_right₀ c_pos.ne.symm ε,
@@ -232,7 +232,7 @@ begin
     { rwa [is_unit.smul_sub_iff_sub_inv_smul, inv_inv u] at hu },
     { rw [units.smul_def, ←algebra.algebra_map_eq_smul_one, ←mem_resolvent_set_iff],
       refine mem_resolvent_set_of_spectral_radius_lt _,
-      rwa [units.coe_inv', nnnorm_inv, coe_inv (nnnorm_ne_zero_iff.mpr
+      rwa [units.coe_inv, nnnorm_inv, coe_inv (nnnorm_ne_zero_iff.mpr
         (units.coe_mk0 hz ▸ hz : (u : 𝕜) ≠ 0)), lt_inv_iff_lt_inv] } }
 end
 

@@ -103,9 +103,41 @@ instance has_repr : Π (n : ℕ), has_repr (zmod n)
 | 0     := int.has_repr
 | (n+1) := fin.has_repr _
 
-instance comm_ring : Π (n : ℕ), comm_ring (zmod n)
-| 0     := int.comm_ring
-| (n+1) := fin.comm_ring n
+/- We define each field by cases, to ensure that the eta-expanded `zmod.comm_ring` is defeq to the
+original, this helps avoid diamonds with instances coming from classes extending `comm_ring` such as
+field. -/
+instance comm_ring (n : ℕ) : comm_ring (zmod n) :=
+{ add := nat.cases_on n ((@has_add.add) int _) (λ n, @has_add.add (fin n.succ) _),
+  add_assoc := nat.cases_on n (@add_assoc int _) (λ n, @add_assoc (fin n.succ) _),
+  zero := nat.cases_on n (0 : int) (λ n, (0 : fin n.succ)),
+  zero_add := nat.cases_on n (@zero_add int _) (λ n, @zero_add (fin n.succ) _),
+  add_zero := nat.cases_on n (@add_zero int _) (λ n, @add_zero (fin n.succ) _),
+  neg := nat.cases_on n ((@has_neg.neg) int _) (λ n, @has_neg.neg (fin n.succ) _),
+  sub := nat.cases_on n ((@has_sub.sub) int _) (λ n, @has_sub.sub (fin n.succ) _),
+  sub_eq_add_neg := nat.cases_on n (@sub_eq_add_neg int _) (λ n, @sub_eq_add_neg (fin n.succ) _),
+  zsmul := nat.cases_on n ((@comm_ring.zsmul) int _) (λ n, @comm_ring.zsmul (fin n.succ) _),
+  zsmul_zero' := nat.cases_on n (@comm_ring.zsmul_zero' int _)
+    (λ n, @comm_ring.zsmul_zero' (fin n.succ) _),
+  zsmul_succ' := nat.cases_on n (@comm_ring.zsmul_succ' int _)
+    (λ n, @comm_ring.zsmul_succ' (fin n.succ) _),
+  zsmul_neg' := nat.cases_on n (@comm_ring.zsmul_neg' int _)
+    (λ n, @comm_ring.zsmul_neg' (fin n.succ) _),
+  nsmul := nat.cases_on n ((@comm_ring.nsmul) int _) (λ n, @comm_ring.nsmul (fin n.succ) _),
+  nsmul_zero' := nat.cases_on n (@comm_ring.nsmul_zero' int _)
+    (λ n, @comm_ring.nsmul_zero' (fin n.succ) _),
+  nsmul_succ' := nat.cases_on n (@comm_ring.nsmul_succ' int _)
+    (λ n, @comm_ring.nsmul_succ' (fin n.succ) _),
+  add_left_neg := by { cases n, exacts [@add_left_neg int _, @add_left_neg (fin n.succ) _] },
+  add_comm := nat.cases_on n (@add_comm int _) (λ n, @add_comm (fin n.succ) _),
+  mul := nat.cases_on n ((@has_mul.mul) int _) (λ n, @has_mul.mul (fin n.succ) _),
+  mul_assoc := nat.cases_on n (@mul_assoc int _) (λ n, @mul_assoc (fin n.succ) _),
+  one := nat.cases_on n (1 : int) (λ n, (1 : fin n.succ)),
+  one_mul := nat.cases_on n (@one_mul int _) (λ n, @one_mul (fin n.succ) _),
+  mul_one := nat.cases_on n (@mul_one int _) (λ n, @mul_one (fin n.succ) _),
+  left_distrib := nat.cases_on n (@left_distrib int _ _ _) (λ n, @left_distrib (fin n.succ) _ _ _),
+  right_distrib :=
+    nat.cases_on n (@right_distrib int _ _ _) (λ n, @right_distrib (fin n.succ) _ _ _),
+  mul_comm := nat.cases_on n (@mul_comm int _) (λ n, @mul_comm (fin n.succ) _) }
 
 instance inhabited (n : ℕ) : inhabited (zmod n) := ⟨0⟩
 
@@ -405,6 +437,23 @@ end
 of characteristic `n` and cardinality `n`. -/
 noncomputable def ring_equiv [fintype R] (h : fintype.card R = n) : zmod n ≃+* R :=
 ring_equiv.of_bijective _ (zmod.cast_hom_bijective R h)
+
+/-- The identity between `zmod m` and `zmod n` when `m = n`, as a ring isomorphism. -/
+def ring_equiv_congr {m n : ℕ} (h : m = n) : zmod m ≃+* zmod n :=
+begin
+  cases m; cases n,
+  { exact ring_equiv.refl _ },
+  { exfalso, exact n.succ_ne_zero h.symm },
+  { exfalso, exact m.succ_ne_zero h },
+  { exact
+    { map_mul' := λ a b, begin
+        rw [order_iso.to_fun_eq_coe], ext,
+        rw [fin.coe_cast, fin.coe_mul, fin.coe_mul, fin.coe_cast, fin.coe_cast, ← h] end,
+      map_add' := λ a b, begin
+        rw [order_iso.to_fun_eq_coe], ext,
+        rw [fin.coe_cast, fin.coe_add, fin.coe_add, fin.coe_cast, fin.coe_cast, ← h] end,
+      ..fin.cast h } }
+end
 
 end char_eq
 

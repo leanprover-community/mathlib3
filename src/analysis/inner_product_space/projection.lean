@@ -1078,13 +1078,13 @@ begin
       have : e ≠ 0 := hv.ne_zero ⟨e, hev⟩,
       contradiction },
     -- put this together with `v` to provide a candidate orthonormal basis for the whole space
-    refine ⟨v.insert e, v.subset_insert e, ⟨_, _⟩, (v.ne_insert_of_not_mem he'').symm⟩,
-    { -- show that the elements of `v.insert e` have unit length
+    refine ⟨insert e v, v.subset_insert e, ⟨_, _⟩, (v.ne_insert_of_not_mem he'').symm⟩,
+    { -- show that the elements of `insert e v` have unit length
       rintros ⟨a, ha'⟩,
       cases eq_or_mem_of_mem_insert ha' with ha ha,
       { simp [ha, he] },
       { exact hv.1 ⟨a, ha⟩ } },
-    { -- show that the elements of `v.insert e` are orthogonal
+    { -- show that the elements of `insert e v` are orthogonal
       have h_end : ∀ a ∈ v, ⟪a, e⟫ = 0,
       { intros a ha,
         exact he' a (submodule.subset_span ha) },

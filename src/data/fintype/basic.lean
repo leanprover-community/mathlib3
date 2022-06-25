@@ -68,6 +68,7 @@ along with some machinery
   See `infinite.of_injective` and `infinite.of_surjective`.
 -/
 
+open function
 open_locale nat
 
 universes u v
@@ -83,7 +84,7 @@ class fintype (α : Type*) :=
 (complete : ∀ x : α, x ∈ elems)
 
 namespace finset
-variable [fintype α]
+variables [fintype α] {s : finset α}
 
 /-- `univ` is the universal finite set of type `finset α` implied from
   the assumption `fintype α`. -/
@@ -94,10 +95,14 @@ fintype.complete x
 
 @[simp] theorem mem_univ_val : ∀ x, x ∈ (univ : finset α).1 := mem_univ
 
-lemma eq_univ_iff_forall {s : finset α} : s = univ ↔ ∀ x, x ∈ s := by simp [ext_iff]
+lemma eq_univ_iff_forall : s = univ ↔ ∀ x, x ∈ s := by simp [ext_iff]
+lemma eq_univ_of_forall  : (∀ x, x ∈ s) → s = univ := eq_univ_iff_forall.2
 
 @[simp] lemma coe_univ : ↑(univ : finset α) = (set.univ : set α) :=
 by ext; simp
+
+@[simp, norm_cast] lemma coe_eq_univ : (s : set α) = set.univ ↔ s = univ :=
+by rw [←coe_univ, coe_inj]
 
 lemma univ_nonempty_iff : (univ : finset α).nonempty ↔ nonempty α :=
 by rw [← coe_nonempty, coe_univ, set.nonempty_iff_univ_nonempty]
@@ -120,7 +125,7 @@ instance : order_top (finset α) :=
   le_top := subset_univ }
 
 section boolean_algebra
-variables [decidable_eq α] {s : finset α} {a : α}
+variables [decidable_eq α] {a : α}
 
 instance : boolean_algebra (finset α) :=
 { compl := λ s, univ \ s,
@@ -172,7 +177,16 @@ by rw [compl_eq_univ_sdiff, sdiff_singleton_eq_erase]
 lemma insert_inj_on' (s : finset α) : set.inj_on (λ a, insert a s) (sᶜ : finset α) :=
 by { rw coe_compl, exact s.insert_inj_on }
 
+lemma image_univ_of_surjective [fintype β] {f : β → α} (hf : surjective f) : univ.image f = univ :=
+eq_univ_of_forall $ hf.forall.2 $ λ _, mem_image_of_mem _ $ mem_univ _
+
 end boolean_algebra
+
+lemma map_univ_of_surjective [fintype β] {f : β ↪ α} (hf : surjective f) : univ.map f = univ :=
+eq_univ_of_forall $ hf.forall.2 $ λ _, mem_map_of_mem _ $ mem_univ _
+
+@[simp] lemma map_univ_equiv [fintype β] (f : β ≃ α) : univ.map f.to_embedding = univ :=
+map_univ_of_surjective f.surjective
 
 @[simp] lemma univ_inter [decidable_eq α] (s : finset α) :
   univ ∩ s = s := ext $ λ a, by simp
@@ -672,7 +686,7 @@ by simp only [finset.ssubset_def, to_finset_mono, ssubset_def]
 
 @[simp] theorem to_finset_disjoint_iff [decidable_eq α] {s t : set α} [fintype s] [fintype t] :
   disjoint s.to_finset t.to_finset ↔ disjoint s t :=
-by simp only [disjoint_iff_disjoint_coe, coe_to_finset]
+by simp only [←disjoint_coe, coe_to_finset]
 
 lemma to_finset_inter {α : Type*} [decidable_eq α] (s t : set α) [fintype (s ∩ t : set α)]
   [fintype s] [fintype t] : (s ∩ t).to_finset = s.to_finset ∩ t.to_finset :=
@@ -720,6 +734,10 @@ lemma filter_mem_univ_eq_to_finset [fintype α] (s : set α) [fintype s] [decida
 by { ext, simp only [mem_filter, finset.mem_univ, true_and, mem_to_finset] }
 
 end set
+
+@[simp] lemma finset.to_finset_coe (s : finset α) [fintype ↥(s : set α)] :
+  (s : set α).to_finset = s :=
+ext $ λ _, set.mem_to_finset
 
 lemma finset.card_univ [fintype α] : (finset.univ : finset α).card = fintype.card α :=
 rfl
@@ -1310,6 +1328,20 @@ by rw [←e.equiv_of_fintype_self_embedding_to_embedding, univ_map_equiv_to_embe
 
 namespace fintype
 
+/-- Given `fintype α`, `finset_equiv_set` is the equiv between `finset α` and `set α`. (All
+sets on a finite type are finite.) -/
+noncomputable def finset_equiv_set [fintype α] : finset α ≃ set α :=
+{ to_fun := coe,
+  inv_fun := by { classical, exact λ s, s.to_finset },
+  left_inv := λ s, by convert finset.to_finset_coe s,
+  right_inv := λ s, s.coe_to_finset }
+
+@[simp] lemma finset_equiv_set_apply [fintype α] (s : finset α) : finset_equiv_set s = s := rfl
+
+@[simp] lemma finset_equiv_set_symm_apply [fintype α] (s : set α) [fintype s] :
+  finset_equiv_set.symm s = s.to_finset :=
+by convert rfl
+
 lemma card_lt_of_surjective_not_injective [fintype α] [fintype β] (f : α → β)
   (h : function.surjective f) (h' : ¬function.injective f) : card β < card α :=
 card_lt_of_injective_not_surjective _ (function.injective_surj_inv h) $ λ hg,
@@ -1455,6 +1487,11 @@ begin
       fintype.card_of_subtype (set.to_finset p)];
   intro; simp only [set.mem_to_finset, set.mem_compl_eq]; refl,
 end
+
+theorem card_subtype_mono (p q : α → Prop) (h : p ≤ q)
+  [fintype {x // p x}] [fintype {x // q x}] :
+  fintype.card {x // p x} ≤ fintype.card {x // q x} :=
+fintype.card_le_of_embedding (subtype.imp_embedding _ _ h)
 
 /-- If two subtypes of a fintype have equal cardinality, so do their complements. -/
 lemma fintype.card_compl_eq_card_compl [fintype α]

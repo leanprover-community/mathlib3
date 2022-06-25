@@ -144,11 +144,6 @@ begin
   apply bit1_ne_zero
 end
 
-@[simp, norm_cast] lemma units.coe_zpow₀ (u : G₀ˣ) :
-  ∀ (n : ℤ), ((u ^ n : G₀ˣ) : G₀) = u ^ n
-| (n : ℕ) := by { rw [zpow_coe_nat, zpow_coe_nat], exact u.coe_pow n }
-| -[1+k] := by rw [zpow_neg_succ_of_nat, zpow_neg_succ_of_nat, units.coe_inv', u.coe_pow]
-
 lemma zpow_ne_zero_of_ne_zero {a : G₀} (ha : a ≠ 0) : ∀ (z : ℤ), a ^ z ≠ 0
 | (n : ℕ) := by { rw zpow_coe_nat, exact pow_ne_zero _ ha }
 | -[1+n]  := by { rw zpow_neg_succ_of_nat, exact inv_ne_zero (pow_ne_zero _ ha) }
@@ -204,19 +199,3 @@ lemma monoid_with_zero_hom.map_zpow {G₀ G₀' : Type*} [group_with_zero G₀] 
     rw [zpow_neg_succ_of_nat, zpow_neg_succ_of_nat],
     exact ((f.map_inv _).trans $ congr_arg _ $ f.to_monoid_hom.map_pow x _)
   end
-
--- I haven't been able to find a better home for this:
--- it belongs with other lemmas on `linear_ordered_field`, but
--- we need to wait until `zpow` has been defined in this file.
-section
-variables {R : Type*} [linear_ordered_field R] {a : R}
-
-lemma pow_minus_two_nonneg : 0 ≤ a^(-2 : ℤ) :=
-begin
-  simp only [inv_nonneg, zpow_neg],
-  change 0 ≤ a ^ ((2 : ℕ) : ℤ),
-  rw zpow_coe_nat,
-  apply sq_nonneg,
-end
-
-end

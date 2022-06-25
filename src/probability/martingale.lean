@@ -412,10 +412,6 @@ section maximal
 
 open finset
 
--- We use the spelling `⨆ x : {x // p x}, f x` because it behaves better than
--- `⨆ x (h : p x), f x` in the case `f` is `ℝ`-valued. The two spellings are equal when `f` is
--- non-negative.
-
 lemma smul_le_stopped_value_hitting [is_finite_measure μ]
   {f : ℕ → α → ℝ} (hsub : submartingale f 𝒢 μ) {ε : ℝ≥0} (n : ℕ) :
   ε • μ {x | (ε : ℝ) ≤ (range (n + 1)).sup' nonempty_range_succ (λ k, f k x)} ≤
@@ -450,8 +446,7 @@ In some literature, the Doob's maximal inequality refers to what we call Doob's 
 lemma maximal_ineq [is_finite_measure μ]
   {f : ℕ → α → ℝ} (hsub : submartingale f 𝒢 μ) (hnonneg : 0 ≤ f) {ε : ℝ≥0} (n : ℕ) :
   ε • μ {x | (ε : ℝ) ≤ (range (n + 1)).sup' nonempty_range_succ (λ k, f k x)} ≤
-  ennreal.of_real (∫ x in
-    {x | (ε : ℝ) ≤ (range (n + 1)).sup' nonempty_range_succ (λ k, f k x)},
+  ennreal.of_real (∫ x in {x | (ε : ℝ) ≤ (range (n + 1)).sup' nonempty_range_succ (λ k, f k x)},
     f n x ∂μ) :=
 begin
   suffices : ε • μ {x | (ε : ℝ) ≤ (range (n + 1)).sup' nonempty_range_succ (λ k, f k x)} +
